@@ -29,6 +29,9 @@ jobs:
       - name: Build project
         run: lake build
 
+      - name: Install doc-gen4
+        run: lake -R -Kenv=dev update «doc-gen4»
+
       - name: Build doc-gen4 docs
         run: lake -R -Kenv=dev build CLRSLean:docs
 
