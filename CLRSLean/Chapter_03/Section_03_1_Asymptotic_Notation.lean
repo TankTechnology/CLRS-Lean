@@ -80,7 +80,7 @@ theorem isBigOmega_iff (f g : ℕ → ℝ) : isBigOmega f g ↔
   --   ∃ c>0, n₀, ∀ n≥n₀, c * |g n| ≤ |f n|
   -- by exchanging c ↔ c⁻¹.
   have h_base := isBigO_iff g f
-  rw [show isBigOmega f g ↔ isBigO g f from by rfl]
+  -- isBigOmega f g = isBigO g f definitionally
   -- Now the goal is: isBigO g f ↔ ∃ c>0, n₀, ∀ n≥n₀, c * |g n| ≤ |f n|
   -- But h_base says: isBigO g f ↔ ∃ c>0, n₀, ∀ n≥n₀, |g n| ≤ c * |f n|
   -- So it suffices to show the two RHSs are equivalent.
@@ -117,7 +117,7 @@ theorem isLittleOmega_iff (f g : ℕ → ℝ) : isLittleOmega f g ↔
   -- We need to show the RHS is equivalent to ∀ c>0, c * |g n| ≤ |f n|
   -- via exchanging c ↔ c⁻¹.
   have h_base := isLittleO_iff g f
-  rw [show isLittleOmega f g ↔ isLittleO g f from by rfl]
+  -- isLittleOmega f g = isLittleO g f definitionally
   constructor
   · intro h_o c hc
     have hc_inv_pos : c⁻¹ > 0 := inv_pos.mpr hc

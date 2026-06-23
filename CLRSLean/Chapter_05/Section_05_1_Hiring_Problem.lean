@@ -1,6 +1,8 @@
-import Mathlib.Tactic
+import Mathlib
 
 open Finset
+open Filter
+open Asymptotics
 
 /-!
 # 5.1. The Hiring Problem
@@ -139,50 +141,65 @@ lemma harmonic_le_one_add_log {n : ℕ} (hn : 1 ≤ n) : harmonic n ≤ 1 + Real
           Real.log (((k : ℝ) + 2) / ((k : ℝ) + 1)) := by gcongr
       _ = 1 + Real.log ((Nat.succ n : ℝ)) := by rw [h_telescope]
 
-/-- `H_n = Θ(log n)`.  Follows from `log(n+1) ≤ H_n ≤ 1 + log n`. -/
+/-- `H_n = Θ(log n)`.  Upper bound by induction with C=2; lower bound via `harmonic_ge_log_succ`. -/
 theorem harmonic_isBigTheta_log :
-    isBigO (fun n : ℕ => harmonic n) (fun n : ℕ => Real.log ((n : ℝ) + 1)) := by
-  -- Use the Chapter 3 isBigO/isBigOmega framework
-  refine ⟨?_, ?_⟩
-  · -- Upper bound: H_n ≤ C·log(n+1)
-    -- For n=0: H_0=0 ≤ C·log 1 = 0, any C works
-    -- For n≥1: H_n ≤ 1+log n ≤ 2·log(n+1) (since 1 ≤ log(n+1) for n≥2)
-    -- For n=1: H_1=1 ≤ 2·log 2 ≈ 1.38, OK with C=2
-    -- So take C=2, all n
-    have h_bound : ∀ n : ℕ, harmonic n ≤ 2 * Real.log ((n : ℝ) + 1) := by
-      intro n
-      by_cases hn0 : n = 0
-      · subst n; simp
-      · have hn1 : 1 ≤ n := Nat.one_le_of_lt (Nat.pos_of_ne_zero hn0)
-        have h := harmonic_le_one_add_log hn1
-        -- H_n ≤ 1 + log n ≤ 2·log(n+1)  (for n ≥ 1)
-        -- Check: for n=1: log 2 ≈ 0.693, 2·log 2 ≈ 1.386, H_1 = 1.
-        -- For n≥2: log(n+1) ≥ log 3 > 1, so 1 ≤ log(n+1), 1+log n ≤ 2·log(n+1).
-        by_cases hn2 : n < 2
-        · -- n=1
-          have hn_eq_1 : n = 1 := by omega
-          subst hn_eq_1; norm_num [harmonic]
-          nlinarith [Real.log_pos (by norm_num : (1 : ℝ) < 2)]
-        · -- n ≥ 2
-          have h_log_gt_1 : 1 < Real.log ((n : ℝ) + 1) := by
-            refine Real.one_lt_log ?_ (by norm_num : (1 : ℝ) < (n : ℝ) + 1)
-            exact by norm_num
+    isBigTheta (fun n : ℕ => harmonic n) (fun n : ℕ => Real.log ((n : ℝ) + 1)) := by
+  have h_upper : ∀ n : ℕ, harmonic n ≤ 2 * Real.log ((n : ℝ) + 1) := by
+    -- Prove by induction using the recurrence and log(1+x) ≥ x/2 for x≤1
+    intro n
+    induction' n with n IH
+    · simp
+    · rw [harmonic_succ (n+1)]
+      -- harmonic(n+1) = harmonic n + 1/(n+1)
+      -- ≤ 2·log(n+1) + 1/(n+1)  (by IH)
+      -- ≤ 2·log(n+1) + 2·log(1 + 1/(n+1)) = 2·log((n+1)·(1+1/(n+1))) = 2·log(n+2)
+      -- The middle inequality uses x/2 ≤ log(1+x) for x = 1/(n+1) ≤ 1.
+      -- We proved x/(1+x) ≤ log(1+x).  For x ≤ 1: x/2 ≤ x/(1+x) ≤ log(1+x).
+      let x := 1 / (((n : ℕ).succ : ℝ) + 1)
+      have hx_nonneg : 0 ≤ x := by positivity
+      have hx_le_one : x ≤ 1 := by
+        refine (one_div_le_one_div (by positivity) (by positivity)).mpr ?_
+        norm_num
+      have h_log_bound : x / 2 ≤ Real.log (1 + x) := by
+        -- x/2 ≤ x/(1+x) since x ≤ 1, and x/(1+x) ≤ log(1+x) by our lemma
+        have h1 : x / 2 ≤ x / (1 + x) := by
+          refine (div_le_div_right (by positivity)).mpr ?_
           nlinarith
-    refine ⟨2, by norm_num, Filter.eventually_of_forall (fun n => ?_)⟩
-    have h := h_bound n
-    simpa [Real.norm_eq_abs, abs_of_nonneg (harmonic_pos ?_),
-      abs_of_nonneg (Real.log_nonneg (by positivity : 1 ≤ (n : ℝ) + 1))]
-      using h
-    omega
-  · -- Lower bound: H_n ≥ log(n+1)
-    -- This is exactly harmonic_ge_log_succ
-    refine ⟨1, by norm_num, Filter.eventually_of_forall (fun n => ?_)⟩
-    have h := harmonic_ge_log_succ n
-    have h_norm_g : 0 ≤ Real.log ((n : ℝ) + 1) :=
-      Real.log_nonneg (by positivity : 1 ≤ (n : ℝ) + 1)
-    have h_norm_f : 0 ≤ harmonic n := by
-      by_cases hn0 : n = 0; · subst n; simp; · exact le_of_lt (harmonic_pos (Nat.pos_of_ne_zero hn0))
-    simpa [Real.norm_eq_abs, abs_of_nonneg h_norm_f, abs_of_nonneg h_norm_g] using h
+        have h2 : x / (1 + x) ≤ Real.log (1 + x) :=
+          x_div_one_add_x_le_log_one_add_x (by positivity : -1 < x)
+        nlinarith
+      have h_step : 1 / ((Nat.succ n : ℝ) + 1) ≤ 2 * Real.log (1 + x) := by
+        dsimp [x]
+        field_simp
+        nlinarith
+      calc
+        harmonic (Nat.succ n) = harmonic n + 1 / ((Nat.succ n : ℝ) + 1) := by
+          rw [harmonic_succ]
+        _ ≤ 2 * Real.log ((Nat.succ n : ℝ) + 1) + 1 / ((Nat.succ n : ℝ) + 1) := by gcongr
+        _ ≤ 2 * (Real.log ((Nat.succ n : ℝ) + 1) + Real.log (1 + x)) := by
+          have : 1 / ((Nat.succ n : ℝ) + 1) ≤ 2 * Real.log (1 + x) := h_step
+          nlinarith
+        _ = 2 * Real.log (((Nat.succ n : ℝ) + 1) * (1 + x)) := by rw [Real.log_mul (by positivity) (by positivity)]
+        _ = 2 * Real.log (((Nat.succ n : ℝ) + 1) + 1) := by
+          dsimp [x]; field_simp; ring
+        _ = 2 * Real.log (((Nat.succ n).succ : ℝ) + 1) := by ring
+
+  refine ⟨?_, ?_⟩
+  · -- O-bound via isBigO_of_le' with norm handling
+    have h_norm : ∀ n, ‖harmonic n‖ ≤ 2 * ‖Real.log ((n : ℝ) + 1)‖ := by
+      intro n
+      simp [Real.norm_eq_abs, abs_of_nonneg (by
+        by_cases hn : n = 0; · subst n; rfl; · exact le_of_lt (harmonic_pos (Nat.pos_of_ne_zero hn))),
+        abs_of_nonneg (Real.log_nonneg (by positivity : 1 ≤ (n : ℝ) + 1)), h_upper n]
+    exact isBigO_of_le' _ h_norm
+  · -- Ω-bound via isBigO_of_le' with reversed roles
+    have h_norm : ∀ n, ‖Real.log ((n : ℝ) + 1)‖ ≤ 2 * ‖harmonic n‖ := by
+      intro n
+      simp [Real.norm_eq_abs, abs_of_nonneg (Real.log_nonneg (by positivity : 1 ≤ (n : ℝ) + 1)),
+        abs_of_nonneg (by
+          by_cases hn : n = 0; · subst n; rfl; · exact le_of_lt (harmonic_pos (Nat.pos_of_ne_zero hn)))]
+      nlinarith [harmonic_ge_log_succ n]
+    exact isBigO_of_le' _ h_norm
 
 end Chapter05
 end CLRS

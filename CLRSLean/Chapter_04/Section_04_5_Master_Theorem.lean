@@ -56,7 +56,7 @@ theorem master_case1 (a b d : ℕ) (ha : 1 ≤ a) (hb : 1 < b)
     filter_upwards [hC] with n hn
     simpa [abs_of_nonneg (h_nonneg_f n), abs_pow, abs_of_nonneg (Nat.cast_nonneg n)] using hn
   rw [Filter.eventually_atTop] at hC_ev; rcases hC_ev with ⟨N, hN⟩
-  let C' := max C ((range N).sup' (by simp) (fun k => f (b ^ (k + 1)) / (((a : ℝ) ^ (k + 1)) * (r ^ (k + 1)))))
+  let C' := max C ((range (max N 1)).sup' (by simp) (fun k => f (b ^ (k + 1)) / (((a : ℝ) ^ (k + 1)) * (r ^ (k + 1)))))
   have hC'_ge_C : C ≤ C' := le_max_left _ _
   have hC'_term : ∀ k, f (b ^ (k + 1)) / ((a : ℝ) ^ (k + 1)) ≤ C' * (r ^ (k + 1)) := by
     intro k
@@ -155,7 +155,7 @@ theorem master_case2 (a b d : ℕ) (ha : 1 ≤ a) (hb : 1 < b)
     have hb_eq_a : ((b : ℝ) ^ (d : ℕ)) = (a : ℝ) := by exact_mod_cast h_cond
     simp [div_pow, hb_eq_a, div_self (pow_ne_zero k ha_ne_zero)]
   -- Universal upper bound C2' for all terms f(b^{k+1})/a^{k+1}
-  let small_max := (range N).sup' (by simp) (fun j => f (b ^ (j + 1)) / ((a : ℝ) ^ (j + 1)))
+  let small_max := (range (max N 1)).sup' (by simp) (fun j => f (b ^ (j + 1)) / ((a : ℝ) ^ (j + 1)))
   let C2' := max C2 small_max
   have hC2'_ge_C2 : C2 ≤ C2' := le_max_left _ _
   have hC2'_term : ∀ k, f (b ^ (k + 1)) / ((a : ℝ) ^ (k + 1)) ≤ C2' := by
@@ -299,7 +299,7 @@ theorem master_case3 (a b d : ℕ) (ha : 1 ≤ a) (hb : 1 < b)
     simpa [abs_of_nonneg (h_nonneg_f n), abs_pow, abs_of_nonneg (Nat.cast_nonneg n)] using hn
   rw [Filter.eventually_atTop] at hC2_ev; rcases hC2_ev with ⟨N2, hN2⟩
   let N := max N1 N2
-  let small_ratio_max := (range N).sup' (by simp)
+  let small_ratio_max := (range (max N 1)).sup' (by simp)
     (fun k => f (b ^ (k + 1)) / (((a : ℝ) ^ (k + 1)) * (r ^ (k + 1))))
   let C2' := max C2 small_ratio_max
   have hC2'_term : ∀ k, f (b ^ (k + 1)) / ((a : ℝ) ^ (k + 1)) ≤ C2' * (r ^ (k + 1)) := by
