@@ -3,6 +3,7 @@ import Mathlib
 
 open Filter
 open Asymptotics
+open scoped Topology
 
 /-!
 # 3.2. Standard Notations and Common Functions
@@ -77,16 +78,23 @@ theorem factorial_upper_bound (n : ℕ) : (Nat.factorial n : ℝ) ≤ (n : ℝ) 
 
 /-! ## Exponential vs factorial -/
 
-/-- `aⁿ = o(n!)` as `n → ∞`.
-This is a standard result.  The proof uses convergence of the exponential
-series `∑ aⁿ/n!` (definition of `Real.exp`); summability implies terms → 0,
-hence `aⁿ = o(n!)`.
--/
+/-- `aⁿ = o(n!)` as `n → ∞`.  Follows from `FloorSemiring.tendsto_pow_div_factorial_atTop`,
+the standard lemma that `cⁿ / n! → 0` for any real `c`. -/
 theorem isLittleO_exp_vs_factorial (a : ℝ) :
     isLittleO (fun n : ℕ => a ^ n) (fun n : ℕ => (Nat.factorial n : ℝ)) := by
-  -- The exponential series ∑ aⁿ / n! converges (definition of Real.exp).
-  -- Therefore aⁿ / n! → 0 as n → ∞, which by definition means aⁿ = o(n!).
-  sorry
+  -- The key lemma: a^n / n! → 0 as n → ∞ (standard result in mathlib)
+  have h_tendsto : Tendsto (fun n : ℕ => a ^ n / ((Nat.factorial n : ℕ) : ℝ)) atTop (𝓝 0) := by
+    -- FloorSemiring.tendsto_pow_div_factorial_atTop gives a^n / n! → 0 in ℝ
+    -- where n! is the ℝ factorial via the factorial notation `n !`
+    simpa using FloorSemiring.tendsto_pow_div_factorial_atTop (K := ℝ) a
+  -- Use isLittleO_iff_tendsto: f =o[atTop] g  ↔  f/g → 0  (when g=0 → f=0)
+  have h_cond : ∀ n : ℕ, ((Nat.factorial n : ℝ) = 0) → a ^ n = 0 := by
+    intro n hn
+    have hpos : 0 < (Nat.factorial n : ℝ) := by exact_mod_cast Nat.factorial_pos n
+    linarith
+  unfold isLittleO
+  rw [isLittleO_iff_tendsto h_cond]
+  exact h_tendsto
 
 end Chapter03
 end CLRS
