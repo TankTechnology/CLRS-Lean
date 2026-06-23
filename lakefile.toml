@@ -1,0 +1,11 @@
+name = "clrs-lean"
+version = "0.1.0"
+defaultTargets = ["CLRSLean"]
+
+[[lean_lib]]
+name = "CLRSLean"
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "v4.29.1"

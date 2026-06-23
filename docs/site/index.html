@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CLRS-lean Proof Map</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail" aria-label="Project navigation">
+        <a class="brand" href="#top" aria-label="CLRS-lean home">
+          <span class="brand-mark">CL</span>
+          <span>
+            <strong>CLRS-lean</strong>
+            <small>chapter companion</small>
+          </span>
+        </a>
+
+        <nav class="nav-list" aria-label="Chapters">
+          <a href="#chapter-16" class="active">Chapter 16</a>
+          <a href="#chapter-23">Chapter 23</a>
+          <a href="#blocked">Blocked</a>
+          <a href="#deploy">Deploy</a>
+        </nav>
+
+        <div class="build-box">
+          <span>Local build</span>
+          <code>lake build CLRSLean</code>
+        </div>
+      </aside>
+
+      <main id="top" class="content">
+        <section class="mast">
+          <div class="mast-copy">
+            <p class="eyebrow">Lean 4 artifact · CLRS order · honest status ledger</p>
+            <h1>Proofs arranged like a textbook, tracked like research infrastructure.</h1>
+            <p class="lead">
+              This preview separates Codeforces proofs from the CLRS companion track.
+              Each section points to a Lean source file, a main theorem, and the exact
+              reason unfinished items remain unfinished.
+            </p>
+          </div>
+          <figure class="map-figure">
+            <img src="assets/proof-map.svg" alt="CLRS-lean proof map showing Huffman as proved, MST sections as partial, and union-find as deferred">
+          </figure>
+        </section>
+
+        <section class="toolbar" aria-label="Proof map filters">
+          <label class="search">
+            <span>Search</span>
+            <input id="search" type="search" placeholder="Huffman, Kruskal, cut property">
+          </label>
+          <div class="filters" role="group" aria-label="Filter by proof status">
+            <button class="filter is-selected" type="button" data-filter="all">All</button>
+            <button class="filter" type="button" data-filter="proved">Proved</button>
+            <button class="filter" type="button" data-filter="partial">Partial</button>
+            <button class="filter" type="button" data-filter="deferred-implementation">Deferred</button>
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="Current status summary">
+          <div class="metric">
+            <span class="metric-value">1</span>
+            <span class="metric-label">proved section</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">2</span>
+            <span class="metric-label">partial sections</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">0</span>
+            <span class="metric-label">axioms in CLRSLean</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">1</span>
+            <span class="metric-label">deferred implementation</span>
+          </div>
+        </section>
+
+        <section id="chapter-16" class="chapter">
+          <div class="chapter-head">
+            <span class="chapter-number">Chapter 16</span>
+            <h2>Greedy Algorithms</h2>
+          </div>
+
+          <article class="section-card" data-status="proved" data-keywords="huffman coding greedy exchange split leaf optimality">
+            <div class="section-main">
+              <div class="status-row">
+                <span class="status proved">proved</span>
+                <span class="section-id">Section 16.3 - Huffman codes</span>
+              </div>
+              <h3>Huffman optimality</h3>
+              <p>
+                A self-contained proof that Huffman coding produces an optimal
+                prefix tree for a nonempty frequency table with distinct symbols
+                and positive frequencies.
+              </p>
+              <dl class="details">
+                <div>
+                  <dt>Main theorem</dt>
+                  <dd><code>HuffmanV2.optimum_huffman_freqs</code></dd>
+                </div>
+                <div>
+                  <dt>Lean source</dt>
+                  <dd><code>CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean</code></dd>
+                </div>
+                <div>
+                  <dt>Pattern</dt>
+                  <dd>Greedy exchange argument, split-leaf transformation</dd>
+                </div>
+              </dl>
+            </div>
+            <pre class="theorem"><code>theorem optimum_huffman_freqs
+  (xs : List (Nat x Nat)) :
+  optimum (huffmanOfFreqs xs)</code></pre>
+          </article>
+        </section>
+
+        <section id="chapter-23" class="chapter">
+          <div class="chapter-head">
+            <span class="chapter-number">Chapter 23</span>
+            <h2>Minimum Spanning Trees</h2>
+          </div>
+
+          <article class="section-card" data-status="partial" data-keywords="mst cut property safe edge exchange theorem">
+            <div class="section-main">
+              <div class="status-row">
+                <span class="status partial">partial</span>
+                <span class="section-id">Section 23.1 - Growing a minimum spanning tree</span>
+              </div>
+              <h3>Cut property and safe edges</h3>
+              <p>
+                The mathematical core of the CLRS MST proof is formalized:
+                a light edge crossing a cut is safe once the graph-specific
+                exchange certificate is supplied.
+              </p>
+              <dl class="details">
+                <div>
+                  <dt>Main theorem</dt>
+                  <dd><code>CLRS.MST.safe_edge_of_lightest_crossing</code></dd>
+                </div>
+                <div>
+                  <dt>Lean source</dt>
+                  <dd><code>CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean</code></dd>
+                </div>
+                <div>
+                  <dt>Open gap</dt>
+                  <dd>Concrete path/cycle lemma that constructs the exchange edge.</dd>
+                </div>
+              </dl>
+            </div>
+            <pre class="theorem"><code>theorem safe_edge_of_lightest_crossing :
+  CutCertificate G P w A S e ->
+  SafeEdge P w A e</code></pre>
+          </article>
+
+          <article class="section-card" data-status="partial" data-keywords="kruskal prim mst sorted edge order spanning tree">
+            <div class="section-main">
+              <div class="status-row">
+                <span class="status partial">partial</span>
+                <span class="section-id">Section 23.2 - Kruskal and Prim</span>
+              </div>
+              <h3>Kruskal safe-edge induction</h3>
+              <p>
+                Kruskal's mathematical induction is in place.  The current
+                theorem assumes safe-edge certificates and a final spanning-tree
+                condition, keeping union-find outside the first phase.
+              </p>
+              <dl class="details">
+                <div>
+                  <dt>Main theorem</dt>
+                  <dd><code>CLRS.MST.kruskal_optimal</code></dd>
+                </div>
+                <div>
+                  <dt>Lean source</dt>
+                  <dd><code>CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean</code></dd>
+                </div>
+                <div>
+                  <dt>Open gaps</dt>
+                  <dd>Sorted-order lightness, final spanning tree, Prim interface.</dd>
+                </div>
+              </dl>
+            </div>
+            <pre class="theorem"><code>theorem kruskal_optimal :
+  KruskalCertificate P w accept ->
+  IsMSTExtending P w A0
+    (kruskal accept edges A0)</code></pre>
+          </article>
+
+          <article class="section-card" data-status="deferred-implementation" data-keywords="union find disjoint set implementation correctness cycle test">
+            <div class="section-main">
+              <div class="status-row">
+                <span class="status deferred">deferred</span>
+                <span class="section-id">Section 23.2 - implementation refinement</span>
+              </div>
+              <h3>Union-find correctness</h3>
+              <p>
+                The implementation proof is deliberately postponed.  The
+                current Lean layer exposes <code>CycleTestImplementation</code>
+                so a future union-find module can refine the mathematical
+                component oracle.
+              </p>
+              <dl class="details">
+                <div>
+                  <dt>Status reason</dt>
+                  <dd>Not needed for the mathematical Kruskal theorem.</dd>
+                </div>
+                <div>
+                  <dt>Interface</dt>
+                  <dd><code>CLRS.MST.CycleTestImplementation</code></dd>
+                </div>
+                <div>
+                  <dt>Future path</dt>
+                  <dd>Refine component oracle with an executable disjoint-set structure.</dd>
+                </div>
+              </dl>
+            </div>
+            <pre class="theorem"><code>structure CycleTestImplementation
+  (G : Graph V E) (C : ComponentOracle G) where
+  accept : Finset E -> E -> Bool
+  correct : accept A e = acceptByComponent G C A e</code></pre>
+          </article>
+        </section>
+
+        <section id="blocked" class="split">
+          <div class="panel">
+            <span class="panel-kicker">Deferred implementation</span>
+            <h2>Union-find is intentionally outside phase one.</h2>
+            <p>
+              The MST proof now targets the mathematical CLRS theorem.  A future
+              union-find implementation can refine <code>CycleTestImplementation</code>
+              without changing the safe-edge proof.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-kicker">Blocked design</span>
+            <h2>Path and cycle representation still matter.</h2>
+            <p>
+              Removing the exchange certificate from Section 23.1 needs a stable
+              finite walk/path layer and a boundary-edge lemma for paths crossing
+              a cut.
+            </p>
+          </div>
+        </section>
+
+        <section id="deploy" class="deploy">
+          <h2>Repository shape</h2>
+          <p>
+            This preview is ready to become a standalone <code>CLRS-lean</code>
+            repository.  The current workspace keeps it as a top-level Lean
+            library because the parent directory is not writable from this
+            session.
+          </p>
+          <div class="tree" aria-label="CLRSLean file tree">
+            <code>CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean</code>
+            <code>CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean</code>
+            <code>CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean</code>
+            <code>docs/proof-map.md</code>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
