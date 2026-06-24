@@ -91,11 +91,16 @@ the imported CLRS-Lean source, not experimental worktrees.
   `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`,
   `CLRS.MST.lightest_crossing_of_exact_component_kruskal_prefix`, and
   `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`.
+- Chapter 23.2 now proves the finite-graph subset and spanning parts of the
+  final Kruskal tree obligation for complete scans:
+  `CLRS.MST.FiniteGraph.kruskal_subset_edges` and
+  `CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`.
 
 ## Next Proof Priorities
 
-1. Chapter 23.2/23.1: construct the concrete MST exchange edge from finite
-   graph paths or cycles, then feed it into the cut-certificate layer.
+1. Chapter 23.2/23.1: prove forest preservation for the component cycle test
+   and construct the concrete MST exchange edge from finite graph paths or
+   cycles.
 2. Chapter 4.1: add the runtime recurrence for the fuelled midpoint
    divide-and-conquer maximum-subarray selector.
 3. Chapter 13.1: mechanize executable `RB-INSERT-FIXUP` on top of the local

@@ -207,14 +207,17 @@ end CLRS
   the nonempty case uses the greedy head's minimum finish time to show the
   competitor tail belongs to the filtered post-greedy subproblem.
 - **MST/Kruskal chapters:** separate the proof into cut-property exchange,
-  sorted-order lightness, cycle-test/component exactness, and final spanning
-  tree maximality.  If component exactness is not yet available, still prove the
-  sorted-order lemma with an explicit processed-prefix exclusion invariant; this
-  prevents the section from hiding all of Kruskal's weight-order argument inside
-  a certificate hypothesis.  Once exact components are available, prove a prefix
-  accounting theorem: every processed edge is either selected or has connected
-  endpoints in the current forest.  That theorem should derive the
-  processed-prefix exclusion invariant automatically.
+  sorted-order lightness, cycle-test/component exactness, complete-scan
+  spanning, forest preservation, and final tree maximality.  If component
+  exactness is not yet available, still prove the sorted-order lemma with an
+  explicit processed-prefix exclusion invariant; this prevents the section from
+  hiding all of Kruskal's weight-order argument inside a certificate hypothesis.
+  Once exact components are available, prove a prefix accounting theorem: every
+  processed edge is either selected or has connected endpoints in the current
+  forest.  That theorem should derive the processed-prefix exclusion invariant
+  automatically.  Then use the same accounting to prove that a complete scan of
+  a connected finite graph spans; the remaining final-tree target should be
+  forest preservation, not a vague spanning-tree assumption.
 
 ## Known Blockers
 
@@ -310,8 +313,13 @@ end CLRS
   components, a rejected processed edge has connected endpoints, and an accepted
   processed edge remains in the growing forest; either way it cannot cross the
   current exact component cut.  This moves the remaining MST gap to concrete
-  exchange edges, final spanning-tree construction, and optional union-find
-  refinement.
+  exchange edges, final-tree construction, and optional union-find refinement.
+- Chapter 23.2 complete-scan spanning pass: after exact-component prefix
+  accounting, prove that every scanned graph edge has connected endpoints in the
+  final Kruskal output.  A graph-level path transport lemma then turns
+  connectivity in `G.edges` into connectivity in the output, proving the
+  spanning part of the final-tree obligation.  Keep the next target precise:
+  component-cycle-test forest preservation.
 
 ## Honesty Rules
 

@@ -221,4 +221,18 @@ chapters.
   useful, but exact-component Kruskal should expose a stronger wrapper:
   `cut_certificate_of_exact_component_kruskal_prefix`.
 - After this pass, the honest MST frontier is concrete path/cycle exchange,
-  final spanning-tree construction, and optional union-find refinement.
+  final-tree construction, and optional union-find refinement.
+
+## 2026-06-25 - After Chapter 23.2 Complete-Scan Spanning
+
+- Do not keep the whole final-tree obligation as one opaque hypothesis once the
+  exact-component accounting theorem exists.  First prove the two structural
+  parts that follow directly from a complete scan: the output contains only graph
+  edges, and every original graph edge has endpoints connected in the output.
+- A reusable path-transport lemma is the right bridge: if every edge of one
+  edge set has endpoints connected in another, then every path over the first
+  edge set transports to the second.  This turns graph connectedness over
+  `G.edges` into Kruskal-output spanning.
+- After this pass, the remaining final-tree target is specifically forest
+  preservation for the component cycle test, plus the separate concrete
+  path/cycle exchange edge.

@@ -14,7 +14,8 @@ safe-edge induction.
   Main result: `CLRS.MST.safe_edge_of_lightest_crossing`.
 * 23.2 Kruskal and Prim: `partial`.
   Main results: `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`,
-  `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`, and
+  `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`,
+  `CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`, and
   `CLRS.MST.kruskal_optimal`.
 
 ## Current Shape
@@ -28,7 +29,9 @@ Section 23.2 contains the sorted-order lightness layer, exact-component prefix
 accounting, and a mathematical Kruskal skeleton.  It proves that an exact
 component oracle accounts for every previously processed edge, derives the
 processed-prefix exclusion invariant, and then uses sorted edge order to make
-the current edge light.  It also proves that if every accepted edge carries a
+the current edge light.  For finite connected graphs with a complete edge scan,
+it proves that the exact-component Kruskal output spans all vertices and
+contains only graph edges.  It also proves that if every accepted edge carries a
 safe-edge certificate and the final selected edge set is a spanning tree, then
 the selected tree is optimal.
 
@@ -43,7 +46,7 @@ The main strengthening targets are:
 * refine exact components to an executable union-find implementation if that
   implementation proof becomes in scope;
 * construct the concrete exchange edge automatically from finite graph paths;
-* prove the final accepted edge set is a spanning tree under the usual
-  connected-graph and complete-edge-list assumptions;
+* prove forest preservation for the component cycle test, then compose it with
+  the existing subset and spanning theorems;
 * add Prim's theorem interface after the Kruskal skeleton is complete.
 -/

@@ -95,8 +95,14 @@ The stronger exact-component layer is now compiler-clean as well:
 `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal` derives the
 processed-prefix exclusion invariant for an actual Kruskal prefix, and
 `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix` packages it with
-sorted edge order.  The remaining MST gaps are the concrete path/cycle exchange
-edge, the final spanning-tree proof, and any optional union-find refinement.
+sorted edge order.  The finite-graph wrapper also proves the subset and
+spanning parts of the final-tree obligation:
+`CLRS.MST.FiniteGraph.kruskal_subset_edges` and
+`CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`.
+
+The remaining MST gaps are the concrete path/cycle exchange edge, forest
+preservation for the component cycle test, Prim's theorem interface, and any
+optional union-find refinement.
 
 ## Future Work
 

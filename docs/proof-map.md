@@ -408,30 +408,35 @@ certificate is supplied.
   - `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`
   - `CLRS.MST.lightest_crossing_of_exact_component_kruskal_prefix`
   - `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`
+  - `CLRS.MST.FiniteGraph.kruskal_subset_edges`
+  - `CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`
+  - `CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`
   - `CLRS.MST.FiniteGraph.kruskal_optimal`
-- Proof pattern: exact-component prefix accounting, sorted-order lightness, and
-  safe-edge induction over an edge list
+- Proof pattern: exact-component prefix accounting, sorted-order lightness,
+  complete-scan spanning, and safe-edge induction over an edge list
 - Deferred implementation: union-find correctness
 - Current gaps:
   - refine exact components to an executable union-find implementation if
     implementation correctness becomes part of scope;
   - construct the concrete exchange edge from finite graph paths/cycles;
-  - prove the final selected edge set is a spanning tree from connectedness and
-    complete edge scan;
+  - prove forest preservation for the component cycle test; subset and spanning
+    are proved for complete exact-component scans;
   - add Prim's algorithm theorem interface.
 
 The section proves the sorted-order lightness step in two layers: first with an
 explicit processed-prefix exclusion invariant, then from exact components for a
 real Kruskal prefix.  It also proves a mathematical Kruskal skeleton: if
 accepted edges come with safe-edge certificates and the final selected set is a
-spanning tree, then the result is optimal.
+spanning tree, then the result is optimal.  For finite graphs, a complete scan
+of a connected graph is now proved to span; the remaining final-tree ingredient
+is the acyclicity/forest-preservation theorem for the component cycle test.
 
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
-| Kruskal final spanning tree proof | `partial` | Sorted-order lightness and exact-component prefix exclusion are proved; final spanning-tree construction from connectedness and complete edge scan remains. |
+| Kruskal final spanning tree proof | `partial` | Sorted-order lightness, exact-component prefix exclusion, edge-subset, and complete-scan spanning are proved; forest preservation for the component cycle test remains. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |

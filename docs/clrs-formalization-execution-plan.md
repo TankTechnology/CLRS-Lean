@@ -410,8 +410,9 @@ Agent 主要负责：
 1. 在 `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
    中继续补 cut exchange 的具体有限图证明；
 2. 证明当前 `CutCertificate` 可以从具体 cut exchange 构造出来；
-3. 在 `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean` 中强化
-   `kruskal_optimal`，去掉 sorted-order 和 final spanning tree 的外部假设；
+3. 在 `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean` 中继续强化
+   `kruskal_optimal`，已经去掉 sorted-order 外部假设并证明 complete-scan
+   spanning；下一步去掉 forest-preservation 外部假设；
 4. 若完整 Kruskal 太重，先完成数学版 safe-edge induction；
 5. 同步维护 `docs/proof-map.md`，记录 MST、Dijkstra、DP 的状态。
 

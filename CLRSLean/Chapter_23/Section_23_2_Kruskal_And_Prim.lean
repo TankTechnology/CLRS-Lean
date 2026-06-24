@@ -25,6 +25,8 @@ Main results:
   prefix.
 - Theorem {lit}`cut_certificate_of_exact_component_kruskal_prefix`: packages
   the exact-component prefix invariant into a sorted-order cut certificate.
+- Theorem {lit}`FiniteGraph.kruskal_spans_of_complete_exact_component`: a
+  complete Kruskal edge scan over a connected finite graph spans all vertices.
 - Theorem {lit}`kruskal_optimal`: safe-edge induction for the mathematical
   Kruskal pass.
 
@@ -32,8 +34,9 @@ Current gaps:
 
 - Refine the exact component model to an executable union-find implementation
   if implementation correctness becomes part of scope.
-- Prove the final selected edge set is a spanning tree from connectedness and
-  a complete edge scan.
+- Prove forest preservation for the component cycle test; the subset and
+  spanning parts of the final-tree obligation are now proved for complete edge
+  scans.
 - Add Prim's theorem interface.
 -/
 
@@ -108,6 +111,46 @@ theorem connected_trans {G : Graph V E} {A : Finset E} {u v x : V}
     (huv : G.ConnectedIn A u v) (hvx : G.ConnectedIn A v x) :
     G.ConnectedIn A u x :=
   Relation.ReflTransGen.trans huv hvx
+
+omit [DecidableEq V] [DecidableEq E] in
+/-- Any selected edge connects its own endpoints. -/
+theorem connected_of_mem_edge {G : Graph V E} {A : Finset E} {e : E}
+    (he : e ∈ A) :
+    G.ConnectedIn A (G.src e) (G.dst e) := by
+  exact Relation.ReflTransGen.tail Relation.ReflTransGen.refl
+    ⟨e, he, Or.inl ⟨rfl, rfl⟩⟩
+
+omit [DecidableEq V] [DecidableEq E] in
+/--
+If every edge of {lit}`B` has endpoints already connected in {lit}`A`, then one
+adjacency step in {lit}`B` can be simulated by an {lit}`A`-connection.
+-/
+theorem connected_of_adjIn_of_edge_connected {G : Graph V E} {A B : Finset E}
+    (hedge : ∀ e, e ∈ B → G.ConnectedIn A (G.src e) (G.dst e))
+    {u v : V} (hadj : G.AdjIn B u v) :
+    G.ConnectedIn A u v := by
+  rcases hadj with ⟨e, heB, hend⟩
+  have hconn := hedge e heB
+  rcases hend with ⟨hsrc, hdst⟩ | ⟨hsrc, hdst⟩
+  · simpa [hsrc, hdst] using hconn
+  · have hconn' := Graph.connected_symm hconn
+    simpa [hsrc, hdst] using hconn'
+
+omit [DecidableEq V] [DecidableEq E] in
+/--
+If every edge of {lit}`B` has endpoints connected in {lit}`A`, then every
+{lit}`B`-path can be transported to an {lit}`A`-path.
+-/
+theorem connected_of_edgewise_connected {G : Graph V E} {A B : Finset E}
+    (hedge : ∀ e, e ∈ B → G.ConnectedIn A (G.src e) (G.dst e))
+    {u v : V} (h : G.ConnectedIn B u v) :
+    G.ConnectedIn A u v := by
+  induction h with
+  | refl =>
+      exact Relation.ReflTransGen.refl
+  | tail _ hadj ih =>
+      exact Graph.connected_trans ih
+        (Graph.connected_of_adjIn_of_edge_connected hedge hadj)
 
 end Graph
 
@@ -360,6 +403,30 @@ theorem kruskal_extends_start (accept : Finset E → E → Bool)
           cases h : accept A e <;> simp [h] at hacc ⊢
         simpa [kruskal, hfalse] using ih A
 
+/-- Kruskal never selects an edge outside the initial set or the scanned edge
+list. -/
+theorem kruskal_subset_of_start_and_edges (accept : Finset E → E → Bool)
+    (edges : List E) {A B : Finset E}
+    (hA : A ⊆ B) (hedges : ∀ e, e ∈ edges → e ∈ B) :
+    kruskal accept edges A ⊆ B := by
+  induction edges generalizing A with
+  | nil =>
+      simpa [kruskal] using hA
+  | cons e es ih =>
+      by_cases hacc : accept A e = true
+      · have heB : e ∈ B := hedges e (by simp)
+        have hinsert : insert e A ⊆ B := Finset.insert_subset heB hA
+        have htail : ∀ f, f ∈ es → f ∈ B := by
+          intro f hf
+          exact hedges f (by simp [hf])
+        simpa [kruskal, hacc] using ih hinsert htail
+      · have hfalse : accept A e = false := by
+          cases h : accept A e <;> simp [h] at hacc ⊢
+        have htail : ∀ f, f ∈ es → f ∈ B := by
+          intro f hf
+          exact hedges f (by simp [hf])
+        simpa [kruskal, hfalse] using ih hA htail
+
 /--
 After a Kruskal prefix has been processed by an exact component oracle, every
 processed edge is accounted for: it is either selected in the current forest or
@@ -407,6 +474,23 @@ theorem processed_edge_mem_or_connected_of_exact_component_kruskal
             Graph.connected_mono hsubset hconnA
           simpa [kruskal, hfalse] using hconnFinal
         · simpa [kruskal, hfalse] using ih A f hfes
+
+/--
+After an exact-component Kruskal pass, every processed edge has connected
+endpoints in the final selected set.
+-/
+theorem processed_edge_connected_of_exact_component_kruskal
+    {G : Graph V E} (C : ComponentOracle G)
+    (hexact : ExactComponentOracle G C) (processed : List E)
+    (A : Finset E) :
+    ∀ f, f ∈ processed →
+      G.ConnectedIn (kruskal (acceptByComponent G C) processed A)
+        (G.src f) (G.dst f) := by
+  intro f hf
+  rcases processed_edge_mem_or_connected_of_exact_component_kruskal C hexact
+      processed A f hf with hmem | hconn
+  · exact Graph.connected_of_mem_edge hmem
+  · exact hconn
 
 /--
 Exact components derive the processed-prefix exclusion invariant needed by the
@@ -645,6 +729,49 @@ theorem kruskal_optimal_of_cycle_test {G : Graph V E} {P : Problem E}
       hlight' hexchange' edges hstart hfinal_tree' hfinal_maximal')
 
 namespace FiniteGraph
+
+/-- A finite-graph Kruskal run selects only graph edges, provided the initial
+set and scanned list contain only graph edges. -/
+theorem kruskal_subset_edges (G : FiniteGraph V E)
+    {accept : Finset E → E → Bool} (edges : List E) {A : Finset E}
+    (hA : A ⊆ G.edges) (hedges : ∀ e, e ∈ edges → e ∈ G.edges) :
+    kruskal accept edges A ⊆ G.edges :=
+  CLRS.MST.kruskal_subset_of_start_and_edges accept edges hA hedges
+
+/--
+If the edge list contains every graph edge and the full graph is connected,
+then an exact-component Kruskal pass spans the finite graph.
+-/
+theorem kruskal_spans_of_complete_exact_component (G : FiniteGraph V E)
+    (C : ComponentOracle G.toGraph) (hexact : ExactComponentOracle G.toGraph C)
+    (edges : List E) (A : Finset E)
+    (hcomplete : ∀ e, e ∈ G.edges → e ∈ edges)
+    (hconnected : G.Spans G.edges) :
+    G.Spans (kruskal (acceptByComponent G.toGraph C) edges A) := by
+  intro u hu v hv
+  refine Graph.connected_of_edgewise_connected ?_ (hconnected u hu v hv)
+  intro e heG
+  exact processed_edge_connected_of_exact_component_kruskal C hexact edges A e
+    (hcomplete e heG)
+
+/--
+The remaining final-tree side condition for exact-component Kruskal is now only
+forest preservation: subset and spanning are derived from the complete edge
+scan and graph connectedness assumptions.
+-/
+theorem kruskal_spanning_tree_of_complete_exact_component
+    (G : FiniteGraph V E) (C : ComponentOracle G.toGraph)
+    (hexact : ExactComponentOracle G.toGraph C) (edges : List E)
+    {A : Finset E}
+    (hA : A ⊆ G.edges) (hedges : ∀ e, e ∈ edges → e ∈ G.edges)
+    (hcomplete : ∀ e, e ∈ G.edges → e ∈ edges)
+    (hconnected : G.Spans G.edges)
+    (hforest : G.IsForest (kruskal (acceptByComponent G.toGraph C) edges A)) :
+    G.IsSpanningTree (kruskal (acceptByComponent G.toGraph C) edges A) := by
+  exact ⟨G.kruskal_subset_edges edges hA hedges,
+    G.kruskal_spans_of_complete_exact_component C hexact edges A hcomplete
+      hconnected,
+    hforest⟩
 
 /-- Finite-graph Kruskal optimality.  The concrete spanning-tree definition
 discharges the abstract maximality side condition. -/
