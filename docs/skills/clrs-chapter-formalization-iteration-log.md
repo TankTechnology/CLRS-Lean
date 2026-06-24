@@ -114,3 +114,13 @@ chapters.
   a blocker does not name the missing definition, lemma, or representation.
 - Added an autonomy rule: when remaining proof targets are tractable, continue
   to the next section instead of waiting for another prompt.
+
+## 2026-06-24 - After Chapter 3.2 Standard Functions
+
+- Added the standard-function bridge pattern: when Mathlib already proves a
+  CLRS growth-table comparison, wrap it with a CLRS-facing theorem name instead
+  of keeping the item as prose in a `partial` gap.
+- Applied the pattern to log-vs-polynomial, polynomial-vs-exponential, and
+  exponential-base comparisons; keep Section 3.2 `partial` only for the
+  remaining table entries such as half-scale floor/ceiling facts, lower
+  factorial bounds, and harmonic-number asymptotics.

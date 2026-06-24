@@ -86,6 +86,11 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter03.isBigTheta_trans`.
 * 3.2 Standard functions: `partial`.
   Current results: `CLRS.Chapter03.isLittleO_pow_pow`,
+  `CLRS.Chapter03.isLittleO_pow_const_exp`,
+  `CLRS.Chapter03.isLittleO_log_rpow`,
+  `CLRS.Chapter03.isLittleO_exp_exp_of_lt`,
+  `CLRS.Chapter03.isBigTheta_nat_floor_coerce`,
+  `CLRS.Chapter03.isBigTheta_nat_ceil_coerce`,
   `CLRS.Chapter03.factorial_upper_bound`,
   `CLRS.Chapter03.isLittleO_exp_vs_factorial`.
 * 4.1 Maximum subarray: `proved` for the exhaustive-search specification.

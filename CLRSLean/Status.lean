@@ -86,12 +86,16 @@ navigating the deployed pages.
 * 3.2 Standard functions:
   current results {lit}`CLRS.Chapter03.isLittleO_pow_pow`,
   {lit}`CLRS.Chapter03.isBigO_pow_pow`,
+  {lit}`CLRS.Chapter03.isLittleO_pow_const_exp`,
+  {lit}`CLRS.Chapter03.isLittleO_log_rpow`,
+  {lit}`CLRS.Chapter03.isLittleO_exp_exp_of_lt`,
   {lit}`CLRS.Chapter03.isBigTheta_nat_floor_coerce`,
   {lit}`CLRS.Chapter03.isBigTheta_nat_ceil_coerce`,
   {lit}`CLRS.Chapter03.factorial_upper_bound`, and
   {lit}`CLRS.Chapter03.isLittleO_exp_vs_factorial`;
   remaining gap: add the full CLRS table of standard growth comparisons,
-  especially logarithm-vs-polynomial and polynomial-vs-exponential facts.
+  including half-scale floor/ceiling facts, lower factorial bounds, and
+  harmonic-number asymptotics.
 * 11.2 Chained hash tables:
   current results {lit}`CLRS.Chapter11.hashSearch_hashInsert_self`,
   {lit}`CLRS.Chapter11.hashSearch_hashInsert_iff`,

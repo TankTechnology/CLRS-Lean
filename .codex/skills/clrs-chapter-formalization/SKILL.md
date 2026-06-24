@@ -251,6 +251,11 @@ end CLRS
   fixup algorithms need.  Good public theorem targets combine child subtree
   `RedBlackShape` hypotheses, matching black-height assumptions, rotation, and
   repainting the new root black.
+- Chapter 3.2 standard-function pass: when a CLRS growth-table entry already
+  exists in Mathlib, add a small CLRS-facing wrapper theorem instead of leaving
+  it as prose.  Log-vs-polynomial, polynomial-vs-exponential, and
+  exponential-base comparisons are good examples of one-lemma bridges that
+  materially shrink a `partial` gap.
 
 ## Honesty Rules
 

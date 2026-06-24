@@ -18,9 +18,10 @@ properties: reflexivity, transitivity, sum and product rules.
 ## 3.2 Standard Functions
 
 Proves concrete growth comparisons that matter for algorithm analysis:
-* polynomial `n^a` vs exponential `2^n`
+* polynomial `n^a` vs exponential `c^n` for every `c > 1`
 * logarithm `log n` vs polynomial `n^ε`
-* factorial lower and upper bounds
+* exponential base comparisons `a^n = o(b^n)` for `0 ≤ a < b`
+* factorial upper bound and exponential-vs-factorial comparison
 * floor / ceiling Θ-behavior
 
 Notation: we use `|·|` (absolute value) rather than `‖·‖` for readability.

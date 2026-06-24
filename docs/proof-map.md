@@ -87,14 +87,18 @@ rules.
 - Main proved theorems:
   - `CLRS.Chapter03.isLittleO_pow_pow`
   - `CLRS.Chapter03.isBigO_pow_pow`
+  - `CLRS.Chapter03.isLittleO_pow_const_exp`
+  - `CLRS.Chapter03.isLittleO_log_rpow`
+  - `CLRS.Chapter03.isLittleO_exp_exp_of_lt`
   - `CLRS.Chapter03.isBigTheta_nat_floor_coerce`
   - `CLRS.Chapter03.isBigTheta_nat_ceil_coerce`
   - `CLRS.Chapter03.factorial_upper_bound`
   - `CLRS.Chapter03.isLittleO_exp_vs_factorial`
 - Proof pattern: reuse Mathlib asymptotic and factorial facts through the CLRS
   wrappers
-- Current gap: logarithm-vs-polynomial, polynomial-vs-exponential, and a more
-  complete CLRS standard-function table remain future strengthening targets.
+- Current gap: half-scale floor/ceiling facts, lower factorial bounds,
+  harmonic-number asymptotics, and the rest of the CLRS standard-function table
+  remain strengthening targets.
 
 This section is the safe part of the `chapter-1-exploration` branch merged into
 the main site.  It compiles, but it is not yet the whole Chapter 3 growth

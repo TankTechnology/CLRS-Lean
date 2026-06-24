@@ -11,6 +11,9 @@ open scoped Topology
 Concrete asymptotic comparisons for algorithm analysis.
 
 * `nᵃ = o(nᵇ)` when `a < b`
+* `nᵃ = o(cⁿ)` when `1 < c`
+* `log n = o(nʳ)` when `0 < r`
+* `aⁿ = o(bⁿ)` when `0 ≤ a < b`
 * `⌊n⌋ = Θ(n)` and `⌈n⌉ = Θ(n)` on ℕ
 * `n! ≤ nⁿ` and `aⁿ = o(n!)`
 -/
@@ -35,6 +38,26 @@ theorem isBigO_pow_pow {a b : ℕ} (h : a ≤ b) :
   rcases Nat.eq_or_lt_of_le h with (rfl | hlt)
   · exact isBigO_refl _
   · exact (isLittleO_pow_pow hlt).isBigO
+
+/-! ## Polynomial, logarithmic, and exponential comparisons -/
+
+/-- For any natural exponent `a` and real base `c > 1`, `nᵃ = o(cⁿ)`. -/
+theorem isLittleO_pow_const_exp {a : ℕ} {c : ℝ} (hc : 1 < c) :
+    isLittleO (fun n : ℕ => (n : ℝ) ^ a) (fun n : ℕ => c ^ n) := by
+  unfold isLittleO
+  exact isLittleO_pow_const_const_pow_of_one_lt (R := ℝ) a hc
+
+/-- For every positive real exponent `r`, `log n = o(nʳ)`. -/
+theorem isLittleO_log_rpow {r : ℝ} (hr : 0 < r) :
+    isLittleO (fun n : ℕ => Real.log (n : ℝ)) (fun n : ℕ => (n : ℝ) ^ r) := by
+  unfold isLittleO
+  exact (isLittleO_log_rpow_atTop hr).comp_tendsto tendsto_natCast_atTop_atTop
+
+/-- If `0 ≤ a < b`, then `aⁿ = o(bⁿ)`. -/
+theorem isLittleO_exp_exp_of_lt {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    isLittleO (fun n : ℕ => a ^ n) (fun n : ℕ => b ^ n) := by
+  unfold isLittleO
+  exact isLittleO_pow_pow_of_lt_left ha hab
 
 /-! ## Floor and ceiling are Θ(id) on ℕ -/
 

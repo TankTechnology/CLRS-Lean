@@ -45,6 +45,10 @@ the imported CLRS-Lean source, not experimental worktrees.
 - Chapter 12 now proves functional deletion:
   `CLRS.Chapter12.BSTree.inTree_delete_iff` and
   `CLRS.Chapter12.BSTree.delete_ordered`.
+- Chapter 3.2 now proves additional standard-function comparisons:
+  `CLRS.Chapter03.isLittleO_pow_const_exp`,
+  `CLRS.Chapter03.isLittleO_log_rpow`, and
+  `CLRS.Chapter03.isLittleO_exp_exp_of_lt`.
 
 ## Next Proof Priorities
 
