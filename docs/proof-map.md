@@ -332,26 +332,27 @@ full balancing algorithms.
 ### Section 16.1 - Activity selection
 
 - Lean source: `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean`
-- Status: `partial`
+- Status: `proved` for the finite sorted-list model
 - Main proved theorems:
   - `CLRS.ActivitySelection.earliest_finish_minFinish`
   - `CLRS.ActivitySelection.finishSorted_head_minFinish`
   - `CLRS.ActivitySelection.finishSorted_activitiesAfter`
+  - `CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate`
   - `CLRS.ActivitySelection.greedySelect_sublist`
   - `CLRS.ActivitySelection.greedySelect_feasible`
   - `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`
+  - `CLRS.ActivitySelection.greedySelect_maxCardinality`
 - Proof pattern: finish-time order, earliest-finish greedy choice, recursive
-  sublist/feasibility invariants, and certificate-based exchange argument
-- Current gap: derive the `GreedyChoiceCertificate` automatically and prove the
-  full recursive `greedySelect` maximum-cardinality theorem without an external
-  certificate.
+  sublist/feasibility invariants, automatic exchange-certificate construction,
+  and recursive maximum-cardinality optimality
+- Current gap: none for the current finite-list theorem statement; a lower-level
+  refinement to CLRS array/pseudocode execution is future work.
 
-The section proves the core finite-list model and the Lean-friendly
-greedy-choice theorem for CLRS activity selection.  It also proves that the
-recursive executable selector returns a feasible sublist of the input.  The
-optimality theorem still deliberately exposes the exchange certificate as an
-explicit hypothesis, making the remaining automation target precise rather than
-hidden inside an incomplete theorem statement.
+The section proves the core finite-list model for CLRS activity selection: on a
+finish-time-sorted input, the recursive executable selector returns a feasible
+sublist with maximum cardinality among all feasible sublists.  The auxiliary
+certificate theorem remains available as a reusable proof interface, but the
+main theorem now derives that certificate internally from sorted order.
 
 ### Section 16.3 - Huffman codes
 
@@ -404,7 +405,6 @@ then the result is optimal.
 | Item | Status | Reason |
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
-| Activity-selection sorted-order exchange certificate | `partial` | Needs a sorted-by-finish interface that derives the current certificate automatically. |
 | Sorted-order lightness for Kruskal | `partial` | Needs a list-order invariant over processed edges. |
 | Maximum-subarray divide-and-conquer refinement | `future-work` | Exhaustive-search optimality is proved; the CLRS pseudocode and runtime recurrence still need to refine that specification. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |

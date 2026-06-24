@@ -155,12 +155,14 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateLeft_red_red`,
   `CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`,
   `CLRS.Chapter13.RBTree.redBlackShape_repaint_black`.
-* 16.1 Activity selection: `partial`.
+* 16.1 Activity selection: `proved` for finite sorted lists.
   Current results: `CLRS.ActivitySelection.earliest_finish_minFinish`,
   `CLRS.ActivitySelection.finishSorted_head_minFinish`,
+  `CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate`,
   `CLRS.ActivitySelection.greedySelect_sublist`,
   `CLRS.ActivitySelection.greedySelect_feasible`,
-  `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`.
+  `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`,
+  `CLRS.ActivitySelection.greedySelect_maxCardinality`.
 * 16.3 Huffman codes: `proved`.
   Public result: `CLRS.HuffmanV2.optimum_huffman_freqs`.
 * 23.1 Growing a minimum spanning tree: `partial`.

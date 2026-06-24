@@ -199,7 +199,10 @@ end CLRS
   executable recursion invariants such as sublist and feasibility, and an
   exchange/certificate layer for optimality.  Do not leave executable recursive
   selectors without sublist and feasibility theorems while waiting for the full
-  exchange proof.
+  exchange proof.  For activity selection specifically, the automatic exchange
+  proof takes a feasible competitor, handles the empty case directly, and in
+  the nonempty case uses the greedy head's minimum finish time to show the
+  competitor tail belongs to the filtered post-greedy subproblem.
 
 ## Known Blockers
 
@@ -267,6 +270,12 @@ end CLRS
   add the section-level theorem immediately.  Do not leave a `future-work`
   entry saying "connect these" once the bridge is a short equality plus
   `isBigTheta_trans`.
+- Activity-selection exchange pass: after sorted-head and recursive
+  sublist/feasibility lemmas exist, prove the certificate constructor from
+  sorted order and immediately compose it into the public
+  `greedySelect_maxCardinality` theorem.  The certificate theorem should remain
+  as a reusable interface, but the status page should not keep the section
+  `partial` once the sorted-list optimality theorem compiles.
 
 ## Honesty Rules
 

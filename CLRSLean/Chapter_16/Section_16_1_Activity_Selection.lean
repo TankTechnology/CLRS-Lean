@@ -23,15 +23,19 @@ Main results:
   optimality theorem for the greedy-choice step.  The exchange argument is
   provided as a hypothesis, keeping the theorem honest while still matching the
   CLRS proof structure.
+- Theorem {lit}`finishSorted_greedyChoiceCertificate`: on a finish-time-sorted
+  candidate list, the CLRS exchange certificate is derived automatically.
 - Theorems {lit}`greedySelect_sublist` and {lit}`greedySelect_feasible`: the
   executable greedy selector always returns activities drawn from the input and
   arranged feasibly.
+- Theorem {lit}`greedySelect_maxCardinality`: on a finish-time-sorted input, the
+  executable greedy selector has maximum cardinality among feasible sublists.
 
 Current gaps:
 
-- This file does not yet prove the full automated CLRS recursion from a sorted
-  activity list.  The remaining work is to derive the exchange certificate from
-  a sorted-by-finish interface and connect it to {lit}`greedySelect`.
+- None for the current finite-list model.  A lower-level refinement to CLRS
+  array/pseudocode execution and richer interval-validity assumptions remains a
+  future extension.
 -/
 
 open List
@@ -322,6 +326,64 @@ structure GreedyChoiceCertificate
         other.length ≤ (a :: tail).length
 
 /--
+If a feasible competitor starts with {lit}`first`, and the greedy activity
+{lit}`a` has minimum finish time in the sorted available list, then the
+competitor's tail is available after choosing {lit}`a`.
+-/
+theorem feasible_competitor_tail_sublist_after
+    {a first : Activity} {tail rest : List Activity}
+    (hmin : MinFinish a (a :: rest))
+    (hsub : (first :: tail).Sublist (a :: rest))
+    (hbefore : ∀ b ∈ tail, Before first b) :
+    tail.Sublist (activitiesAfter a rest) := by
+  have hfirst_mem : first ∈ a :: rest :=
+    hsub.subset (by simp)
+  have ha_first : a.finish ≤ first.finish :=
+    hmin.2 first hfirst_mem
+  have htail_rest : tail.Sublist rest :=
+    hsub.tail
+  unfold activitiesAfter
+  refine (List.sublist_filter_iff).2 ?_
+  refine ⟨tail, htail_rest, ?_⟩
+  have hfilter :
+      tail.filter (fun b => decide (a.finish ≤ b.start)) = tail := by
+    exact List.filter_eq_self.2 (by
+      intro b hb
+      have hfirst_b : first.finish ≤ b.start := hbefore b hb
+      have ha_b : a.finish ≤ b.start := Nat.le_trans ha_first hfirst_b
+      simp [ha_b])
+  exact hfilter.symm
+
+/--
+On a finish-time-sorted nonempty candidate list, the textbook exchange
+argument is no longer an external assumption: every feasible competitor can be
+rewritten as the greedy activity followed by a feasible tail from the filtered
+subproblem.
+-/
+theorem finishSorted_greedyChoiceCertificate
+    {a : Activity} {rest selected : List Activity}
+    (hsorted : FinishSorted (a :: rest))
+    (hselected_sub : selected.Sublist (activitiesAfter a rest)) :
+    GreedyChoiceCertificate (a :: rest) (activitiesAfter a rest) selected a := by
+  refine ⟨?_, ?_, ?_⟩
+  · exact List.Sublist.cons_cons a
+      (List.Sublist.trans hselected_sub (activitiesAfter_sublist a rest))
+  · intro b hb
+    exact (mem_activitiesAfter.mp (hselected_sub.subset hb)).2
+  · intro other hsub hfeasible
+    cases other with
+    | nil =>
+        refine ⟨[], by simp [activitiesAfter], by simp [Feasible], ?_⟩
+        simp
+    | cons first tail =>
+        have hmin : MinFinish a (a :: rest) :=
+          finishSorted_head_minFinish hsorted
+        have htail_sub :
+            tail.Sublist (activitiesAfter a rest) :=
+          feasible_competitor_tail_sublist_after hmin hsub hfeasible.2
+        exact ⟨tail, htail_sub, hfeasible.1, by simp⟩
+
+/--
 **Greedy-choice feasibility.**  If {lit}`a` has minimum finish time among the
 available activities and an optimal tail solution is compatible with {lit}`a`,
 then prepending {lit}`a` preserves feasibility.
@@ -376,6 +438,33 @@ theorem greedy_choice_optimal_from_certificate
         (a :: tail).length ≤ (a :: selected).length :=
       chosen_tail_bound_of_tail_optimal hopt htail_sub htail_feasible
     exact Nat.le_trans hle_exchange htail_bound
+
+/--
+**Full finite-list optimality for sorted inputs.**  If the candidate activities
+are sorted by nondecreasing finish time, the executable greedy selector returns
+a feasible sublist of maximum cardinality.
+-/
+theorem greedySelect_maxCardinality {xs : List Activity}
+    (hsorted : FinishSorted xs) :
+    MaxCardinality xs (greedySelect xs) := by
+  induction xs using greedySelect.induct with
+  | case1 =>
+      refine ⟨by simp [greedySelect], by simp [greedySelect, Feasible], ?_⟩
+      intro other hsub _hfeasible
+      have hlen : other.length ≤ ([] : List Activity).length :=
+        hsub.length_le
+      simpa [greedySelect] using hlen
+  | case2 a rest ih =>
+      rw [greedySelect.eq_def]
+      have hafter_sorted : FinishSorted (activitiesAfter a rest) := by
+        rcases (List.pairwise_cons.mp hsorted) with ⟨_ha, hrest_sorted⟩
+        exact finishSorted_activitiesAfter hrest_sorted
+      have htail_opt :
+          MaxCardinality (activitiesAfter a rest)
+            (greedySelect (activitiesAfter a rest)) :=
+        ih hafter_sorted
+      exact greedy_choice_optimal_from_certificate htail_opt
+        (finishSorted_greedyChoiceCertificate hsorted htail_opt.sublist)
 
 end ActivitySelection
 end CLRS

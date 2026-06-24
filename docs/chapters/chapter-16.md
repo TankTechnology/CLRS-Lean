@@ -3,20 +3,22 @@
 ## Section 16.1 - Activity Selection
 
 - Lean source: `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean`
-- Status: `partial`
+- Status: `proved` for the finite sorted-list model
 - Main theorems:
   - `CLRS.ActivitySelection.earliest_finish_minFinish`
   - `CLRS.ActivitySelection.finishSorted_head_minFinish`
+  - `CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate`
   - `CLRS.ActivitySelection.greedySelect_sublist`
   - `CLRS.ActivitySelection.greedySelect_feasible`
   - `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`
+  - `CLRS.ActivitySelection.greedySelect_maxCardinality`
 
 This section formalizes the finite activity model, feasibility of selected
 activity lists, finish-time ordering, the executable earliest-finish selector,
-and the recursive greedy selector's sublist and feasibility properties.  The
-remaining textbook strengthening is to derive the exchange certificate
-automatically and connect it to the full recursive `greedySelect`
-maximum-cardinality theorem.
+and the recursive greedy selector.  On finish-time-sorted inputs,
+`greedySelect` is proved to return a feasible sublist with maximum cardinality
+among all feasible sublists of the input.  Lower-level array/pseudocode
+execution refinement remains outside this finite-list theorem statement.
 
 ## Section 16.3 - Huffman Codes
 

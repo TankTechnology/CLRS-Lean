@@ -56,17 +56,19 @@ the imported CLRS-Lean source, not experimental worktrees.
   logarithmic growth:
   `CLRS.Chapter05.harmonic_isBigTheta_log` and
   `CLRS.Chapter05.expectedHires_isBigTheta_log`.
+- Chapter 16.1 now derives the sorted-order activity-selection exchange
+  certificate and proves full finite-list maximum-cardinality optimality for
+  `greedySelect`:
+  `CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate` and
+  `CLRS.ActivitySelection.greedySelect_maxCardinality`.
 
 ## Next Proof Priorities
 
-1. Chapter 16.1: derive the activity-selection exchange certificate and
-   maximum-cardinality theorem for `greedySelect`; the sorted head/min-finish
-   and executable sublist/feasibility layers are now proved.
-2. Chapter 23.2: add the sorted-prefix invariant needed to turn Kruskal's edge
+1. Chapter 23.2: add the sorted-prefix invariant needed to turn Kruskal's edge
    order into lightness certificates.
-3. Chapter 4.1: connect the CLRS divide-and-conquer maximum-subarray pseudocode
+2. Chapter 4.1: connect the CLRS divide-and-conquer maximum-subarray pseudocode
    to the proved exhaustive-search specification.
-4. Chapter 13.1: mechanize executable `RB-INSERT-FIXUP` on top of the local
+3. Chapter 13.1: mechanize executable `RB-INSERT-FIXUP` on top of the local
    rotation/repaint repair certificates.
 
 ## Audit Rule

@@ -103,6 +103,17 @@ chapters.
   while the maximum-cardinality proof is pending.  Its sublist and feasibility
   theorems are useful public progress and expose the remaining gap precisely.
 
+## 2026-06-24 - After Chapter 16.1 Activity Selection Optimality
+
+- Once `greedySelect_sublist` and `greedySelect_feasible` are available, the
+  sorted-order exchange certificate is tractable.  The useful lemma shape is:
+  if a feasible competitor starts with `first`, and the greedy activity has
+  minimum finish time in the sorted candidate list, then the competitor tail is
+  a sublist of `activitiesAfter` the greedy activity.
+- Keep the explicit certificate theorem as a reusable proof interface, but do
+  not leave the section marked `partial` after the public sorted-list theorem
+  `greedySelect_maxCardinality` compiles.
+
 ## 2026-06-24 - Complete Chapter Proof Workflow
 
 - Upgraded the skill from a general chapter loop to a complete-chapter workflow:

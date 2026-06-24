@@ -69,6 +69,13 @@ navigating the deployed pages.
   `CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm`.
 * 16.3 Huffman codes:
   `CLRS.HuffmanV2.optimum_huffman_freqs`.
+* 16.1 Activity selection, finite sorted-list model:
+  {lit}`CLRS.ActivitySelection.earliest_finish_minFinish`,
+  {lit}`CLRS.ActivitySelection.finishSorted_head_minFinish`,
+  {lit}`CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate`,
+  {lit}`CLRS.ActivitySelection.greedySelect_sublist`,
+  {lit}`CLRS.ActivitySelection.greedySelect_feasible`, and
+  {lit}`CLRS.ActivitySelection.greedySelect_maxCardinality`.
 * 10.1 Stacks and queues:
   `CLRS.Chapter10.pop_push`,
   `CLRS.Chapter10.dequeue_enqueue_empty`,
@@ -133,15 +140,6 @@ navigating the deployed pages.
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`;
   remaining gap: full RB insertion/deletion fixup algorithms are not yet
   mechanized.
-* 16.1 Activity selection:
-  current results {lit}`CLRS.ActivitySelection.earliest_finish_minFinish`,
-  {lit}`CLRS.ActivitySelection.finishSorted_head_minFinish`,
-  {lit}`CLRS.ActivitySelection.greedySelect_sublist`,
-  {lit}`CLRS.ActivitySelection.greedySelect_feasible`, and
-  {lit}`CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`;
-  remaining gap: derive the exchange certificate automatically and prove
-  maximum-cardinality optimality for the full recursive
-  {lit}`CLRS.ActivitySelection.greedySelect` theorem.
 * 23.1 Growing a minimum spanning tree:
   current result `CLRS.MST.safe_edge_of_lightest_crossing`;
   remaining gap: construct the concrete exchange edge from finite graph paths
