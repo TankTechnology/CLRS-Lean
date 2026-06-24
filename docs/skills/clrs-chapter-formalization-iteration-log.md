@@ -200,3 +200,13 @@ chapters.
 - For Chapter 5, the bridge is `expectedHires = harmonic`, the equality between
   the section's real harmonic sum and Mathlib's harmonic numbers, and
   Chapter 3.2's `CLRS.Chapter03.isBigTheta_harmonic_log`.
+
+## 2026-06-24 - After Chapter 23.2 Sorted Lightness
+
+- For Kruskal, do not keep the entire sorted-order argument hidden behind a
+  safe-edge certificate.  Prove a small public theorem: sorted edge order plus a
+  processed-prefix exclusion invariant implies the current edge is light across
+  the component cut.
+- This makes the remaining MST gap sharper: the next theorem should derive the
+  processed-prefix exclusion invariant from an exact component/cycle-test model,
+  while union-find implementation correctness can remain deferred.

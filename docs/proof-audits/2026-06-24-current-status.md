@@ -82,11 +82,16 @@ the imported CLRS-Lean source, not experimental worktrees.
 - Chapter 4.1 now proves recursive divide-and-conquer correctness as well:
   `CLRS.Chapter04.maxSubarrayDivideTree_correct` for explicit split trees and
   `CLRS.Chapter04.maxSubarrayDivideFuel_correct` for a fuelled midpoint splitter.
+- Chapter 23.2 now proves the sorted-order lightness layer for Kruskal:
+  `CLRS.MST.lightest_crossing_of_sorted_prefix` and
+  `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`.  The remaining
+  lightness gap is deriving the processed-prefix exclusion invariant from a
+  stronger exact cycle-test/component model.
 
 ## Next Proof Priorities
 
-1. Chapter 23.2: add the sorted-prefix invariant needed to turn Kruskal's edge
-   order into lightness certificates.
+1. Chapter 23.2: derive processed-prefix exclusion from an exact cycle-test or
+   component model, then feed it into the sorted-order lightness theorem.
 2. Chapter 4.1: add the runtime recurrence for the fuelled midpoint
    divide-and-conquer maximum-subarray selector.
 3. Chapter 13.1: mechanize executable `RB-INSERT-FIXUP` on top of the local

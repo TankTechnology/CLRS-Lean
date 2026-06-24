@@ -84,8 +84,14 @@ edge lemma for paths crossing a cut.
 - Status: `partial`
 
 Kruskal's textbook proof relies on processing edges in nondecreasing weight.
-The Lean proof still needs a processed-prefix invariant showing that any lighter
-crossing edge would already have been considered and rejected.
+The Lean proof now has a compiler-clean sorted-order lightness layer:
+`CLRS.MST.lightest_crossing_of_sorted_prefix` proves that a sorted edge list
+makes the current edge light once all crossing candidates are in the current
+suffix, and `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`
+packages that fact as a component-oracle cut certificate.  The remaining gap is
+to derive the processed-prefix exclusion invariant from a stronger exact
+cycle-test/component model, showing that previously processed edges cannot
+cross the current component cut.
 
 ## Future Work
 

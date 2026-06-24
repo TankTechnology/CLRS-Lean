@@ -50,10 +50,10 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
         self.assertIn("localStorage", text)
         self.assertIn("sessionStorage", text)
         self.assertIn("details.open = true", text)
-        self.assertIn("clrs.nav.state.v5", text)
-        self.assertIn("clrs.nav.scroll.v5", text)
-        self.assertNotIn("clrs.nav.state.v4", text)
-        self.assertNotIn("clrs.nav.scroll.v4", text)
+        self.assertIn("clrs.nav.state.v6", text)
+        self.assertIn("clrs.nav.scroll.v6", text)
+        self.assertNotIn("clrs.nav.state.v5", text)
+        self.assertNotIn("clrs.nav.scroll.v5", text)
         self.assertIn("stableNavPath", text)
         self.assertIn("new URL(raw, document.baseURI)", text)
         self.assertIn("CLRS-Lean", text)
@@ -131,7 +131,7 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
 
         self.assertTrue(stats.changed)
         self.assertEqual(text.count("clrs-nav-state-script"), 1)
-        self.assertIn("clrs.nav.state.v5", text)
+        self.assertIn("clrs.nav.state.v6", text)
         self.assertNotIn("clrs.nav.state.v4", text)
 
 

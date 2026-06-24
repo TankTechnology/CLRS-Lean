@@ -81,7 +81,7 @@ should remain import-friendly.
 | Section 16.1 - Activity selection | `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean` | `proved` for finite sorted lists | `CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate`, `CLRS.ActivitySelection.greedySelect_maxCardinality` |
 | Section 16.3 - Huffman codes | `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean` | `proved` | `HuffmanV2.optimum_huffman_freqs` |
 | Section 23.1 - Growing a minimum spanning tree | `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean` | `partial` | `CLRS.MST.safe_edge_of_lightest_crossing` |
-| Section 23.2 - Kruskal and Prim | `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean` | `partial` | `CLRS.MST.kruskal_optimal` |
+| Section 23.2 - Kruskal and Prim | `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean` | `partial` | `CLRS.MST.lightest_crossing_of_sorted_prefix`, `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`, `CLRS.MST.kruskal_optimal` |
 
 See [`proof-map.md`](proof-map.md) for the full status ledger.
 

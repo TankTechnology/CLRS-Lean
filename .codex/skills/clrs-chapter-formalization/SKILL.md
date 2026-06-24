@@ -206,6 +206,12 @@ end CLRS
   proof takes a feasible competitor, handles the empty case directly, and in
   the nonempty case uses the greedy head's minimum finish time to show the
   competitor tail belongs to the filtered post-greedy subproblem.
+- **MST/Kruskal chapters:** separate the proof into cut-property exchange,
+  sorted-order lightness, cycle-test/component exactness, and final spanning
+  tree maximality.  If component exactness is not yet available, still prove the
+  sorted-order lemma with an explicit processed-prefix exclusion invariant; this
+  prevents the section from hiding all of Kruskal's weight-order argument inside
+  a certificate hypothesis.
 
 ## Known Blockers
 
@@ -290,6 +296,12 @@ end CLRS
   `greedySelect_maxCardinality` theorem.  The certificate theorem should remain
   as a reusable interface, but the status page should not keep the section
   `partial` once the sorted-list optimality theorem compiles.
+- Chapter 23.2 sorted-lightness pass: for Kruskal, prove the weight-order
+  argument before the full component exactness model.  A useful theorem shape is
+  sorted edge list plus "no previously processed edge crosses the current cut"
+  implies the current edge is light, then package it as a component-oracle cut
+  certificate.  The next real gap becomes deriving that prefix exclusion from
+  cycle-test/component exactness, not sortedness itself.
 
 ## Honesty Rules
 

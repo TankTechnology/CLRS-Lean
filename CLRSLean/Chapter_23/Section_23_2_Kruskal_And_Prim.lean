@@ -7,9 +7,29 @@ open Finset
 
 This section builds on the safe-edge theorem from Section 23.1.  It contains the
 mathematical Kruskal pass, cut-certificate induction, finite-graph wrappers, and
-the component-oracle interface.  Union-find implementation correctness is
-deliberately deferred: the current proof works at the mathematical cycle-test
-interface level.
+the component-oracle interface.  It also isolates the sorted-edge-order
+lightness argument used by CLRS: once previously processed edges are known not
+to cross the current component cut, the current edge is light by sorted order.
+Union-find implementation correctness is deliberately deferred: the current
+proof works at the mathematical cycle-test interface level.
+
+Main results:
+
+- Theorem {lit}`lightest_crossing_of_sorted_prefix`: sorted edge order plus a
+  processed-prefix exclusion invariant proves the lightness condition for a
+  cut.
+- Theorem {lit}`cut_certificate_of_component_oracle_sorted_prefix`: packages
+  that sorted-order lightness proof into a component-oracle cut certificate.
+- Theorem {lit}`kruskal_optimal`: safe-edge induction for the mathematical
+  Kruskal pass.
+
+Current gaps:
+
+- Derive the processed-prefix exclusion invariant from a stronger exact
+  component/cycle-test model.
+- Prove the final selected edge set is a spanning tree from connectedness and
+  a complete edge scan.
+- Add Prim's theorem interface.
 -/
 
 namespace CLRS
@@ -67,6 +87,113 @@ theorem cut_certificate_of_component_oracle {G : Graph V E} {P : Problem E}
     CutCertificate G P w A (C.component A (G.src e)) e := by
   refine ⟨?_, C.respects A (G.src e), hlight, hexchange⟩
   exact Or.inl ⟨C.mem_self A (G.src e), not_mem_component_of_accept haccept⟩
+
+/-! ## Sorted-order lightness certificates -/
+
+/--
+An edge list is sorted in nondecreasing weight order.
+
+This CLRS-facing predicate is deliberately small: the head is no heavier than
+every later edge, and the tail is sorted recursively.
+-/
+def WeightSorted (w : E → Nat) : List E → Prop
+  | [] => True
+  | e :: es => (∀ f, f ∈ es → w e ≤ w f) ∧ WeightSorted w es
+
+omit [DecidableEq E] in
+/-- A suffix of a sorted edge list is sorted. -/
+theorem weightSorted_suffix_of_append (w : E → Nat)
+    (processed rest : List E) :
+    WeightSorted w (processed ++ rest) → WeightSorted w rest := by
+  induction processed with
+  | nil =>
+      intro hsorted
+      simpa using hsorted
+  | cons _ processed ih =>
+      intro hsorted
+      exact ih hsorted.2
+
+omit [DecidableEq E] in
+/-- In a sorted nonempty edge list, the head is no heavier than any member. -/
+theorem weightSorted_head_le_of_mem {w : E → Nat} {e f : E}
+    {suffix : List E} (hsorted : WeightSorted w (e :: suffix))
+    (hf : f ∈ e :: suffix) :
+    w e ≤ w f := by
+  rw [List.mem_cons] at hf
+  rcases hf with hfe | hfSuffix
+  · simp [hfe]
+  · exact hsorted.1 f hfSuffix
+
+omit [DecidableEq V] [DecidableEq E] in
+/--
+If every crossing edge appears in {lit}`processed ++ e :: suffix`, and the
+processed edge prefix contains no crossing edge for the current cut, then every
+crossing edge appears at or after {lit}`e`.
+-/
+theorem crossing_mem_current_suffix_of_prefix_excludes
+    {G : Graph V E} {S : Finset V} {processed suffix : List E} {e f : E}
+    (hall :
+      ∀ g, G.Crosses S g → g ∈ processed ++ e :: suffix)
+    (hprefix :
+      ∀ g, g ∈ processed → ¬ G.Crosses S g)
+    (hcross : G.Crosses S f) :
+    f ∈ e :: suffix := by
+  have hfAll := hall f hcross
+  rcases List.mem_append.mp hfAll with hfPrefix | hfSuffix
+  · exact False.elim ((hprefix f hfPrefix) hcross)
+  · exact hfSuffix
+
+omit [DecidableEq V] [DecidableEq E] in
+/--
+Sorted edge order plus the processed-prefix exclusion invariant proves the
+lightness side condition for the current Kruskal cut.
+
+This isolates the CLRS sorted-order argument from the graph-specific proof that
+previously processed edges do not cross the current component cut.
+-/
+theorem lightest_crossing_of_sorted_prefix {G : Graph V E} {w : E → Nat}
+    {S : Finset V} {processed suffix : List E} {e : E}
+    (hsorted : WeightSorted w (processed ++ e :: suffix))
+    (hall :
+      ∀ f, G.Crosses S f → f ∈ processed ++ e :: suffix)
+    (hprefix :
+      ∀ f, f ∈ processed → ¬ G.Crosses S f) :
+    ∀ f, G.Crosses S f → w e ≤ w f := by
+  intro f hcross
+  have hsuffixSorted :
+      WeightSorted w (e :: suffix) :=
+    weightSorted_suffix_of_append w processed (e :: suffix) hsorted
+  have hfSuffix :
+      f ∈ e :: suffix :=
+    crossing_mem_current_suffix_of_prefix_excludes
+      (G := G) (S := S) (processed := processed) (suffix := suffix)
+      (e := e) hall hprefix hcross
+  exact weightSorted_head_le_of_mem hsuffixSorted hfSuffix
+
+/--
+Component-oracle cut certificate where the lightness field is discharged from
+sorted edge order and a processed-prefix exclusion invariant.
+-/
+theorem cut_certificate_of_component_oracle_sorted_prefix
+    {G : Graph V E} {P : Problem E} {w : E → Nat} (C : ComponentOracle G)
+    {A : Finset E} {e : E} {processed suffix : List E}
+    (haccept : acceptByComponent G C A e = true)
+    (hsorted : WeightSorted w (processed ++ e :: suffix))
+    (hall :
+      ∀ f, G.Crosses (C.component A (G.src e)) f →
+        f ∈ processed ++ e :: suffix)
+    (hprefix :
+      ∀ f, f ∈ processed →
+        ¬ G.Crosses (C.component A (G.src e)) f)
+    (hexchange :
+      ∀ T, IsMSTExtending P w A T → e ∉ T →
+        ∃ f, f ∈ T ∧ G.Crosses (C.component A (G.src e)) f ∧
+          P.IsSpanningTree (insert e (T.erase f)) ∧
+          A ⊆ insert e (T.erase f)) :
+    CutCertificate G P w A (C.component A (G.src e)) e := by
+  exact cut_certificate_of_component_oracle C haccept
+    (lightest_crossing_of_sorted_prefix hsorted hall hprefix)
+    hexchange
 
 
 /-! ## Kruskal-style safe-edge induction -/

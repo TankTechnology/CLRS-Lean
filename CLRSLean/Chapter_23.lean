@@ -13,7 +13,8 @@ safe-edge induction.
 * 23.1 Growing a minimum spanning tree: `partial`.
   Main result: `CLRS.MST.safe_edge_of_lightest_crossing`.
 * 23.2 Kruskal and Prim: `partial`.
-  Main result: `CLRS.MST.kruskal_optimal`.
+  Main results: `CLRS.MST.lightest_crossing_of_sorted_prefix` and
+  `CLRS.MST.kruskal_optimal`.
 
 ## Current Shape
 
@@ -22,9 +23,11 @@ crossing a cut is safe once the graph-specific exchange certificate is supplied.
 The finite graph definitions, spanning-tree specification, and safe-edge
 interface are already present.
 
-Section 23.2 contains a mathematical Kruskal skeleton.  It proves that if every
-accepted edge carries a safe-edge certificate and the final selected edge set is
-a spanning tree, then the selected tree is optimal.
+Section 23.2 contains the sorted-order lightness layer and a mathematical
+Kruskal skeleton.  It proves that sorted edge order makes the current edge light
+once the processed prefix is known not to cross the current cut.  It also proves
+that if every accepted edge carries a safe-edge certificate and the final
+selected edge set is a spanning tree, then the selected tree is optimal.
 
 ## Deferred Work
 
@@ -35,7 +38,8 @@ for the cycle test.
 The main strengthening targets are:
 
 * derive the cut certificate automatically when Kruskal accepts an edge;
-* prove sorted edge order implies lightness across the induced cut;
+* derive the processed-prefix exclusion invariant from an exact cycle-test or
+  component model;
 * prove the final accepted edge set is a spanning tree under the usual
   connected-graph and complete-edge-list assumptions;
 * add Prim's theorem interface after the Kruskal skeleton is complete.

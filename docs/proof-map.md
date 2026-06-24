@@ -401,18 +401,25 @@ certificate is supplied.
 - Lean source: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
 - Status: `partial`
 - Main proved theorem: `CLRS.MST.kruskal_optimal`
-- Supporting theorem: `CLRS.MST.FiniteGraph.kruskal_optimal`
-- Proof pattern: safe-edge induction over an edge list
+- Supporting theorems:
+  - `CLRS.MST.lightest_crossing_of_sorted_prefix`
+  - `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`
+  - `CLRS.MST.FiniteGraph.kruskal_optimal`
+- Proof pattern: sorted-order lightness lemma plus safe-edge induction over an
+  edge list
 - Deferred implementation: union-find correctness
 - Current gaps:
-  - derive lightness automatically from a sorted edge order;
+  - derive the processed-prefix exclusion invariant from a stronger exact
+    cycle-test/component model;
   - prove the final selected edge set is a spanning tree from connectedness and
     complete edge scan;
   - add Prim's algorithm theorem interface.
 
-The section currently proves a mathematical Kruskal skeleton: if accepted edges
-come with safe-edge certificates and the final selected set is a spanning tree,
-then the result is optimal.
+The section currently proves the sorted-order lightness step once the current
+cut is known to exclude previously processed edges.  It also proves a
+mathematical Kruskal skeleton: if accepted edges come with safe-edge
+certificates and the final selected set is a spanning tree, then the result is
+optimal.
 
 ## Deferred And Blocked Items
 

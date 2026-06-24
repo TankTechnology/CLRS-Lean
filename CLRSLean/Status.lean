@@ -159,9 +159,12 @@ navigating the deployed pages.
   remaining gap: construct the concrete exchange edge from finite graph paths
   or cycles.
 * 23.2 Kruskal and Prim:
-  current result `CLRS.MST.kruskal_optimal`;
-  remaining gap: derive lightness from sorted order and prove the final selected
-  set is a spanning tree.
+  current results `CLRS.MST.lightest_crossing_of_sorted_prefix`,
+  `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`, and
+  `CLRS.MST.kruskal_optimal`;
+  remaining gap: derive the processed-prefix exclusion invariant from a
+  stronger exact cycle-test/component model and prove the final selected set is
+  a spanning tree.
 
 ## Deferred or Blocked
 
