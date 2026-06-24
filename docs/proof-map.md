@@ -120,8 +120,7 @@ all-input Master Theorem still need separate models.
 ### Section 4.1 - The maximum-subarray problem
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_1_Maximum_Subarray.lean`
-- Status: `proved` for the exhaustive-search specification plus
-  crossing/combine interface
+- Status: `proved` for the current functional correctness model
 - Main proved theorems:
   - `CLRS.Chapter04.mem_nonemptySubarrays_iff`
   - `CLRS.Chapter04.mem_crossingSubarrays_iff`
@@ -131,14 +130,16 @@ all-input Master Theorem still need separate models.
   - `CLRS.Chapter04.subarray_append_left_or_right_or_crossing`
   - `CLRS.Chapter04.subarray_append_optimal_of_cases`
   - `CLRS.Chapter04.maxSubarrayDivideStep_correct`
+  - `CLRS.Chapter04.maxSubarrayDivideTree_correct`
+  - `CLRS.Chapter04.maxSubarrayDivideFuel_correct`
   - `CLRS.Chapter04.maxSubarray_exists_of_ne_nil`
   - `CLRS.Chapter04.maxSubarray_correct`
 - Proof pattern: enumerate all nonempty contiguous subarrays, prove the
   enumerator exact, prove the crossing-helper enumerator exact, prove the
   left/right/crossing split classification, then prove finite argmax optimality
-  for both the exhaustive selector and the executable combine step
-- Current gap: define an executable recursive CLRS divide-and-conquer selector
-  that repeatedly uses this combine step, then add runtime analysis
+  for the exhaustive selector, the executable combine step, and recursive
+  split-tree/fuelled divide-and-conquer selectors
+- Current gap: add runtime analysis and a lower-level RAM/pseudocode cost model
 
 ### Section 4.2 - Strassen's algorithm for matrix multiplication
 
@@ -419,7 +420,7 @@ then the result is optimal.
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
 | Sorted-order lightness for Kruskal | `partial` | Needs a list-order invariant over processed edges. |
-| Maximum-subarray divide-and-conquer refinement | `future-work` | Exhaustive-search, crossing-helper optimality, and the executable combine step are proved; the full recursive CLRS selector and runtime recurrence still need to refine that specification. |
+| Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |

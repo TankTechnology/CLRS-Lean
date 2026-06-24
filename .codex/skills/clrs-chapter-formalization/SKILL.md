@@ -193,8 +193,10 @@ end CLRS
   finite-search specification.  For maximum subarray, enumerate all nonempty
   contiguous subarrays, prove the enumerator exact, prove finite argmax
   optimality, then prove the split classification and an executable one-step
-  combiner before attempting full recursion.  This leaves the recursive proof
-  focused on termination and splitting, not local optimality.
+  combiner.  For recursion, use an explicit split tree when direct list
+  termination would obscure the main argument; then add a fuelled splitter that
+  constructs such trees.  This keeps recursive correctness separate from
+  runtime/RAM-cost analysis.
 - **Greedy-recursion chapters:** split the proof into three layers before the
   final optimality theorem: sorted-order facts about the greedy choice,
   executable recursion invariants such as sublist and feasibility, and an
@@ -248,6 +250,11 @@ end CLRS
   `maxCrossingSubarray left right` gives a compact theorem,
   `maxSubarrayDivideStep_correct`, and removes local optimality from the future
   recursive proof.
+- Chapter 4.1 recursive-selector pass: once the one-step combiner is sealed,
+  introduce a result predicate for optional selectors, prove the combiner
+  preserves it, and recurse over an explicit split tree.  A fuelled midpoint
+  tree gives an executable divide-and-conquer selector without fighting
+  termination before the runtime model exists.
 - Chapter 16.1 activity-selection pass: before proving maximum cardinality,
   prove the finish-sorted head lemma and the executable greedy selector's
   sublist and feasibility invariants.  These are small theorem layers that make

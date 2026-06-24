@@ -46,7 +46,7 @@ need distinct representation choices: block matrices for Strassen and an
 all-input floor/ceiling bridge for the full Master Theorem.  Sections 4.3 and
 4.4 now provide the reusable recurrence and recursion-tree infrastructure.
 
-### Maximum-Subarray Divide-And-Conquer Refinement
+### Maximum-Subarray Runtime Analysis
 
 - Related section: Section 4.1 - The maximum-subarray problem
 - Status: `future-work`
@@ -62,8 +62,12 @@ candidate as left-only, right-only, or crossing, and
 `CLRS.Chapter04.subarray_append_optimal_of_cases` packages the corresponding
 optimality argument.  The executable combine step
 `CLRS.Chapter04.maxSubarrayDivideStep_correct` is now compiler-clean too.  The
-remaining CLRS refinement is to thread that step through a full recursive
-selector and add its runtime recurrence.
+recursive correctness layer is also compiler-clean:
+`CLRS.Chapter04.maxSubarrayDivideTree_correct` proves the split-tree selector,
+and `CLRS.Chapter04.maxSubarrayDivideFuel_correct` proves a fuelled midpoint
+divide-and-conquer selector against the original input.  The remaining CLRS
+refinement is runtime recurrence analysis and, eventually, a RAM-cost model for
+the textbook pseudocode.
 
 ### Concrete MST Exchange Edge
 

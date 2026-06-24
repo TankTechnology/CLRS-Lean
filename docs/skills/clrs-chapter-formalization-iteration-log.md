@@ -138,6 +138,17 @@ chapters.
   proof can focus on termination/splitting, while the local optimality argument
   is already sealed.
 
+## 2026-06-24 - After Chapter 4.1 Recursive Selector
+
+- Once the one-step combiner is proved, introduce a small result predicate for
+  optional maximum-subarray selectors and prove that the combiner preserves it.
+  This lets the recursive proof become a direct structural induction over a
+  split tree instead of replaying local optimality at every node.
+- For list divide-and-conquer algorithms, an explicit split tree plus a fuelled
+  splitter is a good intermediate model: it gives an executable selector and a
+  clean correctness theorem while leaving runtime recurrence/RAM semantics as a
+  separate strengthening target.
+
 ## 2026-06-24 - Complete Chapter Proof Workflow
 
 - Upgraded the skill from a general chapter loop to a complete-chapter workflow:

@@ -12,9 +12,8 @@ proof infrastructure used by later divide-and-conquer analyses.  Sections 4.3
 and 4.4 provide the proof-method infrastructure used by the Master-method file
 and by future divide-and-conquer runtime proofs.
 
-* Section 4.1 - The maximum-subarray problem: {lit}`proved` for the exhaustive
-  finite-search specification, the CLRS crossing helper, and the
-  executable left/right/crossing combine step.
+* Section 4.1 - The maximum-subarray problem: {lit}`proved` for the current
+  functional correctness model.
   The file proves that the candidate enumerator contains exactly the nonempty
   contiguous subarrays, and that {lit}`maxSubarray` returns a candidate with
   maximum sum.  It also proves that {lit}`maxCrossingSubarray` returns a
@@ -22,8 +21,10 @@ and by future divide-and-conquer runtime proofs.
   {lit}`subarray_append_left_or_right_or_crossing` and
   {lit}`subarray_append_optimal_of_cases` provide the proof interface for the
   recursive combine step, and {lit}`maxSubarrayDivideStep_correct` proves the
-  executable combine step itself.  The remaining refinement target is a full
-  recursive selector and runtime proof against this specification.
+  executable combine step itself.  The recursive layer is captured by
+  {lit}`maxSubarrayDivideTree_correct` for explicit split trees and
+  {lit}`maxSubarrayDivideFuel_correct` for a fuelled midpoint splitter.  The
+  remaining refinement target is runtime/RAM-cost analysis.
 * Section 4.2 - Strassen's algorithm for matrix multiplication:
   {lit}`future-work`.
   This is formalizable as block-matrix algebra plus a proof that the seven

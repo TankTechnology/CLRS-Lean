@@ -79,14 +79,16 @@ the imported CLRS-Lean source, not experimental worktrees.
   `CLRS.Chapter04.subarray_append_optimal_of_cases`.
 - Chapter 4.1 now also proves the executable combine step itself:
   `CLRS.Chapter04.maxSubarrayDivideStep_correct`.
+- Chapter 4.1 now proves recursive divide-and-conquer correctness as well:
+  `CLRS.Chapter04.maxSubarrayDivideTree_correct` for explicit split trees and
+  `CLRS.Chapter04.maxSubarrayDivideFuel_correct` for a fuelled midpoint splitter.
 
 ## Next Proof Priorities
 
 1. Chapter 23.2: add the sorted-prefix invariant needed to turn Kruskal's edge
    order into lightness certificates.
-2. Chapter 4.1: thread the proved executable combine step through a full
-   recursive divide-and-conquer maximum-subarray selector and add its runtime
-   recurrence.
+2. Chapter 4.1: add the runtime recurrence for the fuelled midpoint
+   divide-and-conquer maximum-subarray selector.
 3. Chapter 13.1: mechanize executable `RB-INSERT-FIXUP` on top of the local
    rotation/repaint repair certificates.
 
