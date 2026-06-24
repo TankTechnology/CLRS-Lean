@@ -46,7 +46,10 @@ should not depend on a hand-written `docs/site/index.html`.
 Large generated proof pages are post-processed before deployment.  The optimizer
 keeps anchors, rendered Lean code, search assets, and copy buttons, while
 removing tactic-state DOM and hover metadata that make browser parsing slow on
-long files such as the Huffman proof.
+long files such as the Huffman proof.  The same post-processing step opens the
+module sidebar by default and injects a small navigation-state script so reader
+sidebar scroll and manual chapter collapse/expand choices persist across page
+loads.
 
 ## Reader Flow
 

@@ -5,3 +5,5 @@
 *.ilean
 *.c
 *.setup.json
+__pycache__/
+*.pyc
