@@ -67,6 +67,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
 
+[modules."CLRSLean"]
+title = "CLRS-Lean"
+
 [modules."CLRSLean.Chapter_01"]
 title = "Chapter 1. The Role of Algorithms"
 

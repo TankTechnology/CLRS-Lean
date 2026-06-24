@@ -128,6 +128,16 @@ chapters.
   define the executable recursive selector and prove it against the combine
   theorem.
 
+## 2026-06-24 - After Chapter 4.1 Executable Combine Step
+
+- After proving a case-split interface, immediately add the executable
+  one-step combiner when it is small: for maximum subarray, selecting among
+  `maxSubarray left`, `maxSubarray right`, and `maxCrossingSubarray left right`
+  gave a compact theorem, `maxSubarrayDivideStep_correct`.
+- This is the right checkpoint before full recursion: the remaining selector
+  proof can focus on termination/splitting, while the local optimality argument
+  is already sealed.
+
 ## 2026-06-24 - Complete Chapter Proof Workflow
 
 - Upgraded the skill from a general chapter loop to a complete-chapter workflow:

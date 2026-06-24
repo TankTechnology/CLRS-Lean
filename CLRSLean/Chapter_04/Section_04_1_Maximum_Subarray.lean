@@ -31,6 +31,9 @@ Main results:
 - Theorem {lit}`subarray_append_optimal_of_cases`: a candidate that dominates
   the left-only, right-only, and crossing cases dominates every subarray of the
   concatenated input.
+- Theorem {lit}`maxSubarrayDivideStep_correct`: an executable combine step for
+  the CLRS divide-and-conquer proof returns a globally optimal candidate for
+  {lit}`left ++ right`.
 - Theorem {lit}`maxSubarray_exists_of_ne_nil`: nonempty inputs have a selected
   maximum-subarray candidate.
 - Theorem {lit}`maxSubarray_correct`: the executable maximum-subarray selector
@@ -39,10 +42,9 @@ Main results:
 
 Current gaps:
 
-- The crossing-helper layer of the CLRS divide-and-conquer pseudocode is now
-  proved, and the left/right/crossing case split for a recursive combine step is
-  available.  The remaining refinement is an executable recursive selector that
-  uses this combine theorem.
+- The crossing-helper layer and executable split-combine step of the CLRS
+  divide-and-conquer pseudocode are now proved.  The remaining refinement is to
+  thread this combine step through a structurally recursive selector.
 - Runtime and RAM-cost analysis are future strengthening targets.
 -/
 
@@ -219,6 +221,24 @@ theorem crossingSubarray_isNonemptySubarray_append {sub left right : List Int}
     | cons _ _ =>
         simp at hnil
   · exact ⟨before, after, by simp [hleft, hright, List.append_assoc]⟩
+
+/-! ## Lifting subarrays across an append -/
+
+/-- A left-half subarray is also a subarray after appending a right half. -/
+theorem isNonemptySubarray_append_left {sub left right : List Int}
+    (hsub : IsNonemptySubarray sub left) :
+    IsNonemptySubarray sub (left ++ right) := by
+  rcases hsub with ⟨hsubNonempty, before, after, hleft⟩
+  exact ⟨hsubNonempty, before, after ++ right, by
+    simp [hleft, List.append_assoc]⟩
+
+/-- A right-half subarray is also a subarray after prepending a left half. -/
+theorem isNonemptySubarray_append_right {sub left right : List Int}
+    (hsub : IsNonemptySubarray sub right) :
+    IsNonemptySubarray sub (left ++ right) := by
+  rcases hsub with ⟨hsubNonempty, before, after, hright⟩
+  exact ⟨hsubNonempty, left ++ before, after, by
+    simp [hright, List.append_assoc]⟩
 
 /-- The contiguous-subarray enumerator is exact. -/
 theorem mem_nonemptySubarrays_iff {sub xs : List Int} :
@@ -512,6 +532,111 @@ theorem maxSubarray_correct {xs best : List Int}
   · exact mem_nonemptySubarrays_iff.mp hbestMem
   · intro cand hcand
     exact hbestOptimal cand (mem_nonemptySubarrays_iff.mpr hcand)
+
+/-! ## Executable divide-and-conquer combine step -/
+
+/--
+One executable CLRS divide-and-conquer combine step.
+
+The left and right subproblems are solved by the already-proved exact selector,
+and the crossing case is solved by {lit}`maxCrossingSubarray`.  The step then
+selects the best among the available local winners.
+-/
+def maxSubarrayDivideStep (left right : List Int) : Option (List Int) :=
+  bestCandidate
+    ((maxSubarray left).toList ++
+      (maxSubarray right).toList ++
+      (maxCrossingSubarray left right).toList)
+
+/--
+Correctness of the executable divide-and-conquer combine step: whenever it
+returns a candidate, that candidate is a nonempty subarray of the concatenated
+input and dominates every nonempty subarray of that input.
+-/
+theorem maxSubarrayDivideStep_correct {left right best : List Int}
+    (hbest : maxSubarrayDivideStep left right = some best) :
+    IsNonemptySubarray best (left ++ right) ∧
+      ∀ cand, IsNonemptySubarray cand (left ++ right) →
+        subarraySum cand ≤ subarraySum best := by
+  unfold maxSubarrayDivideStep at hbest
+  rcases bestCandidate_correct hbest with ⟨hbestMem, hbestOptimal⟩
+  have hbestCases :
+      IsNonemptySubarray best left ∨
+        IsNonemptySubarray best right ∨ IsCrossingSubarray best left right := by
+    simp at hbestMem
+    rcases hbestMem with hleftMem | hrightMem | hcrossMem
+    · have hleftBest : maxSubarray left = some best := by
+        simpa using hleftMem
+      exact Or.inl (maxSubarray_correct hleftBest).1
+    · have hrightBest : maxSubarray right = some best := by
+        simpa using hrightMem
+      exact Or.inr (Or.inl (maxSubarray_correct hrightBest).1)
+    · have hcrossBest : maxCrossingSubarray left right = some best := by
+        simpa using hcrossMem
+      exact Or.inr (Or.inr (maxCrossingSubarray_correct hcrossBest).1)
+  constructor
+  · rcases hbestCases with hleftSub | hrightSub | hcrossSub
+    · exact isNonemptySubarray_append_left hleftSub
+    · exact isNonemptySubarray_append_right (left := left) hrightSub
+    · exact crossingSubarray_isNonemptySubarray_append hcrossSub
+  · apply subarray_append_optimal_of_cases
+    · intro cand hcandLeft
+      have hcandMem : cand ∈ nonemptySubarrays left :=
+        mem_nonemptySubarrays_iff.mpr hcandLeft
+      have hcandidates : nonemptySubarrays left ≠ [] := by
+        intro hnil
+        simp [hnil] at hcandMem
+      rcases bestCandidate_exists_of_ne_nil hcandidates with ⟨leftBest, hleftBestRaw⟩
+      have hleftBest : maxSubarray left = some leftBest := by
+        unfold maxSubarray
+        exact hleftBestRaw
+      have hcandLeLeftBest :=
+        (maxSubarray_correct hleftBest).2 cand hcandLeft
+      have hleftBestMem :
+          leftBest ∈
+            (maxSubarray left).toList ++
+              (maxSubarray right).toList ++
+              (maxCrossingSubarray left right).toList := by
+        simp [hleftBest]
+      exact le_trans hcandLeLeftBest (hbestOptimal leftBest hleftBestMem)
+    · intro cand hcandRight
+      have hcandMem : cand ∈ nonemptySubarrays right :=
+        mem_nonemptySubarrays_iff.mpr hcandRight
+      have hcandidates : nonemptySubarrays right ≠ [] := by
+        intro hnil
+        simp [hnil] at hcandMem
+      rcases bestCandidate_exists_of_ne_nil hcandidates with ⟨rightBest, hrightBestRaw⟩
+      have hrightBest : maxSubarray right = some rightBest := by
+        unfold maxSubarray
+        exact hrightBestRaw
+      have hcandLeRightBest :=
+        (maxSubarray_correct hrightBest).2 cand hcandRight
+      have hrightBestMem :
+          rightBest ∈
+            (maxSubarray left).toList ++
+              (maxSubarray right).toList ++
+              (maxCrossingSubarray left right).toList := by
+        simp [hrightBest]
+      exact le_trans hcandLeRightBest (hbestOptimal rightBest hrightBestMem)
+    · intro cand hcandCross
+      have hcandMem : cand ∈ crossingSubarrays left right :=
+        mem_crossingSubarrays_iff.mpr hcandCross
+      have hcandidates : crossingSubarrays left right ≠ [] := by
+        intro hnil
+        simp [hnil] at hcandMem
+      rcases bestCandidate_exists_of_ne_nil hcandidates with ⟨crossBest, hcrossBestRaw⟩
+      have hcrossBest : maxCrossingSubarray left right = some crossBest := by
+        unfold maxCrossingSubarray
+        exact hcrossBestRaw
+      have hcandLeCrossBest :=
+        (maxCrossingSubarray_correct hcrossBest).2 cand hcandCross
+      have hcrossBestMem :
+          crossBest ∈
+            (maxSubarray left).toList ++
+              (maxSubarray right).toList ++
+              (maxCrossingSubarray left right).toList := by
+        simp [hcrossBest]
+      exact le_trans hcandLeCrossBest (hbestOptimal crossBest hcrossBestMem)
 
 end Chapter04
 end CLRS

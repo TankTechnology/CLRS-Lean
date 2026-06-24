@@ -54,8 +54,8 @@ NAV_STATE_SCRIPT_RE = re.compile(
 NAV_STATE_SCRIPT = r"""
 <script id="clrs-nav-state-script">
 (() => {
-  const STATE_KEY = "clrs.nav.state.v5";
-  const SCROLL_KEY = "clrs.nav.scroll.v5";
+  const STATE_KEY = "clrs.nav.state.v6";
+  const SCROLL_KEY = "clrs.nav.scroll.v6";
 
   function storageArea() {
     try {
@@ -180,8 +180,8 @@ NAV_STATE_SCRIPT = r"""
     }
 
     const scrollCandidates = [
-      document.querySelector(".sidebar"),
       document.querySelector(".sidebar-content"),
+      document.querySelector(".sidebar"),
       nav.parentElement,
     ].filter(Boolean);
     const scrollHost =

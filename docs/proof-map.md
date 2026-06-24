@@ -130,13 +130,15 @@ all-input Master Theorem still need separate models.
   - `CLRS.Chapter04.maxCrossingSubarray_isNonemptySubarray_append`
   - `CLRS.Chapter04.subarray_append_left_or_right_or_crossing`
   - `CLRS.Chapter04.subarray_append_optimal_of_cases`
+  - `CLRS.Chapter04.maxSubarrayDivideStep_correct`
   - `CLRS.Chapter04.maxSubarray_exists_of_ne_nil`
   - `CLRS.Chapter04.maxSubarray_correct`
 - Proof pattern: enumerate all nonempty contiguous subarrays, prove the
   enumerator exact, prove the crossing-helper enumerator exact, prove the
   left/right/crossing split classification, then prove finite argmax optimality
+  for both the exhaustive selector and the executable combine step
 - Current gap: define an executable recursive CLRS divide-and-conquer selector
-  against this combine interface, then add runtime analysis
+  that repeatedly uses this combine step, then add runtime analysis
 
 ### Section 4.2 - Strassen's algorithm for matrix multiplication
 
@@ -417,7 +419,7 @@ then the result is optimal.
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
 | Sorted-order lightness for Kruskal | `partial` | Needs a list-order invariant over processed edges. |
-| Maximum-subarray divide-and-conquer refinement | `future-work` | Exhaustive-search, crossing-helper optimality, and the combine-interface theorem are proved; the executable recursive CLRS selector and runtime recurrence still need to refine that specification. |
+| Maximum-subarray divide-and-conquer refinement | `future-work` | Exhaustive-search, crossing-helper optimality, and the executable combine step are proved; the full recursive CLRS selector and runtime recurrence still need to refine that specification. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |

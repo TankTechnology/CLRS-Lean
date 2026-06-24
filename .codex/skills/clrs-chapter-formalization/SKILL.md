@@ -192,8 +192,9 @@ end CLRS
   harder than the mathematical specification, first prove a clean exhaustive
   finite-search specification.  For maximum subarray, enumerate all nonempty
   contiguous subarrays, prove the enumerator exact, prove finite argmax
-  optimality, and then use that theorem as the refinement target for the
-  divide-and-conquer pseudocode.
+  optimality, then prove the split classification and an executable one-step
+  combiner before attempting full recursion.  This leaves the recursive proof
+  focused on termination and splitting, not local optimality.
 - **Greedy-recursion chapters:** split the proof into three layers before the
   final optimality theorem: sorted-order facts about the greedy choice,
   executable recursion invariants such as sublist and feasibility, and an
@@ -241,6 +242,12 @@ end CLRS
   recurrence before proving the core specification.  A finite exhaustive
   selector plus an exact contiguous-subarray enumerator gives a strong public
   theorem and a precise future refinement target.
+- Chapter 4.1 executable-combine pass: after the left/right/crossing
+  classification is proved, add the executable combine step immediately.
+  Selecting among `maxSubarray left`, `maxSubarray right`, and
+  `maxCrossingSubarray left right` gives a compact theorem,
+  `maxSubarrayDivideStep_correct`, and removes local optimality from the future
+  recursive proof.
 - Chapter 16.1 activity-selection pass: before proving maximum cardinality,
   prove the finish-sorted head lemma and the executable greedy selector's
   sublist and feasibility invariants.  These are small theorem layers that make

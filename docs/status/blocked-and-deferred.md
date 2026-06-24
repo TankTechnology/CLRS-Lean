@@ -60,8 +60,10 @@ crossing a split.  The combine-interface layer is compiler-clean as well:
 `CLRS.Chapter04.subarray_append_left_or_right_or_crossing` classifies every
 candidate as left-only, right-only, or crossing, and
 `CLRS.Chapter04.subarray_append_optimal_of_cases` packages the corresponding
-optimality argument.  The remaining CLRS refinement is to define an executable
-recursive selector against this interface and add its runtime recurrence.
+optimality argument.  The executable combine step
+`CLRS.Chapter04.maxSubarrayDivideStep_correct` is now compiler-clean too.  The
+remaining CLRS refinement is to thread that step through a full recursive
+selector and add its runtime recurrence.
 
 ### Concrete MST Exchange Edge
 

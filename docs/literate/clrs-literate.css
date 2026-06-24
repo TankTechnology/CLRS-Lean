@@ -22,7 +22,7 @@
     --clrs-blue: #305f89;
     --clrs-shadow: 0 1px 2px rgba(23, 33, 28, 0.08);
 
-    --clrs-ui-font-family: -apple-system, BlinkMacSystemFont, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", "Noto Sans", "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    --clrs-ui-font-family: "IBM Plex Sans", "Aptos", -apple-system, BlinkMacSystemFont, ".SFNSText-Regular", "San Francisco", "Segoe UI", "Noto Sans", "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
 
     --verso-text-font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
     --verso-structure-font-family: var(--clrs-ui-font-family);
@@ -103,6 +103,8 @@ a {
 
 .sidebar {
     width: 336px;
+    height: 100dvh;
+    overflow: hidden;
     background: var(--clrs-sidebar);
     border-right: 1px solid var(--clrs-sidebar-border);
     box-shadow: 1px 0 0 rgba(23, 33, 28, 0.035);
@@ -111,14 +113,30 @@ a {
 }
 
 .sidebar-content {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 18px 14px 28px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--clrs-line-strong) transparent;
+}
+
+.sidebar-content::-webkit-scrollbar {
+    width: 10px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: var(--clrs-line-strong);
+    background-clip: content-box;
 }
 
 .module-tree {
     font-family: var(--verso-structure-font-family);
-    font-size: 0.96rem;
+    font-size: 0.98rem;
     font-feature-settings: "kern" 1;
-    line-height: 1.38;
+    line-height: 1.42;
     text-rendering: optimizeLegibility;
 }
 
@@ -162,18 +180,23 @@ a {
     margin: 3px 0;
 }
 
+.module-tree details[open] > summary {
+    color: var(--clrs-sidebar-text);
+}
+
 .module-tree details details,
 .module-tree details .leaf {
-    margin-left: 12px;
+    margin-left: 13px;
 }
 
 .module-tree summary,
 .module-tree .leaf {
-    min-height: 38px;
-    padding: 8px 11px;
+    min-height: 36px;
+    padding: 7px 10px;
     border-radius: 6px;
     color: var(--clrs-sidebar-text);
-    font-weight: 600;
+    font-weight: 680;
+    letter-spacing: 0;
 }
 
 .module-tree summary:hover,
@@ -192,7 +215,7 @@ a {
 
 .module-tree .custom-title {
     font-family: var(--verso-structure-font-family);
-    font-weight: 600;
+    font-weight: 680;
 }
 
 .module-tree .current,
@@ -209,6 +232,7 @@ a {
 
 .module-tree summary::before {
     color: var(--clrs-sidebar-muted);
+    opacity: 0.9;
 }
 
 .module-tree summary.current::before {
