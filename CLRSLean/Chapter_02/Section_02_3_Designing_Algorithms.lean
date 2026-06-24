@@ -5,7 +5,7 @@ import CLRSLean.Chapter_02.Section_02_1_Insertion_Sort
 # CLRS Section 2.3 - Designing algorithms
 
 This file introduces merge sort as the Chapter 2 divide-and-conquer example.
-For this first complete chapter pass, we use Lean's verified `List.mergeSort`
+For this first complete chapter pass, we use Lean's verified List.mergeSort
 implementation and expose CLRS-facing theorem names.  This keeps the chapter
 workflow focused on the algorithmic contract:
 

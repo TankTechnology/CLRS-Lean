@@ -2,6 +2,7 @@ import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import Mathlib.Tactic
 
 open Real Filter Asymptotics Finset
+open scoped BigOperators
 
 /-!
 # 4.5. The Master Method — Exact Powers

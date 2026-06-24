@@ -38,6 +38,10 @@ jobs:
           echo "Verso output: $VERSO_OUT"
           mkdir -p _site
           cp -r "$VERSO_OUT"/* _site/
+          cp docs/literate/clrs-literate.css _site/clrs-literate.css
+
+      - name: Optimize generated HTML
+        run: python3 scripts/optimize_literate_html.py _site
 
       - uses: actions/upload-pages-artifact@v3
         with:

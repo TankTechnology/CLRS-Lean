@@ -1,0 +1,125 @@
+/-!
+# Proof Status
+
+This page is the public status ledger for the web site.  It mirrors the longer
+maintainer notes in `docs/proof-map.md`, but is written for readers who are
+navigating the deployed pages.
+
+## Status Labels
+
+* `proved`: the named section theorem is proved in Lean for the current
+  specification.
+* `expository`: a reader-facing guide page with no theorem target.
+* `partial`: important theorem infrastructure exists, but the full textbook
+  claim is not complete.
+* `statement`: the intended theorem interface exists, but proof work has not
+  started.
+* `blocked-design`: progress depends on choosing a stable representation.
+* `blocked-mathlib`: progress depends on missing or inconvenient Mathlib
+  infrastructure.
+* `deferred-implementation`: the mathematical proof is in scope, but a
+  low-level implementation proof is postponed.
+* `future-work`: exercises, chapter-end problems, or strengthening passes
+  outside the current main track.
+
+## Proved
+
+* 3.1 Asymptotic notation:
+  `CLRS.Chapter03.isBigO_iff`,
+  `CLRS.Chapter03.isLittleO_iff`,
+  `CLRS.Chapter03.isBigOmega_iff`,
+  `CLRS.Chapter03.isLittleOmega_iff`,
+  `CLRS.Chapter03.isBigTheta_trans`.
+* 2.1 Insertion sort:
+  `CLRS.Chapter02.insertionSort_sorted`,
+  `CLRS.Chapter02.insertionSort_perm`.
+* 2.2 Analyzing algorithms:
+  `CLRS.Chapter02.insertionSortWorstComparisons_quadratic`.
+* 2.3 Designing algorithms:
+  `CLRS.Chapter02.mergeSort_sortedLE`,
+  `CLRS.Chapter02.mergeSort_perm`,
+  `CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm`.
+* 16.3 Huffman codes:
+  `CLRS.HuffmanV2.optimum_huffman_freqs`.
+* 10.1 Stacks and queues:
+  `CLRS.Chapter10.pop_push`,
+  `CLRS.Chapter10.dequeue_enqueue_empty`,
+  `CLRS.Chapter10.dequeue_enqueue_nonempty`.
+* 10.2 Linked lists:
+  `CLRS.Chapter10.listSearch_sound`,
+  `CLRS.Chapter10.mem_listInsert_self`,
+  `CLRS.Chapter10.mem_listDeleteAll_iff`.
+* 11.1 Direct-address tables:
+  `CLRS.Chapter11.search_insert_same`,
+  `CLRS.Chapter11.search_insert_other`,
+  `CLRS.Chapter11.search_delete_same`,
+  `CLRS.Chapter11.search_delete_other`.
+
+## Partial
+
+* 3.2 Standard functions:
+  current results {lit}`CLRS.Chapter03.isLittleO_pow_pow`,
+  {lit}`CLRS.Chapter03.isBigO_pow_pow`,
+  {lit}`CLRS.Chapter03.isBigTheta_nat_floor_coerce`,
+  {lit}`CLRS.Chapter03.isBigTheta_nat_ceil_coerce`,
+  {lit}`CLRS.Chapter03.factorial_upper_bound`, and
+  {lit}`CLRS.Chapter03.isLittleO_exp_vs_factorial`;
+  remaining gap: add the full CLRS table of standard growth comparisons,
+  especially logarithm-vs-polynomial and polynomial-vs-exponential facts.
+* 11.2 Chained hash tables:
+  current result {lit}`CLRS.Chapter11.hashSearch_hashInsert_self`;
+  remaining gap: expected search time under simple uniform hashing needs a
+  probability model over keys or hash functions.
+* 12.1 Binary search trees:
+  current results {lit}`CLRS.Chapter12.BSTree.inTree_insert_iff` and
+  {lit}`CLRS.Chapter12.BSTree.insert_ordered`;
+  remaining gap: search, minimum/maximum, successor/predecessor, and deletion
+  remain future section targets.
+* 13.1 Red-black trees:
+  current results {lit}`CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_rotateRight_iff`,
+  {lit}`CLRS.Chapter13.RBTree.noRedRed_repaint_black`, and
+  {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_repaintRoot`;
+  remaining gap: full RB insertion/deletion fixup algorithms are not yet
+  mechanized.
+* 16.1 Activity selection:
+  current results {lit}`CLRS.ActivitySelection.earliest_finish_minFinish` and
+  {lit}`CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`;
+  remaining gap: derive the exchange certificate automatically from a
+  finish-time-sorted input interface and prove the full recursive
+  {lit}`CLRS.ActivitySelection.greedySelect` theorem.
+* 23.1 Growing a minimum spanning tree:
+  current result `CLRS.MST.safe_edge_of_lightest_crossing`;
+  remaining gap: construct the concrete exchange edge from finite graph paths
+  or cycles.
+* 23.2 Kruskal and Prim:
+  current result `CLRS.MST.kruskal_optimal`;
+  remaining gap: derive lightness from sorted order and prove the final selected
+  set is a spanning tree.
+
+## Deferred or Blocked
+
+* Union-find correctness: `deferred-implementation`.
+  Reason: not needed for the mathematical MST proof.
+* Concrete MST exchange edge: `blocked-design`.
+  Reason: needs a stable finite path or walk representation.
+* Full RAM semantics: `future-work`.
+  Reason: requires a separate imperative machine and cost model.
+* Chapter 4 Master Theorem exploration: `blocked-design`.
+  Reason: the `chapter-1-exploration` branch contains a useful proof design,
+  but the current Lean file is not compiler-clean.
+* Chapter 5 hiring problem exploration: `blocked-mathlib`.
+  Reason: the exploration branch has a promising harmonic-number direction,
+  but the probability/asymptotics file currently fails to compile.
+* General merge-sort recurrence: `future-work`.
+  Reason: needs floor and ceiling arithmetic for all input sizes.
+* CLRS exercises and chapter-end problems: `future-work`.
+  Reason: kept separate from the first main-theorem pass.
+
+## Reader Contract
+
+The status table is intentionally conservative.  A section is not marked
+`proved` merely because the algorithm idea is clear; it needs a named Lean
+theorem that compiles for the stated model.  A section marked `partial` should
+say exactly which mathematical or representation layer remains.
+-/

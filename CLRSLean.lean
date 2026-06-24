@@ -1,45 +1,138 @@
 import CLRSLean.Chapter_01
+import CLRSLean.Chapter_02
 import CLRSLean.Chapter_03
-import CLRSLean.Chapter_02.Section_02_1_Insertion_Sort
-import CLRSLean.Chapter_16.Section_16_3_Huffman_Codes
-import CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees
-import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim
+import CLRSLean.Chapter_04
+import CLRSLean.Chapter_05
+import CLRSLean.Chapter_10
+import CLRSLean.Chapter_11
+import CLRSLean.Chapter_12
+import CLRSLean.Chapter_13
+import CLRSLean.Chapter_16
+import CLRSLean.Chapter_23
+import CLRSLean.Status
+import CLRSLean.Workflow
 
 /-!
-# CLRS-lean
+# CLRSLean
 
-A Lean 4 companion for *Introduction to Algorithms* (CLRS), formalizing
-algorithm correctness proofs chapter by chapter.
+CLRSLean is a Lean 4 companion to CLRS-style algorithm proofs.  The project is
+organized as a readable online book: each chapter has a short guide page, and
+each selected textbook section has a literate Lean page containing the formal
+model, the public theorem interface, and the proof.
 
-## What is this?
+## Project Aim
 
-Each section in CLRS that presents an algorithm proof is rendered as a
-standalone Lean module.  The proofs are faithful to the textbook arguments
-but expressed in Lean's dependent type theory, using Mathlib for
-mathematical infrastructure.
+The goal is not to mechanically translate pseudocode line by line.  The first
+target is the mathematical proof content of the textbook: loop invariants,
+exchange arguments, cut properties, recurrences, and optimal-substructure
+claims.  Low-level implementation proofs, such as union-find or heap
+correctness, are added only when they are needed for the main theorem.
 
-## Proof status
+This keeps the site useful for three kinds of readers:
 
-| Chapter | Section | Status |
-|---------|---------|--------|
-| 2 | 2.1 Insertion Sort | ✅ proved |
-| 16 | 16.3 Huffman Codes | ✅ proved |
-| 23 | 23.1 Growing an MST | ⚠️ partial |
-| 23 | 23.2 Kruskal and Prim | ⚠️ partial |
+* algorithm readers who want the proof idea before reading Lean code;
+* Lean readers who want stable theorem names and proof patterns;
+* contributors who need an honest map of what is proved, partial, or deferred.
 
-## Conventions
+## Reading Route
 
-- **Zero-indexed**: sequences and lists use 0-based indexing for Mathlib compatibility
-- **Total functions**: partial operations return junk values rather than `Option`
-- **Unfinished proofs**: marked with `sorry` and an explanatory comment
-- **Module = section**: one `.lean` file per CLRS section, rendered as one web page
+Start with the chapter pages in the sidebar.
 
-## Build
+* Chapter 1 - Algorithms: the project reading contract and the way CLRSLean
+  turns textbook claims into Lean definitions plus theorems.
+* Chapter 2 - Getting Started: sorting correctness, a lightweight runtime bound,
+  and a merge-sort recurrence.
+* Chapter 3 - Growth of Functions: CLRS-style wrappers around Mathlib
+  asymptotics plus selected standard growth facts.
+* Chapter 10 - Elementary Data Structures: functional stack, queue, and
+  linked-list operation proofs.
+* Chapter 11 - Hash Tables: direct-address table correctness and deterministic
+  chained-hash-table lookup facts.
+* Chapter 12 - Binary Search Trees: insertion membership and ordering
+  invariant preservation for an inductive BST model.
+* Chapter 13 - Red-Black Trees: local rotation and recoloring invariant lemmas.
+* Chapter 16 - Greedy Algorithms: activity-selection exchange infrastructure
+  and the complete Huffman optimality proof, currently the flagship greedy case
+  study.
+* Chapter 23 - Minimum Spanning Trees: the MST cut property and the
+  mathematical Kruskal skeleton.
+* Proof Status: a compact ledger of proved, partial, blocked, and deferred work.
+* Workflow: the contribution loop for adding or strengthening a CLRS section.
 
-* `lake build` — compile Lean sources
-* `lake build :literateHtml` — generate website into `_site/`
+## Current Coverage
 
-## Repository
+* Chapter 1: `expository`.
+  No theorem target; this page explains the project conventions.
+* 2.1 Insertion sort: `proved`.
+  Public results: `CLRS.Chapter02.insertionSort_sorted`,
+  `CLRS.Chapter02.insertionSort_perm`.
+* 2.2 Analyzing algorithms: `proved`.
+  Public result: `CLRS.Chapter02.insertionSortWorstComparisons_quadratic`.
+* 2.3 Designing algorithms: `proved`.
+  Public results: `CLRS.Chapter02.mergeSort_sortedLE`,
+  `CLRS.Chapter02.mergeSort_perm`,
+  `CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm`.
+* 3.1 Asymptotic notation: `proved`.
+  Public results: `CLRS.Chapter03.isBigO_iff`,
+  `CLRS.Chapter03.isLittleO_iff`,
+  `CLRS.Chapter03.isBigTheta_trans`.
+* 3.2 Standard functions: `partial`.
+  Current results: `CLRS.Chapter03.isLittleO_pow_pow`,
+  `CLRS.Chapter03.factorial_upper_bound`,
+  `CLRS.Chapter03.isLittleO_exp_vs_factorial`.
+* 10.1 Stacks and queues: `proved` for the functional-list model.
+  Public results: `CLRS.Chapter10.pop_push`,
+  `CLRS.Chapter10.dequeue_enqueue_nonempty`.
+* 10.2 Linked lists: `proved` for the functional-list model.
+  Public results: `CLRS.Chapter10.listSearch_sound`,
+  `CLRS.Chapter10.mem_listDeleteAll_iff`.
+* 11.1 Direct-address tables: `proved` for the functional table model.
+  Public results: `CLRS.Chapter11.search_insert_same`,
+  `CLRS.Chapter11.search_delete_same`.
+* 11.2 Chained hash tables: `partial`.
+  Current result: `CLRS.Chapter11.hashSearch_hashInsert_self`.
+* 12.1 Binary search trees: `partial`.
+  Current results: `CLRS.Chapter12.BSTree.inTree_insert_iff`,
+  `CLRS.Chapter12.BSTree.insert_ordered`.
+* 13.1 Red-black trees: `partial`.
+  Current results: `CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`,
+  `CLRS.Chapter13.RBTree.noRedRed_repaint_black`.
+* 16.1 Activity selection: `partial`.
+  Current results: `CLRS.ActivitySelection.earliest_finish_minFinish`,
+  `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`.
+* 16.3 Huffman codes: `proved`.
+  Public result: `CLRS.HuffmanV2.optimum_huffman_freqs`.
+* 23.1 Growing a minimum spanning tree: `partial`.
+  Current result: `CLRS.MST.safe_edge_of_lightest_crossing`.
+* 23.2 Kruskal and Prim: `partial`.
+  Current result: `CLRS.MST.kruskal_optimal`.
 
-[https://github.com/TankTechnology/CLRSLean](https://github.com/TankTechnology/CLRSLean)
+## Status Policy
+
+The site uses explicit status labels instead of hiding incomplete work.
+
+* `proved`: the named theorem is proved in Lean without relying on `sorry`.
+* `expository`: the page is a reader guide rather than a theorem-bearing
+  section.
+* `partial`: important theorem infrastructure exists, but the full textbook
+  section is not yet complete.
+* `blocked-design`: progress needs a representation decision, such as paths,
+  walks, heaps, arrays, or cost semantics.
+* `deferred-implementation`: a low-level implementation proof is useful but not
+  required for the current mathematical theorem.
+* `future-work`: valuable extensions, exercises, or chapter-end problems.
+
+## Build and Deployment
+
+The deployed site is generated from the Lean source by Verso:
+
+```
+lake build
+lake build :literateHtml
+```
+
+GitHub Actions runs the same pipeline and publishes the generated `_site`
+directory to GitHub Pages.
+
+Repository: [TankTechnology/CLRSLean](https://github.com/TankTechnology/CLRSLean)
 -/

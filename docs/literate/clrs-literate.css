@@ -1,0 +1,530 @@
+/* CLRSLean literate site theme.
+   Loaded after Verso's default literate.css. */
+
+:root {
+    --clrs-ink: #17211c;
+    --clrs-ink-soft: #435047;
+    --clrs-paper: #fbfcfb;
+    --clrs-surface: #ffffff;
+    --clrs-sidebar: #ffffff;
+    --clrs-sidebar-2: #ffffff;
+    --clrs-sidebar-text: #252a2e;
+    --clrs-sidebar-muted: #5f686f;
+    --clrs-sidebar-hover: #f1f5f3;
+    --clrs-sidebar-border: #d7dddb;
+    --clrs-sidebar-current: #2e6584;
+    --clrs-line: #d8dfd5;
+    --clrs-line-strong: #aebba9;
+    --clrs-accent: #a74727;
+    --clrs-accent-soft: #f3ddd3;
+    --clrs-green: #2f6d55;
+    --clrs-green-soft: #dfece5;
+    --clrs-blue: #305f89;
+    --clrs-shadow: 0 1px 2px rgba(23, 33, 28, 0.08);
+
+    --clrs-ui-font-family: -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+
+    --verso-text-font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --verso-structure-font-family: var(--clrs-ui-font-family);
+    --verso-code-font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    --verso-text-color: var(--clrs-ink);
+    --verso-structure-color: var(--clrs-ink);
+    --verso-background-color: var(--clrs-paper);
+    --verso-surface-color: #eef3ec;
+    --verso-border-color: var(--clrs-line);
+    --verso-link-color: var(--clrs-green);
+    --verso-link-visited-color: var(--clrs-blue);
+    --verso-link-hover-bg: var(--clrs-green-soft);
+    --verso-muted-color: #667268;
+    --verso-current-bg: var(--clrs-accent);
+    --verso-current-fg: #fffdf9;
+    --verso-breadcrumb-color: var(--clrs-ink-soft);
+    --verso-code-box-background-color: #fbfcf8;
+    --verso-code-box-border-color: #cbd6c8;
+    --verso-prose-max-width: 78ch;
+    --verso-inline-code-bg: #e7eee6;
+    --verso-selected-color: #ffe9c7;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --clrs-ink: #edf4ec;
+        --clrs-ink-soft: #bdcabc;
+        --clrs-paper: #111815;
+        --clrs-surface: #17221d;
+        --clrs-sidebar: #0e1512;
+        --clrs-sidebar-2: #17231d;
+        --clrs-sidebar-text: #f4fbf2;
+        --clrs-sidebar-muted: #c4d2c6;
+        --clrs-sidebar-hover: #1c2d24;
+        --clrs-sidebar-border: #2f4137;
+        --clrs-sidebar-current: #b85d31;
+        --clrs-line: #2b3a32;
+        --clrs-line-strong: #52665a;
+        --clrs-accent: #e28c62;
+        --clrs-accent-soft: #3a241b;
+        --clrs-green: #87c6a4;
+        --clrs-green-soft: #20352a;
+        --clrs-blue: #9fc5e8;
+        --clrs-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+
+        --verso-text-color: var(--clrs-ink);
+        --verso-structure-color: var(--clrs-ink);
+        --verso-background-color: var(--clrs-paper);
+        --verso-surface-color: var(--clrs-surface);
+        --verso-border-color: var(--clrs-line);
+        --verso-link-color: var(--clrs-green);
+        --verso-link-visited-color: var(--clrs-blue);
+        --verso-link-hover-bg: var(--clrs-green-soft);
+        --verso-muted-color: #a8b5ab;
+        --verso-current-bg: #9c5537;
+        --verso-code-box-background-color: #141d19;
+        --verso-code-box-border-color: var(--clrs-line);
+        --verso-inline-code-bg: #1f2b25;
+        --verso-selected-color: #3e3020;
+    }
+}
+
+body {
+    background: var(--verso-background-color);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: 0;
+    text-rendering: optimizeLegibility;
+}
+
+a {
+    text-underline-offset: 0.18em;
+}
+
+.layout {
+    background: transparent;
+}
+
+.sidebar {
+    width: 320px;
+    background: var(--clrs-sidebar);
+    border-right: 1px solid var(--clrs-sidebar-border);
+    box-shadow: 1px 0 0 rgba(23, 33, 28, 0.035);
+}
+
+.sidebar-content {
+    padding: 18px 14px 28px;
+}
+
+.module-tree {
+    font-family: var(--verso-structure-font-family);
+    font-size: 0.94rem;
+    font-feature-settings: "kern" 1;
+    line-height: 1.42;
+}
+
+.module-tree a {
+    text-decoration: none;
+}
+
+.module-tree .nav-title {
+    margin: 0 0 16px;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--clrs-sidebar-border);
+    font-size: 0.98rem;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.module-tree .nav-title a {
+    display: flex;
+    align-items: center;
+    color: var(--clrs-sidebar-text);
+    font-weight: 700;
+}
+
+.module-tree .nav-title a::before {
+    content: "CLRS";
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    margin-right: 10px;
+    border: 1px solid var(--clrs-sidebar-border);
+    border-radius: 6px;
+    background: var(--clrs-sidebar-2);
+    color: var(--clrs-sidebar-current);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.module-tree details {
+    margin: 3px 0;
+}
+
+.module-tree details details,
+.module-tree details .leaf {
+    margin-left: 12px;
+}
+
+.module-tree summary,
+.module-tree .leaf {
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: var(--clrs-sidebar-text);
+    font-weight: 500;
+}
+
+.module-tree summary:hover,
+.module-tree .leaf:hover {
+    background: var(--clrs-sidebar-hover);
+}
+
+.module-tree summary a,
+.module-tree .leaf a {
+    color: var(--clrs-sidebar-text);
+}
+
+.module-tree .custom-title {
+    font-family: var(--verso-structure-font-family);
+    font-weight: 500;
+}
+
+.module-tree .current,
+.module-tree summary.current {
+    background: var(--clrs-sidebar-current);
+    box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.48);
+}
+
+.module-tree .current a,
+.module-tree summary.current a {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.module-tree summary::before {
+    color: var(--clrs-sidebar-muted);
+}
+
+.module-tree summary.current::before {
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.main-area {
+    background: transparent;
+}
+
+.title-bar {
+    padding: 14px clamp(18px, 3vw, 42px);
+    border-bottom: 1px solid rgba(174, 187, 169, 0.72);
+    background: var(--clrs-paper);
+}
+
+.breadcrumbs {
+    gap: 4px 6px;
+    font-family: var(--verso-structure-font-family);
+    font-size: 0.86rem;
+}
+
+.breadcrumbs li:not(:last-child)::after {
+    content: "/";
+    margin-left: 6px;
+    color: #95a597;
+}
+
+.breadcrumbs a,
+.breadcrumbs .current {
+    padding: 6px 9px;
+    border-radius: 8px;
+}
+
+.breadcrumbs a {
+    color: var(--clrs-green);
+}
+
+.breadcrumbs a:hover {
+    background: var(--clrs-green-soft);
+    text-decoration: none;
+}
+
+.breadcrumbs .current {
+    border: 1px solid var(--clrs-line);
+    background: rgba(255, 255, 255, 0.64);
+    color: var(--clrs-ink);
+    font-weight: 760;
+}
+
+.content-wrapper {
+    background: transparent;
+}
+
+.code-content {
+    padding: clamp(22px, 4vw, 58px);
+    scroll-padding-top: 28px;
+}
+
+.code-content > .verso-text.mod-doc,
+.code-content > .md-text.mod-doc {
+    max-width: var(--verso-prose-max-width);
+    margin: 0 0 22px;
+    color: var(--clrs-ink);
+    font-size: 1.04rem;
+    line-height: 1.76;
+}
+
+.code-content > .verso-text.mod-doc:first-of-type,
+.code-content > .md-text.mod-doc:first-of-type {
+    max-width: 980px;
+    margin-bottom: 30px;
+    padding: 0 0 24px;
+    border-bottom: 1px solid var(--clrs-line);
+}
+
+.code-content > .verso-text.mod-doc:not(:first-of-type),
+.code-content > .md-text.mod-doc:not(:first-of-type) {
+    padding-left: 18px;
+    border-left: 3px solid var(--clrs-green);
+}
+
+.code-content > .verso-text.mod-doc h1,
+.code-content > .md-text.mod-doc h1 {
+    max-width: 30ch;
+    margin: 0 0 14px;
+    border: 0;
+    padding: 0;
+    color: var(--clrs-ink);
+    font-family: var(--verso-structure-font-family);
+    font-size: clamp(2.05rem, 3.2vw, 3.1rem);
+    font-weight: 760;
+    line-height: 1.08;
+    letter-spacing: 0;
+}
+
+.code-content > .verso-text.mod-doc h2,
+.code-content > .md-text.mod-doc h2 {
+    margin-top: 34px;
+    margin-bottom: 12px;
+    color: var(--clrs-ink);
+    font-family: var(--verso-structure-font-family);
+    font-size: 1.22rem;
+    font-weight: 820;
+    letter-spacing: 0.02em;
+}
+
+.code-content > .verso-text.mod-doc h2::before,
+.code-content > .md-text.mod-doc h2::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    border-radius: 50%;
+    background: var(--clrs-accent);
+}
+
+.code-content > .verso-text.mod-doc p,
+.code-content > .md-text.mod-doc p {
+    color: var(--clrs-ink-soft);
+}
+
+.code-content > .verso-text.mod-doc code,
+.code-content > .md-text.mod-doc code {
+    border: 1px solid rgba(47, 109, 85, 0.18);
+    color: var(--clrs-ink);
+}
+
+.code-content > .verso-text.mod-doc ul,
+.code-content > .md-text.mod-doc ul,
+.code-content > .verso-text.mod-doc ol,
+.code-content > .md-text.mod-doc ol {
+    padding-left: 1.35rem;
+}
+
+.code-content > .verso-text.mod-doc li,
+.code-content > .md-text.mod-doc li {
+    margin-bottom: 0.35rem;
+}
+
+.code-box,
+.imports-list {
+    max-width: 1160px;
+    border-radius: 8px;
+    border-color: var(--verso-code-box-border-color);
+    background: var(--verso-code-box-background-color);
+    box-shadow: none;
+}
+
+.code-box {
+    margin: 0 0 22px;
+    padding: 18px 20px;
+    border-left: 4px solid var(--clrs-green);
+    font-size: 0.91rem;
+    line-height: 1.62;
+}
+
+.hl.lean {
+    font-variant-ligatures: none;
+}
+
+.code-box .hl.lean {
+    padding-right: 36px;
+}
+
+.imports-list {
+    margin-bottom: 24px;
+}
+
+.imports-list summary {
+    padding: 11px 14px;
+    color: var(--clrs-ink-soft);
+    font-family: var(--verso-structure-font-family);
+    letter-spacing: 0.03em;
+}
+
+.imports-list summary::before {
+    content: "Dependency capsule";
+    margin-right: 10px;
+    color: var(--clrs-accent);
+    font-size: 0.72rem;
+    font-weight: 820;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.copy-button {
+    top: 10px;
+    right: 10px;
+    border-radius: 8px;
+    font-family: var(--verso-structure-font-family);
+    font-weight: 760;
+    opacity: 0.22;
+}
+
+.copy-button:hover {
+    opacity: 1;
+}
+
+.page-toc {
+    width: 286px;
+    padding: 28px 22px;
+    border-left: 1px solid var(--clrs-line);
+    background: rgba(255, 255, 255, 0.44);
+}
+
+.page-toc-title {
+    color: var(--clrs-accent);
+    font-family: var(--verso-structure-font-family);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.page-toc li {
+    padding: 5px 0;
+}
+
+.page-toc a {
+    color: var(--clrs-ink-soft);
+    font-family: var(--verso-structure-font-family);
+}
+
+.page-toc a:hover {
+    color: var(--clrs-green);
+}
+
+.landing-page {
+    max-width: 1040px;
+    padding: clamp(28px, 7vw, 84px);
+}
+
+.landing-page h1 {
+    max-width: 12ch;
+    border-bottom: 0;
+    color: var(--clrs-ink);
+    font-family: var(--verso-text-font-family);
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    line-height: 0.95;
+}
+
+.module-toc {
+    display: grid;
+    gap: 10px;
+    max-width: 720px;
+}
+
+.module-toc li {
+    padding: 0;
+}
+
+.module-toc a {
+    display: block;
+    padding: 12px 14px;
+    border: 1px solid var(--clrs-line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.65);
+    color: var(--clrs-ink);
+    font-family: var(--verso-structure-font-family);
+    font-weight: 760;
+}
+
+.module-toc a:hover {
+    border-color: var(--clrs-green);
+    background: var(--clrs-green-soft);
+    text-decoration: none;
+}
+
+.search-page-host input,
+[data-search-host] input {
+    min-height: 42px;
+    border: 1px solid var(--clrs-line-strong);
+    border-radius: 8px;
+    background: var(--clrs-surface);
+    color: var(--clrs-ink);
+}
+
+@media (max-width: 1100px) {
+    .page-toc {
+        display: none;
+    }
+
+    .sidebar {
+        width: 292px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        background: var(--verso-background-color);
+    }
+
+    .hamburger {
+        border-radius: 8px;
+        box-shadow: var(--clrs-shadow);
+    }
+
+    .title-bar {
+        padding-left: 72px;
+    }
+
+    .code-content {
+        padding: 22px 16px 36px;
+    }
+
+    .code-content > .verso-text.mod-doc h1,
+    .code-content > .md-text.mod-doc h1 {
+        max-width: 100%;
+    }
+
+    .code-box {
+        padding: 14px 12px;
+        font-size: 0.82rem;
+    }
+}
+
+@supports (content-visibility: auto) {
+    .code-box,
+    .imports-list,
+    .code-content > .verso-text.mod-doc:not(:first-of-type),
+    .code-content > .md-text.mod-doc:not(:first-of-type) {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 720px;
+    }
+}

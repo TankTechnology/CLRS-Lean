@@ -16,6 +16,16 @@ without changing the mathematical Kruskal proof.
 
 ## Blocked Design
 
+### Hash-Table Expected-Time Analysis
+
+- Related section: Section 11.2 - Chained hash tables
+- Status: `blocked-design`
+
+The deterministic chained-table interface is in place for a fixed hash
+function.  The CLRS expected-time theorem needs a probability model over keys,
+hash functions, or random assignments before we can state simple uniform
+hashing precisely.
+
 ### Concrete MST Exchange Edge
 
 - Related section: Section 23.1 - Growing a minimum spanning tree
@@ -73,3 +83,31 @@ The power-of-two recurrence is proved.  The arbitrary-size recurrence
 `T(n) = T(⌈n / 2⌉) + T(⌊n / 2⌋) + n` remains future work because it needs
 floor/ceiling arithmetic, monotonicity, and a clean asymptotic theorem for all
 input sizes.
+
+### Pointer-Level Linked Lists
+
+- Related section: Section 10.2 - Linked lists
+- Status: `future-work`
+
+The current Section 10.2 file proves the functional-list membership behavior of
+search, insertion, and deletion.  Predecessor/successor pointer updates,
+sentinels, allocation, and free lists require a shared imperative memory model.
+
+### Binary-Search-Tree Deletion And Navigation
+
+- Related section: Section 12.1 - Binary search trees
+- Status: `future-work`
+
+Insertion membership and ordering preservation are proved.  Search,
+minimum/maximum, successor/predecessor, transplant, and deletion are the next
+functional-tree layer before any pointer-level refinement.
+
+### Full Red-Black Insertion And Deletion
+
+- Related section: Section 13.1 - Red-black trees
+- Status: `future-work`
+
+The current Chapter 13 file proves local rotation and recoloring lemmas.  A
+full CLRS proof still needs executable `RB-INSERT`, `RB-INSERT-FIXUP`,
+`RB-DELETE`, and `RB-DELETE-FIXUP` together with preservation of the red-black
+invariants and height bound.

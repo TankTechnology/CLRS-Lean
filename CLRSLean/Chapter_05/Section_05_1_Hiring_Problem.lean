@@ -3,6 +3,7 @@ import Mathlib
 open Finset
 open Filter
 open Asymptotics
+open scoped BigOperators
 
 /-!
 # 5.1. The Hiring Problem
@@ -36,7 +37,7 @@ namespace Chapter05
 
 /-! ## Harmonic numbers -/
 
-def harmonic (n : ℕ) : ℝ := ∑ i in range n, 1 / ((i : ℝ) + 1)
+noncomputable def harmonic (n : ℕ) : ℝ := Finset.sum (range n) (fun i => 1 / ((i : ℝ) + 1))
 
 @[simp] lemma harmonic_zero : harmonic 0 = 0 := by simp [harmonic]
 lemma harmonic_succ (n : ℕ) : harmonic (n + 1) = harmonic n + 1 / ((n : ℝ) + 1) := by
@@ -44,7 +45,11 @@ lemma harmonic_succ (n : ℕ) : harmonic (n + 1) = harmonic n + 1 / ((n : ℝ) +
 
 lemma harmonic_pos {n : ℕ} (hn : 0 < n) : 0 < harmonic n := by
   refine Finset.sum_pos (fun i _ => div_pos (by norm_num) (by positivity)) ?_
-  exact ⟨0, mem_range.2 hn, by simp⟩
+  exact by
+    have h : (range n).Nonempty := by
+      rw [Finset.nonempty_range_iff]
+      exact hn
+    exact h
 
 /-! ## Expected number of hires -/
 
@@ -57,7 +62,7 @@ candidate is the best among the first `n+1`) with probability `1/(n+1)`, since
 each of the `n+1` positions is equally likely to contain the best element.
 If the last candidate is hired, she contributes 1 extra hire; the remaining
 `n` candidates contribute `h(n)` expected hires.  Hence the recurrence. -/
-def expectedHires : ℕ → ℝ
+noncomputable def expectedHires : ℕ → ℝ
   | 0 => 0
   | n+1 => expectedHires n + 1 / ((n : ℝ) + 1)
 
@@ -89,7 +94,7 @@ lemma x_div_one_add_x_le_log_one_add_x {x : ℝ} (hx : -1 < x) :
   rw [h_log_inv] at h_upper
   linarith
 
-lemma telescoping_log_sum (m : ℕ) : ∑ k in range m,
+lemma telescoping_log_sum (m : ℕ) : Finset.sum (range m) (fun k =>
     (Real.log ((k : ℝ) + 2) - Real.log ((k : ℝ) + 1)) = Real.log ((m : ℝ) + 1) := by
   induction' m with m IH
   · simp
@@ -106,8 +111,8 @@ lemma telescoping_log_sum (m : ℕ) : ∑ k in range m,
 
 lemma harmonic_ge_log_succ (n : ℕ) : Real.log ((n : ℝ) + 1) ≤ harmonic n := by
   rw [← telescoping_log_sum n]
-  have h_eq : ∑ k in range n, (Real.log ((k : ℝ) + 2) - Real.log ((k : ℝ) + 1)) =
-      ∑ k in range n, Real.log (1 + 1 / ((k : ℝ) + 1)) := by
+  have h_eq : Finset.sum (range n) (fun k => (Real.log ((k : ℝ) + 2) - Real.log ((k : ℝ) + 1)) )
+      Finset.sum (range n) (fun k => Real.log (1 + 1 / ((k : ℝ) + 1))) := by
     refine Finset.sum_congr rfl (fun k _ => ?_)
     rw [← Real.log_div (by positivity) (by positivity)]
     field_simp; ring
@@ -119,7 +124,7 @@ lemma harmonic_ge_log_succ (n : ℕ) : Real.log ((n : ℝ) + 1) ≤ harmonic n :
 lemma harmonic_le_one_add_log {n : ℕ} (hn : 1 ≤ n) : harmonic n ≤ 1 + Real.log (n : ℝ) := by
   rcases n with (rfl | n)
   · exact (Nat.not_lt.mpr hn (by norm_num)).elim
-  · have hsum : harmonic (Nat.succ n) = 1 + ∑ k in range n, 1 / ((k : ℝ) + 2) := by
+  · have hsum : harmonic (Nat.succ n) = 1 + Finset.sum (range n) (fun k => 1 / ((k : ℝ) + 2)) := by
       simp [harmonic, sum_range_succ, add_assoc]
     rw [hsum]
     have h_bound : ∀ k : ℕ, 1 / ((k : ℝ) + 2) ≤ Real.log (((k : ℝ) + 2) / ((k : ℝ) + 1)) := by
@@ -129,7 +134,7 @@ lemma harmonic_le_one_add_log {n : ℕ} (hn : 1 ≤ n) : harmonic n ≤ 1 + Real
         _ ≤ Real.log (1 + 1 / ((k : ℝ) + 1)) :=
           x_div_one_add_x_le_log_one_add_x (by positivity)
         _ = Real.log (((k : ℝ) + 2) / ((k : ℝ) + 1)) := by field_simp; ring
-    have h_telescope : (∑ k in range n, Real.log (((k : ℝ) + 2) / ((k : ℝ) + 1))) =
+    have h_telescope : (Finset.sum (range n) (fun k => Real.log (((k : ℝ) + 2) / ((k : ℝ) + 1))) )
         Real.log ((Nat.succ n : ℝ)) := by
       induction' n with m IH
       · simp
@@ -137,7 +142,7 @@ lemma harmonic_le_one_add_log {n : ℕ} (hn : 1 ≤ n) : harmonic n ≤ 1 + Real
         rw [← Real.log_mul (by positivity) (by positivity)]
         field_simp; ring
     calc
-      1 + ∑ k in range n, 1 / ((k : ℝ) + 2) ≤ 1 + ∑ k in range n,
+      1 + Finset.sum (range n) (fun k => 1 / ((k : ℝ) + 2) ≤ 1 + Finset.sum (range n) (fun k =>)
           Real.log (((k : ℝ) + 2) / ((k : ℝ) + 1)) := by gcongr
       _ = 1 + Real.log ((Nat.succ n : ℝ)) := by rw [h_telescope]
 

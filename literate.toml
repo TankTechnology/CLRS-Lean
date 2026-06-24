@@ -1,36 +1,149 @@
 landing_page = "CLRSLean"
+extra_css = ["docs/literate/clrs-literate.css"]
+hide_commands = ["set_option"]
+docstrings_as_text = true
+
+[metadata]
+title = "CLRSLean"
+description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 
 [order_children]
 "CLRSLean" = [
   "CLRSLean.Chapter_01",
+  "CLRSLean.Chapter_02",
   "CLRSLean.Chapter_03",
+  "CLRSLean.Chapter_04",
+  "CLRSLean.Chapter_05",
+  "CLRSLean.Chapter_10",
+  "CLRSLean.Chapter_11",
+  "CLRSLean.Chapter_12",
+  "CLRSLean.Chapter_13",
+  "CLRSLean.Chapter_16",
+  "CLRSLean.Chapter_23",
+  "CLRSLean.Status",
+  "CLRSLean.Workflow",
+]
+"CLRSLean.Chapter_02" = [
   "CLRSLean.Chapter_02.Section_02_1_Insertion_Sort",
-  "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
-  "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
-  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
+  "CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms",
+  "CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms",
 ]
 "CLRSLean.Chapter_03" = [
   "CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation",
   "CLRSLean.Chapter_03.Section_03_2_Standard_Functions",
 ]
+"CLRSLean.Chapter_04" = [
+  "CLRSLean.Chapter_04.Section_04_5_Master_Theorem",
+]
+"CLRSLean.Chapter_05" = [
+  "CLRSLean.Chapter_05.Section_05_1_Hiring_Problem",
+]
+"CLRSLean.Chapter_10" = [
+  "CLRSLean.Chapter_10.Section_10_1_Stacks_And_Queues",
+  "CLRSLean.Chapter_10.Section_10_2_Linked_Lists",
+]
+"CLRSLean.Chapter_11" = [
+  "CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables",
+  "CLRSLean.Chapter_11.Section_11_2_Chained_Hash_Tables",
+]
+"CLRSLean.Chapter_12" = [
+  "CLRSLean.Chapter_12.Section_12_1_Binary_Search_Trees",
+]
+"CLRSLean.Chapter_13" = [
+  "CLRSLean.Chapter_13.Section_13_1_Red_Black_Trees",
+]
+"CLRSLean.Chapter_16" = [
+  "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
+  "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
+]
+"CLRSLean.Chapter_23" = [
+  "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
+]
+
+[modules."CLRSLean.Chapter_02"]
+title = "Chapter 2. Getting Started"
 
 [modules."CLRSLean.Chapter_01"]
-title = "Chapter 1. Algorithms"
+title = "Chapter 1. The Role of Algorithms"
 
 [modules."CLRSLean.Chapter_03"]
 title = "Chapter 3. Growth of Functions"
+
+[modules."CLRSLean.Chapter_04"]
+title = "Chapter 4. Divide-and-Conquer"
+
+[modules."CLRSLean.Chapter_05"]
+title = "Chapter 5. Probabilistic Analysis"
+
+[modules."CLRSLean.Chapter_10"]
+title = "Chapter 10. Elementary Data Structures"
+
+[modules."CLRSLean.Chapter_11"]
+title = "Chapter 11. Hash Tables"
+
+[modules."CLRSLean.Chapter_12"]
+title = "Chapter 12. Binary Search Trees"
+
+[modules."CLRSLean.Chapter_13"]
+title = "Chapter 13. Red-Black Trees"
+
+[modules."CLRSLean.Chapter_16"]
+title = "Chapter 16. Greedy Algorithms"
+
+[modules."CLRSLean.Chapter_23"]
+title = "Chapter 23. Minimum Spanning Trees"
+
+[modules."CLRSLean.Status"]
+title = "Proof Status"
+
+[modules."CLRSLean.Workflow"]
+title = "Workflow"
+
+[modules."CLRSLean.Chapter_02.Section_02_1_Insertion_Sort"]
+title = "2.1. Insertion Sort"
+
+[modules."CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms"]
+title = "2.2. Analyzing Algorithms"
+
+[modules."CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms"]
+title = "2.3. Designing Algorithms"
 
 [modules."CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation"]
 title = "3.1. Asymptotic Notation"
 
 [modules."CLRSLean.Chapter_03.Section_03_2_Standard_Functions"]
-title = "3.2. Standard Notations and Common Functions"
+title = "3.2. Standard Functions"
 
-[modules."CLRSLean.Chapter_02.Section_02_1_Insertion_Sort"]
-title = "2.1. Insertion Sort"
+[modules."CLRSLean.Chapter_04.Section_04_5_Master_Theorem"]
+title = "4.5. The Master Method"
+
+[modules."CLRSLean.Chapter_05.Section_05_1_Hiring_Problem"]
+title = "5.1. The Hiring Problem"
+
+[modules."CLRSLean.Chapter_10.Section_10_1_Stacks_And_Queues"]
+title = "10.1. Stacks and Queues"
+
+[modules."CLRSLean.Chapter_10.Section_10_2_Linked_Lists"]
+title = "10.2. Linked Lists"
+
+[modules."CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables"]
+title = "11.1. Direct-Address Tables"
+
+[modules."CLRSLean.Chapter_11.Section_11_2_Chained_Hash_Tables"]
+title = "11.2. Chained Hash Tables"
+
+[modules."CLRSLean.Chapter_12.Section_12_1_Binary_Search_Trees"]
+title = "12.1. Binary Search Trees"
+
+[modules."CLRSLean.Chapter_13.Section_13_1_Red_Black_Trees"]
+title = "13.1. Red-Black Trees"
 
 [modules."CLRSLean.Chapter_16.Section_16_3_Huffman_Codes"]
 title = "16.3. Huffman Codes"
+
+[modules."CLRSLean.Chapter_16.Section_16_1_Activity_Selection"]
+title = "16.1. Activity Selection"
 
 [modules."CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees"]
 title = "23.1. Growing a Minimum Spanning Tree"

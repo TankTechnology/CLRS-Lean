@@ -70,7 +70,9 @@ Update:
 
 - `docs/proof-map.md`;
 - the relevant `docs/chapters/chapter-XX.md`;
-- `docs/site/index.html` if the section should appear on the static preview.
+- the relevant `CLRSLean/Chapter_XX.lean` page;
+- `CLRSLean/Status.lean` if the status changed;
+- `literate.toml` if the section should appear in the deployed navigation.
 
 Every section should say whether it is `proved`, `partial`, `statement`,
 `blocked-design`, `blocked-mathlib`, `deferred-implementation`,

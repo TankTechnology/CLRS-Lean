@@ -10,12 +10,12 @@ set_option linter.unnecessarySimpa false
 # CLRS Section 16.3 - Huffman codes
 
 This section gives a self-contained Lean proof of the optimality of Huffman
-codes.  It is isolated from the legacy `CfProofs.Greedy.Huffman.*` modules and
+codes.  It is isolated from the legacy {lit}`CfProofs.Greedy.Huffman.*` modules and
 is arranged as a readable pipeline:
 
 1. Trees, frequencies, forests, and the Huffman merge algorithm.
 2. Local tree-editing lemmas for swaps, merges, and split leaves.
-3. Preservation lemmas for `huffman` over a forest.
+3. Preservation lemmas for {lit}`huffman` over a forest.
 4. The exchange/split-leaf theorem.
 5. The bundled-forest V2 optimality theorem and frequency-table interface.
 -/
@@ -1086,7 +1086,7 @@ lemma freqOf_mergePair_of_areSiblings (t : HuffTree) (a b z : ℕ)
 
 /-! ## Commuting split leaves through Huffman merging -/
 
-/-! The commutation proof only needs `rootFreq (splitLeaf t) = rootFreq t` for each forest tree. -/
+/-! The commutation proof only needs {lit}`rootFreq (splitLeaf t) = rootFreq t` for each forest tree. -/
 
 lemma insortTree_length (t : HuffTree) (ts : List HuffTree) : (insortTree t ts).length = ts.length + 1 := by
   induction ts with
@@ -1101,7 +1101,7 @@ lemma insortTree_ne_nil (t : HuffTree) (ts : List HuffTree) : insortTree t ts �
 
 @[simp] lemma rootFreq_unite (t1 t2 : HuffTree) : rootFreq (unite t1 t2) = rootFreq t1 + rootFreq t2 := by simp [unite, rootFreq]
 
-/-! ### `insortTree` commutation with `map splitLeaf` -/
+/-! ### {name}`insortTree` commutation with {lean}`map splitLeaf` -/
 
 lemma map_splitLeaf_insortTree (U : HuffTree) (ts : List HuffTree) (s1 s2 f1 f2 : ℕ)
     (hU_rf : rootFreq (splitLeaf U s1 s1 s2 f1 f2) = rootFreq U)
@@ -1123,7 +1123,7 @@ lemma map_splitLeaf_insortTree (U : HuffTree) (ts : List HuffTree) (s1 s2 f1 f2 
         rw [hU_rf, ht_rf]; exact h_rf
       simp [h_rf, h_rf', ih U hU_rf h_us_rf]
 
-/-! ### `insortTree` membership -/
+/-! ### {name}`insortTree` membership -/
 
 lemma mem_insortTree (t : HuffTree) (ts : List HuffTree) (u : HuffTree) :
     u ∈ insortTree t ts ↔ u = t ∨ u ∈ ts := by
@@ -1175,16 +1175,18 @@ theorem splitLeaf_huffman_commute_general (ts : List HuffTree) (s1 s2 f1 f2 : �
     rw [map_splitLeaf_insortTree U rest s1 s2 f1 f2 hU_rf' h_rest_rf']
     rfl
 
-/-! ### Special case for `optimum_huffman` -/
+/-! ### Special case for {lit}`optimum_huffman` -/
 
 /--
-Given a forest `rest` where `s1` appears only as `htLeaf s1 (f1+f2)` (the combined leaf),
+Given a forest {lit}`rest` where {lit}`s1` appears only as
+{lit}`htLeaf s1 (f1+f2)` (the combined leaf),
 we have the commutation:
 
-`splitLeaf (huffman (insortTree (htLeaf s1 (f1+f2)) rest)) s1 s1 s2 f1 f2`
-`= huffman (insortTree (htInner (htLeaf s1 f1) (htLeaf s2 f2)) rest)`
+{lit}`splitLeaf (huffman (insortTree (htLeaf s1 (f1+f2)) rest)) s1 s1 s2 f1 f2`
+{lit}`= huffman (insortTree (htInner (htLeaf s1 f1) (htLeaf s2 f2)) rest)`
 
-Requires: `s1 ∉ alphabet t` for all `t ∈ rest`, so that `splitLeaf` does nothing on `rest`.
+Requires: {lit}`s1 ∉ alphabet t` for all {lit}`t ∈ rest`, so that
+{name}`splitLeaf` does nothing on {lit}`rest`.
 -/
 theorem splitLeaf_huffman_commute (s1 s2 f1 f2 : ℕ) (rest : List HuffTree)
     (h_s1_notin_rest : ∀ t ∈ rest, s1 ∉ alphabet t) :
@@ -1235,7 +1237,7 @@ theorem splitLeaf_huffman_commute (s1 s2 f1 f2 : ℕ) (rest : List HuffTree)
 
 /-! ## Preservation of forest frequencies and alphabets -/
 
-/-! `huffman` preserves the aggregate frequencies and alphabet of a nonempty forest. -/
+/-! {name}`huffman` preserves the aggregate frequencies and alphabet of a nonempty forest. -/
 
 def forest_freq (ts : List HuffTree) (s : ℕ) : ℕ := (ts.map (freqOf s)).sum
 
@@ -2092,30 +2094,30 @@ structure SplitFreqCandidate (t base tree : HuffTree) (z b fa fb : ℕ) where
 
 namespace SplitFreqCandidate
 
-def ofBase {t base : HuffTree} {z b fa fb : ℕ}
+theorem ofBase {t base : HuffTree} {z b fa fb : ℕ}
     (h_cons : consistent base)
     (h_freq_rel : ∀ s, freqOf s base = freqOf s (splitLeaf t z z b fa fb)) :
-    SplitFreqCandidate t base base z b fa fb where
-  cons := h_cons
-  freq_rel := h_freq_rel
-  cost_le := le_refl _
+    SplitFreqCandidate t base base z b fa fb :=
+  { cons := h_cons
+    freq_rel := h_freq_rel
+    cost_le := le_refl _ }
 
-def ofExchange {t base w : HuffTree} {z b fa fb a x : ℕ}
+theorem ofExchange {t base w : HuffTree} {z b fa fb a x : ℕ}
     (h_ne : a ≠ x) (ha_in : a ∈ alphabet w) (hx_in : x ∈ alphabet w)
     (h_cons_w : consistent w)
     (h_freq_rel_w : ∀ s, freqOf s w = freqOf s (splitLeaf t z z b fa fb))
     (h_cost_le : (cost (swapFreqs a x (swapLeaves a x w)) : ℤ) ≤ (cost base : ℤ)) :
-    SplitFreqCandidate t base (swapFreqs a x (swapLeaves a x w)) z b fa fb where
-  cons := by
-    dsimp [swapFreqs]
-    apply consistent_replaceFreq x _ (replaceFreq a _ (swapLeaves a x w))
-    apply consistent_replaceFreq a _ (swapLeaves a x w)
-    exact consistent_swapLeaves a x w h_cons_w
-  freq_rel := by
-    intro s
-    rw [freqOf_exchangeLeaf w a x s h_ne ha_in hx_in h_cons_w]
-    exact h_freq_rel_w s
-  cost_le := h_cost_le
+    SplitFreqCandidate t base (swapFreqs a x (swapLeaves a x w)) z b fa fb :=
+  { cons := by
+      dsimp [swapFreqs]
+      apply consistent_replaceFreq x _ (replaceFreq a _ (swapLeaves a x w))
+      apply consistent_replaceFreq a _ (swapLeaves a x w)
+      exact consistent_swapLeaves a x w h_cons_w
+    freq_rel := by
+      intro s
+      rw [freqOf_exchangeLeaf w a x s h_ne ha_in hx_in h_cons_w]
+      exact h_freq_rel_w s
+    cost_le := h_cost_le }
 
 theorem freq_left {t base tree : HuffTree} {z b fa fb : ℕ}
     (C : SplitFreqCandidate t base tree z b fa fb)
@@ -2535,8 +2537,8 @@ theorem optimum_splitLeaf (t : HuffTree) (z b fa fb : ℕ)
 
 The long exchange proof above is intentionally hidden behind the following
 small certificate.  The rest of the Huffman proof only needs to know that a
-merged symbol `z` can be split into two positive minimum-frequency symbols
-`z` and `b`, with the old frequency of `z` equal to their sum.
+merged symbol {lit}`z` can be split into two positive minimum-frequency symbols
+{lit}`z` and {lit}`b`, with the old frequency of {lit}`z` equal to their sum.
 -/
 
 structure SplitLeafOptimalitySpec (t : HuffTree) (z b fa fb : ℕ) where
@@ -2621,7 +2623,7 @@ def mergeCheapestList (ts : List HuffTree)
 def mergeCheapest (F : Forest) (h : F.length ≥ 2) : Forest :=
   mergeCheapestList F.trees F.sorted F.consistent F.allLeaves F.allPos (by simpa [length] using h)
 
-/-! ### Specification of `mergeCheapest` -/
+/-! ### Specification of {name}`mergeCheapest` -/
 
 lemma mergeCheapestList_spec (ts : List HuffTree)
     (h_sorted : forest_sorted ts)
@@ -2672,7 +2674,7 @@ lemma mergeCheapest_length_lt (F : Forest) (h : F.length ≥ 2) :
 
 /--
 Named certificate for the facts produced by one bundled greedy step.
-It packages the exact hypotheses needed by `optimum_splitLeaf` plus the final
+It packages the exact hypotheses needed by {name}`optimum_splitLeaf` plus the final
 commutation equality back to the original forest.
 -/
 structure MergeCheapestSplitReady (F : Forest) (h : F.length ≥ 2) where
@@ -2794,17 +2796,17 @@ lemma mergeCheapest_split_ready (F : Forest) (h : F.length ≥ 2) :
 
 namespace MergeCheapestSplitReady
 
-def splitLeafSpec {F : Forest} {h : F.length ≥ 2} (R : MergeCheapestSplitReady F h) :
-    SplitLeafOptimalitySpec (huffman (F.mergeCheapest h).trees) R.sa R.sb R.fa R.fb where
-  z_mem := R.sa_mem
-  b_fresh := R.sb_not_mem
-  sym_ne := R.sym_ne
-  fa_pos := R.fa_pos
-  fb_pos := R.fb_pos
-  fa_le_fb := R.fa_le_fb
-  fa_min := R.min_fa
-  fb_min := R.min_fb
-  freq_z := R.freq_sa
+theorem splitLeafSpec {F : Forest} {h : F.length ≥ 2} (R : MergeCheapestSplitReady F h) :
+    SplitLeafOptimalitySpec (huffman (F.mergeCheapest h).trees) R.sa R.sb R.fa R.fb :=
+  { z_mem := R.sa_mem
+    b_fresh := R.sb_not_mem
+    sym_ne := R.sym_ne
+    fa_pos := R.fa_pos
+    fb_pos := R.fb_pos
+    fa_le_fb := R.fa_le_fb
+    fa_min := R.min_fa
+    fb_min := R.min_fb
+    freq_z := R.freq_sa }
 
 lemma optimum {F : Forest} {h : F.length ≥ 2} (R : MergeCheapestSplitReady F h)
     (h_opt_reduced : optimum (huffman (F.mergeCheapest h).trees)) :
@@ -2867,7 +2869,7 @@ def tableFreq (xs : List (ℕ × ℕ)) (s : ℕ) : ℕ :=
 def leavesOfFreqs (xs : List (ℕ × ℕ)) : List HuffTree :=
   xs.map (fun p => htLeaf p.1 p.2)
 
-/-- Insertion-sort a forest by `rootFreq`, using the same order expected by `huffman`. -/
+/-- Insertion-sort a forest by {name}`rootFreq`, using the same order expected by {name}`huffman`. -/
 def sortForest : List HuffTree → List HuffTree
   | [] => []
   | t :: ts => insortTree t (sortForest ts)
@@ -2946,7 +2948,7 @@ theorem freqOf_huffmanOfFreqs_eq_tableFreq (xs : List (ℕ × ℕ)) (s : ℕ)
 /--
 Huffman's algorithm is optimal for every nonempty positive frequency table with
 no duplicate symbols.  The table may be in any order; it is sorted before
-calling the bundled V2 `huffman` optimality theorem.
+calling the bundled V2 {name}`huffman` optimality theorem.
 -/
 theorem optimum_huffman_freqs (xs : List (ℕ × ℕ))
     (h_nodup : (xs.map Prod.fst).Nodup)

@@ -1,5 +1,20 @@
 # Chapter 16 - Greedy Algorithms
 
+## Section 16.1 - Activity Selection
+
+- Lean source: `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean`
+- Status: `partial`
+- Main theorems:
+  - `CLRS.ActivitySelection.earliest_finish_minFinish`
+  - `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`
+
+This section formalizes the finite activity model, feasibility of selected
+activity lists, the executable earliest-finish selector, and a
+certificate-based greedy-choice optimality theorem.  The remaining textbook
+strengthening is to derive the exchange certificate automatically from a
+finish-time-sorted input interface and connect it to the full recursive
+`greedySelect` correctness theorem.
+
 ## Section 16.3 - Huffman Codes
 
 - Lean source: `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean`
