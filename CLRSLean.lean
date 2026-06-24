@@ -89,6 +89,8 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter03.isLittleO_pow_const_exp`,
   `CLRS.Chapter03.isLittleO_log_rpow`,
   `CLRS.Chapter03.isLittleO_exp_exp_of_lt`,
+  `CLRS.Chapter03.isEquivalent_harmonic_log`,
+  `CLRS.Chapter03.isBigTheta_harmonic_log`,
   `CLRS.Chapter03.isBigTheta_nat_floor_coerce`,
   `CLRS.Chapter03.isBigTheta_nat_ceil_coerce`,
   `CLRS.Chapter03.factorial_upper_bound`,

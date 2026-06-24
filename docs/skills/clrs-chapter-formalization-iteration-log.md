@@ -122,5 +122,13 @@ chapters.
   of keeping the item as prose in a `partial` gap.
 - Applied the pattern to log-vs-polynomial, polynomial-vs-exponential, and
   exponential-base comparisons; keep Section 3.2 `partial` only for the
-  remaining table entries such as half-scale floor/ceiling facts, lower
-  factorial bounds, and harmonic-number asymptotics.
+  remaining table entries that still lack CLRS-facing wrappers.
+
+## 2026-06-24 - After Chapter 3.2 Harmonic Growth
+
+- Added a harmonic-number bridge pattern: if Mathlib proves convergence such
+  as `H_n - log n → γ`, turn it into CLRS-facing asymptotic equivalence and
+  Θ-growth theorems instead of leaving harmonic growth in prose.
+- After `CLRS.Chapter03.isBigTheta_harmonic_log`, downstream Chapter 5 status
+  should ask for an expected-hires asymptotic wrapper, not for the harmonic
+  asymptotic itself.

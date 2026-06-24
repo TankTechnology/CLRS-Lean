@@ -90,6 +90,8 @@ rules.
   - `CLRS.Chapter03.isLittleO_pow_const_exp`
   - `CLRS.Chapter03.isLittleO_log_rpow`
   - `CLRS.Chapter03.isLittleO_exp_exp_of_lt`
+  - `CLRS.Chapter03.isEquivalent_harmonic_log`
+  - `CLRS.Chapter03.isBigTheta_harmonic_log`
   - `CLRS.Chapter03.isBigTheta_nat_floor_coerce`
   - `CLRS.Chapter03.isBigTheta_nat_ceil_coerce`
   - `CLRS.Chapter03.factorial_upper_bound`
@@ -97,8 +99,8 @@ rules.
 - Proof pattern: reuse Mathlib asymptotic and factorial facts through the CLRS
   wrappers
 - Current gap: half-scale floor/ceiling facts, lower factorial bounds,
-  harmonic-number asymptotics, and the rest of the CLRS standard-function table
-  remain strengthening targets.
+  and the rest of the CLRS standard-function table remain strengthening
+  targets.
 
 This section is the safe part of the `chapter-1-exploration` branch merged into
 the main site.  It compiles, but it is not yet the whole Chapter 3 growth
@@ -201,8 +203,8 @@ all-input Master Theorem still need separate models.
   - `CLRS.Chapter05.expectedHires_eq_harmonic`
 - Proof pattern: compute singleton probability in a finite uniform rank space,
   sum indicator expectations, and prove the equivalent recurrence by induction
-- Current gap: logarithmic asymptotic bounds for harmonic numbers remain a
-  future strengthening target
+- Current gap: a section-level asymptotic expected-hiring theorem should now
+  connect this finite equality to the Chapter 3.2 harmonic-number growth result
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -403,7 +405,7 @@ then the result is optimal.
 | Sorted-order lightness for Kruskal | `partial` | Needs a list-order invariant over processed edges. |
 | Maximum-subarray divide-and-conquer refinement | `future-work` | Exhaustive-search optimality is proved; the CLRS pseudocode and runtime recurrence still need to refine that specification. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
-| Chapter 5 harmonic logarithmic asymptotics | `future-work` | Strengthens the finite rank-symmetry expectation theorem. |
+| Chapter 5 expected-hires logarithmic asymptotics | `future-work` | Connects the finite rank-symmetry expectation theorem to the Chapter 3.2 harmonic-number growth result. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `future-work` | Functional successor/predecessor queries and functional deletion are proved; pointer-transplant semantics remain. |

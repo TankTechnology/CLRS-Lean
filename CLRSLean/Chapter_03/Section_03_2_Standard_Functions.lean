@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import Mathlib
+import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 
 open Filter
 open Asymptotics
@@ -14,6 +15,7 @@ Concrete asymptotic comparisons for algorithm analysis.
 * `nᵃ = o(cⁿ)` when `1 < c`
 * `log n = o(nʳ)` when `0 < r`
 * `aⁿ = o(bⁿ)` when `0 ≤ a < b`
+* the harmonic numbers satisfy `Hₙ ~ log n` and `Hₙ = Θ(log n)`
 * `⌊n⌋ = Θ(n)` and `⌈n⌉ = Θ(n)` on ℕ
 * `n! ≤ nⁿ` and `aⁿ = o(n!)`
 -/
@@ -58,6 +60,29 @@ theorem isLittleO_exp_exp_of_lt {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
     isLittleO (fun n : ℕ => a ^ n) (fun n : ℕ => b ^ n) := by
   unfold isLittleO
   exact isLittleO_pow_pow_of_lt_left ha hab
+
+/-! ## Harmonic numbers -/
+
+/-- The harmonic numbers are asymptotic to `log n`. -/
+theorem isEquivalent_harmonic_log :
+    (fun n : ℕ => (harmonic n : ℝ)) ~[atTop] (fun n : ℕ => Real.log (n : ℝ)) := by
+  have hdiffO :
+      (fun n : ℕ => (harmonic n : ℝ) - Real.log (n : ℝ)) =O[atTop]
+        (fun _ : ℕ => (1 : ℝ)) := by
+    exact Filter.Tendsto.isBigO_one (F := ℝ) Real.tendsto_harmonic_sub_log
+  have hconst :
+      (fun _ : ℕ => (1 : ℝ)) =o[atTop] (fun n : ℕ => Real.log (n : ℝ)) := by
+    exact Real.isLittleO_const_log_atTop.comp_tendsto tendsto_natCast_atTop_atTop
+  exact hdiffO.trans_isLittleO hconst
+
+/-- The harmonic numbers have logarithmic growth, `Hₙ = Θ(log n)`. -/
+theorem isBigTheta_harmonic_log :
+    isBigTheta (fun n : ℕ => (harmonic n : ℝ)) (fun n : ℕ => Real.log (n : ℝ)) := by
+  have htheta :
+      (fun n : ℕ => (harmonic n : ℝ)) =Θ[atTop]
+        (fun n : ℕ => Real.log (n : ℝ)) :=
+    isEquivalent_harmonic_log.isTheta
+  exact ⟨by unfold isBigO; exact htheta.1, by unfold isBigOmega; exact htheta.2⟩
 
 /-! ## Floor and ceiling are Θ(id) on ℕ -/
 

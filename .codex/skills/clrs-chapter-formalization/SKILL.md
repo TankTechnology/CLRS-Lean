@@ -256,6 +256,11 @@ end CLRS
   it as prose.  Log-vs-polynomial, polynomial-vs-exponential, and
   exponential-base comparisons are good examples of one-lemma bridges that
   materially shrink a `partial` gap.
+- Chapter 3.2 harmonic-number pass: use Mathlib convergence/bounds theorems to
+  prove CLRS-facing asymptotic wrappers, then update downstream chapter gaps
+  that depended on the missing standard-function fact.  In particular, once
+  `H_n = Θ(log n)` is proved in Chapter 3.2, Chapter 5's remaining work is the
+  expected-hires wrapper, not the harmonic asymptotic itself.
 
 ## Honesty Rules
 

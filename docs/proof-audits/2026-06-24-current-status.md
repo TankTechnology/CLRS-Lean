@@ -49,6 +49,9 @@ the imported CLRS-Lean source, not experimental worktrees.
   `CLRS.Chapter03.isLittleO_pow_const_exp`,
   `CLRS.Chapter03.isLittleO_log_rpow`, and
   `CLRS.Chapter03.isLittleO_exp_exp_of_lt`.
+- Chapter 3.2 now also proves harmonic-number growth:
+  `CLRS.Chapter03.isEquivalent_harmonic_log` and
+  `CLRS.Chapter03.isBigTheta_harmonic_log`.
 
 ## Next Proof Priorities
 

@@ -89,13 +89,14 @@ navigating the deployed pages.
   {lit}`CLRS.Chapter03.isLittleO_pow_const_exp`,
   {lit}`CLRS.Chapter03.isLittleO_log_rpow`,
   {lit}`CLRS.Chapter03.isLittleO_exp_exp_of_lt`,
+  {lit}`CLRS.Chapter03.isEquivalent_harmonic_log`,
+  {lit}`CLRS.Chapter03.isBigTheta_harmonic_log`,
   {lit}`CLRS.Chapter03.isBigTheta_nat_floor_coerce`,
   {lit}`CLRS.Chapter03.isBigTheta_nat_ceil_coerce`,
   {lit}`CLRS.Chapter03.factorial_upper_bound`, and
   {lit}`CLRS.Chapter03.isLittleO_exp_vs_factorial`;
   remaining gap: add the full CLRS table of standard growth comparisons,
-  including half-scale floor/ceiling facts, lower factorial bounds, and
-  harmonic-number asymptotics.
+  including half-scale floor/ceiling facts and lower factorial bounds.
 * 11.2 Chained hash tables:
   current results {lit}`CLRS.Chapter11.hashSearch_hashInsert_self`,
   {lit}`CLRS.Chapter11.hashSearch_hashInsert_iff`,
@@ -166,8 +167,10 @@ navigating the deployed pages.
   specification.
 * Chapter 4 extension from exact powers to all input sizes: `future-work`.
   Reason: needs a monotone recurrence model and floor/ceiling sandwiching.
-* Chapter 5 logarithmic harmonic-number asymptotics: `future-work`.
-  Reason: useful strengthening beyond the current finite rank-symmetry theorem.
+* Chapter 5 logarithmic expected-hires asymptotics: `future-work`.
+  Reason: Chapter 3.2 now proves the harmonic-number growth fact; Chapter 5
+  still needs a section-level theorem connecting the expected-hiring result to
+  that asymptotic wrapper.
 * General merge-sort recurrence: `future-work`.
   Reason: needs floor and ceiling arithmetic for all input sizes.
 * CLRS exercises and chapter-end problems: `future-work`.
