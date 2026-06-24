@@ -228,7 +228,9 @@ all-input Master Theorem still need separate models.
 ### Sections 6.1-6.4 - Heaps and heapsort
 
 - Lean source: `CLRSLean/Chapter_06/Section_06_1_Heapsort.lean`
-- Status: `proved` for the functional descending-list heap model
+- Array source: `CLRSLean/Chapter_06/Section_06_1_Array_Heaps.lean`
+- Status: `proved` for the functional descending-list heap model; `partial`
+  for the CLRS array/in-place refinement
 - Main proved theorems:
   - `CLRS.Chapter06.buildMaxHeap_orderedDesc`
   - `CLRS.Chapter06.buildMaxHeap_perm`
@@ -237,17 +239,34 @@ all-input Master Theorem still need separate models.
   - `CLRS.Chapter06.heapExtractMax?_max`
   - `CLRS.Chapter06.heapSort_orderedAsc`
   - `CLRS.Chapter06.heapSort_perm`
+  - `CLRS.Chapter06.orderedDesc_arrayMaxHeap`
+  - `CLRS.Chapter06.arrayBuildMaxHeap_isMaxHeap`
+  - `CLRS.Chapter06.maxHeapifyFuel_length`
+  - `CLRS.Chapter06.maxHeapifyFuel_perm`
+  - `CLRS.Chapter06.valAt_i_le_maxChildIndex`
+  - `CLRS.Chapter06.valAt_left_le_maxChildIndex`
+  - `CLRS.Chapter06.valAt_right_le_maxChildIndex`
+  - `CLRS.Chapter06.valAt_swapAt_left`
+  - `CLRS.Chapter06.valAt_swapAt_right`
+  - `CLRS.Chapter06.arrayMaxHeap_of_except_of_maxChildIndex_self`
+  - `CLRS.Chapter06.ArrayMaxHeap.getElem_le_root`
 - Proof pattern: represent an abstract max-heap as a descending list, prove
   descending insertion preserves order and permutation, prove the heap head is
   maximal, then reverse the built heap and use `List.Pairwise.reverse` for the
-  ascending heapsort result.
-- Current gap: array indices, `MAX-HEAPIFY`, `BUILD-MAX-HEAP`, in-place swaps,
-  and runtime/RAM-cost analysis are refinement targets.
+  ascending heapsort result.  The array layer adds zero-based parent/child
+  arithmetic, an indexed heap predicate, `largest` selection lemmas,
+  permutation/read facts for swaps, no-swap `MAX-HEAPIFY` repair, and the
+  theorem that every heap element is bounded by the root.
+- Current gap: full recursive swap-branch repair for `MAX-HEAPIFY`,
+  bottom-up `BUILD-MAX-HEAP` as repeated heapify, the in-place heapsort loop
+  over a shrinking heap prefix plus sorted suffix, and runtime/RAM-cost
+  analysis are refinement targets.
 
 The section proves the mathematical correctness layer behind heapsort: heap
 construction preserves all input elements, exposes a genuine maximum, and
-heapsort returns an ascending permutation of the input.  It intentionally does
-not claim the CLRS array pseudocode has been proved line by line.
+heapsort returns an ascending permutation of the input.  The new array layer
+proves several central CLRS heap facts, but it still intentionally does not
+claim the in-place pseudocode has been proved line by line.
 
 ### Section 6.5 - Priority queues
 
@@ -261,10 +280,14 @@ not claim the CLRS array pseudocode has been proved line by line.
   - `CLRS.Chapter06.heapIncreaseKey_perm`
   - `CLRS.Chapter06.heapDelete_orderedDesc`
   - `CLRS.Chapter06.heapDelete_perm`
+  - `CLRS.Chapter06.arrayHeapMaximum?_max`
 - Proof pattern: maintain or rebuild the descending-list heap invariant and
-  state each operation's multiset behavior with `List.Perm`.
-- Current gap: index-based `HEAP-INCREASE-KEY`, `HEAP-DELETE`, and
-  implementation-level complexity remain future refinement work.
+  state each operation's multiset behavior with `List.Perm`; for the array
+  maximum operation, use the indexed heap predicate plus the parent-chain proof
+  that every heap element is at most the root.
+- Current gap: index-based `HEAP-INCREASE-KEY`, `HEAP-DELETE`, extract-max
+  via swap plus heapify, and implementation-level complexity remain future
+  refinement work.
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -483,7 +506,7 @@ graph connectedness, and an initial forest.
 | Item | Status | Reason |
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
-| Chapter 6 array heap implementation | `deferred-implementation` | Functional heap correctness is proved; array `MAX-HEAPIFY`, in-place heapsort, and RAM costs remain refinement targets. |
+| Chapter 6 array heap implementation | `partial` / `deferred-implementation` | Array heap predicates, `largest` lemmas, no-swap heapify repair, swap preservation, and array `HEAP-MAXIMUM` are proved; full recursive heapify repair, in-place heapsort, and RAM costs remain refinement targets. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |

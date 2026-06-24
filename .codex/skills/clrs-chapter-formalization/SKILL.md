@@ -8,9 +8,41 @@ description: Use when working on CLRS-Lean chapter-scale Lean formalization, esp
 Use this skill to turn a CLRS chapter into a maintainable, honest,
 theorem-bearing Lean development inside CLRS-Lean.
 
-Core principle: prove as much of the chapter as the current representation can
-honestly support.  Do not stop at a proof map when a meaningful Lean theorem can
-be stated and proved now.
+Core principle: prove the chapter's main textbook content, not merely the
+easiest adjacent model.  A Lean-friendly abstraction is allowed as scaffolding,
+but it must not replace the central CLRS algorithm or theorem unless the
+section is explicitly marked partial and the missing refinement is the next
+proof target.
+
+Do not stop at a proof map when a meaningful Lean theorem can be stated and
+proved now.  Do not stop at a simplified theorem when the main theorem is
+within reach by strengthening invariants, splitting lemmas, or adding a
+certificate/interface layer.
+
+## Main-Content Gate
+
+Before calling a chapter or section substantially proved, identify its main
+textbook obligations and check them one by one:
+
+- **Algorithm correctness:** the CLRS algorithm, or a clearly stated executable
+  refinement of it, satisfies the intended specification.
+- **Invariant preservation:** the textbook invariant is proved across the
+  algorithm's hard step, not bypassed by choosing a representation where the
+  invariant is definitional.
+- **Element/structure preservation:** permutations, graph edge sets, tree
+  membership, reachability, or other representation-preservation facts are
+  proved.
+- **Optimality/exchange/lower-bound claim:** if the section's point is an
+  optimality proof, exchange argument, cut property, or lower bound, that proof
+  is part of the main target, not future prose.
+- **Cost theorem:** if the section's main theorem is primarily asymptotic
+  runtime, prove the recurrence/cost theorem unless the project lacks the
+  necessary cost model; then record the exact missing cost semantics.
+
+If any main obligation is missing, the status must be `partial`,
+`blocked-design`, or `deferred-implementation` with the omitted obligation named
+concretely.  Never say a section's main proof is complete merely because a
+functional analogue compiles.
 
 ## Complete-Chapter Workflow
 
@@ -29,10 +61,17 @@ For each chapter, run this loop in order:
      "Is there a smaller theorem, abstract model, certificate interface, or
      proof-method lemma that can compile now?"
 
-3. **Choose Lean-friendly first models**
-   - Prefer pure inductive/list/Finset models before imperative arrays.
+3. **Choose Lean-friendly first models without dodging the theorem**
+   - Prefer pure inductive/list/Finset models before imperative arrays only
+     when they expose the same main invariant or specification.
    - Prefer mathematical correctness and proof-method theorems before RAM
-     semantics, pointer mutation, or low-level performance refinement.
+     semantics, pointer mutation, or low-level performance refinement, but do
+     not treat those as a substitute for the chapter's central algorithm when
+     the central algorithm is the content being taught.
+   - When using an abstract model for an implementation-heavy section, add the
+     refinement theorem target immediately: what concrete representation must
+     refine the abstract spec, what invariant must be preserved, and which hard
+     algorithmic step remains.
    - For data-structure chapters, separate the mathematical interface from
      executable refinement:
      - Chapter 10: functional stacks, queues, lists, and trees before pointers.
@@ -40,7 +79,9 @@ For each chapter, run this loop in order:
      - Chapter 12: inductive BSTs before pointer-based tree mutation.
      - Chapter 13: colored-tree invariants and local transformations before
        full red-black insertion/deletion.
-   - Make the limitation visible in the section docstring.
+   - Make the limitation visible in the section docstring and status page.
+   - If the abstraction makes the hard textbook step trivial, it is scaffolding,
+     not the main proof.
 
 4. **Plan proof order**
    - Start with sections whose definitions unlock later sections.
@@ -62,11 +103,14 @@ For each chapter, run this loop in order:
    - Add section files under `CLRSLean/Chapter_NN/`.
    - Keep each file focused: definitions, local lemmas, public theorem block.
    - After each file, run `lake build CLRSLean.Chapter_NN...`.
-   - If a proof fails, try at least one of these before deferring:
+   - If a main proof fails, try all relevant repair moves before deferring:
      - strengthen or expose an invariant;
      - split the theorem into reusable lemmas;
      - use a certificate/interface hypothesis for the missing textbook step;
      - prove a simpler but still useful theorem for the current model.
+   - A simpler theorem is progress, not an endpoint, when it omits the hard
+     theorem-like claim of the section.  Update the next-proof target before
+     moving on.
 
 7. **Wire the book**
    - Import the chapter from `CLRSLean.lean`.
@@ -108,8 +152,9 @@ and status docs:
   main theorem path.
 
 Red flags: stop and continue proving instead of reporting completion if a
-section only has prose, a "planned theorem" could be stated today, or a gap says
-"hard" without naming the missing definition, lemma, or representation.
+section only has prose, a "planned theorem" could be stated today, a simplified
+model avoided the central CLRS invariant, or a gap says "hard" without naming
+the missing definition, lemma, or representation.
 
 ## Required File Shape
 
@@ -160,13 +205,16 @@ end CLRS
 - **Lookup-table chapters:** use association lists or direct-address functions
   as the mathematical model.  Prove lookup-after-insert and unaffected-key
   theorems before adding hashing costs.
-- **Implementation-heavy array chapters:** first prove the abstract functional
-  interface that the array implementation should refine.  For heaps, a
-  descending-list max-heap gives compact theorems for heap construction,
+- **Implementation-heavy array chapters:** an abstract functional interface is
+  scaffolding, not a replacement for the main CLRS proof.  For heaps, a
+  descending-list max-heap may provide compact specs for heap construction,
   maximum correctness, heapsort sortedness/permutation, and priority-queue
-  operations.  Keep `List.Perm`-style multiset specifications public, and record
-  array `MAX-HEAPIFY`, in-place swaps, index updates, and RAM costs as explicit
-  refinement targets until the project has a shared imperative semantics.
+  operations, but the next target must be the array heap predicate,
+  `MAX-HEAPIFY` invariant preservation plus permutation, `BUILD-MAX-HEAP`
+  correctness, and the in-place heapsort loop.  Keep `List.Perm`-style multiset
+  specs public as refinement targets, and mark the chapter partial until the
+  array/in-place layer is proved or explicitly blocked by missing imperative
+  semantics.
 - **Hash-table performance chapters:** split deterministic correctness from
   expected-time analysis.  First prove bucket/update/search facts for a fixed
   hash function, including deletion/search-after-delete facts; only introduce
@@ -231,6 +279,9 @@ end CLRS
 ## Known Blockers
 
 - Full RAM semantics and pointer mutation are project-level future work.
+- Functional analogues of imperative algorithms are not enough for `proved`
+  status when the CLRS section's main content is the imperative invariant
+  itself.  They may be listed as scaffolding or partial progress.
 - Floor/ceiling all-input recurrence proofs need explicit monotonicity and
   sandwich lemmas; exact-power proofs alone are not the full theorem.
 - Red-black tree insertion and deletion need a careful balancing representation;
@@ -265,10 +316,11 @@ end CLRS
   recurrence before proving the core specification.  A finite exhaustive
   selector plus an exact contiguous-subarray enumerator gives a strong public
   theorem and a precise future refinement target.
-- Chapter 6 functional-heap pass: for array algorithms, prove the abstract
-  data-structure theorem first when it is honest and useful.  The array-level
-  implementation should be framed as a refinement of the functional spec, not
-  as a blocker for all chapter progress.
+- Chapter 6 functional-heap pass correction: the descending-list heap proof is
+  useful scaffolding, but it does not complete the main CLRS Chapter 6 proof.
+  The skill should push next toward array heap predicates, `MAX-HEAPIFY`,
+  `BUILD-MAX-HEAP`, in-place heapsort, and priority-queue index-update
+  correctness instead of stopping at the functional analogue.
 - Chapter 4.1 executable-combine pass: after the left/right/crossing
   classification is proved, add the executable combine step immediately.
   Selecting among `maxSubarray left`, `maxSubarray right`, and
@@ -339,6 +391,14 @@ end CLRS
   before insertion or it bridges through the endpoints of `e`.  This makes
   `isForest_insert_of_not_connected` a direct contradiction argument against
   the old forest invariant and the "endpoints disconnected" accept condition.
+- Chapter 6 array-heap pass: before trying to prove the full recursive
+  `MAX-HEAPIFY` repair theorem, seal the reusable array spine: zero-based
+  parent/child arithmetic, an indexed heap predicate, `largest` local-max
+  lemmas, swap permutation and endpoint read lemmas, no-swap repair from
+  "heap except at the root", and the parent-chain theorem that every heap
+  element is bounded by the root.  These turn later swap-branch and in-place
+  heapsort proofs into invariant transport problems instead of raw index
+  arithmetic.
 
 ## Honesty Rules
 

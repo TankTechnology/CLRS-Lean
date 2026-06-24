@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_06.Section_06_1_Heapsort
+import CLRSLean.Chapter_06.Section_06_1_Array_Heaps
 
 /-!
 # CLRS Section 6.5 - Priority Queues
@@ -17,11 +17,13 @@ Main results:
   rebuilding produces a heap.
 - Theorem {lit}`heapDelete_orderedDesc`: deleting one occurrence and rebuilding
   produces a heap.
+- Theorem {lit}`arrayHeapMaximum?_max`: the root returned by the array-level
+  maximum operation bounds every key in the heap prefix.
 
 Current gaps:
 
-- The CLRS index-based {lit}`HEAP-INCREASE-KEY` and {lit}`HEAP-DELETE` procedures are not
-  yet refined to array updates.
+- The CLRS index-based {lit}`HEAP-INCREASE-KEY` and {lit}`HEAP-DELETE`
+  procedures are not yet refined to array updates.
 - Runtime bounds and RAM semantics are deferred.
 -/
 
@@ -86,6 +88,34 @@ theorem heapDelete_orderedDesc (key : Nat) (h : List Nat) :
 theorem heapDelete_perm (key : Nat) (h : List Nat) :
     (heapDelete key h).Perm (h.erase key) := by
   exact buildMaxHeap_perm (h.erase key)
+
+/-! ## Array-level maximum operation -/
+
+/--
+Array-level `HEAP-MAXIMUM`: return the root when the heap prefix is nonempty
+and within the backing list.
+-/
+def arrayHeapMaximum? (a : List Nat) (heapSize : Nat) : Option Nat :=
+  if h : 0 < heapSize ∧ heapSize ≤ a.length then
+    some (a[0]'(Nat.lt_of_lt_of_le h.1 h.2))
+  else
+    none
+
+/-- The array-level maximum returned from the root bounds every heap element. -/
+theorem arrayHeapMaximum?_max {a : List Nat} {heapSize m : Nat}
+    (hheap : ArrayMaxHeap a heapSize)
+    (hmax : arrayHeapMaximum? a heapSize = some m) :
+    ∀ {i : Nat}, (hi : i < heapSize) →
+      a[i]'(Nat.lt_of_lt_of_le hi hheap.heapSize_le_length) ≤ m := by
+  intro i hi
+  have hnonempty : 0 < heapSize := Nat.zero_lt_of_lt hi
+  have hcond : 0 < heapSize ∧ heapSize ≤ a.length :=
+    ⟨hnonempty, hheap.heapSize_le_length⟩
+  have hroot :
+      a[0]'(Nat.lt_of_lt_of_le hnonempty hheap.heapSize_le_length) = m := by
+    simpa [arrayHeapMaximum?, hcond] using hmax
+  rw [← hroot]
+  exact hheap.getElem_le_root hi
 
 end Chapter06
 end CLRS

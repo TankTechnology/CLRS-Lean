@@ -44,6 +44,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_06" = [
   "CLRSLean.Chapter_06.Section_06_1_Heapsort",
+  "CLRSLean.Chapter_06.Section_06_1_Array_Heaps",
   "CLRSLean.Chapter_06.Section_06_5_Priority_Queues",
 ]
 "CLRSLean.Chapter_10" = [
@@ -146,6 +147,9 @@ title = "5.1. The Hiring Problem"
 
 [modules."CLRSLean.Chapter_06.Section_06_1_Heapsort"]
 title = "6.1-6.4. Heaps and Heapsort"
+
+[modules."CLRSLean.Chapter_06.Section_06_1_Array_Heaps"]
+title = "6.1-6.4. Array Heap Layer"
 
 [modules."CLRSLean.Chapter_06.Section_06_5_Priority_Queues"]
 title = "6.5. Priority Queues"

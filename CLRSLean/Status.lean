@@ -82,6 +82,9 @@ navigating the deployed pages.
   {lit}`CLRS.Chapter06.heapIncreaseKey_perm`,
   {lit}`CLRS.Chapter06.heapDelete_orderedDesc`, and
   {lit}`CLRS.Chapter06.heapDelete_perm`.
+* 6.5 Array-level heap maximum:
+  {lit}`CLRS.Chapter06.ArrayMaxHeap.getElem_le_root` and
+  {lit}`CLRS.Chapter06.arrayHeapMaximum?_max`.
 * 2.1 Insertion sort:
   `CLRS.Chapter02.insertionSort_sorted`,
   `CLRS.Chapter02.insertionSort_perm`.
@@ -143,6 +146,21 @@ navigating the deployed pages.
   {lit}`CLRS.Chapter11.hashSearch_hashDelete_iff`;
   remaining gap: expected search time under simple uniform hashing needs a
   probability model over keys or hash functions.
+* Chapter 6 array heap refinement:
+  current results {lit}`CLRS.Chapter06.orderedDesc_arrayMaxHeap`,
+  {lit}`CLRS.Chapter06.arrayBuildMaxHeap_isMaxHeap`,
+  {lit}`CLRS.Chapter06.maxHeapifyFuel_length`,
+  {lit}`CLRS.Chapter06.maxHeapifyFuel_perm`,
+  {lit}`CLRS.Chapter06.valAt_i_le_maxChildIndex`,
+  {lit}`CLRS.Chapter06.valAt_left_le_maxChildIndex`,
+  {lit}`CLRS.Chapter06.valAt_right_le_maxChildIndex`,
+  {lit}`CLRS.Chapter06.arrayMaxHeap_of_except_of_maxChildIndex_self`,
+  {lit}`CLRS.Chapter06.ArrayMaxHeap.getElem_le_root`, and
+  {lit}`CLRS.Chapter06.arrayHeapMaximum?_max`;
+  remaining gap: prove the recursive swap-branch repair theorem for
+  {lit}`MAX-HEAPIFY`, bottom-up {lit}`BUILD-MAX-HEAP` as repeated heapify,
+  the in-place heapsort loop invariant, index-based priority-queue updates,
+  and cost/RAM semantics.
 * 12.1 Binary search trees:
   current results {lit}`CLRS.Chapter12.BSTree.search_eq_true_iff`,
   {lit}`CLRS.Chapter12.BSTree.minimum?_inTree`,
@@ -208,11 +226,11 @@ navigating the deployed pages.
   executable left/right/crossing combine step, and recursive split-tree/fuelled
   selector correctness are proved; the runtime recurrence and RAM-cost
   refinement remain future work.
-* Chapter 6 array heaps and in-place heapsort: `deferred-implementation`.
-  Reason: the functional heap interface, maximum property, heapsort
-  sortedness/permutation, and priority-queue operation specifications are
-  proved; array indices, {lit}`MAX-HEAPIFY`, in-place swaps, and RAM-cost bounds
-  remain refinement targets.
+* Chapter 6 in-place heapsort and RAM costs: `deferred-implementation`.
+  Reason: the functional heap specification and a useful array heap proof spine
+  are proved; the remaining implementation layer is the full recursive
+  swap-branch repair for {lit}`MAX-HEAPIFY`, bottom-up heap construction,
+  shrinking-prefix heapsort loop, and line-by-line RAM-cost model.
 * Chapter 4 extension from exact powers to all input sizes: `future-work`.
   Reason: needs a monotone recurrence model and floor/ceiling sandwiching.
 * General merge-sort recurrence: `future-work`.
