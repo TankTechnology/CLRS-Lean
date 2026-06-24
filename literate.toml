@@ -33,6 +33,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_03.Section_03_2_Standard_Functions",
 ]
 "CLRSLean.Chapter_04" = [
+  "CLRSLean.Chapter_04.Section_04_3_Substitution_Method",
+  "CLRSLean.Chapter_04.Section_04_4_Recursion_Tree_Method",
   "CLRSLean.Chapter_04.Section_04_5_Master_Theorem",
 ]
 "CLRSLean.Chapter_05" = [
@@ -114,6 +116,12 @@ title = "3.1. Asymptotic Notation"
 
 [modules."CLRSLean.Chapter_03.Section_03_2_Standard_Functions"]
 title = "3.2. Standard Functions"
+
+[modules."CLRSLean.Chapter_04.Section_04_3_Substitution_Method"]
+title = "4.3. The Substitution Method"
+
+[modules."CLRSLean.Chapter_04.Section_04_4_Recursion_Tree_Method"]
+title = "4.4. The Recursion-Tree Method"
 
 [modules."CLRSLean.Chapter_04.Section_04_5_Master_Theorem"]
 title = "4.5. The Master Method"

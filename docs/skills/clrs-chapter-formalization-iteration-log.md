@@ -46,3 +46,15 @@ chapters.
 - Added a warning from practice: doc comments should use `{lit}` for future
   theorem names or textbook pseudocode names; `{name}` should be reserved for
   names that already exist at that point in the file.
+
+## 2026-06-24 - After Chapter 4 Recurrence Layer
+
+- Added a divide-and-conquer recurrence pattern: proof-method sections should
+  become small public theorem templates, not just prose.  Section 4.3 now proves
+  substitution upper/lower/sandwich principles plus linear and geometric
+  templates; Section 4.4 now proves finite recursion-tree unrolling and
+  envelope bounds.
+- Refined the status rule for Chapter 4: keep maximum subarray, Strassen, and
+  the all-input Master Theorem extension as future work, but do not list
+  recurrence-method infrastructure as future work once compiler-clean theorem
+  templates exist.

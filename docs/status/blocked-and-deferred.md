@@ -38,13 +38,14 @@ model and floor/ceiling sandwiching.
 
 ### Other Chapter 4 Sections
 
-- Related sections: Sections 4.1, 4.2, 4.3, 4.4, and 4.6
+- Related sections: Sections 4.1, 4.2, and 4.6
 - Status: `future-work`
 
 These sections are not excluded from CLRS-Lean.  They are pending because they
 need distinct representation choices: intervals for maximum subarray, block
-matrices for Strassen, and reusable recurrence or recursion-tree
-infrastructure for the proof-method sections.
+matrices for Strassen, and an all-input floor/ceiling bridge for the full
+Master Theorem.  Sections 4.3 and 4.4 now provide the reusable recurrence and
+recursion-tree infrastructure.
 
 ### Hiring Problem Harmonic Asymptotics
 

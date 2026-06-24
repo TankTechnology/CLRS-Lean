@@ -13,6 +13,8 @@ CLRSLean/Chapter_02/Section_02_2_Analyzing_Algorithms.lean
 CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms.lean
 CLRSLean/Chapter_03/Section_03_1_Asymptotic_Notation.lean
 CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean
+CLRSLean/Chapter_04/Section_04_3_Substitution_Method.lean
+CLRSLean/Chapter_04/Section_04_4_Recursion_Tree_Method.lean
 CLRSLean/Chapter_04/Section_04_5_Master_Theorem.lean
 CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean
 CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean
@@ -34,6 +36,8 @@ In prose and on the future website, these appear as:
 - Section 2.3 - Designing algorithms
 - Section 3.1 - Asymptotic notation
 - Section 3.2 - Standard functions
+- Section 4.3 - The substitution method
+- Section 4.4 - The recursion-tree method
 - Section 4.5 - The master method
 - Section 5.1 - The hiring problem
 - Section 10.1 - Stacks and queues
@@ -61,8 +65,8 @@ should remain import-friendly.
 | Section 3.2 - Standard functions | `CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean` | `partial` | `CLRS.Chapter03.isLittleO_pow_pow`, `CLRS.Chapter03.isLittleO_exp_vs_factorial` |
 | Section 4.1 - Maximum subarray | not yet created | `future-work` | planned divide-and-conquer correctness proof |
 | Section 4.2 - Strassen's algorithm | not yet created | `future-work` | planned block-matrix correctness proof |
-| Section 4.3 - Substitution method | not yet created | `future-work` | planned recurrence-bound induction lemmas |
-| Section 4.4 - Recursion-tree method | not yet created | `future-work` | planned finite tree expansion and level-sum lemmas |
+| Section 4.3 - Substitution method | `CLRSLean/Chapter_04/Section_04_3_Substitution_Method.lean` | `proved` for one-step recurrence bounds | `CLRS.Chapter04.substitution_upper_bound`, `CLRS.Chapter04.linear_substitution_upper_bound`, `CLRS.Chapter04.geometric_substitution_upper_bound` |
+| Section 4.4 - Recursion-tree method | `CLRSLean/Chapter_04/Section_04_4_Recursion_Tree_Method.lean` | `proved` for additive level-cost expansions | `CLRS.Chapter04.recursion_tree_additive_unroll`, `CLRS.Chapter04.recursion_tree_additive_upper_envelope`, `CLRS.Chapter04.recursion_tree_constant_level_cost` |
 | Section 4.5 - The master method | `CLRSLean/Chapter_04/Section_04_5_Master_Theorem.lean` | `proved` for exact powers | `CLRS.Chapter04.master_case1_geometric`, `CLRS.Chapter04.master_case2_constant_forcing`, `CLRS.Chapter04.master_case3_tail_dominated` |
 | Section 4.6 - Proof of the master theorem | not yet created | `future-work` | planned extension from exact powers to all input sizes |
 | Section 5.1 - The hiring problem | `CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean` | `proved` for finite rank symmetry | `CLRS.Chapter05.hireProbability_eq`, `CLRS.Chapter05.expectedHiresByIndicators_eq_harmonic` |

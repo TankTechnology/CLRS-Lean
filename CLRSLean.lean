@@ -44,9 +44,9 @@ Start with the chapter pages in the sidebar.
   and a merge-sort recurrence.
 * Chapter 3 - Growth of Functions: CLRS-style wrappers around Mathlib
   asymptotics plus selected standard growth facts.
-* Chapter 4 - Divide-and-Conquer: planned tracks for maximum subarray,
-  Strassen, substitution, recursion trees, and the proved exact-power Master
-  method core.
+* Chapter 4 - Divide-and-Conquer: recurrence proof infrastructure for the
+  substitution and recursion-tree methods, plus the proved exact-power Master
+  method core; maximum subarray and Strassen remain planned algorithm tracks.
 * Chapter 5 - Probabilistic Analysis: the finite rank-symmetry proof for the
   hiring problem.
 * Chapter 10 - Elementary Data Structures: functional stack, queue, and
@@ -90,8 +90,15 @@ Start with the chapter pages in the sidebar.
   algorithm over a stable interval/sum model.
 * 4.2 Strassen's algorithm: `future-work`.
   Planned target: block-matrix reconstruction correctness.
-* 4.3 Substitution method and 4.4 recursion-tree method: `future-work`.
-  Planned target: reusable recurrence-bound and finite-recursion-tree lemmas.
+* 4.3 Substitution method: `proved` for one-step recurrence bounds.
+  Public results: `CLRS.Chapter04.substitution_upper_bound`,
+  `CLRS.Chapter04.substitution_lower_bound`,
+  `CLRS.Chapter04.linear_substitution_upper_bound`,
+  `CLRS.Chapter04.geometric_substitution_upper_bound`.
+* 4.4 Recursion-tree method: `proved` for additive level-cost expansions.
+  Public results: `CLRS.Chapter04.recursion_tree_additive_unroll`,
+  `CLRS.Chapter04.recursion_tree_additive_upper_envelope`,
+  `CLRS.Chapter04.recursion_tree_constant_level_cost`.
 * 4.5 Master method: `proved` for exact-power recurrences.
   Public results: `CLRS.Chapter04.master_case1_geometric`,
   `CLRS.Chapter04.master_case2_constant_forcing`,

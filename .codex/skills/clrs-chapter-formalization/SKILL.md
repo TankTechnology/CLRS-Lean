@@ -142,6 +142,12 @@ end CLRS
   insertion/deletion should be marked partial until the balancing algorithm is
   mechanized.  Prove rotation membership preservation before attempting
   invariant preservation for fixup algorithms.
+- **Divide-and-conquer recurrence chapters:** formalize proof methods as small,
+  reusable theorem templates before attacking every algorithm.  For the
+  substitution method, prove base-plus-step upper/lower/sandwich principles and
+  common linear or geometric recurrence bounds.  For recursion trees, prove an
+  exact finite-sum unrolling theorem and envelope bounds over level costs, then
+  instantiate those results for concrete algorithms.
 
 ## Known Blockers
 

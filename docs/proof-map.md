@@ -102,9 +102,10 @@ library.
 
 ## Chapter 4 - Divide and Conquer
 
-Chapter 4 is not limited to the current Master-method file.  The earlier
-sections are formalizable, but they need separate models before theorem files
-are worth creating.
+Chapter 4 is not limited to the Master-method file.  The current recurrence
+layer proves the substitution and recursion-tree proof methods as reusable Lean
+infrastructure, while the concrete maximum-subarray and Strassen algorithm
+tracks still need separate models.
 
 ### Section 4.1 - The maximum-subarray problem
 
@@ -126,22 +127,32 @@ are worth creating.
 
 ### Section 4.3 - The substitution method
 
-- Lean source: not yet created
-- Status: `future-work`
-- Planned theorem target: reusable induction principles for proving upper and
-  lower bounds on recursively defined costs
-- Proof pattern: well-founded induction, monotonicity hypotheses, asymptotic
-  bridge lemmas
-- Current gap: decide how general the recurrence interface should be
+- Lean source: `CLRSLean/Chapter_04/Section_04_3_Substitution_Method.lean`
+- Status: `proved` for one-step recurrence bounds
+- Main proved theorems:
+  - `CLRS.Chapter04.substitution_upper_bound`
+  - `CLRS.Chapter04.substitution_lower_bound`
+  - `CLRS.Chapter04.substitution_sandwich`
+  - `CLRS.Chapter04.linear_substitution_upper_bound`
+  - `CLRS.Chapter04.geometric_substitution_upper_bound`
+- Proof pattern: ordinary induction over the recurrence index; the guessed
+  bound is treated as an invariant preserved by one recurrence step
+- Current gap: floor/ceiling and multi-branch recurrences should instantiate
+  these lemmas after deriving the appropriate one-step inequality
 
 ### Section 4.4 - The recursion-tree method
 
-- Lean source: not yet created
-- Status: `future-work`
-- Planned theorem target: finite recursion-tree expansion and level-sum lemmas
-- Proof pattern: finite tree or level-indexed sum expansion
-- Current gap: avoid duplicating the normalized-sum machinery already used in
-  Section 4.5
+- Lean source: `CLRSLean/Chapter_04/Section_04_4_Recursion_Tree_Method.lean`
+- Status: `proved` for additive level-cost expansions
+- Main proved theorems:
+  - `CLRS.Chapter04.recursion_tree_additive_unroll`
+  - `CLRS.Chapter04.recursion_tree_additive_upper_envelope`
+  - `CLRS.Chapter04.recursion_tree_additive_lower_envelope`
+  - `CLRS.Chapter04.recursion_tree_constant_level_cost`
+- Proof pattern: finite sum induction, then envelope bounds on the level costs
+- Current gap: branching recurrences such as `T(n) = aT(n/b) + f(n)` should
+  first group each recursion depth into one level-cost function before using
+  this additive core
 
 ### Section 4.5 - The master method
 
