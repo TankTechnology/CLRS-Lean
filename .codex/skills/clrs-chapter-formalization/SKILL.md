@@ -179,7 +179,9 @@ end CLRS
   node color, no red-red edge, black height, and local rotations.  Full
   insertion/deletion should be marked partial until the balancing algorithm is
   mechanized.  Prove rotation membership preservation before attempting
-  invariant preservation for fixup algorithms.
+  invariant preservation for fixup algorithms, then prove red-red local repair
+  certificates that combine rotation, root repainting, black-height balance, and
+  the bundled shape invariant.
 - **Divide-and-conquer recurrence chapters:** formalize proof methods as small,
   reusable theorem templates before attacking every algorithm.  For the
   substitution method, prove base-plus-step upper/lower/sandwich principles and
@@ -244,6 +246,11 @@ end CLRS
   expected-time analysis is blocked.  A fixed-hash functional model can still
   prove bucket delete, search-after-delete failure, and the full
   `hashSearch_hashDelete_iff` characterization.
+- Chapter 13 red-black local-repair pass: after rotation membership and root
+  repainting, prove the red-red rotation repair certificates that future
+  fixup algorithms need.  Good public theorem targets combine child subtree
+  `RedBlackShape` hypotheses, matching black-height assumptions, rotation, and
+  repainting the new root black.
 
 ## Honesty Rules
 

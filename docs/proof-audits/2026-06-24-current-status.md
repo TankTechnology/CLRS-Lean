@@ -34,6 +34,11 @@ the imported CLRS-Lean source, not experimental worktrees.
 - The theorem `CLRS.Chapter13.RBTree.redBlackShape_repaint_black` proves that
   repainting the root black establishes the bundled root-black/no-red-red/
   balanced-black-height shape invariant from the two non-root invariants.
+- Chapter 13 now also proves red-red local repair certificates:
+  `CLRS.Chapter13.RBTree.balancedBlackHeight_rotateLeft_red_red`,
+  `CLRS.Chapter13.RBTree.balancedBlackHeight_rotateRight_red_red`,
+  `CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateLeft_red_red`, and
+  `CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`.
 - Chapter 12 now proves functional successor/predecessor queries:
   `CLRS.Chapter12.BSTree.successor?_least_greater` and
   `CLRS.Chapter12.BSTree.predecessor?_greatest_less`.
@@ -50,8 +55,8 @@ the imported CLRS-Lean source, not experimental worktrees.
    order into lightness certificates.
 3. Chapter 4.1: connect the CLRS divide-and-conquer maximum-subarray pseudocode
    to the proved exhaustive-search specification.
-4. Chapter 12.1: design a parent-pointer/transplant refinement for the current
-   functional tree theorem.
+4. Chapter 13.1: mechanize executable `RB-INSERT-FIXUP` on top of the local
+   rotation/repaint repair certificates.
 
 ## Audit Rule
 

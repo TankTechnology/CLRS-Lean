@@ -63,6 +63,16 @@ chapters.
   theorem names or textbook pseudocode names; `{name}` should be reserved for
   names that already exist at that point in the file.
 
+## 2026-06-24 - After Chapter 13 Red-Red Repair
+
+- Strengthened the balanced-tree pattern again: after membership and repainting
+  lemmas, prove local red-red repair certificates.  These should combine
+  rotation, repainting the new root black, child subtree `RedBlackShape`
+  hypotheses, and black-height equalities.
+- Keep the chapter `partial` until executable `RB-INSERT-FIXUP` and
+  `RB-DELETE-FIXUP` are mechanized; the repair certificates are supporting
+  infrastructure, not the full algorithm.
+
 ## 2026-06-24 - After Chapter 4 Recurrence Layer
 
 - Added a divide-and-conquer recurrence pattern: proof-method sections should

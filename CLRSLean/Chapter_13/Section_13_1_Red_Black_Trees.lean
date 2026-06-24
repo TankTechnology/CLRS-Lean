@@ -8,8 +8,9 @@ rotation facts.  It does not yet formalize the full insertion or deletion
 algorithms.  Instead it proves reusable lemmas that those algorithms will need:
 rotations preserve membership, repainting the root black preserves the no-red-red
 property, repainting the root preserves membership, and repainting the root
-preserves child black-height balance.  It also bundles the local red-black shape
-invariants into one reusable predicate.
+preserves child black-height balance.  It also proves red-red local repair
+certificates and bundles the local red-black shape invariants into one reusable
+predicate.
 
 Main results:
 
@@ -23,6 +24,16 @@ Main results:
   membership.
 - Theorem {lit}`RBTree.balancedBlackHeight_repaintRoot`: repainting the root
   preserves balanced child black heights.
+- Theorem {lit}`RBTree.balancedBlackHeight_rotateLeft_red_red`: left rotation
+  across a red-red edge preserves child black-height balance.
+- Theorem {lit}`RBTree.balancedBlackHeight_rotateRight_red_red`: right rotation
+  across a red-red edge preserves child black-height balance.
+- Theorem {lit}`RBTree.redBlackShape_repaint_rotateLeft_red_red`: the left
+  red-red rotation case followed by repainting the new root black establishes
+  the bundled local red-black shape invariant.
+- Theorem {lit}`RBTree.redBlackShape_repaint_rotateRight_red_red`: the
+  symmetric right red-red rotation case followed by repainting the new root
+  black establishes the bundled local red-black shape invariant.
 - Theorem {lit}`RBTree.redBlackShape_repaint_black`: repainting the root black
   establishes the bundled local red-black shape invariant.
 
@@ -170,6 +181,28 @@ theorem balancedBlackHeight_repaintRoot (color : Color) {t : RBTree}
   | node oldColor left key right =>
       simpa [repaintRoot, BalancedBlackHeight] using h
 
+/-- A left rotation across a red-red edge preserves child black-height balance. -/
+theorem balancedBlackHeight_rotateLeft_red_red
+    {a b c : RBTree} {x y : Nat}
+    (h : BalancedBlackHeight
+      (node Color.red a x (node Color.red b y c))) :
+    BalancedBlackHeight
+      (rotateLeft (node Color.red a x (node Color.red b y c))) := by
+  rcases h with ⟨ha, ⟨hb, hc, hbc⟩, hab⟩
+  simp [rotateLeft, BalancedBlackHeight] at hab hbc ⊢
+  exact ⟨⟨ha, hb, hab⟩, hc, hab.trans hbc⟩
+
+/-- A right rotation across a red-red edge preserves child black-height balance. -/
+theorem balancedBlackHeight_rotateRight_red_red
+    {a b c : RBTree} {x y : Nat}
+    (h : BalancedBlackHeight
+      (node Color.red (node Color.red a x b) y c)) :
+    BalancedBlackHeight
+      (rotateRight (node Color.red (node Color.red a x b) y c)) := by
+  rcases h with ⟨⟨ha, hb, hab⟩, hc, hac⟩
+  simp [rotateRight, BalancedBlackHeight] at hab hac ⊢
+  exact ⟨ha, ⟨hb, hc, hab.symm.trans hac⟩, hab⟩
+
 /-- Repainting the root black makes the root black. -/
 theorem rootBlack_repaint_black (t : RBTree) :
     RootBlack (repaintRoot Color.black t) := by
@@ -186,6 +219,54 @@ theorem redBlackShape_repaint_black {t : RBTree}
     rootBlack_repaint_black t,
     noRedRed_repaint_black hNoRed,
     balancedBlackHeight_repaintRoot Color.black hBalanced
+  ⟩
+
+/--
+The local left-rotation red-red repair case: when the three fringe subtrees are
+already red-black shaped and have matching black heights, rotating across the
+red-red edge and repainting the new root black establishes the bundled shape
+invariant.
+-/
+theorem redBlackShape_repaint_rotateLeft_red_red
+    {a b c : RBTree} {x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b) (hc : RedBlackShape c)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c) :
+    RedBlackShape
+      (repaintRoot Color.black
+        (rotateLeft (node Color.red a x (node Color.red b y c)))) := by
+  rcases ha with ⟨haRoot, haNoRed, haBalanced⟩
+  rcases hb with ⟨hbRoot, hbNoRed, hbBalanced⟩
+  rcases hc with ⟨_, hcNoRed, hcBalanced⟩
+  simp [RedBlackShape, repaintRoot, rotateLeft, RootBlack, NoRedRed,
+    BalancedBlackHeight]
+  exact ⟨
+    ⟨⟨haNoRed, hbNoRed, haRoot, hbRoot⟩, hcNoRed⟩,
+    ⟨⟨haBalanced, hbBalanced, hab⟩, hcBalanced, hab.trans hbc⟩
+  ⟩
+
+/--
+The symmetric right-rotation red-red repair case: when the three fringe subtrees
+are already red-black shaped and have matching black heights, rotating across
+the red-red edge and repainting the new root black establishes the bundled
+shape invariant.
+-/
+theorem redBlackShape_repaint_rotateRight_red_red
+    {a b c : RBTree} {x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b) (hc : RedBlackShape c)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c) :
+    RedBlackShape
+      (repaintRoot Color.black
+        (rotateRight (node Color.red (node Color.red a x b) y c))) := by
+  rcases ha with ⟨_, haNoRed, haBalanced⟩
+  rcases hb with ⟨hbRoot, hbNoRed, hbBalanced⟩
+  rcases hc with ⟨hcRoot, hcNoRed, hcBalanced⟩
+  simp [RedBlackShape, repaintRoot, rotateRight, RootBlack, NoRedRed,
+    BalancedBlackHeight]
+  exact ⟨
+    ⟨haNoRed, hbNoRed, hcNoRed, hbRoot, hcRoot⟩,
+    ⟨haBalanced, ⟨hbBalanced, hcBalanced, hbc⟩, hab⟩
   ⟩
 
 end RBTree

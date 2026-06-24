@@ -118,7 +118,11 @@ navigating the deployed pages.
   {lit}`CLRS.Chapter13.RBTree.inTree_rotateRight_iff`,
   {lit}`CLRS.Chapter13.RBTree.inTree_repaintRoot_iff`,
   {lit}`CLRS.Chapter13.RBTree.noRedRed_repaint_black`,
-  {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_repaintRoot`, and
+  {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_repaintRoot`,
+  {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_rotateLeft_red_red`,
+  {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_rotateRight_red_red`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateLeft_red_red`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`, and
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`;
   remaining gap: full RB insertion/deletion fixup algorithms are not yet
   mechanized.
