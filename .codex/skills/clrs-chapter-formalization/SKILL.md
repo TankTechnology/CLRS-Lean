@@ -169,8 +169,10 @@ end CLRS
   preservation.  Prove a membership-after-insert equivalence before proving
   ordering preservation; it turns bound-preservation lemmas into short
   case splits.  After insertion, prove search correctness and minimum/maximum
-  membership plus bound theorems before deferring navigation or deletion; these
-  proofs are usually just structural recursion over the ordered-tree invariant.
+  membership plus bound theorems.  Then prove functional successor/predecessor
+  as least-greater/greatest-less queries before deferring deletion or
+  parent-pointer refinement; these proofs are usually just structural recursion
+  over the ordered-tree invariant.
 - **Balanced-tree chapters:** begin with invariants that can be checked locally:
   node color, no red-red edge, black height, and local rotations.  Full
   insertion/deletion should be marked partial until the balancing algorithm is
@@ -208,6 +210,10 @@ end CLRS
   `sorry`; record unfinished theorem targets in status ledgers instead.  When a
   chapter has several small local invariants, add a bundled predicate/theorem so
   later algorithm proofs have one clear interface rather than scattered facts.
+- Chapter 12 successor/predecessor pass: when pointer algorithms are not yet in
+  scope, prove the pure functional query theorem anyway: returned successors are
+  tree members, strictly greater than the query, and least among greater keys;
+  predecessors use the symmetric greatest-less statement.
 
 ## Honesty Rules
 

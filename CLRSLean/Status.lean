@@ -98,10 +98,12 @@ navigating the deployed pages.
   {lit}`CLRS.Chapter12.BSTree.minimum?_le_of_ordered`,
   {lit}`CLRS.Chapter12.BSTree.maximum?_inTree`,
   {lit}`CLRS.Chapter12.BSTree.le_maximum?_of_ordered`,
+  {lit}`CLRS.Chapter12.BSTree.successor?_least_greater`,
+  {lit}`CLRS.Chapter12.BSTree.predecessor?_greatest_less`,
   {lit}`CLRS.Chapter12.BSTree.inTree_insert_iff`, and
   {lit}`CLRS.Chapter12.BSTree.insert_ordered`;
-  remaining gap: successor/predecessor, transplant, deletion, and pointer-level
-  mutation remain future section targets.
+  remaining gap: parent-pointer successor/predecessor procedures, transplant,
+  deletion, and pointer-level mutation remain future section targets.
 * 13.1 Red-black trees:
   current results {lit}`CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`,
   {lit}`CLRS.Chapter13.RBTree.inTree_rotateRight_iff`,

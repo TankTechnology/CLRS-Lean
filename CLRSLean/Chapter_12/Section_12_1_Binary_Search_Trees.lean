@@ -8,7 +8,9 @@ of natural-number keys.  It proves the fundamental search and insertion facts
 used by the textbook invariant argument: search is correct on ordered trees,
 minimum and maximum return genuine extremal keys, insertion adds exactly the
 inserted key to the membership set, and insertion preserves the BST ordering
-invariant.
+invariant.  It also proves functional successor and predecessor queries: the
+successor is the least key greater than the query, and the predecessor is the
+greatest key less than the query.
 
 Main results:
 
@@ -20,14 +22,18 @@ Main results:
 - Theorem {lit}`maximum?_inTree`: a returned maximum key occurs in the tree.
 - Theorem {lit}`le_maximum?_of_ordered`: a returned maximum key is an upper
   bound on an ordered tree.
+- Theorem {lit}`successor?_least_greater`: a returned successor is the least
+  tree key strictly greater than the query.
+- Theorem {lit}`predecessor?_greatest_less`: a returned predecessor is the
+  greatest tree key strictly less than the query.
 - Theorem {lit}`inTree_insert_iff`: membership after insertion is exactly the
   old membership relation plus the inserted key.
 - Theorem {lit}`insert_ordered`: insertion preserves the BST ordering invariant.
 
 Current gaps:
 
-- Successor/predecessor, transplant, deletion, and pointer-level tree mutation
-  are future section targets.
+- Parent-pointer successor/predecessor procedures, transplant, deletion, and
+  pointer-level tree mutation are future section targets.
 -/
 
 namespace CLRS
@@ -97,6 +103,36 @@ def maximum? : BSTree → Option Nat
   | empty => none
   | node _left key empty => some key
   | node _left _key right@(node _ _ _) => maximum? right
+
+/--
+The least key in the tree that is strictly greater than {lit}`x`, if such a
+key exists.  This is a functional counterpart of CLRS successor search without
+parent pointers.
+-/
+def successor? (x : Nat) : BSTree → Option Nat
+  | empty => none
+  | node left key right =>
+      if x < key then
+        match successor? x left with
+        | some y => some y
+        | none => some key
+      else
+        successor? x right
+
+/--
+The greatest key in the tree that is strictly less than {lit}`x`, if such a
+key exists.  This is a functional counterpart of CLRS predecessor search without
+parent pointers.
+-/
+def predecessor? (x : Nat) : BSTree → Option Nat
+  | empty => none
+  | node left key right =>
+      if key < x then
+        match predecessor? x right with
+        | some y => some y
+        | none => some key
+      else
+        predecessor? x left
 
 /-! ## Search correctness -/
 
@@ -218,6 +254,201 @@ theorem le_maximum?_of_ordered {t : BSTree} {m : Nat}
           · exact Nat.le_of_lt hkey_lt_m
           · exact Nat.le_trans (Nat.le_of_lt (hLt x hxLeft)) (Nat.le_of_lt hkey_lt_m)
           · exact ihRight hRight hmaxRight x hxRight
+
+/-! ## Successor and predecessor correctness -/
+
+/--
+If the functional successor query returns {lit}`none`, no tree key is strictly
+greater than the query key.
+-/
+theorem successor?_none_le {x : Nat} {t : BSTree}
+    (ht : Ordered t) (hs : successor? x t = none) :
+    ∀ y, InTree y t → y ≤ x := by
+  induction t with
+  | empty =>
+      intro y hy
+      simp [InTree] at hy
+  | node left key right ihLeft ihRight =>
+      simp [Ordered] at ht
+      rcases ht with ⟨hLeft, hRight, hLt, _hGt⟩
+      by_cases hxkey : x < key
+      · cases hsuccLeft : successor? x left <;>
+          simp [successor?, hxkey, hsuccLeft] at hs
+      · have hRightNone : successor? x right = none := by
+          simpa [successor?, hxkey] using hs
+        have hKeyLe : key ≤ x := Nat.le_of_not_gt hxkey
+        intro y hy
+        simp [InTree] at hy
+        rcases hy with rfl | hyLeft | hyRight
+        · exact hKeyLe
+        · exact Nat.le_trans (Nat.le_of_lt (hLt y hyLeft)) hKeyLe
+        · exact ihRight hRight hRightNone y hyRight
+
+/--
+Functional successor correctness: if {lit}`successor? x t = some s` on an
+ordered tree, then {lit}`s` occurs in the tree, {lit}`x < s`, and every tree key
+greater than {lit}`x` is at least {lit}`s`.
+-/
+theorem successor?_least_greater {x s : Nat} {t : BSTree}
+    (ht : Ordered t) (hs : successor? x t = some s) :
+    InTree s t ∧ x < s ∧ ∀ y, InTree y t → x < y → s ≤ y := by
+  induction t generalizing s with
+  | empty =>
+      simp [successor?] at hs
+  | node left key right ihLeft ihRight =>
+      simp [Ordered] at ht
+      rcases ht with ⟨hLeft, hRight, hLt, hGt⟩
+      by_cases hxkey : x < key
+      · cases hsuccLeft : successor? x left with
+        | some sl =>
+            have hsome : some sl = some s := by
+              simpa [successor?, hxkey, hsuccLeft] using hs
+            injection hsome with hsl
+            subst s
+            rcases ihLeft hLeft hsuccLeft with ⟨hInLeft, hxsl, hLeastLeft⟩
+            exact ⟨
+              Or.inr (Or.inl hInLeft),
+              hxsl,
+              by
+                intro y hy hxy
+                simp [InTree] at hy
+                rcases hy with rfl | hyLeft | hyRight
+                · exact Nat.le_of_lt (hLt sl hInLeft)
+                · exact hLeastLeft y hyLeft hxy
+                · exact Nat.le_trans
+                    (Nat.le_of_lt (hLt sl hInLeft))
+                    (Nat.le_of_lt (hGt y hyRight))
+            ⟩
+        | none =>
+            have hsome : some key = some s := by
+              simpa [successor?, hxkey, hsuccLeft] using hs
+            injection hsome with hkey
+            subst s
+            have hNoLeft := successor?_none_le hLeft hsuccLeft
+            exact ⟨
+              Or.inl rfl,
+              hxkey,
+              by
+                intro y hy hxy
+                simp [InTree] at hy
+                rcases hy with rfl | hyLeft | hyRight
+                · exact le_rfl
+                · exact False.elim ((Nat.not_lt_of_ge (hNoLeft y hyLeft)) hxy)
+                · exact Nat.le_of_lt (hGt y hyRight)
+            ⟩
+      · have hRightSome : successor? x right = some s := by
+          simpa [successor?, hxkey] using hs
+        have hKeyLe : key ≤ x := Nat.le_of_not_gt hxkey
+        rcases ihRight hRight hRightSome with ⟨hInRight, hxs, hLeastRight⟩
+        exact ⟨
+          Or.inr (Or.inr hInRight),
+          hxs,
+          by
+            intro y hy hxy
+            simp [InTree] at hy
+            rcases hy with rfl | hyLeft | hyRight
+            · exact False.elim (hxkey hxy)
+            · have hyLeX : y ≤ x :=
+                Nat.le_trans (Nat.le_of_lt (hLt y hyLeft)) hKeyLe
+              exact False.elim ((Nat.not_lt_of_ge hyLeX) hxy)
+            · exact hLeastRight y hyRight hxy
+        ⟩
+
+/--
+If the functional predecessor query returns {lit}`none`, no tree key is strictly
+less than the query key.
+-/
+theorem predecessor?_none_ge {x : Nat} {t : BSTree}
+    (ht : Ordered t) (hp : predecessor? x t = none) :
+    ∀ y, InTree y t → x ≤ y := by
+  induction t with
+  | empty =>
+      intro y hy
+      simp [InTree] at hy
+  | node left key right ihLeft ihRight =>
+      simp [Ordered] at ht
+      rcases ht with ⟨hLeft, hRight, _hLt, hGt⟩
+      by_cases hkeyx : key < x
+      · cases hpredRight : predecessor? x right <;>
+          simp [predecessor?, hkeyx, hpredRight] at hp
+      · have hLeftNone : predecessor? x left = none := by
+          simpa [predecessor?, hkeyx] using hp
+        have hxLeKey : x ≤ key := Nat.le_of_not_gt hkeyx
+        intro y hy
+        simp [InTree] at hy
+        rcases hy with rfl | hyLeft | hyRight
+        · exact hxLeKey
+        · exact ihLeft hLeft hLeftNone y hyLeft
+        · exact Nat.le_trans hxLeKey (Nat.le_of_lt (hGt y hyRight))
+
+/--
+Functional predecessor correctness: if {lit}`predecessor? x t = some p` on an
+ordered tree, then {lit}`p` occurs in the tree, {lit}`p < x`, and every tree key
+less than {lit}`x` is at most {lit}`p`.
+-/
+theorem predecessor?_greatest_less {x p : Nat} {t : BSTree}
+    (ht : Ordered t) (hp : predecessor? x t = some p) :
+    InTree p t ∧ p < x ∧ ∀ y, InTree y t → y < x → y ≤ p := by
+  induction t generalizing p with
+  | empty =>
+      simp [predecessor?] at hp
+  | node left key right ihLeft ihRight =>
+      simp [Ordered] at ht
+      rcases ht with ⟨hLeft, hRight, hLt, hGt⟩
+      by_cases hkeyx : key < x
+      · cases hpredRight : predecessor? x right with
+        | some pr =>
+            have hsome : some pr = some p := by
+              simpa [predecessor?, hkeyx, hpredRight] using hp
+            injection hsome with hpr
+            subst p
+            rcases ihRight hRight hpredRight with ⟨hInRight, hprx, hGreatestRight⟩
+            exact ⟨
+              Or.inr (Or.inr hInRight),
+              hprx,
+              by
+                intro y hy hyx
+                simp [InTree] at hy
+                rcases hy with rfl | hyLeft | hyRight
+                · exact Nat.le_of_lt (hGt pr hInRight)
+                · exact Nat.le_trans
+                    (Nat.le_of_lt (hLt y hyLeft))
+                    (Nat.le_of_lt (hGt pr hInRight))
+                · exact hGreatestRight y hyRight hyx
+            ⟩
+        | none =>
+            have hsome : some key = some p := by
+              simpa [predecessor?, hkeyx, hpredRight] using hp
+            injection hsome with hkey
+            subst p
+            have hNoRight := predecessor?_none_ge hRight hpredRight
+            exact ⟨
+              Or.inl rfl,
+              hkeyx,
+              by
+                intro y hy hyx
+                simp [InTree] at hy
+                rcases hy with rfl | hyLeft | hyRight
+                · exact le_rfl
+                · exact Nat.le_of_lt (hLt y hyLeft)
+                · exact False.elim ((Nat.not_lt_of_ge (hNoRight y hyRight)) hyx)
+            ⟩
+      · have hLeftSome : predecessor? x left = some p := by
+          simpa [predecessor?, hkeyx] using hp
+        have hxLeKey : x ≤ key := Nat.le_of_not_gt hkeyx
+        rcases ihLeft hLeft hLeftSome with ⟨hInLeft, hpx, hGreatestLeft⟩
+        exact ⟨
+          Or.inr (Or.inl hInLeft),
+          hpx,
+          by
+            intro y hy hyx
+            simp [InTree] at hy
+            rcases hy with rfl | hyLeft | hyRight
+            · exact False.elim (hkeyx hyx)
+            · exact hGreatestLeft y hyLeft hyx
+            · have hx_lt_y : x < y := Nat.lt_of_le_of_lt hxLeKey (hGt y hyRight)
+              exact False.elim (Nat.lt_asymm hyx hx_lt_y)
+        ⟩
 
 /-! ## Membership after insertion -/
 

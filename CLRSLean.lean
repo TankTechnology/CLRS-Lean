@@ -126,6 +126,8 @@ Start with the chapter pages in the sidebar.
   Current results: `CLRS.Chapter12.BSTree.search_eq_true_iff`,
   `CLRS.Chapter12.BSTree.minimum?_le_of_ordered`,
   `CLRS.Chapter12.BSTree.le_maximum?_of_ordered`,
+  `CLRS.Chapter12.BSTree.successor?_least_greater`,
+  `CLRS.Chapter12.BSTree.predecessor?_greatest_less`,
   `CLRS.Chapter12.BSTree.inTree_insert_iff`,
   `CLRS.Chapter12.BSTree.insert_ordered`.
 * 13.1 Red-black trees: `partial`.

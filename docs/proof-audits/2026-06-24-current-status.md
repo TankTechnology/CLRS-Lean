@@ -34,6 +34,9 @@ the imported CLRS-Lean source, not experimental worktrees.
 - The theorem `CLRS.Chapter13.RBTree.redBlackShape_repaint_black` proves that
   repainting the root black establishes the bundled root-black/no-red-red/
   balanced-black-height shape invariant from the two non-root invariants.
+- Chapter 12 now proves functional successor/predecessor queries:
+  `CLRS.Chapter12.BSTree.successor?_least_greater` and
+  `CLRS.Chapter12.BSTree.predecessor?_greatest_less`.
 
 ## Next Proof Priorities
 
@@ -42,8 +45,8 @@ the imported CLRS-Lean source, not experimental worktrees.
    be proved next.
 2. Chapter 23.2: add the sorted-prefix invariant needed to turn Kruskal's edge
    order into lightness certificates.
-3. Chapter 12.1: add successor/predecessor over the current functional tree
-   model before attempting deletion or pointer-transplant semantics.
+3. Chapter 12.1: add functional deletion over the current tree model before
+   attempting pointer-transplant semantics.
 4. Chapter 4.1: create the maximum-subarray model instead of leaving the section
    as prose-only future work.
 

@@ -37,6 +37,10 @@ chapters.
   equivalence for upper/lower-bound preservation and the ordered invariant.
 - Cleaned unused `simp` arguments after the first successful build; this keeps
   new theorem files quieter without expanding proof scope.
+- Added the next tree-layer lesson: when parent pointers are not modeled yet,
+  still prove functional successor/predecessor as least-greater/greatest-less
+  queries over the ordered tree.  This removes a real textbook gap without
+  pretending that pointer-level `TREE-SUCCESSOR` is already verified.
 
 ## 2026-06-24 - After Chapter 13
 
