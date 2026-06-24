@@ -317,17 +317,23 @@ full balancing algorithms.
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.ActivitySelection.earliest_finish_minFinish`
+  - `CLRS.ActivitySelection.finishSorted_head_minFinish`
+  - `CLRS.ActivitySelection.finishSorted_activitiesAfter`
+  - `CLRS.ActivitySelection.greedySelect_sublist`
+  - `CLRS.ActivitySelection.greedySelect_feasible`
   - `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`
-- Proof pattern: earliest-finish greedy choice, finite-list feasibility,
-  certificate-based exchange argument
-- Current gap: derive the `GreedyChoiceCertificate` automatically from a
-  finish-time-sorted input interface and prove the full recursive
-  `greedySelect` maximum-cardinality theorem without an external certificate.
+- Proof pattern: finish-time order, earliest-finish greedy choice, recursive
+  sublist/feasibility invariants, and certificate-based exchange argument
+- Current gap: derive the `GreedyChoiceCertificate` automatically and prove the
+  full recursive `greedySelect` maximum-cardinality theorem without an external
+  certificate.
 
 The section proves the core finite-list model and the Lean-friendly
-greedy-choice theorem for CLRS activity selection.  It deliberately exposes the
-exchange certificate as an explicit hypothesis, making the remaining automation
-target precise rather than hidden inside an incomplete theorem statement.
+greedy-choice theorem for CLRS activity selection.  It also proves that the
+recursive executable selector returns a feasible sublist of the input.  The
+optimality theorem still deliberately exposes the exchange certificate as an
+explicit hypothesis, making the remaining automation target precise rather than
+hidden inside an incomplete theorem statement.
 
 ### Section 16.3 - Huffman codes
 

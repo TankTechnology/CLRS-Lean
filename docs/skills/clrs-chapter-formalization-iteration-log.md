@@ -75,6 +75,15 @@ chapters.
   candidate-enumerator exactness plus finite argmax optimality.  The CLRS
   divide-and-conquer pseudocode can now be treated as a refinement target.
 
+## 2026-06-24 - After Chapter 16.1 Activity Selection Executable Layer
+
+- Added a greedy-recursion pattern: first prove sorted-order facts for the
+  greedy choice, then prove executable recursion invariants such as sublist and
+  feasibility, and only then attack the exchange-certificate optimality layer.
+- For activity selection, `greedySelect` should not remain a bare definition
+  while the maximum-cardinality proof is pending.  Its sublist and feasibility
+  theorems are useful public progress and expose the remaining gap precisely.
+
 ## 2026-06-24 - Complete Chapter Proof Workflow
 
 - Upgraded the skill from a general chapter loop to a complete-chapter workflow:

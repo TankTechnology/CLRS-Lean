@@ -14,6 +14,8 @@ Main results:
 - Theorem {lit}`earliest_finish_minFinish`: the executable selector
   {lit}`earliest_finish` returns an activity whose finish time is minimum in the
   input list.
+- Theorem {lit}`finishSorted_head_minFinish`: the head of a finish-time-sorted
+  nonempty activity list is the earliest-finishing available activity.
 - Theorem {lit}`greedy_choice_minFinish_preserves_optimal_tail_feasibility`: if the
   greedy activity is compatible with an optimal tail solution, prepending it is
   feasible.
@@ -21,6 +23,9 @@ Main results:
   optimality theorem for the greedy-choice step.  The exchange argument is
   provided as a hypothesis, keeping the theorem honest while still matching the
   CLRS proof structure.
+- Theorems {lit}`greedySelect_sublist` and {lit}`greedySelect_feasible`: the
+  executable greedy selector always returns activities drawn from the input and
+  arranged feasibly.
 
 Current gaps:
 
@@ -105,6 +110,36 @@ def MinFinish (a : Activity) (xs : List Activity) : Prop :=
   a ∈ xs ∧ ∀ b ∈ xs, a.finish ≤ b.finish
 
 /--
+A list is sorted by nondecreasing finish time.  On such a list, the head is the
+CLRS earliest-finishing activity among the currently available activities.
+-/
+def FinishSorted : List Activity → Prop :=
+  List.Pairwise fun a b => a.finish ≤ b.finish
+
+/--
+Filtering a finish-sorted activity list preserves finish-time order.
+-/
+theorem finishSorted_filter {p : Activity → Bool} {xs : List Activity}
+    (hsorted : FinishSorted xs) :
+    FinishSorted (xs.filter p) := by
+  exact List.Pairwise.sublist List.filter_sublist hsorted
+
+/--
+The head of a nonempty finish-sorted list has minimum finish time.
+-/
+theorem finishSorted_head_minFinish {a : Activity} {rest : List Activity}
+    (hsorted : FinishSorted (a :: rest)) :
+    MinFinish a (a :: rest) := by
+  rcases (List.pairwise_cons.mp hsorted) with ⟨ha, _hrest⟩
+  constructor
+  · simp
+  · intro b hb
+    simp at hb
+    rcases hb with rfl | hb
+    · rfl
+    · exact ha b hb
+
+/--
 Select an activity with earliest finish time from a finite list, returning
 {lit}`none` on the empty list.
 -/
@@ -185,12 +220,28 @@ def activitiesAfter (a : Activity) (xs : List Activity) : List Activity :=
   xs.filter fun b => decide (a.finish ≤ b.start)
 
 /--
+The post-greedy candidate list is a sublist of the original candidate list.
+-/
+theorem activitiesAfter_sublist (a : Activity) (xs : List Activity) :
+    (activitiesAfter a xs).Sublist xs := by
+  unfold activitiesAfter
+  exact List.filter_sublist
+
+/--
 Membership in {name}`activitiesAfter` is exactly membership in the source list plus
 oriented compatibility with the chosen activity.
 -/
 theorem mem_activitiesAfter {a b : Activity} {xs : List Activity} :
     b ∈ activitiesAfter a xs ↔ b ∈ xs ∧ Before a b := by
   simp [activitiesAfter, Before]
+
+/--
+The available list after a greedy choice preserves finish-time ordering.
+-/
+theorem finishSorted_activitiesAfter {a : Activity} {xs : List Activity}
+    (hsorted : FinishSorted xs) :
+    FinishSorted (activitiesAfter a xs) := by
+  exact finishSorted_filter hsorted
 
 /--
 The CLRS recursive greedy algorithm, parameterized by the list order supplied by
@@ -208,6 +259,38 @@ decreasing_by
       (List.filter (fun b => decide (a.finish ≤ b.start)) rest).length ≤ rest.length :=
     List.length_filter_le (fun b => decide (a.finish ≤ b.start)) rest
   omega
+
+/--
+The executable greedy selector returns only activities from the input list.
+-/
+theorem greedySelect_sublist (xs : List Activity) :
+    (greedySelect xs).Sublist xs := by
+  induction xs using greedySelect.induct with
+  | case1 =>
+      simp [greedySelect]
+  | case2 a rest ih =>
+      rw [greedySelect.eq_def]
+      exact List.Sublist.cons_cons a
+        (List.Sublist.trans ih (activitiesAfter_sublist a rest))
+
+/--
+The executable greedy selector always returns a feasible chronologically
+ordered activity list.
+-/
+theorem greedySelect_feasible (xs : List Activity) :
+    Feasible (greedySelect xs) := by
+  induction xs using greedySelect.induct with
+  | case1 =>
+      simp [greedySelect, Feasible]
+  | case2 a rest ih =>
+      rw [greedySelect.eq_def]
+      apply feasible_cons ih
+      intro b hb
+      have hsub :
+          (greedySelect (activitiesAfter a rest)).Sublist
+            (activitiesAfter a rest) :=
+        greedySelect_sublist (activitiesAfter a rest)
+      exact (mem_activitiesAfter.mp (hsub.subset hb)).2
 
 /-! ## Maximum-cardinality certificates -/
 

@@ -6,14 +6,17 @@
 - Status: `partial`
 - Main theorems:
   - `CLRS.ActivitySelection.earliest_finish_minFinish`
+  - `CLRS.ActivitySelection.finishSorted_head_minFinish`
+  - `CLRS.ActivitySelection.greedySelect_sublist`
+  - `CLRS.ActivitySelection.greedySelect_feasible`
   - `CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`
 
 This section formalizes the finite activity model, feasibility of selected
-activity lists, the executable earliest-finish selector, and a
-certificate-based greedy-choice optimality theorem.  The remaining textbook
-strengthening is to derive the exchange certificate automatically from a
-finish-time-sorted input interface and connect it to the full recursive
-`greedySelect` correctness theorem.
+activity lists, finish-time ordering, the executable earliest-finish selector,
+and the recursive greedy selector's sublist and feasibility properties.  The
+remaining textbook strengthening is to derive the exchange certificate
+automatically and connect it to the full recursive `greedySelect`
+maximum-cardinality theorem.
 
 ## Section 16.3 - Huffman Codes
 

@@ -121,10 +121,13 @@ navigating the deployed pages.
   remaining gap: full RB insertion/deletion fixup algorithms are not yet
   mechanized.
 * 16.1 Activity selection:
-  current results {lit}`CLRS.ActivitySelection.earliest_finish_minFinish` and
+  current results {lit}`CLRS.ActivitySelection.earliest_finish_minFinish`,
+  {lit}`CLRS.ActivitySelection.finishSorted_head_minFinish`,
+  {lit}`CLRS.ActivitySelection.greedySelect_sublist`,
+  {lit}`CLRS.ActivitySelection.greedySelect_feasible`, and
   {lit}`CLRS.ActivitySelection.greedy_choice_optimal_from_certificate`;
-  remaining gap: derive the exchange certificate automatically from a
-  finish-time-sorted input interface and prove the full recursive
+  remaining gap: derive the exchange certificate automatically and prove
+  maximum-cardinality optimality for the full recursive
   {lit}`CLRS.ActivitySelection.greedySelect` theorem.
 * 23.1 Growing a minimum spanning tree:
   current result `CLRS.MST.safe_edge_of_lightest_crossing`;

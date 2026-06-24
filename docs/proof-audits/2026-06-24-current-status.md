@@ -43,9 +43,9 @@ the imported CLRS-Lean source, not experimental worktrees.
 
 ## Next Proof Priorities
 
-1. Chapter 16.1: derive the activity-selection exchange certificate from a
-   finish-time-sorted interface, or state the exact sorted-list lemma that must
-   be proved next.
+1. Chapter 16.1: derive the activity-selection exchange certificate and
+   maximum-cardinality theorem for `greedySelect`; the sorted head/min-finish
+   and executable sublist/feasibility layers are now proved.
 2. Chapter 23.2: add the sorted-prefix invariant needed to turn Kruskal's edge
    order into lightness certificates.
 3. Chapter 4.1: connect the CLRS divide-and-conquer maximum-subarray pseudocode

@@ -51,7 +51,10 @@ empty.  The review correctly identified this, though the clean build passed
 (possibly because `N` is never 0 in practice — `N1, N2` come from `Filter.eventually_atTop`
 which could return 0 if the bound holds everywhere).
 
-**Fix:** (not yet applied) Should use `let N := max (max N1 N2) 1`.
+**Current status:** stale for the current imported source.  A follow-up audit of
+`CLRSLean/Chapter_04/Section_04_5_Master_Theorem.lean` found no remaining
+`sup'`/`range N` pattern; the current Master-method proof uses eventual-bound
+witnesses directly.
 
 ### 6. Frequent sum reindexing errors
 

@@ -192,6 +192,12 @@ end CLRS
   contiguous subarrays, prove the enumerator exact, prove finite argmax
   optimality, and then use that theorem as the refinement target for the
   divide-and-conquer pseudocode.
+- **Greedy-recursion chapters:** split the proof into three layers before the
+  final optimality theorem: sorted-order facts about the greedy choice,
+  executable recursion invariants such as sublist and feasibility, and an
+  exchange/certificate layer for optimality.  Do not leave executable recursive
+  selectors without sublist and feasibility theorems while waiting for the full
+  exchange proof.
 
 ## Known Blockers
 
@@ -230,6 +236,10 @@ end CLRS
   recurrence before proving the core specification.  A finite exhaustive
   selector plus an exact contiguous-subarray enumerator gives a strong public
   theorem and a precise future refinement target.
+- Chapter 16.1 activity-selection pass: before proving maximum cardinality,
+  prove the finish-sorted head lemma and the executable greedy selector's
+  sublist and feasibility invariants.  These are small theorem layers that make
+  the remaining exchange-certificate gap much sharper.
 
 ## Honesty Rules
 
