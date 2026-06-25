@@ -13,11 +13,13 @@ proof:
 * the right partition contains only elements greater than the pivot;
 * the scan-state partition loop preserves its exact invariant and computes the
   same regions as the specification partition;
+* an array-facing wrapper returns a pivot index whose prefix/suffix satisfy the
+  CLRS partition postcondition;
 * functional quicksort returns an ordered permutation of the input.
 
-The remaining array-level strengthening target is to refine this scan-state
-loop to a mutable array-segment model.  Randomized/expected-time analysis is
-also separate.
+The remaining array-level strengthening target is to refine this proof to a
+swap trace over a mutable array-segment model.  Randomized/expected-time
+analysis is also separate.
 -/
 
 namespace CLRS
@@ -463,6 +465,93 @@ theorem clrsPartition_correct (p : Nat) (xs : List Nat) :
     simpa [clrsPartition, state] using hmiddle.trans (List.Perm.cons p htail)
   exact ⟨hloop.1, hloop.2.1, hloop.2.2.1, hwhole, hloop.2.2.2.1,
     hloop.2.2.2.2⟩
+
+/-! ## Array-facing partition result -/
+
+/--
+Array-facing result of partitioning around a pivot.
+
+The list {lit}`out` is the post-partition array segment, and
+{lit}`pivotIndex` is the index at which the pivot is placed.
+-/
+structure PartitionArrayResult where
+  /-- Post-partition array segment. -/
+  out : List Nat
+  /-- Zero-based index of the pivot in {lit}`out`. -/
+  pivotIndex : Nat
+
+/--
+Array-facing wrapper for the CLRS partition result.
+
+This keeps the proof connected to the scan-state invariant while exposing the
+ordinary array postcondition shape: a returned pivot index plus an output
+segment.
+-/
+def clrsPartitionArray (p : Nat) (xs : List Nat) : PartitionArrayResult :=
+  let state := partitionLoop p xs
+  { out := state.low ++ p :: state.high, pivotIndex := state.low.length }
+
+/-- The array-facing wrapper has the same output as {lit}`clrsPartition`. -/
+theorem clrsPartitionArray_out (p : Nat) (xs : List Nat) :
+    (clrsPartitionArray p xs).out = clrsPartition p xs := by
+  simp [clrsPartitionArray, clrsPartition]
+
+/-- The returned pivot index is in bounds. -/
+theorem clrsPartitionArray_pivotIndex_lt (p : Nat) (xs : List Nat) :
+    (clrsPartitionArray p xs).pivotIndex <
+      (clrsPartitionArray p xs).out.length := by
+  simp [clrsPartitionArray]
+
+/-- The pivot is stored exactly at the returned index. -/
+theorem clrsPartitionArray_pivot (p : Nat) (xs : List Nat) :
+    (clrsPartitionArray p xs).out[(clrsPartitionArray p xs).pivotIndex]? =
+      some p := by
+  simp [clrsPartitionArray]
+
+/-- The segment left of the returned index contains only values at most the pivot. -/
+theorem clrsPartitionArray_left_bound (p : Nat) (xs : List Nat) :
+    AllLeUpper
+      ((clrsPartitionArray p xs).out.take
+        (clrsPartitionArray p xs).pivotIndex) p := by
+  simpa [clrsPartitionArray] using partitionLoop_low_allLeUpper p xs
+
+/-- The segment right of the returned index contains only values greater than the pivot. -/
+theorem clrsPartitionArray_right_bound (p : Nat) (xs : List Nat) :
+    AllGt p
+      ((clrsPartitionArray p xs).out.drop
+        ((clrsPartitionArray p xs).pivotIndex + 1)) := by
+  simpa [clrsPartitionArray] using partitionLoop_high_allGt p xs
+
+/-- The array-facing partition output preserves exactly the input elements plus the pivot. -/
+theorem clrsPartitionArray_perm (p : Nat) (xs : List Nat) :
+    (clrsPartitionArray p xs).out.Perm (p :: xs) := by
+  simpa [clrsPartitionArray_out] using (clrsPartition_correct p xs).2.2.2.1
+
+/--
+Reader-facing correctness theorem for the array-facing partition wrapper.
+
+It packages the returned-index postcondition: the pivot is in bounds and stored
+at the returned index; the prefix before it is at most the pivot; the suffix
+after it is greater than the pivot; and the output is a permutation of the
+pivot followed by the scanned tail.
+-/
+theorem clrsPartitionArray_correct (p : Nat) (xs : List Nat) :
+    (clrsPartitionArray p xs).pivotIndex <
+        (clrsPartitionArray p xs).out.length ∧
+      (clrsPartitionArray p xs).out[(clrsPartitionArray p xs).pivotIndex]? =
+        some p ∧
+      AllLeUpper
+        ((clrsPartitionArray p xs).out.take
+          (clrsPartitionArray p xs).pivotIndex) p ∧
+      AllGt p
+        ((clrsPartitionArray p xs).out.drop
+          ((clrsPartitionArray p xs).pivotIndex + 1)) ∧
+      (clrsPartitionArray p xs).out.Perm (p :: xs) :=
+  ⟨clrsPartitionArray_pivotIndex_lt p xs,
+    clrsPartitionArray_pivot p xs,
+    clrsPartitionArray_left_bound p xs,
+    clrsPartitionArray_right_bound p xs,
+    clrsPartitionArray_perm p xs⟩
 
 /-! ## Functional quicksort -/
 
