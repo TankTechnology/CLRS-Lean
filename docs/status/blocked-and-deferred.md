@@ -56,9 +56,10 @@ monotone comparison scales with eventual one-step control.  It also proves the
 discrete `criticalPowerScale`, `criticalPowerLogScale`, and
 `tailDominatedScale` all-input wrappers for exact-power `Θ(a^i)`,
 `Θ((i+1)a^i)`, and tail-dominated bounds, including floor/ceiling recurrence
-wrappers for exact-power Master cases 1, 2, and 3.  The remaining
-strengthening is to relate these discrete bridges to analytic CLRS comparison
-scales.
+wrappers for exact-power Master cases 1, 2, and 3.  Case 1 is also packaged
+against the textbook `n^(log_b a)` scale, and case 2 against
+`n^(log_b a) log n`.  The remaining analytic strengthening is the case-3
+forcing comparison scale.
 
 ### Remaining Chapter 4 Sections
 
@@ -71,9 +72,9 @@ the final comparison-scale layer for the full Master Theorem.  Sections 4.3,
 4.4, and 4.6 now provide reusable recurrence, recursion-tree, and all-input
 transfer infrastructure, including adjacent-power sandwich generation,
 discrete Master-scale wrappers, packaged floor/ceiling cases 1/2/3, and
-natural-exponent polynomial wrappers for Master cases 1 and 2.  The remaining
-Master-theorem comparison work is the general `n^(log_b a)`, real-log, and
-case-3 forcing-scale layer.
+natural-exponent polynomial wrappers for Master cases 1 and 2, the real-log
+case-1 bridge, and the real-log-log case-2 bridge.  The remaining
+Master-theorem comparison work is the case-3 forcing-scale layer.
 
 ### Maximum-Subarray Runtime Analysis
 
@@ -195,9 +196,10 @@ sortedness plus permutation preservation for the functional quicksort model.
 
 The remaining CLRS refinements are harder.  The mutable-array `PARTITION` proof
 needs an index-level array segment invariant that tracks the less/equal and
-greater regions while preserving the backing-list permutation.  Randomized
-quicksort's expected running time needs a probability model for random pivots
-or random permutations and a cost recurrence or indicator-variable proof.
+greater regions while preserving the backing-list permutation.  The
+expected-comparison recurrence and harmonic bound are already proved in the
+current model; the remaining randomized-analysis layer is deriving that model
+from an explicit probability space for random pivots or random permutations.
 
 ### Chapter 8 Linear-Time Sorting Refinements
 
@@ -272,8 +274,9 @@ CLRS-style branch-size packaging is proved by
 
 The remaining hard work splits into two tracks.  Randomized SELECT needs a
 probability model for random pivots and an expected-cost argument.
-Deterministic linear-time SELECT still needs the recurrence proof on top of the
-proved `7n/10 + O(1)` partition-size theorem.
+Deterministic linear-time SELECT already has the abstract recurrence induction
+and linear-bound wrapper; it still needs a concrete executable cost semantics
+for `medianOfMediansSelect?` that feeds the proved recurrence hypothesis.
 
 ### Pointer-Level Linked Lists
 

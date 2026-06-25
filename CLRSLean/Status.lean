@@ -702,8 +702,9 @@ the next cleanup pass after this 11--15 track.
   {lit}`tailDominatedScale` all-input
   wrappers are also proved, including floor/ceiling recurrence packaging for
   exact-power Master cases 1, 2, and 3.  The real-log comparison bridge for
-  the critical-power scale is proved; what remains is named textbook-facing
-  case-1/2 packaging plus the case-3 forcing comparison scale.
+  the critical-power scale is proved, and the real-log-log comparison bridge
+  for the case-2 scale is proved; what remains is the case-3 forcing
+  comparison scale.
 * Chapter 4 Strassen recursive refinement:
   {lit}`future-work`.
   Reason: the 2 by 2 block algebra is proved; recursive splitting,

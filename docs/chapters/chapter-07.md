@@ -1,9 +1,11 @@
 # Chapter 7 - Quicksort
 
-Chapter 7 now has a compiler-clean correctness spine for quicksort, including
-the functional partition specification, a scan-state proof spine for the CLRS
-partition loop, and a returned pivot-index partition wrapper with an explicit
-adjacent-swap trace.
+Chapter 7 now has three compiler-clean proof layers: the quicksort correctness
+spine, a deterministic comparison-count upper bound, and the
+randomized-quicksort expected-comparison recurrence with harmonic bounds.  The
+remaining gap is not the recurrence algebra itself, but the lower-level CLRS
+array refinement and an explicit probability-space interpretation of random
+pivot choices.
 
 ## Section 7.1 - Description of quicksort
 
@@ -79,12 +81,60 @@ The quicksort theorem layer proves:
 - `CLRS.Chapter07.quickSort_correct`: the reader-facing conjunction of
   sortedness and permutation preservation.
 
+## Section 7.2 - Performance of quicksort
+
+- Lean source: `CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean`
+- Status: `proved` for the deterministic comparison-count model
+- Main theorem: `CLRS.Chapter07.quickSortComparisons_quadratic`
+
+The section counts one pivot comparison against every element in the current
+tail, proves partition length accounting, and uses fuel induction to bound the
+total functional quicksort comparison count by a quadratic expression.
+
+The theorem layer proves:
+
+- `CLRS.Chapter07.partitionAround_length_add`: the two partition sides account
+  for exactly the current tail.
+- `CLRS.Chapter07.quickSortComparisonsFuel_quadratic`: the fuelled comparison
+  counter is quadratically bounded.
+- `CLRS.Chapter07.quickSortComparisons_quadratic`: the reader-facing
+  comparison-count upper bound.
+
+## Section 7.3 - Randomized quicksort
+
+- Lean source: `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean`
+- Status: `proved` for the expected-comparison recurrence model
+- Main theorem: `CLRS.Chapter07.expectedComparisons_harmonic_bound`
+
+The section formalizes the CLRS expected-comparison sequence as a deterministic
+recurrence over rationals.  It proves the recurrence identity, a telescoping
+closed form, and the harmonic envelope used for the `O(n log n)` bound.
+
+The theorem layer proves:
+
+- `CLRS.Chapter07.harmonic_succ`: the harmonic-number successor identity.
+- `CLRS.Chapter07.sum_mul_harmonic_eq`: the finite-sum identity needed for
+  telescoping.
+- `CLRS.Chapter07.sum_expectedComparisons_eq`: the recurrence sum is
+  normalized into the closed-form expression.
+- `CLRS.Chapter07.expectedComparisons_recurrence`: the CLRS expected-comparison
+  recurrence is satisfied.
+- `CLRS.Chapter07.expectedComparisons_telescope`: the telescoping closed form.
+- `CLRS.Chapter07.expectedComparisons_harmonic_bound`: the harmonic upper
+  bound.
+- `CLRS.Chapter07.expectedComparisons_quadratic`: a coarse quadratic fallback
+  bound.
+- `CLRS.Chapter07.expectedComparisons_monotone`: monotonicity of the expected
+  comparison sequence.
+
 ## Hard Follow-Up Work
 
 - Mutable-array `PARTITION` refinement: the scan-state loop invariant,
   returned-index postcondition, and adjacent-swap trace are proved, but the
   concrete index-level CLRS loop over an array segment remains.
-- Deterministic performance analysis: requires a cost recurrence tied to the
-  partition sizes.
-- Randomized quicksort expected time: requires a probability model for random
-  pivots or random permutations plus a recurrence or indicator-variable proof.
+- Cost refinement: the current comparison counter is mathematical; a future
+  pass should connect it to a concrete mutable-array execution cost model.
+- Randomized quicksort probability semantics: the expected-comparison
+  recurrence and harmonic bound are proved, but a future pass should derive
+  that recurrence from an explicit probability space for random pivots or
+  random permutations.

@@ -1,9 +1,10 @@
 # Chapter 8 - Sorting in Linear Time
 
 Chapter 8 now has compiler-clean correctness spines for counting sort, radix
-sort, and deterministic bucket sort.  The radix-sort layer now includes an
-explicit complete-signature stability theorem, not just ordering and
-permutation.
+sort, and deterministic bucket sort.  The radix-sort layer includes an explicit
+complete-signature stability theorem, and the bucket-sort layer includes the
+finite-uniform collision and second-moment core used by the CLRS expected-time
+argument.
 
 ## Section 8.2 - Counting sort
 
@@ -61,7 +62,8 @@ The theorem layer proves:
 ## Section 8.4 - Bucket sort
 
 - Lean source: `CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean`
-- Status: `proved` for deterministic bucket-index correctness
+- Status: `proved` for deterministic bucket-index correctness, with a
+  finite-uniform second-moment core for the expected-time argument
 - Main theorem: `CLRS.Chapter08.bucketSortByRank_correct`
 
 The model separates the deterministic correctness theorem from the CLRS
@@ -80,10 +82,17 @@ The theorem layer proves:
   for any correct per-bucket sorter.
 - `CLRS.Chapter08.bucketSortByRank_correct`: an executable wrapper that sorts
   each bucket with Lean's verified `mergeSort`.
+- `CLRS.Chapter08.uniformAverageFin2_collision`: two independent finite-uniform
+  bucket choices collide with probability `1 / m`.
+- `CLRS.Chapter08.expectedBucketQuadraticCost_self_eq`: the exact
+  second-moment identity for the bucket occupancy square sum.
+- `CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`: the linear
+  bound when the number of buckets matches the number of inputs.
 
 ## Hard Follow-Up Work
 
 - Array-level `COUNTING-SORT`: requires count-array and prefix-sum invariants
   and a refinement theorem to the stable bucket specification.
-- Bucket sort expected time: requires a probability model for the input
-  distribution.
+- Bucket sort expected time: the finite-uniform collision/second-moment core is
+  proved; the remaining work is an explicit independent input distribution and
+  concrete cost model connecting that core to the executable sorter.
