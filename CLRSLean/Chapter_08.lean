@@ -17,13 +17,15 @@ sorting primitives before cost models.
   {lit}`CLRS.Chapter08.countingSortBy_mem_iff`,
   {lit}`CLRS.Chapter08.countingSortBy_perm`, and
   {lit}`CLRS.Chapter08.countingSortBy_correct`.
-* 8.3 Radix sort: {lit}`proved` for an abstract stable digit-pass model.
+* 8.3 Radix sort: {lit}`proved` for an abstract stable digit-pass model with
+  complete digit-signature stability.
   Main results:
   {lit}`CLRS.Chapter08.radixPass_orderedRel`,
   {lit}`CLRS.Chapter08.radixSortBy_ordered`,
+  {lit}`CLRS.Chapter08.radixSortBy_stable`,
   {lit}`CLRS.Chapter08.radixSortBy_mem_iff`,
   {lit}`CLRS.Chapter08.radixSortBy_perm`, and
-  {lit}`CLRS.Chapter08.radixSortBy_correct`.
+  {lit}`CLRS.Chapter08.radixSortBy_correct_stable`.
 * 8.4 Bucket sort: {lit}`proved` for a deterministic bucket-index model.
   Main results:
   {lit}`CLRS.Chapter08.bucketSortBy_correct` and

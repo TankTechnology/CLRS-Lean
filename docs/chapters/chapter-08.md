@@ -1,7 +1,9 @@
 # Chapter 8 - Sorting in Linear Time
 
 Chapter 8 now has compiler-clean correctness spines for counting sort, radix
-sort, and deterministic bucket sort.
+sort, and deterministic bucket sort.  The radix-sort layer now includes an
+explicit complete-signature stability theorem, not just ordering and
+permutation.
 
 ## Section 8.2 - Counting sort
 
@@ -28,12 +30,15 @@ The theorem layer proves:
 ## Section 8.3 - Radix sort
 
 - Lean source: `CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean`
-- Status: `proved` for the abstract stable digit-pass model
-- Main theorem: `CLRS.Chapter08.radixSortBy_correct`
+- Status: `proved` for the abstract stable digit-pass model with
+  complete digit-signature stability
+- Main theorem: `CLRS.Chapter08.radixSortBy_correct_stable`
 
 The model takes digit functions in least-significant to most-significant order.
 Each pass is a stable `countingSortBy`, and the final order is expressed as the
-induced most-significant-first lexicographic relation.
+induced most-significant-first lexicographic relation.  Stability is stated by
+filtering the input and output to all elements that match a fixed sample on
+every digit; the two filtered lists are exactly equal.
 
 The theorem layer proves:
 
@@ -42,12 +47,16 @@ The theorem layer proves:
   digit as the higher-priority key.
 - `CLRS.Chapter08.radixSortBy_ordered`: repeated passes return a list ordered
   by the induced radix lexicographic relation.
+- `CLRS.Chapter08.radixSortBy_stable`: for each complete digit signature, the
+  output subsequence is exactly the corresponding input subsequence.
 - `CLRS.Chapter08.radixSortBy_mem_iff`: membership is preserved when all digit
   functions are bounded by the declared maximum digit.
 - `CLRS.Chapter08.radixSortBy_perm`: repeated stable digit passes preserve the
   input as a permutation.
 - `CLRS.Chapter08.radixSortBy_correct`: the reader-facing conjunction of
   lexicographic ordering, membership preservation, and permutation preservation.
+- `CLRS.Chapter08.radixSortBy_correct_stable`: the same reader-facing
+  correctness theorem with the explicit stability clause.
 
 ## Section 8.4 - Bucket sort
 

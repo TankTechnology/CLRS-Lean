@@ -202,10 +202,12 @@ equal-key subsequence, `CLRS.Chapter08.countingSortBy_perm` proves multiset
 preservation, and `CLRS.Chapter08.countingSortBy_correct` packages the
 reader-facing correctness theorem.  Section 8.3 proves abstract radix-sort
 correctness: `CLRS.Chapter08.radixPass_orderedRel` is the stable digit-pass
-lemma, `CLRS.Chapter08.radixSortBy_perm` proves repeated passes preserve the
-input as a permutation, and `CLRS.Chapter08.radixSortBy_correct` packages
-lexicographic ordering plus membership and permutation preservation.  Section
-8.4 proves deterministic bucket-sort correctness:
+lemma, `CLRS.Chapter08.radixSortBy_stable` proves complete digit-signature
+stability, `CLRS.Chapter08.radixSortBy_perm` proves repeated passes preserve
+the input as a permutation, and `CLRS.Chapter08.radixSortBy_correct_stable`
+packages lexicographic ordering, stability, membership preservation, and
+permutation preservation.  Section 8.4 proves deterministic bucket-sort
+correctness:
 `CLRS.Chapter08.bucketSortByRank_correct` packages ordered output, membership
 preservation, and permutation preservation for the merge-sorted bucket model.
 

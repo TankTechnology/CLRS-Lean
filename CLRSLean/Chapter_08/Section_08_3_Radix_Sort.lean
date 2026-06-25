@@ -8,10 +8,10 @@ counting-sort theorem in Section 8.2.
 
 The model is intentionally abstract.  A list of digit functions is supplied in
 least-significant to most-significant order, and each pass is a stable
-{lit}`countingSortBy` over the current digit.  The final theorem says that the
+{lit}`countingSortBy` over the current digit.  The final theorems say that the
 result is ordered by the corresponding most-significant-first lexicographic
-relation and preserves membership when all digit values are within the declared
-digit bound.
+relation, preserves membership, preserves the input order inside each complete
+digit signature, and hence captures the CLRS stable-pass proof spine.
 
 This isolates the CLRS proof idea from low-level numeric encodings and cost
 models.  Concrete base-{lit}`b` digit extraction can later refine this
@@ -131,6 +131,42 @@ def AllDigitsLe (digitsLow : List (α → Nat)) (xs : List α)
     (maxDigit : Nat) : Prop :=
   ∀ digit ∈ digitsLow, AllKeysLe digit xs maxDigit
 
+/-! ## Stability by complete digit signatures -/
+
+/--
+The subsequence of elements whose values match {lit}`sample` on every radix
+digit, preserving the ambient list order.
+
+Equality of this list before and after radix sort is the direct stability
+statement: items with the same complete digit signature appear in their
+original relative order.
+-/
+def digitClass (digitsLow : List (α → Nat)) (sample : α) (xs : List α) :
+    List α :=
+  xs.filter fun x => digitsLow.all fun digit => digit x == digit sample
+
+theorem digitClass_cons_filter (digit : α → Nat)
+    (digitsLow : List (α → Nat)) (sample : α) (xs : List α) :
+    digitClass (digit :: digitsLow) sample xs =
+      (digitClass digitsLow sample xs).filter
+        (fun x => digit x == digit sample) := by
+  simp [digitClass, List.filter_filter]
+
+theorem digitClass_cons_bucket (digit : α → Nat)
+    (digitsLow : List (α → Nat)) (sample : α) (xs : List α) :
+    digitClass (digit :: digitsLow) sample xs =
+      digitClass digitsLow sample (bucket digit xs (digit sample)) := by
+  simp [digitClass, bucket, List.filter_filter, Bool.and_comm]
+
+theorem countingSortBy_digitClass_cons_eq
+    (maxDigit : Nat) (digit : α → Nat) (digitsLow : List (α → Nat))
+    (sample : α) (xs : List α) (hxs : AllKeysLe digit xs maxDigit) :
+    digitClass (digit :: digitsLow) sample
+        (countingSortBy maxDigit digit xs) =
+      digitClass (digit :: digitsLow) sample xs := by
+  rw [digitClass_cons_bucket, countingSortBy_bucket_eq maxDigit digit xs hxs,
+    digitClass_cons_bucket]
+
 theorem allDigitsLe_of_mem_iff {digitsLow : List (α → Nat)}
     {xs ys : List α} {maxDigit : Nat}
     (h : AllDigitsLe digitsLow xs maxDigit)
@@ -216,6 +252,69 @@ theorem radixSortBy_perm [DecidableEq α]
         exact hdigits d (by simp [hd])
       exact (ih (countingSortBy maxDigit digit xs) hrest).trans hpass_perm
 
+theorem radixSortBy_digitClass_eq
+    (maxDigit : Nat) :
+    ∀ (digitsLow : List (α → Nat)) (xs : List α),
+      AllDigitsLe digitsLow xs maxDigit →
+      ∀ sample,
+        digitClass digitsLow sample (radixSortBy maxDigit digitsLow xs) =
+          digitClass digitsLow sample xs := by
+  intro digitsLow
+  induction digitsLow with
+  | nil =>
+      intro xs _ sample
+      simp [radixSortBy, digitClass]
+  | cons digit digits ih =>
+      intro xs hdigits sample
+      let pass := countingSortBy maxDigit digit xs
+      have hdigit : AllKeysLe digit xs maxDigit :=
+        hdigits digit (by simp)
+      have hpass_mem :
+          ∀ y, y ∈ pass ↔ y ∈ xs := by
+        intro y
+        exact countingSortBy_mem_iff maxDigit digit xs hdigit y
+      have hrest : AllDigitsLe digits pass maxDigit := by
+        refine allDigitsLe_of_mem_iff ?_ hpass_mem
+        intro d hd
+        exact hdigits d (by simp [hd])
+      have htail :
+          digitClass digits sample (radixSortBy maxDigit digits pass) =
+            digitClass digits sample pass :=
+        ih pass hrest sample
+      calc
+        digitClass (digit :: digits) sample
+            (radixSortBy maxDigit (digit :: digits) xs)
+            =
+          digitClass (digit :: digits) sample
+            (radixSortBy maxDigit digits pass) := by
+              simp [radixSortBy, pass]
+        _ =
+          (digitClass digits sample
+              (radixSortBy maxDigit digits pass)).filter
+            (fun x => digit x == digit sample) := by
+              rw [digitClass_cons_filter]
+        _ =
+          (digitClass digits sample pass).filter
+            (fun x => digit x == digit sample) := by
+              rw [htail]
+        _ = digitClass (digit :: digits) sample pass := by
+              rw [digitClass_cons_filter]
+        _ = digitClass (digit :: digits) sample xs :=
+              countingSortBy_digitClass_cons_eq maxDigit digit digits sample xs
+                hdigit
+
+/--
+Radix sort is stable with respect to complete digit signatures: filtering the
+output to all elements matching a fixed sample on every digit gives exactly the
+same ordered subsequence as filtering the input.
+-/
+theorem radixSortBy_stable
+    (maxDigit : Nat) (digitsLow : List (α → Nat)) (xs : List α)
+    (hdigits : AllDigitsLe digitsLow xs maxDigit) (sample : α) :
+    digitClass digitsLow sample (radixSortBy maxDigit digitsLow xs) =
+      digitClass digitsLow sample xs :=
+  radixSortBy_digitClass_eq maxDigit digitsLow xs hdigits sample
+
 /-- Reader-facing correctness theorem for abstract radix sort. -/
 theorem radixSortBy_correct [DecidableEq α]
     (maxDigit : Nat) (digitsLow : List (α → Nat)) (xs : List α)
@@ -225,6 +324,22 @@ theorem radixSortBy_correct [DecidableEq α]
       (∀ x, x ∈ radixSortBy maxDigit digitsLow xs ↔ x ∈ xs) ∧
       (radixSortBy maxDigit digitsLow xs).Perm xs :=
   ⟨radixSortBy_ordered maxDigit digitsLow xs,
+    radixSortBy_mem_iff maxDigit digitsLow xs hdigits,
+    radixSortBy_perm maxDigit digitsLow xs hdigits⟩
+
+/-- Reader-facing correctness theorem including the explicit stability clause. -/
+theorem radixSortBy_correct_stable [DecidableEq α]
+    (maxDigit : Nat) (digitsLow : List (α → Nat)) (xs : List α)
+    (hdigits : AllDigitsLe digitsLow xs maxDigit) :
+    OrderedRel (RadixLex digitsLow)
+        (radixSortBy maxDigit digitsLow xs) ∧
+      (∀ sample,
+        digitClass digitsLow sample (radixSortBy maxDigit digitsLow xs) =
+          digitClass digitsLow sample xs) ∧
+      (∀ x, x ∈ radixSortBy maxDigit digitsLow xs ↔ x ∈ xs) ∧
+      (radixSortBy maxDigit digitsLow xs).Perm xs :=
+  ⟨radixSortBy_ordered maxDigit digitsLow xs,
+    radixSortBy_stable maxDigit digitsLow xs hdigits,
     radixSortBy_mem_iff maxDigit digitsLow xs hdigits,
     radixSortBy_perm maxDigit digitsLow xs hdigits⟩
 

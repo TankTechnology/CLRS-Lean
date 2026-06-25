@@ -63,8 +63,8 @@ Start with the chapter pages in the sidebar.
   scan-state partition-loop correctness, and functional quicksort
   sortedness/permutation preservation.
 * Chapter 8 - Sorting in Linear Time: stable counting-sort bucket correctness,
-  abstract radix-sort correctness from stable digit passes, and deterministic
-  bucket-sort correctness.
+  abstract radix-sort correctness and complete digit-signature stability from
+  stable digit passes, and deterministic bucket-sort correctness.
 * Chapter 9 - Medians and Order Statistics: selection-by-rank correctness for
   the specification selector, pivot-style quickselect, and pivot-parametric
   deterministic SELECT via a count-based order-statistic certificate.
@@ -243,12 +243,14 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter08.countingSortBy_mem_iff`,
   `CLRS.Chapter08.countingSortBy_perm`, and
   `CLRS.Chapter08.countingSortBy_correct`.
-* 8.3 Radix sort: `proved` for the abstract stable digit-pass model.
+* 8.3 Radix sort: `proved` for the abstract stable digit-pass model with
+  complete digit-signature stability.
   Public results: `CLRS.Chapter08.radixPass_orderedRel`,
   `CLRS.Chapter08.radixSortBy_ordered`,
+  `CLRS.Chapter08.radixSortBy_stable`,
   `CLRS.Chapter08.radixSortBy_mem_iff`,
   `CLRS.Chapter08.radixSortBy_perm`, and
-  `CLRS.Chapter08.radixSortBy_correct`.
+  `CLRS.Chapter08.radixSortBy_correct_stable`.
 * 8.4 Bucket sort: `proved` for deterministic bucket-index correctness.
   Public results: `CLRS.Chapter08.bucketSortBy_ordered`,
   `CLRS.Chapter08.bucketSortBy_perm`,

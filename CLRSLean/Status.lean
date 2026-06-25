@@ -50,8 +50,8 @@ which areas should not yet be counted as proof-complete.
   scan-state partition-loop correctness, and functional quicksort
   sortedness/permutation preservation are proved.
 * Chapter 8, Sections 8.2-8.4: stable counting-sort bucket correctness,
-  abstract radix-sort correctness from stable digit passes, and deterministic
-  bucket-sort correctness are proved.
+  abstract radix-sort correctness plus complete digit-signature stability from
+  stable digit passes, and deterministic bucket-sort correctness are proved.
 * Chapter 9, Sections 9.2-9.3: selection-by-rank correctness is proved for the
   specification selector, a pivot-style quickselect model, and a
   pivot-parametric deterministic SELECT model with a count-based
@@ -252,12 +252,14 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter08.countingSortBy_mem_iff`,
   {lit}`CLRS.Chapter08.countingSortBy_perm`, and
   {lit}`CLRS.Chapter08.countingSortBy_correct`.
-* 8.3 Radix sort, abstract stable digit-pass model:
+* 8.3 Radix sort, abstract stable digit-pass model with complete
+  digit-signature stability:
   {lit}`CLRS.Chapter08.radixPass_orderedRel`,
   {lit}`CLRS.Chapter08.radixSortBy_ordered`,
+  {lit}`CLRS.Chapter08.radixSortBy_stable`,
   {lit}`CLRS.Chapter08.radixSortBy_mem_iff`,
   {lit}`CLRS.Chapter08.radixSortBy_perm`, and
-  {lit}`CLRS.Chapter08.radixSortBy_correct`.
+  {lit}`CLRS.Chapter08.radixSortBy_correct_stable`.
 * 8.4 Bucket sort, deterministic bucket-index model:
   {lit}`CLRS.Chapter08.bucketSortBy_ordered`,
   {lit}`CLRS.Chapter08.bucketSortBy_perm`,
