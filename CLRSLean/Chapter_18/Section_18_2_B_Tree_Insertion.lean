@@ -25,6 +25,9 @@ Main results:
 - Theorems {lit}`BTree.insert_mem_self` and
   {lit}`BTree.insert_search_self`: the inserted key is present and searchable
   after insertion.
+- Theorems {lit}`BTree.insert_mem_old` and
+  {lit}`BTree.insert_search_old`: old members and searchable keys remain so
+  after insertion.
 
 Current gaps:
 
@@ -83,6 +86,12 @@ theorem insert_mem_self (x : Nat) (t : BTree) :
   rw [insert_mem_iff]
   exact Or.inl rfl
 
+/-- Old keys remain present after specification insertion. -/
+theorem insert_mem_old (x y : Nat) (t : BTree) (hy : mem y t) :
+    mem y (insert x t) := by
+  rw [insert_mem_iff]
+  exact Or.inr hy
+
 /-- Searching after insertion succeeds exactly for the new key or an old key. -/
 theorem insert_search_iff {minDegree x y : Nat} {t : BTree}
     (hvalid : Valid minDegree t) :
@@ -101,6 +110,13 @@ theorem insert_search_self {minDegree x : Nat} {t : BTree}
     insert_preserves_model (minDegree := minDegree) (x := x) (t := t) hvalid
   rw [search_correct (minDegree := minDegree) (x := x) (t := insert x t) hinsert]
   exact insert_mem_self x t
+
+/-- Old searchable keys remain searchable after specification insertion. -/
+theorem insert_search_old {minDegree x y : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) (hy : search y t = true) :
+    search y (insert x t) = true := by
+  rw [insert_search_iff (minDegree := minDegree) (x := x) (y := y) (t := t) hvalid]
+  exact Or.inr hy
 
 end BTree
 end Chapter18

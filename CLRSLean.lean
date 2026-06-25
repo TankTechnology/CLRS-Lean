@@ -100,7 +100,7 @@ Start with the chapter pages in the sidebar.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
   height-expression recurrence and monotonicity, split, split membership/search
   preservation, insertion, deletion, search-after-update theorem surface, and
-  direct inserted/deleted key query corollaries.
+  direct inserted/deleted-key and old-key query preservation corollaries.
 * Chapter 19 - Fibonacci Heaps: abstract finite-set heap model with
   make-heap, operation-level correctness, direct
   insert/union/extract-min/decrease-key/delete membership facts plus

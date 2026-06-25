@@ -98,8 +98,8 @@ which areas should not yet be counted as proof-complete.
 * Chapter 18, Sections 18.1-18.3: a mathematical B-tree model has search,
   minimum-key height-expression recurrence and monotonicity, split-child preservation,
   split-child search preservation, insertion/deletion membership, and
-  search-after-update theorem surfaces plus direct inserted/deleted key query
-  corollaries; full separator/same-depth,
+  search-after-update theorem surfaces plus direct inserted/deleted-key and
+  old-key query preservation corollaries; full separator/same-depth,
   node-level-deletion, and disk-page refinements remain.
 * Chapter 19, Section 19.1: abstract Fibonacci-heap finite-set operations,
   empty-heap construction, empty-result query specs, direct
@@ -546,11 +546,15 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter18.BTree.insert_search_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_mem_self`,
   {lit}`CLRS.Chapter18.BTree.insert_search_self`,
+  {lit}`CLRS.Chapter18.BTree.insert_mem_old`,
+  {lit}`CLRS.Chapter18.BTree.insert_search_old`,
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.delete_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.delete_search_iff`,
-  {lit}`CLRS.Chapter18.BTree.delete_not_mem`, and
-  {lit}`CLRS.Chapter18.BTree.delete_search_deleted_false`;
+  {lit}`CLRS.Chapter18.BTree.delete_not_mem`,
+  {lit}`CLRS.Chapter18.BTree.delete_search_deleted_false`,
+  {lit}`CLRS.Chapter18.BTree.delete_mem_of_ne`, and
+  {lit}`CLRS.Chapter18.BTree.delete_search_of_ne`;
   remaining gap: full occupancy/separator/same-depth invariants, node-level
   deletion repair, and disk-page/mutation semantics.
 * 19.1 Fibonacci heaps:

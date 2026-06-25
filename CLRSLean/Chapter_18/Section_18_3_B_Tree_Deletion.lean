@@ -19,6 +19,9 @@ Main results:
 - Theorems {lit}`BTree.delete_not_mem` and
   {lit}`BTree.delete_search_deleted_false`: the deleted key is absent and not
   searchable after deletion.
+- Theorems {lit}`BTree.delete_mem_of_ne` and
+  {lit}`BTree.delete_search_of_ne`: old keys different from the deleted key
+  remain present and searchable after deletion.
 
 Current gaps:
 
@@ -56,6 +59,13 @@ theorem delete_not_mem (x : Nat) (t : BTree) :
   rw [delete_mem_iff x x t]
   simp
 
+/-- Old keys different from the deleted key remain present after deletion. -/
+theorem delete_mem_of_ne (x y : Nat) (t : BTree)
+    (hxy : (y != x) = true) (hy : mem y t) :
+    mem y (delete x t) := by
+  rw [delete_mem_iff]
+  exact ⟨hxy, hy⟩
+
 /-- Searching after deletion succeeds exactly for remaining old keys. -/
 theorem delete_search_iff {minDegree x y : Nat} {t : BTree}
     (hvalid : Valid minDegree t) :
@@ -78,6 +88,14 @@ theorem delete_search_deleted_false {minDegree x : Nat} {t : BTree}
         mem x (delete x t) :=
         (search_correct (minDegree := minDegree) (x := x) (t := delete x t) hdelete).mp hsearch
     exact False.elim ((delete_not_mem x t) hmem)
+
+/-- Old searchable keys different from the deleted key remain searchable after deletion. -/
+theorem delete_search_of_ne {minDegree x y : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) (hxy : (y != x) = true)
+    (hy : search y t = true) :
+    search y (delete x t) = true := by
+  rw [delete_search_iff (minDegree := minDegree) (x := x) (y := y) (t := t) hvalid]
+  exact ⟨hxy, hy⟩
 
 end BTree
 end Chapter18
