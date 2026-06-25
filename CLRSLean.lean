@@ -119,7 +119,7 @@ Start with the chapter pages in the sidebar.
   bounds, empty-result extrema/successor/predecessor queries, insert, and
   delete, including membership-, extrema-, and neighbor-query-after-update
   positive/no-neighbor specs, extrema empty-after-update specs, direct
-  member-query preservation corollaries, update-query universe-bound
+  member-query preservation and failure corollaries, update-query universe-bound
   corollaries, and operation-depth
   recurrence/monotonicity specs.
 * Chapter 23 - Minimum Spanning Trees: the MST cut property, the mathematical
@@ -571,6 +571,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.insert_member_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_member_self`,
   {lit}`CLRS.Chapter20.VEB.insert_member_old`,
+  {lit}`CLRS.Chapter20.VEB.insert_member_false_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_minimum_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_minimum_none_iff`,
@@ -588,6 +589,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.delete_member_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_member_deleted_false`,
   {lit}`CLRS.Chapter20.VEB.delete_member_of_ne`,
+  {lit}`CLRS.Chapter20.VEB.delete_member_false_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_none_iff`,

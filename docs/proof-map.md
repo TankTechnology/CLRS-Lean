@@ -1227,6 +1227,7 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.insert_member_lt_univ`
   - `CLRS.Chapter20.VEB.insert_member_self`
   - `CLRS.Chapter20.VEB.insert_member_old`
+  - `CLRS.Chapter20.VEB.insert_member_false_iff`
   - `CLRS.Chapter20.VEB.insert_minimum_correct`
   - `CLRS.Chapter20.VEB.insert_minimum_lt_univ`
   - `CLRS.Chapter20.VEB.insert_minimum_none_iff`
@@ -1244,6 +1245,7 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.delete_member_lt_univ`
   - `CLRS.Chapter20.VEB.delete_member_deleted_false`
   - `CLRS.Chapter20.VEB.delete_member_of_ne`
+  - `CLRS.Chapter20.VEB.delete_member_false_iff`
   - `CLRS.Chapter20.VEB.delete_minimum_correct`
   - `CLRS.Chapter20.VEB.delete_minimum_lt_univ`
   - `CLRS.Chapter20.VEB.delete_minimum_none_iff`
@@ -1264,8 +1266,8 @@ Fibonacci logarithmic theorem.
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,
   extrema/successor via `Finset.min'`/`max'`, successful-query universe-bound
-  bridges, direct updated-key and old-key preservation member queries,
-  update-query universe-bound corollaries, and definition unfolding for
+  bridges, direct updated-key, old-key preservation, and failed member queries
+  after updates, update-query universe-bound corollaries, and definition unfolding for
   first-pass operation-depth recurrence and monotonicity facts
 - Current gap: recursive min/max-summary-cluster state, word-RAM base cases,
   and an explicit Chapter 3 asymptotic bridge for `O(log log u)` remain
@@ -1276,7 +1278,7 @@ of bounded high/low recomposition, and a set-specification layer for the main
 vEB queries and updates.  This includes both positive and empty-result
 extrema/successor/predecessor cases plus successful-query universe-bound
 corollaries, membership-after-update, direct updated-key and old-key
-member-preservation corollaries,
+member-preservation corollaries, exact failed member-query corollaries,
 positive and empty-result extrema-after-update, and both positive and
 no-neighbor specifications for neighbor queries after updates, plus direct
 universe-bound corollaries for successful queries after updates.  The

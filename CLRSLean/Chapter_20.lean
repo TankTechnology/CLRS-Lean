@@ -13,8 +13,9 @@ successor, and predecessor plus membership-, extrema-, and
 neighbor-query-after-update positive and no-neighbor specifications,
 successful-query universe-bound corollaries, extrema empty-after-update
 specifications, update-query universe-bound corollaries, direct
-inserted/deleted key and old-key member-preservation corollaries, and
-operation-depth base/step/linear and monotonicity wrappers.
+inserted/deleted key and old-key member-preservation corollaries, exact
+failed member-query specifications after updates, and operation-depth
+base/step/linear and monotonicity wrappers.
 
 ## Sections
 
@@ -48,6 +49,7 @@ operation-depth base/step/linear and monotonicity wrappers.
   {lit}`CLRS.Chapter20.VEB.insert_member_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_member_self`,
   {lit}`CLRS.Chapter20.VEB.insert_member_old`,
+  {lit}`CLRS.Chapter20.VEB.insert_member_false_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_minimum_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_minimum_none_iff`,
@@ -65,6 +67,7 @@ operation-depth base/step/linear and monotonicity wrappers.
   {lit}`CLRS.Chapter20.VEB.delete_member_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_member_deleted_false`,
   {lit}`CLRS.Chapter20.VEB.delete_member_of_ne`,
+  {lit}`CLRS.Chapter20.VEB.delete_member_false_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_none_iff`,

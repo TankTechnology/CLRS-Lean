@@ -37,6 +37,9 @@ Main results:
   {lit}`VEB.delete_member_deleted_false`, and
   {lit}`VEB.delete_member_of_ne`: direct member-query corollaries for the
   updated key and preserved old keys after insertion and deletion.
+- Theorems {lit}`VEB.insert_member_false_iff` and
+  {lit}`VEB.delete_member_false_iff`: exact failed member-query specifications
+  after insertion and deletion.
 - Theorems {lit}`VEB.insert_minimum_correct`,
   {lit}`VEB.insert_maximum_correct`, {lit}`VEB.delete_minimum_correct`, and
   {lit}`VEB.delete_maximum_correct`: extrema returned after updates are
@@ -367,6 +370,40 @@ theorem insert_member_old {t : Tree} {s : Finset Nat} {x y : Nat}
   rw [insert_member_iff (t := t) (s := s) (x := x) (y := y) hrep hx]
   exact Or.inr hy
 
+/-- Membership after insertion fails exactly for noninserted keys absent before insertion. -/
+theorem insert_member_false_iff {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) (hx : x < t.univSize) :
+    member y (insert x t) = false <-> y ≠ x ∧ member y t = false := by
+  constructor
+  · intro hfalse
+    constructor
+    · intro hyx
+      have htrue : member y (insert x t) = true :=
+        (insert_member_iff (t := t) (s := s) (x := x) (y := y) hrep hx).mpr
+          (Or.inl hyx)
+      rw [hfalse] at htrue
+      contradiction
+    · cases hold : member y t
+      · rfl
+      · have htrue : member y (insert x t) = true :=
+          (insert_member_iff (t := t) (s := s) (x := x) (y := y) hrep hx).mpr
+            (Or.inr hold)
+        rw [hfalse] at htrue
+        contradiction
+  · intro h
+    rcases h with ⟨hyx, holdFalse⟩
+    cases hmember : member y (insert x t)
+    · rfl
+    · have hcases : y = x ∨ member y t = true :=
+        (insert_member_iff (t := t) (s := s) (x := x) (y := y) hrep hx).mp
+          hmember
+      cases hcases with
+      | inl hyxEq =>
+          exact False.elim (hyx hyxEq)
+      | inr holdTrue =>
+          rw [holdFalse] at holdTrue
+          contradiction
+
 /-- A returned minimum after insertion is the least key among the inserted key and old set. -/
 theorem insert_minimum_correct {t : Tree} {s : Finset Nat} {x m : Nat}
     (hrep : Represents t s) (hx : x < t.univSize)
@@ -561,6 +598,36 @@ theorem delete_member_of_ne {t : Tree} {s : Finset Nat} {x y : Nat}
     member y (delete x t) = true := by
   rw [delete_member_iff (t := t) (s := s) (x := x) (y := y) hrep]
   exact ⟨hxy, hy⟩
+
+/-- Membership after deletion fails exactly for the deleted key or old absent keys. -/
+theorem delete_member_false_iff {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) :
+    member y (delete x t) = false <-> y = x ∨ member y t = false := by
+  constructor
+  · intro hfalse
+    by_cases hxy : y = x
+    · exact Or.inl hxy
+    · right
+      cases hold : member y t
+      · rfl
+      · have htrue : member y (delete x t) = true :=
+          (delete_member_iff (t := t) (s := s) (x := x) (y := y) hrep).mpr
+            ⟨hxy, hold⟩
+        rw [hfalse] at htrue
+        contradiction
+  · intro h
+    cases h with
+    | inl hyx =>
+        rw [hyx]
+        exact delete_member_deleted_false (t := t) (s := s) (x := x) hrep
+    | inr holdFalse =>
+        cases hmember : member y (delete x t)
+        · rfl
+        · have hcases : y ≠ x ∧ member y t = true :=
+            (delete_member_iff (t := t) (s := s) (x := x) (y := y) hrep).mp
+              hmember
+          rw [holdFalse] at hcases
+          simp at hcases
 
 /-- A returned minimum after deletion is the least remaining old key. -/
 theorem delete_minimum_correct {t : Tree} {s : Finset Nat} {x m : Nat}
