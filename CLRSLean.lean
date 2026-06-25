@@ -98,7 +98,8 @@ Start with the chapter pages in the sidebar.
   an executable multi-step counter trace bound and size-level dynamic-table
   potential, actual-cost and capacity-choice case specs, capacity-direction,
   actual-cost lower/upper bounds, post-state field equations, stored-count
-  direction, post-state capacity, and transition wrappers.
+  direction, post-state capacity, exact zero/positive deletion-cost wrappers,
+  and transition wrappers.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
   height-expression base/positivity/recurrence/monotonicity, split-child direct
   validity and membership/search preservation, insertion, deletion,
@@ -465,6 +466,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_zero_iff_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_le_num`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_contract`,

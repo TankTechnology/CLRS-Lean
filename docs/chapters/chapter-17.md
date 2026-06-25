@@ -34,6 +34,8 @@
 - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`
 - `CLRS.Chapter17.dynamicTableInsert_amortizedBound`
 - `CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`
+- `CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`
+- `CLRS.Chapter17.dynamicTableDeleteCost_zero_iff_empty`
 - `CLRS.Chapter17.dynamicTableDeleteCost_le_num`
 - `CLRS.Chapter17.dynamicTableDeleteCost_empty`
 - `CLRS.Chapter17.dynamicTableDeleteCost_of_contract`
@@ -64,7 +66,7 @@ capacity can hold the resulting element count while moving in the expected
 direction for insertion and deletion, including direct post-state capacity
 corollaries, post-state field equations, and stored-count direction facts.  It
 also records positive actual-cost facts for insertion and nonempty deletion,
-bounds the first-pass transition costs by the corresponding element-count
+exact zero/positive deletion-cost wrappers, bounds the first-pass transition costs by the corresponding element-count
 copying budgets, and records direct actual-cost and capacity-choice case
 specifications, but it is still a size-level model rather than an array-copying
 model.

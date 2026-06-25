@@ -94,7 +94,8 @@ which areas should not yet be counted as proof-complete.
   bound, executable multi-step counter trace bounds, and size-level
   dynamic-table potential nonnegativity, capacity feasibility/direction facts,
   post-state field equations, stored-count direction facts, actual-cost and
-  capacity-choice case specs, positive-cost lower bounds, upper bounds,
+  capacity-choice case specs, positive/zero deletion-cost exact wrappers,
+  positive-cost lower bounds, upper bounds,
   post-state capacity corollaries, and insertion/deletion wrappers are proved;
   allocator and RAM refinements remain.
 * Chapter 18, Sections 18.1-18.3: a mathematical B-tree model has search,
@@ -542,6 +543,8 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_zero_iff_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_le_num`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_contract`,

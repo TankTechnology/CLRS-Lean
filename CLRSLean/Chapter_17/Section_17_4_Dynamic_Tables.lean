@@ -30,6 +30,9 @@ Main results:
 - Theorems {lit}`dynamicTableInsertCost_pos` and
   {lit}`dynamicTableDeleteCost_pos_of_nonempty`: first-pass nonempty
   transitions have positive actual cost.
+- Theorems {lit}`dynamicTableDeleteCost_pos_iff_nonempty` and
+  {lit}`dynamicTableDeleteCost_zero_iff_empty`: deletion cost positivity and
+  zero-cost behavior exactly match whether the table is nonempty.
 - Theorems {lit}`dynamicTableInsertCost_of_fits`,
   {lit}`dynamicTableInsertCost_of_expand`,
   {lit}`dynamicTableDeleteCost_empty`,
@@ -256,6 +259,29 @@ theorem dynamicTableDeleteCost_empty (s : DynamicTableState)
     (hempty : s.num = 0) :
     dynamicTableDeleteCost s = 0 := by
   simp [dynamicTableDeleteCost, hempty]
+
+/-- Dynamic-table deletion has positive cost exactly when the table is nonempty. -/
+theorem dynamicTableDeleteCost_pos_iff_nonempty (s : DynamicTableState) :
+    0 < dynamicTableDeleteCost s <-> s.num ≠ 0 := by
+  constructor
+  · intro hpos hempty
+    have hzero : dynamicTableDeleteCost s = 0 :=
+      dynamicTableDeleteCost_empty s hempty
+    omega
+  · intro hnum
+    exact dynamicTableDeleteCost_pos_of_nonempty s hnum
+
+/-- Dynamic-table deletion has zero cost exactly when the table is empty. -/
+theorem dynamicTableDeleteCost_zero_iff_empty (s : DynamicTableState) :
+    dynamicTableDeleteCost s = 0 <-> s.num = 0 := by
+  constructor
+  · intro hzero
+    by_contra hnum
+    have hpos : 0 < dynamicTableDeleteCost s :=
+      dynamicTableDeleteCost_pos_of_nonempty s hnum
+    omega
+  · intro hempty
+    exact dynamicTableDeleteCost_empty s hempty
 
 /-- Contracting after deletion costs copying the remaining represented elements. -/
 theorem dynamicTableDeleteCost_of_contract (s : DynamicTableState)
