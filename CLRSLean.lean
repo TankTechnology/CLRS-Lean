@@ -98,8 +98,8 @@ Start with the chapter pages in the sidebar.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
   height-expression, split, insertion, and deletion theorem surface.
 * Chapter 19 - Fibonacci Heaps: abstract finite-set heap model with
-  make-heap and operation-level correctness, heap potential telescoping, and a
-  conservative degree-bound wrapper.
+  make-heap and operation-level correctness, heap potential telescoping, a
+  Fibonacci lower-bound recurrence, and a conservative degree-bound wrapper.
 * Chapter 20 - van Emde Boas Trees: high/low universe decomposition and a
   finite-set specification layer for membership, extrema, successor,
   predecessor, insert, and delete.
@@ -445,7 +445,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
-  {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`, and
+  {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 * 20.1-20.2 van Emde Boas trees: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter20.VEB.index_high_low`,

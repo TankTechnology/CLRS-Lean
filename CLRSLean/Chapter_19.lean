@@ -7,7 +7,8 @@ Chapter 19 starts with a first-pass abstract Fibonacci-heap model.  The current
 Lean surface represents a heap by a finite set of integer keys plus root/mark
 counters, proves operation-level set specifications, exposes the standard
 potential function, and packages a conservative degree-bound wrapper for later
-Fibonacci-number strengthening.
+subtree-size strengthening, together with a Fibonacci-style lower-bound
+recurrence.
 
 ## Sections
 
@@ -20,14 +21,15 @@ Fibonacci-number strengthening.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
-  {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`, and
+  {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 
 ## Current Gaps
 
 Pointer-level circular lists, cascading-cut transition systems, consolidation
-arrays, and the true Fibonacci subtree-size/log-degree theorem remain
-strengthening targets.
+arrays, and the subtree-size induction leading to the true Fibonacci
+log-degree theorem remain strengthening targets.
 -/
 
 namespace CLRS

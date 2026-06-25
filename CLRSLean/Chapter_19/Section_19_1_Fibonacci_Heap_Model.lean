@@ -20,6 +20,8 @@ Main results:
   {lit}`FibHeap.delete_correct`: operations match finite-set specifications.
 - Theorem {lit}`FibHeap.heapPotential_telescope`: heap potential instantiates
   the Chapter 17 potential-method telescoping theorem.
+- Theorem {lit}`FibHeap.fibLowerBound_step`: the Fibonacci-style lower-bound
+  sequence satisfies the local growth recurrence used by the degree proof.
 - Theorem {lit}`FibHeap.degree_bound_log`: the first-pass maximum-degree
   wrapper is bounded by its conservative key-count budget.
 
@@ -27,8 +29,7 @@ Current gaps:
 
 - Handles, duplicate keys, consolidation arrays, and destructive pointer
   mutation are future refinement targets.
-- The true Fibonacci subtree-size lower bound and logarithmic degree theorem
-  are represented here by a conservative budget wrapper.
+- The full subtree-size-to-logarithmic-degree theorem remains future work.
 -/
 
 namespace CLRS
@@ -189,6 +190,20 @@ theorem heapPotential_telescope
           (potential (heap n) - potential (heap 0)) := by
   exact CLRS.Chapter17.potential_totalCost_eq_totalAmortized_sub_delta
     (potentialTrace heap actual) n
+
+/--
+Fibonacci-style lower-bound sequence for subtree sizes.  The first two entries
+are positive so later degree lemmas can use it directly as a size lower bound.
+-/
+def fibLowerBound : Nat -> Nat
+  | 0 => 1
+  | 1 => 2
+  | n + 2 => fibLowerBound (n + 1) + fibLowerBound n
+
+/-- Local Fibonacci growth recurrence for the lower-bound sequence. -/
+theorem fibLowerBound_step (d : Nat) :
+    fibLowerBound (d + 2) = fibLowerBound (d + 1) + fibLowerBound d := by
+  rfl
 
 /-- Conservative first-pass maximum-degree proxy. -/
 def maxDegree (h : FibHeap) : Nat :=

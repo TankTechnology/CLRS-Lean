@@ -98,9 +98,9 @@ which areas should not yet be counted as proof-complete.
   surfaces; full separator/same-depth/node-level-deletion and disk-page
   refinements remain.
 * Chapter 19, Section 19.1: abstract Fibonacci-heap finite-set operations,
-  empty-heap construction, and heap-potential telescoping are proved; pointer
-  handles, cascading cuts, and the true Fibonacci logarithmic degree theorem
-  remain.
+  empty-heap construction, heap-potential telescoping, and a Fibonacci
+  lower-bound recurrence are proved; pointer handles, cascading cuts, and the
+  true Fibonacci logarithmic degree theorem remain.
 * Chapter 20, Sections 20.1-20.2: vEB high/low/index arithmetic and finite-set
   operation specs, including successor and predecessor, are proved; recursive
   cluster representation and the {lit}`O(log log u)` bridge remain.
@@ -524,10 +524,12 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
-  {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`, and
+  {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`;
   remaining gap: pointer handles, cascading cuts, consolidation arrays, and
-  the true Fibonacci subtree-size/logarithmic degree proof.
+  the subtree-size induction leading to the true Fibonacci logarithmic degree
+  proof.
 * 20.1-20.2 van Emde Boas trees:
   current results {lit}`CLRS.Chapter20.VEB.index_high_low`,
   {lit}`CLRS.Chapter20.VEB.high_lt`,
