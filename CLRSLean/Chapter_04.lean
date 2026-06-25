@@ -52,8 +52,11 @@ and by future divide-and-conquer runtime proofs.
   hypotheses.  It also proves the adjacent-power {lit}`Nat.log` interval and a
   direct {lit}`allInput_bigTheta_of_powerStep` theorem that discharges those
   sandwich hypotheses from monotone comparison scales with eventual one-step
-  control.  The full textbook theorem still needs concrete comparison scales
-  and floor/ceiling recurrence models packaged into the final Master cases.
+  control.  The discrete {lit}`criticalPowerScale` wrapper now turns
+  exact-power {lit}`T(b^i) = Θ(a^i)` bounds into all-input
+  {lit}`T(n) = Θ(a^(⌊log_b n⌋))` bounds.  The full textbook theorem still
+  needs analytic comparison scales and floor/ceiling recurrence models
+  packaged into the final Master cases.
 -/
 
 namespace CLRS

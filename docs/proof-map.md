@@ -126,9 +126,9 @@ algebra correctness theorem, recurrence layers for the substitution and
 recursion-tree proof methods, the exact-power Master theorem core, and a first
 all-input asymptotic transfer bridge.  Section 4.6 now also proves the
 adjacent-power bridge that generates power-sandwich witnesses from one-step
-comparison-scale bounds.  The full floor/ceiling Master Theorem still needs
-concrete comparison scales and recurrence instantiations packaged as final
-case statements.
+comparison-scale bounds, plus the first concrete discrete critical-power scale
+wrapper.  The full floor/ceiling Master Theorem still needs analytic comparison
+scales and recurrence instantiations packaged as final case statements.
 
 ### Section 4.1 - The maximum-subarray problem
 
@@ -215,7 +215,8 @@ case statements.
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean`
 - Status: `partial` with floor/ceiling exact-power extraction, all-input
-  transfer, and adjacent-power sandwich generation proved
+  transfer, adjacent-power sandwich generation, and a discrete critical-power
+  scale wrapper proved
 - Main proved theorems:
   - `CLRS.Chapter04.FloorDivideRecurrence`
   - `CLRS.Chapter04.CeilDivideRecurrence`
@@ -228,6 +229,10 @@ case statements.
   - `CLRS.Chapter04.allInput_bigOmega_of_power_lower_sandwich`
   - `CLRS.Chapter04.allInput_bigTheta_of_power_sandwich`
   - `CLRS.Chapter04.allInput_bigTheta_of_powerStep`
+  - `CLRS.Chapter04.criticalPowerScale`
+  - `CLRS.Chapter04.criticalPowerScale_monotoneAbs`
+  - `CLRS.Chapter04.criticalPowerScale_powerStepBound`
+  - `CLRS.Chapter04.allInput_bigTheta_of_criticalPowerScale`
 - Proof pattern: first show that floor and ceiling all-input recurrences reduce
   to `ExactPowerRecurrence` on powers of the base, using the arithmetic facts
   `(b^(i+1))/b = b^i` and `(b^(i+1)+b-1)/b = b^i`.  Then assume
@@ -237,9 +242,11 @@ case statements.
   arbitrary large input by monotonicity.  The newer `powerStep` layer proves
   the CLRS adjacent-power argument: for any positive `n`, `Nat.log` gives
   `b^i ≤ n < b^(i+1)`; monotonicity and one-step control of `g(bn)` by `g(n)`
-  then generate both power-sandwich hypotheses automatically.
-- Current gap: prove concrete one-step bounds for the comparison scales used in
-  the three Master-theorem cases, then package the final CLRS all-input
+  then generate both power-sandwich hypotheses automatically.  The
+  `criticalPowerScale` wrapper instantiates this bridge for the discrete scale
+  `a^(⌊log_b n⌋)`, matching `a^i` on exact powers.
+- Current gap: prove analytic comparison-scale wrappers for the usual CLRS
+  scales, then package the final CLRS all-input
   floor/ceiling case statements.
 
 ## Chapter 5 - Probabilistic Analysis and Randomized Algorithms
@@ -944,7 +951,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; the CLRS median-of-medians split-size and recurrence proof remains. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
-| Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, and adjacent-power sandwich generation from one-step scale bounds are proved; concrete comparison-scale one-step bounds and final case statements remain. |
+| Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, and the discrete critical-power wrapper are proved; analytic comparison-scale wrappers and final case statements remain. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `future-work` | Functional successor/predecessor queries and functional deletion are proved; pointer-transplant semantics remain. |

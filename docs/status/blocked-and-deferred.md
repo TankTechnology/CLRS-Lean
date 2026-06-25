@@ -52,9 +52,10 @@ interfaces, extracts exact-power recurrences from those all-input models, and
 proves the generic transfer bridge from exact powers to all natural input sizes
 under monotone-cost and power-sandwich hypotheses.  Section 4.6 also now proves
 the adjacent-power `Nat.log` interval and derives both sandwich hypotheses from
-monotone comparison scales with eventual one-step control.  The remaining
-strengthening is to prove concrete one-step bounds for the comparison scales
-used in the Master cases and package the final CLRS floor/ceiling statements.
+monotone comparison scales with eventual one-step control.  It also proves the
+discrete `criticalPowerScale` all-input wrapper for exact-power `Θ(a^i)`
+bounds.  The remaining strengthening is to relate this bridge to analytic CLRS
+comparison scales and package the final floor/ceiling statements.
 
 ### Remaining Chapter 4 Sections
 
@@ -65,8 +66,8 @@ These sections are not excluded from CLRS-Lean.  They are pending because they
 need distinct representation choices: block matrices for Strassen and an
 all-input floor/ceiling instantiation for the full Master Theorem.  Sections
 4.3, 4.4, and 4.6 now provide reusable recurrence, recursion-tree, and
-all-input transfer infrastructure, including adjacent-power sandwich
-generation.
+all-input transfer infrastructure, including adjacent-power sandwich generation
+and a discrete critical-power all-input wrapper.
 
 ### Maximum-Subarray Runtime Analysis
 

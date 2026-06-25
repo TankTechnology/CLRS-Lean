@@ -31,6 +31,54 @@ hypotheses below.
 def EventuallyPowerStepBound (b : ℕ) (g : ℕ → ℝ) : Prop :=
   ∃ A : ℝ, 0 < A ∧ ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → |g (b * n)| ≤ A * |g n|
 
+/--
+Discrete critical-power scale for the exact-power Master theorem.  On exact
+powers it satisfies
+{lit}`criticalPowerScale a b (b^i) = a^i`; between exact powers it is the
+step function determined by {lit}`Nat.log b n`.
+
+This is deliberately weaker and cleaner than the analytic scale
+{lit}`n^(log_b a)`, but it is enough to make the exact-power-to-all-input
+bridge concrete.
+-/
+def criticalPowerScale (a b : ℕ) (n : ℕ) : ℝ :=
+  (a : ℝ) ^ Nat.log b n
+
+theorem criticalPowerScale_exactPower
+    (a b i : ℕ) (hb : 1 < b) :
+    criticalPowerScale a b (b ^ i) = (a : ℝ) ^ i := by
+  simp [criticalPowerScale, Nat.log_pow hb]
+
+theorem criticalPowerScale_monotoneAbs
+    (a b : ℕ) (ha : 1 ≤ a) :
+    MonotoneAbs (criticalPowerScale a b) := by
+  intro m n hmn
+  have ha_nonneg : 0 ≤ (a : ℝ) := by positivity
+  have ha_one : 1 ≤ (a : ℝ) := by exact_mod_cast ha
+  have hlog : Nat.log b m ≤ Nat.log b n :=
+    Nat.log_mono_right hmn
+  calc
+    |criticalPowerScale a b m| = (a : ℝ) ^ Nat.log b m := by
+      rw [criticalPowerScale, abs_of_nonneg (pow_nonneg ha_nonneg _)]
+    _ ≤ (a : ℝ) ^ Nat.log b n :=
+      pow_le_pow_right₀ ha_one hlog
+    _ = |criticalPowerScale a b n| := by
+      rw [criticalPowerScale, abs_of_nonneg (pow_nonneg ha_nonneg _)]
+
+theorem criticalPowerScale_powerStepBound
+    (a b : ℕ) (ha : 1 ≤ a) (hb : 1 < b) :
+    EventuallyPowerStepBound b (criticalPowerScale a b) := by
+  refine ⟨(a : ℝ), ?_, 1, ?_⟩
+  · exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one ha
+  · intro n hn
+    have ha_nonneg : 0 ≤ (a : ℝ) := by positivity
+    have hn_ne_zero : n ≠ 0 := by omega
+    have hlog : Nat.log b (b * n) = Nat.log b n + 1 := by
+      rw [Nat.mul_comm]
+      exact Nat.log_mul_base hb hn_ne_zero
+    simp [criticalPowerScale, hlog, abs_of_nonneg (pow_nonneg ha_nonneg _),
+      pow_succ, mul_comm]
+
 /-! ## Floor/ceiling recurrence interfaces -/
 
 /--
@@ -311,6 +359,41 @@ theorem allInput_bigTheta_of_powerStep
     (eventuallyPowerUpperSandwich_of_powerStep b g hb hg_mono hg_step)
     (eventuallyPowerLowerSandwich_of_powerStep b g hb hg_mono hg_step)
     h_power
+
+/--
+Concrete all-input bridge for the first exact-power Master scale.  If the
+exact-power sequence {lit}`T(b^i)` is {lit}`Θ(a^i)` and the cost is monotone in
+absolute value, then the all-input cost is {lit}`Θ(a^(⌊log_b n⌋))`, represented
+by {name}`criticalPowerScale`.
+
+This theorem is intentionally discrete: a later analytic comparison can relate
+{name}`criticalPowerScale` to {lit}`n^(log_b a)` when that real-valued scale is
+needed.
+-/
+theorem allInput_bigTheta_of_criticalPowerScale
+    (a b : ℕ) (T : ℕ → ℝ) (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (h_power :
+      Chapter03.isBigTheta
+        (fun i : ℕ => T (b ^ i))
+        (fun i : ℕ => (a : ℝ) ^ i)) :
+    Chapter03.isBigTheta T (criticalPowerScale a b) := by
+  have h_power_scale :
+      Chapter03.isBigTheta
+        (fun i : ℕ => T (b ^ i))
+        (fun i : ℕ => criticalPowerScale a b (b ^ i)) := by
+    have hscale :
+        (fun i : ℕ => criticalPowerScale a b (b ^ i)) =
+          (fun i : ℕ => (a : ℝ) ^ i) := by
+      funext i
+      exact criticalPowerScale_exactPower a b i hb
+    rw [hscale]
+    exact h_power
+  exact allInput_bigTheta_of_powerStep b T (criticalPowerScale a b) hb
+    hT_mono
+    (criticalPowerScale_monotoneAbs a b ha)
+    (criticalPowerScale_powerStepBound a b ha hb)
+    h_power_scale
 
 end Chapter04
 end CLRS
