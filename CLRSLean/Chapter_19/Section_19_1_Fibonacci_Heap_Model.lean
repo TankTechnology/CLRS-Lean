@@ -38,6 +38,8 @@ Main results:
 - Theorems {lit}`FibHeap.fibLowerBound_add_two_ge_double` and
   {lit}`FibHeap.fibLowerBound_even_lower_bound`: the lower-bound sequence has
   the first exponential-growth bridge needed by the future degree proof.
+- Theorem {lit}`FibHeap.fibLowerBound_half_lower_bound`: the exponential-growth
+  bridge is available at half of any degree index.
 - Theorem {lit}`FibHeap.degree_bound_log`: the first-pass maximum-degree
   wrapper is bounded by its conservative key-count budget.
 
@@ -372,6 +374,13 @@ theorem fibLowerBound_even_lower_bound (k : Nat) :
         _ <= fibLowerBound (2 * (k + 1)) := by
           simpa [Nat.mul_add, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
             using fibLowerBound_add_two_ge_double (2 * k)
+
+/-- Fibonacci-style lower-bound entries dominate powers of two at half the index. -/
+theorem fibLowerBound_half_lower_bound (d : Nat) :
+    2 ^ (d / 2) <= fibLowerBound d := by
+  have hhalf : 2 * (d / 2) <= d := Nat.mul_div_le d 2
+  exact Nat.le_trans (fibLowerBound_even_lower_bound (d / 2))
+    (fibLowerBound_monotone hhalf)
 
 /-- Conservative first-pass maximum-degree proxy. -/
 def maxDegree (h : FibHeap) : Nat :=
