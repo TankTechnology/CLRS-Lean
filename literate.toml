@@ -23,6 +23,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_12",
   "CLRSLean.Chapter_13",
   "CLRSLean.Chapter_16",
+  "CLRSLean.Chapter_17",
   "CLRSLean.Chapter_23",
   "CLRSLean.Progress",
   "CLRSLean.Status",
@@ -86,6 +87,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
   "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
 ]
+"CLRSLean.Chapter_17" = [
+  "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework",
+]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
@@ -135,6 +139,9 @@ title = "Chapter 13. Red-Black Trees"
 
 [modules."CLRSLean.Chapter_16"]
 title = "Chapter 16. Greedy Algorithms"
+
+[modules."CLRSLean.Chapter_17"]
+title = "Chapter 17. Amortized Analysis"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"
@@ -243,6 +250,9 @@ title = "16.3. Huffman Codes"
 
 [modules."CLRSLean.Chapter_16.Section_16_1_Activity_Selection"]
 title = "16.1. Activity Selection"
+
+[modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework"]
+title = "17.1-17.3. Amortized Analysis Framework"
 
 [modules."CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees"]
 title = "23.1. Growing a Minimum Spanning Tree"

@@ -12,6 +12,7 @@ import CLRSLean.Chapter_11
 import CLRSLean.Chapter_12
 import CLRSLean.Chapter_13
 import CLRSLean.Chapter_16
+import CLRSLean.Chapter_17
 import CLRSLean.Chapter_23
 import CLRSLean.Progress
 import CLRSLean.Status
@@ -89,6 +90,8 @@ Start with the chapter pages in the sidebar.
 * Chapter 16 - Greedy Algorithms: activity-selection exchange infrastructure
   and the complete Huffman optimality proof, currently the flagship greedy case
   study.
+* Chapter 17 - Amortized Analysis: finite-prefix aggregate, accounting, and
+  potential-method telescoping theorems for later amortized examples.
 * Chapter 23 - Minimum Spanning Trees: the MST cut property, the mathematical
   Kruskal skeleton, and finite-graph MST wrappers.
 * Progress Dashboard: a compact, generated chapter-by-chapter view of current
@@ -398,6 +401,14 @@ Start with the chapter pages in the sidebar.
   Public results: {lit}`CLRS.HuffmanV2.optimum_huffman_freqs`,
   {lit}`CLRS.HuffmanV2.huffmanOfFreqs_correct`, and
   {lit}`CLRS.HuffmanV2.huffmanOfFreqs_cost_le`.
+* 17.1-17.3 Amortized-analysis framework: {lit}`proved` for finite-prefix
+  aggregate, accounting, and potential-method telescoping facts.
+  Public results:
+  {lit}`CLRS.Chapter17.aggregate_bound_of_prefix_bound`,
+  {lit}`CLRS.Chapter17.accounting_totalCost_eq_totalCharge_sub_delta`,
+  {lit}`CLRS.Chapter17.accounting_totalCost_le_totalCharge`,
+  {lit}`CLRS.Chapter17.potential_totalCost_eq_totalAmortized_sub_delta`, and
+  {lit}`CLRS.Chapter17.potential_totalCost_le_totalAmortized`.
 * 23.1 Growing a minimum spanning tree: {lit}`partial`.
   Current results:
   {lit}`CLRS.MST.Graph.connected_crosses_cut`,
