@@ -1052,9 +1052,11 @@ and delete operations are specification wrappers, so the chapter is still
   - `CLRS.Chapter19.FibHeap.insert_correct`
   - `CLRS.Chapter19.FibHeap.insert_mem_iff`
   - `CLRS.Chapter19.FibHeap.union_correct`
+  - `CLRS.Chapter19.FibHeap.union_mem_iff`
   - `CLRS.Chapter19.FibHeap.extractMin_correct`
   - `CLRS.Chapter19.FibHeap.extractMin_none_iff`
   - `CLRS.Chapter19.FibHeap.decreaseKey_correct`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
   - `CLRS.Chapter19.FibHeap.delete_correct`
   - `CLRS.Chapter19.FibHeap.delete_mem_iff`
   - `CLRS.Chapter19.FibHeap.heapPotential_telescope`

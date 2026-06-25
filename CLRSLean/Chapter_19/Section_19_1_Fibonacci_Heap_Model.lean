@@ -20,8 +20,9 @@ Main results:
 - Theorems {lit}`FibHeap.insert_correct`, {lit}`FibHeap.union_correct`,
   {lit}`FibHeap.extractMin_correct`, {lit}`FibHeap.decreaseKey_correct`, and
   {lit}`FibHeap.delete_correct`: operations match finite-set specifications.
-- Theorems {lit}`FibHeap.insert_mem_iff` and {lit}`FibHeap.delete_mem_iff`:
-  key membership after insertion/deletion matches the finite-set update.
+- Theorems {lit}`FibHeap.insert_mem_iff`, {lit}`FibHeap.union_mem_iff`,
+  {lit}`FibHeap.decreaseKey_mem_iff`, and {lit}`FibHeap.delete_mem_iff`:
+  key membership after set-updating operations matches the finite-set update.
 - Theorem {lit}`FibHeap.heapPotential_telescope`: heap potential instantiates
   the Chapter 17 potential-method telescoping theorem.
 - Theorem {lit}`FibHeap.fibLowerBound_step`: the Fibonacci-style lower-bound
@@ -147,6 +148,11 @@ theorem union_correct {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
   · simp [union, hrep₁.1, hrep₂.1]
   · simp [Valid, union]
 
+/-- Key membership after union is exactly membership in either input heap. -/
+theorem union_mem_iff (h₁ h₂ : FibHeap) (x : Int) :
+    x ∈ (union h₁ h₂).keys <-> x ∈ h₁.keys ∨ x ∈ h₂.keys := by
+  simp [union]
+
 /-- Extract the minimum key, if present, and remove it from the heap. -/
 def extractMin (h : FibHeap) : Option (Int × FibHeap) :=
   if hne : h.keys.Nonempty then
@@ -212,6 +218,15 @@ theorem decreaseKey_correct {h : FibHeap} {s : Finset Int} {oldKey newKey : Int}
     · simp [decreaseKey, hrep.1]
     · simp [Valid, decreaseKey]
   · exact hnew
+
+/--
+Key membership after decrease-key is exactly the new key or an old key other
+than the replaced key.
+-/
+theorem decreaseKey_mem_iff (h : FibHeap) (oldKey newKey y : Int) :
+    y ∈ (decreaseKey oldKey newKey h).keys <->
+      y = newKey ∨ (y ≠ oldKey ∧ y ∈ h.keys) := by
+  simp [decreaseKey, eq_comm]
 
 /-- Delete a key from the heap. -/
 def delete (x : Int) (h : FibHeap) : FibHeap :=

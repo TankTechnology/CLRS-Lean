@@ -100,9 +100,10 @@ Start with the chapter pages in the sidebar.
   height-expression, split, split search preservation, insertion, deletion,
   and search-after-update theorem surface.
 * Chapter 19 - Fibonacci Heaps: abstract finite-set heap model with
-  make-heap, operation-level correctness, direct insert/delete membership
-  facts, heap potential telescoping, a Fibonacci lower-bound recurrence with
-  positivity and monotonicity facts, and a conservative degree-bound wrapper.
+  make-heap, operation-level correctness, direct insert/union/decrease-key/delete
+  membership facts, heap potential telescoping, a Fibonacci lower-bound
+  recurrence with positivity and monotonicity facts, and a conservative
+  degree-bound wrapper.
 * Chapter 20 - van Emde Boas Trees: high/low universe decomposition and a
   finite-set specification layer for membership, extrema, successor,
   predecessor, empty-result extrema/successor/predecessor queries, insert, and
