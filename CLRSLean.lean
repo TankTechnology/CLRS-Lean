@@ -94,7 +94,8 @@ Start with the chapter pages in the sidebar.
   augmentation, size-preserving local rotations, and rank-selection correctness
   for the current functional model.
 * Chapter 15 - Dynamic Programming: rod-cutting Bellman recurrence facts,
-  matrix-chain parenthesization optimality, and LCS certificate optimality.
+  matrix-chain parenthesization optimality plus split-table reconstruction, and
+  LCS certificate optimality plus table-recurrence reconstruction certificates.
 * Chapter 16 - Greedy Algorithms: activity-selection exchange infrastructure
   and the complete Huffman optimality proof, currently the flagship greedy case
   study.
@@ -428,13 +429,21 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`.
 * 15.2 Matrix-chain multiplication: {lit}`partial`.
   Current results: {lit}`CLRS.Chapter15.ChainPlan.start_le_end`,
-  {lit}`CLRS.Chapter15.MatrixChainLowerBound`, and
-  {lit}`CLRS.Chapter15.matrixChain_opt_le_planCost`.
+  {lit}`CLRS.Chapter15.MatrixChainLowerBound`,
+  {lit}`CLRS.Chapter15.MatrixChainSplitOptimal`,
+  {lit}`CLRS.Chapter15.matrixChain_opt_le_planCost`,
+  {lit}`CLRS.Chapter15.matrixChain_reconstructed_cost_eq`, and
+  {lit}`CLRS.Chapter15.matrixChain_reconstructed_optimal`.
 * 15.4 Longest common subsequence: {lit}`partial`.
   Current results: {lit}`CLRS.Chapter15.IsCommonSubsequence`,
   {lit}`CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`,
   {lit}`CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`, and
-  {lit}`CLRS.Chapter15.isCommonSubsequence_comm`.
+  {lit}`CLRS.Chapter15.isCommonSubsequence_comm`,
+  {lit}`CLRS.Chapter15.LCSTableRecurrence.cons_cons`,
+  {lit}`CLRS.Chapter15.LCSTableRecurrence.cons_cons_of_eq`,
+  {lit}`CLRS.Chapter15.LCSTableRecurrence.cons_cons_of_ne`,
+  {lit}`CLRS.Chapter15.LCSTableCertificate.commonSubsequence_length_le`, and
+  {lit}`CLRS.Chapter15.lcsTable_reconstruction_optimal`.
 * 16.1 Activity selection: {lit}`proved` for finite sorted lists.
   Current results: {lit}`CLRS.ActivitySelection.earliest_finish_minFinish`,
   {lit}`CLRS.ActivitySelection.finishSorted_head_minFinish`,

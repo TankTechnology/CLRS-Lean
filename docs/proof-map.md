@@ -993,13 +993,19 @@ substructure argument independently of a particular table implementation.
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter15.ChainPlan.start_le_end`
+  - `CLRS.Chapter15.MatrixChainLowerBound`
+  - `CLRS.Chapter15.MatrixChainSplitOptimal`
   - `CLRS.Chapter15.matrixChain_opt_le_planCost`
+  - `CLRS.Chapter15.matrixChain_reconstructed_cost_eq`
+  - `CLRS.Chapter15.matrixChain_reconstructed_optimal`
 - Proof pattern: represent a parenthesization as an inductive binary split
   tree, specify a candidate dynamic-programming optimum by its split lower
   bound, then prove by induction that every concrete parenthesization has cost
-  at least the candidate optimum
-- Current gap: bottom-up cost-table construction and split reconstruction remain
-  future targets
+  at least the candidate optimum.  A second certificate layer records a tight
+  split table and proves that any plan reconstructed from that split table has
+  exactly the candidate cost and is globally optimal.
+- Current gap: concrete bottom-up cost-table construction and executable split
+  reconstruction remain future targets
 
 ### Section 15.4 - Longest common subsequence
 
@@ -1010,11 +1016,20 @@ substructure argument independently of a particular table implementation.
   - `CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`
   - `CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`
   - `CLRS.Chapter15.isCommonSubsequence_comm`
+  - `CLRS.Chapter15.LCSTableRecurrence.nil_left`
+  - `CLRS.Chapter15.LCSTableRecurrence.nil_right`
+  - `CLRS.Chapter15.LCSTableRecurrence.cons_cons`
+  - `CLRS.Chapter15.LCSTableRecurrence.cons_cons_of_eq`
+  - `CLRS.Chapter15.LCSTableRecurrence.cons_cons_of_ne`
+  - `CLRS.Chapter15.LCSTableCertificate.commonSubsequence_length_le`
+  - `CLRS.Chapter15.lcsTable_reconstruction_optimal`
 - Proof pattern: package an LCS certificate as a common subsequence plus a
   universal length upper bound, then prove all certificates for the same inputs
-  agree on the optimal length
-- Current gap: dynamic-programming length-table recurrence and reconstruction
-  algorithm remain future targets
+  agree on the optimal length.  The table-certificate layer separately records
+  the CLRS recurrence and proves that a reconstructed common subsequence whose
+  length equals a certified table entry is optimal.
+- Current gap: concrete dynamic-programming length-table construction and
+  executable reconstruction algorithm remain future targets
 
 ## Chapter 16 - Greedy Algorithms
 
