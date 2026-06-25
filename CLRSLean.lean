@@ -66,8 +66,10 @@ Start with the chapter pages in the sidebar.
   priority-queue operation specifications.
 * Chapter 7 - Quicksort: stable functional partition classification,
   scan-state partition-loop correctness, a returned pivot-index partition
-  wrapper with an explicit adjacent-swap trace, and functional quicksort
-  sortedness/permutation preservation.
+  wrapper with an explicit adjacent-swap trace, functional quicksort
+  sortedness/permutation preservation, a deterministic quadratic
+  comparison-count bound, and the expected-comparison recurrence with harmonic
+  bounds for the current randomized-quicksort model.
 * Chapter 8 - Sorting in Linear Time: stable counting-sort bucket correctness,
   abstract radix-sort correctness and complete digit-signature stability from
   stable digit passes, a concrete base-{lit}`b` digit wrapper for natural-key
@@ -77,8 +79,8 @@ Start with the chapter pages in the sidebar.
   the specification selector, pivot-style quickselect, and pivot-parametric
   deterministic SELECT via a count-based order-statistic certificate, plus an
   executable median-of-medians pivot/select wrapper, the local five-element
-  median certificate, executable five-element grouping, and median-of-medians
-  partition-size bound.
+  median certificate, executable five-element grouping, median-of-medians
+  partition-size bounds, and the abstract linear recurrence wrapper.
 * Chapter 10 - Elementary Data Structures: functional stack, queue, and
   linked-list operation proofs.
 * Chapter 11 - Hash Tables: direct-address table correctness and deterministic
@@ -290,9 +292,23 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter07.clrsPartitionArray_correct_with_trace`,
   {lit}`CLRS.Chapter07.quickSort_perm`, {lit}`CLRS.Chapter07.quickSort_ordered`,
   {lit}`CLRS.Chapter07.quickSort_correct`.
-* 7.2-7.4 Quicksort performance and randomized quicksort: {lit}`future-work`.
-  Planned targets: index-level mutable-array {lit}`PARTITION`, deterministic
-  recurrence analysis, randomized quicksort, and expected running time.
+* 7.2 Performance of quicksort: {lit}`proved` for the current deterministic
+  comparison-count model.
+  Public results: {lit}`CLRS.Chapter07.partitionAround_length_add`,
+  {lit}`CLRS.Chapter07.quickSortComparisonsFuel_quadratic`, and
+  {lit}`CLRS.Chapter07.quickSortComparisons_quadratic`.
+* 7.3 Randomized quicksort: {lit}`proved` for the expected-comparison
+  recurrence, closed-form telescope, and harmonic upper bound in the current
+  recurrence model.
+  Public results: {lit}`CLRS.Chapter07.expectedComparisons_recurrence`,
+  {lit}`CLRS.Chapter07.expectedComparisons_telescope`,
+  {lit}`CLRS.Chapter07.expectedComparisons_harmonic_bound`,
+  {lit}`CLRS.Chapter07.expectedComparisons_quadratic`, and
+  {lit}`CLRS.Chapter07.expectedComparisons_monotone`.
+* 7.4 Quicksort analysis refinements: {lit}`future-work`.
+  Planned targets: index-level mutable-array {lit}`PARTITION`, an explicit
+  probability space for pivot choices, sharper {lit}`n log n` tail bounds, and
+  lower-bound packaging.
 * 8.2 Counting sort: {lit}`proved` for the stable bucket specification.
   Public results: {lit}`CLRS.Chapter08.countingSortBy_ordered`,
   {lit}`CLRS.Chapter08.countingSortBy_bucket_eq`,
@@ -329,8 +345,9 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter09.quickSelect?_correct`.
 * 9.3 Deterministic selection: {lit}`proved` for a pivot-parametric SELECT interface,
   the five-element median certificate, executable five-element grouping,
-  grouped split-count bounds, deterministic median-pivot instance, and
-  median-of-medians pivot/select wrapper.
+  grouped split-count bounds, deterministic median-pivot instance,
+  median-of-medians pivot/select wrapper, and the abstract linear recurrence
+  wrapper.
   Public results: {lit}`CLRS.Chapter09.selectWithPivot?_correct`,
   {lit}`CLRS.Chapter09.medianOfFive?_certificate`,
   {lit}`CLRS.Chapter09.medianOfFive?_isSome_of_length_eq_five`,
@@ -338,6 +355,9 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_split_counts`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`,
+  {lit}`CLRS.Chapter09.selectRecurrence_linear_step`,
+  {lit}`CLRS.Chapter09.selectRecurrence_linear_induction`,
+  {lit}`CLRS.Chapter09.medianOfMedians_linear_bound`,
   {lit}`CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`,
   {lit}`CLRS.Chapter09.medianOfFiveGroups?_mem_flatten`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianOfFiveGroups?_isSome`,
@@ -345,8 +365,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`,
   {lit}`CLRS.Chapter09.medianOfMediansSelect?_correct`.
 * 9.3-9.4 Linear-time selection refinements: {lit}`future-work`.
-  Planned targets: connect the proved {lit}`7n/10` partition-size theorem to the
-  relevant worst-case runtime recurrence.
+  Planned target: connect the executable {lit}`medianOfMediansSelect?` cost
+  semantics to the proved abstract linear recurrence theorem.
 * 10.1 Stacks and queues: {lit}`proved` for the functional-list model.
   Public results: {lit}`CLRS.Chapter10.pop_push`,
   {lit}`CLRS.Chapter10.dequeue_enqueue_nonempty`.

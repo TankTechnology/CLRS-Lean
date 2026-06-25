@@ -49,10 +49,12 @@ which areas should not yet be counted as proof-complete.
   {lit}`MAX-HEAPIFY`, bottom-up {lit}`BUILD-MAX-HEAP`, in-place heapsort
   sorted-suffix invariant, top-level heapsort correctness, and array-level
   priority-queue state theorems are proved.
-* Chapter 7, Section 7.1: stable functional partition classification,
+* Chapter 7, Sections 7.1-7.3: stable functional partition classification,
   scan-state partition-loop correctness, a returned pivot-index partition
-  wrapper with an explicit adjacent-swap trace, and functional quicksort
-  sortedness/permutation preservation are proved.
+  wrapper with an explicit adjacent-swap trace, functional quicksort
+  sortedness/permutation preservation, a deterministic quadratic
+  comparison-count bound, and the randomized-quicksort expected-comparison
+  recurrence with harmonic bounds are proved for the current models.
 * Chapter 8, Sections 8.2-8.4: stable counting-sort bucket correctness,
   abstract radix-sort correctness plus complete digit-signature stability from
   stable digit passes, a concrete base-{lit}`b` natural-key radix wrapper, a
@@ -63,8 +65,9 @@ which areas should not yet be counted as proof-complete.
   pivot-parametric deterministic SELECT model with a count-based
   order-statistic certificate; the median-of-medians pivot/select wrapper, the
   local five-element median certificate, executable five-element grouping plus
-  the grouped split-count core for the median-of-medians argument, and the
-  CLRS-style partition-size bound are also proved.
+  the grouped split-count core for the median-of-medians argument, the
+  CLRS-style partition-size bound, and the abstract linear recurrence wrapper
+  are also proved.
 * Chapter 10, Sections 10.1-10.2: functional stack, queue, and linked-list
   operation specifications are proved.
 * Chapter 11, Section 11.1: direct-address table insert/search/delete behavior
@@ -108,13 +111,14 @@ which areas should not yet be counted as proof-complete.
 * Chapter 4 full Master-theorem instantiation: extend the comparison-scale
   layer beyond the proved natural-exponent case-1 and case-2 wrappers to the
   general all-input floor/ceiling Master cases.
-* Chapter 7, Sections 7.2-7.4: index-level mutable-array partition refinement,
-  performance recurrence, randomized quicksort, and expected-time theorem.
-* Chapter 9 linear-time SELECT refinements: pivot-parametric deterministic
-  SELECT, the local five-element median certificate, executable grouping, and
-  the grouped/full-input split-count core plus {lit}`7n/10` partition-size
-  packaging are proved; randomized expected time and the runtime theorem
-  remain.
+* Chapter 7 remaining refinements: index-level mutable-array partition
+  refinement, an explicit probability space for pivot choices, sharp
+  {lit}`n log n` tail bounds, and lower-bound packaging.
+* Chapter 9 remaining SELECT refinements: pivot-parametric deterministic
+  SELECT, the local five-element median certificate, executable grouping, the
+  grouped/full-input split-count core, {lit}`7n/10` partition-size packaging,
+  and the abstract linear recurrence theorem are proved; randomized expected
+  time and the concrete executable runtime theorem remain.
 * Chapter 11 expected hashing analysis: expected-time theorem under a formal
   probability model.
 * Chapter 12 pointer-level BST layer: CLRS parent-pointer procedures,
@@ -329,6 +333,19 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter07.quickSort_perm`,
   {lit}`CLRS.Chapter07.quickSort_ordered`, and
   {lit}`CLRS.Chapter07.quickSort_correct`.
+* 7.2 Performance of quicksort, deterministic comparison-count model:
+  {lit}`CLRS.Chapter07.partitionAround_length_add`,
+  {lit}`CLRS.Chapter07.quickSortComparisonsFuel_quadratic`, and
+  {lit}`CLRS.Chapter07.quickSortComparisons_quadratic`.
+* 7.3 Randomized quicksort recurrence model:
+  {lit}`CLRS.Chapter07.harmonic_succ`,
+  {lit}`CLRS.Chapter07.sum_mul_harmonic_eq`,
+  {lit}`CLRS.Chapter07.sum_expectedComparisons_eq`,
+  {lit}`CLRS.Chapter07.expectedComparisons_recurrence`,
+  {lit}`CLRS.Chapter07.expectedComparisons_telescope`,
+  {lit}`CLRS.Chapter07.expectedComparisons_harmonic_bound`,
+  {lit}`CLRS.Chapter07.expectedComparisons_quadratic`, and
+  {lit}`CLRS.Chapter07.expectedComparisons_monotone`.
 * 8.2 Counting sort, stable bucket specification:
   {lit}`CLRS.Chapter08.countingSortBy_ordered`,
   {lit}`CLRS.Chapter08.countingSortBy_bucket_eq`,
@@ -389,6 +406,12 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_lengths`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`,
+  {lit}`CLRS.Chapter09.selectRecurrence_linear_step`,
+  {lit}`CLRS.Chapter09.medianOfMediansPivot?_recursive_branch_size_bound`,
+  {lit}`CLRS.Chapter09.medianOfMediansPivot?_low_branch_linear_work_step`,
+  {lit}`CLRS.Chapter09.medianOfMediansPivot?_high_branch_linear_work_step`,
+  {lit}`CLRS.Chapter09.selectRecurrence_linear_induction`,
+  {lit}`CLRS.Chapter09.medianOfMedians_linear_bound`,
   {lit}`CLRS.Chapter09.deterministicSelect?_mem`,
   {lit}`CLRS.Chapter09.deterministicSelect?_rankCorrect`, and
   {lit}`CLRS.Chapter09.deterministicSelect?_correct`;
@@ -609,12 +632,14 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`HEAP-INCREASE-KEY`, {lit}`HEAP-EXTRACT-MAX`, and index-based
   {lit}`HEAP-DELETE` state correctness are also proved.  The remaining
   implementation layer is the line-by-line RAM-cost model.
-* Chapter 7 mutable-array partition and randomized analysis: {lit}`future-work`.
-  Reason: Section 7.1 now proves the pure partition/quicksort correctness
-  spine, a scan-state partition-loop invariant, and a returned pivot-index
-  wrapper with an adjacent-swap trace; the harder refinements are the
-  index-level CLRS array {lit}`PARTITION` loop, recurrence analysis, randomized
-  quicksort, and expected running time.
+* Chapter 7 mutable-array partition and probability refinements:
+  {lit}`future-work`.
+  Reason: Sections 7.1-7.3 prove the pure partition/quicksort correctness
+  spine, a scan-state partition-loop invariant, a returned pivot-index wrapper
+  with an adjacent-swap trace, deterministic comparison-count bounds, and the
+  expected-comparison recurrence with harmonic bounds.  The harder refinements
+  are the index-level CLRS array {lit}`PARTITION` loop and an explicit
+  probability-space interpretation for random pivot choices.
 * Chapter 4 concrete all-input Master-theorem instantiations: {lit}`future-work`.
   Reason: the discrete critical-power, log-critical, and tail-dominated scales
   now have all-input wrappers for cases 1, 2, and 3, and the natural-exponent

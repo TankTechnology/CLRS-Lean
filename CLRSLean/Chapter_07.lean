@@ -5,9 +5,12 @@ import CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort
 /-!
 # Chapter 7 - Quicksort
 
-Chapter 7 begins the sorting-and-selection gap in the current CLRS-Lean tree.
-The first pass focuses on pure correctness before randomized or expected-time
-analysis.
+Chapter 7 now has three compiler-clean proof layers: the functional quicksort
+correctness spine, a deterministic comparison-count upper bound, and the
+expected-comparison recurrence with harmonic bounds for the current
+randomized-quicksort model.  The remaining gap is not the recurrence algebra
+itself, but the lower-level CLRS array refinement and an explicit probability
+space for random pivot choices.
 
 ## Sections
 

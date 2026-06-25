@@ -544,9 +544,9 @@ similarly textbook-facing case-3 comparison scale.
   permutation theorem, then prove a fuelled functional quicksort by induction
   on fuel.  The fuel parameter makes the decreasing subproblem obligation
   explicit: each partition side has length at most the original tail.
-- Current gap: an index-level mutable-array `PARTITION` loop, deterministic
-  performance analysis, randomized quicksort, and expected running time remain
-  future strengthening targets
+- Current gap: an index-level mutable-array `PARTITION` loop remains the main
+  implementation refinement; the probability-space interpretation of random
+  pivots and sharper tail/lower-bound results are separate analysis targets
 
 The section proves the mathematical correctness spine for quicksort before
 introducing array mutation or probability.  The theorem
@@ -558,20 +558,40 @@ postcondition, `CLRS.Chapter07.clrsPartitionArray_correct_with_trace` adds an
 adjacent-swap trace, and `CLRS.Chapter07.quickSort_correct` packages sortedness
 and permutation preservation.  This gives Chapter 7 a stable base for later
 CLRS refinements: the next proof layer should refine the scan-state loop to an
-index-level mutable array `PARTITION` procedure.
+index-level mutable array `PARTITION` procedure while preserving the already
+proved comparison-count and recurrence facts.
 
-### Sections 7.2-7.4 - Performance and randomized quicksort
+### Section 7.2 - Performance of quicksort
 
-- Lean source: not yet created
-- Status: `future-work`
-- Planned theorem targets:
-  - mutable-array `PARTITION` refinement with an index-level loop invariant;
-  - deterministic quicksort recurrence bounds for selected input models;
-  - randomized quicksort specification;
-  - expected running time under a formal probability model.
-- Difficulty note: randomized expected-time analysis is a hard proof track
-  because it requires a probability model for random pivots or random
-  permutations plus a recurrence or indicator-variable cost argument.
+- Lean source: `CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean`
+- Status: `proved` for the current deterministic comparison-count model
+- Main proved theorems:
+  - `CLRS.Chapter07.partitionAround_length_add`
+  - `CLRS.Chapter07.quickSortComparisonsFuel_quadratic`
+  - `CLRS.Chapter07.quickSortComparisons_quadratic`
+- Proof pattern: count one pivot comparison against every element in the
+  current tail, prove partition length accounting, and use fuel induction to
+  bound the total comparison count by `n^2`
+- Current gap: connect this mathematical comparison counter to a lower-level
+  mutable-array execution and cost semantics
+
+### Section 7.3 - Randomized quicksort
+
+- Lean source: `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean`
+- Status: `proved` for the expected-comparison recurrence model
+- Main proved theorems:
+  - `CLRS.Chapter07.harmonic_succ`
+  - `CLRS.Chapter07.sum_expectedComparisons_eq`
+  - `CLRS.Chapter07.expectedComparisons_recurrence`
+  - `CLRS.Chapter07.expectedComparisons_telescope`
+  - `CLRS.Chapter07.expectedComparisons_harmonic_bound`
+  - `CLRS.Chapter07.expectedComparisons_quadratic`
+  - `CLRS.Chapter07.expectedComparisons_monotone`
+- Proof pattern: define the CLRS expected-comparison sequence over rationals,
+  prove the recurrence identity and telescoping closed form, then bound the
+  closed form by a harmonic-number envelope
+- Current gap: give the recurrence a formal probability-space semantics for
+  random pivot choices and add sharper `n log n` tail/lower-bound results
 
 ## Chapter 8 - Sorting in Linear Time
 
@@ -737,6 +757,12 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   - `CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`
   - `CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_lengths`
   - `CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`
+  - `CLRS.Chapter09.selectRecurrence_linear_step`
+  - `CLRS.Chapter09.medianOfMediansPivot?_recursive_branch_size_bound`
+  - `CLRS.Chapter09.medianOfMediansPivot?_low_branch_linear_work_step`
+  - `CLRS.Chapter09.medianOfMediansPivot?_high_branch_linear_work_step`
+  - `CLRS.Chapter09.selectRecurrence_linear_induction`
+  - `CLRS.Chapter09.medianOfMedians_linear_bound`
   - `CLRS.Chapter09.deterministicPivot?_mem`
   - `CLRS.Chapter09.deterministicSelect?_mem`
   - `CLRS.Chapter09.deterministicSelect?_rankCorrect`
@@ -758,24 +784,26 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   full-input count lower bounds around a median-of-medians pivot.  The
   partition-size wrapper packages these count bounds as
   `10 * branchSize ≤ 7 * n + 12` for both strict recursive branches.
-- Current gap: the worst-case linear recurrence remains a future strengthening
-  target.
+- Current gap: the abstract recurrence and linear bound are proved; the next
+  strengthening target is a concrete cost semantics for
+  `medianOfMediansSelect?` that feeds into the recurrence hypothesis.
 
 ### Sections 9.3-9.4 - Randomized and linear-time selection refinements
 
-- Lean source: not yet created for randomized SELECT or the CLRS
-  median-of-medians runtime layer
-- Status: `future-work` for median-of-medians runtime refinement;
+- Lean source: randomized SELECT is not yet created; median-of-medians runtime
+  refinement should build on
+  `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean`
+- Status: `future-work` for executable median-of-medians cost refinement;
   `blocked-design` for randomized expected time
 - Planned theorem targets:
   - randomized SELECT returns a value satisfying
     `CLRS.Chapter09.RankCertificate`;
-  - connect the proved median-of-medians certificate and standard split-size
-    inequalities to an explicit worst-case recurrence;
-  - expected or worst-case linear-time bounds under explicit cost models.
+  - connect executable `medianOfMediansSelect?` cost semantics to the proved
+    abstract recurrence and `CLRS.Chapter09.medianOfMedians_linear_bound`;
+  - expected randomized bounds under an explicit probability model.
 - Difficulty note: randomized expected-time analysis requires a probability
-  model, and deterministic linear time now requires the recurrence layer over
-  the proved median-of-medians branch-size theorem.
+  model; deterministic linear time now mainly requires a cost-refinement layer
+  over the proved median-of-medians branch-size and recurrence theorems.
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -1212,12 +1240,12 @@ accepted edge set is already known to be a spanning tree.
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
 | Chapter 6 priority-queue RAM costs | `deferred-implementation` | Array heap predicates, localized heap predicates, `largest` lemmas, no-swap heapify repair, recursive fuelled `MAX-HEAPIFY` repair, bottom-up build-heap, in-place heapsort loop correctness, bundled heapsort state-correctness, swap preservation, array `HEAP-MAXIMUM`, full fuelled `HEAP-INCREASE-KEY`, array `HEAP-EXTRACT-MAX`, and index-based `HEAP-DELETE` state correctness are proved; RAM costs remain refinement targets. |
-| Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, and functional quicksort correctness are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
-| Chapter 7 randomized expected time | `blocked-design` | Needs a probability model for random pivots or random permutations and a cost recurrence/indicator argument. |
+| Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
+| Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 count-array implementation | `future-work` | Stable bucket correctness is proved; the next refinement is an array count table and prefix-sum implementation of `COUNTING-SORT` connected to `countingSortBy`. |
 | Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; expected-time analysis needs a probability model for input distribution. |
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
-| Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`. The recurrence proof remains. |
+| Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction and linear bound are proved by `selectRecurrence_linear_induction` and `medianOfMedians_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, and natural-exponent polynomial wrappers for cases 1/2 are proved; the general `n^(log_b a)`, real-log, and case-3 comparison layers remain. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |
