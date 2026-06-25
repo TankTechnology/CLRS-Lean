@@ -19,7 +19,9 @@
 - `CLRS.Chapter20.VEB.predecessor_correct`
 - `CLRS.Chapter20.VEB.predecessor_none_iff`
 - `CLRS.Chapter20.VEB.insert_correct`
+- `CLRS.Chapter20.VEB.insert_member_iff`
 - `CLRS.Chapter20.VEB.delete_correct`
+- `CLRS.Chapter20.VEB.delete_member_iff`
 - `CLRS.Chapter20.VEB.operationDepth_linear`
 
 ## Remaining Work

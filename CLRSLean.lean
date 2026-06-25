@@ -106,7 +106,7 @@ Start with the chapter pages in the sidebar.
 * Chapter 20 - van Emde Boas Trees: high/low universe decomposition and a
   finite-set specification layer for membership, extrema, successor,
   predecessor, empty-result extrema/successor/predecessor queries, insert, and
-  delete.
+  delete, including membership-after-update specs.
 * Chapter 23 - Minimum Spanning Trees: the MST cut property, the mathematical
   Kruskal skeleton, and finite-graph MST wrappers.
 * Progress Dashboard: a compact, generated chapter-by-chapter view of current
@@ -478,7 +478,9 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.predecessor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_correct`,
-  {lit}`CLRS.Chapter20.VEB.delete_correct`, and
+  {lit}`CLRS.Chapter20.VEB.insert_member_iff`,
+  {lit}`CLRS.Chapter20.VEB.delete_correct`,
+  {lit}`CLRS.Chapter20.VEB.delete_member_iff`, and
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`.
 * 23.1 Growing a minimum spanning tree: {lit}`partial`.
   Current results:

@@ -8,7 +8,8 @@ Chapter 20 starts with a first-pass van Emde Boas universe decomposition and a
 finite-set specification model.  The current Lean surface proves high/low/index
 arithmetic and the correctness of membership, extrema, successor, predecessor,
 insert, and delete against a represented finite set, including empty-result
-specifications for extrema, successor, and predecessor.
+specifications for extrema, successor, and predecessor plus membership-after
+update specifications.
 
 ## Sections
 
@@ -30,7 +31,9 @@ specifications for extrema, successor, and predecessor.
   {lit}`CLRS.Chapter20.VEB.predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.predecessor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_correct`,
-  {lit}`CLRS.Chapter20.VEB.delete_correct`, and
+  {lit}`CLRS.Chapter20.VEB.insert_member_iff`,
+  {lit}`CLRS.Chapter20.VEB.delete_correct`,
+  {lit}`CLRS.Chapter20.VEB.delete_member_iff`, and
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`.
 
 ## Current Gaps

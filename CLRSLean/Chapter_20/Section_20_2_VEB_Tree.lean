@@ -27,6 +27,8 @@ Main results:
   when no represented key is smaller than the query.
 - Theorems {lit}`VEB.insert_correct` and {lit}`VEB.delete_correct`: updates
   match finite-set insertion and deletion.
+- Theorems {lit}`VEB.insert_member_iff` and {lit}`VEB.delete_member_iff`:
+  membership queries after updates match the expected finite-set update.
 - Theorem {lit}`VEB.operationDepth_linear`: the first-pass recurrence-depth
   wrapper is linear in the universe exponent.
 
@@ -265,6 +267,16 @@ theorem insert_correct {t : Tree} {s : Finset Nat} {x : Nat}
     · simpa [insert, hy] using hx
     · simpa [insert] using hrep.2 y hy
 
+/-- Membership after insertion succeeds exactly for the inserted or old keys. -/
+theorem insert_member_iff {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) (hx : x < t.univSize) :
+    member y (insert x t) = true <-> y = x ∨ member y t = true := by
+  have hinsert : Represents (insert x t) (Insert.insert x s) :=
+    insert_correct (t := t) (s := s) (x := x) hrep hx
+  rw [member_correct (t := insert x t) (s := Insert.insert x s) (x := y) hinsert]
+  rw [Finset.mem_insert]
+  rw [← member_correct (t := t) (s := s) (x := y) hrep]
+
 /-- Delete a key from the represented set. -/
 def delete (x : Nat) (t : Tree) : Tree :=
   { t with elems := t.elems.erase x }
@@ -278,6 +290,16 @@ theorem delete_correct {t : Tree} {s : Finset Nat} {x : Nat}
   · intro y hy
     have hys : y ∈ s := Finset.mem_of_mem_erase hy
     exact hrep.2 y hys
+
+/-- Membership after deletion succeeds exactly for old keys different from the deleted key. -/
+theorem delete_member_iff {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) :
+    member y (delete x t) = true <-> y ≠ x ∧ member y t = true := by
+  have hdelete : Represents (delete x t) (s.erase x) :=
+    delete_correct (t := t) (s := s) (x := x) hrep
+  rw [member_correct (t := delete x t) (s := s.erase x) (x := y) hdelete]
+  rw [Finset.mem_erase]
+  rw [← member_correct (t := t) (s := s) (x := y) hrep]
 
 /-- First-pass operation-depth recurrence over a tower exponent. -/
 def operationDepth (k : Nat) : Nat :=
