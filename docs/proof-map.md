@@ -983,24 +983,25 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.potential_totalCost_le_totalAmortized`
   - `CLRS.Chapter17.multiPop_totalCost_le`
   - `CLRS.Chapter17.binaryCounter_increment_potential_le_two`
+  - `CLRS.Chapter17.binaryCounter_trace_potential_le`
+  - `CLRS.Chapter17.binaryCounter_trace_totalFlips_le`
   - `CLRS.Chapter17.binaryCounter_totalFlips_le`
   - `CLRS.Chapter17.dynamicTableInsert_valid`
   - `CLRS.Chapter17.dynamicTableInsert_num`
   - `CLRS.Chapter17.dynamicTableInsert_amortizedBound`
   - `CLRS.Chapter17.dynamicTable_amortizedBound`
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
-  telescoping
-- Current gap: executable multi-step binary-counter trace theorem, dynamic-table
-  contraction transition, and RAM/allocation constants remain strengthening
-  targets.
+  telescoping, executable counter trace induction
+- Current gap: dynamic-table contraction transition and RAM/allocation
+  constants remain strengthening targets.
 
 Chapter 17 now provides the reusable amortized-analysis layer for later data
 structure chapters.  The generic aggregate/accounting/potential facts are
-sorry-free, and the stack, executable one-step binary-counter, and dynamic-table
-examples compile against stable public theorem names.  The multi-step counter
-total theorem still uses the first-pass cost wrapper, and dynamic-table
-insertion is a size-level transition rather than mutable-array or allocator
-semantics.
+sorry-free, and the stack, executable binary-counter trace, and dynamic-table
+examples compile against stable public theorem names.  The executable counter
+trace now has a multi-step potential bound and an empty-counter {lit}`2n` flip
+bound, while dynamic-table insertion is still a size-level transition rather
+than mutable-array or allocator semantics.
 
 ## Chapter 18 - B-Trees
 

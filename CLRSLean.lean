@@ -94,7 +94,8 @@ Start with the chapter pages in the sidebar.
   and the complete Huffman optimality proof, currently the flagship greedy case
   study.
 * Chapter 17 - Amortized Analysis: finite-prefix aggregate, accounting, and
-  potential-method telescoping theorems, plus stack/counter/table examples.
+  potential-method telescoping theorems, plus stack/counter/table examples with
+  an executable multi-step counter trace bound.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
   height-expression, split, insertion, deletion, and search-after-update
   theorem surface.
@@ -423,7 +424,9 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.potential_totalCost_le_totalAmortized`.
 * 17.2 Stack and counter examples: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter17.multiPop_totalCost_le`,
-  {lit}`CLRS.Chapter17.binaryCounter_increment_potential_le_two`, and
+  {lit}`CLRS.Chapter17.binaryCounter_increment_potential_le_two`,
+  {lit}`CLRS.Chapter17.binaryCounter_trace_potential_le`,
+  {lit}`CLRS.Chapter17.binaryCounter_trace_totalFlips_le`, and
   {lit}`CLRS.Chapter17.binaryCounter_totalFlips_le`.
 * 17.4 Dynamic tables: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,

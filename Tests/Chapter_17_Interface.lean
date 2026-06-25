@@ -20,6 +20,10 @@ import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 #check CLRS.Chapter17.trueBitCount
 #check CLRS.Chapter17.bitFlipsOfIncrement
 #check CLRS.Chapter17.binaryCounter_increment_potential_le_two
+#check CLRS.Chapter17.binaryCounterAfter
+#check CLRS.Chapter17.binaryCounterTraceFlips
+#check CLRS.Chapter17.binaryCounter_trace_potential_le
+#check CLRS.Chapter17.binaryCounter_trace_totalFlips_le
 #check CLRS.Chapter17.bitFlipsForIncrement
 #check CLRS.Chapter17.binaryCounter_totalFlips_le
 #check CLRS.Chapter17.DynamicTableState

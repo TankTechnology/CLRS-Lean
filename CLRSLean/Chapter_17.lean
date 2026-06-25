@@ -9,8 +9,8 @@ Chapter 17 develops reusable finite-prefix arithmetic for amortized analysis
 and instantiates it on compact stack, counter, and dynamic-table examples.  The
 current first pass contains the aggregate, accounting, and potential-method
 framework theorems, a {lit}`MULTIPOP` stack cost bound, an executable
-binary-counter one-step potential proof plus a first-pass total-cost wrapper,
-and a size-level dynamic-table insertion wrapper.
+binary-counter one-step potential proof plus a multi-step executable trace
+bound, and a size-level dynamic-table insertion wrapper.
 
 ## Sections
 
@@ -25,7 +25,9 @@ and a size-level dynamic-table insertion wrapper.
 * 17.2 Stack and counter examples: {lit}`partial`.
   Main results:
   {lit}`CLRS.Chapter17.multiPop_totalCost_le`,
-  {lit}`CLRS.Chapter17.binaryCounter_increment_potential_le_two`, and
+  {lit}`CLRS.Chapter17.binaryCounter_increment_potential_le_two`,
+  {lit}`CLRS.Chapter17.binaryCounter_trace_potential_le`,
+  {lit}`CLRS.Chapter17.binaryCounter_trace_totalFlips_le`, and
   {lit}`CLRS.Chapter17.binaryCounter_totalFlips_le`.
 * 17.4 Dynamic tables: {lit}`partial`.
   Main results:
@@ -36,8 +38,8 @@ and a size-level dynamic-table insertion wrapper.
 
 ## Current Gaps
 
-The executable multi-step binary-counter trace theorem and concrete
-dynamic-table contraction transition predicate remain strengthening targets.
+Concrete dynamic-table contraction transition predicates, allocator semantics,
+and RAM constants remain strengthening targets.
 -/
 
 namespace CLRS

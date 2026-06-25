@@ -16,13 +16,18 @@ Main results:
 - Theorem {lit}`binaryCounter_increment_potential_le_two`: one executable
   binary-counter increment has amortized cost at most 2 under the number-of-one
   bits potential.
+- Theorem {lit}`binaryCounter_trace_potential_le`: the executable multi-step
+  increment trace has total flips plus final potential bounded by the initial
+  potential plus {lit}`2n`.
+- Theorem {lit}`binaryCounter_trace_totalFlips_le`: starting from the empty
+  counter, the executable trace flips at most {lit}`2n` bits.
 - Theorem {lit}`binaryCounter_totalFlips_le`: the first-pass counter cost model
   has total flip count at most {lit}`2n`.
 
 Current gaps:
 
-- The multi-step executable counter trace theorem is still represented by the
-  first-pass constant-cost wrapper below.
+- The first-pass constant-cost wrapper remains as a lightweight aggregate model
+  for examples that do not need the executable trace.
 -/
 
 namespace CLRS
@@ -83,6 +88,43 @@ theorem binaryCounter_increment_potential_le_two (bits : List Bool) :
         omega
       · simp [bitFlipsOfIncrement, trueBitCount, binaryCounterIncrement]
         omega
+
+/-- Counter state after {lit}`n` executable increments from an initial state. -/
+def binaryCounterAfter : Nat -> List Bool -> List Bool
+  | 0, bits => bits
+  | n + 1, bits => binaryCounterAfter n (binaryCounterIncrement bits)
+
+/-- Total executable bit flips along {lit}`n` counter increments. -/
+def binaryCounterTraceFlips : Nat -> List Bool -> Nat
+  | 0, _bits => 0
+  | n + 1, bits =>
+      bitFlipsOfIncrement bits + binaryCounterTraceFlips n (binaryCounterIncrement bits)
+
+/--
+The executable counter trace inherits the one-step potential bound: total flips
+plus final one-bit potential is at most initial potential plus {lit}`2n`.
+-/
+theorem binaryCounter_trace_potential_le (n : Nat) (bits : List Bool) :
+    binaryCounterTraceFlips n bits + trueBitCount (binaryCounterAfter n bits) <=
+      trueBitCount bits + 2 * n := by
+  induction n generalizing bits with
+  | zero =>
+      simp [binaryCounterTraceFlips, binaryCounterAfter]
+  | succ n ih =>
+      simp [binaryCounterTraceFlips, binaryCounterAfter]
+      have htail := ih (binaryCounterIncrement bits)
+      have hstep := binaryCounter_increment_potential_le_two bits
+      omega
+
+/-- Starting from the empty counter, {lit}`n` executable increments flip at most {lit}`2n` bits. -/
+theorem binaryCounter_trace_totalFlips_le (n : Nat) :
+    binaryCounterTraceFlips n [] <= 2 * n := by
+  have htrace := binaryCounter_trace_potential_le n []
+  have hle :
+      binaryCounterTraceFlips n [] <=
+        binaryCounterTraceFlips n [] + trueBitCount (binaryCounterAfter n []) := by
+    exact Nat.le_add_right _ _
+  exact Nat.le_trans hle (by simpa [trueBitCount] using htrace)
 
 /-- First-pass amortized flip count for one counter increment. -/
 def bitFlipsForIncrement (_i : Nat) : Nat :=
