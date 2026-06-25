@@ -106,8 +106,8 @@ which areas should not yet be counted as proof-complete.
   empty-heap construction, empty-result query specs, direct
   insert/union/extract-min/decrease-key/delete membership facts plus
   operation-key and old-key preservation membership corollaries,
-  minimum-after-update specifications, heap-potential zero/nonnegativity and
-  telescoping facts, and Fibonacci
+  minimum-after-update positive/empty specifications, heap-potential
+  zero/nonnegativity and telescoping facts, and Fibonacci
   lower-bound recurrence/positivity/monotonicity and even/half-index
   power-of-two growth facts plus conditional degree-to-log wrappers are
   proved; pointer
@@ -581,27 +581,32 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_self`,
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_old`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.insert_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_correct`,
   {lit}`CLRS.Chapter19.FibHeap.union_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_mem_left`,
   {lit}`CLRS.Chapter19.FibHeap.union_mem_right`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_new`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_old`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_not_mem`,
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_pos`,

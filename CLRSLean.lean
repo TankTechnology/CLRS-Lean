@@ -106,10 +106,10 @@ Start with the chapter pages in the sidebar.
   make-heap, operation-level correctness, direct
   insert/union/extract-min/decrease-key/delete membership facts plus
   operation-key and old-key preservation membership corollaries, returned
-  minimum-after-update specs, heap potential zero/nonnegativity and telescoping
-  facts, a Fibonacci lower-bound recurrence with positivity, monotonicity, and
-  even/half-index power-of-two growth facts, conditional degree-to-binary-log
-  wrappers, and a conservative degree-bound wrapper.
+  minimum-after-update positive/empty specs, heap potential zero/nonnegativity
+  and telescoping facts, a Fibonacci lower-bound recurrence with positivity,
+  monotonicity, and even/half-index power-of-two growth facts, conditional
+  degree-to-binary-log wrappers, and a conservative degree-bound wrapper.
 * Chapter 20 - van Emde Boas Trees: high/low universe decomposition with
   bounded recomposition facts and a finite-set specification layer for
   membership, extrema, successor,
@@ -490,15 +490,20 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.insert_correct`,
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.insert_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_correct`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,
