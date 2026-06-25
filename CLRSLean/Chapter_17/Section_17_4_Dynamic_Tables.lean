@@ -16,6 +16,9 @@ Main results:
 - Theorems {lit}`dynamicTableInsertSize_fits` and
   {lit}`dynamicTableDeleteSize_fits`: the first-pass capacity choices can hold
   the post-operation number of stored elements.
+- Theorems {lit}`dynamicTableInsertSize_ge_size` and
+  {lit}`dynamicTableDeleteSize_le_size`: insertion never shrinks capacity, and
+  deletion never grows capacity for a valid table.
 - Theorem {lit}`dynamicTableInsert_valid`: the first-pass insertion transition
   preserves the table-size invariant.
 - Theorem {lit}`dynamicTableDelete_valid`: the first-pass deletion/contraction
@@ -95,6 +98,15 @@ theorem dynamicTableInsertSize_fits (s : DynamicTableState) :
   · simp [hfit]
   · simp [hfit]
 
+/-- The insertion capacity choice never shrinks the table. -/
+theorem dynamicTableInsertSize_ge_size (s : DynamicTableState) :
+    s.size <= dynamicTableInsertSize s := by
+  unfold dynamicTableInsertSize
+  by_cases hfit : s.num + 1 <= s.size
+  · simp [hfit]
+  · simp [hfit]
+    exact Or.inr (by omega)
+
 /-- Dynamic-table insertion increments the stored-element count by one. -/
 theorem dynamicTableInsert_num (s : DynamicTableState) :
     (dynamicTableInsert s).num = s.num + 1 := by
@@ -142,6 +154,19 @@ theorem dynamicTableDeleteSize_fits (s : DynamicTableState)
   · simp [hcontract]
   · simp [hcontract]
     omega
+
+/-- The deletion capacity choice never grows a valid table. -/
+theorem dynamicTableDeleteSize_le_size (s : DynamicTableState)
+    (hvalid : DynamicTableState.Valid s) :
+    dynamicTableDeleteSize s <= s.size := by
+  unfold DynamicTableState.Valid at hvalid
+  unfold dynamicTableDeleteSize
+  by_cases hcontract : 4 * (s.num - 1) <= s.size
+  · simp [hcontract]
+    constructor
+    · omega
+    · exact Nat.div_le_self s.size 2
+  · simp [hcontract]
 
 /-- Dynamic-table deletion decrements the stored-element count, saturating at zero. -/
 theorem dynamicTableDelete_num (s : DynamicTableState) :

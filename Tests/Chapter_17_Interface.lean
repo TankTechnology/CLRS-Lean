@@ -35,6 +35,7 @@ import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 #check CLRS.Chapter17.dynamicTableInsert
 #check CLRS.Chapter17.dynamicTableInsertCost
 #check CLRS.Chapter17.dynamicTableInsertSize_fits
+#check CLRS.Chapter17.dynamicTableInsertSize_ge_size
 #check CLRS.Chapter17.dynamicTableInsert_valid
 #check CLRS.Chapter17.dynamicTableInsert_num
 #check CLRS.Chapter17.dynamicTableInsert_amortizedBound
@@ -42,6 +43,7 @@ import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 #check CLRS.Chapter17.dynamicTableDelete
 #check CLRS.Chapter17.dynamicTableDeleteCost
 #check CLRS.Chapter17.dynamicTableDeleteSize_fits
+#check CLRS.Chapter17.dynamicTableDeleteSize_le_size
 #check CLRS.Chapter17.dynamicTableDelete_valid
 #check CLRS.Chapter17.dynamicTableDelete_num
 #check CLRS.Chapter17.dynamicTableDelete_amortizedBound
