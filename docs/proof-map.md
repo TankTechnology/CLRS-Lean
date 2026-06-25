@@ -987,6 +987,7 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.binaryCounter_trace_totalFlips_le`
   - `CLRS.Chapter17.binaryCounter_totalFlips_le`
   - `CLRS.Chapter17.dynamicPotential_nonneg`
+  - `CLRS.Chapter17.dynamicTableInsertCost_pos`
   - `CLRS.Chapter17.dynamicTableInsertCost_le_num_succ`
   - `CLRS.Chapter17.dynamicTableInsertCost_of_fits`
   - `CLRS.Chapter17.dynamicTableInsertCost_of_expand`
@@ -1002,6 +1003,7 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableInsert_capacity_fits`
   - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`
   - `CLRS.Chapter17.dynamicTableInsert_amortizedBound`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`
   - `CLRS.Chapter17.dynamicTableDeleteCost_le_num`
   - `CLRS.Chapter17.dynamicTableDeleteCost_empty`
   - `CLRS.Chapter17.dynamicTableDeleteCost_of_contract`
@@ -1024,7 +1026,7 @@ any consistent tree with the same frequency table.
   telescoping, executable counter trace induction, size-level table potential
   nonnegativity, capacity feasibility/direction, post-state field equations,
   stored-count direction, post-state capacity corollaries, actual-cost and
-  capacity-choice case specs, upper bounds, and transitions
+  capacity-choice case specs, lower/upper bounds, and transitions
 - Current gap: mutable-array copying, RAM/allocation constants, and sharper
   CLRS load-factor potential refinements remain strengthening targets.
 
@@ -1036,7 +1038,7 @@ trace now has a multi-step potential bound and an empty-counter {lit}`2n` flip
 bound.  Dynamic-table insertion and deletion/contraction now expose size-level
 potential nonnegativity, capacity feasibility/direction, direct post-state
 stored-count and capacity corollaries, post-state field equations, actual-cost
-and capacity-choice case specs, and upper-bound transition facts, while
+and capacity-choice case specs, positive-cost and upper-bound transition facts, while
 mutable-array copying and
 allocator semantics remain future refinements.
 

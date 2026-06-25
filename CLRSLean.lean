@@ -97,8 +97,8 @@ Start with the chapter pages in the sidebar.
   potential-method telescoping theorems, plus stack/counter/table examples with
   an executable multi-step counter trace bound and size-level dynamic-table
   potential, actual-cost and capacity-choice case specs, capacity-direction,
-  post-state field equations, stored-count direction, post-state capacity, and
-  transition wrappers.
+  actual-cost lower/upper bounds, post-state field equations, stored-count
+  direction, post-state capacity, and transition wrappers.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
   height-expression base/positivity/recurrence/monotonicity, split, split
   membership/search preservation, insertion, deletion, search-after-update
@@ -447,6 +447,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.binaryCounter_totalFlips_le`.
 * 17.4 Dynamic tables: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter17.dynamicPotential_nonneg`,
+  {lit}`CLRS.Chapter17.dynamicTableInsertCost_pos`,
   {lit}`CLRS.Chapter17.dynamicTableInsertCost_le_num_succ`,
   {lit}`CLRS.Chapter17.dynamicTableInsertCost_of_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsertCost_of_expand`,
@@ -462,6 +463,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_le_num`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_contract`,

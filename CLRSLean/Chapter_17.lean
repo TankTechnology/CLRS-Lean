@@ -11,7 +11,7 @@ current first pass contains the aggregate, accounting, and potential-method
 framework theorems, a {lit}`MULTIPOP` stack cost bound, an executable
 binary-counter one-step potential proof plus a multi-step executable trace
 bound, and size-level dynamic-table insertion/deletion capacity and transition
-wrappers with capacity-direction and actual-cost upper-bound facts plus an
+wrappers with capacity-direction and actual-cost lower/upper-bound facts plus an
 explicit nonnegative potential fact, actual-cost and capacity-choice case
 specifications, direct post-state field equations, and direct post-state
 stored-count and capacity corollaries.
@@ -36,6 +36,7 @@ stored-count and capacity corollaries.
 * 17.4 Dynamic tables: {lit}`partial`.
   Main results:
   {lit}`CLRS.Chapter17.dynamicPotential_nonneg`,
+  {lit}`CLRS.Chapter17.dynamicTableInsertCost_pos`,
   {lit}`CLRS.Chapter17.dynamicTableInsertCost_le_num_succ`,
   {lit}`CLRS.Chapter17.dynamicTableInsertCost_of_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsertCost_of_expand`,
@@ -51,6 +52,7 @@ stored-count and capacity corollaries.
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_le_num`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_contract`,

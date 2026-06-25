@@ -27,6 +27,9 @@ Main results:
 - Theorems {lit}`dynamicTableInsertCost_le_num_succ` and
   {lit}`dynamicTableDeleteCost_le_num`: the first-pass transition costs are
   bounded by the natural element-count copying budgets.
+- Theorems {lit}`dynamicTableInsertCost_pos` and
+  {lit}`dynamicTableDeleteCost_pos_of_nonempty`: first-pass nonempty
+  transitions have positive actual cost.
 - Theorems {lit}`dynamicTableInsertCost_of_fits`,
   {lit}`dynamicTableInsertCost_of_expand`,
   {lit}`dynamicTableDeleteCost_empty`,
@@ -116,6 +119,14 @@ def dynamicTableInsertCost (s : DynamicTableState) : Nat :=
     1
   else
     s.num + 1
+
+/-- Dynamic-table insertion has positive first-pass actual cost. -/
+theorem dynamicTableInsertCost_pos (s : DynamicTableState) :
+    0 < dynamicTableInsertCost s := by
+  unfold dynamicTableInsertCost
+  by_cases hfit : s.num + 1 <= s.size
+  · simp [hfit]
+  · simp [hfit]
 
 /-- Insertion into a table with spare capacity costs one write. -/
 theorem dynamicTableInsertCost_of_fits (s : DynamicTableState)
@@ -228,6 +239,17 @@ def dynamicTableDeleteCost (s : DynamicTableState) : Nat :=
     s.num
   else
     1
+
+/-- Deleting from a nonempty dynamic table has positive first-pass actual cost. -/
+theorem dynamicTableDeleteCost_pos_of_nonempty (s : DynamicTableState)
+    (hnum : s.num ≠ 0) :
+    0 < dynamicTableDeleteCost s := by
+  unfold dynamicTableDeleteCost
+  simp [hnum]
+  by_cases hcontract : 4 * (s.num - 1) <= s.size
+  · simp [hcontract]
+    omega
+  · simp [hcontract]
 
 /-- Deleting from an empty table has zero first-pass cost. -/
 theorem dynamicTableDeleteCost_empty (s : DynamicTableState)

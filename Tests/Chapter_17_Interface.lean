@@ -34,6 +34,7 @@ import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 #check CLRS.Chapter17.dynamicTableInsertSize
 #check CLRS.Chapter17.dynamicTableInsert
 #check CLRS.Chapter17.dynamicTableInsertCost
+#check CLRS.Chapter17.dynamicTableInsertCost_pos
 #check CLRS.Chapter17.dynamicTableInsertCost_le_num_succ
 #check CLRS.Chapter17.dynamicTableInsertCost_of_fits
 #check CLRS.Chapter17.dynamicTableInsertCost_of_expand
@@ -52,6 +53,7 @@ import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 #check CLRS.Chapter17.dynamicTableDeleteSize
 #check CLRS.Chapter17.dynamicTableDelete
 #check CLRS.Chapter17.dynamicTableDeleteCost
+#check CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty
 #check CLRS.Chapter17.dynamicTableDeleteCost_le_num
 #check CLRS.Chapter17.dynamicTableDeleteCost_empty
 #check CLRS.Chapter17.dynamicTableDeleteCost_of_contract
