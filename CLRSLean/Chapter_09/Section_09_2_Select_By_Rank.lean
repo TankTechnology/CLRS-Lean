@@ -137,6 +137,64 @@ theorem geCount_eq_length_sub_ltCount (x : Nat) :
         simp [hlt, hge, ih]
         omega
 
+theorem leCount_append (x : Nat) (xs ys : List Nat) :
+    leCount x (xs ++ ys) = leCount x xs + leCount x ys := by
+  unfold leCount
+  rw [List.filter_append, List.length_append]
+
+theorem geCount_append (x : Nat) (xs ys : List Nat) :
+    geCount x (xs ++ ys) = geCount x xs + geCount x ys := by
+  unfold geCount
+  rw [List.filter_append, List.length_append]
+
+theorem leCount_cons_of_le {x y : Nat} {ys : List Nat} (h : y ≤ x) :
+    leCount x (y :: ys) = leCount x ys + 1 := by
+  simp [leCount, h, Nat.add_comm]
+
+theorem leCount_cons_of_not_le {x y : Nat} {ys : List Nat} (h : ¬ y ≤ x) :
+    leCount x (y :: ys) = leCount x ys := by
+  simp [leCount, h]
+
+theorem geCount_cons_of_le {x y : Nat} {ys : List Nat} (h : x ≤ y) :
+    geCount x (y :: ys) = geCount x ys + 1 := by
+  simp [geCount, h, Nat.add_comm]
+
+theorem geCount_cons_of_not_le {x y : Nat} {ys : List Nat} (h : ¬ x ≤ y) :
+    geCount x (y :: ys) = geCount x ys := by
+  simp [geCount, h]
+
+theorem leCount_mono_of_le {low high : Nat} (h : low ≤ high) :
+    ∀ xs : List Nat, leCount low xs ≤ leCount high xs := by
+  intro xs
+  induction xs with
+  | nil =>
+      simp [leCount]
+  | cons y ys ih =>
+      unfold leCount at *
+      by_cases hlow : y ≤ low
+      · have hhigh : y ≤ high := Nat.le_trans hlow h
+        simp [hlow, hhigh, ih]
+      · by_cases hhigh : y ≤ high
+        · simp [hlow, hhigh]
+          exact Nat.le_succ_of_le ih
+        · simp [hlow, hhigh, ih]
+
+theorem geCount_anti_mono_of_le {low high : Nat} (h : low ≤ high) :
+    ∀ xs : List Nat, geCount high xs ≤ geCount low xs := by
+  intro xs
+  induction xs with
+  | nil =>
+      simp [geCount]
+  | cons y ys ih =>
+      unfold geCount at *
+      by_cases hhigh : high ≤ y
+      · have hlow : low ≤ y := Nat.le_trans h hhigh
+        simp [hhigh, hlow, ih]
+      · by_cases hlow : low ≤ y
+        · simp [hhigh, hlow]
+          exact Nat.le_succ_of_le ih
+        · simp [hhigh, hlow, ih]
+
 theorem ltCount_le_of_sorted_split {ys lo hi : List Nat} {x : Nat}
     (hsplit : ys = lo ++ x :: hi)
     (_hlo : ∀ y ∈ lo, y ≤ x)

@@ -16,15 +16,20 @@ Main results:
 * Theorem {lit}`medianOfFive?_certificate`: the median selected from a
   five-element group has at least three elements below it weakly and at least
   three elements above it weakly.
+* Theorems {lit}`medianGroupCertificates_leCount_lower_bound` and
+  {lit}`medianGroupCertificates_geCount_lower_bound`: a collection of certified
+  five-element groups contributes three original elements for every group
+  median on the corresponding side of a pivot.
 * Theorem {lit}`deterministicSelect?_correct`: a deterministic median-pivot
   instance is rank correct.
 
 Current gaps:
 
 * This is not yet the CLRS linear-time median-of-medians cost theorem.  The
-  local five-element median certificate is proved below; the remaining hard
-  proof is the global split-size inequality for the grouped medians and the
-  associated linear recurrence.
+  local five-element median certificate and the grouped split-count core are
+  proved below; the remaining hard proof is the executable grouping wrapper,
+  the familiar {lit}`7n/10` partition-size arithmetic, and the associated
+  linear recurrence.
 -/
 
 namespace CLRS
@@ -197,6 +202,143 @@ theorem medianOfFive?_certificate {xs : List Nat} {median : Nat}
   · have hlt : ltCount median xs ≤ 2 := hrank.2.1
     rw [geCount_eq_length_sub_ltCount, hlen]
     omega
+
+/--
+Certificates pairing each full five-element group with its selected median.
+
+The theorem layer below intentionally does not require the groups to be
+computed by a particular chunking function.  That keeps the split-size argument
+usable for both executable median-of-medians code and later lower-level array
+refinements.
+-/
+def MedianGroupCertificates (groups : List (List Nat)) (medians : List Nat) :
+    Prop :=
+  groups.length = medians.length ∧
+    ∀ {group : List Nat} {median : Nat}, (group, median) ∈ groups.zip medians →
+      MedianFiveCertificate group median
+
+/--
+Every certified group whose median is at most {lit}`pivot` contributes at least
+three original group elements at most {lit}`pivot`.
+-/
+theorem medianGroupCertificates_leCount_lower_bound {groups : List (List Nat)}
+    {medians : List Nat} {pivot : Nat}
+    (hcerts : MedianGroupCertificates groups medians) :
+    3 * leCount pivot medians ≤ leCount pivot (List.flatten groups) := by
+  induction groups generalizing medians with
+  | nil =>
+      rcases hcerts with ⟨hlen, _hcert⟩
+      cases medians with
+      | nil =>
+          simp [leCount]
+      | cons median medians =>
+          simp at hlen
+  | cons group groups ih =>
+      cases medians with
+      | nil =>
+          rcases hcerts with ⟨hlen, _hcert⟩
+          simp at hlen
+      | cons median medians =>
+          rcases hcerts with ⟨hlen, hcert⟩
+          have htail_len : groups.length = medians.length := by
+            simpa using hlen
+          have hhead_cert : MedianFiveCertificate group median := by
+            exact hcert (by simp)
+          have htail_cert :
+              MedianGroupCertificates groups medians := by
+            refine ⟨htail_len, ?_⟩
+            intro tailGroup tailMedian hmem
+            exact hcert (by simp [hmem])
+          have htail_bound :
+              3 * leCount pivot medians ≤ leCount pivot (List.flatten groups) :=
+            ih htail_cert
+          by_cases hmedian : median ≤ pivot
+          · have hhead_mono :
+                leCount median group ≤ leCount pivot group :=
+              leCount_mono_of_le hmedian group
+            have hhead_bound : 3 ≤ leCount pivot group :=
+              le_trans hhead_cert.2.2.1 hhead_mono
+            simp [leCount_append, leCount_cons_of_le hmedian]
+            omega
+          · simp [leCount_append, leCount_cons_of_not_le hmedian]
+            omega
+
+/--
+Every certified group whose median is at least {lit}`pivot` contributes at
+least three original group elements at least {lit}`pivot`.
+-/
+theorem medianGroupCertificates_geCount_lower_bound {groups : List (List Nat)}
+    {medians : List Nat} {pivot : Nat}
+    (hcerts : MedianGroupCertificates groups medians) :
+    3 * geCount pivot medians ≤ geCount pivot (List.flatten groups) := by
+  induction groups generalizing medians with
+  | nil =>
+      rcases hcerts with ⟨hlen, _hcert⟩
+      cases medians with
+      | nil =>
+          simp [geCount]
+      | cons median medians =>
+          simp at hlen
+  | cons group groups ih =>
+      cases medians with
+      | nil =>
+          rcases hcerts with ⟨hlen, _hcert⟩
+          simp at hlen
+      | cons median medians =>
+          rcases hcerts with ⟨hlen, hcert⟩
+          have htail_len : groups.length = medians.length := by
+            simpa using hlen
+          have hhead_cert : MedianFiveCertificate group median := by
+            exact hcert (by simp)
+          have htail_cert :
+              MedianGroupCertificates groups medians := by
+            refine ⟨htail_len, ?_⟩
+            intro tailGroup tailMedian hmem
+            exact hcert (by simp [hmem])
+          have htail_bound :
+              3 * geCount pivot medians ≤ geCount pivot (List.flatten groups) :=
+            ih htail_cert
+          by_cases hmedian : pivot ≤ median
+          · have hhead_mono :
+                geCount median group ≤ geCount pivot group :=
+              geCount_anti_mono_of_le hmedian group
+            have hhead_bound : 3 ≤ geCount pivot group :=
+              le_trans hhead_cert.2.2.2 hhead_mono
+            simp [geCount_append, geCount_cons_of_le hmedian]
+            omega
+          · simp [geCount_append, geCount_cons_of_not_le hmedian]
+            omega
+
+/--
+If {lit}`pivot` has rank certificate {lit}`k` among the group medians, then the
+original grouped values have at least {lit}`3 * (k + 1)` elements at most the
+pivot and at least {lit}`3 * (medians.length - k)` elements at least the pivot.
+
+This is the reusable counting core of the CLRS median-of-medians split-size
+argument; converting it to the familiar {lit}`7n/10` recurrence bound is a
+separate arithmetic packaging step.
+-/
+theorem medianGroupCertificates_selectPivot_split_counts
+    {groups : List (List Nat)} {medians : List Nat} {pivot k : Nat}
+    (hcerts : MedianGroupCertificates groups medians)
+    (hrank : RankCertificate medians k pivot) :
+    3 * (k + 1) ≤ leCount pivot (List.flatten groups) ∧
+      3 * (medians.length - k) ≤ geCount pivot (List.flatten groups) := by
+  constructor
+  · have hmedian_count : k + 1 ≤ leCount pivot medians :=
+      Nat.succ_le_of_lt hrank.2.2
+    have hscale :
+        3 * (k + 1) ≤ 3 * leCount pivot medians :=
+      Nat.mul_le_mul_left 3 hmedian_count
+    exact le_trans hscale (medianGroupCertificates_leCount_lower_bound hcerts)
+  · have hge_medians : medians.length - k ≤ geCount pivot medians := by
+      have hlt_bound : ltCount pivot medians ≤ k := hrank.2.1
+      rw [geCount_eq_length_sub_ltCount]
+      omega
+    have hscale :
+        3 * (medians.length - k) ≤ 3 * geCount pivot medians :=
+      Nat.mul_le_mul_left 3 hge_medians
+    exact le_trans hscale (medianGroupCertificates_geCount_lower_bound hcerts)
 
 /-! ## Deterministic median-pivot instance -/
 
