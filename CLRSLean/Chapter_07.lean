@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort
+import CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort
 
 /-!
 # Chapter 7 - Quicksort
@@ -25,10 +26,14 @@ analysis.
   {lit}`CLRS.Chapter07.quickSort_ordered`, and
   {lit}`CLRS.Chapter07.quickSort_correct`.
 
+* 7.2 Performance of quicksort: {lit}`proved` for a deterministic
+  comparison-count quadratic upper bound.  Main results:
+  {lit}`CLRS.Chapter07.partitionAround_length_add`,
+  {lit}`CLRS.Chapter07.quickSortComparisons_quadratic`.
+
 ## Current Gaps
 
 * Index-level mutable-array {lit}`PARTITION` loop refinement.
-* Performance analysis for deterministic quicksort.
 * Randomized quicksort and expected running time.
 -/
 

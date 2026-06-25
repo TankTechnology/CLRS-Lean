@@ -54,6 +54,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_07" = [
   "CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort",
+  "CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort",
 ]
 "CLRSLean.Chapter_08" = [
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort",
@@ -188,6 +189,9 @@ title = "6.5. Priority Queues"
 
 [modules."CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort"]
 title = "7.1. Description of Quicksort"
+
+[modules."CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort"]
+title = "7.2. Performance of Quicksort"
 
 [modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort"]
 title = "8.2. Counting Sort"
