@@ -89,8 +89,8 @@ Start with the chapter pages in the sidebar.
 * Chapter 12 - Binary Search Trees: search, minimum/maximum, insertion,
   complete functional successor/predecessor specifications, and functional
   deletion correctness for an inductive BST model.
-* Chapter 13 - Red-Black Trees: local rotation, recoloring, red-red repair, and
-  red-black shape invariant lemmas.
+* Chapter 13 - Red-Black Trees: local rotation, recoloring, red-red repair,
+  four insertion-fixup case certificates, and red-black shape invariant lemmas.
 * Chapter 14 - Augmenting Data Structures: order-statistic tree size
   augmentation, size-preserving local rotations, and rank-selection correctness
   for the current functional model.
@@ -414,7 +414,15 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_rotateRight_red_red`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateLeft_red_red`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`,
-  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`.
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_leftLeft_iff`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_leftRight_iff`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_rightLeft_iff`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_rightRight_iff`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftLeft`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftRight`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightLeft`, and
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`.
 * 14.1 Order-statistic trees: {lit}`partial`.
   Current results: {lit}`CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.recomputeSizes_wellSized`,

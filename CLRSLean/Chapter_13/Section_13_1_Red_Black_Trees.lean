@@ -36,6 +36,12 @@ Main results:
   black establishes the bundled local red-black shape invariant.
 - Theorem {lit}`RBTree.redBlackShape_repaint_black`: repainting the root black
   establishes the bundled local red-black shape invariant.
+- Theorems {lit}`RBTree.redBlackShape_insertFixup_leftLeft`,
+  {lit}`RBTree.redBlackShape_insertFixup_leftRight`,
+  {lit}`RBTree.redBlackShape_insertFixup_rightLeft`, and
+  {lit}`RBTree.redBlackShape_insertFixup_rightRight`: four local
+  {lit}`RB-INSERT-FIXUP` rotation/recoloring cases establish the bundled shape
+  invariant.
 
 Current gaps:
 
@@ -268,6 +274,162 @@ theorem redBlackShape_repaint_rotateRight_red_red
     ⟨haNoRed, hbNoRed, hcNoRed, hbRoot, hcRoot⟩,
     ⟨haBalanced, ⟨hbBalanced, hcBalanced, hbc⟩, hab⟩
   ⟩
+
+/-! ## Local insertion-fixup cases -/
+
+/-- The left-left red-red insertion-fixup shape. -/
+def insertFixupLeftLeft : RBTree → RBTree
+  | node Color.black (node Color.red (node Color.red a w b) x c) y d =>
+      node Color.black (node Color.red a w b) x (node Color.red c y d)
+  | t => t
+
+/-- The left-right red-red insertion-fixup shape. -/
+def insertFixupLeftRight : RBTree → RBTree
+  | node Color.black (node Color.red a w (node Color.red b x c)) y d =>
+      node Color.black (node Color.red a w b) x (node Color.red c y d)
+  | t => t
+
+/-- The right-left red-red insertion-fixup shape. -/
+def insertFixupRightLeft : RBTree → RBTree
+  | node Color.black a w (node Color.red (node Color.red b x c) y d) =>
+      node Color.black (node Color.red a w b) x (node Color.red c y d)
+  | t => t
+
+/-- The right-right red-red insertion-fixup shape. -/
+def insertFixupRightRight : RBTree → RBTree
+  | node Color.black a w (node Color.red b x (node Color.red c y d)) =>
+      node Color.black (node Color.red a w b) x (node Color.red c y d)
+  | t => t
+
+/--
+A black root with two red children is locally red-black shaped when the four
+fringe subtrees are red-black shaped and have matching black heights.
+-/
+theorem redBlackShape_black_with_red_children
+    {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    RedBlackShape
+      (node Color.black (node Color.red a w b) x (node Color.red c y d)) := by
+  rcases ha with ⟨haRoot, haNoRed, haBalanced⟩
+  rcases hb with ⟨hbRoot, hbNoRed, hbBalanced⟩
+  rcases hc with ⟨hcRoot, hcNoRed, hcBalanced⟩
+  rcases hd with ⟨hdRoot, hdNoRed, hdBalanced⟩
+  simp [RedBlackShape, RootBlack, NoRedRed, BalancedBlackHeight]
+  exact ⟨
+    ⟨⟨haNoRed, hbNoRed, haRoot, hbRoot⟩,
+      ⟨hcNoRed, hdNoRed, hcRoot, hdRoot⟩⟩,
+    ⟨⟨haBalanced, hbBalanced, hab⟩,
+      ⟨hcBalanced, hdBalanced, hcd⟩,
+      hab.trans hbc⟩
+  ⟩
+
+/-- The left-left insertion-fixup case preserves membership on its local shape. -/
+theorem inTree_insertFixup_leftLeft_iff
+    (q : Nat) (a b c d : RBTree) (w x y : Nat) :
+    InTree q
+        (insertFixupLeftLeft
+          (node Color.black (node Color.red (node Color.red a w b) x c) y d)) ↔
+      InTree q
+        (node Color.black (node Color.red (node Color.red a w b) x c) y d) := by
+  simp [insertFixupLeftLeft, InTree, or_assoc, or_left_comm]
+
+/-- The left-right insertion-fixup case preserves membership on its local shape. -/
+theorem inTree_insertFixup_leftRight_iff
+    (q : Nat) (a b c d : RBTree) (w x y : Nat) :
+    InTree q
+        (insertFixupLeftRight
+          (node Color.black (node Color.red a w (node Color.red b x c)) y d)) ↔
+      InTree q
+        (node Color.black (node Color.red a w (node Color.red b x c)) y d) := by
+  simp [insertFixupLeftRight, InTree, or_assoc, or_left_comm]
+
+/-- The right-left insertion-fixup case preserves membership on its local shape. -/
+theorem inTree_insertFixup_rightLeft_iff
+    (q : Nat) (a b c d : RBTree) (w x y : Nat) :
+    InTree q
+        (insertFixupRightLeft
+          (node Color.black a w (node Color.red (node Color.red b x c) y d))) ↔
+      InTree q
+        (node Color.black a w (node Color.red (node Color.red b x c) y d)) := by
+  simp [insertFixupRightLeft, InTree, or_assoc, or_left_comm]
+
+/-- The right-right insertion-fixup case preserves membership on its local shape. -/
+theorem inTree_insertFixup_rightRight_iff
+    (q : Nat) (a b c d : RBTree) (w x y : Nat) :
+    InTree q
+        (insertFixupRightRight
+          (node Color.black a w (node Color.red b x (node Color.red c y d)))) ↔
+      InTree q
+        (node Color.black a w (node Color.red b x (node Color.red c y d))) := by
+  simp [insertFixupRightRight, InTree, or_assoc, or_left_comm]
+
+/-- The left-left local insertion-fixup case establishes red-black shape. -/
+theorem redBlackShape_insertFixup_leftLeft
+    {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    RedBlackShape
+      (insertFixupLeftLeft
+        (node Color.black (node Color.red (node Color.red a w b) x c) y d)) := by
+  simpa [insertFixupLeftLeft] using
+    redBlackShape_black_with_red_children
+      (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+      ha hb hc hd hab hbc hcd
+
+/-- The left-right local insertion-fixup case establishes red-black shape. -/
+theorem redBlackShape_insertFixup_leftRight
+    {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    RedBlackShape
+      (insertFixupLeftRight
+        (node Color.black (node Color.red a w (node Color.red b x c)) y d)) := by
+  simpa [insertFixupLeftRight] using
+    redBlackShape_black_with_red_children
+      (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+      ha hb hc hd hab hbc hcd
+
+/-- The right-left local insertion-fixup case establishes red-black shape. -/
+theorem redBlackShape_insertFixup_rightLeft
+    {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    RedBlackShape
+      (insertFixupRightLeft
+        (node Color.black a w (node Color.red (node Color.red b x c) y d))) := by
+  simpa [insertFixupRightLeft] using
+    redBlackShape_black_with_red_children
+      (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+      ha hb hc hd hab hbc hcd
+
+/-- The right-right local insertion-fixup case establishes red-black shape. -/
+theorem redBlackShape_insertFixup_rightRight
+    {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    RedBlackShape
+      (insertFixupRightRight
+        (node Color.black a w (node Color.red b x (node Color.red c y d)))) := by
+  simpa [insertFixupRightRight] using
+    redBlackShape_black_with_red_children
+      (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+      ha hb hc hd hab hbc hcd
 
 end RBTree
 

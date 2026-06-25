@@ -933,10 +933,22 @@ false.
   - `CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateLeft_red_red`
   - `CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`
   - `CLRS.Chapter13.RBTree.redBlackShape_repaint_black`
+  - `CLRS.Chapter13.RBTree.inTree_insertFixup_leftLeft_iff`
+  - `CLRS.Chapter13.RBTree.inTree_insertFixup_leftRight_iff`
+  - `CLRS.Chapter13.RBTree.inTree_insertFixup_rightLeft_iff`
+  - `CLRS.Chapter13.RBTree.inTree_insertFixup_rightRight_iff`
+  - `CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftLeft`
+  - `CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftRight`
+  - `CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightLeft`
+  - `CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
-  and red-red rotation repair certificates
-- Current gap: full `RB-INSERT`, `RB-INSERT-FIXUP`, `RB-DELETE`, and
-  `RB-DELETE-FIXUP` are not mechanized
+  red-red rotation repair certificates, and four insertion-fixup local
+  rotation/recoloring certificates.  Each insertion-fixup case separately
+  preserves local membership and establishes the bundled red-black shape
+  invariant from red-black-shaped fringe subtrees with matching black heights.
+- Current gap: compose the local insertion-fixup certificates into executable
+  `RB-INSERT`/`RB-INSERT-FIXUP`; full `RB-DELETE` and `RB-DELETE-FIXUP` are not
+  mechanized
 
 The section builds the local invariant library needed before mechanizing the
 full balancing algorithms.

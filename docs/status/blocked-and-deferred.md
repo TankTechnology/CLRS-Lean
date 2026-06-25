@@ -294,7 +294,9 @@ BST work is the CLRS parent-pointer, transplant, and mutation refinement layer.
 - Related section: Section 13.1 - Red-black trees
 - Status: `future-work`
 
-The current Chapter 13 file proves local rotation, root recoloring, black-height
-balance, and red-red repair certificates.  A full CLRS proof still needs
-executable `RB-INSERT`, `RB-INSERT-FIXUP`, `RB-DELETE`, and `RB-DELETE-FIXUP`
-together with preservation of the red-black invariants and height bound.
+The current Chapter 13 file proves local rotation, root recoloring,
+black-height balance, red-red repair certificates, and four local
+`RB-INSERT-FIXUP` case certificates.  A full CLRS proof still needs those local
+cases composed into executable `RB-INSERT`/`RB-INSERT-FIXUP`, plus
+`RB-DELETE`, `RB-DELETE-FIXUP`, preservation of the red-black invariants, and
+the height bound.

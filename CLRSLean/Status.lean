@@ -93,8 +93,9 @@ which areas should not yet be counted as proof-complete.
 * Chapter 12, Section 12.1: the functional BST theorem boundary is proved for
   search, min/max, insertion, complete successor/predecessor specifications,
   and deletion wrappers; parent pointers, transplant, and mutation remain.
-* Chapter 13, Section 13.1: local red-black rotation/recoloring invariants are
-  proved; full insertion and deletion fixup algorithms remain.
+* Chapter 13, Section 13.1: local red-black rotation/recoloring invariants and
+  the four local insertion-fixup case certificates are proved; composing them
+  into full insertion and deletion fixup algorithms remains.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree;
@@ -130,8 +131,9 @@ which areas should not yet be counted as proof-complete.
   independence assumptions.
 * Chapter 12 pointer-level BST layer: CLRS parent-pointer procedures,
   transplant, and mutation refinement.
-* Chapter 13 full red-black algorithms: insertion/deletion fixup correctness
-  and height theorem.
+* Chapter 13 full red-black algorithms: compose the local insertion-fixup cases
+  into executable insertion, then prove deletion fixup correctness and the
+  logarithmic-height theorem.
 * Chapter 14 remaining augmentation targets: rotations connected to size
   fields, interval trees, and the general augmentation theorem.
 * Chapter 15 remaining dynamic-programming targets: bottom-up and memoized rod
@@ -539,10 +541,18 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_rotateLeft_red_red`,
   {lit}`CLRS.Chapter13.RBTree.balancedBlackHeight_rotateRight_red_red`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateLeft_red_red`,
-  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`, and
-  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`;
-  remaining gap: full RB insertion/deletion fixup algorithms are not yet
-  mechanized.
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_leftLeft_iff`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_leftRight_iff`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_rightLeft_iff`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_insertFixup_rightRight_iff`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftLeft`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftRight`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightLeft`, and
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`;
+  remaining gap: compose these local insertion-fixup certificates into the
+  executable insertion algorithm; deletion fixup is not yet mechanized.
 * 14.1 Order-statistic trees:
   current results {lit}`CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.recomputeSizes_wellSized`,
