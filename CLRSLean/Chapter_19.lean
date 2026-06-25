@@ -10,8 +10,9 @@ facts for insertion, union, extract-min, decrease-key, and deletion, exposes
 the standard potential function with zero-initial and nonnegativity facts, and
 packages a conservative degree-bound wrapper for later subtree-size
 strengthening, together with a Fibonacci-style lower-bound recurrence,
-positivity, adjacent monotonicity, and monotonicity.  The query surface includes
-empty-result specifications for minimum and extract-min.
+positivity, adjacent monotonicity, monotonicity, and the first exponential
+growth bridge over even indices.  The query surface includes empty-result
+specifications for minimum and extract-min.
 
 ## Sections
 
@@ -37,7 +38,9 @@ empty-result specifications for minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_pos`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_le_succ`,
-  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_monotone`, and
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_monotone`,
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_add_two_ge_double`,
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_even_lower_bound`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 
 ## Current Gaps

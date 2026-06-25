@@ -35,6 +35,9 @@ Main results:
   and adjacent-monotone.
 - Theorem {lit}`FibHeap.fibLowerBound_monotone`: the lower-bound sequence is
   monotone for arbitrary indices.
+- Theorems {lit}`FibHeap.fibLowerBound_add_two_ge_double` and
+  {lit}`FibHeap.fibLowerBound_even_lower_bound`: the lower-bound sequence has
+  the first exponential-growth bridge needed by the future degree proof.
 - Theorem {lit}`FibHeap.degree_bound_log`: the first-pass maximum-degree
   wrapper is bounded by its conservative key-count budget.
 
@@ -344,6 +347,31 @@ theorem fibLowerBound_monotone {a b : Nat} (hab : a <= b) :
       rfl
   | step hab ih =>
       exact Nat.le_trans ih (fibLowerBound_le_succ _)
+
+/-- Fibonacci-style lower-bound entries at least double every two degree levels. -/
+theorem fibLowerBound_add_two_ge_double (d : Nat) :
+    2 * fibLowerBound d <= fibLowerBound (d + 2) := by
+  rw [fibLowerBound_step]
+  have hmono : fibLowerBound d <= fibLowerBound (d + 1) :=
+    fibLowerBound_le_succ d
+  omega
+
+/-- Even-indexed Fibonacci-style lower-bound entries dominate powers of two. -/
+theorem fibLowerBound_even_lower_bound (k : Nat) :
+    2 ^ k <= fibLowerBound (2 * k) := by
+  induction k with
+  | zero =>
+      simp [fibLowerBound]
+  | succ k ih =>
+      calc
+        2 ^ (k + 1) = 2 ^ k * 2 := by
+          rw [pow_succ]
+        _ = 2 * 2 ^ k := by
+          rw [Nat.mul_comm]
+        _ <= 2 * fibLowerBound (2 * k) := Nat.mul_le_mul_left 2 ih
+        _ <= fibLowerBound (2 * (k + 1)) := by
+          simpa [Nat.mul_add, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+            using fibLowerBound_add_two_ge_double (2 * k)
 
 /-- Conservative first-pass maximum-degree proxy. -/
 def maxDegree (h : FibHeap) : Nat :=

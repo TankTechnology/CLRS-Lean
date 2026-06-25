@@ -104,8 +104,8 @@ Start with the chapter pages in the sidebar.
   make-heap, operation-level correctness, direct
   insert/union/extract-min/decrease-key/delete membership facts, heap potential
   zero/nonnegativity and telescoping facts, a Fibonacci lower-bound recurrence
-  with positivity and monotonicity facts, and a conservative degree-bound
-  wrapper.
+  with positivity, monotonicity, and even-index power-of-two growth facts, and
+  a conservative degree-bound wrapper.
 * Chapter 20 - van Emde Boas Trees: high/low universe decomposition with
   bounded recomposition facts and a finite-set specification layer for
   membership, extrema, successor,
@@ -476,7 +476,9 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_pos`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_le_succ`,
-  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_monotone`, and
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_monotone`,
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_add_two_ge_double`,
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_even_lower_bound`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 * 20.1-20.2 van Emde Boas trees: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter20.VEB.index_high_low`,
