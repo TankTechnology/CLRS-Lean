@@ -482,11 +482,14 @@ the in-place `PARTITION` loop.
   - `CLRS.Chapter08.countingSortBy_ordered`
   - `CLRS.Chapter08.countingSortBy_bucket_eq`
   - `CLRS.Chapter08.countingSortBy_mem_iff`
+  - `CLRS.Chapter08.countingSortBy_perm`
   - `CLRS.Chapter08.countingSortBy_correct`
 - Proof pattern: model counting sort as a stable scan over key buckets
   `0, 1, ..., maxKey`; prove each bucket contains exactly the input elements
   with that key, prove output keys are ordered by concatenating ordered buckets,
-  and package stability as equality of every equal-key subsequence.
+  package stability as equality of every equal-key subsequence, and derive
+  permutation preservation by comparing counts through each element's own
+  key-bucket.
 - Current gap: array-level count table, prefix sums, and linear-time cost are
   implementation refinements over this stable bucket theorem.
 
@@ -495,7 +498,8 @@ The theorem `CLRS.Chapter08.countingSortBy_bucket_eq` is deliberately stronger
 than membership preservation: for every key, filtering the output by that key
 returns exactly the same list as filtering the input by that key.  Thus equal
 keys keep their original relative order, which is the stability property used by
-radix sort.
+radix sort.  The theorem `CLRS.Chapter08.countingSortBy_perm` upgrades this
+from membership preservation to true multiset preservation.
 
 ### Section 8.3 - Radix sort
 
@@ -505,6 +509,7 @@ radix sort.
   - `CLRS.Chapter08.radixPass_orderedRel`
   - `CLRS.Chapter08.radixSortBy_ordered`
   - `CLRS.Chapter08.radixSortBy_mem_iff`
+  - `CLRS.Chapter08.radixSortBy_perm`
   - `CLRS.Chapter08.radixSortBy_correct`
 - Proof pattern: represent a radix key as a low-to-high list of digit
   functions; prove that one stable counting-sort pass upgrades a lower-priority
@@ -513,10 +518,10 @@ radix sort.
 - Current gap: concrete base-`b` digit extraction and numeric-key refinement are
   future strengthening targets.
 
-The theorem `CLRS.Chapter08.radixSortBy_correct` packages the two core facts:
+The theorem `CLRS.Chapter08.radixSortBy_correct` packages the core facts:
 the result is ordered by the induced most-significant-first lexicographic
-relation, and membership is preserved when all digit functions are bounded by
-the declared maximum digit.
+relation, membership is preserved when all digit functions are bounded by the
+declared maximum digit, and the output is a permutation of the input.
 
 ### Section 8.4 - Bucket sort
 

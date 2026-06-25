@@ -223,12 +223,14 @@ Start with the chapter pages in the sidebar.
 * 8.2 Counting sort: `proved` for the stable bucket specification.
   Public results: `CLRS.Chapter08.countingSortBy_ordered`,
   `CLRS.Chapter08.countingSortBy_bucket_eq`,
-  `CLRS.Chapter08.countingSortBy_mem_iff`, and
+  `CLRS.Chapter08.countingSortBy_mem_iff`,
+  `CLRS.Chapter08.countingSortBy_perm`, and
   `CLRS.Chapter08.countingSortBy_correct`.
 * 8.3 Radix sort: `proved` for the abstract stable digit-pass model.
   Public results: `CLRS.Chapter08.radixPass_orderedRel`,
   `CLRS.Chapter08.radixSortBy_ordered`,
-  `CLRS.Chapter08.radixSortBy_mem_iff`, and
+  `CLRS.Chapter08.radixSortBy_mem_iff`,
+  `CLRS.Chapter08.radixSortBy_perm`, and
   `CLRS.Chapter08.radixSortBy_correct`.
 * 8.4 Bucket sort: `future-work`.
   Planned target: deterministic bucket-sort correctness plus the probabilistic

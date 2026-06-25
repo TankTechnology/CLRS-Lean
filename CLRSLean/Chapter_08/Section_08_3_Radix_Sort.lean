@@ -189,15 +189,44 @@ theorem radixSortBy_mem_iff
       have htail := ih (countingSortBy maxDigit digit xs) hrest x
       exact htail.trans (hpass_mem x)
 
+theorem radixSortBy_perm [DecidableEq α]
+    (maxDigit : Nat) :
+    ∀ (digitsLow : List (α → Nat)) (xs : List α),
+      AllDigitsLe digitsLow xs maxDigit →
+      (radixSortBy maxDigit digitsLow xs).Perm xs := by
+  intro digitsLow
+  induction digitsLow with
+  | nil =>
+      intro xs _
+      simp [radixSortBy]
+  | cons digit digits ih =>
+      intro xs hdigits
+      have hdigit : AllKeysLe digit xs maxDigit :=
+        hdigits digit (by simp)
+      have hpass_perm : (countingSortBy maxDigit digit xs).Perm xs :=
+        countingSortBy_perm maxDigit digit xs hdigit
+      have hpass_mem :
+          ∀ y, y ∈ countingSortBy maxDigit digit xs ↔ y ∈ xs := by
+        intro y
+        exact hpass_perm.mem_iff
+      have hrest : AllDigitsLe digits
+          (countingSortBy maxDigit digit xs) maxDigit := by
+        refine allDigitsLe_of_mem_iff ?_ hpass_mem
+        intro d hd
+        exact hdigits d (by simp [hd])
+      exact (ih (countingSortBy maxDigit digit xs) hrest).trans hpass_perm
+
 /-- Reader-facing correctness theorem for abstract radix sort. -/
-theorem radixSortBy_correct
+theorem radixSortBy_correct [DecidableEq α]
     (maxDigit : Nat) (digitsLow : List (α → Nat)) (xs : List α)
     (hdigits : AllDigitsLe digitsLow xs maxDigit) :
     OrderedRel (RadixLex digitsLow)
         (radixSortBy maxDigit digitsLow xs) ∧
-      (∀ x, x ∈ radixSortBy maxDigit digitsLow xs ↔ x ∈ xs) :=
+      (∀ x, x ∈ radixSortBy maxDigit digitsLow xs ↔ x ∈ xs) ∧
+      (radixSortBy maxDigit digitsLow xs).Perm xs :=
   ⟨radixSortBy_ordered maxDigit digitsLow xs,
-    radixSortBy_mem_iff maxDigit digitsLow xs hdigits⟩
+    radixSortBy_mem_iff maxDigit digitsLow xs hdigits,
+    radixSortBy_perm maxDigit digitsLow xs hdigits⟩
 
 end Chapter08
 end CLRS

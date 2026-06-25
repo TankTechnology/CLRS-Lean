@@ -20,8 +20,10 @@ The theorem layer proves:
   output is exactly the corresponding input bucket, preserving equal-key order.
 - `CLRS.Chapter08.countingSortBy_mem_iff`: membership is preserved when input
   keys are bounded by the declared maximum.
+- `CLRS.Chapter08.countingSortBy_perm`: the output is a permutation of the
+  input, so duplicates are preserved with their multiplicities.
 - `CLRS.Chapter08.countingSortBy_correct`: the reader-facing conjunction of
-  sortedness, stability, and membership preservation.
+  sortedness, stability, membership preservation, and permutation preservation.
 
 ## Section 8.3 - Radix sort
 
@@ -42,8 +44,10 @@ The theorem layer proves:
   by the induced radix lexicographic relation.
 - `CLRS.Chapter08.radixSortBy_mem_iff`: membership is preserved when all digit
   functions are bounded by the declared maximum digit.
+- `CLRS.Chapter08.radixSortBy_perm`: repeated stable digit passes preserve the
+  input as a permutation.
 - `CLRS.Chapter08.radixSortBy_correct`: the reader-facing conjunction of
-  lexicographic ordering and membership preservation.
+  lexicographic ordering, membership preservation, and permutation preservation.
 
 ## Hard Follow-Up Work
 

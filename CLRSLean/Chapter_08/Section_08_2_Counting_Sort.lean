@@ -131,6 +131,11 @@ theorem bucket_orderedBy (key : α → Nat) (xs : List α) (k : Nat) :
     OrderedBy key (bucket key xs k) :=
   orderedBy_of_all_keys_eq (bucket_all_keys_eq key xs k)
 
+theorem count_bucket_self [DecidableEq α]
+    (key : α → Nat) (xs : List α) (x : α) :
+    List.count x (bucket key xs (key x)) = List.count x xs := by
+  simp [bucket]
+
 /-- Filtering a bucket by a second key keeps it only when the keys agree. -/
 theorem bucket_bucket_eq (key : α → Nat) (xs : List α) (j k : Nat) :
     bucket key (bucket key xs j) k =
@@ -271,16 +276,35 @@ theorem countingSortBy_mem_iff
       simpa [hbucket] using hx_bucket_input
     exact (mem_bucket_iff.mp hx_bucket_output).1
 
+theorem countingSortBy_perm [DecidableEq α]
+    (maxKey : Nat) (key : α → Nat) (xs : List α)
+    (hxs : AllKeysLe key xs maxKey) :
+    (countingSortBy maxKey key xs).Perm xs := by
+  classical
+  apply List.perm_iff_count.mpr
+  intro x
+  have hbucket := countingSortBy_bucket_eq maxKey key xs hxs (key x)
+  calc
+    List.count x (countingSortBy maxKey key xs)
+        = List.count x (bucket key (countingSortBy maxKey key xs) (key x)) := by
+            rw [count_bucket_self]
+    _ = List.count x (bucket key xs (key x)) := by
+            rw [hbucket]
+    _ = List.count x xs := by
+            rw [count_bucket_self]
+
 /-- Reader-facing correctness theorem for stable counting sort. -/
-theorem countingSortBy_correct
+theorem countingSortBy_correct [DecidableEq α]
     (maxKey : Nat) (key : α → Nat) (xs : List α)
     (hxs : AllKeysLe key xs maxKey) :
     OrderedBy key (countingSortBy maxKey key xs) ∧
       (∀ k, bucket key (countingSortBy maxKey key xs) k = bucket key xs k) ∧
-      (∀ x, x ∈ countingSortBy maxKey key xs ↔ x ∈ xs) :=
+      (∀ x, x ∈ countingSortBy maxKey key xs ↔ x ∈ xs) ∧
+      (countingSortBy maxKey key xs).Perm xs :=
   ⟨countingSortBy_ordered maxKey key xs,
     countingSortBy_bucket_eq maxKey key xs hxs,
-    countingSortBy_mem_iff maxKey key xs hxs⟩
+    countingSortBy_mem_iff maxKey key xs hxs,
+    countingSortBy_perm maxKey key xs hxs⟩
 
 end Chapter08
 end CLRS

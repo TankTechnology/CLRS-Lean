@@ -233,12 +233,14 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
 * 8.2 Counting sort, stable bucket specification:
   {lit}`CLRS.Chapter08.countingSortBy_ordered`,
   {lit}`CLRS.Chapter08.countingSortBy_bucket_eq`,
-  {lit}`CLRS.Chapter08.countingSortBy_mem_iff`, and
+  {lit}`CLRS.Chapter08.countingSortBy_mem_iff`,
+  {lit}`CLRS.Chapter08.countingSortBy_perm`, and
   {lit}`CLRS.Chapter08.countingSortBy_correct`.
 * 8.3 Radix sort, abstract stable digit-pass model:
   {lit}`CLRS.Chapter08.radixPass_orderedRel`,
   {lit}`CLRS.Chapter08.radixSortBy_ordered`,
-  {lit}`CLRS.Chapter08.radixSortBy_mem_iff`, and
+  {lit}`CLRS.Chapter08.radixSortBy_mem_iff`,
+  {lit}`CLRS.Chapter08.radixSortBy_perm`, and
   {lit}`CLRS.Chapter08.radixSortBy_correct`.
 * 9.2 Selection by rank, specification selector:
   {lit}`CLRS.Chapter09.sortedCopy_perm`,

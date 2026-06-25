@@ -193,11 +193,13 @@ permutations and a cost recurrence or indicator-variable proof.
 Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
 `CLRS.Chapter08.countingSortBy_bucket_eq` proves exact preservation of every
-equal-key subsequence, and `CLRS.Chapter08.countingSortBy_correct` packages the
+equal-key subsequence, `CLRS.Chapter08.countingSortBy_perm` proves multiset
+preservation, and `CLRS.Chapter08.countingSortBy_correct` packages the
 reader-facing correctness theorem.  Section 8.3 proves abstract radix-sort
 correctness: `CLRS.Chapter08.radixPass_orderedRel` is the stable digit-pass
-lemma, and `CLRS.Chapter08.radixSortBy_correct` packages lexicographic ordering
-plus membership preservation.
+lemma, `CLRS.Chapter08.radixSortBy_perm` proves repeated passes preserve the
+input as a permutation, and `CLRS.Chapter08.radixSortBy_correct` packages
+lexicographic ordering plus membership and permutation preservation.
 
 The remaining CLRS refinements split into three tracks.  The array-level
 `COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
