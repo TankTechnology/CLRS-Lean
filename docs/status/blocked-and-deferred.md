@@ -184,20 +184,24 @@ permutations and a cost recurrence or indicator-variable proof.
 
 - Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
   sort
-- Status: `future-work` for count-array and radix correctness;
+- Status: `future-work` for count-array and numeric-digit refinements;
   `blocked-design` for bucket-sort expected-time analysis
 
-Section 8.2 now proves the stable bucket specification for counting sort:
+Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
 `CLRS.Chapter08.countingSortBy_bucket_eq` proves exact preservation of every
 equal-key subsequence, and `CLRS.Chapter08.countingSortBy_correct` packages the
-reader-facing correctness theorem.
+reader-facing correctness theorem.  Section 8.3 proves abstract radix-sort
+correctness: `CLRS.Chapter08.radixPass_orderedRel` is the stable digit-pass
+lemma, and `CLRS.Chapter08.radixSortBy_correct` packages lexicographic ordering
+plus membership preservation.
 
 The remaining CLRS refinements split into three tracks.  The array-level
 `COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
-bucket specification.  Radix sort should reuse the stable bucket theorem for
-digit passes.  Bucket-sort expected time needs a probability model for the
-input distribution, so it is a design-level proof task rather than a small
+bucket specification.  Radix sort still needs a concrete base-`b` digit
+extraction refinement from natural-number keys to the abstract digit-function
+interface.  Bucket-sort expected time needs a probability model for the input
+distribution, so it is a design-level proof task rather than a small
 deterministic lemma.
 
 ### Pointer-Level Linked Lists

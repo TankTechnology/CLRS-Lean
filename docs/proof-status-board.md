@@ -24,7 +24,7 @@ advertised on the site is proved.
 | Chapter 5, Section 5.1 | The hiring-problem probability and expected-hires harmonic/logarithmic results are proved for the finite rank-symmetry model. | Random-permutation execution model is optional refinement. |
 | Chapter 6, Sections 6.1-6.5 | The array heap layer, fuelled recursive `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort sorted-suffix invariant, top-level heapsort correctness, and array-level priority-queue state theorems are proved. | Line-by-line RAM cost model. |
 | Chapter 7, Section 7.1 | Stable functional partition correctness and functional quicksort sortedness/permutation preservation are proved. | In-place `PARTITION`, deterministic recurrence analysis, randomized quicksort, and expected-time analysis. |
-| Chapter 8, Section 8.2 | Stable counting-sort bucket correctness is proved: output is ordered by key, each key bucket is preserved exactly, and membership is preserved under a maximum-key bound. | Array count table/prefix-sum refinement, radix sort, bucket sort, and cost/probability analysis. |
+| Chapter 8, Sections 8.2-8.3 | Stable counting-sort bucket correctness and abstract radix-sort correctness from stable digit passes are proved. | Array count table/prefix-sum refinement, concrete base-`b` digit extraction, bucket sort, and cost/probability analysis. |
 | Chapter 10, Sections 10.1-10.2 | Functional stack/queue and functional linked-list operation specifications are proved. | Pointer-level memory, sentinels, allocation, and free lists. |
 | Chapter 11, Section 11.1 | Direct-address table insert/search/delete behavior is proved. | Bounded-array and cost refinement. |
 | Chapter 16, Sections 16.1 and 16.3 | Activity selection has a recursive greedy optimality theorem, and Huffman V2 has frequency-table optimality and minimum-cost wrappers. | Additional Chapter 16 topics can reuse the exchange/certificate pattern. |
@@ -53,7 +53,7 @@ section file yet or only enough scaffolding to identify the intended theorem.
 | --- | --- |
 | Chapter 4, Section 4.6 | Full proof of the Master Theorem over all natural input sizes. |
 | Chapter 7, Sections 7.2-7.4 | In-place partition, deterministic performance recurrence, randomized quicksort, and expected-time theorem. |
-| Chapter 8, Sections 8.3-8.4 | Radix sort and bucket sort theorem interfaces and proofs have not been added yet. |
+| Chapter 8, Section 8.4 | Bucket sort theorem interface and proof have not been added yet. |
 | Chapter 9 | Linear-time selection and order-statistics algorithms are not yet represented in the current Lean tree. |
 | Chapter 11, expected hashing analysis | Expected-time theorem for chained hashing under a formal probability model. |
 | Chapter 12 pointer-level BST layer | CLRS parent-pointer search/min/max/successor/predecessor/transplant/delete refinement. |
@@ -67,6 +67,6 @@ section file yet or only enough scaffolding to identify the intended theorem.
 When choosing the next task, prefer the highest-value item in the second bucket
 over repeatedly polishing a completed first-bucket section.  Chapter 6 should
 now receive only audit, documentation, or RAM-cost refinement unless a concrete
-gap is found.  The next proof-heavy targets are Chapter 8 radix sort, Chapter 9
-selection correctness, Chapter 4 all-input recurrence bridging, and Chapter 23
+gap is found.  The next proof-heavy targets are Chapter 9 selection
+correctness, Chapter 4 all-input recurrence bridging, and Chapter 23
 exchange-path automation.

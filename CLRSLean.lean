@@ -59,8 +59,8 @@ Start with the chapter pages in the sidebar.
   priority-queue operation specifications.
 * Chapter 7 - Quicksort: stable functional partition correctness and
   functional quicksort sortedness/permutation preservation.
-* Chapter 8 - Sorting in Linear Time: stable counting-sort bucket correctness,
-  including sortedness by key and stable preservation of each key bucket.
+* Chapter 8 - Sorting in Linear Time: stable counting-sort bucket correctness
+  and abstract radix-sort correctness from stable digit passes.
 * Chapter 10 - Elementary Data Structures: functional stack, queue, and
   linked-list operation proofs.
 * Chapter 11 - Hash Tables: direct-address table correctness and deterministic
@@ -219,9 +219,14 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter08.countingSortBy_bucket_eq`,
   `CLRS.Chapter08.countingSortBy_mem_iff`, and
   `CLRS.Chapter08.countingSortBy_correct`.
-* 8.3-8.4 Radix sort and bucket sort: `future-work`.
-  Planned targets: radix-sort correctness via stable digit passes, and bucket
-  sort correctness plus its probabilistic expected-time model.
+* 8.3 Radix sort: `proved` for the abstract stable digit-pass model.
+  Public results: `CLRS.Chapter08.radixPass_orderedRel`,
+  `CLRS.Chapter08.radixSortBy_ordered`,
+  `CLRS.Chapter08.radixSortBy_mem_iff`, and
+  `CLRS.Chapter08.radixSortBy_correct`.
+* 8.4 Bucket sort: `future-work`.
+  Planned target: deterministic bucket-sort correctness plus the probabilistic
+  expected-time model.
 * 10.1 Stacks and queues: `proved` for the functional-list model.
   Public results: `CLRS.Chapter10.pop_push`,
   `CLRS.Chapter10.dequeue_enqueue_nonempty`.

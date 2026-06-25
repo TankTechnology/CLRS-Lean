@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort
+import CLRSLean.Chapter_08.Section_08_3_Radix_Sort
 
 /-!
 # Chapter 8 - Sorting in Linear Time
@@ -14,11 +15,17 @@ sorting primitives before cost models.
   {lit}`CLRS.Chapter08.countingSortBy_bucket_eq`,
   {lit}`CLRS.Chapter08.countingSortBy_mem_iff`, and
   {lit}`CLRS.Chapter08.countingSortBy_correct`.
+* 8.3 Radix sort: {lit}`proved` for an abstract stable digit-pass model.
+  Main results:
+  {lit}`CLRS.Chapter08.radixPass_orderedRel`,
+  {lit}`CLRS.Chapter08.radixSortBy_ordered`,
+  {lit}`CLRS.Chapter08.radixSortBy_mem_iff`, and
+  {lit}`CLRS.Chapter08.radixSortBy_correct`.
 
 ## Current Gaps
 
 * Array-level count table and prefix-sum implementation of {lit}`COUNTING-SORT`.
-* 8.3 Radix sort, using stable counting sort as a subroutine.
+* Concrete base-{lit}`b` digit extraction and numeric-key refinement for radix sort.
 * 8.4 Bucket sort and probabilistic expected-time analysis.
 -/
 

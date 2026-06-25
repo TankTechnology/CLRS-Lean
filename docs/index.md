@@ -26,6 +26,7 @@ CLRSLean/Chapter_06/Section_06_4_Heapsort.lean
 CLRSLean/Chapter_06/Section_06_5_Priority_Queues.lean
 CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean
+CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
 CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean
 CLRSLean/Chapter_10/Section_10_2_Linked_Lists.lean
 CLRSLean/Chapter_11/Section_11_1_Direct_Address_Tables.lean
@@ -58,6 +59,7 @@ In prose and on the future website, these appear as:
 - Section 6.5 - Priority queues
 - Section 7.1 - Description of quicksort
 - Section 8.2 - Counting sort
+- Section 8.3 - Radix sort
 - Section 10.1 - Stacks and queues
 - Section 10.2 - Linked lists
 - Section 11.1 - Direct-address tables
@@ -95,6 +97,7 @@ should remain import-friendly.
 | Section 6.5 - Priority queues | `CLRSLean/Chapter_06/Section_06_5_Priority_Queues.lean` | `proved` for the functional heap interface plus array maximum/full fuelled increase-key/extract-max/delete | `CLRS.Chapter06.heapInsert_orderedDesc`, `CLRS.Chapter06.heapIncreaseKey_orderedDesc`, `CLRS.Chapter06.heapDelete_orderedDesc`, `CLRS.Chapter06.arrayHeapMaximum?_max`, `CLRS.Chapter06.ArrayMaxHeap.set_increased_except_up`, `CLRS.Chapter06.ArrayMaxHeapExceptUp.bubble_step`, `CLRS.Chapter06.ArrayMaxHeapExceptUp.bubbleUpFuel_global`, `CLRS.Chapter06.arrayHeapIncreaseKey?_state_correct`, `CLRS.Chapter06.arrayHeapIncreaseKeyNoBubble?_state_correct`, `CLRS.Chapter06.arrayHeapExtractMax?_state_correct`, `CLRS.Chapter06.arrayHeapDelete?_state_correct` |
 | Section 7.1 - Description of quicksort | `CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean` | `proved` for the functional-list model | `CLRS.Chapter07.partitionAround_perm`, `CLRS.Chapter07.partitionAround_left_allLeUpper`, `CLRS.Chapter07.partitionAround_right_allGt`, `CLRS.Chapter07.quickSort_perm`, `CLRS.Chapter07.quickSort_ordered`, `CLRS.Chapter07.quickSort_correct` |
 | Section 8.2 - Counting sort | `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean` | `proved` for the stable bucket specification | `CLRS.Chapter08.countingSortBy_ordered`, `CLRS.Chapter08.countingSortBy_bucket_eq`, `CLRS.Chapter08.countingSortBy_mem_iff`, `CLRS.Chapter08.countingSortBy_correct` |
+| Section 8.3 - Radix sort | `CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean` | `proved` for the abstract stable digit-pass model | `CLRS.Chapter08.radixPass_orderedRel`, `CLRS.Chapter08.radixSortBy_ordered`, `CLRS.Chapter08.radixSortBy_mem_iff`, `CLRS.Chapter08.radixSortBy_correct` |
 | Section 10.1 - Stacks and queues | `CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean` | `proved` | `CLRS.Chapter10.pop_push`, `CLRS.Chapter10.dequeue_enqueue_nonempty` |
 | Section 10.2 - Linked lists | `CLRSLean/Chapter_10/Section_10_2_Linked_Lists.lean` | `proved` | `CLRS.Chapter10.listSearch_sound`, `CLRS.Chapter10.mem_listDeleteAll_iff` |
 | Section 11.1 - Direct-address tables | `CLRSLean/Chapter_11/Section_11_1_Direct_Address_Tables.lean` | `proved` | `CLRS.Chapter11.search_insert_same`, `CLRS.Chapter11.search_delete_same` |

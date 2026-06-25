@@ -491,18 +491,37 @@ returns exactly the same list as filtering the input by that key.  Thus equal
 keys keep their original relative order, which is the stability property used by
 radix sort.
 
-### Sections 8.3-8.4 - Radix sort and bucket sort
+### Section 8.3 - Radix sort
+
+- Lean source: `CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean`
+- Status: `proved` for the abstract stable digit-pass model
+- Main proved theorems:
+  - `CLRS.Chapter08.radixPass_orderedRel`
+  - `CLRS.Chapter08.radixSortBy_ordered`
+  - `CLRS.Chapter08.radixSortBy_mem_iff`
+  - `CLRS.Chapter08.radixSortBy_correct`
+- Proof pattern: represent a radix key as a low-to-high list of digit
+  functions; prove that one stable counting-sort pass upgrades a lower-priority
+  relation to a higher-priority lexicographic relation; then iterate the lemma
+  over the digit list.
+- Current gap: concrete base-`b` digit extraction and numeric-key refinement are
+  future strengthening targets.
+
+The theorem `CLRS.Chapter08.radixSortBy_correct` packages the two core facts:
+the result is ordered by the induced most-significant-first lexicographic
+relation, and membership is preserved when all digit functions are bounded by
+the declared maximum digit.
+
+### Section 8.4 - Bucket sort
 
 - Lean source: not yet created
 - Status: `future-work`
 - Planned theorem targets:
-  - radix-sort correctness from repeated stable counting-sort passes over
-    digits;
-  - bucket-sort correctness for ordered buckets;
+  - deterministic bucket-sort correctness for ordered buckets;
   - expected-time bucket-sort analysis under a probability model.
-- Difficulty note: radix sort should be medium difficulty now that stable
-  counting sort is available; bucket-sort expected time is a blocked-design
-  item because it needs a probability distribution over inputs.
+- Difficulty note: deterministic correctness should be moderate; expected time
+  is a blocked-design item because it needs a probability distribution over
+  inputs.
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -795,7 +814,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 7 in-place partition | `future-work` | Functional partition and quicksort correctness are proved; the next refinement is the CLRS array `PARTITION` loop invariant and its connection to the stable partition specification. |
 | Chapter 7 randomized expected time | `blocked-design` | Needs a probability model for random pivots or random permutations and a cost recurrence/indicator argument. |
 | Chapter 8 count-array implementation | `future-work` | Stable bucket correctness is proved; the next refinement is an array count table and prefix-sum implementation of `COUNTING-SORT` connected to `countingSortBy`. |
-| Chapter 8 radix sort | `future-work` | Stable counting sort is proved; radix-sort correctness should use it as a digit-pass theorem. |
+| Chapter 8 radix numeric-key refinement | `future-work` | Abstract radix-sort correctness is proved for digit functions; a concrete base-`b` natural-number digit extractor can refine that interface. |
 | Chapter 8 bucket-sort expected time | `blocked-design` | Bucket-sort correctness can be stated deterministically, but expected-time analysis needs a probability model for input distribution. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
