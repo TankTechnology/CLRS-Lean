@@ -1,0 +1,20 @@
+import CLRSLean.Chapter_20.Section_20_1_VEB_Universe
+import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
+
+#check CLRS.Chapter20.VEB.high
+#check CLRS.Chapter20.VEB.low
+#check CLRS.Chapter20.VEB.index
+#check CLRS.Chapter20.VEB.index_high_low
+#check CLRS.Chapter20.VEB.high_lt
+#check CLRS.Chapter20.VEB.low_lt
+#check CLRS.Chapter20.VEB.Tree
+#check CLRS.Chapter20.VEB.Represents
+#check CLRS.Chapter20.VEB.member
+#check CLRS.Chapter20.VEB.member_correct
+#check CLRS.Chapter20.VEB.minimum_correct
+#check CLRS.Chapter20.VEB.maximum_correct
+#check CLRS.Chapter20.VEB.successor_correct
+#check CLRS.Chapter20.VEB.insert_correct
+#check CLRS.Chapter20.VEB.delete_correct
+#check CLRS.Chapter20.VEB.operationDepth
+#check CLRS.Chapter20.VEB.operationDepth_linear
