@@ -5,6 +5,7 @@ import CLRSLean.Chapter_04
 import CLRSLean.Chapter_05
 import CLRSLean.Chapter_06
 import CLRSLean.Chapter_07
+import CLRSLean.Chapter_08
 import CLRSLean.Chapter_10
 import CLRSLean.Chapter_11
 import CLRSLean.Chapter_12
@@ -58,6 +59,8 @@ Start with the chapter pages in the sidebar.
   priority-queue operation specifications.
 * Chapter 7 - Quicksort: stable functional partition correctness and
   functional quicksort sortedness/permutation preservation.
+* Chapter 8 - Sorting in Linear Time: stable counting-sort bucket correctness,
+  including sortedness by key and stable preservation of each key bucket.
 * Chapter 10 - Elementary Data Structures: functional stack, queue, and
   linked-list operation proofs.
 * Chapter 11 - Hash Tables: direct-address table correctness and deterministic
@@ -211,6 +214,14 @@ Start with the chapter pages in the sidebar.
 * 7.2-7.4 Quicksort performance and randomized quicksort: `future-work`.
   Planned targets: in-place `PARTITION`, deterministic recurrence analysis,
   randomized quicksort, and expected running time.
+* 8.2 Counting sort: `proved` for the stable bucket specification.
+  Public results: `CLRS.Chapter08.countingSortBy_ordered`,
+  `CLRS.Chapter08.countingSortBy_bucket_eq`,
+  `CLRS.Chapter08.countingSortBy_mem_iff`, and
+  `CLRS.Chapter08.countingSortBy_correct`.
+* 8.3-8.4 Radix sort and bucket sort: `future-work`.
+  Planned targets: radix-sort correctness via stable digit passes, and bucket
+  sort correctness plus its probabilistic expected-time model.
 * 10.1 Stacks and queues: `proved` for the functional-list model.
   Public results: `CLRS.Chapter10.pop_push`,
   `CLRS.Chapter10.dequeue_enqueue_nonempty`.

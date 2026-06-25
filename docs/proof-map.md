@@ -466,6 +466,44 @@ the in-place `PARTITION` loop.
   because it requires a probability model for random pivots or random
   permutations plus a recurrence or indicator-variable cost argument.
 
+## Chapter 8 - Sorting in Linear Time
+
+### Section 8.2 - Counting sort
+
+- Lean source: `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean`
+- Status: `proved` for the stable bucket specification
+- Main proved theorems:
+  - `CLRS.Chapter08.countingSortBy_ordered`
+  - `CLRS.Chapter08.countingSortBy_bucket_eq`
+  - `CLRS.Chapter08.countingSortBy_mem_iff`
+  - `CLRS.Chapter08.countingSortBy_correct`
+- Proof pattern: model counting sort as a stable scan over key buckets
+  `0, 1, ..., maxKey`; prove each bucket contains exactly the input elements
+  with that key, prove output keys are ordered by concatenating ordered buckets,
+  and package stability as equality of every equal-key subsequence.
+- Current gap: array-level count table, prefix sums, and linear-time cost are
+  implementation refinements over this stable bucket theorem.
+
+This section proves the mathematical CLRS correctness spine for counting sort.
+The theorem `CLRS.Chapter08.countingSortBy_bucket_eq` is deliberately stronger
+than membership preservation: for every key, filtering the output by that key
+returns exactly the same list as filtering the input by that key.  Thus equal
+keys keep their original relative order, which is the stability property used by
+radix sort.
+
+### Sections 8.3-8.4 - Radix sort and bucket sort
+
+- Lean source: not yet created
+- Status: `future-work`
+- Planned theorem targets:
+  - radix-sort correctness from repeated stable counting-sort passes over
+    digits;
+  - bucket-sort correctness for ordered buckets;
+  - expected-time bucket-sort analysis under a probability model.
+- Difficulty note: radix sort should be medium difficulty now that stable
+  counting sort is available; bucket-sort expected time is a blocked-design
+  item because it needs a probability distribution over inputs.
+
 ## Chapter 10 - Elementary Data Structures
 
 ### Section 10.1 - Stacks and queues
@@ -756,6 +794,9 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 6 priority-queue RAM costs | `deferred-implementation` | Array heap predicates, localized heap predicates, `largest` lemmas, no-swap heapify repair, recursive fuelled `MAX-HEAPIFY` repair, bottom-up build-heap, in-place heapsort loop correctness, bundled heapsort state-correctness, swap preservation, array `HEAP-MAXIMUM`, full fuelled `HEAP-INCREASE-KEY`, array `HEAP-EXTRACT-MAX`, and index-based `HEAP-DELETE` state correctness are proved; RAM costs remain refinement targets. |
 | Chapter 7 in-place partition | `future-work` | Functional partition and quicksort correctness are proved; the next refinement is the CLRS array `PARTITION` loop invariant and its connection to the stable partition specification. |
 | Chapter 7 randomized expected time | `blocked-design` | Needs a probability model for random pivots or random permutations and a cost recurrence/indicator argument. |
+| Chapter 8 count-array implementation | `future-work` | Stable bucket correctness is proved; the next refinement is an array count table and prefix-sum implementation of `COUNTING-SORT` connected to `countingSortBy`. |
+| Chapter 8 radix sort | `future-work` | Stable counting sort is proved; radix-sort correctness should use it as a digit-pass theorem. |
+| Chapter 8 bucket-sort expected time | `blocked-design` | Bucket-sort correctness can be stated deterministically, but expected-time analysis needs a probability model for input distribution. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |

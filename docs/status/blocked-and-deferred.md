@@ -180,6 +180,26 @@ regions while preserving the backing-list permutation.  Randomized quicksort's
 expected running time needs a probability model for random pivots or random
 permutations and a cost recurrence or indicator-variable proof.
 
+### Chapter 8 Linear-Time Sorting Refinements
+
+- Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
+  sort
+- Status: `future-work` for count-array and radix correctness;
+  `blocked-design` for bucket-sort expected-time analysis
+
+Section 8.2 now proves the stable bucket specification for counting sort:
+`CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
+`CLRS.Chapter08.countingSortBy_bucket_eq` proves exact preservation of every
+equal-key subsequence, and `CLRS.Chapter08.countingSortBy_correct` packages the
+reader-facing correctness theorem.
+
+The remaining CLRS refinements split into three tracks.  The array-level
+`COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
+bucket specification.  Radix sort should reuse the stable bucket theorem for
+digit passes.  Bucket-sort expected time needs a probability model for the
+input distribution, so it is a design-level proof task rather than a small
+deterministic lemma.
+
 ### Pointer-Level Linked Lists
 
 - Related section: Section 10.2 - Linked lists

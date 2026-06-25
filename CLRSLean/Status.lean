@@ -47,6 +47,9 @@ which areas should not yet be counted as proof-complete.
   priority-queue state theorems are proved.
 * Chapter 7, Section 7.1: stable functional partition correctness and
   functional quicksort sortedness/permutation preservation are proved.
+* Chapter 8, Section 8.2: stable counting-sort bucket correctness is proved,
+  including ordered output, stable equal-key buckets, and membership
+  preservation under a maximum-key bound.
 * Chapter 10, Sections 10.1-10.2: functional stack, queue, and linked-list
   operation specifications are proved.
 * Chapter 11, Section 11.1: direct-address table insert/search/delete behavior
@@ -78,8 +81,8 @@ which areas should not yet be counted as proof-complete.
 * Chapter 4, Section 4.6: full Master Theorem over all natural input sizes.
 * Chapter 7, Sections 7.2-7.4: in-place partition, performance recurrence,
   randomized quicksort, and expected-time theorem.
-* Chapters 8-9: linear-time sorting and order-statistics chapters are not yet
-  represented.
+* Chapter 8, Sections 8.3-8.4: radix sort and bucket sort are not yet proved.
+* Chapter 9: order-statistics algorithms are not yet represented.
 * Chapter 11 expected hashing analysis: expected-time theorem under a formal
   probability model.
 * Chapter 12 pointer-level BST layer: CLRS parent-pointer procedures,
@@ -217,6 +220,11 @@ value item in the structured-but-incomplete bucket.
   {lit}`CLRS.Chapter07.quickSort_perm`,
   {lit}`CLRS.Chapter07.quickSort_ordered`, and
   {lit}`CLRS.Chapter07.quickSort_correct`.
+* 8.2 Counting sort, stable bucket specification:
+  {lit}`CLRS.Chapter08.countingSortBy_ordered`,
+  {lit}`CLRS.Chapter08.countingSortBy_bucket_eq`,
+  {lit}`CLRS.Chapter08.countingSortBy_mem_iff`, and
+  {lit}`CLRS.Chapter08.countingSortBy_correct`.
 * 2.1 Insertion sort:
   `CLRS.Chapter02.insertionSort_sorted`,
   `CLRS.Chapter02.insertionSort_perm`.
