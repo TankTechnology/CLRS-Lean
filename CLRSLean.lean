@@ -59,8 +59,9 @@ Start with the chapter pages in the sidebar.
   {lit}`BUILD-MAX-HEAP`, the in-place heapsort loop with a proved sorted-suffix
   invariant and sortedness theorem, an indexed array heap proof spine, and
   priority-queue operation specifications.
-* Chapter 7 - Quicksort: stable functional partition classification and
-  functional quicksort sortedness/permutation preservation.
+* Chapter 7 - Quicksort: stable functional partition classification,
+  scan-state partition-loop correctness, and functional quicksort
+  sortedness/permutation preservation.
 * Chapter 8 - Sorting in Linear Time: stable counting-sort bucket correctness,
   abstract radix-sort correctness from stable digit passes, and deterministic
   bucket-sort correctness.
@@ -218,7 +219,8 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter06.arrayHeapIncreaseKeyNoBubble?_state_correct`,
   `CLRS.Chapter06.arrayHeapExtractMax?_state_correct`,
   `CLRS.Chapter06.arrayHeapDelete?_state_correct`.
-* 7.1 Description of quicksort: `proved` for the functional-list model.
+* 7.1 Description of quicksort: `proved` for the functional-list model and
+  scan-state partition loop.
   Public results: `CLRS.Chapter07.partitionAround_left_eq_filter`,
   `CLRS.Chapter07.partitionAround_right_eq_filter`,
   `CLRS.Chapter07.mem_partitionAround_left_iff`,
@@ -227,11 +229,14 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter07.partitionAround_perm`,
   `CLRS.Chapter07.partitionAround_left_allLeUpper`,
   `CLRS.Chapter07.partitionAround_right_allGt`,
+  `CLRS.Chapter07.partitionLoop_invariant`,
+  `CLRS.Chapter07.partitionLoop_correct`,
+  `CLRS.Chapter07.clrsPartition_correct`,
   `CLRS.Chapter07.quickSort_perm`, `CLRS.Chapter07.quickSort_ordered`,
   `CLRS.Chapter07.quickSort_correct`.
 * 7.2-7.4 Quicksort performance and randomized quicksort: `future-work`.
-  Planned targets: in-place `PARTITION`, deterministic recurrence analysis,
-  randomized quicksort, and expected running time.
+  Planned targets: mutable-array `PARTITION`, deterministic recurrence
+  analysis, randomized quicksort, and expected running time.
 * 8.2 Counting sort: `proved` for the stable bucket specification.
   Public results: `CLRS.Chapter08.countingSortBy_ordered`,
   `CLRS.Chapter08.countingSortBy_bucket_eq`,

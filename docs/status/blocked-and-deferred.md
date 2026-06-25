@@ -166,24 +166,27 @@ The power-of-two recurrence is proved.  The arbitrary-size recurrence
 floor/ceiling arithmetic, monotonicity, and a clean asymptotic theorem for all
 input sizes.
 
-### Quicksort In-Place Partition And Randomized Analysis
+### Quicksort Mutable-Array Partition And Randomized Analysis
 
 - Related sections: Sections 7.2-7.4 - Quicksort performance and randomized
   quicksort
-- Status: `future-work` for in-place partition; `blocked-design` for expected
-  randomized analysis
+- Status: `future-work` for mutable-array partition refinement;
+  `blocked-design` for expected randomized analysis
 
 Section 7.1 proves the functional partition/quicksort correctness spine:
 `CLRS.Chapter07.partitionAround_correct` proves stable-filter partition
-classification plus permutation preservation, and
+classification plus permutation preservation,
+`CLRS.Chapter07.partitionLoop_correct` proves a scan-state partition-loop
+invariant and connects it to the stable partition specification, and
 `CLRS.Chapter07.quickSort_correct` packages sortedness plus permutation
 preservation for the functional quicksort model.
 
-The remaining CLRS refinements are harder.  The in-place `PARTITION` proof
-needs an array segment invariant that tracks the less/equal and greater
-regions while preserving the backing-list permutation.  Randomized quicksort's
-expected running time needs a probability model for random pivots or random
-permutations and a cost recurrence or indicator-variable proof.
+The remaining CLRS refinements are harder.  The mutable-array `PARTITION` proof
+needs a swap model, a returned pivot index, and an array segment invariant that
+tracks the less/equal and greater regions while preserving the backing-list
+permutation.  Randomized quicksort's expected running time needs a probability
+model for random pivots or random permutations and a cost recurrence or
+indicator-variable proof.
 
 ### Chapter 8 Linear-Time Sorting Refinements
 

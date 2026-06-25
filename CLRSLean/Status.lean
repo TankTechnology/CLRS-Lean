@@ -46,8 +46,9 @@ which areas should not yet be counted as proof-complete.
   {lit}`MAX-HEAPIFY`, bottom-up {lit}`BUILD-MAX-HEAP`, in-place heapsort
   sorted-suffix invariant, top-level heapsort correctness, and array-level
   priority-queue state theorems are proved.
-* Chapter 7, Section 7.1: stable functional partition classification and
-  functional quicksort sortedness/permutation preservation are proved.
+* Chapter 7, Section 7.1: stable functional partition classification,
+  scan-state partition-loop correctness, and functional quicksort
+  sortedness/permutation preservation are proved.
 * Chapter 8, Sections 8.2-8.4: stable counting-sort bucket correctness,
   abstract radix-sort correctness from stable digit passes, and deterministic
   bucket-sort correctness are proved.
@@ -86,8 +87,8 @@ which areas should not yet be counted as proof-complete.
 
 * Chapter 4 full Master-theorem instantiation: discharge the all-input transfer
   bridge's power-sandwich hypotheses for floor/ceiling recurrences.
-* Chapter 7, Sections 7.2-7.4: in-place partition, performance recurrence,
-  randomized quicksort, and expected-time theorem.
+* Chapter 7, Sections 7.2-7.4: mutable-array partition refinement,
+  performance recurrence, randomized quicksort, and expected-time theorem.
 * Chapter 9 linear-time SELECT refinements: pivot-parametric deterministic
   SELECT is proved; randomized expected time and the CLRS median-of-medians
   split-size/runtime theorem remain.
@@ -230,7 +231,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter06.arrayHeapIncreaseKeyNoBubble?_state_correct`,
   {lit}`CLRS.Chapter06.arrayHeapExtractMax?_state_correct`, and
   {lit}`CLRS.Chapter06.arrayHeapDelete?_state_correct`.
-* 7.1 Description of quicksort, functional-list model:
+* 7.1 Description of quicksort, functional-list and scan-state loop model:
   {lit}`CLRS.Chapter07.partitionAround_left_eq_filter`,
   {lit}`CLRS.Chapter07.partitionAround_right_eq_filter`,
   {lit}`CLRS.Chapter07.mem_partitionAround_left_iff`,
@@ -239,6 +240,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter07.partitionAround_perm`,
   {lit}`CLRS.Chapter07.partitionAround_left_allLeUpper`,
   {lit}`CLRS.Chapter07.partitionAround_right_allGt`,
+  {lit}`CLRS.Chapter07.partitionLoop_invariant`,
+  {lit}`CLRS.Chapter07.partitionLoop_correct`,
+  {lit}`CLRS.Chapter07.clrsPartition_correct`,
   {lit}`CLRS.Chapter07.quickSort_perm`,
   {lit}`CLRS.Chapter07.quickSort_ordered`, and
   {lit}`CLRS.Chapter07.quickSort_correct`.
@@ -455,10 +459,11 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`HEAP-INCREASE-KEY`, {lit}`HEAP-EXTRACT-MAX`, and index-based
   {lit}`HEAP-DELETE` state correctness are also proved.  The remaining
   implementation layer is the line-by-line RAM-cost model.
-* Chapter 7 in-place partition and randomized analysis: `future-work`.
+* Chapter 7 mutable-array partition and randomized analysis: `future-work`.
   Reason: Section 7.1 now proves the pure partition/quicksort correctness
-  spine; the harder refinements are the CLRS array `PARTITION` loop invariant,
-  recurrence analysis, randomized quicksort, and expected running time.
+  spine and a scan-state partition-loop invariant; the harder refinements are
+  the CLRS array `PARTITION` swap model, recurrence analysis, randomized
+  quicksort, and expected running time.
 * Chapter 4 concrete all-input Master-theorem instantiations: `future-work`.
   Reason: needs concrete comparison-scale sandwiching on top of the proved
   floor/ceiling extraction and all-input transfer bridge.

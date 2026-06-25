@@ -1,16 +1,20 @@
 # Chapter 7 - Quicksort
 
-Chapter 7 now has a first compiler-clean correctness spine for quicksort.
+Chapter 7 now has a compiler-clean correctness spine for quicksort, including
+the functional partition specification and a scan-state proof spine for the
+CLRS partition loop.
 
 ## Section 7.1 - Description of quicksort
 
 - Lean source: `CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean`
-- Status: `proved` for the current functional-list model
-- Main theorems: `CLRS.Chapter07.partitionAround_correct` and
+- Status: `proved` for the current functional-list model and scan-state
+  partition loop
+- Main theorems: `CLRS.Chapter07.partitionAround_correct`,
+  `CLRS.Chapter07.partitionLoop_correct`,
+  `CLRS.Chapter07.clrsPartition_correct`, and
   `CLRS.Chapter07.quickSort_correct`
 
-The model uses a stable pivot partition rather than the CLRS in-place array
-partition loop.  The proved partition facts are:
+The first model uses a stable pivot partition.  The proved partition facts are:
 
 - `CLRS.Chapter07.partitionAround_left_eq_filter`: the left partition is
   exactly the stable filter of elements at most the pivot.
@@ -29,6 +33,18 @@ partition loop.  The proved partition facts are:
 - `CLRS.Chapter07.partitionAround_correct`: the reader-facing bundle of the
   partition classification, bounds, and permutation facts.
 
+The section also proves a CLRS-style scan loop for partition:
+
+- `CLRS.Chapter07.partitionLoop_invariant`: the loop maintains exact low/high
+  filter regions for the processed prefix.
+- `CLRS.Chapter07.partitionLoop_eq_partitionAround`: the loop computes the same
+  regions as the stable specification partition.
+- `CLRS.Chapter07.partitionLoop_correct`: the final loop state satisfies
+  bounds, membership classification, and permutation preservation.
+- `CLRS.Chapter07.clrsPartition_correct`: putting the pivot between the final
+  low/high regions gives a permutation of the pivot followed by the scanned
+  tail.
+
 The quicksort theorem layer proves:
 
 - `CLRS.Chapter07.quickSort_perm`: quicksort preserves the input elements up to
@@ -39,8 +55,9 @@ The quicksort theorem layer proves:
 
 ## Hard Follow-Up Work
 
-- In-place `PARTITION` loop correctness: requires an array-segment invariant
-  for the less/equal and greater regions.
+- Mutable-array `PARTITION` refinement: the scan-state loop invariant is
+  proved, but a true array-segment model with swaps and returned pivot index
+  remains.
 - Deterministic performance analysis: requires a cost recurrence tied to the
   partition sizes.
 - Randomized quicksort expected time: requires a probability model for random

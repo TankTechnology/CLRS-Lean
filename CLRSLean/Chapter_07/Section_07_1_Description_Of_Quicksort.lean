@@ -4,17 +4,20 @@ import Mathlib
 # CLRS Section 7.1 - Description of quicksort
 
 This file starts the Chapter 7 sorting track with a Lean-friendly functional
-model of quicksort.  The CLRS in-place partition procedure is represented by a
-stable partition around a pivot; the current theorem layer proves the same
-mathematical facts used by the textbook proof:
+model of quicksort and a scan-state proof spine for the CLRS partition loop.
+The theorem layer proves the same mathematical facts used by the textbook
+proof:
 
 * partition returns exactly the original tail elements;
 * the left partition contains only elements at most the pivot;
 * the right partition contains only elements greater than the pivot;
+* the scan-state partition loop preserves its exact invariant and computes the
+  same regions as the specification partition;
 * functional quicksort returns an ordered permutation of the input.
 
-The in-place array partition loop and the randomized/expected-time analysis are
-separate strengthening targets.
+The remaining array-level strengthening target is to refine this scan-state
+loop to a mutable array-segment model.  Randomized/expected-time analysis is
+also separate.
 -/
 
 namespace CLRS
@@ -271,6 +274,195 @@ theorem partitionAround_correct (p : Nat) (xs : List Nat) :
     partitionAround_perm p xs,
     mem_partitionAround_left_iff p xs,
     mem_partitionAround_right_iff p xs⟩
+
+/-! ## A CLRS partition-loop proof spine -/
+
+/--
+State for a Lean-friendly model of the CLRS {lit}`PARTITION` loop.
+
+The loop scans the tail from left to right.  The {lit}`low` region contains
+processed elements known to be at most the pivot; the {lit}`high` region
+contains processed elements known to be greater than the pivot.
+-/
+structure PartitionLoopState where
+  /-- Processed elements that belong on the left of the pivot. -/
+  low : List Nat
+  /-- Processed elements that belong on the right of the pivot. -/
+  high : List Nat
+
+/--
+Exact loop invariant for the scan model: after processing {lit}`seen`, the
+two regions are exactly the stable filters of {lit}`seen`.
+-/
+def PartitionLoopInvariant (p : Nat) (seen : List Nat)
+    (state : PartitionLoopState) : Prop :=
+  state.low = seen.filter (fun x => decide (x ≤ p)) ∧
+    state.high = seen.filter (fun x => decide (p < x))
+
+/-- One CLRS-style partition-loop step for a newly scanned element. -/
+def partitionLoopStep (p : Nat) (state : PartitionLoopState)
+    (x : Nat) : PartitionLoopState :=
+  if x ≤ p then
+    { low := state.low ++ [x], high := state.high }
+  else
+    { low := state.low, high := state.high ++ [x] }
+
+/-- Run the partition loop from an arbitrary processed-prefix state. -/
+def partitionLoopFrom (p : Nat) :
+    PartitionLoopState → List Nat → PartitionLoopState
+  | state, [] => state
+  | state, x :: xs => partitionLoopFrom p (partitionLoopStep p state x) xs
+
+/-- Run the partition loop on an input tail from the empty state. -/
+def partitionLoop (p : Nat) (xs : List Nat) : PartitionLoopState :=
+  partitionLoopFrom p { low := [], high := [] } xs
+
+/-- The exact invariant is preserved by one partition-loop step. -/
+theorem partitionLoopStep_invariant (p : Nat) (seen : List Nat)
+    (state : PartitionLoopState) (x : Nat)
+    (hinv : PartitionLoopInvariant p seen state) :
+    PartitionLoopInvariant p (seen ++ [x]) (partitionLoopStep p state x) := by
+  rcases hinv with ⟨hlow, hhigh⟩
+  by_cases hx : x ≤ p
+  · have hnlt : ¬ p < x := not_lt_of_ge hx
+    simp [PartitionLoopInvariant, partitionLoopStep, hx, hnlt, hlow, hhigh]
+  · have hlt : p < x := Nat.lt_of_not_ge hx
+    simp [PartitionLoopInvariant, partitionLoopStep, hx, hlt, hlow, hhigh]
+
+/--
+Running the loop over a remaining suffix preserves the exact invariant for the
+whole processed prefix.
+-/
+theorem partitionLoopFrom_invariant (p : Nat) :
+    ∀ (xs seen : List Nat) (state : PartitionLoopState),
+      PartitionLoopInvariant p seen state →
+        PartitionLoopInvariant p (seen ++ xs) (partitionLoopFrom p state xs)
+  | [], seen, state, hinv => by
+      simpa [partitionLoopFrom] using hinv
+  | x :: xs, seen, state, hinv => by
+      have hstep :
+          PartitionLoopInvariant p (seen ++ [x])
+            (partitionLoopStep p state x) :=
+        partitionLoopStep_invariant p seen state x hinv
+      have htail :
+          PartitionLoopInvariant p ((seen ++ [x]) ++ xs)
+            (partitionLoopFrom p (partitionLoopStep p state x) xs) :=
+        partitionLoopFrom_invariant p xs (seen ++ [x])
+          (partitionLoopStep p state x) hstep
+      simpa [partitionLoopFrom, List.append_assoc] using htail
+
+/-- The partition loop satisfies the exact invariant for the whole input. -/
+theorem partitionLoop_invariant (p : Nat) (xs : List Nat) :
+    PartitionLoopInvariant p xs (partitionLoop p xs) := by
+  have hinit :
+      PartitionLoopInvariant p ([] : List Nat) { low := [], high := [] } := by
+    simp [PartitionLoopInvariant]
+  have hrun := partitionLoopFrom_invariant p xs [] { low := [], high := [] } hinit
+  simpa [partitionLoop] using hrun
+
+/-- The loop's low region is the stable filter of elements at most the pivot. -/
+theorem partitionLoop_low_eq_filter (p : Nat) (xs : List Nat) :
+    (partitionLoop p xs).low = xs.filter (fun x => decide (x ≤ p)) :=
+  (partitionLoop_invariant p xs).1
+
+/-- The loop's high region is the stable filter of elements greater than the pivot. -/
+theorem partitionLoop_high_eq_filter (p : Nat) (xs : List Nat) :
+    (partitionLoop p xs).high = xs.filter (fun x => decide (p < x)) :=
+  (partitionLoop_invariant p xs).2
+
+/--
+The loop model computes the same two regions as the specification partition
+{lit}`partitionAround`.
+-/
+theorem partitionLoop_eq_partitionAround (p : Nat) (xs : List Nat) :
+    (partitionLoop p xs).low = (partitionAround p xs).1 ∧
+      (partitionLoop p xs).high = (partitionAround p xs).2 := by
+  constructor
+  · rw [partitionLoop_low_eq_filter, partitionAround_left_eq_filter]
+  · rw [partitionLoop_high_eq_filter, partitionAround_right_eq_filter]
+
+/-- The loop's low region contains only elements at most the pivot. -/
+theorem partitionLoop_low_allLeUpper (p : Nat) (xs : List Nat) :
+    AllLeUpper (partitionLoop p xs).low p := by
+  rw [(partitionLoop_eq_partitionAround p xs).1]
+  exact partitionAround_left_allLeUpper p xs
+
+/-- The loop's high region contains only elements greater than the pivot. -/
+theorem partitionLoop_high_allGt (p : Nat) (xs : List Nat) :
+    AllGt p (partitionLoop p xs).high := by
+  rw [(partitionLoop_eq_partitionAround p xs).2]
+  exact partitionAround_right_allGt p xs
+
+/-- The two loop regions contain exactly the scanned input elements. -/
+theorem partitionLoop_perm (p : Nat) (xs : List Nat) :
+    ((partitionLoop p xs).low ++ (partitionLoop p xs).high).Perm xs := by
+  rw [(partitionLoop_eq_partitionAround p xs).1,
+    (partitionLoop_eq_partitionAround p xs).2]
+  exact partitionAround_perm p xs
+
+/-- Membership characterization for the loop's low region. -/
+theorem mem_partitionLoop_low_iff (p : Nat) (xs : List Nat) (x : Nat) :
+    x ∈ (partitionLoop p xs).low ↔ x ∈ xs ∧ x ≤ p := by
+  rw [(partitionLoop_eq_partitionAround p xs).1]
+  exact mem_partitionAround_left_iff p xs x
+
+/-- Membership characterization for the loop's high region. -/
+theorem mem_partitionLoop_high_iff (p : Nat) (xs : List Nat) (x : Nat) :
+    x ∈ (partitionLoop p xs).high ↔ x ∈ xs ∧ p < x := by
+  rw [(partitionLoop_eq_partitionAround p xs).2]
+  exact mem_partitionAround_right_iff p xs x
+
+/--
+Reader-facing correctness theorem for the CLRS-style partition loop.
+
+It exposes the loop invariant's final consequences: low-side bounds, high-side
+bounds, permutation preservation for the scanned tail, and membership
+classification for both regions.
+-/
+theorem partitionLoop_correct (p : Nat) (xs : List Nat) :
+    AllLeUpper (partitionLoop p xs).low p ∧
+      AllGt p (partitionLoop p xs).high ∧
+      ((partitionLoop p xs).low ++ (partitionLoop p xs).high).Perm xs ∧
+      (∀ x, x ∈ (partitionLoop p xs).low ↔ x ∈ xs ∧ x ≤ p) ∧
+      (∀ x, x ∈ (partitionLoop p xs).high ↔ x ∈ xs ∧ p < x) :=
+  ⟨partitionLoop_low_allLeUpper p xs,
+    partitionLoop_high_allGt p xs,
+    partitionLoop_perm p xs,
+    mem_partitionLoop_low_iff p xs,
+    mem_partitionLoop_high_iff p xs⟩
+
+/--
+Partition result obtained by placing the pivot between the final low and high
+regions.
+-/
+def clrsPartition (p : Nat) (xs : List Nat) : List Nat :=
+  let state := partitionLoop p xs
+  state.low ++ p :: state.high
+
+/--
+Reader-facing correctness theorem for the CLRS-style partition result.
+
+The returned list is a permutation of the pivot followed by the scanned tail,
+and the final low/high loop regions satisfy the usual partition bounds.
+-/
+theorem clrsPartition_correct (p : Nat) (xs : List Nat) :
+    AllLeUpper (partitionLoop p xs).low p ∧
+      AllGt p (partitionLoop p xs).high ∧
+      ((partitionLoop p xs).low ++ (partitionLoop p xs).high).Perm xs ∧
+      (clrsPartition p xs).Perm (p :: xs) ∧
+      (∀ x, x ∈ (partitionLoop p xs).low ↔ x ∈ xs ∧ x ≤ p) ∧
+      (∀ x, x ∈ (partitionLoop p xs).high ↔ x ∈ xs ∧ p < x) := by
+  let state := partitionLoop p xs
+  have hloop := partitionLoop_correct p xs
+  have htail : (state.low ++ state.high).Perm xs := by
+    simpa [state] using hloop.2.2.1
+  have hmiddle : (state.low ++ p :: state.high).Perm
+      (p :: state.low ++ state.high) :=
+    perm_append_cons p state.low state.high
+  have hwhole : (clrsPartition p xs).Perm (p :: xs) := by
+    simpa [clrsPartition, state] using hmiddle.trans (List.Perm.cons p htail)
+  exact ⟨hloop.1, hloop.2.1, hloop.2.2.1, hwhole, hloop.2.2.2.1,
+    hloop.2.2.2.2⟩
 
 /-! ## Functional quicksort -/
 

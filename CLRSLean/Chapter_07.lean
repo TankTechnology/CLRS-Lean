@@ -10,18 +10,21 @@ analysis.
 ## Sections
 
 * 7.1 Description of quicksort: {lit}`proved` for the current functional-list
-  model.  Main results:
+  model and scan-state partition loop.  Main results:
   {lit}`CLRS.Chapter07.partitionAround_left_eq_filter`,
   {lit}`CLRS.Chapter07.partitionAround_right_eq_filter`,
   {lit}`CLRS.Chapter07.partitionAround_correct`,
   {lit}`CLRS.Chapter07.partitionAround_perm`,
+  {lit}`CLRS.Chapter07.partitionLoop_invariant`,
+  {lit}`CLRS.Chapter07.partitionLoop_correct`,
+  {lit}`CLRS.Chapter07.clrsPartition_correct`,
   {lit}`CLRS.Chapter07.quickSort_perm`,
   {lit}`CLRS.Chapter07.quickSort_ordered`, and
   {lit}`CLRS.Chapter07.quickSort_correct`.
 
 ## Current Gaps
 
-* In-place array {lit}`PARTITION` loop correctness.
+* Mutable-array {lit}`PARTITION` refinement with swaps and returned pivot index.
 * Performance analysis for deterministic quicksort.
 * Randomized quicksort and expected running time.
 -/
