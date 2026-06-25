@@ -25,8 +25,16 @@ Main results:
   bound on an ordered tree.
 - Theorem {lit}`successor?_least_greater`: a returned successor is the least
   tree key strictly greater than the query.
+- Theorem {lit}`successor?_eq_some_iff`: complete iff specification for a
+  returned successor.
+- Theorem {lit}`successor?_eq_none_iff`: complete none specification for a
+  missing successor.
 - Theorem {lit}`predecessor?_greatest_less`: a returned predecessor is the
   greatest tree key strictly less than the query.
+- Theorem {lit}`predecessor?_eq_some_iff`: complete iff specification for a
+  returned predecessor.
+- Theorem {lit}`predecessor?_eq_none_iff`: complete none specification for a
+  missing predecessor.
 - Theorem {lit}`inTree_insert_iff`: membership after insertion is exactly the
   old membership relation plus the inserted key.
 - Theorem {lit}`insert_ordered`: insertion preserves the BST ordering invariant.
@@ -34,6 +42,11 @@ Main results:
   requested key.
 - Theorem {lit}`delete_ordered`: functional deletion preserves the BST ordering
   invariant.
+- Theorem {lit}`not_inTree_delete_self`: the deleted key is absent afterward.
+- Theorem {lit}`delete_eq_self_of_not_inTree`: deleting a missing key leaves an
+  ordered tree unchanged.
+- Theorem {lit}`search_delete_self_eq_false`: searching for the deleted key
+  after deletion returns false.
 
 Current gaps:
 
@@ -492,6 +505,70 @@ theorem predecessor?_greatest_less {x p : Nat} {t : BSTree}
               exact False.elim (Nat.lt_asymm hyx hx_lt_y)
         ⟩
 
+/-- Complete iff specification for a returned functional successor. -/
+theorem successor?_eq_some_iff {x s : Nat} {t : BSTree}
+    (ht : Ordered t) :
+    successor? x t = some s ↔
+      InTree s t ∧ x < s ∧ ∀ y, InTree y t → x < y → s ≤ y := by
+  constructor
+  · exact successor?_least_greater ht
+  · intro hsSpec
+    cases hs : successor? x t with
+    | none =>
+        have hNoGreater := successor?_none_le ht hs
+        exact False.elim ((Nat.not_lt_of_ge (hNoGreater s hsSpec.1)) hsSpec.2.1)
+    | some z =>
+        rcases successor?_least_greater ht hs with ⟨hzIn, hxz, hzLeast⟩
+        have hzs : z ≤ s := hzLeast s hsSpec.1 hsSpec.2.1
+        have hsz : s ≤ z := hsSpec.2.2 z hzIn hxz
+        have hEq : z = s := Nat.le_antisymm hzs hsz
+        simp [hEq] at hs ⊢
+
+/-- Complete none specification for a missing functional successor. -/
+theorem successor?_eq_none_iff {x : Nat} {t : BSTree}
+    (ht : Ordered t) :
+    successor? x t = none ↔ ∀ y, InTree y t → y ≤ x := by
+  constructor
+  · exact successor?_none_le ht
+  · intro hNoGreater
+    cases hs : successor? x t with
+    | none => rfl
+    | some s =>
+        rcases successor?_least_greater ht hs with ⟨hsIn, hxs, _hLeast⟩
+        exact False.elim ((Nat.not_lt_of_ge (hNoGreater s hsIn)) hxs)
+
+/-- Complete iff specification for a returned functional predecessor. -/
+theorem predecessor?_eq_some_iff {x p : Nat} {t : BSTree}
+    (ht : Ordered t) :
+    predecessor? x t = some p ↔
+      InTree p t ∧ p < x ∧ ∀ y, InTree y t → y < x → y ≤ p := by
+  constructor
+  · exact predecessor?_greatest_less ht
+  · intro hpSpec
+    cases hp : predecessor? x t with
+    | none =>
+        have hNoLesser := predecessor?_none_ge ht hp
+        exact False.elim ((Nat.not_lt_of_ge (hNoLesser p hpSpec.1)) hpSpec.2.1)
+    | some z =>
+        rcases predecessor?_greatest_less ht hp with ⟨hzIn, hzx, hzGreatest⟩
+        have hzp : z ≤ p := hpSpec.2.2 z hzIn hzx
+        have hpz : p ≤ z := hzGreatest p hpSpec.1 hpSpec.2.1
+        have hEq : z = p := Nat.le_antisymm hzp hpz
+        simp [hEq] at hp ⊢
+
+/-- Complete none specification for a missing functional predecessor. -/
+theorem predecessor?_eq_none_iff {x : Nat} {t : BSTree}
+    (ht : Ordered t) :
+    predecessor? x t = none ↔ ∀ y, InTree y t → x ≤ y := by
+  constructor
+  · exact predecessor?_none_ge ht
+  · intro hNoLesser
+    cases hp : predecessor? x t with
+    | none => rfl
+    | some p =>
+        rcases predecessor?_greatest_less ht hp with ⟨hpIn, hpx, _hGreatest⟩
+        exact False.elim ((Nat.not_lt_of_ge (hNoLesser p hpIn)) hpx)
+
 /-! ## Functional deletion correctness -/
 
 /-- A node is never the empty tree. -/
@@ -783,6 +860,63 @@ theorem delete_ordered {x : Nat} {t : BSTree}
             simp [Ordered, hLeft, hRight, hLt, hGt]
           simpa [delete, hxkey, hkeyx] using
             (deleteRoot_ordered (left := left) (right := right) (key := key) hNode)
+
+/-- The key requested for functional deletion is absent afterward. -/
+theorem not_inTree_delete_self {x : Nat} {t : BSTree}
+    (ht : Ordered t) : ¬ InTree x (delete x t) := by
+  intro hxDeleted
+  exact ((inTree_delete_iff (x := x) (y := x) ht).mp hxDeleted).2 rfl
+
+/-- Keys different from the deleted key are preserved by functional deletion. -/
+theorem inTree_delete_of_ne {x y : Nat} {t : BSTree}
+    (ht : Ordered t) (hy : InTree y t) (hyne : y ≠ x) :
+    InTree y (delete x t) := by
+  exact (inTree_delete_iff (x := x) (y := y) ht).mpr ⟨hy, hyne⟩
+
+/-- Every key present after functional deletion was already present before it. -/
+theorem inTree_of_inTree_delete {x y : Nat} {t : BSTree}
+    (ht : Ordered t) (hy : InTree y (delete x t)) :
+    InTree y t := by
+  exact ((inTree_delete_iff (x := x) (y := y) ht).mp hy).1
+
+/-- Deleting a missing key leaves an ordered functional BST unchanged. -/
+theorem delete_eq_self_of_not_inTree {x : Nat} {t : BSTree}
+    (ht : Ordered t) (hx : ¬ InTree x t) :
+    delete x t = t := by
+  induction t generalizing x with
+  | empty =>
+      simp [delete]
+  | node left key right ihLeft ihRight =>
+      simp [Ordered] at ht
+      rcases ht with ⟨hLeft, hRight, _hLt, _hGt⟩
+      have hxNeKey : x ≠ key := by
+        intro hxEq
+        exact hx (by simp [InTree, hxEq])
+      by_cases hxkey : x < key
+      · have hxNotLeft : ¬ InTree x left := by
+          intro hxLeft
+          exact hx (by simp [InTree, hxLeft])
+        simp [delete, hxkey, ihLeft hLeft hxNotLeft]
+      · by_cases hkeyx : key < x
+        · have hxNotRight : ¬ InTree x right := by
+            intro hxRight
+            exact hx (by simp [InTree, hxRight])
+          simp [delete, hxkey, hkeyx, ihRight hRight hxNotRight]
+        · have hxEqKey : x = key :=
+            Nat.le_antisymm (Nat.le_of_not_gt hkeyx) (Nat.le_of_not_gt hxkey)
+          exact False.elim (hxNeKey hxEqKey)
+
+/-- Searching for a deleted key in the resulting ordered tree returns false. -/
+theorem search_delete_self_eq_false {x : Nat} {t : BSTree}
+    (ht : Ordered t) : search x (delete x t) = false := by
+  have hOrderedDeleted : Ordered (delete x t) := delete_ordered (x := x) ht
+  have hNotInDeleted : ¬ InTree x (delete x t) := not_inTree_delete_self ht
+  cases hsearch : search x (delete x t) with
+  | false => rfl
+  | true =>
+      have hxIn : InTree x (delete x t) :=
+        (search_eq_true_iff hOrderedDeleted).mp hsearch
+      exact False.elim (hNotInDeleted hxIn)
 
 /-! ## Membership after insertion -/
 

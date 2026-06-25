@@ -11,15 +11,23 @@ ordering.
 
 ## Sections
 
-* 12.1 Binary search trees: {lit}`partial`.
+* 12.1 Binary search trees: {lit}`partial`, with the functional BST theorem
+  boundary complete for the current inductive-tree model.
   Main results: {lit}`CLRS.Chapter12.BSTree.search_eq_true_iff`,
   {lit}`CLRS.Chapter12.BSTree.minimum?_le_of_ordered`,
   {lit}`CLRS.Chapter12.BSTree.le_maximum?_of_ordered`,
   {lit}`CLRS.Chapter12.BSTree.successor?_least_greater`,
+  {lit}`CLRS.Chapter12.BSTree.successor?_eq_some_iff`,
+  {lit}`CLRS.Chapter12.BSTree.successor?_eq_none_iff`,
   {lit}`CLRS.Chapter12.BSTree.predecessor?_greatest_less`,
+  {lit}`CLRS.Chapter12.BSTree.predecessor?_eq_some_iff`,
+  {lit}`CLRS.Chapter12.BSTree.predecessor?_eq_none_iff`,
   {lit}`CLRS.Chapter12.BSTree.inTree_insert_iff`,
   {lit}`CLRS.Chapter12.BSTree.insert_ordered`,
   {lit}`CLRS.Chapter12.BSTree.inTree_delete_iff`,
+  {lit}`CLRS.Chapter12.BSTree.not_inTree_delete_self`,
+  {lit}`CLRS.Chapter12.BSTree.delete_eq_self_of_not_inTree`,
+  {lit}`CLRS.Chapter12.BSTree.search_delete_self_eq_false`,
   {lit}`CLRS.Chapter12.BSTree.delete_ordered`.
 
 ## Current Gaps

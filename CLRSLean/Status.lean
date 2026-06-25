@@ -88,8 +88,9 @@ which areas should not yet be counted as proof-complete.
   layers, plus selected runtime refinements, remain.
 * Chapter 11, Section 11.2: deterministic chained-hash-table operations are
   proved for a fixed hash function; expected-time hashing remains.
-* Chapter 12, Section 12.1: functional BST operations are proved; parent
-  pointers, transplant, and mutation remain.
+* Chapter 12, Section 12.1: the functional BST theorem boundary is proved for
+  search, min/max, insertion, complete successor/predecessor specifications,
+  and deletion wrappers; parent pointers, transplant, and mutation remain.
 * Chapter 13, Section 13.1: local red-black rotation/recoloring invariants are
   proved; full insertion and deletion fixup algorithms remain.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
@@ -504,11 +505,18 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter12.BSTree.maximum?_inTree`,
   {lit}`CLRS.Chapter12.BSTree.le_maximum?_of_ordered`,
   {lit}`CLRS.Chapter12.BSTree.successor?_least_greater`,
+  {lit}`CLRS.Chapter12.BSTree.successor?_eq_some_iff`,
+  {lit}`CLRS.Chapter12.BSTree.successor?_eq_none_iff`,
   {lit}`CLRS.Chapter12.BSTree.predecessor?_greatest_less`,
+  {lit}`CLRS.Chapter12.BSTree.predecessor?_eq_some_iff`,
+  {lit}`CLRS.Chapter12.BSTree.predecessor?_eq_none_iff`,
   {lit}`CLRS.Chapter12.BSTree.inTree_insert_iff`,
   {lit}`CLRS.Chapter12.BSTree.insert_ordered`,
-  {lit}`CLRS.Chapter12.BSTree.inTree_delete_iff`, and
-  {lit}`CLRS.Chapter12.BSTree.delete_ordered`;
+  {lit}`CLRS.Chapter12.BSTree.inTree_delete_iff`,
+  {lit}`CLRS.Chapter12.BSTree.delete_ordered`,
+  {lit}`CLRS.Chapter12.BSTree.not_inTree_delete_self`,
+  {lit}`CLRS.Chapter12.BSTree.delete_eq_self_of_not_inTree`, and
+  {lit}`CLRS.Chapter12.BSTree.search_delete_self_eq_false`;
   remaining gap: parent-pointer successor/predecessor procedures, transplant,
   and pointer-level mutation remain future section targets.
 * 13.1 Red-black trees:

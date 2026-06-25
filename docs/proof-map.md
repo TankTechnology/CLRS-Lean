@@ -880,22 +880,32 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter12.BSTree.maximum?_inTree`
   - `CLRS.Chapter12.BSTree.le_maximum?_of_ordered`
   - `CLRS.Chapter12.BSTree.successor?_least_greater`
+  - `CLRS.Chapter12.BSTree.successor?_eq_some_iff`
+  - `CLRS.Chapter12.BSTree.successor?_eq_none_iff`
   - `CLRS.Chapter12.BSTree.predecessor?_greatest_less`
+  - `CLRS.Chapter12.BSTree.predecessor?_eq_some_iff`
+  - `CLRS.Chapter12.BSTree.predecessor?_eq_none_iff`
   - `CLRS.Chapter12.BSTree.inTree_insert_iff`
   - `CLRS.Chapter12.BSTree.inTree_insert_self`
   - `CLRS.Chapter12.BSTree.insert_ordered`
   - `CLRS.Chapter12.BSTree.inTree_delete_iff`
   - `CLRS.Chapter12.BSTree.delete_ordered`
+  - `CLRS.Chapter12.BSTree.not_inTree_delete_self`
+  - `CLRS.Chapter12.BSTree.delete_eq_self_of_not_inTree`
+  - `CLRS.Chapter12.BSTree.search_delete_self_eq_false`
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
-  extremal-path recursion, and successor-replacement deletion
+  extremal-path recursion, iff specifications for successor/predecessor, and
+  successor-replacement deletion
 - Current gap: parent-pointer successor/predecessor procedures, transplant,
   and pointer-level mutation remain future section targets
 
 This section proves the core ordered-tree interface: search is equivalent to
 membership, minimum/maximum return actual extremal keys, functional
-successor/predecessor return least-greater/greatest-less keys, insertion adds
-exactly one key, and functional deletion removes exactly the requested key while
-preserving the BST ordering invariant.
+successor/predecessor have complete `some`/`none` specifications, insertion
+adds exactly one key, and functional deletion removes exactly the requested key
+while preserving the BST ordering invariant.  Deleting a missing key is proved
+to leave an ordered tree unchanged, and searching for a deleted key returns
+false.
 
 ## Chapter 13 - Red-Black Trees
 
