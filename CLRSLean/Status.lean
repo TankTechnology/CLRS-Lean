@@ -39,7 +39,8 @@ which areas should not yet be counted as proof-complete.
 * Chapter 4, Sections 4.1-4.6, current models: maximum-subarray correctness,
   Strassen 2 by 2 block algebra, substitution-method bounds, recursion-tree
   additive expansions, exact-power Master-method cases, floor/ceiling
-  exact-power extraction, and the all-input transfer bridge are proved.
+  exact-power extraction, the all-input transfer bridge, and adjacent-power
+  sandwich generation from one-step scale bounds are proved.
 * Chapter 5, Section 5.1: the hiring problem is proved in the finite
   rank-symmetry model.
 * Chapter 6, Sections 6.1-6.5: the indexed array heap layer, recursive
@@ -85,8 +86,8 @@ which areas should not yet be counted as proof-complete.
 
 ### Missing Core Theorem
 
-* Chapter 4 full Master-theorem instantiation: discharge the all-input transfer
-  bridge's power-sandwich hypotheses for floor/ceiling recurrences.
+* Chapter 4 full Master-theorem instantiation: instantiate concrete comparison
+  scales and package the all-input floor/ceiling Master cases.
 * Chapter 7, Sections 7.2-7.4: mutable-array partition refinement,
   performance recurrence, randomized quicksort, and expected-time theorem.
 * Chapter 9 linear-time SELECT refinements: pivot-parametric deterministic
@@ -141,9 +142,13 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter04.CeilDivideRecurrence`,
   {lit}`CLRS.Chapter04.exactPowerRecurrence_of_floorDivideRecurrence`,
   {lit}`CLRS.Chapter04.exactPowerRecurrence_of_ceilDivideRecurrence`,
+  {lit}`CLRS.Chapter04.powerInterval_of_pos`,
+  {lit}`CLRS.Chapter04.eventuallyPowerUpperSandwich_of_powerStep`,
+  {lit}`CLRS.Chapter04.eventuallyPowerLowerSandwich_of_powerStep`,
   {lit}`CLRS.Chapter04.allInput_bigO_of_power_upper_sandwich`,
-  {lit}`CLRS.Chapter04.allInput_bigOmega_of_power_lower_sandwich`, and
-  {lit}`CLRS.Chapter04.allInput_bigTheta_of_power_sandwich`.
+  {lit}`CLRS.Chapter04.allInput_bigOmega_of_power_lower_sandwich`,
+  {lit}`CLRS.Chapter04.allInput_bigTheta_of_power_sandwich`, and
+  {lit}`CLRS.Chapter04.allInput_bigTheta_of_powerStep`.
 * 4.3 Substitution method, one-step recurrence model:
   {lit}`CLRS.Chapter04.substitution_upper_bound`,
   {lit}`CLRS.Chapter04.substitution_lower_bound`,
@@ -439,9 +444,10 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   Reason: requires a separate imperative machine and cost model.
 * Chapter 4 full Master Theorem instantiation:
   `future-work`.
-  Reason: exact powers, floor/ceiling exact-power extraction, and the generic
-  all-input transfer bridge are proved; concrete comparison-scale sandwich
-  hypotheses still need to be discharged for final Master-theorem statements.
+  Reason: exact powers, floor/ceiling exact-power extraction, the generic
+  all-input transfer bridge, and adjacent-power sandwich generation from
+  one-step comparison-scale bounds are proved; concrete comparison scales and
+  final floor/ceiling Master-case statements still need to be packaged.
 * Chapter 4 Strassen recursive refinement:
   `future-work`.
   Reason: the 2 by 2 block algebra is proved; recursive splitting,
@@ -467,8 +473,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   the CLRS array `PARTITION` swap model, recurrence analysis, randomized
   quicksort, and expected running time.
 * Chapter 4 concrete all-input Master-theorem instantiations: `future-work`.
-  Reason: needs concrete comparison-scale sandwiching on top of the proved
-  floor/ceiling extraction and all-input transfer bridge.
+  Reason: needs concrete comparison-scale one-step bounds and final case
+  statements on top of the proved floor/ceiling extraction and all-input
+  transfer bridge.
 * General merge-sort recurrence: `future-work`.
   Reason: needs floor and ceiling arithmetic for all input sizes.
 * CLRS exercises and chapter-end problems: `future-work`.

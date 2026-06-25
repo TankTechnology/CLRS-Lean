@@ -7,10 +7,10 @@ Section 4.5 proves the exact-power Master-theorem core for values
 {lit}`T(b^i)`.  The full CLRS theorem needs a second bridge from exact powers
 to arbitrary natural input sizes, including floor and ceiling recurrences.
 
-This file proves the reusable transfer layer for that bridge.  It deliberately
-keeps the power-sandwich facts as explicit hypotheses: later files can discharge
-those hypotheses for concrete scales such as polynomial and logarithmic
-functions, or for specific floor/ceiling recurrence models.
+This file proves the reusable transfer layer for that bridge.  It first keeps
+the power-sandwich facts as explicit hypotheses, then gives a reusable way to
+discharge them from a monotonicity hypothesis plus a one-step scale bound
+between adjacent powers of the base.
 -/
 
 namespace CLRS
@@ -21,6 +21,15 @@ namespace Chapter04
 /-- Absolute-value monotonicity for a cost function. -/
 def MonotoneAbs (T : ℕ → ℝ) : Prop :=
   ∀ {m n : ℕ}, m ≤ n → |T m| ≤ |T n|
+
+/--
+Eventual one-step control for a comparison scale across one multiplication by
+the Master-theorem base.  This is the local regularity assumption that turns
+the adjacent-power interval `b^i ≤ n < b^(i+1)` into the global power-sandwich
+hypotheses below.
+-/
+def EventuallyPowerStepBound (b : ℕ) (g : ℕ → ℝ) : Prop :=
+  ∃ A : ℝ, 0 < A ∧ ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → |g (b * n)| ≤ A * |g n|
 
 /-! ## Floor/ceiling recurrence interfaces -/
 
@@ -90,6 +99,112 @@ def EventuallyPowerLowerSandwich (b : ℕ) (g : ℕ → ℝ) : Prop :=
   ∃ A : ℝ, 0 < A ∧
     ∀ i₀ : ℕ, ∃ n₀ : ℕ, ∀ n, n ≥ n₀ →
       ∃ i : ℕ, i ≥ i₀ ∧ b ^ i ≤ n ∧ |g n| ≤ A * |g (b ^ i)|
+
+/-! ## Adjacent powers generate sandwich witnesses -/
+
+/--
+Every positive natural input lies between adjacent powers of a base
+{lit}`b > 1`.
+This is the arithmetic step that CLRS uses implicitly when it extends
+exact-power recurrence bounds to all input sizes.
+-/
+theorem powerInterval_of_pos (b n : ℕ) (hb : 1 < b) (hn : n ≠ 0) :
+    b ^ Nat.log b n ≤ n ∧ n < b ^ (Nat.log b n + 1) :=
+  ⟨Nat.pow_log_le_self b hn, by
+    simpa [Nat.succ_eq_add_one] using Nat.lt_pow_succ_log_self hb n⟩
+
+private theorem power_log_ge_step_threshold
+    {b step n j₀ : ℕ} (hb : 1 < b)
+    (hj₀_step : Nat.log b step + 1 ≤ j₀)
+    (hj₀_log : j₀ ≤ Nat.log b n) :
+    step ≤ b ^ Nat.log b n := by
+  have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+  have hstep_lt : step < b ^ (Nat.log b step + 1) :=
+    Nat.lt_pow_succ_log_self hb step
+  have hpow_le :
+      b ^ (Nat.log b step + 1) ≤ b ^ Nat.log b n :=
+    Nat.pow_le_pow_right hb_pos (Nat.le_trans hj₀_step hj₀_log)
+  exact Nat.le_trans (Nat.le_of_lt hstep_lt) hpow_le
+
+/--
+Monotone scales with eventual one-step control automatically satisfy the upper
+power-sandwich hypothesis: for every large {lit}`n`, choose the next exact
+power above it.
+-/
+theorem eventuallyPowerUpperSandwich_of_powerStep
+    (b : ℕ) (g : ℕ → ℝ) (hb : 1 < b)
+    (hg_mono : MonotoneAbs g)
+    (hg_step : EventuallyPowerStepBound b g) :
+    EventuallyPowerUpperSandwich b g := by
+  rcases hg_step with ⟨A, hA_pos, step₀, hstep⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro i₀
+  let j₀ := max i₀ (Nat.log b step₀ + 1)
+  refine ⟨b ^ j₀, ?_⟩
+  intro n hn
+  have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+  have hn_ne_zero : n ≠ 0 := by
+    have hpow_pos : 0 < b ^ j₀ := pow_pos hb_pos j₀
+    exact Nat.ne_of_gt (Nat.lt_of_lt_of_le hpow_pos hn)
+  have hj₀_log : j₀ ≤ Nat.log b n :=
+    Nat.le_log_of_pow_le hb hn
+  let i := Nat.log b n + 1
+  refine ⟨i, ?_, ?_, ?_⟩
+  · exact Nat.le_trans (Nat.le_max_left i₀ (Nat.log b step₀ + 1))
+      (Nat.le_trans hj₀_log (Nat.le_succ _))
+  · exact Nat.le_of_lt (powerInterval_of_pos b n hb hn_ne_zero).2
+  · have hstep_arg : step₀ ≤ b ^ Nat.log b n :=
+      power_log_ge_step_threshold (b := b) (step := step₀) (n := n)
+        (j₀ := j₀) hb (Nat.le_max_right _ _) hj₀_log
+    have hlocal := hstep (b ^ Nat.log b n) hstep_arg
+    have hmono_to_n : |g (b ^ Nat.log b n)| ≤ |g n| :=
+      hg_mono (Nat.pow_log_le_self b hn_ne_zero)
+    calc
+      |g (b ^ i)| = |g (b * b ^ Nat.log b n)| := by
+        simp [i, pow_succ, Nat.mul_comm]
+      _ ≤ A * |g (b ^ Nat.log b n)| := hlocal
+      _ ≤ A * |g n| := by
+        gcongr
+
+/--
+Monotone scales with eventual one-step control automatically satisfy the lower
+power-sandwich hypothesis: for every large {lit}`n`, choose the previous exact
+power below it.
+-/
+theorem eventuallyPowerLowerSandwich_of_powerStep
+    (b : ℕ) (g : ℕ → ℝ) (hb : 1 < b)
+    (hg_mono : MonotoneAbs g)
+    (hg_step : EventuallyPowerStepBound b g) :
+    EventuallyPowerLowerSandwich b g := by
+  rcases hg_step with ⟨A, hA_pos, step₀, hstep⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro i₀
+  let j₀ := max i₀ (Nat.log b step₀ + 1)
+  refine ⟨b ^ j₀, ?_⟩
+  intro n hn
+  have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+  have hn_ne_zero : n ≠ 0 := by
+    have hpow_pos : 0 < b ^ j₀ := pow_pos hb_pos j₀
+    exact Nat.ne_of_gt (Nat.lt_of_lt_of_le hpow_pos hn)
+  have hj₀_log : j₀ ≤ Nat.log b n :=
+    Nat.le_log_of_pow_le hb hn
+  let i := Nat.log b n
+  refine ⟨i, ?_, ?_, ?_⟩
+  · exact Nat.le_trans (Nat.le_max_left i₀ (Nat.log b step₀ + 1)) hj₀_log
+  · exact (powerInterval_of_pos b n hb hn_ne_zero).1
+  · have hstep_arg : step₀ ≤ b ^ Nat.log b n :=
+      power_log_ge_step_threshold (b := b) (step := step₀) (n := n)
+        (j₀ := j₀) hb (Nat.le_max_right _ _) hj₀_log
+    have hlocal := hstep (b ^ Nat.log b n) hstep_arg
+    have hn_le_next :
+        n ≤ b ^ (Nat.log b n + 1) :=
+      Nat.le_of_lt (powerInterval_of_pos b n hb hn_ne_zero).2
+    calc
+      |g n| ≤ |g (b ^ (Nat.log b n + 1))| := hg_mono hn_le_next
+      _ = |g (b * b ^ Nat.log b n)| := by
+        simp [pow_succ, Nat.mul_comm]
+      _ ≤ A * |g (b ^ Nat.log b n)| := hlocal
+      _ = A * |g (b ^ i)| := by simp [i]
 
 /-! ## Exact powers to all inputs -/
 
@@ -175,6 +290,27 @@ theorem allInput_bigTheta_of_power_sandwich
   exact
     ⟨allInput_bigO_of_power_upper_sandwich b T g hT_mono hg_upper h_power.1,
       allInput_bigOmega_of_power_lower_sandwich b T g hT_mono hg_lower h_power.2⟩
+
+/--
+Direct all-input transfer theorem from exact powers using adjacent-power
+regularity of the comparison scale.  This packages the CLRS proof step:
+choose the exact power immediately below or above an arbitrary input {lit}`n`,
+use monotonicity for {lit}`T`, and use one-step regularity for {lit}`g`.
+-/
+theorem allInput_bigTheta_of_powerStep
+    (b : ℕ) (T g : ℕ → ℝ) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (hg_mono : MonotoneAbs g)
+    (hg_step : EventuallyPowerStepBound b g)
+    (h_power :
+      Chapter03.isBigTheta
+        (fun i : ℕ => T (b ^ i))
+        (fun i : ℕ => g (b ^ i))) :
+    Chapter03.isBigTheta T g :=
+  allInput_bigTheta_of_power_sandwich b T g hT_mono
+    (eventuallyPowerUpperSandwich_of_powerStep b g hb hg_mono hg_step)
+    (eventuallyPowerLowerSandwich_of_powerStep b g hb hg_mono hg_step)
+    h_power
 
 end Chapter04
 end CLRS

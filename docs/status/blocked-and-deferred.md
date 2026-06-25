@@ -50,9 +50,11 @@ The exact-power recurrence expansion and three exact-power Master-style cases
 are compiler-clean.  Section 4.6 now also proves floor/ceiling recurrence
 interfaces, extracts exact-power recurrences from those all-input models, and
 proves the generic transfer bridge from exact powers to all natural input sizes
-under monotone-cost and power-sandwich hypotheses.  The remaining strengthening
-is to discharge those sandwich hypotheses for concrete comparison scales and
-package the final CLRS Master-theorem cases.
+under monotone-cost and power-sandwich hypotheses.  Section 4.6 also now proves
+the adjacent-power `Nat.log` interval and derives both sandwich hypotheses from
+monotone comparison scales with eventual one-step control.  The remaining
+strengthening is to prove concrete one-step bounds for the comparison scales
+used in the Master cases and package the final CLRS floor/ceiling statements.
 
 ### Remaining Chapter 4 Sections
 
@@ -63,7 +65,8 @@ These sections are not excluded from CLRS-Lean.  They are pending because they
 need distinct representation choices: block matrices for Strassen and an
 all-input floor/ceiling instantiation for the full Master Theorem.  Sections
 4.3, 4.4, and 4.6 now provide reusable recurrence, recursion-tree, and
-all-input transfer infrastructure.
+all-input transfer infrastructure, including adjacent-power sandwich
+generation.
 
 ### Maximum-Subarray Runtime Analysis
 

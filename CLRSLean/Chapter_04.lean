@@ -49,8 +49,11 @@ and by future divide-and-conquer runtime proofs.
   exact-power recurrences from those models, and proves a compiler-clean
   transfer bridge from exact-power {lit}`O`, {lit}`Ω`, and {lit}`Θ` bounds to
   all natural inputs under monotone cost and explicit power-sandwich
-  hypotheses.  The full textbook theorem still needs those sandwich hypotheses
-  discharged for concrete floor/ceiling recurrence models.
+  hypotheses.  It also proves the adjacent-power {lit}`Nat.log` interval and a
+  direct {lit}`allInput_bigTheta_of_powerStep` theorem that discharges those
+  sandwich hypotheses from monotone comparison scales with eventual one-step
+  control.  The full textbook theorem still needs concrete comparison scales
+  and floor/ceiling recurrence models packaged into the final Master cases.
 -/
 
 namespace CLRS

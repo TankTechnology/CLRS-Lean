@@ -20,7 +20,7 @@ advertised on the site is proved.
 | --- | --- | --- |
 | Chapter 2, Sections 2.1-2.3 | Insertion sort sortedness/permutation, insertion-sort quadratic comparison bound, merge-sort sortedness/permutation, and the power-of-two merge-sort recurrence are proved. | Full RAM semantics and arbitrary-size floor/ceiling merge-sort recurrence. |
 | Chapter 3, Section 3.1 | CLRS-facing asymptotic notation wrappers and basic algebraic facts are proved. | Extend the standard-function table in Section 3.2. |
-| Chapter 4, Sections 4.1-4.6, current models | Maximum-subarray correctness, Strassen 2 by 2 block algebra, substitution-method one-step bounds, recursion-tree additive expansions, exact-power Master-method cases, floor/ceiling exact-power extraction, and a generic all-input transfer bridge are proved. | The whole chapter is not finished until concrete floor/ceiling Master-theorem instantiations and selected runtime refinements are added. |
+| Chapter 4, Sections 4.1-4.6, current models | Maximum-subarray correctness, Strassen 2 by 2 block algebra, substitution-method one-step bounds, recursion-tree additive expansions, exact-power Master-method cases, floor/ceiling exact-power extraction, generic all-input transfer, and adjacent-power sandwich generation from one-step scale bounds are proved. | The whole chapter is not finished until concrete comparison scales, floor/ceiling Master-theorem instantiations, and selected runtime refinements are added. |
 | Chapter 5, Section 5.1 | The hiring-problem probability and expected-hires harmonic/logarithmic results are proved for the finite rank-symmetry model. | Random-permutation execution model is optional refinement. |
 | Chapter 6, Sections 6.1-6.5 | The array heap layer, fuelled recursive `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort sorted-suffix invariant, top-level heapsort correctness, and array-level priority-queue state theorems are proved. | Line-by-line RAM cost model. |
 | Chapter 7, Section 7.1 | Stable functional partition classification, scan-state partition-loop correctness, permutation preservation, and functional quicksort sortedness/permutation preservation are proved. | Mutable-array `PARTITION`, deterministic recurrence analysis, randomized quicksort, and expected-time analysis. |
@@ -39,7 +39,7 @@ CLRS theorem is not yet internalized.
 | Scope | What exists | Core gap |
 | --- | --- | --- |
 | Chapter 3, Section 3.2 | Many polynomial, logarithmic, exponential, harmonic, floor/ceiling, and factorial asymptotic facts are proved through CLRS-facing names. | Complete the standard-function comparison table and add missing variants. |
-| Chapter 4 as a whole | The main local proof engines for maximum subarray, Strassen 2 by 2 algebra, substitution, recursion trees, exact-power Master cases, floor/ceiling exact-power extraction, and all-input asymptotic transfer exist. | Concrete floor/ceiling Master-theorem instantiations and selected runtime/cost refinements. |
+| Chapter 4 as a whole | The main local proof engines for maximum subarray, Strassen 2 by 2 algebra, substitution, recursion trees, exact-power Master cases, floor/ceiling exact-power extraction, all-input asymptotic transfer, and adjacent-power sandwich generation exist. | Concrete comparison scales, floor/ceiling Master-theorem instantiations, and selected runtime/cost refinements. |
 | Chapter 11, Section 11.2 | Deterministic chained-hash-table insert/delete/search facts for a fixed hash function are proved. | Expected search time under a simple-uniform-hashing probability model. |
 | Chapter 12, Section 12.1 | Functional BST search, minimum/maximum, successor/predecessor, insertion, deletion, and ordering preservation are proved. | Parent-pointer procedures, transplant, and imperative mutation refinement. |
 | Chapter 13, Section 13.1 | Local red-black tree rotations, recoloring, red-red repair certificates, black-height, and shape facts are proved. | Full `RB-INSERT`, `RB-INSERT-FIXUP`, `RB-DELETE`, and `RB-DELETE-FIXUP`. |
@@ -52,7 +52,7 @@ section file yet or only enough scaffolding to identify the intended theorem.
 
 | Scope | Missing theorem target |
 | --- | --- |
-| Chapter 4 concrete Master-theorem instantiation | Discharge the all-input transfer bridge's power-sandwich hypotheses for floor/ceiling recurrences. |
+| Chapter 4 concrete Master-theorem instantiation | Prove concrete comparison-scale one-step bounds and package the final floor/ceiling Master-case statements. |
 | Chapter 7, Sections 7.2-7.4 | Mutable-array partition refinement, deterministic performance recurrence, randomized quicksort, and expected-time theorem. |
 | Chapter 9 linear-time SELECT refinements | Pivot-parametric deterministic SELECT is proved against the rank-certificate interface; randomized expected-time analysis and the CLRS median-of-medians split-size/runtime proof remain. |
 | Chapter 11, expected hashing analysis | Expected-time theorem for chained hashing under a formal probability model. |
@@ -62,11 +62,37 @@ section file yet or only enough scaffolding to identify the intended theorem.
 | Chapter 23 Prim | Prim's algorithm theorem interface and proof have not been added yet. |
 | Chapter 24 onward | Not yet represented in the current Lean tree. |
 
+## Next Proof Plan
+
+The next work should focus on removing central theorem gaps, not on reworking
+chapters that already have their advertised main theorem.  The intended order is:
+
+| Priority | Target | Concrete deliverable |
+| --- | --- | --- |
+| 1 | Chapter 4, Section 4.6 | Instantiate the all-input transfer bridge with the concrete comparison scales used by the three Master-theorem cases, then package the final floor/ceiling case statements. |
+| 2 | Chapter 23, Sections 23.1-23.2 | Add a stable finite path/walk API, extract the concrete exchange edge automatically, connect sorted Kruskal scans to the finite-graph optimality wrapper, and add a Prim theorem interface. |
+| 3 | Chapter 12 | Decide the public theorem boundary for BSTs: either finish the functional tree layer as the main theorem, or add a parent-pointer/transplant refinement as an explicit strengthening. |
+| 4 | Chapter 13 | Extend the local rotation/recoloring certificate layer toward full `RB-INSERT`/`RB-DELETE` fixup correctness, keeping each fixup case separately named. |
+| 5 | Chapter 7-9 refinements | Add lower-level mutable/count-array/numeric-digit refinements only after the current functional/specification-level correctness theorems stay clean. |
+
+## Extreme-Difficulty Queue
+
+These are the places that are likely to require concentrated proof-design work
+rather than ordinary lemma filling.
+
+| Difficulty | Scope | Why it is hard | Suggested attack |
+| --- | --- | --- | --- |
+| Extreme | Randomized expected-time analysis in Chapters 7, 8, 9, and 11 | We need a reusable finite probability model, expectation algebra, and asymptotic bounds over random choices, not just deterministic correctness. | First build one small probability toolkit for finite uniform choices, then prove one textbook theorem end-to-end before generalizing. |
+| Extreme | Full red-black insertion/deletion fixup | The proof is a large state-machine invariant with rotations, recoloring, black-height preservation, and parent/shape constraints. | Keep the functional certificate layer, prove each fixup case as a separate theorem, then compose them only after the case lemmas stabilize. |
+| High | Chapter 23 automatic MST exchange certificate | The textbook proof hides a path/cycle boundary-edge extraction argument that must be made explicit in finite graphs. | Introduce a reusable path/walk API, prove a cut-crossing boundary-edge lemma, then plug it into the existing cut-property theorem. |
+| High | Chapter 4 final all-input Master theorem | The main bridge now exists, but the final theorem still needs concrete scale bounds plus careful floor/ceiling recurrence packaging. | Prove one-step bounds for `n^p`, `n^p log^k n`, and regularity-style forcing terms, then expose the three CLRS-facing cases. |
+| High | Full RAM/pseudocode semantics | It would replace many current mathematical specifications with executable imperative-state refinement proofs. | Treat this as a separate project layer after the mathematical theorem interface is stable. |
+
 ## Near-Term Scheduling Rule
 
 When choosing the next task, prefer the highest-value item in the second bucket
 over repeatedly polishing a completed first-bucket section.  Chapter 6 should
 now receive only audit, documentation, or RAM-cost refinement unless a concrete
-gap is found.  The next proof-heavy targets are Chapter 4 all-input recurrence
-bridging, Chapter 23 exchange-path automation, and the remaining Chapter 8/9
-algorithmic refinements.
+gap is found.  The next proof-heavy targets are Chapter 4 concrete
+comparison-scale Master-case packaging, Chapter 23 exchange-path automation,
+and the remaining Chapter 8/9 algorithmic refinements.
