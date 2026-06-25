@@ -72,7 +72,7 @@ Start with the chapter pages in the sidebar.
   the specification selector, pivot-style quickselect, and pivot-parametric
   deterministic SELECT via a count-based order-statistic certificate, plus the
   local five-element median certificate, executable five-element grouping, and
-  grouped split-count core for the median-of-medians proof.
+  median-of-medians partition-size bound.
 * Chapter 10 - Elementary Data Structures: functional stack, queue, and
   linked-list operation proofs.
 * Chapter 11 - Hash Tables: direct-address table correctness and deterministic
@@ -293,11 +293,12 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
   `CLRS.Chapter09.fullGroupsOfFive_medianPivot_split_counts`,
   `CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`,
+  `CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`,
   `CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`,
   `CLRS.Chapter09.deterministicSelect?_correct`.
 * 9.3-9.4 Linear-time selection refinements: `future-work`.
-  Planned targets: package the final `7n/10` partition-size arithmetic from
-  the proved full-input split counts, then add the relevant runtime analysis.
+  Planned targets: connect the proved `7n/10` partition-size theorem to the
+  relevant worst-case runtime recurrence.
 * 10.1 Stacks and queues: `proved` for the functional-list model.
   Public results: `CLRS.Chapter10.pop_push`,
   `CLRS.Chapter10.dequeue_enqueue_nonempty`.

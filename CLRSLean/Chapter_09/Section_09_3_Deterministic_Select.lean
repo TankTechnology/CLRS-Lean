@@ -26,6 +26,9 @@ Main results:
 * Theorem {lit}`fullGroupsOfFive_medianPivot_fullInput_split_counts`: the
   grouped split counts lift to the original input list because the flattened
   full groups are a sublist of the input.
+* Theorem {lit}`fullGroupsOfFive_medianPivot_partition_size_bound`: both
+  strict recursive branches around the pivot satisfy the familiar
+  {lit}`7n/10 + O(1)` CLRS size bound.
 * Theorem {lit}`deterministicSelect?_correct`: a deterministic median-pivot
   instance is rank correct.
 
@@ -33,9 +36,9 @@ Current gaps:
 
 * This is not yet the CLRS linear-time median-of-medians cost theorem.  The
   local five-element median certificate, executable grouping wrapper, grouped
-  split-count core, and full-input median-pivot split-count wrapper are proved
-  below; the remaining hard proof is the familiar {lit}`7n/10` partition-size
-  arithmetic and the associated linear recurrence.
+  split-count core, full-input median-pivot split-count wrapper, and
+  {lit}`7n/10` partition-size packaging are proved below; the remaining hard
+  proof is the associated linear recurrence.
 -/
 
 namespace CLRS
@@ -565,8 +568,8 @@ original grouped values have at least {lit}`3 * (k + 1)` elements at most the
 pivot and at least {lit}`3 * (medians.length - k)` elements at least the pivot.
 
 This is the reusable counting core of the CLRS median-of-medians split-size
-argument; converting it to the familiar {lit}`7n/10` recurrence bound is a
-separate arithmetic packaging step.
+argument; the executable wrappers below convert it to the familiar
+{lit}`7n/10 + O(1)` branch-size bound.
 -/
 theorem medianGroupCertificates_selectPivot_split_counts
     {groups : List (List Nat)} {medians : List Nat} {pivot k : Nat}
@@ -622,9 +625,9 @@ theorem fullGroupsOfFive_medianPivot_split_counts
 Full-input version of the executable median-of-medians split-count theorem.
 
 The counts first proved on the flattened full groups lift to the original
-input because that flattening is a sublist of the input.  The final CLRS
-{lit}`7n/10` statement still requires packaging these count lower bounds with
-the group-count arithmetic above.
+input because that flattening is a sublist of the input.  The partition-size
+wrapper below packages these count lower bounds with the group-count arithmetic
+above.
 -/
 theorem fullGroupsOfFive_medianPivot_fullInput_split_counts
     {xs medians : List Nat} {pivot : Nat}
@@ -638,6 +641,53 @@ theorem fullGroupsOfFive_medianPivot_fullInput_split_counts
   constructor
   · exact le_trans hgrouped.1 (leCount_le_of_sublist hsub)
   · exact le_trans hgrouped.2 (geCount_le_of_sublist hsub)
+
+/--
+The strict recursive branches around a median-of-medians pivot are bounded by
+the input length minus the certified opposite-side mass.
+-/
+theorem fullGroupsOfFive_medianPivot_partition_lengths
+    {xs medians : List Nat} {pivot : Nat}
+    (hmedians : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians)
+    (hpivot : selectByRank? (medians.length / 2) medians = some pivot) :
+    ltCount pivot xs ≤
+        xs.length - 3 * (medians.length - medians.length / 2) ∧
+      gtCount pivot xs ≤ xs.length - 3 * (medians.length / 2 + 1) := by
+  have hsplit :=
+    fullGroupsOfFive_medianPivot_fullInput_split_counts hmedians hpivot
+  have hlt_len : ltCount pivot xs ≤ xs.length := by
+    unfold ltCount
+    exact List.length_filter_le (fun y => decide (y < pivot)) xs
+  have hle_len : leCount pivot xs ≤ xs.length := by
+    unfold leCount
+    exact List.length_filter_le (fun y => decide (y ≤ pivot)) xs
+  constructor
+  · rw [geCount_eq_length_sub_ltCount] at hsplit
+    omega
+  · rw [gtCount_eq_length_sub_leCount]
+    omega
+
+/--
+CLRS-style partition-size packaging for executable median-of-medians grouping.
+
+Both strict recursive branches have size at most {lit}`7n/10 + O(1)`, stated
+without division as {lit}`10 * branchSize ≤ 7 * n + 12`.
+-/
+theorem fullGroupsOfFive_medianPivot_partition_size_bound
+    {xs medians : List Nat} {pivot : Nat}
+    (hmedians : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians)
+    (hpivot : selectByRank? (medians.length / 2) medians = some pivot) :
+    10 * ltCount pivot xs ≤ 7 * xs.length + 12 ∧
+      10 * gtCount pivot xs ≤ 7 * xs.length + 12 := by
+  have hparts :=
+    fullGroupsOfFive_medianPivot_partition_lengths hmedians hpivot
+  have hcert := fullGroupsOfFive_medianGroupCertificates hmedians
+  have hnear : xs.length ≤ 5 * medians.length + 4 := by
+    have hbase := fullGroupsOfFive_length_near xs
+    simpa [hcert.1] using hbase
+  constructor
+  · omega
+  · omega
 
 /-! ## Deterministic median-pivot instance -/
 

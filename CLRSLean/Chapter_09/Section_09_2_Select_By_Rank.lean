@@ -35,6 +35,10 @@ def leCount (x : Nat) (xs : List Nat) : Nat :=
 def geCount (x : Nat) (xs : List Nat) : Nat :=
   (xs.filter (fun y => decide (x ≤ y))).length
 
+/-- Number of input elements strictly greater than {lit}`x`. -/
+def gtCount (x : Nat) (xs : List Nat) : Nat :=
+  (xs.filter (fun y => decide (x < y))).length
+
 /-- Select the zero-based rank {lit}`k`, if the input has that many elements. -/
 def selectByRank? (k : Nat) (xs : List Nat) : Option Nat :=
   (sortedCopy xs)[k]?
@@ -136,6 +140,24 @@ theorem geCount_eq_length_sub_ltCount (x : Nat) :
           List.length_filter_le (fun y => decide (y < x)) ys
         simp [hlt, hge, ih]
         omega
+
+theorem gtCount_eq_length_sub_leCount (x : Nat) :
+    ∀ xs : List Nat, gtCount x xs = xs.length - leCount x xs := by
+  intro xs
+  induction xs with
+  | nil =>
+      simp [gtCount, leCount]
+  | cons y ys ih =>
+      unfold gtCount leCount at *
+      by_cases hgt : x < y
+      · have hnle : ¬ y ≤ x := Nat.not_le_of_gt hgt
+        have hfilter_le :
+            (ys.filter (fun y => decide (y ≤ x))).length ≤ ys.length :=
+          List.length_filter_le (fun y => decide (y ≤ x)) ys
+        simp [hgt, hnle, ih]
+        omega
+      · have hle : y ≤ x := Nat.le_of_not_gt hgt
+        simp [hgt, hle, ih]
 
 theorem leCount_append (x : Nat) (xs ys : List Nat) :
     leCount x (xs ++ ys) = leCount x xs + leCount x ys := by

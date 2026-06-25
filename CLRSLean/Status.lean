@@ -61,7 +61,8 @@ which areas should not yet be counted as proof-complete.
   pivot-parametric deterministic SELECT model with a count-based
   order-statistic certificate; the local five-element median certificate and
   executable five-element grouping plus the grouped split-count core for the
-  median-of-medians argument are also proved.
+  median-of-medians argument and the CLRS-style partition-size bound are also
+  proved.
 * Chapter 10, Sections 10.1-10.2: functional stack, queue, and linked-list
   operation specifications are proved.
 * Chapter 11, Section 11.1: direct-address table insert/search/delete behavior
@@ -98,8 +99,9 @@ which areas should not yet be counted as proof-complete.
   performance recurrence, randomized quicksort, and expected-time theorem.
 * Chapter 9 linear-time SELECT refinements: pivot-parametric deterministic
   SELECT, the local five-element median certificate, executable grouping, and
-  the grouped/full-input split-count core are proved; randomized expected time,
-  final {lit}`7n/10` partition-size packaging, and the runtime theorem remain.
+  the grouped/full-input split-count core plus {lit}`7n/10` partition-size
+  packaging are proved; randomized expected time and the runtime theorem
+  remain.
 * Chapter 11 expected hashing analysis: expected-time theorem under a formal
   probability model.
 * Chapter 12 pointer-level BST layer: CLRS parent-pointer procedures,
@@ -293,6 +295,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
 * 9.2 Selection by rank, specification selector and pivot-style quickselect:
   {lit}`CLRS.Chapter09.sortedCopy_perm`,
   {lit}`CLRS.Chapter09.sortedCopy_pairwise`,
+  {lit}`CLRS.Chapter09.gtCount_eq_length_sub_leCount`,
   {lit}`CLRS.Chapter09.selectByRank?_mem`,
   {lit}`CLRS.Chapter09.selectByRank?_rankCorrect`, and
   {lit}`CLRS.Chapter09.selectByRank?_correct`;
@@ -318,6 +321,8 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter09.fullGroupsOfFive_selectPivot_split_counts`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_split_counts`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_lengths`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`,
   {lit}`CLRS.Chapter09.deterministicSelect?_mem`,
   {lit}`CLRS.Chapter09.deterministicSelect?_rankCorrect`, and
   {lit}`CLRS.Chapter09.deterministicSelect?_correct`.

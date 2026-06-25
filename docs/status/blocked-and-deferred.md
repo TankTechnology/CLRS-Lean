@@ -254,13 +254,14 @@ now proved as well: `CLRS.Chapter09.fullGroupsOfFive_length_near`,
 `CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
 `CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`,
 `CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`, and
-`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`.
+`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`.  The
+CLRS-style branch-size packaging is proved by
+`CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`.
 
 The remaining hard work splits into two tracks.  Randomized SELECT needs a
 probability model for random pivots and an expected-cost argument.
-Deterministic linear-time SELECT still needs the final CLRS `7n/10`
-partition-size arithmetic on top of the full-input split-count core, and a
-recurrence proof.
+Deterministic linear-time SELECT still needs the recurrence proof on top of the
+proved `7n/10 + O(1)` partition-size theorem.
 
 ### Pointer-Level Linked Lists
 

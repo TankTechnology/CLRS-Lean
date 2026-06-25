@@ -11,7 +11,8 @@ and a pivot-parametric deterministic SELECT model abstracts over the pivot rule.
 All public theorem layers prove that any returned value satisfies the usual
 order-statistic count certificate.  Section 9.3 also proves the local
 five-element median certificate, executable five-element grouping, and grouped
-split-count core for the CLRS median-of-medians split-size proof.
+split-count core plus the CLRS-style partition-size bound for the
+median-of-medians proof.
 
 ## Sections
 
@@ -32,15 +33,15 @@ split-count core for the CLRS median-of-medians split-size proof.
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_split_counts`,
   {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`,
   {lit}`CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`, and
   {lit}`CLRS.Chapter09.deterministicSelect?_correct`.
 
 ## Current Gaps
 
 * Randomized SELECT and expected running time require a probability model.
-* Deterministic linear-time SELECT still needs the final {lit}`7n/10`
-  partition-size arithmetic from the proved full-input split counts and
-  recurrence analysis.
+* Deterministic linear-time SELECT still needs recurrence analysis connecting
+  the proved {lit}`7n/10` partition-size bound to a worst-case linear runtime.
 -/
 
 namespace CLRS

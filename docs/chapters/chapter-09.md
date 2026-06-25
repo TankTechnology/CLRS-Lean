@@ -4,7 +4,7 @@ Chapter 9 now has compiler-clean correctness interfaces for the specification
 selector, a pivot-style quickselect model, and a pivot-parametric deterministic
 SELECT model.  It also now proves the local five-element median certificate
 and executable grouped split-count core that start the CLRS median-of-medians
-split-size argument.
+split-size argument, including the CLRS-style partition-size bound.
 
 ## Section 9.2 - Selection by rank
 
@@ -70,6 +70,8 @@ The theorem layer proves:
 - `CLRS.Chapter09.leCount_le_of_sublist` and
   `CLRS.Chapter09.geCount_le_of_sublist`: count lower bounds lift along
   sublists.
+- `CLRS.Chapter09.gtCount_eq_length_sub_leCount`: the strict-greater branch
+  length is the complement of the weak-lower count.
 - `CLRS.Chapter09.medianOfFiveGroups?_certificates`: mapping the five-element
   median selector across length-five groups constructs grouped certificates.
 - `CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`: executable
@@ -88,6 +90,10 @@ The theorem layer proves:
   split-count theorem specialized to selecting the median of the group medians.
 - `CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`: the
   median-of-medians split counts lifted from full groups to the original input.
+- `CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_lengths`: raw length
+  bounds for the strict `< pivot` and `> pivot` recursive branches.
+- `CLRS.Chapter09.fullGroupsOfFive_medianPivot_partition_size_bound`: the
+  CLRS-style `10 * branchSize ≤ 7 * n + 12` packaging for both branches.
 - `CLRS.Chapter09.deterministicPivot?_mem`: the deterministic median-pivot rule
   returns only input elements.
 - `CLRS.Chapter09.deterministicSelect?_correct`: the deterministic median-pivot
@@ -99,5 +105,5 @@ The theorem layer proves:
   pivots and a cost recurrence or indicator argument.
 - Deterministic linear-time SELECT: the rank-correct deterministic interface,
   local five-element median certificate, executable grouping, and grouped
-  split-count core are proved all the way to full-input count lower bounds, but
-  final `7n/10` partition-size arithmetic and recurrence analysis remain.
+  split-count core are proved all the way to the `7n/10 + O(1)` partition-size
+  bound, but recurrence analysis remains.
