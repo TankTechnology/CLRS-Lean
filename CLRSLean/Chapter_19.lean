@@ -11,7 +11,7 @@ decrease-key, and deletion, adds old-key preservation corollaries for the
 set-updating operations and exact failed membership specifications after heap
 operations, exposes direct operation-result validity wrappers for normalized
 counters, adds direct minimum membership/lower-bound wrappers plus
-insert-minimum direct membership/lower-bound wrappers and positive/empty-result
+insert/union-minimum direct membership/lower-bound wrappers and positive/empty-result
 minimum-after-update specifications, exposes the standard
 potential function with zero-initial and nonnegativity facts, and
 packages a conservative degree-bound wrapper for later subtree-size
@@ -52,6 +52,9 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.union_mem_right`,
   {lit}`CLRS.Chapter19.FibHeap.union_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_mem`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_le_left`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_le_right`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_valid`,

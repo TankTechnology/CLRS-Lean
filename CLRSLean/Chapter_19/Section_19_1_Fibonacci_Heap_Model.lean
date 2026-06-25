@@ -56,6 +56,10 @@ Main results:
   {lit}`FibHeap.insert_minimum_le_inserted`, and
   {lit}`FibHeap.insert_minimum_le_old`: direct membership and lower-bound
   corollaries for a returned minimum after insertion.
+- Theorems {lit}`FibHeap.union_minimum_mem`,
+  {lit}`FibHeap.union_minimum_le_left`, and
+  {lit}`FibHeap.union_minimum_le_right`: direct membership and lower-bound
+  corollaries for a returned minimum after union.
 - Theorems {lit}`FibHeap.insert_minimum_none_iff`,
   {lit}`FibHeap.union_minimum_none_iff`,
   {lit}`FibHeap.extractMin_remaining_minimum_none_iff`,
@@ -364,6 +368,33 @@ theorem union_minimum_correct {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
     exact hmin'.2 y (by simp [Finset.mem_union, hy])
   · intro y hy
     exact hmin'.2 y (by simp [Finset.mem_union, hy])
+
+/-- A returned minimum after union belongs to one of the represented input sets. -/
+theorem union_minimum_mem {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
+    {m : Int} (hrep₁ : Represents h₁ s₁) (hrep₂ : Represents h₂ s₂)
+    (hmin : minimum (union h₁ h₂) = some m) :
+    m ∈ s₁ ∨ m ∈ s₂ := by
+  exact (union_minimum_correct
+    (h₁ := h₁) (h₂ := h₂) (s₁ := s₁) (s₂ := s₂) (m := m)
+    hrep₁ hrep₂ hmin).1
+
+/-- A returned minimum after union is no larger than any key from the left heap. -/
+theorem union_minimum_le_left {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
+    {m y : Int} (hrep₁ : Represents h₁ s₁) (hrep₂ : Represents h₂ s₂)
+    (hmin : minimum (union h₁ h₂) = some m) (hy : y ∈ s₁) :
+    m <= y := by
+  exact (union_minimum_correct
+    (h₁ := h₁) (h₂ := h₂) (s₁ := s₁) (s₂ := s₂) (m := m)
+    hrep₁ hrep₂ hmin).2.1 y hy
+
+/-- A returned minimum after union is no larger than any key from the right heap. -/
+theorem union_minimum_le_right {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
+    {m y : Int} (hrep₁ : Represents h₁ s₁) (hrep₂ : Represents h₂ s₂)
+    (hmin : minimum (union h₁ h₂) = some m) (hy : y ∈ s₂) :
+    m <= y := by
+  exact (union_minimum_correct
+    (h₁ := h₁) (h₂ := h₂) (s₁ := s₁) (s₂ := s₂) (m := m)
+    hrep₁ hrep₂ hmin).2.2 y hy
 
 /-- A union has no minimum exactly when both represented input sets are empty. -/
 theorem union_minimum_none_iff {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}

@@ -30,6 +30,9 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.union_mem_right
 #check CLRS.Chapter19.FibHeap.union_not_mem_iff
 #check CLRS.Chapter19.FibHeap.union_minimum_correct
+#check CLRS.Chapter19.FibHeap.union_minimum_mem
+#check CLRS.Chapter19.FibHeap.union_minimum_le_left
+#check CLRS.Chapter19.FibHeap.union_minimum_le_right
 #check CLRS.Chapter19.FibHeap.union_minimum_none_iff
 #check CLRS.Chapter19.FibHeap.extractMin_correct
 #check CLRS.Chapter19.FibHeap.extractMin_valid
