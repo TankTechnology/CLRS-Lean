@@ -108,7 +108,7 @@ which areas should not yet be counted as proof-complete.
   empty-heap construction, direct operation-result validity wrappers,
   empty-result query specs, direct
   insert/union/extract-min/decrease-key/delete membership facts plus
-  operation-key and old-key preservation membership corollaries,
+  operation-key, old-key preservation, and failed membership corollaries,
   minimum-after-update positive/empty specifications, heap-potential
   zero/nonnegativity and telescoping facts, and Fibonacci
   lower-bound recurrence/positivity/monotonicity and even/half-index
@@ -607,6 +607,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_self`,
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_old`,
+  {lit}`CLRS.Chapter19.FibHeap.insert_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_correct`,
@@ -614,6 +615,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.union_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_mem_left`,
   {lit}`CLRS.Chapter19.FibHeap.union_mem_right`,
+  {lit}`CLRS.Chapter19.FibHeap.union_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
@@ -621,6 +623,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_mem_of_ne`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`,
@@ -629,6 +632,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_new`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_old`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
@@ -636,6 +640,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_not_mem`,
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_of_ne`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,

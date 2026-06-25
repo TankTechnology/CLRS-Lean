@@ -1122,6 +1122,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.insert_mem_iff`
   - `CLRS.Chapter19.FibHeap.insert_mem_self`
   - `CLRS.Chapter19.FibHeap.insert_mem_old`
+  - `CLRS.Chapter19.FibHeap.insert_not_mem_iff`
   - `CLRS.Chapter19.FibHeap.insert_minimum_correct`
   - `CLRS.Chapter19.FibHeap.insert_minimum_none_iff`
   - `CLRS.Chapter19.FibHeap.union_correct`
@@ -1129,6 +1130,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.union_mem_iff`
   - `CLRS.Chapter19.FibHeap.union_mem_left`
   - `CLRS.Chapter19.FibHeap.union_mem_right`
+  - `CLRS.Chapter19.FibHeap.union_not_mem_iff`
   - `CLRS.Chapter19.FibHeap.union_minimum_correct`
   - `CLRS.Chapter19.FibHeap.union_minimum_none_iff`
   - `CLRS.Chapter19.FibHeap.extractMin_correct`
@@ -1136,6 +1138,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.extractMin_mem_iff`
   - `CLRS.Chapter19.FibHeap.extractMin_not_mem`
   - `CLRS.Chapter19.FibHeap.extractMin_mem_of_ne`
+  - `CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`
   - `CLRS.Chapter19.FibHeap.extractMin_none_iff`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`
@@ -1144,6 +1147,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_new`
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_old`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`
   - `CLRS.Chapter19.FibHeap.delete_correct`
@@ -1151,6 +1155,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.delete_mem_iff`
   - `CLRS.Chapter19.FibHeap.delete_not_mem`
   - `CLRS.Chapter19.FibHeap.delete_mem_of_ne`
+  - `CLRS.Chapter19.FibHeap.delete_not_mem_iff`
   - `CLRS.Chapter19.FibHeap.delete_minimum_correct`
   - `CLRS.Chapter19.FibHeap.delete_minimum_none_iff`
   - `CLRS.Chapter19.FibHeap.heapPotential_telescope`
@@ -1168,8 +1173,9 @@ mutation proof.
   direct operation-result validity wrappers, empty-result query
   characterization, heap-potential nonnegativity and
   Chapter 17 potential-method instantiation, direct operation-key and old-key
-  preservation membership corollaries, returned minimum-after-update
-  positive and empty-result specifications, Fibonacci lower-bound recurrence
+  preservation membership corollaries, exact failed membership specifications,
+  returned minimum-after-update positive and empty-result specifications,
+  Fibonacci lower-bound recurrence
   plus a two-step doubling induction over even indices, a half-index bridge,
   and a conditional binary-log degree budget
 - Current gap: pointer handles, heap-ordered forest/cascading-cut transition
@@ -1180,9 +1186,9 @@ Chapter 19 now records the operation-level Fibonacci-heap contracts against an
 abstract finite key set, including empty-heap construction and empty-result
 minimum/extract-min specifications plus direct
 insert/union/extract-min/decrease-key/delete membership facts plus
-operation-key and old-key preservation membership corollaries, direct
-operation-result validity wrappers, and returned minimum-after-update positive
-and empty-result specifications.  The standard
+operation-key and old-key preservation membership corollaries plus exact failed
+membership specifications, direct operation-result validity wrappers, and
+returned minimum-after-update positive and empty-result specifications.  The standard
 potential function now has zero-initial and nonnegativity facts and is connected
 to the Chapter 17 telescoping theorem, and the Fibonacci lower-bound
 sequence now exposes its local recurrence, positivity, and adjacent
