@@ -89,6 +89,13 @@ which areas should not yet be counted as proof-complete.
   pointers, transplant, and mutation remain.
 * Chapter 13, Section 13.1: local red-black rotation/recoloring invariants are
   proved; full insertion and deletion fixup algorithms remain.
+* Chapter 14, Section 14.1: order-statistic tree size augmentation,
+  recomputation, key preservation, and rank-selection correctness are proved
+  for a functional augmented tree; rotations, interval trees, and the general
+  augmentation theorem remain.
+* Chapter 15, Section 15.1: rod-cutting Bellman recurrence facts and an
+  optimal-plan certificate theorem are proved; bottom-up/memoized execution and
+  the remaining dynamic-programming examples remain.
 * Chapter 23, Sections 23.1-23.2: the cut property, safe-edge theorem,
   exact-component Kruskal scan facts, forest/spanning wrappers, and
   certificate-based Kruskal optimality interfaces exist; automatic simple
@@ -113,7 +120,11 @@ which areas should not yet be counted as proof-complete.
   transplant, and mutation refinement.
 * Chapter 13 full red-black algorithms: insertion/deletion fixup correctness
   and height theorem.
-* Chapters 14-15 and 21-22: not yet represented.
+* Chapter 14 remaining augmentation targets: rotations connected to size
+  fields, interval trees, and the general augmentation theorem.
+* Chapter 15 remaining dynamic-programming targets: bottom-up and memoized rod
+  cutting, matrix-chain multiplication, LCS, and optimal binary search trees.
+* Chapters 21-22: not yet represented.
 * Chapter 17 Amortized Analysis: first-pass acceptance standard is fixed:
   generic aggregate/accounting/potential theorems plus {lit}`MULTIPOP`, binary
   counter, and dynamic-table examples.  No Lean module exists yet.
@@ -488,6 +499,22 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`;
   remaining gap: full RB insertion/deletion fixup algorithms are not yet
   mechanized.
+* 14.1 Order-statistic trees:
+  current results {lit}`CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`,
+  {lit}`CLRS.Chapter14.OSTree.recomputeSizes_wellSized`,
+  {lit}`CLRS.Chapter14.OSTree.keys_recomputeSizes`,
+  {lit}`CLRS.Chapter14.OSTree.osSelect?_eq_rankSelect?_of_wellSized`, and
+  {lit}`CLRS.Chapter14.OSTree.osSelect?_recomputeSizes_eq_rankSelect?`;
+  remaining gap: rotations connected to size fields, interval trees, and the
+  general augmentation theorem.
+* 15.1 Rod cutting:
+  current results {lit}`CLRS.Chapter15.firstCutValue_le_of_rodCutRecurrence`,
+  {lit}`CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`,
+  {lit}`CLRS.Chapter15.price_le_revenue_of_rodCutRecurrence`,
+  {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`, and
+  {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`;
+  remaining gap: bottom-up/memoized rod cutting, matrix-chain multiplication,
+  LCS, and optimal binary search trees.
 * 23.1 Growing a minimum spanning tree:
   current results {lit}`CLRS.MST.Graph.connected_crosses_cut`,
   {lit}`CLRS.MST.FiniteGraph.minimumSpanningTree_of_mstExtending_empty`,

@@ -895,6 +895,50 @@ preserving the BST ordering invariant.
 The section builds the local invariant library needed before mechanizing the
 full balancing algorithms.
 
+## Chapter 14 - Augmenting Data Structures
+
+### Section 14.1 - Order-statistic trees
+
+- Lean source: `CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`
+  - `CLRS.Chapter14.OSTree.recomputeSizes_wellSized`
+  - `CLRS.Chapter14.OSTree.keys_recomputeSizes`
+  - `CLRS.Chapter14.OSTree.osSelect?_eq_rankSelect?_of_wellSized`
+  - `CLRS.Chapter14.OSTree.osSelect?_recomputeSizes_eq_rankSelect?`
+- Proof pattern: separate cached size fields from mathematical subtree size,
+  prove recomputation establishes the augmentation invariant, then prove the
+  cached order-statistic selector agrees with the ideal selector under that
+  invariant
+- Current gap: rotations connected to the size field, interval trees, and the
+  general augmentation theorem remain future targets
+
+This first pass captures the core mathematical idea of order-statistic trees:
+the augmented size field is useful exactly because the selector can branch on
+cached left-subtree sizes while remaining equivalent to the ideal rank selector.
+
+## Chapter 15 - Dynamic Programming
+
+### Section 15.1 - Rod cutting
+
+- Lean source: `CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter15.firstCutValue_le_of_rodCutRecurrence`
+  - `CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`
+  - `CLRS.Chapter15.price_le_revenue_of_rodCutRecurrence`
+  - `CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`
+  - `CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`
+- Proof pattern: state the Bellman first-cut recurrence abstractly, prove every
+  admissible first cut is bounded by the recurrence value, then induct over
+  positive-piece cutting plans to prove global optimality certificates
+- Current gap: bottom-up and memoized implementation correctness, matrix-chain
+  multiplication, LCS, and optimal binary search trees remain future targets
+
+This first dynamic-programming proof establishes the textbook optimal
+substructure argument independently of a particular table implementation.
+
 ## Chapter 16 - Greedy Algorithms
 
 ### Section 16.1 - Activity selection

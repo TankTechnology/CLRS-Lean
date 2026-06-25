@@ -11,6 +11,8 @@ import CLRSLean.Chapter_10
 import CLRSLean.Chapter_11
 import CLRSLean.Chapter_12
 import CLRSLean.Chapter_13
+import CLRSLean.Chapter_14
+import CLRSLean.Chapter_15
 import CLRSLean.Chapter_16
 import CLRSLean.Chapter_23
 import CLRSLean.Progress
@@ -86,6 +88,10 @@ Start with the chapter pages in the sidebar.
   inductive BST model.
 * Chapter 13 - Red-Black Trees: local rotation, recoloring, red-red repair, and
   red-black shape invariant lemmas.
+* Chapter 14 - Augmenting Data Structures: order-statistic tree size
+  augmentation and rank-selection correctness for the current functional model.
+* Chapter 15 - Dynamic Programming: rod-cutting Bellman recurrence facts and
+  an optimal-plan certificate theorem.
 * Chapter 16 - Greedy Algorithms: activity-selection exchange infrastructure
   and the complete Huffman optimality proof, currently the flagship greedy case
   study.
@@ -374,6 +380,18 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateLeft_red_red`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_rotateRight_red_red`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_repaint_black`.
+* 14.1 Order-statistic trees: {lit}`partial`.
+  Current results: {lit}`CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`,
+  {lit}`CLRS.Chapter14.OSTree.recomputeSizes_wellSized`,
+  {lit}`CLRS.Chapter14.OSTree.keys_recomputeSizes`,
+  {lit}`CLRS.Chapter14.OSTree.osSelect?_eq_rankSelect?_of_wellSized`,
+  {lit}`CLRS.Chapter14.OSTree.osSelect?_recomputeSizes_eq_rankSelect?`.
+* 15.1 Rod cutting: {lit}`partial`.
+  Current results: {lit}`CLRS.Chapter15.firstCutValue_le_of_rodCutRecurrence`,
+  {lit}`CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`,
+  {lit}`CLRS.Chapter15.price_le_revenue_of_rodCutRecurrence`,
+  {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`,
+  {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`.
 * 16.1 Activity selection: {lit}`proved` for finite sorted lists.
   Current results: {lit}`CLRS.ActivitySelection.earliest_finish_minFinish`,
   {lit}`CLRS.ActivitySelection.finishSorted_head_minFinish`,

@@ -9,10 +9,10 @@ When the CSV changes, regenerate this page with
 ## Snapshot
 
 * CLRS chapters tracked: 35.
-* Chapters represented in Lean: 15.
-* Tracked reader-facing theorem entries: 334.
-* Proved tracked theorem entries: 334.
-* Remaining core theorem groups: 45.
+* Chapters represented in Lean: 17.
+* Tracked reader-facing theorem entries: 344.
+* Proved tracked theorem entries: 344.
+* Remaining core theorem groups: 49.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -23,8 +23,8 @@ are not yet represented or not yet complete.
 * {lit}`main-proof-complete`: 2 chapters.
 * {lit}`main-proof-complete-for-correctness`: 1 chapter.
 * {lit}`selected-section-complete`: 3 chapters.
-* {lit}`partial`: 8 chapters.
-* {lit}`not-started`: 20 chapters.
+* {lit}`partial`: 10 chapters.
+* {lit}`not-started`: 18 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -45,8 +45,8 @@ Ch  Chapter                                                     Status          
 11  11. Hash Tables                                             partial                              11.1;11.2                           8        1
 12  12. Binary Search Trees                                     partial                              12.1                               11        1
 13  13. Red-Black Trees                                         partial                              13.1                               10        2
-14  14. Augmenting Data Structures                              not-started                          not represented                     0        1
-15  15. Dynamic Programming                                     not-started                          not represented                     0        1
+14  14. Augmenting Data Structures                              partial                              14.1                                5        2
+15  15. Dynamic Programming                                     partial                              15.1                                5        4
 16  16. Greedy Algorithms                                       selected-section-complete            16.1;16.3                          21        2
 17  17. Amortized Analysis                                      not-started                          not represented                     0        1
 18  18. B-Trees                                                 not-started                          not represented                     0        1

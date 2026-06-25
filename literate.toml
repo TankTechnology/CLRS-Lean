@@ -22,6 +22,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_11",
   "CLRSLean.Chapter_12",
   "CLRSLean.Chapter_13",
+  "CLRSLean.Chapter_14",
+  "CLRSLean.Chapter_15",
   "CLRSLean.Chapter_16",
   "CLRSLean.Chapter_23",
   "CLRSLean.Progress",
@@ -82,6 +84,12 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_13" = [
   "CLRSLean.Chapter_13.Section_13_1_Red_Black_Trees",
 ]
+"CLRSLean.Chapter_14" = [
+  "CLRSLean.Chapter_14.Section_14_1_Order_Statistic_Trees",
+]
+"CLRSLean.Chapter_15" = [
+  "CLRSLean.Chapter_15.Section_15_1_Rod_Cutting",
+]
 "CLRSLean.Chapter_16" = [
   "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
   "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
@@ -132,6 +140,12 @@ title = "Chapter 12. Binary Search Trees"
 
 [modules."CLRSLean.Chapter_13"]
 title = "Chapter 13. Red-Black Trees"
+
+[modules."CLRSLean.Chapter_14"]
+title = "Chapter 14. Augmenting Data Structures"
+
+[modules."CLRSLean.Chapter_15"]
+title = "Chapter 15. Dynamic Programming"
 
 [modules."CLRSLean.Chapter_16"]
 title = "Chapter 16. Greedy Algorithms"
@@ -237,6 +251,12 @@ title = "12.1. Binary Search Trees"
 
 [modules."CLRSLean.Chapter_13.Section_13_1_Red_Black_Trees"]
 title = "13.1. Red-Black Trees"
+
+[modules."CLRSLean.Chapter_14.Section_14_1_Order_Statistic_Trees"]
+title = "14.1. Order-Statistic Trees"
+
+[modules."CLRSLean.Chapter_15.Section_15_1_Rod_Cutting"]
+title = "15.1. Rod Cutting"
 
 [modules."CLRSLean.Chapter_16.Section_16_3_Huffman_Codes"]
 title = "16.3. Huffman Codes"
