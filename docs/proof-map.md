@@ -128,9 +128,10 @@ all-input asymptotic transfer bridge.  Section 4.6 now also proves the
 adjacent-power bridge that generates power-sandwich witnesses from one-step
 comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 floor/ceiling Master cases, and natural-exponent polynomial comparison wrappers
-for cases 1 and 2.  The full floor/ceiling Master Theorem still needs the
-general `n^(log_b a)`, real-log, and case-3 comparison layers packaged as final
-case statements.
+for cases 1 and 2.  A real-log bridge now connects the discrete scales to the textbook
+`n^(log_b a)` for all `a ≥ 1` and `b > 1`, so case-1 and case-2 wrappers
+compose with it to CLRS-facing asymptotic bounds.  The remaining gap is a
+similarly textbook-facing case-3 comparison scale.
 
 ### Section 4.1 - The maximum-subarray problem
 
@@ -248,6 +249,9 @@ case statements.
   - `CLRS.Chapter04.polynomialLogScale`
   - `CLRS.Chapter04.criticalPowerScale_isBigTheta_polynomialScale`
   - `CLRS.Chapter04.criticalPowerLogScale_isBigTheta_polynomialLogScale`
+  - `CLRS.Chapter04.realLogExponent`
+  - `CLRS.Chapter04.realLogScale`
+  - `CLRS.Chapter04.criticalPowerScale_isBigTheta_realLogScale`
   - `CLRS.Chapter04.exactPower_allInput_masterCase1_criticalPowerScale`
   - `CLRS.Chapter04.floorDivide_allInput_masterCase1_criticalPowerScale`
   - `CLRS.Chapter04.ceilDivide_allInput_masterCase1_criticalPowerScale`
@@ -283,10 +287,16 @@ case statements.
   conclusions.  The packaged wrappers combine floor/ceiling recurrence
   extraction, the exact-power Master case theorem, and the corresponding
   all-input bridge.
-- Current gap: extend the comparison-scale layer from the natural-exponent
-  special case to the general `n^(log_b a)` statement, connect the discrete
-  logarithm to `Real.log`, and add a similarly textbook-facing case-3
-  forcing-scale statement.
+- New real-log bridge: `CLRS.Chapter04.realLogExponent`, `CLRS.Chapter04.realLogScale`, and
+  `CLRS.Chapter04.criticalPowerScale_isBigTheta_realLogScale` now connect the
+  discrete scale `a^(⌊log_b n⌋)` to the textbook scale `n^(log_b a)` for all
+  `a ≥ 1` and `b > 1`.  Case-1 and case-2 all-input Master wrappers compose
+  with this bridge via `isBigTheta_trans` to yield CLRS-facing
+  `Θ(n^(log_b a))` and `Θ((⌊log_b n⌋+1)n^(log_b a))` bounds without the
+  natural-exponent restriction.
+- Current gap: add a similarly textbook-facing case-3 comparison scale
+  (connecting the tail-dominated discrete scale to `f(n)` with the CLRS
+  regularity condition).
 
 ## Chapter 5 - Probabilistic Analysis and Randomized Algorithms
 

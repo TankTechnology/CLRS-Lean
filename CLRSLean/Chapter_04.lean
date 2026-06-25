@@ -59,9 +59,13 @@ and by future divide-and-conquer runtime proofs.
   floor/ceiling recurrence forms of exact-power Master cases 1, 2, and 3 for
   these discrete scales.  It also proves the natural-exponent comparison
   layer for {lit}`a = b^p`, exposing case-1 results as {lit}`Θ(n^p)` and
-  case-2 results as {lit}`Θ((⌊log_b n⌋+1)n^p)`.  The full textbook theorem
-  still needs the general {lit}`n^(log_b a)`, real-log, and case-3 comparison
-  scales for the standard CLRS-facing asymptotic statements.
+  case-2 results as {lit}`Θ((⌊log_b n⌋+1)n^p)`.  A real-log bridge
+  {name}`CLRS.Chapter04.criticalPowerScale_isBigTheta_realLogScale` now
+  connects the discrete scale {lit}`a^(⌊log_b n⌋)` to the textbook scale
+  {lit}`n^(log_b a)` for all {lit}`a ≥ 1` and {lit}`b > 1`, so case-1
+  and case-2 all-input Master wrappers compose with this bridge to yield
+  CLRS-facing {lit}`Θ(n^(log_b a))` bounds.  The remaining gap is a similarly
+  textbook-facing case-3 comparison scale.
 -/
 
 namespace CLRS

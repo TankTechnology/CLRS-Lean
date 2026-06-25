@@ -10,7 +10,9 @@ to arbitrary natural input sizes, including floor and ceiling recurrences.
 This file proves the reusable transfer layer for that bridge.  It first keeps
 the power-sandwich facts as explicit hypotheses, then gives a reusable way to
 discharge them from a monotonicity hypothesis plus a one-step scale bound
-between adjacent powers of the base.
+between adjacent powers of the base.  It also proves a real-log comparison
+bridge that connects the discrete scale {lit}`a^(⌊log_b n⌋)` to the textbook
+scale {lit}`n^(log_b a)` for all {lit}`a ≥ 1` and {lit}`b > 1`.
 -/
 
 namespace CLRS
@@ -346,6 +348,183 @@ theorem criticalPowerLogScale_isBigTheta_polynomialLogScale
       _ = |criticalPowerLogScale (b ^ p) b n| := by
             rw [abs_of_nonneg (criticalPowerLogScale_nonneg (b ^ p) b n)]
             simp [criticalPowerLogScale, criticalPowerScale_of_base_pow, i]
+
+/-! ## Real-logarithmic comparison scales -/
+
+/--
+The real-valued exponent `log_b a = log a / log b`.  This is the exponent that
+appears in the standard CLRS Master-theorem statement as `n^(log_b a)`.
+
+When `a = b^p` for natural `p`, this reduces to `(p : ℝ)`, and the
+{name}`criticalPowerScale_isBigTheta_polynomialScale` comparison above is a
+special case of the general comparison proved here.
+-/
+noncomputable def realLogExponent (a b : ℕ) : ℝ :=
+  Real.log (a : ℝ) / Real.log (b : ℝ)
+
+/--
+The real-log comparison scale `n^(log_b a)`.  This is the textbook scale used in
+the standard CLRS statement of the Master theorem: the homogeneous-solution
+growth rate without floors and ceilings.
+
+For integer exponents it coincides with the ordinary polynomial scale
+{name}`polynomialScale`.
+-/
+noncomputable def realLogScale (a b : ℕ) (n : ℕ) : ℝ :=
+  (n : ℝ) ^ (realLogExponent a b)
+
+/--
+When `1 ≤ a` and `1 < b`, the discrete critical-power scale
+`a^(⌊log_b n⌋)` is asymptotically equivalent to the real-log scale
+`n^(log_b a)`.
+
+This is the main bridge between the discrete all-input Master-theorem proof
+and the standard CLRS statement in terms of `n^(log_b a)`.  The constant
+factor is at most `a` in the Ω direction and `1` in the O direction, so the
+asymptotic class is exact.
+-/
+theorem criticalPowerScale_isBigTheta_realLogScale
+    (a b : ℕ) (ha : 1 ≤ a) (hb : 1 < b) :
+    Chapter03.isBigTheta (criticalPowerScale a b) (realLogScale a b) := by
+  have ha1 : 1 ≤ (a : ℝ) := by exact_mod_cast ha
+  have ha_pos : 0 < (a : ℝ) := by
+    exact lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) ha1
+  have ha_nonneg : 0 ≤ (a : ℝ) := ha_pos.le
+  have hb1 : 1 < (b : ℝ) := by exact_mod_cast hb
+  have hb_pos : 0 < (b : ℝ) := by exact_mod_cast Nat.lt_trans Nat.zero_lt_one hb
+  have hb_nonneg : 0 ≤ (b : ℝ) := hb_pos.le
+  have hb_log_pos : 0 < Real.log (b : ℝ) := Real.log_pos hb1
+  have hb_log_ne_zero : Real.log (b : ℝ) ≠ 0 := ne_of_gt hb_log_pos
+  have ha_log_nonneg : 0 ≤ Real.log (a : ℝ) := Real.log_nonneg ha1
+  -- The exponent α = log_b a
+  have hα_nonneg : 0 ≤ realLogExponent a b := by
+    dsimp [realLogExponent]
+    exact div_nonneg ha_log_nonneg hb_log_pos.le
+  -- Key identity: b^α = a
+  have h_base_identity : (b : ℝ) ^ (realLogExponent a b) = (a : ℝ) := by
+    dsimp [realLogExponent]
+    calc
+      (b : ℝ) ^ (Real.log (a : ℝ) / Real.log (b : ℝ))
+          = Real.exp (Real.log (b : ℝ) * (Real.log (a : ℝ) / Real.log (b : ℝ))) := by
+        rw [Real.rpow_def_of_pos hb_pos]
+      _ = Real.exp (Real.log (a : ℝ)) := by
+        field_simp [hb_log_ne_zero]
+      _ = (a : ℝ) := Real.exp_log ha_pos
+  -- formula for criticalPowerScale as a real power
+  have hcrit_formula (n : ℕ) : (criticalPowerScale a b n : ℝ) =
+      (a : ℝ) ^ (Nat.log b n : ℝ) := by
+    dsimp [criticalPowerScale]
+    simp [Real.rpow_natCast]
+  constructor
+  · -- O direction: criticalPowerScale a b = O(realLogScale a b)
+    refine (Chapter03.isBigO_iff _ _).mpr ?_
+    refine ⟨1, by norm_num, 1, ?_⟩
+    intro n hn
+    have hn_ne_zero : n ≠ 0 := by omega
+    set k := Nat.log b n with hk_def
+    have hpow_le : (b : ℕ) ^ k ≤ n := Nat.pow_log_le_self b hn_ne_zero
+    have hpow_le_real : ((b : ℕ) ^ k : ℝ) ≤ (n : ℝ) := by exact_mod_cast hpow_le
+    have hn_nonneg : 0 ≤ (n : ℝ) := by exact_mod_cast Nat.zero_le n
+    have hcrit_nonneg : 0 ≤ criticalPowerScale a b n := by
+      rw [hcrit_formula n]
+      exact Real.rpow_nonneg (by exact_mod_cast Nat.zero_le a) _
+    have hreal_nonneg : 0 ≤ realLogScale a b n := by
+      dsimp [realLogScale]
+      apply Real.rpow_nonneg hn_nonneg
+    set α := realLogExponent a b with hα_def
+    -- Core identity: a^k = (b^k)^α
+    have hlog_mul : Real.log (b : ℝ) * α = Real.log (a : ℝ) := by
+      dsimp [α, realLogExponent]
+      field_simp [hb_log_ne_zero]
+    have h_key : (a : ℝ) ^ (k : ℝ) = ((b : ℝ) ^ (k : ℝ)) ^ α := by
+      calc
+        (a : ℝ) ^ (k : ℝ) = Real.exp (Real.log (a : ℝ) * (k : ℝ)) := by
+          rw [Real.rpow_def_of_pos ha_pos]
+        _ = Real.exp ((k : ℝ) * Real.log (a : ℝ)) := by ring
+        _ = Real.exp ((k : ℝ) * (Real.log (b : ℝ) * α)) := by rw [hlog_mul]
+        _ = Real.exp ((Real.log (b : ℝ) * α) * (k : ℝ)) := by ring
+        _ = Real.exp (Real.log (b : ℝ) * (α * (k : ℝ))) := by ring
+        _ = Real.exp (Real.log (b : ℝ) * ((k : ℝ) * α)) := by ring
+        _ = (b : ℝ) ^ ((k : ℝ) * α) := by rw [Real.rpow_def_of_pos hb_pos]
+        _ = ((b : ℝ) ^ (k : ℝ)) ^ α := by rw [Real.rpow_mul hb_nonneg (k : ℝ) α]
+    have hbpow_nonneg : 0 ≤ (b : ℝ) ^ (k : ℝ) :=
+      Real.rpow_nonneg hb_nonneg _
+    have hbpow_le_n : (b : ℝ) ^ (k : ℝ) ≤ (n : ℝ) := by
+      rw [Real.rpow_natCast]
+      simpa [Nat.cast_pow] using hpow_le_real
+    calc
+      |criticalPowerScale a b n| = criticalPowerScale a b n :=
+        abs_of_nonneg hcrit_nonneg
+      _ = (a : ℝ) ^ (k : ℝ) := by
+        rw [hcrit_formula n, hk_def]
+      _ = ((b : ℝ) ^ (k : ℝ)) ^ α := by rw [h_key]
+      _ ≤ (n : ℝ) ^ α :=
+        Real.rpow_le_rpow hbpow_nonneg hbpow_le_n hα_nonneg
+      _ = realLogScale a b n := rfl
+      _ = |realLogScale a b n| := by rw [abs_of_nonneg hreal_nonneg]
+      _ = 1 * |realLogScale a b n| := by ring
+  · -- Ω direction: realLogScale a b = O(criticalPowerScale a b)
+    have ha_inv_pos : 0 < (a : ℝ)⁻¹ := inv_pos.mpr ha_pos
+    refine (Chapter03.isBigOmega_iff _ _).mpr ?_
+    refine ⟨(a : ℝ)⁻¹, ha_inv_pos, 1, ?_⟩
+    intro n hn
+    have hn_ne_zero : n ≠ 0 := by omega
+    set k := Nat.log b n with hk_def
+    have hpow_lt : n < b ^ (k + 1) := Nat.lt_pow_succ_log_self hb n
+    have hcrit_nonneg : 0 ≤ criticalPowerScale a b n := by
+      rw [hcrit_formula n]
+      exact Real.rpow_nonneg (by exact_mod_cast Nat.zero_le a) _
+    have hn_nonneg : 0 ≤ (n : ℝ) := by exact_mod_cast Nat.zero_le n
+    have hreal_nonneg : 0 ≤ realLogScale a b n := by
+      dsimp [realLogScale]
+      apply Real.rpow_nonneg hn_nonneg
+    set α := realLogExponent a b with hα_def
+    have hlog_mul : Real.log (b : ℝ) * α = Real.log (a : ℝ) := by
+      dsimp [α, realLogExponent]
+      field_simp [hb_log_ne_zero]
+    have h_key : (a : ℝ) ^ (k : ℝ) = ((b : ℝ) ^ (k : ℝ)) ^ α := by
+      calc
+        (a : ℝ) ^ (k : ℝ) = Real.exp (Real.log (a : ℝ) * (k : ℝ)) := by
+          rw [Real.rpow_def_of_pos ha_pos]
+        _ = Real.exp ((k : ℝ) * Real.log (a : ℝ)) := by ring
+        _ = Real.exp ((k : ℝ) * (Real.log (b : ℝ) * α)) := by rw [hlog_mul]
+        _ = Real.exp ((Real.log (b : ℝ) * α) * (k : ℝ)) := by ring
+        _ = Real.exp (Real.log (b : ℝ) * (α * (k : ℝ))) := by ring
+        _ = Real.exp (Real.log (b : ℝ) * ((k : ℝ) * α)) := by ring
+        _ = (b : ℝ) ^ ((k : ℝ) * α) := by rw [Real.rpow_def_of_pos hb_pos]
+        _ = ((b : ℝ) ^ (k : ℝ)) ^ α := by rw [Real.rpow_mul hb_nonneg (k : ℝ) α]
+    have hbpow_nonneg : 0 ≤ (b : ℝ) ^ (k : ℝ) :=
+      Real.rpow_nonneg hb_nonneg _
+    -- n < b^(k+1) in ℕ → (n:ℝ) ≤ (b:ℝ) * (b:ℝ)^(k:ℝ) in ℝ
+    have h_n_le_b_mul_bpow : (n : ℝ) ≤ (b : ℝ) * (b : ℝ) ^ (k : ℝ) := by
+      have h_n_lt_bpow_succ_nat : n < b ^ (k + 1) := hpow_lt
+      have h_n_lt_bpow_succ_real : (n : ℝ) < ((b : ℕ) ^ (k + 1) : ℝ) := by
+        exact_mod_cast h_n_lt_bpow_succ_nat
+      have h_bpow_succ_eq : ((b : ℕ) ^ (k + 1) : ℝ) = (b : ℝ) * (b : ℝ) ^ (k : ℝ) := by
+        simp [pow_succ, Real.rpow_natCast, mul_comm]
+      linarith
+    -- n^α ≤ (b * b^k)^α = b^α * (b^k)^α = a * a^k = a * criticalPowerScale
+    have h_bound : realLogScale a b n ≤ (a : ℝ) * (criticalPowerScale a b n : ℝ) := by
+      calc
+        realLogScale a b n = (n : ℝ) ^ α := rfl
+        _ ≤ ((b : ℝ) * (b : ℝ) ^ (k : ℝ)) ^ α :=
+          Real.rpow_le_rpow hn_nonneg h_n_le_b_mul_bpow hα_nonneg
+        _ = ((b : ℝ) ^ α) * (((b : ℝ) ^ (k : ℝ)) ^ α) := by
+          rw [Real.mul_rpow (z := α) hb_nonneg hbpow_nonneg]
+        _ = (a : ℝ) * (((b : ℝ) ^ (k : ℝ)) ^ α) := by rw [h_base_identity]
+        _ = (a : ℝ) * ((a : ℝ) ^ (k : ℝ)) := by rw [h_key]
+        _ = (a : ℝ) * (criticalPowerScale a b n : ℝ) := by
+          rw [hcrit_formula n, hk_def]
+    calc
+      (a : ℝ)⁻¹ * |realLogScale a b n|
+          = (a : ℝ)⁻¹ * realLogScale a b n := by
+            rw [abs_of_nonneg hreal_nonneg]
+      _ ≤ (a : ℝ)⁻¹ * ((a : ℝ) * (criticalPowerScale a b n : ℝ)) := by
+        gcongr
+      _ = criticalPowerScale a b n := by
+        field_simp [ne_of_gt ha_pos]
+      _ = |criticalPowerScale a b n| := by
+        rw [abs_of_nonneg hcrit_nonneg]
 
 /-! ## Floor/ceiling recurrence interfaces -/
 
