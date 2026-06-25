@@ -424,6 +424,48 @@ separate model.
   exposes the post-replacement permutation.
 - Current gap: implementation-level complexity remains future refinement work.
 
+## Chapter 7 - Quicksort
+
+### Section 7.1 - Description of quicksort
+
+- Lean source: `CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean`
+- Status: `proved` for the current functional-list model
+- Main proved theorems:
+  - `CLRS.Chapter07.partitionAround_perm`
+  - `CLRS.Chapter07.partitionAround_left_allLeUpper`
+  - `CLRS.Chapter07.partitionAround_right_allGt`
+  - `CLRS.Chapter07.quickSort_perm`
+  - `CLRS.Chapter07.quickSort_ordered`
+  - `CLRS.Chapter07.quickSort_correct`
+- Proof pattern: define a stable pivot partition, prove the partition preserves
+  exactly the input tail while separating elements by the pivot comparison,
+  then prove a fuelled functional quicksort by induction on fuel.  The fuel
+  parameter makes the decreasing subproblem obligation explicit: each partition
+  side has length at most the original tail.
+- Current gap: in-place array `PARTITION`, deterministic performance analysis,
+  randomized quicksort, and expected running time remain future strengthening
+  targets
+
+The section proves the mathematical correctness spine for quicksort before
+introducing array mutation or probability.  The reader-facing theorem
+`CLRS.Chapter07.quickSort_correct` packages sortedness and permutation
+preservation.  This gives Chapter 7 a stable base for later CLRS refinements:
+the next proof layer should connect the functional partition specification to
+the in-place `PARTITION` loop.
+
+### Sections 7.2-7.4 - Performance and randomized quicksort
+
+- Lean source: not yet created
+- Status: `future-work`
+- Planned theorem targets:
+  - in-place `PARTITION` loop correctness and permutation preservation;
+  - deterministic quicksort recurrence bounds for selected input models;
+  - randomized quicksort specification;
+  - expected running time under a formal probability model.
+- Difficulty note: randomized expected-time analysis is a hard proof track
+  because it requires a probability model for random pivots or random
+  permutations plus a recurrence or indicator-variable cost argument.
+
 ## Chapter 10 - Elementary Data Structures
 
 ### Section 10.1 - Stacks and queues
@@ -712,6 +754,8 @@ accepted edge set is already known to be a spanning tree.
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
 | Chapter 6 priority-queue RAM costs | `deferred-implementation` | Array heap predicates, localized heap predicates, `largest` lemmas, no-swap heapify repair, recursive fuelled `MAX-HEAPIFY` repair, bottom-up build-heap, in-place heapsort loop correctness, bundled heapsort state-correctness, swap preservation, array `HEAP-MAXIMUM`, full fuelled `HEAP-INCREASE-KEY`, array `HEAP-EXTRACT-MAX`, and index-based `HEAP-DELETE` state correctness are proved; RAM costs remain refinement targets. |
+| Chapter 7 in-place partition | `future-work` | Functional partition and quicksort correctness are proved; the next refinement is the CLRS array `PARTITION` loop invariant and its connection to the stable partition specification. |
+| Chapter 7 randomized expected time | `blocked-design` | Needs a probability model for random pivots or random permutations and a cost recurrence/indicator argument. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 extension from exact powers to all input sizes | `future-work` | Needs a monotone recurrence model and floor/ceiling sandwiching. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |

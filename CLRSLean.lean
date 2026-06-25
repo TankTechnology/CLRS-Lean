@@ -4,6 +4,7 @@ import CLRSLean.Chapter_03
 import CLRSLean.Chapter_04
 import CLRSLean.Chapter_05
 import CLRSLean.Chapter_06
+import CLRSLean.Chapter_07
 import CLRSLean.Chapter_10
 import CLRSLean.Chapter_11
 import CLRSLean.Chapter_12
@@ -55,6 +56,8 @@ Start with the chapter pages in the sidebar.
   {lit}`BUILD-MAX-HEAP`, the in-place heapsort loop with a proved sorted-suffix
   invariant and sortedness theorem, an indexed array heap proof spine, and
   priority-queue operation specifications.
+* Chapter 7 - Quicksort: stable functional partition correctness and
+  functional quicksort sortedness/permutation preservation.
 * Chapter 10 - Elementary Data Structures: functional stack, queue, and
   linked-list operation proofs.
 * Chapter 11 - Hash Tables: direct-address table correctness and deterministic
@@ -199,6 +202,15 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter06.arrayHeapIncreaseKeyNoBubble?_state_correct`,
   `CLRS.Chapter06.arrayHeapExtractMax?_state_correct`,
   `CLRS.Chapter06.arrayHeapDelete?_state_correct`.
+* 7.1 Description of quicksort: `proved` for the functional-list model.
+  Public results: `CLRS.Chapter07.partitionAround_perm`,
+  `CLRS.Chapter07.partitionAround_left_allLeUpper`,
+  `CLRS.Chapter07.partitionAround_right_allGt`,
+  `CLRS.Chapter07.quickSort_perm`, `CLRS.Chapter07.quickSort_ordered`,
+  `CLRS.Chapter07.quickSort_correct`.
+* 7.2-7.4 Quicksort performance and randomized quicksort: `future-work`.
+  Planned targets: in-place `PARTITION`, deterministic recurrence analysis,
+  randomized quicksort, and expected running time.
 * 10.1 Stacks and queues: `proved` for the functional-list model.
   Public results: `CLRS.Chapter10.pop_push`,
   `CLRS.Chapter10.dequeue_enqueue_nonempty`.

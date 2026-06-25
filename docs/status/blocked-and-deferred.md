@@ -162,6 +162,24 @@ The power-of-two recurrence is proved.  The arbitrary-size recurrence
 floor/ceiling arithmetic, monotonicity, and a clean asymptotic theorem for all
 input sizes.
 
+### Quicksort In-Place Partition And Randomized Analysis
+
+- Related sections: Sections 7.2-7.4 - Quicksort performance and randomized
+  quicksort
+- Status: `future-work` for in-place partition; `blocked-design` for expected
+  randomized analysis
+
+Section 7.1 proves the functional partition/quicksort correctness spine:
+`CLRS.Chapter07.partitionAround_perm` proves that partition preserves exactly
+the input tail elements, and `CLRS.Chapter07.quickSort_correct` packages
+sortedness plus permutation preservation for the functional quicksort model.
+
+The remaining CLRS refinements are harder.  The in-place `PARTITION` proof
+needs an array segment invariant that tracks the less/equal and greater
+regions while preserving the backing-list permutation.  Randomized quicksort's
+expected running time needs a probability model for random pivots or random
+permutations and a cost recurrence or indicator-variable proof.
+
 ### Pointer-Level Linked Lists
 
 - Related section: Section 10.2 - Linked lists
