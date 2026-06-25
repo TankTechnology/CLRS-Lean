@@ -22,10 +22,14 @@
 - `CLRS.Chapter20.VEB.insert_member_iff`
 - `CLRS.Chapter20.VEB.insert_minimum_correct`
 - `CLRS.Chapter20.VEB.insert_maximum_correct`
+- `CLRS.Chapter20.VEB.insert_successor_correct`
+- `CLRS.Chapter20.VEB.insert_predecessor_correct`
 - `CLRS.Chapter20.VEB.delete_correct`
 - `CLRS.Chapter20.VEB.delete_member_iff`
 - `CLRS.Chapter20.VEB.delete_minimum_correct`
 - `CLRS.Chapter20.VEB.delete_maximum_correct`
+- `CLRS.Chapter20.VEB.delete_successor_correct`
+- `CLRS.Chapter20.VEB.delete_predecessor_correct`
 - `CLRS.Chapter20.VEB.operationDepth_linear`
 
 ## Remaining Work

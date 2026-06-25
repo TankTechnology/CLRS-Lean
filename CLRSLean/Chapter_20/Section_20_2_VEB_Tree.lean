@@ -33,6 +33,10 @@ Main results:
   {lit}`VEB.insert_maximum_correct`, {lit}`VEB.delete_minimum_correct`, and
   {lit}`VEB.delete_maximum_correct`: extrema returned after updates are
   exactly extrema of the updated finite set.
+- Theorems {lit}`VEB.insert_successor_correct`,
+  {lit}`VEB.insert_predecessor_correct`, {lit}`VEB.delete_successor_correct`,
+  and {lit}`VEB.delete_predecessor_correct`: successor and predecessor queries
+  after updates are extrema of the updated filtered finite set.
 - Theorem {lit}`VEB.operationDepth_linear`: the first-pass recurrence-depth
   wrapper is linear in the universe exponent.
 
@@ -311,6 +315,38 @@ theorem insert_maximum_correct {t : Tree} {s : Finset Nat} {x m : Nat}
   · intro y hy
     exact hmax'.2 y (by simp [hy])
 
+/-- A returned successor after insertion is the least updated key greater than the query. -/
+theorem insert_successor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hx : x < t.univSize)
+    (hsucc : successor q (insert x t) = some y) :
+    (y = x ∨ y ∈ s) ∧ q < y ∧
+      forall z, z = x ∨ z ∈ s -> q < z -> y <= z := by
+  have hinsert : Represents (insert x t) (Insert.insert x s) :=
+    insert_correct (t := t) (s := s) (x := x) hrep hx
+  have hsucc' := successor_correct
+    (t := insert x t) (s := Insert.insert x s) (x := q) (y := y)
+    hinsert hsucc
+  refine ⟨?_, hsucc'.2.1, ?_⟩
+  · simpa [Finset.mem_insert] using hsucc'.1
+  · intro z hz hqz
+    exact hsucc'.2.2 z (by simpa [Finset.mem_insert] using hz) hqz
+
+/-- A returned predecessor after insertion is the greatest updated key less than the query. -/
+theorem insert_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hx : x < t.univSize)
+    (hpred : predecessor q (insert x t) = some y) :
+    (y = x ∨ y ∈ s) ∧ y < q ∧
+      forall z, z = x ∨ z ∈ s -> z < q -> z <= y := by
+  have hinsert : Represents (insert x t) (Insert.insert x s) :=
+    insert_correct (t := t) (s := s) (x := x) hrep hx
+  have hpred' := predecessor_correct
+    (t := insert x t) (s := Insert.insert x s) (x := q) (y := y)
+    hinsert hpred
+  refine ⟨?_, hpred'.2.1, ?_⟩
+  · simpa [Finset.mem_insert] using hpred'.1
+  · intro z hz hzq
+    exact hpred'.2.2 z (by simpa [Finset.mem_insert] using hz) hzq
+
 /-- Delete a key from the represented set. -/
 def delete (x : Nat) (t : Tree) : Tree :=
   { t with elems := t.elems.erase x }
@@ -362,6 +398,36 @@ theorem delete_maximum_correct {t : Tree} {s : Finset Nat} {x m : Nat}
   refine ⟨hmem.1, hmem.2, ?_⟩
   intro y hy hyx
   exact hmax'.2 y (by simp [Finset.mem_erase, hyx, hy])
+
+/-- A returned successor after deletion is the least remaining old key greater than the query. -/
+theorem delete_successor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hsucc : successor q (delete x t) = some y) :
+    y ≠ x ∧ y ∈ s ∧ q < y ∧
+      forall z, z ∈ s -> z ≠ x -> q < z -> y <= z := by
+  have hdelete : Represents (delete x t) (s.erase x) :=
+    delete_correct (t := t) (s := s) (x := x) hrep
+  have hsucc' := successor_correct
+    (t := delete x t) (s := s.erase x) (x := q) (y := y) hdelete hsucc
+  have hmem : y ≠ x ∧ y ∈ s := by
+    simpa [Finset.mem_erase] using hsucc'.1
+  refine ⟨hmem.1, hmem.2, hsucc'.2.1, ?_⟩
+  intro z hz hzx hqz
+  exact hsucc'.2.2 z (by simp [Finset.mem_erase, hzx, hz]) hqz
+
+/-- A returned predecessor after deletion is the greatest remaining old key less than the query. -/
+theorem delete_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hpred : predecessor q (delete x t) = some y) :
+    y ≠ x ∧ y ∈ s ∧ y < q ∧
+      forall z, z ∈ s -> z ≠ x -> z < q -> z <= y := by
+  have hdelete : Represents (delete x t) (s.erase x) :=
+    delete_correct (t := t) (s := s) (x := x) hrep
+  have hpred' := predecessor_correct
+    (t := delete x t) (s := s.erase x) (x := q) (y := y) hdelete hpred
+  have hmem : y ≠ x ∧ y ∈ s := by
+    simpa [Finset.mem_erase] using hpred'.1
+  refine ⟨hmem.1, hmem.2, hpred'.2.1, ?_⟩
+  intro z hz hzx hzq
+  exact hpred'.2.2 z (by simp [Finset.mem_erase, hzx, hz]) hzq
 
 /-- First-pass operation-depth recurrence over a tower exponent. -/
 def operationDepth (k : Nat) : Nat :=

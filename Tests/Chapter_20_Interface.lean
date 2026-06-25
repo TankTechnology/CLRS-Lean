@@ -23,9 +23,13 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.insert_member_iff
 #check CLRS.Chapter20.VEB.insert_minimum_correct
 #check CLRS.Chapter20.VEB.insert_maximum_correct
+#check CLRS.Chapter20.VEB.insert_successor_correct
+#check CLRS.Chapter20.VEB.insert_predecessor_correct
 #check CLRS.Chapter20.VEB.delete_correct
 #check CLRS.Chapter20.VEB.delete_member_iff
 #check CLRS.Chapter20.VEB.delete_minimum_correct
 #check CLRS.Chapter20.VEB.delete_maximum_correct
+#check CLRS.Chapter20.VEB.delete_successor_correct
+#check CLRS.Chapter20.VEB.delete_predecessor_correct
 #check CLRS.Chapter20.VEB.operationDepth
 #check CLRS.Chapter20.VEB.operationDepth_linear
