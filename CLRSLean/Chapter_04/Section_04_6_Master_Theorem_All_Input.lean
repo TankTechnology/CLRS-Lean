@@ -374,6 +374,12 @@ noncomputable def realLogScale (a b : ℕ) (n : ℕ) : ℝ :=
   (n : ℝ) ^ (realLogExponent a b)
 
 /--
+The textbook case-2 Master scale {lit}`n^(log_b a) log n`.
+-/
+noncomputable def realLogLogScale (a b : ℕ) (n : ℕ) : ℝ :=
+  realLogScale a b n * Real.log (n : ℝ)
+
+/--
 When {lit}`1 ≤ a` and {lit}`1 < b`, the discrete critical-power scale
 {lit}`a^(⌊log_b n⌋)` is asymptotically equivalent to the real-log scale
 {lit}`n^(log_b a)`.
@@ -525,6 +531,162 @@ theorem criticalPowerScale_isBigTheta_realLogScale
         field_simp [ne_of_gt ha_pos]
       _ = |criticalPowerScale a b n| := by
         rw [abs_of_nonneg hcrit_nonneg]
+
+/--
+When {lit}`1 ≤ a` and {lit}`1 < b`, the discrete case-2 scale
+{lit}`(⌊log_b n⌋+1)a^(⌊log_b n⌋)` is asymptotically equivalent to the textbook
+scale {lit}`n^(log_b a) log n`.
+-/
+theorem criticalPowerLogScale_isBigTheta_realLogLogScale
+    (a b : ℕ) (ha : 1 ≤ a) (hb : 1 < b) :
+    Chapter03.isBigTheta (criticalPowerLogScale a b) (realLogLogScale a b) := by
+  have hb1 : 1 < (b : ℝ) := by exact_mod_cast hb
+  have hb_pos_nat : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+  have hb_log_pos : 0 < Real.log (b : ℝ) := Real.log_pos hb1
+  have hb_log_nonneg : 0 ≤ Real.log (b : ℝ) := hb_log_pos.le
+  have hscale := criticalPowerScale_isBigTheta_realLogScale a b ha hb
+  constructor
+  · rcases (Chapter03.isBigO_iff _ _).mp hscale.1 with
+      ⟨Cscale, hCscale_pos, nScale, hScale⟩
+    let Clog : ℝ := 2 / Real.log (b : ℝ)
+    have hClog_pos : 0 < Clog := by
+      dsimp [Clog]
+      exact div_pos (by norm_num) hb_log_pos
+    refine (Chapter03.isBigO_iff _ _).mpr ?_
+    refine ⟨Cscale * Clog, mul_pos hCscale_pos hClog_pos, max nScale b, ?_⟩
+    intro n hn
+    have hnScale : nScale ≤ n := le_trans (Nat.le_max_left nScale b) hn
+    have hnb : b ≤ n := le_trans (Nat.le_max_right nScale b) hn
+    have hn_pos_nat : 0 < n := lt_of_lt_of_le hb_pos_nat hnb
+    have hn_pos : 0 < (n : ℝ) := by exact_mod_cast hn_pos_nat
+    have hbn_real : (b : ℝ) ≤ (n : ℝ) := by exact_mod_cast hnb
+    have hlogb_le_logn : Real.log (b : ℝ) ≤ Real.log (n : ℝ) :=
+      Real.log_le_log (by exact_mod_cast hb_pos_nat) hbn_real
+    have hlogn_nonneg : 0 ≤ Real.log (n : ℝ) :=
+      le_trans hb_log_nonneg hlogb_le_logn
+    let k := Nat.log b n
+    have hk_def : k = Nat.log b n := rfl
+    have hpow_le : b ^ k ≤ n := by
+      rw [hk_def]
+      exact Nat.pow_log_le_self b (ne_of_gt hn_pos_nat)
+    have hpow_le_real : ((b : ℕ) ^ k : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hpow_le
+    have hpow_pos : 0 < ((b : ℕ) ^ k : ℝ) := by
+      exact_mod_cast pow_pos hb_pos_nat k
+    have hlog_lower := Real.log_le_log hpow_pos hpow_le_real
+    have hklog_le : (k : ℝ) * Real.log (b : ℝ) ≤ Real.log (n : ℝ) := by
+      simpa [Real.log_pow] using hlog_lower
+    have hsum :
+        ((k : ℝ) + 1) * Real.log (b : ℝ) ≤ 2 * Real.log (n : ℝ) := by
+      calc
+        ((k : ℝ) + 1) * Real.log (b : ℝ)
+            = (k : ℝ) * Real.log (b : ℝ) + Real.log (b : ℝ) := by ring
+        _ ≤ Real.log (n : ℝ) + Real.log (n : ℝ) := by gcongr
+        _ = 2 * Real.log (n : ℝ) := by ring
+    have hdiv := (div_le_div_iff_of_pos_right hb_log_pos).mpr hsum
+    have hlog_upper :
+        ((k : ℝ) + 1) ≤ Clog * Real.log (n : ℝ) := by
+      calc
+        (k : ℝ) + 1 =
+            (((k : ℝ) + 1) * Real.log (b : ℝ)) / Real.log (b : ℝ) := by
+              field_simp [ne_of_gt hb_log_pos]
+        _ ≤ (2 * Real.log (n : ℝ)) / Real.log (b : ℝ) := hdiv
+        _ = Clog * Real.log (n : ℝ) := by
+              dsimp [Clog]
+              ring
+    have hL_nonneg : 0 ≤ (k : ℝ) + 1 := by positivity
+    have hcrit_nonneg : 0 ≤ criticalPowerScale a b n := by
+      unfold criticalPowerScale
+      positivity
+    have hreal_nonneg : 0 ≤ realLogScale a b n := by
+      unfold realLogScale
+      exact Real.rpow_nonneg (by exact_mod_cast Nat.zero_le n) _
+    have hscale_bound :
+        criticalPowerScale a b n ≤ Cscale * realLogScale a b n := by
+      have h := hScale n hnScale
+      simpa [abs_of_nonneg hcrit_nonneg, abs_of_nonneg hreal_nonneg] using h
+    have hright_nonneg :
+        0 ≤ realLogScale a b n * Real.log (n : ℝ) :=
+      mul_nonneg hreal_nonneg hlogn_nonneg
+    calc
+      |criticalPowerLogScale a b n|
+          = ((k : ℝ) + 1) * criticalPowerScale a b n := by
+            rw [abs_of_nonneg (criticalPowerLogScale_nonneg a b n)]
+            simp [criticalPowerLogScale, k, criticalPowerScale]
+      _ ≤ ((k : ℝ) + 1) * (Cscale * realLogScale a b n) := by
+            gcongr
+      _ ≤ (Clog * Real.log (n : ℝ)) * (Cscale * realLogScale a b n) := by
+            gcongr
+      _ = (Cscale * Clog) * (realLogScale a b n * Real.log (n : ℝ)) := by
+            ring
+      _ = (Cscale * Clog) * |realLogLogScale a b n| := by
+            rw [realLogLogScale, abs_of_nonneg hright_nonneg]
+  · rcases (Chapter03.isBigOmega_iff _ _).mp hscale.2 with
+      ⟨Cscale, hCscale_pos, nScale, hScale⟩
+    let Clog : ℝ := (Real.log (b : ℝ))⁻¹
+    have hClog_pos : 0 < Clog := by
+      dsimp [Clog]
+      exact inv_pos.mpr hb_log_pos
+    refine (Chapter03.isBigOmega_iff _ _).mpr ?_
+    refine ⟨Cscale * Clog, mul_pos hCscale_pos hClog_pos, max nScale b, ?_⟩
+    intro n hn
+    have hnScale : nScale ≤ n := le_trans (Nat.le_max_left nScale b) hn
+    have hnb : b ≤ n := le_trans (Nat.le_max_right nScale b) hn
+    have hn_pos_nat : 0 < n := lt_of_lt_of_le hb_pos_nat hnb
+    have hn_pos : 0 < (n : ℝ) := by exact_mod_cast hn_pos_nat
+    have hbn_real : (b : ℝ) ≤ (n : ℝ) := by exact_mod_cast hnb
+    have hlogb_le_logn : Real.log (b : ℝ) ≤ Real.log (n : ℝ) :=
+      Real.log_le_log (by exact_mod_cast hb_pos_nat) hbn_real
+    have hlogn_nonneg : 0 ≤ Real.log (n : ℝ) :=
+      le_trans hb_log_nonneg hlogb_le_logn
+    let k := Nat.log b n
+    have hk_def : k = Nat.log b n := rfl
+    have hpow_lt : n < b ^ (k + 1) := by
+      rw [hk_def]
+      exact Nat.lt_pow_succ_log_self hb n
+    have hpow_le_real : (n : ℝ) ≤ ((b : ℕ) ^ (k + 1) : ℝ) := by
+      exact_mod_cast Nat.le_of_lt hpow_lt
+    have hlog_le := Real.log_le_log hn_pos hpow_le_real
+    have hlog_upper_by_L :
+        Real.log (n : ℝ) ≤ Real.log (b : ℝ) * ((k : ℝ) + 1) := by
+      calc
+        Real.log (n : ℝ) ≤ ((k : ℝ) + 1) * Real.log (b : ℝ) := by
+          simpa [Real.log_pow, Nat.cast_add, add_mul] using hlog_le
+        _ = Real.log (b : ℝ) * ((k : ℝ) + 1) := by ring
+    have hlog_lower :
+        Clog * Real.log (n : ℝ) ≤ (k : ℝ) + 1 := by
+      calc
+        Clog * Real.log (n : ℝ)
+            ≤ Clog * (Real.log (b : ℝ) * ((k : ℝ) + 1)) := by
+              gcongr
+        _ = (k : ℝ) + 1 := by
+              dsimp [Clog]
+              field_simp [ne_of_gt hb_log_pos]
+    have hL_nonneg : 0 ≤ (k : ℝ) + 1 := by positivity
+    have hcrit_nonneg : 0 ≤ criticalPowerScale a b n := by
+      unfold criticalPowerScale
+      positivity
+    have hreal_nonneg : 0 ≤ realLogScale a b n := by
+      unfold realLogScale
+      exact Real.rpow_nonneg (by exact_mod_cast Nat.zero_le n) _
+    have hscale_bound :
+        Cscale * realLogScale a b n ≤ criticalPowerScale a b n := by
+      have h := hScale n hnScale
+      simpa [abs_of_nonneg hcrit_nonneg, abs_of_nonneg hreal_nonneg] using h
+    have hright_nonneg :
+        0 ≤ realLogScale a b n * Real.log (n : ℝ) :=
+      mul_nonneg hreal_nonneg hlogn_nonneg
+    calc
+      (Cscale * Clog) * |realLogLogScale a b n|
+          = (Clog * Real.log (n : ℝ)) *
+              (Cscale * realLogScale a b n) := by
+            rw [realLogLogScale, abs_of_nonneg hright_nonneg]
+            ring
+      _ ≤ ((k : ℝ) + 1) * criticalPowerScale a b n := by
+            gcongr
+      _ = |criticalPowerLogScale a b n| := by
+            rw [abs_of_nonneg (criticalPowerLogScale_nonneg a b n)]
+            simp [criticalPowerLogScale, k, criticalPowerScale]
 
 /-! ## Floor/ceiling recurrence interfaces -/
 
@@ -1145,6 +1307,63 @@ theorem ceilDivide_allInput_masterCase2_criticalPowerLogScale
   exact exactPower_allInput_masterCase2_criticalPowerLogScale a b f T
     (exactPowerRecurrence_of_ceilDivideRecurrence a b f T h_rec hb_pos)
     ha hb hT_mono h_base_nonneg hc_pos hC_pos h_term_lower h_term_upper
+
+/--
+Exact-power all-input Master case 2 stated in the textbook real-log-log scale
+{lit}`n^(log_b a) log n`.
+-/
+theorem exactPower_allInput_masterCase2_realLogLogScale
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : ExactPowerRecurrence a b f T)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (h_base_nonneg : 0 ≤ normalizedValue a b T 0)
+    {c C : ℝ} (hc_pos : 0 < c) (hC_pos : 0 < C)
+    (h_term_lower : ∀ k, c ≤ normalizedForcing a b f k)
+    (h_term_upper : ∀ k, normalizedForcing a b f k ≤ C) :
+    Chapter03.isBigTheta T (realLogLogScale a b) := by
+  exact Chapter03.isBigTheta_trans
+    (exactPower_allInput_masterCase2_criticalPowerLogScale a b f T h_rec
+      ha hb hT_mono h_base_nonneg hc_pos hC_pos h_term_lower h_term_upper)
+    (criticalPowerLogScale_isBigTheta_realLogLogScale a b ha hb)
+
+/--
+Floor-division all-input Master case 2 stated in the textbook real-log-log scale
+{lit}`n^(log_b a) log n`.
+-/
+theorem floorDivide_allInput_masterCase2_realLogLogScale
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : FloorDivideRecurrence a b f T)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (h_base_nonneg : 0 ≤ normalizedValue a b T 0)
+    {c C : ℝ} (hc_pos : 0 < c) (hC_pos : 0 < C)
+    (h_term_lower : ∀ k, c ≤ normalizedForcing a b f k)
+    (h_term_upper : ∀ k, normalizedForcing a b f k ≤ C) :
+    Chapter03.isBigTheta T (realLogLogScale a b) := by
+  exact Chapter03.isBigTheta_trans
+    (floorDivide_allInput_masterCase2_criticalPowerLogScale a b f T h_rec
+      ha hb hT_mono h_base_nonneg hc_pos hC_pos h_term_lower h_term_upper)
+    (criticalPowerLogScale_isBigTheta_realLogLogScale a b ha hb)
+
+/--
+Ceiling-division all-input Master case 2 stated in the textbook real-log-log
+scale {lit}`n^(log_b a) log n`.
+-/
+theorem ceilDivide_allInput_masterCase2_realLogLogScale
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : CeilDivideRecurrence a b f T)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (h_base_nonneg : 0 ≤ normalizedValue a b T 0)
+    {c C : ℝ} (hc_pos : 0 < c) (hC_pos : 0 < C)
+    (h_term_lower : ∀ k, c ≤ normalizedForcing a b f k)
+    (h_term_upper : ∀ k, normalizedForcing a b f k ≤ C) :
+    Chapter03.isBigTheta T (realLogLogScale a b) := by
+  exact Chapter03.isBigTheta_trans
+    (ceilDivide_allInput_masterCase2_criticalPowerLogScale a b f T h_rec
+      ha hb hT_mono h_base_nonneg hc_pos hC_pos h_term_lower h_term_upper)
+    (criticalPowerLogScale_isBigTheta_realLogLogScale a b ha hb)
 
 /--
 Exact-power all-input Master case 2 specialized to {lit}`a = b^p`, with the

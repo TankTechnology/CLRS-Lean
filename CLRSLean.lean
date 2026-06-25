@@ -58,7 +58,8 @@ Start with the chapter pages in the sidebar.
   all-input transfer bridge with adjacent-power sandwich generation, discrete
   Master-scale wrappers, natural-exponent polynomial wrappers for Master cases
   1 and 2, the real-log bridge from {lit}`a^(⌊log_b n⌋)` to
-  {lit}`n^(log_b a)`, and named case-1 wrappers in that textbook scale.
+  {lit}`n^(log_b a)`, and named case-1/case-2 wrappers in textbook
+  {lit}`n^(log_b a)` and {lit}`n^(log_b a) log n` scales.
 * Chapter 5 - Probabilistic Analysis: the finite rank-symmetry proof for the
   hiring problem and its logarithmic expected-hires bound.
 * Chapter 6 - Heapsort: recursive {lit}`MAX-HEAPIFY` repair, bottom-up
@@ -198,6 +199,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter04.realLogExponent`,
   {lit}`CLRS.Chapter04.realLogScale`,
   {lit}`CLRS.Chapter04.criticalPowerScale_isBigTheta_realLogScale`,
+  {lit}`CLRS.Chapter04.realLogLogScale`,
+  {lit}`CLRS.Chapter04.criticalPowerLogScale_isBigTheta_realLogLogScale`,
   {lit}`CLRS.Chapter04.exactPower_allInput_masterCase1_criticalPowerScale`,
   {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase1_criticalPowerScale`, and
   {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase1_criticalPowerScale`;
@@ -210,14 +213,17 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter04.exactPower_allInput_masterCase2_criticalPowerLogScale`,
   {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase2_criticalPowerLogScale`,
   and {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase2_criticalPowerLogScale`;
+  {lit}`CLRS.Chapter04.exactPower_allInput_masterCase2_realLogLogScale`,
+  {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase2_realLogLogScale`, and
+  {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase2_realLogLogScale`;
   {lit}`CLRS.Chapter04.exactPower_allInput_masterCase2_polynomialLogScale`,
   {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase2_polynomialLogScale`, and
   {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase2_polynomialLogScale`;
   {lit}`CLRS.Chapter04.exactPower_allInput_masterCase3_tailDominatedScale`,
   {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase3_tailDominatedScale`,
   and {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase3_tailDominatedScale`.
-  Remaining target: a real-log-log case-2 scale and wrapper, plus the case-3
-  comparison scale for the forcing-dominated Master statement.
+  Remaining target: the case-3 comparison scale for the forcing-dominated
+  Master statement.
 * 5.1 Hiring problem: {lit}`proved` for the finite rank-symmetry model.
   Public results: {lit}`CLRS.Chapter05.hireProbability_eq`,
   {lit}`CLRS.Chapter05.expectedHiresByIndicators_eq_harmonic`,

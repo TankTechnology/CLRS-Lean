@@ -64,9 +64,10 @@ and by future divide-and-conquer runtime proofs.
   connects the discrete scale {lit}`a^(⌊log_b n⌋)` to the textbook scale
   {lit}`n^(log_b a)` for all {lit}`a ≥ 1` and {lit}`b > 1`, and the named
   exact/floor/ceiling case-1 wrappers now expose CLRS-facing
-  {lit}`Θ(n^(log_b a))` bounds directly.  The remaining Master gaps are the
-  analogous case-2 real-log-log scale and a textbook-facing case-3 comparison
-  scale.
+  {lit}`Θ(n^(log_b a))` bounds directly.  A second bridge proves the discrete
+  case-2 scale is {lit}`Θ(n^(log_b a) log n)`, and the named exact/floor/
+  ceiling case-2 wrappers expose that textbook scale directly.  The remaining
+  Master gap is a textbook-facing case-3 comparison scale.
 -/
 
 namespace CLRS

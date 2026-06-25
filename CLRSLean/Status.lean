@@ -43,8 +43,9 @@ which areas should not yet be counted as proof-complete.
   sandwich generation from one-step scale bounds, and discrete all-input
   scale wrappers with packaged floor/ceiling Master cases 1, 2, and 3 are
   proved; the critical-power scale is also connected to the textbook
-  {lit}`n^(log_b a)` scale by a real-log bridge, and named case-1 wrappers now
-  expose that textbook scale directly.
+  {lit}`n^(log_b a)` scale by a real-log bridge, and the case-2 scale is
+  connected to {lit}`n^(log_b a) log n`; named wrappers expose both textbook
+  scales directly.
 * Chapter 5, Section 5.1: the hiring problem is proved in the finite
   rank-symmetry model.
 * Chapter 6, Sections 6.1-6.5: the indexed array heap layer, recursive
@@ -88,9 +89,10 @@ which areas should not yet be counted as proof-complete.
   recurrence packaging for exact-power Master cases 1, 2, and 3, plus
   natural-exponent polynomial wrappers for cases 1 and 2 when
   {lit}`a = b^p`, a real-log comparison bridge from the discrete
-  critical-power scale to {lit}`n^(log_b a)`, and named case-1 wrappers in that
-  textbook scale.  The case-2 real-log-log wrapper, the case-3 comparison
-  layer, and selected runtime refinements remain.
+  critical-power scale to {lit}`n^(log_b a)`, named case-1 wrappers in that
+  textbook scale, a real-log-log bridge from the discrete case-2 scale to
+  {lit}`n^(log_b a) log n`, and named case-2 wrappers in that textbook scale.
+  The case-3 comparison layer and selected runtime refinements remain.
 * Chapter 11, Section 11.2: deterministic chained-hash-table operations are
   proved for a fixed hash function, and the finite-uniform bucket interface
   proves expected chain length equals load factor; a full random key/hash
@@ -121,8 +123,8 @@ which areas should not yet be counted as proof-complete.
 
 ### Missing Core Theorem
 
-* Chapter 4 full Master-theorem instantiation: add the case-2 real-log-log
-  wrapper and the case-3 forcing comparison scale.
+* Chapter 4 full Master-theorem instantiation: add the case-3 forcing
+  comparison scale.
 * Chapter 7 remaining refinements: index-level mutable-array partition
   refinement, an explicit probability space for pivot choices, sharp
   {lit}`n log n` tail bounds, and lower-bound packaging.
@@ -230,6 +232,8 @@ the next cleanup pass after this 11--15 track.
   {lit}`CLRS.Chapter04.realLogExponent`,
   {lit}`CLRS.Chapter04.realLogScale`,
   {lit}`CLRS.Chapter04.criticalPowerScale_isBigTheta_realLogScale`,
+  {lit}`CLRS.Chapter04.realLogLogScale`,
+  {lit}`CLRS.Chapter04.criticalPowerLogScale_isBigTheta_realLogLogScale`,
   {lit}`CLRS.Chapter04.exactPower_allInput_masterCase1_criticalPowerScale`,
   {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase1_criticalPowerScale`,
   {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase1_criticalPowerScale`,
@@ -242,6 +246,9 @@ the next cleanup pass after this 11--15 track.
   {lit}`CLRS.Chapter04.exactPower_allInput_masterCase2_criticalPowerLogScale`,
   {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase2_criticalPowerLogScale`,
   {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase2_criticalPowerLogScale`,
+  {lit}`CLRS.Chapter04.exactPower_allInput_masterCase2_realLogLogScale`,
+  {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase2_realLogLogScale`,
+  {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase2_realLogLogScale`,
   {lit}`CLRS.Chapter04.exactPower_allInput_masterCase2_polynomialLogScale`,
   {lit}`CLRS.Chapter04.floorDivide_allInput_masterCase2_polynomialLogScale`,
   {lit}`CLRS.Chapter04.ceilDivide_allInput_masterCase2_polynomialLogScale`,
@@ -731,8 +738,11 @@ the next cleanup pass after this 11--15 track.
   cases 1 and 2.  The real-log bridge
   {lit}`criticalPowerScale_isBigTheta_realLogScale` is proved, and case 1 now
   has named exact/floor/ceiling wrappers stated directly against
-  {lit}`realLogScale`; the remaining comparison work is the case-2
-  real-log-log wrapper and the case-3 forcing scale.
+  {lit}`realLogScale`; case 2 also has a named
+  {lit}`criticalPowerLogScale_isBigTheta_realLogLogScale` bridge and
+  exact/floor/ceiling wrappers stated directly against
+  {lit}`realLogLogScale`.  The remaining comparison work is the case-3 forcing
+  scale.
 * General merge-sort recurrence: {lit}`future-work`.
   Reason: needs floor and ceiling arithmetic for all input sizes.
 * CLRS exercises and chapter-end problems: {lit}`future-work`.
