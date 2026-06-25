@@ -90,8 +90,8 @@ Start with the chapter pages in the sidebar.
   red-black shape invariant lemmas.
 * Chapter 14 - Augmenting Data Structures: order-statistic tree size
   augmentation and rank-selection correctness for the current functional model.
-* Chapter 15 - Dynamic Programming: rod-cutting Bellman recurrence facts and
-  an optimal-plan certificate theorem.
+* Chapter 15 - Dynamic Programming: rod-cutting Bellman recurrence facts,
+  matrix-chain parenthesization optimality, and LCS certificate optimality.
 * Chapter 16 - Greedy Algorithms: activity-selection exchange infrastructure
   and the complete Huffman optimality proof, currently the flagship greedy case
   study.
@@ -392,6 +392,15 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter15.price_le_revenue_of_rodCutRecurrence`,
   {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`,
   {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`.
+* 15.2 Matrix-chain multiplication: {lit}`partial`.
+  Current results: {lit}`CLRS.Chapter15.ChainPlan.start_le_end`,
+  {lit}`CLRS.Chapter15.MatrixChainLowerBound`, and
+  {lit}`CLRS.Chapter15.matrixChain_opt_le_planCost`.
+* 15.4 Longest common subsequence: {lit}`partial`.
+  Current results: {lit}`CLRS.Chapter15.IsCommonSubsequence`,
+  {lit}`CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`,
+  {lit}`CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`, and
+  {lit}`CLRS.Chapter15.isCommonSubsequence_comm`.
 * 16.1 Activity selection: {lit}`proved` for finite sorted lists.
   Current results: {lit}`CLRS.ActivitySelection.earliest_finish_minFinish`,
   {lit}`CLRS.ActivitySelection.finishSorted_head_minFinish`,

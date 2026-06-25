@@ -933,11 +933,40 @@ cached left-subtree sizes while remaining equivalent to the ideal rank selector.
 - Proof pattern: state the Bellman first-cut recurrence abstractly, prove every
   admissible first cut is bounded by the recurrence value, then induct over
   positive-piece cutting plans to prove global optimality certificates
-- Current gap: bottom-up and memoized implementation correctness, matrix-chain
-  multiplication, LCS, and optimal binary search trees remain future targets
+- Current gap: bottom-up and memoized implementation correctness remains a
+  future target
 
 This first dynamic-programming proof establishes the textbook optimal
 substructure argument independently of a particular table implementation.
+
+### Section 15.2 - Matrix-chain multiplication
+
+- Lean source: `CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter15.ChainPlan.start_le_end`
+  - `CLRS.Chapter15.matrixChain_opt_le_planCost`
+- Proof pattern: represent a parenthesization as an inductive binary split
+  tree, specify a candidate dynamic-programming optimum by its split lower
+  bound, then prove by induction that every concrete parenthesization has cost
+  at least the candidate optimum
+- Current gap: bottom-up cost-table construction and split reconstruction remain
+  future targets
+
+### Section 15.4 - Longest common subsequence
+
+- Lean source: `CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter15.LCSCertificate.seq_common`
+  - `CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`
+  - `CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`
+  - `CLRS.Chapter15.isCommonSubsequence_comm`
+- Proof pattern: package an LCS certificate as a common subsequence plus a
+  universal length upper bound, then prove all certificates for the same inputs
+  agree on the optimal length
+- Current gap: dynamic-programming length-table recurrence and reconstruction
+  algorithm remain future targets
 
 ## Chapter 16 - Greedy Algorithms
 

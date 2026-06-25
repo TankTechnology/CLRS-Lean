@@ -93,9 +93,10 @@ which areas should not yet be counted as proof-complete.
   recomputation, key preservation, and rank-selection correctness are proved
   for a functional augmented tree; rotations, interval trees, and the general
   augmentation theorem remain.
-* Chapter 15, Section 15.1: rod-cutting Bellman recurrence facts and an
-  optimal-plan certificate theorem are proved; bottom-up/memoized execution and
-  the remaining dynamic-programming examples remain.
+* Chapter 15, Sections 15.1, 15.2, and 15.4: rod-cutting Bellman recurrence
+  facts, matrix-chain parenthesization optimality, and LCS certificate
+  optimality are proved; bottom-up/memoized execution, reconstruction
+  algorithms, and optimal binary search trees remain.
 * Chapter 23, Sections 23.1-23.2: the cut property, safe-edge theorem,
   exact-component Kruskal scan facts, forest/spanning wrappers, and
   certificate-based Kruskal optimality interfaces exist; automatic simple
@@ -123,7 +124,8 @@ which areas should not yet be counted as proof-complete.
 * Chapter 14 remaining augmentation targets: rotations connected to size
   fields, interval trees, and the general augmentation theorem.
 * Chapter 15 remaining dynamic-programming targets: bottom-up and memoized rod
-  cutting, matrix-chain multiplication, LCS, and optimal binary search trees.
+  cutting, table/reconstruction algorithms for matrix-chain and LCS, and
+  optimal binary search trees.
 * Chapters 21-22: not yet represented.
 * Chapter 17 Amortized Analysis: first-pass acceptance standard is fixed:
   generic aggregate/accounting/potential theorems plus {lit}`MULTIPOP`, binary
@@ -513,8 +515,19 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter15.price_le_revenue_of_rodCutRecurrence`,
   {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`, and
   {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`;
-  remaining gap: bottom-up/memoized rod cutting, matrix-chain multiplication,
-  LCS, and optimal binary search trees.
+* 15.2 Matrix-chain multiplication:
+  current results {lit}`CLRS.Chapter15.ChainPlan.start_le_end`,
+  {lit}`CLRS.Chapter15.MatrixChainLowerBound`, and
+  {lit}`CLRS.Chapter15.matrixChain_opt_le_planCost`;
+  remaining gap: bottom-up cost-table construction and split reconstruction.
+* 15.4 Longest common subsequence:
+  current results {lit}`CLRS.Chapter15.IsCommonSubsequence`,
+  {lit}`CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`,
+  {lit}`CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`, and
+  {lit}`CLRS.Chapter15.isCommonSubsequence_comm`;
+  remaining gap: dynamic-programming length table and reconstruction theorem.
+* Chapter 15 remaining target:
+  optimal binary search trees are not yet represented.
 * 23.1 Growing a minimum spanning tree:
   current results {lit}`CLRS.MST.Graph.connected_crosses_cut`,
   {lit}`CLRS.MST.FiniteGraph.minimumSpanningTree_of_mstExtending_empty`,
