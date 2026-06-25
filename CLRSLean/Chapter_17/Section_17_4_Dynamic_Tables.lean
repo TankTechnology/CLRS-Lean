@@ -32,6 +32,11 @@ Main results:
   preserves the table-size invariant.
 - Theorem {lit}`dynamicTableDelete_valid`: the first-pass deletion/contraction
   transition preserves the table-size invariant.
+- Theorems {lit}`dynamicTableInsert_num_gt`,
+  {lit}`dynamicTableInsert_num_ge`, {lit}`dynamicTableDelete_num_le`,
+  {lit}`dynamicTableDelete_num_empty`, and
+  {lit}`dynamicTableDelete_num_lt_of_nonempty`: direct post-state
+  stored-count direction corollaries for insertion and deletion.
 - Theorems {lit}`dynamicTableInsert_capacity_fits`,
   {lit}`dynamicTableInsert_capacity_ge_size`,
   {lit}`dynamicTableDelete_capacity_fits`, and
@@ -146,6 +151,17 @@ theorem dynamicTableInsert_num (s : DynamicTableState) :
     (dynamicTableInsert s).num = s.num + 1 := by
   rfl
 
+/-- Dynamic-table insertion strictly increases the stored-element count. -/
+theorem dynamicTableInsert_num_gt (s : DynamicTableState) :
+    s.num < (dynamicTableInsert s).num := by
+  rw [dynamicTableInsert_num]
+  exact Nat.lt_succ_self s.num
+
+/-- Dynamic-table insertion never decreases the stored-element count. -/
+theorem dynamicTableInsert_num_ge (s : DynamicTableState) :
+    s.num <= (dynamicTableInsert s).num := by
+  exact Nat.le_of_lt (dynamicTableInsert_num_gt s)
+
 /-- Dynamic-table insertion leaves enough capacity for the post-insertion count. -/
 theorem dynamicTableInsert_capacity_fits (s : DynamicTableState) :
     (dynamicTableInsert s).num <= (dynamicTableInsert s).size := by
@@ -246,6 +262,25 @@ theorem dynamicTableDeleteSize_le_size (s : DynamicTableState)
 theorem dynamicTableDelete_num (s : DynamicTableState) :
     (dynamicTableDelete s).num = s.num - 1 := by
   rfl
+
+/-- Dynamic-table deletion never increases the stored-element count. -/
+theorem dynamicTableDelete_num_le (s : DynamicTableState) :
+    (dynamicTableDelete s).num <= s.num := by
+  rw [dynamicTableDelete_num]
+  exact Nat.sub_le s.num 1
+
+/-- Deleting from an empty table leaves the stored-element count at zero. -/
+theorem dynamicTableDelete_num_empty (s : DynamicTableState)
+    (hempty : s.num = 0) :
+    (dynamicTableDelete s).num = 0 := by
+  rw [dynamicTableDelete_num, hempty]
+
+/-- Deleting from a nonempty table strictly decreases the stored-element count. -/
+theorem dynamicTableDelete_num_lt_of_nonempty (s : DynamicTableState)
+    (hnum : s.num ≠ 0) :
+    (dynamicTableDelete s).num < s.num := by
+  rw [dynamicTableDelete_num]
+  omega
 
 /-- Dynamic-table deletion leaves enough capacity for the post-deletion count. -/
 theorem dynamicTableDelete_capacity_fits (s : DynamicTableState)

@@ -93,8 +93,8 @@ which areas should not yet be counted as proof-complete.
   theorems plus {lit}`MULTIPOP`, executable binary-counter one-step potential
   bound, executable multi-step counter trace bounds, and size-level
   dynamic-table potential nonnegativity, capacity feasibility/direction facts,
-  actual-cost case specs and upper bounds, post-state capacity corollaries, and
-  insertion/deletion wrappers are proved;
+  stored-count direction facts, actual-cost case specs and upper bounds,
+  post-state capacity corollaries, and insertion/deletion wrappers are proved;
   allocator and RAM refinements remain.
 * Chapter 18, Sections 18.1-18.3: a mathematical B-tree model has search,
   minimum-key height-expression recurrence and monotonicity, split-child preservation,
@@ -526,6 +526,8 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_ge_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_num_gt`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_num_ge`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
@@ -537,6 +539,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_le_size`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_valid`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_num`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_num_le`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_num_empty`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_num_lt_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_le_size`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_amortizedBound`, and
