@@ -10,7 +10,7 @@ and instantiates it on compact stack, counter, and dynamic-table examples.  The
 current first pass contains the aggregate, accounting, and potential-method
 framework theorems, a {lit}`MULTIPOP` stack cost bound, an executable
 binary-counter one-step potential proof plus a multi-step executable trace
-bound, and a size-level dynamic-table insertion wrapper.
+bound, and size-level dynamic-table insertion/deletion wrappers.
 
 ## Sections
 
@@ -33,13 +33,16 @@ bound, and a size-level dynamic-table insertion wrapper.
   Main results:
   {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
-  {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`, and
+  {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_valid`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_num`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_amortizedBound`, and
   {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`.
 
 ## Current Gaps
 
-Concrete dynamic-table contraction transition predicates, allocator semantics,
-and RAM constants remain strengthening targets.
+Allocator semantics, mutable-array copying, and RAM constants remain
+strengthening targets.
 -/
 
 namespace CLRS

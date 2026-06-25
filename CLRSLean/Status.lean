@@ -92,8 +92,8 @@ which areas should not yet be counted as proof-complete.
 * Chapter 17, Sections 17.1-17.4: finite-prefix aggregate/accounting/potential
   theorems plus {lit}`MULTIPOP`, executable binary-counter one-step potential
   bound, executable multi-step counter trace bounds, and size-level
-  dynamic-table insertion wrappers are proved; table-transition refinements
-  remain.
+  dynamic-table insertion/deletion wrappers are proved; allocator and RAM
+  refinements remain.
 * Chapter 18, Sections 18.1-18.3: a mathematical B-tree model has search,
   minimum-key height-expression, split-child, insertion/deletion membership,
   and search-after-update theorem surfaces; full separator/same-depth,
@@ -506,10 +506,13 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.binaryCounter_totalFlips_le`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
-  {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`, and
+  {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_valid`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_num`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_amortizedBound`, and
   {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`;
-  remaining gap: concrete dynamic-table contraction transition, and
-  RAM/allocation constants.
+  remaining gap: mutable-array copying, RAM/allocation constants, and sharper
+  CLRS load-factor potential refinements.
 * 18.1-18.3 B-trees:
   current results {lit}`CLRS.Chapter18.BTree.search_correct`,
   {lit}`CLRS.Chapter18.BTree.minKeys_lower_bound`,

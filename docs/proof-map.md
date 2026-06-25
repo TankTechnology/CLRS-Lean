@@ -989,19 +989,23 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableInsert_valid`
   - `CLRS.Chapter17.dynamicTableInsert_num`
   - `CLRS.Chapter17.dynamicTableInsert_amortizedBound`
+  - `CLRS.Chapter17.dynamicTableDelete_valid`
+  - `CLRS.Chapter17.dynamicTableDelete_num`
+  - `CLRS.Chapter17.dynamicTableDelete_amortizedBound`
   - `CLRS.Chapter17.dynamicTable_amortizedBound`
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
-  telescoping, executable counter trace induction
-- Current gap: dynamic-table contraction transition and RAM/allocation
-  constants remain strengthening targets.
+  telescoping, executable counter trace induction, size-level table transitions
+- Current gap: mutable-array copying, RAM/allocation constants, and sharper
+  CLRS load-factor potential refinements remain strengthening targets.
 
 Chapter 17 now provides the reusable amortized-analysis layer for later data
 structure chapters.  The generic aggregate/accounting/potential facts are
 sorry-free, and the stack, executable binary-counter trace, and dynamic-table
 examples compile against stable public theorem names.  The executable counter
 trace now has a multi-step potential bound and an empty-counter {lit}`2n` flip
-bound, while dynamic-table insertion is still a size-level transition rather
-than mutable-array or allocator semantics.
+bound.  Dynamic-table insertion and deletion/contraction are now size-level
+transitions, while mutable-array copying and allocator semantics remain future
+refinements.
 
 ## Chapter 18 - B-Trees
 
