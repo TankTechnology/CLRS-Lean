@@ -64,6 +64,11 @@ Main results:
   {lit}`VEB.insert_predecessor_lt`, and {lit}`VEB.insert_le_predecessor`:
   direct membership and order corollaries for returned neighbors after
   insertion.
+- Theorems {lit}`VEB.delete_successor_mem`, {lit}`VEB.delete_successor_gt`,
+  {lit}`VEB.delete_successor_le`, {lit}`VEB.delete_predecessor_mem`,
+  {lit}`VEB.delete_predecessor_lt`, and {lit}`VEB.delete_le_predecessor`:
+  direct membership and order corollaries for returned neighbors after
+  deletion.
 - Theorems {lit}`VEB.insert_member_lt_univ`,
   {lit}`VEB.insert_minimum_lt_univ`, {lit}`VEB.insert_maximum_lt_univ`,
   {lit}`VEB.insert_successor_lt_univ`,
@@ -862,6 +867,29 @@ theorem delete_successor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
   intro z hz hzx hqz
   exact hsucc'.2.2 z (by simp [Finset.mem_erase, hzx, hz]) hqz
 
+/-- A returned successor after deletion is a remaining old key. -/
+theorem delete_successor_mem {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hsucc : successor q (delete x t) = some y) :
+    y ≠ x ∧ y ∈ s := by
+  have h := delete_successor_correct
+    (t := t) (s := s) (x := x) (q := q) (y := y) hrep hsucc
+  exact ⟨h.1, h.2.1⟩
+
+/-- A returned successor after deletion is greater than the query. -/
+theorem delete_successor_gt {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hsucc : successor q (delete x t) = some y) :
+    q < y := by
+  exact (delete_successor_correct
+    (t := t) (s := s) (x := x) (q := q) (y := y) hrep hsucc).2.2.1
+
+/-- A returned successor after deletion is no larger than any remaining greater key. -/
+theorem delete_successor_le {t : Tree} {s : Finset Nat} {x q y z : Nat}
+    (hrep : Represents t s) (hsucc : successor q (delete x t) = some y)
+    (hz : z ∈ s) (hzx : z ≠ x) (hqz : q < z) :
+    y <= z := by
+  exact (delete_successor_correct
+    (t := t) (s := s) (x := x) (q := q) (y := y) hrep hsucc).2.2.2 z hz hzx hqz
+
 /-- A returned successor after deletion lies inside the represented universe. -/
 theorem delete_successor_lt_univ {t : Tree} {s : Finset Nat} {x q y : Nat}
     (hrep : Represents t s) (hsucc : successor q (delete x t) = some y) :
@@ -902,6 +930,29 @@ theorem delete_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
   refine ⟨hmem.1, hmem.2, hpred'.2.1, ?_⟩
   intro z hz hzx hzq
   exact hpred'.2.2 z (by simp [Finset.mem_erase, hzx, hz]) hzq
+
+/-- A returned predecessor after deletion is a remaining old key. -/
+theorem delete_predecessor_mem {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hpred : predecessor q (delete x t) = some y) :
+    y ≠ x ∧ y ∈ s := by
+  have h := delete_predecessor_correct
+    (t := t) (s := s) (x := x) (q := q) (y := y) hrep hpred
+  exact ⟨h.1, h.2.1⟩
+
+/-- A returned predecessor after deletion is less than the query. -/
+theorem delete_predecessor_lt {t : Tree} {s : Finset Nat} {x q y : Nat}
+    (hrep : Represents t s) (hpred : predecessor q (delete x t) = some y) :
+    y < q := by
+  exact (delete_predecessor_correct
+    (t := t) (s := s) (x := x) (q := q) (y := y) hrep hpred).2.2.1
+
+/-- Any remaining old key less than the query is no larger than a returned predecessor. -/
+theorem delete_le_predecessor {t : Tree} {s : Finset Nat} {x q y z : Nat}
+    (hrep : Represents t s) (hpred : predecessor q (delete x t) = some y)
+    (hz : z ∈ s) (hzx : z ≠ x) (hzq : z < q) :
+    z <= y := by
+  exact (delete_predecessor_correct
+    (t := t) (s := s) (x := x) (q := q) (y := y) hrep hpred).2.2.2 z hz hzx hzq
 
 /-- A returned predecessor after deletion lies inside the represented universe. -/
 theorem delete_predecessor_lt_univ {t : Tree} {s : Finset Nat} {x q y : Nat}

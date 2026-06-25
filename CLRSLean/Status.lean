@@ -124,7 +124,7 @@ which areas should not yet be counted as proof-complete.
   query universe-bound corollaries, membership-, extrema-, and
   neighbor-query-after-update positive/no-neighbor specs, extrema
   empty-after-update specs, direct extrema membership/lower- and upper-bound
-  wrappers, direct base/insertion neighbor membership/order wrappers, direct
+  wrappers, direct base/insert/delete neighbor membership/order wrappers, direct
   member-query preservation and failure corollaries, update-query
   universe-bound corollaries, and operation-depth
   recurrence/monotonicity specs, are proved; recursive cluster representation
@@ -744,9 +744,15 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.delete_maximum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_correct`,
+  {lit}`CLRS.Chapter20.VEB.delete_successor_mem`,
+  {lit}`CLRS.Chapter20.VEB.delete_successor_gt`,
+  {lit}`CLRS.Chapter20.VEB.delete_successor_le`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_correct`,
+  {lit}`CLRS.Chapter20.VEB.delete_predecessor_mem`,
+  {lit}`CLRS.Chapter20.VEB.delete_predecessor_lt`,
+  {lit}`CLRS.Chapter20.VEB.delete_le_predecessor`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_zero`,
