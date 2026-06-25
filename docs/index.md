@@ -18,6 +18,7 @@ CLRSLean/Chapter_04/Section_04_2_Strassen_Algorithm.lean
 CLRSLean/Chapter_04/Section_04_3_Substitution_Method.lean
 CLRSLean/Chapter_04/Section_04_4_Recursion_Tree_Method.lean
 CLRSLean/Chapter_04/Section_04_5_Master_Theorem.lean
+CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean
 CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean
 CLRSLean/Chapter_06/Section_06_1_Heaps.lean
 CLRSLean/Chapter_06/Section_06_2_Maintaining_Heap_Property.lean
@@ -52,6 +53,7 @@ In prose and on the future website, these appear as:
 - Section 4.3 - The substitution method
 - Section 4.4 - The recursion-tree method
 - Section 4.5 - The master method
+- Section 4.6 - Proof of the master theorem
 - Section 5.1 - The hiring problem
 - Section 6.1 - Heaps
 - Section 6.2 - Maintaining the heap property
@@ -90,7 +92,7 @@ should remain import-friendly.
 | Section 4.3 - Substitution method | `CLRSLean/Chapter_04/Section_04_3_Substitution_Method.lean` | `proved` for one-step recurrence bounds | `CLRS.Chapter04.substitution_upper_bound`, `CLRS.Chapter04.linear_substitution_upper_bound`, `CLRS.Chapter04.geometric_substitution_upper_bound` |
 | Section 4.4 - Recursion-tree method | `CLRSLean/Chapter_04/Section_04_4_Recursion_Tree_Method.lean` | `proved` for additive level-cost expansions | `CLRS.Chapter04.recursion_tree_additive_unroll`, `CLRS.Chapter04.recursion_tree_additive_upper_envelope`, `CLRS.Chapter04.recursion_tree_constant_level_cost` |
 | Section 4.5 - The master method | `CLRSLean/Chapter_04/Section_04_5_Master_Theorem.lean` | `proved` for exact powers | `CLRS.Chapter04.master_case1_geometric`, `CLRS.Chapter04.master_case2_constant_forcing`, `CLRS.Chapter04.master_case3_tail_dominated` |
-| Section 4.6 - Proof of the master theorem | not yet created | `future-work` | planned extension from exact powers to all input sizes |
+| Section 4.6 - Proof of the master theorem | `CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean` | `partial` with all-input transfer bridge proved | `CLRS.Chapter04.allInput_bigO_of_power_upper_sandwich`, `CLRS.Chapter04.allInput_bigOmega_of_power_lower_sandwich`, `CLRS.Chapter04.allInput_bigTheta_of_power_sandwich` |
 | Section 5.1 - The hiring problem | `CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean` | `proved` for finite rank symmetry | `CLRS.Chapter05.hireProbability_eq`, `CLRS.Chapter05.expectedHiresByIndicators_eq_harmonic`, `CLRS.Chapter05.expectedHires_isBigTheta_log` |
 | Section 6.1 - Heaps | `CLRSLean/Chapter_06/Section_06_1_Heaps.lean` | `proved` for the indexed heap predicate and root maximum | `CLRS.Chapter06.parent_lt_self`, `CLRS.Chapter06.eq_left_or_right_parent`, `CLRS.Chapter06.ArrayMaxHeap.getElem_le_root`, `CLRS.Chapter06.orderedDesc_arrayMaxHeap` |
 | Section 6.2 - Maintaining the heap property | `CLRSLean/Chapter_06/Section_06_2_Maintaining_Heap_Property.lean` | `proved` for fuelled `MAX-HEAPIFY` repair | `CLRS.Chapter06.swapAt_perm`, `CLRS.Chapter06.maxHeapifyFuel_perm`, `CLRS.Chapter06.maxHeapifyFuel_valAt_of_heapSize_le`, `CLRS.Chapter06.maxHeapifyFuel_swap_branch_repair`, `CLRS.Chapter06.maxHeapifyFuel_repair_subtree`, `CLRS.Chapter06.maxHeapifyFuel_root_isMaxHeap` |

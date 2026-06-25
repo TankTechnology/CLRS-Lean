@@ -47,9 +47,11 @@ assignments before we can state simple uniform hashing precisely.
 - Status: `future-work`
 
 The exact-power recurrence expansion and three exact-power Master-style cases
-are compiler-clean.  The remaining strengthening is to extend the theorem from
-inputs `n = b^i` to arbitrary natural input sizes using a monotone recurrence
-model and floor/ceiling sandwiching.
+are compiler-clean.  Section 4.6 now also proves the generic transfer bridge
+from exact powers to all natural input sizes under monotone-cost and
+power-sandwich hypotheses.  The remaining strengthening is to discharge those
+hypotheses for concrete floor/ceiling recurrence models and package the final
+CLRS Master-theorem cases.
 
 ### Remaining Chapter 4 Sections
 
@@ -58,8 +60,9 @@ model and floor/ceiling sandwiching.
 
 These sections are not excluded from CLRS-Lean.  They are pending because they
 need distinct representation choices: block matrices for Strassen and an
-all-input floor/ceiling bridge for the full Master Theorem.  Sections 4.3 and
-4.4 now provide the reusable recurrence and recursion-tree infrastructure.
+all-input floor/ceiling instantiation for the full Master Theorem.  Sections
+4.3, 4.4, and 4.6 now provide reusable recurrence, recursion-tree, and
+all-input transfer infrastructure.
 
 ### Maximum-Subarray Runtime Analysis
 

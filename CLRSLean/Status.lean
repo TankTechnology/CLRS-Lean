@@ -36,9 +36,10 @@ which areas should not yet be counted as proof-complete.
   recurrence are proved for the current models.
 * Chapter 3, Section 3.1: CLRS-facing asymptotic notation wrappers and basic
   algebraic facts are proved.
-* Chapter 4, Sections 4.1-4.5, current models: maximum-subarray correctness,
+* Chapter 4, Sections 4.1-4.6, current models: maximum-subarray correctness,
   Strassen 2 by 2 block algebra, substitution-method bounds, recursion-tree
-  additive expansions, and exact-power Master-method cases are proved.
+  additive expansions, exact-power Master-method cases, and the all-input
+  transfer bridge are proved.
 * Chapter 5, Section 5.1: the hiring problem is proved in the finite
   rank-symmetry model.
 * Chapter 6, Sections 6.1-6.5: the indexed array heap layer, recursive
@@ -63,8 +64,9 @@ which areas should not yet be counted as proof-complete.
 
 * Chapter 3, Section 3.2: many standard-function asymptotic facts are proved,
   but the full CLRS table is not complete.
-* Chapter 4 as a whole: the local proof engines are strong, but all-input
-  Master-theorem bridging and selected runtime refinements remain.
+* Chapter 4 as a whole: the local proof engines are strong, but concrete
+  floor/ceiling Master-theorem instantiations and selected runtime refinements
+  remain.
 * Chapter 11, Section 11.2: deterministic chained-hash-table operations are
   proved for a fixed hash function; expected-time hashing remains.
 * Chapter 12, Section 12.1: functional BST operations are proved; parent
@@ -79,7 +81,8 @@ which areas should not yet be counted as proof-complete.
 
 ### Missing Core Theorem
 
-* Chapter 4, Section 4.6: full Master Theorem over all natural input sizes.
+* Chapter 4 full Master-theorem instantiation: discharge the all-input transfer
+  bridge's power-sandwich hypotheses for floor/ceiling recurrences.
 * Chapter 7, Sections 7.2-7.4: in-place partition, performance recurrence,
   randomized quicksort, and expected-time theorem.
 * Chapter 8, Section 8.4: bucket sort is not yet proved.
@@ -129,6 +132,10 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter04.master_case1_geometric`,
   {lit}`CLRS.Chapter04.master_case2_constant_forcing`,
   {lit}`CLRS.Chapter04.master_case3_tail_dominated`.
+* 4.6 Master theorem, all-input transfer bridge:
+  {lit}`CLRS.Chapter04.allInput_bigO_of_power_upper_sandwich`,
+  {lit}`CLRS.Chapter04.allInput_bigOmega_of_power_lower_sandwich`, and
+  {lit}`CLRS.Chapter04.allInput_bigTheta_of_power_sandwich`.
 * 4.3 Substitution method, one-step recurrence model:
   {lit}`CLRS.Chapter04.substitution_upper_bound`,
   {lit}`CLRS.Chapter04.substitution_lower_bound`,
@@ -395,10 +402,11 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   path/cycle API.
 * Full RAM semantics: `future-work`.
   Reason: requires a separate imperative machine and cost model.
-* Chapter 4 full Master Theorem extension:
+* Chapter 4 full Master Theorem instantiation:
   `future-work`.
-  Reason: exact powers are proved; all-input floor/ceiling recurrence
-  sandwiching still needs a monotone recurrence model.
+  Reason: exact powers and the generic all-input transfer bridge are proved;
+  floor/ceiling recurrence sandwich hypotheses still need to be discharged for
+  concrete Master-theorem statements.
 * Chapter 4 Strassen recursive refinement:
   `future-work`.
   Reason: the 2 by 2 block algebra is proved; recursive splitting,
@@ -422,8 +430,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   Reason: Section 7.1 now proves the pure partition/quicksort correctness
   spine; the harder refinements are the CLRS array `PARTITION` loop invariant,
   recurrence analysis, randomized quicksort, and expected running time.
-* Chapter 4 extension from exact powers to all input sizes: `future-work`.
-  Reason: needs a monotone recurrence model and floor/ceiling sandwiching.
+* Chapter 4 concrete all-input Master-theorem instantiations: `future-work`.
+  Reason: needs floor/ceiling recurrence sandwiching on top of the proved
+  all-input transfer bridge.
 * General merge-sort recurrence: `future-work`.
   Reason: needs floor and ceiling arithmetic for all input sizes.
 * CLRS exercises and chapter-end problems: `future-work`.

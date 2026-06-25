@@ -3,6 +3,7 @@ import CLRSLean.Chapter_04.Section_04_2_Strassen_Algorithm
 import CLRSLean.Chapter_04.Section_04_3_Substitution_Method
 import CLRSLean.Chapter_04.Section_04_4_Recursion_Tree_Method
 import CLRSLean.Chapter_04.Section_04_5_Master_Theorem
+import CLRSLean.Chapter_04.Section_04_6_Master_Theorem_All_Input
 
 /-!
 # Chapter 4. Divide-and-Conquer
@@ -43,10 +44,11 @@ and by future divide-and-conquer runtime proofs.
   The file proves the normalized recurrence expansion and three Master-style
   exact-power criteria for bounded, constant, and tail-dominated normalized
   forcing.
-* Section 4.6 - Proof of the master theorem: {lit}`future-work`.
-  The exact-power proof is the current compiler-clean core.  The full textbook
-  theorem for all natural input sizes still needs monotone recurrence models,
-  floor/ceiling sandwiching, and a cleaner statement of regularity hypotheses.
+* Section 4.6 - Proof of the master theorem: {lit}`partial`.
+  The file proves a compiler-clean transfer bridge from exact-power
+  {lit}`O`, {lit}`Ω`, and {lit}`Θ` bounds to all natural inputs under monotone
+  cost and explicit power-sandwich hypotheses.  The full textbook theorem still
+  needs those hypotheses discharged for floor/ceiling recurrence models.
 -/
 
 namespace CLRS

@@ -51,7 +51,7 @@ Start with the chapter pages in the sidebar.
 * Chapter 4 - Divide-and-Conquer: maximum-subarray specification correctness,
   recurrence proof infrastructure for the substitution and recursion-tree
   methods, Strassen's 2 by 2 block algebra correctness, plus the proved
-  exact-power Master method core.
+  exact-power Master method core and first all-input transfer bridge.
 * Chapter 5 - Probabilistic Analysis: the finite rank-symmetry proof for the
   hiring problem and its logarithmic expected-hires bound.
 * Chapter 6 - Heapsort: recursive {lit}`MAX-HEAPIFY` repair, bottom-up
@@ -143,9 +143,12 @@ Start with the chapter pages in the sidebar.
   Public results: `CLRS.Chapter04.master_case1_geometric`,
   `CLRS.Chapter04.master_case2_constant_forcing`,
   `CLRS.Chapter04.master_case3_tail_dominated`.
-* 4.6 Proof of the master theorem: `future-work`.
-  Planned target: extend the exact-power proof to all natural input sizes with
-  floor/ceiling sandwiching.
+* 4.6 Proof of the master theorem: `partial`.
+  Current results: `CLRS.Chapter04.allInput_bigO_of_power_upper_sandwich`,
+  `CLRS.Chapter04.allInput_bigOmega_of_power_lower_sandwich`,
+  `CLRS.Chapter04.allInput_bigTheta_of_power_sandwich`.  Remaining target:
+  discharge the power-sandwich hypotheses for concrete floor/ceiling
+  recurrences.
 * 5.1 Hiring problem: `proved` for the finite rank-symmetry model.
   Public results: `CLRS.Chapter05.hireProbability_eq`,
   `CLRS.Chapter05.expectedHiresByIndicators_eq_harmonic`,

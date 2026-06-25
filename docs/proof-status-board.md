@@ -20,7 +20,7 @@ advertised on the site is proved.
 | --- | --- | --- |
 | Chapter 2, Sections 2.1-2.3 | Insertion sort sortedness/permutation, insertion-sort quadratic comparison bound, merge-sort sortedness/permutation, and the power-of-two merge-sort recurrence are proved. | Full RAM semantics and arbitrary-size floor/ceiling merge-sort recurrence. |
 | Chapter 3, Section 3.1 | CLRS-facing asymptotic notation wrappers and basic algebraic facts are proved. | Extend the standard-function table in Section 3.2. |
-| Chapter 4, Sections 4.1-4.5, current models | Maximum-subarray correctness, Strassen 2 by 2 block algebra, substitution-method one-step bounds, recursion-tree additive expansions, and exact-power Master-method cases are proved. | The whole chapter is not finished until all-input Master-theorem bridging and selected runtime refinements are added. |
+| Chapter 4, Sections 4.1-4.6, current models | Maximum-subarray correctness, Strassen 2 by 2 block algebra, substitution-method one-step bounds, recursion-tree additive expansions, exact-power Master-method cases, and a generic all-input transfer bridge are proved. | The whole chapter is not finished until concrete floor/ceiling Master-theorem instantiations and selected runtime refinements are added. |
 | Chapter 5, Section 5.1 | The hiring-problem probability and expected-hires harmonic/logarithmic results are proved for the finite rank-symmetry model. | Random-permutation execution model is optional refinement. |
 | Chapter 6, Sections 6.1-6.5 | The array heap layer, fuelled recursive `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort sorted-suffix invariant, top-level heapsort correctness, and array-level priority-queue state theorems are proved. | Line-by-line RAM cost model. |
 | Chapter 7, Section 7.1 | Stable functional partition correctness and functional quicksort sortedness/permutation preservation are proved. | In-place `PARTITION`, deterministic recurrence analysis, randomized quicksort, and expected-time analysis. |
@@ -39,7 +39,7 @@ CLRS theorem is not yet internalized.
 | Scope | What exists | Core gap |
 | --- | --- | --- |
 | Chapter 3, Section 3.2 | Many polynomial, logarithmic, exponential, harmonic, floor/ceiling, and factorial asymptotic facts are proved through CLRS-facing names. | Complete the standard-function comparison table and add missing variants. |
-| Chapter 4 as a whole | The main local proof engines for maximum subarray, Strassen 2 by 2 algebra, substitution, recursion trees, and exact-power Master cases exist. | All-input Master theorem and selected runtime/cost refinements. |
+| Chapter 4 as a whole | The main local proof engines for maximum subarray, Strassen 2 by 2 algebra, substitution, recursion trees, exact-power Master cases, and all-input asymptotic transfer exist. | Concrete floor/ceiling Master-theorem instantiations and selected runtime/cost refinements. |
 | Chapter 11, Section 11.2 | Deterministic chained-hash-table insert/delete/search facts for a fixed hash function are proved. | Expected search time under a simple-uniform-hashing probability model. |
 | Chapter 12, Section 12.1 | Functional BST search, minimum/maximum, successor/predecessor, insertion, deletion, and ordering preservation are proved. | Parent-pointer procedures, transplant, and imperative mutation refinement. |
 | Chapter 13, Section 13.1 | Local red-black tree rotations, recoloring, red-red repair certificates, black-height, and shape facts are proved. | Full `RB-INSERT`, `RB-INSERT-FIXUP`, `RB-DELETE`, and `RB-DELETE-FIXUP`. |
@@ -52,7 +52,7 @@ section file yet or only enough scaffolding to identify the intended theorem.
 
 | Scope | Missing theorem target |
 | --- | --- |
-| Chapter 4, Section 4.6 | Full proof of the Master Theorem over all natural input sizes. |
+| Chapter 4 concrete Master-theorem instantiation | Discharge the all-input transfer bridge's power-sandwich hypotheses for floor/ceiling recurrences. |
 | Chapter 7, Sections 7.2-7.4 | In-place partition, deterministic performance recurrence, randomized quicksort, and expected-time theorem. |
 | Chapter 8, Section 8.4 | Bucket sort theorem interface and proof have not been added yet. |
 | Chapter 9 linear-time SELECT refinements | Randomized SELECT and deterministic median-of-medians SELECT are not yet refined to the proved rank-certificate interface. |
