@@ -10,9 +10,9 @@ facts plus direct operation-key corollaries for insertion, extract-min,
 decrease-key, and deletion, adds old-key preservation corollaries for the
 set-updating operations and exact failed membership specifications after heap
 operations, exposes direct operation-result validity wrappers for normalized
-counters, adds positive and empty-result
-minimum-after-update specifications, exposes the standard potential function with
-zero-initial and nonnegativity facts, and
+counters, adds direct minimum membership/lower-bound wrappers plus positive and
+empty-result minimum-after-update specifications, exposes the standard
+potential function with zero-initial and nonnegativity facts, and
 packages a conservative degree-bound wrapper for later subtree-size
 strengthening, together with a Fibonacci-style lower-bound recurrence,
 positivity, adjacent monotonicity, monotonicity, and the first exponential
@@ -26,9 +26,12 @@ minimum and extract-min.
   Main results:
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_correct`,
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_valid`,
+  {lit}`CLRS.Chapter19.FibHeap.makeHeap_minimum_none`,
   {lit}`CLRS.Chapter19.FibHeap.potential_makeHeap`,
   {lit}`CLRS.Chapter19.FibHeap.potential_nonneg`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.minimum_mem`,
+  {lit}`CLRS.Chapter19.FibHeap.minimum_le`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.insert_correct`,
   {lit}`CLRS.Chapter19.FibHeap.insert_valid`,

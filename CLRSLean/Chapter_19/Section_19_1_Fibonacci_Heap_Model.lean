@@ -13,8 +13,11 @@ Main results:
 
 - Theorem {lit}`FibHeap.minimum_correct`: a returned minimum is represented and
   is no larger than any represented key.
+- Theorems {lit}`FibHeap.minimum_mem` and {lit}`FibHeap.minimum_le`: direct
+  membership and lower-bound corollaries for a returned minimum.
 - Theorem {lit}`FibHeap.minimum_none_iff`: no minimum is returned exactly when
   the represented key set is empty.
+- Theorem {lit}`FibHeap.makeHeap_minimum_none`: the empty heap has no minimum.
 - Theorem {lit}`FibHeap.makeHeap_correct`: the empty heap represents the empty
   key set.
 - Theorem {lit}`FibHeap.potential_makeHeap`: the empty heap has zero potential.
@@ -157,6 +160,18 @@ theorem minimum_correct {h : FibHeap} {s : Finset Int} {x : Int}
       exact Finset.min'_le h.keys y hyh
   · simp [hne] at hmin
 
+/-- A returned minimum belongs to the represented key set. -/
+theorem minimum_mem {h : FibHeap} {s : Finset Int} {x : Int}
+    (hrep : Represents h s) (hmin : minimum h = some x) :
+    x ∈ s := by
+  exact (minimum_correct (h := h) (s := s) (x := x) hrep hmin).1
+
+/-- A returned minimum is no larger than any represented key. -/
+theorem minimum_le {h : FibHeap} {s : Finset Int} {x y : Int}
+    (hrep : Represents h s) (hmin : minimum h = some x) (hy : y ∈ s) :
+    x <= y := by
+  exact (minimum_correct (h := h) (s := s) (x := x) hrep hmin).2 y hy
+
 /-- No minimum is returned exactly when the represented key set is empty. -/
 theorem minimum_none_iff {h : FibHeap} {s : Finset Int}
     (hrep : Represents h s) :
@@ -174,6 +189,11 @@ theorem minimum_none_iff {h : FibHeap} {s : Finset Int}
     have hne : ¬ h.keys.Nonempty := by
       simpa [Finset.not_nonempty_iff_eq_empty] using hkeysEmpty
     simp [hne]
+
+/-- The empty heap has no minimum key. -/
+theorem makeHeap_minimum_none :
+    minimum makeHeap = none := by
+  rw [minimum_none_iff (h := makeHeap) (s := ∅) makeHeap_correct]
 
 /-- Insert a key.  Counter fields are normalized to the represented key count. -/
 def insert (x : Int) (h : FibHeap) : FibHeap :=

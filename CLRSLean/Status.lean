@@ -612,9 +612,12 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
 * 19.1 Fibonacci heaps:
   current results {lit}`CLRS.Chapter19.FibHeap.makeHeap_correct`,
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_valid`,
+  {lit}`CLRS.Chapter19.FibHeap.makeHeap_minimum_none`,
   {lit}`CLRS.Chapter19.FibHeap.potential_makeHeap`,
   {lit}`CLRS.Chapter19.FibHeap.potential_nonneg`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.minimum_mem`,
+  {lit}`CLRS.Chapter19.FibHeap.minimum_le`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.insert_correct`,
   {lit}`CLRS.Chapter19.FibHeap.insert_valid`,
