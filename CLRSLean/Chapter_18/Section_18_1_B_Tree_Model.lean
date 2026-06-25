@@ -14,6 +14,8 @@ Main results:
   membership.
 - Theorem {lit}`BTree.minKeys_lower_bound`: the first-pass minimum-key function
   exposes the CLRS lower-bound expression {lit}`2 * t^h - 1`.
+- Theorem {lit}`BTree.minKeys_succ`: the CLRS lower-bound expression satisfies
+  the height-step recurrence used by the B-tree height analysis.
 
 Current gaps:
 
@@ -73,6 +75,28 @@ theorem minKeys_lower_bound {minDegree height : Nat}
     (_hdegree : 2 <= minDegree) :
     2 * minDegree ^ height - 1 <= minKeys minDegree height := by
   rfl
+
+/--
+The minimum-key lower-bound expression satisfies the height-step recurrence
+{lit}`N(h+1)+1 = t*(N(h)+1)` for valid minimum degree {lit}`t`.
+-/
+theorem minKeys_succ {minDegree height : Nat}
+    (hdegree : 2 <= minDegree) :
+    minKeys minDegree (height + 1) + 1 =
+      minDegree * (minKeys minDegree height + 1) := by
+  unfold minKeys
+  have hpos : 0 < minDegree := by omega
+  have hpowPos : 0 < minDegree ^ height := pow_pos hpos height
+  have htermPos : 0 < 2 * minDegree ^ height :=
+    Nat.mul_pos (by decide) hpowPos
+  have hnextPowPos : 0 < minDegree ^ (height + 1) :=
+    pow_pos hpos (height + 1)
+  have hnextTermPos : 0 < 2 * minDegree ^ (height + 1) :=
+    Nat.mul_pos (by decide) hnextPowPos
+  rw [Nat.sub_add_cancel (Nat.succ_le_of_lt hnextTermPos)]
+  rw [Nat.sub_add_cancel (Nat.succ_le_of_lt htermPos)]
+  rw [Nat.pow_succ]
+  ring
 
 end BTree
 end Chapter18

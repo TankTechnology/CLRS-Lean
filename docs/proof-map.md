@@ -1021,6 +1021,7 @@ copying and allocator semantics remain future refinements.
 - Main proved theorems:
   - `CLRS.Chapter18.BTree.search_correct`
   - `CLRS.Chapter18.BTree.minKeys_lower_bound`
+  - `CLRS.Chapter18.BTree.minKeys_succ`
   - `CLRS.Chapter18.BTree.splitChild_preserves_model`
   - `CLRS.Chapter18.BTree.splitChild_mem_iff`
   - `CLRS.Chapter18.BTree.splitChild_search_iff`
@@ -1031,7 +1032,8 @@ copying and allocator semantics remain future refinements.
   - `CLRS.Chapter18.BTree.delete_mem_iff`
   - `CLRS.Chapter18.BTree.delete_search_iff`
 - Proof pattern: mathematical key-set model, structural validity predicate,
-  specification-level split/insert/delete wrappers, search correctness reuse
+  minimum-key expression arithmetic, specification-level split/insert/delete
+  wrappers, search correctness reuse
 - Current gap: full node occupancy/separator/same-depth invariant stack,
   node-level deletion repair, disk-page I/O, and pointer mutation remain
   strengthening targets.
@@ -1039,9 +1041,10 @@ copying and allocator semantics remain future refinements.
 Chapter 18 now has a first-pass B-tree theorem surface.  Search, split-child,
 insertion, and deletion are proved against an abstract membership model, and
 the update wrappers expose direct search-after-update specifications.  The height
-expression is packaged as a minimum-key lower bound.  The current split, insert,
-and delete operations are specification wrappers, so the chapter is still
-`partial` rather than a complete page-level mutation proof.
+expression is packaged as a minimum-key lower bound and a height-step
+recurrence.  The current split, insert, and delete operations are specification
+wrappers, so the chapter is still `partial` rather than a complete page-level
+mutation proof.
 
 ## Chapter 19 - Fibonacci Heaps
 

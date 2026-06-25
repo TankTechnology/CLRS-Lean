@@ -98,8 +98,8 @@ Start with the chapter pages in the sidebar.
   an executable multi-step counter trace bound and size-level dynamic-table
   capacity/transition wrappers.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
-  height-expression, split, split membership/search preservation, insertion,
-  deletion, and search-after-update theorem surface.
+  height-expression and recurrence, split, split membership/search
+  preservation, insertion, deletion, and search-after-update theorem surface.
 * Chapter 19 - Fibonacci Heaps: abstract finite-set heap model with
   make-heap, operation-level correctness, direct
   insert/union/extract-min/decrease-key/delete membership facts, heap potential
@@ -446,6 +446,7 @@ Start with the chapter pages in the sidebar.
 * 18.1-18.3 B-trees: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter18.BTree.search_correct`,
   {lit}`CLRS.Chapter18.BTree.minKeys_lower_bound`,
+  {lit}`CLRS.Chapter18.BTree.minKeys_succ`,
   {lit}`CLRS.Chapter18.BTree.splitChild_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_preserves_model`,

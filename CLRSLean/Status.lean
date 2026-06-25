@@ -95,10 +95,10 @@ which areas should not yet be counted as proof-complete.
   dynamic-table capacity facts and insertion/deletion wrappers are proved;
   allocator and RAM refinements remain.
 * Chapter 18, Sections 18.1-18.3: a mathematical B-tree model has search,
-  minimum-key height-expression, split-child preservation, split-child search
-  preservation, insertion/deletion membership, and search-after-update theorem
-  surfaces; full separator/same-depth, node-level-deletion, and disk-page
-  refinements remain.
+  minimum-key height-expression and recurrence, split-child preservation,
+  split-child search preservation, insertion/deletion membership, and
+  search-after-update theorem surfaces; full separator/same-depth,
+  node-level-deletion, and disk-page refinements remain.
 * Chapter 19, Section 19.1: abstract Fibonacci-heap finite-set operations,
   empty-heap construction, empty-result query specs, direct
   insert/union/extract-min/decrease-key/delete membership facts,
@@ -522,6 +522,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
 * 18.1-18.3 B-trees:
   current results {lit}`CLRS.Chapter18.BTree.search_correct`,
   {lit}`CLRS.Chapter18.BTree.minKeys_lower_bound`,
+  {lit}`CLRS.Chapter18.BTree.minKeys_succ`,
   {lit}`CLRS.Chapter18.BTree.splitChild_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.splitChild_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_iff`,
