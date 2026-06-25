@@ -45,10 +45,12 @@ and by future divide-and-conquer runtime proofs.
   exact-power criteria for bounded, constant, and tail-dominated normalized
   forcing.
 * Section 4.6 - Proof of the master theorem: {lit}`partial`.
-  The file proves a compiler-clean transfer bridge from exact-power
-  {lit}`O`, {lit}`Ω`, and {lit}`Θ` bounds to all natural inputs under monotone
-  cost and explicit power-sandwich hypotheses.  The full textbook theorem still
-  needs those hypotheses discharged for floor/ceiling recurrence models.
+  The file proves floor/ceiling all-input recurrence interfaces, extracts
+  exact-power recurrences from those models, and proves a compiler-clean
+  transfer bridge from exact-power {lit}`O`, {lit}`Ω`, and {lit}`Θ` bounds to
+  all natural inputs under monotone cost and explicit power-sandwich
+  hypotheses.  The full textbook theorem still needs those sandwich hypotheses
+  discharged for concrete floor/ceiling recurrence models.
 -/
 
 namespace CLRS

@@ -47,11 +47,12 @@ assignments before we can state simple uniform hashing precisely.
 - Status: `future-work`
 
 The exact-power recurrence expansion and three exact-power Master-style cases
-are compiler-clean.  Section 4.6 now also proves the generic transfer bridge
-from exact powers to all natural input sizes under monotone-cost and
-power-sandwich hypotheses.  The remaining strengthening is to discharge those
-hypotheses for concrete floor/ceiling recurrence models and package the final
-CLRS Master-theorem cases.
+are compiler-clean.  Section 4.6 now also proves floor/ceiling recurrence
+interfaces, extracts exact-power recurrences from those all-input models, and
+proves the generic transfer bridge from exact powers to all natural input sizes
+under monotone-cost and power-sandwich hypotheses.  The remaining strengthening
+is to discharge those sandwich hypotheses for concrete comparison scales and
+package the final CLRS Master-theorem cases.
 
 ### Remaining Chapter 4 Sections
 

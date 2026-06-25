@@ -22,6 +22,56 @@ namespace Chapter04
 def MonotoneAbs (T : ℕ → ℝ) : Prop :=
   ∀ {m n : ℕ}, m ≤ n → |T m| ≤ |T n|
 
+/-! ## Floor/ceiling recurrence interfaces -/
+
+/--
+All-input floor-division form of the Master-theorem recurrence:
+`T(n) = a T(⌊n / b⌋) + f(n)`.
+-/
+structure FloorDivideRecurrence (a b : ℕ) (f T : ℕ → ℝ) : Prop where
+  step : ∀ n : ℕ, T n = (a : ℝ) * T (n / b) + f n
+
+/--
+All-input ceiling-division form of the Master-theorem recurrence:
+`T(n) = a T(⌈n / b⌉) + f(n)`, represented over natural numbers as
+{lit}`(n + b - 1) / b`.
+-/
+structure CeilDivideRecurrence (a b : ℕ) (f T : ℕ → ℝ) : Prop where
+  step : ∀ n : ℕ, T n = (a : ℝ) * T ((n + (b - 1)) / b) + f n
+
+theorem pow_succ_div_base {b i : ℕ} (hb : 0 < b) :
+    b ^ (i + 1) / b = b ^ i := by
+  rw [show b ^ (i + 1) = b * b ^ i by
+    rw [pow_succ, Nat.mul_comm]]
+  exact Nat.mul_div_right (b ^ i) hb
+
+theorem pow_succ_add_pred_div_base {b i : ℕ} (hb : 0 < b) :
+    (b ^ (i + 1) + (b - 1)) / b = b ^ i := by
+  apply Nat.div_eq_of_lt_le
+  · rw [show b ^ i * b = b ^ (i + 1) by rw [pow_succ]]
+    exact Nat.le_add_right _ _
+  · rw [Nat.add_mul, one_mul]
+    rw [show b ^ i * b = b ^ (i + 1) by rw [pow_succ]]
+    omega
+
+theorem exactPowerRecurrence_of_floorDivideRecurrence
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : FloorDivideRecurrence a b f T) (hb : 0 < b) :
+    ExactPowerRecurrence a b f T := by
+  refine ⟨?_⟩
+  intro i
+  rw [h_rec.step (b ^ (i + 1))]
+  rw [pow_succ_div_base (b := b) (i := i) hb]
+
+theorem exactPowerRecurrence_of_ceilDivideRecurrence
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : CeilDivideRecurrence a b f T) (hb : 0 < b) :
+    ExactPowerRecurrence a b f T := by
+  refine ⟨?_⟩
+  intro i
+  rw [h_rec.step (b ^ (i + 1))]
+  rw [pow_succ_add_pred_div_base (b := b) (i := i) hb]
+
 /--
 Eventually every large input can be bounded above by a large enough exact
 power, with the comparison scale at that power controlled by the scale at the
