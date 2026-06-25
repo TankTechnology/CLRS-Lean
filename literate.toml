@@ -58,6 +58,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_08" = [
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort",
+  "CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array",
   "CLRSLean.Chapter_08.Section_08_3_Radix_Sort",
   "CLRSLean.Chapter_08.Section_08_4_Bucket_Sort",
 ]
@@ -195,6 +196,9 @@ title = "7.2. Performance of Quicksort"
 
 [modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort"]
 title = "8.2. Counting Sort"
+
+[modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array"]
+title = "8.2. Counting Sort - Count Tables"
 
 [modules."CLRSLean.Chapter_08.Section_08_3_Radix_Sort"]
 title = "8.3. Radix Sort"

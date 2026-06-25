@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort
+import CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array
 import CLRSLean.Chapter_08.Section_08_3_Radix_Sort
 import CLRSLean.Chapter_08.Section_08_4_Bucket_Sort
 
@@ -10,13 +11,17 @@ sorting primitives before cost models.
 
 ## Sections
 
-* 8.2 Counting sort: {lit}`proved` for a stable bucket specification.
+* 8.2 Counting sort: {lit}`proved` for a stable bucket specification and a
+  count-table/prefix-count refinement layer.
   Main results:
   {lit}`CLRS.Chapter08.countingSortBy_ordered`,
   {lit}`CLRS.Chapter08.countingSortBy_bucket_eq`,
   {lit}`CLRS.Chapter08.countingSortBy_mem_iff`,
   {lit}`CLRS.Chapter08.countingSortBy_perm`, and
-  {lit}`CLRS.Chapter08.countingSortBy_correct`.
+  {lit}`CLRS.Chapter08.countingSortBy_correct`;
+  {lit}`CLRS.Chapter08.countTable_sum_eq_countingSortBy_length`,
+  {lit}`CLRS.Chapter08.cumulativeCountTable_length`, and
+  {lit}`CLRS.Chapter08.countingSortByTable_correct`.
 * 8.3 Radix sort: {lit}`proved` for an abstract stable digit-pass model with
   complete digit-signature stability and a concrete base-{lit}`b` digit
   extraction wrapper for natural-number keys, including an ordinary key-order
@@ -37,7 +42,7 @@ sorting primitives before cost models.
 
 ## Current Gaps
 
-* Array-level count table and prefix-sum implementation of {lit}`COUNTING-SORT`.
+* Imperative reverse-scan output-array implementation of {lit}`COUNTING-SORT`.
 * Bucket-sort probabilistic expected-time analysis.
 -/
 
