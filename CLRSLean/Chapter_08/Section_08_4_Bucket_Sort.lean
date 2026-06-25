@@ -3,10 +3,12 @@ import CLRSLean.Chapter_08.Section_08_3_Radix_Sort
 /-!
 # CLRS Section 8.4 - Bucket sort
 
-This file adds a deterministic correctness layer for bucket sort.
+This file adds a deterministic correctness layer for bucket sort and a first
+finite-uniform probability interface for the expected-time argument.
 
-The probabilistic expected-time analysis in CLRS depends on a distributional
-assumption about the input.  Here we isolate the pure correctness spine:
+The full probabilistic expected-time analysis in CLRS depends on a
+distributional assumption about the input.  Here we isolate the pure correctness
+spine:
 
 * distribute values into buckets by a bucket-index function;
 * sort each bucket by the final key;
@@ -16,6 +18,12 @@ assumption about the input.  Here we isolate the pure correctness spine:
 The theorem is intentionally parametric in the bucket-index function.  A
 separate cross-bucket assumption states that every value in an earlier bucket is
 at most every value in a later bucket according to the final sort key.
+
+The finite-uniform layer proves the collision fact behind the textbook expected
+time argument: two independently chosen uniform buckets collide with
+probability {lit}`1/m`; therefore the expected quadratic bucket-occupancy cost
+for {lit}`n` independent samples into {lit}`n` buckets is at most linear in
+{lit}`n`.
 -/
 
 namespace CLRS
@@ -205,6 +213,88 @@ theorem bucketSortByRank_correct [DecidableEq α] (bucketCount : Nat)
     (fun k => sortBucketByRank_ordered rank (bucket bucketOf xs k))
     (sortBucketByRank_perm rank)
     hcross
+
+/-! ## Finite-uniform expected-cost interface -/
+
+/-- A real-valued {lit}`0/1` indicator for finite bucket probabilities. -/
+def probabilityIndicator (P : Prop) [Decidable P] : ℝ :=
+  if P then 1 else 0
+
+/-- Uniform average over the finite bucket set {lit}`Fin m`. -/
+noncomputable def uniformAverageFin {m : Nat} (X : Fin m → ℝ) : ℝ :=
+  (∑ i : Fin m, X i) / (m : ℝ)
+
+/-- Uniform average over two independent finite bucket choices. -/
+noncomputable def uniformAverageFin2 {m : Nat} (X : Fin m → Fin m → ℝ) : ℝ :=
+  uniformAverageFin fun i => uniformAverageFin fun j => X i j
+
+/-- A fixed bucket has probability {lit}`1/m` under the finite-uniform bucket model. -/
+theorem uniformAverageFin_indicator_singleton {m : Nat} (j : Fin m) :
+    uniformAverageFin (fun i => probabilityIndicator (i = j)) = 1 / (m : ℝ) := by
+  classical
+  have hsum :
+      (∑ i : Fin m, probabilityIndicator (i = j)) = (1 : ℝ) := by
+    rw [Finset.sum_eq_single j]
+    · simp [probabilityIndicator]
+    · intro b _hb hbj
+      simp [probabilityIndicator, hbj]
+    · intro hj
+      exact (hj (Finset.mem_univ j)).elim
+  simp [uniformAverageFin, hsum]
+
+/--
+Two independently chosen uniform buckets collide with probability {lit}`1/m`.
+This is the probability fact used in the CLRS bucket-sort second-moment
+calculation.
+-/
+theorem uniformAverageFin2_collision {m : Nat} (hm : 0 < m) :
+    uniformAverageFin2 (fun i j : Fin m => probabilityIndicator (i = j)) =
+      1 / (m : ℝ) := by
+  classical
+  have hden : (m : ℝ) ≠ 0 := by
+    exact_mod_cast Nat.ne_of_gt hm
+  have hinner :
+      ∀ i : Fin m,
+        uniformAverageFin (fun j : Fin m => probabilityIndicator (i = j)) =
+          1 / (m : ℝ) := by
+    intro i
+    simpa [eq_comm] using uniformAverageFin_indicator_singleton (m := m) i
+  calc
+    uniformAverageFin2 (fun i j : Fin m => probabilityIndicator (i = j))
+        = uniformAverageFin (fun _i : Fin m => 1 / (m : ℝ)) := by
+          simp [uniformAverageFin2, hinner]
+    _ = 1 / (m : ℝ) := by
+          simp [uniformAverageFin, Finset.sum_const, Fintype.card_fin]
+          field_simp [hden]
+
+/--
+The textbook second-moment bucket-occupancy expression for {lit}`n`
+independent samples into {lit}`m` uniform buckets:
+{lit}`E[Σ_i n_i^2] = n + n(n-1)/m`.
+-/
+noncomputable def expectedBucketQuadraticCost (m n : Nat) : ℝ :=
+  (n : ℝ) + (n : ℝ) * ((n : ℝ) - 1) / (m : ℝ)
+
+/--
+With as many buckets as input elements, the quadratic bucket-occupancy
+expectation is {lit}`2n - 1`.
+-/
+theorem expectedBucketQuadraticCost_self_eq (n : Nat) (hn : 0 < n) :
+    expectedBucketQuadraticCost n n = 2 * (n : ℝ) - 1 := by
+  have hden : (n : ℝ) ≠ 0 := by
+    exact_mod_cast Nat.ne_of_gt hn
+  unfold expectedBucketQuadraticCost
+  field_simp [hden]
+  ring
+
+/--
+With {lit}`n` buckets for {lit}`n` elements, the expected quadratic
+bucket-occupancy cost is at most {lit}`2n`.
+-/
+theorem expectedBucketQuadraticCost_self_linear_bound (n : Nat) (hn : 0 < n) :
+    expectedBucketQuadraticCost n n ≤ 2 * (n : ℝ) := by
+  rw [expectedBucketQuadraticCost_self_eq n hn]
+  linarith
 
 end Chapter08
 end CLRS

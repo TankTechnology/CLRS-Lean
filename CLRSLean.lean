@@ -74,7 +74,8 @@ Start with the chapter pages in the sidebar.
   abstract radix-sort correctness and complete digit-signature stability from
   stable digit passes, a concrete base-{lit}`b` digit wrapper for natural-key
   radix sort, a key-order correctness wrapper with the one-digit arithmetic
-  case discharged, and deterministic bucket-sort correctness.
+  case discharged, deterministic bucket-sort correctness, and the
+  finite-uniform collision/second-moment core for bucket-sort expected time.
 * Chapter 9 - Medians and Order Statistics: selection-by-rank correctness for
   the specification selector, pivot-style quickselect, and pivot-parametric
   deterministic SELECT via a count-based order-statistic certificate, plus an
@@ -337,7 +338,12 @@ Start with the chapter pages in the sidebar.
   Public results: {lit}`CLRS.Chapter08.bucketSortBy_ordered`,
   {lit}`CLRS.Chapter08.bucketSortBy_perm`,
   {lit}`CLRS.Chapter08.bucketSortBy_correct`, and
-  {lit}`CLRS.Chapter08.bucketSortByRank_correct`.
+  {lit}`CLRS.Chapter08.bucketSortByRank_correct`;
+  finite-uniform expected-cost results:
+  {lit}`CLRS.Chapter08.uniformAverageFin_indicator_singleton`,
+  {lit}`CLRS.Chapter08.uniformAverageFin2_collision`,
+  {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_eq`, and
+  {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
 * 9.2 Selection by rank: {lit}`proved` for the specification selector and
   pivot-style quickselect.
   Public results: {lit}`CLRS.Chapter09.selectByRank?_mem`,

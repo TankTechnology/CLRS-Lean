@@ -685,17 +685,27 @@ theorem remains as a compact special case.
   - `CLRS.Chapter08.sortBucketByRank_ordered`
   - `CLRS.Chapter08.sortBucketByRank_perm`
   - `CLRS.Chapter08.bucketSortByRank_correct`
+  - `CLRS.Chapter08.uniformAverageFin_indicator_singleton`
+  - `CLRS.Chapter08.uniformAverageFin2_collision`
+  - `CLRS.Chapter08.expectedBucketQuadraticCost_self_eq`
+  - `CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`
 - Proof pattern: scan bucket indices in increasing order, prove each per-bucket
   sorter preserves the bucket as a permutation, prove all emitted elements have
   the scanned bucket index, and use a cross-bucket monotonicity assumption to
-  concatenate ordered buckets into an ordered output.
-- Current gap: expected-time bucket-sort analysis is still blocked on a
-  probability model for input distribution.
+  concatenate ordered buckets into an ordered output.  The finite-uniform cost
+  layer proves the singleton-bucket and two-bucket collision probabilities and
+  packages the CLRS second-moment expression
+  `E[Σ_i n_i^2] = n + n(n-1)/m`.
+- Current gap: connect the second-moment interface to an explicit independent
+  input distribution and a concrete bucket-sort cost model.
 
 The executable wrapper `CLRS.Chapter08.bucketSortByRank` sorts each bucket with
 Lean's verified `mergeSort`.  Its correctness theorem proves ordered output,
 membership preservation, and permutation preservation under the deterministic
-bucket interval hypothesis.
+bucket interval hypothesis.  The theorem
+`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound` captures the
+linear second-moment bound used by the textbook expected-time proof when the
+number of buckets equals the number of input elements.
 
 ## Chapter 9 - Medians and Order Statistics
 
@@ -1298,7 +1308,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 count-array implementation | `future-work` | Stable bucket correctness is proved; the next refinement is an array count table and prefix-sum implementation of `COUNTING-SORT` connected to `countingSortBy`. |
-| Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; expected-time analysis needs a probability model for input distribution. |
+| Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the finite-uniform collision and second-moment bound are proved, but the full expected-time theorem still needs an explicit independent input distribution and concrete cost model. |
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction and linear bound are proved by `selectRecurrence_linear_induction` and `medianOfMedians_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |

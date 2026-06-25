@@ -7,7 +7,8 @@ import CLRSLean.Chapter_08.Section_08_4_Bucket_Sort
 # Chapter 8 - Sorting in Linear Time
 
 The first Chapter 8 pass focuses on pure correctness for stable linear-time
-sorting primitives before cost models.
+sorting primitives, with a first finite-uniform expected-cost interface for the
+bucket-sort second-moment argument.
 
 ## Sections
 
@@ -35,15 +36,21 @@ sorting primitives before cost models.
   {lit}`CLRS.Chapter08.radixSortBy_correct_stable`,
   {lit}`CLRS.Chapter08.radixDigitOrderRespectsKey_of_bounded`, and
   {lit}`CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_bounded`.
-* 8.4 Bucket sort: {lit}`proved` for a deterministic bucket-index model.
+* 8.4 Bucket sort: {lit}`proved` for a deterministic bucket-index model, plus
+  a finite-uniform collision/second-moment interface for the expected-time
+  argument.
   Main results:
   {lit}`CLRS.Chapter08.bucketSortBy_correct` and
-  {lit}`CLRS.Chapter08.bucketSortByRank_correct`.
+  {lit}`CLRS.Chapter08.bucketSortByRank_correct`;
+  {lit}`CLRS.Chapter08.uniformAverageFin2_collision`,
+  {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_eq`, and
+  {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
 
 ## Current Gaps
 
 * Imperative reverse-scan output-array implementation of {lit}`COUNTING-SORT`.
-* Bucket-sort probabilistic expected-time analysis.
+* Full bucket-sort probabilistic expected-time analysis over an explicit input
+  distribution and independence model.
 -/
 
 namespace CLRS

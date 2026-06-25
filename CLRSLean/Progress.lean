@@ -10,8 +10,8 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 17.
-* Tracked reader-facing theorem entries: 381.
-* Proved tracked theorem entries: 381.
+* Tracked reader-facing theorem entries: 385.
+* Proved tracked theorem entries: 385.
 * Remaining core theorem groups: 47.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -39,7 +39,7 @@ Ch  Chapter                                                     Status          
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1                                 6        1
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                60        1
  7  7. Quicksort                                                partial                              7.1;7.2;7.3                        23        3
- 8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.2;8.3;8.4                        20        2
+ 8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.2;8.3;8.4                        24        2
  9  9. Medians and Order Statistics                             partial                              9.2;9.3                            41        2
 10  10. Elementary Data Structures                              selected-section-complete            10.1;10.2                           6        3
 11  11. Hash Tables                                             partial                              11.1;11.2                          13        1

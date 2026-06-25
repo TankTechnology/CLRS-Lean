@@ -59,7 +59,8 @@ which areas should not yet be counted as proof-complete.
   abstract radix-sort correctness plus complete digit-signature stability from
   stable digit passes, a concrete base-{lit}`b` natural-key radix wrapper, a
   key-order correctness wrapper with the bounded fixed-width arithmetic bridge
-  discharged, and deterministic bucket-sort correctness are proved.
+  discharged, deterministic bucket-sort correctness, and the finite-uniform
+  collision/second-moment core for bucket-sort expected time are proved.
 * Chapter 9, Sections 9.2-9.3: selection-by-rank correctness is proved for the
   specification selector, a pivot-style quickselect model, and a
   pivot-parametric deterministic SELECT model with a count-based
@@ -378,8 +379,12 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
 * 8.4 Bucket sort, deterministic bucket-index model:
   {lit}`CLRS.Chapter08.bucketSortBy_ordered`,
   {lit}`CLRS.Chapter08.bucketSortBy_perm`,
-  {lit}`CLRS.Chapter08.bucketSortBy_correct`, and
-  {lit}`CLRS.Chapter08.bucketSortByRank_correct`.
+  {lit}`CLRS.Chapter08.bucketSortBy_correct`,
+  {lit}`CLRS.Chapter08.bucketSortByRank_correct`,
+  {lit}`CLRS.Chapter08.uniformAverageFin_indicator_singleton`,
+  {lit}`CLRS.Chapter08.uniformAverageFin2_collision`,
+  {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_eq`, and
+  {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
 * 9.2 Selection by rank, specification selector and pivot-style quickselect:
   {lit}`CLRS.Chapter09.sortedCopy_perm`,
   {lit}`CLRS.Chapter09.sortedCopy_pairwise`,

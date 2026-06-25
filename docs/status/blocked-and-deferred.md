@@ -204,7 +204,7 @@ or random permutations and a cost recurrence or indicator-variable proof.
 - Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
   sort
 - Status: `future-work` for count-array and numeric-order refinements;
-  `blocked-design` for bucket-sort expected-time analysis
+  `blocked-design` for the full bucket-sort expected-time theorem
 
 Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
@@ -227,13 +227,17 @@ proves the bounded fixed-width key-order bridge by
 proves deterministic bucket-sort correctness:
 `CLRS.Chapter08.bucketSortByRank_correct` packages ordered output, membership
 preservation, and permutation preservation for the merge-sorted bucket model.
+It also proves the finite-uniform collision and second-moment core:
+`CLRS.Chapter08.uniformAverageFin2_collision` and
+`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
 
 The remaining CLRS refinements split into three tracks.  The array-level
 `COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
 bucket specification.  Radix sort still has implementation and cost refinement
 work, but the bounded fixed-width ordinary key-order theorem is now proved.
-Bucket-sort expected time needs a probability model for the input distribution,
-so it remains a design-level proof task.
+The remaining bucket-sort expected-time work is to connect that second-moment
+interface to an explicit independent input distribution and a concrete
+bucket-sort cost model.
 
 ### Chapter 9 Selection Refinements
 
