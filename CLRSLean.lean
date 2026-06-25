@@ -105,7 +105,8 @@ Start with the chapter pages in the sidebar.
   insert/union/extract-min/decrease-key/delete membership facts, heap potential
   zero/nonnegativity and telescoping facts, a Fibonacci lower-bound recurrence
   with positivity, monotonicity, and even/half-index power-of-two growth facts,
-  and a conservative degree-bound wrapper.
+  conditional degree-to-binary-log wrappers, and a conservative degree-bound
+  wrapper.
 * Chapter 20 - van Emde Boas Trees: high/low universe decomposition with
   bounded recomposition facts and a finite-set specification layer for
   membership, extrema, successor,

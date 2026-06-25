@@ -30,6 +30,8 @@
 - `CLRS.Chapter19.FibHeap.fibLowerBound_add_two_ge_double`
 - `CLRS.Chapter19.FibHeap.fibLowerBound_even_lower_bound`
 - `CLRS.Chapter19.FibHeap.fibLowerBound_half_lower_bound`
+- `CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card`
+- `CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`
 - `CLRS.Chapter19.FibHeap.degree_bound_log`
 
 ## Remaining Work
@@ -38,7 +40,9 @@ The current chapter is an abstract finite-key-set specification with the
 standard heap potential's zero-initial, nonnegative, and telescoping facts.  It
 also includes the first power-of-two lower-bound bridge for the Fibonacci-style
 degree sequence, including the half-index form used by later logarithmic-degree
-arguments.  The chapter still defers pointer handles, heap-ordered
+arguments and a conditional natural binary-log bridge from a Fibonacci-style
+subtree-size lower bound to a degree budget.  The chapter still defers pointer
+handles, heap-ordered
 forests, cascading cuts, consolidation
 arrays, duplicate keys, and the subtree-size induction leading to the true
 Fibonacci logarithmic degree theorem.

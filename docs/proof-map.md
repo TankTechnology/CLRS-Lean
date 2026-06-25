@@ -1084,11 +1084,14 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.fibLowerBound_add_two_ge_double`
   - `CLRS.Chapter19.FibHeap.fibLowerBound_even_lower_bound`
   - `CLRS.Chapter19.FibHeap.fibLowerBound_half_lower_bound`
+  - `CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card`
+  - `CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`
   - `CLRS.Chapter19.FibHeap.degree_bound_log`
 - Proof pattern: finite-set key semantics, normalized root/mark counters,
   empty-result query characterization, heap-potential nonnegativity and
   Chapter 17 potential-method instantiation, Fibonacci lower-bound recurrence
-  plus a two-step doubling induction over even indices and a half-index bridge
+  plus a two-step doubling induction over even indices, a half-index bridge,
+  and a conditional binary-log degree budget
 - Current gap: pointer handles, heap-ordered forest/cascading-cut transition
   system, consolidation arrays, duplicate keys, and the subtree-size induction
   leading to the true Fibonacci log-degree proof remain strengthening targets.
@@ -1101,9 +1104,11 @@ potential function now has zero-initial and nonnegativity facts and is connected
 to the Chapter 17 telescoping theorem, and the Fibonacci lower-bound
 sequence now exposes its local recurrence, positivity, and adjacent
 monotonicity, plus the derived arbitrary-index monotonicity theorem and an
-even-index and half-index power-of-two lower bound.  The
-degree theorem is deliberately conservative for this first pass; it bounds the current
-maximum-degree proxy by a key-count budget rather than proving the full
+even-index and half-index power-of-two lower bound.  A conditional
+degree-to-binary-log bridge now packages the arithmetic step that will be used
+once a pointer-forest subtree-size invariant is available.  The current
+maximum-degree theorem is still deliberately conservative for this first pass;
+it bounds the proxy by a key-count budget rather than proving the full
 Fibonacci logarithmic theorem.
 
 ## Chapter 20 - van Emde Boas Trees

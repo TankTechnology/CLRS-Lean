@@ -40,6 +40,10 @@ Main results:
   the first exponential-growth bridge needed by the future degree proof.
 - Theorem {lit}`FibHeap.fibLowerBound_half_lower_bound`: the exponential-growth
   bridge is available at half of any degree index.
+- Theorems {lit}`FibHeap.degreeIndex_half_le_log_card` and
+  {lit}`FibHeap.degreeIndex_le_twice_log_card_add_one`: a Fibonacci-style
+  subtree-size lower bound condition implies a natural binary-log degree
+  budget.
 - Theorem {lit}`FibHeap.degree_bound_log`: the first-pass maximum-degree
   wrapper is bounded by its conservative key-count budget.
 
@@ -381,6 +385,33 @@ theorem fibLowerBound_half_lower_bound (d : Nat) :
   have hhalf : 2 * (d / 2) <= d := Nat.mul_div_le d 2
   exact Nat.le_trans (fibLowerBound_even_lower_bound (d / 2))
     (fibLowerBound_monotone hhalf)
+
+/--
+If a degree index has the standard Fibonacci-style subtree-size lower bound
+inside the current key set, then half of the degree is bounded by the binary
+floor logarithm of the key count.
+-/
+theorem degreeIndex_half_le_log_card {h : FibHeap} {d : Nat}
+    (hfit : fibLowerBound d <= h.keys.card) :
+    d / 2 <= Nat.log 2 h.keys.card := by
+  have hpow : 2 ^ (d / 2) <= h.keys.card :=
+    Nat.le_trans (fibLowerBound_half_lower_bound d) hfit
+  exact Nat.le_log_of_pow_le (by norm_num : 1 < 2) hpow
+
+/--
+Conditional first-pass logarithmic degree bridge: a Fibonacci-style
+subtree-size lower bound for degree index {lit}`d` implies the familiar
+{lit}`d <= 2 * log_2 n + 1` natural-number budget.
+-/
+theorem degreeIndex_le_twice_log_card_add_one {h : FibHeap} {d : Nat}
+    (hfit : fibLowerBound d <= h.keys.card) :
+    d <= 2 * Nat.log 2 h.keys.card + 1 := by
+  have hhalf : d / 2 <= Nat.log 2 h.keys.card :=
+    degreeIndex_half_le_log_card hfit
+  have hdecomp : d <= 2 * (d / 2) + 1 := by
+    have hmod : d % 2 < 2 := Nat.mod_lt d (by norm_num)
+    omega
+  omega
 
 /-- Conservative first-pass maximum-degree proxy. -/
 def maxDegree (h : FibHeap) : Nat :=

@@ -11,8 +11,9 @@ the standard potential function with zero-initial and nonnegativity facts, and
 packages a conservative degree-bound wrapper for later subtree-size
 strengthening, together with a Fibonacci-style lower-bound recurrence,
 positivity, adjacent monotonicity, monotonicity, and the first exponential
-growth bridge over even and half indices.  The query surface includes empty-result
-specifications for minimum and extract-min.
+growth bridge over even and half indices, plus conditional natural-log degree
+budget wrappers.  The query surface includes empty-result specifications for
+minimum and extract-min.
 
 ## Sections
 
@@ -41,7 +42,9 @@ specifications for minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_monotone`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_add_two_ge_double`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_even_lower_bound`,
-  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_half_lower_bound`, and
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_half_lower_bound`,
+  {lit}`CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card`,
+  {lit}`CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 
 ## Current Gaps

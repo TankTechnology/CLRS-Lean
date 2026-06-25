@@ -104,7 +104,8 @@ which areas should not yet be counted as proof-complete.
   insert/union/extract-min/decrease-key/delete membership facts,
   heap-potential zero/nonnegativity and telescoping facts, and Fibonacci
   lower-bound recurrence/positivity/monotonicity and even/half-index
-  power-of-two growth facts are proved; pointer
+  power-of-two growth facts plus conditional degree-to-log wrappers are
+  proved; pointer
   handles, cascading cuts, and the true Fibonacci logarithmic degree theorem
   remain.
 * Chapter 20, Sections 20.1-20.2: vEB high/low/index arithmetic, bounded
@@ -566,7 +567,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_monotone`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_add_two_ge_double`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_even_lower_bound`,
-  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_half_lower_bound`, and
+  {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_half_lower_bound`,
+  {lit}`CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card`,
+  {lit}`CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`;
   remaining gap: pointer handles, cascading cuts, consolidation arrays, and
   the subtree-size induction leading to the true Fibonacci logarithmic degree
