@@ -20,16 +20,22 @@ Main results:
   {lit}`medianGroupCertificates_geCount_lower_bound`: a collection of certified
   five-element groups contributes three original elements for every group
   median on the corresponding side of a pivot.
+* Theorem {lit}`fullGroupsOfFive_medianPivot_split_counts`: the executable
+  full-grouping wrapper constructs the certificates and obtains the split
+  counts for a median of the group medians.
+* Theorem {lit}`fullGroupsOfFive_medianPivot_fullInput_split_counts`: the
+  grouped split counts lift to the original input list because the flattened
+  full groups are a sublist of the input.
 * Theorem {lit}`deterministicSelect?_correct`: a deterministic median-pivot
   instance is rank correct.
 
 Current gaps:
 
 * This is not yet the CLRS linear-time median-of-medians cost theorem.  The
-  local five-element median certificate and the grouped split-count core are
-  proved below; the remaining hard proof is the executable grouping wrapper,
-  the familiar {lit}`7n/10` partition-size arithmetic, and the associated
-  linear recurrence.
+  local five-element median certificate, executable grouping wrapper, grouped
+  split-count core, and full-input median-pivot split-count wrapper are proved
+  below; the remaining hard proof is the familiar {lit}`7n/10` partition-size
+  arithmetic and the associated linear recurrence.
 -/
 
 namespace CLRS
@@ -217,6 +223,250 @@ def MedianGroupCertificates (groups : List (List Nat)) (medians : List Nat) :
     ∀ {group : List Nat} {median : Nat}, (group, median) ∈ groups.zip medians →
       MedianFiveCertificate group median
 
+/-! ## Executable five-element grouping -/
+
+/--
+Fuelled grouping into full five-element blocks, dropping any trailing block of
+fewer than five elements.
+
+The fuel is only a termination device; the public wrapper below uses
+{lit}`xs.length`, so the function is executable while keeping the proof
+obligations straightforward.
+-/
+def fullGroupsOfFiveFuel : Nat → List Nat → List (List Nat)
+  | 0, _ => []
+  | fuel + 1, a :: b :: c :: d :: e :: rest =>
+      [a, b, c, d, e] :: fullGroupsOfFiveFuel fuel rest
+  | _ + 1, _ => []
+
+/-- Executable full five-element grouping used by the median-of-medians layer. -/
+def fullGroupsOfFive (xs : List Nat) : List (List Nat) :=
+  fullGroupsOfFiveFuel xs.length xs
+
+theorem fullGroupsOfFiveFuel_lengths {fuel : Nat} :
+    ∀ {xs group : List Nat}, group ∈ fullGroupsOfFiveFuel fuel xs →
+      group.length = 5 := by
+  induction fuel with
+  | zero =>
+      intro xs group hmem
+      simp [fullGroupsOfFiveFuel] at hmem
+  | succ fuel ih =>
+      intro xs group hmem
+      cases xs with
+      | nil =>
+          simp [fullGroupsOfFiveFuel] at hmem
+      | cons a xs =>
+          cases xs with
+          | nil =>
+              simp [fullGroupsOfFiveFuel] at hmem
+          | cons b xs =>
+              cases xs with
+              | nil =>
+                  simp [fullGroupsOfFiveFuel] at hmem
+              | cons c xs =>
+                  cases xs with
+                  | nil =>
+                      simp [fullGroupsOfFiveFuel] at hmem
+                  | cons d xs =>
+                      cases xs with
+                      | nil =>
+                          simp [fullGroupsOfFiveFuel] at hmem
+                      | cons e rest =>
+                          simp [fullGroupsOfFiveFuel] at hmem
+                          rcases hmem with rfl | htail
+                          · simp
+                          · exact ih htail
+
+/-- Every executable full group has length five. -/
+theorem fullGroupsOfFive_lengths {xs group : List Nat}
+    (hmem : group ∈ fullGroupsOfFive xs) :
+    group.length = 5 :=
+  fullGroupsOfFiveFuel_lengths hmem
+
+theorem fullGroupsOfFiveFuel_length_mul_five_le {fuel : Nat} :
+    ∀ xs : List Nat, 5 * (fullGroupsOfFiveFuel fuel xs).length ≤ xs.length := by
+  induction fuel with
+  | zero =>
+      intro xs
+      simp [fullGroupsOfFiveFuel]
+  | succ fuel ih =>
+      intro xs
+      cases xs with
+      | nil =>
+          simp [fullGroupsOfFiveFuel]
+      | cons a xs =>
+          cases xs with
+          | nil =>
+              simp [fullGroupsOfFiveFuel]
+          | cons b xs =>
+              cases xs with
+              | nil =>
+                  simp [fullGroupsOfFiveFuel]
+              | cons c xs =>
+                  cases xs with
+                  | nil =>
+                      simp [fullGroupsOfFiveFuel]
+                  | cons d xs =>
+                      cases xs with
+                      | nil =>
+                          simp [fullGroupsOfFiveFuel]
+                      | cons e rest =>
+                          have htail := ih rest
+                          simp [fullGroupsOfFiveFuel]
+                          omega
+
+theorem fullGroupsOfFive_length_mul_five_le (xs : List Nat) :
+    5 * (fullGroupsOfFive xs).length ≤ xs.length :=
+  fullGroupsOfFiveFuel_length_mul_five_le xs
+
+theorem fullGroupsOfFiveFuel_length_near {fuel : Nat} :
+    ∀ {xs : List Nat}, xs.length ≤ fuel →
+      xs.length ≤ 5 * (fullGroupsOfFiveFuel fuel xs).length + 4 := by
+  induction fuel with
+  | zero =>
+      intro xs hlen
+      cases xs with
+      | nil =>
+          simp [fullGroupsOfFiveFuel]
+      | cons x xs =>
+          simp at hlen
+  | succ fuel ih =>
+      intro xs hlen
+      cases xs with
+      | nil =>
+          simp
+      | cons a xs =>
+          cases xs with
+          | nil =>
+              simp [fullGroupsOfFiveFuel]
+          | cons b xs =>
+              cases xs with
+              | nil =>
+                  simp [fullGroupsOfFiveFuel]
+              | cons c xs =>
+                  cases xs with
+                  | nil =>
+                      simp [fullGroupsOfFiveFuel]
+                  | cons d xs =>
+                      cases xs with
+                      | nil =>
+                          simp [fullGroupsOfFiveFuel]
+                      | cons e rest =>
+                          have hrest : rest.length ≤ fuel := by
+                            simp at hlen
+                            omega
+                          have htail := ih hrest
+                          simp [fullGroupsOfFiveFuel]
+                          omega
+
+theorem fullGroupsOfFive_length_near (xs : List Nat) :
+    xs.length ≤ 5 * (fullGroupsOfFive xs).length + 4 :=
+  fullGroupsOfFiveFuel_length_near (Nat.le_refl xs.length)
+
+theorem fullGroupsOfFiveFuel_flatten_sublist {fuel : Nat} :
+    ∀ xs : List Nat, (List.flatten (fullGroupsOfFiveFuel fuel xs)).Sublist xs := by
+  induction fuel with
+  | zero =>
+      intro xs
+      simp [fullGroupsOfFiveFuel]
+  | succ fuel ih =>
+      intro xs
+      cases xs with
+      | nil =>
+          simp [fullGroupsOfFiveFuel]
+      | cons a xs =>
+          cases xs with
+          | nil =>
+              simp [fullGroupsOfFiveFuel]
+          | cons b xs =>
+              cases xs with
+              | nil =>
+                  simp [fullGroupsOfFiveFuel]
+              | cons c xs =>
+                  cases xs with
+                  | nil =>
+                      simp [fullGroupsOfFiveFuel]
+                  | cons d xs =>
+                      cases xs with
+                      | nil =>
+                          simp [fullGroupsOfFiveFuel]
+                      | cons e rest =>
+                          have htail := ih rest
+                          simpa [fullGroupsOfFiveFuel] using
+                            List.Sublist.cons_cons a
+                              (List.Sublist.cons_cons b
+                                (List.Sublist.cons_cons c
+                                  (List.Sublist.cons_cons d
+                                    (List.Sublist.cons_cons e htail))))
+
+theorem fullGroupsOfFive_flatten_sublist (xs : List Nat) :
+    (List.flatten (fullGroupsOfFive xs)).Sublist xs :=
+  fullGroupsOfFiveFuel_flatten_sublist xs
+
+/--
+Map the five-element median selector across a list of groups, failing if any
+group is not a valid five-element median input.
+-/
+def medianOfFiveGroups? : List (List Nat) → Option (List Nat)
+  | [] => some []
+  | group :: groups =>
+      match medianOfFive? group, medianOfFiveGroups? groups with
+      | some median, some medians => some (median :: medians)
+      | _, _ => none
+
+/--
+If every group has length five, then the executable median-map produces exactly
+the certificate package required by the grouped split-count theorem.
+-/
+theorem medianOfFiveGroups?_certificates {groups : List (List Nat)}
+    {medians : List Nat}
+    (hall : ∀ group ∈ groups, group.length = 5)
+    (hsel : medianOfFiveGroups? groups = some medians) :
+    MedianGroupCertificates groups medians := by
+  induction groups generalizing medians with
+  | nil =>
+      simp [medianOfFiveGroups?] at hsel
+      subst medians
+      simp [MedianGroupCertificates]
+  | cons group groups ih =>
+      cases hhead : medianOfFive? group with
+      | none =>
+          simp [medianOfFiveGroups?, hhead] at hsel
+      | some median =>
+          cases htail : medianOfFiveGroups? groups with
+          | none =>
+              simp [medianOfFiveGroups?, hhead, htail] at hsel
+          | some tailMedians =>
+              simp [medianOfFiveGroups?, hhead, htail] at hsel
+              subst medians
+              have hhead_len : group.length = 5 := hall group (by simp)
+              have hhead_cert : MedianFiveCertificate group median :=
+                medianOfFive?_certificate hhead_len hhead
+              have htail_all : ∀ tailGroup ∈ groups, tailGroup.length = 5 := by
+                intro tailGroup hmem
+                exact hall tailGroup (by simp [hmem])
+              have htail_cert :
+                  MedianGroupCertificates groups tailMedians :=
+                ih htail_all htail
+              rcases htail_cert with ⟨htail_len, htail_cert⟩
+              refine ⟨by simp [htail_len], ?_⟩
+              intro certGroup certMedian hmem
+              simp at hmem
+              rcases hmem with hhead_pair | htail_mem
+              · rcases hhead_pair with ⟨rfl, rfl⟩
+                exact hhead_cert
+              · exact htail_cert htail_mem
+
+/--
+The executable full-grouping plus median-map automatically constructs the
+abstract grouped certificate layer.
+-/
+theorem fullGroupsOfFive_medianGroupCertificates {xs medians : List Nat}
+    (hsel : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians) :
+    MedianGroupCertificates (fullGroupsOfFive xs) medians :=
+  medianOfFiveGroups?_certificates
+    (fun _ hmem => fullGroupsOfFive_lengths hmem) hsel
+
 /--
 Every certified group whose median is at most {lit}`pivot` contributes at least
 three original group elements at most {lit}`pivot`.
@@ -339,6 +589,55 @@ theorem medianGroupCertificates_selectPivot_split_counts
         3 * (medians.length - k) ≤ 3 * geCount pivot medians :=
       Nat.mul_le_mul_left 3 hge_medians
     exact le_trans hscale (medianGroupCertificates_geCount_lower_bound hcerts)
+
+/--
+Executable-grouping version of the median-of-medians split-count core.
+-/
+theorem fullGroupsOfFive_selectPivot_split_counts
+    {xs medians : List Nat} {pivot k : Nat}
+    (hmedians : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians)
+    (hrank : RankCertificate medians k pivot) :
+    3 * (k + 1) ≤ leCount pivot (List.flatten (fullGroupsOfFive xs)) ∧
+      3 * (medians.length - k) ≤
+        geCount pivot (List.flatten (fullGroupsOfFive xs)) :=
+  medianGroupCertificates_selectPivot_split_counts
+    (fullGroupsOfFive_medianGroupCertificates hmedians) hrank
+
+/--
+When the pivot is selected as the median of the executable group medians, the
+flattened full groups inherit the standard three-per-median split counts.
+-/
+theorem fullGroupsOfFive_medianPivot_split_counts
+    {xs medians : List Nat} {pivot : Nat}
+    (hmedians : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians)
+    (hpivot : selectByRank? (medians.length / 2) medians = some pivot) :
+    3 * (medians.length / 2 + 1) ≤
+        leCount pivot (List.flatten (fullGroupsOfFive xs)) ∧
+      3 * (medians.length - medians.length / 2) ≤
+        geCount pivot (List.flatten (fullGroupsOfFive xs)) := by
+  exact fullGroupsOfFive_selectPivot_split_counts hmedians
+    (selectByRank?_rankCorrect hpivot)
+
+/--
+Full-input version of the executable median-of-medians split-count theorem.
+
+The counts first proved on the flattened full groups lift to the original
+input because that flattening is a sublist of the input.  The final CLRS
+{lit}`7n/10` statement still requires packaging these count lower bounds with
+the group-count arithmetic above.
+-/
+theorem fullGroupsOfFive_medianPivot_fullInput_split_counts
+    {xs medians : List Nat} {pivot : Nat}
+    (hmedians : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians)
+    (hpivot : selectByRank? (medians.length / 2) medians = some pivot) :
+    3 * (medians.length / 2 + 1) ≤ leCount pivot xs ∧
+      3 * (medians.length - medians.length / 2) ≤ geCount pivot xs := by
+  have hgrouped := fullGroupsOfFive_medianPivot_split_counts hmedians hpivot
+  have hsub : (List.flatten (fullGroupsOfFive xs)).Sublist xs :=
+    fullGroupsOfFive_flatten_sublist xs
+  constructor
+  · exact le_trans hgrouped.1 (leCount_le_of_sublist hsub)
+  · exact le_trans hgrouped.2 (geCount_le_of_sublist hsub)
 
 /-! ## Deterministic median-pivot instance -/
 

@@ -60,8 +60,8 @@ which areas should not yet be counted as proof-complete.
   specification selector, a pivot-style quickselect model, and a
   pivot-parametric deterministic SELECT model with a count-based
   order-statistic certificate; the local five-element median certificate and
-  the grouped split-count core for the median-of-medians argument are also
-  proved.
+  executable five-element grouping plus the grouped split-count core for the
+  median-of-medians argument are also proved.
 * Chapter 10, Sections 10.1-10.2: functional stack, queue, and linked-list
   operation specifications are proved.
 * Chapter 11, Section 11.1: direct-address table insert/search/delete behavior
@@ -97,9 +97,9 @@ which areas should not yet be counted as proof-complete.
 * Chapter 7, Sections 7.2-7.4: mutable-array partition refinement,
   performance recurrence, randomized quicksort, and expected-time theorem.
 * Chapter 9 linear-time SELECT refinements: pivot-parametric deterministic
-  SELECT, the local five-element median certificate, and the grouped split-count
-  core are proved; randomized expected time, executable grouping, final
-  {lit}`7n/10` partition-size packaging, and the runtime theorem remain.
+  SELECT, the local five-element median certificate, executable grouping, and
+  the grouped/full-input split-count core are proved; randomized expected time,
+  final {lit}`7n/10` partition-size packaging, and the runtime theorem remain.
 * Chapter 11 expected hashing analysis: expected-time theorem under a formal
   probability model.
 * Chapter 12 pointer-level BST layer: CLRS parent-pointer procedures,
@@ -304,9 +304,20 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter09.selectWithPivot?_rankCorrect`,
   {lit}`CLRS.Chapter09.selectWithPivot?_correct`,
   {lit}`CLRS.Chapter09.medianOfFive?_certificate`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_lengths`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_length_mul_five_le`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_length_near`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`,
+  {lit}`CLRS.Chapter09.leCount_le_of_sublist`,
+  {lit}`CLRS.Chapter09.geCount_le_of_sublist`,
+  {lit}`CLRS.Chapter09.medianOfFiveGroups?_certificates`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
   {lit}`CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`,
   {lit}`CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`,
   {lit}`CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_selectPivot_split_counts`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_split_counts`,
+  {lit}`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`,
   {lit}`CLRS.Chapter09.deterministicSelect?_mem`,
   {lit}`CLRS.Chapter09.deterministicSelect?_rankCorrect`, and
   {lit}`CLRS.Chapter09.deterministicSelect?_correct`.

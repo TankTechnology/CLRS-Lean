@@ -147,6 +147,18 @@ theorem geCount_append (x : Nat) (xs ys : List Nat) :
   unfold geCount
   rw [List.filter_append, List.length_append]
 
+theorem leCount_le_of_sublist {x : Nat} {xs ys : List Nat}
+    (hsub : xs.Sublist ys) :
+    leCount x xs ≤ leCount x ys := by
+  unfold leCount
+  exact (hsub.filter (fun y => decide (y ≤ x))).length_le
+
+theorem geCount_le_of_sublist {x : Nat} {xs ys : List Nat}
+    (hsub : xs.Sublist ys) :
+    geCount x xs ≤ geCount x ys := by
+  unfold geCount
+  exact (hsub.filter (fun y => decide (x ≤ y))).length_le
+
 theorem leCount_cons_of_le {x y : Nat} {ys : List Nat} (h : y ≤ x) :
     leCount x (y :: ys) = leCount x ys + 1 := by
   simp [leCount, h, Nat.add_comm]

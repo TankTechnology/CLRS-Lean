@@ -652,15 +652,26 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
 
 - Lean source: `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean`
 - Status: `proved` for pivot-parametric deterministic SELECT correctness and
-  grouped median-of-medians split-count bounds
+  executable full-input median-of-medians split-count bounds
 - Main proved theorems:
   - `CLRS.Chapter09.selectWithPivot?_mem`
   - `CLRS.Chapter09.selectWithPivot?_rankCorrect`
   - `CLRS.Chapter09.selectWithPivot?_correct`
   - `CLRS.Chapter09.medianOfFive?_certificate`
+  - `CLRS.Chapter09.fullGroupsOfFive_lengths`
+  - `CLRS.Chapter09.fullGroupsOfFive_length_mul_five_le`
+  - `CLRS.Chapter09.fullGroupsOfFive_length_near`
+  - `CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`
+  - `CLRS.Chapter09.leCount_le_of_sublist`
+  - `CLRS.Chapter09.geCount_le_of_sublist`
+  - `CLRS.Chapter09.medianOfFiveGroups?_certificates`
+  - `CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`
   - `CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`
   - `CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`
   - `CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`
+  - `CLRS.Chapter09.fullGroupsOfFive_selectPivot_split_counts`
+  - `CLRS.Chapter09.fullGroupsOfFive_medianPivot_split_counts`
+  - `CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`
   - `CLRS.Chapter09.deterministicPivot?_mem`
   - `CLRS.Chapter09.deterministicSelect?_mem`
   - `CLRS.Chapter09.deterministicSelect?_rankCorrect`
@@ -671,10 +682,12 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   side.  The deterministic instance chooses the specification median as its
   pivot, so the rank proof is separated from the linear-time implementation
   argument.  The five-element median certificate packages the local 3/3 count
-  fact, and the grouped split-count theorems lift those facts to flattened
-  certified groups around a pivot rank certificate.
-- Current gap: executable grouping, the final `7n/10` partition-size arithmetic,
-  and the worst-case linear recurrence remain future strengthening targets.
+  fact, the executable full-grouping wrapper drops at most four trailing
+  elements, and the grouped split-count theorems lift those facts through a
+  sublist bridge to full-input count lower bounds around a median-of-medians
+  pivot.
+- Current gap: the final `7n/10` partition-size arithmetic and the worst-case
+  linear recurrence remain future strengthening targets.
 
 ### Sections 9.3-9.4 - Randomized and linear-time selection refinements
 
@@ -985,7 +998,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 8 count-array implementation | `future-work` | Stable bucket correctness is proved; the next refinement is an array count table and prefix-sum implementation of `COUNTING-SORT` connected to `countingSortBy`. |
 | Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; expected-time analysis needs a probability model for input distribution. |
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
-| Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; grouped split-count bounds are proved by `medianGroupCertificates_selectPivot_split_counts`. Executable grouping, final `7n/10` partition-size packaging, and recurrence proof remain. |
+| Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`. Final `7n/10` partition-size packaging and recurrence proof remain. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power wrapper, and packaged floor/ceiling case 1 wrappers are proved; analytic comparison-scale wrappers and remaining final case statements remain. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |

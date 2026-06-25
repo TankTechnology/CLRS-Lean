@@ -3,8 +3,8 @@
 Chapter 9 now has compiler-clean correctness interfaces for the specification
 selector, a pivot-style quickselect model, and a pivot-parametric deterministic
 SELECT model.  It also now proves the local five-element median certificate
-and grouped split-count core that start the CLRS median-of-medians split-size
-argument.
+and executable grouped split-count core that start the CLRS median-of-medians
+split-size argument.
 
 ## Section 9.2 - Selection by rank
 
@@ -40,7 +40,7 @@ most `k`, and the number of input elements at most `x` is greater than `k`.
 
 - Lean source: `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean`
 - Status: `proved` for pivot-parametric deterministic SELECT correctness and
-  the grouped median-of-medians split-count core
+  the executable grouped median-of-medians split-count core
 - Main theorem: `CLRS.Chapter09.deterministicSelect?_correct`
 
 The section abstracts SELECT over a pivot rule.  The only required hypothesis is
@@ -59,6 +59,21 @@ The theorem layer proves:
 - `CLRS.Chapter09.medianOfFive?_certificate`: for any five-element group, the
   rank-2 selector returns an input median with at least three elements at most
   it and at least three elements at least it.
+- `CLRS.Chapter09.fullGroupsOfFive_lengths`: every executable full group has
+  length five.
+- `CLRS.Chapter09.fullGroupsOfFive_length_mul_five_le`: executable full groups
+  consume no more than the input length.
+- `CLRS.Chapter09.fullGroupsOfFive_length_near`: executable full grouping
+  drops at most four trailing input elements.
+- `CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`: the flattened executable
+  full groups form a sublist of the original input.
+- `CLRS.Chapter09.leCount_le_of_sublist` and
+  `CLRS.Chapter09.geCount_le_of_sublist`: count lower bounds lift along
+  sublists.
+- `CLRS.Chapter09.medianOfFiveGroups?_certificates`: mapping the five-element
+  median selector across length-five groups constructs grouped certificates.
+- `CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`: executable
+  grouping plus median mapping constructs the abstract certificate layer.
 - `CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`: certified
   five-element groups contribute three original elements for every group median
   at most a pivot.
@@ -67,6 +82,12 @@ The theorem layer proves:
 - `CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`: if the
   pivot has a rank certificate among the group medians, the flattened original
   groups inherit the corresponding three-per-group lower bounds.
+- `CLRS.Chapter09.fullGroupsOfFive_selectPivot_split_counts`: the same
+  split-count theorem specialized to executable full groups.
+- `CLRS.Chapter09.fullGroupsOfFive_medianPivot_split_counts`: the same
+  split-count theorem specialized to selecting the median of the group medians.
+- `CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`: the
+  median-of-medians split counts lifted from full groups to the original input.
 - `CLRS.Chapter09.deterministicPivot?_mem`: the deterministic median-pivot rule
   returns only input elements.
 - `CLRS.Chapter09.deterministicSelect?_correct`: the deterministic median-pivot
@@ -77,6 +98,6 @@ The theorem layer proves:
 - Randomized SELECT expected time: requires a probability model for randomized
   pivots and a cost recurrence or indicator argument.
 - Deterministic linear-time SELECT: the rank-correct deterministic interface,
-  local five-element median certificate, and grouped split-count core are
-  proved, but executable grouping, final `7n/10` partition-size arithmetic, and
-  recurrence analysis remain.
+  local five-element median certificate, executable grouping, and grouped
+  split-count core are proved all the way to full-input count lower bounds, but
+  final `7n/10` partition-size arithmetic and recurrence analysis remain.

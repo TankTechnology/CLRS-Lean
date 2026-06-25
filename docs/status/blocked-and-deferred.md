@@ -245,16 +245,22 @@ interface: `CLRS.Chapter09.selectWithPivot?_correct` proves correctness for any
 membership-safe pivot rule, and `CLRS.Chapter09.deterministicSelect?_correct`
 instantiates it with a deterministic median pivot.  It also proves
 `CLRS.Chapter09.medianOfFive?_certificate`, the local 3/3 count certificate for
-a five-element group.  The grouped counting core is now proved as well:
+a five-element group.  The executable grouping and grouped counting core are
+now proved as well: `CLRS.Chapter09.fullGroupsOfFive_length_near`,
+`CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`,
+`CLRS.Chapter09.leCount_le_of_sublist`,
+`CLRS.Chapter09.geCount_le_of_sublist`,
+`CLRS.Chapter09.medianOfFiveGroups?_certificates`,
+`CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
 `CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`,
 `CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`, and
-`CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`.
+`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`.
 
 The remaining hard work splits into two tracks.  Randomized SELECT needs a
 probability model for random pivots and an expected-cost argument.
-Deterministic linear-time SELECT still needs executable grouping, the final
-CLRS `7n/10` partition-size arithmetic on top of the grouped split-count core,
-and a recurrence proof.
+Deterministic linear-time SELECT still needs the final CLRS `7n/10`
+partition-size arithmetic on top of the full-input split-count core, and a
+recurrence proof.
 
 ### Pointer-Level Linked Lists
 
