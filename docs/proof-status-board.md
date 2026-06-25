@@ -20,7 +20,7 @@ advertised on the site is proved.
 | --- | --- | --- |
 | Chapter 2, Sections 2.1-2.3 | Insertion sort sortedness/permutation, insertion-sort quadratic comparison bound, merge-sort sortedness/permutation, and the power-of-two merge-sort recurrence are proved. | Full RAM semantics and arbitrary-size floor/ceiling merge-sort recurrence. |
 | Chapter 3, Section 3.1 | CLRS-facing asymptotic notation wrappers and basic algebraic facts are proved. | Extend the standard-function table in Section 3.2. |
-| Chapter 4, Sections 4.1-4.6, current models | Maximum-subarray correctness, Strassen 2 by 2 block algebra, substitution-method one-step bounds, recursion-tree additive expansions, exact-power Master-method cases, floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation from one-step scale bounds, discrete critical-power and log-critical scale wrappers, and packaged floor/ceiling case 1/case 2 wrappers are proved. | The whole chapter is not finished until analytic comparison scales, remaining floor/ceiling Master-theorem case 3, and selected runtime refinements are added. |
+| Chapter 4, Sections 4.1-4.6, current models | Maximum-subarray correctness, Strassen 2 by 2 block algebra, substitution-method one-step bounds, recursion-tree additive expansions, exact-power Master-method cases, floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation from one-step scale bounds, discrete critical-power/log-critical/tail-dominated scale wrappers, and packaged floor/ceiling Master cases 1/2/3 are proved. | The whole chapter is not finished until analytic comparison scales and selected runtime refinements are added. |
 | Chapter 5, Section 5.1 | The hiring-problem probability and expected-hires harmonic/logarithmic results are proved for the finite rank-symmetry model. | Random-permutation execution model is optional refinement. |
 | Chapter 6, Sections 6.1-6.5 | The array heap layer, fuelled recursive `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort sorted-suffix invariant, top-level heapsort correctness, and array-level priority-queue state theorems are proved. | Line-by-line RAM cost model. |
 | Chapter 7, Section 7.1 | Stable functional partition classification, scan-state partition-loop correctness, returned pivot-index partition postconditions, adjacent-swap trace, permutation preservation, and functional quicksort sortedness/permutation preservation are proved. | Index-level mutable-array `PARTITION`, deterministic recurrence analysis, randomized quicksort, and expected-time analysis. |
@@ -39,7 +39,7 @@ CLRS theorem is not yet internalized.
 | Scope | What exists | Core gap |
 | --- | --- | --- |
 | Chapter 3, Section 3.2 | Many polynomial, logarithmic, exponential, harmonic, floor/ceiling, and factorial asymptotic facts are proved through CLRS-facing names. | Complete the standard-function comparison table and add missing variants. |
-| Chapter 4 as a whole | The main local proof engines for maximum subarray, Strassen 2 by 2 algebra, substitution, recursion trees, exact-power Master cases, floor/ceiling exact-power extraction, all-input asymptotic transfer, adjacent-power sandwich generation, the discrete critical-power/log-critical all-input wrappers, and packaged floor/ceiling case 1/case 2 wrappers exist. | Analytic comparison scales, remaining floor/ceiling Master-theorem case 3, and selected runtime/cost refinements. |
+| Chapter 4 as a whole | The main local proof engines for maximum subarray, Strassen 2 by 2 algebra, substitution, recursion trees, exact-power Master cases, floor/ceiling exact-power extraction, all-input asymptotic transfer, adjacent-power sandwich generation, the discrete critical-power/log-critical/tail-dominated all-input wrappers, and packaged floor/ceiling Master cases 1/2/3 exist. | Analytic comparison scales and selected runtime/cost refinements. |
 | Chapter 11, Section 11.2 | Deterministic chained-hash-table insert/delete/search facts for a fixed hash function are proved. | Expected search time under a simple-uniform-hashing probability model. |
 | Chapter 12, Section 12.1 | Functional BST search, minimum/maximum, successor/predecessor, insertion, deletion, and ordering preservation are proved. | Parent-pointer procedures, transplant, and imperative mutation refinement. |
 | Chapter 13, Section 13.1 | Local red-black tree rotations, recoloring, red-red repair certificates, black-height, and shape facts are proved. | Full `RB-INSERT`, `RB-INSERT-FIXUP`, `RB-DELETE`, and `RB-DELETE-FIXUP`. |
@@ -52,7 +52,7 @@ section file yet or only enough scaffolding to identify the intended theorem.
 
 | Scope | Missing theorem target |
 | --- | --- |
-| Chapter 4 concrete Master-theorem instantiation | Extend the case 1/case 2 floor/ceiling packages to analytic scales and package the remaining floor/ceiling Master-case 3 statement. |
+| Chapter 4 concrete Master-theorem instantiation | Extend the discrete case 1/2/3 floor/ceiling packages to analytic textbook scales. |
 | Chapter 7, Sections 7.2-7.4 | Index-level mutable-array partition refinement, deterministic performance recurrence, randomized quicksort, and expected-time theorem. |
 | Chapter 9 linear-time SELECT refinements | Pivot-parametric deterministic SELECT, executable median-of-medians SELECT, the local five-element median certificate, executable grouping, the full-input split-count core, and the `7n/10 + O(1)` partition-size wrapper are proved against the rank-certificate interface; randomized expected-time analysis and runtime proof remain. |
 | Chapter 11, expected hashing analysis | Expected-time theorem for chained hashing under a formal probability model. |
@@ -69,7 +69,7 @@ chapters that already have their advertised main theorem.  The intended order is
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 4, Section 4.6 | Extend the new discrete case 1/case 2 wrappers to analytic comparison scales, then package the remaining floor/ceiling case 3 statement. |
+| 1 | Chapter 4, Section 4.6 | Extend the discrete case 1/2/3 wrappers to analytic comparison scales. |
 | 2 | Chapter 23, Sections 23.1-23.2 | Add a stable finite path/walk API, extract the concrete exchange edge automatically, connect sorted Kruskal scans to the finite-graph optimality wrapper, and add a Prim theorem interface. |
 | 3 | Chapter 12 | Decide the public theorem boundary for BSTs: either finish the functional tree layer as the main theorem, or add a parent-pointer/transplant refinement as an explicit strengthening. |
 | 4 | Chapter 13 | Extend the local rotation/recoloring certificate layer toward full `RB-INSERT`/`RB-DELETE` fixup correctness, keeping each fixup case separately named. |

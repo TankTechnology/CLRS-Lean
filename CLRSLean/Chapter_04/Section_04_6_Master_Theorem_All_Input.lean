@@ -37,10 +37,10 @@ exact powers it satisfies
 {lit}`criticalPowerScale a b (b^i) = a^i`; between exact powers it is the
 step function determined by {lit}`Nat.log b n`.
 
-This and {lit}`criticalPowerLogScale` are deliberately weaker and cleaner than
-the analytic scales
+This, {lit}`criticalPowerLogScale`, and {lit}`tailDominatedScale` are
+deliberately weaker and cleaner than the analytic scales
 {lit}`n^(log_b a)`, but it is enough to make the exact-power-to-all-input
-bridge concrete for Master cases 1 and 2.
+bridge concrete for the three Master cases.
 -/
 def criticalPowerScale (a b : ℕ) (n : ℕ) : ℝ :=
   (a : ℝ) ^ Nat.log b n
@@ -53,6 +53,15 @@ Discrete case-2 Master scale.  On exact powers this is
 def criticalPowerLogScale (a b : ℕ) (n : ℕ) : ℝ :=
   ((Nat.log b n : ℝ) + 1) * criticalPowerScale a b n
 
+/--
+Discrete case-3 Master scale.  On exact powers this is the scale from
+{name}`master_case3_tail_dominated`; between exact powers it is again the
+step function determined by {lit}`Nat.log b n`.
+-/
+noncomputable def tailDominatedScale (a b : ℕ) (f : ℕ → ℝ) (n : ℕ) : ℝ :=
+  (if Nat.log b n = 0 then 1 else normalizedForcing a b f (Nat.log b n - 1)) *
+    criticalPowerScale a b n
+
 theorem criticalPowerScale_exactPower
     (a b i : ℕ) (hb : 1 < b) :
     criticalPowerScale a b (b ^ i) = (a : ℝ) ^ i := by
@@ -63,6 +72,13 @@ theorem criticalPowerLogScale_exactPower
     criticalPowerLogScale a b (b ^ i) =
       ((i : ℝ) + 1) * ((a : ℝ) ^ i) := by
   simp [criticalPowerLogScale, criticalPowerScale, Nat.log_pow hb]
+
+theorem tailDominatedScale_exactPower
+    (a b : ℕ) (f : ℕ → ℝ) (i : ℕ) (hb : 1 < b) :
+    tailDominatedScale a b f (b ^ i) =
+      (if i = 0 then 1 else normalizedForcing a b f (i - 1)) *
+        ((a : ℝ) ^ i) := by
+  simp [tailDominatedScale, criticalPowerScale, Nat.log_pow hb]
 
 theorem criticalPowerLogScale_nonneg (a b n : ℕ) :
     0 ≤ criticalPowerLogScale a b n := by
@@ -499,6 +515,34 @@ theorem allInput_bigTheta_of_criticalPowerLogScale
     (criticalPowerLogScale_powerStepBound a b ha hb)
     h_power_scale
 
+theorem allInput_bigTheta_of_tailDominatedScale
+    (a b : ℕ) (f T : ℕ → ℝ) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (hscale_mono : MonotoneAbs (tailDominatedScale a b f))
+    (hscale_step : EventuallyPowerStepBound b (tailDominatedScale a b f))
+    (h_power :
+      Chapter03.isBigTheta
+        (fun i : ℕ => T (b ^ i))
+        (fun i : ℕ =>
+          (if i = 0 then 1 else normalizedForcing a b f (i - 1)) *
+            ((a : ℝ) ^ i))) :
+    Chapter03.isBigTheta T (tailDominatedScale a b f) := by
+  have h_power_scale :
+      Chapter03.isBigTheta
+        (fun i : ℕ => T (b ^ i))
+        (fun i : ℕ => tailDominatedScale a b f (b ^ i)) := by
+    have hscale :
+        (fun i : ℕ => tailDominatedScale a b f (b ^ i)) =
+          (fun i : ℕ =>
+            (if i = 0 then 1 else normalizedForcing a b f (i - 1)) *
+              ((a : ℝ) ^ i)) := by
+      funext i
+      exact tailDominatedScale_exactPower a b f i hb
+    rw [hscale]
+    exact h_power
+  exact allInput_bigTheta_of_powerStep b T (tailDominatedScale a b f) hb
+    hT_mono hscale_mono hscale_step h_power_scale
+
 /-! ## Packaged all-input Master case 1 wrappers -/
 
 /--
@@ -629,6 +673,81 @@ theorem ceilDivide_allInput_masterCase2_criticalPowerLogScale
   exact exactPower_allInput_masterCase2_criticalPowerLogScale a b f T
     (exactPowerRecurrence_of_ceilDivideRecurrence a b f T h_rec hb_pos)
     ha hb hT_mono h_base_nonneg hc_pos hC_pos h_term_lower h_term_upper
+
+/-! ## Packaged all-input Master case 3 wrappers -/
+
+/--
+All-input wrapper for exact-power Master case 3, using the discrete
+{name}`tailDominatedScale`.  The last-forcing scale depends on the concrete
+forcing function, so its monotonicity and adjacent-power regularity are
+explicit hypotheses rather than built-in facts.
+-/
+theorem exactPower_allInput_masterCase3_tailDominatedScale
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : ExactPowerRecurrence a b f T)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (hscale_mono : MonotoneAbs (tailDominatedScale a b f))
+    (hscale_step : EventuallyPowerStepBound b (tailDominatedScale a b f))
+    (h_base_nonneg : 0 ≤ normalizedValue a b T 0)
+    (h_term_nonneg : ∀ k, 0 ≤ normalizedForcing a b f k)
+    (h_tail_upper :
+      ∃ C : ℝ, 0 < C ∧ ∃ n₀ : ℕ, ∀ i, i ≥ n₀ → 1 ≤ i →
+        normalizedValue a b T i ≤ C * normalizedForcing a b f (i - 1)) :
+    Chapter03.isBigTheta T (tailDominatedScale a b f) := by
+  have ha_pos : 0 < (a : ℝ) := by
+    exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one ha
+  exact allInput_bigTheta_of_tailDominatedScale a b f T hb hT_mono
+    hscale_mono hscale_step
+    (master_case3_tail_dominated a b f T h_rec ha_pos h_base_nonneg
+      h_term_nonneg h_tail_upper)
+
+/--
+Floor-division all-input Master case 3 wrapper.  It extracts the exact-power
+recurrence from the all-input floor recurrence, applies the tail-dominated
+exact-power theorem, and transfers the result through {name}`tailDominatedScale`.
+-/
+theorem floorDivide_allInput_masterCase3_tailDominatedScale
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : FloorDivideRecurrence a b f T)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (hscale_mono : MonotoneAbs (tailDominatedScale a b f))
+    (hscale_step : EventuallyPowerStepBound b (tailDominatedScale a b f))
+    (h_base_nonneg : 0 ≤ normalizedValue a b T 0)
+    (h_term_nonneg : ∀ k, 0 ≤ normalizedForcing a b f k)
+    (h_tail_upper :
+      ∃ C : ℝ, 0 < C ∧ ∃ n₀ : ℕ, ∀ i, i ≥ n₀ → 1 ≤ i →
+        normalizedValue a b T i ≤ C * normalizedForcing a b f (i - 1)) :
+    Chapter03.isBigTheta T (tailDominatedScale a b f) := by
+  have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+  exact exactPower_allInput_masterCase3_tailDominatedScale a b f T
+    (exactPowerRecurrence_of_floorDivideRecurrence a b f T h_rec hb_pos)
+    ha hb hT_mono hscale_mono hscale_step h_base_nonneg h_term_nonneg
+    h_tail_upper
+
+/--
+Ceiling-division all-input Master case 3 wrapper.  This is the ceiling analogue
+of {name}`floorDivide_allInput_masterCase3_tailDominatedScale`.
+-/
+theorem ceilDivide_allInput_masterCase3_tailDominatedScale
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : CeilDivideRecurrence a b f T)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (hscale_mono : MonotoneAbs (tailDominatedScale a b f))
+    (hscale_step : EventuallyPowerStepBound b (tailDominatedScale a b f))
+    (h_base_nonneg : 0 ≤ normalizedValue a b T 0)
+    (h_term_nonneg : ∀ k, 0 ≤ normalizedForcing a b f k)
+    (h_tail_upper :
+      ∃ C : ℝ, 0 < C ∧ ∃ n₀ : ℕ, ∀ i, i ≥ n₀ → 1 ≤ i →
+        normalizedValue a b T i ≤ C * normalizedForcing a b f (i - 1)) :
+    Chapter03.isBigTheta T (tailDominatedScale a b f) := by
+  have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+  exact exactPower_allInput_masterCase3_tailDominatedScale a b f T
+    (exactPowerRecurrence_of_ceilDivideRecurrence a b f T h_rec hb_pos)
+    ha hb hT_mono hscale_mono hscale_step h_base_nonneg h_term_nonneg
+    h_tail_upper
 
 end Chapter04
 end CLRS

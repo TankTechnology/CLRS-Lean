@@ -53,12 +53,12 @@ and by future divide-and-conquer runtime proofs.
   direct {lit}`allInput_bigTheta_of_powerStep` theorem that discharges those
   sandwich hypotheses from monotone comparison scales with eventual one-step
   control.  The discrete {lit}`criticalPowerScale` and
-  {lit}`criticalPowerLogScale` wrappers now turn exact-power
-  {lit}`T(b^i) = Θ(a^i)` and {lit}`T(b^i) = Θ((i+1)a^i)` bounds into
-  all-input bounds, and Section 4.6 packages the floor/ceiling recurrence
-  forms of exact-power Master cases 1 and 2 for these discrete scales.  The
-  full textbook theorem still needs analytic comparison scales and the
-  remaining final Master case.
+  {lit}`criticalPowerLogScale` and {lit}`tailDominatedScale` wrappers now turn
+  exact-power {lit}`T(b^i) = Θ(a^i)`, {lit}`T(b^i) = Θ((i+1)a^i)`, and
+  tail-dominated bounds into all-input bounds, and Section 4.6 packages the
+  floor/ceiling recurrence forms of exact-power Master cases 1, 2, and 3 for
+  these discrete scales.  The full textbook theorem still needs analytic
+  comparison scales for the standard CLRS-facing asymptotic statements.
 -/
 
 namespace CLRS

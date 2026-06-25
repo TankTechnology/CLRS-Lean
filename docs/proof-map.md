@@ -216,8 +216,8 @@ scales and recurrence instantiations packaged as final case statements.
 - Lean source: `CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean`
 - Status: `partial` with floor/ceiling exact-power extraction, all-input
   transfer, adjacent-power sandwich generation, a discrete critical-power
-  scale wrapper, a discrete log-critical scale wrapper, and packaged
-  floor/ceiling Master case 1 and case 2 wrappers proved
+  scale wrapper, a discrete log-critical scale wrapper, a tail-dominated scale
+  wrapper, and packaged floor/ceiling Master cases 1, 2, and 3 proved
 - Main proved theorems:
   - `CLRS.Chapter04.FloorDivideRecurrence`
   - `CLRS.Chapter04.CeilDivideRecurrence`
@@ -238,12 +238,18 @@ scales and recurrence instantiations packaged as final case statements.
   - `CLRS.Chapter04.criticalPowerLogScale_monotoneAbs`
   - `CLRS.Chapter04.criticalPowerLogScale_powerStepBound`
   - `CLRS.Chapter04.allInput_bigTheta_of_criticalPowerLogScale`
+  - `CLRS.Chapter04.tailDominatedScale`
+  - `CLRS.Chapter04.tailDominatedScale_exactPower`
+  - `CLRS.Chapter04.allInput_bigTheta_of_tailDominatedScale`
   - `CLRS.Chapter04.exactPower_allInput_masterCase1_criticalPowerScale`
   - `CLRS.Chapter04.floorDivide_allInput_masterCase1_criticalPowerScale`
   - `CLRS.Chapter04.ceilDivide_allInput_masterCase1_criticalPowerScale`
   - `CLRS.Chapter04.exactPower_allInput_masterCase2_criticalPowerLogScale`
   - `CLRS.Chapter04.floorDivide_allInput_masterCase2_criticalPowerLogScale`
   - `CLRS.Chapter04.ceilDivide_allInput_masterCase2_criticalPowerLogScale`
+  - `CLRS.Chapter04.exactPower_allInput_masterCase3_tailDominatedScale`
+  - `CLRS.Chapter04.floorDivide_allInput_masterCase3_tailDominatedScale`
+  - `CLRS.Chapter04.ceilDivide_allInput_masterCase3_tailDominatedScale`
 - Proof pattern: first show that floor and ceiling all-input recurrences reduce
   to `ExactPowerRecurrence` on powers of the base, using the arithmetic facts
   `(b^(i+1))/b = b^i` and `(b^(i+1)+b-1)/b = b^i`.  Then assume
@@ -254,14 +260,15 @@ scales and recurrence instantiations packaged as final case statements.
   the CLRS adjacent-power argument: for any positive `n`, `Nat.log` gives
   `b^i ≤ n < b^(i+1)`; monotonicity and one-step control of `g(bn)` by `g(n)`
   then generate both power-sandwich hypotheses automatically.  The
-  `criticalPowerScale` and `criticalPowerLogScale` wrappers instantiate this
-  bridge for the discrete scales `a^(⌊log_b n⌋)` and
-  `(⌊log_b n⌋+1)a^(⌊log_b n⌋)`, matching case 1 and case 2 exact-power scales.
-  The packaged wrappers combine floor/ceiling recurrence extraction, the
-  exact-power Master case theorem, and the corresponding all-input bridge.
+  `criticalPowerScale`, `criticalPowerLogScale`, and `tailDominatedScale`
+  wrappers instantiate this bridge for the discrete scales
+  `a^(⌊log_b n⌋)`, `(⌊log_b n⌋+1)a^(⌊log_b n⌋)`, and the case-3 last-forcing
+  scale, matching the three exact-power Master scales.  The packaged wrappers
+  combine floor/ceiling recurrence extraction, the exact-power Master case
+  theorem, and the corresponding all-input bridge.
 - Current gap: prove analytic comparison-scale wrappers for the usual CLRS
-  scales, then package the remaining CLRS all-input floor/ceiling case 3
-  statement.
+  scales so the discrete all-input wrappers can be stated in the textbook's
+  standard asymptotic vocabulary.
 
 ## Chapter 5 - Probabilistic Analysis and Randomized Algorithms
 
@@ -1037,7 +1044,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`. The recurrence proof remains. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
-| Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power and log-critical wrappers, and packaged floor/ceiling case 1/case 2 wrappers are proved; analytic comparison-scale wrappers and the remaining final case 3 statement remain. |
+| Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, and packaged floor/ceiling cases 1/2/3 are proved; analytic comparison-scale wrappers remain. |
 | Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `future-work` | Functional successor/predecessor queries and functional deletion are proved; pointer-transplant semantics remain. |
