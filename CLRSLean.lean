@@ -506,16 +506,19 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter18.BTree.splitChild_search_iff`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_old`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_false_iff`,
+  {lit}`CLRS.Chapter18.BTree.splitChild_search_false_old`,
   {lit}`CLRS.Chapter18.BTree.insert_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.insert_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_search_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_not_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_search_false_iff`,
+  {lit}`CLRS.Chapter18.BTree.insert_search_false_of_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.delete_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.delete_search_iff`,
   {lit}`CLRS.Chapter18.BTree.delete_not_mem_iff`,
-  and {lit}`CLRS.Chapter18.BTree.delete_search_false_iff`.
+  {lit}`CLRS.Chapter18.BTree.delete_search_false_iff`, and
+  {lit}`CLRS.Chapter18.BTree.delete_search_false_old`.
 * 19.1 Fibonacci heaps: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter19.FibHeap.makeHeap_correct`,
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_valid`,

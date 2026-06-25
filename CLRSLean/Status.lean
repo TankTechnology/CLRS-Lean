@@ -586,6 +586,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter18.BTree.splitChild_search_iff`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_old`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_false_iff`,
+  {lit}`CLRS.Chapter18.BTree.splitChild_search_false_old`,
   {lit}`CLRS.Chapter18.BTree.insert_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.insert_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_search_iff`,
@@ -595,6 +596,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter18.BTree.insert_search_old`,
   {lit}`CLRS.Chapter18.BTree.insert_not_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_search_false_iff`,
+  {lit}`CLRS.Chapter18.BTree.insert_search_false_of_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.delete_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.delete_search_iff`,
@@ -603,7 +605,8 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter18.BTree.delete_mem_of_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_search_of_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_not_mem_iff`,
-  and {lit}`CLRS.Chapter18.BTree.delete_search_false_iff`;
+  {lit}`CLRS.Chapter18.BTree.delete_search_false_iff`, and
+  {lit}`CLRS.Chapter18.BTree.delete_search_false_old`;
   remaining gap: full occupancy/separator/same-depth invariants, node-level
   deletion repair, and disk-page/mutation semantics.
 * 19.1 Fibonacci heaps:

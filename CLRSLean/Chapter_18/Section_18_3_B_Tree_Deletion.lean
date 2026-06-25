@@ -18,6 +18,8 @@ Main results:
   exactly for old searchable keys different from the deleted key.
 - Theorem {lit}`BTree.delete_search_false_iff`: searching after deletion fails
   exactly for the deleted key or keys that failed before.
+- Theorem {lit}`BTree.delete_search_false_old`: old unsuccessful searches
+  remain unsuccessful after deletion.
 - Theorem {lit}`BTree.delete_not_mem_iff`: membership after deletion fails
   exactly for the deleted key or keys that were absent before.
 - Theorems {lit}`BTree.delete_not_mem` and
@@ -153,6 +155,13 @@ theorem delete_search_false_iff {minDegree x y : Nat} {t : BTree}
               hdelete
           rw [holdFalse] at hcases
           simp at hcases
+
+/-- Old unsuccessful searches remain unsuccessful after specification deletion. -/
+theorem delete_search_false_old {minDegree x y : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) (hy : search y t = false) :
+    search y (delete x t) = false := by
+  rw [delete_search_false_iff (minDegree := minDegree) (x := x) (y := y) (t := t) hvalid]
+  exact Or.inr hy
 
 end BTree
 end Chapter18

@@ -22,6 +22,8 @@ Main results:
   split wrapper is equivalent to searching before it.
 - Theorem {lit}`BTree.splitChild_search_false_iff`: unsuccessful search is also
   preserved by the first-pass split wrapper.
+- Theorem {lit}`BTree.splitChild_search_false_old`: old unsuccessful searches
+  remain unsuccessful after the first-pass split wrapper.
 - Theorems {lit}`BTree.splitChild_mem_old` and
   {lit}`BTree.splitChild_search_old`: old members and searchable keys remain
   so after the first-pass split wrapper.
@@ -33,6 +35,8 @@ Main results:
   exactly for the inserted key or an old searchable key.
 - Theorem {lit}`BTree.insert_search_false_iff`: searching after insertion fails
   exactly for keys different from the inserted key that failed before.
+- Theorem {lit}`BTree.insert_search_false_of_ne`: old failed searches for keys
+  different from the inserted key remain failed after insertion.
 - Theorem {lit}`BTree.insert_not_mem_iff`: membership after insertion fails
   exactly for keys different from the inserted key that were absent before.
 - Theorems {lit}`BTree.insert_mem_self` and
@@ -121,6 +125,13 @@ theorem splitChild_search_false_iff {minDegree x : Nat} {t : BTree}
         (splitChild_search_iff (minDegree := minDegree) (x := x) (t := t) hvalid).mp hsplit
       rw [holdFalse] at holdTrue
       contradiction
+
+/-- Old unsuccessful searches remain unsuccessful after the first-pass split wrapper. -/
+theorem splitChild_search_false_old {minDegree x : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) (hx : search x t = false) :
+    search x (splitChild t) = false := by
+  rw [splitChild_search_false_iff (minDegree := minDegree) (x := x) (t := t) hvalid]
+  exact hx
 
 /-- Specification-level B-tree insertion: add the key at a fresh root. -/
 def insert (x : Nat) (t : BTree) : BTree :=
@@ -224,6 +235,13 @@ theorem insert_search_false_iff {minDegree x y : Nat} {t : BTree}
       | inr holdTrue =>
           rw [holdFalse] at holdTrue
           contradiction
+
+/-- Old failed searches for keys different from the inserted key remain failed. -/
+theorem insert_search_false_of_ne {minDegree x y : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) (hxy : y ≠ x) (hy : search y t = false) :
+    search y (insert x t) = false := by
+  rw [insert_search_false_iff (minDegree := minDegree) (x := x) (y := y) (t := t) hvalid]
+  exact ⟨hxy, hy⟩
 
 end BTree
 end Chapter18

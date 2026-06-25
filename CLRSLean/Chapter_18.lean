@@ -12,8 +12,8 @@ monotonicity, and specification-level split/insert/delete wrappers with split
 membership/search preservation plus direct split old-key corollaries, direct
 split validity, successful and unsuccessful search-after-update
 specifications, and direct inserted/deleted-key plus old-key query preservation
-corollaries, together with exact failed membership specifications after split,
-insert, and delete.
+corollaries, including old failed-search preservation wrappers, together with
+exact failed membership specifications after split, insert, and delete.
 
 ## Sections
 
@@ -37,6 +37,7 @@ insert, and delete.
   {lit}`CLRS.Chapter18.BTree.splitChild_search_iff`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_old`,
   {lit}`CLRS.Chapter18.BTree.splitChild_search_false_iff`,
+  {lit}`CLRS.Chapter18.BTree.splitChild_search_false_old`,
   {lit}`CLRS.Chapter18.BTree.insert_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.insert_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_search_iff`,
@@ -45,7 +46,8 @@ insert, and delete.
   {lit}`CLRS.Chapter18.BTree.insert_mem_old`,
   {lit}`CLRS.Chapter18.BTree.insert_search_old`,
   {lit}`CLRS.Chapter18.BTree.insert_not_mem_iff`,
-  and {lit}`CLRS.Chapter18.BTree.insert_search_false_iff`.
+  {lit}`CLRS.Chapter18.BTree.insert_search_false_iff`, and
+  {lit}`CLRS.Chapter18.BTree.insert_search_false_of_ne`.
 * 18.3 B-tree deletion: {lit}`partial`.
   Main results:
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
@@ -56,7 +58,8 @@ insert, and delete.
   {lit}`CLRS.Chapter18.BTree.delete_mem_of_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_search_of_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_not_mem_iff`,
-  and {lit}`CLRS.Chapter18.BTree.delete_search_false_iff`.
+  {lit}`CLRS.Chapter18.BTree.delete_search_false_iff`, and
+  {lit}`CLRS.Chapter18.BTree.delete_search_false_old`.
 
 ## Current Gaps
 
