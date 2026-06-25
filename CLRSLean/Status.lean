@@ -87,7 +87,9 @@ which areas should not yet be counted as proof-complete.
   {lit}`a = b^p`.  The general {lit}`n^(log_b a)` and case-3 comparison
   layers, plus selected runtime refinements, remain.
 * Chapter 11, Section 11.2: deterministic chained-hash-table operations are
-  proved for a fixed hash function; expected-time hashing remains.
+  proved for a fixed hash function, and the finite-uniform bucket interface
+  proves expected chain length equals load factor; a full random key/hash
+  function model remains.
 * Chapter 12, Section 12.1: the functional BST theorem boundary is proved for
   search, min/max, insertion, complete successor/predecessor specifications,
   and deletion wrappers; parent pointers, transplant, and mutation remain.
@@ -123,8 +125,9 @@ which areas should not yet be counted as proof-complete.
   grouped/full-input split-count core, {lit}`7n/10` partition-size packaging,
   and the abstract linear recurrence theorem are proved; randomized expected
   time and the concrete executable runtime theorem remain.
-* Chapter 11 expected hashing analysis: expected-time theorem under a formal
-  probability model.
+* Chapter 11 expected hashing analysis: extend the finite-uniform bucket
+  interface to a formal random key or random hash-function model with
+  independence assumptions.
 * Chapter 12 pointer-level BST layer: CLRS parent-pointer procedures,
   transplant, and mutation refinement.
 * Chapter 13 full red-black algorithms: insertion/deletion fixup correctness
@@ -497,10 +500,15 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
 * 11.2 Chained hash tables:
   current results {lit}`CLRS.Chapter11.hashSearch_hashInsert_self`,
   {lit}`CLRS.Chapter11.hashSearch_hashInsert_iff`,
-  {lit}`CLRS.Chapter11.hashSearch_hashDelete_self`, and
-  {lit}`CLRS.Chapter11.hashSearch_hashDelete_iff`;
-  remaining gap: expected search time under simple uniform hashing needs a
-  probability model over keys or hash functions.
+  {lit}`CLRS.Chapter11.hashSearch_hashDelete_self`,
+  {lit}`CLRS.Chapter11.hashSearch_hashDelete_iff`,
+  {lit}`CLRS.Chapter11.uniformAverageFin_indicator_singleton`,
+  {lit}`CLRS.Chapter11.expectedSearchChainLength_eq_loadFactor`,
+  {lit}`CLRS.Chapter11.expectedUnsuccessfulSearchCost_eq_one_plus_loadFactor`,
+  {lit}`CLRS.Chapter11.totalBucketLength_finiteHashInsert`, and
+  {lit}`CLRS.Chapter11.expectedSearchChainLength_finiteHashInsert`;
+  remaining gap: lift the finite-uniform bucket abstraction to a probability
+  model over random keys or random hash functions.
 * 12.1 Binary search trees:
   current results {lit}`CLRS.Chapter12.BSTree.search_eq_true_iff`,
   {lit}`CLRS.Chapter12.BSTree.minimum?_inTree`,

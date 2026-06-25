@@ -863,9 +863,17 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter11.hashSearch_hashInsert_iff`
   - `CLRS.Chapter11.hashSearch_hashDelete_self`
   - `CLRS.Chapter11.hashSearch_hashDelete_iff`
-- Proof pattern: deterministic bucket update/delete for a fixed hash function
-- Current gap: expected search time under simple uniform hashing requires a
-  probability model over keys or hash functions
+  - `CLRS.Chapter11.uniformAverageFin_indicator_singleton`
+  - `CLRS.Chapter11.expectedSearchChainLength_eq_loadFactor`
+  - `CLRS.Chapter11.expectedUnsuccessfulSearchCost_eq_one_plus_loadFactor`
+  - `CLRS.Chapter11.totalBucketLength_finiteHashInsert`
+  - `CLRS.Chapter11.expectedSearchChainLength_finiteHashInsert`
+- Proof pattern: deterministic bucket update/delete for a fixed hash function,
+  plus a finite-uniform bucket expectation layer over `Fin m`.  The expected
+  chain-length theorem treats the searched bucket as uniformly distributed and
+  identifies its expectation with the load factor.
+- Current gap: lift the finite-uniform bucket abstraction to a probability
+  model over random keys or random hash functions with independence assumptions
 
 ## Chapter 12 - Binary Search Trees
 
@@ -1283,7 +1291,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction and linear bound are proved by `selectRecurrence_linear_induction` and `medianOfMedians_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, and natural-exponent polynomial wrappers for cases 1/2 are proved; the general `n^(log_b a)`, real-log, and case-3 comparison layers remain. |
-| Hash-table expected-time analysis | `blocked-design` | Needs a probability model for simple uniform hashing. |
+| Hash-table expected-time analysis | `blocked-design` | The finite-uniform bucket theorem proves expected chain length equals load factor when the searched bucket is uniform; the remaining work is a full random key or random hash-function model with independence assumptions. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `future-work` | Functional successor/predecessor queries and functional deletion are proved; pointer-transplant semantics remain. |
 | Full red-black insertion/deletion | `blocked-design` | Needs a balancing representation and invariant-preservation proof across fixup cases. |

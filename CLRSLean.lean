@@ -83,8 +83,9 @@ Start with the chapter pages in the sidebar.
   partition-size bounds, and the abstract linear recurrence wrapper.
 * Chapter 10 - Elementary Data Structures: functional stack, queue, and
   linked-list operation proofs.
-* Chapter 11 - Hash Tables: direct-address table correctness and deterministic
-  chained-hash-table insert/delete/search facts.
+* Chapter 11 - Hash Tables: direct-address table correctness, deterministic
+  chained-hash-table insert/delete/search facts, and a finite-uniform bucket
+  interface proving expected chain length equals the load factor.
 * Chapter 12 - Binary Search Trees: search, minimum/maximum, insertion,
   complete functional successor/predecessor specifications, and functional
   deletion correctness for an inductive BST model.
@@ -382,7 +383,12 @@ Start with the chapter pages in the sidebar.
   Current results: {lit}`CLRS.Chapter11.hashSearch_hashInsert_self`,
   {lit}`CLRS.Chapter11.hashSearch_hashInsert_iff`,
   {lit}`CLRS.Chapter11.hashSearch_hashDelete_self`,
-  {lit}`CLRS.Chapter11.hashSearch_hashDelete_iff`.
+  {lit}`CLRS.Chapter11.hashSearch_hashDelete_iff`,
+  {lit}`CLRS.Chapter11.uniformAverageFin_indicator_singleton`,
+  {lit}`CLRS.Chapter11.expectedSearchChainLength_eq_loadFactor`,
+  {lit}`CLRS.Chapter11.expectedUnsuccessfulSearchCost_eq_one_plus_loadFactor`,
+  {lit}`CLRS.Chapter11.totalBucketLength_finiteHashInsert`, and
+  {lit}`CLRS.Chapter11.expectedSearchChainLength_finiteHashInsert`.
 * 12.1 Binary search trees: {lit}`partial`.
   Current results: {lit}`CLRS.Chapter12.BSTree.search_eq_true_iff`,
   {lit}`CLRS.Chapter12.BSTree.minimum?_le_of_ordered`,

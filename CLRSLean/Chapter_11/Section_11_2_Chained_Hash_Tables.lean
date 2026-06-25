@@ -26,9 +26,9 @@ Main results:
 
 Current gaps:
 
-- This file does not prove expected search time under simple uniform hashing.
-  That theorem needs a probability-space model for random keys or hash
-  functions.
+- This file proves the finite-uniform bucket interface for expected chain
+  length.  A full probability model over independently random hash functions is
+  still future work.
 -/
 
 namespace CLRS
@@ -122,6 +122,124 @@ theorem hashSearch_hashDelete_iff [DecidableEq K] (h : K → Nat)
       intro hkey
       exact hxy (by rw [hkey])
     simp [hashSearch, hashDelete, hxy, hxne]
+
+/-! ## Finite-uniform hashing interface -/
+
+/-- A finite chained hash table with exactly {lit}`m` buckets. -/
+abbrev FiniteChainedHashTable (m : Nat) (K : Type u) := Fin m → List K
+
+/-- A real-valued {lit}`0/1` indicator for finite probability calculations. -/
+def probabilityIndicator (P : Prop) [Decidable P] : ℝ :=
+  if P then 1 else 0
+
+/-- Uniform average over the bucket set {lit}`Fin m`. -/
+noncomputable def uniformAverageFin {m : Nat} (X : Fin m → ℝ) : ℝ :=
+  (∑ i : Fin m, X i) / (m : ℝ)
+
+/-- A singleton bucket has probability {lit}`1/m` under the uniform bucket model. -/
+theorem uniformAverageFin_indicator_singleton {m : Nat} (j : Fin m) :
+    uniformAverageFin (fun i => probabilityIndicator (i = j)) = 1 / (m : ℝ) := by
+  classical
+  have hsum :
+      (∑ i : Fin m, probabilityIndicator (i = j)) = (1 : ℝ) := by
+    rw [Finset.sum_eq_single j]
+    · simp [probabilityIndicator]
+    · intro b _hb hbj
+      simp [probabilityIndicator, hbj]
+    · intro hj
+      exact (hj (Finset.mem_univ j)).elim
+  simp [uniformAverageFin, hsum]
+
+/-- Insert into a finite-bucket chained hash table. -/
+def finiteHashInsert {m : Nat} (h : K → Fin m) (x : K)
+    (T : FiniteChainedHashTable m K) : FiniteChainedHashTable m K :=
+  fun i => if i = h x then x :: T i else T i
+
+/-- Search in a finite-bucket chained hash table. -/
+def finiteHashSearch {m : Nat} (h : K → Fin m)
+    (T : FiniteChainedHashTable m K) (x : K) : Prop :=
+  x ∈ T (h x)
+
+/-- The finite-bucket load factor: stored keys divided by bucket count. -/
+noncomputable def finiteHashLoadFactor {m : Nat}
+    (T : FiniteChainedHashTable m K) : ℝ :=
+  (∑ i : Fin m, ((T i).length : ℝ)) / (m : ℝ)
+
+/--
+Expected chain length for an unsuccessful search when the searched bucket is
+uniform over all buckets.
+-/
+noncomputable def expectedSearchChainLength {m : Nat}
+    (T : FiniteChainedHashTable m K) : ℝ :=
+  uniformAverageFin (fun i => ((T i).length : ℝ))
+
+/--
+Expected unsuccessful-search cost in the current abstraction: one bucket access
+plus the expected chain length.
+-/
+noncomputable def expectedUnsuccessfulSearchCost {m : Nat}
+    (T : FiniteChainedHashTable m K) : ℝ :=
+  1 + expectedSearchChainLength T
+
+/--
+Under uniform hashing over buckets, expected chain length is exactly the load
+factor.
+-/
+theorem expectedSearchChainLength_eq_loadFactor {m : Nat}
+    (T : FiniteChainedHashTable m K) :
+    expectedSearchChainLength T = finiteHashLoadFactor T := by
+  rfl
+
+/--
+Under uniform hashing over buckets, unsuccessful search has cost
+{lit}`1 + load factor` in the current finite-bucket abstraction.
+-/
+theorem expectedUnsuccessfulSearchCost_eq_one_plus_loadFactor {m : Nat}
+    (T : FiniteChainedHashTable m K) :
+    expectedUnsuccessfulSearchCost T = 1 + finiteHashLoadFactor T := by
+  rfl
+
+/-- Inserting one key into a finite chained table increases total chain length by one. -/
+theorem totalBucketLength_finiteHashInsert {m : Nat} (h : K → Fin m)
+    (T : FiniteChainedHashTable m K) (x : K) :
+    (∑ i : Fin m, ((finiteHashInsert h x T i).length : ℝ)) =
+      (∑ i : Fin m, ((T i).length : ℝ)) + 1 := by
+  classical
+  have hpoint : ∀ i : Fin m,
+      ((finiteHashInsert h x T i).length : ℝ) =
+        ((T i).length : ℝ) + probabilityIndicator (i = h x) := by
+    intro i
+    by_cases hi : i = h x
+    · simp [finiteHashInsert, probabilityIndicator, hi]
+    · simp [finiteHashInsert, probabilityIndicator, hi]
+  have hindicator :
+      (∑ i : Fin m, probabilityIndicator (i = h x)) = (1 : ℝ) := by
+    rw [Finset.sum_eq_single (h x)]
+    · simp [probabilityIndicator]
+    · intro b _hb hbne
+      simp [probabilityIndicator, hbne]
+    · intro hmissing
+      exact (hmissing (Finset.mem_univ (h x))).elim
+  calc
+    (∑ i : Fin m, ((finiteHashInsert h x T i).length : ℝ))
+        = ∑ i : Fin m, (((T i).length : ℝ) + probabilityIndicator (i = h x)) := by
+          exact Finset.sum_congr rfl (fun i _hi => hpoint i)
+    _ = (∑ i : Fin m, ((T i).length : ℝ)) +
+          ∑ i : Fin m, probabilityIndicator (i = h x) := by
+          rw [Finset.sum_add_distrib]
+    _ = (∑ i : Fin m, ((T i).length : ℝ)) + 1 := by
+          rw [hindicator]
+
+/--
+Inserting one key increases the expected chain length by {lit}`1/m` in the
+finite-uniform bucket model.
+-/
+theorem expectedSearchChainLength_finiteHashInsert {m : Nat} (h : K → Fin m)
+    (T : FiniteChainedHashTable m K) (x : K) :
+    expectedSearchChainLength (finiteHashInsert h x T) =
+      expectedSearchChainLength T + 1 / (m : ℝ) := by
+  simp [expectedSearchChainLength, uniformAverageFin,
+    totalBucketLength_finiteHashInsert, add_div]
 
 end Chapter11
 end CLRS
