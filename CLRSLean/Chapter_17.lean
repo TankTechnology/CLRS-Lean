@@ -10,7 +10,7 @@ and instantiates it on compact stack, counter, and dynamic-table examples.  The
 current first pass contains the aggregate, accounting, and potential-method
 framework theorems, a {lit}`MULTIPOP` stack cost bound, an executable
 binary-counter one-step potential proof plus a first-pass total-cost wrapper,
-and an abstract dynamic-table potential wrapper.
+and a size-level dynamic-table insertion wrapper.
 
 ## Sections
 
@@ -28,14 +28,16 @@ and an abstract dynamic-table potential wrapper.
   {lit}`CLRS.Chapter17.binaryCounter_increment_potential_le_two`, and
   {lit}`CLRS.Chapter17.binaryCounter_totalFlips_le`.
 * 17.4 Dynamic tables: {lit}`partial`.
-  Main result:
+  Main results:
+  {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`, and
   {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`.
 
 ## Current Gaps
 
 The executable multi-step binary-counter trace theorem and concrete
-dynamic-table expansion/contraction transition predicates remain strengthening
-targets.
+dynamic-table contraction transition predicate remain strengthening targets.
 -/
 
 namespace CLRS

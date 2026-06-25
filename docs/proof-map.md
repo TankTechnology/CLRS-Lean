@@ -984,20 +984,23 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.multiPop_totalCost_le`
   - `CLRS.Chapter17.binaryCounter_increment_potential_le_two`
   - `CLRS.Chapter17.binaryCounter_totalFlips_le`
+  - `CLRS.Chapter17.dynamicTableInsert_valid`
+  - `CLRS.Chapter17.dynamicTableInsert_num`
+  - `CLRS.Chapter17.dynamicTableInsert_amortizedBound`
   - `CLRS.Chapter17.dynamicTable_amortizedBound`
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
   telescoping
-- Current gap: executable multi-step binary-counter trace theorem, concrete
-  dynamic-table expansion/contraction transitions, and RAM/allocation constants
-  remain strengthening targets.
+- Current gap: executable multi-step binary-counter trace theorem, dynamic-table
+  contraction transition, and RAM/allocation constants remain strengthening
+  targets.
 
 Chapter 17 now provides the reusable amortized-analysis layer for later data
 structure chapters.  The generic aggregate/accounting/potential facts are
 sorry-free, and the stack, executable one-step binary-counter, and dynamic-table
 examples compile against stable public theorem names.  The multi-step counter
-total theorem still uses the first-pass cost wrapper, and the dynamic-table
-example intentionally remains mathematical rather than mutable-array or
-allocator semantics.
+total theorem still uses the first-pass cost wrapper, and dynamic-table
+insertion is a size-level transition rather than mutable-array or allocator
+semantics.
 
 ## Chapter 18 - B-Trees
 

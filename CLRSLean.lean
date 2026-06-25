@@ -425,7 +425,10 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.binaryCounter_increment_potential_le_two`, and
   {lit}`CLRS.Chapter17.binaryCounter_totalFlips_le`.
 * 17.4 Dynamic tables: {lit}`partial`.
-  Public result: {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`.
+  Public results: {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`, and
+  {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`.
 * 18.1-18.3 B-trees: {lit}`partial`.
   Public results: {lit}`CLRS.Chapter18.BTree.search_correct`,
   {lit}`CLRS.Chapter18.BTree.minKeys_lower_bound`,
