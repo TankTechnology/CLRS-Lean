@@ -214,17 +214,21 @@ packages lexicographic ordering, stability, membership preservation, and
 permutation preservation.  It also instantiates the abstract digit interface
 with concrete natural-number base-`b` digits through
 `CLRS.Chapter08.baseDigitsLow_allDigitsLe` and
-`CLRS.Chapter08.radixSortNatBy_correct_stable`.  Section 8.4 proves
-deterministic bucket-sort correctness:
+`CLRS.Chapter08.radixSortNatBy_correct_stable`, packages ordinary key ordering
+through `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_digitOrder`, and
+proves the one-digit arithmetic case by
+`CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_singleDigit`.  Section 8.4
+proves deterministic bucket-sort correctness:
 `CLRS.Chapter08.bucketSortByRank_correct` packages ordered output, membership
 preservation, and permutation preservation for the merge-sorted bucket model.
 
 The remaining CLRS refinements split into three tracks.  The array-level
 `COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
-bucket specification.  Radix sort still needs the arithmetic bridge showing
-that bounded base-`b` digit lexicographic order agrees with ordinary
-natural-number key order.  Bucket-sort expected time needs a probability model
-for the input distribution, so it remains a design-level proof task.
+bucket specification.  Radix sort still needs the multi-digit arithmetic bridge
+showing that bounded base-`b` digit lexicographic order agrees with ordinary
+natural-number key order; the one-digit case is already proved.  Bucket-sort
+expected time needs a probability model for the input distribution, so it
+remains a design-level proof task.
 
 ### Chapter 9 Selection Refinements
 

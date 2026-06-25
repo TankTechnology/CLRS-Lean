@@ -66,7 +66,8 @@ Start with the chapter pages in the sidebar.
 * Chapter 8 - Sorting in Linear Time: stable counting-sort bucket correctness,
   abstract radix-sort correctness and complete digit-signature stability from
   stable digit passes, a concrete base-{lit}`b` digit wrapper for natural-key
-  radix sort, and deterministic bucket-sort correctness.
+  radix sort, a key-order correctness wrapper with the one-digit arithmetic
+  case discharged, and deterministic bucket-sort correctness.
 * Chapter 9 - Medians and Order Statistics: selection-by-rank correctness for
   the specification selector, pivot-style quickselect, and pivot-parametric
   deterministic SELECT via a count-based order-statistic certificate.
@@ -256,15 +257,17 @@ Start with the chapter pages in the sidebar.
   `CLRS.Chapter08.countingSortBy_correct`.
 * 8.3 Radix sort: `proved` for the abstract stable digit-pass model with
   complete digit-signature stability plus a concrete base-`b` natural-key
-  wrapper.
+  wrapper, including key-order packaging and the one-digit arithmetic case.
   Public results: `CLRS.Chapter08.radixPass_orderedRel`,
   `CLRS.Chapter08.radixSortBy_ordered`,
   `CLRS.Chapter08.radixSortBy_stable`,
   `CLRS.Chapter08.radixSortBy_mem_iff`,
   `CLRS.Chapter08.radixSortBy_perm`,
   `CLRS.Chapter08.radixSortBy_correct_stable`,
-  `CLRS.Chapter08.baseDigitsLow_allDigitsLe`, and
-  `CLRS.Chapter08.radixSortNatBy_correct_stable`.
+  `CLRS.Chapter08.baseDigitsLow_allDigitsLe`,
+  `CLRS.Chapter08.radixSortNatBy_correct_stable`,
+  `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_digitOrder`, and
+  `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_singleDigit`.
 * 8.4 Bucket sort: `proved` for deterministic bucket-index correctness.
   Public results: `CLRS.Chapter08.bucketSortBy_ordered`,
   `CLRS.Chapter08.bucketSortBy_perm`,

@@ -549,7 +549,8 @@ from membership preservation to true multiset preservation.
 
 - Lean source: `CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean`
 - Status: `proved` for the abstract stable digit-pass model with complete
-  digit-signature stability and concrete base-`b` digit extraction
+  digit-signature stability, concrete base-`b` digit extraction, and key-order
+  packaging
 - Main proved theorems:
   - `CLRS.Chapter08.radixPass_orderedRel`
   - `CLRS.Chapter08.radixSortBy_ordered`
@@ -561,16 +562,21 @@ from membership preservation to true multiset preservation.
   - `CLRS.Chapter08.baseDigit`
   - `CLRS.Chapter08.baseDigitsLow_allDigitsLe`
   - `CLRS.Chapter08.radixSortNatBy_correct_stable`
+  - `CLRS.Chapter08.RadixDigitOrderRespectsKey`
+  - `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_digitOrder`
+  - `CLRS.Chapter08.radixDigitOrderRespectsKey_singleDigit`
+  - `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_singleDigit`
 - Proof pattern: represent a radix key as a low-to-high list of digit
   functions; prove that one stable counting-sort pass upgrades a lower-priority
   relation to a higher-priority lexicographic relation; separately prove that
   each complete digit-signature subsequence is preserved by composing
   counting-sort bucket stability with the induction hypothesis; then iterate
   both lemmas over the digit list.
-- Current gap: numeric-key ordering refinement is a future strengthening
-  target.  The concrete base-`b` extractor now feeds the abstract theorem, but
-  the arithmetic bridge from bounded digit lexicographic order to ordinary key
-  order remains.
+- Current gap: the full multi-digit numeric-key ordering refinement is a future
+  strengthening target.  The concrete base-`b` extractor now feeds the abstract
+  theorem, ordinary key ordering is packaged behind
+  `RadixDigitOrderRespectsKey`, and the one-digit case is proved.  The
+  remaining arithmetic bridge is the bounded multi-digit theorem.
 
 The theorem `CLRS.Chapter08.radixSortBy_correct_stable` packages the core
 facts: the result is ordered by the induced most-significant-first
@@ -578,7 +584,11 @@ lexicographic relation, each complete digit-signature subsequence is preserved,
 membership is preserved when all digit functions are bounded by the declared
 maximum digit, and the output is a permutation of the input.  The wrapper
 `CLRS.Chapter08.radixSortNatBy_correct_stable` instantiates that theorem with
-the concrete digits `(key / b^i) % b`.
+the concrete digits `(key / b^i) % b`.  The theorem
+`CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_digitOrder` converts the
+digit-lexicographic result to `OrderedBy key` once the digit-order bridge is
+provided, and `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_singleDigit`
+proves that bridge automatically when all keys fit in one digit.
 
 ### Section 8.4 - Bucket sort
 
@@ -958,7 +968,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, and functional quicksort correctness are proved; the next refinement is the CLRS array `PARTITION` swap model and returned pivot index. |
 | Chapter 7 randomized expected time | `blocked-design` | Needs a probability model for random pivots or random permutations and a cost recurrence/indicator argument. |
 | Chapter 8 count-array implementation | `future-work` | Stable bucket correctness is proved; the next refinement is an array count table and prefix-sum implementation of `COUNTING-SORT` connected to `countingSortBy`. |
-| Chapter 8 radix numeric-key refinement | `future-work` | Abstract radix-sort correctness, complete digit-signature stability, and the concrete base-`b` natural-key wrapper are proved; the remaining refinement is the arithmetic bridge from bounded digit lexicographic order to ordinary key order. |
+| Chapter 8 radix numeric-key refinement | `future-work` | Abstract radix-sort correctness, complete digit-signature stability, the concrete base-`b` natural-key wrapper, key-order packaging, and the one-digit arithmetic case are proved; the remaining refinement is the bounded multi-digit arithmetic bridge from digit lexicographic order to ordinary key order. |
 | Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; expected-time analysis needs a probability model for input distribution. |
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; the CLRS median-of-medians split-size and recurrence proof remains. |

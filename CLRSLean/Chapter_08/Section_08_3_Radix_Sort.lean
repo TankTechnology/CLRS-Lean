@@ -13,9 +13,11 @@ result is ordered by the corresponding most-significant-first lexicographic
 relation, preserves membership, preserves the input order inside each complete
 digit signature, and hence captures the CLRS stable-pass proof spine.
 
-This isolates the CLRS proof idea from low-level numeric encodings and cost
-models.  Concrete base-{lit}`b` digit extraction can later refine this
-interface.
+The final layer instantiates the abstract digit interface with concrete
+base-{lit}`b` digits for natural-number keys, packages ordinary key ordering
+behind a named digit-order bridge, and discharges that bridge for the one-digit
+case where every key is smaller than the base.  The remaining multi-digit
+numeric-order theorem is a focused arithmetic refinement.
 -/
 
 namespace CLRS
@@ -63,6 +65,30 @@ theorem orderedRel_append_of_rel {rel : α → α → Prop} {xs ys : List α}
     (hrel : ∀ x ∈ xs, ∀ y ∈ ys, rel x y) :
     OrderedRel rel (xs ++ ys) := by
   exact List.pairwise_append.mpr ⟨hxs, hys, hrel⟩
+
+/--
+Turn a pairwise relation order into the adjacent key-order predicate used by
+the counting-sort section, provided the relation implies key monotonicity on
+the same list.
+-/
+theorem orderedBy_of_orderedRel_on {rel : α → α → Prop} {key : α → Nat}
+    {xs : List α} (hxs : OrderedRel rel xs)
+    (hrel : ∀ x ∈ xs, ∀ y ∈ xs, rel x y → key x ≤ key y) :
+    OrderedBy key xs := by
+  induction xs with
+  | nil =>
+      trivial
+  | cons x xs ih =>
+      cases xs with
+      | nil =>
+          trivial
+      | cons y ys =>
+          cases hxs with
+          | cons hhead htail =>
+              refine ⟨?_, ih htail ?_⟩
+              · exact hrel x (by simp) y (by simp) (hhead y (by simp))
+              · intro a ha b hb hab
+                exact hrel a (by simp [ha]) b (by simp [hb]) hab
 
 theorem orderedRel_bucket {rel : α → α → Prop} {key : α → Nat}
     {xs : List α} (k : Nat) (hxs : OrderedRel rel xs) :
@@ -366,6 +392,11 @@ theorem baseDigit_le_max (base i n : Nat) (hbase : 0 < base) :
   simpa [baseDigit, Nat.pred_eq_sub_one] using
     Nat.le_pred_of_lt (Nat.mod_lt (n / base ^ i) hbase)
 
+/-- For a one-digit key smaller than the base, the extracted digit is the key. -/
+theorem baseDigit_zero_eq_self_of_lt {base n : Nat} (hn : n < base) :
+    baseDigit base 0 n = n := by
+  simpa [baseDigit] using Nat.mod_eq_of_lt hn
+
 /-- The concrete digit list satisfies the abstract bounded-digit hypothesis. -/
 theorem baseDigitsLow_allDigitsLe
     (base digitCount : Nat) (key : α → Nat) (xs : List α)
@@ -405,6 +436,98 @@ theorem radixSortNatBy_correct_stable [DecidableEq α]
   simpa [radixSortNatBy] using
     radixSortBy_correct_stable (base - 1) (baseDigitsLow base digitCount key)
       xs (baseDigitsLow_allDigitsLe base digitCount key xs hbase)
+
+/--
+The arithmetic bridge needed to turn digit-lexicographic order into ordinary
+key order on a concrete input domain.
+
+For bounded natural-number keys and enough digits, a later theorem should
+derive this predicate from base-{lit}`b` arithmetic.
+-/
+def RadixDigitOrderRespectsKey
+    (base digitCount : Nat) (key : α → Nat) (domain : List α) : Prop :=
+  ∀ x ∈ domain, ∀ y ∈ domain,
+    RadixLex (baseDigitsLow base digitCount key) x y → key x ≤ key y
+
+/--
+If every key in the input fits in one base-{lit}`base` digit, then the concrete
+radix digit order is already ordinary key order.
+-/
+theorem radixDigitOrderRespectsKey_singleDigit
+    (base : Nat) (key : α → Nat) (xs : List α)
+    (hkeys : ∀ x ∈ xs, key x < base) :
+    RadixDigitOrderRespectsKey base 1 key xs := by
+  intro x hx y hy hxy
+  have hx_digit :
+      baseDigit base 0 (key x) = key x :=
+    baseDigit_zero_eq_self_of_lt (hkeys x hx)
+  have hy_digit :
+      baseDigit base 0 (key y) = key y :=
+    baseDigit_zero_eq_self_of_lt (hkeys y hy)
+  change LexWith (fun z => baseDigit base 0 (key z)) (fun _ _ => True) x y at hxy
+  dsimp [LexWith] at hxy
+  rw [hx_digit, hy_digit] at hxy
+  rcases hxy with hlt | ⟨heq, _⟩
+  · exact Nat.le_of_lt hlt
+  · exact Nat.le_of_eq heq
+
+/--
+If the concrete digit lexicographic relation respects the natural key order on
+the input domain, concrete radix sort returns a list ordered by that key.
+-/
+theorem radixSortNatBy_keyOrdered_of_digitOrder [DecidableEq α]
+    (base digitCount : Nat) (key : α → Nat) (xs : List α)
+    (hbase : 0 < base)
+    (hdigit_order : RadixDigitOrderRespectsKey base digitCount key xs) :
+    OrderedBy key (radixSortNatBy base digitCount key xs) := by
+  have hcorrect := radixSortNatBy_correct_stable base digitCount key xs hbase
+  have hmem :
+      ∀ x, x ∈ radixSortNatBy base digitCount key xs ↔ x ∈ xs :=
+    hcorrect.2.2.1
+  exact orderedBy_of_orderedRel_on hcorrect.1
+    (by
+      intro x hx y hy hxy
+      exact hdigit_order x ((hmem x).mp hx) y ((hmem y).mp hy) hxy)
+
+/--
+Concrete radix-sort correctness theorem with ordinary key ordering separated
+from the remaining base-{lit}`b` arithmetic obligation.
+-/
+theorem radixSortNatBy_correct_keyOrdered_of_digitOrder [DecidableEq α]
+    (base digitCount : Nat) (key : α → Nat) (xs : List α)
+    (hbase : 0 < base)
+    (hdigit_order : RadixDigitOrderRespectsKey base digitCount key xs) :
+    OrderedBy key (radixSortNatBy base digitCount key xs) ∧
+      (∀ sample,
+        digitClass (baseDigitsLow base digitCount key) sample
+          (radixSortNatBy base digitCount key xs) =
+          digitClass (baseDigitsLow base digitCount key) sample xs) ∧
+      (∀ x, x ∈ radixSortNatBy base digitCount key xs ↔ x ∈ xs) ∧
+      (radixSortNatBy base digitCount key xs).Perm xs := by
+  have hcorrect := radixSortNatBy_correct_stable base digitCount key xs hbase
+  exact ⟨radixSortNatBy_keyOrdered_of_digitOrder base digitCount key xs hbase
+      hdigit_order,
+    hcorrect.2.1,
+    hcorrect.2.2.1,
+    hcorrect.2.2.2⟩
+
+/--
+Concrete one-pass radix-sort correctness when all keys are already below the
+base.  This is the smallest arithmetic discharge of
+{name}`RadixDigitOrderRespectsKey`.
+-/
+theorem radixSortNatBy_correct_keyOrdered_singleDigit [DecidableEq α]
+    (base : Nat) (key : α → Nat) (xs : List α)
+    (hbase : 0 < base) (hkeys : ∀ x ∈ xs, key x < base) :
+    OrderedBy key (radixSortNatBy base 1 key xs) ∧
+      (∀ sample,
+        digitClass (baseDigitsLow base 1 key) sample
+          (radixSortNatBy base 1 key xs) =
+          digitClass (baseDigitsLow base 1 key) sample xs) ∧
+      (∀ x, x ∈ radixSortNatBy base 1 key xs ↔ x ∈ xs) ∧
+      (radixSortNatBy base 1 key xs).Perm xs :=
+  radixSortNatBy_correct_keyOrdered_of_digitOrder base 1 key xs hbase
+    (radixDigitOrderRespectsKey_singleDigit base key xs hkeys)
 
 end Chapter08
 end CLRS
