@@ -1242,9 +1242,13 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.member_correct`
   - `CLRS.Chapter20.VEB.member_lt_univ`
   - `CLRS.Chapter20.VEB.minimum_correct`
+  - `CLRS.Chapter20.VEB.minimum_mem`
+  - `CLRS.Chapter20.VEB.minimum_le`
   - `CLRS.Chapter20.VEB.minimum_lt_univ`
   - `CLRS.Chapter20.VEB.minimum_none_iff`
   - `CLRS.Chapter20.VEB.maximum_correct`
+  - `CLRS.Chapter20.VEB.maximum_mem`
+  - `CLRS.Chapter20.VEB.le_maximum`
   - `CLRS.Chapter20.VEB.maximum_lt_univ`
   - `CLRS.Chapter20.VEB.maximum_none_iff`
   - `CLRS.Chapter20.VEB.successor_correct`
@@ -1297,8 +1301,9 @@ Fibonacci logarithmic theorem.
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,
   extrema/successor via `Finset.min'`/`max'`, successful-query universe-bound
-  bridges, direct updated-key, old-key preservation, and failed member queries
-  after updates, update-query universe-bound corollaries, and definition unfolding for
+  bridges, direct extrema membership/lower- and upper-bound wrappers, direct
+  updated-key, old-key preservation, and failed member queries after updates,
+  update-query universe-bound corollaries, and definition unfolding for
   first-pass operation-depth recurrence and monotonicity facts
 - Current gap: recursive min/max-summary-cluster state, word-RAM base cases,
   and an explicit Chapter 3 asymptotic bridge for `O(log log u)` remain
@@ -1308,8 +1313,9 @@ Chapter 20 now proves the high/low/index arithmetic, including both directions
 of bounded high/low recomposition, and a set-specification layer for the main
 vEB queries and updates.  This includes both positive and empty-result
 extrema/successor/predecessor cases plus successful-query universe-bound
-corollaries, membership-after-update, direct updated-key and old-key
-member-preservation corollaries, exact failed member-query corollaries,
+corollaries, direct extrema membership/lower- and upper-bound wrappers,
+membership-after-update, direct updated-key and old-key member-preservation
+corollaries, exact failed member-query corollaries,
 positive and empty-result extrema-after-update, and both positive and
 no-neighbor specifications for neighbor queries after updates, plus direct
 universe-bound corollaries for successful queries after updates.  The

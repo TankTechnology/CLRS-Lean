@@ -11,7 +11,8 @@ of membership, extrema, successor, predecessor, insert, and delete against a
 represented finite set, including empty-result specifications for extrema,
 successor, and predecessor plus membership-, extrema-, and
 neighbor-query-after-update positive and no-neighbor specifications,
-successful-query universe-bound corollaries, extrema empty-after-update
+successful-query universe-bound corollaries, direct extrema
+membership/lower- and upper-bound wrappers, extrema empty-after-update
 specifications, update-query universe-bound corollaries, direct
 inserted/deleted key and old-key member-preservation corollaries, exact
 failed member-query specifications after updates, and operation-depth
@@ -33,9 +34,13 @@ base/step/linear and monotonicity wrappers.
   {lit}`CLRS.Chapter20.VEB.member_correct`,
   {lit}`CLRS.Chapter20.VEB.member_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.minimum_correct`,
+  {lit}`CLRS.Chapter20.VEB.minimum_mem`,
+  {lit}`CLRS.Chapter20.VEB.minimum_le`,
   {lit}`CLRS.Chapter20.VEB.minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.minimum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.maximum_correct`,
+  {lit}`CLRS.Chapter20.VEB.maximum_mem`,
+  {lit}`CLRS.Chapter20.VEB.le_maximum`,
   {lit}`CLRS.Chapter20.VEB.maximum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.maximum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.successor_correct`,

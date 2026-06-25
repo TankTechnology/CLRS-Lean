@@ -14,6 +14,9 @@ Main results:
   set.
 - Theorems {lit}`VEB.minimum_correct` and {lit}`VEB.maximum_correct`: returned
   extrema are represented keys with the expected order property.
+- Theorems {lit}`VEB.minimum_mem`, {lit}`VEB.minimum_le`,
+  {lit}`VEB.maximum_mem`, and {lit}`VEB.le_maximum`: direct membership and
+  lower/upper-bound corollaries for returned extrema.
 - Theorems {lit}`VEB.member_lt_univ`, {lit}`VEB.minimum_lt_univ`,
   {lit}`VEB.maximum_lt_univ`, {lit}`VEB.successor_lt_univ`, and
   {lit}`VEB.predecessor_lt_univ`: successful queries return keys inside the
@@ -133,6 +136,18 @@ theorem minimum_correct {t : Tree} {s : Finset Nat} {x : Nat}
       exact Finset.min'_le t.elems y hyt
   · simp [hne] at hmin
 
+/-- A returned minimum belongs to the represented key set. -/
+theorem minimum_mem {t : Tree} {s : Finset Nat} {x : Nat}
+    (hrep : Represents t s) (hmin : minimum t = some x) :
+    x ∈ s := by
+  exact (minimum_correct (t := t) (s := s) (x := x) hrep hmin).1
+
+/-- A returned minimum is no larger than any represented key. -/
+theorem minimum_le {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) (hmin : minimum t = some x) (hy : y ∈ s) :
+    x <= y := by
+  exact (minimum_correct (t := t) (s := s) (x := x) hrep hmin).2 y hy
+
 /-- A returned minimum lies inside the represented universe. -/
 theorem minimum_lt_univ {t : Tree} {s : Finset Nat} {x : Nat}
     (hrep : Represents t s) (hmin : minimum t = some x) :
@@ -173,6 +188,18 @@ theorem maximum_correct {t : Tree} {s : Finset Nat} {x : Nat}
         simpa [hrep.1] using hy
       exact Finset.le_max' t.elems y hyt
   · simp [hne] at hmax
+
+/-- A returned maximum belongs to the represented key set. -/
+theorem maximum_mem {t : Tree} {s : Finset Nat} {x : Nat}
+    (hrep : Represents t s) (hmax : maximum t = some x) :
+    x ∈ s := by
+  exact (maximum_correct (t := t) (s := s) (x := x) hrep hmax).1
+
+/-- Every represented key is no larger than a returned maximum. -/
+theorem le_maximum {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) (hmax : maximum t = some x) (hy : y ∈ s) :
+    y <= x := by
+  exact (maximum_correct (t := t) (s := s) (x := x) hrep hmax).2 y hy
 
 /-- A returned maximum lies inside the represented universe. -/
 theorem maximum_lt_univ {t : Tree} {s : Finset Nat} {x : Nat}

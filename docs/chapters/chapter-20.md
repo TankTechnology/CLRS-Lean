@@ -15,9 +15,13 @@
 - `CLRS.Chapter20.VEB.member_correct`
 - `CLRS.Chapter20.VEB.member_lt_univ`
 - `CLRS.Chapter20.VEB.minimum_correct`
+- `CLRS.Chapter20.VEB.minimum_mem`
+- `CLRS.Chapter20.VEB.minimum_le`
 - `CLRS.Chapter20.VEB.minimum_lt_univ`
 - `CLRS.Chapter20.VEB.minimum_none_iff`
 - `CLRS.Chapter20.VEB.maximum_correct`
+- `CLRS.Chapter20.VEB.maximum_mem`
+- `CLRS.Chapter20.VEB.le_maximum`
 - `CLRS.Chapter20.VEB.maximum_lt_univ`
 - `CLRS.Chapter20.VEB.maximum_none_iff`
 - `CLRS.Chapter20.VEB.successor_correct`
@@ -74,7 +78,8 @@ The current chapter proves side-length universe arithmetic, including bounded
 high/low recomposition facts, and finite-set operation specifications.
 It also records direct member-query corollaries for inserted/deleted keys,
 old-key preservation, and exact failed member queries after updates,
-successful-query universe-bound corollaries, positive and empty-result
+successful-query universe-bound corollaries, direct extrema
+membership/lower- and upper-bound wrappers, positive and empty-result
 extrema-after-update specs, positive and no-neighbor update-query specs,
 update-query universe-bound corollaries, plus the first-pass operation-depth
 base, step, linear, and monotonicity facts.

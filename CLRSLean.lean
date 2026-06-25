@@ -121,8 +121,9 @@ Start with the chapter pages in the sidebar.
   bounds, empty-result extrema/successor/predecessor queries, insert, and
   delete, including membership-, extrema-, and neighbor-query-after-update
   positive/no-neighbor specs, extrema empty-after-update specs, direct
-  member-query preservation and failure corollaries, update-query universe-bound
-  corollaries, and operation-depth
+  extrema membership/lower- and upper-bound wrappers, member-query
+  preservation and failure corollaries, update-query universe-bound corollaries,
+  and operation-depth
   recurrence/monotonicity specs.
 * Chapter 23 - Minimum Spanning Trees: the MST cut property, the mathematical
   Kruskal skeleton, and finite-graph MST wrappers.
@@ -577,9 +578,13 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.member_correct`,
   {lit}`CLRS.Chapter20.VEB.member_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.minimum_correct`,
+  {lit}`CLRS.Chapter20.VEB.minimum_mem`,
+  {lit}`CLRS.Chapter20.VEB.minimum_le`,
   {lit}`CLRS.Chapter20.VEB.minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.minimum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.maximum_correct`,
+  {lit}`CLRS.Chapter20.VEB.maximum_mem`,
+  {lit}`CLRS.Chapter20.VEB.le_maximum`,
   {lit}`CLRS.Chapter20.VEB.maximum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.maximum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.successor_correct`,
