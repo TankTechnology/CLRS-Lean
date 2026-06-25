@@ -1130,10 +1130,13 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.delete_maximum_correct`
   - `CLRS.Chapter20.VEB.delete_successor_correct`
   - `CLRS.Chapter20.VEB.delete_predecessor_correct`
+  - `CLRS.Chapter20.VEB.operationDepth_zero`
+  - `CLRS.Chapter20.VEB.operationDepth_succ`
   - `CLRS.Chapter20.VEB.operationDepth_linear`
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,
-  extrema/successor via `Finset.min'`/`max'`
+  extrema/successor via `Finset.min'`/`max'`, and definition unfolding for
+  first-pass operation-depth recurrence facts
 - Current gap: recursive min/max-summary-cluster state, word-RAM base cases,
   and an explicit Chapter 3 asymptotic bridge for `O(log log u)` remain
   strengthening targets.
@@ -1143,8 +1146,9 @@ of bounded high/low recomposition, and a set-specification layer for the main
 vEB queries and updates.  This includes both positive and empty-result
 extrema/successor/predecessor cases plus direct membership-after-update,
 extrema-after-update, and neighbor-query-after-update specifications.  The
-current operation-depth theorem is a linear wrapper over the universe exponent,
-not yet a full asymptotic translation for the original universe size.
+current operation-depth facts expose the base case, successor step, and a
+linear wrapper over the universe exponent, not yet a full asymptotic
+translation for the original universe size.
 
 ## Chapter 23 - Minimum Spanning Trees
 

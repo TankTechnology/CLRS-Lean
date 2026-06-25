@@ -33,11 +33,14 @@
 - `CLRS.Chapter20.VEB.delete_maximum_correct`
 - `CLRS.Chapter20.VEB.delete_successor_correct`
 - `CLRS.Chapter20.VEB.delete_predecessor_correct`
+- `CLRS.Chapter20.VEB.operationDepth_zero`
+- `CLRS.Chapter20.VEB.operationDepth_succ`
 - `CLRS.Chapter20.VEB.operationDepth_linear`
 
 ## Remaining Work
 
 The current chapter proves side-length universe arithmetic, including bounded
 high/low recomposition facts, and finite-set operation specifications.
+It also records the first-pass operation-depth base and step recurrence facts.
 Recursive summary/cluster state, word-RAM base cases, and a full `O(log log u)`
 asymptotic bridge are still open.

@@ -35,4 +35,6 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.delete_successor_correct
 #check CLRS.Chapter20.VEB.delete_predecessor_correct
 #check CLRS.Chapter20.VEB.operationDepth
+#check CLRS.Chapter20.VEB.operationDepth_zero
+#check CLRS.Chapter20.VEB.operationDepth_succ
 #check CLRS.Chapter20.VEB.operationDepth_linear

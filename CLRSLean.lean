@@ -110,7 +110,8 @@ Start with the chapter pages in the sidebar.
   bounded recomposition facts and a finite-set specification layer for
   membership, extrema, successor,
   predecessor, empty-result extrema/successor/predecessor queries, insert, and
-  delete, including membership-, extrema-, and neighbor-query-after-update specs.
+  delete, including membership-, extrema-, neighbor-query-after-update, and
+  operation-depth recurrence specs.
 * Chapter 23 - Minimum Spanning Trees: the MST cut property, the mathematical
   Kruskal skeleton, and finite-graph MST wrappers.
 * Progress Dashboard: a compact, generated chapter-by-chapter view of current
@@ -504,6 +505,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.delete_maximum_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_correct`, and
+  {lit}`CLRS.Chapter20.VEB.operationDepth_zero`,
+  {lit}`CLRS.Chapter20.VEB.operationDepth_succ`, and
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`.
 * 23.1 Growing a minimum spanning tree: {lit}`partial`.
   Current results:

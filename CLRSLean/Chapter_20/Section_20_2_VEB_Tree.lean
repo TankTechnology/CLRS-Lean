@@ -433,6 +433,16 @@ theorem delete_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
 def operationDepth (k : Nat) : Nat :=
   k + 1
 
+/-- The first-pass operation-depth recurrence starts with one base step. -/
+theorem operationDepth_zero :
+    operationDepth 0 = 1 := by
+  rfl
+
+/-- The first-pass operation-depth recurrence increases by one per exponent level. -/
+theorem operationDepth_succ (k : Nat) :
+    operationDepth (k + 1) = operationDepth k + 1 := by
+  rfl
+
 /-- The first-pass recurrence-depth wrapper is linear in {lit}`k`. -/
 theorem operationDepth_linear (k : Nat) :
     operationDepth k <= k + 1 := by
