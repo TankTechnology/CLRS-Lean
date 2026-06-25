@@ -105,8 +105,9 @@ which areas should not yet be counted as proof-complete.
   pointers, transplant, and mutation remain.
 * Chapter 13, Section 13.1: local red-black rotation/recoloring invariants and
   the four local insertion-fixup membership, black-height, and shape
-  certificates are proved; composing them into full insertion and deletion fixup
-  algorithms remains.
+  certificates are proved, with a unified local dispatcher certificate
+  interface; composing them into full insertion and deletion fixup algorithms
+  remains.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
@@ -601,8 +602,12 @@ the next cleanup pass after this 11--15 track.
   {lit}`CLRS.Chapter13.RBTree.blackHeight_insertFixup_rightRight`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftLeft`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftRight`,
-  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightLeft`, and
-  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`;
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightLeft`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`,
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_leftLeft_certificate`,
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_leftRight_certificate`,
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_rightLeft_certificate`, and
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate`;
   remaining gap: compose these local insertion-fixup certificates into the
   executable insertion algorithm; deletion fixup is not yet mechanized.
 * 14.1 Order-statistic trees:

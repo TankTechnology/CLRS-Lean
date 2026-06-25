@@ -48,6 +48,11 @@ Main results:
   {lit}`RBTree.blackHeight_insertFixup_rightRight`: the same four local
   insertion-fixup rewrites preserve the subtree black height needed by a parent
   context.
+- Theorems {lit}`RBTree.insertFixupLocal_leftLeft_certificate`,
+  {lit}`RBTree.insertFixupLocal_leftRight_certificate`,
+  {lit}`RBTree.insertFixupLocal_rightLeft_certificate`, and
+  {lit}`RBTree.insertFixupLocal_rightRight_certificate`: the four branch-specific
+  facts are bundled behind one local dispatcher and certificate interface.
 
 Current gaps:
 
@@ -307,6 +312,37 @@ def insertFixupRightRight : RBTree → RBTree
       node Color.black (node Color.red a w b) x (node Color.red c y d)
   | t => t
 
+/-- The four local CLRS insertion-fixup branch orientations. -/
+inductive InsertFixupCase where
+  | leftLeft
+  | leftRight
+  | rightLeft
+  | rightRight
+  deriving Repr, DecidableEq
+
+/--
+Unified dispatcher for the four local insertion-fixup rewrites.  The explicit
+case parameter records the branch chosen by the surrounding insertion-fixup
+algorithm; the raw local tree shape alone is not enough to disambiguate every
+overlapping pattern.
+-/
+def insertFixupLocal : InsertFixupCase → RBTree → RBTree
+  | InsertFixupCase.leftLeft, t => insertFixupLeftLeft t
+  | InsertFixupCase.leftRight, t => insertFixupLeftRight t
+  | InsertFixupCase.rightLeft, t => insertFixupRightLeft t
+  | InsertFixupCase.rightRight, t => insertFixupRightRight t
+
+/--
+The reusable local certificate needed by a future executable insertion-fixup:
+the local rewrite preserves membership for a query, preserves subtree black
+height, and establishes the bundled local red-black shape invariant.
+-/
+structure InsertFixupLocalCertificate
+    (q : Nat) (before after : RBTree) : Prop where
+  membership : InTree q after ↔ InTree q before
+  blackHeight_eq : blackHeight after = blackHeight before
+  shape : RedBlackShape after
+
 /--
 A black root with two red children is locally red-black shaped when the four
 fringe subtrees are red-black shaped and have matching black heights.
@@ -476,6 +512,110 @@ theorem redBlackShape_insertFixup_rightRight
     redBlackShape_black_with_red_children
       (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
       ha hb hc hd hab hbc hcd
+
+/-- Unified local certificate for the left-left insertion-fixup branch. -/
+theorem insertFixupLocal_leftLeft_certificate
+    (q : Nat) {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    InsertFixupLocalCertificate q
+      (node Color.black (node Color.red (node Color.red a w b) x c) y d)
+      (insertFixupLocal InsertFixupCase.leftLeft
+        (node Color.black (node Color.red (node Color.red a w b) x c) y d)) := by
+  exact ⟨
+    by
+      simpa [insertFixupLocal] using
+        inTree_insertFixup_leftLeft_iff q a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        blackHeight_insertFixup_leftLeft a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        redBlackShape_insertFixup_leftLeft
+          (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+          ha hb hc hd hab hbc hcd
+  ⟩
+
+/-- Unified local certificate for the left-right insertion-fixup branch. -/
+theorem insertFixupLocal_leftRight_certificate
+    (q : Nat) {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    InsertFixupLocalCertificate q
+      (node Color.black (node Color.red a w (node Color.red b x c)) y d)
+      (insertFixupLocal InsertFixupCase.leftRight
+        (node Color.black (node Color.red a w (node Color.red b x c)) y d)) := by
+  exact ⟨
+    by
+      simpa [insertFixupLocal] using
+        inTree_insertFixup_leftRight_iff q a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        blackHeight_insertFixup_leftRight a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        redBlackShape_insertFixup_leftRight
+          (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+          ha hb hc hd hab hbc hcd
+  ⟩
+
+/-- Unified local certificate for the right-left insertion-fixup branch. -/
+theorem insertFixupLocal_rightLeft_certificate
+    (q : Nat) {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    InsertFixupLocalCertificate q
+      (node Color.black a w (node Color.red (node Color.red b x c) y d))
+      (insertFixupLocal InsertFixupCase.rightLeft
+        (node Color.black a w (node Color.red (node Color.red b x c) y d))) := by
+  exact ⟨
+    by
+      simpa [insertFixupLocal] using
+        inTree_insertFixup_rightLeft_iff q a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        blackHeight_insertFixup_rightLeft a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        redBlackShape_insertFixup_rightLeft
+          (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+          ha hb hc hd hab hbc hcd
+  ⟩
+
+/-- Unified local certificate for the right-right insertion-fixup branch. -/
+theorem insertFixupLocal_rightRight_certificate
+    (q : Nat) {a b c d : RBTree} {w x y : Nat}
+    (ha : RedBlackShape a) (hb : RedBlackShape b)
+    (hc : RedBlackShape c) (hd : RedBlackShape d)
+    (hab : blackHeight a = blackHeight b)
+    (hbc : blackHeight b = blackHeight c)
+    (hcd : blackHeight c = blackHeight d) :
+    InsertFixupLocalCertificate q
+      (node Color.black a w (node Color.red b x (node Color.red c y d)))
+      (insertFixupLocal InsertFixupCase.rightRight
+        (node Color.black a w (node Color.red b x (node Color.red c y d)))) := by
+  exact ⟨
+    by
+      simpa [insertFixupLocal] using
+        inTree_insertFixup_rightRight_iff q a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        blackHeight_insertFixup_rightRight a b c d w x y,
+    by
+      simpa [insertFixupLocal] using
+        redBlackShape_insertFixup_rightRight
+          (a := a) (b := b) (c := c) (d := d) (w := w) (x := x) (y := y)
+          ha hb hc hd hab hbc hcd
+  ⟩
 
 end RBTree
 

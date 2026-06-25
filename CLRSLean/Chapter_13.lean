@@ -9,7 +9,8 @@ invariant layer: colored trees, membership preservation under rotations, the
 no-red-red property, black-height balance, root recoloring, and a bundled local
 red-black shape predicate.  It also isolates the four local
 {lit}`RB-INSERT-FIXUP` rotation/recoloring cases as small certificates that
-preserve membership and local black height while establishing shape.
+preserve membership and local black height while establishing shape.  These
+case certificates are also bundled through one local dispatcher interface.
 
 ## Sections
 
@@ -34,8 +35,12 @@ preserve membership and local black height while establishing shape.
   {lit}`CLRS.Chapter13.RBTree.blackHeight_insertFixup_rightRight`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftLeft`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_leftRight`,
-  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightLeft`, and
-  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`.
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightLeft`,
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`,
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_leftLeft_certificate`,
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_leftRight_certificate`,
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_rightLeft_certificate`, and
+  {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate`.
 
 ## Current Gaps
 
