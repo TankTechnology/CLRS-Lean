@@ -1405,6 +1405,7 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.delete_minimum_lt_univ`
   - `CLRS.Chapter20.VEB.delete_minimum_none_iff`
   - `CLRS.Chapter20.VEB.delete_minimum_none_of_all_eq`
+  - `CLRS.Chapter20.VEB.delete_minimum_ne_none_of_remaining`
   - `CLRS.Chapter20.VEB.delete_maximum_correct`
   - `CLRS.Chapter20.VEB.delete_maximum_ne`
   - `CLRS.Chapter20.VEB.delete_maximum_mem`
@@ -1412,6 +1413,7 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.delete_maximum_lt_univ`
   - `CLRS.Chapter20.VEB.delete_maximum_none_iff`
   - `CLRS.Chapter20.VEB.delete_maximum_none_of_all_eq`
+  - `CLRS.Chapter20.VEB.delete_maximum_ne_none_of_remaining`
   - `CLRS.Chapter20.VEB.delete_successor_correct`
   - `CLRS.Chapter20.VEB.delete_successor_mem`
   - `CLRS.Chapter20.VEB.delete_successor_gt`
@@ -1445,6 +1447,7 @@ Fibonacci logarithmic theorem.
   premise-light no-neighbor wrappers over old represented sets, direct extrema
   empty-result wrappers, direct base extrema/neighbor nonempty-result wrappers,
   direct updated-neighbor nonempty-result wrappers,
+  direct deletion-extrema nonempty-result wrappers,
   direct extrema-after-update
   membership/order wrappers, update-query
   universe-bound corollaries, and definition unfolding for
@@ -1467,7 +1470,8 @@ no-neighbor specifications for neighbor queries after updates, plus direct
 no-neighbor query wrappers, premise-light no-neighbor wrappers over old
 represented sets, direct extrema empty-result wrappers, direct base
 extrema/neighbor nonempty-result wrappers, direct updated-neighbor
-nonempty-result wrappers, and direct universe-bound
+nonempty-result wrappers, direct deletion-extrema nonempty-result wrappers,
+and direct universe-bound
 corollaries for successful queries after updates.  The
 current operation-depth facts expose the base case, successor step, and a
 linear/monotone wrapper over the universe exponent, not yet a full asymptotic

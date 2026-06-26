@@ -78,6 +78,9 @@ Main results:
 - Theorems {lit}`VEB.minimum_ne_none_of_nonempty` and
   {lit}`VEB.maximum_ne_none_of_nonempty`: direct nonempty-result wrappers for
   base extrema queries.
+- Theorems {lit}`VEB.delete_minimum_ne_none_of_remaining` and
+  {lit}`VEB.delete_maximum_ne_none_of_remaining`: direct nonempty-result
+  wrappers for extrema queries after deletion leaves a remaining old key.
 - Theorems {lit}`VEB.insert_successor_correct`,
   {lit}`VEB.insert_predecessor_correct`, {lit}`VEB.delete_successor_correct`,
   and {lit}`VEB.delete_predecessor_correct`: successor and predecessor queries
@@ -1116,6 +1119,15 @@ theorem delete_minimum_none_of_all_eq {t : Tree} {s : Finset Nat} {x : Nat}
     minimum (delete x t) = none := by
   exact (delete_minimum_none_iff (t := t) (s := s) (x := x) hrep).2 hall
 
+/-- If some old key remains after deletion, a minimum still exists. -/
+theorem delete_minimum_ne_none_of_remaining {t : Tree} {s : Finset Nat}
+    {x y : Nat} (hrep : Represents t s) (hy : y ∈ s) (hyx : y ≠ x) :
+    minimum (delete x t) ≠ none := by
+  intro hnone
+  have hall : forall z, z ∈ s -> z = x :=
+    (delete_minimum_none_iff (t := t) (s := s) (x := x) hrep).1 hnone
+  exact hyx (hall y hy)
+
 /-- A returned maximum after deletion is the greatest remaining old key. -/
 theorem delete_maximum_correct {t : Tree} {s : Finset Nat} {x m : Nat}
     (hrep : Represents t s) (hmax : maximum (delete x t) = some m) :
@@ -1190,6 +1202,15 @@ theorem delete_maximum_none_of_all_eq {t : Tree} {s : Finset Nat} {x : Nat}
     (hrep : Represents t s) (hall : forall y, y ∈ s -> y = x) :
     maximum (delete x t) = none := by
   exact (delete_maximum_none_iff (t := t) (s := s) (x := x) hrep).2 hall
+
+/-- If some old key remains after deletion, a maximum still exists. -/
+theorem delete_maximum_ne_none_of_remaining {t : Tree} {s : Finset Nat}
+    {x y : Nat} (hrep : Represents t s) (hy : y ∈ s) (hyx : y ≠ x) :
+    maximum (delete x t) ≠ none := by
+  intro hnone
+  have hall : forall z, z ∈ s -> z = x :=
+    (delete_maximum_none_iff (t := t) (s := s) (x := x) hrep).1 hnone
+  exact hyx (hall y hy)
 
 /-- A returned successor after deletion is the least remaining old key greater than the query. -/
 theorem delete_successor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}

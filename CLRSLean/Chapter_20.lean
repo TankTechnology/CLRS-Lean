@@ -15,6 +15,7 @@ successful-query universe-bound corollaries, direct no-neighbor query wrappers,
 premise-light no-neighbor wrappers over old represented sets,
 direct base extrema/neighbor nonempty-result wrappers,
 direct updated-neighbor nonempty-result wrappers,
+direct deletion-extrema nonempty-result wrappers,
 direct extrema membership/lower- and upper-bound wrappers, direct
 base/insert/delete neighbor membership/order wrappers, direct
 extrema-after-update membership/order wrappers, extrema empty-after-update
@@ -126,6 +127,7 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.delete_minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_none_of_all_eq`,
+  {lit}`CLRS.Chapter20.VEB.delete_minimum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_ne`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_mem`,
@@ -133,6 +135,7 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.delete_maximum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_none_of_all_eq`,
+  {lit}`CLRS.Chapter20.VEB.delete_maximum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_mem`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_gt`,

@@ -101,6 +101,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.delete_minimum_lt_univ
 #check CLRS.Chapter20.VEB.delete_minimum_none_iff
 #check CLRS.Chapter20.VEB.delete_minimum_none_of_all_eq
+#check CLRS.Chapter20.VEB.delete_minimum_ne_none_of_remaining
 #check CLRS.Chapter20.VEB.delete_maximum_correct
 #check CLRS.Chapter20.VEB.delete_maximum_ne
 #check CLRS.Chapter20.VEB.delete_maximum_mem
@@ -108,6 +109,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.delete_maximum_lt_univ
 #check CLRS.Chapter20.VEB.delete_maximum_none_iff
 #check CLRS.Chapter20.VEB.delete_maximum_none_of_all_eq
+#check CLRS.Chapter20.VEB.delete_maximum_ne_none_of_remaining
 #check CLRS.Chapter20.VEB.delete_successor_correct
 #check CLRS.Chapter20.VEB.delete_successor_mem
 #check CLRS.Chapter20.VEB.delete_successor_gt

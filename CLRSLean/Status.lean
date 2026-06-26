@@ -140,6 +140,7 @@ which areas should not yet be counted as proof-complete.
   no-neighbor wrappers over old represented sets, direct extrema empty-result
   wrappers, direct base extrema/neighbor nonempty-result wrappers,
   direct updated-neighbor nonempty-result wrappers,
+  direct deletion-extrema nonempty-result wrappers,
   update-query universe-bound corollaries, and
   operation-depth recurrence/monotonicity specs, are proved; recursive cluster
   representation
@@ -848,6 +849,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.delete_minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_minimum_none_of_all_eq`,
+  {lit}`CLRS.Chapter20.VEB.delete_minimum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_ne`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_mem`,
@@ -855,6 +857,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.delete_maximum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_maximum_none_of_all_eq`,
+  {lit}`CLRS.Chapter20.VEB.delete_maximum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_mem`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_gt`,

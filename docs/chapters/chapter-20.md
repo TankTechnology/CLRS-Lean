@@ -100,6 +100,7 @@
 - `CLRS.Chapter20.VEB.delete_minimum_lt_univ`
 - `CLRS.Chapter20.VEB.delete_minimum_none_iff`
 - `CLRS.Chapter20.VEB.delete_minimum_none_of_all_eq`
+- `CLRS.Chapter20.VEB.delete_minimum_ne_none_of_remaining`
 - `CLRS.Chapter20.VEB.delete_maximum_correct`
 - `CLRS.Chapter20.VEB.delete_maximum_ne`
 - `CLRS.Chapter20.VEB.delete_maximum_mem`
@@ -107,6 +108,7 @@
 - `CLRS.Chapter20.VEB.delete_maximum_lt_univ`
 - `CLRS.Chapter20.VEB.delete_maximum_none_iff`
 - `CLRS.Chapter20.VEB.delete_maximum_none_of_all_eq`
+- `CLRS.Chapter20.VEB.delete_maximum_ne_none_of_remaining`
 - `CLRS.Chapter20.VEB.delete_successor_correct`
 - `CLRS.Chapter20.VEB.delete_successor_mem`
 - `CLRS.Chapter20.VEB.delete_successor_gt`
@@ -146,7 +148,8 @@ specs, positive and no-neighbor update-query specs, update-query
 universe-bound corollaries, direct no-neighbor query wrappers, premise-light
 no-neighbor wrappers over old represented sets, direct extrema empty-result
 wrappers, direct base extrema/neighbor nonempty-result wrappers, direct
-updated-neighbor nonempty-result wrappers, plus the
+updated-neighbor nonempty-result wrappers, direct deletion-extrema
+nonempty-result wrappers, plus the
 first-pass operation-depth base, step, linear, and
 monotonicity facts.
 Recursive summary/cluster state, word-RAM base cases, and a full `O(log log u)`
