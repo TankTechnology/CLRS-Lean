@@ -1162,6 +1162,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.insert_mem_self`
   - `CLRS.Chapter19.FibHeap.insert_mem_old`
   - `CLRS.Chapter19.FibHeap.insert_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.insert_not_mem_of_ne`
   - `CLRS.Chapter19.FibHeap.insert_minimum_correct`
   - `CLRS.Chapter19.FibHeap.insert_minimum_mem`
   - `CLRS.Chapter19.FibHeap.insert_minimum_le_inserted`
@@ -1173,6 +1174,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.union_mem_left`
   - `CLRS.Chapter19.FibHeap.union_mem_right`
   - `CLRS.Chapter19.FibHeap.union_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.union_not_mem_of_not_mem`
   - `CLRS.Chapter19.FibHeap.union_minimum_correct`
   - `CLRS.Chapter19.FibHeap.union_minimum_mem`
   - `CLRS.Chapter19.FibHeap.union_minimum_le_left`
@@ -1184,6 +1186,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.extractMin_not_mem`
   - `CLRS.Chapter19.FibHeap.extractMin_mem_of_ne`
   - `CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.extractMin_not_mem_old`
   - `CLRS.Chapter19.FibHeap.extractMin_none_iff`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne`
@@ -1196,6 +1199,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_new`
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_old`
   - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_mem`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`
@@ -1207,6 +1211,8 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.delete_not_mem`
   - `CLRS.Chapter19.FibHeap.delete_mem_of_ne`
   - `CLRS.Chapter19.FibHeap.delete_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.delete_not_mem_old`
+  - `CLRS.Chapter19.FibHeap.delete_not_mem_of_eq`
   - `CLRS.Chapter19.FibHeap.delete_minimum_correct`
   - `CLRS.Chapter19.FibHeap.delete_minimum_ne`
   - `CLRS.Chapter19.FibHeap.delete_minimum_mem`
@@ -1230,7 +1236,8 @@ mutation proof.
   membership/lower-bound wrappers, heap-potential nonnegativity and
   Chapter 17 potential-method instantiation, direct operation-key and old-key
   preservation membership corollaries, exact failed membership specifications,
-  returned minimum-after-update positive and empty-result specifications,
+  direct failed-membership preservation wrappers, returned
+  minimum-after-update positive and empty-result specifications,
   Fibonacci lower-bound recurrence
   plus a two-step doubling induction over even indices, a half-index bridge,
   and a conditional binary-log degree budget
@@ -1245,7 +1252,8 @@ wrappers, insert/union/extract-min-remaining/decrease-key/delete minimum direct
 membership/lower-bound wrappers, plus direct
 insert/union/extract-min/decrease-key/delete membership facts plus
 operation-key and old-key preservation membership corollaries plus exact failed
-membership specifications, direct operation-result validity wrappers, and
+membership specifications and direct failed-membership preservation wrappers,
+direct operation-result validity wrappers, and
 returned minimum-after-update positive and empty-result specifications.  The standard
 potential function now has zero-initial and nonnegativity facts and is connected
 to the Chapter 17 telescoping theorem, and the Fibonacci lower-bound

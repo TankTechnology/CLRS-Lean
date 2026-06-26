@@ -112,7 +112,8 @@ Start with the chapter pages in the sidebar.
   make-heap, operation-level correctness, direct operation-result validity for
   normalized counters, direct
   insert/union/extract-min/decrease-key/delete membership facts plus
-  operation-key, old-key preservation, and failed membership corollaries,
+  operation-key, old-key preservation, failed membership corollaries, and
+  direct failed-membership preservation wrappers,
   returned minimum-after-update positive/empty specs plus
   insert/union/extract-min-remaining/decrease-key/delete minimum direct
   membership/lower-bound wrappers, heap potential zero/nonnegativity and
@@ -553,6 +554,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.insert_valid`,
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.insert_not_mem_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.insert_not_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_mem`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_le_inserted`,
@@ -561,6 +563,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.union_correct`,
   {lit}`CLRS.Chapter19.FibHeap.union_valid`,
   {lit}`CLRS.Chapter19.FibHeap.union_not_mem_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.union_not_mem_of_not_mem`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_mem`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_le_left`,
@@ -569,6 +572,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_valid`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem_old`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne`,
@@ -578,6 +582,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_valid`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_mem`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`,
@@ -592,6 +597,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_old`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_of_eq`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_pos`,

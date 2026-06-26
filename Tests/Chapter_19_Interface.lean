@@ -18,6 +18,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.insert_mem_self
 #check CLRS.Chapter19.FibHeap.insert_mem_old
 #check CLRS.Chapter19.FibHeap.insert_not_mem_iff
+#check CLRS.Chapter19.FibHeap.insert_not_mem_of_ne
 #check CLRS.Chapter19.FibHeap.insert_minimum_correct
 #check CLRS.Chapter19.FibHeap.insert_minimum_mem
 #check CLRS.Chapter19.FibHeap.insert_minimum_le_inserted
@@ -29,6 +30,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.union_mem_left
 #check CLRS.Chapter19.FibHeap.union_mem_right
 #check CLRS.Chapter19.FibHeap.union_not_mem_iff
+#check CLRS.Chapter19.FibHeap.union_not_mem_of_not_mem
 #check CLRS.Chapter19.FibHeap.union_minimum_correct
 #check CLRS.Chapter19.FibHeap.union_minimum_mem
 #check CLRS.Chapter19.FibHeap.union_minimum_le_left
@@ -40,6 +42,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.extractMin_not_mem
 #check CLRS.Chapter19.FibHeap.extractMin_mem_of_ne
 #check CLRS.Chapter19.FibHeap.extractMin_not_mem_iff
+#check CLRS.Chapter19.FibHeap.extractMin_not_mem_old
 #check CLRS.Chapter19.FibHeap.extractMin_none_iff
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne
@@ -52,6 +55,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.decreaseKey_mem_new
 #check CLRS.Chapter19.FibHeap.decreaseKey_mem_old
 #check CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff
+#check CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne
 #check CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct
 #check CLRS.Chapter19.FibHeap.decreaseKey_minimum_mem
 #check CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new
@@ -63,6 +67,8 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.delete_not_mem
 #check CLRS.Chapter19.FibHeap.delete_mem_of_ne
 #check CLRS.Chapter19.FibHeap.delete_not_mem_iff
+#check CLRS.Chapter19.FibHeap.delete_not_mem_old
+#check CLRS.Chapter19.FibHeap.delete_not_mem_of_eq
 #check CLRS.Chapter19.FibHeap.delete_minimum_correct
 #check CLRS.Chapter19.FibHeap.delete_minimum_ne
 #check CLRS.Chapter19.FibHeap.delete_minimum_mem

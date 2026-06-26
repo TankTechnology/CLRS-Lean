@@ -46,6 +46,13 @@ Main results:
   {lit}`FibHeap.decreaseKey_not_mem_iff`, and
   {lit}`FibHeap.delete_not_mem_iff`: exact failed membership specifications
   after heap operations.
+- Theorems {lit}`FibHeap.insert_not_mem_of_ne`,
+  {lit}`FibHeap.union_not_mem_of_not_mem`,
+  {lit}`FibHeap.extractMin_not_mem_old`,
+  {lit}`FibHeap.decreaseKey_not_mem_of_ne`,
+  {lit}`FibHeap.delete_not_mem_old`, and
+  {lit}`FibHeap.delete_not_mem_of_eq`: direct failed-membership preservation
+  wrappers after heap updates.
 - Theorems {lit}`FibHeap.insert_minimum_correct`,
   {lit}`FibHeap.union_minimum_correct`,
   {lit}`FibHeap.extractMin_remaining_minimum_correct`,
@@ -266,6 +273,13 @@ theorem insert_not_mem_iff (h : FibHeap) (x y : Int) :
     | inl hyx => exact h.1 hyx
     | inr hy => exact h.2 hy
 
+/-- Old absent keys different from the inserted key remain absent after insertion. -/
+theorem insert_not_mem_of_ne (h : FibHeap) (x y : Int)
+    (hxy : y ≠ x) (hy : y ∉ h.keys) :
+    y ∉ (insert x h).keys := by
+  rw [insert_not_mem_iff]
+  exact ⟨hxy, hy⟩
+
 /-- A returned minimum after insertion is least among the inserted key and old keys. -/
 theorem insert_minimum_correct {h : FibHeap} {s : Finset Int} {x m : Int}
     (hrep : Represents h s) (hmin : minimum (insert x h) = some m) :
@@ -361,6 +375,13 @@ theorem union_not_mem_iff (h₁ h₂ : FibHeap) (x : Int) :
     cases hmem with
     | inl hx => exact h.1 hx
     | inr hx => exact h.2 hx
+
+/-- Keys absent from both input heaps remain absent after union. -/
+theorem union_not_mem_of_not_mem (h₁ h₂ : FibHeap) (x : Int)
+    (hx₁ : x ∉ h₁.keys) (hx₂ : x ∉ h₂.keys) :
+    x ∉ (union h₁ h₂).keys := by
+  rw [union_not_mem_iff]
+  exact ⟨hx₁, hx₂⟩
 
 /-- A returned minimum after union is least among both input key sets. -/
 theorem union_minimum_correct {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
@@ -503,6 +524,13 @@ theorem extractMin_not_mem_iff {h h' : FibHeap} {x y : Int}
     cases h with
     | inl hyx => exact hmem.1 hyx
     | inr hyNot => exact hyNot hmem.2
+
+/-- Old absent keys remain absent after extract-min. -/
+theorem extractMin_not_mem_old {h h' : FibHeap} {x y : Int}
+    (hextract : extractMin h = some (x, h')) (hy : y ∉ h.keys) :
+    y ∉ h'.keys := by
+  rw [extractMin_not_mem_iff hextract]
+  exact Or.inr hy
 
 /-- Extract-min returns nothing exactly when the represented key set is empty. -/
 theorem extractMin_none_iff {h : FibHeap} {s : Finset Int}
@@ -659,6 +687,13 @@ theorem decreaseKey_not_mem_iff (h : FibHeap) (oldKey newKey y : Int) :
         | inl hyold => exact hold.1 hyold
         | inr hyNot => exact hyNot hold.2
 
+/-- Old absent keys different from the replacement key remain absent after decrease-key. -/
+theorem decreaseKey_not_mem_of_ne (h : FibHeap) (oldKey newKey y : Int)
+    (hynew : y ≠ newKey) (hy : y ∉ h.keys) :
+    y ∉ (decreaseKey oldKey newKey h).keys := by
+  rw [decreaseKey_not_mem_iff]
+  exact ⟨hynew, Or.inr hy⟩
+
 /-- A returned minimum after decrease-key is least among the replacement and old remaining keys. -/
 theorem decreaseKey_minimum_correct {h : FibHeap} {s : Finset Int}
     {oldKey newKey m : Int} (hrep : Represents h s)
@@ -775,6 +810,20 @@ theorem delete_not_mem_iff (h : FibHeap) (x y : Int) :
     cases h with
     | inl hyx => exact hmem.1 hyx
     | inr hyNot => exact hyNot hmem.2
+
+/-- Old absent keys remain absent after deletion. -/
+theorem delete_not_mem_old (h : FibHeap) (x y : Int)
+    (hy : y ∉ h.keys) :
+    y ∉ (delete x h).keys := by
+  rw [delete_not_mem_iff]
+  exact Or.inr hy
+
+/-- Any key equal to the deleted key is absent after deletion. -/
+theorem delete_not_mem_of_eq (h : FibHeap) (x y : Int)
+    (hyx : y = x) :
+    y ∉ (delete x h).keys := by
+  rw [delete_not_mem_iff]
+  exact Or.inl hyx
 
 /-- A returned minimum after deletion is least among the remaining old keys. -/
 theorem delete_minimum_correct {h : FibHeap} {s : Finset Int} {x m : Int}
