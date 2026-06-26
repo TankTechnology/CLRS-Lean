@@ -112,8 +112,9 @@ which areas should not yet be counted as proof-complete.
   insert/union/extract-min/decrease-key/delete membership facts plus
   operation-key, old-key preservation, and failed membership corollaries,
   minimum-after-update positive/empty specifications plus
-  insert/union/extract-min-remaining minimum direct membership/lower-bound
-  wrappers, heap-potential zero/nonnegativity and telescoping facts, and Fibonacci
+  insert/union/extract-min-remaining/decrease-key/delete minimum direct
+  membership/lower-bound wrappers, heap-potential zero/nonnegativity and
+  telescoping facts, and Fibonacci
   lower-bound recurrence/positivity/monotonicity and even/half-index
   power-of-two growth facts plus conditional degree-to-log wrappers are
   proved; pointer
@@ -663,6 +664,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_old`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_mem`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_valid`,
@@ -671,6 +675,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_ne`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_mem`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,

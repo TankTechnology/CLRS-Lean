@@ -11,8 +11,9 @@ decrease-key, and deletion, adds old-key preservation corollaries for the
 set-updating operations and exact failed membership specifications after heap
 operations, exposes direct operation-result validity wrappers for normalized
 counters, adds direct minimum membership/lower-bound wrappers plus
-insert/union/extract-min-remaining minimum direct membership/lower-bound
-wrappers and positive/empty-result minimum-after-update specifications,
+insert/union/extract-min-remaining/decrease-key/delete minimum direct
+membership/lower-bound wrappers and positive/empty-result
+minimum-after-update specifications,
 exposes the standard
 potential function with zero-initial and nonnegativity facts, and
 packages a conservative degree-bound wrapper for later subtree-size
@@ -76,6 +77,9 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_old`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_mem`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_valid`,
@@ -84,6 +88,9 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_correct`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_ne`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_mem`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,

@@ -56,6 +56,9 @@
 - `CLRS.Chapter19.FibHeap.decreaseKey_mem_old`
 - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`
 - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`
+- `CLRS.Chapter19.FibHeap.decreaseKey_minimum_mem`
+- `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`
+- `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`
 - `CLRS.Chapter19.FibHeap.delete_correct`
 - `CLRS.Chapter19.FibHeap.delete_valid`
@@ -64,6 +67,9 @@
 - `CLRS.Chapter19.FibHeap.delete_mem_of_ne`
 - `CLRS.Chapter19.FibHeap.delete_not_mem_iff`
 - `CLRS.Chapter19.FibHeap.delete_minimum_correct`
+- `CLRS.Chapter19.FibHeap.delete_minimum_ne`
+- `CLRS.Chapter19.FibHeap.delete_minimum_mem`
+- `CLRS.Chapter19.FibHeap.delete_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.delete_minimum_none_iff`
 - `CLRS.Chapter19.FibHeap.heapPotential_telescope`
 - `CLRS.Chapter19.FibHeap.fibLowerBound_step`
@@ -86,8 +92,9 @@ decrease-key, and delete, plus old-key preservation corollaries for the
 set-updating operations and exact failed membership specifications after heap
 operations, direct operation-result validity wrappers for normalized counters,
 direct minimum membership/lower-bound wrappers,
-insert/union/extract-min-remaining minimum direct membership/lower-bound
-wrappers, and positive/empty minimum-after-update specifications.  It
+insert/union/extract-min-remaining/decrease-key/delete minimum direct
+membership/lower-bound wrappers, and positive/empty minimum-after-update
+specifications.  It
 also includes the first power-of-two lower-bound bridge for the Fibonacci-style
 degree sequence, including the half-index form used by later logarithmic-degree
 arguments and a conditional natural binary-log bridge from a Fibonacci-style

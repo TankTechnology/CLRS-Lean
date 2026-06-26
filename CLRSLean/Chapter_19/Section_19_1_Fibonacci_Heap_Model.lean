@@ -64,6 +64,14 @@ Main results:
   {lit}`FibHeap.extractMin_remaining_minimum_mem`, and
   {lit}`FibHeap.extractMin_remaining_minimum_le_old`: direct membership and
   lower-bound corollaries for a returned minimum after extract-min.
+- Theorems {lit}`FibHeap.decreaseKey_minimum_mem`,
+  {lit}`FibHeap.decreaseKey_minimum_le_new`, and
+  {lit}`FibHeap.decreaseKey_minimum_le_old`: direct membership and
+  lower-bound corollaries for a returned minimum after decrease-key.
+- Theorems {lit}`FibHeap.delete_minimum_ne`,
+  {lit}`FibHeap.delete_minimum_mem`, and
+  {lit}`FibHeap.delete_minimum_le_old`: direct membership and lower-bound
+  corollaries for a returned minimum after deletion.
 - Theorems {lit}`FibHeap.insert_minimum_none_iff`,
   {lit}`FibHeap.union_minimum_none_iff`,
   {lit}`FibHeap.extractMin_remaining_minimum_none_iff`,
@@ -672,6 +680,37 @@ theorem decreaseKey_minimum_correct {h : FibHeap} {s : Finset Int}
   · intro y hy hyold
     exact hmin'.2 y (by simp [Finset.mem_insert, Finset.mem_erase, hyold, hy])
 
+/-- A returned minimum after decrease-key is the replacement or an old remaining key. -/
+theorem decreaseKey_minimum_mem {h : FibHeap} {s : Finset Int}
+    {oldKey newKey m : Int} (hrep : Represents h s)
+    (hnew : newKey <= oldKey)
+    (hmin : minimum (decreaseKey oldKey newKey h) = some m) :
+    m = newKey ∨ (m ≠ oldKey ∧ m ∈ s) := by
+  exact (decreaseKey_minimum_correct
+    (h := h) (s := s) (oldKey := oldKey) (newKey := newKey) (m := m)
+    hrep hnew hmin).1
+
+/-- A returned minimum after decrease-key is no larger than the replacement key. -/
+theorem decreaseKey_minimum_le_new {h : FibHeap} {s : Finset Int}
+    {oldKey newKey m : Int} (hrep : Represents h s)
+    (hnew : newKey <= oldKey)
+    (hmin : minimum (decreaseKey oldKey newKey h) = some m) :
+    m <= newKey := by
+  exact (decreaseKey_minimum_correct
+    (h := h) (s := s) (oldKey := oldKey) (newKey := newKey) (m := m)
+    hrep hnew hmin).2.1
+
+/-- A returned minimum after decrease-key is no larger than any old remaining key. -/
+theorem decreaseKey_minimum_le_old {h : FibHeap} {s : Finset Int}
+    {oldKey newKey m y : Int} (hrep : Represents h s)
+    (hnew : newKey <= oldKey)
+    (hmin : minimum (decreaseKey oldKey newKey h) = some m)
+    (hy : y ∈ s) (hyold : y ≠ oldKey) :
+    m <= y := by
+  exact (decreaseKey_minimum_correct
+    (h := h) (s := s) (oldKey := oldKey) (newKey := newKey) (m := m)
+    hrep hnew hmin).2.2 y hy hyold
+
 /-- Decrease-key inserts the replacement key, so no minimum-empty result is possible. -/
 theorem decreaseKey_minimum_none_iff {h : FibHeap} {s : Finset Int}
     {oldKey newKey : Int} (hrep : Represents h s) (hnew : newKey <= oldKey) :
@@ -750,6 +789,28 @@ theorem delete_minimum_correct {h : FibHeap} {s : Finset Int} {x m : Int}
   refine ⟨hmem.1, hmem.2, ?_⟩
   intro y hy hyx
   exact hmin'.2 y (by simp [Finset.mem_erase, hyx, hy])
+
+/-- A returned minimum after deletion is not the deleted key. -/
+theorem delete_minimum_ne {h : FibHeap} {s : Finset Int} {x m : Int}
+    (hrep : Represents h s) (hmin : minimum (delete x h) = some m) :
+    m ≠ x := by
+  exact (delete_minimum_correct
+    (h := h) (s := s) (x := x) (m := m) hrep hmin).1
+
+/-- A returned minimum after deletion is an old key. -/
+theorem delete_minimum_mem {h : FibHeap} {s : Finset Int} {x m : Int}
+    (hrep : Represents h s) (hmin : minimum (delete x h) = some m) :
+    m ∈ s := by
+  exact (delete_minimum_correct
+    (h := h) (s := s) (x := x) (m := m) hrep hmin).2.1
+
+/-- A returned minimum after deletion is no larger than any old remaining key. -/
+theorem delete_minimum_le_old {h : FibHeap} {s : Finset Int}
+    {x m y : Int} (hrep : Represents h s)
+    (hmin : minimum (delete x h) = some m) (hy : y ∈ s) (hyx : y ≠ x) :
+    m <= y := by
+  exact (delete_minimum_correct
+    (h := h) (s := s) (x := x) (m := m) hrep hmin).2.2 y hy hyx
 
 /-- No minimum after deletion means every old key was the deleted key. -/
 theorem delete_minimum_none_iff {h : FibHeap} {s : Finset Int} {x : Int}
