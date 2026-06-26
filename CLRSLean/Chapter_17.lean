@@ -14,7 +14,8 @@ bound, and size-level dynamic-table insertion/deletion capacity and transition
 wrappers with capacity-direction and actual-cost lower/upper-bound facts plus an
 explicit nonnegative potential fact, actual-cost and capacity-choice case
 specifications, direct post-state field equations and allocation-size case
-wrappers, direct post-state stored-count and capacity corollaries, and direct
+wrappers, direct post-state stored-count and capacity corollaries including
+positive insertion count/capacity wrappers, and direct
 resize-branch capacity wrappers plus premise-light deletion-cost branch wrappers,
 post-transition potential nonnegativity, and concrete amortized-cost unfolding
 wrappers, including exact zero/positive deletion cost specifications.
@@ -55,9 +56,11 @@ wrappers, including exact zero/positive deletion cost specifications.
   {lit}`CLRS.Chapter17.dynamicTableInsert_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_size_of_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_size_of_expand`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_num_pos`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num_gt`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num_ge`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_fits`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_pos`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedCost_eq`,

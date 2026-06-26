@@ -1003,9 +1003,11 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableInsert_size`
   - `CLRS.Chapter17.dynamicTableInsert_size_of_fits`
   - `CLRS.Chapter17.dynamicTableInsert_size_of_expand`
+  - `CLRS.Chapter17.dynamicTableInsert_num_pos`
   - `CLRS.Chapter17.dynamicTableInsert_num_gt`
   - `CLRS.Chapter17.dynamicTableInsert_num_ge`
   - `CLRS.Chapter17.dynamicTableInsert_capacity_fits`
+  - `CLRS.Chapter17.dynamicTableInsert_capacity_pos`
   - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`
   - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand`
   - `CLRS.Chapter17.dynamicTableInsert_amortizedCost_eq`
@@ -1041,8 +1043,9 @@ any consistent tree with the same frequency table.
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
   telescoping, executable counter trace induction, size-level table potential
   nonnegativity, capacity feasibility/direction, post-state field equations,
-  post-state allocation-size case specs, stored-count direction,
-  post-state capacity corollaries, post-transition potential nonnegativity,
+  post-state allocation-size case specs, stored-count direction, positive
+  insertion count/capacity wrappers, post-state capacity corollaries,
+  post-transition potential nonnegativity,
   concrete amortized-cost unfolding, resize-branch capacity wrappers,
   actual-cost and capacity-choice case specs, zero/positive deletion-cost wrappers,
   premise-light deletion-cost branch wrappers,

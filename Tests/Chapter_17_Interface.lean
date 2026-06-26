@@ -50,9 +50,11 @@ import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 #check CLRS.Chapter17.dynamicTableInsert_size
 #check CLRS.Chapter17.dynamicTableInsert_size_of_fits
 #check CLRS.Chapter17.dynamicTableInsert_size_of_expand
+#check CLRS.Chapter17.dynamicTableInsert_num_pos
 #check CLRS.Chapter17.dynamicTableInsert_num_gt
 #check CLRS.Chapter17.dynamicTableInsert_num_ge
 #check CLRS.Chapter17.dynamicTableInsert_capacity_fits
+#check CLRS.Chapter17.dynamicTableInsert_capacity_pos
 #check CLRS.Chapter17.dynamicTableInsert_capacity_ge_size
 #check CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand
 #check CLRS.Chapter17.dynamicTableInsert_amortizedBound

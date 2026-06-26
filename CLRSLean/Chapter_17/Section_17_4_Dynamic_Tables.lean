@@ -63,11 +63,12 @@ Main results:
   {lit}`dynamicTableDelete_size_of_no_contract`: direct post-state
   allocation-size case specifications for the transition wrappers.
 - Theorems {lit}`dynamicTableInsert_num_gt`,
-  {lit}`dynamicTableInsert_num_ge`, {lit}`dynamicTableDelete_num_le`,
-  {lit}`dynamicTableDelete_num_empty`, and
+  {lit}`dynamicTableInsert_num_pos`, {lit}`dynamicTableInsert_num_ge`,
+  {lit}`dynamicTableDelete_num_le`, {lit}`dynamicTableDelete_num_empty`, and
   {lit}`dynamicTableDelete_num_lt_of_nonempty`: direct post-state
   stored-count direction corollaries for insertion and deletion.
 - Theorems {lit}`dynamicTableInsert_capacity_fits`,
+  {lit}`dynamicTableInsert_capacity_pos`,
   {lit}`dynamicTableInsert_capacity_ge_size`,
   {lit}`dynamicTableDelete_capacity_fits`, and
   {lit}`dynamicTableDelete_capacity_le_size`: direct post-state capacity
@@ -234,6 +235,12 @@ theorem dynamicTableInsert_num_gt (s : DynamicTableState) :
   rw [dynamicTableInsert_num]
   exact Nat.lt_succ_self s.num
 
+/-- Dynamic-table insertion leaves a positive stored-element count. -/
+theorem dynamicTableInsert_num_pos (s : DynamicTableState) :
+    0 < (dynamicTableInsert s).num := by
+  rw [dynamicTableInsert_num]
+  exact Nat.succ_pos s.num
+
 /-- Dynamic-table insertion never decreases the stored-element count. -/
 theorem dynamicTableInsert_num_ge (s : DynamicTableState) :
     s.num <= (dynamicTableInsert s).num := by
@@ -243,6 +250,15 @@ theorem dynamicTableInsert_num_ge (s : DynamicTableState) :
 theorem dynamicTableInsert_capacity_fits (s : DynamicTableState) :
     (dynamicTableInsert s).num <= (dynamicTableInsert s).size := by
   exact dynamicTableInsertSize_fits s
+
+/-- Dynamic-table insertion leaves a positive post-state capacity. -/
+theorem dynamicTableInsert_capacity_pos (s : DynamicTableState) :
+    0 < (dynamicTableInsert s).size := by
+  have hnum : 0 < (dynamicTableInsert s).num :=
+    dynamicTableInsert_num_pos s
+  have hfit : (dynamicTableInsert s).num <= (dynamicTableInsert s).size :=
+    dynamicTableInsert_capacity_fits s
+  omega
 
 /-- Dynamic-table insertion never shrinks the post-state capacity below the old size. -/
 theorem dynamicTableInsert_capacity_ge_size (s : DynamicTableState) :
