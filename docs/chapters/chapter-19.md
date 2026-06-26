@@ -15,6 +15,7 @@
 - `CLRS.Chapter19.FibHeap.minimum_mem`
 - `CLRS.Chapter19.FibHeap.minimum_le`
 - `CLRS.Chapter19.FibHeap.minimum_none_iff`
+- `CLRS.Chapter19.FibHeap.minimum_none_of_empty`
 - `CLRS.Chapter19.FibHeap.insert_correct`
 - `CLRS.Chapter19.FibHeap.insert_valid`
 - `CLRS.Chapter19.FibHeap.insert_mem_iff`
@@ -27,6 +28,7 @@
 - `CLRS.Chapter19.FibHeap.insert_minimum_le_inserted`
 - `CLRS.Chapter19.FibHeap.insert_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.insert_minimum_none_iff`
+- `CLRS.Chapter19.FibHeap.insert_minimum_ne_none`
 - `CLRS.Chapter19.FibHeap.union_correct`
 - `CLRS.Chapter19.FibHeap.union_valid`
 - `CLRS.Chapter19.FibHeap.union_mem_iff`
@@ -39,6 +41,7 @@
 - `CLRS.Chapter19.FibHeap.union_minimum_le_left`
 - `CLRS.Chapter19.FibHeap.union_minimum_le_right`
 - `CLRS.Chapter19.FibHeap.union_minimum_none_iff`
+- `CLRS.Chapter19.FibHeap.union_minimum_none_of_empty`
 - `CLRS.Chapter19.FibHeap.extractMin_correct`
 - `CLRS.Chapter19.FibHeap.extractMin_valid`
 - `CLRS.Chapter19.FibHeap.extractMin_mem_iff`
@@ -47,11 +50,13 @@
 - `CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`
 - `CLRS.Chapter19.FibHeap.extractMin_not_mem_old`
 - `CLRS.Chapter19.FibHeap.extractMin_none_iff`
+- `CLRS.Chapter19.FibHeap.extractMin_none_of_empty`
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne`
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_mem`
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`
+- `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq`
 - `CLRS.Chapter19.FibHeap.decreaseKey_correct`
 - `CLRS.Chapter19.FibHeap.decreaseKey_valid`
 - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
@@ -64,6 +69,7 @@
 - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`
 - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`
+- `CLRS.Chapter19.FibHeap.decreaseKey_minimum_ne_none`
 - `CLRS.Chapter19.FibHeap.delete_correct`
 - `CLRS.Chapter19.FibHeap.delete_valid`
 - `CLRS.Chapter19.FibHeap.delete_mem_iff`
@@ -77,6 +83,7 @@
 - `CLRS.Chapter19.FibHeap.delete_minimum_mem`
 - `CLRS.Chapter19.FibHeap.delete_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.delete_minimum_none_iff`
+- `CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq`
 - `CLRS.Chapter19.FibHeap.heapPotential_telescope`
 - `CLRS.Chapter19.FibHeap.fibLowerBound_step`
 - `CLRS.Chapter19.FibHeap.fibLowerBound_pos`
@@ -100,7 +107,8 @@ operations, direct failed-membership preservation wrappers, direct
 operation-result validity wrappers for normalized counters, direct minimum
 membership/lower-bound wrappers,
 insert/union/extract-min-remaining/decrease-key/delete minimum direct
-membership/lower-bound wrappers, and positive/empty minimum-after-update
+membership/lower-bound wrappers, direct minimum/extract-min empty-result
+wrappers, and positive/empty minimum-after-update
 specifications.  It
 also includes the first power-of-two lower-bound bridge for the Fibonacci-style
 degree sequence, including the half-index form used by later logarithmic-degree

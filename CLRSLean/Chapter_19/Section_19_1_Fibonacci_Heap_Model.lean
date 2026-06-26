@@ -85,6 +85,14 @@ Main results:
   {lit}`FibHeap.decreaseKey_minimum_none_iff`, and
   {lit}`FibHeap.delete_minimum_none_iff`: empty minimum results after heap
   updates match whether the updated key set is empty.
+- Theorems {lit}`FibHeap.minimum_none_of_empty`,
+  {lit}`FibHeap.insert_minimum_ne_none`,
+  {lit}`FibHeap.union_minimum_none_of_empty`,
+  {lit}`FibHeap.extractMin_none_of_empty`,
+  {lit}`FibHeap.extractMin_remaining_minimum_none_of_all_eq`,
+  {lit}`FibHeap.decreaseKey_minimum_ne_none`, and
+  {lit}`FibHeap.delete_minimum_none_of_all_eq`: direct empty-result wrappers
+  for minimum and extract-min queries.
 - Theorem {lit}`FibHeap.heapPotential_telescope`: heap potential instantiates
   the Chapter 17 potential-method telescoping theorem.
 - Theorem {lit}`FibHeap.fibLowerBound_step`: the Fibonacci-style lower-bound
@@ -217,6 +225,12 @@ theorem minimum_none_iff {h : FibHeap} {s : Finset Int}
       simpa [Finset.not_nonempty_iff_eq_empty] using hkeysEmpty
     simp [hne]
 
+/-- If the represented key set is empty, no minimum is returned. -/
+theorem minimum_none_of_empty {h : FibHeap} {s : Finset Int}
+    (hrep : Represents h s) (hempty : s = ∅) :
+    minimum h = none := by
+  exact (minimum_none_iff (h := h) (s := s) hrep).2 hempty
+
 /-- The empty heap has no minimum key. -/
 theorem makeHeap_minimum_none :
     minimum makeHeap = none := by
@@ -324,6 +338,13 @@ theorem insert_minimum_none_iff {h : FibHeap} {s : Finset Int} {x : Int}
     insert_correct (h := h) (s := s) (x := x) hrep
   rw [minimum_none_iff (h := insert x h) (s := Insert.insert x s) hinsert]
   simp
+
+/-- After insertion, a minimum-empty result is impossible. -/
+theorem insert_minimum_ne_none {h : FibHeap} {s : Finset Int} {x : Int}
+    (hrep : Represents h s) :
+    minimum (insert x h) ≠ none := by
+  intro hnone
+  exact (insert_minimum_none_iff (h := h) (s := s) (x := x) hrep).1 hnone
 
 /-- Meld two heaps. -/
 def union (h₁ h₂ : FibHeap) : FibHeap :=
@@ -439,6 +460,15 @@ theorem union_minimum_none_iff {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
   rw [minimum_none_iff (h := union h₁ h₂) (s := s₁ ∪ s₂) hunion]
   exact Finset.union_eq_empty
 
+/-- If both represented input key sets are empty, a union has no minimum. -/
+theorem union_minimum_none_of_empty {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
+    (hrep₁ : Represents h₁ s₁) (hrep₂ : Represents h₂ s₂)
+    (hleft : s₁ = ∅) (hright : s₂ = ∅) :
+    minimum (union h₁ h₂) = none := by
+  exact (union_minimum_none_iff
+    (h₁ := h₁) (h₂ := h₂) (s₁ := s₁) (s₂ := s₂) hrep₁ hrep₂).2
+    ⟨hleft, hright⟩
+
 /-- Extract the minimum key, if present, and remove it from the heap. -/
 def extractMin (h : FibHeap) : Option (Int × FibHeap) :=
   if hne : h.keys.Nonempty then
@@ -550,6 +580,12 @@ theorem extractMin_none_iff {h : FibHeap} {s : Finset Int}
       simpa [Finset.not_nonempty_iff_eq_empty] using hkeysEmpty
     simp [hne]
 
+/-- If the represented key set is empty, extract-min returns no result. -/
+theorem extractMin_none_of_empty {h : FibHeap} {s : Finset Int}
+    (hrep : Represents h s) (hempty : s = ∅) :
+    extractMin h = none := by
+  exact (extractMin_none_iff (h := h) (s := s) hrep).2 hempty
+
 /-- A returned minimum in the heap left by extract-min is least among remaining old keys. -/
 theorem extractMin_remaining_minimum_correct {h h' : FibHeap}
     {s : Finset Int} {x m : Int} (hrep : Represents h s)
@@ -620,6 +656,15 @@ theorem extractMin_remaining_minimum_none_iff {h h' : FibHeap}
       exact False.elim (hyerase.1 (hall y hyerase.2))
     · intro hyempty
       simp at hyempty
+
+/-- If every old key is the extracted key, no remaining minimum exists. -/
+theorem extractMin_remaining_minimum_none_of_all_eq {h h' : FibHeap}
+    {s : Finset Int} {x : Int} (hrep : Represents h s)
+    (hextract : extractMin h = some (x, h'))
+    (hall : forall y, y ∈ s -> y = x) :
+    minimum h' = none := by
+  exact (extractMin_remaining_minimum_none_iff
+    (h := h) (h' := h') (s := s) (x := x) hrep hextract).2 hall
 
 /-- Decrease a key by replacing an old key with a new key. -/
 def decreaseKey (oldKey newKey : Int) (h : FibHeap) : FibHeap :=
@@ -759,6 +804,14 @@ theorem decreaseKey_minimum_none_iff {h : FibHeap} {s : Finset Int}
     (s := Insert.insert newKey (s.erase oldKey)) hdecrease]
   simp
 
+/-- After decrease-key, a minimum-empty result is impossible. -/
+theorem decreaseKey_minimum_ne_none {h : FibHeap} {s : Finset Int}
+    {oldKey newKey : Int} (hrep : Represents h s) (hnew : newKey <= oldKey) :
+    minimum (decreaseKey oldKey newKey h) ≠ none := by
+  intro hnone
+  exact (decreaseKey_minimum_none_iff
+    (h := h) (s := s) (oldKey := oldKey) (newKey := newKey) hrep hnew).1 hnone
+
 /-- Delete a key from the heap. -/
 def delete (x : Int) (h : FibHeap) : FibHeap :=
   let ks := h.keys.erase x
@@ -884,6 +937,12 @@ theorem delete_minimum_none_iff {h : FibHeap} {s : Finset Int} {x : Int}
       exact False.elim (hyerase.1 (hall y hyerase.2))
     · intro hyempty
       simp at hyempty
+
+/-- If every old key equals the deleted key, no minimum remains after deletion. -/
+theorem delete_minimum_none_of_all_eq {h : FibHeap} {s : Finset Int} {x : Int}
+    (hrep : Represents h s) (hall : forall y, y ∈ s -> y = x) :
+    minimum (delete x h) = none := by
+  exact (delete_minimum_none_iff (h := h) (s := s) (x := x) hrep).2 hall
 
 /-- A heap-indexed potential trace for Chapter 17's potential method. -/
 def potentialTrace (heap : Nat -> FibHeap) (actual : Nat -> Int) :

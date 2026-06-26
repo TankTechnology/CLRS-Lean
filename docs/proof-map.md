@@ -1160,6 +1160,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.minimum_mem`
   - `CLRS.Chapter19.FibHeap.minimum_le`
   - `CLRS.Chapter19.FibHeap.minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.minimum_none_of_empty`
   - `CLRS.Chapter19.FibHeap.insert_correct`
   - `CLRS.Chapter19.FibHeap.insert_valid`
   - `CLRS.Chapter19.FibHeap.insert_mem_iff`
@@ -1172,6 +1173,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.insert_minimum_le_inserted`
   - `CLRS.Chapter19.FibHeap.insert_minimum_le_old`
   - `CLRS.Chapter19.FibHeap.insert_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.insert_minimum_ne_none`
   - `CLRS.Chapter19.FibHeap.union_correct`
   - `CLRS.Chapter19.FibHeap.union_valid`
   - `CLRS.Chapter19.FibHeap.union_mem_iff`
@@ -1184,6 +1186,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.union_minimum_le_left`
   - `CLRS.Chapter19.FibHeap.union_minimum_le_right`
   - `CLRS.Chapter19.FibHeap.union_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.union_minimum_none_of_empty`
   - `CLRS.Chapter19.FibHeap.extractMin_correct`
   - `CLRS.Chapter19.FibHeap.extractMin_valid`
   - `CLRS.Chapter19.FibHeap.extractMin_mem_iff`
@@ -1192,11 +1195,13 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`
   - `CLRS.Chapter19.FibHeap.extractMin_not_mem_old`
   - `CLRS.Chapter19.FibHeap.extractMin_none_iff`
+  - `CLRS.Chapter19.FibHeap.extractMin_none_of_empty`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_mem`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old`
   - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq`
   - `CLRS.Chapter19.FibHeap.decreaseKey_correct`
   - `CLRS.Chapter19.FibHeap.decreaseKey_valid`
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
@@ -1209,6 +1214,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_old`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_ne_none`
   - `CLRS.Chapter19.FibHeap.delete_correct`
   - `CLRS.Chapter19.FibHeap.delete_valid`
   - `CLRS.Chapter19.FibHeap.delete_mem_iff`
@@ -1222,6 +1228,7 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.delete_minimum_mem`
   - `CLRS.Chapter19.FibHeap.delete_minimum_le_old`
   - `CLRS.Chapter19.FibHeap.delete_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq`
   - `CLRS.Chapter19.FibHeap.heapPotential_telescope`
   - `CLRS.Chapter19.FibHeap.fibLowerBound_step`
   - `CLRS.Chapter19.FibHeap.fibLowerBound_pos`
@@ -1235,7 +1242,8 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.degree_bound_log`
 - Proof pattern: finite-set key semantics, normalized root/mark counters,
   direct operation-result validity wrappers, empty-result query
-  characterization, direct minimum membership/lower-bound wrappers,
+  characterization, direct minimum/extract-min empty-result wrappers,
+  direct minimum membership/lower-bound wrappers,
   insert/union/extract-min-remaining/decrease-key/delete minimum direct
   membership/lower-bound wrappers, heap-potential nonnegativity and
   Chapter 17 potential-method instantiation, direct operation-key and old-key
@@ -1251,7 +1259,8 @@ mutation proof.
 
 Chapter 19 now records the operation-level Fibonacci-heap contracts against an
 abstract finite key set, including empty-heap construction and empty-result
-minimum/extract-min specifications, direct minimum membership/lower-bound
+minimum/extract-min specifications, direct minimum/extract-min empty-result
+wrappers, direct minimum membership/lower-bound
 wrappers, insert/union/extract-min-remaining/decrease-key/delete minimum direct
 membership/lower-bound wrappers, plus direct
 insert/union/extract-min/decrease-key/delete membership facts plus

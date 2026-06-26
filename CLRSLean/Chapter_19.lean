@@ -13,7 +13,8 @@ operations, direct failed-membership preservation wrappers, exposes direct
 operation-result validity wrappers for normalized counters, adds direct minimum
 membership/lower-bound wrappers plus
 insert/union/extract-min-remaining/decrease-key/delete minimum direct
-membership/lower-bound wrappers and positive/empty-result
+membership/lower-bound wrappers, direct minimum/extract-min empty-result
+wrappers, and positive/empty-result
 minimum-after-update specifications,
 exposes the standard
 potential function with zero-initial and nonnegativity facts, and
@@ -37,6 +38,7 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.minimum_mem`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_le`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_none_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.minimum_none_of_empty`,
   {lit}`CLRS.Chapter19.FibHeap.insert_correct`,
   {lit}`CLRS.Chapter19.FibHeap.insert_valid`,
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_iff`,
@@ -49,6 +51,7 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_le_inserted`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.insert_minimum_none_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.insert_minimum_ne_none`,
   {lit}`CLRS.Chapter19.FibHeap.union_correct`,
   {lit}`CLRS.Chapter19.FibHeap.union_valid`,
   {lit}`CLRS.Chapter19.FibHeap.union_mem_iff`,
@@ -61,6 +64,7 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_le_left`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_le_right`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_of_empty`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_valid`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_mem_iff`,
@@ -69,11 +73,13 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem_old`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_none_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_none_of_empty`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_mem`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_valid`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`,
@@ -86,6 +92,7 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_ne_none`,
   {lit}`CLRS.Chapter19.FibHeap.delete_correct`,
   {lit}`CLRS.Chapter19.FibHeap.delete_valid`,
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_iff`,
@@ -99,6 +106,7 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_mem`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_pos`,
