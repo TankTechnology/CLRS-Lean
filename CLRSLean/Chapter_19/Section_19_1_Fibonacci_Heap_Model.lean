@@ -17,6 +17,8 @@ Main results:
   membership and lower-bound corollaries for a returned minimum.
 - Theorem {lit}`FibHeap.minimum_none_iff`: no minimum is returned exactly when
   the represented key set is empty.
+- Theorem {lit}`FibHeap.minimum_ne_none_of_nonempty`: a nonempty represented
+  key set forces the minimum query to return a result.
 - Theorem {lit}`FibHeap.makeHeap_minimum_none`: the empty heap has no minimum.
 - Theorem {lit}`FibHeap.makeHeap_correct`: the empty heap represents the empty
   key set.
@@ -86,6 +88,9 @@ Main results:
   {lit}`FibHeap.delete_minimum_none_iff`: empty minimum results after heap
   updates match whether the updated key set is empty.
 - Theorems {lit}`FibHeap.minimum_none_of_empty`,
+  {lit}`FibHeap.extractMin_ne_none_of_nonempty`,
+  {lit}`FibHeap.union_minimum_ne_none_of_left`,
+  {lit}`FibHeap.union_minimum_ne_none_of_right`,
   {lit}`FibHeap.insert_minimum_ne_none`,
   {lit}`FibHeap.union_minimum_none_of_empty`,
   {lit}`FibHeap.extractMin_none_of_empty`,
@@ -230,6 +235,16 @@ theorem minimum_none_of_empty {h : FibHeap} {s : Finset Int}
     (hrep : Represents h s) (hempty : s = ∅) :
     minimum h = none := by
   exact (minimum_none_iff (h := h) (s := s) hrep).2 hempty
+
+/-- A nonempty represented key set forces the minimum query to return a result. -/
+theorem minimum_ne_none_of_nonempty {h : FibHeap} {s : Finset Int}
+    (hrep : Represents h s) (hne : s.Nonempty) :
+    minimum h ≠ none := by
+  intro hnone
+  have hempty : s = ∅ := (minimum_none_iff (h := h) (s := s) hrep).1 hnone
+  rcases hne with ⟨x, hx⟩
+  rw [hempty] at hx
+  simp at hx
 
 /-- The empty heap has no minimum key. -/
 theorem makeHeap_minimum_none :
@@ -469,6 +484,32 @@ theorem union_minimum_none_of_empty {h₁ h₂ : FibHeap} {s₁ s₂ : Finset In
     (h₁ := h₁) (h₂ := h₂) (s₁ := s₁) (s₂ := s₂) hrep₁ hrep₂).2
     ⟨hleft, hright⟩
 
+/-- A nonempty left input heap forces a union minimum query to return a result. -/
+theorem union_minimum_ne_none_of_left {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
+    (hrep₁ : Represents h₁ s₁) (hrep₂ : Represents h₂ s₂)
+    (hleft : s₁.Nonempty) :
+    minimum (union h₁ h₂) ≠ none := by
+  intro hnone
+  have hempty : s₁ = ∅ ∧ s₂ = ∅ :=
+    (union_minimum_none_iff
+      (h₁ := h₁) (h₂ := h₂) (s₁ := s₁) (s₂ := s₂) hrep₁ hrep₂).1 hnone
+  rcases hleft with ⟨x, hx⟩
+  rw [hempty.1] at hx
+  simp at hx
+
+/-- A nonempty right input heap forces a union minimum query to return a result. -/
+theorem union_minimum_ne_none_of_right {h₁ h₂ : FibHeap} {s₁ s₂ : Finset Int}
+    (hrep₁ : Represents h₁ s₁) (hrep₂ : Represents h₂ s₂)
+    (hright : s₂.Nonempty) :
+    minimum (union h₁ h₂) ≠ none := by
+  intro hnone
+  have hempty : s₁ = ∅ ∧ s₂ = ∅ :=
+    (union_minimum_none_iff
+      (h₁ := h₁) (h₂ := h₂) (s₁ := s₁) (s₂ := s₂) hrep₁ hrep₂).1 hnone
+  rcases hright with ⟨x, hx⟩
+  rw [hempty.2] at hx
+  simp at hx
+
 /-- Extract the minimum key, if present, and remove it from the heap. -/
 def extractMin (h : FibHeap) : Option (Int × FibHeap) :=
   if hne : h.keys.Nonempty then
@@ -585,6 +626,16 @@ theorem extractMin_none_of_empty {h : FibHeap} {s : Finset Int}
     (hrep : Represents h s) (hempty : s = ∅) :
     extractMin h = none := by
   exact (extractMin_none_iff (h := h) (s := s) hrep).2 hempty
+
+/-- A nonempty represented key set forces extract-min to return a result. -/
+theorem extractMin_ne_none_of_nonempty {h : FibHeap} {s : Finset Int}
+    (hrep : Represents h s) (hne : s.Nonempty) :
+    extractMin h ≠ none := by
+  intro hnone
+  have hempty : s = ∅ := (extractMin_none_iff (h := h) (s := s) hrep).1 hnone
+  rcases hne with ⟨x, hx⟩
+  rw [hempty] at hx
+  simp at hx
 
 /-- A returned minimum in the heap left by extract-min is least among remaining old keys. -/
 theorem extractMin_remaining_minimum_correct {h h' : FibHeap}

@@ -118,7 +118,7 @@ which areas should not yet be counted as proof-complete.
   operation-key, old-key preservation, failed membership corollaries, and
   direct failed-membership preservation wrappers, minimum-after-update
   positive/empty specifications plus
-  direct minimum/extract-min empty-result wrappers and
+  direct minimum/extract-min empty-result and nonempty-result wrappers and
   insert/union/extract-min-remaining/decrease-key/delete minimum direct
   membership/lower-bound wrappers, heap-potential zero/nonnegativity and
   telescoping facts, and Fibonacci
@@ -665,6 +665,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.minimum_le`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.minimum_none_of_empty`,
+  {lit}`CLRS.Chapter19.FibHeap.minimum_ne_none_of_nonempty`,
   {lit}`CLRS.Chapter19.FibHeap.insert_correct`,
   {lit}`CLRS.Chapter19.FibHeap.insert_valid`,
   {lit}`CLRS.Chapter19.FibHeap.insert_mem_iff`,
@@ -691,6 +692,8 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_le_right`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.union_minimum_none_of_empty`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_ne_none_of_left`,
+  {lit}`CLRS.Chapter19.FibHeap.union_minimum_ne_none_of_right`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_valid`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_mem_iff`,
@@ -700,6 +703,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_not_mem_old`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_none_of_empty`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_ne_none_of_nonempty`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_mem`,

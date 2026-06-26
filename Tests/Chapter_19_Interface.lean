@@ -13,6 +13,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.minimum_le
 #check CLRS.Chapter19.FibHeap.minimum_none_iff
 #check CLRS.Chapter19.FibHeap.minimum_none_of_empty
+#check CLRS.Chapter19.FibHeap.minimum_ne_none_of_nonempty
 #check CLRS.Chapter19.FibHeap.insert_correct
 #check CLRS.Chapter19.FibHeap.insert_valid
 #check CLRS.Chapter19.FibHeap.insert_mem_iff
@@ -39,6 +40,8 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.union_minimum_le_right
 #check CLRS.Chapter19.FibHeap.union_minimum_none_iff
 #check CLRS.Chapter19.FibHeap.union_minimum_none_of_empty
+#check CLRS.Chapter19.FibHeap.union_minimum_ne_none_of_left
+#check CLRS.Chapter19.FibHeap.union_minimum_ne_none_of_right
 #check CLRS.Chapter19.FibHeap.extractMin_correct
 #check CLRS.Chapter19.FibHeap.extractMin_valid
 #check CLRS.Chapter19.FibHeap.extractMin_mem_iff
@@ -48,6 +51,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.extractMin_not_mem_old
 #check CLRS.Chapter19.FibHeap.extractMin_none_iff
 #check CLRS.Chapter19.FibHeap.extractMin_none_of_empty
+#check CLRS.Chapter19.FibHeap.extractMin_ne_none_of_nonempty
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_mem
