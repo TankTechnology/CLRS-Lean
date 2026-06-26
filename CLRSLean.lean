@@ -630,6 +630,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_valid`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_oldKey_mem_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_oldKey_not_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,

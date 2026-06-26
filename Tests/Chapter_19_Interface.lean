@@ -64,6 +64,8 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.decreaseKey_mem_iff
 #check CLRS.Chapter19.FibHeap.decreaseKey_mem_new
 #check CLRS.Chapter19.FibHeap.decreaseKey_mem_old
+#check CLRS.Chapter19.FibHeap.decreaseKey_oldKey_mem_iff
+#check CLRS.Chapter19.FibHeap.decreaseKey_oldKey_not_mem_of_ne
 #check CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff
 #check CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne
 #check CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct

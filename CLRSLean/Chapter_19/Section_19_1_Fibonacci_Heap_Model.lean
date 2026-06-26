@@ -42,6 +42,9 @@ Main results:
   {lit}`FibHeap.union_mem_right`, {lit}`FibHeap.extractMin_mem_of_ne`,
   {lit}`FibHeap.decreaseKey_mem_old`, and {lit}`FibHeap.delete_mem_of_ne`:
   direct preservation corollaries for old keys after heap operations.
+- Theorems {lit}`FibHeap.decreaseKey_oldKey_mem_iff` and
+  {lit}`FibHeap.decreaseKey_oldKey_not_mem_of_ne`: direct query wrappers for
+  the replaced key after decrease-key.
 - Theorems {lit}`FibHeap.insert_not_mem_iff`,
   {lit}`FibHeap.union_not_mem_iff`,
   {lit}`FibHeap.extractMin_not_mem_iff`,
@@ -772,6 +775,25 @@ theorem decreaseKey_mem_old (h : FibHeap) (oldKey newKey y : Int)
     y ∈ (decreaseKey oldKey newKey h).keys := by
   rw [decreaseKey_mem_iff]
   exact Or.inr ⟨hyold, hy⟩
+
+/-- The replaced old key remains present exactly when it is also the new key. -/
+theorem decreaseKey_oldKey_mem_iff (h : FibHeap) (oldKey newKey : Int) :
+    oldKey ∈ (decreaseKey oldKey newKey h).keys <-> oldKey = newKey := by
+  rw [decreaseKey_mem_iff]
+  constructor
+  · intro hmem
+    cases hmem with
+    | inl hnew => exact hnew
+    | inr hold => exact False.elim (hold.1 rfl)
+  · intro hsame
+    exact Or.inl hsame
+
+/-- The replaced old key is absent after a proper decrease to a different key. -/
+theorem decreaseKey_oldKey_not_mem_of_ne (h : FibHeap) (oldKey newKey : Int)
+    (hneq : oldKey ≠ newKey) :
+    oldKey ∉ (decreaseKey oldKey newKey h).keys := by
+  rw [decreaseKey_oldKey_mem_iff]
+  exact hneq
 
 /-- Decrease-key misses exactly nonreplacement keys that are the old key or were absent. -/
 theorem decreaseKey_not_mem_iff (h : FibHeap) (oldKey newKey y : Int) :

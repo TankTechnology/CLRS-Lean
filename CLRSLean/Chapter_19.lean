@@ -90,6 +90,8 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_new`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_old`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_oldKey_mem_iff`,
+  {lit}`CLRS.Chapter19.FibHeap.decreaseKey_oldKey_not_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`,

@@ -1243,6 +1243,8 @@ mutation proof.
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_new`
   - `CLRS.Chapter19.FibHeap.decreaseKey_mem_old`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_oldKey_mem_iff`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_oldKey_not_mem_of_ne`
   - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`
   - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne`
   - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`
@@ -1285,7 +1287,8 @@ mutation proof.
   membership/lower-bound wrappers, heap-potential nonnegativity and
   Chapter 17 potential-method instantiation, direct operation-key and old-key
   preservation membership corollaries, exact failed membership specifications,
-  direct failed-membership preservation wrappers, returned
+  direct failed-membership preservation wrappers, replaced-key decrease-key
+  query wrappers, returned
   minimum-after-update positive and empty-result specifications,
   Fibonacci lower-bound recurrence
   plus a two-step doubling induction over even indices, a half-index bridge,

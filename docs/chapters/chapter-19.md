@@ -67,6 +67,8 @@
 - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
 - `CLRS.Chapter19.FibHeap.decreaseKey_mem_new`
 - `CLRS.Chapter19.FibHeap.decreaseKey_mem_old`
+- `CLRS.Chapter19.FibHeap.decreaseKey_oldKey_mem_iff`
+- `CLRS.Chapter19.FibHeap.decreaseKey_oldKey_not_mem_of_ne`
 - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`
 - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne`
 - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`
