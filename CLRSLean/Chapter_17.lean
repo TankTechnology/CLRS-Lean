@@ -15,7 +15,7 @@ wrappers with capacity-direction and actual-cost lower/upper-bound facts plus an
 explicit nonnegative potential fact, actual-cost and capacity-choice case
 specifications, direct post-state field equations and allocation-size case
 wrappers, direct post-state stored-count and capacity corollaries, and direct
-resize-branch capacity wrappers,
+resize-branch capacity wrappers plus premise-light deletion-cost branch wrappers,
 including exact zero/positive deletion cost specifications.
 
 ## Sections
@@ -65,6 +65,8 @@ including exact zero/positive deletion cost specifications.
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_no_contract`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_eq_num_of_contract`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_eq_one_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_fits`,

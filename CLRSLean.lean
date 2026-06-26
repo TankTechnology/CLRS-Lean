@@ -99,7 +99,8 @@ Start with the chapter pages in the sidebar.
   potential, actual-cost and capacity-choice case specs, capacity-direction,
   actual-cost lower/upper bounds, post-state field equations, stored-count
   direction, post-state capacity, resize-branch capacity wrappers, exact
-  zero/positive deletion-cost wrappers, and transition wrappers.
+  zero/positive deletion-cost wrappers, premise-light deletion-cost branch
+  wrappers, and transition wrappers.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
   direct base search success/failure wrappers, height-expression
   base/positivity/recurrence/monotonicity, split-child direct validity and
@@ -484,6 +485,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_no_contract`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_eq_num_of_contract`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_eq_one_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_fits`,

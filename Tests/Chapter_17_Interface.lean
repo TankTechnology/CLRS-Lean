@@ -64,6 +64,8 @@ import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 #check CLRS.Chapter17.dynamicTableDeleteCost_empty
 #check CLRS.Chapter17.dynamicTableDeleteCost_of_contract
 #check CLRS.Chapter17.dynamicTableDeleteCost_of_no_contract
+#check CLRS.Chapter17.dynamicTableDeleteCost_eq_num_of_contract
+#check CLRS.Chapter17.dynamicTableDeleteCost_eq_one_of_no_contract
 #check CLRS.Chapter17.dynamicTableDeleteSize_of_contract
 #check CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract
 #check CLRS.Chapter17.dynamicTableDeleteSize_fits

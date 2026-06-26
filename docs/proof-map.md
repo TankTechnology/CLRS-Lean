@@ -1014,6 +1014,8 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableDeleteCost_empty`
   - `CLRS.Chapter17.dynamicTableDeleteCost_of_contract`
   - `CLRS.Chapter17.dynamicTableDeleteCost_of_no_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_eq_num_of_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_eq_one_of_no_contract`
   - `CLRS.Chapter17.dynamicTableDeleteSize_of_contract`
   - `CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`
   - `CLRS.Chapter17.dynamicTableDeleteSize_fits`
@@ -1038,6 +1040,7 @@ any consistent tree with the same frequency table.
   post-state allocation-size case specs, stored-count direction,
   post-state capacity corollaries, resize-branch capacity wrappers,
   actual-cost and capacity-choice case specs, zero/positive deletion-cost wrappers,
+  premise-light deletion-cost branch wrappers,
   lower/upper bounds, and transitions
 - Current gap: mutable-array copying, RAM/allocation constants, and sharper
   CLRS load-factor potential refinements remain strengthening targets.
@@ -1052,7 +1055,8 @@ potential nonnegativity, capacity feasibility/direction, direct post-state
 stored-count and capacity corollaries, resize-branch capacity wrappers,
 post-state field equations, actual-cost
 and capacity-choice case specs, exact zero/positive deletion-cost wrappers,
-positive-cost and upper-bound transition facts, while
+premise-light deletion-cost branch wrappers, positive-cost and upper-bound
+transition facts, while
 mutable-array copying and
 allocator semantics remain future refinements.
 

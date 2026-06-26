@@ -44,6 +44,8 @@
 - `CLRS.Chapter17.dynamicTableDeleteCost_empty`
 - `CLRS.Chapter17.dynamicTableDeleteCost_of_contract`
 - `CLRS.Chapter17.dynamicTableDeleteCost_of_no_contract`
+- `CLRS.Chapter17.dynamicTableDeleteCost_eq_num_of_contract`
+- `CLRS.Chapter17.dynamicTableDeleteCost_eq_one_of_no_contract`
 - `CLRS.Chapter17.dynamicTableDeleteSize_of_contract`
 - `CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`
 - `CLRS.Chapter17.dynamicTableDeleteSize_fits`
@@ -77,6 +79,7 @@ equations, allocation-size case wrappers, and stored-count direction facts.  It
 also records positive actual-cost facts for insertion and nonempty deletion,
 exact zero/positive deletion-cost wrappers, bounds the first-pass transition
 costs by the corresponding element-count copying budgets, and records direct
-actual-cost, capacity-choice, and post-state allocation-size case
+actual-cost, premise-light deletion-cost branch, capacity-choice, and
+post-state allocation-size case
 specifications, but it is still a size-level model rather than an
 array-copying model.

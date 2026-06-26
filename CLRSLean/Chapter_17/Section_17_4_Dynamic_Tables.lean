@@ -44,6 +44,9 @@ Main results:
   {lit}`dynamicTableDeleteCost_of_contract`, and
   {lit}`dynamicTableDeleteCost_of_no_contract`: direct case specifications for
   the first-pass actual-cost definitions.
+- Theorems {lit}`dynamicTableDeleteCost_eq_num_of_contract` and
+  {lit}`dynamicTableDeleteCost_eq_one_of_no_contract`: deletion actual-cost
+  branch wrappers without an explicit nonempty-table premise.
 - Theorem {lit}`dynamicTableInsert_valid`: the first-pass insertion transition
   preserves the table-size invariant.
 - Theorem {lit}`dynamicTableDelete_valid`: the first-pass deletion/contraction
@@ -330,6 +333,26 @@ theorem dynamicTableDeleteCost_of_no_contract (s : DynamicTableState)
     (hnum : s.num ≠ 0) (hcontract : ¬ 4 * (s.num - 1) <= s.size) :
     dynamicTableDeleteCost s = 1 := by
   simp [dynamicTableDeleteCost, hnum, hcontract]
+
+/-- The contraction branch costs the pre-deletion element count, including empty tables. -/
+theorem dynamicTableDeleteCost_eq_num_of_contract (s : DynamicTableState)
+    (hcontract : 4 * (s.num - 1) <= s.size) :
+    dynamicTableDeleteCost s = s.num := by
+  by_cases hnum : s.num = 0
+  · rw [hnum]
+    exact dynamicTableDeleteCost_empty s hnum
+  · exact dynamicTableDeleteCost_of_contract s hnum hcontract
+
+/-- The no-contraction branch costs one unit and necessarily comes from a nonempty table. -/
+theorem dynamicTableDeleteCost_eq_one_of_no_contract (s : DynamicTableState)
+    (hcontract : ¬ 4 * (s.num - 1) <= s.size) :
+    dynamicTableDeleteCost s = 1 := by
+  have hnum : s.num ≠ 0 := by
+    intro hempty
+    apply hcontract
+    rw [hempty]
+    simp
+  exact dynamicTableDeleteCost_of_no_contract s hnum hcontract
 
 /-- The first-pass deletion cost is bounded by the pre-deletion element count. -/
 theorem dynamicTableDeleteCost_le_num (s : DynamicTableState) :

@@ -95,7 +95,7 @@ which areas should not yet be counted as proof-complete.
   dynamic-table potential nonnegativity, capacity feasibility/direction facts,
   post-state field equations, stored-count direction facts, actual-cost and
   capacity-choice case specs, positive/zero deletion-cost exact wrappers,
-  positive-cost lower bounds, upper bounds,
+  premise-light deletion-cost branch wrappers, positive-cost lower bounds, upper bounds,
   post-state capacity corollaries, resize-branch capacity wrappers, and
   insertion/deletion wrappers are proved;
   allocator and RAM refinements remain.
@@ -562,6 +562,8 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_empty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_of_no_contract`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_eq_num_of_contract`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteCost_eq_one_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_fits`,
