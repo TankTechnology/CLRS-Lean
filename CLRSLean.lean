@@ -131,6 +131,7 @@ Start with the chapter pages in the sidebar.
   positive/no-neighbor specs, direct no-neighbor query wrappers,
   extrema empty-after-update specs, direct extrema empty-result wrappers,
   direct base extrema/neighbor nonempty-result wrappers,
+  direct updated-neighbor nonempty-result wrappers,
   direct extrema membership/lower- and upper-bound wrappers, direct
   extrema-after-update membership/order wrappers, direct base/insert/delete
   neighbor membership/order wrappers, premise-light no-neighbor wrappers over
@@ -711,6 +712,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.insert_successor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.insert_successor_none_of_insert_le_old_no_gt`,
+  {lit}`CLRS.Chapter20.VEB.insert_successor_ne_none_of_insert_gt`,
+  {lit}`CLRS.Chapter20.VEB.insert_successor_ne_none_of_old_gt`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_lt`,
@@ -719,6 +722,8 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_none_of_query_le_insert_old_no_lt`,
+  {lit}`CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_insert_lt`,
+  {lit}`CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_old_lt`,
   {lit}`CLRS.Chapter20.VEB.delete_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_member_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_member_lt_univ`,
@@ -749,6 +754,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.delete_successor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_none_of_old_no_gt`,
+  {lit}`CLRS.Chapter20.VEB.delete_successor_ne_none_of_remaining_gt`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_lt`,
@@ -757,6 +763,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_of_old_no_lt`,
+  {lit}`CLRS.Chapter20.VEB.delete_predecessor_ne_none_of_remaining_lt`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_zero`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_succ`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`,

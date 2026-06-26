@@ -115,6 +115,13 @@ Main results:
 - Theorems {lit}`VEB.successor_ne_none_of_exists_gt` and
   {lit}`VEB.predecessor_ne_none_of_exists_lt`: direct existing-neighbor
   wrappers for base successor and predecessor queries.
+- Theorems {lit}`VEB.insert_successor_ne_none_of_insert_gt`,
+  {lit}`VEB.insert_successor_ne_none_of_old_gt`,
+  {lit}`VEB.insert_predecessor_ne_none_of_insert_lt`,
+  {lit}`VEB.insert_predecessor_ne_none_of_old_lt`,
+  {lit}`VEB.delete_successor_ne_none_of_remaining_gt`, and
+  {lit}`VEB.delete_predecessor_ne_none_of_remaining_lt`: direct
+  existing-neighbor wrappers for updated successor and predecessor queries.
 - Theorems {lit}`VEB.insert_successor_none_of_insert_le_old_no_gt`,
   {lit}`VEB.insert_predecessor_none_of_query_le_insert_old_no_lt`,
   {lit}`VEB.delete_successor_none_of_old_no_gt`, and
@@ -808,6 +815,28 @@ theorem insert_successor_none_of_insert_le_old_no_gt {t : Tree}
       | inr hys =>
           exact hold y hys)
 
+/-- If the inserted key is greater than the query, successor after insertion exists. -/
+theorem insert_successor_ne_none_of_insert_gt {t : Tree} {s : Finset Nat}
+    {x q : Nat} (hrep : Represents t s) (hx : x < t.univSize)
+    (hqx : q < x) :
+    successor q (insert x t) ≠ none := by
+  intro hnone
+  have hnoGt : forall y, y = x ∨ y ∈ s -> ¬ q < y :=
+    (insert_successor_none_iff
+      (t := t) (s := s) (x := x) (q := q) hrep hx).1 hnone
+  exact (hnoGt x (Or.inl rfl)) hqx
+
+/-- If an old represented key is greater than the query, successor after insertion exists. -/
+theorem insert_successor_ne_none_of_old_gt {t : Tree} {s : Finset Nat}
+    {x q y : Nat} (hrep : Represents t s) (hx : x < t.univSize)
+    (hy : y ∈ s) (hqy : q < y) :
+    successor q (insert x t) ≠ none := by
+  intro hnone
+  have hnoGt : forall z, z = x ∨ z ∈ s -> ¬ q < z :=
+    (insert_successor_none_iff
+      (t := t) (s := s) (x := x) (q := q) hrep hx).1 hnone
+  exact (hnoGt y (Or.inr hy)) hqy
+
 /-- A returned predecessor after insertion is the greatest updated key less than the query. -/
 theorem insert_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
     (hrep : Represents t s) (hx : x < t.univSize)
@@ -894,6 +923,28 @@ theorem insert_predecessor_none_of_query_le_insert_old_no_lt {t : Tree}
           omega
       | inr hys =>
           exact hold y hys)
+
+/-- If the inserted key is smaller than the query, predecessor after insertion exists. -/
+theorem insert_predecessor_ne_none_of_insert_lt {t : Tree} {s : Finset Nat}
+    {x q : Nat} (hrep : Represents t s) (hx : x < t.univSize)
+    (hxq : x < q) :
+    predecessor q (insert x t) ≠ none := by
+  intro hnone
+  have hnoLt : forall y, y = x ∨ y ∈ s -> ¬ y < q :=
+    (insert_predecessor_none_iff
+      (t := t) (s := s) (x := x) (q := q) hrep hx).1 hnone
+  exact (hnoLt x (Or.inl rfl)) hxq
+
+/-- If an old represented key is smaller than the query, predecessor after insertion exists. -/
+theorem insert_predecessor_ne_none_of_old_lt {t : Tree} {s : Finset Nat}
+    {x q y : Nat} (hrep : Represents t s) (hx : x < t.univSize)
+    (hy : y ∈ s) (hyq : y < q) :
+    predecessor q (insert x t) ≠ none := by
+  intro hnone
+  have hnoLt : forall z, z = x ∨ z ∈ s -> ¬ z < q :=
+    (insert_predecessor_none_iff
+      (t := t) (s := s) (x := x) (q := q) hrep hx).1 hnone
+  exact (hnoLt y (Or.inr hy)) hyq
 
 /-- Delete a key from the represented set. -/
 def delete (x : Nat) (t : Tree) : Tree :=
@@ -1223,6 +1274,17 @@ theorem delete_successor_none_of_old_no_gt {t : Tree} {s : Finset Nat}
       intro y hy _hyx
       exact hnone y hy)
 
+/-- If a remaining old key is greater than the query, successor after deletion exists. -/
+theorem delete_successor_ne_none_of_remaining_gt {t : Tree} {s : Finset Nat}
+    {x q y : Nat} (hrep : Represents t s) (hy : y ∈ s)
+    (hyx : y ≠ x) (hqy : q < y) :
+    successor q (delete x t) ≠ none := by
+  intro hnone
+  have hnoGt : forall z, z ∈ s -> z ≠ x -> ¬ q < z :=
+    (delete_successor_none_iff
+      (t := t) (s := s) (x := x) (q := q) hrep).1 hnone
+  exact (hnoGt y hy hyx) hqy
+
 /-- A returned predecessor after deletion is the greatest remaining old key less than the query. -/
 theorem delete_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
     (hrep : Represents t s) (hpred : predecessor q (delete x t) = some y) :
@@ -1305,6 +1367,17 @@ theorem delete_predecessor_none_of_old_no_lt {t : Tree} {s : Finset Nat}
     (by
       intro y hy _hyx
       exact hnone y hy)
+
+/-- If a remaining old key is smaller than the query, predecessor after deletion exists. -/
+theorem delete_predecessor_ne_none_of_remaining_lt {t : Tree} {s : Finset Nat}
+    {x q y : Nat} (hrep : Represents t s) (hy : y ∈ s)
+    (hyx : y ≠ x) (hyq : y < q) :
+    predecessor q (delete x t) ≠ none := by
+  intro hnone
+  have hnoLt : forall z, z ∈ s -> z ≠ x -> ¬ z < q :=
+    (delete_predecessor_none_iff
+      (t := t) (s := s) (x := x) (q := q) hrep).1 hnone
+  exact (hnoLt y hy hyx) hyq
 
 /-- First-pass operation-depth recurrence over a tower exponent. -/
 def operationDepth (k : Nat) : Nat :=

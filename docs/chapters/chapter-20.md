@@ -73,6 +73,8 @@
 - `CLRS.Chapter20.VEB.insert_successor_none_iff`
 - `CLRS.Chapter20.VEB.insert_successor_none_of_no_gt`
 - `CLRS.Chapter20.VEB.insert_successor_none_of_insert_le_old_no_gt`
+- `CLRS.Chapter20.VEB.insert_successor_ne_none_of_insert_gt`
+- `CLRS.Chapter20.VEB.insert_successor_ne_none_of_old_gt`
 - `CLRS.Chapter20.VEB.insert_predecessor_correct`
 - `CLRS.Chapter20.VEB.insert_predecessor_mem`
 - `CLRS.Chapter20.VEB.insert_predecessor_lt`
@@ -81,6 +83,8 @@
 - `CLRS.Chapter20.VEB.insert_predecessor_none_iff`
 - `CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt`
 - `CLRS.Chapter20.VEB.insert_predecessor_none_of_query_le_insert_old_no_lt`
+- `CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_insert_lt`
+- `CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_old_lt`
 - `CLRS.Chapter20.VEB.delete_correct`
 - `CLRS.Chapter20.VEB.delete_member_iff`
 - `CLRS.Chapter20.VEB.delete_member_lt_univ`
@@ -111,6 +115,7 @@
 - `CLRS.Chapter20.VEB.delete_successor_none_iff`
 - `CLRS.Chapter20.VEB.delete_successor_none_of_no_gt`
 - `CLRS.Chapter20.VEB.delete_successor_none_of_old_no_gt`
+- `CLRS.Chapter20.VEB.delete_successor_ne_none_of_remaining_gt`
 - `CLRS.Chapter20.VEB.delete_predecessor_correct`
 - `CLRS.Chapter20.VEB.delete_predecessor_mem`
 - `CLRS.Chapter20.VEB.delete_predecessor_lt`
@@ -119,6 +124,7 @@
 - `CLRS.Chapter20.VEB.delete_predecessor_none_iff`
 - `CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt`
 - `CLRS.Chapter20.VEB.delete_predecessor_none_of_old_no_lt`
+- `CLRS.Chapter20.VEB.delete_predecessor_ne_none_of_remaining_lt`
 - `CLRS.Chapter20.VEB.operationDepth_zero`
 - `CLRS.Chapter20.VEB.operationDepth_succ`
 - `CLRS.Chapter20.VEB.operationDepth_linear`
@@ -139,7 +145,8 @@ empty-result extrema-after-update
 specs, positive and no-neighbor update-query specs, update-query
 universe-bound corollaries, direct no-neighbor query wrappers, premise-light
 no-neighbor wrappers over old represented sets, direct extrema empty-result
-wrappers, direct base extrema/neighbor nonempty-result wrappers, plus the
+wrappers, direct base extrema/neighbor nonempty-result wrappers, direct
+updated-neighbor nonempty-result wrappers, plus the
 first-pass operation-depth base, step, linear, and
 monotonicity facts.
 Recursive summary/cluster state, word-RAM base cases, and a full `O(log log u)`

@@ -1378,6 +1378,8 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.insert_successor_none_iff`
   - `CLRS.Chapter20.VEB.insert_successor_none_of_no_gt`
   - `CLRS.Chapter20.VEB.insert_successor_none_of_insert_le_old_no_gt`
+  - `CLRS.Chapter20.VEB.insert_successor_ne_none_of_insert_gt`
+  - `CLRS.Chapter20.VEB.insert_successor_ne_none_of_old_gt`
   - `CLRS.Chapter20.VEB.insert_predecessor_correct`
   - `CLRS.Chapter20.VEB.insert_predecessor_mem`
   - `CLRS.Chapter20.VEB.insert_predecessor_lt`
@@ -1386,6 +1388,8 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.insert_predecessor_none_iff`
   - `CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt`
   - `CLRS.Chapter20.VEB.insert_predecessor_none_of_query_le_insert_old_no_lt`
+  - `CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_insert_lt`
+  - `CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_old_lt`
   - `CLRS.Chapter20.VEB.delete_correct`
   - `CLRS.Chapter20.VEB.delete_member_iff`
   - `CLRS.Chapter20.VEB.delete_member_lt_univ`
@@ -1416,6 +1420,7 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.delete_successor_none_iff`
   - `CLRS.Chapter20.VEB.delete_successor_none_of_no_gt`
   - `CLRS.Chapter20.VEB.delete_successor_none_of_old_no_gt`
+  - `CLRS.Chapter20.VEB.delete_successor_ne_none_of_remaining_gt`
   - `CLRS.Chapter20.VEB.delete_predecessor_correct`
   - `CLRS.Chapter20.VEB.delete_predecessor_mem`
   - `CLRS.Chapter20.VEB.delete_predecessor_lt`
@@ -1424,6 +1429,7 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.delete_predecessor_none_iff`
   - `CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt`
   - `CLRS.Chapter20.VEB.delete_predecessor_none_of_old_no_lt`
+  - `CLRS.Chapter20.VEB.delete_predecessor_ne_none_of_remaining_lt`
   - `CLRS.Chapter20.VEB.operationDepth_zero`
   - `CLRS.Chapter20.VEB.operationDepth_succ`
   - `CLRS.Chapter20.VEB.operationDepth_linear`
@@ -1438,6 +1444,7 @@ Fibonacci logarithmic theorem.
   failed member-query preservation wrappers, direct no-neighbor query wrappers,
   premise-light no-neighbor wrappers over old represented sets, direct extrema
   empty-result wrappers, direct base extrema/neighbor nonempty-result wrappers,
+  direct updated-neighbor nonempty-result wrappers,
   direct extrema-after-update
   membership/order wrappers, update-query
   universe-bound corollaries, and definition unfolding for
@@ -1459,7 +1466,8 @@ positive and empty-result extrema-after-update, and both positive and
 no-neighbor specifications for neighbor queries after updates, plus direct
 no-neighbor query wrappers, premise-light no-neighbor wrappers over old
 represented sets, direct extrema empty-result wrappers, direct base
-extrema/neighbor nonempty-result wrappers, and direct universe-bound
+extrema/neighbor nonempty-result wrappers, direct updated-neighbor
+nonempty-result wrappers, and direct universe-bound
 corollaries for successful queries after updates.  The
 current operation-depth facts expose the base case, successor step, and a
 linear/monotone wrapper over the universe exponent, not yet a full asymptotic
