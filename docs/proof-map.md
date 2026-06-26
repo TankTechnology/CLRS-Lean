@@ -1302,12 +1302,14 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.successor_le`
   - `CLRS.Chapter20.VEB.successor_lt_univ`
   - `CLRS.Chapter20.VEB.successor_none_iff`
+  - `CLRS.Chapter20.VEB.successor_none_of_no_gt`
   - `CLRS.Chapter20.VEB.predecessor_correct`
   - `CLRS.Chapter20.VEB.predecessor_mem`
   - `CLRS.Chapter20.VEB.predecessor_lt`
   - `CLRS.Chapter20.VEB.le_predecessor`
   - `CLRS.Chapter20.VEB.predecessor_lt_univ`
   - `CLRS.Chapter20.VEB.predecessor_none_iff`
+  - `CLRS.Chapter20.VEB.predecessor_none_of_no_lt`
   - `CLRS.Chapter20.VEB.insert_correct`
   - `CLRS.Chapter20.VEB.insert_member_iff`
   - `CLRS.Chapter20.VEB.insert_member_lt_univ`
@@ -1333,12 +1335,14 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.insert_successor_le`
   - `CLRS.Chapter20.VEB.insert_successor_lt_univ`
   - `CLRS.Chapter20.VEB.insert_successor_none_iff`
+  - `CLRS.Chapter20.VEB.insert_successor_none_of_no_gt`
   - `CLRS.Chapter20.VEB.insert_predecessor_correct`
   - `CLRS.Chapter20.VEB.insert_predecessor_mem`
   - `CLRS.Chapter20.VEB.insert_predecessor_lt`
   - `CLRS.Chapter20.VEB.insert_le_predecessor`
   - `CLRS.Chapter20.VEB.insert_predecessor_lt_univ`
   - `CLRS.Chapter20.VEB.insert_predecessor_none_iff`
+  - `CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt`
   - `CLRS.Chapter20.VEB.delete_correct`
   - `CLRS.Chapter20.VEB.delete_member_iff`
   - `CLRS.Chapter20.VEB.delete_member_lt_univ`
@@ -1365,12 +1369,14 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.delete_successor_le`
   - `CLRS.Chapter20.VEB.delete_successor_lt_univ`
   - `CLRS.Chapter20.VEB.delete_successor_none_iff`
+  - `CLRS.Chapter20.VEB.delete_successor_none_of_no_gt`
   - `CLRS.Chapter20.VEB.delete_predecessor_correct`
   - `CLRS.Chapter20.VEB.delete_predecessor_mem`
   - `CLRS.Chapter20.VEB.delete_predecessor_lt`
   - `CLRS.Chapter20.VEB.delete_le_predecessor`
   - `CLRS.Chapter20.VEB.delete_predecessor_lt_univ`
   - `CLRS.Chapter20.VEB.delete_predecessor_none_iff`
+  - `CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt`
   - `CLRS.Chapter20.VEB.operationDepth_zero`
   - `CLRS.Chapter20.VEB.operationDepth_succ`
   - `CLRS.Chapter20.VEB.operationDepth_linear`
@@ -1382,9 +1388,9 @@ Fibonacci logarithmic theorem.
   bridges, direct extrema membership/lower- and upper-bound wrappers, direct
   base/insert/delete neighbor membership/order wrappers, direct updated-key,
   old-key preservation, failed member queries after updates, and direct
-  failed member-query preservation wrappers, direct
-  extrema-after-update membership/order wrappers, update-query universe-bound
-  corollaries, and definition unfolding for
+  failed member-query preservation wrappers, direct no-neighbor query wrappers,
+  direct extrema-after-update membership/order wrappers, update-query
+  universe-bound corollaries, and definition unfolding for
   first-pass operation-depth recurrence and monotonicity facts
 - Current gap: recursive min/max-summary-cluster state, word-RAM base cases,
   and an explicit Chapter 3 asymptotic bridge for `O(log log u)` remain
@@ -1401,7 +1407,8 @@ direct updated-key and old-key member-preservation corollaries, exact failed
 member-query corollaries, direct failed member-query preservation wrappers,
 positive and empty-result extrema-after-update, and both positive and
 no-neighbor specifications for neighbor queries after updates, plus direct
-universe-bound corollaries for successful queries after updates.  The
+no-neighbor query wrappers and direct universe-bound corollaries for
+successful queries after updates.  The
 current operation-depth facts expose the base case, successor step, and a
 linear/monotone wrapper over the universe exponent, not yet a full asymptotic
 translation for the original universe size.

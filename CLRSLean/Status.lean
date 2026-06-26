@@ -132,7 +132,7 @@ which areas should not yet be counted as proof-complete.
   wrappers, direct extrema-after-update membership/order wrappers, direct
   base/insert/delete neighbor membership/order wrappers, direct member-query
   preservation and failure corollaries, direct failed member-query
-  preservation wrappers, update-query
+  preservation wrappers, direct no-neighbor query wrappers, update-query
   universe-bound corollaries, and operation-depth
   recurrence/monotonicity specs, are proved; recursive cluster representation
   and the {lit}`O(log log u)` bridge remain.
@@ -745,12 +745,14 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.successor_le`,
   {lit}`CLRS.Chapter20.VEB.successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.successor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.predecessor_lt`,
   {lit}`CLRS.Chapter20.VEB.le_predecessor`,
   {lit}`CLRS.Chapter20.VEB.predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.predecessor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.insert_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_member_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_member_lt_univ`,
@@ -776,12 +778,14 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.insert_successor_le`,
   {lit}`CLRS.Chapter20.VEB.insert_successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_successor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.insert_successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_lt`,
   {lit}`CLRS.Chapter20.VEB.insert_le_predecessor`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.delete_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_member_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_member_lt_univ`,
@@ -808,12 +812,14 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.delete_successor_le`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.delete_successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_lt`,
   {lit}`CLRS.Chapter20.VEB.delete_le_predecessor`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_zero`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_succ`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`,

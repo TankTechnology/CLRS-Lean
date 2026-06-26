@@ -95,6 +95,13 @@ Main results:
   {lit}`VEB.delete_successor_none_iff`, and
   {lit}`VEB.delete_predecessor_none_iff`: no-neighbor query results after
   updates match the absence of updated keys on the corresponding side.
+- Theorems {lit}`VEB.successor_none_of_no_gt`,
+  {lit}`VEB.predecessor_none_of_no_lt`,
+  {lit}`VEB.insert_successor_none_of_no_gt`,
+  {lit}`VEB.insert_predecessor_none_of_no_lt`,
+  {lit}`VEB.delete_successor_none_of_no_gt`, and
+  {lit}`VEB.delete_predecessor_none_of_no_lt`: direct no-neighbor query
+  wrappers for base and updated trees.
 - Theorem {lit}`VEB.operationDepth_linear`: the first-pass recurrence-depth
   wrapper is linear in the universe exponent.
 
@@ -332,6 +339,12 @@ theorem successor_none_iff {t : Tree} {s : Finset Nat} {x : Nat}
       exact False.elim ((hnone y hy.1) hy.2)
     · simp [hne]
 
+/-- If no represented key is greater than the query, no successor is returned. -/
+theorem successor_none_of_no_gt {t : Tree} {s : Finset Nat} {x : Nat}
+    (hrep : Represents t s) (hnone : forall y, y ∈ s -> ¬ x < y) :
+    successor x t = none := by
+  exact (successor_none_iff (t := t) (s := s) (x := x) hrep).2 hnone
+
 /-- Candidate predecessor set for query {lit}`x`. -/
 def predecessorCandidates (x : Nat) (t : Tree) : Finset Nat :=
   t.elems.filter (fun y => y < x)
@@ -410,6 +423,12 @@ theorem predecessor_none_iff {t : Tree} {s : Finset Nat} {x : Nat}
         simpa [predecessorCandidates, hrep.1] using hyCand
       exact False.elim ((hnone y hy.1) hy.2)
     · simp [hne]
+
+/-- If no represented key is smaller than the query, no predecessor is returned. -/
+theorem predecessor_none_of_no_lt {t : Tree} {s : Finset Nat} {x : Nat}
+    (hrep : Represents t s) (hnone : forall y, y ∈ s -> ¬ y < x) :
+    predecessor x t = none := by
+  exact (predecessor_none_iff (t := t) (s := s) (x := x) hrep).2 hnone
 
 /-- Insert a key into the represented set. -/
 def insert (x : Nat) (t : Tree) : Tree :=
@@ -683,6 +702,14 @@ theorem insert_successor_none_iff {t : Tree} {s : Finset Nat} {x q : Nat}
     (successor_none_iff (t := insert x t) (s := Insert.insert x s)
       (x := q) hinsert)
 
+/-- If no updated key is greater than the query after insertion, no successor is returned. -/
+theorem insert_successor_none_of_no_gt {t : Tree} {s : Finset Nat} {x q : Nat}
+    (hrep : Represents t s) (hx : x < t.univSize)
+    (hnone : forall y, y = x ∨ y ∈ s -> ¬ q < y) :
+    successor q (insert x t) = none := by
+  exact (insert_successor_none_iff
+    (t := t) (s := s) (x := x) (q := q) hrep hx).2 hnone
+
 /-- A returned predecessor after insertion is the greatest updated key less than the query. -/
 theorem insert_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
     (hrep : Represents t s) (hx : x < t.univSize)
@@ -745,6 +772,14 @@ theorem insert_predecessor_none_iff {t : Tree} {s : Finset Nat} {x q : Nat}
   simpa [Finset.mem_insert] using
     (predecessor_none_iff (t := insert x t) (s := Insert.insert x s)
       (x := q) hinsert)
+
+/-- If no updated key is smaller than the query after insertion, no predecessor is returned. -/
+theorem insert_predecessor_none_of_no_lt {t : Tree} {s : Finset Nat} {x q : Nat}
+    (hrep : Represents t s) (hx : x < t.univSize)
+    (hnone : forall y, y = x ∨ y ∈ s -> ¬ y < q) :
+    predecessor q (insert x t) = none := by
+  exact (insert_predecessor_none_iff
+    (t := t) (s := s) (x := x) (q := q) hrep hx).2 hnone
 
 /-- Delete a key from the represented set. -/
 def delete (x : Nat) (t : Tree) : Tree :=
@@ -1043,6 +1078,14 @@ theorem delete_successor_none_iff {t : Tree} {s : Finset Nat} {x q : Nat}
       simpa [Finset.mem_erase] using hyerase
     exact hnone y hy.2 hy.1 hqy
 
+/-- If no remaining old key is greater than the query after deletion, no successor is returned. -/
+theorem delete_successor_none_of_no_gt {t : Tree} {s : Finset Nat} {x q : Nat}
+    (hrep : Represents t s)
+    (hnone : forall y, y ∈ s -> y ≠ x -> ¬ q < y) :
+    successor q (delete x t) = none := by
+  exact (delete_successor_none_iff
+    (t := t) (s := s) (x := x) (q := q) hrep).2 hnone
+
 /-- A returned predecessor after deletion is the greatest remaining old key less than the query. -/
 theorem delete_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
     (hrep : Represents t s) (hpred : predecessor q (delete x t) = some y) :
@@ -1106,6 +1149,14 @@ theorem delete_predecessor_none_iff {t : Tree} {s : Finset Nat} {x q : Nat}
     have hy : y ≠ x ∧ y ∈ s := by
       simpa [Finset.mem_erase] using hyerase
     exact hnone y hy.2 hy.1 hyq
+
+/-- If no remaining old key is smaller than the query after deletion, no predecessor is returned. -/
+theorem delete_predecessor_none_of_no_lt {t : Tree} {s : Finset Nat} {x q : Nat}
+    (hrep : Represents t s)
+    (hnone : forall y, y ∈ s -> y ≠ x -> ¬ y < q) :
+    predecessor q (delete x t) = none := by
+  exact (delete_predecessor_none_iff
+    (t := t) (s := s) (x := x) (q := q) hrep).2 hnone
 
 /-- First-pass operation-depth recurrence over a tower exponent. -/
 def operationDepth (k : Nat) : Nat :=

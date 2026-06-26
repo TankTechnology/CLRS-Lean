@@ -11,8 +11,9 @@ of membership, extrema, successor, predecessor, insert, and delete against a
 represented finite set, including empty-result specifications for extrema,
 successor, and predecessor plus membership-, extrema-, and
 neighbor-query-after-update positive and no-neighbor specifications,
-successful-query universe-bound corollaries, direct extrema
-membership/lower- and upper-bound wrappers, direct base/insert/delete neighbor
+successful-query universe-bound corollaries, direct no-neighbor query wrappers,
+direct extrema membership/lower- and upper-bound wrappers, direct
+base/insert/delete neighbor
 membership/order wrappers, direct extrema-after-update membership/order
 wrappers, extrema empty-after-update specifications, update-query
 universe-bound corollaries, direct
@@ -52,12 +53,14 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.successor_le`,
   {lit}`CLRS.Chapter20.VEB.successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.successor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.predecessor_lt`,
   {lit}`CLRS.Chapter20.VEB.le_predecessor`,
   {lit}`CLRS.Chapter20.VEB.predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.predecessor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.insert_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_member_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_member_lt_univ`,
@@ -83,12 +86,14 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.insert_successor_le`,
   {lit}`CLRS.Chapter20.VEB.insert_successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_successor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.insert_successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_lt`,
   {lit}`CLRS.Chapter20.VEB.insert_le_predecessor`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.insert_predecessor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.delete_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_member_iff`,
   {lit}`CLRS.Chapter20.VEB.delete_member_lt_univ`,
@@ -115,12 +120,14 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.delete_successor_le`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_successor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.delete_successor_none_of_no_gt`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_lt`,
   {lit}`CLRS.Chapter20.VEB.delete_le_predecessor`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_iff`,
+  {lit}`CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_zero`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_succ`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`,
