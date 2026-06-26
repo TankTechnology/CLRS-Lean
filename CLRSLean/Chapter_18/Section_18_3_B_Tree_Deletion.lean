@@ -16,8 +16,12 @@ Main results:
   specification deletion.
 - Theorem {lit}`BTree.delete_mem_iff`: after deletion, membership is exactly
   membership of a key different from the deleted key.
+- Theorem {lit}`BTree.delete_mem_iff_ne`: the same membership specification
+  using Prop-level key inequality.
 - Theorem {lit}`BTree.delete_search_iff`: searching after deletion succeeds
   exactly for old searchable keys different from the deleted key.
+- Theorem {lit}`BTree.delete_search_iff_ne`: the same successful-search
+  specification using Prop-level key inequality.
 - Theorem {lit}`BTree.delete_search_false_iff`: searching after deletion fails
   exactly for the deleted key or keys that failed before.
 - Theorem {lit}`BTree.delete_search_false_old`: old unsuccessful searches
@@ -74,6 +78,16 @@ theorem delete_mem_iff (x y : Nat) (t : BTree) :
     exact ⟨h.2, h.1⟩
   · intro h
     exact ⟨h.2, h.1⟩
+
+/-- Deletion membership succeeds exactly for old keys distinct from the deleted key. -/
+theorem delete_mem_iff_ne (x y : Nat) (t : BTree) :
+    mem y (delete x t) <-> y ≠ x ∧ mem y t := by
+  rw [delete_mem_iff]
+  constructor
+  · intro h
+    exact ⟨by simpa using h.1, h.2⟩
+  · intro h
+    exact ⟨by simp [h.1], h.2⟩
 
 /-- The deleted key is absent after specification deletion. -/
 theorem delete_not_mem (x : Nat) (t : BTree) :
@@ -132,6 +146,17 @@ theorem delete_search_iff {minDegree x y : Nat} {t : BTree}
   rw [search_correct (minDegree := minDegree) (x := y) (t := delete x t) hdelete]
   rw [delete_mem_iff]
   rw [← search_correct (minDegree := minDegree) (x := y) (t := t) hvalid]
+
+/-- Searching after deletion succeeds exactly for old searchable keys distinct from the deleted key. -/
+theorem delete_search_iff_ne {minDegree x y : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) :
+    search y (delete x t) = true <-> y ≠ x ∧ search y t = true := by
+  rw [delete_search_iff (minDegree := minDegree) (x := x) (y := y) (t := t) hvalid]
+  constructor
+  · intro h
+    exact ⟨by simpa using h.1, h.2⟩
+  · intro h
+    exact ⟨by simp [h.1], h.2⟩
 
 /-- Searching for the deleted key fails after specification deletion. -/
 theorem delete_search_deleted_false {minDegree x : Nat} {t : BTree}

@@ -107,7 +107,8 @@ Start with the chapter pages in the sidebar.
   base/positivity/recurrence/monotonicity, split-child direct validity and
   membership/search preservation, direct failed-membership preservation,
   insertion/deletion direct validity, equality-key query wrappers,
-  successful/unsuccessful search-after-update theorem surface,
+  successful/unsuccessful search-after-update theorem surface, Prop-level
+  deletion success wrappers,
   membership-driven search-after-update wrappers, and direct inserted/deleted-key,
   old-key query preservation, and failed membership corollaries.
 * Chapter 19 - Fibonacci Heaps: abstract finite-set heap model with
@@ -557,7 +558,9 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.delete_valid`,
   {lit}`CLRS.Chapter18.BTree.delete_mem_iff`,
+  {lit}`CLRS.Chapter18.BTree.delete_mem_iff_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_search_iff`,
+  {lit}`CLRS.Chapter18.BTree.delete_search_iff_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_search_false_of_eq`,
   {lit}`CLRS.Chapter18.BTree.delete_search_of_mem_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_not_mem_iff`,

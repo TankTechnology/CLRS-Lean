@@ -10,8 +10,8 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 19.
-* Tracked reader-facing theorem entries: 674.
-* Proved tracked theorem entries: 674.
+* Tracked reader-facing theorem entries: 676.
+* Proved tracked theorem entries: 676.
 * Remaining core theorem groups: 45.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -49,7 +49,7 @@ Ch  Chapter                                                     Status          
 15  15. Dynamic Programming                                     not-started                          not represented                     0        1
 16  16. Greedy Algorithms                                       selected-section-complete            16.1;16.3                          21        2
 17  17. Amortized Analysis                                      partial                              17.1-17.3;17.2;17.4                62        1
-18  18. B-Trees                                                 partial                              18.1;18.2;18.3                     57        1
+18  18. B-Trees                                                 partial                              18.1;18.2;18.3                     59        1
 19  19. Fibonacci Heaps                                         partial                              19.1                               95        1
 20  20. van Emde Boas Trees                                     partial                              20.1;20.2                         126        1
 21  21. Data Structures for Disjoint Sets                       not-started                          not represented                     0        1

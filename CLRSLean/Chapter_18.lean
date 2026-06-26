@@ -14,8 +14,9 @@ preservation plus direct split old-key corollaries, direct split validity,
 successful and unsuccessful search-after-update
 specifications, membership-driven search-after-update wrappers, and direct
 inserted/deleted-key plus old-key query preservation corollaries, direct
-validity short-name wrappers, equality-key update-query wrappers, including
-old failed-search preservation wrappers, together with exact failed membership
+validity short-name wrappers, equality-key update-query wrappers, Prop-level
+deletion success specifications, old failed-search preservation wrappers,
+together with exact failed membership
 specifications and direct failed-membership
 preservation wrappers after split, insert, and delete.
 
@@ -71,7 +72,9 @@ preservation wrappers after split, insert, and delete.
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.delete_valid`,
   {lit}`CLRS.Chapter18.BTree.delete_mem_iff`,
+  {lit}`CLRS.Chapter18.BTree.delete_mem_iff_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_search_iff`,
+  {lit}`CLRS.Chapter18.BTree.delete_search_iff_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_not_mem`,
   {lit}`CLRS.Chapter18.BTree.delete_search_deleted_false`,
   {lit}`CLRS.Chapter18.BTree.delete_search_false_of_eq`,

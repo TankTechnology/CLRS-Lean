@@ -107,8 +107,9 @@ which areas should not yet be counted as proof-complete.
   membership/search preservation, insertion/deletion membership, and successful
   and unsuccessful search-after-update theorem surfaces plus direct
   insertion/deletion validity short-name wrappers, equality-key update-query
-  wrappers, membership-driven search-after-update wrappers, direct
-  inserted/deleted-key, old-key query preservation, and failed membership
+  wrappers, Prop-level deletion success wrappers, membership-driven
+  search-after-update wrappers, direct inserted/deleted-key, old-key query
+  preservation, and failed membership
   corollaries plus direct failed-membership preservation wrappers; full
   separator/same-depth, node-level-deletion, and disk-page refinements remain.
 * Chapter 19, Section 19.1: abstract Fibonacci-heap finite-set operations,
@@ -643,7 +644,9 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.delete_valid`,
   {lit}`CLRS.Chapter18.BTree.delete_mem_iff`,
+  {lit}`CLRS.Chapter18.BTree.delete_mem_iff_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_search_iff`,
+  {lit}`CLRS.Chapter18.BTree.delete_search_iff_ne`,
   {lit}`CLRS.Chapter18.BTree.delete_not_mem`,
   {lit}`CLRS.Chapter18.BTree.delete_search_deleted_false`,
   {lit}`CLRS.Chapter18.BTree.delete_search_false_of_eq`,

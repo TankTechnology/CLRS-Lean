@@ -55,7 +55,9 @@ import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion
 #check CLRS.Chapter18.BTree.delete_preserves_model
 #check CLRS.Chapter18.BTree.delete_valid
 #check CLRS.Chapter18.BTree.delete_mem_iff
+#check CLRS.Chapter18.BTree.delete_mem_iff_ne
 #check CLRS.Chapter18.BTree.delete_search_iff
+#check CLRS.Chapter18.BTree.delete_search_iff_ne
 #check CLRS.Chapter18.BTree.delete_not_mem
 #check CLRS.Chapter18.BTree.delete_search_deleted_false
 #check CLRS.Chapter18.BTree.delete_search_false_of_eq

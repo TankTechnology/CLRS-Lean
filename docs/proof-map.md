@@ -1119,7 +1119,9 @@ allocator semantics remain future refinements.
   - `CLRS.Chapter18.BTree.delete_preserves_model`
   - `CLRS.Chapter18.BTree.delete_valid`
   - `CLRS.Chapter18.BTree.delete_mem_iff`
+  - `CLRS.Chapter18.BTree.delete_mem_iff_ne`
   - `CLRS.Chapter18.BTree.delete_search_iff`
+  - `CLRS.Chapter18.BTree.delete_search_iff_ne`
   - `CLRS.Chapter18.BTree.delete_not_mem`
   - `CLRS.Chapter18.BTree.delete_search_deleted_false`
   - `CLRS.Chapter18.BTree.delete_search_false_of_eq`
