@@ -109,6 +109,11 @@ Main results:
   {lit}`VEB.delete_successor_none_of_no_gt`, and
   {lit}`VEB.delete_predecessor_none_of_no_lt`: direct no-neighbor query
   wrappers for base and updated trees.
+- Theorems {lit}`VEB.insert_successor_none_of_insert_le_old_no_gt`,
+  {lit}`VEB.insert_predecessor_none_of_query_le_insert_old_no_lt`,
+  {lit}`VEB.delete_successor_none_of_old_no_gt`, and
+  {lit}`VEB.delete_predecessor_none_of_old_no_lt`: premise-light
+  no-neighbor wrappers stated against the old represented set.
 - Theorem {lit}`VEB.operationDepth_linear`: the first-pass recurrence-depth
   wrapper is linear in the universe exponent.
 
@@ -743,6 +748,22 @@ theorem insert_successor_none_of_no_gt {t : Tree} {s : Finset Nat} {x q : Nat}
   exact (insert_successor_none_iff
     (t := t) (s := s) (x := x) (q := q) hrep hx).2 hnone
 
+/-- If the inserted key and every old key are no greater than the query, no successor is returned. -/
+theorem insert_successor_none_of_insert_le_old_no_gt {t : Tree}
+    {s : Finset Nat} {x q : Nat} (hrep : Represents t s)
+    (hx : x < t.univSize) (hxq : x <= q)
+    (hold : forall y, y ∈ s -> ¬ q < y) :
+    successor q (insert x t) = none := by
+  exact insert_successor_none_of_no_gt
+    (t := t) (s := s) (x := x) (q := q) hrep hx
+    (by
+      intro y hy
+      cases hy with
+      | inl hyx =>
+          omega
+      | inr hys =>
+          exact hold y hys)
+
 /-- A returned predecessor after insertion is the greatest updated key less than the query. -/
 theorem insert_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
     (hrep : Represents t s) (hx : x < t.univSize)
@@ -813,6 +834,22 @@ theorem insert_predecessor_none_of_no_lt {t : Tree} {s : Finset Nat} {x q : Nat}
     predecessor q (insert x t) = none := by
   exact (insert_predecessor_none_iff
     (t := t) (s := s) (x := x) (q := q) hrep hx).2 hnone
+
+/-- If the query is no greater than the inserted key and no old key is smaller, no predecessor is returned. -/
+theorem insert_predecessor_none_of_query_le_insert_old_no_lt {t : Tree}
+    {s : Finset Nat} {x q : Nat} (hrep : Represents t s)
+    (hx : x < t.univSize) (hqx : q <= x)
+    (hold : forall y, y ∈ s -> ¬ y < q) :
+    predecessor q (insert x t) = none := by
+  exact insert_predecessor_none_of_no_lt
+    (t := t) (s := s) (x := x) (q := q) hrep hx
+    (by
+      intro y hy
+      cases hy with
+      | inl hyx =>
+          omega
+      | inr hys =>
+          exact hold y hys)
 
 /-- Delete a key from the represented set. -/
 def delete (x : Nat) (t : Tree) : Tree :=
@@ -1131,6 +1168,17 @@ theorem delete_successor_none_of_no_gt {t : Tree} {s : Finset Nat} {x q : Nat}
   exact (delete_successor_none_iff
     (t := t) (s := s) (x := x) (q := q) hrep).2 hnone
 
+/-- If no old key is greater than the query, deletion returns no successor. -/
+theorem delete_successor_none_of_old_no_gt {t : Tree} {s : Finset Nat}
+    {x q : Nat} (hrep : Represents t s)
+    (hnone : forall y, y ∈ s -> ¬ q < y) :
+    successor q (delete x t) = none := by
+  exact delete_successor_none_of_no_gt
+    (t := t) (s := s) (x := x) (q := q) hrep
+    (by
+      intro y hy _hyx
+      exact hnone y hy)
+
 /-- A returned predecessor after deletion is the greatest remaining old key less than the query. -/
 theorem delete_predecessor_correct {t : Tree} {s : Finset Nat} {x q y : Nat}
     (hrep : Represents t s) (hpred : predecessor q (delete x t) = some y) :
@@ -1202,6 +1250,17 @@ theorem delete_predecessor_none_of_no_lt {t : Tree} {s : Finset Nat} {x q : Nat}
     predecessor q (delete x t) = none := by
   exact (delete_predecessor_none_iff
     (t := t) (s := s) (x := x) (q := q) hrep).2 hnone
+
+/-- If no old key is smaller than the query, deletion returns no predecessor. -/
+theorem delete_predecessor_none_of_old_no_lt {t : Tree} {s : Finset Nat}
+    {x q : Nat} (hrep : Represents t s)
+    (hnone : forall y, y ∈ s -> ¬ y < q) :
+    predecessor q (delete x t) = none := by
+  exact delete_predecessor_none_of_no_lt
+    (t := t) (s := s) (x := x) (q := q) hrep
+    (by
+      intro y hy _hyx
+      exact hnone y hy)
 
 /-- First-pass operation-depth recurrence over a tower exponent. -/
 def operationDepth (k : Nat) : Nat :=

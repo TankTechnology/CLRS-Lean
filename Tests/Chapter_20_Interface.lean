@@ -69,6 +69,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.insert_successor_lt_univ
 #check CLRS.Chapter20.VEB.insert_successor_none_iff
 #check CLRS.Chapter20.VEB.insert_successor_none_of_no_gt
+#check CLRS.Chapter20.VEB.insert_successor_none_of_insert_le_old_no_gt
 #check CLRS.Chapter20.VEB.insert_predecessor_correct
 #check CLRS.Chapter20.VEB.insert_predecessor_mem
 #check CLRS.Chapter20.VEB.insert_predecessor_lt
@@ -76,6 +77,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.insert_predecessor_lt_univ
 #check CLRS.Chapter20.VEB.insert_predecessor_none_iff
 #check CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt
+#check CLRS.Chapter20.VEB.insert_predecessor_none_of_query_le_insert_old_no_lt
 #check CLRS.Chapter20.VEB.delete_correct
 #check CLRS.Chapter20.VEB.delete_member_iff
 #check CLRS.Chapter20.VEB.delete_member_lt_univ
@@ -105,6 +107,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.delete_successor_lt_univ
 #check CLRS.Chapter20.VEB.delete_successor_none_iff
 #check CLRS.Chapter20.VEB.delete_successor_none_of_no_gt
+#check CLRS.Chapter20.VEB.delete_successor_none_of_old_no_gt
 #check CLRS.Chapter20.VEB.delete_predecessor_correct
 #check CLRS.Chapter20.VEB.delete_predecessor_mem
 #check CLRS.Chapter20.VEB.delete_predecessor_lt
@@ -112,6 +115,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.delete_predecessor_lt_univ
 #check CLRS.Chapter20.VEB.delete_predecessor_none_iff
 #check CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt
+#check CLRS.Chapter20.VEB.delete_predecessor_none_of_old_no_lt
 #check CLRS.Chapter20.VEB.operationDepth
 #check CLRS.Chapter20.VEB.operationDepth_zero
 #check CLRS.Chapter20.VEB.operationDepth_succ
