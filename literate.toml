@@ -25,6 +25,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_14",
   "CLRSLean.Chapter_15",
   "CLRSLean.Chapter_16",
+  "CLRSLean.Chapter_17",
+  "CLRSLean.Chapter_18",
+  "CLRSLean.Chapter_19",
+  "CLRSLean.Chapter_20",
   "CLRSLean.Chapter_23",
   "CLRSLean.Progress",
   "CLRSLean.Status",
@@ -98,6 +102,23 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
   "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
 ]
+"CLRSLean.Chapter_17" = [
+  "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework",
+  "CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter",
+  "CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables",
+]
+"CLRSLean.Chapter_18" = [
+  "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model",
+  "CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion",
+  "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion",
+]
+"CLRSLean.Chapter_19" = [
+  "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model",
+]
+"CLRSLean.Chapter_20" = [
+  "CLRSLean.Chapter_20.Section_20_1_VEB_Universe",
+  "CLRSLean.Chapter_20.Section_20_2_VEB_Tree",
+]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
@@ -153,6 +174,18 @@ title = "Chapter 15. Dynamic Programming"
 
 [modules."CLRSLean.Chapter_16"]
 title = "Chapter 16. Greedy Algorithms"
+
+[modules."CLRSLean.Chapter_17"]
+title = "Chapter 17. Amortized Analysis"
+
+[modules."CLRSLean.Chapter_18"]
+title = "Chapter 18. B-Trees"
+
+[modules."CLRSLean.Chapter_19"]
+title = "Chapter 19. Fibonacci Heaps"
+
+[modules."CLRSLean.Chapter_20"]
+title = "Chapter 20. van Emde Boas Trees"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"
@@ -279,6 +312,33 @@ title = "16.3. Huffman Codes"
 
 [modules."CLRSLean.Chapter_16.Section_16_1_Activity_Selection"]
 title = "16.1. Activity Selection"
+
+[modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework"]
+title = "17.1-17.3. Amortized Analysis Framework"
+
+[modules."CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter"]
+title = "17.2. Stack and Counter Examples"
+
+[modules."CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables"]
+title = "17.4. Dynamic Tables"
+
+[modules."CLRSLean.Chapter_18.Section_18_1_B_Tree_Model"]
+title = "18.1. B-Tree Model"
+
+[modules."CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion"]
+title = "18.2. B-Tree Insertion"
+
+[modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion"]
+title = "18.3. B-Tree Deletion"
+
+[modules."CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model"]
+title = "19.1. Fibonacci Heap Model"
+
+[modules."CLRSLean.Chapter_20.Section_20_1_VEB_Universe"]
+title = "20.1. vEB Universe Decomposition"
+
+[modules."CLRSLean.Chapter_20.Section_20_2_VEB_Tree"]
+title = "20.2. vEB Tree Specification"
 
 [modules."CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees"]
 title = "23.1. Growing a Minimum Spanning Tree"

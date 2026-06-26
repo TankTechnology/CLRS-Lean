@@ -1237,77 +1237,535 @@ any consistent tree with the same frequency table.
 
 ## Chapter 17 - Amortized Analysis
 
-- Lean source: not yet created
-- Status: `not-started`
-- Acceptance standard:
-  `docs/superpowers/specs/2026-06-25-chapters-17-20-acceptance-standards.md`
-- First-pass theorem target: generic aggregate, accounting, and potential
-  method theorems plus the textbook `MULTIPOP`, binary-counter, and dynamic
-  table amortized examples
-- Current gap: no `CLRSLean/Chapter_17.lean` module or section files exist yet
+- Lean source:
+  `CLRSLean/Chapter_17.lean`,
+  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`,
+  `CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean`, and
+  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter17.aggregate_bound_of_prefix_bound`
+  - `CLRS.Chapter17.accounting_totalCost_eq_totalCharge_sub_delta`
+  - `CLRS.Chapter17.accounting_totalCost_le_totalCharge`
+  - `CLRS.Chapter17.potential_totalCost_eq_totalAmortized_sub_delta`
+  - `CLRS.Chapter17.potential_totalCost_le_totalAmortized`
+  - `CLRS.Chapter17.multiPop_totalCost_le`
+  - `CLRS.Chapter17.binaryCounter_increment_potential_le_two`
+  - `CLRS.Chapter17.binaryCounter_trace_potential_le`
+  - `CLRS.Chapter17.binaryCounter_trace_totalFlips_le`
+  - `CLRS.Chapter17.binaryCounter_totalFlips_le`
+  - `CLRS.Chapter17.dynamicPotential_nonneg`
+  - `CLRS.Chapter17.dynamicTableInsert_potential_nonneg`
+  - `CLRS.Chapter17.dynamicTableDelete_potential_nonneg`
+  - `CLRS.Chapter17.dynamicTableInsertCost_pos`
+  - `CLRS.Chapter17.dynamicTableInsertCost_le_num_succ`
+  - `CLRS.Chapter17.dynamicTableInsertCost_of_fits`
+  - `CLRS.Chapter17.dynamicTableInsertCost_of_expand`
+  - `CLRS.Chapter17.dynamicTableInsertSize_of_fits`
+  - `CLRS.Chapter17.dynamicTableInsertSize_of_expand`
+  - `CLRS.Chapter17.dynamicTableInsertSize_fits`
+  - `CLRS.Chapter17.dynamicTableInsertSize_ge_size`
+  - `CLRS.Chapter17.dynamicTableInsertSize_ge_double_of_expand`
+  - `CLRS.Chapter17.dynamicTableInsert_valid`
+  - `CLRS.Chapter17.dynamicTableInsert_num`
+  - `CLRS.Chapter17.dynamicTableInsert_size`
+  - `CLRS.Chapter17.dynamicTableInsert_size_of_fits`
+  - `CLRS.Chapter17.dynamicTableInsert_size_of_expand`
+  - `CLRS.Chapter17.dynamicTableInsert_num_pos`
+  - `CLRS.Chapter17.dynamicTableInsert_num_gt`
+  - `CLRS.Chapter17.dynamicTableInsert_num_ge`
+  - `CLRS.Chapter17.dynamicTableInsert_capacity_fits`
+  - `CLRS.Chapter17.dynamicTableInsert_capacity_pos`
+  - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`
+  - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand`
+  - `CLRS.Chapter17.dynamicTableInsert_amortizedCost_eq`
+  - `CLRS.Chapter17.dynamicTableInsert_amortizedBound`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_zero_iff_empty`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_le_num`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_empty`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_of_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_of_no_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_eq_num_of_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteCost_eq_one_of_no_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteSize_of_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`
+  - `CLRS.Chapter17.dynamicTableDeleteSize_fits`
+  - `CLRS.Chapter17.dynamicTableDeleteSize_le_size`
+  - `CLRS.Chapter17.dynamicTableDeleteSize_le_half_of_contract`
+  - `CLRS.Chapter17.dynamicTableDelete_valid`
+  - `CLRS.Chapter17.dynamicTableDelete_num`
+  - `CLRS.Chapter17.dynamicTableDelete_size`
+  - `CLRS.Chapter17.dynamicTableDelete_size_of_contract`
+  - `CLRS.Chapter17.dynamicTableDelete_size_of_no_contract`
+  - `CLRS.Chapter17.dynamicTableDelete_num_le`
+  - `CLRS.Chapter17.dynamicTableDelete_num_empty`
+  - `CLRS.Chapter17.dynamicTableDelete_num_pos_of_one_lt`
+  - `CLRS.Chapter17.dynamicTableDelete_num_lt_of_nonempty`
+  - `CLRS.Chapter17.dynamicTableDelete_capacity_fits`
+  - `CLRS.Chapter17.dynamicTableDelete_capacity_pos_of_one_lt`
+  - `CLRS.Chapter17.dynamicTableDelete_capacity_le_size`
+  - `CLRS.Chapter17.dynamicTableDelete_capacity_le_half_of_contract`
+  - `CLRS.Chapter17.dynamicTableDelete_amortizedCost_eq`
+  - `CLRS.Chapter17.dynamicTableDelete_amortizedBound`
+  - `CLRS.Chapter17.dynamicTable_amortizedBound`
+- Proof pattern: finite-prefix sums, accounting credit balance, potential
+  telescoping, executable counter trace induction, size-level table potential
+  nonnegativity, capacity feasibility/direction, post-state field equations,
+  post-state allocation-size case specs, stored-count direction, positive
+  insertion/deletion count/capacity wrappers, post-state capacity corollaries,
+  post-transition potential nonnegativity,
+  concrete amortized-cost unfolding, resize-branch capacity wrappers,
+  actual-cost and capacity-choice case specs, zero/positive deletion-cost wrappers,
+  premise-light deletion-cost branch wrappers,
+  lower/upper bounds, and transitions
+- Current gap: mutable-array copying, RAM/allocation constants, and sharper
+  CLRS load-factor potential refinements remain strengthening targets.
 
-The first accepted pass for Chapter 17 must create the reusable amortized
-analysis layer used by later data-structure chapters.  A `proved` status
-requires sorry-free generic finite-prefix theorems for aggregate/accounting/
-potential arguments, a telescoping potential theorem, and concrete constant
-amortized bounds for `MULTIPOP`, binary-counter increments, and abstract dynamic
-tables.  Mutable arrays, allocation, and exact RAM constants are explicitly
-deferred refinements.
+Chapter 17 now provides the reusable amortized-analysis layer for later data
+structure chapters.  The generic aggregate/accounting/potential facts are
+sorry-free, and the stack, executable binary-counter trace, and dynamic-table
+examples compile against stable public theorem names.  The executable counter
+trace now has a multi-step potential bound and an empty-counter {lit}`2n` flip
+bound.  Dynamic-table insertion and deletion/contraction now expose size-level
+potential nonnegativity, capacity feasibility/direction, direct post-state
+stored-count and capacity corollaries, post-transition potential
+nonnegativity, concrete amortized-cost unfolding wrappers, resize-branch
+capacity wrappers, post-state field equations, actual-cost and capacity-choice
+case specs, exact zero/positive deletion-cost wrappers, premise-light
+deletion-cost branch wrappers, positive-cost and upper-bound transition facts,
+while
+mutable-array copying and
+allocator semantics remain future refinements.
 
 ## Chapter 18 - B-Trees
 
-- Lean source: not yet created
-- Status: `not-started`
-- Acceptance standard:
-  `docs/superpowers/specs/2026-06-25-chapters-17-20-acceptance-standards.md`
-- First-pass theorem target: B-tree invariant, height theorem, search
-  correctness, split-child correctness, and insertion correctness
-- Current gap: no `CLRSLean/Chapter_18.lean` module or section files exist yet
+- Lean source:
+  `CLRSLean/Chapter_18.lean`,
+  `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean`, and
+  `CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean`, and
+  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter18.BTree.search_correct`
+  - `CLRS.Chapter18.BTree.search_true_iff`
+  - `CLRS.Chapter18.BTree.search_true_of_mem`
+  - `CLRS.Chapter18.BTree.mem_of_search_true`
+  - `CLRS.Chapter18.BTree.search_false_iff`
+  - `CLRS.Chapter18.BTree.search_false_of_not_mem`
+  - `CLRS.Chapter18.BTree.not_mem_of_search_false`
+  - `CLRS.Chapter18.BTree.minKeys_zero`
+  - `CLRS.Chapter18.BTree.minKeys_pos`
+  - `CLRS.Chapter18.BTree.one_le_minKeys`
+  - `CLRS.Chapter18.BTree.minKeys_lower_bound`
+  - `CLRS.Chapter18.BTree.minKeys_succ`
+  - `CLRS.Chapter18.BTree.minKeys_le_succ`
+  - `CLRS.Chapter18.BTree.minKeys_monotone_height`
+  - `CLRS.Chapter18.BTree.splitChild_preserves_model`
+  - `CLRS.Chapter18.BTree.splitChild_valid`
+  - `CLRS.Chapter18.BTree.splitChild_mem_iff`
+  - `CLRS.Chapter18.BTree.splitChild_mem_old`
+  - `CLRS.Chapter18.BTree.splitChild_not_mem_iff`
+  - `CLRS.Chapter18.BTree.splitChild_not_mem_old`
+  - `CLRS.Chapter18.BTree.splitChild_search_iff`
+  - `CLRS.Chapter18.BTree.splitChild_search_old`
+  - `CLRS.Chapter18.BTree.splitChild_search_of_mem`
+  - `CLRS.Chapter18.BTree.splitChild_search_false_iff`
+  - `CLRS.Chapter18.BTree.splitChild_search_false_old`
+  - `CLRS.Chapter18.BTree.splitChild_search_false_of_not_mem`
+  - `CLRS.Chapter18.BTree.insert_preserves_model`
+  - `CLRS.Chapter18.BTree.insert_valid`
+  - `CLRS.Chapter18.BTree.insert_mem_iff`
+  - `CLRS.Chapter18.BTree.insert_search_iff`
+  - `CLRS.Chapter18.BTree.insert_mem_self`
+  - `CLRS.Chapter18.BTree.insert_search_self`
+  - `CLRS.Chapter18.BTree.insert_search_of_eq`
+  - `CLRS.Chapter18.BTree.insert_mem_old`
+  - `CLRS.Chapter18.BTree.insert_search_old`
+  - `CLRS.Chapter18.BTree.insert_search_of_mem`
+  - `CLRS.Chapter18.BTree.insert_not_mem_iff`
+  - `CLRS.Chapter18.BTree.insert_not_mem_of_ne`
+  - `CLRS.Chapter18.BTree.insert_search_false_iff`
+  - `CLRS.Chapter18.BTree.insert_search_false_of_ne`
+  - `CLRS.Chapter18.BTree.insert_search_false_of_not_mem_ne`
+  - `CLRS.Chapter18.BTree.delete_preserves_model`
+  - `CLRS.Chapter18.BTree.delete_valid`
+  - `CLRS.Chapter18.BTree.delete_mem_iff`
+  - `CLRS.Chapter18.BTree.delete_mem_iff_ne`
+  - `CLRS.Chapter18.BTree.delete_search_iff`
+  - `CLRS.Chapter18.BTree.delete_search_iff_ne`
+  - `CLRS.Chapter18.BTree.delete_not_mem`
+  - `CLRS.Chapter18.BTree.delete_search_deleted_false`
+  - `CLRS.Chapter18.BTree.delete_search_false_of_eq`
+  - `CLRS.Chapter18.BTree.delete_mem_of_ne`
+  - `CLRS.Chapter18.BTree.delete_mem_of_ne_prop`
+  - `CLRS.Chapter18.BTree.delete_search_of_ne`
+  - `CLRS.Chapter18.BTree.delete_search_of_ne_prop`
+  - `CLRS.Chapter18.BTree.delete_search_of_mem_ne`
+  - `CLRS.Chapter18.BTree.delete_search_of_mem_ne_prop`
+  - `CLRS.Chapter18.BTree.delete_not_mem_iff`
+  - `CLRS.Chapter18.BTree.delete_not_mem_old`
+  - `CLRS.Chapter18.BTree.delete_not_mem_of_eq`
+  - `CLRS.Chapter18.BTree.delete_search_false_iff`
+  - `CLRS.Chapter18.BTree.delete_search_false_old`
+  - `CLRS.Chapter18.BTree.delete_search_false_of_not_mem`
+- Proof pattern: mathematical key-set model, structural validity predicate,
+  base search success/failure wrappers, minimum-key expression
+  base/positivity arithmetic and height monotonicity, specification-level
+  split/insert/delete wrappers, Prop-level deletion direct wrappers,
+  search correctness reuse,
+  direct split validity/preservation corollaries, and direct inserted/deleted-key
+  plus old-key successful and unsuccessful query preservation corollaries,
+  direct insertion/deletion validity short-name wrappers, equality-key
+  update-query wrappers, membership-driven search-after-update wrappers, old
+  failed-search preservation wrappers, exact failed membership
+  specifications, and direct failed-membership preservation wrappers
+- Current gap: full node occupancy/separator/same-depth invariant stack,
+  node-level deletion repair, disk-page I/O, and pointer mutation remain
+  strengthening targets.
 
-The first accepted pass for Chapter 18 must define a minimum-degree B-tree with
-node occupancy bounds, sorted node keys, child-count and separator invariants,
-same-depth leaves, and membership/multiset semantics.  A `proved` status
-requires the CLRS height bound, search correctness, split-child preservation,
-insert-nonfull preservation, and top-level insertion correctness.  Deletion may
-be included in the first pass, but if deletion remains unproved the chapter
-should be marked `partial` rather than `proved`.  Disk-page I/O and pointer
-mutation are deferred.
+Chapter 18 now has a first-pass B-tree theorem surface.  Search, split-child,
+insertion, and deletion are proved against an abstract membership model, and
+the update wrappers expose direct search-after-update specifications plus
+direct split validity/preservation and inserted/deleted-key plus old-key query
+preservation corollaries, direct insertion/deletion validity short-name
+wrappers, equality-key update-query wrappers, membership-driven
+search-after-update wrappers, exact unsuccessful-search specifications, and
+direct old failed-search preservation wrappers.
+The same specification layer now exposes exact failed membership facts for
+split-child, insertion, and deletion.
+The height
+expression is packaged with a height-zero base case, positivity wrappers, a
+minimum-key lower bound and height-step recurrence, plus adjacent and
+arbitrary-height monotonicity facts.  The current split,
+insert, and delete operations are specification
+wrappers, so the chapter is still `partial` rather than a complete page-level
+mutation proof.
 
 ## Chapter 19 - Fibonacci Heaps
 
-- Lean source: not yet created
-- Status: `not-started`
-- Acceptance standard:
-  `docs/superpowers/specs/2026-06-25-chapters-17-20-acceptance-standards.md`
-- First-pass theorem target: abstract Fibonacci-heap operation correctness,
-  potential-method amortized bounds, and logarithmic maximum-degree bound
-- Current gap: no `CLRSLean/Chapter_19.lean` module or section files exist yet
+- Lean source:
+  `CLRSLean/Chapter_19.lean` and
+  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter19.FibHeap.makeHeap_correct`
+  - `CLRS.Chapter19.FibHeap.makeHeap_valid`
+  - `CLRS.Chapter19.FibHeap.makeHeap_minimum_none`
+  - `CLRS.Chapter19.FibHeap.potential_makeHeap`
+  - `CLRS.Chapter19.FibHeap.potential_nonneg`
+  - `CLRS.Chapter19.FibHeap.minimum_correct`
+  - `CLRS.Chapter19.FibHeap.minimum_mem`
+  - `CLRS.Chapter19.FibHeap.minimum_le`
+  - `CLRS.Chapter19.FibHeap.minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.minimum_none_of_empty`
+  - `CLRS.Chapter19.FibHeap.minimum_ne_none_of_nonempty`
+  - `CLRS.Chapter19.FibHeap.insert_correct`
+  - `CLRS.Chapter19.FibHeap.insert_valid`
+  - `CLRS.Chapter19.FibHeap.insert_mem_iff`
+  - `CLRS.Chapter19.FibHeap.insert_mem_self`
+  - `CLRS.Chapter19.FibHeap.insert_mem_old`
+  - `CLRS.Chapter19.FibHeap.insert_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.insert_not_mem_of_ne`
+  - `CLRS.Chapter19.FibHeap.insert_minimum_correct`
+  - `CLRS.Chapter19.FibHeap.insert_minimum_mem`
+  - `CLRS.Chapter19.FibHeap.insert_minimum_le_inserted`
+  - `CLRS.Chapter19.FibHeap.insert_minimum_le_old`
+  - `CLRS.Chapter19.FibHeap.insert_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.insert_minimum_ne_none`
+  - `CLRS.Chapter19.FibHeap.union_correct`
+  - `CLRS.Chapter19.FibHeap.union_valid`
+  - `CLRS.Chapter19.FibHeap.union_mem_iff`
+  - `CLRS.Chapter19.FibHeap.union_mem_left`
+  - `CLRS.Chapter19.FibHeap.union_mem_right`
+  - `CLRS.Chapter19.FibHeap.union_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.union_not_mem_of_not_mem`
+  - `CLRS.Chapter19.FibHeap.union_minimum_correct`
+  - `CLRS.Chapter19.FibHeap.union_minimum_mem`
+  - `CLRS.Chapter19.FibHeap.union_minimum_le_left`
+  - `CLRS.Chapter19.FibHeap.union_minimum_le_right`
+  - `CLRS.Chapter19.FibHeap.union_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.union_minimum_none_of_empty`
+  - `CLRS.Chapter19.FibHeap.union_minimum_ne_none_of_left`
+  - `CLRS.Chapter19.FibHeap.union_minimum_ne_none_of_right`
+  - `CLRS.Chapter19.FibHeap.extractMin_correct`
+  - `CLRS.Chapter19.FibHeap.extractMin_valid`
+  - `CLRS.Chapter19.FibHeap.extractMin_mem_iff`
+  - `CLRS.Chapter19.FibHeap.extractMin_not_mem`
+  - `CLRS.Chapter19.FibHeap.extractMin_mem_of_ne`
+  - `CLRS.Chapter19.FibHeap.extractMin_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.extractMin_not_mem_old`
+  - `CLRS.Chapter19.FibHeap.extractMin_none_iff`
+  - `CLRS.Chapter19.FibHeap.extractMin_none_of_empty`
+  - `CLRS.Chapter19.FibHeap.extractMin_ne_none_of_nonempty`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_correct`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_mem`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq`
+  - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne_none_of_remaining`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_correct`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_valid`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_mem_new`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_mem_old`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_oldKey_mem_iff`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_oldKey_not_mem_of_ne`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_not_mem_of_ne`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_correct`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_mem`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_new`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_le_old`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.decreaseKey_minimum_ne_none`
+  - `CLRS.Chapter19.FibHeap.delete_correct`
+  - `CLRS.Chapter19.FibHeap.delete_valid`
+  - `CLRS.Chapter19.FibHeap.delete_mem_iff`
+  - `CLRS.Chapter19.FibHeap.delete_not_mem`
+  - `CLRS.Chapter19.FibHeap.delete_mem_of_ne`
+  - `CLRS.Chapter19.FibHeap.delete_not_mem_iff`
+  - `CLRS.Chapter19.FibHeap.delete_not_mem_old`
+  - `CLRS.Chapter19.FibHeap.delete_not_mem_of_eq`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_correct`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_ne`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_mem`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_le_old`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_none_iff`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq`
+  - `CLRS.Chapter19.FibHeap.delete_minimum_ne_none_of_remaining`
+  - `CLRS.Chapter19.FibHeap.heapPotential_telescope`
+  - `CLRS.Chapter19.FibHeap.fibLowerBound_step`
+  - `CLRS.Chapter19.FibHeap.fibLowerBound_pos`
+  - `CLRS.Chapter19.FibHeap.fibLowerBound_le_succ`
+  - `CLRS.Chapter19.FibHeap.fibLowerBound_monotone`
+  - `CLRS.Chapter19.FibHeap.fibLowerBound_add_two_ge_double`
+  - `CLRS.Chapter19.FibHeap.fibLowerBound_even_lower_bound`
+  - `CLRS.Chapter19.FibHeap.fibLowerBound_half_lower_bound`
+  - `CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card`
+  - `CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`
+  - `CLRS.Chapter19.FibHeap.degree_bound_log`
+- Proof pattern: finite-set key semantics, normalized root/mark counters,
+  direct operation-result validity wrappers, empty-result query
+  characterization, direct minimum/extract-min empty-result and nonempty-result wrappers,
+  direct minimum membership/lower-bound wrappers,
+  insert/union/extract-min-remaining/decrease-key/delete minimum direct
+  membership/lower-bound wrappers, heap-potential nonnegativity and
+  Chapter 17 potential-method instantiation, direct operation-key and old-key
+  preservation membership corollaries, exact failed membership specifications,
+  direct failed-membership preservation wrappers, replaced-key decrease-key
+  query wrappers, returned
+  minimum-after-update positive and empty-result specifications,
+  Fibonacci lower-bound recurrence
+  plus a two-step doubling induction over even indices, a half-index bridge,
+  and a conditional binary-log degree budget
+- Current gap: pointer handles, heap-ordered forest/cascading-cut transition
+  system, consolidation arrays, duplicate keys, and the subtree-size induction
+  leading to the true Fibonacci log-degree proof remain strengthening targets.
 
-The first accepted pass for Chapter 19 must provide an abstract heap-ordered
-forest model with roots, marked nodes, degrees, key membership, a minimum
-specification, and the potential `Phi = #trees + 2 * #marked`.  A `proved`
-status requires correctness of make/insert/minimum/union/extract-min/
-decrease-key/delete, an instantiation of the Chapter 17 potential theorem, and
-a Fibonacci subtree-size lower bound that yields `O(log n)` maximum degree.
-Pointer-level circular lists and handle memory safety are deferred.
+Chapter 19 now records the operation-level Fibonacci-heap contracts against an
+abstract finite key set, including empty-heap construction and empty-result
+minimum/extract-min specifications, direct minimum/extract-min empty-result
+and nonempty-result wrappers, direct minimum membership/lower-bound
+wrappers, insert/union/extract-min-remaining/decrease-key/delete minimum direct
+membership/lower-bound wrappers, plus direct
+insert/union/extract-min/decrease-key/delete membership facts plus
+operation-key and old-key preservation membership corollaries plus exact failed
+membership specifications and direct failed-membership preservation wrappers,
+direct operation-result validity wrappers, and
+returned minimum-after-update positive and empty-result specifications.  The standard
+potential function now has zero-initial and nonnegativity facts and is connected
+to the Chapter 17 telescoping theorem, and the Fibonacci lower-bound
+sequence now exposes its local recurrence, positivity, and adjacent
+monotonicity, plus the derived arbitrary-index monotonicity theorem and an
+even-index and half-index power-of-two lower bound.  A conditional
+degree-to-binary-log bridge now packages the arithmetic step that will be used
+once a pointer-forest subtree-size invariant is available.  The current
+maximum-degree theorem is still deliberately conservative for this first pass;
+it bounds the proxy by a key-count budget rather than proving the full
+Fibonacci logarithmic theorem.
 
 ## Chapter 20 - van Emde Boas Trees
 
-- Lean source: not yet created
-- Status: `not-started`
-- Acceptance standard:
-  `docs/superpowers/specs/2026-06-25-chapters-17-20-acceptance-standards.md`
-- First-pass theorem target: recursive universe decomposition, representation
-  invariant, operation correctness, and `O(log log u)` recurrence wrapper
-- Current gap: no `CLRSLean/Chapter_20.lean` module or section files exist yet
+- Lean source:
+  `CLRSLean/Chapter_20.lean`,
+  `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean`, and
+  `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter20.VEB.index_high_low`
+  - `CLRS.Chapter20.VEB.high_index`
+  - `CLRS.Chapter20.VEB.low_index`
+  - `CLRS.Chapter20.VEB.index_lt`
+  - `CLRS.Chapter20.VEB.high_lt`
+  - `CLRS.Chapter20.VEB.low_lt`
+  - `CLRS.Chapter20.VEB.member_correct`
+  - `CLRS.Chapter20.VEB.member_lt_univ`
+  - `CLRS.Chapter20.VEB.minimum_correct`
+  - `CLRS.Chapter20.VEB.minimum_mem`
+  - `CLRS.Chapter20.VEB.minimum_le`
+  - `CLRS.Chapter20.VEB.minimum_lt_univ`
+  - `CLRS.Chapter20.VEB.minimum_none_iff`
+  - `CLRS.Chapter20.VEB.minimum_none_of_empty`
+  - `CLRS.Chapter20.VEB.minimum_ne_none_of_nonempty`
+  - `CLRS.Chapter20.VEB.maximum_correct`
+  - `CLRS.Chapter20.VEB.maximum_mem`
+  - `CLRS.Chapter20.VEB.le_maximum`
+  - `CLRS.Chapter20.VEB.maximum_lt_univ`
+  - `CLRS.Chapter20.VEB.maximum_none_iff`
+  - `CLRS.Chapter20.VEB.maximum_none_of_empty`
+  - `CLRS.Chapter20.VEB.maximum_ne_none_of_nonempty`
+  - `CLRS.Chapter20.VEB.successor_correct`
+  - `CLRS.Chapter20.VEB.successor_mem`
+  - `CLRS.Chapter20.VEB.successor_gt`
+  - `CLRS.Chapter20.VEB.successor_le`
+  - `CLRS.Chapter20.VEB.successor_lt_univ`
+  - `CLRS.Chapter20.VEB.successor_none_iff`
+  - `CLRS.Chapter20.VEB.successor_none_of_no_gt`
+  - `CLRS.Chapter20.VEB.successor_ne_none_of_exists_gt`
+  - `CLRS.Chapter20.VEB.predecessor_correct`
+  - `CLRS.Chapter20.VEB.predecessor_mem`
+  - `CLRS.Chapter20.VEB.predecessor_lt`
+  - `CLRS.Chapter20.VEB.le_predecessor`
+  - `CLRS.Chapter20.VEB.predecessor_lt_univ`
+  - `CLRS.Chapter20.VEB.predecessor_none_iff`
+  - `CLRS.Chapter20.VEB.predecessor_none_of_no_lt`
+  - `CLRS.Chapter20.VEB.predecessor_ne_none_of_exists_lt`
+  - `CLRS.Chapter20.VEB.insert_correct`
+  - `CLRS.Chapter20.VEB.insert_member_iff`
+  - `CLRS.Chapter20.VEB.insert_member_lt_univ`
+  - `CLRS.Chapter20.VEB.insert_member_self`
+  - `CLRS.Chapter20.VEB.insert_member_old`
+  - `CLRS.Chapter20.VEB.insert_member_false_iff`
+  - `CLRS.Chapter20.VEB.insert_member_false_of_ne`
+  - `CLRS.Chapter20.VEB.insert_minimum_correct`
+  - `CLRS.Chapter20.VEB.insert_minimum_mem`
+  - `CLRS.Chapter20.VEB.insert_minimum_mem_old_of_ne`
+  - `CLRS.Chapter20.VEB.insert_minimum_le_inserted`
+  - `CLRS.Chapter20.VEB.insert_minimum_le_old`
+  - `CLRS.Chapter20.VEB.insert_minimum_lt_univ`
+  - `CLRS.Chapter20.VEB.insert_minimum_none_iff`
+  - `CLRS.Chapter20.VEB.insert_minimum_ne_none`
+  - `CLRS.Chapter20.VEB.insert_maximum_correct`
+  - `CLRS.Chapter20.VEB.insert_maximum_mem`
+  - `CLRS.Chapter20.VEB.insert_maximum_mem_old_of_ne`
+  - `CLRS.Chapter20.VEB.insert_maximum_inserted_le`
+  - `CLRS.Chapter20.VEB.insert_maximum_old_le`
+  - `CLRS.Chapter20.VEB.insert_maximum_lt_univ`
+  - `CLRS.Chapter20.VEB.insert_maximum_none_iff`
+  - `CLRS.Chapter20.VEB.insert_maximum_ne_none`
+  - `CLRS.Chapter20.VEB.insert_successor_correct`
+  - `CLRS.Chapter20.VEB.insert_successor_mem`
+  - `CLRS.Chapter20.VEB.insert_successor_mem_old_of_ne`
+  - `CLRS.Chapter20.VEB.insert_successor_gt`
+  - `CLRS.Chapter20.VEB.insert_successor_le`
+  - `CLRS.Chapter20.VEB.insert_successor_lt_univ`
+  - `CLRS.Chapter20.VEB.insert_successor_none_iff`
+  - `CLRS.Chapter20.VEB.insert_successor_none_of_no_gt`
+  - `CLRS.Chapter20.VEB.insert_successor_none_of_insert_le_old_no_gt`
+  - `CLRS.Chapter20.VEB.insert_successor_ne_none_of_insert_gt`
+  - `CLRS.Chapter20.VEB.insert_successor_ne_none_of_old_gt`
+  - `CLRS.Chapter20.VEB.insert_predecessor_correct`
+  - `CLRS.Chapter20.VEB.insert_predecessor_mem`
+  - `CLRS.Chapter20.VEB.insert_predecessor_mem_old_of_ne`
+  - `CLRS.Chapter20.VEB.insert_predecessor_lt`
+  - `CLRS.Chapter20.VEB.insert_le_predecessor`
+  - `CLRS.Chapter20.VEB.insert_predecessor_lt_univ`
+  - `CLRS.Chapter20.VEB.insert_predecessor_none_iff`
+  - `CLRS.Chapter20.VEB.insert_predecessor_none_of_no_lt`
+  - `CLRS.Chapter20.VEB.insert_predecessor_none_of_query_le_insert_old_no_lt`
+  - `CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_insert_lt`
+  - `CLRS.Chapter20.VEB.insert_predecessor_ne_none_of_old_lt`
+  - `CLRS.Chapter20.VEB.delete_correct`
+  - `CLRS.Chapter20.VEB.delete_member_iff`
+  - `CLRS.Chapter20.VEB.delete_member_lt_univ`
+  - `CLRS.Chapter20.VEB.delete_member_deleted_false`
+  - `CLRS.Chapter20.VEB.delete_member_of_ne`
+  - `CLRS.Chapter20.VEB.delete_member_false_iff`
+  - `CLRS.Chapter20.VEB.delete_member_false_old`
+  - `CLRS.Chapter20.VEB.delete_member_false_of_eq`
+  - `CLRS.Chapter20.VEB.delete_minimum_correct`
+  - `CLRS.Chapter20.VEB.delete_minimum_ne`
+  - `CLRS.Chapter20.VEB.delete_minimum_mem`
+  - `CLRS.Chapter20.VEB.delete_minimum_le_old`
+  - `CLRS.Chapter20.VEB.delete_minimum_lt_univ`
+  - `CLRS.Chapter20.VEB.delete_minimum_none_iff`
+  - `CLRS.Chapter20.VEB.delete_minimum_none_of_all_eq`
+  - `CLRS.Chapter20.VEB.delete_minimum_ne_none_of_remaining`
+  - `CLRS.Chapter20.VEB.delete_maximum_correct`
+  - `CLRS.Chapter20.VEB.delete_maximum_ne`
+  - `CLRS.Chapter20.VEB.delete_maximum_mem`
+  - `CLRS.Chapter20.VEB.delete_maximum_old_le`
+  - `CLRS.Chapter20.VEB.delete_maximum_lt_univ`
+  - `CLRS.Chapter20.VEB.delete_maximum_none_iff`
+  - `CLRS.Chapter20.VEB.delete_maximum_none_of_all_eq`
+  - `CLRS.Chapter20.VEB.delete_maximum_ne_none_of_remaining`
+  - `CLRS.Chapter20.VEB.delete_successor_correct`
+  - `CLRS.Chapter20.VEB.delete_successor_mem`
+  - `CLRS.Chapter20.VEB.delete_successor_gt`
+  - `CLRS.Chapter20.VEB.delete_successor_le`
+  - `CLRS.Chapter20.VEB.delete_successor_lt_univ`
+  - `CLRS.Chapter20.VEB.delete_successor_none_iff`
+  - `CLRS.Chapter20.VEB.delete_successor_none_of_no_gt`
+  - `CLRS.Chapter20.VEB.delete_successor_none_of_old_no_gt`
+  - `CLRS.Chapter20.VEB.delete_successor_ne_none_of_remaining_gt`
+  - `CLRS.Chapter20.VEB.delete_predecessor_correct`
+  - `CLRS.Chapter20.VEB.delete_predecessor_mem`
+  - `CLRS.Chapter20.VEB.delete_predecessor_lt`
+  - `CLRS.Chapter20.VEB.delete_le_predecessor`
+  - `CLRS.Chapter20.VEB.delete_predecessor_lt_univ`
+  - `CLRS.Chapter20.VEB.delete_predecessor_none_iff`
+  - `CLRS.Chapter20.VEB.delete_predecessor_none_of_no_lt`
+  - `CLRS.Chapter20.VEB.delete_predecessor_none_of_old_no_lt`
+  - `CLRS.Chapter20.VEB.delete_predecessor_ne_none_of_remaining_lt`
+  - `CLRS.Chapter20.VEB.operationDepth_zero`
+  - `CLRS.Chapter20.VEB.operationDepth_succ`
+  - `CLRS.Chapter20.VEB.operationDepth_linear`
+  - `CLRS.Chapter20.VEB.operationDepth_monotone`
+  - `CLRS.Chapter20.VEB.operationDepth_strict_mono`
+- Proof pattern: natural-number quotient/remainder arithmetic, bounded
+  high/low recomposition, finite-set representation semantics,
+  extrema/successor via `Finset.min'`/`max'`, successful-query universe-bound
+  bridges, direct extrema membership/lower- and upper-bound wrappers, direct
+  insertion-query old-key membership wrappers, direct base/insert/delete
+  neighbor membership/order wrappers, direct updated-key,
+  old-key preservation, failed member queries after updates, and direct
+  failed member-query preservation wrappers, direct no-neighbor query wrappers,
+  premise-light no-neighbor wrappers over old represented sets, direct extrema
+  empty-result wrappers, direct base extrema/neighbor nonempty-result wrappers,
+  direct updated-neighbor nonempty-result wrappers,
+  direct deletion-extrema nonempty-result wrappers,
+  direct extrema-after-update
+  membership/order wrappers, update-query
+  universe-bound corollaries, and definition unfolding for
+  first-pass operation-depth recurrence and monotonicity facts
+- Current gap: recursive min/max-summary-cluster state, word-RAM base cases,
+  and an explicit Chapter 3 asymptotic bridge for `O(log log u)` remain
+  strengthening targets.
 
-The first accepted pass for Chapter 20 must choose a Lean-friendly universe
-family, prove the `high`/`low`/`index` decomposition lemmas, define a vEB
-representation invariant for `min`, `max`, summary, and clusters, and prove
-correctness of member/min/max/successor/predecessor/insert/delete against a set
-semantics.  A `proved` status also requires packaging the recursive operation
-depth as linear in the universe exponent, hence `O(log log u)` for the original
-universe size.  Word-RAM and bit-vector base-case optimizations are deferred.
+Chapter 20 now proves the high/low/index arithmetic, including both directions
+of bounded high/low recomposition, and a set-specification layer for the main
+vEB queries and updates.  This includes both positive and empty-result
+extrema/successor/predecessor cases plus successful-query universe-bound
+corollaries, direct extrema membership/lower- and upper-bound wrappers,
+direct insertion-query old-key membership wrappers,
+direct base/insert/delete neighbor membership/order wrappers,
+membership-after-update, direct extrema-after-update membership/order wrappers,
+direct updated-key and old-key member-preservation corollaries, exact failed
+member-query corollaries, direct failed member-query preservation wrappers,
+positive and empty-result extrema-after-update, and both positive and
+no-neighbor specifications for neighbor queries after updates, plus direct
+no-neighbor query wrappers, premise-light no-neighbor wrappers over old
+represented sets, direct extrema empty-result wrappers, direct base
+extrema/neighbor nonempty-result wrappers, direct updated-neighbor
+nonempty-result wrappers, direct deletion-extrema nonempty-result wrappers,
+and direct universe-bound
+corollaries for successful queries after updates.  The
+current operation-depth facts expose the base case, successor step, and a
+linear/monotone wrapper over the universe exponent, not yet a full asymptotic
+translation for the original universe size.
 
 ## Chapter 23 - Minimum Spanning Trees
 
