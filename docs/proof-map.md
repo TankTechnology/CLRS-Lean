@@ -615,7 +615,9 @@ proved comparison-count and recurrence facts.
 
 ### Section 8.2 - Counting sort
 
-- Lean source: `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean`
+- Lean sources:
+  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean`
+  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort_Array.lean`
 - Status: `proved` for the stable bucket specification
 - Main proved theorems:
   - `CLRS.Chapter08.countingSortBy_ordered`
@@ -623,14 +625,21 @@ proved comparison-count and recurrence facts.
   - `CLRS.Chapter08.countingSortBy_mem_iff`
   - `CLRS.Chapter08.countingSortBy_perm`
   - `CLRS.Chapter08.countingSortBy_correct`
+  - `CLRS.Chapter08.countTable_toList`
+  - `CLRS.Chapter08.countTable_size`
+  - `CLRS.Chapter08.cumulativeCountTable_length`
+  - `CLRS.Chapter08.countingSortByTable_correct`
+  - `CLRS.Chapter08.ReverseScan.countingSortByReverse_correct`
 - Proof pattern: model counting sort as a stable scan over key buckets
   `0, 1, ..., maxKey`; prove each bucket contains exactly the input elements
   with that key, prove output keys are ordered by concatenating ordered buckets,
   package stability as equality of every equal-key subsequence, and derive
   permutation preservation by comparing counts through each element's own
-  key-bucket.
-- Current gap: array-level count table, prefix sums, and linear-time cost are
-  implementation refinements over this stable bucket theorem.
+  key-bucket.  The count-table refinement then proves that table lengths,
+  cumulative boundaries, and per-key reverse scans are extensionally equal to
+  the stable bucket specification.
+- Current gap: the remaining imperative refinement is a single mutable output
+  array with mutable cumulative counters, plus a concrete linear-time cost model.
 
 This section proves the mathematical CLRS correctness spine for counting sort.
 The theorem `CLRS.Chapter08.countingSortBy_bucket_eq` is deliberately stronger
@@ -820,7 +829,7 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   strengthening target is a concrete cost semantics for
   `medianOfMediansSelect?` that feeds into the recurrence hypothesis.
 
-### Sections 9.3-9.4 - Randomized and linear-time selection refinements
+### Section 9.3 and randomized SELECT refinements
 
 - Lean source: randomized SELECT is not yet created; median-of-medians runtime
   refinement should build on
@@ -1400,7 +1409,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 6 priority-queue RAM costs | `deferred-implementation` | Array heap predicates, localized heap predicates, `largest` lemmas, no-swap heapify repair, recursive fuelled `MAX-HEAPIFY` repair, bottom-up build-heap, in-place heapsort loop correctness, bundled heapsort state-correctness, swap preservation, array `HEAP-MAXIMUM`, full fuelled `HEAP-INCREASE-KEY`, array `HEAP-EXTRACT-MAX`, and index-based `HEAP-DELETE` state correctness are proved; RAM costs remain refinement targets. |
 | Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
-| Chapter 8 count-array implementation | `future-work` | Stable bucket correctness is proved; the next refinement is an array count table and prefix-sum implementation of `COUNTING-SORT` connected to `countingSortBy`. |
+| Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
 | Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the finite-uniform collision, second-moment bound, and abstract `≤ 3n` expected-cost wrapper are proved, but the full expected-time theorem still needs an explicit independent input distribution and concrete cost model. |
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction and linear bound are proved by `selectRecurrence_linear_induction` and `medianOfMedians_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |

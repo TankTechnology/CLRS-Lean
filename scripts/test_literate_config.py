@@ -22,6 +22,22 @@ def _parse_module_titles(text: str) -> set[str]:
 
 
 class LiterateConfigTest(unittest.TestCase):
+    def test_landing_page_imports_are_ordered_and_titled(self) -> None:
+        text = LITERATE_TOML.read_text()
+        order_children = _parse_order_children(text)
+        titled_modules = _parse_module_titles(text)
+
+        imported_modules = re.findall(
+            r"^import\s+(CLRSLean\.[^\s]+)",
+            (ROOT / "CLRSLean.lean").read_text(),
+            re.MULTILINE,
+        )
+
+        self.assertEqual(imported_modules, order_children["CLRSLean"])
+
+        missing_titles = [module for module in imported_modules if module not in titled_modules]
+        self.assertEqual([], missing_titles)
+
     def test_chapter_imported_sections_are_ordered_and_titled(self) -> None:
         text = LITERATE_TOML.read_text()
         order_children = _parse_order_children(text)

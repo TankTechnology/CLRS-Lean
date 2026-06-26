@@ -26,8 +26,12 @@ CLRSLean/Chapter_06/Section_06_3_Building_A_Heap.lean
 CLRSLean/Chapter_06/Section_06_4_Heapsort.lean
 CLRSLean/Chapter_06/Section_06_5_Priority_Queues.lean
 CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean
+CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean
+CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean
+CLRSLean/Chapter_08/Section_08_2_Counting_Sort_Array.lean
 CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
+CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean
 CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
 CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean
@@ -36,6 +40,10 @@ CLRSLean/Chapter_11/Section_11_1_Direct_Address_Tables.lean
 CLRSLean/Chapter_11/Section_11_2_Chained_Hash_Tables.lean
 CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean
 CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean
+CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean
+CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean
+CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean
+CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean
 CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
 CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
@@ -62,7 +70,10 @@ In prose and on the future website, these appear as:
 - Section 6.4 - The heapsort algorithm
 - Section 6.5 - Priority queues
 - Section 7.1 - Description of quicksort
+- Section 7.2 - Performance of quicksort
+- Section 7.3 - Randomized quicksort
 - Section 8.2 - Counting sort
+- Section 8.2 - Counting sort count-table refinement
 - Section 8.3 - Radix sort
 - Section 8.4 - Bucket sort
 - Section 9.2 - Selection by rank
@@ -73,6 +84,10 @@ In prose and on the future website, these appear as:
 - Section 11.2 - Chained hash tables
 - Section 12.1 - Binary search trees
 - Section 13.1 - Red-black trees
+- Section 14.1 - Order-statistic trees
+- Section 15.1 - Rod cutting
+- Section 15.2 - Matrix-chain multiplication
+- Section 15.4 - Longest common subsequence
 - Section 16.1 - Activity selection
 - Section 16.3 - Huffman codes
 - Section 23.1 - Growing a minimum spanning tree
@@ -106,6 +121,7 @@ should remain import-friendly.
 | Section 7.2 - Performance of quicksort | `CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean` | `proved` for the deterministic comparison-count model | `CLRS.Chapter07.partitionAround_length_add`, `CLRS.Chapter07.quickSortComparisonsFuel_quadratic`, `CLRS.Chapter07.quickSortComparisons_quadratic` |
 | Section 7.3 - Randomized quicksort | `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean` | `proved` for the expected-comparison recurrence model | `CLRS.Chapter07.expectedComparisons_closed_form`, `CLRS.Chapter07.expectedComparisons_recurrence`, `CLRS.Chapter07.expectedComparisons_clrs_harmonic_bound`, `CLRS.Chapter07.expectedComparisons_monotone` |
 | Section 8.2 - Counting sort | `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean` | `proved` for the stable bucket specification | `CLRS.Chapter08.countingSortBy_ordered`, `CLRS.Chapter08.countingSortBy_bucket_eq`, `CLRS.Chapter08.countingSortBy_mem_iff`, `CLRS.Chapter08.countingSortBy_perm`, `CLRS.Chapter08.countingSortBy_correct` |
+| Section 8.2 - Counting sort count-table refinement | `CLRSLean/Chapter_08/Section_08_2_Counting_Sort_Array.lean` | `proved` for the count-table and reverse-scan bucket refinement | `CLRS.Chapter08.countTable_toList`, `CLRS.Chapter08.cumulativeCountTable_length`, `CLRS.Chapter08.countingSortByTable_correct`, `CLRS.Chapter08.ReverseScan.countingSortByReverse_correct` |
 | Section 8.3 - Radix sort | `CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean` | `proved` for the abstract stable digit-pass model, concrete base-`b` digit extraction, key-order packaging, and bounded fixed-width key correctness | `CLRS.Chapter08.radixPass_orderedRel`, `CLRS.Chapter08.radixSortBy_ordered`, `CLRS.Chapter08.radixSortBy_stable`, `CLRS.Chapter08.radixSortBy_mem_iff`, `CLRS.Chapter08.radixSortBy_perm`, `CLRS.Chapter08.radixSortBy_correct_stable`, `CLRS.Chapter08.baseDigitsLow_allDigitsLe`, `CLRS.Chapter08.radixSortNatBy_correct_stable`, `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_digitOrder`, `CLRS.Chapter08.radixDigitOrderRespectsKey_of_bounded`, `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_bounded` |
 | Section 8.4 - Bucket sort | `CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean` | `proved` for deterministic bucket-index correctness plus abstract finite-uniform expected cost | `CLRS.Chapter08.bucketSortBy_correct`, `CLRS.Chapter08.bucketSortByRank_correct`, `CLRS.Chapter08.uniformAverageFin2_collision`, `CLRS.Chapter08.expectedBucketSortCost_linear_bound` |
 | Section 9.2 - Selection by rank | `CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean` | `proved` for the specification selector and pivot-style quickselect | `CLRS.Chapter09.selectByRank?_mem`, `CLRS.Chapter09.selectByRank?_rankCorrect`, `CLRS.Chapter09.selectByRank?_correct`, `CLRS.Chapter09.quickSelect?_mem`, `CLRS.Chapter09.quickSelect?_rankCorrect`, `CLRS.Chapter09.quickSelect?_correct` |
@@ -116,6 +132,10 @@ should remain import-friendly.
 | Section 11.2 - Chained hash tables | `CLRSLean/Chapter_11/Section_11_2_Chained_Hash_Tables.lean` | `partial` | `CLRS.Chapter11.hashSearch_hashInsert_iff`, `CLRS.Chapter11.hashSearch_hashDelete_iff`, `CLRS.Chapter11.expectedSearchChainLength_eq_loadFactor`, `CLRS.Chapter11.expectedUnsuccessfulSearchCost_finiteHashInsert` |
 | Section 12.1 - Binary search trees | `CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean` | `partial` | `CLRS.Chapter12.BSTree.search_eq_true_iff`, `CLRS.Chapter12.BSTree.minimum?_le_of_ordered`, `CLRS.Chapter12.BSTree.le_maximum?_of_ordered`, `CLRS.Chapter12.BSTree.successor?_least_greater`, `CLRS.Chapter12.BSTree.predecessor?_greatest_less`, `CLRS.Chapter12.BSTree.insert_ordered`, `CLRS.Chapter12.BSTree.inTree_delete_iff`, `CLRS.Chapter12.BSTree.delete_ordered` |
 | Section 13.1 - Red-black trees | `CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean` | `partial` | `CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`, `CLRS.Chapter13.RBTree.balancedBlackHeight_rotateLeft_red_red`, `CLRS.Chapter13.RBTree.blackHeight_insertFixup_leftLeft`, `CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`, `CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate` |
+| Section 14.1 - Order-statistic trees | `CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean` | `partial` | `CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`, `CLRS.Chapter14.OSTree.recomputeSizes_wellSized`, `CLRS.Chapter14.OSTree.rankSelect?_rotateLeft`, `CLRS.Chapter14.OSTree.osSelect?_eq_rankSelect?_of_wellSized`, `CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?` |
+| Section 15.1 - Rod cutting | `CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean` | `partial` | `CLRS.Chapter15.firstCutValue_le_of_rodCutRecurrence`, `CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`, `CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`, `CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length` |
+| Section 15.2 - Matrix-chain multiplication | `CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean` | `partial` | `CLRS.Chapter15.matrixChain_opt_le_planCost`, `CLRS.Chapter15.matrixChain_reconstructed_cost_eq`, `CLRS.Chapter15.matrixChain_reconstructed_optimal`, `CLRS.Chapter15.matrixChain_reconstructed_cost_le_planCost` |
+| Section 15.4 - Longest common subsequence | `CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean` | `partial` | `CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`, `CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`, `CLRS.Chapter15.LCSTableRecurrence.cons_cons`, `CLRS.Chapter15.lcsTable_reconstruction_optimal` |
 | Section 16.1 - Activity selection | `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean` | `proved` for finite sorted lists | `CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate`, `CLRS.ActivitySelection.activitySelection`, `CLRS.ActivitySelection.activitySelection_cons_eq`, `CLRS.ActivitySelection.greedySelect_cons_maxCardinality`, `CLRS.ActivitySelection.greedySelect_maxCardinality`, `CLRS.ActivitySelection.activitySelection_cons_maxCardinality`, `CLRS.ActivitySelection.activitySelection_maxCardinality`, `CLRS.ActivitySelection.greedySelect_optimal_length`, `CLRS.ActivitySelection.greedySelect_cons_recursive_correct`, `CLRS.ActivitySelection.activitySelection_cons_recursive_correct`, `CLRS.ActivitySelection.activitySelection_cons_correct`, `CLRS.ActivitySelection.activitySelection_correct` |
 | Section 16.3 - Huffman codes | `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean` | `proved` | `CLRS.HuffmanV2.optimum_huffman_freqs`, `CLRS.HuffmanV2.huffmanOfFreqs_correct`, `CLRS.HuffmanV2.huffmanOfFreqs_cost_le` |
 | Section 23.1 - Growing a minimum spanning tree | `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean` | `partial` | `CLRS.MST.Graph.connected_crosses_cut`, `CLRS.MST.FiniteGraph.minimumSpanningTree_of_mstExtending_empty`, `CLRS.MST.FiniteGraph.mstExtending_empty_of_minimumSpanningTree`, `CLRS.MST.FiniteGraph.minimumSpanningTree_iff_mstExtending_empty`, `CLRS.MST.FiniteGraph.exists_crossing_tree_edge_of_cut`, `CLRS.MST.FiniteGraph.exists_crossing_tree_edge_preserving_prefix`, `CLRS.MST.safe_edge_of_lightest_crossing` |

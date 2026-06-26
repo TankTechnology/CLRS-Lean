@@ -32,10 +32,12 @@ jobs:
         with:
           path: |
             .lake/build/literate
-            .lake/build/literate-html
           key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
           restore-keys: |
             verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-
+
+      - name: Clean stale generated HTML
+        run: rm -rf .lake/build/literate-html _site
 
       - name: Build Verso literate HTML
         id: build-site
@@ -47,13 +49,16 @@ jobs:
         with:
           path: |
             .lake/build/literate
-            .lake/build/literate-html
           key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
+
+      - name: Check generated HTML freshness
+        run: python3 scripts/check_literate_html_freshness.py "${{ steps.build-site.outputs.path }}"
 
       - name: Assemble _site
         run: |
           VERSO_OUT="${{ steps.build-site.outputs.path }}"
           echo "Verso output: $VERSO_OUT"
+          rm -rf _site
           mkdir -p _site
           cp -r "$VERSO_OUT"/* _site/
           cp docs/literate/clrs-literate.css _site/clrs-literate.css
