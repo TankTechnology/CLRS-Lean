@@ -61,6 +61,7 @@
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`
 - `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq`
+- `CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne_none_of_remaining`
 - `CLRS.Chapter19.FibHeap.decreaseKey_correct`
 - `CLRS.Chapter19.FibHeap.decreaseKey_valid`
 - `CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`
@@ -88,6 +89,7 @@
 - `CLRS.Chapter19.FibHeap.delete_minimum_le_old`
 - `CLRS.Chapter19.FibHeap.delete_minimum_none_iff`
 - `CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq`
+- `CLRS.Chapter19.FibHeap.delete_minimum_ne_none_of_remaining`
 - `CLRS.Chapter19.FibHeap.heapPotential_telescope`
 - `CLRS.Chapter19.FibHeap.fibLowerBound_step`
 - `CLRS.Chapter19.FibHeap.fibLowerBound_pos`

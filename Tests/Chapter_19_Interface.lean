@@ -58,6 +58,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff
 #check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq
+#check CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne_none_of_remaining
 #check CLRS.Chapter19.FibHeap.decreaseKey_correct
 #check CLRS.Chapter19.FibHeap.decreaseKey_valid
 #check CLRS.Chapter19.FibHeap.decreaseKey_mem_iff
@@ -85,6 +86,7 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.delete_minimum_le_old
 #check CLRS.Chapter19.FibHeap.delete_minimum_none_iff
 #check CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq
+#check CLRS.Chapter19.FibHeap.delete_minimum_ne_none_of_remaining
 #check CLRS.Chapter19.FibHeap.heapPotential_telescope
 #check CLRS.Chapter19.FibHeap.fibLowerBound
 #check CLRS.Chapter19.FibHeap.fibLowerBound_step

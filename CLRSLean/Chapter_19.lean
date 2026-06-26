@@ -14,7 +14,7 @@ operation-result validity wrappers for normalized counters, adds direct minimum
 membership/lower-bound wrappers plus
 insert/union/extract-min-remaining/decrease-key/delete minimum direct
 membership/lower-bound wrappers, direct minimum/extract-min empty-result
-wrappers, and positive/empty-result
+wrappers, remaining/delete minimum nonempty-result wrappers, and positive/empty-result
 minimum-after-update specifications plus nonempty-result query wrappers,
 exposes the standard
 potential function with zero-initial and nonnegativity facts, and
@@ -84,6 +84,7 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_valid`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_mem_iff`,
@@ -111,6 +112,7 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter19.FibHeap.heapPotential_telescope`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_step`,
   {lit}`CLRS.Chapter19.FibHeap.fibLowerBound_pos`,

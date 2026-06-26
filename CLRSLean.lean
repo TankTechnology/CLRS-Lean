@@ -118,6 +118,7 @@ Start with the chapter pages in the sidebar.
   direct failed-membership preservation wrappers,
   returned minimum-after-update positive/empty specs plus
   direct minimum/extract-min empty-result and nonempty-result wrappers,
+  remaining/delete minimum nonempty-result wrappers,
   insert/union/extract-min-remaining/decrease-key/delete minimum direct
   membership/lower-bound wrappers, heap potential zero/nonnegativity and
   telescoping facts, a Fibonacci lower-bound recurrence with positivity,
@@ -613,6 +614,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_none_of_all_eq`,
+  {lit}`CLRS.Chapter19.FibHeap.extractMin_remaining_minimum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_correct`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_valid`,
   {lit}`CLRS.Chapter19.FibHeap.decreaseKey_not_mem_iff`,
@@ -631,6 +633,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_le_old`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_minimum_none_of_all_eq`,
+  {lit}`CLRS.Chapter19.FibHeap.delete_minimum_ne_none_of_remaining`,
   {lit}`CLRS.Chapter19.FibHeap.delete_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_iff`,
   {lit}`CLRS.Chapter19.FibHeap.delete_not_mem_old`,

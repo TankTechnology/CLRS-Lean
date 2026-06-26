@@ -95,9 +95,11 @@ Main results:
   {lit}`FibHeap.union_minimum_none_of_empty`,
   {lit}`FibHeap.extractMin_none_of_empty`,
   {lit}`FibHeap.extractMin_remaining_minimum_none_of_all_eq`,
+  {lit}`FibHeap.extractMin_remaining_minimum_ne_none_of_remaining`,
   {lit}`FibHeap.decreaseKey_minimum_ne_none`, and
-  {lit}`FibHeap.delete_minimum_none_of_all_eq`: direct empty-result wrappers
-  for minimum and extract-min queries.
+  {lit}`FibHeap.delete_minimum_none_of_all_eq`, and
+  {lit}`FibHeap.delete_minimum_ne_none_of_remaining`: direct empty-result and
+  nonempty-result wrappers for heap minimum and update-result queries.
 - Theorem {lit}`FibHeap.heapPotential_telescope`: heap potential instantiates
   the Chapter 17 potential-method telescoping theorem.
 - Theorem {lit}`FibHeap.fibLowerBound_step`: the Fibonacci-style lower-bound
@@ -717,6 +719,17 @@ theorem extractMin_remaining_minimum_none_of_all_eq {h h' : FibHeap}
   exact (extractMin_remaining_minimum_none_iff
     (h := h) (h' := h') (s := s) (x := x) hrep hextract).2 hall
 
+/-- If some old key distinct from the extracted key remains, the remaining heap has a minimum. -/
+theorem extractMin_remaining_minimum_ne_none_of_remaining {h h' : FibHeap}
+    {s : Finset Int} {x y : Int} (hrep : Represents h s)
+    (hextract : extractMin h = some (x, h')) (hy : y ∈ s) (hyx : y ≠ x) :
+    minimum h' ≠ none := by
+  intro hnone
+  have hall : forall z, z ∈ s -> z = x :=
+    (extractMin_remaining_minimum_none_iff
+      (h := h) (h' := h') (s := s) (x := x) hrep hextract).1 hnone
+  exact hyx (hall y hy)
+
 /-- Decrease a key by replacing an old key with a new key. -/
 def decreaseKey (oldKey newKey : Int) (h : FibHeap) : FibHeap :=
   let ks := Insert.insert newKey (h.keys.erase oldKey)
@@ -994,6 +1007,15 @@ theorem delete_minimum_none_of_all_eq {h : FibHeap} {s : Finset Int} {x : Int}
     (hrep : Represents h s) (hall : forall y, y ∈ s -> y = x) :
     minimum (delete x h) = none := by
   exact (delete_minimum_none_iff (h := h) (s := s) (x := x) hrep).2 hall
+
+/-- If some old key distinct from the deleted key remains, deletion leaves a minimum. -/
+theorem delete_minimum_ne_none_of_remaining {h : FibHeap} {s : Finset Int}
+    {x y : Int} (hrep : Represents h s) (hy : y ∈ s) (hyx : y ≠ x) :
+    minimum (delete x h) ≠ none := by
+  intro hnone
+  have hall : forall z, z ∈ s -> z = x :=
+    (delete_minimum_none_iff (h := h) (s := s) (x := x) hrep).1 hnone
+  exact hyx (hall y hy)
 
 /-- A heap-indexed potential trace for Chapter 17's potential method. -/
 def potentialTrace (heap : Nat -> FibHeap) (actual : Nat -> Int) :
