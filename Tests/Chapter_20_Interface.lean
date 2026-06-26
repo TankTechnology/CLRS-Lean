@@ -21,12 +21,14 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.minimum_lt_univ
 #check CLRS.Chapter20.VEB.minimum_none_iff
 #check CLRS.Chapter20.VEB.minimum_none_of_empty
+#check CLRS.Chapter20.VEB.minimum_ne_none_of_nonempty
 #check CLRS.Chapter20.VEB.maximum_correct
 #check CLRS.Chapter20.VEB.maximum_mem
 #check CLRS.Chapter20.VEB.le_maximum
 #check CLRS.Chapter20.VEB.maximum_lt_univ
 #check CLRS.Chapter20.VEB.maximum_none_iff
 #check CLRS.Chapter20.VEB.maximum_none_of_empty
+#check CLRS.Chapter20.VEB.maximum_ne_none_of_nonempty
 #check CLRS.Chapter20.VEB.successor_correct
 #check CLRS.Chapter20.VEB.successor_mem
 #check CLRS.Chapter20.VEB.successor_gt
@@ -34,6 +36,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.successor_lt_univ
 #check CLRS.Chapter20.VEB.successor_none_iff
 #check CLRS.Chapter20.VEB.successor_none_of_no_gt
+#check CLRS.Chapter20.VEB.successor_ne_none_of_exists_gt
 #check CLRS.Chapter20.VEB.predecessor_correct
 #check CLRS.Chapter20.VEB.predecessor_mem
 #check CLRS.Chapter20.VEB.predecessor_lt
@@ -41,6 +44,7 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.predecessor_lt_univ
 #check CLRS.Chapter20.VEB.predecessor_none_iff
 #check CLRS.Chapter20.VEB.predecessor_none_of_no_lt
+#check CLRS.Chapter20.VEB.predecessor_ne_none_of_exists_lt
 #check CLRS.Chapter20.VEB.insert_correct
 #check CLRS.Chapter20.VEB.insert_member_iff
 #check CLRS.Chapter20.VEB.insert_member_lt_univ

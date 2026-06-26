@@ -75,6 +75,9 @@ Main results:
   {lit}`VEB.delete_minimum_none_of_all_eq`, and
   {lit}`VEB.delete_maximum_none_of_all_eq`: direct extrema empty-result
   wrappers for base and updated trees.
+- Theorems {lit}`VEB.minimum_ne_none_of_nonempty` and
+  {lit}`VEB.maximum_ne_none_of_nonempty`: direct nonempty-result wrappers for
+  base extrema queries.
 - Theorems {lit}`VEB.insert_successor_correct`,
   {lit}`VEB.insert_predecessor_correct`, {lit}`VEB.delete_successor_correct`,
   and {lit}`VEB.delete_predecessor_correct`: successor and predecessor queries
@@ -109,6 +112,9 @@ Main results:
   {lit}`VEB.delete_successor_none_of_no_gt`, and
   {lit}`VEB.delete_predecessor_none_of_no_lt`: direct no-neighbor query
   wrappers for base and updated trees.
+- Theorems {lit}`VEB.successor_ne_none_of_exists_gt` and
+  {lit}`VEB.predecessor_ne_none_of_exists_lt`: direct existing-neighbor
+  wrappers for base successor and predecessor queries.
 - Theorems {lit}`VEB.insert_successor_none_of_insert_le_old_no_gt`,
   {lit}`VEB.insert_predecessor_none_of_query_le_insert_old_no_lt`,
   {lit}`VEB.delete_successor_none_of_old_no_gt`, and
@@ -225,6 +231,16 @@ theorem minimum_none_of_empty {t : Tree} {s : Finset Nat}
     minimum t = none := by
   exact (minimum_none_iff (t := t) (s := s) hrep).2 hempty
 
+/-- A nonempty represented set forces the minimum query to return a result. -/
+theorem minimum_ne_none_of_nonempty {t : Tree} {s : Finset Nat}
+    (hrep : Represents t s) (hne : s.Nonempty) :
+    minimum t ≠ none := by
+  intro hnone
+  have hempty : s = ∅ := (minimum_none_iff (t := t) (s := s) hrep).1 hnone
+  rcases hne with ⟨x, hx⟩
+  rw [hempty] at hx
+  simp at hx
+
 /-- The returned maximum is represented and is an upper bound for all keys. -/
 theorem maximum_correct {t : Tree} {s : Finset Nat} {x : Nat}
     (hrep : Represents t s) (hmax : maximum t = some x) :
@@ -283,6 +299,16 @@ theorem maximum_none_of_empty {t : Tree} {s : Finset Nat}
     (hrep : Represents t s) (hempty : s = ∅) :
     maximum t = none := by
   exact (maximum_none_iff (t := t) (s := s) hrep).2 hempty
+
+/-- A nonempty represented set forces the maximum query to return a result. -/
+theorem maximum_ne_none_of_nonempty {t : Tree} {s : Finset Nat}
+    (hrep : Represents t s) (hne : s.Nonempty) :
+    maximum t ≠ none := by
+  intro hnone
+  have hempty : s = ∅ := (maximum_none_iff (t := t) (s := s) hrep).1 hnone
+  rcases hne with ⟨x, hx⟩
+  rw [hempty] at hx
+  simp at hx
 
 /-- Candidate successor set for query {lit}`x`. -/
 def successorCandidates (x : Nat) (t : Tree) : Finset Nat :=
@@ -369,6 +395,15 @@ theorem successor_none_of_no_gt {t : Tree} {s : Finset Nat} {x : Nat}
     successor x t = none := by
   exact (successor_none_iff (t := t) (s := s) (x := x) hrep).2 hnone
 
+/-- An existing greater represented key forces successor to return a result. -/
+theorem successor_ne_none_of_exists_gt {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) (hy : y ∈ s) (hxy : x < y) :
+    successor x t ≠ none := by
+  intro hnone
+  have hnoGt : forall z, z ∈ s -> ¬ x < z :=
+    (successor_none_iff (t := t) (s := s) (x := x) hrep).1 hnone
+  exact (hnoGt y hy) hxy
+
 /-- Candidate predecessor set for query {lit}`x`. -/
 def predecessorCandidates (x : Nat) (t : Tree) : Finset Nat :=
   t.elems.filter (fun y => y < x)
@@ -453,6 +488,15 @@ theorem predecessor_none_of_no_lt {t : Tree} {s : Finset Nat} {x : Nat}
     (hrep : Represents t s) (hnone : forall y, y ∈ s -> ¬ y < x) :
     predecessor x t = none := by
   exact (predecessor_none_iff (t := t) (s := s) (x := x) hrep).2 hnone
+
+/-- An existing smaller represented key forces predecessor to return a result. -/
+theorem predecessor_ne_none_of_exists_lt {t : Tree} {s : Finset Nat} {x y : Nat}
+    (hrep : Represents t s) (hy : y ∈ s) (hyx : y < x) :
+    predecessor x t ≠ none := by
+  intro hnone
+  have hnoLt : forall z, z ∈ s -> ¬ z < x :=
+    (predecessor_none_iff (t := t) (s := s) (x := x) hrep).1 hnone
+  exact (hnoLt y hy) hyx
 
 /-- Insert a key into the represented set. -/
 def insert (x : Nat) (t : Tree) : Tree :=

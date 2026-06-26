@@ -138,7 +138,8 @@ which areas should not yet be counted as proof-complete.
   preservation and failure corollaries, direct failed member-query
   preservation wrappers, direct no-neighbor query wrappers, premise-light
   no-neighbor wrappers over old represented sets, direct extrema empty-result
-  wrappers, update-query universe-bound corollaries, and
+  wrappers, direct base extrema/neighbor nonempty-result wrappers,
+  update-query universe-bound corollaries, and
   operation-depth recurrence/monotonicity specs, are proved; recursive cluster
   representation
   and the {lit}`O(log log u)` bridge remain.
@@ -766,12 +767,14 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.minimum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.minimum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.minimum_none_of_empty`,
+  {lit}`CLRS.Chapter20.VEB.minimum_ne_none_of_nonempty`,
   {lit}`CLRS.Chapter20.VEB.maximum_correct`,
   {lit}`CLRS.Chapter20.VEB.maximum_mem`,
   {lit}`CLRS.Chapter20.VEB.le_maximum`,
   {lit}`CLRS.Chapter20.VEB.maximum_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.maximum_none_iff`,
   {lit}`CLRS.Chapter20.VEB.maximum_none_of_empty`,
+  {lit}`CLRS.Chapter20.VEB.maximum_ne_none_of_nonempty`,
   {lit}`CLRS.Chapter20.VEB.successor_correct`,
   {lit}`CLRS.Chapter20.VEB.successor_mem`,
   {lit}`CLRS.Chapter20.VEB.successor_gt`,
@@ -779,6 +782,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.successor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.successor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.successor_none_of_no_gt`,
+  {lit}`CLRS.Chapter20.VEB.successor_ne_none_of_exists_gt`,
   {lit}`CLRS.Chapter20.VEB.predecessor_correct`,
   {lit}`CLRS.Chapter20.VEB.predecessor_mem`,
   {lit}`CLRS.Chapter20.VEB.predecessor_lt`,
@@ -786,6 +790,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter20.VEB.predecessor_lt_univ`,
   {lit}`CLRS.Chapter20.VEB.predecessor_none_iff`,
   {lit}`CLRS.Chapter20.VEB.predecessor_none_of_no_lt`,
+  {lit}`CLRS.Chapter20.VEB.predecessor_ne_none_of_exists_lt`,
   {lit}`CLRS.Chapter20.VEB.insert_correct`,
   {lit}`CLRS.Chapter20.VEB.insert_member_iff`,
   {lit}`CLRS.Chapter20.VEB.insert_member_lt_univ`,
