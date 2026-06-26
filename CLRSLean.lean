@@ -98,8 +98,8 @@ Start with the chapter pages in the sidebar.
   an executable multi-step counter trace bound and size-level dynamic-table
   potential, actual-cost and capacity-choice case specs, capacity-direction,
   actual-cost lower/upper bounds, post-state field equations, stored-count
-  direction, post-state capacity, exact zero/positive deletion-cost wrappers,
-  and transition wrappers.
+  direction, post-state capacity, resize-branch capacity wrappers, exact
+  zero/positive deletion-cost wrappers, and transition wrappers.
 * Chapter 18 - B-Trees: first-pass mathematical B-tree membership, search,
   height-expression base/positivity/recurrence/monotonicity, split-child direct
   validity and membership/search preservation, insertion, deletion,
@@ -461,6 +461,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_ge_size`,
+  {lit}`CLRS.Chapter17.dynamicTableInsertSize_ge_double_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_size`,
@@ -470,6 +471,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.dynamicTableInsert_num_ge`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`,
@@ -482,6 +484,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_fits`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_le_size`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteSize_le_half_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_valid`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_num`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_size`,
@@ -492,6 +495,7 @@ Start with the chapter pages in the sidebar.
   {lit}`CLRS.Chapter17.dynamicTableDelete_num_lt_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_le_size`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_le_half_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_amortizedBound`, and
   {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`.
 * 18.1-18.3 B-trees: {lit}`partial`.

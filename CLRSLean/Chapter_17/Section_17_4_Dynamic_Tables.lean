@@ -19,6 +19,11 @@ Main results:
 - Theorems {lit}`dynamicTableInsertSize_ge_size` and
   {lit}`dynamicTableDeleteSize_le_size`: insertion never shrinks capacity, and
   deletion never grows capacity for a valid table.
+- Theorems {lit}`dynamicTableInsertSize_ge_double_of_expand`,
+  {lit}`dynamicTableInsert_capacity_ge_double_of_expand`,
+  {lit}`dynamicTableDeleteSize_le_half_of_contract`, and
+  {lit}`dynamicTableDelete_capacity_le_half_of_contract`: direct capacity
+  direction wrappers for resizing branches.
 - Theorems {lit}`dynamicTableInsertSize_of_fits`,
   {lit}`dynamicTableInsertSize_of_expand`,
   {lit}`dynamicTableDeleteSize_of_contract`, and
@@ -185,6 +190,13 @@ theorem dynamicTableInsertSize_ge_size (s : DynamicTableState) :
   · simp [hfit]
     exact Or.inr (by omega)
 
+/-- The insertion expansion branch allocates at least double the old capacity. -/
+theorem dynamicTableInsertSize_ge_double_of_expand (s : DynamicTableState)
+    (hfull : ¬ s.num + 1 <= s.size) :
+    2 * s.size <= dynamicTableInsertSize s := by
+  rw [dynamicTableInsertSize_of_expand s hfull]
+  exact le_max_right (s.num + 1) (2 * s.size)
+
 /-- Dynamic-table insertion increments the stored-element count by one. -/
 theorem dynamicTableInsert_num (s : DynamicTableState) :
     (dynamicTableInsert s).num = s.num + 1 := by
@@ -227,6 +239,13 @@ theorem dynamicTableInsert_capacity_fits (s : DynamicTableState) :
 theorem dynamicTableInsert_capacity_ge_size (s : DynamicTableState) :
     s.size <= (dynamicTableInsert s).size := by
   exact dynamicTableInsertSize_ge_size s
+
+/-- The insertion expansion branch leaves post-state capacity at least double the old capacity. -/
+theorem dynamicTableInsert_capacity_ge_double_of_expand (s : DynamicTableState)
+    (hfull : ¬ s.num + 1 <= s.size) :
+    2 * s.size <= (dynamicTableInsert s).size := by
+  rw [dynamicTableInsert_size]
+  exact dynamicTableInsertSize_ge_double_of_expand s hfull
 
 /-- Dynamic-table insertion preserves the table-size invariant. -/
 theorem dynamicTableInsert_valid (s : DynamicTableState)
@@ -360,6 +379,16 @@ theorem dynamicTableDeleteSize_le_size (s : DynamicTableState)
     · exact Nat.div_le_self s.size 2
   · simp [hcontract]
 
+/-- The deletion contraction branch allocates no more than half the old capacity. -/
+theorem dynamicTableDeleteSize_le_half_of_contract (s : DynamicTableState)
+    (hcontract : 4 * (s.num - 1) <= s.size) :
+    dynamicTableDeleteSize s <= s.size / 2 := by
+  rw [dynamicTableDeleteSize_of_contract s hcontract]
+  have hremaining : s.num - 1 <= s.size / 2 := by
+    rw [Nat.le_div_iff_mul_le (by decide : 0 < 2)]
+    omega
+  exact max_le hremaining le_rfl
+
 /-- Dynamic-table deletion decrements the stored-element count, saturating at zero. -/
 theorem dynamicTableDelete_num (s : DynamicTableState) :
     (dynamicTableDelete s).num = s.num - 1 := by
@@ -412,6 +441,13 @@ theorem dynamicTableDelete_capacity_le_size (s : DynamicTableState)
     (hvalid : DynamicTableState.Valid s) :
     (dynamicTableDelete s).size <= s.size := by
   exact dynamicTableDeleteSize_le_size s hvalid
+
+/-- The deletion contraction branch leaves post-state capacity no more than half the old capacity. -/
+theorem dynamicTableDelete_capacity_le_half_of_contract (s : DynamicTableState)
+    (hcontract : 4 * (s.num - 1) <= s.size) :
+    (dynamicTableDelete s).size <= s.size / 2 := by
+  rw [dynamicTableDelete_size]
+  exact dynamicTableDeleteSize_le_half_of_contract s hcontract
 
 /-- Dynamic-table deletion/contraction preserves the table-size invariant. -/
 theorem dynamicTableDelete_valid (s : DynamicTableState)

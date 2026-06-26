@@ -14,7 +14,8 @@ bound, and size-level dynamic-table insertion/deletion capacity and transition
 wrappers with capacity-direction and actual-cost lower/upper-bound facts plus an
 explicit nonnegative potential fact, actual-cost and capacity-choice case
 specifications, direct post-state field equations and allocation-size case
-wrappers, and direct post-state stored-count and capacity corollaries,
+wrappers, direct post-state stored-count and capacity corollaries, and direct
+resize-branch capacity wrappers,
 including exact zero/positive deletion cost specifications.
 
 ## Sections
@@ -45,6 +46,7 @@ including exact zero/positive deletion cost specifications.
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_ge_size`,
+  {lit}`CLRS.Chapter17.dynamicTableInsertSize_ge_double_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_size`,
@@ -54,6 +56,7 @@ including exact zero/positive deletion cost specifications.
   {lit}`CLRS.Chapter17.dynamicTableInsert_num_ge`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`,
@@ -66,6 +69,7 @@ including exact zero/positive deletion cost specifications.
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_fits`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_le_size`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteSize_le_half_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_valid`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_num`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_size`,
@@ -76,6 +80,7 @@ including exact zero/positive deletion cost specifications.
   {lit}`CLRS.Chapter17.dynamicTableDelete_num_lt_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_le_size`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_le_half_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_amortizedBound`, and
   {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`.
 

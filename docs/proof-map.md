@@ -995,6 +995,7 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableInsertSize_of_expand`
   - `CLRS.Chapter17.dynamicTableInsertSize_fits`
   - `CLRS.Chapter17.dynamicTableInsertSize_ge_size`
+  - `CLRS.Chapter17.dynamicTableInsertSize_ge_double_of_expand`
   - `CLRS.Chapter17.dynamicTableInsert_valid`
   - `CLRS.Chapter17.dynamicTableInsert_num`
   - `CLRS.Chapter17.dynamicTableInsert_size`
@@ -1004,6 +1005,7 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableInsert_num_ge`
   - `CLRS.Chapter17.dynamicTableInsert_capacity_fits`
   - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`
+  - `CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand`
   - `CLRS.Chapter17.dynamicTableInsert_amortizedBound`
   - `CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`
   - `CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`
@@ -1016,6 +1018,7 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`
   - `CLRS.Chapter17.dynamicTableDeleteSize_fits`
   - `CLRS.Chapter17.dynamicTableDeleteSize_le_size`
+  - `CLRS.Chapter17.dynamicTableDeleteSize_le_half_of_contract`
   - `CLRS.Chapter17.dynamicTableDelete_valid`
   - `CLRS.Chapter17.dynamicTableDelete_num`
   - `CLRS.Chapter17.dynamicTableDelete_size`
@@ -1026,14 +1029,15 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableDelete_num_lt_of_nonempty`
   - `CLRS.Chapter17.dynamicTableDelete_capacity_fits`
   - `CLRS.Chapter17.dynamicTableDelete_capacity_le_size`
+  - `CLRS.Chapter17.dynamicTableDelete_capacity_le_half_of_contract`
   - `CLRS.Chapter17.dynamicTableDelete_amortizedBound`
   - `CLRS.Chapter17.dynamicTable_amortizedBound`
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
   telescoping, executable counter trace induction, size-level table potential
   nonnegativity, capacity feasibility/direction, post-state field equations,
   post-state allocation-size case specs, stored-count direction,
-  post-state capacity corollaries, actual-cost and capacity-choice case specs,
-  zero/positive deletion-cost wrappers,
+  post-state capacity corollaries, resize-branch capacity wrappers,
+  actual-cost and capacity-choice case specs, zero/positive deletion-cost wrappers,
   lower/upper bounds, and transitions
 - Current gap: mutable-array copying, RAM/allocation constants, and sharper
   CLRS load-factor potential refinements remain strengthening targets.
@@ -1045,7 +1049,8 @@ examples compile against stable public theorem names.  The executable counter
 trace now has a multi-step potential bound and an empty-counter {lit}`2n` flip
 bound.  Dynamic-table insertion and deletion/contraction now expose size-level
 potential nonnegativity, capacity feasibility/direction, direct post-state
-stored-count and capacity corollaries, post-state field equations, actual-cost
+stored-count and capacity corollaries, resize-branch capacity wrappers,
+post-state field equations, actual-cost
 and capacity-choice case specs, exact zero/positive deletion-cost wrappers,
 positive-cost and upper-bound transition facts, while
 mutable-array copying and

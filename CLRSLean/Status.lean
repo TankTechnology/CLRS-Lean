@@ -96,7 +96,8 @@ which areas should not yet be counted as proof-complete.
   post-state field equations, stored-count direction facts, actual-cost and
   capacity-choice case specs, positive/zero deletion-cost exact wrappers,
   positive-cost lower bounds, upper bounds,
-  post-state capacity corollaries, and insertion/deletion wrappers are proved;
+  post-state capacity corollaries, resize-branch capacity wrappers, and
+  insertion/deletion wrappers are proved;
   allocator and RAM refinements remain.
 * Chapter 18, Sections 18.1-18.3: a mathematical B-tree model has search,
   minimum-key height-expression base/positivity facts, recurrence, and monotonicity,
@@ -539,6 +540,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsertSize_ge_size`,
+  {lit}`CLRS.Chapter17.dynamicTableInsertSize_ge_double_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_valid`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_num`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_size`,
@@ -548,6 +550,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableInsert_num_ge`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_size`,
+  {lit}`CLRS.Chapter17.dynamicTableInsert_capacity_ge_double_of_expand`,
   {lit}`CLRS.Chapter17.dynamicTableInsert_amortizedBound`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteCost_pos_iff_nonempty`,
@@ -560,6 +563,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_of_no_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_fits`,
   {lit}`CLRS.Chapter17.dynamicTableDeleteSize_le_size`,
+  {lit}`CLRS.Chapter17.dynamicTableDeleteSize_le_half_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_valid`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_num`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_size`,
@@ -570,6 +574,7 @@ exchange-path automation, and remaining Chapter 8/9 algorithm refinements.
   {lit}`CLRS.Chapter17.dynamicTableDelete_num_lt_of_nonempty`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_fits`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_le_size`,
+  {lit}`CLRS.Chapter17.dynamicTableDelete_capacity_le_half_of_contract`,
   {lit}`CLRS.Chapter17.dynamicTableDelete_amortizedBound`, and
   {lit}`CLRS.Chapter17.dynamicTable_amortizedBound`;
   remaining gap: mutable-array copying, RAM/allocation constants, and sharper
