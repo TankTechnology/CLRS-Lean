@@ -1131,8 +1131,11 @@ allocator semantics remain future refinements.
   - `CLRS.Chapter18.BTree.delete_search_deleted_false`
   - `CLRS.Chapter18.BTree.delete_search_false_of_eq`
   - `CLRS.Chapter18.BTree.delete_mem_of_ne`
+  - `CLRS.Chapter18.BTree.delete_mem_of_ne_prop`
   - `CLRS.Chapter18.BTree.delete_search_of_ne`
+  - `CLRS.Chapter18.BTree.delete_search_of_ne_prop`
   - `CLRS.Chapter18.BTree.delete_search_of_mem_ne`
+  - `CLRS.Chapter18.BTree.delete_search_of_mem_ne_prop`
   - `CLRS.Chapter18.BTree.delete_not_mem_iff`
   - `CLRS.Chapter18.BTree.delete_not_mem_old`
   - `CLRS.Chapter18.BTree.delete_not_mem_of_eq`
@@ -1142,7 +1145,8 @@ allocator semantics remain future refinements.
 - Proof pattern: mathematical key-set model, structural validity predicate,
   base search success/failure wrappers, minimum-key expression
   base/positivity arithmetic and height monotonicity, specification-level
-  split/insert/delete wrappers, search correctness reuse,
+  split/insert/delete wrappers, Prop-level deletion direct wrappers,
+  search correctness reuse,
   direct split validity/preservation corollaries, and direct inserted/deleted-key
   plus old-key successful and unsuccessful query preservation corollaries,
   direct insertion/deletion validity short-name wrappers, equality-key

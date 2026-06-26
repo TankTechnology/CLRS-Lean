@@ -64,6 +64,9 @@ import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion
 #check CLRS.Chapter18.BTree.delete_mem_of_ne
 #check CLRS.Chapter18.BTree.delete_search_of_ne
 #check CLRS.Chapter18.BTree.delete_search_of_mem_ne
+#check CLRS.Chapter18.BTree.delete_mem_of_ne_prop
+#check CLRS.Chapter18.BTree.delete_search_of_ne_prop
+#check CLRS.Chapter18.BTree.delete_search_of_mem_ne_prop
 #check CLRS.Chapter18.BTree.delete_not_mem_iff
 #check CLRS.Chapter18.BTree.delete_not_mem_old
 #check CLRS.Chapter18.BTree.delete_not_mem_of_eq

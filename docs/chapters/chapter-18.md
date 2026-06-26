@@ -57,8 +57,11 @@
 - `CLRS.Chapter18.BTree.delete_search_deleted_false`
 - `CLRS.Chapter18.BTree.delete_search_false_of_eq`
 - `CLRS.Chapter18.BTree.delete_mem_of_ne`
+- `CLRS.Chapter18.BTree.delete_mem_of_ne_prop`
 - `CLRS.Chapter18.BTree.delete_search_of_ne`
+- `CLRS.Chapter18.BTree.delete_search_of_ne_prop`
 - `CLRS.Chapter18.BTree.delete_search_of_mem_ne`
+- `CLRS.Chapter18.BTree.delete_search_of_mem_ne_prop`
 - `CLRS.Chapter18.BTree.delete_not_mem_iff`
 - `CLRS.Chapter18.BTree.delete_not_mem_old`
 - `CLRS.Chapter18.BTree.delete_not_mem_of_eq`

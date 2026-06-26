@@ -36,10 +36,12 @@ Main results:
   searchable after deletion.
 - Theorem {lit}`BTree.delete_search_false_of_eq`: any query key equal to the
   deleted key is not searchable after deletion.
-- Theorems {lit}`BTree.delete_mem_of_ne` and
-  {lit}`BTree.delete_search_of_ne`: old keys different from the deleted key
-  remain present and searchable after deletion.
-- Theorems {lit}`BTree.delete_search_of_mem_ne` and
+- Theorems {lit}`BTree.delete_mem_of_ne`,
+  {lit}`BTree.delete_mem_of_ne_prop`, {lit}`BTree.delete_search_of_ne`, and
+  {lit}`BTree.delete_search_of_ne_prop`: old keys different from the deleted
+  key remain present and searchable after deletion.
+- Theorems {lit}`BTree.delete_search_of_mem_ne`,
+  {lit}`BTree.delete_search_of_mem_ne_prop`, and
   {lit}`BTree.delete_search_false_of_not_mem`: old membership and absence give
   direct post-deletion successful and failed searches.
 
@@ -100,6 +102,13 @@ theorem delete_mem_of_ne (x y : Nat) (t : BTree)
     (hxy : (y != x) = true) (hy : mem y t) :
     mem y (delete x t) := by
   rw [delete_mem_iff]
+  exact ⟨hxy, hy⟩
+
+/-- Old keys with Prop-level inequality remain present after deletion. -/
+theorem delete_mem_of_ne_prop (x y : Nat) (t : BTree)
+    (hxy : y ≠ x) (hy : mem y t) :
+    mem y (delete x t) := by
+  rw [delete_mem_iff_ne]
   exact ⟨hxy, hy⟩
 
 /-- Membership after deletion fails exactly for the deleted key or old absent keys. -/
@@ -186,11 +195,27 @@ theorem delete_search_of_ne {minDegree x y : Nat} {t : BTree}
   rw [delete_search_iff (minDegree := minDegree) (x := x) (y := y) (t := t) hvalid]
   exact ⟨hxy, hy⟩
 
+/-- Old searchable keys with Prop-level inequality remain searchable after deletion. -/
+theorem delete_search_of_ne_prop {minDegree x y : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) (hxy : y ≠ x)
+    (hy : search y t = true) :
+    search y (delete x t) = true := by
+  rw [delete_search_iff_ne (minDegree := minDegree) (x := x) (y := y) (t := t) hvalid]
+  exact ⟨hxy, hy⟩
+
 /-- Old members different from the deleted key are directly searchable after deletion. -/
 theorem delete_search_of_mem_ne {minDegree x y : Nat} {t : BTree}
     (hvalid : Valid minDegree t) (hxy : (y != x) = true) (hy : mem y t) :
     search y (delete x t) = true := by
   exact delete_search_of_ne
+    (minDegree := minDegree) (x := x) (y := y) (t := t)
+    hvalid hxy (search_true_of_mem y t hy)
+
+/-- Old members with Prop-level inequality are directly searchable after deletion. -/
+theorem delete_search_of_mem_ne_prop {minDegree x y : Nat} {t : BTree}
+    (hvalid : Valid minDegree t) (hxy : y ≠ x) (hy : mem y t) :
+    search y (delete x t) = true := by
+  exact delete_search_of_ne_prop
     (minDegree := minDegree) (x := x) (y := y) (t := t)
     hvalid hxy (search_true_of_mem y t hy)
 
