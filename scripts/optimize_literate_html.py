@@ -46,6 +46,12 @@ VERSO_HOVER_SCRIPT_RE = re.compile(
     re.DOTALL,
 )
 BODY_END_RE = re.compile(r"</body\s*>", re.IGNORECASE)
+HEAD_END_RE = re.compile(r"</head\s*>", re.IGNORECASE)
+GOOGLE_SITE_VERIFICATION_CONTENT = "_r82oikN7_rmuMq-yxTixWGiNVPoxC-OJcNLDlO1Atk"
+GOOGLE_SITE_VERIFICATION_META = (
+    f'<meta name="google-site-verification" '
+    f'content="{GOOGLE_SITE_VERIFICATION_CONTENT}" />'
+)
 NAV_STATE_SCRIPT_ID = "clrs-nav-state-script"
 NAV_STATE_SCRIPT_RE = re.compile(
     rf"<script\s+id=[\"']{NAV_STATE_SCRIPT_ID}[\"'][^>]*>.*?</script>",
@@ -235,6 +241,7 @@ class PageStats:
     removed_hover_stylesheets: int
     removed_inline_hover_scripts: int
     injected_nav_scripts: int
+    injected_verification_meta: int
     opened_nav_details: int
 
     @property
@@ -249,6 +256,7 @@ class PageStats:
             or self.removed_hover_stylesheets > 0
             or self.removed_inline_hover_scripts > 0
             or self.injected_nav_scripts > 0
+            or self.injected_verification_meta > 0
             or self.opened_nav_details > 0
         )
 
@@ -455,6 +463,17 @@ def inject_nav_state_script(text: str) -> tuple[str, int]:
     return next_text, min(count, 1)
 
 
+def inject_google_site_verification(text: str) -> tuple[str, int]:
+    if GOOGLE_SITE_VERIFICATION_CONTENT in text:
+        return text, 0
+    next_text, count = HEAD_END_RE.subn(
+        lambda _match: f"    {GOOGLE_SITE_VERIFICATION_META}\n</head>",
+        text,
+        count=1,
+    )
+    return next_text, min(count, 1)
+
+
 def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
     before = path.stat().st_size
     strip_editor_attrs = before >= strip_attrs_min_bytes
@@ -485,7 +504,8 @@ def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
 
     text = tmp.read_text(encoding="utf-8", errors="replace")
     text, injected_nav_scripts = inject_nav_state_script(text)
-    if injected_nav_scripts:
+    text, injected_verification_meta = inject_google_site_verification(text)
+    if injected_nav_scripts or injected_verification_meta:
         tmp.write_text(text, encoding="utf-8", newline="")
 
     after = tmp.stat().st_size
@@ -501,6 +521,7 @@ def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
         removed_hover_stylesheets=parser.removed_hover_stylesheets,
         removed_inline_hover_scripts=removed_inline_hover_scripts,
         injected_nav_scripts=injected_nav_scripts,
+        injected_verification_meta=injected_verification_meta,
         opened_nav_details=parser.opened_nav_details,
     )
 
@@ -559,6 +580,7 @@ def main() -> int:
                 f"hover stylesheets: {stats.removed_hover_stylesheets}, "
                 f"inline hover scripts: {stats.removed_inline_hover_scripts}, "
                 f"nav scripts: {stats.injected_nav_scripts}, "
+                f"verification meta: {stats.injected_verification_meta}, "
                 f"opened nav details: {stats.opened_nav_details})"
             )
 

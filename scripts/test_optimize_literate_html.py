@@ -20,6 +20,40 @@ SPEC.loader.exec_module(optimizer)
 
 
 class OptimizeLiterateHtmlTests(unittest.TestCase):
+    def test_injects_google_site_verification_meta_once(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "index.html"
+            page.write_text(
+                """<!doctype html>
+<html>
+  <head><title>CLRS-Lean</title></head>
+  <body><main>CLRS-Lean</main></body>
+</html>
+""",
+                encoding="utf-8",
+            )
+
+            first = optimizer.optimize_file(page, strip_attrs_min_bytes=1_000_000)
+            first_text = page.read_text(encoding="utf-8")
+            second = optimizer.optimize_file(page, strip_attrs_min_bytes=1_000_000)
+            second_text = page.read_text(encoding="utf-8")
+
+        self.assertTrue(first.changed)
+        self.assertEqual(first.injected_verification_meta, 1)
+        self.assertFalse(second.changed)
+        self.assertEqual(second.injected_verification_meta, 0)
+        self.assertEqual(first_text, second_text)
+        self.assertEqual(first_text.count("google-site-verification"), 1)
+        self.assertIn(
+            '<meta name="google-site-verification" '
+            'content="_r82oikN7_rmuMq-yxTixWGiNVPoxC-OJcNLDlO1Atk" />',
+            first_text,
+        )
+        self.assertLess(
+            first_text.index("google-site-verification"),
+            first_text.index("</head>"),
+        )
+
     def test_injects_persistent_module_tree_state_script(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "index.html"
