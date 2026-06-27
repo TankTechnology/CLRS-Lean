@@ -66,6 +66,9 @@ jobs:
       - name: Optimize generated HTML
         run: python3 scripts/optimize_literate_html.py _site
 
+      - name: Generate sitemap
+        run: python3 scripts/generate_sitemap.py _site --base-url "https://tanktechnology.github.io/CLRS-Lean/"
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
