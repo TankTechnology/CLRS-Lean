@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_14.Section_14_1_Order_Statistic_Trees
+import CLRSLean.Chapter_14.Section_14_3_Interval_Trees
 
 /-!
 # Chapter 14 - Augmenting Data Structures
@@ -39,15 +40,19 @@ rank selector.
   {lit}`CLRS.Chapter14.OSTree.rotateRight_recomputeSizes_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?`,
   and {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateRight_recomputeSizes_eq_rankSelect?`.
+* 14.3 Interval trees: {lit}`partial`.
+  Main results: {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`,
+  {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`, and
+  {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_spec`.
 
 ## Current Gaps
 
 The current model proves the augmentation invariant and rank-selection
-correctness for a functional tree, including size-preserving local rotations.
-The recompute-then-rotate bridge is ready to be used by a future red-black
-balancing refinement.  The model does not yet connect those rotations to full
-Chapter 13 insertion/deletion fixup, interval trees, or the general augmentation
-theorem from the textbook.
+correctness for a functional tree, including size-preserving local rotations,
+and interval-search correctness for well-augmented BSTs.  The recompute-then-
+rotate bridge is ready to be used by a future red-black balancing refinement.
+The model does not yet connect those rotations to full Chapter 13 insertion/
+deletion fixup or to the general augmentation theorem from the textbook.
 -/
 
 namespace CLRS
