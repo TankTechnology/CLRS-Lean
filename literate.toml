@@ -92,11 +92,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_14" = [
   "CLRSLean.Chapter_14.Section_14_1_Order_Statistic_Trees",
+  "CLRSLean.Chapter_14.Section_14_3_Interval_Trees",
 ]
 "CLRSLean.Chapter_15" = [
   "CLRSLean.Chapter_15.Section_15_1_Rod_Cutting",
   "CLRSLean.Chapter_15.Section_15_2_Matrix_Chain_Multiplication",
   "CLRSLean.Chapter_15.Section_15_4_Longest_Common_Subsequence",
+  "CLRSLean.Chapter_15.Section_15_5_Optimal_Binary_Search_Trees",
 ]
 "CLRSLean.Chapter_16" = [
   "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
@@ -298,6 +300,9 @@ title = "13.1. Red-Black Trees"
 [modules."CLRSLean.Chapter_14.Section_14_1_Order_Statistic_Trees"]
 title = "14.1. Order-Statistic Trees"
 
+[modules."CLRSLean.Chapter_14.Section_14_3_Interval_Trees"]
+title = "14.3. Interval Trees"
+
 [modules."CLRSLean.Chapter_15.Section_15_1_Rod_Cutting"]
 title = "15.1. Rod Cutting"
 
@@ -306,6 +311,9 @@ title = "15.2. Matrix-Chain Multiplication"
 
 [modules."CLRSLean.Chapter_15.Section_15_4_Longest_Common_Subsequence"]
 title = "15.4. Longest Common Subsequence"
+
+[modules."CLRSLean.Chapter_15.Section_15_5_Optimal_Binary_Search_Trees"]
+title = "15.5. Optimal Binary Search Trees"
 
 [modules."CLRSLean.Chapter_16.Section_16_3_Huffman_Codes"]
 title = "16.3. Huffman Codes"
