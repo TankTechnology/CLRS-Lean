@@ -1178,6 +1178,27 @@ prefix independently of a particular mutable-array implementation.
 - Current gap: concrete dynamic-programming length-table construction and
   executable reconstruction algorithm remain future targets
 
+### Section 15.5 - Optimal binary search trees
+
+- Lean source: `CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean`
+- Status: `partial`
+- Main proved theorems:
+  - `CLRS.Chapter15.OBST.BSTPlan.start_le_end`
+  - `CLRS.Chapter15.OBST.obst_opt_le_planCost`
+  - `CLRS.Chapter15.OBST.obst_reconstructed_cost_eq`
+  - `CLRS.Chapter15.OBST.obst_reconstructed_optimal`
+  - `CLRS.Chapter15.OBST.bottomUpOBST_obstRecurrence`
+- Proof pattern: represent a BST as an inductive plan over intervals, define
+  expected search cost recursively, specify a candidate dynamic-programming
+  optimum by the CLRS lower-bound recurrence, then prove by induction that every
+  concrete plan costs at least the recurrence value.  A tight-root certificate
+  layer records a root choice that attains the recurrence equality and proves
+  that any plan reconstructed from it has exactly the optimum cost.  Finally,
+  give a computable bottom-up function that evaluates the recurrence by interval
+  length and prove that it satisfies the recurrence.
+- Current gap: concrete dynamic-programming cost/root-table construction and an
+  executable reconstruction algorithm remain future targets
+
 ## Chapter 16 - Greedy Algorithms
 
 ### Section 16.1 - Activity selection

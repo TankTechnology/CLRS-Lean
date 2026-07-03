@@ -1,20 +1,21 @@
 import CLRSLean.Chapter_15.Section_15_1_Rod_Cutting
 import CLRSLean.Chapter_15.Section_15_2_Matrix_Chain_Multiplication
 import CLRSLean.Chapter_15.Section_15_4_Longest_Common_Subsequence
+import CLRSLean.Chapter_15.Section_15_5_Optimal_Binary_Search_Trees
 
 /-!
 # Chapter 15 - Dynamic Programming
 
 Chapter 15 studies optimal substructure and overlapping subproblems.  The first
-CLRS-Lean pass covers three dynamic-programming examples at the mathematical
-optimality-interface level: rod cutting, matrix-chain multiplication, and LCS.
-For rod cutting, the chapter now records both the Bellman recurrence layer and
-a finite bottom-up table-certificate layer, plus an executable recurrence-valued
-function.  For matrix-chain multiplication and LCS, the chapter records
-table/reconstruction certificates, recurrence wrappers on certified LCS tables,
-direct recurrence consequences for matching and nonmatching LCS heads, and
-direct reconstruction optimality inequalities, while concrete mutable-array
-implementations remain future refinements.
+CLRS-Lean pass covers four dynamic-programming examples at the mathematical
+optimality-interface level: rod cutting, matrix-chain multiplication, LCS, and
+optimal binary search trees.  For rod cutting and OBST, the chapter records both
+the Bellman recurrence layer and an executable recurrence-valued function.  For
+matrix-chain multiplication and LCS, the chapter records table/reconstruction
+certificates, recurrence wrappers on certified LCS tables, direct recurrence
+consequences for matching and nonmatching LCS heads, and direct reconstruction
+optimality inequalities, while concrete mutable-array implementations remain
+future refinements.
 
 ## Sections
 
@@ -50,14 +51,19 @@ implementations remain future refinements.
   {lit}`CLRS.Chapter15.LCSTableCertificate.commonSubsequence_length_le`,
   {lit}`CLRS.Chapter15.lcsTable_reconstruction_optimal`,
   and {lit}`CLRS.Chapter15.lcsCertificate_of_table_reconstruction_length`.
+* 15.5 Optimal binary search trees: {lit}`partial`.
+  Main results: {lit}`CLRS.Chapter15.OBST.obst_opt_le_planCost`,
+  {lit}`CLRS.Chapter15.OBST.obst_reconstructed_cost_eq`,
+  {lit}`CLRS.Chapter15.OBST.obst_reconstructed_optimal`,
+  and {lit}`CLRS.Chapter15.OBST.bottomUpOBST_obstRecurrence`.
 
 ## Current Gaps
 
 The current files prove mathematical optimality interfaces for rod cutting,
-matrix-chain multiplication, and LCS.  Rod cutting now has a finite table-prefix
-correctness theorem and executable recurrence-valued function; mutable-array
-table construction, memoized recursion, executable reconstruction procedures,
-and optimal binary search trees are future section targets.
+matrix-chain multiplication, LCS, and optimal binary search trees.  Rod cutting
+and OBST now have executable recurrence-valued functions; mutable-array table
+construction, memoized recursion, and executable reconstruction procedures
+remain future refinements.
 -/
 
 namespace CLRS
