@@ -3,14 +3,12 @@ import Mathlib
 /-!
 # CLRS Section 13.1 - Red-black trees
 
-This section starts the red-black-tree development with local invariants and
-rotation facts.  It does not yet formalize the full insertion or deletion
-algorithms.  Instead it proves reusable lemmas that those algorithms will need:
-rotations preserve membership, repainting the root black preserves the no-red-red
-property, repainting the root preserves membership, and repainting the root
-preserves child black-height balance.  It also proves red-red local repair
-certificates and bundles the local red-black shape invariants into one reusable
-predicate.
+This section develops the red-black-tree model and proves the local invariants
+needed for insertion.  It starts with rotations, root recoloring, and the bundled
+local red-black shape predicate, then adds the executable Okasaki-style
+single-step balancer and the full recursive {lit}`RB-INSERT-FIXUP`.  Finally it
+proves that the executable {lit}`RBTree.insert` preserves membership, preserves
+red-black shape, and can increase black height by at most one.
 
 Main results:
 
@@ -36,34 +34,26 @@ Main results:
   black establishes the bundled local red-black shape invariant.
 - Theorem {lit}`RBTree.redBlackShape_repaint_black`: repainting the root black
   establishes the bundled local red-black shape invariant.
-- Theorems {lit}`RBTree.redBlackShape_insertFixup_leftLeft`,
-  {lit}`RBTree.redBlackShape_insertFixup_leftRight`,
-  {lit}`RBTree.redBlackShape_insertFixup_rightLeft`, and
-  {lit}`RBTree.redBlackShape_insertFixup_rightRight`: four local
-  {lit}`RB-INSERT-FIXUP` rotation/recoloring cases establish the bundled shape
-  invariant.
-- Theorems {lit}`RBTree.blackHeight_insertFixup_leftLeft`,
-  {lit}`RBTree.blackHeight_insertFixup_leftRight`,
-  {lit}`RBTree.blackHeight_insertFixup_rightLeft`, and
-  {lit}`RBTree.blackHeight_insertFixup_rightRight`: the same four local
-  insertion-fixup rewrites preserve the subtree black height needed by a parent
-  context.
-- Theorems {lit}`RBTree.insertFixupLocal_leftLeft_certificate`,
-  {lit}`RBTree.insertFixupLocal_leftRight_certificate`,
-  {lit}`RBTree.insertFixupLocal_rightLeft_certificate`, and
-  {lit}`RBTree.insertFixupLocal_rightRight_certificate`: the four branch-specific
-  facts are bundled behind one local dispatcher and certificate interface.
+- Definitions {lit}`RBTree.balanceLeft`, {lit}`RBTree.balanceRight`,
+  {lit}`RBTree.insertFixup`, and {lit}`RBTree.insert`: executable insertion.
+- Theorem {lit}`RBTree.inTree_insert_iff`: insertion preserves membership.
+- Theorem {lit}`RBTree.redBlackShape_insert`: insertion preserves red-black
+  shape.
+- Theorem {lit}`RBTree.blackHeight_insertFixup`: {lit}`insertFixup` preserves
+  the original black height.
+- Theorem {lit}`RBTree.blackHeight_insert`: insertion either keeps the black
+  height or increases it by one.
 
-Current gaps:
+Remaining gaps:
 
-- The executable CLRS {lit}`RB-INSERT`, {lit}`RB-INSERT-FIXUP`,
-  {lit}`RB-DELETE`, and {lit}`RB-DELETE-FIXUP` algorithms remain future work.
+- The executable {lit}`RB-DELETE` and {lit}`RB-DELETE-FIXUP` algorithms, and the
+  logarithmic-height theorem, remain future work.
 -/
 
 namespace CLRS
 namespace Chapter13
 
-/-! ## Colored tree model -/
+/-! **Colored tree model** -/
 
 /-- The two colors used by a red-black tree node. -/
 inductive Color where
@@ -120,7 +110,7 @@ there is no red-red edge, and child black heights are balanced at every node.
 def RedBlackShape (t : RBTree) : Prop :=
   RootBlack t ∧ NoRedRed t ∧ BalancedBlackHeight t
 
-/-! ## Rotations preserve membership -/
+/-! **Rotations preserve membership** -/
 
 /-- The local left rotation used by red-black tree balancing. -/
 def rotateLeft : RBTree → RBTree
@@ -160,7 +150,7 @@ theorem inTree_rotateRight_iff (x : Nat) (t : RBTree) :
       | node leftColor a y b =>
           simp [rotateRight, InTree, or_left_comm, or_comm]
 
-/-! ## Local red-black invariants -/
+/-! **Local red-black invariants** -/
 
 /-- Repaint the root of a nonempty tree, leaving empty trees unchanged. -/
 def repaintRoot (color : Color) : RBTree → RBTree
@@ -286,7 +276,7 @@ theorem redBlackShape_repaint_rotateRight_red_red
     ⟨haBalanced, ⟨hbBalanced, hcBalanced, hbc⟩, hab⟩
   ⟩
 
-/-! ## Local insertion-fixup cases -/
+/-! **Local insertion-fixup cases** -/
 
 /-- The left-left red-red insertion-fixup shape. -/
 def insertFixupLeftLeft : RBTree → RBTree
@@ -617,6 +607,503 @@ theorem insertFixupLocal_rightRight_certificate
           ha hb hc hd hab hbc hcd
   ⟩
 
+/-! **Red-rooted and weak red-black invariants for insertion** -/
+
+/-- A red-rooted red-black subtree has no red-red edges and balanced black heights. -/
+def RedRootedRB (t : RBTree) : Prop := NoRedRed t ∧ BalancedBlackHeight t
+
+/-- Empty tree satisfies the red-black shape invariant. -/
+theorem redBlackShape_empty : RedBlackShape empty := by
+  simp [RedBlackShape, RootBlack, NoRedRed, BalancedBlackHeight]
+
+/-- Build a black-rooted shape from two red-black shaped children. -/
+theorem redBlackShape_node_black {l y r} (hL : RedBlackShape l) (hR : RedBlackShape r)
+    (hHeight : blackHeight l = blackHeight r) :
+    RedBlackShape (node Color.black l y r) := by
+  rcases hL with ⟨_, hNoRedL, hBalL⟩
+  rcases hR with ⟨_, hNoRedR, hBalR⟩
+  simp [RedBlackShape, RootBlack, NoRedRed, BalancedBlackHeight]
+  exact ⟨⟨hNoRedL, hNoRedR⟩, ⟨hBalL, hBalR, hHeight⟩⟩
+
+/-- Build a black-rooted shape from two red-rooted children. -/
+theorem redBlackShape_node_black_of_redRootedRB {l y r}
+    (hL : RedRootedRB l) (hR : RedRootedRB r) (hHeight : blackHeight l = blackHeight r) :
+    RedBlackShape (node Color.black l y r) := by
+  simp [RedBlackShape, RootBlack, NoRedRed, BalancedBlackHeight]
+  exact ⟨⟨hL.1, hR.1⟩, ⟨hL.2, hR.2, hHeight⟩⟩
+
+/-- Build a black-rooted shape from a red-rooted left child and a shaped right child. -/
+theorem redBlackShape_node_black_of_redRootedRB_right {l y r}
+    (hL : RedBlackShape l) (hR : RedRootedRB r) (hHeight : blackHeight l = blackHeight r) :
+    RedBlackShape (node Color.black l y r) := by
+  rcases hL with ⟨_, hNoRedL, hBalL⟩
+  simp [RedBlackShape, RootBlack, NoRedRed, BalancedBlackHeight]
+  exact ⟨⟨hNoRedL, hR.1⟩, ⟨hBalL, hR.2, hHeight⟩⟩
+
+/-- Build a black-rooted shape from a shaped left child and a red-rooted right child. -/
+theorem redBlackShape_node_black_of_redRootedRB_left {l y r}
+    (hL : RedRootedRB l) (hR : RedBlackShape r) (hHeight : blackHeight l = blackHeight r) :
+    RedBlackShape (node Color.black l y r) := by
+  rcases hR with ⟨_, hNoRedR, hBalR⟩
+  simp [RedBlackShape, RootBlack, NoRedRed, BalancedBlackHeight]
+  exact ⟨⟨hL.1, hNoRedR⟩, ⟨hL.2, hBalR, hHeight⟩⟩
+
+/-- Build a red-rooted black node from two red-rooted children. -/
+theorem redRootedRB_node_black {l y r} (hL : RedRootedRB l) (hR : RedRootedRB r)
+    (hHeight : blackHeight l = blackHeight r) :
+    RedRootedRB (node Color.black l y r) := by
+  simp [RedRootedRB, NoRedRed, BalancedBlackHeight]
+  exact ⟨⟨hL.1, hR.1⟩, ⟨hL.2, hR.2, hHeight⟩⟩
+
+/-- Build a red-rooted red node from two red-black shaped children. -/
+theorem redRootedRB_node_red {l y r} (hL : RedBlackShape l) (hR : RedBlackShape r)
+    (hHeight : blackHeight l = blackHeight r) :
+    RedRootedRB (node Color.red l y r) := by
+  rcases hL with ⟨hRootL, hNoRedL, hBalL⟩
+  rcases hR with ⟨hRootR, hNoRedN, hBalR⟩
+  simp [RedRootedRB, NoRedRed, BalancedBlackHeight, RootBlack]
+  exact ⟨⟨hNoRedL, hNoRedN, hRootL, hRootR⟩, ⟨hBalL, hBalR, hHeight⟩⟩
+
+/-- Children of a red-rooted node are red-rooted. -/
+theorem redRootedRB_children {c l y r} (h : RedRootedRB (node c l y r)) :
+    RedRootedRB l ∧ RedRootedRB r := by
+  rcases h with ⟨hNoRed, hBal⟩
+  simp [RedRootedRB, NoRedRed, BalancedBlackHeight] at hNoRed hBal ⊢
+  exact ⟨⟨hNoRed.1, hBal.1⟩, ⟨hNoRed.2.1, hBal.2.1⟩⟩
+
+/--
+A weak red-black invariant: either the tree is red-rooted, or it has a single
+red-red edge at the root (left or right orientation).
+-/
+def WeakRB (t : RBTree) : Prop :=
+  RedRootedRB t ∨
+    (∃ ll x lr y r,
+      t = node Color.red (node Color.red ll x lr) y r ∧
+        RedBlackShape ll ∧ RedBlackShape lr ∧ blackHeight ll = blackHeight lr ∧
+        RedBlackShape r ∧ blackHeight ll = blackHeight r) ∨
+    (∃ l y rl x rr,
+      t = node Color.red l y (node Color.red rl x rr) ∧
+        RedBlackShape l ∧ RedBlackShape rl ∧ RedBlackShape rr ∧
+        blackHeight rl = blackHeight rr ∧ blackHeight rl = blackHeight l)
+
+/-- Constructor for the red-rooted disjunct of {name}`WeakRB`. -/
+theorem WeakRB.redRooted {t : RBTree} (h : RedRootedRB t) : WeakRB t :=
+  Or.inl h
+
+/-- Constructor for the left red-red disjunct of {name}`WeakRB`. -/
+theorem WeakRB.red_left {ll x lr y r}
+    (hLL : RedBlackShape ll) (hLR : RedBlackShape lr)
+    (hEqLL : blackHeight ll = blackHeight lr) (hRR : RedBlackShape r)
+    (hEqR : blackHeight ll = blackHeight r) :
+    WeakRB (node Color.red (node Color.red ll x lr) y r) :=
+  Or.inr (Or.inl ⟨ll, x, lr, y, r, rfl, hLL, hLR, hEqLL, hRR, hEqR⟩)
+
+/-- Constructor for the right red-red disjunct of {name}`WeakRB`. -/
+theorem WeakRB.red_right {l y rl x rr}
+    (hL : RedBlackShape l) (hRL : RedBlackShape rl) (hRR : RedBlackShape rr)
+    (hEqRL : blackHeight rl = blackHeight rr) (hEqL : blackHeight rl = blackHeight l) :
+    WeakRB (node Color.red l y (node Color.red rl x rr)) :=
+  Or.inr (Or.inr ⟨l, y, rl, x, rr, rfl, hL, hRL, hRR, hEqRL, hEqL⟩)
+
+/-- Every red-rooted tree is weakly red-black. -/
+theorem redRootedRB_weakRB {t : RBTree} (h : RedRootedRB t) : WeakRB t :=
+  WeakRB.redRooted h
+
+/-- A red-black shaped tree is red-rooted. -/
+theorem redBlackShape_redRootedRB {t : RBTree} (h : RedBlackShape t) : RedRootedRB t :=
+  ⟨h.2.1, h.2.2⟩
+
+/-- Repainting a red-rooted tree black yields a red-black shaped tree. -/
+theorem redBlackShape_repaintRoot_black_of_redRootedRB {t : RBTree} (h : RedRootedRB t) :
+    RedBlackShape (repaintRoot Color.black t) := by
+  cases t with
+  | empty => exact redBlackShape_empty
+  | node c l y r =>
+      rcases h with ⟨hNoRed, hBal⟩
+      have hChildren := redRootedRB_children (show RedRootedRB (node c l y r) by exact ⟨hNoRed, hBal⟩)
+      cases c with
+      | black =>
+          exact redBlackShape_node_black_of_redRootedRB hChildren.1 hChildren.2 hBal.2.2
+      | red =>
+          have hRoots := hNoRed.2.2 (by rfl)
+          have hRootL := hRoots.1
+          have hRootR := hRoots.2
+          have hShapeL : RedBlackShape l := ⟨hRootL, hChildren.1.1, hChildren.1.2⟩
+          have hShapeR : RedBlackShape r := ⟨hRootR, hChildren.2.1, hChildren.2.2⟩
+          exact redBlackShape_node_black_of_redRootedRB_left hChildren.1 hShapeR hBal.2.2
+
+/-- Repainting a weakly red-black tree black yields a red-black shaped tree. -/
+theorem redBlackShape_repaintRoot_black_of_weakRB {t : RBTree} (h : WeakRB t) :
+    RedBlackShape (repaintRoot Color.black t) := by
+  rcases h with h | ⟨ll, kx, lr, weakY, rr, rfl, hLL, hLR, hEqLL, hRR, hEqR⟩ | ⟨lL, weakY, rl, kx, rr, rfl, hLShape, hRL, hRR, hEqRL, hEqL⟩
+  · exact redBlackShape_repaintRoot_black_of_redRootedRB h
+  · simp [repaintRoot]
+    exact redBlackShape_node_black_of_redRootedRB_left
+      (redRootedRB_node_red hLL hLR hEqLL)
+      hRR
+      (by simp [blackHeight, hEqR])
+  · simp [repaintRoot]
+    exact redBlackShape_node_black_of_redRootedRB_right
+      hLShape
+      (redRootedRB_node_red hRL hRR hEqRL)
+      (by simp [blackHeight, hEqL])
+
+/-! **Okasaki-style single-step balance** -/
+
+/-- Rebalance after insertion on the left child. -/
+def balanceLeft (l : RBTree) (y : Nat) (r : RBTree) : RBTree :=
+  match l with
+  | node Color.red (node Color.red a w b) x c =>
+      node Color.red (node Color.black a w b) x (node Color.black c y r)
+  | node Color.red a w (node Color.red b x c) =>
+      node Color.red (node Color.black a w b) x (node Color.black c y r)
+  | _ => node Color.black l y r
+
+/-- Rebalance after insertion on the right child. -/
+def balanceRight (l : RBTree) (y : Nat) (r : RBTree) : RBTree :=
+  match r with
+  | node Color.red (node Color.red b x c) y' d =>
+      node Color.red (node Color.black l y b) x (node Color.black c y' d)
+  | node Color.red b x (node Color.red c y' d) =>
+      node Color.red (node Color.black l y b) x (node Color.black c y' d)
+  | _ => node Color.black l y r
+
+/-- {lit}`balanceLeft` preserves membership. -/
+theorem inTree_balanceLeft_iff (q : Nat) (l : RBTree) (y : Nat) (r : RBTree) :
+    InTree q (balanceLeft l y r) ↔ InTree q (node Color.black l y r) := by
+  unfold balanceLeft
+  split
+  · simp [InTree, or_assoc, or_left_comm]
+  · rename_i hneg
+    simp [InTree, or_assoc, or_left_comm]
+  · rfl
+
+/-- {lit}`balanceRight` preserves membership. -/
+theorem inTree_balanceRight_iff (q : Nat) (l : RBTree) (y : Nat) (r : RBTree) :
+    InTree q (balanceRight l y r) ↔ InTree q (node Color.black l y r) := by
+  unfold balanceRight
+  split
+  · simp [InTree, or_assoc, or_left_comm]
+  · rename_i hneg
+    simp [InTree, or_assoc, or_left_comm]
+  · rfl
+
+/-- {lit}`balanceLeft` preserves the black height of the surrounding black node. -/
+theorem blackHeight_balanceLeft {l y r} :
+    blackHeight (balanceLeft l y r) = blackHeight (node Color.black l y r) := by
+  unfold balanceLeft
+  split <;> simp [blackHeight]
+
+/-- {lit}`balanceRight` preserves the black height of the surrounding black node. -/
+theorem blackHeight_balanceRight {l y r} :
+    blackHeight (balanceRight l y r) = blackHeight (node Color.black l y r) := by
+  unfold balanceRight
+  split <;> simp [blackHeight]
+
+/-- Children of a red-rooted red node are red-black shaped. -/
+theorem redBlackShape_children_of_redRootedRB_red {ll x lr}
+    (h : RedRootedRB (node Color.red ll x lr)) :
+    RedBlackShape ll ∧ RedBlackShape lr := by
+  rcases h with ⟨hNoRed, hBal⟩
+  simp [RedBlackShape, RootBlack, NoRedRed, BalancedBlackHeight] at hNoRed hBal ⊢
+  exact ⟨⟨hNoRed.2.2.1, hNoRed.1, hBal.1⟩, ⟨hNoRed.2.2.2, hNoRed.2.1, hBal.2.1⟩⟩
+
+/-- A red node whose children are red-rooted/shaped is weakly red-black. -/
+theorem weakRB_red_node_left {l y r} (hL : RedRootedRB l) (hR : RedBlackShape r)
+    (hHeight : blackHeight l = blackHeight r) :
+    WeakRB (node Color.red l y r) := by
+  cases l with
+  | empty =>
+      exact WeakRB.redRooted (redRootedRB_node_red redBlackShape_empty hR hHeight)
+  | node c ll lx lr =>
+      cases c with
+      | black =>
+          have hShapeL : RedBlackShape (node Color.black ll lx lr) :=
+            ⟨by simp [RootBlack], hL.1, hL.2⟩
+          exact WeakRB.redRooted (redRootedRB_node_red hShapeL hR hHeight)
+      | red =>
+          have hChildren := redBlackShape_children_of_redRootedRB_red hL
+          have hNoRed := hL.1
+          have hBal := hL.2
+          simp [NoRedRed, BalancedBlackHeight] at hNoRed hBal
+          have hEqLL : blackHeight ll = blackHeight lr := hBal.2.2
+          have hEqL : blackHeight ll = blackHeight r := by
+            simp [blackHeight, hEqLL] at hHeight ⊢; exact hHeight
+          exact WeakRB.red_left hChildren.1 hChildren.2 hEqLL hR hEqL
+
+/-- Symmetric: a red node whose children are shaped/red-rooted is weakly red-black. -/
+theorem weakRB_red_node_right {l y r} (hL : RedBlackShape l) (hR : RedRootedRB r)
+    (hHeight : blackHeight l = blackHeight r) :
+    WeakRB (node Color.red l y r) := by
+  cases r with
+  | empty =>
+      exact WeakRB.redRooted (redRootedRB_node_red hL redBlackShape_empty hHeight)
+  | node c rl yr rr =>
+      cases c with
+      | black =>
+          have hShapeR : RedBlackShape (node Color.black rl yr rr) :=
+            ⟨by simp [RootBlack], hR.1, hR.2⟩
+          exact WeakRB.redRooted (redRootedRB_node_red hL hShapeR hHeight)
+      | red =>
+          have hChildren := redBlackShape_children_of_redRootedRB_red hR
+          have hNoRed := hR.1
+          have hBal := hR.2
+          simp [NoRedRed, BalancedBlackHeight] at hNoRed hBal
+          have hEqRR : blackHeight rl = blackHeight rr := hBal.2.2
+          have hEqR : blackHeight rl = blackHeight l := by
+            simp [blackHeight, hEqRR] at hHeight ⊢; exact hHeight.symm
+          exact WeakRB.red_right hL hChildren.1 hChildren.2 hEqRR hEqR
+
+/-- {lit}`balanceLeft` turns a weak left child into a red-rooted node. -/
+theorem redRootedRB_balanceLeft {l y r} (hL : WeakRB l) (hR : RedRootedRB r)
+    (hHeight : blackHeight l = blackHeight r) :
+    RedRootedRB (balanceLeft l y r) := by
+  rcases hL with hL | ⟨ll, kx, lr, weakY, rr, rfl, hLL, hLR, hEqLL, hRR, hEqR⟩ | ⟨lL, weakY, rl, kx, rr, rfl, hLShape, hRL, hRR, hEqRL, hEqL⟩
+  · unfold balanceLeft
+    split
+    · exfalso
+      simp [RedRootedRB, NoRedRed, RootBlack] at hL
+    · exfalso
+      simp [RedRootedRB, NoRedRed, RootBlack] at hL
+    · exact redRootedRB_node_black hL hR hHeight
+  · have hEqHeightRR : blackHeight rr = blackHeight r := by
+      have h1 : blackHeight (node Color.red (node Color.red ll kx lr) weakY rr) = blackHeight ll := by simp [blackHeight]
+      omega
+    simp [balanceLeft]
+    exact redRootedRB_node_red (redBlackShape_node_black hLL hLR hEqLL)
+      (redBlackShape_node_black_of_redRootedRB_right hRR hR hEqHeightRR)
+      (by simp [blackHeight, hEqR])
+  · unfold balanceLeft
+    split
+    · -- first pattern impossible because lL root black
+      rename_i heq
+      cases heq
+      simp [RedBlackShape, RootBlack] at hLShape
+    · -- second pattern matches
+      rename_i hneg heq
+      cases heq
+      have hEqHeightRR : blackHeight rr = blackHeight r := by
+        have h1 : blackHeight (node Color.red lL weakY (node Color.red rl kx rr)) = blackHeight lL := by simp [blackHeight]
+        omega
+      exact redRootedRB_node_red
+        (redBlackShape_node_black hLShape hRL (by omega))
+        (redBlackShape_node_black_of_redRootedRB_right hRR hR hEqHeightRR)
+        (by simp [blackHeight]; omega)
+    · -- default impossible because l matches second pattern
+      rename_i hneg1 hneg2
+      exfalso
+      apply hneg2 lL weakY rl kx rr; rfl
+
+/-- {lit}`balanceRight` turns a weak right child into a red-rooted node. -/
+theorem redRootedRB_balanceRight {l y r} (hL : RedRootedRB l) (hR : WeakRB r)
+    (hHeight : blackHeight l = blackHeight r) :
+    RedRootedRB (balanceRight l y r) := by
+  rcases hR with hR | ⟨ll, kx, lr, weakY, rr, rfl, hLL, hLR, hEqLL, hRR, hEqR⟩ | ⟨rL, weakY, rl, kx, rr, rfl, hRShape, hRL, hRR, hEqRL, hEqR⟩
+  · unfold balanceRight
+    split
+    · exfalso
+      simp [RedRootedRB, NoRedRed, RootBlack] at hR
+    · exfalso
+      simp [RedRootedRB, NoRedRed, RootBlack] at hR
+    · exact redRootedRB_node_black hL hR hHeight
+  · unfold balanceRight
+    split
+    · -- first pattern matches
+      rename_i heq
+      cases heq
+      have hEqHeightLL : blackHeight l = blackHeight ll := by
+        have h1 : blackHeight (node Color.red (node Color.red ll kx lr) weakY rr) = blackHeight ll := by simp [blackHeight]
+        omega
+      exact redRootedRB_node_red
+        (redBlackShape_node_black_of_redRootedRB_left hL hLL hEqHeightLL)
+        (redBlackShape_node_black hLR hRR (by omega))
+        (by simp [blackHeight]; omega)
+    · -- second pattern impossible because rr is a red node
+      rename_i hneg heq
+      cases heq
+      simp [RedBlackShape, RootBlack] at hRR
+    · -- default impossible because r matches first pattern
+      rename_i hneg1 hneg2
+      exfalso
+      apply hneg1 ll kx lr weakY rr; rfl
+  · unfold balanceRight
+    split
+    · -- first pattern impossible because rL root black
+      rename_i heq
+      cases heq
+      simp [RedBlackShape, RootBlack] at hRShape
+    · -- second pattern matches
+      rename_i hneg heq
+      cases heq
+      have hEqHeightL : blackHeight l = blackHeight rL := by
+        have h1 : blackHeight (node Color.red rL weakY (node Color.red rl kx rr)) = blackHeight rL := by simp [blackHeight]
+        omega
+      exact redRootedRB_node_red
+        (redBlackShape_node_black_of_redRootedRB_left hL hRShape hEqHeightL)
+        (redBlackShape_node_black hRL hRR hEqRL)
+        (by simp [blackHeight]; omega)
+    · -- default impossible because r matches second pattern
+      rename_i hneg1 hneg2
+      exfalso
+      apply hneg2 rL weakY rl kx rr; rfl
+
+/-! **Executable insertion** -/
+
+/-- Insertion fixup: recurses down the tree and rebalances on the way back up. -/
+def insertFixup (x : Nat) : RBTree → RBTree
+  | empty => node Color.red empty x empty
+  | node c l y r =>
+      if x < y then
+        if c = Color.black then balanceLeft (insertFixup x l) y r
+        else node Color.red (insertFixup x l) y r
+      else if x > y then
+        if c = Color.black then balanceRight l y (insertFixup x r)
+        else node Color.red l y (insertFixup x r)
+      else node c l y r
+
+/-- Insert a key into a red-black tree and repaint the root black. -/
+def insert (x : Nat) (t : RBTree) : RBTree :=
+  repaintRoot Color.black (insertFixup x t)
+
+/-- {lit}`insertFixup` preserves membership. -/
+theorem inTree_insertFixup_iff (x y : Nat) (t : RBTree) :
+    InTree y (insertFixup x t) ↔ y = x ∨ InTree y t := by
+  induction t with
+  | empty => simp [insertFixup, InTree]
+  | node c l z r ihl ihr =>
+      simp [insertFixup]
+      by_cases h1 : x < z
+      · simp [h1]
+        by_cases hc : c = Color.black
+        · simp [hc, inTree_balanceLeft_iff]
+          simp [InTree, ihl]
+          tauto
+        · have hc' : c = Color.red := by cases c <;> tauto
+          simp [hc', InTree, ihl]
+          tauto
+      · by_cases h2 : x > z
+        · simp [h1, h2]
+          by_cases hc : c = Color.black
+          · simp [hc, inTree_balanceRight_iff]
+            simp [InTree, ihr]
+            tauto
+          · have hc' : c = Color.red := by cases c <;> tauto
+            simp [hc', InTree, ihr]
+            tauto
+        · have h3 : x = z := by omega
+          simp [h3, InTree]
+          try tauto
+
+/-- {lit}`insert` preserves membership. -/
+theorem inTree_insert_iff (x y : Nat) (t : RBTree) :
+    InTree y (insert x t) ↔ y = x ∨ InTree y t := by
+  simp [insert, inTree_insertFixup_iff, inTree_repaintRoot_iff]
+
+/-- The central recursion invariant for {lit}`insertFixup`. -/
+theorem insertFixup_invariant {x : Nat} {t : RBTree} (h : RedRootedRB t) :
+    WeakRB (insertFixup x t) ∧
+      blackHeight (insertFixup x t) = blackHeight t ∧
+      (RootBlack t → RedRootedRB (insertFixup x t)) := by
+  induction t with
+  | empty =>
+      exact ⟨redRootedRB_weakRB (by simp [insertFixup, RedRootedRB, NoRedRed, BalancedBlackHeight, RootBlack]),
+        by simp [insertFixup, blackHeight],
+        by simp [RootBlack, insertFixup, RedRootedRB, NoRedRed, BalancedBlackHeight]⟩
+  | node c l y r ihl ihr =>
+      have hNoRed := h.1
+      have hBalanced := h.2
+      rcases hNoRed with ⟨hNoRedL, hNoRedR, hColor⟩
+      rcases hBalanced with ⟨hBalL, hBalR, hEqHeight⟩
+      have hRootedL : RedRootedRB l := ⟨hNoRedL, hBalL⟩
+      have hRootedR : RedRootedRB r := ⟨hNoRedR, hBalR⟩
+      have ihL := ihl hRootedL
+      have ihR := ihr hRootedR
+      simp [insertFixup]
+      by_cases h1 : x < y
+      · simp [h1]
+        by_cases hc : c = Color.black
+        · simp [hc]
+          have hRooted : RedRootedRB (balanceLeft (insertFixup x l) y r) :=
+            redRootedRB_balanceLeft ihL.1 hRootedR (by rw [ihL.2.1, hEqHeight])
+          exact ⟨redRootedRB_weakRB hRooted,
+            by rw [blackHeight_balanceLeft]; simp [blackHeight]; try omega,
+            fun _ => hRooted⟩
+        · have hc' : c = Color.red := by cases c <;> tauto
+          simp [hc']
+          have hRootL : RootBlack l := (hColor hc').1
+          have hRootedL' := ihL.2.2 hRootL
+          have hRootR : RootBlack r := (hColor hc').2
+          have hShapeR : RedBlackShape r := ⟨hRootR, hNoRedR, hBalR⟩
+          have hWeak := weakRB_red_node_left (y := y) hRootedL' hShapeR (by rw [ihL.2.1, hEqHeight])
+          exact ⟨hWeak,
+            by simp [blackHeight]; try omega,
+            by simp [RootBlack]⟩
+      · by_cases h2 : x > y
+        · simp [h1, h2]
+          by_cases hc : c = Color.black
+          · simp [hc]
+            have hRooted : RedRootedRB (balanceRight l y (insertFixup x r)) :=
+              redRootedRB_balanceRight hRootedL ihR.1 (by rw [ihR.2.1, hEqHeight])
+            exact ⟨redRootedRB_weakRB hRooted,
+              by rw [blackHeight_balanceRight]; simp [blackHeight]; try omega,
+              fun _ => hRooted⟩
+          · have hc' : c = Color.red := by cases c <;> tauto
+            simp [hc']
+            have hRootL : RootBlack l := (hColor hc').1
+            have hRootR : RootBlack r := (hColor hc').2
+            have hRootedR' := ihR.2.2 hRootR
+            have hShapeL : RedBlackShape l := ⟨hRootL, hNoRedL, hBalL⟩
+            have hWeak := weakRB_red_node_right (y := y) hShapeL hRootedR' (by rw [ihR.2.1, hEqHeight])
+            exact ⟨hWeak,
+              by simp [blackHeight]; try omega,
+              by simp [RootBlack]⟩
+        · have h3 : x = y := by omega
+          rw [if_neg h1, if_neg h2]
+          exact ⟨redRootedRB_weakRB h, by simp [blackHeight], fun _ => h⟩
+
+/-- Insertion preserves red-black shape. -/
+theorem redBlackShape_insert {x : Nat} {t : RBTree} (h : RedBlackShape t) :
+    RedBlackShape (insert x t) := by
+  have hInv := @insertFixup_invariant x t (redBlackShape_redRootedRB h)
+  exact redBlackShape_repaintRoot_black_of_weakRB hInv.1
+
+/-- {lit}`insertFixup` preserves the original black height. -/
+theorem blackHeight_insertFixup {x : Nat} {t : RBTree} (h : RedBlackShape t) :
+    blackHeight (insertFixup x t) = blackHeight t := by
+  have hInv := @insertFixup_invariant x t (redBlackShape_redRootedRB h)
+  exact hInv.2.1
+
+/-- Repainting an already-black root does not change black height. -/
+theorem blackHeight_repaintRoot_black_same {t : RBTree} (h : RootBlack t) :
+    blackHeight (repaintRoot Color.black t) = blackHeight t := by
+  cases t with
+  | empty => simp [repaintRoot, blackHeight]
+  | node c l y r =>
+      simp [RootBlack] at h
+      simp [repaintRoot, blackHeight, h]
+
+/-- Repainting a red root increases black height by one. -/
+theorem blackHeight_repaintRoot_black_increases {t : RBTree} (h : ¬ RootBlack t) :
+    blackHeight (repaintRoot Color.black t) = blackHeight t + 1 := by
+  cases t with
+  | empty => simp [RootBlack] at h
+  | node c l y r =>
+      simp [RootBlack] at h
+      have hc : c = Color.red := by cases c <;> tauto
+      simp [repaintRoot, blackHeight, hc]
+
+/-- Insertion either keeps the black height or increases it by one. -/
+theorem blackHeight_insert {x : Nat} {t : RBTree} (h : RedBlackShape t) :
+    blackHeight (insert x t) = blackHeight t ∨ blackHeight (insert x t) = blackHeight t + 1 := by
+  have hInv := @insertFixup_invariant x t (redBlackShape_redRootedRB h)
+  have hHeight : blackHeight (insertFixup x t) = blackHeight t := hInv.2.1
+  by_cases hRoot : RootBlack (insertFixup x t)
+  · left
+    rw [insert]
+    rw [blackHeight_repaintRoot_black_same hRoot, hHeight]
+  · right
+    rw [insert]
+    rw [blackHeight_repaintRoot_black_increases hRoot, hHeight]
 end RBTree
 
 end Chapter13
