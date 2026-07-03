@@ -72,8 +72,18 @@ Update:
 - the relevant `docs/chapters/chapter-XX.md`;
 - the relevant `CLRSLean/Chapter_XX.lean` page;
 - `CLRSLean/Status.lean` if the status changed;
-- `literate.toml` if the section should appear in the deployed navigation.
+- **`literate.toml` (REQUIRED for new or renamed sections)**:
+  add the module to `[order_children]` and add a `[modules."..."]` title
+  entry.  If you skip this, the section will still build but the deployed
+  sidebar will show the parent chapter title instead of the section title.
 
 Every section should say whether it is `proved`, `partial`, `statement`,
 `blocked-design`, `blocked-mathlib`, `deferred-implementation`,
 `future-work`, or `out-of-scope`.
+
+## 8. Verify the deployed navigation
+
+After pushing to `main`, wait for the `Build and deploy Verso site` action to
+finish, then open the new section on the live site and confirm that the left
+sidebar shows the correct section title (e.g. `15.5. Optimal Binary Search
+Trees`), not the parent chapter title.

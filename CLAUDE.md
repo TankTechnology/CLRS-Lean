@@ -158,9 +158,14 @@ end CLRS
 1. Create the `.lean` file under `CLRSLean/Chapter_NN/`
 2. Follow the skeleton above
 3. Add `import CLRSLean.Chapter_NN.Section_NN_N_Descriptive_Name` to `CLRSLean.lean`
-4. Add the module to `literate.toml`:
+4. **REQUIRED — do not skip**: Add the module to `literate.toml`:
    - Insert the module path in `[order_children]` in chapter order
-   - Add a `[modules."CLRSLean.Chapter_NN....."]` block with `title = "..."`
+   - Add a `[modules."CLRSLean.Chapter_NN....."]` block with `title = "NN.N. Human Title"`
+
+   If you skip this step, Verso will still render the page, but the site
+   navigation will show the parent chapter title instead of the section title,
+   and the section will be missing from the left sidebar order.  This is
+   considered a deployment bug.
 
 ## How the Verso build works
 
