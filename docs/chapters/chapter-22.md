@@ -57,9 +57,26 @@ invariants are proved, and `dfs_all_black` states that every vertex of the graph
 is black after a complete `dfs`.  The parenthesis theorem, white-path theorem,
 and edge classification are still to come.
 
+## Section 22.4 - Topological Sort
+
+- Lean source: `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean`
+- Status: `partial`
+- Main declarations:
+  `CLRS.Chapter22.Graph.IsDAG`,
+  `CLRS.Chapter22.Graph.indegree`,
+  `CLRS.Chapter22.Graph.IsTopologicalOrder`,
+  `CLRS.Chapter22.Graph.topologicalSort`, and
+  `CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`
+
+Kahn's algorithm is defined on the Section 22.1 graph model.  The main theorem
+`topologicalSort_isTopologicalOrder` proves that `topologicalSort` returns a
+valid topological order whenever the input graph is a DAG.  The implementation
+uses a fuelled recursive loop and the axiom of choice to pick a current source
+vertex.
+
 Open tasks:
 
+- DFS-based topological sort (to match the CLRS presentation more closely);
 - parenthesis theorem and white-path theorem;
 - DFS edge classification (tree/back/forward/cross edges);
-- Section 22.4 topological sort;
 - Section 22.5 strongly connected components (Kosaraju).

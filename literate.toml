@@ -126,6 +126,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
   "CLRSLean.Chapter_22.Section_22_2_BFS",
   "CLRSLean.Chapter_22.Section_22_3_DFS",
+  "CLRSLean.Chapter_22.Section_22_4_Topological_Sort",
 ]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
@@ -206,6 +207,9 @@ title = "22.2. Breadth-First Search"
 
 [modules."CLRSLean.Chapter_22.Section_22_3_DFS"]
 title = "22.3. Depth-First Search"
+
+[modules."CLRSLean.Chapter_22.Section_22_4_Topological_Sort"]
+title = "22.4. Topological Sort"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"

@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_2_BFS
 import CLRSLean.Chapter_22.Section_22_3_DFS
+import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
 
 /-! # Chapter 22 - Elementary Graph Algorithms
 
@@ -48,18 +49,26 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.dfsVisit_no_new_gray`,
   and {lit}`CLRS.Chapter22.Graph.dfs_all_black`.
 
+* 22.4 Topological sort.
+  Main declarations:
+  {lit}`CLRS.Chapter22.Graph.IsDAG`,
+  {lit}`CLRS.Chapter22.Graph.indegree`,
+  {lit}`CLRS.Chapter22.Graph.IsTopologicalOrder`,
+  {lit}`CLRS.Chapter22.Graph.topologicalSort`,
+  and {lit}`CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`.
+
 ## Current Shape
 
 Section 22.1 establishes the public graph vocabulary.  Section 22.2 proves that
 BFS only reports reachable vertices.  Section 22.3 gives a functional DFS model
-and proves that every vertex of the graph is black after {lit}`dfs`; the parenthesis
-and white-path theorems, plus edge classification, are still open.
-Topological sort and SCC are next.
+and proves that every vertex of the graph is black after {lit}`dfs`.  Section 22.4
+implements Kahn's algorithm and proves that it returns a valid topological order
+for every DAG.  The parenthesis and white-path theorems, plus edge
+classification and SCC, are still open.
 
 ## Deferred Work
 
 * Section 22.3: parenthesis theorem, white-path theorem, and edge classification.
-* Section 22.4 Topological sort.
 * Section 22.5 Strongly connected components (Kosaraju).
 
 These are the next sprints in the phase-1 plan for CLRS chapters 1–26.
