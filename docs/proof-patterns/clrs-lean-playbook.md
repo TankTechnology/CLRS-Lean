@@ -255,7 +255,7 @@ lake build CLRSLean
 **已完成（Kosaraju 结构层）：**
 
 - 22.5 强连通分量：实现 `transpose`、`StronglyConnected`、`IsSCC`、`IsSCCPartition`、
-  `dfsFromListCollect`、`kosarajuComponents`；证明 Kosaraju 返回的每个分量都是顶点子集、
+  `dfsFromListCollect`、`kosarajuComponents`；证明 Kosaraju 返回的每个分量都是非空顶点子集、
   分量两两不交、所有顶点都被覆盖，即 `kosarajuComponents_isSCCPartition` 的结构部分。
   强连通性与极大性核心已归约为 `scc_finish_order` 形式的 DFS 完成时间引理，当前用
   `sorry` 占位。
@@ -344,7 +344,7 @@ lake build CLRSLean
 - **2026-07-01**：细化下一步计划为 7 个 Sprint，优先启动 Chapter 22 图论基础。
 - **2026-07-01**：完成 Chapter 22 的 22.1–22.3，补充函数式图搜索的燃料/foldl 不变式经验，并更新 Sprint 1 进度。
 - **2026-07-01**：完成 Section 22.4 Kahn 拓扑排序，并记录“有限 DAG 的邻接关系良基 → 源点存在”这一证明路径。
-- **2026-07-01**：完成 Section 22.5 Kosaraju SCC 算法及结构划分性质（子集、不交、覆盖），将强连通/极大核心归约为 DFS 完成时间引理并以 `sorry` 占位。
+- **2026-07-01**：完成 Section 22.5 Kosaraju SCC 算法及结构划分性质（子集、不交、覆盖、非空），将强连通/极大核心归约为 DFS 完成时间引理并以 `sorry` 占位。
 
 ---
 

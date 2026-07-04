@@ -135,12 +135,14 @@ noncomputable def kosarajuComponents (G : Graph V) : List (Finset V) :=
 
 /-- Invariant maintained by {name}`Graph.dfsFromListCollect`:
 * accumulated components are pairwise disjoint subsets of vertices;
+* every component is nonempty;
 * every vertex placed in a component is black in the current state;
 * every black vertex of `G` already belongs to some accumulated component;
 * the current state has no gray vertices. -/
 structure CollectInvariant (G : Graph V) (s : DFSState V) (acc : List (Finset V)) : Prop where
   pairwise : acc.Pairwise (fun C D => Disjoint C D)
   subset : ∀ C ∈ acc, (C : Set V) ⊆ G.vertices
+  nonempty : ∀ C ∈ acc, C.Nonempty
   black : ∀ C ∈ acc, ∀ v ∈ C, s.color v = Color.black
   cover : ∀ v ∈ G.vertices, s.color v = Color.black → ∃ C ∈ acc, v ∈ C
   no_gray : ∀ v, s.color v = Color.white ∨ s.color v = Color.black
@@ -153,13 +155,23 @@ theorem collectInvariant_init (G : Graph V) :
   · simp
   · simp
   · simp
+  · simp
   · simp [dfsInit]
   · simp [dfsInit]
+
+/-- A DFS visit from a white vertex with positive fuel turns that vertex black. -/
+theorem dfsVisit_blackens_u_of_pos {G : Graph V} {fuel : Nat} {u : V} {s : DFSState V}
+    (hfuel : 0 < fuel) (hwhite : s.color u = Color.white) :
+    (dfsVisit G fuel u s).color u = Color.black := by
+  rcases fuel with _ | n
+  · omega
+  · exact dfsVisit_blackens_u G hwhite
 
 /-- One step of {name}`Graph.dfsFromListCollect` preserves the collecting
 invariant. -/
 theorem collectInvariant_step (G : Graph V) {fuel : Nat}
-    (hfuel : 0 < fuel) {u : V} (us : List V) {s : DFSState V} {acc : List (Finset V)}
+    (hfuel : 0 < fuel) {u : V} (hu : u ∈ G.vertices) (us : List V)
+    {s : DFSState V} {acc : List (Finset V)} (hwhite : s.color u = Color.white)
     (hinv : CollectInvariant G s acc) :
     let s' := dfsVisit G fuel u s
     let comp := G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
@@ -194,6 +206,19 @@ theorem collectInvariant_step (G : Graph V) {fuel : Nat}
     · have hCacc : C ∈ acc := by
         simpa [hC'] using hC
       exact hinv.subset C hCacc
+  · -- nonempty
+    intro C hC
+    by_cases hC' : C = comp
+    · subst hC'
+      use u
+      have : u ∈ comp := by
+        rw [show comp = G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black) by rfl]
+        simp [Finset.mem_filter]
+        exact ⟨hu, hwhite, dfsVisit_blackens_u_of_pos hfuel hwhite⟩
+      simpa using this
+    · have hCacc : C ∈ acc := by
+        simpa [hC'] using hC
+      exact hinv.nonempty C hCacc
   · -- black in s'
     intro C hC v hv
     by_cases hC' : C = comp
@@ -224,7 +249,8 @@ theorem collectInvariant_step (G : Graph V) {fuel : Nat}
 
 /-- The collecting invariant is preserved through an entire vertex list. -/
 theorem dfsFromListCollect_invariant (G : Graph V) {fuel : Nat}
-    (hfuel : 0 < fuel) (vs : List V) (s0 : DFSState V) (acc : List (Finset V))
+    (hfuel : 0 < fuel) {vs : List V} (hvs : ∀ v ∈ vs, v ∈ G.vertices)
+    (s0 : DFSState V) (acc : List (Finset V))
     (hinv : CollectInvariant G s0 acc) :
     CollectInvariant G (dfsFromListCollect G fuel vs s0 acc).2
       (dfsFromListCollect G fuel vs s0 acc).1 := by
@@ -233,8 +259,9 @@ theorem dfsFromListCollect_invariant (G : Graph V) {fuel : Nat}
   | cons u us ih =>
       simp [dfsFromListCollect]
       split_ifs with hwhite
-      · exact ih _ _ (collectInvariant_step G hfuel us hinv)
-      · exact ih _ _ hinv
+      · exact ih (fun v hv => hvs v (by simp [hv])) _ _
+          (collectInvariant_step G hfuel (hvs u (by simp)) us hwhite hinv)
+      · exact ih (fun v hv => hvs v (by simp [hv])) _ _ hinv
 
 
 /-- The final state of {name}`Graph.dfsFromListCollect` is exactly the state of
@@ -264,13 +291,22 @@ theorem dfsFromListCollect_all_black {G : Graph V} {fuel : Nat}
 
 /-! ## Kosaraju produces a partition of the vertex set -/
 
+theorem kosaraju_order_subset_vertices (G : Graph V) :
+    let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
+    ∀ v ∈ order, v ∈ G.transpose.vertices := by
+  intro order v hv
+  have hperm : order.Perm G.vertices.toList := List.mergeSort_perm _ _
+  have : v ∈ G.vertices.toList := hperm.mem_iff.mp hv
+  simpa [transpose_vertices]
+
 theorem kosarajuComponents_subset (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) : (C : Set V) ⊆ G.vertices := by
   simp only [kosarajuComponents] at hC
   let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
   have hinv := collectInvariant_init G.transpose
   have hfuel : 0 < G.transpose.vertices.card + 1 := by omega
-  have hinv' := dfsFromListCollect_invariant G.transpose hfuel order dfsInit [] hinv
+  have hinv' := dfsFromListCollect_invariant G.transpose hfuel
+    (kosaraju_order_subset_vertices G) dfsInit [] hinv
   exact hinv'.subset C hC
 
 theorem kosarajuComponents_pairwise_disjoint (G : Graph V) :
@@ -279,7 +315,8 @@ theorem kosarajuComponents_pairwise_disjoint (G : Graph V) :
   let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
   have hinv := collectInvariant_init G.transpose
   have hfuel : 0 < G.transpose.vertices.card + 1 := by omega
-  have hinv' := dfsFromListCollect_invariant G.transpose hfuel order dfsInit [] hinv
+  have hinv' := dfsFromListCollect_invariant G.transpose hfuel
+    (kosaraju_order_subset_vertices G) dfsInit [] hinv
   exact hinv'.pairwise
 
 theorem kosarajuComponents_cover (G : Graph V) :
@@ -294,7 +331,8 @@ theorem kosarajuComponents_cover (G : Graph V) :
     exact hperm.mem_iff.mpr (Finset.mem_toList.mpr hx')
   have hinv := collectInvariant_init G.transpose
   have hfuel : 0 < G.transpose.vertices.card + 1 := by omega
-  have hinv' := dfsFromListCollect_invariant G.transpose hfuel order dfsInit [] hinv
+  have hinv' := dfsFromListCollect_invariant G.transpose hfuel
+    (kosaraju_order_subset_vertices G) dfsInit [] hinv
   have hinit : ∀ (v : V), dfsInit.color v = Color.white ∨ dfsInit.color v = Color.black := by
     intro v; apply Or.inl; rfl
   have hblack := dfsFromListCollect_all_black (G := G.transpose) (acc := []) hinit hfuel hmem
@@ -302,6 +340,17 @@ theorem kosarajuComponents_cover (G : Graph V) :
   rcases hcover with ⟨C, hC, hvC⟩
   use C
   exact ⟨hC, hvC⟩
+
+/-- Every component returned by {name}`Graph.kosarajuComponents` is nonempty. -/
+theorem kosarajuComponents_nonempty (G : Graph V) (C : Finset V)
+    (hC : C ∈ G.kosarajuComponents) : C.Nonempty := by
+  simp only [kosarajuComponents] at hC
+  let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
+  have hinv := collectInvariant_init G.transpose
+  have hfuel : 0 < G.transpose.vertices.card + 1 := by omega
+  have hinv' := dfsFromListCollect_invariant G.transpose hfuel
+    (kosaraju_order_subset_vertices G) dfsInit [] hinv
+  exact hinv'.nonempty C hC
 
 /-- In a pairwise-disjoint list of finsets, two distinct members cannot share a
 vertex. -/
@@ -346,7 +395,7 @@ theorem kosarajuComponents_eq_sccs (G : Graph V) (C : Finset V)
     G.IsSCC (C : Set V) := by
   refine ⟨?_, ?_, ?_, ?_⟩
   · -- non-empty
-    sorry
+    exact kosarajuComponents_nonempty G C hC
   · -- subset of vertices
     exact kosarajuComponents_subset G C hC
   · -- pairwise strongly connected
