@@ -9,8 +9,10 @@
 
 **第一阶段：完成 CLRS 前 26 章的主要证明。**
 
-已经动工的章节：2–20、23。  
-尚未开始的章节：21（并查集）、22（基础图算法）、24（单源最短路）、25（全源最短路）、26（最大流）。
+已经动工的章节：2–20、22、23。  
+尚未开始的章节：21（并查集）、24（单源最短路）、25（全源最短路）、26（最大流）。
+Chapter 22 目前部分完成：22.1 图模型、22.2 BFS 可达性正确性、22.3 DFS 基本颜色不变量已完成；
+22.3 的括号定理/白路径定理、22.4 拓扑排序、22.5 强连通分量仍待补充。
 
 对于尚未开始的章节，采用“规范层 → 实现层 → 证明层”的三层打法：
 
@@ -118,6 +120,22 @@ apply hneg a b c x y; rfl
 2. 证 `potential` 非负、 telescoping。
 3. 对每个操作证 `actual cost + Δpotential ≤ amortized cost`。
 
+### 4.6 函数式图搜索（BFS / DFS）
+
+Chapter 22 的 BFS/DFS 采用**燃料（fuel）+ `Finset.toList`**的函数式模型：
+
+- 用 `fuel : Nat` 给递归搜索定界，避免在非结构化的图上依赖 Lean 的递归判定。
+- `Finset.toList` 使遍历顺序非计算性（`noncomputable`），但 Lean 的归纳证明仍然适用。
+- 状态（颜色、发现/完成时间、父节点）用 record + 函数表示；对只改一个字段的更新，给每个字段写 `@[simp]` 引理，例如：
+  - `setColor_color`、`setDiscovery_color`、`setFinish_color`、`setParent_color`。
+- `dfsVisit` 处理邻接表时用 `List.foldl` 顺序访问邻居。证明 foldl 不变式时：
+  1. 把 `foldl` 的 step 函数用 `let step := ...` 命名，方便重写。
+  2. 对列表用 `induction vs generalizing s0`，归纳假设已经是“对任意 accumulator 成立”。
+  3. 用 `List.foldl` 的定义把 `v :: vs` 的情况写成 `foldl step (step s0 v) vs`，再用 `by_cases` 处理 `step` 里的 `if color v = white`。
+- DFS 颜色不变式（“不引入新的灰色顶点”）的经验：
+  - 对固定顶点 `w` 做燃料归纳，而不是把 `w` 也泛化；这样外层 IH 直接关于 `w`，在 foldl 子引理中不需要再次实例化 `w`。
+  - 先证单步 `dfsVisit` 的不变式，再证 `dfsFromList` 保持“无灰色”和“所有顶点变黑”。
+
 ---
 
 ## 5. 文件与模块约定
@@ -214,16 +232,27 @@ lake build CLRSLean
 
 这是所有后续图算法的公共依赖，必须先做。
 
-- 定义有限图模型：顶点集 `V`、边集 `E`、有向/无向。
-- 定义 walk、path、cycle、reachable、connected component。
-- 实现 BFS / DFS（函数式队列/栈或 set-based）。
-- 证明：
-  - BFS 访问到的顶点恰好是从源点可达的顶点；
-  - DFS 可以完成拓扑排序；
-  - Kosaraju/Tarjan 风格 SCC 分解（可先实现 Kosaraju，因它更直接）。
-- 交付：`CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean`、
-  `Section_22_2_BFS.lean`、`Section_22_3_DFS.lean`、
-  `Section_22_4_Topological_Sort.lean`、`Section_22_5_Strongly_Connected_Components.lean`。
+**已完成：**
+
+- 22.1 有限图模型：顶点集 `V`、邻接函数、walk/path/cycle、reachable、connected component、无向图对称性。
+- 22.2 BFS：函数式队列 BFS，证明 `bfs_sound`（访问到的顶点均从源点可达）。
+- 22.3 DFS：函数式 fuel 模型，白/灰/黑颜色、发现/完成时间、父指针；证明基本颜色不变量
+  `dfsVisit_blackens_u`、`dfsVisit_preserves_black`、`dfsVisit_no_new_gray`，以及全局结论
+  `dfs_all_black`（`dfs` 后所有顶点为黑色）。
+
+**仍待完成：**
+
+- 22.3 括号定理、白路径定理、边分类（tree/back/forward/cross）。
+- 22.4 拓扑排序。
+- 22.5 强连通分量（Kosaraju / Tarjan 风格）。
+
+**交付文件（状态）：**
+
+- `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` ✅
+- `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（partial）
+- `CLRSLean/Chapter_22/Section_22_3_DFS.lean` ✅（partial）
+- `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` ⏳
+- `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` ⏳
 
 ### Sprint 2：并查集（Chapter 21）
 
@@ -299,6 +328,7 @@ lake build CLRSLean
 
 - **2026-07-01**：创建本文档，整合 Chapter 13 RB-INSERT 完成后的证明经验和前 26 章计划。
 - **2026-07-01**：细化下一步计划为 7 个 Sprint，优先启动 Chapter 22 图论基础。
+- **2026-07-01**：完成 Chapter 22 的 22.1–22.3，补充函数式图搜索的燃料/foldl 不变式经验，并更新 Sprint 1 进度。
 
 ---
 
