@@ -124,6 +124,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_22" = [
   "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
+  "CLRSLean.Chapter_22.Section_22_2_BFS",
 ]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
@@ -198,6 +199,9 @@ title = "Chapter 22. Elementary Graph Algorithms"
 
 [modules."CLRSLean.Chapter_22.Section_22_1_Representing_Graphs"]
 title = "22.1. Representing Graphs"
+
+[modules."CLRSLean.Chapter_22.Section_22_2_BFS"]
+title = "22.2. Breadth-First Search"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"
