@@ -208,21 +208,97 @@ lake build CLRSLean
 
 ## 8. 下一步计划（前 26 章）
 
-| 优先级 | 章节 | 核心目标 |
-|---|---|---|
-| 高 | 21 | 并查集：集合划分、Find/Union 规范、Kruskal 所需的 oracle 接口 |
-| 高 | 22 | 基础图算法：BFS/DFS 可达性、拓扑序、强连通分量 |
-| 高 | 23 | MST：Prim 算法、自动路径/割交换边提取 |
-| 中 | 24 | 单源最短路：Dijkstra、Bellman-Ford 正确性 |
-| 中 | 25 | 全源最短路：Floyd-Warshall 正确性 |
-| 中 | 26 | 最大流：Ford-Fulkerson/Edmonds-Karp，最大流最小割定理 |
-| 低 | 1–20 打磨 | 只处理明确的 bug 或接口缺口，不主动重构 |
+阶段目标是**让第 1–26 章都有完整的主要证明**。已经动工但仍有中心缺口的章节放在最后集中收尾；优先补全完全空白的图算法章节，因为它们互相依赖。
+
+### Sprint 1：图论基础（Chapter 22）
+
+这是所有后续图算法的公共依赖，必须先做。
+
+- 定义有限图模型：顶点集 `V`、边集 `E`、有向/无向。
+- 定义 walk、path、cycle、reachable、connected component。
+- 实现 BFS / DFS（函数式队列/栈或 set-based）。
+- 证明：
+  - BFS 访问到的顶点恰好是从源点可达的顶点；
+  - DFS 可以完成拓扑排序；
+  - Kosaraju/Tarjan 风格 SCC 分解（可先实现 Kosaraju，因它更直接）。
+- 交付：`CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean`、
+  `Section_22_2_BFS.lean`、`Section_22_3_DFS.lean`、
+  `Section_22_4_Topological_Sort.lean`、`Section_22_5_Strongly_Connected_Components.lean`。
+
+### Sprint 2：并查集（Chapter 21）
+
+为 MST 的 Kruskal 提供具体实现，替换当前的 `ComponentOracle` 接口。
+
+- 定义集合划分 `Partition` 和等价关系。
+- 实现 `makeSet` / `find` / `union`。
+- 证明：
+  - `find` 返回元素所在集合的代表元；
+  - `union` 合并两个集合；
+  - 按秩合并 + 路径压缩的规范（可先不做复杂摊还，只证功能正确性）。
+- 可选：把 Chapter 23 的 Kruskal 从 `ComponentOracle` 细化到并查集实现。
+
+### Sprint 3：最小生成树收尾（Chapter 23）
+
+当前 MST 已有 cut property 和 Kruskal 框架，缺 Prim 和自动交换边提取。
+
+- 证明具体的路径/割交换边引理（path/cycle boundary-edge extraction）。
+- 实现 Prim 算法（函数式优先队列版本）。
+- 证明 Prim 返回 MST。
+- 更新 `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`。
+
+### Sprint 4：单源最短路（Chapter 24）
+
+- 定义带权图、最短路径权重、松弛操作 `relax`。
+- 实现 Dijkstra（优先队列 + 非负权假设）。
+- 实现 Bellman-Ford，包括负环检测。
+- 证明：
+  - Dijkstra 的最优性（三角不等式 + 已确定集合不变式）；
+  - Bellman-Ford 在无负环时正确；
+  - Bellman-Ford 可检测负环。
+
+### Sprint 5：全源最短路（Chapter 25）
+
+- 实现 Floyd-Warshall（矩阵/函数式 `n × n` 数组）。
+- 证明：
+  - 动态规划递推正确；
+  - 最终矩阵给出所有顶点对最短路径权重。
+- 可选：矩阵乘法快速幂路径计数 / 传递闭包。
+
+### Sprint 6：最大流（Chapter 26）
+
+- 定义流网络、容量约束、守恒条件、流值。
+- 定义残差网络 `residualNetwork` 和增广路径。
+- 实现 Ford-Fulkerson / Edmonds-Karp。
+- 证明：
+  - 增广保持合法流；
+  - 最大流最小割定理；
+  - Edmonds-Karp 终止（可选：多项式轮数）。
+
+### Sprint 7：已有章节的中心缺口收尾
+
+按“补完主要证明即可”的标准处理：
+
+| 章节 | 收尾目标 |
+|---|---|
+| 4 | Master Theorem case-3 的 comparison-scale 包装 |
+| 11.2 | 从 finite-uniform bucket 模型升级到 random-key/hash-function 期望模型（如时间不够可先标记 `blocked-design`） |
+| 12.1 | 若课本“主要证明”接受函数式 BST，则保持现状；否则加 parent-pointer/transplant 层 |
+| 13.1 | `RB-DELETE` / `RB-DELETE-FIXUP`、对数高度定理 |
+| 14.1 | 把 size-preserving 旋转接到红黑树平衡上 |
+| 15 | 可执行的 matrix-chain / LCS 表格重建 |
+| 17 | 可选：array-level dynamic-table 摊还模型 |
+| 18–20 | 若时间不够，保持当前数学模型并明确标记为 `partial`；它们不是前 26 章的主要阻塞项 |
+
+### 当前推荐立即启动的 Sprint
+
+**Sprint 1（Chapter 22）**。它为 21、23、24、25、26 提供图论公共语言，做完后其余 sprint 可以并行或按顺序快速推进。
 
 ---
 
 ## 9. 更新记录
 
 - **2026-07-01**：创建本文档，整合 Chapter 13 RB-INSERT 完成后的证明经验和前 26 章计划。
+- **2026-07-01**：细化下一步计划为 7 个 Sprint，优先启动 Chapter 22 图论基础。
 
 ---
 
