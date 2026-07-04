@@ -105,11 +105,11 @@ which areas should not yet be counted as proof-complete.
   successor/predecessor existence wrappers, search-after-insert/delete wrappers,
   deletion wrappers, and successor/predecessor-after-delete wrappers; parent
   pointers, transplant, and mutation remain.
-* Chapter 13, Section 13.1: local red-black rotation/recoloring invariants and
-  the four local insertion-fixup membership, black-height, and shape
-  certificates are proved, with a unified local dispatcher certificate
-  interface; composing them into full insertion and deletion fixup algorithms
-  remains.
+* Chapter 13, Section 13.1: local red-black rotation/recoloring invariants,
+  the four local insertion-fixup membership/black-height/shape certificates,
+  and the executable `RBTree.insert` with its membership, red-black shape, and
+  black-height theorems are proved; proving {lit}`RB-DELETE`, {lit}`RB-DELETE-FIXUP`, and
+  the logarithmic-height theorem remains.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
@@ -208,9 +208,8 @@ which areas should not yet be counted as proof-complete.
   independence assumptions.
 * Chapter 12 pointer-level BST layer: CLRS parent-pointer procedures,
   transplant, and mutation refinement.
-* Chapter 13 full red-black algorithms: compose the local insertion-fixup cases
-  into executable insertion, then prove deletion fixup correctness and the
-  logarithmic-height theorem.
+* Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
+  and the logarithmic-height theorem; executable insertion is already in place.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.
