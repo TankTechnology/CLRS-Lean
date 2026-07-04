@@ -125,6 +125,12 @@ which areas should not yet be counted as proof-complete.
 * Chapter 22, Section 22.4: Kahn's algorithm for topological sorting is
   implemented and {lit}`topologicalSort_isTopologicalOrder` proves that it returns a
   valid topological order for every DAG; strongly connected components remain.
+* Chapter 22, Section 22.5: Kosaraju's two-pass SCC algorithm is implemented and
+  the returned components are proved to be a partition of the vertex set
+  ({lit}`kosarajuComponents_subset`, {lit}`kosarajuComponents_pairwise_disjoint`,
+  {lit}`kosarajuComponents_cover`, and {lit}`kosarajuComponents_isSCCPartition`); the
+  strong-connectivity and maximality core is reduced to a DFS finish-time
+  ordering lemma and is currently admitted with {lit}`sorry`.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
