@@ -175,7 +175,38 @@ lake build CLRSLean
 
 ---
 
-## 7. 下一步计划（前 26 章）
+## 7. 质量保证与数据集准备
+
+### 7.1 章节完成审计
+
+每完成一章并宣称“主要证明完成”，必须跑 `docs/proof-audits/chapter-completion-audit.md` 的检查清单：
+
+- `lake build CLRSLean` 通过；
+- 无 `sorry` / `admit` / `axiom`；
+- 公共定理用 `#print axioms` 检查；
+- 文档、章节导览、`literate.toml`、`docs/proof-map.md` 同步更新。
+
+### 7.2 网站结构一致性
+
+`docs/proof-audits/site-consistency-audit.md` 记录了当前网站结构、一致性问题及修复建议：
+
+- `docs/chapters/chapter-XX.md` 部分章节有、部分没有，需要统一处理；
+- Chapter 17 的 `literate.toml` 标题/排序需要核对；
+- 三个状态来源（CSV、proof-status-board、Status.lean）需要保持一致。
+
+### 7.3 数据集准备
+
+未来若把本项目抽象成 agent Lean 证明能力评测数据集，参见
+`docs/proof-audits/dataset-readiness-checklist.md`：
+
+- 每个公共定理作为一个 task；
+- 隐藏测试桩只暴露定理声明，不暴露 gold proof；
+- 按章节/难度打标签；
+- 用 `lake build` 作为通过标准。
+
+---
+
+## 8. 下一步计划（前 26 章）
 
 | 优先级 | 章节 | 核心目标 |
 |---|---|---|
@@ -189,7 +220,7 @@ lake build CLRSLean
 
 ---
 
-## 8. 更新记录
+## 9. 更新记录
 
 - **2026-07-01**：创建本文档，整合 Chapter 13 RB-INSERT 完成后的证明经验和前 26 章计划。
 
