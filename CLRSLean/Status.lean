@@ -116,6 +116,12 @@ which areas should not yet be counted as proof-complete.
 * Chapter 22, Section 22.2: a fuelled breadth-first-search procedure and a
   soundness proof that every visited vertex is reachable are in place;
   completeness and shortest-path distance lemmas remain.
+* Chapter 22, Section 22.3: a functional depth-first-search model with
+  discovery/finish times and parent pointers is in place, together with the
+  basic color invariants ({lit}`dfsVisit_blackens_u`, {lit}`dfsVisit_preserves_black`,
+  {lit}`dfsVisit_no_new_gray`) and the global soundness lemma {lit}`dfs_all_black`, which
+  states that every graph vertex is black after {lit}`dfs`; the parenthesis theorem,
+  white-path theorem, and edge classification remain.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
@@ -217,8 +223,9 @@ which areas should not yet be counted as proof-complete.
 * Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
   and the logarithmic-height theorem; executable insertion is already in place.
 * Chapter 22 graph algorithms: complete BFS (reachability completeness and
-  unweighted shortest-path distances), prove DFS correctness, topological sort,
-  and strongly connected components on top of the Section 22.1 graph model.
+  unweighted shortest-path distances), complete DFS (parenthesis theorem,
+  white-path theorem, edge classification), topological sort, and strongly
+  connected components on top of the Section 22.1 graph model.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.
