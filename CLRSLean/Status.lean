@@ -110,6 +110,10 @@ which areas should not yet be counted as proof-complete.
   and the executable `RBTree.insert` with its membership, red-black shape, and
   black-height theorems are proved; proving {lit}`RB-DELETE`, {lit}`RB-DELETE-FIXUP`, and
   the logarithmic-height theorem remains.
+* Chapter 22, Section 22.1: a finite directed-graph model with adjacency,
+  walks, paths, cycles, reachability, connected components, and undirected-graph
+  symmetry is established; BFS, DFS, topological sort, and strongly connected
+  components remain.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
@@ -210,6 +214,8 @@ which areas should not yet be counted as proof-complete.
   transplant, and mutation refinement.
 * Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
   and the logarithmic-height theorem; executable insertion is already in place.
+* Chapter 22 graph algorithms: prove BFS/DFS correctness, topological sort, and
+  strongly connected components on top of the Section 22.1 graph model.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.
@@ -226,7 +232,7 @@ which areas should not yet be counted as proof-complete.
 * Chapter 20 van Emde Boas refinements: recursive summary/cluster
   representation, word-RAM base cases, and the explicit {lit}`O(log log u)`
   asymptotic bridge.
-* Chapters 21-22: not yet represented.
+* Chapter 21 disjoint sets: not yet represented.
 * Chapter 23 Prim: theorem interface and proof have not been added.
 * Chapter 24 onward: not yet represented.
 

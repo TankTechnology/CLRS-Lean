@@ -71,7 +71,8 @@ a meaningful model that still lacks the next textbook-level refinement.
 | Chapter 18 B-tree refinements | Full separator/same-depth invariant stack, node-level deletion repair, disk-page and mutation refinement. |
 | Chapter 19 Fibonacci-heap refinements | Pointer forest, handles, cascading cuts, consolidation arrays, subtree-size induction, and true Fibonacci logarithmic degree theorem. |
 | Chapter 20 van Emde Boas refinements | Recursive summary/cluster representation, word-RAM base cases, and `O(log log u)` asymptotic bridge. |
-| Chapter 21-22 | Not yet represented in the current Lean tree. |
+| Chapter 21 | Not yet represented in the current Lean tree. |
+| Chapter 22, Section 22.1 | A finite directed-graph model with walks, paths, cycles, reachability, connected components, and undirected-graph symmetry is established. | BFS/DFS correctness, topological sort, and strongly connected components. |
 | Chapter 23 Prim | Prim's algorithm theorem interface and proof have not been added yet. |
 | Chapter 24 onward | Not yet represented in the current Lean tree. |
 

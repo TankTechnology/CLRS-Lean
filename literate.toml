@@ -29,6 +29,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_18",
   "CLRSLean.Chapter_19",
   "CLRSLean.Chapter_20",
+  "CLRSLean.Chapter_22",
   "CLRSLean.Chapter_23",
   "CLRSLean.Progress",
   "CLRSLean.Status",
@@ -121,6 +122,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_20.Section_20_1_VEB_Universe",
   "CLRSLean.Chapter_20.Section_20_2_VEB_Tree",
 ]
+"CLRSLean.Chapter_22" = [
+  "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
+]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
@@ -188,6 +192,12 @@ title = "Chapter 19. Fibonacci Heaps"
 
 [modules."CLRSLean.Chapter_20"]
 title = "Chapter 20. van Emde Boas Trees"
+
+[modules."CLRSLean.Chapter_22"]
+title = "Chapter 22. Elementary Graph Algorithms"
+
+[modules."CLRSLean.Chapter_22.Section_22_1_Representing_Graphs"]
+title = "22.1. Representing Graphs"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"

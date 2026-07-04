@@ -18,6 +18,7 @@ import CLRSLean.Chapter_17
 import CLRSLean.Chapter_18
 import CLRSLean.Chapter_19
 import CLRSLean.Chapter_20
+import CLRSLean.Chapter_22
 import CLRSLean.Chapter_23
 import CLRSLean.Progress
 import CLRSLean.Status
