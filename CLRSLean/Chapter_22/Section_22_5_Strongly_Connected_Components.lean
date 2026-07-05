@@ -10,10 +10,10 @@ graph model from Section 22.1, and proves that the returned components form a
 valid SCC partition.
 
 The algorithm:
-1. Run DFS on `G` and record finish times.
+1. Run DFS on {lit}`G` and record finish times.
 2. Sort vertices by decreasing finish time.
-3. Run DFS on the transpose graph `Gᵀ` in that order, collecting each DFS tree
-   as one component.
+3. Run DFS on the transpose graph {lit}`Gᵀ` in that order, collecting each DFS
+   tree as one component.
 
 The main declarations are:
 
@@ -91,8 +91,8 @@ def IsSCC (G : Graph V) (C : Set V) : Prop :=
     (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧
     (∀ w ∈ G.vertices, (∀ u ∈ C, G.StronglyConnected u w) → w ∈ C)
 
-/-- A list of finsets is an SCC partition of `G` if each element is an SCC of
-`G` and the elements partition the vertex set. -/
+/-- A list of finsets is an SCC partition of {lit}`G` if each element is an SCC of
+{lit}`G` and the elements partition the vertex set. -/
 def IsSCCPartition (G : Graph V) (ccs : List (Finset V)) : Prop :=
   (∀ C ∈ ccs, (C : Set V) ⊆ G.vertices) ∧
   (∀ C ∈ ccs, C.Nonempty) ∧
@@ -124,8 +124,8 @@ noncomputable def dfsFromListCollect (G : Graph V) (fuel : Nat) :
 def finishLe (s : DFSState V) (u v : V) : Bool :=
   Nat.blt ((s.f v).getD 0) ((s.f u).getD 0)
 
-/-- Kosaraju's algorithm: DFS on `G` for finish times, then DFS on `Gᵀ` in
-decreasing finish-time order, collecting each DFS tree. -/
+/-- Kosaraju's algorithm: DFS on {lit}`G` for finish times, then DFS on
+{lit}`Gᵀ` in decreasing finish-time order, collecting each DFS tree. -/
 noncomputable def kosarajuComponents (G : Graph V) : List (Finset V) :=
   let s1 := G.dfs
   let order := G.vertices.toList.mergeSort (finishLe s1)
@@ -137,7 +137,7 @@ noncomputable def kosarajuComponents (G : Graph V) : List (Finset V) :=
 * accumulated components are pairwise disjoint subsets of vertices;
 * every component is nonempty;
 * every vertex placed in a component is black in the current state;
-* every black vertex of `G` already belongs to some accumulated component;
+* every black vertex of {lit}`G` already belongs to some accumulated component;
 * the current state has no gray vertices. -/
 structure CollectInvariant (G : Graph V) (s : DFSState V) (acc : List (Finset V)) : Prop where
   pairwise : acc.Pairwise (fun C D => Disjoint C D)
@@ -170,7 +170,7 @@ theorem dfsVisit_blackens_u_of_pos {G : Graph V} {fuel : Nat} {u : V} {s : DFSSt
 /-- One step of {name}`Graph.dfsFromListCollect` preserves the collecting
 invariant. -/
 theorem collectInvariant_step (G : Graph V) {fuel : Nat}
-    (hfuel : 0 < fuel) {u : V} (hu : u ∈ G.vertices) (us : List V)
+    (hfuel : 0 < fuel) {u : V} (hu : u ∈ G.vertices) (_us : List V)
     {s : DFSState V} {acc : List (Finset V)} (hwhite : s.color u = Color.white)
     (hinv : CollectInvariant G s acc) :
     let s' := dfsVisit G fuel u s
@@ -396,7 +396,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   sorry
 
 /-- The components returned by {name}`Graph.kosarajuComponents` are exactly the
-strongly connected components of `G`.
+strongly connected components of {lit}`G`.
 
 The structural properties (nonempty, subset, partition, disjointness, coverage)
 are proved above; the DFS finish-time argument needed for strong-connectivity
@@ -414,7 +414,7 @@ theorem kosarajuComponents_eq_sccs (G : Graph V) (C : Finset V)
   · -- maximal
     exact (kosarajuComponent_scc_core G C hC).2
 
-/-- {name}`Graph.kosarajuComponents` is a valid SCC partition of `G`. -/
+/-- {name}`Graph.kosarajuComponents` is a valid SCC partition of {lit}`G`. -/
 theorem kosarajuComponents_isSCCPartition (G : Graph V) :
     G.IsSCCPartition G.kosarajuComponents := by
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
