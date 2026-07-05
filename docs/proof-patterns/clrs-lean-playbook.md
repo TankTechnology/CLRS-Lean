@@ -257,8 +257,8 @@ lake build CLRSLean
 - 22.5 强连通分量：实现 `transpose`、`StronglyConnected`、`IsSCC`、`IsSCCPartition`、
   `dfsFromListCollect`、`kosarajuComponents`；证明 Kosaraju 返回的每个分量都是非空顶点子集、
   分量两两不交、所有顶点都被覆盖，即 `kosarajuComponents_isSCCPartition` 的结构部分。
-  强连通性与极大性核心已归约为 `scc_finish_order` 形式的 DFS 完成时间引理，当前用
-  `sorry` 占位。
+  强连通性与极大性核心已归约为 `kosarajuComponent_scc_core`（等价于 DFS 完成时间序的
+  SCC 源点引理），当前用 `sorry` 占位。
 
 **交付文件（状态）：**
 

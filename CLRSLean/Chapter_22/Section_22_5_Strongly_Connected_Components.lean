@@ -382,14 +382,25 @@ theorem unique_mem_of_pairwise_disjoint_cover {ccs : List (Finset V)}
 
 /-! ## SCC correctness (deferred DFS-theory core) -/
 
+/-- Core DFS-theoretic lemma (admitted): every component returned by
+{name}`Graph.kosarajuComponents` is strongly connected and maximal.
+
+This is the only remaining gap for full SCC correctness.  It says that a vertex
+chosen as the first white vertex in decreasing finish-time order belongs to a
+source SCC of the still-unvisited transpose graph, so the second DFS visits
+precisely its SCC. -/
+theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
+    (hC : C ∈ G.kosarajuComponents) :
+    (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧
+    (∀ w ∈ G.vertices, (∀ u ∈ C, G.StronglyConnected u w) → w ∈ C) := by
+  sorry
+
 /-- The components returned by {name}`Graph.kosarajuComponents` are exactly the
 strongly connected components of `G`.
 
-This theorem contains the remaining DFS-theoretic work: a vertex chosen as the
-first white vertex in decreasing finish-time order belongs to a source SCC of
-the still-unvisited graph, so the second DFS on `Gᵀ` visits precisely its SCC.
-All structural properties (partition, disjointness, coverage) are already
-proved above. -/
+The structural properties (nonempty, subset, partition, disjointness, coverage)
+are proved above; the DFS finish-time argument needed for strong-connectivity
+and maximality is isolated in {name}`Graph.kosarajuComponent_scc_core`. -/
 theorem kosarajuComponents_eq_sccs (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
     G.IsSCC (C : Set V) := by
@@ -399,9 +410,9 @@ theorem kosarajuComponents_eq_sccs (G : Graph V) (C : Finset V)
   · -- subset of vertices
     exact kosarajuComponents_subset G C hC
   · -- pairwise strongly connected
-    sorry
+    exact (kosarajuComponent_scc_core G C hC).1
   · -- maximal
-    sorry
+    exact (kosarajuComponent_scc_core G C hC).2
 
 /-- {name}`Graph.kosarajuComponents` is a valid SCC partition of `G`. -/
 theorem kosarajuComponents_isSCCPartition (G : Graph V) :

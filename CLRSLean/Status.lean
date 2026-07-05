@@ -129,9 +129,9 @@ which areas should not yet be counted as proof-complete.
   the returned components are proved to be a nonempty partition of the vertex set
   ({lit}`kosarajuComponents_subset`, {lit}`kosarajuComponents_pairwise_disjoint`,
   {lit}`kosarajuComponents_cover`, {lit}`kosarajuComponents_nonempty`, and
-  {lit}`kosarajuComponents_isSCCPartition`); the strong-connectivity and maximality
-  core is reduced to a DFS finish-time ordering lemma and is currently admitted
-  with {lit}`sorry`.
+  {lit}`kosarajuComponents_isSCCPartition`); the remaining SCC strong-connectivity
+  and maximality core is isolated in {lit}`kosarajuComponent_scc_core` and is
+  currently admitted with {lit}`sorry`.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
