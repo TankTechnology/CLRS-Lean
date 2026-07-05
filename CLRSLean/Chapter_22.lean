@@ -38,7 +38,8 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.BFSInvariant`,
   {lit}`CLRS.Chapter22.Graph.bfsInvariant_step`,
   {lit}`CLRS.Chapter22.Graph.bfsAux_sound`,
-  and {lit}`CLRS.Chapter22.Graph.bfs_sound`.
+  {lit}`CLRS.Chapter22.Graph.bfs_sound`,
+  and {lit}`CLRS.Chapter22.Graph.bfs_complete`.
 
 * 22.3 Depth-first search.
   Main declarations:
@@ -74,14 +75,15 @@ undirected graph is obtained by requiring symmetric adjacency.
 ## Current Shape
 
 Section 22.1 establishes the public graph vocabulary.  Section 22.2 proves that
-BFS only reports reachable vertices.  Section 22.3 gives a functional DFS model
-and proves that every vertex of the graph is black after {lit}`dfs`.  Section 22.4
+BFS is both sound (only reachable vertices are reported) and complete (every
+reachable vertex is reported).  Section 22.3 gives a functional DFS model and
+proves that every vertex of the graph is black after {lit}`dfs`.  Section 22.4
 implements Kahn's algorithm and proves that it returns a valid topological order
 for every DAG.  Section 22.5 implements Kosaraju's two-pass SCC algorithm and
 proves the structural partition properties (subsets of vertices, pairwise
-disjointness, and coverage); the SCC strong-connectivity and maximality theorem
-is reduced to a standard DFS finish-time ordering lemma and is currently
-admitted with {lit}`sorry`.
+disjointness, coverage, and nonemptiness); the SCC strong-connectivity and
+maximality theorem is reduced to a standard DFS finish-time ordering lemma and
+is currently admitted with {lit}`sorry`.
 
 ## Deferred Work
 

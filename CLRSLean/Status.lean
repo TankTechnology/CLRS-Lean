@@ -113,9 +113,10 @@ which areas should not yet be counted as proof-complete.
 * Chapter 22, Section 22.1: a finite directed-graph model with adjacency,
   walks, paths, cycles, reachability, connected components, and undirected-graph
   symmetry is established.
-* Chapter 22, Section 22.2: a fuelled breadth-first-search procedure and a
-  soundness proof that every visited vertex is reachable are in place;
-  completeness and shortest-path distance lemmas remain.
+* Chapter 22, Section 22.2: a fuelled breadth-first-search procedure is in
+  place and both {lit}`bfs_sound` (every visited vertex is reachable) and
+  {lit}`bfs_complete` (every reachable vertex is visited) are proved; unweighted
+  shortest-path distance lemmas remain.
 * Chapter 22, Section 22.3: a functional depth-first-search model with
   discovery/finish times and parent pointers is in place, together with the
   basic color invariants ({lit}`dfsVisit_blackens_u`, {lit}`dfsVisit_preserves_black`,
