@@ -31,12 +31,8 @@ Main results:
   {lit}`heapSort_perm`: the compact functional heap scaffold used by later
   refinement wrappers.
 
-Current gap:
-
-- This section proves the mathematical heap predicate and root-maximum fact.
-  The executable {lit}`MAX-HEAPIFY`, {lit}`BUILD-MAX-HEAP`, and {lit}`HEAPSORT`
-  refinements
-  appear in Sections 6.2--6.4.
+Status: `proved` for the indexed heap predicate and array-heap scaffold.
+Executable refinements are in Sections 6.2--6.5.
 -/
 
 namespace CLRS

@@ -21,10 +21,9 @@ Main results:
 - Theorem {lit}`potential_totalCost_le_totalAmortized`: nondecreasing endpoint
   potential bounds total actual cost by total amortized cost.
 
-Current gaps:
+Status: `proved` for the aggregate, accounting, and potential-method framework.
 
-- Concrete {lit}`MULTIPOP`, binary-counter, and dynamic-table examples are in later
-  Chapter 17 sections.
+Examples are in Sections 17.2 and 17.4.
 -/
 
 namespace CLRS
