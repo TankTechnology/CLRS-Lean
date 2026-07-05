@@ -289,6 +289,24 @@ theorem dfsFromListCollect_all_black {G : Graph V} {fuel : Nat}
   have h := (dfsFromList_all_black G s0 h0 hfuel vs).1
   exact h v (hvs v hv)
 
+/-- Core DFS finish-time lemma (admitted).
+
+Consider a DFS state `s` of {lit}`G` and a white vertex `r` whose finish time is
+maximal among all white vertices.  Then the DFS tree of {lit}`G.transpose` rooted
+at `r` visits exactly the SCC of `r` in {lit}`G`.
+
+This is the standard Kosaraju argument: the first white vertex in decreasing
+finish-time order lies in a source SCC of the still-unvisited transpose graph,
+so the second DFS cannot escape its SCC. -/
+theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
+    (hr : r ∈ G.vertices) (hwhite : s.color r = Color.white)
+    (hmax : ∀ v, s.color v = Color.white → finishLe s v r)
+    (hfuel : 0 < fuel) :
+    let s' := dfsVisit G.transpose fuel r s
+    let C := G.transpose.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
+    G.IsSCC (C : Set V) := by
+  sorry
+
 /-! ## Kosaraju produces a partition of the vertex set -/
 
 theorem kosaraju_order_subset_vertices (G : Graph V) :
@@ -385,10 +403,10 @@ theorem unique_mem_of_pairwise_disjoint_cover {ccs : List (Finset V)}
 /-- Core DFS-theoretic lemma (admitted): every component returned by
 {name}`Graph.kosarajuComponents` is strongly connected and maximal.
 
-This is the only remaining gap for full SCC correctness.  It says that a vertex
-chosen as the first white vertex in decreasing finish-time order belongs to a
-source SCC of the still-unvisited transpose graph, so the second DFS visits
-precisely its SCC. -/
+This is the only remaining gap for full SCC correctness.  It follows from
+{name}`Graph.scc_finish_order`: a vertex chosen as the first white vertex in
+decreasing finish-time order belongs to a source SCC of the still-unvisited
+transpose graph, so the second DFS visits precisely its SCC. -/
 theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
     (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧

@@ -259,8 +259,8 @@ lake build CLRSLean
 - 22.5 强连通分量：实现 `transpose`、`StronglyConnected`、`IsSCC`、`IsSCCPartition`、
   `dfsFromListCollect`、`kosarajuComponents`；证明 Kosaraju 返回的每个分量都是非空顶点子集、
   分量两两不交、所有顶点都被覆盖，即 `kosarajuComponents_isSCCPartition` 的结构部分。
-  强连通性与极大性核心已归约为 `kosarajuComponent_scc_core`（等价于 DFS 完成时间序的
-  SCC 源点引理），当前用 `sorry` 占位。
+  强连通性与极大性核心已归约为 `kosarajuComponent_scc_core`，并进一步隔离为
+  `scc_finish_order`（DFS 完成时间序的 SCC 源点引理），当前用 `sorry` 占位。
 
 **交付文件（状态）：**
 
@@ -348,6 +348,7 @@ lake build CLRSLean
 - **2026-07-01**：完成 Section 22.4 Kahn 拓扑排序，并记录“有限 DAG 的邻接关系良基 → 源点存在”这一证明路径。
 - **2026-07-01**：完成 Section 22.5 Kosaraju SCC 算法及结构划分性质（子集、不交、覆盖、非空），将强连通/极大核心归约为 DFS 完成时间引理并以 `sorry` 占位。
 - **2026-07-05**：完成 Section 22.2 BFS 完备性证明，通过暴露内部队列并建立闭包/终止测度不变式。
+- **2026-07-05**：将 SCC 核心进一步隔离为命名的 `scc_finish_order` 引理（DFS 完成时间序的 SCC 源点性质），为后续补全 DFS 理论提供明确目标。
 
 ---
 

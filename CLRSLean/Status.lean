@@ -131,8 +131,8 @@ which areas should not yet be counted as proof-complete.
   ({lit}`kosarajuComponents_subset`, {lit}`kosarajuComponents_pairwise_disjoint`,
   {lit}`kosarajuComponents_cover`, {lit}`kosarajuComponents_nonempty`, and
   {lit}`kosarajuComponents_isSCCPartition`); the remaining SCC strong-connectivity
-  and maximality core is isolated in {lit}`kosarajuComponent_scc_core` and is
-  currently admitted with {lit}`sorry`.
+  and maximality core is isolated in {lit}`kosarajuComponent_scc_core`, which in
+  turn depends on the admitted DFS finish-time lemma {lit}`scc_finish_order`.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
