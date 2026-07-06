@@ -108,11 +108,21 @@ rules.
   - `CLRS.Chapter03.factorial_lower_bound_offset`
   - `CLRS.Chapter03.factorial_lower_bound_half_pow`
   - `CLRS.Chapter03.isLittleO_exp_vs_factorial`
-  - `CLRS.Chapter03.isLittleO_factorial_pow_self`
+  - `CLRS.Chapter03.isLittleO_pow_factorial`
+  - `CLRS.Chapter03.isLittleO_exp_factorial`
+  - `CLRS.Chapter03.isBigOmega_factorial_exp`
+  - `CLRS.Chapter03.iteratedLog` (definition)
+  - `CLRS.Chapter03.iteratedLog_zero`, `iteratedLog_one`, `iteratedLog_succ`
+  - `CLRS.Chapter03.iteratedLog_monotone`, `iteratedLog_log_lt_self`
+  - `CLRS.Chapter03.isLittleO_log_pow_any_pow`
+  - `CLRS.Chapter03.isLittleO_one_log`
 - Proof pattern: reuse Mathlib asymptotic and factorial facts through the CLRS
-  wrappers
-- Current gap: the rest of the CLRS standard-function table remains a
-  strengthening target.
+  wrappers; `isBigTheta_log_factorial` uses Mathlib's Stirling approximation
+  (`le_log_factorial_stirling`) for the lower bound and `n! ≤ n^n` for the
+  upper bound; `iteratedLog` uses `Nat.log_lt_self` for termination.
+- Current gap: the remaining CLRS standard-function table entries are mostly
+  covered; iterative functions beyond `log*` and Fibonacci numbers remain
+  strengthening targets.
 
 This section is the safe part of the `chapter-1-exploration` branch merged into
 the main site.  It compiles, but it is not yet the whole Chapter 3 growth
@@ -311,8 +321,13 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   discrete case-2 scale `(⌊log_b n⌋+1)a^(⌊log_b n⌋)` to the textbook scale
   `n^(log_b a) log n`; the named exact/floor/ceiling case-2 wrappers compose
   this bridge with the existing case-2 all-input theorems.
-- Current gap: add a textbook-facing case-3 comparison scale, connecting the tail-dominated
-  discrete scale to `f(n)` with the CLRS regularity condition.
+- New case-3 regularity bridge: `CLRS.Chapter04.Case3Regularity`,
+  `CLRS.Chapter04.tailDominatedScale_eq_f_on_exact_powers`, and
+  `CLRS.Chapter04.tailDominatedScale_isBigTheta_f_of_regularity` now connect
+  the discrete case-3 scale `tailDominatedScale a b f` to the textbook scale
+  `f(n)` under the CLRS regularity condition `a·f(⌊n/b⌋) ≤ c·f(n)` for
+  `c < 1`, together with nonnegativity, monotonicity, and a one-step growth
+  bound on `f`.  This completes the textbook-facing case-3 comparison scale.
 
 ## Chapter 5 - Probabilistic Analysis and Randomized Algorithms
 
@@ -1126,6 +1141,11 @@ prefix independently of a particular mutable-array implementation.
   - `CLRS.Chapter15.matrixChain_reconstructed_optimal`
   - `CLRS.Chapter15.matrixChain_reconstructed_cost_le_planCost`
   - `CLRS.Chapter15.matrixChain_reconstructed_cost_eq_of_reconstructed`
+  - `CLRS.Chapter15.matrixChainOpt_lowerBound`
+  - `CLRS.Chapter15.matrixChainSplit_optimal`
+  - `CLRS.Chapter15.matrixChainOpt_splitOptimal`
+  - `CLRS.Chapter15.matrixChainReconstruct_reconstructed`
+  - `CLRS.Chapter15.matrixChain_correct`
 - Proof pattern: represent a parenthesization as an inductive binary split
   tree, specify a candidate dynamic-programming optimum by its split lower
   bound, then prove by induction that every concrete parenthesization has cost
@@ -1134,8 +1154,11 @@ prefix independently of a particular mutable-array implementation.
   exactly the candidate cost, is globally optimal, has cost no greater than any
   competing parenthesization of the same interval, and has the same cost as any
   other plan reconstructed from the same tight split table.
-- Current gap: concrete bottom-up cost-table construction and executable split
-  reconstruction remain future targets
+- Current gap: the entire development is now fully computable:
+  `matrixChainOpt` computes the cost table by bottom-up DP,
+  `matrixChainSplit` selects the minimal split point via finite-set
+  minimization, and `matrixChainReconstruct` builds an optimal parenthesization
+  from the split table.
 
 ### Section 15.4 - Longest common subsequence
 
@@ -1908,10 +1931,14 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
-| Chapter 4 concrete all-input Master-theorem instantiation | `future-work` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, and the real-log-log bridge and named case-2 wrappers are proved; the case-3 comparison layer remains. |
+| Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
 | Hash-table expected-time analysis | `blocked-design` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes when the searched bucket is uniform; the remaining work is a full random key or random hash-function model with independence assumptions. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
-| BST transplant and parent-pointer navigation | `future-work` | Functional successor/predecessor queries and functional deletion are proved; pointer-transplant semantics remain. |
+| BST transplant and parent-pointer navigation | `partial-transplant` | Functional `replaceSubtree` (CLRS `TRANSPLANT` analogue) is defined; pointer-level parent updates and full membership-preservation theorems remain future refinement targets. |
+| Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; parent-pointer navigation and `TRANSPLANT` require an imperative memory model. |
+| Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
+| B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
+| Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
 | Full red-black insertion/deletion | `blocked-design` | Needs a balancing representation and invariant-preservation proof across fixup cases. |
 | Automatic MST exchange-path extraction | `blocked-design` | The certificate-based replacement spanning-tree theorem is proved from `ExchangePath`, and inserted-edge connectivity now bridges to that certificate; the remaining design work is extracting that inserted connection from a canonical finite simple path/cycle API. |
 | Prim's algorithm | `statement` | Section file exists only through the Chapter 23.2 target; theorem interface has not been added yet. |
