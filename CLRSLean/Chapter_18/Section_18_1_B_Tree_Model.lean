@@ -147,17 +147,12 @@ def splitChild (t : Nat) : BTree → Nat → BTree
       match children.get ⟨i, h⟩ with
       | node cKeys cChildren =>
         if cKeys.length = 2 * t - 1 then
-          let m := t - 1
-          let (leftKeys, rest) := cKeys.splitAt m
-          match rest with
-          | [] => node keys children
-          | medianKey :: rightKeys =>
-            let (leftCh, rightCh) := cChildren.splitAt t
-            let newL := BTree.node leftKeys leftCh
-            let newR := BTree.node rightKeys rightCh
-            let newKeys := keys.take i ++ medianKey :: keys.drop i
-            let newCh := children.take i ++ [newL, newR] ++ children.drop (i + 1)
-            BTree.node newKeys newCh
+          match cKeys.splitAt (t - 1), cChildren.splitAt t with
+          | (leftKeys, medianKey :: rightKeys), (leftCh, rightCh) =>
+            BTree.node (keys.take i ++ medianKey :: keys.drop i)
+              (children.take i ++ [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+                children.drop (i + 1))
+          | _, _ => node keys children
         else
           node keys children
     else
