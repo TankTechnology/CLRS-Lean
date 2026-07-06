@@ -250,6 +250,28 @@ lemma sameDepth_tail_sd {ks : List Nat} {c0 : BTree} {cs : List BTree}
   · intro ks' c' hc'; simp at hc'
   · intro ks' c0' cs' _ _ h_sd_children'; exact h_sd_children'
 
+lemma sameDepth_take (cKeys : List Nat) (cChildren : List BTree) (t : Nat)
+    (hsd : SameDepth (node cKeys cChildren)) (ht_pos : 1 ≤ t) :
+    SameDepth (node ((cKeys.splitAt (t - 1)).1) ((cChildren.splitAt t).1)) := by
+  cases cChildren with
+  | nil => simp; exact SameDepth.leaf _
+  | cons d0 ds =>
+    have h_take : ((d0 :: ds).splitAt t).1 = d0 :: (ds.take (t-1)) := by
+      cases t; omega; rename_i n; simp
+    rw [h_take]
+    have h_sd_d0 : SameDepth d0 := sameDepth_head_sd hsd
+    have h_sd_ds : ∀ d ∈ ds.take (t-1), SameDepth d := by
+      intro d hd
+      exact sameDepth_tail_sd hsd d ((take_sublist (t-1) ds).subset hd)
+    have h_heights : ∀ d ∈ ds.take (t-1), heightOf d = heightOf d0 := by
+      intro d hd
+      have hmem : d ∈ d0 :: ds := by
+        apply mem_cons_of_mem d0
+        exact (take_sublist (t-1) ds).subset hd
+      exact (sameDepth_children_eq_height hsd) d hmem d0 (by simp)
+    exact SameDepth.internal ((cKeys.splitAt (t - 1)).1) d0 (ds.take (t-1))
+      h_heights h_sd_d0 h_sd_ds
+
 theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
     (h_lt : i < children.length)
