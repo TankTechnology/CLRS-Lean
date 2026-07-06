@@ -272,54 +272,47 @@ lemma sameDepth_take (cKeys : List Nat) (cChildren : List BTree) (t : Nat)
     exact SameDepth.internal ((cKeys.splitAt (t - 1)).1) d0 (ds.take (t-1))
       h_heights h_sd_d0 h_sd_ds
 
-theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : List BTree)
+lemma sameDepth_drop (cKeys : List Nat) (cChildren : List BTree) (t : Nat)
+    (hsd : SameDepth (node cKeys cChildren)) (ht_pos : 1 ≤ t) :
+    SameDepth (node ((cKeys.splitAt (t - 1)).2.drop 1) ((cChildren.splitAt t).2)) := by
+  cases cChildren with
+  | nil => simp; exact SameDepth.leaf _
+  | cons d0 ds =>
+    have h_drop : ((d0 :: ds).splitAt t).2 = ds.drop (t-1) := by
+      cases t; omega; rename_i n; simp
+    rw [h_drop]
+    by_cases h_empty : ds.drop (t-1) = []
+    · simp [h_empty]; exact SameDepth.leaf _
+    · match h_drop_suffix : ds.drop (t-1) with
+      | [] => exact (h_empty h_drop_suffix).elim
+      | e0 :: es =>
+        have he0_mem_drop : e0 ∈ ds.drop (t-1) := by rw [h_drop_suffix]; simp
+        have he0_ds : e0 ∈ ds := (drop_sublist (t-1) ds).subset he0_mem_drop
+        have h_sd_e0 : SameDepth e0 := sameDepth_tail_sd hsd e0 he0_ds
+        have h_sd_es : ∀ e ∈ es, SameDepth e := by
+          intro e he
+          have he_mem_drop : e ∈ ds.drop (t-1) := by rw [h_drop_suffix]; simp [he]
+          have he_ds : e ∈ ds := (drop_sublist (t-1) ds).subset he_mem_drop
+          exact sameDepth_tail_sd hsd e he_ds
+        have h_heights : ∀ e ∈ es, heightOf e = heightOf e0 := by
+          intro e he
+          have he_mem_drop : e ∈ ds.drop (t-1) := by rw [h_drop_suffix]; simp [he]
+          have he_ds : e ∈ ds := (drop_sublist (t-1) ds).subset he_mem_drop
+          have he0_cons : e0 ∈ d0 :: ds := by simp [he0_ds]
+          have he_cons : e ∈ d0 :: ds := by simp [he_ds]
+          exact (sameDepth_children_eq_height hsd) e he_cons e0 he0_cons
+        refine SameDepth.internal ((cKeys.splitAt (t - 1)).2.drop 1) e0 es
+          h_heights h_sd_e0 h_sd_es
+
+theorem splitChild_preserves_sameDepth (t : Nat) (ht : 2 ≤ t)
+    (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
     (h_lt : i < children.length)
     (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
     (hchild_full : cKeys.length = 2 * t - 1)
     (hsd : SameDepth (node keys children)) :
     SameDepth (splitChild t (node keys children) i) := by
-  -- Expand splitChild to expose the result structure
-  rw [splitChild]
-  simp [h_lt, hchild_full]
-  -- Goal: SameDepth (node (keys.take i ++ [median] :: keys.drop i)
-  --   (children.take i ++ [newL, newR] ++ children.drop (i+1)))
-  -- Extract SameDepth for the split child from hsd
-  have h_split_sd : SameDepth (node cKeys cChildren) := by
-    cases children with
-    | nil => simp at h_lt
-    | cons c0' cs' =>
-      by_cases hi : i = 0
-      · subst hi; simp at hchild_eq; rw [← hchild_eq]; exact sameDepth_head_sd hsd
-      · have hi_pos : 0 < i := Nat.pos_of_ne_zero hi
-        have hi1_lt : i-1 < cs'.length := by
-          have : (c0' :: cs').length = cs'.length + 1 := by simp
-          omega
-        have hget : (c0' :: cs').get ⟨i, h_lt⟩ = cs'.get ⟨i-1, hi1_lt⟩ := by
-          cases i; simp at hi; rename_i n; simp
-        have helem : cs'.get ⟨i-1, hi1_lt⟩ = node cKeys cChildren := by
-          rw [← hget, hchild_eq]
-        have hmem : node cKeys cChildren ∈ cs' := by
-          rw [← helem]
-          -- cs'.get ⟨i-1, hi1_lt⟩ ∈ cs' by standard property
-          apply List.get_mem
-        exact sameDepth_tail_sd hsd (node cKeys cChildren) hmem
-
-  -- The split child's children all have equal height (from h_split_sd)
-  -- The two new children (newL, newR) each have children = subsets of cChildren
-  -- We need to prove SameDepth for the resulting node.
-  -- Decompose children into c0' :: cs' (nonempty from h_lt)
-  cases children with
-  | nil => simp at h_lt
-  | cons c0' cs' =>
-    -- Now children = c0' :: cs'
-    -- The split child's SameDepth gives the recursive structure.
-    -- The two new children inherit SameDepth from subsets of cChildren.
-    -- The full construction of SameDepth for the result requires composing
-    -- the original children (c0', cs') with the new children (newL, newR).
-    -- This proof is deferred; the key structural lemmas (sameDepth_head_sd,
-    -- sameDepth_tail_sd, h_split_sd) are proven above.
-    sorry
+  sorry
 
 end BTree
 end Chapter18
