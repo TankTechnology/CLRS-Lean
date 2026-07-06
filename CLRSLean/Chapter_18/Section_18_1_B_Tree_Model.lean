@@ -218,13 +218,24 @@ lemma foldl_max_eq_of_all_eq (l : List Nat) (v : Nat) (h_ne : l ≠ [])
 lemma sameDepth_children_eq_height {ks : List Nat} {c0 : BTree} {cs : List BTree}
     (hsd : SameDepth (node ks (c0 :: cs))) :
     ∀ c₁ ∈ (c0 :: cs), ∀ c₂ ∈ (c0 :: cs), heightOf c₁ = heightOf c₂ := by
-  -- The proof follows directly from the `internal` constructor which
-  -- provides `h_heights : ∀ c ∈ cs, heightOf c = heightOf c0`.
-  -- Pattern matching on indexed inductive families requires a specific
-  -- `cases`/`rename_i` interaction that needs further investigation.
-  -- The statement is correct; the architectural change to `inductive SameDepth`
-  -- makes this trivially provable once the pattern-matching syntax is resolved.
-  sorry
+  -- Use the casesOn eliminator which handles indexed inductive matching cleanly
+  refine SameDepth.casesOn hsd
+    (motive := λ t _ => match t with
+      | node _ children => ∀ c₁ ∈ children, ∀ c₂ ∈ children, heightOf c₁ = heightOf c₂)
+    ?leaf ?internal
+  · -- leaf: children = []
+    intro ks'; intro c₁ hc₁; simp at hc₁
+  · -- internal: children = c0' :: cs', h_heights gives the equality
+    intro ks' c0' cs' h_heights _h_sd_c0' _h_sd_children'
+    intro c₁ hc₁ c₂ hc₂
+    simp at hc₁ hc₂
+    rcases hc₁ with (rfl | hc₁')
+    · rcases hc₂ with (rfl | hc₂')
+      · rfl
+      · symm; exact h_heights c₂ hc₂'
+    · rcases hc₂ with (rfl | hc₂')
+      · exact h_heights c₁ hc₁'
+      · rw [h_heights c₁ hc₁', h_heights c₂ hc₂']
 
 theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
@@ -232,6 +243,38 @@ theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : L
     (hchild_full : cKeys.length = 2 * t - 1)
     (hsd : SameDepth (node keys children)) :
     SameDepth (splitChild t (node keys children) i) := by
+  -- The split child is a leaf or internal; in both cases the new children
+  -- have the same height as the original, preserving SameDepth.
+  -- We prove this by cases on whether cChildren is empty (leaf) or not.
+  unfold splitChild
+  simp [h_lt, hchild_full]
+  -- Goal: SameDepth (node newKeys newCh)
+  -- where newCh = children.take i ++ [newL, newR] ++ children.drop (i+1)
+
+  -- From hsd, all original children have equal height
+  have h_ne : children ≠ [] := by
+    intro h; rw [h] at h_lt; simp at h_lt
+
+  -- The children at positions before i and after i+1 are unchanged.
+  -- The two new children (newL, newR) come from splitting a full child.
+  -- If the split child is a leaf (cChildren = []), newL and newR are also leaves.
+  -- If internal, they have the same child heights → same node height.
+
+  -- The result has nonempty children, so use the internal constructor
+  -- Key proof obligations:
+  -- 1. All new children have the same height (using the original uniform height)
+  -- 2. Each new child satisfies SameDepth
+  -- We handle this by decomposing the children list into three segments:
+  --   children.take i (unchanged), [newL, newR] (the split halves),
+  --   children.drop (i+1) (unchanged)
+
+  -- The new children list is nonempty, so we use the internal constructor
+  -- The height equality among all new children follows from the original SameDepth
+  -- plus the fact that the split children have the same height structure.
+  -- This proof is a combination of:
+  -- 1. Original children uniform heights (sameDepth_children_eq_height)
+  -- 2. Split children preserve max child height (heightOf properties)
+  -- 3. SameDepth recursively for all children
   sorry
 
 end BTree
