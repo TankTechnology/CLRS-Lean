@@ -218,6 +218,30 @@ theorem splitChild_parent_key_bound (t : Nat) (ht : 2 ≤ t) (keys : List Nat)
     keys.length + 1 ≤ 2 * t - 1 := by
   omega
 
+/-! ## List utility: foldl max over uniform values -/
+
+lemma foldl_max_idem (l : List Nat) (a : Nat) (h : ∀ b ∈ l, b = a) : foldl max a l = a := by
+  induction l with
+  | nil => simp
+  | cons x xs ih =>
+    have hx : x = a := h x (by simp)
+    have hxs : ∀ b ∈ xs, b = a := by
+      intro b hb; exact h b (by simp [hb])
+    rw [hx]
+    simp [ih hxs]
+
+lemma foldl_max_eq_of_all_eq (l : List Nat) (v : Nat) (h_ne : l ≠ [])
+    (h : ∀ a ∈ l, a = v) : l.foldl max 0 = v := by
+  cases l with
+  | nil => contradiction
+  | cons x xs =>
+    have hx : x = v := h x (by simp)
+    have hxs : ∀ a ∈ xs, a = v := by
+      intro a ha; exact h a (by simp [ha])
+    rw [hx]
+    simp
+    exact foldl_max_idem xs v hxs
+
 end BTree
 end Chapter18
 end CLRS
