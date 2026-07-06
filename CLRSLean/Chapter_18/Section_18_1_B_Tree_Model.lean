@@ -312,12 +312,42 @@ theorem splitChild_preserves_sameDepth (t : Nat) (ht : 2 ≤ t)
     (hchild_full : cKeys.length = 2 * t - 1)
     (hsd : SameDepth (node keys children)) :
     SameDepth (splitChild t (node keys children) i) := by
-  -- The two helper lemmas sameDepth_take and sameDepth_drop prove that
-  -- both new children satisfy SameDepth. The overall result then follows
-  -- by composing SameDepth.internal with the original children.
-  -- The detail of expanding splitChild's let-bindings is a tactical
-  -- issue in Lean 4; the structural proof is sound.
-  sorry
+  -- Get the split child's SameDepth
+  have h_split_sd : SameDepth (node cKeys cChildren) := by
+    cases children with
+    | nil => simp at h_lt
+    | cons c0' cs' =>
+      by_cases hi : i = 0
+      · subst hi; simp at hchild_eq; rw [← hchild_eq]; exact sameDepth_head_sd hsd
+      · have hi_pos : 0 < i := Nat.pos_of_ne_zero hi
+        have hi1_lt : i-1 < cs'.length := by
+          have : (c0' :: cs').length = cs'.length + 1 := by simp; omega
+        have hget : (c0' :: cs').get ⟨i, h_lt⟩ = cs'.get ⟨i-1, hi1_lt⟩ := by
+          cases i; simp at hi; rename_i n; simp
+        have helem : cs'.get ⟨i-1, hi1_lt⟩ = node cKeys cChildren := by
+          rw [← hget, hchild_eq]
+        have hmem : node cKeys cChildren ∈ cs' := by
+          rw [← helem]
+          have : cs'.get ⟨i-1, hi1_lt⟩ ∈ cs' := List.get_mem _ _ _
+          exact this
+        exact sameDepth_tail_sd hsd (node cKeys cChildren) hmem
+  have ht_pos : 1 ≤ t := by omega
+  have h_sd_left : SameDepth (node ((cKeys.splitAt (t - 1)).1) ((cChildren.splitAt t).1)) :=
+    sameDepth_take cKeys cChildren t h_split_sd ht_pos
+  have h_sd_right : SameDepth (node ((cKeys.splitAt (t - 1)).2.drop 1) ((cChildren.splitAt t).2)) :=
+    sameDepth_drop cKeys cChildren t h_split_sd ht_pos
+  -- Use match to expose the structure of splitChild's result
+  match splitChild t (node keys children) i with
+  | node _ [] =>
+    -- The result always has nonempty children (original + 2 new)
+    -- This branch is impossible given h_lt
+    have h_ne : children ≠ [] := by intro h; rw [h] at h_lt; simp at h_lt
+    -- splitChild with nonempty children produces nonempty result
+    -- We need a lemma that splitChild preserves nonempty children
+    sorry
+  | node newKeys (c0 :: cs) =>
+    refine SameDepth.internal newKeys c0 cs ?h_heights ?h_sd_c0 ?h_sd_cs
+    sorry
 
 end BTree
 end Chapter18
