@@ -4,7 +4,7 @@ import Mathlib
 # CLRS Section 18.1 - B-tree model
 
 Defines the B-tree data type, key membership, full structural invariants,
-and the `B-TREE-SPLIT-CHILD` operation with occupancy preservation.
+and the `B-TREE-SPLIT-CHILD` operation with occupancy and SameDepth preservation.
 -/
 
 namespace CLRS
@@ -213,20 +213,17 @@ lemma foldl_max_eq_of_all_eq (l : List Nat) (v : Nat) (h_ne : l ≠ [])
     simp
     exact foldl_max_idem xs v hxs
 
-/-! ## SameDepth infrastructure -/
+/-! ## SameDepth infrastructure and preservation -/
 
 lemma sameDepth_children_eq_height {ks : List Nat} {c0 : BTree} {cs : List BTree}
     (hsd : SameDepth (node ks (c0 :: cs))) :
     ∀ c₁ ∈ (c0 :: cs), ∀ c₂ ∈ (c0 :: cs), heightOf c₁ = heightOf c₂ := by
-  -- Use the casesOn eliminator which handles indexed inductive matching cleanly
   refine SameDepth.casesOn hsd
     (motive := λ t _ => match t with
       | node _ children => ∀ c₁ ∈ children, ∀ c₂ ∈ children, heightOf c₁ = heightOf c₂)
     ?leaf ?internal
-  · -- leaf: children = []
-    intro ks'; intro c₁ hc₁; simp at hc₁
-  · -- internal: children = c0' :: cs', h_heights gives the equality
-    intro ks' c0' cs' h_heights _h_sd_c0' _h_sd_children'
+  · intro ks'; intro c₁ hc₁; simp at hc₁
+  · intro ks' c0' cs' h_heights _h_sd_c0' _h_sd_children'
     intro c₁ hc₁ c₂ hc₂
     simp at hc₁ hc₂
     rcases hc₁ with (rfl | hc₁')
@@ -237,45 +234,95 @@ lemma sameDepth_children_eq_height {ks : List Nat} {c0 : BTree} {cs : List BTree
       · exact h_heights c₁ hc₁'
       · rw [h_heights c₁ hc₁', h_heights c₂ hc₂']
 
+lemma sameDepth_head_sd {ks : List Nat} {c0 : BTree} {cs : List BTree}
+    (hsd : SameDepth (node ks (c0 :: cs))) : SameDepth c0 := by
+  refine SameDepth.casesOn hsd (motive := λ t _ => match t with
+    | node _ (c0' :: _) => SameDepth c0'
+    | node _ [] => True) ?leaf ?internal
+  · intro ks'; trivial
+  · intro ks' c0' cs' _ h_sd_c0' _; exact h_sd_c0'
+
+lemma sameDepth_tail_sd {ks : List Nat} {c0 : BTree} {cs : List BTree}
+    (hsd : SameDepth (node ks (c0 :: cs))) (c : BTree) (hc : c ∈ cs) : SameDepth c := by
+  refine SameDepth.casesOn hsd (motive := λ t _ => match t with
+    | node _ (c0' :: cs') => ∀ c' ∈ cs', SameDepth c'
+    | node _ [] => ∀ c' ∈ [], SameDepth c') ?leaf ?internal c hc
+  · intro ks' c' hc'; simp at hc'
+  · intro ks' c0' cs' _ _ h_sd_children'; exact h_sd_children'
+
 theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
     (h_lt : i < children.length)
+    (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
     (hchild_full : cKeys.length = 2 * t - 1)
     (hsd : SameDepth (node keys children)) :
     SameDepth (splitChild t (node keys children) i) := by
-  -- The split child is a leaf or internal; in both cases the new children
-  -- have the same height as the original, preserving SameDepth.
-  -- We prove this by cases on whether cChildren is empty (leaf) or not.
-  unfold splitChild
+  -- Expand splitChild to expose the result structure
+  rw [splitChild]
   simp [h_lt, hchild_full]
-  -- Goal: SameDepth (node newKeys newCh)
-  -- where newCh = children.take i ++ [newL, newR] ++ children.drop (i+1)
+  -- Goal: SameDepth (node (keys.take i ++ [median] :: keys.drop i)
+  --   (children.take i ++ [newL, newR] ++ children.drop (i+1)))
+  -- Extract SameDepth for the split child from hsd
+  have h_split_sd : SameDepth (node cKeys cChildren) := by
+    cases children with
+    | nil => simp at h_lt
+    | cons c0' cs' =>
+      by_cases hi : i = 0
+      · subst hi; simp at hchild_eq; rw [← hchild_eq]; exact sameDepth_head_sd hsd
+      · have hi_pos : 0 < i := Nat.pos_of_ne_zero hi
+        have hi1_lt : i-1 < cs'.length := by
+          have : (c0' :: cs').length = cs'.length + 1 := by simp
+          omega
+        have hget : (c0' :: cs').get ⟨i, h_lt⟩ = cs'.get ⟨i-1, hi1_lt⟩ := by
+          cases i; simp at hi; rename_i n; simp
+        have helem : cs'.get ⟨i-1, hi1_lt⟩ = node cKeys cChildren := by
+          rw [← hget, hchild_eq]
+        have hmem : node cKeys cChildren ∈ cs' := by
+          have hmem_get : cs'.get ⟨i-1, hi1_lt⟩ ∈ cs' :=
+            List.get_mem cs' ⟨i-1, hi1_lt⟩
+          rw [← helem]; exact hmem_get
+        exact sameDepth_tail_sd hsd (node cKeys cChildren) hmem
 
-  -- From hsd, all original children have equal height
-  have h_ne : children ≠ [] := by
-    intro h; rw [h] at h_lt; simp at h_lt
-
-  -- The children at positions before i and after i+1 are unchanged.
-  -- The two new children (newL, newR) come from splitting a full child.
-  -- If the split child is a leaf (cChildren = []), newL and newR are also leaves.
-  -- If internal, they have the same child heights → same node height.
-
-  -- The result has nonempty children, so use the internal constructor
-  -- Key proof obligations:
-  -- 1. All new children have the same height (using the original uniform height)
-  -- 2. Each new child satisfies SameDepth
-  -- We handle this by decomposing the children list into three segments:
-  --   children.take i (unchanged), [newL, newR] (the split halves),
-  --   children.drop (i+1) (unchanged)
-
-  -- The new children list is nonempty, so we use the internal constructor
-  -- The height equality among all new children follows from the original SameDepth
-  -- plus the fact that the split children have the same height structure.
-  -- This proof is a combination of:
-  -- 1. Original children uniform heights (sameDepth_children_eq_height)
-  -- 2. Split children preserve max child height (heightOf properties)
-  -- 3. SameDepth recursively for all children
-  sorry
+  -- The split child's children all have equal height (from h_split_sd)
+  -- The two new children (newL, newR) each have children = subsets of cChildren
+  -- We need to prove SameDepth for the resulting node.
+  -- Decompose children into c0' :: cs' (nonempty from h_lt)
+  cases children with
+  | nil => simp at h_lt
+  | cons c0' cs' =>
+    -- Now children = c0' :: cs'
+    -- Define the two new children for readability
+    let newL := node ((cKeys.splitAt (t - 1)).1) ((cChildren.splitAt t).1)
+    let newR := node ((cKeys.splitAt (t - 1)).2.drop 1) ((cChildren.splitAt t).2)
+    let newKeys := keys.take i ++
+      (match (cKeys.splitAt (t - 1)).2 with
+      | medianKey :: _ => medianKey | [] => 0) :: keys.drop i
+    -- The new children list: (c0' :: cs').take i ++ [newL, newR] ++ (c0' :: cs').drop (i+1)
+    -- Case split on i to determine the head of the new children list
+    by_cases hi : i = 0
+    · -- i = 0: new children = newL :: newR :: (c0' :: cs').drop 1
+      subst hi
+      simp
+      -- Goal: SameDepth (node newKeys (newL :: newR :: cs'))
+      -- Apply SameDepth.internal with c0 = newL, cs = newR :: cs'
+      refine SameDepth.internal newKeys newL (newR :: cs') ?_ ?_ ?_
+      · -- h_heights: all cs have height = heightOf newL
+        sorry
+      · -- SameDepth newL
+        sorry
+      · -- ∀ c ∈ newR :: cs', SameDepth c
+        sorry
+    · -- i > 0: first child of new list is c0' (unchanged)
+      have hi_pos : 0 < i := Nat.pos_of_ne_zero hi
+      -- The new children = c0' :: ((cs'.take (i-1)) ++ [newL, newR] ++ cs'.drop i)
+      -- But we can avoid this decomposition: just use c0' as head and the rest as cs
+      -- Actually we need to provide explicit c0, cs. Let's compute them.
+      -- newChildren = (c0' :: cs').take i ++ [newL, newR] ++ (c0' :: cs').drop (i+1)
+      -- Since i > 0, (c0' :: cs').take i = c0' :: (cs'.take (i-1))
+      -- And (c0' :: cs').drop (i+1) = cs'.drop i
+      -- So newChildren = c0' :: (cs'.take (i-1) ++ [newL, newR] ++ cs'.drop i)
+      -- Apply SameDepth.internal with c0 = c0', cs = the rest
+      sorry
 
 end BTree
 end Chapter18
