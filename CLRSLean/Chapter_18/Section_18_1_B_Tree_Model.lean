@@ -133,16 +133,17 @@ def Occupancy (minDegree : Nat) (isRoot : Bool) : BTree → Prop
       (minDegree ≤ children.length ∧ children.length ≤ 2 * minDegree)) ∧
     ∀ child ∈ children, Occupancy minDegree false child
 
+/-- Height of a B-tree: 0 for a leaf, 1 + max child height. -/
+def heightOf : BTree → Nat
+  | node _ [] => 0
+  | node _ cs => 1 + ((cs.map heightOf).foldl max 0)
+
 /-- Same-depth invariant: all leaves are at the same depth. -/
-def SameDepth : BTree → Prop
-  | node _ [] => True
-  | node _ (child :: children) =>
-    let h := heightOf child
-    (∀ c ∈ children, heightOf c = h) ∧ SameDepth child ∧
-    ∀ c ∈ children, SameDepth c
-where
-  heightOf (t : BTree) : Nat :=
-    match t with | node _ [] => 0 | node _ cs => 1 + ((cs.map heightOf).foldl max 0)
+inductive SameDepth : BTree → Prop
+  | leaf (ks : List Nat) : SameDepth (node ks [])
+  | internal (ks : List Nat) (c0 : BTree) (cs : List BTree) :
+      (∀ c ∈ cs, heightOf c = heightOf c0) → SameDepth c0 → (∀ c ∈ cs, SameDepth c) →
+      SameDepth (node ks (c0 :: cs))
 
 /-- Full B-tree well-formedness. -/
 def WellFormed (minDegree : Nat) (t : BTree) : Prop :=
@@ -154,7 +155,11 @@ theorem WellFormed.valid {minDegree : Nat} {t : BTree}
 
 theorem wellFormed_empty (minDegree : Nat) (hmin : 2 ≤ minDegree) :
     WellFormed minDegree (node [] []) := by
-  unfold WellFormed Sorted ChildBounded Occupancy SameDepth; simp
+  unfold WellFormed Sorted ChildBounded Occupancy
+  refine ⟨?_, ?_, ?_, SameDepth.leaf []⟩
+  · unfold Sorted; simp
+  · unfold ChildBounded; simp
+  · unfold Occupancy; simp
 
 /-! ## B-TREE-SPLIT-CHILD operation -/
 
@@ -241,6 +246,24 @@ lemma foldl_max_eq_of_all_eq (l : List Nat) (v : Nat) (h_ne : l ≠ [])
     rw [hx]
     simp
     exact foldl_max_idem xs v hxs
+
+/-! ## SameDepth infrastructure -/
+
+lemma sameDepth_children_eq_height {ks : List Nat} {c0 : BTree} {cs : List BTree}
+    (hsd : SameDepth (node ks (c0 :: cs))) :
+    ∀ c₁ ∈ (c0 :: cs), ∀ c₂ ∈ (c0 :: cs), heightOf c₁ = heightOf c₂ := by
+  -- The `internal` constructor gives `h_heights : ∀ c ∈ cs, heightOf c = heightOf c0`
+  -- Pattern matching on indexed inductives requires special handling (generalizing, etc.)
+  -- This proof is deferred; the statement follows directly from the internal constructor.
+  sorry
+
+theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : List BTree)
+    (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
+    (h_lt : i < children.length)
+    (hchild_full : cKeys.length = 2 * t - 1)
+    (hsd : SameDepth (node keys children)) :
+    SameDepth (splitChild t (node keys children) i) := by
+  sorry
 
 end BTree
 end Chapter18
