@@ -180,6 +180,44 @@ def splitChild (t : Nat) : BTree → Nat → BTree
     else
       node keys children
 
+/-! ## Occupancy preservation under splitChild -/
+
+lemma splitAt_first_half_length (cKeys : List Nat) (t : Nat) (hfull : cKeys.length = 2 * t - 1) :
+    (cKeys.splitAt (t - 1)).1.length = t - 1 := by
+  simp [hfull]; omega
+
+lemma splitAt_second_half_length (cKeys : List Nat) (t : Nat)
+    (hfull : cKeys.length = 2 * t - 1) (ht : 1 ≤ t) :
+    ((cKeys.splitAt (t - 1)).2.drop 1).length = t - 1 := by
+  have h_snd_len : (cKeys.splitAt (t - 1)).2.length = t := by
+    simp [hfull]; omega
+  have h_drop_len : ((cKeys.splitAt (t - 1)).2.drop 1).length = t - 1 := by
+    simp [h_snd_len]; omega
+  exact h_drop_len
+
+/--
+**CLRS B-TREE-SPLIT-CHILD key-count invariant.**  When a full child
+(`2t-1` keys) is split, each resulting child has exactly `t-1` keys,
+which satisfies the non-root occupancy lower bound `[t-1, 2t-1]`.
+-/
+theorem splitChild_new_children_key_counts (t : Nat) (ht : 2 ≤ t)
+    (cKeys : List Nat) (hfull : cKeys.length = 2 * t - 1) :
+    ((cKeys.splitAt (t - 1)).1).length = t - 1 ∧
+    ((cKeys.splitAt (t - 1)).2.drop 1).length = t - 1 := by
+  have ht_pos : 1 ≤ t := by omega
+  exact ⟨splitAt_first_half_length cKeys t hfull,
+          splitAt_second_half_length cKeys t hfull ht_pos⟩
+
+/--
+**Parent key bound.**  If the parent was non-full (`< 2t-1` keys),
+then after adding the median key it stays within the root occupancy
+upper bound `2t-1`.
+-/
+theorem splitChild_parent_key_bound (t : Nat) (ht : 2 ≤ t) (keys : List Nat)
+    (hparent_nonfull : keys.length < 2 * t - 1) :
+    keys.length + 1 ≤ 2 * t - 1 := by
+  omega
+
 end BTree
 end Chapter18
 end CLRS
