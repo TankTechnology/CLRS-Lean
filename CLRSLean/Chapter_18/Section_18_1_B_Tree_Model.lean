@@ -278,9 +278,9 @@ theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : L
         have helem : cs'.get ⟨i-1, hi1_lt⟩ = node cKeys cChildren := by
           rw [← hget, hchild_eq]
         have hmem : node cKeys cChildren ∈ cs' := by
-          have hmem_get : cs'.get ⟨i-1, hi1_lt⟩ ∈ cs' :=
-            List.get_mem cs' ⟨i-1, hi1_lt⟩
-          rw [← helem]; exact hmem_get
+          rw [← helem]
+          -- cs'.get ⟨i-1, hi1_lt⟩ ∈ cs' by standard property
+          apply List.get_mem
         exact sameDepth_tail_sd hsd (node cKeys cChildren) hmem
 
   -- The split child's children all have equal height (from h_split_sd)
@@ -291,38 +291,13 @@ theorem splitChild_preserves_sameDepth (t : Nat) (keys : List Nat) (children : L
   | nil => simp at h_lt
   | cons c0' cs' =>
     -- Now children = c0' :: cs'
-    -- Define the two new children for readability
-    let newL := node ((cKeys.splitAt (t - 1)).1) ((cChildren.splitAt t).1)
-    let newR := node ((cKeys.splitAt (t - 1)).2.drop 1) ((cChildren.splitAt t).2)
-    let newKeys := keys.take i ++
-      (match (cKeys.splitAt (t - 1)).2 with
-      | medianKey :: _ => medianKey | [] => 0) :: keys.drop i
-    -- The new children list: (c0' :: cs').take i ++ [newL, newR] ++ (c0' :: cs').drop (i+1)
-    -- Case split on i to determine the head of the new children list
-    by_cases hi : i = 0
-    · -- i = 0: new children = newL :: newR :: (c0' :: cs').drop 1
-      subst hi
-      simp
-      -- Goal: SameDepth (node newKeys (newL :: newR :: cs'))
-      -- Apply SameDepth.internal with c0 = newL, cs = newR :: cs'
-      refine SameDepth.internal newKeys newL (newR :: cs') ?_ ?_ ?_
-      · -- h_heights: all cs have height = heightOf newL
-        sorry
-      · -- SameDepth newL
-        sorry
-      · -- ∀ c ∈ newR :: cs', SameDepth c
-        sorry
-    · -- i > 0: first child of new list is c0' (unchanged)
-      have hi_pos : 0 < i := Nat.pos_of_ne_zero hi
-      -- The new children = c0' :: ((cs'.take (i-1)) ++ [newL, newR] ++ cs'.drop i)
-      -- But we can avoid this decomposition: just use c0' as head and the rest as cs
-      -- Actually we need to provide explicit c0, cs. Let's compute them.
-      -- newChildren = (c0' :: cs').take i ++ [newL, newR] ++ (c0' :: cs').drop (i+1)
-      -- Since i > 0, (c0' :: cs').take i = c0' :: (cs'.take (i-1))
-      -- And (c0' :: cs').drop (i+1) = cs'.drop i
-      -- So newChildren = c0' :: (cs'.take (i-1) ++ [newL, newR] ++ cs'.drop i)
-      -- Apply SameDepth.internal with c0 = c0', cs = the rest
-      sorry
+    -- The split child's SameDepth gives the recursive structure.
+    -- The two new children inherit SameDepth from subsets of cChildren.
+    -- The full construction of SameDepth for the result requires composing
+    -- the original children (c0', cs') with the new children (newL, newR).
+    -- This proof is deferred; the key structural lemmas (sameDepth_head_sd,
+    -- sameDepth_tail_sd, h_split_sd) are proven above.
+    sorry
 
 end BTree
 end Chapter18
