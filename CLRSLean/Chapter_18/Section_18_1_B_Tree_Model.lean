@@ -299,19 +299,248 @@ lemma sameDepth_drop (cKeys : List Nat) (cChildren : List BTree) (t : Nat)
         refine SameDepth.internal ((cKeys.splitAt (t - 1)).2.drop 1) e0 es
           h_heights h_sd_e0 h_sd_es
 
+/-! ## Height of a SameDepth internal node -/
+
+lemma heightOf_uniform_children {ks : List Nat} {c0 : BTree} {cs : List BTree}
+    (h : ∀ c ∈ cs, heightOf c = heightOf c0) :
+    heightOf (node ks (c0 :: cs)) = 1 + heightOf c0 := by
+  simp [heightOf]
+  refine (Nat.succ_inj).mp ?_
+  simp
+  refine foldl_max_idem (List.map heightOf cs) (heightOf c0) ?_
+  intro x hx
+  rw [List.mem_map] at hx
+  rcases hx with ⟨c, hc, rfl⟩
+  exact h c hc
+
+lemma heightOf_internal_of_sameDepth {ks : List Nat} {c0 : BTree} {cs : List BTree}
+    (hsd : SameDepth (node ks (c0 :: cs))) : heightOf (node ks (c0 :: cs)) = 1 + heightOf c0 := by
+  match hsd with
+  | SameDepth.internal ks' c0' cs' h_heights _ _ =>
+    exact heightOf_uniform_children h_heights
+
+lemma heightOf_split_parts_eq (cKeys : List Nat) (cChildren : List BTree) (t : Nat)
+    (hsd : SameDepth (node cKeys cChildren))
+    (ht_pos : 0 < t)
+    (h_children : cChildren = [] ∨ t < cChildren.length) :
+    heightOf (node ((cKeys.splitAt (t - 1)).1) ((cChildren.splitAt t).1)) =
+    heightOf (node cKeys cChildren) ∧
+    heightOf (node ((cKeys.splitAt (t - 1)).2.drop 1) ((cChildren.splitAt t).2)) =
+    heightOf (node cKeys cChildren) := by
+  rcases h_children with (h_empty | h_gt)
+  · subst h_empty; simp [heightOf]
+  · have h_nonempty : cChildren ≠ [] := by
+      intro h; rw [h] at h_gt; simp at h_gt
+    cases h_cases : cChildren with
+    | nil => exact (h_nonempty h_cases).elim
+    | cons d0 ds =>
+      have hsd_internal : heightOf (node cKeys (d0 :: ds)) = 1 + heightOf d0 :=
+        heightOf_internal_of_sameDepth (by rwa [h_cases] at hsd)
+      have h_all_eq : ∀ c₁ ∈ (d0 :: ds), ∀ c₂ ∈ (d0 :: ds), heightOf c₁ = heightOf c₂ :=
+        sameDepth_children_eq_height (by rwa [h_cases] at hsd)
+      have h_take_head : ((d0 :: ds).splitAt t).1 = d0 :: (ds.take (t - 1)) := by
+        cases t; omega; rename_i n; simp
+      rw [h_take_head]
+      have h_left_heights : ∀ c ∈ ds.take (t - 1), heightOf c = heightOf d0 := by
+        intro c hc
+        have hc_mem : c ∈ d0 :: ds :=
+          List.mem_cons_of_mem _ ((List.take_sublist (t - 1) ds).subset hc)
+        exact h_all_eq c hc_mem d0 (by simp)
+      have h_left_height : heightOf (node ((cKeys.splitAt (t - 1)).1) (d0 :: ds.take (t - 1))) =
+          1 + heightOf d0 :=
+        heightOf_uniform_children h_left_heights
+      have h_drop_eq : ((d0 :: ds).splitAt t).2 = ds.drop (t - 1) := by
+        cases t; omega; rename_i n; simp
+      rw [h_drop_eq]
+      have h_right_nonempty : ds.drop (t - 1) ≠ [] := by
+        have hlen_cons : t < (d0 :: ds).length := by simpa [h_cases] using h_gt
+        intro h
+        have hlen0 : (ds.drop (t - 1)).length = 0 := by simpa [h]
+        rw [List.length_drop] at hlen0
+        have : ds.length ≤ t - 1 := by omega
+        have : ds.length + 1 ≤ t := by omega
+        simp at hlen_cons
+        omega
+      match h_drop_suffix : ds.drop (t - 1) with
+      | nil => exact (h_right_nonempty h_drop_suffix).elim
+      | cons e0 es =>
+        have h_right_heights : ∀ c ∈ es, heightOf c = heightOf e0 := by
+          intro c hc
+          have hc_mem : c ∈ d0 :: ds := by
+            apply List.mem_cons_of_mem _
+            have hmem_drop : c ∈ ds.drop (t - 1) := by rw [h_drop_suffix]; simp [hc]
+            exact (List.drop_sublist (t - 1) ds).subset hmem_drop
+          have he0_mem : e0 ∈ d0 :: ds := by
+            apply List.mem_cons_of_mem _
+            have he0_drop : e0 ∈ ds.drop (t - 1) := by rw [h_drop_suffix]; simp
+            exact (List.drop_sublist (t - 1) ds).subset he0_drop
+          exact h_all_eq c hc_mem e0 he0_mem
+        have h_right_height : heightOf (node ((cKeys.splitAt (t - 1)).2.drop 1) (e0 :: es)) =
+            1 + heightOf e0 :=
+          heightOf_uniform_children h_right_heights
+        have h_d0_e0_height : heightOf e0 = heightOf d0 := by
+          have he0_mem : e0 ∈ d0 :: ds := by
+            apply List.mem_cons_of_mem _
+            have he0_drop : e0 ∈ ds.drop (t - 1) := by rw [h_drop_suffix]; simp
+            exact (List.drop_sublist (t - 1) ds).subset he0_drop
+          exact h_all_eq e0 he0_mem d0 (by simp)
+        rw [h_d0_e0_height] at h_right_height
+        rw [h_left_height, h_right_height, hsd_internal]
+        exact ⟨rfl, rfl⟩
+
 theorem splitChild_preserves_sameDepth (t : Nat) (ht : 2 ≤ t)
     (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
     (h_lt : i < children.length)
     (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
     (hchild_full : cKeys.length = 2 * t - 1)
+    (hchild_children : cChildren = [] ∨ t < cChildren.length)
     (hsd : SameDepth (node keys children)) :
     SameDepth (splitChild t (node keys children) i) := by
-  -- The two helper lemmas sameDepth_take and sameDepth_drop prove that
-  -- both new children satisfy SameDepth. The overall result then follows
-  -- by composing SameDepth.internal with the original children.
-  -- The detail of expanding splitChild's let-bindings is a tactical
-  -- issue in Lean 4; the structural proof is sound.
+  have ht_pos : 1 ≤ t := by omega
+  have ht_pos' : 0 < t := by omega
+  have h_keys_snd_nonempty : (cKeys.splitAt (t - 1)).2 ≠ [] := by
+    have hlen : (cKeys.splitAt (t - 1)).2.length = t := by simp [hchild_full]; omega
+    intro h; rw [h] at hlen; simp at hlen; omega
+  dsimp [splitChild]
+  rw [dif_pos h_lt]
+  have h_get : children[i] = node cKeys cChildren := by simpa using hchild_eq
+  rw [h_get]
+  dsimp
+  rw [if_pos hchild_full]
+  cases hk : cKeys.splitAt (t - 1) with
+  | mk leftKeys keysRest =>
+    have h_keysRest_nonempty : keysRest ≠ [] := by
+      have : (cKeys.splitAt (t - 1)).2 = keysRest := by rw [hk]
+      rw [← this]; exact h_keys_snd_nonempty
+    cases hkr : keysRest with
+    | nil => exact (h_keysRest_nonempty hkr).elim
+    | cons medianKey rightKeys =>
+      cases hc : cChildren.splitAt t with
+      | mk leftCh rightCh =>
+        -- The match reduces to the success branch
+        show SameDepth (BTree.node (take i keys ++ medianKey :: drop i keys)
+          (take i children ++ [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+            drop (i + 1) children))
+        cases hsd with
+        | leaf ks => simp at h_lt
+        | internal ks c0 cs h_heights h_sd_c0 h_sd_cs =>
+          have h_sd_child : SameDepth (node cKeys cChildren) := by
+            rcases Nat.eq_zero_or_pos i with (rfl | hi_pos')
+            · have hc0_eq : c0 = node cKeys cChildren := by simpa using hchild_eq
+              rw [← hc0_eq]; exact h_sd_c0
+            · have h_get' : (c0 :: cs).get ⟨i, h_lt⟩ = cs.get ⟨i - 1, by
+                simp at h_lt; omega⟩ := by
+                rcases i with (rfl | i)
+                · exact (Nat.not_lt_zero _ hi_pos').elim
+                · simp
+              have hmem : cs.get ⟨i - 1, by simp at h_lt; omega⟩ ∈ cs := by
+                apply List.get_mem
+              rw [← hchild_eq, h_get']
+              exact h_sd_cs _ hmem
+          have h_keys_left : ((cKeys.splitAt (t - 1)).1) = leftKeys := by rw [hk]
+          have h_keys_right : ((cKeys.splitAt (t - 1)).2.drop 1) = rightKeys := by
+            rw [hk]; simp [hkr]
+          have h_ch_left : ((cChildren.splitAt t).1) = leftCh := by rw [hc]
+          have h_ch_right : ((cChildren.splitAt t).2) = rightCh := by rw [hc]
+          have h_sd_left : SameDepth (node leftKeys leftCh) := by
+            rw [← h_keys_left, ← h_ch_left]; exact sameDepth_take cKeys cChildren t h_sd_child ht_pos
+          have h_sd_right : SameDepth (node rightKeys rightCh) := by
+            rw [← h_keys_right, ← h_ch_right]; exact sameDepth_drop cKeys cChildren t h_sd_child ht_pos
+          have h_heights_split := heightOf_split_parts_eq cKeys cChildren t h_sd_child ht_pos' hchild_children
+          have h_height_left : heightOf (node leftKeys leftCh) = heightOf (node cKeys cChildren) := by
+            rw [← h_keys_left, ← h_ch_left]; exact h_heights_split.1
+          have h_height_right : heightOf (node rightKeys rightCh) = heightOf (node cKeys cChildren) := by
+            rw [← h_keys_right, ← h_ch_right]; exact h_heights_split.2
+          have h_child_eq_c0_height : heightOf (node cKeys cChildren) = heightOf c0 := by
+            rcases Nat.eq_zero_or_pos i with (rfl | hi_pos')
+            · have hc0_eq : c0 = node cKeys cChildren := by simpa using hchild_eq
+              rw [← hc0_eq]
+            · have h_get' : (c0 :: cs).get ⟨i, h_lt⟩ = cs.get ⟨i - 1, by
+                simp at h_lt; omega⟩ := by
+                rcases i with (rfl | i)
+                · exact (Nat.not_lt_zero _ hi_pos').elim
+                · simp
+              have hmem : cs.get ⟨i - 1, by simp at h_lt; omega⟩ ∈ cs := by
+                apply List.get_mem
+              rw [← hchild_eq, h_get']
+              exact h_heights _ hmem
+          rcases Nat.eq_zero_or_pos i with (rfl | hi_pos)
+          · -- i = 0: result children = newLeft :: newRight :: cs
+            have h_rest_heights : ∀ c ∈ (node rightKeys rightCh :: cs),
+                heightOf c = heightOf (node leftKeys leftCh) := by
+              intro c hc; simp at hc; rcases hc with (rfl | hc_cs)
+              · rw [h_height_right, h_height_left]
+              · rw [h_heights c hc_cs, ← h_child_eq_c0_height, h_height_left]
+            have h_rest_sd : ∀ c ∈ (node rightKeys rightCh :: cs), SameDepth c := by
+              intro c hc; simp at hc; rcases hc with (rfl | hc_cs)
+              · exact h_sd_right
+              · exact h_sd_cs c hc_cs
+            refine SameDepth.internal (take 0 keys ++ medianKey :: drop 0 keys)
+              (node leftKeys leftCh) (node rightKeys rightCh :: cs) h_rest_heights h_sd_left h_rest_sd
+          · -- i > 0: result children = c0 :: take(i-1)cs ++ left :: right :: drop i cs
+            have h_take : take i (c0 :: cs) = c0 :: take (i - 1) cs := by
+              rcases i with (rfl | i)
+              · exact (Nat.not_lt_zero _ hi_pos).elim
+              · simp
+            have h_drop_succ : drop (i + 1) (c0 :: cs) = drop i cs := by simp
+            rw [h_take, h_drop_succ]
+            simp only [List.cons_append, List.append_assoc, List.nil_append]
+            have h_rest_heights : ∀ c ∈ (take (i - 1) cs ++ (node leftKeys leftCh :: node rightKeys rightCh :: drop i cs)),
+                heightOf c = heightOf c0 := by
+              intro c hc
+              rw [List.mem_append] at hc
+              rcases hc with (hc | hc)
+              · have hmem : c ∈ cs := (List.take_sublist _ _).subset hc
+                exact h_heights c hmem
+              · simp at hc; rcases hc with (rfl | rfl | hc)
+                · rw [h_height_left, h_child_eq_c0_height]
+                · rw [h_height_right, h_child_eq_c0_height]
+                · have hmem : c ∈ cs := (List.drop_sublist _ _).subset hc
+                  exact h_heights c hmem
+            have h_rest_sd : ∀ c ∈ (take (i - 1) cs ++ (node leftKeys leftCh :: node rightKeys rightCh :: drop i cs)),
+                SameDepth c := by
+              intro c hc
+              rw [List.mem_append] at hc
+              rcases hc with (hc | hc)
+              · have hmem : c ∈ cs := (List.take_sublist _ _).subset hc
+                exact h_sd_cs c hmem
+              · simp at hc; rcases hc with (rfl | rfl | hc)
+                · exact h_sd_left
+                · exact h_sd_right
+                · have hmem : c ∈ cs := (List.drop_sublist _ _).subset hc
+                  exact h_sd_cs c hmem
+            refine SameDepth.internal (take i keys ++ medianKey :: drop i keys) c0
+              (take (i - 1) cs ++ (node leftKeys leftCh :: node rightKeys rightCh :: drop i cs))
+              h_rest_heights h_sd_c0 h_rest_sd
+
+/-! ## splitChild occupancy preservation (stub)
+
+The following theorem states that `splitChild` preserves the `Occupancy`
+invariant.  The proof requires:
+1. Arithmetic showing that the two new children have `t-1` keys each
+   (from `splitAt_first_half_length` / `splitAt_second_half_length`)
+2. Arithmetic showing that children counts stay within `[t, 2t]`
+   (requires `ChildBounded` to know `cChildren.length = 2t` when non-empty)
+3. Propagation of sub-node occupancy from the original child.
+-/
+
+theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
+    (keys : List Nat) (children : List BTree)
+    (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
+    (h_lt : i < children.length)
+    (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
+    (hchild_full : cKeys.length = 2 * t - 1)
+    (hparent_nonfull : keys.length < 2 * t - 1)
+    (h_occ : Occupancy t true (node keys children))
+    (h_cb : ChildBounded (node keys children)) :
+    Occupancy t true (splitChild t (node keys children) i) := by
+  -- TODO: fill occupancy preservation proof
+  -- The structure is:
+  -- 1. Unfold splitChild with the known hypotheses
+  -- 2. Extract the child's occupancy via `h_occ`'s sub-node condition
+  -- 3. Prove the two new children satisfy `Occupancy t false` (t-1 keys, proper children count)
+  -- 4. Prove the parent after split satisfies `Occupancy t true` (keys+1 ≤ 2t-1, children+1 ≤ 2t)
   sorry
 
 end BTree
