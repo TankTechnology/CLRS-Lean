@@ -555,17 +555,131 @@ theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
     (h_occ : Occupancy t true (node keys children))
     (h_cb : ChildBounded (node keys children)) :
     Occupancy t true (splitChild t (node keys children) i) := by
-  -- The proof requires:
-  -- 1. leftKeys and rightKeys each have t-1 keys (from splitAt arithmetic)
-  -- 2. leftCh has t children, rightCh has t children (when child is internal,
-  --    from ChildBounded giving cChildren.length = 2t; when leaf, both are empty)
-  -- 3. Parent: keys.length+1 ≤ 2t-1 (from hparent_nonfull), children.length+1 ≤ 2t
-  --    (from ChildBounded: children.length = keys.length+1 ≤ 2t-1)
-  -- 4. Sub-node occupancy propagates from original child via take/drop sublists
-  --
-  -- The proof structure mirrors splitChild_preserves_sameDepth: unfold splitChild,
-  -- destruct splits, then prove the four Occupancy conjuncts.
-  sorry
+  have ht_pos : 0 < t := by omega
+  have ht_pos' : 1 ≤ t := by omega
+  -- Extract child invariants
+  have hchild_occ : Occupancy t false (node cKeys cChildren) := by
+    rw [← hchild_eq]; exact occupancy_of_child h_occ i h_lt
+  have hchild_cb : ChildBounded (node cKeys cChildren) := by
+    rw [← hchild_eq]; unfold ChildBounded at h_cb
+    rcases h_cb with ⟨_, _, h_sub⟩; apply h_sub; apply List.get_mem
+  have h_cChildren_len := child_children_len_of_full_cb ht hchild_cb hchild_full
+  -- Unfold splitChild (same pattern as splitChild_preserves_sameDepth)
+  have h_keys_snd_nonempty : (cKeys.splitAt (t - 1)).2 ≠ [] := by
+    have hlen : (cKeys.splitAt (t - 1)).2.length = t := by simp [hchild_full]; omega
+    intro h; rw [h] at hlen; simp at hlen; omega
+  dsimp [splitChild]; rw [dif_pos h_lt]
+  have h_get : children[i] = node cKeys cChildren := by simpa using hchild_eq
+  rw [h_get]; dsimp; rw [if_pos hchild_full]
+  cases hk : cKeys.splitAt (t - 1) with
+  | mk leftKeys keysRest =>
+    have h_keysRest_nonempty : keysRest ≠ [] := by
+      have : (cKeys.splitAt (t - 1)).2 = keysRest := by rw [hk]
+      rw [← this]; exact h_keys_snd_nonempty
+    cases hkr : keysRest with
+    | nil => exact (h_keysRest_nonempty hkr).elim
+    | cons medianKey rightKeys =>
+      cases hc : cChildren.splitAt t with
+      | mk leftCh rightCh =>
+        show Occupancy t true (BTree.node (take i keys ++ medianKey :: drop i keys)
+          (take i children ++ [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+            drop (i + 1) children))
+        -- Relate local names to splitAt results (matching SameDepth proof pattern)
+        have h_keys_left : ((cKeys.splitAt (t - 1)).1) = leftKeys := by rw [hk]
+        have h_keys_right : ((cKeys.splitAt (t - 1)).2.drop 1) = rightKeys := by
+          rw [hk]; simp [hkr]
+        have h_ch_left : ((cChildren.splitAt t).1) = leftCh := by rw [hc]
+        have h_ch_right : ((cChildren.splitAt t).2) = rightCh := by rw [hc]
+        -- Key length facts (using ← to apply splitAt lemmas)
+        have h_leftKeys_len : leftKeys.length = t - 1 := by
+          rw [← h_keys_left]; exact splitAt_first_half_length cKeys t hchild_full
+        have h_rightKeys_len : rightKeys.length = t - 1 := by
+          rw [← h_keys_right]; exact splitAt_second_half_length cKeys t hchild_full ht_pos'
+        -- Children count bounds for the two new children
+        have h_leftCh_bound : leftCh.isEmpty ∨ (t ≤ leftCh.length ∧ leftCh.length ≤ 2 * t) := by
+          rcases h_cChildren_len with (h0 | h2t)
+          · -- cChildren.length = 0 → cChildren = [] → leftCh = []
+            have hnil : cChildren = [] := by
+              cases cChildren with | nil => rfl | cons x xs => simp at h0
+            left; rw [← h_ch_left, hnil]; simp
+          · -- cChildren.length = 2t → leftCh.length = t
+            right; rw [← h_ch_left]; simp [h2t]; omega
+        have h_rightCh_bound : rightCh.isEmpty ∨ (t ≤ rightCh.length ∧ rightCh.length ≤ 2 * t) := by
+          rcases h_cChildren_len with (h0 | h2t)
+          · have hnil : cChildren = [] := by
+              cases cChildren with | nil => rfl | cons x xs => simp at h0
+            left; rw [← h_ch_right, hnil]; simp
+          · right; rw [← h_ch_right]; simp [h2t]; omega
+        -- Occupancy for the two new children (non-root)
+        have h_occ_left : Occupancy t false (BTree.node leftKeys leftCh) := by
+          unfold Occupancy
+          refine ⟨?_, ?_, h_leftCh_bound, ?_⟩
+          · rw [h_leftKeys_len]; exact le_rfl
+          · rw [h_leftKeys_len]; omega
+          · intro child hchild
+            rw [← h_ch_left] at hchild; simp at hchild
+            have : child ∈ cChildren :=
+              (take_sublist t cChildren).subset hchild
+            unfold Occupancy at hchild_occ
+            rcases hchild_occ with ⟨_, _, _, h_occ_sub⟩
+            exact h_occ_sub child this
+        have h_occ_right : Occupancy t false (BTree.node rightKeys rightCh) := by
+          unfold Occupancy
+          refine ⟨?_, ?_, h_rightCh_bound, ?_⟩
+          · rw [h_rightKeys_len]; exact le_rfl
+          · rw [h_rightKeys_len]; omega
+          · intro child hchild
+            rw [← h_ch_right] at hchild; simp at hchild
+            have : child ∈ cChildren :=
+              (drop_sublist t cChildren).subset hchild
+            unfold Occupancy at hchild_occ
+            rcases hchild_occ with ⟨_, _, _, h_occ_sub⟩
+            exact h_occ_sub child this
+        -- Parent occupancy after split: prove the four conjuncts
+        -- Derive i ≤ keys.length from ChildBounded and h_lt
+        have h_i_le_keys : i ≤ keys.length := by
+          unfold ChildBounded at h_cb; rcases h_cb with ⟨h_cb_rel, _, _⟩
+          rcases h_cb_rel with (h_cb_empty | h_cb_eq)
+          · have h_len0 : children.length = 0 := by simpa using h_cb_empty
+            have : i < 0 := by rwa [h_len0] at h_lt
+            omega
+          · rw [h_cb_eq] at h_lt; omega
+        unfold Occupancy
+        have h_newKeys_len : (take i keys ++ medianKey :: drop i keys).length = keys.length + 1 := by
+          simp [h_i_le_keys]; omega
+        have h_newChildren_len : (take i children ++
+            [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+            drop (i + 1) children).length = children.length + 1 := by
+          simp; omega
+        refine ⟨?_, ?_, ?_, ?_⟩
+        · -- lower bound: (if nonempty then 1 else 0) ≤ newKeys.length
+          sorry
+        · -- newKeys.length ≤ 2t-1 (parent was not full, added 1 key)
+          rw [h_newKeys_len]; omega
+        · -- children count bound: newChildren.length ≤ 2t
+          rw [h_newChildren_len]
+          sorry
+        · -- sub-node occupancy propagation
+          -- newChildren = (take i children) ++ [newLeft, newRight] ++ (drop (i+1) children)
+          -- Due to ++ associativity: (take ++ [a,b]) ++ drop
+          intro child hchild
+          have h_or := List.mem_append.mp hchild
+          rcases h_or with (h_take_or_new | h_drop)
+          · -- child ∈ take i children ++ [newLeft, newRight]
+            have h_or2 := List.mem_append.mp h_take_or_new
+            rcases h_or2 with (h_take | h_new)
+            · -- child ∈ take i children → inherits from parent occupancy
+              have hmem : child ∈ children := (take_sublist i children).subset h_take
+              unfold Occupancy at h_occ; rcases h_occ with ⟨_, _, _, h_pocc_sub⟩
+              exact h_pocc_sub child hmem
+            · -- child ∈ [newLeft, newRight]
+              simp at h_new; rcases h_new with (rfl | rfl)
+              · exact h_occ_left
+              · exact h_occ_right
+          · -- child ∈ drop (i+1) children → inherits from parent occupancy
+            have hmem : child ∈ children := (drop_sublist (i+1) children).subset h_drop
+            unfold Occupancy at h_occ; rcases h_occ with ⟨_, _, _, h_pocc_sub⟩
+            exact h_pocc_sub child hmem
 
 theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
     (keys : List Nat) (children : List BTree)
@@ -576,10 +690,18 @@ theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
     (h_sorted : Sorted (node keys children))
     (h_cb : ChildBounded (node keys children)) :
     Sorted (splitChild t (node keys children) i) := by
-  -- Sorted means: parent keys are pairwise ≤ and all children are Sorted.
-  -- After splitChild: the median key is inserted into the parent's keys;
-  -- it fits between keys[i-1] and keys[i] by ChildBounded. The two new
-  -- children carry subtrees of the original sorted child.
+  -- Extract child's Sorted and the parent's Pairwise property
+  unfold Sorted at h_sorted
+  rcases h_sorted with ⟨h_keys_pairwise, h_children_sorted⟩
+  have hchild_sorted : Sorted (BTree.node cKeys cChildren) := by
+    rw [← hchild_eq]
+    apply h_children_sorted
+    apply List.get_mem
+  -- The split operation preserves sortedness because:
+  -- 1. The two new children are subtrees of the sorted child → sorted
+  -- 2. The medianKey (which was in the sorted child) fits between keys[i-1] and keys[i]
+  --    due to ChildBounded key-range invariant
+  -- The key insertion lemma for List.Pairwise is the main proof obligation.
   sorry
 
 theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
@@ -590,10 +712,12 @@ theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (hchild_full : cKeys.length = 2 * t - 1)
     (h_cb : ChildBounded (node keys children)) :
     ChildBounded (splitChild t (node keys children) i) := by
-  -- ChildBounded has three conjuncts:
-  -- 1. newChildren.length = newKeys.length + 1 (one child split into two, one key added)
-  -- 2. Key-range bounds for the two new children (medianKey provides the boundary)
-  -- 3. Recursive ChildBounded for all children
+  -- After splitChild:
+  -- 1. Count relation: newChildren.length = newKeys.length + 1
+  --    (original had children = keys+1; we add 1 key and split 1 child → +1 to both)
+  -- 2. Key-range bounds: for the two new children, medianKey is the upper bound
+  --    of the left child and the lower bound of the right child
+  -- 3. All children (old and new) recursively satisfy ChildBounded
   sorry
 
 end BTree
