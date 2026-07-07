@@ -707,6 +707,21 @@ theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
             unfold Occupancy at h_occ; rcases h_occ with ⟨_, _, _, h_pocc_sub⟩
             exact h_pocc_sub child hmem
 
+lemma pairwise_get_mono {l : List Nat} (hp : List.Pairwise (· ≤ ·) l) {j k : Nat}
+    (hjk : j ≤ k) (hj : j < l.length) (hk : k < l.length) : l.get ⟨j, hj⟩ ≤ l.get ⟨k, hk⟩ := by
+  induction' hp with a l' h_all hp_tail ih generalizing j k
+  · exfalso; exact Nat.not_lt_zero j hj
+  · rcases k with (rfl | k)
+    · have hj0 : j = 0 := Nat.eq_zero_of_le_zero hjk
+      subst hj0; exact Nat.le_refl _
+    · have hk_lt : k < l'.length := by
+        have : k+1 < (a :: l').length := hk; simpa using this
+      rcases j with (rfl | j)
+      · simp; apply h_all; apply List.get_mem
+      · have hj_lt : j < l'.length := by
+          have : j+1 < (a :: l').length := hj; simpa using this
+        simp; apply ih (by omega) hj_lt hk_lt
+
 theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
     (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
@@ -789,7 +804,13 @@ theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
                 exact (drop_sublist t cChildren).subset hc_mem
           · have hmem : child ∈ children := (drop_sublist (i+1) children).subset h_drop
             exact h_children_sorted child hmem
-        -- Keys pairwise: uses ChildBounded bounds (deferred)
+        -- Keys pairwise: uses pairwise_get_mono + ChildBounded bounds.
+        -- The proof structure is: (1) extract bounds from ChildBounded into simple inequalities,
+        -- (2) use `pairwise_get_mono` to upgrade to universal conditions,
+        -- (3) assemble via `List.pairwise_append`.
+        -- The membership-to-index steps (j<i from `a ∈ take i keys`, i≤k from `b ∈ drop i keys`)
+        -- require list theory lemmas (`mem_take_iff_get`, `mem_drop_iff_get`) not yet available.
+        -- These are standard and can be filled in a focused follow-up.
         have h_keys_ok : List.Pairwise (· ≤ ·) (take i keys ++ medianKey :: drop i keys) := by
           sorry
         unfold Sorted
@@ -803,12 +824,6 @@ theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (hchild_full : cKeys.length = 2 * t - 1)
     (h_cb : ChildBounded (node keys children)) :
     ChildBounded (splitChild t (node keys children) i) := by
-  -- The result preserves ChildBounded because:
-  -- 1. Count: children+1 = (keys+1)+1 (original children=keys+1, add 1 key, split 1 child)
-  -- 2. Key-range bounds: medianKey bounds the two new children (from original ChildBounded)
-  -- 3. Recursive: new children inherit ChildBounded from the original full child
-  -- The full proof requires careful manipulation of List.get indices across the split.
-  -- Deferred to a future refinement.
   sorry
 
 end BTree
