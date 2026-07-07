@@ -651,14 +651,40 @@ theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
             [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
             drop (i + 1) children).length = children.length + 1 := by
           simp; omega
+        have h_occ_copy : Occupancy t true (node keys children) := h_occ
         refine ⟨?_, ?_, ?_, ?_⟩
-        · -- lower bound: (if nonempty then 1 else 0) ≤ newKeys.length
-          sorry
+        · -- lower bound: the newKeys list is non-empty (contains medianKey)
+          have h_ne_nil : take i keys ++ medianKey :: drop i keys ≠ [] := by simp
+          have h_pos : 0 < (take i keys ++ medianKey :: drop i keys).length := by omega
+          have h_one_le : 1 ≤ (take i keys ++ medianKey :: drop i keys).length := by omega
+          have h_if_val : (if (take i keys ++ medianKey :: drop i keys).length = 0 ∧
+              (take i children ++ [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+                drop (i+1) children).isEmpty then 0 else 1) = 1 := by
+            by_cases hzero : (take i keys ++ medianKey :: drop i keys).length = 0
+            · exfalso; exact h_pos.ne' hzero
+            · simp [hzero]
+          rw [h_if_val]; exact h_one_le
         · -- newKeys.length ≤ 2t-1 (parent was not full, added 1 key)
           rw [h_newKeys_len]; omega
-        · -- children count bound: newChildren.length ≤ 2t
-          rw [h_newChildren_len]
-          sorry
+        · -- children count: newChildren non-empty, length = children.length + 1
+          rw [h_newChildren_len]; right
+          have h_low : t ≤ children.length + 1 := by
+            unfold Occupancy at h_occ_copy; rcases h_occ_copy with ⟨_, _, h_pocc_ch, _⟩
+            rcases h_pocc_ch with (h_empty | ⟨h_low', _⟩)
+            · have h_len0 : children.length = 0 := by simpa using h_empty
+              rw [h_len0]; omega
+            · omega
+          have h_high : children.length + 1 ≤ 2 * t := by
+            unfold ChildBounded at h_cb; rcases h_cb with ⟨h_cb_rel, _, _⟩
+            rcases h_cb_rel with (h_cb_empty | h_cb_eq)
+            · have h_len0 : children.length = 0 := by simpa using h_cb_empty
+              rw [h_len0]; omega
+            · rw [h_cb_eq]
+              have h_add := Nat.add_lt_add_right hparent_nonfull 1
+              rw [Nat.sub_add_cancel (show 1 ≤ 2 * t from by omega)] at h_add
+              rw [← Nat.succ_eq_add_one (keys.length + 1)]
+              exact Nat.succ_le_of_lt h_add
+          exact ⟨h_low, h_high⟩
         · -- sub-node occupancy propagation
           -- newChildren = (take i children) ++ [newLeft, newRight] ++ (drop (i+1) children)
           -- Due to ++ associativity: (take ++ [a,b]) ++ drop
@@ -690,19 +716,36 @@ theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
     (h_sorted : Sorted (node keys children))
     (h_cb : ChildBounded (node keys children)) :
     Sorted (splitChild t (node keys children) i) := by
-  -- Extract child's Sorted and the parent's Pairwise property
-  unfold Sorted at h_sorted
-  rcases h_sorted with ⟨h_keys_pairwise, h_children_sorted⟩
-  have hchild_sorted : Sorted (BTree.node cKeys cChildren) := by
-    rw [← hchild_eq]
-    apply h_children_sorted
-    apply List.get_mem
-  -- The split operation preserves sortedness because:
-  -- 1. The two new children are subtrees of the sorted child → sorted
-  -- 2. The medianKey (which was in the sorted child) fits between keys[i-1] and keys[i]
-  --    due to ChildBounded key-range invariant
-  -- The key insertion lemma for List.Pairwise is the main proof obligation.
-  sorry
+  -- Unfold splitChild
+  have h_keys_snd_nonempty : (cKeys.splitAt (t - 1)).2 ≠ [] := by
+    have hlen : (cKeys.splitAt (t - 1)).2.length = t := by simp [hchild_full]; omega
+    intro h; rw [h] at hlen; simp at hlen; omega
+  dsimp [splitChild]; rw [dif_pos h_lt]
+  have h_get : children[i] = node cKeys cChildren := by simpa using hchild_eq
+  rw [h_get]; dsimp; rw [if_pos hchild_full]
+  cases hk : cKeys.splitAt (t - 1) with
+  | mk leftKeys keysRest =>
+    have h_keysRest_nonempty : keysRest ≠ [] := by
+      have : (cKeys.splitAt (t - 1)).2 = keysRest := by rw [hk]
+      rw [← this]; exact h_keys_snd_nonempty
+    cases hkr : keysRest with
+    | nil => exact (h_keysRest_nonempty hkr).elim
+    | cons medianKey rightKeys =>
+      cases hc : cChildren.splitAt t with
+      | mk leftCh rightCh =>
+        show Sorted (BTree.node (take i keys ++ medianKey :: drop i keys)
+          (take i children ++ [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+            drop (i + 1) children))
+        unfold Sorted at h_sorted; rcases h_sorted with ⟨h_keys_pairwise, h_children_sorted⟩
+        have hchild_sorted : Sorted (BTree.node cKeys cChildren) := by
+          rw [← hchild_eq]; apply h_children_sorted; apply List.get_mem
+        unfold Sorted at hchild_sorted
+        rcases hchild_sorted with ⟨h_cKeys_pairwise, h_cChildren_sorted⟩
+        -- Proving result keys pairwise relies on ChildBounded key-range.
+        -- The medianKey is from cKeys; ChildBounded bounds it between keys[i-1] and keys[i].
+        -- Using List.Pairwise.take, List.Pairwise.drop, this constructs the full pairwise.
+        -- For full mathematical rigor, this is deferred to a future refinement.
+        sorry
 
 theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (keys : List Nat) (children : List BTree)
@@ -712,12 +755,12 @@ theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (hchild_full : cKeys.length = 2 * t - 1)
     (h_cb : ChildBounded (node keys children)) :
     ChildBounded (splitChild t (node keys children) i) := by
-  -- After splitChild:
-  -- 1. Count relation: newChildren.length = newKeys.length + 1
-  --    (original had children = keys+1; we add 1 key and split 1 child → +1 to both)
-  -- 2. Key-range bounds: for the two new children, medianKey is the upper bound
-  --    of the left child and the lower bound of the right child
-  -- 3. All children (old and new) recursively satisfy ChildBounded
+  -- The result preserves ChildBounded because:
+  -- 1. Count: children+1 = (keys+1)+1 (original children=keys+1, add 1 key, split 1 child)
+  -- 2. Key-range bounds: medianKey bounds the two new children (from original ChildBounded)
+  -- 3. Recursive: new children inherit ChildBounded from the original full child
+  -- The full proof requires careful manipulation of List.get indices across the split.
+  -- Deferred to a future refinement.
   sorry
 
 end BTree
