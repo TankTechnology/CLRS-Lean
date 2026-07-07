@@ -555,16 +555,45 @@ theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
     (h_occ : Occupancy t true (node keys children))
     (h_cb : ChildBounded (node keys children)) :
     Occupancy t true (splitChild t (node keys children) i) := by
-  have ht_pos : 0 < t := by omega
-  have ht_pos' : 1 ≤ t := by omega
-  -- The proof structure is clear but requires careful arithmetic reasoning.
-  -- The steps are:
-  -- 1. Extract the child's Occupancy and ChildBounded from the parent
-  -- 2. Unfold splitChild to the explicit BTree.node form
-  -- 3. Prove the two new children each have t-1 keys and valid children counts
-  --    (t children if the original child was internal, 0 if it was a leaf)
-  -- 4. Prove the parent gains 1 key (stays ≤ 2t-1) and 1 child (stays ≤ 2t)
-  -- 5. Propagate sub-node occupancy from the original child
+  -- The proof requires:
+  -- 1. leftKeys and rightKeys each have t-1 keys (from splitAt arithmetic)
+  -- 2. leftCh has t children, rightCh has t children (when child is internal,
+  --    from ChildBounded giving cChildren.length = 2t; when leaf, both are empty)
+  -- 3. Parent: keys.length+1 ≤ 2t-1 (from hparent_nonfull), children.length+1 ≤ 2t
+  --    (from ChildBounded: children.length = keys.length+1 ≤ 2t-1)
+  -- 4. Sub-node occupancy propagates from original child via take/drop sublists
+  --
+  -- The proof structure mirrors splitChild_preserves_sameDepth: unfold splitChild,
+  -- destruct splits, then prove the four Occupancy conjuncts.
+  sorry
+
+theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
+    (keys : List Nat) (children : List BTree)
+    (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
+    (h_lt : i < children.length)
+    (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
+    (hchild_full : cKeys.length = 2 * t - 1)
+    (h_sorted : Sorted (node keys children))
+    (h_cb : ChildBounded (node keys children)) :
+    Sorted (splitChild t (node keys children) i) := by
+  -- Sorted means: parent keys are pairwise ≤ and all children are Sorted.
+  -- After splitChild: the median key is inserted into the parent's keys;
+  -- it fits between keys[i-1] and keys[i] by ChildBounded. The two new
+  -- children carry subtrees of the original sorted child.
+  sorry
+
+theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
+    (keys : List Nat) (children : List BTree)
+    (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
+    (h_lt : i < children.length)
+    (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
+    (hchild_full : cKeys.length = 2 * t - 1)
+    (h_cb : ChildBounded (node keys children)) :
+    ChildBounded (splitChild t (node keys children) i) := by
+  -- ChildBounded has three conjuncts:
+  -- 1. newChildren.length = newKeys.length + 1 (one child split into two, one key added)
+  -- 2. Key-range bounds for the two new children (medianKey provides the boundary)
+  -- 3. Recursive ChildBounded for all children
   sorry
 
 end BTree
