@@ -525,6 +525,26 @@ invariant.  The proof requires:
 3. Propagation of sub-node occupancy from the original child.
 -/
 
+-- Helper: extract child occupancy from parent occupancy
+lemma occupancy_of_child {minDegree : Nat} {isRoot : Bool} {keys : List Nat} {children : List BTree}
+    (h_occ : Occupancy minDegree isRoot (node keys children))
+    (i : Nat) (hi : i < children.length) :
+    Occupancy minDegree false (children.get ⟨i, hi⟩) := by
+  unfold Occupancy at h_occ
+  rcases h_occ with ⟨_, _, _, h_sub⟩
+  apply h_sub
+  apply List.get_mem
+
+-- Helper: from ChildBounded of a full node, children length is 0 or 2t
+lemma child_children_len_of_full_cb {t : Nat} (ht : 2 ≤ t) {cKeys : List Nat} {cChildren : List BTree}
+    (h_cb : ChildBounded (node cKeys cChildren)) (h_full : cKeys.length = 2 * t - 1) :
+    cChildren.length = 0 ∨ cChildren.length = 2 * t := by
+  unfold ChildBounded at h_cb
+  rcases h_cb with ⟨h_rel, _, _⟩
+  rcases h_rel with (h_empty | h_eq)
+  · left; cases cChildren with | nil => rfl | cons x xs => simp at h_empty
+  · right; rw [h_eq, h_full]; omega
+
 theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
     (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
@@ -535,12 +555,16 @@ theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
     (h_occ : Occupancy t true (node keys children))
     (h_cb : ChildBounded (node keys children)) :
     Occupancy t true (splitChild t (node keys children) i) := by
-  -- TODO: fill occupancy preservation proof
-  -- The structure is:
-  -- 1. Unfold splitChild with the known hypotheses
-  -- 2. Extract the child's occupancy via `h_occ`'s sub-node condition
-  -- 3. Prove the two new children satisfy `Occupancy t false` (t-1 keys, proper children count)
-  -- 4. Prove the parent after split satisfies `Occupancy t true` (keys+1 ≤ 2t-1, children+1 ≤ 2t)
+  have ht_pos : 0 < t := by omega
+  have ht_pos' : 1 ≤ t := by omega
+  -- The proof structure is clear but requires careful arithmetic reasoning.
+  -- The steps are:
+  -- 1. Extract the child's Occupancy and ChildBounded from the parent
+  -- 2. Unfold splitChild to the explicit BTree.node form
+  -- 3. Prove the two new children each have t-1 keys and valid children counts
+  --    (t children if the original child was internal, 0 if it was a leaf)
+  -- 4. Prove the parent gains 1 key (stays ≤ 2t-1) and 1 child (stays ≤ 2t)
+  -- 5. Propagate sub-node occupancy from the original child
   sorry
 
 end BTree
