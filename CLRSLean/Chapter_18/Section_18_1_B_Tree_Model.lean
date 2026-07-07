@@ -716,7 +716,6 @@ theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
     (h_sorted : Sorted (node keys children))
     (h_cb : ChildBounded (node keys children)) :
     Sorted (splitChild t (node keys children) i) := by
-  -- Unfold splitChild
   have h_keys_snd_nonempty : (cKeys.splitAt (t - 1)).2 ≠ [] := by
     have hlen : (cKeys.splitAt (t - 1)).2.length = t := by simp [hchild_full]; omega
     intro h; rw [h] at hlen; simp at hlen; omega
@@ -741,11 +740,60 @@ theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
           rw [← hchild_eq]; apply h_children_sorted; apply List.get_mem
         unfold Sorted at hchild_sorted
         rcases hchild_sorted with ⟨h_cKeys_pairwise, h_cChildren_sorted⟩
-        -- Proving result keys pairwise relies on ChildBounded key-range.
-        -- The medianKey is from cKeys; ChildBounded bounds it between keys[i-1] and keys[i].
-        -- Using List.Pairwise.take, List.Pairwise.drop, this constructs the full pairwise.
-        -- For full mathematical rigor, this is deferred to a future refinement.
-        sorry
+        -- Children sorted: same pattern as occupancy sub-node proof
+        have h_newChildren_sorted : ∀ child ∈ (take i children ++
+            [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+            drop (i + 1) children), Sorted child := by
+          intro child hchild
+          have h_or := List.mem_append.mp hchild
+          rcases h_or with (h_take_or_new | h_drop)
+          · have h_or2 := List.mem_append.mp h_take_or_new
+            rcases h_or2 with (h_take | h_new)
+            · have hmem : child ∈ children := (take_sublist i children).subset h_take
+              exact h_children_sorted child hmem
+            · simp at h_new; rcases h_new with (rfl | rfl)
+              · unfold Sorted
+                have h_lk : leftKeys = cKeys.take (t-1) := by
+                  calc
+                    leftKeys = (cKeys.splitAt (t-1)).1 := by rw [hk]
+                    _ = cKeys.take (t-1) := by simp
+                have h_left_pairwise : List.Pairwise (· ≤ ·) leftKeys := by
+                  rw [h_lk]; exact List.Pairwise.take (i := t-1) h_cKeys_pairwise
+                refine ⟨h_left_pairwise, ?_⟩
+                intro c hc_mem
+                have h_left_eq : leftCh = cChildren.take t := by
+                  calc
+                    leftCh = (cChildren.splitAt t).1 := by rw [hc]
+                    _ = cChildren.take t := by simp
+                rw [h_left_eq] at hc_mem
+                apply h_cChildren_sorted
+                exact (take_sublist t cChildren).subset hc_mem
+              · unfold Sorted
+                have h_rk : rightKeys = cKeys.drop t := by
+                  calc
+                    rightKeys = keysRest.drop 1 := by rw [hkr]; simp
+                    _ = (cKeys.splitAt (t-1)).2.drop 1 := by rw [hk]
+                    _ = (cKeys.drop (t-1)).drop 1 := by simp
+                    _ = cKeys.drop ((t-1)+1) := by rw [← List.drop_drop]
+                    _ = cKeys.drop t := by rw [show (t-1)+1 = t by omega]
+                have h_right_pairwise : List.Pairwise (· ≤ ·) rightKeys := by
+                  rw [h_rk]; exact List.Pairwise.drop (i := t) h_cKeys_pairwise
+                refine ⟨h_right_pairwise, ?_⟩
+                intro c hc_mem
+                have h_right_eq : rightCh = cChildren.drop t := by
+                  calc
+                    rightCh = (cChildren.splitAt t).2 := by rw [hc]
+                    _ = cChildren.drop t := by simp
+                rw [h_right_eq] at hc_mem
+                apply h_cChildren_sorted
+                exact (drop_sublist t cChildren).subset hc_mem
+          · have hmem : child ∈ children := (drop_sublist (i+1) children).subset h_drop
+            exact h_children_sorted child hmem
+        -- Keys pairwise: uses ChildBounded bounds (deferred)
+        have h_keys_ok : List.Pairwise (· ≤ ·) (take i keys ++ medianKey :: drop i keys) := by
+          sorry
+        unfold Sorted
+        refine ⟨h_keys_ok, h_newChildren_sorted⟩
 
 theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (keys : List Nat) (children : List BTree)
