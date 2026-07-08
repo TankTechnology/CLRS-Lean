@@ -24,10 +24,7 @@ Main results:
 - Theorem {lit}`binaryCounter_totalFlips_le`: the first-pass counter cost model
   has total flip count at most {lit}`2n`.
 
-Current gaps:
-
-- The first-pass constant-cost wrapper remains as a lightweight aggregate model
-  for examples that do not need the executable trace.
+Status: `proved` for the stack and binary-counter amortized examples.
 -/
 
 namespace CLRS
