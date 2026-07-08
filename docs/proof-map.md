@@ -1430,6 +1430,10 @@ allocator semantics remain future refinements.
   - `CLRS.Chapter18.BTree.splitChild_keys_perm`
   - `CLRS.Chapter18.BTree.insertNonFull` (real recursive CLRS insertion, `heightOf` termination)
   - `CLRS.Chapter18.BTree.insertNonFull_keys_perm` (insertion adds exactly one key; depends on `splitChild`/`childBounded_take_of_full`/`childBounded_drop_of_full`)
+  - `CLRS.Chapter18.BTree.findChild_le` / `findChild_take_le` / `findChild_drop_gt` (child-selection range correctness)
+  - `CLRS.Chapter18.BTree.sortedInsert_perm` / `mem_sortedInsert` / `sortedInsert_sorted`
+  - `CLRS.Chapter18.BTree.sameDepth_iff` / `heightOf_sameDepth_mem` (SameDepth infra)
+  - `CLRS.Chapter18.BTree.insertNonFull_sameDepth_height` (insertNonFull preserves SameDepth + heightOf; needs ChildBounded + SameDepth) with corollaries `insertNonFull_sameDepth`, `insertNonFull_height`
   - `CLRS.Chapter18.BTree.splitChild_valid`
   - `CLRS.Chapter18.BTree.splitChild_mem_iff`
   - `CLRS.Chapter18.BTree.splitChild_mem_old`
