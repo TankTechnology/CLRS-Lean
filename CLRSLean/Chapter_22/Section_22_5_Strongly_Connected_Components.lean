@@ -535,11 +535,54 @@ theorem scc_finish_time_order {C D : Set V}
         have hle := hdisc_min_D v hv; omega
     -- In particular, the max-finish vertex d ∈ D is white in s
     have hwhite_d : s.color d = Color.white := hwhite_D d hdD
-    -- rC can reach d (via C→D edge), and the path is white in s.
-    -- By the white-path theorem, dfsVisit from rC blackens d, so f[d] < f[rC].
-    -- The f values are preserved from the dfsVisit to G.dfs (admitted).
-    -- Hence finishTime(G.dfs) d < finishTime(G.dfs) rC ≤ finishTime(G.dfs) c.
-    sorry
+    have hne_d_rC : d ≠ rC := by
+      intro heq; subst d; apply hne
+      exact IsSCC_eq_of_nonempty_inter G hC hD ⟨rC, hrC_mem, hdD⟩
+    -- rC can reach d via the C→D edge (Lemma 3)
+    have h_reach_rC_d : G.Reachable rC d :=
+      reachable_scc_to_scc G hCsc hDsc hedge hrC_mem hdD
+    -- Now d is white-reachable from rC in state s, since the entire path lies
+    -- in C ∪ D (all white in s).  We use WhiteReachable.of_reachable_through_set.
+    let S : Set V := {w | w ∈ C ∨ w ∈ D}
+    have hS_path : ∀ w, G.Reachable rC w → G.Reachable w d → w ∈ S := by
+      intro w h1 h2
+      dsimp [S]
+      by_cases hCw : w ∈ C
+      · exact Or.inl hCw
+      · by_cases hDw : w ∈ D
+        · exact Or.inr hDw
+        · -- w ∉ C and w ∉ D: impossible for SCC path
+          sorry
+    have hS_white : ∀ w ∈ S, s.color w = Color.white := by
+      intro w hw; rcases hw with (hwC | hwD)
+      · exact hwhite_C w hwC
+      · exact hwhite_D w hwD
+    have h_wr_rC_d : WhiteReachable G s rC d :=
+      WhiteReachable.of_reachable_through_set G hS_path hS_white h_reach_rC_d
+    -- By the white-path theorem, dfsVisit from rC blackens d
+    have h_card : f ≥ (whiteReachableSet G s rC).card + 1 := by
+      -- The fuel from exists_discovery_state is sufficient
+      sorry
+    have h_black_d : (dfsVisit G f rC s).color d = Color.black := by
+      apply dfsVisit_white_path_black G hs_white (hCsub hrC_mem) h_card
+      exact WhiteReachable.mem_set G (hCsub hrC_mem) h_wr_rC_d
+    -- d finishes before rC in the dfsVisit output
+    have h_finish_lt : finishTime (dfsVisit G f rC s) d < finishTime (dfsVisit G f rC s) rC := by
+      apply dfsVisit_finish_lt_source_finish G (by omega) hs_white ?_ hwhite_d h_black_d hne_d_rC
+      -- need hinv: black vertices in s have finishTime < s.time
+      sorry
+    -- f values preserved from dfsVisit to G.dfs (admitted)
+    have h_f_preserved_d : finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d := by sorry
+    have h_f_preserved_rC : finishTime (G.dfs) rC = finishTime (dfsVisit G f rC s) rC := by sorry
+    have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
+      calc
+        finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d := h_f_preserved_d
+        _ < finishTime (dfsVisit G f rC s) rC := h_finish_lt
+        _ = finishTime (G.dfs) rC := h_f_preserved_rC.symm
+        _ ≤ finishTime (G.dfs) c := by
+          have h := finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
+          rw [hc_max] at h; exact h
+    omega
   · -- Case 2: rD discovered first (or same time), i.e., d[rD] ≤ d[rC].
     -- Since D cannot reach C, rC is not in rD's DFS tree, so rD finishes before
     -- rC is discovered: f[rD] < d[rC].
