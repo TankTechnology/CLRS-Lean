@@ -522,9 +522,10 @@ theorem scc_finish_time_order {C D : Set V}
   by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
   · -- Case 1: rC discovered first.  Use exists_discovery_state.
     have h_rC_vert : rC ∈ G.vertices := hCsub hrC_mem
-    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s⟩
+    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_f_pres⟩
     -- hdisc_eq: d[rC] = s.time.  h_nonwhite: non-white w in s → d[w] < s.time = d[rC].
     -- h_bf_s: black-finish invariant for s.
+    -- h_f_pres: f-preservation for dfsVisit output.
     -- All of C ∪ D is white in s (otherwise d[v] < d[rC], contradicting firstDiscoveredVertex_min)
     have hwhite_C : ∀ v ∈ C, s.color v = Color.white := by
       intro v hv; by_cases hw : s.color v = Color.white; · exact hw
@@ -573,21 +574,11 @@ theorem scc_finish_time_order {C D : Set V}
     -- d finishes before rC in the dfsVisit output
     have h_finish_lt : finishTime (dfsVisit G f rC s) d < finishTime (dfsVisit G f rC s) rC := by
       apply dfsVisit_finish_lt_source_finish G (by omega) hs_white h_bf_s hwhite_d h_black_d hne_d_rC
-    -- f values preserved from dfsVisit to G.dfs via dfsFromList_preserves_f_of_black
-    -- After dfsVisit, both d and rC are black.  The rest of G.dfs is dfsFromList which
-    -- preserves finish times for black vertices.
-    have h_f_preserved : ∀ w, (dfsVisit G f rC s).color w = Color.black →
-        finishTime (G.dfs) w = finishTime (dfsVisit G f rC s) w := by
-      intro w hblack_w
-      -- G.dfs = dfsFromList G n (vertices.toList) dfsInit
-      -- The dfsVisit G f rC s is somewhere in this computation.
-      -- We don't know the exact suffix, but f-preservation holds for the whole dfsFromList.
-      -- This requires a lemma: dfsFromList preserves f for black vertices in the initial state.
-      sorry
+    -- f values preserved from dfsVisit to G.dfs (from exists_discovery_state)
     have h_f_preserved_d : finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d :=
-      h_f_preserved d h_black_d
+      h_f_pres d h_black_d
     have h_f_preserved_rC : finishTime (G.dfs) rC = finishTime (dfsVisit G f rC s) rC :=
-      h_f_preserved rC hs_black
+      h_f_pres rC hs_black
     have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
       calc
         finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d := h_f_preserved_d
