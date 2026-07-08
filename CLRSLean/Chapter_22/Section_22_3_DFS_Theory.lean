@@ -2496,7 +2496,8 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
     ∃ (s : DFSState V) (f : Nat),
       s.color v = Color.white ∧
       (dfsVisit G f v s).color v = Color.black ∧
-      discoveryTime (G.dfs) v = s.time := by
+      discoveryTime (G.dfs) v = s.time ∧
+      (∀ w, s.color w ≠ Color.white → discoveryTime (G.dfs) w < s.time) := by
   set n := G.vertices.card + 1 with hn
   have hn_pos : 0 < n := by
     have hcard := Finset.card_pos.mpr ⟨v, hv⟩
@@ -2606,7 +2607,18 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
     rw [← h_dfs]; exact G.dfs_all_black hv
   rcases h_ind G.vertices.toList dfsInit h_ng_init h_bf_init hwhite_init hblack_final with
     ⟨s, f, hs, hf, hdisc⟩
-  refine ⟨s, f, hs, hf, ?_⟩
+  -- Now prove the extra property: for non-white w in s, d_final[w] < s.time
+  -- This holds because (1) DiscoveryTimeInvariant s (from induction invariants),
+  -- and (2) d-preservation from s to G.dfs for non-white vertices
+  -- (via dfsVisit_preserves_d_of_not_white + dfsFromList_preserves_d_of_black).
+  -- These rely on the not-yet-proved d-preservation chain through the fold.
+  have h_nonwhite : ∀ w, s.color w ≠ Color.white → discoveryTime (G.dfs) w < s.time := by
+    intro w hnw
+    -- DiscoveryTimeInvariant s: discoveryTime s w < s.time
+    -- d-preservation: (G.dfs).d w = s.d w
+    -- Both are part of the induction invariants. For now, admitted.
+    sorry
+  refine ⟨s, f, hs, hf, ?_, h_nonwhite⟩
   rw [h_dfs]
   exact hdisc
 
