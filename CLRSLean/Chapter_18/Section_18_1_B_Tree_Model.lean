@@ -950,7 +950,8 @@ theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (h_lt : i < children.length)
     (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
     (hchild_full : cKeys.length = 2 * t - 1)
-    (h_cb : ChildBounded (node keys children)) :
+    (h_cb : ChildBounded (node keys children))
+    (h_sorted : Sorted (node keys children)) :
     ChildBounded (splitChild t (node keys children) i) := by
   sorry
 
