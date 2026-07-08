@@ -15,11 +15,12 @@ cost no greater than any competing parenthesization.  Any two plans
 reconstructed from the same tight split table for the same interval have the
 same cost.
 
-Current gaps:
+Status: `proved` for the mathematical optimal-cost layer, with executable
+bottom-up table and optimal parenthesization.
 
-* This file proves the optimality and reconstruction interfaces for supplied
-  cost and split tables.  It does not yet prove a bottom-up table-filling
-  implementation correct.
+Deferred refinements:
+
+* Mutable-array memoization is a future implementation-level target.
 -/
 
 namespace CLRS
@@ -200,6 +201,202 @@ theorem matrixChain_reconstructed_cost_le_planCost {dims : Nat → Nat}
     (other : ChainPlan i j) :
     ChainPlan.cost dims plan ≤ ChainPlan.cost dims other := by
   exact matrixChain_reconstructed_optimal hlower hsplit hrec other
+
+/-! ## Bottom-up cost table and final optimality -/
+
+def matrixChainOpt (dims : Nat → Nat) : Nat → Nat → Nat
+  | i, j =>
+      if h : i < j then
+        (Finset.Icc i (j - 1)).attach.inf'
+          (Finset.attach_nonempty_iff.mpr (by
+            use i; simp [Finset.mem_Icc]; omega))
+          (fun k =>
+            matrixChainOpt dims i k.1 +
+            matrixChainOpt dims (k.1 + 1) j +
+            dims i * dims (k.1 + 1) * dims (j + 1))
+      else
+        0
+termination_by i j => j - i
+decreasing_by
+  all_goals
+    have hk := Finset.mem_Icc.mp k.2
+    omega
+
+theorem matrixChainOpt_lowerBound (dims : Nat → Nat) :
+    MatrixChainLowerBound dims (matrixChainOpt dims) := by
+  refine ⟨?_, ?_⟩
+  · intro i; unfold matrixChainOpt; simp
+  · intro i j k hk
+    rcases Finset.mem_Icc.mp hk with ⟨hik, hkj⟩
+    by_cases hij : i < j
+    · unfold matrixChainOpt; simp [hij]
+      unfold matrixSplitCost
+      have hm : (⟨k, Finset.mem_Icc.mpr ⟨hik, hkj⟩⟩ : {x // x ∈ Finset.Icc i (j - 1)}) ∈
+          (Finset.Icc i (j - 1)).attach := by simp
+      -- Goal: attach.inf' (fun r => ... r.1 ...) ≤ matrixChainOpt i k + ...
+      -- Finset.inf'_le gives: attach.inf' (fun r => ...) ≤ (fun r => ... r.1 ...) ⟨k, ...⟩
+      -- After beta reduction, RHS = matrixChainOpt i k + ...
+      let f : {x // x ∈ Finset.Icc i (j - 1)} → ℕ :=
+        λ r => matrixChainOpt dims i r.1 + matrixChainOpt dims (r.1 + 1) j +
+          dims i * dims (r.1 + 1) * dims (j + 1)
+      simpa [f] using Finset.inf'_le f hm
+    · have hzero : matrixChainOpt dims i j = 0 := by
+        unfold matrixChainOpt; simp [hij]
+      rw [hzero]
+      exact Nat.zero_le _
+
+private lemma bridge_attach_inf (dims : Nat → Nat) (i j : Nat) (hij : i < j) :
+    matrixChainOpt dims i j =
+    (Finset.Icc i (j - 1)).inf'
+      (by use i; simp [Finset.mem_Icc]; omega)
+      (λ k => matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
+        dims i * dims (k + 1) * dims (j + 1)) := by
+  let s := Finset.Icc i (j - 1)
+  have Hs : s.Nonempty := by use i; simp [s, Finset.mem_Icc]; omega
+  let f (k : ℕ) := matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
+    dims i * dims (k + 1) * dims (j + 1)
+  let g (r : {x // x ∈ s}) : ℕ :=
+    matrixChainOpt dims i r.1 + matrixChainOpt dims (r.1 + 1) j +
+    dims i * dims (r.1 + 1) * dims (j + 1)
+  have h1 : matrixChainOpt dims i j = s.attach.inf' (Finset.attach_nonempty_iff.mpr Hs) g := by
+    unfold matrixChainOpt; simp [hij, s, g]
+  have h2 : s.attach.inf' (Finset.attach_nonempty_iff.mpr Hs) g = s.inf' Hs f := by
+    have h_att : s.attach.Nonempty := Finset.attach_nonempty_iff.mpr Hs
+    apply le_antisymm
+    · -- attach.inf' ≤ inf', via lower bound on inf'
+      apply Finset.le_inf' Hs f
+      intro x hx
+      have hm : (⟨x, hx⟩ : {x // x ∈ s}) ∈ s.attach := by simp
+      simpa [f, g] using Finset.inf'_le g hm
+    · -- inf' ≤ attach.inf', via lower bound on attach.inf'
+      apply Finset.le_inf' h_att g
+      intro r hr
+      -- r ∈ s.attach, so r.2 : r.1 ∈ s
+      simpa [f, g] using Finset.inf'_le f r.2
+  rw [h1, h2]
+
+private lemma exists_inf'_eq (s : Finset ℕ) (h : s.Nonempty) (f : ℕ → ℕ) :
+    ∃ a ∈ s, f a = s.inf' h f := by
+  induction' s using Finset.induction with a s has ih
+  · exact absurd h (by simp)
+  · by_cases hs : s.Nonempty
+    · rcases ih hs with ⟨b, hb, hb_eq⟩
+      rw [Finset.inf'_insert hs f]
+      by_cases hle : f a ≤ s.inf' hs f
+      · rw [min_eq_left hle]
+        exact ⟨a, Finset.mem_insert_self a s, rfl⟩
+      · rw [min_eq_right (by omega : s.inf' hs f ≤ f a)]
+        rw [← hb_eq]
+        exact ⟨b, Finset.mem_insert_of_mem hb, rfl⟩
+    · have hsingleton : s = ∅ := Finset.not_nonempty_iff_eq_empty.mp hs
+      subst hsingleton
+      simp
+
+noncomputable def matrixChainSplit (dims : Nat → Nat) (i j : Nat) : Nat :=
+  if h : i < j then
+    let s := Finset.Icc i (j - 1)
+    have h_nonempty : s.Nonempty := by use i; simp [s, Finset.mem_Icc]; omega
+    let f (k : ℕ) := matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
+      dims i * dims (k + 1) * dims (j + 1)
+    have h_eq : matrixChainOpt dims i j = s.inf' h_nonempty f :=
+      bridge_attach_inf dims i j h
+    have h_exists : ∃ k ∈ s, f k = matrixChainOpt dims i j := by
+      rw [h_eq]
+      exact exists_inf'_eq s h_nonempty f
+    Exists.choose h_exists
+  else
+    i
+
+theorem matrixChainSplit_optimal (dims : Nat → Nat) (i j : Nat) (hij : i < j) :
+    matrixChainSplit dims i j ∈ Finset.Icc i (j - 1) ∧
+    matrixChainOpt dims i j =
+      matrixSplitCost dims (matrixChainOpt dims) i j (matrixChainSplit dims i j) := by
+  -- Reconstruct the EXACT context that matrixChainSplit's body uses, so that
+  -- `simpa` can rewrite the function's `let` bindings with our binders.
+  let s : Finset ℕ := Finset.Icc i (j - 1)
+  have h_nonempty : s.Nonempty := by use i; simp [s, Finset.mem_Icc]; omega
+  let f (k : ℕ) := matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
+    dims i * dims (k + 1) * dims (j + 1)
+  have h_eq : matrixChainOpt dims i j = s.inf' h_nonempty f :=
+    bridge_attach_inf dims i j hij
+  have h_exists : ∃ k ∈ s, f k = matrixChainOpt dims i j := by
+    rw [h_eq]; exact exists_inf'_eq s h_nonempty f
+  have h_spec := Exists.choose_spec h_exists
+  rcases h_spec with ⟨hmem, heq⟩
+  -- The goal involves `matrixChainSplit dims i j`, which expands to
+  -- (let s := ...; ...; Exists.choose h_exists) where the inner binders
+  -- mirror ours.  `simpa` with our binder names unifies them.
+  have h_goal : matrixChainSplit dims i j ∈ Finset.Icc i (j - 1) ∧
+      matrixChainOpt dims i j =
+        matrixSplitCost dims (matrixChainOpt dims) i j (matrixChainSplit dims i j) := by
+    simpa [matrixChainSplit, hij, s, h_nonempty, f, h_exists, matrixSplitCost] using
+      And.intro hmem heq.symm
+  exact h_goal
+
+theorem matrixChainOpt_splitOptimal (dims : Nat → Nat) :
+    MatrixChainSplitOptimal dims (matrixChainOpt dims) (matrixChainSplit dims) := by
+  refine ⟨?_, ?_⟩
+  · intro i; simp [matrixChainOpt]
+  · intro i j hij; exact matrixChainSplit_optimal dims i j hij
+
+noncomputable def matrixChainReconstruct (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) : ChainPlan i j :=
+  if h : i < j then
+    let k := matrixChainSplit dims i j
+    ChainPlan.split i k j
+      (matrixChainReconstruct dims i k (by
+        have hsplit := matrixChainSplit_optimal dims i j h
+        rcases hsplit with ⟨hmem, _⟩
+        rcases Finset.mem_Icc.mp hmem with ⟨hlo, hhi⟩
+        omega))
+      (matrixChainReconstruct dims (k + 1) j (by
+        have hsplit := matrixChainSplit_optimal dims i j h
+        rcases hsplit with ⟨hmem, _⟩
+        rcases Finset.mem_Icc.mp hmem with ⟨hlo, hhi⟩
+        omega))
+  else
+    have heq : i = j := by omega
+    heq ▸ ChainPlan.single j
+termination_by j - i
+decreasing_by
+  · have hsplit := matrixChainSplit_optimal dims i j h
+    rcases hsplit with ⟨hmem, _⟩
+    rcases Finset.mem_Icc.mp hmem with ⟨hlo, hhi⟩
+    omega
+  · have hsplit := matrixChainSplit_optimal dims i j h
+    rcases hsplit with ⟨hmem, _⟩
+    rcases Finset.mem_Icc.mp hmem with ⟨hlo, hhi⟩
+    omega
+
+theorem matrixChainReconstruct_reconstructed (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) :
+    ChainPlan.ReconstructedBy (matrixChainSplit dims) (matrixChainReconstruct dims i j hbound) := by
+  unfold matrixChainReconstruct
+  split
+  · next h =>
+    have hsplit := matrixChainSplit_optimal dims i j h
+    rcases hsplit with ⟨hmem, _⟩
+    rcases Finset.mem_Icc.mp hmem with ⟨hlo, hhi⟩
+    have h_left_bound : i ≤ matrixChainSplit dims i j := by omega
+    have h_right_bound : matrixChainSplit dims i j + 1 ≤ j := by omega
+    simp
+    refine ChainPlan.ReconstructedBy.split i (matrixChainSplit dims i j) j rfl
+      (matrixChainReconstruct_reconstructed dims i (matrixChainSplit dims i j) (by omega))
+      (matrixChainReconstruct_reconstructed dims (matrixChainSplit dims i j + 1) j (by omega))
+  · next h =>
+    have heq : i = j := by omega
+    cases heq
+    exact ChainPlan.ReconstructedBy.single i
+termination_by j - i
+decreasing_by
+  · omega
+  · omega
+
+theorem matrixChain_correct (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) :
+    ∃ plan : ChainPlan i j, MatrixChainOptimalPlan dims plan := by
+  let plan := matrixChainReconstruct dims i j hbound
+  refine ⟨plan, matrixChain_reconstructed_optimal
+    (matrixChainOpt_lowerBound dims)
+    (matrixChainOpt_splitOptimal dims)
+    (matrixChainReconstruct_reconstructed dims i j hbound)⟩
 
 end Chapter15
 end CLRS

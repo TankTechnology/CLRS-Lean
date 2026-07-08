@@ -15,10 +15,9 @@ Main results:
   unchanged.
 - Theorem {lit}`search_delete_same`: deleting a key clears that key.
 
-Current gaps:
+Status: `proved` for the functional direct-address model.
 
-- None for the functional direct-address model.  Array bounds and RAM costs are
-  deferred to a future execution model.
+Deferred refinements: array bounds and RAM costs.
 -/
 
 namespace CLRS

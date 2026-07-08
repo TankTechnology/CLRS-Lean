@@ -28,11 +28,9 @@ Main results:
 - Theorem {lit}`expectedUnsuccessfulSearchCost_finiteHashInsert`: inserting one
   key increases expected unsuccessful-search cost by {lit}`1/m`.
 
-Current gaps:
+Status: `proved` for deterministic correctness and finite-uniform expected cost.
 
-- This file proves the finite-uniform bucket interface for expected chain
-  length.  A full probability model over independently random hash functions is
-  still future work.
+Deferred refinements: independent random hash function model.
 -/
 
 namespace CLRS

@@ -18,11 +18,8 @@ Main results:
 - Theorem {lit}`CLRS.Chapter04.recursion_tree_constant_level_cost`: constant
   level costs give the usual linear closed form.
 
-Current gaps:
-
-- This is the finite linearized core of the recursion-tree method.  Branching
-  recurrences such as {lit}`T(n) = aT(n/b) + f(n)` should instantiate it after
-  grouping each depth of the recursion tree into one level-cost function.
+Status: `proved` for the finite-sum core of the recursion-tree method.
+Branching recurrences instantiate these lemmas after grouping level costs.
 -/
 
 namespace CLRS

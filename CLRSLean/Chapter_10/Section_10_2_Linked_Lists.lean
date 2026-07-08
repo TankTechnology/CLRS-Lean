@@ -17,10 +17,9 @@ Main results:
 - Theorem {lit}`mem_listDeleteAll_iff`: deleting all nodes with a key gives the
   expected membership characterization.
 
-Current gaps:
+Status: `proved` for the functional-list model.
 
-- Pointer-level predecessor/successor updates and free-list allocation are
-  deferred to a future imperative-memory model.
+Deferred refinements: pointer updates and free-list allocation.
 -/
 
 namespace CLRS

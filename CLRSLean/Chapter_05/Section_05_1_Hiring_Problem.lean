@@ -27,10 +27,11 @@ Main result:
 - Theorem {lit}`CLRS.Chapter05.expectedHires_isBigTheta_log`: expected hires
   grow logarithmically.
 
-Current gaps:
+Status: `proved` for the finite rank-symmetry hiring model.
 
-- None for the current finite rank-symmetry model.  A lower-level model of
-  random permutations and pseudocode execution remains a future refinement.
+Deferred refinements:
+
+* Random-permutation sampling and pseudocode execution are future targets.
 -/
 
 namespace CLRS
