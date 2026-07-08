@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_2_BFS
 import CLRSLean.Chapter_22.Section_22_3_DFS
+import CLRSLean.Chapter_22.Section_22_3_DFS_Theory
 import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
 import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
 
@@ -49,7 +50,8 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.dfsVisit_blackens_u`,
   {lit}`CLRS.Chapter22.Graph.dfsVisit_preserves_black`,
   {lit}`CLRS.Chapter22.Graph.dfsVisit_no_new_gray`,
-  and {lit}`CLRS.Chapter22.Graph.dfs_all_black`.
+  {lit}`CLRS.Chapter22.Graph.dfs_all_black`,
+  and {lit}`CLRS.Chapter22.Graph.dfsVisit_blackens_iff_whiteReachable`.
 
 * 22.4 Topological sort.
   Main declarations:
@@ -87,7 +89,9 @@ is currently admitted with {lit}`sorry`.
 
 ## Deferred Work
 
-* Section 22.3: parenthesis theorem, white-path theorem, and edge classification.
+* Section 22.3: parenthesis theorem and edge classification.  The white-path
+  theorem ({lit}`CLRS.Chapter22.Graph.dfsVisit_blackens_iff_whiteReachable`) is
+  now proved in {lit}`CLRSLean.Chapter_22.Section_22_3_DFS_Theory`.
 * Section 22.5: the DFS finish-time lemma that implies each collected Kosaraju
   component is strongly connected and maximal.
 
