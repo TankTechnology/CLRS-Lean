@@ -199,6 +199,58 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
         rw [if_neg hu_white] at h_nonwhite_result ⊢
         exact ih u s hfuel h_bf hwhite_v h_nonwhite_result
 
+/-! ### Corollary: `dfsFromList` version
+
+The lemma lifts to `dfsFromList` by induction on the vertex list. -/
+
+/-- If `v` turns from white to non-white during `dfsFromList`, then
+`discoveryTime` in the result is at least `s0.time`. -/
+theorem dfsFromList_white_to_nonwhite_disc_ge_time {fuel : Nat} {vs : List V}
+    {s0 : DFSState V} {v : V}
+    (hfuel : 0 < fuel)
+    (h_bf_s0 : ∀ w, s0.color w = Color.black → finishTime s0 w < s0.time)
+    (hwhite_s0 : s0.color v = Color.white)
+    (h_nonwhite_result : (dfsFromList G fuel vs s0).color v ≠ Color.white) :
+    discoveryTime (dfsFromList G fuel vs s0) v ≥ s0.time := by
+  induction vs generalizing s0 with
+  | nil =>
+      simp [dfsFromList] at h_nonwhite_result
+      rw [hwhite_s0] at h_nonwhite_result
+      contradiction
+  | cons u us ih =>
+      simp [dfsFromList] at h_nonwhite_result ⊢
+      by_cases hu_white : s0.color u = Color.white
+      · rw [if_pos hu_white] at h_nonwhite_result ⊢
+        let s1 := dfsVisit G fuel u s0
+        by_cases hv_white_s1 : s1.color v = Color.white
+        · -- v stayed white; apply IH on rest
+          have h_bf_s1 : ∀ w, s1.color w = Color.black → finishTime s1 w < s1.time :=
+            dfsVisit_black_finish_lt_time (G := G) (fuel := fuel) (u := u) (s := s0) hfuel hu_white h_bf_s0
+          exact ih us s1 hfuel h_bf_s1 hv_white_s1 h_nonwhite_result
+        · -- v turned non-white during dfsVisit from u
+          have h_disc_ge : discoveryTime s1 v ≥ s0.time :=
+            dfsVisit_white_to_nonwhite_disc_ge_time G hfuel h_bf_s0 hwhite_s0 hv_white_s1
+          -- d[v] preserved through dfsFromList on rest
+          have h_black_s1 : s1.color v = Color.black := by
+            -- dfsVisit output has no gray for v ≠ u; v is non-white, so it's black
+            by_cases hvu : v = u
+            · subst v; exact dfsVisit_blackens_u_pos (G := G) hfuel hu_white
+            · have h_no_gray : s1.color v ≠ Color.gray := by
+                intro hg
+                have h_input_gray : s0.color v = Color.gray := dfsVisit_no_new_gray G v hg
+                rw [hwhite_s0] at h_input_gray; contradiction
+              cases hcolor : s1.color v with
+              | white => exact (hv_white_s1 hcolor).elim
+              | gray => exact (h_no_gray hcolor).elim
+              | black => rfl
+          have hd_preserved : (dfsFromList G fuel us s1).d v = s1.d v :=
+            dfsFromList_preserves_d_of_black G hfuel (x := v) h_black_s1
+          dsimp [discoveryTime] at h_disc_ge ⊢
+          rw [hd_preserved]
+          simpa [discoveryTime] using h_disc_ge
+      · rw [if_neg hu_white] at h_nonwhite_result ⊢
+        exact ih us s0 hfuel h_bf_s0 hwhite_s0 h_nonwhite_result
+
 end Graph
 end Chapter22
 end CLRS

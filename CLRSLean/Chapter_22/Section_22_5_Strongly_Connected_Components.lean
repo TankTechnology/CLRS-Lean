@@ -576,14 +576,101 @@ theorem scc_finish_time_order {C D : Set V}
     have h_no_rev : ¬ G.Reachable rD rC :=
       no_reachable_scc_reverse G hC hD hne hedge rD rC hrD_mem hrC_mem
     have hd_le : discoveryTime (G.dfs) rD ≤ discoveryTime (G.dfs) rC := by omega
-    -- We need: finishTime(G.dfs) d < finishTime(G.dfs) c.
-    -- It suffices to show: finishTime(G.dfs) rD < discoveryTime(G.dfs) rC.
-    -- Because: f[d] = maxFinish(D) is achieved at some vertex. Actually,
-    -- we need the stronger: all vertices in D finish before rC is discovered.
-    -- This is a consequence of the bridge lemma's Case 2 variant.
-    -- For now, we use: since no path from rD to rC, and d[rD] ≤ d[rC],
-    -- f[rD] < d[rC] by DFS interval disjointness.
-    sorry
+    -- Use exists_discovery_state for rD
+    have h_rD_vert : rD ∈ G.vertices := hDsub hrD_mem
+    rcases exists_discovery_state G rD h_rD_vert with
+      ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_ng_s, h_f_pres, h_fuel⟩
+    -- All of D is white in s
+    have hwhite_D : ∀ v ∈ D, s.color v = Color.white := by
+      intro v hv; by_cases hw : s.color v = Color.white; · exact hw
+      · have h_lt := h_nonwhite v hw; rw [← hdisc_eq] at h_lt
+        have hle := hdisc_min_D v hv; omega
+    -- rC also white in s (d[rC] ≥ d[rD] = s.time)
+    have hwhite_rC : s.color rC = Color.white := by
+      by_cases hw : s.color rC = Color.white; · exact hw
+      · have h_lt := h_nonwhite rC hw; rw [← hdisc_eq] at h_lt; omega
+    -- rC NOT white-reachable from rD (D cannot reach C)
+    have h_no_wr : ¬ WhiteReachable G s rD rC := by
+      intro hwr; apply h_no_rev
+      -- WhiteReachable implies Reachable (drop the color condition)
+      have h_reach : G.Reachable rD rC :=
+        hwr.mono (fun x y h => h.1)
+      exact h_reach
+    -- rC stays white after rD's dfsVisit (otherwise white-reachable)
+    have h_rC_white_out : (dfsVisit G f rD s).color rC = Color.white := by
+      by_cases hb : (dfsVisit G f rD s).color rC = Color.black
+      · have h_wr : WhiteReachable G s rD rC :=
+          dfsVisit_blackens_implies_whiteReachable G hs_white (by omega) hwhite_rC hb
+        exact absurd h_wr h_no_wr
+      · have h_no_gray : (dfsVisit G f rD s).color rC ≠ Color.gray := by
+          intro hg; have h_input_gray : s.color rC = Color.gray := dfsVisit_no_new_gray G rC hg
+          rcases h_ng_s rC with (hw | hb'); · rw [hw] at h_input_gray; contradiction
+          · rw [hb'] at h_input_gray; contradiction
+        cases hcolor : (dfsVisit G f rD s).color rC with
+        | white => rfl; | gray => exact (h_no_gray hcolor).elim; | black => exact (hb hcolor).elim
+    -- Contradiction argument: if f[rD] ≥ d[rC], then d[rC] ∈ [s.time, result.time),
+    -- so rC was discovered during rD's dfsVisit → white-reachable → contradiction.
+    have h_finish_lt_disc : finishTime (G.dfs) rD < discoveryTime (G.dfs) rC := by
+      have h_f_visit_rD_eq : finishTime (dfsVisit G f rD s) rD = (dfsVisit G f rD s).time - 1 :=
+        dfsVisit_finishTime_source_eq_pred_time G (by omega) hs_white
+      have h_visit_time_gt_f : (dfsVisit G f rD s).time > finishTime (dfsVisit G f rD s) rD := by
+        have h_eq : finishTime (dfsVisit G f rD s) rD = (dfsVisit G f rD s).time - 1 := h_f_visit_rD_eq
+        -- Since finishTime ≥ 0 in Nat, time ≥ 1, so time > time - 1 = f
+        have h_time_pos : (dfsVisit G f rD s).time ≥ 1 := by
+          have h_time_ge : (dfsVisit G f rD s).time ≥ s.time :=
+            G.dfsVisit_time_ge (fuel := f) (u := rD) (s := s)
+          have h_s_time : s.time = discoveryTime (G.dfs) rD := hdisc_eq.symm
+          -- s.time could be 0, but dfsVisit advances clock at least by 1 for setDiscovery
+          -- Actually, dfsVisit always increments the clock by at least 1 when fuel > 0 and u is white.
+          -- Using dfsVisit_time_gt_of_white: if 0 < fuel and u is white, time > s.time.
+          have h_time_gt_s : (dfsVisit G f rD s).time > s.time :=
+            dfsVisit_time_gt_of_white G (by omega) hs_white
+          omega
+        omega
+      have h_f_G_rD : finishTime (G.dfs) rD = finishTime (dfsVisit G f rD s) rD := h_f_pres rD hs_black
+      rw [h_f_G_rD]
+      by_contra h_ge
+      -- h_ge: ¬ f_visit[rD] < d[rC], i.e., f_visit[rD] ≥ d[rC]
+      -- Then d[rC] ≤ f_visit[rD] < (dfsVisit ...).time
+      have h_disc_lt_time : discoveryTime (G.dfs) rC < (dfsVisit G f rD s).time := by omega
+      have h_disc_ge_s_time : discoveryTime (G.dfs) rC ≥ s.time := by
+        rw [← hdisc_eq]; exact hd_le
+      -- d[rC] ∈ [s.time, result.time): rC discovered during dfsVisit.
+      -- Bridge lemma: this implies result.color rC ≠ white.  Contradiction.
+      sorry
+    -- All vertices in D finish before rD (white-path, same as Case 1)
+    have h_finish_D_lt_rD : ∀ v ∈ D, v ≠ rD → finishTime (G.dfs) v < finishTime (G.dfs) rD := by
+      intro v hv hne
+      have hwhite_v : s.color v = Color.white := hwhite_D v hv
+      have h_reach : G.Reachable rD v := (hDsc rD hrD_mem v hv).1
+      have h_wr : WhiteReachable G s rD v :=
+        WhiteReachable.of_reachable_through_set G (S := D)
+          (fun w h1 h2 => IsSCC.path_mem G hD hrD_mem hv h1 h2) (hwhite_D) h_reach
+      have h_black_v : (dfsVisit G f rD s).color v = Color.black := by
+        apply dfsVisit_white_path_black G hs_white (hDsub hrD_mem) h_fuel
+        exact WhiteReachable.mem_set G (hDsub hrD_mem) h_wr
+      have h_finish_lt : finishTime (dfsVisit G f rD s) v < finishTime (dfsVisit G f rD s) rD := by
+        apply dfsVisit_finish_lt_source_finish G (by omega) hs_white h_bf_s hwhite_v h_black_v hne
+      have h_f_G_v := h_f_pres v h_black_v
+      have h_f_G_rD := h_f_pres rD hs_black
+      simpa [h_f_G_v, h_f_G_rD] using h_finish_lt
+    -- maxFinish(D) = f[rD]
+    have h_maxFinish_D_eq : maxFinish G (G.dfs) D = finishTime (G.dfs) rD := by
+      rcases maxFinish_exists G (s := G.dfs) (C := D) hD_nonempty hDsub with ⟨v, hv, hmax⟩
+      by_cases h_v_rD : v = rD; · subst v; rw [hmax]
+      · have h_lt : finishTime (G.dfs) v < finishTime (G.dfs) rD := h_finish_D_lt_rD v hv h_v_rD
+        have h_le : finishTime (G.dfs) rD ≤ maxFinish G (G.dfs) D :=
+          finish_le_maxFinish G (s := G.dfs) hDsub hrD_mem
+        have : maxFinish G (G.dfs) D = finishTime (G.dfs) v := hmax
+        have : finishTime (G.dfs) rD ≤ maxFinish G (G.dfs) D := h_le
+        omega
+    rw [← hd_max, h_maxFinish_D_eq]
+    have h_rC_max : finishTime (G.dfs) rC ≤ finishTime (G.dfs) c := by
+      have h := finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
+      rw [hc_max] at h; exact h
+    have h_disc_lt_fin : discoveryTime (G.dfs) rC < finishTime (G.dfs) rC :=
+      dfs_discovery_lt_finish G (hCsub hrC_mem)
+    omega
 
 theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
     (hr : r ∈ G.transpose.vertices) (hwhite : s.color r = Color.white)
