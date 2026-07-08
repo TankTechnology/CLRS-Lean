@@ -333,7 +333,31 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                   simpa [s', finishTime] using h_lt
                 have h_f_pres_s' : ∀ w, (dfsVisit G (n-1) v s').color w = Color.black →
                     finishTime (dfsFromList G n (u :: us) s0) w = finishTime (dfsVisit G (n-1) v s') w := by
-                  sorry
+                  intro w hblack_w
+                  dsimp [dfsFromList]; rw [if_pos hu_white]
+                  -- Goal: finishTime (dfsFromList G n us s1) w = finishTime (dfsVisit ... v s') w
+                  -- Step 1: through dfsFromList us (w black in s1 → f preserved)
+                  have hblack_s1 : s1.color w = Color.black := by
+                    -- w is black in dfsVisit output, and setFinish doesn't change color for w ≠ u
+                    -- Actually, w could be any vertex.  We need to show s1.color w = black.
+                    -- s1 = s_fold.setColor u black |>.setFinish u
+                    -- If w ≠ u, s1.color w = s_fold.color w = ... = s_rec.color w = black.
+                    -- If w = u, s1.color u = black (u is finished), but w can't be u because
+                    -- u was gray in s' and dfsVisit from v doesn't change u's color.
+                    -- For simplicity, admit this for now.
+                    sorry
+                  have h_f1 : finishTime (dfsFromList G n us s1) w = finishTime s1 w := by
+                    have h := dfsFromList_preserves_f_of_black (G := G) (vs := us) hn_pos (x := w) hblack_s1
+                    rw [finishTime, finishTime, h]
+                  -- Step 2: s1.w = ... = s_rec.w (through outer fold and setFinish)
+                  -- s1 = s_fold.setColor u black |>.setFinish u
+                  -- where s_fold = foldl step s_init (G.adj u).toList
+                  -- Using the fold decomposition: s_fold's f[w] = s_rec's f[w] (by fold f-preservation)
+                  have h_f2 : finishTime s1 w = finishTime (dfsVisit G (n-1) v s') w := by
+                    -- setFinish u doesn't change f[w] for w ≠ u
+                    -- And the fold over post preserves f[w] since w is black in s_rec
+                    sorry
+                  rw [h_f1, h_f2]
                 have h_fuel_s' : (n-1) ≥ (whiteReachableSet G s' v).card + 1 := by
                   sorry
                 have h_ng_s' : ∀ w, s'.color w = Color.white ∨ s'.color w = Color.black := by
