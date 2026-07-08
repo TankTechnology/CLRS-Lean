@@ -660,6 +660,248 @@ lemma heightOf_sameDepth_mem {ks : List Nat} {cs : List BTree} {c : BTree}
     congr 1
     exact (sameDepth_iff.mp hsd).2 c0 (by simp) c hc
 
+/-- `heightOf` depends only on the children, not the keys. -/
+lemma heightOf_keys_irrel (a b : List Nat) (cs : List BTree) :
+    heightOf (node a cs) = heightOf (node b cs) := by
+  cases cs with
+  | nil => simp [heightOf]
+  | cons c cs' => simp only [heightOf]
+
+/-- Height of the two split halves equals the height of the original full child. -/
+lemma heightOf_halves_eq {t : Nat} {cKeys : List Nat} {cChildren : List BTree}
+    (hsd : SameDepth (node cKeys cChildren)) (ht_pos : 0 < t)
+    (h_children : cChildren = [] ∨ t < cChildren.length) :
+    heightOf (node (cKeys.take (t - 1)) (cChildren.take t)) = heightOf (node cKeys cChildren) ∧
+    heightOf (node (cKeys.drop t) (cChildren.drop t)) = heightOf (node cKeys cChildren) := by
+  have h := heightOf_split_parts_eq cKeys cChildren t hsd ht_pos h_children
+  simp only [List.splitAt_eq] at h
+  refine ⟨h.1, ?_⟩
+  rw [heightOf_keys_irrel (cKeys.drop t) ((cKeys.drop (t - 1)).drop 1) (cChildren.drop t)]
+  exact h.2
+
+/-- `insertNonFull` preserves `SameDepth` and the total height (given the tree is
+`ChildBounded` and `SameDepth`). -/
+lemma insertNonFull_sameDepth_height (t x : Nat) (ht : 2 ≤ t) :
+    ∀ tr, ChildBounded tr → SameDepth tr →
+      SameDepth (insertNonFull t x tr) ∧ heightOf (insertNonFull t x tr) = heightOf tr := by
+  intro tr
+  induction tr using insertNonFull.induct (t := t) (x := x) with
+  | case1 ks cs hempty =>
+    intro _ _
+    have hcsnil : cs = [] := List.isEmpty_iff.mp hempty
+    subst hcsnil
+    rw [insertNonFull]
+    simp only [List.isEmpty_nil, if_true]
+    exact ⟨SameDepth.leaf _, heightOf_keys_irrel _ _ _⟩
+  | case2 ks cs hne i hnone =>
+    intro _ hsd
+    have hval : insertNonFull t x (node ks cs) = node ks cs := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rfl
+      · rename_i c hcsome
+        have hn : cs[findChild ks x]? = none := hnone
+        rw [hcsome] at hn; simp at hn
+    rw [hval]; exact ⟨hsd, rfl⟩
+  | case3 ks cs hne i cKeys cChildren hsome hfull median hlt hsome2 ih =>
+    intro hcb hsd
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩; exact hsub _ hmem
+    have hsd_child : SameDepth (node cKeys cChildren) := (sameDepth_iff.mp hsd).1 _ hmem
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have h_children : cChildren = [] ∨ t < cChildren.length := by
+      rcases child_children_len_of_full_cb ht hcb_child hfull with h0 | h2t
+      · left; cases cChildren with | nil => rfl | cons a b => simp at h0
+      · right; rw [h2t]; omega
+    have hcb_LH : ChildBounded (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+      have h := childBounded_take_of_full hcb_child ht1
+      rwa [show (t - 1) + 1 = t from by omega] at h
+    have hsd_LH : SameDepth (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+      have h := sameDepth_take cKeys cChildren t hsd_child (by omega)
+      simpa [List.splitAt_eq] using h
+    have hsd_RH : SameDepth (node (cKeys.drop t) (cChildren.drop t)) := by
+      have h := sameDepth_drop cKeys cChildren t hsd_child (by omega)
+      simp only [List.splitAt_eq] at h
+      rw [sameDepth_iff] at h ⊢; exact h
+    obtain ⟨ihsd, ihht⟩ := ih hcb_LH hsd_LH
+    have hheq := heightOf_halves_eq hsd_child (by omega) h_children
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys.getD (t - 1) 0 :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+               node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_pos hfull, if_pos hlt]
+    rw [hval]
+    have hHT : ∀ c'' ∈ cs.take (findChild ks x) ++
+        [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+         node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1),
+        heightOf c'' = heightOf (node cKeys cChildren) := by
+      intro c'' hc''
+      rcases List.mem_append.mp hc'' with h1 | h2
+      · rcases List.mem_append.mp h1 with hta | hmid
+        · exact (sameDepth_iff.mp hsd).2 c'' ((List.take_subset _ _) hta) _ hmem
+        · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+          rcases hmid with rfl | rfl
+          · rw [ihht]; exact hheq.1
+          · exact hheq.2
+      · exact (sameDepth_iff.mp hsd).2 c'' ((List.drop_subset _ _) h2) _ hmem
+    have hSD : ∀ c'' ∈ cs.take (findChild ks x) ++
+        [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+         node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1),
+        SameDepth c'' := by
+      intro c'' hc''
+      rcases List.mem_append.mp hc'' with h1 | h2
+      · rcases List.mem_append.mp h1 with hta | hmid
+        · exact (sameDepth_iff.mp hsd).1 c'' ((List.take_subset _ _) hta)
+        · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+          rcases hmid with rfl | rfl
+          · exact ihsd
+          · exact hsd_RH
+      · exact (sameDepth_iff.mp hsd).1 c'' ((List.drop_subset _ _) h2)
+    refine ⟨sameDepth_iff.mpr ⟨hSD, fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩, ?_⟩
+    have hmem_res : insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)) ∈
+        cs.take (findChild ks x) ++
+          [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+           node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1) := by
+      apply List.mem_append_left; apply List.mem_append_right; simp
+    rw [heightOf_sameDepth_mem (sameDepth_iff.mpr ⟨hSD, fun a ha b hb =>
+          (hHT a ha).trans (hHT b hb).symm⟩) hmem_res, hHT _ hmem_res,
+        heightOf_sameDepth_mem hsd hmem]
+  | case4 ks cs hne i cKeys cChildren hsome hfull median hnlt hsome2 ih =>
+    intro hcb hsd
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩; exact hsub _ hmem
+    have hsd_child : SameDepth (node cKeys cChildren) := (sameDepth_iff.mp hsd).1 _ hmem
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have h_children : cChildren = [] ∨ t < cChildren.length := by
+      rcases child_children_len_of_full_cb ht hcb_child hfull with h0 | h2t
+      · left; cases cChildren with | nil => rfl | cons a b => simp at h0
+      · right; rw [h2t]; omega
+    have hcb_RH : ChildBounded (node (cKeys.drop t) (cChildren.drop t)) := by
+      rcases child_children_len_of_full_cb ht hcb_child hfull with h0 | h2t
+      · have hnil : cChildren = [] := by cases cChildren with | nil => rfl | cons a b => simp at h0
+        rw [hnil]; simpa using childBounded_node_nil (cKeys.drop t)
+      · exact childBounded_drop_of_full hcb_child (by omega) (by rw [h2t]; omega)
+    have hsd_RH : SameDepth (node (cKeys.drop t) (cChildren.drop t)) := by
+      have h := sameDepth_drop cKeys cChildren t hsd_child (by omega)
+      simp only [List.splitAt_eq] at h
+      rw [sameDepth_iff] at h ⊢; exact h
+    have hsd_LH : SameDepth (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+      have h := sameDepth_take cKeys cChildren t hsd_child (by omega)
+      simpa [List.splitAt_eq] using h
+    obtain ⟨ihsd, ihht⟩ := ih hcb_RH hsd_RH
+    have hheq := heightOf_halves_eq hsd_child (by omega) h_children
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys.getD (t - 1) 0 :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [node (cKeys.take (t - 1)) (cChildren.take t),
+               insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))]
+              ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_pos hfull, if_neg hnlt]
+    rw [hval]
+    have hHT : ∀ c'' ∈ cs.take (findChild ks x) ++
+        [node (cKeys.take (t - 1)) (cChildren.take t),
+         insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))] ++ cs.drop (findChild ks x + 1),
+        heightOf c'' = heightOf (node cKeys cChildren) := by
+      intro c'' hc''
+      rcases List.mem_append.mp hc'' with h1 | h2
+      · rcases List.mem_append.mp h1 with hta | hmid
+        · exact (sameDepth_iff.mp hsd).2 c'' ((List.take_subset _ _) hta) _ hmem
+        · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+          rcases hmid with rfl | rfl
+          · exact hheq.1
+          · rw [ihht]; exact hheq.2
+      · exact (sameDepth_iff.mp hsd).2 c'' ((List.drop_subset _ _) h2) _ hmem
+    have hSD : ∀ c'' ∈ cs.take (findChild ks x) ++
+        [node (cKeys.take (t - 1)) (cChildren.take t),
+         insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))] ++ cs.drop (findChild ks x + 1),
+        SameDepth c'' := by
+      intro c'' hc''
+      rcases List.mem_append.mp hc'' with h1 | h2
+      · rcases List.mem_append.mp h1 with hta | hmid
+        · exact (sameDepth_iff.mp hsd).1 c'' ((List.take_subset _ _) hta)
+        · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+          rcases hmid with rfl | rfl
+          · exact hsd_LH
+          · exact ihsd
+      · exact (sameDepth_iff.mp hsd).1 c'' ((List.drop_subset _ _) h2)
+    refine ⟨sameDepth_iff.mpr ⟨hSD, fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩, ?_⟩
+    have hmem_res : node (cKeys.take (t - 1)) (cChildren.take t) ∈
+        cs.take (findChild ks x) ++
+          [node (cKeys.take (t - 1)) (cChildren.take t),
+           insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))] ++ cs.drop (findChild ks x + 1) := by
+      apply List.mem_append_left; apply List.mem_append_right; simp
+    rw [heightOf_sameDepth_mem (sameDepth_iff.mpr ⟨hSD, fun a ha b hb =>
+          (hHT a ha).trans (hHT b hb).symm⟩) hmem_res, hHT _ hmem_res,
+        heightOf_sameDepth_mem hsd hmem]
+  | case5 ks cs hne i cKeys cChildren hsome hnfull hsome2 ih =>
+    intro hcb hsd
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩; exact hsub _ hmem
+    have hsd_child : SameDepth (node cKeys cChildren) := (sameDepth_iff.mp hsd).1 _ hmem
+    obtain ⟨ihsd, ihht⟩ := ih hcb_child hsd_child
+    have hval : insertNonFull t x (node ks cs)
+        = node ks (cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren))) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_neg hnfull]
+    rw [hval]
+    have hHT : ∀ c'' ∈ cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren)),
+        heightOf c'' = heightOf (node cKeys cChildren) := by
+      intro c'' hc''
+      rcases List.mem_or_eq_of_mem_set hc'' with hcs | rfl
+      · exact (sameDepth_iff.mp hsd).2 c'' hcs _ hmem
+      · exact ihht
+    have hSD : ∀ c'' ∈ cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren)),
+        SameDepth c'' := by
+      intro c'' hc''
+      rcases List.mem_or_eq_of_mem_set hc'' with hcs | rfl
+      · exact (sameDepth_iff.mp hsd).1 c'' hcs
+      · exact ihsd
+    refine ⟨sameDepth_iff.mpr ⟨hSD, fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩, ?_⟩
+    have hmem_res : insertNonFull t x (node cKeys cChildren) ∈
+        cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren)) :=
+      List.mem_set hilt _
+    rw [heightOf_sameDepth_mem (sameDepth_iff.mpr ⟨hSD, fun a ha b hb =>
+          (hHT a ha).trans (hHT b hb).symm⟩) hmem_res, hHT _ hmem_res,
+        heightOf_sameDepth_mem hsd hmem]
+
+/-- `insertNonFull` preserves `SameDepth`. -/
+lemma insertNonFull_sameDepth (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hcb : ChildBounded tr) (hsd : SameDepth tr) : SameDepth (insertNonFull t x tr) :=
+  (insertNonFull_sameDepth_height t x ht tr hcb hsd).1
+
+/-- `insertNonFull` preserves the total height. -/
+lemma insertNonFull_height (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hcb : ChildBounded tr) (hsd : SameDepth tr) :
+    heightOf (insertNonFull t x tr) = heightOf tr :=
+  (insertNonFull_sameDepth_height t x ht tr hcb hsd).2
+
 end BTree
 end Chapter18
 end CLRS
