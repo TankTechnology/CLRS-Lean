@@ -93,6 +93,41 @@ def IsSCC (G : Graph V) (C : Set V) : Prop :=
 
 /-- A list of finsets is an SCC partition of {lit}`G` if each element is an SCC of
 {lit}`G` and the elements partition the vertex set. -/
+theorem IsSCC_eq_of_nonempty_inter {C D : Set V}
+    (hC : G.IsSCC C) (hD : G.IsSCC D) (h : ∃ x, x ∈ C ∧ x ∈ D) : C = D := by
+  rcases h with ⟨x, hxC, hxD⟩
+  apply Set.Subset.antisymm
+  · intro c hc
+    have hsc : ∀ d ∈ D, G.StronglyConnected c d := by
+      intro d hd
+      have hcx := hC.2.2.1 c hc x hxC
+      have hxd := hD.2.2.1 x hxD d hd
+      exact ⟨G.reachable_trans hcx.1 hxd.1, G.reachable_trans hxd.2 hcx.2⟩
+    have hsc' : ∀ u ∈ D, G.StronglyConnected u c := by
+      intro u hu
+      exact G.stronglyConnected_symm (hsc u hu)
+    exact hD.2.2.2 c (hC.2.1 hc) hsc'
+  · intro d hd
+    have hsc : ∀ c ∈ C, G.StronglyConnected d c := by
+      intro c hc
+      have hdx := hD.2.2.1 d hd x hxD
+      have hxc := hC.2.2.1 x hxC c hc
+      exact ⟨G.reachable_trans hdx.1 hxc.1, G.reachable_trans hxc.2 hdx.2⟩
+    have hsc' : ∀ u ∈ C, G.StronglyConnected u d := by
+      intro u hu
+      exact G.stronglyConnected_symm (hsc u hu)
+    exact hC.2.2.2 d (hD.2.1 hd) hsc'
+
+theorem IsSCC_eq_or_disjoint {C D : Set V}
+    (hC : G.IsSCC C) (hD : G.IsSCC D) : C = D ∨ Disjoint C D := by
+  by_cases h : ∃ x, x ∈ C ∧ x ∈ D
+  · left
+    exact G.IsSCC_eq_of_nonempty_inter hC hD h
+  · right
+    rw [Set.disjoint_iff]
+    intro x hx
+    exact h ⟨x, hx.1, hx.2⟩
+
 def IsSCCPartition (G : Graph V) (ccs : List (Finset V)) : Prop :=
   (∀ C ∈ ccs, (C : Set V) ⊆ G.vertices) ∧
   (∀ C ∈ ccs, C.Nonempty) ∧
