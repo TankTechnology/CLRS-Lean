@@ -460,35 +460,6 @@ theorem no_reachable_scc_reverse {C D : Set V} (hC : G.IsSCC C) (hD : G.IsSCC D)
   have hyD : y ∈ D := hDmax y hyV h_forall
   exact ⟨y, hy, hyD⟩
 
-/-! ## Key bridge lemma (work in progress)
-
-If `x` is the first-discovered vertex of SCC `C`, `y ∈ D`, edge `C → D`, and
-`d[x] < d[y]`, then `f[y] < f[x]`.  This follows from the white-path theorem
-applied at `x`'s discovery moment — at that moment all of `C ∪ D` is white and
-reachable from `x`.  The proof requires extracting the intermediate discovery
-state from `dfsFromList`, which is the current research frontier. -/
-
-lemma finish_lt_finish_of_first_discovered_edge {C D : Set V}
-    (hC : G.IsSCC C) (hD : G.IsSCC D) (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v)
-    {x y : V} (hx : x ∈ C) (hy : y ∈ D)
-    (hfirst : ∀ v ∈ C, discoveryTime (G.dfs) x ≤ discoveryTime (G.dfs) v)
-    (hd_lt : discoveryTime (G.dfs) x < discoveryTime (G.dfs) y) :
-    finishTime (G.dfs) y < finishTime (G.dfs) x := by
-  -- Get the discovery state of x via the DFS theory lemma
-  have hx_vert : x ∈ G.vertices := hC.2.1 hx
-  rcases exists_discovery_state G x hx_vert with ⟨s, f, hs_white, hs_black, hdisc_eq⟩
-  -- hdisc_eq: discoveryTime (G.dfs) x = s.time
-  -- At state s: x is white, and all of C is white (by firstDiscoveredVertex_min)
-  -- The d-equality gives s.time = d_final[x].  For any v ∈ C:
-  -- d_final[v] ≥ d_final[x] = s.time.  If v were non-white in s, then
-  -- by DiscoveryTimeInvariant s (from the induction), d_s[v] < s.time,
-  -- and d_s[v] = d_final[v] (d preserved for non-white vertices through
-  -- dfsVisit + dfsFromList).  This contradicts d_final[v] ≥ s.time.
-  -- Hence all of C is white in s.
-  -- Similarly, all of D is white in s (since d[y] > d[x] = s.time).
-  -- With all of C ∪ D white, the white-path theorem gives f[y] < f[x].
-  sorry
-
 /-- If `u, v ∈ C` (same SCC) and `w` lies on a path from `u` to `v`, then
 `w ∈ C`.  This is the SCC-path-closure property: SCCs are closed under
 intermediate vertices on reachability paths. -/
@@ -536,10 +507,11 @@ theorem scc_finish_time_order {C D : Set V}
   by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
   · -- Case 1: rC discovered first.  Use exists_discovery_state.
     have h_rC_vert : rC ∈ G.vertices := hCsub hrC_mem
-    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_f_pres⟩
+    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_f_pres, h_fuel⟩
     -- hdisc_eq: d[rC] = s.time.  h_nonwhite: non-white w in s → d[w] < s.time = d[rC].
     -- h_bf_s: black-finish invariant for s.
     -- h_f_pres: f-preservation for dfsVisit output.
+    -- h_fuel: f ≥ |whiteReachableSet s rC| + 1
     -- All of C ∪ D is white in s (otherwise d[v] < d[rC], contradicting firstDiscoveredVertex_min)
     have hwhite_C : ∀ v ∈ C, s.color v = Color.white := by
       intro v hv; by_cases hw : s.color v = Color.white; · exact hw
@@ -577,12 +549,7 @@ theorem scc_finish_time_order {C D : Set V}
     have h_wr_rC_d : WhiteReachable G s rC d :=
       whiteReachable_trans G h_wr_rC_v h_wr_v_d
     -- By the white-path theorem, dfsVisit from rC blackens d
-    have h_card : f ≥ (whiteReachableSet G s rC).card + 1 := by
-      -- Fuel from exists_discovery_state: top-level uses n = |V|+1, nested uses n-1 = |V|.
-      -- whiteReachableSet ⊆ V, so card ≤ |V|.  For top-level, f = n ≥ card+1.  For nested,
-      -- f = n-1 = |V| ≥ card.  The white-path theorem needs f ≥ card+1, which holds for
-      -- top-level but may fail for nested.  This is a known gap; admitted for now.
-      sorry
+    have h_card : f ≥ (whiteReachableSet G s rC).card + 1 := h_fuel
     have h_black_d : (dfsVisit G f rC s).color d = Color.black := by
       apply dfsVisit_white_path_black G hs_white (hCsub hrC_mem) h_card
       exact WhiteReachable.mem_set G (hCsub hrC_mem) h_wr_rC_d
