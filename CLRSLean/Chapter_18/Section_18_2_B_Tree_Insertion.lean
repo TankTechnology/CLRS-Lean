@@ -1677,6 +1677,18 @@ lemma insertNonFull_occupancy (t x : Nat) (ht : 2 ≤ t) :
           · exact ihc
       · exact hocc_rec c ((List.drop_subset _ _) h2)
 
+/-- **`B-TREE-INSERT-NONFULL` preserves `WellFormed`.**  Inserting into a
+non-full, well-formed B-tree yields a well-formed B-tree.  Assembles the four
+invariant-preservation lemmas. -/
+theorem insertNonFull_wellFormed (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) (hnf : rootKeyCount tr < 2 * t - 1) :
+    WellFormed t (insertNonFull t x tr) := by
+  obtain ⟨hs, hcb, hocc, hsd⟩ := hwf
+  exact ⟨insertNonFull_sorted t x ht tr hcb hs,
+         insertNonFull_childBounded t x ht tr hcb hs,
+         insertNonFull_occupancy t x ht tr true hcb hocc hnf,
+         insertNonFull_sameDepth t x ht hcb hsd⟩
+
 end BTree
 end Chapter18
 end CLRS
