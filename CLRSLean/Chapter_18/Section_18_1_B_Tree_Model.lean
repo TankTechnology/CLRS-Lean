@@ -1433,6 +1433,72 @@ theorem splitChild_preserves_wellFormed (t : Nat) (ht : 2 ≤ t)
          splitChild_preserves_sameDepth t ht keys children cKeys cChildren i h_lt hchild_eq
             hchild_full hchild_children h_sd⟩
 
+/--
+**`B-TREE-SPLIT-CHILD` preserves the key multiset.**  Splitting a full child
+neither loses nor introduces keys: the flattened key list of the result is a
+permutation of the original.  No ordering hypotheses are needed — this is a
+pure contents fact, complementing the structural-invariant theorems above.
+-/
+theorem splitChild_keys_perm (t : Nat) (ht : 2 ≤ t)
+    (keys : List Nat) (children : List BTree)
+    (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
+    (h_lt : i < children.length)
+    (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
+    (hchild_full : cKeys.length = 2 * t - 1) :
+    (keysOf (splitChild t (node keys children) i)).Perm (keysOf (node keys children)) := by
+  have h_keys_snd_nonempty : (cKeys.splitAt (t - 1)).2 ≠ [] := by
+    have hlen : (cKeys.splitAt (t - 1)).2.length = t := by simp [hchild_full]; omega
+    intro h; rw [h] at hlen; simp at hlen; omega
+  dsimp [splitChild]; rw [dif_pos h_lt]
+  have h_get : children[i] = node cKeys cChildren := by simpa using hchild_eq
+  rw [h_get]; dsimp; rw [if_pos hchild_full]
+  cases hk : cKeys.splitAt (t - 1) with
+  | mk leftKeys keysRest =>
+    have h_keysRest_nonempty : keysRest ≠ [] := by
+      have : (cKeys.splitAt (t - 1)).2 = keysRest := by rw [hk]
+      rw [← this]; exact h_keys_snd_nonempty
+    cases hkr : keysRest with
+    | nil => exact (h_keysRest_nonempty hkr).elim
+    | cons medianKey rightKeys =>
+      cases hc : cChildren.splitAt t with
+      | mk leftCh rightCh =>
+        show (keysOf (BTree.node (take i keys ++ medianKey :: drop i keys)
+          (take i children ++ [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+            drop (i + 1) children))).Perm (keysOf (node keys children))
+        have h_lk : leftKeys = cKeys.take (t - 1) := by
+          calc leftKeys = (cKeys.splitAt (t - 1)).1 := by rw [hk]
+            _ = cKeys.take (t - 1) := by simp
+        have h_keysRest_eq : keysRest = cKeys.drop (t - 1) := by
+          calc keysRest = (cKeys.splitAt (t - 1)).2 := by rw [hk]
+            _ = cKeys.drop (t - 1) := by simp
+        have h_left_eq : leftCh = cChildren.take t := by
+          calc leftCh = (cChildren.splitAt t).1 := by rw [hc]
+            _ = cChildren.take t := by simp
+        have h_right_eq : rightCh = cChildren.drop t := by
+          calc rightCh = (cChildren.splitAt t).2 := by rw [hc]
+            _ = cChildren.drop t := by simp
+        -- The three list decompositions that make the multiset match up.
+        have h_cKeys_decomp : cKeys = leftKeys ++ medianKey :: rightKeys := by
+          conv_lhs => rw [← List.take_append_drop (t - 1) cKeys]
+          rw [← h_lk, ← h_keysRest_eq, hkr]
+        have h_cChildren_decomp : cChildren = leftCh ++ rightCh := by
+          conv_lhs => rw [← List.take_append_drop t cChildren]
+          rw [← h_left_eq, ← h_right_eq]
+        have h_children_decomp :
+            children = take i children ++ node cKeys cChildren :: drop (i + 1) children := by
+          conv_lhs => rw [← List.take_append_drop i children]
+          rw [List.drop_eq_getElem_cons h_lt, h_get]
+        -- Reduce the permutation to a multiset equality and linearise both sides.
+        rw [← Multiset.coe_eq_coe]
+        conv_rhs => rw [keysOf, h_children_decomp]
+        conv_lhs => rw [keysOf]
+        simp only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil,
+          keysOf, h_cKeys_decomp, h_cChildren_decomp, ← Multiset.coe_add, ← Multiset.coe_nil,
+          ← Multiset.cons_coe, ← Multiset.singleton_add]
+        rw [show (↑keys : Multiset Nat) = ↑(take i keys) + ↑(drop i keys) from by
+          rw [Multiset.coe_add, List.take_append_drop]]
+        abel
+
 end BTree
 end Chapter18
 end CLRS
