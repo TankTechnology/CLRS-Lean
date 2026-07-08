@@ -16,10 +16,9 @@ Main results:
 - Theorem {lit}`dequeue_enqueue_nonempty`: enqueueing at the back of a nonempty
   queue does not change the next dequeued front element.
 
-Current gaps:
+Status: `proved` for the functional-list model.
 
-- None for the functional-list model.  Array-level overflow/underflow and
-  circular-buffer proofs are deferred.
+Deferred refinements: array-level overflow/underflow and circular-buffer proofs.
 -/
 
 namespace CLRS

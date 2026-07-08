@@ -27,12 +27,9 @@ Main results:
 * Interval-tree correctness: `intervalSearch?_some_overlap` and
   `intervalSearch?_none_noOverlap` (combined as `intervalSearch?_spec`).
 
-Current gaps:
+Status: `proved` for the interval-tree augmentation framework.
 
-* A red-black bridge (`ofRBTree`) and a full `RB-INSERT` / `RB-DELETE` that
-  maintain both color and max-high augmentation remain future work.
-* The generic framework uses a fixed augmentation type per tree; a fully
-  monoid-based augmentation theorem is not attempted.
+Deferred refinements: red-black bridge and monoid-based augmentation.
 -/
 
 namespace CLRS

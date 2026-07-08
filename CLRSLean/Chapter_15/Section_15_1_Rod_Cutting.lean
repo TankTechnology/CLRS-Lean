@@ -27,12 +27,12 @@ Main results:
 * Theorem {lit}`planValue_le_optimalPlanValue_of_same_length`: a plan attaining
   the recurrence value is optimal among plans of the same length.
 
-Current gaps:
+Status: `proved` for the mathematical cut-optimality layer.
 
-* This file proves the mathematical bottom-up table-certificate layer, but not
-  yet a mutable-array implementation or memoized cache refinement.
-* Matrix-chain multiplication, LCS, and optimal binary-search trees remain
-  future dynamic-programming targets.
+Deferred refinements:
+
+* Mutable-array implementation and memoized-cache refinement are future
+  implementation-level targets beyond the current mathematical-correctness scope.
 -/
 
 namespace CLRS
