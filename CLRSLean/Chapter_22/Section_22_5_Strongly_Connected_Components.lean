@@ -520,34 +520,26 @@ theorem scc_finish_time_order {C D : Set V}
   rw [hc_max, hd_max]
   -- Compare discovery times of rC and rD
   by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
-  · -- Case 1: rC discovered first.  Then rD finishes before rC by the bridge lemma.
-    have h_finish_lt : finishTime (G.dfs) rD < finishTime (G.dfs) rC :=
-      finish_lt_finish_of_first_discovered_edge G hC hD hedge hrC_mem hrD_mem
-        hdisc_min_C hd_lt
-    -- rC's finish ≤ max-finish of C, and rD's finish ≤ max-finish... wait, rD's
-    -- finish is at most maxFinish(D) (actually maxFinish(D) ≥ f[rD]).
-    -- Since f[d] = maxFinish(D) ≥ f[rD], and f[rC] ≤ maxFinish(C) = f[c],
-    -- we need f[d] < f[c].
-    -- But we only have f[rD] < f[rC], not f[d] < f[c].
-    -- We need to relate maxFinish to rC/rD.
-    -- Since rD ∈ D, f[rD] ≤ maxFinish(D) = f[d]. So f[rD] ≤ f[d].
-    -- And rC ∈ C, so f[rC] ≤ maxFinish(C) = f[c].
-    -- But f[rD] < f[rC] doesn't imply f[d] < f[c] directly.
-    -- We need: maxFinish(D) < f[rC]. This would follow from: every vertex in D
-    -- finishes before rC. The bridge lemma gives this for rD specifically,
-    -- but we need it for ALL of D.
-    -- Actually, applying the bridge lemma to (x=rC, y=d) would give f[d] < f[rC].
-    -- Let's check if the conditions hold for (rC, d):
-    have hd_disc_gt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) d := by
-      have h' : discoveryTime (G.dfs) rD ≤ discoveryTime (G.dfs) d := hdisc_min_D d hdD
-      omega
-    have h_finish_lt' : finishTime (G.dfs) d < finishTime (G.dfs) rC :=
-      finish_lt_finish_of_first_discovered_edge G hC hD hedge hrC_mem hdD
-        hdisc_min_C hd_disc_gt
-    have h_rC_max : finishTime (G.dfs) rC ≤ maxFinish G (G.dfs) C :=
-      finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
-    rw [hc_max] at h_rC_max
-    omega
+  · -- Case 1: rC discovered first.  Use exists_discovery_state.
+    have h_rC_vert : rC ∈ G.vertices := hCsub hrC_mem
+    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite⟩
+    -- hdisc_eq: d[rC] = s.time.  h_nonwhite: non-white w in s → d[w] < s.time = d[rC].
+    -- All of C ∪ D is white in s (otherwise d[v] < d[rC], contradicting firstDiscoveredVertex_min)
+    have hwhite_C : ∀ v ∈ C, s.color v = Color.white := by
+      intro v hv; by_cases hw : s.color v = Color.white; · exact hw
+      · have h_lt := h_nonwhite v hw; rw [← hdisc_eq] at h_lt
+        have h_le := hdisc_min_C v hv; omega
+    have hwhite_D : ∀ v ∈ D, s.color v = Color.white := by
+      intro v hv; by_cases hw : s.color v = Color.white; · exact hw
+      · have h_lt := h_nonwhite v hw; rw [← hdisc_eq] at h_lt
+        have hle := hdisc_min_D v hv; omega
+    -- In particular, the max-finish vertex d ∈ D is white in s
+    have hwhite_d : s.color d = Color.white := hwhite_D d hdD
+    -- rC can reach d (via C→D edge), and the path is white in s.
+    -- By the white-path theorem, dfsVisit from rC blackens d, so f[d] < f[rC].
+    -- The f values are preserved from the dfsVisit to G.dfs (admitted).
+    -- Hence finishTime(G.dfs) d < finishTime(G.dfs) rC ≤ finishTime(G.dfs) c.
+    sorry
   · -- Case 2: rD discovered first (or same time), i.e., d[rD] ≤ d[rC].
     -- Since D cannot reach C, rC is not in rD's DFS tree, so rD finishes before
     -- rC is discovered: f[rD] < d[rC].
