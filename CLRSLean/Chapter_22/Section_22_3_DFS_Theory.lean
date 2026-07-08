@@ -2427,6 +2427,59 @@ theorem finish_le_maxFinish {s : DFSState V} {C : Set V} {v : V}
     simp [sC, hV, hv]
   exact Finset.le_sup (s := sC) (f := fun x => finishTime s x) hmem
 
+/-! ## First-discovered vertex -/
+
+/-- For a nonempty subset `C` of vertices, there exists a vertex in `C` whose
+discovery time is minimal among all vertices in `C`. -/
+theorem exists_firstDiscovered {s : DFSState V} {C : Set V}
+    (hC : C.Nonempty) (hsub : C ⊆ G.vertices) :
+    ∃ r, r ∈ C ∧ ∀ v ∈ C, discoveryTime s r ≤ discoveryTime s v := by
+  let sC := @Finset.filter V (fun v => v ∈ C) (Classical.decPred (fun v => v ∈ C)) G.vertices
+  have h_sC : sC.Nonempty := by
+    rcases hC with ⟨v, hv⟩
+    have hvV : v ∈ G.vertices := hsub hv
+    refine ⟨v, ?_⟩
+    simp [sC, hvV, hv]
+  -- Image of discovery times on sC (a nonempty Finset of ℕ)
+  let times := Finset.image (fun v => discoveryTime s v) sC
+  have h_times : times.Nonempty := by
+    rcases h_sC with ⟨v, hv⟩
+    exact ⟨discoveryTime s v, Finset.mem_image.mpr ⟨v, hv, rfl⟩⟩
+  let m := times.min' h_times
+  have hm_mem : m ∈ times := Finset.min'_mem times h_times
+  rcases Finset.mem_image.mp hm_mem with ⟨r, hr_sC, hm⟩
+  have hrC : r ∈ C := by
+    simp [sC] at hr_sC; exact hr_sC.2
+  refine ⟨r, hrC, ?_⟩
+  intro v hv
+  have hvV : v ∈ G.vertices := hsub hv
+  have hv_sC : v ∈ sC := by
+    simp [sC, hvV, hv]
+  have : discoveryTime s v ∈ times := Finset.mem_image.mpr ⟨v, hv_sC, rfl⟩
+  have hm_le : m ≤ discoveryTime s v := Finset.min'_le times (discoveryTime s v) this
+  rw [hm]
+  exact hm_le
+
+open Classical in
+/-- The vertex in `C` with minimum discovery time.  Requires `C` to be nonempty
+and a subset of `G.vertices` so the choice is well-defined. -/
+noncomputable def firstDiscoveredVertex (s : DFSState V) (C : Set V)
+    (hC : C.Nonempty) (hsub : C ⊆ G.vertices) : V :=
+  Classical.choose (exists_firstDiscovered G (s := s) (C := C) hC hsub)
+
+/-- The first-discovered vertex of `C` belongs to `C`. -/
+theorem firstDiscoveredVertex_mem {s : DFSState V} {C : Set V}
+    (hC : C.Nonempty) (hsub : C ⊆ G.vertices) :
+    firstDiscoveredVertex G s C hC hsub ∈ C :=
+  (Classical.choose_spec (exists_firstDiscovered G (s := s) (C := C) hC hsub)).1
+
+/-- Every vertex in `C` has discovery time at least that of the first-discovered
+vertex. -/
+theorem firstDiscoveredVertex_min {s : DFSState V} {C : Set V} {v : V}
+    (hC : C.Nonempty) (hsub : C ⊆ G.vertices) (hv : v ∈ C) :
+    discoveryTime s (firstDiscoveredVertex G s C hC hsub) ≤ discoveryTime s v :=
+  (Classical.choose_spec (exists_firstDiscovered G (s := s) (C := C) hC hsub)).2 v hv
+
 end SCCFinishOrdering
 
 end Graph
