@@ -581,6 +581,46 @@ theorem insertNonFull_keys_perm (t x : Nat) (ht : 2 ≤ t) :
     simp only [List.flatMap_append, List.flatMap_cons, ← Multiset.coe_add, hihc]
     abel
 
+/-! ### `findChild` range correctness -/
+
+/-- Every key before the chosen child index is `≤ x`. -/
+lemma findChild_take_le (x : Nat) : ∀ (ks : List Nat), ∀ k ∈ ks.take (findChild ks x), k ≤ x := by
+  intro ks
+  induction ks with
+  | nil => intro k hk; simp at hk
+  | cons a as ih =>
+    intro k hk
+    rw [findChild] at hk
+    split at hk
+    · rename_i hax
+      rw [List.take_succ_cons] at hk
+      rcases List.mem_cons.mp hk with rfl | hk
+      · exact hax
+      · exact ih k hk
+    · simp at hk
+
+/-- On a sorted key list, every key from the chosen child index onward is `> x`. -/
+lemma findChild_drop_gt (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤ ·) ks →
+    ∀ k ∈ ks.drop (findChild ks x), x < k := by
+  intro ks
+  induction ks with
+  | nil => intro _ k hk; simp at hk
+  | cons a as ih =>
+    intro hs k hk
+    have hsa : ∀ b ∈ as, a ≤ b := (List.pairwise_cons.mp hs).1
+    have hs' : List.Pairwise (· ≤ ·) as := (List.pairwise_cons.mp hs).2
+    rw [findChild] at hk
+    split at hk
+    · rename_i hax
+      rw [List.drop_succ_cons] at hk
+      exact ih hs' k hk
+    · rename_i hax
+      have hxa : x < a := not_le.mp hax
+      simp only [List.drop_zero, List.mem_cons] at hk
+      rcases hk with rfl | hk
+      · exact hxa
+      · exact lt_of_lt_of_le hxa (hsa k hk)
+
 end BTree
 end Chapter18
 end CLRS
