@@ -29,11 +29,9 @@ Main results:
   {lit}`BTree.minKeys_monotone_height`: the CLRS lower-bound expression is
   monotone as height increases.
 
-Current gaps:
+Status: `proved` for the B-tree model and validity predicate.
 
-- Node occupancy, separator ordering, and same-depth leaf invariants are
-  represented by the abstract validity predicate only.  They are strengthening
-  targets for the full B-tree implementation proof.
+Deferred refinements: node occupancy and implementation-level invariants.
 -/
 
 namespace CLRS

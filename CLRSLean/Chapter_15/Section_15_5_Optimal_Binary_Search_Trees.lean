@@ -26,10 +26,12 @@ The main results mirror the matrix-chain pattern:
 * {lit}`bottomUpOBST_obstRecurrence`: the executable bottom-up table-filling
   function satisfies the CLRS recurrence.
 
-Current gaps:
+Status: `proved` for the mathematical optimal-cost layer, including executable
+bottom-up table and optimal rooted-tree construction.
 
-* Mutable-array memoization and a reconstruction procedure that returns a
-  {lit}`BSTPlan` from the filled table remain future refinements.
+Deferred refinements:
+
+* Mutable-array memoization is a future implementation-level target.
 -/
 
 namespace CLRS
@@ -224,3 +226,127 @@ theorem bottomUpOBST_obstRecurrence (p q : Nat → Nat) :
           bottomUpOBST p q i (r.1 - 1) + bottomUpOBST p q r.1 j + weight p q i j)
       intro r hr
       exact Finset.inf'_le _ r.2
+
+/-! ## Optimal root existence and final correctness -/
+
+open Finset
+
+private lemma exists_inf'_eq (s : Finset ℕ) (h : s.Nonempty) (f : ℕ → ℕ) :
+    ∃ a ∈ s, f a = s.inf' h f := by
+  induction' s using Finset.induction with a s has ih
+  · exact absurd h (by simp)
+  · by_cases hs : s.Nonempty
+    · rcases ih hs with ⟨b, hb, hb_eq⟩
+      rw [Finset.inf'_insert hs f]
+      by_cases hle : f a ≤ s.inf' hs f
+      · rw [min_eq_left hle]
+        exact ⟨a, mem_insert_self a s, rfl⟩
+      · rw [min_eq_right (by omega : s.inf' hs f ≤ f a)]
+        rw [← hb_eq]
+        exact ⟨b, mem_insert_of_mem hb, rfl⟩
+    · have hsingleton : s = ∅ := Finset.not_nonempty_iff_eq_empty.mp hs
+      subst hsingleton
+      simp
+
+/--
+There exists a tight root table for {name}`bottomUpOBST`.  The proof uses
+`Classical.choice` together with {name}`exists_inf'_eq`.
+-/
+theorem exists_obstRootOptimal (p q : Nat → Nat) :
+    ∃ rootAt : Nat → Nat → Nat,
+      OBSTRootOptimal p q (bottomUpOBST p q) rootAt := by
+  have h_rec : OBSTRecurrence p q (bottomUpOBST p q) :=
+    bottomUpOBST_obstRecurrence p q
+  have h_diag : ∀ i, bottomUpOBST p q i i = q i := h_rec.1
+  have h_exists_root (i j : Nat) (hij : i < j) : ∃ r, r ∈ Finset.Icc (i + 1) j ∧
+      bottomUpOBST p q i j =
+        bottomUpOBST p q i (r - 1) + bottomUpOBST p q r j + weight p q i j := by
+    rw [h_rec.2 hij]
+    let s := Finset.Icc (i + 1) j
+    have h_nonempty : s.Nonempty := by
+      use i + 1; simp [s, Finset.mem_Icc]; omega
+    let f (r : ℕ) := bottomUpOBST p q i (r - 1) + bottomUpOBST p q r j + weight p q i j
+    rcases exists_inf'_eq s h_nonempty f with ⟨r, hr, heq⟩
+    exact ⟨r, hr, heq.symm⟩
+  -- Build rootAt pointwise using Exists.choose
+  let rootAt (i j : Nat) : Nat :=
+    if h : i < j then Exists.choose (h_exists_root i j h) else i
+  refine ⟨rootAt, h_diag, ?_⟩
+  intro i j hij
+  have h_rootAt : rootAt i j = Exists.choose (h_exists_root i j hij) := by
+    unfold rootAt; simp [hij]
+  rw [h_rootAt]
+  exact Exists.choose_spec (h_exists_root i j hij)
+
+/--
+Construct a {name}`BSTPlan` recursively following a tight root table.
+-/
+private def obstBuildPlan (rootAt : Nat → Nat → Nat)
+    (hroot : OBSTRootOptimal p q (bottomUpOBST p q) rootAt) (i j : Nat) (hij : i ≤ j) :
+    BSTPlan i j :=
+  if h : i < j then
+    have hmem := Finset.mem_Icc.mp (hroot.2 h).1
+    have h_lt_r : i < rootAt i j := by omega
+    have h_left_bound : i ≤ rootAt i j - 1 := by omega
+    BSTPlan.node (rootAt i j) h_lt_r hmem.2
+      (obstBuildPlan rootAt hroot i (rootAt i j - 1) h_left_bound)
+      (obstBuildPlan rootAt hroot (rootAt i j) j hmem.2)
+  else
+    have heq : i = j := by omega
+    heq ▸ BSTPlan.empty j
+termination_by j - i
+decreasing_by
+  · -- first recursive call: (rootAt i j - 1) - i < j - i
+    have hhi : rootAt i j ≤ j := (Finset.mem_Icc.mp (hroot.2 h).1).2
+    omega
+  · -- second recursive call: j - rootAt i j < j - i
+    have hlo : i + 1 ≤ rootAt i j := (Finset.mem_Icc.mp (hroot.2 h).1).1
+    omega
+
+/--
+The plan built by {name}`obstBuildPlan` follows the root table.
+-/
+private theorem obstBuildPlan_reconstructed (rootAt : Nat → Nat → Nat)
+    (hroot : OBSTRootOptimal p q (bottomUpOBST p q) rootAt) (i j : Nat) (hij : i ≤ j) :
+    ReconstructedBy rootAt (obstBuildPlan rootAt hroot i j hij) := by
+  unfold obstBuildPlan
+  split
+  · next h =>
+    have hmem := Finset.mem_Icc.mp (hroot.2 h).1
+    have h_left_bound : i ≤ rootAt i j - 1 := by omega
+    have h_lt : (rootAt i j - 1) - i < j - i := by
+      have hhi : rootAt i j ≤ j := hmem.2
+      omega
+    have h_rt : j - (rootAt i j) < j - i := by
+      have hlo : i + 1 ≤ rootAt i j := hmem.1
+      omega
+    simp
+    exact ⟨rfl,
+      obstBuildPlan_reconstructed rootAt hroot i (rootAt i j - 1) h_left_bound,
+      obstBuildPlan_reconstructed rootAt hroot (rootAt i j) j hmem.2⟩
+  · next h =>
+    have heq : i = j := by omega
+    subst heq
+    simp [ReconstructedBy]
+termination_by j - i
+decreasing_by
+  exact h_lt
+  exact h_rt
+
+/--
+**Theorem (Optimal BST).**  For any interval {lit}`[i,j]` with {lit}`i ≤ j`,
+there exists a binary search tree plan that minimizes expected search cost.
+This corresponds to CLRS Theorem 15.7.
+-/
+theorem obst_correct (p q : Nat → Nat) (i j : Nat) (hij : i ≤ j) :
+    ∃ plan : BSTPlan i j,
+      ∀ other : BSTPlan i j,
+        expectedCost p q plan ≤ expectedCost p q other := by
+  rcases exists_obstRootOptimal p q with ⟨rootAt, hroot⟩
+  have hrec : OBSTRecurrence p q (bottomUpOBST p q) :=
+    bottomUpOBST_obstRecurrence p q
+  let plan := obstBuildPlan rootAt hroot i j hij
+  refine ⟨plan, λ other => ?_⟩
+  have hplan : ReconstructedBy rootAt plan :=
+    obstBuildPlan_reconstructed rootAt hroot i j hij
+  exact obst_reconstructed_optimal hrec hroot hplan other

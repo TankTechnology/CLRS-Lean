@@ -26,11 +26,8 @@ Main result:
 - Theorem {lit}`CLRS.Chapter04.master_case3_tail_dominated`: tail-dominated
   normalized forcing gives the third Master-style exact-power case.
 
-Current gaps:
-
-- The extension from exact powers {lit}`n = b^i` to all natural input sizes is future
-  work.  That layer needs a monotone recurrence model and floor/ceiling
-  sandwiching.
+Status: `proved` for the exact-power Master theorem core.
+The all-input extension (floor/ceiling sandwiching) is proved in Section 4.6.
 -/
 
 namespace CLRS
