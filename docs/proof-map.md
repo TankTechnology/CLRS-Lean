@@ -1083,7 +1083,7 @@ rotation and still expose the same ideal rank-selection behavior afterward.
 ### Section 15.1 - Rod cutting
 
 - Lean source: `CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean`
-- Status: `partial`
+- Status: `proved` for the mathematical cut-optimality layer
 - Main proved theorems:
   - `CLRS.Chapter15.firstCutValue_le_of_rodCutRecurrence`
   - `CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`
@@ -1116,7 +1116,7 @@ prefix independently of a particular mutable-array implementation.
 ### Section 15.2 - Matrix-chain multiplication
 
 - Lean source: `CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean`
-- Status: `partial`
+- Status: `proved`
 - Main proved theorems:
   - `CLRS.Chapter15.ChainPlan.start_le_end`
   - `CLRS.Chapter15.MatrixChainLowerBound`
@@ -1126,6 +1126,9 @@ prefix independently of a particular mutable-array implementation.
   - `CLRS.Chapter15.matrixChain_reconstructed_optimal`
   - `CLRS.Chapter15.matrixChain_reconstructed_cost_le_planCost`
   - `CLRS.Chapter15.matrixChain_reconstructed_cost_eq_of_reconstructed`
+  - `CLRS.Chapter15.matrixChainOpt`
+  - `CLRS.Chapter15.matrixChainReconstruct`
+  - `CLRS.Chapter15.matrixChain_correct`
 - Proof pattern: represent a parenthesization as an inductive binary split
   tree, specify a candidate dynamic-programming optimum by its split lower
   bound, then prove by induction that every concrete parenthesization has cost
@@ -1134,13 +1137,15 @@ prefix independently of a particular mutable-array implementation.
   exactly the candidate cost, is globally optimal, has cost no greater than any
   competing parenthesization of the same interval, and has the same cost as any
   other plan reconstructed from the same tight split table.
-- Current gap: concrete bottom-up cost-table construction and executable split
-  reconstruction remain future targets
+- Current gap: mutable-array/memoized implementation and a RAM cost model remain
+  future refinement targets; the bottom-up cost table (`matrixChainOpt`) and
+  executable split reconstruction (`matrixChainReconstruct`, `matrixChain_correct`)
+  are now proved
 
 ### Section 15.4 - Longest common subsequence
 
 - Lean source: `CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean`
-- Status: `partial`
+- Status: `proved`
 - Main proved theorems:
   - `CLRS.Chapter15.LCSCertificate.seq_common`
   - `CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`
@@ -1167,6 +1172,10 @@ prefix independently of a particular mutable-array implementation.
   - `CLRS.Chapter15.LCSTableCertificate.commonSubsequence_length_le`
   - `CLRS.Chapter15.lcsTable_reconstruction_optimal`
   - `CLRS.Chapter15.lcsCertificate_of_table_reconstruction_length`
+  - `CLRS.Chapter15.lcsLength`
+  - `CLRS.Chapter15.lcsLength_upper_bound`
+  - `CLRS.Chapter15.lcsReconstruct`
+  - `CLRS.Chapter15.lcs_correct`
 - Proof pattern: package an LCS certificate as a common subsequence plus a
   universal length upper bound, then prove all certificates for the same inputs
   agree on the optimal length.  The table-certificate layer separately records
@@ -1175,19 +1184,24 @@ prefix independently of a particular mutable-array implementation.
   nonmatching-head one-sided bounds, and proves that a reconstructed common
   subsequence whose length equals a certified table entry is optimal and yields
   a certificate with exactly the table length.
-- Current gap: concrete dynamic-programming length-table construction and
-  executable reconstruction algorithm remain future targets
+- Current gap: mutable-array/memoized implementation and a RAM cost model remain
+  future refinement targets; the length-table construction (`lcsLength`) and
+  executable reconstruction algorithm (`lcsReconstruct`, `lcs_correct`) are now
+  proved
 
 ### Section 15.5 - Optimal binary search trees
 
 - Lean source: `CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean`
-- Status: `partial`
+- Status: `proved`
 - Main proved theorems:
   - `CLRS.Chapter15.OBST.BSTPlan.start_le_end`
   - `CLRS.Chapter15.OBST.obst_opt_le_planCost`
   - `CLRS.Chapter15.OBST.obst_reconstructed_cost_eq`
   - `CLRS.Chapter15.OBST.obst_reconstructed_optimal`
   - `CLRS.Chapter15.OBST.bottomUpOBST_obstRecurrence`
+  - `CLRS.Chapter15.OBST.obstBuildPlan`
+  - `CLRS.Chapter15.OBST.obstBuildPlan_reconstructed`
+  - `CLRS.Chapter15.OBST.obst_correct`
 - Proof pattern: represent a BST as an inductive plan over intervals, define
   expected search cost recursively, specify a candidate dynamic-programming
   optimum by the CLRS lower-bound recurrence, then prove by induction that every
@@ -1196,8 +1210,10 @@ prefix independently of a particular mutable-array implementation.
   that any plan reconstructed from it has exactly the optimum cost.  Finally,
   give a computable bottom-up function that evaluates the recurrence by interval
   length and prove that it satisfies the recurrence.
-- Current gap: concrete dynamic-programming cost/root-table construction and an
-  executable reconstruction algorithm remain future targets
+- Current gap: mutable-array/memoized implementation and a RAM cost model remain
+  future refinement targets; the cost/root-table construction (`obstBuildPlan`)
+  and executable reconstruction algorithm (`obstBuildPlan_reconstructed`,
+  `obst_correct`) are now proved
 
 ## Chapter 16 - Greedy Algorithms
 
