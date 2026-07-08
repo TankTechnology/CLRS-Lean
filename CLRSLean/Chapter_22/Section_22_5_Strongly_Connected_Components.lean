@@ -507,7 +507,7 @@ theorem scc_finish_time_order {C D : Set V}
   by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
   · -- Case 1: rC discovered first.  Use exists_discovery_state.
     have h_rC_vert : rC ∈ G.vertices := hCsub hrC_mem
-    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_ng_s, h_f_pres, h_fuel⟩
+    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_ng_s, h_f_pres, h_fuel, h_suffix⟩
     -- hdisc_eq: d[rC] = s.time.  h_nonwhite: non-white w in s → d[w] < s.time = d[rC].
     -- h_bf_s: black-finish invariant for s.
     -- h_f_pres: f-preservation for dfsVisit output.
@@ -579,7 +579,7 @@ theorem scc_finish_time_order {C D : Set V}
     -- Use exists_discovery_state for rD
     have h_rD_vert : rD ∈ G.vertices := hDsub hrD_mem
     rcases exists_discovery_state G rD h_rD_vert with
-      ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_ng_s, h_f_pres, h_fuel⟩
+      ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_ng_s, h_f_pres, h_fuel, h_suffix⟩
     -- All of D is white in s
     have hwhite_D : ∀ v ∈ D, s.color v = Color.white := by
       intro v hv; by_cases hw : s.color v = Color.white; · exact hw
@@ -636,8 +636,20 @@ theorem scc_finish_time_order {C D : Set V}
       have h_disc_ge_s_time : discoveryTime (G.dfs) rC ≥ s.time := by
         rw [← hdisc_eq]; exact hd_le
       -- d[rC] ∈ [s.time, result.time): rC discovered during dfsVisit.
-      -- Bridge lemma: this implies result.color rC ≠ white.  Contradiction.
-      sorry
+      -- The dfsFromList bridge lemma: since rC is white in the dfsVisit output
+      -- but black in G.dfs, d[rC] ≥ output_time.  Contradiction with h_disc_lt_time.
+      rcases h_suffix with ⟨us, h_us⟩
+      have h_bf_out : ∀ w, (dfsVisit G f rD s).color w = Color.black →
+          finishTime (dfsVisit G f rD s) w < (dfsVisit G f rD s).time :=
+        dfsVisit_black_finish_lt_time (G := G) (fuel := f) (u := rD) (s := s) (by omega) hs_white h_bf_s
+      have h_disc_ge_time : discoveryTime (G.dfs) rC ≥ (dfsVisit G f rD s).time := by
+        have h_white_rC_out : (dfsVisit G f rD s).color rC = Color.white := h_rC_white_out
+        have h_nonwhite_final : (G.dfs).color rC ≠ Color.white := by
+          rw [G.dfs_all_black (hCsub hrC_mem)]; decide
+        rw [← h_us]
+        apply dfsFromList_white_to_nonwhite_disc_ge_time G (by omega) h_bf_out
+          h_white_rC_out h_nonwhite_final
+      omega
     -- All vertices in D finish before rD (white-path, same as Case 1)
     have h_finish_D_lt_rD : ∀ v ∈ D, v ≠ rD → finishTime (G.dfs) v < finishTime (G.dfs) rD := by
       intro v hv hne
