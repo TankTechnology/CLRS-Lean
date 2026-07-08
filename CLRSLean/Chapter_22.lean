@@ -1,7 +1,9 @@
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_2_BFS
 import CLRSLean.Chapter_22.Section_22_3_DFS
-import CLRSLean.Chapter_22.Section_22_3_DFS_Theory
+import CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath
+import CLRSLean.Chapter_22.Section_22_3_DFS_Intervals
+import CLRSLean.Chapter_22.Section_22_3_DFS_SCC
 import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
 import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
 
