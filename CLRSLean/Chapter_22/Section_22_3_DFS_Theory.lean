@@ -1293,6 +1293,27 @@ theorem dfsVisit_discovery_source {fuel : Nat} {u : V} {s : DFSState V}
         simpa [s1]
       simp [s3, s1, discoveryTime, hs2]
 
+/-- Stronger version: the source's `d` field equals `some (s.time)`. -/
+theorem dfsVisit_discovery_source_d_eq {fuel : Nat} {u : V} {s : DFSState V}
+    (hfuel : 0 < fuel) (hwhite : s.color u = Color.white) :
+    (dfsVisit G fuel u s).d u = some (s.time) := by
+  cases fuel with
+  | zero => omega
+  | succ n =>
+      let s1 := s.setColor u Color.gray |>.setDiscovery u
+      let s2 := List.foldl (fun (s' : DFSState V) (v : V) =>
+          if s'.color v = Color.white then dfsVisit G n v (s'.setParent v u) else s') s1 (G.adj u).toList
+      let s3 := s2.setColor u Color.black |>.setFinish u
+      have heq_state : dfsVisit G (n + 1) u s = s3 := by
+        simp [s3, s2, s1, dfsVisit, hwhite]
+      rw [heq_state]
+      have h_set : s1.d u = some (s.time) := by simp [s1]
+      have hnw : s1.color u ≠ Color.white := by simp [s1]
+      have h_fold : s2.d u = s1.d u :=
+        dfsVisit_fold_preserves_d_of_not_white G (u := u) (v := u) s1 (l := (G.adj u).toList) hnw
+      have h_finish : s3.d u = s2.d u := by simp [s3]
+      simp [h_set, h_fold, h_finish]
+
 /-- The source of a DFS visit is finished exactly one time unit before the
 output state's clock. -/
 theorem dfsVisit_finishTime_source_eq_pred_time {fuel : Nat} {u : V} {s : DFSState V}
@@ -2590,38 +2611,82 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                 rcases h_ng_s1 v with (hw | hb)
                 · exact (hv_white_s1 hw).elim
                 · exact hb
-              -- v white→black during dfsVisit from u; by white-path theorem
-              have h_wr : WhiteReachable G s0 u v :=
-                dfsVisit_blackens_implies_whiteReachable G hu_white hn_pos hwhite_s0 hv_black_s1
-              have h_gray : ∀ w, s0.color w = Color.gray → G.Reachable w u := by
-                intro w hw
-                rcases h_ng w with (hw' | hb')
-                · rw [hw'] at hw; contradiction
-                · rw [hb'] at hw; contradiction
-              rcases dfsVisit_discovery_state G hn_pos hu_white h_bf
-                  hv_black_s1 h_wr hwhite_s0 h_gray with ⟨s', f', hs'_white, hf'_black, _, _⟩
-              -- s' is the discovery state of v.
-              -- d[v] is set by the recursive dfsVisit from v: d[v] = s'.time.
-              have h_fuel_pos : 0 < f' := by
-                by_contra hzero
-                have hzero' : f' = 0 := by omega
-                subst hzero'
-                simp [dfsVisit] at hf'_black
-                rw [hs'_white] at hf'_black
-                exact nomatch hf'_black
-              have h_disc_v : discoveryTime (dfsVisit G f' v s') v = s'.time :=
-                dfsVisit_discovery_source G h_fuel_pos hs'_white
-              -- d[v] is preserved from the recursive dfsVisit through the rest
-              -- of the fold and dfsFromList to the final result, because v is
-              -- black after the recursive call and d is preserved for black vertices.
-              -- The chain:
-              --   s_rec  = dfsVisit G f' v s'          (v turns black, d[v]=s'.time)
-              --   s_fold = foldl ... s_rec rest_neighbors  (v stays black, d preserved)
-              --   s3     = s_fold.setColor u black |>.setFinish u
-              --   result = dfsFromList G n us s3       (v stays black, d preserved)
-              -- Hence (result).d v = s'.d v, giving discoveryTime result v = s'.time.
-              -- For now, we admit the d-preservation chain.
-              sorry
+              -- Name the step function to avoid lambda-matching issues
+              let step : DFSState V → V → DFSState V := fun s' x =>
+                if s'.color x = Color.white then dfsVisit G (n-1) x (s'.setParent x u) else s'
+              -- Use dfsVisit_fold_blackens_loc_prefix to find v in the outer fold
+              set s_init := s0.setColor u Color.gray |>.setDiscovery u with hs_init
+              have hwhite_v_init : s_init.color v = Color.white := by simp [s_init, hvu, hwhite_s0]
+              have h_bf_init : ∀ z, s_init.color z = Color.black →
+                  finishTime s_init z < s_init.time := by
+                intro z hz
+                have hz0 : s0.color z = Color.black := by
+                  simp [s_init] at hz
+                  by_cases hzu : z = u; · subst z; simp [s_init, hu_white] at hz
+                  · simpa [hzu] using hz
+                have h_fin : finishTime s_init z = finishTime s0 z := by simp [s_init, finishTime]
+                have h_time : s_init.time = s0.time + 1 := by simp [s_init]
+                rw [h_fin, h_time]; have h := h_bf z hz0; omega
+              have hcolor : (List.foldl step s_init (G.adj u).toList).color v = s1.color v := by
+                rw [hs1, dfsVisit, hu_white]
+                -- Goal: foldl.color v = (foldl.setColor u black |>.setFinish u).color v
+                -- Both setColor and setFinish don't change color for v ≠ u
+                have h_simplify : ((List.foldl step s_init (G.adj u).toList).setColor u Color.black |>.setFinish u).color v =
+                    (List.foldl step s_init (G.adj u).toList).color v := by
+                  simp [hvu]
+                apply h_simplify.symm
+              have hfold_black : (List.foldl step s_init (G.adj u).toList).color v = Color.black := by
+                rw [hcolor, hv_black_s1]
+              rcases dfsVisit_fold_blackens_loc_prefix G h_bf_init hwhite_v_init hfold_black
+                with ⟨pre, post, w, s2, hadj_eq, hs2_eq, hw_white, hv_white_s2, hw_disc_v, _, _⟩
+              by_cases hw_eq_v : w = v
+              · -- w = v: v is directly discovered as u's neighbor.
+                -- Sub-problem 2: prove s1.d v = some (s2.time)
+                subst w
+                let s' := s2.setParent v u
+                have hs'_white : s'.color v = Color.white := by simp [s', hv_white_s2]
+                have hs'_time : s'.time = s2.time := by simp [s']
+                have hf'_black : (dfsVisit G (n-1) v s').color v = Color.black := hw_disc_v
+                have hfuel' : 0 < n-1 := by
+                  have hcard : 1 ≤ G.vertices.card := Finset.card_pos.mpr ⟨v, hv⟩
+                  dsimp [n]; omega
+                -- Step 1: d[v] in recursive call = some (s2.time)
+                have h_rec_d : (dfsVisit G (n-1) v s').d v = some (s2.time) := by
+                  rw [← hs'_time]
+                  exact dfsVisit_discovery_source_d_eq G hfuel' hs'_white
+                -- Step 2: d[v] preserved through rest of outer fold (post)
+                have h_fold_d : (List.foldl (fun s' x =>
+                    if s'.color x = Color.white then dfsVisit G (n-1) x (s'.setParent x u) else s')
+                    (dfsVisit G (n-1) v s') post).d v = (dfsVisit G (n-1) v s').d v :=
+                  dfsVisit_fold_preserves_d_of_black G
+                    (s1 := dfsVisit G (n-1) v s') (l := post) hf'_black
+                -- Step 3: s1.d v = some (s2.time) using the fold decomposition lemma
+                have h_s1_d : s1.d v = some (s2.time) := by
+                  rw [hs1, dfsVisit, hu_white]
+                  -- Goal: (foldl step s_init adj |>.setColor u black |>.setFinish u).d v = some (s2.time)
+                  -- setColor/setFinish don't change d[v]
+                  simp only [DFSState.setColor_d, DFSState.setFinish_d]
+                  -- Goal: (foldl step s_init (G.adj u).toList).d v = some (s2.time)
+                  have h_fold_split := dfsVisit_fold_split_at_white_neighbor G
+                    s_init pre post s2 hadj_eq hs2_eq hv_white_s2
+                  -- From h_fold_split: full_fold = foldl step (dfsVisit ...) post
+                  -- Take .d v on both sides, then chain with h_fold_d and h_rec_d
+                  calc
+                    (List.foldl step s_init (G.adj u).toList).d v
+                        = (List.foldl step (dfsVisit G (n-1) v (s2.setParent v u)) post).d v := by
+                          simpa using congrArg (fun f => f.d v) h_fold_split
+                    _ = (List.foldl step (dfsVisit G (n-1) v s') post).d v := by simp [s']
+                    _ = (dfsVisit G (n-1) v s').d v := by rw [h_fold_d]
+                    _ = some (s2.time) := h_rec_d
+                -- Step 4: d preserved through dfsFromList
+                have h_result_d : (dfsFromList G n us s1).d v = s1.d v :=
+                  dfsFromList_preserves_d_of_black G hn_pos (x := v) hv_black_s1
+                refine ⟨s', n-1, hs'_white, hf'_black, ?_⟩
+                dsimp [discoveryTime, dfsFromList]
+                rw [if_pos hu_white, h_result_d, h_s1_d, hs'_time]; simp
+              · -- w ≠ v: v is discovered inside dfsVisit on w.  Use induction on
+                -- the white-vertex count (same as dfsVisit_discovery_state).
+                sorry
         · -- u not white; skip
           rw [if_neg hu_white] at hblack_result
           rcases ih s0 h_ng h_bf hwhite_s0 hblack_result with ⟨s, f, hs, hf, hdisc⟩
