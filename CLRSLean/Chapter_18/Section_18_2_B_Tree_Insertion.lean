@@ -60,11 +60,10 @@ Main results:
   {lit}`BTree.insert_search_false_of_not_mem_ne`: old membership and absent
   noninserted keys give direct post-insertion search results.
 
-Current gaps:
-
-- This is not yet the full CLRS in-node split and insert-nonfull proof.  It is a
-  specification layer that fixes the public theorem names and membership
-  behavior for the later structural refinement.
+**Note:** the `insert` stub above is the early specification layer (membership /
+search behaviour); the real CLRS `B-TREE-INSERT-NONFULL` and its `WellFormed`
+preservation are proved by `insertNonFull` and its six companion theorems below
+(all 0 `sorry`).
 -/
 
 namespace CLRS
