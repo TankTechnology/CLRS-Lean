@@ -7,8 +7,8 @@ Defines the B-tree data type, key membership, and the full structural invariants
 (`Sorted`, `ChildBounded`, `Occupancy`, `SameDepth`).  Proves that the
 `B-TREE-SPLIT-CHILD` operation preserves every invariant:
 `splitChild_preserves_sorted`, `splitChild_preserves_childBounded`,
-`splitChild_preserves_occupancy`, and `splitChild_preserves_sameDepth`
-(all with 0 `sorry`).
+`splitChild_preserves_occupancy`, and `splitChild_preserves_sameDepth`, combined
+into `splitChild_preserves_wellFormed` (all with 0 `sorry`).
 -/
 
 namespace CLRS
@@ -1394,6 +1394,44 @@ theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
               · exact h_cb_left
               · exact h_cb_right
           · exact h_cb_sub child ((List.drop_subset (i + 1) children) h_drop)
+
+/--
+**`B-TREE-SPLIT-CHILD` preserves `WellFormed`.**  Splitting a full child `i` of a
+non-full node keeps all four structural invariants simultaneously.  This is the
+capstone that combines `splitChild_preserves_sorted`,
+`splitChild_preserves_childBounded`, `splitChild_preserves_occupancy`, and
+`splitChild_preserves_sameDepth`.  The side condition
+`cChildren = [] ∨ t < cChildren.length` needed by the `SameDepth` lemma is
+derived from the child's own `ChildBounded` invariant.
+-/
+theorem splitChild_preserves_wellFormed (t : Nat) (ht : 2 ≤ t)
+    (keys : List Nat) (children : List BTree)
+    (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
+    (h_lt : i < children.length)
+    (hchild_eq : children.get ⟨i, h_lt⟩ = node cKeys cChildren)
+    (hchild_full : cKeys.length = 2 * t - 1)
+    (hparent_nonfull : keys.length < 2 * t - 1)
+    (h_wf : WellFormed t (node keys children)) :
+    WellFormed t (splitChild t (node keys children) i) := by
+  obtain ⟨h_sorted, h_cb, h_occ, h_sd⟩ := h_wf
+  -- The split child is itself `ChildBounded`, so its child count is `0` or `2t`.
+  have h_child_cb : ChildBounded (node cKeys cChildren) := by
+    rw [← hchild_eq]
+    have hcb := h_cb
+    unfold ChildBounded at hcb; rcases hcb with ⟨_, _, h_sub⟩
+    apply h_sub; apply List.get_mem
+  have hchild_children : cChildren = [] ∨ t < cChildren.length := by
+    rcases child_children_len_of_full_cb ht h_child_cb hchild_full with h0 | h2t
+    · left; cases cChildren with | nil => rfl | cons x xs => simp at h0
+    · right; rw [h2t]; omega
+  exact ⟨splitChild_preserves_sorted t ht keys children cKeys cChildren i h_lt hchild_eq
+            hchild_full h_sorted h_cb,
+         splitChild_preserves_childBounded t ht keys children cKeys cChildren i h_lt hchild_eq
+            hchild_full h_cb h_sorted,
+         splitChild_preserves_occupancy t ht keys children cKeys cChildren i h_lt hchild_eq
+            hchild_full hparent_nonfull h_occ h_cb,
+         splitChild_preserves_sameDepth t ht keys children cKeys cChildren i h_lt hchild_eq
+            hchild_full hchild_children h_sd⟩
 
 end BTree
 end Chapter18
