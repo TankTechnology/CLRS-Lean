@@ -1421,6 +1421,262 @@ lemma insertNonFull_childBounded (t x : Nat) (ht : 2 ≤ t) :
             show findChild ks x + 1 - findChild ks x = 1 from by omega]; rfl]
     exact hres
 
+/-! ### Occupancy preservation -/
+
+/-- The left split half is `Occupancy`-valid as a non-root node. -/
+lemma occupancy_left_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildren : List BTree}
+    (hocc : Occupancy t false (node cKeys cChildren)) (hcb : ChildBounded (node cKeys cChildren))
+    (hfull : cKeys.length = 2 * t - 1) :
+    Occupancy t false (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+  have hlen := child_children_len_of_full_cb ht hcb hfull
+  have hkl : (cKeys.take (t - 1)).length = t - 1 := by rw [List.length_take, hfull]; omega
+  unfold Occupancy at hocc ⊢
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · show t - 1 ≤ (cKeys.take (t - 1)).length; omega
+  · show (cKeys.take (t - 1)).length ≤ 2 * t - 1; omega
+  · rcases hlen with h0 | h2t
+    · left
+      have hnil : cChildren = [] := by cases cChildren with | nil => rfl | cons a b => simp at h0
+      rw [hnil]; simp
+    · right; rw [List.length_take, h2t]; constructor <;> omega
+  · intro child hchild
+    exact hocc.2.2.2 child ((List.take_subset t cChildren) hchild)
+
+/-- The right split half is `Occupancy`-valid as a non-root node. -/
+lemma occupancy_right_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildren : List BTree}
+    (hocc : Occupancy t false (node cKeys cChildren)) (hcb : ChildBounded (node cKeys cChildren))
+    (hfull : cKeys.length = 2 * t - 1) :
+    Occupancy t false (node (cKeys.drop t) (cChildren.drop t)) := by
+  have hlen := child_children_len_of_full_cb ht hcb hfull
+  have hkl : (cKeys.drop t).length = t - 1 := by rw [List.length_drop, hfull]; omega
+  unfold Occupancy at hocc ⊢
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · show t - 1 ≤ (cKeys.drop t).length; omega
+  · show (cKeys.drop t).length ≤ 2 * t - 1; omega
+  · rcases hlen with h0 | h2t
+    · left
+      have hnil : cChildren = [] := by cases cChildren with | nil => rfl | cons a b => simp at h0
+      rw [hnil]; simp
+    · right; rw [List.length_drop, h2t]; constructor <;> omega
+  · intro child hchild
+    exact hocc.2.2.2 child ((List.drop_subset t cChildren) hchild)
+
+/-- The number of keys at the root node (used for the non-full precondition). -/
+def rootKeyCount : BTree → Nat
+  | node ks _ => ks.length
+
+/-- Replacing child `j` with an `Occupancy`-valid (non-root) subtree preserves `Occupancy`. -/
+lemma occupancy_set {t : Nat} {b : Bool} {ks : List Nat} {cs : List BTree} {j : Nat} {c' : BTree}
+    (hocc : Occupancy t b (node ks cs)) (hj : j < cs.length) (hc' : Occupancy t false c') :
+    Occupancy t b (node ks (cs.set j c')) := by
+  have hemp : (cs.set j c').isEmpty = cs.isEmpty := by
+    cases cs with
+    | nil => simp at hj
+    | cons a as => cases j <;> simp
+  have hlen : (cs.set j c').length = cs.length := List.length_set
+  unfold Occupancy at hocc ⊢
+  rw [hemp, hlen]
+  refine ⟨hocc.1, hocc.2.1, hocc.2.2.1, ?_⟩
+  intro c hc
+  rcases List.mem_or_eq_of_mem_set hc with hcs | rfl
+  · exact hocc.2.2.2 c hcs
+  · exact hc'
+
+/-- `insertNonFull` preserves `Occupancy` (given the node is `ChildBounded` and
+non-full).  Works for both the root and non-root occupancy flags. -/
+lemma insertNonFull_occupancy (t x : Nat) (ht : 2 ≤ t) :
+    ∀ tr (b : Bool), ChildBounded tr → Occupancy t b tr → rootKeyCount tr < 2 * t - 1 →
+      Occupancy t b (insertNonFull t x tr) := by
+  intro tr
+  induction tr using insertNonFull.induct (t := t) (x := x) with
+  | case1 ks cs hempty =>
+    intro b hcb hocc hnf
+    have hcsnil : cs = [] := List.isEmpty_iff.mp hempty
+    subst hcsnil
+    have hnf' : ks.length < 2 * t - 1 := hnf
+    rw [insertNonFull]; simp only [List.isEmpty_nil, if_true]
+    have hlen : (sortedInsert x ks).length = ks.length + 1 := by
+      rw [(sortedInsert_perm x ks).length_eq]; simp
+    unfold Occupancy at hocc ⊢
+    refine ⟨?_, ?_, Or.inl (by simp), by intro c hc; simp at hc⟩
+    · cases b
+      · simp only [Bool.false_eq_true, if_false] at hocc ⊢; omega
+      · simp only [if_true]; rw [hlen]; split <;> omega
+    · rw [hlen]; omega
+  | case2 ks cs hne i hnone =>
+    intro b hcb hocc _
+    have hval : insertNonFull t x (node ks cs) = node ks cs := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rfl
+      · rename_i c hcsome
+        have hn : cs[findChild ks x]? = none := hnone; rw [hcsome] at hn; simp at hn
+    rw [hval]; exact hocc
+  | case5 ks cs hne i cKeys cChildren hsome hnfull hsome2 ih =>
+    intro b hcb hocc hnf
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩; exact hsub _ hmem
+    have hocc_child : Occupancy t false (node cKeys cChildren) := by
+      unfold Occupancy at hocc; exact hocc.2.2.2 _ hmem
+    have hnf_child : rootKeyCount (node cKeys cChildren) < 2 * t - 1 := by
+      show cKeys.length < 2 * t - 1
+      have : cKeys.length ≤ 2 * t - 1 := by unfold Occupancy at hocc_child; exact hocc_child.2.1
+      omega
+    have ihc := ih false hcb_child hocc_child hnf_child
+    have hval : insertNonFull t x (node ks cs)
+        = node ks (cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren))) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_neg hnfull]
+    rw [hval]
+    exact occupancy_set hocc hilt ihc
+  | case3 ks cs hne i cKeys cChildren hsome hfull median hlt hsome2 ih =>
+    intro b hcb hocc hnf
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_u := hcb; unfold ChildBounded at hcb_u
+    have hocc_u := hocc; unfold Occupancy at hocc_u
+    obtain ⟨hocc_lo, hocc_up, hocc_ch, hocc_rec⟩ := hocc_u
+    have hcb_child : ChildBounded (node cKeys cChildren) := hcb_u.2.2 _ hmem
+    have hocc_child : Occupancy t false (node cKeys cChildren) := hocc_rec _ hmem
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have hcb_LH : ChildBounded (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+      have h := childBounded_take_of_full hcb_child ht1
+      rwa [show (t - 1) + 1 = t from by omega] at h
+    have hocc_RH := occupancy_right_half t ht hocc_child hcb_child hfull
+    have hnf_LH : rootKeyCount (node (cKeys.take (t - 1)) (cChildren.take t)) < 2 * t - 1 := by
+      show (cKeys.take (t - 1)).length < 2 * t - 1; rw [List.length_take]; omega
+    have ihc := ih false hcb_LH (occupancy_left_half t ht hocc_child hcb_child hfull) hnf_LH
+    have hnf' : ks.length < 2 * t - 1 := hnf
+    have hmed : cKeys.getD (t - 1) 0 = cKeys[t - 1] := by
+      simp only [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht1, Option.getD_some]
+    have hcs_eq : cs.length = ks.length + 1 := by
+      rcases hcb_u.1 with he | heq
+      · rw [List.isEmpty_iff] at he; rw [he] at hilt; simp at hilt
+      · exact heq
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys[t - 1] :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+               node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_pos hfull, if_pos hlt, hmed]
+    rw [hval]
+    have hNKlen : (ks.take (findChild ks x) ++ cKeys[t - 1] :: ks.drop (findChild ks x)).length
+        = ks.length + 1 := by
+      rw [List.length_append, List.length_cons, List.length_take, List.length_drop]
+      have := findChild_le ks x; omega
+    have hMYlen : (cs.take (findChild ks x) ++
+        [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+         node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1)).length
+        = cs.length + 1 := by
+      simp only [List.length_append, List.length_cons, List.length_nil, List.length_take,
+        List.length_drop]; omega
+    unfold Occupancy
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · cases b
+      · simp only [Bool.false_eq_true, if_false] at hocc_lo ⊢
+        rw [hNKlen]; omega
+      · simp only [if_true]; rw [hNKlen]; split <;> omega
+    · rw [hNKlen]; omega
+    · right; rw [hMYlen]
+      rcases hocc_ch with he | hb
+      · rw [List.isEmpty_iff] at he; rw [he] at hilt; simp at hilt
+      · omega
+    · intro c hc
+      rcases List.mem_append.mp hc with h1 | h2
+      · rcases List.mem_append.mp h1 with hta | hmid
+        · exact hocc_rec c ((List.take_subset _ _) hta)
+        · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+          rcases hmid with rfl | rfl
+          · exact ihc
+          · exact hocc_RH
+      · exact hocc_rec c ((List.drop_subset _ _) h2)
+  | case4 ks cs hne i cKeys cChildren hsome hfull median hnlt hsome2 ih =>
+    intro b hcb hocc hnf
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_u := hcb; unfold ChildBounded at hcb_u
+    have hocc_u := hocc; unfold Occupancy at hocc_u
+    obtain ⟨hocc_lo, hocc_up, hocc_ch, hocc_rec⟩ := hocc_u
+    have hcb_child : ChildBounded (node cKeys cChildren) := hcb_u.2.2 _ hmem
+    have hocc_child : Occupancy t false (node cKeys cChildren) := hocc_rec _ hmem
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have hcb_RH : ChildBounded (node (cKeys.drop t) (cChildren.drop t)) := by
+      rcases child_children_len_of_full_cb ht hcb_child hfull with h0 | h2t
+      · have hnil : cChildren = [] := by cases cChildren with | nil => rfl | cons a b => simp at h0
+        rw [hnil]; simpa using childBounded_node_nil (cKeys.drop t)
+      · exact childBounded_drop_of_full hcb_child (by omega) (by rw [h2t]; omega)
+    have hocc_LH := occupancy_left_half t ht hocc_child hcb_child hfull
+    have hnf_RH : rootKeyCount (node (cKeys.drop t) (cChildren.drop t)) < 2 * t - 1 := by
+      show (cKeys.drop t).length < 2 * t - 1; rw [List.length_drop]; omega
+    have ihc := ih false hcb_RH (occupancy_right_half t ht hocc_child hcb_child hfull) hnf_RH
+    have hnf' : ks.length < 2 * t - 1 := hnf
+    have hmed : cKeys.getD (t - 1) 0 = cKeys[t - 1] := by
+      simp only [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht1, Option.getD_some]
+    have hcs_eq : cs.length = ks.length + 1 := by
+      rcases hcb_u.1 with he | heq
+      · rw [List.isEmpty_iff] at he; rw [he] at hilt; simp at hilt
+      · exact heq
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys[t - 1] :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [node (cKeys.take (t - 1)) (cChildren.take t),
+               insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))]
+              ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_pos hfull, if_neg hnlt, hmed]
+    rw [hval]
+    have hNKlen : (ks.take (findChild ks x) ++ cKeys[t - 1] :: ks.drop (findChild ks x)).length
+        = ks.length + 1 := by
+      rw [List.length_append, List.length_cons, List.length_take, List.length_drop]
+      have := findChild_le ks x; omega
+    have hMYlen : (cs.take (findChild ks x) ++
+        [node (cKeys.take (t - 1)) (cChildren.take t),
+         insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))] ++ cs.drop (findChild ks x + 1)).length
+        = cs.length + 1 := by
+      simp only [List.length_append, List.length_cons, List.length_nil, List.length_take,
+        List.length_drop]; omega
+    unfold Occupancy
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · cases b
+      · simp only [Bool.false_eq_true, if_false] at hocc_lo ⊢
+        rw [hNKlen]; omega
+      · simp only [if_true]; rw [hNKlen]; split <;> omega
+    · rw [hNKlen]; omega
+    · right; rw [hMYlen]
+      rcases hocc_ch with he | hb
+      · rw [List.isEmpty_iff] at he; rw [he] at hilt; simp at hilt
+      · omega
+    · intro c hc
+      rcases List.mem_append.mp hc with h1 | h2
+      · rcases List.mem_append.mp h1 with hta | hmid
+        · exact hocc_rec c ((List.take_subset _ _) hta)
+        · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+          rcases hmid with rfl | rfl
+          · exact hocc_LH
+          · exact ihc
+      · exact hocc_rec c ((List.drop_subset _ _) h2)
+
 end BTree
 end Chapter18
 end CLRS
