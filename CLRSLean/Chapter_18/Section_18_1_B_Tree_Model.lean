@@ -3,8 +3,12 @@ import Mathlib
 /-!
 # CLRS Section 18.1 - B-tree model
 
-Defines the B-tree data type, key membership, full structural invariants,
-and the `B-TREE-SPLIT-CHILD` operation with occupancy and SameDepth preservation.
+Defines the B-tree data type, key membership, and the full structural invariants
+(`Sorted`, `ChildBounded`, `Occupancy`, `SameDepth`).  Proves that the
+`B-TREE-SPLIT-CHILD` operation preserves every invariant:
+`splitChild_preserves_sorted`, `splitChild_preserves_childBounded`,
+`splitChild_preserves_occupancy`, and `splitChild_preserves_sameDepth`
+(all with 0 `sorry`).
 -/
 
 namespace CLRS
@@ -944,6 +948,213 @@ theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
         unfold Sorted
         refine ⟨h_keys_ok, h_newChildren_sorted⟩
 
+/-! ## ChildBounded preservation infrastructure
+
+The proof of `splitChild_preserves_childBounded` relies on:
+- `keysOf_node_subset`: the keys of a node built from sublists is a subset.
+- `childBounded_node_nil`: a node with no children is trivially bounded.
+- `keysOf_take_le_pivot` / `keysOf_drop_ge_pivot`: the median key sandwiches the
+  two new children (this is the ordering content that needs `Sorted`).
+- `childBounded_take_of_full` / `childBounded_drop_of_full`: `ChildBounded`
+  survives truncating a full node's keys/children to a prefix/suffix.
+-/
+
+/-- If `ks ⊆ ks'` and `cs ⊆ cs'`, then the flattened keys of `node ks cs` are a
+subset of those of `node ks' cs'`.  This is the user-suggested `keysOf_subset`
+lemma, phrased for arbitrary sublists (used for both the left and right split
+children). -/
+lemma keysOf_node_subset {ks ks' : List Nat} {cs cs' : List BTree}
+    (hk : ks ⊆ ks') (hc : cs ⊆ cs') :
+    keysOf (node ks cs) ⊆ keysOf (node ks' cs') := by
+  intro x hx
+  simp only [keysOf, List.mem_append, List.mem_flatMap] at hx ⊢
+  rcases hx with hxk | ⟨c, hcm, hxc⟩
+  · exact Or.inl (hk hxk)
+  · exact Or.inr ⟨c, hc hcm, hxc⟩
+
+/-- A node with no children is trivially `ChildBounded`. -/
+lemma childBounded_node_nil (ks : List Nat) : ChildBounded (node ks []) := by
+  unfold ChildBounded
+  refine ⟨Or.inl (by simp), ?_, ?_⟩
+  · intro j hj; simp at hj
+  · intro c hc; simp at hc
+
+/-- Every key beneath the left split node `node (ks.take m) (cs.take (m+1))` is
+`≤ ks[m]` (the median key).  Uses sortedness of `ks` and the child's own
+`ChildBounded` upper bounds. -/
+lemma keysOf_take_le_pivot {ks : List Nat} {cs : List BTree} {m : Nat}
+    (h_pw : List.Pairwise (· ≤ ·) ks)
+    (h_cb : ChildBounded (node ks cs))
+    (hm : m < ks.length) :
+    ∀ k ∈ keysOf (node (ks.take m) (cs.take (m + 1))), k ≤ ks[m] := by
+  intro k hk
+  simp only [keysOf, List.mem_append, List.mem_flatMap] at hk
+  rcases hk with hk | ⟨c, hc, hkc⟩
+  · -- key from the truncated key list: monotone since `ks` is sorted
+    rcases List.mem_iff_get.mp hk with ⟨n, h_eq⟩
+    have hn_m : n.val < m := Nat.lt_of_lt_of_le n.isLt (List.length_take_le m ks)
+    have hn_ks : n.val < ks.length := by omega
+    have h_val : k = ks.get ⟨n.val, hn_ks⟩ := by
+      calc k = (ks.take m).get n := by rw [h_eq]
+        _ = ks.get ⟨n.val, hn_ks⟩ := by simp
+    rw [h_val]
+    exact pairwise_get_mono h_pw (by omega) hn_ks hm
+  · -- key from a child subtree: bounded by `ks[n] ≤ ks[m]`
+    rcases List.mem_iff_get.mp hc with ⟨n, h_eq⟩
+    have hn_m1 : n.val < m + 1 := Nat.lt_of_lt_of_le n.isLt (List.length_take_le (m + 1) cs)
+    have hn_cs : n.val < cs.length := Nat.lt_of_lt_of_le n.isLt (List.length_take_le' (m + 1) cs)
+    have hn_ks : n.val < ks.length := by omega
+    have hc_eq : c = cs.get ⟨n.val, hn_cs⟩ := by
+      calc c = (cs.take (m + 1)).get n := by rw [h_eq]
+        _ = cs.get ⟨n.val, hn_cs⟩ := by simp
+    unfold ChildBounded at h_cb
+    rcases h_cb with ⟨_, h_bounds, _⟩
+    have hub := (h_bounds n.val hn_cs).2
+    simp only [List.getElem?_eq_getElem hn_ks] at hub
+    rw [← hc_eq] at hub
+    have h1 : k ≤ ks[n.val] := hub k hkc
+    have h2 := pairwise_get_mono h_pw (show n.val ≤ m by omega) hn_ks hm
+    simp only [List.get_eq_getElem] at h2
+    exact le_trans h1 h2
+
+/-- Every key beneath the right split node `node (ks.drop (m+1)) (cs.drop (m+1))`
+is `≥ ks[m]` (the median key).  Symmetric to `keysOf_take_le_pivot`. -/
+lemma keysOf_drop_ge_pivot {ks : List Nat} {cs : List BTree} {m : Nat}
+    (h_pw : List.Pairwise (· ≤ ·) ks)
+    (h_cb : ChildBounded (node ks cs))
+    (hm : m < ks.length) :
+    ∀ k ∈ keysOf (node (ks.drop (m + 1)) (cs.drop (m + 1))), ks[m] ≤ k := by
+  intro k hk
+  simp only [keysOf, List.mem_append, List.mem_flatMap] at hk
+  rcases hk with hk | ⟨c, hc, hkc⟩
+  · -- key from the truncated key list
+    rcases List.mem_iff_get.mp hk with ⟨n, h_eq⟩
+    have hn_len : (m + 1) + n.val < ks.length := by
+      have h : n.val < ks.length - (m + 1) := by rw [← List.length_drop]; exact n.isLt
+      omega
+    have h_val : k = ks.get ⟨(m + 1) + n.val, hn_len⟩ := by
+      calc k = (ks.drop (m + 1)).get n := by rw [h_eq]
+        _ = ks.get ⟨(m + 1) + n.val, hn_len⟩ := by simp
+    rw [h_val]
+    exact pairwise_get_mono h_pw (by omega) hm hn_len
+  · -- key from a child subtree: bounded by `ks[m] ≤ ks[(m+1)+n-1]`
+    rcases List.mem_iff_get.mp hc with ⟨n, h_eq⟩
+    have hn_cs : (m + 1) + n.val < cs.length := by
+      have h : n.val < cs.length - (m + 1) := by rw [← List.length_drop]; exact n.isLt
+      omega
+    unfold ChildBounded at h_cb
+    rcases h_cb with ⟨h_rel, h_bounds, _⟩
+    have h_len : cs.length = ks.length + 1 := by
+      rcases h_rel with h_empty | h_len
+      · have hnil : cs = [] := List.isEmpty_iff.mp h_empty
+        have hlen0 : cs.length = 0 := by simp [hnil]
+        omega
+      · exact h_len
+    have hidx : (m + 1) + n.val - 1 < ks.length := by omega
+    have hc_eq : c = cs.get ⟨(m + 1) + n.val, hn_cs⟩ := by
+      calc c = (cs.drop (m + 1)).get n := by rw [h_eq]
+        _ = cs.get ⟨(m + 1) + n.val, hn_cs⟩ := by simp
+    have hlb := (h_bounds ((m + 1) + n.val) hn_cs).1
+    rcases hlb with h0 | hlbmatch
+    · omega
+    · simp only [List.getElem?_eq_getElem hidx] at hlbmatch
+      rw [← hc_eq] at hlbmatch
+      have h1 : ks[(m + 1) + n.val - 1] ≤ k := hlbmatch k hkc
+      have h2 := pairwise_get_mono h_pw (show m ≤ (m + 1) + n.val - 1 by omega) hm hidx
+      simp only [List.get_eq_getElem] at h2
+      exact le_trans h2 h1
+
+/-- `ChildBounded` survives truncating a node's keys to `take m` and children to
+`take (m+1)` (the left result of a split). -/
+lemma childBounded_take_of_full {ks : List Nat} {cs : List BTree} {m : Nat}
+    (h_cb : ChildBounded (node ks cs)) (hm : m < ks.length) :
+    ChildBounded (node (ks.take m) (cs.take (m + 1))) := by
+  have h_cb' := h_cb
+  unfold ChildBounded at h_cb'
+  rcases h_cb' with ⟨h_rel, h_bounds, h_sub⟩
+  rcases h_rel with h_empty | h_len
+  · have hcs : cs = [] := by cases cs with | nil => rfl | cons x xs => simp at h_empty
+    subst hcs
+    simpa using childBounded_node_nil (ks.take m)
+  · unfold ChildBounded
+    refine ⟨?_, ?_, ?_⟩
+    · right; rw [List.length_take, List.length_take]; omega
+    · intro j hj
+      have hj_cs : j < cs.length := by have := hj; rw [List.length_take] at this; omega
+      have hchild : (cs.take (m + 1)).get ⟨j, hj⟩ = cs.get ⟨j, hj_cs⟩ := by simp
+      refine ⟨?_, ?_⟩
+      · rcases Nat.eq_zero_or_pos j with hj0 | hjpos
+        · exact Or.inl hj0
+        · right
+          have hj1_m : j - 1 < m := by have := hj; rw [List.length_take] at this; omega
+          have hj1_ks : j - 1 < ks.length := by omega
+          rw [List.getElem?_take_of_lt hj1_m, List.getElem?_eq_getElem hj1_ks]
+          have hlb := (h_bounds j hj_cs).1
+          rcases hlb with h0 | hlbmatch
+          · omega
+          · simp only [List.getElem?_eq_getElem hj1_ks] at hlbmatch
+            intro k hk; rw [hchild] at hk; exact hlbmatch k hk
+      · by_cases hj_m : j < m
+        · have hj_ks : j < ks.length := by omega
+          rw [List.getElem?_take_of_lt hj_m, List.getElem?_eq_getElem hj_ks]
+          have hub := (h_bounds j hj_cs).2
+          simp only [List.getElem?_eq_getElem hj_ks] at hub
+          intro k hk; rw [hchild] at hk; exact hub k hk
+        · have hnone : (ks.take m)[j]? = none := by
+            apply List.getElem?_eq_none; rw [List.length_take]; omega
+          rw [hnone]; exact trivial
+    · intro c hc
+      exact h_sub c ((List.take_subset (m + 1) cs) hc)
+
+/-- `ChildBounded` survives dropping `d` keys and `d` children (the right result
+of a split, with `d = t`). -/
+lemma childBounded_drop_of_full {ks : List Nat} {cs : List BTree} {d : Nat}
+    (h_cb : ChildBounded (node ks cs)) (hd : 0 < d) (hd_cs : d < cs.length) :
+    ChildBounded (node (ks.drop d) (cs.drop d)) := by
+  have h_cb' := h_cb
+  unfold ChildBounded at h_cb'
+  rcases h_cb' with ⟨h_rel, h_bounds, h_sub⟩
+  have h_len : cs.length = ks.length + 1 := by
+    rcases h_rel with h_empty | h_len
+    · have hnil : cs = [] := by cases cs with | nil => rfl | cons x xs => simp at h_empty
+      rw [hnil] at hd_cs; simp at hd_cs
+    · exact h_len
+  unfold ChildBounded
+  refine ⟨?_, ?_, ?_⟩
+  · right; rw [List.length_drop, List.length_drop]; omega
+  · intro j hj
+    have hj_len : j < cs.length - d := by have := hj; rw [List.length_drop] at this; exact this
+    have hdj_cs : d + j < cs.length := by omega
+    have hchild : (cs.drop d).get ⟨j, hj⟩ = cs.get ⟨d + j, hdj_cs⟩ := by simp
+    refine ⟨?_, ?_⟩
+    · rcases Nat.eq_zero_or_pos j with hj0 | hjpos
+      · exact Or.inl hj0
+      · right
+        have hidx : d + j - 1 < ks.length := by omega
+        have heq_idx : d + (j - 1) = d + j - 1 := by omega
+        rw [List.getElem?_drop, heq_idx, List.getElem?_eq_getElem hidx]
+        have hlb := (h_bounds (d + j) hdj_cs).1
+        rcases hlb with h0 | hlbmatch
+        · omega
+        · simp only [List.getElem?_eq_getElem hidx] at hlbmatch
+          intro k hk; rw [hchild] at hk; exact hlbmatch k hk
+    · by_cases hdj : d + j < ks.length
+      · rw [List.getElem?_drop, List.getElem?_eq_getElem hdj]
+        have hub := (h_bounds (d + j) hdj_cs).2
+        simp only [List.getElem?_eq_getElem hdj] at hub
+        intro k hk; rw [hchild] at hk; exact hub k hk
+      · have hnone : (ks.drop d)[j]? = none := by
+          rw [List.getElem?_drop]; apply List.getElem?_eq_none; omega
+        rw [hnone]; exact trivial
+  · intro c hc
+    exact h_sub c ((List.drop_subset d cs) hc)
+
+/--
+**`B-TREE-SPLIT-CHILD` preserves `ChildBounded`.**  Splitting a full child of a
+non-full node keeps the key-range invariant: the promoted median key becomes a
+new separator that sandwiches the two halves, and every other separator/child
+relation is inherited from the original tree.
+-/
 theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (keys : List Nat) (children : List BTree)
     (cKeys : List Nat) (cChildren : List BTree) (i : Nat)
@@ -953,7 +1164,236 @@ theorem splitChild_preserves_childBounded (t : Nat) (ht : 2 ≤ t)
     (h_cb : ChildBounded (node keys children))
     (h_sorted : Sorted (node keys children)) :
     ChildBounded (splitChild t (node keys children) i) := by
-  sorry
+  -- Extract the parent's ChildBounded components.
+  have h_cb' := h_cb
+  unfold ChildBounded at h_cb'
+  obtain ⟨h_cb_rel, h_cb_bounds, h_cb_sub⟩ := h_cb'
+  have h_ch_len : children.length = keys.length + 1 := by
+    rcases h_cb_rel with h_empty | h_eq
+    · have hnil : children = [] := List.isEmpty_iff.mp h_empty
+      have : children.length = 0 := by simp [hnil]
+      omega
+    · exact h_eq
+  have h_i_le_keys : i ≤ keys.length := by omega
+  -- Unfold `splitChild` (same pattern as `splitChild_preserves_sorted`).
+  have h_keys_snd_nonempty : (cKeys.splitAt (t - 1)).2 ≠ [] := by
+    have hlen : (cKeys.splitAt (t - 1)).2.length = t := by simp [hchild_full]; omega
+    intro h; rw [h] at hlen; simp at hlen; omega
+  dsimp [splitChild]; rw [dif_pos h_lt]
+  have h_get : children[i] = node cKeys cChildren := by simpa using hchild_eq
+  rw [h_get]; dsimp; rw [if_pos hchild_full]
+  cases hk : cKeys.splitAt (t - 1) with
+  | mk leftKeys keysRest =>
+    have h_keysRest_nonempty : keysRest ≠ [] := by
+      have : (cKeys.splitAt (t - 1)).2 = keysRest := by rw [hk]
+      rw [← this]; exact h_keys_snd_nonempty
+    cases hkr : keysRest with
+    | nil => exact (h_keysRest_nonempty hkr).elim
+    | cons medianKey rightKeys =>
+      cases hc : cChildren.splitAt t with
+      | mk leftCh rightCh =>
+        show ChildBounded (BTree.node (take i keys ++ medianKey :: drop i keys)
+          (take i children ++ [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
+            drop (i + 1) children))
+        -- Relate the local split names to `take`/`drop` of the child's keys/children.
+        have h_lk : leftKeys = cKeys.take (t - 1) := by
+          calc leftKeys = (cKeys.splitAt (t - 1)).1 := by rw [hk]
+            _ = cKeys.take (t - 1) := by simp
+        have h_keysRest_eq : keysRest = cKeys.drop (t - 1) := by
+          calc keysRest = (cKeys.splitAt (t - 1)).2 := by rw [hk]
+            _ = cKeys.drop (t - 1) := by simp
+        have h_rk : rightKeys = cKeys.drop t := by
+          calc rightKeys = keysRest.drop 1 := by rw [hkr]; simp
+            _ = (cKeys.drop (t - 1)).drop 1 := by rw [h_keysRest_eq]
+            _ = cKeys.drop ((t - 1) + 1) := by rw [← List.drop_drop]
+            _ = cKeys.drop t := by rw [show (t - 1) + 1 = t from by omega]
+        have h_left_eq : leftCh = cChildren.take t := by
+          calc leftCh = (cChildren.splitAt t).1 := by rw [hc]
+            _ = cChildren.take t := by simp
+        have h_right_eq : rightCh = cChildren.drop t := by
+          calc rightCh = (cChildren.splitAt t).2 := by rw [hc]
+            _ = cChildren.drop t := by simp
+        have h_t1_lt : t - 1 < cKeys.length := by omega
+        have h_median : cKeys[t - 1]? = some medianKey := by
+          have hh : (cKeys.drop (t - 1))[0]? = some medianKey := by
+            rw [← h_keysRest_eq, hkr]; rfl
+          rw [List.getElem?_drop] at hh; simpa using hh
+        have h_median_eq : medianKey = cKeys[t - 1] := by
+          rw [List.getElem?_eq_getElem h_t1_lt] at h_median
+          injection h_median with h_median; exact h_median.symm
+        -- Child invariants.
+        have h_child_cb : ChildBounded (node cKeys cChildren) := by
+          rw [← hchild_eq]; apply h_cb_sub; apply List.get_mem
+        have h_cKeys_pw : List.Pairwise (· ≤ ·) cKeys := by
+          have h_cs : Sorted (node cKeys cChildren) := by
+            rw [← hchild_eq]
+            unfold Sorted at h_sorted; rcases h_sorted with ⟨_, h_sc⟩
+            apply h_sc; apply List.get_mem
+          unfold Sorted at h_cs; exact h_cs.1
+        have h_cChildren_len := child_children_len_of_full_cb ht h_child_cb hchild_full
+        -- The median key sandwiches the two new children.
+        have h_left_le : ∀ k ∈ keysOf (node leftKeys leftCh), k ≤ medianKey := by
+          intro k hk
+          rw [h_lk, h_left_eq] at hk
+          rw [h_median_eq]
+          have hp := keysOf_take_le_pivot h_cKeys_pw h_child_cb h_t1_lt
+          rw [show (t - 1) + 1 = t from by omega] at hp
+          exact hp k hk
+        have h_right_ge : ∀ k ∈ keysOf (node rightKeys rightCh), medianKey ≤ k := by
+          intro k hk
+          rw [h_rk, h_right_eq] at hk
+          rw [h_median_eq]
+          have hp := keysOf_drop_ge_pivot h_cKeys_pw h_child_cb h_t1_lt
+          rw [show (t - 1) + 1 = t from by omega] at hp
+          exact hp k hk
+        -- The two new children are themselves ChildBounded.
+        have h_cb_left : ChildBounded (node leftKeys leftCh) := by
+          have hh := childBounded_take_of_full h_child_cb h_t1_lt
+          rw [show (t - 1) + 1 = t from by omega] at hh
+          rw [h_lk, h_left_eq]; exact hh
+        have h_cb_right : ChildBounded (node rightKeys rightCh) := by
+          rcases h_cChildren_len with h0 | h2t
+          · have hnil : cChildren = [] := by
+              cases cChildren with | nil => rfl | cons x xs => simp at h0
+            have hrc : rightCh = [] := by rw [h_right_eq, hnil]; simp
+            rw [hrc]; exact childBounded_node_nil rightKeys
+          · have hd_cs : t < cChildren.length := by rw [h2t]; omega
+            have hh := childBounded_drop_of_full h_child_cb (by omega) hd_cs
+            rw [h_rk, h_right_eq]; exact hh
+        -- `newKeys[·]?` computed by position relative to the inserted median.
+        have h_P_len : (take i keys).length = i := by rw [List.length_take]; omega
+        have hNK_lt : ∀ j', j' < i →
+            (take i keys ++ medianKey :: drop i keys)[j']? = keys[j']? := by
+          intro j' hj'
+          rw [List.getElem?_append_left (by rw [h_P_len]; exact hj'), List.getElem?_take_of_lt hj']
+        have hNK_eq : (take i keys ++ medianKey :: drop i keys)[i]? = some medianKey := by
+          rw [List.getElem?_append_right (le_of_eq h_P_len), h_P_len]; simp
+        have hNK_gt : ∀ j', i < j' →
+            (take i keys ++ medianKey :: drop i keys)[j']? = keys[j' - 1]? := by
+          intro j' hj'
+          rw [List.getElem?_append_right (by rw [h_P_len]; omega), h_P_len,
+              show j' - i = (j' - i - 1) + 1 from by omega, List.getElem?_cons_succ,
+              List.getElem?_drop, show i + (j' - i - 1) = j' - 1 from by omega]
+        unfold ChildBounded
+        refine ⟨?_, ?_, ?_⟩
+        · -- Count relation.
+          right
+          simp only [List.length_append, List.length_cons, List.length_nil,
+            List.length_take, List.length_drop]
+          omega
+        · -- Parent key-range bounds.
+          have h_A_len : (take i children).length = i := by rw [List.length_take]; omega
+          have h_AB_len : (take i children ++
+              [node leftKeys leftCh, node rightKeys rightCh]).length = i + 2 := by
+            simp [List.length_append, h_A_len]
+          have h_nc_len : (take i children ++
+              [node leftKeys leftCh, node rightKeys rightCh] ++ drop (i + 1) children).length
+              = children.length + 1 := by
+            simp only [List.length_append, List.length_cons, List.length_nil,
+              List.length_take, List.length_drop]
+            omega
+          have hsub_left : keysOf (node leftKeys leftCh) ⊆ keysOf (node cKeys cChildren) :=
+            keysOf_node_subset (by rw [h_lk]; exact List.take_subset _ _)
+              (by rw [h_left_eq]; exact List.take_subset _ _)
+          have hsub_right : keysOf (node rightKeys rightCh) ⊆ keysOf (node cKeys cChildren) :=
+            keysOf_node_subset (by rw [h_rk]; exact List.drop_subset _ _)
+              (by rw [h_right_eq]; exact List.drop_subset _ _)
+          intro j hj
+          have hj' : j < children.length + 1 := h_nc_len ▸ hj
+          rcases Nat.lt_trichotomy j i with hlt | heq | hgt
+          · -- Region 1: `j < i` — unchanged left children.
+            have hj_ch : j < children.length := by omega
+            have hlt_AB : j < (take i children ++
+                [node leftKeys leftCh, node rightKeys rightCh]).length := by rw [h_AB_len]; omega
+            have hlt_A : j < (take i children).length := by rw [h_A_len]; omega
+            have hchild : (take i children ++ [node leftKeys leftCh, node rightKeys rightCh] ++
+                drop (i + 1) children).get ⟨j, hj⟩ = children.get ⟨j, hj_ch⟩ := by
+              simp only [List.get_eq_getElem]
+              rw [List.getElem_append_left hlt_AB, List.getElem_append_left hlt_A]; simp
+            refine ⟨?_, ?_⟩
+            · rcases Nat.eq_zero_or_pos j with hj0 | hjpos
+              · exact Or.inl hj0
+              · right
+                rw [hNK_lt (j - 1) (by omega), hchild]
+                rcases (h_cb_bounds j hj_ch).1 with h0 | hbmatch
+                · omega
+                · exact hbmatch
+            · rw [hNK_lt j hlt, hchild]
+              exact (h_cb_bounds j hj_ch).2
+          · -- Region 2: `j = i` — the new left child.
+            have hlt_AB : j < (take i children ++
+                [node leftKeys leftCh, node rightKeys rightCh]).length := by rw [h_AB_len]; omega
+            have hge_A : (take i children).length ≤ j := by rw [h_A_len]; omega
+            have hchild : (take i children ++ [node leftKeys leftCh, node rightKeys rightCh] ++
+                drop (i + 1) children).get ⟨j, hj⟩ = node leftKeys leftCh := by
+              simp only [List.get_eq_getElem]
+              rw [List.getElem_append_left hlt_AB, List.getElem_append_right hge_A]
+              simp [h_A_len, show j - i = 0 from by omega]
+            refine ⟨?_, ?_⟩
+            · rcases Nat.eq_zero_or_pos j with hj0 | hjpos
+              · exact Or.inl hj0
+              · right
+                rw [hNK_lt (j - 1) (by omega), hchild, show j - 1 = i - 1 from by omega]
+                have hb := (h_cb_bounds i h_lt).1
+                rw [hchild_eq] at hb
+                rcases hb with h0 | hbmatch
+                · omega
+                · revert hbmatch
+                  cases keys[i - 1]? with
+                  | none => intro _; trivial
+                  | some lo => intro hbmatch; exact fun k hk => hbmatch k (hsub_left hk)
+            · have hjk : (take i keys ++ medianKey :: drop i keys)[j]? = some medianKey := by
+                rw [show j = i from heq]; exact hNK_eq
+              rw [hjk, hchild]; exact h_left_le
+          · rcases Nat.lt_or_ge j (i + 2) with hj2 | hj2
+            · -- Region 3: `j = i + 1` — the new right child.
+              have hlt_AB : j < (take i children ++
+                  [node leftKeys leftCh, node rightKeys rightCh]).length := by rw [h_AB_len]; omega
+              have hge_A : (take i children).length ≤ j := by rw [h_A_len]; omega
+              have hchild : (take i children ++ [node leftKeys leftCh, node rightKeys rightCh] ++
+                  drop (i + 1) children).get ⟨j, hj⟩ = node rightKeys rightCh := by
+                simp only [List.get_eq_getElem]
+                rw [List.getElem_append_left hlt_AB, List.getElem_append_right hge_A]
+                simp [h_A_len, show j - i = 1 from by omega]
+              refine ⟨?_, ?_⟩
+              · right
+                rw [show j - 1 = i from by omega, hNK_eq, hchild]
+                exact h_right_ge
+              · rw [hNK_gt j (by omega), show j - 1 = i from by omega, hchild]
+                have hb := (h_cb_bounds i h_lt).2
+                rw [hchild_eq] at hb
+                revert hb
+                cases keys[i]? with
+                | none => intro _; trivial
+                | some hi => intro hb; exact fun k hk => hb k (hsub_right hk)
+            · -- Region 4: `j ≥ i + 2` — unchanged right children (shifted by one).
+              have hj1_ch : j - 1 < children.length := by omega
+              have hge_AB : (take i children ++
+                  [node leftKeys leftCh, node rightKeys rightCh]).length ≤ j := by
+                rw [h_AB_len]; omega
+              have hchild : (take i children ++ [node leftKeys leftCh, node rightKeys rightCh] ++
+                  drop (i + 1) children).get ⟨j, hj⟩ = children.get ⟨j - 1, hj1_ch⟩ := by
+                simp only [List.get_eq_getElem]
+                rw [List.getElem_append_right hge_AB]
+                simp only [h_AB_len, List.getElem_drop,
+                  show (i + 1) + (j - (i + 2)) = j - 1 from by omega]
+              refine ⟨?_, ?_⟩
+              · right
+                rw [hNK_gt (j - 1) (by omega), hchild]
+                rcases (h_cb_bounds (j - 1) hj1_ch).1 with h0 | hbmatch
+                · omega
+                · exact hbmatch
+              · rw [hNK_gt j (by omega), hchild]
+                exact (h_cb_bounds (j - 1) hj1_ch).2
+        · -- Recursive ChildBounded of every new child.
+          intro child hchild
+          rcases List.mem_append.mp hchild with h_take_new | h_drop
+          · rcases List.mem_append.mp h_take_new with h_take | h_new
+            · exact h_cb_sub child ((List.take_subset i children) h_take)
+            · simp at h_new; rcases h_new with rfl | rfl
+              · exact h_cb_left
+              · exact h_cb_right
+          · exact h_cb_sub child ((List.drop_subset (i + 1) children) h_drop)
 
 end BTree
 end Chapter18

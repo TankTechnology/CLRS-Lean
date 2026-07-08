@@ -1422,6 +1422,10 @@ allocator semantics remain future refinements.
   - `CLRS.Chapter18.BTree.minKeys_le_succ`
   - `CLRS.Chapter18.BTree.minKeys_monotone_height`
   - `CLRS.Chapter18.BTree.splitChild_preserves_model`
+  - `CLRS.Chapter18.BTree.splitChild_preserves_sorted`
+  - `CLRS.Chapter18.BTree.splitChild_preserves_childBounded`
+  - `CLRS.Chapter18.BTree.splitChild_preserves_occupancy`
+  - `CLRS.Chapter18.BTree.splitChild_preserves_sameDepth`
   - `CLRS.Chapter18.BTree.splitChild_valid`
   - `CLRS.Chapter18.BTree.splitChild_mem_iff`
   - `CLRS.Chapter18.BTree.splitChild_mem_old`
