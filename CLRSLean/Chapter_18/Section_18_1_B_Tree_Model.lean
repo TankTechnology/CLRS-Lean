@@ -804,15 +804,143 @@ theorem splitChild_preserves_sorted (t : Nat) (ht : 2 ≤ t)
                 exact (drop_sublist t cChildren).subset hc_mem
           · have hmem : child ∈ children := (drop_sublist (i+1) children).subset h_drop
             exact h_children_sorted child hmem
-        -- Keys pairwise: uses pairwise_get_mono + ChildBounded bounds.
-        -- The proof structure is: (1) extract bounds from ChildBounded into simple inequalities,
-        -- (2) use `pairwise_get_mono` to upgrade to universal conditions,
-        -- (3) assemble via `List.pairwise_append`.
-        -- The membership-to-index steps (j<i from `a ∈ take i keys`, i≤k from `b ∈ drop i keys`)
-        -- require list theory lemmas (`mem_take_iff_get`, `mem_drop_iff_get`) not yet available.
-        -- These are standard and can be filled in a focused follow-up.
+        -- Keys pairwise: proved using pairwise_get_mono + ChildBounded bounds + pairwise_append.
         have h_keys_ok : List.Pairwise (· ≤ ·) (take i keys ++ medianKey :: drop i keys) := by
-          sorry
+          -- pairwise properties of the two parts
+          have h_take_pw : List.Pairwise (· ≤ ·) (take i keys) :=
+            List.Pairwise.take (i := i) h_keys_pairwise
+          have h_drop_pw : List.Pairwise (· ≤ ·) (drop i keys) :=
+            List.Pairwise.drop (i := i) h_keys_pairwise
+          -- cross-bound from original pairwise
+          have h_keys_eq : take i keys ++ drop i keys = keys := by simp
+          have h_pw_app : List.Pairwise (· ≤ ·) (take i keys ++ drop i keys) := by
+            rw [h_keys_eq]; exact h_keys_pairwise
+          have h_full := (List.pairwise_append (l₁ := take i keys) (l₂ := drop i keys)).mp h_pw_app
+          rcases h_full with ⟨_, _, h_cross⟩
+          -- medianKey is in cKeys (from the split)
+          have h_median_in_cKeys : medianKey ∈ cKeys := by
+            have h_cKeys_eq : cKeys = leftKeys ++ medianKey :: rightKeys := by
+              calc
+                cKeys = cKeys.take (t-1) ++ cKeys.drop (t-1) := by simp
+                _ = (cKeys.splitAt (t-1)).1 ++ (cKeys.splitAt (t-1)).2 := by simp
+                _ = leftKeys ++ keysRest := by rw [hk]
+                _ = leftKeys ++ (medianKey :: rightKeys) := by rw [hkr]
+            rw [h_cKeys_eq]; simp
+          have h_median_mem : medianKey ∈ keysOf (BTree.node cKeys cChildren) := by
+            unfold keysOf; simp [h_median_in_cKeys]
+          -- Extract ChildBounded bounds (unfold once, using REPL-proven pattern)
+          unfold ChildBounded at h_cb
+          rcases h_cb with ⟨h_cb_rel, h_cb_bounds, _⟩
+          have h_ilen : children.length = keys.length + 1 := by
+            rcases h_cb_rel with (h_empty | h_eq)
+            · exfalso
+              have hlen0 : children.length = 0 := by simpa using h_empty
+              rw [hlen0] at h_lt; exact Nat.not_lt_zero i h_lt
+            · exact h_eq
+          rcases h_cb_bounds i h_lt with ⟨h_lo_raw, h_hi_raw⟩
+          have hi_le : i ≤ keys.length := by rw [h_ilen] at h_lt; omega
+          have hchild_eq_get : children[i] = BTree.node cKeys cChildren := by simpa using hchild_eq
+          -- lower bound (when i>0): keys[i-1] ≤ medianKey
+          have h_lower (hi_pos : 0 < i) (hi_sub : i-1 < keys.length) :
+              keys.get ⟨i-1, hi_sub⟩ ≤ medianKey := by
+            rcases h_lo_raw with (hi0 | h_lo_match)
+            · exact (Nat.ne_of_gt hi_pos hi0).elim
+            · simp [hi_sub] at h_lo_match
+              rw [hchild_eq_get] at h_lo_match
+              exact h_lo_match medianKey h_median_mem
+          -- Two cases: i < keys.length or i = keys.length
+          by_cases hi_len : i < keys.length
+          · -- i < keys.length: the upper bound keys[i] exists
+            have h_upper_val : medianKey ≤ keys.get ⟨i, hi_len⟩ := by
+              simp [hi_len] at h_hi_raw
+              rw [hchild_eq_get] at h_hi_raw
+              exact h_hi_raw medianKey h_median_mem
+            -- Build take i keys ++ [medianKey] pairwise
+            have h_take_le : ∀ a ∈ take i keys, a ≤ medianKey := by
+              intro a ha
+              rcases List.mem_iff_get.mp ha with ⟨n, h_eq⟩
+              -- n : Fin (take i keys).length, so n.val < i (since length ≤ i)
+              have hn_val_lt_i : n.val < i :=
+                calc n.val < (take i keys).length := n.isLt
+                _ ≤ i := by simp
+              have hn_len : n.val < keys.length :=
+                calc n.val < (take i keys).length := n.isLt
+                _ ≤ keys.length := by simp
+              -- (take i keys).get n = keys.get ⟨n.val, hn_len⟩
+              have h_val : a = keys.get ⟨n.val, hn_len⟩ := by
+                calc a = (take i keys).get n := by rw [h_eq]
+                _ = keys.get ⟨n.val, hn_len⟩ := by simp
+              rw [h_val]
+              -- keys[j] ≤ keys[i-1] (pairwise, j < i) ≤ medianKey (h_lower)
+              by_cases hi0 : i = 0
+              · subst hi0; omega
+              · have hi_pos : 0 < i := Nat.pos_of_ne_zero hi0
+                have hi_sub : i-1 < keys.length := by omega
+                have h_pw : keys.get ⟨n.val, hn_len⟩ ≤ keys.get ⟨i-1, hi_sub⟩ :=
+                  pairwise_get_mono h_keys_pairwise (by omega) hn_len hi_sub
+                exact Nat.le_trans h_pw (h_lower hi_pos hi_sub)
+            -- Build medianKey ≤ ∀ b ∈ drop i keys
+            have h_drop_le : ∀ b ∈ drop i keys, medianKey ≤ b := by
+              intro b hb
+              rcases List.mem_iff_get.mp hb with ⟨n, h_eq⟩
+              -- n : Fin (drop i keys).length
+              -- (drop i keys).get n = keys.get ⟨i + n.val, ...⟩
+              have hn_total_len : i + n.val < keys.length := by
+                have : (drop i keys).length = keys.length - i := by simp
+                have : n.val < keys.length - i := by
+                  rw [← this]; exact n.isLt
+                omega
+              have h_val : b = keys.get ⟨i + n.val, hn_total_len⟩ := by
+                calc b = (drop i keys).get n := by rw [h_eq]
+                _ = keys.get ⟨i + n.val, hn_total_len⟩ := by simp
+              rw [h_val]
+              -- medianKey ≤ keys[i] (h_upper_val) ≤ keys[i + n.val] (pairwise, i ≤ i+n.val)
+              have h_pw : keys.get ⟨i, hi_len⟩ ≤ keys.get ⟨i + n.val, hn_total_len⟩ :=
+                pairwise_get_mono h_keys_pairwise (by omega) hi_len hn_total_len
+              exact Nat.le_trans h_upper_val h_pw
+            -- Assemble with pairwise_append
+            have h_singleton : List.Pairwise (· ≤ ·) [medianKey] := by simp
+            have h_prefix : List.Pairwise (· ≤ ·) (take i keys ++ [medianKey]) :=
+              (List.pairwise_append (l₁ := take i keys) (l₂ := [medianKey])).mpr
+                ⟨h_take_pw, h_singleton, λ a ha b hb => by
+                  simp at hb; subst hb; exact h_take_le a ha⟩
+            -- Need to rewrite the goal to match pairwise_append's l₁ ++ l₂ pattern
+            have h_assoc : take i keys ++ medianKey :: drop i keys = (take i keys ++ [medianKey]) ++ drop i keys := by simp
+            rw [h_assoc]
+            exact ((List.pairwise_append (l₁ := take i keys ++ [medianKey]) (l₂ := drop i keys)).mpr
+              ⟨h_prefix, h_drop_pw, λ a ha b hb => by
+                rw [List.mem_append] at ha; rcases ha with (ha | ha)
+                · exact h_cross a ha b hb
+                · simp at ha; subst ha; exact h_drop_le b hb⟩)
+          · -- i = keys.length: no upper bound key, drop i keys = []
+            have hi_eq : i = keys.length := by omega
+            have h_drop_empty : drop i keys = [] := by rw [hi_eq]; simp
+            rw [h_drop_empty]
+            -- Goal: List.Pairwise (· ≤ ·) (take i keys ++ medianKey :: [])
+            -- medianKey :: [] = [medianKey]
+            have h_cons_nil : medianKey :: [] = [medianKey] := by simp
+            rw [h_cons_nil]
+            -- Goal: List.Pairwise (· ≤ ·) (take i keys ++ [medianKey])
+            -- Same as the h_prefix proof above, but we use h_take_pw from the outer scope
+            have h_take_le : ∀ a ∈ take i keys, a ≤ medianKey := by
+              intro a ha
+              rcases List.mem_iff_get.mp ha with ⟨n, h_eq⟩
+              have hn_len : n.val < keys.length :=
+                Nat.lt_of_lt_of_le n.isLt (by simp)
+              have h_val : a = keys.get ⟨n.val, hn_len⟩ := by
+                calc a = (take i keys).get n := by rw [h_eq]
+                _ = keys.get ⟨n.val, hn_len⟩ := by simp
+              rw [h_val]
+              by_cases hi0 : i = 0
+              · subst hi0; omega
+              · have hi_pos : 0 < i := Nat.pos_of_ne_zero hi0
+                have hi_sub : i-1 < keys.length := by omega
+                have h_pw : keys.get ⟨n.val, hn_len⟩ ≤ keys.get ⟨i-1, hi_sub⟩ :=
+                  pairwise_get_mono h_keys_pairwise (by omega) hn_len hi_sub
+                exact Nat.le_trans h_pw (h_lower hi_pos hi_sub)
+            have h_singleton : List.Pairwise (· ≤ ·) [medianKey] := by simp
+            exact (List.pairwise_append (l₁ := take i keys) (l₂ := [medianKey])).mpr
+              ⟨h_take_pw, h_singleton, λ a ha b hb => by simp at hb; subst hb; exact h_take_le a ha⟩
         unfold Sorted
         refine ⟨h_keys_ok, h_newChildren_sorted⟩
 
