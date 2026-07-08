@@ -1,6 +1,7 @@
 import Mathlib
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_3_DFS
+import CLRSLean.Chapter_22.Section_22_3_DFS_Theory
 
 /-! # Section 22.5 - Strongly Connected Components
 
@@ -13,7 +14,7 @@ The algorithm:
 1. Run DFS on {lit}`G` and record finish times.
 2. Sort vertices by decreasing finish time.
 3. Run DFS on the transpose graph {lit}`Gᵀ` in that order, collecting each DFS
-   tree as one component.
+tree as one component.
 
 The main declarations are:
 
@@ -91,8 +92,6 @@ def IsSCC (G : Graph V) (C : Set V) : Prop :=
     (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧
     (∀ w ∈ G.vertices, (∀ u ∈ C, G.StronglyConnected u w) → w ∈ C)
 
-/-- A list of finsets is an SCC partition of {lit}`G` if each element is an SCC of
-{lit}`G` and the elements partition the vertex set. -/
 theorem IsSCC_eq_of_nonempty_inter {C D : Set V}
     (hC : G.IsSCC C) (hD : G.IsSCC D) (h : ∃ x, x ∈ C ∧ x ∈ D) : C = D := by
   rcases h with ⟨x, hxC, hxD⟩
@@ -128,6 +127,8 @@ theorem IsSCC_eq_or_disjoint {C D : Set V}
     intro x hx
     exact h ⟨x, hx.1, hx.2⟩
 
+/-- A list of finsets is an SCC partition of {lit}`G` if each element is an SCC of
+{lit}`G` and the elements partition the vertex set. -/
 def IsSCCPartition (G : Graph V) (ccs : List (Finset V)) : Prop :=
   (∀ C ∈ ccs, (C : Set V) ⊆ G.vertices) ∧
   (∀ C ∈ ccs, C.Nonempty) ∧
@@ -324,23 +325,232 @@ theorem dfsFromListCollect_all_black {G : Graph V} {fuel : Nat}
   have h := (dfsFromList_all_black G s0 h0 hfuel vs).1
   exact h v (hvs v hv)
 
-/-- Core DFS finish-time lemma (admitted).
+/-- The strongly connected component of {lit}`r` in {lit}`G`. -/
+def sccOf (G : Graph V) (r : V) : Set V := {v | G.StronglyConnected r v}
+
+theorem reachable_target_mem_vertices {u v : V} (hu : u ∈ G.vertices) (hr : G.Reachable u v) :
+    v ∈ G.vertices := by
+  induction hr with
+  | refl => exact hu
+  | tail _ hadj _ => exact G.adj_mem_right hadj
+
+theorem transpose_reachable {u v : V} : G.transpose.Reachable u v ↔ G.Reachable v u := by
+  constructor
+  · intro hr
+    induction hr with
+    | refl => exact Relation.ReflTransGen.refl
+    | @tail x y _ hadj ih =>
+        have hGadj : G.Adj y x := by simpa using hadj
+        exact Relation.ReflTransGen.trans (Relation.ReflTransGen.single hGadj) ih
+  · intro hr
+    induction hr with
+    | refl => exact Relation.ReflTransGen.refl
+    | @tail x y _ hadj ih =>
+        have hGadj : G.transpose.Adj y x := by simpa using hadj
+        exact Relation.ReflTransGen.trans (Relation.ReflTransGen.single hGadj) ih
+
+theorem transpose_sccOf_eq (r : V) : G.transpose.sccOf r = G.sccOf r := by
+  ext v
+  simp [sccOf, StronglyConnected, transpose_reachable G]
+  rw [and_comm]
+
+theorem isSCC_sccOf {r : V} (hr : r ∈ G.vertices) : G.IsSCC (G.sccOf r) := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · use r
+    exact stronglyConnected_refl G r
+  · intro v hv
+    exact reachable_target_mem_vertices G hr hv.1
+  · intro u hu v hv
+    exact ⟨G.reachable_trans hu.2 hv.1, G.reachable_trans hv.2 hu.1⟩
+  · intro w hw hsc
+    exact hsc r (stronglyConnected_refl G r)
+
+theorem finishLe_iff_lt {s : DFSState V} {u v : V} :
+    finishLe s u v ↔ finishTime s v < finishTime s u := by
+  simp [finishLe, finishTime]
+
+theorem WhiteReachable.of_reachable_through_set {s : DFSState V} {u v : V} {S : Set V}
+    (hS : ∀ w, G.Reachable u w → G.Reachable w v → w ∈ S)
+    (hwhite : ∀ w ∈ S, s.color w = Color.white)
+    (huv : G.Reachable u v) :
+    WhiteReachable G s u v := by
+  induction huv with
+  | refl => exact whiteReachable_refl G s u
+  | @tail x y hux hadj ih =>
+      have hyS : y ∈ S := hS y (G.reachable_trans hux (G.reachable_adj hadj)) (G.reachable_refl y)
+      have ih' : WhiteReachable G s u x := ih (fun w h1 h2 => hS w h1 (G.reachable_trans h2 (G.reachable_adj hadj)))
+      exact whiteReachable_step G ih' hadj (hwhite y hyS)
+
+theorem maxFinish_sccOf_eq {s : DFSState V} {r : V} (hr : r ∈ G.vertices)
+    (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
+    (hwhite : ∀ v ∈ G.sccOf r, s.color v = Color.white) :
+    maxFinish G (G.dfs) (G.sccOf r) = finishTime (G.dfs) r := by
+  apply Nat.le_antisymm
+  · apply Finset.sup_le
+    intro v hv
+    simp [sccOf] at hv
+    exact hmax v (hwhite v hv.2)
+  · have hsub : (G.sccOf r : Set V) ⊆ G.vertices := (isSCC_sccOf G hr).2.1
+    exact finish_le_maxFinish G hsub (stronglyConnected_refl G r)
+
+theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
+    (hK : G.IsSCC K) (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
+    (hwhite : ∀ v ∈ K, s.color v = Color.white) :
+    maxFinish G (G.dfs) K ≤ finishTime (G.dfs) r := by
+  apply Finset.sup_le
+  intro v hv
+  simp at hv
+  rcases hv with ⟨_, hvK⟩
+  exact hmax v (hwhite v hvK)
+
+open Classical in
+/-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
+
+If {lit}`C` and {lit}`D` are distinct strongly connected components of {lit}`G`
+and there is an edge from {lit}`C` to {lit}`D`, then the maximum finish time in
+{lit}`C` (after the first DFS) is strictly larger than the maximum finish time in
+{lit}`D`. -/
+theorem scc_finish_time_order {C D : Set V}
+    (hC : G.IsSCC C) (hD : G.IsSCC D) (hne : C ≠ D)
+    (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v) :
+    maxFinish G (G.dfs) D < maxFinish G (G.dfs) C := by
+  sorry
+
+theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
+    (hu : u ∈ C) (hv : v ∈ C) (h1 : G.Reachable u w) (h2 : G.Reachable w v) :
+    w ∈ C := by
+  have hwV : w ∈ G.vertices := reachable_target_mem_vertices G (hC.2.1 hu) h1
+  apply hC.2.2.2 w hwV
+  intro x hx
+  have hsc_xu : G.StronglyConnected x u := hC.2.2.1 x hx u hu
+  have hsc_uv : G.StronglyConnected u v := hC.2.2.1 u hu v hv
+  have hsc_uw : G.StronglyConnected u w := ⟨h1, G.reachable_trans h2 hsc_uv.2⟩
+  exact ⟨G.reachable_trans hsc_xu.1 hsc_uw.1, G.reachable_trans hsc_uw.2 hsc_xu.2⟩
+
+theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
+    (hr : r ∈ G.transpose.vertices) (hwhite : s.color r = Color.white)
+    (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
+    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨ (∀ v ∈ K, s.color v = Color.black)) :
+    (whiteReachableSet G.transpose s r : Set V) ⊆ G.sccOf r := by
+  have hrG : r ∈ G.vertices := by simpa using hr
+  have hC : G.IsSCC (G.sccOf r) := isSCC_sccOf G hrG
+  have hC_white : ∀ v ∈ G.sccOf r, s.color v = Color.white := by
+    rcases hrespects (G.sccOf r) hC with (hw | hb)
+    · exact hw
+    · have : s.color r = Color.black := hb r (stronglyConnected_refl G r)
+      simp [this] at hwhite
+  have hCmax : maxFinish G (G.dfs) (G.sccOf r) = finishTime (G.dfs) r :=
+    maxFinish_sccOf_eq G hrG hmax hC_white
+  have hstable := whiteReachableIter_stable G.transpose s r hr
+  intro v hv
+  rw [hstable] at hv
+  have h : ∀ n, ∀ v ∈ whiteReachableIter G.transpose s r n, v ∈ G.sccOf r := by
+    intro n
+    induction n with
+    | zero =>
+        intro v hv
+        simp [whiteReachableIter] at hv
+        rw [hv]
+        exact stronglyConnected_refl G r
+    | succ n ih =>
+        intro v hv
+        simp [whiteReachableIter, whiteReachableSucc, Finset.mem_filter, Finset.mem_biUnion] at hv
+        rcases hv with (h | ⟨⟨w, hw, hadj⟩, hwhite_v⟩)
+        · exact ih v h
+        · have hw_scc : w ∈ G.sccOf r := ih w hw
+          by_contra hne
+          have htadj : G.transpose.Adj w v := by
+            simp [Adj] at hadj ⊢
+            exact hadj
+          have hGadj : G.Adj v w := by
+            have h := htadj
+            simp [transpose_Adj] at h ⊢
+            exact h
+          have hvV : v ∈ G.vertices := G.adj_mem_left hGadj
+          let D := G.sccOf v
+          have hD : G.IsSCC D := isSCC_sccOf G hvV
+          have hDneC : D ≠ G.sccOf r := by
+            intro heq
+            have hvinD : v ∈ D := stronglyConnected_refl G v
+            rw [heq] at hvinD
+            simp [sccOf] at hvinD
+            tauto
+          have hedge : ∃ u ∈ D, ∃ v ∈ G.sccOf r, G.Adj u v :=
+            ⟨v, stronglyConnected_refl G v, w, hw_scc, hGadj⟩
+          have hord := scc_finish_time_order G hD hC hDneC hedge
+          have hD_white : ∀ v ∈ D, s.color v = Color.white := by
+            rcases hrespects D hD with (hw' | hb')
+            · exact hw'
+            · have : s.color v = Color.black := hb' v (stronglyConnected_refl G v)
+              simp [this] at hwhite_v
+          have hDmax : maxFinish G (G.dfs) D ≤ finishTime (G.dfs) r :=
+            maxFinish_white_scc_le G hD hmax hD_white
+          linarith [hord, hCmax, hDmax]
+  exact h (G.transpose.vertices.card + 1) v hv
+
+/-- Core DFS finish-time lemma.
 
 Consider a DFS state `s` of {lit}`G` and a white vertex `r` whose finish time is
 maximal among all white vertices.  Then the DFS tree of {lit}`G.transpose` rooted
 at `r` visits exactly the SCC of `r` in {lit}`G`.
 
-This is the standard Kosaraju argument: the first white vertex in decreasing
-finish-time order lies in a source SCC of the still-unvisited transpose graph,
-so the second DFS cannot escape its SCC. -/
+The extra `respects` assumption guarantees that every SCC of {lit}`G` is
+either completely white or completely black in {lit}`s`; this holds during
+Kosaraju's second pass. -/
 theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
-    (hr : r ∈ G.vertices) (hwhite : s.color r = Color.white)
-    (hmax : ∀ v, s.color v = Color.white → finishLe s v r)
-    (hfuel : 0 < fuel) :
+    (hr : r ∈ G.transpose.vertices) (hwhite : s.color r = Color.white)
+    (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
+    (hfuel : fuel ≥ G.transpose.vertices.card + 1)
+    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨ (∀ v ∈ K, s.color v = Color.black)) :
     let s' := dfsVisit G.transpose fuel r s
     let C := G.transpose.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
     G.IsSCC (C : Set V) := by
-  sorry
+  intro s' C
+  have hrG : r ∈ G.vertices := by simpa using hr
+  have hCr : G.IsSCC (G.sccOf r) := isSCC_sccOf G hrG
+  have hCr_white : ∀ v ∈ G.sccOf r, s.color v = Color.white := by
+    rcases hrespects (G.sccOf r) hCr with (hw | hb)
+    · exact hw
+    · have : s.color r = Color.black := hb r (stronglyConnected_refl G r)
+      simp [this] at hwhite
+  have hsubset : (C : Set V) ⊆ G.sccOf r := by
+    intro v hv
+    simp [C] at hv
+    rcases hv with ⟨hvV, hwhite_v, hblack_v⟩
+    have hw : v ∈ whiteReachableSet G.transpose s r := by
+      apply WhiteReachable.mem_set G.transpose hr
+      exact dfsVisit_blackens_implies_whiteReachable G.transpose hwhite (by omega) hwhite_v hblack_v
+    exact whiteReachableSet_subset_scc G hr hwhite hmax hrespects hw
+  have hsupset : G.sccOf r ⊆ (C : Set V) := by
+    intro v hv
+    have hwhite_v : s.color v = Color.white := hCr_white v hv
+    have hvV : v ∈ G.transpose.vertices := by
+      simpa using reachable_target_mem_vertices G hrG hv.1
+    have hblack_v : s'.color v = Color.black := by
+      have htr : G.transpose.Reachable r v := by
+        rw [transpose_reachable G]
+        exact (G.stronglyConnected_symm hv).1
+      have hw : WhiteReachable G.transpose s r v :=
+        WhiteReachable.of_reachable_through_set G.transpose
+          (fun w h1 h2 => by
+            have hC' : G.transpose.IsSCC (G.transpose.sccOf r) :=
+              isSCC_sccOf G.transpose (by simpa using hrG)
+            have hw_in : w ∈ G.transpose.sccOf r :=
+              IsSCC.path_mem G.transpose hC' (stronglyConnected_refl G.transpose r) (by rw [transpose_sccOf_eq G r]; exact hv) h1 h2
+            rw [transpose_sccOf_eq G r] at hw_in
+            exact hw_in)
+          (fun w hw => by
+            exact hCr_white w hw)
+          htr
+      have hcard : (whiteReachableSet G.transpose s r).card ≤ G.transpose.vertices.card := by
+        apply Finset.card_le_card
+        exact whiteReachableSet_subset_vertices G.transpose s r hr
+      have hfuel' : fuel ≥ (whiteReachableSet G.transpose s r).card + 1 := by omega
+      exact dfsVisit_white_path_black G.transpose hwhite hr hfuel' (WhiteReachable.mem_set G.transpose hr hw)
+    simp [C]
+    exact ⟨hvV, hwhite_v, hblack_v⟩
+  rw [Set.Subset.antisymm hsubset hsupset]
+  exact hCr
 
 /-! ## Kosaraju produces a partition of the vertex set -/
 
