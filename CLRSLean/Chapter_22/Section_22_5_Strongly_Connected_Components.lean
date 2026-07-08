@@ -474,6 +474,19 @@ lemma finish_lt_finish_of_first_discovered_edge {C D : Set V}
     (hfirst : ∀ v ∈ C, discoveryTime (G.dfs) x ≤ discoveryTime (G.dfs) v)
     (hd_lt : discoveryTime (G.dfs) x < discoveryTime (G.dfs) y) :
     finishTime (G.dfs) y < finishTime (G.dfs) x := by
+  -- Get the discovery state of x via the DFS theory lemma
+  have hx_vert : x ∈ G.vertices := hC.2.1 hx
+  rcases exists_discovery_state G x hx_vert with ⟨s, f, hs_white, hs_black, hdisc_eq⟩
+  -- hdisc_eq: discoveryTime (G.dfs) x = s.time
+  -- At state s: x is white, and all of C is white (by firstDiscoveredVertex_min)
+  -- The d-equality gives s.time = d_final[x].  For any v ∈ C:
+  -- d_final[v] ≥ d_final[x] = s.time.  If v were non-white in s, then
+  -- by DiscoveryTimeInvariant s (from the induction), d_s[v] < s.time,
+  -- and d_s[v] = d_final[v] (d preserved for non-white vertices through
+  -- dfsVisit + dfsFromList).  This contradicts d_final[v] ≥ s.time.
+  -- Hence all of C is white in s.
+  -- Similarly, all of D is white in s (since d[y] > d[x] = s.time).
+  -- With all of C ∪ D white, the white-path theorem gives f[y] < f[x].
   sorry
 
 open Classical in
