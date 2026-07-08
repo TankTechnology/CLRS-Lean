@@ -507,7 +507,7 @@ theorem scc_finish_time_order {C D : Set V}
   by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
   · -- Case 1: rC discovered first.  Use exists_discovery_state.
     have h_rC_vert : rC ∈ G.vertices := hCsub hrC_mem
-    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_f_pres, h_fuel⟩
+    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_ng_s, h_f_pres, h_fuel⟩
     -- hdisc_eq: d[rC] = s.time.  h_nonwhite: non-white w in s → d[w] < s.time = d[rC].
     -- h_bf_s: black-finish invariant for s.
     -- h_f_pres: f-preservation for dfsVisit output.
