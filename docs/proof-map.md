@@ -1427,6 +1427,7 @@ allocator semantics remain future refinements.
   - `CLRS.Chapter18.BTree.splitChild_preserves_occupancy`
   - `CLRS.Chapter18.BTree.splitChild_preserves_sameDepth`
   - `CLRS.Chapter18.BTree.splitChild_preserves_wellFormed`
+  - `CLRS.Chapter18.BTree.splitChild_keys_perm`
   - `CLRS.Chapter18.BTree.splitChild_valid`
   - `CLRS.Chapter18.BTree.splitChild_mem_iff`
   - `CLRS.Chapter18.BTree.splitChild_mem_old`
