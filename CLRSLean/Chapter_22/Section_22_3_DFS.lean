@@ -68,6 +68,70 @@ theorem setFinish_color (s : DFSState V) (v x : V) :
 theorem setParent_color (s : DFSState V) (v u x : V) :
     (s.setParent v u).color x = s.color x := rfl
 
+@[simp]
+theorem setColor_d (s : DFSState V) (v x : V) (c : Color) :
+    (s.setColor v c).d x = s.d x := rfl
+
+@[simp]
+theorem setDiscovery_d (s : DFSState V) (v x : V) :
+    (s.setDiscovery v).d x = if x = v then some s.time else s.d x := rfl
+
+@[simp]
+theorem setFinish_d (s : DFSState V) (v x : V) :
+    (s.setFinish v).d x = s.d x := rfl
+
+@[simp]
+theorem setParent_d (s : DFSState V) (v u x : V) :
+    (s.setParent v u).d x = s.d x := rfl
+
+@[simp]
+theorem setColor_f (s : DFSState V) (v x : V) (c : Color) :
+    (s.setColor v c).f x = s.f x := rfl
+
+@[simp]
+theorem setDiscovery_f (s : DFSState V) (v x : V) :
+    (s.setDiscovery v).f x = s.f x := rfl
+
+@[simp]
+theorem setFinish_f (s : DFSState V) (v x : V) :
+    (s.setFinish v).f x = if x = v then some s.time else s.f x := rfl
+
+@[simp]
+theorem setParent_f (s : DFSState V) (v u x : V) :
+    (s.setParent v u).f x = s.f x := rfl
+
+@[simp]
+theorem setColor_parent (s : DFSState V) (v x : V) (c : Color) :
+    (s.setColor v c).parent x = s.parent x := rfl
+
+@[simp]
+theorem setDiscovery_parent (s : DFSState V) (v x : V) :
+    (s.setDiscovery v).parent x = s.parent x := rfl
+
+@[simp]
+theorem setFinish_parent (s : DFSState V) (v x : V) :
+    (s.setFinish v).parent x = s.parent x := rfl
+
+@[simp]
+theorem setParent_parent (s : DFSState V) (v u x : V) :
+    (s.setParent v u).parent x = if x = v then some u else s.parent x := rfl
+
+@[simp]
+theorem setColor_time (s : DFSState V) (v : V) (c : Color) :
+    (s.setColor v c).time = s.time := rfl
+
+@[simp]
+theorem setDiscovery_time (s : DFSState V) (v : V) :
+    (s.setDiscovery v).time = s.time + 1 := rfl
+
+@[simp]
+theorem setFinish_time (s : DFSState V) (v : V) :
+    (s.setFinish v).time = s.time + 1 := rfl
+
+@[simp]
+theorem setParent_time (s : DFSState V) (v u : V) :
+    (s.setParent v u).time = s.time := rfl
+
 end DFSState
 
 variable (G : Graph V)
@@ -200,6 +264,20 @@ theorem dfsVisit_no_new_gray {fuel : Nat} {u : V} {s : DFSState V} (w : V) :
         simp [dfsVisit, h] at hw ⊢
         exact hw
 
+/-- A DFS visit from a white input vertex leaves it white or turns it black,
+never gray. -/
+theorem dfsVisit_white_stays_white_or_black {fuel : Nat} {u x : V} {s : DFSState V}
+    (hwhite : s.color x = Color.white) (hnblack : (dfsVisit G fuel u s).color x ≠ Color.black) :
+    (dfsVisit G fuel u s).color x = Color.white := by
+  have hng : (dfsVisit G fuel u s).color x ≠ Color.gray := by
+    intro h
+    have := dfsVisit_no_new_gray G x h
+    simp [hwhite] at this
+  cases hcolor : (dfsVisit G fuel u s).color x with
+  | white => rfl
+  | gray => contradiction
+  | black => contradiction
+
 /-- If the input has no gray vertices, the output of a DFS visit has no gray
 vertices either. -/
 theorem dfsVisit_output_no_gray {fuel : Nat} {u : V} {s : DFSState V}
@@ -234,6 +312,57 @@ theorem dfsVisit_blackens_u_pos {fuel : Nat} {u : V} {s : DFSState V}
   cases fuel with
   | zero => linarith
   | succ n => exact dfsVisit_blackens_u G hwhite
+
+/-- One step of the inner `dfsVisit` fold preserves black vertices. -/
+theorem dfsVisit_fold_step_preserves_black {n : Nat} {u x w : V} {s1 : DFSState V}
+    (hb : s1.color x = Color.black) :
+    ((if s1.color w = Color.white then dfsVisit G n w (s1.setParent w u) else s1).color x = Color.black) := by
+  split_ifs with hw
+  · have hsp : (s1.setParent w u).color x = Color.black := by simp [hb]
+    exact dfsVisit_preserves_black G hsp
+  · exact hb
+
+/-- The inner fold of a DFS visit preserves black vertices. -/
+theorem dfsVisit_fold_preserves_black {n : Nat} {u x : V} {s1 : DFSState V} {l : List V}
+    (hb : s1.color x = Color.black) :
+    (l.foldl (fun (s' : DFSState V) (w : V) =>
+        if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s') s1).color x = Color.black := by
+  induction l generalizing s1 with
+  | nil => simpa
+  | cons w ws ih =>
+      simp
+      exact ih (dfsVisit_fold_step_preserves_black G hb)
+
+/-- The inner fold of a DFS visit does not introduce new gray vertices. -/
+theorem dfsVisit_fold_no_new_gray {n : Nat} {u w : V} (s1 : DFSState V) {l : List V} :
+    (List.foldl (fun (s' : DFSState V) (v : V) =>
+        if s'.color v = Color.white then dfsVisit G n v (s'.setParent v u) else s') s1 l).color w = Color.gray →
+    s1.color w = Color.gray := by
+  induction l generalizing s1 with
+  | nil => simpa
+  | cons v vs ih =>
+      simp
+      by_cases hv : s1.color v = Color.white
+      · simp [hv]
+        intro hw
+        by_cases hwv : w = v
+        · subst w
+          have hnotgray : (dfsVisit G n v (s1.setParent v u)).color v ≠ Color.gray := by
+            by_cases hb : (dfsVisit G n v (s1.setParent v u)).color v = Color.black
+            · rw [hb]; decide
+            · have hwhite : (dfsVisit G n v (s1.setParent v u)).color v = Color.white :=
+                dfsVisit_white_stays_white_or_black G (by simpa using hv) hb
+              rw [hwhite]; decide
+          have hrec : (dfsVisit G n v (s1.setParent v u)).color v = Color.gray :=
+            ih (dfsVisit G n v (s1.setParent v u)) hw
+          contradiction
+        · have hrec : (dfsVisit G n v (s1.setParent v u)).color w = Color.gray :=
+            ih (dfsVisit G n v (s1.setParent v u)) hw
+          have hsp : (s1.setParent v u).color w = Color.gray :=
+            dfsVisit_no_new_gray G w hrec
+          simpa [hwv] using hsp
+      · simp [hv]
+        exact ih s1
 
 /-- Recursive DFS over a list blackens every listed vertex while preserving the
 white/black (no gray) invariant. -/
