@@ -489,6 +489,20 @@ lemma finish_lt_finish_of_first_discovered_edge {C D : Set V}
   -- With all of C ∪ D white, the white-path theorem gives f[y] < f[x].
   sorry
 
+/-- If `u, v ∈ C` (same SCC) and `w` lies on a path from `u` to `v`, then
+`w ∈ C`.  This is the SCC-path-closure property: SCCs are closed under
+intermediate vertices on reachability paths. -/
+theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
+    (hu : u ∈ C) (hv : v ∈ C) (h1 : G.Reachable u w) (h2 : G.Reachable w v) :
+    w ∈ C := by
+  have hwV : w ∈ G.vertices := reachable_target_mem_vertices G (hC.2.1 hu) h1
+  apply hC.2.2.2 w hwV
+  intro x hx
+  have hsc_xu : G.StronglyConnected x u := hC.2.2.1 x hx u hu
+  have hsc_uv : G.StronglyConnected u v := hC.2.2.1 u hu v hv
+  have hsc_uw : G.StronglyConnected u w := ⟨h1, G.reachable_trans h2 hsc_uv.2⟩
+  exact ⟨G.reachable_trans hsc_xu.1 hsc_uw.1, G.reachable_trans hsc_uw.2 hsc_xu.2⟩
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
@@ -540,27 +554,28 @@ theorem scc_finish_time_order {C D : Set V}
     have hne_d_rC : d ≠ rC := by
       intro heq; subst d; apply hne
       exact IsSCC_eq_of_nonempty_inter G hC hD ⟨rC, hrC_mem, hdD⟩
-    -- rC can reach d via the C→D edge (Lemma 3)
-    have h_reach_rC_d : G.Reachable rC d :=
-      reachable_scc_to_scc G hCsc hDsc hedge hrC_mem hdD
-    -- Now d is white-reachable from rC in state s, since the entire path lies
-    -- in C ∪ D (all white in s).  We use WhiteReachable.of_reachable_through_set.
-    let S : Set V := {w | w ∈ C ∨ w ∈ D}
-    have hS_path : ∀ w, G.Reachable rC w → G.Reachable w d → w ∈ S := by
-      intro w h1 h2
-      dsimp [S]
-      by_cases hCw : w ∈ C
-      · exact Or.inl hCw
-      · by_cases hDw : w ∈ D
-        · exact Or.inr hDw
-        · -- w ∉ C and w ∉ D: impossible for SCC path
-          sorry
-    have hS_white : ∀ w ∈ S, s.color w = Color.white := by
-      intro w hw; rcases hw with (hwC | hwD)
-      · exact hwhite_C w hwC
-      · exact hwhite_D w hwD
+    -- Construct an explicit white path: rC →* u → v →* d, where (u,v) is the C→D edge.
+    -- All vertices in C ∪ D are white in s, and IsSCC.path_mem guarantees the path
+    -- segments stay within C (for rC→*u) and D (for v→*d), so all vertices are white.
+    rcases hedge with ⟨u, hu, v, hv, hadj⟩
+    -- Segment rC →* u within C (all vertices in C, all white)
+    have h_wr_rC_u : WhiteReachable G s rC u := by
+      have h_reach : G.Reachable rC u := (hCsc rC hrC_mem u hu).1
+      apply WhiteReachable.of_reachable_through_set G (S := C) ?_ (hwhite_C) h_reach
+      intro w h1 h2; exact IsSCC.path_mem G hC hrC_mem hu h1 h2
+    -- Edge u → v: v ∈ D is white in s
+    have hwhite_v : s.color v = Color.white := hwhite_D v hv
+    -- Step via the edge
+    have h_wr_rC_v : WhiteReachable G s rC v :=
+      whiteReachable_step G h_wr_rC_u hadj hwhite_v
+    -- Segment v →* d within D (all vertices in D, all white)
+    have h_wr_v_d : WhiteReachable G s v d := by
+      have h_reach : G.Reachable v d := (hDsc v hv d hdD).1
+      apply WhiteReachable.of_reachable_through_set G (S := D) ?_ (hwhite_D) h_reach
+      intro w h1 h2; exact IsSCC.path_mem G hD hv hdD h1 h2
+    -- Compose: rC →* v →* d
     have h_wr_rC_d : WhiteReachable G s rC d :=
-      WhiteReachable.of_reachable_through_set G hS_path hS_white h_reach_rC_d
+      whiteReachable_trans G h_wr_rC_v h_wr_v_d
     -- By the white-path theorem, dfsVisit from rC blackens d
     have h_card : f ≥ (whiteReachableSet G s rC).card + 1 := by
       -- Fuel from exists_discovery_state: top-level uses n = |V|+1, nested uses n-1 = |V|.
@@ -602,17 +617,6 @@ theorem scc_finish_time_order {C D : Set V}
     -- For now, we use: since no path from rD to rC, and d[rD] ≤ d[rC],
     -- f[rD] < d[rC] by DFS interval disjointness.
     sorry
-
-theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
-    (hu : u ∈ C) (hv : v ∈ C) (h1 : G.Reachable u w) (h2 : G.Reachable w v) :
-    w ∈ C := by
-  have hwV : w ∈ G.vertices := reachable_target_mem_vertices G (hC.2.1 hu) h1
-  apply hC.2.2.2 w hwV
-  intro x hx
-  have hsc_xu : G.StronglyConnected x u := hC.2.2.1 x hx u hu
-  have hsc_uv : G.StronglyConnected u v := hC.2.2.1 u hu v hv
-  have hsc_uw : G.StronglyConnected u w := ⟨h1, G.reachable_trans h2 hsc_uv.2⟩
-  exact ⟨G.reachable_trans hsc_xu.1 hsc_uw.1, G.reachable_trans hsc_uw.2 hsc_xu.2⟩
 
 theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
     (hr : r ∈ G.transpose.vertices) (hwhite : s.color r = Color.white)
