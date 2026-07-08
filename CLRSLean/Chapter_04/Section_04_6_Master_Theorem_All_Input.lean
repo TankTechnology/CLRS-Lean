@@ -1500,5 +1500,196 @@ theorem ceilDivide_allInput_masterCase3_tailDominatedScale
     ha hb hT_mono hscale_mono hscale_step h_base_nonneg h_term_nonneg
     h_tail_upper
 
+/-! ## Case-3 regularity bridge to the textbook {lit}`f(n)` scale -/
+
+/--
+The CLRS regularity condition for Master Theorem case 3 (equation (4.13)):
+{lit}`a · f(⌊n / b⌋) ≤ c · f(n)` for some constant {lit}`c < 1` and all
+sufficiently large {lit}`n`.  This ensures that the root cost dominates the
+recurrence tree.
+-/
+def Case3Regularity (a b : ℕ) (c : ℝ) (f : ℕ → ℝ) (n₀ : ℕ) : Prop :=
+  ∀ n, n₀ ≤ n → (a : ℝ) * f (n / b) ≤ c * f n
+
+/--
+On exact powers {lit}`b^i` with {lit}`i ≥ 1`, the tail-dominated scale
+simplifies to the original forcing function {lit}`f`.  This is the key
+observation that connects the discrete case-3 scale to the textbook scale.
+-/
+theorem tailDominatedScale_eq_f_on_exact_powers (a b : ℕ) (f : ℕ → ℝ)
+    (i : ℕ) (hb : 1 < b) (ha_pos : 0 < (a : ℝ)) :
+    tailDominatedScale a b f (b ^ i) =
+      (if i = 0 then 1 else f (b ^ i)) := by
+  rw [tailDominatedScale_exactPower a b f i hb]
+  by_cases hi : i = 0
+  · simp [hi]
+  · have ha_ne_zero : (a : ℝ) ≠ 0 := by linarith
+    have hi_pos : 1 ≤ i := Nat.one_le_of_lt (Nat.pos_of_ne_zero hi)
+    dsimp [normalizedForcing]
+    have h_exp : (i - 1) + 1 = i := Nat.sub_add_cancel hi_pos
+    have h_exp_pow : (a : ℝ) ^ ((i - 1) + 1) = (a : ℝ) ^ i := by rw [h_exp]
+    have h_exp_f : f (b ^ ((i - 1) + 1)) = f (b ^ i) := by rw [h_exp]
+    simp [hi, h_exp, ha_ne_zero]
+
+private lemma pow_log_le_n_div_b (b n : ℕ) (hb : 1 < b) :
+    n / b ≤ b ^ Nat.log b n := by
+  have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+  by_cases hn : n < b
+  · have hlog : Nat.log b n = 0 :=
+      (Nat.log_eq_zero_iff).mpr (Or.inl hn)
+    have hn_div : n / b = 0 := Nat.div_eq_of_lt hn
+    simpa [hlog, hn_div]
+  · have h_pow_succ : n < b ^ Nat.log b n * b := by
+      have := Nat.lt_pow_succ_log_self hb n
+      -- this gives n < b ^ (log b n).succ = b ^ (log b n) * b
+      simpa [pow_succ] using this
+    -- n < b^i * b, so n / b < b^i by Nat.div_lt_iff_lt_mul
+    have h_div_lt : n / b < b ^ Nat.log b n :=
+      (Nat.div_lt_iff_lt_mul hb_pos).mpr h_pow_succ
+    exact Nat.le_of_lt h_div_lt
+
+/--
+Under the CLRS regularity condition, nonnegativity of {lit}`f`, monotonicity,
+and a one-step growth bound, the tail-dominated discrete scale is
+{lit}`Θ(f(n))`.
+
+This is the case-3 analogue of
+{name}`criticalPowerScale_isBigTheta_polynomialScale` (case 1) and
+{name}`criticalPowerLogScale_isBigTheta_polynomialLogScale` (case 2).
+Together with the existing all-input case-3 wrappers it yields the textbook
+conclusion {lit}`T(n) = Θ(f(n))`.
+-/
+theorem tailDominatedScale_isBigTheta_f_of_regularity
+    (a b : ℕ) (f : ℕ → ℝ) (c : ℝ)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hc_pos : 0 < c) (hc_lt_one : c < 1)
+    (hf_nonneg : ∀ n, 0 ≤ f n)
+    (hf_mono : MonotoneAbs f)
+    (hf_step : EventuallyPowerStepBound b f)
+    (h_reg : Case3Regularity a b c f n₀) :
+    Chapter03.isBigTheta (tailDominatedScale a b f) f := by
+  have ha_pos_nat : 0 < a := Nat.lt_of_lt_of_le Nat.zero_lt_one ha
+  have ha_pos : 0 < (a : ℝ) := by exact_mod_cast ha_pos_nat
+  have ha_nonneg : 0 ≤ (a : ℝ) := by linarith
+  have h_abs_f : ∀ n, |f n| = f n := fun n =>
+    abs_of_nonneg (hf_nonneg n)
+  have h_abs_tds : ∀ n, |tailDominatedScale a b f n| =
+      tailDominatedScale a b f n := by
+    intro n
+    apply abs_of_nonneg
+    unfold tailDominatedScale
+    have hcp_nonneg : 0 ≤ criticalPowerScale a b n := by
+      unfold criticalPowerScale; apply pow_nonneg ha_nonneg
+    by_cases hz : Nat.log b n = 0
+    · simp [hz]; positivity
+    · have h_nf_nonneg : 0 ≤ normalizedForcing a b f (Nat.log b n - 1) := by
+        unfold normalizedForcing
+        refine div_nonneg (hf_nonneg _) (pow_nonneg ha_nonneg _)
+      simp [hz]
+      nlinarith [hcp_nonneg, h_nf_nonneg]
+  rcases hf_step with ⟨A, hA_pos, n₁, h_step⟩
+  -- threshold: large enough for log_b n ≥ 1 (n ≥ b) and
+  -- b^(log_b n) ≥ n₁ (which follows from n ≥ n₁ * b via pow_log_le_n_div_b)
+  let n₀' : ℕ := max (max n₀ b) (n₁ * b)
+  have hn₀'_ge_n₀ : n₀ ≤ n₀' := by
+    unfold n₀'; exact Nat.le_trans (Nat.le_max_left _ _) (Nat.le_max_left _ _)
+  have hn₀'_ge_b : b ≤ n₀' := by
+    unfold n₀'; exact Nat.le_trans (Nat.le_max_right _ _) (Nat.le_max_left _ _)
+  have hn₀'_ge_n₁b : n₁ * b ≤ n₀' := by
+    unfold n₀'; exact Nat.le_max_right _ _
+  constructor
+  · -- O direction: tailDominatedScale a b f = O(f)
+    rw [Chapter03.isBigO_iff]
+    refine ⟨1, by norm_num, n₀', ?_⟩
+    intro n hn
+    have hn_pos : n ≠ 0 := by
+      have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+      have : 0 < n₀' := Nat.lt_of_lt_of_le hb_pos hn₀'_ge_b
+      omega
+    rw [h_abs_tds n, h_abs_f n]
+    by_cases hi : Nat.log b n = 0
+    · -- n < b, but n ≥ n₀' ≥ b, contradiction
+      have h_or : n < b ∨ b ≤ 1 := (Nat.log_eq_zero_iff.mp hi)
+      rcases h_or with (h_lt_b | hb_le_one)
+      · have h_ge_b : b ≤ n := Nat.le_trans hn₀'_ge_b hn
+        omega
+      · -- b ≤ 1 contradicts hb : 1 < b
+        omega
+    · -- i ≥ 1, tailDominatedScale n = f(b^i)
+      have h_tds : tailDominatedScale a b f n = f (b ^ Nat.log b n) := by
+        unfold tailDominatedScale
+        simp [hi, criticalPowerScale]
+        dsimp [normalizedForcing]
+        have hlog_pos : 1 ≤ Nat.log b n := Nat.one_le_of_lt (Nat.pos_of_ne_zero hi)
+        have h_exp : (Nat.log b n - 1) + 1 = Nat.log b n :=
+          Nat.sub_add_cancel hlog_pos
+        simp [h_exp, ha_pos.ne.symm]
+      rw [h_tds]
+      have hpow_le_n : b ^ Nat.log b n ≤ n :=
+        Nat.pow_log_le_self b hn_pos
+      have hmono_abs : |f (b ^ Nat.log b n)| ≤ |f n| :=
+        hf_mono hpow_le_n
+      rw [h_abs_f (b ^ Nat.log b n), h_abs_f n] at hmono_abs
+      simpa [mul_comm] using hmono_abs
+  · -- Ω direction: f = O(tailDominatedScale a b f)
+    rw [Chapter03.isBigOmega_iff]
+    refine ⟨A⁻¹, inv_pos.mpr hA_pos, n₀', ?_⟩
+    intro n hn
+    have hn_pos : n ≠ 0 := by
+      have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+      omega
+    rw [h_abs_f n, h_abs_tds n]
+    have hi : Nat.log b n ≠ 0 := by
+      intro hzero
+      have h_or : n < b ∨ b ≤ 1 := (Nat.log_eq_zero_iff.mp hzero)
+      rcases h_or with (h_lt_b | hb_le_one)
+      · have h_ge_b : b ≤ n := Nat.le_trans hn₀'_ge_b hn
+        omega
+      · omega
+    have h_tds : tailDominatedScale a b f n = f (b ^ Nat.log b n) := by
+      unfold tailDominatedScale
+      simp [hi, criticalPowerScale]
+      dsimp [normalizedForcing]
+      have hlog_pos : 1 ≤ Nat.log b n := Nat.one_le_of_lt (Nat.pos_of_ne_zero hi)
+      have h_exp : (Nat.log b n - 1) + 1 = Nat.log b n :=
+        Nat.sub_add_cancel hlog_pos
+      simp [h_exp, ha_pos.ne.symm]
+    rw [h_tds]
+    -- Need: A⁻¹ * f n ≤ f (b ^ Nat.log b n), equivalently f n ≤ A * f(b^i)
+    -- Step 1: f(n) ≤ f(b^(i+1)) by monotonicity (n < b^(i+1))
+    have h_n_lt_next : n < b ^ (Nat.log b n + 1) :=
+      Nat.lt_pow_succ_log_self hb n
+    have h_f_n_le_f_next : f n ≤ f (b ^ (Nat.log b n + 1)) := by
+      have h_abs : |f n| ≤ |f (b ^ (Nat.log b n + 1))| :=
+        hf_mono (Nat.le_of_lt h_n_lt_next)
+      rw [h_abs_f n, h_abs_f (b ^ (Nat.log b n + 1))] at h_abs
+      exact h_abs
+    -- Step 2: f(b^(i+1)) ≤ A * f(b^i) by step bound (since b^i ≥ n₁)
+    have h_low_pow_ge_n₁ : n₁ ≤ b ^ Nat.log b n := by
+      have hn_ge_n₁b : n₁ * b ≤ n := Nat.le_trans hn₀'_ge_n₁b hn
+      have hb_pos : 0 < b := Nat.lt_trans Nat.zero_lt_one hb
+      have h_div : n₁ ≤ n / b := by
+        by_contra! h
+        -- h: n / b < n₁
+        have hn_lt : n < n₁ * b := (Nat.div_lt_iff_lt_mul hb_pos).mp h
+        omega
+      calc
+        n₁ ≤ n / b := h_div
+        _ ≤ b ^ Nat.log b n := pow_log_le_n_div_b b n hb
+    have h_step_bound : f (b ^ (Nat.log b n + 1)) ≤ A * f (b ^ Nat.log b n) := by
+      have hstep := h_step (b ^ Nat.log b n) h_low_pow_ge_n₁
+      rw [h_abs_f (b * (b ^ Nat.log b n)), h_abs_f (b ^ Nat.log b n)] at hstep
+      -- hstep: f(b * b^i) ≤ A * f(b^i), and b * b^i = b^(i+1)
+      simpa [pow_succ, mul_comm] using hstep
+    calc
+      A⁻¹ * f n ≤ A⁻¹ * f (b ^ (Nat.log b n + 1)) := by
+        apply mul_le_mul_of_nonneg_left h_f_n_le_f_next
+        positivity
+      _ ≤ A⁻¹ * (A * f (b ^ Nat.log b n)) := by
+        apply mul_le_mul_of_nonneg_left h_step_bound
+        positivity
+      _ = f (b ^ Nat.log b n) := by
+        field_simp [ne_of_gt hA_pos]
+
 end Chapter04
 end CLRS

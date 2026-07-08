@@ -304,6 +304,30 @@ noncomputable def matrixChainSplit (dims : Nat → Nat) (i j : Nat) : Nat :=
       rw [h_eq]
       exact exists_inf'_eq s h_nonempty f
     Exists.choose h_exists
+/--
+The computable split-point selector for matrix-chain DP.  For interval
+{lit}`i < j`, it selects the smallest {lit}`k` in {lit}`[i, j-1]` that attains
+the minimum split cost.  This makes the entire reconstruction chain computable
+without {lit}`Exists.choose`.
+-/
+def matrixChainSplit (dims : Nat → Nat) (i j : Nat) : Nat :=
+  if h : i < j then
+    (Finset.Icc i (j - 1)).filter
+      (fun k =>
+        matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
+          dims i * dims (k + 1) * dims (j + 1) = matrixChainOpt dims i j) |>.min'
+      (by
+        have h_nonempty : (Finset.Icc i (j - 1)).Nonempty := by
+          use i; simp [Finset.mem_Icc]; omega
+        let f (k : ℕ) := matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
+          dims i * dims (k + 1) * dims (j + 1)
+        have h_eq : matrixChainOpt dims i j =
+            (Finset.Icc i (j - 1)).inf' h_nonempty f :=
+          bridge_attach_inf dims i j h
+        have h_exists := exists_inf'_eq (Finset.Icc i (j - 1)) h_nonempty f
+        rw [← h_eq] at h_exists
+        rcases h_exists with ⟨k, hk, hk_eq⟩
+        exact ⟨k, Finset.mem_filter.mpr ⟨hk, hk_eq⟩⟩)
   else
     i
 
@@ -332,6 +356,26 @@ theorem matrixChainSplit_optimal (dims : Nat → Nat) (i j : Nat) (hij : i < j) 
     simpa [matrixChainSplit, hij, s, h_nonempty, f, h_exists, matrixSplitCost] using
       And.intro hmem heq.symm
   exact h_goal
+  have h_opt_eq : matrixChainOpt dims i j = s.inf' h_nonempty f :=
+    bridge_attach_inf dims i j hij
+  have h_exists : ∃ k ∈ s, f k = matrixChainOpt dims i j := by
+    rw [h_opt_eq]; exact exists_inf'_eq s h_nonempty f
+  have h_filter_nonempty : (s.filter fun k => f k = matrixChainOpt dims i j).Nonempty := by
+    rcases h_exists with ⟨k, hk, hk_eq⟩
+    exact ⟨k, Finset.mem_filter.mpr ⟨hk, hk_eq⟩⟩
+  set k := (s.filter fun k => f k = matrixChainOpt dims i j).min' h_filter_nonempty with hk_def
+  have hk_mem_filter : k ∈ s.filter fun k => f k = matrixChainOpt dims i j := by
+    rw [hk_def]; exact Finset.min'_mem _ h_filter_nonempty
+  have hk_mem : k ∈ s := (Finset.mem_filter.mp hk_mem_filter).1
+  have hk_eq : f k = matrixChainOpt dims i j := (Finset.mem_filter.mp hk_mem_filter).2
+  have h_split_val : matrixChainSplit dims i j = k := by
+    unfold matrixChainSplit
+    simp [hij, s, f, h_filter_nonempty, hk_def]
+  rw [h_split_val]
+  refine ⟨hk_mem, ?_⟩
+  unfold matrixSplitCost
+  dsimp [f] at hk_eq
+  rw [← hk_eq]
 
 theorem matrixChainOpt_splitOptimal (dims : Nat → Nat) :
     MatrixChainSplitOptimal dims (matrixChainOpt dims) (matrixChainSplit dims) := by
@@ -340,6 +384,7 @@ theorem matrixChainOpt_splitOptimal (dims : Nat → Nat) :
   · intro i j hij; exact matrixChainSplit_optimal dims i j hij
 
 noncomputable def matrixChainReconstruct (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) : ChainPlan i j :=
+def matrixChainReconstruct (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) : ChainPlan i j :=
   if h : i < j then
     let k := matrixChainSplit dims i j
     ChainPlan.split i k j
