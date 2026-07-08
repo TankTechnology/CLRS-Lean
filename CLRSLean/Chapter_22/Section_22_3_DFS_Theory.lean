@@ -2564,13 +2564,15 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
   have h_ind : ∀ (vs : List V) (s0 : DFSState V),
       (∀ w, s0.color w = Color.white ∨ s0.color w = Color.black) →
       (∀ w, s0.color w = Color.black → finishTime s0 w < s0.time) →
+      DiscoveryFinishInvariant s0 →
       (s0.color v = Color.white) →
       ((dfsFromList G n vs s0).color v = Color.black) →
       ∃ (s : DFSState V) (f : Nat),
         s.color v = Color.white ∧
         (dfsVisit G f v s).color v = Color.black ∧
-        discoveryTime (dfsFromList G n vs s0) v = s.time := by
-    intro vs s0 h_ng h_bf hwhite_s0 hblack_result
+        discoveryTime (dfsFromList G n vs s0) v = s.time ∧
+        (∀ w, s.color w ≠ Color.white → discoveryTime (dfsFromList G n vs s0) w < s.time) := by
+    intro vs s0 h_ng h_bf h_df hwhite_s0 hblack_result
     induction vs generalizing s0 with
     | nil =>
         simp [dfsFromList, hwhite_s0] at hblack_result
@@ -2584,13 +2586,19 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
             dfsVisit_output_no_gray (G := G) (fuel := n) (u := u) (s := s0) h_ng
           have h_bf_s1 : ∀ w, s1.color w = Color.black → finishTime s1 w < s1.time :=
             dfsVisit_black_finish_lt_time (G := G) (fuel := n) (u := u) (s := s0) hn_pos hu_white h_bf
+          have h_df_s1 : DiscoveryFinishInvariant s1 :=
+            dfsVisit_discovery_lt_finish (G := G) (fuel := n) (u := u) (s := s0) hn_pos hu_white h_df
           by_cases hv_white_s1 : s1.color v = Color.white
           · -- v stayed white; continue with the rest
-            rcases ih s1 h_ng_s1 h_bf_s1 hv_white_s1 hblack_result with ⟨s, f, hs, hf, hdisc⟩
-            refine ⟨s, f, hs, hf, ?_⟩
-            dsimp [dfsFromList]
-            rw [if_pos hu_white]
-            exact hdisc
+            rcases ih s1 h_ng_s1 h_bf_s1 h_df_s1 hv_white_s1 hblack_result with
+              ⟨s, f, hs, hf, hdisc, h_nonwhite_ih⟩
+            have h_nonwhite' : ∀ w, s.color w ≠ Color.white →
+                discoveryTime (dfsFromList G n (u :: us) s0) w < s.time := by
+              intro w hnw
+              have h := h_nonwhite_ih w hnw
+              simpa [dfsFromList, hu_white] using h
+            refine ⟨s, f, hs, hf, ?_, h_nonwhite'⟩
+            dsimp [dfsFromList]; rw [if_pos hu_white]; exact hdisc
           · -- v turned non-white during dfsVisit from u
             by_cases hvu : v = u
             · -- v = u: the accumulator s0 is the discovery state
@@ -2602,7 +2610,36 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
               -- d[u] is preserved through the rest of dfsFromList
               have hd_preserved : (dfsFromList G n us s1).d u = s1.d u :=
                 dfsFromList_preserves_d_of_black G hn_pos (x := u) h_black_u
-              refine ⟨s0, n, hu_white, h_black_u, ?_⟩
+              -- h_nonwhite for s0: non-white w in s0 → d_final[w] < s0.time
+              have h_nonwhite_s0 : ∀ w, s0.color w ≠ Color.white →
+                  discoveryTime (dfsFromList G n (u :: us) s0) w < s0.time := by
+                intro w hnw
+                have h_black_w : s0.color w = Color.black := by
+                  rcases h_ng w with (hw | hb)
+                  · exact (hnw hw).elim
+                  · exact hb
+                have hne_wu : w ≠ u := by
+                  intro heq; subst w; apply hnw; exact hu_white
+                have h_disc_lt_fin : discoveryTime s0 w < finishTime s0 w := h_df w h_black_w
+                have h_fin_lt_time : finishTime s0 w < s0.time := h_bf w h_black_w
+                -- d-preservation from s0 through dfsVisit u and dfsFromList us
+                have h_d_s1_eq : s1.d w = s0.d w :=
+                  @dfsVisit_preserves_d_of_not_white V _ G n u w s0 hne_wu hnw
+                have h_black_s1 : s1.color w = Color.black :=
+                  @dfsVisit_preserves_black V _ G n u w s0 h_black_w
+                have h_d_result_eq : (dfsFromList G n us s1).d w = s1.d w :=
+                  dfsFromList_preserves_d_of_black G hn_pos (x := w) h_black_s1
+                have h_disc_result : discoveryTime (dfsFromList G n us s1) w = discoveryTime s0 w := by
+                  dsimp [discoveryTime]; rw [h_d_result_eq, h_d_s1_eq]
+                -- Now: discoveryTime (dfsFromList (u::us) s0) w
+                --   = discoveryTime (dfsFromList us s1) w (since hu_white)
+                --   = discoveryTime s0 w (by h_disc_result)
+                --   < finishTime s0 w (by h_disc_lt_fin)
+                --   < s0.time (by h_fin_lt_time)
+                dsimp [dfsFromList]
+                rw [if_pos hu_white, h_disc_result]
+                omega
+              refine ⟨s0, n, hu_white, h_black_u, ?_, h_nonwhite_s0⟩
               dsimp [dfsFromList]
               rw [if_pos hu_white, discoveryTime, hd_preserved, ← discoveryTime]
               exact h_disc_src
@@ -2681,7 +2718,11 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                 -- Step 4: d preserved through dfsFromList
                 have h_result_d : (dfsFromList G n us s1).d v = s1.d v :=
                   dfsFromList_preserves_d_of_black G hn_pos (x := v) hv_black_s1
-                refine ⟨s', n-1, hs'_white, hf'_black, ?_⟩
+                -- h_nonwhite for s' (fold accumulator): follows from fold invariants
+                have h_nonwhite_s' : ∀ w, s'.color w ≠ Color.white →
+                    discoveryTime (dfsFromList G n (u :: us) s0) w < s'.time := by
+                  sorry
+                refine ⟨s', n-1, hs'_white, hf'_black, ?_, h_nonwhite_s'⟩
                 dsimp [discoveryTime, dfsFromList]
                 rw [if_pos hu_white, h_result_d, h_s1_d, hs'_time]; simp
               · -- w ≠ v: v is discovered inside dfsVisit on w.  Use induction on
@@ -2689,35 +2730,31 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                 sorry
         · -- u not white; skip
           rw [if_neg hu_white] at hblack_result
-          rcases ih s0 h_ng h_bf hwhite_s0 hblack_result with ⟨s, f, hs, hf, hdisc⟩
-          refine ⟨s, f, hs, hf, ?_⟩
-          dsimp [dfsFromList]
-          rw [if_neg hu_white]
-          exact hdisc
+          rcases ih s0 h_ng h_bf h_df hwhite_s0 hblack_result with
+            ⟨s, f, hs, hf, hdisc, h_nonwhite_ih⟩
+          have h_nonwhite' : ∀ w, s.color w ≠ Color.white →
+              discoveryTime (dfsFromList G n (u :: us) s0) w < s.time := by
+            intro w hnw; have h := h_nonwhite_ih w hnw
+            simpa [dfsFromList, hu_white] using h
+          refine ⟨s, f, hs, hf, ?_, h_nonwhite'⟩
+          dsimp [dfsFromList]; rw [if_neg hu_white]; exact hdisc
   -- Start from dfsInit
   have hwhite_init : (dfsInit (V := V)).color v = Color.white := rfl
   have h_ng_init : ∀ (w : V), (dfsInit (V := V)).color w = Color.white ∨ (dfsInit (V := V)).color w = Color.black :=
     λ (w : V) => Or.inl rfl
   have h_bf_init : ∀ (w : V), (dfsInit (V := V)).color w = Color.black → finishTime (dfsInit (V := V)) w < (dfsInit (V := V)).time := by
     intro w h; dsimp [dfsInit] at h; nomatch h
+  have h_df_init : DiscoveryFinishInvariant (dfsInit (V := V)) := by
+    intro w h; dsimp [dfsInit] at h; nomatch h
   have hblack_final : (dfsFromList G n G.vertices.toList dfsInit).color v = Color.black := by
     rw [← h_dfs]; exact G.dfs_all_black hv
-  rcases h_ind G.vertices.toList dfsInit h_ng_init h_bf_init hwhite_init hblack_final with
-    ⟨s, f, hs, hf, hdisc⟩
-  -- Now prove the extra property: for non-white w in s, d_final[w] < s.time
-  -- This holds because (1) DiscoveryTimeInvariant s (from induction invariants),
-  -- and (2) d-preservation from s to G.dfs for non-white vertices
-  -- (via dfsVisit_preserves_d_of_not_white + dfsFromList_preserves_d_of_black).
-  -- These rely on the not-yet-proved d-preservation chain through the fold.
-  have h_nonwhite : ∀ w, s.color w ≠ Color.white → discoveryTime (G.dfs) w < s.time := by
-    intro w hnw
-    -- DiscoveryTimeInvariant s: discoveryTime s w < s.time
-    -- d-preservation: (G.dfs).d w = s.d w
-    -- Both are part of the induction invariants. For now, admitted.
-    sorry
-  refine ⟨s, f, hs, hf, ?_, h_nonwhite⟩
-  rw [h_dfs]
-  exact hdisc
+  rcases h_ind G.vertices.toList dfsInit h_ng_init h_bf_init h_df_init hwhite_init hblack_final with
+    ⟨s, f, hs, hf, hdisc, h_nonwhite_s⟩
+  refine ⟨s, f, hs, hf, ?_, ?_⟩
+  · rw [h_dfs]; exact hdisc
+  · intro w hnw
+    have h := h_nonwhite_s w hnw
+    simpa [h_dfs] using h
 
 end SCCFinishOrdering
 
