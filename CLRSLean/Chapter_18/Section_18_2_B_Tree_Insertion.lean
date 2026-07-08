@@ -902,6 +902,64 @@ lemma insertNonFull_height (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
     heightOf (insertNonFull t x tr) = heightOf tr :=
   (insertNonFull_sameDepth_height t x ht tr hcb hsd).2
 
+/-! ### Bridge to `splitChild` for the Sorted / ChildBounded proofs -/
+
+/-- Explicit output of `splitChild` on a full child: it inserts the median
+`cKeys[t-1]` into the parent keys and replaces the child by its two halves.
+This lets the insertion proofs reuse `splitChild_preserves_sorted` /
+`splitChild_preserves_childBounded`. -/
+lemma splitChild_full_eq (t : Nat) (ht : 2 ≤ t) (ks : List Nat) (cs : List BTree) (i : Nat)
+    (cKeys : List Nat) (cChildren : List BTree)
+    (h_lt : i < cs.length) (hchild_eq : cs.get ⟨i, h_lt⟩ = node cKeys cChildren)
+    (hchild_full : cKeys.length = 2 * t - 1) :
+    splitChild t (node ks cs) i
+      = node (ks.take i ++ cKeys[t - 1]'(by omega) :: ks.drop i)
+          (cs.take i ++
+            [node (cKeys.take (t - 1)) (cChildren.take t), node (cKeys.drop t) (cChildren.drop t)]
+            ++ cs.drop (i + 1)) := by
+  have ht1 : t - 1 < cKeys.length := by omega
+  have h_keys_snd_nonempty : (cKeys.splitAt (t - 1)).2 ≠ [] := by
+    have hlen : (cKeys.splitAt (t - 1)).2.length = t := by simp [hchild_full]; omega
+    intro h; rw [h] at hlen; simp at hlen; omega
+  dsimp [splitChild]; rw [dif_pos h_lt]
+  have h_get : cs[i] = node cKeys cChildren := by simpa using hchild_eq
+  rw [h_get]; dsimp; rw [if_pos hchild_full]
+  cases hk : cKeys.splitAt (t - 1) with
+  | mk leftKeys keysRest =>
+    have hkr_ne : keysRest ≠ [] := by
+      have : (cKeys.splitAt (t - 1)).2 = keysRest := by rw [hk]
+      rw [← this]; exact h_keys_snd_nonempty
+    cases hkr : keysRest with
+    | nil => exact (hkr_ne hkr).elim
+    | cons medianKey rightKeys =>
+      cases hc : cChildren.splitAt t with
+      | mk leftCh rightCh =>
+        have h_lk : leftKeys = cKeys.take (t - 1) := by
+          calc leftKeys = (cKeys.splitAt (t - 1)).1 := by rw [hk]
+            _ = cKeys.take (t - 1) := by simp
+        have h_keysRest_eq : keysRest = cKeys.drop (t - 1) := by
+          calc keysRest = (cKeys.splitAt (t - 1)).2 := by rw [hk]
+            _ = cKeys.drop (t - 1) := by simp
+        have h_rk : rightKeys = cKeys.drop t := by
+          calc rightKeys = keysRest.drop 1 := by rw [hkr]; simp
+            _ = (cKeys.drop (t - 1)).drop 1 := by rw [h_keysRest_eq]
+            _ = cKeys.drop ((t - 1) + 1) := by rw [← List.drop_drop]
+            _ = cKeys.drop t := by rw [show (t - 1) + 1 = t from by omega]
+        have h_lc : leftCh = cChildren.take t := by
+          calc leftCh = (cChildren.splitAt t).1 := by rw [hc]
+            _ = cChildren.take t := by simp
+        have h_rc : rightCh = cChildren.drop t := by
+          calc rightCh = (cChildren.splitAt t).2 := by rw [hc]
+            _ = cChildren.drop t := by simp
+        have h_med : medianKey = cKeys[t - 1] := by
+          have hh : (cKeys.drop (t - 1))[0]? = some medianKey := by
+            rw [← h_keysRest_eq, hkr]; rfl
+          rw [List.getElem?_drop] at hh
+          simp only [Nat.add_zero, List.getElem?_eq_getElem ht1] at hh
+          injection hh with hh; exact hh.symm
+        subst h_lk h_rk h_lc h_rc h_med
+        rfl
+
 end BTree
 end Chapter18
 end CLRS
