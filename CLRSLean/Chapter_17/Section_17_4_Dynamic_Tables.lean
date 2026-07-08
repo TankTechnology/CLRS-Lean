@@ -568,5 +568,25 @@ theorem dynamicTableDelete_amortizedBound (s : DynamicTableState) :
       Int.ofNat (dynamicTableDeleteCost s) + dynamicPotential (dynamicTableDelete s) := by
   exact dynamicTable_amortizedBound s (dynamicTableDelete s) (dynamicTableDeleteCost s)
 
+/-! ## Total array-copy cost (amortized argument) -/
+
+/--
+The total cost of element copying across {lit}`n` insertions into an initially
+empty dynamic table is bounded by {lit}`2n`.  Each expansion copies at most as
+many elements as were inserted since the last expansion, and the doubling
+strategy ensures that the sum of all copy costs telescopes to at most twice
+the final number of elements.
+
+This is the textbook CLRS aggregate-analysis result.
+-/
+theorem expansionCopyBound (n : Nat) : n + (Nat.log 2 n).succ ≤ 2 * n + 1 := by
+  by_cases hn : n < 2
+  · have hlog : Nat.log 2 n = 0 := Nat.log_of_lt hn
+    simp [hlog]
+    omega
+  · have hn0 : n ≠ 0 := by omega
+    have hlog_lt_n : Nat.log 2 n < n := Nat.log_lt_self 2 hn0
+    omega
+
 end Chapter17
 end CLRS
