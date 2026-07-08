@@ -960,6 +960,155 @@ lemma splitChild_full_eq (t : Nat) (ht : 2 ≤ t) (ks : List Nat) (cs : List BTr
         subst h_lk h_rk h_lc h_rc h_med
         rfl
 
+/-- `Sorted` restricts to a prefix of the keys/children. -/
+lemma sorted_take {ks : List Nat} {cs : List BTree} (a b : Nat)
+    (hs : Sorted (node ks cs)) : Sorted (node (ks.take a) (cs.take b)) := by
+  unfold Sorted at hs ⊢
+  exact ⟨List.Pairwise.take hs.1, fun c hc => hs.2 c ((List.take_subset _ _) hc)⟩
+
+/-- `Sorted` restricts to a suffix of the keys/children. -/
+lemma sorted_drop {ks : List Nat} {cs : List BTree} (a b : Nat)
+    (hs : Sorted (node ks cs)) : Sorted (node (ks.drop a) (cs.drop b)) := by
+  unfold Sorted at hs ⊢
+  exact ⟨List.Pairwise.drop hs.1, fun c hc => hs.2 c ((List.drop_subset _ _) hc)⟩
+
+/-- `insertNonFull` preserves `Sorted` (given the tree is `ChildBounded` and
+`Sorted`).  The split cases reuse `splitChild_preserves_sorted` via
+`splitChild_full_eq`. -/
+lemma insertNonFull_sorted (t x : Nat) (ht : 2 ≤ t) :
+    ∀ tr, ChildBounded tr → Sorted tr → Sorted (insertNonFull t x tr) := by
+  intro tr
+  induction tr using insertNonFull.induct (t := t) (x := x) with
+  | case1 ks cs hempty =>
+    intro _ hs
+    have hcsnil : cs = [] := List.isEmpty_iff.mp hempty
+    subst hcsnil
+    rw [insertNonFull]; simp only [List.isEmpty_nil, if_true]
+    unfold Sorted at hs ⊢
+    exact ⟨sortedInsert_sorted x hs.1, fun c hc => by simp at hc⟩
+  | case2 ks cs hne i hnone =>
+    intro _ hs
+    have hval : insertNonFull t x (node ks cs) = node ks cs := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rfl
+      · rename_i c hcsome
+        have hn : cs[findChild ks x]? = none := hnone; rw [hcsome] at hn; simp at hn
+    rw [hval]; exact hs
+  | case5 ks cs hne i cKeys cChildren hsome hnfull hsome2 ih =>
+    intro hcb hs
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩; exact hsub _ hmem
+    have hs_child : Sorted (node cKeys cChildren) := by unfold Sorted at hs; exact hs.2 _ hmem
+    have ihc := ih hcb_child hs_child
+    have hval : insertNonFull t x (node ks cs)
+        = node ks (cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren))) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_neg hnfull]
+    rw [hval]
+    unfold Sorted at hs ⊢
+    refine ⟨hs.1, fun c hc => ?_⟩
+    rcases List.mem_or_eq_of_mem_set hc with hcs | rfl
+    · exact hs.2 c hcs
+    · exact ihc
+  | case3 ks cs hne i cKeys cChildren hsome hfull median hlt hsome2 ih =>
+    intro hcb hs
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hget' : cs.get ⟨findChild ks x, hilt⟩ = node cKeys cChildren := by
+      rw [List.get_eq_getElem]; exact hget
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩; exact hsub _ hmem
+    have hs_child : Sorted (node cKeys cChildren) := by unfold Sorted at hs; exact hs.2 _ hmem
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have hcb_LH : ChildBounded (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+      have h := childBounded_take_of_full hcb_child ht1
+      rwa [show (t - 1) + 1 = t from by omega] at h
+    have ihc := ih hcb_LH (sorted_take (t - 1) t hs_child)
+    have hmed : cKeys.getD (t - 1) 0 = cKeys[t - 1] := by
+      simp only [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht1, Option.getD_some]
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys.getD (t - 1) 0 :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+               node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_pos hfull, if_pos hlt]
+    have hsplit := splitChild_preserves_sorted t ht ks cs cKeys cChildren (findChild ks x)
+      hilt hget' hfull hs hcb
+    rw [splitChild_full_eq t ht ks cs (findChild ks x) cKeys cChildren hilt hget' hfull] at hsplit
+    rw [hval, hmed]
+    unfold Sorted at hsplit ⊢
+    refine ⟨hsplit.1, fun c hc => ?_⟩
+    rcases List.mem_append.mp hc with h1 | h2
+    · rcases List.mem_append.mp h1 with hta | hmid
+      · exact hsplit.2 c (List.mem_append_left _ (List.mem_append_left _ hta))
+      · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+        rcases hmid with rfl | rfl
+        · exact ihc
+        · exact hsplit.2 _ (List.mem_append_left _ (List.mem_append_right _ (by simp)))
+    · exact hsplit.2 c (List.mem_append_right _ h2)
+  | case4 ks cs hne i cKeys cChildren hsome hfull median hnlt hsome2 ih =>
+    intro hcb hs
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hget' : cs.get ⟨findChild ks x, hilt⟩ = node cKeys cChildren := by
+      rw [List.get_eq_getElem]; exact hget
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨_, hsome'⟩
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩; exact hsub _ hmem
+    have hs_child : Sorted (node cKeys cChildren) := by unfold Sorted at hs; exact hs.2 _ hmem
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have hcb_RH : ChildBounded (node (cKeys.drop t) (cChildren.drop t)) := by
+      rcases child_children_len_of_full_cb ht hcb_child hfull with h0 | h2t
+      · have hnil : cChildren = [] := by cases cChildren with | nil => rfl | cons a b => simp at h0
+        rw [hnil]; simpa using childBounded_node_nil (cKeys.drop t)
+      · exact childBounded_drop_of_full hcb_child (by omega) (by rw [h2t]; omega)
+    have ihc := ih hcb_RH (sorted_drop t t hs_child)
+    have hmed : cKeys.getD (t - 1) 0 = cKeys[t - 1] := by
+      simp only [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht1, Option.getD_some]
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys.getD (t - 1) 0 :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [node (cKeys.take (t - 1)) (cChildren.take t),
+               insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))]
+              ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]; dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only; rw [if_pos hfull, if_neg hnlt]
+    have hsplit := splitChild_preserves_sorted t ht ks cs cKeys cChildren (findChild ks x)
+      hilt hget' hfull hs hcb
+    rw [splitChild_full_eq t ht ks cs (findChild ks x) cKeys cChildren hilt hget' hfull] at hsplit
+    rw [hval, hmed]
+    unfold Sorted at hsplit ⊢
+    refine ⟨hsplit.1, fun c hc => ?_⟩
+    rcases List.mem_append.mp hc with h1 | h2
+    · rcases List.mem_append.mp h1 with hta | hmid
+      · exact hsplit.2 c (List.mem_append_left _ (List.mem_append_left _ hta))
+      · simp only [List.mem_cons, List.not_mem_nil, or_false] at hmid
+        rcases hmid with rfl | rfl
+        · exact hsplit.2 _ (List.mem_append_left _ (List.mem_append_right _ (by simp)))
+        · exact ihc
+    · exact hsplit.2 c (List.mem_append_right _ h2)
+
 end BTree
 end Chapter18
 end CLRS
