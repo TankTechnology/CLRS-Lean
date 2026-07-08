@@ -347,6 +347,51 @@ decreasing_by
       | exact heightOf_le_of_children_subset (List.take_subset _ _)
       | exact heightOf_le_of_children_subset (List.drop_subset _ _)
 
+/-! ### `sortedInsert` correctness -/
+
+/-- `sortedInsert x ks` is a permutation of `x :: ks` (adds exactly `x`). -/
+lemma sortedInsert_perm (x : Nat) (ks : List Nat) : (sortedInsert x ks).Perm (x :: ks) := by
+  induction ks with
+  | nil => simp [sortedInsert]
+  | cons k ks ih =>
+    unfold sortedInsert
+    split
+    · exact List.Perm.refl _
+    · calc k :: sortedInsert x ks ~ k :: x :: ks := ih.cons k
+        _ ~ x :: k :: ks := List.Perm.swap x k ks
+
+/-- Membership after `sortedInsert`. -/
+lemma mem_sortedInsert {x y : Nat} {ks : List Nat} :
+    y ∈ sortedInsert x ks ↔ y = x ∨ y ∈ ks := by
+  rw [(sortedInsert_perm x ks).mem_iff, List.mem_cons]
+
+/-- `sortedInsert` preserves sortedness. -/
+lemma sortedInsert_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤ ·) ks →
+    List.Pairwise (· ≤ ·) (sortedInsert x ks) := by
+  intro ks
+  induction ks with
+  | nil => intro _; simp [sortedInsert]
+  | cons k ks ih =>
+    intro h
+    have hk : ∀ y ∈ ks, k ≤ y := (List.pairwise_cons.mp h).1
+    have htail : List.Pairwise (· ≤ ·) ks := (List.pairwise_cons.mp h).2
+    unfold sortedInsert
+    split
+    · rename_i hxk
+      refine List.pairwise_cons.mpr ⟨?_, h⟩
+      intro y hy
+      rcases List.mem_cons.mp hy with rfl | hy
+      · exact hxk
+      · exact le_trans hxk (hk y hy)
+    · rename_i hxk
+      have hkx : k ≤ x := le_of_lt (not_le.mp hxk)
+      refine List.pairwise_cons.mpr ⟨?_, ih htail⟩
+      intro y hy
+      rw [mem_sortedInsert] at hy
+      rcases hy with rfl | hy
+      · exact hkx
+      · exact hk y hy
+
 end BTree
 end Chapter18
 end CLRS
