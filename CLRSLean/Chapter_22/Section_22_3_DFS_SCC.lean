@@ -278,7 +278,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
               have hfold_black : (List.foldl step s_init (G.adj u).toList).color v = Color.black := by
                 rw [hcolor, hv_black_s1]
               rcases dfsVisit_fold_blackens_loc_prefix G h_bf_init hwhite_v_init hfold_black
-                with ⟨pre, post, w, s2, hadj_eq, hs2_eq, hw_white, hv_white_s2, hw_disc_v, _, _⟩
+                with ⟨pre, post, w, s2, hadj_eq, hs2_eq, hw_white, hv_white_s2, hw_disc_v, hmono_s2, hbf_s2⟩
               by_cases hw_eq_v : w = v
               · -- w = v: v is directly discovered as u's neighbor.
                 -- Sub-problem 2: prove s1.d v = some (s2.time)
@@ -326,9 +326,11 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                     discoveryTime (dfsFromList G n (u :: us) s0) w < s'.time := by
                   sorry
                 have h_bf_s' : ∀ w, s'.color w = Color.black → finishTime s' w < s'.time := by
-                  -- s' = s2.setParent v u.  The fold accumulator s2 satisfies h_bf.
-                  -- setParent doesn't change color or time or finishTime.
-                  sorry
+                  intro w hblack
+                  have hblack_s2 : s2.color w = Color.black := by
+                    simpa [s'] using hblack
+                  have h_lt : finishTime s2 w < s2.time := hbf_s2 w hblack_s2
+                  simpa [s', finishTime] using h_lt
                 have h_f_pres_s' : ∀ w, (dfsVisit G (n-1) v s').color w = Color.black →
                     finishTime (dfsFromList G n (u :: us) s0) w = finishTime (dfsVisit G (n-1) v s') w := by
                   sorry
