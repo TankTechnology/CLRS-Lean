@@ -522,8 +522,9 @@ theorem scc_finish_time_order {C D : Set V}
   by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
   · -- Case 1: rC discovered first.  Use exists_discovery_state.
     have h_rC_vert : rC ∈ G.vertices := hCsub hrC_mem
-    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite⟩
+    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s⟩
     -- hdisc_eq: d[rC] = s.time.  h_nonwhite: non-white w in s → d[w] < s.time = d[rC].
+    -- h_bf_s: black-finish invariant for s.
     -- All of C ∪ D is white in s (otherwise d[v] < d[rC], contradicting firstDiscoveredVertex_min)
     have hwhite_C : ∀ v ∈ C, s.color v = Color.white := by
       intro v hv; by_cases hw : s.color v = Color.white; · exact hw
@@ -568,9 +569,7 @@ theorem scc_finish_time_order {C D : Set V}
       exact WhiteReachable.mem_set G (hCsub hrC_mem) h_wr_rC_d
     -- d finishes before rC in the dfsVisit output
     have h_finish_lt : finishTime (dfsVisit G f rC s) d < finishTime (dfsVisit G f rC s) rC := by
-      apply dfsVisit_finish_lt_source_finish G (by omega) hs_white ?_ hwhite_d h_black_d hne_d_rC
-      -- need hinv: black vertices in s have finishTime < s.time
-      sorry
+      apply dfsVisit_finish_lt_source_finish G (by omega) hs_white h_bf_s hwhite_d h_black_d hne_d_rC
     -- f values preserved from dfsVisit to G.dfs (admitted)
     have h_f_preserved_d : finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d := by sorry
     have h_f_preserved_rC : finishTime (G.dfs) rC = finishTime (dfsVisit G f rC s) rC := by sorry
