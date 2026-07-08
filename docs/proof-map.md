@@ -1434,6 +1434,10 @@ allocator semantics remain future refinements.
   - `CLRS.Chapter18.BTree.sortedInsert_perm` / `mem_sortedInsert` / `sortedInsert_sorted`
   - `CLRS.Chapter18.BTree.sameDepth_iff` / `heightOf_sameDepth_mem` (SameDepth infra)
   - `CLRS.Chapter18.BTree.insertNonFull_sameDepth_height` (insertNonFull preserves SameDepth + heightOf; needs ChildBounded + SameDepth) with corollaries `insertNonFull_sameDepth`, `insertNonFull_height`
+  - `CLRS.Chapter18.BTree.insertNonFull_sorted` (insertNonFull preserves Sorted; needs ChildBounded + Sorted)
+  - `CLRS.Chapter18.BTree.insertNonFull_childBounded` (insertNonFull preserves ChildBounded; needs ChildBounded + Sorted; split cases reuse `splitChild_preserves_childBounded` via `splitChild_full_eq` bridge)
+  - `CLRS.Chapter18.BTree.insertNonFull_occupancy` (insertNonFull preserves Occupancy for both root/non-root flags; needs non-full precondition + ChildBounded)
+  - `CLRS.Chapter18.BTree.insertNonFull_wellFormed` (capstone: all four invariants, needs non-full root + WellFormed)
   - `CLRS.Chapter18.BTree.splitChild_valid`
   - `CLRS.Chapter18.BTree.splitChild_mem_iff`
   - `CLRS.Chapter18.BTree.splitChild_mem_old`
