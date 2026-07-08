@@ -403,6 +403,63 @@ theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
   rcases hv with ⟨_, hvK⟩
   exact hmax v (hwhite v hvK)
 
+/-! ## Graph-theoretic lemmas for SCC finish-time ordering -/
+
+/-- If `x` is the first-discovered vertex of SCC `C` (in `G.dfs`), then `x` can
+reach every vertex in `C`.  This is purely graph-theoretic: it follows from the
+SCC property that every pair in `C` is strongly connected. -/
+theorem firstDiscovered_reachable_scc {C : Set V} (hC_nonempty : C.Nonempty)
+    (hCsub : C ⊆ G.vertices) (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v)
+    (v : V) (hv : v ∈ C) :
+    let r := firstDiscoveredVertex G (s := G.dfs) (C := C) hC_nonempty hCsub
+    G.Reachable r v := by
+  intro r
+  have hrC : r ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
+  exact (hCsc r hrC v hv).1
+
+/-- If there is an edge from `u` in SCC `C` to `y` in SCC `D`, then every vertex
+in `C` can reach every vertex in `D`.  This uses the SCC property: within `C`, `x`
+reaches `u`; within `D`, `y` reaches `w`. -/
+theorem reachable_scc_to_scc {C D : Set V} (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v)
+    (hDsc : ∀ u ∈ D, ∀ v ∈ D, G.StronglyConnected u v)
+    (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v)
+    {x : V} (hx : x ∈ C) {w : V} (hw : w ∈ D) :
+    G.Reachable x w := by
+  rcases hedge with ⟨u, hu, v, hv, hadj⟩
+  have hxu : G.Reachable x u := (hCsc x hx u hu).1
+  have hvw : G.Reachable v w := (hDsc v hv w hw).1
+  exact G.reachable_trans hxu (G.reachable_trans (G.reachable_adj hadj) hvw)
+
+/-- Distinct SCCs with an edge from `C` to `D` have no path from `D` back to `C`.
+If such a path existed, `C` and `D` would be a single SCC. -/
+theorem no_reachable_scc_reverse {C D : Set V} (hC : G.IsSCC C) (hD : G.IsSCC D)
+    (hne : C ≠ D) (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v) (x y : V)
+    (hx : x ∈ D) (hy : y ∈ C) : ¬ G.Reachable x y := by
+  intro hreach
+  apply hne
+  apply IsSCC_eq_of_nonempty_inter G hC hD
+  -- Find a vertex in the intersection: we'll show that y ∈ C ∩ D
+  -- Since C and D must be equal
+  rcases hC with ⟨⟨rC, hrC⟩, hCsub, hCsc, hCmax⟩
+  rcases hD with ⟨⟨rD, hrD⟩, hDsub, hDsc, hDmax⟩
+  rcases hedge with ⟨u, hu, v, hv, hadj⟩
+  -- We show that y ∈ D (so y is in C ∩ D, giving the intersection)
+  have hyV : y ∈ G.vertices := hCsub hy
+  have h_forall : ∀ u ∈ D, G.StronglyConnected u y := by
+    intro d hd
+    -- d →* x (within D) → y (via x→*y) gives one direction
+    -- y →* u (within C) → v (edge) →* d (within D) gives the other
+    have hdx : G.Reachable d x := (hDsc d hd x hx).1
+    have hxy : G.Reachable x y := hreach
+    have hyu : G.Reachable y u := (hCsc y hy u hu).1
+    have hvd : G.Reachable v d := (hDsc v hv d hd).1
+    have hdy : G.Reachable d y := G.reachable_trans hdx hxy
+    have hyd : G.Reachable y d :=
+      G.reachable_trans hyu (G.reachable_trans (G.reachable_adj hadj) hvd)
+    exact ⟨hdy, hyd⟩
+  have hyD : y ∈ D := hDmax y hyV h_forall
+  exact ⟨y, hy, hyD⟩
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
