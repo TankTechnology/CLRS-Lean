@@ -2575,6 +2575,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                 subst hzero'
                 simp [dfsVisit] at hf'_black
                 rw [hs'_white] at hf'_black
+                exact nomatch hf'_black
               have h_disc_v : discoveryTime (dfsVisit G f' v s') v = s'.time :=
                 dfsVisit_discovery_source G h_fuel_pos hs'_white
               -- d[v] is preserved from the recursive dfsVisit through the rest
@@ -2596,11 +2597,11 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
           rw [if_neg hu_white]
           exact hdisc
   -- Start from dfsInit
-  have hwhite_init : dfsInit.color v = Color.white := rfl
-  have h_ng_init : ∀ w, dfsInit.color w = Color.white ∨ dfsInit.color w = Color.black := by
-    intro w; left; rfl
-  have h_bf_init : ∀ w, dfsInit.color w = Color.black → finishTime dfsInit w < dfsInit.time := by
-    intro w h; have : dfsInit.color w = Color.white := rfl; rw [this] at h; contradiction
+  have hwhite_init : (dfsInit (V := V)).color v = Color.white := rfl
+  have h_ng_init : ∀ (w : V), (dfsInit (V := V)).color w = Color.white ∨ (dfsInit (V := V)).color w = Color.black :=
+    λ (w : V) => Or.inl rfl
+  have h_bf_init : ∀ (w : V), (dfsInit (V := V)).color w = Color.black → finishTime (dfsInit (V := V)) w < (dfsInit (V := V)).time := by
+    intro w h; dsimp [dfsInit] at h; nomatch h
   have hblack_final : (dfsFromList G n G.vertices.toList dfsInit).color v = Color.black := by
     rw [← h_dfs]; exact G.dfs_all_black hv
   rcases h_ind G.vertices.toList dfsInit h_ng_init h_bf_init hwhite_init hblack_final with
