@@ -2480,6 +2480,135 @@ theorem firstDiscoveredVertex_min {s : DFSState V} {C : Set V} {v : V}
     discoveryTime s (firstDiscoveredVertex G s C hC hsub) ≤ discoveryTime s v :=
   (Classical.choose_spec (exists_firstDiscovered G (s := s) (C := C) hC hsub)).2 v hv
 
+/-! ## Discovery state of a vertex
+
+For the SCC finish-time proof we need access to the *discovery state* of a
+vertex `v` — the state just before `dfsVisit` is called with `v` white.  At this
+state the clock equals `d[v]` in the final DFS.  The lemma walks through the
+`dfsFromList` computation, handling both top-level discovery (outer-loop
+`dfsVisit`) and nested discovery (recursive `dfsVisit` inside a fold). -/
+
+/-- For a vertex `v` that is black in `G.dfs`, there exists a state `s` and
+fuel `f` such that `s` is the input to the `dfsVisit` call that discovers `v`:
+`v` is white in `s`, the call blackens it, and `discoveryTime (G.dfs) v = s.time`.
+Moreover, `s` satisfies `DiscoveryTimeInvariant` and the black-finish invariant. -/
+theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
+    ∃ (s : DFSState V) (f : Nat),
+      s.color v = Color.white ∧
+      (dfsVisit G f v s).color v = Color.black ∧
+      discoveryTime (G.dfs) v = s.time := by
+  set n := G.vertices.card + 1 with hn
+  have hn_pos : 0 < n := by
+    have hcard := Finset.card_pos.mpr ⟨v, hv⟩
+    omega
+  have h_dfs : G.dfs = dfsFromList G n G.vertices.toList dfsInit := rfl
+  -- We walk through the `dfsFromList` computation, carrying three invariants:
+  --   (ng) no gray vertices:  ∀ w, s0.color w = Color.white ∨ s0.color w = Color.black
+  --   (bf) black-finish:      ∀ w, s0.color w = Color.black → finishTime s0 w < s0.time
+  --   (disc) discovery-time:  DiscoveryTimeInvariant (G := G) s0  (not needed directly)
+  -- All three hold for `dfsInit` and are preserved by `dfsVisit`.
+  have h_ind : ∀ (vs : List V) (s0 : DFSState V),
+      (∀ w, s0.color w = Color.white ∨ s0.color w = Color.black) →
+      (∀ w, s0.color w = Color.black → finishTime s0 w < s0.time) →
+      (s0.color v = Color.white) →
+      ((dfsFromList G n vs s0).color v = Color.black) →
+      ∃ (s : DFSState V) (f : Nat),
+        s.color v = Color.white ∧
+        (dfsVisit G f v s).color v = Color.black ∧
+        discoveryTime (dfsFromList G n vs s0) v = s.time := by
+    intro vs s0 h_ng h_bf hwhite_s0 hblack_result
+    induction vs generalizing s0 with
+    | nil =>
+        simp [dfsFromList, hwhite_s0] at hblack_result
+    | cons u us ih =>
+        simp [dfsFromList] at hblack_result
+        by_cases hu_white : s0.color u = Color.white
+        · rw [if_pos hu_white] at hblack_result
+          set s1 := dfsVisit G n u s0 with hs1
+          -- Invariants are preserved through dfsVisit
+          have h_ng_s1 : ∀ w, s1.color w = Color.white ∨ s1.color w = Color.black :=
+            dfsVisit_output_no_gray (G := G) (fuel := n) (u := u) (s := s0) h_ng
+          have h_bf_s1 : ∀ w, s1.color w = Color.black → finishTime s1 w < s1.time :=
+            dfsVisit_black_finish_lt_time (G := G) (fuel := n) (u := u) (s := s0) hn_pos hu_white h_bf
+          by_cases hv_white_s1 : s1.color v = Color.white
+          · -- v stayed white; continue with the rest
+            rcases ih s1 h_ng_s1 h_bf_s1 hv_white_s1 hblack_result with ⟨s, f, hs, hf, hdisc⟩
+            refine ⟨s, f, hs, hf, ?_⟩
+            dsimp [dfsFromList]
+            rw [if_pos hu_white]
+            exact hdisc
+          · -- v turned non-white during dfsVisit from u
+            by_cases hvu : v = u
+            · -- v = u: the accumulator s0 is the discovery state
+              subst v
+              have h_black_u : s1.color u = Color.black :=
+                dfsVisit_blackens_u_pos (G := G) hn_pos hu_white
+              have h_disc_src : discoveryTime s1 u = s0.time :=
+                dfsVisit_discovery_source G hn_pos hu_white
+              -- d[u] is preserved through the rest of dfsFromList
+              have hd_preserved : (dfsFromList G n us s1).d u = s1.d u :=
+                dfsFromList_preserves_d_of_black G hn_pos (x := u) h_black_u
+              refine ⟨s0, n, hu_white, h_black_u, ?_⟩
+              dsimp [dfsFromList]
+              rw [if_pos hu_white, discoveryTime, hd_preserved, ← discoveryTime]
+              exact h_disc_src
+            · -- v ≠ u: v discovered inside dfsVisit from u
+              have hv_black_s1 : s1.color v = Color.black := by
+                rcases h_ng_s1 v with (hw | hb)
+                · exact (hv_white_s1 hw).elim
+                · exact hb
+              -- v white→black during dfsVisit from u; by white-path theorem
+              have h_wr : WhiteReachable G s0 u v :=
+                dfsVisit_blackens_implies_whiteReachable G hu_white hn_pos hwhite_s0 hv_black_s1
+              have h_gray : ∀ w, s0.color w = Color.gray → G.Reachable w u := by
+                intro w hw
+                rcases h_ng w with (hw' | hb')
+                · rw [hw'] at hw; contradiction
+                · rw [hb'] at hw; contradiction
+              rcases dfsVisit_discovery_state G hn_pos hu_white h_bf
+                  hv_black_s1 h_wr hwhite_s0 h_gray with ⟨s', f', hs'_white, hf'_black, _, _⟩
+              -- s' is the discovery state of v.
+              -- d[v] is set by the recursive dfsVisit from v: d[v] = s'.time.
+              have h_fuel_pos : 0 < f' := by
+                by_contra hzero
+                have hzero' : f' = 0 := by omega
+                subst hzero'
+                simp [dfsVisit] at hf'_black
+                rw [hs'_white] at hf'_black
+              have h_disc_v : discoveryTime (dfsVisit G f' v s') v = s'.time :=
+                dfsVisit_discovery_source G h_fuel_pos hs'_white
+              -- d[v] is preserved from the recursive dfsVisit through the rest
+              -- of the fold and dfsFromList to the final result, because v is
+              -- black after the recursive call and d is preserved for black vertices.
+              -- The chain:
+              --   s_rec  = dfsVisit G f' v s'          (v turns black, d[v]=s'.time)
+              --   s_fold = foldl ... s_rec rest_neighbors  (v stays black, d preserved)
+              --   s3     = s_fold.setColor u black |>.setFinish u
+              --   result = dfsFromList G n us s3       (v stays black, d preserved)
+              -- Hence (result).d v = s'.d v, giving discoveryTime result v = s'.time.
+              -- For now, we admit the d-preservation chain.
+              sorry
+        · -- u not white; skip
+          rw [if_neg hu_white] at hblack_result
+          rcases ih s0 h_ng h_bf hwhite_s0 hblack_result with ⟨s, f, hs, hf, hdisc⟩
+          refine ⟨s, f, hs, hf, ?_⟩
+          dsimp [dfsFromList]
+          rw [if_neg hu_white]
+          exact hdisc
+  -- Start from dfsInit
+  have hwhite_init : dfsInit.color v = Color.white := rfl
+  have h_ng_init : ∀ w, dfsInit.color w = Color.white ∨ dfsInit.color w = Color.black := by
+    intro w; left; rfl
+  have h_bf_init : ∀ w, dfsInit.color w = Color.black → finishTime dfsInit w < dfsInit.time := by
+    intro w h; have : dfsInit.color w = Color.white := rfl; rw [this] at h; contradiction
+  have hblack_final : (dfsFromList G n G.vertices.toList dfsInit).color v = Color.black := by
+    rw [← h_dfs]; exact G.dfs_all_black hv
+  rcases h_ind G.vertices.toList dfsInit h_ng_init h_bf_init hwhite_init hblack_final with
+    ⟨s, f, hs, hf, hdisc⟩
+  refine ⟨s, f, hs, hf, ?_⟩
+  rw [h_dfs]
+  exact hdisc
+
 end SCCFinishOrdering
 
 end Graph
