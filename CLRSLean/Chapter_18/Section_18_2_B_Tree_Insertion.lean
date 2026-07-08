@@ -392,6 +392,195 @@ lemma sortedInsert_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤
       · exact hkx
       · exact hk y hy
 
+/-! ### `findChild` bound and `insertNonFull` key multiset -/
+
+/-- `findChild` never exceeds the number of keys, so on a node with
+`children.length = keys.length + 1` it always indexes a real child. -/
+lemma findChild_le (ks : List Nat) (x : Nat) : findChild ks x ≤ ks.length := by
+  induction ks with
+  | nil => simp [findChild]
+  | cons k ks ih =>
+    unfold findChild
+    split
+    · simp only [List.length_cons]; omega
+    · omega
+
+/-- `insertNonFull` adds exactly the key `x` to the key multiset (needs
+`ChildBounded` to rule out the out-of-range junk branch). -/
+theorem insertNonFull_keys_perm (t x : Nat) (ht : 2 ≤ t) :
+    ∀ (tr : BTree), ChildBounded tr →
+      (keysOf (insertNonFull t x tr)).Perm (keysOf tr ++ [x]) := by
+  intro tr
+  induction tr using insertNonFull.induct (t := t) (x := x) with
+  | case1 ks cs hempty =>
+    intro _
+    have hcsnil : cs = [] := List.isEmpty_iff.mp hempty
+    subst hcsnil
+    rw [insertNonFull]
+    simp only [List.isEmpty_nil, if_true, keysOf, List.flatMap_nil, List.append_nil]
+    exact (sortedInsert_perm x ks).trans (List.perm_append_comm (l₁ := [x]) (l₂ := ks))
+  | case2 ks cs hne i hnone =>
+    intro hcb
+    exfalso
+    have hlen : cs.length = ks.length + 1 := by
+      unfold ChildBounded at hcb
+      rcases hcb with ⟨hrel, _, _⟩
+      rcases hrel with hemp | heq
+      · have : cs = [] := List.isEmpty_iff.mp hemp
+        rw [this] at hne; simp at hne
+      · exact heq
+    have h1 : cs.length ≤ i := List.getElem?_eq_none_iff.mp hnone
+    have h2 : i ≤ ks.length := findChild_le ks x
+    omega
+  | case3 ks cs hne i cKeys cChildren hsome hfull median hlt hsome2 ih =>
+    intro hcb
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩
+      exact hsub _ (List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩)
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have hcb_left : ChildBounded (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+      have h := childBounded_take_of_full hcb_child ht1
+      rwa [show (t - 1) + 1 = t from by omega] at h
+    have ihc := ih hcb_left
+    have hmed : cKeys.getD (t - 1) 0 = cKeys[t - 1] := by
+      simp only [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht1, Option.getD_some]
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys.getD (t - 1) 0 :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [insertNonFull t x (node (cKeys.take (t - 1)) (cChildren.take t)),
+               node (cKeys.drop t) (cChildren.drop t)] ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]
+      dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only
+        rw [if_pos hfull, if_pos hlt]
+    rw [hval, hmed]
+    set med := cKeys[t - 1] with hmedeq
+    set LK := cKeys.take (t - 1) with hLK
+    set RK := cKeys.drop t with hRK
+    set LC := cChildren.take t with hLC
+    set RC := cChildren.drop t with hRC
+    rw [← Multiset.coe_eq_coe]
+    have hcs : cs = cs.take (findChild ks x) ++ node cKeys cChildren
+        :: cs.drop (findChild ks x + 1) := by
+      conv_lhs => rw [← List.take_append_drop (findChild ks x) cs]
+      rw [List.drop_eq_getElem_cons hilt, hget]
+    have hck : cKeys = LK ++ med :: RK := by
+      rw [hLK, hRK, hmedeq]
+      conv_lhs => rw [← List.take_append_drop (t - 1) cKeys]
+      rw [List.drop_eq_getElem_cons ht1, show (t - 1) + 1 = t from by omega]
+    have hcc : cChildren = LC ++ RC := by rw [hLC, hRC]; exact (List.take_append_drop t cChildren).symm
+    have hihc : (↑(keysOf (insertNonFull t x (node LK LC))) : Multiset Nat)
+        = ↑(keysOf (node LK LC)) + ↑([x] : List Nat) :=
+      (Multiset.coe_eq_coe.mpr ihc).trans (Multiset.coe_add _ _).symm
+    conv_lhs => rw [keysOf]
+    conv_rhs => rw [keysOf, hcs]
+    simp only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil, keysOf,
+      hck, hcc, ← Multiset.coe_add, ← Multiset.coe_nil, ← Multiset.cons_coe,
+      ← Multiset.singleton_add, hihc]
+    rw [show (↑ks : Multiset Nat) = ↑(ks.take (findChild ks x)) + ↑(ks.drop (findChild ks x)) from by
+      rw [Multiset.coe_add, List.take_append_drop]]
+    abel
+  | case4 ks cs hne i cKeys cChildren hsome hfull median hnlt hsome2 ih =>
+    intro hcb
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩
+      exact hsub _ (List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩)
+    have ht1 : t - 1 < cKeys.length := by rw [hfull]; omega
+    have hcb_right : ChildBounded (node (cKeys.drop t) (cChildren.drop t)) := by
+      rcases child_children_len_of_full_cb ht hcb_child hfull with h0 | h2t
+      · have hnil : cChildren = [] := by cases cChildren with | nil => rfl | cons a b => simp at h0
+        rw [hnil]; simpa using childBounded_node_nil (cKeys.drop t)
+      · exact childBounded_drop_of_full hcb_child (by omega) (by rw [h2t]; omega)
+    have ihc := ih hcb_right
+    have hmed : cKeys.getD (t - 1) 0 = cKeys[t - 1] := by
+      simp only [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht1, Option.getD_some]
+    have hval : insertNonFull t x (node ks cs)
+        = node (ks.take (findChild ks x) ++ cKeys.getD (t - 1) 0 :: ks.drop (findChild ks x))
+            (cs.take (findChild ks x) ++
+              [node (cKeys.take (t - 1)) (cChildren.take t),
+               insertNonFull t x (node (cKeys.drop t) (cChildren.drop t))]
+              ++ cs.drop (findChild ks x + 1)) := by
+      rw [insertNonFull, if_neg hne]
+      dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only
+        rw [if_pos hfull, if_neg hnlt]
+    rw [hval, hmed]
+    set med := cKeys[t - 1] with hmedeq
+    set LK := cKeys.take (t - 1) with hLK
+    set RK := cKeys.drop t with hRK
+    set LC := cChildren.take t with hLC
+    set RC := cChildren.drop t with hRC
+    rw [← Multiset.coe_eq_coe]
+    have hcs : cs = cs.take (findChild ks x) ++ node cKeys cChildren
+        :: cs.drop (findChild ks x + 1) := by
+      conv_lhs => rw [← List.take_append_drop (findChild ks x) cs]
+      rw [List.drop_eq_getElem_cons hilt, hget]
+    have hck : cKeys = LK ++ med :: RK := by
+      rw [hLK, hRK, hmedeq]
+      conv_lhs => rw [← List.take_append_drop (t - 1) cKeys]
+      rw [List.drop_eq_getElem_cons ht1, show (t - 1) + 1 = t from by omega]
+    have hcc : cChildren = LC ++ RC := by rw [hLC, hRC]; exact (List.take_append_drop t cChildren).symm
+    have hihc : (↑(keysOf (insertNonFull t x (node RK RC))) : Multiset Nat)
+        = ↑(keysOf (node RK RC)) + ↑([x] : List Nat) :=
+      (Multiset.coe_eq_coe.mpr ihc).trans (Multiset.coe_add _ _).symm
+    conv_lhs => rw [keysOf]
+    conv_rhs => rw [keysOf, hcs]
+    simp only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil, keysOf,
+      hck, hcc, ← Multiset.coe_add, ← Multiset.coe_nil, ← Multiset.cons_coe,
+      ← Multiset.singleton_add, hihc]
+    rw [show (↑ks : Multiset Nat) = ↑(ks.take (findChild ks x)) + ↑(ks.drop (findChild ks x)) from by
+      rw [Multiset.coe_add, List.take_append_drop]]
+    abel
+  | case5 ks cs hne i cKeys cChildren hsome hnfull hsome2 ih =>
+    intro hcb
+    have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
+    obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
+    have hcb_child : ChildBounded (node cKeys cChildren) := by
+      unfold ChildBounded at hcb; rcases hcb with ⟨_, _, hsub⟩
+      exact hsub _ (List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩)
+    have ihc := ih hcb_child
+    have hval : insertNonFull t x (node ks cs)
+        = node ks (cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren))) := by
+      rw [insertNonFull, if_neg hne]
+      dsimp only
+      split
+      · rename_i hcnone; rw [hsome'] at hcnone; exact absurd hcnone (by simp)
+      · rename_i c hcsome
+        obtain rfl : c = node cKeys cChildren := by
+          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+        dsimp only
+        rw [if_neg hnfull]
+    rw [hval, ← Multiset.coe_eq_coe]
+    have hset : cs.set (findChild ks x) (insertNonFull t x (node cKeys cChildren))
+        = cs.take (findChild ks x) ++ insertNonFull t x (node cKeys cChildren)
+          :: cs.drop (findChild ks x + 1) := by
+      rw [List.set_eq_take_append_cons_drop, if_pos hilt]
+    have hcs : cs = cs.take (findChild ks x) ++ node cKeys cChildren
+        :: cs.drop (findChild ks x + 1) := by
+      conv_lhs => rw [← List.take_append_drop (findChild ks x) cs]
+      rw [List.drop_eq_getElem_cons hilt, hget]
+    have hihc : (↑(keysOf (insertNonFull t x (node cKeys cChildren))) : Multiset Nat)
+        = ↑(keysOf (node cKeys cChildren)) + ↑([x] : List Nat) :=
+      (Multiset.coe_eq_coe.mpr ihc).trans (Multiset.coe_add _ _).symm
+    conv_lhs => rw [keysOf, hset]
+    conv_rhs => rw [keysOf, hcs]
+    simp only [List.flatMap_append, List.flatMap_cons, ← Multiset.coe_add, hihc]
+    abel
+
 end BTree
 end Chapter18
 end CLRS
