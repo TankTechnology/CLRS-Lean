@@ -621,6 +621,45 @@ lemma findChild_drop_gt (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤ �
       · exact hxa
       · exact lt_of_lt_of_le hxa (hsa k hk)
 
+/-! ### `SameDepth` and height preservation -/
+
+/-- Membership characterisation of `SameDepth`: all children are `SameDepth` and
+share a common height.  Easier to construct/destruct than the inductive form. -/
+lemma sameDepth_iff {ks : List Nat} {cs : List BTree} :
+    SameDepth (node ks cs) ↔
+      (∀ c ∈ cs, SameDepth c) ∧ ∀ c ∈ cs, ∀ d ∈ cs, heightOf c = heightOf d := by
+  constructor
+  · intro hsd
+    refine ⟨?_, ?_⟩
+    · intro c hc
+      cases cs with
+      | nil => simp at hc
+      | cons c0 cs' =>
+        rcases List.mem_cons.mp hc with rfl | hc'
+        · exact sameDepth_head_sd hsd
+        · exact sameDepth_tail_sd hsd c hc'
+    · cases cs with
+      | nil => intro c hc; simp at hc
+      | cons c0 cs' => exact sameDepth_children_eq_height hsd
+  · rintro ⟨hsd_all, hheight⟩
+    cases cs with
+    | nil => exact SameDepth.leaf ks
+    | cons c0 cs' =>
+      refine SameDepth.internal ks c0 cs' ?_ ?_ ?_
+      · intro c hc; exact hheight c (by simp [hc]) c0 (by simp)
+      · exact hsd_all c0 (by simp)
+      · intro c hc; exact hsd_all c (by simp [hc])
+
+/-- For a `SameDepth` node, its height is one more than any child's height. -/
+lemma heightOf_sameDepth_mem {ks : List Nat} {cs : List BTree} {c : BTree}
+    (hsd : SameDepth (node ks cs)) (hc : c ∈ cs) : heightOf (node ks cs) = 1 + heightOf c := by
+  cases cs with
+  | nil => simp at hc
+  | cons c0 cs' =>
+    rw [heightOf_internal_of_sameDepth hsd]
+    congr 1
+    exact (sameDepth_iff.mp hsd).2 c0 (by simp) c hc
+
 end BTree
 end Chapter18
 end CLRS
