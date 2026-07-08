@@ -562,7 +562,10 @@ theorem scc_finish_time_order {C D : Set V}
       WhiteReachable.of_reachable_through_set G hS_path hS_white h_reach_rC_d
     -- By the white-path theorem, dfsVisit from rC blackens d
     have h_card : f ≥ (whiteReachableSet G s rC).card + 1 := by
-      -- The fuel from exists_discovery_state is sufficient
+      -- Fuel from exists_discovery_state: top-level uses n = |V|+1, nested uses n-1 = |V|.
+      -- whiteReachableSet ⊆ V, so card ≤ |V|.  For top-level, f = n ≥ card+1.  For nested,
+      -- f = n-1 = |V| ≥ card.  The white-path theorem needs f ≥ card+1, which holds for
+      -- top-level but may fail for nested.  This is a known gap; admitted for now.
       sorry
     have h_black_d : (dfsVisit G f rC s).color d = Color.black := by
       apply dfsVisit_white_path_black G hs_white (hCsub hrC_mem) h_card
@@ -570,9 +573,21 @@ theorem scc_finish_time_order {C D : Set V}
     -- d finishes before rC in the dfsVisit output
     have h_finish_lt : finishTime (dfsVisit G f rC s) d < finishTime (dfsVisit G f rC s) rC := by
       apply dfsVisit_finish_lt_source_finish G (by omega) hs_white h_bf_s hwhite_d h_black_d hne_d_rC
-    -- f values preserved from dfsVisit to G.dfs (admitted)
-    have h_f_preserved_d : finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d := by sorry
-    have h_f_preserved_rC : finishTime (G.dfs) rC = finishTime (dfsVisit G f rC s) rC := by sorry
+    -- f values preserved from dfsVisit to G.dfs via dfsFromList_preserves_f_of_black
+    -- After dfsVisit, both d and rC are black.  The rest of G.dfs is dfsFromList which
+    -- preserves finish times for black vertices.
+    have h_f_preserved : ∀ w, (dfsVisit G f rC s).color w = Color.black →
+        finishTime (G.dfs) w = finishTime (dfsVisit G f rC s) w := by
+      intro w hblack_w
+      -- G.dfs = dfsFromList G n (vertices.toList) dfsInit
+      -- The dfsVisit G f rC s is somewhere in this computation.
+      -- We don't know the exact suffix, but f-preservation holds for the whole dfsFromList.
+      -- This requires a lemma: dfsFromList preserves f for black vertices in the initial state.
+      sorry
+    have h_f_preserved_d : finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d :=
+      h_f_preserved d h_black_d
+    have h_f_preserved_rC : finishTime (G.dfs) rC = finishTime (dfsVisit G f rC s) rC :=
+      h_f_preserved rC hs_black
     have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
       calc
         finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d := h_f_preserved_d
