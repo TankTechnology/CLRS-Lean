@@ -722,6 +722,38 @@ theorem dfsVisit_fold_blackens_loc_prefix {n : Nat} {u v : V} {s1 : DFSState V}
         rcases h' with ⟨pre', post', w', s2, heq, hs2, h2w, h2v, h2b, h2mono, h2inv⟩
         refine ⟨w :: pre', post', w', s2, by simp [heq], by simp [hs2, hw], h2w, h2v, h2b, fun z hz => h2mono z hz, h2inv⟩
 
+/-! ### Fold decomposition lemma (sub-problem 1) -/
+
+/-- When the adjacency list decomposes as `pre ++ v :: post` and the fold
+accumulator at `pre` is `s2` with `s2.color v = Color.white`, the full fold
+equals the fold over `post` starting from the recursive dfsVisit on `v`.
+This pure `List.foldl` identity uses a named step function to avoid
+lambda-matching issues. -/
+lemma dfsVisit_fold_split_at_white_neighbor {n : Nat} {u v : V}
+    (s_init : DFSState V) (pre post : List V) (s2 : DFSState V)
+    (hadj_eq : (G.adj u).toList = pre ++ v :: post)
+    (hs2_eq : s2 = List.foldl (fun s' x =>
+      if s'.color x = Color.white then dfsVisit G n x (s'.setParent x u) else s') s_init pre)
+    (hv_white_s2 : s2.color v = Color.white) :
+    (List.foldl (fun s' x =>
+      if s'.color x = Color.white then dfsVisit G n x (s'.setParent x u) else s')
+      s_init (G.adj u).toList) =
+    (List.foldl (fun s' x =>
+      if s'.color x = Color.white then dfsVisit G n x (s'.setParent x u) else s')
+      (dfsVisit G n v (s2.setParent v u)) post) := by
+  let step : DFSState V → V → DFSState V := fun s' x =>
+    if s'.color x = Color.white then dfsVisit G n x (s'.setParent x u) else s'
+  have h_step : step s2 v = dfsVisit G n v (s2.setParent v u) := by
+    dsimp [step]; rw [if_pos hv_white_s2]
+  have h_foldl_step : List.foldl step s2 (v :: post) = List.foldl step (step s2 v) post := rfl
+  calc
+    List.foldl step s_init (G.adj u).toList
+        = List.foldl step s_init (pre ++ v :: post) := by rw [hadj_eq]
+    _ = List.foldl step (List.foldl step s_init pre) (v :: post) := by rw [List.foldl_append]
+    _ = List.foldl step s2 (v :: post) := by rw [hs2_eq]
+    _ = List.foldl step (step s2 v) post := h_foldl_step
+    _ = List.foldl step (dfsVisit G n v (s2.setParent v u)) post := by rw [h_step]
+
 /-- A recursive `dfsVisit` call that blackens a white vertex `v` discovers a
 white path from its source to `v`. -/
 theorem dfsVisit_blackens_implies_whiteReachable {fuel : Nat} {u v : V} {s : DFSState V}
