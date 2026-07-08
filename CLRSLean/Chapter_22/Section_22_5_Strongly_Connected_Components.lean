@@ -460,6 +460,22 @@ theorem no_reachable_scc_reverse {C D : Set V} (hC : G.IsSCC C) (hD : G.IsSCC D)
   have hyD : y ∈ D := hDmax y hyV h_forall
   exact ⟨y, hy, hyD⟩
 
+/-! ## Key bridge lemma (work in progress)
+
+If `x` is the first-discovered vertex of SCC `C`, `y ∈ D`, edge `C → D`, and
+`d[x] < d[y]`, then `f[y] < f[x]`.  This follows from the white-path theorem
+applied at `x`'s discovery moment — at that moment all of `C ∪ D` is white and
+reachable from `x`.  The proof requires extracting the intermediate discovery
+state from `dfsFromList`, which is the current research frontier. -/
+
+lemma finish_lt_finish_of_first_discovered_edge {C D : Set V}
+    (hC : G.IsSCC C) (hD : G.IsSCC D) (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v)
+    {x y : V} (hx : x ∈ C) (hy : y ∈ D)
+    (hfirst : ∀ v ∈ C, discoveryTime (G.dfs) x ≤ discoveryTime (G.dfs) v)
+    (hd_lt : discoveryTime (G.dfs) x < discoveryTime (G.dfs) y) :
+    finishTime (G.dfs) y < finishTime (G.dfs) x := by
+  sorry
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
@@ -471,7 +487,68 @@ theorem scc_finish_time_order {C D : Set V}
     (hC : G.IsSCC C) (hD : G.IsSCC D) (hne : C ≠ D)
     (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v) :
     maxFinish G (G.dfs) D < maxFinish G (G.dfs) C := by
-  sorry
+  have hC_nonempty : C.Nonempty := hC.1
+  have hCsub : C ⊆ G.vertices := hC.2.1
+  have hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v := hC.2.2.1
+  have hD_nonempty : D.Nonempty := hD.1
+  have hDsub : D ⊆ G.vertices := hD.2.1
+  have hDsc : ∀ u ∈ D, ∀ v ∈ D, G.StronglyConnected u v := hD.2.2.1
+  let rC := firstDiscoveredVertex G (s := G.dfs) (C := C) hC_nonempty hCsub
+  let rD := firstDiscoveredVertex G (s := G.dfs) (C := D) hD_nonempty hDsub
+  have hrC_mem : rC ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
+  have hrD_mem : rD ∈ D := firstDiscoveredVertex_mem G (s := G.dfs) (C := D) hD_nonempty hDsub
+  have hdisc_min_C : ∀ v ∈ C, discoveryTime (G.dfs) rC ≤ discoveryTime (G.dfs) v :=
+    fun v hv => firstDiscoveredVertex_min G (s := G.dfs) (C := C) hC_nonempty hCsub hv
+  have hdisc_min_D : ∀ v ∈ D, discoveryTime (G.dfs) rD ≤ discoveryTime (G.dfs) v :=
+    fun v hv => firstDiscoveredVertex_min G (s := G.dfs) (C := D) hD_nonempty hDsub hv
+  -- Obtain max-finish witnesses
+  rcases maxFinish_exists G (s := G.dfs) (C := C) hC_nonempty hCsub with ⟨c, hcC, hc_max⟩
+  rcases maxFinish_exists G (s := G.dfs) (C := D) hD_nonempty hDsub with ⟨d, hdD, hd_max⟩
+  rw [hc_max, hd_max]
+  -- Compare discovery times of rC and rD
+  by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
+  · -- Case 1: rC discovered first.  Then rD finishes before rC by the bridge lemma.
+    have h_finish_lt : finishTime (G.dfs) rD < finishTime (G.dfs) rC :=
+      finish_lt_finish_of_first_discovered_edge G hC hD hedge hrC_mem hrD_mem
+        hdisc_min_C hd_lt
+    -- rC's finish ≤ max-finish of C, and rD's finish ≤ max-finish... wait, rD's
+    -- finish is at most maxFinish(D) (actually maxFinish(D) ≥ f[rD]).
+    -- Since f[d] = maxFinish(D) ≥ f[rD], and f[rC] ≤ maxFinish(C) = f[c],
+    -- we need f[d] < f[c].
+    -- But we only have f[rD] < f[rC], not f[d] < f[c].
+    -- We need to relate maxFinish to rC/rD.
+    -- Since rD ∈ D, f[rD] ≤ maxFinish(D) = f[d]. So f[rD] ≤ f[d].
+    -- And rC ∈ C, so f[rC] ≤ maxFinish(C) = f[c].
+    -- But f[rD] < f[rC] doesn't imply f[d] < f[c] directly.
+    -- We need: maxFinish(D) < f[rC]. This would follow from: every vertex in D
+    -- finishes before rC. The bridge lemma gives this for rD specifically,
+    -- but we need it for ALL of D.
+    -- Actually, applying the bridge lemma to (x=rC, y=d) would give f[d] < f[rC].
+    -- Let's check if the conditions hold for (rC, d):
+    have hd_disc_gt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) d := by
+      have h' : discoveryTime (G.dfs) rD ≤ discoveryTime (G.dfs) d := hdisc_min_D d hdD
+      omega
+    have h_finish_lt' : finishTime (G.dfs) d < finishTime (G.dfs) rC :=
+      finish_lt_finish_of_first_discovered_edge G hC hD hedge hrC_mem hdD
+        hdisc_min_C hd_disc_gt
+    have h_rC_max : finishTime (G.dfs) rC ≤ maxFinish G (G.dfs) C :=
+      finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
+    rw [hc_max] at h_rC_max
+    omega
+  · -- Case 2: rD discovered first (or same time), i.e., d[rD] ≤ d[rC].
+    -- Since D cannot reach C, rC is not in rD's DFS tree, so rD finishes before
+    -- rC is discovered: f[rD] < d[rC].
+    have h_no_rev : ¬ G.Reachable rD rC :=
+      no_reachable_scc_reverse G hC hD hne hedge rD rC hrD_mem hrC_mem
+    have hd_le : discoveryTime (G.dfs) rD ≤ discoveryTime (G.dfs) rC := by omega
+    -- We need: finishTime(G.dfs) d < finishTime(G.dfs) c.
+    -- It suffices to show: finishTime(G.dfs) rD < discoveryTime(G.dfs) rC.
+    -- Because: f[d] = maxFinish(D) is achieved at some vertex. Actually,
+    -- we need the stronger: all vertices in D finish before rC is discovered.
+    -- This is a consequence of the bridge lemma's Case 2 variant.
+    -- For now, we use: since no path from rD to rC, and d[rD] ≤ d[rC],
+    -- f[rD] < d[rC] by DFS interval disjointness.
+    sorry
 
 theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
     (hu : u ∈ C) (hv : v ∈ C) (h1 : G.Reachable u w) (h2 : G.Reachable w v) :
