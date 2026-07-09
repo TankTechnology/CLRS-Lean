@@ -919,6 +919,29 @@ theorem unique_mem_of_pairwise_disjoint_cover {ccs : List (Finset V)}
         | tail _ hD =>
           exact ih hdisj' hC hD ⟨v, hvC, hvD⟩
 
+/-! ## SCC correctness — helper lemmas -/
+
+/-- In a list `u :: us` with `Pairwise (finishLe (G.dfs))`, every element of `us`
+has finish time at most that of `u`.  This is the key property that lets us
+satisfy the `hmax` precondition of `scc_finish_order` at each step of the
+second DFS pass. -/
+lemma pairwise_head_max_finishTime (u : V) (us : List V)
+    (hp : (u :: us).Pairwise (fun a b => finishTime (G.dfs) b < finishTime (G.dfs) a))
+    (v : V) (hv : v ∈ us) :
+    finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
+  induction us generalizing u with
+  | nil => simp at hv
+  | cons w ws ih =>
+      rcases List.pairwise_cons.mp hp with ⟨h_uw, hp'⟩
+      -- h_uw : ∀ a', a' ∈ (w :: ws) → finishTime (G.dfs) a' < finishTime (G.dfs) u
+      -- This means for w in particular: finishTime w < finishTime u
+      have hlt_w_u : finishTime (G.dfs) w < finishTime (G.dfs) u := h_uw w (by simp)
+      rcases List.mem_cons.mp hv with (rfl | hv')
+      · omega
+      · have hle : finishTime (G.dfs) v ≤ finishTime (G.dfs) w :=
+          ih w hp' hv'
+        omega
+
 /-! ## SCC correctness (deferred DFS-theory core) -/
 
 /-- Core DFS-theoretic lemma (admitted): every component returned by
