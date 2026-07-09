@@ -2,6 +2,7 @@ import Mathlib
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_3_DFS
 import CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath
+import CLRSLean.Chapter_22.Section_22_3_DFS_Intervals
 
 /-! # Bridge lemma: white→nonwhite during dfsVisit → discovery time ≥ input clock
 
@@ -38,14 +39,8 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
       rw [hwhite_v] at h_nonwhite_result
       contradiction
   | succ k ih =>
-      have hk_pos : 0 < k := by
-        by_contra h; have hzero : k = 0 := by omega; subst hzero
-        simp [dfsVisit] at h_nonwhite_result
-        rw [hwhite_v] at h_nonwhite_result
-        contradiction
-      simp [dfsVisit] at h_nonwhite_result ⊢
       by_cases hu_white : s.color u = Color.white
-      · rw [if_pos hu_white] at h_nonwhite_result ⊢
+      · -- expand dfsVisit; h_eq captures the full expansion
         -- dfsVisit expands: s1 = setDiscovery u, s2 = fold, s3 = setFinish u
         let s1 := s.setColor u Color.gray |>.setDiscovery u
         let step := fun (s' : DFSState V) (w : V) =>
@@ -64,7 +59,7 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
               dfsVisit_fold_preserves_d_of_not_white G (u := u) (v := u) s1
                 (l := (G.adj u).toList) (by simp [s1])
             simp [s3, h_s1, h_s2]
-          dsimp [discoveryTime]; rw [h_s3_d]; simp; omega
+          simpa [discoveryTime, h_s3_d]
         · -- v ≠ u: v turned non-white during the fold
           have hwhite_v_s1 : s1.color v = Color.white := by simp [s1, hvu, hwhite_v]
           -- s3.color v = s2.color v (setFinish doesn't change v, v ≠ u)
@@ -74,9 +69,10 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
           have h_black_s2 : s2.color v = Color.black := by
             have h_no_gray : s2.color v ≠ Color.gray := by
               intro hg
-              -- dfsVisit_fold_no_new_gray: if s2 has gray, s1 had it
-              apply @dfsVisit_fold_no_new_gray V _ G k u v s1 (G.adj u).toList hg
-              simp [s1, hvu]
+              have h_s1_gray : s1.color v = Color.gray :=
+                dfsVisit_fold_no_new_gray G s1 (by simpa [s2, step] using hg)
+              rw [hwhite_v_s1] at h_s1_gray
+              simp at h_s1_gray
             cases hcolor : s2.color v with
             | white => exact (h_nonwhite_s2 hcolor).elim
             | gray => exact (h_no_gray hcolor).elim
@@ -112,7 +108,15 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
               have h_lt := hbf_s2 z hblack_s2_acc
               simpa [s_rec_in, finishTime] using h_lt
             -- Apply IH at smaller fuel k
-            have h_disc_ge := ih k v s_rec_in hk_pos h_bf_rec hwhite_rec_in h_nonwhite_rec_out
+            have hk_pos_v : 0 < k := by
+              by_cases hz : k = 0
+              · subst hz
+                have h_eq : dfsVisit G 0 v s_rec_in = s_rec_in := by simp [dfsVisit]
+                rw [h_eq] at h_nonwhite_rec_out
+                rw [hwhite_rec_in] at h_nonwhite_rec_out
+                simp at h_nonwhite_rec_out
+              · omega
+            have h_disc_ge := ih (u := v) (s := s_rec_in) hk_pos_v h_bf_rec hwhite_rec_in h_nonwhite_rec_out
             -- h_disc_ge: discoveryTime (dfsVisit G k v s_rec_in) v ≥ s_rec_in.time = s2_acc.time
             have h_time_acc : s_rec_in.time = s2_acc.time := by simp [s_rec_in]
             rw [h_time_acc] at h_disc_ge
@@ -139,18 +143,19 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
                   simp [step, hw_white, s_rec_in]
                 _ = List.foldl step (dfsVisit G k v s_rec_in) post := rfl
             have h_s3_d : s3.d v = (dfsVisit G k v s_rec_in).d v := by
-              dsimp [s3]; rw [h_full_fold, h_d_post]; simp [hvu]
-            dsimp [discoveryTime]; rw [h_s3_d]
+              simp [s3, h_full_fold, h_d_post, hvu]
+            dsimp [discoveryTime] at h_disc_ge ⊢
+            rw [h_s3_d]
             -- h_disc_ge says: (dfsVisit ...).d v .getD 0 ≥ s2_acc.time
             -- Need: (dfsVisit ...).d v .getD 0 ≥ s.time
             -- Since s2_acc is a fold accumulator from s1, s2_acc.time ≥ s1.time ≥ s.time
             have h_time_ge : s2_acc.time ≥ s1.time := by
               -- s2_acc = foldl step s1 pre; dfsVisit_fold_time_ge gives clock monotonicity
               rw [hs2_eq]
-              exact dfsVisit_fold_time_ge (G := G) (u := u) (s1 := s1) (l := pre)
+              simpa [step] using @dfsVisit_fold_time_ge V _ G k u s1 pre
             have h_s1_time : s1.time = s.time + 1 := by simp [s1]
             have h_s2_acc_ge_s_time : s2_acc.time ≥ s.time := by omega
-            omega
+            exact le_trans h_s2_acc_ge_s_time h_disc_ge
           · -- w ≠ v: v is discovered inside the recursive call on w.
             -- By IH (fuel k) on that call, d[v] ≥ s2_acc.time.
             -- Then d-preservation through post and setFinish.
@@ -164,7 +169,17 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
                 simpa [s_rec_in] using hblack
               have h_lt := hbf_s2 z hblack_s2_acc
               simpa [s_rec_in, finishTime] using h_lt
-            have h_disc_ge := ih k w s_rec_in hk_pos h_bf_rec hwhite_rec_in hw_disc_v
+            have hk_pos_w : 0 < k := by
+              by_cases hz : k = 0
+              · subst hz
+                have h_eq : dfsVisit G 0 w s_rec_in = s_rec_in := by simp [dfsVisit]
+                rw [h_eq] at hw_disc_v
+                rw [hwhite_rec_in] at hw_disc_v
+                simp at hw_disc_v
+              · omega
+            have h_nonwhite_w : (dfsVisit G k w s_rec_in).color v ≠ Color.white := by
+              rw [hw_disc_v]; decide
+            have h_disc_ge := ih (u := w) (s := s_rec_in) hk_pos_w h_bf_rec hwhite_rec_in h_nonwhite_w
             -- hw_disc_v: (dfsVisit G k w s_rec_in).color v = Color.black ≠ white
             -- So h_disc_ge: discoveryTime (dfsVisit G k w s_rec_in) v ≥ s_rec_in.time
             have h_time_rec : s_rec_in.time = s2_acc.time := by simp [s_rec_in]
@@ -185,21 +200,25 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
                 _ = List.foldl step (dfsVisit G k w s_rec_in) post := by
                   simp [step, hw_white, s_rec_in]
             have h_s3_d : s3.d v = (dfsVisit G k w s_rec_in).d v := by
-              dsimp [s3]; rw [h_full_fold, h_d_post]; simp [hvu]
-            dsimp [discoveryTime]; rw [h_s3_d]
+              simp [s3, h_full_fold, h_d_post, hvu]
+            dsimp [discoveryTime] at h_disc_ge ⊢
+            rw [h_s3_d]
             -- h_disc_ge: discoveryTime (dfsVisit ...) v ≥ s2_acc.time ≥ s.time
             have h_s2_acc_ge_s_time : s2_acc.time ≥ s.time := by
               rw [hs2_eq]
-              have h_ge := dfsVisit_fold_time_ge (G := G) (u := u) (s1 := s1) (l := pre)
-              have h_s1_time : s1.time = s.time + 1 := by simp [s1]
-              omega
-            omega
+              have h_ge : (List.foldl step s1 pre).time ≥ s1.time := by
+                simpa [step] using @dfsVisit_fold_time_ge V _ G k u s1 pre
+              have h_s1_ge_s : s1.time ≥ s.time := by
+                have : s1.time = s.time + 1 := by simp [s1]
+                omega
+              exact le_trans h_s1_ge_s h_ge
+            exact le_trans h_s2_acc_ge_s_time h_disc_ge
 
       · -- u is not white: dfsVisit returns s unchanged
-        rw [if_neg hu_white] at h_nonwhite_result ⊢
-        exact ih u s hfuel h_bf hwhite_v h_nonwhite_result
+        simp [dfsVisit, hu_white] at h_nonwhite_result ⊢
+        exact (h_nonwhite_result hwhite_v).elim
 
-/-! ### Corollary: `dfsFromList` version
+/-! ## Corollary: `dfsFromList` version
 
 The lemma lifts to `dfsFromList` by induction on the vertex list. -/
 
@@ -224,9 +243,12 @@ theorem dfsFromList_white_to_nonwhite_disc_ge_time {fuel : Nat} {vs : List V}
         let s1 := dfsVisit G fuel u s0
         by_cases hv_white_s1 : s1.color v = Color.white
         · -- v stayed white; apply IH on rest
-          have h_bf_s1 : ∀ w, s1.color w = Color.black → finishTime s1 w < s1.time :=
-            dfsVisit_black_finish_lt_time (G := G) (fuel := fuel) (u := u) (s := s0) hfuel hu_white h_bf_s0
-          exact ih us s1 hfuel h_bf_s1 hv_white_s1 h_nonwhite_result
+          have h_bf_s1 : ∀ w, s1.color w = Color.black → finishTime s1 w < s1.time := by
+            simpa [s1] using
+              dfsVisit_black_finish_lt_time (G := G) (fuel := fuel) (u := u) (s := s0) hfuel hu_white h_bf_s0
+          have h_time_ge_s1 : s1.time ≥ s0.time := G.dfsVisit_time_ge (fuel := fuel) (u := u) (s := s0)
+          have h_ih := ih (s0 := s1) h_bf_s1 hv_white_s1 h_nonwhite_result
+          exact le_trans h_time_ge_s1 h_ih
         · -- v turned non-white during dfsVisit from u
           have h_disc_ge : discoveryTime s1 v ≥ s0.time :=
             dfsVisit_white_to_nonwhite_disc_ge_time G hfuel h_bf_s0 hwhite_s0 hv_white_s1
@@ -249,7 +271,7 @@ theorem dfsFromList_white_to_nonwhite_disc_ge_time {fuel : Nat} {vs : List V}
           rw [hd_preserved]
           simpa [discoveryTime] using h_disc_ge
       · rw [if_neg hu_white] at h_nonwhite_result ⊢
-        exact ih us s0 hfuel h_bf_s0 hwhite_s0 h_nonwhite_result
+        exact ih (s0 := s0) h_bf_s0 hwhite_s0 h_nonwhite_result
 
 end Graph
 end Chapter22
