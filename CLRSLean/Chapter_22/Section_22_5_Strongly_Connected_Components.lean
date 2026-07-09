@@ -1355,6 +1355,22 @@ theorem kosarajuComponents_eq_sccs (G : Graph V) (C : Finset V)
   · -- maximal
     exact hcore.2
 
+/-- Vertices in the same component returned by Kosaraju's algorithm are
+strongly connected. -/
+theorem kosarajuComponents_stronglyConnected (G : Graph V) (C : Finset V)
+    (hC : C ∈ G.kosarajuComponents) :
+    ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v :=
+  (kosarajuComponents_eq_sccs G C hC).2.2.1
+
+/-- A component returned by Kosaraju's algorithm cannot be enlarged by any
+outside vertex while preserving strong connectivity with the component. -/
+theorem kosarajuComponents_not_stronglyConnected_outside (G : Graph V) (C : Finset V)
+    (hC : C ∈ G.kosarajuComponents) :
+    ∀ w ∈ G.vertices \ C, ¬ (∀ u ∈ C, G.StronglyConnected u w) := by
+  intro w hw hsc
+  simp at hw
+  exact hw.2 ((kosarajuComponents_eq_sccs G C hC).2.2.2 w hw.1 (fun u hu => hsc u hu))
+
 /-- {name}`Graph.kosarajuComponents` is a valid SCC partition of {lit}`G`. -/
 theorem kosarajuComponents_isSCCPartition (G : Graph V) :
     G.IsSCCPartition G.kosarajuComponents := by
@@ -1362,11 +1378,9 @@ theorem kosarajuComponents_isSCCPartition (G : Graph V) :
   · intro C hC; exact kosarajuComponents_subset G C hC
   · intro C hC; exact (kosarajuComponents_eq_sccs G C hC).1
   · intro C hC u hu v hv
-    exact (kosarajuComponents_eq_sccs G C hC).2.2.1 u hu v hv
+    exact kosarajuComponents_stronglyConnected G C hC u hu v hv
   · intro C hC w hw hsc
-    simp at hw
-    apply hw.2
-    exact (kosarajuComponents_eq_sccs G C hC).2.2.2 w hw.1 (fun u hu => hsc u hu)
+    exact kosarajuComponents_not_stronglyConnected_outside G C hC w hw hsc
   · intro v hv
     have ⟨C, hC, hvC⟩ := kosarajuComponents_cover G v hv
     use C
