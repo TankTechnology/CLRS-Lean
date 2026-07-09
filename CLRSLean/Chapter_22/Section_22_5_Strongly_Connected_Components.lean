@@ -98,6 +98,20 @@ def IsSCC (G : Graph V) (C : Set V) : Prop :=
     (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧
     (∀ w ∈ G.vertices, (∀ u ∈ C, G.StronglyConnected u w) → w ∈ C)
 
+theorem IsSCC.nonempty {C : Set V} (hC : G.IsSCC C) : C.Nonempty :=
+  hC.1
+
+theorem IsSCC.subset_vertices {C : Set V} (hC : G.IsSCC C) : C ⊆ G.vertices :=
+  hC.2.1
+
+theorem IsSCC.stronglyConnected {C : Set V} (hC : G.IsSCC C) :
+    ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v :=
+  hC.2.2.1
+
+theorem IsSCC.maximal {C : Set V} (hC : G.IsSCC C) :
+    ∀ w ∈ G.vertices, (∀ u ∈ C, G.StronglyConnected u w) → w ∈ C :=
+  hC.2.2.2
+
 theorem IsSCC_eq_of_nonempty_inter {C D : Set V}
     (hC : G.IsSCC C) (hD : G.IsSCC D) (h : ∃ x, x ∈ C ∧ x ∈ D) : C = D := by
   rcases h with ⟨x, hxC, hxD⟩
@@ -105,23 +119,23 @@ theorem IsSCC_eq_of_nonempty_inter {C D : Set V}
   · intro c hc
     have hsc : ∀ d ∈ D, G.StronglyConnected c d := by
       intro d hd
-      have hcx := hC.2.2.1 c hc x hxC
-      have hxd := hD.2.2.1 x hxD d hd
+      have hcx := IsSCC.stronglyConnected G hC c hc x hxC
+      have hxd := IsSCC.stronglyConnected G hD x hxD d hd
       exact ⟨G.reachable_trans hcx.1 hxd.1, G.reachable_trans hxd.2 hcx.2⟩
     have hsc' : ∀ u ∈ D, G.StronglyConnected u c := by
       intro u hu
       exact G.stronglyConnected_symm (hsc u hu)
-    exact hD.2.2.2 c (hC.2.1 hc) hsc'
+    exact IsSCC.maximal G hD c (IsSCC.subset_vertices G hC hc) hsc'
   · intro d hd
     have hsc : ∀ c ∈ C, G.StronglyConnected d c := by
       intro c hc
-      have hdx := hD.2.2.1 d hd x hxD
-      have hxc := hC.2.2.1 x hxC c hc
+      have hdx := IsSCC.stronglyConnected G hD d hd x hxD
+      have hxc := IsSCC.stronglyConnected G hC x hxC c hc
       exact ⟨G.reachable_trans hdx.1 hxc.1, G.reachable_trans hxc.2 hdx.2⟩
     have hsc' : ∀ u ∈ C, G.StronglyConnected u d := by
       intro u hu
       exact G.stronglyConnected_symm (hsc u hu)
-    exact hC.2.2.2 d (hD.2.1 hd) hsc'
+    exact IsSCC.maximal G hC d (IsSCC.subset_vertices G hD hd) hsc'
 
 theorem IsSCC_eq_or_disjoint {C D : Set V}
     (hC : G.IsSCC C) (hD : G.IsSCC D) : C = D ∨ Disjoint C D := by
@@ -492,11 +506,11 @@ intermediate vertices on reachability paths. -/
 theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
     (hu : u ∈ C) (hv : v ∈ C) (h1 : G.Reachable u w) (h2 : G.Reachable w v) :
     w ∈ C := by
-  have hwV : w ∈ G.vertices := reachable_target_mem_vertices G (hC.2.1 hu) h1
-  apply hC.2.2.2 w hwV
+  have hwV : w ∈ G.vertices := reachable_target_mem_vertices G (IsSCC.subset_vertices G hC hu) h1
+  apply IsSCC.maximal G hC w hwV
   intro x hx
-  have hsc_xu : G.StronglyConnected x u := hC.2.2.1 x hx u hu
-  have hsc_uv : G.StronglyConnected u v := hC.2.2.1 u hu v hv
+  have hsc_xu : G.StronglyConnected x u := IsSCC.stronglyConnected G hC x hx u hu
+  have hsc_uv : G.StronglyConnected u v := IsSCC.stronglyConnected G hC u hu v hv
   have hsc_uw : G.StronglyConnected u w := ⟨h1, G.reachable_trans h2 hsc_uv.2⟩
   exact ⟨G.reachable_trans hsc_xu.1 hsc_uw.1, G.reachable_trans hsc_uw.2 hsc_xu.2⟩
 
@@ -511,12 +525,12 @@ theorem scc_finish_time_order {C D : Set V}
     (hC : G.IsSCC C) (hD : G.IsSCC D) (hne : C ≠ D)
     (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v) :
     maxFinish G (G.dfs) D < maxFinish G (G.dfs) C := by
-  have hC_nonempty : C.Nonempty := hC.1
-  have hCsub : C ⊆ G.vertices := hC.2.1
-  have hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v := hC.2.2.1
-  have hD_nonempty : D.Nonempty := hD.1
-  have hDsub : D ⊆ G.vertices := hD.2.1
-  have hDsc : ∀ u ∈ D, ∀ v ∈ D, G.StronglyConnected u v := hD.2.2.1
+  have hC_nonempty : C.Nonempty := IsSCC.nonempty G hC
+  have hCsub : C ⊆ G.vertices := IsSCC.subset_vertices G hC
+  have hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v := IsSCC.stronglyConnected G hC
+  have hD_nonempty : D.Nonempty := IsSCC.nonempty G hD
+  have hDsub : D ⊆ G.vertices := IsSCC.subset_vertices G hD
+  have hDsc : ∀ u ∈ D, ∀ v ∈ D, G.StronglyConnected u v := IsSCC.stronglyConnected G hD
   let rC := firstDiscoveredVertex G (s := G.dfs) (C := C) hC_nonempty hCsub
   let rD := firstDiscoveredVertex G (s := G.dfs) (C := D) hD_nonempty hDsub
   have hrC_mem : rC ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
@@ -1163,7 +1177,7 @@ lemma kosaraju_visit_blackens_sccOf {s : DFSState V} {u : V}
   intro v hv
   have hpath : G.transpose.Reachable u v := by
     rw [transpose_reachable G]
-    exact ((isSCC_sccOf G (by simpa using hu)).2.2.1 v hv u
+    exact (IsSCC.stronglyConnected G (isSCC_sccOf G (by simpa using hu)) v hv u
       (stronglyConnected_refl G u)).1
   have h_wr : WhiteReachable G.transpose s u v :=
     WhiteReachable.of_reachable_through_set G.transpose
@@ -1333,7 +1347,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   have h_all_sccs := dfsFromListCollect_kosaraju_sccs G (fuel := fuel) (by rfl) order dfsInit []
     h_pairwise_le h_order_verts h_init_invariant
   have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C (by simpa [fuel] using hC)
-  exact ⟨hC_scc.2.2.1, hC_scc.2.2.2⟩
+  exact ⟨IsSCC.stronglyConnected G hC_scc, IsSCC.maximal G hC_scc⟩
 
 /-- The components returned by {name}`Graph.kosarajuComponents` are exactly the
 strongly connected components of {lit}`G`.
@@ -1360,7 +1374,7 @@ strongly connected. -/
 theorem kosarajuComponents_stronglyConnected (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
     ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v :=
-  (kosarajuComponents_eq_sccs G C hC).2.2.1
+  (kosarajuComponents_eq_sccs G C hC).stronglyConnected
 
 /-- A component returned by Kosaraju's algorithm cannot be enlarged by any
 outside vertex while preserving strong connectivity with the component. -/
@@ -1369,7 +1383,8 @@ theorem kosarajuComponents_not_stronglyConnected_outside (G : Graph V) (C : Fins
     ∀ w ∈ G.vertices \ C, ¬ (∀ u ∈ C, G.StronglyConnected u w) := by
   intro w hw hsc
   simp at hw
-  exact hw.2 ((kosarajuComponents_eq_sccs G C hC).2.2.2 w hw.1 (fun u hu => hsc u hu))
+  exact hw.2 (IsSCC.maximal G (kosarajuComponents_eq_sccs G C hC) w hw.1
+    (fun u hu => hsc u hu))
 
 /-- Every vertex of {lit}`G` belongs to a unique component returned by
 Kosaraju's algorithm. -/
