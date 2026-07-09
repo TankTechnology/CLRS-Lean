@@ -61,7 +61,7 @@ theorem dfsVisit_discovery_source {fuel : Nat} {u : V} {s : DFSState V}
       rw [heq_state]
       have hs2 : s2.d u = s1.d u := by
         apply G.dfsVisit_fold_preserves_d_of_not_white
-        simpa [s1]
+        simp [s1]
       simp [s3, s1, discoveryTime, hs2]
 
 /-- Stronger version: the source's `d` field equals `some (s.time)`. -/
@@ -102,9 +102,8 @@ theorem dfsVisit_finishTime_source_eq_pred_time {fuel : Nat} {u : V} {s : DFSSta
       rw [heq_state]
       have hs2 : s2.f u = s1.f u := by
         apply G.dfsVisit_fold_preserves_f_of_not_white s1
-        simpa [s1]
-      simp [s3, s1, finishTime, hs2]
-      <;> omega
+        simp [s1]
+      simp [s3, finishTime]
 
 /-- In a DFS visit from a white source `u`, every vertex blackened during the
 visit finishes no later than `u`. -/
@@ -216,7 +215,6 @@ theorem dfsVisit_discovery_ge_input_time {fuel : Nat} {u v : V} {s : DFSState V}
                   linarith [hsub, htime_ge]
               · have hstep : step s' w = s' := by
                   simp [step, hw]
-                  all_goals tauto
                 rw [hstep]
                 rw [hstep] at hblack_s'
                 exact ih' s' hwhite_s' hblack_s'
@@ -448,7 +446,7 @@ theorem dfsVisit_fold_blackens_loc_prefix_full {n : Nat} {u v : V} {s1 : DFSStat
 
 /-- Discovery times of black vertices are preserved by any further `dfsFromList`. -/
 theorem dfsFromList_preserves_d_of_black {fuel : Nat} {s0 : DFSState V} {vs : List V}
-    (hfuel : 0 < fuel) {x : V}
+    (_hfuel : 0 < fuel) {x : V}
     (hblack : s0.color x = Color.black) :
     (dfsFromList G fuel vs s0).d x = s0.d x := by
   induction vs generalizing s0 with
@@ -1208,7 +1206,7 @@ theorem dfsVisit_fold_preserves_parent_of_black {n : Nat} {u x : V} (s1 : DFSSta
 /-- Recursive DFS over a list preserves the parent of any already-black
 vertex. -/
 theorem dfsFromList_preserves_parent_of_black {fuel : Nat} {s0 : DFSState V} {vs : List V} {x : V}
-    (hfuel : 0 < fuel)
+    (_hfuel : 0 < fuel)
     (hblack : s0.color x = Color.black) :
     (dfsFromList G fuel vs s0).parent x = s0.parent x := by
   induction vs generalizing s0 with
