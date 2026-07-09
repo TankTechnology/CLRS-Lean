@@ -4,6 +4,7 @@ import CLRSLean.Chapter_02
 import CLRSLean.Chapter_03
 import CLRSLean.Chapter_04
 import CLRSLean.Chapter_05
+import CLRSLean.Probability.FiniteExpectation
 import CLRSLean.Chapter_06
 import CLRSLean.Chapter_07
 import CLRSLean.Chapter_08

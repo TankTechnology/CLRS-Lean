@@ -9,6 +9,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 
 [order_children]
 "CLRSLean" = [
+  "CLRSLean.Probability.FiniteExpectation",
   "CLRSLean.Chapter_01",
   "CLRSLean.Chapter_02",
   "CLRSLean.Chapter_03",
@@ -145,6 +146,9 @@ title = "Chapter 2. Getting Started"
 
 [modules."CLRSLean"]
 title = "CLRS-Lean"
+
+[modules."CLRSLean.Probability.FiniteExpectation"]
+title = "Finite Expectation Toolkit"
 
 [modules."CLRSLean.Chapter_01"]
 title = "Chapter 1. The Role of Algorithms"
