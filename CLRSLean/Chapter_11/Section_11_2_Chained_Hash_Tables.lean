@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.Probability.FiniteExpectation
 
 /-!
 # CLRS Section 11.2 - Chained hash tables
