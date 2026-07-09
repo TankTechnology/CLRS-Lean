@@ -11,8 +11,9 @@
 
 已经动工的章节：2–20、22、23。  
 尚未开始的章节：21（并查集）、24（单源最短路）、25（全源最短路）、26（最大流）。
-Chapter 22 目前部分完成：22.1 图模型、22.2 BFS 可达性正确性、22.3 DFS 基本颜色不变量已完成；
-22.3 的括号定理/白路径定理、22.4 拓扑排序、22.5 强连通分量仍待补充。
+Chapter 22 目前部分完成：22.1 图模型、22.2 BFS 可达性正确性（soundness + completeness）、
+22.3 DFS 基本颜色不变量、22.4 拓扑排序、22.5 Kosaraju SCC 结构划分已完成；
+22.3 的括号定理/白路径定理/边分类、22.5 的 SCC 强连通/极大核心仍待补充。
 
 对于尚未开始的章节，采用“规范层 → 实现层 → 证明层”的三层打法：
 
@@ -235,7 +236,8 @@ lake build CLRSLean
 **已完成：**
 
 - 22.1 有限图模型：顶点集 `V`、邻接函数、walk/path/cycle、reachable、connected component、无向图对称性。
-- 22.2 BFS：函数式队列 BFS，证明 `bfs_sound`（访问到的顶点均从源点可达）。
+- 22.2 BFS：函数式队列 BFS，证明 `bfs_sound`（访问到的顶点均从源点可达）和
+  `bfs_complete`（所有可达顶点都会被访问）。
 - 22.3 DFS：函数式 fuel 模型，白/灰/黑颜色、发现/完成时间、父指针；证明基本颜色不变量
   `dfsVisit_blackens_u`、`dfsVisit_preserves_black`、`dfsVisit_no_new_gray`，以及全局结论
   `dfs_all_black`（`dfs` 后所有顶点为黑色）。
@@ -243,16 +245,30 @@ lake build CLRSLean
 **仍待完成：**
 
 - 22.3 括号定理、白路径定理、边分类（tree/back/forward/cross）。
-- 22.4 拓扑排序。
-- 22.5 强连通分量（Kosaraju / Tarjan 风格）。
+- 22.5 强连通分量核心：将 Kosaraju 每个输出块证为强连通且极大，依赖于 DFS 完成时间序的
+  SCC 源点引理（当前以 `sorry` 隔离）。
+
+**已完成（Kahn 算法版本）：**
+
+- 22.4 拓扑排序：定义 `IsDAG`（无非平凡自环路径）、入度、拓扑序；实现 Kahn 算法；证明
+  `topologicalSort_isTopologicalOrder`（对任意 DAG 返回合法拓扑序）。
+  关键引理：`finite_DAG_wellFoundedOn`（有限 DAG 上的邻接关系良基），用于保证每一步都存在源点。
+
+**已完成（Kosaraju 结构层）：**
+
+- 22.5 强连通分量：实现 `transpose`、`StronglyConnected`、`IsSCC`、`IsSCCPartition`、
+  `dfsFromListCollect`、`kosarajuComponents`；证明 Kosaraju 返回的每个分量都是非空顶点子集、
+  分量两两不交、所有顶点都被覆盖，即 `kosarajuComponents_isSCCPartition` 的结构部分。
+  强连通性与极大性核心已归约为 `kosarajuComponent_scc_core`，并进一步隔离为
+  `scc_finish_order`（DFS 完成时间序的 SCC 源点引理），当前用 `sorry` 占位。
 
 **交付文件（状态）：**
 
 - `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` ✅
-- `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（partial）
+- `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（soundness + completeness; shortest-path distances remain）
 - `CLRSLean/Chapter_22/Section_22_3_DFS.lean` ✅（partial）
-- `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` ⏳
-- `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` ⏳
+- `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` ✅
+- `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` ✅（partial，SCC 核心 deferred）
 
 ### Sprint 2：并查集（Chapter 21）
 
@@ -329,6 +345,10 @@ lake build CLRSLean
 - **2026-07-01**：创建本文档，整合 Chapter 13 RB-INSERT 完成后的证明经验和前 26 章计划。
 - **2026-07-01**：细化下一步计划为 7 个 Sprint，优先启动 Chapter 22 图论基础。
 - **2026-07-01**：完成 Chapter 22 的 22.1–22.3，补充函数式图搜索的燃料/foldl 不变式经验，并更新 Sprint 1 进度。
+- **2026-07-01**：完成 Section 22.4 Kahn 拓扑排序，并记录“有限 DAG 的邻接关系良基 → 源点存在”这一证明路径。
+- **2026-07-01**：完成 Section 22.5 Kosaraju SCC 算法及结构划分性质（子集、不交、覆盖、非空），将强连通/极大核心归约为 DFS 完成时间引理并以 `sorry` 占位。
+- **2026-07-05**：完成 Section 22.2 BFS 完备性证明，通过暴露内部队列并建立闭包/终止测度不变式。
+- **2026-07-05**：将 SCC 核心进一步隔离为命名的 `scc_finish_order` 引理（DFS 完成时间序的 SCC 源点性质），为后续补全 DFS 理论提供明确目标。
 
 ---
 

@@ -19,12 +19,8 @@ Main results:
   {lit}`CLRS.Chapter04.geometric_substitution_upper_bound`: ready-to-use
   CLRS-style templates for common recurrence guesses.
 
-Current gaps:
-
-- These lemmas model the substitution proof method, not a full recurrence
-  parser.  Later divide-and-conquer sections can instantiate them after
-  deriving the appropriate one-step inequality from floors, ceilings, or
-  exact-power reductions.
+Status: `proved` for the substitution-method induction principles.
+Later divide-and-conquer sections instantiate these templates.
 -/
 
 namespace CLRS

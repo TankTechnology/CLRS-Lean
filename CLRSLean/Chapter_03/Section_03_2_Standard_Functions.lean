@@ -1,9 +1,12 @@
 import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import Mathlib
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
+import Mathlib.Analysis.SpecialFunctions.Stirling
 
 open Filter
 open Asymptotics
+open Real
+open Stirling
 open scoped Topology
 
 /-!
@@ -437,6 +440,123 @@ theorem isLittleO_factorial_pow_self :
   unfold isLittleO
   rw [isLittleO_iff_tendsto h_cond]
   exact h_tendsto
+
+/-! ## Log-factorial asymptotics (Stirling) -/
+
+/--
+**Theorem (log-factorial is Θ(n log n)).**  {lit}`log(n!) = Θ(n log n)`.
+CLRS equation (3.19).  Upper bound: {lit}`n! ≤ n^n`.  Lower bound: Mathlib's
+Stirling approximation {lit}`le_log_factorial_stirling`.
+-/
+theorem isBigTheta_log_factorial :
+    isBigTheta (fun n : ℕ => Real.log (Nat.factorial n : ℝ))
+      (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) := by
+  constructor
+  · rw [isBigO_iff]
+    refine ⟨1, by norm_num, 0, ?_⟩
+    intro n _
+    by_cases hn : n = 0
+    · subst n; simp
+    · have h_fact_le : (Nat.factorial n : ℝ) ≤ (n : ℝ) ^ n := by
+        exact_mod_cast factorial_upper_bound_nat n
+      have h_log : Real.log (Nat.factorial n : ℝ) ≤ Real.log ((n : ℝ) ^ n) :=
+        Real.log_le_log (by exact_mod_cast Nat.factorial_pos n) h_fact_le
+      rw [Real.log_pow] at h_log
+      have h_nonneg : 0 ≤ Real.log (Nat.factorial n : ℝ) :=
+        Real.log_nonneg (by exact_mod_cast Nat.factorial_pos n)
+      calc
+        |Real.log (Nat.factorial n : ℝ)| = Real.log (Nat.factorial n : ℝ) := abs_of_nonneg h_nonneg
+        _ ≤ (n : ℝ) * Real.log (n : ℝ) := h_log
+        _ = 1 * |(n : ℝ) * Real.log (n : ℝ)| := by
+          have hn_nonneg : 0 ≤ (n : ℝ) := by exact_mod_cast Nat.zero_le n
+          have hlog_nonneg : 0 ≤ Real.log (n : ℝ) :=
+            Real.log_nonneg (by exact_mod_cast (Nat.one_le_of_lt (Nat.pos_of_ne_zero hn)))
+          rw [abs_mul, abs_of_nonneg hn_nonneg, abs_of_nonneg hlog_nonneg]; ring
+  · rw [isBigOmega_iff]
+    refine ⟨1/2, by norm_num, 8, ?_⟩
+    intro n hn8
+    have hn0 : n ≠ 0 := by omega
+    have hstirling := le_log_factorial_stirling hn0
+    have h_log_n_ge_two : (2 : ℝ) ≤ Real.log (n : ℝ) := by
+      have h_exp2_lt_8 : Real.exp (2 : ℝ) < 8 := by
+        calc
+          Real.exp (2 : ℝ) = Real.exp ((1 : ℝ) + (1 : ℝ)) := by norm_num
+          _ = Real.exp 1 * Real.exp 1 := by rw [Real.exp_add]
+          _ < 2.7182818286 * 2.7182818286 := by
+            nlinarith [Real.exp_one_lt_d9, Real.exp_one_gt_d9]
+          _ < 8 := by norm_num
+      have h_log_exp2_lt_log8 : Real.log (Real.exp (2 : ℝ)) < Real.log (8 : ℝ) :=
+        Real.log_lt_log (Real.exp_pos _) h_exp2_lt_8
+      rw [Real.log_exp (2 : ℝ)] at h_log_exp2_lt_log8
+      have hlog8le : Real.log (8 : ℝ) ≤ Real.log (n : ℝ) :=
+        Real.log_le_log (by norm_num) (by exact_mod_cast hn8)
+      linarith
+    have hn_nonneg : 0 ≤ (n : ℝ) := by exact_mod_cast Nat.zero_le n
+    have h_log_nonneg : 0 ≤ Real.log (n : ℝ) := by linarith
+    have h_fact_ge_one : 1 ≤ (Nat.factorial n : ℝ) := by
+      have h : 1 ≤ Nat.factorial n := Nat.succ_le_of_lt (Nat.factorial_pos n)
+      exact_mod_cast h
+    calc
+      |Real.log (Nat.factorial n : ℝ)| = Real.log (Nat.factorial n : ℝ) :=
+        abs_of_nonneg (Real.log_nonneg h_fact_ge_one)
+      _ ≥ (n : ℝ) * Real.log (n : ℝ) - (n : ℝ) + Real.log (n : ℝ) / 2 +
+          Real.log (2 * Real.pi) / 2 := hstirling
+      _ ≥ (n : ℝ) * Real.log (n : ℝ) - (n : ℝ) := by
+        have h_rem_nonneg : 0 ≤ Real.log (n : ℝ) / 2 + Real.log (2 * Real.pi) / 2 := by
+          have h1 : 0 ≤ Real.log (n : ℝ) / 2 := div_nonneg (by linarith) (by norm_num)
+          have h2 : 0 ≤ Real.log (2 * Real.pi) / 2 := by
+            have h2pi_ge_one : 1 ≤ 2 * Real.pi := by
+              have hpi_gt_one : (1 : ℝ) < Real.pi := by linarith [Real.pi_gt_three]
+              nlinarith
+            exact div_nonneg (Real.log_nonneg h2pi_ge_one) (by norm_num)
+          linarith
+        linarith
+      _ ≥ ((n : ℝ) * Real.log (n : ℝ)) / 2 := by
+        have : (n : ℝ) ≤ ((n : ℝ) * Real.log (n : ℝ)) / 2 := by nlinarith
+        linarith
+      _ = (1/2 : ℝ) * |(n : ℝ) * Real.log (n : ℝ)| := by
+        rw [abs_mul, abs_of_nonneg hn_nonneg, abs_of_nonneg h_log_nonneg]; ring
+
+/-! ## Logarithm base change -/
+
+/--
+Changing the base of a logarithm only changes its value by a constant factor.
+For any base {lit}`b > 1`, {lit}`log n = Θ(log_b n)`.
+-/
+theorem isBigTheta_log_logb {b : ℝ} (hb : 1 < b) :
+    isBigTheta (fun n : ℕ => Real.log (n : ℝ))
+      (fun n : ℕ => Real.logb b (n : ℝ)) := by
+  have hlogb_pos : 0 < Real.log b := Real.log_pos hb
+  have hlogb_ne_zero : Real.log b ≠ 0 := by linarith
+  constructor
+  · rw [isBigO_iff]
+    refine ⟨Real.log b, hlogb_pos, 1, ?_⟩
+    intro n hn
+    have hnpos : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+    have hlog_nonneg : 0 ≤ Real.log (n : ℝ) := Real.log_nonneg hnpos
+    rw [Real.logb, abs_of_nonneg hlog_nonneg,
+      abs_of_nonneg (div_nonneg hlog_nonneg hlogb_pos.le)]
+    have h : Real.log b * (Real.log (n : ℝ) / Real.log b) = Real.log (n : ℝ) := by
+      field_simp [hlogb_ne_zero]
+    rw [h]
+  · rw [isBigOmega_iff]
+    refine ⟨(Real.log b) / 2, half_pos hlogb_pos, 2, ?_⟩
+    intro n hn
+    have hn1real : (1 : ℝ) ≤ (n : ℝ) := by exact mod_cast (show (1 : ℕ) ≤ n from by omega)
+    have hnpos : (0 : ℝ) ≤ Real.log (n : ℝ) := Real.log_nonneg hn1real
+    rw [Real.logb, abs_of_nonneg hnpos,
+      abs_of_nonneg (div_nonneg hnpos hlogb_pos.le)]
+    have h_simp : (Real.log b) / 2 * (Real.log (n : ℝ) / Real.log b) =
+        Real.log (n : ℝ) / 2 := by
+      field_simp [hlogb_ne_zero]
+    rw [h_simp]
+    linarith
+
+/-- The logarithm grows without bound: {lit}`1 = o(log n)`. -/
+theorem isLittleO_one_log :
+    isLittleO (fun _ : ℕ => (1 : ℝ)) (fun n : ℕ => Real.log (n : ℝ)) := by
+  unfold isLittleO
+  exact (isLittleO_const_log_atTop (c := 1)).comp_tendsto tendsto_natCast_atTop_atTop
 
 end Chapter03
 end CLRS
