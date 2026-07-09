@@ -942,6 +942,100 @@ lemma pairwise_head_max_finishTime (u : V) (us : List V)
           ih w hp' hv'
         omega
 
+/-! ## SCC correctness — infrastructure lemmas -/
+
+/-- A `dfsVisit` from a source `u ∈ G.vertices` does not change the `f` field
+of any vertex `v ∉ G.vertices`.  All `f`-changing operations (`setFinish`) are
+on sources or recursively visited neighbours, all of which are in `G.vertices`. -/
+lemma dfsVisit_preserves_f_of_not_mem_vertices {fuel : Nat} {u v : V} {s : DFSState V}
+    (hu : u ∈ G.vertices) (hv : v ∉ G.vertices) :
+    (dfsVisit G fuel u s).f v = s.f v := by
+  induction fuel generalizing u s with
+  | zero => simp [dfsVisit]
+  | succ n ih =>
+      by_cases hwhite : s.color u = Color.white
+      · let s1 := s.setColor u Color.gray |>.setDiscovery u
+        let step := fun (s' : DFSState V) (w : V) =>
+          if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s'
+        let s2 := List.foldl step s1 (G.adj u).toList
+        let s3 := s2.setColor u Color.black |>.setFinish u
+        have h_eq : dfsVisit G (n+1) u s = s3 := by
+          simp [dfsVisit, hwhite, s1, step, s2, s3]
+        rw [h_eq]
+        have h_s1 : s1.f v = s.f v := by simp [s1]
+        have hne : v ≠ u := by intro heq; subst v; exact hv hu
+        -- The fold over G.adj u preserves f v because every recursive call
+        -- has source w ∈ G.adj u ⊆ G.vertices, hence v ≠ w, and the IH applies.
+        -- General lemma: the fold preserves f v for any list whose elements are in G.vertices
+        have h_fold_preserves : ∀ (l : List V) (s0 : DFSState V),
+            (∀ w ∈ l, w ∈ G.vertices) →
+            (List.foldl (fun (s' : DFSState V) (w : V) =>
+              if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s')
+            s0 l).f v = s0.f v := by
+          intro l
+          induction l with
+          | nil => intro s0 _; rfl
+          | cons w ws ih_ws =>
+              intro s0 h_all
+              have hw_vert : w ∈ G.vertices := h_all w (by simp)
+              have h_ws : ∀ w' ∈ ws, w' ∈ G.vertices := by
+                intro w' hw'; apply h_all w'; simp [hw']
+              simp
+              by_cases hw_white : s0.color w = Color.white
+              · simp [hw_white]
+                have h_rest := ih_ws (dfsVisit G n w (s0.setParent w u)) h_ws
+                rw [h_rest]
+                have h_rec : (dfsVisit G n w (s0.setParent w u)).f v =
+                    (s0.setParent w u).f v :=
+                  ih (u := w) (s := s0.setParent w u) hw_vert
+                rw [h_rec]; simp
+              · simp [hw_white]
+                exact ih_ws s0 h_ws
+        have h_all_adj : ∀ w ∈ (G.adj u).toList, w ∈ G.vertices := by
+          intro w hw
+          have hw_adj : w ∈ G.adj u := by simpa [Finset.mem_toList] using hw
+          exact G.adj_sub u hu hw_adj
+        have h_s2 : s2.f v = s1.f v :=
+          h_fold_preserves (G.adj u).toList s1 h_all_adj
+        have h_s3 : s3.f v = s2.f v := by
+          simp [s3, hne]
+        rw [h_s3, h_s2, h_s1]
+      · simp [dfsVisit, hwhite]
+
+/-- `dfsFromList` preserves the `f` field of any vertex outside `G.vertices`,
+provided all sources in the list are in `G.vertices`. -/
+lemma dfsFromList_preserves_f_of_not_mem_vertices (fuel : Nat) (vs : List V) (s : DFSState V)
+    (v : V) (hv : v ∉ G.vertices) (hvs : ∀ x ∈ vs, x ∈ G.vertices) :
+    (dfsFromList G fuel vs s).f v = s.f v := by
+  induction vs generalizing s with
+  | nil => simp [dfsFromList]
+  | cons u us ih =>
+      have hu : u ∈ G.vertices := hvs u (by simp)
+      have h_us : ∀ x ∈ us, x ∈ G.vertices := by
+        intro x hx; apply hvs x; simp [hx]
+      simp [dfsFromList]
+      by_cases hwhite : s.color u = Color.white
+      · simp [hwhite]
+        rw [ih (dfsVisit G fuel u s) h_us,
+          dfsVisit_preserves_f_of_not_mem_vertices G hu (v := v) hv]
+      · simp [hwhite]
+        exact ih s h_us
+
+/-- For a vertex `v ∉ G.vertices`, the first DFS never sets its finish time,
+so `finishTime (G.dfs) v = 0`. -/
+lemma finishTime_zero_of_not_mem_vertices {v : V} (hv : v ∉ G.vertices) :
+    finishTime (G.dfs) v = 0 := by
+  have h_f_none : (G.dfs).f v = none := by
+    have h_init : (dfsInit (V := V)).f v = none := rfl
+    have h_preserve : (dfsFromList G (G.vertices.card + 1) G.vertices.toList dfsInit).f v =
+        (dfsInit (V := V)).f v :=
+      dfsFromList_preserves_f_of_not_mem_vertices G (G.vertices.card + 1)
+        G.vertices.toList dfsInit v hv (by
+          intro x hx
+          simpa [Finset.mem_toList] using hx)
+    simpa [dfs, h_init] using h_preserve
+  simp [finishTime, h_f_none]
+
 /-! ## SCC correctness (deferred DFS-theory core) -/
 
 /-- Core DFS-theoretic lemma (admitted): every component returned by
