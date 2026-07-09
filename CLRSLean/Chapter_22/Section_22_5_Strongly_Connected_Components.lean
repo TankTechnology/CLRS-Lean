@@ -409,6 +409,13 @@ theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
   rcases hv with ⟨_, hvK⟩
   exact hmax v (hwhite v hvK)
 
+/-- A DFS state is SCC-monochrome when every SCC of {lit}`G` is either entirely
+white or entirely black in that state.  This is the main invariant of the
+second pass of Kosaraju's algorithm. -/
+def SCCMonochrome (G : Graph V) (s : DFSState V) : Prop :=
+  ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨
+    (∀ v ∈ K, s.color v = Color.black)
+
 /-! ## Graph-theoretic lemmas for SCC finish-time ordering -/
 
 /-- If {lit}`x` is the first-discovered vertex of SCC {lit}`C` (in
@@ -690,7 +697,7 @@ theorem scc_finish_time_order {C D : Set V}
 theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
     (hr : r ∈ G.transpose.vertices) (hwhite : s.color r = Color.white)
     (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
-    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨ (∀ v ∈ K, s.color v = Color.black)) :
+    (hrespects : G.SCCMonochrome s) :
     (whiteReachableSet G.transpose s r : Set V) ⊆ G.sccOf r := by
   have hrG : r ∈ G.vertices := by simpa using hr
   have hC : G.IsSCC (G.sccOf r) := isSCC_sccOf G hrG
@@ -761,7 +768,7 @@ theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
     (hr : r ∈ G.transpose.vertices) (hwhite : s.color r = Color.white)
     (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
     (hfuel : fuel ≥ G.transpose.vertices.card + 1)
-    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨ (∀ v ∈ K, s.color v = Color.black)) :
+    (hrespects : G.SCCMonochrome s) :
     let s' := dfsVisit G.transpose fuel r s
     let C := G.transpose.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
     G.IsSCC (C : Set V) := by
@@ -1160,8 +1167,7 @@ lemma kosaraju_visit_preserves_disjoint_white_scc {s : DFSState V} {u : V} {K : 
     (hK : G.IsSCC K) (hK_white : ∀ v ∈ K, s.color v = Color.white)
     (hK_ne : K ≠ G.sccOf u)
     (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u)
-    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨
-      (∀ v ∈ K, s.color v = Color.black))
+    (hrespects : G.SCCMonochrome s)
     (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black) :
     ∀ v ∈ K, (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.white := by
   intro v hvK
@@ -1191,12 +1197,9 @@ each SCC is monochromatic in the current DFS state. -/
 lemma kosaraju_visit_preserves_scc_monochrome {s : DFSState V} {u : V}
     (hu : u ∈ G.transpose.vertices) (hu_white : s.color u = Color.white)
     (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u)
-    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨
-      (∀ v ∈ K, s.color v = Color.black))
+    (hrespects : G.SCCMonochrome s)
     (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black) :
-    ∀ K, G.IsSCC K → (∀ v ∈ K,
-      (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.white) ∨
-      (∀ v ∈ K, (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.black) := by
+    G.SCCMonochrome (dfsVisit G.transpose (G.vertices.card + 1) u s) := by
   have h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white := by
     rcases hrespects (G.sccOf u) (isSCC_sccOf G (by simpa using hu)) with (hw | hb)
     · exact hw
@@ -1245,7 +1248,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
       (∀ v ∈ vs, v ∈ G.transpose.vertices) →
       (∀ C ∈ acc, G.IsSCC (C : Set V)) →
       (∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ vs) →
-      (∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨ (∀ v ∈ K, s.color v = Color.black)) →
+      G.SCCMonochrome s →
       (∀ v, s.color v = Color.white ∨ s.color v = Color.black) →
       let (acc', _) := dfsFromListCollect G.transpose fuel vs s acc
       ∀ C ∈ acc', G.IsSCC (C : Set V) := by
@@ -1275,8 +1278,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
           have h_white_in_us : ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
             exact white_vertices_in_tail_after_visit G G.transpose rfl hu_black_s' h_ng h_white_in_vs
           -- Preserve SCC monochromatic invariant (P5)
-          have h_respects' : ∀ K, G.IsSCC K → (∀ v ∈ K, s'.color v = Color.white) ∨
-              (∀ v ∈ K, s'.color v = Color.black) := by
+          have h_respects' : G.SCCMonochrome s' := by
             simpa [s', fuel] using
               kosaraju_visit_preserves_scc_monochrome G hu_vert hu_white hmax_u h_respects h_ng
           -- Preserve no-gray invariant (P6)
@@ -1298,8 +1300,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   -- 5. Apply to initial state
   have h_init_sccs : ∀ C ∈ ([] : List (Finset V)), G.IsSCC (C : Set V) := by
     intro C h; simp at h
-  have h_init_respects : ∀ K, G.IsSCC K → (∀ v ∈ K, (dfsInit (V := V)).color v = Color.white) ∨
-      (∀ v ∈ K, (dfsInit (V := V)).color v = Color.black) := by
+  have h_init_respects : G.SCCMonochrome (dfsInit (V := V)) := by
     intro K _; left; intro v _; rfl
   have h_init_ng : ∀ v, (dfsInit (V := V)).color v = Color.white ∨
       (dfsInit (V := V)).color v = Color.black := by
