@@ -1071,6 +1071,48 @@ lemma white_finish_le_head_of_pairwise_order {s : DFSState V} {u : V} {us : List
   · rw [finishTime_zero_of_not_mem_vertices G hvV]
     omega
 
+/-- After a DFS visit from {lit}`u` turns {lit}`u` black, every vertex that is
+white in the output and was covered by {lit}`u :: us` beforehand must lie in
+the tail {lit}`us`. -/
+lemma white_vertices_in_tail_after_visit (H : Graph V) {fuel : Nat} {u : V}
+    {s s' : DFSState V} {us : List V}
+    (hs' : s' = dfsVisit H fuel u s)
+    (hu_black : s'.color u = Color.black)
+    (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black)
+    (hwhite_in : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ u :: us) :
+    ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
+  intro x hxV hx_white_s'
+  by_cases hx_in_us : x ∈ us
+  · exact hx_in_us
+  · have hx_white_s : s.color x = Color.white := by
+      by_contra hnot
+      have hblack_s : s.color x = Color.black := by
+        cases hng x with
+        | inl hw => exact absurd hw hnot
+        | inr hb => exact hb
+      have hblack_s' : s'.color x = Color.black := by
+        rw [hs']
+        exact dfsVisit_preserves_black H hblack_s
+      rw [hblack_s'] at hx_white_s'
+      simp at hx_white_s'
+    have hx_in_vs : x ∈ u :: us := hwhite_in x hxV hx_white_s
+    rcases List.mem_cons.mp hx_in_vs with (rfl | h)
+    · rw [hu_black] at hx_white_s'
+      simp at hx_white_s'
+    · exact absurd h hx_in_us
+
+/-- If the head of {lit}`u :: us` is not white, then every white vertex covered
+by the list must already lie in the tail {lit}`us`. -/
+lemma white_vertices_in_tail_of_head_not_white {s : DFSState V} {u : V} {us : List V}
+    (hu_not_white : s.color u ≠ Color.white)
+    (hwhite_in : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ u :: us) :
+    ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ us := by
+  intro x hxV hx
+  have hx_in_vs : x ∈ u :: us := hwhite_in x hxV hx
+  rcases List.mem_cons.mp hx_in_vs with (rfl | hx_us)
+  · exact absurd hx hu_not_white
+  · exact hx_us
+
 /-! ## SCC correctness core -/
 
 /-- Core DFS-theoretic lemma: every component returned by
@@ -1138,20 +1180,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
               simp [this] at hu_white
           -- Preserve white→vs invariant (P4)
           have h_white_in_us : ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
-            intro x hxV hx_white_s'
-            by_cases hx_in_us : x ∈ us
-            · exact hx_in_us
-            · have hx_white_s : s.color x = Color.white := by
-                by_contra hnot
-                have hblack_s : s.color x = Color.black := by
-                  cases h_ng x with | inl hw => exact absurd hw hnot | inr hb => exact hb
-                have hblack_s' : s'.color x = Color.black :=
-                  dfsVisit_preserves_black G.transpose hblack_s
-                rw [hblack_s'] at hx_white_s'; simp at hx_white_s'
-              have hx_in_vs : x ∈ u :: us := h_white_in_vs x hxV hx_white_s
-              rcases List.mem_cons.mp hx_in_vs with (rfl | h)
-              · rw [hu_black_s'] at hx_white_s'; simp at hx_white_s'
-              · exact absurd h hx_in_us
+            exact white_vertices_in_tail_after_visit G G.transpose rfl hu_black_s' h_ng h_white_in_vs
           -- Preserve SCC monochromatic invariant (P5)
           have h_respects' : ∀ K, G.IsSCC K → (∀ v ∈ K, s'.color v = Color.white) ∨
               (∀ v ∈ K, s'.color v = Color.black) := by
@@ -1220,11 +1249,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
           simpa [s', comp, dfsFromListCollect, hu_white] using h_ih
         · -- u non-white: skip
           have h_white_in_us : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ us := by
-            intro x hxV hx
-            have hx_in_vs : x ∈ u :: us := h_white_in_vs x hxV hx
-            rcases List.mem_cons.mp hx_in_vs with (rfl | hx_us)
-            · exact absurd hx hu_white
-            · exact hx_us
+            exact white_vertices_in_tail_of_head_not_white G hu_white h_white_in_vs
           have h_ih := ih s acc hp_us h_us_verts h_acc h_white_in_us h_respects h_ng
           simpa [dfsFromListCollect, hu_white] using h_ih
 
