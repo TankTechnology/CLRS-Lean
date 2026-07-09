@@ -92,6 +92,10 @@ apply hneg a b c x y; rfl
 
 ## 4. 常见证明模式
 
+本节是短版速查；跨章节的“几何形状”总览见
+[`geometric-proof-patterns.md`](geometric-proof-patterns.md)。已经抽出的轻量
+Lean 骨架位于 `CLRSLean/ProofPatterns/`。
+
 ### 4.1 排序算法
 
 1. `Sorted`：按定义归纳。

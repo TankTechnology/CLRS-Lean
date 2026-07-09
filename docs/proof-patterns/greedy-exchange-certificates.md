@@ -5,6 +5,11 @@ algorithm formalizations.
 
 ## Shape
 
+The generic Lean skeleton is `CLRS.ProofPatterns.ExchangeCertificate` in
+`CLRSLean/ProofPatterns/Exchange.lean`.  Chapter-specific proofs should still
+define their own certificate fields when needed, then expose a small bridge to
+the generic shape once the same exchange move appears in another chapter.
+
 1. State the recursive greedy algorithm on a small functional model.
 2. Identify the greedy choice and the post-greedy subproblem.
 3. Package the exchange argument as a certificate theorem.

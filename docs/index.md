@@ -150,6 +150,10 @@ returning to a chapter that already has its advertised main theorem.
 
 ## Proof Pattern Notes
 
+- [`Geometric proof patterns`](proof-patterns/geometric-proof-patterns.md)
+  indexes the recurring proof shapes across chapters: boundary shifts, exchange
+  certificates, fibers, interval nesting, local tree surgery, DP grids,
+  potential telescopes, and scale sandwiches.
 - [`Greedy exchange certificates`](proof-patterns/greedy-exchange-certificates.md)
   explains the shared Chapter 16 pattern behind activity selection and Huffman
   coding.
