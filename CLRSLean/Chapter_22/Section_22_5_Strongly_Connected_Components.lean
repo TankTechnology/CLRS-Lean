@@ -31,13 +31,13 @@ finish-time-ordering lemmas ({lit}`scc_finish_time_order`
 and {lit}`scc_finish_order`), as well as the final SCC correctness
 theorems.
 
-Current gaps:
+Current status:
 
-- The finish-time-ordering proof (`scc_finish_time_order`) is complete
-  (0 `sorry`).
-- `kosarajuComponent_scc_core` (at the end of this file) is **admitted with
-  `sorry`** — it requires formalising the DFS second-pass invariants so that
-  `scc_finish_order` can be applied to each component.
+- The finish-time-ordering proof ({lit}`Graph.scc_finish_time_order`) is
+  complete.
+- The second-pass invariant proof culminates in
+  {lit}`Graph.kosarajuComponent_scc_core`, so the final
+  {lit}`Graph.kosarajuComponents_isSCCPartition` theorem is fully proved.
 -/
 
 namespace CLRS
@@ -400,7 +400,7 @@ theorem maxFinish_sccOf_eq {s : DFSState V} {r : V} (hr : r ∈ G.vertices)
     exact finish_le_maxFinish G hsub (stronglyConnected_refl G r)
 
 theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
-    (hK : G.IsSCC K) (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
+    (_hK : G.IsSCC K) (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
     (hwhite : ∀ v ∈ K, s.color v = Color.white) :
     maxFinish G (G.dfs) K ≤ finishTime (G.dfs) r := by
   apply Finset.sup_le
@@ -875,14 +875,12 @@ theorem kosarajuComponents_nonempty (G : Graph V) (C : Finset V)
 /-!
 ## SCC correctness
 
-*The `kosarajuComponent_scc_core` lemma below is the only remaining `sorry`
-in this file.  It requires formalising the DFS second-pass invariants so that
-`scc_finish_order` can be applied to each component collected by
-`kosarajuComponents`.  Once this sorry is closed, all the SCC partition
-theorems (`kosarajuComponents_eq_sccs`, `kosarajuComponents_isSCCPartition`)
-follow mechanically.*
+The remaining section proves that each component collected by the second DFS
+pass is exactly one strongly connected component, then packages those facts as
+the final SCC-partition theorem.
 -/
 
+omit [DecidableEq V] in
 /-- In a pairwise-disjoint list of finsets, two distinct members cannot share a
 vertex. -/
 theorem unique_mem_of_pairwise_disjoint_cover {ccs : List (Finset V)}
@@ -1028,15 +1026,14 @@ lemma finishTime_zero_of_not_mem_vertices {v : V} (hv : v ∉ G.vertices) :
     simpa [dfs, h_init] using h_preserve
   simp [finishTime, h_f_none]
 
-/-! ## SCC correctness (deferred DFS-theory core) -/
+/-! ## SCC correctness core -/
 
-/-- Core DFS-theoretic lemma (admitted): every component returned by
+/-- Core DFS-theoretic lemma: every component returned by
 {name}`Graph.kosarajuComponents` is strongly connected and maximal.
 
-This is the only remaining gap for full SCC correctness.  It follows from
-{name}`Graph.scc_finish_order`: a vertex chosen as the first white vertex in
-decreasing finish-time order belongs to a source SCC of the still-unvisited
-transpose graph, so the second DFS visits precisely its SCC. -/
+The proof applies {name}`Graph.scc_finish_order` at each step of the second DFS
+pass.  The first white vertex in decreasing finish-time order is maximal among
+the currently white vertices, so its transpose DFS tree is exactly its SCC. -/
 theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
     (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧
