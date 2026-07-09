@@ -68,6 +68,27 @@ Main results:
   predecessor is returned exactly when every old key except the deleted key is
   at least the query.
 
+The section also formalises structural properties of functional BSTs:
+
+- Theorem {lit}`height_insert_le_height_add_one`: insertion increases height by
+  at most one.
+- Theorem {lit}`height_delete_le_height`: deletion does not increase height.
+- Theorem {lit}`height_deleteMin_le_height`: deleting the minimum does not
+  increase height.
+- Theorem {lit}`height_deleteRoot_le_height`: deleting the root does not
+  increase height.
+- Theorem {lit}`inorder_sorted`: the inorder traversal of an ordered tree yields
+  a strictly increasing list of keys (as a {lit}`List.Pairwise (<)`).
+- Theorem {lit}`mem_inorder_iff_inTree`: inorder-list membership is equivalent
+  to tree membership.
+- Theorem {lit}`length_inorder_eq_size`: the inorder list length equals the tree
+  size.
+- Theorem {lit}`inorder_nodup`: an ordered tree's inorder traversal is
+  duplicate-free.
+- Theorem {lit}`size_insert`: insertion changes the size by 0 or +1.
+- Theorem {lit}`size_insert_le_size_add_one`: insertion increases size by at
+  most one.
+
 Current gaps:
 
 - Parent-pointer successor/predecessor procedures, transplant, and pointer-level
@@ -1185,6 +1206,192 @@ theorem search_insert_eq_true_iff {x y : Nat} {t : BSTree}
         exact inTree_insert_self x t
       · exact inTree_insert_of_inTree ((search_eq_true_iff ht).mp hySearch)
     exact (search_eq_true_iff hInsertedOrdered).mpr hyInserted
+
+/-! ## Height, inorder traversal, and size -/
+
+/-- The height of a binary tree: 0 for empty, 1 + max(left, right) for nodes. -/
+def height : BSTree → Nat
+  | empty => 0
+  | node left _key right => 1 + max (height left) (height right)
+
+/-- The number of nodes in the tree. -/
+def size : BSTree → Nat
+  | empty => 0
+  | node left _key right => 1 + size left + size right
+
+/-- Inorder traversal of the tree, producing a list of keys in left-root-right order. -/
+def inorder : BSTree → List Nat
+  | empty => []
+  | node left key right => inorder left ++ [key] ++ inorder right
+
+/-- Membership in {lit}`inorder` is equivalent to {lit}`InTree`. -/
+theorem mem_inorder_iff_inTree {x : Nat} {t : BSTree} :
+    x ∈ inorder t ↔ InTree x t := by
+  induction t with
+  | empty => simp [inorder, InTree]
+  | node left key right ihLeft ihRight =>
+      simp [inorder, InTree, ihLeft, ihRight]
+      tauto
+
+/-- The length of the inorder list equals the size of the tree. -/
+theorem length_inorder_eq_size (t : BSTree) : (inorder t).length = size t := by
+  induction t with
+  | empty => simp [inorder, size]
+  | node left key right ihLeft ihRight =>
+      simp [inorder, size, ihLeft, ihRight]
+      omega
+
+/-- Deleting the minimum key does not increase the height. -/
+theorem height_deleteMin_le_height (t : BSTree) : height (deleteMin t) ≤ height t := by
+  induction t with
+  | empty => simp [height, deleteMin]
+  | node left key right ihLeft _ihRight =>
+      cases left with
+      | empty => simp [height, deleteMin]
+      | node ll lk lr =>
+          have hMax : max (height (deleteMin (node ll lk lr))) (height right) ≤
+                     max (height (node ll lk lr)) (height right) :=
+            max_le_max ihLeft (le_refl _)
+          simpa [height, deleteMin] using Nat.add_le_add_left hMax 1
+
+/-- Deleting the root does not increase the height. -/
+theorem height_deleteRoot_le_height (t : BSTree) : height (deleteRoot t) ≤ height t := by
+  induction t with
+  | empty => simp [height, deleteRoot]
+  | node left key right _ihLeft _ihRight =>
+      cases right with
+      | empty => simp [height, deleteRoot]
+      | node rl rk rr =>
+          have hMax : max (height left) (height (deleteMin (node rl rk rr))) ≤
+                     max (height left) (height (node rl rk rr)) :=
+            max_le_max (le_refl _) (height_deleteMin_le_height (node rl rk rr))
+          simpa [height, deleteRoot] using Nat.add_le_add_left hMax 1
+
+/-- Insertion increases the height by at most one. -/
+theorem height_insert_le_height_add_one (x : Nat) (t : BSTree) :
+    height (insert x t) ≤ height t + 1 := by
+  induction t with
+  | empty => simp [height, insert]
+  | node left key right ihLeft ihRight =>
+      by_cases hxkey : x < key
+      · have hMaxLe : max (height (insert x left)) (height right) ≤
+                     max (height left) (height right) + 1 := by
+          have h1 : height (insert x left) ≤ max (height left) (height right) + 1 :=
+            calc
+              height (insert x left) ≤ height left + 1 := ihLeft
+              _ ≤ max (height left) (height right) + 1 :=
+                Nat.add_le_add_right (le_max_left _ _) 1
+          have h2 : height right ≤ max (height left) (height right) + 1 :=
+            Nat.le_trans (le_max_right _ _) (Nat.le_succ _)
+          exact max_le h1 h2
+        simpa [height, insert, hxkey, add_assoc] using Nat.add_le_add_left hMaxLe 1
+      · by_cases hkeyx : key < x
+        · have hMaxLe : max (height left) (height (insert x right)) ≤
+                       max (height left) (height right) + 1 := by
+            have h1 : height left ≤ max (height left) (height right) + 1 :=
+              Nat.le_trans (le_max_left _ _) (Nat.le_succ _)
+            have h2 : height (insert x right) ≤ max (height left) (height right) + 1 :=
+              calc
+                height (insert x right) ≤ height right + 1 := ihRight
+                _ ≤ max (height left) (height right) + 1 :=
+                  Nat.add_le_add_right (le_max_right _ _) 1
+            exact max_le h1 h2
+          simpa [height, insert, hxkey, hkeyx, add_assoc] using Nat.add_le_add_left hMaxLe 1
+        · simp [height, insert, hxkey, hkeyx]
+
+/-- Functional deletion does not increase the height. -/
+theorem height_delete_le_height (x : Nat) (t : BSTree) : height (delete x t) ≤ height t := by
+  induction t generalizing x with
+  | empty => simp [height, delete]
+  | node left key right ihLeft ihRight =>
+      by_cases hxkey : x < key
+      · have hMax : max (height (delete x left)) (height right) ≤
+                   max (height left) (height right) :=
+          max_le_max (ihLeft x) (le_refl _)
+        simpa [height, delete, hxkey] using Nat.add_le_add_left hMax 1
+      · by_cases hkeyx : key < x
+        · have hMax : max (height left) (height (delete x right)) ≤
+                     max (height left) (height right) :=
+            max_le_max (le_refl _) (ihRight x)
+          simpa [height, delete, hxkey, hkeyx] using Nat.add_le_add_left hMax 1
+        · have hxEq : x = key := Nat.le_antisymm (Nat.le_of_not_gt hkeyx) (Nat.le_of_not_gt hxkey)
+          subst x
+          simpa [height, delete] using height_deleteRoot_le_height (node left key right)
+
+/-- On an ordered tree, the inorder traversal produces a strictly increasing list. -/
+theorem inorder_sorted {t : BSTree} (ht : Ordered t) :
+    List.Pairwise (· < ·) (inorder t) := by
+  induction t with
+  | empty =>
+      simp [inorder]
+  | node left key right ihLeft ihRight =>
+      simp [Ordered] at ht
+      rcases ht with ⟨hLeft, hRight, hLt, hGt⟩
+      have hSortedLeft : List.Pairwise (· < ·) (inorder left) := ihLeft hLeft
+      have hSortedRight : List.Pairwise (· < ·) (inorder right) := ihRight hRight
+      have hAllLeftLtKey : ∀ a, a ∈ inorder left → a < key := by
+        intro a ha
+        have haTree := (mem_inorder_iff_inTree (x := a) (t := left)).mp ha
+        exact hLt a haTree
+      have hKeyLtAllRight : ∀ b, b ∈ inorder right → key < b := by
+        intro b hb
+        have hbTree := (mem_inorder_iff_inTree (x := b) (t := right)).mp hb
+        exact hGt b hbTree
+      have hKeySorted : List.Pairwise (· < ·) [key] := by
+        simp
+      have hLeftKeyCross : ∀ a ∈ inorder left, ∀ b ∈ [key], a < b := by
+        intro a ha b hb
+        simp at hb
+        subst b
+        exact hAllLeftLtKey a ha
+      have hLeftKeySorted : List.Pairwise (· < ·) (inorder left ++ [key]) := by
+        rw [List.pairwise_append]
+        exact ⟨hSortedLeft, hKeySorted, hLeftKeyCross⟩
+      have hLeftKeyRightCross : ∀ a ∈ inorder left ++ [key], ∀ b ∈ inorder right, a < b := by
+        intro a ha b hb
+        rcases List.mem_append.mp ha with (haLeft | haKey)
+        · have haLtKey := hAllLeftLtKey a haLeft
+          have hKeyLtB := hKeyLtAllRight b hb
+          exact lt_trans haLtKey hKeyLtB
+        · simp at haKey
+          subst a
+          exact hKeyLtAllRight b hb
+      rw [inorder, List.pairwise_append]
+      exact ⟨hLeftKeySorted, hSortedRight, hLeftKeyRightCross⟩
+
+/-- On an ordered tree, the inorder traversal contains no duplicate keys. -/
+theorem inorder_nodup {t : BSTree} (ht : Ordered t) : (inorder t).Nodup := by
+  have hSorted := inorder_sorted ht
+  exact hSorted.nodup
+
+/-- Insertion changes the tree size by 0 (key already present) or +1 (new key). -/
+theorem size_insert (x : Nat) (t : BSTree) : size (insert x t) = size t ∨ size (insert x t) = size t + 1 := by
+  induction t with
+  | empty => simp [size, insert]
+  | node left key right ihLeft ihRight =>
+      by_cases hxkey : x < key
+      · simp [size, insert, hxkey]
+        rcases ihLeft with (hL | hL)
+        · left; omega
+        · right; omega
+      · by_cases hkeyx : key < x
+        · simp [size, insert, hxkey, hkeyx]
+          rcases ihRight with (hR | hR)
+          · left; omega
+          · right; omega
+        · simp [size, insert, hxkey, hkeyx]
+
+/-- Insertion does not decrease the size. -/
+theorem size_le_size_insert (x : Nat) (t : BSTree) : size t ≤ size (insert x t) := by
+  rcases size_insert x t with (h | h)
+  · rw [h]
+  · omega
+
+/-- Insertion increases size by at most one. -/
+theorem size_insert_le_size_add_one (x : Nat) (t : BSTree) : size (insert x t) ≤ size t + 1 := by
+  rcases size_insert x t with (h | h)
+  · omega
+  · omega
 
 end BSTree
 

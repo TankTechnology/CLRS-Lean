@@ -29,8 +29,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_18",
   "CLRSLean.Chapter_19",
   "CLRSLean.Chapter_20",
+  "CLRSLean.Chapter_21",
   "CLRSLean.Chapter_22",
   "CLRSLean.Chapter_23",
+  "CLRSLean.Chapter_24",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
@@ -122,6 +124,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_20.Section_20_1_VEB_Universe",
   "CLRSLean.Chapter_20.Section_20_2_VEB_Tree",
 ]
+"CLRSLean.Chapter_21" = [
+  "CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations",
+  "CLRSLean.Chapter_21.Section_21_2_Linked_List_Representation",
+  "CLRSLean.Chapter_21.Section_21_3_Forest_Representation",
+]
 "CLRSLean.Chapter_22" = [
   "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
   "CLRSLean.Chapter_22.Section_22_2_BFS",
@@ -130,6 +137,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
+]
+"CLRSLean.Chapter_24" = [
+  "CLRSLean.Chapter_24.Section_24_0_Weighted_Graphs",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -195,6 +205,18 @@ title = "Chapter 19. Fibonacci Heaps"
 [modules."CLRSLean.Chapter_20"]
 title = "Chapter 20. van Emde Boas Trees"
 
+[modules."CLRSLean.Chapter_21"]
+title = "Chapter 21. Data Structures for Disjoint Sets"
+
+[modules."CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations"]
+title = "21.1. Disjoint-Set Operations"
+
+[modules."CLRSLean.Chapter_21.Section_21_2_Linked_List_Representation"]
+title = "21.2. Linked-List Representation"
+
+[modules."CLRSLean.Chapter_21.Section_21_3_Forest_Representation"]
+title = "21.3-21.4. Forest Representation"
+
 [modules."CLRSLean.Chapter_22"]
 title = "Chapter 22. Elementary Graph Algorithms"
 
@@ -209,6 +231,9 @@ title = "22.3. Depth-First Search"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"
+
+[modules."CLRSLean.Chapter_24"]
+title = "Chapter 24. Single-Source Shortest Paths"
 
 [modules."CLRSLean.Progress"]
 title = "Progress Dashboard"
@@ -371,3 +396,7 @@ title = "23.1. Growing a Minimum Spanning Tree"
 
 [modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim"]
 title = "23.2. Kruskal and Prim"
+
+
+[modules."CLRSLean.Chapter_24.Section_24_0_Weighted_Graphs"]
+title = "24.0. Weighted Graphs"

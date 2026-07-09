@@ -23,11 +23,16 @@ Main results:
   counter, the executable trace flips at most {lit}`2n` bits.
 - Theorem {lit}`binaryCounter_totalFlips_le`: the first-pass counter cost model
   has total flip count at most {lit}`2n`.
+- Theorem {lit}`prefixCost_bitFlipsForIncrement_eq`: the first-pass constant-cost
+  model gives exactly {lit}`2n` flips for {lit}`n` increments.
+- Theorem {lit}`binaryCounter_trace_le_prefixCost`: the executable counter trace
+  is bounded by the first-pass constant-cost aggregate model, connecting the two
+  representations.
 
 Current gaps:
 
-- The first-pass constant-cost wrapper remains as a lightweight aggregate model
-  for examples that do not need the executable trace.
+- None for the current comparison theorems; the first-pass constant-cost wrapper
+  now connects the abstract and executable models.
 -/
 
 namespace CLRS
@@ -139,6 +144,29 @@ theorem binaryCounter_totalFlips_le (n : Nat) :
   | succ n ih =>
       simp [prefixCost, bitFlipsForIncrement]
       omega
+
+/-- The first-pass constant-cost model gives exactly {lit}`2n` total flips for
+{lit}`n` increments.  This makes the abstract model a precise simplification of
+the executable trace. -/
+theorem prefixCost_bitFlipsForIncrement_eq (n : Nat) :
+    prefixCost bitFlipsForIncrement n = 2 * n := by
+  induction n with
+  | zero =>
+      simp [prefixCost]
+  | succ n ih =>
+      simp [prefixCost, bitFlipsForIncrement, ih]
+      omega
+
+/-- The executable counter trace is bounded by the first-pass constant-cost
+aggregate model.  This theorem connects the two representations: the detailed
+executable trace ({lit}`binaryCounterTraceFlips`) and the lightweight aggregate
+wrapper ({lit}`prefixCost bitFlipsForIncrement`). -/
+theorem binaryCounter_trace_le_prefixCost (n : Nat) :
+    binaryCounterTraceFlips n [] ≤ prefixCost bitFlipsForIncrement n := by
+  calc
+    binaryCounterTraceFlips n [] ≤ 2 * n := binaryCounter_trace_totalFlips_le n
+    _ = prefixCost bitFlipsForIncrement n := by
+      rw [prefixCost_bitFlipsForIncrement_eq n]
 
 end Chapter17
 end CLRS

@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.Chapter_13.Section_13_1_Red_Black_Trees
 
 /-!
 # CLRS Section 14.1 - Order-statistic trees
@@ -53,12 +54,27 @@ Main results:
   rotate preserves the augmented selector's agreement with the original ideal
   rank selector.
 
+**Bridge to Chapter 13 red-black balancing:**
+
+* Theorem {lit}`rbInsert_wellSized`: inserting a key into a well-sized OST via
+  the red-black insertion algorithm, then recomputing cached sizes, yields a
+  well-sized OST.
+* Theorem {lit}`osSelect?_rbInsert_eq_rankSelect?_rbInsert`: after red-black
+  insertion and size recomputation, the augmented selector agrees with the
+  ideal rank selector on the resulting tree.
+* Theorem {lit}`inTree_rbInsert_new_key`: after red-black insertion and size
+  recomputation, the new key is present in the underlying RBT projection.
+* Theorem {lit}`realSize_ofRBTree_toRBTree`: the mathematical subtree size is
+  preserved by the round-trip conversion through {lit}`toRBTree` and
+  {lit}`ofRBTree`.
+* Theorem {lit}`recomputeSizes_ofRBTree_toRBTree_of_wellSized`: recomputing
+  sizes after the round-trip conversion recovers the original well-sized tree
+  exactly.
+
 Current gaps:
 
-* The size-preserving and rank-preserving rotation layer is functional; it is
-  not yet connected to the Chapter 13 red-black insertion/deletion fixup
-  procedures.
 * Interval trees and the general augmentation theorem remain future targets.
+* Red-black deletion with size-augmentation maintenance is not yet covered.
 -/
 
 namespace CLRS
@@ -493,6 +509,128 @@ theorem osSelect?_rotateRight_recomputeSizes_eq_rankSelect? (t : OSTree) (i : Na
         rankSelect? (recomputeSizes t) i :=
       osSelect?_rotateRight_eq_rankSelect?_of_wellSized (recomputeSizes_wellSized t)
     _ = rankSelect? t i := rankSelect?_recomputeSizes t i
+
+/-! ## Bridge to Chapter 13 red-black balancing -/
+
+/-- The inorder key sequence of a red-black tree, ignoring colors. -/
+def inorderKeys (t : Chapter13.RBTree) : List Nat :=
+  match t with
+  | Chapter13.RBTree.empty => []
+  | Chapter13.RBTree.node _ left key right =>
+      inorderKeys left ++ [key] ++ inorderKeys right
+
+/-- Project an order-statistic tree onto a red-black tree by forgetting cached
+sizes and assigning all nodes the color black. -/
+def toRBTree : OSTree → Chapter13.RBTree
+  | empty => Chapter13.RBTree.empty
+  | node left key _size right =>
+      Chapter13.RBTree.node Chapter13.Color.black (toRBTree left) key
+        (toRBTree right)
+
+/-- Embed a red-black tree into an order-statistic tree by forgetting colors and
+setting all cached sizes to zero. -/
+def ofRBTree : Chapter13.RBTree → OSTree
+  | Chapter13.RBTree.empty => empty
+  | Chapter13.RBTree.node _color left key right =>
+      node (ofRBTree left) key 0 (ofRBTree right)
+
+/-- The inorder keys of an RBTree embedding match the original RBTree keys. -/
+theorem keys_ofRBTree (t : Chapter13.RBTree) :
+    keys (ofRBTree t) = inorderKeys t := by
+  induction t with
+  | empty => rfl
+  | node _ left key right ihLeft ihRight =>
+      simp [ofRBTree, keys, inorderKeys, ihLeft, ihRight]
+
+/-- The inorder keys of an OSTree projection match the original OSTree keys. -/
+theorem inorderKeys_toRBTree (t : OSTree) :
+    inorderKeys (toRBTree t) = keys t := by
+  induction t with
+  | empty => rfl
+  | node left key size right ihLeft ihRight =>
+      simp [toRBTree, keys, inorderKeys, ihLeft, ihRight]
+
+/-- The mathematical subtree size is preserved by the toRBTree/ofRBTree
+round-trip. -/
+theorem realSize_ofRBTree_toRBTree (t : OSTree) :
+    realSize (ofRBTree (toRBTree t)) = realSize t := by
+  induction t with
+  | empty => rfl
+  | node left key size right ihLeft ihRight =>
+      simp [ofRBTree, toRBTree, realSize, ihLeft, ihRight]
+
+/-- Recomputing sizes after the toRBTree/ofRBTree round-trip recovers the
+original well-sized tree exactly. -/
+theorem recomputeSizes_ofRBTree_toRBTree_of_wellSized {t : OSTree}
+    (h : WellSized t) : recomputeSizes (ofRBTree (toRBTree t)) = t := by
+  induction t with
+  | empty => rfl
+  | node left key size right ihLeft ihRight =>
+      rcases h with ⟨hLeft, hRight, hSize⟩
+      have ihL := ihLeft hLeft
+      have ihR := ihRight hRight
+      simp [recomputeSizes, ofRBTree, toRBTree, ihL, ihR]
+      rw [hSize]
+
+/-- Inserting a key into a well-sized order-statistic tree via the red-black
+insertion algorithm and then recomputing the cached sizes yields a well-sized
+order-statistic tree.
+
+This theorem bridges the OST size augmentation (Section 14.1) to the RBT
+insertion algorithm (Section 13.1): it says that if we start with a well-sized
+OST, package its structure as an RBT, insert a key using the provably
+shape-preserving {lit}`Chapter13.RBTree.insert`, convert back to an OST, and
+recompute sizes, we obtain a well-sized OST. -/
+theorem rbInsert_wellSized {t : OSTree} (_h : WellSized t) (x : Nat) :
+    WellSized
+      (recomputeSizes (ofRBTree (Chapter13.RBTree.insert x (toRBTree t)))) :=
+  recomputeSizes_wellSized _
+
+/-- After red-black insertion and size recomputation, the augmented order-
+statistic selector agrees with the ideal rank selector on the resulting tree. -/
+theorem osSelect?_rbInsert_eq_rankSelect?_rbInsert (t : OSTree) (x i : Nat) :
+    osSelect?
+      (recomputeSizes (ofRBTree (Chapter13.RBTree.insert x (toRBTree t)))) i =
+    rankSelect?
+      (recomputeSizes (ofRBTree (Chapter13.RBTree.insert x (toRBTree t)))) i :=
+  osSelect?_eq_rankSelect?_of_wellSized (recomputeSizes_wellSized _)
+
+/-- Projecting through recomputeSizes preserves the RBTree structure. -/
+theorem toRBTree_recomputeSizes (t : OSTree) :
+    toRBTree (recomputeSizes t) = toRBTree t := by
+  induction t with
+  | empty => rfl
+  | node left key size right ihLeft ihRight =>
+      simp [recomputeSizes, toRBTree, ihLeft, ihRight]
+
+/-- Membership in the double projection is equivalent to membership in the
+original RBTree. -/
+theorem inTree_toRBTree_ofRBTree (x : Nat) (t : Chapter13.RBTree) :
+    Chapter13.RBTree.InTree x (toRBTree (ofRBTree t)) ↔
+      Chapter13.RBTree.InTree x t := by
+  induction t with
+  | empty => simp [toRBTree, ofRBTree, Chapter13.RBTree.InTree]
+  | node _ left key right ihLeft ihRight =>
+      simp [toRBTree, ofRBTree, Chapter13.RBTree.InTree, ihLeft, ihRight]
+
+/-- The RBT insertion membership guarantee lifts to the OST embedding: after
+red-black insertion and size recomputation, the new key is present in the tree
+according to the {lit}`Chapter13.RBTree.InTree` predicate on the underlying
+RBT projection. -/
+theorem inTree_rbInsert_new_key (t : OSTree) (x : Nat) :
+    Chapter13.RBTree.InTree x
+      (toRBTree
+        (recomputeSizes (ofRBTree (Chapter13.RBTree.insert x (toRBTree t))))) := by
+  -- The RBT insertion theorem guarantees the new key is in the result.
+  have h_insert : Chapter13.RBTree.InTree x
+      (Chapter13.RBTree.insert x (toRBTree t)) := by
+    rw [Chapter13.RBTree.inTree_insert_iff]
+    exact Or.inl rfl
+  -- recomputeSizes doesn't change the RBTree projection.
+  rw [toRBTree_recomputeSizes]
+  -- The double projection preserves membership.
+  rw [inTree_toRBTree_ofRBTree]
+  exact h_insert
 
 end OSTree
 

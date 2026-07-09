@@ -18,8 +18,10 @@ import CLRSLean.Chapter_17
 import CLRSLean.Chapter_18
 import CLRSLean.Chapter_19
 import CLRSLean.Chapter_20
+import CLRSLean.Chapter_21
 import CLRSLean.Chapter_22
 import CLRSLean.Chapter_23
+import CLRSLean.Chapter_24
 import CLRSLean.Progress
 import CLRSLean.Status
 import CLRSLean.Workflow

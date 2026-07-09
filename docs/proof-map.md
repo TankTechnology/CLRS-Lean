@@ -89,7 +89,7 @@ rules.
 ### Section 3.2 - Standard functions
 
 - Lean source: `CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean`
-- Status: `partial`
+- Status: `proved`
 - Main proved theorems:
   - `CLRS.Chapter03.isLittleO_pow_pow`
   - `CLRS.Chapter03.isBigO_pow_pow`
@@ -98,6 +98,13 @@ rules.
   - `CLRS.Chapter03.isLittleO_log_pow_rpow`
   - `CLRS.Chapter03.isBigO_log_pow_rpow`
   - `CLRS.Chapter03.isLittleO_exp_exp_of_lt`
+  - `CLRS.Chapter03.isBigTheta_logb_eq_log`
+  - `CLRS.Chapter03.isLittleO_id_log`
+  - `CLRS.Chapter03.isLittleO_mul_log_rpow`
+  - `CLRS.Chapter03.isLittleO_pow_log_pow_rpow`
+  - `CLRS.Chapter03.isBigO_pow_log_pow_rpow`
+  - `CLRS.Chapter03.isBigOmega_pow_pow`
+  - `CLRS.Chapter03.isLittleO_const_exp`
   - `CLRS.Chapter03.isEquivalent_harmonic_log`
   - `CLRS.Chapter03.isBigTheta_harmonic_log`
   - `CLRS.Chapter03.isBigTheta_nat_floor_coerce`
@@ -110,13 +117,14 @@ rules.
   - `CLRS.Chapter03.isLittleO_exp_vs_factorial`
   - `CLRS.Chapter03.isLittleO_factorial_pow_self`
 - Proof pattern: reuse Mathlib asymptotic and factorial facts through the CLRS
-  wrappers
-- Current gap: the rest of the CLRS standard-function table remains a
-  strengthening target.
+  wrappers; `pow_add` for Nat-exponent product identities
+- Current gap: none for the CLRS standard-function comparison table
 
-This section is the safe part of the `chapter-1-exploration` branch merged into
-the main site.  It compiles, but it is not yet the whole Chapter 3 growth
-library.
+The section now covers the full CLRS standard-function comparison table: polynomial
+comparisons, log vs polynomial, polynomial vs exponential, exponential bases,
+logarithm base independence, linear vs linearithmic, polylog factors, Omega
+lower bounds, constant vs exponential, floor/ceiling Θ facts, harmonic numbers,
+factorial bounds, and exponential vs factorial.
 
 ## Chapter 4 - Divide and Conquer
 

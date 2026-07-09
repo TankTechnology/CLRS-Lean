@@ -21,6 +21,13 @@ Concrete asymptotic comparisons for algorithm analysis.
 * {lit}`⌊n/2⌋ = Θ(n)` and {lit}`⌈n/2⌉ = Θ(n)` on ℕ
 * lower and upper factorial bounds
 * {lit}`aⁿ = o(n!)` and {lit}`n! = o(nⁿ)`
+* {lit}`log_b n = Θ(log n)` for any base {lit}`b > 1` (logarithm base independence)
+* {lit}`n = o(n log n)` (linear vs linearithmic)
+* {lit}`n log n = o(nʳ)` when {lit}`1 < r` (linearithmic vs superlinear)
+* {lit}`nᵃ (log n)ᵇ = o(nᶜ)` when {lit}`a < c` (polylog factor)
+* {lit}`nᵃ (log n)ᵇ = O(nᶜ)` when {lit}`a < c`
+* {lit}`nᵇ = Ω(nᵃ)` when {lit}`a ≤ b` (polynomial lower bound)
+* {lit}`1 = o(cⁿ)` when {lit}`c > 1` (constant vs exponential)
 -/
 
 namespace CLRS
@@ -79,6 +86,180 @@ theorem isLittleO_exp_exp_of_lt {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
     isLittleO (fun n : ℕ => a ^ n) (fun n : ℕ => b ^ n) := by
   unfold isLittleO
   exact isLittleO_pow_pow_of_lt_left ha hab
+
+/-! ## Logarithm base independence -/
+
+/-- Logarithms to different bases differ by a constant factor:
+{lit}`log_b n = Θ(log n)` for any base {lit}`b > 1`.  This makes the base of a
+logarithm invisible in asymptotic notation—the textbook's "logarithms are
+asymptotically independent of their base." -/
+theorem isBigTheta_logb_eq_log {b : ℝ} (hb : 1 < b) :
+    isBigTheta (fun n : ℕ => Real.logb b (n : ℝ)) (fun n : ℕ => Real.log (n : ℝ)) := by
+  have hinv_ne_zero : (Real.log b)⁻¹ ≠ 0 := inv_ne_zero (ne_of_gt (Real.log_pos hb))
+  have h_eq : (fun n : ℕ => Real.logb b (n : ℝ)) =
+      (fun n : ℕ => (Real.log b)⁻¹ • Real.log (n : ℝ)) := by
+    ext n
+    simp [Real.logb, div_eq_inv_mul]
+  rw [h_eq]
+  have htheta := (isTheta_const_smul_left (l := atTop) (c := (Real.log b)⁻¹) hinv_ne_zero).mpr
+    (isTheta_refl (l := atTop) (fun n : ℕ => Real.log (n : ℝ)))
+  rcases htheta with ⟨hO, hΩ⟩
+  constructor
+  · unfold isBigO; exact hO
+  · unfold isBigOmega; exact hΩ
+
+/-! ## Linear, linearithmic, and polynomial comparisons -/
+
+/-- {lit}`n = o(n log n)`: linear functions are strictly dominated by linearithmic.
+This is the formal basis for why {lit}`O(n log n)` sorting is not linear.
+
+Proof: first show {lit}`1 = o(log n)` (since {lit}`log n → ∞`), then multiply
+by {lit}`n = O(n)` using {lit}`IsBigO.mul_isLittleO`. -/
+theorem isLittleO_id_log :
+    isLittleO (fun n : ℕ => (n : ℝ)) (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) := by
+  unfold isLittleO
+  have h_one_log : (fun _ : ℕ => (1 : ℝ)) =o[atTop] (fun n : ℕ => Real.log (n : ℝ)) := by
+    rw [Asymptotics.isLittleO_iff]
+    intro c hcpos
+    let N : ℕ := max 2 (Nat.floor (Real.exp (c⁻¹)) + 1)
+    refine Filter.eventually_atTop.mpr ⟨N, ?_⟩
+    intro n hn
+    have hlog_nonneg : 0 ≤ Real.log (n : ℝ) :=
+      Real.log_nonneg (by
+        have : 2 ≤ N := Nat.le_max_left _ _
+        have : 2 ≤ n := Nat.le_trans this hn
+        exact_mod_cast (show 1 ≤ n from by omega))
+    have hlog_large : c⁻¹ ≤ Real.log (n : ℝ) := by
+      have hnexp : Real.exp (c⁻¹) ≤ (n : ℝ) := by
+        have hfloorN : Real.exp (c⁻¹) ≤ (N : ℝ) := by
+          have hlt : Real.exp (c⁻¹) < (Nat.floor (Real.exp (c⁻¹)) : ℝ) + 1 :=
+            Nat.lt_floor_add_one (Real.exp (c⁻¹))
+          have hcast : (Nat.floor (Real.exp (c⁻¹)) + 1 : ℕ) ≤ N := Nat.le_max_right _ _
+          have hle' : (Nat.floor (Real.exp (c⁻¹)) : ℝ) + 1 ≤ (Nat.floor (Real.exp (c⁻¹)) + 1 : ℕ) := by simp
+          have hNcast : (Nat.floor (Real.exp (c⁻¹)) + 1 : ℕ) ≤ (N : ℝ) := by exact mod_cast hcast
+          linarith
+        have hNn : (N : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+        linarith
+      have hlog_exp : Real.log (Real.exp (c⁻¹)) = c⁻¹ := Real.log_exp c⁻¹
+      calc
+        c⁻¹ = Real.log (Real.exp (c⁻¹)) := by rw [hlog_exp]
+        _ ≤ Real.log (n : ℝ) := Real.log_le_log (Real.exp_pos _) hnexp
+    calc
+      ‖(1 : ℝ)‖ = (1 : ℝ) := by simp
+      _ = c * c⁻¹ := by field_simp [hcpos.ne']
+      _ ≤ c * Real.log (n : ℝ) := by
+        nlinarith
+      _ = c * ‖Real.log (n : ℝ)‖ := by rw [Real.norm_eq_abs, abs_of_nonneg hlog_nonneg]
+  have h_id : (fun n : ℕ => (n : ℝ)) =O[atTop] (fun n : ℕ => (n : ℝ)) :=
+    Asymptotics.isBigO_refl _ _
+  have h_mul : (fun n : ℕ => (n : ℝ) * (1 : ℝ)) =o[atTop]
+      (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) :=
+    h_id.mul_isLittleO h_one_log
+  simpa [mul_comm] using h_mul
+
+/-- {lit}`n log n = o(nʳ)` when {lit}`1 < r`.  Linearithmic is dominated by any
+superlinear polynomial.  This is why {lit}`O(n log n)` sorts beat {lit}`O(n²)` sorts.
+
+Proof: write {lit}`(n log n) / n^r = (log n) / n^(r-1)` and use
+{lit}`log n = o(n^(r-1))` since {lit}`r-1 > 0`.  Then multiply by {lit}`n = O(n)`. -/
+theorem isLittleO_mul_log_rpow {r : ℝ} (hr : 1 < r) :
+    isLittleO (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) (fun n : ℕ => (n : ℝ) ^ r) := by
+  unfold isLittleO
+  have h_eps_pos : 0 < r - 1 := by linarith
+  have h_log : (fun n : ℕ => Real.log (n : ℝ)) =o[atTop]
+      (fun n : ℕ => (n : ℝ) ^ (r - 1)) := by
+    simpa [isLittleO] using isLittleO_log_rpow h_eps_pos
+  have h_id : (fun n : ℕ => (n : ℝ)) =O[atTop] (fun n : ℕ => (n : ℝ)) :=
+    Asymptotics.isBigO_refl _ _
+  -- BigO * LittleO = LittleO
+  have h_mul : (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) =o[atTop]
+      (fun n : ℕ => (n : ℝ) * ((n : ℝ) ^ (r - 1))) :=
+    h_id.mul_isLittleO h_log
+  -- (n) * (n^(r-1)) = n^(1 + (r-1)) = n^r
+  have h_pow_eq : (fun n : ℕ => (n : ℝ) * ((n : ℝ) ^ (r - 1))) = (fun n : ℕ => (n : ℝ) ^ r) := by
+    ext n
+    by_cases hn : (n : ℝ) = 0
+    · have hrpos : 0 < r := by linarith
+      simp [hn, Real.zero_rpow (by linarith : r ≠ 0)]
+    · have hpos : 0 < (n : ℝ) := by
+        by_cases hn0 : n = 0
+        · exfalso; apply hn; simpa [hn0] using rfl
+        · have hn_pos_nat : 0 < n := Nat.pos_of_ne_zero hn0
+          exact Nat.cast_pos.mpr hn_pos_nat
+      calc
+        (n : ℝ) * ((n : ℝ) ^ (r - 1)) = ((n : ℝ) ^ (1 : ℝ)) * ((n : ℝ) ^ (r - 1)) := by simp
+        _ = (n : ℝ) ^ ((1 : ℝ) + (r - 1)) := by rw [Real.rpow_add hpos]
+        _ = (n : ℝ) ^ r := by
+          have : (1 : ℝ) + (r - 1) = r := by ring
+          rw [this]
+  simpa [h_pow_eq] using h_mul
+
+/-! ## Polylog factors with polynomials -/
+
+/-- For any exponents {lit}`a < c`, {lit}`nᵃ (log n)ᵇ = o(nᶜ)`.
+A polylog factor does not change the asymptotic polynomial order—the textbook's
+"any positive polynomial dominates any polylog."
+
+Proof: factor {lit}`nᵃ (log n)ᵇ / nᶜ = (log n)ᵇ / n^(c-a)` using
+{lit}`pow_add`, then apply {lit}`(log n)ᵇ = o(n^(c-a))` since {lit}`c-a > 0`. -/
+theorem isLittleO_pow_log_pow_rpow {a b c : ℕ} (hac : a < c) :
+    isLittleO (fun n : ℕ => (n : ℝ) ^ a * Real.log (n : ℝ) ^ b)
+      (fun n : ℕ => (n : ℝ) ^ c) := by
+  unfold isLittleO
+  have h_poly : (fun n : ℕ => (n : ℝ) ^ a) =O[atTop] (fun n : ℕ => (n : ℝ) ^ a) :=
+    Asymptotics.isBigO_refl _ _
+  have h_sub_pos : 0 < ((c - a : ℕ) : ℝ) := by
+    have : 0 < c - a := Nat.sub_pos_of_lt hac
+    exact_mod_cast this
+  have h_log : (fun n : ℕ => Real.log (n : ℝ) ^ b) =o[atTop]
+      (fun n : ℕ => (n : ℝ) ^ (c - a)) := by
+    -- Use isLittleO_log_pow_rpow with r := (c-a : ℝ)
+    have h := isLittleO_log_pow_rpow (a := b) (r := ((c - a : ℕ) : ℝ)) h_sub_pos
+    unfold isLittleO at h
+    -- (n:ℝ)^(c-a) with Nat exponent is the same as (n:ℝ)^((c-a):ℝ)
+    simpa using h
+  have h_mul : (fun n : ℕ => (n : ℝ) ^ a * Real.log (n : ℝ) ^ b) =o[atTop]
+      (fun n : ℕ => (n : ℝ) ^ a * (n : ℝ) ^ (c - a)) :=
+    h_poly.mul_isLittleO h_log
+  -- Rewrite using pow_add: (n:ℝ)^a * (n:ℝ)^(c-a) = (n:ℝ)^c
+  have h_pow_eq : (fun n : ℕ => (n : ℝ) ^ a * (n : ℝ) ^ (c - a)) =
+      (fun n : ℕ => (n : ℝ) ^ c) := by
+    ext n
+    have hsum : a + (c - a) = c := Nat.add_sub_cancel' (Nat.le_of_lt hac)
+    calc
+      (n : ℝ) ^ a * (n : ℝ) ^ (c - a) = (n : ℝ) ^ (a + (c - a)) := by rw [pow_add]
+      _ = (n : ℝ) ^ c := by rw [hsum]
+  simpa [h_pow_eq] using h_mul
+
+/-- Big-O version: when {lit}`a < c`, the polylog factor does not prevent an
+{lit}`O(nᶜ)` bound.  Follows directly from the {lit}`o` version. -/
+theorem isBigO_pow_log_pow_rpow {a b c : ℕ} (hac : a < c) :
+    isBigO (fun n : ℕ => (n : ℝ) ^ a * Real.log (n : ℝ) ^ b)
+      (fun n : ℕ => (n : ℝ) ^ c) :=
+  (isLittleO_pow_log_pow_rpow hac).isBigO
+
+/-! ## Omega (lower-bound) versions -/
+
+/-- {lit}`nᵇ = Ω(nᵃ)` when {lit}`a ≤ b`.  Polynomial lower bound; the Ω companion
+to {lit}`isBigO_pow_pow`. -/
+theorem isBigOmega_pow_pow {a b : ℕ} (h : a ≤ b) :
+    isBigOmega (fun n : ℕ => (n : ℝ) ^ b) (fun n : ℕ => (n : ℝ) ^ a) := by
+  unfold isBigOmega
+  -- isBigOmega f g = g =O[l] f, so need (n^a) =O (n^b)
+  have hO : isBigO (fun n : ℕ => (n : ℝ) ^ a) (fun n : ℕ => (n : ℝ) ^ b) :=
+    isBigO_pow_pow h
+  unfold isBigO at hO
+  exact hO
+
+/-! ## Constant vs exponential -/
+
+/-- {lit}`1 = o(cⁿ)` when {lit}`c > 1`.  Constants are asymptotically negligible
+compared to any growing exponential.  This is the {lit}`k = 0` case of
+{lit}`isLittleO_pow_const_exp`. -/
+theorem isLittleO_const_exp {c : ℝ} (hc : 1 < c) :
+    isLittleO (fun _ : ℕ => (1 : ℝ)) (fun n : ℕ => c ^ n) := by
+  have := isLittleO_pow_const_exp (a := 0) hc
+  simpa [pow_zero] using this
 
 /-! ## Harmonic numbers -/
 
