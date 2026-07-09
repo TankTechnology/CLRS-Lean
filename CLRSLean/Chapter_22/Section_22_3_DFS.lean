@@ -298,7 +298,7 @@ theorem dfsFromList_preserves_black (s0 : DFSState V) (fuel : Nat) (vs : List V)
     (hblack : s0.color x = Color.black) :
     (dfsFromList G fuel vs s0).color x = Color.black := by
   induction vs generalizing s0 with
-  | nil => simpa
+  | nil => simpa [dfsFromList] using hblack
   | cons u us ih =>
       simp [dfsFromList]
       split_ifs
@@ -328,7 +328,8 @@ theorem dfsVisit_fold_preserves_black {n : Nat} {u x : V} {s1 : DFSState V} {l :
     (l.foldl (fun (s' : DFSState V) (w : V) =>
         if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s') s1).color x = Color.black := by
   induction l generalizing s1 with
-  | nil => simpa
+  | nil =>
+      exact hb
   | cons w ws ih =>
       simp
       exact ih (dfsVisit_fold_step_preserves_black G hb)
@@ -339,7 +340,9 @@ theorem dfsVisit_fold_no_new_gray {n : Nat} {u w : V} (s1 : DFSState V) {l : Lis
         if s'.color v = Color.white then dfsVisit G n v (s'.setParent v u) else s') s1 l).color w = Color.gray →
     s1.color w = Color.gray := by
   induction l generalizing s1 with
-  | nil => simpa
+  | nil =>
+      intro h
+      exact h
   | cons v vs ih =>
       simp
       by_cases hv : s1.color v = Color.white
@@ -883,7 +886,7 @@ theorem dfsVisit_preserves_d_of_not_white {fuel : Nat} {u v : V} {s : DFSState V
             · simpa [s1, hne] using hnw
           exact hfold (G.adj u).toList s1 hs1
         have h3 : s3.d v = s2.d v := by
-          simp [s3, hne]
+          simp [s3]
         rw [h3, h2, h1]
       · simp [dfsVisit, hwhite]
 
@@ -1222,7 +1225,7 @@ theorem dfsVisit_fold_black_finish_lt_time {n : Nat} {u : V} {s1 : DFSState V} {
 finished), every black vertex already has a finish time strictly less than the
 current clock. -/
 theorem dfsVisit_pre_finish_black_finish_lt_time {fuel : Nat} {u : V} {s : DFSState V}
-    (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
+    (hfuel : 0 < fuel) (_hwhite : s.color u = Color.white)
     (hinv : ∀ v, s.color v = Color.black → finishTime s v < s.time) :
     let s1 := s.setColor u Color.gray |>.setDiscovery u
     let s2 := List.foldl (fun (s' : DFSState V) (v : V) =>
@@ -1295,7 +1298,7 @@ and black after it finishes strictly before the source. -/
 theorem dfsVisit_finish_lt_source_finish {fuel : Nat} {u : V} {s : DFSState V} {w : V}
     (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
     (hinv : ∀ v, s.color v = Color.black → finishTime s v < s.time)
-    (hw : s.color w = Color.white)
+    (_hw : s.color w = Color.white)
     (hb : (dfsVisit G fuel u s).color w = Color.black)
     (hne : w ≠ u) :
     finishTime (dfsVisit G fuel u s) w < finishTime (dfsVisit G fuel u s) u := by

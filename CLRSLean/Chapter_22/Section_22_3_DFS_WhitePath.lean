@@ -96,7 +96,7 @@ theorem whiteReachableIter_mono_le (s : DFSState V) (u : V) {n m : Nat} (h : n �
 theorem whiteReachableIter_eventually_stable (s : DFSState V) (u : V) (hu : u ∈ G.vertices) :
     ∃ k ≤ G.vertices.card, whiteReachableIter G s u k = whiteReachableIter G s u (k + 1) := by
   by_contra h
-  push_neg at h
+  push Not at h
   have hcard_pos : 1 ≤ G.vertices.card := Finset.one_le_card.mpr ⟨u, hu⟩
   have hmono := whiteReachableIter_mono G s u
   have h_strict : ∀ k ≤ G.vertices.card, whiteReachableIter G s u k ⊂ whiteReachableIter G s u (k + 1) := by
@@ -231,7 +231,7 @@ theorem whiteReachableIter_decomp {s : DFSState V} {u v : V} (hu : u ∈ G.verti
   | zero =>
       have h_eq : whiteReachableIter G s u (0 + 1) = {u} ∪ whiteReachableSucc G s {u} := rfl
       rw [h_eq] at hv
-      simp [whiteReachableSucc, Finset.mem_filter, Finset.mem_biUnion, Finset.mem_singleton] at hv
+      simp [whiteReachableSucc, Finset.mem_filter] at hv
       rcases hv with (rfl | h)
       · contradiction
       · use v
@@ -272,7 +272,7 @@ theorem whiteReachableIter_decomp {s : DFSState V} {u v : V} (hu : u ∈ G.verti
 /-- If `v` lies in the white-reachable set and `v ≠ u`, then `v` can be reached
 from a white neighbour `x` of `u` without using `u`. -/
 theorem whiteReachableSet_decomp {s : DFSState V} {u v : V} (hu : u ∈ G.vertices)
-    (hwhite : s.color u = Color.white) (hv : v ∈ whiteReachableSet G s u) (hne : v ≠ u) :
+    (_hwhite : s.color u = Color.white) (hv : v ∈ whiteReachableSet G s u) (hne : v ≠ u) :
     ∃ x, G.Adj u x ∧ s.color x = Color.white ∧
       v ∈ whiteReachableSet G (s.setColor u Color.gray) x := by
   have hstable := whiteReachableIter_stable G s u hu
@@ -330,7 +330,7 @@ theorem whiteReachableSet_decomp_ne {s : DFSState V} {u v : V} (hu : u ∈ G.ver
   · use x, hadj, hwhite_x, hxne, hvx
 
 theorem whiteReachable_gray_to_white {s : DFSState V} {u x v : V}
-    (hwhite : s.color u = Color.white)
+    (_hwhite : s.color u = Color.white)
     (hr : WhiteReachable G (s.setColor u Color.gray) x v) :
     WhiteReachable G s x v := by
   induction hr with
@@ -341,7 +341,7 @@ theorem whiteReachable_gray_to_white {s : DFSState V} {u x v : V}
         simp at this
         by_cases h : z = u
         · subst z
-          simp [hwhite] at this
+          simp at this
         · simpa [h] using this
       exact whiteReachable_step G ih hadj'.1 hwhite_z
 
@@ -1188,7 +1188,7 @@ theorem dfsFromList_black_reachable_closed {fuel : Nat} {s0 : DFSState V} {vs : 
                 have hwr_z := whiteReachableIter_to_WhiteReachable G hzwr
                 have hwr_p := WhiteReachable.of_reachable_closed G hpw hp (fun b _ hbp => by
                   by_contra hb
-                  push_neg at hb
+                  push Not at hb
                   have hb_black : s0.color b = Color.black := by cases hng b <;> tauto
                   have hp_black := hclosed b p hb_black hbp
                   contradiction)
@@ -1208,7 +1208,7 @@ theorem dfsFromList_black_reachable_closed {fuel : Nat} {s0 : DFSState V} {vs : 
 
 /-- Finish times of black vertices are preserved by any further `dfsFromList`. -/
 theorem dfsFromList_preserves_f_of_black {fuel : Nat} {s0 : DFSState V} {vs : List V}
-    (hfuel : 0 < fuel) {x : V}
+    (_hfuel : 0 < fuel) {x : V}
     (hblack : s0.color x = Color.black) :
     (dfsFromList G fuel vs s0).f x = s0.f x := by
   induction vs generalizing s0 with
