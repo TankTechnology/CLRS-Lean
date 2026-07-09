@@ -292,18 +292,6 @@ private lemma exists_inf'_eq (s : Finset ℕ) (h : s.Nonempty) (f : ℕ → ℕ)
       subst hsingleton
       simp
 
-noncomputable def matrixChainSplit (dims : Nat → Nat) (i j : Nat) : Nat :=
-  if h : i < j then
-    let s := Finset.Icc i (j - 1)
-    have h_nonempty : s.Nonempty := by use i; simp [s, Finset.mem_Icc]; omega
-    let f (k : ℕ) := matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
-      dims i * dims (k + 1) * dims (j + 1)
-    have h_eq : matrixChainOpt dims i j = s.inf' h_nonempty f :=
-      bridge_attach_inf dims i j h
-    have h_exists : ∃ k ∈ s, f k = matrixChainOpt dims i j := by
-      rw [h_eq]
-      exact exists_inf'_eq s h_nonempty f
-    Exists.choose h_exists
 /--
 The computable split-point selector for matrix-chain DP.  For interval
 {lit}`i < j`, it selects the smallest {lit}`k` in {lit}`[i, j-1]` that attains
@@ -335,27 +323,10 @@ theorem matrixChainSplit_optimal (dims : Nat → Nat) (i j : Nat) (hij : i < j) 
     matrixChainSplit dims i j ∈ Finset.Icc i (j - 1) ∧
     matrixChainOpt dims i j =
       matrixSplitCost dims (matrixChainOpt dims) i j (matrixChainSplit dims i j) := by
-  -- Reconstruct the EXACT context that matrixChainSplit's body uses, so that
-  -- `simpa` can rewrite the function's `let` bindings with our binders.
   let s : Finset ℕ := Finset.Icc i (j - 1)
   have h_nonempty : s.Nonempty := by use i; simp [s, Finset.mem_Icc]; omega
   let f (k : ℕ) := matrixChainOpt dims i k + matrixChainOpt dims (k + 1) j +
     dims i * dims (k + 1) * dims (j + 1)
-  have h_eq : matrixChainOpt dims i j = s.inf' h_nonempty f :=
-    bridge_attach_inf dims i j hij
-  have h_exists : ∃ k ∈ s, f k = matrixChainOpt dims i j := by
-    rw [h_eq]; exact exists_inf'_eq s h_nonempty f
-  have h_spec := Exists.choose_spec h_exists
-  rcases h_spec with ⟨hmem, heq⟩
-  -- The goal involves `matrixChainSplit dims i j`, which expands to
-  -- (let s := ...; ...; Exists.choose h_exists) where the inner binders
-  -- mirror ours.  `simpa` with our binder names unifies them.
-  have h_goal : matrixChainSplit dims i j ∈ Finset.Icc i (j - 1) ∧
-      matrixChainOpt dims i j =
-        matrixSplitCost dims (matrixChainOpt dims) i j (matrixChainSplit dims i j) := by
-    simpa [matrixChainSplit, hij, s, h_nonempty, f, h_exists, matrixSplitCost] using
-      And.intro hmem heq.symm
-  exact h_goal
   have h_opt_eq : matrixChainOpt dims i j = s.inf' h_nonempty f :=
     bridge_attach_inf dims i j hij
   have h_exists : ∃ k ∈ s, f k = matrixChainOpt dims i j := by
@@ -383,7 +354,6 @@ theorem matrixChainOpt_splitOptimal (dims : Nat → Nat) :
   · intro i; simp [matrixChainOpt]
   · intro i j hij; exact matrixChainSplit_optimal dims i j hij
 
-noncomputable def matrixChainReconstruct (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) : ChainPlan i j :=
 def matrixChainReconstruct (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) : ChainPlan i j :=
   if h : i < j then
     let k := matrixChainSplit dims i j

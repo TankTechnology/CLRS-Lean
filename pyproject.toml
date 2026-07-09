@@ -1,0 +1,9 @@
+[project]
+name = "clrs-lean-dev"
+version = "0.0.0"
+description = "Local Python helpers for CLRS-Lean development"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = []
