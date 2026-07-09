@@ -6,8 +6,8 @@ import CLRSLean.Chapter_22.Section_22_3_DFS
 
 This file collects the DFS-theoretic consequences of the functional DFS model
 that are needed for Section 22.5 (Kosaraju's SCC algorithm).  The main result
-is the white-path theorem for a single `dfsVisit`: starting from a white vertex,
-the visit blackens exactly the vertices reachable through white vertices.
+is the white-path theorem for a single {lit}`dfsVisit`: starting from a white
+vertex, the visit blackens exactly the vertices reachable through white vertices.
 -/
 
 namespace CLRS
@@ -20,9 +20,10 @@ section Reachability
 
 /-! ## Reachability through white vertices -/
 
-/-- `WhiteReachable s u v` holds when `v` can be reached from `u` by a path
-whose every step lands on a vertex that is white in `s`.  The source `u` itself
-need not be white; this is handled separately in the theorems. -/
+/-- {lit}`WhiteReachable s u v` holds when {lit}`v` can be reached from
+{lit}`u` by a path whose every step lands on a vertex that is white in {lit}`s`.
+The source {lit}`u` itself need not be white; this is handled separately in the
+theorems. -/
 def WhiteReachable (s : DFSState V) (u v : V) : Prop :=
   Relation.ReflTransGen (fun x y => G.Adj x y ∧ s.color y = Color.white) u v
 
@@ -50,9 +51,9 @@ theorem whiteReachable_target_white {u v : V} {s : DFSState V}
 /-! ## White-reachable set as a finite iteration
 
 We compute the set of white-reachable vertices by iterating a monotone operator.
-Because the graph is finite, this iteration stabilises within `|V|` steps,
-giving a finite characterisation of `WhiteReachable` that supports induction on
-the size of the reachable set.
+Because the graph is finite, this iteration stabilises within {lit}`|V|` steps,
+giving a finite characterisation of {lit}`WhiteReachable` that supports
+induction on the size of the reachable set.
 -/
 
 /-- One step of the white-reachability operator. -/
@@ -64,7 +65,7 @@ def whiteReachableIter (s : DFSState V) (u : V) : Nat → Finset V
   | 0 => {u}
   | n + 1 => whiteReachableIter s u n ∪ whiteReachableSucc G s (whiteReachableIter s u n)
 
-/-- The white-reachable set is the iteration stabilised at `|V|`. -/
+/-- The white-reachable set is the iteration stabilised at {lit}`|V|`. -/
 noncomputable def whiteReachableSet (s : DFSState V) (u : V) : Finset V :=
   whiteReachableIter G s u (G.vertices.card)
 
@@ -209,9 +210,9 @@ theorem mem_whiteReachableSet_self (s : DFSState V) (u : V) : u ∈ whiteReachab
   have h0 : u ∈ whiteReachableIter G s u 0 := by simp [whiteReachableIter]
   exact whiteReachableIter_mono_le G s u (by linarith) h0
 
-/-- Iteration-level decomposition: a vertex different from `u` that appears in
-`iter (n+1)` can be reached from a white neighbour of `u` within `n` iterations
-of the gray state. -/
+/-- Iteration-level decomposition: a vertex different from {lit}`u` that
+appears in {lit}`iter (n+1)` can be reached from a white neighbour of {lit}`u`
+within {lit}`n` iterations of the gray state. -/
 theorem mem_whiteReachableIter_self (s : DFSState V) (u : V) (n : Nat) :
     u ∈ whiteReachableIter G s u n := by
   induction n with
@@ -269,8 +270,9 @@ theorem whiteReachableIter_decomp {s : DFSState V} {u v : V} (hu : u ∈ G.verti
             simp [whiteReachableIter, whiteReachableSucc, Finset.mem_filter, Finset.mem_biUnion]
             refine Or.inr ⟨⟨w, hvx, hadj_wv⟩, hwhite_v_gray⟩
 
-/-- If `v` lies in the white-reachable set and `v ≠ u`, then `v` can be reached
-from a white neighbour `x` of `u` without using `u`. -/
+/-- If {lit}`v` lies in the white-reachable set and {lit}`v ≠ u`, then
+{lit}`v` can be reached from a white neighbour {lit}`x` of {lit}`u` without
+using {lit}`u`. -/
 theorem whiteReachableSet_decomp {s : DFSState V} {u v : V} (hu : u ∈ G.vertices)
     (_hwhite : s.color u = Color.white) (hv : v ∈ whiteReachableSet G s u) (hne : v ≠ u) :
     ∃ x, G.Adj u x ∧ s.color x = Color.white ∧
@@ -300,8 +302,8 @@ theorem WhiteReachable.exists_first_step {s : DFSState V} {u v : V}
         use x, hx1, hx2
         exact whiteReachable_step G hx3 hbc.1 hbc.2
 
-/-- Variant of {name}`whiteReachableSet_decomp` that guarantees the chosen
-neighbour is different from `u`. -/
+/-- Variant of {lit}`whiteReachableSet_decomp` that guarantees the chosen
+neighbour is different from {lit}`u`. -/
 theorem whiteReachableSet_decomp_ne {s : DFSState V} {u v : V} (hu : u ∈ G.vertices)
     (hwhite : s.color u = Color.white) (hv : v ∈ whiteReachableSet G s u) (hne : v ≠ u) :
     ∃ x, G.Adj u x ∧ s.color x = Color.white ∧ x ≠ u ∧
@@ -345,8 +347,8 @@ theorem whiteReachable_gray_to_white {s : DFSState V} {u x v : V}
         · simpa [h] using this
       exact whiteReachable_step G ih hadj'.1 hwhite_z
 
-/-- If every white vertex of `s'` is also white in `s`, then a white path in `s'`
-is also a white path in `s`. -/
+/-- If every white vertex of {lit}`s'` is also white in {lit}`s`, then a white
+path in {lit}`s'` is also a white path in {lit}`s`. -/
 theorem whiteReachable_mono_of_color_superset {s s' : DFSState V} {u v : V}
     (h : ∀ z, s'.color z = Color.white → s.color z = Color.white) :
     WhiteReachable G s' u v → WhiteReachable G s u v := by
@@ -431,11 +433,11 @@ end Reachability
 
 /-! ## Converse of the white-path theorem
 
-If a `dfsVisit` call turns a vertex black, that vertex was either black already
-or reachable through white vertices from the source.
+If a {lit}`dfsVisit` call turns a vertex black, that vertex was either black
+already or reachable through white vertices from the source.
 -/
 
-/-- `dfsVisit` never turns a non-white vertex into a white one. -/
+/-- {lit}`dfsVisit` never turns a non-white vertex into a white one. -/
 theorem dfsVisit_does_not_create_white {fuel : Nat} {u x : V} {s : DFSState V}
     (hnw : s.color x ≠ Color.white) :
     (dfsVisit G fuel u s).color x ≠ Color.white := by
@@ -496,7 +498,7 @@ theorem dfsVisit_does_not_create_white {fuel : Nat} {u x : V} {s : DFSState V}
         rw [h2]
         exact hnw
 
-/-- If `dfsVisit` leaves a vertex white, it was white before the call. -/
+/-- If {lit}`dfsVisit` leaves a vertex white, it was white before the call. -/
 theorem dfsVisit_output_white_imp_input_white {fuel : Nat} {u x : V} {s : DFSState V}
     (hout : (dfsVisit G fuel u s).color x = Color.white) :
     s.color x = Color.white := by
@@ -541,7 +543,7 @@ theorem dfsVisit_fold_preserves_black_general {n : Nat} {u x : V} {s1 : DFSState
       simp
       exact ih (step_pres s1 w hb)
 
-/-- If a vertex `v` occurs in the fold list and is white at the start of the
+/-- If a vertex {lit}`v` occurs in the fold list and is white at the start of the
 fold, then it is black after the fold (provided fuel is large enough). -/
 theorem dfsVisit_fold_blackens_member {n : Nat} {u v : V} {s1 : DFSState V} {l : List V}
     (hn : 0 < n) (hv : v ∈ l) (hwhite : s1.color v = Color.white) :
@@ -584,9 +586,9 @@ theorem dfsVisit_fold_blackens_member {n : Nat} {u v : V} {s1 : DFSState V} {l :
           · rw [if_neg hw]
             exact ih hvw hwhite
 
-/-- Locate the recursive fold step that first blackens a white vertex `v`.
-The returned state `s2` is the state just before that recursive call, so `v`
-(and the chosen neighbour) are still white in `s2`. -/
+/-- Locate the recursive fold step that first blackens a white vertex {lit}`v`.
+The returned state {lit}`s2` is the state just before that recursive call, so
+{lit}`v` (and the chosen neighbour) are still white in {lit}`s2`. -/
 theorem dfsVisit_fold_blackens_loc {n : Nat} {u v : V} {s1 : DFSState V}
     (hwhite_v1 : s1.color v = Color.white)
     (hfold_black : (List.foldl (fun (s' : DFSState V) (w : V) =>
@@ -724,10 +726,11 @@ theorem dfsVisit_fold_blackens_loc_prefix {n : Nat} {u v : V} {s1 : DFSState V}
 
 /-! ### Fold decomposition lemma (sub-problem 1) -/
 
-/-- When the adjacency list decomposes as `pre ++ v :: post` and the fold
-accumulator at `pre` is `s2` with `s2.color v = Color.white`, the full fold
-equals the fold over `post` starting from the recursive dfsVisit on `v`.
-This pure `List.foldl` identity uses a named step function to avoid
+/-- When the adjacency list decomposes as {lit}`pre ++ v :: post` and the fold
+accumulator at {lit}`pre` is {lit}`s2` with
+{lit}`s2.color v = Color.white`, the full fold equals the fold over
+{lit}`post` starting from the recursive dfsVisit on {lit}`v`.
+This pure {lit}`List.foldl` identity uses a named step function to avoid
 lambda-matching issues. -/
 lemma dfsVisit_fold_split_at_white_neighbor {n : Nat} {u v : V}
     (s_init : DFSState V) (pre post : List V) (s2 : DFSState V)
@@ -754,8 +757,8 @@ lemma dfsVisit_fold_split_at_white_neighbor {n : Nat} {u v : V}
     _ = List.foldl step (step s2 v) post := h_foldl_step
     _ = List.foldl step (dfsVisit G n v (s2.setParent v u)) post := by rw [h_step]
 
-/-- A recursive `dfsVisit` call that blackens a white vertex `v` discovers a
-white path from its source to `v`. -/
+/-- A recursive {lit}`dfsVisit` call that blackens a white vertex {lit}`v`
+discovers a white path from its source to {lit}`v`. -/
 theorem dfsVisit_blackens_implies_whiteReachable {fuel : Nat} {u v : V} {s : DFSState V}
     (hwhite : s.color u = Color.white) (hfuel : 0 < fuel)
     (hwhite_v : s.color v = Color.white)
@@ -842,14 +845,15 @@ section WhitePathForward
 
 /-! ## Forward direction of the white-path theorem
 
-If a vertex `v` is reachable from a white source `u` through white vertices,
-then a sufficiently fuelled `dfsVisit` from `u` blackens `v`.
+If a vertex {lit}`v` is reachable from a white source {lit}`u` through white
+vertices, then a sufficiently fuelled {lit}`dfsVisit` from {lit}`u` blackens
+{lit}`v`.
 -/
 
-/-- If a DFS visit from `w` blackens exactly the white-reachable set from `w`
-(among vertices that were white before the visit), and leaves `v` non-black,
-then any white path from `x` to `v` that existed before the visit remains white
-after the visit. -/
+/-- If a DFS visit from {lit}`w` blackens exactly the white-reachable set from
+{lit}`w` (among vertices that were white before the visit), and leaves {lit}`v`
+non-black, then any white path from {lit}`x` to {lit}`v` that existed before
+the visit remains white after the visit. -/
 theorem WhiteReachable.preserved_after_visit {fuel : Nat} {s' : DFSState V} {w x v : V}
     (hw : w ∈ G.vertices)
     (hblack_iff : ∀ y, s'.color y = Color.white →
@@ -905,8 +909,8 @@ theorem WhiteReachable.preserved_after_visit {fuel : Nat} {s' : DFSState V} {w x
 
 /-- Forward direction of the white-path theorem.
 
-A sufficiently fuelled `dfsVisit` from a white source `u` blackens every vertex
-that is reachable from `u` through white vertices. -/
+A sufficiently fuelled {lit}`dfsVisit` from a white source {lit}`u` blackens
+every vertex that is reachable from {lit}`u` through white vertices. -/
 theorem dfsVisit_white_path_black {fuel : Nat} {u v : V} {s : DFSState V}
     (hwhite : s.color u = Color.white) (hu : u ∈ G.vertices)
     (hfuel : fuel ≥ (whiteReachableSet G s u).card + 1)
@@ -1088,8 +1092,9 @@ theorem dfsVisit_white_path_black {fuel : Nat} {u v : V} {s : DFSState V}
       rw [this]
       exact hfold_black
 
-/-- A sufficiently fuelled `dfsVisit` from a white source `u` blackens exactly
-the white vertices that are reachable from `u` through white vertices. -/
+/-- A sufficiently fuelled {lit}`dfsVisit` from a white source {lit}`u`
+blackens exactly the white vertices that are reachable from {lit}`u` through
+white vertices. -/
 theorem dfsVisit_blackens_iff_whiteReachable {fuel : Nat} {u v : V} {s : DFSState V}
     (hwhite_u : s.color u = Color.white) (hu : u ∈ G.vertices)
     (hwhite_v : s.color v = Color.white)
@@ -1112,7 +1117,7 @@ reachability: if a vertex is black, every vertex reachable from it is also
 black.  This lets us argue that a path to a still-white vertex stays entirely
 white at the moment of discovery. -/
 
-/-- A `dfsVisit` from a white source blackens exactly the vertices that were
+/-- A {lit}`dfsVisit` from a white source blackens exactly the vertices that were
 already black together with the white-reachable set from the source. -/
 theorem dfsVisit_black_set {fuel : Nat} {u : V} {s : DFSState V}
     (hfuel : fuel ≥ (whiteReachableSet G s u).card + 1) (hwhite : s.color u = Color.white)
@@ -1128,8 +1133,9 @@ theorem dfsVisit_black_set {fuel : Nat} {u : V} {s : DFSState V}
     have hiff := dfsVisit_blackens_iff_whiteReachable G hwhite hu hwhite_v hfuel
     simp [hblack, hiff]
 
-/-- If `z` reaches a white vertex `p` and every vertex reachable from `z` and
-from which `p` is reachable is white, then `p` is white-reachable from `z`. -/
+/-- If {lit}`z` reaches a white vertex {lit}`p` and every vertex reachable from
+{lit}`z` and from which {lit}`p` is reachable is white, then {lit}`p` is
+white-reachable from {lit}`z`. -/
 theorem WhiteReachable.of_reachable_closed {s : DFSState V} {z p : V}
     (hwhite_p : s.color p = Color.white)
     (hreach : G.Reachable z p)
@@ -1206,7 +1212,8 @@ theorem dfsFromList_black_reachable_closed {fuel : Nat} {s0 : DFSState V} {vs : 
         simp [dfsFromList, hwhite]
         exact ih (s0 := s0) hng hclosed (fun v hv => hvs v (List.mem_cons_of_mem u hv))
 
-/-- Finish times of black vertices are preserved by any further `dfsFromList`. -/
+/-- Finish times of black vertices are preserved by any further
+{lit}`dfsFromList`. -/
 theorem dfsFromList_preserves_f_of_black {fuel : Nat} {s0 : DFSState V} {vs : List V}
     (_hfuel : 0 < fuel) {x : V}
     (hblack : s0.color x = Color.black) :
@@ -1229,7 +1236,7 @@ theorem dfsFromList_preserves_f_of_black {fuel : Nat} {s0 : DFSState V} {vs : Li
         rw [h1, hf]
       · exact ih hblack
 
-/-- `dfsFromList` never moves the global clock backwards. -/
+/-- {lit}`dfsFromList` never moves the global clock backwards. -/
 theorem dfsFromList_time_ge {fuel : Nat} {s0 : DFSState V} {vs : List V} :
     (dfsFromList G fuel vs s0).time ≥ s0.time := by
   induction vs generalizing s0 with

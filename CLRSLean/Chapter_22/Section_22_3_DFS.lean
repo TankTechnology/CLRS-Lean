@@ -313,7 +313,7 @@ theorem dfsVisit_blackens_u_pos {fuel : Nat} {u : V} {s : DFSState V}
   | zero => linarith
   | succ n => exact dfsVisit_blackens_u G hwhite
 
-/-- One step of the inner `dfsVisit` fold preserves black vertices. -/
+/-- One step of the inner {lit}`dfsVisit` fold preserves black vertices. -/
 theorem dfsVisit_fold_step_preserves_black {n : Nat} {u x w : V} {s1 : DFSState V}
     (hb : s1.color x = Color.black) :
     ((if s1.color w = Color.white then dfsVisit G n w (s1.setParent w u) else s1).color x = Color.black) := by
@@ -659,8 +659,8 @@ theorem dfs_f_defined {v : V} (hv : v ∈ G.vertices) :
   rcases hinv with ⟨_, _, hf⟩
   exact hf v (G.dfs_all_black hv)
 
-/-- A DFS visit from `u` does not change the color of a vertex `v` that is not
-white at the start and is not the source `u`. -/
+/-- A DFS visit from {lit}`u` does not change the color of a vertex {lit}`v`
+that is not white at the start and is not the source {lit}`u`. -/
 theorem dfsVisit_preserves_not_white {fuel : Nat} {u v : V} {s : DFSState V}
     (hne : v ≠ u) (hnw : s.color v ≠ Color.white) :
     (dfsVisit G fuel u s).color v ≠ Color.white := by

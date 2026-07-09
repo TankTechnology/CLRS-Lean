@@ -20,7 +20,7 @@ section Intervals
 /-! ## DFS timestamps, intervals and ancestor relation
 
 The parenthesis theorem compares the closed intervals
-`[d[u], f[u]]` defined by the discovery/finish timestamps of a full DFS.
+{lit}`[d[u], f[u]]` defined by the discovery/finish timestamps of a full DFS.
 It is the key to edge classification and to the finish-time ordering of
 strongly connected components. -/
 
@@ -64,7 +64,8 @@ theorem dfsVisit_discovery_source {fuel : Nat} {u : V} {s : DFSState V}
         simp [s1]
       simp [s3, s1, discoveryTime, hs2]
 
-/-- Stronger version: the source's `d` field equals `some (s.time)`. -/
+/-- Stronger version: the source's {lit}`d` field equals
+{lit}`some (s.time)`. -/
 theorem dfsVisit_discovery_source_d_eq {fuel : Nat} {u : V} {s : DFSState V}
     (hfuel : 0 < fuel) (hwhite : s.color u = Color.white) :
     (dfsVisit G fuel u s).d u = some (s.time) := by
@@ -105,8 +106,8 @@ theorem dfsVisit_finishTime_source_eq_pred_time {fuel : Nat} {u : V} {s : DFSSta
         simp [s1]
       simp [s3, finishTime]
 
-/-- In a DFS visit from a white source `u`, every vertex blackened during the
-visit finishes no later than `u`. -/
+/-- In a DFS visit from a white source {lit}`u`, every vertex blackened during
+the visit finishes no later than {lit}`u`. -/
 theorem dfsVisit_finish_le_source {fuel : Nat} {u v : V} {s : DFSState V}
     (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
     (hinv : ∀ w, s.color w = Color.black → finishTime s w < s.time)
@@ -444,7 +445,8 @@ theorem dfsVisit_fold_blackens_loc_prefix_full {n : Nat} {u v : V} {s1 : DFSStat
     exact (dfsVisit_fold_preserves_invariants G hdt hinv hdf).1
   exact ⟨pre, post, w, s2, heq, hs2, h2w, h2v, h2b, h2mono, h2inv, hdt2⟩
 
-/-- Discovery times of black vertices are preserved by any further `dfsFromList`. -/
+/-- Discovery times of black vertices are preserved by any further
+{lit}`dfsFromList`. -/
 theorem dfsFromList_preserves_d_of_black {fuel : Nat} {s0 : DFSState V} {vs : List V}
     (_hfuel : 0 < fuel) {x : V}
     (hblack : s0.color x = Color.black) :
@@ -467,7 +469,7 @@ theorem dfsFromList_preserves_d_of_black {fuel : Nat} {s0 : DFSState V} {vs : Li
         rw [h1, hd]
       · exact ih hblack
 
-/-- If a vertex is white at the beginning of a `dfsFromList` prefix and black at
+/-- If a vertex is white at the beginning of a {lit}`dfsFromList` prefix and black at
 its end, then its discovery time in the final state is at least the initial
 clock value. -/
 theorem dfsFromList_discovery_ge_of_white {fuel : Nat} {s0 : DFSState V} {vs : List V} {c : V}
@@ -529,10 +531,11 @@ theorem whiteReachable_source_mem_vertices {u v : V} {s : DFSState V}
   | inl h_eq => exfalso; exact hne h_eq.symm
   | inr h_mem => exact h_mem
 
-/-- Inside a `dfsVisit` from a white source `u`, any white-reachable vertex `v`
-has a discovery state: a state just before a recursive call on `v` in which `v`
-is white, the black-vertex finish-time invariant holds, and every gray vertex
-reaches `v` (they are ancestors on the recursion stack). -/
+/-- Inside a {lit}`dfsVisit` from a white source {lit}`u`, any white-reachable
+vertex {lit}`v` has a discovery state: a state just before a recursive call on
+{lit}`v` in which {lit}`v` is white, the black-vertex finish-time invariant
+holds, and every gray vertex reaches {lit}`v` (they are ancestors on the
+recursion stack). -/
 theorem dfsVisit_discovery_state {fuel : Nat} {u v : V} {s : DFSState V}
     (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
     (hinv : ∀ v, s.color v = Color.black → finishTime s v < s.time)
@@ -980,7 +983,7 @@ theorem dfsVisit_discovery_state_with_fuel {fuel : Nat} {u v : V} {s : DFSState 
     exact hP k fuel u v s hk hfuel hwhite hinv hb hw hv hgray
   exact hgoal
 
-/-- A fuel-aware version of the discovery-state theorem for `dfsFromList`: it
+/-- A fuel-aware version of the discovery-state theorem for {lit}`dfsFromList`: it
 also guarantees that the recursive fuel chosen for the discovered vertex is
 large enough to blacken its whole white-reachable set. -/
 theorem dfsFromList_discovery_state_with_fuel {fuel : Nat} {s0 : DFSState V} {vs : List V} {v : V}

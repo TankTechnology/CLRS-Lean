@@ -4,7 +4,7 @@ import Mathlib
 MergeSort congruence lemma: if two comparisons agree on all pairs
 from a list, mergeSort produces the same output with either.
 
-Remaining work: `mergeSort_congr` is admitted.  See module doc for details.
+The main lemma is {lit}`mergeSort_congr`.
 -/
 
 namespace CLRS
@@ -25,8 +25,8 @@ private lemma splitInTwo_snd_subset {α : Type} {n : Nat} (l : {l : List α // l
   simp [List.MergeSort.Internal.splitInTwo, List.splitAt_eq] at hx ⊢
   exact List.mem_of_mem_drop hx
 
-/-- If two comparisons agree on all elements of `l₁` cross `l₂`, then
-`merge l₁ l₂` produces the same result with either comparison. -/
+/-- If two comparisons agree on all elements of {lit}`l₁` cross {lit}`l₂`,
+then {lit}`merge l₁ l₂` produces the same result with either comparison. -/
 lemma merge_congr (le₁ le₂ : V → V → Bool) (l₁ l₂ : List V)
     (h : ∀ a ∈ l₁, ∀ b ∈ l₂, le₁ a b = le₂ a b) :
     List.merge l₁ l₂ le₁ = List.merge l₁ l₂ le₂ := by
@@ -44,8 +44,8 @@ lemma merge_congr (le₁ le₂ : V → V → Bool) (l₁ l₂ : List V)
       · rw [ih' (fun x hx y hy =>
           h x hx y (List.mem_cons_of_mem b hy))]
 
-/-- If two comparison functions `le₁` and `le₂` agree on all pairs of elements
-in a list `l`, then `l.mergeSort le₁ = l.mergeSort le₂`.
+/-- If two comparison functions {lit}`le₁` and {lit}`le₂` agree on all pairs of
+elements in a list {lit}`l`, then {lit}`l.mergeSort le₁ = l.mergeSort le₂`.
 -/
 lemma mergeSort_congr (le₁ le₂ : V → V → Bool) (l : List V)
     (h : ∀ a ∈ l, ∀ b ∈ l, le₁ a b = le₂ a b) :

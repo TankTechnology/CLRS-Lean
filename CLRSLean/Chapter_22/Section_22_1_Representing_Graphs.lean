@@ -8,15 +8,16 @@ Undirected graphs are obtained by requiring symmetric adjacency.
 
 The main concepts are:
 
-- {lit}`Graph V`: a directed graph on vertex type `V`.
-- {lit}`Graph.Adj u v`: there is a directed edge from `u` to `v`.
-- {lit}`Graph.IsWalk p`: `p` is a non-empty list of vertices where each
+- {lit}`Graph V`: a directed graph on vertex type {lit}`V`.
+- {lit}`Graph.Adj u v`: there is a directed edge from {lit}`u` to {lit}`v`.
+- {lit}`Graph.IsWalk p`: {lit}`p` is a non-empty list of vertices where each
   consecutive pair is an edge.
 - {lit}`Graph.IsPath p`: a walk with no repeated vertices.
-- {lit}`Graph.IsCycle p u v`: a non-trivial closed path built from a `u–v`
-  path plus the edge {lit}`v → u`.
+- {lit}`Graph.IsCycle p u v`: a non-trivial closed path built from a path from
+  {lit}`u` to {lit}`v` plus the edge {lit}`v → u`.
 - {lit}`Graph.Reachable u v`: the reflexive-transitive closure of adjacency.
-- {lit}`Graph.ConnectedComponent u`: the set of vertices reachable from `u`.
+- {lit}`Graph.ConnectedComponent u`: the set of vertices reachable from
+  {lit}`u`.
 
 We define reachability as the reflexive-transitive closure of adjacency; this
 makes reflexivity and transitivity immediate and keeps the first pass simple.
@@ -41,16 +42,16 @@ namespace Graph
 
 variable {V : Type} [DecidableEq V] (G : Graph V)
 
-/-- Directed adjacency: `v` is a neighbor of `u`. -/
+/-- Directed adjacency: {lit}`v` is a neighbor of {lit}`u`. -/
 def Adj (u v : V) : Prop := v ∈ G.adj u
 
-/-- If `u` is adjacent to `v`, then `u` is a vertex of the graph. -/
+/-- If {lit}`u` is adjacent to {lit}`v`, then {lit}`u` is a vertex of the graph. -/
 theorem adj_mem_left {u v : V} (hadj : G.Adj u v) : u ∈ G.vertices := by
   by_contra h
   have : G.adj u = ∅ := G.adj_outside u h
   simp [Adj, this] at hadj
 
-/-- If `u` is adjacent to `v`, then `v` is a vertex of the graph. -/
+/-- If {lit}`u` is adjacent to {lit}`v`, then {lit}`v` is a vertex of the graph. -/
 theorem adj_mem_right {u v : V} (hadj : G.Adj u v) : v ∈ G.vertices := by
   have hu := G.adj_mem_left hadj
   exact G.adj_sub u hu hadj
@@ -59,7 +60,7 @@ theorem adj_mem_right {u v : V} (hadj : G.Adj u v) : v ∈ G.vertices := by
 def IsWalk (p : List V) : Prop :=
   p ≠ [] ∧ (∀ v ∈ p, v ∈ G.vertices) ∧ List.IsChain (fun x y => y ∈ G.adj x) p
 
-/-- `p` is a walk from {lit}`u` to {lit}`v`. -/
+/-- {lit}`p` is a walk from {lit}`u` to {lit}`v`. -/
 def IsWalkFromTo (p : List V) (u v : V) : Prop :=
   G.IsWalk p ∧ p.head? = some u ∧ p.getLast? = some v
 
