@@ -416,6 +416,16 @@ def SCCMonochrome (G : Graph V) (s : DFSState V) : Prop :=
   ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨
     (∀ v ∈ K, s.color v = Color.black)
 
+/-- The SCC-specific invariant used while proving correctness of Kosaraju's
+second DFS pass.  It tracks the proof obligations that are not already part of
+the collecting-DFS invariant. -/
+structure KosarajuSCCInvariant (G : Graph V) (vs : List V) (s : DFSState V)
+    (acc : List (Finset V)) : Prop where
+  acc_scc : ∀ C ∈ acc, G.IsSCC (C : Set V)
+  white_in_vs : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ vs
+  scc_monochrome : G.SCCMonochrome s
+  no_gray : ∀ v, s.color v = Color.white ∨ s.color v = Color.black
+
 /-! ## Graph-theoretic lemmas for SCC finish-time ordering -/
 
 /-- If {lit}`x` is the first-discovered vertex of SCC {lit}`C` (in
@@ -1246,15 +1256,12 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   have h_main : ∀ (vs : List V) (s : DFSState V) (acc : List (Finset V)),
       vs.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) →
       (∀ v ∈ vs, v ∈ G.transpose.vertices) →
-      (∀ C ∈ acc, G.IsSCC (C : Set V)) →
-      (∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ vs) →
-      G.SCCMonochrome s →
-      (∀ v, s.color v = Color.white ∨ s.color v = Color.black) →
+      G.KosarajuSCCInvariant vs s acc →
       let (acc', _) := dfsFromListCollect G.transpose fuel vs s acc
       ∀ C ∈ acc', G.IsSCC (C : Set V) := by
-    intro vs s acc hp_vs hvs_verts h_acc h_white_in_vs h_respects h_ng
+    intro vs s acc hp_vs hvs_verts hinv
     induction vs generalizing s acc with
-    | nil => simp [dfsFromListCollect]; exact h_acc
+    | nil => simp [dfsFromListCollect]; exact hinv.acc_scc
     | cons u us ih =>
         simp [dfsFromListCollect]
         rcases List.pairwise_cons.mp hp_vs with ⟨h_u_head, hp_us⟩
@@ -1267,50 +1274,63 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
           let comp := G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
           -- hmax
           have hmax_u : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
-            exact white_finish_le_head_of_pairwise_order G hp_vs h_white_in_vs
+            exact white_finish_le_head_of_pairwise_order G hp_vs hinv.white_in_vs
           -- comp is an SCC
           have h_comp_scc : G.IsSCC (comp : Set V) :=
-            scc_finish_order hu_vert hu_white hmax_u hfuel h_respects
+            scc_finish_order hu_vert hu_white hmax_u hfuel hinv.scc_monochrome
           -- u becomes black in s'
           have hu_black_s' : s'.color u = Color.black := by
             simpa [s'] using dfsVisit_blackens_u_pos G.transpose hfuel_pos hu_white
           -- Preserve white→vs invariant (P4)
           have h_white_in_us : ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
-            exact white_vertices_in_tail_after_visit G G.transpose rfl hu_black_s' h_ng h_white_in_vs
+            exact white_vertices_in_tail_after_visit G G.transpose rfl hu_black_s'
+              hinv.no_gray hinv.white_in_vs
           -- Preserve SCC monochromatic invariant (P5)
           have h_respects' : G.SCCMonochrome s' := by
             simpa [s', fuel] using
-              kosaraju_visit_preserves_scc_monochrome G hu_vert hu_white hmax_u h_respects h_ng
+              kosaraju_visit_preserves_scc_monochrome G hu_vert hu_white hmax_u
+                hinv.scc_monochrome hinv.no_gray
           -- Preserve no-gray invariant (P6)
           have h_ng' : ∀ v, s'.color v = Color.white ∨ s'.color v = Color.black :=
-            dfsVisit_output_no_gray G.transpose h_ng
+            dfsVisit_output_no_gray G.transpose hinv.no_gray
           -- Recurse
           have h_mem : ∀ C' ∈ (comp :: acc), G.IsSCC (C' : Set V) := by
             intro C' hC'; rcases List.mem_cons.mp hC' with (rfl | hC'_acc)
             · exact h_comp_scc
-            · exact h_acc C' hC'_acc
-          have h_ih := ih s' (comp :: acc) hp_us h_us_verts h_mem h_white_in_us h_respects' h_ng'
+            · exact hinv.acc_scc C' hC'_acc
+          have hinv' : G.KosarajuSCCInvariant us s' (comp :: acc) := {
+            acc_scc := h_mem
+            white_in_vs := h_white_in_us
+            scc_monochrome := h_respects'
+            no_gray := h_ng'
+          }
+          have h_ih := ih s' (comp :: acc) hp_us h_us_verts hinv'
           simpa [s', comp, dfsFromListCollect, hu_white] using h_ih
         · -- u non-white: skip
           have h_white_in_us : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ us := by
-            exact white_vertices_in_tail_of_head_not_white G hu_white h_white_in_vs
-          have h_ih := ih s acc hp_us h_us_verts h_acc h_white_in_us h_respects h_ng
+            exact white_vertices_in_tail_of_head_not_white G hu_white hinv.white_in_vs
+          have hinv' : G.KosarajuSCCInvariant us s acc := {
+            acc_scc := hinv.acc_scc
+            white_in_vs := h_white_in_us
+            scc_monochrome := hinv.scc_monochrome
+            no_gray := hinv.no_gray
+          }
+          have h_ih := ih s acc hp_us h_us_verts hinv'
           simpa [dfsFromListCollect, hu_white] using h_ih
 
   -- 5. Apply to initial state
-  have h_init_sccs : ∀ C ∈ ([] : List (Finset V)), G.IsSCC (C : Set V) := by
-    intro C h; simp at h
-  have h_init_respects : G.SCCMonochrome (dfsInit (V := V)) := by
-    intro K _; left; intro v _; rfl
-  have h_init_ng : ∀ v, (dfsInit (V := V)).color v = Color.white ∨
-      (dfsInit (V := V)).color v = Color.black := by
-    intro v; left; rfl
   have h_init_white_in_order : ∀ v, v ∈ G.vertices →
       (dfsInit (V := V)).color v = Color.white → v ∈ order := by
     intro v hvV _
     exact h_order_contains v hvV
+  have h_init_invariant : G.KosarajuSCCInvariant order dfsInit ([] : List (Finset V)) := {
+    acc_scc := by intro C h; simp at h
+    white_in_vs := h_init_white_in_order
+    scc_monochrome := by intro K _; left; intro v _; rfl
+    no_gray := by intro v; left; rfl
+  }
   have h_all_sccs := h_main order dfsInit [] h_pairwise_le h_order_verts
-    h_init_sccs h_init_white_in_order h_init_respects h_init_ng
+    h_init_invariant
   have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C hC
   exact ⟨hC_scc.2.2.1, hC_scc.2.2.2⟩
 
