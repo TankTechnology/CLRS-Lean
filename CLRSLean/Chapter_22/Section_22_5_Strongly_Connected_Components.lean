@@ -1225,6 +1225,73 @@ lemma kosaraju_visit_preserves_scc_monochrome {s : DFSState V} {u : V}
       exact kosaraju_visit_preserves_disjoint_white_scc G hu hu_white hK hw hK_eq hmax hrespects hng
   · right; intro v hv; exact dfsVisit_preserves_black G.transpose (hb v hv)
 
+/-- The SCC-specific induction for Kosaraju's second pass.
+
+If the remaining roots are in non-increasing first-pass finish-time order and
+the SCC invariant holds for the current state, then every component collected
+from this suffix is an SCC of {lit}`G`. -/
+lemma dfsFromListCollect_kosaraju_sccs {fuel : Nat} (hfuel_eq : fuel = G.vertices.card + 1)
+    (vs : List V) (s : DFSState V) (acc : List (Finset V))
+    (hp_vs : vs.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a))
+    (hvs_verts : ∀ v ∈ vs, v ∈ G.transpose.vertices)
+    (hinv : G.KosarajuSCCInvariant vs s acc) :
+    let (acc', _) := dfsFromListCollect G.transpose fuel vs s acc
+    ∀ C ∈ acc', G.IsSCC (C : Set V) := by
+  have hfuel : fuel ≥ G.transpose.vertices.card + 1 := by
+    rw [hfuel_eq]
+    simp
+  have hfuel_pos : 0 < fuel := by
+    rw [hfuel_eq]
+    omega
+  induction vs generalizing s acc with
+  | nil => simp [dfsFromListCollect]; exact hinv.acc_scc
+  | cons u us ih =>
+      simp [dfsFromListCollect]
+      rcases List.pairwise_cons.mp hp_vs with ⟨h_u_head, hp_us⟩
+      have hu_vert : u ∈ G.transpose.vertices := hvs_verts u (by simp)
+      have h_us_verts : ∀ v ∈ us, v ∈ G.transpose.vertices := by
+        intro v hv; apply hvs_verts v; simp [hv]
+      by_cases hu_white : s.color u = Color.white
+      · let s' := dfsVisit G.transpose fuel u s
+        let comp := G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
+        have hmax_u : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
+          exact white_finish_le_head_of_pairwise_order G hp_vs hinv.white_in_vs
+        have h_comp_scc : G.IsSCC (comp : Set V) :=
+          scc_finish_order hu_vert hu_white hmax_u hfuel hinv.scc_monochrome
+        have hu_black_s' : s'.color u = Color.black := by
+          simpa [s'] using dfsVisit_blackens_u_pos G.transpose hfuel_pos hu_white
+        have h_white_in_us : ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
+          exact white_vertices_in_tail_after_visit G G.transpose rfl hu_black_s'
+            hinv.no_gray hinv.white_in_vs
+        have h_respects' : G.SCCMonochrome s' := by
+          simpa [s', hfuel_eq] using
+            kosaraju_visit_preserves_scc_monochrome G hu_vert hu_white hmax_u
+              hinv.scc_monochrome hinv.no_gray
+        have h_ng' : ∀ v, s'.color v = Color.white ∨ s'.color v = Color.black :=
+          dfsVisit_output_no_gray G.transpose hinv.no_gray
+        have h_mem : ∀ C' ∈ (comp :: acc), G.IsSCC (C' : Set V) := by
+          intro C' hC'; rcases List.mem_cons.mp hC' with (rfl | hC'_acc)
+          · exact h_comp_scc
+          · exact hinv.acc_scc C' hC'_acc
+        have hinv' : G.KosarajuSCCInvariant us s' (comp :: acc) := {
+          acc_scc := h_mem
+          white_in_vs := h_white_in_us
+          scc_monochrome := h_respects'
+          no_gray := h_ng'
+        }
+        have h_ih := ih s' (comp :: acc) hp_us h_us_verts hinv'
+        simpa [s', comp, dfsFromListCollect, hu_white] using h_ih
+      · have h_white_in_us : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ us := by
+          exact white_vertices_in_tail_of_head_not_white G hu_white hinv.white_in_vs
+        have hinv' : G.KosarajuSCCInvariant us s acc := {
+          acc_scc := hinv.acc_scc
+          white_in_vs := h_white_in_us
+          scc_monochrome := hinv.scc_monochrome
+          no_gray := hinv.no_gray
+        }
+        have h_ih := ih s acc hp_us h_us_verts hinv'
+        simpa [dfsFromListCollect, hu_white] using h_ih
+
 /-! ## SCC correctness core -/
 
 /-- Core DFS-theoretic lemma: every component returned by
@@ -1241,9 +1308,6 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   simp [kosarajuComponents] at hC
   let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
   let fuel := G.vertices.card + 1
-  have hfuel : fuel ≥ G.transpose.vertices.card + 1 := by
-    simp [fuel]
-  have hfuel_pos : 0 < fuel := by omega
   have h_order_verts : ∀ v, v ∈ order → v ∈ G.transpose.vertices := by
     simp [order]
   have h_order_contains : ∀ v, v ∈ G.vertices → v ∈ order := by
@@ -1252,73 +1316,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   have h_pairwise_le : order.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
     simpa [order] using kosaraju_order_pairwise_finish_le G
 
-  -- 3. Main induction over dfsFromListCollect
-  have h_main : ∀ (vs : List V) (s : DFSState V) (acc : List (Finset V)),
-      vs.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) →
-      (∀ v ∈ vs, v ∈ G.transpose.vertices) →
-      G.KosarajuSCCInvariant vs s acc →
-      let (acc', _) := dfsFromListCollect G.transpose fuel vs s acc
-      ∀ C ∈ acc', G.IsSCC (C : Set V) := by
-    intro vs s acc hp_vs hvs_verts hinv
-    induction vs generalizing s acc with
-    | nil => simp [dfsFromListCollect]; exact hinv.acc_scc
-    | cons u us ih =>
-        simp [dfsFromListCollect]
-        rcases List.pairwise_cons.mp hp_vs with ⟨h_u_head, hp_us⟩
-        have hu_vert : u ∈ G.transpose.vertices := hvs_verts u (by simp)
-        have h_us_verts : ∀ v ∈ us, v ∈ G.transpose.vertices := by
-          intro v hv; apply hvs_verts v; simp [hv]
-        by_cases hu_white : s.color u = Color.white
-        · -- Process white u
-          let s' := dfsVisit G.transpose fuel u s
-          let comp := G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
-          -- hmax
-          have hmax_u : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
-            exact white_finish_le_head_of_pairwise_order G hp_vs hinv.white_in_vs
-          -- comp is an SCC
-          have h_comp_scc : G.IsSCC (comp : Set V) :=
-            scc_finish_order hu_vert hu_white hmax_u hfuel hinv.scc_monochrome
-          -- u becomes black in s'
-          have hu_black_s' : s'.color u = Color.black := by
-            simpa [s'] using dfsVisit_blackens_u_pos G.transpose hfuel_pos hu_white
-          -- Preserve white→vs invariant (P4)
-          have h_white_in_us : ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
-            exact white_vertices_in_tail_after_visit G G.transpose rfl hu_black_s'
-              hinv.no_gray hinv.white_in_vs
-          -- Preserve SCC monochromatic invariant (P5)
-          have h_respects' : G.SCCMonochrome s' := by
-            simpa [s', fuel] using
-              kosaraju_visit_preserves_scc_monochrome G hu_vert hu_white hmax_u
-                hinv.scc_monochrome hinv.no_gray
-          -- Preserve no-gray invariant (P6)
-          have h_ng' : ∀ v, s'.color v = Color.white ∨ s'.color v = Color.black :=
-            dfsVisit_output_no_gray G.transpose hinv.no_gray
-          -- Recurse
-          have h_mem : ∀ C' ∈ (comp :: acc), G.IsSCC (C' : Set V) := by
-            intro C' hC'; rcases List.mem_cons.mp hC' with (rfl | hC'_acc)
-            · exact h_comp_scc
-            · exact hinv.acc_scc C' hC'_acc
-          have hinv' : G.KosarajuSCCInvariant us s' (comp :: acc) := {
-            acc_scc := h_mem
-            white_in_vs := h_white_in_us
-            scc_monochrome := h_respects'
-            no_gray := h_ng'
-          }
-          have h_ih := ih s' (comp :: acc) hp_us h_us_verts hinv'
-          simpa [s', comp, dfsFromListCollect, hu_white] using h_ih
-        · -- u non-white: skip
-          have h_white_in_us : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ us := by
-            exact white_vertices_in_tail_of_head_not_white G hu_white hinv.white_in_vs
-          have hinv' : G.KosarajuSCCInvariant us s acc := {
-            acc_scc := hinv.acc_scc
-            white_in_vs := h_white_in_us
-            scc_monochrome := hinv.scc_monochrome
-            no_gray := hinv.no_gray
-          }
-          have h_ih := ih s acc hp_us h_us_verts hinv'
-          simpa [dfsFromListCollect, hu_white] using h_ih
-
-  -- 5. Apply to initial state
+  -- Apply the second-pass induction to the initial state.
   have h_init_white_in_order : ∀ v, v ∈ G.vertices →
       (dfsInit (V := V)).color v = Color.white → v ∈ order := by
     intro v hvV _
@@ -1329,9 +1327,9 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
     scc_monochrome := by intro K _; left; intro v _; rfl
     no_gray := by intro v; left; rfl
   }
-  have h_all_sccs := h_main order dfsInit [] h_pairwise_le h_order_verts
-    h_init_invariant
-  have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C hC
+  have h_all_sccs := dfsFromListCollect_kosaraju_sccs G (fuel := fuel) (by rfl) order dfsInit []
+    h_pairwise_le h_order_verts h_init_invariant
+  have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C (by simpa [fuel] using hC)
   exact ⟨hC_scc.2.2.1, hC_scc.2.2.2⟩
 
 /-- The components returned by {name}`Graph.kosarajuComponents` are exactly the
