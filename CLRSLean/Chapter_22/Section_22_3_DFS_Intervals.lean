@@ -1071,16 +1071,39 @@ theorem IsDFSAncestor.single {s : DFSState V} {u v : V}
 
 /-- A parent edge recorded by any DFS computation is always a graph edge. -/
 theorem dfsFromList_preserves_parent_edge {fuel : Nat} {s0 : DFSState V} {vs : List V}
-    (hfuel : 0 < fuel)
-    (hinv : ∀ u v, s0.parent v = some u → s0.color v ≠ Color.white → G.Adj u v) :
+    (hinv : ∀ u v, s0.parent v = some u → G.Adj u v) :
     ∀ u v, (dfsFromList G fuel vs s0).parent v = some u →
-      (dfsFromList G fuel vs s0).color v ≠ Color.white → G.Adj u v := by
-  sorry
+      G.Adj u v := by
+  induction vs generalizing s0 with
+  | nil =>
+      intro u v hparent
+      simpa [dfsFromList] using hinv u v hparent
+  | cons u us ih =>
+      intro x y hparent
+      simp [dfsFromList] at hparent
+      by_cases hwhite : s0.color u = Color.white
+      · rw [if_pos hwhite] at hparent
+        have hinv' : ∀ x y, (dfsVisit G fuel u s0).parent y = some x → G.Adj x y :=
+          dfsVisit_preserves_parent_edge G hinv
+        exact ih hinv' x y hparent
+      · rw [if_neg hwhite] at hparent
+        exact ih hinv x y hparent
 
 /-- Every DFS ancestor in the full DFS forest is reachable in the graph. -/
 theorem IsDFSAncestor_reachable {u v : V}
     (h : IsDFSAncestor (G.dfs) u v) : G.Reachable u v := by
-  sorry
+  have hparent_edge : ∀ x y, (G.dfs).parent y = some x → G.Adj x y := by
+    have hinv_init : ∀ x y, (dfsInit (V := V)).parent y = some x → G.Adj x y := by
+      intro x y hparent
+      simp [dfsInit] at hparent
+    simpa [dfs] using
+      (dfsFromList_preserves_parent_edge (G := G) (fuel := G.vertices.card + 1)
+        (s0 := dfsInit) (vs := G.vertices.toList) hinv_init)
+  induction h with
+  | refl =>
+      exact G.reachable_refl u
+  | tail hxy hyz ih =>
+      exact G.reachable_trans ih (G.reachable_adj (hparent_edge _ _ hyz))
 
 end Intervals
 

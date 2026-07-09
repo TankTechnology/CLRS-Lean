@@ -164,7 +164,7 @@ noncomputable def dfsFromListCollect (G : Graph V) (fuel : Nat) :
 /-- Finish-time comparison used to sort vertices in decreasing order. -/
 @[irreducible]
 def finishLe (s : DFSState V) (u v : V) : Bool :=
-  Nat.blt ((s.f v).getD 0) ((s.f u).getD 0)
+  decide (finishTime s v ≤ finishTime s u)
 
 /-- Kosaraju's algorithm: DFS on {lit}`G` for finish times, then DFS on
 {lit}`Gᵀ` in decreasing finish-time order, collecting each DFS tree. -/
@@ -371,9 +371,9 @@ theorem isSCC_sccOf {r : V} (hr : r ∈ G.vertices) : G.IsSCC (G.sccOf r) := by
   · intro w hw hsc
     exact hsc r (stronglyConnected_refl G r)
 
-theorem finishLe_iff_lt {s : DFSState V} {u v : V} :
-    finishLe s u v ↔ finishTime s v < finishTime s u := by
-  simp [finishLe, finishTime]
+theorem finishLe_iff_le {s : DFSState V} {u v : V} :
+    finishLe s u v ↔ finishTime s v ≤ finishTime s u := by
+  simp [finishLe]
 
 theorem WhiteReachable.of_reachable_through_set {s : DFSState V} {u v : V} {S : Set V}
     (hS : ∀ w, G.Reachable u w → G.Reachable w v → w ∈ S)
@@ -1066,14 +1066,21 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
     simpa
 
   -- 2. Sortedness: `order` is Pairwise (finishTime b ≤ finishTime a).
-  --    `order = mergeSort (finishLe (G.dfs)) G.vertices.toList`.  Since `finishLe`
-  --    is irreflexive (`Nat.blt`), `List.pairwise_mergeSort` cannot be applied
-  --    directly (it requires `le a a = true`).  The fix uses `decide (≤)` as an
-  --    equivalent non-strict comparison, plus a mergeSort congruence lemma.
-  --    Deferred: one self-contained lemma about mergeSort with equivalent
-  --    comparisons on the input list.
+  --    `finishLe` is the boolean form of this non-strict comparison, so the
+  --    standard merge-sort pairwise theorem applies directly.
   have h_pairwise_le : order.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
-    sorry
+    have hpair : order.Pairwise (fun a b => finishLe (G.dfs) a b = true) := by
+      dsimp [order]
+      apply List.pairwise_mergeSort
+      · intro a b c hab hbc
+        simp [finishLe] at hab hbc ⊢
+        omega
+      · intro a b
+        simp [finishLe]
+        exact Nat.le_total (finishTime (G.dfs) b) (finishTime (G.dfs) a)
+    exact hpair.imp (by
+      intro a b hab
+      simpa [finishLe] using hab)
 
   -- 3. head-max lemma for ≤ (non-strict)
   have h_head_max_le : ∀ (u : V) (us : List V),
@@ -1290,4 +1297,3 @@ end Graph
 
 end Chapter22
 end CLRS
-

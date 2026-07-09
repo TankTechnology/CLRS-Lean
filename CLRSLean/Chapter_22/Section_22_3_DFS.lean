@@ -1007,13 +1007,60 @@ theorem dfsVisit_fold_preserves_f_of_black {n : Nat} {u v : V} (s1 : DFSState V)
         exact ih s1 hb
 
 /-- A DFS visit preserves the invariant that every parent edge points to a graph
-neighbor of the child, provided the child is no longer white. -/
+neighbor of the child. -/
 theorem dfsVisit_preserves_parent_edge {fuel : Nat} {u : V} {s : DFSState V}
-    (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
-    (hinv : ∀ x y, s.parent y = some x → s.color y ≠ Color.white → G.Adj x y) :
+    (hinv : ∀ x y, s.parent y = some x → G.Adj x y) :
     ∀ x y, (dfsVisit G fuel u s).parent y = some x →
-      (dfsVisit G fuel u s).color y ≠ Color.white → G.Adj x y := by
-  sorry
+      G.Adj x y := by
+  induction fuel generalizing u s with
+  | zero =>
+      simpa [dfsVisit] using hinv
+  | succ n ih =>
+      by_cases hwhite : s.color u = Color.white
+      · simp [dfsVisit, hwhite]
+        let s1 := s.setColor u Color.gray |>.setDiscovery u
+        let step := fun (s' : DFSState V) (w : V) =>
+          if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s'
+        have hinv_s1 : ∀ x y, s1.parent y = some x → G.Adj x y := by
+          intro x y hparent
+          exact hinv x y (by simpa [s1] using hparent)
+        have hfold : ∀ (l : List V) (s' : DFSState V),
+            (∀ w ∈ l, G.Adj u w) →
+            (∀ x y, s'.parent y = some x → G.Adj x y) →
+            ∀ x y, (List.foldl step s' l).parent y = some x → G.Adj x y := by
+          intro l
+          induction l with
+          | nil =>
+              intro s' _ hinv' x y hparent
+              simpa [step] using hinv' x y hparent
+          | cons w ws ih_ws =>
+              intro s' hadj hinv' x y hparent
+              have hw_adj : G.Adj u w := hadj w (by simp)
+              have hws_adj : ∀ z ∈ ws, G.Adj u z := by
+                intro z hz
+                exact hadj z (by simp [hz])
+              dsimp [step] at hparent
+              by_cases hw : s'.color w = Color.white
+              · rw [if_pos hw] at hparent
+                have hinv_parent : ∀ x y, (s'.setParent w u).parent y = some x → G.Adj x y := by
+                  intro x y hpy
+                  by_cases hy : y = w
+                  · subst y
+                    simp at hpy
+                    cases hpy
+                    exact hw_adj
+                  · have h_old : s'.parent y = some x := by
+                      simpa [hy] using hpy
+                    exact hinv' x y h_old
+                exact ih_ws (dfsVisit G n w (s'.setParent w u)) hws_adj
+                  (ih (u := w) (s := s'.setParent w u) hinv_parent) x y hparent
+              · rw [if_neg hw] at hparent
+                exact ih_ws s' hws_adj hinv' x y hparent
+        have h_adj_list : ∀ w ∈ (G.adj u).toList, G.Adj u w := by
+          intro w hw
+          simpa [Adj] using (Finset.mem_toList.mp hw)
+        exact hfold (G.adj u).toList s1 h_adj_list hinv_s1
+      · simpa [dfsVisit, hwhite] using hinv
 
 /-- In a state produced by DFS, every black vertex finished strictly before the
 current clock value. -/
