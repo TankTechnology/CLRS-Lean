@@ -55,7 +55,9 @@ need them.
 
 ## 6. Verification
 
-Run the narrow file check, the interface check, and the library build when the
+Use the fast verification loop in
+[`lean-fast-verification.md`](lean-fast-verification.md) while developing.  Run
+the narrow file check, the interface check, and the library build when the
 environment has Mathlib available:
 
 ```bash
