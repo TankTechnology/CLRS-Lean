@@ -1049,7 +1049,200 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
     (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧
     (∀ w ∈ G.vertices, (∀ u ∈ C, G.StronglyConnected u w) → w ∈ C) := by
-  sorry
+  -- 1. Setup
+  simp [kosarajuComponents] at hC
+  let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
+  let fuel := G.vertices.card + 1
+  have hfuel : fuel ≥ G.transpose.vertices.card + 1 := by
+    simp [fuel]
+  have hfuel_pos : 0 < fuel := by omega
+  have hperm : order.Perm G.vertices.toList := by
+    simpa [order] using List.mergeSort_perm G.vertices.toList (finishLe (G.dfs))
+  have h_order_verts : ∀ v, v ∈ order → v ∈ G.transpose.vertices := by
+    intro v hv
+    have hvG : v ∈ G.vertices := by
+      have : v ∈ G.vertices.toList := (hperm.mem_iff).mp hv
+      simpa [Finset.mem_toList] using this
+    simpa
+
+  -- 2. Sortedness: order is Pairwise (finishTime b ≤ finishTime a).
+  --    This holds because `order = mergeSort (finishLe (G.dfs))` and mergeSort
+  --    produces a list sorted by the comparison.  The formal proof requires a
+  --    lemma about `mergeSort` with a non-strict total order (since `finishLe`
+  --    is irreflexive and `List.pairwise_mergeSort` requires reflexivity).
+  --    Deferred: one small lemma about `mergeSort` output order.
+  have h_pairwise_le : order.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
+    sorry
+
+  -- 3. head-max lemma for ≤ (non-strict)
+  have h_head_max_le : ∀ (u : V) (us : List V),
+      (u :: us).Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) →
+      ∀ v ∈ us, finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
+    intro u us hp v hv
+    induction us generalizing u with
+    | nil => simp at hv
+    | cons w ws ih =>
+        rcases List.pairwise_cons.mp hp with ⟨h_uw, hp'⟩
+        have hle_w_u : finishTime (G.dfs) w ≤ finishTime (G.dfs) u := h_uw w (by simp)
+        rcases List.mem_cons.mp hv with (rfl | hv')
+        · exact hle_w_u
+        · have hle : finishTime (G.dfs) v ≤ finishTime (G.dfs) w := ih w hp' hv'
+          omega
+
+  -- 4. Main induction over dfsFromListCollect
+  have h_main : ∀ (vs : List V) (s : DFSState V) (acc : List (Finset V)),
+      vs.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) →
+      (∀ v ∈ vs, v ∈ G.transpose.vertices) →
+      (∀ C ∈ acc, G.IsSCC (C : Set V)) →
+      (∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ vs) →
+      (∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨ (∀ v ∈ K, s.color v = Color.black)) →
+      (∀ v, s.color v = Color.white ∨ s.color v = Color.black) →
+      let (acc', _) := dfsFromListCollect G.transpose fuel vs s acc
+      ∀ C ∈ acc', G.IsSCC (C : Set V) := by
+    intro vs s acc hp_vs hvs_verts h_acc h_white_in_vs h_respects h_ng
+    induction vs generalizing s acc with
+    | nil => simp [dfsFromListCollect]; exact h_acc
+    | cons u us ih =>
+        simp [dfsFromListCollect]
+        rcases List.pairwise_cons.mp hp_vs with ⟨h_u_head, hp_us⟩
+        have hu_vert : u ∈ G.transpose.vertices := hvs_verts u (by simp)
+        have h_us_verts : ∀ v ∈ us, v ∈ G.transpose.vertices := by
+          intro v hv; apply hvs_verts v; simp [hv]
+        by_cases hu_white : s.color u = Color.white
+        · -- Process white u
+          let s' := dfsVisit G.transpose fuel u s
+          let comp := G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
+          -- hmax
+          have hmax_u : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
+            intro v hv_white
+            by_cases hvV : v ∈ G.vertices
+            · have hv_in_vs : v ∈ u :: us := h_white_in_vs v hvV hv_white
+              rcases List.mem_cons.mp hv_in_vs with (rfl | hv_us)
+              · rfl
+              · exact h_head_max_le u us hp_vs v hv_us
+            · rw [finishTime_zero_of_not_mem_vertices G hvV]; omega
+          -- comp is an SCC
+          have h_comp_scc : G.IsSCC (comp : Set V) :=
+            scc_finish_order hu_vert hu_white hmax_u hfuel h_respects
+          -- u becomes black in s'
+          have hu_black_s' : s'.color u = Color.black := by
+            simpa [s'] using dfsVisit_blackens_u_pos G.transpose hfuel_pos hu_white
+          -- G.sccOf u is all-white in s
+          have h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white := by
+            rcases h_respects (G.sccOf u) (isSCC_sccOf G (by simpa using hu_vert)) with (hw | hb)
+            · exact hw
+            · have : s.color u = Color.black := hb u (stronglyConnected_refl G u)
+              simp [this] at hu_white
+          -- Preserve white→vs invariant (P4)
+          have h_white_in_us : ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
+            intro x hxV hx_white_s'
+            by_cases hx_in_us : x ∈ us
+            · exact hx_in_us
+            · have hx_white_s : s.color x = Color.white := by
+                by_contra hnot
+                have hblack_s : s.color x = Color.black := by
+                  cases h_ng x with | inl hw => exact absurd hw hnot | inr hb => exact hb
+                have hblack_s' : s'.color x = Color.black :=
+                  dfsVisit_preserves_black G.transpose hblack_s
+                rw [hblack_s'] at hx_white_s'; simp at hx_white_s'
+              have hx_in_vs : x ∈ u :: us := h_white_in_vs x hxV hx_white_s
+              rcases List.mem_cons.mp hx_in_vs with (rfl | h)
+              · rw [hu_black_s'] at hx_white_s'; simp at hx_white_s'
+              · exact absurd h hx_in_us
+          -- Preserve SCC monochromatic invariant (P5)
+          have h_respects' : ∀ K, G.IsSCC K → (∀ v ∈ K, s'.color v = Color.white) ∨
+              (∀ v ∈ K, s'.color v = Color.black) := by
+            intro K hK
+            rcases h_respects K hK with (hw | hb)
+            · by_cases hK_eq : (K : Set V) = G.sccOf u
+              · subst hK_eq; right
+                intro v hv
+                have hpath : G.transpose.Reachable u v := by
+                  rw [transpose_reachable G]
+                  exact ((isSCC_sccOf G (by simpa using hu_vert)).2.2.1 v hv u
+                    (stronglyConnected_refl G u)).1
+                have h_wr : WhiteReachable G.transpose s u v :=
+                  WhiteReachable.of_reachable_through_set G.transpose
+                    (fun w h1 h2 => by
+                      have h_sccT : G.transpose.IsSCC (G.transpose.sccOf u) :=
+                        isSCC_sccOf G.transpose (by simpa using hu_vert)
+                      have hu_sccT : u ∈ G.transpose.sccOf u := stronglyConnected_refl G.transpose u
+                      have hv_sccT : v ∈ G.transpose.sccOf u := by
+                        rw [transpose_sccOf_eq G u]; exact hv
+                      have hw_sccT : w ∈ G.transpose.sccOf u :=
+                        IsSCC.path_mem G.transpose h_sccT hu_sccT hv_sccT h1 h2
+                      rw [transpose_sccOf_eq G u] at hw_sccT; exact hw_sccT)
+                    (fun w hw => h_sccOf_u_white w hw) hpath
+                have hfuel_wr : fuel ≥ (whiteReachableSet G.transpose s u).card + 1 := by
+                  have hcard_wr : (whiteReachableSet G.transpose s u).card ≤ G.transpose.vertices.card :=
+                    Finset.card_le_card (whiteReachableSet_subset_vertices G.transpose s u hu_vert)
+                  have htcard : G.transpose.vertices.card = G.vertices.card := by simp
+                  have hfuel_eq : fuel = G.vertices.card + 1 := rfl
+                  omega
+                have h_mem_set : v ∈ whiteReachableSet G.transpose s u :=
+                  WhiteReachable.mem_set G.transpose hu_vert h_wr
+                exact dfsVisit_white_path_black G.transpose hu_white hu_vert hfuel_wr h_mem_set
+              · have h_disjoint : Disjoint (K : Set V) (G.sccOf u) :=
+                  (IsSCC_eq_or_disjoint G hK (isSCC_sccOf G (by simpa using hu_vert))).resolve_left hK_eq
+                left; intro v hvK
+                have hv_not_scc : v ∉ G.sccOf u :=
+                  (Set.disjoint_left.mp h_disjoint) hvK
+                have hv_not_wr : v ∉ whiteReachableSet G.transpose s u := by
+                  intro hwr; apply hv_not_scc
+                  exact whiteReachableSet_subset_scc G hu_vert hu_white hmax_u h_respects hwr
+                have hfuel_wr2 : fuel ≥ (whiteReachableSet G.transpose s u).card + 1 := by
+                  have hcard_wr : (whiteReachableSet G.transpose s u).card ≤ G.transpose.vertices.card :=
+                    Finset.card_le_card (whiteReachableSet_subset_vertices G.transpose s u hu_vert)
+                  have htcard : G.transpose.vertices.card = G.vertices.card := by simp
+                  have hfuel_eq : fuel = G.vertices.card + 1 := rfl
+                  omega
+                have h_not_black : s'.color v ≠ Color.black := by
+                  dsimp [s']
+                  have hiff := dfsVisit_blackens_iff_whiteReachable G.transpose hu_white hu_vert
+                    (hw v hvK) hfuel_wr2
+                  rw [hiff]; exact hv_not_wr
+                have h_ng_s' : ∀ w, s'.color w = Color.white ∨ s'.color w = Color.black :=
+                  dfsVisit_output_no_gray G.transpose h_ng
+                cases h_ng_s' v with | inl hw' => exact hw' | inr hb' => exact absurd hb' h_not_black
+            · right; intro v hv; apply dfsVisit_preserves_black G.transpose; exact hb v hv
+          -- Preserve no-gray invariant (P6)
+          have h_ng' : ∀ v, s'.color v = Color.white ∨ s'.color v = Color.black :=
+            dfsVisit_output_no_gray G.transpose h_ng
+          -- Recurse
+          have h_mem : ∀ C' ∈ (comp :: acc), G.IsSCC (C' : Set V) := by
+            intro C' hC'; rcases List.mem_cons.mp hC' with (rfl | hC'_acc)
+            · exact h_comp_scc
+            · exact h_acc C' hC'_acc
+          have h_ih := ih s' (comp :: acc) hp_us h_us_verts h_mem h_white_in_us h_respects' h_ng'
+          simpa [s', comp, dfsFromListCollect, hu_white] using h_ih
+        · -- u non-white: skip
+          have h_white_in_us : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ us := by
+            intro x hxV hx
+            have hx_in_vs : x ∈ u :: us := h_white_in_vs x hxV hx
+            rcases List.mem_cons.mp hx_in_vs with (rfl | hx_us)
+            · exact absurd hx hu_white
+            · exact hx_us
+          have h_ih := ih s acc hp_us h_us_verts h_acc h_white_in_us h_respects h_ng
+          simpa [dfsFromListCollect, hu_white] using h_ih
+
+  -- 5. Apply to initial state
+  have h_init_sccs : ∀ C ∈ ([] : List (Finset V)), G.IsSCC (C : Set V) := by
+    intro C h; simp at h
+  have h_init_respects : ∀ K, G.IsSCC K → (∀ v ∈ K, (dfsInit (V := V)).color v = Color.white) ∨
+      (∀ v ∈ K, (dfsInit (V := V)).color v = Color.black) := by
+    intro K _; left; intro v _; rfl
+  have h_init_ng : ∀ v, (dfsInit (V := V)).color v = Color.white ∨
+      (dfsInit (V := V)).color v = Color.black := by
+    intro v; left; rfl
+  have h_init_white_in_order : ∀ v, v ∈ G.vertices →
+      (dfsInit (V := V)).color v = Color.white → v ∈ order := by
+    intro v hvV _
+    have : v ∈ G.vertices.toList := by simpa [Finset.mem_toList] using hvV
+    exact (hperm.mem_iff).mpr this
+  have h_all_sccs := h_main order dfsInit [] h_pairwise_le h_order_verts
+    h_init_sccs h_init_white_in_order h_init_respects h_init_ng
+  have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C hC
+  exact ⟨hC_scc.2.2.1, hC_scc.2.2.2⟩
 
 /-- The components returned by {name}`Graph.kosarajuComponents` are exactly the
 strongly connected components of {lit}`G`.
