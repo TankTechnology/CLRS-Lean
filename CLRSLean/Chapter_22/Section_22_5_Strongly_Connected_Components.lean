@@ -1123,6 +1123,95 @@ lemma kosaraju_fuel_ge_transpose_whiteReachable {s : DFSState V} {u : V}
   have htcard : G.transpose.vertices.card = G.vertices.card := by simp
   omega
 
+/-- In Kosaraju's second pass, visiting a white vertex blackens every vertex in
+its SCC. -/
+lemma kosaraju_visit_blackens_sccOf {s : DFSState V} {u : V}
+    (hu : u ∈ G.transpose.vertices) (hu_white : s.color u = Color.white)
+    (h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white) :
+    ∀ v ∈ G.sccOf u,
+      (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.black := by
+  intro v hv
+  have hpath : G.transpose.Reachable u v := by
+    rw [transpose_reachable G]
+    exact ((isSCC_sccOf G (by simpa using hu)).2.2.1 v hv u
+      (stronglyConnected_refl G u)).1
+  have h_wr : WhiteReachable G.transpose s u v :=
+    WhiteReachable.of_reachable_through_set G.transpose
+      (fun w h1 h2 => by
+        have h_sccT : G.transpose.IsSCC (G.transpose.sccOf u) :=
+          isSCC_sccOf G.transpose (by simpa using hu)
+        have hu_sccT : u ∈ G.transpose.sccOf u := stronglyConnected_refl G.transpose u
+        have hv_sccT : v ∈ G.transpose.sccOf u := by
+          rw [transpose_sccOf_eq G u]; exact hv
+        have hw_sccT : w ∈ G.transpose.sccOf u :=
+          IsSCC.path_mem G.transpose h_sccT hu_sccT hv_sccT h1 h2
+        rw [transpose_sccOf_eq G u] at hw_sccT; exact hw_sccT)
+      (fun w hw => h_sccOf_u_white w hw) hpath
+  have hfuel_wr : G.vertices.card + 1 ≥ (whiteReachableSet G.transpose s u).card + 1 :=
+    kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu
+  have h_mem_set : v ∈ whiteReachableSet G.transpose s u :=
+    WhiteReachable.mem_set G.transpose hu h_wr
+  exact dfsVisit_white_path_black G.transpose hu_white hu hfuel_wr h_mem_set
+
+/-- In Kosaraju's second pass, a white SCC disjoint from the SCC being visited
+stays white. -/
+lemma kosaraju_visit_preserves_disjoint_white_scc {s : DFSState V} {u : V} {K : Set V}
+    (hu : u ∈ G.transpose.vertices) (hu_white : s.color u = Color.white)
+    (hK : G.IsSCC K) (hK_white : ∀ v ∈ K, s.color v = Color.white)
+    (hK_ne : K ≠ G.sccOf u)
+    (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u)
+    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨
+      (∀ v ∈ K, s.color v = Color.black))
+    (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black) :
+    ∀ v ∈ K, (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.white := by
+  intro v hvK
+  have h_disjoint : Disjoint K (G.sccOf u) :=
+    (IsSCC_eq_or_disjoint G hK (isSCC_sccOf G (by simpa using hu))).resolve_left hK_ne
+  have hv_not_scc : v ∉ G.sccOf u :=
+    (Set.disjoint_left.mp h_disjoint) hvK
+  have hv_not_wr : v ∉ whiteReachableSet G.transpose s u := by
+    intro hwr; apply hv_not_scc
+    exact whiteReachableSet_subset_scc G hu hu_white hmax hrespects hwr
+  have hfuel_wr : G.vertices.card + 1 ≥ (whiteReachableSet G.transpose s u).card + 1 :=
+    kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu
+  have h_not_black : (dfsVisit G.transpose (G.vertices.card + 1) u s).color v ≠ Color.black := by
+    have hiff := dfsVisit_blackens_iff_whiteReachable G.transpose hu_white hu
+      (hK_white v hvK) hfuel_wr
+    intro hb
+    exact hv_not_wr (hiff.mp hb)
+  have h_ng_s' : ∀ w, (dfsVisit G.transpose (G.vertices.card + 1) u s).color w = Color.white ∨
+      (dfsVisit G.transpose (G.vertices.card + 1) u s).color w = Color.black :=
+    dfsVisit_output_no_gray G.transpose hng
+  cases h_ng_s' v with
+  | inl hw => exact hw
+  | inr hb => exact absurd hb h_not_black
+
+/-- A white-started visit in Kosaraju's second pass preserves the invariant that
+each SCC is monochromatic in the current DFS state. -/
+lemma kosaraju_visit_preserves_scc_monochrome {s : DFSState V} {u : V}
+    (hu : u ∈ G.transpose.vertices) (hu_white : s.color u = Color.white)
+    (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u)
+    (hrespects : ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨
+      (∀ v ∈ K, s.color v = Color.black))
+    (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black) :
+    ∀ K, G.IsSCC K → (∀ v ∈ K,
+      (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.white) ∨
+      (∀ v ∈ K, (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.black) := by
+  have h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white := by
+    rcases hrespects (G.sccOf u) (isSCC_sccOf G (by simpa using hu)) with (hw | hb)
+    · exact hw
+    · have : s.color u = Color.black := hb u (stronglyConnected_refl G u)
+      simp [this] at hu_white
+  intro K hK
+  rcases hrespects K hK with (hw | hb)
+  · by_cases hK_eq : K = G.sccOf u
+    · right
+      intro v hv
+      exact kosaraju_visit_blackens_sccOf G hu hu_white h_sccOf_u_white v (by simpa [hK_eq] using hv)
+    · left
+      exact kosaraju_visit_preserves_disjoint_white_scc G hu hu_white hK hw hK_eq hmax hrespects hng
+  · right; intro v hv; exact dfsVisit_preserves_black G.transpose (hb v hv)
+
 /-! ## SCC correctness core -/
 
 /-- Core DFS-theoretic lemma: every component returned by
@@ -1182,63 +1271,14 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
           -- u becomes black in s'
           have hu_black_s' : s'.color u = Color.black := by
             simpa [s'] using dfsVisit_blackens_u_pos G.transpose hfuel_pos hu_white
-          -- G.sccOf u is all-white in s
-          have h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white := by
-            rcases h_respects (G.sccOf u) (isSCC_sccOf G (by simpa using hu_vert)) with (hw | hb)
-            · exact hw
-            · have : s.color u = Color.black := hb u (stronglyConnected_refl G u)
-              simp [this] at hu_white
           -- Preserve white→vs invariant (P4)
           have h_white_in_us : ∀ v, v ∈ G.vertices → s'.color v = Color.white → v ∈ us := by
             exact white_vertices_in_tail_after_visit G G.transpose rfl hu_black_s' h_ng h_white_in_vs
           -- Preserve SCC monochromatic invariant (P5)
           have h_respects' : ∀ K, G.IsSCC K → (∀ v ∈ K, s'.color v = Color.white) ∨
               (∀ v ∈ K, s'.color v = Color.black) := by
-            intro K hK
-            rcases h_respects K hK with (hw | hb)
-            · by_cases hK_eq : (K : Set V) = G.sccOf u
-              · subst hK_eq; right
-                intro v hv
-                have hpath : G.transpose.Reachable u v := by
-                  rw [transpose_reachable G]
-                  exact ((isSCC_sccOf G (by simpa using hu_vert)).2.2.1 v hv u
-                    (stronglyConnected_refl G u)).1
-                have h_wr : WhiteReachable G.transpose s u v :=
-                  WhiteReachable.of_reachable_through_set G.transpose
-                    (fun w h1 h2 => by
-                      have h_sccT : G.transpose.IsSCC (G.transpose.sccOf u) :=
-                        isSCC_sccOf G.transpose (by simpa using hu_vert)
-                      have hu_sccT : u ∈ G.transpose.sccOf u := stronglyConnected_refl G.transpose u
-                      have hv_sccT : v ∈ G.transpose.sccOf u := by
-                        rw [transpose_sccOf_eq G u]; exact hv
-                      have hw_sccT : w ∈ G.transpose.sccOf u :=
-                        IsSCC.path_mem G.transpose h_sccT hu_sccT hv_sccT h1 h2
-                      rw [transpose_sccOf_eq G u] at hw_sccT; exact hw_sccT)
-                    (fun w hw => h_sccOf_u_white w hw) hpath
-                have hfuel_wr : fuel ≥ (whiteReachableSet G.transpose s u).card + 1 := by
-                  simpa [fuel] using kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu_vert
-                have h_mem_set : v ∈ whiteReachableSet G.transpose s u :=
-                  WhiteReachable.mem_set G.transpose hu_vert h_wr
-                exact dfsVisit_white_path_black G.transpose hu_white hu_vert hfuel_wr h_mem_set
-              · have h_disjoint : Disjoint (K : Set V) (G.sccOf u) :=
-                  (IsSCC_eq_or_disjoint G hK (isSCC_sccOf G (by simpa using hu_vert))).resolve_left hK_eq
-                left; intro v hvK
-                have hv_not_scc : v ∉ G.sccOf u :=
-                  (Set.disjoint_left.mp h_disjoint) hvK
-                have hv_not_wr : v ∉ whiteReachableSet G.transpose s u := by
-                  intro hwr; apply hv_not_scc
-                  exact whiteReachableSet_subset_scc G hu_vert hu_white hmax_u h_respects hwr
-                have hfuel_wr2 : fuel ≥ (whiteReachableSet G.transpose s u).card + 1 := by
-                  simpa [fuel] using kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu_vert
-                have h_not_black : s'.color v ≠ Color.black := by
-                  dsimp [s']
-                  have hiff := dfsVisit_blackens_iff_whiteReachable G.transpose hu_white hu_vert
-                    (hw v hvK) hfuel_wr2
-                  rw [hiff]; exact hv_not_wr
-                have h_ng_s' : ∀ w, s'.color w = Color.white ∨ s'.color w = Color.black :=
-                  dfsVisit_output_no_gray G.transpose h_ng
-                cases h_ng_s' v with | inl hw' => exact hw' | inr hb' => exact absurd hb' h_not_black
-            · right; intro v hv; apply dfsVisit_preserves_black G.transpose; exact hb v hv
+            simpa [s', fuel] using
+              kosaraju_visit_preserves_scc_monochrome G hu_vert hu_white hmax_u h_respects h_ng
           -- Preserve no-gray invariant (P6)
           have h_ng' : ∀ v, s'.color v = Color.white ∨ s'.color v = Color.black :=
             dfsVisit_output_no_gray G.transpose h_ng
