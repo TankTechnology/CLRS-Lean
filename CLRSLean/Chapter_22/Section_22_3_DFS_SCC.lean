@@ -291,7 +291,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                 intro z hz
                 have hz0 : s0.color z = Color.black := by
                   simp [s_init] at hz
-                  by_cases hzu : z = u; · subst z; simp [s_init, hu_white] at hz
+                  by_cases hzu : z = u; · subst z; simp at hz
                   · simpa [hzu] using hz
                 have h_fin : finishTime s_init z = finishTime s0 z := by simp [s_init, finishTime]
                 have h_time : s_init.time = s0.time + 1 := by simp [s_init]
@@ -366,7 +366,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                   rw [hs1, dfsVisit, hu_white]
                   -- Goal: (foldl step s_init adj |>.setColor u black |>.setFinish u).d v = some (s2.time)
                   -- setColor/setFinish don't change d[v]
-                  simp only [DFSState.setColor_d, DFSState.setFinish_d]
+                  simp
                   -- Goal: (foldl step s_init (G.adj u).toList).d v = some (s2.time)
                   have h_fold_split := dfsVisit_fold_split_at_white_neighbor G
                     s_init pre post s2 hadj_eq hs2_eq hv_white_s2
@@ -408,7 +408,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                       (u := u) (v := x) (s1 := dfsVisit G (n - 1) v s') (l := post) hnw_visit
                   have h_s1_d_x : s1.d x = s2.d x := by
                     rw [hs1, dfsVisit, hu_white]
-                    simp only [DFSState.setColor_d, DFSState.setFinish_d]
+                    simp
                     calc
                       (List.foldl step s_init (G.adj u).toList).d x
                           = (List.foldl step (dfsVisit G (n - 1) v s') post).d x := by
@@ -537,7 +537,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                         (u := u) (v := w) (s1 := dfsVisit G (n - 1) v s') (l := post) hblack_w
                     have hs1_f_full : s1.f w = (List.foldl step s_init (G.adj u).toList).f w := by
                       rw [hs1, dfsVisit, hu_white]
-                      simpa [step, s_init, hn, hwu]
+                      simp [step, s_init, hn, hwu]
                     have hs1_f : s1.f w =
                         (List.foldl step (dfsVisit G (n - 1) v s') post).f w := by
                       rw [hs1_f_full, h_full_fold]
@@ -648,7 +648,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                             (List.foldl step (dfsVisit G (n - 1) v s') post).color x := by
                         simpa [step, s_init, hn] using congrArg (fun st => st.color x) h_full_fold
                       rw [hs1, dfsVisit, hu_white]
-                      simpa [hxu, h_full_fold_color]
+                      simp [hxu, h_full_fold_color]
                     have h_nonwhite_post :
                         (List.foldl step (dfsVisit G (n - 1) v s') post).color x ≠ Color.white := by
                       intro hpost
@@ -805,7 +805,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                 have hwreach : WhiteReachable G s_input w v :=
                   dfsVisit_blackens_implies_whiteReachable G hwhite_w_input hfuel_rec_pos
                     hwhite_v_input hblack_v_input
-                rcases dfsVisit_discovery_state_with_bridges G h_fuel_input hwhite_w_input
+                rcases dfsVisit_discovery_bridge G h_fuel_input hwhite_w_input
                     hdt_input h_bf_input hdf_input hblack_v_input hwreach hwhite_v_input hgray_input with
                   ⟨s_rec, f_rec, hs_rec_white, hf_rec_black, hdisc_rec, h_nonwhite_rec,
                     h_bf_rec_state, h_gray_rec, h_nonwhite_pres_rec, h_f_pres_rec,
@@ -824,7 +824,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                     dfsVisit_fold_preserves_d_of_not_white G
                       (u := u) (v := x) (s1 := dfsVisit G (n - 1) w s_input) (l := post) hnw_rec
                   rw [hs1, dfsVisit, hu_white]
-                  simp only [DFSState.setColor_d, DFSState.setFinish_d]
+                  simp
                   calc
                     (List.foldl step s_init (G.adj u).toList).d x
                         = (List.foldl step (dfsVisit G (n - 1) w s_input) post).d x := by
@@ -1010,7 +1010,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                               (List.foldl step (dfsVisit G (n - 1) w s_input) post).d x := by
                           simpa [step, s_init, hn] using congrArg (fun st => st.d x) h_full_fold
                         rw [hs1, dfsVisit, hu_white]
-                        simp only [DFSState.setColor_d, DFSState.setFinish_d]
+                        simp
                         exact h_full_fold_d
                       have h_final_d : (dfsFromList G n us s1).d x = s1.d x :=
                         dfsFromList_preserves_d_of_black G hn_pos (x := x) hblack_s1_x
