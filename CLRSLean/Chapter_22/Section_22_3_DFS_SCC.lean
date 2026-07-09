@@ -134,7 +134,7 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
       (∀ w, (dfsVisit G f v s).color w = Color.black →
         finishTime (G.dfs) w = finishTime (dfsVisit G f v s) w) ∧
       (f ≥ (whiteReachableSet G s v).card + 1) ∧
-      (∃ suffix, G.dfs = dfsFromList G n suffix (dfsVisit G f v s)) := by
+      (∃ suffix, G.dfs = dfsFromList G (G.vertices.card + 1) suffix (dfsVisit G f v s)) := by
   set n := G.vertices.card + 1 with hn
   have hn_pos : 0 < n := by
     have hcard := Finset.card_pos.mpr ⟨v, hv⟩
@@ -417,9 +417,8 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
   · intro w hblack
     have h := h_f_pres w hblack
     simpa [h_dfs] using h
-  · rcases h_suffix with ⟨us, h_us⟩
-    use us
-    simpa [h_dfs] using h_us
+  · dsimp [n] at h_suffix
+    simpa [h_dfs, n] using h_suffix
 
 end SCCFinishOrdering
 

@@ -2,13 +2,13 @@ import Mathlib
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_3_DFS
 import CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+import CLRSLean.Chapter_22.Section_22_3_DFS_Bridge
 
 /-! # Section 22.5 - Strongly Connected Components
 
 This section gives Kosaraju's two-pass depth-first-search algorithm for
 computing the strongly connected components of a directed graph on the finite
-graph model from Section 22.1, and proves that the returned components form a
-valid SCC partition.
+graph model from Section 22.1.
 
 The algorithm:
 1. Run DFS on {lit}`G` and record finish times.
@@ -26,12 +26,18 @@ The main declarations are:
 - {lit}`CLRS.Chapter22.Graph.kosarajuComponents`,
 - {lit}`CLRS.Chapter22.Graph.kosarajuComponents_isSCCPartition`.
 
-The current proof establishes the structural partition properties (subsets of
-vertices, pairwise disjointness, and coverage) directly from the DFS collecting
-invariant.  Strong connectivity and maximality of every component reduce to the
-standard DFS finish-time ordering of SCCs; the missing purely DFS-theoretic
-lemma is isolated as {lit}`CLRS.Chapter22.Graph.scc_finish_order` and is the
-next target for this section.
+This file covers the algorithm, structural properties, and the core
+finish-time-ordering lemmas ({lit}`scc_finish_time_order`
+and {lit}`scc_finish_order`), as well as the final SCC correctness
+theorems.
+
+Current gaps:
+
+- The finish-time-ordering proof (`scc_finish_time_order`) is complete
+  (0 `sorry`).
+- `kosarajuComponent_scc_core` (at the end of this file) is **admitted with
+  `sorry`** — it requires formalising the DFS second-pass invariants so that
+  `scc_finish_order` can be applied to each component.
 -/
 
 namespace CLRS
@@ -646,9 +652,11 @@ theorem scc_finish_time_order {C D : Set V}
         have h_white_rC_out : (dfsVisit G f rD s).color rC = Color.white := h_rC_white_out
         have h_nonwhite_final : (G.dfs).color rC ≠ Color.white := by
           rw [G.dfs_all_black (hCsub hrC_mem)]; decide
+        rw [h_us]
+        refine dfsFromList_white_to_nonwhite_disc_ge_time G (by omega) h_bf_out
+          h_white_rC_out ?_
         rw [← h_us]
-        apply dfsFromList_white_to_nonwhite_disc_ge_time G (by omega) h_bf_out
-          h_white_rC_out h_nonwhite_final
+        exact h_nonwhite_final
       omega
     -- All vertices in D finish before rD (white-path, same as Case 1)
     have h_finish_D_lt_rD : ∀ v ∈ D, v ≠ rD → finishTime (G.dfs) v < finishTime (G.dfs) rD := by
@@ -872,6 +880,17 @@ theorem kosarajuComponents_nonempty (G : Graph V) (C : Finset V)
     (kosaraju_order_subset_vertices G) dfsInit [] hinv
   exact hinv'.nonempty C hC
 
+/-!
+## SCC correctness
+
+*The `kosarajuComponent_scc_core` lemma below is the only remaining `sorry`
+in this file.  It requires formalising the DFS second-pass invariants so that
+`scc_finish_order` can be applied to each component collected by
+`kosarajuComponents`.  Once this sorry is closed, all the SCC partition
+theorems (`kosarajuComponents_eq_sccs`, `kosarajuComponents_isSCCPartition`)
+follow mechanically.*
+-/
+
 /-- In a pairwise-disjoint list of finsets, two distinct members cannot share a
 vertex. -/
 theorem unique_mem_of_pairwise_disjoint_cover {ccs : List (Finset V)}
@@ -960,3 +979,4 @@ end Graph
 
 end Chapter22
 end CLRS
+
