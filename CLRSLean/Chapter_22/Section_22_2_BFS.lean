@@ -9,9 +9,9 @@ every vertex reported by BFS is reachable from the source, and every vertex
 reachable from the source is reported by BFS.
 
 The algorithm maintains a set of visited vertices and a FIFO queue.  Each step
-pops a vertex `u` from the queue and enqueues every neighbor of `u` that has not
-been visited yet.  Because the vertex set is finite, a fuel argument equal to the
-number of vertices is enough to ensure termination.
+pops a vertex {lit}`u` from the queue and enqueues every neighbor of {lit}`u`
+that has not been visited yet.  Because the vertex set is finite, a fuel
+argument equal to the number of vertices is enough to ensure termination.
 -/
 
 namespace CLRS
@@ -36,11 +36,11 @@ noncomputable def bfsAux' (G : Graph V) (fuel : Nat) (visited : Finset V) (queue
 
 /-- One step of BFS returns only the visited set.
 
-`bfsAux` is the public interface: it is the first projection of {name}`bfsAux'`. -/
+{lit}`bfsAux` is the public interface: it is the first projection of {name}`bfsAux'`. -/
 noncomputable def bfsAux (G : Graph V) (fuel : Nat) (visited : Finset V) (queue : List V) : Finset V :=
   (bfsAux' G fuel visited queue).1
 
-/-- Breadth-first search from a source vertex `s`.
+/-- Breadth-first search from a source vertex {lit}`s`.
 
 Returns the set of vertices visited by BFS.  The source must belong to the
 graph. -/
