@@ -866,6 +866,19 @@ theorem kosaraju_order_pairwise_finish_le (G : Graph V) :
     intro a b hab
     simpa [finishLe] using hab)
 
+/-- The initial state for Kosaraju's second pass satisfies the SCC-specific
+induction invariant. -/
+lemma kosaraju_initial_scc_invariant (G : Graph V) :
+    let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
+    G.KosarajuSCCInvariant order dfsInit ([] : List (Finset V)) := by
+  intro order
+  refine { acc_scc := ?_, white_in_vs := ?_, scc_monochrome := ?_, no_gray := ?_ }
+  · intro C h; simp at h
+  · intro v hvV _
+    simpa [order] using kosaraju_order_contains_vertices G v hvV
+  · intro K _; left; intro v _; rfl
+  · intro v; left; rfl
+
 theorem kosarajuComponents_subset (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) : (C : Set V) ⊆ G.vertices := by
   simp only [kosarajuComponents] at hC
@@ -1309,24 +1322,14 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
   let fuel := G.vertices.card + 1
   have h_order_verts : ∀ v, v ∈ order → v ∈ G.transpose.vertices := by
-    simp [order]
-  have h_order_contains : ∀ v, v ∈ G.vertices → v ∈ order := by
-    simp [order]
+    exact kosaraju_order_subset_vertices G
 
   have h_pairwise_le : order.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
     simpa [order] using kosaraju_order_pairwise_finish_le G
 
   -- Apply the second-pass induction to the initial state.
-  have h_init_white_in_order : ∀ v, v ∈ G.vertices →
-      (dfsInit (V := V)).color v = Color.white → v ∈ order := by
-    intro v hvV _
-    exact h_order_contains v hvV
-  have h_init_invariant : G.KosarajuSCCInvariant order dfsInit ([] : List (Finset V)) := {
-    acc_scc := by intro C h; simp at h
-    white_in_vs := h_init_white_in_order
-    scc_monochrome := by intro K _; left; intro v _; rfl
-    no_gray := by intro v; left; rfl
-  }
+  have h_init_invariant : G.KosarajuSCCInvariant order dfsInit ([] : List (Finset V)) := by
+    simpa [order] using kosaraju_initial_scc_invariant G
   have h_all_sccs := dfsFromListCollect_kosaraju_sccs G (fuel := fuel) (by rfl) order dfsInit []
     h_pairwise_le h_order_verts h_init_invariant
   have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C (by simpa [fuel] using hC)
