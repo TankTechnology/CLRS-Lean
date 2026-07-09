@@ -920,18 +920,16 @@ property that lets us satisfy the {lit}`hmax` precondition of
 {lit}`scc_finish_order` at each step of the
 second DFS pass. -/
 lemma pairwise_head_max_finishTime (u : V) (us : List V)
-    (hp : (u :: us).Pairwise (fun a b => finishTime (G.dfs) b < finishTime (G.dfs) a))
+    (hp : (u :: us).Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a))
     (v : V) (hv : v ∈ us) :
     finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
   induction us generalizing u with
   | nil => simp at hv
   | cons w ws ih =>
       rcases List.pairwise_cons.mp hp with ⟨h_uw, hp'⟩
-      -- h_uw : ∀ a', a' ∈ (w :: ws) → finishTime (G.dfs) a' < finishTime (G.dfs) u
-      -- This means for w in particular: finishTime w < finishTime u
-      have hlt_w_u : finishTime (G.dfs) w < finishTime (G.dfs) u := h_uw w (by simp)
+      have hle_w_u : finishTime (G.dfs) w ≤ finishTime (G.dfs) u := h_uw w (by simp)
       rcases List.mem_cons.mp hv with (rfl | hv')
-      · omega
+      · exact hle_w_u
       · have hle : finishTime (G.dfs) v ≤ finishTime (G.dfs) w :=
           ih w hp' hv'
         omega
@@ -1076,22 +1074,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
       intro a b hab
       simpa [finishLe] using hab)
 
-  -- 3. head-max lemma for ≤ (non-strict)
-  have h_head_max_le : ∀ (u : V) (us : List V),
-      (u :: us).Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) →
-      ∀ v ∈ us, finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
-    intro u us hp v hv
-    induction us generalizing u with
-    | nil => simp at hv
-    | cons w ws ih =>
-        rcases List.pairwise_cons.mp hp with ⟨h_uw, hp'⟩
-        have hle_w_u : finishTime (G.dfs) w ≤ finishTime (G.dfs) u := h_uw w (by simp)
-        rcases List.mem_cons.mp hv with (rfl | hv')
-        · exact hle_w_u
-        · have hle : finishTime (G.dfs) v ≤ finishTime (G.dfs) w := ih w hp' hv'
-          omega
-
-  -- 4. Main induction over dfsFromListCollect
+  -- 3. Main induction over dfsFromListCollect
   have h_main : ∀ (vs : List V) (s : DFSState V) (acc : List (Finset V)),
       vs.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) →
       (∀ v ∈ vs, v ∈ G.transpose.vertices) →
@@ -1121,7 +1104,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
             · have hv_in_vs : v ∈ u :: us := h_white_in_vs v hvV hv_white
               rcases List.mem_cons.mp hv_in_vs with (rfl | hv_us)
               · rfl
-              · exact h_head_max_le u us hp_vs v hv_us
+              · exact pairwise_head_max_finishTime G u us hp_vs v hv_us
             · rw [finishTime_zero_of_not_mem_vertices G hvV]; omega
           -- comp is an SCC
           have h_comp_scc : G.IsSCC (comp : Set V) :=
