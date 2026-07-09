@@ -9,6 +9,14 @@ and sections into `main proof completed`, `structured but not complete`, and
 `missing core theorem`, so work does not keep cycling back to already completed
 main-proof areas without a specific refinement goal.
 
+## Probability Toolkit
+
+- Lean source: `CLRSLean/Probability/FiniteExpectation.lean`
+- Status: `proved`
+- Provides: `expect` (uniform average), `prob`, `indicator`
+- Main theorems: `expect_add`, `expect_const`, `expect_nonneg`, `prob_singleton`, `prob_add_of_disjoint`
+- Used by: Chapter 5 (Hiring Problem), Chapter 8.4 (Bucket Sort), Chapter 11.2 (Chained Hashing)
+
 ## Chapter 1 - The Role of Algorithms
 
 - Lean source: `CLRSLean/Chapter_01.lean`
@@ -603,6 +611,9 @@ proved comparison-count and recurrence facts.
 
 - Lean source: `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean`
 - Status: `proved` for the expected-comparison recurrence model
+- **Probability model**: `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort_Probability.lean` — proves
+  `P(compared i j) = 2/(j-i+1)` using the uniform random permutation
+  symmetry lemma (`isFirst_prob`).
 - Main proved theorems:
   - `CLRS.Chapter07.harmonic_succ`
   - `CLRS.Chapter07.sum_expectedComparisons_eq`
@@ -613,11 +624,16 @@ proved comparison-count and recurrence facts.
   - `CLRS.Chapter07.expectedComparisons_harmonic_bound`
   - `CLRS.Chapter07.expectedComparisons_quadratic`
   - `CLRS.Chapter07.expectedComparisons_monotone`
+- Probability model theorems:
+  - `CLRS.Chapter07.isFirst_prob` — symmetry lemma: P(s first in S) = 1/|S|
+  - `CLRS.Chapter07.comparedInQuicksort` / `CLRS.Chapter07.compared_prob` — CLRS Thm 7.3
 - Proof pattern: define the CLRS expected-comparison sequence over rationals,
   expose the named closed form, prove the recurrence identity and telescoping
-  relation, then bound the closed form by harmonic-number envelopes
-- Current gap: give the recurrence a formal probability-space semantics for
-  random pivot choices and add sharper `n log n` tail/lower-bound results
+  relation, then bound the closed form by harmonic-number envelopes.
+  The probability model adds uniform random permutation semantics via
+  transposition-symmetry bijection on `Equiv.Perm (Fin n)`.
+- Current gap: asymptotic Θ(n log n) bridge from `compared_prob` to the
+  existing harmonic-number bound
 
 ## Chapter 8 - Sorting in Linear Time
 
