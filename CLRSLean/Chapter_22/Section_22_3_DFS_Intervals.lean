@@ -419,6 +419,44 @@ theorem dfsVisit_fold_preserves_invariants {n : Nat} {u : V} {s1 : DFSState V} {
         exact ih hdt_rec hbf_rec hdf_rec
       · exact ih hdt hbf hdf
 
+/-- Projection of {name}`dfsVisit_fold_preserves_invariants`: the fold
+preserves the discovery-time invariant. -/
+theorem dfsVisit_fold_preserves_discoveryTimeInvariant {n : Nat} {u : V}
+    {s1 : DFSState V} {l : List V}
+    (hdt : DiscoveryTimeInvariant s1)
+    (hbf : ∀ v, s1.color v = Color.black → finishTime s1 v < s1.time)
+    (hdf : DiscoveryFinishInvariant s1) :
+    DiscoveryTimeInvariant (List.foldl (fun (s' : DFSState V) (w : V) =>
+      if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s') s1 l) :=
+  (dfsVisit_fold_preserves_invariants G hdt hbf hdf).1
+
+/-- Projection of {name}`dfsVisit_fold_preserves_invariants`: the fold
+preserves the black-finish-before-clock invariant. -/
+theorem dfsVisit_fold_preserves_black_finish_lt_time {n : Nat} {u : V}
+    {s1 : DFSState V} {l : List V}
+    (hdt : DiscoveryTimeInvariant s1)
+    (hbf : ∀ v, s1.color v = Color.black → finishTime s1 v < s1.time)
+    (hdf : DiscoveryFinishInvariant s1) :
+    ∀ v, (List.foldl (fun (s' : DFSState V) (w : V) =>
+        if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s') s1 l).color v =
+      Color.black →
+      finishTime (List.foldl (fun (s' : DFSState V) (w : V) =>
+        if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s') s1 l) v <
+      (List.foldl (fun (s' : DFSState V) (w : V) =>
+        if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s') s1 l).time :=
+  (dfsVisit_fold_preserves_invariants G hdt hbf hdf).2.1
+
+/-- Projection of {name}`dfsVisit_fold_preserves_invariants`: the fold
+preserves the discovery-before-finish invariant. -/
+theorem dfsVisit_fold_preserves_discoveryFinishInvariant {n : Nat} {u : V}
+    {s1 : DFSState V} {l : List V}
+    (hdt : DiscoveryTimeInvariant s1)
+    (hbf : ∀ v, s1.color v = Color.black → finishTime s1 v < s1.time)
+    (hdf : DiscoveryFinishInvariant s1) :
+    DiscoveryFinishInvariant (List.foldl (fun (s' : DFSState V) (w : V) =>
+      if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s') s1 l) :=
+  (dfsVisit_fold_preserves_invariants G hdt hbf hdf).2.2
+
 /-- Variant of {name}`dfsVisit_fold_blackens_loc_prefix` that also guarantees
 the accumulator satisfies the discovery-time invariant. -/
 theorem dfsVisit_fold_blackens_loc_prefix_full {n : Nat} {u v : V} {s1 : DFSState V}
@@ -442,7 +480,7 @@ theorem dfsVisit_fold_blackens_loc_prefix_full {n : Nat} {u v : V} {s1 : DFSStat
     with ⟨pre, post, w, s2, heq, hs2, h2w, h2v, h2b, h2mono, h2inv⟩
   have hdt2 : DiscoveryTimeInvariant s2 := by
     rw [hs2]
-    exact (dfsVisit_fold_preserves_invariants G hdt hinv hdf).1
+    exact dfsVisit_fold_preserves_discoveryTimeInvariant G hdt hinv hdf
   exact ⟨pre, post, w, s2, heq, hs2, h2w, h2v, h2b, h2mono, h2inv, hdt2⟩
 
 /-- Discovery times of black vertices are preserved by any further
