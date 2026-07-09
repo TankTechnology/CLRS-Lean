@@ -1113,6 +1113,16 @@ lemma white_vertices_in_tail_of_head_not_white {s : DFSState V} {u : V} {us : Li
   · exact absurd hx hu_not_white
   · exact hx_us
 
+/-- The fuel used in Kosaraju's second pass is large enough to blacken any
+white-reachable set in the transpose graph. -/
+lemma kosaraju_fuel_ge_transpose_whiteReachable {s : DFSState V} {u : V}
+    (hu : u ∈ G.transpose.vertices) :
+    G.vertices.card + 1 ≥ (whiteReachableSet G.transpose s u).card + 1 := by
+  have hcard_wr : (whiteReachableSet G.transpose s u).card ≤ G.transpose.vertices.card :=
+    Finset.card_le_card (whiteReachableSet_subset_vertices G.transpose s u hu)
+  have htcard : G.transpose.vertices.card = G.vertices.card := by simp
+  omega
+
 /-! ## SCC correctness core -/
 
 /-- Core DFS-theoretic lemma: every component returned by
@@ -1206,11 +1216,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
                       rw [transpose_sccOf_eq G u] at hw_sccT; exact hw_sccT)
                     (fun w hw => h_sccOf_u_white w hw) hpath
                 have hfuel_wr : fuel ≥ (whiteReachableSet G.transpose s u).card + 1 := by
-                  have hcard_wr : (whiteReachableSet G.transpose s u).card ≤ G.transpose.vertices.card :=
-                    Finset.card_le_card (whiteReachableSet_subset_vertices G.transpose s u hu_vert)
-                  have htcard : G.transpose.vertices.card = G.vertices.card := by simp
-                  have hfuel_eq : fuel = G.vertices.card + 1 := rfl
-                  omega
+                  simpa [fuel] using kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu_vert
                 have h_mem_set : v ∈ whiteReachableSet G.transpose s u :=
                   WhiteReachable.mem_set G.transpose hu_vert h_wr
                 exact dfsVisit_white_path_black G.transpose hu_white hu_vert hfuel_wr h_mem_set
@@ -1223,11 +1229,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
                   intro hwr; apply hv_not_scc
                   exact whiteReachableSet_subset_scc G hu_vert hu_white hmax_u h_respects hwr
                 have hfuel_wr2 : fuel ≥ (whiteReachableSet G.transpose s u).card + 1 := by
-                  have hcard_wr : (whiteReachableSet G.transpose s u).card ≤ G.transpose.vertices.card :=
-                    Finset.card_le_card (whiteReachableSet_subset_vertices G.transpose s u hu_vert)
-                  have htcard : G.transpose.vertices.card = G.vertices.card := by simp
-                  have hfuel_eq : fuel = G.vertices.card + 1 := rfl
-                  omega
+                  simpa [fuel] using kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu_vert
                 have h_not_black : s'.color v ≠ Color.black := by
                   dsimp [s']
                   have hiff := dfsVisit_blackens_iff_whiteReachable G.transpose hu_white hu_vert
