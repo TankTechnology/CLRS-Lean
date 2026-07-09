@@ -411,9 +411,10 @@ theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
 
 /-! ## Graph-theoretic lemmas for SCC finish-time ordering -/
 
-/-- If `x` is the first-discovered vertex of SCC `C` (in `G.dfs`), then `x` can
-reach every vertex in `C`.  This is purely graph-theoretic: it follows from the
-SCC property that every pair in `C` is strongly connected. -/
+/-- If {lit}`x` is the first-discovered vertex of SCC {lit}`C` (in
+{lit}`G.dfs`), then {lit}`x` can reach every vertex in {lit}`C`.  This is
+purely graph-theoretic: it follows from the SCC property that every pair in
+{lit}`C` is strongly connected. -/
 theorem firstDiscovered_reachable_scc {C : Set V} (hC_nonempty : C.Nonempty)
     (hCsub : C ⊆ G.vertices) (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v)
     (v : V) (hv : v ∈ C) :
@@ -423,9 +424,10 @@ theorem firstDiscovered_reachable_scc {C : Set V} (hC_nonempty : C.Nonempty)
   have hrC : r ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
   exact (hCsc r hrC v hv).1
 
-/-- If there is an edge from `u` in SCC `C` to `y` in SCC `D`, then every vertex
-in `C` can reach every vertex in `D`.  This uses the SCC property: within `C`, `x`
-reaches `u`; within `D`, `y` reaches `w`. -/
+/-- If there is an edge from {lit}`u` in SCC {lit}`C` to {lit}`y` in SCC
+{lit}`D`, then every vertex in {lit}`C` can reach every vertex in {lit}`D`.
+This uses the SCC property: within {lit}`C`, {lit}`x` reaches {lit}`u`; within
+{lit}`D`, {lit}`y` reaches {lit}`w`. -/
 theorem reachable_scc_to_scc {C D : Set V} (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v)
     (hDsc : ∀ u ∈ D, ∀ v ∈ D, G.StronglyConnected u v)
     (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v)
@@ -436,8 +438,9 @@ theorem reachable_scc_to_scc {C D : Set V} (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.S
   have hvw : G.Reachable v w := (hDsc v hv w hw).1
   exact G.reachable_trans hxu (G.reachable_trans (G.reachable_adj hadj) hvw)
 
-/-- Distinct SCCs with an edge from `C` to `D` have no path from `D` back to `C`.
-If such a path existed, `C` and `D` would be a single SCC. -/
+/-- Distinct SCCs with an edge from {lit}`C` to {lit}`D` have no path from
+{lit}`D` back to {lit}`C`.  If such a path existed, {lit}`C` and {lit}`D`
+would be a single SCC. -/
 theorem no_reachable_scc_reverse {C D : Set V} (hC : G.IsSCC C) (hD : G.IsSCC D)
     (hne : C ≠ D) (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v) (x y : V)
     (hx : x ∈ D) (hy : y ∈ C) : ¬ G.Reachable x y := by
@@ -466,8 +469,8 @@ theorem no_reachable_scc_reverse {C D : Set V} (hC : G.IsSCC C) (hD : G.IsSCC D)
   have hyD : y ∈ D := hDmax y hyV h_forall
   exact ⟨y, hy, hyD⟩
 
-/-- If `u, v ∈ C` (same SCC) and `w` lies on a path from `u` to `v`, then
-`w ∈ C`.  This is the SCC-path-closure property: SCCs are closed under
+/-- If {lit}`u, v ∈ C` (same SCC) and {lit}`w` lies on a path from {lit}`u` to
+{lit}`v`, then {lit}`w ∈ C`.  This is the SCC-path-closure property: SCCs are closed under
 intermediate vertices on reachability paths. -/
 theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
     (hu : u ∈ C) (hv : v ∈ C) (h1 : G.Reachable u w) (h2 : G.Reachable w v) :
@@ -747,11 +750,11 @@ theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
 
 /-- Core DFS finish-time lemma.
 
-Consider a DFS state `s` of {lit}`G` and a white vertex `r` whose finish time is
+Consider a DFS state {lit}`s` of {lit}`G` and a white vertex {lit}`r` whose finish time is
 maximal among all white vertices.  Then the DFS tree of {lit}`G.transpose` rooted
-at `r` visits exactly the SCC of `r` in {lit}`G`.
+at {lit}`r` visits exactly the SCC of {lit}`r` in {lit}`G`.
 
-The extra `respects` assumption guarantees that every SCC of {lit}`G` is
+The extra {lit}`respects` assumption guarantees that every SCC of {lit}`G` is
 either completely white or completely black in {lit}`s`; this holds during
 Kosaraju's second pass. -/
 theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
@@ -911,9 +914,10 @@ theorem unique_mem_of_pairwise_disjoint_cover {ccs : List (Finset V)}
 
 /-! ## SCC correctness — helper lemmas -/
 
-/-- In a list `u :: us` with `Pairwise (finishLe (G.dfs))`, every element of `us`
-has finish time at most that of `u`.  This is the key property that lets us
-satisfy the `hmax` precondition of `scc_finish_order` at each step of the
+/-- In a list {lit}`u :: us` with {lit}`Pairwise (finishLe (G.dfs))`, every
+element of {lit}`us` has finish time at most that of {lit}`u`.  This is the key
+property that lets us satisfy the {lit}`hmax` precondition of
+{lit}`scc_finish_order` at each step of the
 second DFS pass. -/
 lemma pairwise_head_max_finishTime (u : V) (us : List V)
     (hp : (u :: us).Pairwise (fun a b => finishTime (G.dfs) b < finishTime (G.dfs) a))
@@ -934,9 +938,10 @@ lemma pairwise_head_max_finishTime (u : V) (us : List V)
 
 /-! ## SCC correctness — infrastructure lemmas -/
 
-/-- A `dfsVisit` from a source `u ∈ G.vertices` does not change the `f` field
-of any vertex `v ∉ G.vertices`.  All `f`-changing operations (`setFinish`) are
-on sources or recursively visited neighbours, all of which are in `G.vertices`. -/
+/-- A {name}`dfsVisit` from a source {lit}`u ∈ G.vertices` does not change the
+{lit}`f` field of any vertex {lit}`v ∉ G.vertices`.  All {lit}`f`-changing
+operations ({lit}`setFinish`) are on sources or recursively visited neighbours,
+all of which are in {lit}`G.vertices`. -/
 lemma dfsVisit_preserves_f_of_not_mem_vertices {fuel : Nat} {u v : V} {s : DFSState V}
     (hu : u ∈ G.vertices) (hv : v ∉ G.vertices) :
     (dfsVisit G fuel u s).f v = s.f v := by
@@ -992,8 +997,8 @@ lemma dfsVisit_preserves_f_of_not_mem_vertices {fuel : Nat} {u v : V} {s : DFSSt
         rw [h_s3, h_s2, h_s1]
       · simp [dfsVisit, hwhite]
 
-/-- `dfsFromList` preserves the `f` field of any vertex outside `G.vertices`,
-provided all sources in the list are in `G.vertices`. -/
+/-- {name}`dfsFromList` preserves the {lit}`f` field of any vertex outside
+{lit}`G.vertices`, provided all sources in the list are in {lit}`G.vertices`. -/
 lemma dfsFromList_preserves_f_of_not_mem_vertices (fuel : Nat) (vs : List V) (s : DFSState V)
     (v : V) (hv : v ∉ G.vertices) (hvs : ∀ x ∈ vs, x ∈ G.vertices) :
     (dfsFromList G fuel vs s).f v = s.f v := by
@@ -1011,8 +1016,8 @@ lemma dfsFromList_preserves_f_of_not_mem_vertices (fuel : Nat) (vs : List V) (s 
       · simp [hwhite]
         exact ih s h_us
 
-/-- For a vertex `v ∉ G.vertices`, the first DFS never sets its finish time,
-so `finishTime (G.dfs) v = 0`. -/
+/-- For a vertex {lit}`v ∉ G.vertices`, the first DFS never sets its finish
+time, so {lit}`finishTime (G.dfs) v = 0`. -/
 lemma finishTime_zero_of_not_mem_vertices {v : V} (hv : v ∉ G.vertices) :
     finishTime (G.dfs) v = 0 := by
   have h_f_none : (G.dfs).f v = none := by
