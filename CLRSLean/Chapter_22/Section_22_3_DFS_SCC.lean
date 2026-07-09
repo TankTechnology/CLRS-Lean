@@ -773,8 +773,8 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
                   simpa [s_input, discoveryTime] using hlt
                 have hdf_s2 : DiscoveryFinishInvariant s2 := by
                   rw [hs2_eq]
-                  exact (dfsVisit_fold_preserves_invariants (G := G) (n := n - 1) (u := u)
-                    (s1 := s_init) (l := pre) hdt_init h_bf_init hdf_init).2.2
+                  exact dfsVisit_fold_preserves_discoveryFinishInvariant (G := G) (n := n - 1)
+                    (u := u) (s1 := s_init) (l := pre) hdt_init h_bf_init hdf_init
                 have hdf_input : DiscoveryFinishInvariant s_input := by
                   intro z hblack
                   have hblack2 : s2.color z = Color.black := by

@@ -542,8 +542,8 @@ theorem dfsVisit_discovery_bridge {fuel : Nat} {u v : V} {s : DFSState V}
           simpa [s_input, discoveryTime] using hlt
         have hdf_s2 : DiscoveryFinishInvariant s2_acc := by
           rw [hs2_eq]
-          exact (dfsVisit_fold_preserves_invariants (G := G) (n := n) (u := u)
-            (s1 := s1) (l := pre) hdt_s1 hbf_s1 hdf_s1).2.2
+          exact dfsVisit_fold_preserves_discoveryFinishInvariant (G := G) (n := n) (u := u)
+            (s1 := s1) (l := pre) hdt_s1 hbf_s1 hdf_s1
         have hdf_input : DiscoveryFinishInvariant s_input := by
           intro z hblack
           have hblack2 : s2_acc.color z = Color.black := by
