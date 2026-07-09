@@ -59,7 +59,7 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
               dfsVisit_fold_preserves_d_of_not_white G (u := u) (v := u) s1
                 (l := (G.adj u).toList) (by simp [s1])
             simp [s3, h_s1, h_s2]
-          simpa [discoveryTime, h_s3_d]
+          simp [discoveryTime, h_s3_d]
         · -- v ≠ u: v turned non-white during the fold
           have hwhite_v_s1 : s1.color v = Color.white := by simp [s1, hvu, hwhite_v]
           -- s3.color v = s2.color v (setFinish doesn't change v, v ≠ u)
@@ -140,10 +140,10 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
                 _ = List.foldl step s2_acc (v :: post) := by rw [hs2_eq]
                 _ = List.foldl step (step s2_acc v) post := rfl
                 _ = List.foldl step (dfsVisit G k v (s2_acc.setParent v u)) post := by
-                  simp [step, hw_white, s_rec_in]
+                  simp [step, hw_white]
                 _ = List.foldl step (dfsVisit G k v s_rec_in) post := rfl
             have h_s3_d : s3.d v = (dfsVisit G k v s_rec_in).d v := by
-              simp [s3, h_full_fold, h_d_post, hvu]
+              simp [s3, h_full_fold, h_d_post]
             dsimp [discoveryTime] at h_disc_ge ⊢
             rw [h_s3_d]
             -- h_disc_ge says: (dfsVisit ...).d v .getD 0 ≥ s2_acc.time
@@ -200,7 +200,7 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
                 _ = List.foldl step (dfsVisit G k w s_rec_in) post := by
                   simp [step, hw_white, s_rec_in]
             have h_s3_d : s3.d v = (dfsVisit G k w s_rec_in).d v := by
-              simp [s3, h_full_fold, h_d_post, hvu]
+              simp [s3, h_full_fold, h_d_post]
             dsimp [discoveryTime] at h_disc_ge ⊢
             rw [h_s3_d]
             -- h_disc_ge: discoveryTime (dfsVisit ...) v ≥ s2_acc.time ≥ s.time
@@ -289,13 +289,36 @@ theorem dfsVisit_fold_white_to_nonwhite_disc_ge_time {n : Nat} {u : V} {l : List
       · simp [hw_white] at h_nonwhite_result ⊢
         exact ih h_bf_s0 hwhite_s0 h_nonwhite_result
 
+/-- Named predicate for the bridge facts produced by a local discovery-state
+argument.
+
+The `state` argument is the input state to the recursive `dfsVisit` that
+discovers `v`; `outer` is the enclosing DFS state in which the discovery is
+observed.  Keeping this witness in `Prop` lets the proof use ordinary
+existential elimination over fold-location lemmas. -/
+def DFSDiscoveryBridge (G : Graph V) (outer : DFSState V) (v : V)
+    (state : DFSState V) (fuel : Nat) : Prop :=
+  state.color v = Color.white ∧
+  (dfsVisit G fuel v state).color v = Color.black ∧
+  discoveryTime outer v = state.time ∧
+  (∀ w, state.color w ≠ Color.white → discoveryTime outer w < state.time) ∧
+  (∀ w, state.color w = Color.black → finishTime state w < state.time) ∧
+  (∀ w, state.color w = Color.gray → G.Reachable w v) ∧
+  (∀ w, state.color w ≠ Color.white → outer.color w ≠ Color.white) ∧
+  (∀ w, (dfsVisit G fuel v state).color w = Color.black →
+    outer.color w = Color.black ∧
+    finishTime outer w = finishTime (dfsVisit G fuel v state) w) ∧
+  fuel ≥ (whiteReachableSet G state v).card + 1 ∧
+  (∀ w, (dfsVisit G fuel v state).color w = Color.white →
+    outer.color w ≠ Color.white →
+    (dfsVisit G fuel v state).time ≤ discoveryTime outer w)
+
 /-- Local discovery-state theorem for a single `dfsVisit`.
 
 If a sufficiently-fuelled visit from `u` discovers a white vertex `v`, this
-returns the actual state immediately before the recursive call on `v`.  The
-extra bridge facts say how discovery times, finish times, and later discoveries
-in the local `dfsVisit` output relate to that call. -/
-theorem dfsVisit_discovery_state_with_bridges {fuel : Nat} {u v : V} {s : DFSState V}
+returns the actual state immediately before the recursive call on `v`, packaged
+as a `DFSDiscoveryBridge`. -/
+theorem dfsVisit_discovery_bridge {fuel : Nat} {u v : V} {s : DFSState V}
     (hfuel : fuel ≥ (whiteReachableSet G s u).card + 1)
     (hwhite : s.color u = Color.white)
     (hdt : DiscoveryTimeInvariant s)
@@ -306,22 +329,7 @@ theorem dfsVisit_discovery_state_with_bridges {fuel : Nat} {u v : V} {s : DFSSta
     (hv : s.color v = Color.white)
     (hgray : ∀ w, s.color w = Color.gray → G.Reachable w u) :
     ∃ (s' : DFSState V) (fuel' : Nat),
-      s'.color v = Color.white ∧
-      (dfsVisit G fuel' v s').color v = Color.black ∧
-      discoveryTime (dfsVisit G fuel u s) v = s'.time ∧
-      (∀ w, s'.color w ≠ Color.white →
-        discoveryTime (dfsVisit G fuel u s) w < s'.time) ∧
-      (∀ w, s'.color w = Color.black → finishTime s' w < s'.time) ∧
-      (∀ w, s'.color w = Color.gray → G.Reachable w v) ∧
-      (∀ w, s'.color w ≠ Color.white →
-        (dfsVisit G fuel u s).color w ≠ Color.white) ∧
-      (∀ w, (dfsVisit G fuel' v s').color w = Color.black →
-        (dfsVisit G fuel u s).color w = Color.black ∧
-        finishTime (dfsVisit G fuel u s) w = finishTime (dfsVisit G fuel' v s') w) ∧
-      fuel' ≥ (whiteReachableSet G s' v).card + 1 ∧
-      (∀ w, (dfsVisit G fuel' v s').color w = Color.white →
-        (dfsVisit G fuel u s).color w ≠ Color.white →
-        (dfsVisit G fuel' v s').time ≤ discoveryTime (dfsVisit G fuel u s) w) := by
+      DFSDiscoveryBridge G (dfsVisit G fuel u s) v s' fuel' := by
   induction fuel generalizing u s with
   | zero =>
       simp [dfsVisit] at hb
@@ -725,6 +733,38 @@ theorem dfsVisit_discovery_state_with_bridges {fuel : Nat} {u v : V} {s : DFSSta
         dsimp [discoveryTime] at hdisc_rec ⊢
         rw [h_s3_d_v]
         exact hdisc_rec
+
+/-- Compatibility wrapper for callers that still destructure the bridge as an
+existential/conjunction package. -/
+theorem dfsVisit_discovery_state_with_bridges {fuel : Nat} {u v : V} {s : DFSState V}
+    (hfuel : fuel ≥ (whiteReachableSet G s u).card + 1)
+    (hwhite : s.color u = Color.white)
+    (hdt : DiscoveryTimeInvariant s)
+    (hbf : ∀ w, s.color w = Color.black → finishTime s w < s.time)
+    (hdf : DiscoveryFinishInvariant s)
+    (hb : (dfsVisit G fuel u s).color v = Color.black)
+    (hw : WhiteReachable G s u v)
+    (hv : s.color v = Color.white)
+    (hgray : ∀ w, s.color w = Color.gray → G.Reachable w u) :
+    ∃ (s' : DFSState V) (fuel' : Nat),
+      s'.color v = Color.white ∧
+      (dfsVisit G fuel' v s').color v = Color.black ∧
+      discoveryTime (dfsVisit G fuel u s) v = s'.time ∧
+      (∀ w, s'.color w ≠ Color.white →
+        discoveryTime (dfsVisit G fuel u s) w < s'.time) ∧
+      (∀ w, s'.color w = Color.black → finishTime s' w < s'.time) ∧
+      (∀ w, s'.color w = Color.gray → G.Reachable w v) ∧
+      (∀ w, s'.color w ≠ Color.white →
+        (dfsVisit G fuel u s).color w ≠ Color.white) ∧
+      (∀ w, (dfsVisit G fuel' v s').color w = Color.black →
+        (dfsVisit G fuel u s).color w = Color.black ∧
+        finishTime (dfsVisit G fuel u s) w = finishTime (dfsVisit G fuel' v s') w) ∧
+      fuel' ≥ (whiteReachableSet G s' v).card + 1 ∧
+      (∀ w, (dfsVisit G fuel' v s').color w = Color.white →
+        (dfsVisit G fuel u s).color w ≠ Color.white →
+        (dfsVisit G fuel' v s').time ≤ discoveryTime (dfsVisit G fuel u s) w) := by
+  simpa [DFSDiscoveryBridge] using
+    (dfsVisit_discovery_bridge G hfuel hwhite hdt hbf hdf hb hw hv hgray)
 
 /-- If `v` turns from white to non-white during `dfsFromList`, then
 `discoveryTime` in the result is at least `s0.time`. -/
