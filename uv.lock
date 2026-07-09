@@ -1,0 +1,13 @@
+version = 1
+revision = 3
+requires-python = ">=3.11"
+
+[[package]]
+name = "clrs-lean-dev"
+version = "0.0.0"
+source = { virtual = "." }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = []
