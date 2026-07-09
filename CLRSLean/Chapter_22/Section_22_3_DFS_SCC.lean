@@ -61,8 +61,8 @@ theorem finish_le_maxFinish {s : DFSState V} {C : Set V} {v : V}
 
 /-! ## First-discovered vertex -/
 
-/-- For a nonempty subset `C` of vertices, there exists a vertex in `C` whose
-discovery time is minimal among all vertices in `C`. -/
+/-- For a nonempty subset {lit}`C` of vertices, there exists a vertex in
+{lit}`C` whose discovery time is minimal among all vertices in {lit}`C`. -/
 theorem exists_firstDiscovered {s : DFSState V} {C : Set V}
     (hC : C.Nonempty) (hsub : C ⊆ G.vertices) :
     ∃ r, r ∈ C ∧ ∀ v ∈ C, discoveryTime s r ≤ discoveryTime s v := by
@@ -93,20 +93,20 @@ theorem exists_firstDiscovered {s : DFSState V} {C : Set V}
   exact hm_le
 
 open Classical in
-/-- The vertex in `C` with minimum discovery time.  Requires `C` to be nonempty
-and a subset of `G.vertices` so the choice is well-defined. -/
+/-- The vertex in {lit}`C` with minimum discovery time.  Requires {lit}`C` to
+be nonempty and a subset of {lit}`G.vertices` so the choice is well-defined. -/
 noncomputable def firstDiscoveredVertex (s : DFSState V) (C : Set V)
     (hC : C.Nonempty) (hsub : C ⊆ G.vertices) : V :=
   Classical.choose (exists_firstDiscovered G (s := s) (C := C) hC hsub)
 
-/-- The first-discovered vertex of `C` belongs to `C`. -/
+/-- The first-discovered vertex of {lit}`C` belongs to {lit}`C`. -/
 theorem firstDiscoveredVertex_mem {s : DFSState V} {C : Set V}
     (hC : C.Nonempty) (hsub : C ⊆ G.vertices) :
     firstDiscoveredVertex G s C hC hsub ∈ C :=
   (Classical.choose_spec (exists_firstDiscovered G (s := s) (C := C) hC hsub)).1
 
-/-- Every vertex in `C` has discovery time at least that of the first-discovered
-vertex. -/
+/-- Every vertex in {lit}`C` has discovery time at least that of the
+first-discovered vertex. -/
 theorem firstDiscoveredVertex_min {s : DFSState V} {C : Set V} {v : V}
     (hC : C.Nonempty) (hsub : C ⊆ G.vertices) (hv : v ∈ C) :
     discoveryTime s (firstDiscoveredVertex G s C hC hsub) ≤ discoveryTime s v :=
@@ -115,15 +115,18 @@ theorem firstDiscoveredVertex_min {s : DFSState V} {C : Set V} {v : V}
 /-! ## Discovery state of a vertex
 
 For the SCC finish-time proof we need access to the *discovery state* of a
-vertex `v` — the state just before `dfsVisit` is called with `v` white.  At this
-state the clock equals `d[v]` in the final DFS.  The lemma walks through the
-`dfsFromList` computation, handling both top-level discovery (outer-loop
-`dfsVisit`) and nested discovery (recursive `dfsVisit` inside a fold). -/
+vertex {lit}`v`: the state just before {name}`dfsVisit` is called with
+{lit}`v` white.  At this state the clock equals {lit}`d[v]` in the final DFS.
+The lemma walks through the {name}`dfsFromList` computation, handling both
+top-level discovery (outer-loop {name}`dfsVisit`) and nested discovery
+(recursive {name}`dfsVisit` inside a fold). -/
 
-/-- For a vertex `v` that is black in `G.dfs`, there exists a state `s` and
-fuel `f` such that `s` is the input to the `dfsVisit` call that discovers `v`:
-`v` is white in `s`, the call blackens it, and `discoveryTime (G.dfs) v = s.time`.
-Moreover, `s` satisfies `DiscoveryTimeInvariant` and the black-finish invariant. -/
+/-- For a vertex {lit}`v` that is black in {lit}`G.dfs`, there exists a state
+{lit}`s` and fuel {lit}`f` such that {lit}`s` is the input to the
+{name}`dfsVisit` call that discovers {lit}`v`: {lit}`v` is white in {lit}`s`,
+the call blackens it, and {lit}`discoveryTime (G.dfs) v = s.time`.
+Moreover, {lit}`s` satisfies {name}`DiscoveryTimeInvariant` and the
+black-finish invariant. -/
 theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
     ∃ (s : DFSState V) (f : Nat),
       s.color v = Color.white ∧
