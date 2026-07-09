@@ -1055,6 +1055,22 @@ lemma finishTime_zero_of_not_mem_vertices {v : V} (hv : v ∉ G.vertices) :
     simpa [dfs, h_init] using h_preserve
   simp [finishTime, h_f_none]
 
+/-- If the current white vertices still appear in a finish-time-sorted list
+headed by {lit}`u`, then {lit}`u` has maximum first-pass finish time among all
+white vertices. -/
+lemma white_finish_le_head_of_pairwise_order {s : DFSState V} {u : V} {us : List V}
+    (hp : (u :: us).Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a))
+    (hwhite_in : ∀ v, v ∈ G.vertices → s.color v = Color.white → v ∈ u :: us) :
+    ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
+  intro v hv_white
+  by_cases hvV : v ∈ G.vertices
+  · have hv_in_vs : v ∈ u :: us := hwhite_in v hvV hv_white
+    rcases List.mem_cons.mp hv_in_vs with (rfl | hv_us)
+    · rfl
+    · exact pairwise_head_max_finishTime G u us hp v hv_us
+  · rw [finishTime_zero_of_not_mem_vertices G hvV]
+    omega
+
 /-! ## SCC correctness core -/
 
 /-- Core DFS-theoretic lemma: every component returned by
@@ -1107,13 +1123,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
           let comp := G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black)
           -- hmax
           have hmax_u : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
-            intro v hv_white
-            by_cases hvV : v ∈ G.vertices
-            · have hv_in_vs : v ∈ u :: us := h_white_in_vs v hvV hv_white
-              rcases List.mem_cons.mp hv_in_vs with (rfl | hv_us)
-              · rfl
-              · exact pairwise_head_max_finishTime G u us hp_vs v hv_us
-            · rw [finishTime_zero_of_not_mem_vertices G hvV]; omega
+            exact white_finish_le_head_of_pairwise_order G hp_vs h_white_in_vs
           -- comp is an SCC
           have h_comp_scc : G.IsSCC (comp : Set V) :=
             scc_finish_order hu_vert hu_white hmax_u hfuel h_respects
