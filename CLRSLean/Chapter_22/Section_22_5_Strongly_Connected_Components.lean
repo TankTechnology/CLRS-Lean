@@ -79,17 +79,27 @@ theorem transpose_Adj (G : Graph V) (u v : V) :
 def StronglyConnected (G : Graph V) (u v : V) : Prop :=
   G.Reachable u v ∧ G.Reachable v u
 
+theorem StronglyConnected.reachable {u v : V} (h : G.StronglyConnected u v) :
+    G.Reachable u v :=
+  h.1
+
+theorem StronglyConnected.reverse_reachable {u v : V} (h : G.StronglyConnected u v) :
+    G.Reachable v u :=
+  h.2
+
 theorem stronglyConnected_refl (u : V) : G.StronglyConnected u u :=
   ⟨G.reachable_refl u, G.reachable_refl u⟩
 
 theorem stronglyConnected_symm {u v : V}
     (h : G.StronglyConnected u v) : G.StronglyConnected v u :=
-  ⟨h.2, h.1⟩
+  ⟨StronglyConnected.reverse_reachable G h, StronglyConnected.reachable G h⟩
 
 theorem stronglyConnected_trans {u v w : V}
     (huv : G.StronglyConnected u v) (hvw : G.StronglyConnected v w) :
     G.StronglyConnected u w :=
-  ⟨G.reachable_trans huv.1 hvw.1, G.reachable_trans hvw.2 huv.2⟩
+  ⟨G.reachable_trans (StronglyConnected.reachable G huv) (StronglyConnected.reachable G hvw),
+    G.reachable_trans (StronglyConnected.reverse_reachable G hvw)
+      (StronglyConnected.reverse_reachable G huv)⟩
 
 /-- A strongly connected component is a nonempty maximal subset of vertices in
 which every pair of vertices is strongly connected. -/
@@ -121,7 +131,10 @@ theorem IsSCC_eq_of_nonempty_inter {C D : Set V}
       intro d hd
       have hcx := IsSCC.stronglyConnected G hC c hc x hxC
       have hxd := IsSCC.stronglyConnected G hD x hxD d hd
-      exact ⟨G.reachable_trans hcx.1 hxd.1, G.reachable_trans hxd.2 hcx.2⟩
+      exact ⟨G.reachable_trans (StronglyConnected.reachable G hcx)
+          (StronglyConnected.reachable G hxd),
+        G.reachable_trans (StronglyConnected.reverse_reachable G hxd)
+          (StronglyConnected.reverse_reachable G hcx)⟩
     have hsc' : ∀ u ∈ D, G.StronglyConnected u c := by
       intro u hu
       exact G.stronglyConnected_symm (hsc u hu)
@@ -131,7 +144,10 @@ theorem IsSCC_eq_of_nonempty_inter {C D : Set V}
       intro c hc
       have hdx := IsSCC.stronglyConnected G hD d hd x hxD
       have hxc := IsSCC.stronglyConnected G hC x hxC c hc
-      exact ⟨G.reachable_trans hdx.1 hxc.1, G.reachable_trans hxc.2 hdx.2⟩
+      exact ⟨G.reachable_trans (StronglyConnected.reachable G hdx)
+          (StronglyConnected.reachable G hxc),
+        G.reachable_trans (StronglyConnected.reverse_reachable G hxc)
+          (StronglyConnected.reverse_reachable G hdx)⟩
     have hsc' : ∀ u ∈ C, G.StronglyConnected u d := by
       intro u hu
       exact G.stronglyConnected_symm (hsc u hu)
@@ -379,9 +395,12 @@ theorem isSCC_sccOf {r : V} (hr : r ∈ G.vertices) : G.IsSCC (G.sccOf r) := by
   · use r
     exact stronglyConnected_refl G r
   · intro v hv
-    exact reachable_target_mem_vertices G hr hv.1
+    exact reachable_target_mem_vertices G hr (StronglyConnected.reachable G hv)
   · intro u hu v hv
-    exact ⟨G.reachable_trans hu.2 hv.1, G.reachable_trans hv.2 hu.1⟩
+    exact ⟨G.reachable_trans (StronglyConnected.reverse_reachable G hu)
+      (StronglyConnected.reachable G hv),
+      G.reachable_trans (StronglyConnected.reverse_reachable G hv)
+        (StronglyConnected.reachable G hu)⟩
   · intro w hw hsc
     exact hsc r (stronglyConnected_refl G r)
 
@@ -410,7 +429,8 @@ theorem maxFinish_sccOf_eq {s : DFSState V} {r : V} (hr : r ∈ G.vertices)
     intro v hv
     simp [sccOf] at hv
     exact hmax v (hwhite v hv.2)
-  · have hsub : (G.sccOf r : Set V) ⊆ G.vertices := (isSCC_sccOf G hr).2.1
+  · have hsub : (G.sccOf r : Set V) ⊆ G.vertices :=
+      IsSCC.subset_vertices G (isSCC_sccOf G hr)
     exact finish_le_maxFinish G hsub (stronglyConnected_refl G r)
 
 theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
@@ -453,7 +473,7 @@ theorem firstDiscovered_reachable_scc {C : Set V} (hC_nonempty : C.Nonempty)
     G.Reachable r v := by
   intro r
   have hrC : r ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
-  exact (hCsc r hrC v hv).1
+  exact StronglyConnected.reachable G (hCsc r hrC v hv)
 
 /-- If there is an edge from {lit}`u` in SCC {lit}`C` to {lit}`y` in SCC
 {lit}`D`, then every vertex in {lit}`C` can reach every vertex in {lit}`D`.
@@ -465,8 +485,8 @@ theorem reachable_scc_to_scc {C D : Set V} (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.S
     {x : V} (hx : x ∈ C) {w : V} (hw : w ∈ D) :
     G.Reachable x w := by
   rcases hedge with ⟨u, hu, v, hv, hadj⟩
-  have hxu : G.Reachable x u := (hCsc x hx u hu).1
-  have hvw : G.Reachable v w := (hDsc v hv w hw).1
+  have hxu : G.Reachable x u := StronglyConnected.reachable G (hCsc x hx u hu)
+  have hvw : G.Reachable v w := StronglyConnected.reachable G (hDsc v hv w hw)
   exact G.reachable_trans hxu (G.reachable_trans (G.reachable_adj hadj) hvw)
 
 /-- Distinct SCCs with an edge from {lit}`C` to {lit}`D` have no path from
@@ -489,10 +509,10 @@ theorem no_reachable_scc_reverse {C D : Set V} (hC : G.IsSCC C) (hD : G.IsSCC D)
     intro d hd
     -- d →* x (within D) → y (via x→*y) gives one direction
     -- y →* u (within C) → v (edge) →* d (within D) gives the other
-    have hdx : G.Reachable d x := (hDsc d hd x hx).1
+    have hdx : G.Reachable d x := StronglyConnected.reachable G (hDsc d hd x hx)
     have hxy : G.Reachable x y := hreach
-    have hyu : G.Reachable y u := (hCsc y hy u hu).1
-    have hvd : G.Reachable v d := (hDsc v hv d hd).1
+    have hyu : G.Reachable y u := StronglyConnected.reachable G (hCsc y hy u hu)
+    have hvd : G.Reachable v d := StronglyConnected.reachable G (hDsc v hv d hd)
     have hdy : G.Reachable d y := G.reachable_trans hdx hxy
     have hyd : G.Reachable y d :=
       G.reachable_trans hyu (G.reachable_trans (G.reachable_adj hadj) hvd)
@@ -511,8 +531,12 @@ theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
   intro x hx
   have hsc_xu : G.StronglyConnected x u := IsSCC.stronglyConnected G hC x hx u hu
   have hsc_uv : G.StronglyConnected u v := IsSCC.stronglyConnected G hC u hu v hv
-  have hsc_uw : G.StronglyConnected u w := ⟨h1, G.reachable_trans h2 hsc_uv.2⟩
-  exact ⟨G.reachable_trans hsc_xu.1 hsc_uw.1, G.reachable_trans hsc_uw.2 hsc_xu.2⟩
+  have hsc_uw : G.StronglyConnected u w :=
+    ⟨h1, G.reachable_trans h2 (StronglyConnected.reverse_reachable G hsc_uv)⟩
+  exact ⟨G.reachable_trans (StronglyConnected.reachable G hsc_xu)
+      (StronglyConnected.reachable G hsc_uw),
+    G.reachable_trans (StronglyConnected.reverse_reachable G hsc_uw)
+      (StronglyConnected.reverse_reachable G hsc_xu)⟩
 
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
@@ -572,7 +596,7 @@ theorem scc_finish_time_order {C D : Set V}
     rcases hedge with ⟨u, hu, v, hv, hadj⟩
     -- Segment rC →* u within C (all vertices in C, all white)
     have h_wr_rC_u : WhiteReachable G s rC u := by
-      have h_reach : G.Reachable rC u := (hCsc rC hrC_mem u hu).1
+      have h_reach : G.Reachable rC u := StronglyConnected.reachable G (hCsc rC hrC_mem u hu)
       apply WhiteReachable.of_reachable_through_set G (S := C) ?_ (hwhite_C) h_reach
       intro w h1 h2; exact IsSCC.path_mem G hC hrC_mem hu h1 h2
     -- Edge u → v: v ∈ D is white in s
@@ -582,7 +606,7 @@ theorem scc_finish_time_order {C D : Set V}
       whiteReachable_step G h_wr_rC_u hadj hwhite_v
     -- Segment v →* d within D (all vertices in D, all white)
     have h_wr_v_d : WhiteReachable G s v d := by
-      have h_reach : G.Reachable v d := (hDsc v hv d hdD).1
+      have h_reach : G.Reachable v d := StronglyConnected.reachable G (hDsc v hv d hdD)
       apply WhiteReachable.of_reachable_through_set G (S := D) ?_ (hwhite_D) h_reach
       intro w h1 h2; exact IsSCC.path_mem G hD hv hdD h1 h2
     -- Compose: rC →* v →* d
@@ -688,7 +712,7 @@ theorem scc_finish_time_order {C D : Set V}
     have h_finish_D_lt_rD : ∀ v ∈ D, v ≠ rD → finishTime (G.dfs) v < finishTime (G.dfs) rD := by
       intro v hv hne
       have hwhite_v : s.color v = Color.white := hwhite_D v hv
-      have h_reach : G.Reachable rD v := (hDsc rD hrD_mem v hv).1
+      have h_reach : G.Reachable rD v := StronglyConnected.reachable G (hDsc rD hrD_mem v hv)
       have h_wr : WhiteReachable G s rD v :=
         WhiteReachable.of_reachable_through_set G (S := D)
           (fun w h1 h2 => IsSCC.path_mem G hD hrD_mem hv h1 h2) (hwhite_D) h_reach
@@ -816,11 +840,11 @@ theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
     intro v hv
     have hwhite_v : s.color v = Color.white := hCr_white v hv
     have hvV : v ∈ G.transpose.vertices := by
-      simpa using reachable_target_mem_vertices G hrG hv.1
+      simpa using reachable_target_mem_vertices G hrG (StronglyConnected.reachable G hv)
     have hblack_v : s'.color v = Color.black := by
       have htr : G.transpose.Reachable r v := by
         rw [transpose_reachable G]
-        exact (G.stronglyConnected_symm hv).1
+        exact StronglyConnected.reachable G (G.stronglyConnected_symm hv)
       have hw : WhiteReachable G.transpose s r v :=
         WhiteReachable.of_reachable_through_set G.transpose
           (fun w h1 h2 => by
@@ -1177,8 +1201,9 @@ lemma kosaraju_visit_blackens_sccOf {s : DFSState V} {u : V}
   intro v hv
   have hpath : G.transpose.Reachable u v := by
     rw [transpose_reachable G]
-    exact (IsSCC.stronglyConnected G (isSCC_sccOf G (by simpa using hu)) v hv u
-      (stronglyConnected_refl G u)).1
+    exact StronglyConnected.reachable G
+      (IsSCC.stronglyConnected G (isSCC_sccOf G (by simpa using hu)) v hv u
+        (stronglyConnected_refl G u))
   have h_wr : WhiteReachable G.transpose s u v :=
     WhiteReachable.of_reachable_through_set G.transpose
       (fun w h1 h2 => by
