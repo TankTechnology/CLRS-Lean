@@ -6,6 +6,7 @@ import CLRSLean.Chapter_22.Section_22_3_DFS_Intervals
 import CLRSLean.Chapter_22.Section_22_3_DFS_SCC
 import CLRSLean.Chapter_22.Section_22_3_DFS_Bridge
 import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
+import CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr
 import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
 
 /-! # Chapter 22 - Elementary Graph Algorithms
