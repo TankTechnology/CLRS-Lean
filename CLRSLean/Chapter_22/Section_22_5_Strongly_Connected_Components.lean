@@ -1344,15 +1344,16 @@ and maximality is isolated in {name}`Graph.kosarajuComponent_scc_core`. -/
 theorem kosarajuComponents_eq_sccs (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
     G.IsSCC (C : Set V) := by
+  have hcore := kosarajuComponent_scc_core G C hC
   refine ⟨?_, ?_, ?_, ?_⟩
   · -- non-empty
     exact kosarajuComponents_nonempty G C hC
   · -- subset of vertices
     exact kosarajuComponents_subset G C hC
   · -- pairwise strongly connected
-    exact (kosarajuComponent_scc_core G C hC).1
+    exact hcore.1
   · -- maximal
-    exact (kosarajuComponent_scc_core G C hC).2
+    exact hcore.2
 
 /-- {name}`Graph.kosarajuComponents` is a valid SCC partition of {lit}`G`. -/
 theorem kosarajuComponents_isSCCPartition (G : Graph V) :
