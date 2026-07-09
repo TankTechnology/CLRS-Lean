@@ -1371,25 +1371,26 @@ theorem kosarajuComponents_not_stronglyConnected_outside (G : Graph V) (C : Fins
   simp at hw
   exact hw.2 ((kosarajuComponents_eq_sccs G C hC).2.2.2 w hw.1 (fun u hu => hsc u hu))
 
+/-- Every vertex of {lit}`G` belongs to a unique component returned by
+Kosaraju's algorithm. -/
+theorem kosarajuComponents_exists_unique (G : Graph V) :
+    ∀ v ∈ G.vertices, ∃! C ∈ G.kosarajuComponents, v ∈ C := by
+  intro v hv
+  have ⟨C, hC, hvC⟩ := kosarajuComponents_cover G v hv
+  use C
+  constructor
+  · exact ⟨hC, hvC⟩
+  · intro D hD
+    exact unique_mem_of_pairwise_disjoint_cover
+      (kosarajuComponents_pairwise_disjoint G)
+      hD.1 hC ⟨v, hD.2, hvC⟩
+
 /-- {name}`Graph.kosarajuComponents` is a valid SCC partition of {lit}`G`. -/
 theorem kosarajuComponents_isSCCPartition (G : Graph V) :
     G.IsSCCPartition G.kosarajuComponents := by
-  refine ⟨?_, ?_, ?_, ?_, ?_⟩
-  · intro C hC; exact kosarajuComponents_subset G C hC
-  · intro C hC; exact (kosarajuComponents_eq_sccs G C hC).1
-  · intro C hC u hu v hv
-    exact kosarajuComponents_stronglyConnected G C hC u hu v hv
-  · intro C hC w hw hsc
-    exact kosarajuComponents_not_stronglyConnected_outside G C hC w hw hsc
-  · intro v hv
-    have ⟨C, hC, hvC⟩ := kosarajuComponents_cover G v hv
-    use C
-    constructor
-    · exact ⟨hC, hvC⟩
-    · intro D hD
-      exact unique_mem_of_pairwise_disjoint_cover
-        (kosarajuComponents_pairwise_disjoint G)
-        hD.1 hC ⟨v, hD.2, hvC⟩
+  exact ⟨kosarajuComponents_subset G, kosarajuComponents_nonempty G,
+    kosarajuComponents_stronglyConnected G, kosarajuComponents_not_stronglyConnected_outside G,
+    kosarajuComponents_exists_unique G⟩
 
 end Graph
 
