@@ -822,6 +822,33 @@ theorem kosaraju_order_subset_vertices (G : Graph V) :
   have : v ∈ G.vertices.toList := hperm.mem_iff.mp hv
   simpa [transpose_vertices]
 
+/-- Every vertex of {lit}`G` appears in the order used by Kosaraju's second DFS. -/
+theorem kosaraju_order_contains_vertices (G : Graph V) :
+    let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
+    ∀ v ∈ G.vertices, v ∈ order := by
+  intro order v hv
+  have hperm : order.Perm G.vertices.toList := List.mergeSort_perm _ _
+  exact hperm.mem_iff.mpr (Finset.mem_toList.mpr hv)
+
+/-- The order used by Kosaraju's second DFS is non-increasing by first-pass
+finish time. -/
+theorem kosaraju_order_pairwise_finish_le (G : Graph V) :
+    let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
+    order.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
+  intro order
+  have hpair : order.Pairwise (fun a b => finishLe (G.dfs) a b = true) := by
+    dsimp [order]
+    apply List.pairwise_mergeSort
+    · intro a b c hab hbc
+      simp [finishLe] at hab hbc ⊢
+      omega
+    · intro a b
+      simp [finishLe]
+      exact Nat.le_total (finishTime (G.dfs) b) (finishTime (G.dfs) a)
+  exact hpair.imp (by
+    intro a b hab
+    simpa [finishLe] using hab)
+
 theorem kosarajuComponents_subset (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) : (C : Set V) ⊆ G.vertices := by
   simp only [kosarajuComponents] at hC
@@ -847,11 +874,10 @@ theorem kosarajuComponents_cover (G : Graph V) :
   intro v hv
   simp [kosarajuComponents]
   let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
-  have hperm : order.Perm G.vertices.toList := List.mergeSort_perm _ _
   have hmem : ∀ x ∈ G.transpose.vertices, x ∈ order := by
     intro x hx
     have hx' : x ∈ G.vertices := by simpa using hx
-    exact hperm.mem_iff.mpr (Finset.mem_toList.mpr hx')
+    exact kosaraju_order_contains_vertices G x hx'
   have hinv := collectInvariant_init G.transpose
   have hfuel : 0 < G.transpose.vertices.card + 1 := by omega
   have hinv' := dfsFromListCollect_invariant G.transpose hfuel
@@ -1048,31 +1074,13 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   have hfuel : fuel ≥ G.transpose.vertices.card + 1 := by
     simp [fuel]
   have hfuel_pos : 0 < fuel := by omega
-  have hperm : order.Perm G.vertices.toList := by
-    simpa [order] using List.mergeSort_perm G.vertices.toList (finishLe (G.dfs))
   have h_order_verts : ∀ v, v ∈ order → v ∈ G.transpose.vertices := by
-    intro v hv
-    have hvG : v ∈ G.vertices := by
-      have : v ∈ G.vertices.toList := (hperm.mem_iff).mp hv
-      simpa [Finset.mem_toList] using this
-    simpa
+    simp [order]
+  have h_order_contains : ∀ v, v ∈ G.vertices → v ∈ order := by
+    simp [order]
 
-  -- 2. Sortedness: `order` is Pairwise (finishTime b ≤ finishTime a).
-  --    `finishLe` is the boolean form of this non-strict comparison, so the
-  --    standard merge-sort pairwise theorem applies directly.
   have h_pairwise_le : order.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
-    have hpair : order.Pairwise (fun a b => finishLe (G.dfs) a b = true) := by
-      dsimp [order]
-      apply List.pairwise_mergeSort
-      · intro a b c hab hbc
-        simp [finishLe] at hab hbc ⊢
-        omega
-      · intro a b
-        simp [finishLe]
-        exact Nat.le_total (finishTime (G.dfs) b) (finishTime (G.dfs) a)
-    exact hpair.imp (by
-      intro a b hab
-      simpa [finishLe] using hab)
+    simpa [order] using kosaraju_order_pairwise_finish_le G
 
   -- 3. Main induction over dfsFromListCollect
   have h_main : ∀ (vs : List V) (s : DFSState V) (acc : List (Finset V)),
@@ -1222,8 +1230,7 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
   have h_init_white_in_order : ∀ v, v ∈ G.vertices →
       (dfsInit (V := V)).color v = Color.white → v ∈ order := by
     intro v hvV _
-    have : v ∈ G.vertices.toList := by simpa [Finset.mem_toList] using hvV
-    exact (hperm.mem_iff).mpr this
+    exact h_order_contains v hvV
   have h_all_sccs := h_main order dfsInit [] h_pairwise_le h_order_verts
     h_init_sccs h_init_white_in_order h_init_respects h_init_ng
   have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C hC
