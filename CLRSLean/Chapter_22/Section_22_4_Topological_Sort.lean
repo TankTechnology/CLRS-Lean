@@ -60,7 +60,7 @@ open Classical
 /-- One step of Kahn's algorithm.  The function is fuelled by a natural number.
 
 If a vertex of current indegree zero exists in {lit}`remaining`, one such vertex
-is chosen (using the axiom of choice), removed from {lit}`remaining`, the
+is chosen classically, removed from {lit}`remaining`, the
 indegrees of its remaining out-neighbors are decremented, and it is appended to
 the accumulator.  Otherwise the accumulator is returned. -/
 noncomputable def kahnAux (G : Graph V) (fuel : Nat) (remaining : Finset V) (indeg : V → Nat) (acc : List V) : List V :=
