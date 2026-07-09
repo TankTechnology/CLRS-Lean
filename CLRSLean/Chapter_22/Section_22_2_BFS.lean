@@ -152,7 +152,7 @@ def BFSClosedInv (G : Graph V) (visited : Finset V) (queue : List V) : Prop :=
   ∀ u ∈ visited, u ∉ queue → ∀ v ∈ G.adj u, v ∈ visited
 
 /-- Queue invariant for BFS: every queued vertex is already marked visited. -/
-def BFSQueueInv (G : Graph V) (visited : Finset V) (queue : List V) : Prop :=
+def BFSQueueInv (_G : Graph V) (visited : Finset V) (queue : List V) : Prop :=
   ∀ v ∈ queue, v ∈ visited
 
 /-- The closure invariant is preserved by one BFS step. -/
