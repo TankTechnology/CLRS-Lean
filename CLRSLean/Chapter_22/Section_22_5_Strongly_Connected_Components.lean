@@ -450,6 +450,19 @@ def SCCMonochrome (G : Graph V) (s : DFSState V) : Prop :=
   ∀ K, G.IsSCC K → (∀ v ∈ K, s.color v = Color.white) ∨
     (∀ v ∈ K, s.color v = Color.black)
 
+/-- If SCCs are monochromatic and {lit}`r` is white, then every vertex in
+{lit}`r`'s SCC is white. -/
+theorem sccOf_white_of_monochrome {s : DFSState V} {r : V}
+    (hr : r ∈ G.vertices) (hwhite : s.color r = Color.white)
+    (hmono : G.SCCMonochrome s) :
+    ∀ v ∈ G.sccOf r, s.color v = Color.white := by
+  have hC : G.IsSCC (G.sccOf r) := isSCC_sccOf G hr
+  rcases hmono (G.sccOf r) hC with (hw | hb)
+  · exact hw
+  · have hblack : s.color r = Color.black := hb r (stronglyConnected_refl G r)
+    rw [hblack] at hwhite
+    contradiction
+
 /-- The SCC-specific invariant used while proving correctness of Kosaraju's
 second DFS pass.  It tracks the proof obligations that are not already part of
 the collecting-DFS invariant. -/
@@ -538,6 +551,17 @@ theorem IsSCC.path_mem {C : Set V} (hC : G.IsSCC C) {u v w : V}
     G.reachable_trans (StronglyConnected.reverse_reachable G hsc_uw)
       (StronglyConnected.reverse_reachable G hsc_xu)⟩
 
+/-- Inside an all-white SCC, reachability between two component vertices is
+white-reachability. -/
+theorem WhiteReachable.of_isSCC {s : DFSState V} {C : Set V} {u v : V}
+    (hC : G.IsSCC C) (hu : u ∈ C) (hv : v ∈ C)
+    (hwhite : ∀ w ∈ C, s.color w = Color.white) :
+    WhiteReachable G s u v := by
+  have hreach : G.Reachable u v :=
+    StronglyConnected.reachable G (IsSCC.stronglyConnected G hC u hu v hv)
+  exact WhiteReachable.of_reachable_through_set G (S := C)
+    (fun w h1 h2 => IsSCC.path_mem G hC hu hv h1 h2) hwhite hreach
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
@@ -551,10 +575,8 @@ theorem scc_finish_time_order {C D : Set V}
     maxFinish G (G.dfs) D < maxFinish G (G.dfs) C := by
   have hC_nonempty : C.Nonempty := IsSCC.nonempty G hC
   have hCsub : C ⊆ G.vertices := IsSCC.subset_vertices G hC
-  have hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v := IsSCC.stronglyConnected G hC
   have hD_nonempty : D.Nonempty := IsSCC.nonempty G hD
   have hDsub : D ⊆ G.vertices := IsSCC.subset_vertices G hD
-  have hDsc : ∀ u ∈ D, ∀ v ∈ D, G.StronglyConnected u v := IsSCC.stronglyConnected G hD
   let rC := firstDiscoveredVertex G (s := G.dfs) (C := C) hC_nonempty hCsub
   let rD := firstDiscoveredVertex G (s := G.dfs) (C := D) hD_nonempty hDsub
   have hrC_mem : rC ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
@@ -596,9 +618,7 @@ theorem scc_finish_time_order {C D : Set V}
     rcases hedge with ⟨u, hu, v, hv, hadj⟩
     -- Segment rC →* u within C (all vertices in C, all white)
     have h_wr_rC_u : WhiteReachable G s rC u := by
-      have h_reach : G.Reachable rC u := StronglyConnected.reachable G (hCsc rC hrC_mem u hu)
-      apply WhiteReachable.of_reachable_through_set G (S := C) ?_ (hwhite_C) h_reach
-      intro w h1 h2; exact IsSCC.path_mem G hC hrC_mem hu h1 h2
+      exact WhiteReachable.of_isSCC G hC hrC_mem hu hwhite_C
     -- Edge u → v: v ∈ D is white in s
     have hwhite_v : s.color v = Color.white := hwhite_D v hv
     -- Step via the edge
@@ -606,9 +626,7 @@ theorem scc_finish_time_order {C D : Set V}
       whiteReachable_step G h_wr_rC_u hadj hwhite_v
     -- Segment v →* d within D (all vertices in D, all white)
     have h_wr_v_d : WhiteReachable G s v d := by
-      have h_reach : G.Reachable v d := StronglyConnected.reachable G (hDsc v hv d hdD)
-      apply WhiteReachable.of_reachable_through_set G (S := D) ?_ (hwhite_D) h_reach
-      intro w h1 h2; exact IsSCC.path_mem G hD hv hdD h1 h2
+      exact WhiteReachable.of_isSCC G hD hv hdD hwhite_D
     -- Compose: rC →* v →* d
     have h_wr_rC_d : WhiteReachable G s rC d :=
       whiteReachable_trans G h_wr_rC_v h_wr_v_d
@@ -712,10 +730,8 @@ theorem scc_finish_time_order {C D : Set V}
     have h_finish_D_lt_rD : ∀ v ∈ D, v ≠ rD → finishTime (G.dfs) v < finishTime (G.dfs) rD := by
       intro v hv hne
       have hwhite_v : s.color v = Color.white := hwhite_D v hv
-      have h_reach : G.Reachable rD v := StronglyConnected.reachable G (hDsc rD hrD_mem v hv)
       have h_wr : WhiteReachable G s rD v :=
-        WhiteReachable.of_reachable_through_set G (S := D)
-          (fun w h1 h2 => IsSCC.path_mem G hD hrD_mem hv h1 h2) (hwhite_D) h_reach
+        WhiteReachable.of_isSCC G hD hrD_mem hv hwhite_D
       have h_black_v : (dfsVisit G f rD s).color v = Color.black := by
         apply dfsVisit_white_path_black G hs_white (hDsub hrD_mem) h_fuel
         exact WhiteReachable.mem_set G (hDsub hrD_mem) h_wr
@@ -749,11 +765,8 @@ theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
     (whiteReachableSet G.transpose s r : Set V) ⊆ G.sccOf r := by
   have hrG : r ∈ G.vertices := by simpa using hr
   have hC : G.IsSCC (G.sccOf r) := isSCC_sccOf G hrG
-  have hC_white : ∀ v ∈ G.sccOf r, s.color v = Color.white := by
-    rcases hrespects (G.sccOf r) hC with (hw | hb)
-    · exact hw
-    · have : s.color r = Color.black := hb r (stronglyConnected_refl G r)
-      simp [this] at hwhite
+  have hC_white : ∀ v ∈ G.sccOf r, s.color v = Color.white :=
+    sccOf_white_of_monochrome G hrG hwhite hrespects
   have hCmax : maxFinish G (G.dfs) (G.sccOf r) = finishTime (G.dfs) r :=
     maxFinish_sccOf_eq G hrG hmax hC_white
   have hstable := whiteReachableIter_stable G.transpose s r hr
@@ -823,11 +836,8 @@ theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
   intro s' C
   have hrG : r ∈ G.vertices := by simpa using hr
   have hCr : G.IsSCC (G.sccOf r) := isSCC_sccOf G hrG
-  have hCr_white : ∀ v ∈ G.sccOf r, s.color v = Color.white := by
-    rcases hrespects (G.sccOf r) hCr with (hw | hb)
-    · exact hw
-    · have : s.color r = Color.black := hb r (stronglyConnected_refl G r)
-      simp [this] at hwhite
+  have hCr_white : ∀ v ∈ G.sccOf r, s.color v = Color.white :=
+    sccOf_white_of_monochrome G hrG hwhite hrespects
   have hsubset : (C : Set V) ⊆ G.sccOf r := by
     intro v hv
     simp [C] at hv
@@ -842,21 +852,18 @@ theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
     have hvV : v ∈ G.transpose.vertices := by
       simpa using reachable_target_mem_vertices G hrG (StronglyConnected.reachable G hv)
     have hblack_v : s'.color v = Color.black := by
-      have htr : G.transpose.Reachable r v := by
-        rw [transpose_reachable G]
-        exact StronglyConnected.reachable G (G.stronglyConnected_symm hv)
+      have h_sccT : G.transpose.IsSCC (G.transpose.sccOf r) :=
+        isSCC_sccOf G.transpose hr
+      have hr_sccT : r ∈ G.transpose.sccOf r := stronglyConnected_refl G.transpose r
+      have hv_sccT : v ∈ G.transpose.sccOf r := by
+        rw [transpose_sccOf_eq G r]
+        exact hv
+      have hwhite_sccT : ∀ w ∈ G.transpose.sccOf r, s.color w = Color.white := by
+        intro w hw
+        rw [transpose_sccOf_eq G r] at hw
+        exact hCr_white w hw
       have hw : WhiteReachable G.transpose s r v :=
-        WhiteReachable.of_reachable_through_set G.transpose
-          (fun w h1 h2 => by
-            have hC' : G.transpose.IsSCC (G.transpose.sccOf r) :=
-              isSCC_sccOf G.transpose (by simpa using hrG)
-            have hw_in : w ∈ G.transpose.sccOf r :=
-              IsSCC.path_mem G.transpose hC' (stronglyConnected_refl G.transpose r) (by rw [transpose_sccOf_eq G r]; exact hv) h1 h2
-            rw [transpose_sccOf_eq G r] at hw_in
-            exact hw_in)
-          (fun w hw => by
-            exact hCr_white w hw)
-          htr
+        WhiteReachable.of_isSCC G.transpose h_sccT hr_sccT hv_sccT hwhite_sccT
       have hcard : (whiteReachableSet G.transpose s r).card ≤ G.transpose.vertices.card := by
         apply Finset.card_le_card
         exact whiteReachableSet_subset_vertices G.transpose s r hr
@@ -1199,23 +1206,18 @@ lemma kosaraju_visit_blackens_sccOf {s : DFSState V} {u : V}
     ∀ v ∈ G.sccOf u,
       (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.black := by
   intro v hv
-  have hpath : G.transpose.Reachable u v := by
-    rw [transpose_reachable G]
-    exact StronglyConnected.reachable G
-      (IsSCC.stronglyConnected G (isSCC_sccOf G (by simpa using hu)) v hv u
-        (stronglyConnected_refl G u))
+  have h_sccT : G.transpose.IsSCC (G.transpose.sccOf u) :=
+    isSCC_sccOf G.transpose (by simpa using hu)
+  have hu_sccT : u ∈ G.transpose.sccOf u := stronglyConnected_refl G.transpose u
+  have hv_sccT : v ∈ G.transpose.sccOf u := by
+    rw [transpose_sccOf_eq G u]
+    exact hv
+  have hwhite_sccT : ∀ w ∈ G.transpose.sccOf u, s.color w = Color.white := by
+    intro w hw
+    rw [transpose_sccOf_eq G u] at hw
+    exact h_sccOf_u_white w hw
   have h_wr : WhiteReachable G.transpose s u v :=
-    WhiteReachable.of_reachable_through_set G.transpose
-      (fun w h1 h2 => by
-        have h_sccT : G.transpose.IsSCC (G.transpose.sccOf u) :=
-          isSCC_sccOf G.transpose (by simpa using hu)
-        have hu_sccT : u ∈ G.transpose.sccOf u := stronglyConnected_refl G.transpose u
-        have hv_sccT : v ∈ G.transpose.sccOf u := by
-          rw [transpose_sccOf_eq G u]; exact hv
-        have hw_sccT : w ∈ G.transpose.sccOf u :=
-          IsSCC.path_mem G.transpose h_sccT hu_sccT hv_sccT h1 h2
-        rw [transpose_sccOf_eq G u] at hw_sccT; exact hw_sccT)
-      (fun w hw => h_sccOf_u_white w hw) hpath
+    WhiteReachable.of_isSCC G.transpose h_sccT hu_sccT hv_sccT hwhite_sccT
   have hfuel_wr : G.vertices.card + 1 ≥ (whiteReachableSet G.transpose s u).card + 1 :=
     kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu
   have h_mem_set : v ∈ whiteReachableSet G.transpose s u :=
@@ -1263,10 +1265,7 @@ lemma kosaraju_visit_preserves_scc_monochrome {s : DFSState V} {u : V}
     (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black) :
     G.SCCMonochrome (dfsVisit G.transpose (G.vertices.card + 1) u s) := by
   have h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white := by
-    rcases hrespects (G.sccOf u) (isSCC_sccOf G (by simpa using hu)) with (hw | hb)
-    · exact hw
-    · have : s.color u = Color.black := hb u (stronglyConnected_refl G u)
-      simp [this] at hu_white
+    exact sccOf_white_of_monochrome G (by simpa using hu) hu_white hrespects
   intro K hK
   rcases hrespects K hK with (hw | hb)
   · by_cases hK_eq : K = G.sccOf u
