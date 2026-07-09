@@ -1065,12 +1065,13 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
       simpa [Finset.mem_toList] using this
     simpa
 
-  -- 2. Sortedness: order is Pairwise (finishTime b ≤ finishTime a).
-  --    This holds because `order = mergeSort (finishLe (G.dfs))` and mergeSort
-  --    produces a list sorted by the comparison.  The formal proof requires a
-  --    lemma about `mergeSort` with a non-strict total order (since `finishLe`
-  --    is irreflexive and `List.pairwise_mergeSort` requires reflexivity).
-  --    Deferred: one small lemma about `mergeSort` output order.
+  -- 2. Sortedness: `order` is Pairwise (finishTime b ≤ finishTime a).
+  --    `order = mergeSort (finishLe (G.dfs)) G.vertices.toList`.  Since `finishLe`
+  --    is irreflexive (`Nat.blt`), `List.pairwise_mergeSort` cannot be applied
+  --    directly (it requires `le a a = true`).  The fix uses `decide (≤)` as an
+  --    equivalent non-strict comparison, plus a mergeSort congruence lemma.
+  --    Deferred: one self-contained lemma about mergeSort with equivalent
+  --    comparisons on the input list.
   have h_pairwise_le : order.Pairwise (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
     sorry
 
