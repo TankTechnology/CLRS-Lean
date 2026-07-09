@@ -6,11 +6,12 @@ import CLRSLean.Chapter_22.Section_22_3_DFS_Intervals
 
 /-! # Bridge lemma: white→nonwhite during dfsVisit → discovery time ≥ input clock
 
-The single key lemma needed for Case 2 of `scc_finish_time_order`.  The proof
-uses **induction on `fuel`**.  Case `v = u`: `setDiscovery` sets `d[u] = s.time`.
-Case `v ≠ u`: `dfsVisit_fold_blackens_loc_prefix` finds the exact fold position;
-the recursive call has smaller fuel, so the induction hypothesis applies.
-The returned `hbf_s2` and `hmono_s2` provide the needed fold-accumulator
+The single key lemma needed for Case 2 of {lit}`scc_finish_time_order`.  The
+proof uses **induction on {lit}`fuel`**.  Case {lit}`v = u`:
+{lit}`setDiscovery` sets {lit}`d[u] = s.time`.  Case {lit}`v ≠ u`:
+{lit}`dfsVisit_fold_blackens_loc_prefix` finds the exact fold position; the
+recursive call has smaller fuel, so the induction hypothesis applies.  The
+returned {lit}`hbf_s2` and {lit}`hmono_s2` provide the needed fold-accumulator
 invariants, eliminating the need for separate fold-level analysis.
 -/
 
@@ -20,13 +21,14 @@ namespace Graph
 
 variable {V : Type} [DecidableEq V] (G : Graph V)
 
-/-- If `v` turns from white to non-white during `dfsVisit G fuel u s`, then
-`discoveryTime` in the output is at least `s.time`.
+/-- If {lit}`v` turns from white to non-white during
+{lit}`dfsVisit G fuel u s`, then {name}`discoveryTime` in the output is at
+least {lit}`s.time`.
 
-Uses `h_bf : ∀ w, s.color w = Color.black → finishTime s w < s.time` to
-satisfy `dfsVisit_fold_blackens_loc_prefix`'s `hinv` hypothesis.  For the
-outer-loop accumulator states used in the SCC proof, `h_bf` is available
-from `exists_discovery_state`. -/
+Uses {lit}`h_bf : ∀ w, s.color w = Color.black → finishTime s w < s.time` to
+satisfy {name}`dfsVisit_fold_blackens_loc_prefix`'s {lit}`hinv` hypothesis.
+For the outer-loop accumulator states used in the SCC proof, {lit}`h_bf` is
+available from {lit}`exists_discovery_state`. -/
 theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSState V}
     (hfuel : 0 < fuel)
     (h_bf : ∀ w, s.color w = Color.black → finishTime s w < s.time)
@@ -218,11 +220,11 @@ theorem dfsVisit_white_to_nonwhite_disc_ge_time {fuel : Nat} {u v : V} {s : DFSS
         simp [dfsVisit, hu_white] at h_nonwhite_result ⊢
         exact (h_nonwhite_result hwhite_v).elim
 
-/-! ## Corollary: `dfsFromList` version
+/-! ## Corollary: {name}`dfsFromList` version
 
-The lemma lifts to `dfsFromList` by induction on the vertex list. -/
+The lemma lifts to {name}`dfsFromList` by induction on the vertex list. -/
 
-/-- If `v` turns from white to non-white during the neighbor-processing fold
+/-- If {lit}`v` turns from white to non-white during the neighbor-processing fold
 inside a DFS visit, then its discovery time in the fold output is at least the
 input state's clock. -/
 theorem dfsVisit_fold_white_to_nonwhite_disc_ge_time {n : Nat} {u : V} {l : List V}
@@ -292,9 +294,9 @@ theorem dfsVisit_fold_white_to_nonwhite_disc_ge_time {n : Nat} {u : V} {l : List
 /-- Named predicate for the bridge facts produced by a local discovery-state
 argument.
 
-The `state` argument is the input state to the recursive `dfsVisit` that
-discovers `v`; `outer` is the enclosing DFS state in which the discovery is
-observed.  Keeping this witness in `Prop` lets the proof use ordinary
+The {lit}`state` argument is the input state to the recursive {name}`dfsVisit`
+that discovers {lit}`v`; {lit}`outer` is the enclosing DFS state in which the
+discovery is observed.  Keeping this witness in {lean}`Prop` lets the proof use ordinary
 existential elimination over fold-location lemmas. -/
 def DFSDiscoveryBridge (G : Graph V) (outer : DFSState V) (v : V)
     (state : DFSState V) (fuel : Nat) : Prop :=
@@ -313,11 +315,11 @@ def DFSDiscoveryBridge (G : Graph V) (outer : DFSState V) (v : V)
     outer.color w ≠ Color.white →
     (dfsVisit G fuel v state).time ≤ discoveryTime outer w)
 
-/-- Local discovery-state theorem for a single `dfsVisit`.
+/-- Local discovery-state theorem for a single {name}`dfsVisit`.
 
-If a sufficiently-fuelled visit from `u` discovers a white vertex `v`, this
-returns the actual state immediately before the recursive call on `v`, packaged
-as a `DFSDiscoveryBridge`. -/
+If a sufficiently-fuelled visit from {lit}`u` discovers a white vertex
+{lit}`v`, this returns the actual state immediately before the recursive call on
+{lit}`v`, packaged as a {name}`DFSDiscoveryBridge`. -/
 theorem dfsVisit_discovery_bridge {fuel : Nat} {u v : V} {s : DFSState V}
     (hfuel : fuel ≥ (whiteReachableSet G s u).card + 1)
     (hwhite : s.color u = Color.white)
@@ -766,8 +768,8 @@ theorem dfsVisit_discovery_state_with_bridges {fuel : Nat} {u v : V} {s : DFSSta
   simpa [DFSDiscoveryBridge] using
     (dfsVisit_discovery_bridge G hfuel hwhite hdt hbf hdf hb hw hv hgray)
 
-/-- If `v` turns from white to non-white during `dfsFromList`, then
-`discoveryTime` in the result is at least `s0.time`. -/
+/-- If {lit}`v` turns from white to non-white during {name}`dfsFromList`, then
+{name}`discoveryTime` in the result is at least {lit}`s0.time`. -/
 theorem dfsFromList_white_to_nonwhite_disc_ge_time {fuel : Nat} {vs : List V}
     {s0 : DFSState V} {v : V}
     (hfuel : 0 < fuel)
