@@ -148,6 +148,12 @@ It groups the project into three buckets: main proof completed, structured but
 not complete, and missing core theorem.  This is the page to check before
 returning to a chapter that already has its advertised main theorem.
 
+## Workflow Notes
+
+- [`Lean fast verification`](workflows/lean-fast-verification.md) explains the
+  narrow-to-wide build loop agents should use while editing large proof files,
+  especially Chapter 22.
+
 ## Proof Pattern Notes
 
 - [`Geometric proof patterns`](proof-patterns/geometric-proof-patterns.md)
