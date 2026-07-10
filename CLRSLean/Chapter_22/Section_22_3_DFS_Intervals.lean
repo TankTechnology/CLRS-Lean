@@ -30,6 +30,25 @@ def finishesBeforeDiscovered (s : DFSState V) (u v : V) : Prop :=
 def intervalNestedInside (s : DFSState V) (u v : V) : Prop :=
   discoveryTime s u < discoveryTime s v ∧ finishTime s v < finishTime s u
 
+/-- Two distinct DFS timestamp intervals are laminar when they are disjoint in
+one direction or one is strictly nested inside the other. -/
+def intervalsLaminar (s : DFSState V) (u v : V) : Prop :=
+  finishesBeforeDiscovered s u v ∨
+  finishesBeforeDiscovered s v u ∨
+  intervalNestedInside s u v ∨
+  intervalNestedInside s v u
+
+/-- Partial parenthesis invariant for an intermediate DFS state: every pair of
+finished (black) vertices already has laminar timestamp intervals. -/
+def ParenthesisInvariant (s : DFSState V) : Prop :=
+  ∀ u v, s.color u = Color.black → s.color v = Color.black → u ≠ v →
+    intervalsLaminar s u v
+
+theorem intervalsLaminar_symm {s : DFSState V} {u v : V}
+    (h : intervalsLaminar s u v) : intervalsLaminar s v u := by
+  unfold intervalsLaminar at h ⊢
+  tauto
+
 /-- {lit}`u` is an ancestor of {lit}`v` in the DFS parent forest
 (reflexive-transitive closure of the parent relation). -/
 def IsDFSAncestor (s : DFSState V) (u v : V) : Prop :=
@@ -337,6 +356,255 @@ theorem dfsFromList_preserves_discoveryTimeInvariant {fuel : Nat} {s0 : DFSState
           dfsVisit_output_no_gray G hng
         exact ih (s0 := s1) hdt1 hbf1 hdf1 hng1 (fun v hv => hvs v (by simp [hv]))
       · exact ih (s0 := s0) hdt hbf hdf hng (fun v hv => hvs v (by simp [hv]))
+
+/-! ## Parenthesis invariant -/
+
+/-- A DFS visit preserves laminarity of the intervals of all finished vertices.
+
+Old black vertices finish before the visit starts. Vertices finished by one
+recursive subcall are handled by the induction hypothesis, while every vertex
+newly finished by the whole visit is nested inside the visit source. -/
+theorem dfsVisit_preserves_parenthesisInvariant {fuel : Nat} {u : V} {s : DFSState V}
+    (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
+    (hparen : ParenthesisInvariant s)
+    (hdt : DiscoveryTimeInvariant s)
+    (hbf : ∀ v, s.color v = Color.black → finishTime s v < s.time)
+    (hdf : DiscoveryFinishInvariant s) :
+    ParenthesisInvariant (dfsVisit G fuel u s) := by
+  induction fuel generalizing u s with
+  | zero => omega
+  | succ n ih =>
+      let s1 := s.setColor u Color.gray |>.setDiscovery u
+      let step := fun (s' : DFSState V) (v : V) =>
+        if s'.color v = Color.white then dfsVisit G n v (s'.setParent v u) else s'
+      let s2 := List.foldl step s1 (G.adj u).toList
+      let s3 := s2.setColor u Color.black |>.setFinish u
+      have hout : dfsVisit G (n + 1) u s = s3 := by
+        simp [dfsVisit, hwhite, s1, s2, step, s3]
+      have hparen1 : ParenthesisInvariant s1 := by
+        intro x y hx hy hxy
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hyu : y ≠ u := by
+          intro h
+          subst y
+          simp [s1] at hy
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        have hy0 : s.color y = Color.black := by simpa [s1, hyu] using hy
+        have h := hparen x y hx0 hy0 hxy
+        simpa [intervalsLaminar, finishesBeforeDiscovered, intervalNestedInside,
+          discoveryTime, finishTime, s1, hxu, hyu] using h
+      have hdt1 : DiscoveryTimeInvariant s1 := by
+        intro x hx
+        by_cases hxu : x = u
+        · subst x
+          simp [s1, discoveryTime]
+        · have hx0 : s.color x ≠ Color.white := by simpa [s1, hxu] using hx
+          have hlt := hdt x hx0
+          have hd : discoveryTime s1 x = discoveryTime s x := by
+            simp [s1, discoveryTime, hxu]
+          have ht : s1.time = s.time + 1 := by simp [s1]
+          rw [hd, ht]
+          omega
+      have hbf1 : ∀ x, s1.color x = Color.black → finishTime s1 x < s1.time := by
+        intro x hx
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        have hlt := hbf x hx0
+        have hf : finishTime s1 x = finishTime s x := by simp [s1, finishTime]
+        have ht : s1.time = s.time + 1 := by simp [s1]
+        rw [hf, ht]
+        omega
+      have hdf1 : DiscoveryFinishInvariant s1 := by
+        intro x hx
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        have hlt := hdf x hx0
+        simpa [s1, discoveryTime, finishTime, hxu] using hlt
+      have hfold : ∀ (l : List V) (st : DFSState V),
+          ParenthesisInvariant st →
+          DiscoveryTimeInvariant st →
+          (∀ x, st.color x = Color.black → finishTime st x < st.time) →
+          DiscoveryFinishInvariant st →
+          let out := List.foldl step st l
+          ParenthesisInvariant out ∧
+            DiscoveryTimeInvariant out ∧
+            (∀ x, out.color x = Color.black → finishTime out x < out.time) ∧
+            DiscoveryFinishInvariant out := by
+        intro l
+        induction l with
+        | nil =>
+            intro st hp hdt_st hbf_st hdf_st
+            exact ⟨hp, hdt_st, hbf_st, hdf_st⟩
+        | cons w ws ih_fold =>
+            intro st hp hdt_st hbf_st hdf_st
+            simp only [List.foldl_cons]
+            by_cases hw : st.color w = Color.white
+            · have hp0 : ParenthesisInvariant (st.setParent w u) := by
+                simpa [ParenthesisInvariant, intervalsLaminar, finishesBeforeDiscovered,
+                  intervalNestedInside, discoveryTime, finishTime] using hp
+              have hdt0 : DiscoveryTimeInvariant (st.setParent w u) := by
+                simpa [DiscoveryTimeInvariant, discoveryTime] using hdt_st
+              have hbf0 : ∀ x, (st.setParent w u).color x = Color.black →
+                  finishTime (st.setParent w u) x < (st.setParent w u).time := by
+                simpa [finishTime] using hbf_st
+              have hdf0 : DiscoveryFinishInvariant (st.setParent w u) := by
+                simpa [DiscoveryFinishInvariant, discoveryTime, finishTime] using hdf_st
+              by_cases hn : n = 0
+              · subst n
+                simp [step, hw, dfsVisit]
+                exact ih_fold (st.setParent w u) hp0 hdt0 hbf0 hdf0
+              · have hnpos : 0 < n := by omega
+                let st' := dfsVisit G n w (st.setParent w u)
+                have hp' : ParenthesisInvariant st' := by
+                  exact ih hnpos (by simpa using hw) hp0 hdt0 hbf0 hdf0
+                have hdt' : DiscoveryTimeInvariant st' := by
+                  exact dfsVisit_preserves_discoveryTimeInvariant G hnpos (by simpa using hw)
+                    hdt0 hbf0 hdf0
+                have hbf' : ∀ x, st'.color x = Color.black → finishTime st' x < st'.time := by
+                  exact dfsVisit_black_finish_lt_time G hnpos (by simpa using hw) hbf0
+                have hdf' : DiscoveryFinishInvariant st' := by
+                  exact dfsVisit_discovery_lt_finish G hnpos (by simpa using hw) hdf0
+                have hrest := ih_fold st' hp' hdt' hbf' hdf'
+                simpa [step, hw, st'] using hrest
+            · simpa [step, hw] using ih_fold st hp hdt_st hbf_st hdf_st
+      rcases hfold (G.adj u).toList s1 hparen1 hdt1 hbf1 hdf1 with
+        ⟨hparen2, _hdt2, _hbf2, _hdf2⟩
+      have hsource : ∀ z, z ≠ u → (dfsVisit G (n + 1) u s).color z = Color.black →
+          intervalsLaminar (dfsVisit G (n + 1) u s) u z := by
+        intro z hzu hzblack
+        by_cases hzwhite : s.color z = Color.white
+        · have hdisc := dfsVisit_discovery_ge_input_time G (fuel := n + 1)
+            (u := u) (v := z) (s := s) (by omega) hwhite hzwhite hzblack hzu
+          have hfinish := dfsVisit_finish_lt_source_finish G (fuel := n + 1)
+            (u := u) (s := s) (w := z) (by omega) hwhite hbf hzwhite hzblack hzu
+          have hdu := dfsVisit_discovery_source G (fuel := n + 1)
+            (u := u) (s := s) (by omega) hwhite
+          unfold intervalsLaminar intervalNestedInside
+          exact Or.inr (Or.inr (Or.inl ⟨by omega, hfinish⟩))
+        · cases hz : s.color z with
+          | white => contradiction
+          | gray =>
+              have hzgray : s.color z = Color.gray := hz
+              have hgray_out := dfsVisit_preserves_gray (fuel := n + 1) G hzgray hzu
+              rw [hgray_out] at hzblack
+              contradiction
+          | black =>
+              have hzblack0 : s.color z = Color.black := hz
+              have hf_eq : finishTime (dfsVisit G (n + 1) u s) z = finishTime s z := by
+                dsimp [finishTime]
+                rw [dfsVisit_preserves_f_of_not_white G hzu (by simp [hzblack0])]
+              have hdu := dfsVisit_discovery_source G (fuel := n + 1)
+                (u := u) (s := s) (by omega) hwhite
+              unfold intervalsLaminar finishesBeforeDiscovered
+              exact Or.inr (Or.inl (by rw [hf_eq, hdu]; exact hbf z hzblack0))
+      intro x y hx hy hxy
+      by_cases hxu : x = u
+      · subst x
+        exact hsource y hxy.symm hy
+      by_cases hyu : y = u
+      · subst y
+        exact intervalsLaminar_symm (hsource x hxu hx)
+      · have hx2 : s2.color x = Color.black := by
+          rw [hout] at hx
+          simpa [s3, hxu] using hx
+        have hy2 : s2.color y = Color.black := by
+          rw [hout] at hy
+          simpa [s3, hyu] using hy
+        have h := hparen2 x y hx2 hy2 hxy
+        rw [hout]
+        simpa [intervalsLaminar, finishesBeforeDiscovered, intervalNestedInside,
+          discoveryTime, finishTime, s3, hxu, hyu] using h
+
+/-- Recursive DFS over a root list preserves the parenthesis invariant. -/
+theorem dfsFromList_preserves_parenthesisInvariant {fuel : Nat} {s0 : DFSState V}
+    {vs : List V} (hfuel : 0 < fuel)
+    (hparen : ParenthesisInvariant s0)
+    (hdt : DiscoveryTimeInvariant s0)
+    (hbf : ∀ v, s0.color v = Color.black → finishTime s0 v < s0.time)
+    (hdf : DiscoveryFinishInvariant s0) :
+    ParenthesisInvariant (dfsFromList G fuel vs s0) := by
+  induction vs generalizing s0 with
+  | nil => simpa [dfsFromList] using hparen
+  | cons u us ih =>
+      simp only [dfsFromList]
+      by_cases hwhite : s0.color u = Color.white
+      · rw [if_pos hwhite]
+        let s1 := dfsVisit G fuel u s0
+        have hp1 : ParenthesisInvariant s1 :=
+          dfsVisit_preserves_parenthesisInvariant G hfuel hwhite hparen hdt hbf hdf
+        have hdt1 : DiscoveryTimeInvariant s1 :=
+          dfsVisit_preserves_discoveryTimeInvariant G hfuel hwhite hdt hbf hdf
+        have hbf1 : ∀ v, s1.color v = Color.black → finishTime s1 v < s1.time :=
+          dfsVisit_black_finish_lt_time G hfuel hwhite hbf
+        have hdf1 : DiscoveryFinishInvariant s1 :=
+          dfsVisit_discovery_lt_finish G hfuel hwhite hdf
+        exact ih hp1 hdt1 hbf1 hdf1
+      · rw [if_neg hwhite]
+        exact ih hparen hdt hbf hdf
+
+/-- **DFS parenthesis theorem.** The discovery/finish intervals of any two
+distinct graph vertices are disjoint or one is strictly nested inside the
+other. -/
+theorem dfs_parenthesis {u v : V} (hu : u ∈ G.vertices) (hv : v ∈ G.vertices)
+    (hne : u ≠ v) : intervalsLaminar (G.dfs) u v := by
+  have hfuel : 0 < G.vertices.card + 1 := by omega
+  have hparen0 : ParenthesisInvariant (dfsInit : DFSState V) := by
+    intro x y hx
+    simp [dfsInit] at hx
+  have hdt0 : DiscoveryTimeInvariant (dfsInit : DFSState V) := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hbf0 : ∀ x, (dfsInit : DFSState V).color x = Color.black →
+      finishTime (dfsInit : DFSState V) x < (dfsInit : DFSState V).time := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hdf0 : DiscoveryFinishInvariant (dfsInit : DFSState V) := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hp : ParenthesisInvariant (G.dfs) := by
+    simpa [dfs] using
+      (dfsFromList_preserves_parenthesisInvariant (G := G) (fuel := G.vertices.card + 1)
+        (s0 := dfsInit) (vs := G.vertices.toList) hfuel hparen0 hdt0 hbf0 hdf0)
+  exact hp u v (G.dfs_all_black hu) (G.dfs_all_black hv) hne
+
+/-- All graph-vertex pairs are either equal or have laminar DFS intervals. -/
+theorem dfs_parenthesis_cases {u v : V} (hu : u ∈ G.vertices) (hv : v ∈ G.vertices) :
+    u = v ∨ intervalsLaminar (G.dfs) u v := by
+  by_cases h : u = v
+  · exact Or.inl h
+  · exact Or.inr (dfs_parenthesis G hu hv h)
+
+/-- DFS intervals cannot partially overlap: the endpoint order
+{lit}`d[u] < d[v] < f[u] < f[v]` is impossible. -/
+theorem dfs_intervals_not_cross {u v : V} (hu : u ∈ G.vertices) (hv : v ∈ G.vertices) :
+    ¬(discoveryTime (G.dfs) u < discoveryTime (G.dfs) v ∧
+      discoveryTime (G.dfs) v < finishTime (G.dfs) u ∧
+      finishTime (G.dfs) u < finishTime (G.dfs) v) := by
+  intro hcross
+  have hne : u ≠ v := by
+    intro h
+    subst v
+    omega
+  have hparen := dfs_parenthesis G hu hv hne
+  rcases hparen with h | h | h | h
+  · unfold finishesBeforeDiscovered at h
+    omega
+  · unfold finishesBeforeDiscovered at h
+    have hvdf := G.dfs_discovery_lt_finish hv
+    omega
+  · unfold intervalNestedInside at h
+    omega
+  · unfold intervalNestedInside at h
+    omega
 
 section DiscoveryState
 

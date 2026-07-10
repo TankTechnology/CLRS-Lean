@@ -12,8 +12,8 @@
 已经动工的章节：2–20、22、23。  
 尚未开始的章节：21（并查集）、24（单源最短路）、25（全源最短路）、26（最大流）。
 Chapter 22 目前部分完成：22.1 图模型、22.2 BFS 可达性正确性（soundness + completeness）、
-22.3 DFS 基本不变量与白路径定理、22.4 Kahn 拓扑排序、22.5 Kosaraju SCC 完整正确性已完成；
-剩余主要目标是 BFS 最短路性质、DFS 括号定理/边分类，以及 CLRS 风格 DFS 拓扑排序。
+22.3 DFS 基本不变量、白路径定理与时间区间括号定理、22.4 Kahn 拓扑排序、22.5 Kosaraju SCC
+完整正确性已完成；剩余主要目标是 BFS 最短路性质、DFS 祖先刻画/边分类，以及 CLRS 风格 DFS 拓扑排序。
 
 对于尚未开始的章节，采用“规范层 → 实现层 → 证明层”的三层打法：
 
@@ -247,13 +247,15 @@ lake build CLRSLean
   `dfs_all_black`（`dfs` 后所有顶点为黑色）。
 - 22.3 白路径与 SCC 桥接：证明 `dfsVisit_blackens_iff_whiteReachable`，并完成 discovery-state、
   时间戳、父边、最大完成时间和首发现顶点等基础设施。
+- 22.3 括号定理：证明 `dfs_parenthesis`，即不同顶点的发现/完成区间必相离或严格嵌套；
+  `dfs_intervals_not_cross` 直接排除部分交叉的时间戳次序。
 - 22.5 Kosaraju SCC：证明 `scc_finish_time_order`、`scc_finish_order`、
   `kosarajuComponent_scc_core` 与最终 `kosarajuComponents_isSCCPartition`。
 
 **仍待完成：**
 
 - 22.2 无权最短距离与 predecessor tree 正确性。
-- 22.3 括号定理与边分类（tree/back/forward/cross）。
+- 22.3 区间嵌套与 parent forest 祖先关系的刻画，以及边分类（tree/back/forward/cross）。
 - 22.4 基于 DFS 完成时间的拓扑排序，以匹配 CLRS 原始叙述。
 
 **已完成（Kahn 算法版本）：**
@@ -273,7 +275,7 @@ lake build CLRSLean
 
 - `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` ✅
 - `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（soundness + completeness; shortest-path distances remain）
-- `CLRSLean/Chapter_22/Section_22_3_DFS*.lean` ✅（white-path/SCC bridge complete; parenthesis/edge classification remain）
+- `CLRSLean/Chapter_22/Section_22_3_DFS*.lean` ✅（white-path/parenthesis/SCC bridge complete; ancestor characterization and edge classification remain）
 - `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` ✅
 - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` ✅（Kosaraju correctness complete）
 
@@ -343,8 +345,8 @@ lake build CLRSLean
 
 ### 当前推荐立即启动的 Sprint
 
-**Sprint 1（Chapter 22 收尾）**。下一步集中完成 DFS 括号定理和边分类；SCC 主证明已经闭合，
-不再是后续图算法章节的阻塞项。
+**Sprint 1（Chapter 22 收尾）**。下一步集中完成 DFS 祖先刻画和边分类；括号定理与 SCC 主证明
+已经闭合，不再是后续图算法章节的阻塞项。
 
 ---
 
@@ -358,6 +360,7 @@ lake build CLRSLean
 - **2026-07-05**：完成 Section 22.2 BFS 完备性证明，通过暴露内部队列并建立闭包/终止测度不变式。
 - **2026-07-05**：将 SCC 核心进一步隔离为命名的 `scc_finish_order` 引理（DFS 完成时间序的 SCC 源点性质），为后续补全 DFS 理论提供明确目标。
 - **2026-07-10**：完成 DFS 白路径与 discovery-state/SCC bridge 证明、SCC 完成时间次序、Kosaraju 第二遍不变量及最终 SCC partition 正确性；Chapter 22 转入括号定理、边分类和 BFS 最短路性质的收尾阶段。
+- **2026-07-10**：完成 DFS 时间区间括号定理 `dfs_parenthesis` 及不可交叉推论；下一步收窄为 parent forest 祖先刻画与边分类。
 
 ---
 

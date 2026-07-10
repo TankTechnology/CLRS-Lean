@@ -58,6 +58,8 @@ remain open.
   `CLRS.Chapter22.Graph.dfsVisit_no_new_gray`,
   `CLRS.Chapter22.Graph.dfs_all_black`,
   `CLRS.Chapter22.Graph.dfsVisit_blackens_iff_whiteReachable`,
+  `CLRS.Chapter22.Graph.dfs_parenthesis`,
+  `CLRS.Chapter22.Graph.dfs_intervals_not_cross`,
   `CLRS.Chapter22.Graph.IsDFSAncestor_reachable`, and
   `CLRS.Chapter22.Graph.exists_discovery_state`
 
@@ -67,7 +69,10 @@ invariants are proved, and `dfs_all_black` states that every vertex of the graph
 is black after a complete `dfs`.  The white-path development proves that a
 sufficiently fuelled visit blackens exactly the white-reachable set.  Timestamp,
 discovery-state, ancestor, parent-edge, and SCC finish-time infrastructure is
-also proved.  The public parenthesis theorem and edge classification remain.
+also proved.  `dfs_parenthesis` proves that the final discovery/finish intervals
+of distinct graph vertices are disjoint or strictly nested, and
+`dfs_intervals_not_cross` rules out partial overlap.  The parent-forest
+characterization of nesting and edge classification remain.
 
 ## Section 22.4 - Topological Sort
 
@@ -111,6 +116,6 @@ components.
 ## Remaining Chapter Work
 
 - BFS unweighted shortest-path distances and predecessor-tree correctness;
-- DFS parenthesis theorem and tree/back/forward/cross edge classification;
+- DFS ancestor/interval characterization and tree/back/forward/cross edge classification;
 - DFS-based topological sort matching the CLRS presentation;
 - explicit algorithm-cost models for the functional implementations.
