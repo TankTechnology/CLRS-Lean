@@ -123,8 +123,9 @@ which areas should not yet be counted as proof-complete.
   {lit}`dfsVisit_no_new_gray`) and the global soundness lemma {lit}`dfs_all_black`, which
   states that every graph vertex is black after {lit}`dfs`; the white-path theorem,
   discovery-state bridge, timestamp/ancestor infrastructure, and SCC finish-time
-  ordering are proved.  The public parenthesis theorem and edge classification
-  remain.
+  ordering are proved.  The timestamp parenthesis theorem
+  {lit}`dfs_parenthesis` and its no-crossing corollary are also proved.  Connecting
+  interval nesting to the parent forest and proving edge classification remain.
 * Chapter 22, Section 22.4: Kahn's algorithm for topological sorting is
   implemented and {lit}`topologicalSort_isTopologicalOrder` proves that it returns a
   valid topological order for every DAG; a DFS-based version matching the CLRS
@@ -239,10 +240,10 @@ which areas should not yet be counted as proof-complete.
 * Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
   and the logarithmic-height theorem; executable insertion is already in place.
 * Chapter 22 graph algorithms: extend the proved reachability BFS with
-  unweighted shortest-path distances, complete the DFS parenthesis theorem and
-  edge classification, and add a DFS-based topological sort matching CLRS.  The
-  white-path theorem, Kahn topological sort, and full Kosaraju SCC correctness are
-  already proved on the Section 22.1 graph model.
+  unweighted shortest-path distances, connect DFS interval nesting to the parent
+  forest, prove edge classification, and add a DFS-based topological sort matching
+  CLRS.  The white-path and parenthesis theorems, Kahn topological sort, and full
+  Kosaraju SCC correctness are already proved on the Section 22.1 graph model.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.
