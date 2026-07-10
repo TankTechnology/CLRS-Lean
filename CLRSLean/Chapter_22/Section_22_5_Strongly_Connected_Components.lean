@@ -196,6 +196,10 @@ noncomputable def dfsFromListCollect (G : Graph V) (fuel : Nat) :
 def finishLe (s : DFSState V) (u v : V) : Bool :=
   decide (finishTime s v ≤ finishTime s u)
 
+theorem finishLe_iff_le {s : DFSState V} {u v : V} :
+    finishLe s u v ↔ finishTime s v ≤ finishTime s u := by
+  simp [finishLe]
+
 /-- Kosaraju's algorithm: DFS on {lit}`G` for finish times, then DFS on
 {lit}`Gᵀ` in decreasing finish-time order, collecting each DFS tree. -/
 noncomputable def kosarajuComponents (G : Graph V) : List (Finset V) :=
@@ -395,10 +399,6 @@ theorem isSCC_sccOf {r : V} (hr : r ∈ G.vertices) : G.IsSCC (G.sccOf r) := by
         (StronglyConnected.reachable G hu)⟩
   · intro w hw hsc
     exact hsc r (stronglyConnected_refl G r)
-
-theorem finishLe_iff_le {s : DFSState V} {u v : V} :
-    finishLe s u v ↔ finishTime s v ≤ finishTime s u := by
-  simp [finishLe]
 
 theorem WhiteReachable.of_reachable_through_set {s : DFSState V} {u v : V} {S : Set V}
     (hS : ∀ w, G.Reachable u w → G.Reachable w v → w ∈ S)
