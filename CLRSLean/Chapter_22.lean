@@ -13,10 +13,11 @@ import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
 /-! # Chapter 22 - Elementary Graph Algorithms
 
 Chapter 22 introduces the finite-graph model used by the rest of the graph
-algorithm track.  The current development proves reachability correctness for
-a fuelled BFS, establishes the DFS color/timestamp/white-path theory needed by
-later graph algorithms, proves Kahn topological sort correct for DAGs, and
-proves full functional correctness of Kosaraju's SCC algorithm.
+algorithm track.  The current development proves CLRS BFS shortest-distance and
+predecessor-tree correctness, establishes the DFS color/timestamp/white-path
+theory needed by later graph algorithms, proves both Kahn and DFS topological
+sort correct for DAGs, and proves full functional correctness of Kosaraju's SCC
+algorithm.
 
 The model intentionally mirrors the edge-list style used by CLRS pseudocode:
 a finite vertex set plus an adjacency function gives a directed graph, and an
@@ -45,7 +46,11 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.bfsInvariant_step`,
   {lit}`CLRS.Chapter22.Graph.bfsAux_sound`,
   {lit}`CLRS.Chapter22.Graph.bfs_sound`,
-  and {lit}`CLRS.Chapter22.Graph.bfs_complete`.
+  {lit}`CLRS.Chapter22.Graph.bfs_complete`,
+  {lit}`CLRS.Chapter22.Graph.bfsState`,
+  {lit}`CLRS.Chapter22.Graph.bfsState_distance_eq_some_iff`,
+  {lit}`CLRS.Chapter22.Graph.bfsState_isBFSPredecessorTree`,
+  and {lit}`CLRS.Chapter22.Graph.bfsState_correct`.
 
 * 22.3 Depth-first search.
   Main declarations:
@@ -118,8 +123,9 @@ only the layer they need:
 ## Current Shape
 
 Section 22.1 establishes the public graph vocabulary.  Section 22.2 proves that
-BFS is both sound (only reachable vertices are reported) and complete (every
-reachable vertex is reported).  Section 22.3 gives a functional DFS model,
+BFS is sound and complete for reachability, that its distance labels are exact
+unweighted shortest-path lengths, and that its parent pointers form a rooted
+predecessor tree over exactly the reachable vertices.  Section 22.3 gives a functional DFS model,
 proves its global color and timestamp invariants, proves the white-path
 characterization used by the SCC development, and proves that final DFS
 timestamp intervals are disjoint or nested and that strict nesting is equivalent
@@ -133,13 +139,12 @@ returned components form an SCC partition of the vertex set.
 
 ## Deferred Work
 
-* Section 22.2: unweighted shortest-path distances and predecessor-tree
-  correctness; the current BFS theorem characterizes reachability only.
 * Algorithm-cost refinements: explicit work measures for the fuelled and
   classically selected functional implementations.
 
-Kosaraju SCC correctness is no longer deferred.  The remaining work is textbook
-coverage and executable-cost refinement rather than a gap in the SCC algorithm.
+All advertised Chapter 22 algorithm-correctness chains are complete.  The
+remaining work is executable-cost refinement rather than a functional
+correctness gap.
 -/
 
 namespace CLRS
