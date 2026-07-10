@@ -38,7 +38,7 @@ not the array heap proof itself.
 
 - Related section: Section 23.2 - Kruskal and Prim
 - Status: `deferred-implementation`
-- Current decision: do not prove it in the first CLRS-Lean phase.
+- Current decision: review it as a separately scoped implementation chapter.
 
 The current MST proof uses `ComponentOracle` and `CycleTestImplementation` as
 interfaces.  A future union-find implementation can refine this interface
@@ -56,25 +56,15 @@ function, including insert/delete/search behavior.  The CLRS expected-time
 theorem needs a probability model over keys, hash functions, or random
 assignments before we can state simple uniform hashing precisely.
 
-### Master Theorem Extension Beyond Exact Powers
+### Master Theorem Generalization Beyond The Current Assumptions
 
 - Related section: Section 4.5 - The master method
 - Status: `future-work`
 
-The exact-power recurrence expansion and three exact-power Master-style cases
-are compiler-clean.  Section 4.6 now also proves floor/ceiling recurrence
-interfaces, extracts exact-power recurrences from those all-input models, and
-proves the generic transfer bridge from exact powers to all natural input sizes
-under monotone-cost and power-sandwich hypotheses.  Section 4.6 also now proves
-the adjacent-power `Nat.log` interval and derives both sandwich hypotheses from
-monotone comparison scales with eventual one-step control.  It also proves the
-discrete `criticalPowerScale`, `criticalPowerLogScale`, and
-`tailDominatedScale` all-input wrappers for exact-power `Θ(a^i)`,
-`Θ((i+1)a^i)`, and tail-dominated bounds, including floor/ceiling recurrence
-wrappers for exact-power Master cases 1, 2, and 3.  Case 1 is also packaged
-against the textbook `n^(log_b a)` scale, and case 2 against
-`n^(log_b a) log n`.  The remaining analytic strengthening is the case-3
-forcing comparison scale.
+The exact-power cases, floor/ceiling transfer, adjacent-power sandwich, and
+textbook-facing comparison scales for cases 1, 2, and regular case 3 are
+compiler-clean.  Future work may weaken assumptions or package additional
+variants, but there is no remaining core case-3 comparison gap.
 
 ### Remaining Chapter 4 Sections
 
@@ -82,14 +72,9 @@ forcing comparison scale.
 - Status: `future-work`
 
 These sections are not excluded from CLRS-Lean.  The remaining refinements need
-distinct representation choices: general-size block matrices for Strassen and
-the final comparison-scale layer for the full Master Theorem.  Sections 4.3,
-4.4, and 4.6 now provide reusable recurrence, recursion-tree, and all-input
-transfer infrastructure, including adjacent-power sandwich generation,
-discrete Master-scale wrappers, packaged floor/ceiling cases 1/2/3, and
-natural-exponent polynomial wrappers for Master cases 1 and 2, the real-log
-case-1 bridge, and the real-log-log case-2 bridge.  The remaining
-Master-theorem comparison work is the case-3 forcing-scale layer.
+distinct representation choices: general-size recursive block matrices for
+Strassen and explicit algorithm/RAM cost models.  The current Master-theorem
+comparison stack covers all three textbook cases under its stated assumptions.
 
 ### Maximum-Subarray Runtime Analysis
 
@@ -311,14 +296,12 @@ Search, minimum/maximum, functional successor/predecessor, insertion, and
 functional deletion membership/order preservation are proved.  The remaining
 BST work is the CLRS parent-pointer, transplant, and mutation refinement layer.
 
-### Full Red-Black Insertion And Deletion
+### Red-Black Deletion And Height
 
 - Related section: Section 13.1 - Red-black trees
 - Status: `future-work`
 
-The current Chapter 13 file proves local rotation, root recoloring,
-black-height balance, red-red repair certificates, and four local
-`RB-INSERT-FIXUP` case certificates.  A full CLRS proof still needs those local
-cases composed into executable `RB-INSERT`/`RB-INSERT-FIXUP`, plus
-`RB-DELETE`, `RB-DELETE-FIXUP`, preservation of the red-black invariants, and
-the height bound.
+The current Chapter 13 file includes executable insertion with membership,
+shape, and black-height theorems.  The remaining CLRS proof layer is executable
+`RB-DELETE`, `RB-DELETE-FIXUP`, invariant preservation, and the logarithmic
+height bound.
