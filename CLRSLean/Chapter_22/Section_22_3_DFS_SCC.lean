@@ -59,6 +59,17 @@ theorem finish_le_maxFinish {s : DFSState V} {C : Set V} {v : V}
     simp [sC, hV, hv]
   exact Finset.le_sup (s := sC) (f := fun x => finishTime s x) hmem
 
+/-- If every member of {lit}`C` has finish time at most {lit}`n`, then
+{name}`Graph.maxFinish` of {lit}`C` is at most {lit}`n`. -/
+theorem maxFinish_le_of_forall_finish_le {s : DFSState V} {C : Set V} {n : Nat}
+    (hle : ∀ v ∈ C, finishTime s v ≤ n) :
+    maxFinish G s C ≤ n := by
+  rw [maxFinish]
+  apply Finset.sup_le
+  intro v hv
+  simp at hv
+  exact hle v hv.2
+
 /-- If {lit}`c` witnesses the maximum finish time of {lit}`C`, then every member
 of {lit}`C` finishes no later than {lit}`c`. -/
 theorem finish_le_maxFinish_witness {s : DFSState V} {C : Set V} {r c : V}
@@ -76,11 +87,7 @@ theorem maxFinish_eq_of_forall_finish_le {s : DFSState V} {C : Set V} {r : V}
     (hle : ∀ v ∈ C, finishTime s v ≤ finishTime s r) :
     maxFinish G s C = finishTime s r := by
   apply Nat.le_antisymm
-  · rw [maxFinish]
-    apply Finset.sup_le
-    intro v hv
-    simp at hv
-    exact hle v hv.2
+  · exact maxFinish_le_of_forall_finish_le G hle
   · exact finish_le_maxFinish G hsub hr
 
 /-! ## First-discovered vertex -/
