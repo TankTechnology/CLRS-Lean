@@ -20,8 +20,8 @@ identifiers.
 
 The repository currently represents a growing subset of CLRS.  The public
 progress dashboard is generated from `docs/clrs-proof-progress.csv`; at the
-current snapshot it tracks 35 CLRS chapters, 21 represented Lean chapters, and
-816 proved reader-facing theorem entries.
+current snapshot it tracks 35 CLRS chapters, 22 represented Lean chapters, and
+871 proved reader-facing theorem entries.
 
 Highlights include:
 
@@ -38,6 +38,9 @@ Highlights include:
 - Chapter 16: activity selection and Huffman coding.
 - Chapters 17-20 and 23: first-pass amortized-analysis, B-tree, Fibonacci-heap,
   vEB, and MST theorem surfaces.
+- Chapter 22: main functional correctness is complete for BFS shortest paths
+  and predecessor trees, DFS theory and edge classification, Kahn and DFS
+  topological sorting, and Kosaraju SCCs.
 
 See `docs/proof-map.md` for the detailed theorem-by-theorem map and
 `docs/proof-status-board.md` for the high-level planning board.
@@ -54,6 +57,10 @@ CLRSLean/Chapter_06/Section_06_4_Heapsort.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
 CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
+CLRSLean/Chapter_22/Section_22_2_BFS.lean
+CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean
+CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean
+CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
 CLRSLean/Progress.lean
 CLRSLean/Status.lean
@@ -66,6 +73,7 @@ Maintainer-facing documents live under `docs/`:
 docs/clrs-proof-progress.csv
 docs/proof-map.md
 docs/proof-status-board.md
+docs/proof-audits/chapter-22-closure-2026-07-10.md
 docs/site-architecture.md
 docs/workflows/chapter-workflow.md
 docs/status/blocked-and-deferred.md
@@ -99,6 +107,7 @@ Run the repository consistency checks used before website changes:
 
 ```bash
 python3 scripts/check_progress_csv.py
+python3 scripts/check_site_consistency.py
 python3 scripts/test_literate_config.py
 python3 scripts/test_optimize_literate_html.py
 python3 scripts/check_literate_html_freshness.py .lake/build/literate-html
