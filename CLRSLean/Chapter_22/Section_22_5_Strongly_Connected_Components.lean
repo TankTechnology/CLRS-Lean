@@ -615,6 +615,22 @@ theorem set_white_at_discovery_state_of_min_discovery {s : DFSState V} {C : Set 
   intro v hv
   exact white_at_discovery_state_of_discovery_ge G hdisc_eq h_nonwhite (hmin v hv)
 
+/-- If {lit}`rC` is discovered before {lit}`rD`, and each is first-discovered in
+its set, then both sets are white at {lit}`rC`'s discovery state. -/
+theorem sets_white_at_earlier_discovery_state {s : DFSState V} {C D : Set V} {rC rD : V}
+    (hdisc_eq : discoveryTime (G.dfs) rC = s.time)
+    (h_nonwhite : ∀ w, s.color w ≠ Color.white → discoveryTime (G.dfs) w < s.time)
+    (hmin_C : ∀ v ∈ C, discoveryTime (G.dfs) rC ≤ discoveryTime (G.dfs) v)
+    (hmin_D : ∀ v ∈ D, discoveryTime (G.dfs) rD ≤ discoveryTime (G.dfs) v)
+    (hlt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD) :
+    (∀ v ∈ C, s.color v = Color.white) ∧ (∀ v ∈ D, s.color v = Color.white) := by
+  constructor
+  · exact set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hmin_C
+  · apply set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite
+    intro v hv
+    have hle := hmin_D v hv
+    omega
+
 /-- A white vertex that is not white-reachable from a white DFS root remains
 white after that root's visit. -/
 theorem dfsVisit_preserves_white_of_not_whiteReachable {fuel : Nat} {s : DFSState V}
@@ -778,15 +794,10 @@ theorem scc_finish_time_order {C D : Set V}
     -- h_f_pres: f-preservation for dfsVisit output.
     -- h_fuel: f ≥ |whiteReachableSet s rC| + 1
     -- All of C ∪ D is white in s (otherwise d[v] < d[rC], contradicting firstDiscoveredVertex_min)
-    have hwhite_C : ∀ v ∈ C, s.color v = Color.white :=
-      set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hdisc_min_C
-    have hdisc_from_rC_D :
-        ∀ v ∈ D, discoveryTime (G.dfs) rC ≤ discoveryTime (G.dfs) v := by
-      intro v hv
-      have hle := hdisc_min_D v hv
-      omega
-    have hwhite_D : ∀ v ∈ D, s.color v = Color.white :=
-      set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hdisc_from_rC_D
+    have hsets_white :=
+      sets_white_at_earlier_discovery_state G hdisc_eq h_nonwhite hdisc_min_C hdisc_min_D hd_lt
+    have hwhite_C : ∀ v ∈ C, s.color v = Color.white := hsets_white.1
+    have hwhite_D : ∀ v ∈ D, s.color v = Color.white := hsets_white.2
     have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
       have h_finish_d_lt_rC :
           finishTime (G.dfs) d < finishTime (G.dfs) rC :=
