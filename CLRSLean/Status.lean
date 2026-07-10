@@ -113,10 +113,13 @@ which areas should not yet be counted as proof-complete.
 * Chapter 22, Section 22.1: a finite directed-graph model with adjacency,
   walks, paths, cycles, reachability, connected components, and undirected-graph
   symmetry is established.
-* Chapter 22, Section 22.2: a fuelled breadth-first-search procedure is in
-  place and both {lit}`bfs_sound` (every visited vertex is reachable) and
-  {lit}`bfs_complete` (every reachable vertex is visited) are proved; unweighted
-  shortest-path distance lemmas remain.
+* Chapter 22, Section 22.2: the reachability-only BFS and a CLRS-labelled FIFO
+  BFS are implemented.  Besides {lit}`bfs_sound` and {lit}`bfs_complete`, theorem
+  {lit}`bfsState_distance_eq_some_iff` proves that every returned label is
+  exactly the unweighted shortest-path distance, while
+  {lit}`bfsState_isBFSPredecessorTree` proves rooted coverage, graph-valid parent
+  edges, unit distance increments, source-to-vertex parent paths, and acyclicity.
+  The combined theorem is {lit}`bfsState_correct`.
 * Chapter 22, Section 22.3: a functional depth-first-search model with
   discovery/finish times and parent pointers is in place, together with the
   basic color invariants ({lit}`dfsVisit_blackens_u`, {lit}`dfsVisit_preserves_black`,
@@ -245,11 +248,11 @@ which areas should not yet be counted as proof-complete.
   transplant, and mutation refinement.
 * Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
   and the logarithmic-height theorem; executable insertion is already in place.
-* Chapter 22 graph algorithms: extend the proved reachability BFS with
-  unweighted shortest-path distances.  The white-path and parenthesis theorems,
-  parent-forest interval characterization, DFS edge classification, Kahn and
-  DFS finish-time topological sorts, and full Kosaraju SCC correctness are
-  already proved on the Section 22.1 graph model.
+* Chapter 22 graph algorithms: all advertised functional-correctness chains are
+  proved on the Section 22.1 graph model, including BFS shortest distances and
+  its predecessor tree, DFS white-path/parenthesis/edge classification, Kahn and
+  DFS finish-time topological sorts, and full Kosaraju SCC correctness.  Explicit
+  work and RAM-cost refinements remain optional follow-up work.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.
