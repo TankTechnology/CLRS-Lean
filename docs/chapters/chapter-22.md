@@ -60,7 +60,10 @@ remain open.
   `CLRS.Chapter22.Graph.dfsVisit_blackens_iff_whiteReachable`,
   `CLRS.Chapter22.Graph.dfs_parenthesis`,
   `CLRS.Chapter22.Graph.dfs_intervals_not_cross`,
-  `CLRS.Chapter22.Graph.IsDFSAncestor_reachable`, and
+  `CLRS.Chapter22.Graph.IsDFSAncestor_reachable`,
+  `CLRS.Chapter22.Graph.dfs_parent_discovery_lt`,
+  `CLRS.Chapter22.Graph.intervalNestedInside_dfs_implies_ancestor`,
+  `CLRS.Chapter22.Graph.intervalNestedInside_dfs_iff_ancestor`, and
   `CLRS.Chapter22.Graph.exists_discovery_state`
 
 A functional depth-first-search model with white/gray/black colors, discovery
@@ -71,8 +74,10 @@ sufficiently fuelled visit blackens exactly the white-reachable set.  Timestamp,
 discovery-state, ancestor, parent-edge, and SCC finish-time infrastructure is
 also proved.  `dfs_parenthesis` proves that the final discovery/finish intervals
 of distinct graph vertices are disjoint or strictly nested, and
-`dfs_intervals_not_cross` rules out partial overlap.  The parent-forest
-characterization of nesting and edge classification remain.
+`dfs_intervals_not_cross` rules out partial overlap.  The theorem
+`intervalNestedInside_dfs_iff_ancestor` completes the parent-forest
+characterization: for distinct graph vertices, strict interval containment is
+equivalent to ancestry.  Tree/back/forward/cross edge classification remains.
 
 ## Section 22.4 - Topological Sort
 
@@ -116,6 +121,6 @@ components.
 ## Remaining Chapter Work
 
 - BFS unweighted shortest-path distances and predecessor-tree correctness;
-- DFS ancestor/interval characterization and tree/back/forward/cross edge classification;
+- DFS tree/back/forward/cross edge classification;
 - DFS-based topological sort matching the CLRS presentation;
 - explicit algorithm-cost models for the functional implementations.
