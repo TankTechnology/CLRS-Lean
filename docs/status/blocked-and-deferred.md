@@ -295,14 +295,20 @@ The current Section 10.2 file proves the functional-list membership behavior of
 search, insertion, and deletion.  Predecessor/successor pointer updates,
 sentinels, allocation, and free lists require a shared imperative memory model.
 
-### Binary-Search-Tree Pointer Navigation And Transplant
+### Binary-Search-Tree Pointer-Level Mutation
 
 - Related section: Section 12.1 - Binary search trees
-- Status: `future-work`
+- Status: `deferred-implementation`
 
 Search, minimum/maximum, functional successor/predecessor, insertion, and
-functional deletion membership/order preservation are proved.  The remaining
-BST work is the CLRS parent-pointer, transplant, and mutation refinement layer.
+functional deletion membership/order preservation are proved.  A zipper-based
+parent-pointer layer is now also proved: iterative search
+(`searchIter_eq_search`), `TRANSPLANT` ordering preservation
+(`transplant_preserves_ordered`), `TREE-DELETE` via transplant
+(`deleteViaTransplant_eq_delete`), and parent-pointer successor/predecessor
+(`successorZipper_eq_successor?`, `predecessorZipper_eq_predecessor?`), each
+proved equivalent to the functional operation.  The remaining BST work is the
+imperative in-place pointer-mutation (RAM) refinement.
 
 ### Red-Black Deletion And Height
 

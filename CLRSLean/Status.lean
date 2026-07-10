@@ -49,10 +49,11 @@ the detailed maintainer ledger.
 * **Chapters 7, 9, and 11:** deterministic correctness and recurrence or finite-
   average layers exist.  A reusable finite probability/expectation model and
   end-to-end randomized expected-time bridges remain central gaps.
-* **Chapters 12-14:** functional BST operations, executable red-black insertion,
+* **Chapters 12-14:** functional BST operations plus a zipper-based
+  parent-navigation/transplant layer, executable red-black insertion,
   order-statistic augmentation, generic local augmentation facts, and interval-
-  search correctness exist.  Pointer refinement, red-black deletion/height,
-  and integration between balancing and augmentation remain.
+  search correctness exist.  Imperative pointer mutation, red-black
+  deletion/height, and integration between balancing and augmentation remain.
 * **Chapter 15:** rod cutting, matrix-chain multiplication, LCS, and optimal BST
   have mathematical optimality layers and pure executable recurrence or
   reconstruction results.  Mutable-array/memoized refinement and explicit RAM

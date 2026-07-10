@@ -33,7 +33,7 @@ missing core theorem groups.
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds | Explicit random-permutation/pivot probability model and end-to-end expectation |
 | 9 | Rank selection and executable median-of-medians correctness with linear recurrence wrapper | Randomized SELECT and concrete executable cost semantics |
 | 11 | Deterministic hash tables and finite-uniform bucket averages | Random key/hash-function model with independence |
-| 12 | Functional BST search, navigation, insertion, and deletion | Parent pointers, transplant refinement, and mutation |
+| 12 | Functional BST operations plus zipper-based parent navigation, transplant, and deletion equivalence | Imperative in-place pointer mutation and RAM refinement |
 | 13 | Executable red-black insertion and invariant proofs | Deletion/fixup and logarithmic height |
 | 14 | Order-statistic augmentation, generic local augmentation, and interval-search correctness | Integration with red-black balancing and a final general augmentation interface |
 | 15 | Rod cutting, matrix chain, LCS, and optimal BST optimality with pure executable tables/reconstruction | Mutable-array/memoized refinement and RAM costs |
