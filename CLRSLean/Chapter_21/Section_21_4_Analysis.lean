@@ -13,9 +13,11 @@ Together they give the logarithmic rank and uncompressed-path bounds.
 
 The final part defines an inverse-Ackermann function from Mathlib's Ackermann
 function and packages the potential-method endpoint used by the path-
-compression analysis.  The theorem is deliberately certificate based: a
-low-level cost semantics can establish the per-operation amortized charge and
-then reuse the total bound without repeating the telescoping argument.
+compression analysis.  The nested {lit}`CostedExecution` module supplies a
+concrete Batteries traversal semantics, proves reachable rank mass, and derives
+an {lit}`O(m log n)` execution bound.  The theorem here remains certificate
+based so that the sharper inverse-Ackermann analysis can reuse the telescoping
+argument without repeating it.
 
 Main results:
 

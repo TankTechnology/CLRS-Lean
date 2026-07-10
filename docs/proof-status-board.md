@@ -39,7 +39,7 @@ closure audit.  Cost refinements are a new layer, not missing correctness.
 | 18 | Mathematical B-tree search/split/insert/delete specs | Occupancy/depth invariants and page mutation |
 | 19 | Abstract finite-set Fibonacci-heap operation specs and potential facts | Pointer forest, cascading cuts, consolidation, true degree theorem |
 | 20 | vEB arithmetic and finite-set operation specs | Recursive cluster representation and `O(log log u)` bridge |
-| 21 | Partition semantics, weighted linked-list `n log n` rewrite bound, executable union-find correctness, and Kruskal bridge | Instantiate rank-mass and inverse-Ackermann cost certificates for a concrete stateful scan |
+| 21 | Partition semantics, weighted linked-list `n log n`, executable union-find correctness, reachable rank mass, real traversal costs, `m log n`, and Kruskal bridge | Instantiate the inverse-Ackermann potential certificate and connect the costed machine to a stateful Kruskal scan |
 | 23 | Cut property, exchange certificates, Kruskal wrappers, and extensional union-find cycle test | Automatic exchange extraction, stateful scan, recursive local wrapper, and Prim |
 
 ## Not Represented On Main
@@ -56,7 +56,7 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | 0 | Chapters 5/7/8/9/11 probability infrastructure | General finite `Fintype` expectation/probability API, then Chapter 7 total comparison expectation and `O/Theta(n log n)` bridge |
 | 1 | Chapter 23 MST completion | Canonical exchange-path extraction and a real Prim theorem interface |
 | 2 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
-| 3 | Chapter 21/23 implementation track | Add a stateful union-find Kruskal scan and instantiate the inverse-Ackermann cost certificate |
+| 3 | Chapter 21/23 implementation track | Add a stateful union-find Kruskal scan and refine the proved `m log n` execution bound to the inverse-Ackermann certificate |
 | 4 | Existing partial implementation layers | Select one concrete pointer, mutable-array, or RAM refinement and finish it end-to-end |
 
 ## High-Difficulty Queue

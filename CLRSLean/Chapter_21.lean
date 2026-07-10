@@ -2,6 +2,7 @@ import CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations
 import CLRSLean.Chapter_21.Section_21_2_Linked_List_Representation
 import CLRSLean.Chapter_21.Section_21_3_Disjoint_Set_Forests
 import CLRSLean.Chapter_21.Section_21_4_Analysis
+import CLRSLean.Chapter_21.Section_21_4_Analysis.CostedExecution
 
 /-!
 # Chapter 21 - Data Structures for Disjoint Sets
@@ -19,14 +20,16 @@ their correctness and complexity arguments.
 * 21.3 Disjoint-set forests: {lit}`proved` for functional correctness.  The
   Batteries union-by-rank/path-compression implementation is proved to refine
   the abstract model, including the executable equivalence query.
-* 21.4 Rank and path-compression analysis: {lit}`partial`.  Rank/path depth,
-  inverse-Ackermann definitions, and the potential-certificate aggregate
-  theorem are proved; instantiating the certificate with a step-counting
-  semantics for Batteries remains a low-level strengthening target.
+* 21.4 Rank and path-compression analysis: {lit}`partial`.  Real Batteries
+  parent traversals are counted, rank-mass is proved for every reachable
+  state, whole executions refine the abstract trace, and the concrete
+  {lit}`O(m log n)` bound is proved.  Instantiating the inverse-Ackermann
+  potential certificate remains the sharper strengthening target.
 
-The represented chapter is complete for functional correctness.  The exact
-RAM-level {lit}`O(m α(n))` refinement is kept explicit as the remaining
-complexity boundary.
+The represented chapter is complete for functional correctness and now has a
+concrete logarithmic execution bound.  The sharper RAM-level
+{lit}`O(m α(n))` refinement is kept explicit as the remaining complexity
+boundary.
 -/
 
 namespace CLRS
