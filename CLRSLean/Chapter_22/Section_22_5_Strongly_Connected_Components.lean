@@ -1426,15 +1426,14 @@ lemma dfsFromListCollect_kosaraju_sccs {fuel : Nat} (hfuel_eq : fuel = G.vertice
 /-! ## SCC correctness core -/
 
 /-- Core DFS-theoretic lemma: every component returned by
-{name}`Graph.kosarajuComponents` is strongly connected and maximal.
+{name}`Graph.kosarajuComponents` is an SCC of {lit}`G`.
 
 The proof applies {name}`Graph.scc_finish_order` at each step of the second DFS
 pass.  The first white vertex in decreasing finish-time order is maximal among
 the currently white vertices, so its transpose DFS tree is exactly its SCC. -/
 theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
-    (∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v) ∧
-    (∀ w ∈ G.vertices, (∀ u ∈ C, G.StronglyConnected u w) → w ∈ C) := by
+    G.IsSCC (C : Set V) := by
   -- 1. Setup
   simp [kosarajuComponents] at hC
   let order := G.vertices.toList.mergeSort (finishLe (G.dfs))
@@ -1450,28 +1449,17 @@ theorem kosarajuComponent_scc_core (G : Graph V) (C : Finset V)
     simpa [order] using kosaraju_initial_scc_invariant G
   have h_all_sccs := dfsFromListCollect_kosaraju_sccs G (fuel := fuel) (by rfl) order dfsInit []
     h_pairwise_le h_order_verts h_init_invariant
-  have hC_scc : G.IsSCC (C : Set V) := h_all_sccs C (by simpa [fuel] using hC)
-  exact ⟨IsSCC.stronglyConnected G hC_scc, IsSCC.maximal G hC_scc⟩
+  exact h_all_sccs C (by simpa [fuel] using hC)
 
 /-- The components returned by {name}`Graph.kosarajuComponents` are exactly the
 strongly connected components of {lit}`G`.
 
-The structural properties (nonempty, subset, partition, disjointness, coverage)
-are proved above; the DFS finish-time argument needed for strong-connectivity
-and maximality is isolated in {name}`Graph.kosarajuComponent_scc_core`. -/
+The DFS finish-time argument needed for SCC-ness is isolated in
+{name}`Graph.kosarajuComponent_scc_core`. -/
 theorem kosarajuComponents_eq_sccs (G : Graph V) (C : Finset V)
     (hC : C ∈ G.kosarajuComponents) :
-    G.IsSCC (C : Set V) := by
-  have hcore := kosarajuComponent_scc_core G C hC
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · -- non-empty
-    exact kosarajuComponents_nonempty G C hC
-  · -- subset of vertices
-    exact kosarajuComponents_subset G C hC
-  · -- pairwise strongly connected
-    exact hcore.1
-  · -- maximal
-    exact hcore.2
+    G.IsSCC (C : Set V) :=
+  kosarajuComponent_scc_core G C hC
 
 /-- Vertices in the same component returned by Kosaraju's algorithm are
 strongly connected. -/
