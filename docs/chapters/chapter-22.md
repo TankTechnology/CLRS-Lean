@@ -30,17 +30,24 @@ graph symmetry.
   `CLRS.Chapter22.Graph.bfs`,
   `CLRS.Chapter22.Graph.BFSInvariant`,
   `CLRS.Chapter22.Graph.bfsInvariant_step`,
-  `CLRS.Chapter22.Graph.bfsAux_sound`, and
-  `CLRS.Chapter22.Graph.bfs_sound`
+  `CLRS.Chapter22.Graph.bfsAux_sound`,
+  `CLRS.Chapter22.Graph.bfs_sound`, and
+  `CLRS.Chapter22.Graph.bfs_complete`
 
 A fuelled functional BFS is defined on the Section 22.1 graph model, and
 `bfs_sound` proves that every vertex reported as visited by BFS is reachable from
-the source.  Reachability completeness and unweighted shortest-path distances
+the source.  Conversely, `bfs_complete` proves that every reachable vertex is
+reported.  Unweighted shortest-path distances and predecessor-tree correctness
 remain open.
 
 ## Section 22.3 - Depth-First Search
 
-- Lean source: `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
+- Lean sources:
+  `CLRSLean/Chapter_22/Section_22_3_DFS.lean`,
+  `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean`,
+  `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean`,
+  `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`, and
+  `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`
 - Status: `partial`
 - Main declarations:
   `CLRS.Chapter22.Graph.DFSState`,
@@ -48,19 +55,24 @@ remain open.
   `CLRS.Chapter22.Graph.dfs`,
   `CLRS.Chapter22.Graph.dfsVisit_blackens_u`,
   `CLRS.Chapter22.Graph.dfsVisit_preserves_black`,
-  `CLRS.Chapter22.Graph.dfsVisit_no_new_gray`, and
-  `CLRS.Chapter22.Graph.dfs_all_black`
+  `CLRS.Chapter22.Graph.dfsVisit_no_new_gray`,
+  `CLRS.Chapter22.Graph.dfs_all_black`,
+  `CLRS.Chapter22.Graph.dfsVisit_blackens_iff_whiteReachable`,
+  `CLRS.Chapter22.Graph.IsDFSAncestor_reachable`, and
+  `CLRS.Chapter22.Graph.exists_discovery_state`
 
 A functional depth-first-search model with white/gray/black colors, discovery
 and finish timestamps, and parent pointers is defined.  The basic color
 invariants are proved, and `dfs_all_black` states that every vertex of the graph
-is black after a complete `dfs`.  The parenthesis theorem, white-path theorem,
-and edge classification are still to come.
+is black after a complete `dfs`.  The white-path development proves that a
+sufficiently fuelled visit blackens exactly the white-reachable set.  Timestamp,
+discovery-state, ancestor, parent-edge, and SCC finish-time infrastructure is
+also proved.  The public parenthesis theorem and edge classification remain.
 
 ## Section 22.4 - Topological Sort
 
 - Lean source: `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean`
-- Status: `partial`
+- Status: `proved` for the current Kahn model
 - Main declarations:
   `CLRS.Chapter22.Graph.IsDAG`,
   `CLRS.Chapter22.Graph.indegree`,
@@ -74,9 +86,31 @@ valid topological order whenever the input graph is a DAG.  The implementation
 uses a fuelled recursive loop and the axiom of choice to pick a current source
 vertex.
 
-Open tasks:
+## Section 22.5 - Strongly Connected Components
 
-- DFS-based topological sort (to match the CLRS presentation more closely);
-- parenthesis theorem and white-path theorem;
-- DFS edge classification (tree/back/forward/cross edges);
-- Section 22.5 strongly connected components (Kosaraju).
+- Lean sources:
+  `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` and
+  `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean`
+- Status: `proved`
+- Main declarations:
+  `CLRS.Chapter22.Graph.transpose`,
+  `CLRS.Chapter22.Graph.StronglyConnected`,
+  `CLRS.Chapter22.Graph.IsSCC`,
+  `CLRS.Chapter22.Graph.kosarajuComponents`,
+  `CLRS.Chapter22.Graph.scc_finish_time_order`,
+  `CLRS.Chapter22.Graph.scc_finish_order`,
+  `CLRS.Chapter22.Graph.kosarajuComponents_eq_sccs`, and
+  `CLRS.Chapter22.Graph.kosarajuComponents_isSCCPartition`
+
+Kosaraju's two-pass algorithm is implemented and fully connected to the SCC
+specification.  The first-pass finish-time ordering is proved, the second-pass
+DFS tree is proved to be exactly one SCC, and the final output is proved to be a
+nonempty, pairwise-disjoint, covering partition into strongly connected maximal
+components.
+
+## Remaining Chapter Work
+
+- BFS unweighted shortest-path distances and predecessor-tree correctness;
+- DFS parenthesis theorem and tree/back/forward/cross edge classification;
+- DFS-based topological sort matching the CLRS presentation;
+- explicit algorithm-cost models for the functional implementations.

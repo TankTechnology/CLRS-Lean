@@ -121,18 +121,23 @@ which areas should not yet be counted as proof-complete.
   discovery/finish times and parent pointers is in place, together with the
   basic color invariants ({lit}`dfsVisit_blackens_u`, {lit}`dfsVisit_preserves_black`,
   {lit}`dfsVisit_no_new_gray`) and the global soundness lemma {lit}`dfs_all_black`, which
-  states that every graph vertex is black after {lit}`dfs`; the parenthesis theorem,
-  white-path theorem, and edge classification remain.
+  states that every graph vertex is black after {lit}`dfs`; the white-path theorem,
+  discovery-state bridge, timestamp/ancestor infrastructure, and SCC finish-time
+  ordering are proved.  The public parenthesis theorem and edge classification
+  remain.
 * Chapter 22, Section 22.4: Kahn's algorithm for topological sorting is
   implemented and {lit}`topologicalSort_isTopologicalOrder` proves that it returns a
-  valid topological order for every DAG; strongly connected components remain.
+  valid topological order for every DAG; a DFS-based version matching the CLRS
+  presentation remains optional textbook-facing work.
 * Chapter 22, Section 22.5: Kosaraju's two-pass SCC algorithm is implemented and
-  the returned components are proved to be a nonempty partition of the vertex set
+  the returned components are proved to be the strongly connected components and
+  a nonempty partition of the vertex set
   ({lit}`kosarajuComponents_subset`, {lit}`kosarajuComponents_pairwise_disjoint`,
   {lit}`kosarajuComponents_cover`, {lit}`kosarajuComponents_nonempty`, and
-  {lit}`kosarajuComponents_isSCCPartition`); the remaining SCC strong-connectivity
-  and maximality core is isolated in {lit}`kosarajuComponent_scc_core`, which in
-  turn depends on the admitted DFS finish-time lemma {lit}`scc_finish_order`.
+  {lit}`kosarajuComponents_isSCCPartition`).  The finish-time lemmas
+  {lit}`scc_finish_time_order` and {lit}`scc_finish_order`, together with the
+  strong-connectivity/maximality core {lit}`kosarajuComponent_scc_core`, are fully
+  proved.
 * Chapter 14, Section 14.1: order-statistic tree size augmentation,
   recomputation, key preservation, size/rank-preserving local rotations, and
   rank-selection correctness are proved for a functional augmented tree; the
@@ -233,10 +238,11 @@ which areas should not yet be counted as proof-complete.
   transplant, and mutation refinement.
 * Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
   and the logarithmic-height theorem; executable insertion is already in place.
-* Chapter 22 graph algorithms: complete BFS (reachability completeness and
-  unweighted shortest-path distances), complete DFS (parenthesis theorem,
-  white-path theorem, edge classification), and strongly connected components on
-  top of the Section 22.1 graph model; topological sorting is already in place.
+* Chapter 22 graph algorithms: extend the proved reachability BFS with
+  unweighted shortest-path distances, complete the DFS parenthesis theorem and
+  edge classification, and add a DFS-based topological sort matching CLRS.  The
+  white-path theorem, Kahn topological sort, and full Kosaraju SCC correctness are
+  already proved on the Section 22.1 graph model.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.

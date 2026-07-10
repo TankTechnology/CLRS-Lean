@@ -9,8 +9,10 @@ every vertex of the graph is black.  Timestamps, parent pointers, and vertex
 colors (white/gray/black) are represented as functions, so the algorithm is
 noncomputable because it iterates over {lit}`Finset.toList`.
 
-The classic parenthesis theorem and white-path theorem are stated as the next
-targets on this DFS model.
+The white-path theorem and the discovery-state infrastructure built on this
+model are proved in the companion {lit}`Section_22_3_DFS_WhitePath` and
+{lit}`Section_22_3_DFS_Intervals` modules.  The public parenthesis theorem and
+edge-classification layer remain future work.
 -/
 
 namespace CLRS
