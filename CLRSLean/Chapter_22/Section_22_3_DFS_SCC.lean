@@ -59,6 +59,16 @@ theorem finish_le_maxFinish {s : DFSState V} {C : Set V} {v : V}
     simp [sC, hV, hv]
   exact Finset.le_sup (s := sC) (f := fun x => finishTime s x) hmem
 
+/-- If {lit}`c` witnesses the maximum finish time of {lit}`C`, then every member
+of {lit}`C` finishes no later than {lit}`c`. -/
+theorem finish_le_maxFinish_witness {s : DFSState V} {C : Set V} {r c : V}
+    (hsub : C ⊆ G.vertices) (hr : r ∈ C)
+    (hc_max : maxFinish G s C = finishTime s c) :
+    finishTime s r ≤ finishTime s c := by
+  have h := finish_le_maxFinish G (s := s) (C := C) hsub hr
+  rw [hc_max] at h
+  exact h
+
 /-! ## First-discovered vertex -/
 
 /-- For a nonempty subset {lit}`C` of vertices, there exists a vertex in
