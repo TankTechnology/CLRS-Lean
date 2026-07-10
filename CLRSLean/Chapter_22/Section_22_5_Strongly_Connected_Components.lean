@@ -888,6 +888,33 @@ theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
             hw_scc hGadj hwhite_v
   exact h (G.transpose.vertices.card + 1) v hv
 
+/-- A transpose DFS visit from a white root blackens every vertex in that root's
+original SCC, provided that SCC is still white. -/
+theorem dfsVisit_transpose_blackens_sccOf {s : DFSState V} {r v : V}
+    (hr : r ∈ G.transpose.vertices) (hwhite_r : s.color r = Color.white)
+    (hfuel : fuel ≥ G.transpose.vertices.card + 1)
+    (h_scc_white : ∀ w ∈ G.sccOf r, s.color w = Color.white)
+    (hv : v ∈ G.sccOf r) :
+    (dfsVisit G.transpose fuel r s).color v = Color.black := by
+  have h_sccT : G.transpose.IsSCC (G.transpose.sccOf r) :=
+    isSCC_sccOf G.transpose hr
+  have hr_sccT : r ∈ G.transpose.sccOf r := stronglyConnected_refl G.transpose r
+  have hv_sccT : v ∈ G.transpose.sccOf r := by
+    rw [transpose_sccOf_eq G r]
+    exact hv
+  have hwhite_sccT : ∀ w ∈ G.transpose.sccOf r, s.color w = Color.white := by
+    intro w hw
+    rw [transpose_sccOf_eq G r] at hw
+    exact h_scc_white w hw
+  have h_wr : WhiteReachable G.transpose s r v :=
+    WhiteReachable.of_isSCC G.transpose h_sccT hr_sccT hv_sccT hwhite_sccT
+  have hcard : (whiteReachableSet G.transpose s r).card ≤ G.transpose.vertices.card := by
+    apply Finset.card_le_card
+    exact whiteReachableSet_subset_vertices G.transpose s r hr
+  have hfuel_wr : fuel ≥ (whiteReachableSet G.transpose s r).card + 1 := by omega
+  exact dfsVisit_white_path_black G.transpose hwhite_r hr hfuel_wr
+    (WhiteReachable.mem_set G.transpose hr h_wr)
+
 /-- Core DFS finish-time lemma.
 
 Consider a DFS state {lit}`s` of {lit}`G` and a white vertex {lit}`r` whose finish time is
@@ -924,23 +951,7 @@ theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
     have hvV : v ∈ G.transpose.vertices := by
       simpa using reachable_target_mem_vertices G hrG (StronglyConnected.reachable G hv)
     have hblack_v : s'.color v = Color.black := by
-      have h_sccT : G.transpose.IsSCC (G.transpose.sccOf r) :=
-        isSCC_sccOf G.transpose hr
-      have hr_sccT : r ∈ G.transpose.sccOf r := stronglyConnected_refl G.transpose r
-      have hv_sccT : v ∈ G.transpose.sccOf r := by
-        rw [transpose_sccOf_eq G r]
-        exact hv
-      have hwhite_sccT : ∀ w ∈ G.transpose.sccOf r, s.color w = Color.white := by
-        intro w hw
-        rw [transpose_sccOf_eq G r] at hw
-        exact hCr_white w hw
-      have hw : WhiteReachable G.transpose s r v :=
-        WhiteReachable.of_isSCC G.transpose h_sccT hr_sccT hv_sccT hwhite_sccT
-      have hcard : (whiteReachableSet G.transpose s r).card ≤ G.transpose.vertices.card := by
-        apply Finset.card_le_card
-        exact whiteReachableSet_subset_vertices G.transpose s r hr
-      have hfuel' : fuel ≥ (whiteReachableSet G.transpose s r).card + 1 := by omega
-      exact dfsVisit_white_path_black G.transpose hwhite hr hfuel' (WhiteReachable.mem_set G.transpose hr hw)
+      exact dfsVisit_transpose_blackens_sccOf G hr hwhite hfuel hCr_white hv
     simp [C]
     exact ⟨hvV, hwhite_v, hblack_v⟩
   rw [Set.Subset.antisymm hsubset hsupset]
@@ -1278,23 +1289,8 @@ lemma kosaraju_visit_blackens_sccOf {s : DFSState V} {u : V}
     ∀ v ∈ G.sccOf u,
       (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.black := by
   intro v hv
-  have h_sccT : G.transpose.IsSCC (G.transpose.sccOf u) :=
-    isSCC_sccOf G.transpose (by simpa using hu)
-  have hu_sccT : u ∈ G.transpose.sccOf u := stronglyConnected_refl G.transpose u
-  have hv_sccT : v ∈ G.transpose.sccOf u := by
-    rw [transpose_sccOf_eq G u]
-    exact hv
-  have hwhite_sccT : ∀ w ∈ G.transpose.sccOf u, s.color w = Color.white := by
-    intro w hw
-    rw [transpose_sccOf_eq G u] at hw
-    exact h_sccOf_u_white w hw
-  have h_wr : WhiteReachable G.transpose s u v :=
-    WhiteReachable.of_isSCC G.transpose h_sccT hu_sccT hv_sccT hwhite_sccT
-  have hfuel_wr : G.vertices.card + 1 ≥ (whiteReachableSet G.transpose s u).card + 1 :=
-    kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu
-  have h_mem_set : v ∈ whiteReachableSet G.transpose s u :=
-    WhiteReachable.mem_set G.transpose hu h_wr
-  exact dfsVisit_white_path_black G.transpose hu_white hu hfuel_wr h_mem_set
+  have hfuel : G.vertices.card + 1 ≥ G.transpose.vertices.card + 1 := by simp
+  exact dfsVisit_transpose_blackens_sccOf G hu hu_white hfuel h_sccOf_u_white hv
 
 /-- In Kosaraju's second pass, a white SCC disjoint from the SCC being visited
 stays white. -/
