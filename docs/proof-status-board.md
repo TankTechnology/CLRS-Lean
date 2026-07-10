@@ -17,10 +17,12 @@ Last repository-wide status reconciliation: 2026-07-10.
 | Chapter 8 correctness | Represented counting-sort, radix-sort, and bucket-sort correctness | Mutable output array and full independent-input cost model |
 | Chapter 10.1-10.2 | Functional stacks, queues, and linked lists | Pointer memory and allocation |
 | Chapter 16.1 and 16.3 | Activity-selection and Huffman optimality | Other greedy sections |
+| Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and stateful Chapter 23 integration |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
 
-Chapter 22 is formally sealed by its interface test, closure test, and dated
-closure audit.  Cost refinements are a new layer, not missing correctness.
+Chapters 21 and 22 are formally sealed by their interface tests and dated
+closure audits.  Their listed implementation refinements are new layers, not
+missing core theorem groups.
 
 ## Structured But Partial
 
@@ -39,7 +41,6 @@ closure audit.  Cost refinements are a new layer, not missing correctness.
 | 18 | Mathematical B-tree search/split/insert/delete specs | Occupancy/depth invariants and page mutation |
 | 19 | Abstract finite-set Fibonacci-heap operation specs and potential facts | Pointer forest, cascading cuts, consolidation, true degree theorem |
 | 20 | vEB arithmetic and finite-set operation specs | Recursive cluster representation and `O(log log u)` bridge |
-| 21 | Partition semantics, weighted linked-list `n log n`, executable union-find correctness, reachable rank mass, real traversal costs, `m log n`, and Kruskal bridge | Instantiate the inverse-Ackermann potential certificate and connect the costed machine to a stateful Kruskal scan |
 | 23 | Cut property, exchange certificates, Kruskal wrappers, and extensional union-find cycle test | Automatic exchange extraction, stateful scan, recursive local wrapper, and Prim |
 
 ## Not Represented On Main
@@ -56,7 +57,7 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | 0 | Chapters 5/7/8/9/11 probability infrastructure | General finite `Fintype` expectation/probability API, then Chapter 7 total comparison expectation and `O/Theta(n log n)` bridge |
 | 1 | Chapter 23 MST completion | Canonical exchange-path extraction and a real Prim theorem interface |
 | 2 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
-| 3 | Chapter 21/23 implementation track | Add a stateful union-find Kruskal scan and refine the proved `m log n` execution bound to the inverse-Ackermann certificate |
+| 3 | Chapter 23 implementation track | Add a stateful costed Kruskal scan using Chapter 21's proved inverse-Ackermann machine bound |
 | 4 | Existing partial implementation layers | Select one concrete pointer, mutable-array, or RAM refinement and finish it end-to-end |
 
 ## High-Difficulty Queue

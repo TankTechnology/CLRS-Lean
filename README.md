@@ -33,12 +33,13 @@ Current milestones include:
   finite models.
 - Chapter 21: abstract disjoint-set semantics, weighted linked-list analysis,
   executable union-by-rank/path-compression correctness, real traversal-cost
-  semantics with an `O(m log n)` bound, and a Kruskal bridge.
+  semantics, a concrete `O((m+n) alpha(n))` amortized bound, and a Kruskal
+  bridge.
 - Chapter 22: sealed main functional correctness for BFS shortest paths and its
   predecessor tree, DFS theory and edge classification, Kahn and DFS
   topological sorting, and Kosaraju SCC decomposition.
 
-Chapters 3, 4, 7, 9, 11-15, 17-21, and 23 have substantial but intentionally
+Chapters 3, 4, 7, 9, 11-15, 17-20, and 23 have substantial but intentionally
 partial theorem layers.  Chapters 24-35 are not represented on `main` yet.
 The live counts and chapter rows are generated from
 [`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv); see the

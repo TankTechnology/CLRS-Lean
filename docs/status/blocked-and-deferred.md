@@ -43,13 +43,14 @@ not the array heap proof itself.
 Chapter 21 now proves singleton initialization, path-compressing `find`,
 union-by-rank, and Boolean equivalence queries against a common partition
 specification.  It also counts the real Batteries parent recursion, proves
-rank mass for all states reachable by the costed operation machine, and derives
-an `O(m log n)` whole-run bound.  The Chapter 23 bridge proves that any family
-of faithful union-find states implements `CycleTestImplementation`.
+rank mass for all states reachable by the costed operation machine, instantiates
+the Ackermann level/index potential, and derives an `O((m+n) alpha(n))`
+whole-run bound.  The Chapter 23 bridge proves that any family of faithful
+union-find states implements `CycleTestImplementation`.
 
 The deferred layer is an incremental stateful Kruskal scan, explicit write
-charges beyond the proved parent-traversal model, and instantiation of the
-Section 21.4 inverse-Ackermann potential certificate for the Batteries code.
+charges beyond the proved parent-traversal model, and lower-level mutable-array
+or RAM refinement.  The Section 21.4 inverse-Ackermann proof itself is closed.
 
 ## Blocked Design
 
