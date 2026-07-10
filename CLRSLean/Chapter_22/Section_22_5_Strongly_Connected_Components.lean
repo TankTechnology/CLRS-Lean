@@ -421,12 +421,6 @@ theorem maxFinish_sccOf_eq {s : DFSState V} {r : V} (hr : r ∈ G.vertices)
   exact maxFinish_eq_of_forall_finish_le G (s := G.dfs) hsub
     (stronglyConnected_refl G r) (fun v hv => hmax v (hwhite v hv))
 
-theorem maxFinish_white_set_le {s : DFSState V} {r : V} {K : Set V}
-    (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
-    (hwhite : ∀ v ∈ K, s.color v = Color.white) :
-    maxFinish G (G.dfs) K ≤ finishTime (G.dfs) r := by
-  exact maxFinish_le_of_forall_finish_le G (fun v hv => hmax v (hwhite v hv))
-
 /-- A DFS state is SCC-monochrome when every SCC of {lit}`G` is either entirely
 white or entirely black in that state.  This is the main invariant of the
 second pass of Kosaraju's algorithm. -/
@@ -874,7 +868,7 @@ theorem white_predecessor_mem_sccOf_of_max_finish {s : DFSState V} {r v w : V}
       rw [hblack] at hwhite_v
       contradiction
   have hDmax : maxFinish G (G.dfs) D ≤ finishTime (G.dfs) r :=
-    maxFinish_white_set_le G hmax hD_white
+    maxFinish_le_of_forall_finish_le G (fun x hx => hmax x (hD_white x hx))
   linarith [hord, hCmax, hDmax]
 
 theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
