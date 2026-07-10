@@ -249,13 +249,15 @@ lake build CLRSLean
   时间戳、父边、最大完成时间和首发现顶点等基础设施。
 - 22.3 括号定理：证明 `dfs_parenthesis`，即不同顶点的发现/完成区间必相离或严格嵌套；
   `dfs_intervals_not_cross` 直接排除部分交叉的时间戳次序。
+- 22.3 祖先刻画：证明 `intervalNestedInside_dfs_iff_ancestor`，即对互异图顶点，严格区间嵌套
+  当且仅当最终 DFS parent forest 中的祖先关系成立。
 - 22.5 Kosaraju SCC：证明 `scc_finish_time_order`、`scc_finish_order`、
   `kosarajuComponent_scc_core` 与最终 `kosarajuComponents_isSCCPartition`。
 
 **仍待完成：**
 
 - 22.2 无权最短距离与 predecessor tree 正确性。
-- 22.3 区间嵌套与 parent forest 祖先关系的刻画，以及边分类（tree/back/forward/cross）。
+- 22.3 边分类（tree/back/forward/cross）。
 - 22.4 基于 DFS 完成时间的拓扑排序，以匹配 CLRS 原始叙述。
 
 **已完成（Kahn 算法版本）：**
@@ -275,7 +277,7 @@ lake build CLRSLean
 
 - `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` ✅
 - `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（soundness + completeness; shortest-path distances remain）
-- `CLRSLean/Chapter_22/Section_22_3_DFS*.lean` ✅（white-path/parenthesis/SCC bridge complete; ancestor characterization and edge classification remain）
+- `CLRSLean/Chapter_22/Section_22_3_DFS*.lean` ✅（white-path/parenthesis/ancestor characterization/SCC bridge complete; edge classification remains）
 - `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` ✅
 - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` ✅（Kosaraju correctness complete）
 
@@ -361,6 +363,7 @@ lake build CLRSLean
 - **2026-07-05**：将 SCC 核心进一步隔离为命名的 `scc_finish_order` 引理（DFS 完成时间序的 SCC 源点性质），为后续补全 DFS 理论提供明确目标。
 - **2026-07-10**：完成 DFS 白路径与 discovery-state/SCC bridge 证明、SCC 完成时间次序、Kosaraju 第二遍不变量及最终 SCC partition 正确性；Chapter 22 转入括号定理、边分类和 BFS 最短路性质的收尾阶段。
 - **2026-07-10**：完成 DFS 时间区间括号定理 `dfs_parenthesis` 及不可交叉推论；下一步收窄为 parent forest 祖先刻画与边分类。
+- **2026-07-10**：完成 `intervalNestedInside_dfs_iff_ancestor`，把严格时间区间嵌套与最终 DFS parent forest 祖先关系双向连接；Section 22.3 下一步只剩边分类。
 
 ---
 
