@@ -453,33 +453,6 @@ structure KosarajuSCCInvariant (G : Graph V) (vs : List V) (s : DFSState V)
 
 /-! ## Graph-theoretic lemmas for SCC finish-time ordering -/
 
-/-- If {lit}`x` is the first-discovered vertex of SCC {lit}`C` (in
-{lit}`G.dfs`), then {lit}`x` can reach every vertex in {lit}`C`.  This is
-purely graph-theoretic: it follows from the SCC property that every pair in
-{lit}`C` is strongly connected. -/
-theorem firstDiscovered_reachable_scc {C : Set V} (hC_nonempty : C.Nonempty)
-    (hCsub : C ⊆ G.vertices) (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v)
-    (v : V) (hv : v ∈ C) :
-    let r := firstDiscoveredVertex G (s := G.dfs) (C := C) hC_nonempty hCsub
-    G.Reachable r v := by
-  intro r
-  have hrC : r ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
-  exact StronglyConnected.reachable G (hCsc r hrC v hv)
-
-/-- If there is an edge from {lit}`u` in SCC {lit}`C` to {lit}`y` in SCC
-{lit}`D`, then every vertex in {lit}`C` can reach every vertex in {lit}`D`.
-This uses the SCC property: within {lit}`C`, {lit}`x` reaches {lit}`u`; within
-{lit}`D`, {lit}`y` reaches {lit}`w`. -/
-theorem reachable_scc_to_scc {C D : Set V} (hCsc : ∀ u ∈ C, ∀ v ∈ C, G.StronglyConnected u v)
-    (hDsc : ∀ u ∈ D, ∀ v ∈ D, G.StronglyConnected u v)
-    (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v)
-    {x : V} (hx : x ∈ C) {w : V} (hw : w ∈ D) :
-    G.Reachable x w := by
-  rcases hedge with ⟨u, hu, v, hv, hadj⟩
-  have hxu : G.Reachable x u := StronglyConnected.reachable G (hCsc x hx u hu)
-  have hvw : G.Reachable v w := StronglyConnected.reachable G (hDsc v hv w hw)
-  exact G.reachable_trans hxu (G.reachable_trans (G.reachable_adj hadj) hvw)
-
 /-- Distinct SCCs with an edge from {lit}`C` to {lit}`D` have no path from
 {lit}`D` back to {lit}`C`.  If such a path existed, {lit}`C` and {lit}`D`
 would be a single SCC. -/
