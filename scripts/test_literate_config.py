@@ -84,20 +84,45 @@ class LiterateConfigTest(unittest.TestCase):
             with self.subTest(chapter=f"{chapter_module} titles"):
                 self.assertEqual([], missing_titles)
 
-    def test_chapter_22_dfs_support_pages_are_nested(self) -> None:
+    def test_support_pages_are_nested(self) -> None:
         order_children = _parse_order_children(LITERATE_TOML.read_text())
-        chapter = "CLRSLean.Chapter_22"
-        dfs = f"{chapter}.Section_22_3_DFS"
-        support_pages = [
-            f"{dfs}.WhitePath",
-            f"{dfs}.Intervals",
-            f"{dfs}.Bridge",
-            f"{dfs}.SCC",
-            f"{dfs}.EdgeClassification",
-        ]
+        expected = {
+            "CLRSLean.Chapter_08.Section_08_2_Counting_Sort": [
+                "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables",
+            ],
+            "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework": [
+                "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",
+            ],
+            "CLRSLean.Chapter_22.Section_22_3_DFS": [
+                "CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.Intervals",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.Bridge",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.SCC",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification",
+            ],
+            "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components": [
+                "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr",
+            ],
+        }
 
-        self.assertEqual(support_pages, order_children[dfs])
-        self.assertTrue(all(page not in order_children[chapter] for page in support_pages))
+        for parent, children in expected.items():
+            with self.subTest(parent=parent):
+                self.assertEqual(children, order_children[parent])
+
+    def test_sibling_pages_do_not_repeat_clrs_section_numbers(self) -> None:
+        order_children = _parse_order_children(LITERATE_TOML.read_text())
+
+        for parent, children in order_children.items():
+            seen: dict[tuple[str, str], str] = {}
+            for child in children:
+                leaf = child.rsplit(".", 1)[-1]
+                match = re.fullmatch(r"Section_(\d+)_(\d+)(?:_.*)?", leaf)
+                if match is None:
+                    continue
+                section = (match.group(1), match.group(2))
+                with self.subTest(parent=parent, section=section):
+                    self.assertNotIn(section, seen, f"also listed by {seen.get(section)}")
+                seen[section] = child
 
     def test_proof_pattern_imports_are_ordered_and_titled(self) -> None:
         text = LITERATE_TOML.read_text()

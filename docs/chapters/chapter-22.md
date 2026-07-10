@@ -134,7 +134,7 @@ sorted finish-time relation into the required list-index ordering.
 
 - Lean sources:
   `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` and
-  `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean`
+  `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean`
 - Status: `proved`
 - Main declarations:
   `CLRS.Chapter22.Graph.transpose`,
