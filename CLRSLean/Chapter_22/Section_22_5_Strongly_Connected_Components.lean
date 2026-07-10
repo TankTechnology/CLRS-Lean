@@ -1278,17 +1278,6 @@ lemma white_vertices_in_tail_of_head_not_white {s : DFSState V} {u : V} {us : Li
   · exact absurd hx hu_not_white
   · exact hx_us
 
-/-- In Kosaraju's second pass, visiting a white vertex blackens every vertex in
-its SCC. -/
-lemma kosaraju_visit_blackens_sccOf {s : DFSState V} {u : V}
-    (hu : u ∈ G.transpose.vertices) (hu_white : s.color u = Color.white)
-    (h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white) :
-    ∀ v ∈ G.sccOf u,
-      (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.black := by
-  intro v hv
-  have hfuel : G.vertices.card + 1 ≥ G.transpose.vertices.card + 1 := by simp
-  exact dfsVisit_transpose_blackens_sccOf G hu hu_white hfuel h_sccOf_u_white hv
-
 /-- In Kosaraju's second pass, a white SCC disjoint from the SCC being visited
 stays white. -/
 lemma kosaraju_visit_preserves_disjoint_white_scc {s : DFSState V} {u : V} {K : Set V}
@@ -1326,7 +1315,9 @@ lemma kosaraju_visit_preserves_scc_monochrome {s : DFSState V} {u : V}
   · by_cases hK_eq : K = G.sccOf u
     · right
       intro v hv
-      exact kosaraju_visit_blackens_sccOf G hu hu_white h_sccOf_u_white v (by simpa [hK_eq] using hv)
+      have hfuel : G.vertices.card + 1 ≥ G.transpose.vertices.card + 1 := by simp
+      exact dfsVisit_transpose_blackens_sccOf G hu hu_white hfuel h_sccOf_u_white
+        (by simpa [hK_eq] using hv)
     · left
       exact kosaraju_visit_preserves_disjoint_white_scc G hu hu_white hK hw hK_eq hmax hrespects
   · right; intro v hv; exact dfsVisit_preserves_black G.transpose (hb v hv)
