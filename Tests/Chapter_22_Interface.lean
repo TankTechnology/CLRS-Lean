@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification
+import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
 
 #check CLRS.Chapter22.Graph.IsDFSTreeEdge
 #check CLRS.Chapter22.Graph.IsDFSBackEdge
@@ -17,3 +17,13 @@ import CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification
 #check CLRS.Chapter22.Graph.dfs_cross_edge_iff_timestamps
 #check CLRS.Chapter22.Graph.dfs_undirected_edge_not_cross
 #check CLRS.Chapter22.Graph.dfs_undirected_edge_tree_or_back
+#check CLRS.Chapter22.Graph.isDAG_no_dfs_back_edge
+#check CLRS.Chapter22.Graph.dfs_finish_time_decreases_on_dag_edge
+#check CLRS.Chapter22.Graph.dfsFinishLe
+#check CLRS.Chapter22.Graph.dfsFinishLe_iff_le
+#check CLRS.Chapter22.Graph.dfsTopologicalSort
+#check CLRS.Chapter22.Graph.dfsTopologicalSort_perm
+#check CLRS.Chapter22.Graph.dfsTopologicalSort_nodup
+#check CLRS.Chapter22.Graph.mem_dfsTopologicalSort_iff
+#check CLRS.Chapter22.Graph.dfsTopologicalSort_pairwise_finish_le
+#check CLRS.Chapter22.Graph.dfsTopologicalSort_isTopologicalOrder

@@ -75,7 +75,10 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.indegree`,
   {lit}`CLRS.Chapter22.Graph.IsTopologicalOrder`,
   {lit}`CLRS.Chapter22.Graph.topologicalSort`,
-  and {lit}`CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`.
+  {lit}`CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`,
+  {lit}`CLRS.Chapter22.Graph.dfs_finish_time_decreases_on_dag_edge`,
+  {lit}`CLRS.Chapter22.Graph.dfsTopologicalSort`,
+  and {lit}`CLRS.Chapter22.Graph.dfsTopologicalSort_isTopologicalOrder`.
 
 * 22.5 Strongly connected components.
   Main declarations:
@@ -121,8 +124,9 @@ proves its global color and timestamp invariants, proves the white-path
 characterization used by the SCC development, and proves that final DFS
 timestamp intervals are disjoint or nested and that strict nesting is equivalent
 to proper ancestry in the final parent forest; every graph edge is then uniquely
-classified as tree, back, forward, or cross.  Section 22.4 implements Kahn's
-algorithm and proves that it returns a valid topological order for every DAG.
+classified as tree, back, forward, or cross.  Section 22.4 implements both
+Kahn's algorithm and CLRS's decreasing-DFS-finish-time algorithm, and proves
+that each returns a valid topological order for every DAG.
 Section 22.5 proves the SCC finish-time ordering, proves that each component
 collected by Kosaraju is strongly connected and maximal, and concludes that the
 returned components form an SCC partition of the vertex set.
@@ -131,8 +135,6 @@ returned components form an SCC partition of the vertex set.
 
 * Section 22.2: unweighted shortest-path distances and predecessor-tree
   correctness; the current BFS theorem characterizes reachability only.
-* Section 22.4: a DFS finish-time implementation and correctness theorem matching
-  the CLRS presentation; the current proved implementation is Kahn's algorithm.
 * Algorithm-cost refinements: explicit work measures for the fuelled and
   classically selected functional implementations.
 
