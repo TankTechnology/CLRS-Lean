@@ -562,6 +562,13 @@ theorem WhiteReachable.of_isSCC {s : DFSState V} {C : Set V} {u v : V}
   exact WhiteReachable.of_reachable_through_set G (S := C)
     (fun w h1 h2 => IsSCC.path_mem G hC hu hv h1 h2) hwhite hreach
 
+/-- White-reachability forgets to ordinary reachability, so a non-reachable
+target is not white-reachable. -/
+theorem not_whiteReachable_of_not_reachable {s : DFSState V} {u v : V}
+    (hno : ¬ G.Reachable u v) : ¬ WhiteReachable G s u v := by
+  intro hwr
+  exact hno (hwr.mono (fun _ _ h => h.1))
+
 /-- At the discovery state of {lit}`r`, any vertex whose final discovery time is
 not earlier than {lit}`r`'s is still white. -/
 theorem white_at_discovery_state_of_discovery_ge {s : DFSState V} {r v : V}
@@ -583,6 +590,57 @@ theorem set_white_at_discovery_state_of_min_discovery {s : DFSState V} {C : Set 
     ∀ v ∈ C, s.color v = Color.white := by
   intro v hv
   exact white_at_discovery_state_of_discovery_ge G hdisc_eq h_nonwhite (hmin v hv)
+
+/-- A white vertex that is not white-reachable from a white DFS root remains
+white after that root's visit. -/
+theorem dfsVisit_preserves_white_of_not_whiteReachable {fuel : Nat} {s : DFSState V}
+    {u v : V} (hu_white : s.color u = Color.white) (hfuel : 0 < fuel)
+    (hv_white : s.color v = Color.white) (hno : ¬ WhiteReachable G s u v) :
+    (dfsVisit G fuel u s).color v = Color.white := by
+  by_cases hb : (dfsVisit G fuel u s).color v = Color.black
+  · have hwr : WhiteReachable G s u v :=
+      dfsVisit_blackens_implies_whiteReachable G hu_white hfuel hv_white hb
+    exact absurd hwr hno
+  · have hno_gray : (dfsVisit G fuel u s).color v ≠ Color.gray := by
+      intro hg
+      have h_input_gray : s.color v = Color.gray := dfsVisit_no_new_gray G v hg
+      rw [hv_white] at h_input_gray
+      contradiction
+    cases hcolor : (dfsVisit G fuel u s).color v with
+    | white => rfl
+    | gray => exact (hno_gray hcolor).elim
+    | black => exact (hb hcolor).elim
+
+/-- If a local visit finishes its source, leaves another vertex white, and the
+full DFS later discovers that vertex, then the source finishes before that
+vertex is discovered in the full DFS. -/
+theorem finish_before_discovery_of_visit_output_white {fuel : Nat} {s : DFSState V}
+    {u v : V} (hu_white : s.color u = Color.white) (hfuel : 0 < fuel)
+    (hfinish_pres :
+      finishTime (G.dfs) u = finishTime (dfsVisit G fuel u s) u)
+    (hv_white_out : (dfsVisit G fuel u s).color v = Color.white)
+    (hlater : ∀ w, (dfsVisit G fuel u s).color w = Color.white →
+      (G.dfs).color w ≠ Color.white →
+      (dfsVisit G fuel u s).time ≤ discoveryTime (G.dfs) w)
+    (hv_final_nonwhite : (G.dfs).color v ≠ Color.white) :
+    finishTime (G.dfs) u < discoveryTime (G.dfs) v := by
+  have hfinish_visit :
+      finishTime (dfsVisit G fuel u s) u = (dfsVisit G fuel u s).time - 1 :=
+    dfsVisit_finishTime_source_eq_pred_time G hfuel hu_white
+  have htime_gt_finish :
+      (dfsVisit G fuel u s).time > finishTime (dfsVisit G fuel u s) u := by
+    have htime_gt_s : (dfsVisit G fuel u s).time > s.time :=
+      dfsVisit_time_gt_of_white G hfuel hu_white
+    omega
+  rw [hfinish_pres]
+  by_contra hnot
+  have hdisc_lt_time :
+      discoveryTime (G.dfs) v < (dfsVisit G fuel u s).time := by
+    omega
+  have hdisc_ge_time :
+      (dfsVisit G fuel u s).time ≤ discoveryTime (G.dfs) v :=
+    hlater v hv_white_out hv_final_nonwhite
+  omega
 
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
@@ -692,60 +750,19 @@ theorem scc_finish_time_order {C D : Set V}
     have hwhite_rC : s.color rC = Color.white :=
       white_at_discovery_state_of_discovery_ge G hdisc_eq h_nonwhite hd_le
     -- rC NOT white-reachable from rD (D cannot reach C)
-    have h_no_wr : ¬ WhiteReachable G s rD rC := by
-      intro hwr; apply h_no_rev
-      -- WhiteReachable implies Reachable (drop the color condition)
-      have h_reach : G.Reachable rD rC :=
-        hwr.mono (fun x y h => h.1)
-      exact h_reach
+    have h_no_wr : ¬ WhiteReachable G s rD rC :=
+      not_whiteReachable_of_not_reachable G h_no_rev
     -- rC stays white after rD's dfsVisit (otherwise white-reachable)
-    have h_rC_white_out : (dfsVisit G f rD s).color rC = Color.white := by
-      by_cases hb : (dfsVisit G f rD s).color rC = Color.black
-      · have h_wr : WhiteReachable G s rD rC :=
-          dfsVisit_blackens_implies_whiteReachable G hs_white (by omega) hwhite_rC hb
-        exact absurd h_wr h_no_wr
-      · have h_no_gray : (dfsVisit G f rD s).color rC ≠ Color.gray := by
-          intro hg; have h_input_gray : s.color rC = Color.gray := dfsVisit_no_new_gray G rC hg
-          rw [hwhite_rC] at h_input_gray
-          contradiction
-        cases hcolor : (dfsVisit G f rD s).color rC with
-        | white => rfl; | gray => exact (h_no_gray hcolor).elim; | black => exact (hb hcolor).elim
-    -- Contradiction argument: if f[rD] ≥ d[rC], then d[rC] ∈ [s.time, result.time),
-    -- so rC was discovered during rD's dfsVisit → white-reachable → contradiction.
+    have h_rC_white_out : (dfsVisit G f rD s).color rC = Color.white :=
+      dfsVisit_preserves_white_of_not_whiteReachable G hs_white (by omega) hwhite_rC h_no_wr
+    -- Since rC stays white after rD's local visit but is black in the full DFS,
+    -- the discovery-state bridge forces rD to finish before rC is discovered.
     have h_finish_lt_disc : finishTime (G.dfs) rD < discoveryTime (G.dfs) rC := by
-      have h_f_visit_rD_eq : finishTime (dfsVisit G f rD s) rD = (dfsVisit G f rD s).time - 1 :=
-        dfsVisit_finishTime_source_eq_pred_time G (by omega) hs_white
-      have h_visit_time_gt_f : (dfsVisit G f rD s).time > finishTime (dfsVisit G f rD s) rD := by
-        have h_eq : finishTime (dfsVisit G f rD s) rD = (dfsVisit G f rD s).time - 1 := h_f_visit_rD_eq
-        -- Since finishTime ≥ 0 in Nat, time ≥ 1, so time > time - 1 = f
-        have h_time_pos : (dfsVisit G f rD s).time ≥ 1 := by
-          have h_time_ge : (dfsVisit G f rD s).time ≥ s.time :=
-            G.dfsVisit_time_ge (fuel := f) (u := rD) (s := s)
-          have h_s_time : s.time = discoveryTime (G.dfs) rD := hdisc_eq.symm
-          -- s.time could be 0, but dfsVisit advances clock at least by 1 for setDiscovery
-          -- Actually, dfsVisit always increments the clock by at least 1 when fuel > 0 and u is white.
-          -- Using dfsVisit_time_gt_of_white: if 0 < fuel and u is white, time > s.time.
-          have h_time_gt_s : (dfsVisit G f rD s).time > s.time :=
-            dfsVisit_time_gt_of_white G (by omega) hs_white
-          omega
-        omega
       have h_f_G_rD : finishTime (G.dfs) rD = finishTime (dfsVisit G f rD s) rD := h_f_pres rD hs_black
-      rw [h_f_G_rD]
-      by_contra h_ge
-      -- h_ge: ¬ f_visit[rD] < d[rC], i.e., f_visit[rD] ≥ d[rC]
-      -- Then d[rC] ≤ f_visit[rD] < (dfsVisit ...).time
-      have h_disc_lt_time : discoveryTime (G.dfs) rC < (dfsVisit G f rD s).time := by omega
-      have h_disc_ge_s_time : discoveryTime (G.dfs) rC ≥ s.time := by
-        rw [← hdisc_eq]; exact hd_le
-      -- d[rC] ∈ [s.time, result.time): rC would have to be discovered during
-      -- or before this local visit, but the bridge says a still-white vertex is
-      -- discovered only at or after the local visit's output time.
-      have h_disc_ge_time : discoveryTime (G.dfs) rC ≥ (dfsVisit G f rD s).time := by
-        have h_white_rC_out : (dfsVisit G f rD s).color rC = Color.white := h_rC_white_out
-        have h_nonwhite_final : (G.dfs).color rC ≠ Color.white := by
-          rw [G.dfs_all_black (hCsub hrC_mem)]; decide
-        exact h_later rC h_white_rC_out h_nonwhite_final
-      omega
+      have h_nonwhite_final : (G.dfs).color rC ≠ Color.white := by
+        rw [G.dfs_all_black (hCsub hrC_mem)]; decide
+      exact finish_before_discovery_of_visit_output_white G hs_white (by omega)
+        h_f_G_rD h_rC_white_out h_later h_nonwhite_final
     -- All vertices in D finish before rD (white-path, same as Case 1)
     have h_finish_D_lt_rD : ∀ v ∈ D, v ≠ rD → finishTime (G.dfs) v < finishTime (G.dfs) rD := by
       intro v hv hne
