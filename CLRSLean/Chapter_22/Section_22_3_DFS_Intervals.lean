@@ -54,6 +54,28 @@ theorem intervalsLaminar_symm {s : DFSState V} {u v : V}
 def IsDFSAncestor (s : DFSState V) (u v : V) : Prop :=
   Relation.ReflTransGen (fun x y => s.parent y = some x) u v
 
+/-- Internal strengthened ancestor relation whose parent-chain children are all
+finished.  This form can be transported through later DFS states because black
+vertices keep both their color and parent pointer. -/
+def IsBlackDFSAncestor (s : DFSState V) (u v : V) : Prop :=
+  Relation.ReflTransGen (fun x y => s.parent y = some x ∧ s.color y = Color.black) u v
+
+/-- For finished vertices, strict interval nesting already determines a black
+parent-chain ancestor.  This invariant supplies the parent-forest half of the
+CLRS parenthesis theorem. -/
+def NestingAncestorInvariant (s : DFSState V) : Prop :=
+  ∀ u v, s.color u = Color.black → s.color v = Color.black →
+    intervalNestedInside s u v → IsBlackDFSAncestor s u v
+
+/-- Every recorded parent has already been discovered.  A white child is still
+waiting to be visited; a non-white child was discovered strictly after its
+parent. -/
+def ParentDiscoveryInvariant (s : DFSState V) : Prop :=
+  ∀ u v, s.parent v = some u →
+    s.color u ≠ Color.white ∧
+      ((s.color v = Color.white ∧ discoveryTime s u < s.time) ∨
+        (s.color v ≠ Color.white ∧ discoveryTime s u < discoveryTime s v))
+
 /-- {lit}`v` is a descendant of {lit}`u` in the DFS parent forest; this is the
 same relation as {name}`IsDFSAncestor`. -/
 def IsDFSDescendant (s : DFSState V) (u v : V) : Prop := IsDFSAncestor s u v
@@ -61,6 +83,35 @@ def IsDFSDescendant (s : DFSState V) (u v : V) : Prop := IsDFSAncestor s u v
 @[simp]
 theorem IsDFSAncestor.refl (s : DFSState V) (u : V) : IsDFSAncestor s u u :=
   Relation.ReflTransGen.refl
+
+theorem IsBlackDFSAncestor.toAncestor {s : DFSState V} {u v : V}
+    (h : IsBlackDFSAncestor s u v) : IsDFSAncestor s u v := by
+  induction h with
+  | refl => exact Relation.ReflTransGen.refl
+  | tail _ hxy ih => exact Relation.ReflTransGen.tail ih hxy.1
+
+theorem IsBlackDFSAncestor.trans {s : DFSState V} {u v w : V}
+    (huv : IsBlackDFSAncestor s u v) (hvw : IsBlackDFSAncestor s v w) :
+    IsBlackDFSAncestor s u w :=
+  Relation.ReflTransGen.trans huv hvw
+
+theorem IsBlackDFSAncestor.single {s : DFSState V} {u v : V}
+    (hparent : s.parent v = some u) (hblack : s.color v = Color.black) :
+    IsBlackDFSAncestor s u v :=
+  Relation.ReflTransGen.single ⟨hparent, hblack⟩
+
+/-- Transport a black ancestor chain to a later state that preserves black
+vertices and their parent pointers. -/
+theorem IsBlackDFSAncestor.mono {s t : DFSState V} {u v : V}
+    (h : IsBlackDFSAncestor s u v)
+    (hblack : ∀ x, s.color x = Color.black → t.color x = Color.black)
+    (hparent : ∀ x, s.color x = Color.black → t.parent x = s.parent x) :
+    IsBlackDFSAncestor t u v := by
+  induction h with
+  | refl => exact Relation.ReflTransGen.refl
+  | @tail x y hxy hyz ih =>
+      apply Relation.ReflTransGen.tail ih
+      exact ⟨by rw [hparent y hyz.2]; exact hyz.1, hblack y hyz.2⟩
 
 /-- The source of a DFS visit is discovered at the input state's clock value. -/
 theorem dfsVisit_discovery_source {fuel : Nat} {u : V} {s : DFSState V}
@@ -1394,21 +1445,24 @@ theorem dfsFromList_preserves_parent_edge {fuel : Nat} {s0 : DFSState V} {vs : L
       · rw [if_neg hwhite] at hparent
         exact ih hinv x y hparent
 
+/-- Every parent pointer in the final DFS forest records a graph edge. -/
+theorem dfs_parent_edge {u v : V} (hparent : (G.dfs).parent v = some u) :
+    G.Adj u v := by
+  have hinv_init : ∀ x y, (dfsInit (V := V)).parent y = some x → G.Adj x y := by
+    intro x y h
+    simp [dfsInit] at h
+  simpa [dfs] using
+    (dfsFromList_preserves_parent_edge (G := G) (fuel := G.vertices.card + 1)
+      (s0 := dfsInit) (vs := G.vertices.toList) hinv_init u v hparent)
+
 /-- Every DFS ancestor in the full DFS forest is reachable in the graph. -/
 theorem IsDFSAncestor_reachable {u v : V}
     (h : IsDFSAncestor (G.dfs) u v) : G.Reachable u v := by
-  have hparent_edge : ∀ x y, (G.dfs).parent y = some x → G.Adj x y := by
-    have hinv_init : ∀ x y, (dfsInit (V := V)).parent y = some x → G.Adj x y := by
-      intro x y hparent
-      simp [dfsInit] at hparent
-    simpa [dfs] using
-      (dfsFromList_preserves_parent_edge (G := G) (fuel := G.vertices.card + 1)
-        (s0 := dfsInit) (vs := G.vertices.toList) hinv_init)
   induction h with
   | refl =>
       exact G.reachable_refl u
   | tail hxy hyz ih =>
-      exact G.reachable_trans ih (G.reachable_adj (hparent_edge _ _ hyz))
+      exact G.reachable_trans ih (G.reachable_adj (dfs_parent_edge G hyz))
 
 end Intervals
 
@@ -1482,6 +1536,51 @@ theorem dfsVisit_preserves_parent_of_not_white {fuel : Nat} {u x : V} {s : DFSSt
       · -- u is not white: state unchanged
         simp [dfsVisit, hwhite]
 
+/-- The inner fold of a DFS visit preserves the parent of any vertex that is
+already non-white. -/
+theorem dfsVisit_fold_preserves_parent_of_not_white {n : Nat} {u x : V}
+    (s1 : DFSState V) {l : List V} (hnw : s1.color x ≠ Color.white) :
+    (List.foldl (fun (s' : DFSState V) (w : V) =>
+        if s'.color w = Color.white then dfsVisit G n w (s'.setParent w u) else s')
+      s1 l).parent x = s1.parent x := by
+  induction l generalizing s1 with
+  | nil => simp
+  | cons w ws ih =>
+      simp
+      by_cases hw : s1.color w = Color.white
+      · simp [hw]
+        have hne : x ≠ w := by
+          intro h
+          subst x
+          exact hnw hw
+        have hnw_parent : (s1.setParent w u).color x ≠ Color.white := by
+          simpa using hnw
+        have hrec_parent :
+            (dfsVisit G n w (s1.setParent w u)).parent x = (s1.setParent w u).parent x :=
+          dfsVisit_preserves_parent_of_not_white G hne hnw_parent
+        have hrec_nw : (dfsVisit G n w (s1.setParent w u)).color x ≠ Color.white :=
+          dfsVisit_preserves_not_white G hne hnw_parent
+        have hfold := ih (dfsVisit G n w (s1.setParent w u)) hrec_nw
+        rw [hfold, hrec_parent]
+        simp [hne]
+      · simp [hw]
+        exact ih s1 hnw
+
+/-- A DFS visit never changes the parent pointer of its own source. -/
+theorem dfsVisit_parent_source {fuel : Nat} {u : V} {s : DFSState V} :
+    (dfsVisit G fuel u s).parent u = s.parent u := by
+  cases fuel with
+  | zero => simp [dfsVisit]
+  | succ n =>
+      by_cases hwhite : s.color u = Color.white
+      · let s1 := s.setColor u Color.gray |>.setDiscovery u
+        have hnw : s1.color u ≠ Color.white := by simp [s1]
+        have hfold := dfsVisit_fold_preserves_parent_of_not_white
+          (G := G) (n := n) (u := u) (x := u) s1 (l := (G.adj u).toList) hnw
+        simp [dfsVisit, hwhite]
+        simpa [s1] using hfold
+      · simp [dfsVisit, hwhite]
+
 /-- The inner fold of a DFS visit preserves the parent of any already-black
 vertex. -/
 theorem dfsVisit_fold_preserves_parent_of_black {n : Nat} {u x : V} (s1 : DFSState V) {l : List V}
@@ -1533,6 +1632,645 @@ theorem dfsFromList_preserves_parent_of_black {fuel : Nat} {s0 : DFSState V} {vs
         have h1 := ih (s0 := dfsVisit G fuel u s0) hblack'
         rw [h1, hp]
       · exact ih hblack
+
+/-- If a DFS visit blackens a vertex that was white at the start, the visit
+source is an ancestor of that vertex in the output parent forest.  The
+strengthened result records that every child along the parent chain is black. -/
+theorem dfsVisit_blackens_implies_blackAncestor {fuel : Nat} {u v : V} {s : DFSState V}
+    (hwhite_u : s.color u = Color.white)
+    (hbf : ∀ x, s.color x = Color.black → finishTime s x < s.time)
+    (hwhite_v : s.color v = Color.white)
+    (hblack_v : (dfsVisit G fuel u s).color v = Color.black) :
+    IsBlackDFSAncestor (dfsVisit G fuel u s) u v := by
+  induction fuel generalizing u v s with
+  | zero =>
+      simp [dfsVisit] at hblack_v
+      rw [hwhite_v] at hblack_v
+      contradiction
+  | succ n ih =>
+      by_cases hvu : v = u
+      · subst v
+        exact Relation.ReflTransGen.refl
+      · let s1 := s.setColor u Color.gray |>.setDiscovery u
+        let step := fun (st : DFSState V) (w : V) =>
+          if st.color w = Color.white then dfsVisit G n w (st.setParent w u) else st
+        let s2 := List.foldl step s1 (G.adj u).toList
+        let s3 := s2.setColor u Color.black |>.setFinish u
+        have hout : dfsVisit G (n + 1) u s = s3 := by
+          simp [dfsVisit, hwhite_u, s1, s2, step, s3]
+        have hwhite_v1 : s1.color v = Color.white := by
+          simp [s1, hvu, hwhite_v]
+        have hfold_black : s2.color v = Color.black := by
+          rw [hout] at hblack_v
+          simpa [s3, hvu] using hblack_v
+        have hbf1 : ∀ x, s1.color x = Color.black → finishTime s1 x < s1.time := by
+          intro x hx
+          have hxu : x ≠ u := by
+            intro h
+            subst x
+            simp [s1] at hx
+          have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+          have hlt := hbf x hx0
+          have hf : finishTime s1 x = finishTime s x := by simp [s1, finishTime]
+          have ht : s1.time = s.time + 1 := by simp [s1]
+          rw [hf, ht]
+          omega
+        have hfold_black' :
+            (List.foldl (fun (st : DFSState V) (w : V) =>
+              if st.color w = Color.white then dfsVisit G n w (st.setParent w u) else st)
+              s1 (G.adj u).toList).color v = Color.black := by
+          simpa [s2, step] using hfold_black
+        rcases dfsVisit_fold_blackens_loc_prefix G hbf1 hwhite_v1 hfold_black' with
+          ⟨pre, post, w, st, hadj, hst, hwhite_w, hwhite_v_st, hrec_black,
+            _hmono, hbf_st⟩
+        have hnpos : 0 < n := by
+          by_contra hn
+          have hn0 : n = 0 := by omega
+          subst n
+          simp [dfsVisit] at hrec_black
+          rw [hwhite_v_st] at hrec_black
+          contradiction
+        let sin := st.setParent w u
+        let sout := dfsVisit G n w sin
+        have hwhite_w_in : sin.color w = Color.white := by simp [sin, hwhite_w]
+        have hwhite_v_in : sin.color v = Color.white := by simp [sin, hwhite_v_st]
+        have hbf_in : ∀ x, sin.color x = Color.black → finishTime sin x < sin.time := by
+          simpa [sin, finishTime] using hbf_st
+        have hdesc_wv : IsBlackDFSAncestor sout w v := by
+          exact ih hwhite_w_in hbf_in hwhite_v_in (by simpa [sout, sin] using hrec_black)
+        have hblack_w : sout.color w = Color.black := by
+          exact dfsVisit_blackens_u_pos G hnpos hwhite_w_in
+        have hparent_w : sout.parent w = some u := by
+          calc
+            sout.parent w = sin.parent w := dfsVisit_parent_source (G := G)
+            _ = some u := by simp [sin]
+        have hdesc_uw : IsBlackDFSAncestor sout u w :=
+          IsBlackDFSAncestor.single hparent_w hblack_w
+        have hdesc_uv : IsBlackDFSAncestor sout u v := hdesc_uw.trans hdesc_wv
+        have hdesc_post : IsBlackDFSAncestor (List.foldl step sout post) u v := by
+          apply hdesc_uv.mono
+          · intro x hx
+            simpa [step] using
+              (dfsVisit_fold_preserves_black_general (G := G) (n := n) (u := u)
+                (x := x) (s1 := sout) (l := post) hx)
+          · intro x hx
+            simpa [step] using
+              (dfsVisit_fold_preserves_parent_of_black (G := G) (n := n) (u := u)
+                (x := x) sout (l := post) hx)
+        have hsplit := dfsVisit_fold_split_at_white_neighbor G s1 pre post st hadj hst hwhite_w
+        have hs2 : s2 = List.foldl step sout post := by
+          simpa [s2, step, sout, sin] using hsplit
+        have hdesc_s2 : IsBlackDFSAncestor s2 u v := by
+          rw [hs2]
+          exact hdesc_post
+        have hdesc_s3 : IsBlackDFSAncestor s3 u v := by
+          apply hdesc_s2.mono
+          · intro x hx
+            simp [s3, hx]
+          · intro x _hx
+            simp [s3]
+        rw [hout]
+        exact hdesc_s3
+
+/-- A DFS visit preserves the fact that strict interval nesting determines a
+black parent-chain ancestor. -/
+theorem dfsVisit_preserves_nestingAncestorInvariant {fuel : Nat} {u : V}
+    {s : DFSState V} (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
+    (hnest : NestingAncestorInvariant s)
+    (hdt : DiscoveryTimeInvariant s)
+    (hbf : ∀ x, s.color x = Color.black → finishTime s x < s.time)
+    (hdf : DiscoveryFinishInvariant s) :
+    NestingAncestorInvariant (dfsVisit G fuel u s) := by
+  induction fuel generalizing u s with
+  | zero => omega
+  | succ n ih =>
+      let s1 := s.setColor u Color.gray |>.setDiscovery u
+      let step := fun (st : DFSState V) (w : V) =>
+        if st.color w = Color.white then dfsVisit G n w (st.setParent w u) else st
+      let s2 := List.foldl step s1 (G.adj u).toList
+      let s3 := s2.setColor u Color.black |>.setFinish u
+      have hout : dfsVisit G (n + 1) u s = s3 := by
+        simp [dfsVisit, hwhite, s1, s2, step, s3]
+      have hnest1 : NestingAncestorInvariant s1 := by
+        intro x y hx hy hinter
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hyu : y ≠ u := by
+          intro h
+          subst y
+          simp [s1] at hy
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        have hy0 : s.color y = Color.black := by simpa [s1, hyu] using hy
+        have hinter0 : intervalNestedInside s x y := by
+          simpa [intervalNestedInside, discoveryTime, finishTime, s1, hxu, hyu] using hinter
+        have hanc := hnest x y hx0 hy0 hinter0
+        apply hanc.mono
+        · intro z hz
+          have hzu : z ≠ u := by
+            intro h
+            subst z
+            rw [hwhite] at hz
+            contradiction
+          simpa [s1, hzu] using hz
+        · intro z _hz
+          simp [s1]
+      have hdt1 : DiscoveryTimeInvariant s1 := by
+        intro x hx
+        by_cases hxu : x = u
+        · subst x
+          simp [s1, discoveryTime]
+        · have hx0 : s.color x ≠ Color.white := by simpa [s1, hxu] using hx
+          have hlt := hdt x hx0
+          have hd : discoveryTime s1 x = discoveryTime s x := by
+            simp [s1, discoveryTime, hxu]
+          have ht : s1.time = s.time + 1 := by simp [s1]
+          rw [hd, ht]
+          omega
+      have hbf1 : ∀ x, s1.color x = Color.black → finishTime s1 x < s1.time := by
+        intro x hx
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        have hlt := hbf x hx0
+        have hf : finishTime s1 x = finishTime s x := by simp [s1, finishTime]
+        have ht : s1.time = s.time + 1 := by simp [s1]
+        rw [hf, ht]
+        omega
+      have hdf1 : DiscoveryFinishInvariant s1 := by
+        intro x hx
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        have hlt := hdf x hx0
+        simpa [s1, discoveryTime, finishTime, hxu] using hlt
+      have hfold : ∀ (l : List V) (st : DFSState V),
+          NestingAncestorInvariant st →
+          DiscoveryTimeInvariant st →
+          (∀ x, st.color x = Color.black → finishTime st x < st.time) →
+          DiscoveryFinishInvariant st →
+          let out := List.foldl step st l
+          NestingAncestorInvariant out ∧
+            DiscoveryTimeInvariant out ∧
+            (∀ x, out.color x = Color.black → finishTime out x < out.time) ∧
+            DiscoveryFinishInvariant out := by
+        intro l
+        induction l with
+        | nil =>
+            intro st hnest_st hdt_st hbf_st hdf_st
+            exact ⟨hnest_st, hdt_st, hbf_st, hdf_st⟩
+        | cons w ws ih_fold =>
+            intro st hnest_st hdt_st hbf_st hdf_st
+            simp only [List.foldl_cons]
+            by_cases hw : st.color w = Color.white
+            · have hnest0 : NestingAncestorInvariant (st.setParent w u) := by
+                intro x y hx hy hinter
+                have hx0 : st.color x = Color.black := by simpa using hx
+                have hy0 : st.color y = Color.black := by simpa using hy
+                have hanc := hnest_st x y hx0 hy0 (by
+                  simpa [intervalNestedInside, discoveryTime, finishTime] using hinter)
+                apply hanc.mono
+                · intro z hz
+                  simpa using hz
+                · intro z hz
+                  have hzw : z ≠ w := by
+                    intro h
+                    subst z
+                    rw [hw] at hz
+                    contradiction
+                  simp [hzw]
+              have hdt0 : DiscoveryTimeInvariant (st.setParent w u) := by
+                simpa [DiscoveryTimeInvariant, discoveryTime] using hdt_st
+              have hbf0 : ∀ x, (st.setParent w u).color x = Color.black →
+                  finishTime (st.setParent w u) x < (st.setParent w u).time := by
+                simpa [finishTime] using hbf_st
+              have hdf0 : DiscoveryFinishInvariant (st.setParent w u) := by
+                simpa [DiscoveryFinishInvariant, discoveryTime, finishTime] using hdf_st
+              by_cases hn : n = 0
+              · subst n
+                simp [step, hw, dfsVisit]
+                exact ih_fold (st.setParent w u) hnest0 hdt0 hbf0 hdf0
+              · have hnpos : 0 < n := by omega
+                let st' := dfsVisit G n w (st.setParent w u)
+                have hnest' : NestingAncestorInvariant st' := by
+                  exact ih hnpos (by simpa using hw) hnest0 hdt0 hbf0 hdf0
+                have hdt' : DiscoveryTimeInvariant st' :=
+                  dfsVisit_preserves_discoveryTimeInvariant G hnpos (by simpa using hw)
+                    hdt0 hbf0 hdf0
+                have hbf' : ∀ x, st'.color x = Color.black → finishTime st' x < st'.time :=
+                  dfsVisit_black_finish_lt_time G hnpos (by simpa using hw) hbf0
+                have hdf' : DiscoveryFinishInvariant st' :=
+                  dfsVisit_discovery_lt_finish G hnpos (by simpa using hw) hdf0
+                have hrest := ih_fold st' hnest' hdt' hbf' hdf'
+                simpa [step, hw, st'] using hrest
+            · simpa [step, hw] using ih_fold st hnest_st hdt_st hbf_st hdf_st
+      rcases hfold (G.adj u).toList s1 hnest1 hdt1 hbf1 hdf1 with
+        ⟨hnest2, _hdt2, _hbf2, _hdf2⟩
+      intro x y hx hy hinter
+      by_cases hxu : x = u
+      · subst x
+        have hyu : y ≠ u := by
+          intro h
+          subst y
+          unfold intervalNestedInside at hinter
+          omega
+        by_cases hywhite : s.color y = Color.white
+        · exact dfsVisit_blackens_implies_blackAncestor G hwhite hbf hywhite hy
+        · cases hyc : s.color y with
+          | white => contradiction
+          | gray =>
+              have hgray_out := dfsVisit_preserves_gray (fuel := n + 1) G hyc hyu
+              rw [hgray_out] at hy
+              contradiction
+          | black =>
+              have hy0 : s.color y = Color.black := hyc
+              have hdy : discoveryTime (dfsVisit G (n + 1) u s) y = discoveryTime s y := by
+                dsimp [discoveryTime]
+                rw [dfsVisit_preserves_d_of_not_white G hyu (by simp [hy0])]
+              have hdu := dfsVisit_discovery_source G (fuel := n + 1)
+                (u := u) (s := s) (by omega) hwhite
+              have hdy_lt := hdf y hy0
+              have hfy_lt := hbf y hy0
+              exfalso
+              unfold intervalNestedInside at hinter
+              omega
+      by_cases hyu : y = u
+      · subst y
+        by_cases hxwhite : s.color x = Color.white
+        · have hdisc := dfsVisit_discovery_ge_input_time G (fuel := n + 1)
+            (u := u) (v := x) (s := s) (by omega) hwhite hxwhite hx hxu
+          have hdu := dfsVisit_discovery_source G (fuel := n + 1)
+            (u := u) (s := s) (by omega) hwhite
+          exfalso
+          unfold intervalNestedInside at hinter
+          omega
+        · cases hxc : s.color x with
+          | white => contradiction
+          | gray =>
+              have hgray_out := dfsVisit_preserves_gray (fuel := n + 1) G hxc hxu
+              rw [hgray_out] at hx
+              contradiction
+          | black =>
+              have hx0 : s.color x = Color.black := hxc
+              have hfx : finishTime (dfsVisit G (n + 1) u s) x = finishTime s x := by
+                dsimp [finishTime]
+                rw [dfsVisit_preserves_f_of_not_white G hxu (by simp [hx0])]
+              have hdu := dfsVisit_discovery_source G (fuel := n + 1)
+                (u := u) (s := s) (by omega) hwhite
+              have hdf_out := dfsVisit_discovery_lt_finish G (fuel := n + 1)
+                (u := u) (s := s) (by omega) hwhite hdf
+              have hub := dfsVisit_blackens_u_pos (G := G) (fuel := n + 1)
+                (u := u) (s := s) (by omega) hwhite
+              have hdufu := hdf_out u hub
+              have hfx_lt := hbf x hx0
+              exfalso
+              unfold intervalNestedInside at hinter
+              omega
+      · have hx2 : s2.color x = Color.black := by
+          rw [hout] at hx
+          simpa [s3, hxu] using hx
+        have hy2 : s2.color y = Color.black := by
+          rw [hout] at hy
+          simpa [s3, hyu] using hy
+        have hinter2 : intervalNestedInside s2 x y := by
+          rw [hout] at hinter
+          simpa [intervalNestedInside, discoveryTime, finishTime, s3, hxu, hyu] using hinter
+        have hanc2 := hnest2 x y hx2 hy2 hinter2
+        have hanc2' : IsBlackDFSAncestor s2 x y := by
+          exact hanc2
+        have hanc3 : IsBlackDFSAncestor s3 x y := by
+          apply hanc2'.mono
+          · intro z hz
+            by_cases hzu : z = u
+            · subst z
+              simp [s3]
+            · simpa [s3, hzu] using hz
+          · intro z _hz
+            simp [s3]
+        rw [hout]
+        exact hanc3
+
+/-- Recursive DFS over a root list preserves the nesting/ancestor invariant. -/
+theorem dfsFromList_preserves_nestingAncestorInvariant {fuel : Nat}
+    {s0 : DFSState V} {vs : List V} (hfuel : 0 < fuel)
+    (hnest : NestingAncestorInvariant s0)
+    (hdt : DiscoveryTimeInvariant s0)
+    (hbf : ∀ x, s0.color x = Color.black → finishTime s0 x < s0.time)
+    (hdf : DiscoveryFinishInvariant s0) :
+    NestingAncestorInvariant (dfsFromList G fuel vs s0) := by
+  induction vs generalizing s0 with
+  | nil => simpa [dfsFromList] using hnest
+  | cons u us ih =>
+      simp only [dfsFromList]
+      by_cases hwhite : s0.color u = Color.white
+      · rw [if_pos hwhite]
+        let s1 := dfsVisit G fuel u s0
+        have hnest1 : NestingAncestorInvariant s1 :=
+          dfsVisit_preserves_nestingAncestorInvariant G hfuel hwhite hnest hdt hbf hdf
+        have hdt1 : DiscoveryTimeInvariant s1 :=
+          dfsVisit_preserves_discoveryTimeInvariant G hfuel hwhite hdt hbf hdf
+        have hbf1 : ∀ x, s1.color x = Color.black → finishTime s1 x < s1.time :=
+          dfsVisit_black_finish_lt_time G hfuel hwhite hbf
+        have hdf1 : DiscoveryFinishInvariant s1 :=
+          dfsVisit_discovery_lt_finish G hfuel hwhite hdf
+        exact ih hnest1 hdt1 hbf1 hdf1
+      · rw [if_neg hwhite]
+        exact ih hnest hdt hbf hdf
+
+/-- Strict nesting of final DFS intervals implies ancestry in the DFS parent
+forest. -/
+theorem intervalNestedInside_dfs_implies_ancestor {u v : V}
+    (hu : u ∈ G.vertices) (hv : v ∈ G.vertices)
+    (h : intervalNestedInside (G.dfs) u v) : IsDFSAncestor (G.dfs) u v := by
+  have hfuel : 0 < G.vertices.card + 1 := by omega
+  have hnest0 : NestingAncestorInvariant (dfsInit : DFSState V) := by
+    intro x y hx
+    simp [dfsInit] at hx
+  have hdt0 : DiscoveryTimeInvariant (dfsInit : DFSState V) := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hbf0 : ∀ x, (dfsInit : DFSState V).color x = Color.black →
+      finishTime (dfsInit : DFSState V) x < (dfsInit : DFSState V).time := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hdf0 : DiscoveryFinishInvariant (dfsInit : DFSState V) := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hnest_final : NestingAncestorInvariant (G.dfs) := by
+    simpa [dfs] using
+      (dfsFromList_preserves_nestingAncestorInvariant (G := G)
+        (fuel := G.vertices.card + 1) (s0 := dfsInit) (vs := G.vertices.toList)
+        hfuel hnest0 hdt0 hbf0 hdf0)
+  exact (hnest_final u v (G.dfs_all_black hu) (G.dfs_all_black hv) h).toAncestor
+
+/-- A DFS visit preserves the ordering between every recorded parent and its
+child's discovery event. -/
+theorem dfsVisit_preserves_parentDiscoveryInvariant {fuel : Nat} {u : V}
+    {s : DFSState V} (hfuel : 0 < fuel) (hwhite : s.color u = Color.white)
+    (hparent : ParentDiscoveryInvariant s)
+    (hdt : DiscoveryTimeInvariant s)
+    (hbf : ∀ x, s.color x = Color.black → finishTime s x < s.time)
+    (hdf : DiscoveryFinishInvariant s) :
+    ParentDiscoveryInvariant (dfsVisit G fuel u s) := by
+  induction fuel generalizing u s with
+  | zero => omega
+  | succ n ih =>
+      let s1 := s.setColor u Color.gray |>.setDiscovery u
+      let step := fun (st : DFSState V) (w : V) =>
+        if st.color w = Color.white then dfsVisit G n w (st.setParent w u) else st
+      let s2 := List.foldl step s1 (G.adj u).toList
+      let s3 := s2.setColor u Color.black |>.setFinish u
+      have hout : dfsVisit G (n + 1) u s = s3 := by
+        simp [dfsVisit, hwhite, s1, s2, step, s3]
+      have hparent1 : ParentDiscoveryInvariant s1 := by
+        intro p v hp
+        have hp0 : s.parent v = some p := by simpa [s1] using hp
+        rcases hparent p v hp0 with ⟨hp_nw, hchild⟩
+        have hpu : p ≠ u := by
+          intro h
+          subst p
+          exact hp_nw hwhite
+        have hp_nw1 : s1.color p ≠ Color.white := by
+          simpa [s1, hpu] using hp_nw
+        refine ⟨hp_nw1, ?_⟩
+        rcases hchild with ⟨hvwhite, hlt⟩ | ⟨hvnw, hlt⟩
+        · by_cases hvu : v = u
+          · subst v
+            right
+            constructor
+            · simp [s1]
+            · simpa [s1, discoveryTime, hpu] using hlt
+          · left
+            constructor
+            · simpa [s1, hvu] using hvwhite
+            · have hd : discoveryTime s1 p = discoveryTime s p := by
+                simp [s1, discoveryTime, hpu]
+              have ht : s1.time = s.time + 1 := by simp [s1]
+              rw [hd, ht]
+              omega
+        · have hvu : v ≠ u := by
+            intro h
+            subst v
+            exact hvnw hwhite
+          right
+          constructor
+          · simpa [s1, hvu] using hvnw
+          · simpa [s1, discoveryTime, hpu, hvu] using hlt
+      have hdt1 : DiscoveryTimeInvariant s1 := by
+        intro x hx
+        by_cases hxu : x = u
+        · subst x
+          simp [s1, discoveryTime]
+        · have hx0 : s.color x ≠ Color.white := by simpa [s1, hxu] using hx
+          have hlt := hdt x hx0
+          have hd : discoveryTime s1 x = discoveryTime s x := by
+            simp [s1, discoveryTime, hxu]
+          have ht : s1.time = s.time + 1 := by simp [s1]
+          rw [hd, ht]
+          omega
+      have hbf1 : ∀ x, s1.color x = Color.black → finishTime s1 x < s1.time := by
+        intro x hx
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        have hlt := hbf x hx0
+        have hf : finishTime s1 x = finishTime s x := by simp [s1, finishTime]
+        have ht : s1.time = s.time + 1 := by simp [s1]
+        rw [hf, ht]
+        omega
+      have hdf1 : DiscoveryFinishInvariant s1 := by
+        intro x hx
+        have hxu : x ≠ u := by
+          intro h
+          subst x
+          simp [s1] at hx
+        have hx0 : s.color x = Color.black := by simpa [s1, hxu] using hx
+        simpa [s1, discoveryTime, finishTime, hxu] using hdf x hx0
+      have hgray1 : s1.color u = Color.gray := by simp [s1]
+      have hfold : ∀ (l : List V) (st : DFSState V),
+          ParentDiscoveryInvariant st →
+          DiscoveryTimeInvariant st →
+          (∀ x, st.color x = Color.black → finishTime st x < st.time) →
+          DiscoveryFinishInvariant st →
+          st.color u = Color.gray →
+          let out := List.foldl step st l
+          ParentDiscoveryInvariant out ∧
+            DiscoveryTimeInvariant out ∧
+            (∀ x, out.color x = Color.black → finishTime out x < out.time) ∧
+            DiscoveryFinishInvariant out ∧ out.color u = Color.gray := by
+        intro l
+        induction l with
+        | nil =>
+            intro st hp_st hdt_st hbf_st hdf_st hgray_st
+            exact ⟨hp_st, hdt_st, hbf_st, hdf_st, hgray_st⟩
+        | cons w ws ih_fold =>
+            intro st hp_st hdt_st hbf_st hdf_st hgray_st
+            simp only [List.foldl_cons]
+            by_cases hw : st.color w = Color.white
+            · have hwu : w ≠ u := by
+                intro h
+                subst w
+                rw [hgray_st] at hw
+                contradiction
+              have hp0 : ParentDiscoveryInvariant (st.setParent w u) := by
+                intro p v hp
+                by_cases hvw : v = w
+                · subst v
+                  have hpu : p = u := by simpa using hp.symm
+                  subst p
+                  refine ⟨?_, Or.inl ⟨?_, ?_⟩⟩
+                  · simp [hgray_st]
+                  · simpa using hw
+                  · exact hdt_st u (by simp [hgray_st])
+                · have hp' : st.parent v = some p := by simpa [hvw] using hp
+                  simpa [hvw, discoveryTime] using hp_st p v hp'
+              have hdt0 : DiscoveryTimeInvariant (st.setParent w u) := by
+                simpa [DiscoveryTimeInvariant, discoveryTime] using hdt_st
+              have hbf0 : ∀ x, (st.setParent w u).color x = Color.black →
+                  finishTime (st.setParent w u) x < (st.setParent w u).time := by
+                simpa [finishTime] using hbf_st
+              have hdf0 : DiscoveryFinishInvariant (st.setParent w u) := by
+                simpa [DiscoveryFinishInvariant, discoveryTime, finishTime] using hdf_st
+              have hgray0 : (st.setParent w u).color u = Color.gray := by
+                simpa using hgray_st
+              by_cases hn : n = 0
+              · subst n
+                simp [step, hw, dfsVisit]
+                exact ih_fold (st.setParent w u) hp0 hdt0 hbf0 hdf0 hgray0
+              · have hnpos : 0 < n := by omega
+                let st' := dfsVisit G n w (st.setParent w u)
+                have hp' : ParentDiscoveryInvariant st' := by
+                  exact ih hnpos (by simpa using hw) hp0 hdt0 hbf0 hdf0
+                have hdt' : DiscoveryTimeInvariant st' :=
+                  dfsVisit_preserves_discoveryTimeInvariant G hnpos (by simpa using hw)
+                    hdt0 hbf0 hdf0
+                have hbf' : ∀ x, st'.color x = Color.black → finishTime st' x < st'.time :=
+                  dfsVisit_black_finish_lt_time G hnpos (by simpa using hw) hbf0
+                have hdf' : DiscoveryFinishInvariant st' :=
+                  dfsVisit_discovery_lt_finish G hnpos (by simpa using hw) hdf0
+                have hgray' : st'.color u = Color.gray := by
+                  exact dfsVisit_preserves_gray (fuel := n) G hgray0 hwu.symm
+                have hrest := ih_fold st' hp' hdt' hbf' hdf' hgray'
+                simpa [step, hw, st'] using hrest
+            · simpa [step, hw] using
+                ih_fold st hp_st hdt_st hbf_st hdf_st hgray_st
+      rcases hfold (G.adj u).toList s1 hparent1 hdt1 hbf1 hdf1 hgray1 with
+        ⟨hparent2, _hdt2, _hbf2, _hdf2, hgray2⟩
+      have hparent2' : ParentDiscoveryInvariant s2 := by
+        exact hparent2
+      have hparent3 : ParentDiscoveryInvariant s3 := by
+        intro p v hp
+        have hp2 : s2.parent v = some p := by simpa [s3] using hp
+        rcases hparent2' p v hp2 with ⟨hp_nw, hchild⟩
+        have hp_nw3 : s3.color p ≠ Color.white := by
+          by_cases hpu : p = u
+          · subst p
+            simp [s3]
+          · simpa [s3, hpu] using hp_nw
+        refine ⟨hp_nw3, ?_⟩
+        rcases hchild with ⟨hvwhite, hlt⟩ | ⟨hvnw, hlt⟩
+        · have hvu : v ≠ u := by
+            intro h
+            subst v
+            rw [hgray2] at hvwhite
+            contradiction
+          left
+          constructor
+          · simpa [s3, hvu] using hvwhite
+          · have hd : discoveryTime s3 p = discoveryTime s2 p := by
+              simp [s3, discoveryTime]
+            have ht : s3.time = s2.time + 1 := by simp [s3]
+            rw [hd, ht]
+            omega
+        · right
+          constructor
+          · by_cases hvu : v = u
+            · subst v
+              simp [s3]
+            · simpa [s3, hvu] using hvnw
+          · simpa [s3, discoveryTime] using hlt
+      rw [hout]
+      exact hparent3
+
+/-- Recursive DFS over a root list preserves parent/discovery ordering. -/
+theorem dfsFromList_preserves_parentDiscoveryInvariant {fuel : Nat}
+    {s0 : DFSState V} {vs : List V} (hfuel : 0 < fuel)
+    (hparent : ParentDiscoveryInvariant s0)
+    (hdt : DiscoveryTimeInvariant s0)
+    (hbf : ∀ x, s0.color x = Color.black → finishTime s0 x < s0.time)
+    (hdf : DiscoveryFinishInvariant s0) :
+    ParentDiscoveryInvariant (dfsFromList G fuel vs s0) := by
+  induction vs generalizing s0 with
+  | nil => simpa [dfsFromList] using hparent
+  | cons u us ih =>
+      simp only [dfsFromList]
+      by_cases hwhite : s0.color u = Color.white
+      · rw [if_pos hwhite]
+        let s1 := dfsVisit G fuel u s0
+        have hp1 : ParentDiscoveryInvariant s1 :=
+          dfsVisit_preserves_parentDiscoveryInvariant G hfuel hwhite hparent hdt hbf hdf
+        have hdt1 : DiscoveryTimeInvariant s1 :=
+          dfsVisit_preserves_discoveryTimeInvariant G hfuel hwhite hdt hbf hdf
+        have hbf1 : ∀ x, s1.color x = Color.black → finishTime s1 x < s1.time :=
+          dfsVisit_black_finish_lt_time G hfuel hwhite hbf
+        have hdf1 : DiscoveryFinishInvariant s1 :=
+          dfsVisit_discovery_lt_finish G hfuel hwhite hdf
+        exact ih hp1 hdt1 hbf1 hdf1
+      · rw [if_neg hwhite]
+        exact ih hparent hdt hbf hdf
+
+/-- A parent edge in the final DFS forest strictly increases discovery time. -/
+theorem dfs_parent_discovery_lt {u v : V}
+    (hparent : (G.dfs).parent v = some u) :
+    discoveryTime (G.dfs) u < discoveryTime (G.dfs) v := by
+  have hfuel : 0 < G.vertices.card + 1 := by omega
+  have hp0 : ParentDiscoveryInvariant (dfsInit : DFSState V) := by
+    intro x y h
+    simp [dfsInit] at h
+  have hdt0 : DiscoveryTimeInvariant (dfsInit : DFSState V) := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hbf0 : ∀ x, (dfsInit : DFSState V).color x = Color.black →
+      finishTime (dfsInit : DFSState V) x < (dfsInit : DFSState V).time := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hdf0 : DiscoveryFinishInvariant (dfsInit : DFSState V) := by
+    intro x hx
+    simp [dfsInit] at hx
+  have hp_final : ParentDiscoveryInvariant (G.dfs) := by
+    simpa [dfs] using
+      (dfsFromList_preserves_parentDiscoveryInvariant (G := G)
+        (fuel := G.vertices.card + 1) (s0 := dfsInit) (vs := G.vertices.toList)
+        hfuel hp0 hdt0 hbf0 hdf0)
+  have hadj : G.Adj u v := dfs_parent_edge G hparent
+  have hv : v ∈ G.vertices := G.adj_mem_right hadj
+  have hvblack : (G.dfs).color v = Color.black := G.dfs_all_black hv
+  rcases hp_final u v hparent with ⟨_hu_nw, hchild⟩
+  rcases hchild with ⟨hvwhite, _hlt⟩ | ⟨_hvnw, hlt⟩
+  · rw [hvblack] at hvwhite
+    contradiction
+  · exact hlt
+
+/-- A final DFS ancestor is either the vertex itself or was discovered strictly
+earlier. -/
+theorem IsDFSAncestor.eq_or_discovery_lt {u v : V}
+    (h : IsDFSAncestor (G.dfs) u v) :
+    u = v ∨ discoveryTime (G.dfs) u < discoveryTime (G.dfs) v := by
+  induction h with
+  | refl => exact Or.inl rfl
+  | @tail x y hxy hyz ih =>
+      have hyz_lt := dfs_parent_discovery_lt G hyz
+      rcases ih with hxy_eq | hxy_lt
+      · subst x
+        exact Or.inr hyz_lt
+      · exact Or.inr (by omega)
 
 end WhitePathTheorem
 

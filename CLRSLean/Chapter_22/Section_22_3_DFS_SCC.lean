@@ -1128,6 +1128,83 @@ theorem exists_discovery_state (v : V) (hv : v ∈ G.vertices) :
     have h := h_later w hw (by simpa [h_dfs] using hfinal)
     simpa [h_dfs] using h
 
+/-- A proper DFS descendant is still white at the discovery state of its
+ancestor. -/
+theorem IsDFSAncestor.white_at_discovery_state {u v : V} {s : DFSState V}
+    (h : IsDFSAncestor (G.dfs) u v) (hne : u ≠ v)
+    (hdisc : discoveryTime (G.dfs) u = s.time)
+    (hnonwhite : ∀ w, s.color w ≠ Color.white →
+      discoveryTime (G.dfs) w < s.time) :
+    s.color v = Color.white := by
+  by_contra hv
+  have hv_early := hnonwhite v hv
+  have huv_lt := (IsDFSAncestor.eq_or_discovery_lt G h).resolve_left hne
+  omega
+
+/-- At an ancestor's discovery state, its final parent-chain descendants form
+a white-reachable path. -/
+theorem IsDFSAncestor.whiteReachable_at_discovery_state {u v : V}
+    {s : DFSState V} (h : IsDFSAncestor (G.dfs) u v)
+    (hdisc : discoveryTime (G.dfs) u = s.time)
+    (hnonwhite : ∀ w, s.color w ≠ Color.white →
+      discoveryTime (G.dfs) w < s.time) :
+    WhiteReachable G s u v := by
+  induction h with
+  | refl => exact Relation.ReflTransGen.refl
+  | @tail x y hxy hyz ih =>
+      apply Relation.ReflTransGen.tail ih
+      constructor
+      · exact dfs_parent_edge G hyz
+      · have hxy_order := IsDFSAncestor.eq_or_discovery_lt G hxy
+        have hxy_lt : discoveryTime (G.dfs) u < discoveryTime (G.dfs) y := by
+          rcases hxy_order with hux | hux
+          · subst x
+            exact dfs_parent_discovery_lt G hyz
+          · have hparent_lt := dfs_parent_discovery_lt G hyz
+            omega
+        have huy : u ≠ y := by
+          intro h
+          subst y
+          omega
+        exact IsDFSAncestor.white_at_discovery_state G
+          (Relation.ReflTransGen.tail hxy hyz) huy hdisc hnonwhite
+
+/-- Every proper ancestor in the final DFS parent forest strictly contains its
+descendant's timestamp interval. -/
+theorem IsDFSAncestor.intervalNestedInside_dfs {u v : V}
+    (hu : u ∈ G.vertices) (hne : u ≠ v)
+    (h : IsDFSAncestor (G.dfs) u v) :
+    intervalNestedInside (G.dfs) u v := by
+  rcases exists_discovery_state G u hu with
+    ⟨s, fuel, huwhite, hu_black, hdisc, hnonwhite, hbf, _hgray,
+      hfinish_pres, hfuel, _hlater⟩
+  have hvwhite : s.color v = Color.white :=
+    IsDFSAncestor.white_at_discovery_state G h hne hdisc hnonwhite
+  have hwhite_path : WhiteReachable G s u v :=
+    IsDFSAncestor.whiteReachable_at_discovery_state G h hdisc hnonwhite
+  have hv_black : (dfsVisit G fuel u s).color v = Color.black := by
+    apply dfsVisit_white_path_black G huwhite hu hfuel
+    exact WhiteReachable.mem_set G hu hwhite_path
+  have hfuel_pos : 0 < fuel := by omega
+  have hfinish_local :
+      finishTime (dfsVisit G fuel u s) v < finishTime (dfsVisit G fuel u s) u :=
+    dfsVisit_finish_lt_source_finish G hfuel_pos huwhite hbf hvwhite hv_black hne.symm
+  have hfinish_lt : finishTime (G.dfs) v < finishTime (G.dfs) u := by
+    rw [hfinish_pres v hv_black, hfinish_pres u hu_black]
+    exact hfinish_local
+  have hdiscovery_lt := (IsDFSAncestor.eq_or_discovery_lt G h).resolve_left hne
+  exact ⟨hdiscovery_lt, hfinish_lt⟩
+
+/-- **DFS ancestor/interval characterization.** For distinct graph vertices,
+strict timestamp-interval containment is equivalent to ancestry in the final
+DFS parent forest. -/
+theorem intervalNestedInside_dfs_iff_ancestor {u v : V}
+    (hu : u ∈ G.vertices) (hv : v ∈ G.vertices) (hne : u ≠ v) :
+    intervalNestedInside (G.dfs) u v ↔ IsDFSAncestor (G.dfs) u v := by
+  constructor
+  · exact intervalNestedInside_dfs_implies_ancestor G hu hv
+  · exact IsDFSAncestor.intervalNestedInside_dfs G hu hne
+
 end SCCFinishOrdering
 
 end Graph

@@ -59,6 +59,7 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.dfs_parenthesis`,
   {lit}`CLRS.Chapter22.Graph.dfs_intervals_not_cross`,
   {lit}`CLRS.Chapter22.Graph.IsDFSAncestor_reachable`,
+  {lit}`CLRS.Chapter22.Graph.intervalNestedInside_dfs_iff_ancestor`,
   and {lit}`CLRS.Chapter22.Graph.exists_discovery_state`.
 
 * 22.4 Topological sort.
@@ -93,7 +94,8 @@ only the layer they need:
 * {lit}`Section_22_3_DFS_WhitePath` develops finite white reachability and proves
   that a sufficiently fuelled visit blackens exactly the white-reachable set.
 * {lit}`Section_22_3_DFS_Intervals` develops timestamp, discovery-state, ancestor,
-  and parent-edge infrastructure and proves the DFS parenthesis theorem.
+  and parent-edge infrastructure and proves the DFS parenthesis theorem plus
+  the nesting-to-ancestor direction.
 * {lit}`Section_22_3_DFS_Bridge` connects local discovery states to the final DFS
   timestamps used by the SCC proof.
 * {lit}`Section_22_3_DFS_SCC` packages maximum-finish and first-discovery facts.
@@ -107,7 +109,8 @@ BFS is both sound (only reachable vertices are reported) and complete (every
 reachable vertex is reported).  Section 22.3 gives a functional DFS model,
 proves its global color and timestamp invariants, proves the white-path
 characterization used by the SCC development, and proves that final DFS
-timestamp intervals are disjoint or nested.  Section 22.4 implements Kahn's
+timestamp intervals are disjoint or nested and that strict nesting is equivalent
+to proper ancestry in the final parent forest.  Section 22.4 implements Kahn's
 algorithm and proves that it returns a valid topological order for every DAG.
 Section 22.5 proves the SCC finish-time ordering, proves that each component
 collected by Kosaraju is strongly connected and maximal, and concludes that the
@@ -117,9 +120,8 @@ returned components form an SCC partition of the vertex set.
 
 * Section 22.2: unweighted shortest-path distances and predecessor-tree
   correctness; the current BFS theorem characterizes reachability only.
-* Section 22.3: connect strict interval nesting to the parent-forest ancestor
-  relation and prove tree/back/forward/cross edge classification.  The timestamp
-  parenthesis theorem itself is complete.
+* Section 22.3: prove tree/back/forward/cross edge classification.  The timestamp
+  parenthesis theorem and parent-forest ancestor characterization are complete.
 * Section 22.4: a DFS finish-time implementation and correctness theorem matching
   the CLRS presentation; the current proved implementation is Kahn's algorithm.
 * Algorithm-cost refinements: explicit work measures for the fuelled and

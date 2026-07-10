@@ -124,8 +124,9 @@ which areas should not yet be counted as proof-complete.
   states that every graph vertex is black after {lit}`dfs`; the white-path theorem,
   discovery-state bridge, timestamp/ancestor infrastructure, and SCC finish-time
   ordering are proved.  The timestamp parenthesis theorem
-  {lit}`dfs_parenthesis` and its no-crossing corollary are also proved.  Connecting
-  interval nesting to the parent forest and proving edge classification remain.
+  {lit}`dfs_parenthesis`, its no-crossing corollary, and the parent-forest
+  characterization {lit}`intervalNestedInside_dfs_iff_ancestor` are also proved.
+  Tree/back/forward/cross edge classification remains.
 * Chapter 22, Section 22.4: Kahn's algorithm for topological sorting is
   implemented and {lit}`topologicalSort_isTopologicalOrder` proves that it returns a
   valid topological order for every DAG; a DFS-based version matching the CLRS
@@ -240,10 +241,10 @@ which areas should not yet be counted as proof-complete.
 * Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
   and the logarithmic-height theorem; executable insertion is already in place.
 * Chapter 22 graph algorithms: extend the proved reachability BFS with
-  unweighted shortest-path distances, connect DFS interval nesting to the parent
-  forest, prove edge classification, and add a DFS-based topological sort matching
-  CLRS.  The white-path and parenthesis theorems, Kahn topological sort, and full
-  Kosaraju SCC correctness are already proved on the Section 22.1 graph model.
+  unweighted shortest-path distances, prove DFS edge classification, and add a
+  DFS-based topological sort matching CLRS.  The white-path and parenthesis
+  theorems, parent-forest interval characterization, Kahn topological sort, and
+  full Kosaraju SCC correctness are already proved on the Section 22.1 graph model.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.
