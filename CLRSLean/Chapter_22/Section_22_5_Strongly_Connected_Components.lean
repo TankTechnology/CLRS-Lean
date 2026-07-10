@@ -449,6 +449,16 @@ theorem maxFinish_eq_of_forall_finish_le {s : DFSState V} {C : Set V} {r : V}
     exact hle v hv.2
   · exact finish_le_maxFinish G hsub hr
 
+/-- If {lit}`c` witnesses the maximum finish time of {lit}`C`, then every member
+of {lit}`C` finishes no later than {lit}`c`. -/
+theorem finish_le_maxFinish_witness {s : DFSState V} {C : Set V} {r c : V}
+    (hsub : C ⊆ G.vertices) (hr : r ∈ C)
+    (hc_max : maxFinish G s C = finishTime s c) :
+    finishTime s r ≤ finishTime s c := by
+  have h := finish_le_maxFinish G (s := s) (C := C) hsub hr
+  rw [hc_max] at h
+  exact h
+
 /-- A DFS state is SCC-monochrome when every SCC of {lit}`G` is either entirely
 white or entirely black in that state.  This is the main invariant of the
 second pass of Kosaraju's algorithm. -/
@@ -823,9 +833,8 @@ theorem scc_finish_time_order {C D : Set V}
           hwhite_C hwhite_D h_bf_s h_fuel h_f_pres
       calc
         finishTime (G.dfs) d < finishTime (G.dfs) rC := h_finish_d_lt_rC
-        _ ≤ finishTime (G.dfs) c := by
-          have h := finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
-          rw [hc_max] at h; exact h
+        _ ≤ finishTime (G.dfs) c :=
+          finish_le_maxFinish_witness G hCsub hrC_mem hc_max
     omega
   · -- Case 2: rD discovered first (or same time), i.e., d[rD] ≤ d[rC].
     -- Since D cannot reach C, rC is not in rD's DFS tree, so rD finishes before
@@ -860,8 +869,7 @@ theorem scc_finish_time_order {C D : Set V}
         h_f_pres
     rw [← hd_max, h_maxFinish_D_eq]
     have h_rC_max : finishTime (G.dfs) rC ≤ finishTime (G.dfs) c := by
-      have h := finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
-      rw [hc_max] at h; exact h
+      exact finish_le_maxFinish_witness G hCsub hrC_mem hc_max
     have h_disc_lt_fin : discoveryTime (G.dfs) rC < finishTime (G.dfs) rC :=
       dfs_discovery_lt_finish G (hCsub hrC_mem)
     omega
