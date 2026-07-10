@@ -41,11 +41,33 @@ CLRSLean/Chapter_11/Section_11_2_Chained_Hash_Tables.lean
 CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean
 CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean
 CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean
+CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean
 CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean
 CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean
 CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean
+CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean
 CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
+CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean
+CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean
+CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean
+CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean
+CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean
+CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean
+CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean
+CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean
+CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean
+CLRSLean/Chapter_22/Section_22_2_BFS.lean
+CLRSLean/Chapter_22/Section_22_3_DFS.lean
+CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean
+CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean
+CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean
+CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean
+CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean
+CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean
+CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean
+CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean
 CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
 ```
@@ -85,11 +107,22 @@ In prose and on the future website, these appear as:
 - Section 12.1 - Binary search trees
 - Section 13.1 - Red-black trees
 - Section 14.1 - Order-statistic trees
+- Section 14.3 - Interval trees
 - Section 15.1 - Rod cutting
 - Section 15.2 - Matrix-chain multiplication
 - Section 15.4 - Longest common subsequence
+- Section 15.5 - Optimal binary search trees
 - Section 16.1 - Activity selection
 - Section 16.3 - Huffman codes
+- Sections 17.1, 17.2, and 17.4 - Amortized analysis, stacks/counters, and dynamic tables
+- Sections 18.1-18.3 - B-tree model, insertion, and deletion
+- Section 19.1 - Fibonacci heaps
+- Sections 20.1-20.2 - van Emde Boas universe arithmetic and tree operations
+- Section 22.1 - Representing graphs
+- Section 22.2 - Breadth-first search
+- Section 22.3 - Depth-first search, white paths, intervals, SCC bridges, and edge classification
+- Section 22.4 - Topological sort
+- Section 22.5 - Strongly connected components
 - Section 23.1 - Growing a minimum spanning tree
 - Section 23.2 - Kruskal and Prim
 
@@ -133,11 +166,33 @@ should remain import-friendly.
 | Section 12.1 - Binary search trees | `CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean` | `partial` | `CLRS.Chapter12.BSTree.search_eq_true_iff`, `CLRS.Chapter12.BSTree.minimum?_le_of_ordered`, `CLRS.Chapter12.BSTree.le_maximum?_of_ordered`, `CLRS.Chapter12.BSTree.successor?_least_greater`, `CLRS.Chapter12.BSTree.predecessor?_greatest_less`, `CLRS.Chapter12.BSTree.insert_ordered`, `CLRS.Chapter12.BSTree.inTree_delete_iff`, `CLRS.Chapter12.BSTree.delete_ordered` |
 | Section 13.1 - Red-black trees | `CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean` | `partial` | `CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`, `CLRS.Chapter13.RBTree.balancedBlackHeight_rotateLeft_red_red`, `CLRS.Chapter13.RBTree.blackHeight_insertFixup_leftLeft`, `CLRS.Chapter13.RBTree.redBlackShape_insertFixup_rightRight`, `CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate` |
 | Section 14.1 - Order-statistic trees | `CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean` | `partial` | `CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`, `CLRS.Chapter14.OSTree.recomputeSizes_wellSized`, `CLRS.Chapter14.OSTree.rankSelect?_rotateLeft`, `CLRS.Chapter14.OSTree.osSelect?_eq_rankSelect?_of_wellSized`, `CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?` |
+| Section 14.3 - Interval trees | `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean` | `proved` for the augmentation framework | `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`, `CLRS.Chapter14.IntervalTree.intervalSearch?_spec` |
 | Section 15.1 - Rod cutting | `CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean` | `partial` with bottom-up table-certificate correctness | `CLRS.Chapter15.bottomUpRodRevenue_rodCutRecurrence`, `CLRS.Chapter15.firstCutValue_le_of_rodCutTableRecurrence`, `CLRS.Chapter15.planValue_le_table_of_rodCutTableRecurrence`, `CLRS.Chapter15.planValue_le_bottomUpRodRevenue`, `CLRS.Chapter15.planValue_le_tablePlanValue_of_same_length` |
 | Section 15.2 - Matrix-chain multiplication | `CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean` | `partial` | `CLRS.Chapter15.matrixChain_opt_le_planCost`, `CLRS.Chapter15.matrixChain_reconstructed_cost_eq`, `CLRS.Chapter15.matrixChain_reconstructed_optimal`, `CLRS.Chapter15.matrixChain_reconstructed_cost_le_planCost` |
 | Section 15.4 - Longest common subsequence | `CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean` | `partial` | `CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`, `CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`, `CLRS.Chapter15.LCSTableRecurrence.cons_cons`, `CLRS.Chapter15.lcsTable_reconstruction_optimal` |
+| Section 15.5 - Optimal binary search trees | `CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean` | `proved` for the mathematical and bottom-up recurrence layer | `CLRS.Chapter15.OBST.obst_reconstructed_optimal`, `CLRS.Chapter15.OBST.bottomUpOBST_obstRecurrence` |
 | Section 16.1 - Activity selection | `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean` | `proved` for finite sorted lists | `CLRS.ActivitySelection.finishSorted_greedyChoiceCertificate`, `CLRS.ActivitySelection.activitySelection`, `CLRS.ActivitySelection.activitySelection_cons_eq`, `CLRS.ActivitySelection.greedySelect_cons_maxCardinality`, `CLRS.ActivitySelection.greedySelect_maxCardinality`, `CLRS.ActivitySelection.activitySelection_cons_maxCardinality`, `CLRS.ActivitySelection.activitySelection_maxCardinality`, `CLRS.ActivitySelection.greedySelect_optimal_length`, `CLRS.ActivitySelection.greedySelect_cons_recursive_correct`, `CLRS.ActivitySelection.activitySelection_cons_recursive_correct`, `CLRS.ActivitySelection.activitySelection_cons_correct`, `CLRS.ActivitySelection.activitySelection_correct` |
 | Section 16.3 - Huffman codes | `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean` | `proved` | `CLRS.HuffmanV2.optimum_huffman_freqs`, `CLRS.HuffmanV2.huffmanOfFreqs_correct`, `CLRS.HuffmanV2.huffmanOfFreqs_cost_le` |
+| Section 17.1 - Amortized framework | `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean` | `proved` for aggregate, accounting, and potential frameworks | `CLRS.Chapter17.aggregate_bound_of_prefix_bound`, `CLRS.Chapter17.accounting_totalCost_le_totalCharge`, `CLRS.Chapter17.potential_totalCost_le_totalAmortized` |
+| Section 17.2 - Stacks and counters | `CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean` | `proved` for the represented stack/counter models | `CLRS.Chapter17.multiPop_totalCost_le`, `CLRS.Chapter17.binaryCounter_totalFlips_le` |
+| Section 17.4 - Dynamic tables | `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean` | `partial` size-level model | `CLRS.Chapter17.dynamicTableInsert_amortizedBound`, `CLRS.Chapter17.dynamicTableDelete_amortizedBound`, `CLRS.Chapter17.dynamicTable_amortizedBound` |
+| Section 18.1 - B-tree model | `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean` | `partial` mathematical model | `CLRS.Chapter18.BTree.search_correct`, `CLRS.Chapter18.BTree.minKeys_lower_bound` |
+| Section 18.2 - B-tree insertion | `CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean` | `partial` specification layer | `CLRS.Chapter18.BTree.splitChild_valid`, `CLRS.Chapter18.BTree.insert_valid`, `CLRS.Chapter18.BTree.insert_mem_iff` |
+| Section 18.3 - B-tree deletion | `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean` | `partial` specification layer | `CLRS.Chapter18.BTree.delete_valid`, `CLRS.Chapter18.BTree.delete_mem_iff`, `CLRS.Chapter18.BTree.delete_search_iff` |
+| Section 19.1 - Fibonacci heaps | `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean` | `partial` abstract finite-key model | `CLRS.Chapter19.FibHeap.makeHeap_correct`, `CLRS.Chapter19.FibHeap.extractMin_correct`, `CLRS.Chapter19.FibHeap.degree_bound_log` |
+| Section 20.1 - vEB universe arithmetic | `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean` | `proved` for high/low/index arithmetic | `CLRS.Chapter20.VEB.index_high_low`, `CLRS.Chapter20.VEB.high_lt`, `CLRS.Chapter20.VEB.low_lt` |
+| Section 20.2 - vEB tree operations | `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean` | `partial` finite-set specification | `CLRS.Chapter20.VEB.member_correct`, `CLRS.Chapter20.VEB.successor_correct`, `CLRS.Chapter20.VEB.predecessor_correct`, `CLRS.Chapter20.VEB.operationDepth_linear` |
+| Section 22.1 - Representing graphs | `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` | `proved` | `CLRS.Chapter22.Graph.reachable_refl`, `CLRS.Chapter22.Graph.reachable_trans`, `CLRS.Chapter22.Graph.reachable_adj` |
+| Section 22.2 - Breadth-first search | `CLRSLean/Chapter_22/Section_22_2_BFS.lean` | `proved` | `CLRS.Chapter22.Graph.bfs_complete`, `CLRS.Chapter22.Graph.bfsState_distance_eq_some_iff`, `CLRS.Chapter22.Graph.bfsState_correct` |
+| Section 22.3 - DFS core | `CLRSLean/Chapter_22/Section_22_3_DFS.lean` | `proved` | `CLRS.Chapter22.Graph.dfs_all_black` |
+| Section 22.3 - DFS white-path theorem | `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean` | `proved` | `CLRS.Chapter22.Graph.dfsVisit_blackens_iff_whiteReachable` |
+| Section 22.3 - DFS intervals | `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean` | `proved` | `CLRS.Chapter22.Graph.dfs_parenthesis`, `CLRS.Chapter22.Graph.intervalNestedInside_dfs_iff_ancestor` |
+| Section 22.3 - DFS SCC preliminaries | `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean` | `proved` | `CLRS.Chapter22.Graph.scc_finish_time_order`, `CLRS.Chapter22.Graph.scc_finish_order` |
+| Section 22.3 - DFS bridge | `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean` | `proved` | Discovery-state and finish-time bridge lemmas used by SCC correctness |
+| Section 22.3 - DFS edge classification | `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean` | `proved` | `CLRS.Chapter22.Graph.dfs_edge_classification_unique`, `CLRS.Chapter22.Graph.dfs_back_edge_iff_timestamps` |
+| Section 22.4 - Topological sort | `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` | `proved` | `CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`, `CLRS.Chapter22.Graph.dfsTopologicalSort_isTopologicalOrder` |
+| Section 22.5 - Merge-sort congruence | `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean` | `proved` helper layer | Comparator congruence used by Kosaraju's decreasing-finish-time order |
+| Section 22.5 - Strongly connected components | `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` | `proved` | `CLRS.Chapter22.Graph.kosarajuComponents_eq_sccs`, `CLRS.Chapter22.Graph.kosarajuComponents_isSCCPartition` |
 | Section 23.1 - Growing a minimum spanning tree | `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean` | `partial` | `CLRS.MST.Graph.connected_crosses_cut`, `CLRS.MST.FiniteGraph.minimumSpanningTree_of_mstExtending_empty`, `CLRS.MST.FiniteGraph.mstExtending_empty_of_minimumSpanningTree`, `CLRS.MST.FiniteGraph.minimumSpanningTree_iff_mstExtending_empty`, `CLRS.MST.FiniteGraph.exists_crossing_tree_edge_of_cut`, `CLRS.MST.FiniteGraph.exists_crossing_tree_edge_preserving_prefix`, `CLRS.MST.safe_edge_of_lightest_crossing` |
 | Section 23.2 - Kruskal and Prim | `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean` | `partial` | `CLRS.MST.Graph.ExchangePath`, `CLRS.MST.Graph.InsertedEdgeConnection`, `CLRS.MST.Graph.exchangePath_connected_insert`, `CLRS.MST.Graph.exchangePath_of_insert_connected`, `CLRS.MST.Graph.exchangePath_iff_insertedEdgeConnection`, `CLRS.MST.FiniteGraph.exchangePath_of_insert_connects_erased_edge`, `CLRS.MST.FiniteGraph.exchangePath_iff_insertedEdgeConnection_of_spanningTree`, `CLRS.MST.FiniteGraph.spanningTree_exchange_of_path_certificate`, `CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing`, `CLRS.MST.lightest_crossing_of_sorted_prefix`, `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`, `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`, `CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`, `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_cycle_test`, `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_complete_exact_component_empty` |
 
@@ -152,7 +207,7 @@ returning to a chapter that already has its advertised main theorem.
 
 - [`Lean fast verification`](workflows/lean-fast-verification.md) explains the
   narrow-to-wide build loop agents should use while editing large proof files,
-  especially Chapter 22.
+  including maintenance of the sealed Chapter 22 dependency stack.
 
 ## Proof Pattern Notes
 

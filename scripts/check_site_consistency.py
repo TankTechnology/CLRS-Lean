@@ -8,6 +8,7 @@ This script verifies:
 - literate.toml has a [modules] title entry for every chapter/section;
 - literate.toml does not list files that do not exist;
 - CLRSLean.lean imports every represented chapter guide.
+- docs/index.md lists every represented section source path.
 
 Run from the repository root:
     python3 scripts/check_site_consistency.py
@@ -21,6 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CLRSLEAN = ROOT / "CLRSLean"
 LITERATE = ROOT / "literate.toml"
 LANDING = ROOT / "CLRSLean.lean"
+DOCS_INDEX = ROOT / "docs" / "index.md"
 
 
 def parse_literate(path: Path):
@@ -75,6 +77,7 @@ def main() -> int:
     warnings = []
 
     order_children, modules = parse_literate(LITERATE)
+    docs_index_text = DOCS_INDEX.read_text(encoding="utf-8")
 
     # ---- discover represented chapters and sections ----
     chapter_dirs = sorted(
@@ -125,6 +128,7 @@ def main() -> int:
 
         for sec_file in section_files:
             sec_module = f"CLRSLean.{ch_dir.name}.{sec_file.stem}"
+            sec_path = sec_file.relative_to(ROOT).as_posix()
 
             if not module_doc_present(sec_file):
                 errors.append(f"Section file {sec_file} has no module doc")
@@ -137,6 +141,8 @@ def main() -> int:
                 errors.append(
                     f"literate.toml has no [modules.\"{sec_module}\"] title entry"
                 )
+            if sec_path not in docs_index_text:
+                errors.append(f"docs/index.md does not list section source: {sec_path}")
 
     # ---- check that every ordered module actually exists ----
     for parent, children in order_children.items():

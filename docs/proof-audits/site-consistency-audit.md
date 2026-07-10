@@ -51,7 +51,7 @@ Lean source -> lake build -> lake build :literateHtml
 
 Some chapters have extra Markdown narrative pages under `docs/chapters/`:
 
-- Present: 2, 6, 7, 8, 9, 16, 17, 18, 19, 20, 23
+- Present: 2, 6, 7, 8, 9, 16, 17, 18, 19, 20, 22, 23
 - Missing: 1, 3, 4, 5, 10, 11, 12, 13, 14, 15
 
 These Markdown pages are **not referenced in `docs/site-architecture.md`** and
@@ -90,10 +90,14 @@ match the textbook sections exactly.
 
 ### 3.3 Missing Chapters in Navigation
 
-Chapters 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 have no
+Chapters 21, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 have no
 `CLRSLean/Chapter_XX.lean` file and no `literate.toml` entry. They are correctly
 absent from the sidebar because they are not started, but there is no placeholder
 page telling readers they are future work.
+
+Chapter 22 is no longer part of this inconsistency: its guide, all section
+modules, sidebar ordering, titles, chapter narrative, closure audit, and public
+progress entry are present and synchronized.
 
 **Recommendation**: either add a single "Future Chapters" note to
 `CLRSLean/Status.lean` or create minimal `CLRSLean/Chapter_XX.lean` files for the

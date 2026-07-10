@@ -4,6 +4,21 @@ This page records work that is not hidden but also not claimed as complete.
 
 ## Deferred Implementation
 
+### Chapter 22 Work And RAM-Cost Refinement
+
+- Related sections: Sections 22.1-22.5 - Elementary graph algorithms
+- Status: `deferred-implementation`
+- Core correctness status: sealed by the Chapter 22 closure audit
+
+The finite-graph functional models now prove BFS reachability, exact unweighted
+shortest distances and predecessor-tree correctness; DFS white-path,
+parenthesis, ancestry, and edge-classification theorems; Kahn and DFS
+finish-time topological sorting; and Kosaraju SCC-partition correctness.
+
+The deferred layer is explicit work accounting and a lower-level adjacency-list
+or RAM refinement, including textbook `O(V + E)` packaging.  This work may be
+added without reopening the main functional-correctness milestone.
+
 ### Chapter 6 RAM-Cost Refinement
 
 - Related section: Sections 6.1-6.5 - Heapsort and priority queues

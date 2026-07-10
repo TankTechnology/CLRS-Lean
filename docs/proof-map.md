@@ -1859,6 +1859,144 @@ current operation-depth facts expose the base case, successor step, and a
 linear/monotone wrapper over the universe exponent, not yet a full asymptotic
 translation for the original universe size.
 
+## Chapter 22 - Elementary Graph Algorithms
+
+- Chapter status: `main-proof-complete-for-correctness`
+- Chapter guide: `CLRSLean/Chapter_22.lean`
+- Closure audit: `docs/proof-audits/chapter-22-closure-2026-07-10.md`
+- Interface tests: `Tests/Chapter_22_Interface.lean`,
+  `Tests/Chapter_22_Closure.lean`
+
+The sealed Chapter 22 model uses a finite vertex set and finite adjacency
+function.  All advertised functional-correctness chains for Sections 22.1-22.5
+are complete.  Explicit work/RAM-cost models remain a separate refinement
+track.
+
+### Section 22.1 - Representing graphs
+
+- Lean source:
+  `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean`
+- Status: `proved`
+- Main declarations:
+  - `CLRS.Chapter22.Graph`
+  - `CLRS.Chapter22.Graph.Adj`
+  - `CLRS.Chapter22.Graph.IsWalk`
+  - `CLRS.Chapter22.Graph.IsPath`
+  - `CLRS.Chapter22.Graph.IsCycle`
+  - `CLRS.Chapter22.Graph.Reachable`
+  - `CLRS.Chapter22.Graph.reachable_refl`
+  - `CLRS.Chapter22.Graph.reachable_trans`
+  - `CLRS.Chapter22.Graph.reachable_adj`
+- Proof pattern: finite adjacency closure and reflexive-transitive reachability.
+
+### Section 22.2 - Breadth-first search
+
+- Lean source: `CLRSLean/Chapter_22/Section_22_2_BFS.lean`
+- Status: `proved`
+- Reachability layer:
+  - `CLRS.Chapter22.Graph.bfs_sound`
+  - `CLRS.Chapter22.Graph.bfs_complete`
+  - `CLRS.Chapter22.Graph.bfs_closed`
+- Shortest-distance layer:
+  - `CLRS.Chapter22.Graph.ReachableIn`
+  - `CLRS.Chapter22.Graph.IsShortestDistance`
+  - `CLRS.Chapter22.Graph.BFSState`
+  - `CLRS.Chapter22.Graph.BFSDistanceInvariant`
+  - `CLRS.Chapter22.Graph.bfsState_distance_reachableIn`
+  - `CLRS.Chapter22.Graph.bfsState_distance_le_of_reachableIn`
+  - `CLRS.Chapter22.Graph.bfsState_distance_eq_some_iff`
+- Predecessor-tree layer:
+  - `CLRS.Chapter22.Graph.BFSParentPath`
+  - `CLRS.Chapter22.Graph.bfsState_parent_spec`
+  - `CLRS.Chapter22.Graph.bfsState_parent_defined_iff`
+  - `CLRS.Chapter22.Graph.bfsState_parent_acyclic`
+  - `CLRS.Chapter22.Graph.IsBFSPredecessorTree`
+  - `CLRS.Chapter22.Graph.bfsState_isBFSPredecessorTree`
+  - `CLRS.Chapter22.Graph.bfsState_correct`
+- Proof pattern: project the labelled FIFO state to the verified reachability
+  search, maintain nondecreasing queue levels plus a one-level queue span, use
+  parent pointers for attained path lengths, and use processed-edge bounds for
+  shortestness.
+
+### Section 22.3 - Depth-first search
+
+- Lean sources:
+  - `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean`
+- Status: `proved`
+- DFS and white-path layer:
+  - `CLRS.Chapter22.Graph.DFSState`
+  - `CLRS.Chapter22.Graph.dfsVisit`
+  - `CLRS.Chapter22.Graph.dfs`
+  - `CLRS.Chapter22.Graph.dfs_all_black`
+  - `CLRS.Chapter22.Graph.dfsVisit_blackens_iff_whiteReachable`
+- Timestamp and ancestry layer:
+  - `CLRS.Chapter22.Graph.dfs_parenthesis`
+  - `CLRS.Chapter22.Graph.dfs_intervals_not_cross`
+  - `CLRS.Chapter22.Graph.IsDFSAncestor_reachable`
+  - `CLRS.Chapter22.Graph.intervalNestedInside_dfs_iff_ancestor`
+- Edge-classification layer:
+  - `CLRS.Chapter22.Graph.DFSEdgeKind`
+  - `CLRS.Chapter22.Graph.dfs_edge_classification_unique`
+  - `CLRS.Chapter22.Graph.dfs_tree_or_forward_edge_iff_timestamps`
+  - `CLRS.Chapter22.Graph.dfs_back_edge_iff_timestamps`
+  - `CLRS.Chapter22.Graph.dfs_cross_edge_iff_timestamps`
+  - `CLRS.Chapter22.Graph.dfs_undirected_edge_tree_or_back`
+- SCC bridge layer:
+  - `CLRS.Chapter22.Graph.scc_finish_time_order`
+  - `CLRS.Chapter22.Graph.scc_finish_order`
+- Proof pattern: fuelled DFS state invariants, white-reachable closure at
+  discovery time, timestamp interval nesting, parent-forest ancestry, and edge
+  case analysis.
+
+### Section 22.4 - Topological sort
+
+- Lean source: `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean`
+- Status: `proved`
+- Kahn layer:
+  - `CLRS.Chapter22.Graph.IsDAG`
+  - `CLRS.Chapter22.Graph.IsTopologicalOrder`
+  - `CLRS.Chapter22.Graph.topologicalSort`
+  - `CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`
+- CLRS DFS finish-time layer:
+  - `CLRS.Chapter22.Graph.isDAG_no_dfs_back_edge`
+  - `CLRS.Chapter22.Graph.dfs_finish_time_decreases_on_dag_edge`
+  - `CLRS.Chapter22.Graph.dfsTopologicalSort`
+  - `CLRS.Chapter22.Graph.dfsTopologicalSort_isTopologicalOrder`
+- Proof pattern: source-removal invariants for Kahn, and exclusion of DFS back
+  edges plus decreasing finish times for the CLRS order.
+
+### Section 22.5 - Strongly connected components
+
+- Lean sources:
+  - `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean`
+  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean`
+- Status: `proved`
+- Main declarations:
+  - `CLRS.Chapter22.Graph.transpose`
+  - `CLRS.Chapter22.Graph.StronglyConnected`
+  - `CLRS.Chapter22.Graph.IsSCC`
+  - `CLRS.Chapter22.Graph.IsSCCPartition`
+  - `CLRS.Chapter22.Graph.kosarajuComponents`
+  - `CLRS.Chapter22.Graph.kosarajuComponent_scc_core`
+  - `CLRS.Chapter22.Graph.kosarajuComponents_eq_sccs`
+  - `CLRS.Chapter22.Graph.kosarajuComponents_isSCCPartition`
+- Proof pattern: decreasing first-pass finish-time order, transpose DFS
+  collection, SCC monochromaticity, exact component collection, maximality,
+  pairwise disjointness, and coverage.
+
+### Chapter 22 sealed boundary
+
+- Completed: main algorithmic correctness for graph representation, BFS, DFS,
+  topological sorting, and SCC decomposition.
+- Deferred without reopening the milestone: exact work counts, asymptotic
+  `O(V + E)` packaging, imperative adjacency-list/RAM refinement, exercises,
+  and chapter-end problems.
+
 ## Chapter 23 - Minimum Spanning Trees
 
 ### Section 23.1 - Growing a minimum spanning tree
