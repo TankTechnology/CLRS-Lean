@@ -31,13 +31,15 @@ Current milestones include:
   bucket-sort models.
 - Chapter 16: activity-selection and Huffman optimality for the represented
   finite models.
+- Chapter 21: abstract disjoint-set semantics, weighted linked-list analysis,
+  executable union-by-rank/path-compression correctness, and a Kruskal bridge.
 - Chapter 22: sealed main functional correctness for BFS shortest paths and its
   predecessor tree, DFS theory and edge classification, Kahn and DFS
   topological sorting, and Kosaraju SCC decomposition.
 
-Chapters 3, 4, 7, 9, 11-15, 17-20, and 23 have substantial but intentionally
-partial theorem layers.  Chapter 21 and Chapters 24-35 are not represented on
-`main` yet.  The live counts and chapter rows are generated from
+Chapters 3, 4, 7, 9, 11-15, 17-21, and 23 have substantial but intentionally
+partial theorem layers.  Chapters 24-35 are not represented on `main` yet.
+The live counts and chapter rows are generated from
 [`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv); see the
 [`proof status board`](docs/proof-status-board.md) for the current scheduling
 view and [`proof map`](docs/proof-map.md) for theorem-level detail.

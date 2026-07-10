@@ -34,15 +34,20 @@ maximum, increase-key, extract-max, and delete.
 The deferred implementation layer is now the line-by-line CLRS RAM-cost model,
 not the array heap proof itself.
 
-### Union-Find Correctness
+### Union-Find Cost And Stateful Kruskal Refinement
 
-- Related section: Section 23.2 - Kruskal and Prim
+- Related sections: Sections 21.3-21.4 and 23.2
 - Status: `deferred-implementation`
-- Current decision: review it as a separately scoped implementation chapter.
+- Functional correctness status: proved for the represented Batteries model
 
-The current MST proof uses `ComponentOracle` and `CycleTestImplementation` as
-interfaces.  A future union-find implementation can refine this interface
-without changing the mathematical Kruskal proof.
+Chapter 21 now proves singleton initialization, path-compressing `find`,
+union-by-rank, and Boolean equivalence queries against a common partition
+specification.  The Chapter 23 bridge proves that any family of faithful
+union-find states implements `CycleTestImplementation`.
+
+The deferred layer is an incremental stateful Kruskal scan with an explicit
+parent-traversal/write cost semantics, plus instantiation of the Section 21.4
+rank-mass and inverse-Ackermann potential certificates for the Batteries code.
 
 ## Blocked Design
 
@@ -134,8 +139,8 @@ obligation for complete exact-component scans from an initial forest:
 
 The remaining MST gaps are the concrete path/cycle exchange edge, replacing the
 global lightness hypothesis in the finite-graph optimality wrapper with the
-prefix-local sorted-order theorem, Prim's theorem interface, and any optional
-union-find refinement.
+prefix-local sorted-order theorem, Prim's theorem interface, and the stateful
+union-find scan/cost refinement.
 
 ## Future Work
 

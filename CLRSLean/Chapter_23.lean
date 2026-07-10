@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees
 import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge
 
 /-!
 # Chapter 23 - Minimum Spanning Trees
@@ -35,6 +36,8 @@ safe-edge induction.
   {lit}`CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`,
   {lit}`CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component_empty`,
   {lit}`CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_cycle_test`,
+  {lit}`CLRS.MST.UnionFindConnectivityRefinement.checkEquiv_iff_connected`,
+  {lit}`CLRS.MST.UnionFindConnectivityRefinement.cycleTest_correct`,
   and
   {lit}`CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_complete_exact_component_empty`.
 
@@ -65,14 +68,16 @@ accepted edge set is known to be a spanning tree.
 
 ## Deferred Work
 
-The project intentionally defers union-find correctness in the first phase.  The
-mathematical proof should stabilize before adding an implementation refinement
-for the cycle test.
+Chapter 21 now supplies executable union-find functional correctness, and the
+nested union-find bridge refines its equivalence query to this chapter's cycle-
+test interface.  The bridge currently takes an extensional state family indexed
+by the selected edge set; a mutable/stateful Kruskal scan remains a lower-level
+performance refinement.
 
 The main strengthening targets are:
 
-* refine exact components to an executable union-find implementation if that
-  implementation proof becomes in scope;
+* refine the extensional union-find state family to an incremental stateful
+  Kruskal scan with an explicit operation-cost semantics;
 * derive the inserted-edge connection automatically from a canonical finite
   simple path/cycle representation;
 * discharge prefix-local sorted lightness inside the full recursive optimality

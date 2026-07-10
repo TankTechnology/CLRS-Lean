@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge
+
+#check CLRS.MST.UnionFindConnectivityRefinement
+#check CLRS.MST.UnionFindConnectivityRefinement.accept
+#check CLRS.MST.UnionFindConnectivityRefinement.checkEquiv_iff_connected
+#check CLRS.MST.UnionFindConnectivityRefinement.accept_eq_true_iff_not_connected
+#check CLRS.MST.UnionFindConnectivityRefinement.sameSet_iff_mem_component
+#check CLRS.MST.UnionFindConnectivityRefinement.cycleTest
+#check CLRS.MST.UnionFindConnectivityRefinement.cycleTest_correct
