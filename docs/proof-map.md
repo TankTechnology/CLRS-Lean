@@ -1884,6 +1884,75 @@ current operation-depth facts expose the base case, successor step, and a
 linear/monotone wrapper over the universe exponent, not yet a full asymptotic
 translation for the original universe size.
 
+## Chapter 21 - Data Structures for Disjoint Sets
+
+### Section 21.1 - Abstract Operations
+
+- Model: `CLRS.Chapter21.Partition`, an explicit equivalence relation.
+- Core interface:
+  - `Partition.merge_sameSet_iff`
+  - `Partition.merge_related_sameSet_iff`
+  - `stepSpec_union_sameSet_iff`
+  - `runSpec_append`
+  - `runSpec_preserves_sameSet`
+- Boundary: `FIND-SET` preserves the partition and `UNION` merges exactly two
+  represented classes.
+
+### Section 21.2 - Linked-List Representation
+
+- Model: head and size tables over `Fin n`; weighted union redirects the
+  smaller represented class and returns the pointer-rewrite charge.
+- Correctness:
+  - `LinkedList.State.weightedUnion_sameSet_iff`
+  - `LinkedList.State.weightedUnion_refines_merge`
+  - `LinkedList.State.weightedUnion_preserves_headInvariant`
+- Complexity:
+  - `LinkedList.State.weightedUnion_changed_doubles`
+  - `LinkedList.State.move_count_le_log2`
+  - `LinkedList.State.total_rewrites_le_n_mul_log2`
+- Boundary: the standard aggregate `O(n log n)` representative-rewrite
+  argument is proved for the table-level model.
+
+### Section 21.3 - Disjoint-Set Forests
+
+- Implementation: `Batteries.Data.UnionFind`, including union by rank and path
+  compression.
+- Initialization and find:
+  - `Forest.singletonForest_equiv_iff`
+  - `Forest.find_preserves_sameSet`
+  - `Forest.find_returns_representative`
+  - `Forest.find_compresses_path`
+- Union and query:
+  - `Forest.union_sameSet_iff`
+  - `Forest.union_refines_merge`
+  - `Forest.checkEquiv_correct`
+  - `Forest.checkEquiv_preserves_sameSet`
+- Boundary: executable functional correctness is complete for the represented
+  Batteries API.
+
+### Section 21.4 - Rank And Path-Compression Analysis
+
+- Rank/path layer:
+  - `Analysis.parentPath_rank_bound`
+  - `Analysis.rank_le_log2`
+  - `Analysis.parentPath_length_le_log2`
+- Inverse-Ackermann/potential layer:
+  - `Analysis.inverseAckermann_spec`
+  - `Analysis.inverseAckermann_minimal`
+  - `Analysis.total_cost_le_of_inverseAckermann_certificate`
+- Remaining refinement: construct `RankMassCertificate` and
+  `InverseAckermannCertificate` from a concrete step-counting execution trace
+  of the Batteries implementation.  The certificate theorem is proved; the
+  exact RAM-level `O(m alpha(n))` instantiation is not claimed.
+
+### Chapter 23 Bridge
+
+- `MST.UnionFindConnectivityRefinement.checkEquiv_iff_connected`
+- `MST.UnionFindConnectivityRefinement.cycleTest_correct`
+- Boundary: a connectivity-faithful state family yields the existing verified
+  Kruskal cycle-test interface.  Incremental state threading remains a
+  performance refinement.
+
 ## Chapter 22 - Elementary Graph Algorithms
 
 - Chapter status: `main-proof-complete-for-correctness`

@@ -128,6 +128,9 @@ dependency-free scripts with `python3` after checkout.
 6. A sealed chapter may be extended only through a clearly named refinement
    layer or a new theorem target, not through silent weakening of its closure
    interface.
+7. A cross-chapter implementation adapter belongs to the consuming chapter.
+   For example, the union-find/Kruskal adapter is nested under Section 23.2 and
+   imports Chapter 21; Chapter 21 does not import the MST development.
 
 ## Change Matrix
 
