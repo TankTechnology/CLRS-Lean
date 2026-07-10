@@ -1,0 +1,19 @@
+import CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification
+
+#check CLRS.Chapter22.Graph.IsDFSTreeEdge
+#check CLRS.Chapter22.Graph.IsDFSBackEdge
+#check CLRS.Chapter22.Graph.IsDFSForwardEdge
+#check CLRS.Chapter22.Graph.IsDFSCrossEdge
+#check CLRS.Chapter22.Graph.IsDFSUndirectedTreeEdge
+#check CLRS.Chapter22.Graph.IsDFSUndirectedBackEdge
+#check CLRS.Chapter22.Graph.DFSEdgeKind
+#check CLRS.Chapter22.Graph.HasDFSEdgeKind
+#check CLRS.Chapter22.Graph.dfs_self_loop_is_back
+#check CLRS.Chapter22.Graph.dfs_edge_classification
+#check CLRS.Chapter22.Graph.dfs_edge_classification_unique
+#check CLRS.Chapter22.Graph.dfs_edge_not_finishesBeforeDiscovered
+#check CLRS.Chapter22.Graph.dfs_tree_or_forward_edge_iff_timestamps
+#check CLRS.Chapter22.Graph.dfs_back_edge_iff_timestamps
+#check CLRS.Chapter22.Graph.dfs_cross_edge_iff_timestamps
+#check CLRS.Chapter22.Graph.dfs_undirected_edge_not_cross
+#check CLRS.Chapter22.Graph.dfs_undirected_edge_tree_or_back

@@ -46,9 +46,10 @@ remain open.
   `CLRSLean/Chapter_22/Section_22_3_DFS.lean`,
   `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean`,
   `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean`,
-  `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`, and
-  `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`
-- Status: `partial`
+  `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`,
+  `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`, and
+  `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean`
+- Status: `proved`
 - Main declarations:
   `CLRS.Chapter22.Graph.DFSState`,
   `CLRS.Chapter22.Graph.dfsVisit`,
@@ -63,7 +64,13 @@ remain open.
   `CLRS.Chapter22.Graph.IsDFSAncestor_reachable`,
   `CLRS.Chapter22.Graph.dfs_parent_discovery_lt`,
   `CLRS.Chapter22.Graph.intervalNestedInside_dfs_implies_ancestor`,
-  `CLRS.Chapter22.Graph.intervalNestedInside_dfs_iff_ancestor`, and
+  `CLRS.Chapter22.Graph.intervalNestedInside_dfs_iff_ancestor`,
+  `CLRS.Chapter22.Graph.DFSEdgeKind`,
+  `CLRS.Chapter22.Graph.dfs_edge_classification_unique`,
+  `CLRS.Chapter22.Graph.dfs_tree_or_forward_edge_iff_timestamps`,
+  `CLRS.Chapter22.Graph.dfs_back_edge_iff_timestamps`,
+  `CLRS.Chapter22.Graph.dfs_cross_edge_iff_timestamps`,
+  `CLRS.Chapter22.Graph.dfs_undirected_edge_tree_or_back`, and
   `CLRS.Chapter22.Graph.exists_discovery_state`
 
 A functional depth-first-search model with white/gray/black colors, discovery
@@ -77,7 +84,9 @@ of distinct graph vertices are disjoint or strictly nested, and
 `dfs_intervals_not_cross` rules out partial overlap.  The theorem
 `intervalNestedInside_dfs_iff_ancestor` completes the parent-forest
 characterization: for distinct graph vertices, strict interval containment is
-equivalent to ancestry.  Tree/back/forward/cross edge classification remains.
+equivalent to ancestry.  Finally, every graph edge is proved to have exactly one
+tree/back/forward/cross kind, with the standard CLRS timestamp characterizations;
+self-loops are back edges, and every undirected edge is tree or back.
 
 ## Section 22.4 - Topological Sort
 
@@ -121,6 +130,5 @@ components.
 ## Remaining Chapter Work
 
 - BFS unweighted shortest-path distances and predecessor-tree correctness;
-- DFS tree/back/forward/cross edge classification;
 - DFS-based topological sort matching the CLRS presentation;
 - explicit algorithm-cost models for the functional implementations.
