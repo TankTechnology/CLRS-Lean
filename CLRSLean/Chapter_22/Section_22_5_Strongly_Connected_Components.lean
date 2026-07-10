@@ -443,6 +443,20 @@ theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
   rcases hv with ⟨_, hvK⟩
   exact hmax v (hwhite v hvK)
 
+/-- If every finish time in {lit}`C` is at most the finish time of {lit}`r ∈ C`,
+then {lit}`r` attains {name}`maxFinish`. -/
+theorem maxFinish_eq_of_forall_finish_le {s : DFSState V} {C : Set V} {r : V}
+    (hsub : C ⊆ G.vertices) (hr : r ∈ C)
+    (hle : ∀ v ∈ C, finishTime s v ≤ finishTime s r) :
+    maxFinish G s C = finishTime s r := by
+  apply Nat.le_antisymm
+  · rw [maxFinish]
+    apply Finset.sup_le
+    intro v hv
+    simp at hv
+    exact hle v hv.2
+  · exact finish_le_maxFinish G hsub hr
+
 /-- A DFS state is SCC-monochrome when every SCC of {lit}`G` is either entirely
 white or entirely black in that state.  This is the main invariant of the
 second pass of Kosaraju's algorithm. -/
@@ -642,6 +656,30 @@ theorem finish_before_discovery_of_visit_output_white {fuel : Nat} {s : DFSState
     hlater v hv_white_out hv_final_nonwhite
   omega
 
+/-- If a white-reachable vertex is blackened during a local visit, then its full
+DFS finish time is strictly before the source's full DFS finish time. -/
+theorem finish_lt_source_in_full_dfs_of_whiteReachable_visit {fuel : Nat} {s : DFSState V}
+    {u v : V} (hu_vert : u ∈ G.vertices) (hu_white : s.color u = Color.white)
+    (hbf : ∀ w, s.color w = Color.black → finishTime s w < s.time)
+    (hfuel : fuel ≥ (whiteReachableSet G s u).card + 1)
+    (hv_white : s.color v = Color.white) (hwr : WhiteReachable G s u v)
+    (hne : v ≠ u)
+    (hpres : ∀ w, (dfsVisit G fuel u s).color w = Color.black →
+      finishTime (G.dfs) w = finishTime (dfsVisit G fuel u s) w) :
+    finishTime (G.dfs) v < finishTime (G.dfs) u := by
+  have hfuel_pos : 0 < fuel := by omega
+  have hblack_v : (dfsVisit G fuel u s).color v = Color.black := by
+    apply dfsVisit_white_path_black G hu_white hu_vert hfuel
+    exact WhiteReachable.mem_set G hu_vert hwr
+  have hfinish_lt :
+      finishTime (dfsVisit G fuel u s) v < finishTime (dfsVisit G fuel u s) u := by
+    apply dfsVisit_finish_lt_source_finish G hfuel_pos hu_white hbf hv_white hblack_v hne
+  have hblack_u : (dfsVisit G fuel u s).color u = Color.black :=
+    dfsVisit_blackens_u_pos G hfuel_pos hu_white
+  have h_f_v := hpres v hblack_v
+  have h_f_u := hpres u hblack_u
+  simpa [h_f_v, h_f_u] using hfinish_lt
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
@@ -711,24 +749,13 @@ theorem scc_finish_time_order {C D : Set V}
     -- Compose: rC →* v →* d
     have h_wr_rC_d : WhiteReachable G s rC d :=
       whiteReachable_trans G h_wr_rC_v h_wr_v_d
-    -- By the white-path theorem, dfsVisit from rC blackens d
-    have h_card : f ≥ (whiteReachableSet G s rC).card + 1 := h_fuel
-    have h_black_d : (dfsVisit G f rC s).color d = Color.black := by
-      apply dfsVisit_white_path_black G hs_white (hCsub hrC_mem) h_card
-      exact WhiteReachable.mem_set G (hCsub hrC_mem) h_wr_rC_d
-    -- d finishes before rC in the dfsVisit output
-    have h_finish_lt : finishTime (dfsVisit G f rC s) d < finishTime (dfsVisit G f rC s) rC := by
-      apply dfsVisit_finish_lt_source_finish G (by omega) hs_white h_bf_s hwhite_d h_black_d hne_d_rC
-    -- f values preserved from dfsVisit to G.dfs (from exists_discovery_state)
-    have h_f_preserved_d : finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d :=
-      h_f_pres d h_black_d
-    have h_f_preserved_rC : finishTime (G.dfs) rC = finishTime (dfsVisit G f rC s) rC :=
-      h_f_pres rC hs_black
     have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
+      have h_finish_d_lt_rC :
+          finishTime (G.dfs) d < finishTime (G.dfs) rC :=
+        finish_lt_source_in_full_dfs_of_whiteReachable_visit G (hCsub hrC_mem)
+          hs_white h_bf_s h_fuel hwhite_d h_wr_rC_d hne_d_rC h_f_pres
       calc
-        finishTime (G.dfs) d = finishTime (dfsVisit G f rC s) d := h_f_preserved_d
-        _ < finishTime (dfsVisit G f rC s) rC := h_finish_lt
-        _ = finishTime (G.dfs) rC := h_f_preserved_rC.symm
+        finishTime (G.dfs) d < finishTime (G.dfs) rC := h_finish_d_lt_rC
         _ ≤ finishTime (G.dfs) c := by
           have h := finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
           rw [hc_max] at h; exact h
@@ -769,24 +796,16 @@ theorem scc_finish_time_order {C D : Set V}
       have hwhite_v : s.color v = Color.white := hwhite_D v hv
       have h_wr : WhiteReachable G s rD v :=
         WhiteReachable.of_isSCC G hD hrD_mem hv hwhite_D
-      have h_black_v : (dfsVisit G f rD s).color v = Color.black := by
-        apply dfsVisit_white_path_black G hs_white (hDsub hrD_mem) h_fuel
-        exact WhiteReachable.mem_set G (hDsub hrD_mem) h_wr
-      have h_finish_lt : finishTime (dfsVisit G f rD s) v < finishTime (dfsVisit G f rD s) rD := by
-        apply dfsVisit_finish_lt_source_finish G (by omega) hs_white h_bf_s hwhite_v h_black_v hne
-      have h_f_G_v := h_f_pres v h_black_v
-      have h_f_G_rD := h_f_pres rD hs_black
-      simpa [h_f_G_v, h_f_G_rD] using h_finish_lt
+      exact finish_lt_source_in_full_dfs_of_whiteReachable_visit G (hDsub hrD_mem)
+        hs_white h_bf_s h_fuel hwhite_v h_wr hne h_f_pres
     -- maxFinish(D) = f[rD]
-    have h_maxFinish_D_eq : maxFinish G (G.dfs) D = finishTime (G.dfs) rD := by
-      rcases maxFinish_exists G (s := G.dfs) (C := D) hD_nonempty hDsub with ⟨v, hv, hmax⟩
-      by_cases h_v_rD : v = rD; · subst v; rw [hmax]
-      · have h_lt : finishTime (G.dfs) v < finishTime (G.dfs) rD := h_finish_D_lt_rD v hv h_v_rD
-        have h_le : finishTime (G.dfs) rD ≤ maxFinish G (G.dfs) D :=
-          finish_le_maxFinish G (s := G.dfs) hDsub hrD_mem
-        have : maxFinish G (G.dfs) D = finishTime (G.dfs) v := hmax
-        have : finishTime (G.dfs) rD ≤ maxFinish G (G.dfs) D := h_le
-        omega
+    have h_maxFinish_D_eq : maxFinish G (G.dfs) D = finishTime (G.dfs) rD :=
+      maxFinish_eq_of_forall_finish_le G (s := G.dfs) hDsub hrD_mem (by
+        intro v hv
+        by_cases h_v_rD : v = rD
+        · subst v
+          rfl
+        · exact le_of_lt (h_finish_D_lt_rD v hv h_v_rD))
     rw [← hd_max, h_maxFinish_D_eq]
     have h_rC_max : finishTime (G.dfs) rC ≤ finishTime (G.dfs) c := by
       have h := finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
