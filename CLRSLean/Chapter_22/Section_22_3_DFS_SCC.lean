@@ -112,6 +112,15 @@ theorem firstDiscoveredVertex_min {s : DFSState V} {C : Set V} {v : V}
     discoveryTime s (firstDiscoveredVertex G s C hC hsub) ≤ discoveryTime s v :=
   (Classical.choose_spec (exists_firstDiscovered G (s := s) (C := C) hC hsub)).2 v hv
 
+/-- Bundled membership and minimality facts for {name}`Graph.firstDiscoveredVertex`. -/
+theorem firstDiscoveredVertex_mem_min {s : DFSState V} {C : Set V}
+    (hC : C.Nonempty) (hsub : C ⊆ G.vertices) :
+    let r := firstDiscoveredVertex G s C hC hsub
+    r ∈ C ∧ ∀ v ∈ C, discoveryTime s r ≤ discoveryTime s v := by
+  intro r
+  exact ⟨firstDiscoveredVertex_mem G (s := s) (C := C) hC hsub,
+    fun v hv => firstDiscoveredVertex_min G (s := s) (C := C) hC hsub hv⟩
+
 /-! ## Discovery state of a vertex
 
 For the SCC finish-time proof we need access to the *discovery state* of a
