@@ -316,5 +316,17 @@ theorem compared_prob (n i j : ℕ) (hij : i < j) (hjn : j < n) :
       field_simp [h_nfac_ne_zero]
     _ = (2 : ℝ) / ((j - i + 1 : ℕ) : ℝ) := by rw [hcard_S]
 
+/-!
+## Remaining gaps (AC-3b, AC-3c)
+
+The random-permutation symmetry lemma and pairwise comparison probability
+are proved above.  The following remain for a future PR:
+
+- AC-3b: `E[totalComparisons] = Σ_{i<j} P(compared i j)` — expectation
+  expressed as a sum of pairwise probabilities via linearity.
+- AC-3c: `E[totalComparisons] = Θ(n log n)` — asymptotic bridge using the
+  existing harmonic-number bounds from Chapter 3.2.
+-/
+
 end Chapter07
 end CLRS
