@@ -61,3 +61,14 @@ import CLRSLean.Chapter_21
 #check CLRS.Chapter21.Analysis.Costed.run_refines_spec
 #check CLRS.Chapter21.Analysis.Costed.run_rank_le_log2
 #check CLRS.Chapter21.Analysis.Costed.run_cost_le
+
+#check CLRS.Chapter21.Analysis.Ackermann.nodePotential
+#check CLRS.Chapter21.Analysis.Ackermann.potential_singleton
+#check CLRS.Chapter21.Analysis.Ackermann.potential_find_le
+#check CLRS.Chapter21.Analysis.Ackermann.potential_link_le_add_two
+#check CLRS.Chapter21.Analysis.Ackermann.potential_union_le_add_two
+#check CLRS.Chapter21.Analysis.Ackermann.costedFind_amortized_le
+#check CLRS.Chapter21.Analysis.Ackermann.costedUnion_amortized_le
+#check CLRS.Chapter21.Analysis.Ackermann.step_amortized_le
+#check CLRS.Chapter21.Analysis.Ackermann.run_cost_le_inverseAckermann
+#check CLRS.Chapter21.Analysis.Ackermann.run_cost_le_inverseAckermann_of_universe_le_ops

@@ -14,19 +14,19 @@ Both executable representations prove refinement to that specification.
   path-compressing find, union by rank, and Boolean equivalence checking against
   the partition specification.
 - Section 21.4 proves parent-rank/path bounds, defines an inverse-Ackermann
-  threshold from Mathlib's Ackermann function, and packages the potential-
-  method aggregate theorem.  Its nested costed-execution module counts the
-  actual Batteries parent recursion, proves a conserved root-mass invariant
-  for every reachable state, erases exactly to the Batteries operations, and
-  derives a whole-run `m * (2 * log2 n + 3)` bound.
+  threshold from Mathlib's Ackermann function, and instantiates the
+  CLRS/Alstrup rank-level-index potential.  Its nested modules count the actual
+  Batteries parent recursion, prove a conserved root-mass invariant for every
+  reachable state, establish the local find/link/union amortized inequalities,
+  and derive the whole-run bound `9 * (m + n) * alpha(n)`.  Under the standard
+  `n <= m` assumption, the supplied corollary is `18 * m * alpha(n)`.
 - The nested Section 23.2 bridge turns a connectivity-faithful union-find state
   family into the existing verified Kruskal cycle-test interface.
 
-## Remaining Refinement
+## Closure Boundary
 
-The concrete step-counting semantics and logarithmic intermediate theorem are
-now present.  The exact low-level `O(m alpha(n))` claim still requires an
-Ackermann-level potential assignment proving that each concrete parent
-traversal has bounded amortized charge.  The Kruskal bridge is currently
-extensional in the selected edge set; an incremental stateful scan is the
-corresponding implementation target.
+Chapter 21's advertised functional-correctness and inverse-Ackermann
+amortization stack is complete for the explicit cost model.  The intermediate
+`O(m log n)` theorem remains useful as a simpler sanity bound.  Lower-level
+array-write/RAM constants and Chapter 23's incremental stateful Kruskal scan
+are separate implementation refinements, not missing Chapter 21 core groups.
