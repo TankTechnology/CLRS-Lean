@@ -816,17 +816,50 @@ theorem scc_finish_time_order {C D : Set V}
       dfs_discovery_lt_finish G (hCsub hrC_mem)
     omega
 
+/-- If {lit}`r` is maximal among the currently white vertices and SCCs are
+monochrome, then a white predecessor of a vertex in {lit}`r`'s SCC is also in
+{lit}`r`'s SCC.  This is the local contradiction step used when traversing the
+transpose graph in Kosaraju's second pass. -/
+theorem white_predecessor_mem_sccOf_of_max_finish {s : DFSState V} {r v w : V}
+    (hr : r ∈ G.vertices) (hwhite_r : s.color r = Color.white)
+    (hmax : ∀ x, s.color x = Color.white → finishTime (G.dfs) x ≤ finishTime (G.dfs) r)
+    (hrespects : G.SCCMonochrome s)
+    (hw_scc : w ∈ G.sccOf r) (hGadj : G.Adj v w)
+    (hwhite_v : s.color v = Color.white) :
+    v ∈ G.sccOf r := by
+  have hC : G.IsSCC (G.sccOf r) := isSCC_sccOf G hr
+  have hC_white : ∀ x ∈ G.sccOf r, s.color x = Color.white :=
+    sccOf_white_of_monochrome G hr hwhite_r hrespects
+  have hCmax : maxFinish G (G.dfs) (G.sccOf r) = finishTime (G.dfs) r :=
+    maxFinish_sccOf_eq G hr hmax hC_white
+  by_contra hne
+  have hvV : v ∈ G.vertices := G.adj_mem_left hGadj
+  let D := G.sccOf v
+  have hD : G.IsSCC D := isSCC_sccOf G hvV
+  have hDneC : D ≠ G.sccOf r := by
+    intro heq
+    have hvinD : v ∈ D := stronglyConnected_refl G v
+    rw [heq] at hvinD
+    exact hne hvinD
+  have hedge : ∃ u ∈ D, ∃ v ∈ G.sccOf r, G.Adj u v :=
+    ⟨v, stronglyConnected_refl G v, w, hw_scc, hGadj⟩
+  have hord := scc_finish_time_order G hD hC hDneC hedge
+  have hD_white : ∀ x ∈ D, s.color x = Color.white := by
+    rcases hrespects D hD with (hw' | hb')
+    · exact hw'
+    · have hblack : s.color v = Color.black := hb' v (stronglyConnected_refl G v)
+      rw [hblack] at hwhite_v
+      contradiction
+  have hDmax : maxFinish G (G.dfs) D ≤ finishTime (G.dfs) r :=
+    maxFinish_white_scc_le G hD hmax hD_white
+  linarith [hord, hCmax, hDmax]
+
 theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
     (hr : r ∈ G.transpose.vertices) (hwhite : s.color r = Color.white)
     (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) r)
     (hrespects : G.SCCMonochrome s) :
     (whiteReachableSet G.transpose s r : Set V) ⊆ G.sccOf r := by
   have hrG : r ∈ G.vertices := by simpa using hr
-  have hC : G.IsSCC (G.sccOf r) := isSCC_sccOf G hrG
-  have hC_white : ∀ v ∈ G.sccOf r, s.color v = Color.white :=
-    sccOf_white_of_monochrome G hrG hwhite hrespects
-  have hCmax : maxFinish G (G.dfs) (G.sccOf r) = finishTime (G.dfs) r :=
-    maxFinish_sccOf_eq G hrG hmax hC_white
   have hstable := whiteReachableIter_stable G.transpose s r hr
   intro v hv
   rw [hstable] at hv
@@ -844,7 +877,6 @@ theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
         rcases hv with (h | ⟨⟨w, hw, hadj⟩, hwhite_v⟩)
         · exact ih v h
         · have hw_scc : w ∈ G.sccOf r := ih w hw
-          by_contra hne
           have htadj : G.transpose.Adj w v := by
             simp [Adj] at hadj ⊢
             exact hadj
@@ -852,26 +884,8 @@ theorem whiteReachableSet_subset_scc {s : DFSState V} {r : V}
             have h := htadj
             simp [transpose_Adj] at h ⊢
             exact h
-          have hvV : v ∈ G.vertices := G.adj_mem_left hGadj
-          let D := G.sccOf v
-          have hD : G.IsSCC D := isSCC_sccOf G hvV
-          have hDneC : D ≠ G.sccOf r := by
-            intro heq
-            have hvinD : v ∈ D := stronglyConnected_refl G v
-            rw [heq] at hvinD
-            simp [sccOf] at hvinD
-            tauto
-          have hedge : ∃ u ∈ D, ∃ v ∈ G.sccOf r, G.Adj u v :=
-            ⟨v, stronglyConnected_refl G v, w, hw_scc, hGadj⟩
-          have hord := scc_finish_time_order G hD hC hDneC hedge
-          have hD_white : ∀ v ∈ D, s.color v = Color.white := by
-            rcases hrespects D hD with (hw' | hb')
-            · exact hw'
-            · have : s.color v = Color.black := hb' v (stronglyConnected_refl G v)
-              simp [this] at hwhite_v
-          have hDmax : maxFinish G (G.dfs) D ≤ finishTime (G.dfs) r :=
-            maxFinish_white_scc_le G hD hmax hD_white
-          linarith [hord, hCmax, hDmax]
+          exact white_predecessor_mem_sccOf_of_max_finish G hrG hwhite hmax hrespects
+            hw_scc hGadj hwhite_v
   exact h (G.transpose.vertices.card + 1) v hv
 
 /-- Core DFS finish-time lemma.
