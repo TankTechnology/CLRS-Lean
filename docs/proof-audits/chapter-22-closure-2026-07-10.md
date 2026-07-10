@@ -26,8 +26,8 @@ accounting, exercises, or chapter-end problems.
 | 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean` | DFS finish-time facts used by SCCs |
 | 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean` | Unique tree/back/forward/cross classification and timestamp characterizations |
 | 22.4 | `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` | Kahn and DFS finish-time topological sorts |
-| 22.5 | `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean` | Comparator congruence for decreasing finish-time sorting |
 | 22.5 | `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` | Kosaraju implementation and SCC-partition correctness |
+| 22.5 | `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean` | Comparator congruence for decreasing finish-time sorting |
 
 ## Closure Theorems
 

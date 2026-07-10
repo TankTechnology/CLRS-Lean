@@ -97,7 +97,7 @@ def validate(rows: list[dict[str, str]]) -> None:
                 f"Chapter {chapter_no}: not-started rows should use represented_sections=None",
             )
             chapter_dir = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}"
-            section_files = list(chapter_dir.glob("Section_*.lean")) if chapter_dir.is_dir() else []
+            section_files = list(chapter_dir.rglob("Section_*.lean")) if chapter_dir.is_dir() else []
             require(
                 not section_files,
                 f"Chapter {chapter_no}: marked not-started but section files exist",
@@ -123,7 +123,7 @@ def validate(rows: list[dict[str, str]]) -> None:
         chapter_dir = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}"
         require(chapter_dir.is_dir(), f"Chapter {chapter_no}: missing section directory")
         actual_sections: set[str] = set()
-        for section_file in chapter_dir.glob("Section_*.lean"):
+        for section_file in chapter_dir.rglob("Section_*.lean"):
             match = re.match(r"Section_(\d+)_(\d+)_", section_file.name)
             require(match is not None, f"Unexpected section filename: {section_file.name}")
             actual_sections.add(f"{int(match.group(1))}.{int(match.group(2))}")

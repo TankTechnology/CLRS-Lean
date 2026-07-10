@@ -76,9 +76,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_08" = [
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort",
-  "CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array",
   "CLRSLean.Chapter_08.Section_08_3_Radix_Sort",
   "CLRSLean.Chapter_08.Section_08_4_Bucket_Sort",
+]
+"CLRSLean.Chapter_08.Section_08_2_Counting_Sort" = [
+  "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables",
 ]
 "CLRSLean.Chapter_09" = [
   "CLRSLean.Chapter_09.Section_09_2_Select_By_Rank",
@@ -114,8 +116,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_17" = [
   "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework",
-  "CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter",
   "CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables",
+]
+"CLRSLean.Chapter_17.Section_17_1_Amortized_Framework" = [
+  "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",
 ]
 "CLRSLean.Chapter_18" = [
   "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model",
@@ -134,7 +138,6 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_22.Section_22_2_BFS",
   "CLRSLean.Chapter_22.Section_22_3_DFS",
   "CLRSLean.Chapter_22.Section_22_4_Topological_Sort",
-  "CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr",
   "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components",
 ]
 "CLRSLean.Chapter_22.Section_22_3_DFS" = [
@@ -143,6 +146,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_22.Section_22_3_DFS.Bridge",
   "CLRSLean.Chapter_22.Section_22_3_DFS.SCC",
   "CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification",
+]
+"CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components" = [
+  "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr",
 ]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
@@ -257,11 +263,11 @@ title = "Edge Classification"
 [modules."CLRSLean.Chapter_22.Section_22_4_Topological_Sort"]
 title = "22.4. Topological Sort"
 
-[modules."CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr"]
-title = "22.5. Merge Sort Congruence"
-
 [modules."CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components"]
 title = "22.5. Strongly Connected Components"
+
+[modules."CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr"]
+title = "Merge-Sort Congruence"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"
@@ -338,8 +344,8 @@ title = "7.3. Randomized Quicksort"
 [modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort"]
 title = "8.2. Counting Sort"
 
-[modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array"]
-title = "8.2. Counting Sort - Count Tables"
+[modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables"]
+title = "Count-Table Refinement"
 
 [modules."CLRSLean.Chapter_08.Section_08_3_Radix_Sort"]
 title = "8.3. Radix Sort"
@@ -396,10 +402,10 @@ title = "16.3. Huffman Codes"
 title = "16.1. Activity Selection"
 
 [modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework"]
-title = "17.1-17.3. Amortized Analysis Framework"
+title = "17.1-17.3. Amortized Analysis Methods"
 
-[modules."CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter"]
-title = "17.2. Stack and Counter Examples"
+[modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter"]
+title = "Stack and Counter Examples"
 
 [modules."CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables"]
 title = "17.4. Dynamic Tables"

@@ -14,7 +14,7 @@
 
 - Create `CLRSLean/Chapter_17.lean`: chapter guide page and imports.
 - Create `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`: aggregate, accounting, and potential-method finite-prefix theorems.
-- Create `CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean`: `MULTIPOP` and binary-counter examples.
+- Create `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`: `MULTIPOP` and binary-counter examples.
 - Create `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`: abstract dynamic-table size/load potential model.
 - Create `CLRSLean/Chapter_18.lean`: chapter guide page and imports.
 - Create `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean`: B-tree structural model, occupancy predicates, search spec, height lower bound.
@@ -262,7 +262,7 @@ git commit -m "Add Chapter 17 amortized analysis framework"
 
 **Files:**
 - Modify: `CLRSLean/Chapter_17.lean`
-- Create: `CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean`
+- Create: `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`
 - Create: `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`
 - Modify: `Tests/Chapter_17_Interface.lean`
 - Modify: `literate.toml`
@@ -271,7 +271,7 @@ git commit -m "Add Chapter 17 amortized analysis framework"
 
 ```lean
 import CLRSLean.Chapter_17.Section_17_1_Amortized_Framework
-import CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter
+import CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter
 import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 
 #check CLRS.Chapter17.multiPop
@@ -290,7 +290,7 @@ Expected: FAIL because example modules do not exist.
 
 - [ ] **Step 3: Implement stack and counter examples**
 
-In `Section_17_2_Stack_And_Counter.lean`, model `multiPop` as list truncation
+In `Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`, model `multiPop` as list truncation
 and prove a clean cost bound:
 
 ```lean
@@ -356,7 +356,7 @@ Expected: both PASS and no `sorry` in `CLRSLean/Chapter_17`.
 Commit:
 
 ```bash
-git add CLRSLean/Chapter_17.lean CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean Tests/Chapter_17_Interface.lean literate.toml
+git add CLRSLean/Chapter_17.lean CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean Tests/Chapter_17_Interface.lean literate.toml
 git commit -m "Add Chapter 17 amortized examples"
 ```
 

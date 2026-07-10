@@ -59,7 +59,7 @@ CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean
-CLRSLean/Chapter_08/Section_08_2_Counting_Sort_Array.lean
+CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean
 CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
 CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean
 CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean
@@ -79,7 +79,7 @@ CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean
 CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
 CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean
-CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean
+CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean
 CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean
 CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean
 CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean
@@ -96,8 +96,8 @@ CLRSLean/Chapter_22/Section_22_3_DFS/Bridge.lean
 CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean
 CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean
 CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean
-CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean
 CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean
+CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean
 CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
 ```
