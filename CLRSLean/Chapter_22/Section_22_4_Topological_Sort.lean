@@ -1,11 +1,12 @@
 import Mathlib
-import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
+import CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification
 
 /-! # Section 22.4 - Topological Sort
 
-This section gives Kahn's algorithm for topological sorting on the finite graph
-model from Section 22.1 and proves that it returns a valid topological order
-whenever the input graph is a DAG.
+This section gives two algorithms for topological sorting on the finite graph
+model from Section 22.1 and proves that each returns a valid topological order
+whenever the input graph is a DAG: Kahn's source-removal algorithm and the CLRS
+algorithm that sorts vertices by decreasing DFS finish time.
 
 The main declarations are:
 
@@ -16,6 +17,9 @@ The main declarations are:
 - {lit}`Graph.kahnAux`: the fuelled recursive core of Kahn's algorithm.
 - {lit}`Graph.topologicalSort`: the entry point.
 - {lit}`Graph.topologicalSort_isTopologicalOrder`: correctness for DAGs.
+- {lit}`Graph.dfsTopologicalSort`: vertices sorted by decreasing DFS finish time.
+- {lit}`Graph.dfsTopologicalSort_isTopologicalOrder`: correctness of the CLRS
+  DFS algorithm for DAGs.
 
 The proof follows the standard invariant for Kahn's algorithm: the accumulator
 contains an initial segment of the final order, it is disjoint from the
@@ -26,6 +30,10 @@ vertices is already ordered.
 The key fact is that a nonempty subset of a finite DAG always contains a source
 vertex (a vertex with no incoming edge from the subset).  This is obtained from
 well-foundedness of the adjacency relation on any finite subset of a DAG.
+
+For the DFS algorithm, edge classification shows that a DAG has no back edge
+and that every edge {lit}`u → v` satisfies {lit}`f[v] < f[u]`.  Sorting by
+decreasing finish time therefore places every edge source before its target.
 -/
 
 namespace CLRS
@@ -427,6 +435,116 @@ theorem topologicalSort_isTopologicalOrder (G : Graph V) (hDAG : G.IsDAG) :
   exact G.kahnAux_sound hinv hDAG hfuel
 
 end Kahn
+
+section DFSFinishTime
+
+/-! ## CLRS DFS finish-time algorithm -/
+
+/-- A DAG has no back edge relative to its final DFS forest. -/
+theorem isDAG_no_dfs_back_edge (G : Graph V) (hDAG : G.IsDAG) {u v : V} :
+    ¬G.IsDFSBackEdge u v := by
+  intro hback
+  exact hDAG u (Relation.TransGen.head' hback.1
+    (IsDFSAncestor_reachable G hback.2))
+
+/-- On every edge of a DAG, DFS finish time strictly decreases from source to
+target.  This is the key theorem behind the CLRS topological-sort algorithm. -/
+theorem dfs_finish_time_decreases_on_dag_edge (G : Graph V) (hDAG : G.IsDAG)
+    {u v : V} (hadj : G.Adj u v) :
+    finishTime (G.dfs) v < finishTime (G.dfs) u := by
+  rcases dfs_edge_classification G hadj with htree | hback | hforward | hcross
+  · exact ((dfs_tree_or_forward_edge_iff_timestamps G hadj).1
+      (Or.inl htree)).2
+  · exact (isDAG_no_dfs_back_edge G hDAG hback).elim
+  · exact ((dfs_tree_or_forward_edge_iff_timestamps G hadj).1
+      (Or.inr hforward)).2
+  · have htimes := (dfs_cross_edge_iff_timestamps G hadj).1 hcross
+    omega
+
+/-- Comparison for sorting vertices by decreasing final DFS finish time. -/
+@[irreducible]
+noncomputable def dfsFinishLe (G : Graph V) (u v : V) : Bool :=
+  decide (finishTime (G.dfs) v ≤ finishTime (G.dfs) u)
+
+theorem dfsFinishLe_iff_le {G : Graph V} {u v : V} :
+    dfsFinishLe G u v ↔ finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
+  simp [dfsFinishLe]
+
+/-- The CLRS topological-sort algorithm: run DFS and list vertices in
+decreasing order of finish time. -/
+noncomputable def dfsTopologicalSort (G : Graph V) : List V :=
+  G.vertices.toList.mergeSort (dfsFinishLe G)
+
+/-- DFS finish-time sorting only reorders the graph's vertices. -/
+theorem dfsTopologicalSort_perm (G : Graph V) :
+    G.dfsTopologicalSort.Perm G.vertices.toList := by
+  exact List.mergeSort_perm _ _
+
+/-- DFS finish-time sorting contains each graph vertex exactly once. -/
+theorem dfsTopologicalSort_nodup (G : Graph V) :
+    G.dfsTopologicalSort.Nodup := by
+  exact (dfsTopologicalSort_perm G).nodup_iff.mpr G.vertices.nodup_toList
+
+/-- Membership in the DFS finish-time order is exactly graph membership. -/
+theorem mem_dfsTopologicalSort_iff (G : Graph V) (v : V) :
+    v ∈ G.dfsTopologicalSort ↔ v ∈ G.vertices := by
+  rw [(dfsTopologicalSort_perm G).mem_iff]
+  exact Finset.mem_toList
+
+/-- The DFS finish-time order is non-increasing in finish time. -/
+theorem dfsTopologicalSort_pairwise_finish_le (G : Graph V) :
+    G.dfsTopologicalSort.Pairwise
+      (fun a b => finishTime (G.dfs) b ≤ finishTime (G.dfs) a) := by
+  have hpair : G.dfsTopologicalSort.Pairwise
+      (fun a b => dfsFinishLe G a b = true) := by
+    unfold dfsTopologicalSort
+    apply List.pairwise_mergeSort
+    · intro a b c hab hbc
+      simp [dfsFinishLe] at hab hbc ⊢
+      omega
+    · intro a b
+      simp [dfsFinishLe]
+      exact Nat.le_total (finishTime (G.dfs) b) (finishTime (G.dfs) a)
+  exact hpair.imp (by
+    intro a b hab
+    simpa [dfsFinishLe] using hab)
+
+/-- In a list sorted by non-increasing values, a strict value decrease forces
+the larger-valued element to occur first. -/
+private theorem idxOf_lt_idxOf_of_pairwise_ge
+    {l : List V} {f : V → Nat} {u v : V}
+    (hpair : l.Pairwise (fun a b => f b ≤ f a))
+    (hu : u ∈ l) (hv : v ∈ l) (hvalue : f v < f u) :
+    List.idxOf u l < List.idxOf v l := by
+  have huv : u ≠ v := by
+    intro h
+    subst v
+    omega
+  have hidx : List.idxOf u l ≠ List.idxOf v l := by
+    intro h
+    exact huv ((List.idxOf_inj hu).mp h)
+  rcases Nat.lt_or_gt_of_ne hidx with hlt | hgt
+  · exact hlt
+  · have hrel := hpair.rel_get_of_lt
+      (a := ⟨List.idxOf v l, List.idxOf_lt_length_iff.mpr hv⟩)
+      (b := ⟨List.idxOf u l, List.idxOf_lt_length_iff.mpr hu⟩) hgt
+    have : f u ≤ f v := by
+      simpa only [List.idxOf_get] using hrel
+    omega
+
+/-- Sorting a DAG's vertices by decreasing DFS finish time returns a valid
+topological order, as in CLRS. -/
+theorem dfsTopologicalSort_isTopologicalOrder (G : Graph V) (hDAG : G.IsDAG) :
+    G.IsTopologicalOrder G.dfsTopologicalSort := by
+  refine ⟨dfsTopologicalSort_nodup G, mem_dfsTopologicalSort_iff G, ?_⟩
+  intro u hu v hv
+  apply idxOf_lt_idxOf_of_pairwise_ge
+    (dfsTopologicalSort_pairwise_finish_le G)
+  · exact (mem_dfsTopologicalSort_iff G u).2 hu
+  · exact (mem_dfsTopologicalSort_iff G v).2 (G.adj_sub u hu hv)
+  · exact dfs_finish_time_decreases_on_dag_edge G hDAG hv
+
+end DFSFinishTime
 
 end Graph
 

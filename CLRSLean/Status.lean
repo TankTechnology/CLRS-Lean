@@ -130,10 +130,12 @@ which areas should not yet be counted as proof-complete.
   {lit}`dfs_edge_classification_unique` and all three CLRS timestamp
   characterizations are proved as well, together with the undirected
   tree-or-back theorem {lit}`dfs_undirected_edge_tree_or_back`.
-* Chapter 22, Section 22.4: Kahn's algorithm for topological sorting is
-  implemented and {lit}`topologicalSort_isTopologicalOrder` proves that it returns a
-  valid topological order for every DAG; a DFS-based version matching the CLRS
-  presentation remains optional textbook-facing work.
+* Chapter 22, Section 22.4: Kahn's algorithm and the CLRS decreasing-finish-time
+  DFS algorithm are implemented.  Theorems
+  {lit}`topologicalSort_isTopologicalOrder` and
+  {lit}`dfsTopologicalSort_isTopologicalOrder` prove that both return a valid
+  topological order for every DAG; the DFS proof is driven by
+  {lit}`dfs_finish_time_decreases_on_dag_edge`.
 * Chapter 22, Section 22.5: Kosaraju's two-pass SCC algorithm is implemented and
   the returned components are proved to be the strongly connected components and
   a nonempty partition of the vertex set
@@ -244,10 +246,10 @@ which areas should not yet be counted as proof-complete.
 * Chapter 13 full red-black algorithms: prove {lit}`RB-DELETE`/{lit}`RB-DELETE-FIXUP`
   and the logarithmic-height theorem; executable insertion is already in place.
 * Chapter 22 graph algorithms: extend the proved reachability BFS with
-  unweighted shortest-path distances and add a DFS-based topological sort matching
-  CLRS.  The white-path and parenthesis theorems, parent-forest interval
-  characterization, DFS edge classification, Kahn topological sort, and full
-  Kosaraju SCC correctness are already proved on the Section 22.1 graph model.
+  unweighted shortest-path distances.  The white-path and parenthesis theorems,
+  parent-forest interval characterization, DFS edge classification, Kahn and
+  DFS finish-time topological sorts, and full Kosaraju SCC correctness are
+  already proved on the Section 22.1 graph model.
 * Chapter 14 remaining augmentation targets: connect the proved
   size/rank-preserving rotations to red-black balancing, then add interval
   trees and the general augmentation theorem.

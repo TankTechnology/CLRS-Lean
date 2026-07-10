@@ -91,19 +91,27 @@ self-loops are back edges, and every undirected edge is tree or back.
 ## Section 22.4 - Topological Sort
 
 - Lean source: `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean`
-- Status: `proved` for the current Kahn model
+- Status: `proved` for both Kahn and CLRS DFS finish-time models
 - Main declarations:
   `CLRS.Chapter22.Graph.IsDAG`,
   `CLRS.Chapter22.Graph.indegree`,
   `CLRS.Chapter22.Graph.IsTopologicalOrder`,
-  `CLRS.Chapter22.Graph.topologicalSort`, and
-  `CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`
+  `CLRS.Chapter22.Graph.topologicalSort`,
+  `CLRS.Chapter22.Graph.topologicalSort_isTopologicalOrder`,
+  `CLRS.Chapter22.Graph.dfs_finish_time_decreases_on_dag_edge`,
+  `CLRS.Chapter22.Graph.dfsTopologicalSort`, and
+  `CLRS.Chapter22.Graph.dfsTopologicalSort_isTopologicalOrder`
 
 Kahn's algorithm is defined on the Section 22.1 graph model.  The main theorem
 `topologicalSort_isTopologicalOrder` proves that `topologicalSort` returns a
 valid topological order whenever the input graph is a DAG.  The implementation
 uses a fuelled recursive loop and the axiom of choice to pick a current source
 vertex.
+
+The CLRS version runs DFS and sorts vertices by decreasing finish time.
+`dfs_finish_time_decreases_on_dag_edge` proves that every DAG edge `u → v`
+satisfies `f[v] < f[u]`; `dfsTopologicalSort_isTopologicalOrder` then turns the
+sorted finish-time relation into the required list-index ordering.
 
 ## Section 22.5 - Strongly Connected Components
 
@@ -130,5 +138,4 @@ components.
 ## Remaining Chapter Work
 
 - BFS unweighted shortest-path distances and predecessor-tree correctness;
-- DFS-based topological sort matching the CLRS presentation;
 - explicit algorithm-cost models for the functional implementations.
