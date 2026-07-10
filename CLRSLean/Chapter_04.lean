@@ -66,8 +66,10 @@ and by future divide-and-conquer runtime proofs.
   exact/floor/ceiling case-1 wrappers now expose CLRS-facing
   {lit}`Θ(n^(log_b a))` bounds directly.  A second bridge proves the discrete
   case-2 scale is {lit}`Θ(n^(log_b a) log n)`, and the named exact/floor/
-  ceiling case-2 wrappers expose that textbook scale directly.  The remaining
-  Master gap is a textbook-facing case-3 comparison scale.
+  ceiling case-2 wrappers expose that textbook scale directly.  The case-3
+  regularity bridge connects the discrete tail-dominated scale to the textbook
+  forcing function.  The remaining chapter work is recursive Strassen and
+  selected runtime/RAM refinements, not a missing Master case.
 -/
 
 namespace CLRS

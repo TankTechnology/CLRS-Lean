@@ -65,6 +65,22 @@ class LiterateConfigTest(unittest.TestCase):
             with self.subTest(chapter=f"{chapter_module} titles"):
                 self.assertEqual([], missing_titles)
 
+    def test_proof_pattern_imports_are_ordered_and_titled(self) -> None:
+        text = LITERATE_TOML.read_text()
+        order_children = _parse_order_children(text)
+        titled_modules = _parse_module_titles(text)
+        parent = "CLRSLean.ProofPatterns"
+
+        imported_modules = re.findall(
+            r"^import\s+(CLRSLean\.ProofPatterns\.[^\s]+)",
+            (ROOT / "CLRSLean" / "ProofPatterns.lean").read_text(),
+            re.MULTILINE,
+        )
+
+        self.assertEqual(imported_modules, order_children[parent])
+        missing_titles = [module for module in imported_modules if module not in titled_modules]
+        self.assertEqual([], missing_titles)
+
 
 if __name__ == "__main__":
     unittest.main()

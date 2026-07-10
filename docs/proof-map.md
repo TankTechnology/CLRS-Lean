@@ -142,8 +142,9 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   to the textbook `n^(log_b a)` for all `a ≥ 1` and `b > 1`, and a real-log-log
   bridge connects the case-2 discrete scale to `n^(log_b a) log n`; exact/floor/
   ceiling case-1 and case-2 wrappers are exposed directly in those textbook
-  scales.  The remaining Master gap is a textbook-facing case-3 comparison
-  scale.
+  scales.  The case-3 regularity bridge now connects the discrete
+  tail-dominated scale to the textbook forcing function; remaining Chapter 4
+  work is algorithm and cost refinement.
 
 ### Section 4.1 - The maximum-subarray problem
 
@@ -1080,8 +1081,8 @@ full balancing algorithms.
   The recompute-then-rotate bridge removes the need for an incoming well-sized
   hypothesis when preparing a local balancing step.
 - Current gap: connect the functional rotations to the Chapter 13 red-black
-  balancing layer; interval trees and the general augmentation theorem remain
-  future targets
+  balancing layer and package the final textbook-level general augmentation
+  interface
 
 This first pass captures the core mathematical idea of order-statistic trees:
 the augmented size field is useful exactly because the selector can branch on
@@ -1092,6 +1093,30 @@ the ideal rank-selection semantics and the augmented selector's connection to
 that ideal semantics on well-sized trees.  The recompute-then-rotate wrappers
 also show that an arbitrary functional tree can be locally prepared for a
 rotation and still expose the same ideal rank-selection behavior afterward.
+
+### Section 14.3 - Interval trees
+
+- Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
+- Status: `proved` for the functional well-augmented BST model
+- Main proved declarations:
+  - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.storedAug_eq_realAug_of_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.rotateLeft_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.rotateRight_wellAugmented`
+  - `CLRS.Chapter14.Interval.overlaps_iff`
+  - `CLRS.Chapter14.IntervalTree.recompute_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.rotateLeft_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.rotateRight_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
+- Proof pattern: instantiate a generic augmentation framework with maximum
+  interval high endpoints, maintain a well-augmented BST invariant, and prove
+  that the CLRS left-branch pruning test is both sound and complete for overlap
+  search.
+- Current gap: connect the generic rotation wrappers to a fully balanced tree
+  update algorithm; interval-search correctness itself is complete for the
+  represented model.
 
 ## Chapter 15 - Dynamic Programming
 
@@ -2110,7 +2135,7 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
-| Full red-black insertion/deletion | `blocked-design` | Needs a balancing representation and invariant-preservation proof across fixup cases. |
+| Red-black deletion and height | `blocked-design` | Executable insertion is proved; deletion/fixup still needs a case-stable invariant proof, followed by the logarithmic-height theorem. |
 | Automatic MST exchange-path extraction | `blocked-design` | The certificate-based replacement spanning-tree theorem is proved from `ExchangePath`, and inserted-edge connectivity now bridges to that certificate; the remaining design work is extracting that inserted connection from a canonical finite simple path/cycle API. |
 | Prim's algorithm | `statement` | Section file exists only through the Chapter 23.2 target; theorem interface has not been added yet. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |

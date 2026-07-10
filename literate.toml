@@ -9,6 +9,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 
 [order_children]
 "CLRSLean" = [
+  "CLRSLean.ProofPatterns",
   "CLRSLean.Chapter_01",
   "CLRSLean.Chapter_02",
   "CLRSLean.Chapter_03",
@@ -34,6 +35,12 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
+]
+"CLRSLean.ProofPatterns" = [
+  "CLRSLean.ProofPatterns.Boundary",
+  "CLRSLean.ProofPatterns.Exchange",
+  "CLRSLean.ProofPatterns.Fiber",
+  "CLRSLean.ProofPatterns.Interval",
 ]
 "CLRSLean.Chapter_02" = [
   "CLRSLean.Chapter_02.Section_02_1_Insertion_Sort",
@@ -145,6 +152,21 @@ title = "Chapter 2. Getting Started"
 
 [modules."CLRSLean"]
 title = "CLRS-Lean"
+
+[modules."CLRSLean.ProofPatterns"]
+title = "Reusable CLRS Proof Patterns"
+
+[modules."CLRSLean.ProofPatterns.Boundary"]
+title = "Proof Pattern: Boundary Shifts"
+
+[modules."CLRSLean.ProofPatterns.Exchange"]
+title = "Proof Pattern: Exchange Certificates"
+
+[modules."CLRSLean.ProofPatterns.Fiber"]
+title = "Proof Pattern: Fiber Decomposition"
+
+[modules."CLRSLean.ProofPatterns.Interval"]
+title = "Proof Pattern: Interval Nesting"
 
 [modules."CLRSLean.Chapter_01"]
 title = "Chapter 1. The Role of Algorithms"

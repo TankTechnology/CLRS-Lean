@@ -2,6 +2,8 @@
 
 This document records the Scheme B site design: CLRS-Lean is deployed as a
 book-style Verso site rather than as a collection of unrelated proof pages.
+For the full code, status, test, and tooling layer model, see
+[`repository-architecture.md`](repository-architecture.md).
 
 The public project and repository name is `CLRS-Lean`.  The Lean module root
 remains `CLRSLean`, so source paths and imports continue to use `CLRSLean/...`
@@ -19,13 +21,16 @@ and `CLRSLean.Chapter_...`.
 
 ```text
 CLRSLean.lean                         project landing page
+CLRSLean/ProofPatterns.lean           reusable proof-pattern guide
 CLRSLean/Chapter_02.lean              Chapter 2 guide
 CLRSLean/Chapter_16.lean              Chapter 16 guide
 CLRSLean/Chapter_23.lean              Chapter 23 guide
+CLRSLean/Progress.lean                generated progress dashboard
 CLRSLean/Status.lean                  web-facing proof status ledger
 CLRSLean/Workflow.lean                contributor workflow
 CLRSLean/Chapter_xx/Section_xx_y.lean section-level literate proof
 docs/proof-map.md                     longer maintainer ledger
+docs/clrs-proof-progress.csv          chapter-level status source
 docs/workflows/chapter-workflow.md    maintainer workflow notes
 ```
 
