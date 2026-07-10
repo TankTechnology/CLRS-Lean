@@ -231,14 +231,6 @@ theorem collectInvariant_init (G : Graph V) :
   · simp [dfsInit]
   · simp [dfsInit]
 
-/-- A DFS visit from a white vertex with positive fuel turns that vertex black. -/
-theorem dfsVisit_blackens_u_of_pos {G : Graph V} {fuel : Nat} {u : V} {s : DFSState V}
-    (hfuel : 0 < fuel) (hwhite : s.color u = Color.white) :
-    (dfsVisit G fuel u s).color u = Color.black := by
-  rcases fuel with _ | n
-  · omega
-  · exact dfsVisit_blackens_u G hwhite
-
 /-- One step of {name}`Graph.dfsFromListCollect` preserves the collecting
 invariant. -/
 theorem collectInvariant_step (G : Graph V) {fuel : Nat}
@@ -286,7 +278,7 @@ theorem collectInvariant_step (G : Graph V) {fuel : Nat}
       have : u ∈ comp := by
         rw [show comp = G.vertices.filter (fun v => s.color v = Color.white ∧ s'.color v = Color.black) by rfl]
         simp [Finset.mem_filter]
-        exact ⟨hu, hwhite, dfsVisit_blackens_u_of_pos hfuel hwhite⟩
+        exact ⟨hu, hwhite, dfsVisit_blackens_u_pos G hfuel hwhite⟩
       simpa using this
     · have hCacc : C ∈ acc := by
         simpa [hC'] using hC
@@ -1285,16 +1277,6 @@ lemma white_vertices_in_tail_of_head_not_white {s : DFSState V} {u : V} {us : Li
   rcases List.mem_cons.mp hx_in_vs with (rfl | hx_us)
   · exact absurd hx hu_not_white
   · exact hx_us
-
-/-- The fuel used in Kosaraju's second pass is large enough to blacken any
-white-reachable set in the transpose graph. -/
-lemma kosaraju_fuel_ge_transpose_whiteReachable {s : DFSState V} {u : V}
-    (hu : u ∈ G.transpose.vertices) :
-    G.vertices.card + 1 ≥ (whiteReachableSet G.transpose s u).card + 1 := by
-  have hcard_wr : (whiteReachableSet G.transpose s u).card ≤ G.transpose.vertices.card :=
-    Finset.card_le_card (whiteReachableSet_subset_vertices G.transpose s u hu)
-  have htcard : G.transpose.vertices.card = G.vertices.card := by simp
-  omega
 
 /-- In Kosaraju's second pass, visiting a white vertex blackens every vertex in
 its SCC. -/
