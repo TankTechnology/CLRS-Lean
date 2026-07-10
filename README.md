@@ -32,7 +32,8 @@ Current milestones include:
 - Chapter 16: activity-selection and Huffman optimality for the represented
   finite models.
 - Chapter 21: abstract disjoint-set semantics, weighted linked-list analysis,
-  executable union-by-rank/path-compression correctness, and a Kruskal bridge.
+  executable union-by-rank/path-compression correctness, real traversal-cost
+  semantics with an `O(m log n)` bound, and a Kruskal bridge.
 - Chapter 22: sealed main functional correctness for BFS shortest paths and its
   predecessor tree, DFS theory and edge classification, Kahn and DFS
   topological sorting, and Kosaraju SCC decomposition.
