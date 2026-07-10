@@ -435,20 +435,6 @@ theorem maxFinish_white_scc_le {s : DFSState V} {r : V} {K : Set V}
   rcases hv with ⟨_, hvK⟩
   exact hmax v (hwhite v hvK)
 
-/-- If every finish time in {lit}`C` is at most the finish time of {lit}`r ∈ C`,
-then {lit}`r` attains {name}`maxFinish`. -/
-theorem maxFinish_eq_of_forall_finish_le {s : DFSState V} {C : Set V} {r : V}
-    (hsub : C ⊆ G.vertices) (hr : r ∈ C)
-    (hle : ∀ v ∈ C, finishTime s v ≤ finishTime s r) :
-    maxFinish G s C = finishTime s r := by
-  apply Nat.le_antisymm
-  · rw [maxFinish]
-    apply Finset.sup_le
-    intro v hv
-    simp at hv
-    exact hle v hv.2
-  · exact finish_le_maxFinish G hsub hr
-
 /-- A DFS state is SCC-monochrome when every SCC of {lit}`G` is either entirely
 white or entirely black in that state.  This is the main invariant of the
 second pass of Kosaraju's algorithm. -/

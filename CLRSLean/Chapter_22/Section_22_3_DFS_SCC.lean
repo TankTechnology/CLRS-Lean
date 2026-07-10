@@ -69,6 +69,20 @@ theorem finish_le_maxFinish_witness {s : DFSState V} {C : Set V} {r c : V}
   rw [hc_max] at h
   exact h
 
+/-- If every finish time in {lit}`C` is at most the finish time of {lit}`r ∈ C`,
+then {lit}`r` attains {name}`Graph.maxFinish`. -/
+theorem maxFinish_eq_of_forall_finish_le {s : DFSState V} {C : Set V} {r : V}
+    (hsub : C ⊆ G.vertices) (hr : r ∈ C)
+    (hle : ∀ v ∈ C, finishTime s v ≤ finishTime s r) :
+    maxFinish G s C = finishTime s r := by
+  apply Nat.le_antisymm
+  · rw [maxFinish]
+    apply Finset.sup_le
+    intro v hv
+    simp at hv
+    exact hle v hv.2
+  · exact finish_le_maxFinish G hsub hr
+
 /-! ## First-discovered vertex -/
 
 /-- For a nonempty subset {lit}`C` of vertices, there exists a vertex in
