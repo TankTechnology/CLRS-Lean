@@ -771,14 +771,16 @@ theorem scc_finish_time_order {C D : Set V}
     simpa [rD] using firstDiscoveredVertex_mem_min G (s := G.dfs) (C := D)
       hD_nonempty hDsub) with ⟨hrD_mem, hdisc_min_D⟩
   -- Obtain max-finish witnesses
-  rcases maxFinish_exists G (s := G.dfs) (C := C) hC_nonempty hCsub with ⟨c, hcC, hc_max⟩
+  rcases maxFinish_exists G (s := G.dfs) (C := C) hC_nonempty hCsub with ⟨c, _hcC, hc_max⟩
   rcases maxFinish_exists G (s := G.dfs) (C := D) hD_nonempty hDsub with ⟨d, hdD, hd_max⟩
   rw [hc_max, hd_max]
   -- Compare discovery times of rC and rD
   by_cases hd_lt : discoveryTime (G.dfs) rC < discoveryTime (G.dfs) rD
   · -- Case 1: rC discovered first.  Use exists_discovery_state.
     have h_rC_vert : rC ∈ G.vertices := hCsub hrC_mem
-    rcases exists_discovery_state G rC h_rC_vert with ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_gray_s, h_f_pres, h_fuel, h_later⟩
+    rcases exists_discovery_state G rC h_rC_vert with
+      ⟨s, f, hs_white, _hs_black, hdisc_eq, h_nonwhite, h_bf_s, _h_gray_s,
+        h_f_pres, h_fuel, _h_later⟩
     -- hdisc_eq: d[rC] = s.time.  h_nonwhite: non-white w in s → d[w] < s.time = d[rC].
     -- h_bf_s: black-finish invariant for s.
     -- h_f_pres: f-preservation for dfsVisit output.
@@ -803,7 +805,8 @@ theorem scc_finish_time_order {C D : Set V}
     -- Use exists_discovery_state for rD
     have h_rD_vert : rD ∈ G.vertices := hDsub hrD_mem
     rcases exists_discovery_state G rD h_rD_vert with
-      ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_gray_s, h_f_pres, h_fuel, h_later⟩
+      ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, _h_gray_s,
+        h_f_pres, h_fuel, h_later⟩
     -- All of D is white in s
     have hwhite_D : ∀ v ∈ D, s.color v = Color.white :=
       set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hdisc_min_D
