@@ -562,6 +562,28 @@ theorem WhiteReachable.of_isSCC {s : DFSState V} {C : Set V} {u v : V}
   exact WhiteReachable.of_reachable_through_set G (S := C)
     (fun w h1 h2 => IsSCC.path_mem G hC hu hv h1 h2) hwhite hreach
 
+/-- At the discovery state of {lit}`r`, any vertex whose final discovery time is
+not earlier than {lit}`r`'s is still white. -/
+theorem white_at_discovery_state_of_discovery_ge {s : DFSState V} {r v : V}
+    (hdisc_eq : discoveryTime (G.dfs) r = s.time)
+    (h_nonwhite : ∀ w, s.color w ≠ Color.white → discoveryTime (G.dfs) w < s.time)
+    (hge : discoveryTime (G.dfs) r ≤ discoveryTime (G.dfs) v) :
+    s.color v = Color.white := by
+  by_cases hw : s.color v = Color.white
+  · exact hw
+  · have hlt := h_nonwhite v hw
+    rw [← hdisc_eq] at hlt
+    omega
+
+/-- Set version of {name}`Graph.white_at_discovery_state_of_discovery_ge`. -/
+theorem set_white_at_discovery_state_of_min_discovery {s : DFSState V} {C : Set V} {r : V}
+    (hdisc_eq : discoveryTime (G.dfs) r = s.time)
+    (h_nonwhite : ∀ w, s.color w ≠ Color.white → discoveryTime (G.dfs) w < s.time)
+    (hmin : ∀ v ∈ C, discoveryTime (G.dfs) r ≤ discoveryTime (G.dfs) v) :
+    ∀ v ∈ C, s.color v = Color.white := by
+  intro v hv
+  exact white_at_discovery_state_of_discovery_ge G hdisc_eq h_nonwhite (hmin v hv)
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
@@ -599,14 +621,15 @@ theorem scc_finish_time_order {C D : Set V}
     -- h_f_pres: f-preservation for dfsVisit output.
     -- h_fuel: f ≥ |whiteReachableSet s rC| + 1
     -- All of C ∪ D is white in s (otherwise d[v] < d[rC], contradicting firstDiscoveredVertex_min)
-    have hwhite_C : ∀ v ∈ C, s.color v = Color.white := by
-      intro v hv; by_cases hw : s.color v = Color.white; · exact hw
-      · have h_lt := h_nonwhite v hw; rw [← hdisc_eq] at h_lt
-        have h_le := hdisc_min_C v hv; omega
-    have hwhite_D : ∀ v ∈ D, s.color v = Color.white := by
-      intro v hv; by_cases hw : s.color v = Color.white; · exact hw
-      · have h_lt := h_nonwhite v hw; rw [← hdisc_eq] at h_lt
-        have hle := hdisc_min_D v hv; omega
+    have hwhite_C : ∀ v ∈ C, s.color v = Color.white :=
+      set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hdisc_min_C
+    have hdisc_from_rC_D :
+        ∀ v ∈ D, discoveryTime (G.dfs) rC ≤ discoveryTime (G.dfs) v := by
+      intro v hv
+      have hle := hdisc_min_D v hv
+      omega
+    have hwhite_D : ∀ v ∈ D, s.color v = Color.white :=
+      set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hdisc_from_rC_D
     -- In particular, the max-finish vertex d ∈ D is white in s
     have hwhite_d : s.color d = Color.white := hwhite_D d hdD
     have hne_d_rC : d ≠ rC := by
@@ -663,14 +686,11 @@ theorem scc_finish_time_order {C D : Set V}
     rcases exists_discovery_state G rD h_rD_vert with
       ⟨s, f, hs_white, hs_black, hdisc_eq, h_nonwhite, h_bf_s, h_gray_s, h_f_pres, h_fuel, h_later⟩
     -- All of D is white in s
-    have hwhite_D : ∀ v ∈ D, s.color v = Color.white := by
-      intro v hv; by_cases hw : s.color v = Color.white; · exact hw
-      · have h_lt := h_nonwhite v hw; rw [← hdisc_eq] at h_lt
-        have hle := hdisc_min_D v hv; omega
+    have hwhite_D : ∀ v ∈ D, s.color v = Color.white :=
+      set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hdisc_min_D
     -- rC also white in s (d[rC] ≥ d[rD] = s.time)
-    have hwhite_rC : s.color rC = Color.white := by
-      by_cases hw : s.color rC = Color.white; · exact hw
-      · have h_lt := h_nonwhite rC hw; rw [← hdisc_eq] at h_lt; omega
+    have hwhite_rC : s.color rC = Color.white :=
+      white_at_discovery_state_of_discovery_ge G hdisc_eq h_nonwhite hd_le
     -- rC NOT white-reachable from rD (D cannot reach C)
     have h_no_wr : ¬ WhiteReachable G s rD rC := by
       intro hwr; apply h_no_rev
