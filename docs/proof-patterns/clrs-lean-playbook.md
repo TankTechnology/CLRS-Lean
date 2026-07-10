@@ -13,7 +13,8 @@
 尚未开始的章节：21（并查集）、24（单源最短路）、25（全源最短路）、26（最大流）。
 Chapter 22 目前部分完成：22.1 图模型、22.2 BFS 可达性正确性（soundness + completeness）、
 22.3 DFS 基本不变量、白路径定理与时间区间括号定理、22.4 Kahn 拓扑排序、22.5 Kosaraju SCC
-完整正确性已完成；剩余主要目标是 BFS 最短路性质、DFS 祖先刻画/边分类，以及 CLRS 风格 DFS 拓扑排序。
+完整正确性已完成；DFS 祖先刻画与边分类也已闭合，剩余主要目标是 BFS 最短路性质和 CLRS 风格
+DFS 拓扑排序。
 
 对于尚未开始的章节，采用“规范层 → 实现层 → 证明层”的三层打法：
 
@@ -251,13 +252,14 @@ lake build CLRSLean
   `dfs_intervals_not_cross` 直接排除部分交叉的时间戳次序。
 - 22.3 祖先刻画：证明 `intervalNestedInside_dfs_iff_ancestor`，即对互异图顶点，严格区间嵌套
   当且仅当最终 DFS parent forest 中的祖先关系成立。
+- 22.3 边分类：证明每条图边唯一属于 tree/back/forward/cross，并完成 CLRS 的三组时间戳
+  充要条件；self-loop 按教材约定归入 back edge，并证明无向图中每条边只能是 tree 或 back。
 - 22.5 Kosaraju SCC：证明 `scc_finish_time_order`、`scc_finish_order`、
   `kosarajuComponent_scc_core` 与最终 `kosarajuComponents_isSCCPartition`。
 
 **仍待完成：**
 
 - 22.2 无权最短距离与 predecessor tree 正确性。
-- 22.3 边分类（tree/back/forward/cross）。
 - 22.4 基于 DFS 完成时间的拓扑排序，以匹配 CLRS 原始叙述。
 
 **已完成（Kahn 算法版本）：**
@@ -277,7 +279,7 @@ lake build CLRSLean
 
 - `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` ✅
 - `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（soundness + completeness; shortest-path distances remain）
-- `CLRSLean/Chapter_22/Section_22_3_DFS*.lean` ✅（white-path/parenthesis/ancestor characterization/SCC bridge complete; edge classification remains）
+- `CLRSLean/Chapter_22/Section_22_3_DFS*.lean` ✅（white-path/parenthesis/ancestor characterization/edge classification/SCC bridge complete）
 - `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` ✅
 - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` ✅（Kosaraju correctness complete）
 
@@ -347,8 +349,8 @@ lake build CLRSLean
 
 ### 当前推荐立即启动的 Sprint
 
-**Sprint 1（Chapter 22 收尾）**。下一步集中完成 DFS 祖先刻画和边分类；括号定理与 SCC 主证明
-已经闭合，不再是后续图算法章节的阻塞项。
+**Sprint 1（Chapter 22 收尾）**。下一步集中完成 BFS 最短路性质和 DFS 完成时间版拓扑排序；
+括号定理、祖先刻画、边分类与 SCC 主证明已经闭合。
 
 ---
 
@@ -364,6 +366,7 @@ lake build CLRSLean
 - **2026-07-10**：完成 DFS 白路径与 discovery-state/SCC bridge 证明、SCC 完成时间次序、Kosaraju 第二遍不变量及最终 SCC partition 正确性；Chapter 22 转入括号定理、边分类和 BFS 最短路性质的收尾阶段。
 - **2026-07-10**：完成 DFS 时间区间括号定理 `dfs_parenthesis` 及不可交叉推论；下一步收窄为 parent forest 祖先刻画与边分类。
 - **2026-07-10**：完成 `intervalNestedInside_dfs_iff_ancestor`，把严格时间区间嵌套与最终 DFS parent forest 祖先关系双向连接；Section 22.3 下一步只剩边分类。
+- **2026-07-10**：完成 DFS tree/back/forward/cross 唯一分类及 CLRS 时间戳刻画；Section 22.3 的教材主线闭合，后续转向 DFS 完成时间版拓扑排序。
 
 ---
 
