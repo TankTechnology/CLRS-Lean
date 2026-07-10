@@ -1,5 +1,14 @@
 # Chapter 22 - Elementary Graph Algorithms
 
+- Chapter status: `main-proof-complete-for-correctness`
+- Sealed: `2026-07-10`
+- Core completion commit: `1aeb257`
+- Closure audit: `docs/proof-audits/chapter-22-closure-2026-07-10.md`
+
+The seal covers the advertised functional-correctness surface of Sections
+22.1-22.5.  Exercises, chapter-end problems, and explicit work/RAM-cost models
+remain follow-up tracks and do not reopen the core correctness milestone.
+
 ## Section 22.1 - Representing Graphs
 
 - Lean source: `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean`

@@ -142,8 +142,9 @@ fixes are:
 
 ## Chapter 22 Specific Advice
 
-Chapter 22 is currently the heaviest active area.  Treat it as several smaller
-build islands:
+Chapter 22 is sealed for main functional correctness, but remains one of the
+heaviest dependency areas.  When maintaining or refining it, treat it as
+several smaller build islands:
 
 - Basic graph model: `Section_22_1_Representing_Graphs`
 - BFS: `Section_22_2_BFS`
@@ -151,6 +152,8 @@ build islands:
 - DFS intervals/white path: `Section_22_3_DFS_WhitePath`,
   `Section_22_3_DFS_Intervals`
 - DFS/SCC bridge: `Section_22_3_DFS_Bridge`, `Section_22_3_DFS_SCC`
+- DFS edge classification: `Section_22_3_DFS_EdgeClassification`
+- Topological sorting: `Section_22_4_Topological_Sort`
 - SCC algorithm: `Section_22_5_Strongly_Connected_Components`
 
 If you are editing `Section_22_3_DFS_SCC`, the usual validation ladder is:
