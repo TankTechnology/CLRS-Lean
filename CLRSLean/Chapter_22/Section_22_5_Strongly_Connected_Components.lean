@@ -1314,8 +1314,7 @@ lemma kosaraju_visit_preserves_disjoint_white_scc {s : DFSState V} {u : V} {K : 
     (hK : G.IsSCC K) (hK_white : ∀ v ∈ K, s.color v = Color.white)
     (hK_ne : K ≠ G.sccOf u)
     (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u)
-    (hrespects : G.SCCMonochrome s)
-    (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black) :
+    (hrespects : G.SCCMonochrome s) :
     ∀ v ∈ K, (dfsVisit G.transpose (G.vertices.card + 1) u s).color v = Color.white := by
   intro v hvK
   have h_disjoint : Disjoint K (G.sccOf u) :=
@@ -1325,27 +1324,18 @@ lemma kosaraju_visit_preserves_disjoint_white_scc {s : DFSState V} {u : V} {K : 
   have hv_not_wr : v ∉ whiteReachableSet G.transpose s u := by
     intro hwr; apply hv_not_scc
     exact whiteReachableSet_subset_scc G hu hu_white hmax hrespects hwr
-  have hfuel_wr : G.vertices.card + 1 ≥ (whiteReachableSet G.transpose s u).card + 1 :=
-    kosaraju_fuel_ge_transpose_whiteReachable G (s := s) (u := u) hu
-  have h_not_black : (dfsVisit G.transpose (G.vertices.card + 1) u s).color v ≠ Color.black := by
-    have hiff := dfsVisit_blackens_iff_whiteReachable G.transpose hu_white hu
-      (hK_white v hvK) hfuel_wr
-    intro hb
-    exact hv_not_wr (hiff.mp hb)
-  have h_ng_s' : ∀ w, (dfsVisit G.transpose (G.vertices.card + 1) u s).color w = Color.white ∨
-      (dfsVisit G.transpose (G.vertices.card + 1) u s).color w = Color.black :=
-    dfsVisit_output_no_gray G.transpose hng
-  cases h_ng_s' v with
-  | inl hw => exact hw
-  | inr hb => exact absurd hb h_not_black
+  have hno_wr : ¬ WhiteReachable G.transpose s u v := by
+    intro hwr
+    exact hv_not_wr (WhiteReachable.mem_set G.transpose hu hwr)
+  exact dfsVisit_preserves_white_of_not_whiteReachable G.transpose hu_white (by omega)
+    (hK_white v hvK) hno_wr
 
 /-- A white-started visit in Kosaraju's second pass preserves the invariant that
 each SCC is monochromatic in the current DFS state. -/
 lemma kosaraju_visit_preserves_scc_monochrome {s : DFSState V} {u : V}
     (hu : u ∈ G.transpose.vertices) (hu_white : s.color u = Color.white)
     (hmax : ∀ v, s.color v = Color.white → finishTime (G.dfs) v ≤ finishTime (G.dfs) u)
-    (hrespects : G.SCCMonochrome s)
-    (hng : ∀ v, s.color v = Color.white ∨ s.color v = Color.black) :
+    (hrespects : G.SCCMonochrome s) :
     G.SCCMonochrome (dfsVisit G.transpose (G.vertices.card + 1) u s) := by
   have h_sccOf_u_white : ∀ v ∈ G.sccOf u, s.color v = Color.white := by
     exact sccOf_white_of_monochrome G (by simpa using hu) hu_white hrespects
@@ -1356,7 +1346,7 @@ lemma kosaraju_visit_preserves_scc_monochrome {s : DFSState V} {u : V}
       intro v hv
       exact kosaraju_visit_blackens_sccOf G hu hu_white h_sccOf_u_white v (by simpa [hK_eq] using hv)
     · left
-      exact kosaraju_visit_preserves_disjoint_white_scc G hu hu_white hK hw hK_eq hmax hrespects hng
+      exact kosaraju_visit_preserves_disjoint_white_scc G hu hu_white hK hw hK_eq hmax hrespects
   · right; intro v hv; exact dfsVisit_preserves_black G.transpose (hb v hv)
 
 /-- The SCC-specific induction for Kosaraju's second pass.
@@ -1400,7 +1390,7 @@ lemma dfsFromListCollect_kosaraju_sccs {fuel : Nat} (hfuel_eq : fuel = G.vertice
         have h_respects' : G.SCCMonochrome s' := by
           simpa [s', hfuel_eq] using
             kosaraju_visit_preserves_scc_monochrome G hu_vert hu_white hmax_u
-              hinv.scc_monochrome hinv.no_gray
+              hinv.scc_monochrome
         have h_ng' : ∀ v, s'.color v = Color.white ∨ s'.color v = Color.black :=
           dfsVisit_output_no_gray G.transpose hinv.no_gray
         have h_mem : ∀ C' ∈ (comp :: acc), G.IsSCC (C' : Set V) := by
