@@ -682,6 +682,24 @@ theorem finish_before_discovery_of_visit_output_white {fuel : Nat} {s : DFSState
     hlater v hv_white_out hv_final_nonwhite
   omega
 
+/-- If a white vertex is not white-reachable from a white DFS root, but is later
+non-white in the full DFS, then the root finishes before that vertex is
+discovered in the full DFS. -/
+theorem finish_before_discovery_of_not_whiteReachable_visit {fuel : Nat} {s : DFSState V}
+    {u v : V} (hu_white : s.color u = Color.white) (hfuel : 0 < fuel)
+    (hv_white : s.color v = Color.white) (hno : ¬ WhiteReachable G s u v)
+    (hfinish_pres :
+      finishTime (G.dfs) u = finishTime (dfsVisit G fuel u s) u)
+    (hlater : ∀ w, (dfsVisit G fuel u s).color w = Color.white →
+      (G.dfs).color w ≠ Color.white →
+      (dfsVisit G fuel u s).time ≤ discoveryTime (G.dfs) w)
+    (hv_final_nonwhite : (G.dfs).color v ≠ Color.white) :
+    finishTime (G.dfs) u < discoveryTime (G.dfs) v := by
+  have hv_white_out : (dfsVisit G fuel u s).color v = Color.white :=
+    dfsVisit_preserves_white_of_not_whiteReachable G hu_white hfuel hv_white hno
+  exact finish_before_discovery_of_visit_output_white G hu_white hfuel
+    hfinish_pres hv_white_out hlater hv_final_nonwhite
+
 /-- If a white-reachable vertex is blackened during a local visit, then its full
 DFS finish time is strictly before the source's full DFS finish time. -/
 theorem finish_lt_source_in_full_dfs_of_whiteReachable_visit {fuel : Nat} {s : DFSState V}
@@ -828,17 +846,14 @@ theorem scc_finish_time_order {C D : Set V}
     -- rC NOT white-reachable from rD (D cannot reach C)
     have h_no_wr : ¬ WhiteReachable G s rD rC :=
       not_whiteReachable_of_not_reachable G h_no_rev
-    -- rC stays white after rD's dfsVisit (otherwise white-reachable)
-    have h_rC_white_out : (dfsVisit G f rD s).color rC = Color.white :=
-      dfsVisit_preserves_white_of_not_whiteReachable G hs_white (by omega) hwhite_rC h_no_wr
     -- Since rC stays white after rD's local visit but is black in the full DFS,
     -- the discovery-state bridge forces rD to finish before rC is discovered.
     have h_finish_lt_disc : finishTime (G.dfs) rD < discoveryTime (G.dfs) rC := by
       have h_f_G_rD : finishTime (G.dfs) rD = finishTime (dfsVisit G f rD s) rD := h_f_pres rD hs_black
       have h_nonwhite_final : (G.dfs).color rC ≠ Color.white := by
         rw [G.dfs_all_black (hCsub hrC_mem)]; decide
-      exact finish_before_discovery_of_visit_output_white G hs_white (by omega)
-        h_f_G_rD h_rC_white_out h_later h_nonwhite_final
+      exact finish_before_discovery_of_not_whiteReachable_visit G hs_white (by omega)
+        hwhite_rC h_no_wr h_f_G_rD h_later h_nonwhite_final
     -- maxFinish(D) = f[rD]
     have h_maxFinish_D_eq : maxFinish G (G.dfs) D = finishTime (G.dfs) rD :=
       maxFinish_eq_of_white_scc_visit_source G hD hrD_mem hwhite_D hs_white h_bf_s h_fuel
