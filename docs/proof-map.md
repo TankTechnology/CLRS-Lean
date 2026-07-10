@@ -633,7 +633,7 @@ proved comparison-count and recurrence facts.
 
 - Lean sources:
   - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean`
-  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort_Array.lean`
+  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean`
 - Status: `proved` for the stable bucket specification
 - Main proved theorems:
   - `CLRS.Chapter08.countingSortBy_ordered`
@@ -1341,7 +1341,7 @@ any consistent tree with the same frequency table.
 - Lean source:
   `CLRSLean/Chapter_17.lean`,
   `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`,
-  `CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean`, and
+  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`, and
   `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`
 - Status: `partial`
 - Main proved theorems:
@@ -1998,8 +1998,8 @@ track.
 ### Section 22.5 - Strongly connected components
 
 - Lean sources:
-  - `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean`
   - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean`
+  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean`
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter22.Graph.transpose`

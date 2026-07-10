@@ -7,8 +7,8 @@ import CLRSLean.Chapter_22.Section_22_3_DFS.Bridge
 import CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 import CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification
 import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
-import CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr
 import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
+import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr
 
 /-! # Chapter 22 - Elementary Graph Algorithms
 
@@ -101,7 +101,7 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.kosarajuComponents_cover`,
   and {lit}`CLRS.Chapter22.Graph.kosarajuComponents_isSCCPartition`.
 
-## Supporting DFS modules
+## Supporting proof modules
 
 The DFS proof is split by responsibility so downstream developments can import
 only the layer they need.  On the reader site, these implementation layers are
@@ -118,8 +118,8 @@ nested under Section 22.3 rather than presented as separate CLRS sections:
 * {lit}`Section_22_3_DFS.EdgeClassification` proves the unique
   tree/back/forward/cross classification, its CLRS timestamp characterizations,
   and the undirected tree-or-back theorem.
-* {lit}`Section_22_5_MergeSort_Congr` supplies the comparison congruence used for
-  Kosaraju's decreasing-finish-time order.
+* {lit}`Section_22_5_Strongly_Connected_Components.MergeSortCongr` records a
+  comparison congruence helper for decreasing-finish-time sorting.
 
 ## Current Shape
 

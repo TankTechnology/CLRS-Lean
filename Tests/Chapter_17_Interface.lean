@@ -1,5 +1,5 @@
 import CLRSLean.Chapter_17.Section_17_1_Amortized_Framework
-import CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter
+import CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter
 import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 
 #check CLRS.Chapter17.prefixCost
