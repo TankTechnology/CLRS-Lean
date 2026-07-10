@@ -915,6 +915,23 @@ theorem dfsVisit_transpose_blackens_sccOf {s : DFSState V} {r v : V}
   exact dfsVisit_white_path_black G.transpose hwhite_r hr hfuel_wr
     (WhiteReachable.mem_set G.transpose hr h_wr)
 
+/-- A vertex that is white before a transpose DFS visit and black afterwards
+belongs to the source's original SCC when the source has maximal white finish
+time. -/
+theorem transpose_visit_blackened_white_mem_sccOf {fuel : Nat} {s : DFSState V}
+    {r v : V} (hr : r ∈ G.transpose.vertices) (hwhite_r : s.color r = Color.white)
+    (hfuel : 0 < fuel)
+    (hmax : ∀ x, s.color x = Color.white → finishTime (G.dfs) x ≤ finishTime (G.dfs) r)
+    (hrespects : G.SCCMonochrome s)
+    (hv_white : s.color v = Color.white)
+    (hv_black : (dfsVisit G.transpose fuel r s).color v = Color.black) :
+    v ∈ G.sccOf r := by
+  have hwr : WhiteReachable G.transpose s r v :=
+    dfsVisit_blackens_implies_whiteReachable G.transpose hwhite_r hfuel hv_white hv_black
+  have hv_wr_set : v ∈ whiteReachableSet G.transpose s r :=
+    WhiteReachable.mem_set G.transpose hr hwr
+  exact whiteReachableSet_subset_scc G hr hwhite_r hmax hrespects hv_wr_set
+
 /-- Core DFS finish-time lemma.
 
 Consider a DFS state {lit}`s` of {lit}`G` and a white vertex {lit}`r` whose finish time is
@@ -940,11 +957,9 @@ theorem scc_finish_order {G : Graph V} {s : DFSState V} {r : V}
   have hsubset : (C : Set V) ⊆ G.sccOf r := by
     intro v hv
     simp [C] at hv
-    rcases hv with ⟨hvV, hwhite_v, hblack_v⟩
-    have hw : v ∈ whiteReachableSet G.transpose s r := by
-      apply WhiteReachable.mem_set G.transpose hr
-      exact dfsVisit_blackens_implies_whiteReachable G.transpose hwhite (by omega) hwhite_v hblack_v
-    exact whiteReachableSet_subset_scc G hr hwhite hmax hrespects hw
+    rcases hv with ⟨_, hwhite_v, hblack_v⟩
+    exact transpose_visit_blackened_white_mem_sccOf G hr hwhite (by omega)
+      hmax hrespects hwhite_v hblack_v
   have hsupset : G.sccOf r ⊆ (C : Set V) := by
     intro v hv
     have hwhite_v : s.color v = Color.white := hCr_white v hv
