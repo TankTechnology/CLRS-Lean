@@ -1093,6 +1093,35 @@ that ideal semantics on well-sized trees.  The recompute-then-rotate wrappers
 also show that an arbitrary functional tree can be locally prepared for a
 rotation and still expose the same ideal rank-selection behavior afterward.
 
+### Section 14.3 - Interval trees and the general augmentation theorem
+
+- Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
+- Status: `proved` for the interval-tree framework and the general augmentation
+  theorem (CLRS Theorem 14.1)
+- Main proved theorems:
+  - `CLRS.Chapter14.AugmentedTree.keys_recompute`
+  - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.rotateLeft_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.rotateRight_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.insert_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.mem_keys_insert`
+  - `CLRS.Chapter14.AugmentedTree.augmentation_theorem` (CLRS Theorem 14.1)
+  - `CLRS.Chapter14.realAug_sizeAug_eq_length`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
+- Proof pattern: a generic `Augmentation`/`AugmentedTree` framework with an
+  `IsRotationInvariant` law; rotations, recomputation, and BST insertion all
+  preserve `WellAugmented` and the semantic augmentation.  Instantiated to both
+  interval trees (max-high) and order-statistic trees (subtree size).
+- Current gap: the red-black bridge (connecting the generic augmented rotations
+  to Chapter 13's `RedBlackShape`) is a follow-up.
+
+The `augmentation_theorem` packages CLRS Theorem 14.1's maintainability claim
+generically: any locally-computable, rotation-invariant augmentation is
+maintained through the structural operations used by red-black insertion and
+deletion.  The `sizeAug` instance shows the Section 14.1 order-statistic size
+field is a special case, unifying the two augmentation examples under one
+framework.
+
 ## Chapter 15 - Dynamic Programming
 
 ### Section 15.1 - Rod cutting

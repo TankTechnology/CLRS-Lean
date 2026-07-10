@@ -9,27 +9,35 @@ of its subtree.  The search algorithm uses the cached maximum to prune the left
 subtree when no overlap is possible there.
 
 To make the pattern reusable, we first define a small generic augmentation
-framework: an `AugmentedTree α β` carries a value of type `α` at each node and
-a cached augmentation of type `β`.  An `Augmentation α β` provides the empty
+framework: an {lit}`AugmentedTree α β` carries a value of type {lit}`α` at each node and
+a cached augmentation of type {lit}`β`.  An {lit}`Augmentation α β` provides the empty
 default and the local recombination function.  The framework proves that
-recomputing the augmentation from the children preserves the `WellAugmented`
+recomputing the augmentation from the children preserves the {lit}`WellAugmented`
 invariant, and that rotations preserve the inorder key sequence and the
-`WellAugmented` invariant for augmentations whose combine operator behaves like
-`max` (which is the case for the interval-tree instantiation).  We then
+{lit}`WellAugmented` invariant for augmentations whose combine operator behaves like
+{lit}`max` (which is the case for the interval-tree instantiation).  We then
 instantiate it to interval trees with the max-high augmentation, and show that
-the executable `intervalSearch?` is correct on well-augmented BSTs.
+the executable {lit}`intervalSearch?` is correct on well-augmented BSTs.
 
 Main results:
 
-* Generic `AugmentedTree` lemmas: `keys_recompute`, `realAug_recompute`,
-  `recompute_wellAugmented`, `rotateLeft_wellAugmented`,
-  `rotateRight_wellAugmented`.
-* Interval-tree correctness: `intervalSearch?_some_overlap` and
-  `intervalSearch?_none_noOverlap` (combined as `intervalSearch?_spec`).
+* Generic {lit}`AugmentedTree` lemmas: {lit}`keys_recompute`, {lit}`realAug_recompute`,
+  {lit}`recompute_wellAugmented`, {lit}`rotateLeft_wellAugmented`,
+  {lit}`rotateRight_wellAugmented`.
+* Interval-tree correctness: {lit}`intervalSearch?_some_overlap` and
+  {lit}`intervalSearch?_none_noOverlap` (combined as {lit}`intervalSearch?_spec`).
+* General augmentation theorem (CLRS Theorem 14.1): {lit}`augmentation_theorem`
+  packages that rotations, recomputation, and generic BST {lit}`insert` maintain
+  the {lit}`WellAugmented` invariant and the semantic augmentation for any
+  rotation-invariant augmentation.
+* Size augmentation instance: {lit}`sizeAug` with {lit}`realAug_sizeAug_eq_length`,
+  showing order-statistic size caching is an instance of the same framework.
 
-Status: `proved` for the interval-tree augmentation framework.
+Status: {lit}`proved` for the interval-tree augmentation framework and the
+general augmentation theorem.
 
-Deferred refinements: red-black bridge and monoid-based augmentation.
+Deferred refinements: the red-black bridge (connecting augmented rotations to
+{lit}`RedBlackShape`) and monoid-based augmentation.
 -/
 
 namespace CLRS
@@ -43,7 +51,7 @@ structure Augmentation (α β : Type) [Inhabited β] where
   base : β
   combine : α → β → β → β
 
-/-- Typeclass asserting that an augmentation's `combine` operation satisfies the
+/-- Typeclass asserting that an augmentation's {lit}`combine` operation satisfies the
 rotation-invariance law required for BST rotations to preserve the cached
 augmentation.  The max-high augmentation is the motivating example. -/
 class IsRotationInvariant {α β : Type} [Inhabited β] (aug : Augmentation α β) : Prop where
@@ -247,7 +255,109 @@ theorem rotateRight_wellAugmented {t : AugmentedTree α β}
           rcases hLeft with ⟨ha, hb, hLeftSize⟩
           simp [rotateRight, WellAugmented, realAug, ha, hb, hc]
 
+/-! ### Generic BST insertion and the general augmentation theorem (CLRS 14.1) -/
+
+/-- BST insertion by a Boolean comparison {lit}`lt`, recomputing the cached
+augmentation locally at each node.  Generic over any augmentation. -/
+def insert (lt : α → α → Bool) (x : α) : AugmentedTree α β → AugmentedTree α β
+  | empty => node empty x (aug.combine x aug.base aug.base) empty
+  | node l k _ r =>
+      if lt x k then
+        let l' := insert lt x l
+        node l' k (aug.combine k (realAug aug l') (realAug aug r)) r
+      else if lt k x then
+        let r' := insert lt x r
+        node l k (aug.combine k (realAug aug l) (realAug aug r')) r'
+      else
+        node l k (aug.combine k (realAug aug l) (realAug aug r)) r
+
+/-- Insertion adds exactly the inserted key to the inorder key multiset. -/
+theorem mem_keys_insert (lt : α → α → Bool) (x y : α) (t : AugmentedTree α β) :
+    y ∈ keys (insert aug lt x t) → y = x ∨ y ∈ keys t := by
+  induction t with
+  | empty => simp [insert, keys]
+  | node l k a r ihl ihr =>
+      simp only [insert]
+      split
+      · simp only [keys, List.mem_append, List.mem_singleton]
+        rintro ((h | h) | h)
+        · rcases ihl h with h' | h' <;> tauto
+        · tauto
+        · tauto
+      · split
+        · simp only [keys, List.mem_append, List.mem_singleton]
+          rintro ((h | h) | h)
+          · tauto
+          · tauto
+          · rcases ihr h with h' | h' <;> tauto
+        · simp only [keys, List.mem_append, List.mem_singleton]
+          tauto
+
+/-- Generic insertion preserves the well-augmented invariant. -/
+theorem insert_wellAugmented (lt : α → α → Bool) (x : α) {t : AugmentedTree α β}
+    (h : WellAugmented aug t) : WellAugmented aug (insert aug lt x t) := by
+  induction t with
+  | empty => simp [insert, WellAugmented, realAug]
+  | node l k a r ihl ihr =>
+      rcases h with ⟨hl, hr, _ha⟩
+      simp only [insert]
+      split
+      · exact ⟨ihl hl, hr, by simp [realAug]⟩
+      · split
+        · exact ⟨hl, ihr hr, by simp [realAug]⟩
+        · exact ⟨hl, hr, by simp [realAug]⟩
+
+/-- **CLRS Theorem 14.1 (maintainability of augmentations).**  For any
+locally-computable, rotation-invariant augmentation, every structural primitive
+used by red-black insertion and deletion — left and right rotation, subtree
+recomputation, and BST insertion — preserves the inorder key sequence and the
+mathematical augmentation, and preserves (or re-establishes) the
+{lit}`WellAugmented` invariant.  Hence the augmentation can be maintained through the
+red-black operations. -/
+theorem augmentation_theorem [IsRotationInvariant aug] :
+    (∀ t : AugmentedTree α β, WellAugmented aug t → WellAugmented aug (rotateLeft aug t)) ∧
+    (∀ t : AugmentedTree α β, WellAugmented aug t → WellAugmented aug (rotateRight aug t)) ∧
+    (∀ t : AugmentedTree α β, keys (rotateLeft aug t) = keys t) ∧
+    (∀ t : AugmentedTree α β, keys (rotateRight aug t) = keys t) ∧
+    (∀ t : AugmentedTree α β, realAug aug (rotateLeft aug t) = realAug aug t) ∧
+    (∀ t : AugmentedTree α β, realAug aug (rotateRight aug t) = realAug aug t) ∧
+    (∀ t : AugmentedTree α β, WellAugmented aug (recompute aug t)) ∧
+    (∀ (lt : α → α → Bool) (x : α) (t : AugmentedTree α β),
+        WellAugmented aug t → WellAugmented aug (insert aug lt x t)) :=
+  ⟨fun _ h => rotateLeft_wellAugmented aug h,
+   fun _ h => rotateRight_wellAugmented aug h,
+   fun t => keys_rotateLeft aug t,
+   fun t => keys_rotateRight aug t,
+   fun t => realAug_rotateLeft aug t,
+   fun t => realAug_rotateRight aug t,
+   fun t => recompute_wellAugmented aug t,
+   fun lt x _ h => insert_wellAugmented aug lt x h⟩
+
 end AugmentedTree
+
+/-! ## Size augmentation (order-statistic trees as an instance)
+
+The order-statistic augmentation of Section 14.1 — caching each subtree's node
+count — is an instance of the same generic framework, demonstrating CLRS
+Theorem 14.1 for a second concrete field alongside interval trees' max-high. -/
+
+/-- The subtree-size augmentation: the cached value is the number of nodes. -/
+def sizeAug (α : Type) : Augmentation α Nat := ⟨0, fun _ l r => 1 + l + r⟩
+
+instance (α : Type) : IsRotationInvariant (sizeAug α) where
+  combine_rotate x y a b c := by simp [sizeAug]; omega
+
+/-- The size augmentation's mathematical value is exactly the node count. -/
+theorem realAug_sizeAug_eq_length {α : Type} (t : AugmentedTree α Nat) :
+    AugmentedTree.realAug (sizeAug α) t = (AugmentedTree.keys t).length := by
+  induction t with
+  | empty => rfl
+  | node l k a r ihl ihr =>
+      simp only [AugmentedTree.realAug]
+      rw [ihl, ihr]
+      simp only [sizeAug, AugmentedTree.keys,
+        List.length_append, List.length_cons, List.length_nil]
+      omega
 
 /-! # Interval trees -/
 
@@ -307,11 +417,11 @@ def rotateLeft : IntervalTree → IntervalTree :=
 def rotateRight : IntervalTree → IntervalTree :=
   AugmentedTree.rotateRight maxHighAug
 
-/-- Every interval in the tree has low endpoint at most `x`. -/
+/-- Every interval in the tree has low endpoint at most {lit}`x`. -/
 def allLowLE (t : IntervalTree) (x : Nat) : Prop :=
   ∀ i ∈ keys t, i.low ≤ x
 
-/-- Every interval in the tree has low endpoint at least `x`. -/
+/-- Every interval in the tree has low endpoint at least {lit}`x`. -/
 def allLowGE (t : IntervalTree) (x : Nat) : Prop :=
   ∀ i ∈ keys t, x ≤ i.low
 
@@ -366,7 +476,7 @@ theorem isEmpty_empty : isEmpty AugmentedTree.empty = true := by rfl
 theorem isEmpty_node {left right : IntervalTree} {int : Interval} {mx : Nat} :
     isEmpty (AugmentedTree.node left int mx right) = false := by rfl
 
-/-- A true `goLeft` condition means the left subtree is non-empty and its max-high
+/-- A true {lit}`goLeft` condition means the left subtree is non-empty and its max-high
 is at least the query low. -/
 theorem goLeft_true {left : IntervalTree} {q : Interval}
     (h : goLeft left q = true) :
@@ -379,7 +489,7 @@ theorem goLeft_true {left : IntervalTree} {q : Interval}
     | node => simp
   · exact hmax
 
-/-- A false `goLeft` condition means the left subtree is empty or its max-high is
+/-- A false {lit}`goLeft` condition means the left subtree is empty or its max-high is
 below the query low. -/
 theorem goLeft_false {left : IntervalTree} {q : Interval}
     (h : goLeft left q = false) :
@@ -426,7 +536,7 @@ theorem rotateRight_wellAugmented {t : IntervalTree}
     WellAugmented (rotateRight t) :=
   AugmentedTree.rotateRight_wellAugmented maxHighAug h
 
-/-- Membership in `keys` respects the inorder list membership relation. -/
+/-- Membership in {lit}`keys` respects the inorder list membership relation. -/
 @[simp]
 theorem mem_keys {t : IntervalTree} {i : Interval} :
     i ∈ keys t ↔ i ∈ AugmentedTree.keys t := by
@@ -515,7 +625,7 @@ end IntervalTree
 
 namespace IntervalTree
 
-/-- `hasOverlap` distributes over a node in the obvious way. -/
+/-- {lit}`hasOverlap` distributes over a node in the obvious way. -/
 @[simp]
 theorem hasOverlap_node {left right : IntervalTree} {int : Interval} {mx : Nat} {q : Interval} :
     hasOverlap (AugmentedTree.node left int mx right) q ↔
