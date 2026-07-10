@@ -974,11 +974,20 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter12.BSTree.successor?_delete_eq_none_iff`
   - `CLRS.Chapter12.BSTree.predecessor?_delete_eq_some_iff`
   - `CLRS.Chapter12.BSTree.predecessor?_delete_eq_none_iff`
+  - `CLRS.Chapter12.BSTree.searchZipper_toTree` (parent-pointer view is faithful)
+  - `CLRS.Chapter12.BSTree.searchIter_eq_search` (iterative search)
+  - `CLRS.Chapter12.BSTree.transplant_preserves_ordered` (TRANSPLANT)
+  - `CLRS.Chapter12.BSTree.deleteViaTransplant_eq_delete` (TREE-DELETE via transplant)
+  - `CLRS.Chapter12.BSTree.successorZipper_eq_successor?` (parent-pointer successor)
+  - `CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?` (parent-pointer predecessor)
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
-  extremal-path recursion, iff specifications for successor/predecessor, and
-  successor-replacement deletion
-- Current gap: parent-pointer successor/predecessor procedures, transplant,
-  and pointer-level mutation remain future section targets
+  extremal-path recursion, iff specifications for successor/predecessor,
+  successor-replacement deletion, and a zipper (cursor + context path) layer
+  encoding parent pointers, with all zipper operations proved equivalent to the
+  functional operations via a `toTree` reconstruction bridge
+- Current gap: pointer-level in-place mutation (imperative RAM refinement)
+  remains future work; the parent-pointer navigation, `TRANSPLANT`,
+  `TREE-DELETE`, and parent-pointer successor/predecessor are now proved
 
 This section proves the core ordered-tree interface: search is equivalent to
 membership, minimum/maximum return actual extremal keys, functional
@@ -2105,8 +2114,8 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
 | Hash-table expected-time analysis | `blocked-design` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes when the searched bucket is uniform; the remaining work is a full random key or random hash-function model with independence assumptions. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
-| BST transplant and parent-pointer navigation | `partial-transplant` | Functional `replaceSubtree` (CLRS `TRANSPLANT` analogue) is defined; pointer-level parent updates and full membership-preservation theorems remain future refinement targets. |
-| Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; parent-pointer navigation and `TRANSPLANT` require an imperative memory model. |
+| BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
+| Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; the `Zipper` layer proves parent-pointer navigation and `TRANSPLANT` functionally. Only an imperative in-place memory model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
