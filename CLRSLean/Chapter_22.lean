@@ -5,6 +5,7 @@ import CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath
 import CLRSLean.Chapter_22.Section_22_3_DFS_Intervals
 import CLRSLean.Chapter_22.Section_22_3_DFS_SCC
 import CLRSLean.Chapter_22.Section_22_3_DFS_Bridge
+import CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification
 import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
 import CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr
 import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
@@ -60,6 +61,12 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.dfs_intervals_not_cross`,
   {lit}`CLRS.Chapter22.Graph.IsDFSAncestor_reachable`,
   {lit}`CLRS.Chapter22.Graph.intervalNestedInside_dfs_iff_ancestor`,
+  {lit}`CLRS.Chapter22.Graph.DFSEdgeKind`,
+  {lit}`CLRS.Chapter22.Graph.dfs_edge_classification_unique`,
+  {lit}`CLRS.Chapter22.Graph.dfs_tree_or_forward_edge_iff_timestamps`,
+  {lit}`CLRS.Chapter22.Graph.dfs_back_edge_iff_timestamps`,
+  {lit}`CLRS.Chapter22.Graph.dfs_cross_edge_iff_timestamps`,
+  {lit}`CLRS.Chapter22.Graph.dfs_undirected_edge_tree_or_back`,
   and {lit}`CLRS.Chapter22.Graph.exists_discovery_state`.
 
 * 22.4 Topological sort.
@@ -99,6 +106,9 @@ only the layer they need:
 * {lit}`Section_22_3_DFS_Bridge` connects local discovery states to the final DFS
   timestamps used by the SCC proof.
 * {lit}`Section_22_3_DFS_SCC` packages maximum-finish and first-discovery facts.
+* {lit}`Section_22_3_DFS_EdgeClassification` proves the unique
+  tree/back/forward/cross classification, its CLRS timestamp characterizations,
+  and the undirected tree-or-back theorem.
 * {lit}`Section_22_5_MergeSort_Congr` supplies the comparison congruence used for
   Kosaraju's decreasing-finish-time order.
 
@@ -110,7 +120,8 @@ reachable vertex is reported).  Section 22.3 gives a functional DFS model,
 proves its global color and timestamp invariants, proves the white-path
 characterization used by the SCC development, and proves that final DFS
 timestamp intervals are disjoint or nested and that strict nesting is equivalent
-to proper ancestry in the final parent forest.  Section 22.4 implements Kahn's
+to proper ancestry in the final parent forest; every graph edge is then uniquely
+classified as tree, back, forward, or cross.  Section 22.4 implements Kahn's
 algorithm and proves that it returns a valid topological order for every DAG.
 Section 22.5 proves the SCC finish-time ordering, proves that each component
 collected by Kosaraju is strongly connected and maximal, and concludes that the
@@ -120,8 +131,6 @@ returned components form an SCC partition of the vertex set.
 
 * Section 22.2: unweighted shortest-path distances and predecessor-tree
   correctness; the current BFS theorem characterizes reachability only.
-* Section 22.3: prove tree/back/forward/cross edge classification.  The timestamp
-  parenthesis theorem and parent-forest ancestor characterization are complete.
 * Section 22.4: a DFS finish-time implementation and correctness theorem matching
   the CLRS presentation; the current proved implementation is Kahn's algorithm.
 * Algorithm-cost refinements: explicit work measures for the fuelled and
