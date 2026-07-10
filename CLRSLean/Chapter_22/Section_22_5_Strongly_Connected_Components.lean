@@ -576,6 +576,24 @@ theorem WhiteReachable.of_isSCC {s : DFSState V} {C : Set V} {u v : V}
   exact WhiteReachable.of_reachable_through_set G (S := C)
     (fun w h1 h2 => IsSCC.path_mem G hC hu hv h1 h2) hwhite hreach
 
+/-- If all vertices of SCCs {lit}`C` and {lit}`D` are white and there is an edge
+from {lit}`C` to {lit}`D`, then white-reachability crosses from any vertex of
+{lit}`C` to any vertex of {lit}`D`. -/
+theorem WhiteReachable.across_scc_edge {s : DFSState V} {C D : Set V} {r d : V}
+    (hC : G.IsSCC C) (hD : G.IsSCC D) (hr : r ∈ C) (hd : d ∈ D)
+    (hwhite_C : ∀ w ∈ C, s.color w = Color.white)
+    (hwhite_D : ∀ w ∈ D, s.color w = Color.white)
+    (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v) :
+    WhiteReachable G s r d := by
+  rcases hedge with ⟨u, hu, v, hv, hadj⟩
+  have h_wr_r_u : WhiteReachable G s r u :=
+    WhiteReachable.of_isSCC G hC hr hu hwhite_C
+  have h_wr_r_v : WhiteReachable G s r v :=
+    whiteReachable_step G h_wr_r_u hadj (hwhite_D v hv)
+  have h_wr_v_d : WhiteReachable G s v d :=
+    WhiteReachable.of_isSCC G hD hv hd hwhite_D
+  exact whiteReachable_trans G h_wr_r_v h_wr_v_d
+
 /-- White-reachability forgets to ordinary reachability, so a non-reachable
 target is not white-reachable. -/
 theorem not_whiteReachable_of_not_reachable {s : DFSState V} {u v : V}
@@ -731,24 +749,8 @@ theorem scc_finish_time_order {C D : Set V}
     have hne_d_rC : d ≠ rC := by
       intro heq; subst d; apply hne
       exact IsSCC_eq_of_nonempty_inter G hC hD ⟨rC, hrC_mem, hdD⟩
-    -- Construct an explicit white path: rC →* u → v →* d, where (u,v) is the C→D edge.
-    -- All vertices in C ∪ D are white in s, and IsSCC.path_mem guarantees the path
-    -- segments stay within C (for rC→*u) and D (for v→*d), so all vertices are white.
-    rcases hedge with ⟨u, hu, v, hv, hadj⟩
-    -- Segment rC →* u within C (all vertices in C, all white)
-    have h_wr_rC_u : WhiteReachable G s rC u := by
-      exact WhiteReachable.of_isSCC G hC hrC_mem hu hwhite_C
-    -- Edge u → v: v ∈ D is white in s
-    have hwhite_v : s.color v = Color.white := hwhite_D v hv
-    -- Step via the edge
-    have h_wr_rC_v : WhiteReachable G s rC v :=
-      whiteReachable_step G h_wr_rC_u hadj hwhite_v
-    -- Segment v →* d within D (all vertices in D, all white)
-    have h_wr_v_d : WhiteReachable G s v d := by
-      exact WhiteReachable.of_isSCC G hD hv hdD hwhite_D
-    -- Compose: rC →* v →* d
     have h_wr_rC_d : WhiteReachable G s rC d :=
-      whiteReachable_trans G h_wr_rC_v h_wr_v_d
+      WhiteReachable.across_scc_edge G hC hD hrC_mem hdD hwhite_C hwhite_D hedge
     have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
       have h_finish_d_lt_rC :
           finishTime (G.dfs) d < finishTime (G.dfs) rC :=
