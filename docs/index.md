@@ -91,6 +91,7 @@ CLRSLean/Chapter_21/Section_21_1_Disjoint_Set_Operations.lean
 CLRSLean/Chapter_21/Section_21_2_Linked_List_Representation.lean
 CLRSLean/Chapter_21/Section_21_3_Disjoint_Set_Forests.lean
 CLRSLean/Chapter_21/Section_21_4_Analysis.lean
+CLRSLean/Chapter_21/Section_21_4_Analysis/CostedExecution.lean
 CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean
 CLRSLean/Chapter_22/Section_22_2_BFS.lean
 CLRSLean/Chapter_22/Section_22_3_DFS.lean

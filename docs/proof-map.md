@@ -1936,14 +1936,23 @@ translation for the original universe size.
   - `Analysis.parentPath_rank_bound`
   - `Analysis.rank_le_log2`
   - `Analysis.parentPath_length_le_log2`
+- Concrete Batteries execution layer:
+  - `Analysis.Costed.findEdges_parentPath`
+  - `Analysis.Costed.RankBudget.afterUnion`
+  - `Analysis.Costed.costedFind_cost_le_log2`
+  - `Analysis.Costed.costedUnion_cost_le_log2`
+  - `Analysis.Costed.run_erase`
+  - `Analysis.Costed.run_refines_spec`
+  - `Analysis.Costed.run_rank_le_log2`
+  - `Analysis.Costed.run_cost_le`
 - Inverse-Ackermann/potential layer:
   - `Analysis.inverseAckermann_spec`
   - `Analysis.inverseAckermann_minimal`
   - `Analysis.total_cost_le_of_inverseAckermann_certificate`
-- Remaining refinement: construct `RankMassCertificate` and
-  `InverseAckermannCertificate` from a concrete step-counting execution trace
-  of the Batteries implementation.  The certificate theorem is proved; the
-  exact RAM-level `O(m alpha(n))` instantiation is not claimed.
+- Remaining refinement: construct `InverseAckermannCertificate` from the new
+  concrete Batteries execution trace.  Reachable `RankMassCertificate`
+  instances and the intermediate `O(m log n)` bound are now proved; the exact
+  RAM-level `O(m alpha(n))` instantiation is not claimed.
 
 ### Chapter 23 Bridge
 

@@ -60,9 +60,9 @@ the detailed maintainer ledger.
   theorems remain.
 * **Chapter 21:** abstract partition semantics, weighted linked-list
   correctness and rewrite bounds, executable Batteries union-find correctness,
-  rank/path bounds, and the Chapter 23 cycle-test bridge are proved.  A concrete
-  step-counting instantiation of the inverse-Ackermann potential certificate
-  remains.
+  reachable rank-mass invariants, real parent-traversal costs, a whole-run
+  {lit}`O(m log n)` theorem, and the Chapter 23 cycle-test bridge are proved.
+  The sharper inverse-Ackermann potential instantiation remains.
 * **Chapter 23:** cut-property, exchange-certificate, and Kruskal theorem layers
   exist, now with an extensional union-find cycle-test refinement.  Automatic
   exchange-path extraction, a stateful scan, a fully local recursive wrapper,

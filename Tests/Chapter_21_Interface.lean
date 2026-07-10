@@ -42,3 +42,22 @@ import CLRSLean.Chapter_21
 #check CLRS.Chapter21.Analysis.inverseAckermann_minimal
 #check CLRS.Chapter21.Analysis.InverseAckermannCertificate
 #check CLRS.Chapter21.Analysis.total_cost_le_of_inverseAckermann_certificate
+
+#check CLRS.Chapter21.Analysis.Costed.findEdges
+#check CLRS.Chapter21.Analysis.Costed.findEdges_parentPath
+#check CLRS.Chapter21.Analysis.Costed.RankBudget
+#check CLRS.Chapter21.Analysis.Costed.singletonRankBudget
+#check CLRS.Chapter21.Analysis.Costed.RankBudget.afterFind
+#check CLRS.Chapter21.Analysis.Costed.RankBudget.afterUnion
+#check CLRS.Chapter21.Analysis.Costed.costedFind_cost_le_log2
+#check CLRS.Chapter21.Analysis.Costed.costedUnion_cost_le_log2
+#check CLRS.Chapter21.Analysis.Costed.Machine
+#check CLRS.Chapter21.Analysis.Costed.Machine.initial
+#check CLRS.Chapter21.Analysis.Costed.Operation
+#check CLRS.Chapter21.Analysis.Costed.step
+#check CLRS.Chapter21.Analysis.Costed.step_erase
+#check CLRS.Chapter21.Analysis.Costed.run
+#check CLRS.Chapter21.Analysis.Costed.run_erase
+#check CLRS.Chapter21.Analysis.Costed.run_refines_spec
+#check CLRS.Chapter21.Analysis.Costed.run_rank_le_log2
+#check CLRS.Chapter21.Analysis.Costed.run_cost_le

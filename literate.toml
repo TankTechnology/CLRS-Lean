@@ -140,6 +140,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_21.Section_21_3_Disjoint_Set_Forests",
   "CLRSLean.Chapter_21.Section_21_4_Analysis",
 ]
+"CLRSLean.Chapter_21.Section_21_4_Analysis" = [
+  "CLRSLean.Chapter_21.Section_21_4_Analysis.CostedExecution",
+]
 "CLRSLean.Chapter_22" = [
   "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
   "CLRSLean.Chapter_22.Section_22_2_BFS",
@@ -452,6 +455,9 @@ title = "21.3. Disjoint-Set Forests"
 
 [modules."CLRSLean.Chapter_21.Section_21_4_Analysis"]
 title = "21.4. Union-by-Rank and Path-Compression Analysis"
+
+[modules."CLRSLean.Chapter_21.Section_21_4_Analysis.CostedExecution"]
+title = "Costed Batteries Execution"
 
 [modules."CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees"]
 title = "23.1. Growing a Minimum Spanning Tree"
