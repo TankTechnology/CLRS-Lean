@@ -802,12 +802,12 @@ theorem scc_finish_time_order {C D : Set V}
   have hDsub : D ⊆ G.vertices := IsSCC.subset_vertices G hD
   let rC := firstDiscoveredVertex G (s := G.dfs) (C := C) hC_nonempty hCsub
   let rD := firstDiscoveredVertex G (s := G.dfs) (C := D) hD_nonempty hDsub
-  have hrC_mem : rC ∈ C := firstDiscoveredVertex_mem G (s := G.dfs) (C := C) hC_nonempty hCsub
-  have hrD_mem : rD ∈ D := firstDiscoveredVertex_mem G (s := G.dfs) (C := D) hD_nonempty hDsub
-  have hdisc_min_C : ∀ v ∈ C, discoveryTime (G.dfs) rC ≤ discoveryTime (G.dfs) v :=
-    fun v hv => firstDiscoveredVertex_min G (s := G.dfs) (C := C) hC_nonempty hCsub hv
-  have hdisc_min_D : ∀ v ∈ D, discoveryTime (G.dfs) rD ≤ discoveryTime (G.dfs) v :=
-    fun v hv => firstDiscoveredVertex_min G (s := G.dfs) (C := D) hD_nonempty hDsub hv
+  rcases (by
+    simpa [rC] using firstDiscoveredVertex_mem_min G (s := G.dfs) (C := C)
+      hC_nonempty hCsub) with ⟨hrC_mem, hdisc_min_C⟩
+  rcases (by
+    simpa [rD] using firstDiscoveredVertex_mem_min G (s := G.dfs) (C := D)
+      hD_nonempty hDsub) with ⟨hrD_mem, hdisc_min_D⟩
   -- Obtain max-finish witnesses
   rcases maxFinish_exists G (s := G.dfs) (C := C) hC_nonempty hCsub with ⟨c, hcC, hc_max⟩
   rcases maxFinish_exists G (s := G.dfs) (C := D) hD_nonempty hDsub with ⟨d, hdD, hd_max⟩
