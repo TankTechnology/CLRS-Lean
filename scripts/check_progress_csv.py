@@ -86,6 +86,14 @@ def validate(rows: list[dict[str, str]]) -> None:
         for key in ("chapter_title", "repo_status", "completion_read", "evidence_source"):
             require(row[key].strip(), f"Chapter {chapter_no}: {key} must be nonempty")
 
+        for source in (part.strip() for part in row["evidence_source"].split(";")):
+            if source == "CLRSLean file tree":
+                continue
+            require(
+                (ROOT / source).is_file(),
+                f"Chapter {chapter_no}: evidence source does not exist: {source}",
+            )
+
         require(
             row["repo_status"] in STATUS_ORDER,
             f"Chapter {chapter_no}: unknown repo_status {row['repo_status']}",
