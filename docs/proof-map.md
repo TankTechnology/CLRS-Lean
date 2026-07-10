@@ -1949,10 +1949,17 @@ translation for the original universe size.
   - `Analysis.inverseAckermann_spec`
   - `Analysis.inverseAckermann_minimal`
   - `Analysis.total_cost_le_of_inverseAckermann_certificate`
-- Remaining refinement: construct `InverseAckermannCertificate` from the new
-  concrete Batteries execution trace.  Reachable `RankMassCertificate`
-  instances and the intermediate `O(m log n)` bound are now proved; the exact
-  RAM-level `O(m alpha(n))` instantiation is not claimed.
+  - `Analysis.Ackermann.potential_find_le`
+  - `Analysis.Ackermann.potential_link_le_add_two`
+  - `Analysis.Ackermann.costedFind_amortized_le`
+  - `Analysis.Ackermann.costedUnion_amortized_le`
+  - `Analysis.Ackermann.step_amortized_le`
+  - `Analysis.Ackermann.run_cost_le_inverseAckermann`
+  - `Analysis.Ackermann.run_cost_le_inverseAckermann_of_universe_le_ops`
+- Boundary: the concrete Batteries machine now instantiates the
+  inverse-Ackermann potential directly.  Its actual cost is bounded by
+  `9 * (m+n) * alpha(n)`, and by `18 * m * alpha(n)` when `n <= m`.
+- Closure audit: `docs/proof-audits/chapter-21-closure-2026-07-10.md`.
 
 ### Chapter 23 Bridge
 
