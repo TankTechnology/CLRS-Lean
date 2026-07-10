@@ -254,19 +254,23 @@ lake build CLRSLean
   当且仅当最终 DFS parent forest 中的祖先关系成立。
 - 22.3 边分类：证明每条图边唯一属于 tree/back/forward/cross，并完成 CLRS 的三组时间戳
   充要条件；self-loop 按教材约定归入 back edge，并证明无向图中每条边只能是 tree 或 back。
+- 22.4 DFS 拓扑排序：证明 DAG 中无 DFS back edge，从边分类得到每条边的完成时间
+  严格递减，并证明按完成时间降序排列得到合法拓扑序。
 - 22.5 Kosaraju SCC：证明 `scc_finish_time_order`、`scc_finish_order`、
   `kosarajuComponent_scc_core` 与最终 `kosarajuComponents_isSCCPartition`。
 
 **仍待完成：**
 
 - 22.2 无权最短距离与 predecessor tree 正确性。
-- 22.4 基于 DFS 完成时间的拓扑排序，以匹配 CLRS 原始叙述。
 
-**已完成（Kahn 算法版本）：**
+**已完成（Kahn 与 DFS 完成时间版本）：**
 
 - 22.4 拓扑排序：定义 `IsDAG`（无非平凡自环路径）、入度、拓扑序；实现 Kahn 算法；证明
   `topologicalSort_isTopologicalOrder`（对任意 DAG 返回合法拓扑序）。
   关键引理：`finite_DAG_wellFoundedOn`（有限 DAG 上的邻接关系良基），用于保证每一步都存在源点。
+  同时实现 `dfsTopologicalSort`，并通过
+  `dfs_finish_time_decreases_on_dag_edge` 证明
+  `dfsTopologicalSort_isTopologicalOrder`，与 CLRS 原始 DFS 讲法对齐。
 
 **已完成（Kosaraju 完整正确性）：**
 
@@ -349,8 +353,8 @@ lake build CLRSLean
 
 ### 当前推荐立即启动的 Sprint
 
-**Sprint 1（Chapter 22 收尾）**。下一步集中完成 BFS 最短路性质和 DFS 完成时间版拓扑排序；
-括号定理、祖先刻画、边分类与 SCC 主证明已经闭合。
+**Sprint 1（Chapter 22 收尾）**。下一步集中完成 BFS 最短路性质；括号定理、祖先刻画、
+边分类、DFS 完成时间版拓扑排序与 SCC 主证明已经闭合。
 
 ---
 
@@ -367,6 +371,7 @@ lake build CLRSLean
 - **2026-07-10**：完成 DFS 时间区间括号定理 `dfs_parenthesis` 及不可交叉推论；下一步收窄为 parent forest 祖先刻画与边分类。
 - **2026-07-10**：完成 `intervalNestedInside_dfs_iff_ancestor`，把严格时间区间嵌套与最终 DFS parent forest 祖先关系双向连接；Section 22.3 下一步只剩边分类。
 - **2026-07-10**：完成 DFS tree/back/forward/cross 唯一分类及 CLRS 时间戳刻画；Section 22.3 的教材主线闭合，后续转向 DFS 完成时间版拓扑排序。
+- **2026-07-10**：完成 CLRS 风格的 DFS 完成时间版拓扑排序；证明 DAG 边上完成时间严格递减，并完成 `dfsTopologicalSort_isTopologicalOrder`。
 
 ---
 
