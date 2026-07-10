@@ -3,11 +3,19 @@ import Mathlib
 /-!
 # Finite Expectation Toolkit
 
-Unified finite discrete expectation library mirroring the Ch5 `uniformAverageRange` pattern.
+A unified, reusable finite discrete expectation library for CLRS-Lean.
+Sample spaces are `Finset.range n`; a `fintypeExpect` wrapper exists for
+arbitrary `[Fintype Ω]`.
 
-- {lit}`uniformAverage`: `(∑ i < n, X i) / n`.
-- {lit}`indicator`: 0/1 indicator.
-- {lit}`probabilityOf`: event probability via indicator.
+Main definitions:
+- `expect`: `(∑ i < n, X i) / n`.
+- `prob`: event probability.
+- `indicator`: 0/1 indicator.
+- `fintypeExpect`: generic Fintype wrapper.
+
+Main theorems:
+- `expect_add`, `expect_const`, `expect_nonneg`, `expect_sum`, `expect_indicator`
+- `prob_singleton`, `prob_add_of_disjoint`
 -/
 
 namespace CLRS
@@ -16,34 +24,88 @@ namespace Probability
 /-- 0/1 indicator. -/
 def indicator (P : Prop) [Decidable P] : ℝ := if P then 1 else 0
 
-/-- Uniform average over first {lit}`n` natural numbers. -/
-noncomputable def uniformAverage (n : ℕ) (X : ℕ → ℝ) : ℝ :=
+/-- Uniform expectation over `Finset.range n`: `(∑ i<n, X i) / n`. -/
+noncomputable def expect (n : ℕ) (X : ℕ → ℝ) : ℝ :=
   (∑ i ∈ Finset.range n, X i) / (n : ℝ)
 
-/-- Probability of a predicate under uniform distribution on {lit}`{0,…,n-1}`. -/
-noncomputable def probabilityOf (n : ℕ) (P : ℕ → Prop) [DecidablePred P] : ℝ :=
-  uniformAverage n (fun i => indicator (P i))
+/-- Uniform probability over `Finset.range n`. -/
+noncomputable def prob (n : ℕ) (P : ℕ → Prop) [DecidablePred P] : ℝ :=
+  expect n (fun i => indicator (P i))
 
-theorem uniformAverage_add (n : ℕ) (X Y : ℕ → ℝ) :
-    uniformAverage n (X + Y) = uniformAverage n X + uniformAverage n Y := by
-  simp [uniformAverage, Finset.sum_add_distrib, add_div]
+theorem expect_add (n : ℕ) (X Y : ℕ → ℝ) :
+    expect n (X + Y) = expect n X + expect n Y := by
+  simp [expect, Finset.sum_add_distrib, add_div]
 
-theorem uniformAverage_nonneg (n : ℕ) (X : ℕ → ℝ) (hX : ∀ i, 0 ≤ X i) :
-    0 ≤ uniformAverage n X := by
-  unfold uniformAverage
-  apply div_nonneg
-  · exact Finset.sum_nonneg (fun i _ => hX i)
-  · positivity
+theorem expect_const (n : ℕ) (c : ℝ) (hn : n ≠ 0) :
+    expect n (fun _ => c) = c := by
+  simp [expect, hn]
 
-theorem indicator_singleton (n j : ℕ) (hj : j ∈ Finset.range n) :
-    uniformAverage n (fun i => indicator (i = j)) = 1 / (n : ℝ) := by
-  unfold uniformAverage indicator
+theorem expect_nonneg (n : ℕ) (X : ℕ → ℝ) (hX : ∀ i, 0 ≤ X i) : 0 ≤ expect n X := by
+  unfold expect
+  apply div_nonneg (Finset.sum_nonneg (fun i _ => hX i))
+  positivity
+
+theorem expect_sum {ι : Type} (n : ℕ) (hn : n ≠ 0) (s : Finset ι) (X : ι → ℕ → ℝ) :
+    expect n (fun i => ∑ k ∈ s, X k i) = ∑ k ∈ s, expect n (X k) := by
+  unfold expect
+  rw [Finset.sum_comm, Finset.sum_div]
+
+theorem expect_indicator (n : ℕ) (hn : n ≠ 0) (P : ℕ → Prop) [DecidablePred P] :
+    expect n (fun i => indicator (P i)) = prob n P := rfl
+
+theorem prob_singleton (n j : ℕ) (hn : n ≠ 0) (hj : j ∈ Finset.range n) :
+    prob n (fun i => i = j) = 1 / (n : ℝ) := by
+  unfold prob expect indicator
   have hsum : (∑ i ∈ Finset.range n, (if i = j then (1 : ℝ) else 0)) = (1 : ℝ) := by
-    rw [Finset.sum_eq_single j]
-    · simp
-    · intro b _ hbj; simp [hbj]
-    · intro hj_not; exact (hj_not hj).elim
+    simp [hj]
   rw [hsum]
+
+theorem prob_add_of_disjoint (n : ℕ) (hn : n ≠ 0)
+    {A B : ℕ → Prop} [DecidablePred A] [DecidablePred B]
+    (hdisj : ∀ i, ¬ (A i ∧ B i)) :
+    prob n (fun i => A i ∨ B i) = prob n A + prob n B := by
+  unfold prob expect indicator
+  have hsum : (∑ i ∈ Finset.range n, (if (A i ∨ B i) then (1 : ℝ) else 0)) =
+      (∑ i ∈ Finset.range n, (if A i then 1 else 0)) +
+      (∑ i ∈ Finset.range n, (if B i then 1 else 0)) := by
+    calc
+      (∑ i ∈ Finset.range n, (if (A i ∨ B i) then (1 : ℝ) else 0))
+          = (∑ i ∈ Finset.range n, ((if A i then 1 else 0) + (if B i then 1 else 0))) := by
+        refine Finset.sum_congr rfl (fun i hi => ?_)
+        by_cases hA : A i
+        · have hB : ¬ B i := fun h => hdisj i ⟨hA, h⟩
+          simp [hA, hB]
+        · by_cases hB : B i
+          · simp [hA, hB]
+          · simp [hA, hB]
+      _ = (∑ i ∈ Finset.range n, (if A i then 1 else 0)) +
+          (∑ i ∈ Finset.range n, (if B i then 1 else 0)) := by
+        rw [Finset.sum_add_distrib]
+  rw [hsum]
+  rw [add_div]
+
+/-- Generic Fintype wrapper. -/
+noncomputable def fintypeExpect {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X : Ω → ℝ) : ℝ :=
+  (∑ ω : Ω, X ω) / (Fintype.card Ω : ℝ)
+
+/-! ## Backward-compatible aliases -/
+
+/-- Alias for `expect n` used by Chapter 5. -/
+noncomputable def uniformAverage (n : ℕ) (X : ℕ → ℝ) : ℝ := expect n X
+
+/-- Singleton indicator lemma used by Chapter 5. -/
+theorem uniformAverage_indicator_singleton {m j : ℕ} (hj : j ∈ Finset.range m) :
+    uniformAverage m (fun i => indicator (i = j)) = 1 / (m : ℝ) := by
+  unfold uniformAverage
+  have hm : m ≠ 0 := by
+    intro h; rw [h] at hj; simp at hj
+  rw [expect]
+  -- Now goal: (∑ i ∈ range m, indicator (i = j)) / (m : ℝ) = 1 / (m : ℝ)
+  -- Same as prob_singleton unfolded
+  have h := prob_singleton m j hm hj
+  unfold prob expect indicator at h
+  -- h: (∑ i ∈ range m, (if i = j then 1 else 0)) / (m : ℝ) = 1 / (m : ℝ)
+  simpa [indicator] using h
 
 end Probability
 end CLRS
