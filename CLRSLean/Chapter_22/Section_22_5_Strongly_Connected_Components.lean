@@ -449,16 +449,6 @@ theorem maxFinish_eq_of_forall_finish_le {s : DFSState V} {C : Set V} {r : V}
     exact hle v hv.2
   · exact finish_le_maxFinish G hsub hr
 
-/-- If {lit}`c` witnesses the maximum finish time of {lit}`C`, then every member
-of {lit}`C` finishes no later than {lit}`c`. -/
-theorem finish_le_maxFinish_witness {s : DFSState V} {C : Set V} {r c : V}
-    (hsub : C ⊆ G.vertices) (hr : r ∈ C)
-    (hc_max : maxFinish G s C = finishTime s c) :
-    finishTime s r ≤ finishTime s c := by
-  have h := finish_le_maxFinish G (s := s) (C := C) hsub hr
-  rw [hc_max] at h
-  exact h
-
 /-- A DFS state is SCC-monochrome when every SCC of {lit}`G` is either entirely
 white or entirely black in that state.  This is the main invariant of the
 second pass of Kosaraju's algorithm. -/
