@@ -60,7 +60,7 @@ def indicator (P : Prop) [Decidable P] : ℝ :=
 theorem uniformAverage_indicator_singleton {m j : ℕ} (hj : j ∈ range m) :
     uniformAverageRange m (fun i => indicator (i = j)) = 1 / (m : ℝ) := by
   unfold uniformAverageRange indicator
-  rw [CLRS.Probability.indicator_singleton m j hj]
+  rw [CLRS.Probability.uniformAverage_indicator_singleton hj]
 
 /-! ## Hiring probabilities from symmetry -/
 
