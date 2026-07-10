@@ -12,10 +12,13 @@ main-proof areas without a specific refinement goal.
 ## Probability Toolkit
 
 - Lean source: `CLRSLean/Probability/FiniteExpectation.lean`
-- Status: `proved`
-- Provides: `expect` (uniform average), `prob`, `indicator`
+- Status: `partial` — generic API (`expect`/`prob` over `Finset.range n`) proved;
+  `fintypeExpect` wrapper exists for arbitrary `[Fintype Ω]`; full `[Fintype Ω]`
+  lemmas (expect_const, expect_sum, expect_indicator) deferred.
+- Provides: `expect`, `prob`, `indicator`, `fintypeExpect`
 - Main theorems: `expect_add`, `expect_const`, `expect_nonneg`, `prob_singleton`, `prob_add_of_disjoint`
 - Used by: Chapter 5 (Hiring Problem), Chapter 8.4 (Bucket Sort), Chapter 11.2 (Chained Hashing)
+- Remaining: Ch8.4/Ch11.2 full deduplication (AC-2); `[Fintype Ω]` lemmas (AC-1)
 
 ## Chapter 1 - The Role of Algorithms
 
