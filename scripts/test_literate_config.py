@@ -21,6 +21,25 @@ def _parse_module_titles(text: str) -> set[str]:
     return set(re.findall(r'^\[modules\."([^"]+)"\]\s*\ntitle\s*=', text, re.MULTILINE))
 
 
+def _ordered_descendants(
+    order_children: dict[str, list[str]], parent: str
+) -> list[str]:
+    descendants: list[str] = []
+    visiting: set[str] = set()
+
+    def visit(current: str) -> None:
+        if current in visiting:
+            raise ValueError(f"cycle in literate navigation at {current}")
+        visiting.add(current)
+        for child in order_children.get(current, []):
+            descendants.append(child)
+            visit(child)
+        visiting.remove(current)
+
+    visit(parent)
+    return descendants
+
+
 class LiterateConfigTest(unittest.TestCase):
     def test_landing_page_imports_are_ordered_and_titled(self) -> None:
         text = LITERATE_TOML.read_text()
@@ -57,13 +76,28 @@ class LiterateConfigTest(unittest.TestCase):
             if not imported_sections:
                 continue
 
-            ordered_sections = order_children[chapter_module]
+            ordered_sections = _ordered_descendants(order_children, chapter_module)
             with self.subTest(chapter=chapter_module):
                 self.assertEqual(imported_sections, ordered_sections)
 
             missing_titles = [module for module in imported_sections if module not in titled_modules]
             with self.subTest(chapter=f"{chapter_module} titles"):
                 self.assertEqual([], missing_titles)
+
+    def test_chapter_22_dfs_support_pages_are_nested(self) -> None:
+        order_children = _parse_order_children(LITERATE_TOML.read_text())
+        chapter = "CLRSLean.Chapter_22"
+        dfs = f"{chapter}.Section_22_3_DFS"
+        support_pages = [
+            f"{dfs}.WhitePath",
+            f"{dfs}.Intervals",
+            f"{dfs}.Bridge",
+            f"{dfs}.SCC",
+            f"{dfs}.EdgeClassification",
+        ]
+
+        self.assertEqual(support_pages, order_children[dfs])
+        self.assertTrue(all(page not in order_children[chapter] for page in support_pages))
 
     def test_proof_pattern_imports_are_ordered_and_titled(self) -> None:
         text = LITERATE_TOML.read_text()

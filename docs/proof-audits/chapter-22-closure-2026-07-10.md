@@ -20,11 +20,11 @@ accounting, exercises, or chapter-end problems.
 | 22.1 | `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` | Finite graph model, walks, paths, cycles, reachability, undirected symmetry |
 | 22.2 | `CLRSLean/Chapter_22/Section_22_2_BFS.lean` | Reachability BFS, shortest distances, labelled FIFO state, predecessor tree |
 | 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS.lean` | DFS state, colors, timestamps, parents, global traversal facts |
-| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean` | White-path theorem |
-| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean` | Parenthesis theorem and ancestor/interval characterization |
-| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean` | DFS finish-time facts used by SCCs |
-| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean` | Discovery-state and SCC bridge lemmas |
-| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean` | Unique tree/back/forward/cross classification and timestamp characterizations |
+| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS/WhitePath.lean` | White-path theorem |
+| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS/Intervals.lean` | Parenthesis theorem and ancestor/interval characterization |
+| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS/Bridge.lean` | Discovery-state and SCC bridge lemmas |
+| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean` | DFS finish-time facts used by SCCs |
+| 22.3 | `CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean` | Unique tree/back/forward/cross classification and timestamp characterizations |
 | 22.4 | `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` | Kahn and DFS finish-time topological sorts |
 | 22.5 | `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean` | Comparator congruence for decreasing finish-time sorting |
 | 22.5 | `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` | Kosaraju implementation and SCC-partition correctness |

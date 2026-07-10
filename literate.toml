@@ -133,14 +133,16 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
   "CLRSLean.Chapter_22.Section_22_2_BFS",
   "CLRSLean.Chapter_22.Section_22_3_DFS",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_Intervals",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_SCC",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_Bridge",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification",
   "CLRSLean.Chapter_22.Section_22_4_Topological_Sort",
   "CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr",
   "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components",
+]
+"CLRSLean.Chapter_22.Section_22_3_DFS" = [
+  "CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.Intervals",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.Bridge",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.SCC",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification",
 ]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
@@ -237,20 +239,20 @@ title = "22.2. Breadth-First Search"
 [modules."CLRSLean.Chapter_22.Section_22_3_DFS"]
 title = "22.3. Depth-First Search"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath"]
-title = "22.3. DFS — White-Path Theorem"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath"]
+title = "White-Path Theorem"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_Intervals"]
-title = "22.3. DFS — Intervals and Timestamps"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.Intervals"]
+title = "Intervals and Timestamps"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_SCC"]
-title = "22.3. DFS — SCC Preliminaries"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.Bridge"]
+title = "Discovery-State Bridge"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_Bridge"]
-title = "22.3. DFS — Bridge Lemma"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.SCC"]
+title = "SCC Preliminaries"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification"]
-title = "22.3. DFS — Edge Classification"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification"]
+title = "Edge Classification"
 
 [modules."CLRSLean.Chapter_22.Section_22_4_Topological_Sort"]
 title = "22.4. Topological Sort"
