@@ -32,12 +32,17 @@ Main results:
   rotation-invariant augmentation.
 * Size augmentation instance: {lit}`sizeAug` with {lit}`realAug_sizeAug_eq_length`,
   showing order-statistic size caching is an instance of the same framework.
+* Red-black bridge: {lit}`rb_augmentation_bridge` shows Chapter 13's red-black
+  rotations and root recoloring preserve any rotation-invariant augmentation's
+  value (and the inorder key list), so the augmentation is maintainable through
+  the red-black operations.
 
-Status: {lit}`proved` for the interval-tree augmentation framework and the
-general augmentation theorem.
+Status: {lit}`proved` for the interval-tree augmentation framework, the general
+augmentation theorem, and the red-black rotation bridge.
 
-Deferred refinements: the red-black bridge (connecting augmented rotations to
-{lit}`RedBlackShape`) and monoid-based augmentation.
+Deferred refinements: monoid-based augmentation, and tracking a stored
+augmentation field through the concrete executable {lit}`RBTree.insert`
+(the value-level maintainability is proved).
 -/
 
 namespace CLRS
@@ -757,3 +762,116 @@ theorem intervalSearch?_spec {t : IntervalTree} (hB : IsBST t) (hW : WellAugment
   · exact intervalSearch?_some_overlap hB hW q
 
 end IntervalTree
+
+/-! ## Red-black bridge: maintaining an augmentation through Chapter 13 rotations
+
+CLRS Theorem 14.1 in the red-black setting: a locally-computable augmentation
+can be maintained through the structural primitives used by red-black insertion
+and deletion.  Chapter 13's red-black rotations and root recoloring are exactly
+those primitives.  We show that any rotation-invariant augmentation's *value*
+is preserved by these operations — so a locally-recomputed cached field stays
+correct — reusing the same {lit}`IsRotationInvariant` law as the generic framework.
+
+Note: red-black rotations are shape-*restoring*, not shape-*preserving*: they are
+applied mid-fixup where {lit}`RedBlackShape` is temporarily broken, so we do not
+(and cannot) claim a single rotation preserves {lit}`RedBlackShape`.
+{lit}`RedBlackShape` maintenance across a full insertion is Chapter 13's
+{lit}`RBTree.redBlackShape_insert`; the new content here is that the augmentation
+rides along invariantly under the same rotations and recoloring. -/
+
+namespace RBBridge
+
+open CLRS.Chapter13
+
+/-- Inorder key list of a Chapter 13 red-black tree. -/
+def rbKeys : RBTree → List Nat
+  | .empty => []
+  | .node _ l k r => rbKeys l ++ [k] ++ rbKeys r
+
+/-- Semantic value of an augmentation on a red-black tree, computed from each
+key and its children (independent of node colors). -/
+def rbRealAug {β : Type} [Inhabited β] (aug : Augmentation Nat β) : RBTree → β
+  | .empty => aug.base
+  | .node _ l k r => aug.combine k (rbRealAug aug l) (rbRealAug aug r)
+
+/-- Left rotation preserves the inorder key list. -/
+theorem rbKeys_rotateLeft (t : RBTree) :
+    rbKeys (RBTree.rotateLeft t) = rbKeys t := by
+  cases t with
+  | empty => rfl
+  | node color a x right =>
+      cases right with
+      | empty => rfl
+      | node rc b y c => simp [RBTree.rotateLeft, rbKeys, List.append_assoc]
+
+/-- Right rotation preserves the inorder key list. -/
+theorem rbKeys_rotateRight (t : RBTree) :
+    rbKeys (RBTree.rotateRight t) = rbKeys t := by
+  cases t with
+  | empty => rfl
+  | node color left y c =>
+      cases left with
+      | empty => rfl
+      | node lc a x b => simp [RBTree.rotateRight, rbKeys, List.append_assoc]
+
+/-- Left rotation preserves any rotation-invariant augmentation's value. -/
+theorem rbRealAug_rotateLeft {β : Type} [Inhabited β] (aug : Augmentation Nat β)
+    [IsRotationInvariant aug] (t : RBTree) :
+    rbRealAug aug (RBTree.rotateLeft t) = rbRealAug aug t := by
+  cases t with
+  | empty => rfl
+  | node color a x right =>
+      cases right with
+      | empty => rfl
+      | node rc b y c =>
+          simp only [RBTree.rotateLeft, rbRealAug]
+          rw [IsRotationInvariant.combine_rotate]
+
+/-- Right rotation preserves any rotation-invariant augmentation's value. -/
+theorem rbRealAug_rotateRight {β : Type} [Inhabited β] (aug : Augmentation Nat β)
+    [IsRotationInvariant aug] (t : RBTree) :
+    rbRealAug aug (RBTree.rotateRight t) = rbRealAug aug t := by
+  cases t with
+  | empty => rfl
+  | node color left y c =>
+      cases left with
+      | empty => rfl
+      | node lc a x b =>
+          simp only [RBTree.rotateRight, rbRealAug]
+          rw [IsRotationInvariant.combine_rotate]
+
+/-- Root recoloring preserves the augmentation value. -/
+theorem rbRealAug_repaintRoot {β : Type} [Inhabited β] (aug : Augmentation Nat β)
+    (c : Color) (t : RBTree) :
+    rbRealAug aug (RBTree.repaintRoot c t) = rbRealAug aug t := by
+  cases t <;> simp [RBTree.repaintRoot, rbRealAug]
+
+/-- **Red-black bridge (CLRS Theorem 14.1, red-black primitives).**  Every
+structural primitive used by red-black insertion and deletion — left and right
+rotation and root recoloring — preserves both the inorder key sequence and any
+rotation-invariant augmentation's value.  Hence the augmentation can be
+maintained through the red-black operations by local recomputation, exactly as
+in the generic framework. -/
+theorem rb_augmentation_bridge {β : Type} [Inhabited β] (aug : Augmentation Nat β)
+    [IsRotationInvariant aug] :
+    (∀ t, rbKeys (RBTree.rotateLeft t) = rbKeys t) ∧
+    (∀ t, rbKeys (RBTree.rotateRight t) = rbKeys t) ∧
+    (∀ t, rbRealAug aug (RBTree.rotateLeft t) = rbRealAug aug t) ∧
+    (∀ t, rbRealAug aug (RBTree.rotateRight t) = rbRealAug aug t) ∧
+    (∀ (c : Color) (t), rbRealAug aug (RBTree.repaintRoot c t) = rbRealAug aug t) :=
+  ⟨rbKeys_rotateLeft, rbKeys_rotateRight,
+   rbRealAug_rotateLeft aug, rbRealAug_rotateRight aug,
+   fun c t => rbRealAug_repaintRoot aug c t⟩
+
+/-- The size augmentation's value on a red-black tree is its node count. -/
+theorem rbRealAug_sizeAug_eq_length (t : RBTree) :
+    rbRealAug (sizeAug Nat) t = (rbKeys t).length := by
+  induction t with
+  | empty => rfl
+  | node c l k r ihl ihr =>
+      simp only [rbRealAug, rbKeys]
+      rw [ihl, ihr]
+      simp only [sizeAug, List.length_append, List.length_cons, List.length_nil]
+      omega
+
+end RBBridge

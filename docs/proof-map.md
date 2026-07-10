@@ -1107,13 +1107,17 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter14.AugmentedTree.mem_keys_insert`
   - `CLRS.Chapter14.AugmentedTree.augmentation_theorem` (CLRS Theorem 14.1)
   - `CLRS.Chapter14.realAug_sizeAug_eq_length`
+  - `CLRS.Chapter14.RBBridge.rb_augmentation_bridge` (red-black rotation bridge)
+  - `CLRS.Chapter14.RBBridge.rbRealAug_sizeAug_eq_length`
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
 - Proof pattern: a generic `Augmentation`/`AugmentedTree` framework with an
   `IsRotationInvariant` law; rotations, recomputation, and BST insertion all
   preserve `WellAugmented` and the semantic augmentation.  Instantiated to both
-  interval trees (max-high) and order-statistic trees (subtree size).
-- Current gap: the red-black bridge (connecting the generic augmented rotations
-  to Chapter 13's `RedBlackShape`) is a follow-up.
+  interval trees (max-high) and order-statistic trees (subtree size), and
+  bridged to Chapter 13's red-black rotations, whose rotations and recoloring
+  preserve any rotation-invariant augmentation's value.
+- Current gap: tracking a stored augmentation field through the concrete
+  executable `RBTree.insert` (the value-level maintainability is proved).
 
 The `augmentation_theorem` packages CLRS Theorem 14.1's maintainability claim
 generically: any locally-computable, rotation-invariant augmentation is
