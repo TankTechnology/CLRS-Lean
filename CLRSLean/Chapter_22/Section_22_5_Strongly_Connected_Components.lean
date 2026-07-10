@@ -714,6 +714,33 @@ theorem maxFinish_eq_of_white_scc_visit_source {fuel : Nat} {s : DFSState V}
     exact le_of_lt (finish_lt_source_in_full_dfs_of_whiteReachable_visit G
       (hCsub hr) hr_white hbf hfuel hv_white hwr hvr hpres)
 
+/-- If two distinct SCCs are white in a discovery state and there is an edge from
+the first to the second, then a local DFS visit from the first SCC finishes each
+target SCC vertex before the source. -/
+theorem finish_lt_source_of_white_scc_edge_visit {fuel : Nat} {s : DFSState V}
+    {C D : Set V} {r d : V} (hC : G.IsSCC C) (hD : G.IsSCC D)
+    (hne : C ≠ D) (hedge : ∃ u ∈ C, ∃ v ∈ D, G.Adj u v)
+    (hr : r ∈ C) (hd : d ∈ D)
+    (hwhite_C : ∀ v ∈ C, s.color v = Color.white)
+    (hwhite_D : ∀ v ∈ D, s.color v = Color.white)
+    (hbf : ∀ w, s.color w = Color.black → finishTime s w < s.time)
+    (hfuel : fuel ≥ (whiteReachableSet G s r).card + 1)
+    (hpres : ∀ w, (dfsVisit G fuel r s).color w = Color.black →
+      finishTime (G.dfs) w = finishTime (dfsVisit G fuel r s) w) :
+    finishTime (G.dfs) d < finishTime (G.dfs) r := by
+  have hCsub : C ⊆ G.vertices := IsSCC.subset_vertices G hC
+  have hr_white : s.color r = Color.white := hwhite_C r hr
+  have hd_white : s.color d = Color.white := hwhite_D d hd
+  have hne_dr : d ≠ r := by
+    intro heq
+    subst d
+    apply hne
+    exact IsSCC_eq_of_nonempty_inter G hC hD ⟨r, hr, hd⟩
+  have hwr : WhiteReachable G s r d :=
+    WhiteReachable.across_scc_edge G hC hD hr hd hwhite_C hwhite_D hedge
+  exact finish_lt_source_in_full_dfs_of_whiteReachable_visit G (hCsub hr)
+    hr_white hbf hfuel hd_white hwr hne_dr hpres
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
@@ -760,18 +787,11 @@ theorem scc_finish_time_order {C D : Set V}
       omega
     have hwhite_D : ∀ v ∈ D, s.color v = Color.white :=
       set_white_at_discovery_state_of_min_discovery G hdisc_eq h_nonwhite hdisc_from_rC_D
-    -- In particular, the max-finish vertex d ∈ D is white in s
-    have hwhite_d : s.color d = Color.white := hwhite_D d hdD
-    have hne_d_rC : d ≠ rC := by
-      intro heq; subst d; apply hne
-      exact IsSCC_eq_of_nonempty_inter G hC hD ⟨rC, hrC_mem, hdD⟩
-    have h_wr_rC_d : WhiteReachable G s rC d :=
-      WhiteReachable.across_scc_edge G hC hD hrC_mem hdD hwhite_C hwhite_D hedge
     have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
       have h_finish_d_lt_rC :
           finishTime (G.dfs) d < finishTime (G.dfs) rC :=
-        finish_lt_source_in_full_dfs_of_whiteReachable_visit G (hCsub hrC_mem)
-          hs_white h_bf_s h_fuel hwhite_d h_wr_rC_d hne_d_rC h_f_pres
+        finish_lt_source_of_white_scc_edge_visit G hC hD hne hedge hrC_mem hdD
+          hwhite_C hwhite_D h_bf_s h_fuel h_f_pres
       calc
         finishTime (G.dfs) d < finishTime (G.dfs) rC := h_finish_d_lt_rC
         _ ≤ finishTime (G.dfs) c := by
