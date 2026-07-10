@@ -5,6 +5,7 @@ Check that the CLRS-Lean website structure is consistent.
 This script verifies:
 - every represented chapter and section has a module doc;
 - literate.toml lists every chapter/section in [order_children];
+- every [order_children] relationship matches the Lean module hierarchy;
 - literate.toml has a [modules] title entry for every chapter/section;
 - literate.toml does not list files that do not exist;
 - CLRSLean.lean imports every represented chapter guide.
@@ -72,6 +73,23 @@ def module_file_exists(module: str) -> bool:
     return (CLRSLEAN / rel).is_file()
 
 
+def ordered_descendants(order_children: dict[str, list[str]], parent: str) -> list[str]:
+    """Flatten the navigation subtree rooted at parent in reading order."""
+    descendants = []
+    expanded = set()
+
+    def visit(current: str) -> None:
+        for child in order_children.get(current, []):
+            if child in expanded:
+                continue
+            expanded.add(child)
+            descendants.append(child)
+            visit(child)
+
+    visit(parent)
+    return descendants
+
+
 def main() -> int:
     errors = []
     warnings = []
@@ -121,15 +139,13 @@ def main() -> int:
             continue
 
         chapter_module = f"CLRSLean.{ch_dir.name}"
-        expected_sections = order_children.get(chapter_module, [])
+        expected_sections = ordered_descendants(order_children, chapter_module)
 
-        section_files = sorted(
-            f for f in ch_dir.iterdir()
-            if f.is_file() and f.suffix == ".lean"
-        )
+        section_files = sorted(ch_dir.rglob("*.lean"))
 
         for sec_file in section_files:
-            sec_module = f"CLRSLean.{ch_dir.name}.{sec_file.stem}"
+            sec_rel = sec_file.relative_to(ch_dir).with_suffix("")
+            sec_module = f"CLRSLean.{ch_dir.name}." + ".".join(sec_rel.parts)
             sec_path = sec_file.relative_to(ROOT).as_posix()
 
             if not module_doc_present(sec_file):
@@ -137,7 +153,8 @@ def main() -> int:
 
             if sec_module not in expected_sections:
                 errors.append(
-                    f"literate.toml [order_children] '{chapter_module}' does not list {sec_module}"
+                    f"literate.toml navigation tree under '{chapter_module}' does not list "
+                    f"{sec_module}"
                 )
             if sec_module not in modules:
                 errors.append(
@@ -149,6 +166,12 @@ def main() -> int:
     # ---- check that every ordered module actually exists ----
     for parent, children in order_children.items():
         for child in children:
+            child_parent, _, _ = child.rpartition(".")
+            if child_parent != parent:
+                errors.append(
+                    f"literate.toml lists {child} under {parent}, but its module parent is "
+                    f"{child_parent or '<root>'}"
+                )
             if not module_file_exists(child):
                 errors.append(f"literate.toml lists non-existent module: {child}")
 
@@ -187,7 +210,7 @@ def main() -> int:
     print("Site structure is consistent.")
     print(f"  Chapter guide pages: {len(chapter_guides)}")
     print(f"  Chapters with section files: {len(represented_chapters)}")
-    print(f"  Section files: {sum(1 for d in chapter_dirs for f in d.iterdir() if f.suffix == '.lean')}")
+    print(f"  Section files: {sum(1 for d in chapter_dirs for _ in d.rglob('*.lean'))}")
     print(f"  literate.toml modules: {len(modules)}")
     return 0
 
