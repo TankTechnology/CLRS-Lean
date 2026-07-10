@@ -90,11 +90,11 @@ CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean
 CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean
 CLRSLean/Chapter_22/Section_22_2_BFS.lean
 CLRSLean/Chapter_22/Section_22_3_DFS.lean
-CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean
-CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean
-CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean
-CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean
-CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean
+CLRSLean/Chapter_22/Section_22_3_DFS/WhitePath.lean
+CLRSLean/Chapter_22/Section_22_3_DFS/Intervals.lean
+CLRSLean/Chapter_22/Section_22_3_DFS/Bridge.lean
+CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean
+CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean
 CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean
 CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean
 CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean

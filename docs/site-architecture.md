@@ -48,6 +48,14 @@ Lean literate source
 `literate.toml` controls the sidebar order and page titles.  The public website
 should not depend on a hand-written `docs/site/index.html`.
 
+Source-module boundaries do not have to become peer entries in the reader
+navigation.  When one CLRS section is split into supporting proof modules, keep
+the files independently importable, place them under the main section's module
+path (for example, `Section_xx_y/Helper.lean`), and list them under that parent
+in `[order_children]`.  Child-page titles should name the proof layer without
+repeating the parent section number and title.  The module hierarchy creates
+the sidebar nesting; `[order_children]` only controls sibling order.
+
 Large generated proof pages are post-processed before deployment.  The optimizer
 keeps anchors, rendered Lean code, search assets, and copy buttons, while
 removing tactic-state DOM and hover metadata that make browser parsing slow on

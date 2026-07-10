@@ -1947,11 +1947,11 @@ track.
 
 - Lean sources:
   - `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/WhitePath.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/Intervals.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/Bridge.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean`
 - Status: `proved`
 - DFS and white-path layer:
   - `CLRS.Chapter22.Graph.DFSState`

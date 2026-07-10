@@ -1,5 +1,5 @@
 import Mathlib
-import CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+import CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 
 /-! # Section 22.5 - Strongly Connected Components
 
