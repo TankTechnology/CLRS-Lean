@@ -19,6 +19,7 @@ import CLRSLean.Chapter_17
 import CLRSLean.Chapter_18
 import CLRSLean.Chapter_19
 import CLRSLean.Chapter_20
+import CLRSLean.Chapter_21
 import CLRSLean.Chapter_22
 import CLRSLean.Chapter_23
 import CLRSLean.Progress
@@ -79,8 +80,9 @@ honestly partial.  In particular, Chapters 3 and 4 contain the asymptotic and
 Master-theorem infrastructure; Chapters 7, 9, and 11 expose the remaining
 probability-model gap; Chapters 12-15 cover functional tree and dynamic-
 programming interfaces; Chapters 17-20 cover advanced data structures at
-mathematical or size-level specifications; and Chapter 23 contains the current
-MST cut/exchange/Kruskal layer.
+mathematical or size-level specifications; Chapter 21 supplies disjoint-set
+semantics, executable union-find correctness, and its Kruskal bridge; and
+Chapter 23 contains the current MST cut/exchange/Kruskal layer.
 
 Use the generated dashboard for counts.  Use chapter pages and the proof map
 for exact theorem boundaries.

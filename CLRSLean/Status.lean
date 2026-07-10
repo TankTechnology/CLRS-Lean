@@ -58,15 +58,21 @@ the detailed maintainer ledger.
   Boas trees have substantial mathematical or size-level specifications.
   Pointer/page/cluster representations and sharper asymptotic implementation
   theorems remain.
+* **Chapter 21:** abstract partition semantics, weighted linked-list
+  correctness and rewrite bounds, executable Batteries union-find correctness,
+  rank/path bounds, and the Chapter 23 cycle-test bridge are proved.  A concrete
+  step-counting instantiation of the inverse-Ackermann potential certificate
+  remains.
 * **Chapter 23:** cut-property, exchange-certificate, and Kruskal theorem layers
-  exist.  Automatic exchange-path extraction, a fully local recursive wrapper,
+  exist, now with an extensional union-find cycle-test refinement.  Automatic
+  exchange-path extraction, a stateful scan, a fully local recursive wrapper,
   and Prim remain.
 
 ## Not Represented On Main
 
-Chapter 21 and Chapters 24-35 do not currently have represented section modules
-on {lit}`main`.  Open pull requests are not counted until their scope is
-reviewed, merged, and added to the progress source.
+Chapters 24-35 do not currently have represented section modules on
+{lit}`main`.  Open pull requests are not counted until their scope is reviewed,
+merged, and added to the progress source.
 
 ## Sealed Chapter 22 Boundary
 
@@ -88,7 +94,7 @@ milestone:
    randomized theorem end-to-end, starting with Chapter 7 comparison
    probability and total expectation.
 2. Complete Chapter 23's automatic exchange extraction and Prim interface;
-   treat executable union-find as a separate implementation contribution.
+   refine the new union-find bridge to a stateful costed Kruskal scan.
 3. Prove red-black deletion/fixup and the logarithmic-height theorem, then
    connect balancing to Chapter 14 augmentation.
 4. Add the concrete cost or imperative refinements that connect existing

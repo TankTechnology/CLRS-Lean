@@ -87,6 +87,10 @@ CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean
 CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean
 CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean
 CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean
+CLRSLean/Chapter_21/Section_21_1_Disjoint_Set_Operations.lean
+CLRSLean/Chapter_21/Section_21_2_Linked_List_Representation.lean
+CLRSLean/Chapter_21/Section_21_3_Disjoint_Set_Forests.lean
+CLRSLean/Chapter_21/Section_21_4_Analysis.lean
 CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean
 CLRSLean/Chapter_22/Section_22_2_BFS.lean
 CLRSLean/Chapter_22/Section_22_3_DFS.lean
@@ -100,6 +104,7 @@ CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean
 CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean
 CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
+CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/UnionFindBridge.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.

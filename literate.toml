@@ -30,6 +30,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_18",
   "CLRSLean.Chapter_19",
   "CLRSLean.Chapter_20",
+  "CLRSLean.Chapter_21",
   "CLRSLean.Chapter_22",
   "CLRSLean.Chapter_23",
   "CLRSLean.Progress",
@@ -133,6 +134,12 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_20.Section_20_1_VEB_Universe",
   "CLRSLean.Chapter_20.Section_20_2_VEB_Tree",
 ]
+"CLRSLean.Chapter_21" = [
+  "CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations",
+  "CLRSLean.Chapter_21.Section_21_2_Linked_List_Representation",
+  "CLRSLean.Chapter_21.Section_21_3_Disjoint_Set_Forests",
+  "CLRSLean.Chapter_21.Section_21_4_Analysis",
+]
 "CLRSLean.Chapter_22" = [
   "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
   "CLRSLean.Chapter_22.Section_22_2_BFS",
@@ -153,6 +160,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
+]
+"CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim" = [
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -232,6 +242,9 @@ title = "Chapter 19. Fibonacci Heaps"
 
 [modules."CLRSLean.Chapter_20"]
 title = "Chapter 20. van Emde Boas Trees"
+
+[modules."CLRSLean.Chapter_21"]
+title = "Chapter 21. Data Structures for Disjoint Sets"
 
 [modules."CLRSLean.Chapter_22"]
 title = "Chapter 22. Elementary Graph Algorithms"
@@ -428,8 +441,23 @@ title = "20.1. vEB Universe Decomposition"
 [modules."CLRSLean.Chapter_20.Section_20_2_VEB_Tree"]
 title = "20.2. vEB Tree Specification"
 
+[modules."CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations"]
+title = "21.1. Disjoint-Set Operations"
+
+[modules."CLRSLean.Chapter_21.Section_21_2_Linked_List_Representation"]
+title = "21.2. Linked-List Representation"
+
+[modules."CLRSLean.Chapter_21.Section_21_3_Disjoint_Set_Forests"]
+title = "21.3. Disjoint-Set Forests"
+
+[modules."CLRSLean.Chapter_21.Section_21_4_Analysis"]
+title = "21.4. Union-by-Rank and Path-Compression Analysis"
+
 [modules."CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees"]
 title = "23.1. Growing a Minimum Spanning Tree"
 
 [modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim"]
 title = "23.2. Kruskal and Prim"
+
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge"]
+title = "Union-Find Refinement"
