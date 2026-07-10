@@ -11,10 +11,9 @@
 
 已经动工的章节：2–20、22、23。  
 尚未开始的章节：21（并查集）、24（单源最短路）、25（全源最短路）、26（最大流）。
-Chapter 22 目前部分完成：22.1 图模型、22.2 BFS 可达性正确性（soundness + completeness）、
-22.3 DFS 基本不变量、白路径定理与时间区间括号定理、22.4 Kahn 拓扑排序、22.5 Kosaraju SCC
-完整正确性已完成；DFS 祖先刻画与边分类也已闭合，剩余主要目标是 BFS 最短路性质和 CLRS 风格
-DFS 拓扑排序。
+Chapter 22 的主要函数正确性已完成：22.1 图模型、22.2 BFS 可达性、最短距离与 predecessor tree、
+22.3 DFS 基本不变量、白路径定理与时间区间括号定理、22.4 Kahn 与 DFS 完成时间拓扑排序、22.5 Kosaraju SCC
+完整正确性已完成；DFS 祖先刻画、边分类与完成时间拓扑排序也已闭合。
 
 对于尚未开始的章节，采用“规范层 → 实现层 → 证明层”的三层打法：
 
@@ -242,7 +241,9 @@ lake build CLRSLean
 
 - 22.1 有限图模型：顶点集 `V`、邻接函数、walk/path/cycle、reachable、connected component、无向图对称性。
 - 22.2 BFS：函数式队列 BFS，证明 `bfs_sound`（访问到的顶点均从源点可达）和
-  `bfs_complete`（所有可达顶点都会被访问）。
+  `bfs_complete`（所有可达顶点都会被访问）；实现带 distance/parent 标签的 FIFO 状态，
+  证明 `bfsState_distance_eq_some_iff`、`bfsState_isBFSPredecessorTree` 与组合定理
+  `bfsState_correct`。
 - 22.3 DFS：函数式 fuel 模型，白/灰/黑颜色、发现/完成时间、父指针；证明基本颜色不变量
   `dfsVisit_blackens_u`、`dfsVisit_preserves_black`、`dfsVisit_no_new_gray`，以及全局结论
   `dfs_all_black`（`dfs` 后所有顶点为黑色）。
@@ -258,10 +259,6 @@ lake build CLRSLean
   严格递减，并证明按完成时间降序排列得到合法拓扑序。
 - 22.5 Kosaraju SCC：证明 `scc_finish_time_order`、`scc_finish_order`、
   `kosarajuComponent_scc_core` 与最终 `kosarajuComponents_isSCCPartition`。
-
-**仍待完成：**
-
-- 22.2 无权最短距离与 predecessor tree 正确性。
 
 **已完成（Kahn 与 DFS 完成时间版本）：**
 
@@ -282,7 +279,7 @@ lake build CLRSLean
 **交付文件（状态）：**
 
 - `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` ✅
-- `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（soundness + completeness; shortest-path distances remain）
+- `CLRSLean/Chapter_22/Section_22_2_BFS.lean` ✅（reachability + shortest distances + predecessor tree）
 - `CLRSLean/Chapter_22/Section_22_3_DFS*.lean` ✅（white-path/parenthesis/ancestor characterization/edge classification/SCC bridge complete）
 - `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` ✅
 - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` ✅（Kosaraju correctness complete）
@@ -353,8 +350,8 @@ lake build CLRSLean
 
 ### 当前推荐立即启动的 Sprint
 
-**Sprint 1（Chapter 22 收尾）**。下一步集中完成 BFS 最短路性质；括号定理、祖先刻画、
-边分类、DFS 完成时间版拓扑排序与 SCC 主证明已经闭合。
+**Sprint 2（Chapter 21 并查集）**。Chapter 22 的 BFS/DFS/拓扑排序/SCC 主正确性已经闭合；
+下一步可为 Chapter 23 Kruskal 补齐可执行 union-find 基础。
 
 ---
 
@@ -372,6 +369,7 @@ lake build CLRSLean
 - **2026-07-10**：完成 `intervalNestedInside_dfs_iff_ancestor`，把严格时间区间嵌套与最终 DFS parent forest 祖先关系双向连接；Section 22.3 下一步只剩边分类。
 - **2026-07-10**：完成 DFS tree/back/forward/cross 唯一分类及 CLRS 时间戳刻画；Section 22.3 的教材主线闭合，后续转向 DFS 完成时间版拓扑排序。
 - **2026-07-10**：完成 CLRS 风格的 DFS 完成时间版拓扑排序；证明 DAG 边上完成时间严格递减，并完成 `dfsTopologicalSort_isTopologicalOrder`。
+- **2026-07-10**：完成带 distance/parent 标签的 CLRS FIFO BFS；证明无权最短距离 iff 规格、predecessor tree 覆盖、父边层差、根路径与无环性，Chapter 22 主正确性闭合。
 
 ---
 

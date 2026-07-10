@@ -1,4 +1,26 @@
+import CLRSLean.Chapter_22.Section_22_2_BFS
 import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
+
+#check CLRS.Chapter22.Graph.ReachableIn
+#check CLRS.Chapter22.Graph.IsShortestDistance
+#check CLRS.Chapter22.Graph.BFSState
+#check CLRS.Chapter22.Graph.bfsState
+#check CLRS.Chapter22.Graph.BFSDistanceInvariant
+#check CLRS.Chapter22.Graph.bfsState_distanceInvariant
+#check CLRS.Chapter22.Graph.BFSParentPath
+#check CLRS.Chapter22.Graph.bfsState_distance_reachableIn
+#check CLRS.Chapter22.Graph.bfsState_distance_le_of_reachableIn
+#check CLRS.Chapter22.Graph.bfsState_distance_isShortest
+#check CLRS.Chapter22.Graph.bfsState_distance_defined_iff_reachable
+#check CLRS.Chapter22.Graph.bfsState_distance_eq_some_iff
+#check CLRS.Chapter22.Graph.bfsState_parent_spec
+#check CLRS.Chapter22.Graph.bfsState_parent_defined_iff
+#check CLRS.Chapter22.Graph.bfsState_parentPath
+#check CLRS.Chapter22.Graph.bfsState_parent_acyclic
+#check CLRS.Chapter22.Graph.IsBFSPredecessorTree
+#check CLRS.Chapter22.Graph.bfsState_isBFSPredecessorTree
+#check CLRS.Chapter22.Graph.IsCorrectBFSState
+#check CLRS.Chapter22.Graph.bfsState_correct
 
 #check CLRS.Chapter22.Graph.IsDFSTreeEdge
 #check CLRS.Chapter22.Graph.IsDFSBackEdge

@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 22.
-* Tracked reader-facing theorem entries: 870.
-* Proved tracked theorem entries: 870.
-* Remaining core theorem groups: 47.
+* Tracked reader-facing theorem entries: 871.
+* Proved tracked theorem entries: 871.
+* Remaining core theorem groups: 46.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -21,9 +21,9 @@ are not yet represented or not yet complete.
 ## Status Counts
 
 * {lit}`main-proof-complete`: 2 chapters.
-* {lit}`main-proof-complete-for-correctness`: 1 chapter.
+* {lit}`main-proof-complete-for-correctness`: 2 chapters.
 * {lit}`selected-section-complete`: 3 chapters.
-* {lit}`partial`: 15 chapters.
+* {lit}`partial`: 14 chapters.
 * {lit}`not-started`: 13 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -53,7 +53,7 @@ Ch  Chapter                                                     Status          
 19  19. Fibonacci Heaps                                         partial                              19.1                               97        1
 20  20. van Emde Boas Trees                                     partial                              20.1;20.2                         130        1
 21  21. Data Structures for Disjoint Sets                       not-started                          not represented                     0        1
-22  22. Elementary Graph Algorithms                             partial                              22.1;22.2;22.3;22.4;22.5           46        1
+22  22. Elementary Graph Algorithms                             main-proof-complete-for-correctness  22.1;22.2;22.3;22.4;22.5           47        0
 23  23. Minimum Spanning Trees                                  partial                              23.1;23.2                          31        3
 24  24. Single-Source Shortest Paths                            not-started                          not represented                     0        1
 25  25. All-Pairs Shortest Paths                                not-started                          not represented                     0        1

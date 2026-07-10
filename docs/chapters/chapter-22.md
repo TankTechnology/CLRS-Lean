@@ -24,21 +24,29 @@ graph symmetry.
 ## Section 22.2 - Breadth-First Search
 
 - Lean source: `CLRSLean/Chapter_22/Section_22_2_BFS.lean`
-- Status: `partial`
+- Status: `proved`
 - Main declarations:
   `CLRS.Chapter22.Graph.bfsAux`,
   `CLRS.Chapter22.Graph.bfs`,
   `CLRS.Chapter22.Graph.BFSInvariant`,
   `CLRS.Chapter22.Graph.bfsInvariant_step`,
   `CLRS.Chapter22.Graph.bfsAux_sound`,
-  `CLRS.Chapter22.Graph.bfs_sound`, and
-  `CLRS.Chapter22.Graph.bfs_complete`
+  `CLRS.Chapter22.Graph.bfs_sound`,
+  `CLRS.Chapter22.Graph.bfs_complete`,
+  `CLRS.Chapter22.Graph.bfsState`,
+  `CLRS.Chapter22.Graph.bfsState_distance_eq_some_iff`,
+  `CLRS.Chapter22.Graph.bfsState_isBFSPredecessorTree`, and
+  `CLRS.Chapter22.Graph.bfsState_correct`
 
 A fuelled functional BFS is defined on the Section 22.1 graph model, and
 `bfs_sound` proves that every vertex reported as visited by BFS is reachable from
 the source.  Conversely, `bfs_complete` proves that every reachable vertex is
-reported.  Unweighted shortest-path distances and predecessor-tree correctness
-remain open.
+reported.  The CLRS-labelled FIFO state additionally records distance and
+parent functions.  `bfsState_distance_eq_some_iff` characterizes every label as
+the exact unweighted shortest-path distance.  The predecessor-tree theorem
+proves that parents are defined exactly on reachable non-source vertices, are
+graph edges with a unit distance increment, recover a root path of the recorded
+length, and form an acyclic relation.
 
 ## Section 22.3 - Depth-First Search
 
@@ -137,5 +145,4 @@ components.
 
 ## Remaining Chapter Work
 
-- BFS unweighted shortest-path distances and predecessor-tree correctness;
 - explicit algorithm-cost models for the functional implementations.
