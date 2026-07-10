@@ -826,16 +826,12 @@ theorem scc_finish_time_order {C D : Set V}
       sets_white_at_earlier_discovery_state G hdisc_eq h_nonwhite hdisc_min_C hdisc_min_D hd_lt
     have hwhite_C : ∀ v ∈ C, s.color v = Color.white := hsets_white.1
     have hwhite_D : ∀ v ∈ D, s.color v = Color.white := hsets_white.2
-    have h_goal : finishTime (G.dfs) d < finishTime (G.dfs) c := by
-      have h_finish_d_lt_rC :
-          finishTime (G.dfs) d < finishTime (G.dfs) rC :=
+    calc
+      finishTime (G.dfs) d < finishTime (G.dfs) rC :=
         finish_lt_source_of_white_scc_edge_visit G hC hD hne hedge hrC_mem hdD
           hwhite_C hwhite_D h_bf_s h_fuel h_f_pres
-      calc
-        finishTime (G.dfs) d < finishTime (G.dfs) rC := h_finish_d_lt_rC
-        _ ≤ finishTime (G.dfs) c :=
-          finish_le_maxFinish_witness G hCsub hrC_mem hc_max
-    omega
+      _ ≤ finishTime (G.dfs) c :=
+        finish_le_maxFinish_witness G hCsub hrC_mem hc_max
   · -- Case 2: rD discovered first (or same time), i.e., d[rD] ≤ d[rC].
     -- Since D cannot reach C, rC is not in rD's DFS tree, so rD finishes before
     -- rC is discovered: f[rD] < d[rC].
@@ -868,11 +864,12 @@ theorem scc_finish_time_order {C D : Set V}
       maxFinish_eq_of_white_scc_visit_source G hD hrD_mem hwhite_D hs_white h_bf_s h_fuel
         h_f_pres
     rw [← hd_max, h_maxFinish_D_eq]
-    have h_rC_max : finishTime (G.dfs) rC ≤ finishTime (G.dfs) c := by
-      exact finish_le_maxFinish_witness G hCsub hrC_mem hc_max
     have h_disc_lt_fin : discoveryTime (G.dfs) rC < finishTime (G.dfs) rC :=
       dfs_discovery_lt_finish G (hCsub hrC_mem)
-    omega
+    calc
+      finishTime (G.dfs) rD < discoveryTime (G.dfs) rC := h_finish_lt_disc
+      _ < finishTime (G.dfs) rC := h_disc_lt_fin
+      _ ≤ finishTime (G.dfs) c := finish_le_maxFinish_witness G hCsub hrC_mem hc_max
 
 /-- If {lit}`r` is maximal among the currently white vertices and SCCs are
 monochrome, then a white predecessor of a vertex in {lit}`r`'s SCC is also in
