@@ -690,6 +690,30 @@ theorem finish_lt_source_in_full_dfs_of_whiteReachable_visit {fuel : Nat} {s : D
   have h_f_u := hpres u hblack_u
   simpa [h_f_v, h_f_u] using hfinish_lt
 
+/-- If an SCC is white in a discovery state, and a local DFS visit from a vertex
+in that SCC has finish times preserved into the full DFS, then that source
+attains the SCC's maximum full-DFS finish time. -/
+theorem maxFinish_eq_of_white_scc_visit_source {fuel : Nat} {s : DFSState V}
+    {C : Set V} {r : V} (hC : G.IsSCC C) (hr : r ∈ C)
+    (hwhite_C : ∀ v ∈ C, s.color v = Color.white)
+    (hr_white : s.color r = Color.white)
+    (hbf : ∀ w, s.color w = Color.black → finishTime s w < s.time)
+    (hfuel : fuel ≥ (whiteReachableSet G s r).card + 1)
+    (hpres : ∀ w, (dfsVisit G fuel r s).color w = Color.black →
+      finishTime (G.dfs) w = finishTime (dfsVisit G fuel r s) w) :
+    maxFinish G (G.dfs) C = finishTime (G.dfs) r := by
+  have hCsub : C ⊆ G.vertices := IsSCC.subset_vertices G hC
+  apply maxFinish_eq_of_forall_finish_le G (s := G.dfs) hCsub hr
+  intro v hv
+  by_cases hvr : v = r
+  · subst v
+    rfl
+  · have hv_white : s.color v = Color.white := hwhite_C v hv
+    have hwr : WhiteReachable G s r v :=
+      WhiteReachable.of_isSCC G hC hr hv hwhite_C
+    exact le_of_lt (finish_lt_source_in_full_dfs_of_whiteReachable_visit G
+      (hCsub hr) hr_white hbf hfuel hv_white hwr hvr hpres)
+
 open Classical in
 /-- Core finish-time ordering of distinct SCCs (CLRS Lemma 22.14).
 
@@ -784,22 +808,10 @@ theorem scc_finish_time_order {C D : Set V}
         rw [G.dfs_all_black (hCsub hrC_mem)]; decide
       exact finish_before_discovery_of_visit_output_white G hs_white (by omega)
         h_f_G_rD h_rC_white_out h_later h_nonwhite_final
-    -- All vertices in D finish before rD (white-path, same as Case 1)
-    have h_finish_D_lt_rD : ∀ v ∈ D, v ≠ rD → finishTime (G.dfs) v < finishTime (G.dfs) rD := by
-      intro v hv hne
-      have hwhite_v : s.color v = Color.white := hwhite_D v hv
-      have h_wr : WhiteReachable G s rD v :=
-        WhiteReachable.of_isSCC G hD hrD_mem hv hwhite_D
-      exact finish_lt_source_in_full_dfs_of_whiteReachable_visit G (hDsub hrD_mem)
-        hs_white h_bf_s h_fuel hwhite_v h_wr hne h_f_pres
     -- maxFinish(D) = f[rD]
     have h_maxFinish_D_eq : maxFinish G (G.dfs) D = finishTime (G.dfs) rD :=
-      maxFinish_eq_of_forall_finish_le G (s := G.dfs) hDsub hrD_mem (by
-        intro v hv
-        by_cases h_v_rD : v = rD
-        · subst v
-          rfl
-        · exact le_of_lt (h_finish_D_lt_rD v hv h_v_rD))
+      maxFinish_eq_of_white_scc_visit_source G hD hrD_mem hwhite_D hs_white h_bf_s h_fuel
+        h_f_pres
     rw [← hd_max, h_maxFinish_D_eq]
     have h_rC_max : finishTime (G.dfs) rC ≤ finishTime (G.dfs) c := by
       have h := finish_le_maxFinish G (s := G.dfs) (C := C) hCsub hrC_mem
