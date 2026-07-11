@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.Chapter_13.Section_13_1_Red_Black_Trees
 
 /-!
 # CLRS Section 14.1 - Order-statistic trees
@@ -53,11 +54,37 @@ Main results:
   rotate preserves the augmented selector's agreement with the original ideal
   rank selector.
 
+## Size augmentation through executable red-black insertion
+
+The second half of this file closes the "stored-field refinement" gap by
+threading the size augmentation through an *executable* red-black insertion.
+The augmented tree {lit}`OSRBTree` caches both a node colour and a subtree size.
+Its Okasaki-style {lit}`balanceLeft`/{lit}`balanceRight`/{lit}`insertFixup`/
+{lit}`insert` mirror the Chapter 13 red-black operations node-for-node, but every
+reconstructed node is built by the smart constructor {lit}`mk`, which recomputes
+the cached size from its children.  Two bridges connect this to the existing
+Chapter 13 development and to the ideal order-statistic semantics:
+
+* Theorem {lit}`OSRBTree.wellSized_insert`: **the augmentation invariant survives
+  through balancing** — inserting into a well-sized tree yields a well-sized
+  tree, so every cached size field is correct after the red-black rebalancing
+  (CLRS 14.1 maintained through {lit}`RB-INSERT`).
+* Theorem {lit}`OSRBTree.osSelect?_insert_eq_rankSelect?`: after insertion the
+  augmented (cached-size) selector still agrees with the ideal recomputed-size
+  rank selector.
+* Theorem {lit}`OSRBTree.storedSize_insert`: the cached root size is correct
+  after insertion.
+* Theorem {lit}`OSRBTree.toRB_insert`: erasing the size field commutes with
+  insertion — the augmented insert refines the *executable* Chapter 13
+  {lit}`RBTree.insert` exactly.  Through this refinement, Chapter 13's shape,
+  membership, and height theorems transfer to the augmented tree
+  (Theorems {lit}`OSRBTree.redBlackShape_toRB_insert` and
+  {lit}`OSRBTree.mem_keys_insert`).
+
 Current gaps:
 
-* The size-preserving and rank-preserving rotation layer is functional; it is
-  not yet connected to the Chapter 13 red-black insertion/deletion fixup
-  procedures.
+* Deletion is not yet threaded through the augmentation (it depends on the
+  Chapter 13 executable {lit}`RB-DELETE` loop, which is still local-case only).
 * Interval trees and the general augmentation theorem remain future targets.
 -/
 
@@ -495,6 +522,371 @@ theorem osSelect?_rotateRight_recomputeSizes_eq_rankSelect? (t : OSTree) (i : Na
     _ = rankSelect? t i := rankSelect?_recomputeSizes t i
 
 end OSTree
+
+/-! ## Size augmentation through executable red-black insertion
+
+This section threads the size augmentation through an executable red-black
+insertion.  The augmented tree {lit}`OSRBTree` caches both a node colour (reusing
+{lit}`CLRS.Chapter13.Color`) and a subtree size.  The red-black operations are the
+Okasaki-style ones from Chapter 13, but every reconstructed node is built by the
+smart constructor {lit}`OSRBTree.mk`, which recomputes the cached size from its
+children.  The headline result {lit}`OSRBTree.wellSized_insert` shows that the
+size augmentation invariant survives through balancing.
+-/
+
+open Chapter13 (Color RBTree)
+
+/--
+An augmented red-black tree: every internal node caches a colour and a subtree
+size.  This is the red-black refinement of {lit}`OSTree`, adding the colour
+field needed to run the Chapter 13 insertion balancer.
+-/
+inductive OSRBTree where
+  | empty : OSRBTree
+  | node : Color → OSRBTree → Nat → Nat → OSRBTree → OSRBTree
+  deriving Repr, DecidableEq
+
+namespace OSRBTree
+
+/-- Inorder traversal of the keys, ignoring colours and cached sizes. -/
+def keys : OSRBTree → List Nat
+  | empty => []
+  | node _ left key _ right => keys left ++ [key] ++ keys right
+
+/-- The cached size stored at the root.  Empty trees have cached size zero. -/
+def storedSize : OSRBTree → Nat
+  | empty => 0
+  | node _ _ _ size _ => size
+
+/-- The mathematical size obtained by recursively counting nodes. -/
+def realSize : OSRBTree → Nat
+  | empty => 0
+  | node _ left _ _ right => realSize left + realSize right + 1
+
+/-- Every cached size field agrees with the mathematical subtree size. -/
+def WellSized : OSRBTree → Prop
+  | empty => True
+  | node _ left _ size right =>
+      WellSized left ∧ WellSized right ∧
+        size = realSize left + realSize right + 1
+
+/--
+Smart constructor that recomputes the cached size from the children.  Every
+node produced by the red-black operations below is built with {lit}`mk`, which is
+why the size augmentation invariant is preserved automatically.
+-/
+def mk (c : Color) (l : OSRBTree) (k : Nat) (r : OSRBTree) : OSRBTree :=
+  node c l k (realSize l + realSize r + 1) r
+
+/-- Erase the cached size field, projecting onto the Chapter 13 red-black tree. -/
+def toRB : OSRBTree → RBTree
+  | empty => RBTree.empty
+  | node c l k _ r => RBTree.node c (toRB l) k (toRB r)
+
+/-! ### Basic facts about the smart constructor and the erasure -/
+
+/-- {lit}`mk` recomputes the mathematical subtree size correctly. -/
+theorem realSize_mk (c : Color) (l : OSRBTree) (k : Nat) (r : OSRBTree) :
+    realSize (mk c l k r) = realSize l + realSize r + 1 := rfl
+
+/-- {lit}`mk` preserves the inorder key sequence. -/
+theorem keys_mk (c : Color) (l : OSRBTree) (k : Nat) (r : OSRBTree) :
+    keys (mk c l k r) = keys l ++ [k] ++ keys r := rfl
+
+/-- The cached root size of a {lit}`mk` node is the recomputed size. -/
+theorem storedSize_mk (c : Color) (l : OSRBTree) (k : Nat) (r : OSRBTree) :
+    storedSize (mk c l k r) = realSize l + realSize r + 1 := rfl
+
+/-- A {lit}`mk` node is well-sized whenever both children are. -/
+theorem wellSized_mk {c : Color} {l : OSRBTree} {k : Nat} {r : OSRBTree}
+    (hl : WellSized l) (hr : WellSized r) : WellSized (mk c l k r) :=
+  ⟨hl, hr, rfl⟩
+
+/-- Erasing the cached size of a {lit}`mk` node forgets the size only. -/
+theorem toRB_mk (c : Color) (l : OSRBTree) (k : Nat) (r : OSRBTree) :
+    toRB (mk c l k r) = RBTree.node c (toRB l) k (toRB r) := rfl
+
+/-- A well-sized tree has a correct root size field. -/
+theorem storedSize_eq_realSize_of_wellSized {t : OSRBTree}
+    (h : WellSized t) : storedSize t = realSize t := by
+  cases t with
+  | empty => rfl
+  | node c l k s r => exact h.2.2
+
+/-- Erasure relates {lit}`keys` membership to Chapter 13 tree membership. -/
+theorem inTree_toRB (y : Nat) (t : OSRBTree) :
+    RBTree.InTree y (toRB t) ↔ y ∈ keys t := by
+  induction t with
+  | empty => simp [toRB, RBTree.InTree, keys]
+  | node c l k s r ihl ihr =>
+      simp only [toRB, RBTree.InTree, keys, List.append_assoc, List.singleton_append,
+        List.mem_append, List.mem_cons, ihl, ihr]
+      tauto
+
+/-! ### Selectors -/
+
+/--
+The ideal rank selector using mathematically recomputed subtree sizes.  Ranks
+are zero-based.
+-/
+def rankSelect? : OSRBTree → Nat → Option Nat
+  | empty, _ => none
+  | node _ left key _ right, i =>
+      if i < realSize left then
+        rankSelect? left i
+      else if i = realSize left then
+        some key
+      else
+        rankSelect? right (i - realSize left - 1)
+
+/-- The augmented order-statistic selector using cached subtree sizes. -/
+def osSelect? : OSRBTree → Nat → Option Nat
+  | empty, _ => none
+  | node _ left key _ right, i =>
+      if i < storedSize left then
+        osSelect? left i
+      else if i = storedSize left then
+        some key
+      else
+        osSelect? right (i - storedSize left - 1)
+
+/-- The augmented selector agrees with the ideal selector on well-sized trees. -/
+theorem osSelect?_eq_rankSelect?_of_wellSized {t : OSRBTree} {i : Nat}
+    (h : WellSized t) : osSelect? t i = rankSelect? t i := by
+  induction t generalizing i with
+  | empty => rfl
+  | node c l k s r ihl ihr =>
+      obtain ⟨hLeft, hRight, hSize⟩ := h
+      have hLeftSize : storedSize l = realSize l :=
+        storedSize_eq_realSize_of_wellSized hLeft
+      by_cases hlt : i < realSize l
+      · simp [osSelect?, rankSelect?, hLeftSize, hlt, ihl hLeft]
+      · by_cases heq : i = realSize l
+        · simp [osSelect?, rankSelect?, hLeftSize, heq]
+        · simp [osSelect?, rankSelect?, hLeftSize, hlt, heq, ihr hRight]
+
+/-! ### Executable red-black operations with size recomputation -/
+
+/-- Repaint the root black, keeping the cached size fields. -/
+def repaintBlack : OSRBTree → OSRBTree
+  | empty => empty
+  | node _ l k s r => node Color.black l k s r
+
+/--
+Okasaki-style rebalance after insertion on the left child, recomputing sizes.
+Mirrors {lit}`CLRS.Chapter13.RBTree.balanceLeft`.
+-/
+def balanceLeft (l : OSRBTree) (y : Nat) (r : OSRBTree) : OSRBTree :=
+  match l with
+  | node Color.red (node Color.red a w _ b) x _ c =>
+      mk Color.red (mk Color.black a w b) x (mk Color.black c y r)
+  | node Color.red a w _ (node Color.red b x _ c) =>
+      mk Color.red (mk Color.black a w b) x (mk Color.black c y r)
+  | _ => mk Color.black l y r
+
+/--
+Okasaki-style rebalance after insertion on the right child, recomputing sizes.
+Mirrors {lit}`CLRS.Chapter13.RBTree.balanceRight`.
+-/
+def balanceRight (l : OSRBTree) (y : Nat) (r : OSRBTree) : OSRBTree :=
+  match r with
+  | node Color.red (node Color.red b x _ c) y' _ d =>
+      mk Color.red (mk Color.black l y b) x (mk Color.black c y' d)
+  | node Color.red b x _ (node Color.red c y' _ d) =>
+      mk Color.red (mk Color.black l y b) x (mk Color.black c y' d)
+  | _ => mk Color.black l y r
+
+/-- Insertion fixup: recurse down the tree and rebalance on the way up. -/
+def insertFixup (x : Nat) : OSRBTree → OSRBTree
+  | empty => mk Color.red empty x empty
+  | node c l y s r =>
+      if x < y then
+        if c = Color.black then balanceLeft (insertFixup x l) y r
+        else mk Color.red (insertFixup x l) y r
+      else if x > y then
+        if c = Color.black then balanceRight l y (insertFixup x r)
+        else mk Color.red l y (insertFixup x r)
+      else node c l y s r
+
+/-- Insert a key into an augmented red-black tree and repaint the root black. -/
+def insert (x : Nat) (t : OSRBTree) : OSRBTree :=
+  repaintBlack (insertFixup x t)
+
+/-! ### The augmentation invariant survives balancing -/
+
+/-- Repainting the root black preserves the size augmentation invariant. -/
+theorem wellSized_repaintBlack {t : OSRBTree} (h : WellSized t) :
+    WellSized (repaintBlack t) := by
+  cases t with
+  | empty => trivial
+  | node c l k s r => exact ⟨h.1, h.2.1, h.2.2⟩
+
+/-- {lit}`balanceLeft` preserves the size augmentation invariant. -/
+theorem wellSized_balanceLeft {l : OSRBTree} {y : Nat} {r : OSRBTree}
+    (hl : WellSized l) (hr : WellSized r) :
+    WellSized (balanceLeft l y r) := by
+  unfold balanceLeft
+  split
+  · obtain ⟨⟨ha, hb, _⟩, hc, _⟩ := hl
+    exact wellSized_mk (wellSized_mk ha hb) (wellSized_mk hc hr)
+  · obtain ⟨ha, ⟨hb, hc, _⟩, _⟩ := hl
+    exact wellSized_mk (wellSized_mk ha hb) (wellSized_mk hc hr)
+  · exact wellSized_mk hl hr
+
+/-- {lit}`balanceRight` preserves the size augmentation invariant. -/
+theorem wellSized_balanceRight {l : OSRBTree} {y : Nat} {r : OSRBTree}
+    (hl : WellSized l) (hr : WellSized r) :
+    WellSized (balanceRight l y r) := by
+  unfold balanceRight
+  split
+  · obtain ⟨⟨hb, hc, _⟩, hd, _⟩ := hr
+    exact wellSized_mk (wellSized_mk hl hb) (wellSized_mk hc hd)
+  · obtain ⟨hb, ⟨hc, hd, _⟩, _⟩ := hr
+    exact wellSized_mk (wellSized_mk hl hb) (wellSized_mk hc hd)
+  · exact wellSized_mk hl hr
+
+/-- {lit}`insertFixup` preserves the size augmentation invariant. -/
+theorem wellSized_insertFixup (x : Nat) {t : OSRBTree} (h : WellSized t) :
+    WellSized (insertFixup x t) := by
+  induction t with
+  | empty =>
+      simp only [insertFixup]
+      exact wellSized_mk (by trivial) (by trivial)
+  | node c l y s r ihl ihr =>
+      have hl : WellSized l := h.1
+      have hr : WellSized r := h.2.1
+      simp only [insertFixup]
+      by_cases h1 : x < y
+      · simp only [h1, if_true]
+        by_cases hc : c = Color.black
+        · simp only [hc, if_true]
+          exact wellSized_balanceLeft (ihl hl) hr
+        · simp only [hc, if_false]
+          exact wellSized_mk (ihl hl) hr
+      · simp only [h1, if_false]
+        by_cases h2 : x > y
+        · simp only [h2, if_true]
+          by_cases hc : c = Color.black
+          · simp only [hc, if_true]
+            exact wellSized_balanceRight hl (ihr hr)
+          · simp only [hc, if_false]
+            exact wellSized_mk hl (ihr hr)
+        · simp only [h2, if_false]
+          exact h
+
+/--
+**Augmentation invariant through executable insertion (CLRS 14.1 through
+`RB-INSERT`).**  Inserting a key into a well-sized augmented red-black tree
+produces a well-sized tree: every cached subtree-size field remains correct
+after the red-black rebalancing (CLRS 14.1 maintained through {lit}`insert`).
+-/
+theorem wellSized_insert (x : Nat) {t : OSRBTree} (h : WellSized t) :
+    WellSized (insert x t) := by
+  unfold insert
+  exact wellSized_repaintBlack (wellSized_insertFixup x h)
+
+/-- After insertion the cached root size equals the mathematical subtree size. -/
+theorem storedSize_insert (x : Nat) {t : OSRBTree} (h : WellSized t) :
+    storedSize (insert x t) = realSize (insert x t) :=
+  storedSize_eq_realSize_of_wellSized (wellSized_insert x h)
+
+/--
+After insertion the augmented (cached-size) selector still implements the ideal
+recomputed-size rank selector.
+-/
+theorem osSelect?_insert_eq_rankSelect? (x : Nat) {t : OSRBTree}
+    (h : WellSized t) (i : Nat) :
+    osSelect? (insert x t) i = rankSelect? (insert x t) i :=
+  osSelect?_eq_rankSelect?_of_wellSized (wellSized_insert x h)
+
+/-! ### Refinement onto the executable Chapter 13 red-black insertion -/
+
+/-- Erasing the size field commutes with repainting the root black. -/
+theorem toRB_repaintBlack (t : OSRBTree) :
+    toRB (repaintBlack t) = RBTree.repaintRoot Color.black (toRB t) := by
+  cases t with
+  | empty => rfl
+  | node c l k s r => rfl
+
+/-- Erasing the size field commutes with {lit}`balanceLeft`. -/
+theorem toRB_balanceLeft (l : OSRBTree) (y : Nat) (r : OSRBTree) :
+    toRB (balanceLeft l y r) = RBTree.balanceLeft (toRB l) y (toRB r) := by
+  cases l with
+  | empty => rfl
+  | node c a w s b =>
+    cases c with
+    | black => rfl
+    | red =>
+      cases a with
+      | empty =>
+          cases b with
+          | empty => rfl
+          | node cb bl bk bs br => cases cb <;> rfl
+      | node ca al ak as' ar =>
+          cases ca with
+          | red => rfl
+          | black =>
+              cases b with
+              | empty => rfl
+              | node cb bl bk bs br => cases cb <;> rfl
+
+/-- Erasing the size field commutes with {lit}`balanceRight`. -/
+theorem toRB_balanceRight (l : OSRBTree) (y : Nat) (r : OSRBTree) :
+    toRB (balanceRight l y r) = RBTree.balanceRight (toRB l) y (toRB r) := by
+  cases r with
+  | empty => rfl
+  | node c a w s b =>
+    cases c with
+    | black => rfl
+    | red =>
+      cases a with
+      | empty =>
+          cases b with
+          | empty => rfl
+          | node cb bl bk bs br => cases cb <;> rfl
+      | node ca al ak as' ar =>
+          cases ca with
+          | red => rfl
+          | black =>
+              cases b with
+              | empty => rfl
+              | node cb bl bk bs br => cases cb <;> rfl
+
+/-- Erasing the size field commutes with {lit}`insertFixup`. -/
+theorem toRB_insertFixup (x : Nat) (t : OSRBTree) :
+    toRB (insertFixup x t) = RBTree.insertFixup x (toRB t) := by
+  induction t with
+  | empty => rfl
+  | node c l y s r ihl ihr =>
+      simp only [insertFixup, RBTree.insertFixup, toRB, apply_ite toRB, toRB_mk,
+        toRB_balanceLeft, toRB_balanceRight, ihl, ihr]
+
+/--
+**Refinement.**  The augmented insertion refines the *executable* Chapter 13
+red-black insertion: erasing the cached size fields turns
+{lit}`OSRBTree.insert` into {lit}`CLRS.Chapter13.RBTree.insert`.
+-/
+theorem toRB_insert (x : Nat) (t : OSRBTree) :
+    toRB (insert x t) = RBTree.insert x (toRB t) := by
+  unfold insert RBTree.insert
+  rw [toRB_repaintBlack, toRB_insertFixup]
+
+/--
+Through the refinement, the Chapter 13 red-black shape invariant is maintained by
+the augmented insertion.
+-/
+theorem redBlackShape_toRB_insert (x : Nat) {t : OSRBTree}
+    (h : RBTree.RedBlackShape (toRB t)) :
+    RBTree.RedBlackShape (toRB (insert x t)) := by
+  rw [toRB_insert]
+  exact RBTree.redBlackShape_insert h
+
+/-- Through the refinement, insertion preserves membership (as an inorder key). -/
+theorem mem_keys_insert (x y : Nat) (t : OSRBTree) :
+    y ∈ keys (insert x t) ↔ y = x ∨ y ∈ keys t := by
+  simp only [← inTree_toRB, toRB_insert, RBTree.inTree_insert_iff]
+
+end OSRBTree
 
 end Chapter14
 end CLRS
