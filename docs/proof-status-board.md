@@ -29,7 +29,7 @@ missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 3 | CLRS asymptotic wrappers and broad standard-function facts | Complete the standard-function comparison table |
+| 3 | CLRS asymptotic wrappers and the complete standard-function comparison table (`1 ≺ log(log n) ≺ log n ≺ n ≺ n^a ≺ 2^n ≺ n!`, plus `log_b` base change) | Iterated logarithm `lg* n` and Fibonacci-number growth |
 | 4 | Maximum subarray, Strassen 2x2, substitution, recursion trees, and textbook-facing Master cases 1-3 | Recursive Strassen and algorithm/RAM refinements |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, plus the random-permutation symmetry lemma (`isFirst_prob`) and pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3) over the shared `Probability.FiniteExpectation` toolkit | End-to-end total-comparison expectation (`expected_comparisons_eq_sum`) and the `Θ(n log n)` asymptotic bridge |
 | 9 | Rank selection, executable median-of-medians correctness with linear recurrence wrapper, and randomized SELECT expected `O(n)` time (`randomizedSelect_expected_bigO_linear`, CLRS Theorem 9.2) | Concrete executable cost semantics for deterministic median-of-medians |
