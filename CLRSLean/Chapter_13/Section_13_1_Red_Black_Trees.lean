@@ -43,11 +43,13 @@ Main results:
   the original black height.
 - Theorem {lit}`RBTree.blackHeight_insert`: insertion either keeps the black
   height or increases it by one.
+- Theorem {lit}`RBTree.height_log_bound`: **CLRS Lemma 13.1** — a red-black
+  tree with {lit}`n` internal nodes has height at most {lit}`2 log₂(n + 1)`.
 
 Remaining gaps:
 
-- The executable {lit}`RB-DELETE` and {lit}`RB-DELETE-FIXUP` algorithms, and the
-  logarithmic-height theorem, remain future work.
+- The executable {lit}`RB-DELETE` and {lit}`RB-DELETE-FIXUP` algorithms remain
+  future work.
 -/
 
 namespace CLRS
@@ -1104,6 +1106,149 @@ theorem blackHeight_insert {x : Nat} {t : RBTree} (h : RedBlackShape t) :
   · right
     rw [insert]
     rw [blackHeight_repaintRoot_black_increases hRoot, hHeight]
+/-! ## Logarithmic height bound (CLRS Lemma 13.1)
+
+A red-black tree with {lit}`n` internal nodes has height at most
+{lit}`2 log₂(n + 1)`.  The proof follows the textbook decomposition:
+
+1. Every subtree rooted at {lit}`x` has at least {lit}`2^{bh(x)} - 1` internal
+   nodes (Lemma A).
+2. The height of a no-red-red tree is at most twice its black height (Lemma B).
+3. From (1), {lit}`bh ≤ log₂(n + 1)`; from (2), {lit}`h ≤ 2·bh`.
+
+Main results:
+
+- Theorem {lit}`height_le_two_mul_blackHeight_of_RedBlackShape`: height ≤ 2·bh
+  for any red-black-shaped tree.
+- Theorem {lit}`size_add_one_ge_two_pow_blackHeight`: size + 1 ≥ 2^bh for any
+  balanced-black-height tree.
+- Theorem {lit}`height_log_bound`: the full CLRS Lemma 13.1 bound. -/
+
+/-- The height (maximum depth) of a red-black tree: the longest path from the
+root to an empty leaf, counting edges.  Empty tree height is 0. -/
+def height : RBTree → Nat
+  | .empty => 0
+  | .node _ l _ r => 1 + max l.height r.height
+
+/-- The internal node count of a red-black tree. -/
+def size : RBTree → Nat
+  | .empty => 0
+  | .node _ l _ r => 1 + l.size + r.size
+
+/-- **Lemma A.**  A tree with balanced black heights has at least {lit}`2^{bh} - 1`
+internal nodes.  Formalised as {lit}`size t + 1 ≥ 2 ^ blackHeight t`. -/
+theorem size_add_one_ge_two_pow_blackHeight (t : RBTree)
+    (hBal : BalancedBlackHeight t) : size t + 1 ≥ 2 ^ blackHeight t := by
+  induction t with
+  | empty => simp [size, blackHeight]
+  | node c l k r ihl ihr =>
+    simp only [BalancedBlackHeight] at hBal
+    rcases hBal with ⟨hlBal, hrBal, heq⟩
+    have ihl' : size l + 1 ≥ 2 ^ blackHeight l := ihl hlBal
+    have ihr' : size r + 1 ≥ 2 ^ blackHeight l := by
+      rw [heq]; exact ihr hrBal
+    simp only [size]
+    have h_sum : 1 + size l + size r + 1 = (size l + 1) + (size r + 1) := by omega
+    rw [h_sum]
+    rw [blackHeight]
+    have h_pow_succ : 2 ^ blackHeight l + 2 ^ blackHeight l = 2 ^ (blackHeight l + 1) := by
+      rw [← two_mul, mul_comm, ← Nat.pow_succ 2 (blackHeight l)]
+    by_cases hc : c = Color.black
+    · subst hc
+      have h_if : (if Color.black = Color.black then (1 : ℕ) else 0) = 1 := by simp
+      rw [h_if]
+      rw [← h_pow_succ]
+      exact add_le_add ihl' ihr'
+    · -- c ≠ black
+      rw [if_neg hc]
+      have h_add : (size l + 1) + (size r + 1) ≥ size l + 1 := Nat.le_add_right _ _
+      exact Nat.le_trans ihl' h_add
+
+/-- **Boolean root-black test**, for use in propositions that need decidability. -/
+def rootBlack : RBTree → Bool
+  | .empty => true
+  | .node c _ _ _ => c = Color.black
+
+/-- The {lit}`Bool` version agrees with the {lit}`Prop` version. -/
+theorem rootBlack_eq_RootBlack (t : RBTree) : rootBlack t = true ↔ RootBlack t := by
+  cases t <;> simp [rootBlack, RootBlack]
+
+/-- **Lemma B (strengthened induction hypothesis).**  For a tree with
+{lit}`NoRedRed` and {lit}`BalancedBlackHeight`, the height is bounded by twice
+the black height plus a root-color adjustment term.  Uses a {lit}`Bool` version
+of the condition to avoid decidability issues. -/
+theorem height_le_two_mul_blackHeight_add_adj (t : RBTree)
+    (hRed : NoRedRed t) (hBal : BalancedBlackHeight t) :
+    height t ≤ 2 * blackHeight t + (if rootBlack t then 0 else 1) := by
+  induction t with
+  | empty => simp [height, blackHeight, rootBlack]
+  | node c l k r ihl ihr =>
+    simp only [NoRedRed] at hRed
+    rcases hRed with ⟨hlRed, hrRed, hRedCond⟩
+    simp only [BalancedBlackHeight] at hBal
+    rcases hBal with ⟨hlBal, hrBal, heq⟩
+    have ihl' := ihl hlRed hlBal
+    have ihr' := ihr hrRed hrBal
+    simp only [height, blackHeight]
+    have hmax : max (height l) (height r) ≤ 2 * blackHeight l + 1 := by
+      have hL : height l ≤ 2 * blackHeight l + (if rootBlack l then 0 else 1) := ihl'
+      have hR : height r ≤ 2 * blackHeight r + (if rootBlack r then 0 else 1) := ihr'
+      have hR' : height r ≤ 2 * blackHeight l + (if rootBlack r then 0 else 1) := by
+        rw [heq]; exact hR
+      have adjL : (if rootBlack l then 0 else 1 : ℕ) ≤ 1 := by split <;> omega
+      have adjR : (if rootBlack r then 0 else 1 : ℕ) ≤ 1 := by split <;> omega
+      apply max_le
+      · omega
+      · omega
+    have hrhs : 1 + max (height l) (height r) ≤ 1 + (2 * blackHeight l + 1) := by omega
+    by_cases hc : c = Color.black
+    · subst hc
+      simp
+      convert Nat.add_le_add_right hmax 1 using 1
+      · simp [add_comm]
+      · calc
+          (2 * blackHeight l + 1) + 1 = 2 * blackHeight l + (1 + 1) := by rw [add_assoc]
+          _ = 2 * blackHeight l + 2 := by norm_num
+          _ = 2 * (blackHeight l + 1) := by rw [Nat.mul_succ]
+    · have hc_red : c = Color.red := by cases c <;> simp_all
+      subst hc_red
+      simp
+      have hmax_red : max (height l) (height r) ≤ 2 * blackHeight l := by
+        have hl_bound : height l ≤ 2 * blackHeight l := by
+          -- From ihl': height l ≤ 2*bl + (if rootBlack l then 0 else 1)
+          -- After subst, rootBlack l = true (from NoRedRed)
+          have hRoot_lb : rootBlack l = true :=
+            (rootBlack_eq_RootBlack l).mpr ((hRedCond rfl).1)
+          simp [hRoot_lb] at ihl'; omega
+        have hr_bound : height r ≤ 2 * blackHeight l := by
+          have hRoot_rb : rootBlack r = true :=
+            (rootBlack_eq_RootBlack r).mpr ((hRedCond rfl).2)
+          simp [hRoot_rb] at ihr'; omega
+        exact max_le hl_bound hr_bound
+      convert Nat.add_le_add_right hmax_red 1 using 1
+      · simp [add_comm]
+      · rfl
+
+/-- **Lemma B (public form).**  For any red-black-shaped tree, height ≤ 2·bh. -/
+theorem height_le_two_mul_blackHeight_of_RedBlackShape (t : RBTree)
+    (hShape : RedBlackShape t) : height t ≤ 2 * blackHeight t := by
+  obtain ⟨hRoot, hRed, hBal⟩ := hShape
+  have h := height_le_two_mul_blackHeight_add_adj t hRed hBal
+  have hRoot_b : rootBlack t = true := (rootBlack_eq_RootBlack t).mpr hRoot
+  rw [hRoot_b] at h
+  simpa using h
+
+/-- **CLRS Lemma 13.1.**  A red-black tree with {lit}`n` internal nodes has
+height at most {lit}`2 log₂ (n + 1)`. -/
+theorem height_log_bound (t : RBTree) (hShape : RedBlackShape t) :
+    height t ≤ 2 * Nat.log 2 (size t + 1) := by
+  have hBal : BalancedBlackHeight t := hShape.2.2
+  have hSize := size_add_one_ge_two_pow_blackHeight t hBal
+  have hHeight := height_le_two_mul_blackHeight_of_RedBlackShape t hShape
+  have hLog : blackHeight t ≤ Nat.log 2 (size t + 1) :=
+    Nat.le_log_of_pow_le (by omega) hSize
+  omega
+
 end RBTree
 
 end Chapter13
