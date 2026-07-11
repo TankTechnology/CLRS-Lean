@@ -49,7 +49,9 @@ successor/predecessor equivalent to the established functional operations.
   {lit}`CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?`,
   {lit}`CLRS.Chapter12.BSTree.RepresentsW.tree_unique`,
   {lit}`CLRS.Chapter12.BSTree.transplantChild_left_representsW`,
-  {lit}`CLRS.Chapter12.BSTree.transplantChild_right_representsW`, and
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_right_representsW`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_left_refines_transplant`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant`, and
   {lit}`CLRS.Chapter12.BSTree.insertPointer_right_representsW`.
 
 ## Current Gaps

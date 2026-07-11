@@ -1104,6 +1104,8 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter12.BSTree.RepresentsW.of_agreeChild` (parent-write invisibility)
   - `CLRS.Chapter12.BSTree.transplantChild_left_representsW` (in-place TRANSPLANT, left)
   - `CLRS.Chapter12.BSTree.transplantChild_right_representsW` (in-place TRANSPLANT, right)
+  - `CLRS.Chapter12.BSTree.transplantChild_left_refines_transplant` (refines functional zipper `transplant`)
+  - `CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant` (refines functional zipper `transplant`)
   - `CLRS.Chapter12.BSTree.insertPointer_right_representsW` (pointer TREE-INSERT leaf)
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
   extremal-path recursion, iff specifications for successor/predecessor,
