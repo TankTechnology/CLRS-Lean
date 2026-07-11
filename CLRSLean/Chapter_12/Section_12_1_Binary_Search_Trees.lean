@@ -1776,6 +1776,322 @@ theorem predecessorZipper_eq_predecessor? (x : Nat) (t : BSTree)
   rw [predecessorZipper_bridge x t [] ht hx]
   cases predecessor? x t <;> simp [ascendPredecessor, orFb]
 
+/-! ## Imperative pointer-heap refinement (Issue #25)
+
+The zipper layer above encodes parent pointers in pure functional style but never
+mutates a cell.  This section adds the next refinement layer: an explicit
+**pointer heap** of node records with mutable {lit}`left`, {lit}`right`, and
+{lit}`parent` fields, in the style of the CLRS pointer machine, and proves that
+the imperative {lit}`TRANSPLANT` operation — which rewires child and parent
+pointers in place — refines the functional subtree-replacement specification.
+
+**Model.**  A {lit}`Node` is a record with a key and three optional pointers
+({lit}`none` is the CLRS {lit}`NIL`).  A {lit}`Store` is a finite map (a
+{lit}`Std.HashMap`) from node identifiers to records; this is the addressable
+heap where {lit}`x.left`, {lit}`x.right`, {lit}`x.p` are physical cells.  The
+abstraction relation {lit}`RepresentsW s p t S` says that reading the heap {lit}`s`
+downward from pointer {lit}`p` (following child links, ignoring parent links)
+yields the functional tree {lit}`t`, with {lit}`S` the finite set of node ids used;
+the relation bakes in the acyclicity/no-sharing invariant ({lit}`i ∉ Sl`, {lit}`i ∉ Sr`,
+{lit}`Disjoint Sl Sr`), which is exactly the disjointness needed to reason about
+in-place mutation.
+
+**CLRS correspondence.**
+
+- {lit}`Node` / {lit}`Store` : the pointer-machine node records and heap (AC-1)
+- {lit}`RepresentsW` : the heap-to-tree abstraction function, with sharing ruled out
+- {lit}`transplantChild` : the pointer-rewiring core of {lit}`TRANSPLANT(T, u, v)`
+  (CLRS Section 12.3), swinging a parent's child pointer and reparenting the new
+  subtree
+- {lit}`insertPointer_right_representsW` : the pointer-level {lit}`TREE-INSERT` leaf
+  attachment (CLRS Section 12.3)
+
+Main results:
+
+- Theorem {lit}`RepresentsW.tree_unique` : the heap and root pointer determine a
+  unique functional tree (the abstraction is a function, i.e. the imperative
+  state is observationally a BST)
+- Theorem {lit}`RepresentsW.set_of_not_mem` : writing a cell outside a subtree's id
+  set does not change what that subtree represents (the pointer frame rule)
+- Theorem {lit}`RepresentsW.of_agreeChild` : representation depends only on
+  key/left/right cells, so parent-pointer writes are invisible to downward reading
+- Theorem {lit}`transplantChild_left_representsW` /
+  {lit}`transplantChild_right_representsW` : in-place {lit}`TRANSPLANT` refines
+  functional subtree replacement (AC-2)
+- Theorem {lit}`insertPointer_right_representsW` : attaching a freshly allocated leaf
+  cell refines functional subtree replacement (AC-3, leaf case)
+-/
+
+/-- A heap node record: a key together with explicit {lit}`left`, {lit}`right`, and
+{lit}`parent` pointers.  Pointers are {lit}`Option Nat` node identifiers, with
+{lit}`none` playing the role of the CLRS {lit}`NIL` sentinel. -/
+structure Node where
+  key    : Nat
+  left   : Option Nat
+  right  : Option Nat
+  parent : Option Nat
+  deriving Repr, DecidableEq, Inhabited
+
+/-- A pointer heap: a finite map from node identifiers to records.  This is the
+CLRS pointer machine's addressable memory, where a node's {lit}`left`, {lit}`right`,
+and {lit}`parent` are mutable cells reachable by identifier.  It is backed by a
+{lit}`Std.HashMap`; all reasoning goes through {lit}`get` and {lit}`set` and the two
+rewrite lemmas {lit}`get_set_self` and {lit}`get_set_ne`. -/
+structure Store where
+  map : Std.HashMap Nat Node
+
+/-- Read the record stored at an address, or {lit}`none` if unallocated. -/
+def Store.get (s : Store) (i : Nat) : Option Node := s.map[i]?
+
+/-- Write (allocate or overwrite) the record at an address. -/
+def Store.set (s : Store) (i : Nat) (nd : Node) : Store := ⟨s.map.insert i nd⟩
+
+/-- Reading the address just written returns the written record. -/
+@[simp] theorem Store.get_set_self (s : Store) (i : Nat) (nd : Node) :
+    (s.set i nd).get i = some nd := by
+  simp [Store.get, Store.set]
+
+/-- Writing one address does not affect reads at any other address. -/
+theorem Store.get_set_ne {s : Store} {i j : Nat} {nd : Node} (h : i ≠ j) :
+    (s.set i nd).get j = s.get j := by
+  simp only [Store.get, Store.set, Std.HashMap.getElem?_insert]
+  split
+  · next hbeq => exact absurd (by simpa using hbeq) h
+  · rfl
+
+/-- The heap-to-tree abstraction relation.  {lit}`RepresentsW s p t S` holds when
+following child pointers in the heap {lit}`s` from the pointer {lit}`p` yields the
+functional tree {lit}`t`, using exactly the node ids in the finite set {lit}`S`.
+The side conditions {lit}`i ∉ Sl`, {lit}`i ∉ Sr`, and {lit}`Disjoint Sl Sr` bake in the
+BST-layout invariant that no cell is shared between a node and its subtrees or
+across the two subtrees — the pointer-model analogue of acyclicity. -/
+inductive RepresentsW (s : Store) : Option Nat → BSTree → Finset Nat → Prop where
+  | nil : RepresentsW s none BSTree.empty ∅
+  | node {i k : Nat} {lp rp pp : Option Nat} {l r : BSTree} {Sl Sr : Finset Nat}
+      (hget : s.get i = some ⟨k, lp, rp, pp⟩)
+      (hl : RepresentsW s lp l Sl)
+      (hr : RepresentsW s rp r Sr)
+      (hil : i ∉ Sl) (hir : i ∉ Sr) (hd : Disjoint Sl Sr) :
+      RepresentsW s (some i) (BSTree.node l k r) (Insert.insert i (Sl ∪ Sr))
+
+/-- **Faithfulness.**  The heap together with a root pointer determines a unique
+functional tree: the abstraction {lit}`RepresentsW` is a partial function of the
+heap state.  Consequently the imperative pointer state is observationally exactly
+one binary search tree. -/
+theorem RepresentsW.tree_unique {s : Store} :
+    ∀ {p : Option Nat} {t1 S1 t2 S2}, RepresentsW s p t1 S1 →
+      RepresentsW s p t2 S2 → t1 = t2 := by
+  intro p t1 S1 t2 S2 h1
+  induction h1 generalizing t2 S2 with
+  | nil =>
+    intro h2
+    cases h2 with
+    | nil => rfl
+  | @node i k lp rp pp l r Sl Sr hget hl hr hil hir hd ihl ihr =>
+    intro h2
+    cases h2 with
+    | @node _ k2 lp2 rp2 pp2 l2 r2 Sl2 Sr2 hget2 hl2 hr2 _ _ _ =>
+      rw [hget] at hget2
+      injection hget2 with hrec
+      injection hrec with hk hlp hrp _
+      subst hk; subst hlp; subst hrp
+      rw [ihl hl2, ihr hr2]
+
+/-- **Pointer frame rule.**  Overwriting a cell whose id is outside a subtree's id
+set leaves the subtree's abstraction unchanged.  This is the workhorse for
+reasoning that a local pointer write does not disturb untouched subtrees. -/
+theorem RepresentsW.set_of_not_mem {s : Store} {p : Option Nat} {t : BSTree}
+    {S : Finset Nat} (h : RepresentsW s p t S) {w : Nat} {nd : Node} :
+    w ∉ S → RepresentsW (s.set w nd) p t S := by
+  induction h with
+  | nil => intro _; exact RepresentsW.nil
+  | @node i k lp rp pp l r Sl Sr hget hl hr hil hir hd ihl ihr =>
+    intro hw
+    simp only [Finset.mem_insert, Finset.mem_union, not_or] at hw
+    obtain ⟨hwi, hwl, hwr⟩ := hw
+    have hget' : (s.set w nd).get i = some ⟨k, lp, rp, pp⟩ := by
+      rw [Store.get_set_ne hwi]; exact hget
+    exact RepresentsW.node hget' (ihl hwl) (ihr hwr) hil hir hd
+
+/-- Two heaps agree on child structure when, at every address, they store records
+with the same key, left, and right pointers (the parent field may differ). -/
+def Store.AgreeChild (s s' : Store) : Prop :=
+  ∀ i k lp rp pp, s.get i = some ⟨k, lp, rp, pp⟩ → ∃ pp', s'.get i = some ⟨k, lp, rp, pp'⟩
+
+/-- Every heap agrees with itself on child structure. -/
+theorem Store.AgreeChild.refl (s : Store) : Store.AgreeChild s s :=
+  fun _ _ _ _ pp hi => ⟨pp, hi⟩
+
+/-- **Parent-write invisibility.**  Downward reading ignores parent pointers, so a
+heap agreeing on child structure represents the same tree.  This is what lets the
+{lit}`TRANSPLANT` reparenting step (which only touches a {lit}`parent` cell) preserve
+the tree abstraction. -/
+theorem RepresentsW.of_agreeChild {s s' : Store} {p : Option Nat} {t : BSTree}
+    {S : Finset Nat} (h : RepresentsW s p t S) (hag : Store.AgreeChild s s') :
+    RepresentsW s' p t S := by
+  induction h with
+  | nil => exact RepresentsW.nil
+  | @node i k lp rp pp l r Sl Sr hget hl hr hil hir hd ihl ihr =>
+    obtain ⟨pp', hget'⟩ := hag i k lp rp pp hget
+    exact RepresentsW.node hget' ihl ihr hil hir hd
+
+/-- Set the {lit}`parent` field of the node at address {lit}`w` to {lit}`par`,
+leaving key and child pointers intact (a no-op if {lit}`w` is unallocated). -/
+def Store.reparentOne (s : Store) (w : Nat) (par : Option Nat) : Store :=
+  match s.get w with
+  | none => s
+  | some nd => s.set w { nd with parent := par }
+
+/-- Reparenting a single node preserves child structure. -/
+theorem Store.agreeChild_reparentOne (s : Store) (w : Nat) (par : Option Nat) :
+    Store.AgreeChild s (s.reparentOne w par) := by
+  intro i k lp rp pp hi
+  simp only [Store.reparentOne]
+  split
+  · next hw => exact ⟨pp, hi⟩
+  · next nd hw =>
+    by_cases hiw : i = w
+    · subst hiw
+      rw [hw] at hi
+      obtain rfl := Option.some.inj hi
+      exact ⟨par, by simp⟩
+    · exact ⟨pp, by rw [Store.get_set_ne (Ne.symm hiw)]; exact hi⟩
+
+/-- Reparent an optional pointer: reparent the target node if the pointer is
+non-null, otherwise do nothing. -/
+def Store.reparentOpt (s : Store) (vp : Option Nat) (par : Option Nat) : Store :=
+  match vp with
+  | none => s
+  | some vid => s.reparentOne vid par
+
+/-- Reparenting through an optional pointer preserves child structure. -/
+theorem Store.agreeChild_reparentOpt (s : Store) (vp par : Option Nat) :
+    Store.AgreeChild s (s.reparentOpt vp par) := by
+  cases vp with
+  | none => exact Store.AgreeChild.refl s
+  | some vid => exact Store.agreeChild_reparentOne s vid par
+
+/-- Overwrite the left (if {lit}`isLeft`) or right child pointer of the node at
+{lit}`pid` with {lit}`cp` (a no-op if {lit}`pid` is unallocated). -/
+def Store.setChild (s : Store) (pid : Nat) (isLeft : Bool) (cp : Option Nat) : Store :=
+  match s.get pid with
+  | none => s
+  | some nd => if isLeft then s.set pid { nd with left := cp } else s.set pid { nd with right := cp }
+
+/-- **In-place TRANSPLANT.**  Swing one child pointer of the parent node at
+{lit}`pid` to point at {lit}`vp`, then set {lit}`vp`'s parent pointer to
+{lit}`pid` — the pointer-rewiring core of CLRS {lit}`TRANSPLANT(T, u, v)`. -/
+def Store.transplantChild (s : Store) (pid : Nat) (isLeft : Bool) (vp : Option Nat) : Store :=
+  (s.setChild pid isLeft vp).reparentOpt vp (some pid)
+
+/-- **AC-2 (left).**  In-place {lit}`TRANSPLANT` on a left child refines functional
+subtree replacement: after rewiring the parent's left pointer to the new subtree
+{lit}`V` and reparenting it, reading the heap downward from the parent yields the
+functional node {lit}`node V k R`, where {lit}`R` is the untouched right sibling. -/
+theorem transplantChild_left_representsW
+    {s : Store} {pid k : Nat} {oldl rp pp vp : Option Nat}
+    {R V : BSTree} {SR SV : Finset Nat}
+    (hpid : s.get pid = some ⟨k, oldl, rp, pp⟩)
+    (hR : RepresentsW s rp R SR)
+    (hV : RepresentsW s vp V SV)
+    (hpidR : pid ∉ SR) (hpidV : pid ∉ SV) (hVR : Disjoint SV SR) :
+    RepresentsW (s.transplantChild pid true vp) (some pid)
+      (BSTree.node V k R) (Insert.insert pid (SV ∪ SR)) := by
+  have hop : s.transplantChild pid true vp
+      = (s.set pid ⟨k, vp, rp, pp⟩).reparentOpt vp (some pid) := by
+    simp [Store.transplantChild, Store.setChild, hpid]
+  rw [hop]
+  have hag : Store.AgreeChild (s.set pid ⟨k, vp, rp, pp⟩)
+      ((s.set pid ⟨k, vp, rp, pp⟩).reparentOpt vp (some pid)) :=
+    Store.agreeChild_reparentOpt _ vp (some pid)
+  have hV2 : RepresentsW ((s.set pid ⟨k, vp, rp, pp⟩).reparentOpt vp (some pid)) vp V SV :=
+    (hV.set_of_not_mem hpidV).of_agreeChild hag
+  have hR2 : RepresentsW ((s.set pid ⟨k, vp, rp, pp⟩).reparentOpt vp (some pid)) rp R SR :=
+    (hR.set_of_not_mem hpidR).of_agreeChild hag
+  have hpid1 : (s.set pid ⟨k, vp, rp, pp⟩).get pid = some ⟨k, vp, rp, pp⟩ :=
+    Store.get_set_self _ _ _
+  obtain ⟨pp', hpid2⟩ := hag pid k vp rp pp hpid1
+  exact RepresentsW.node hpid2 hV2 hR2 hpidV hpidR hVR
+
+/-- **AC-2 (right).**  In-place {lit}`TRANSPLANT` on a right child refines functional
+subtree replacement, symmetric to {lit}`transplantChild_left_representsW`. -/
+theorem transplantChild_right_representsW
+    {s : Store} {pid k : Nat} {lp oldr pp vp : Option Nat}
+    {L V : BSTree} {SL SV : Finset Nat}
+    (hpid : s.get pid = some ⟨k, lp, oldr, pp⟩)
+    (hL : RepresentsW s lp L SL)
+    (hV : RepresentsW s vp V SV)
+    (hpidL : pid ∉ SL) (hpidV : pid ∉ SV) (hLV : Disjoint SL SV) :
+    RepresentsW (s.transplantChild pid false vp) (some pid)
+      (BSTree.node L k V) (Insert.insert pid (SL ∪ SV)) := by
+  have hop : s.transplantChild pid false vp
+      = (s.set pid ⟨k, lp, vp, pp⟩).reparentOpt vp (some pid) := by
+    simp [Store.transplantChild, Store.setChild, hpid]
+  rw [hop]
+  have hag : Store.AgreeChild (s.set pid ⟨k, lp, vp, pp⟩)
+      ((s.set pid ⟨k, lp, vp, pp⟩).reparentOpt vp (some pid)) :=
+    Store.agreeChild_reparentOpt _ vp (some pid)
+  have hL2 : RepresentsW ((s.set pid ⟨k, lp, vp, pp⟩).reparentOpt vp (some pid)) lp L SL :=
+    (hL.set_of_not_mem hpidL).of_agreeChild hag
+  have hV2 : RepresentsW ((s.set pid ⟨k, lp, vp, pp⟩).reparentOpt vp (some pid)) vp V SV :=
+    (hV.set_of_not_mem hpidV).of_agreeChild hag
+  have hpid1 : (s.set pid ⟨k, lp, vp, pp⟩).get pid = some ⟨k, lp, vp, pp⟩ :=
+    Store.get_set_self _ _ _
+  obtain ⟨pp', hpid2⟩ := hag pid k lp vp pp hpid1
+  exact RepresentsW.node hpid2 hL2 hV2 hpidL hpidV hLV
+
+/-- A freshly allocated leaf cell (key {lit}`nk`, null children) with parent
+{lit}`par`, written at a fresh address {lit}`z`. -/
+def Store.allocLeaf (s : Store) (z nk : Nat) (par : Option Nat) : Store :=
+  s.set z ⟨nk, none, none, par⟩
+
+/-- A store whose cell at {lit}`z` holds a null-child record represents the
+single-node tree {lit}`node empty nk empty`, using only the id {lit}`z`. -/
+theorem representsW_leaf {s : Store} {z nk : Nat} {pp : Option Nat}
+    (hz : s.get z = some ⟨nk, none, none, pp⟩) :
+    RepresentsW s (some z) (BSTree.node BSTree.empty nk BSTree.empty) {z} := by
+  have h : RepresentsW s (some z) (BSTree.node BSTree.empty nk BSTree.empty)
+      (Insert.insert z ((∅ : Finset Nat) ∪ ∅)) :=
+    RepresentsW.node hz RepresentsW.nil RepresentsW.nil
+      (by simp) (by simp) (by simp)
+  simpa using h
+
+/-- Functional insertion of a strictly larger key at a node whose right child is
+empty attaches it as a right leaf. -/
+theorem insert_right_leaf {L : BSTree} {k nk : Nat} (h : k < nk) :
+    BSTree.insert nk (BSTree.node L k BSTree.empty)
+      = BSTree.node L k (BSTree.node BSTree.empty nk BSTree.empty) := by
+  have hlt : ¬ nk < k := Nat.not_lt.mpr (Nat.le_of_lt h)
+  simp [BSTree.insert, hlt, h]
+
+/-- **AC-3 (pointer TREE-INSERT).**  Allocating a fresh leaf cell and swinging the
+parent's (empty) right child pointer to it — the pointer-machine {lit}`TREE-INSERT`
+attachment step — refines functional subtree replacement: reading the heap from
+the parent yields {lit}`node L k (node empty nk empty)`.  With {lit}`k < nk` this is
+exactly {lit}`BSTree.insert nk (node L k empty)` (see {lit}`insert_right_leaf`). -/
+theorem insertPointer_right_representsW
+    {s : Store} {pid k nk z : Nat} {lp pp : Option Nat}
+    {L : BSTree} {SL : Finset Nat}
+    (hpid : s.get pid = some ⟨k, lp, none, pp⟩)
+    (hL : RepresentsW s lp L SL)
+    (hpidL : pid ∉ SL) (hzL : z ∉ SL) (hzpid : z ≠ pid) :
+    RepresentsW ((s.allocLeaf z nk (some pid)).transplantChild pid false (some z))
+      (some pid) (BSTree.node L k (BSTree.node BSTree.empty nk BSTree.empty))
+      (Insert.insert pid (SL ∪ {z})) := by
+  have hz : (s.allocLeaf z nk (some pid)).get z = some ⟨nk, none, none, some pid⟩ :=
+    Store.get_set_self _ _ _
+  have hpid' : (s.allocLeaf z nk (some pid)).get pid = some ⟨k, lp, none, pp⟩ := by
+    rw [Store.allocLeaf, Store.get_set_ne hzpid]; exact hpid
+  have hL' : RepresentsW (s.allocLeaf z nk (some pid)) lp L SL :=
+    hL.set_of_not_mem hzL
+  have hV : RepresentsW (s.allocLeaf z nk (some pid)) (some z)
+      (BSTree.node BSTree.empty nk BSTree.empty) {z} := representsW_leaf hz
+  have hpidz : pid ∉ ({z} : Finset Nat) := by
+    simp [Ne.symm hzpid]
+  have hdisj : Disjoint SL ({z} : Finset Nat) := by
+    simp [Finset.disjoint_singleton_right, hzL]
+  exact transplantChild_right_representsW hpid' hL' hV hpidL hpidz hdisj
+
 end BSTree
 
 end Chapter12
