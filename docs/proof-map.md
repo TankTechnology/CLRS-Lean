@@ -1046,17 +1046,24 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter11.expectedUnsuccessfulSearchCost_finiteHashInsert`
   - `CLRS.Chapter11.expectedRandomChainLength_eq_loadFactor`
   - `CLRS.Chapter11.expectedRandomUnsuccessfulSearchCost`
+  - `CLRS.Chapter11.pairCollisionProb`
+  - `CLRS.Chapter11.expectedRandomSuccessfulSearchCost`
+  - `CLRS.Chapter11.universal_expected_collisions`
+  - `CLRS.Chapter11.universal_expected_search_cost`
 - Proof pattern: deterministic bucket update/delete for a fixed hash function,
-  plus a finite-uniform bucket expectation layer over `Fin m`.  The toolkit now
+  plus a finite-uniform bucket expectation layer over `Fin m`.  The toolkit
   includes average additivity, nonnegativity, load-factor equality, and
   single-insert changes to total chain length, load factor, expected chain
-  length, and unsuccessful-search cost.  The SUHA layer additionally proves the
-  expected chain length `α = n/m` and expected unsuccessful-search cost `1 + α`
-  as **true expectations** over the explicit independent uniform hashing
-  distribution `Fin n → Fin m` (single-coordinate marginalisation of
-  `CLRS.Probability.fintypeExpect`).
-- Current gap: successful-search analysis and a random hash *function* model
-  (rather than random key placement); RAM/probe-count semantics.
+  length, and unsuccessful-search cost.  The SUHA layer proves the expected
+  chain length `α = n/m`, expected unsuccessful-search cost `1 + α`, the pairwise
+  collision probability `1/m` (two-coordinate marginalisation of
+  `CLRS.Probability.fintypeExpect` via `hashSplitPair`), and the expected
+  successful-search cost `1 + (n-1)/(2m)` (CLRS Theorem 11.2), all as **true
+  expectations** over the explicit independent uniform hashing distribution
+  `Fin n → Fin m`.  A separate universal random-hash-*function* model
+  (`IsUniversal`) bounds expected collisions by `α` and search cost by `1 + α`
+  (CLRS Theorem 11.3) from the universality hypothesis alone.
+- Current gap: RAM/probe-count operational semantics.
 
 ## Chapter 12 - Binary Search Trees
 
@@ -2389,7 +2396,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 | Chapter 9 deterministic linear-time SELECT | `proved-abstract` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. A concrete executable cost counter `medianOfMediansSelectCost` (same recursion as `medianOfMediansSelect?`) now has the explicit linear bound `medianOfMediansSelectCost k xs ≤ 17 * xs.length` (`medianOfMediansSelectCost_linear_bound`), via the generic `selectCost_linear_bound`. Remaining refinement: a fully operational RAM step-count that also unfolds the recursive cost of computing the pivot. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
-| Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m` and expected unsuccessful-search cost `1 + α` are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`). Remaining: successful-search analysis, random hash-*function* model, RAM/probe-count semantics. |
+| Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m`, expected unsuccessful-search cost `1 + α`, pairwise collision probability `1/m`, and expected successful-search cost `1 + (n-1)/(2m)` (CLRS Theorem 11.2) are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`, `pairCollisionProb`, `expectedRandomSuccessfulSearchCost`); a universal random hash-*function* model bounds expected collisions by `α` and search cost by `1 + α` (CLRS Theorem 11.3, `IsUniversal`, `universal_expected_collisions`, `universal_expected_search_cost`). Remaining: RAM/probe-count semantics. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
 | Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; the `Zipper` layer proves parent-pointer navigation and `TRANSPLANT` functionally. Only an imperative in-place memory model remains. |

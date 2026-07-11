@@ -33,14 +33,23 @@ unsuccessful-search cost by {lit}`1/m`.
   {lit}`CLRS.Chapter11.expectedUnsuccessfulSearchCost_ge_one`,
   {lit}`CLRS.Chapter11.expectedSearchChainLength_finiteHashInsert`,
   {lit}`CLRS.Chapter11.finiteHashLoadFactor_finiteHashInsert`,
-  and {lit}`CLRS.Chapter11.expectedUnsuccessfulSearchCost_finiteHashInsert`.
+  {lit}`CLRS.Chapter11.expectedUnsuccessfulSearchCost_finiteHashInsert`,
+  {lit}`CLRS.Chapter11.expectedRandomChainLength_eq_loadFactor`,
+  {lit}`CLRS.Chapter11.expectedRandomUnsuccessfulSearchCost`,
+  {lit}`CLRS.Chapter11.pairCollisionProb`,
+  {lit}`CLRS.Chapter11.expectedRandomSuccessfulSearchCost`,
+  {lit}`CLRS.Chapter11.universal_expected_collisions`,
+  and {lit}`CLRS.Chapter11.universal_expected_search_cost`.
 
 ## Current Gaps
 
 The deterministic insert/delete/search layer is compiler-clean, and the
-finite-uniform bucket layer now proves the load-factor, nonnegativity, and
-single-insert expected-cost interfaces.  The remaining probability gap is a full
-model over random keys or random hash functions with independence assumptions.
+finite-uniform bucket layer proves the load-factor, nonnegativity, and
+single-insert expected-cost interfaces.  The SUHA layer proves the expected
+chain length, unsuccessful-search cost {lit}`1 + α`, and successful-search cost
+{lit}`1 + (n-1)/(2m)` as true expectations, and a universal random-hash-*function*
+family bounds expected collisions by {lit}`α` and search cost by {lit}`1 + α`.
+The remaining gap is RAM / probe-count operational semantics.
 -/
 
 namespace CLRS
