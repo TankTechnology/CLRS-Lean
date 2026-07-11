@@ -858,6 +858,10 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   - `CLRS.Chapter09.medianOfMediansSelect?_mem`
   - `CLRS.Chapter09.medianOfMediansSelect?_rankCorrect`
   - `CLRS.Chapter09.medianOfMediansSelect?_correct`
+  - `CLRS.Chapter09.selectCost_linear_step`
+  - `CLRS.Chapter09.selectCostFuel_linear_bound`
+  - `CLRS.Chapter09.selectCost_linear_bound`
+  - `CLRS.Chapter09.medianOfMediansSelectCost_linear_bound`
 - Proof pattern: abstract over a pivot function with
   `CLRS.Chapter09.PivotMembership`, then reuse the Chapter 9.2
   `RankCertificate` lifting lemmas for the low side, pivot block, and high
@@ -870,9 +874,14 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   full-input count lower bounds around a median-of-medians pivot.  The
   partition-size wrapper packages these count bounds as
   `10 * branchSize ≤ 7 * n + 12` for both strict recursive branches.
-- Current gap: the abstract recurrence and linear bound are proved; the next
-  strengthening target is a concrete cost semantics for
-  `medianOfMediansSelect?` that feeds into the recurrence hypothesis.
+- Current gap: the abstract recurrence, the linear bound, and a concrete
+  executable cost counter (`CLRS.Chapter09.medianOfMediansSelectCost`, defined
+  by the same recursion as `medianOfMediansSelect?`) with the explicit bound
+  `medianOfMediansSelectCost k xs ≤ 17 * xs.length` are all proved.  The counter
+  charges the linear partition scan along the recursion path and folds the
+  median-of-medians pivot selection into a linear-cost oracle; the next
+  strengthening target is a fully operational RAM step-count that also unfolds
+  the recursive cost of computing the pivot.
 
 ### Section 9.2 - Randomized SELECT expected running time
 
@@ -2327,7 +2336,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 | Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
 | Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the CLRS second moment `E[Σ n_i²] = n + n(n-1)/m` is proved as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`), and the abstract expected cost is `O(n)` (`expectedBucketSortCost_isBigO`). Remaining: RAM/step-count cost semantics. |
 | Chapter 9 randomized SELECT expected time | `proved` | Proved in `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`: `randSelectExpectedCost` models the uniform independent-pivot expected cost via `CLRS.Probability.expect`, `randSelectExpectedCost_recurrence` derives the CLRS recurrence, and `randomizedSelect_expected_bigO_linear` gives `E[T(n)] = O(n)` (CLRS Theorem 9.2). Remaining refinement: a joint distribution over all recursion levels and a concrete step-count cost model. |
-| Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
+| Chapter 9 deterministic linear-time SELECT | `proved-abstract` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. A concrete executable cost counter `medianOfMediansSelectCost` (same recursion as `medianOfMediansSelect?`) now has the explicit linear bound `medianOfMediansSelectCost k xs ≤ 17 * xs.length` (`medianOfMediansSelectCost_linear_bound`), via the generic `selectCost_linear_bound`. Remaining refinement: a fully operational RAM step-count that also unfolds the recursive cost of computing the pivot. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
 | Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m` and expected unsuccessful-search cost `1 + α` are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`). Remaining: successful-search analysis, random hash-*function* model, RAM/probe-count semantics. |
