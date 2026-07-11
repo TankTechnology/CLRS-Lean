@@ -45,11 +45,20 @@ Main results:
   height or increases it by one.
 - Theorem {lit}`RBTree.height_log_bound`: **CLRS Lemma 13.1** — a red-black
   tree with {lit}`n` internal nodes has height at most {lit}`2 log₂(n + 1)`.
+- Definitions {lit}`RBTree.deleteFixupCase1`..{lit}`deleteFixupCase4` and the
+  {lit}`deleteFixupLocal` dispatcher: the four local {lit}`RB-DELETE-FIXUP`
+  cases (deficient left child).
+- Theorems {lit}`RBTree.inTree_deleteFixupCase1_iff`..{lit}`_case4_iff`: every
+  delete-fixup case preserves membership.
+- Theorem {lit}`RBTree.deleteFixupCase4_shape`: the terminating rotation case
+  resolves the doubly-black deficit and re-establishes the no-red-red and
+  balanced-black-height invariants.
 
 Remaining gaps:
 
-- The executable {lit}`RB-DELETE` and {lit}`RB-DELETE-FIXUP` algorithms remain
-  future work.
+- The fully-composed executable {lit}`RB-DELETE` / {lit}`RB-DELETE-FIXUP` loop
+  (threading the doubly-black deficit through Cases 1-3 into Case 4) remains
+  future work; the local case rewrites and the terminating certificate are proved.
 -/
 
 namespace CLRS
@@ -1248,6 +1257,126 @@ theorem height_log_bound (t : RBTree) (hShape : RedBlackShape t) :
   have hLog : blackHeight t ≤ Nat.log 2 (size t + 1) :=
     Nat.le_log_of_pow_le (by omega) hSize
   omega
+
+/-! ## Local deletion-fixup cases (CLRS RB-DELETE-FIXUP)
+
+After deleting a black node the tree carries a *doubly-black* deficit: one
+subtree has black height one less than its sibling.  {lit}`RB-DELETE-FIXUP` restores
+balance through four local cases, mirrored below for the situation where the
+deficient node is a *left* child (so its sibling {lit}`w` is the right child of the
+parent).  Each case is a pure local rewrite; we prove that every case preserves
+membership, and that the terminating Case 4 resolves the deficit and
+re-establishes the no-red-red and balanced-black-height shape.
+
+Main results:
+
+- Definitions {lit}`deleteFixupCase1`..{lit}`deleteFixupCase4` and the {lit}`DeleteFixupCase`
+  dispatcher {lit}`deleteFixupLocal`.
+- Theorems {lit}`inTree_deleteFixupCase*_iff`: every case preserves membership.
+- Theorem {lit}`deleteFixupCase4_shape`: the terminating rotation case restores the
+  no-red-red and balanced invariants and fixes the black-height deficit. -/
+
+/-- **Case 1** (sibling {lit}`w` is red): left-rotate the parent, recolour {lit}`w` black
+and the parent red, exposing a black sibling for Cases 2-4. -/
+def deleteFixupCase1 : RBTree → RBTree
+  | node pc x pk (node Color.red wl wk wr) =>
+      node pc (node Color.red x pk wl) wk wr
+  | t => t
+
+/-- **Case 2** ({lit}`w` black with two black children): recolour {lit}`w` red, pushing
+the deficit up to the parent. -/
+def deleteFixupCase2 : RBTree → RBTree
+  | node pc x pk (node Color.black wl wk wr) =>
+      node pc x pk (node Color.red wl wk wr)
+  | t => t
+
+/-- **Case 3** ({lit}`w` black, {lit}`w.left` red, {lit}`w.right` black): right-rotate {lit}`w` and
+recolour, reducing to Case 4. -/
+def deleteFixupCase3 : RBTree → RBTree
+  | node pc x pk (node Color.black (node Color.red wll wlk wlr) wk wr) =>
+      node pc x pk (node Color.black wll wlk (node Color.red wlr wk wr))
+  | t => t
+
+/-- **Case 4** ({lit}`w` black, {lit}`w.right` red): left-rotate the parent, recolour, and
+the deficit is resolved. -/
+def deleteFixupCase4 : RBTree → RBTree
+  | node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)) =>
+      node pc (node Color.black x pk wl) wk (node Color.black wrl wrk wrr)
+  | t => t
+
+/-- The four local CLRS delete-fixup case orientations (deficient left child). -/
+inductive DeleteFixupCase where
+  | case1
+  | case2
+  | case3
+  | case4
+  deriving Repr, DecidableEq
+
+/-- Unified dispatcher for the four local delete-fixup rewrites. -/
+def deleteFixupLocal : DeleteFixupCase → RBTree → RBTree
+  | DeleteFixupCase.case1, t => deleteFixupCase1 t
+  | DeleteFixupCase.case2, t => deleteFixupCase2 t
+  | DeleteFixupCase.case3, t => deleteFixupCase3 t
+  | DeleteFixupCase.case4, t => deleteFixupCase4 t
+
+/-- Case 1 preserves membership. -/
+theorem inTree_deleteFixupCase1_iff (q : Nat) (x wl wr : RBTree) (pk wk : Nat)
+    (pc : Color) :
+    InTree q (deleteFixupCase1 (node pc x pk (node Color.red wl wk wr))) ↔
+      InTree q (node pc x pk (node Color.red wl wk wr)) := by
+  simp [deleteFixupCase1, InTree, or_assoc, or_left_comm]
+
+/-- Case 2 preserves membership. -/
+theorem inTree_deleteFixupCase2_iff (q : Nat) (x wl wr : RBTree) (pk wk : Nat)
+    (pc : Color) :
+    InTree q (deleteFixupCase2 (node pc x pk (node Color.black wl wk wr))) ↔
+      InTree q (node pc x pk (node Color.black wl wk wr)) := by
+  simp [deleteFixupCase2, InTree]
+
+/-- Case 3 preserves membership. -/
+theorem inTree_deleteFixupCase3_iff (q : Nat) (x wll wlr wr : RBTree)
+    (pk wlk wk : Nat) (pc : Color) :
+    InTree q (deleteFixupCase3
+        (node pc x pk (node Color.black (node Color.red wll wlk wlr) wk wr))) ↔
+      InTree q (node pc x pk (node Color.black (node Color.red wll wlk wlr) wk wr)) := by
+  simp [deleteFixupCase3, InTree, or_assoc, or_left_comm]
+
+/-- Case 4 preserves membership. -/
+theorem inTree_deleteFixupCase4_iff (q : Nat) (x wl wrl wrr : RBTree)
+    (pk wk wrk : Nat) (pc : Color) :
+    InTree q (deleteFixupCase4
+        (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)))) ↔
+      InTree q (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr))) := by
+  simp [deleteFixupCase4, InTree, or_assoc, or_left_comm]
+
+/-- **Case 4 terminating certificate.**  When the deficient left subtree {lit}`x` and
+the sibling's fringe subtrees {lit}`wl`, {lit}`wrl`, {lit}`wrr` are red-black shaped with equal
+black heights (the doubly-black deficit {lit}`blackHeight x = blackHeight wl`), the
+left-rotation-and-recolour of Case 4 re-establishes the no-red-red and
+balanced-black-height invariants — the deficit is resolved regardless of the
+parent colour {lit}`pc`. -/
+theorem deleteFixupCase4_shape
+    {x wl wrl wrr : RBTree} {pk wk wrk : Nat} {pc : Color}
+    (hx : RedBlackShape x) (hwl : RedBlackShape wl)
+    (hwrl : RedBlackShape wrl) (hwrr : RedBlackShape wrr)
+    (hxwl : blackHeight x = blackHeight wl)
+    (hwlwrl : blackHeight wl = blackHeight wrl)
+    (hwrlwrr : blackHeight wrl = blackHeight wrr) :
+    NoRedRed (deleteFixupCase4
+        (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)))) ∧
+    BalancedBlackHeight (deleteFixupCase4
+        (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)))) := by
+  rcases hx with ⟨_hxRoot, hxNoRed, hxBal⟩
+  rcases hwl with ⟨_hwlRoot, hwlNoRed, hwlBal⟩
+  rcases hwrl with ⟨_hwrlRoot, hwrlNoRed, hwrlBal⟩
+  rcases hwrr with ⟨_hwrrRoot, hwrrNoRed, hwrrBal⟩
+  refine ⟨?_, ?_⟩
+  · simp [deleteFixupCase4, NoRedRed, RootBlack]
+    exact ⟨⟨hxNoRed, hwlNoRed⟩, hwrlNoRed, hwrrNoRed⟩
+  · simp [deleteFixupCase4, BalancedBlackHeight]
+    refine ⟨⟨hxBal, hwlBal, hxwl⟩, ⟨hwrlBal, hwrrBal, hwrlwrr⟩, ?_⟩
+    simp only [blackHeight]
+    omega
 
 end RBTree
 
