@@ -1196,16 +1196,28 @@ full balancing algorithms.
   - `CLRS.Chapter14.OSTree.rotateRight_recomputeSizes_wellSized`
   - `CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?`
   - `CLRS.Chapter14.OSTree.osSelect?_rotateRight_recomputeSizes_eq_rankSelect?`
+  - `CLRS.Chapter14.OSRBTree.wellSized_insert`
+  - `CLRS.Chapter14.OSRBTree.storedSize_insert`
+  - `CLRS.Chapter14.OSRBTree.osSelect?_insert_eq_rankSelect?`
+  - `CLRS.Chapter14.OSRBTree.toRB_insert`
+  - `CLRS.Chapter14.OSRBTree.redBlackShape_toRB_insert`
+  - `CLRS.Chapter14.OSRBTree.mem_keys_insert`
 - Proof pattern: separate cached size fields from mathematical subtree size,
   prove recomputation establishes the augmentation invariant, prove local
   rotations preserve inorder keys, mathematical size, cached root size, the
   ideal rank-selection result, and the size invariant, then prove the cached
   order-statistic selector agrees with the ideal selector under that invariant.
   The recompute-then-rotate bridge removes the need for an incoming well-sized
-  hypothesis when preparing a local balancing step.
-- Current gap: connect the functional rotations to the Chapter 13 red-black
-  balancing layer and package the final textbook-level general augmentation
-  interface
+  hypothesis when preparing a local balancing step.  The augmented red-black
+  tree `OSRBTree` then threads the same size invariant through an *executable*
+  red-black insertion: its `balanceLeft`/`balanceRight`/`insertFixup`/`insert`
+  rebuild every node with a size-recomputing smart constructor `mk`, so
+  `wellSized_insert` follows by structural induction, and the size-erasing
+  projection `toRB` makes `insert` refine the Chapter 13 `RBTree.insert`,
+  transferring its shape and membership theorems.
+- Current gap: thread the augmentation through executable red-black *deletion*
+  (blocked on the Chapter 13 executable delete loop) and package the final
+  textbook-level general augmentation interface
 
 This first pass captures the core mathematical idea of order-statistic trees:
 the augmented size field is useful exactly because the selector can branch on

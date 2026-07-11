@@ -40,6 +40,14 @@ rank selector.
   {lit}`CLRS.Chapter14.OSTree.rotateRight_recomputeSizes_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?`,
   and {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateRight_recomputeSizes_eq_rankSelect?`.
+  The size augmentation is now also threaded through an executable red-black
+  insertion on the colour-and-size augmented tree {lit}`CLRS.Chapter14.OSRBTree`:
+  {lit}`CLRS.Chapter14.OSRBTree.wellSized_insert`,
+  {lit}`CLRS.Chapter14.OSRBTree.storedSize_insert`,
+  {lit}`CLRS.Chapter14.OSRBTree.osSelect?_insert_eq_rankSelect?`,
+  {lit}`CLRS.Chapter14.OSRBTree.toRB_insert`,
+  {lit}`CLRS.Chapter14.OSRBTree.redBlackShape_toRB_insert`, and
+  {lit}`CLRS.Chapter14.OSRBTree.mem_keys_insert`.
 * 14.3 Interval trees: {lit}`proved` for the functional well-augmented BST
   model.
   Main results: {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`,
@@ -50,11 +58,15 @@ rank selector.
 
 The current model proves the augmentation invariant and rank-selection
 correctness for a functional tree, including size-preserving local rotations,
-and interval-search correctness for well-augmented BSTs.  The recompute-then-
-rotate bridge is ready to be used by a future red-black balancing refinement.
-The model does not yet connect those rotations to full Chapter 13 insertion/
-deletion fixup; the final textbook-level general augmentation interface remains
-to be packaged from the generic local framework.
+and interval-search correctness for well-augmented BSTs.  The size augmentation
+is now threaded through an executable red-black insertion: {lit}`OSRBTree.insert`
+recomputes cached sizes during Okasaki-style balancing,
+{lit}`OSRBTree.wellSized_insert` shows the augmentation invariant survives, and
+{lit}`OSRBTree.toRB_insert` shows the augmented insert refines the executable
+Chapter 13 {lit}`RBTree.insert` exactly.  The remaining gaps are augmentation
+through *deletion* (blocked on the Chapter 13 executable red-black deletion loop)
+and packaging the final textbook-level general augmentation interface from the
+generic local framework.
 -/
 
 namespace CLRS
