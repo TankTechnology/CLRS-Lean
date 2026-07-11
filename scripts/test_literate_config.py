@@ -89,6 +89,7 @@ class LiterateConfigTest(unittest.TestCase):
         expected = {
             "CLRSLean.Chapter_08.Section_08_2_Counting_Sort": [
                 "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables",
+                "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray",
             ],
             "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework": [
                 "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",

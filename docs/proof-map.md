@@ -667,7 +667,9 @@ proved comparison-count and recurrence facts.
 - Lean sources:
   - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean`
   - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean`
-- Status: `proved` for the stable bucket specification
+  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray.lean`
+- Status: `proved` for the stable bucket specification, the count-table
+  refinement, and the mutable output-array refinement
 - Main proved theorems:
   - `CLRS.Chapter08.countingSortBy_ordered`
   - `CLRS.Chapter08.countingSortBy_bucket_eq`
@@ -679,6 +681,12 @@ proved comparison-count and recurrence facts.
   - `CLRS.Chapter08.cumulativeCountTable_length`
   - `CLRS.Chapter08.countingSortByTable_correct`
   - `CLRS.Chapter08.ReverseScan.countingSortByReverse_correct`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_toList`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_correct`
+  - `CLRS.Chapter08.MutableOutput.scatter_range_size`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_size`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_size_of_allKeysLe`
+  - `CLRS.Chapter08.MutableOutput.countingSortArrayCost_bigO`
 - Proof pattern: model counting sort as a stable scan over key buckets
   `0, 1, ..., maxKey`; prove each bucket contains exactly the input elements
   with that key, prove output keys are ordered by concatenating ordered buckets,
@@ -686,9 +694,16 @@ proved comparison-count and recurrence facts.
   permutation preservation by comparing counts through each element's own
   key-bucket.  The count-table refinement then proves that table lengths,
   cumulative boundaries, and per-key reverse scans are extensionally equal to
-  the stable bucket specification.
-- Current gap: the remaining imperative refinement is a single mutable output
-  array with mutable cumulative counters, plus a concrete linear-time cost model.
+  the stable bucket specification.  The mutable output-array refinement fills a
+  single physical `Array` by appending each key's reverse-scan segment, proves
+  the array reads back extensionally equal to `countingSortBy` (so it inherits
+  ordered/stable/membership/permutation correctness), identifies the fill
+  offsets with the cumulative counts, and records the linear `O(n + k)` per-pass
+  work bound.
+- Current gap: a full RAM/step-count operational cost semantics charging
+  individual array reads and writes through an execution model remains out of
+  scope; the linear work bound is a per-pass step count matching the CLRS
+  accounting.
 
 This section proves the mathematical CLRS correctness spine for counting sort.
 The theorem `CLRS.Chapter08.countingSortBy_bucket_eq` is deliberately stronger

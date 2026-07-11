@@ -61,6 +61,7 @@ CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort/Comparison_Probability.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean
+CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray.lean
 CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
 CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean
 CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean
