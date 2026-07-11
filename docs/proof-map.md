@@ -2411,6 +2411,67 @@ closed.  A canonical simple tree path now produces the crossing replacement
 edge; the sorted Kruskal wrapper builds each local cut certificate during its
 recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
+## Chapter 24 - Single-Source Shortest Paths
+
+- Chapter status: `selected-section-complete`
+- Chapter guide: `CLRSLean/Chapter_24.lean`
+
+### Section 24.1 - The Bellman-Ford algorithm
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean`
+- Status: `proved`
+- Model layer:
+  - `CLRS.Chapter24.WeightedGraph`
+  - `CLRS.Chapter24.WeightedGraph.Adj`
+  - `CLRS.Chapter24.WeightedGraph.walkWeight`
+  - `CLRS.Chapter24.WeightedGraph.IsWalkFrom`
+- Relaxation dynamic program:
+  - `CLRS.Chapter24.WeightedGraph.relaxStep`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_succ_le`
+- Correctness layer:
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_le_walkWeight` (upper-bound property)
+  - `CLRS.Chapter24.WeightedGraph.exists_walk_of_relaxDist` (realizability)
+  - `CLRS.Chapter24.WeightedGraph.NoNegCycle`
+  - `CLRS.Chapter24.WeightedGraph.exists_simple_le` (cycle removal)
+  - `CLRS.Chapter24.WeightedGraph.IsShortestDist`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_isShortestDist` (CLRS Theorem 24.4)
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_stabilizes` (convergence)
+- Work bound:
+  - `CLRS.Chapter24.WeightedGraph.bellmanFordWork`
+  - `CLRS.Chapter24.WeightedGraph.bellmanFordWork_le` (`O(V·E)`)
+- Proof pattern: a synchronous `WithTop ℝ`-valued relaxation dynamic program;
+  induction on the round count for the upper-bound and realizability properties;
+  duplicate-vertex decomposition plus `walkWeight` additivity for cycle removal;
+  and identification of `relaxDist (|V|-1)` with the shortest-path distance `δ`.
+
+### Section 24.3 - Dijkstra's algorithm
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
+- Status: `proved`
+- Nonnegative-weight layer:
+  - `CLRS.Chapter24.WeightedGraph.Nonneg`
+  - `CLRS.Chapter24.WeightedGraph.walkWeight_nonneg`
+  - `CLRS.Chapter24.WeightedGraph.noNegCycle_of_nonneg`
+- Greedy correctness:
+  - `CLRS.Chapter24.WeightedGraph.exists_crossing`
+  - `CLRS.Chapter24.WeightedGraph.dijkstra_extractMin_correct` (CLRS Theorem 24.6)
+- Work bound:
+  - `CLRS.Chapter24.WeightedGraph.dijkstraWork`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraWork_le_edge_log` (`O(E log V)`)
+- Proof pattern: nonnegative walk-weight induction; frontier-crossing induction
+  on the realizing shortest walk; and a `walkWeight` split at the frontier edge
+  combined with the Section 24.1 shortest-distance lower bound and the Dijkstra
+  relaxation invariants to force `d u = δ u` for the extracted minimum.
+
+### Chapter 24 remaining work
+
+- Deferred without a false claim: the executable Dijkstra priority-queue loop
+  threading the settled set and tentative distances (Section 24.3 proves the
+  greedy invariant that makes such a loop correct); SSSP in DAGs (Section 24.2);
+  difference constraints (Section 24.4); per-edge relaxation ordering and
+  mutable/RAM cost accounting for the abstract synchronous model.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
