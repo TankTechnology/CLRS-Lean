@@ -129,6 +129,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework",
   "CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables",
 ]
+"CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables" = [
+  "CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables.Section_17_4_Mutable_Array_Tables",
+]
 "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework" = [
   "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",
 ]
@@ -450,6 +453,9 @@ title = "Stack and Counter Examples"
 
 [modules."CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables"]
 title = "17.4. Dynamic Tables"
+
+[modules."CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables.Section_17_4_Mutable_Array_Tables"]
+title = "Mutable-Array Tables and Sharper Potential"
 
 [modules."CLRSLean.Chapter_18.Section_18_1_B_Tree_Model"]
 title = "18.1. B-Tree Model"
