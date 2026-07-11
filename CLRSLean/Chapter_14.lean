@@ -40,7 +40,8 @@ rank selector.
   {lit}`CLRS.Chapter14.OSTree.rotateRight_recomputeSizes_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?`,
   and {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateRight_recomputeSizes_eq_rankSelect?`.
-* 14.3 Interval trees: {lit}`partial`.
+* 14.3 Interval trees: {lit}`proved` for the functional well-augmented BST
+  model.
   Main results: {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`,
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`, and
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_spec`.
@@ -52,7 +53,8 @@ correctness for a functional tree, including size-preserving local rotations,
 and interval-search correctness for well-augmented BSTs.  The recompute-then-
 rotate bridge is ready to be used by a future red-black balancing refinement.
 The model does not yet connect those rotations to full Chapter 13 insertion/
-deletion fixup or to the general augmentation theorem from the textbook.
+deletion fixup; the final textbook-level general augmentation interface remains
+to be packaged from the generic local framework.
 -/
 
 namespace CLRS

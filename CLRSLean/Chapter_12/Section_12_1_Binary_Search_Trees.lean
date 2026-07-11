@@ -67,11 +67,22 @@ Main results:
 - Theorem {lit}`predecessor?_delete_eq_none_iff`: after deletion, no
   predecessor is returned exactly when every old key except the deleted key is
   at least the query.
+- Theorem {lit}`searchIter_eq_search`: iterative parent-pointer search matches
+  the functional recursive search.
+- Theorem {lit}`transplant_preserves_ordered`: TRANSPLANT preserves the BST
+  ordering invariant.
+- Theorem {lit}`deleteViaTransplant_eq_delete`: TREE-DELETE via transplant
+  equals the functional deletion.
+- Theorem {lit}`successorZipper_eq_successor?`: parent-pointer successor matches
+  the functional successor.
+- Theorem {lit}`predecessorZipper_eq_predecessor?`: parent-pointer predecessor
+  matches the functional predecessor.
 
 Current gaps:
 
-- Parent-pointer successor/predecessor procedures, transplant, and pointer-level
-  tree mutation are future section targets.
+- Pointer-level tree mutation (the imperative RAM refinement) remains future work.
+- The zipper-based parent-pointer layer (iterative search, TRANSPLANT,
+  TREE-DELETE, parent-pointer successor/predecessor) is now proved.
 -/
 
 namespace CLRS
@@ -1185,6 +1196,585 @@ theorem search_insert_eq_true_iff {x y : Nat} {t : BSTree}
         exact inTree_insert_self x t
       · exact inTree_insert_of_inTree ((search_eq_true_iff ht).mp hySearch)
     exact (search_eq_true_iff hInsertedOrdered).mpr hyInserted
+
+/-! ## Parent-pointer refinement via Zipper
+
+This section adds a zipper (cursor) layer that encodes parent-pointers in
+pure functional style.  The zipper does not touch the existing {lit}`BSTree` type
+or its 30+ proved theorems.  Every new operation is proved equivalent to its
+functional counterpart via the {lit}`toTree` bridge.
+
+**CLRS correspondence:**
+
+- {lit}`Zipper` : cursor with a path from the root to the current node (implicit
+  parent pointers)
+- {lit}`searchZipper` : iterative {lit}`TREE-SEARCH` (CLRS Figure 12.2)
+- {lit}`transplant` : {lit}`TRANSPLANT(T, u, v)` (CLRS Section 12.3)
+- {lit}`deleteViaTransplant` : {lit}`TREE-DELETE` using transplant
+- {lit}`successorZipper` / {lit}`predecessorZipper` : successor/predecessor with parent
+  pointer ascent
+
+Main results:
+
+- Theorem {lit}`searchZipper_toTree` : the zipper is a view, not a mutation
+- Theorem {lit}`searchIter_eq_search` : iterative search matches functional search
+- Theorem {lit}`transplant_preserves_ordered` : TRANSPLANT preserves BST ordering
+- Theorem {lit}`deleteViaTransplant_eq_delete` : TREE-DELETE using transplant
+  matches functional {lit}`delete`
+- Theorem {lit}`successorZipper_eq_successor?` : parent-pointer successor matches
+  functional successor
+-/
+
+/-- A stack frame recording one descent step: direction, the parent key, and
+the sibling subtree that was not taken. -/
+inductive Frame where
+  | fromLeft  (parentKey : Nat) (rightSibling : BSTree)
+  | fromRight (parentKey : Nat) (leftSibling  : BSTree)
+
+/-- Reconstruct the parent node from a frame and a replacement child. -/
+def Frame.plug (fr : Frame) (t : BSTree) : BSTree :=
+  match fr with
+  | .fromLeft  pk rs => .node t pk rs
+  | .fromRight pk ls => .node ls pk t
+
+/-- A zipper: cursor with a path from the root to the current focus.
+The {lit}`ctx` list is a stack — the head is the immediate parent frame.
+{lit}`toTree` reconstructs the full tree by folding {lit}`plug` bottom-up. -/
+structure Zipper where
+  focus : BSTree
+  ctx   : List Frame
+
+/-- Reconstruct the full tree from a zipper by folding frames bottom-up. -/
+def Zipper.toTree (z : Zipper) : BSTree :=
+  z.ctx.foldl (fun t fr => fr.plug t) z.focus
+
+/-- The key bound immediately above the focus (or {lit}`none` if at root or
+descended right). -/
+def Zipper.upperBound? (z : Zipper) : Option Nat :=
+  match z.ctx.head? with
+  | none => none
+  | some (.fromLeft pk _) => some pk
+  | some (.fromRight _ _) => none
+
+/-- The key bound immediately below the focus (or {lit}`none` if at root or
+descended left). -/
+def Zipper.lowerBound? (z : Zipper) : Option Nat :=
+  match z.ctx.head? with
+  | none => none
+  | some (.fromRight pk _) => some pk
+  | some (.fromLeft _ _) => none
+
+/-- A local validity helper: the reconstructed tree is ordered and the focus
+respects the optional bounds contributed by its immediate parent frame.  The
+full-context replacement theorem below states the stronger hypotheses it uses
+explicitly. -/
+def Zipper.Valid (z : Zipper) : Prop :=
+  Ordered z.toTree ∧
+  (match z.upperBound? with
+  | none => True
+  | some pk => AllLt pk z.focus) ∧
+  (match z.lowerBound? with
+  | none => True
+  | some pk => AllGt pk z.focus)
+
+/-! ### Iterative search (CLRS Figure 12.2) -/
+
+/-- Whether a tree is a nonempty node. -/
+def nonempty : BSTree → Bool
+  | .empty => false
+  | .node _ _ _ => true
+
+/-- Auxiliary iterative search: descend the tree, pushing a frame for each
+direction taken.  Structural recursion on the tree; {lit}`ctx` accumulates the path. -/
+def searchZipperAux (x : Nat) : BSTree → List Frame → Zipper
+  | .empty, ctx => ⟨.empty, ctx⟩
+  | .node l k r, ctx =>
+    if x = k then ⟨.node l k r, ctx⟩
+    else if x < k then searchZipperAux x l (.fromLeft k r :: ctx)
+    else searchZipperAux x r (.fromRight k l :: ctx)
+
+/-- Iterative zipper search from a tree root.  Returns a zipper whose focus is
+the node found (or {lit}`empty` if absent). -/
+def searchZipper (x : Nat) (t : BSTree) : Zipper :=
+  searchZipperAux x t []
+
+/-- Iterative Boolean search via the zipper. -/
+def searchIter (x : Nat) (t : BSTree) : Bool :=
+  (searchZipper x t).focus.nonempty
+
+/-! ### Correctness of iterative search (AC-1, AC-2) -/
+
+/-- Descending and pushing frames does not change the reconstructed tree. -/
+theorem searchZipperAux_toTree (x : Nat) (t : BSTree) (ctx : List Frame) :
+    (searchZipperAux x t ctx).toTree = (Zipper.mk t ctx).toTree := by
+  induction t generalizing ctx with
+  | empty => rfl
+  | node l k r ih_l ih_r =>
+    dsimp [searchZipperAux]
+    by_cases h_eq : x = k
+    · simp [h_eq]
+    · by_cases h_lt : x < k
+      · simp only [if_neg h_eq, if_pos h_lt]
+        rw [ih_l (.fromLeft k r :: ctx)]
+        simp [Zipper.toTree, Frame.plug]
+      · simp only [if_neg h_eq, if_neg h_lt]
+        rw [ih_r (.fromRight k l :: ctx)]
+        simp [Zipper.toTree, Frame.plug]
+
+/-- The zipper is a view: reconstructing from a search zipper recovers the
+original tree (AC-1). -/
+theorem searchZipper_toTree (x : Nat) (t : BSTree) :
+    (searchZipper x t).toTree = t := by
+  rw [searchZipper, searchZipperAux_toTree]
+  simp [Zipper.toTree]
+
+/-- Iterative search matches the existing functional {lit}`search` (AC-2). -/
+theorem searchIter_eq_search (x : Nat) (t : BSTree) :
+    searchIter x t = search x t := by
+  dsimp [searchIter, searchZipper]
+  suffices h : ∀ ctx, (searchZipperAux x t ctx).focus.nonempty = search x t by
+    exact h []
+  intro ctx
+  induction t generalizing ctx with
+  | empty => rfl
+  | node l k r ih_l ih_r =>
+    dsimp [searchZipperAux, search]
+    by_cases h_eq : x = k
+    · simp [h_eq, nonempty]
+    · by_cases h_lt : x < k
+      · simp only [if_neg h_eq, if_pos h_lt]
+        exact ih_l (.fromLeft k r :: ctx)
+      · simp only [if_neg h_eq, if_neg h_lt]
+        exact ih_r (.fromRight k l :: ctx)
+
+/-! ### TRANSPLANT and ordering preservation (AC-3) -/
+
+/-- {lit}`AllLt` distributes over a node. -/
+theorem allLt_node {b k : Nat} {l r : BSTree} :
+    AllLt b (node l k r) ↔ k < b ∧ AllLt b l ∧ AllLt b r := by
+  constructor
+  · intro h
+    exact ⟨h k (Or.inl rfl),
+      fun y hy => h y (Or.inr (Or.inl hy)),
+      fun y hy => h y (Or.inr (Or.inr hy))⟩
+  · rintro ⟨hk, hl, hr⟩ y hy
+    have hy' : y = k ∨ InTree y l ∨ InTree y r := hy
+    rcases hy' with rfl | hyl | hyr
+    · exact hk
+    · exact hl y hyl
+    · exact hr y hyr
+
+/-- {lit}`AllGt` distributes over a node. -/
+theorem allGt_node {b k : Nat} {l r : BSTree} :
+    AllGt b (node l k r) ↔ b < k ∧ AllGt b l ∧ AllGt b r := by
+  constructor
+  · intro h
+    exact ⟨h k (Or.inl rfl),
+      fun y hy => h y (Or.inr (Or.inl hy)),
+      fun y hy => h y (Or.inr (Or.inr hy))⟩
+  · rintro ⟨hk, hl, hr⟩ y hy
+    have hy' : y = k ∨ InTree y l ∨ InTree y r := hy
+    rcases hy' with rfl | hyl | hyr
+    · exact hk
+    · exact hl y hyl
+    · exact hr y hyr
+
+/-- Reconstruction peels one frame off the top of the context. -/
+theorem toTree_cons (t : BSTree) (fr : Frame) (rest : List Frame) :
+    (Zipper.mk t (fr :: rest)).toTree = (Zipper.mk (fr.plug t) rest).toTree := by
+  simp [Zipper.toTree]
+
+/-- Reconstruction from an empty context is the focus itself. -/
+theorem toTree_nil (t : BSTree) : (Zipper.mk t []).toTree = t := by
+  simp [Zipper.toTree]
+
+/-- If a reconstructed tree is ordered, so is the focus (ordering is
+hereditary downward through the context). -/
+theorem ordered_focus_of_ordered_toTree (t : BSTree) (ctx : List Frame)
+    (h : Ordered (Zipper.mk t ctx).toTree) : Ordered t := by
+  induction ctx generalizing t with
+  | nil => simpa [toTree_nil] using h
+  | cons fr rest ih =>
+    rw [toTree_cons] at h
+    have hplug : Ordered (fr.plug t) := ih (fr.plug t) h
+    cases fr with
+    | fromLeft pk rs =>
+      simp only [Frame.plug, Ordered] at hplug
+      exact hplug.1
+    | fromRight pk ls =>
+      simp only [Frame.plug, Ordered] at hplug
+      exact hplug.2.1
+
+/-- **Core ordering-preservation lemma.**  Replacing the focus subtree with a
+new subtree whose keys respect the same bounds as the old focus preserves the
+ordering of the whole reconstructed tree. -/
+theorem toTree_ordered_of_subrange :
+    ∀ (ctx : List Frame) (focus newFocus : BSTree),
+    Ordered (Zipper.mk focus ctx).toTree →
+    Ordered newFocus →
+    (∀ b, AllLt b focus → AllLt b newFocus) →
+    (∀ b, AllGt b focus → AllGt b newFocus) →
+    Ordered (Zipper.mk newFocus ctx).toTree := by
+  intro ctx
+  induction ctx with
+  | nil =>
+    intro focus newFocus _ hNew _ _
+    simpa [toTree_nil] using hNew
+  | cons fr rest ih =>
+    intro focus newFocus hOrd hNew hLt hGt
+    rw [toTree_cons] at hOrd ⊢
+    cases fr with
+    | fromLeft pk rs =>
+      simp only [Frame.plug] at hOrd ⊢
+      have hNodeOrd : Ordered (node focus pk rs) :=
+        ordered_focus_of_ordered_toTree _ _ hOrd
+      simp only [Ordered] at hNodeOrd
+      obtain ⟨hFocusOrd, hRsOrd, hLtFocus, hGtRs⟩ := hNodeOrd
+      have hNewNodeOrd : Ordered (node newFocus pk rs) := by
+        simp only [Ordered]
+        exact ⟨hNew, hRsOrd, hLt pk hLtFocus, hGtRs⟩
+      refine ih (node focus pk rs) (node newFocus pk rs) hOrd hNewNodeOrd ?_ ?_
+      · intro b hb
+        rw [allLt_node] at hb ⊢
+        exact ⟨hb.1, hLt b hb.2.1, hb.2.2⟩
+      · intro b hb
+        rw [allGt_node] at hb ⊢
+        exact ⟨hb.1, hGt b hb.2.1, hb.2.2⟩
+    | fromRight pk ls =>
+      simp only [Frame.plug] at hOrd ⊢
+      have hNodeOrd : Ordered (node ls pk focus) :=
+        ordered_focus_of_ordered_toTree _ _ hOrd
+      simp only [Ordered] at hNodeOrd
+      obtain ⟨hLsOrd, hFocusOrd, hLtLs, hGtFocus⟩ := hNodeOrd
+      have hNewNodeOrd : Ordered (node ls pk newFocus) := by
+        simp only [Ordered]
+        exact ⟨hLsOrd, hNew, hLtLs, hGt pk hGtFocus⟩
+      refine ih (node ls pk focus) (node ls pk newFocus) hOrd hNewNodeOrd ?_ ?_
+      · intro b hb
+        rw [allLt_node] at hb ⊢
+        exact ⟨hb.1, hb.2.1, hLt b hb.2.2⟩
+      · intro b hb
+        rw [allGt_node] at hb ⊢
+        exact ⟨hb.1, hb.2.1, hGt b hb.2.2⟩
+
+/-- {lit}`TRANSPLANT(T, u, v)`: replace the subtree under the cursor {lit}`z` with
+{lit}`newFocus`, reconstructing the full tree.  Matches CLRS Section 12.3. -/
+def transplant (z : Zipper) (newFocus : BSTree) : BSTree :=
+  (Zipper.mk newFocus z.ctx).toTree
+
+/-- **AC-3.** TRANSPLANT preserves the BST ordering invariant when the new
+subtree respects the same key bounds as the replaced focus. -/
+theorem transplant_preserves_ordered (z : Zipper) (newFocus : BSTree)
+    (hOrd : Ordered z.toTree) (hNewOrd : Ordered newFocus)
+    (hLt : ∀ b, AllLt b z.focus → AllLt b newFocus)
+    (hGt : ∀ b, AllGt b z.focus → AllGt b newFocus) :
+    Ordered (transplant z newFocus) := by
+  have hz : z.toTree = (Zipper.mk z.focus z.ctx).toTree := rfl
+  rw [hz] at hOrd
+  exact toTree_ordered_of_subrange z.ctx z.focus newFocus hOrd hNewOrd hLt hGt
+
+/-! ### TREE-DELETE via TRANSPLANT (AC-4) -/
+
+/-- CLRS {lit}`TREE-DELETE` using TRANSPLANT (Figure 12.4).
+
+{lit}`ctx` accumulates the path from the root (the parent-pointer chain); the
+top-level call starts with {lit}`ctx = []`.  On reaching the target node the local
+replacement subtree is spliced back into the full tree by {lit}`transplant`
+(the CLRS TRANSPLANT operation), which is precisely the parent-pointer
+rewiring step.  The local replacement follows the same successor-replacement
+discipline as the functional {lit}`deleteRoot`: if the right child is empty, splice
+the left child; otherwise replace the key with its successor ({lit}`minKey` of the
+right subtree) and delete that successor from the right subtree. -/
+def deleteViaTransplant (x : Nat) : BSTree → List Frame → BSTree
+  | .empty, ctx => (Zipper.mk .empty ctx).toTree
+  | .node l k r, ctx =>
+    if x < k then deleteViaTransplant x l (.fromLeft k r :: ctx)
+    else if k < x then deleteViaTransplant x r (.fromRight k l :: ctx)
+    else
+      match r with
+      | .empty => transplant ⟨node l k r, ctx⟩ l
+      | .node _ _ _ => transplant ⟨node l k r, ctx⟩ (node l (minKey r) (deleteMin r))
+
+/-- Reconstructing the delete-via-transplant result equals plugging the
+functional {lit}`delete` result into the same context. -/
+theorem deleteViaTransplant_eq_toTree_delete (x : Nat) :
+    ∀ (t : BSTree) (ctx : List Frame),
+    deleteViaTransplant x t ctx = (Zipper.mk (delete x t) ctx).toTree := by
+  intro t
+  induction t with
+  | empty => intro ctx; simp [deleteViaTransplant, delete]
+  | node l k r ih_l ih_r =>
+    intro ctx
+    simp only [deleteViaTransplant, delete]
+    by_cases h_lt : x < k
+    · simp only [if_pos h_lt]
+      rw [ih_l (.fromLeft k r :: ctx), toTree_cons]
+      simp [Frame.plug]
+    · by_cases h_gt : k < x
+      · simp only [if_neg h_lt, if_pos h_gt]
+        rw [ih_r (.fromRight k l :: ctx), toTree_cons]
+        simp [Frame.plug]
+      · simp only [if_neg h_lt, if_neg h_gt]
+        cases r with
+        | empty =>
+          simp [transplant, deleteRoot]
+        | node rl rk rr =>
+          simp [transplant, deleteRoot]
+
+/-- **AC-4.** TREE-DELETE using transplant equals the functional {lit}`delete`. -/
+theorem deleteViaTransplant_eq_delete (x : Nat) (t : BSTree) :
+    deleteViaTransplant x t [] = delete x t := by
+  rw [deleteViaTransplant_eq_toTree_delete, toTree_nil]
+
+/-! ### Successor and predecessor via parent-pointer ascent (AC-5) -/
+
+/-- Combine a primary option with a fallback (the successor found by ascending
+the parent chain). -/
+def orFb : Option Nat → Option Nat → Option Nat
+  | some y, _ => some y
+  | none, fb => fb
+
+/-- Ascend the parent chain looking for the nearest ancestor reached from a
+left child; its key is the successor when the focus has no right subtree.
+Mirrors CLRS TREE-SUCCESSOR's upward walk. -/
+def ascendSuccessor : List Frame → Option Nat
+  | [] => none
+  | .fromLeft pk _ :: _ => some pk
+  | .fromRight _ _ :: rest => ascendSuccessor rest
+
+/-- Ascend the parent chain looking for the nearest ancestor reached from a
+right child; its key is the predecessor when the focus has no left subtree. -/
+def ascendPredecessor : List Frame → Option Nat
+  | [] => none
+  | .fromRight pk _ :: _ => some pk
+  | .fromLeft _ _ :: rest => ascendPredecessor rest
+
+/-- When every key of {lit}`t` is greater than {lit}`x`, the functional successor of {lit}`x`
+is the minimum of {lit}`t`. -/
+theorem successor?_eq_minimum?_of_allGt {x : Nat} {t : BSTree}
+    (ht : Ordered t) (hgt : AllGt x t) : successor? x t = minimum? t := by
+  induction t with
+  | empty => simp [successor?, minimum?]
+  | node l k r ih_l _ih_r =>
+    simp only [Ordered] at ht
+    obtain ⟨hlO, _hrO, _hlLt, _hrGt⟩ := ht
+    have hxk : x < k := hgt k (Or.inl rfl)
+    have hxl : AllGt x l := fun y hy => hgt y (Or.inr (Or.inl hy))
+    simp only [successor?, if_pos hxk]
+    cases l with
+    | empty => simp [successor?, minimum?]
+    | node ll lk lr =>
+      rw [ih_l hlO hxl]
+      have hmin : minimum? (node ll lk lr) = some (minKey (node ll lk lr)) :=
+        minimum?_eq_some_minKey (node_ne_empty ll lk lr)
+      rw [hmin]
+      simp [minimum?, hmin]
+
+/-- A total maximum-key operation (dummy on the empty tree), mirroring
+{lit}`minKey`. -/
+def maxKey : BSTree → Nat
+  | empty => 0
+  | node _left key empty => key
+  | node _left _key right@(node _ _ _) => maxKey right
+
+/-- On nonempty trees, {lit}`maxKey` agrees with {lit}`maximum?`. -/
+theorem maximum?_eq_some_maxKey {t : BSTree} (h : t ≠ empty) :
+    maximum? t = some (maxKey t) := by
+  induction t with
+  | empty => exact (h rfl).elim
+  | node left key right _ihLeft ihRight =>
+    cases right with
+    | empty => simp [maximum?, maxKey]
+    | node rl rk rr =>
+      have hne : node rl rk rr ≠ empty := node_ne_empty rl rk rr
+      simpa [maximum?, maxKey] using ihRight hne
+
+/-- When every key of {lit}`t` is less than {lit}`x`, the functional predecessor of {lit}`x`
+is the maximum of {lit}`t`. -/
+theorem predecessor?_eq_maximum?_of_allLt {x : Nat} {t : BSTree}
+    (ht : Ordered t) (hlt : AllLt x t) : predecessor? x t = maximum? t := by
+  induction t with
+  | empty => simp [predecessor?, maximum?]
+  | node l k r _ih_l ih_r =>
+    simp only [Ordered] at ht
+    obtain ⟨_hlO, hrO, _hlLt, _hrGt⟩ := ht
+    have hkx : k < x := hlt k (Or.inl rfl)
+    have hxr : AllLt x r := fun y hy => hlt y (Or.inr (Or.inr hy))
+    simp only [predecessor?, if_pos hkx]
+    cases r with
+    | empty => simp [predecessor?, maximum?]
+    | node rl rk rr =>
+      rw [ih_r hrO hxr]
+      have hmax : maximum? (node rl rk rr) = some (maxKey (node rl rk rr)) :=
+        maximum?_eq_some_maxKey (node_ne_empty rl rk rr)
+      rw [hmax]
+      simp [maximum?, hmax]
+
+/-- Successor of the focus node: minimum of the right subtree if present,
+otherwise the successor found by ascending the parent chain. -/
+def zsucc (z : Zipper) : Option Nat :=
+  match z.focus with
+  | .empty => none
+  | .node _ _ r =>
+    match r with
+    | .empty => ascendSuccessor z.ctx
+    | .node _ _ _ => minimum? r
+
+/-- Predecessor of the focus node: maximum of the left subtree if present,
+otherwise the predecessor found by ascending the parent chain. -/
+def zpred (z : Zipper) : Option Nat :=
+  match z.focus with
+  | .empty => none
+  | .node l _ _ =>
+    match l with
+    | .empty => ascendPredecessor z.ctx
+    | .node _ _ _ => maximum? l
+
+/-- Parent-pointer successor query: descend to {lit}`x`, then use the right subtree
+or ascend. -/
+def successorZipper (x : Nat) (t : BSTree) : Option Nat := zsucc (searchZipper x t)
+
+/-- Parent-pointer predecessor query: descend to {lit}`x`, then use the left subtree
+or ascend. -/
+def predecessorZipper (x : Nat) (t : BSTree) : Option Nat := zpred (searchZipper x t)
+
+/-- Bridge: the parent-pointer successor computed while descending with an
+accumulated context equals the functional successor, falling back to the
+ascent value stored in the context. -/
+theorem successorZipper_bridge (x : Nat) :
+    ∀ (t : BSTree) (ctx : List Frame), Ordered t → InTree x t →
+    zsucc (searchZipperAux x t ctx) = orFb (successor? x t) (ascendSuccessor ctx) := by
+  intro t
+  induction t with
+  | empty => intro ctx _ hx; exact absurd hx (by simp [InTree])
+  | node l k r ih_l ih_r =>
+    intro ctx ht hx
+    simp only [Ordered] at ht
+    obtain ⟨hlO, hrO, hlLt, hrGt⟩ := ht
+    by_cases hxk : x = k
+    · subst hxk
+      have hfocus : searchZipperAux x (node l x r) ctx = ⟨node l x r, ctx⟩ := by
+        simp [searchZipperAux]
+      rw [hfocus]
+      simp only [zsucc]
+      cases r with
+      | empty =>
+        simp [successor?, orFb]
+      | node rl rk rr =>
+        have hsucc : successor? x (node rl rk rr) = minimum? (node rl rk rr) :=
+          successor?_eq_minimum?_of_allGt hrO hrGt
+        have hmin : minimum? (node rl rk rr) = some (minKey (node rl rk rr)) :=
+          minimum?_eq_some_minKey (node_ne_empty rl rk rr)
+        have houter : successor? x (node l x (node rl rk rr))
+            = successor? x (node rl rk rr) := by
+          simp [successor?]
+        rw [houter, hsucc, hmin]
+        simp [orFb]
+    · by_cases hxlt : x < k
+      · have hxInl : InTree x l := by
+          have hx' : x = k ∨ InTree x l ∨ InTree x r := hx
+          rcases hx' with h | h | h
+          · exact absurd h hxk
+          · exact h
+          · exact absurd (hrGt x h) (Nat.not_lt.mpr (Nat.le_of_lt hxlt))
+        have hstep : searchZipperAux x (node l k r) ctx
+            = searchZipperAux x l (.fromLeft k r :: ctx) := by
+          simp [searchZipperAux, hxk, hxlt]
+        rw [hstep, ih_l (.fromLeft k r :: ctx) hlO hxInl]
+        simp only [successor?, if_pos hxlt, ascendSuccessor]
+        cases hsl : successor? x l with
+        | none => simp [orFb]
+        | some y => simp [orFb]
+      · have hkx : k < x := by omega
+        have hxInr : InTree x r := by
+          have hx' : x = k ∨ InTree x l ∨ InTree x r := hx
+          rcases hx' with h | h | h
+          · exact absurd h hxk
+          · exact absurd (hlLt x h) (Nat.not_lt.mpr (Nat.le_of_lt hkx))
+          · exact h
+        have hstep : searchZipperAux x (node l k r) ctx
+            = searchZipperAux x r (.fromRight k l :: ctx) := by
+          simp [searchZipperAux, hxk, hxlt]
+        rw [hstep, ih_r (.fromRight k l :: ctx) hrO hxInr]
+        simp only [successor?, if_neg hxlt, ascendSuccessor]
+
+/-- **AC-5 (successor).** Parent-pointer successor matches the functional
+successor on ordered trees, for keys present in the tree. -/
+theorem successorZipper_eq_successor? (x : Nat) (t : BSTree)
+    (ht : Ordered t) (hx : InTree x t) :
+    successorZipper x t = successor? x t := by
+  simp only [successorZipper, searchZipper]
+  rw [successorZipper_bridge x t [] ht hx]
+  cases successor? x t <;> simp [ascendSuccessor, orFb]
+
+/-- Bridge for predecessor: parent-pointer predecessor while descending equals
+the functional predecessor, falling back to the ascent value. -/
+theorem predecessorZipper_bridge (x : Nat) :
+    ∀ (t : BSTree) (ctx : List Frame), Ordered t → InTree x t →
+    zpred (searchZipperAux x t ctx) = orFb (predecessor? x t) (ascendPredecessor ctx) := by
+  intro t
+  induction t with
+  | empty => intro ctx _ hx; exact absurd hx (by simp [InTree])
+  | node l k r ih_l ih_r =>
+    intro ctx ht hx
+    simp only [Ordered] at ht
+    obtain ⟨hlO, hrO, hlLt, hrGt⟩ := ht
+    by_cases hxk : x = k
+    · subst hxk
+      have hfocus : searchZipperAux x (node l x r) ctx = ⟨node l x r, ctx⟩ := by
+        simp [searchZipperAux]
+      rw [hfocus]
+      simp only [zpred]
+      cases l with
+      | empty =>
+        simp [predecessor?, orFb]
+      | node ll lk lr =>
+        have hpred : predecessor? x (node ll lk lr) = maximum? (node ll lk lr) :=
+          predecessor?_eq_maximum?_of_allLt hlO hlLt
+        have hmax : maximum? (node ll lk lr) = some (maxKey (node ll lk lr)) :=
+          maximum?_eq_some_maxKey (node_ne_empty ll lk lr)
+        have houter : predecessor? x (node (node ll lk lr) x r)
+            = predecessor? x (node ll lk lr) := by
+          simp [predecessor?]
+        rw [houter, hpred, hmax]
+        simp [orFb]
+    · by_cases hxlt : x < k
+      · have hxInl : InTree x l := by
+          have hx' : x = k ∨ InTree x l ∨ InTree x r := hx
+          rcases hx' with h | h | h
+          · exact absurd h hxk
+          · exact h
+          · exact absurd (hrGt x h) (Nat.not_lt.mpr (Nat.le_of_lt hxlt))
+        have hstep : searchZipperAux x (node l k r) ctx
+            = searchZipperAux x l (.fromLeft k r :: ctx) := by
+          simp [searchZipperAux, hxk, hxlt]
+        rw [hstep, ih_l (.fromLeft k r :: ctx) hlO hxInl]
+        have hkx : ¬ k < x := by omega
+        simp only [predecessor?, if_neg hkx, ascendPredecessor]
+      · have hkx : k < x := by omega
+        have hxInr : InTree x r := by
+          have hx' : x = k ∨ InTree x l ∨ InTree x r := hx
+          rcases hx' with h | h | h
+          · exact absurd h hxk
+          · exact absurd (hlLt x h) (Nat.not_lt.mpr (Nat.le_of_lt hkx))
+          · exact h
+        have hstep : searchZipperAux x (node l k r) ctx
+            = searchZipperAux x r (.fromRight k l :: ctx) := by
+          simp [searchZipperAux, hxk, hxlt]
+        rw [hstep, ih_r (.fromRight k l :: ctx) hrO hxInr]
+        simp only [predecessor?, if_pos hkx, ascendPredecessor]
+        cases hpr : predecessor? x r with
+        | none => simp [orFb]
+        | some y => simp [orFb]
+
+/-- **AC-5 (predecessor).** Parent-pointer predecessor matches the functional
+predecessor on ordered trees, for keys present in the tree. -/
+theorem predecessorZipper_eq_predecessor? (x : Nat) (t : BSTree)
+    (ht : Ordered t) (hx : InTree x t) :
+    predecessorZipper x t = predecessor? x t := by
+  simp only [predecessorZipper, searchZipper]
+  rw [predecessorZipper_bridge x t [] ht hx]
+  cases predecessor? x t <;> simp [ascendPredecessor, orFb]
 
 end BSTree
 

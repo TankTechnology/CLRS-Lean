@@ -1,0 +1,74 @@
+import CLRSLean.Chapter_21
+
+#check CLRS.Chapter21.Partition
+#check CLRS.Chapter21.Partition.discrete
+#check CLRS.Chapter21.Partition.merge
+#check CLRS.Chapter21.Partition.merge_sameSet_iff
+#check CLRS.Chapter21.Partition.merge_related_sameSet_iff
+#check CLRS.Chapter21.Operation
+#check CLRS.Chapter21.stepSpec
+#check CLRS.Chapter21.runSpec
+#check CLRS.Chapter21.runSpec_append
+#check CLRS.Chapter21.runSpec_preserves_sameSet
+
+#check CLRS.Chapter21.LinkedList.State
+#check CLRS.Chapter21.LinkedList.State.singleton
+#check CLRS.Chapter21.LinkedList.State.weightedUnion
+#check CLRS.Chapter21.LinkedList.State.weightedUnion_sameSet_iff
+#check CLRS.Chapter21.LinkedList.State.weightedUnion_refines_merge
+#check CLRS.Chapter21.LinkedList.State.weightedUnion_preserves_headInvariant
+#check CLRS.Chapter21.LinkedList.State.weightedUnion_changed_doubles
+#check CLRS.Chapter21.LinkedList.State.move_count_le_log2
+#check CLRS.Chapter21.LinkedList.State.total_rewrites_le_n_mul_log2
+
+#check CLRS.Chapter21.Forest.singletonForest
+#check CLRS.Chapter21.Forest.singletonForest_equiv_iff
+#check CLRS.Chapter21.Forest.find_preserves_sameSet
+#check CLRS.Chapter21.Forest.find_returns_representative
+#check CLRS.Chapter21.Forest.find_compresses_path
+#check CLRS.Chapter21.Forest.union_sameSet_iff
+#check CLRS.Chapter21.Forest.union_refines_merge
+#check CLRS.Chapter21.Forest.checkEquiv_correct
+#check CLRS.Chapter21.Forest.checkEquiv_preserves_sameSet
+#check CLRS.Chapter21.Forest.checkEquiv_eq_false_iff
+
+#check CLRS.Chapter21.Analysis.ParentPath
+#check CLRS.Chapter21.Analysis.parentPath_rank_bound
+#check CLRS.Chapter21.Analysis.RankMassCertificate
+#check CLRS.Chapter21.Analysis.rank_le_log2
+#check CLRS.Chapter21.Analysis.parentPath_length_le_log2
+#check CLRS.Chapter21.Analysis.inverseAckermann
+#check CLRS.Chapter21.Analysis.inverseAckermann_spec
+#check CLRS.Chapter21.Analysis.inverseAckermann_minimal
+#check CLRS.Chapter21.Analysis.InverseAckermannCertificate
+#check CLRS.Chapter21.Analysis.total_cost_le_of_inverseAckermann_certificate
+
+#check CLRS.Chapter21.Analysis.Costed.findEdges
+#check CLRS.Chapter21.Analysis.Costed.findEdges_parentPath
+#check CLRS.Chapter21.Analysis.Costed.RankBudget
+#check CLRS.Chapter21.Analysis.Costed.singletonRankBudget
+#check CLRS.Chapter21.Analysis.Costed.RankBudget.afterFind
+#check CLRS.Chapter21.Analysis.Costed.RankBudget.afterUnion
+#check CLRS.Chapter21.Analysis.Costed.costedFind_cost_le_log2
+#check CLRS.Chapter21.Analysis.Costed.costedUnion_cost_le_log2
+#check CLRS.Chapter21.Analysis.Costed.Machine
+#check CLRS.Chapter21.Analysis.Costed.Machine.initial
+#check CLRS.Chapter21.Analysis.Costed.Operation
+#check CLRS.Chapter21.Analysis.Costed.step
+#check CLRS.Chapter21.Analysis.Costed.step_erase
+#check CLRS.Chapter21.Analysis.Costed.run
+#check CLRS.Chapter21.Analysis.Costed.run_erase
+#check CLRS.Chapter21.Analysis.Costed.run_refines_spec
+#check CLRS.Chapter21.Analysis.Costed.run_rank_le_log2
+#check CLRS.Chapter21.Analysis.Costed.run_cost_le
+
+#check CLRS.Chapter21.Analysis.Ackermann.nodePotential
+#check CLRS.Chapter21.Analysis.Ackermann.potential_singleton
+#check CLRS.Chapter21.Analysis.Ackermann.potential_find_le
+#check CLRS.Chapter21.Analysis.Ackermann.potential_link_le_add_two
+#check CLRS.Chapter21.Analysis.Ackermann.potential_union_le_add_two
+#check CLRS.Chapter21.Analysis.Ackermann.costedFind_amortized_le
+#check CLRS.Chapter21.Analysis.Ackermann.costedUnion_amortized_le
+#check CLRS.Chapter21.Analysis.Ackermann.step_amortized_le
+#check CLRS.Chapter21.Analysis.Ackermann.run_cost_le_inverseAckermann
+#check CLRS.Chapter21.Analysis.Ackermann.run_cost_le_inverseAckermann_of_universe_le_ops
