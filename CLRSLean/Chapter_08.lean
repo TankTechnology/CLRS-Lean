@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables
+import CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray
 import CLRSLean.Chapter_08.Section_08_3_Radix_Sort
 import CLRSLean.Chapter_08.Section_08_4_Bucket_Sort
 
@@ -12,8 +13,9 @@ bucket-sort second-moment argument.
 
 ## Sections
 
-* 8.2 Counting sort: {lit}`proved` for a stable bucket specification and a
-  count-table/prefix-count refinement layer.
+* 8.2 Counting sort: {lit}`proved` for a stable bucket specification, a
+  count-table/prefix-count refinement layer, and a mutable output-array
+  refinement filled by a cumulative-count reverse scan.
   Main results:
   {lit}`CLRS.Chapter08.countingSortBy_ordered`,
   {lit}`CLRS.Chapter08.countingSortBy_bucket_eq`,
@@ -22,7 +24,11 @@ bucket-sort second-moment argument.
   {lit}`CLRS.Chapter08.countingSortBy_correct`;
   {lit}`CLRS.Chapter08.countTable_sum_eq_countingSortBy_length`,
   {lit}`CLRS.Chapter08.cumulativeCountTable_length`, and
-  {lit}`CLRS.Chapter08.countingSortByTable_correct`.
+  {lit}`CLRS.Chapter08.countingSortByTable_correct`;
+  {lit}`CLRS.Chapter08.MutableOutput.countingSortArray_toList`,
+  {lit}`CLRS.Chapter08.MutableOutput.countingSortArray_correct`,
+  {lit}`CLRS.Chapter08.MutableOutput.countingSortArray_size`, and
+  {lit}`CLRS.Chapter08.MutableOutput.countingSortArrayCost_bigO`.
 * 8.3 Radix sort: {lit}`proved` for an abstract stable digit-pass model with
   complete digit-signature stability and a concrete base-{lit}`b` digit
   extraction wrapper for natural-number keys, including an ordinary key-order
@@ -50,7 +56,6 @@ bucket-sort second-moment argument.
 
 ## Current Gaps
 
-* Imperative reverse-scan output-array implementation of {lit}`COUNTING-SORT`.
 * Full bucket-sort probabilistic expected-time analysis over an explicit input
   distribution and independence model; the current expected-cost theorem starts
   from the already-isolated finite-uniform second-moment expression.

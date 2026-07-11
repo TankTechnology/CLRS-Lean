@@ -89,6 +89,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_08.Section_08_2_Counting_Sort" = [
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables",
+  "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray",
 ]
 "CLRSLean.Chapter_09" = [
   "CLRSLean.Chapter_09.Section_09_2_Select_By_Rank",
@@ -387,6 +388,9 @@ title = "8.2. Counting Sort"
 
 [modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables"]
 title = "Count-Table Refinement"
+
+[modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray"]
+title = "Mutable Output-Array Refinement"
 
 [modules."CLRSLean.Chapter_08.Section_08_3_Radix_Sort"]
 title = "8.3. Radix Sort"
