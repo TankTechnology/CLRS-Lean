@@ -865,22 +865,58 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   strengthening target is a concrete cost semantics for
   `medianOfMediansSelect?` that feeds into the recurrence hypothesis.
 
-### Section 9.3 and randomized SELECT refinements
+### Section 9.2 - Randomized SELECT expected running time
 
-- Lean source: randomized SELECT is not yet created; median-of-medians runtime
-  refinement should build on
+- Lean source: `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`
+- Status: `proved` for the randomized-select expected-comparison model, its
+  recurrence, and the CLRS Theorem 9.2 linear expected-time bound
+- Main proved theorems:
+  - `CLRS.Chapter09.randSelectExpectedCost_succ`
+  - `CLRS.Chapter09.randSelectExpectedCost_recurrence`
+  - `CLRS.Chapter09.expect_eq_fintypeExpect`
+  - `CLRS.Chapter09.randSelectExpectedCost_recurrence_fintype`
+  - `CLRS.Chapter09.randSelectExpectedCost_nonneg`
+  - `CLRS.Chapter09.maxSideSum_add_two`
+  - `CLRS.Chapter09.four_mul_maxSideSum_le`
+  - `CLRS.Chapter09.sum_maxSide_real_bound`
+  - `CLRS.Chapter09.randSelectExpectedCost_le`
+  - `CLRS.Chapter09.randSelectExpectedCost_bigO_linear`
+  - `CLRS.Chapter09.randomizedSelect_expected_bigO_linear`
+  - `CLRS.Chapter09.pivotAtIndex?_mem`
+  - `CLRS.Chapter09.randomizedSelectAtIndex?_rankCorrect`
+  - `CLRS.Chapter09.randomizedSelectAtIndex?_mem`
+- Proof pattern: the expected cost `randSelectExpectedCost c` is defined as the
+  CLRS majorizing recurrence, where each step averages over a uniform,
+  independent pivot rank via the shared toolkit `CLRS.Probability.expect`
+  (`expect_eq_fintypeExpect` restates that average as `CLRS.Probability.fintypeExpect`
+  over the per-step sample space `Fin n`); `randSelectExpectedCost_recurrence`
+  *derives* the CLRS recurrence `E[T(n+1)] = c(n+1) + expect (n+1) (fun i => E[T(max i (n-i))])`
+  from that definition.  The linear bound `randSelectExpectedCost_le`
+  (`E[T(n)] ≤ 4·c·n`) is the substitution method: the combinatorial core
+  `four_mul_maxSideSum_le` proves `4·Σ_{i<n} max i (n-1-i) ≤ 3·n²` (via the
+  two-step recurrence `maxSideSum_add_two`), which is the constant `< 1` the
+  substitution needs.  `randomizedSelect_expected_bigO_linear` packages this as
+  `CLRS.Chapter03.isBigO (fun n => E[T n]) (fun n => (n : ℝ))` (CLRS Theorem 9.2).
+  Rank correctness is inherited by instantiating the Section 9.3
+  pivot-parametric `selectWithPivot?` skeleton with an index pivot oracle
+  (`randomizedSelectAtIndex?_rankCorrect`).
+- Current gap: the model charges the larger partition side (the standard
+  majorizing recurrence upper-bounding the true expected cost); a fully joint
+  distribution over all recursion levels and a concrete step-count cost model
+  remain future refinements.
+
+### Section 9.3 and median-of-medians runtime refinements
+
+- Lean source: median-of-medians runtime refinement should build on
   `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean`
-- Status: `future-work` for executable median-of-medians cost refinement;
-  `blocked-design` for randomized expected time
+- Status: `future-work` for executable median-of-medians cost refinement
 - Planned theorem targets:
-  - randomized SELECT returns a value satisfying
-    `CLRS.Chapter09.RankCertificate`;
   - connect executable `medianOfMediansSelect?` cost semantics to the proved
-    abstract recurrence and `CLRS.Chapter09.clrsSelectRecurrence_linear_bound`;
-  - expected randomized bounds under an explicit probability model.
-- Difficulty note: randomized expected-time analysis requires a probability
-  model; deterministic linear time now mainly requires a cost-refinement layer
-  over the proved median-of-medians branch-size and recurrence theorems.
+    abstract recurrence and `CLRS.Chapter09.clrsSelectRecurrence_linear_bound`.
+- Difficulty note: deterministic linear time now mainly requires a
+  cost-refinement layer over the proved median-of-medians branch-size and
+  recurrence theorems.  Randomized SELECT expected time is now proved (see the
+  Section 9.2 randomized SELECT page above).
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -2239,7 +2275,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
 | Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the finite-uniform collision, second-moment bound, and abstract `≤ 3n` expected-cost wrapper are proved, but the full expected-time theorem still needs an explicit independent input distribution and concrete cost model. |
-| Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
+| Chapter 9 randomized SELECT expected time | `proved` | Proved in `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`: `randSelectExpectedCost` models the uniform independent-pivot expected cost via `CLRS.Probability.expect`, `randSelectExpectedCost_recurrence` derives the CLRS recurrence, and `randomizedSelect_expected_bigO_linear` gives `E[T(n)] = O(n)` (CLRS Theorem 9.2). Remaining refinement: a joint distribution over all recursion levels and a concrete step-count cost model. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
