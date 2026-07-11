@@ -77,12 +77,21 @@ Main results:
   the functional successor.
 - Theorem {lit}`predecessorZipper_eq_predecessor?`: parent-pointer predecessor
   matches the functional predecessor.
+- Theorem {lit}`RepresentsW.tree_unique`: a pointer heap and root pointer
+  determine a unique functional tree (the abstraction is a function).
+- Theorem {lit}`transplantChild_left_representsW` /
+  {lit}`transplantChild_right_representsW`: in-place pointer TRANSPLANT refines the
+  functional subtree replacement.
+- Theorem {lit}`insertPointer_right_representsW`: pointer TREE-INSERT leaf
+  attachment refines the functional subtree replacement.
 
 Current gaps:
 
-- Pointer-level tree mutation (the imperative RAM refinement) remains future work.
 - The zipper-based parent-pointer layer (iterative search, TRANSPLANT,
-  TREE-DELETE, parent-pointer successor/predecessor) is now proved.
+  TREE-DELETE, parent-pointer successor/predecessor) is proved, and an imperative
+  pointer-heap layer now proves in-place TRANSPLANT and leaf TREE-INSERT refine
+  the functional specification.
+- An explicit RAM cost model over the pointer operations remains future work.
 -/
 
 namespace CLRS

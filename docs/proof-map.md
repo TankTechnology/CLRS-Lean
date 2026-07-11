@@ -1099,14 +1099,24 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter12.BSTree.deleteViaTransplant_eq_delete` (TREE-DELETE via transplant)
   - `CLRS.Chapter12.BSTree.successorZipper_eq_successor?` (parent-pointer successor)
   - `CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?` (parent-pointer predecessor)
+  - `CLRS.Chapter12.BSTree.RepresentsW.tree_unique` (pointer heap determines a unique BST)
+  - `CLRS.Chapter12.BSTree.RepresentsW.set_of_not_mem` (pointer frame rule)
+  - `CLRS.Chapter12.BSTree.RepresentsW.of_agreeChild` (parent-write invisibility)
+  - `CLRS.Chapter12.BSTree.transplantChild_left_representsW` (in-place TRANSPLANT, left)
+  - `CLRS.Chapter12.BSTree.transplantChild_right_representsW` (in-place TRANSPLANT, right)
+  - `CLRS.Chapter12.BSTree.insertPointer_right_representsW` (pointer TREE-INSERT leaf)
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
   extremal-path recursion, iff specifications for successor/predecessor,
   successor-replacement deletion, and a zipper (cursor + context path) layer
   encoding parent pointers, with all zipper operations proved equivalent to the
-  functional operations via a `toTree` reconstruction bridge
-- Current gap: pointer-level in-place mutation (imperative RAM refinement)
-  remains future work; the parent-pointer navigation, `TRANSPLANT`,
-  `TREE-DELETE`, and parent-pointer successor/predecessor are now proved
+  functional operations via a `toTree` reconstruction bridge; plus an imperative
+  pointer-heap layer (`Node` records with `left`/`right`/`parent` cells over a
+  `Std.HashMap` store) whose `RepresentsW` abstraction bakes in acyclicity/no
+  sharing, so in-place `TRANSPLANT` and `TREE-INSERT` are proved to refine the
+  functional subtree-replacement specification via pointer frame rules
+- Current gap: an explicit RAM cost model over the pointer operations remains
+  future work; the imperative in-place child/parent pointer updates (TRANSPLANT
+  and leaf TREE-INSERT) are now proved to refine the functional specification
 
 This section proves the core ordered-tree interface: search is equivalent to
 membership, minimum/maximum return actual extremal keys, functional
@@ -1123,7 +1133,12 @@ or predecessor is computed over the old tree with the deleted key excluded.
 The zipper refinement additionally records the root-to-focus context, proves
 that iterative search reconstructs the original tree, and connects functional
 subtree replacement, deletion, and parent-ascent navigation to the established
-BST interface.  It deliberately stops before mutable heap or RAM semantics.
+BST interface.  Building on this, an imperative pointer-heap layer models nodes
+as records with mutable `left`/`right`/`parent` cells over a `Std.HashMap`
+store; the `RepresentsW` heap-to-tree abstraction bakes in the no-sharing
+invariant, and in-place `TRANSPLANT` (both child sides) and leaf `TREE-INSERT`
+are proved to refine functional subtree replacement.  It deliberately stops
+before RAM cost semantics.
 
 ## Chapter 13 - Red-Black Trees
 
@@ -2392,7 +2407,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 | Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m` and expected unsuccessful-search cost `1 + α` are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`). Remaining: successful-search analysis, random hash-*function* model, RAM/probe-count semantics. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
-| Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; the `Zipper` layer proves parent-pointer navigation and `TRANSPLANT` functionally. Only an imperative in-place memory model remains. |
+| Chapter 12 executable pointer-level BST | `proved` | Imperative pointer-heap model (`Node` records with `left`/`right`/`parent` cells over a `Std.HashMap` `Store`) with `RepresentsW` heap-to-tree abstraction; in-place `TRANSPLANT` (`transplantChild_left_representsW`/`transplantChild_right_representsW`) and leaf `TREE-INSERT` (`insertPointer_right_representsW`) refine functional subtree replacement. Only an explicit RAM cost model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
