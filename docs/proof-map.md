@@ -1119,15 +1119,20 @@ that ideal semantics on well-sized trees.  The recompute-then-rotate wrappers
 also show that an arbitrary functional tree can be locally prepared for a
 rotation and still expose the same ideal rank-selection behavior afterward.
 
-### Section 14.3 - Interval trees
+### Section 14.3 - Interval trees and the general augmentation theorem
 
 - Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
-- Status: `proved` for the functional well-augmented BST model
+- Status: `proved` for the functional well-augmented BST model and the general
+  augmentation theorem (CLRS Theorem 14.1)
 - Main proved declarations:
   - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.storedAug_eq_realAug_of_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.rotateLeft_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.rotateRight_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.insert_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.mem_keys_insert`
+  - `CLRS.Chapter14.AugmentedTree.augmentation_theorem`
+  - `CLRS.Chapter14.realAug_sizeAug_eq_length`
   - `CLRS.Chapter14.Interval.overlaps_iff`
   - `CLRS.Chapter14.IntervalTree.recompute_wellAugmented`
   - `CLRS.Chapter14.IntervalTree.rotateLeft_wellAugmented`
@@ -1135,13 +1140,13 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
-- Proof pattern: instantiate a generic augmentation framework with maximum
-  interval high endpoints, maintain a well-augmented BST invariant, and prove
-  that the CLRS left-branch pruning test is both sound and complete for overlap
-  search.
-- Current gap: connect the generic rotation wrappers to a fully balanced tree
-  update algorithm; interval-search correctness itself is complete for the
-  represented model.
+- Proof pattern: use the generic `Augmentation`/`AugmentedTree` framework and
+  its `IsRotationInvariant` law to maintain local cached values through
+  recomputation, rotations, and BST insertion. Instantiate it with maximum
+  interval high endpoints and subtree size, then prove that the CLRS
+  interval-search pruning test is both sound and complete.
+- Current gap: connect the generic augmentation layer to Chapter 13 red-black
+  balancing and thread a stored augmentation field through executable updates.
 
 ## Chapter 15 - Dynamic Programming
 
