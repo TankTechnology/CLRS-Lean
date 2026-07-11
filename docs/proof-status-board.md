@@ -20,7 +20,7 @@ Last repository-wide status reconciliation: 2026-07-11.
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and stateful Chapter 23 integration |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
 | Chapter 23 correctness and functional implementation | Cut property, unique tree paths, automatic exchange, sorted and stateful Kruskal, concrete indexed-queue Prim, and explicit algorithm-level work bounds | `Batteries.BinaryHeap` array refinement and mutable/RAM write accounting |
-| Chapter 24.1 | Weighted directed-graph model, Bellman-Ford relaxation dynamic program, upper-bound and realizability properties, no-negative-cycle cycle removal, CLRS Theorem 24.4 shortest-path correctness after `|V|-1` rounds, convergence, and the `(|V|-1)·|E|` = `O(V·E)` work bound | Dijkstra correctness and `O(E log V)`, SSSP in DAGs, difference constraints, and per-edge/RAM cost refinement |
+| Chapter 24.1 and 24.3 | Weighted directed-graph model, Bellman-Ford relaxation dynamic program with CLRS Theorem 24.4 correctness/convergence and `O(V·E)` work, and Dijkstra's greedy invariant (CLRS Theorem 24.6) under nonnegative weights with `O(E log V)` work | Executable Dijkstra priority-queue loop, SSSP in DAGs, difference constraints, and per-edge/RAM cost refinement |
 
 Chapters 21-23 are formally sealed by their interface tests and dated
 closure audits.  Their listed implementation refinements are new layers, not
@@ -47,7 +47,8 @@ missing core theorem groups.
 ## Not Represented On Main
 
 - Chapters 25-35.
-- Chapter 24 beyond Section 24.1 (Dijkstra, SSSP in DAGs, difference constraints).
+- Chapter 24 beyond Sections 24.1 and 24.3 (SSSP in DAGs, difference
+  constraints, and the executable Dijkstra loop).
 
 Open branches and pull requests are intentionally excluded until they are
 reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
@@ -58,7 +59,7 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | --- | --- | --- |
 | 0 | Chapters 5/7/8/9/11 probability infrastructure | General finite `Fintype` expectation/probability API, then Chapter 7 total comparison expectation and `O/Theta(n log n)` bridge |
 | 1 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
-| 2 | Chapter 24 Dijkstra track | Section 24.1 Bellman-Ford correctness and `O(V·E)` are proved; add Dijkstra correctness under nonnegative weights and its `O(E log V)` binary-heap work bound |
+| 2 | Chapter 24 remaining sections | Sections 24.1 (Bellman-Ford) and 24.3 (Dijkstra greedy correctness) are proved; add SSSP in DAGs (24.2), difference constraints (24.4), and the executable Dijkstra priority-queue loop |
 | 3 | Chapter 23 implementation track | Add a stateful costed Kruskal scan using Chapter 21's proved inverse-Ackermann machine bound |
 | 4 | Existing partial implementation layers | Select one concrete pointer, mutable-array, or RAM refinement and finish it end-to-end |
 

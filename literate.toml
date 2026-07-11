@@ -187,6 +187,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_24" = [
   "CLRSLean.Chapter_24.Section_24_1_Bellman_Ford",
+  "CLRSLean.Chapter_24.Section_24_3_Dijkstra",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -521,3 +522,6 @@ title = "Executable Prim"
 
 [modules."CLRSLean.Chapter_24.Section_24_1_Bellman_Ford"]
 title = "24.1. The Bellman-Ford Algorithm"
+
+[modules."CLRSLean.Chapter_24.Section_24_3_Dijkstra"]
+title = "24.3. Dijkstra's Algorithm"

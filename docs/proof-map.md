@@ -2409,12 +2409,32 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   duplicate-vertex decomposition plus `walkWeight` additivity for cycle removal;
   and identification of `relaxDist (|V|-1)` with the shortest-path distance `δ`.
 
+### Section 24.3 - Dijkstra's algorithm
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
+- Status: `proved`
+- Nonnegative-weight layer:
+  - `CLRS.Chapter24.WeightedGraph.Nonneg`
+  - `CLRS.Chapter24.WeightedGraph.walkWeight_nonneg`
+  - `CLRS.Chapter24.WeightedGraph.noNegCycle_of_nonneg`
+- Greedy correctness:
+  - `CLRS.Chapter24.WeightedGraph.exists_crossing`
+  - `CLRS.Chapter24.WeightedGraph.dijkstra_extractMin_correct` (CLRS Theorem 24.6)
+- Work bound:
+  - `CLRS.Chapter24.WeightedGraph.dijkstraWork`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraWork_le_edge_log` (`O(E log V)`)
+- Proof pattern: nonnegative walk-weight induction; frontier-crossing induction
+  on the realizing shortest walk; and a `walkWeight` split at the frontier edge
+  combined with the Section 24.1 shortest-distance lower bound and the Dijkstra
+  relaxation invariants to force `d u = δ u` for the extracted minimum.
+
 ### Chapter 24 remaining work
 
-- Deferred without a false claim: Dijkstra's algorithm (Section 24.3) with its
-  greedy invariant and `O(E log V)` binary-heap work bound; SSSP in DAGs
-  (Section 24.2); difference constraints (Section 24.4); per-edge relaxation
-  ordering and mutable/RAM cost accounting for the abstract synchronous model.
+- Deferred without a false claim: the executable Dijkstra priority-queue loop
+  threading the settled set and tentative distances (Section 24.3 proves the
+  greedy invariant that makes such a loop correct); SSSP in DAGs (Section 24.2);
+  difference constraints (Section 24.4); per-edge relaxation ordering and
+  mutable/RAM cost accounting for the abstract synchronous model.
 
 ## Deferred And Blocked Items
 
