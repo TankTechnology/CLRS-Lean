@@ -1,6 +1,8 @@
 import CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees
 import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim
 import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim
 
 /-!
 # Chapter 23 - Minimum Spanning Trees
@@ -43,10 +45,21 @@ complete connected scan.  Prim is represented by a dynamic light-edge trace;
 the shared cut property proves safe extension, exact components prove forest
 preservation, and a complete trace returns a concrete minimum spanning tree.
 
+The implementation layer now threads the real Chapter 21 costed union-find
+machine through Kruskal, proves its connectivity invariant at every edge, and
+identifies its output with mathematical Kruskal.  It composes sorting, scan,
+and union-find work into explicit `O(E log E)` and `O((E+V) alpha(V))` bounds.
+The executable Prim layer supplies indexed queue membership, `key`, `parent`,
+`decreaseKey`, and `extractMin`; a concrete frontier provider refines its edge
+choices to `PrimTrace`.  The binary-heap operation model proves
+`O((E+V) log V)`, hence `O(E log V)` for connected nontrivial graphs, and also
+records unsorted-array and Fibonacci-heap alternatives.
+
 ## Deferred Work
 
-The sealed boundary is mathematical correctness on the finite edge-labelled
-graph model.  Stateful union-find threading, a concrete priority queue for
-Prim, exact work bounds, and mutable/RAM refinements remain implementation
-layers; they do not reopen the Chapter 23 correctness milestone.
+The sealed boundary now includes functional implementation refinements and
+algorithm-level work bounds.  Remaining work is the semantic refinement from
+the indexed queue contract to the concrete `Batteries.BinaryHeap` array state,
+plus mutable-array/RAM write accounting.  These do not reopen the Chapter 23
+correctness milestone.
 -/

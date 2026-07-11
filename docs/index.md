@@ -107,6 +107,8 @@ CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.le
 CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/UnionFindBridge.lean
+CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/StatefulKruskal.lean
+CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/ExecutablePrim.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.

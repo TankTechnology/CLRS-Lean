@@ -167,6 +167,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim" = [
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -471,3 +473,9 @@ title = "23.2. Kruskal and Prim"
 
 [modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge"]
 title = "Union-Find Refinement"
+
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal"]
+title = "Stateful Kruskal"
+
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim"]
+title = "Executable Prim"
