@@ -34,6 +34,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_21",
   "CLRSLean.Chapter_22",
   "CLRSLean.Chapter_23",
+  "CLRSLean.Chapter_24",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
@@ -184,6 +185,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal",
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim",
 ]
+"CLRSLean.Chapter_24" = [
+  "CLRSLean.Chapter_24.Section_24_1_Bellman_Ford",
+]
 
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
@@ -310,6 +314,9 @@ title = "Merge-Sort Congruence"
 
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"
+
+[modules."CLRSLean.Chapter_24"]
+title = "Chapter 24. Single-Source Shortest Paths"
 
 [modules."CLRSLean.Progress"]
 title = "Progress Dashboard"
@@ -511,3 +518,6 @@ title = "Stateful Kruskal"
 
 [modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim"]
 title = "Executable Prim"
+
+[modules."CLRSLean.Chapter_24.Section_24_1_Bellman_Ford"]
+title = "24.1. The Bellman-Ford Algorithm"
