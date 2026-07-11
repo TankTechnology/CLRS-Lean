@@ -55,6 +55,27 @@ lake -R -Kenv=dev build CLRSLean:docs  # build doc-gen4 API docs
 lake build :literateHtml            # generate Verso website
 ```
 
+## Parallel agents & build infrastructure
+
+Fanning out subagents on Lean work? Read `docs/build-and-agents.md`.  The rules
+that keep it fast and non-destructive:
+
+- **Provision isolated worktrees with `scripts/setup-worktree.sh <branch>`** (or
+  `scripts/provision-fleet.sh` for a batch).  Each gets its own warm, prebuilt
+  `.lake`, so `lake build` is a fast incremental compile.
+- **Never run `lake exe cache get` in a provisioned worktree.**  Mathlib is
+  already there; concurrent cache-gets exhaust RAM and corrupt the shared build.
+- **Keep build concurrency ≤ 3–4.**  The machine is RAM-bound (~30G), not CPU
+  (32 cores); one `lake build` already uses every core.
+- **Verify before merging agent proof work** (`-Dwarn.sorry=false` means a clean
+  build is *not* sorry-proof): `grep` for `sorry`/`admit`; `#print axioms` on the
+  headline theorem must show only `propext/Classical.choice/Quot.sound` (no
+  `sorryAx`); check no public declaration was removed/weakened; regenerate
+  `CLRSLean/Progress.lean` from the CSV (`check_progress_csv.py --write-dashboard`)
+  rather than hand-merging it.
+- **GitHub hygiene:** create labels before issues; have agents commit early/often.
+- Recover a corrupted `.lake` with `scripts/refresh-golden.sh`.
+
 ## How to write a section `.lean` file
 
 Every section file follows this skeleton.  Match it exactly.
