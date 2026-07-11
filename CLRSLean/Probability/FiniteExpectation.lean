@@ -88,6 +88,38 @@ theorem prob_add_of_disjoint (n : ℕ) (hn : n ≠ 0)
 noncomputable def fintypeExpect {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X : Ω → ℝ) : ℝ :=
   (∑ ω : Ω, X ω) / (Fintype.card Ω : ℝ)
 
+/-! ## Fin-based API (used by Ch8, Ch11) -/
+
+/-- Alias for `expect` with `Fin m` sample space. -/
+noncomputable def uniformAverageFin {m : ℕ} (X : Fin m → ℝ) : ℝ :=
+  fintypeExpect X
+
+/-- Uniform average over two independent Fin choices. -/
+noncomputable def uniformAverageFin2 {m : ℕ} (X : Fin m → Fin m → ℝ) : ℝ :=
+  fintypeExpect (fun (p : Fin m × Fin m) => X p.1 p.2)
+
+theorem uniformAverageFin_add {m : ℕ} (X Y : Fin m → ℝ) :
+    uniformAverageFin (X + Y) = uniformAverageFin X + uniformAverageFin Y := by
+  simp [uniformAverageFin, fintypeExpect, Finset.sum_add_distrib, add_div]
+
+theorem uniformAverageFin_nonneg {m : ℕ} {X : Fin m → ℝ} (hX : ∀ i, 0 ≤ X i) :
+    0 ≤ uniformAverageFin X := by
+  unfold uniformAverageFin fintypeExpect
+  apply div_nonneg (Finset.sum_nonneg (fun i _ => hX i))
+  positivity
+
+theorem uniformAverageFin_indicator_singleton {m : ℕ} (j : Fin m) :
+    uniformAverageFin (fun i => indicator (i = j)) = 1 / (m : ℝ) := by
+  unfold uniformAverageFin fintypeExpect indicator
+  simp
+
+theorem uniformAverageFin2_add {m : ℕ} (X Y : Fin m → Fin m → ℝ) :
+    uniformAverageFin2 (X + Y) = uniformAverageFin2 X + uniformAverageFin2 Y := by
+  simp [uniformAverageFin2, fintypeExpect, Finset.sum_add_distrib, add_div, Pi.add_apply]
+
+/-! ## Independence: product expectation -/
+
+
 /-! ## Backward-compatible aliases -/
 
 /-- Alias for `expect n` used by Chapter 5. -/
