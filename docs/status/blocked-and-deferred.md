@@ -50,7 +50,9 @@ union-find states implements `CycleTestImplementation`.
 
 The deferred layer is an incremental stateful Kruskal scan, explicit write
 charges beyond the proved parent-traversal model, and lower-level mutable-array
-or RAM refinement.  The Section 21.4 inverse-Ackermann proof itself is closed.
+or RAM refinement.  Chapter 23's separate Prim refinement is a concrete
+priority queue and its work accounting.  The mathematical Kruskal and Prim
+correctness theorems and the Section 21.4 inverse-Ackermann proof are closed.
 
 ## Blocked Design
 
@@ -106,44 +108,6 @@ and `CLRS.Chapter04.maxSubarrayDivideFuel_correct` proves a fuelled midpoint
 divide-and-conquer selector against the original input.  The remaining CLRS
 refinement is runtime recurrence analysis and, eventually, a RAM-cost model for
 the textbook pseudocode.
-
-### Concrete MST Exchange Edge
-
-- Related section: Section 23.1 - Growing a minimum spanning tree
-- Status: `blocked-design`
-
-The current theorem assumes a cut exchange certificate.  To remove that
-assumption, we need a stable finite path or walk representation and a boundary
-edge lemma for paths crossing a cut.
-
-### Kruskal Exchange And Full Optimality Layer
-
-- Related sections: Sections 23.1 and 23.2
-- Status: `blocked-design` for concrete exchange paths; `partial` for the
-  full recursive optimality wrapper
-
-Kruskal's textbook proof relies on processing edges in nondecreasing weight.
-The Lean proof now has a compiler-clean sorted-order lightness layer:
-`CLRS.MST.lightest_crossing_of_sorted_prefix` proves that a sorted edge list
-makes the current edge light once all crossing candidates are in the current
-suffix, and `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`
-packages that fact as a component-oracle cut certificate.
-
-The stronger exact-component layer is now compiler-clean as well:
-`CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal` derives the
-processed-prefix exclusion invariant for an actual Kruskal prefix, and
-`CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix` packages it with
-sorted edge order.  The finite-graph wrapper also proves the final-tree
-obligation for complete exact-component scans from an initial forest:
-`CLRS.MST.FiniteGraph.kruskal_subset_edges` and
-`CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`,
-`CLRS.MST.FiniteGraph.kruskal_forest_of_exact_component`, and
-`CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`.
-
-The remaining MST gaps are the concrete path/cycle exchange edge, replacing the
-global lightness hypothesis in the finite-graph optimality wrapper with the
-prefix-local sorted-order theorem, Prim's theorem interface, and the stateful
-union-find scan/cost refinement.
 
 ## Future Work
 

@@ -38,8 +38,10 @@ Current milestones include:
 - Chapter 22: sealed main functional correctness for BFS shortest paths and its
   predecessor tree, DFS theory and edge classification, Kahn and DFS
   topological sorting, and Kosaraju SCC decomposition.
+- Chapter 23: sealed mathematical correctness for the cut property, canonical
+  exchange paths, sorted Kruskal, and certified Prim traces.
 
-Chapters 3, 4, 7, 9, 11-15, 17-20, and 23 have substantial but intentionally
+Chapters 3, 4, 7, 9, 11-15, and 17-20 have substantial but intentionally
 partial theorem layers.  Chapters 24-35 are not represented on `main` yet.
 The live counts and chapter rows are generated from
 [`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv); see the

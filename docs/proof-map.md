@@ -2127,7 +2127,7 @@ track.
 
 - Lean source:
   `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorem: `CLRS.MST.safe_edge_of_lightest_crossing`
 - Supporting theorems:
   - `CLRS.MST.Graph.connected_crosses_cut`
@@ -2138,80 +2138,53 @@ track.
   - `CLRS.MST.FiniteGraph.exists_crossing_tree_edge_preserving_prefix`
   - `CLRS.MST.mst_exchange_step`
 - Proof pattern: cut property, safe edge, exchange argument
-- Current gap: the path/cut crossing-edge lemma now exists; Section 23.2 turns
-  an explicit path-decomposition certificate into a replacement spanning-tree
-  theorem.  The remaining gap is deriving that certificate automatically from a
-  canonical finite simple path or cycle representation.
 
 This section contains the mathematical core of the CLRS MST proof.  It proves
 that a light edge crossing a cut is safe once the graph-specific exchange
 certificate is supplied, proves that the abstract empty-prefix optimum
 specification is equivalent to the concrete finite-graph MST specification, and
-it now derives the cut-crossing tree edge needed to preserve an accepted prefix
-across a respecting cut.
+derives the cut-crossing tree edge needed to preserve an accepted prefix across
+a respecting cut.  Section 23.2 now discharges the exchange certificate
+automatically.
 
 ### Section 23.2 - Kruskal and Prim
 
 - Lean source: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
-- Status: `partial`
+- Interface tests: `Tests/Chapter_23_Interface.lean`,
+  `Tests/Chapter_23_Closure.lean`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorems:
-  - `CLRS.MST.kruskal_optimal`
-  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_cycle_test`
+  - `CLRS.MST.FiniteGraph.canonicalSimplePath_unique`
+  - `CLRS.MST.FiniteGraph.exists_crossing_exchangePath_of_spanningTree`
+  - `CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing_auto`
+  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty`
+  - `CLRS.MST.FiniteGraph.prim_minimum_spanning_tree`
 - Supporting theorems:
-  - `CLRS.MST.Graph.ExchangePath`
-  - `CLRS.MST.Graph.InsertedEdgeConnection`
-  - `CLRS.MST.Graph.exchangePath_connected_insert`
-  - `CLRS.MST.Graph.insertedEdgeConnection_of_exchangePath`
-  - `CLRS.MST.Graph.exchangePath_of_insert_connected`
-  - `CLRS.MST.Graph.exchangePath_iff_insertedEdgeConnection`
-  - `CLRS.MST.FiniteGraph.exchangePath_of_insert_connects_erased_edge`
-  - `CLRS.MST.FiniteGraph.exchangePath_iff_insertedEdgeConnection_of_spanningTree`
-  - `CLRS.MST.FiniteGraph.exchangePath_of_insertedEdgeConnection`
-  - `CLRS.MST.FiniteGraph.spanningTree_exchange_of_path_certificate`
-  - `CLRS.MST.FiniteGraph.cut_exchange_certificate`
-  - `CLRS.MST.FiniteGraph.exists_replacement_spanning_tree_of_cut`
-  - `CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing`
-  - `CLRS.MST.lightest_crossing_of_sorted_prefix`
-  - `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`
-  - `CLRS.MST.processed_edge_mem_or_connected_of_exact_component_kruskal`
-  - `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`
-  - `CLRS.MST.lightest_crossing_of_exact_component_kruskal_prefix`
-  - `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`
-  - `CLRS.MST.FiniteGraph.kruskal_subset_edges`
-  - `CLRS.MST.FiniteGraph.kruskal_forest_of_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component_empty`
-  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_complete_exact_component_empty`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal`
-- Proof pattern: exact-component prefix accounting, sorted-order lightness,
-  component-cycle-test forest preservation, complete-scan spanning, and
-  safe-edge induction over an edge list
-- Deferred implementation: union-find correctness
-- Current gaps:
-  - refine exact components to an executable union-find implementation if
-    implementation correctness becomes part of scope;
-  - derive the inserted-edge connection automatically from a canonical finite
-    simple path/cycle representation;
-  - discharge the prefix-local sorted-lightness proof in the full recursive
-    optimality wrapper, rather than requiring a global lightness hypothesis;
-  - add Prim's algorithm theorem interface.
+  - `CLRS.MST.Graph.selectedSimpleGraph`
+  - `CLRS.MST.Graph.exists_pathExchange_of_simplePath_crosses`
+  - `CLRS.MST.FiniteGraph.selectedSimpleGraph_isAcyclic`
+  - `CLRS.MST.FiniteGraph.safeEdge_of_lightest_crossing_auto`
+  - `CLRS.MST.FiniteGraph.cutCertificate_of_exactComponentKruskalPrefix_auto`
+  - `CLRS.MST.FiniteGraph.kruskal_preserves_mst_of_sorted_exact_component`
+  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_sorted_complete_exact_component`
+  - `CLRS.MST.FiniteGraph.PrimTrace`
+  - `CLRS.MST.FiniteGraph.PrimCertificate`
+  - `CLRS.MST.FiniteGraph.prim_forest_of_trace`
+  - `CLRS.MST.FiniteGraph.prim_preserves_mst`
+  - `CLRS.MST.FiniteGraph.prim_spanning_tree_of_certificate`
+  - `CLRS.MST.FiniteGraph.prim_optimal`
+- Proof pattern: Mathlib simple-path normalization, forest path uniqueness,
+  automatic cut exchange, exact-component prefix accounting, local
+  sorted-lightness recursion, and shared safe-edge induction for Kruskal and
+  Prim.
+- Closure audit: `docs/proof-audits/chapter-23-closure-2026-07-11.md`.
+- Deferred without reopening the milestone: stateful union-find threading,
+  concrete Prim priority queues, exact work bounds, and mutable/RAM semantics.
 
-The section proves the sorted-order lightness step in two layers: first with an
-explicit processed-prefix exclusion invariant, then from exact components for a
-real Kruskal prefix.  It also proves the certificate-based replacement exchange
-step: `ExchangePath` is enough to prove that adding one edge and deleting one
-tree edge preserves spanning-tree structure and the accepted prefix.  The new
-bridge lemmas show that `ExchangePath` is equivalent to the named cycle-style
-`InsertedEdgeConnection` once the erased tree edge disconnects its endpoints.
-It also proves forest preservation for the exact-component cycle test and proves that a
-complete scan of a connected finite graph returns a spanning tree.  The
-finite-graph optimality wrapper can now discharge the final spanning-tree side
-condition from exact components, complete edge coverage, graph connectedness,
-and an initial forest.  The finite cycle-test wrapper separately exposes the
-same `IsMinimumSpanningTree` conclusion whenever a cycle-test implementation's
-accepted edge set is already known to be a spanning tree.
+The former manual `ExchangePath`, global-lightness, and missing-Prim gaps are
+closed.  A canonical simple tree path now produces the crossing replacement
+edge; the sorted Kruskal wrapper builds each local cut certificate during its
+recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ## Deferred And Blocked Items
 
@@ -2235,8 +2208,8 @@ accepted edge set is already known to be a spanning tree.
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
 | Red-black deletion and height | `blocked-design` | Executable insertion is proved; deletion/fixup still needs a case-stable invariant proof, followed by the logarithmic-height theorem. |
-| Automatic MST exchange-path extraction | `blocked-design` | The certificate-based replacement spanning-tree theorem is proved from `ExchangePath`, and inserted-edge connectivity now bridges to that certificate; the remaining design work is extracting that inserted connection from a canonical finite simple path/cycle API. |
-| Prim's algorithm | `statement` | Section file exists only through the Chapter 23.2 target; theorem interface has not been added yet. |
+| Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |
+| Prim's algorithm | `proved` | `PrimTrace` packages dynamic light-edge choices, and `prim_minimum_spanning_tree` proves the direct finite-graph MST conclusion for a complete certified run. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |
 | Chapter-end problems | `future-work` | Treat as a second track with explicit priority and difficulty labels. |
 | Full RAM semantics | `future-work` | Requires an imperative machine/cost semantics rather than only mathematical functions and recurrences. |

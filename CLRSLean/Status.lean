@@ -62,10 +62,11 @@ the detailed maintainer ledger.
   Boas trees have substantial mathematical or size-level specifications.
   Pointer/page/cluster representations and sharper asymptotic implementation
   theorems remain.
-* **Chapter 23:** cut-property, exchange-certificate, and Kruskal theorem layers
-  exist, now with an extensional union-find cycle-test refinement.  Automatic
-  exchange-path extraction, a stateful scan, a fully local recursive wrapper,
-  and Prim remain.
+* **Chapter 23:** mathematical MST correctness is sealed.  Canonical tree
+  paths generate exchange edges automatically, sorted exact-component Kruskal
+  has an end-to-end optimum wrapper, and complete Prim light-edge traces return
+  minimum spanning trees.  Stateful scans, priority queues, and RAM costs are
+  implementation refinements.
 
 ## Not Represented On Main
 
@@ -73,18 +74,18 @@ Chapters 24-35 do not currently have represented section modules on
 {lit}`main`.  Open pull requests are not counted until their scope is reviewed,
 merged, and added to the progress source.
 
-## Sealed Chapter 22 Boundary
+## Sealed Chapters 22-23 Boundary
 
-Chapter 22 is {lit}`main-proof-complete-for-correctness`.  The closure boundary
-is protected by {lit}`Tests/Chapter_22_Interface.lean`,
-{lit}`Tests/Chapter_22_Closure.lean`, and the dated closure audit under
-{lit}`docs/proof-audits/`.
+Chapters 22 and 23 are {lit}`main-proof-complete-for-correctness`.  Their
+closure boundaries are protected by focused interface and closure tests plus
+dated audits under {lit}`docs/proof-audits/`.
 
 The following are refinements and do not reopen the completed correctness
 milestone:
 
 * exact work counts and {lit}`O(V + E)` packaging;
 * imperative adjacency-list or RAM refinement;
+* stateful union-find scans and concrete Prim priority queues;
 * exercises and chapter-end problems.
 
 ## Highest-Value Open Proof Groups
@@ -92,10 +93,9 @@ milestone:
 1. Build the reusable finite probability/expectation layer and close one
    randomized theorem end-to-end, starting with Chapter 7 comparison
    probability and total expectation.
-2. Complete Chapter 23's automatic exchange extraction and Prim interface;
-   refine the new union-find bridge to a stateful costed Kruskal scan.
-3. Prove red-black deletion/fixup and the logarithmic-height theorem, then
+2. Prove red-black deletion/fixup and the logarithmic-height theorem, then
    connect balancing to Chapter 14 augmentation.
+3. Open Chapter 24 with a weighted graph model and Bellman-Ford correctness.
 4. Add the concrete cost or imperative refinements that connect existing
    mathematical theorem interfaces to CLRS pseudocode.
 
