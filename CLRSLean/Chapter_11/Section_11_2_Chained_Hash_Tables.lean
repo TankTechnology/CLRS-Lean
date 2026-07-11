@@ -28,10 +28,18 @@ Main results:
   bucket model, expected chain length is exactly the load factor.
 - Theorem {lit}`expectedUnsuccessfulSearchCost_finiteHashInsert`: inserting one
   key increases expected unsuccessful-search cost by {lit}`1/m`.
+- Theorem {lit}`expectedRandomChainLength_eq_loadFactor`: under SUHA (keys hashed
+  independently and uniformly), the expected chain length at any fixed bucket is
+  the load factor {lit}`α = n/m`, as a genuine expectation over the input
+  distribution `Fin n → Fin m`.
+- Theorem {lit}`expectedRandomUnsuccessfulSearchCost`: the expected unsuccessful
+  search cost is {lit}`1 + α`, as a genuine expectation.
 
-Status: `proved` for deterministic correctness and finite-uniform expected cost.
+Status: `proved` for deterministic correctness, finite-uniform expected cost, and
+the SUHA true-expectation chain-length / unsuccessful-search analysis.
 
-Deferred refinements: independent random hash function model.
+Deferred refinements: successful-search analysis and a random hash *function*
+(rather than random key placement) model.
 -/
 
 namespace CLRS
@@ -139,34 +147,35 @@ def probabilityIndicator (P : Prop) [Decidable P] : ℝ :=
 noncomputable def uniformAverageFin {m : Nat} (X : Fin m → ℝ) : ℝ :=
   (∑ i : Fin m, X i) / (m : ℝ)
 
+/-- The finite-uniform bucket average is the shared
+{name}`CLRS.Probability.fintypeExpect` toolkit specialised to {lit}`Fin m`.  This
+bridge lets the algebraic lemmas below reuse the toolkit instead of re-deriving
+them. -/
+theorem uniformAverageFin_eq_fintypeExpect {m : Nat} (X : Fin m → ℝ) :
+    uniformAverageFin X = CLRS.Probability.fintypeExpect X := by
+  simp [uniformAverageFin, CLRS.Probability.fintypeExpect, Fintype.card_fin]
+
 /-- Uniform averages are additive. -/
 theorem uniformAverageFin_add {m : Nat} (X Y : Fin m → ℝ) :
     uniformAverageFin (fun i => X i + Y i) =
       uniformAverageFin X + uniformAverageFin Y := by
-  simp [uniformAverageFin, Finset.sum_add_distrib, add_div]
+  simp only [uniformAverageFin_eq_fintypeExpect]
+  exact CLRS.Probability.fintypeExpect_add X Y
 
 /-- A uniform average of nonnegative quantities is nonnegative. -/
 theorem uniformAverageFin_nonneg {m : Nat} {X : Fin m → ℝ}
     (hX : ∀ i, 0 ≤ X i) :
     0 ≤ uniformAverageFin X := by
-  unfold uniformAverageFin
-  refine div_nonneg ?_ ?_
-  · exact Finset.sum_nonneg (fun i _hi => hX i)
-  · exact_mod_cast Nat.zero_le m
+  rw [uniformAverageFin_eq_fintypeExpect]
+  exact CLRS.Probability.fintypeExpect_nonneg hX
 
 /-- A singleton bucket has probability {lit}`1/m` under the uniform bucket model. -/
 theorem uniformAverageFin_indicator_singleton {m : Nat} (j : Fin m) :
     uniformAverageFin (fun i => probabilityIndicator (i = j)) = 1 / (m : ℝ) := by
-  classical
-  have hsum :
-      (∑ i : Fin m, probabilityIndicator (i = j)) = (1 : ℝ) := by
-    rw [Finset.sum_eq_single j]
-    · simp [probabilityIndicator]
-    · intro b _hb hbj
-      simp [probabilityIndicator, hbj]
-    · intro hj
-      exact (hj (Finset.mem_univ j)).elim
-  simp [uniformAverageFin, hsum]
+  rw [uniformAverageFin_eq_fintypeExpect,
+    show (fun i : Fin m => probabilityIndicator (i = j))
+        = (fun i => CLRS.Probability.indicator (i = j)) from rfl,
+    CLRS.Probability.fintypeExpect_indicator_singleton, Fintype.card_fin]
 
 /-- Insert into a finite-bucket chained hash table. -/
 def finiteHashInsert {m : Nat} (h : K → Fin m) (x : K)
@@ -303,6 +312,89 @@ theorem expectedUnsuccessfulSearchCost_finiteHashInsert {m : Nat} (h : K → Fin
   rw [expectedUnsuccessfulSearchCost, expectedSearchChainLength_finiteHashInsert,
     expectedUnsuccessfulSearchCost]
   ring
+
+/-! ## Expected search cost as a true expectation (SUHA)
+
+The finite-uniform layer above is definitional.  We now derive the CLRS
+chained-hash costs as **genuine expectations** under the *simple uniform hashing
+assumption*: {lit}`n` keys are hashed independently and uniformly into
+{lit}`m` buckets.  The sample space is the explicit independent uniform
+distribution `Fin n → Fin m` (the bucket each key hashes to), and the load
+factor is `α = n/m`. -/
+
+open CLRS.Probability
+
+/-- The load factor `α = n/m` of `n` keys in `m` buckets. -/
+noncomputable def loadFactor (m n : Nat) : ℝ := (n : ℝ) / (m : ℝ)
+
+/-- Split a hash assignment `a : Fin n → Fin m` into the bucket of one key `i`
+and the assignment of the remaining keys.  This is the product decomposition
+witnessing that coordinate `i` is independent of the rest. -/
+noncomputable def hashSplit {m n : Nat} (i : Fin n) :
+    (Fin n → Fin m) ≃ Fin m × ({x : Fin n // x ≠ i} → Fin m) where
+  toFun a := (a i, fun x => a x.val)
+  invFun q := fun x => if hx : x = i then q.1 else q.2 ⟨x, hx⟩
+  left_inv a := by
+    funext x; by_cases hx : x = i
+    · subst hx; simp
+    · simp [hx]
+  right_inv q := by
+    obtain ⟨b, rest⟩ := q
+    simp only [Prod.mk.injEq]
+    refine ⟨by simp, ?_⟩
+    funext x; obtain ⟨xv, hxi⟩ := x; simp [hxi]
+
+/-- Marginalisation: the expectation of a function of a single hash coordinate
+equals the expectation over the single-bucket space {lit}`Fin m`. -/
+theorem fintypeExpect_hashCoord {m n : Nat} (i : Fin n) (hm : 0 < m) (f : Fin m → ℝ) :
+    fintypeExpect (fun a : Fin n → Fin m => f (a i)) = fintypeExpect f := by
+  haveI : Nonempty (Fin m) := ⟨⟨0, hm⟩⟩
+  have hcard : Fintype.card ({x : Fin n // x ≠ i} → Fin m) ≠ 0 := Fintype.card_ne_zero
+  have he := fintypeExpect_equiv (hashSplit (m := m) i)
+    (fun q : Fin m × ({x : Fin n // x ≠ i} → Fin m) => f q.1)
+  simp only [hashSplit, Equiv.coe_fn_mk] at he
+  rw [he]
+  exact fintypeExpect_fst hcard f
+
+/-- A single key hashes to a fixed bucket `q` with probability {lit}`1/m`. -/
+theorem singleBucketProb {m n : Nat} (i : Fin n) (q : Fin m) (hm : 0 < m) :
+    fintypeExpect (fun a : Fin n → Fin m => indicator (a i = q)) = 1 / (m : ℝ) := by
+  rw [fintypeExpect_hashCoord i hm (fun c => indicator (c = q)),
+    fintypeExpect_indicator_singleton, Fintype.card_fin]
+
+/-- The length of the chain at bucket `q` under a hash assignment `a`: the number
+of keys that hash to `q`. -/
+noncomputable def randomChainLength {m n : Nat} (a : Fin n → Fin m) (q : Fin m) : ℝ :=
+  ∑ i : Fin n, indicator (a i = q)
+
+/--
+**Expected chain length = load factor (true expectation).**  Under SUHA, the
+expected number of keys hashing to any fixed bucket `q` is exactly the load
+factor `α = n/m` (CLRS Theorem 11.1, unsuccessful-search chain length).
+-/
+theorem expectedRandomChainLength_eq_loadFactor {m n : Nat} (q : Fin m) (hm : 0 < m) :
+    fintypeExpect (fun a : Fin n → Fin m => randomChainLength a q) = loadFactor m n := by
+  unfold randomChainLength loadFactor
+  rw [fintypeExpect_sum]
+  simp only [singleBucketProb _ q hm]
+  rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  ring
+
+/--
+**Expected unsuccessful-search cost = `1 + α` (true expectation).**  One bucket
+access plus the expected chain length, as a genuine expectation over the SUHA
+input distribution (CLRS Theorem 11.1).
+-/
+theorem expectedRandomUnsuccessfulSearchCost {m n : Nat} (q : Fin m) (hm : 0 < m) :
+    fintypeExpect (fun a : Fin n → Fin m => 1 + randomChainLength a q) =
+      1 + loadFactor m n := by
+  haveI : Nonempty (Fin m) := ⟨⟨0, hm⟩⟩
+  have hcard : Fintype.card (Fin n → Fin m) ≠ 0 := Fintype.card_ne_zero
+  have key : (fun a : Fin n → Fin m => 1 + randomChainLength a q)
+      = (fun a => (fun _ : Fin n → Fin m => (1 : ℝ)) a
+          + (fun a => randomChainLength a q) a) := rfl
+  rw [key, fintypeExpect_add, fintypeExpect_const hcard,
+    expectedRandomChainLength_eq_loadFactor q hm]
 
 end Chapter11
 end CLRS
