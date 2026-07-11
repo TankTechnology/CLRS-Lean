@@ -45,16 +45,25 @@ successor/predecessor equivalent to the established functional operations.
   {lit}`CLRS.Chapter12.BSTree.searchIter_eq_search`,
   {lit}`CLRS.Chapter12.BSTree.transplant_preserves_ordered`,
   {lit}`CLRS.Chapter12.BSTree.deleteViaTransplant_eq_delete`,
-  {lit}`CLRS.Chapter12.BSTree.successorZipper_eq_successor?`, and
-  {lit}`CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?`.
+  {lit}`CLRS.Chapter12.BSTree.successorZipper_eq_successor?`,
+  {lit}`CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?`,
+  {lit}`CLRS.Chapter12.BSTree.RepresentsW.tree_unique`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_left_representsW`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_right_representsW`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_left_refines_transplant`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant`, and
+  {lit}`CLRS.Chapter12.BSTree.insertPointer_right_representsW`.
 
 ## Current Gaps
 
-The zipper layer now formalizes parent-oriented navigation and subtree
-replacement without changing the inductive tree representation.  What remains
-is an imperative heap model with in-place child/parent pointer updates, together
-with a refinement and RAM-cost proof connecting that implementation to this
-functional boundary.
+The zipper layer formalizes parent-oriented navigation and subtree replacement
+without changing the inductive tree representation.  Building on it, an
+imperative pointer-heap layer models nodes as records with mutable
+{lit}`left`/{lit}`right`/{lit}`parent` cells over a {lit}`Std.HashMap` store, and
+proves that in-place {lit}`TRANSPLANT` and leaf {lit}`TREE-INSERT` refine the
+functional subtree-replacement specification through the {lit}`RepresentsW`
+heap-to-tree abstraction.  What remains is an explicit RAM-cost model connecting
+these pointer operations to concrete running times.
 -/
 
 namespace CLRS
