@@ -105,6 +105,11 @@ Build the Lean library:
 lake build CLRSLean
 ```
 
+Running many agents or worktrees in parallel? Provision isolated, pre-built
+worktrees with `scripts/setup-worktree.sh` so each skips the Mathlib download —
+see [`docs/build-and-agents.md`](docs/build-and-agents.md) for the model, the
+concurrency limits, and the recovery runbook.
+
 Run the fast repository metadata and configuration checks:
 
 ```bash
