@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_08.Section_08_3_Radix_Sort
+import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Probability.FiniteExpectation
 import Mathlib
 /-!
@@ -27,6 +28,14 @@ for {lit}`n` independent samples into {lit}`n` buckets is at most linear in
 {lit}`n`.  The final wrapper adds the linear scan/distribution term used by the
 CLRS expected-time proof and obtains a concrete {lit}`≤ 3n` bound for this
 abstract cost expression.
+
+Beyond the definitional layer, we also prove the CLRS second moment
+`E[Σ_j n_j²] = n + n(n-1)/m` as a **true expectation** over the explicit
+independent uniform input distribution `Fin n → Fin m` (each key hashed
+independently and uniformly to a bucket), reusing
+{name}`CLRS.Probability.expect_mul_of_indep` for the independence step
+(`expectedBucketQuadraticCost_eq_secondMoment`).  The abstract expected cost is
+shown to be {lit}`O(n)` via `expectedBucketSortCost_isBigO`.
 -/
 
 namespace CLRS
@@ -234,19 +243,20 @@ noncomputable def uniformAverageFin {m : Nat} (X : Fin m → ℝ) : ℝ :=
 noncomputable def uniformAverageFin2 {m : Nat} (X : Fin m → Fin m → ℝ) : ℝ :=
   uniformAverageFin fun i => uniformAverageFin fun j => X i j
 
+/-- The finite-uniform bucket average is the shared {name}`CLRS.Probability.fintypeExpect`
+toolkit specialised to {lit}`Fin m`.  This bridge lets the algebraic lemmas below
+reuse the toolkit instead of re-deriving them. -/
+theorem uniformAverageFin_eq_fintypeExpect {m : Nat} (X : Fin m → ℝ) :
+    uniformAverageFin X = fintypeExpect X := by
+  simp [uniformAverageFin, fintypeExpect, Fintype.card_fin]
+
 /-- A fixed bucket has probability {lit}`1/m` under the finite-uniform bucket model. -/
 theorem uniformAverageFin_indicator_singleton {m : Nat} (j : Fin m) :
     uniformAverageFin (fun i => probabilityIndicator (i = j)) = 1 / (m : ℝ) := by
-  classical
-  have hsum :
-      (∑ i : Fin m, probabilityIndicator (i = j)) = (1 : ℝ) := by
-    rw [Finset.sum_eq_single j]
-    · simp [probabilityIndicator, CLRS.Probability.indicator]
-    · intro b _hb hbj
-      simp [probabilityIndicator, CLRS.Probability.indicator, hbj]
-    · intro hj
-      exact (hj (Finset.mem_univ j)).elim
-  simp [uniformAverageFin, hsum]
+  rw [uniformAverageFin_eq_fintypeExpect,
+    show (fun i : Fin m => probabilityIndicator (i = j))
+        = (fun i => CLRS.Probability.indicator (i = j)) from rfl,
+    fintypeExpect_indicator_singleton, Fintype.card_fin]
 
 /--
 Two independently chosen uniform buckets collide with probability {lit}`1/m`.
@@ -327,6 +337,182 @@ theorem expectedBucketSortCost_linear_bound (n : Nat) (hn : 0 < n) :
     expectedBucketSortCost n ≤ 3 * (n : ℝ) := by
   rw [expectedBucketSortCost_self_eq n hn]
   linarith
+
+/-- The abstract finite-uniform bucket-sort cost is {lit}`O(n)`. -/
+theorem expectedBucketSortCost_isBigO :
+    CLRS.Chapter03.isBigO (fun n => expectedBucketSortCost n) (fun n => (n : ℝ)) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨3, by norm_num, 1, fun n hn => ?_⟩
+  have hn' : 0 < n := hn
+  have hle := expectedBucketSortCost_linear_bound n hn'
+  have hnonneg : 0 ≤ expectedBucketSortCost n := by
+    rw [expectedBucketSortCost_self_eq n hn']
+    have : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn'
+    linarith
+  rw [abs_of_nonneg hnonneg, abs_of_nonneg (by positivity : (0 : ℝ) ≤ (n : ℝ))]
+  linarith
+
+/-! ## The second moment as a true expectation over an independent input
+
+The finite-uniform layer above is definitional.  We now make the CLRS
+second-moment calculation a genuine expectation.  The **explicit independent
+uniform input distribution** is `Fin n → Fin m`: each of the {lit}`n` keys is
+assigned a bucket in {lit}`Fin m` independently and uniformly.  We prove
+`E[Σ_j n_j²] = n + n(n-1)/m` as {name}`CLRS.Probability.fintypeExpect` over this
+distribution, reusing {name}`CLRS.Probability.expect_mul_of_indep` for the
+independence step. -/
+
+open scoped Classical in
+/-- Split a bucket assignment `a : Fin n → Fin m` into the pair of buckets it
+sends two distinct keys `i ≠ k` to, together with the assignment of the
+remaining keys.  This is the product decomposition witnessing that the two
+coordinates are independent of the rest. -/
+noncomputable def bucketPairSplit {m n : Nat} (i k : Fin n) (h : i ≠ k) :
+    (Fin n → Fin m) ≃ (Fin m × Fin m) × ({x : Fin n // x ≠ i ∧ x ≠ k} → Fin m) where
+  toFun a := ((a i, a k), fun x => a x.val)
+  invFun q := fun x =>
+    if hx : x = i then q.1.1
+    else if hy : x = k then q.1.2
+    else q.2 ⟨x, hx, hy⟩
+  left_inv a := by
+    funext x
+    by_cases hx : x = i
+    · subst hx; simp
+    · by_cases hy : x = k
+      · subst hy; simp [hx]
+      · simp [hx, hy]
+  right_inv q := by
+    obtain ⟨⟨b, c⟩, rest⟩ := q
+    simp only [Prod.mk.injEq]
+    refine ⟨⟨?_, ?_⟩, ?_⟩
+    · simp
+    · simp [h.symm]
+    · funext x
+      obtain ⟨xv, hxi, hxk⟩ := x
+      simp [hxi, hxk]
+
+open CLRS.Probability in
+/-- Marginalisation: the expectation of a function of two distinct coordinates of
+a uniform assignment equals the expectation over the two-bucket product space
+{lit}`Fin m × Fin m` (the joint law of two independent uniform keys). -/
+theorem fintypeExpect_bucketPair {m n : Nat} (i k : Fin n) (h : i ≠ k) (hm : 0 < m)
+    (F : Fin m → Fin m → ℝ) :
+    fintypeExpect (fun a : Fin n → Fin m => F (a i) (a k)) =
+      fintypeExpect (fun p : Fin m × Fin m => F p.1 p.2) := by
+  haveI : Nonempty (Fin m) := ⟨⟨0, hm⟩⟩
+  have hcard : Fintype.card ({x : Fin n // x ≠ i ∧ x ≠ k} → Fin m) ≠ 0 :=
+    Fintype.card_ne_zero
+  have he := fintypeExpect_equiv (bucketPairSplit (m := m) i k h)
+    (fun q : (Fin m × Fin m) × ({x : Fin n // x ≠ i ∧ x ≠ k} → Fin m) => F q.1.1 q.1.2)
+  simp only [bucketPairSplit, Equiv.coe_fn_mk] at he
+  rw [he]
+  exact fintypeExpect_fst hcard (fun p : Fin m × Fin m => F p.1 p.2)
+
+open CLRS.Probability in
+/-- Two independent uniform keys collide with probability {lit}`1/m` over the
+product sample space {lit}`Fin m × Fin m`. -/
+theorem collisionProb_pair {m : Nat} (hm : 0 < m) :
+    fintypeExpect (fun p : Fin m × Fin m => indicator (p.1 = p.2)) = 1 / (m : ℝ) := by
+  have hden : (m : ℝ) ≠ 0 := by exact_mod_cast Nat.ne_of_gt hm
+  unfold fintypeExpect indicator
+  rw [Fintype.card_prod, Fintype.card_fin]
+  have hsum : (∑ p : Fin m × Fin m, (if p.1 = p.2 then (1 : ℝ) else 0)) = (m : ℝ) := by
+    rw [Fintype.sum_prod_type]; simp
+  rw [hsum]; push_cast; field_simp
+
+open CLRS.Probability in
+/-- The expected collision indicator for two keys `i`, `k`: {lit}`1` on the
+diagonal `i = k`, and {lit}`1/m` off-diagonal (using independence). -/
+theorem expected_collision {m n : Nat} (i k : Fin n) (hm : 0 < m) :
+    fintypeExpect (fun a : Fin n → Fin m => indicator (a i = a k)) =
+      if i = k then 1 else 1 / (m : ℝ) := by
+  by_cases h : i = k
+  · subst h
+    have hfun : (fun a : Fin n → Fin m => indicator (a i = a i)) = (fun _ => (1 : ℝ)) := by
+      funext a; simp [indicator]
+    rw [if_pos rfl, hfun]
+    haveI : Nonempty (Fin m) := ⟨⟨0, hm⟩⟩
+    exact fintypeExpect_const Fintype.card_ne_zero 1
+  · rw [if_neg h, fintypeExpect_bucketPair i k h hm (fun b c => indicator (b = c))]
+    exact collisionProb_pair hm
+
+open CLRS.Probability in
+/-- Occupancy of bucket {lit}`j`: the number of keys assigned to it. -/
+noncomputable def bucketOccupancy {m n : Nat} (a : Fin n → Fin m) (j : Fin m) : ℝ :=
+  ∑ i : Fin n, indicator (a i = j)
+
+open CLRS.Probability in
+/-- The bucket-occupancy second moment {lit}`Σ_j n_j²` for an assignment `a`. -/
+noncomputable def bucketSecondMoment {m n : Nat} (a : Fin n → Fin m) : ℝ :=
+  ∑ j : Fin m, (bucketOccupancy a j) ^ 2
+
+open CLRS.Probability in
+/-- Per-bucket collision identity: `∑_j 1[a i = j]·1[a k = j] = 1[a i = a k]`. -/
+theorem collisionSum {m n : Nat} (a : Fin n → Fin m) (i k : Fin n) :
+    ∑ j : Fin m, indicator (a i = j) * indicator (a k = j) = indicator (a i = a k) := by
+  rw [Finset.sum_eq_single (a i)]
+  · simp only [indicator]
+    by_cases h : a i = a k
+    · rw [if_pos h.symm, if_pos h, if_true, one_mul]
+    · rw [if_neg (Ne.symm h), if_neg h, mul_zero]
+  · intro j _ hj
+    simp only [indicator]
+    rw [if_neg (Ne.symm hj), zero_mul]
+  · intro hcontra; exact absurd (Finset.mem_univ (a i)) hcontra
+
+open CLRS.Probability in
+/-- The second moment equals the double sum of pairwise collision indicators
+(CLRS: {lit}`Σ_j n_j² = Σ_i Σ_k 1[a i = a k]`). -/
+theorem bucketSecondMoment_eq_collisions {m n : Nat} (a : Fin n → Fin m) :
+    bucketSecondMoment a = ∑ i : Fin n, ∑ k : Fin n, indicator (a i = a k) := by
+  unfold bucketSecondMoment bucketOccupancy
+  have step : ∀ j : Fin m, (∑ i : Fin n, indicator (a i = j)) ^ 2
+      = ∑ i : Fin n, ∑ k : Fin n, indicator (a i = j) * indicator (a k = j) := by
+    intro j; rw [sq, Finset.sum_mul_sum]
+  simp_rw [step]
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [Finset.sum_comm]
+  exact Finset.sum_congr rfl (fun k _ => collisionSum a i k)
+
+open CLRS.Probability in
+/--
+**Bucket-sort second moment (true expectation).**  Over the explicit independent
+uniform input distribution `Fin n → Fin m`, the expected bucket-occupancy second
+moment is exactly `n + n(n-1)/m`, i.e.
+{name}`CLRS.Chapter08.expectedBucketQuadraticCost`.  This is CLRS's key
+second-moment computation (equation for `E[Σ n_i²]`) as a genuine expectation.
+-/
+theorem expectedBucketQuadraticCost_eq_secondMoment {m n : Nat} (hm : 0 < m) :
+    fintypeExpect (fun a : Fin n → Fin m => bucketSecondMoment a) =
+      expectedBucketQuadraticCost m n := by
+  have hden : (m : ℝ) ≠ 0 := by exact_mod_cast Nat.ne_of_gt hm
+  have h1 : (fun a : Fin n → Fin m => bucketSecondMoment a)
+      = (fun a => ∑ i : Fin n, ∑ k : Fin n, indicator (a i = a k)) := by
+    funext a; exact bucketSecondMoment_eq_collisions a
+  rw [h1]
+  simp only [fintypeExpect_sum]
+  have h2 : ∀ i k : Fin n,
+      fintypeExpect (fun a : Fin n → Fin m => indicator (a i = a k))
+        = if i = k then (1 : ℝ) else 1 / (m : ℝ) := fun i k => expected_collision i k hm
+  simp only [h2]
+  have hinner : ∀ i : Fin n,
+      (∑ k : Fin n, (if i = k then (1 : ℝ) else 1 / (m : ℝ)))
+        = (n : ℝ) * (1 / (m : ℝ)) + (1 - 1 / (m : ℝ)) := by
+    intro i
+    have hsplit : ∀ k : Fin n, (if i = k then (1 : ℝ) else 1 / (m : ℝ))
+        = 1 / (m : ℝ) + (if i = k then (1 - 1 / (m : ℝ)) else 0) := by
+      intro k; by_cases h : i = k
+      · rw [if_pos h, if_pos h]; ring
+      · rw [if_neg h, if_neg h]; ring
+    simp_rw [hsplit]
+    rw [Finset.sum_add_distrib, Finset.sum_const, Finset.sum_ite_eq]
+    simp [Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  simp only [hinner]
+  rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  unfold expectedBucketQuadraticCost
+  field_simp
+  ring
 
 end Chapter08
 end CLRS
