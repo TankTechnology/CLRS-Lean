@@ -1,159 +1,157 @@
 # CLRS-Lean
 
-`CLRS-Lean` is a Lean 4 companion project for CLRS-style algorithm
-correctness proofs.  The project is organized as a chapter-by-chapter online
-book: each represented CLRS chapter has a guide page, selected sections have
-literate Lean proof pages, and the site includes public progress and proof
-status ledgers.
+CLRS-Lean is a Lean 4 companion for the mathematical correctness arguments in
+*Introduction to Algorithms*.  The repository is both a Lean library and a
+book-style Verso site: chapter guides explain the formalization boundary, while
+section modules contain executable definitions, theorem interfaces, and proofs.
 
-- Website: <https://tanktechnology.github.io/CLRS-Lean/>
-- Progress dashboard: <https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Progress/>
-- Proof status ledger: <https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Status/>
-- Workflow guide: <https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Workflow/>
-- Sitemap: <https://tanktechnology.github.io/CLRS-Lean/sitemap.xml>
+- [Website](https://tanktechnology.github.io/CLRS-Lean/)
+- [Generated progress dashboard](https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Progress/)
+- [Reader-facing proof status](https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Status/)
+- [Contributor workflow](https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Workflow/)
+- [Documentation index](docs/index.md)
 
-The public project name is `CLRS-Lean`.  The Lean library root remains
-`CLRSLean`, because Lean module names and import paths should be simple
-identifiers.
+The public project name is `CLRS-Lean`.  Lean modules use the import-friendly
+root `CLRSLean`.
 
-## Current Scope
+## Proof Scope
 
-The repository currently represents a growing subset of CLRS.  The public
-progress dashboard is generated from `docs/clrs-proof-progress.csv`; at the
-current snapshot it tracks 35 CLRS chapters, 22 represented Lean chapters, and
-871 proved reader-facing theorem entries.
+The project formalizes selected CLRS sections, not every exercise or every line
+of pseudocode.  A chapter may be complete for its current mathematical model
+while still leaving pointer mutation, RAM costs, or imperative refinement for a
+later layer.
 
-Highlights include:
+Current milestones include:
 
-- Chapter 2: insertion sort, merge sort, and recurrence/cost wrappers.
-- Chapter 4: maximum subarray, Strassen 2 by 2 algebra, recursion trees, and
-  substantial Master-theorem infrastructure.
-- Chapter 6: heaps, `MAX-HEAPIFY`, `BUILD-MAX-HEAP`, heapsort, and priority
-  queue operations for the current array/functional models.
-- Chapters 7-9: quicksort, linear-time sorting, and selection theorem layers,
-  including deterministic median-of-medians correctness and recurrence bounds.
-- Chapters 10-15: selected data-structure and dynamic-programming models,
-  including BSTs, red-black-tree local certificates, order-statistic trees, rod
-  cutting, matrix-chain multiplication, and LCS.
-- Chapter 16: activity selection and Huffman coding.
-- Chapters 17-20 and 23: first-pass amortized-analysis, B-tree, Fibonacci-heap,
-  vEB, and MST theorem surfaces.
-- Chapter 22: main functional correctness is complete for BFS shortest paths
-  and predecessor trees, DFS theory and edge classification, Kahn and DFS
-  topological sorting, and Kosaraju SCCs.
+- Chapter 2: insertion sort, merge sort, and selected comparison/recurrence
+  results.
+- Chapter 6: the current heap, `MAX-HEAPIFY`, `BUILD-MAX-HEAP`, heapsort, and
+  priority-queue correctness stack.
+- Chapter 8: correctness for the represented counting-sort, radix-sort, and
+  bucket-sort models.
+- Chapter 16: activity-selection and Huffman optimality for the represented
+  finite models.
+- Chapter 21: abstract disjoint-set semantics, weighted linked-list analysis,
+  executable union-by-rank/path-compression correctness, real traversal-cost
+  semantics, a concrete `O((m+n) alpha(n))` amortized bound, and a Kruskal
+  bridge.
+- Chapter 22: sealed main functional correctness for BFS shortest paths and its
+  predecessor tree, DFS theory and edge classification, Kahn and DFS
+  topological sorting, and Kosaraju SCC decomposition.
+- Chapter 23: sealed mathematical correctness plus a stateful costed Kruskal
+  refinement, complete `O(E log E)` work composition, executable indexed-queue
+  Prim, and its binary-heap `O(E log V)` operation model.
 
-See `docs/proof-map.md` for the detailed theorem-by-theorem map and
-`docs/proof-status-board.md` for the high-level planning board.
+Chapters 3, 4, 7, 9, 11-15, and 17-20 have substantial but intentionally
+partial theorem layers.  Chapters 24-35 are not represented on `main` yet.
+The live counts and chapter rows are generated from
+[`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv); see the
+[`proof status board`](docs/proof-status-board.md) for the current scheduling
+view and [`proof map`](docs/proof-map.md) for theorem-level detail.
 
-## Repository Layout
-
-Lean source files follow CLRS chapter and section numbers:
-
-```text
-CLRSLean.lean
-CLRSLean/Chapter_02.lean
-CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
-CLRSLean/Chapter_06/Section_06_4_Heapsort.lean
-CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
-CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean
-CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
-CLRSLean/Chapter_22/Section_22_2_BFS.lean
-CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean
-CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean
-CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean
-CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
-CLRSLean/Progress.lean
-CLRSLean/Status.lean
-CLRSLean/Workflow.lean
-```
-
-Maintainer-facing documents live under `docs/`:
+## Repository Architecture
 
 ```text
-docs/clrs-proof-progress.csv
-docs/proof-map.md
-docs/proof-status-board.md
-docs/proof-audits/chapter-22-closure-2026-07-10.md
-docs/site-architecture.md
-docs/workflows/chapter-workflow.md
-docs/status/blocked-and-deferred.md
+CLRSLean.lean                     library root and website landing page
+CLRSLean/Chapter_XX.lean          chapter guide and section aggregator
+CLRSLean/Chapter_XX/Section_*.lean
+                                  definitions, algorithms, and proofs
+CLRSLean/ProofPatterns/           small reusable cross-chapter proof APIs
+CLRSLean/Progress.lean            generated public progress dashboard
+CLRSLean/Status.lean              concise reader-facing status page
+CLRSLean/Workflow.lean            public contribution workflow
+Tests/                            stable interface and closure checks
+docs/                             maintainer ledgers, design notes, and audits
+scripts/                          metadata, site, and repository checks
+literate.toml                    Verso navigation and page titles
 ```
 
-Website and deployment helpers live in:
+The detailed dependency and ownership rules are in
+[`docs/repository-architecture.md`](docs/repository-architecture.md).
 
-```text
-literate.toml
-docs/literate/clrs-literate.css
-scripts/optimize_literate_html.py
-scripts/generate_sitemap.py
-.github/workflows/pages.yml
+## Sources of Truth
+
+| Question | Canonical source |
+| --- | --- |
+| What Lean modules exist? | `CLRSLean/`, checked against `literate.toml` |
+| What is the public theorem interface? | Section `.lean` files and `Tests/` |
+| What is the chapter-level progress snapshot? | `docs/clrs-proof-progress.csv` |
+| What theorem names and proof boundaries exist? | `docs/proof-map.md` |
+| What should be worked on next? | `docs/proof-status-board.md` |
+| What is blocked or deliberately deferred? | `docs/status/blocked-and-deferred.md` |
+| What appears on the website? | `CLRSLean.lean`, chapter guides, and `literate.toml` |
+
+`CLRSLean/Progress.lean` is generated from the CSV.  It should never be edited
+as an independent status ledger.
+
+## Local Setup
+
+Install Lean through [elan](https://github.com/leanprover/elan), then prepare
+the repository:
+
+```bash
+git clone https://github.com/TankTechnology/CLRS-Lean.git
+cd CLRS-Lean
+lake exe cache get
+uv sync --frozen
 ```
 
-## Build
+The Python helper environment is managed by `uv`; it currently has no runtime
+dependencies beyond Python 3.11 or newer.
 
-Build and verify the Lean library:
+Build the Lean library:
 
 ```bash
 lake build CLRSLean
 ```
 
-Generate the Verso literate HTML site locally:
+Run the fast repository metadata and configuration checks:
+
+```bash
+uv run python scripts/check_repository.py
+```
+
+Build the public site when a reader-facing page or navigation entry changes:
 
 ```bash
 lake build :literateHtml
 ```
 
-Run the repository consistency checks used before website changes:
+For proof development, use the narrow-to-wide loop documented in
+[`docs/workflows/lean-fast-verification.md`](docs/workflows/lean-fast-verification.md)
+before running a full library build.
 
-```bash
-python3 scripts/check_progress_csv.py
-python3 scripts/check_site_consistency.py
-python3 scripts/test_literate_config.py
-python3 scripts/test_optimize_literate_html.py
-python3 scripts/check_literate_html_freshness.py .lake/build/literate-html
-python3 scripts/check_literate_rendering.py .lake/build/literate-html
-```
+## Contribution Contract
 
-Generate a sitemap for a built site directory:
+A theorem-producing change should update code and status together:
 
-```bash
-python3 scripts/generate_sitemap.py .lake/build/literate-html \
-  --base-url "https://tanktechnology.github.io/CLRS-Lean/"
-```
+1. Change the relevant section module and its focused interface test.
+2. Update the chapter guide when the advertised theorem boundary changes.
+3. Update `docs/clrs-proof-progress.csv` and `docs/proof-map.md` when coverage
+   changes.
+4. Regenerate the public dashboard:
+
+   ```bash
+   uv run python scripts/check_progress_csv.py --write-dashboard
+   ```
+
+5. Run `uv run python scripts/check_repository.py`.
+6. Build the changed module, its immediate dependents, and finally
+   `lake build CLRSLean` for a milestone or merge.
+
+Status labels describe the proved model precisely:
+
+- `main-proof-complete`: the advertised main theorem stack is complete.
+- `main-proof-complete-for-correctness`: correctness is complete; explicit
+  work/RAM refinements remain.
+- `selected-section-complete`: the represented sections are complete, not the
+  whole textbook chapter.
+- `partial`: useful proofs exist, but a named central target remains.
+- `not-started`: no represented section exists on `main`.
+- `expository`: a guide page with no formal theorem target.
 
 ## Website Deployment
 
-GitHub Actions builds the Verso site and deploys the generated `_site` artifact
-to GitHub Pages.  During deployment it:
-
-1. Builds the literate HTML with `lake query :literateHtml`.
-2. Checks generated-page freshness.
-3. Copies the generated pages into `_site`.
-4. Optimizes generated HTML for faster reading.
-5. Checks the rendered HTML for raw Markdown artifacts.
-6. Generates `_site/sitemap.xml`.
-7. Uploads the Pages artifact.
-
-The generated sitemap is meant to be submitted in Google Search Console as:
-
-```text
-https://tanktechnology.github.io/CLRS-Lean/sitemap.xml
-```
-
-The generated HTML also includes the configured Google site-verification meta
-tag in the page `<head>` section.
-
-## Contribution Rule
-
-Every theorem-producing change should keep the proof ledger synchronized:
-
-1. Update the relevant Lean files.
-2. Update `docs/clrs-proof-progress.csv` when reader-facing theorem groups
-   change.
-3. Regenerate `CLRSLean/Progress.lean` with:
-
-   ```bash
-   python3 scripts/check_progress_csv.py --write-dashboard
-   ```
-
-4. Run `lake build CLRSLean` and the relevant site checks before submitting.
+GitHub Actions builds the Verso HTML, checks freshness and rendering, optimizes
+the generated pages, creates the sitemap, and deploys the result to GitHub
+Pages.  Generated HTML is build output and is not committed to the repository.

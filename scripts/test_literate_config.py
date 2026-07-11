@@ -21,6 +21,25 @@ def _parse_module_titles(text: str) -> set[str]:
     return set(re.findall(r'^\[modules\."([^"]+)"\]\s*\ntitle\s*=', text, re.MULTILINE))
 
 
+def _ordered_descendants(
+    order_children: dict[str, list[str]], parent: str
+) -> list[str]:
+    descendants: list[str] = []
+    visiting: set[str] = set()
+
+    def visit(current: str) -> None:
+        if current in visiting:
+            raise ValueError(f"cycle in literate navigation at {current}")
+        visiting.add(current)
+        for child in order_children.get(current, []):
+            descendants.append(child)
+            visit(child)
+        visiting.remove(current)
+
+    visit(parent)
+    return descendants
+
+
 class LiterateConfigTest(unittest.TestCase):
     def test_landing_page_imports_are_ordered_and_titled(self) -> None:
         text = LITERATE_TOML.read_text()
@@ -57,13 +76,69 @@ class LiterateConfigTest(unittest.TestCase):
             if not imported_sections:
                 continue
 
-            ordered_sections = order_children[chapter_module]
+            ordered_sections = _ordered_descendants(order_children, chapter_module)
             with self.subTest(chapter=chapter_module):
                 self.assertEqual(imported_sections, ordered_sections)
 
             missing_titles = [module for module in imported_sections if module not in titled_modules]
             with self.subTest(chapter=f"{chapter_module} titles"):
                 self.assertEqual([], missing_titles)
+
+    def test_support_pages_are_nested(self) -> None:
+        order_children = _parse_order_children(LITERATE_TOML.read_text())
+        expected = {
+            "CLRSLean.Chapter_08.Section_08_2_Counting_Sort": [
+                "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables",
+            ],
+            "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework": [
+                "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",
+            ],
+            "CLRSLean.Chapter_22.Section_22_3_DFS": [
+                "CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.Intervals",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.Bridge",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.SCC",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification",
+            ],
+            "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components": [
+                "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr",
+            ],
+        }
+
+        for parent, children in expected.items():
+            with self.subTest(parent=parent):
+                self.assertEqual(children, order_children[parent])
+
+    def test_sibling_pages_do_not_repeat_clrs_section_numbers(self) -> None:
+        order_children = _parse_order_children(LITERATE_TOML.read_text())
+
+        for parent, children in order_children.items():
+            seen: dict[tuple[str, str], str] = {}
+            for child in children:
+                leaf = child.rsplit(".", 1)[-1]
+                match = re.fullmatch(r"Section_(\d+)_(\d+)(?:_.*)?", leaf)
+                if match is None:
+                    continue
+                section = (match.group(1), match.group(2))
+                with self.subTest(parent=parent, section=section):
+                    self.assertNotIn(section, seen, f"also listed by {seen.get(section)}")
+                seen[section] = child
+
+    def test_proof_pattern_imports_are_ordered_and_titled(self) -> None:
+        text = LITERATE_TOML.read_text()
+        order_children = _parse_order_children(text)
+        titled_modules = _parse_module_titles(text)
+        parent = "CLRSLean.ProofPatterns"
+
+        imported_modules = re.findall(
+            r"^import\s+(CLRSLean\.ProofPatterns\.[^\s]+)",
+            (ROOT / "CLRSLean" / "ProofPatterns.lean").read_text(),
+            re.MULTILINE,
+        )
+
+        self.assertEqual(imported_modules, order_children[parent])
+        missing_titles = [module for module in imported_modules if module not in titled_modules]
+        self.assertEqual([], missing_titles)
 
 
 if __name__ == "__main__":

@@ -61,11 +61,11 @@ length, and form an acyclic relation.
 
 - Lean sources:
   `CLRSLean/Chapter_22/Section_22_3_DFS.lean`,
-  `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean`,
-  `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean`,
-  `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`,
-  `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`, and
-  `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean`
+  `CLRSLean/Chapter_22/Section_22_3_DFS/WhitePath.lean`,
+  `CLRSLean/Chapter_22/Section_22_3_DFS/Intervals.lean`,
+  `CLRSLean/Chapter_22/Section_22_3_DFS/Bridge.lean`,
+  `CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean`, and
+  `CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean`
 - Status: `proved`
 - Main declarations:
   `CLRS.Chapter22.Graph.DFSState`,
@@ -134,7 +134,7 @@ sorted finish-time relation into the required list-index ordering.
 
 - Lean sources:
   `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean` and
-  `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean`
+  `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean`
 - Status: `proved`
 - Main declarations:
   `CLRS.Chapter22.Graph.transpose`,
