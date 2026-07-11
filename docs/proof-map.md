@@ -187,16 +187,28 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 ### Section 4.2 - Strassen's algorithm for matrix multiplication
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_2_Strassen_Algorithm.lean`
-- Status: `proved` for 2 by 2 block algebra
+- Status: `proved` for the 2 by 2 block algebra, the recursive algorithm with
+  correctness and padding, and the `Θ(n^(log₂ 7))` runtime
 - Main proved theorems:
   - `CLRS.Chapter04.Matrix2.strassen_eq_mul`
   - `CLRS.Chapter04.strassen2x2_correct`
-- Proof pattern: represent a 2 by 2 block matrix as four ring elements, define
-  ordinary block multiplication and Strassen's seven-product reconstruction,
-  then discharge the four component equalities by noncommutative ring
-  normalization
-- Current gap: recursive splitting, dimension bookkeeping, and runtime analysis
-  remain future refinement targets
+  - `CLRS.Chapter04.strassen2_eq_mul`
+  - `CLRS.Chapter04.strassenRec_correct`
+  - `CLRS.Chapter04.strassenRec_padOne`
+  - `CLRS.Chapter04.strassen_runtime_bigTheta`
+- Proof pattern: represent a 2 by 2 block matrix as four ring elements (and,
+  for the recursion, as a depth-indexed `SqMat R k` quad-tree of `2 × 2`
+  blocks), define ordinary block multiplication and Strassen's seven-product
+  reconstruction, then discharge the four component equalities by
+  noncommutative ring normalization.  The recursive `strassenRec` bottoms out at
+  the scalar base case and its correctness is an induction on depth reducing to
+  the 2 by 2 identity; zero-padding into the next power-of-two block preserves
+  the top-left product.  The runtime is the CLRS floor recurrence
+  `T(n) = 7 T(⌊n/2⌋) + n²` fed through the Chapter 4 Master-theorem case-1
+  wrapper `floorDivide_allInput_masterCase1_realLogScale`, whose comparison
+  scale `realLogScale 7 2 n` is the textbook `n^(log₂ 7)`
+- Current gap: a lower-level RAM/pseudocode cost model and an arbitrary-`n`
+  padding bijection to `Matrix (Fin n)` remain future refinement targets
 
 ### Section 4.3 - The substitution method
 
