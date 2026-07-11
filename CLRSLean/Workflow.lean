@@ -14,8 +14,8 @@ chapters easy to audit, easy to deploy, and pleasant to read.
 4. Lean theorem interface.
 5. Lean proof.
 6. Verification.
-7. Site and status update.
-8. Progress CSV update.
+7. Progress and documentation update.
+8. Repository and site verification.
 
 ## 1. Textbook Map
 
@@ -77,15 +77,15 @@ When local {lit}`literateHtml` generation is too slow, the Lean build and static
 configuration checks still provide useful evidence, and the GitHub Pages build
 becomes the final deployment gate.
 
-## 7. Site and Status Update
+## 7. Progress And Documentation Update
 
 Every user-facing section change should update the book structure:
 
 * the relevant {lit}`CLRSLean/Chapter_XX.lean` chapter page;
-* {lit}`CLRSLean/Status.lean` if the proof status changed;
 * {lit}`literate.toml` if a new module should appear in the navigation;
 * {lit}`docs/proof-map.md` for the longer maintainer ledger;
-* {lit}`CLRSLean/Progress.lean` if public dashboard totals or rows changed.
+* {lit}`docs/clrs-proof-progress.csv` when chapter coverage changes;
+* {lit}`docs/proof-status-board.md` only when planning priorities change.
 
 ## 8. Progress CSV Update
 
@@ -105,8 +105,17 @@ Rule of thumb:
 * deferred or blocked theorem group: record it in {lit}`remaining_core_groups`
   instead of silently dropping it.
 
+Regenerate the dashboard after changing the CSV:
+
+* {lit}`uv run python scripts/check_progress_csv.py --write-dashboard`
+
+## 8. Repository And Site Verification
+
 Before committing proof-status changes, run:
 
-* {lit}`python3 scripts/check_progress_csv.py --write-dashboard`
+* {lit}`uv run python scripts/check_repository.py`
 * {lit}`lake build CLRSLean`
+
+When navigation or reader-facing prose changes, also run
+{lit}`lake build :literateHtml` and the generated-site checks.
 -/

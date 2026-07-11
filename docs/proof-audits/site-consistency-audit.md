@@ -75,18 +75,19 @@ Current best fit for the project: option 1 (remove or archive) because the
 `.lean` module docs already serve the same purpose and are compiled alongside the
 proofs.
 
-### 3.2 Section Ordering Anomalies
+### 3.2 Section Grouping
 
-- **Chapter 8**: `literate.toml` orders `Section_08_2_Counting_Sort` before
-  `Section_08_2_Counting_Sort_Array`. The natural textbook order is 8.2 counting
-  sort, with the array refinement as a subsection. This is acceptable but should
-  be intentional.
-- **Chapter 17**: the order is `Framework`, `Stack_And_Counter`, `Dynamic_Tables`.
-  The framework module title is "17.1-17.3. Amortized Analysis Framework", which
-  overlaps with the stack/counter section. This is confusing for readers.
+The previously flat supporting pages are now represented as module and
+navigation children of their reader-facing section:
 
-**Recommendation**: review Chapter 17 `literate.toml` ordering and titles to
-match the textbook sections exactly.
+- Chapter 8 nests the count-table refinement under Section 8.2 counting sort.
+- Chapter 17 nests the stack/counter examples under the 17.1-17.3 amortized
+  analysis methods page, without presenting the examples as a second 17.2.
+- Chapter 22 nests the DFS proof layers under Section 22.3 and the merge-sort
+  congruence helper under Section 22.5 strongly connected components.
+
+Repository checks reject `order_children` entries that do not match the Lean
+module hierarchy and reject repeated CLRS section numbers among siblings.
 
 ### 3.3 Missing Chapters in Navigation
 

@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# CLRS Section 17.1-17.3 - Amortized analysis framework
+# CLRS Sections 17.1-17.3 - Amortized analysis methods
 
 This section packages the finite-prefix arithmetic behind the aggregate,
 accounting, and potential methods.  Later Chapter 17 examples and Chapter 19

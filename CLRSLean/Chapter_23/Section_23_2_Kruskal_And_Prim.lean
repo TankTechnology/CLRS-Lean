@@ -13,47 +13,24 @@ to cross the current component cut, the current edge is light by sorted order.
 Union-find implementation correctness is deliberately deferred: the current
 proof works at the mathematical cycle-test interface level.
 
-Main results:
+Closure results:
 
-- Theorem {lit}`lightest_crossing_of_sorted_prefix`: sorted edge order plus a
-  processed-prefix exclusion invariant proves the lightness condition for a
-  cut.
-- Theorem {lit}`cut_certificate_of_component_oracle_sorted_prefix`: packages
-  that sorted-order lightness proof into a component-oracle cut certificate.
-- Theorem {lit}`processed_prefix_excludes_of_exact_component_kruskal`: exact
-  components derive the processed-prefix exclusion invariant for a Kruskal
-  prefix.
-- Theorem {lit}`cut_certificate_of_exact_component_kruskal_prefix`: packages
-  the exact-component prefix invariant into a sorted-order cut certificate.
-- Theorem {lit}`FiniteGraph.kruskal_forest_of_exact_component`: an
-  exact-component Kruskal pass preserves the forest invariant.
-- Theorem {lit}`FiniteGraph.kruskal_spans_of_complete_exact_component`: a
-  complete Kruskal edge scan over a connected finite graph spans all vertices.
-- Theorem {lit}`FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`:
-  a complete exact-component Kruskal scan starting from a forest returns a
-  spanning tree.
-- Theorem {lit}`FiniteGraph.spanningTree_exchange_of_path_certificate`:
-  a path-decomposition certificate proves that adding one edge and deleting one
-  tree edge preserves the spanning-tree property.
-- Theorems {lit}`Graph.exchangePath_connected_insert`,
-  {lit}`Graph.exchangePath_of_insert_connected`,
-  {lit}`Graph.exchangePath_iff_insertedEdgeConnection`, and
-  {lit}`FiniteGraph.exchangePath_iff_insertedEdgeConnection_of_spanningTree`:
-  the bridge between a cycle-style inserted-edge connection and the reusable
-  {lit}`ExchangePath` certificate.
-- Theorem {lit}`kruskal_optimal`: safe-edge induction for the mathematical
-  Kruskal pass.
-- Theorem {lit}`FiniteGraph.kruskal_minimum_spanning_tree_of_cycle_test`:
-  the finite-graph MST conclusion for any cycle-test implementation whose
-  accepted set is known to be a spanning tree.
+- Theorem {lit}`FiniteGraph.canonicalSimplePath_unique`: a selected forest has
+  a unique simple path between connected endpoints.
+- Theorem {lit}`FiniteGraph.exists_crossing_exchangePath_of_spanningTree`: the
+  canonical tree path automatically yields a crossing exchange edge.
+- Theorem {lit}`FiniteGraph.cutCertificate_of_lightest_crossing_auto`: finite
+  cut certificates no longer require a manual cycle-exchange witness.
+- Theorem
+  {lit}`FiniteGraph.kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty`:
+  a sorted complete exact-component Kruskal scan returns an MST, with local
+  lightness and exchange discharged inside the recursion.
+- Theorem {lit}`FiniteGraph.prim_minimum_spanning_tree`: every complete CLRS
+  Prim light-edge trace returns an MST.
 
-Current gaps:
-
-- Refine the exact component model to an executable union-find implementation
-  if implementation correctness becomes part of scope.
-- Derive {lit}`InsertedEdgeConnection` automatically from a canonical finite
-  simple path/cycle representation.
-- Add Prim's theorem interface.
+The nested implementation modules now provide the incremental stateful
+union-find scan, executable indexed-queue Prim, and algorithm-level work
+bounds.  Mutable/RAM semantics and concrete array-heap refinement remain.
 -/
 
 namespace CLRS
@@ -210,6 +187,151 @@ theorem connected_insert_edge_cases {G : Graph V E} {A : Finset E} {e : E}
         · exact Or.inl (Relation.ReflTransGen.tail hA hadjA)
         · exact Or.inr (Or.inl ⟨hus, Relation.ReflTransGen.tail hdy hadjA⟩)
         · exact Or.inr (Or.inr ⟨hud, Relation.ReflTransGen.tail hsy hadjA⟩)
+
+/-! ## Canonical simple paths in selected forests -/
+
+/-- The loop-free simple graph induced by a selected edge set.  The explicit
+inequality removes self-loops without changing connectivity inside a forest. -/
+def selectedSimpleGraph (G : Graph V E) (A : Finset E) : SimpleGraph V where
+  Adj u v := u ≠ v ∧ G.AdjIn A u v
+  symm := ⟨by
+    intro u v h
+    exact ⟨Ne.symm h.1, Graph.adjIn_symm h.2⟩⟩
+  loopless := ⟨by
+    intro v h
+    exact h.1 rfl⟩
+
+omit [DecidableEq V] [DecidableEq E] in
+/-- A selected-simple-graph walk gives a connection in the original labelled
+edge model. -/
+theorem connectedIn_of_selectedWalk {G : Graph V E} {A : Finset E}
+    {u v : V} (p : (G.selectedSimpleGraph A).Walk u v) :
+    G.ConnectedIn A u v := by
+  induction p with
+  | nil => exact Relation.ReflTransGen.refl
+  | @cons u x v hadj p ih =>
+      exact Relation.ReflTransGen.head hadj.2 ih
+
+omit [DecidableEq V] in
+/-- If a simple-graph walk avoids one endpoint of a labelled edge, every step
+of the walk remains available after that labelled edge is erased. -/
+theorem connectedIn_erase_of_selectedWalk_avoids_vertex
+    {G : Graph V E} {T : Finset E} {u v z : V} {f : E}
+    (p : (G.selectedSimpleGraph T).Walk u v)
+    (hz : z ∉ p.support)
+    (hfz : G.src f = z ∨ G.dst f = z) :
+    G.ConnectedIn (T.erase f) u v := by
+  induction p with
+  | nil => exact Relation.ReflTransGen.refl
+  | @cons u x v hadj p ih =>
+      rcases hadj.2 with ⟨g, hgT, hend⟩
+      have hgf : g ≠ f := by
+        intro hgf
+        have hzmem : z ∈ (SimpleGraph.Walk.cons hadj p).support := by
+          have hxmem : x ∈ p.support := p.start_mem_support
+          rcases hend with ⟨hsrc, hdst⟩ | ⟨hsrc, hdst⟩ <;>
+            rcases hfz with hsrcz | hdstz <;>
+            simp_all [SimpleGraph.Walk.support_cons]
+        exact hz hzmem
+      have hadjErase : G.AdjIn (T.erase f) u x :=
+        ⟨g, Finset.mem_erase.mpr ⟨hgf, hgT⟩, hend⟩
+      have hzTail : z ∉ p.support := by
+        intro hzTail
+        exact hz (by simp [hzTail])
+      exact Relation.ReflTransGen.head hadjErase (ih hzTail)
+
+omit [DecidableEq V] in
+/-- Reachability after deleting one unlabelled simple edge maps back to
+labelled connectivity after erasing the corresponding selected edge. -/
+theorem connectedIn_erase_of_reachable_delete_selectedEdge
+    {G : Graph V E} {T : Finset E} {u v x y : V} {f : E}
+    (hfEnds :
+      (G.src f = u ∧ G.dst f = v) ∨ (G.src f = v ∧ G.dst f = u))
+    (hreach :
+      ((G.selectedSimpleGraph T).deleteEdges {s(u, v)}).Reachable x y) :
+    G.ConnectedIn (T.erase f) x y := by
+  rw [SimpleGraph.reachable_iff_reflTransGen] at hreach
+  induction hreach with
+  | refl => exact Relation.ReflTransGen.refl
+  | @tail a b hpath hadj ih =>
+      rw [SimpleGraph.deleteEdges_adj] at hadj
+      rcases hadj with ⟨hselected, hpair⟩
+      rcases hselected.2 with ⟨g, hgT, hgEnds⟩
+      have hgf : g ≠ f := by
+        intro hgf
+        apply hpair
+        simp only [Set.mem_singleton_iff]
+        subst g
+        rcases hfEnds with ⟨hfu, hfv⟩ | ⟨hfv, hfu⟩ <;>
+          rcases hgEnds with ⟨hga, hgb⟩ | ⟨hgb, hga⟩ <;>
+          simp_all
+      exact Relation.ReflTransGen.tail ih
+        ⟨g, Finset.mem_erase.mpr ⟨hgf, hgT⟩, hgEnds⟩
+
+/-- A labelled edge on a simple selected path that crosses a cut, together
+with the two connections that remain after erasing that edge.  This is the
+generic endpoint form of {lit}`ExchangePath`. -/
+def PathExchange (G : Graph V E) (T : Finset E) (u v : V) (f : E) : Prop :=
+  (G.ConnectedIn (T.erase f) (G.src f) u ∧
+    G.ConnectedIn (T.erase f) v (G.dst f)) ∨
+  (G.ConnectedIn (T.erase f) (G.src f) v ∧
+    G.ConnectedIn (T.erase f) u (G.dst f))
+
+omit [DecidableEq V] in
+/-- Reversing the endpoint order preserves a path-exchange witness. -/
+theorem PathExchange.swap {G : Graph V E} {T : Finset E} {u v : V} {f : E}
+    (h : G.PathExchange T u v f) : G.PathExchange T v u f := by
+  rcases h with h | h
+  · exact Or.inr h
+  · exact Or.inl h
+
+/-- A simple selected path whose endpoints lie on opposite sides of a cut has
+a crossing labelled edge whose deletion leaves the path prefix and suffix
+connected. -/
+theorem exists_pathExchange_of_simplePath_crosses
+    {G : Graph V E} {T : Finset E} {S : Finset V} {u v : V}
+    (p : (G.selectedSimpleGraph T).Walk u v) (hp : p.IsPath)
+    (hu : u ∈ S) (hv : v ∉ S) :
+    ∃ f, f ∈ T ∧ G.Crosses S f ∧ G.PathExchange T u v f := by
+  induction p with
+  | nil => exact False.elim (hv hu)
+  | @cons u x v hadj p ih =>
+      rw [SimpleGraph.Walk.cons_isPath_iff] at hp
+      rcases hp with ⟨hp, huAvoids⟩
+      rcases hadj.2 with ⟨g, hgT, hend⟩
+      by_cases hx : x ∈ S
+      · rcases ih hp hx hv with ⟨f, hfT, hfCross, hfPath⟩
+        have hgNotCross : ¬ G.Crosses S g := by
+          rcases hend with ⟨hsrc, hdst⟩ | ⟨hsrc, hdst⟩ <;>
+            simp [Graph.Crosses, hsrc, hdst, hu, hx]
+        have hgf : g ≠ f := by
+          intro hgf
+          exact hgNotCross (by simpa [hgf] using hfCross)
+        have hux : G.ConnectedIn (T.erase f) u x :=
+          Relation.ReflTransGen.single
+            ⟨g, Finset.mem_erase.mpr ⟨hgf, hgT⟩, hend⟩
+        refine ⟨f, hfT, hfCross, ?_⟩
+        rcases hfPath with ⟨hfx, hvf⟩ | ⟨hfv, hxf⟩
+        · exact Or.inl ⟨Graph.connected_trans hfx (Graph.connected_symm hux), hvf⟩
+        · exact Or.inr ⟨hfv, Graph.connected_trans hux hxf⟩
+      · have hsuffix : G.ConnectedIn (T.erase g) x v :=
+          Graph.connectedIn_erase_of_selectedWalk_avoids_vertex p huAvoids
+            (by
+              rcases hend with ⟨hsrc, _⟩ | ⟨_, hdst⟩
+              · exact Or.inl hsrc
+              · exact Or.inr hdst)
+        have hgCross : G.Crosses S g := by
+          rcases hend with ⟨hsrc, hdst⟩ | ⟨hsrc, hdst⟩
+          · exact Or.inl ⟨by simpa [hsrc] using hu, by simpa [hdst] using hx⟩
+          · exact Or.inr ⟨by simpa [hdst] using hu, by simpa [hsrc] using hx⟩
+        refine ⟨g, hgT, hgCross, ?_⟩
+        rcases hend with ⟨hsrc, hdst⟩ | ⟨hsrc, hdst⟩
+        · exact Or.inl ⟨
+            by simpa [hsrc] using (Graph.connected_refl G (T.erase g) u),
+            by simpa [hdst] using (Graph.connected_symm hsuffix)⟩
+        · exact Or.inr ⟨
+            by simpa [hsrc] using hsuffix,
+            by simpa [hdst] using (Graph.connected_refl G (T.erase g) u)⟩
 
 /--
 A path-decomposition certificate for the CLRS tree-exchange step.  After
@@ -487,6 +609,30 @@ edge is inserted into the current forest; otherwise it is skipped.
 def kruskal (accept : Finset E → E → Bool) : List E → Finset E → Finset E
   | [], A => A
   | e :: es, A => kruskal accept es (if accept A e then insert e A else A)
+
+/-- Prim's mathematical edge-accumulation pass.  The dynamic light-edge and
+cut obligations are carried by `FiniteGraph.PrimTrace` below. -/
+def prim : List E → Finset E → Finset E
+  | [], A => A
+  | e :: es, A => prim es (insert e A)
+
+/-- Splitting an edge order into a processed prefix and a remaining suffix is
+compatible with the mathematical Kruskal pass. -/
+theorem kruskal_append (accept : Finset E → E → Bool)
+    (processed suffix : List E) (A : Finset E) :
+    kruskal accept (processed ++ suffix) A =
+      kruskal accept suffix (kruskal accept processed A) := by
+  induction processed generalizing A with
+  | nil => rfl
+  | cons e processed ih =>
+      simp only [List.cons_append, kruskal]
+      by_cases hacc : accept A e = true
+      · simp only [if_pos hacc]
+        exact ih (insert e A)
+      · have hfalse : accept A e = false := by
+          cases h : accept A e <;> simp [h] at hacc ⊢
+        simp only [if_neg (by simpa [hfalse])]
+        exact ih A
 
 /-- The proof obligation needed by the abstract Kruskal induction: every edge
 accepted by the cycle test is safe for the current prefix.  In a concrete graph
@@ -876,6 +1022,100 @@ theorem isForest_empty (G : FiniteGraph V E) :
   intro e he
   simp at he
 
+/-- Forest adjacency cannot be a self-loop. -/
+theorem ne_of_adjIn_of_isForest (G : FiniteGraph V E) {A : Finset E}
+    (hforest : G.IsForest A) {u v : V} (hadj : G.toGraph.AdjIn A u v) :
+    u ≠ v := by
+  intro huv
+  subst v
+  rcases hadj with ⟨e, heA, hend⟩
+  apply hforest e heA
+  rcases hend with ⟨hsrc, hdst⟩ | ⟨hsrc, hdst⟩
+  · simpa [hsrc, hdst] using
+      (Graph.connected_refl G.toGraph (A.erase e) u)
+  · simpa [hsrc, hdst] using
+      (Graph.connected_refl G.toGraph (A.erase e) u)
+
+/-- Connectivity in a forest lifts to reachability in its loop-free simple
+graph view. -/
+theorem reachable_selectedSimpleGraph_of_connected (G : FiniteGraph V E)
+    {A : Finset E} (hforest : G.IsForest A) {u v : V}
+    (hconn : G.toGraph.ConnectedIn A u v) :
+    (G.toGraph.selectedSimpleGraph A).Reachable u v := by
+  rw [SimpleGraph.reachable_iff_reflTransGen]
+  induction hconn with
+  | refl => exact Relation.ReflTransGen.refl
+  | tail hpath hadj ih =>
+      exact Relation.ReflTransGen.tail ih
+        ⟨G.ne_of_adjIn_of_isForest hforest hadj, hadj⟩
+
+/-- The simple-graph view of a selected forest is acyclic: every unlabelled
+edge is a bridge because erasing its unique labelled representative
+disconnects its endpoints. -/
+theorem selectedSimpleGraph_isAcyclic (G : FiniteGraph V E)
+    {A : Finset E} (hforest : G.IsForest A) :
+    (G.toGraph.selectedSimpleGraph A).IsAcyclic := by
+  rw [SimpleGraph.isAcyclic_iff_forall_isBridge]
+  intro edge hedge
+  obtain ⟨u, v⟩ := edge
+  have hadj : (G.toGraph.selectedSimpleGraph A).Adj u v :=
+    (G.toGraph.selectedSimpleGraph A).mem_edgeSet.mp hedge
+  rcases hadj.2 with ⟨f, hfA, hfEnds⟩
+  rw [SimpleGraph.isBridge_iff]
+  intro hreach
+  have hconn : G.toGraph.ConnectedIn (A.erase f) u v :=
+    Graph.connectedIn_erase_of_reachable_delete_selectedEdge hfEnds hreach
+  apply hforest f hfA
+  rcases hfEnds with ⟨hsrc, hdst⟩ | ⟨hsrc, hdst⟩
+  · simpa [hsrc, hdst] using hconn
+  · simpa [hsrc, hdst] using (Graph.connected_symm hconn)
+
+/-- The canonical simple path selected from a finite forest connection.  The
+choice is noncomputable, but its result is a genuine Mathlib path and therefore
+contains no repeated vertices. -/
+noncomputable def canonicalSimplePath (G : FiniteGraph V E) {A : Finset E}
+    (hforest : G.IsForest A) {u v : V}
+    (hconn : G.toGraph.ConnectedIn A u v) :
+    (G.toGraph.selectedSimpleGraph A).Path u v := by
+  have hreach : (G.toGraph.selectedSimpleGraph A).Reachable u v :=
+    G.reachable_selectedSimpleGraph_of_connected hforest hconn
+  let p := Classical.choose hreach.exists_isPath
+  exact ⟨p, Classical.choose_spec hreach.exists_isPath⟩
+
+/-- The canonical forest path is the unique simple path between its endpoints. -/
+theorem canonicalSimplePath_unique (G : FiniteGraph V E) {A : Finset E}
+    (hforest : G.IsForest A) {u v : V}
+    (hconn : G.toGraph.ConnectedIn A u v)
+    (p : (G.toGraph.selectedSimpleGraph A).Path u v) :
+    p = G.canonicalSimplePath hforest hconn :=
+  (G.selectedSimpleGraph_isAcyclic hforest).path_unique _ _
+
+/-- The canonical tree path automatically supplies the crossing edge and
+{lit}`ExchangePath` certificate required by the CLRS exchange argument. -/
+theorem exists_crossing_exchangePath_of_spanningTree
+    (G : FiniteGraph V E) {T : Finset E} {S : Finset V} {e : E}
+    (hT : G.IsSpanningTree T) (heG : e ∈ G.edges)
+    (hcross : G.toGraph.Crosses S e) :
+    ∃ f, f ∈ T ∧ G.toGraph.Crosses S f ∧
+      G.toGraph.ExchangePath T e f := by
+  have hsrc : G.src e ∈ G.vertices := G.src_mem e heG
+  have hdst : G.dst e ∈ G.vertices := G.dst_mem e heG
+  have hconn : G.toGraph.ConnectedIn T (G.src e) (G.dst e) :=
+    hT.2.1 (G.src e) hsrc (G.dst e) hdst
+  let p := G.canonicalSimplePath hT.2.2 hconn
+  rcases hcross with hcross | hcross
+  · rcases Graph.exists_pathExchange_of_simplePath_crosses
+        p.1 p.2 hcross.1 hcross.2 with ⟨f, hfT, hfCross, hfPath⟩
+    exact ⟨f, hfT, hfCross, by simpa [Graph.ExchangePath, Graph.PathExchange] using hfPath⟩
+  · have hpReverse : p.1.reverse.IsPath := p.2.reverse
+    rcases Graph.exists_pathExchange_of_simplePath_crosses
+        p.1.reverse hpReverse hcross.1 hcross.2 with
+      ⟨f, hfT, hfCross, hfPath⟩
+    have hfPath' : G.toGraph.PathExchange T (G.src e) (G.dst e) f :=
+      Graph.PathExchange.swap hfPath
+    exact ⟨f, hfT, hfCross,
+      by simpa [Graph.ExchangePath, Graph.PathExchange] using hfPath'⟩
+
 private theorem connected_insert_erase_self_eq
     {A : Finset E} {e : E} (heA : e ∉ A) :
     (insert e A).erase e = A := by
@@ -1111,6 +1351,182 @@ theorem cutCertificate_of_lightest_crossing (G : FiniteGraph V E)
     ⟨hfT', hfCross', htree, hextends⟩
   exact ⟨f, hfT', hfCross', htree, hextends⟩
 
+/-- Finite-graph cut certificate with the exchange path generated
+automatically from the canonical simple path in each optimum tree. -/
+theorem cutCertificate_of_lightest_crossing_auto (G : FiniteGraph V E)
+    {w : E → Nat} {A : Finset E} {S : Finset V} {e : E}
+    (heG : e ∈ G.edges) (hcross : G.toGraph.Crosses S e)
+    (hrespects : G.toGraph.Respects S A)
+    (hlight : ∀ f, G.toGraph.Crosses S f → w e ≤ w f) :
+    CutCertificate G.toGraph G.toProblem w A S e := by
+  exact G.cutCertificate_of_lightest_crossing heG hcross hrespects hlight
+    (by
+      intro T hT _heT
+      exact G.exists_crossing_exchangePath_of_spanningTree hT.tree heG hcross)
+
+/-- The finite-graph CLRS cut property with no user-supplied cycle-exchange
+certificate. -/
+theorem safeEdge_of_lightest_crossing_auto (G : FiniteGraph V E)
+    {w : E → Nat} {A : Finset E} {S : Finset V} {e : E}
+    (heG : e ∈ G.edges) (hcross : G.toGraph.Crosses S e)
+    (hrespects : G.toGraph.Respects S A)
+    (hlight : ∀ f, G.toGraph.Crosses S f → w e ≤ w f) :
+    SafeEdge G.toProblem w A e :=
+  safe_edge_of_lightest_crossing
+    (G.cutCertificate_of_lightest_crossing_auto heG hcross hrespects hlight)
+
+/-- Exact-component Kruskal prefix certificate with both processed-prefix
+lightness and the tree-exchange witness discharged internally. -/
+theorem cutCertificate_of_exactComponentKruskalPrefix_auto
+    (G : FiniteGraph V E) {w : E → Nat}
+    (C : ComponentOracle G.toGraph) (hexact : ExactComponentOracle G.toGraph C)
+    {processed suffix : List E} {A : Finset E} {e : E}
+    (heG : e ∈ G.edges)
+    (haccept :
+      acceptByComponent G.toGraph C
+          (kruskal (acceptByComponent G.toGraph C) processed A) e = true)
+    (hsorted : WeightSorted w (processed ++ e :: suffix))
+    (hall :
+      ∀ f,
+        G.toGraph.Crosses
+            (C.component (kruskal (acceptByComponent G.toGraph C) processed A)
+              (G.src e)) f →
+          f ∈ processed ++ e :: suffix) :
+    CutCertificate G.toGraph G.toProblem w
+      (kruskal (acceptByComponent G.toGraph C) processed A)
+      (C.component (kruskal (acceptByComponent G.toGraph C) processed A)
+        (G.src e)) e := by
+  have hnotMem :
+      G.dst e ∉ C.component
+        (kruskal (acceptByComponent G.toGraph C) processed A) (G.src e) :=
+    not_mem_component_of_accept haccept
+  have hcross :
+      G.toGraph.Crosses
+        (C.component (kruskal (acceptByComponent G.toGraph C) processed A)
+          (G.src e)) e :=
+    Or.inl ⟨C.mem_self _ _, hnotMem⟩
+  exact G.cutCertificate_of_lightest_crossing_auto heG hcross
+    (C.respects _ _)
+    (lightest_crossing_of_exact_component_kruskal_prefix C hexact hsorted hall)
+
+/-- Recursive safe-edge induction for one fixed sorted Kruskal edge order.
+The processed-prefix exclusion and cycle-exchange certificate are both
+constructed at the point where an edge is accepted. -/
+private theorem kruskal_preserves_mst_sorted_exact_aux
+    (G : FiniteGraph V E) {w : E → Nat}
+    (C : ComponentOracle G.toGraph) (hexact : ExactComponentOracle G.toGraph C)
+    (processed suffix : List E) {A₀ T : Finset E}
+    (hsorted : WeightSorted w (processed ++ suffix))
+    (hall : ∀ S f, G.toGraph.Crosses S f → f ∈ processed ++ suffix)
+    (hedges : ∀ e, e ∈ processed ++ suffix → e ∈ G.edges)
+    (hcur : IsMSTExtending G.toProblem w
+      (kruskal (acceptByComponent G.toGraph C) processed A₀) T)
+    (hbase : IsMSTExtending G.toProblem w A₀ T) :
+    ∃ T', IsMSTExtending G.toProblem w A₀ T' ∧
+      IsMSTExtending G.toProblem w
+        (kruskal (acceptByComponent G.toGraph C) (processed ++ suffix) A₀) T' := by
+  induction suffix generalizing processed T with
+  | nil =>
+      exact ⟨T, hbase, by simpa using hcur⟩
+  | cons e suffix ih =>
+      let accept := acceptByComponent G.toGraph C
+      let A := kruskal accept processed A₀
+      by_cases hacc : accept A e = true
+      · have heG : e ∈ G.edges := hedges e (by simp)
+        have hcut : CutCertificate G.toGraph G.toProblem w A
+            (C.component A (G.src e)) e := by
+          simpa [accept, A] using
+            (G.cutCertificate_of_exactComponentKruskalPrefix_auto C hexact
+              heG hacc hsorted (by
+                intro f hf
+                exact hall _ f hf))
+        rcases (safe_edge_of_lightest_crossing hcut) T hcur with
+          ⟨T₁, hnext, hprefix⟩
+        have hA₀A : A₀ ⊆ A := by
+          exact kruskal_extends_start accept processed A₀
+        have hbase₁ : IsMSTExtending G.toProblem w A₀ T₁ :=
+          optimal_for_smaller_prefix hA₀A hcur hbase hprefix
+        have hprocessed :
+            kruskal accept (processed ++ [e]) A₀ = insert e A := by
+          rw [kruskal_append]
+          simp [kruskal, hacc, A]
+        have hnext' : IsMSTExtending G.toProblem w
+            (kruskal accept (processed ++ [e]) A₀) T₁ := by
+          rw [hprocessed]
+          exact hnext
+        have hsorted' : WeightSorted w ((processed ++ [e]) ++ suffix) := by
+          simpa [List.append_assoc] using hsorted
+        have hall' : ∀ S f, G.toGraph.Crosses S f →
+            f ∈ (processed ++ [e]) ++ suffix := by
+          intro S f hf
+          simpa [List.append_assoc] using hall S f hf
+        have hedges' : ∀ f, f ∈ (processed ++ [e]) ++ suffix →
+            f ∈ G.edges := by
+          intro f hf
+          exact hedges f (by simpa [List.append_assoc] using hf)
+        have hrec := ih (processed := processed ++ [e]) (T := T₁)
+          hsorted' hall' hedges' hnext' hbase₁
+        simpa [List.append_assoc] using hrec
+      · have hfalse : accept A e = false := by
+          cases h : accept A e <;> simp [h] at hacc ⊢
+        have hprocessed : kruskal accept (processed ++ [e]) A₀ = A := by
+          rw [kruskal_append]
+          simp [kruskal, hfalse, A]
+        have hcur' : IsMSTExtending G.toProblem w
+            (kruskal accept (processed ++ [e]) A₀) T := by
+          rw [hprocessed]
+          exact hcur
+        have hsorted' : WeightSorted w ((processed ++ [e]) ++ suffix) := by
+          simpa [List.append_assoc] using hsorted
+        have hall' : ∀ S f, G.toGraph.Crosses S f →
+            f ∈ (processed ++ [e]) ++ suffix := by
+          intro S f hf
+          simpa [List.append_assoc] using hall S f hf
+        have hedges' : ∀ f, f ∈ (processed ++ [e]) ++ suffix →
+            f ∈ G.edges := by
+          intro f hf
+          exact hedges f (by simpa [List.append_assoc] using hf)
+        have hrec := ih (processed := processed ++ [e]) (T := T)
+          hsorted' hall' hedges' hcur' hbase
+        simpa [List.append_assoc] using hrec
+
+/-- A sorted exact-component Kruskal pass preserves an optimum witness while
+deriving every local light-edge and exchange obligation internally. -/
+theorem kruskal_preserves_mst_of_sorted_exact_component
+    (G : FiniteGraph V E) {w : E → Nat}
+    (C : ComponentOracle G.toGraph) (hexact : ExactComponentOracle G.toGraph C)
+    (edges : List E) {A₀ T₀ : Finset E}
+    (hsorted : WeightSorted w edges)
+    (hall : ∀ S f, G.toGraph.Crosses S f → f ∈ edges)
+    (hedges : ∀ e, e ∈ edges → e ∈ G.edges)
+    (hstart : IsMSTExtending G.toProblem w A₀ T₀) :
+    ∃ T, IsMSTExtending G.toProblem w A₀ T ∧
+      IsMSTExtending G.toProblem w
+        (kruskal (acceptByComponent G.toGraph C) edges A₀) T := by
+  simpa using
+    (kruskal_preserves_mst_sorted_exact_aux G C hexact [] edges
+      hsorted hall hedges hstart hstart)
+
+/-- Prefix-local sorted lightness plus canonical exchange paths prove
+Kruskal optimality once the accepted set is known to be a spanning tree. -/
+theorem kruskal_optimal_of_sorted_exact_component
+    (G : FiniteGraph V E) {w : E → Nat}
+    (C : ComponentOracle G.toGraph) (hexact : ExactComponentOracle G.toGraph C)
+    (edges : List E) {A₀ T₀ : Finset E}
+    (hsorted : WeightSorted w edges)
+    (hall : ∀ S f, G.toGraph.Crosses S f → f ∈ edges)
+    (hedges : ∀ e, e ∈ edges → e ∈ G.edges)
+    (hstart : IsMSTExtending G.toProblem w A₀ T₀)
+    (hfinal : G.IsSpanningTree
+      (kruskal (acceptByComponent G.toGraph C) edges A₀)) :
+    IsMSTExtending G.toProblem w A₀
+      (kruskal (acceptByComponent G.toGraph C) edges A₀) := by
+  rcases G.kruskal_preserves_mst_of_sorted_exact_component C hexact edges
+      hsorted hall hedges hstart with ⟨T, hglobal, hprefix⟩
+  have hEq : T = kruskal (acceptByComponent G.toGraph C) edges A₀ :=
+    G.spanning_tree_maximal hfinal hprefix.tree hprefix.includes
+  simpa [hEq] using hglobal
+
 /--
 An exact-component Kruskal pass preserves the forest invariant: every accepted
 edge joins two previously disconnected components.
@@ -1178,6 +1594,45 @@ theorem kruskal_spanning_tree_of_complete_exact_component
     G.kruskal_spans_of_complete_exact_component C hexact edges A hcomplete
       hconnected,
     G.kruskal_forest_of_exact_component C hexact edges hforest⟩
+
+/-- End-to-end Kruskal optimality from a sorted complete edge order.  Unlike
+the older generic wrapper, this theorem constructs prefix-local lightness and
+cycle exchange internally and discharges the final spanning-tree condition. -/
+theorem kruskal_optimal_of_sorted_complete_exact_component
+    (G : FiniteGraph V E) {w : E → Nat}
+    (C : ComponentOracle G.toGraph) (hexact : ExactComponentOracle G.toGraph C)
+    (edges : List E) {A₀ T₀ : Finset E}
+    (hsorted : WeightSorted w edges)
+    (hall : ∀ S f, G.toGraph.Crosses S f → f ∈ edges)
+    (hstart : IsMSTExtending G.toProblem w A₀ T₀)
+    (hA₀ : A₀ ⊆ G.edges) (hforest : G.IsForest A₀)
+    (hedges : ∀ e, e ∈ edges → e ∈ G.edges)
+    (hcomplete : ∀ e, e ∈ G.edges → e ∈ edges)
+    (hconnected : G.Spans G.edges) :
+    IsMSTExtending G.toProblem w A₀
+      (kruskal (acceptByComponent G.toGraph C) edges A₀) := by
+  exact G.kruskal_optimal_of_sorted_exact_component C hexact edges hsorted
+    hall hedges hstart
+    (G.kruskal_spanning_tree_of_complete_exact_component C hexact edges hA₀
+      hedges hcomplete hconnected hforest)
+
+/-- Reader-facing minimum-spanning-tree theorem for sorted complete Kruskal
+from the empty forest, with no manual lightness or exchange hypotheses. -/
+theorem kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty
+    (G : FiniteGraph V E) {w : E → Nat}
+    (C : ComponentOracle G.toGraph) (hexact : ExactComponentOracle G.toGraph C)
+    (edges : List E) {T₀ : Finset E}
+    (hsorted : WeightSorted w edges)
+    (hall : ∀ S f, G.toGraph.Crosses S f → f ∈ edges)
+    (hstart : IsMSTExtending G.toProblem w ∅ T₀)
+    (hedges : ∀ e, e ∈ edges → e ∈ G.edges)
+    (hcomplete : ∀ e, e ∈ G.edges → e ∈ edges)
+    (hconnected : G.Spans G.edges) :
+    G.IsMinimumSpanningTree w
+      (kruskal (acceptByComponent G.toGraph C) edges ∅) := by
+  exact G.minimumSpanningTree_of_mstExtending_empty
+    (G.kruskal_optimal_of_sorted_complete_exact_component C hexact edges
+      hsorted hall hstart (by simp) G.isForest_empty hedges hcomplete hconnected)
 
 /-- Finite-graph Kruskal optimality.  The concrete spanning-tree definition
 discharges the abstract maximality side condition. -/
@@ -1339,6 +1794,126 @@ theorem kruskal_minimum_spanning_tree_of_cycle_test (G : FiniteGraph V E)
   exact G.minimumSpanningTree_of_mstExtending_empty
     (G.kruskal_optimal_of_cycle_test impl hlight hexchange edges hstart
       hfinal_tree)
+
+/-! ## Prim's algorithm -/
+
+/-- A CLRS-valid Prim edge trace.  At every step, the next graph edge crosses
+the cut induced by the current root component and is light among all edges
+crossing that cut. -/
+def PrimTrace (G : FiniteGraph V E) (C : ComponentOracle G.toGraph)
+    (w : E → Nat) (root : V) : List E → Finset E → Prop
+  | [], _ => True
+  | e :: es, A =>
+      e ∈ G.edges ∧
+      G.toGraph.Crosses (C.component A root) e ∧
+      (∀ f, G.toGraph.Crosses (C.component A root) f → w e ≤ w f) ∧
+      PrimTrace G C w root es (insert e A)
+
+/-- A complete Prim run packages the dynamic light-edge trace and final
+coverage of the finite graph. -/
+structure PrimCertificate (G : FiniteGraph V E)
+    (C : ComponentOracle G.toGraph) (w : E → Nat) (root : V)
+    (start : Finset E) (choices : List E) : Prop where
+  root_mem : root ∈ G.vertices
+  trace : G.PrimTrace C w root choices start
+  spans : G.Spans (prim choices start)
+
+/-- A valid Prim trace selects only graph edges when its initial edge set does. -/
+theorem prim_subset_edges_of_trace (G : FiniteGraph V E)
+    {C : ComponentOracle G.toGraph} {w : E → Nat} {root : V}
+    {choices : List E} {A : Finset E}
+    (htrace : G.PrimTrace C w root choices A) (hA : A ⊆ G.edges) :
+    prim choices A ⊆ G.edges := by
+  induction choices generalizing A with
+  | nil => simpa [prim] using hA
+  | cons e choices ih =>
+      simp only [PrimTrace] at htrace
+      have hinsert : insert e A ⊆ G.edges :=
+        Finset.insert_subset htrace.1 hA
+      simpa [prim] using ih htrace.2.2.2 hinsert
+
+/-- Exact root components make every Prim edge join two previously
+disconnected components, so a valid Prim trace preserves the forest invariant. -/
+theorem prim_forest_of_trace (G : FiniteGraph V E)
+    {C : ComponentOracle G.toGraph} (hexact : ExactComponentOracle G.toGraph C)
+    {w : E → Nat} {root : V} {choices : List E} {A : Finset E}
+    (htrace : G.PrimTrace C w root choices A) (hforest : G.IsForest A) :
+    G.IsForest (prim choices A) := by
+  induction choices generalizing A with
+  | nil => simpa [prim] using hforest
+  | cons e choices ih =>
+      simp only [PrimTrace] at htrace
+      have hnot : ¬ G.toGraph.ConnectedIn A (G.src e) (G.dst e) := by
+        intro hconn
+        exact (not_crosses_component_of_connected hexact hconn) htrace.2.1
+      have hinsert : G.IsForest (insert e A) :=
+        G.isForest_insert_of_not_connected hforest hnot
+      simpa [prim] using ih htrace.2.2.2 hinsert
+
+/-- Safe-edge induction for a CLRS-valid Prim trace.  Each step reuses the
+finite-graph automatic cut-property theorem. -/
+theorem prim_preserves_mst (G : FiniteGraph V E)
+    {C : ComponentOracle G.toGraph} {w : E → Nat} {root : V}
+    {choices : List E} {A₀ A T : Finset E}
+    (htrace : G.PrimTrace C w root choices A)
+    (hA₀A : A₀ ⊆ A)
+    (hcur : IsMSTExtending G.toProblem w A T)
+    (hbase : IsMSTExtending G.toProblem w A₀ T) :
+    ∃ T', IsMSTExtending G.toProblem w (prim choices A) T' ∧
+      IsMSTExtending G.toProblem w A₀ T' := by
+  induction choices generalizing A T with
+  | nil => exact ⟨T, by simpa [prim] using hcur, hbase⟩
+  | cons e choices ih =>
+      simp only [PrimTrace] at htrace
+      have hsafe : SafeEdge G.toProblem w A e :=
+        G.safeEdge_of_lightest_crossing_auto htrace.1 htrace.2.1
+          (C.respects A root) htrace.2.2.1
+      rcases hsafe T hcur with ⟨T₁, hnext, hprefix⟩
+      have hbase₁ : IsMSTExtending G.toProblem w A₀ T₁ :=
+        optimal_for_smaller_prefix hA₀A hcur hbase hprefix
+      have hA₀next : A₀ ⊆ insert e A :=
+        hA₀A.trans (Finset.subset_insert e A)
+      simpa [prim] using
+        ih htrace.2.2.2 hA₀next hnext hbase₁
+
+/-- A complete exact-component Prim certificate produces a spanning tree. -/
+theorem prim_spanning_tree_of_certificate (G : FiniteGraph V E)
+    {C : ComponentOracle G.toGraph} (hexact : ExactComponentOracle G.toGraph C)
+    {w : E → Nat} {root : V} {choices : List E} {A : Finset E}
+    (cert : G.PrimCertificate C w root A choices)
+    (hA : A ⊆ G.edges) (hforest : G.IsForest A) :
+    G.IsSpanningTree (prim choices A) := by
+  exact ⟨G.prim_subset_edges_of_trace cert.trace hA, cert.spans,
+    G.prim_forest_of_trace hexact cert.trace hforest⟩
+
+/-- CLRS Prim correctness: every complete dynamic light-edge trace returns an
+optimum extending its initial forest. -/
+theorem prim_optimal (G : FiniteGraph V E)
+    {C : ComponentOracle G.toGraph} (hexact : ExactComponentOracle G.toGraph C)
+    {w : E → Nat} {root : V} {choices : List E} {A T₀ : Finset E}
+    (cert : G.PrimCertificate C w root A choices)
+    (hstart : IsMSTExtending G.toProblem w A T₀)
+    (hA : A ⊆ G.edges) (hforest : G.IsForest A) :
+    IsMSTExtending G.toProblem w A (prim choices A) := by
+  rcases G.prim_preserves_mst cert.trace (Subset.rfl : A ⊆ A)
+      hstart hstart with ⟨T, hprefix, hglobal⟩
+  have hfinal : G.IsSpanningTree (prim choices A) :=
+    G.prim_spanning_tree_of_certificate hexact cert hA hforest
+  have hEq : T = prim choices A :=
+    G.spanning_tree_maximal hfinal hprefix.tree hprefix.includes
+  simpa [hEq] using hglobal
+
+/-- Reader-facing minimum-spanning-tree theorem for Prim from the empty
+forest.  Dynamic cut crossing, lightness, acyclicity, and optimality are all
+discharged by the certificate and the shared cut-property stack. -/
+theorem prim_minimum_spanning_tree (G : FiniteGraph V E)
+    {C : ComponentOracle G.toGraph} (hexact : ExactComponentOracle G.toGraph C)
+    {w : E → Nat} {root : V} {choices : List E} {T₀ : Finset E}
+    (cert : G.PrimCertificate C w root ∅ choices)
+    (hstart : IsMSTExtending G.toProblem w ∅ T₀) :
+    G.IsMinimumSpanningTree w (prim choices ∅) := by
+  exact G.minimumSpanningTree_of_mstExtending_empty
+    (G.prim_optimal hexact cert hstart (by simp) G.isForest_empty)
 
 end FiniteGraph
 

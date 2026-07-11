@@ -2,6 +2,8 @@
 
 This document records the Scheme B site design: CLRS-Lean is deployed as a
 book-style Verso site rather than as a collection of unrelated proof pages.
+For the full code, status, test, and tooling layer model, see
+[`repository-architecture.md`](repository-architecture.md).
 
 The public project and repository name is `CLRS-Lean`.  The Lean module root
 remains `CLRSLean`, so source paths and imports continue to use `CLRSLean/...`
@@ -19,13 +21,16 @@ and `CLRSLean.Chapter_...`.
 
 ```text
 CLRSLean.lean                         project landing page
+CLRSLean/ProofPatterns.lean           reusable proof-pattern guide
 CLRSLean/Chapter_02.lean              Chapter 2 guide
 CLRSLean/Chapter_16.lean              Chapter 16 guide
 CLRSLean/Chapter_23.lean              Chapter 23 guide
+CLRSLean/Progress.lean                generated progress dashboard
 CLRSLean/Status.lean                  web-facing proof status ledger
 CLRSLean/Workflow.lean                contributor workflow
 CLRSLean/Chapter_xx/Section_xx_y.lean section-level literate proof
 docs/proof-map.md                     longer maintainer ledger
+docs/clrs-proof-progress.csv          chapter-level status source
 docs/workflows/chapter-workflow.md    maintainer workflow notes
 ```
 
@@ -42,6 +47,14 @@ Lean literate source
 
 `literate.toml` controls the sidebar order and page titles.  The public website
 should not depend on a hand-written `docs/site/index.html`.
+
+Source-module boundaries do not have to become peer entries in the reader
+navigation.  When one CLRS section is split into supporting proof modules, keep
+the files independently importable, place them under the main section's module
+path (for example, `Section_xx_y/Helper.lean`), and list them under that parent
+in `[order_children]`.  Child-page titles should name the proof layer without
+repeating the parent section number and title.  The module hierarchy creates
+the sidebar nesting; `[order_children]` only controls sibling order.
 
 Large generated proof pages are post-processed before deployment.  The optimizer
 keeps anchors, rendered Lean code, search assets, and copy buttons, while
