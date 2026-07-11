@@ -1045,6 +1045,9 @@ BST interface.  It deliberately stops before mutable heap or RAM semantics.
   - `CLRS.Chapter13.RBTree.size_add_one_ge_two_pow_blackHeight` (Lemma A)
   - `CLRS.Chapter13.RBTree.height_le_two_mul_blackHeight_of_RedBlackShape` (Lemma B)
   - `CLRS.Chapter13.RBTree.height_log_bound` (**CLRS Lemma 13.1**)
+  - `CLRS.Chapter13.RBTree.inTree_deleteFixupCase1_iff` .. `_case4_iff`
+    (delete-fixup cases preserve membership)
+  - `CLRS.Chapter13.RBTree.deleteFixupCase4_shape` (terminating delete-fixup case)
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
   red-red rotation repair certificates, and four insertion-fixup local
   rotation/recoloring certificates.  Each insertion-fixup case separately
@@ -1057,8 +1060,10 @@ BST interface.  It deliberately stops before mutable heap or RAM semantics.
   least `2^bh - 1` internal nodes (Lemma A), and a no-red-red tree has height at
   most twice its black height (Lemma B), combined via `Nat.log`.
 - Current gap: compose the local insertion-fixup certificates into executable
-  `RB-INSERT`/`RB-INSERT-FIXUP`; full `RB-DELETE` and `RB-DELETE-FIXUP` are not
-  mechanized
+  `RB-INSERT`/`RB-INSERT-FIXUP`; the local `RB-DELETE-FIXUP` case rewrites and
+  the terminating Case-4 certificate are proved, but the fully-composed
+  executable `RB-DELETE` loop (threading the doubly-black deficit through
+  Cases 1-3 into Case 4) is not yet mechanized
 
 The section builds the local invariant library needed before mechanizing the
 full balancing algorithms.

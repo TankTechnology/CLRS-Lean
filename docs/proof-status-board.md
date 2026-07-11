@@ -35,7 +35,7 @@ missing core theorem groups.
 | 9 | Rank selection and executable median-of-medians correctness with linear recurrence wrapper | Randomized SELECT and concrete executable cost semantics |
 | 11 | Deterministic hash tables and finite-uniform bucket averages | Random key/hash-function model with independence |
 | 12 | Functional BST operations plus zipper-based parent navigation, transplant, and deletion equivalence | Imperative in-place pointer mutation and RAM refinement |
-| 13 | Executable red-black insertion, invariant proofs, and the logarithmic-height theorem (Lemma 13.1) | Deletion/fixup (`RB-DELETE`/`RB-DELETE-FIXUP`) |
+| 13 | Executable red-black insertion, invariant proofs, the logarithmic-height theorem (Lemma 13.1), and local `RB-DELETE-FIXUP` case certificates (membership + terminating Case-4 shape) | Fully-composed executable `RB-DELETE`/`RB-DELETE-FIXUP` loop |
 | 14 | Order-statistic augmentation, generic local augmentation, and interval-search correctness | Integration with red-black balancing and a final general augmentation interface |
 | 15 | Rod cutting, matrix chain, LCS, and optimal BST optimality with pure executable tables/reconstruction | Mutable-array/memoized refinement and RAM costs |
 | 17 | Aggregate/accounting/potential framework and represented examples | Mutable arrays, allocator costs, sharper table model |
