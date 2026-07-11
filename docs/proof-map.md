@@ -1042,6 +1042,9 @@ BST interface.  It deliberately stops before mutable heap or RAM semantics.
   - `CLRS.Chapter13.RBTree.insertFixupLocal_leftRight_certificate`
   - `CLRS.Chapter13.RBTree.insertFixupLocal_rightLeft_certificate`
   - `CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate`
+  - `CLRS.Chapter13.RBTree.size_add_one_ge_two_pow_blackHeight` (Lemma A)
+  - `CLRS.Chapter13.RBTree.height_le_two_mul_blackHeight_of_RedBlackShape` (Lemma B)
+  - `CLRS.Chapter13.RBTree.height_log_bound` (**CLRS Lemma 13.1**)
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
   red-red rotation repair certificates, and four insertion-fixup local
   rotation/recoloring certificates.  Each insertion-fixup case separately
@@ -1049,7 +1052,10 @@ BST interface.  It deliberately stops before mutable heap or RAM semantics.
   red-black shape invariant from red-black-shaped fringe subtrees with matching
   black heights.  The `insertFixupLocal` dispatcher and certificate structure
   package those three facts behind one branch-indexed interface for a future
-  executable fixup.
+  executable fixup.  The logarithmic-height bound (CLRS Lemma 13.1) is proved by
+  the standard two-lemma decomposition: a balanced-black-height tree has at
+  least `2^bh - 1` internal nodes (Lemma A), and a no-red-red tree has height at
+  most twice its black height (Lemma B), combined via `Nat.log`.
 - Current gap: compose the local insertion-fixup certificates into executable
   `RB-INSERT`/`RB-INSERT-FIXUP`; full `RB-DELETE` and `RB-DELETE-FIXUP` are not
   mechanized
