@@ -108,9 +108,12 @@ rules.
   - `CLRS.Chapter03.isLittleO_pow_pow`
   - `CLRS.Chapter03.isBigO_pow_pow`
   - `CLRS.Chapter03.isLittleO_pow_const_exp`
+  - `CLRS.Chapter03.isLittleO_pow_two_pow`
   - `CLRS.Chapter03.isLittleO_log_rpow`
   - `CLRS.Chapter03.isLittleO_log_pow_rpow`
   - `CLRS.Chapter03.isBigO_log_pow_rpow`
+  - `CLRS.Chapter03.isLittleO_log_id`
+  - `CLRS.Chapter03.isLittleO_loglog_log`
   - `CLRS.Chapter03.isLittleO_exp_exp_of_lt`
   - `CLRS.Chapter03.isEquivalent_harmonic_log`
   - `CLRS.Chapter03.isBigTheta_harmonic_log`
@@ -122,21 +125,29 @@ rules.
   - `CLRS.Chapter03.factorial_lower_bound_offset`
   - `CLRS.Chapter03.factorial_lower_bound_half_pow`
   - `CLRS.Chapter03.isLittleO_exp_vs_factorial`
-  - `CLRS.Chapter03.isLittleO_pow_factorial`
-  - `CLRS.Chapter03.isLittleO_exp_factorial`
+  - `CLRS.Chapter03.isLittleO_two_pow_factorial`
   - `CLRS.Chapter03.isBigOmega_factorial_exp`
-  - `CLRS.Chapter03.iteratedLog` (definition)
-  - `CLRS.Chapter03.iteratedLog_zero`, `iteratedLog_one`, `iteratedLog_succ`
-  - `CLRS.Chapter03.iteratedLog_monotone`, `iteratedLog_log_lt_self`
-  - `CLRS.Chapter03.isLittleO_log_pow_any_pow`
+  - `CLRS.Chapter03.isLittleO_pow_factorial`
+  - `CLRS.Chapter03.isLittleO_factorial_pow_self`
+  - `CLRS.Chapter03.isBigTheta_log_factorial`
+  - `CLRS.Chapter03.isBigTheta_log_logb`
+  - `CLRS.Chapter03.isBigTheta_logb_log`
+  - `CLRS.Chapter03.isLittleO_logb_rpow`
+  - `CLRS.Chapter03.isLittleO_log_pow_const_exp`
   - `CLRS.Chapter03.isLittleO_one_log`
 - Proof pattern: reuse Mathlib asymptotic and factorial facts through the CLRS
   wrappers; `isBigTheta_log_factorial` uses Mathlib's Stirling approximation
   (`le_log_factorial_stirling`) for the lower bound and `n! ≤ n^n` for the
-  upper bound; `iteratedLog` uses `Nat.log_lt_self` for termination.
-- Current gap: the remaining CLRS standard-function table entries are mostly
-  covered; iterative functions beyond `log*` and Fibonacci numbers remain
-  strengthening targets.
+  upper bound; the base-2 and base-`b` comparisons and the polynomial/factorial
+  chains are obtained by instantiation and transitivity through the existing
+  wrappers (`isLittleO_pow_const_exp`, `isLittleO_exp_vs_factorial`,
+  `isBigTheta_log_logb`, `Real.isLittleO_log_id_atTop`).
+- Current gap: the CLRS standard-function comparison table is complete for the
+  polynomial, logarithmic, exponential, harmonic, floor/ceiling, and factorial
+  rows — including the adjacent hierarchy links
+  `1 ≺ log (log n) ≺ log n ≺ n ≺ n^a ≺ 2^n ≺ n!` and the `log_b` base-change
+  facts.  The iterated logarithm `lg* n` and Fibonacci-number growth remain
+  future strengthening targets, not comparison-table entries.
 
 This section is the safe part of the `chapter-1-exploration` branch merged into
 the main site.  It compiles, but it is not yet the whole Chapter 3 growth
