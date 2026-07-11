@@ -32,7 +32,7 @@ missing core theorem groups.
 | 3 | CLRS asymptotic wrappers and broad standard-function facts | Complete the standard-function comparison table |
 | 4 | Maximum subarray, Strassen 2x2, substitution, recursion trees, and textbook-facing Master cases 1-3 | Recursive Strassen and algorithm/RAM refinements |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, plus the random-permutation symmetry lemma (`isFirst_prob`) and pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3) over the shared `Probability.FiniteExpectation` toolkit | End-to-end total-comparison expectation (`expected_comparisons_eq_sum`) and the `Θ(n log n)` asymptotic bridge |
-| 9 | Rank selection and executable median-of-medians correctness with linear recurrence wrapper | Randomized SELECT and concrete executable cost semantics |
+| 9 | Rank selection, executable median-of-medians correctness with linear recurrence wrapper, and randomized SELECT expected `O(n)` time (`randomizedSelect_expected_bigO_linear`, CLRS Theorem 9.2) | Concrete executable cost semantics for deterministic median-of-medians |
 | 11 | Deterministic hash tables and finite-uniform bucket averages | Random key/hash-function model with independence |
 | 12 | Functional BST operations plus zipper-based parent navigation, transplant, and deletion equivalence | Imperative in-place pointer mutation and RAM refinement |
 | 13 | Executable red-black insertion, invariant proofs, the logarithmic-height theorem (Lemma 13.1), and local `RB-DELETE-FIXUP` case certificates (membership + terminating Case-4 shape) | Fully-composed executable `RB-DELETE`/`RB-DELETE-FIXUP` loop |
