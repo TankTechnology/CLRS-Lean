@@ -12,13 +12,16 @@ main-proof areas without a specific refinement goal.
 ## Probability Toolkit
 
 - Lean source: `CLRSLean/Probability/FiniteExpectation.lean`
-- Status: `partial` — generic API (`expect`/`prob` over `Finset.range n`) proved;
-  `fintypeExpect` wrapper exists for arbitrary `[Fintype Ω]`; full `[Fintype Ω]`
-  lemmas (expect_const, expect_sum, expect_indicator) deferred.
+- Status: `proved` — generic API (`expect`/`prob` over `Finset.range n`) and the
+  `[Fintype Ω]` layer (`fintypeExpect` with add/nonneg/const/indicator/sum/equiv)
+  proved; product-independence primitive `expect_mul_of_indep` proved.
 - Provides: `expect`, `prob`, `indicator`, `fintypeExpect`
-- Main theorems: `expect_add`, `expect_const`, `expect_nonneg`, `prob_singleton`, `prob_add_of_disjoint`
+- Main theorems: `expect_add`, `expect_const`, `expect_nonneg`, `prob_singleton`,
+  `prob_add_of_disjoint`, `fintypeExpect_add`, `fintypeExpect_nonneg`,
+  `fintypeExpect_const`, `fintypeExpect_indicator_singleton`, `fintypeExpect_sum`,
+  `fintypeExpect_equiv`, `expect_mul_of_indep`, `fintypeExpect_fst`
 - Used by: Chapter 5 (Hiring Problem), Chapter 8.4 (Bucket Sort), Chapter 11.2 (Chained Hashing)
-- Remaining: Ch8.4/Ch11.2 full deduplication (AC-2); `[Fintype Ω]` lemmas (AC-1)
+- Remaining: none for the finite-uniform layer; `MeasureTheory` integration is out of scope
 
 ## Chapter 1 - The Role of Algorithms
 
@@ -753,6 +756,8 @@ theorem remains as a compact special case.
   - `CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`
   - `CLRS.Chapter08.expectedBucketSortCost_self_eq`
   - `CLRS.Chapter08.expectedBucketSortCost_linear_bound`
+  - `CLRS.Chapter08.expectedBucketSortCost_isBigO`
+  - `CLRS.Chapter08.expectedBucketQuadraticCost_eq_secondMoment`
 - Proof pattern: scan bucket indices in increasing order, prove each per-bucket
   sorter preserves the bucket as a permutation, prove all emitted elements have
   the scanned bucket index, and use a cross-bucket monotonicity assumption to
@@ -760,10 +765,14 @@ theorem remains as a compact special case.
   layer proves the singleton-bucket and two-bucket collision probabilities and
   packages the CLRS second-moment expression
   `E[Σ_i n_i^2] = n + n(n-1)/m`.  The abstract expected-cost wrapper adds the
-  linear scan/distribution term and proves the concrete `≤ 3n` bound for `n`
-  elements in `n` buckets.
-- Current gap: connect the second-moment interface to an explicit independent
-  input distribution and a concrete bucket-sort cost model.
+  linear scan/distribution term and proves the concrete `≤ 3n` bound and
+  `isBigO` for `n` elements in `n` buckets.  The second moment is additionally
+  proved as a **true expectation** over the explicit independent uniform input
+  distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`),
+  where the pairwise independence step reuses
+  `CLRS.Probability.expect_mul_of_indep`.
+- Current gap: RAM/step-count cost semantics (this layer measures expected
+  comparison/occupancy cost, not machine steps).
 
 The executable wrapper `CLRS.Chapter08.bucketSortByRank` sorts each bucket with
 Lean's verified `mergeSort`.  Its correctness theorem proves ordered output,
@@ -988,13 +997,19 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter11.expectedSearchChainLength_finiteHashInsert`
   - `CLRS.Chapter11.finiteHashLoadFactor_finiteHashInsert`
   - `CLRS.Chapter11.expectedUnsuccessfulSearchCost_finiteHashInsert`
+  - `CLRS.Chapter11.expectedRandomChainLength_eq_loadFactor`
+  - `CLRS.Chapter11.expectedRandomUnsuccessfulSearchCost`
 - Proof pattern: deterministic bucket update/delete for a fixed hash function,
   plus a finite-uniform bucket expectation layer over `Fin m`.  The toolkit now
   includes average additivity, nonnegativity, load-factor equality, and
   single-insert changes to total chain length, load factor, expected chain
-  length, and unsuccessful-search cost.
-- Current gap: lift the finite-uniform bucket abstraction to a probability
-  model over random keys or random hash functions with independence assumptions
+  length, and unsuccessful-search cost.  The SUHA layer additionally proves the
+  expected chain length `α = n/m` and expected unsuccessful-search cost `1 + α`
+  as **true expectations** over the explicit independent uniform hashing
+  distribution `Fin n → Fin m` (single-coordinate marginalisation of
+  `CLRS.Probability.fintypeExpect`).
+- Current gap: successful-search analysis and a random hash *function* model
+  (rather than random key placement); RAM/probe-count semantics.
 
 ## Chapter 12 - Binary Search Trees
 
@@ -2274,12 +2289,12 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 | Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
-| Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the finite-uniform collision, second-moment bound, and abstract `≤ 3n` expected-cost wrapper are proved, but the full expected-time theorem still needs an explicit independent input distribution and concrete cost model. |
+| Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the CLRS second moment `E[Σ n_i²] = n + n(n-1)/m` is proved as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`), and the abstract expected cost is `O(n)` (`expectedBucketSortCost_isBigO`). Remaining: RAM/step-count cost semantics. |
 | Chapter 9 randomized SELECT expected time | `proved` | Proved in `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`: `randSelectExpectedCost` models the uniform independent-pivot expected cost via `CLRS.Probability.expect`, `randSelectExpectedCost_recurrence` derives the CLRS recurrence, and `randomizedSelect_expected_bigO_linear` gives `E[T(n)] = O(n)` (CLRS Theorem 9.2). Remaining refinement: a joint distribution over all recursion levels and a concrete step-count cost model. |
 | Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
-| Hash-table expected-time analysis | `blocked-design` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes when the searched bucket is uniform; the remaining work is a full random key or random hash-function model with independence assumptions. |
+| Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m` and expected unsuccessful-search cost `1 + α` are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`). Remaining: successful-search analysis, random hash-*function* model, RAM/probe-count semantics. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
 | Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; the `Zipper` layer proves parent-pointer navigation and `TRANSPLANT` functionally. Only an imperative in-place memory model remains. |
