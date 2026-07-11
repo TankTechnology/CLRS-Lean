@@ -38,8 +38,9 @@ Current milestones include:
 - Chapter 22: sealed main functional correctness for BFS shortest paths and its
   predecessor tree, DFS theory and edge classification, Kahn and DFS
   topological sorting, and Kosaraju SCC decomposition.
-- Chapter 23: sealed mathematical correctness for the cut property, canonical
-  exchange paths, sorted Kruskal, and certified Prim traces.
+- Chapter 23: sealed mathematical correctness plus a stateful costed Kruskal
+  refinement, complete `O(E log E)` work composition, executable indexed-queue
+  Prim, and its binary-heap `O(E log V)` operation model.
 
 Chapters 3, 4, 7, 9, 11-15, and 17-20 have substantial but intentionally
 partial theorem layers.  Chapters 24-35 are not represented on `main` yet.

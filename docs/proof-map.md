@@ -2178,8 +2178,12 @@ automatically.
   sorted-lightness recursion, and shared safe-edge induction for Kruskal and
   Prim.
 - Closure audit: `docs/proof-audits/chapter-23-closure-2026-07-11.md`.
-- Deferred without reopening the milestone: stateful union-find threading,
-  concrete Prim priority queues, exact work bounds, and mutable/RAM semantics.
+- Implementation refinement now proved: stateful Chapter 21 union-find
+  threading for Kruskal, exact operation-trace correspondence, complete
+  sorting/scan/union-find work composition, executable indexed-queue Prim,
+  and binary-heap operation-count bounds.
+- Deferred without reopening the milestone: semantic refinement to the
+  concrete `Batteries.BinaryHeap` array and mutable/RAM write accounting.
 
 The former manual `ExchangePath`, global-lightness, and missing-Prim gaps are
 closed.  A canonical simple tree path now produces the crossing replacement

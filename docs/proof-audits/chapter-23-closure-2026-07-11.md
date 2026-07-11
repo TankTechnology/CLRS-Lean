@@ -13,6 +13,12 @@ prefix-local sorted lightness.  It does not claim a stateful union-find scan, a
 concrete priority queue, exact work bounds, mutable graph storage, RAM
 semantics, exercises, or chapter-end problems.
 
+Follow-up on 2026-07-11: the stateful union-find scan, concrete indexed Prim
+queue, and algorithm-level work bounds have since been discharged by
+`StatefulKruskal.lean` and `ExecutablePrim.lean`.  Mutable storage, concrete
+`Batteries.BinaryHeap` array refinement, RAM charges, and exercises remain
+outside this mathematical closure audit.
+
 ## Source Directory
 
 | Section | Source | Responsibility |

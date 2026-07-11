@@ -28,5 +28,6 @@ Both executable representations prove refinement to that specification.
 Chapter 21's advertised functional-correctness and inverse-Ackermann
 amortization stack is complete for the explicit cost model.  The intermediate
 `O(m log n)` theorem remains useful as a simpler sanity bound.  Lower-level
-array-write/RAM constants and Chapter 23's incremental stateful Kruskal scan
-are separate implementation refinements, not missing Chapter 21 core groups.
+array-write/RAM constants remain a separate implementation refinement, not a
+missing Chapter 21 core group.  Chapter 23 now threads this costed machine
+through its incremental Kruskal scan.

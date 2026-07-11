@@ -34,11 +34,11 @@ maximum, increase-key, extract-max, and delete.
 The deferred implementation layer is now the line-by-line CLRS RAM-cost model,
 not the array heap proof itself.
 
-### Union-Find Cost And Stateful Kruskal Refinement
+### Chapter 23 Mutable Heap And RAM Refinement
 
 - Related sections: Sections 21.3-21.4 and 23.2
-- Status: `deferred-implementation`
-- Functional correctness status: proved for the represented Batteries model
+- Status: `deferred-low-level-implementation`
+- Functional correctness and algorithm-level cost status: proved
 
 Chapter 21 now proves singleton initialization, path-compressing `find`,
 union-by-rank, and Boolean equivalence queries against a common partition
@@ -48,11 +48,16 @@ the Ackermann level/index potential, and derives an `O((m+n) alpha(n))`
 whole-run bound.  The Chapter 23 bridge proves that any family of faithful
 union-find states implements `CycleTestImplementation`.
 
-The deferred layer is an incremental stateful Kruskal scan, explicit write
-charges beyond the proved parent-traversal model, and lower-level mutable-array
-or RAM refinement.  Chapter 23's separate Prim refinement is a concrete
-priority queue and its work accounting.  The mathematical Kruskal and Prim
-correctness theorems and the Section 21.4 inverse-Ackermann proof are closed.
+Chapter 23 now incrementally threads that real costed machine through every
+Kruskal edge, proves connectivity faithfulness after each union, and derives
+both the inverse-Ackermann scan term and the complete sorting-plus-scan
+`O(E log E)` bound.  Prim now has an executable indexed queue with keys,
+parents, decrease-key, extract-min, a concrete frontier provider, refinement
+to `PrimTrace`, and a binary-heap operation-count proof of `O(E log V)`.
+
+The deferred layer is narrower: refine the indexed Prim queue to the concrete
+array state of `Batteries.BinaryHeap`, and add explicit mutable-array write and
+RAM charges.  The mathematical and functional algorithm proofs are closed.
 
 ## Blocked Design
 

@@ -28,8 +28,9 @@ Closure results:
 - Theorem {lit}`FiniteGraph.prim_minimum_spanning_tree`: every complete CLRS
   Prim light-edge trace returns an MST.
 
-Deferred refinements are an incremental stateful union-find scan, a concrete
-Prim priority queue, exact work bounds, and mutable/RAM semantics.
+The nested implementation modules now provide the incremental stateful
+union-find scan, executable indexed-queue Prim, and algorithm-level work
+bounds.  Mutable/RAM semantics and concrete array-heap refinement remain.
 -/
 
 namespace CLRS

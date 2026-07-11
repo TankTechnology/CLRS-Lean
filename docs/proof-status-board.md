@@ -19,7 +19,7 @@ Last repository-wide status reconciliation: 2026-07-11.
 | Chapter 16.1 and 16.3 | Activity-selection and Huffman optimality | Other greedy sections |
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and stateful Chapter 23 integration |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
-| Chapter 23 correctness | Cut property, unique tree paths, automatic exchange, sorted Kruskal optimality, and certified Prim optimality | Stateful union-find scan, concrete priority queue, work bounds, and RAM refinement |
+| Chapter 23 correctness and functional implementation | Cut property, unique tree paths, automatic exchange, sorted and stateful Kruskal, concrete indexed-queue Prim, and explicit algorithm-level work bounds | `Batteries.BinaryHeap` array refinement and mutable/RAM write accounting |
 
 Chapters 21-23 are formally sealed by their interface tests and dated
 closure audits.  Their listed implementation refinements are new layers, not
