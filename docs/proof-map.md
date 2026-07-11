@@ -1118,6 +1118,20 @@ BST interface.  It deliberately stops before mutable heap or RAM semantics.
   - `CLRS.Chapter13.RBTree.inTree_deleteFixupCase1_iff` .. `_case4_iff`
     (delete-fixup cases preserve membership)
   - `CLRS.Chapter13.RBTree.deleteFixupCase4_shape` (terminating delete-fixup case)
+  - `CLRS.Chapter13.RBTree.balance` (Okasaki rebalancer for deletion)
+  - `CLRS.Chapter13.RBTree.sub1` (demotes a black node, decreasing bh by 1)
+  - `CLRS.Chapter13.RBTree.balLeft`, `CLRS.Chapter13.RBTree.balRight` (deletion rebalancers)
+  - `CLRS.Chapter13.RBTree.app` (in-order splice for two-child delete)
+  - `CLRS.Chapter13.RBTree.del`, `CLRS.Chapter13.RBTree.delete` (executable RB-DELETE)
+  - `CLRS.Chapter13.RBTree.AllKeys`, `CLRS.Chapter13.RBTree.Ordered` (BST ordering invariant)
+  - `CLRS.Chapter13.RBTree.allKeys_of_inTree` (AllKeys distributes over InTree)
+  - `CLRS.Chapter13.RBTree.inTree_balance_iff`, `CLRS.Chapter13.RBTree.inTree_sub1_iff` (key-set preservation)
+  - `CLRS.Chapter13.RBTree.inTree_balLeft_iff`, `CLRS.Chapter13.RBTree.inTree_balRight_iff` (key-set preservation)
+  - `CLRS.Chapter13.RBTree.inTree_app_iff` (app preserves key set)
+  - `CLRS.Chapter13.RBTree.inTree_del_iff` (del removes exactly the target key)
+  - `CLRS.Chapter13.RBTree.inTree_delete_iff` (headline deletion correctness)
+  - `CLRS.Chapter13.RBTree.noRedRed_balance`, `CLRS.Chapter13.RBTree.balancedBlackHeight_balance` (balance shape lemmas)
+  - `CLRS.Chapter13.RBTree.noRedRed_sub1`, `CLRS.Chapter13.RBTree.blackHeight_sub1_black` (sub1 shape lemmas)
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
   red-red rotation repair certificates, and four insertion-fixup local
   rotation/recoloring certificates.  Each insertion-fixup case separately
@@ -1129,7 +1143,12 @@ BST interface.  It deliberately stops before mutable heap or RAM semantics.
   the standard two-lemma decomposition: a balanced-black-height tree has at
   least `2^bh - 1` internal nodes (Lemma A), and a no-red-red tree has height at
   most twice its black height (Lemma B), combined via `Nat.log`.
-- Current gap: compose the local insertion-fixup certificates into executable
+  Deletion follows the Okasaki/Kahrs functional RB-DELETE design: `balance`
+  repairs red-red violations, `sub1` exposes a doubly-black deficit, and
+  `balLeft`/`balRight` thread the deficit upward while the `app` combinator
+  handles the two-child case.  Membership correctness (`inTree_delete_iff`) is
+  proved by induction using the BST ordering invariant `Ordered`.
+- Current gap: RedBlackShape preservation through `del` (requires
   `RB-INSERT`/`RB-INSERT-FIXUP`; the local `RB-DELETE-FIXUP` case rewrites and
   the terminating Case-4 certificate are proved, but the fully-composed
   executable `RB-DELETE` loop (threading the doubly-black deficit through
@@ -1445,8 +1464,9 @@ any consistent tree with the same frequency table.
 - Lean source:
   `CLRSLean/Chapter_17.lean`,
   `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`,
-  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`, and
-  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`
+  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`,
+  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`, and
+  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter17.aggregate_bound_of_prefix_bound`
@@ -1515,6 +1535,17 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableDelete_amortizedCost_eq`
   - `CLRS.Chapter17.dynamicTableDelete_amortizedBound`
   - `CLRS.Chapter17.dynamicTable_amortizedBound`
+  - `CLRS.Chapter17.growTo` (physical array copy operation)
+  - `CLRS.Chapter17.growTo_size` and `CLRS.Chapter17.growTo_toList`
+  - `CLRS.Chapter17.insert_copy_cost` (insertion = copy + write)
+  - `CLRS.Chapter17.dynamicTableCopyCount_eq_growCopyCost` (abstract copy = physical copy)
+  - `CLRS.Chapter17.arrayTable_toState_insert` and `CLRS.Chapter17.arrayTable_insertCost_eq`
+  - `CLRS.Chapter17.sharpPotential` and `CLRS.Chapter17.sharpPotentialZ` (load-factor potential)
+  - `CLRS.Chapter17.sharpPotentialZ_nonneg` and `CLRS.Chapter17.sharpPotential_nonneg`
+  - `CLRS.Chapter17.sharpInsert_amortized_le_three` (insertion amortized <= 3)
+  - `CLRS.Chapter17.sharpDelete_amortized_le_three` (deletion amortized <= 3)
+  - `CLRS.Chapter17.sharpDelete_loadFactor_eq_half_of_contract` (alpha = 1/2 after contraction)
+  - `CLRS.Chapter17.sharpDelete_loadFactor_ge_half_of_contract` (alpha >= 1/2 after contraction)
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
   telescoping, executable counter trace induction, size-level table potential
   nonnegativity, capacity feasibility/direction, post-state field equations,
@@ -1525,8 +1556,12 @@ any consistent tree with the same frequency table.
   actual-cost and capacity-choice case specs, zero/positive deletion-cost wrappers,
   premise-light deletion-cost branch wrappers,
   lower/upper bounds, and transitions
-- Current gap: mutable-array copying, RAM/allocation constants, and sharper
-  CLRS load-factor potential refinements remain strengthening targets.
+- Mutable-array copying modelled via `growTo`, `ArrayTable`, and
+  `insert_copy_cost` (Sub-issue A).
+- CLRS load-factor potential with constant amortized bounds (<=3)
+  proved for both insertion and deletion (Sub-issue B).
+- Current gap: general allocator / RAM cost semantics and amortized
+  analysis over interleaved insert/delete traces.
 
 Chapter 17 now provides the reusable amortized-analysis layer for later data
 structure chapters.  The generic aggregate/accounting/potential facts are
@@ -1539,10 +1574,11 @@ stored-count and capacity corollaries, post-transition potential
 nonnegativity, concrete amortized-cost unfolding wrappers, resize-branch
 capacity wrappers, post-state field equations, actual-cost and capacity-choice
 case specs, exact zero/positive deletion-cost wrappers, premise-light
-deletion-cost branch wrappers, positive-cost and upper-bound transition facts,
-while
-mutable-array copying and
-allocator semantics remain future refinements.
+deletion-cost branch wrappers, positive-cost and upper-bound transition facts.
+The sharper section adds a mutable-array copy model (`growTo`, `ArrayTable`,
+`insert_copy_cost`) and the CLRS load-factor potential (`sharpPotential`) with
+constant (<=3) amortized bounds for both insertion and deletion under the
+sharper contraction strategy.
 
 ## Chapter 18 - B-Trees
 
