@@ -113,6 +113,8 @@ CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/UnionFindBridge.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/StatefulKruskal.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/ExecutablePrim.lean
+CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean
+CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.
