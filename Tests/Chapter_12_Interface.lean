@@ -24,5 +24,7 @@ import CLRSLean.Chapter_12
 #check CLRS.Chapter12.BSTree.Store.transplantChild
 #check CLRS.Chapter12.BSTree.transplantChild_left_representsW
 #check CLRS.Chapter12.BSTree.transplantChild_right_representsW
+#check CLRS.Chapter12.BSTree.transplantChild_left_refines_transplant
+#check CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant
 #check CLRS.Chapter12.BSTree.insertPointer_right_representsW
 

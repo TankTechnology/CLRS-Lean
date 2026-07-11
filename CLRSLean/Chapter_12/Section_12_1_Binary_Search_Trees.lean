@@ -82,6 +82,9 @@ Main results:
 - Theorem {lit}`transplantChild_left_representsW` /
   {lit}`transplantChild_right_representsW`: in-place pointer TRANSPLANT refines the
   functional subtree replacement.
+- Theorem {lit}`transplantChild_left_refines_transplant` /
+  {lit}`transplantChild_right_refines_transplant`: in-place pointer TRANSPLANT
+  refines the functional zipper {lit}`transplant`.
 - Theorem {lit}`insertPointer_right_representsW`: pointer TREE-INSERT leaf
   attachment refines the functional subtree replacement.
 
@@ -2048,6 +2051,42 @@ theorem transplantChild_right_representsW
     Store.get_set_self _ _ _
   obtain ⟨pp', hpid2⟩ := hag pid k lp vp pp hpid1
   exact RepresentsW.node hpid2 hL2 hV2 hpidL hpidV hLV
+
+/-- **AC-2 refinement of the functional zipper {lit}`transplant`.**  Reading the
+heap after in-place TRANSPLANT on a left child yields exactly the functional
+{lit}`transplant` of the zipper whose cursor is that left child (focus {lit}`U`,
+context a single left-descent frame), with the new subtree {lit}`V` spliced in.
+This is the pointer-level implementation of {lit}`transplant` from the zipper
+layer. -/
+theorem transplantChild_left_refines_transplant
+    {s : Store} {pid k : Nat} {oldl rp pp vp : Option Nat}
+    {U R V : BSTree} {SU SR SV : Finset Nat}
+    (hpid : s.get pid = some ⟨k, oldl, rp, pp⟩)
+    (_hU : RepresentsW s oldl U SU)
+    (hR : RepresentsW s rp R SR) (hV : RepresentsW s vp V SV)
+    (hpidR : pid ∉ SR) (hpidV : pid ∉ SV) (hVR : Disjoint SV SR) :
+    RepresentsW (s.transplantChild pid true vp) (some pid)
+      (transplant ⟨U, [Frame.fromLeft k R]⟩ V) (Insert.insert pid (SV ∪ SR)) := by
+  have heq : transplant ⟨U, [Frame.fromLeft k R]⟩ V = BSTree.node V k R := by
+    simp [transplant, Zipper.toTree, Frame.plug]
+  rw [heq]
+  exact transplantChild_left_representsW hpid hR hV hpidR hpidV hVR
+
+/-- **AC-2 refinement of the functional zipper {lit}`transplant` (right child).**
+Symmetric to {lit}`transplantChild_left_refines_transplant`. -/
+theorem transplantChild_right_refines_transplant
+    {s : Store} {pid k : Nat} {lp oldr pp vp : Option Nat}
+    {L U V : BSTree} {SL SU SV : Finset Nat}
+    (hpid : s.get pid = some ⟨k, lp, oldr, pp⟩)
+    (hL : RepresentsW s lp L SL) (_hU : RepresentsW s oldr U SU)
+    (hV : RepresentsW s vp V SV)
+    (hpidL : pid ∉ SL) (hpidV : pid ∉ SV) (hLV : Disjoint SL SV) :
+    RepresentsW (s.transplantChild pid false vp) (some pid)
+      (transplant ⟨U, [Frame.fromRight k L]⟩ V) (Insert.insert pid (SL ∪ SV)) := by
+  have heq : transplant ⟨U, [Frame.fromRight k L]⟩ V = BSTree.node L k V := by
+    simp [transplant, Zipper.toTree, Frame.plug]
+  rw [heq]
+  exact transplantChild_right_representsW hpid hL hV hpidL hpidV hLV
 
 /-- A freshly allocated leaf cell (key {lit}`nk`, null children) with parent
 {lit}`par`, written at a fresh address {lit}`z`. -/
