@@ -5,7 +5,7 @@ status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
 The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
 priorities, not theorem-by-theorem duplication.
 
-Last repository-wide status reconciliation: 2026-07-10.
+Last repository-wide status reconciliation: 2026-07-11.
 
 ## Complete For The Current Scope
 
@@ -19,8 +19,9 @@ Last repository-wide status reconciliation: 2026-07-10.
 | Chapter 16.1 and 16.3 | Activity-selection and Huffman optimality | Other greedy sections |
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and stateful Chapter 23 integration |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
+| Chapter 23 correctness | Cut property, unique tree paths, automatic exchange, sorted Kruskal optimality, and certified Prim optimality | Stateful union-find scan, concrete priority queue, work bounds, and RAM refinement |
 
-Chapters 21 and 22 are formally sealed by their interface tests and dated
+Chapters 21-23 are formally sealed by their interface tests and dated
 closure audits.  Their listed implementation refinements are new layers, not
 missing core theorem groups.
 
@@ -41,7 +42,6 @@ missing core theorem groups.
 | 18 | Mathematical B-tree search/split/insert/delete specs | Occupancy/depth invariants and page mutation |
 | 19 | Abstract finite-set Fibonacci-heap operation specs and potential facts | Pointer forest, cascading cuts, consolidation, true degree theorem |
 | 20 | vEB arithmetic and finite-set operation specs | Recursive cluster representation and `O(log log u)` bridge |
-| 23 | Cut property, exchange certificates, Kruskal wrappers, and extensional union-find cycle test | Automatic exchange extraction, stateful scan, recursive local wrapper, and Prim |
 
 ## Not Represented On Main
 
@@ -55,8 +55,8 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
 | 0 | Chapters 5/7/8/9/11 probability infrastructure | General finite `Fintype` expectation/probability API, then Chapter 7 total comparison expectation and `O/Theta(n log n)` bridge |
-| 1 | Chapter 23 MST completion | Canonical exchange-path extraction and a real Prim theorem interface |
-| 2 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
+| 1 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
+| 2 | Chapter 24 shortest-path opening | Establish the weighted directed-graph model and Bellman-Ford correctness boundary |
 | 3 | Chapter 23 implementation track | Add a stateful costed Kruskal scan using Chapter 21's proved inverse-Ackermann machine bound |
 | 4 | Existing partial implementation layers | Select one concrete pointer, mutable-array, or RAM refinement and finish it end-to-end |
 
@@ -66,7 +66,6 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | --- | --- | --- |
 | Randomized expected-time analysis | Requires a reusable probability model, expectation algebra, combinatorial symmetry, and asymptotics | Finish one Chapter 7 model end-to-end before sharing it with Chapters 8, 9, and 11 |
 | Red-black deletion | Large case split over shape, colors, rotations, and black height | Stabilize one local fixup certificate per case before composing an executable algorithm |
-| MST exchange extraction | The textbook hides a path/cycle boundary-edge witness | Build a canonical finite simple-path API and connect it to the existing exchange certificate |
 | Imperative/RAM semantics | Introduces a new state and cost layer across many chapters | Treat it as an explicit refinement project, not an implicit condition on mathematical correctness |
 
 ## Scheduling Rule
