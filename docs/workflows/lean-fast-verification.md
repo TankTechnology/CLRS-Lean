@@ -23,13 +23,13 @@ Use the root target only at milestone points:
 After a local edit, build the module you touched:
 
 ```bash
-lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 ```
 
 For a source path instead of a module name:
 
 ```bash
-lake --log-level=error build CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean
+lake --log-level=error build CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean
 ```
 
 This is the default inner loop.  It catches elaboration errors, failed tactics,
@@ -43,10 +43,10 @@ For Chapter 22 DFS/SCC work, the dependency shape is:
 
 ```text
 Section_22_3_DFS
-  -> Section_22_3_DFS_WhitePath
-  -> Section_22_3_DFS_Intervals
-  -> Section_22_3_DFS_Bridge
-  -> Section_22_3_DFS_SCC
+  -> Section_22_3_DFS.WhitePath
+  -> Section_22_3_DFS.Intervals
+  -> Section_22_3_DFS.Bridge
+  -> Section_22_3_DFS.SCC
   -> Section_22_5_Strongly_Connected_Components
   -> Chapter_22
   -> CLRSLean
@@ -81,7 +81,7 @@ That is correct for final verification but expensive during proof surgery.
 For quick local feedback:
 
 ```bash
-lake --old --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+lake --old --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 ```
 
 Use `--old` only for the inner loop.  Before handoff, rerun without `--old` on
@@ -115,7 +115,7 @@ rg -n "^error:|unsolved goals|Tactic|declaration uses" /tmp/clrs-lean-build.log
 If a module feels slow, measure the narrow target once:
 
 ```bash
-/usr/bin/time -p lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+/usr/bin/time -p lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 ```
 
 If the narrow target takes more than a minute, keep the proof split small and
@@ -127,7 +127,7 @@ move on.
 When one file is unusually slow and already passes, profile that file directly:
 
 ```bash
-lake env lean --profile CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean \
+lake env lean --profile CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean \
   > /tmp/dfs-scc-profile.log 2>&1
 ```
 
@@ -149,18 +149,18 @@ several smaller build islands:
 - Basic graph model: `Section_22_1_Representing_Graphs`
 - BFS: `Section_22_2_BFS`
 - DFS core: `Section_22_3_DFS`
-- DFS intervals/white path: `Section_22_3_DFS_WhitePath`,
-  `Section_22_3_DFS_Intervals`
-- DFS/SCC bridge: `Section_22_3_DFS_Bridge`, `Section_22_3_DFS_SCC`
-- DFS edge classification: `Section_22_3_DFS_EdgeClassification`
+- DFS intervals/white path: `Section_22_3_DFS.WhitePath`,
+  `Section_22_3_DFS.Intervals`
+- DFS/SCC bridge: `Section_22_3_DFS.Bridge`, `Section_22_3_DFS.SCC`
+- DFS edge classification: `Section_22_3_DFS.EdgeClassification`
 - Topological sorting: `Section_22_4_Topological_Sort`
 - SCC algorithm: `Section_22_5_Strongly_Connected_Components`
 
-If you are editing `Section_22_3_DFS_SCC`, the usual validation ladder is:
+If you are editing `Section_22_3_DFS.SCC`, the usual validation ladder is:
 
 ```bash
-lake --old --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS_SCC
-lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+lake --old --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS.SCC
+lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 lake --log-level=error build CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
 lake --log-level=error build CLRSLean.Chapter_22
 ```
@@ -186,10 +186,10 @@ say that explicitly and name the failing module.
 
 ```bash
 # Fastest useful local loop
-lake --old --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+lake --old --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 
 # Honest local module check
-lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS_SCC
+lake --log-level=error build CLRSLean.Chapter_22.Section_22_3_DFS.SCC
 
 # Next dependent for SCC work
 lake --log-level=error build CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components

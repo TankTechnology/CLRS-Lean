@@ -63,7 +63,7 @@ environment has Mathlib available:
 ```bash
 lake env lean CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
 lake env lean Tests/Chapter_02_Interface.lean
-lake build CLRS-Lean
+lake build CLRSLean
 ```
 
 ## 7. Update The Map
@@ -71,9 +71,10 @@ lake build CLRS-Lean
 Update:
 
 - `docs/proof-map.md`;
-- the relevant `docs/chapters/chapter-XX.md`;
 - the relevant `CLRSLean/Chapter_XX.lean` page;
-- `CLRSLean/Status.lean` if the status changed;
+- `docs/clrs-proof-progress.csv` and the generated dashboard when chapter
+  coverage changes;
+- `docs/proof-status-board.md` only when planning priorities change;
 - **`literate.toml` (REQUIRED for new or renamed sections)**:
   add the module to `[order_children]` and add a `[modules."..."]` title
   entry.  If you skip this, the section will still build but the deployed
@@ -82,6 +83,14 @@ Update:
 Every section should say whether it is `proved`, `partial`, `statement`,
 `blocked-design`, `blocked-mathlib`, `deferred-implementation`,
 `future-work`, or `out-of-scope`.
+
+Before committing, run:
+
+```bash
+uv run python scripts/check_progress_csv.py --write-dashboard
+uv run python scripts/check_repository.py
+lake build CLRSLean
+```
 
 ## 8. Verify the deployed navigation
 

@@ -20,6 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check repository metadata
+        run: python3 scripts/check_repository.py
+
       - uses: leanprover/lean-action@v1
         with:
           build: false
