@@ -56,8 +56,9 @@ the detailed maintainer ledger.
   deletion/height, and integration between balancing and augmentation remain.
 * **Chapter 15:** rod cutting, matrix-chain multiplication, LCS, and optimal BST
   have mathematical optimality layers and pure executable recurrence or
-  reconstruction results.  Mutable-array/memoized refinement and explicit RAM
-  costs remain.
+  reconstruction results.  Rod cutting additionally has a mutable-array bottom-up
+  table proved to refine the pure recurrence value.  Mutable-array/memoized
+  refinement for the remaining DP sections and explicit RAM costs remain.
 * **Chapters 17-20:** amortized analysis, B-trees, Fibonacci heaps, and van Emde
   Boas trees have substantial mathematical or size-level specifications.
   Pointer/page/cluster representations and sharper asymptotic implementation
