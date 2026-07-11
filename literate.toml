@@ -94,6 +94,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_09.Section_09_2_Select_By_Rank",
   "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select",
 ]
+"CLRSLean.Chapter_09.Section_09_3_Deterministic_Select" = [
+  "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select",
+]
 "CLRSLean.Chapter_10" = [
   "CLRSLean.Chapter_10.Section_10_1_Stacks_And_Queues",
   "CLRSLean.Chapter_10.Section_10_2_Linked_Lists",
@@ -393,6 +396,9 @@ title = "9.2. Selection by Rank"
 
 [modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select"]
 title = "9.3. Deterministic Selection"
+
+[modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select"]
+title = "Randomized SELECT Expected Time"
 
 [modules."CLRSLean.Chapter_10.Section_10_1_Stacks_And_Queues"]
 title = "10.1. Stacks and Queues"

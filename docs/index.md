@@ -65,6 +65,7 @@ CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
 CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean
 CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
+CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean
 CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean
 CLRSLean/Chapter_10/Section_10_2_Linked_Lists.lean
 CLRSLean/Chapter_11/Section_11_1_Direct_Address_Tables.lean
