@@ -1122,8 +1122,9 @@ rotation and still expose the same ideal rank-selection behavior afterward.
 ### Section 14.3 - Interval trees and the general augmentation theorem
 
 - Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
-- Status: `proved` for the functional well-augmented BST model and the general
-  augmentation theorem (CLRS Theorem 14.1)
+- Status: `proved` for the functional well-augmented BST model, the general
+  augmentation theorem (CLRS Theorem 14.1), and the value-level red-black
+  rotation bridge
 - Main proved declarations:
   - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.storedAug_eq_realAug_of_wellAugmented`
@@ -1140,13 +1141,16 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
+  - `CLRS.Chapter14.RBBridge.rb_augmentation_bridge`
+  - `CLRS.Chapter14.RBBridge.rbRealAug_sizeAug_eq_length`
 - Proof pattern: use the generic `Augmentation`/`AugmentedTree` framework and
   its `IsRotationInvariant` law to maintain local cached values through
   recomputation, rotations, and BST insertion. Instantiate it with maximum
   interval high endpoints and subtree size, then prove that the CLRS
   interval-search pruning test is both sound and complete.
-- Current gap: connect the generic augmentation layer to Chapter 13 red-black
-  balancing and thread a stored augmentation field through executable updates.
+- Current gap: thread a stored augmentation field through Chapter 13's
+  executable red-black insertion and future deletion. The semantic value is
+  already proved invariant under rotations and root recoloring.
 
 ## Chapter 15 - Dynamic Programming
 
