@@ -142,8 +142,9 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   to the textbook `n^(log_b a)` for all `a ≥ 1` and `b > 1`, and a real-log-log
   bridge connects the case-2 discrete scale to `n^(log_b a) log n`; exact/floor/
   ceiling case-1 and case-2 wrappers are exposed directly in those textbook
-  scales.  The remaining Master gap is a textbook-facing case-3 comparison
-  scale.
+  scales.  The case-3 regularity bridge now connects the discrete
+  tail-dominated scale to the textbook forcing function; remaining Chapter 4
+  work is algorithm and cost refinement.
 
 ### Section 4.1 - The maximum-subarray problem
 
@@ -632,7 +633,7 @@ proved comparison-count and recurrence facts.
 
 - Lean sources:
   - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean`
-  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort_Array.lean`
+  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean`
 - Status: `proved` for the stable bucket specification
 - Main proved theorems:
   - `CLRS.Chapter08.countingSortBy_ordered`
@@ -945,6 +946,7 @@ stack top is list head, and queue front is list head with enqueue at the back.
 ### Section 12.1 - Binary search trees
 
 - Lean source: `CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean`
+- Interface test: `Tests/Chapter_12_Interface.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter12.BSTree.search_eq_true_iff`
@@ -974,11 +976,20 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter12.BSTree.successor?_delete_eq_none_iff`
   - `CLRS.Chapter12.BSTree.predecessor?_delete_eq_some_iff`
   - `CLRS.Chapter12.BSTree.predecessor?_delete_eq_none_iff`
+  - `CLRS.Chapter12.BSTree.searchZipper_toTree` (parent-pointer view is faithful)
+  - `CLRS.Chapter12.BSTree.searchIter_eq_search` (iterative search)
+  - `CLRS.Chapter12.BSTree.transplant_preserves_ordered` (TRANSPLANT)
+  - `CLRS.Chapter12.BSTree.deleteViaTransplant_eq_delete` (TREE-DELETE via transplant)
+  - `CLRS.Chapter12.BSTree.successorZipper_eq_successor?` (parent-pointer successor)
+  - `CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?` (parent-pointer predecessor)
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
-  extremal-path recursion, iff specifications for successor/predecessor, and
-  successor-replacement deletion
-- Current gap: parent-pointer successor/predecessor procedures, transplant,
-  and pointer-level mutation remain future section targets
+  extremal-path recursion, iff specifications for successor/predecessor,
+  successor-replacement deletion, and a zipper (cursor + context path) layer
+  encoding parent pointers, with all zipper operations proved equivalent to the
+  functional operations via a `toTree` reconstruction bridge
+- Current gap: pointer-level in-place mutation (imperative RAM refinement)
+  remains future work; the parent-pointer navigation, `TRANSPLANT`,
+  `TREE-DELETE`, and parent-pointer successor/predecessor are now proved
 
 This section proves the core ordered-tree interface: search is equivalent to
 membership, minimum/maximum return actual extremal keys, functional
@@ -992,6 +1003,10 @@ search-after-delete wrapper says that exactly the old keys different from the
 deleted key remain searchable.  The successor/predecessor-after-delete wrappers
 state the same post-deletion view for extremal queries: the returned successor
 or predecessor is computed over the old tree with the deleted key excluded.
+The zipper refinement additionally records the root-to-focus context, proves
+that iterative search reconstructs the original tree, and connects functional
+subtree replacement, deletion, and parent-ascent navigation to the established
+BST interface.  It deliberately stops before mutable heap or RAM semantics.
 
 ## Chapter 13 - Red-Black Trees
 
@@ -1027,6 +1042,12 @@ or predecessor is computed over the old tree with the deleted key excluded.
   - `CLRS.Chapter13.RBTree.insertFixupLocal_leftRight_certificate`
   - `CLRS.Chapter13.RBTree.insertFixupLocal_rightLeft_certificate`
   - `CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate`
+  - `CLRS.Chapter13.RBTree.size_add_one_ge_two_pow_blackHeight` (Lemma A)
+  - `CLRS.Chapter13.RBTree.height_le_two_mul_blackHeight_of_RedBlackShape` (Lemma B)
+  - `CLRS.Chapter13.RBTree.height_log_bound` (**CLRS Lemma 13.1**)
+  - `CLRS.Chapter13.RBTree.inTree_deleteFixupCase1_iff` .. `_case4_iff`
+    (delete-fixup cases preserve membership)
+  - `CLRS.Chapter13.RBTree.deleteFixupCase4_shape` (terminating delete-fixup case)
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
   red-red rotation repair certificates, and four insertion-fixup local
   rotation/recoloring certificates.  Each insertion-fixup case separately
@@ -1034,10 +1055,15 @@ or predecessor is computed over the old tree with the deleted key excluded.
   red-black shape invariant from red-black-shaped fringe subtrees with matching
   black heights.  The `insertFixupLocal` dispatcher and certificate structure
   package those three facts behind one branch-indexed interface for a future
-  executable fixup.
+  executable fixup.  The logarithmic-height bound (CLRS Lemma 13.1) is proved by
+  the standard two-lemma decomposition: a balanced-black-height tree has at
+  least `2^bh - 1` internal nodes (Lemma A), and a no-red-red tree has height at
+  most twice its black height (Lemma B), combined via `Nat.log`.
 - Current gap: compose the local insertion-fixup certificates into executable
-  `RB-INSERT`/`RB-INSERT-FIXUP`; full `RB-DELETE` and `RB-DELETE-FIXUP` are not
-  mechanized
+  `RB-INSERT`/`RB-INSERT-FIXUP`; the local `RB-DELETE-FIXUP` case rewrites and
+  the terminating Case-4 certificate are proved, but the fully-composed
+  executable `RB-DELETE` loop (threading the doubly-black deficit through
+  Cases 1-3 into Case 4) is not yet mechanized
 
 The section builds the local invariant library needed before mechanizing the
 full balancing algorithms.
@@ -1080,8 +1106,8 @@ full balancing algorithms.
   The recompute-then-rotate bridge removes the need for an incoming well-sized
   hypothesis when preparing a local balancing step.
 - Current gap: connect the functional rotations to the Chapter 13 red-black
-  balancing layer; interval trees and the general augmentation theorem remain
-  future targets
+  balancing layer and package the final textbook-level general augmentation
+  interface
 
 This first pass captures the core mathematical idea of order-statistic trees:
 the augmented size field is useful exactly because the selector can branch on
@@ -1096,35 +1122,31 @@ rotation and still expose the same ideal rank-selection behavior afterward.
 ### Section 14.3 - Interval trees and the general augmentation theorem
 
 - Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
-- Status: `proved` for the interval-tree framework and the general augmentation
-  theorem (CLRS Theorem 14.1)
-- Main proved theorems:
-  - `CLRS.Chapter14.AugmentedTree.keys_recompute`
+- Status: `proved` for the functional well-augmented BST model and the general
+  augmentation theorem (CLRS Theorem 14.1)
+- Main proved declarations:
   - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.storedAug_eq_realAug_of_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.rotateLeft_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.rotateRight_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.insert_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.mem_keys_insert`
-  - `CLRS.Chapter14.AugmentedTree.augmentation_theorem` (CLRS Theorem 14.1)
+  - `CLRS.Chapter14.AugmentedTree.augmentation_theorem`
   - `CLRS.Chapter14.realAug_sizeAug_eq_length`
-  - `CLRS.Chapter14.RBBridge.rb_augmentation_bridge` (red-black rotation bridge)
-  - `CLRS.Chapter14.RBBridge.rbRealAug_sizeAug_eq_length`
+  - `CLRS.Chapter14.Interval.overlaps_iff`
+  - `CLRS.Chapter14.IntervalTree.recompute_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.rotateLeft_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.rotateRight_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
-- Proof pattern: a generic `Augmentation`/`AugmentedTree` framework with an
-  `IsRotationInvariant` law; rotations, recomputation, and BST insertion all
-  preserve `WellAugmented` and the semantic augmentation.  Instantiated to both
-  interval trees (max-high) and order-statistic trees (subtree size), and
-  bridged to Chapter 13's red-black rotations, whose rotations and recoloring
-  preserve any rotation-invariant augmentation's value.
-- Current gap: tracking a stored augmentation field through the concrete
-  executable `RBTree.insert` (the value-level maintainability is proved).
-
-The `augmentation_theorem` packages CLRS Theorem 14.1's maintainability claim
-generically: any locally-computable, rotation-invariant augmentation is
-maintained through the structural operations used by red-black insertion and
-deletion.  The `sizeAug` instance shows the Section 14.1 order-statistic size
-field is a special case, unifying the two augmentation examples under one
-framework.
+- Proof pattern: use the generic `Augmentation`/`AugmentedTree` framework and
+  its `IsRotationInvariant` law to maintain local cached values through
+  recomputation, rotations, and BST insertion. Instantiate it with maximum
+  interval high endpoints and subtree size, then prove that the CLRS
+  interval-search pruning test is both sound and complete.
+- Current gap: connect the generic augmentation layer to Chapter 13 red-black
+  balancing and thread a stored augmentation field through executable updates.
 
 ## Chapter 15 - Dynamic Programming
 
@@ -1349,7 +1371,7 @@ any consistent tree with the same frequency table.
 - Lean source:
   `CLRSLean/Chapter_17.lean`,
   `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`,
-  `CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean`, and
+  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`, and
   `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`
 - Status: `partial`
 - Main proved theorems:
@@ -1892,6 +1914,91 @@ current operation-depth facts expose the base case, successor step, and a
 linear/monotone wrapper over the universe exponent, not yet a full asymptotic
 translation for the original universe size.
 
+## Chapter 21 - Data Structures for Disjoint Sets
+
+### Section 21.1 - Abstract Operations
+
+- Model: `CLRS.Chapter21.Partition`, an explicit equivalence relation.
+- Core interface:
+  - `Partition.merge_sameSet_iff`
+  - `Partition.merge_related_sameSet_iff`
+  - `stepSpec_union_sameSet_iff`
+  - `runSpec_append`
+  - `runSpec_preserves_sameSet`
+- Boundary: `FIND-SET` preserves the partition and `UNION` merges exactly two
+  represented classes.
+
+### Section 21.2 - Linked-List Representation
+
+- Model: head and size tables over `Fin n`; weighted union redirects the
+  smaller represented class and returns the pointer-rewrite charge.
+- Correctness:
+  - `LinkedList.State.weightedUnion_sameSet_iff`
+  - `LinkedList.State.weightedUnion_refines_merge`
+  - `LinkedList.State.weightedUnion_preserves_headInvariant`
+- Complexity:
+  - `LinkedList.State.weightedUnion_changed_doubles`
+  - `LinkedList.State.move_count_le_log2`
+  - `LinkedList.State.total_rewrites_le_n_mul_log2`
+- Boundary: the standard aggregate `O(n log n)` representative-rewrite
+  argument is proved for the table-level model.
+
+### Section 21.3 - Disjoint-Set Forests
+
+- Implementation: `Batteries.Data.UnionFind`, including union by rank and path
+  compression.
+- Initialization and find:
+  - `Forest.singletonForest_equiv_iff`
+  - `Forest.find_preserves_sameSet`
+  - `Forest.find_returns_representative`
+  - `Forest.find_compresses_path`
+- Union and query:
+  - `Forest.union_sameSet_iff`
+  - `Forest.union_refines_merge`
+  - `Forest.checkEquiv_correct`
+  - `Forest.checkEquiv_preserves_sameSet`
+- Boundary: executable functional correctness is complete for the represented
+  Batteries API.
+
+### Section 21.4 - Rank And Path-Compression Analysis
+
+- Rank/path layer:
+  - `Analysis.parentPath_rank_bound`
+  - `Analysis.rank_le_log2`
+  - `Analysis.parentPath_length_le_log2`
+- Concrete Batteries execution layer:
+  - `Analysis.Costed.findEdges_parentPath`
+  - `Analysis.Costed.RankBudget.afterUnion`
+  - `Analysis.Costed.costedFind_cost_le_log2`
+  - `Analysis.Costed.costedUnion_cost_le_log2`
+  - `Analysis.Costed.run_erase`
+  - `Analysis.Costed.run_refines_spec`
+  - `Analysis.Costed.run_rank_le_log2`
+  - `Analysis.Costed.run_cost_le`
+- Inverse-Ackermann/potential layer:
+  - `Analysis.inverseAckermann_spec`
+  - `Analysis.inverseAckermann_minimal`
+  - `Analysis.total_cost_le_of_inverseAckermann_certificate`
+  - `Analysis.Ackermann.potential_find_le`
+  - `Analysis.Ackermann.potential_link_le_add_two`
+  - `Analysis.Ackermann.costedFind_amortized_le`
+  - `Analysis.Ackermann.costedUnion_amortized_le`
+  - `Analysis.Ackermann.step_amortized_le`
+  - `Analysis.Ackermann.run_cost_le_inverseAckermann`
+  - `Analysis.Ackermann.run_cost_le_inverseAckermann_of_universe_le_ops`
+- Boundary: the concrete Batteries machine now instantiates the
+  inverse-Ackermann potential directly.  Its actual cost is bounded by
+  `9 * (m+n) * alpha(n)`, and by `18 * m * alpha(n)` when `n <= m`.
+- Closure audit: `docs/proof-audits/chapter-21-closure-2026-07-10.md`.
+
+### Chapter 23 Bridge
+
+- `MST.UnionFindConnectivityRefinement.checkEquiv_iff_connected`
+- `MST.UnionFindConnectivityRefinement.cycleTest_correct`
+- Boundary: a connectivity-faithful state family yields the existing verified
+  Kruskal cycle-test interface.  Incremental state threading remains a
+  performance refinement.
+
 ## Chapter 22 - Elementary Graph Algorithms
 
 - Chapter status: `main-proof-complete-for-correctness`
@@ -1955,11 +2062,11 @@ track.
 
 - Lean sources:
   - `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/WhitePath.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/Intervals.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/Bridge.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean`
 - Status: `proved`
 - DFS and white-path layer:
   - `CLRS.Chapter22.Graph.DFSState`
@@ -2006,8 +2113,8 @@ track.
 ### Section 22.5 - Strongly connected components
 
 - Lean sources:
-  - `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean`
   - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean`
+  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean`
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter22.Graph.transpose`
@@ -2036,7 +2143,7 @@ track.
 
 - Lean source:
   `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorem: `CLRS.MST.safe_edge_of_lightest_crossing`
 - Supporting theorems:
   - `CLRS.MST.Graph.connected_crosses_cut`
@@ -2047,80 +2154,57 @@ track.
   - `CLRS.MST.FiniteGraph.exists_crossing_tree_edge_preserving_prefix`
   - `CLRS.MST.mst_exchange_step`
 - Proof pattern: cut property, safe edge, exchange argument
-- Current gap: the path/cut crossing-edge lemma now exists; Section 23.2 turns
-  an explicit path-decomposition certificate into a replacement spanning-tree
-  theorem.  The remaining gap is deriving that certificate automatically from a
-  canonical finite simple path or cycle representation.
 
 This section contains the mathematical core of the CLRS MST proof.  It proves
 that a light edge crossing a cut is safe once the graph-specific exchange
 certificate is supplied, proves that the abstract empty-prefix optimum
 specification is equivalent to the concrete finite-graph MST specification, and
-it now derives the cut-crossing tree edge needed to preserve an accepted prefix
-across a respecting cut.
+derives the cut-crossing tree edge needed to preserve an accepted prefix across
+a respecting cut.  Section 23.2 now discharges the exchange certificate
+automatically.
 
 ### Section 23.2 - Kruskal and Prim
 
 - Lean source: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
-- Status: `partial`
+- Interface tests: `Tests/Chapter_23_Interface.lean`,
+  `Tests/Chapter_23_Closure.lean`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorems:
-  - `CLRS.MST.kruskal_optimal`
-  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_cycle_test`
+  - `CLRS.MST.FiniteGraph.canonicalSimplePath_unique`
+  - `CLRS.MST.FiniteGraph.exists_crossing_exchangePath_of_spanningTree`
+  - `CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing_auto`
+  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty`
+  - `CLRS.MST.FiniteGraph.prim_minimum_spanning_tree`
 - Supporting theorems:
-  - `CLRS.MST.Graph.ExchangePath`
-  - `CLRS.MST.Graph.InsertedEdgeConnection`
-  - `CLRS.MST.Graph.exchangePath_connected_insert`
-  - `CLRS.MST.Graph.insertedEdgeConnection_of_exchangePath`
-  - `CLRS.MST.Graph.exchangePath_of_insert_connected`
-  - `CLRS.MST.Graph.exchangePath_iff_insertedEdgeConnection`
-  - `CLRS.MST.FiniteGraph.exchangePath_of_insert_connects_erased_edge`
-  - `CLRS.MST.FiniteGraph.exchangePath_iff_insertedEdgeConnection_of_spanningTree`
-  - `CLRS.MST.FiniteGraph.exchangePath_of_insertedEdgeConnection`
-  - `CLRS.MST.FiniteGraph.spanningTree_exchange_of_path_certificate`
-  - `CLRS.MST.FiniteGraph.cut_exchange_certificate`
-  - `CLRS.MST.FiniteGraph.exists_replacement_spanning_tree_of_cut`
-  - `CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing`
-  - `CLRS.MST.lightest_crossing_of_sorted_prefix`
-  - `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`
-  - `CLRS.MST.processed_edge_mem_or_connected_of_exact_component_kruskal`
-  - `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`
-  - `CLRS.MST.lightest_crossing_of_exact_component_kruskal_prefix`
-  - `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`
-  - `CLRS.MST.FiniteGraph.kruskal_subset_edges`
-  - `CLRS.MST.FiniteGraph.kruskal_forest_of_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component_empty`
-  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_complete_exact_component_empty`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal`
-- Proof pattern: exact-component prefix accounting, sorted-order lightness,
-  component-cycle-test forest preservation, complete-scan spanning, and
-  safe-edge induction over an edge list
-- Deferred implementation: union-find correctness
-- Current gaps:
-  - refine exact components to an executable union-find implementation if
-    implementation correctness becomes part of scope;
-  - derive the inserted-edge connection automatically from a canonical finite
-    simple path/cycle representation;
-  - discharge the prefix-local sorted-lightness proof in the full recursive
-    optimality wrapper, rather than requiring a global lightness hypothesis;
-  - add Prim's algorithm theorem interface.
+  - `CLRS.MST.Graph.selectedSimpleGraph`
+  - `CLRS.MST.Graph.exists_pathExchange_of_simplePath_crosses`
+  - `CLRS.MST.FiniteGraph.selectedSimpleGraph_isAcyclic`
+  - `CLRS.MST.FiniteGraph.safeEdge_of_lightest_crossing_auto`
+  - `CLRS.MST.FiniteGraph.cutCertificate_of_exactComponentKruskalPrefix_auto`
+  - `CLRS.MST.FiniteGraph.kruskal_preserves_mst_of_sorted_exact_component`
+  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_sorted_complete_exact_component`
+  - `CLRS.MST.FiniteGraph.PrimTrace`
+  - `CLRS.MST.FiniteGraph.PrimCertificate`
+  - `CLRS.MST.FiniteGraph.prim_forest_of_trace`
+  - `CLRS.MST.FiniteGraph.prim_preserves_mst`
+  - `CLRS.MST.FiniteGraph.prim_spanning_tree_of_certificate`
+  - `CLRS.MST.FiniteGraph.prim_optimal`
+- Proof pattern: Mathlib simple-path normalization, forest path uniqueness,
+  automatic cut exchange, exact-component prefix accounting, local
+  sorted-lightness recursion, and shared safe-edge induction for Kruskal and
+  Prim.
+- Closure audit: `docs/proof-audits/chapter-23-closure-2026-07-11.md`.
+- Implementation refinement now proved: stateful Chapter 21 union-find
+  threading for Kruskal, exact operation-trace correspondence, complete
+  sorting/scan/union-find work composition, executable indexed-queue Prim,
+  and binary-heap operation-count bounds.
+- Deferred without reopening the milestone: semantic refinement to the
+  concrete `Batteries.BinaryHeap` array and mutable/RAM write accounting.
 
-The section proves the sorted-order lightness step in two layers: first with an
-explicit processed-prefix exclusion invariant, then from exact components for a
-real Kruskal prefix.  It also proves the certificate-based replacement exchange
-step: `ExchangePath` is enough to prove that adding one edge and deleting one
-tree edge preserves spanning-tree structure and the accepted prefix.  The new
-bridge lemmas show that `ExchangePath` is equivalent to the named cycle-style
-`InsertedEdgeConnection` once the erased tree edge disconnects its endpoints.
-It also proves forest preservation for the exact-component cycle test and proves that a
-complete scan of a connected finite graph returns a spanning tree.  The
-finite-graph optimality wrapper can now discharge the final spanning-tree side
-condition from exact components, complete edge coverage, graph connectedness,
-and an initial forest.  The finite cycle-test wrapper separately exposes the
-same `IsMinimumSpanningTree` conclusion whenever a cycle-test implementation's
-accepted edge set is already known to be a spanning tree.
+The former manual `ExchangePath`, global-lightness, and missing-Prim gaps are
+closed.  A canonical simple tree path now produces the crossing replacement
+edge; the sorted Kruskal wrapper builds each local cut certificate during its
+recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ## Deferred And Blocked Items
 
@@ -2138,14 +2222,14 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
 | Hash-table expected-time analysis | `blocked-design` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes when the searched bucket is uniform; the remaining work is a full random key or random hash-function model with independence assumptions. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
-| BST transplant and parent-pointer navigation | `partial-transplant` | Functional `replaceSubtree` (CLRS `TRANSPLANT` analogue) is defined; pointer-level parent updates and full membership-preservation theorems remain future refinement targets. |
-| Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; parent-pointer navigation and `TRANSPLANT` require an imperative memory model. |
+| BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
+| Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; the `Zipper` layer proves parent-pointer navigation and `TRANSPLANT` functionally. Only an imperative in-place memory model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
-| Full red-black insertion/deletion | `blocked-design` | Needs a balancing representation and invariant-preservation proof across fixup cases. |
-| Automatic MST exchange-path extraction | `blocked-design` | The certificate-based replacement spanning-tree theorem is proved from `ExchangePath`, and inserted-edge connectivity now bridges to that certificate; the remaining design work is extracting that inserted connection from a canonical finite simple path/cycle API. |
-| Prim's algorithm | `statement` | Section file exists only through the Chapter 23.2 target; theorem interface has not been added yet. |
+| Red-black deletion and height | `blocked-design` | Executable insertion is proved; deletion/fixup still needs a case-stable invariant proof, followed by the logarithmic-height theorem. |
+| Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |
+| Prim's algorithm | `proved` | `PrimTrace` packages dynamic light-edge choices, and `prim_minimum_spanning_tree` proves the direct finite-graph MST conclusion for a complete certified run. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |
 | Chapter-end problems | `future-work` | Treat as a second track with explicit priority and difficulty labels. |
 | Full RAM semantics | `future-work` | Requires an imperative machine/cost semantics rather than only mathematical functions and recurrences. |

@@ -1,5 +1,5 @@
 import Mathlib
-import CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath
+import CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath
 
 /-! # DFS theory: parenthesis theorem and ancestor relations
 
