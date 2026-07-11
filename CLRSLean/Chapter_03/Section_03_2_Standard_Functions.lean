@@ -24,6 +24,11 @@ Concrete asymptotic comparisons for algorithm analysis.
 * {lit}`⌊n/2⌋ = Θ(n)` and {lit}`⌈n/2⌉ = Θ(n)` on ℕ
 * lower and upper factorial bounds
 * {lit}`aⁿ = o(n!)` and {lit}`n! = o(nⁿ)`
+* {lit}`nᵃ = o(2ⁿ)`, {lit}`2ⁿ = o(n!)`, and {lit}`nᵃ = o(n!)`
+* {lit}`n! = Ω(cⁿ)` for every base {lit}`c`
+* {lit}`log n = o(n)` and {lit}`log (log n) = o(log n)`
+* {lit}`log_b n = Θ(log n)` and {lit}`log_b n = o(nʳ)` for {lit}`0 < r`
+* {lit}`(log n)ᵃ = o(cⁿ)` when {lit}`1 < c`
 -/
 
 namespace CLRS
@@ -376,6 +381,103 @@ theorem isLittleO_one_log :
     isLittleO (fun _ : ℕ => (1 : ℝ)) (fun n : ℕ => Real.log (n : ℝ)) := by
   unfold isLittleO
   exact (isLittleO_const_log_atTop (c := 1)).comp_tendsto tendsto_natCast_atTop_atTop
+
+/-! ## Completing the CLRS 3.2 comparison table
+
+The lemmas below fill in the remaining adjacent comparisons of the CLRS 3.2
+growth hierarchy
+
+{lit}`1 ≺ log (log n) ≺ log n ≺ n ≺ nᵃ ≺ 2ⁿ ≺ n!`,
+
+together with the base-change facts for {lit}`log_b`. -/
+
+/-- Logarithms grow slower than the identity: {lit}`log n = o(n)`.  This is the
+{lit}`log n ≺ n` row of the CLRS 3.2 growth hierarchy. -/
+theorem isLittleO_log_id :
+    isLittleO (fun n : ℕ => Real.log (n : ℝ)) (fun n : ℕ => (n : ℝ)) := by
+  unfold isLittleO
+  simpa [Function.comp_def, id_eq] using
+    Real.isLittleO_log_id_atTop.comp_tendsto tendsto_natCast_atTop_atTop
+
+/-- The doubly-iterated logarithm is dominated by the logarithm:
+{lit}`log (log n) = o(log n)`.  This is the {lit}`log (log n) ≺ log n` row of the
+CLRS 3.2 hierarchy. -/
+theorem isLittleO_loglog_log :
+    isLittleO (fun n : ℕ => Real.log (Real.log (n : ℝ)))
+      (fun n : ℕ => Real.log (n : ℝ)) := by
+  unfold isLittleO
+  have h :=
+    (Real.isLittleO_log_id_atTop.comp_tendsto Real.tendsto_log_atTop).comp_tendsto
+      tendsto_natCast_atTop_atTop
+  simpa [Function.comp_def, id_eq] using h
+
+/-- Any fixed polynomial is dominated by the base-2 exponential:
+{lit}`nᵃ = o(2ⁿ)`.  The canonical CLRS 3.2 exponential comparison; instance of
+{lit}`isLittleO_pow_const_exp` at base {lit}`c = 2`. -/
+theorem isLittleO_pow_two_pow (a : ℕ) :
+    isLittleO (fun n : ℕ => (n : ℝ) ^ a) (fun n : ℕ => (2 : ℝ) ^ n) :=
+  isLittleO_pow_const_exp (a := a) (by norm_num : (1 : ℝ) < 2)
+
+/-- The base-2 exponential is dominated by the factorial: {lit}`2ⁿ = o(n!)`.
+Equivalently {lit}`n! = ω(2ⁿ)` (CLRS 3.2). -/
+theorem isLittleO_two_pow_factorial :
+    isLittleO (fun n : ℕ => (2 : ℝ) ^ n) (fun n : ℕ => (Nat.factorial n : ℝ)) :=
+  isLittleO_exp_vs_factorial 2
+
+/-- The factorial dominates every exponential in the {lit}`Ω` sense:
+{lit}`n! = Ω(cⁿ)` for every base {lit}`c`.  CLRS 3.2 ({lit}`n! = ω(2ⁿ)`). -/
+theorem isBigOmega_factorial_exp (c : ℝ) :
+    isBigOmega (fun n : ℕ => (Nat.factorial n : ℝ)) (fun n : ℕ => c ^ n) := by
+  unfold isBigOmega
+  have h : (fun n : ℕ => c ^ n) =o[atTop] (fun n : ℕ => (Nat.factorial n : ℝ)) :=
+    isLittleO_exp_vs_factorial c
+  exact h.isBigO
+
+/-- Every fixed polynomial is dominated by the factorial: {lit}`nᵃ = o(n!)`.
+Obtained by chaining {lit}`nᵃ = o(2ⁿ)` and {lit}`2ⁿ = o(n!)`.  CLRS 3.2. -/
+theorem isLittleO_pow_factorial (a : ℕ) :
+    isLittleO (fun n : ℕ => (n : ℝ) ^ a) (fun n : ℕ => (Nat.factorial n : ℝ)) := by
+  have h1 : (fun n : ℕ => (n : ℝ) ^ a) =o[atTop] (fun n : ℕ => (2 : ℝ) ^ n) :=
+    isLittleO_pow_two_pow a
+  have h2 : (fun n : ℕ => (2 : ℝ) ^ n) =o[atTop]
+      (fun n : ℕ => (Nat.factorial n : ℝ)) := isLittleO_two_pow_factorial
+  unfold isLittleO
+  exact h1.trans_isBigO h2.isBigO
+
+/-- Base change is a {lit}`Θ`-preserving operation: {lit}`log_b n = Θ(log n)` for
+{lit}`b > 1`.  This is the companion of {lit}`isBigTheta_log_logb` with the two
+functions swapped.  CLRS 3.2. -/
+theorem isBigTheta_logb_log {b : ℝ} (hb : 1 < b) :
+    isBigTheta (fun n : ℕ => Real.logb b (n : ℝ)) (fun n : ℕ => Real.log (n : ℝ)) :=
+  isBigTheta_symm (isBigTheta_log_logb hb)
+
+/-- The base-{lit}`b` logarithm is dominated by any positive real power:
+{lit}`log_b n = o(nʳ)` for {lit}`b > 1` and {lit}`0 < r`.  CLRS 3.2
+({lit}`log_b n` vs {lit}`nᶜ`). -/
+theorem isLittleO_logb_rpow {b r : ℝ} (hb : 1 < b) (hr : 0 < r) :
+    isLittleO (fun n : ℕ => Real.logb b (n : ℝ)) (fun n : ℕ => (n : ℝ) ^ r) := by
+  have hO : (fun n : ℕ => Real.logb b (n : ℝ)) =O[atTop]
+      (fun n : ℕ => Real.log (n : ℝ)) := (isBigTheta_logb_log hb).1
+  have ho : (fun n : ℕ => Real.log (n : ℝ)) =o[atTop] (fun n : ℕ => (n : ℝ) ^ r) :=
+    isLittleO_log_rpow hr
+  unfold isLittleO
+  exact hO.trans_isLittleO ho
+
+/-- Every fixed power of the logarithm is dominated by any exponential with base
+{lit}`c > 1`: {lit}`(log n)ᵃ = o(cⁿ)`.  Chains {lit}`(log n)ᵃ = o(n)` and
+{lit}`n = o(cⁿ)`.  CLRS 3.2 (polylogarithm vs exponential). -/
+theorem isLittleO_log_pow_const_exp {a : ℕ} {c : ℝ} (hc : 1 < c) :
+    isLittleO (fun n : ℕ => Real.log (n : ℝ) ^ a) (fun n : ℕ => c ^ n) := by
+  have h1 : (fun n : ℕ => Real.log (n : ℝ) ^ a) =o[atTop] (fun n : ℕ => (n : ℝ)) := by
+    have h := isLittleO_log_pow_rpow (a := a) (r := 1) (by norm_num)
+    unfold isLittleO at h
+    simpa using h
+  have h2 : (fun n : ℕ => (n : ℝ)) =o[atTop] (fun n : ℕ => c ^ n) := by
+    have h := isLittleO_pow_const_exp (a := 1) hc
+    unfold isLittleO at h
+    simpa using h
+  unfold isLittleO
+  exact h1.trans_isBigO h2.isBigO
 
 end Chapter03
 end CLRS
