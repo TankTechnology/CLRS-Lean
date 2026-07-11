@@ -10,6 +10,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 [order_children]
 "CLRSLean" = [
   "CLRSLean.ProofPatterns",
+  "CLRSLean.Probability",
   "CLRSLean.Chapter_01",
   "CLRSLean.Chapter_02",
   "CLRSLean.Chapter_03",
@@ -43,6 +44,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.ProofPatterns.Fiber",
   "CLRSLean.ProofPatterns.Interval",
 ]
+"CLRSLean.Probability" = [
+  "CLRSLean.Probability.FiniteExpectation",
+]
 "CLRSLean.Chapter_02" = [
   "CLRSLean.Chapter_02.Section_02_1_Insertion_Sort",
   "CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms",
@@ -74,6 +78,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort",
   "CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort",
   "CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort",
+]
+"CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort" = [
+  "CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability",
 ]
 "CLRSLean.Chapter_08" = [
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort",
@@ -191,6 +198,12 @@ title = "Proof Pattern: Fiber Decomposition"
 
 [modules."CLRSLean.ProofPatterns.Interval"]
 title = "Proof Pattern: Interval Nesting"
+
+[modules."CLRSLean.Probability"]
+title = "Finite Probability Toolkit"
+
+[modules."CLRSLean.Probability.FiniteExpectation"]
+title = "Finite Expectation Toolkit"
 
 [modules."CLRSLean.Chapter_01"]
 title = "Chapter 1. The Role of Algorithms"
@@ -359,6 +372,9 @@ title = "7.2. Performance of Quicksort"
 
 [modules."CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort"]
 title = "7.3. Randomized Quicksort"
+
+[modules."CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability"]
+title = "7.3. Randomized Quicksort: Comparison Probability"
 
 [modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort"]
 title = "8.2. Counting Sort"

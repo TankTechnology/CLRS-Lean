@@ -1,4 +1,5 @@
 import CLRSLean.ProofPatterns
+import CLRSLean.Probability
 import CLRSLean.Chapter_01
 import CLRSLean.Chapter_02
 import CLRSLean.Chapter_03

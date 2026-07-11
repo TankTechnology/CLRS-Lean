@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_08.Section_08_3_Radix_Sort
-
+import CLRSLean.Probability.FiniteExpectation
+import Mathlib
 /-!
 # CLRS Section 8.4 - Bucket sort
 
@@ -218,9 +219,12 @@ theorem bucketSortByRank_correct [DecidableEq α] (bucketCount : Nat)
 
 /-! ## Finite-uniform expected-cost interface -/
 
-/-- A real-valued {lit}`0/1` indicator for finite bucket probabilities. -/
+open CLRS.Probability
+
+/-- A real-valued {lit}`0/1` indicator for finite bucket probabilities.
+Alias for {lit}`CLRS.Probability.indicator`. -/
 def probabilityIndicator (P : Prop) [Decidable P] : ℝ :=
-  if P then 1 else 0
+  CLRS.Probability.indicator P
 
 /-- Uniform average over the finite bucket set {lit}`Fin m`. -/
 noncomputable def uniformAverageFin {m : Nat} (X : Fin m → ℝ) : ℝ :=
@@ -237,9 +241,9 @@ theorem uniformAverageFin_indicator_singleton {m : Nat} (j : Fin m) :
   have hsum :
       (∑ i : Fin m, probabilityIndicator (i = j)) = (1 : ℝ) := by
     rw [Finset.sum_eq_single j]
-    · simp [probabilityIndicator]
+    · simp [probabilityIndicator, CLRS.Probability.indicator]
     · intro b _hb hbj
-      simp [probabilityIndicator, hbj]
+      simp [probabilityIndicator, CLRS.Probability.indicator, hbj]
     · intro hj
       exact (hj (Finset.mem_univ j)).elim
   simp [uniformAverageFin, hsum]
