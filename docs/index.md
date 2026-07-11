@@ -58,6 +58,7 @@ CLRSLean/Chapter_06/Section_06_5_Priority_Queues.lean
 CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean
+CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort/Comparison_Probability.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean
 CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean

@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort
 import CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort
 import CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort
+import CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability
 
 /-!
 # Chapter 7 - Quicksort

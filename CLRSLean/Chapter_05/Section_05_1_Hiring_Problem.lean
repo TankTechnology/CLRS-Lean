@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_03.Section_03_2_Standard_Functions
+import CLRSLean.Probability.FiniteExpectation
 import Mathlib
 
 open Finset
@@ -29,6 +30,9 @@ Main result:
 
 Status: `proved` for the finite rank-symmetry hiring model.
 
+Probability model: uses {lit}`CLRS.Probability.uniformAverage` from the shared
+finite-expectation toolkit ({lit}`CLRSLean/Probability/FiniteExpectation.lean`).
+
 Deferred refinements:
 
 * Random-permutation sampling and pseudocode execution are future targets.
@@ -37,28 +41,26 @@ Deferred refinements:
 namespace CLRS
 namespace Chapter05
 
+open CLRS.Probability
+
 /-! ## Finite uniform expectation model -/
 
-/-- Uniform average over the finite sample space {lit}`{0, ..., m-1}`. -/
+/-- Uniform average over the finite sample space {lit}`{0, ..., m-1}`.
+This is an alias for {lit}`CLRS.Probability.uniformAverage` for backward
+compatibility. -/
 noncomputable def uniformAverageRange (m : ℕ) (X : ℕ → ℝ) : ℝ :=
-  (∑ i ∈ range m, X i) / (m : ℝ)
+  uniformAverage m X
 
-/-- A {lit}`0/1` indicator as a real-valued random variable. -/
+/-- A {lit}`0/1` indicator as a real-valued random variable.
+Alias for {lit}`CLRS.Probability.indicator`. -/
 def indicator (P : Prop) [Decidable P] : ℝ :=
-  if P then 1 else 0
+  CLRS.Probability.indicator P
 
 /-- In a finite uniform space of size {lit}`m`, a singleton event has probability {lit}`1/m`. -/
 theorem uniformAverage_indicator_singleton {m j : ℕ} (hj : j ∈ range m) :
     uniformAverageRange m (fun i => indicator (i = j)) = 1 / (m : ℝ) := by
-  classical
-  have hsum : (∑ i ∈ range m, indicator (i = j)) = (1 : ℝ) := by
-    rw [Finset.sum_eq_single j]
-    · simp [indicator]
-    · intro b _hb hbj
-      simp [indicator, hbj]
-    · intro hj_not
-      exact (hj_not hj).elim
-  simp [uniformAverageRange, hsum]
+  unfold uniformAverageRange indicator
+  rw [CLRS.Probability.uniformAverage_indicator_singleton hj]
 
 /-! ## Hiring probabilities from symmetry -/
 
