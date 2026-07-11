@@ -27,5 +27,6 @@ correctness, and union-by-rank with path-compression amortization.
 
 The public interface is protected by `Tests/Chapter_21_Interface.lean`.  The
 chapter has no `sorry`, `admit`, or added axioms.  Lower-level array-write/RAM
-constants and an incremental stateful Kruskal scan are future implementation
-refinements and do not reopen this Chapter 21 theorem boundary.
+constants remain a future implementation refinement.  Chapter 23 now consumes
+this costed state machine in its incremental Kruskal scan without reopening
+the Chapter 21 theorem boundary.

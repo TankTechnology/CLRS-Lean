@@ -85,7 +85,7 @@ milestone:
 
 * exact work counts and {lit}`O(V + E)` packaging;
 * imperative adjacency-list or RAM refinement;
-* stateful union-find scans and concrete Prim priority queues;
+* mutable-array refinement of the Chapter 23 union-find and Prim queue models;
 * exercises and chapter-end problems.
 
 ## Highest-Value Open Proof Groups
