@@ -34,12 +34,21 @@ Main results:
   distribution `Fin n → Fin m`.
 - Theorem {lit}`expectedRandomUnsuccessfulSearchCost`: the expected unsuccessful
   search cost is {lit}`1 + α`, as a genuine expectation.
+- Theorem {lit}`pairCollisionProb`: under SUHA, two distinct keys collide with
+  probability exactly {lit}`1/m`, as a genuine expectation.
+- Theorem {lit}`expectedRandomSuccessfulSearchCost`: the expected
+  successful-search cost is {lit}`1 + (n-1)/(2m)` (CLRS Theorem 11.2), as a
+  double expectation over the uniform query key and the SUHA input distribution.
+- Definition {lit}`IsUniversal` and Theorems {lit}`universal_expected_collisions`
+  / {lit}`universal_expected_search_cost`: a random hash-*function* model, where
+  a universal family gives expected collisions {lit}`≤ α` and search cost
+  {lit}`≤ 1 + α` (CLRS Theorem 11.3).
 
-Status: `proved` for deterministic correctness, finite-uniform expected cost, and
-the SUHA true-expectation chain-length / unsuccessful-search analysis.
+Status: `proved` for deterministic correctness, finite-uniform expected cost, the
+SUHA true-expectation chain-length / unsuccessful- / successful-search analysis,
+and a universal random-hash-function collision-bound model.
 
-Deferred refinements: successful-search analysis and a random hash *function*
-(rather than random key placement) model.
+Deferred refinements: RAM / probe-count operational semantics.
 -/
 
 namespace CLRS
@@ -395,6 +404,258 @@ theorem expectedRandomUnsuccessfulSearchCost {m n : Nat} (q : Fin m) (hm : 0 < m
           + (fun a => randomChainLength a q) a) := rfl
   rw [key, fintypeExpect_add, fintypeExpect_const hcard,
     expectedRandomChainLength_eq_loadFactor q hm]
+
+/-! ## Successful search as a true expectation (SUHA)
+
+CLRS Theorem 11.2 analyses a *successful* search: the query key is one of the
+`n` stored keys, chosen uniformly, and the number of probes is one (for the key
+itself) plus the number of keys that precede it in its chain.  Because new keys
+are prepended, the keys ahead of `k_i` are exactly those inserted *after* it,
+i.e. the later-indexed keys `k_j` with `j > i` that hash to the same bucket.
+Averaging over both the uniformly random query key and the SUHA input
+distribution `Fin n → Fin m` gives the expected cost `1 + α/2 - α/(2n)`, which we
+prove here in the exact form `1 + (n-1)/(2m)`. -/
+
+/-- Scalar factors pull out of `fintypeExpect`: the finite-uniform expectation is
+linear in a constant multiplier. -/
+theorem fintypeExpect_const_mul {Ω : Type} [Fintype Ω] [DecidableEq Ω]
+    (c : ℝ) (X : Ω → ℝ) :
+    fintypeExpect (fun ω => c * X ω) = c * fintypeExpect X := by
+  unfold fintypeExpect
+  rw [← Finset.mul_sum, mul_div_assoc]
+
+/-- Split a hash assignment `a : Fin n → Fin m` into the buckets of two distinct
+keys `i ≠ j` together with the assignment of the remaining keys.  This witnesses
+that the pair of coordinates `(i, j)` is independent of the rest. -/
+noncomputable def hashSplitPair {m n : Nat} (i j : Fin n) (hij : i ≠ j) :
+    (Fin n → Fin m) ≃
+      (Fin m × Fin m) × ({x : Fin n // x ≠ i ∧ x ≠ j} → Fin m) where
+  toFun a := ((a i, a j), fun x => a x.val)
+  invFun q := fun x =>
+    if hx : x = i then q.1.1
+    else if hy : x = j then q.1.2
+    else q.2 ⟨x, ⟨hx, hy⟩⟩
+  left_inv a := by
+    funext x
+    by_cases hx : x = i
+    · subst hx; simp
+    · by_cases hy : x = j
+      · subst hy; simp [hx]
+      · simp [hx, hy]
+  right_inv q := by
+    obtain ⟨⟨b1, b2⟩, rest⟩ := q
+    simp only [Prod.mk.injEq]
+    refine ⟨⟨?_, ?_⟩, ?_⟩
+    · simp
+    · have hji : ¬ (j = i) := fun h => hij h.symm
+      simp [hji]
+    · funext x; obtain ⟨xv, hxi, hxj⟩ := x
+      simp [hxi, hxj]
+
+/-- The uniform probability that the two coordinates of a pair over `Fin m` agree
+is `1/m`: the diagonal of `Fin m × Fin m` has `m` of the `m²` points. -/
+theorem fintypeExpect_prod_diag {m : Nat} (hm : 0 < m) :
+    fintypeExpect (fun q : Fin m × Fin m => indicator (q.1 = q.2)) = 1 / (m : ℝ) := by
+  have hm' : (m : ℝ) ≠ 0 := by exact_mod_cast hm.ne'
+  have hnum : (∑ q : Fin m × Fin m, indicator (q.1 = q.2)) = (m : ℝ) := by
+    unfold indicator
+    rw [Fintype.sum_prod_type]
+    have hinner : ∀ a : Fin m, (∑ b : Fin m, (if a = b then (1 : ℝ) else 0)) = 1 := by
+      intro a; simp
+    rw [Finset.sum_congr rfl (fun a _ => hinner a), Finset.sum_const,
+      Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one]
+  unfold fintypeExpect
+  rw [hnum, Fintype.card_prod, Fintype.card_fin]
+  push_cast
+  rw [div_mul_eq_div_div, div_self hm']
+
+/--
+**Pairwise collision probability = `1/m` (true expectation).**  Under SUHA, two
+distinct keys `i ≠ j` hash to the same bucket with probability exactly `1/m`,
+as a genuine expectation over the input distribution `Fin n → Fin m` (CLRS
+Corollary/analysis underlying Theorems 11.1-11.2, `E[X_ij] = 1/m`). -/
+theorem pairCollisionProb {m n : Nat} (i j : Fin n) (hij : i ≠ j) (hm : 0 < m) :
+    fintypeExpect (fun a : Fin n → Fin m => indicator (a i = a j)) = 1 / (m : ℝ) := by
+  haveI : Nonempty (Fin m) := ⟨⟨0, hm⟩⟩
+  have hcard :
+      Fintype.card ({x : Fin n // x ≠ i ∧ x ≠ j} → Fin m) ≠ 0 := Fintype.card_ne_zero
+  have he := fintypeExpect_equiv (hashSplitPair (m := m) i j hij)
+    (fun p : (Fin m × Fin m) × ({x : Fin n // x ≠ i ∧ x ≠ j} → Fin m) =>
+      indicator (p.1.1 = p.1.2))
+  simp only [hashSplitPair, Equiv.coe_fn_mk] at he
+  have h2 : fintypeExpect
+        (fun p : (Fin m × Fin m) × ({x : Fin n // x ≠ i ∧ x ≠ j} → Fin m) =>
+          indicator (p.1.1 = p.1.2)) = 1 / (m : ℝ) := by
+    rw [← fintypeExpect_prod_diag hm]
+    exact fintypeExpect_fst hcard (fun q : Fin m × Fin m => indicator (q.1 = q.2))
+  exact he.trans h2
+
+/-- The number of ordered pairs `i < j` in `Fin n`, counted in `ℝ`, is
+`n(n-1)/2`.  This is the Gauss triangle count obtained from trichotomy and the
+symmetry of the strict order. -/
+theorem sum_upper_triangle (n : Nat) :
+    (∑ i : Fin n, ∑ j : Fin n, (if i < j then (1 : ℝ) else 0))
+      = (n : ℝ) * ((n : ℝ) - 1) / 2 := by
+  have hpt : ∀ i j : Fin n,
+      (if i < j then (1 : ℝ) else 0) + (if j < i then (1 : ℝ) else 0)
+        + (if i = j then (1 : ℝ) else 0) = 1 := by
+    intro i j
+    rcases lt_trichotomy i j with h | h | h
+    · have h1 : ¬ j < i := lt_asymm h
+      have h2 : ¬ i = j := ne_of_lt h
+      simp [h, h1, h2]
+    · subst h; simp
+    · have h1 : ¬ i < j := lt_asymm h
+      have h2 : ¬ i = j := fun he => (ne_of_lt h) he.symm
+      simp [h, h1, h2]
+  have hUL : (∑ i : Fin n, ∑ j : Fin n, (if i < j then (1 : ℝ) else 0))
+      = ∑ i : Fin n, ∑ j : Fin n, (if j < i then (1 : ℝ) else 0) := Finset.sum_comm
+  have hD : (∑ i : Fin n, ∑ j : Fin n, (if i = j then (1 : ℝ) else 0)) = (n : ℝ) := by
+    have hone : ∀ i : Fin n, (∑ j : Fin n, (if i = j then (1 : ℝ) else 0)) = 1 := by
+      intro i; simp
+    rw [Finset.sum_congr rfl (fun i _ => hone i), Finset.sum_const,
+      Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one]
+  have hAll : (∑ i : Fin n, ∑ j : Fin n, (if i < j then (1 : ℝ) else 0))
+      + (∑ i : Fin n, ∑ j : Fin n, (if j < i then (1 : ℝ) else 0))
+      + (∑ i : Fin n, ∑ j : Fin n, (if i = j then (1 : ℝ) else 0))
+      = (n : ℝ) * (n : ℝ) := by
+    rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]
+    have hstep : (∑ i : Fin n, ((∑ j : Fin n, (if i < j then (1 : ℝ) else 0))
+        + (∑ j : Fin n, (if j < i then (1 : ℝ) else 0))
+        + ∑ j : Fin n, (if i = j then (1 : ℝ) else 0)))
+        = ∑ _i : Fin n, (n : ℝ) := by
+      refine Finset.sum_congr rfl (fun i _ => ?_)
+      rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib,
+        Finset.sum_congr rfl (fun j _ => hpt i j), Finset.sum_const,
+        Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one]
+    rw [hstep, Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  rw [← hUL, hD] at hAll
+  have h2 : (∑ i : Fin n, ∑ j : Fin n, (if i < j then (1 : ℝ) else 0))
+      = ((n : ℝ) * (n : ℝ) - (n : ℝ)) / 2 := by linarith
+  rw [h2]; ring
+
+/-- Cost of a successful search for the `i`-th inserted key under a hash
+assignment `a`: one probe for `k_i` itself, plus one probe for every
+later-inserted key `k_j` (index `j > i`) that hashes to the same bucket (CLRS
+proof of Theorem 11.2, keys prepended so those ahead of `k_i` are exactly the
+later ones). -/
+noncomputable def successfulSearchKeyCost {m n : Nat}
+    (a : Fin n → Fin m) (i : Fin n) : ℝ :=
+  1 + ∑ j : Fin n, (if i < j then indicator (a i = a j) else 0)
+
+/-- Average successful-search cost over the `n` stored keys, for a fixed hash
+assignment `a` (the query key is uniform over the stored keys). -/
+noncomputable def averageSuccessfulSearchCost {m n : Nat}
+    (a : Fin n → Fin m) : ℝ :=
+  (1 / (n : ℝ)) * ∑ i : Fin n, successfulSearchKeyCost a i
+
+/--
+**Expected successful-search cost = `1 + (n-1)/(2m)` (true expectation).**  This
+is CLRS Theorem 11.2 (`Θ(1 + α)`, exact form `1 + α/2 - α/(2n)`), proved as a
+genuine double expectation: over the uniformly random query key and over the
+SUHA input distribution `Fin n → Fin m`. -/
+theorem expectedRandomSuccessfulSearchCost {m n : Nat} (hm : 0 < m) (hn : 0 < n) :
+    fintypeExpect (fun a : Fin n → Fin m => averageSuccessfulSearchCost a)
+      = 1 + ((n : ℝ) - 1) / (2 * (m : ℝ)) := by
+  haveI : Nonempty (Fin m) := ⟨⟨0, hm⟩⟩
+  have hmcard : Fintype.card (Fin n → Fin m) ≠ 0 := Fintype.card_ne_zero
+  have hn' : (n : ℝ) ≠ 0 := by exact_mod_cast hn.ne'
+  have hm' : (m : ℝ) ≠ 0 := by exact_mod_cast hm.ne'
+  have hE : fintypeExpect (fun a : Fin n → Fin m =>
+      ∑ i : Fin n, ∑ j : Fin n, (if i < j then indicator (a i = a j) else 0))
+      = ∑ i : Fin n, ∑ j : Fin n, (if i < j then (1 / (m : ℝ)) else 0) := by
+    rw [fintypeExpect_sum Finset.univ (fun (i : Fin n) (a : Fin n → Fin m) =>
+      ∑ j : Fin n, (if i < j then indicator (a i = a j) else 0))]
+    refine Finset.sum_congr rfl (fun i _ => ?_)
+    rw [fintypeExpect_sum Finset.univ (fun (j : Fin n) (a : Fin n → Fin m) =>
+      if i < j then indicator (a i = a j) else 0)]
+    refine Finset.sum_congr rfl (fun j _ => ?_)
+    by_cases hlt : i < j
+    · simp only [if_pos hlt]
+      exact pairCollisionProb i j (ne_of_lt hlt) hm
+    · simp only [if_neg hlt]
+      exact fintypeExpect_const hmcard 0
+  have hpair : (∑ i : Fin n, ∑ j : Fin n, (if i < j then (1 / (m : ℝ)) else 0))
+      = (1 / (m : ℝ)) * ((n : ℝ) * ((n : ℝ) - 1) / 2) := by
+    rw [← sum_upper_triangle n, Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun i _ => ?_)
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun j _ => ?_)
+    by_cases h : i < j <;> simp [h]
+  have hG : fintypeExpect (fun a : Fin n → Fin m =>
+        ∑ i : Fin n, successfulSearchKeyCost a i)
+      = (n : ℝ) + (1 / (m : ℝ)) * ((n : ℝ) * ((n : ℝ) - 1) / 2) := by
+    have hGkey : (fun a : Fin n → Fin m => ∑ i : Fin n, successfulSearchKeyCost a i)
+        = (fun a => (fun _ : Fin n → Fin m => (n : ℝ)) a
+            + (fun a => ∑ i : Fin n, ∑ j : Fin n,
+                (if i < j then indicator (a i = a j) else 0)) a) := by
+      funext a
+      show (∑ i : Fin n, successfulSearchKeyCost a i)
+          = (n : ℝ) + ∑ i : Fin n, ∑ j : Fin n,
+              (if i < j then indicator (a i = a j) else 0)
+      unfold successfulSearchKeyCost
+      rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+        nsmul_eq_mul, mul_one]
+    rw [hGkey, fintypeExpect_add, fintypeExpect_const hmcard, hE, hpair]
+  have key : (fun a : Fin n → Fin m => averageSuccessfulSearchCost a)
+      = (fun a => (1 / (n : ℝ))
+          * (fun a => ∑ i : Fin n, successfulSearchKeyCost a i) a) := rfl
+  rw [key, fintypeExpect_const_mul, hG]
+  field_simp
+
+/-! ## Random hash-function model (universal hashing)
+
+The analysis above randomises *key placement*: keys hash independently and
+uniformly.  Universal hashing instead fixes the keys and randomises the *hash
+function*, drawn uniformly from a family `H : ι → (K → Fin m)`.  The family is
+**universal** when any two distinct keys collide with probability at most `1/m`
+(CLRS Definition of a universal family, equation (11.4)).  From this hypothesis
+alone we recover the expected collision bound `α = n/m` and the expected search
+cost `1 + α` (CLRS Theorem 11.3). -/
+
+/-- A finite family of hash functions `H : ι → (K → Fin m)` is **universal** if
+any two distinct keys collide under a uniformly random member of the family with
+probability at most `1/m` (CLRS equation (11.4)). -/
+def IsUniversal {ι K : Type} [Fintype ι] [DecidableEq ι] {m : Nat}
+    (H : ι → (K → Fin m)) : Prop :=
+  ∀ x y : K, x ≠ y →
+    fintypeExpect (fun t : ι => indicator (H t x = H t y)) ≤ 1 / (m : ℝ)
+
+/--
+**Expected collisions under universal hashing ≤ `α = n/m`.**  Fix a query key
+`x` and `n` stored keys `k i`, all distinct from `x`.  Under a uniformly random
+member of a universal family, the expected number of stored keys colliding with
+`x` is at most the load factor `n/m` (CLRS Theorem 11.3). -/
+theorem universal_expected_collisions {ι K : Type} [Fintype ι] [DecidableEq ι]
+    {m n : Nat} (H : ι → (K → Fin m)) (hU : IsUniversal H)
+    (x : K) (k : Fin n → K) (hk : ∀ i, k i ≠ x) :
+    fintypeExpect (fun t : ι => ∑ i : Fin n, indicator (H t x = H t (k i)))
+      ≤ (n : ℝ) / (m : ℝ) := by
+  rw [fintypeExpect_sum Finset.univ
+    (fun (i : Fin n) (t : ι) => indicator (H t x = H t (k i)))]
+  calc ∑ i : Fin n, fintypeExpect (fun t : ι => indicator (H t x = H t (k i)))
+      ≤ ∑ _i : Fin n, (1 / (m : ℝ)) :=
+        Finset.sum_le_sum (fun i _ => hU x (k i) (Ne.symm (hk i)))
+    _ = (n : ℝ) / (m : ℝ) := by
+        rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+        ring
+
+/--
+**Expected successful/unsuccessful search cost under universal hashing
+≤ `1 + α`.**  One probe plus the expected number of colliding stored keys
+(CLRS Theorem 11.3, the universal-hashing analogue of Theorems 11.1-11.2). -/
+theorem universal_expected_search_cost {ι K : Type} [Fintype ι] [DecidableEq ι]
+    [Nonempty ι] {m n : Nat} (H : ι → (K → Fin m)) (hU : IsUniversal H)
+    (x : K) (k : Fin n → K) (hk : ∀ i, k i ≠ x) :
+    fintypeExpect (fun t : ι => 1 + ∑ i : Fin n, indicator (H t x = H t (k i)))
+      ≤ 1 + (n : ℝ) / (m : ℝ) := by
+  have hcard : Fintype.card ι ≠ 0 := Fintype.card_ne_zero
+  have key : (fun t : ι => 1 + ∑ i : Fin n, indicator (H t x = H t (k i)))
+      = (fun t => (fun _ : ι => (1 : ℝ)) t
+          + (fun t => ∑ i : Fin n, indicator (H t x = H t (k i))) t) := rfl
+  rw [key, fintypeExpect_add, fintypeExpect_const hcard]
+  have hbound := universal_expected_collisions H hU x k hk
+  linarith
 
 end Chapter11
 end CLRS
