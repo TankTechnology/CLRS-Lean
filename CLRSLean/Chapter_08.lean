@@ -1,5 +1,5 @@
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort
-import CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array
+import CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables
 import CLRSLean.Chapter_08.Section_08_3_Radix_Sort
 import CLRSLean.Chapter_08.Section_08_4_Bucket_Sort
 

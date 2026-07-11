@@ -7,12 +7,14 @@ import argparse
 import csv
 from collections import Counter
 from pathlib import Path
+import re
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "docs" / "clrs-proof-progress.csv"
 DASHBOARD_PATH = ROOT / "CLRSLean" / "Progress.lean"
+CLRSLEAN_PATH = ROOT / "CLRSLean"
 
 HEADER = [
     "chapter_no",
@@ -84,11 +86,61 @@ def validate(rows: list[dict[str, str]]) -> None:
         for key in ("chapter_title", "repo_status", "completion_read", "evidence_source"):
             require(row[key].strip(), f"Chapter {chapter_no}: {key} must be nonempty")
 
+        for source in (part.strip() for part in row["evidence_source"].split(";")):
+            if source == "CLRSLean file tree":
+                continue
+            require(
+                (ROOT / source).is_file(),
+                f"Chapter {chapter_no}: evidence source does not exist: {source}",
+            )
+
+        require(
+            row["repo_status"] in STATUS_ORDER,
+            f"Chapter {chapter_no}: unknown repo_status {row['repo_status']}",
+        )
+
         if row["repo_status"] == "not-started":
             require(
                 row["represented_sections"].lower() == "none",
                 f"Chapter {chapter_no}: not-started rows should use represented_sections=None",
             )
+            chapter_dir = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}"
+            section_files = list(chapter_dir.rglob("Section_*.lean")) if chapter_dir.is_dir() else []
+            require(
+                not section_files,
+                f"Chapter {chapter_no}: marked not-started but section files exist",
+            )
+            continue
+
+        guide = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}.lean"
+        require(guide.is_file(), f"Chapter {chapter_no}: missing guide {guide.relative_to(ROOT)}")
+
+        if row["repo_status"] == "expository":
+            require(
+                row["represented_sections"] == f"Chapter_{chapter_no:02d}",
+                f"Chapter {chapter_no}: expository row should name its guide module",
+            )
+            continue
+
+        expected_sections = {part.strip() for part in row["represented_sections"].split(";")}
+        require(
+            all(re.fullmatch(rf"{chapter_no}\.\d+", part) for part in expected_sections),
+            f"Chapter {chapter_no}: represented_sections must be semicolon-separated section numbers",
+        )
+
+        chapter_dir = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}"
+        require(chapter_dir.is_dir(), f"Chapter {chapter_no}: missing section directory")
+        actual_sections: set[str] = set()
+        for section_file in chapter_dir.rglob("Section_*.lean"):
+            match = re.match(r"Section_(\d+)_(\d+)_", section_file.name)
+            require(match is not None, f"Unexpected section filename: {section_file.name}")
+            actual_sections.add(f"{int(match.group(1))}.{int(match.group(2))}")
+
+        require(
+            expected_sections == actual_sections,
+            f"Chapter {chapter_no}: CSV sections {sorted(expected_sections)} "
+            f"do not match source sections {sorted(actual_sections)}",
+        )
 
 
 def lit(text: str) -> str:
@@ -117,7 +169,7 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
         "This page is the public, reader-facing progress dashboard for CLRS-Lean.",
         f"The machine-readable source of truth is {lit('docs/clrs-proof-progress.csv')}.",
         "When the CSV changes, regenerate this page with",
-        f"{lit('python3 scripts/check_progress_csv.py --write-dashboard')}.",
+        f"{lit('uv run python scripts/check_progress_csv.py --write-dashboard')}.",
         "",
         "## Snapshot",
         "",
@@ -182,7 +234,7 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
             "Minimum maintenance loop:",
             "",
             f"1. Update the relevant chapter/section Lean files and {lit('docs/clrs-proof-progress.csv')}.",
-            f"2. Run {lit('python3 scripts/check_progress_csv.py --write-dashboard')}.",
+            f"2. Run {lit('uv run python scripts/check_progress_csv.py --write-dashboard')}.",
             f"3. Run {lit('lake build CLRSLean')} and, for website changes, {lit('lake build :literateHtml')}.",
             "-/",
             "",

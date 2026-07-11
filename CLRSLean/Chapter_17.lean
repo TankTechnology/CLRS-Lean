@@ -1,5 +1,5 @@
 import CLRSLean.Chapter_17.Section_17_1_Amortized_Framework
-import CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter
+import CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter
 import CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables
 
 /-!
@@ -22,7 +22,7 @@ wrappers, including exact zero/positive deletion cost specifications.
 
 ## Sections
 
-* 17.1-17.3 Amortized analysis framework: {lit}`proved` for finite-prefix
+* 17.1-17.3 Amortized analysis methods: {lit}`proved` for finite-prefix
   aggregate, accounting, and potential telescoping facts.
   Main results:
   {lit}`CLRS.Chapter17.aggregate_bound_of_prefix_bound`,
@@ -30,7 +30,7 @@ wrappers, including exact zero/positive deletion cost specifications.
   {lit}`CLRS.Chapter17.accounting_totalCost_le_totalCharge`,
   {lit}`CLRS.Chapter17.potential_totalCost_eq_totalAmortized_sub_delta`, and
   {lit}`CLRS.Chapter17.potential_totalCost_le_totalAmortized`.
-* 17.2 Stack and counter examples: {lit}`partial`.
+* Supporting stack and counter examples: {lit}`partial`.
   Main results:
   {lit}`CLRS.Chapter17.multiPop_totalCost_le`,
   {lit}`CLRS.Chapter17.binaryCounter_increment_potential_le_two`,

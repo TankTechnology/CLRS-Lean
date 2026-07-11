@@ -34,15 +34,30 @@ maximum, increase-key, extract-max, and delete.
 The deferred implementation layer is now the line-by-line CLRS RAM-cost model,
 not the array heap proof itself.
 
-### Union-Find Correctness
+### Chapter 23 Mutable Heap And RAM Refinement
 
-- Related section: Section 23.2 - Kruskal and Prim
-- Status: `deferred-implementation`
-- Current decision: do not prove it in the first CLRS-Lean phase.
+- Related sections: Sections 21.3-21.4 and 23.2
+- Status: `deferred-low-level-implementation`
+- Functional correctness and algorithm-level cost status: proved
 
-The current MST proof uses `ComponentOracle` and `CycleTestImplementation` as
-interfaces.  A future union-find implementation can refine this interface
-without changing the mathematical Kruskal proof.
+Chapter 21 now proves singleton initialization, path-compressing `find`,
+union-by-rank, and Boolean equivalence queries against a common partition
+specification.  It also counts the real Batteries parent recursion, proves
+rank mass for all states reachable by the costed operation machine, instantiates
+the Ackermann level/index potential, and derives an `O((m+n) alpha(n))`
+whole-run bound.  The Chapter 23 bridge proves that any family of faithful
+union-find states implements `CycleTestImplementation`.
+
+Chapter 23 now incrementally threads that real costed machine through every
+Kruskal edge, proves connectivity faithfulness after each union, and derives
+both the inverse-Ackermann scan term and the complete sorting-plus-scan
+`O(E log E)` bound.  Prim now has an executable indexed queue with keys,
+parents, decrease-key, extract-min, a concrete frontier provider, refinement
+to `PrimTrace`, and a binary-heap operation-count proof of `O(E log V)`.
+
+The deferred layer is narrower: refine the indexed Prim queue to the concrete
+array state of `Batteries.BinaryHeap`, and add explicit mutable-array write and
+RAM charges.  The mathematical and functional algorithm proofs are closed.
 
 ## Blocked Design
 
@@ -56,25 +71,15 @@ function, including insert/delete/search behavior.  The CLRS expected-time
 theorem needs a probability model over keys, hash functions, or random
 assignments before we can state simple uniform hashing precisely.
 
-### Master Theorem Extension Beyond Exact Powers
+### Master Theorem Generalization Beyond The Current Assumptions
 
 - Related section: Section 4.5 - The master method
 - Status: `future-work`
 
-The exact-power recurrence expansion and three exact-power Master-style cases
-are compiler-clean.  Section 4.6 now also proves floor/ceiling recurrence
-interfaces, extracts exact-power recurrences from those all-input models, and
-proves the generic transfer bridge from exact powers to all natural input sizes
-under monotone-cost and power-sandwich hypotheses.  Section 4.6 also now proves
-the adjacent-power `Nat.log` interval and derives both sandwich hypotheses from
-monotone comparison scales with eventual one-step control.  It also proves the
-discrete `criticalPowerScale`, `criticalPowerLogScale`, and
-`tailDominatedScale` all-input wrappers for exact-power `Θ(a^i)`,
-`Θ((i+1)a^i)`, and tail-dominated bounds, including floor/ceiling recurrence
-wrappers for exact-power Master cases 1, 2, and 3.  Case 1 is also packaged
-against the textbook `n^(log_b a)` scale, and case 2 against
-`n^(log_b a) log n`.  The remaining analytic strengthening is the case-3
-forcing comparison scale.
+The exact-power cases, floor/ceiling transfer, adjacent-power sandwich, and
+textbook-facing comparison scales for cases 1, 2, and regular case 3 are
+compiler-clean.  Future work may weaken assumptions or package additional
+variants, but there is no remaining core case-3 comparison gap.
 
 ### Remaining Chapter 4 Sections
 
@@ -82,14 +87,9 @@ forcing comparison scale.
 - Status: `future-work`
 
 These sections are not excluded from CLRS-Lean.  The remaining refinements need
-distinct representation choices: general-size block matrices for Strassen and
-the final comparison-scale layer for the full Master Theorem.  Sections 4.3,
-4.4, and 4.6 now provide reusable recurrence, recursion-tree, and all-input
-transfer infrastructure, including adjacent-power sandwich generation,
-discrete Master-scale wrappers, packaged floor/ceiling cases 1/2/3, and
-natural-exponent polynomial wrappers for Master cases 1 and 2, the real-log
-case-1 bridge, and the real-log-log case-2 bridge.  The remaining
-Master-theorem comparison work is the case-3 forcing-scale layer.
+distinct representation choices: general-size recursive block matrices for
+Strassen and explicit algorithm/RAM cost models.  The current Master-theorem
+comparison stack covers all three textbook cases under its stated assumptions.
 
 ### Maximum-Subarray Runtime Analysis
 
@@ -113,44 +113,6 @@ and `CLRS.Chapter04.maxSubarrayDivideFuel_correct` proves a fuelled midpoint
 divide-and-conquer selector against the original input.  The remaining CLRS
 refinement is runtime recurrence analysis and, eventually, a RAM-cost model for
 the textbook pseudocode.
-
-### Concrete MST Exchange Edge
-
-- Related section: Section 23.1 - Growing a minimum spanning tree
-- Status: `blocked-design`
-
-The current theorem assumes a cut exchange certificate.  To remove that
-assumption, we need a stable finite path or walk representation and a boundary
-edge lemma for paths crossing a cut.
-
-### Kruskal Exchange And Full Optimality Layer
-
-- Related sections: Sections 23.1 and 23.2
-- Status: `blocked-design` for concrete exchange paths; `partial` for the
-  full recursive optimality wrapper
-
-Kruskal's textbook proof relies on processing edges in nondecreasing weight.
-The Lean proof now has a compiler-clean sorted-order lightness layer:
-`CLRS.MST.lightest_crossing_of_sorted_prefix` proves that a sorted edge list
-makes the current edge light once all crossing candidates are in the current
-suffix, and `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`
-packages that fact as a component-oracle cut certificate.
-
-The stronger exact-component layer is now compiler-clean as well:
-`CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal` derives the
-processed-prefix exclusion invariant for an actual Kruskal prefix, and
-`CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix` packages it with
-sorted edge order.  The finite-graph wrapper also proves the final-tree
-obligation for complete exact-component scans from an initial forest:
-`CLRS.MST.FiniteGraph.kruskal_subset_edges` and
-`CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`,
-`CLRS.MST.FiniteGraph.kruskal_forest_of_exact_component`, and
-`CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`.
-
-The remaining MST gaps are the concrete path/cycle exchange edge, replacing the
-global lightness hypothesis in the finite-graph optimality wrapper with the
-prefix-local sorted-order theorem, Prim's theorem interface, and any optional
-union-find refinement.
 
 ## Future Work
 
@@ -302,23 +264,27 @@ The current Section 10.2 file proves the functional-list membership behavior of
 search, insertion, and deletion.  Predecessor/successor pointer updates,
 sentinels, allocation, and free lists require a shared imperative memory model.
 
-### Binary-Search-Tree Pointer Navigation And Transplant
+### Binary-Search-Tree Pointer-Level Mutation
 
 - Related section: Section 12.1 - Binary search trees
-- Status: `future-work`
+- Status: `deferred-implementation`
 
 Search, minimum/maximum, functional successor/predecessor, insertion, and
-functional deletion membership/order preservation are proved.  The remaining
-BST work is the CLRS parent-pointer, transplant, and mutation refinement layer.
+functional deletion membership/order preservation are proved.  A zipper-based
+parent-pointer layer is now also proved: iterative search
+(`searchIter_eq_search`), `TRANSPLANT` ordering preservation
+(`transplant_preserves_ordered`), `TREE-DELETE` via transplant
+(`deleteViaTransplant_eq_delete`), and parent-pointer successor/predecessor
+(`successorZipper_eq_successor?`, `predecessorZipper_eq_predecessor?`), each
+proved equivalent to the functional operation.  The remaining BST work is the
+imperative in-place pointer-mutation (RAM) refinement.
 
-### Full Red-Black Insertion And Deletion
+### Red-Black Deletion And Height
 
 - Related section: Section 13.1 - Red-black trees
 - Status: `future-work`
 
-The current Chapter 13 file proves local rotation, root recoloring,
-black-height balance, red-red repair certificates, and four local
-`RB-INSERT-FIXUP` case certificates.  A full CLRS proof still needs those local
-cases composed into executable `RB-INSERT`/`RB-INSERT-FIXUP`, plus
-`RB-DELETE`, `RB-DELETE-FIXUP`, preservation of the red-black invariants, and
-the height bound.
+The current Chapter 13 file includes executable insertion with membership,
+shape, and black-height theorems.  The remaining CLRS proof layer is executable
+`RB-DELETE`, `RB-DELETE-FIXUP`, invariant preservation, and the logarithmic
+height bound.
