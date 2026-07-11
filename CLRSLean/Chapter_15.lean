@@ -26,8 +26,11 @@ future refinements.
   {lit}`CLRS.Chapter15.planValue_le_table_of_rodCutTableRecurrence`,
   {lit}`CLRS.Chapter15.planValue_le_bottomUpRodRevenue`,
   {lit}`CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`,
-  {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`, and
-  {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`.
+  {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`,
+  {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`,
+  {lit}`CLRS.Chapter15.rodRevenueArray_correct`,
+  {lit}`CLRS.Chapter15.rodRevenueArray_rodCutTableRecurrence`, and
+  {lit}`CLRS.Chapter15.planValue_le_rodRevenueArray`.
 * 15.2 Matrix-chain multiplication: {lit}`partial`.
   Main results: {lit}`CLRS.Chapter15.matrixChain_opt_le_planCost`,
   {lit}`CLRS.Chapter15.matrixChain_reconstructed_cost_eq`,
@@ -67,9 +70,11 @@ future refinements.
 The current files prove mathematical optimality interfaces for rod cutting,
 matrix-chain multiplication, LCS, and optimal binary search trees.  Rod cutting
 and OBST have executable recurrence-valued functions, while matrix chain, LCS,
-and OBST expose proved pure reconstruction procedures.  Mutable-array table
-construction, memoized mutation, and RAM-cost semantics remain future
-refinements.
+and OBST expose proved pure reconstruction procedures.  Rod cutting additionally
+has a mutable-{lit}`Array` bottom-up table ({lit}`CLRS.Chapter15.rodRevenueArray`)
+with a refinement theorem to the pure recurrence value; the sibling DP sections
+follow the same pattern.  Top-down memoized mutation and RAM-cost semantics remain
+future refinements.
 -/
 
 namespace CLRS
