@@ -14,7 +14,7 @@ Last repository-wide status reconciliation: 2026-07-11.
 | Chapter 2 | Insertion sort, merge sort, and represented cost/recurrence results | Full RAM semantics and arbitrary-size merge-sort recurrence |
 | Chapter 5.1 | Hiring probability, harmonic expectation, and logarithmic asymptotic bound | General probability toolkit and other randomized examples |
 | Chapter 6 | Heap predicate, heapify, build-heap, heapsort, and represented priority-queue correctness | Line-by-line RAM costs |
-| Chapter 8 correctness | Represented counting-sort, radix-sort, bucket-sort correctness, and the bucket-sort second moment `E[Σ n_i²] = n + n(n-1)/m` as a true expectation over the independent uniform input distribution | Mutable output array and RAM/step-count cost semantics |
+| Chapter 8 correctness | Represented counting-sort correctness with a mutable output-array (`Array`) refinement filled by a cumulative-count reverse scan and its linear `O(n + k)` work bound, radix-sort, bucket-sort correctness, and the bucket-sort second moment `E[Σ n_i²] = n + n(n-1)/m` as a true expectation over the independent uniform input distribution | RAM/step-count cost semantics |
 | Chapter 10.1-10.2 | Functional stacks, queues, and linked lists | Pointer memory and allocation |
 | Chapter 16.1 and 16.3 | Activity-selection and Huffman optimality | Other greedy sections |
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and stateful Chapter 23 integration |
