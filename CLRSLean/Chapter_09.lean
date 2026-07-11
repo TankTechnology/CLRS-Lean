@@ -46,7 +46,11 @@ linear-bound wrapper used by the textbook linear-time argument.
   {lit}`CLRS.Chapter09.clrsSelectRecurrence_linear_bound`,
   {lit}`CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`, and
   {lit}`CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`, and
-  {lit}`CLRS.Chapter09.medianOfMediansSelect?_correct`.
+  {lit}`CLRS.Chapter09.medianOfMediansSelect?_correct`; the executable cost
+  semantics {lit}`CLRS.Chapter09.medianOfMediansSelectCost` with its explicit
+  linear bound {lit}`CLRS.Chapter09.medianOfMediansSelectCost_linear_bound`
+  ({lit}`cost ≤ 17 * n`), built on the generic
+  {lit}`CLRS.Chapter09.selectCost_linear_bound`.
 * 9.2 Randomized SELECT expected time: {lit}`proved` for the uniform
   independent-pivot expected-comparison model, its derived recurrence, and the
   CLRS Theorem 9.2 linear expected-time bound, built on the
@@ -60,8 +64,10 @@ linear-bound wrapper used by the textbook linear-time argument.
 
 ## Current Gaps
 
-* Deterministic linear-time SELECT still needs a concrete executable cost
-  semantics connected to the proved abstract recurrence theorem.
+* Deterministic linear-time SELECT now has a concrete executable cost counter
+  ({lit}`CLRS.Chapter09.medianOfMediansSelectCost`) with an explicit linear
+  bound {lit}`cost ≤ 17 * n`; the remaining refinement is a fully operational
+  RAM step-count that also unfolds the recursive cost of computing the pivot.
 * The randomized SELECT model charges the larger partition side (the standard
   majorizing recurrence); a full joint distribution over all recursion levels
   and a concrete step-count cost model remain future refinements.
