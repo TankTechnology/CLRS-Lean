@@ -28,10 +28,19 @@ and by future divide-and-conquer runtime proofs.
   {lit}`maxSubarrayDivideFuel_correct` for a fuelled midpoint splitter.  The
   remaining refinement target is runtime/RAM-cost analysis.
 * Section 4.2 - Strassen's algorithm for matrix multiplication:
-  {lit}`proved` for 2 by 2 block algebra.
+  {lit}`proved` for 2 by 2 block algebra, the recursive algorithm, and runtime.
   The file proves {lit}`CLRS.Chapter04.strassen2x2_correct`: Strassen's seven
   products reconstruct ordinary 2 by 2 block matrix multiplication over an
-  arbitrary ring.
+  arbitrary ring.  It then packages this into the recursive algorithm
+  {lit}`CLRS.Chapter04.strassenRec` on depth-indexed power-of-two squares
+  {lit}`CLRS.Chapter04.SqMat`, with a scalar base case, and proves
+  {lit}`CLRS.Chapter04.strassenRec_correct` that it computes the true matrix
+  product at every depth.  {lit}`CLRS.Chapter04.strassenRec_padOne` shows that
+  zero-padding an input into the next power-of-two block preserves the
+  top-left product.  Finally {lit}`CLRS.Chapter04.strassen_runtime_bigTheta`
+  proves the CLRS runtime: the recurrence {lit}`T(n) = 7 T(⌊n/2⌋) + n²` is
+  {lit}`Θ(n^(log₂ 7))`, discharged through the Chapter 4 Master-theorem case-1
+  wrapper.
 * Section 4.3 - The substitution method: {lit}`proved` for one-step recurrence
   bounds.
   The file proves upper-bound, lower-bound, sandwich, linear, and geometric
