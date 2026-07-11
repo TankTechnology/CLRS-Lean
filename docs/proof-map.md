@@ -1305,7 +1305,8 @@ rotation and still expose the same ideal rank-selection behavior afterward.
 ### Section 15.1 - Rod cutting
 
 - Lean source: `CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean`
-- Status: `proved` for the mathematical cut-optimality layer
+- Status: `proved` for the mathematical cut-optimality layer and the mutable-array
+  bottom-up implementation refinement
 - Main proved theorems:
   - `CLRS.Chapter15.firstCutValue_le_of_rodCutRecurrence`
   - `CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`
@@ -1324,16 +1325,27 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`
   - `CLRS.Chapter15.planValue_le_tablePlanValue_of_same_length`
   - `CLRS.Chapter15.planValue_le_bottomUpRodPlanValue_of_same_length`
+  - `CLRS.Chapter15.rodRevenueArrayAux_size`
+  - `CLRS.Chapter15.arrGet_rodRevenueArrayAux`
+  - `CLRS.Chapter15.rodRevenueArray_size`
+  - `CLRS.Chapter15.rodRevenueArray_correct`
+  - `CLRS.Chapter15.rodRevenueArray_full`
+  - `CLRS.Chapter15.rodRevenueArray_rodCutTableRecurrence`
+  - `CLRS.Chapter15.planValue_le_rodRevenueArray`
 - Proof pattern: state the Bellman first-cut recurrence abstractly, expose a
   finite bottom-up table-prefix recurrence, prove every admissible first cut is
   bounded by the recurrence/table value, then induct over positive-piece
-  cutting plans to prove global optimality certificates
-- Current gap: mutable-array and memoized implementation correctness remains a
-  future refinement target
+  cutting plans to prove global optimality certificates; finally build the CLRS
+  `BOTTOM-UP-CUT-ROD` table as an `Array Nat` filled one `Array.push` at a time and
+  prove by induction that every filled entry refines the pure recurrence value,
+  from which the array read inherits `RodCutTableRecurrence` and the plan bound
+- Current gap: top-down memoized-cache implementation and RAM-cost semantics remain
+  future refinement targets
 
 This first dynamic-programming proof establishes the textbook optimal
 substructure argument and the correctness condition for a bottom-up table
-prefix independently of a particular mutable-array implementation.
+prefix, then refines it to an executable mutable-`Array` bottom-up table whose
+reads are proved equal to the pure recurrence value.
 
 ### Section 15.2 - Matrix-chain multiplication
 
