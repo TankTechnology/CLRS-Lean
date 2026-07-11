@@ -36,7 +36,7 @@ missing core theorem groups.
 | 11 | Deterministic hash tables and finite-uniform bucket averages | Random key/hash-function model with independence |
 | 12 | Functional BST operations plus zipper-based parent navigation, transplant, and deletion equivalence | Imperative in-place pointer mutation and RAM refinement |
 | 13 | Executable red-black insertion, invariant proofs, the logarithmic-height theorem (Lemma 13.1), and local `RB-DELETE-FIXUP` case certificates (membership + terminating Case-4 shape) | Fully-composed executable `RB-DELETE`/`RB-DELETE-FIXUP` loop |
-| 14 | Order-statistic augmentation, generic local augmentation, the general augmentation theorem (CLRS Theorem 14.1), a size instance, and interval-search correctness | Red-black balancing bridge and stored-field executable refinement |
+| 14 | Order-statistic augmentation, the general augmentation theorem (CLRS Theorem 14.1), interval-search correctness, and a value-level red-black rotation/recoloring bridge | Stored-field refinement through executable red-black insertion and deletion |
 | 15 | Rod cutting, matrix chain, LCS, and optimal BST optimality with pure executable tables/reconstruction | Mutable-array/memoized refinement and RAM costs |
 | 17 | Aggregate/accounting/potential framework and represented examples | Mutable arrays, allocator costs, sharper table model |
 | 18 | Mathematical B-tree search/split/insert/delete specs | Occupancy/depth invariants and page mutation |
