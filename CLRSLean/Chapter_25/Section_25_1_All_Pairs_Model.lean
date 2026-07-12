@@ -313,19 +313,72 @@ theorem lemma_25_1 (m : ℕ) (i j : V) : G.L (m + 1) i j =
     (Finset.univ : Finset V).inf (fun k => G.L m i k + G.weightMatrix k j) := by
   simp [L_succ, extendShortestPaths, minPlusMul]
 
-/-- **FASTER-APPS correctness.**  After {lit}`numSquarings` repeated squarings,
-the matrix {lit}`fasterAPSP` equals the all-pairs shortest-path matrix {lit}`L^(n-1)}` where
-{lit}`n = |V|`. -/
-theorem fasterAPSP_eq_L (i j : V) : G.fasterAPSP i j = G.L (Fintype.card V - 1) i j := by
+/-! ## Stability and FASTER-APSP correctness -/
+
+/-- {lit}`L` is nonincreasing in the round count: {lit}`L^{k+1} ≤ L^k`. -/
+theorem L_succ_le (k : ℕ) (i j : V) : G.L (k + 1) i j ≤ G.L k i j := by
+  rw [L_succ, extendShortestPaths, minPlusMul]
+  calc
+    (Finset.univ : Finset V).inf (fun k' : V => G.L k i k' + G.weightMatrix k' j) ≤
+      G.L k i j + G.weightMatrix j j := Finset.inf_le (Finset.mem_univ j)
+    _ = G.L k i j := by simp [weightMatrix]
+
+/-- {lit}`L` is monotone: for {lit}`k₁ ≤ k₂` we have {lit}`L^{k₂} ≤ L^{k₁}`. -/
+theorem L_monotone (k₁ k₂ : ℕ) (h : k₁ ≤ k₂) (i j : V) : G.L k₂ i j ≤ G.L k₁ i j := by
+  revert i j
+  induction' h with k h IH generalizing i j
+  · rfl
+  · exact le_trans (L_succ_le k i j) (IH i j)
+
+/-- Under no negative-weight cycles, {lit}`L` stabilizes at {lit}`L^{|V|-1}`:
+for any {lit}`m ≥ |V|-1`, {lit}`L^m = L^{|V|-1}`. -/
+theorem L_stabilizes_after (hNC : G.NoNegCycle) (i j : V) (m : ℕ) (hm : Fintype.card V - 1 ≤ m) :
+    G.L m i j = G.L (Fintype.card V - 1) i j := by
+  apply le_antisymm
+  · -- L(m) ≤ L(n-1) by monotonicity
+    exact G.L_monotone (Fintype.card V - 1) m hm i j
+  · -- L(n-1) ≤ L(m) because L(n-1) = δ is the shortest-path distance
+    -- and L(m) is always realised by some walk (or is ⊤).
+    have h_shortest : G.IsShortestDist i j (G.L (Fintype.card V - 1) i j) := by
+      rw [L_eq_relaxDist]
+      exact G.relaxDist_isShortestDist hNC i j
+    rcases h_shortest with ⟨h_lower, _⟩
+    rcases G.L_attainable m i j with htop | ⟨p, hp, _, hpw⟩
+    · rw [htop]; exact le_top
+    · rw [hpw]; exact h_lower p hp
+
+/-- The number {lit}`numSquarings` ensures {lit}`2^numSquarings ≥ |V| - 1`. -/
+theorem numSquarings_pow_two_ge : 2^numSquarings ≥ Fintype.card V - 1 := by
+  unfold numSquarings
+  set n := Fintype.card V with hn
+  by_cases hn1 : n - 1 ≤ 1
+  · simp [hn1]
+  · have hpos : n - 2 ≥ 1 := by omega
+    have hlt : n - 2 < 2 ^ (Nat.log2 (n - 2) + 1) :=
+      Nat.lt_two_pow_succ (by omega : n - 2 ≠ 0)
+    omega
+
+/-- {lit}`t` iterations of the squaring map starting from the edge-weight matrix
+{lit}`W` give {lit}`L(2^t)`. -/
+theorem iterate_minPlusMul_sq_eq_L_pow_two (t : ℕ) (i j : V) :
+    (fun L => G.minPlusMul L L)^[t] G.weightMatrix i j = G.L (2^t) i j := by
+  induction' t with t ih generalizing i j
+  · simp [L_one_eq_weightMatrix]
+  · rw [Function.iterate_succ', Function.comp_apply, ih]
+    rw [G.L_sq_eq_minPlusMul (2^t) i j]
+    ring
+
+/-- **FASTER-APSP correctness.**  Under no negative-weight cycles, {lit}`fasterAPSP` equals
+the all-pairs shortest-path matrix {lit}`L^{|V|-1} = δ`. -/
+theorem fasterAPSP_eq_L (hNC : G.NoNegCycle) (i j : V) :
+    G.fasterAPSP i j = G.L (Fintype.card V - 1) i j := by
   unfold fasterAPSP
-  -- We need to show that applying (fun L => minPlusMul L L) numSquarings times to
-  -- weightMatrix gives L(n-1).
-  -- We know that L(1) = weightMatrix, L(2k) = minPlusMul(L(k), L(k)), so after
-  -- t squarings starting from L(1), we get L(2^t). We need 2^numSquarings ≥ n-1
-  -- and L(m) stabilizes at L(n-1) for m ≥ n-1.
-  --
-  -- For this initial version, we assert that the iteration produces L(2^numSquarings)
-  -- and that 2^numSquarings ≥ n-1, so L(2^numSquarings) = L(n-1) (stabilization).
-  --
-  -- For now, we state the theorem and prove it using the stabilization property.
-  sorry
+  rw [G.iterate_minPlusMul_sq_eq_L_pow_two numSquarings i j]
+  have h_ge : 2^numSquarings ≥ Fintype.card V - 1 := G.numSquarings_pow_two_ge
+  exact G.L_stabilizes_after hNC i j (2^numSquarings) h_ge
+
+/-- **All-pairs shortest-path distance.**  Under no negative-weight cycles,
+{lit}`fasterAPSP` gives the exact all-pairs shortest-path distances. -/
+theorem fasterAPSP_eq_shortestDist (hNC : G.NoNegCycle) (i j : V) :
+    G.fasterAPSP i j = (G.relaxDist i (Fintype.card V - 1) j) := by
+  rw [G.fasterAPSP_eq_L hNC i j, L_eq_relaxDist]
