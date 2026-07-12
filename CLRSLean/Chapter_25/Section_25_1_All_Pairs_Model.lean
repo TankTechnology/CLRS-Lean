@@ -201,6 +201,44 @@ theorem L_attainable (m : ℕ) (i j : V) : G.L m i j = ⊤ ∨
   rw [L_eq_relaxDist]
   exact G.exists_walk_of_relaxDist i m j
 
+/-! ## Distributive properties of inf and addition in `WithTop ℝ` -/
+
+/-- Addition distributes over infimum on the right in {lit}`WithTop ℝ`. -/
+lemma add_inf_distrib_right (a b c : WithTop ℝ) : (a ⊓ b) + c = (a + c) ⊓ (b + c) := by
+  induction c using WithTop.recTopCoe with
+  | top => simp
+  | coe c =>
+    induction a using WithTop.recTopCoe with
+    | top => simp
+    | coe a =>
+      induction b using WithTop.recTopCoe with
+      | top => simp
+      | coe b => simp [inf_eq_min, min_add_add_right]
+
+/-- `x + (s.inf f) = s.inf (fun y => x + f y)` for nonempty `s`. -/
+lemma Finset.inf_add_distrib (s : Finset V) (h : s.Nonempty) (f : V → WithTop ℝ) (c : WithTop ℝ) :
+    (s.inf f) + c = s.inf (fun x => f x + c) := by
+  induction' s using Finset.induction_on with a s ha ih
+  · exact absurd h h.not_nonempty
+  · rw [Finset.inf_insert, Finset.inf_insert, add_inf_distrib_right]
+    have hsn : s.Nonempty := by
+      by_contra! hs
+      have : s = ∅ := Finset.not_nonempty_iff_eq_empty.mp hs
+      subst this; simp at ha
+    rw [ih hsn]
+
+/-- The two nested infima can be swapped: `inf_u (inf_k f k u) = inf_k (inf_u f k u)`. -/
+lemma Finset.inf_inf_comm (f : V → V → WithTop ℝ) :
+    ((Finset.univ : Finset V).inf (fun u => (Finset.univ : Finset V).inf (fun k => f k u))) =
+    ((Finset.univ : Finset V).inf (fun k => (Finset.univ : Finset V).inf (fun u => f k u))) := by
+  -- Both sides equal the inf over the product set
+  calc
+    ((Finset.univ : Finset V).inf (fun u => (Finset.univ : Finset V).inf (fun k => f k u))) =
+      ((Finset.univ : Finset V) ×ˢ (Finset.univ : Finset V)).inf (fun p : V × V => f p.2 p.1) := by
+      simp [Finset.inf_product]
+    _ = ((Finset.univ : Finset V).inf (fun k => (Finset.univ : Finset V).inf (fun u => f k u))) := by
+      simp [Finset.inf_product]
+
 /-- {lit}`L^0 = I`. -/
 theorem L_zero_eq_identity (i j : V) : G.L 0 i j = G.identityMatrix i j := by
   simp [L_zero, identityMatrix]
@@ -208,3 +246,86 @@ theorem L_zero_eq_identity (i j : V) : G.L 0 i j = G.identityMatrix i j := by
 /-- {lit}`L^1 = W`. -/
 theorem L_one_eq_weightMatrix (i j : V) : G.L 1 i j = G.weightMatrix i j := by
   rw [L_succ, extendShortestPaths, L_zero_eq_identity, minPlusMul_identity_left]
+
+/-! ## Associativity of min-plus multiplication -/
+
+/-- Min-plus multiplication is associative: {lit}`(A ◁ B) ◁ C = A ◁ (B ◁ C)`. -/
+theorem minPlusMul_assoc (A B C : V → V → WithTop ℝ) (i j : V) :
+    G.minPlusMul (G.minPlusMul A B) C i j = G.minPlusMul A (G.minPlusMul B C) i j := by
+  unfold minPlusMul
+  by_cases huniv_nonempty : (Finset.univ : Finset V).Nonempty
+  · calc
+      (Finset.univ : Finset V).inf (fun k : V =>
+        (Finset.univ : Finset V).inf (fun k' : V => A i k' + B k' k) + C k j) =
+        (Finset.univ : Finset V).inf (fun k : V =>
+          (Finset.univ : Finset V).inf (fun k' : V => (A i k' + B k' k) + C k j)) := by
+        refine Finset.inf_congr rfl (fun k hk => ?_)
+        rw [Finset.inf_add_distrib (Finset.univ : Finset V) huniv_nonempty (fun k' => A i k' + B k' k) (C k j)]
+      _ = (Finset.univ : Finset V).inf (fun k' : V =>
+          (Finset.univ : Finset V).inf (fun k : V => (A i k' + B k' k) + C k j)) := by
+        rw [Finset.inf_inf_comm (fun k' k => (A i k' + B k' k) + C k j)]
+      _ = (Finset.univ : Finset V).inf (fun k' : V =>
+          A i k' + (Finset.univ : Finset V).inf (fun k : V => (B k' k + C k j))) := by
+        refine Finset.inf_congr rfl (fun k' hk' => ?_)
+        rw [Finset.add_inf_distrib (Finset.univ : Finset V) huniv_nonempty (A i k') (fun k => (B k' k + C k j))]
+        simp [add_assoc]
+      _ = (Finset.univ : Finset V).inf (fun k' : V =>
+          A i k' + (Finset.univ : Finset V).inf (fun k : V => B k' k + C k j)) := by
+        refine Finset.inf_congr rfl (fun k' hk' => ?_)
+        simp [add_assoc]
+      _ = (Finset.univ : Finset V).inf (fun k' : V =>
+          A i k' + (Finset.univ : Finset V).inf (fun k : V => B k' k + C k j)) := rfl
+  · -- Empty universe: Finset.univ is empty, both sides are ⊤
+    have huniv_empty : (Finset.univ : Finset V) = ∅ := Finset.not_nonempty_iff_eq_empty.mp huniv_nonempty
+    simp [huniv_empty]
+
+/-- {lit}`L (m + n) = minPlusMul (L m) (L n)`.  The shortest-path matrix using at most
+`m + n` edges equals the min-plus product of the matrices using at most `m` and `n` edges. -/
+theorem L_add (m n : ℕ) (i j : V) : G.L (m + n) i j = G.minPlusMul (G.L m) (G.L n) i j := by
+  induction' n with n ih generalizing i j
+  · -- n = 0: L(m+0) = L m = minPlusMul(L m, L 0) = minPlusMul(L m, I) = L m
+    simp [L, minPlusMul_identity_right]
+  · -- n+1: L(m + n + 1) = extendShortestPaths(L(m+n)) = minPlusMul(L(m+n), W)
+    -- By IH: L(m+n) = minPlusMul(L m, L n)
+    -- So: L(m+n+1) = minPlusMul(minPlusMul(L m, L n), W)
+    -- By associativity: = minPlusMul(L m, minPlusMul(L n, W))
+    -- = minPlusMul(L m, L(n+1)) [by definition of L]
+    calc
+      G.L (m + (n + 1)) i j = G.L ((m + n) + 1) i j := by omega
+      _ = G.extendShortestPaths (G.L (m + n)) i j := by rw [L_succ]
+      _ = G.minPlusMul (G.L (m + n)) G.weightMatrix i j := rfl
+      _ = G.minPlusMul (G.minPlusMul (G.L m) (G.L n)) G.weightMatrix i j := by rw [ih]
+      _ = G.minPlusMul (G.L m) (G.minPlusMul (G.L n) G.weightMatrix) i j := by
+        rw [G.minPlusMul_assoc (G.L m) (G.L n) G.weightMatrix i j]
+      _ = G.minPlusMul (G.L m) (G.L (n + 1)) i j := by
+        simp [L_succ, extendShortestPaths]
+
+/-- **Lemma 25.2 (squaring identity).** {lit}`L^(2m) = L^m ◁ L^m`. -/
+theorem L_sq_eq_minPlusMul (m : ℕ) (i j : V) :
+    G.L (2 * m) i j = G.minPlusMul (G.L m) (G.L m) i j := by
+  calc
+    G.L (2 * m) i j = G.L (m + m) i j := by ring
+    _ = G.minPlusMul (G.L m) (G.L m) i j := by rw [G.L_add m m i j]
+
+/-- **Lemma 25.1 (EXTEND-SHORTEST-PATHS correctness).**
+`L^(m+1)_ij = min_k (L^m_ik + w_kj)`. -/
+theorem lemma_25_1 (m : ℕ) (i j : V) : G.L (m + 1) i j =
+    (Finset.univ : Finset V).inf (fun k => G.L m i k + G.weightMatrix k j) := by
+  simp [L_succ, extendShortestPaths, minPlusMul]
+
+/-- **FASTER-APPS correctness.**  After {lit}`numSquarings` repeated squarings,
+the matrix {lit}`fasterAPSP` equals the all-pairs shortest-path matrix {lit}`L^(n-1)}` where
+{lit}`n = |V|`. -/
+theorem fasterAPSP_eq_L (i j : V) : G.fasterAPSP i j = G.L (Fintype.card V - 1) i j := by
+  unfold fasterAPSP
+  -- We need to show that applying (fun L => minPlusMul L L) numSquarings times to
+  -- weightMatrix gives L(n-1).
+  -- We know that L(1) = weightMatrix, L(2k) = minPlusMul(L(k), L(k)), so after
+  -- t squarings starting from L(1), we get L(2^t). We need 2^numSquarings ≥ n-1
+  -- and L(m) stabilizes at L(n-1) for m ≥ n-1.
+  --
+  -- For this initial version, we assert that the iteration produces L(2^numSquarings)
+  -- and that 2^numSquarings ≥ n-1, so L(2^numSquarings) = L(n-1) (stabilization).
+  --
+  -- For now, we state the theorem and prove it using the stabilization property.
+  sorry
