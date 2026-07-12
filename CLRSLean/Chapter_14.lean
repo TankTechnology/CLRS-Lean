@@ -53,20 +53,31 @@ rank selector.
   Main results: {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`,
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`, and
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_spec`.
+  It also packages the general augmentation interface: an **arbitrary**
+  augmentation threaded through an executable red-black insertion on the generic
+  {lit}`CLRS.Chapter14.AugmentedRBTree`, with
+  {lit}`CLRS.Chapter14.AugmentedRBTree.wellAugmented_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.toRB_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.redBlackShape_toRB_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`, and the size and
+  interval instances
+  {lit}`CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert` and
+  {lit}`CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`.
 
 ## Current Gaps
 
 The current model proves the augmentation invariant and rank-selection
 correctness for a functional tree, including size-preserving local rotations,
 and interval-search correctness for well-augmented BSTs.  The size augmentation
-is now threaded through an executable red-black insertion: {lit}`OSRBTree.insert`
-recomputes cached sizes during Okasaki-style balancing,
-{lit}`OSRBTree.wellSized_insert` shows the augmentation invariant survives, and
-{lit}`OSRBTree.toRB_insert` shows the augmented insert refines the executable
-Chapter 13 {lit}`RBTree.insert` exactly.  The remaining gaps are augmentation
-through *deletion* (blocked on the Chapter 13 executable red-black deletion loop)
-and packaging the final textbook-level general augmentation interface from the
-generic local framework.
+is threaded through an executable red-black insertion via the size-specific
+{lit}`OSRBTree`, and the general augmentation interface now threads an
+*arbitrary* augmentation through an executable red-black insertion on the generic
+{lit}`AugmentedRBTree`: {lit}`AugmentedRBTree.wellAugmented_insert` shows the
+invariant survives balancing for any augmentation, and
+{lit}`AugmentedRBTree.toRB_insert` shows the augmentation-erasing projection
+refines the executable Chapter 13 {lit}`RBTree.insert`; the size and interval
+fields are recovered as instances.  The remaining gap is augmentation through
+*deletion* (blocked on the Chapter 13 executable red-black deletion loop).
 -/
 
 namespace CLRS

@@ -36,13 +36,25 @@ Main results:
   rotations and root recoloring preserve any rotation-invariant augmentation's
   value (and the inorder key list), so the augmentation is maintainable through
   the red-black operations.
+* General augmentation interface: {lit}`AugmentedRBTree` threads an **arbitrary**
+  {lit}`Augmentation` through an *executable* red-black insertion; its smart
+  constructor {lit}`AugmentedRBTree.mk` recomputes the cached value, so
+  {lit}`AugmentedRBTree.wellAugmented_insert` shows the invariant survives
+  balancing and {lit}`AugmentedRBTree.toRB_insert` shows the augmentation-erasing
+  projection refines Chapter 13's executable {lit}`RBTree.insert`.  Both the size
+  and interval instances are recovered from it
+  ({lit}`AugmentedRBTree.sizeAug_wellAugmented_insert`,
+  {lit}`AugmentedRBTree.maxHighAug_wellAugmented_insert`).
 
 Status: {lit}`proved` for the interval-tree augmentation framework, the general
-augmentation theorem, and the red-black rotation bridge.
+augmentation theorem, the red-black rotation bridge, and the general executable
+augmentation interface (an arbitrary augmentation threaded through an executable
+red-black insertion, refining Chapter 13's {lit}`RBTree.insert`).
 
-Deferred refinements: monoid-based augmentation, and tracking a stored
-augmentation field through the concrete executable {lit}`RBTree.insert`
-(the value-level maintainability is proved).
+Deferred refinements: monoid-based augmentation, and threading an augmentation
+through executable red-black *deletion* (blocked on the Chapter 13 executable
+delete loop).  The stored-augmentation-field refinement through executable
+{lit}`RBTree.insert` is now proved generically.
 -/
 
 namespace CLRS
@@ -875,3 +887,417 @@ theorem rbRealAug_sizeAug_eq_length (t : RBTree) :
       omega
 
 end RBBridge
+
+/-! ## General augmentation interface: an arbitrary augmentation through
+executable red-black insertion
+
+This section closes the "stored-field refinement" gap noted above, at the
+*generic* level.  Section 14.1's {lit}`OSRBTree` threaded only the concrete
+subtree-*size* augmentation through Chapter 13's executable red-black insertion,
+in a bespoke, size-specific type.  Here we thread an **arbitrary**
+{name}`Augmentation` through the same Okasaki-style balancer, so both the
+order-statistic (size) and interval (max-high) augmentations are recovered as
+instances of a single generic interface.
+
+The augmented red-black tree {lit}`AugmentedRBTree` caches, at every internal
+node, a node colour (reusing Chapter 13's {name}`CLRS.Chapter13.Color`) and an
+augmentation value of type {lit}`β`.  Every reconstructed node is built by the
+smart constructor {lit}`AugmentedRBTree.mk`, which recomputes the cached
+augmentation from its children via {lit}`aug.combine`.  Two bridges connect this
+to the existing development:
+
+* {lit}`AugmentedRBTree.wellAugmented_insert`: **the augmentation invariant
+  survives balancing** — inserting into a well-augmented tree yields a
+  well-augmented tree, for any augmentation (CLRS 14.1 maintained through
+  {lit}`RB-INSERT`).
+* {lit}`AugmentedRBTree.toRB_insert`: erasing the augmentation field commutes
+  with insertion, so (for {lit}`Nat` keys) the augmented insert refines the
+  *executable* Chapter 13 {name}`CLRS.Chapter13.RBTree.insert` exactly,
+  transferring its shape and membership theorems.
+
+The size and max-high fields are then recovered as instances via
+{lit}`AugmentedRBTree.sizeAug_wellAugmented_insert` and
+{lit}`AugmentedRBTree.maxHighAug_wellAugmented_insert`.
+-/
+
+open CLRS.Chapter13 (Color RBTree)
+
+/--
+A red-black tree augmented with a cached value of type {lit}`β` at every internal
+node.  Each node stores a colour (reusing Chapter 13's
+{name}`CLRS.Chapter13.Color`), a key of type {lit}`α`, a cached augmentation of
+type {lit}`β`, and two subtrees.  This is the colour-carrying refinement of
+{name}`AugmentedTree`, adding the field needed to run the Chapter 13 insertion
+balancer generically.
+-/
+inductive AugmentedRBTree (α β : Type) where
+  | empty : AugmentedRBTree α β
+  | node : Color → AugmentedRBTree α β → α → β → AugmentedRBTree α β → AugmentedRBTree α β
+  deriving Repr, DecidableEq
+
+namespace AugmentedRBTree
+
+section Generic
+
+variable {α β : Type} [Inhabited β] (aug : Augmentation α β)
+
+/-- Inorder traversal of the keys, ignoring colours and cached augmentations. -/
+def keys : AugmentedRBTree α β → List α
+  | empty => []
+  | node _ l k _ r => keys l ++ [k] ++ keys r
+
+/-- The cached augmentation stored at the root; the empty tree uses {lit}`aug.base`. -/
+def storedAug : AugmentedRBTree α β → β
+  | empty => aug.base
+  | node _ _ _ a _ => a
+
+/-- The mathematically correct augmentation, recomputed from the children. -/
+def realAug : AugmentedRBTree α β → β
+  | empty => aug.base
+  | node _ l k _ r => aug.combine k (realAug l) (realAug r)
+
+/-- Every cached augmentation agrees with the recomputed one. -/
+def WellAugmented : AugmentedRBTree α β → Prop
+  | empty => True
+  | node _ l k a r =>
+      WellAugmented l ∧ WellAugmented r ∧
+        a = aug.combine k (realAug aug l) (realAug aug r)
+
+/--
+Smart constructor that recomputes the cached augmentation from the children.
+Every node produced by the red-black operations below is built with {name}`mk`,
+which is why the {name}`WellAugmented` invariant is preserved automatically.
+-/
+def mk (c : Color) (l : AugmentedRBTree α β) (k : α) (r : AugmentedRBTree α β) :
+    AugmentedRBTree α β :=
+  node c l k (aug.combine k (realAug aug l) (realAug aug r)) r
+
+/-- {name}`mk` recomputes the augmentation correctly. -/
+theorem realAug_mk (c : Color) (l : AugmentedRBTree α β) (k : α) (r : AugmentedRBTree α β) :
+    realAug aug (mk aug c l k r) = aug.combine k (realAug aug l) (realAug aug r) := rfl
+
+/-- {name}`mk` preserves the inorder key sequence. -/
+theorem keys_mk (c : Color) (l : AugmentedRBTree α β) (k : α) (r : AugmentedRBTree α β) :
+    keys (mk aug c l k r) = keys l ++ [k] ++ keys r := rfl
+
+/-- The cached root augmentation of a {name}`mk` node is the recomputed value. -/
+theorem storedAug_mk (c : Color) (l : AugmentedRBTree α β) (k : α) (r : AugmentedRBTree α β) :
+    storedAug aug (mk aug c l k r) = aug.combine k (realAug aug l) (realAug aug r) := rfl
+
+/-- A {name}`mk` node is well-augmented whenever both children are. -/
+theorem wellAugmented_mk {c : Color} {l : AugmentedRBTree α β} {k : α} {r : AugmentedRBTree α β}
+    (hl : WellAugmented aug l) (hr : WellAugmented aug r) :
+    WellAugmented aug (mk aug c l k r) :=
+  ⟨hl, hr, rfl⟩
+
+/-- A well-augmented tree has a correct root augmentation. -/
+theorem storedAug_eq_realAug_of_wellAugmented {t : AugmentedRBTree α β}
+    (h : WellAugmented aug t) : storedAug aug t = realAug aug t := by
+  cases t with
+  | empty => rfl
+  | node c l k a r => exact h.2.2
+
+/-! ### Executable red-black operations with augmentation recomputation -/
+
+/-- Repaint the root black, keeping the cached augmentation fields. -/
+def repaintBlack : AugmentedRBTree α β → AugmentedRBTree α β
+  | empty => empty
+  | node _ l k a r => node Color.black l k a r
+
+/--
+Okasaki-style rebalance after insertion on the left child, recomputing
+augmentations.  Mirrors {name}`CLRS.Chapter13.RBTree.balanceLeft`.
+-/
+def balanceLeft (l : AugmentedRBTree α β) (y : α) (r : AugmentedRBTree α β) :
+    AugmentedRBTree α β :=
+  match l with
+  | node Color.red (node Color.red a w _ b) x _ c =>
+      mk aug Color.red (mk aug Color.black a w b) x (mk aug Color.black c y r)
+  | node Color.red a w _ (node Color.red b x _ c) =>
+      mk aug Color.red (mk aug Color.black a w b) x (mk aug Color.black c y r)
+  | _ => mk aug Color.black l y r
+
+/--
+Okasaki-style rebalance after insertion on the right child, recomputing
+augmentations.  Mirrors {name}`CLRS.Chapter13.RBTree.balanceRight`.
+-/
+def balanceRight (l : AugmentedRBTree α β) (y : α) (r : AugmentedRBTree α β) :
+    AugmentedRBTree α β :=
+  match r with
+  | node Color.red (node Color.red b x _ c) y' _ d =>
+      mk aug Color.red (mk aug Color.black l y b) x (mk aug Color.black c y' d)
+  | node Color.red b x _ (node Color.red c y' _ d) =>
+      mk aug Color.red (mk aug Color.black l y b) x (mk aug Color.black c y' d)
+  | _ => mk aug Color.black l y r
+
+/--
+Insertion fixup: recurse down by the Boolean comparison {lit}`lt`, rebuilding and
+rebalancing with augmentation recomputation on the way back up.  Mirrors
+{name}`CLRS.Chapter13.RBTree.insertFixup`.
+-/
+def insertFixup (lt : α → α → Bool) (x : α) : AugmentedRBTree α β → AugmentedRBTree α β
+  | empty => mk aug Color.red empty x empty
+  | node c l y a r =>
+      if lt x y then
+        if c = Color.black then balanceLeft aug (insertFixup lt x l) y r
+        else mk aug Color.red (insertFixup lt x l) y r
+      else if lt y x then
+        if c = Color.black then balanceRight aug l y (insertFixup lt x r)
+        else mk aug Color.red l y (insertFixup lt x r)
+      else node c l y a r
+
+/-- Insert a key and repaint the root black. -/
+def insert (lt : α → α → Bool) (x : α) (t : AugmentedRBTree α β) : AugmentedRBTree α β :=
+  repaintBlack (insertFixup aug lt x t)
+
+/-! ### The augmentation invariant survives balancing (CLRS 14.1 through RB-INSERT) -/
+
+/-- Repainting the root black preserves the {name}`WellAugmented` invariant. -/
+theorem wellAugmented_repaintBlack {t : AugmentedRBTree α β} (h : WellAugmented aug t) :
+    WellAugmented aug (repaintBlack t) := by
+  cases t with
+  | empty => trivial
+  | node c l k a r => exact ⟨h.1, h.2.1, h.2.2⟩
+
+/-- {name}`balanceLeft` preserves the {name}`WellAugmented` invariant. -/
+theorem wellAugmented_balanceLeft {l : AugmentedRBTree α β} {y : α} {r : AugmentedRBTree α β}
+    (hl : WellAugmented aug l) (hr : WellAugmented aug r) :
+    WellAugmented aug (balanceLeft aug l y r) := by
+  unfold balanceLeft
+  split
+  · obtain ⟨⟨ha, hb, _⟩, hc, _⟩ := hl
+    exact wellAugmented_mk aug (wellAugmented_mk aug ha hb) (wellAugmented_mk aug hc hr)
+  · obtain ⟨ha, ⟨hb, hc, _⟩, _⟩ := hl
+    exact wellAugmented_mk aug (wellAugmented_mk aug ha hb) (wellAugmented_mk aug hc hr)
+  · exact wellAugmented_mk aug hl hr
+
+/-- {name}`balanceRight` preserves the {name}`WellAugmented` invariant. -/
+theorem wellAugmented_balanceRight {l : AugmentedRBTree α β} {y : α} {r : AugmentedRBTree α β}
+    (hl : WellAugmented aug l) (hr : WellAugmented aug r) :
+    WellAugmented aug (balanceRight aug l y r) := by
+  unfold balanceRight
+  split
+  · obtain ⟨⟨hb, hc, _⟩, hd, _⟩ := hr
+    exact wellAugmented_mk aug (wellAugmented_mk aug hl hb) (wellAugmented_mk aug hc hd)
+  · obtain ⟨hb, ⟨hc, hd, _⟩, _⟩ := hr
+    exact wellAugmented_mk aug (wellAugmented_mk aug hl hb) (wellAugmented_mk aug hc hd)
+  · exact wellAugmented_mk aug hl hr
+
+/-- {name}`insertFixup` preserves the {name}`WellAugmented` invariant. -/
+theorem wellAugmented_insertFixup (lt : α → α → Bool) (x : α) {t : AugmentedRBTree α β}
+    (h : WellAugmented aug t) : WellAugmented aug (insertFixup aug lt x t) := by
+  induction t with
+  | empty =>
+      simp only [insertFixup]
+      exact wellAugmented_mk aug (by trivial) (by trivial)
+  | node c l y a r ihl ihr =>
+      have hl : WellAugmented aug l := h.1
+      have hr : WellAugmented aug r := h.2.1
+      simp only [insertFixup]
+      split
+      · split
+        · exact wellAugmented_balanceLeft aug (ihl hl) hr
+        · exact wellAugmented_mk aug (ihl hl) hr
+      · split
+        · split
+          · exact wellAugmented_balanceRight aug hl (ihr hr)
+          · exact wellAugmented_mk aug hl (ihr hr)
+        · exact h
+
+/--
+**Augmentation invariant through executable insertion (CLRS 14.1 through
+`RB-INSERT`).**  Inserting a key into a well-augmented augmented red-black tree
+produces a well-augmented tree: every cached augmentation field remains correct
+after the red-black rebalancing, for *any* {name}`Augmentation`.  This
+generalizes {lit}`OSRBTree.wellSized_insert` from the size field to an
+arbitrary augmentation.
+-/
+theorem wellAugmented_insert (lt : α → α → Bool) (x : α) {t : AugmentedRBTree α β}
+    (h : WellAugmented aug t) : WellAugmented aug (insert aug lt x t) := by
+  unfold insert
+  exact wellAugmented_repaintBlack aug (wellAugmented_insertFixup aug lt x h)
+
+/-- After insertion the cached root augmentation equals the recomputed value. -/
+theorem storedAug_insert (lt : α → α → Bool) (x : α) {t : AugmentedRBTree α β}
+    (h : WellAugmented aug t) :
+    storedAug aug (insert aug lt x t) = realAug aug (insert aug lt x t) :=
+  storedAug_eq_realAug_of_wellAugmented aug (wellAugmented_insert aug lt x h)
+
+end Generic
+
+section Refinement
+
+variable {β : Type} [Inhabited β] (aug : Augmentation Nat β)
+
+/-- Erase the cached augmentation field, projecting a {lit}`Nat`-keyed augmented
+red-black tree onto the Chapter 13 red-black tree. -/
+def toRB : AugmentedRBTree Nat β → RBTree
+  | empty => RBTree.empty
+  | node c l k _ r => RBTree.node c (toRB l) k (toRB r)
+
+/-- The {lit}`Nat` strict-less-than comparison as a {lit}`Bool`, used to
+instantiate the generic insertion so that it refines Chapter 13's
+{name}`CLRS.Chapter13.RBTree.insert`. -/
+def natLt (a b : Nat) : Bool := decide (a < b)
+
+/-- {name}`natLt` decides strict less-than. -/
+theorem natLt_true_iff {a b : Nat} : (natLt a b = true) ↔ a < b := by
+  simp [natLt]
+
+/-- Erasing the augmentation of a {name}`mk` node forgets only the cached value. -/
+theorem toRB_mk (c : Color) (l : AugmentedRBTree Nat β) (k : Nat) (r : AugmentedRBTree Nat β) :
+    toRB (mk aug c l k r) = RBTree.node c (toRB l) k (toRB r) := rfl
+
+omit [Inhabited β] in
+/-- Erasing the augmentation commutes with repainting the root black. -/
+theorem toRB_repaintBlack (t : AugmentedRBTree Nat β) :
+    toRB (repaintBlack t) = RBTree.repaintRoot Color.black (toRB t) := by
+  cases t with
+  | empty => rfl
+  | node c l k a r => rfl
+
+/-- Erasing the augmentation commutes with {name}`balanceLeft`. -/
+theorem toRB_balanceLeft (l : AugmentedRBTree Nat β) (y : Nat) (r : AugmentedRBTree Nat β) :
+    toRB (balanceLeft aug l y r) = RBTree.balanceLeft (toRB l) y (toRB r) := by
+  cases l with
+  | empty => rfl
+  | node c a w s b =>
+    cases c with
+    | black => rfl
+    | red =>
+      cases a with
+      | empty =>
+          cases b with
+          | empty => rfl
+          | node cb bl bk bs br => cases cb <;> rfl
+      | node ca al ak as' ar =>
+          cases ca with
+          | red => rfl
+          | black =>
+              cases b with
+              | empty => rfl
+              | node cb bl bk bs br => cases cb <;> rfl
+
+/-- Erasing the augmentation commutes with {name}`balanceRight`. -/
+theorem toRB_balanceRight (l : AugmentedRBTree Nat β) (y : Nat) (r : AugmentedRBTree Nat β) :
+    toRB (balanceRight aug l y r) = RBTree.balanceRight (toRB l) y (toRB r) := by
+  cases r with
+  | empty => rfl
+  | node c a w s b =>
+    cases c with
+    | black => rfl
+    | red =>
+      cases a with
+      | empty =>
+          cases b with
+          | empty => rfl
+          | node cb bl bk bs br => cases cb <;> rfl
+      | node ca al ak as' ar =>
+          cases ca with
+          | red => rfl
+          | black =>
+              cases b with
+              | empty => rfl
+              | node cb bl bk bs br => cases cb <;> rfl
+
+/-- Erasing the augmentation commutes with {name}`insertFixup` (at {name}`natLt`). -/
+theorem toRB_insertFixup (x : Nat) (t : AugmentedRBTree Nat β) :
+    toRB (insertFixup aug natLt x t) = RBTree.insertFixup x (toRB t) := by
+  induction t with
+  | empty => rfl
+  | node c l y a r ihl ihr =>
+      simp only [insertFixup, RBTree.insertFixup, toRB, natLt_true_iff, gt_iff_lt,
+        apply_ite toRB, toRB_mk, toRB_balanceLeft, toRB_balanceRight, ihl, ihr]
+
+/--
+**Refinement.**  The augmented insertion refines the *executable* Chapter 13
+red-black insertion: erasing the cached augmentation turns {name}`insert` (at
+{name}`natLt`) into {name}`CLRS.Chapter13.RBTree.insert`.  This generalizes
+{lit}`OSRBTree.toRB_insert` from the size field to an arbitrary augmentation.
+-/
+theorem toRB_insert (x : Nat) (t : AugmentedRBTree Nat β) :
+    toRB (insert aug natLt x t) = RBTree.insert x (toRB t) := by
+  unfold insert RBTree.insert
+  rw [toRB_repaintBlack, toRB_insertFixup]
+
+omit [Inhabited β] in
+/-- Erasure relates {name}`keys` membership to Chapter 13 tree membership. -/
+theorem inTree_toRB (y : Nat) (t : AugmentedRBTree Nat β) :
+    RBTree.InTree y (toRB t) ↔ y ∈ keys t := by
+  induction t with
+  | empty => simp [toRB, RBTree.InTree, keys]
+  | node c l k a r ihl ihr =>
+      simp only [toRB, RBTree.InTree, keys, List.append_assoc, List.singleton_append,
+        List.mem_append, List.mem_cons, ihl, ihr]
+      tauto
+
+/--
+Through the refinement, the Chapter 13 red-black shape invariant is maintained by
+the augmented insertion.
+-/
+theorem redBlackShape_toRB_insert (x : Nat) {t : AugmentedRBTree Nat β}
+    (h : RBTree.RedBlackShape (toRB t)) :
+    RBTree.RedBlackShape (toRB (insert aug natLt x t)) := by
+  rw [toRB_insert]
+  exact RBTree.redBlackShape_insert h
+
+/-- Through the refinement, insertion preserves membership (as an inorder key). -/
+theorem mem_keys_insert (x y : Nat) (t : AugmentedRBTree Nat β) :
+    y ∈ keys (insert aug natLt x t) ↔ y = x ∨ y ∈ keys t := by
+  simp only [← inTree_toRB, toRB_insert, RBTree.inTree_insert_iff]
+
+end Refinement
+
+section Instances
+
+/-! ### Instance 1: the order-statistic (subtree-size) augmentation
+
+Taking {lit}`aug := sizeAug Nat` recovers the order-statistic tree of §14.1: the
+cached field is the subtree node count, the invariant survives the executable
+red-black insertion, and the augmentation-erasing projection refines Chapter 13's
+{name}`CLRS.Chapter13.RBTree.insert`.  This makes {lit}`OSRBTree` a special case
+of the generic interface rather than a bespoke copy. -/
+
+/-- **Order-statistic instance.**  The subtree-size augmentation is maintained
+through the generic executable red-black insertion (CLRS 14.1 for size). -/
+theorem sizeAug_wellAugmented_insert (x : Nat) {t : AugmentedRBTree Nat Nat}
+    (h : WellAugmented (sizeAug Nat) t) :
+    WellAugmented (sizeAug Nat) (insert (sizeAug Nat) natLt x t) :=
+  wellAugmented_insert (sizeAug Nat) natLt x h
+
+/-- The size augmentation's recomputed value is exactly the node count. -/
+theorem sizeAug_realAug_eq_length (t : AugmentedRBTree Nat Nat) :
+    realAug (sizeAug Nat) t = (keys t).length := by
+  induction t with
+  | empty => rfl
+  | node c l k a r ihl ihr =>
+      simp only [realAug]
+      rw [ihl, ihr]
+      simp only [sizeAug, keys, List.length_append, List.length_cons, List.length_nil]
+      omega
+
+/-- **Order-statistic refinement.**  Erasing the size field turns the generic
+size-augmented insertion into Chapter 13's {name}`CLRS.Chapter13.RBTree.insert`. -/
+theorem sizeAug_toRB_insert (x : Nat) (t : AugmentedRBTree Nat Nat) :
+    toRB (insert (sizeAug Nat) natLt x t) = RBTree.insert x (toRB t) :=
+  toRB_insert (sizeAug Nat) x t
+
+/-! ### Instance 2: the interval-tree (maximum-high-endpoint) augmentation
+
+Taking {lit}`aug := IntervalTree.maxHighAug` recovers interval trees: the cached
+field is the subtree's maximum high endpoint, maintained through the same generic
+executable insertion, with the BST order taken on interval low endpoints. -/
+
+/-- BST comparison for interval trees: order by the interval's low endpoint. -/
+def intervalLt (i j : Interval) : Bool := natLt i.low j.low
+
+/-- **Interval-tree instance.**  The maximum-high-endpoint augmentation is
+maintained through the generic executable red-black insertion. -/
+theorem maxHighAug_wellAugmented_insert (q : Interval) {t : AugmentedRBTree Interval Nat}
+    (h : WellAugmented IntervalTree.maxHighAug t) :
+    WellAugmented IntervalTree.maxHighAug (insert IntervalTree.maxHighAug intervalLt q t) :=
+  wellAugmented_insert IntervalTree.maxHighAug intervalLt q h
+
+end Instances
+
+end AugmentedRBTree
