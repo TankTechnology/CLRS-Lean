@@ -124,6 +124,7 @@ CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S3_ExecutablePrim.lean
 CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean
 CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean
 CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
+CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.

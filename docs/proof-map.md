@@ -2686,6 +2686,46 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   difference constraints (Section 24.4); per-edge relaxation ordering and
   mutable/RAM cost accounting for the abstract synchronous model.
 
+## Chapter 26 - Maximum Flow
+
+### Section 26.1 - Flow Networks
+
+- Lean source: `CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean`
+- Status: `proved`
+- Model:
+  - `CLRS.Chapter26.FlowNetwork` (capacity `c : V → V → ℝ`, source `s`, sink `t`,
+    nonnegative capacity, zero self-loops, `s ≠ t`)
+  - `CLRS.Chapter26.FlowNetwork.Flow` (feasible flow with capacity constraint,
+    skew symmetry, and flow conservation)
+  - `CLRS.Chapter26.FlowNetwork.Flow.value` (flow value `|f| = ∑_v f(s,v)`)
+- Auxiliary lemmas:
+  - `CLRS.Chapter26.FlowNetwork.Flow.self_zero` (flow on self-loop is zero)
+  - `CLRS.Chapter26.FlowNetwork.Flow.nonneg_of_zero_reverse_cap`
+  - `CLRS.Chapter26.FlowNetwork.Flow.nonpos_of_zero_cap`
+  - `CLRS.Chapter26.FlowNetwork.Flow.range_of_zero_reverse_cap`
+  - `CLRS.Chapter26.FlowNetwork.Flow.add_skew`
+- Cut lemma:
+  - `CLRS.Chapter26.FlowNetwork.Flow.netFlowAcrossCut` (net flow across `(S,Sᶜ)`)
+  - `CLRS.Chapter26.FlowNetwork.Flow.skew_symm_cancel`
+  - `CLRS.Chapter26.FlowNetwork.Flow.netFlow_eq_value` (**Lemma 26.5**: net flow
+    across any cut equals the flow value)
+  - `CLRS.Chapter26.FlowNetwork.Flow.value_le_cut_capacity` (flow value bounded by any cut capacity)
+- Residual network:
+  - `CLRS.Chapter26.FlowNetwork.Flow.residualCapacity` (`cf(u,v) = c(u,v) - f(u,v)`)
+  - `CLRS.Chapter26.FlowNetwork.Flow.residualEdge` (positive residual capacity)
+  - `CLRS.Chapter26.FlowNetwork.Flow.augmentingPathReachable` (reachability in the residual network)
+  - `CLRS.Chapter26.FlowNetwork.Flow.hasAugmentingPath` (sink reachable from source)
+- Ford-Fulkerson correctness:
+  - `CLRS.Chapter26.FlowNetwork.Flow.isMaximal` (maximum flow predicate)
+  - `CLRS.Chapter26.FlowNetwork.Flow.maximal_of_noAugmentingPath` (generic
+    Ford-Fulkerson: no augmenting path implies maximal flow)
+- Proof pattern: Lemma 26.5 uses skew-symmetry cancellation and conservation to
+  equate net cut flow with `|f|`.  The Ford-Fulkerson direction constructs a cut
+  from the set of vertices reachable from `s` in the residual network, shows every
+  crossing edge is saturated, and concludes maximality via the cut-capacity bound.
+- Current gap: the full Max-Flow Min-Cut converse direction, the Edmonds-Karp
+  analysis, and the executable augmenting-path loop.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
