@@ -134,6 +134,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
   "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
   "CLRSLean.Chapter_16.Section_16_4_Matroids",
+  "CLRSLean.Chapter_16.Section_16_5_Task_Scheduling",
 ]
 "CLRSLean.Chapter_17" = [
   "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework",
@@ -492,6 +493,9 @@ title = "16.1. Activity Selection"
 
 [modules."CLRSLean.Chapter_16.Section_16_4_Matroids"]
 title = "16.4. Matroids and Greedy Methods"
+
+[modules."CLRSLean.Chapter_16.Section_16_5_Task_Scheduling"]
+title = "16.5. A Task-Scheduling Problem as a Matroid"
 
 [modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework"]
 title = "17.1-17.3. Amortized Analysis Methods"
