@@ -1378,6 +1378,192 @@ theorem deleteFixupCase4_shape
     simp only [blackHeight]
     omega
 
+/-! ## Executable functional deletion (CLRS RB-DELETE)
+
+This section develops the fully-composed executable red-black *deletion*
+following the standard Okasaki/Kahrs functional-deletion pattern (as used in
+Nipkow's verified `RBT_Set` development).  It reuses the insertion balancers
+{lit}`balanceLeft` and {lit}`balanceRight` and adds the deletion re-balancers
+{lit}`baldL` and {lit}`baldR`, the minimum-splicing {lit}`splitMin`, and the recursive
+{lit}`del` / {lit}`delete`.
+
+The invariant bookkeeping tracks two relaxations of the shape predicate:
+
+- {lit}`NoRedRed2 t` (a weakened {lit}`NoRedRed`): the root may host a single red-red
+  edge but every proper subtree is clean.  This is exactly {lit}`NoRedRed` after
+  repainting the root black.
+- The *doubly-black* deficit produced by removing a black node, which
+  {lit}`baldL` / {lit}`baldR` absorb by rotating and recolouring.
+
+Main results:
+
+- Definitions {lit}`RBTree.rootColor`, {lit}`RBTree.NoRedRed2`.
+- Balance invariant lemmas {lit}`RBTree.noRedRed_balanceLeft`,
+  {lit}`RBTree.noRedRed_balanceRight`, {lit}`RBTree.balancedBlackHeight_balanceLeft`,
+  {lit}`RBTree.balancedBlackHeight_balanceRight`.
+- Definitions {lit}`RBTree.baldL`, {lit}`RBTree.baldR`, {lit}`RBTree.splitMin`,
+  {lit}`RBTree.del`, {lit}`RBTree.delete`.
+- Membership certificates {lit}`RBTree.inTree_baldL`, {lit}`RBTree.inTree_baldR`. -/
+
+/-- The root colour of a tree; empty leaves count as black. -/
+def rootColor : RBTree → Color
+  | empty => Color.black
+  | node c _ _ _ => c
+
+/-- A weakened no-red-red invariant (`invc2`): the root may carry one red-red
+edge, but every proper subtree already satisfies {name}`RBTree.NoRedRed`.  It is
+defined as {name}`RBTree.NoRedRed` after repainting the root black. -/
+def NoRedRed2 (t : RBTree) : Prop := NoRedRed (repaintRoot Color.black t)
+
+/-- {name}`RBTree.NoRedRed2` on a node ignores the root colour constraint. -/
+theorem noRedRed2_node_iff {c l k r} :
+    NoRedRed2 (node c l k r) ↔ NoRedRed l ∧ NoRedRed r := by
+  simp [NoRedRed2, repaintRoot, NoRedRed]
+
+/-- Every {name}`RBTree.NoRedRed` tree is {name}`RBTree.NoRedRed2`. -/
+theorem noRedRed2_of_noRedRed {t} (h : NoRedRed t) : NoRedRed2 t := noRedRed_repaint_black h
+
+/-- A black-rooted {name}`RBTree.NoRedRed2` tree is fully {name}`RBTree.NoRedRed`. -/
+theorem noRedRed_of_noRedRed2_rootBlack {t} (h2 : NoRedRed2 t) (hb : RootBlack t) :
+    NoRedRed t := by
+  cases t with
+  | empty => trivial
+  | node c l k r =>
+      simp [RootBlack] at hb; subst hb
+      rw [noRedRed2_node_iff] at h2; simp [NoRedRed]; exact ⟨h2.1, h2.2⟩
+
+/-- Repainting the root red does not change {name}`RBTree.NoRedRed2`. -/
+theorem noRedRed2_repaintRoot_red {t} : NoRedRed2 (repaintRoot Color.red t) ↔ NoRedRed2 t := by
+  cases t <;> simp [NoRedRed2, repaintRoot, NoRedRed]
+
+/-- Repainting a black root red drops the black height by one. -/
+theorem blackHeight_repaintRoot_red_rootBlack {t} (h : RootBlack t) :
+    blackHeight (repaintRoot Color.red t) = blackHeight t - 1 := by
+  cases t with
+  | empty => simp [repaintRoot, blackHeight]
+  | node c l k r => simp [RootBlack] at h; subst h; simp [repaintRoot, blackHeight]
+
+/-- Repainting the root red preserves balanced child black heights. -/
+theorem balancedBlackHeight_repaintRoot_red {t} :
+    BalancedBlackHeight (repaintRoot Color.red t) ↔ BalancedBlackHeight t := by
+  cases t <;> simp [repaintRoot, BalancedBlackHeight]
+
+/-! ### Balance invariant preservation
+
+The insertion balancers {name}`RBTree.balanceLeft` / {name}`RBTree.balanceRight`
+(CLRS `baliL` / `baliR`) not only preserve membership and black height (proved
+above) but also repair a single red-red edge, taking one weakened
+({name}`RBTree.NoRedRed2`) argument to a fully {name}`RBTree.NoRedRed` result. -/
+
+/-- {name}`RBTree.balanceLeft` repairs a red-red edge in a weakened left child. -/
+theorem noRedRed_balanceLeft {l y r} (hl : NoRedRed2 l) (hr : NoRedRed r) :
+    NoRedRed (balanceLeft l y r) := by
+  rw [NoRedRed2] at hl
+  cases l with
+  | empty => simpa [balanceLeft, NoRedRed, RootBlack] using hr
+  | node lc ll lk lr =>
+    cases lc with
+    | black =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hl
+        simp only [balanceLeft, NoRedRed, RootBlack]; tauto
+    | red =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hl
+        cases ll with
+        | empty =>
+            cases lr with
+            | empty => simp [balanceLeft, NoRedRed, RootBlack]; tauto
+            | node lrc lrl lrk lrr =>
+                cases lrc <;> · simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+        | node llc lll llk llr =>
+            cases llc with
+            | red => simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+            | black =>
+                cases lr with
+                | empty => simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+                | node lrc lrl lrk lrr =>
+                    cases lrc <;> · simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+
+/-- {name}`RBTree.balanceRight` repairs a red-red edge in a weakened right child. -/
+theorem noRedRed_balanceRight {l y r} (hl : NoRedRed l) (hr : NoRedRed2 r) :
+    NoRedRed (balanceRight l y r) := by
+  rw [NoRedRed2] at hr
+  cases r with
+  | empty => simpa [balanceRight, NoRedRed, RootBlack] using hl
+  | node rc rl rk rr =>
+    cases rc with
+    | black =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hr
+        simp only [balanceRight, NoRedRed, RootBlack]; tauto
+    | red =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hr
+        cases rl with
+        | empty =>
+            cases rr with
+            | empty => simp [balanceRight, NoRedRed, RootBlack]; tauto
+            | node rrc rrl rrk rrr =>
+                cases rrc <;> · simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+        | node rlc rll rlk rlr =>
+            cases rlc with
+            | red => simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+            | black =>
+                cases rr with
+                | empty => simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+                | node rrc rrl rrk rrr =>
+                    cases rrc <;> · simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+
+/-- {name}`RBTree.balanceLeft` preserves balanced child black heights. -/
+theorem balancedBlackHeight_balanceLeft {l y r}
+    (hl : BalancedBlackHeight l) (hr : BalancedBlackHeight r)
+    (hlr : blackHeight l = blackHeight r) :
+    BalancedBlackHeight (balanceLeft l y r) := by
+  unfold balanceLeft
+  split <;> (simp_all [BalancedBlackHeight, blackHeight]; try omega)
+
+/-- {name}`RBTree.balanceRight` preserves balanced child black heights. -/
+theorem balancedBlackHeight_balanceRight {l y r}
+    (hl : BalancedBlackHeight l) (hr : BalancedBlackHeight r)
+    (hlr : blackHeight l = blackHeight r) :
+    BalancedBlackHeight (balanceRight l y r) := by
+  unfold balanceRight
+  split <;> (simp_all [BalancedBlackHeight, blackHeight]; try omega)
+
+/-! ### Deletion re-balancers `baldL` / `baldR`
+
+After removing a black node from the left (respectively right) subtree, the
+subtree carries a doubly-black deficit — its black height is one less than its
+sibling.  {lit}`baldL` / {lit}`baldR` absorb the deficit,
+possibly bubbling it one level up (the recoloured-red result). -/
+
+/-- Deletion re-balancer for a black-deficient **left** child. -/
+def baldL : RBTree → Nat → RBTree → RBTree
+  | node Color.red a x b, k, r => node Color.red (node Color.black a x b) k r
+  | l, k, node Color.black c y d => balanceRight l k (node Color.red c y d)
+  | l, k, node Color.red (node Color.black c y d) z e =>
+      node Color.red (node Color.black l k c) y (balanceRight d z (repaintRoot Color.red e))
+  | l, k, r => node Color.red l k r
+
+/-- Deletion re-balancer for a black-deficient **right** child. -/
+def baldR : RBTree → Nat → RBTree → RBTree
+  | l, k, node Color.red c y d => node Color.red l k (node Color.black c y d)
+  | node Color.black a x b, k, r => balanceLeft (node Color.red a x b) k r
+  | node Color.red a x (node Color.black c y d), k, r =>
+      node Color.red (balanceLeft (repaintRoot Color.red a) x c) y (node Color.black d k r)
+  | l, k, r => node Color.red l k r
+
+/-- {name}`RBTree.baldL` preserves the key set (`{k} ∪ keys l ∪ keys r`). -/
+theorem inTree_baldL (q : Nat) (l : RBTree) (k : Nat) (r : RBTree) :
+    InTree q (baldL l k r) ↔ q = k ∨ InTree q l ∨ InTree q r := by
+  unfold baldL
+  split <;>
+    simp [InTree, inTree_balanceRight_iff, inTree_repaintRoot_iff, or_assoc, or_left_comm]
+
+/-- {name}`RBTree.baldR` preserves the key set (`{k} ∪ keys l ∪ keys r`). -/
+theorem inTree_baldR (q : Nat) (l : RBTree) (k : Nat) (r : RBTree) :
+    InTree q (baldR l k r) ↔ q = k ∨ InTree q l ∨ InTree q r := by
+  unfold baldR
+  split <;>
+    simp [InTree, inTree_balanceLeft_iff, inTree_repaintRoot_iff, or_assoc, or_left_comm]
+
 end RBTree
 
 end Chapter13
