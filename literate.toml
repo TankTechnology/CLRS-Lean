@@ -149,6 +149,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_20" = [
   "CLRSLean.Chapter_20.Section_20_1_VEB_Universe",
   "CLRSLean.Chapter_20.Section_20_2_VEB_Tree",
+  "CLRSLean.Chapter_20.Section_20_3_Recursive_VEB",
 ]
 "CLRSLean.Chapter_21" = [
   "CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations",
@@ -490,6 +491,9 @@ title = "20.1. vEB Universe Decomposition"
 
 [modules."CLRSLean.Chapter_20.Section_20_2_VEB_Tree"]
 title = "20.2. vEB Tree Specification"
+
+[modules."CLRSLean.Chapter_20.Section_20_3_Recursive_VEB"]
+title = "20.3. Recursive vEB Structure"
 
 [modules."CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations"]
 title = "21.1. Disjoint-Set Operations"
