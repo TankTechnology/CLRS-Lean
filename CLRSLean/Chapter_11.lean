@@ -1,5 +1,7 @@
 import CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables
 import CLRSLean.Chapter_11.Section_11_2_Chained_Hash_Tables
+import CLRSLean.Chapter_11.Section_11_3_Hash_Functions
+import CLRSLean.Chapter_11.Section_11_4_Open_Addressing
 
 /-!
 # Chapter 11 - Hash Tables
@@ -40,6 +42,19 @@ unsuccessful-search cost by {lit}`1/m`.
   {lit}`CLRS.Chapter11.expectedRandomSuccessfulSearchCost`,
   {lit}`CLRS.Chapter11.universal_expected_collisions`,
   and {lit}`CLRS.Chapter11.universal_expected_search_cost`.
+* 11.3 Hash functions: {lit}`proved`.
+  Main results: {lit}`CLRS.Chapter11.divisionHash_lt`,
+  {lit}`CLRS.Chapter11.multiplicationHash_lt`,
+  {lit}`CLRS.Chapter11.affineHash_isUniversal`,
+  {lit}`CLRS.Chapter11.affineHash_expected_collisions`,
+  and {lit}`CLRS.Chapter11.affineHash_expected_search_cost`.
+* 11.4 Open addressing: {lit}`proved`.
+  Main results: {lit}`CLRS.Chapter11.openSearch_openInsert`,
+  {lit}`CLRS.Chapter11.openSearch_eq_false_of_absent`,
+  {lit}`CLRS.Chapter11.linearProbe_bijective`,
+  {lit}`CLRS.Chapter11.doubleHashProbe_bijective`,
+  {lit}`CLRS.Chapter11.expectedUnsuccessfulProbes_le`,
+  and {lit}`CLRS.Chapter11.expectedSuccessfulProbes_le`.
 
 ## Current Gaps
 
@@ -49,7 +64,14 @@ single-insert expected-cost interfaces.  The SUHA layer proves the expected
 chain length, unsuccessful-search cost {lit}`1 + α`, and successful-search cost
 {lit}`1 + (n-1)/(2m)` as true expectations, and a universal random-hash-*function*
 family bounds expected collisions by {lit}`α` and search cost by {lit}`1 + α`.
-The remaining gap is RAM / probe-count operational semantics.
+Section 11.3 supplies a concrete universal family (the prime-field affine family
+{lit}`h_{a,b}(k) = a * k + b`) that discharges the {lit}`IsUniversal` hypothesis,
+so the universal-hashing bounds are no longer conditional.  Section 11.4
+formalises the open addressing model with probe sequences (linear, quadratic,
+double hashing) and proves the uniform-hashing expected-probe bounds:
+unsuccessful search and insertion {lit}`≤ 1/(1-α)` (CLRS Theorems 11.6-11.7)
+and successful search `(1/α) · ∑_{j<n} 1/(m-j)` (CLRS Theorem 11.8 harmonic
+form).  The remaining gap is RAM / probe-count operational semantics.
 -/
 
 namespace CLRS
