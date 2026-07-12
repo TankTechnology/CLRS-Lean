@@ -422,6 +422,26 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   expected number of fixed points `1` (hat-check, CLRS eq. (5.1)-(5.2))
 - Current gap: none for the uniform-permutation model
 
+### Section 5.3 - Randomized algorithms (RANDOMIZE-IN-PLACE)
+
+- Lean source: `CLRSLean/Chapter_05/Section_05_3_Randomized_Algorithms.lean`
+- Status: `proved` for the independent-swap-choice model
+- Main proved theorems:
+  - `CLRS.Chapter05.randomizeInPlace_injective`
+  - `CLRS.Chapter05.randomizeInPlace_surjective`
+  - `CLRS.Chapter05.randomizeInPlace_equiv`
+  - `CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.5: uniform random
+    permutation)
+- Proof pattern: model the swap choices as `ChoiceVector n = ∏_i Fin (n-i)`;
+  define `randomizeInPlace` by induction on `n` using the liftPerm construction
+  (swap 0 with position c0, then recurse on the remaining coordinates); prove
+  injectivity by induction and surjectivity by a cardinality argument (both
+  domain and codomain have cardinality n!); then the uniform measure on the
+  choice space pushes forward to the uniform measure on permutations via
+  `fintypeExpect_equiv`.
+- Current gap: none for the current model; mutable-Array operational semantics
+  for the shuffle loop remain a future refinement target.
+
 ### Section 5.4 - Probabilistic analysis (birthday paradox, balls and bins)
 
 - Lean source: `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
