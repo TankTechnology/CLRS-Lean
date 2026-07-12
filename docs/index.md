@@ -116,6 +116,7 @@ CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S1_UnionFindBridge.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S2_StatefulKruskal.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S3_ExecutablePrim.lean
 CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean
+CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean
 CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
 ```
 

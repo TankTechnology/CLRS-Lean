@@ -2503,6 +2503,36 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   duplicate-vertex decomposition plus `walkWeight` additivity for cycle removal;
   and identification of `relaxDist (|V|-1)` with the shortest-path distance `δ`.
 
+### Section 24.2 - Single-source shortest paths in DAGs
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean`
+- Status: `proved`
+- Topological order and acyclicity (over `WeightedGraph.Adj`):
+  - `CLRS.Chapter24.WeightedGraph.IsTopoOrder`
+  - `CLRS.Chapter24.WeightedGraph.IsAcyclic`
+  - `CLRS.Chapter24.WeightedGraph.isAcyclic_of_isTopoOrder` (DAG hypothesis, for free)
+  - `CLRS.Chapter24.WeightedGraph.idxOf_lt_of_split`
+- Relaxation pass:
+  - `CLRS.Chapter24.WeightedGraph.relaxFrom` (single-vertex out-edge relaxation)
+  - `CLRS.Chapter24.WeightedGraph.dagRelax` (fold `relaxFrom` along the order)
+  - `CLRS.Chapter24.WeightedGraph.dagRelax_respects_edge`
+- Correctness:
+  - `CLRS.Chapter24.WeightedGraph.le_add_walkWeight_of_respects` (path relaxation)
+  - `CLRS.Chapter24.WeightedGraph.IsRealizable`
+  - `CLRS.Chapter24.WeightedGraph.dagRelax_isRealizable`
+  - `CLRS.Chapter24.WeightedGraph.dagRelax_isShortestDist` (CLRS §24.2 correctness)
+- Work bound:
+  - `CLRS.Chapter24.WeightedGraph.outdegree`
+  - `CLRS.Chapter24.WeightedGraph.sum_outdegree`
+  - `CLRS.Chapter24.WeightedGraph.dagSSSPWork`
+  - `CLRS.Chapter24.WeightedGraph.dagSSSPWork_eq` (`Θ(V + E)`)
+- Proof pattern: restate the topological-order predicate over `WeightedGraph.Adj`;
+  split the fold at the processed vertex to show its estimate is already final and
+  that processing it lowers each out-neighbor to `≤ d u + w u v`; telescope the
+  per-edge upper bound along a walk for the lower bound; preserve realizability
+  through the fold; and count `|V|` vertex visits plus `∑ outdegree = |E|` edge
+  relaxations for the `Θ(V + E)` bound.
+
 ### Section 24.3 - Dijkstra's algorithm
 
 - Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
@@ -2526,7 +2556,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 - Deferred without a false claim: the executable Dijkstra priority-queue loop
   threading the settled set and tentative distances (Section 24.3 proves the
-  greedy invariant that makes such a loop correct); SSSP in DAGs (Section 24.2);
+  greedy invariant that makes such a loop correct);
   difference constraints (Section 24.4); per-edge relaxation ordering and
   mutable/RAM cost accounting for the abstract synchronous model.
 
