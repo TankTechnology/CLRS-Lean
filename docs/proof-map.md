@@ -1369,8 +1369,10 @@ rotation and still expose the same ideal rank-selection behavior afterward.
 
 - Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
 - Status: `proved` for the functional well-augmented BST model, the general
-  augmentation theorem (CLRS Theorem 14.1), and the value-level red-black
-  rotation bridge
+  augmentation theorem (CLRS Theorem 14.1), the value-level red-black
+  rotation bridge, and the general executable augmentation interface (an
+  arbitrary augmentation threaded through an executable red-black insertion
+  refining Chapter 13 `RBTree.insert`)
 - Main proved declarations:
   - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.storedAug_eq_realAug_of_wellAugmented`
@@ -1389,14 +1391,35 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
   - `CLRS.Chapter14.RBBridge.rb_augmentation_bridge`
   - `CLRS.Chapter14.RBBridge.rbRealAug_sizeAug_eq_length`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_mk`
+  - `CLRS.Chapter14.AugmentedRBTree.storedAug_eq_realAug_of_wellAugmented`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_balanceLeft`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_balanceRight`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_insertFixup`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_insertFixup`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.inTree_toRB`
+  - `CLRS.Chapter14.AugmentedRBTree.redBlackShape_toRB_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.sizeAug_realAug_eq_length`
+  - `CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`
 - Proof pattern: use the generic `Augmentation`/`AugmentedTree` framework and
   its `IsRotationInvariant` law to maintain local cached values through
   recomputation, rotations, and BST insertion. Instantiate it with maximum
   interval high endpoints and subtree size, then prove that the CLRS
-  interval-search pruning test is both sound and complete.
-- Current gap: thread a stored augmentation field through Chapter 13's
-  executable red-black insertion and future deletion. The semantic value is
-  already proved invariant under rotations and root recoloring.
+  interval-search pruning test is both sound and complete.  The generic
+  `AugmentedRBTree` then threads an *arbitrary* augmentation through an
+  executable red-black insertion whose Okasaki balancer rebuilds every node with
+  the augmentation-recomputing smart constructor `mk`, so `wellAugmented_insert`
+  follows by structural induction, and the augmentation-erasing projection `toRB`
+  makes `insert` (at `natLt`) refine Chapter 13 `RBTree.insert`, transferring its
+  shape and membership theorems.  The `sizeAug` and `maxHighAug` fields are
+  recovered as instances of this single interface.
+- Current gap: thread the augmentation through executable red-black *deletion*
+  (blocked on the Chapter 13 executable delete loop).  The stored-augmentation
+  refinement through executable `RBTree.insert` is now proved generically.
 
 ## Chapter 15 - Dynamic Programming
 
