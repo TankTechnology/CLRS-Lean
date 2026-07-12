@@ -1005,6 +1005,27 @@ stack top is list head, and queue front is list head with enqueue at the back.
 - Current gap: predecessor/successor pointer updates and free-list allocation
   require an imperative memory model
 
+### Section 10.4 - Representing rooted trees
+
+- Lean source: `CLRSLean/Chapter_10/Section_10_4_Rooted_Trees.lean`
+- Status: `proved` for the functional rose-tree / left-child-right-sibling model
+- Models: `CLRS.Chapter10.RoseTree` (multiway rooted tree: label plus
+  `List (RoseTree α)` children) and `CLRS.Chapter10.LCRSTree` (binary
+  left-child/right-sibling tree)
+- Main theorems:
+  - `CLRS.Chapter10.ofLCRSForest_toLCRSForest` (decode ∘ encode = id on forests)
+  - `CLRS.Chapter10.toLCRSForest_ofLCRSForest` (encode ∘ decode = id on LCRS trees)
+  - `CLRS.Chapter10.lcrsEquiv` (the round trip as an `Equiv` bijection
+    `List (RoseTree α) ≃ LCRSTree α`)
+  - `CLRS.Chapter10.ofLCRS_toLCRS` (single-tree round trip)
+  - `CLRS.Chapter10.toLCRSForest_preorder` (preorder label sequence preserved)
+  - `CLRS.Chapter10.toLCRSForest_numNodes` (node count preserved)
+- Proof pattern: nested `RoseTree`/`List` recursion with `sizeOf`-based
+  well-founded termination; functional induction via `toLCRSForest.induct`;
+  structural induction on `LCRSTree`
+- Current gap: the pointer/free-list RAM realization of the two-pointer node
+  layout (imperative-memory epic); §10.3 pointers-and-objects is separate
+
 ## Chapter 11 - Hash Tables
 
 ### Section 11.1 - Direct-address tables
