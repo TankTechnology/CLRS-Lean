@@ -484,6 +484,268 @@ lemma mergeNodes_occupancy {t : Nat} (ht : 2 ≤ t)
     · exact hL_sub c hc
     · exact hR_sub c hc
 
+/-- From `ChildBounded`, a node either has no children or has exactly one more
+child than keys. -/
+lemma childBounded_children_rel {ks : List Nat} {cs : List BTree}
+    (h_cb : ChildBounded (node ks cs)) : cs = [] ∨ cs.length = ks.length + 1 := by
+  unfold ChildBounded at h_cb
+  rcases h_cb with ⟨hrel, _, _⟩
+  rcases hrel with hemp | heq
+  · left; cases cs with | nil => rfl | cons x xs => simp at hemp
+  · right; exact heq
+
+/-! ## Occupancy (de)constructors and shared repair infrastructure -/
+
+/-- Destructor for a non-root `Occupancy` fact into its four plain components. -/
+lemma occupancy_false_dest {t : Nat} {ks : List Nat} {cs : List BTree}
+    (h : Occupancy t false (node ks cs)) :
+    t - 1 ≤ ks.length ∧ ks.length ≤ 2 * t - 1 ∧
+    (cs = [] ∨ (t ≤ cs.length ∧ cs.length ≤ 2 * t)) ∧ (∀ c ∈ cs, Occupancy t false c) := by
+  unfold Occupancy at h
+  obtain ⟨h1, h2, h3, h4⟩ := h
+  refine ⟨h1, h2, ?_, h4⟩
+  rcases h3 with he | hb
+  · left; cases cs with | nil => rfl | cons x xs => simp at he
+  · right; exact hb
+
+/-- Constructor for a non-root `Occupancy` fact from its four plain components. -/
+lemma occupancy_false_intro {t : Nat} {ks : List Nat} {cs : List BTree}
+    (h1 : t - 1 ≤ ks.length) (h2 : ks.length ≤ 2 * t - 1)
+    (h3 : cs = [] ∨ (t ≤ cs.length ∧ cs.length ≤ 2 * t))
+    (h4 : ∀ c ∈ cs, Occupancy t false c) :
+    Occupancy t false (node ks cs) := by
+  unfold Occupancy
+  refine ⟨h1, h2, ?_, h4⟩
+  rcases h3 with he | hb
+  · left; rw [he]; rfl
+  · right; exact hb
+
+/-- Each child of a `SameDepth` node is itself `SameDepth`. -/
+lemma sameDepth_children_sd {ks : List Nat} {cs : List BTree}
+    (h : SameDepth (node ks cs)) : ∀ c ∈ cs, SameDepth c := by
+  cases h with
+  | leaf _ => intro c hc; simp at hc
+  | internal _ c0 cs' _ hsd0 hsds =>
+      intro c hc
+      rcases List.mem_cons.mp hc with rfl | hc'
+      · exact hsd0
+      · exact hsds c hc'
+
+/-- Two equal-height sibling subtrees are simultaneously leaves or simultaneously
+internal. -/
+lemma leaf_iff_of_height_eq {lKeys rKeys : List Nat} {lCh rCh : List BTree}
+    (hht : heightOf (node lKeys lCh) = heightOf (node rKeys rCh)) :
+    lCh = [] ↔ rCh = [] := by
+  rw [← heightOf_eq_zero_iff lKeys lCh, ← heightOf_eq_zero_iff rKeys rCh, hht]
+
+/-- Any child of the left sibling has the same height as any child of the right
+sibling, given the two siblings have equal height. -/
+lemma child_height_bridge {lKeys rKeys : List Nat} {lCh rCh : List BTree}
+    (hL : SameDepth (node lKeys lCh)) (hR : SameDepth (node rKeys rCh))
+    (hht : heightOf (node lKeys lCh) = heightOf (node rKeys rCh))
+    {c d : BTree} (hc : c ∈ lCh) (hd : d ∈ rCh) : heightOf c = heightOf d := by
+  obtain ⟨a, as, rfl⟩ : ∃ a as, lCh = a :: as := by
+    cases lCh with
+    | nil => simp at hc
+    | cons a as => exact ⟨a, as, rfl⟩
+  obtain ⟨b, bs, rfl⟩ : ∃ b bs, rCh = b :: bs := by
+    cases rCh with
+    | nil => simp at hd
+    | cons b bs => exact ⟨b, bs, rfl⟩
+  have hLh : heightOf (node lKeys (a :: as)) = 1 + heightOf a := heightOf_internal_of_sameDepth hL
+  have hRh : heightOf (node rKeys (b :: bs)) = 1 + heightOf b := heightOf_internal_of_sameDepth hR
+  have hab : heightOf a = heightOf b := by rw [hLh, hRh] at hht; omega
+  have hca : heightOf c = heightOf a := sameDepth_children_eq_height hL c hc a (by simp)
+  have hdb : heightOf d = heightOf b := sameDepth_children_eq_height hR d hd b (by simp)
+  rw [hca, hdb, hab]
+
+/-! ## `rotateRight`: borrow a key from the right sibling (CLRS case 3a) -/
+
+/--
+**Borrow from the right sibling (CLRS `B-TREE-DELETE` case 3a).**  The
+underflowing left child receives the separator `sep` as a new last key and the
+right sibling's first child; the right sibling's first key rises to become the
+new separator.  Returns `(newLeft, newSep, newRight)`.
+-/
+def rotateRight : BTree → Nat → BTree → BTree × Nat × BTree
+  | node lKeys lCh, sep, node rKeys rCh =>
+    match rKeys with
+    | [] => (node lKeys lCh, sep, node rKeys rCh)
+    | rHead :: rTail =>
+        (node (lKeys ++ [sep]) (lCh ++ rCh.take 1), rHead, node rTail (rCh.drop 1))
+
+/-- `rotateRight` reduces on a right sibling with at least one key. -/
+@[simp] lemma rotateRight_cons (lKeys rTail : List Nat) (lCh rCh : List BTree)
+    (sep rHead : Nat) :
+    rotateRight (node lKeys lCh) sep (node (rHead :: rTail) rCh) =
+      (node (lKeys ++ [sep]) (lCh ++ rCh.take 1), rHead, node rTail (rCh.drop 1)) := rfl
+
+/--
+**`rotateRight` new-left node is well formed.**  After borrowing, the repaired
+left child has exactly `t` keys — above the minimum — and preserves `SameDepth`
+and its height.  The equal-height hypothesis is supplied by the parent's
+`SameDepth` invariant.
+-/
+lemma rotateRight_left {t : Nat} (ht : 2 ≤ t)
+    {lKeys rKeys : List Nat} {lCh rCh : List BTree} {sep : Nat}
+    (hlk : lKeys.length = t - 1)
+    (hL_cb : ChildBounded (node lKeys lCh))
+    (hL : SameDepth (node lKeys lCh)) (hR : SameDepth (node rKeys rCh))
+    (hL_occ : Occupancy t false (node lKeys lCh))
+    (hR_occ : Occupancy t false (node rKeys rCh))
+    (hht : heightOf (node lKeys lCh) = heightOf (node rKeys rCh)) :
+    Occupancy t false (node (lKeys ++ [sep]) (lCh ++ rCh.take 1)) ∧
+    SameDepth (node (lKeys ++ [sep]) (lCh ++ rCh.take 1)) ∧
+    heightOf (node (lKeys ++ [sep]) (lCh ++ rCh.take 1)) = heightOf (node lKeys lCh) := by
+  obtain ⟨_, _, _, hL_sub⟩ := occupancy_false_dest hL_occ
+  obtain ⟨_, _, _, hR_sub⟩ := occupancy_false_dest hR_occ
+  have hkeys_len : (lKeys ++ [sep]).length = t := by
+    simp only [List.length_append, List.length_cons, List.length_nil, hlk]; omega
+  by_cases hlc : lCh = []
+  · -- both siblings are leaves: no child moves
+    have hrc : rCh = [] := (leaf_iff_of_height_eq hht).mp hlc
+    subst hlc; subst hrc
+    simp only [List.nil_append, List.take_nil, List.append_nil]
+    refine ⟨?_, SameDepth.leaf _, ?_⟩
+    · exact occupancy_false_intro (by rw [hkeys_len]; omega) (by rw [hkeys_len]; omega) (Or.inl rfl)
+        (by intro c hc; simp at hc)
+    · simp [heightOf]
+  · -- both internal: one child rotates over
+    obtain ⟨a, as, rfl⟩ : ∃ a as, lCh = a :: as := by
+      cases lCh with
+      | nil => exact absurd rfl hlc
+      | cons a as => exact ⟨a, as, rfl⟩
+    have hrc_ne : rCh ≠ [] := fun h => hlc ((leaf_iff_of_height_eq hht).mpr h)
+    obtain ⟨b, bs, rfl⟩ : ∃ b bs, rCh = b :: bs := by
+      cases rCh with
+      | nil => exact absurd rfl hrc_ne
+      | cons b bs => exact ⟨b, bs, rfl⟩
+    have htake : (b :: bs).take 1 = [b] := rfl
+    rw [htake]
+    have hlen : (a :: as).length = t := by
+      rcases childBounded_len_of_keys (by omega) hL_cb hlk with h | h
+      · exact absurd h (by simp)
+      · exact h
+    have hchildren_len : ((a :: as) ++ [b]).length = t + 1 := by
+      rw [List.length_append, hlen]; rfl
+    -- heights: every element of the new children list has height `heightOf a`
+    have hb_ht : heightOf b = heightOf a :=
+      (child_height_bridge hL hR hht (c := a) (d := b) (by simp) (by simp)).symm
+    have huniform : ∀ c ∈ ((a :: as) ++ [b]), heightOf c = heightOf a := by
+      intro c hc
+      rw [List.mem_append] at hc
+      rcases hc with hc | hc
+      · exact sameDepth_children_eq_height hL c hc a (by simp)
+      · simp only [List.mem_singleton] at hc; rw [hc]; exact hb_ht
+    have hsd_all : ∀ c ∈ ((a :: as) ++ [b]), SameDepth c := by
+      intro c hc
+      rw [List.mem_append] at hc
+      rcases hc with hc | hc
+      · exact sameDepth_children_sd hL c hc
+      · simp only [List.mem_singleton] at hc; rw [hc]; exact sameDepth_children_sd hR b (by simp)
+    have huniform_tail : ∀ c ∈ (as ++ [b]), heightOf c = heightOf a := by
+      intro c hc; exact huniform c (by rw [List.cons_append]; exact List.mem_cons_of_mem a hc)
+    refine ⟨?_, ?_, ?_⟩
+    · -- occupancy: t keys, t+1 children
+      refine occupancy_false_intro (by rw [hkeys_len]; omega) (by rw [hkeys_len]; omega)
+        (Or.inr ⟨by rw [hchildren_len]; omega, by rw [hchildren_len]; omega⟩) ?_
+      · intro c hc
+        rw [List.mem_append] at hc
+        rcases hc with hc | hc
+        · exact hL_sub c hc
+        · simp only [List.mem_singleton] at hc; rw [hc]; exact hR_sub b (by simp)
+    · exact sameDepth_of_uniform (H := heightOf a) huniform hsd_all
+    · rw [List.cons_append, heightOf_uniform_children huniform_tail,
+        heightOf_internal_of_sameDepth hL]
+
+/--
+**`rotateRight` new-right node is well formed.**  After the borrow, the right
+sibling has one fewer key (still at least `t - 1`) and preserves `SameDepth` and
+its height.
+-/
+lemma rotateRight_right {t : Nat} (ht : 2 ≤ t)
+    {rHead : Nat} {rTail : List Nat} {rCh : List BTree}
+    (hrlen : t ≤ (rHead :: rTail).length)
+    (hR_cb : ChildBounded (node (rHead :: rTail) rCh))
+    (hR_occ : Occupancy t false (node (rHead :: rTail) rCh))
+    (hR : SameDepth (node (rHead :: rTail) rCh)) :
+    Occupancy t false (node rTail (rCh.drop 1)) ∧
+    SameDepth (node rTail (rCh.drop 1)) ∧
+    heightOf (node rTail (rCh.drop 1)) = heightOf (node (rHead :: rTail) rCh) := by
+  obtain ⟨_, hR_up, _, hR_sub⟩ := occupancy_false_dest hR_occ
+  have hrtail : t - 1 ≤ rTail.length := by simp only [List.length_cons] at hrlen; omega
+  have hrup : rTail.length ≤ 2 * t - 1 := by simp only [List.length_cons] at hR_up; omega
+  by_cases hrc : rCh = []
+  · -- right sibling is a leaf
+    subst hrc
+    simp only [List.drop_nil]
+    refine ⟨occupancy_false_intro hrtail hrup (Or.inl rfl) (by intro c hc; simp at hc),
+      SameDepth.leaf _, ?_⟩
+    simp [heightOf]
+  · obtain ⟨c0, cs, rfl⟩ : ∃ c0 cs, rCh = c0 :: cs := by
+      cases rCh with
+      | nil => exact absurd rfl hrc
+      | cons c0 cs => exact ⟨c0, cs, rfl⟩
+    have hdrop : (c0 :: cs).drop 1 = cs := rfl
+    rw [hdrop]
+    -- `cs` is nonempty because the internal node has ≥ t ≥ 2 children
+    have hchlen : (c0 :: cs).length = (rHead :: rTail).length + 1 := by
+      rcases childBounded_children_rel hR_cb with h | h
+      · exact absurd h (by simp)
+      · exact h
+    have hcs_ne : cs ≠ [] := by
+      intro h; rw [h] at hchlen; simp only [List.length_cons, List.length_nil] at hchlen; omega
+    obtain ⟨d0, ds, rfl⟩ : ∃ d0 ds, cs = d0 :: ds := by
+      cases cs with
+      | nil => exact absurd rfl hcs_ne
+      | cons d0 ds => exact ⟨d0, ds, rfl⟩
+    have huniform : ∀ c ∈ (d0 :: ds), heightOf c = heightOf d0 := by
+      intro c hc
+      exact sameDepth_children_eq_height hR c (by simp [hc]) d0 (by simp)
+    have hsd_all : ∀ c ∈ (d0 :: ds), SameDepth c := by
+      intro c hc; exact sameDepth_children_sd hR c (by simp [hc])
+    have hd0c0 : heightOf d0 = heightOf c0 :=
+      sameDepth_children_eq_height hR d0 (by simp) c0 (by simp)
+    have huniform_ds : ∀ c ∈ ds, heightOf c = heightOf d0 :=
+      fun c hc => huniform c (List.mem_cons_of_mem d0 hc)
+    refine ⟨?_, ?_, ?_⟩
+    · -- occupancy: rTail.length keys, rTail.length+1 children
+      have hchild_len : (d0 :: ds).length = rTail.length + 1 := by
+        simp only [List.length_cons] at hchlen ⊢; omega
+      refine occupancy_false_intro hrtail hrup (Or.inr ?_) ?_
+      · rw [hchild_len]; exact ⟨by omega, by omega⟩
+      · intro c hc; exact hR_sub c (List.mem_cons_of_mem c0 hc)
+    · exact sameDepth_of_uniform (H := heightOf d0) huniform hsd_all
+    · rw [heightOf_uniform_children huniform_ds,
+        heightOf_internal_of_sameDepth hR, hd0c0]
+
+/--
+**`rotateRight` preserves every node-level invariant.**  Both nodes produced by
+the borrow (the repaired child and the trimmed sibling) satisfy `Occupancy`,
+`SameDepth`, and keep their original heights.  This is the full node-level
+statement of CLRS deletion case 3a.
+-/
+theorem rotateRight_preserves {t : Nat} (ht : 2 ≤ t)
+    {lKeys rKeys : List Nat} {lCh rCh : List BTree} {sep : Nat}
+    (hlk : lKeys.length = t - 1) (hrlen : t ≤ rKeys.length)
+    (hL_cb : ChildBounded (node lKeys lCh)) (hR_cb : ChildBounded (node rKeys rCh))
+    (hL : SameDepth (node lKeys lCh)) (hR : SameDepth (node rKeys rCh))
+    (hL_occ : Occupancy t false (node lKeys lCh)) (hR_occ : Occupancy t false (node rKeys rCh))
+    (hht : heightOf (node lKeys lCh) = heightOf (node rKeys rCh)) :
+    (Occupancy t false (rotateRight (node lKeys lCh) sep (node rKeys rCh)).1 ∧
+     SameDepth (rotateRight (node lKeys lCh) sep (node rKeys rCh)).1 ∧
+     heightOf (rotateRight (node lKeys lCh) sep (node rKeys rCh)).1 = heightOf (node lKeys lCh)) ∧
+    (Occupancy t false (rotateRight (node lKeys lCh) sep (node rKeys rCh)).2.2 ∧
+     SameDepth (rotateRight (node lKeys lCh) sep (node rKeys rCh)).2.2 ∧
+     heightOf (rotateRight (node lKeys lCh) sep (node rKeys rCh)).2.2 = heightOf (node rKeys rCh)) := by
+  obtain ⟨rHead, rTail, rfl⟩ : ∃ rHead rTail, rKeys = rHead :: rTail := by
+    cases rKeys with
+    | nil => simp only [List.length_nil] at hrlen; omega
+    | cons rHead rTail => exact ⟨rHead, rTail, rfl⟩
+  simp only [rotateRight_cons]
+  exact ⟨rotateRight_left ht hlk hL_cb hL hR hL_occ hR_occ hht,
+         rotateRight_right ht hrlen hR_cb hR_occ hR⟩
+
 end BTree
 end Chapter18
 end CLRS
