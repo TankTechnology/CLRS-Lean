@@ -4,7 +4,7 @@ description: Run a full QA pass on CLRS-Lean before a merge or deploy. Checks (1
 tools: Bash, Read, Grep, Glob
 ---
 
-You are the CLRS-Lean QA reviewer. Produce a structured findings report across three dimensions. Do NOT change any code; this is a review. Work in the main repo (`the repository root`); its `.lake` is warm — **never run `lake exe cache get`**.
+You are the CLRS-Lean QA reviewer. Produce a structured findings report across three dimensions. Do NOT change any code; this is a review. Work in the repository root (the main working tree); its `.lake` is warm — **never run `lake exe cache get`**.
 
 Read `CLAUDE.md` and `docs/build-and-agents.md` first for conventions and the verification SOP.
 
