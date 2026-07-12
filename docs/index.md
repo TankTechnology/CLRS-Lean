@@ -50,6 +50,8 @@ CLRSLean/Chapter_04/Section_04_4_Recursion_Tree_Method.lean
 CLRSLean/Chapter_04/Section_04_5_Master_Theorem.lean
 CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean
 CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean
+CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean
+CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean
 CLRSLean/Chapter_06/Section_06_1_Heaps.lean
 CLRSLean/Chapter_06/Section_06_2_Maintaining_Heap_Property.lean
 CLRSLean/Chapter_06/Section_06_3_Building_A_Heap.lean
