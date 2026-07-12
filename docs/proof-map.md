@@ -1700,6 +1700,33 @@ again a greedy run, hence a basis of that threshold set, so it dominates every
 independent set threshold-by-threshold; the layer-cake identity upgrades this to
 weight domination.
 
+### Section 16.5 - A task-scheduling problem as a matroid
+
+- Lean source: `CLRSLean/Chapter_16/Section_16_5_Task_Scheduling.lean`
+- Status: `proved`
+- Reuses the §16.4 weighted-matroid greedy optimality theorem via
+  `CLRS.Matroid16.greedyRun_optimal`.
+- Main definitions:
+  - `CLRS.SchedulingMatroid.scheduleIndependent` — independence predicate
+    (`∀ t, N_t(A) ≤ t`, CLRS Lemma 16.12)
+  - `CLRS.SchedulingMatroid.schedulingMatroid` — the task-scheduling matroid
+    (CLRS Theorem 16.13)
+  - `CLRS.SchedulingMatroid.Nt` — deadline-count function `N_t(A)`
+- Main proved theorems:
+  - `CLRS.SchedulingMatroid.schedulingMatroid` — `IndepMatroid.ofFinset`
+    construction satisfying the three matroid axioms (empty, subset,
+    augmentation); the augmentation proof picks a task of maximal deadline
+    in `C \ A` and uses `|C| > |A|` to bound `N_t(A) + 1 ≤ N_t(C) ≤ t`
+  - `CLRS.SchedulingMatroid.minPenaltySchedule_correct` — `greedyRun` on
+    the scheduling matroid with penalty weights returns a maximum-penalty
+    independent set (instantiation of §16.4 greedy optimality)
+- Proof pattern: define `scheduleIndependent` via `N_t`; prove the finite
+  matroid exchange axiom directly; construct the matroid via
+  `IndepMatroid.ofFinset`; apply `greedyRun_optimal` for the optimality theorem.
+- Current gap: none for the current theorem statement; an explicit
+  earliest-deadline-first schedule construction remains a separate
+  strengthening target.
+
 ## Chapter 17 - Amortized Analysis
 
 - Lean source:
