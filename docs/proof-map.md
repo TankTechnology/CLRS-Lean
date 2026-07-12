@@ -386,6 +386,39 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 - Current gap: none for the current finite rank-symmetry model; a lower-level
   random-permutation and pseudocode execution model remains a future refinement
 
+### Section 5.2 - Indicator random variables (hat-check problem)
+
+- Lean source: `CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean`
+- Status: `proved` for the uniform-permutation model over `Equiv.Perm (Fin n)`
+- Main proved theorems:
+  - `CLRS.Chapter05.permSendProb_eq`
+  - `CLRS.Chapter05.probFixesPoint`
+  - `CLRS.Chapter05.expectedFixedPoints_eq_one`
+- Proof pattern: model a uniform random permutation as `Equiv.Perm (Fin n)` with
+  the shared `fintypeExpect` toolkit; prove the image `π i` is uniform by
+  translation invariance of the uniform measure under left multiplication by a
+  transposition (`fintypeExpect_equiv`); conclude the fixed-point probability is
+  `1/n`; sum the `n` fixed-point indicators with `fintypeExpect_sum` to get the
+  expected number of fixed points `1` (hat-check, CLRS eq. (5.1)-(5.2))
+- Current gap: none for the uniform-permutation model
+
+### Section 5.4 - Probabilistic analysis (birthday paradox, balls and bins)
+
+- Lean source: `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
+- Status: `proved` for the product-uniform model over `Fin k → Fin n`
+- Main proved theorems:
+  - `CLRS.Chapter05.singleBinProb`
+  - `CLRS.Chapter05.pairSameProb`
+  - `CLRS.Chapter05.expectedCollisions_eq`
+  - `CLRS.Chapter05.expectedBallsInBin_eq`
+- Proof pattern: sample space `Fin k → Fin n` (each coordinate an independent
+  uniform draw); re-derive the single-coordinate marginal (`singleBinProb = 1/n`)
+  and pairwise-collision probability (`pairSameProb = 1/n`) from the toolkit's
+  `fintypeExpect_equiv` / `fintypeExpect_fst` product independence; then linearity
+  (`fintypeExpect_sum`) gives the birthday expectation `k(k-1)/(2n)` (CLRS
+  eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10))
+- Current gap: streaks and the on-line hiring problem from §5.4 are deferred
+
 ## Chapter 6 - Heapsort
 
 ### Section 6.1 - Heaps
