@@ -333,6 +333,108 @@ theorem member_insert_self {k : Nat} (v : VEBTree k) (x : Nat)
     member x (insert x v) = true := by
   rw [member_insert_iff v x x hx]; exact Or.inl rfl
 
+/-! ## Operation-count recurrence and the `O(log log u)` bound -/
+
+/--
+The number of {lit}`member` calls performed by a query (its recursion depth).
+The base case costs one step; a node costs one step plus the single recursive
+call into the relevant cluster.
+-/
+def memberCost : {k : Nat} → Nat → VEBTree k → Nat
+  | _, _, .leaf _ _ => 1
+  | _, x, @VEBTree.node k _ clusters =>
+      if h : high (uSize k) x < uSize k then
+        1 + memberCost (low (uSize k) x) (clusters ⟨high (uSize k) x, h⟩)
+      else
+        1
+
+/--
+**The operation-count recurrence `T(u) = T(√u) + 1`.**  A membership query on a
+universe of size {lit}`uSize (k + 1) = (uSize k)²` makes exactly one recursive
+call, on a cluster of universe size {lit}`uSize k = √(uSize (k+1))`, plus one
+step of constant work.  This is the single-recursion structure behind the
+{lit}`O(log log u)` bound (CLRS Section 20.3).
+-/
+theorem memberCost_recurrence {k : Nat} (summary : VEBTree k)
+    (clusters : Fin (uSize k) → VEBTree k) (x : Nat)
+    (h : high (uSize k) x < uSize k) :
+    memberCost x (VEBTree.node summary clusters)
+      = 1 + memberCost (low (uSize k) x) (clusters ⟨high (uSize k) x, h⟩) := by
+  simp only [memberCost]; rw [dif_pos h]
+
+/--
+Unrolling the recurrence: a membership query on a level {lit}`k` universe makes
+at most {lit}`k + 1` calls.
+-/
+theorem memberCost_le {k : Nat} (v : VEBTree k) :
+    ∀ x, memberCost x v ≤ k + 1 := by
+  induction v with
+  | leaf c0 c1 => intro x; simp [memberCost]
+  | @node k summary clusters _ih_s ih_c =>
+      intro x
+      by_cases h : high (uSize k) x < uSize k
+      · rw [memberCost_recurrence summary clusters x h]
+        have hkey := ih_c ⟨high (uSize k) x, h⟩ (low (uSize k) x)
+        omega
+      · have hone : memberCost x (VEBTree.node summary clusters) = 1 := by
+          simp only [memberCost]; rw [dif_neg h]
+        rw [hone]; omega
+
+/-- The base-two logarithm of a tower universe is {lit}`2 ^ k`. -/
+theorem log_uSize (k : Nat) : Nat.log 2 (uSize k) = 2 ^ k := by
+  unfold uSize
+  exact Nat.log_pow (by norm_num) (2 ^ k)
+
+/--
+The iterated logarithm of a tower universe recovers its level:
+{lit}`log₂ (log₂ (uSize k)) = k`.  So the tower level *is* {lit}`log log u`.
+-/
+theorem loglog_uSize (k : Nat) : Nat.log 2 (Nat.log 2 (uSize k)) = k := by
+  rw [log_uSize]
+  exact Nat.log_pow (by norm_num) k
+
+/--
+**Depth bound `O(log log u)`.**  A membership query performs at most
+{lit}`log₂ (log₂ u) + 1` recursive calls, where {lit}`u = uSize k`.  This is the
+CLRS Section 20.3 depth bound.
+-/
+theorem depth_loglog_u {k : Nat} (v : VEBTree k) (x : Nat) :
+    memberCost x v ≤ Nat.log 2 (Nat.log 2 (uSize k)) + 1 := by
+  rw [loglog_uSize]
+  exact memberCost_le v x
+
+/-- The universal per-level worst-case operation-count bound {lit}`k + 1`. -/
+def memberCostBound (k : Nat) : Nat := k + 1
+
+/-- Every membership query stays within {lit}`memberCostBound`. -/
+theorem memberCost_le_bound {k : Nat} (v : VEBTree k) (x : Nat) :
+    memberCost x v ≤ memberCostBound k :=
+  memberCost_le v x
+
+/--
+**Asymptotic packaging: vEB operations run in `O(log log u)`.**  The worst-case
+operation-count bound, as a function of the tower level, is
+{lit}`O`-dominated by {lit}`log₂ (log₂ u)`, using the Chapter 3 big-O wrapper on
+{lit}`ℕ → ℝ`.  Together with {lit}`depth_loglog_u` and
+{lit}`memberCost_le_bound` this is the CLRS-facing {lit}`O(log log u)`
+statement for the (single-recursion) membership operation.
+-/
+theorem veb_operation_bigO_loglog_u :
+    CLRS.Chapter03.isBigO
+      (fun k => (memberCostBound k : ℝ))
+      (fun k => (Nat.log 2 (Nat.log 2 (uSize k)) : ℝ)) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨2, by norm_num, 1, ?_⟩
+  intro n hn
+  have hlog : Nat.log 2 (Nat.log 2 (uSize n)) = n := loglog_uSize n
+  simp only [memberCostBound, hlog]
+  push_cast
+  have hn1 : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+  have e1 : |((n : ℝ) + 1)| = (n : ℝ) + 1 := abs_of_nonneg (by positivity)
+  have e2 : |(n : ℝ)| = (n : ℝ) := abs_of_nonneg (by positivity)
+  rw [e1, e2]
+  linarith
+
 end VEBTree
 end Chapter20
 end CLRS
