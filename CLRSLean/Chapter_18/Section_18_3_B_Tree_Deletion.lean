@@ -266,6 +266,224 @@ theorem delete_search_false_of_not_mem {minDegree x y : Nat} {t : BTree}
     (minDegree := minDegree) (x := x) (y := y) (t := t)
     hvalid (search_false_of_not_mem y t hy)
 
+/-! ## Node-level deletion repair: `SameDepth` / `heightOf` infrastructure
+
+The remaining theorems in this section implement the *node-level* deletion
+repair operations that the specification-level {name}`delete` elides
+(CLRS `B-TREE-DELETE`, cases 3a and 3b), and prove that each repair step
+preserves the structural occupancy and same-depth invariants of Section 18.1.
+
+We first collect two `SameDepth` utilities used by every repair proof.
+-/
+
+/--
+`SameDepth` does not depend on the key list of the root node: only the shape of
+the children matters.  This lets a repaired node inherit `SameDepth` from a node
+whose keys were rearranged.
+-/
+lemma sameDepth_keys_irrel {ks ks' : List Nat} {cs : List BTree}
+    (h : SameDepth (node ks cs)) : SameDepth (node ks' cs) := by
+  cases h with
+  | leaf _ => exact SameDepth.leaf ks'
+  | internal _ c0 cs' hh hsd0 hsds => exact SameDepth.internal ks' c0 cs' hh hsd0 hsds
+
+/--
+A node is `SameDepth` whenever all of its children have a common height `H` and
+are individually `SameDepth`.  This is the introduction rule used to assemble the
+repaired children lists.
+-/
+lemma sameDepth_of_uniform {ks : List Nat} {cs : List BTree} {H : Nat}
+    (hht : ∀ c ∈ cs, heightOf c = H) (hsd : ∀ c ∈ cs, SameDepth c) :
+    SameDepth (node ks cs) := by
+  cases cs with
+  | nil => exact SameDepth.leaf ks
+  | cons c0 cs' =>
+    refine SameDepth.internal ks c0 cs' ?_ (hsd c0 (by simp)) (fun c hc => hsd c (by simp [hc]))
+    intro c hc
+    rw [hht c (by simp [hc]), hht c0 (by simp)]
+
+/-- A node has height `0` exactly when it is a leaf (no children). -/
+lemma heightOf_eq_zero_iff (ks : List Nat) (cs : List BTree) :
+    heightOf (node ks cs) = 0 ↔ cs = [] := by
+  cases cs with
+  | nil => simp [heightOf]
+  | cons c cs => simp [heightOf]
+
+/-! ## `mergeNodes`: combine two sibling subtrees around a separator key -/
+
+/--
+**Node merge (CLRS `B-TREE-DELETE` case 3b core step).**  Combine a left subtree,
+a separator key `sep`, and a right subtree into one node.  When both siblings are
+minimal (`t - 1` keys each), the merged node has exactly `2t - 1` keys — a full
+node — which is the shape produced by the deletion merge repair.
+-/
+def mergeNodes : BTree → Nat → BTree → BTree
+  | node lKeys lCh, sep, node rKeys rCh => node (lKeys ++ sep :: rKeys) (lCh ++ rCh)
+
+/-- `mergeNodes` reduces to the explicit combined node. -/
+@[simp] lemma mergeNodes_node (lKeys rKeys : List Nat) (lCh rCh : List BTree) (sep : Nat) :
+    mergeNodes (node lKeys lCh) sep (node rKeys rCh) = node (lKeys ++ sep :: rKeys) (lCh ++ rCh) :=
+  rfl
+
+/--
+**Merge preserves `SameDepth`.**  Merging two equal-height same-depth siblings
+yields a same-depth node.  The equal-height hypothesis is exactly the invariant
+supplied by `SameDepth` of the common parent.
+-/
+lemma mergeNodes_sameDepth {left right : BTree} {sep : Nat}
+    (hL : SameDepth left) (hR : SameDepth right) (hht : heightOf left = heightOf right) :
+    SameDepth (mergeNodes left sep right) := by
+  cases left with
+  | node lKeys lCh =>
+    cases right with
+    | node rKeys rCh =>
+      rw [mergeNodes_node]
+      by_cases hlc : lCh = []
+      · -- left is a leaf: merged children = rCh, inherit from right
+        subst hlc
+        rw [List.nil_append]
+        exact sameDepth_keys_irrel hR
+      · by_cases hrc : rCh = []
+        · -- right is a leaf: merged children = lCh, inherit from left
+          subst hrc
+          rw [List.append_nil]
+          exact sameDepth_keys_irrel hL
+        · -- both internal: common child height, all same-depth
+          obtain ⟨a, as, rfl⟩ : ∃ a as, lCh = a :: as := by
+            cases lCh with
+            | nil => exact absurd rfl hlc
+            | cons a as => exact ⟨a, as, rfl⟩
+          obtain ⟨b, bs, rfl⟩ : ∃ b bs, rCh = b :: bs := by
+            cases rCh with
+            | nil => exact absurd rfl hrc
+            | cons b bs => exact ⟨b, bs, rfl⟩
+          have hLh : heightOf (node lKeys (a :: as)) = 1 + heightOf a :=
+            heightOf_internal_of_sameDepth hL
+          have hRh : heightOf (node rKeys (b :: bs)) = 1 + heightOf b :=
+            heightOf_internal_of_sameDepth hR
+          have hab : heightOf a = heightOf b := by rw [hLh, hRh] at hht; omega
+          have hL_all := sameDepth_children_eq_height hL
+          have hR_all := sameDepth_children_eq_height hR
+          refine sameDepth_of_uniform (H := heightOf a) ?_ ?_
+          · intro c hc
+            rw [List.mem_append] at hc
+            rcases hc with hc | hc
+            · exact hL_all c hc a (by simp)
+            · rw [hR_all c hc b (by simp), ← hab]
+          · intro c hc
+            rw [List.mem_append] at hc
+            rcases hc with hc | hc
+            · rcases List.mem_cons.mp hc with rfl | hc'
+              · exact sameDepth_head_sd hL
+              · exact sameDepth_tail_sd hL c hc'
+            · rcases List.mem_cons.mp hc with rfl | hc'
+              · exact sameDepth_head_sd hR
+              · exact sameDepth_tail_sd hR c hc'
+
+/--
+**Merge preserves height.**  A merged node has the same height as either
+equal-height sibling.  This is what lets the merge repair keep every leaf at a
+common depth from the perspective of the parent.
+-/
+lemma mergeNodes_height {left right : BTree} {sep : Nat}
+    (hL : SameDepth left) (hR : SameDepth right) (hht : heightOf left = heightOf right) :
+    heightOf (mergeNodes left sep right) = heightOf left := by
+  cases left with
+  | node lKeys lCh =>
+    cases right with
+    | node rKeys rCh =>
+      rw [mergeNodes_node]
+      by_cases hlc : lCh = []
+      · -- left leaf ⇒ height 0 ⇒ right leaf ⇒ merged leaf
+        subst hlc
+        have hL0 : heightOf (node lKeys ([] : List BTree)) = 0 := by simp [heightOf]
+        have hR0 : heightOf (node rKeys rCh) = 0 := by rw [← hht, hL0]
+        have hrc : rCh = [] := (heightOf_eq_zero_iff rKeys rCh).mp hR0
+        subst hrc
+        simp [heightOf]
+      · obtain ⟨a, as, rfl⟩ : ∃ a as, lCh = a :: as := by
+          cases lCh with
+          | nil => exact absurd rfl hlc
+          | cons a as => exact ⟨a, as, rfl⟩
+        have hLh : heightOf (node lKeys (a :: as)) = 1 + heightOf a :=
+          heightOf_internal_of_sameDepth hL
+        have hL_all := sameDepth_children_eq_height hL
+        by_cases hrc : rCh = []
+        · subst hrc
+          have hR0 : heightOf (node rKeys ([] : List BTree)) = 0 := by simp [heightOf]
+          rw [hR0, hLh] at hht; omega
+        · obtain ⟨b, bs, rfl⟩ : ∃ b bs, rCh = b :: bs := by
+            cases rCh with
+            | nil => exact absurd rfl hrc
+            | cons b bs => exact ⟨b, bs, rfl⟩
+          have hRh : heightOf (node rKeys (b :: bs)) = 1 + heightOf b :=
+            heightOf_internal_of_sameDepth hR
+          have hab : heightOf a = heightOf b := by rw [hLh, hRh] at hht; omega
+          have hR_all := sameDepth_children_eq_height hR
+          -- merged children = a :: (as ++ b :: bs), all height = heightOf a
+          have huniform : ∀ c ∈ (as ++ b :: bs), heightOf c = heightOf a := by
+            intro c hc
+            rw [List.mem_append] at hc
+            rcases hc with hc | hc
+            · exact hL_all c (by simp [hc]) a (by simp)
+            · rw [hR_all c hc b (by simp), ← hab]
+          rw [List.cons_append, heightOf_uniform_children huniform, hLh]
+
+/-! ## `mergeNodes`: occupancy preservation -/
+
+/-- From `ChildBounded`, a node with `t - 1` keys has `0` or `t` children. -/
+lemma childBounded_len_of_keys {t : Nat} (ht : 1 ≤ t) {ks : List Nat} {cs : List BTree}
+    (h_cb : ChildBounded (node ks cs)) (hks : ks.length = t - 1) :
+    cs = [] ∨ cs.length = t := by
+  unfold ChildBounded at h_cb
+  rcases h_cb with ⟨hrel, _, _⟩
+  rcases hrel with hemp | heq
+  · left; cases cs with | nil => rfl | cons x xs => simp at hemp
+  · right; rw [heq, hks]; omega
+
+/--
+**Merge preserves `Occupancy`.**  Merging two minimal siblings (`t - 1` keys
+each) produces a *full* non-root node: `2t - 1` keys and either `0` or `2t`
+children.  This is the occupancy face of CLRS deletion case 3b.
+-/
+lemma mergeNodes_occupancy {t : Nat} (ht : 2 ≤ t)
+    {lKeys rKeys : List Nat} {lCh rCh : List BTree} {sep : Nat}
+    (hlk : lKeys.length = t - 1) (hrk : rKeys.length = t - 1)
+    (hL_cb : ChildBounded (node lKeys lCh)) (hR_cb : ChildBounded (node rKeys rCh))
+    (hL_occ : Occupancy t false (node lKeys lCh))
+    (hR_occ : Occupancy t false (node rKeys rCh)) :
+    Occupancy t false (mergeNodes (node lKeys lCh) sep (node rKeys rCh)) := by
+  rw [mergeNodes_node]
+  have hlc : lCh = [] ∨ lCh.length = t := childBounded_len_of_keys (by omega) hL_cb hlk
+  have hrc : rCh = [] ∨ rCh.length = t := childBounded_len_of_keys (by omega) hR_cb hrk
+  have hL_sub : ∀ c ∈ lCh, Occupancy t false c := by
+    unfold Occupancy at hL_occ; obtain ⟨-, -, -, h⟩ := hL_occ; exact h
+  have hR_sub : ∀ c ∈ rCh, Occupancy t false c := by
+    unfold Occupancy at hR_occ; obtain ⟨-, -, -, h⟩ := hR_occ; exact h
+  have hkeys_len : (lKeys ++ sep :: rKeys).length = 2 * t - 1 := by
+    simp only [List.length_append, List.length_cons]; omega
+  have h_children_bound :
+      ((lCh ++ rCh).isEmpty = true) ∨ (t ≤ (lCh ++ rCh).length ∧ (lCh ++ rCh).length ≤ 2 * t) := by
+    rcases hlc with h0 | hlt <;> rcases hrc with h0' | hrt
+    · left; rw [h0, h0']; rfl
+    · right; subst h0; rw [List.nil_append, hrt]; exact ⟨le_rfl, by omega⟩
+    · right; subst h0'; rw [List.append_nil, hlt]; exact ⟨le_rfl, by omega⟩
+    · right; rw [List.length_append, hlt, hrt]; exact ⟨by omega, by omega⟩
+  unfold Occupancy
+  refine ⟨?_, ?_, h_children_bound, ?_⟩
+  · -- lower bound t - 1 ≤ keys.length
+    have h : t - 1 ≤ (lKeys ++ sep :: rKeys).length := by rw [hkeys_len]; omega
+    exact h
+  · -- upper bound keys.length ≤ 2t - 1
+    have h : (lKeys ++ sep :: rKeys).length ≤ 2 * t - 1 := by rw [hkeys_len]
+    exact h
+  · -- sub-child occupancy inherited from the two siblings
+    intro c hc
+    rw [List.mem_append] at hc
+    rcases hc with hc | hc
+    · exact hL_sub c hc
+    · exact hR_sub c hc
+
 end BTree
 end Chapter18
 end CLRS
