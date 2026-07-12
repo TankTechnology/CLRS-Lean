@@ -21,18 +21,45 @@ of pseudocode.  A chapter may be complete for its current mathematical model
 while still leaving pointer mutation, RAM costs, or imperative refinement for a
 later layer.
 
-Current status at a glance (chapter rows are generated from
-[`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv)):
+**Chapters 1–24 are represented, with 1,107 tracked theorems — all
+kernel-checked.** `main` contains no `sorry`, `admit`, or project axiom, and
+headline theorems depend only on the three standard Lean/Mathlib axioms
+(`propext`, `Classical.choice`, `Quot.sound`). Chapter rows below are generated
+from [`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv):
 
-- **Chapters 1–24 are represented**, with **~1,100 tracked theorems, all
-  kernel-checked** — `main` contains no `sorry`, `admit`, or project axiom, and
-  headline theorems depend only on the three standard Lean/Mathlib axioms
-  (`propext`, `Classical.choice`, `Quot.sound`).
-- **Sealed / main-proof-complete:** Chapter 2, Chapter 6, Chapter 8
-  (correctness), Chapter 21, Chapter 22, Chapter 23.
-- **Selected sections complete:** Chapters 5, 10, 16, and 24.
-- **Substantial but intentionally partial:** Chapters 3, 4, 7, 9, 11–15, 17–20.
-- **Not yet represented on `main`:** Chapters 25–35.
+| Ch | Title | Status | Theorems | Core remaining |
+|---:|-------|--------|-------:|----------------|
+| 1 | The Role of Algorithms | ⚪ guide | 0 | — |
+| 2 | Getting Started | 🟢 complete | 6 | full RAM semantics; arbitrary-size merge-sort recurrence |
+| 3 | Growth of Functions | 🟠 partial | 32 | iterated logarithm `lg*` and Fibonacci growth |
+| 4 | Divide-and-Conquer | 🟠 partial | 81 | runtime/RAM layers for maximum subarray |
+| 5 | Probabilistic Analysis | 🟡 sections | 6 | randomized examples beyond the hiring problem |
+| 6 | Heapsort | 🟢 complete | 60 | line-by-line RAM cost semantics |
+| 7 | Quicksort | 🟠 partial | 25 | mutable-array `PARTITION`; end-to-end `Θ(n log n)` (issue #2) |
+| 8 | Sorting in Linear Time | 🟢 correctness | 27 | full bucket-sort expected-time over an explicit distribution |
+| 9 | Medians and Order Statistics | 🟠 partial | 43 | randomized `SELECT` expected time |
+| 10 | Elementary Data Structures | 🟡 sections | 6 | pointer-level lists; free-list allocation |
+| 11 | Hash Tables | 🟠 partial | 24 | RAM / probe-count operational semantics |
+| 12 | Binary Search Trees | 🟠 partial | 40 | full imperative pointer mutation + RAM |
+| 13 | Red-Black Trees | 🟠 partial | 34 | composed executable `RB-DELETE` loop (issue #7) |
+| 14 | Augmenting Data Structures | 🟠 partial | 41 | augmentation through executable RB deletion |
+| 15 | Dynamic Programming | 🟠 partial | 76 | mutable-array/memoized DP + RAM costs |
+| 16 | Greedy Algorithms | 🟡 sections | 21 | other greedy topics (matroids, task scheduling) |
+| 17 | Amortized Analysis | 🟠 partial | 66 | allocator/RAM constants; interleaved-trace analysis |
+| 18 | B-Trees | 🟠 partial | 62 | composed delete invariant + disk-page model (issue #10) |
+| 19 | Fibonacci Heaps | 🟠 partial | 112 | executable pointer forest / consolidate / cascading cuts |
+| 20 | van Emde Boas Trees | 🟠 partial | 149 | recursive successor/predecessor/delete |
+| 21 | Data Structures for Disjoint Sets | 🟢 complete | 84 | sealed; lower-level RAM constants only |
+| 22 | Elementary Graph Algorithms | 🟢 correctness | 47 | sealed; explicit work / RAM refinement only |
+| 23 | Minimum Spanning Trees | 🟢 correctness | 52 | sealed; Batteries binary-heap array refinement only |
+| 24 | Single-Source Shortest Paths | 🟡 sections | 13 | executable Dijkstra PQ loop; SSSP-in-DAGs; difference constraints |
+| 25–35 | All-Pairs SP, Max-Flow, … | ⬜ not started | 0 | whole chapters (Ch25/26 issues filed) |
+
+Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
+🟡 `sections` (represented sections complete, not the whole chapter) ·
+🟠 `partial` (useful proofs, a named central target remains) ·
+⚪ `guide` · ⬜ `not started`.
+
 
 Notable results across the library:
 
