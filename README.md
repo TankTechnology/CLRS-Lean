@@ -34,20 +34,20 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 |---:|-------|--------|-------:|----------------|
 | 1 | The Role of Algorithms | ⚪ guide | 0 | — |
 | 2 | Getting Started | 🟢 complete | 6 | Optional strengthening: full RAM semantics; arbitrary-size… |
-| 3 | Growth of Functions | 🟠 partial | 32 | Iterated logarithm lg* and Fibonacci-number growth |
+| 3 | Growth of Functions | 🟠 partial | 47 | — |
 | 4 | Divide-and-Conquer | 🟠 partial | 81 | Runtime/RAM layers for maximum subarray |
-| 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 6 | Additional randomized-algorithm examples beyond hiring… |
+| 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 13 | §5.3 randomize-in-place correctness and the §5.4 streaks /… |
 | 6 | Heapsort | 🟢 complete | 60 | Full RAM/runtime cost semantics for priority-queue and heap… |
 | 7 | Quicksort | 🟠 partial | 25 | Index-level mutable-array PARTITION refinement; explicit… |
 | 8 | Sorting in Linear Time | 🟢 correctness | 27 | Full bucket-sort expected-time theorem over an explicit… |
 | 9 | Medians and Order Statistics | 🟠 partial | 43 | Randomized SELECT expected time |
-| 10 | Elementary Data Structures | 🟡 sections | 6 | Pointer-level linked lists; free-list allocation;… |
-| 11 | Hash Tables | 🟠 partial | 24 | RAM or probe-count operational semantics for hashing |
+| 10 | Elementary Data Structures | 🟡 sections | 12 | Pointer-level linked lists; free-list allocation |
+| 11 | Hash Tables | 🟠 partial | 48 | RAM or probe-count operational semantics for hashing |
 | 12 | Binary Search Trees | 🟠 partial | 40 | Explicit RAM cost model over pointer operations;… |
 | 13 | Red-Black Trees | 🟠 partial | 34 | Prove RB-DELETE/RB-DELETE-FIXUP and the logarithmic-height… |
-| 14 | Augmenting Data Structures | 🟠 partial | 41 | Thread augmentation through executable red-black deletion;… |
+| 14 | Augmenting Data Structures | 🟠 partial | 55 | Thread augmentation through executable red-black deletion |
 | 15 | Dynamic Programming | 🟠 partial | 76 | Mutable-array/memoized implementations for the remaining DP… |
-| 16 | Greedy Algorithms | 🟡 sections | 21 | Other Chapter 16 greedy topics such as… |
+| 16 | Greedy Algorithms | 🟡 sections | 26 | Task-scheduling style greedy sections (16.5) are not… |
 | 17 | Amortized Analysis | 🟠 partial | 66 | Mutable-array copying allocator/RAM constants and sharper… |
 | 18 | B-Trees | 🟠 partial | 62 | Full occupancy/separator/same-depth invariant stack… |
 | 19 | Fibonacci Heaps | 🟠 partial | 112 | Pointer forest circular root lists executable CONSOLIDATE… |
@@ -55,10 +55,10 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 21 | Data Structures for Disjoint Sets | 🟢 complete | 84 | No remaining core Chapter 21 group; lower-level… |
 | 22 | Elementary Graph Algorithms | 🟢 correctness | 47 | No remaining core correctness group; explicit work and… |
 | 23 | Minimum Spanning Trees | 🟢 correctness | 52 | No remaining core mathematical or functional algorithm… |
-| 24 | Single-Source Shortest Paths | 🟡 sections | 13 | Executable Dijkstra priority-queue loop threading the… |
+| 24 | Single-Source Shortest Paths | 🟡 sections | 17 | Executable Dijkstra priority-queue loop threading the… |
 | 25–35 | All-Pairs SP, Max-Flow, … | ⬜ not started | 0 | whole chapters (Ch25/26 issues filed) |
 
-**Total: 1107 kernel-checked theorems across Chapters 1–24** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1182 kernel-checked theorems across Chapters 1–24** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·

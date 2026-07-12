@@ -109,6 +109,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_11" = [
   "CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables",
   "CLRSLean.Chapter_11.Section_11_2_Chained_Hash_Tables",
+  "CLRSLean.Chapter_11.Section_11_3_Hash_Functions",
+  "CLRSLean.Chapter_11.Section_11_4_Open_Addressing",
 ]
 "CLRSLean.Chapter_12" = [
   "CLRSLean.Chapter_12.Section_12_1_Binary_Search_Trees",
@@ -253,6 +255,13 @@ title = "Chapter 10. Elementary Data Structures"
 
 [modules."CLRSLean.Chapter_11"]
 title = "Chapter 11. Hash Tables"
+
+
+[modules."CLRSLean.Chapter_11.Section_11_3_Hash_Functions"]
+title = "11.3. Hash Functions"
+
+[modules."CLRSLean.Chapter_11.Section_11_4_Open_Addressing"]
+title = "11.4. Open Addressing"
 
 [modules."CLRSLean.Chapter_12"]
 title = "Chapter 12. Binary Search Trees"
