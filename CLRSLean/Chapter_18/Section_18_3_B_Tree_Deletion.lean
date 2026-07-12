@@ -793,35 +793,88 @@ lemma sortedRemove_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤
 
 /-! ## Composed delete (CLRS B-TREE-DELETE) -/
 
-/--
-**Composed B-tree deletion (CLRS `B-TREE-DELETE`).**  Recursively deletes key `x`
-from the tree.  For a leaf, removes `x` from the key list via `sortedRemove`.
-For an internal node whose key list contains `x` at position `ki`, the two
-bracketing children are merged and the recursive delete continues in the merged
-child (CLRS case 2c simplified).  For internal nodes not containing `x`, the
-recursive delete descends into the child where `x` belongs.
 
-This function is `partial` because the merge case introduces a freshly
-constructed node (`mergeNodes ...`) whose height cannot be proved smaller than
-the parent's in the termination checker without side hypotheses.  The
-invariant-preservation proofs below establish termination a posteriori by
-structural induction on `heightOf`.
--/
-partial def composedDelete (t : Nat) (x : Nat) : BTree → BTree
+/-! ## Height of mergeNodes (for termination of composedDelete) -/
+
+/-- The height of a merged node is the maximum of the two component heights.
+This holds for all trees, not just well-formed ones, and does not require
+`SameDepth`. -/
+lemma foldl_max_aux (a : Nat) (bs : List Nat) : (bs.foldl max a) = max a (bs.foldl max 0) := by
+  induction bs generalizing a with
+  | nil => simp
+  | cons b bs ih =>
+    calc
+      (b :: bs).foldl max a = (bs.foldl max (max a b)) := by simp [List.foldl_cons]
+      _ = max (max a b) (bs.foldl max 0) := by rw [ih]
+      _ = max a (max b (bs.foldl max 0)) := by omega
+      _ = max a ((b :: bs).foldl max 0) := by
+        rw [List.foldl_cons, show max (0 : Nat) b = b by omega, ih b]
+
+lemma foldl_max_append (l₁ l₂ : List Nat) : ((l₁ ++ l₂).foldl max 0) = max (l₁.foldl max 0) (l₂.foldl max 0) := by
+  induction l₁ with
+  | nil => simp
+  | cons a l₁ ih =>
+    calc
+      ((a :: (l₁ ++ l₂)).foldl max 0) = ((l₁ ++ l₂).foldl max (max 0 a)) := by simp
+      _ = max (max 0 a) (((l₁ ++ l₂).foldl max 0)) := by rw [foldl_max_aux]
+      _ = max (max 0 a) (max (l₁.foldl max 0) (l₂.foldl max 0)) := by rw [ih]
+      _ = max a (max (l₁.foldl max 0) (l₂.foldl max 0)) := by omega
+      _ = max ((a :: l₁).foldl max 0) (l₂.foldl max 0) := by
+        calc
+          max a (max (l₁.foldl max 0) (l₂.foldl max 0))
+              = max (max a (l₁.foldl max 0)) (l₂.foldl max 0) := by omega
+          _ = max ((a :: l₁).foldl max 0) (l₂.foldl max 0) := by
+            have h : (a :: l₁).foldl max 0 = max a (l₁.foldl max 0) := by
+              calc
+                (a :: l₁).foldl max 0 = (l₁.foldl max (max 0 a)) := by simp
+                _ = (l₁.foldl max a) := by simp
+                _ = max a (l₁.foldl max 0) := by rw [foldl_max_aux]
+            rw [h]
+
+lemma heightOf_mergeNodes_eq_max {left right : BTree} {sep : Nat} :
+    heightOf (mergeNodes left sep right) = max (heightOf left) (heightOf right) := by
+  cases left with
+  | node lKeys lCh =>
+    cases right with
+    | node rKeys rCh =>
+      rw [mergeNodes_node]
+      by_cases hl : lCh = []
+      · subst hl
+        by_cases hr : rCh = []
+        · subst hr; simp [heightOf]
+        · simp [heightOf, hr]
+      · by_cases hr : rCh = []
+        · subst hr; simp [heightOf, hl]
+        · have hne : lCh ++ rCh ≠ [] := by
+            intro h
+            have hnil := (List.append_eq_nil_iff.mp h).1
+            exact hl hnil
+          set A := ((lCh.map heightOf).foldl max 0) with hA
+          set B := ((rCh.map heightOf).foldl max 0) with hB
+          have hcalc : 1 + max A B = max (1 + A) (1 + B) := by
+            by_cases h : A ≤ B
+            · rw [Nat.max_eq_right h, Nat.max_eq_right (by omega : 1 + A ≤ 1 + B)]
+            · rw [Nat.max_eq_left (by omega : B ≤ A), Nat.max_eq_left (by omega : 1 + B ≤ 1 + A)]
+          -- Expand heightOf for the three nodes
+          have hlCh_ht : heightOf (node lKeys lCh) = 1 + A := by
+            simp [heightOf, hl, hA]
+          have hrCh_ht : heightOf (node rKeys rCh) = 1 + B := by
+            simp [heightOf, hr, hB]
+          have hmerged_ht : heightOf (node (lKeys ++ sep :: rKeys) (lCh ++ rCh)) = 1 + (((lCh ++ rCh).map heightOf).foldl max 0) := by
+            simp [heightOf, hne]
+          rw [hmerged_ht, hlCh_ht, hrCh_ht, List.map_append, foldl_max_append, hcalc]
+
+def composedDelete (t : Nat) (x : Nat) : BTree → BTree
   | node ks cs =>
     if hcs : cs.isEmpty then
-      -- Leaf: remove x from the sorted key list
       node (sortedRemove x ks) []
     else
       let i := findChild ks x
-      -- i is the number of keys ≤ x; i ≤ ks.length by findChild_le
       if hiPos : 0 < i then
         let ki := i - 1
         match hk : ks[ki]? with
         | some k =>
           if hkeq : k = x then
-            -- Key x IS at position ki in this internal node.
-            -- Merge the two bracketing children, then recurse into the merged node
             match hcl : cs[ki]? with
             | some leftChild =>
               match hcr : cs[ki + 1]? with
@@ -832,21 +885,42 @@ partial def composedDelete (t : Nat) (x : Nat) : BTree → BTree
               | none => node (sortedRemove x ks) []
             | none => node (sortedRemove x ks) []
           else
-            -- Key at ki is not x; recurse into child i
             match hc : cs[i]? with
             | some child => node ks (cs.set i (composedDelete t x child))
             | none => node ks cs
         | none =>
-          -- No key at ki; recurse into child i
           match hc : cs[i]? with
           | some child => node ks (cs.set i (composedDelete t x child))
           | none => node ks cs
       else
-        -- i = 0: x < all keys; recurse into child 0
         match hc : cs[0]? with
         | some child => node ks (cs.set 0 (composedDelete t x child))
         | none => node ks cs
-
+termination_by tr => heightOf tr
+decreasing_by
+  · -- Merge case: heightOf merged < heightOf (node ks cs)
+    rw [heightOf_mergeNodes_eq_max]
+    have hmem_left : leftChild ∈ cs := by
+      apply List.mem_iff_getElem?.mpr
+      exact ⟨ki, hcl⟩
+    have h_lt_left : heightOf leftChild < heightOf (node ks cs) := heightOf_mem_lt hmem_left
+    have hmem_right : rightChild ∈ cs := by
+      apply List.mem_iff_getElem?.mpr
+      exact ⟨ki + 1, hcr⟩
+    have h_lt_right : heightOf rightChild < heightOf (node ks cs) := heightOf_mem_lt hmem_right
+    omega
+  · -- Recursion into child i
+    have hmem : child ∈ cs :=
+      (List.mem_iff_getElem? (a := child) (l := cs)).mpr ⟨i, hc⟩
+    exact heightOf_mem_lt hmem
+  · -- Recursion into child i (from the hk none branch)
+    have hmem : child ∈ cs :=
+      (List.mem_iff_getElem? (a := child) (l := cs)).mpr ⟨i, hc⟩
+    exact heightOf_mem_lt hmem
+  · -- Recursion into child 0 (here i = 0 from the else branch)
+    have hmem : child ∈ cs :=
+      (List.mem_iff_getElem? (a := child) (l := cs)).mpr ⟨0, hc⟩
+    exact heightOf_mem_lt hmem
 end BTree
 end Chapter18
 end CLRS
