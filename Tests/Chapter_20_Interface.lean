@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_20.Section_20_1_VEB_Universe
 import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
+import CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
 
 #check CLRS.Chapter20.VEB.high
 #check CLRS.Chapter20.VEB.low
@@ -138,3 +139,25 @@ import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
 #check CLRS.Chapter20.VEB.operationDepth_linear
 #check CLRS.Chapter20.VEB.operationDepth_monotone
 #check CLRS.Chapter20.VEB.operationDepth_strict_mono
+
+-- Section 20.3: recursive summary/cluster structure
+#check CLRS.Chapter20.uSize
+#check CLRS.Chapter20.uSize_succ
+#check CLRS.Chapter20.VEBTree
+#check CLRS.Chapter20.VEBTree.toFinset
+#check CLRS.Chapter20.VEBTree.toFinset_lt_uSize
+#check CLRS.Chapter20.VEBTree.empty
+#check CLRS.Chapter20.VEBTree.toFinset_empty
+#check CLRS.Chapter20.VEBTree.member
+#check CLRS.Chapter20.VEBTree.member_correct
+#check CLRS.Chapter20.VEBTree.insert
+#check CLRS.Chapter20.VEBTree.insert_toFinset
+#check CLRS.Chapter20.VEBTree.member_insert_iff
+#check CLRS.Chapter20.VEBTree.member_insert_self
+#check CLRS.Chapter20.VEBTree.memberCost
+#check CLRS.Chapter20.VEBTree.memberCost_recurrence
+#check CLRS.Chapter20.VEBTree.memberCost_le
+#check CLRS.Chapter20.VEBTree.log_uSize
+#check CLRS.Chapter20.VEBTree.loglog_uSize
+#check CLRS.Chapter20.VEBTree.depth_loglog_u
+#check CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u
