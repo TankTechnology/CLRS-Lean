@@ -1554,6 +1554,35 @@ nonempty frequency table with distinct symbols and positive frequencies.  The
 while `huffmanOfFreqs_cost_le` gives the direct minimum-cost comparison against
 any consistent tree with the same frequency table.
 
+### Section 16.4 - Matroids and greedy methods
+
+- Lean source: `CLRSLean/Chapter_16/Section_16_4_Matroids.lean`
+- Status: `proved`
+- Reuses Mathlib's matroid library (`Mathlib.Combinatorics.Matroid.*`); does not
+  redefine matroid theory.
+- Main proved theorems:
+  - `CLRS.Matroid16.greedy_isBasis` — the greedy output is a basis (maximal
+    independent set) of the elements it scanned
+  - `CLRS.Matroid16.greedy_optimal` — CLRS Theorem 16.10 / Corollary 16.11: over
+    a nonincreasing-weight scan of the ground set, `greedy` returns a
+    maximum-weight independent set
+  - `CLRS.Matroid16.greedy_choice` — CLRS Theorem 16.6 (greedy-choice property)
+  - `CLRS.Matroid16.optimal_substructure` — CLRS Lemma 16.7 (optimal
+    substructure through the contraction `M ／ {x}`)
+  - `CLRS.Matroid16.greedyRun_optimal` — self-contained optimality over a
+    `Fintype`, sorting the ground set internally
+- Proof pattern: per-threshold basis domination via `Matroid.Indep.augment_finset`
+  plus a layer-cake weight decomposition; exchange for Theorem 16.6.
+- Current gap: none for the current theorem statements (independent competitors
+  are taken as coerced `Finset`s over a finite ground set).
+
+The section defines a `WeightedMatroid` (a `Matroid α` with weights `w : α → ℕ`)
+and the executable `greedy` fold.  The centerpiece `greedy_optimal` proves the
+CLRS matroid greedy theorem: greedy restricted to each high-weight prefix is
+again a greedy run, hence a basis of that threshold set, so it dominates every
+independent set threshold-by-threshold; the layer-cake identity upgrades this to
+weight domination.
+
 ## Chapter 17 - Amortized Analysis
 
 - Lean source:
