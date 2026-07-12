@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 24.
-* Tracked reader-facing theorem entries: 1107.
-* Proved tracked theorem entries: 1107.
-* Remaining core theorem groups: 37.
+* Tracked reader-facing theorem entries: 1122.
+* Proved tracked theorem entries: 1122.
+* Remaining core theorem groups: 36.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -34,7 +34,7 @@ Ch  Chapter                                                     Status          
 --  ----------------------------------------------------------  -----------------------------------  ----------------------------  -------  -------
  1  1. The Role of Algorithms                                   expository                           Chapter_01                          0        0
  2  2. Getting Started                                          main-proof-complete                  2.1;2.2;2.3                         6        0
- 3  3. Growth of Functions                                      partial                              3.1;3.2                            32        1
+ 3  3. Growth of Functions                                      partial                              3.1;3.2                            47        0
  4  4. Divide-and-Conquer                                       partial                              4.1;4.2;4.3;4.4;4.5;4.6            81        1
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1                                 6        1
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                60        1
