@@ -29,6 +29,10 @@ Concrete asymptotic comparisons for algorithm analysis.
 * {lit}`log n = o(n)` and {lit}`log (log n) = o(log n)`
 * {lit}`log_b n = Θ(log n)` and {lit}`log_b n = o(nʳ)` for {lit}`0 < r`
 * {lit}`(log n)ᵃ = o(cⁿ)` when {lit}`1 < c`
+* Fibonacci growth: closed form {lit}`Fₙ = (φⁿ − ψⁿ)/√5`, {lit}`Fₙ = Θ(φⁿ)`, and the
+  closest-integer bound {lit}`|φⁿ/√5 − Fₙ| < 1/2`
+* the iterated logarithm {lit}`lg* n` with base values, {lit}`lg*(2ⁿ) = 1 + lg* n`,
+  monotonicity, {lit}`lg* n ≤ log₂ n + 1`, and the extreme slow growth {lit}`lg* n = o(log n)`
 -/
 
 namespace CLRS
@@ -478,6 +482,295 @@ theorem isLittleO_log_pow_const_exp {a : ℕ} {c : ℝ} (hc : 1 < c) :
     simpa using h
   unfold isLittleO
   exact h1.trans_isBigO h2.isBigO
+
+/-! ## Fibonacci-number growth (CLRS §3.2)
+
+CLRS §3.2 closes with the Fibonacci numbers and two growth facts: the golden-ratio
+closed form eq (3.25) and eq (3.26), which states that {lit}`Fₙ` is the closest
+integer to {lit}`φⁿ/√5`, hence {lit}`Fₙ = Θ(φⁿ)`.  Mathlib supplies Binet's formula
+{name}`Real.coe_fib_eq` and the golden-ratio arithmetic; the lemmas below restate them
+under the CLRS asymptotic wrappers.  Here {lit}`φ = (1+√5)/2` is {name}`Real.goldenRatio`
+and {lit}`ψ = (1−√5)/2` is {name}`Real.goldenConj`. -/
+
+private theorem sqrt5_pos : (0 : ℝ) < Real.sqrt 5 := Real.sqrt_pos.mpr (by norm_num)
+
+private theorem two_lt_sqrt5 : (2 : ℝ) < Real.sqrt 5 := by
+  nlinarith [Real.sq_sqrt (show (0 : ℝ) ≤ 5 by norm_num), Real.sqrt_nonneg 5]
+
+private theorem sqrt5_le_nine_quarters : Real.sqrt 5 ≤ 9 / 4 := by
+  nlinarith [Real.sq_sqrt (show (0 : ℝ) ≤ 5 by norm_num), Real.sqrt_nonneg 5]
+
+/-- The conjugate golden ratio satisfies {lit}`|ψ| ≤ 1`, hence {lit}`|ψⁿ| ≤ 1`. -/
+private theorem abs_goldenConj_pow_le_one (n : ℕ) : |Real.goldenConj ^ n| ≤ 1 := by
+  rw [abs_pow]
+  apply pow_le_one₀ (abs_nonneg _)
+  rw [abs_le]
+  exact ⟨Real.neg_one_lt_goldenConj.le, by linarith [Real.goldenConj_neg]⟩
+
+/--
+**CLRS equation (3.25) — Binet's closed form.**  The {lit}`n`-th Fibonacci number
+equals {lit}`(φⁿ − ψⁿ)/√5`.  This is a thin CLRS-facing restatement of Mathlib's
+{name}`Real.coe_fib_eq`.
+-/
+theorem coe_fib_closed_form (n : ℕ) :
+    (Nat.fib n : ℝ) = (Real.goldenRatio ^ n - Real.goldenConj ^ n) / Real.sqrt 5 :=
+  Real.coe_fib_eq n
+
+/--
+**CLRS equation (3.26) — Fibonacci exponential growth.**  The Fibonacci numbers grow
+like the golden ratio: {lit}`Fₙ = Θ(φⁿ)`.  Proof: from Binet's formula,
+{lit}`√5·Fₙ = φⁿ − ψⁿ`; since {lit}`|ψ| < 1 < φ` the {lit}`ψⁿ` term is negligible, so
+{lit}`Fₙ ≤ φⁿ` (upper bound) and {lit}`(1/5)·φⁿ ≤ Fₙ` for {lit}`n ≥ 2` (lower bound).
+-/
+theorem isBigTheta_fib_goldenRatio :
+    isBigTheta (fun n : ℕ => (Nat.fib n : ℝ)) (fun n : ℕ => Real.goldenRatio ^ n) := by
+  have hφ0 : ∀ n : ℕ, (0 : ℝ) ≤ Real.goldenRatio ^ n :=
+    fun n => pow_nonneg Real.goldenRatio_pos.le n
+  have hφ1 : ∀ n : ℕ, (1 : ℝ) ≤ Real.goldenRatio ^ n :=
+    fun n => one_le_pow₀ Real.one_lt_goldenRatio.le
+  have hnegψ : ∀ n : ℕ, -(Real.goldenConj ^ n) ≤ Real.goldenRatio ^ n := by
+    intro n
+    have h := (abs_le.mp (abs_goldenConj_pow_le_one n)).1
+    linarith [hφ1 n]
+  constructor
+  · -- Upper bound: `Fₙ ≤ φⁿ`, so `Fₙ = O(φⁿ)`.
+    rw [isBigO_iff]
+    refine ⟨1, one_pos, 0, ?_⟩
+    intro n _
+    show |(Nat.fib n : ℝ)| ≤ 1 * |Real.goldenRatio ^ n|
+    have hbound : (Nat.fib n : ℝ) ≤ Real.goldenRatio ^ n := by
+      rw [Real.coe_fib_eq n, div_le_iff₀ sqrt5_pos]
+      nlinarith [hnegψ n, hφ0 n, two_lt_sqrt5,
+        mul_nonneg (hφ0 n) (show (0 : ℝ) ≤ Real.sqrt 5 - 2 by linarith [two_lt_sqrt5])]
+    rw [abs_of_nonneg (by positivity : (0 : ℝ) ≤ (Nat.fib n : ℝ)),
+        abs_of_nonneg (hφ0 n), one_mul]
+    exact hbound
+  · -- Lower bound: `(1/5)·φⁿ ≤ Fₙ` for `n ≥ 2`, so `Fₙ = Ω(φⁿ)`.
+    rw [isBigOmega_iff]
+    refine ⟨1 / 5, by norm_num, 2, ?_⟩
+    intro n hn
+    show (1 / 5 : ℝ) * |Real.goldenRatio ^ n| ≤ |(Nat.fib n : ℝ)|
+    have hφn2 : (2 : ℝ) ≤ Real.goldenRatio ^ n := by
+      have h2n : Real.goldenRatio ^ 2 ≤ Real.goldenRatio ^ n :=
+        pow_le_pow_right₀ Real.one_lt_goldenRatio.le hn
+      nlinarith [Real.one_lt_goldenRatio, h2n, Real.goldenRatio_sq]
+    have hψle : Real.goldenConj ^ n ≤ 1 := (abs_le.mp (abs_goldenConj_pow_le_one n)).2
+    have hbound : (1 / 5 : ℝ) * Real.goldenRatio ^ n ≤ (Nat.fib n : ℝ) := by
+      rw [Real.coe_fib_eq n, le_div_iff₀ sqrt5_pos]
+      nlinarith [hφn2, hψle, sqrt5_le_nine_quarters,
+        mul_nonneg (hφ0 n)
+          (show (0 : ℝ) ≤ 9 / 4 - Real.sqrt 5 by linarith [sqrt5_le_nine_quarters])]
+    rw [abs_of_nonneg (hφ0 n), abs_of_nonneg (by positivity : (0 : ℝ) ≤ (Nat.fib n : ℝ))]
+    exact hbound
+
+/--
+**CLRS equation (3.26) — closest-integer bound.**  {lit}`Fₙ` is the closest integer
+to {lit}`φⁿ/√5`: {lit}`|φⁿ/√5 − Fₙ| < 1/2`.  The error is exactly {lit}`|ψⁿ|/√5 ≤ 1/√5`,
+which is below {lit}`1/2` because {lit}`√5 > 2`.
+-/
+theorem goldenRatio_pow_div_sqrt5_sub_fib_abs_lt_half (n : ℕ) :
+    |Real.goldenRatio ^ n / Real.sqrt 5 - (Nat.fib n : ℝ)| < 1 / 2 := by
+  have hkey : Real.goldenRatio ^ n / Real.sqrt 5 - (Nat.fib n : ℝ)
+      = Real.goldenConj ^ n / Real.sqrt 5 := by
+    rw [Real.coe_fib_eq n]; ring
+  rw [hkey, abs_div, abs_of_pos sqrt5_pos, div_lt_iff₀ sqrt5_pos]
+  nlinarith [abs_goldenConj_pow_le_one n, two_lt_sqrt5]
+
+/--
+Exponential envelope (upper): for any base {lit}`c > φ`, {lit}`Fₙ = o(cⁿ)`.  Chains
+{lit}`Fₙ = O(φⁿ)` with {lit}`φⁿ = o(cⁿ)`. -/
+theorem isLittleO_fib_exp {c : ℝ} (hc : Real.goldenRatio < c) :
+    isLittleO (fun n : ℕ => (Nat.fib n : ℝ)) (fun n : ℕ => c ^ n) := by
+  have hO : (fun n : ℕ => (Nat.fib n : ℝ)) =O[atTop] (fun n : ℕ => Real.goldenRatio ^ n) :=
+    isBigTheta_fib_goldenRatio.1
+  have ho : (fun n : ℕ => Real.goldenRatio ^ n) =o[atTop] (fun n : ℕ => c ^ n) :=
+    isLittleO_exp_exp_of_lt Real.goldenRatio_pos.le hc
+  unfold isLittleO
+  exact hO.trans_isLittleO ho
+
+/--
+Exponential envelope (lower): for any base {lit}`0 ≤ c < φ`, {lit}`cⁿ = o(Fₙ)`.  Chains
+{lit}`cⁿ = o(φⁿ)` with {lit}`φⁿ = O(Fₙ)`. -/
+theorem isLittleO_exp_fib {c : ℝ} (hc0 : 0 ≤ c) (hc : c < Real.goldenRatio) :
+    isLittleO (fun n : ℕ => c ^ n) (fun n : ℕ => (Nat.fib n : ℝ)) := by
+  have hΩ : (fun n : ℕ => Real.goldenRatio ^ n) =O[atTop] (fun n : ℕ => (Nat.fib n : ℝ)) :=
+    isBigTheta_fib_goldenRatio.2
+  have ho : (fun n : ℕ => c ^ n) =o[atTop] (fun n : ℕ => Real.goldenRatio ^ n) :=
+    isLittleO_exp_exp_of_lt hc0 hc
+  unfold isLittleO
+  exact ho.trans_isBigO hΩ
+
+/-! ## Iterated logarithm {lit}`lg*` (CLRS §3.2)
+
+CLRS §3.2 defines the iterated logarithm
+{lit}`lg* n = min { i ≥ 0 : lg⁽ⁱ⁾ n ≤ 1 }`, the number of times {lit}`lg` must be
+applied before the result drops to {lit}`≤ 1`, and stresses how extraordinarily
+slowly it grows.  Mathlib has no iterated logarithm (only {name}`Nat.log`/{name}`Nat.clog`), so
+we define {lit}`lgStar` by well-founded recursion on {lit}`ℕ`, base {lit}`2`, then
+prove the recurrence, monotonicity, and the {lit}`o(log n)` slow-growth bound. -/
+
+/--
+The base-{lit}`2` iterated logarithm {lit}`lg* n` (CLRS §3.2 definition): the number
+of times base-{lit}`2` {name}`Nat.log` must be applied to {lit}`n` before reaching
+{lit}`≤ 1`.  Defined by well-founded recursion; the recursive argument
+{lit}`Nat.log 2 n` is strictly smaller than {lit}`n` for {lit}`n ≥ 2`.
+-/
+def lgStar (n : ℕ) : ℕ :=
+  if h : n ≤ 1 then 0 else 1 + lgStar (Nat.log 2 n)
+termination_by n
+decreasing_by exact Nat.log_lt_self 2 (by omega)
+
+/-- Base case: {lit}`lg* n = 0` for {lit}`n ≤ 1`. -/
+theorem lgStar_of_le_one {n : ℕ} (h : n ≤ 1) : lgStar n = 0 := by
+  conv_lhs => rw [lgStar]
+  rw [dif_pos h]
+
+/-- One-step recurrence: {lit}`lg* n = 1 + lg* (log₂ n)` for {lit}`n ≥ 2`. -/
+theorem lgStar_of_two_le {n : ℕ} (h : 2 ≤ n) : lgStar n = 1 + lgStar (Nat.log 2 n) := by
+  conv_lhs => rw [lgStar]
+  rw [dif_neg (by omega : ¬ n ≤ 1)]
+
+/-- {lit}`lg* 0 = 0`. -/
+theorem lgStar_zero : lgStar 0 = 0 := lgStar_of_le_one (by norm_num)
+
+/-- {lit}`lg* 1 = 0`. -/
+theorem lgStar_one : lgStar 1 = 0 := lgStar_of_le_one (le_refl 1)
+
+/-- {lit}`lg* 2 = 1`. -/
+theorem lgStar_two : lgStar 2 = 1 := by
+  have hl : Nat.log 2 2 = 1 := by decide
+  rw [lgStar_of_two_le (le_refl 2), hl, lgStar_of_le_one (le_refl 1)]
+
+/--
+**Tower recurrence** (CLRS §3.2).  For {lit}`n ≥ 1`, {lit}`lg* (2ⁿ) = 1 + lg* n`: each
+extra power-of-two "tower level" adds exactly one to the iterated logarithm.
+-/
+theorem lgStar_two_pow {n : ℕ} (hn : 1 ≤ n) : lgStar (2 ^ n) = 1 + lgStar n := by
+  have h2 : 2 ≤ 2 ^ n := by
+    calc (2 : ℕ) = 2 ^ 1 := (pow_one 2).symm
+      _ ≤ 2 ^ n := Nat.pow_le_pow_right (by norm_num) hn
+  rw [lgStar_of_two_le h2, Nat.log_pow (by norm_num)]
+
+/-- {lit}`lg*` is monotone (nondecreasing).  Proved by strong induction: for
+{lit}`a ≤ b` with {lit}`b ≥ 2`, {lit}`log₂` is monotone and strictly decreasing, so the
+recurrence {lit}`lg* b = 1 + lg* (log₂ b)` reduces to the smaller instance. -/
+theorem lgStar_monotone : Monotone lgStar := by
+  have key : ∀ b, ∀ a, a ≤ b → lgStar a ≤ lgStar b := by
+    intro b
+    induction b using Nat.strongRecOn with
+    | ind b ih =>
+      intro a ha
+      by_cases hb : b ≤ 1
+      · rw [lgStar_of_le_one (le_trans ha hb), lgStar_of_le_one hb]
+      · by_cases haa : a ≤ 1
+        · rw [lgStar_of_le_one haa]; exact Nat.zero_le _
+        · rw [lgStar_of_two_le (by omega : 2 ≤ a), lgStar_of_two_le (by omega : 2 ≤ b)]
+          have hlog : Nat.log 2 a ≤ Nat.log 2 b := Nat.log_mono_right ha
+          have hb_lt : Nat.log 2 b < b := Nat.log_lt_self 2 (by omega)
+          exact Nat.add_le_add_left (ih (Nat.log 2 b) hb_lt (Nat.log 2 a) hlog) 1
+  intro a b hab
+  exact key b a hab
+
+/-- Slow-growth bound: {lit}`lg* n ≤ log₂ n + 1` for every {lit}`n`.  Proved by strong
+induction using {lit}`log₂ (log₂ n) < log₂ n`. -/
+theorem lgStar_le_log_add_one : ∀ n, lgStar n ≤ Nat.log 2 n + 1 := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
+    by_cases hn : n ≤ 1
+    · rw [lgStar_of_le_one hn]; exact Nat.zero_le _
+    · rw [lgStar_of_two_le (by omega : 2 ≤ n)]
+      have hlog_ge1 : 1 ≤ Nat.log 2 n := Nat.log_pos (by norm_num) (by omega)
+      have hloglog_lt : Nat.log 2 (Nat.log 2 n) < Nat.log 2 n :=
+        Nat.log_lt_self 2 (by omega)
+      have hIH := ih (Nat.log 2 n) (Nat.log_lt_self 2 (by omega))
+      omega
+
+/-- Every base-{lit}`2` integer logarithm is bounded by twice the real logarithm:
+{lit}`log₂ m ≤ 2·log m` for {lit}`m ≥ 1`.  From {lit}`2^(log₂ m) ≤ m` and
+{lit}`log 2 > 1/2`. -/
+theorem natLog_two_le_two_log {m : ℕ} (hm : 1 ≤ m) :
+    (Nat.log 2 m : ℝ) ≤ 2 * Real.log (m : ℝ) := by
+  have h1 : (2 : ℕ) ^ Nat.log 2 m ≤ m := Nat.pow_log_le_self 2 (by omega)
+  have h2 : ((2 : ℝ)) ^ Nat.log 2 m ≤ (m : ℝ) := by exact_mod_cast h1
+  have h3 : Real.log ((2 : ℝ) ^ Nat.log 2 m) ≤ Real.log (m : ℝ) :=
+    Real.log_le_log (by positivity) h2
+  rw [Real.log_pow] at h3
+  have hcast : (0 : ℝ) ≤ (Nat.log 2 m : ℝ) := by positivity
+  nlinarith [h3, hcast, Real.log_two_gt_d9,
+    mul_nonneg hcast (show (0 : ℝ) ≤ Real.log 2 - 0.5 by linarith [Real.log_two_gt_d9])]
+
+/--
+**Extreme slow growth** (CLRS §3.2).  The iterated logarithm is {lit}`o(log n)`:
+{lit}`lg* n = o(log n)`, placing it below {lit}`log n` in the growth hierarchy.
+Proof: {lit}`lg* n ≤ log₂(log₂ n) + 2 ≤ 2·log 2 + 2·log(log n) + 2` for {lit}`n ≥ 4`,
+so {lit}`lg* n = O(1 + log(log n))`, and {lit}`1 + log(log n) = o(log n)` by
+{name}`isLittleO_one_log` and {name}`isLittleO_loglog_log`.
+-/
+theorem isLittleO_lgStar_log :
+    isLittleO (fun n : ℕ => (lgStar n : ℝ)) (fun n : ℕ => Real.log (n : ℝ)) := by
+  have hdom : (fun n : ℕ => (1 : ℝ) + Real.log (Real.log (n : ℝ))) =o[atTop]
+      (fun n : ℕ => Real.log (n : ℝ)) := by
+    have hone : (fun _ : ℕ => (1 : ℝ)) =o[atTop] (fun n : ℕ => Real.log (n : ℝ)) :=
+      isLittleO_one_log
+    have hll : (fun n : ℕ => Real.log (Real.log (n : ℝ))) =o[atTop]
+        (fun n : ℕ => Real.log (n : ℝ)) := isLittleO_loglog_log
+    exact hone.add hll
+  have hO : (fun n : ℕ => (lgStar n : ℝ)) =O[atTop]
+      (fun n : ℕ => (1 : ℝ) + Real.log (Real.log (n : ℝ))) := by
+    rw [Asymptotics.isBigO_iff]
+    refine ⟨2 * Real.log 2 + 4, ?_⟩
+    filter_upwards [Filter.eventually_ge_atTop 4] with n hn
+    show ‖(lgStar n : ℝ)‖ ≤
+      (2 * Real.log 2 + 4) * ‖(1 : ℝ) + Real.log (Real.log (n : ℝ))‖
+    have hlog2pos : (0 : ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+    have hn1 : 1 ≤ n := by omega
+    have hn2 : 2 ≤ n := by omega
+    have hlogn_ge1 : (1 : ℝ) ≤ Real.log (n : ℝ) := by
+      have h4 : Real.log 4 ≤ Real.log (n : ℝ) :=
+        Real.log_le_log (by norm_num) (by exact_mod_cast hn)
+      have h4' : (1 : ℝ) ≤ Real.log 4 := by
+        rw [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.log_pow]
+        push_cast
+        nlinarith [Real.log_two_gt_d9]
+      linarith
+    have hlogn_pos : (0 : ℝ) < Real.log (n : ℝ) := by linarith
+    have hloglogn_nonneg : (0 : ℝ) ≤ Real.log (Real.log (n : ℝ)) :=
+      Real.log_nonneg hlogn_ge1
+    have hlogn_ge2 : 2 ≤ Nat.log 2 n := by
+      have hmono : Nat.log 2 4 ≤ Nat.log 2 n := Nat.log_mono_right hn
+      have h44 : Nat.log 2 4 = 2 := by decide
+      omega
+    have hstar : lgStar n ≤ Nat.log 2 (Nat.log 2 n) + 2 := by
+      rw [lgStar_of_two_le hn2]
+      have := lgStar_le_log_add_one (Nat.log 2 n)
+      omega
+    have hstarR : (lgStar n : ℝ) ≤ (Nat.log 2 (Nat.log 2 n) : ℝ) + 2 := by
+      exact_mod_cast hstar
+    have hb1 : (Nat.log 2 (Nat.log 2 n) : ℝ) ≤ 2 * Real.log (Nat.log 2 n : ℝ) :=
+      natLog_two_le_two_log (by omega)
+    have hb2 : (Nat.log 2 n : ℝ) ≤ 2 * Real.log (n : ℝ) := natLog_two_le_two_log hn1
+    have hlogln_pos : (0 : ℝ) < (Nat.log 2 n : ℝ) := by
+      have : 0 < Nat.log 2 n := by omega
+      exact_mod_cast this
+    have hb3 : Real.log (Nat.log 2 n : ℝ) ≤ Real.log (2 * Real.log (n : ℝ)) :=
+      Real.log_le_log hlogln_pos hb2
+    have hb4 : Real.log (2 * Real.log (n : ℝ)) = Real.log 2 + Real.log (Real.log (n : ℝ)) :=
+      Real.log_mul (by norm_num) (by positivity)
+    have hcombine : (lgStar n : ℝ) ≤
+        2 * Real.log 2 + 2 * Real.log (Real.log (n : ℝ)) + 2 := by
+      calc (lgStar n : ℝ) ≤ (Nat.log 2 (Nat.log 2 n) : ℝ) + 2 := hstarR
+        _ ≤ 2 * Real.log (Nat.log 2 n : ℝ) + 2 := by linarith [hb1]
+        _ ≤ 2 * Real.log (2 * Real.log (n : ℝ)) + 2 := by linarith [hb3]
+        _ = 2 * (Real.log 2 + Real.log (Real.log (n : ℝ))) + 2 := by rw [hb4]
+        _ = 2 * Real.log 2 + 2 * Real.log (Real.log (n : ℝ)) + 2 := by ring
+    rw [Real.norm_eq_abs, Real.norm_eq_abs,
+      abs_of_nonneg (by positivity : (0 : ℝ) ≤ (lgStar n : ℝ)),
+      abs_of_nonneg (by linarith : (0 : ℝ) ≤ 1 + Real.log (Real.log (n : ℝ)))]
+    nlinarith [hcombine, hloglogn_nonneg, hlog2pos,
+      mul_nonneg (le_of_lt hlog2pos) hloglogn_nonneg]
+  unfold isLittleO
+  exact hO.trans_isLittleO hdom
 
 end Chapter03
 end CLRS

@@ -103,7 +103,7 @@ rules.
 ### Section 3.2 - Standard functions
 
 - Lean source: `CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean`
-- Status: `partial`
+- Status: `proved`
 - Main proved theorems:
   - `CLRS.Chapter03.isLittleO_pow_pow`
   - `CLRS.Chapter03.isBigO_pow_pow`
@@ -135,23 +135,43 @@ rules.
   - `CLRS.Chapter03.isLittleO_logb_rpow`
   - `CLRS.Chapter03.isLittleO_log_pow_const_exp`
   - `CLRS.Chapter03.isLittleO_one_log`
+  - `CLRS.Chapter03.coe_fib_closed_form`
+  - `CLRS.Chapter03.isBigTheta_fib_goldenRatio`
+  - `CLRS.Chapter03.goldenRatio_pow_div_sqrt5_sub_fib_abs_lt_half`
+  - `CLRS.Chapter03.isLittleO_fib_exp`
+  - `CLRS.Chapter03.isLittleO_exp_fib`
+  - `CLRS.Chapter03.lgStar_of_le_one`
+  - `CLRS.Chapter03.lgStar_of_two_le`
+  - `CLRS.Chapter03.lgStar_zero`
+  - `CLRS.Chapter03.lgStar_one`
+  - `CLRS.Chapter03.lgStar_two`
+  - `CLRS.Chapter03.lgStar_two_pow`
+  - `CLRS.Chapter03.lgStar_monotone`
+  - `CLRS.Chapter03.lgStar_le_log_add_one`
+  - `CLRS.Chapter03.natLog_two_le_two_log`
+  - `CLRS.Chapter03.isLittleO_lgStar_log`
 - Proof pattern: reuse Mathlib asymptotic and factorial facts through the CLRS
   wrappers; `isBigTheta_log_factorial` uses Mathlib's Stirling approximation
   (`le_log_factorial_stirling`) for the lower bound and `n! ≤ n^n` for the
   upper bound; the base-2 and base-`b` comparisons and the polynomial/factorial
   chains are obtained by instantiation and transitivity through the existing
   wrappers (`isLittleO_pow_const_exp`, `isLittleO_exp_vs_factorial`,
-  `isBigTheta_log_logb`, `Real.isLittleO_log_id_atTop`).
-- Current gap: the CLRS standard-function comparison table is complete for the
-  polynomial, logarithmic, exponential, harmonic, floor/ceiling, and factorial
-  rows — including the adjacent hierarchy links
+  `isBigTheta_log_logb`, `Real.isLittleO_log_id_atTop`).  Fibonacci growth
+  restates Mathlib's Binet formula `Real.coe_fib_eq` under the wrappers, bounding
+  the negligible `ψ^n` term via `|ψ| < 1 < φ`; the iterated logarithm `lgStar` is
+  a fresh well-founded recursion on `Nat.log 2`, with the `o(log n)` bound obtained
+  by dominating `lgStar n` with `1 + log(log n)` and chaining `isLittleO_one_log`
+  and `isLittleO_loglog_log`.
+- Current gap: none.  The CLRS §3.2 standard-function comparison table is complete
+  for the polynomial, logarithmic, exponential, harmonic, floor/ceiling, and
+  factorial rows — including the adjacent hierarchy links
   `1 ≺ log (log n) ≺ log n ≺ n ≺ n^a ≺ 2^n ≺ n!` and the `log_b` base-change
-  facts.  The iterated logarithm `lg* n` and Fibonacci-number growth remain
-  future strengthening targets, not comparison-table entries.
+  facts — and now also covers Fibonacci-number growth `F_n = Θ(φ^n)` (eq (3.25)
+  closed form and eq (3.26) closest-integer bound) and the iterated logarithm
+  `lg* n` (definition, tower recurrence, monotonicity, and `lg* n = o(log n)`).
 
-This section is the safe part of the `chapter-1-exploration` branch merged into
-the main site.  It compiles, but it is not yet the whole Chapter 3 growth
-library.
+This section renders the full Chapter 3 growth-of-functions table, including the
+golden-ratio Fibonacci facts and the iterated logarithm.
 
 ## Chapter 4 - Divide and Conquer
 
