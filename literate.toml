@@ -67,6 +67,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_05" = [
   "CLRSLean.Chapter_05.Section_05_1_Hiring_Problem",
+  "CLRSLean.Chapter_05.Section_05_2_Indicator_Random_Variables",
+  "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis",
 ]
 "CLRSLean.Chapter_06" = [
   "CLRSLean.Chapter_06.Section_06_1_Heaps",
@@ -365,6 +367,12 @@ title = "4.6. Proof of the Master Theorem"
 
 [modules."CLRSLean.Chapter_05.Section_05_1_Hiring_Problem"]
 title = "5.1. The Hiring Problem"
+
+[modules."CLRSLean.Chapter_05.Section_05_2_Indicator_Random_Variables"]
+title = "5.2. Indicator random variables"
+
+[modules."CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis"]
+title = "5.4. Probabilistic analysis"
 
 [modules."CLRSLean.Chapter_06.Section_06_1_Heaps"]
 title = "6.1. Heaps"
