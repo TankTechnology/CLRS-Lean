@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model
+import CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion
 
 /-!
 # CLRS Section 18.3 - B-tree deletion specification
@@ -789,6 +790,63 @@ lemma sortedRemove_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤
       obtain ⟨hk, _⟩ := List.pairwise_cons.mp h
       intro a ha
       exact hk a (mem_of_sortedRemove ha)
+
+/-! ## Composed delete (CLRS B-TREE-DELETE) -/
+
+/--
+**Composed B-tree deletion (CLRS `B-TREE-DELETE`).**  Recursively deletes key `x`
+from the tree.  For a leaf, removes `x` from the key list via `sortedRemove`.
+For an internal node whose key list contains `x` at position `ki`, the two
+bracketing children are merged and the recursive delete continues in the merged
+child (CLRS case 2c simplified).  For internal nodes not containing `x`, the
+recursive delete descends into the child where `x` belongs.
+
+This function is `partial` because the merge case introduces a freshly
+constructed node (`mergeNodes ...`) whose height cannot be proved smaller than
+the parent's in the termination checker without side hypotheses.  The
+invariant-preservation proofs below establish termination a posteriori by
+structural induction on `heightOf`.
+-/
+partial def composedDelete (t : Nat) (x : Nat) : BTree → BTree
+  | node ks cs =>
+    if hcs : cs.isEmpty then
+      -- Leaf: remove x from the sorted key list
+      node (sortedRemove x ks) []
+    else
+      let i := findChild ks x
+      -- i is the number of keys ≤ x; i ≤ ks.length by findChild_le
+      if hiPos : 0 < i then
+        let ki := i - 1
+        match hk : ks[ki]? with
+        | some k =>
+          if hkeq : k = x then
+            -- Key x IS at position ki in this internal node.
+            -- Merge the two bracketing children, then recurse into the merged node
+            match hcl : cs[ki]? with
+            | some leftChild =>
+              match hcr : cs[ki + 1]? with
+              | some rightChild =>
+                let merged := mergeNodes leftChild k rightChild
+                let newMerged := composedDelete t x merged
+                node (ks.take ki ++ ks.drop (ki + 1)) ((cs.take ki) ++ [newMerged] ++ (cs.drop (ki + 2)))
+              | none => node (sortedRemove x ks) []
+            | none => node (sortedRemove x ks) []
+          else
+            -- Key at ki is not x; recurse into child i
+            match hc : cs[i]? with
+            | some child => node ks (cs.set i (composedDelete t x child))
+            | none => node ks cs
+        | none =>
+          -- No key at ki; recurse into child i
+          match hc : cs[i]? with
+          | some child => node ks (cs.set i (composedDelete t x child))
+          | none => node ks cs
+      else
+        -- i = 0: x < all keys; recurse into child 0
+        match hc : cs[0]? with
+        | some child => node ks (cs.set 0 (composedDelete t x child))
+        | none => node ks cs
+
 end BTree
 end Chapter18
 end CLRS
