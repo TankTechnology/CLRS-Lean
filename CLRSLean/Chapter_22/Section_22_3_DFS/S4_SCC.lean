@@ -1,7 +1,7 @@
 import Mathlib
 import CLRSLean.Chapter_22.Section_22_3_DFS
-import CLRSLean.Chapter_22.Section_22_3_DFS.Intervals
-import CLRSLean.Chapter_22.Section_22_3_DFS.Bridge
+import CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals
+import CLRSLean.Chapter_22.Section_22_3_DFS.S3_Bridge
 
 /-! # DFS theory: finish-time ordering of SCCs
 

@@ -1,8 +1,8 @@
 import CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees
 import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim
-import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge
-import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal
-import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S1_UnionFindBridge
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S2_StatefulKruskal
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim
 
 /-!
 # Chapter 23 - Minimum Spanning Trees

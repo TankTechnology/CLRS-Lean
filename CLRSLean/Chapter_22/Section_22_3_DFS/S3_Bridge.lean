@@ -1,8 +1,8 @@
 import Mathlib
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_3_DFS
-import CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath
-import CLRSLean.Chapter_22.Section_22_3_DFS.Intervals
+import CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath
+import CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals
 
 /-! # Bridge lemma: white→nonwhite during dfsVisit → discovery time ≥ input clock
 
