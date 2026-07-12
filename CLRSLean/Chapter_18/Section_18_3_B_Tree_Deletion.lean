@@ -48,8 +48,10 @@ Main results:
 
 Current gaps:
 
-- Node-level underflow repair, sibling borrowing, merging, and disk-page
-  semantics remain strengthening targets.
+- `composedDelete` is now defined (total, via `heightOf` termination) and
+  implements the CLRS merge-recurse strategy (case 2c simplified).  Invariant
+  preservation theorems (`WellFormed`) remain to be proved.
+- Disk-page semantics remain a strengthening target.
 -/
 
 namespace CLRS
