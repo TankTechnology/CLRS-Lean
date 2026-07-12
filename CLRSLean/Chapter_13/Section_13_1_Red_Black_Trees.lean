@@ -53,12 +53,36 @@ Main results:
 - Theorem {lit}`RBTree.deleteFixupCase4_shape`: the terminating rotation case
   resolves the doubly-black deficit and re-establishes the no-red-red and
   balanced-black-height invariants.
+- Definitions {lit}`RBTree.BST`, {lit}`RBTree.splitMin`, {lit}`RBTree.join`,
+  {lit}`RBTree.del`, and {lit}`RBTree.delete`: executable functional deletion
+  for red-black trees (Okasaki/Kahrs pattern).
+- Theorem {lit}`RBTree.inTree_splitMin_mem`: the minimum removed by
+  {lit}`splitMin` is in the original tree.
+- Theorem {lit}`RBTree.inTree_splitMin_iff`: membership preservation through
+  {lit}`splitMin`.
+- Theorem {lit}`RBTree.inTree_join_iff`: {lit}`join` preserves the union of key
+  sets.
+- Theorem {lit}`RBTree.inTree_del_forward` and
+  {lit}`RBTree.inTree_del_backward`: {lit}`del` preserves membership for all
+  keys except the deleted key.
+- Theorem {lit}`RBTree.inTree_delete_forward` and
+  {lit}`RBTree.inTree_delete_backward`: same for {lit}`delete`.
+- Theorem {lit}`RBTree.not_inTree_del_self` (requires BST): the deleted key is
+  absent from the result.
+- Theorem {lit}`RBTree.not_inTree_delete_self` (requires BST): same for
+  {lit}`delete`.
+- Theorem {lit}`RBTree.inTree_del_iff` and {lit}`RBTree.inTree_delete_iff`
+  (requires BST): full membership-after-deletion equivalence.
 
 Remaining gaps:
 
-- The fully-composed executable {lit}`RB-DELETE` / {lit}`RB-DELETE-FIXUP` loop
-  (threading the doubly-black deficit through Cases 1-3 into Case 4) remains
-  future work; the local case rewrites and the terminating certificate are proved.
+- Shape preservation (no-red-red and balanced-black-height) through
+  {lit}`del`/ {lit}`delete` is not yet proved.  This requires proving that
+  {lit}`baldL`, {lit}`baldR`, {lit}`join`, and {lit}`del` preserve
+  {lit}`NoRedRed2` and {lit}`BalancedBlackHeight`, after which
+  {lit}`redBlackShape_delete` follows by repainting the root black.  The four
+  local {lit}`RB-DELETE-FIXUP` case certificates are proved, but the
+  fully-composed loop's shape invariant remains future work.
 -/
 
 namespace CLRS
@@ -1563,6 +1587,330 @@ theorem inTree_baldR (q : Nat) (l : RBTree) (k : Nat) (r : RBTree) :
   unfold baldR
   split <;>
     simp [InTree, inTree_balanceLeft_iff, inTree_repaintRoot_iff, or_assoc, or_left_comm]
+
+/-! ### Binary-search-tree ordering predicate
+
+The BST property (all keys in the left subtree are less than the root, all keys
+in the right subtree are greater) is needed for the \"key not present after delete\"
+direction of the membership theorem.  Every red-black tree is a BST, so this is
+a valid assumption for all inputs. -/
+
+/-- A binary-search-tree ordering predicate: all keys in the left subtree are less
+than the node's key, all keys in the right subtree are greater. -/
+def BST : RBTree → Prop
+  | empty => True
+  | node _ l k r => BST l ∧ BST r ∧ (∀ x, InTree x l → x < k) ∧ (∀ x, InTree x r → k < x)
+
+/-- Extract the BST property from a node. -/
+theorem bst_node {c l k r} (h : BST (node c l k r)) : BST l ∧ BST r := by
+  simp [BST] at h; exact ⟨h.1, h.2.1⟩
+
+/-! ### Minimum deletion and tree merging -/
+
+/-- Find and remove the minimum key from a non-empty tree.
+Returns `(min_key, tree_without_min)`. -/
+def splitMin : RBTree → Nat × RBTree
+  | empty => (0, empty)  -- unreachable on valid inputs
+  | node _ empty k r => (k, r)
+  | node c l k r =>
+      let (m, l') := splitMin l
+      (m, node c l' k r)
+
+/-- The minimum key removed by {name}`splitMin` is indeed in the original tree. -/
+theorem inTree_splitMin_mem {t : RBTree} (h : t ≠ empty) : InTree (splitMin t).1 t := by
+  induction t with
+  | empty => exact (h rfl).elim
+  | node c l k r ihl =>
+    cases l with
+    | empty => simp [splitMin, InTree]
+    | node lc ll lk lr =>
+        have hne : node lc ll lk lr ≠ empty := by
+          intro h'; injection h'
+        have ih := ihl hne
+        simpa [splitMin, InTree] using Or.inr (Or.inl ih)
+
+/-- If a key is in the result of {name}`splitMin`, it was in the original tree
+(splitMin never introduces keys). -/
+theorem inTree_splitMin_forward {t : RBTree} (h : t ≠ empty) (q : Nat) :
+    InTree q (splitMin t).2 → InTree q t := by
+  induction t with
+  | empty => exact (h rfl).elim
+  | node c l k r ihl =>
+    cases l with
+    | empty =>
+        simp [splitMin, InTree]
+        intro hqr; exact Or.inr hqr
+    | node lc ll lk lr =>
+        have hne : node lc ll lk lr ≠ empty := by
+          intro h'; injection h'
+        have ih := ihl hne
+        simp [splitMin, InTree]
+        intro h
+        rcases h with (hqk | hql' | hqr)
+        · exact Or.inl hqk
+        · have hql := ih hql'
+          exact Or.inr (Or.inl hql)
+        · exact Or.inr (Or.inr hqr)
+
+/-- If a key `q` is in the original tree and is not the removed minimum, then it is
+still in the tree after {name}`splitMin`. -/
+theorem inTree_splitMin_iff {t : RBTree} (h : t ≠ empty) (q : Nat) :
+    (InTree q t ∧ q ≠ (splitMin t).1) → InTree q (splitMin t).2 := by
+  induction t with
+  | empty => exact (h rfl).elim
+  | node c l k r ihl =>
+    cases l with
+    | empty =>
+        simp [splitMin, InTree]
+        intro hq hqne
+        rcases hq with (hqk | hqr)
+        · exfalso; exact hqne hqk
+        · exact hqr
+    | node lc ll lk lr =>
+        have hne : node lc ll lk lr ≠ empty := by
+          intro h'; injection h'
+        have ih := ihl hne
+        simp [splitMin, InTree]
+        intro hq hqne
+        rcases hq with (hqk | hql | hqr)
+        · exact Or.inl hqk
+        · have hql' : InTree q (node lc ll lk lr) := by
+            simpa [InTree] using hql
+          have ih' := ih ⟨hql', hqne⟩
+          exact Or.inr (Or.inl ih')
+        · exact Or.inr (Or.inr hqr)
+
+/-- Merge two trees into one, used when deleting a node with two children.
+All keys in `l` must be less than all keys in `r`. -/
+def join (l r : RBTree) : RBTree :=
+  if h : r = empty then l
+  else if h' : l = empty then r
+  else
+    let (m, r') := splitMin r
+    baldR l m r'
+
+/-- {name}`join` preserves the union of key sets. -/
+theorem inTree_join_iff (q : Nat) (l r : RBTree) :
+    InTree q (join l r) ↔ InTree q l ∨ InTree q r := by
+  unfold join
+  split_ifs with hr hl
+  · subst hr; simp [InTree]
+  · subst hl; simp [InTree]
+  · simp [inTree_baldR]
+    constructor
+    · intro h
+      rcases h with (hqm | hql | hqr)
+      · have hmr : InTree (splitMin r).1 r := inTree_splitMin_mem hr
+        subst hqm; exact Or.inr hmr
+      · exact Or.inl hql
+      · have hqrT : InTree q r := inTree_splitMin_forward hr q hqr
+        exact Or.inr hqrT
+    · intro h
+      rcases h with (hql | hqr)
+      · exact Or.inr (Or.inl hql)
+      · by_cases hqe : q = (splitMin r).1
+        · subst q; exact Or.inl rfl
+        · have hqr' : InTree q (splitMin r).2 :=
+            inTree_splitMin_iff hr q ⟨hqr, hqe⟩
+          exact Or.inr (Or.inr hqr')
+
+/-! ### Executable deletion -/
+
+/-- Recursive deletion from a red-black tree.
+Returns a tree that is {name}`NoRedRed2` when the input is {name}`RedBlackShape`
+shaped, and has black height either the same as the input or one less. -/
+def del (x : Nat) : RBTree → RBTree
+  | empty => empty
+  | node c l y r =>
+    if x < y then
+      if rootBlack l then baldL (del x l) y r
+      else node Color.red (del x l) y r
+    else if x > y then
+      if rootBlack r then baldR l y (del x r)
+      else node Color.red l y (del x r)
+    else join l r
+
+/-- Delete a key from a red-black tree while preserving the global red-black shape. -/
+def delete (x : Nat) (t : RBTree) : RBTree :=
+  repaintRoot Color.black (del x t)
+
+/-- {name}`del` preserves membership for keys different from the deleted key
+(forward direction: keys in the result are keys in the original). -/
+theorem inTree_del_forward (x q : Nat) (t : RBTree) : InTree q (del x t) → InTree q t := by
+  induction t with
+  | empty => simp [del, InTree]
+  | node c l y r ihl ihr =>
+    simp [del]
+    by_cases hx_lt_y : x < y
+    · simp [hx_lt_y]
+      by_cases hrb : rootBlack l
+      · simp [hrb, inTree_baldL]
+        intro h
+        rcases h with (hqy | hql | hqr)
+        · exact Or.inl hqy
+        · have hqlT := ihl hql
+          exact Or.inr (Or.inl hqlT)
+        · exact Or.inr (Or.inr hqr)
+      · simp [hrb, InTree]
+        intro h
+        rcases h with (hqy | hql | hqr)
+        · exact Or.inl hqy
+        · have hqlT := ihl hql
+          exact Or.inr (Or.inl hqlT)
+        · exact Or.inr (Or.inr hqr)
+    · by_cases hx_gt_y : x > y
+      · simp [hx_lt_y, hx_gt_y]
+        by_cases hrb : rootBlack r
+        · simp [hrb, inTree_baldR]
+          intro h
+          rcases h with (hqy | hql | hqr)
+          · exact Or.inl hqy
+          · exact Or.inr (Or.inl hql)
+          · have hqrT := ihr hqr
+            exact Or.inr (Or.inr hqrT)
+        · simp [hrb, InTree]
+          intro h
+          rcases h with (hqy | hql | hqr)
+          · exact Or.inl hqy
+          · exact Or.inr (Or.inl hql)
+          · have hqrT := ihr hqr
+            exact Or.inr (Or.inr hqrT)
+      · have h_eq : x = y := by omega
+        subst h_eq
+        simp [inTree_join_iff]
+        intro h
+        rcases h with (hql | hqr)
+        · exact Or.inr (Or.inl hql)
+        · exact Or.inr (Or.inr hqr)
+
+/-- {name}`del` preserves membership for keys different from the deleted key
+(backward direction: keys in the original (except the deleted key) survive). -/
+theorem inTree_del_backward (x q : Nat) (t : RBTree) (h : InTree q t) (hne : q ≠ x) :
+    InTree q (del x t) := by
+  induction t generalizing x q with
+  | empty => simp [InTree] at h
+  | node c l y r ihl ihr =>
+    simp [del]
+    by_cases hx_lt_y : x < y
+    · simp [hx_lt_y]
+      rcases h with (hqy | hql | hqr)
+      · by_cases hrb : rootBlack l
+        · simp [hrb, inTree_baldL, hqy]
+        · simp [hrb, InTree, hqy]
+      · have h_del : InTree q (del x l) := ihl x q hql hne
+        by_cases hrb : rootBlack l
+        · simp [hrb, inTree_baldL, h_del]
+        · simp [hrb, InTree, h_del]
+      · by_cases hrb : rootBlack l
+        · simp [hrb, inTree_baldL, hqr]
+        · simp [hrb, InTree, hqr]
+    · by_cases hx_gt_y : x > y
+      · simp [hx_lt_y, hx_gt_y]
+        rcases h with (hqy | hql | hqr)
+        · by_cases hrb : rootBlack r
+          · simp [hrb, inTree_baldR, hqy]
+          · simp [hrb, InTree, hqy]
+        · by_cases hrb : rootBlack r
+          · simp [hrb, inTree_baldR, hql]
+          · simp [hrb, InTree, hql]
+        · have h_del : InTree q (del x r) := ihr x q hqr hne
+          by_cases hrb : rootBlack r
+          · simp [hrb, inTree_baldR, h_del]
+          · simp [hrb, InTree, h_del]
+      · have h_eq : x = y := by omega
+        subst h_eq
+        rcases h with (hqy | hql | hqr)
+        · exfalso; exact hne hqy
+        · simp [inTree_join_iff, Or.inl hql]
+        · simp [inTree_join_iff, Or.inr hqr]
+
+/-- The deleted key is not present in the result of {name}`del` (requires BST). -/
+theorem not_inTree_del_self (x : Nat) (t : RBTree) (hbst : BST t) : ¬ InTree x (del x t) := by
+  induction t with
+  | empty => simp [del, InTree]
+  | node c l y r ihl ihr =>
+    have ⟨hbstL, hbstR, hLT, hGT⟩ : BST l ∧ BST r ∧ (∀ x, InTree x l → x < y) ∧ (∀ x, InTree x r → y < x) := by
+      simp [BST] at hbst; exact hbst
+    simp [del]
+    by_cases hx_lt_y : x < y
+    · simp [hx_lt_y]
+      have h_not_in_r : ¬ InTree x r := by
+        intro hxr; exact (Nat.lt_asymm hx_lt_y) (hGT x hxr)
+      have hx_ne_y : x ≠ y := Nat.ne_of_lt hx_lt_y
+      by_cases hrb : rootBlack l
+      · simp [hrb]
+        rw [inTree_baldL]
+        intro h; rcases h with (hxy | hxdl | hxr)
+        · exact hx_ne_y hxy
+        · exact ihl hbstL hxdl
+        · exact h_not_in_r hxr
+      · simp [hrb]
+        have h_unfold : InTree x (node Color.red (del x l) y r) ↔ (x = y ∨ InTree x (del x l) ∨ InTree x r) := by
+          simp [InTree]
+        rw [h_unfold]
+        intro h; rcases h with (hxy | hxdl | hxr)
+        · exact hx_ne_y hxy
+        · exact ihl hbstL hxdl
+        · exact h_not_in_r hxr
+    · by_cases hx_gt_y : x > y
+      · simp [hx_lt_y, hx_gt_y]
+        have h_not_in_l : ¬ InTree x l := by
+          intro hxl
+          have hx_lt_y : x < y := hLT x hxl
+          exact (Nat.lt_asymm hx_lt_y) hx_gt_y
+        have hx_ne_y : x ≠ y := Nat.ne_of_gt hx_gt_y
+        by_cases hrb : rootBlack r
+        · simp [hrb]
+          rw [inTree_baldR]
+          intro h; rcases h with (hxy | hxl | hxdr)
+          · exact hx_ne_y hxy
+          · exact h_not_in_l hxl
+          · exact ihr hbstR hxdr
+        · simp [hrb]
+          have h_unfold : InTree x (node Color.red l y (del x r)) ↔ (x = y ∨ InTree x l ∨ InTree x (del x r)) := by
+            simp [InTree]
+          rw [h_unfold]
+          intro h; rcases h with (hxy | hxl | hxdr)
+          · exact hx_ne_y hxy
+          · exact h_not_in_l hxl
+          · exact ihr hbstR hxdr
+      · have h_eq : x = y := by omega
+        subst h_eq
+        have h_not_in_l : ¬ InTree x l := by
+          intro hxl; exact (Nat.lt_irrefl x) (hLT x hxl)
+        have h_not_in_r : ¬ InTree x r := by
+          intro hxr; exact (Nat.lt_irrefl x) (hGT x hxr)
+        simp [inTree_join_iff, h_not_in_l, h_not_in_r]
+
+/-- Full membership-after-{name}`del` equivalence (requires BST). -/
+theorem inTree_del_iff (x q : Nat) (t : RBTree) (hbst : BST t) :
+    InTree q (del x t) ↔ InTree q t ∧ q ≠ x := by
+  constructor
+  · intro h; constructor
+    · exact inTree_del_forward x q t h
+    · intro hqx; subst q; exact not_inTree_del_self x t hbst h
+  · intro ⟨h, hne⟩; exact inTree_del_backward x q t h hne
+
+/-- {name}`delete` preserves membership (forward direction). -/
+theorem inTree_delete_forward (x q : Nat) (t : RBTree) :
+    InTree q (delete x t) → InTree q t := by
+  simp [delete, inTree_repaintRoot_iff]; exact inTree_del_forward x q t
+
+/-- {name}`delete` preserves membership for keys different from the deleted key
+(backward direction). -/
+theorem inTree_delete_backward (x q : Nat) (t : RBTree) (h : InTree q t) (hne : q ≠ x) :
+    InTree q (delete x t) := by
+  simp [delete, inTree_repaintRoot_iff]; exact inTree_del_backward x q t h hne
+
+/-- The deleted key is not in the result of {name}`delete` (requires BST). -/
+theorem not_inTree_delete_self (x : Nat) (t : RBTree) (hbst : BST t) :
+    ¬ InTree x (delete x t) := by
+  simp [delete, inTree_repaintRoot_iff, not_inTree_del_self x t hbst]
+
+/-- Full membership-after-{name}`delete` equivalence (requires BST). -/
+theorem inTree_delete_iff (x q : Nat) (t : RBTree) (hbst : BST t) :
+    InTree q (delete x t) ↔ InTree q t ∧ q ≠ x := by
+  simp [delete, inTree_repaintRoot_iff, inTree_del_iff x q t hbst]
 
 end RBTree
 
