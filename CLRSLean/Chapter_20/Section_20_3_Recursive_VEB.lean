@@ -233,6 +233,106 @@ theorem member_correct {k : Nat} (v : VEBTree k) :
           have hlt : high (uSize k) x < uSize k := by omega
           exact absurd hlt h
 
+/-! ## Insertion -/
+
+/--
+Recursive insertion.  The base case sets the appropriate membership bit; a node
+inserts the {lit}`low` part into the {lit}`high` cluster and records that
+cluster as nonempty in the {lit}`summary` (CLRS `vEB-Tree-Insert`).  Keys
+outside the universe are ignored.
+-/
+def insert : {k : Nat} → Nat → VEBTree k → VEBTree k
+  | _, x, .leaf c0 c1 =>
+      .leaf (if x = 0 then true else c0) (if x = 1 then true else c1)
+  | _, x, @VEBTree.node k summary clusters =>
+      if h : high (uSize k) x < uSize k then
+        .node (insert (high (uSize k) x) summary)
+          (Function.update clusters ⟨high (uSize k) x, h⟩
+            (insert (low (uSize k) x) (clusters ⟨high (uSize k) x, h⟩)))
+      else
+        .node summary clusters
+
+/--
+**Insertion correctness.**  For any key inside the universe, recursive insertion
+refines finite-set insertion: {lit}`(insert x v).toFinset = insert x v.toFinset`.
+This is the recursive refinement of Section 20.2's {lit}`insert_correct`.
+-/
+theorem insert_toFinset : ∀ {k : Nat} (v : VEBTree k) (x : Nat),
+    x < uSize k → (insert x v).toFinset = Insert.insert x v.toFinset := by
+  intro k v
+  induction v with
+  | leaf c0 c1 =>
+      intro x hx
+      rw [uSize_zero] at hx
+      ext y
+      rw [show insert x (VEBTree.leaf c0 c1)
+            = VEBTree.leaf (if x = 0 then true else c0) (if x = 1 then true else c1)
+          from rfl]
+      rw [mem_toFinset_leaf, Finset.mem_insert, mem_toFinset_leaf]
+      interval_cases x <;> cases c0 <;> cases c1 <;> simp <;> tauto
+  | @node k summary clusters _ih_s ih_c =>
+      intro x hx
+      have hm : 0 < uSize k := uSize_pos k
+      have hxlt : x < uSize k * uSize k := by rw [← uSize_succ k]; exact hx
+      have h : high (uSize k) x < uSize k := high_lt hxlt
+      have hlow : low (uSize k) x < uSize k := low_lt hm
+      have hins : insert x (VEBTree.node summary clusters) =
+          VEBTree.node (insert (high (uSize k) x) summary)
+            (Function.update clusters ⟨high (uSize k) x, h⟩
+              (insert (low (uSize k) x) (clusters ⟨high (uSize k) x, h⟩))) := by
+        simp only [insert]; rw [dif_pos h]
+      rw [hins]
+      ext y
+      rw [mem_toFinset_node, Finset.mem_insert, mem_toFinset_node]
+      constructor
+      · rintro ⟨hi, lo, hlo, hidx⟩
+        by_cases hhi : hi = ⟨high (uSize k) x, h⟩
+        · subst hhi
+          rw [Function.update_self] at hlo
+          rw [ih_c ⟨high (uSize k) x, h⟩ (low (uSize k) x) hlow,
+              Finset.mem_insert] at hlo
+          rcases hlo with hlo | hlo
+          · left
+            subst hlo
+            exact hidx.symm.trans index_high_low
+          · right
+            exact ⟨⟨high (uSize k) x, h⟩, lo, hlo, hidx⟩
+        · right
+          rw [Function.update_of_ne hhi] at hlo
+          exact ⟨hi, lo, hlo, hidx⟩
+      · rintro (hyx | ⟨hi, lo, hlo, hidx⟩)
+        · refine ⟨⟨high (uSize k) x, h⟩, low (uSize k) x, ?_, ?_⟩
+          · rw [Function.update_self,
+                ih_c ⟨high (uSize k) x, h⟩ (low (uSize k) x) hlow, Finset.mem_insert]
+            exact Or.inl rfl
+          · rw [hyx]; exact index_high_low
+        · by_cases hhi : hi = ⟨high (uSize k) x, h⟩
+          · subst hhi
+            refine ⟨⟨high (uSize k) x, h⟩, lo, ?_, hidx⟩
+            rw [Function.update_self,
+                ih_c ⟨high (uSize k) x, h⟩ (low (uSize k) x) hlow, Finset.mem_insert]
+            exact Or.inr hlo
+          · refine ⟨hi, lo, ?_, hidx⟩
+            rw [Function.update_of_ne hhi]
+            exact hlo
+
+/--
+Membership after recursive insertion: a key is present exactly when it is the
+inserted key or was already present.  Combines {lit}`member_correct` and
+{lit}`insert_toFinset`.
+-/
+theorem member_insert_iff {k : Nat} (v : VEBTree k) (x y : Nat)
+    (hx : x < uSize k) :
+    member y (insert x v) = true ↔ y = x ∨ member y v = true := by
+  rw [member_correct (insert x v) y, insert_toFinset v x hx, Finset.mem_insert,
+    ← member_correct v y]
+
+/-- The inserted key is a member after insertion. -/
+theorem member_insert_self {k : Nat} (v : VEBTree k) (x : Nat)
+    (hx : x < uSize k) :
+    member x (insert x v) = true := by
+  rw [member_insert_iff v x x hx]; exact Or.inl rfl
+
 end VEBTree
 end Chapter20
 end CLRS
