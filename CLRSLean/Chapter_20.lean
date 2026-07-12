@@ -164,11 +164,35 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_monotone`, and
   {lit}`CLRS.Chapter20.VEB.operationDepth_strict_mono`.
+* 20.3 Recursive vEB structure: {lit}`partial`.  The genuine recursive
+  summary/cluster structure over the tower universe {lit}`uSize k = 2 ^ (2 ^ k)`,
+  with {lit}`member` and {lit}`insert` proved to refine the finite-set
+  specification and the operation-count recurrence
+  {lit}`T(u) = T(√u) + 1` solved to an {lit}`O(log log u)` bound.
+  Main results:
+  {lit}`CLRS.Chapter20.uSize_succ`,
+  {lit}`CLRS.Chapter20.VEBTree.toFinset_lt_uSize`,
+  {lit}`CLRS.Chapter20.VEBTree.toFinset_empty`,
+  {lit}`CLRS.Chapter20.VEBTree.member_correct`,
+  {lit}`CLRS.Chapter20.VEBTree.insert_toFinset`,
+  {lit}`CLRS.Chapter20.VEBTree.member_insert_iff`,
+  {lit}`CLRS.Chapter20.VEBTree.member_insert_self`,
+  {lit}`CLRS.Chapter20.VEBTree.memberCost_recurrence`,
+  {lit}`CLRS.Chapter20.VEBTree.memberCost_le`,
+  {lit}`CLRS.Chapter20.VEBTree.log_uSize`,
+  {lit}`CLRS.Chapter20.VEBTree.loglog_uSize`,
+  {lit}`CLRS.Chapter20.VEBTree.depth_loglog_u`, and
+  {lit}`CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u`.
 
 ## Current Gaps
 
-Recursive summary/cluster storage, word-RAM base cases, and a Chapter 3
-asymptotic bridge for {lit}`O(log log u)` remain strengthening targets.
+Section 20.3 now provides the recursive summary/cluster structure with
+{lit}`member` and {lit}`insert` refined against the finite-set specification and
+the {lit}`O(log log u)` bound proved for the single-recursion {lit}`member`
+operation via the Chapter 3 big-O wrapper.  Remaining targets are recursive
+{lit}`successor` / {lit}`predecessor` / {lit}`delete` on the recursive
+structure and the {lit}`min` / {lit}`max` double-recursion-avoidance
+optimisation that makes {lit}`insert` itself run in {lit}`O(log log u)`.
 -/
 
 namespace CLRS

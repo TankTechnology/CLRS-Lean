@@ -1943,8 +1943,9 @@ Fibonacci logarithmic theorem.
 
 - Lean source:
   `CLRSLean/Chapter_20.lean`,
-  `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean`, and
-  `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean`
+  `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean`,
+  `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean`, and
+  `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter20.VEB.index_high_low`
@@ -2077,6 +2078,19 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.operationDepth_linear`
   - `CLRS.Chapter20.VEB.operationDepth_monotone`
   - `CLRS.Chapter20.VEB.operationDepth_strict_mono`
+  - `CLRS.Chapter20.uSize_succ` (recursive tower universe `2 ^ (2 ^ k)`)
+  - `CLRS.Chapter20.VEBTree.toFinset_lt_uSize`
+  - `CLRS.Chapter20.VEBTree.toFinset_empty`
+  - `CLRS.Chapter20.VEBTree.member_correct` (recursive membership refinement)
+  - `CLRS.Chapter20.VEBTree.insert_toFinset` (recursive insert refinement)
+  - `CLRS.Chapter20.VEBTree.member_insert_iff`
+  - `CLRS.Chapter20.VEBTree.member_insert_self`
+  - `CLRS.Chapter20.VEBTree.memberCost_recurrence` (`T(u) = T(√u) + 1`)
+  - `CLRS.Chapter20.VEBTree.memberCost_le`
+  - `CLRS.Chapter20.VEBTree.log_uSize`
+  - `CLRS.Chapter20.VEBTree.loglog_uSize`
+  - `CLRS.Chapter20.VEBTree.depth_loglog_u`
+  - `CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u` (`O(log log u)`)
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,
   extrema/successor via `Finset.min'`/`max'`, successful-query universe-bound
@@ -2093,9 +2107,15 @@ Fibonacci logarithmic theorem.
   membership/order wrappers, update-query
   universe-bound corollaries, and definition unfolding for
   first-pass operation-depth recurrence and monotonicity facts
-- Current gap: recursive min/max-summary-cluster state, word-RAM base cases,
-  and an explicit Chapter 3 asymptotic bridge for `O(log log u)` remain
-  strengthening targets.
+- Current gap: recursive `successor` / `predecessor` / `delete` on the
+  summary/cluster structure and the `min` / `max` double-recursion-avoidance
+  optimisation that makes `insert` itself run in `O(log log u)` remain
+  strengthening targets.  Section 20.3 now provides the recursive
+  summary/cluster `VEBTree` over the tower universe `uSize k = 2 ^ (2 ^ k)`,
+  with `member` and `insert` refined against the finite-set specification and
+  the operation-count recurrence `T(u) = T(√u) + 1` solved to a
+  `log₂ (log₂ u) + 1` depth bound and an `O(log log u)` big-O packaging via the
+  Chapter 3 wrapper.
 
 Chapter 20 now proves the high/low/index arithmetic, including both directions
 of bounded high/low recomposition, and a set-specification layer for the main
