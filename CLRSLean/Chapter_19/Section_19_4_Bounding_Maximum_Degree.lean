@@ -317,6 +317,154 @@ theorem wellformed_degree_le_twice_log_two (t : FTree) (hw : Wellformed t) {n : 
   have hmod : t.degree % 2 < 2 := Nat.mod_lt _ (by norm_num)
   omega
 
+/-!
+## The invariant is maintained by linking, and is tight
+
+The `Wellformed` invariant is exactly what `CONSOLIDATE`'s equal-degree link step
+preserves, and the `F(d + 2)` bound is achieved, so the model is non-vacuous and
+the analysis is sharp.
+-/
+
+/--
+**Invariant maintenance (CLRS Lemma 19.1 preservation).**  Appending a new child
+`y` to the end of a wellformed node's child list preserves wellformedness,
+provided `y`'s degree is at least `(current degree) - 1`.
+
+This is precisely the structural step performed by `CONSOLIDATE`: a new child is
+attached in the last (most recent) link position, and it satisfies the position
+`j = |xs|` requirement `j - 1 ≤ y.degree` exactly because equal-degree roots are
+linked.
+-/
+theorem wellformed_append_child (xs : List FTree) (y : FTree)
+    (hxs : Wellformed (node xs)) (hy : Wellformed y)
+    (hdeg : xs.length - 1 ≤ y.degree) :
+    Wellformed (node (xs ++ [y])) := by
+  cases hxs with
+  | node hdeg_xs hall_xs =>
+      refine Wellformed.node ?_ ?_
+      · intro j hj
+        rw [List.length_append, List.length_singleton] at hj
+        rcases Nat.lt_or_ge j xs.length with hlt | hge
+        · have hget : (xs ++ [y])[j] = xs[j] := List.getElem_append_left hlt
+          rw [hget]
+          exact hdeg_xs j hlt
+        · have hjeq : j = xs.length := by omega
+          have hget : (xs ++ [y])[j] = y := by
+            rw [List.getElem_concat_length hjeq]
+          rw [hget, hjeq]
+          exact hdeg
+      · intro c hc
+        rw [List.mem_append] at hc
+        rcases hc with hc | hc
+        · exact hall_xs c hc
+        · rw [List.mem_singleton] at hc
+          subst hc
+          exact hy
+
+/--
+The Fibonacci-heap `LINK` operation: make `y` a child of `x` by attaching it in
+the last link position.  Degree increases by one.
+-/
+def link (x y : FTree) : FTree := node (x.children ++ [y])
+
+/-- Linking increases the parent degree by exactly one. -/
+theorem link_degree (x y : FTree) : (link x y).degree = x.degree + 1 := by
+  cases x with
+  | node xs => simp [link, degree, children]
+
+/--
+**`CONSOLIDATE` link preserves the invariant.**  Linking two wellformed trees
+whose degrees are compatible (`x.degree ≤ y.degree`, the case `CONSOLIDATE`
+applies with equal degrees) yields a wellformed tree.
+-/
+theorem link_wellformed (x y : FTree) (hx : Wellformed x) (hy : Wellformed y)
+    (hxy : x.degree ≤ y.degree) : Wellformed (link x y) := by
+  cases x with
+  | node xs =>
+      have hxy' : xs.length ≤ y.degree := hxy
+      show Wellformed (node ((node xs).children ++ [y]))
+      rw [children_node]
+      exact wellformed_append_child xs y hx hy (by omega)
+
+/--
+Children of the minimal (extremal) wellformed tree of degree `d`; the tree
+`minTree` that makes CLRS Lemma 19.4 tight.  A degree-`(d+2)` extremal node is a
+degree-`(d+1)` extremal node with one extra child of degree `d` appended.
+-/
+def minChildren : Nat → List FTree
+  | 0 => []
+  | 1 => [node []]
+  | (d + 2) => minChildren (d + 1) ++ [node (minChildren d)]
+
+/-- The minimal (extremal) wellformed tree of degree `d`, of subtree size exactly
+`F(d + 2)`. -/
+def minTree (d : Nat) : FTree := node (minChildren d)
+
+/-- The extremal tree of degree `d` indeed has `d` children. -/
+theorem minChildren_length (d : Nat) : (minChildren d).length = d := by
+  induction d using Nat.strong_induction_on with
+  | _ d ih =>
+    match d, ih with
+    | 0, _ => rfl
+    | 1, _ => rfl
+    | (d + 2), ih =>
+        have h := ih (d + 1) (by omega)
+        simp [minChildren, h]
+
+/-- The extremal tree of degree `d` has degree `d`. -/
+theorem minTree_degree (d : Nat) : (minTree d).degree = d := by
+  simp [minTree, degree, children, minChildren_length]
+
+/-- The extremal tree of degree `d` has subtree size exactly `F(d + 2)`. -/
+theorem minTree_size (d : Nat) : (minTree d).size = fibLowerBound d := by
+  induction d using Nat.strong_induction_on with
+  | _ d ih =>
+    match d, ih with
+    | 0, _ => simp [minTree, minChildren, size_node, show fibLowerBound 0 = 1 from rfl]
+    | 1, _ => simp [minTree, minChildren, size_node, show fibLowerBound 1 = 2 from rfl]
+    | (d + 2), ih =>
+        have h1 : (minTree (d + 1)).size = fibLowerBound (d + 1) := ih (d + 1) (by omega)
+        have h0 : (minTree d).size = fibLowerBound d := ih d (by omega)
+        have hstep : (minTree (d + 2)).size = (minTree (d + 1)).size + (minTree d).size := by
+          simp only [minTree, minChildren, size_node, List.map_append, List.sum_append,
+            List.map_cons, List.map_nil, List.sum_cons, List.sum_nil]
+          omega
+        rw [hstep, h1, h0, FibHeap.fibLowerBound_step]
+
+/-- The extremal tree of every degree is wellformed. -/
+theorem minTree_wellformed (d : Nat) : Wellformed (minTree d) := by
+  induction d using Nat.strong_induction_on with
+  | _ d ih =>
+    match d, ih with
+    | 0, _ => exact wellformed_leaf
+    | 1, _ =>
+        show Wellformed (node [node []])
+        refine Wellformed.node ?_ ?_
+        · intro j hj
+          have hj0 : j = 0 := by simpa using hj
+          subst hj0
+          simp [degree, children]
+        · intro c hc
+          have : c = node [] := by simpa using hc
+          subst this
+          exact wellformed_leaf
+    | (d + 2), ih =>
+        have hw1 : Wellformed (minTree (d + 1)) := ih (d + 1) (by omega)
+        have hw0 : Wellformed (minTree d) := ih d (by omega)
+        show Wellformed (node (minChildren (d + 1) ++ [minTree d]))
+        refine wellformed_append_child (minChildren (d + 1)) (minTree d) hw1 hw0 ?_
+        rw [minChildren_length, minTree_degree]
+        omega
+
+/--
+**CLRS Lemma 19.4 is tight.**  For every degree `d` there is a wellformed tree of
+degree `d` whose subtree size is exactly `F(d + 2)`, so the subtree-size lower
+bound cannot be improved.
+-/
+theorem exists_wellformed_size_eq_fibLowerBound (d : Nat) :
+    ∃ t : FTree, Wellformed t ∧ t.degree = d ∧ t.size = fibLowerBound d :=
+  ⟨minTree d, minTree_wellformed d, minTree_degree d, minTree_size d⟩
+
 end FTree
 end Chapter19
 end CLRS
