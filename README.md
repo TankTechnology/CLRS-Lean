@@ -21,33 +21,39 @@ of pseudocode.  A chapter may be complete for its current mathematical model
 while still leaving pointer mutation, RAM costs, or imperative refinement for a
 later layer.
 
-Current milestones include:
+Current status at a glance (chapter rows are generated from
+[`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv)):
 
-- Chapter 2: insertion sort, merge sort, and selected comparison/recurrence
-  results.
-- Chapter 6: the current heap, `MAX-HEAPIFY`, `BUILD-MAX-HEAP`, heapsort, and
-  priority-queue correctness stack.
-- Chapter 8: correctness for the represented counting-sort, radix-sort, and
-  bucket-sort models.
-- Chapter 16: activity-selection and Huffman optimality for the represented
-  finite models.
-- Chapter 21: abstract disjoint-set semantics, weighted linked-list analysis,
-  executable union-by-rank/path-compression correctness, real traversal-cost
-  semantics, a concrete `O((m+n) alpha(n))` amortized bound, and a Kruskal
-  bridge.
-- Chapter 22: sealed main functional correctness for BFS shortest paths and its
-  predecessor tree, DFS theory and edge classification, Kahn and DFS
-  topological sorting, and Kosaraju SCC decomposition.
-- Chapter 23: sealed mathematical correctness plus a stateful costed Kruskal
-  refinement, complete `O(E log E)` work composition, executable indexed-queue
-  Prim, and its binary-heap `O(E log V)` operation model.
+- **Chapters 1–24 are represented**, with **~1,100 tracked theorems, all
+  kernel-checked** — `main` contains no `sorry`, `admit`, or project axiom, and
+  headline theorems depend only on the three standard Lean/Mathlib axioms
+  (`propext`, `Classical.choice`, `Quot.sound`).
+- **Sealed / main-proof-complete:** Chapter 2, Chapter 6, Chapter 8
+  (correctness), Chapter 21, Chapter 22, Chapter 23.
+- **Selected sections complete:** Chapters 5, 10, 16, and 24.
+- **Substantial but intentionally partial:** Chapters 3, 4, 7, 9, 11–15, 17–20.
+- **Not yet represented on `main`:** Chapters 25–35.
 
-Chapters 3, 4, 7, 9, 11-15, and 17-20 have substantial but intentionally
-partial theorem layers.  Chapters 24-35 are not represented on `main` yet.
-The live counts and chapter rows are generated from
-[`docs/clrs-proof-progress.csv`](docs/clrs-proof-progress.csv); see the
-[`proof status board`](docs/proof-status-board.md) for the current scheduling
-view and [`proof map`](docs/proof-map.md) for theorem-level detail.
+Notable results across the library:
+
+- **Ch4** — recursive Strassen with a `Θ(n^{lg 7})` runtime via the Master theorem.
+- **Ch7 / 9 / 11** — a shared finite-expectation toolkit powering randomized
+  quicksort's pairwise comparison probability, randomized `SELECT` expected
+  `O(n)`, and SUHA + universal-hashing expected search costs.
+- **Ch19** — the true Fibonacci logarithmic degree bound `D(n) ≤ log_φ n`
+  (CLRS Lemma 19.4/19.5), proved tight.
+- **Ch20** — a recursive van Emde Boas structure with the `O(log log u)`
+  operation bound.
+- **Ch21** — executable union-find with the inverse-Ackermann `O((m+n) α(n))`
+  amortized bound.
+- **Ch22 / 23** — sealed BFS/DFS/topological-sort/SCC theory and MST
+  (Kruskal + Prim) correctness.
+- **Ch24** — Bellman-Ford (Thm 24.4) and Dijkstra (Thm 24.6) correctness with
+  work bounds.
+
+See the [proof status board](docs/proof-status-board.md) for the scheduling
+view and the [proof map](docs/proof-map.md) for theorem-level detail.
+
 
 ## Repository Architecture
 
@@ -143,6 +149,15 @@ A theorem-producing change should update code and status together:
 5. Run `uv run python scripts/check_repository.py`.
 6. Build the changed module, its immediate dependents, and finally
    `lake build CLRSLean` for a milestone or merge.
+
+Before a milestone merge or a deploy, run a full review with the
+**`clrs-qa-reviewer`** agent (`.claude/agents/clrs-qa-reviewer.md`): it checks
+format/convention consistency, verifies proofs are genuinely sorry-free via
+`#print axioms`, and — because `-Dwarn.sorry=false` means a clean build is not
+proof of soundness — inspects the *rendered* Verso navigation to catch
+table-of-contents ordering problems. For running many proof agents in parallel,
+see [`docs/build-and-agents.md`](docs/build-and-agents.md) (isolated prebuilt
+worktrees, RAM-bound concurrency limits, and the recovery runbook).
 
 Status labels describe the proved model precisely:
 
