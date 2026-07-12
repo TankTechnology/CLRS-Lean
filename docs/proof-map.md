@@ -1065,6 +1065,29 @@ stack top is list head, and queue front is list head with enqueue at the back.
   (CLRS Theorem 11.3) from the universality hypothesis alone.
 - Current gap: RAM/probe-count operational semantics.
 
+### Section 11.3 - Hash functions
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_3_Hash_Functions.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.divisionHash_lt` - division method `k mod m` lands in range
+  - `CLRS.Chapter11.multiplicationHash_lt` - multiplication method
+    `floor (m * frac (k * A))` lands in range
+  - `CLRS.Chapter11.affineHash_isUniversal` - the prime-field affine family
+    `h_{a,b}(k) = a * k + b` over `ZMod p` satisfies `IsUniversal` (CLRS
+    Theorem 11.5, exact `m = p` case): distinct keys collide iff `a = 0`, an event
+    of probability `1/p = 1/m`
+  - `CLRS.Chapter11.affineHash_expected_collisions` - `universal_expected_collisions`
+    instantiated on the concrete family: expected collisions `≤ n/m`, no
+    `IsUniversal` hypothesis left open
+  - `CLRS.Chapter11.affineHash_expected_search_cost` - `universal_expected_search_cost`
+    instantiated on the concrete family: expected search cost `≤ 1 + n/m`
+- Notes: this is the first concrete witness of the `IsUniversal` predicate from
+  Section 11.2, so the universal-hashing bounds there are no longer conditional.
+  The general mod-`m` reduction (`((a·k+b) mod p) mod m` for arbitrary `m ≤ p`)
+  is a refinement of the exact `m = p` construction proved here.
+- Current gap: general mod-`m` outer reduction; RAM/probe-count semantics.
+
 ## Chapter 12 - Binary Search Trees
 
 ### Section 12.1 - Binary search trees
