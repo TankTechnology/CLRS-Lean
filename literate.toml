@@ -35,6 +35,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_22",
   "CLRSLean.Chapter_23",
   "CLRSLean.Chapter_24",
+  "CLRSLean.Chapter_26",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
@@ -197,6 +198,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_24.Section_24_1_Bellman_Ford",
   "CLRSLean.Chapter_24.Section_24_2_SSSP_In_DAGs",
   "CLRSLean.Chapter_24.Section_24_3_Dijkstra",
+]
+"CLRSLean.Chapter_26" = [
+  "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -562,3 +566,9 @@ title = "24.2. Single-Source Shortest Paths in DAGs"
 
 [modules."CLRSLean.Chapter_24.Section_24_3_Dijkstra"]
 title = "24.3. Dijkstra's Algorithm"
+
+[modules."CLRSLean.Chapter_26"]
+title = "Chapter 26. Maximum Flow"
+
+[modules."CLRSLean.Chapter_26.Section_26_1_Flow_Networks"]
+title = "26.1. Flow Networks"
