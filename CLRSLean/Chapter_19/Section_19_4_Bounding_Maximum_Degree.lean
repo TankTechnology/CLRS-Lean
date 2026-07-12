@@ -218,6 +218,105 @@ theorem wellformed_size_ge_fibLowerBound :
     simp only [FTree.node.sizeOf_spec]
     omega
 
+/-- Every subtree contains at least its root, so subtree size is positive. -/
+theorem size_pos (t : FTree) : 0 < t.size := by
+  cases t with
+  | node cs => simp only [size_node]; omega
+
+/--
+`φ^d ≤ F(d + 2)`: the `(d+2)`-nd Fibonacci lower bound dominates the `d`-th power
+of the golden ratio `φ = (1 + √5)/2`.
+
+Proved by strong induction using the golden-ratio identity `φ² = φ + 1` (in the
+form {lit}`Real.goldenRatio_pow_sub_goldenRatio_pow`) mirrored against the
+Fibonacci recurrence {lit}`fibLowerBound_step`.
+-/
+theorem goldenRatio_pow_le_fibLowerBound (d : Nat) :
+    Real.goldenRatio ^ d ≤ (fibLowerBound d : ℝ) := by
+  induction d using Nat.strong_induction_on with
+  | _ d ih =>
+    match d, ih with
+    | 0, _ =>
+        rw [pow_zero, show fibLowerBound 0 = 1 from rfl]; norm_num
+    | 1, _ =>
+        rw [pow_one, show fibLowerBound 1 = 2 from rfl]
+        exact le_of_lt Real.goldenRatio_lt_two
+    | (m + 2), ih =>
+        have ih1 : Real.goldenRatio ^ (m + 1) ≤ (fibLowerBound (m + 1) : ℝ) :=
+          ih (m + 1) (by omega)
+        have ih0 : Real.goldenRatio ^ m ≤ (fibLowerBound m : ℝ) := ih m (by omega)
+        have hpow : Real.goldenRatio ^ (m + 2)
+            = Real.goldenRatio ^ (m + 1) + Real.goldenRatio ^ m := by
+          have h := Real.goldenRatio_pow_sub_goldenRatio_pow m
+          linarith
+        have hfib : (fibLowerBound (m + 2) : ℝ)
+            = (fibLowerBound (m + 1) : ℝ) + (fibLowerBound m : ℝ) := by
+          have h := FibHeap.fibLowerBound_step m
+          rw [h]; push_cast; ring
+        rw [hpow, hfib]; linarith
+
+/--
+`φ^d ≤ size`: combining {lit}`goldenRatio_pow_le_fibLowerBound` with **CLRS
+Lemma 19.4**, a wellformed node of degree `d` roots a subtree of at least `φ^d`
+nodes.
+-/
+theorem wellformed_goldenRatio_pow_le_size (t : FTree) (hw : Wellformed t) :
+    Real.goldenRatio ^ t.degree ≤ (t.size : ℝ) := by
+  have h1 := goldenRatio_pow_le_fibLowerBound t.degree
+  have h2 : (fibLowerBound t.degree : ℝ) ≤ (t.size : ℝ) := by
+    exact_mod_cast wellformed_size_ge_fibLowerBound t hw
+  linarith
+
+/--
+**CLRS Lemma 19.5** (real form).  A wellformed node of degree `d` whose subtree
+fits inside an `n`-node heap satisfies `d ≤ log_φ n`.
+
+This is the maximum-degree bound `D(n) ≤ log_φ n` at the heart of the
+`O(log n)` Fibonacci-heap analysis.
+-/
+theorem wellformed_degree_le_logb (t : FTree) (hw : Wellformed t) {n : Nat}
+    (hn : t.size ≤ n) :
+    (t.degree : ℝ) ≤ Real.logb Real.goldenRatio n := by
+  have hnpos : (0 : ℝ) < n := by
+    have hn0 : 0 < n := lt_of_lt_of_le (size_pos t) hn
+    exact_mod_cast hn0
+  have hle : Real.goldenRatio ^ t.degree ≤ (n : ℝ) := by
+    have hsz := wellformed_goldenRatio_pow_le_size t hw
+    have hcast : (t.size : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+    linarith
+  rw [Real.le_logb_iff_rpow_le Real.one_lt_goldenRatio hnpos, Real.rpow_natCast]
+  exact hle
+
+/--
+**CLRS Lemma 19.5** (sharp integer form).  A wellformed node of degree `d` in an
+`n`-node heap satisfies `d ≤ ⌊log_φ n⌋`, the exact CLRS statement.
+-/
+theorem wellformed_degree_le_floor_logb (t : FTree) (hw : Wellformed t) {n : Nat}
+    (hn : t.size ≤ n) :
+    (t.degree : ℤ) ≤ ⌊Real.logb Real.goldenRatio n⌋ := by
+  rw [Int.le_floor]
+  push_cast
+  exact wellformed_degree_le_logb t hw hn
+
+/--
+**CLRS Lemma 19.5** (coarse natural-number budget).  A wellformed node of
+degree `d` in an `n`-node heap satisfies `d ≤ 2 · ⌊log₂ n⌋ + 1`, matching the
+first-pass budget
+{lit}`CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one` but sourced
+from the true subtree-size bound rather than a conservative proxy.
+-/
+theorem wellformed_degree_le_twice_log_two (t : FTree) (hw : Wellformed t) {n : Nat}
+    (hn : t.size ≤ n) :
+    t.degree ≤ 2 * Nat.log 2 n + 1 := by
+  have hfit : fibLowerBound t.degree ≤ n :=
+    le_trans (wellformed_size_ge_fibLowerBound t hw) hn
+  have hpow : 2 ^ (t.degree / 2) ≤ n :=
+    le_trans (FibHeap.fibLowerBound_half_lower_bound t.degree) hfit
+  have hlog : t.degree / 2 ≤ Nat.log 2 n :=
+    Nat.le_log_of_pow_le (by norm_num) hpow
+  have hmod : t.degree % 2 < 2 := Nat.mod_lt _ (by norm_num)
+  omega
+
 end FTree
 end Chapter19
 end CLRS
