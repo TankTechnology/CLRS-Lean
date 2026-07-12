@@ -1939,6 +1939,44 @@ maximum-degree theorem is still deliberately conservative for this first pass;
 it bounds the proxy by a key-count budget rather than proving the full
 Fibonacci logarithmic theorem.
 
+### Section 19.4 - Bounding the maximum degree
+
+- Module: `CLRSLean/Chapter_19/Section_19_4_Bounding_Maximum_Degree.lean`
+- Model: a concrete rooted-tree type `CLRS.Chapter19.FTree` (a node carrying an
+  ordered list of child subtrees) with `degree` and `size`, plus the CLRS
+  Lemma 19.1 marked-tree invariant `CLRS.Chapter19.FTree.Wellformed`
+  ("child in position `j` has degree at least `j - 1`", the invariant
+  `CONSOLIDATE` and cascading cuts maintain).
+- Tracked key theorems:
+  - `CLRS.Chapter19.FTree.Wellformed`
+  - `CLRS.Chapter19.FTree.wellformed_leaf`
+  - `CLRS.Chapter19.FTree.sum_lb_from`
+  - `CLRS.Chapter19.FTree.wellformed_size_ge_fibLowerBound` (Lemma 19.4:
+    `size(x) ≥ F(d+2)`)
+  - `CLRS.Chapter19.FTree.size_pos`
+  - `CLRS.Chapter19.FTree.goldenRatio_pow_le_fibLowerBound` (`φ^d ≤ F(d+2)`)
+  - `CLRS.Chapter19.FTree.wellformed_goldenRatio_pow_le_size` (`φ^d ≤ size`)
+  - `CLRS.Chapter19.FTree.wellformed_degree_le_logb` (Lemma 19.5: `D(n) ≤ log_φ n`)
+  - `CLRS.Chapter19.FTree.wellformed_degree_le_floor_logb` (`D(n) ≤ ⌊log_φ n⌋`)
+  - `CLRS.Chapter19.FTree.wellformed_degree_le_twice_log_two` (`d ≤ 2·⌊log₂ n⌋ + 1`)
+  - `CLRS.Chapter19.FTree.wellformed_append_child` (Lemma 19.1 preservation)
+  - `CLRS.Chapter19.FTree.link`, `CLRS.Chapter19.FTree.link_degree`,
+    `CLRS.Chapter19.FTree.link_wellformed` (the `CONSOLIDATE` equal-degree link)
+  - `CLRS.Chapter19.FTree.minTree`, `CLRS.Chapter19.FTree.minTree_degree`,
+    `CLRS.Chapter19.FTree.minTree_size`, `CLRS.Chapter19.FTree.minTree_wellformed`
+  - `CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound` (the bound is
+    tight: the extremal tree of degree `d` has size exactly `F(d+2)`)
+- Proof pattern: an offset cons-induction numeric core (`sum_lb_from`) feeding a
+  well-founded (`sizeOf`) tree induction for the subtree-size bound; a two-step
+  strong induction using `φ² = φ + 1` for the golden-ratio bound; `Real.logb`
+  monotonicity and `⌊·⌋` for the maximum-degree bound; and an append-child
+  invariant-maintenance lemma reused by both `link` and the extremal `minTree`
+  tightness family.
+- Current gap: the executable pointer forest, destructive `CONSOLIDATE` and
+  cascading-cut procedures, and the amortized `O(log n)`/`O(1)` cost accounting
+  remain strengthening targets.  The structural combinatorial core they depend
+  on — the true Fibonacci logarithmic degree bound — is now sealed.
+
 ## Chapter 20 - van Emde Boas Trees
 
 - Lean source:

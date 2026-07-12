@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
+import CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree
 
 /-!
 # Chapter 19 - Fibonacci Heaps
@@ -127,11 +128,28 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 
+* 19.4 Bounding the maximum degree: {lit}`partial`.
+  A concrete rooted-tree model (`FTree`) with the CLRS Lemma 19.1 marked-tree
+  invariant ({lit}`CLRS.Chapter19.FTree.Wellformed`), the true subtree-size
+  theorem, its golden-ratio consequence, and the logarithmic maximum-degree
+  bound.  Main results:
+  {lit}`CLRS.Chapter19.FTree.wellformed_size_ge_fibLowerBound`,
+  {lit}`CLRS.Chapter19.FTree.goldenRatio_pow_le_fibLowerBound`,
+  {lit}`CLRS.Chapter19.FTree.wellformed_goldenRatio_pow_le_size`,
+  {lit}`CLRS.Chapter19.FTree.wellformed_degree_le_logb`,
+  {lit}`CLRS.Chapter19.FTree.wellformed_degree_le_floor_logb`,
+  {lit}`CLRS.Chapter19.FTree.wellformed_degree_le_twice_log_two`,
+  {lit}`CLRS.Chapter19.FTree.wellformed_append_child`,
+  {lit}`CLRS.Chapter19.FTree.link_wellformed`, and
+  {lit}`CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound`.
+
 ## Current Gaps
 
-Pointer-level circular lists, cascading-cut transition systems, consolidation
-arrays, and the subtree-size induction leading to the true Fibonacci
-log-degree theorem remain strengthening targets.
+The pointer-level circular root lists, the executable `CONSOLIDATE` and
+cascading-cut procedures, and the amortized-cost accounting over the potential
+function remain strengthening targets.  Section 19.4 now seals the structural
+combinatorial core those procedures rely on: the true Fibonacci subtree-size
+degree bound `size(x) ≥ F(d+2) ≥ φ^d`, hence `D(n) ≤ ⌊log_φ n⌋`.
 -/
 
 namespace CLRS

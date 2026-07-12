@@ -89,6 +89,7 @@ CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean
 CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean
 CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean
+CLRSLean/Chapter_19/Section_19_4_Bounding_Maximum_Degree.lean
 CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean
 CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean
 CLRSLean/Chapter_21/Section_21_1_Disjoint_Set_Operations.lean
