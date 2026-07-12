@@ -746,6 +746,49 @@ theorem rotateRight_preserves {t : Nat} (ht : 2 ≤ t)
   exact ⟨rotateRight_left ht hlk hL_cb hL hR hL_occ hR_occ hht,
          rotateRight_right ht hrlen hR_cb hR_occ hR⟩
 
+
+/-! ## Helper functions for the composed delete -/
+
+/-- Number of keys in a B-tree node. -/
+def numKeys : BTree → Nat
+  | node ks _ => ks.length
+
+/-- Remove the first occurrence of `x` from a list. -/
+def sortedRemove (x : Nat) : List Nat → List Nat
+  | [] => []
+  | k :: ks => if k = x then ks else k :: sortedRemove x ks
+
+@[simp] lemma sortedRemove_nil (x : Nat) : sortedRemove x [] = [] := rfl
+
+lemma sortedRemove_cons (x k : Nat) (ks : List Nat) :
+    sortedRemove x (k :: ks) = if k = x then ks else k :: sortedRemove x ks := rfl
+
+/-- `sortedRemove` doesn't introduce new elements. -/
+lemma mem_of_sortedRemove {x y : Nat} {ks : List Nat} (hy : y ∈ sortedRemove x ks) : y ∈ ks := by
+  induction ks with
+  | nil => simp [sortedRemove] at hy
+  | cons k ks ih =>
+    rw [sortedRemove_cons] at hy
+    split at hy
+    · subst k; simp [hy]
+    · simp at hy; rcases hy with (rfl | hy)
+      · simp
+      · simp [ih hy]
+
+/-- `sortedRemove` preserves sortedness. -/
+lemma sortedRemove_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤ ·) ks →
+    List.Pairwise (· ≤ ·) (sortedRemove x ks) := by
+  intro ks h
+  induction ks with
+  | nil => exact h
+  | cons k ks ih =>
+    rw [sortedRemove_cons]
+    split
+    · exact h.tail
+    · refine List.Pairwise.cons ?_ (ih h.tail)
+      obtain ⟨hk, _⟩ := List.pairwise_cons.mp h
+      intro a ha
+      exact hk a (mem_of_sortedRemove ha)
 end BTree
 end Chapter18
 end CLRS
