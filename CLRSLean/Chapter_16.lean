@@ -1,13 +1,16 @@
 import CLRSLean.Chapter_16.Section_16_1_Activity_Selection
 import CLRSLean.Chapter_16.Section_16_3_Huffman_Codes
+import CLRSLean.Chapter_16.Section_16_4_Matroids
 
 /-!
 # Chapter 16 - Greedy Algorithms
 
-The current Chapter 16 site contains two proved greedy-algorithm tracks.
+The current Chapter 16 site contains three proved greedy-algorithm tracks.
 Section 16.1 proves the finite sorted-list activity-selection theorem for the
 executable greedy selector; Section 16.3 is the project's strongest completed
-greedy-algorithm case study.
+greedy-algorithm case study; Section 16.4 formalizes matroid theory and the
+general greedy meta-theorem, pinning down exactly when a greedy algorithm is
+globally optimal.
 
 ## Sections
 
@@ -33,6 +36,13 @@ greedy-algorithm case study.
   Main results: {name}`CLRS.HuffmanV2.optimum_huffman_freqs`,
   {name}`CLRS.HuffmanV2.huffmanOfFreqs_correct`, and
   {name}`CLRS.HuffmanV2.huffmanOfFreqs_cost_le`.
+* 16.4 Matroids and greedy methods: {lit}`proved` (builds on Mathlib's matroid
+  library).
+  Main results: {name}`CLRS.Matroid16.greedy_isBasis`,
+  {name}`CLRS.Matroid16.greedy_optimal` (CLRS Theorem 16.10 / Corollary 16.11),
+  {name}`CLRS.Matroid16.greedy_choice` (CLRS Theorem 16.6),
+  {name}`CLRS.Matroid16.optimal_substructure` (CLRS Lemma 16.7), and
+  {name}`CLRS.Matroid16.greedyRun_optimal`.
 
 ## Proof Theme
 
