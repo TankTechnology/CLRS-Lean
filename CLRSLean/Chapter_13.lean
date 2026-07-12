@@ -13,7 +13,7 @@ cases as small reusable certificates.
 
 ## Sections
 
-* 13.1 Red-black trees: insertion complete.
+* 13.1 Red-black trees: insertion complete, deletion membership proved.
   Main results: {lit}`CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`,
   {lit}`CLRS.Chapter13.RBTree.inTree_rotateRight_iff`,
   {lit}`CLRS.Chapter13.RBTree.inTree_repaintRoot_iff`,
@@ -42,13 +42,23 @@ cases as small reusable certificates.
   {lit}`CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate`,
   {lit}`CLRS.Chapter13.RBTree.inTree_insert_iff`,
   {lit}`CLRS.Chapter13.RBTree.redBlackShape_insert`,
-  {lit}`CLRS.Chapter13.RBTree.blackHeight_insertFixup`, and
-  {lit}`CLRS.Chapter13.RBTree.blackHeight_insert`.
+  {lit}`CLRS.Chapter13.RBTree.blackHeight_insertFixup`,
+  {lit}`CLRS.Chapter13.RBTree.blackHeight_insert`,
+  {lit}`CLRS.Chapter13.RBTree.height_log_bound` (CLRS Lemma 13.1),
+  {lit}`CLRS.Chapter13.RBTree.inTree_del_forward`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_del_backward`,
+  {lit}`CLRS.Chapter13.RBTree.not_inTree_del_self`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_delete_forward`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_delete_backward`,
+  {lit}`CLRS.Chapter13.RBTree.inTree_del_iff`,
+  and {lit}`CLRS.Chapter13.RBTree.inTree_delete_iff`.
 
 ## Current Gaps
 
-The executable {lit}`RB-DELETE` and {lit}`RB-DELETE-FIXUP` algorithms, and the
-logarithmic-height theorem, remain future work.
+Shape (no-red-red and balanced-black-height) preservation through
+{lit}`delete` is not yet proved.  The local
+{lit}`RB-DELETE-FIXUP` case certificates are proved, but the fully-composed
+loop's shape invariant remains future work.
 -/
 
 namespace CLRS
