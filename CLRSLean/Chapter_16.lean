@@ -1,16 +1,18 @@
 import CLRSLean.Chapter_16.Section_16_1_Activity_Selection
 import CLRSLean.Chapter_16.Section_16_3_Huffman_Codes
 import CLRSLean.Chapter_16.Section_16_4_Matroids
+import CLRSLean.Chapter_16.Section_16_5_Task_Scheduling
 
 /-!
 # Chapter 16 - Greedy Algorithms
 
-The current Chapter 16 site contains three proved greedy-algorithm tracks.
+The current Chapter 16 site contains four proved greedy-algorithm tracks.
 Section 16.1 proves the finite sorted-list activity-selection theorem for the
 executable greedy selector; Section 16.3 is the project's strongest completed
 greedy-algorithm case study; Section 16.4 formalizes matroid theory and the
-general greedy meta-theorem, pinning down exactly when a greedy algorithm is
-globally optimal.
+general greedy meta-theorem; Section 16.5 applies the matroid framework to
+unit-time task scheduling, proving the scheduling instance forms a matroid
+and reusing the §16.4 greedy optimality theorem.
 
 ## Sections
 
@@ -43,10 +45,15 @@ globally optimal.
   {name}`CLRS.Matroid16.greedy_choice` (CLRS Theorem 16.6),
   {name}`CLRS.Matroid16.optimal_substructure` (CLRS Lemma 16.7), and
   {name}`CLRS.Matroid16.greedyRun_optimal`.
+* 16.5 Task scheduling as a matroid: {lit}`proved`.
+  Main results:
+  {name}`CLRS.SchedulingMatroid.schedulingMatroid`
+  (CLRS Theorem 16.13) and
+  {name}`CLRS.SchedulingMatroid.minPenaltySchedule_correct`.
 
 ## Proof Theme
 
-Both sections expose the same high-level CLRS pattern: make a greedy choice,
+All sections expose the same high-level CLRS pattern: make a greedy choice,
 turn the textbook exchange argument into a reusable certificate, then compose it
 with the recursive subproblem.
 
@@ -66,6 +73,10 @@ minimum-cost comparison against any consistent tree with the same frequencies.
 
 Huffman is a useful benchmark for CLRS-Lean because it proves true optimality,
 not only functional correctness.  Activity selection is the lighter companion:
+it proves the sorted-list greedy recursion directly.  The matroid layer
+(§16.4) captures the greedy meta-theorem used in §16.5 to solve the
+task-scheduling problem, closing the loop from matroid theory to a concrete
+CLRS application.
 it proves the sorted-list greedy recursion directly.  The proof first builds
 the exchange certificate from sorted order, then composes it with the recursive
 tail optimum to obtain maximum cardinality for {name}`CLRS.ActivitySelection.greedySelect`.
