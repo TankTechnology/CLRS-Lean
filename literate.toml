@@ -69,6 +69,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_05" = [
   "CLRSLean.Chapter_05.Section_05_1_Hiring_Problem",
   "CLRSLean.Chapter_05.Section_05_2_Indicator_Random_Variables",
+  "CLRSLean.Chapter_05.Section_05_3_Randomized_Algorithms",
   "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis",
 ]
 "CLRSLean.Chapter_06" = [
@@ -386,6 +387,9 @@ title = "5.1. The Hiring Problem"
 
 [modules."CLRSLean.Chapter_05.Section_05_2_Indicator_Random_Variables"]
 title = "5.2. Indicator random variables"
+
+[modules."CLRSLean.Chapter_05.Section_05_3_Randomized_Algorithms"]
+title = "5.3. Randomized algorithms"
 
 [modules."CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis"]
 title = "5.4. Probabilistic analysis"
