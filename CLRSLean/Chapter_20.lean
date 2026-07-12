@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_20.Section_20_1_VEB_Universe
 import CLRSLean.Chapter_20.Section_20_2_VEB_Tree
+import CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
 
 /-!
 # Chapter 20 - van Emde Boas Trees
