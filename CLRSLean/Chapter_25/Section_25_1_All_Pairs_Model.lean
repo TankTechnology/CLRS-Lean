@@ -141,6 +141,66 @@ theorem minPlusMul_identity_right (M : V → V → WithTop ℝ) (i j : V) :
     · subst hkj; simp
     · simp [hkj]
 
+/-! ## Relating the min-plus product to the Bellman-Ford relaxation -/
+
+/-- The relaxation step can be expressed as the {lit}`Finset.univ` infimum against the
+edge-weight matrix, matching the min-plus product. -/
+theorem relaxStep_eq_minPlusMul_weightMatrix (d : V → WithTop ℝ) (v : V) :
+    G.relaxStep d v = (Finset.univ : Finset V).inf (fun k => d k + G.weightMatrix k v) := by
+  unfold relaxStep weightMatrix
+  simp [preds]
+  -- Now goal: min (d v) ((univ.filter (λ u => (u,v) ∈ edges)).inf (λ u => d u + w u v)) =
+  --          (univ).inf (λ k => d k + (if k=v then 0 else if (k,v) ∈ edges then w k v else ⊤))
+  apply le_antisymm
+  · -- LHS ≤ RHS: for each k, show LHS ≤ RHS term
+    refine le_trans ?_ (Finset.le_inf (fun k hk => ?_))
+    · exact min_le_left _ _
+    by_cases hkv : k = v
+    · subst k; simp
+    · by_cases hedge : (k, v) ∈ G.edges
+      · have hmem : k ∈ (Finset.univ : Finset V).filter (fun u : V => (u, v) ∈ G.edges) := by
+          simp [hedge]
+        calc
+          min (d v) (((Finset.univ : Finset V).filter (fun u : V => (u, v) ∈ G.edges)).inf
+            (fun u : V => d u + (G.w u v : WithTop ℝ))) ≤
+            ((Finset.univ : Finset V).filter (fun u : V => (u, v) ∈ G.edges)).inf
+              (fun u : V => d u + (G.w u v : WithTop ℝ)) :=
+            min_le_right _ _
+          _ ≤ d k + (G.w k v : WithTop ℝ) := Finset.inf_le hmem
+          _ = d k + (if (k, v) ∈ G.edges then (G.w k v : WithTop ℝ) else ⊤) := by simp [hedge]
+      · simp [hkv, hedge]
+  · -- RHS ≤ LHS
+    calc
+      (Finset.univ : Finset V).inf (fun k : V => d k + (if k = v then (0 : WithTop ℝ)
+          else if (k, v) ∈ G.edges then (G.w k v : WithTop ℝ) else ⊤)) ≤
+        (fun k : V => d k + (if k = v then (0 : WithTop ℝ)
+          else if (k, v) ∈ G.edges then (G.w k v : WithTop ℝ) else ⊤)) v :=
+        Finset.inf_le (Finset.mem_univ v)
+      _ = d v + (0 : WithTop ℝ) := by simp
+      _ = d v := by simp
+      _ ≤ min (d v) (((Finset.univ : Finset V).filter (fun u : V => (u, v) ∈ G.edges)).inf
+          (fun u : V => d u + (G.w u v : WithTop ℝ))) := by
+        simp
+
+/-- {lit}`L(m,i,j) = relaxDist i m j`: the {lit}`L` matrix equals the single-source relaxation
+distance from source {lit}`i` after {lit}`m` rounds. -/
+theorem L_eq_relaxDist (m : ℕ) (i j : V) : G.L m i j = G.relaxDist i m j := by
+  induction' m with m ih generalizing i j
+  · simp [L, relaxDist]
+  · rw [L_succ, ih, relaxDist_succ_apply, relaxStep_eq_minPlusMul_weightMatrix, extendShortestPaths, minPlusMul]
+
+/-- {lit}`L` lower-bounds the weight of any walk using at most {lit}`m` edges. -/
+theorem L_lowerBound (m : ℕ) (i j : V) (p : List V) (hp : G.IsWalkFrom i j p) (hlen : p.length ≤ m + 1) :
+    G.L m i j ≤ (walkWeight G.w p : WithTop ℝ) := by
+  rw [L_eq_relaxDist]
+  exact G.relaxDist_le_walkWeight i m j p hp hlen
+
+/-- Every finite entry of {lit}`L m` is realised by a walk using at most {lit}`m` edges. -/
+theorem L_attainable (m : ℕ) (i j : V) : G.L m i j = ⊤ ∨
+    ∃ p, G.IsWalkFrom i j p ∧ p.length ≤ m + 1 ∧ (walkWeight G.w p : WithTop ℝ) = G.L m i j := by
+  rw [L_eq_relaxDist]
+  exact G.exists_walk_of_relaxDist i m j
+
 /-- {lit}`L^0 = I`. -/
 theorem L_zero_eq_identity (i j : V) : G.L 0 i j = G.identityMatrix i j := by
   simp [L_zero, identityMatrix]
