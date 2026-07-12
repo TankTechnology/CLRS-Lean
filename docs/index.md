@@ -84,6 +84,7 @@ CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean
 CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean
 CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
+CLRSLean/Chapter_16/Section_16_4_Matroids.lean
 CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean
 CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean
 CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean
