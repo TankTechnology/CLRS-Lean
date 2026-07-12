@@ -72,6 +72,7 @@ CLRSLean/Chapter_10/Section_10_2_Linked_Lists.lean
 CLRSLean/Chapter_11/Section_11_1_Direct_Address_Tables.lean
 CLRSLean/Chapter_11/Section_11_2_Chained_Hash_Tables.lean
 CLRSLean/Chapter_11/Section_11_3_Hash_Functions.lean
+CLRSLean/Chapter_11/Section_11_4_Open_Addressing.lean
 CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean
 CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean
 CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean

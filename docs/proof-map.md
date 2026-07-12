@@ -1088,6 +1088,33 @@ stack top is list head, and queue front is list head with enqueue at the back.
   is a refinement of the exact `m = p` construction proved here.
 - Current gap: general mod-`m` outer reduction; RAM/probe-count semantics.
 
+### Section 11.4 - Open addressing
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_4_Open_Addressing.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.openSearch_openInsert` / `openSearch_eq_false_of_absent` -
+    functional open-addressing model correctness: inserted key found along its
+    probe order; absent key not found (CLRS §11.4 operational layer)
+  - `CLRS.Chapter11.linearProbe_bijective` / `doubleHashProbe_bijective` -
+    linear probing always enumerates every slot; double hashing does when the step
+    is a unit modulo `m` (CLRS §11.4, equations (11.5)-(11.7))
+  - `CLRS.Chapter11.probeTail` / `probeTail_le_pow` - uniform-hashing tail
+    probability `∏_{j<i} (n-j)/(m-j)` bounded by `α^i` (CLRS §11.4, per-factor
+    bound underlying Theorems 11.6-11.8)
+  - `CLRS.Chapter11.expectedUnsuccessfulProbes_le` (Theorem 11.6) -
+    expected unsuccessful-search probes `≤ 1/(1-α)` (`α = n/m < 1`), tail-sum
+    bounded by the geometric series
+  - `CLRS.Chapter11.expectedInsertionProbes_le` (Corollary 11.7) - same bound for
+    insertion
+  - `CLRS.Chapter11.expectedSuccessfulProbes_le` (Theorem 11.8, harmonic form) -
+    expected successful-search probes `≤ (1/α) · ∑_{j<n} 1/(m-j)` =
+    `(1/α)(H_m - H_{m-n})`
+- Notes: the probe probabilities are the standard uniform-hashing
+  without-replacement product.  The closed-form `(1/α) ln(1/(1-α))` integral bound
+  of the harmonic form is not formalised.
+- Current gap: closed-form ln integral bound; RAM/probe-count semantics.
+
 ## Chapter 12 - Binary Search Trees
 
 ### Section 12.1 - Binary search trees
