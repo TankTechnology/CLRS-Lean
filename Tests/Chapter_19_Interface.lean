@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
+import CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree
 
 #check CLRS.Chapter19.FibHeap.Valid
 #check CLRS.Chapter19.FibHeap.Represents
@@ -101,3 +102,25 @@ import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 #check CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card
 #check CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one
 #check CLRS.Chapter19.FibHeap.degree_bound_log
+#check CLRS.Chapter19.FTree
+#check CLRS.Chapter19.FTree.degree
+#check CLRS.Chapter19.FTree.size
+#check CLRS.Chapter19.FTree.Wellformed
+#check CLRS.Chapter19.FTree.wellformed_leaf
+#check CLRS.Chapter19.FTree.sum_lb_from
+#check CLRS.Chapter19.FTree.wellformed_size_ge_fibLowerBound
+#check CLRS.Chapter19.FTree.size_pos
+#check CLRS.Chapter19.FTree.goldenRatio_pow_le_fibLowerBound
+#check CLRS.Chapter19.FTree.wellformed_goldenRatio_pow_le_size
+#check CLRS.Chapter19.FTree.wellformed_degree_le_logb
+#check CLRS.Chapter19.FTree.wellformed_degree_le_floor_logb
+#check CLRS.Chapter19.FTree.wellformed_degree_le_twice_log_two
+#check CLRS.Chapter19.FTree.wellformed_append_child
+#check CLRS.Chapter19.FTree.link
+#check CLRS.Chapter19.FTree.link_degree
+#check CLRS.Chapter19.FTree.link_wellformed
+#check CLRS.Chapter19.FTree.minTree
+#check CLRS.Chapter19.FTree.minTree_degree
+#check CLRS.Chapter19.FTree.minTree_size
+#check CLRS.Chapter19.FTree.minTree_wellformed
+#check CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound
