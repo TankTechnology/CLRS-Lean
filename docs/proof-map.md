@@ -2325,11 +2325,11 @@ track.
 
 - Lean sources:
   - `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/WhitePath.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/Intervals.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/Bridge.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/SCC.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/EdgeClassification.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S2_Intervals.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S3_Bridge.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S4_SCC.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S5_EdgeClassification.lean`
 - Status: `proved`
 - DFS and white-path layer:
   - `CLRS.Chapter22.Graph.DFSState`

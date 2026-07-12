@@ -95,11 +95,11 @@ class LiterateConfigTest(unittest.TestCase):
                 "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",
             ],
             "CLRSLean.Chapter_22.Section_22_3_DFS": [
-                "CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath",
-                "CLRSLean.Chapter_22.Section_22_3_DFS.Intervals",
-                "CLRSLean.Chapter_22.Section_22_3_DFS.Bridge",
-                "CLRSLean.Chapter_22.Section_22_3_DFS.SCC",
-                "CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.S3_Bridge",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC",
+                "CLRSLean.Chapter_22.Section_22_3_DFS.S5_EdgeClassification",
             ],
             "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components": [
                 "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr",

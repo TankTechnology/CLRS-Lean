@@ -24,8 +24,8 @@ the concrete finite-graph `IsMinimumSpanningTree` specification.
 
 - Lean source: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
 - Implementation sources:
-  `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/StatefulKruskal.lean` and
-  `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/ExecutablePrim.lean`
+  `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S2_StatefulKruskal.lean` and
+  `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S3_ExecutablePrim.lean`
 - Status: `main-proof-complete-for-correctness`
 - Main theorems:
   `CLRS.MST.Graph.ExchangePath`,

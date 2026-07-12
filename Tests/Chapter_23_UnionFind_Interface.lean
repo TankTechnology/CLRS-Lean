@@ -1,5 +1,5 @@
-import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge
-import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S1_UnionFindBridge
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S2_StatefulKruskal
 
 #check CLRS.MST.UnionFindConnectivityRefinement
 #check CLRS.MST.UnionFindConnectivityRefinement.accept

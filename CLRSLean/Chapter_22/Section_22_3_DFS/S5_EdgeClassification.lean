@@ -1,5 +1,5 @@
 import Mathlib
-import CLRSLean.Chapter_22.Section_22_3_DFS.SCC
+import CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC
 
 /-! # DFS theory: edge classification
 

@@ -169,11 +169,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components",
 ]
 "CLRSLean.Chapter_22.Section_22_3_DFS" = [
-  "CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath",
-  "CLRSLean.Chapter_22.Section_22_3_DFS.Intervals",
-  "CLRSLean.Chapter_22.Section_22_3_DFS.Bridge",
-  "CLRSLean.Chapter_22.Section_22_3_DFS.SCC",
-  "CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S3_Bridge",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S5_EdgeClassification",
 ]
 "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components" = [
   "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr",
@@ -183,9 +183,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
 ]
 "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim" = [
-  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge",
-  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal",
-  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S1_UnionFindBridge",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S2_StatefulKruskal",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim",
 ]
 "CLRSLean.Chapter_24" = [
   "CLRSLean.Chapter_24.Section_24_1_Bellman_Ford",
@@ -291,19 +291,19 @@ title = "22.2. Breadth-First Search"
 [modules."CLRSLean.Chapter_22.Section_22_3_DFS"]
 title = "22.3. Depth-First Search"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS.WhitePath"]
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath"]
 title = "White-Path Theorem"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS.Intervals"]
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals"]
 title = "Intervals and Timestamps"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS.Bridge"]
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S3_Bridge"]
 title = "Discovery-State Bridge"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS.SCC"]
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC"]
 title = "SCC Preliminaries"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS.EdgeClassification"]
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S5_EdgeClassification"]
 title = "Edge Classification"
 
 [modules."CLRSLean.Chapter_22.Section_22_4_Topological_Sort"]
@@ -519,13 +519,13 @@ title = "23.1. Growing a Minimum Spanning Tree"
 [modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim"]
 title = "23.2. Kruskal and Prim"
 
-[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.UnionFindBridge"]
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S1_UnionFindBridge"]
 title = "Union-Find Refinement"
 
-[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.StatefulKruskal"]
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S2_StatefulKruskal"]
 title = "Stateful Kruskal"
 
-[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.ExecutablePrim"]
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim"]
 title = "Executable Prim"
 
 [modules."CLRSLean.Chapter_24.Section_24_1_Bellman_Ford"]
