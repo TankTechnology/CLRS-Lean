@@ -102,6 +102,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_10" = [
   "CLRSLean.Chapter_10.Section_10_1_Stacks_And_Queues",
   "CLRSLean.Chapter_10.Section_10_2_Linked_Lists",
+  "CLRSLean.Chapter_10.Section_10_4_Rooted_Trees",
 ]
 "CLRSLean.Chapter_11" = [
   "CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables",
@@ -422,6 +423,9 @@ title = "10.1. Stacks and Queues"
 
 [modules."CLRSLean.Chapter_10.Section_10_2_Linked_Lists"]
 title = "10.2. Linked Lists"
+
+[modules."CLRSLean.Chapter_10.Section_10_4_Rooted_Trees"]
+title = "10.4. Representing Rooted Trees"
 
 [modules."CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables"]
 title = "11.1. Direct-Address Tables"

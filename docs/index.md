@@ -69,6 +69,7 @@ CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean
 CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean
 CLRSLean/Chapter_10/Section_10_2_Linked_Lists.lean
+CLRSLean/Chapter_10/Section_10_4_Rooted_Trees.lean
 CLRSLean/Chapter_11/Section_11_1_Direct_Address_Tables.lean
 CLRSLean/Chapter_11/Section_11_2_Chained_Hash_Tables.lean
 CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean
