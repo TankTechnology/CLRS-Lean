@@ -25,6 +25,11 @@ Proves concrete growth comparisons that matter for algorithm analysis:
 * factorial upper/lower bounds, exponential-vs-factorial comparison, and
   {lit}`n! = o(n^n)`
 * floor / ceiling Θ-behavior, including half-scale floor and ceiling
+* Fibonacci-number growth: Binet's closed form {lit}`F_n = (φ^n − ψ^n)/√5`,
+  {lit}`F_n = Θ(φ^n)`, and the closest-integer bound {lit}`|φ^n/√5 − F_n| < 1/2`
+* the iterated logarithm {lit}`lg* n`: definition by well-founded recursion, the
+  tower recurrence {lit}`lg*(2^n) = 1 + lg* n`, monotonicity, {lit}`lg* n ≤ log₂ n + 1`,
+  and the extreme slow growth {lit}`lg* n = o(log n)`
 
 Notation: we use {lit}`|·|` (absolute value) rather than {lit}`‖·‖` for readability.
 -/
