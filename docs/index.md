@@ -131,6 +131,7 @@ CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
 CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean
 CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean
 CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean
+CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.

@@ -210,6 +210,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
+  "CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -602,3 +603,6 @@ title = "Chapter 26. Maximum Flow"
 
 [modules."CLRSLean.Chapter_26.Section_26_1_Flow_Networks"]
 title = "26.1. Flow Networks"
+
+[modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
+title = "26.6. Max-Flow Min-Cut Theorem (partial)"
