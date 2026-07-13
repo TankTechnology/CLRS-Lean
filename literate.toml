@@ -208,6 +208,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_25" = [
   "CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model",
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
+  "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
@@ -602,6 +603,9 @@ title = "25.1. All-Pairs Shortest Paths Model"
 
 [modules."CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall"]
 title = "25.2. The Floyd-Warshall Algorithm"
+
+[modules."CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm"]
+title = "25.3. Johnson's Algorithm for Sparse Graphs"
 
 [modules."CLRSLean.Chapter_26"]
 title = "Chapter 26. Maximum Flow"

@@ -654,7 +654,8 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 
 - Lean source: `CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean`
 - Status: `proved` for the current functional-list model, scan-state partition
-  loop, returned pivot-index wrapper, and adjacent-swap trace
+  loop, returned pivot-index wrapper, adjacent-swap trace, and mutable-Array
+  PARTITION refinement
 - Main proved theorems:
   - `CLRS.Chapter07.partitionAround_left_eq_filter`
   - `CLRS.Chapter07.partitionAround_right_eq_filter`
@@ -677,6 +678,14 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter07.clrsPartitionArray_swapTrace`
   - `CLRS.Chapter07.clrsPartitionArray_correct`
   - `CLRS.Chapter07.clrsPartitionArray_correct_with_trace`
+  - `CLRS.Chapter07.dropLast_append_getLast`
+  - `CLRS.Chapter07.perm_rotate_one`
+  - `CLRS.Chapter07.partitionOnArray_size`
+  - `CLRS.Chapter07.partitionOnArray_perm`
+  - `CLRS.Chapter07.partitionOnArray_pivotIndex_lt`
+  - `CLRS.Chapter07.partitionOnArray_left_bound`
+  - `CLRS.Chapter07.partitionOnArray_right_bound`
+  - `CLRS.Chapter07.partitionOnArray_correct`
   - `CLRS.Chapter07.quickSort_perm`
   - `CLRS.Chapter07.quickSort_ordered`
   - `CLRS.Chapter07.quickSort_correct`
@@ -687,10 +696,12 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   pivot-index postcondition, derive an explicit adjacent-swap trace from the
   permutation theorem, then prove a fuelled functional quicksort by induction
   on fuel.  The fuel parameter makes the decreasing subproblem obligation
-  explicit: each partition side has length at most the original tail.
-- Current gap: an index-level mutable-array `PARTITION` loop remains the main
-  implementation refinement; the probability-space interpretation of random
-  pivots and sharper tail/lower-bound results are separate analysis targets
+  explicit: each partition side has length at most the original tail.  The
+  mutable-Array PARTITION refinement (`partitionOnArray`) lifts the scan-state
+  loop to an `Array α` interface and proves permutation preservation, pivot-index
+  bounds, and prefix/suffix partition bounds via `by_cases` case analysis.
+- Current gap: the probability-space interpretation of random pivots and sharper
+  tail/lower-bound results are separate analysis targets
 
 The section proves the mathematical correctness spine for quicksort before
 introducing array mutation or probability.  The theorem
@@ -699,11 +710,11 @@ classification, `CLRS.Chapter07.partitionLoop_correct` packages the scan-state
 partition-loop invariant consequences,
 `CLRS.Chapter07.clrsPartitionArray_correct` packages the returned pivot-index
 postcondition, `CLRS.Chapter07.clrsPartitionArray_correct_with_trace` adds an
-adjacent-swap trace, and `CLRS.Chapter07.quickSort_correct` packages sortedness
-and permutation preservation.  This gives Chapter 7 a stable base for later
-CLRS refinements: the next proof layer should refine the scan-state loop to an
-index-level mutable array `PARTITION` procedure while preserving the already
-proved comparison-count and recurrence facts.
+adjacent-swap trace, `CLRS.Chapter07.partitionOnArray_correct` extends the
+correctness to a concrete mutable-Array `PARTITION` procedure, and
+`CLRS.Chapter07.quickSort_correct` packages sortedness and permutation
+preservation.  The mutable-Array refinement closes the index-level PARTITION gap,
+completing the direct proof spine for Chapter 7.
 
 ### Section 7.2 - Performance of quicksort
 

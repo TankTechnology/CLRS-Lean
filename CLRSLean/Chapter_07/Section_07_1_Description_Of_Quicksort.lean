@@ -825,5 +825,97 @@ theorem partitionOnArray_size (a : Array Nat) :
             (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).length := by simp
       _ = a.size := hlen
 
+  /-- The output array (as a list) is a permutation of the input list. -/
+  theorem partitionOnArray_perm (a : Array Nat) :
+      (partitionOnArray a).1.toList.Perm (a.toList) := by
+    by_cases h_empty : a.toList = []
+    · simp [partitionOnArray, h_empty]
+    · let pivot := a.toList.getLast h_empty
+      let tail := a.toList.dropLast
+      have h_tail_pivot : tail ++ [pivot] = a.toList :=
+        dropLast_append_getLast a.toList h_empty
+      have h_perm : ((partitionLoop pivot tail).low ++ (partitionLoop pivot tail).high).Perm tail :=
+        partitionLoop_perm pivot tail
+      have h_output : (partitionOnArray a).1.toList =
+          ((partitionLoop pivot tail).low ++ [pivot] ++ (partitionLoop pivot tail).high) := by
+        simp [partitionOnArray, h_empty, pivot, tail]
+      have h_flatten : ((partitionLoop pivot tail).low ++ [pivot] ++ (partitionLoop pivot tail).high) =
+          ((partitionLoop pivot tail).low ++ pivot :: (partitionLoop pivot tail).high) := by simp
+      have h_perm1 : ((partitionLoop pivot tail).low ++ pivot :: (partitionLoop pivot tail).high).Perm
+          (pivot :: ((partitionLoop pivot tail).low ++ (partitionLoop pivot tail).high)) :=
+        perm_append_cons pivot (partitionLoop pivot tail).low (partitionLoop pivot tail).high
+      have h_perm2 : (pivot :: ((partitionLoop pivot tail).low ++ (partitionLoop pivot tail).high)).Perm
+          (pivot :: tail) := List.Perm.cons pivot h_perm
+      have h_perm3 : (pivot :: tail).Perm (tail ++ [pivot]) := perm_rotate_one pivot tail
+      have h_total : ((partitionLoop pivot tail).low ++ pivot :: (partitionLoop pivot tail).high).Perm
+          (tail ++ [pivot]) :=
+        h_perm1.trans (h_perm2.trans h_perm3)
+      rw [h_output, h_flatten]
+      simpa [h_tail_pivot] using h_total
+
+  /-- The returned pivot index is strictly less than the output array size. -/
+  theorem partitionOnArray_pivotIndex_lt (a : Array Nat) (h_nonempty : a.toList ≠ []) :
+      (partitionOnArray a).2 < (partitionOnArray a).1.size := by
+    let pivot := a.toList.getLast h_nonempty
+    let tail := a.toList.dropLast
+    let low := (partitionLoop pivot tail).low
+    let high := (partitionLoop pivot tail).high
+    have h_out : partitionOnArray a = ((low ++ [pivot] ++ high).toArray, low.length) := by
+      dsimp [low, high, pivot, tail]
+      by_cases h_empty : a.toList = []
+      · exfalso; exact h_nonempty h_empty
+      · simp [partitionOnArray, h_empty]
+    rw [h_out]
+    simp
+
+  /-- The prefix before the pivot index contains only elements at most the pivot. -/
+  theorem partitionOnArray_left_bound (a : Array Nat) (h_nonempty : a.toList ≠ []) :
+      AllLeUpper ((partitionOnArray a).1.toList.take (partitionOnArray a).2)
+        (a.toList.getLast h_nonempty) := by
+    let pivot := a.toList.getLast h_nonempty
+    let tail := a.toList.dropLast
+    let low := (partitionLoop pivot tail).low
+    have h_out : (partitionOnArray a).1.toList.take (partitionOnArray a).2 = low := by
+      dsimp [low, pivot, tail]
+      by_cases h_empty : a.toList = []
+      · exfalso; exact h_nonempty h_empty
+      · simp [partitionOnArray, h_empty]
+    rw [h_out]
+    exact partitionLoop_low_allLeUpper pivot tail
+
+  /-- The suffix after the pivot index contains only elements greater than the pivot. -/
+  theorem partitionOnArray_right_bound (a : Array Nat) (h_nonempty : a.toList ≠ []) :
+      AllGt (a.toList.getLast h_nonempty)
+        ((partitionOnArray a).1.toList.drop ((partitionOnArray a).2 + 1)) := by
+    let pivot := a.toList.getLast h_nonempty
+    let tail := a.toList.dropLast
+    let high := (partitionLoop pivot tail).high
+    have h_out : (partitionOnArray a).1.toList.drop ((partitionOnArray a).2 + 1) = high := by
+      dsimp [high, pivot, tail]
+      by_cases h_empty : a.toList = []
+      · exfalso; exact h_nonempty h_empty
+      · simp [partitionOnArray, h_empty]
+    rw [h_out]
+    exact partitionLoop_high_allGt pivot tail
+
+  /--
+  Reader-facing correctness theorem for the mutable-Array PARTITION.
+
+  It packages permutation preservation for all inputs, and for non-empty arrays
+  also the pivot-index bound, prefix bound, and suffix bound.
+  -/
+  theorem partitionOnArray_correct (a : Array Nat) :
+      (partitionOnArray a).1.toList.Perm (a.toList) ∧
+      (∀ h_nonempty : a.toList ≠ [],
+        (partitionOnArray a).2 < (partitionOnArray a).1.size ∧
+        AllLeUpper ((partitionOnArray a).1.toList.take (partitionOnArray a).2)
+          (a.toList.getLast h_nonempty) ∧
+        AllGt (a.toList.getLast h_nonempty)
+          ((partitionOnArray a).1.toList.drop ((partitionOnArray a).2 + 1))) :=
+    ⟨partitionOnArray_perm a, fun h_nonempty =>
+      ⟨partitionOnArray_pivotIndex_lt a h_nonempty,
+        partitionOnArray_left_bound a h_nonempty,
+        partitionOnArray_right_bound a h_nonempty⟩⟩
+
 end Chapter07
 end CLRS
