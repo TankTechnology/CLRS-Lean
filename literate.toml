@@ -112,6 +112,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_11.Section_11_2_Chained_Hash_Tables",
   "CLRSLean.Chapter_11.Section_11_3_Hash_Functions",
   "CLRSLean.Chapter_11.Section_11_4_Open_Addressing",
+  "CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing",
 ]
 "CLRSLean.Chapter_12" = [
   "CLRSLean.Chapter_12.Section_12_1_Binary_Search_Trees",
@@ -266,6 +267,9 @@ title = "11.3. Hash Functions"
 
 [modules."CLRSLean.Chapter_11.Section_11_4_Open_Addressing"]
 title = "11.4. Open Addressing"
+
+[modules."CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing"]
+title = "11.5. Perfect Hashing"
 
 [modules."CLRSLean.Chapter_12"]
 title = "Chapter 12. Binary Search Trees"
