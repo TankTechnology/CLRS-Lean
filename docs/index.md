@@ -87,6 +87,7 @@ CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean
 CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean
 CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean
 CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean
+CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
 CLRSLean/Chapter_16/Section_16_4_Matroids.lean
 CLRSLean/Chapter_16/Section_16_5_Task_Scheduling.lean
@@ -127,11 +128,8 @@ CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S3_ExecutablePrim.lean
 CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean
 CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean
 CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
-<<<<<<< HEAD
 CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean
-=======
 CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean
->>>>>>> iss30-ch25-apspext
 CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean
 ```
 
