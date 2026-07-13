@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 26.
-* Tracked reader-facing theorem entries: 1228.
-* Proved tracked theorem entries: 1228.
-* Remaining core theorem groups: 32.
+* Tracked reader-facing theorem entries: 1233.
+* Proved tracked theorem entries: 1233.
+* Remaining core theorem groups: 31.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -38,7 +38,7 @@ Ch  Chapter                                                     Status          
  4  4. Divide-and-Conquer                                       partial                              4.1;4.2;4.3;4.4;4.5;4.6            81        1
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1;5.2;5.3;5.4                    17        1
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                60        1
- 7  7. Quicksort                                                partial                              7.1;7.2;7.3                        25        3
+ 7  7. Quicksort                                                partial                              7.1;7.2;7.3                        30        2
  8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.2;8.3;8.4                        27        1
  9  9. Medians and Order Statistics                             partial                              9.2;9.3                            43        0
 10  10. Elementary Data Structures                              selected-section-complete            10.1;10.2;10.4                     12        2
@@ -56,7 +56,7 @@ Ch  Chapter                                                     Status          
 22  22. Elementary Graph Algorithms                             main-proof-complete-for-correctness  22.1;22.2;22.3;22.4;22.5           47        0
 23  23. Minimum Spanning Trees                                  main-proof-complete-for-correctness  23.1;23.2                          52        0
 24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4                22        0
-25  25. All-Pairs Shortest Paths                                partial                              25.1;25.2                          16        3
+25  25. All-Pairs Shortest Paths                                partial                              25.1;25.2;25.3                     16        3
 26  26. Maximum Flow                                            partial                              26.1;26.2;26.6                      9        0
 27  27. Multithreaded Algorithms                                not-started                          not represented                     0        1
 28  28. Matrix Operations                                       not-started                          not represented                     0        1
