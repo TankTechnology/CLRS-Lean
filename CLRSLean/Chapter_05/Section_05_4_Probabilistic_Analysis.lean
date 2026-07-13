@@ -307,3 +307,30 @@ noncomputable def longestStreak (n : ℕ) (a : CoinFlip n) : ℕ :=
   (Nat.find (⟨n+1, by
     intro h; rcases h with ⟨hle, hi⟩; omega
   ⟩ : ∃ t, ¬ hasRunOfLength n t a)).pred
+
+/-- The probability that all `t` coin flips in a sequence of exactly `t` flips are
+heads is `1 / 2^t`. -/
+lemma prob_first_t_heads (t : ℕ) :
+    CLRS.Probability.fintypeExpect (fun (a : CoinFlip t) => CLRS.Probability.indicator (∀ j : Fin t, a j = (1 : Fin 2))) = 1 / ((2 : ℝ) ^ t) := by
+  let constOne : CoinFlip t := fun _ => (1 : Fin 2)
+  have h_indicator : (fun (a : CoinFlip t) => CLRS.Probability.indicator (∀ j : Fin t, a j = (1 : Fin 2))) =
+      (fun a => CLRS.Probability.indicator (a = constOne)) := by
+    ext a
+    have h_eq : (∀ j : Fin t, a j = (1 : Fin 2)) ↔ (a = constOne) := by
+      constructor
+      · intro h; apply funext; exact h
+      · intro h j; simp [h, constOne]
+    simp [h_eq]
+  rw [h_indicator]
+  have h_card : (Fintype.card (CoinFlip t) : ℝ) = (2 : ℝ) ^ t := by
+    have h_nat : Fintype.card (CoinFlip t) = 2 ^ t := by
+      calc
+        Fintype.card (CoinFlip t) = Fintype.card (Fin t → Fin 2) := rfl
+        _ = (Fintype.card (Fin 2)) ^ (Fintype.card (Fin t)) := by rw [Fintype.card_fun]
+        _ = 2 ^ t := by simp
+    rw [h_nat]
+    simp
+  calc
+    CLRS.Probability.fintypeExpect (fun (a : CoinFlip t) => CLRS.Probability.indicator (a = constOne))
+        = 1 / (Fintype.card (CoinFlip t) : ℝ) := CLRS.Probability.fintypeExpect_indicator_singleton constOne
+    _ = 1 / ((2 : ℝ) ^ t) := by rw [h_card]
