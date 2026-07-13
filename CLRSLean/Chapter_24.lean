@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_24.Section_24_1_Bellman_Ford
 import CLRSLean.Chapter_24.Section_24_2_SSSP_In_DAGs
 import CLRSLean.Chapter_24.Section_24_3_Dijkstra
+import CLRSLean.Chapter_24.Section_24_4_Difference_Constraints
 
 /-! # Chapter 24 - Single-Source Shortest Paths
 
@@ -48,6 +49,17 @@ cycle removal under the no-negative-cycle hypothesis, exact correctness after
   {lit}`CLRS.Chapter24.WeightedGraph.dijkstra_extractMin_correct`,
   and {lit}`CLRS.Chapter24.WeightedGraph.dijkstraWork_le_edge_log`.
 
+* 24.4 Difference constraints and shortest paths.
+  Main declarations:
+  {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem`,
+  {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.IsFeasible`,
+  {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.constraintGraph`,
+  {lit}`CLRS.Chapter24.WeightedGraph.le_add_walkWeight_of_potential`,
+  {lit}`CLRS.Chapter24.WeightedGraph.relaxDist_respects_edge`,
+  {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.noNegCycle_of_feasible`,
+  {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.feasible_of_noNegCycle`,
+  and {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.diffConstraint_feasible_iff_noNegCycle`.
+
 ## Current Shape
 
 Section 24.1 defines a {lit}`WeightedGraph` as a finite edge set plus a real weight
@@ -82,18 +94,29 @@ bound ({lit}`dagRelax_respects_edge`) telescoped along walks plus realizability.
 {lit}`|V| + |E|` = {lit}`Θ(V + E)` work count ({lit}`sum_outdegree`, {lit}`dagSSSPWork_eq`)
 records that each vertex and each edge is touched exactly once.
 
+Section 24.4 formalizes the connection between difference constraints and shortest
+paths (CLRS §24.4).  It defines a {lit}`DiffConstraintSystem` as a finite set of
+inequalities {lit}`x_j ≤ x_i + b`, builds the constraint graph
+({lit}`constraintGraph`) as a {lit}`WeightedGraph` with a fresh source, proves
+the general potential-function lemma
+({lit}`le_add_walkWeight_of_potential`) and the Bellman-Ford triangle
+inequality ({lit}`relaxDist_respects_edge`), and establishes **CLRS
+Theorem 24.9** ({lit}`diffConstraint_feasible_iff_noNegCycle`):
+feasibility {lit}`↔` no negative-weight cycle, with the explicit
+Bellman-Ford solution {lit}`x i = δ(s, i)`.
+
 ## Deferred Work
 
 * The executable Dijkstra priority-queue loop that threads the settled set and
   tentative distances (Section 24.3 proves the greedy invariant that makes such
   a loop correct; the concrete loop/state is a separate refinement).
-* Difference constraints (Section 24.4).
 * Per-edge relaxation ordering and mutable/RAM cost refinement of the abstract
   synchronous relaxation model.
 
 The advertised Bellman-Ford correctness/work chain (Section 24.1), the
-DAG-shortest-paths correctness and {lit}`Θ(V + E)` work bound (Section 24.2), and the
-Dijkstra greedy-invariant correctness and work bound (Section 24.3) are complete
+DAG-shortest-paths correctness and {lit}`Θ(V + E)` work bound (Section 24.2), the
+Dijkstra greedy-invariant correctness and work bound (Section 24.3), and the
+difference-constraint feasibility characterisation (Section 24.4) are complete
 for the current abstract-cost model, consistent with the Chapter 22 and
 Chapter 23 graph track.
 -/
