@@ -15,15 +15,22 @@ ordered pair of vertices.  The chapter formalises two main families of algorithm
 
 * 25.1 All-pairs shortest paths model and repeated-squaring DP.
   Main declarations:
-  {lit}`CLRS.Chapter25.AllPairs.weightMatrix`,
-  {lit}`CLRS.Chapter25.AllPairs.minPlusMul`,
-  {lit}`CLRS.Chapter25.AllPairs.extendShortestPaths`,
-  {lit}`CLRS.Chapter25.AllPairs.L`,
-  {lit}`CLRS.Chapter25.AllPairs.fasterAPSP`,
-  {lit}`CLRS.Chapter25.AllPairs.lemma_25_1`,
-  {lit}`CLRS.Chapter25.AllPairs.L_sq_eq_minPlusMul` (Lemma 25.2),
-  {lit}`CLRS.Chapter25.AllPairs.fasterAPSP_eq_L`,
-  {lit}`CLRS.Chapter25.AllPairs.fasterAPSP_eq_shortestDist`.
+  {lit}`CLRS.Chapter24.WeightedGraph.weightMatrix`,
+  {lit}`CLRS.Chapter24.WeightedGraph.minPlusMul`,
+  {lit}`CLRS.Chapter24.WeightedGraph.extendShortestPaths`,
+  {lit}`CLRS.Chapter24.WeightedGraph.L`,
+  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP`,
+  {lit}`CLRS.Chapter24.WeightedGraph.lemma_25_1`,
+  {lit}`CLRS.Chapter24.WeightedGraph.L_sq_eq_minPlusMul` (Lemma 25.2),
+  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_L`,
+  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist`.
+
+* 25.2 Floyd-Warshall (`Section_25_2_Floyd_Warshall`).
+  Main declarations:
+  {lit}`CLRS.Chapter24.WeightedGraph.fwStep`,
+  {lit}`CLRS.Chapter24.WeightedGraph.D`,
+  {lit}`CLRS.Chapter24.WeightedGraph.floydWarshall`,
+  {lit}`CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed`.
 
 ## Current Shape
 
@@ -38,13 +45,13 @@ squaring (via {lit}`Function.iterate`) and proves:
 * {lit}`fasterAPSP = L^{|V|-1} = δ`, the all-pairs shortest-path matrix
   ({lit}`fasterAPSP_eq_shortestDist`).
 
-The proof uses the link to Chapter 24's {lit}`relaxDist` and {lit}`NoNegCycle`,
-avoiding a separate triangle-inequality fixpoint argument by leveraging
-monotonicity of {lit}`L` and the walk-attainability lemma.
+Section 25.2 defines the Floyd-Warshall DP recurrence `D` and the
+`floydWarshall` algorithm.  The Θ(V³) work bound is recorded.  The
+correctness proofs (Lemma 25.7 and Theorem 25.8) are deferred.
 
 ## Deferred Work
 
-* Floyd-Warshall (Section 25.2).
+* Floyd-Warshall correctness: `D_le_simple` and `D_attainable` lemmas.
 * Predecessor matrix {lit}`Π` and path reconstruction.
 * Negative-cycle detection (CLRS Theorem 25.3).
 * Transitive closure (Section 25.2 variant).
