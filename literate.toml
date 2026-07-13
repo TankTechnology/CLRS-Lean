@@ -35,6 +35,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_22",
   "CLRSLean.Chapter_23",
   "CLRSLean.Chapter_24",
+  "CLRSLean.Chapter_25",
   "CLRSLean.Chapter_26",
   "CLRSLean.Progress",
   "CLRSLean.Status",
@@ -203,6 +204,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_24.Section_24_3_Dijkstra",
   "CLRSLean.Chapter_24.Section_24_4_Difference_Constraints",
 ]
+"CLRSLean.Chapter_25" = [
+  "CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model",
+]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
 ]
@@ -345,6 +349,9 @@ title = "Chapter 23. Minimum Spanning Trees"
 
 [modules."CLRSLean.Chapter_24"]
 title = "Chapter 24. Single-Source Shortest Paths"
+
+[modules."CLRSLean.Chapter_25"]
+title = "Chapter 25. All-Pairs Shortest Paths"
 
 [modules."CLRSLean.Progress"]
 title = "Progress Dashboard"
@@ -580,8 +587,13 @@ title = "24.2. Single-Source Shortest Paths in DAGs"
 [modules."CLRSLean.Chapter_24.Section_24_3_Dijkstra"]
 title = "24.3. Dijkstra's Algorithm"
 
+<<<<<<< HEAD
 [modules."CLRSLean.Chapter_24.Section_24_4_Difference_Constraints"]
 title = "24.4. Difference Constraints and Shortest Paths"
+=======
+[modules."CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model"]
+title = "25.1. All-Pairs Shortest Paths Model"
+>>>>>>> iss30-ch25-apspext
 
 [modules."CLRSLean.Chapter_26"]
 title = "Chapter 26. Maximum Flow"

@@ -2768,6 +2768,37 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   per-edge relaxation ordering and
   mutable/RAM cost accounting for the abstract synchronous model.
 
+## Chapter 25 - All-Pairs Shortest Paths
+
+### Section 25.1 - All-Pairs Shortest Paths Model
+
+- Lean source: `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean`
+- Status: `proved` (under no negative-weight cycles)
+- Main theorems:
+  - `CLRS.Chapter25.AllPairs.weightMatrix` (edge-weight matrix W)
+  - `CLRS.Chapter25.AllPairs.minPlusMul` (min-plus matrix product)
+  - `CLRS.Chapter25.AllPairs.extendShortestPaths` (EXTEND-SHORTEST-PATHS)
+  - `CLRS.Chapter25.AllPairs.L` (inductive distance sequence L^(m))
+  - `CLRS.Chapter25.AllPairs.fasterAPSP` (FASTER-APSP algorithm)
+  - `CLRS.Chapter25.AllPairs.lemma_25_1` (L^(m+1) = min_k (L^m_ik + w_kj))
+  - `CLRS.Chapter25.AllPairs.L_sq_eq_minPlusMul` (Lemma 25.2: L^(2m) = L^m ◁ L^m)
+  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
+  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
+- Proof pattern: min-plus algebra, repeated squaring, linking to Ch24's relaxDist for walk properties, fixpoint via monotonicity + attainability
+- Current gap: Floyd-Warshall (Section 25.2), predecessor matrix, negative-cycle detection
+
+The section builds the all-pairs shortest-path model on the Chapter 24 WeightedGraph
+infrastructure.  The min-plus product and FASTER-APSP are defined, Lemmas 25.1 and
+25.2 are proved as algebraic identities, and the correctness of FASTER-APSP is
+established under the no-negative-cycles hypothesis by connecting L^(m) to the
+Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
+
+### Chapter 25 remaining work
+
+- Floyd-Warshall algorithm (Section 25.2).
+- Predecessor matrix Pi and path reconstruction.
+- Negative-cycle detection (CLRS Theorem 25.3).
+
 ## Chapter 26 - Maximum Flow
 
 ### Section 26.1 - Flow Networks
