@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model
 import CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall
+import CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm
 
 /-!
 # Chapter 25 - All-Pairs Shortest Paths
