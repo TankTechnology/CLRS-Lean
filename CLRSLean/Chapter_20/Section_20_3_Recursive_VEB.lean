@@ -861,6 +861,29 @@ theorem deleteCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, deleteCost x v ≤ k 
       simp [deleteCost, h0]
       omega
 
+  /--
+  **Deletion correctness.**  For any key inside the universe, recursive deletion
+  refines finite-set deletion: {lit}`(delete x v).toFinset = v.toFinset.erase x`.
+  -/
+  theorem delete_toFinset : ∀ {k : Nat} (v : VEBTreeMM k) (x : Nat),
+      x < uSize k → (delete x v).toFinset = v.toFinset.erase x := by
+    intro k v
+    induction v with
+    | leaf mn mx c0 c1 =>
+        intro x hx
+        rw [uSize_zero] at hx
+        have hx01 : x = 0 ∨ x = 1 := by omega
+        rcases hx01 with (rfl | rfl)
+        · ext y; simp [delete, toFinset, Finset.mem_erase,
+            Finset.mem_union, Finset.mem_singleton]
+          cases c0 <;> cases c1 <;> simp <;> omega
+        · ext y; simp [delete, toFinset, Finset.mem_erase,
+            Finset.mem_union, Finset.mem_singleton]
+          cases c0 <;> cases c1 <;> simp <;> omega
+    | @node k0 mn mx summary clusters ih_s ih_c =>
+        intro x hx
+        sorry
+
 end VEBTreeMM
 end Chapter20
 end CLRS
