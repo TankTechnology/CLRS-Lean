@@ -341,7 +341,7 @@ theorem matrixChainSplit_optimal (dims : Nat → Nat) (i j : Nat) (hij : i < j) 
   have hk_eq : f k = matrixChainOpt dims i j := (Finset.mem_filter.mp hk_mem_filter).2
   have h_split_val : matrixChainSplit dims i j = k := by
     unfold matrixChainSplit
-    simp [hij, s, f, h_filter_nonempty, hk_def]
+    simp [hij, s, f, hk_def]
   rw [h_split_val]
   refine ⟨hk_mem, ?_⟩
   unfold matrixSplitCost
@@ -375,11 +375,11 @@ termination_by j - i
 decreasing_by
   · have hsplit := matrixChainSplit_optimal dims i j h
     rcases hsplit with ⟨hmem, _⟩
-    rcases Finset.mem_Icc.mp hmem with ⟨hlo, hhi⟩
+    rcases Finset.mem_Icc.mp hmem with ⟨hlo, _hhi⟩
     omega
   · have hsplit := matrixChainSplit_optimal dims i j h
     rcases hsplit with ⟨hmem, _⟩
-    rcases Finset.mem_Icc.mp hmem with ⟨hlo, hhi⟩
+    rcases Finset.mem_Icc.mp hmem with ⟨hlo, _hhi⟩
     omega
 
 theorem matrixChainReconstruct_reconstructed (dims : Nat → Nat) (i j : Nat) (hbound : i ≤ j) :

@@ -16,6 +16,10 @@ Main definitions:
 Main theorems:
 - `expect_add`, `expect_const`, `expect_nonneg`, `expect_sum`, `expect_indicator`
 - `prob_singleton`, `prob_add_of_disjoint`
+- `fintypeExpect_add`, `fintypeExpect_nonneg`, `fintypeExpect_const`,
+  `fintypeExpect_indicator_singleton`, `fintypeExpect_sum`, `fintypeExpect_equiv`
+- `expect_mul_of_indep`: expectation of a product of independent variables
+- `fintypeExpect_fst`: marginalise out an unused independent coordinate
 -/
 
 namespace CLRS
@@ -88,37 +92,88 @@ theorem prob_add_of_disjoint (n : ℕ) (hn : n ≠ 0)
 noncomputable def fintypeExpect {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X : Ω → ℝ) : ℝ :=
   (∑ ω : Ω, X ω) / (Fintype.card Ω : ℝ)
 
-/-! ## Fin-based API (used by Ch8, Ch11) -/
+/-! ## Generic `fintypeExpect` algebra
 
-/-- Alias for `expect` with `Fin m` sample space. -/
-noncomputable def uniformAverageFin {m : ℕ} (X : Fin m → ℝ) : ℝ :=
-  fintypeExpect X
+These are the `[Fintype Ω]` analogues of the `expect` lemmas above.  They let
+Chapter 8.4 (bucket sort) and Chapter 11.2 (chained hashing) reuse a single
+finite-expectation API over `Fin m` instead of hand-rolling their own copies. -/
 
-/-- Uniform average over two independent Fin choices. -/
-noncomputable def uniformAverageFin2 {m : ℕ} (X : Fin m → Fin m → ℝ) : ℝ :=
-  fintypeExpect (fun (p : Fin m × Fin m) => X p.1 p.2)
+/-- `fintypeExpect` is additive. -/
+theorem fintypeExpect_add {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X Y : Ω → ℝ) :
+    fintypeExpect (fun ω => X ω + Y ω) = fintypeExpect X + fintypeExpect Y := by
+  simp [fintypeExpect, Finset.sum_add_distrib, add_div]
 
-theorem uniformAverageFin_add {m : ℕ} (X Y : Fin m → ℝ) :
-    uniformAverageFin (X + Y) = uniformAverageFin X + uniformAverageFin Y := by
-  simp [uniformAverageFin, fintypeExpect, Finset.sum_add_distrib, add_div]
+/-- A `fintypeExpect` of nonnegative quantities is nonnegative. -/
+theorem fintypeExpect_nonneg {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X : Ω → ℝ}
+    (hX : ∀ ω, 0 ≤ X ω) : 0 ≤ fintypeExpect X := by
+  unfold fintypeExpect
+  exact div_nonneg (Finset.sum_nonneg fun ω _ => hX ω) (by positivity)
 
-theorem uniformAverageFin_nonneg {m : ℕ} {X : Fin m → ℝ} (hX : ∀ i, 0 ≤ X i) :
-    0 ≤ uniformAverageFin X := by
-  unfold uniformAverageFin fintypeExpect
-  apply div_nonneg (Finset.sum_nonneg (fun i _ => hX i))
-  positivity
+/-- The `fintypeExpect` of a constant over a nonempty space is that constant. -/
+theorem fintypeExpect_const {Ω : Type} [Fintype Ω] [DecidableEq Ω]
+    (hΩ : Fintype.card Ω ≠ 0) (c : ℝ) :
+    fintypeExpect (fun _ : Ω => c) = c := by
+  unfold fintypeExpect
+  rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+  have : (Fintype.card Ω : ℝ) ≠ 0 := by exact_mod_cast hΩ
+  field_simp
 
-theorem uniformAverageFin_indicator_singleton {m : ℕ} (j : Fin m) :
-    uniformAverageFin (fun i => indicator (i = j)) = 1 / (m : ℝ) := by
-  unfold uniformAverageFin fintypeExpect indicator
-  simp
+/-- A singleton event has probability `1 / card Ω` under the uniform Fintype model. -/
+theorem fintypeExpect_indicator_singleton {Ω : Type} [Fintype Ω] [DecidableEq Ω]
+    (j : Ω) :
+    fintypeExpect (fun ω => indicator (ω = j)) = 1 / (Fintype.card Ω : ℝ) := by
+  unfold fintypeExpect indicator
+  have hsum : (∑ ω : Ω, (if ω = j then (1 : ℝ) else 0)) = 1 := by
+    rw [Finset.sum_ite_eq' Finset.univ j (fun _ => (1 : ℝ))]
+    simp
+  rw [hsum]
 
-theorem uniformAverageFin2_add {m : ℕ} (X Y : Fin m → Fin m → ℝ) :
-    uniformAverageFin2 (X + Y) = uniformAverageFin2 X + uniformAverageFin2 Y := by
-  simp [uniformAverageFin2, fintypeExpect, Finset.sum_add_distrib, add_div, Pi.add_apply]
+/-- **Product expectation under independence.**
 
-/-! ## Independence: product expectation -/
+If `X` depends only on the first coordinate and `Y` only on the second of a
+product sample space `Ω₁ × Ω₂`, then the expectation of the product factors as
+the product of the expectations.  This is the finite-uniform form of
+`E[XY] = E[X] · E[Y]` for independent `X`, `Y` (CLRS Appendix C, equation
+(C.24)), and is the missing primitive for the bucket-sort second moment and the
+SUHA chained-hash analysis. -/
+theorem expect_mul_of_indep {Ω₁ Ω₂ : Type} [Fintype Ω₁] [Fintype Ω₂]
+    [DecidableEq Ω₁] [DecidableEq Ω₂] (X : Ω₁ → ℝ) (Y : Ω₂ → ℝ) :
+    fintypeExpect (fun p : Ω₁ × Ω₂ => X p.1 * Y p.2) =
+      fintypeExpect X * fintypeExpect Y := by
+  unfold fintypeExpect
+  have hnum : (∑ p : Ω₁ × Ω₂, X p.1 * Y p.2) =
+      (∑ a : Ω₁, X a) * (∑ b : Ω₂, Y b) := by
+    rw [Finset.sum_mul_sum, Fintype.sum_prod_type]
+  rw [hnum, Fintype.card_prod]
+  push_cast
+  rw [div_mul_div_comm]
 
+/-- `fintypeExpect` is invariant under reindexing the sample space by an
+equivalence. -/
+theorem fintypeExpect_equiv {Ω Ω' : Type} [Fintype Ω] [Fintype Ω']
+    [DecidableEq Ω] [DecidableEq Ω'] (e : Ω ≃ Ω') (X : Ω' → ℝ) :
+    fintypeExpect (fun ω => X (e ω)) = fintypeExpect X := by
+  unfold fintypeExpect
+  rw [Fintype.card_congr e]
+  congr 1
+  exact Equiv.sum_comp e X
+
+/-- Linearity of `fintypeExpect` over a finite sum of random variables. -/
+theorem fintypeExpect_sum {Ω : Type} [Fintype Ω] [DecidableEq Ω] {ι : Type}
+    (S : Finset ι) (f : ι → Ω → ℝ) :
+    fintypeExpect (fun ω => ∑ s ∈ S, f s ω) = ∑ s ∈ S, fintypeExpect (f s) := by
+  unfold fintypeExpect
+  rw [Finset.sum_comm, Finset.sum_div]
+
+/-- A random variable that only reads the first coordinate of a product sample
+space has the same expectation as over that coordinate alone (the second factor
+marginalises out).  This is the "drop an independent unused coordinate" step. -/
+theorem fintypeExpect_fst {Ω₁ Ω₂ : Type} [Fintype Ω₁] [Fintype Ω₂]
+    [DecidableEq Ω₁] [DecidableEq Ω₂] (hΩ₂ : Fintype.card Ω₂ ≠ 0) (X : Ω₁ → ℝ) :
+    fintypeExpect (fun p : Ω₁ × Ω₂ => X p.1) = fintypeExpect X := by
+  have h := expect_mul_of_indep X (fun _ : Ω₂ => (1 : ℝ))
+  simp only [mul_one] at h
+  rw [h, fintypeExpect_const hΩ₂, mul_one]
 
 /-! ## Backward-compatible aliases -/
 

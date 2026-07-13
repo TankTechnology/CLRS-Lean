@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_23
+
+#check CLRS.MST.FiniteGraph.canonicalSimplePath_unique
+#check CLRS.MST.FiniteGraph.exists_crossing_exchangePath_of_spanningTree
+#check CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty
+#check CLRS.MST.FiniteGraph.prim_minimum_spanning_tree
+
+#print axioms CLRS.MST.FiniteGraph.canonicalSimplePath_unique
+#print axioms CLRS.MST.FiniteGraph.exists_crossing_exchangePath_of_spanningTree
+#print axioms CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty
+#print axioms CLRS.MST.FiniteGraph.prim_minimum_spanning_tree

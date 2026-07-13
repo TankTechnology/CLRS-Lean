@@ -9,7 +9,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 
 [order_children]
 "CLRSLean" = [
-  "CLRSLean.Probability.FiniteExpectation",
+  "CLRSLean.ProofPatterns",
+  "CLRSLean.Probability",
   "CLRSLean.Chapter_01",
   "CLRSLean.Chapter_02",
   "CLRSLean.Chapter_03",
@@ -30,11 +31,24 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_18",
   "CLRSLean.Chapter_19",
   "CLRSLean.Chapter_20",
+  "CLRSLean.Chapter_21",
   "CLRSLean.Chapter_22",
   "CLRSLean.Chapter_23",
+  "CLRSLean.Chapter_24",
+  "CLRSLean.Chapter_25",
+  "CLRSLean.Chapter_26",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
+]
+"CLRSLean.ProofPatterns" = [
+  "CLRSLean.ProofPatterns.Boundary",
+  "CLRSLean.ProofPatterns.Exchange",
+  "CLRSLean.ProofPatterns.Fiber",
+  "CLRSLean.ProofPatterns.Interval",
+]
+"CLRSLean.Probability" = [
+  "CLRSLean.Probability.FiniteExpectation",
 ]
 "CLRSLean.Chapter_02" = [
   "CLRSLean.Chapter_02.Section_02_1_Insertion_Sort",
@@ -55,6 +69,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_05" = [
   "CLRSLean.Chapter_05.Section_05_1_Hiring_Problem",
+  "CLRSLean.Chapter_05.Section_05_2_Indicator_Random_Variables",
+  "CLRSLean.Chapter_05.Section_05_3_Randomized_Algorithms",
+  "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis",
 ]
 "CLRSLean.Chapter_06" = [
   "CLRSLean.Chapter_06.Section_06_1_Heaps",
@@ -68,23 +85,36 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort",
   "CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort",
 ]
+"CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort" = [
+  "CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability",
+]
 "CLRSLean.Chapter_08" = [
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort",
-  "CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array",
   "CLRSLean.Chapter_08.Section_08_3_Radix_Sort",
   "CLRSLean.Chapter_08.Section_08_4_Bucket_Sort",
+]
+"CLRSLean.Chapter_08.Section_08_2_Counting_Sort" = [
+  "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables",
+  "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray",
 ]
 "CLRSLean.Chapter_09" = [
   "CLRSLean.Chapter_09.Section_09_2_Select_By_Rank",
   "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select",
 ]
+"CLRSLean.Chapter_09.Section_09_3_Deterministic_Select" = [
+  "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select",
+]
 "CLRSLean.Chapter_10" = [
   "CLRSLean.Chapter_10.Section_10_1_Stacks_And_Queues",
   "CLRSLean.Chapter_10.Section_10_2_Linked_Lists",
+  "CLRSLean.Chapter_10.Section_10_4_Rooted_Trees",
 ]
 "CLRSLean.Chapter_11" = [
   "CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables",
   "CLRSLean.Chapter_11.Section_11_2_Chained_Hash_Tables",
+  "CLRSLean.Chapter_11.Section_11_3_Hash_Functions",
+  "CLRSLean.Chapter_11.Section_11_4_Open_Addressing",
+  "CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing",
 ]
 "CLRSLean.Chapter_12" = [
   "CLRSLean.Chapter_12.Section_12_1_Binary_Search_Trees",
@@ -104,12 +134,20 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_16" = [
   "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
+  "CLRSLean.Chapter_16.Section_16_2_Greedy_Meta",
   "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
+  "CLRSLean.Chapter_16.Section_16_4_Matroids",
+  "CLRSLean.Chapter_16.Section_16_5_Task_Scheduling",
 ]
 "CLRSLean.Chapter_17" = [
   "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework",
-  "CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter",
   "CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables",
+]
+"CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables" = [
+  "CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables.Section_17_4_Mutable_Array_Tables",
+]
+"CLRSLean.Chapter_17.Section_17_1_Amortized_Framework" = [
+  "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",
 ]
 "CLRSLean.Chapter_18" = [
   "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model",
@@ -118,27 +156,60 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_19" = [
   "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model",
+  "CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree",
 ]
 "CLRSLean.Chapter_20" = [
   "CLRSLean.Chapter_20.Section_20_1_VEB_Universe",
   "CLRSLean.Chapter_20.Section_20_2_VEB_Tree",
+  "CLRSLean.Chapter_20.Section_20_3_Recursive_VEB",
+]
+"CLRSLean.Chapter_21" = [
+  "CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations",
+  "CLRSLean.Chapter_21.Section_21_2_Linked_List_Representation",
+  "CLRSLean.Chapter_21.Section_21_3_Disjoint_Set_Forests",
+  "CLRSLean.Chapter_21.Section_21_4_Analysis",
+]
+"CLRSLean.Chapter_21.Section_21_4_Analysis" = [
+  "CLRSLean.Chapter_21.Section_21_4_Analysis.CostedExecution",
+  "CLRSLean.Chapter_21.Section_21_4_Analysis.InverseAckermann",
 ]
 "CLRSLean.Chapter_22" = [
   "CLRSLean.Chapter_22.Section_22_1_Representing_Graphs",
   "CLRSLean.Chapter_22.Section_22_2_BFS",
   "CLRSLean.Chapter_22.Section_22_3_DFS",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_Intervals",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_SCC",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_Bridge",
-  "CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification",
   "CLRSLean.Chapter_22.Section_22_4_Topological_Sort",
-  "CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr",
   "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components",
+]
+"CLRSLean.Chapter_22.Section_22_3_DFS" = [
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S3_Bridge",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC",
+  "CLRSLean.Chapter_22.Section_22_3_DFS.S5_EdgeClassification",
+]
+"CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components" = [
+  "CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr",
 ]
 "CLRSLean.Chapter_23" = [
   "CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees",
   "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim",
+]
+"CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim" = [
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S1_UnionFindBridge",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S2_StatefulKruskal",
+  "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim",
+]
+"CLRSLean.Chapter_24" = [
+  "CLRSLean.Chapter_24.Section_24_1_Bellman_Ford",
+  "CLRSLean.Chapter_24.Section_24_2_SSSP_In_DAGs",
+  "CLRSLean.Chapter_24.Section_24_3_Dijkstra",
+  "CLRSLean.Chapter_24.Section_24_4_Difference_Constraints",
+]
+"CLRSLean.Chapter_25" = [
+  "CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model",
+]
+"CLRSLean.Chapter_26" = [
+  "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -146,6 +217,24 @@ title = "Chapter 2. Getting Started"
 
 [modules."CLRSLean"]
 title = "CLRS-Lean"
+
+[modules."CLRSLean.ProofPatterns"]
+title = "Reusable CLRS Proof Patterns"
+
+[modules."CLRSLean.ProofPatterns.Boundary"]
+title = "Proof Pattern: Boundary Shifts"
+
+[modules."CLRSLean.ProofPatterns.Exchange"]
+title = "Proof Pattern: Exchange Certificates"
+
+[modules."CLRSLean.ProofPatterns.Fiber"]
+title = "Proof Pattern: Fiber Decomposition"
+
+[modules."CLRSLean.ProofPatterns.Interval"]
+title = "Proof Pattern: Interval Nesting"
+
+[modules."CLRSLean.Probability"]
+title = "Finite Probability Toolkit"
 
 [modules."CLRSLean.Probability.FiniteExpectation"]
 title = "Finite Expectation Toolkit"
@@ -180,6 +269,16 @@ title = "Chapter 10. Elementary Data Structures"
 [modules."CLRSLean.Chapter_11"]
 title = "Chapter 11. Hash Tables"
 
+
+[modules."CLRSLean.Chapter_11.Section_11_3_Hash_Functions"]
+title = "11.3. Hash Functions"
+
+[modules."CLRSLean.Chapter_11.Section_11_4_Open_Addressing"]
+title = "11.4. Open Addressing"
+
+[modules."CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing"]
+title = "11.5. Perfect Hashing"
+
 [modules."CLRSLean.Chapter_12"]
 title = "Chapter 12. Binary Search Trees"
 
@@ -207,6 +306,9 @@ title = "Chapter 19. Fibonacci Heaps"
 [modules."CLRSLean.Chapter_20"]
 title = "Chapter 20. van Emde Boas Trees"
 
+[modules."CLRSLean.Chapter_21"]
+title = "Chapter 21. Data Structures for Disjoint Sets"
+
 [modules."CLRSLean.Chapter_22"]
 title = "Chapter 22. Elementary Graph Algorithms"
 
@@ -219,32 +321,38 @@ title = "22.2. Breadth-First Search"
 [modules."CLRSLean.Chapter_22.Section_22_3_DFS"]
 title = "22.3. Depth-First Search"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath"]
-title = "22.3. DFS — White-Path Theorem"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath"]
+title = "White-Path Theorem"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_Intervals"]
-title = "22.3. DFS — Intervals and Timestamps"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals"]
+title = "Intervals and Timestamps"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_SCC"]
-title = "22.3. DFS — SCC Preliminaries"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S3_Bridge"]
+title = "Discovery-State Bridge"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_Bridge"]
-title = "22.3. DFS — Bridge Lemma"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC"]
+title = "SCC Preliminaries"
 
-[modules."CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification"]
-title = "22.3. DFS — Edge Classification"
+[modules."CLRSLean.Chapter_22.Section_22_3_DFS.S5_EdgeClassification"]
+title = "Edge Classification"
 
 [modules."CLRSLean.Chapter_22.Section_22_4_Topological_Sort"]
 title = "22.4. Topological Sort"
 
-[modules."CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr"]
-title = "22.5. Merge Sort Congruence"
-
 [modules."CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components"]
 title = "22.5. Strongly Connected Components"
 
+[modules."CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr"]
+title = "Merge-Sort Congruence"
+
 [modules."CLRSLean.Chapter_23"]
 title = "Chapter 23. Minimum Spanning Trees"
+
+[modules."CLRSLean.Chapter_24"]
+title = "Chapter 24. Single-Source Shortest Paths"
+
+[modules."CLRSLean.Chapter_25"]
+title = "Chapter 25. All-Pairs Shortest Paths"
 
 [modules."CLRSLean.Progress"]
 title = "Progress Dashboard"
@@ -291,6 +399,15 @@ title = "4.6. Proof of the Master Theorem"
 [modules."CLRSLean.Chapter_05.Section_05_1_Hiring_Problem"]
 title = "5.1. The Hiring Problem"
 
+[modules."CLRSLean.Chapter_05.Section_05_2_Indicator_Random_Variables"]
+title = "5.2. Indicator random variables"
+
+[modules."CLRSLean.Chapter_05.Section_05_3_Randomized_Algorithms"]
+title = "5.3. Randomized algorithms"
+
+[modules."CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis"]
+title = "5.4. Probabilistic analysis"
+
 [modules."CLRSLean.Chapter_06.Section_06_1_Heaps"]
 title = "6.1. Heaps"
 
@@ -315,11 +432,17 @@ title = "7.2. Performance of Quicksort"
 [modules."CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort"]
 title = "7.3. Randomized Quicksort"
 
+[modules."CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability"]
+title = "7.3. Randomized Quicksort: Comparison Probability"
+
 [modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort"]
 title = "8.2. Counting Sort"
 
-[modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort_Array"]
-title = "8.2. Counting Sort - Count Tables"
+[modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables"]
+title = "Count-Table Refinement"
+
+[modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray"]
+title = "Mutable Output-Array Refinement"
 
 [modules."CLRSLean.Chapter_08.Section_08_3_Radix_Sort"]
 title = "8.3. Radix Sort"
@@ -333,11 +456,17 @@ title = "9.2. Selection by Rank"
 [modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select"]
 title = "9.3. Deterministic Selection"
 
+[modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select"]
+title = "Randomized SELECT Expected Time"
+
 [modules."CLRSLean.Chapter_10.Section_10_1_Stacks_And_Queues"]
 title = "10.1. Stacks and Queues"
 
 [modules."CLRSLean.Chapter_10.Section_10_2_Linked_Lists"]
 title = "10.2. Linked Lists"
+
+[modules."CLRSLean.Chapter_10.Section_10_4_Rooted_Trees"]
+title = "10.4. Representing Rooted Trees"
 
 [modules."CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables"]
 title = "11.1. Direct-Address Tables"
@@ -375,14 +504,26 @@ title = "16.3. Huffman Codes"
 [modules."CLRSLean.Chapter_16.Section_16_1_Activity_Selection"]
 title = "16.1. Activity Selection"
 
-[modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework"]
-title = "17.1-17.3. Amortized Analysis Framework"
+[modules."CLRSLean.Chapter_16.Section_16_2_Greedy_Meta"]
+title = "16.2. Greedy-Choice Property and Optimal Substructure (Meta-Theorems)"
 
-[modules."CLRSLean.Chapter_17.Section_17_2_Stack_And_Counter"]
-title = "17.2. Stack and Counter Examples"
+[modules."CLRSLean.Chapter_16.Section_16_4_Matroids"]
+title = "16.4. Matroids and Greedy Methods"
+
+[modules."CLRSLean.Chapter_16.Section_16_5_Task_Scheduling"]
+title = "16.5. A Task-Scheduling Problem as a Matroid"
+
+[modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework"]
+title = "17.1-17.3. Amortized Analysis Methods"
+
+[modules."CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter"]
+title = "Stack and Counter Examples"
 
 [modules."CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables"]
 title = "17.4. Dynamic Tables"
+
+[modules."CLRSLean.Chapter_17.Section_17_4_Dynamic_Tables.Section_17_4_Mutable_Array_Tables"]
+title = "Mutable-Array Tables and Sharper Potential"
 
 [modules."CLRSLean.Chapter_18.Section_18_1_B_Tree_Model"]
 title = "18.1. B-Tree Model"
@@ -396,14 +537,68 @@ title = "18.3. B-Tree Deletion"
 [modules."CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model"]
 title = "19.1. Fibonacci Heap Model"
 
+[modules."CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree"]
+title = "19.4. Bounding the Maximum Degree"
+
 [modules."CLRSLean.Chapter_20.Section_20_1_VEB_Universe"]
 title = "20.1. vEB Universe Decomposition"
 
 [modules."CLRSLean.Chapter_20.Section_20_2_VEB_Tree"]
 title = "20.2. vEB Tree Specification"
 
+[modules."CLRSLean.Chapter_20.Section_20_3_Recursive_VEB"]
+title = "20.3. Recursive vEB Structure"
+
+[modules."CLRSLean.Chapter_21.Section_21_1_Disjoint_Set_Operations"]
+title = "21.1. Disjoint-Set Operations"
+
+[modules."CLRSLean.Chapter_21.Section_21_2_Linked_List_Representation"]
+title = "21.2. Linked-List Representation"
+
+[modules."CLRSLean.Chapter_21.Section_21_3_Disjoint_Set_Forests"]
+title = "21.3. Disjoint-Set Forests"
+
+[modules."CLRSLean.Chapter_21.Section_21_4_Analysis"]
+title = "21.4. Union-by-Rank and Path-Compression Analysis"
+
+[modules."CLRSLean.Chapter_21.Section_21_4_Analysis.CostedExecution"]
+title = "Costed Batteries Execution"
+
+[modules."CLRSLean.Chapter_21.Section_21_4_Analysis.InverseAckermann"]
+title = "Inverse-Ackermann Amortization"
+
 [modules."CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees"]
 title = "23.1. Growing a Minimum Spanning Tree"
 
 [modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim"]
 title = "23.2. Kruskal and Prim"
+
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S1_UnionFindBridge"]
+title = "Union-Find Refinement"
+
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S2_StatefulKruskal"]
+title = "Stateful Kruskal"
+
+[modules."CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim"]
+title = "Executable Prim"
+
+[modules."CLRSLean.Chapter_24.Section_24_1_Bellman_Ford"]
+title = "24.1. The Bellman-Ford Algorithm"
+
+[modules."CLRSLean.Chapter_24.Section_24_2_SSSP_In_DAGs"]
+title = "24.2. Single-Source Shortest Paths in DAGs"
+
+[modules."CLRSLean.Chapter_24.Section_24_3_Dijkstra"]
+title = "24.3. Dijkstra's Algorithm"
+
+[modules."CLRSLean.Chapter_24.Section_24_4_Difference_Constraints"]
+title = "24.4. Difference Constraints and Shortest Paths"
+
+[modules."CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model"]
+title = "25.1. All-Pairs Shortest Paths Model"
+
+[modules."CLRSLean.Chapter_26"]
+title = "Chapter 26. Maximum Flow"
+
+[modules."CLRSLean.Chapter_26.Section_26_1_Flow_Networks"]
+title = "26.1. Flow Networks"

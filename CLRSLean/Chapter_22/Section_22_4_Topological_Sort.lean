@@ -1,5 +1,5 @@
 import Mathlib
-import CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification
+import CLRSLean.Chapter_22.Section_22_3_DFS.S5_EdgeClassification
 
 /-! # Section 22.4 - Topological Sort
 

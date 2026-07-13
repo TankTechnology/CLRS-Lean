@@ -52,15 +52,26 @@ Main results:
   relative to the overall constant.
 * Theorem {lit}`clrsSelectRecurrence_linear_bound`: a CLRS-facing name for the
   same linear-time SELECT recurrence closure.
+* Definition {lit}`selectCostFuel` and wrapper {lit}`selectCost`: an executable
+  {lit}`Nat`-valued cost counter that mirrors the {lit}`selectWithPivotFuel?`
+  recursion, charging a parametric local-work term at each level.
+* Theorems {lit}`selectCostFuel_linear_bound` and {lit}`selectCost_linear_bound`:
+  the concrete cost is linear ({lit}`≤ 17 * a * n`) whenever the pivot rule
+  satisfies the CLRS {lit}`10 * branch ≤ 7 * n + 12` bound and the local work is
+  linear.
+* Definition {lit}`medianOfMediansSelectCost` and theorem
+  {lit}`medianOfMediansSelectCost_linear_bound`: the concrete
+  partition-comparison cost of {lit}`medianOfMediansSelect?` obeys the explicit
+  linear bound {lit}`medianOfMediansSelectCost k xs ≤ 17 * xs.length`.
 
 Current gaps:
 
-* The recurrence induction above closes the substitution-method half, but
-  this is still not the full CLRS linear-time median-of-medians cost theorem.
-  The remaining step is a concrete cost semantics (operational or
-  denotational) for {lit}`medianOfMediansSelect?` that maps list input to a
-  {lit}`Nat` cost, together with proofs that the concrete cost satisfies the
-  hypotheses of {lit}`medianOfMedians_linear_bound`.
+* The concrete cost {lit}`medianOfMediansSelectCost` counts the linear partition
+  scan along the recursion path and treats the median-of-medians pivot selection
+  as a linear-cost oracle (folded into the parametric local work), matching the
+  CLRS assumption that the median subproblem is solved in linear time.  A fully
+  operational RAM step-count that also unfolds the recursive cost of computing
+  the pivot remains a future refinement.
 -/
 
 namespace CLRS
@@ -1147,6 +1158,229 @@ theorem medianOfMediansSelect?_correct {k : Nat} {xs : List Nat} {x : Nat}
     (hsel : medianOfMediansSelect? k xs = some x) :
     RankCertificate xs k x :=
   medianOfMediansSelect?_rankCorrect hsel
+
+/-! ## Concrete executable cost semantics
+
+This section closes the Chapter 9 running-time story with an **executable
+{lit}`Nat`-valued cost function** for the pivot-parametric selector and a proved
+explicit linear bound {lit}`cost n ≤ 17 * n`.
+
+The cost counter {lit}`selectCostFuel` mirrors the recursion of
+{lit}`selectWithPivotFuel?` exactly: at every recursion level it charges a local
+work term {lit}`stepCost xs` (for the deterministic instance this is one
+comparison per element, i.e. the linear partition scan) and then recurses on the
+single strict branch that {lit}`selectWithPivotFuel?` actually visits.  Because
+{lit}`SELECT` follows only one partition side, the cost is the sum of the local work
+along one root-to-leaf path of the recursion tree.
+
+The explicit constant {lit}`17` comes from the CLRS branch bound
+{lit}`10 * branch ≤ 7 * n + 12`: for the substitution guess {lit}`cost ≤ 17 a n`
+the one-level slack {lit}`a n + 17 a b ≤ 17 a n` reduces to the pure {lit}`Nat` fact
+{lit}`17 b ≤ 16 n`, which {tactic}`omega` derives from
+{lit}`10 * b ≤ 7 * n + 12` together with the strict-sublist fact {lit}`b < n`.
+
+The pivot-selection work of {lit}`medianOfMediansPivot?` is treated as a
+linear-cost oracle (its per-level cost is folded into {lit}`stepCost`), matching
+the CLRS assumption that the median subproblem is solved in linear time; the
+generic bound below is parametric in {lit}`stepCost`, so a heavier linear local
+cost slots in without changing the argument.
+-/
+
+/--
+Pure {lit}`Nat` substitution slack for the concrete cost recurrence.
+
+For the substitution guess {lit}`cost ≤ 17 a n`, one recursion level with local
+work at most {lit}`a n` and strict branch of size {lit}`b` satisfying the CLRS
+bound {lit}`10 b ≤ 7 n + 12` and {lit}`b < n` fits under the same envelope:
+{lit}`a n + 17 a b ≤ 17 a n`.  The core is the pivot-free arithmetic fact
+{lit}`17 b ≤ 16 n`, discharged by {tactic}`omega`.
+-/
+theorem selectCost_linear_step {a n b : Nat}
+    (hb : 10 * b ≤ 7 * n + 12) (hlt : b < n) :
+    a * n + 17 * a * b ≤ 17 * a * n := by
+  have h : n + 17 * b ≤ 17 * n := by omega
+  calc a * n + 17 * a * b = a * (n + 17 * b) := by ring
+    _ ≤ a * (17 * n) := Nat.mul_le_mul (le_refl a) h
+    _ = 17 * a * n := by ring
+
+/--
+Fuelled cost counter for the pivot-parametric selector.
+
+The recursion is byte-for-byte parallel to {lit}`selectWithPivotFuel?`: it uses
+the same pivot rule, the same three-way branch conditions, and recurses on the
+same strict sublist.  At each visited level it charges {lit}`stepCost xs` local
+work; the pivot-block branch stops (charging only the local work) and the two
+strict branches recurse with one unit of fuel removed.
+-/
+def selectCostFuel (choosePivot? : List Nat → Option Nat) (stepCost : List Nat → Nat) :
+    Nat → Nat → List Nat → Nat
+  | 0, _, _ => 0
+  | fuel + 1, k, xs =>
+      match choosePivot? xs with
+      | none => 0
+      | some pivot =>
+          stepCost xs +
+            (if k < ltCount pivot xs then
+              selectCostFuel choosePivot? stepCost fuel k
+                (xs.filter fun y => decide (y < pivot))
+            else if k < leCount pivot xs then
+              0
+            else
+              selectCostFuel choosePivot? stepCost fuel (k - leCount pivot xs)
+                (xs.filter fun y => decide (pivot < y)))
+
+/--
+**Linear bound for the fuelled cost counter.**
+
+If the pivot rule is membership-safe, every chosen pivot satisfies the CLRS
+strict-branch bound {lit}`10 * branch ≤ 7 * n + 12`, and the local work is
+linear ({lit}`stepCost ys ≤ a * ys.length`), then the accumulated cost along the
+recursion path is linear: {lit}`selectCostFuel … ≤ 17 * a * xs.length`.
+
+The proof is strong induction on the fuel, closing each level with
+{lit}`selectCost_linear_step`.
+-/
+theorem selectCostFuel_linear_bound
+    (choosePivot? : List Nat → Option Nat) (stepCost : List Nat → Nat) {a : Nat}
+    (hpivot : PivotMembership choosePivot?)
+    (hbound : ∀ (ys : List Nat) (pivot : Nat), choosePivot? ys = some pivot →
+      10 * ltCount pivot ys ≤ 7 * ys.length + 12 ∧
+      10 * gtCount pivot ys ≤ 7 * ys.length + 12)
+    (hstep : ∀ ys : List Nat, stepCost ys ≤ a * ys.length) :
+    ∀ (fuel k : Nat) (xs : List Nat), xs.length ≤ fuel →
+      selectCostFuel choosePivot? stepCost fuel k xs ≤ 17 * a * xs.length := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro k xs _hlen
+      simp [selectCostFuel]
+  | succ fuel ih =>
+      intro k xs hlen
+      cases hchoose : choosePivot? xs with
+      | none =>
+          simp [selectCostFuel, hchoose]
+      | some pivot =>
+          have hmem : pivot ∈ xs := hpivot hchoose
+          have hbnd := hbound xs pivot hchoose
+          by_cases hlo : k < ltCount pivot xs
+          · have hunfold :
+                selectCostFuel choosePivot? stepCost (fuel + 1) k xs =
+                  stepCost xs +
+                    selectCostFuel choosePivot? stepCost fuel k
+                      (xs.filter fun y => decide (y < pivot)) := by
+              simp [selectCostFuel, hchoose, hlo]
+            have hbranch_len_lt :
+                (xs.filter fun y => decide (y < pivot)).length < xs.length :=
+              filter_length_lt_of_mem_false (fun y => decide (y < pivot))
+                hmem (by simp)
+            have hbranch_le_fuel :
+                (xs.filter fun y => decide (y < pivot)).length ≤ fuel :=
+              Nat.lt_succ_iff.mp (Nat.lt_of_lt_of_le hbranch_len_lt hlen)
+            have hih := ih k (xs.filter fun y => decide (y < pivot)) hbranch_le_fuel
+            have hkey :
+                a * xs.length +
+                    17 * a * (xs.filter fun y => decide (y < pivot)).length ≤
+                  17 * a * xs.length :=
+              selectCost_linear_step hbnd.1 hbranch_len_lt
+            rw [hunfold]
+            exact le_trans (Nat.add_le_add (hstep xs) hih) hkey
+          · by_cases hmid : k < leCount pivot xs
+            · have hunfold :
+                  selectCostFuel choosePivot? stepCost (fuel + 1) k xs =
+                    stepCost xs := by
+                simp [selectCostFuel, hchoose, hlo, hmid]
+              have hmid_bound : a * xs.length ≤ 17 * a * xs.length := by
+                have h17 : a ≤ 17 * a := by omega
+                exact Nat.mul_le_mul h17 (le_refl xs.length)
+              rw [hunfold]
+              exact le_trans (hstep xs) hmid_bound
+            · have hunfold :
+                  selectCostFuel choosePivot? stepCost (fuel + 1) k xs =
+                    stepCost xs +
+                      selectCostFuel choosePivot? stepCost fuel
+                        (k - leCount pivot xs)
+                        (xs.filter fun y => decide (pivot < y)) := by
+                simp [selectCostFuel, hchoose, hlo, hmid]
+              have hbranch_len_lt :
+                  (xs.filter fun y => decide (pivot < y)).length < xs.length :=
+                filter_length_lt_of_mem_false (fun y => decide (pivot < y))
+                  hmem (by simp)
+              have hbranch_le_fuel :
+                  (xs.filter fun y => decide (pivot < y)).length ≤ fuel :=
+                Nat.lt_succ_iff.mp (Nat.lt_of_lt_of_le hbranch_len_lt hlen)
+              have hih := ih (k - leCount pivot xs)
+                (xs.filter fun y => decide (pivot < y)) hbranch_le_fuel
+              have hkey :
+                  a * xs.length +
+                      17 * a * (xs.filter fun y => decide (pivot < y)).length ≤
+                    17 * a * xs.length :=
+                selectCost_linear_step hbnd.2 hbranch_len_lt
+              rw [hunfold]
+              exact le_trans (Nat.add_le_add (hstep xs) hih) hkey
+
+/--
+Public cost wrapper: run the fuelled cost counter with one unit of fuel per
+input element, matching the {lit}`selectWithPivot?` wrapper.
+-/
+def selectCost (choosePivot? : List Nat → Option Nat) (stepCost : List Nat → Nat)
+    (k : Nat) (xs : List Nat) : Nat :=
+  selectCostFuel choosePivot? stepCost xs.length k xs
+
+/--
+Linear bound for the public cost wrapper, obtained from
+{lit}`selectCostFuel_linear_bound` with the canonical fuel {lit}`xs.length`.
+-/
+theorem selectCost_linear_bound
+    (choosePivot? : List Nat → Option Nat) (stepCost : List Nat → Nat) {a : Nat}
+    (hpivot : PivotMembership choosePivot?)
+    (hbound : ∀ (ys : List Nat) (pivot : Nat), choosePivot? ys = some pivot →
+      10 * ltCount pivot ys ≤ 7 * ys.length + 12 ∧
+      10 * gtCount pivot ys ≤ 7 * ys.length + 12)
+    (hstep : ∀ ys : List Nat, stepCost ys ≤ a * ys.length)
+    (k : Nat) (xs : List Nat) :
+    selectCost choosePivot? stepCost k xs ≤ 17 * a * xs.length :=
+  selectCostFuel_linear_bound choosePivot? stepCost hpivot hbound hstep
+    xs.length k xs (Nat.le_refl xs.length)
+
+/--
+Concrete partition-comparison cost of the executable median-of-medians
+{lit}`medianOfMediansSelect?`.
+
+The local work at each recursion level is {lit}`xs.length`: one comparison per
+element for the linear partition scan around the median-of-medians pivot.  This
+is a genuine {lit}`Nat`-valued cost on list input, computed by the same recursion the
+selector runs.
+-/
+def medianOfMediansSelectCost (k : Nat) (xs : List Nat) : Nat :=
+  selectCost medianOfMediansPivot? (fun ys => ys.length) k xs
+
+/--
+**Concrete linear cost bound for deterministic median-of-medians SELECT.**
+
+The partition-comparison cost of {lit}`medianOfMediansSelect?` is linear with the
+explicit constant {lit}`17`:
+
+{lit}`medianOfMediansSelectCost k xs ≤ 17 * xs.length`.
+
+This is the concrete counterpart of the abstract recurrence closure
+{lit}`medianOfMedians_linear_bound`: the CLRS branch bound
+{lit}`medianOfMediansPivot?_partition_size_bound` supplies the
+{lit}`10 * branch ≤ 7 * n + 12` hypothesis at every recursion level, and
+{lit}`selectCost_linear_bound` sums the linear local work into the closed form
+{lit}`≤ 17 n`.
+-/
+theorem medianOfMediansSelectCost_linear_bound (k : Nat) (xs : List Nat) :
+    medianOfMediansSelectCost k xs ≤ 17 * xs.length := by
+  have hbound : ∀ (ys : List Nat) (pivot : Nat),
+      medianOfMediansPivot? ys = some pivot →
+        10 * ltCount pivot ys ≤ 7 * ys.length + 12 ∧
+        10 * gtCount pivot ys ≤ 7 * ys.length + 12 :=
+    fun _ys _pivot hsel => medianOfMediansPivot?_partition_size_bound hsel
+  have hstep : ∀ ys : List Nat, (fun zs => zs.length) ys ≤ 1 * ys.length :=
+    fun ys => by simp
+  have h := selectCost_linear_bound (a := 1) medianOfMediansPivot?
+    (fun ys => ys.length) medianOfMediansPivot?_mem hbound hstep k xs
+  simpa [medianOfMediansSelectCost] using h
 
 end Chapter09
 end CLRS

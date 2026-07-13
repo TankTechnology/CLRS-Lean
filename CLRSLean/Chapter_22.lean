@@ -1,14 +1,14 @@
 import CLRSLean.Chapter_22.Section_22_1_Representing_Graphs
 import CLRSLean.Chapter_22.Section_22_2_BFS
 import CLRSLean.Chapter_22.Section_22_3_DFS
-import CLRSLean.Chapter_22.Section_22_3_DFS_WhitePath
-import CLRSLean.Chapter_22.Section_22_3_DFS_Intervals
-import CLRSLean.Chapter_22.Section_22_3_DFS_SCC
-import CLRSLean.Chapter_22.Section_22_3_DFS_Bridge
-import CLRSLean.Chapter_22.Section_22_3_DFS_EdgeClassification
+import CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath
+import CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals
+import CLRSLean.Chapter_22.Section_22_3_DFS.S3_Bridge
+import CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC
+import CLRSLean.Chapter_22.Section_22_3_DFS.S5_EdgeClassification
 import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
-import CLRSLean.Chapter_22.Section_22_5_MergeSort_Congr
 import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components
+import CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr
 
 /-! # Chapter 22 - Elementary Graph Algorithms
 
@@ -101,24 +101,25 @@ undirected graph is obtained by requiring symmetric adjacency.
   {lit}`CLRS.Chapter22.Graph.kosarajuComponents_cover`,
   and {lit}`CLRS.Chapter22.Graph.kosarajuComponents_isSCCPartition`.
 
-## Supporting DFS modules
+## Supporting proof modules
 
 The DFS proof is split by responsibility so downstream developments can import
-only the layer they need:
+only the layer they need.  On the reader site, these implementation layers are
+nested under Section 22.3 rather than presented as separate CLRS sections:
 
-* {lit}`Section_22_3_DFS_WhitePath` develops finite white reachability and proves
+* {lit}`Section_22_3_DFS.S1_WhitePath` develops finite white reachability and proves
   that a sufficiently fuelled visit blackens exactly the white-reachable set.
-* {lit}`Section_22_3_DFS_Intervals` develops timestamp, discovery-state, ancestor,
+* {lit}`Section_22_3_DFS.S2_Intervals` develops timestamp, discovery-state, ancestor,
   and parent-edge infrastructure and proves the DFS parenthesis theorem plus
   the nesting-to-ancestor direction.
-* {lit}`Section_22_3_DFS_Bridge` connects local discovery states to the final DFS
+* {lit}`Section_22_3_DFS.S3_Bridge` connects local discovery states to the final DFS
   timestamps used by the SCC proof.
-* {lit}`Section_22_3_DFS_SCC` packages maximum-finish and first-discovery facts.
-* {lit}`Section_22_3_DFS_EdgeClassification` proves the unique
+* {lit}`Section_22_3_DFS.S4_SCC` packages maximum-finish and first-discovery facts.
+* {lit}`Section_22_3_DFS.S5_EdgeClassification` proves the unique
   tree/back/forward/cross classification, its CLRS timestamp characterizations,
   and the undirected tree-or-back theorem.
-* {lit}`Section_22_5_MergeSort_Congr` supplies the comparison congruence used for
-  Kosaraju's decreasing-finish-time order.
+* {lit}`Section_22_5_Strongly_Connected_Components.MergeSortCongr` records a
+  comparison congruence helper for decreasing-finish-time sorting.
 
 ## Current Shape
 

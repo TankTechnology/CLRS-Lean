@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_09.Section_09_2_Select_By_Rank
 import CLRSLean.Chapter_09.Section_09_3_Deterministic_Select
+import CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select
 
 /-!
 # Chapter 9 - Medians and Order Statistics
@@ -45,13 +46,31 @@ linear-bound wrapper used by the textbook linear-time argument.
   {lit}`CLRS.Chapter09.clrsSelectRecurrence_linear_bound`,
   {lit}`CLRS.Chapter09.medianGroupCertificates_selectPivot_split_counts`, and
   {lit}`CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`, and
-  {lit}`CLRS.Chapter09.medianOfMediansSelect?_correct`.
+  {lit}`CLRS.Chapter09.medianOfMediansSelect?_correct`; the executable cost
+  semantics {lit}`CLRS.Chapter09.medianOfMediansSelectCost` with its explicit
+  linear bound {lit}`CLRS.Chapter09.medianOfMediansSelectCost_linear_bound`
+  ({lit}`cost ≤ 17 * n`), built on the generic
+  {lit}`CLRS.Chapter09.selectCost_linear_bound`.
+* 9.2 Randomized SELECT expected time: {lit}`proved` for the uniform
+  independent-pivot expected-comparison model, its derived recurrence, and the
+  CLRS Theorem 9.2 linear expected-time bound, built on the
+  {lit}`CLRS.Probability.expect` / {lit}`CLRS.Probability.fintypeExpect` toolkit.
+  Main results:
+  {lit}`CLRS.Chapter09.randSelectExpectedCost_recurrence`,
+  {lit}`CLRS.Chapter09.randSelectExpectedCost_recurrence_fintype`,
+  {lit}`CLRS.Chapter09.randSelectExpectedCost_le`, and
+  {lit}`CLRS.Chapter09.randomizedSelect_expected_bigO_linear`; rank correctness
+  is inherited via {lit}`CLRS.Chapter09.randomizedSelectAtIndex?_rankCorrect`.
 
 ## Current Gaps
 
-* Randomized SELECT and expected running time require a probability model.
-* Deterministic linear-time SELECT still needs a concrete executable cost
-  semantics connected to the proved abstract recurrence theorem.
+* Deterministic linear-time SELECT now has a concrete executable cost counter
+  ({lit}`CLRS.Chapter09.medianOfMediansSelectCost`) with an explicit linear
+  bound {lit}`cost ≤ 17 * n`; the remaining refinement is a fully operational
+  RAM step-count that also unfolds the recursive cost of computing the pivot.
+* The randomized SELECT model charges the larger partition side (the standard
+  majorizing recurrence); a full joint distribution over all recursion levels
+  and a concrete step-count cost model remain future refinements.
 -/
 
 namespace CLRS

@@ -7,14 +7,16 @@ Chapter 12 studies binary search trees and the operations that preserve their
 ordering invariant.  The current CLRS-Lean pass uses an inductive tree of natural
 keys and proves search, minimum/maximum, insertion, functional
 successor/predecessor, and functional deletion correctness for membership and
-ordering.  It now also exposes reader-facing wrappers for successor/predecessor
-existence, Boolean search after insertion/deletion, and successor/predecessor
-queries after deletion.
+ordering.  A zipper refinement represents the path to the current node as a
+functional parent-pointer context and proves iterative search, subtree
+transplant, deletion through that transplant interface, and parent-ascent
+successor/predecessor equivalent to the established functional operations.
 
 ## Sections
 
-* 12.1 Binary search trees: {lit}`partial`, with the functional BST theorem
-  boundary complete for the current inductive-tree model.
+* 12.1 Binary search trees: {lit}`partial`, with the functional BST theorem and
+  zipper-based parent-navigation boundaries complete for the current
+  inductive-tree model.
   Main results: {lit}`CLRS.Chapter12.BSTree.search_eq_true_iff`,
   {lit}`CLRS.Chapter12.BSTree.minimum?_le_of_ordered`,
   {lit}`CLRS.Chapter12.BSTree.le_maximum?_of_ordered`,
@@ -38,15 +40,30 @@ queries after deletion.
   {lit}`CLRS.Chapter12.BSTree.successor?_delete_eq_none_iff`,
   {lit}`CLRS.Chapter12.BSTree.predecessor?_delete_eq_some_iff`,
   {lit}`CLRS.Chapter12.BSTree.predecessor?_delete_eq_none_iff`,
-  {lit}`CLRS.Chapter12.BSTree.delete_ordered`.
+  {lit}`CLRS.Chapter12.BSTree.delete_ordered`,
+  {lit}`CLRS.Chapter12.BSTree.searchZipper_toTree`,
+  {lit}`CLRS.Chapter12.BSTree.searchIter_eq_search`,
+  {lit}`CLRS.Chapter12.BSTree.transplant_preserves_ordered`,
+  {lit}`CLRS.Chapter12.BSTree.deleteViaTransplant_eq_delete`,
+  {lit}`CLRS.Chapter12.BSTree.successorZipper_eq_successor?`,
+  {lit}`CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?`,
+  {lit}`CLRS.Chapter12.BSTree.RepresentsW.tree_unique`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_left_representsW`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_right_representsW`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_left_refines_transplant`,
+  {lit}`CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant`, and
+  {lit}`CLRS.Chapter12.BSTree.insertPointer_right_representsW`.
 
 ## Current Gaps
 
-Functional successor/predecessor queries and functional deletion are formalized.
-Parent-pointer successor/predecessor procedures, transplant, and pointer-level
-mutation are not yet formalized.  The pointer-transplant algorithm from CLRS
-needs an imperative tree model or a refinement from the functional deletion
-theorem.
+The zipper layer formalizes parent-oriented navigation and subtree replacement
+without changing the inductive tree representation.  Building on it, an
+imperative pointer-heap layer models nodes as records with mutable
+{lit}`left`/{lit}`right`/{lit}`parent` cells over a {lit}`Std.HashMap` store, and
+proves that in-place {lit}`TRANSPLANT` and leaf {lit}`TREE-INSERT` refine the
+functional subtree-replacement specification through the {lit}`RepresentsW`
+heap-to-tree abstraction.  What remains is an explicit RAM-cost model connecting
+these pointer operations to concrete running times.
 -/
 
 namespace CLRS

@@ -13,8 +13,8 @@ optimal binary search trees.  For rod cutting and OBST, the chapter records both
 the Bellman recurrence layer and an executable recurrence-valued function.  For
 matrix-chain multiplication and LCS, the chapter records table/reconstruction
 certificates, recurrence wrappers on certified LCS tables, direct recurrence
-consequences for matching and nonmatching LCS heads, and direct reconstruction
-optimality inequalities, while concrete mutable-array implementations remain
+consequences for matching and nonmatching LCS heads, and pure executable table
+and reconstruction algorithms.  Concrete mutable-array implementations remain
 future refinements.
 
 ## Sections
@@ -26,14 +26,20 @@ future refinements.
   {lit}`CLRS.Chapter15.planValue_le_table_of_rodCutTableRecurrence`,
   {lit}`CLRS.Chapter15.planValue_le_bottomUpRodRevenue`,
   {lit}`CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`,
-  {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`, and
-  {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`.
+  {lit}`CLRS.Chapter15.planValue_le_revenue_of_rodCutRecurrence`,
+  {lit}`CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`,
+  {lit}`CLRS.Chapter15.rodRevenueArray_correct`,
+  {lit}`CLRS.Chapter15.rodRevenueArray_rodCutTableRecurrence`, and
+  {lit}`CLRS.Chapter15.planValue_le_rodRevenueArray`.
 * 15.2 Matrix-chain multiplication: {lit}`partial`.
   Main results: {lit}`CLRS.Chapter15.matrixChain_opt_le_planCost`,
   {lit}`CLRS.Chapter15.matrixChain_reconstructed_cost_eq`,
   {lit}`CLRS.Chapter15.matrixChain_reconstructed_optimal`,
   {lit}`CLRS.Chapter15.matrixChain_reconstructed_cost_le_planCost`,
-  and {lit}`CLRS.Chapter15.matrixChain_reconstructed_cost_eq_of_reconstructed`.
+  {lit}`CLRS.Chapter15.matrixChain_reconstructed_cost_eq_of_reconstructed`,
+  {lit}`CLRS.Chapter15.matrixChainSplit_optimal`,
+  {lit}`CLRS.Chapter15.matrixChainReconstruct_reconstructed`, and
+  {lit}`CLRS.Chapter15.matrixChain_correct`.
 * 15.4 Longest common subsequence: {lit}`partial`.
   Main results: {lit}`CLRS.Chapter15.LCSCertificate.commonSubsequence_length_le`,
   {lit}`CLRS.Chapter15.LCSCertificate.length_eq_of_certificates`, and
@@ -50,20 +56,25 @@ future refinements.
   {lit}`CLRS.Chapter15.LCSTableCertificate.drop_right_le_of_ne`,
   {lit}`CLRS.Chapter15.LCSTableCertificate.commonSubsequence_length_le`,
   {lit}`CLRS.Chapter15.lcsTable_reconstruction_optimal`,
-  and {lit}`CLRS.Chapter15.lcsCertificate_of_table_reconstruction_length`.
+  {lit}`CLRS.Chapter15.lcsCertificate_of_table_reconstruction_length`, and
+  {lit}`CLRS.Chapter15.lcs_correct`.
 * 15.5 Optimal binary search trees: {lit}`partial`.
   Main results: {lit}`CLRS.Chapter15.OBST.obst_opt_le_planCost`,
   {lit}`CLRS.Chapter15.OBST.obst_reconstructed_cost_eq`,
   {lit}`CLRS.Chapter15.OBST.obst_reconstructed_optimal`,
-  and {lit}`CLRS.Chapter15.OBST.bottomUpOBST_obstRecurrence`.
+  {lit}`CLRS.Chapter15.OBST.bottomUpOBST_obstRecurrence`, and
+  {lit}`CLRS.Chapter15.OBST.obst_correct`.
 
 ## Current Gaps
 
 The current files prove mathematical optimality interfaces for rod cutting,
 matrix-chain multiplication, LCS, and optimal binary search trees.  Rod cutting
-and OBST now have executable recurrence-valued functions; mutable-array table
-construction, memoized recursion, and executable reconstruction procedures
-remain future refinements.
+and OBST have executable recurrence-valued functions, while matrix chain, LCS,
+and OBST expose proved pure reconstruction procedures.  Rod cutting additionally
+has a mutable-{lit}`Array` bottom-up table ({lit}`CLRS.Chapter15.rodRevenueArray`)
+with a refinement theorem to the pure recurrence value; the sibling DP sections
+follow the same pattern.  Top-down memoized mutation and RAM-cost semantics remain
+future refinements.
 -/
 
 namespace CLRS

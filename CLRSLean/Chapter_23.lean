@@ -1,16 +1,19 @@
 import CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees
 import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S1_UnionFindBridge
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S2_StatefulKruskal
+import CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim
 
 /-!
 # Chapter 23 - Minimum Spanning Trees
 
-Chapter 23 tracks the minimum-spanning-tree proof stack.  The current focus is
-the mathematical CLRS argument: safe edges, cut certificates, and Kruskal's
-safe-edge induction.
+Chapter 23 formalizes the mathematical correctness stack for minimum spanning
+trees: the cut property, canonical tree paths and exchange edges, end-to-end
+Kruskal optimality, and Prim optimality.
 
 ## Sections
 
-* 23.1 Growing a minimum spanning tree: {lit}`partial`.
+* 23.1 Growing a minimum spanning tree: {lit}`main-proof-complete-for-correctness`.
   Main results:
   {lit}`CLRS.MST.Graph.connected_crosses_cut`,
   {lit}`CLRS.MST.FiniteGraph.minimumSpanningTree_of_mstExtending_empty`,
@@ -19,63 +22,44 @@ safe-edge induction.
   {lit}`CLRS.MST.FiniteGraph.exists_crossing_tree_edge_of_cut`,
   {lit}`CLRS.MST.FiniteGraph.exists_crossing_tree_edge_preserving_prefix`,
   and {lit}`CLRS.MST.safe_edge_of_lightest_crossing`.
-* 23.2 Kruskal and Prim: {lit}`partial`.
-  Main results: {lit}`CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`,
-  {lit}`CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`,
-  {lit}`CLRS.MST.Graph.ExchangePath`,
-  {lit}`CLRS.MST.Graph.InsertedEdgeConnection`,
-  {lit}`CLRS.MST.Graph.exchangePath_connected_insert`,
-  {lit}`CLRS.MST.Graph.insertedEdgeConnection_of_exchangePath`,
-  {lit}`CLRS.MST.Graph.exchangePath_of_insert_connected`,
-  {lit}`CLRS.MST.Graph.exchangePath_iff_insertedEdgeConnection`,
-  {lit}`CLRS.MST.FiniteGraph.exchangePath_of_insert_connects_erased_edge`,
-  {lit}`CLRS.MST.FiniteGraph.exchangePath_iff_insertedEdgeConnection_of_spanningTree`,
-  {lit}`CLRS.MST.FiniteGraph.spanningTree_exchange_of_path_certificate`,
-  {lit}`CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing`,
-  {lit}`CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`,
-  {lit}`CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component_empty`,
-  {lit}`CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_cycle_test`,
-  and
-  {lit}`CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_complete_exact_component_empty`.
+* 23.2 Kruskal and Prim: {lit}`main-proof-complete-for-correctness`.
+  Closure results:
+  {lit}`CLRS.MST.FiniteGraph.canonicalSimplePath_unique`,
+  {lit}`CLRS.MST.FiniteGraph.exists_crossing_exchangePath_of_spanningTree`,
+  {lit}`CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing_auto`,
+  {lit}`CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty`,
+  and {lit}`CLRS.MST.FiniteGraph.prim_minimum_spanning_tree`.
 
 ## Current Shape
 
-Section 23.1 contains the cut-property core.  It proves that a light edge
-crossing a cut is safe once the graph-specific exchange certificate is supplied.
-The finite graph definitions, spanning-tree specification, safe-edge interface,
-empty-prefix MST equivalence, and path/cut crossing-edge lemma are already
-present.
+Section 23.1 supplies the reusable cut-property kernel and concrete finite-graph
+MST specification.  Section 23.2 proves that a selected forest induces an
+acyclic simple graph with a unique canonical path.  A path crossing a cut
+automatically yields the exchange edge and the two residual connections needed
+by {lit}`ExchangePath`, eliminating the former manual cycle certificate.
 
-Section 23.2 contains the sorted-order lightness layer, exact-component prefix
-accounting, and a mathematical Kruskal skeleton.  It proves that an exact
-component oracle accounts for every previously processed edge, derives the
-processed-prefix exclusion invariant, and then uses sorted edge order to make
-the current edge light.  It also contains the certificate-based replacement
-exchange theorem: an explicit {lit}`ExchangePath` certificate proves that
-adding the accepted edge and deleting one tree edge preserves the spanning-tree
-property.  The path bridge now goes both ways between an inserted-edge
-connection across the erased tree edge and the reusable {lit}`ExchangePath`
-certificate, leaving only the canonical finite path/cycle extraction layer as
-future work.  For finite connected graphs with a complete edge scan, it proves that
-an exact-component Kruskal pass preserves forests and returns a spanning tree
-from an initial forest.  It also proves finite-graph optimality wrappers,
-including direct concrete minimum-spanning-tree theorems for both a complete
-exact-component scan and an abstract cycle-test implementation once its final
-accepted edge set is known to be a spanning tree.
+Kruskal's proof now carries the processed prefix through the recursion, derives
+local sorted lightness from exact components, constructs every exchange
+certificate internally, and discharges the final spanning-tree condition for a
+complete connected scan.  Prim is represented by a dynamic light-edge trace;
+the shared cut property proves safe extension, exact components prove forest
+preservation, and a complete trace returns a concrete minimum spanning tree.
+
+The implementation layer now threads the real Chapter 21 costed union-find
+machine through Kruskal, proves its connectivity invariant at every edge, and
+identifies its output with mathematical Kruskal.  It composes sorting, scan,
+and union-find work into explicit `O(E log E)` and `O((E+V) alpha(V))` bounds.
+The executable Prim layer supplies indexed queue membership, `key`, `parent`,
+`decreaseKey`, and `extractMin`; a concrete frontier provider refines its edge
+choices to `PrimTrace`.  The binary-heap operation model proves
+`O((E+V) log V)`, hence `O(E log V)` for connected nontrivial graphs, and also
+records unsorted-array and Fibonacci-heap alternatives.
 
 ## Deferred Work
 
-The project intentionally defers union-find correctness in the first phase.  The
-mathematical proof should stabilize before adding an implementation refinement
-for the cycle test.
-
-The main strengthening targets are:
-
-* refine exact components to an executable union-find implementation if that
-  implementation proof becomes in scope;
-* derive the inserted-edge connection automatically from a canonical finite
-  simple path/cycle representation;
-* discharge prefix-local sorted lightness inside the full recursive optimality
-  wrapper, rather than requiring a global lightness hypothesis;
-* add Prim's theorem interface after the Kruskal skeleton is complete.
+The sealed boundary now includes functional implementation refinements and
+algorithm-level work bounds.  Remaining work is the semantic refinement from
+the indexed queue contract to the concrete `Batteries.BinaryHeap` array state,
+plus mutable-array/RAM write accounting.  These do not reopen the Chapter 23
+correctness milestone.
 -/

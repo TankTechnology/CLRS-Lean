@@ -43,11 +43,46 @@ Main results:
   the original black height.
 - Theorem {lit}`RBTree.blackHeight_insert`: insertion either keeps the black
   height or increases it by one.
+- Theorem {lit}`RBTree.height_log_bound`: **CLRS Lemma 13.1** — a red-black
+  tree with {lit}`n` internal nodes has height at most {lit}`2 log₂(n + 1)`.
+- Definitions {lit}`RBTree.deleteFixupCase1`..{lit}`deleteFixupCase4` and the
+  {lit}`deleteFixupLocal` dispatcher: the four local {lit}`RB-DELETE-FIXUP`
+  cases (deficient left child).
+- Theorems {lit}`RBTree.inTree_deleteFixupCase1_iff`..{lit}`_case4_iff`: every
+  delete-fixup case preserves membership.
+- Theorem {lit}`RBTree.deleteFixupCase4_shape`: the terminating rotation case
+  resolves the doubly-black deficit and re-establishes the no-red-red and
+  balanced-black-height invariants.
+- Definitions {lit}`RBTree.BST`, {lit}`RBTree.splitMin`, {lit}`RBTree.join`,
+  {lit}`RBTree.del`, and {lit}`RBTree.delete`: executable functional deletion
+  for red-black trees (Okasaki/Kahrs pattern).
+- Theorem {lit}`RBTree.inTree_splitMin_mem`: the minimum removed by
+  {lit}`splitMin` is in the original tree.
+- Theorem {lit}`RBTree.inTree_splitMin_iff`: membership preservation through
+  {lit}`splitMin`.
+- Theorem {lit}`RBTree.inTree_join_iff`: {lit}`join` preserves the union of key
+  sets.
+- Theorem {lit}`RBTree.inTree_del_forward` and
+  {lit}`RBTree.inTree_del_backward`: {lit}`del` preserves membership for all
+  keys except the deleted key.
+- Theorem {lit}`RBTree.inTree_delete_forward` and
+  {lit}`RBTree.inTree_delete_backward`: same for {lit}`delete`.
+- Theorem {lit}`RBTree.not_inTree_del_self` (requires BST): the deleted key is
+  absent from the result.
+- Theorem {lit}`RBTree.not_inTree_delete_self` (requires BST): same for
+  {lit}`delete`.
+- Theorem {lit}`RBTree.inTree_del_iff` and {lit}`RBTree.inTree_delete_iff`
+  (requires BST): full membership-after-deletion equivalence.
 
 Remaining gaps:
 
-- The executable {lit}`RB-DELETE` and {lit}`RB-DELETE-FIXUP` algorithms, and the
-  logarithmic-height theorem, remain future work.
+- Shape preservation (no-red-red and balanced-black-height) through
+  {lit}`del`/ {lit}`delete` is not yet proved.  This requires proving that
+  {lit}`baldL`, {lit}`baldR`, {lit}`join`, and {lit}`del` preserve
+  {lit}`NoRedRed2` and {lit}`BalancedBlackHeight`, after which
+  {lit}`redBlackShape_delete` follows by repainting the root black.  The four
+  local {lit}`RB-DELETE-FIXUP` case certificates are proved, but the
+  fully-composed loop's shape invariant remains future work.
 -/
 
 namespace CLRS
@@ -1104,6 +1139,779 @@ theorem blackHeight_insert {x : Nat} {t : RBTree} (h : RedBlackShape t) :
   · right
     rw [insert]
     rw [blackHeight_repaintRoot_black_increases hRoot, hHeight]
+/-! ## Logarithmic height bound (CLRS Lemma 13.1)
+
+A red-black tree with {lit}`n` internal nodes has height at most
+{lit}`2 log₂(n + 1)`.  The proof follows the textbook decomposition:
+
+1. Every subtree rooted at {lit}`x` has at least {lit}`2^{bh(x)} - 1` internal
+   nodes (Lemma A).
+2. The height of a no-red-red tree is at most twice its black height (Lemma B).
+3. From (1), {lit}`bh ≤ log₂(n + 1)`; from (2), {lit}`h ≤ 2·bh`.
+
+Main results:
+
+- Theorem {lit}`height_le_two_mul_blackHeight_of_RedBlackShape`: height ≤ 2·bh
+  for any red-black-shaped tree.
+- Theorem {lit}`size_add_one_ge_two_pow_blackHeight`: size + 1 ≥ 2^bh for any
+  balanced-black-height tree.
+- Theorem {lit}`height_log_bound`: the full CLRS Lemma 13.1 bound. -/
+
+/-- The height (maximum depth) of a red-black tree: the longest path from the
+root to an empty leaf, counting edges.  Empty tree height is 0. -/
+def height : RBTree → Nat
+  | .empty => 0
+  | .node _ l _ r => 1 + max l.height r.height
+
+/-- The internal node count of a red-black tree. -/
+def size : RBTree → Nat
+  | .empty => 0
+  | .node _ l _ r => 1 + l.size + r.size
+
+/-- **Lemma A.**  A tree with balanced black heights has at least {lit}`2^{bh} - 1`
+internal nodes.  Formalised as {lit}`size t + 1 ≥ 2 ^ blackHeight t`. -/
+theorem size_add_one_ge_two_pow_blackHeight (t : RBTree)
+    (hBal : BalancedBlackHeight t) : size t + 1 ≥ 2 ^ blackHeight t := by
+  induction t with
+  | empty => simp [size, blackHeight]
+  | node c l k r ihl ihr =>
+    simp only [BalancedBlackHeight] at hBal
+    rcases hBal with ⟨hlBal, hrBal, heq⟩
+    have ihl' : size l + 1 ≥ 2 ^ blackHeight l := ihl hlBal
+    have ihr' : size r + 1 ≥ 2 ^ blackHeight l := by
+      rw [heq]; exact ihr hrBal
+    simp only [size]
+    have h_sum : 1 + size l + size r + 1 = (size l + 1) + (size r + 1) := by omega
+    rw [h_sum]
+    rw [blackHeight]
+    have h_pow_succ : 2 ^ blackHeight l + 2 ^ blackHeight l = 2 ^ (blackHeight l + 1) := by
+      rw [← two_mul, mul_comm, ← Nat.pow_succ 2 (blackHeight l)]
+    by_cases hc : c = Color.black
+    · subst hc
+      have h_if : (if Color.black = Color.black then (1 : ℕ) else 0) = 1 := by simp
+      rw [h_if]
+      rw [← h_pow_succ]
+      exact add_le_add ihl' ihr'
+    · -- c ≠ black
+      rw [if_neg hc]
+      have h_add : (size l + 1) + (size r + 1) ≥ size l + 1 := Nat.le_add_right _ _
+      exact Nat.le_trans ihl' h_add
+
+/-- **Boolean root-black test**, for use in propositions that need decidability. -/
+def rootBlack : RBTree → Bool
+  | .empty => true
+  | .node c _ _ _ => c = Color.black
+
+/-- The {lit}`Bool` version agrees with the {lit}`Prop` version. -/
+theorem rootBlack_eq_RootBlack (t : RBTree) : rootBlack t = true ↔ RootBlack t := by
+  cases t <;> simp [rootBlack, RootBlack]
+
+/-- **Lemma B (strengthened induction hypothesis).**  For a tree with
+{lit}`NoRedRed` and {lit}`BalancedBlackHeight`, the height is bounded by twice
+the black height plus a root-color adjustment term.  Uses a {lit}`Bool` version
+of the condition to avoid decidability issues. -/
+theorem height_le_two_mul_blackHeight_add_adj (t : RBTree)
+    (hRed : NoRedRed t) (hBal : BalancedBlackHeight t) :
+    height t ≤ 2 * blackHeight t + (if rootBlack t then 0 else 1) := by
+  induction t with
+  | empty => simp [height, blackHeight, rootBlack]
+  | node c l k r ihl ihr =>
+    simp only [NoRedRed] at hRed
+    rcases hRed with ⟨hlRed, hrRed, hRedCond⟩
+    simp only [BalancedBlackHeight] at hBal
+    rcases hBal with ⟨hlBal, hrBal, heq⟩
+    have ihl' := ihl hlRed hlBal
+    have ihr' := ihr hrRed hrBal
+    simp only [height, blackHeight]
+    have hmax : max (height l) (height r) ≤ 2 * blackHeight l + 1 := by
+      have hL : height l ≤ 2 * blackHeight l + (if rootBlack l then 0 else 1) := ihl'
+      have hR : height r ≤ 2 * blackHeight r + (if rootBlack r then 0 else 1) := ihr'
+      have hR' : height r ≤ 2 * blackHeight l + (if rootBlack r then 0 else 1) := by
+        rw [heq]; exact hR
+      have adjL : (if rootBlack l then 0 else 1 : ℕ) ≤ 1 := by split <;> omega
+      have adjR : (if rootBlack r then 0 else 1 : ℕ) ≤ 1 := by split <;> omega
+      apply max_le
+      · omega
+      · omega
+    have hrhs : 1 + max (height l) (height r) ≤ 1 + (2 * blackHeight l + 1) := by omega
+    by_cases hc : c = Color.black
+    · subst hc
+      simp
+      convert Nat.add_le_add_right hmax 1 using 1
+      · simp [add_comm]
+      · calc
+          (2 * blackHeight l + 1) + 1 = 2 * blackHeight l + (1 + 1) := by rw [add_assoc]
+          _ = 2 * blackHeight l + 2 := by norm_num
+          _ = 2 * (blackHeight l + 1) := by rw [Nat.mul_succ]
+    · have hc_red : c = Color.red := by cases c <;> simp_all
+      subst hc_red
+      simp
+      have hmax_red : max (height l) (height r) ≤ 2 * blackHeight l := by
+        have hl_bound : height l ≤ 2 * blackHeight l := by
+          -- From ihl': height l ≤ 2*bl + (if rootBlack l then 0 else 1)
+          -- After subst, rootBlack l = true (from NoRedRed)
+          have hRoot_lb : rootBlack l = true :=
+            (rootBlack_eq_RootBlack l).mpr ((hRedCond rfl).1)
+          simp [hRoot_lb] at ihl'; omega
+        have hr_bound : height r ≤ 2 * blackHeight l := by
+          have hRoot_rb : rootBlack r = true :=
+            (rootBlack_eq_RootBlack r).mpr ((hRedCond rfl).2)
+          simp [hRoot_rb] at ihr'; omega
+        exact max_le hl_bound hr_bound
+      convert Nat.add_le_add_right hmax_red 1 using 1
+      · simp [add_comm]
+      · rfl
+
+/-- **Lemma B (public form).**  For any red-black-shaped tree, height ≤ 2·bh. -/
+theorem height_le_two_mul_blackHeight_of_RedBlackShape (t : RBTree)
+    (hShape : RedBlackShape t) : height t ≤ 2 * blackHeight t := by
+  obtain ⟨hRoot, hRed, hBal⟩ := hShape
+  have h := height_le_two_mul_blackHeight_add_adj t hRed hBal
+  have hRoot_b : rootBlack t = true := (rootBlack_eq_RootBlack t).mpr hRoot
+  rw [hRoot_b] at h
+  simpa using h
+
+/-- **CLRS Lemma 13.1.**  A red-black tree with {lit}`n` internal nodes has
+height at most {lit}`2 log₂ (n + 1)`. -/
+theorem height_log_bound (t : RBTree) (hShape : RedBlackShape t) :
+    height t ≤ 2 * Nat.log 2 (size t + 1) := by
+  have hBal : BalancedBlackHeight t := hShape.2.2
+  have hSize := size_add_one_ge_two_pow_blackHeight t hBal
+  have hHeight := height_le_two_mul_blackHeight_of_RedBlackShape t hShape
+  have hLog : blackHeight t ≤ Nat.log 2 (size t + 1) :=
+    Nat.le_log_of_pow_le (by omega) hSize
+  omega
+
+/-! ## Local deletion-fixup cases (CLRS RB-DELETE-FIXUP)
+
+After deleting a black node the tree carries a *doubly-black* deficit: one
+subtree has black height one less than its sibling.  {lit}`RB-DELETE-FIXUP` restores
+balance through four local cases, mirrored below for the situation where the
+deficient node is a *left* child (so its sibling {lit}`w` is the right child of the
+parent).  Each case is a pure local rewrite; we prove that every case preserves
+membership, and that the terminating Case 4 resolves the deficit and
+re-establishes the no-red-red and balanced-black-height shape.
+
+Main results:
+
+- Definitions {lit}`deleteFixupCase1`..{lit}`deleteFixupCase4` and the {lit}`DeleteFixupCase`
+  dispatcher {lit}`deleteFixupLocal`.
+- Theorems {lit}`inTree_deleteFixupCase*_iff`: every case preserves membership.
+- Theorem {lit}`deleteFixupCase4_shape`: the terminating rotation case restores the
+  no-red-red and balanced invariants and fixes the black-height deficit. -/
+
+/-- **Case 1** (sibling {lit}`w` is red): left-rotate the parent, recolour {lit}`w` black
+and the parent red, exposing a black sibling for Cases 2-4. -/
+def deleteFixupCase1 : RBTree → RBTree
+  | node pc x pk (node Color.red wl wk wr) =>
+      node pc (node Color.red x pk wl) wk wr
+  | t => t
+
+/-- **Case 2** ({lit}`w` black with two black children): recolour {lit}`w` red, pushing
+the deficit up to the parent. -/
+def deleteFixupCase2 : RBTree → RBTree
+  | node pc x pk (node Color.black wl wk wr) =>
+      node pc x pk (node Color.red wl wk wr)
+  | t => t
+
+/-- **Case 3** ({lit}`w` black, {lit}`w.left` red, {lit}`w.right` black): right-rotate {lit}`w` and
+recolour, reducing to Case 4. -/
+def deleteFixupCase3 : RBTree → RBTree
+  | node pc x pk (node Color.black (node Color.red wll wlk wlr) wk wr) =>
+      node pc x pk (node Color.black wll wlk (node Color.red wlr wk wr))
+  | t => t
+
+/-- **Case 4** ({lit}`w` black, {lit}`w.right` red): left-rotate the parent, recolour, and
+the deficit is resolved. -/
+def deleteFixupCase4 : RBTree → RBTree
+  | node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)) =>
+      node pc (node Color.black x pk wl) wk (node Color.black wrl wrk wrr)
+  | t => t
+
+/-- The four local CLRS delete-fixup case orientations (deficient left child). -/
+inductive DeleteFixupCase where
+  | case1
+  | case2
+  | case3
+  | case4
+  deriving Repr, DecidableEq
+
+/-- Unified dispatcher for the four local delete-fixup rewrites. -/
+def deleteFixupLocal : DeleteFixupCase → RBTree → RBTree
+  | DeleteFixupCase.case1, t => deleteFixupCase1 t
+  | DeleteFixupCase.case2, t => deleteFixupCase2 t
+  | DeleteFixupCase.case3, t => deleteFixupCase3 t
+  | DeleteFixupCase.case4, t => deleteFixupCase4 t
+
+/-- Case 1 preserves membership. -/
+theorem inTree_deleteFixupCase1_iff (q : Nat) (x wl wr : RBTree) (pk wk : Nat)
+    (pc : Color) :
+    InTree q (deleteFixupCase1 (node pc x pk (node Color.red wl wk wr))) ↔
+      InTree q (node pc x pk (node Color.red wl wk wr)) := by
+  simp [deleteFixupCase1, InTree, or_assoc, or_left_comm]
+
+/-- Case 2 preserves membership. -/
+theorem inTree_deleteFixupCase2_iff (q : Nat) (x wl wr : RBTree) (pk wk : Nat)
+    (pc : Color) :
+    InTree q (deleteFixupCase2 (node pc x pk (node Color.black wl wk wr))) ↔
+      InTree q (node pc x pk (node Color.black wl wk wr)) := by
+  simp [deleteFixupCase2, InTree]
+
+/-- Case 3 preserves membership. -/
+theorem inTree_deleteFixupCase3_iff (q : Nat) (x wll wlr wr : RBTree)
+    (pk wlk wk : Nat) (pc : Color) :
+    InTree q (deleteFixupCase3
+        (node pc x pk (node Color.black (node Color.red wll wlk wlr) wk wr))) ↔
+      InTree q (node pc x pk (node Color.black (node Color.red wll wlk wlr) wk wr)) := by
+  simp [deleteFixupCase3, InTree, or_assoc, or_left_comm]
+
+/-- Case 4 preserves membership. -/
+theorem inTree_deleteFixupCase4_iff (q : Nat) (x wl wrl wrr : RBTree)
+    (pk wk wrk : Nat) (pc : Color) :
+    InTree q (deleteFixupCase4
+        (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)))) ↔
+      InTree q (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr))) := by
+  simp [deleteFixupCase4, InTree, or_assoc, or_left_comm]
+
+/-- **Case 4 terminating certificate.**  When the deficient left subtree {lit}`x` and
+the sibling's fringe subtrees {lit}`wl`, {lit}`wrl`, {lit}`wrr` are red-black shaped with equal
+black heights (the doubly-black deficit {lit}`blackHeight x = blackHeight wl`), the
+left-rotation-and-recolour of Case 4 re-establishes the no-red-red and
+balanced-black-height invariants — the deficit is resolved regardless of the
+parent colour {lit}`pc`. -/
+theorem deleteFixupCase4_shape
+    {x wl wrl wrr : RBTree} {pk wk wrk : Nat} {pc : Color}
+    (hx : RedBlackShape x) (hwl : RedBlackShape wl)
+    (hwrl : RedBlackShape wrl) (hwrr : RedBlackShape wrr)
+    (hxwl : blackHeight x = blackHeight wl)
+    (hwlwrl : blackHeight wl = blackHeight wrl)
+    (hwrlwrr : blackHeight wrl = blackHeight wrr) :
+    NoRedRed (deleteFixupCase4
+        (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)))) ∧
+    BalancedBlackHeight (deleteFixupCase4
+        (node pc x pk (node Color.black wl wk (node Color.red wrl wrk wrr)))) := by
+  rcases hx with ⟨_hxRoot, hxNoRed, hxBal⟩
+  rcases hwl with ⟨_hwlRoot, hwlNoRed, hwlBal⟩
+  rcases hwrl with ⟨_hwrlRoot, hwrlNoRed, hwrlBal⟩
+  rcases hwrr with ⟨_hwrrRoot, hwrrNoRed, hwrrBal⟩
+  refine ⟨?_, ?_⟩
+  · simp [deleteFixupCase4, NoRedRed, RootBlack]
+    exact ⟨⟨hxNoRed, hwlNoRed⟩, hwrlNoRed, hwrrNoRed⟩
+  · simp [deleteFixupCase4, BalancedBlackHeight]
+    refine ⟨⟨hxBal, hwlBal, hxwl⟩, ⟨hwrlBal, hwrrBal, hwrlwrr⟩, ?_⟩
+    simp only [blackHeight]
+    omega
+
+/-! ## Executable functional deletion (CLRS RB-DELETE)
+
+This section develops the fully-composed executable red-black *deletion*
+following the standard Okasaki/Kahrs functional-deletion pattern (as used in
+Nipkow's verified `RBT_Set` development).  It reuses the insertion balancers
+{lit}`balanceLeft` and {lit}`balanceRight` and adds the deletion re-balancers
+{lit}`baldL` and {lit}`baldR`, the minimum-splicing {lit}`splitMin`, and the recursive
+{lit}`del` / {lit}`delete`.
+
+The invariant bookkeeping tracks two relaxations of the shape predicate:
+
+- {lit}`NoRedRed2 t` (a weakened {lit}`NoRedRed`): the root may host a single red-red
+  edge but every proper subtree is clean.  This is exactly {lit}`NoRedRed` after
+  repainting the root black.
+- The *doubly-black* deficit produced by removing a black node, which
+  {lit}`baldL` / {lit}`baldR` absorb by rotating and recolouring.
+
+Main results:
+
+- Definitions {lit}`RBTree.rootColor`, {lit}`RBTree.NoRedRed2`.
+- Balance invariant lemmas {lit}`RBTree.noRedRed_balanceLeft`,
+  {lit}`RBTree.noRedRed_balanceRight`, {lit}`RBTree.balancedBlackHeight_balanceLeft`,
+  {lit}`RBTree.balancedBlackHeight_balanceRight`.
+- Definitions {lit}`RBTree.baldL`, {lit}`RBTree.baldR`, {lit}`RBTree.splitMin`,
+  {lit}`RBTree.del`, {lit}`RBTree.delete`.
+- Membership certificates {lit}`RBTree.inTree_baldL`, {lit}`RBTree.inTree_baldR`. -/
+
+/-- The root colour of a tree; empty leaves count as black. -/
+def rootColor : RBTree → Color
+  | empty => Color.black
+  | node c _ _ _ => c
+
+/-- A weakened no-red-red invariant (`invc2`): the root may carry one red-red
+edge, but every proper subtree already satisfies {name}`RBTree.NoRedRed`.  It is
+defined as {name}`RBTree.NoRedRed` after repainting the root black. -/
+def NoRedRed2 (t : RBTree) : Prop := NoRedRed (repaintRoot Color.black t)
+
+/-- {name}`RBTree.NoRedRed2` on a node ignores the root colour constraint. -/
+theorem noRedRed2_node_iff {c l k r} :
+    NoRedRed2 (node c l k r) ↔ NoRedRed l ∧ NoRedRed r := by
+  simp [NoRedRed2, repaintRoot, NoRedRed]
+
+/-- Every {name}`RBTree.NoRedRed` tree is {name}`RBTree.NoRedRed2`. -/
+theorem noRedRed2_of_noRedRed {t} (h : NoRedRed t) : NoRedRed2 t := noRedRed_repaint_black h
+
+/-- A black-rooted {name}`RBTree.NoRedRed2` tree is fully {name}`RBTree.NoRedRed`. -/
+theorem noRedRed_of_noRedRed2_rootBlack {t} (h2 : NoRedRed2 t) (hb : RootBlack t) :
+    NoRedRed t := by
+  cases t with
+  | empty => trivial
+  | node c l k r =>
+      simp [RootBlack] at hb; subst hb
+      rw [noRedRed2_node_iff] at h2; simp [NoRedRed]; exact ⟨h2.1, h2.2⟩
+
+/-- Repainting the root red does not change {name}`RBTree.NoRedRed2`. -/
+theorem noRedRed2_repaintRoot_red {t} : NoRedRed2 (repaintRoot Color.red t) ↔ NoRedRed2 t := by
+  cases t <;> simp [NoRedRed2, repaintRoot, NoRedRed]
+
+/-- Repainting a black root red drops the black height by one. -/
+theorem blackHeight_repaintRoot_red_rootBlack {t} (h : RootBlack t) :
+    blackHeight (repaintRoot Color.red t) = blackHeight t - 1 := by
+  cases t with
+  | empty => simp [repaintRoot, blackHeight]
+  | node c l k r => simp [RootBlack] at h; subst h; simp [repaintRoot, blackHeight]
+
+/-- Repainting the root red preserves balanced child black heights. -/
+theorem balancedBlackHeight_repaintRoot_red {t} :
+    BalancedBlackHeight (repaintRoot Color.red t) ↔ BalancedBlackHeight t := by
+  cases t <;> simp [repaintRoot, BalancedBlackHeight]
+
+/-! ### Balance invariant preservation
+
+The insertion balancers {name}`RBTree.balanceLeft` / {name}`RBTree.balanceRight`
+(CLRS `baliL` / `baliR`) not only preserve membership and black height (proved
+above) but also repair a single red-red edge, taking one weakened
+({name}`RBTree.NoRedRed2`) argument to a fully {name}`RBTree.NoRedRed` result. -/
+
+/-- {name}`RBTree.balanceLeft` repairs a red-red edge in a weakened left child. -/
+theorem noRedRed_balanceLeft {l y r} (hl : NoRedRed2 l) (hr : NoRedRed r) :
+    NoRedRed (balanceLeft l y r) := by
+  rw [NoRedRed2] at hl
+  cases l with
+  | empty => simpa [balanceLeft, NoRedRed, RootBlack] using hr
+  | node lc ll lk lr =>
+    cases lc with
+    | black =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hl
+        simp only [balanceLeft, NoRedRed, RootBlack]; tauto
+    | red =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hl
+        cases ll with
+        | empty =>
+            cases lr with
+            | empty => simp [balanceLeft, NoRedRed, RootBlack]; tauto
+            | node lrc lrl lrk lrr =>
+                cases lrc <;> · simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+        | node llc lll llk llr =>
+            cases llc with
+            | red => simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+            | black =>
+                cases lr with
+                | empty => simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+                | node lrc lrl lrk lrr =>
+                    cases lrc <;> · simp only [balanceLeft, NoRedRed, RootBlack] at hl ⊢; tauto
+
+/-- {name}`RBTree.balanceRight` repairs a red-red edge in a weakened right child. -/
+theorem noRedRed_balanceRight {l y r} (hl : NoRedRed l) (hr : NoRedRed2 r) :
+    NoRedRed (balanceRight l y r) := by
+  rw [NoRedRed2] at hr
+  cases r with
+  | empty => simpa [balanceRight, NoRedRed, RootBlack] using hl
+  | node rc rl rk rr =>
+    cases rc with
+    | black =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hr
+        simp only [balanceRight, NoRedRed, RootBlack]; tauto
+    | red =>
+        simp only [repaintRoot, NoRedRed, RootBlack] at hr
+        cases rl with
+        | empty =>
+            cases rr with
+            | empty => simp [balanceRight, NoRedRed, RootBlack]; tauto
+            | node rrc rrl rrk rrr =>
+                cases rrc <;> · simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+        | node rlc rll rlk rlr =>
+            cases rlc with
+            | red => simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+            | black =>
+                cases rr with
+                | empty => simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+                | node rrc rrl rrk rrr =>
+                    cases rrc <;> · simp only [balanceRight, NoRedRed, RootBlack] at hr ⊢; tauto
+
+/-- {name}`RBTree.balanceLeft` preserves balanced child black heights. -/
+theorem balancedBlackHeight_balanceLeft {l y r}
+    (hl : BalancedBlackHeight l) (hr : BalancedBlackHeight r)
+    (hlr : blackHeight l = blackHeight r) :
+    BalancedBlackHeight (balanceLeft l y r) := by
+  unfold balanceLeft
+  split <;> (simp_all [BalancedBlackHeight, blackHeight]; try omega)
+
+/-- {name}`RBTree.balanceRight` preserves balanced child black heights. -/
+theorem balancedBlackHeight_balanceRight {l y r}
+    (hl : BalancedBlackHeight l) (hr : BalancedBlackHeight r)
+    (hlr : blackHeight l = blackHeight r) :
+    BalancedBlackHeight (balanceRight l y r) := by
+  unfold balanceRight
+  split <;> (simp_all [BalancedBlackHeight, blackHeight]; try omega)
+
+/-! ### Deletion re-balancers `baldL` / `baldR`
+
+After removing a black node from the left (respectively right) subtree, the
+subtree carries a doubly-black deficit — its black height is one less than its
+sibling.  {lit}`baldL` / {lit}`baldR` absorb the deficit,
+possibly bubbling it one level up (the recoloured-red result). -/
+
+/-- Deletion re-balancer for a black-deficient **left** child. -/
+def baldL : RBTree → Nat → RBTree → RBTree
+  | node Color.red a x b, k, r => node Color.red (node Color.black a x b) k r
+  | l, k, node Color.black c y d => balanceRight l k (node Color.red c y d)
+  | l, k, node Color.red (node Color.black c y d) z e =>
+      node Color.red (node Color.black l k c) y (balanceRight d z (repaintRoot Color.red e))
+  | l, k, r => node Color.red l k r
+
+/-- Deletion re-balancer for a black-deficient **right** child. -/
+def baldR : RBTree → Nat → RBTree → RBTree
+  | l, k, node Color.red c y d => node Color.red l k (node Color.black c y d)
+  | node Color.black a x b, k, r => balanceLeft (node Color.red a x b) k r
+  | node Color.red a x (node Color.black c y d), k, r =>
+      node Color.red (balanceLeft (repaintRoot Color.red a) x c) y (node Color.black d k r)
+  | l, k, r => node Color.red l k r
+
+/-- {name}`RBTree.baldL` preserves the key set (`{k} ∪ keys l ∪ keys r`). -/
+theorem inTree_baldL (q : Nat) (l : RBTree) (k : Nat) (r : RBTree) :
+    InTree q (baldL l k r) ↔ q = k ∨ InTree q l ∨ InTree q r := by
+  unfold baldL
+  split <;>
+    simp [InTree, inTree_balanceRight_iff, inTree_repaintRoot_iff, or_assoc, or_left_comm]
+
+/-- {name}`RBTree.baldR` preserves the key set (`{k} ∪ keys l ∪ keys r`). -/
+theorem inTree_baldR (q : Nat) (l : RBTree) (k : Nat) (r : RBTree) :
+    InTree q (baldR l k r) ↔ q = k ∨ InTree q l ∨ InTree q r := by
+  unfold baldR
+  split <;>
+    simp [InTree, inTree_balanceLeft_iff, inTree_repaintRoot_iff, or_assoc, or_left_comm]
+
+/-! ### Binary-search-tree ordering predicate
+
+The BST property (all keys in the left subtree are less than the root, all keys
+in the right subtree are greater) is needed for the \"key not present after delete\"
+direction of the membership theorem.  Every red-black tree is a BST, so this is
+a valid assumption for all inputs. -/
+
+/-- A binary-search-tree ordering predicate: all keys in the left subtree are less
+than the node's key, all keys in the right subtree are greater. -/
+def BST : RBTree → Prop
+  | empty => True
+  | node _ l k r => BST l ∧ BST r ∧ (∀ x, InTree x l → x < k) ∧ (∀ x, InTree x r → k < x)
+
+/-- Extract the BST property from a node. -/
+theorem bst_node {c l k r} (h : BST (node c l k r)) : BST l ∧ BST r := by
+  simp [BST] at h; exact ⟨h.1, h.2.1⟩
+
+/-! ### Minimum deletion and tree merging -/
+
+/-- Find and remove the minimum key from a non-empty tree.
+Returns `(min_key, tree_without_min)`. -/
+def splitMin : RBTree → Nat × RBTree
+  | empty => (0, empty)  -- unreachable on valid inputs
+  | node _ empty k r => (k, r)
+  | node c l k r =>
+      let (m, l') := splitMin l
+      (m, node c l' k r)
+
+/-- The minimum key removed by {name}`splitMin` is indeed in the original tree. -/
+theorem inTree_splitMin_mem {t : RBTree} (h : t ≠ empty) : InTree (splitMin t).1 t := by
+  induction t with
+  | empty => exact (h rfl).elim
+  | node c l k r ihl =>
+    cases l with
+    | empty => simp [splitMin, InTree]
+    | node lc ll lk lr =>
+        have hne : node lc ll lk lr ≠ empty := by
+          intro h'; injection h'
+        have ih := ihl hne
+        simpa [splitMin, InTree] using Or.inr (Or.inl ih)
+
+/-- If a key is in the result of {name}`splitMin`, it was in the original tree
+(splitMin never introduces keys). -/
+theorem inTree_splitMin_forward {t : RBTree} (h : t ≠ empty) (q : Nat) :
+    InTree q (splitMin t).2 → InTree q t := by
+  induction t with
+  | empty => exact (h rfl).elim
+  | node c l k r ihl =>
+    cases l with
+    | empty =>
+        simp [splitMin, InTree]
+        intro hqr; exact Or.inr hqr
+    | node lc ll lk lr =>
+        have hne : node lc ll lk lr ≠ empty := by
+          intro h'; injection h'
+        have ih := ihl hne
+        simp [splitMin, InTree]
+        intro h
+        rcases h with (hqk | hql' | hqr)
+        · exact Or.inl hqk
+        · have hql := ih hql'
+          exact Or.inr (Or.inl hql)
+        · exact Or.inr (Or.inr hqr)
+
+/-- If a key `q` is in the original tree and is not the removed minimum, then it is
+still in the tree after {name}`splitMin`. -/
+theorem inTree_splitMin_iff {t : RBTree} (h : t ≠ empty) (q : Nat) :
+    (InTree q t ∧ q ≠ (splitMin t).1) → InTree q (splitMin t).2 := by
+  induction t with
+  | empty => exact (h rfl).elim
+  | node c l k r ihl =>
+    cases l with
+    | empty =>
+        simp [splitMin, InTree]
+        intro hq hqne
+        rcases hq with (hqk | hqr)
+        · exfalso; exact hqne hqk
+        · exact hqr
+    | node lc ll lk lr =>
+        have hne : node lc ll lk lr ≠ empty := by
+          intro h'; injection h'
+        have ih := ihl hne
+        simp [splitMin, InTree]
+        intro hq hqne
+        rcases hq with (hqk | hql | hqr)
+        · exact Or.inl hqk
+        · have hql' : InTree q (node lc ll lk lr) := by
+            simpa [InTree] using hql
+          have ih' := ih ⟨hql', hqne⟩
+          exact Or.inr (Or.inl ih')
+        · exact Or.inr (Or.inr hqr)
+
+/-- Merge two trees into one, used when deleting a node with two children.
+All keys in `l` must be less than all keys in `r`. -/
+def join (l r : RBTree) : RBTree :=
+  if h : r = empty then l
+  else if h' : l = empty then r
+  else
+    let (m, r') := splitMin r
+    baldR l m r'
+
+/-- {name}`join` preserves the union of key sets. -/
+theorem inTree_join_iff (q : Nat) (l r : RBTree) :
+    InTree q (join l r) ↔ InTree q l ∨ InTree q r := by
+  unfold join
+  split_ifs with hr hl
+  · subst hr; simp [InTree]
+  · subst hl; simp [InTree]
+  · simp [inTree_baldR]
+    constructor
+    · intro h
+      rcases h with (hqm | hql | hqr)
+      · have hmr : InTree (splitMin r).1 r := inTree_splitMin_mem hr
+        subst hqm; exact Or.inr hmr
+      · exact Or.inl hql
+      · have hqrT : InTree q r := inTree_splitMin_forward hr q hqr
+        exact Or.inr hqrT
+    · intro h
+      rcases h with (hql | hqr)
+      · exact Or.inr (Or.inl hql)
+      · by_cases hqe : q = (splitMin r).1
+        · subst q; exact Or.inl rfl
+        · have hqr' : InTree q (splitMin r).2 :=
+            inTree_splitMin_iff hr q ⟨hqr, hqe⟩
+          exact Or.inr (Or.inr hqr')
+
+/-! ### Executable deletion -/
+
+/-- Recursive deletion from a red-black tree.
+Returns a tree that is {name}`NoRedRed2` when the input is {name}`RedBlackShape`
+shaped, and has black height either the same as the input or one less. -/
+def del (x : Nat) : RBTree → RBTree
+  | empty => empty
+  | node c l y r =>
+    if x < y then
+      if rootBlack l then baldL (del x l) y r
+      else node Color.red (del x l) y r
+    else if x > y then
+      if rootBlack r then baldR l y (del x r)
+      else node Color.red l y (del x r)
+    else join l r
+
+/-- Delete a key from a red-black tree while preserving the global red-black shape. -/
+def delete (x : Nat) (t : RBTree) : RBTree :=
+  repaintRoot Color.black (del x t)
+
+/-- {name}`del` preserves membership for keys different from the deleted key
+(forward direction: keys in the result are keys in the original). -/
+theorem inTree_del_forward (x q : Nat) (t : RBTree) : InTree q (del x t) → InTree q t := by
+  induction t with
+  | empty => simp [del, InTree]
+  | node c l y r ihl ihr =>
+    simp [del]
+    by_cases hx_lt_y : x < y
+    · simp [hx_lt_y]
+      by_cases hrb : rootBlack l
+      · simp [hrb, inTree_baldL]
+        intro h
+        rcases h with (hqy | hql | hqr)
+        · exact Or.inl hqy
+        · have hqlT := ihl hql
+          exact Or.inr (Or.inl hqlT)
+        · exact Or.inr (Or.inr hqr)
+      · simp [hrb, InTree]
+        intro h
+        rcases h with (hqy | hql | hqr)
+        · exact Or.inl hqy
+        · have hqlT := ihl hql
+          exact Or.inr (Or.inl hqlT)
+        · exact Or.inr (Or.inr hqr)
+    · by_cases hx_gt_y : x > y
+      · simp [hx_lt_y, hx_gt_y]
+        by_cases hrb : rootBlack r
+        · simp [hrb, inTree_baldR]
+          intro h
+          rcases h with (hqy | hql | hqr)
+          · exact Or.inl hqy
+          · exact Or.inr (Or.inl hql)
+          · have hqrT := ihr hqr
+            exact Or.inr (Or.inr hqrT)
+        · simp [hrb, InTree]
+          intro h
+          rcases h with (hqy | hql | hqr)
+          · exact Or.inl hqy
+          · exact Or.inr (Or.inl hql)
+          · have hqrT := ihr hqr
+            exact Or.inr (Or.inr hqrT)
+      · have h_eq : x = y := by omega
+        subst h_eq
+        simp [inTree_join_iff]
+        intro h
+        rcases h with (hql | hqr)
+        · exact Or.inr (Or.inl hql)
+        · exact Or.inr (Or.inr hqr)
+
+/-- {name}`del` preserves membership for keys different from the deleted key
+(backward direction: keys in the original (except the deleted key) survive). -/
+theorem inTree_del_backward (x q : Nat) (t : RBTree) (h : InTree q t) (hne : q ≠ x) :
+    InTree q (del x t) := by
+  induction t generalizing x q with
+  | empty => simp [InTree] at h
+  | node c l y r ihl ihr =>
+    simp [del]
+    by_cases hx_lt_y : x < y
+    · simp [hx_lt_y]
+      rcases h with (hqy | hql | hqr)
+      · by_cases hrb : rootBlack l
+        · simp [hrb, inTree_baldL, hqy]
+        · simp [hrb, InTree, hqy]
+      · have h_del : InTree q (del x l) := ihl x q hql hne
+        by_cases hrb : rootBlack l
+        · simp [hrb, inTree_baldL, h_del]
+        · simp [hrb, InTree, h_del]
+      · by_cases hrb : rootBlack l
+        · simp [hrb, inTree_baldL, hqr]
+        · simp [hrb, InTree, hqr]
+    · by_cases hx_gt_y : x > y
+      · simp [hx_lt_y, hx_gt_y]
+        rcases h with (hqy | hql | hqr)
+        · by_cases hrb : rootBlack r
+          · simp [hrb, inTree_baldR, hqy]
+          · simp [hrb, InTree, hqy]
+        · by_cases hrb : rootBlack r
+          · simp [hrb, inTree_baldR, hql]
+          · simp [hrb, InTree, hql]
+        · have h_del : InTree q (del x r) := ihr x q hqr hne
+          by_cases hrb : rootBlack r
+          · simp [hrb, inTree_baldR, h_del]
+          · simp [hrb, InTree, h_del]
+      · have h_eq : x = y := by omega
+        subst h_eq
+        rcases h with (hqy | hql | hqr)
+        · exfalso; exact hne hqy
+        · simp [inTree_join_iff, Or.inl hql]
+        · simp [inTree_join_iff, Or.inr hqr]
+
+/-- The deleted key is not present in the result of {name}`del` (requires BST). -/
+theorem not_inTree_del_self (x : Nat) (t : RBTree) (hbst : BST t) : ¬ InTree x (del x t) := by
+  induction t with
+  | empty => simp [del, InTree]
+  | node c l y r ihl ihr =>
+    have ⟨hbstL, hbstR, hLT, hGT⟩ : BST l ∧ BST r ∧ (∀ x, InTree x l → x < y) ∧ (∀ x, InTree x r → y < x) := by
+      simp [BST] at hbst; exact hbst
+    simp [del]
+    by_cases hx_lt_y : x < y
+    · simp [hx_lt_y]
+      have h_not_in_r : ¬ InTree x r := by
+        intro hxr; exact (Nat.lt_asymm hx_lt_y) (hGT x hxr)
+      have hx_ne_y : x ≠ y := Nat.ne_of_lt hx_lt_y
+      by_cases hrb : rootBlack l
+      · simp [hrb]
+        rw [inTree_baldL]
+        intro h; rcases h with (hxy | hxdl | hxr)
+        · exact hx_ne_y hxy
+        · exact ihl hbstL hxdl
+        · exact h_not_in_r hxr
+      · simp [hrb]
+        have h_unfold : InTree x (node Color.red (del x l) y r) ↔ (x = y ∨ InTree x (del x l) ∨ InTree x r) := by
+          simp [InTree]
+        rw [h_unfold]
+        intro h; rcases h with (hxy | hxdl | hxr)
+        · exact hx_ne_y hxy
+        · exact ihl hbstL hxdl
+        · exact h_not_in_r hxr
+    · by_cases hx_gt_y : x > y
+      · simp [hx_lt_y, hx_gt_y]
+        have h_not_in_l : ¬ InTree x l := by
+          intro hxl
+          have hx_lt_y : x < y := hLT x hxl
+          exact (Nat.lt_asymm hx_lt_y) hx_gt_y
+        have hx_ne_y : x ≠ y := Nat.ne_of_gt hx_gt_y
+        by_cases hrb : rootBlack r
+        · simp [hrb]
+          rw [inTree_baldR]
+          intro h; rcases h with (hxy | hxl | hxdr)
+          · exact hx_ne_y hxy
+          · exact h_not_in_l hxl
+          · exact ihr hbstR hxdr
+        · simp [hrb]
+          have h_unfold : InTree x (node Color.red l y (del x r)) ↔ (x = y ∨ InTree x l ∨ InTree x (del x r)) := by
+            simp [InTree]
+          rw [h_unfold]
+          intro h; rcases h with (hxy | hxl | hxdr)
+          · exact hx_ne_y hxy
+          · exact h_not_in_l hxl
+          · exact ihr hbstR hxdr
+      · have h_eq : x = y := by omega
+        subst h_eq
+        have h_not_in_l : ¬ InTree x l := by
+          intro hxl; exact (Nat.lt_irrefl x) (hLT x hxl)
+        have h_not_in_r : ¬ InTree x r := by
+          intro hxr; exact (Nat.lt_irrefl x) (hGT x hxr)
+        simp [inTree_join_iff, h_not_in_l, h_not_in_r]
+
+/-- Full membership-after-{name}`del` equivalence (requires BST). -/
+theorem inTree_del_iff (x q : Nat) (t : RBTree) (hbst : BST t) :
+    InTree q (del x t) ↔ InTree q t ∧ q ≠ x := by
+  constructor
+  · intro h; constructor
+    · exact inTree_del_forward x q t h
+    · intro hqx; subst q; exact not_inTree_del_self x t hbst h
+  · intro ⟨h, hne⟩; exact inTree_del_backward x q t h hne
+
+/-- {name}`delete` preserves membership (forward direction). -/
+theorem inTree_delete_forward (x q : Nat) (t : RBTree) :
+    InTree q (delete x t) → InTree q t := by
+  simp [delete, inTree_repaintRoot_iff]; exact inTree_del_forward x q t
+
+/-- {name}`delete` preserves membership for keys different from the deleted key
+(backward direction). -/
+theorem inTree_delete_backward (x q : Nat) (t : RBTree) (h : InTree q t) (hne : q ≠ x) :
+    InTree q (delete x t) := by
+  simp [delete, inTree_repaintRoot_iff]; exact inTree_del_backward x q t h hne
+
+/-- The deleted key is not in the result of {name}`delete` (requires BST). -/
+theorem not_inTree_delete_self (x : Nat) (t : RBTree) (hbst : BST t) :
+    ¬ InTree x (delete x t) := by
+  simp [delete, inTree_repaintRoot_iff, not_inTree_del_self x t hbst]
+
+/-- Full membership-after-{name}`delete` equivalence (requires BST). -/
+theorem inTree_delete_iff (x q : Nat) (t : RBTree) (hbst : BST t) :
+    InTree q (delete x t) ↔ InTree q t ∧ q ≠ x := by
+  simp [delete, inTree_repaintRoot_iff, inTree_del_iff x q t hbst]
+
 end RBTree
 
 end Chapter13

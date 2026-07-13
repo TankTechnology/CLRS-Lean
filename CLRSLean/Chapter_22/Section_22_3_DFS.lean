@@ -10,8 +10,8 @@ colors (white/gray/black) are represented as functions, so the algorithm is
 noncomputable because it iterates over {lit}`Finset.toList`.
 
 The white-path theorem and the discovery-state infrastructure built on this
-model are proved in the companion {lit}`Section_22_3_DFS_WhitePath` and
-{lit}`Section_22_3_DFS_Intervals` modules.  The latter also proves the timestamp
+model are proved in the companion {lit}`Section_22_3_DFS.S1_WhitePath` and
+{lit}`Section_22_3_DFS.S2_Intervals` modules.  The latter also proves the timestamp
 form of the parenthesis theorem.  The ancestor characterization and unique
 tree/back/forward/cross classification are proved in the downstream companion
 modules.

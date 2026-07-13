@@ -26,13 +26,26 @@ Main results:
   cutting plan is bounded by the recurrence value of its total length.
 * Theorem {lit}`planValue_le_optimalPlanValue_of_same_length`: a plan attaining
   the recurrence value is optimal among plans of the same length.
+* Definition {lit}`rodRevenueArray`: the CLRS {lit}`BOTTOM-UP-CUT-ROD` table built as
+  a mutable {lit}`Array Nat`, whose entry {lit}`k` is filled from the earlier stored
+  entries exactly as the imperative algorithm fills {lit}`r[0 .. n]`.
+* Theorem {lit}`rodRevenueArray_correct`: the mutable-array bottom-up table refines
+  the pure recurrence value {lit}`bottomUpRodRevenue` at every filled index.
+* Theorem {lit}`rodRevenueArray_rodCutTableRecurrence`: reading the mutable-array
+  table is a correct finite bottom-up table in the sense of
+  {lit}`RodCutTableRecurrence`.
+* Theorem {lit}`planValue_le_rodRevenueArray`: every positive-piece cutting plan is
+  bounded by the value the mutable-array table stores at its total length.
 
-Status: `proved` for the mathematical cut-optimality layer.
+Status: `proved` for the mathematical cut-optimality layer and the mutable-array
+bottom-up implementation refinement.
 
 Deferred refinements:
 
-* Mutable-array implementation and memoized-cache refinement are future
-  implementation-level targets beyond the current mathematical-correctness scope.
+* A top-down memoized-cache refinement and explicit RAM cost semantics remain
+  future implementation-level targets.  The sibling dynamic-programming sections
+  (matrix chain, LCS, optimal BST) follow the same mutable-array bottom-up
+  pattern established here.
 -/
 
 namespace CLRS
@@ -396,6 +409,169 @@ theorem planValue_le_bottomUpRodPlanValue_of_same_length
     (price := price) (revenue := bottomUpRodRevenue price)
     (bottomUpRodRevenue_rodCutRecurrence price)
     hother_pos hlen hcandidate_value
+
+/-! ## Mutable-array bottom-up implementation
+
+This block refines the pure recurrence-valued rod-cutting function to CLRS's
+{lit}`BOTTOM-UP-CUT-ROD`, which fills a physical revenue table {lit}`r[0 .. n]` from
+the bottom up.  We model the table as an actual {lit}`Array Nat` grown one slot at
+a time with {name}`Array.push`, reusing the mutable-{lit}`Array` pattern of Section
+17.4, and prove a refinement theorem: reading the mutable table at any filled index
+returns exactly the pure recurrence value {name}`bottomUpRodRevenue`.  As a
+corollary the array read satisfies {name}`RodCutTableRecurrence`, so the mutable
+table inherits the plan-optimality guarantees proved above.
+-/
+
+/--
+Total read from a {lit}`Nat`-valued array, returning {lit}`0` for out-of-range
+indices.  This models the invariant-guarded reads a bottom-up dynamic-programming
+table performs: every access made by the algorithm is in range, and the default
+never fires during a real fill.
+-/
+def arrGet (a : Array Nat) (i : Nat) : Nat := (a[i]?).getD 0
+
+/-- Reading an in-range index is unaffected by pushing a new trailing element. -/
+theorem arrGet_push_lt (a : Array Nat) (x i : Nat) (h : i < a.size) :
+    arrGet (a.push x) i = arrGet a i := by
+  unfold arrGet
+  rw [Array.getElem?_push, if_neg (Nat.ne_of_lt h)]
+
+/-- Reading the freshly pushed slot returns the pushed element. -/
+theorem arrGet_push_size (a : Array Nat) (x : Nat) :
+    arrGet (a.push x) a.size = x := by
+  unfold arrGet
+  rw [Array.getElem?_push, if_pos rfl]
+  rfl
+
+/--
+Bottom-up mutable-array construction of the rod-cutting revenue table.  The value
+{lit}`rodRevenueArrayAux price n` is an {lit}`Array Nat` of length {lit}`n + 1`
+whose entry {lit}`k` is the best revenue for a rod of length {lit}`k`.  Each new
+entry is computed as the CLRS first-cut maximum over {lit}`Finset.Icc 1 (j + 1)`,
+reading the earlier revenues that are already stored in the array - the imperative
+{lit}`BOTTOM-UP-CUT-ROD` inner loop {lit}`q = max(q, p[i] + r[j - i])`.
+-/
+def rodRevenueArrayAux (price : Nat → Nat) : Nat → Array Nat
+  | 0 => #[0]
+  | j + 1 =>
+      (rodRevenueArrayAux price j).push
+        ((Finset.Icc 1 (j + 1)).sup
+          (fun i => price i + arrGet (rodRevenueArrayAux price j) ((j + 1) - i)))
+
+/-- The bottom-up table for rod length {lit}`n` stores exactly {lit}`n + 1` entries. -/
+theorem rodRevenueArrayAux_size (price : Nat → Nat) (n : Nat) :
+    (rodRevenueArrayAux price n).size = n + 1 := by
+  induction n with
+  | zero => rfl
+  | succ j ih => simp only [rodRevenueArrayAux, Array.size_push, ih]
+
+/--
+**Refinement of the mutable-array fill to the recurrence value.**  Every filled
+entry of the bottom-up array equals the pure recurrence value
+{name}`bottomUpRodRevenue` at the same index.  The proof is an induction on the
+table length whose step reads back the earlier entries the fill relied upon.
+-/
+theorem arrGet_rodRevenueArrayAux (price : Nat → Nat) :
+    ∀ n k, k ≤ n → arrGet (rodRevenueArrayAux price n) k = bottomUpRodRevenue price k := by
+  intro n
+  induction n with
+  | zero =>
+      intro k hk
+      obtain rfl : k = 0 := Nat.le_zero.mp hk
+      simp only [rodRevenueArrayAux, bottomUpRodRevenue_zero]
+      rfl
+  | succ j ih =>
+      intro k hk
+      have hsize : (rodRevenueArrayAux price j).size = j + 1 :=
+        rodRevenueArrayAux_size price j
+      simp only [rodRevenueArrayAux]
+      rcases Nat.eq_or_lt_of_le hk with heq | hlt
+      · -- k is the newly pushed top entry j + 1
+        have hk_size : k = (rodRevenueArrayAux price j).size := by rw [hsize]; exact heq
+        rw [hk_size, arrGet_push_size, ← hk_size, heq]
+        have hsup :
+            (Finset.Icc 1 (j + 1)).sup
+                (fun i => price i + arrGet (rodRevenueArrayAux price j) ((j + 1) - i))
+              = (Finset.Icc 1 (j + 1)).sup
+                (fun i => price i + bottomUpRodRevenue price ((j + 1) - i)) := by
+          apply Finset.sup_congr rfl
+          intro i hi
+          have hle : (j + 1) - i ≤ j := by
+            have := (Finset.mem_Icc.mp hi).1
+            omega
+          rw [ih ((j + 1) - i) hle]
+        rw [hsup, bottomUpRodRevenue_succ]
+        simp only [FirstCutValue]
+      · -- k lies inside the already-filled prefix
+        have hkj : k ≤ j := Nat.lt_succ_iff.mp hlt
+        have hk_lt : k < (rodRevenueArrayAux price j).size := by rw [hsize]; omega
+        rw [arrGet_push_lt _ _ _ hk_lt]
+        exact ih k hkj
+
+/--
+The CLRS {lit}`BOTTOM-UP-CUT-ROD` revenue table for a rod of length {lit}`n`,
+materialized as a mutable {lit}`Array Nat` of length {lit}`n + 1`.
+-/
+def rodRevenueArray (price : Nat → Nat) (n : Nat) : Array Nat :=
+  rodRevenueArrayAux price n
+
+/-- The materialized table has one entry per rod length in {lit}`0 .. n`. -/
+theorem rodRevenueArray_size (price : Nat → Nat) (n : Nat) :
+    (rodRevenueArray price n).size = n + 1 :=
+  rodRevenueArrayAux_size price n
+
+/--
+**Correctness of the mutable-array bottom-up rod cutting.**  For every rod length
+{lit}`k` inside the filled prefix, the entry the imperative table stores equals the
+pure recurrence value {name}`bottomUpRodRevenue`.  This is the refinement theorem
+requested by the mutable-array dynamic-programming layer of CLRS Chapter 15.
+-/
+theorem rodRevenueArray_correct (price : Nat → Nat) (n k : Nat) (hk : k ≤ n) :
+    arrGet (rodRevenueArray price n) k = bottomUpRodRevenue price k :=
+  arrGet_rodRevenueArrayAux price n k hk
+
+/-- The top table entry is the best revenue for the full rod of length {lit}`n`. -/
+theorem rodRevenueArray_full (price : Nat → Nat) (n : Nat) :
+    arrGet (rodRevenueArray price n) n = bottomUpRodRevenue price n :=
+  rodRevenueArray_correct price n n (le_refl n)
+
+/--
+Reading the mutable-array table is a correct finite bottom-up table: its entry
+zero is zero and every positive entry inside the filled prefix is the CLRS
+first-cut maximum over earlier table entries.  This connects the imperative
+computation to the abstract {name}`RodCutTableRecurrence` interface.
+-/
+theorem rodRevenueArray_rodCutTableRecurrence (price : Nat → Nat) (n : Nat) :
+    RodCutTableRecurrence price (fun k => arrGet (rodRevenueArray price n) k) n := by
+  constructor
+  · show arrGet (rodRevenueArray price n) 0 = 0
+    rw [rodRevenueArray_correct price n 0 (Nat.zero_le n), bottomUpRodRevenue_zero]
+  · intro m hm
+    show arrGet (rodRevenueArray price n) (m + 1)
+        = (Finset.Icc 1 (m + 1)).sup
+          (fun cut => FirstCutValue price (fun k => arrGet (rodRevenueArray price n) k) (m + 1) cut)
+    rw [rodRevenueArray_correct price n (m + 1) hm, bottomUpRodRevenue_succ]
+    apply Finset.sup_congr rfl
+    intro cut hcut
+    unfold FirstCutValue
+    have hle : (m + 1) - cut ≤ n := by
+      have := (Finset.mem_Icc.mp hcut).1
+      omega
+    show price cut + bottomUpRodRevenue price ((m + 1) - cut)
+        = price cut + arrGet (rodRevenueArray price n) ((m + 1) - cut)
+    rw [rodRevenueArray_correct price n ((m + 1) - cut) hle]
+
+/--
+**Plan optimality through the mutable-array table.**  Every positive-piece cutting
+plan whose total length lies inside the filled prefix is bounded by the value the
+mutable-array bottom-up table stores at that length.  This lifts the refinement to
+the same end-to-end optimality statement proved for the pure recurrence table.
+-/
+theorem planValue_le_rodRevenueArray (price : Nat → Nat) (n : Nat) :
+    ∀ pieces, PositivePieces pieces → planLength pieces ≤ n →
+      planValue price pieces ≤ arrGet (rodRevenueArray price n) (planLength pieces) :=
+  planValue_le_table_of_rodCutTableRecurrence
+    (rodRevenueArray_rodCutTableRecurrence price n)
 
 end Chapter15
 end CLRS

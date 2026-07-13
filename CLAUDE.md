@@ -1,7 +1,8 @@
-# CLAUDE.md — CLRS-Lean Agent Guide
+# CLAUDE.md - CLRS-Lean Agent Guide
 
-This file is the single source of truth for agents working on CLRS-Lean.
-Read it before writing or modifying any `.lean` file.
+This file records coding conventions for agents working on CLRS-Lean.  Read it
+before modifying a `.lean` file.  Repository layers and status ownership are
+defined in `docs/repository-architecture.md`.
 
 ## Project overview
 
@@ -18,6 +19,8 @@ The public project name is `CLRS-Lean`.  The Lean library root remains
 ```
 CLRSLean.lean                 ← top-level entry + Verso landing page
 CLRSLean/
+  ProofPatterns/              ← reusable cross-chapter proof APIs
+  Chapter_02.lean             ← chapter guide and section aggregator
   Chapter_02/
     Section_02_1_Insertion_Sort.lean
   Chapter_16/
@@ -30,7 +33,10 @@ literate.toml                 ← Verso module ordering + titles
 lean-toolchain                ← Lean version pin
 CLAUDE.md                     ← this file
 docs/
-  proof-map.md                ← human-readable proof status ledger
+  clrs-proof-progress.csv     ← chapter-level status source
+  proof-map.md                ← detailed theorem ledger
+Tests/                        ← interface and closure tests
+scripts/check_repository.py  ← fast repository-wide checks
 ```
 
 ## Lean version & dependencies
@@ -42,10 +48,33 @@ docs/
 ## Build commands
 
 ```bash
-lake build                          # compile Lean
+uv sync --frozen                    # prepare Python helper environment
+uv run python scripts/check_repository.py
+lake build CLRSLean                 # compile Lean library
 lake -R -Kenv=dev build CLRSLean:docs  # build doc-gen4 API docs
-lake build :literateHtml            # generate Verso website → _site/
+lake build :literateHtml            # generate Verso website
 ```
+
+## Parallel agents & build infrastructure
+
+Fanning out subagents on Lean work? Read `docs/build-and-agents.md`.  The rules
+that keep it fast and non-destructive:
+
+- **Provision isolated worktrees with `scripts/setup-worktree.sh <branch>`** (or
+  `scripts/provision-fleet.sh` for a batch).  Each gets its own warm, prebuilt
+  `.lake`, so `lake build` is a fast incremental compile.
+- **Never run `lake exe cache get` in a provisioned worktree.**  Mathlib is
+  already there; concurrent cache-gets exhaust RAM and corrupt the shared build.
+- **Keep build concurrency ≤ 3–4.**  The machine is RAM-bound (~30G), not CPU
+  (32 cores); one `lake build` already uses every core.
+- **Verify before merging agent proof work** (`-Dwarn.sorry=false` means a clean
+  build is *not* sorry-proof): `grep` for `sorry`/`admit`; `#print axioms` on the
+  headline theorem must show only `propext/Classical.choice/Quot.sound` (no
+  `sorryAx`); check no public declaration was removed/weakened; regenerate
+  `CLRSLean/Progress.lean` from the CSV (`check_progress_csv.py --write-dashboard`)
+  rather than hand-merging it.
+- **GitHub hygiene:** create labels before issues; have agents commit early/often.
+- Recover a corrupted `.lake` with `scripts/refresh-golden.sh`.
 
 ## How to write a section `.lean` file
 
@@ -69,7 +98,8 @@ Main results:
 - Theorem `foo`: one-line description
 - Lemma `bar`: one-line description
 
-If the section is partial, add a **Current gaps** section listing what is `sorry`.
+If the section is partial, add a **Current gaps** section naming the missing
+theorem or representation layer.
 
 Notation conventions used in this section:
 
@@ -136,16 +166,10 @@ module, import that module first.
 
 ### 5. Unfinished proofs
 
-Use `sorry` with a comment explaining what is missing:
-
-```lean
-theorem some_future_lemma : ... := by
-  -- This needs the exchange-edge certificate from a concrete path/walk layer.
-  sorry
-```
-
-Do NOT leave bare `sorry` without a comment — agents and humans both need to
-know what is outstanding.
+Do not commit `sorry`, `admit`, or project axioms to `main`.  Record an
+unfinished theorem in the chapter guide, progress CSV, proof map, or blocked
+and deferred ledger until a kernel-checked proof is ready.  The repository
+checker enforces this policy outside comments and strings.
 
 ### 6. Closing the namespace
 
@@ -155,10 +179,11 @@ end CLRS
 
 ## How to add a new section
 
-1. Create the `.lean` file under `CLRSLean/Chapter_NN/`
-2. Follow the skeleton above
-3. Add `import CLRSLean.Chapter_NN.Section_NN_N_Descriptive_Name` to `CLRSLean.lean`
-4. **REQUIRED — do not skip**: Add the module to `literate.toml`:
+1. Create the `.lean` file under `CLRSLean/Chapter_NN/`.
+2. Follow the skeleton above.
+3. Import the section from `CLRSLean/Chapter_NN.lean`; the library root imports
+   the chapter guide, not each section directly.
+4. **REQUIRED - do not skip**: Add the module to `literate.toml`:
    - Insert the module path in `[order_children]` in chapter order
    - Add a `[modules."CLRSLean.Chapter_NN....."]` block with `title = "NN.N. Human Title"`
 
@@ -166,6 +191,9 @@ end CLRS
    navigation will show the parent chapter title instead of the section title,
    and the section will be missing from the left sidebar order.  This is
    considered a deployment bug.
+5. Add the section path to `docs/index.md` and update
+   `docs/clrs-proof-progress.csv`, the chapter guide, and `docs/proof-map.md`.
+6. Regenerate the dashboard and run `scripts/check_repository.py`.
 
 ## How the Verso build works
 
@@ -186,6 +214,7 @@ Verso reads:
 - **Zero-indexed**: arrays/lists are 0-indexed for Mathlib compatibility
 - **Total functions**: partial operations get junk values rather than `Option`
 - **Module = file path**: `CLRSLean.Chapter_16.Section_16_3_Huffman_Codes` is auto-derived
-- **Proof status**: mark the file's overall status in the module-level `/-!` block
-  - Use ⚠️ or "Current gaps" for partial sections
-  - The proof-map.md ledger stays in sync manually
+- **Proof status**: state the file's exact model and current gaps in the
+  module-level `/-!` block.
+- **Status synchronization**: update the progress CSV and proof map with public
+  theorem changes; regenerate `CLRSLean/Progress.lean` from the CSV.

@@ -40,19 +40,44 @@ rank selector.
   {lit}`CLRS.Chapter14.OSTree.rotateRight_recomputeSizes_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?`,
   and {lit}`CLRS.Chapter14.OSTree.osSelect?_rotateRight_recomputeSizes_eq_rankSelect?`.
-* 14.3 Interval trees: {lit}`partial`.
+  The size augmentation is now also threaded through an executable red-black
+  insertion on the colour-and-size augmented tree {lit}`CLRS.Chapter14.OSRBTree`:
+  {lit}`CLRS.Chapter14.OSRBTree.wellSized_insert`,
+  {lit}`CLRS.Chapter14.OSRBTree.storedSize_insert`,
+  {lit}`CLRS.Chapter14.OSRBTree.osSelect?_insert_eq_rankSelect?`,
+  {lit}`CLRS.Chapter14.OSRBTree.toRB_insert`,
+  {lit}`CLRS.Chapter14.OSRBTree.redBlackShape_toRB_insert`, and
+  {lit}`CLRS.Chapter14.OSRBTree.mem_keys_insert`.
+* 14.3 Interval trees: {lit}`proved` for the functional well-augmented BST
+  model.
   Main results: {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`,
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`, and
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_spec`.
+  It also packages the general augmentation interface: an **arbitrary**
+  augmentation threaded through an executable red-black insertion on the generic
+  {lit}`CLRS.Chapter14.AugmentedRBTree`, with
+  {lit}`CLRS.Chapter14.AugmentedRBTree.wellAugmented_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.toRB_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.redBlackShape_toRB_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`, and the size and
+  interval instances
+  {lit}`CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert` and
+  {lit}`CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`.
 
 ## Current Gaps
 
 The current model proves the augmentation invariant and rank-selection
 correctness for a functional tree, including size-preserving local rotations,
-and interval-search correctness for well-augmented BSTs.  The recompute-then-
-rotate bridge is ready to be used by a future red-black balancing refinement.
-The model does not yet connect those rotations to full Chapter 13 insertion/
-deletion fixup or to the general augmentation theorem from the textbook.
+and interval-search correctness for well-augmented BSTs.  The size augmentation
+is threaded through an executable red-black insertion via the size-specific
+{lit}`OSRBTree`, and the general augmentation interface now threads an
+*arbitrary* augmentation through an executable red-black insertion on the generic
+{lit}`AugmentedRBTree`: {lit}`AugmentedRBTree.wellAugmented_insert` shows the
+invariant survives balancing for any augmentation, and
+{lit}`AugmentedRBTree.toRB_insert` shows the augmentation-erasing projection
+refines the executable Chapter 13 {lit}`RBTree.insert`; the size and interval
+fields are recovered as instances.  The remaining gap is augmentation through
+*deletion* (blocked on the Chapter 13 executable red-black deletion loop).
 -/
 
 namespace CLRS

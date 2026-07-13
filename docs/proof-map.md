@@ -12,13 +12,16 @@ main-proof areas without a specific refinement goal.
 ## Probability Toolkit
 
 - Lean source: `CLRSLean/Probability/FiniteExpectation.lean`
-- Status: `partial` — generic API (`expect`/`prob` over `Finset.range n`) proved;
-  `fintypeExpect` wrapper exists for arbitrary `[Fintype Ω]`; full `[Fintype Ω]`
-  lemmas (expect_const, expect_sum, expect_indicator) deferred.
+- Status: `proved` — generic API (`expect`/`prob` over `Finset.range n`) and the
+  `[Fintype Ω]` layer (`fintypeExpect` with add/nonneg/const/indicator/sum/equiv)
+  proved; product-independence primitive `expect_mul_of_indep` proved.
 - Provides: `expect`, `prob`, `indicator`, `fintypeExpect`
-- Main theorems: `expect_add`, `expect_const`, `expect_nonneg`, `prob_singleton`, `prob_add_of_disjoint`
+- Main theorems: `expect_add`, `expect_const`, `expect_nonneg`, `prob_singleton`,
+  `prob_add_of_disjoint`, `fintypeExpect_add`, `fintypeExpect_nonneg`,
+  `fintypeExpect_const`, `fintypeExpect_indicator_singleton`, `fintypeExpect_sum`,
+  `fintypeExpect_equiv`, `expect_mul_of_indep`, `fintypeExpect_fst`
 - Used by: Chapter 5 (Hiring Problem), Chapter 8.4 (Bucket Sort), Chapter 11.2 (Chained Hashing)
-- Remaining: Ch8.4/Ch11.2 full deduplication (AC-2); `[Fintype Ω]` lemmas (AC-1)
+- Remaining: none for the finite-uniform layer; `MeasureTheory` integration is out of scope
 
 ## Chapter 1 - The Role of Algorithms
 
@@ -100,14 +103,17 @@ rules.
 ### Section 3.2 - Standard functions
 
 - Lean source: `CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean`
-- Status: `partial`
+- Status: `proved`
 - Main proved theorems:
   - `CLRS.Chapter03.isLittleO_pow_pow`
   - `CLRS.Chapter03.isBigO_pow_pow`
   - `CLRS.Chapter03.isLittleO_pow_const_exp`
+  - `CLRS.Chapter03.isLittleO_pow_two_pow`
   - `CLRS.Chapter03.isLittleO_log_rpow`
   - `CLRS.Chapter03.isLittleO_log_pow_rpow`
   - `CLRS.Chapter03.isBigO_log_pow_rpow`
+  - `CLRS.Chapter03.isLittleO_log_id`
+  - `CLRS.Chapter03.isLittleO_loglog_log`
   - `CLRS.Chapter03.isLittleO_exp_exp_of_lt`
   - `CLRS.Chapter03.isEquivalent_harmonic_log`
   - `CLRS.Chapter03.isBigTheta_harmonic_log`
@@ -119,25 +125,53 @@ rules.
   - `CLRS.Chapter03.factorial_lower_bound_offset`
   - `CLRS.Chapter03.factorial_lower_bound_half_pow`
   - `CLRS.Chapter03.isLittleO_exp_vs_factorial`
-  - `CLRS.Chapter03.isLittleO_pow_factorial`
-  - `CLRS.Chapter03.isLittleO_exp_factorial`
+  - `CLRS.Chapter03.isLittleO_two_pow_factorial`
   - `CLRS.Chapter03.isBigOmega_factorial_exp`
-  - `CLRS.Chapter03.iteratedLog` (definition)
-  - `CLRS.Chapter03.iteratedLog_zero`, `iteratedLog_one`, `iteratedLog_succ`
-  - `CLRS.Chapter03.iteratedLog_monotone`, `iteratedLog_log_lt_self`
-  - `CLRS.Chapter03.isLittleO_log_pow_any_pow`
+  - `CLRS.Chapter03.isLittleO_pow_factorial`
+  - `CLRS.Chapter03.isLittleO_factorial_pow_self`
+  - `CLRS.Chapter03.isBigTheta_log_factorial`
+  - `CLRS.Chapter03.isBigTheta_log_logb`
+  - `CLRS.Chapter03.isBigTheta_logb_log`
+  - `CLRS.Chapter03.isLittleO_logb_rpow`
+  - `CLRS.Chapter03.isLittleO_log_pow_const_exp`
   - `CLRS.Chapter03.isLittleO_one_log`
+  - `CLRS.Chapter03.coe_fib_closed_form`
+  - `CLRS.Chapter03.isBigTheta_fib_goldenRatio`
+  - `CLRS.Chapter03.goldenRatio_pow_div_sqrt5_sub_fib_abs_lt_half`
+  - `CLRS.Chapter03.isLittleO_fib_exp`
+  - `CLRS.Chapter03.isLittleO_exp_fib`
+  - `CLRS.Chapter03.lgStar_of_le_one`
+  - `CLRS.Chapter03.lgStar_of_two_le`
+  - `CLRS.Chapter03.lgStar_zero`
+  - `CLRS.Chapter03.lgStar_one`
+  - `CLRS.Chapter03.lgStar_two`
+  - `CLRS.Chapter03.lgStar_two_pow`
+  - `CLRS.Chapter03.lgStar_monotone`
+  - `CLRS.Chapter03.lgStar_le_log_add_one`
+  - `CLRS.Chapter03.natLog_two_le_two_log`
+  - `CLRS.Chapter03.isLittleO_lgStar_log`
 - Proof pattern: reuse Mathlib asymptotic and factorial facts through the CLRS
   wrappers; `isBigTheta_log_factorial` uses Mathlib's Stirling approximation
   (`le_log_factorial_stirling`) for the lower bound and `n! ≤ n^n` for the
-  upper bound; `iteratedLog` uses `Nat.log_lt_self` for termination.
-- Current gap: the remaining CLRS standard-function table entries are mostly
-  covered; iterative functions beyond `log*` and Fibonacci numbers remain
-  strengthening targets.
+  upper bound; the base-2 and base-`b` comparisons and the polynomial/factorial
+  chains are obtained by instantiation and transitivity through the existing
+  wrappers (`isLittleO_pow_const_exp`, `isLittleO_exp_vs_factorial`,
+  `isBigTheta_log_logb`, `Real.isLittleO_log_id_atTop`).  Fibonacci growth
+  restates Mathlib's Binet formula `Real.coe_fib_eq` under the wrappers, bounding
+  the negligible `ψ^n` term via `|ψ| < 1 < φ`; the iterated logarithm `lgStar` is
+  a fresh well-founded recursion on `Nat.log 2`, with the `o(log n)` bound obtained
+  by dominating `lgStar n` with `1 + log(log n)` and chaining `isLittleO_one_log`
+  and `isLittleO_loglog_log`.
+- Current gap: none.  The CLRS §3.2 standard-function comparison table is complete
+  for the polynomial, logarithmic, exponential, harmonic, floor/ceiling, and
+  factorial rows — including the adjacent hierarchy links
+  `1 ≺ log (log n) ≺ log n ≺ n ≺ n^a ≺ 2^n ≺ n!` and the `log_b` base-change
+  facts — and now also covers Fibonacci-number growth `F_n = Θ(φ^n)` (eq (3.25)
+  closed form and eq (3.26) closest-integer bound) and the iterated logarithm
+  `lg* n` (definition, tower recurrence, monotonicity, and `lg* n = o(log n)`).
 
-This section is the safe part of the `chapter-1-exploration` branch merged into
-the main site.  It compiles, but it is not yet the whole Chapter 3 growth
-library.
+This section renders the full Chapter 3 growth-of-functions table, including the
+golden-ratio Fibonacci facts and the iterated logarithm.
 
 ## Chapter 4 - Divide and Conquer
 
@@ -153,8 +187,9 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   to the textbook `n^(log_b a)` for all `a ≥ 1` and `b > 1`, and a real-log-log
   bridge connects the case-2 discrete scale to `n^(log_b a) log n`; exact/floor/
   ceiling case-1 and case-2 wrappers are exposed directly in those textbook
-  scales.  The remaining Master gap is a textbook-facing case-3 comparison
-  scale.
+  scales.  The case-3 regularity bridge now connects the discrete
+  tail-dominated scale to the textbook forcing function; remaining Chapter 4
+  work is algorithm and cost refinement.
 
 ### Section 4.1 - The maximum-subarray problem
 
@@ -183,16 +218,28 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 ### Section 4.2 - Strassen's algorithm for matrix multiplication
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_2_Strassen_Algorithm.lean`
-- Status: `proved` for 2 by 2 block algebra
+- Status: `proved` for the 2 by 2 block algebra, the recursive algorithm with
+  correctness and padding, and the `Θ(n^(log₂ 7))` runtime
 - Main proved theorems:
   - `CLRS.Chapter04.Matrix2.strassen_eq_mul`
   - `CLRS.Chapter04.strassen2x2_correct`
-- Proof pattern: represent a 2 by 2 block matrix as four ring elements, define
-  ordinary block multiplication and Strassen's seven-product reconstruction,
-  then discharge the four component equalities by noncommutative ring
-  normalization
-- Current gap: recursive splitting, dimension bookkeeping, and runtime analysis
-  remain future refinement targets
+  - `CLRS.Chapter04.strassen2_eq_mul`
+  - `CLRS.Chapter04.strassenRec_correct`
+  - `CLRS.Chapter04.strassenRec_padOne`
+  - `CLRS.Chapter04.strassen_runtime_bigTheta`
+- Proof pattern: represent a 2 by 2 block matrix as four ring elements (and,
+  for the recursion, as a depth-indexed `SqMat R k` quad-tree of `2 × 2`
+  blocks), define ordinary block multiplication and Strassen's seven-product
+  reconstruction, then discharge the four component equalities by
+  noncommutative ring normalization.  The recursive `strassenRec` bottoms out at
+  the scalar base case and its correctness is an induction on depth reducing to
+  the 2 by 2 identity; zero-padding into the next power-of-two block preserves
+  the top-left product.  The runtime is the CLRS floor recurrence
+  `T(n) = 7 T(⌊n/2⌋) + n²` fed through the Chapter 4 Master-theorem case-1
+  wrapper `floorDivide_allInput_masterCase1_realLogScale`, whose comparison
+  scale `realLogScale 7 2 n` is the textbook `n^(log₂ 7)`
+- Current gap: a lower-level RAM/pseudocode cost model and an arbitrary-`n`
+  padding bijection to `Matrix (Fin n)` remain future refinement targets
 
 ### Section 4.3 - The substitution method
 
@@ -358,6 +405,61 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   transfer the Chapter 3.2 harmonic-number Θ theorem to expected hires
 - Current gap: none for the current finite rank-symmetry model; a lower-level
   random-permutation and pseudocode execution model remains a future refinement
+
+### Section 5.2 - Indicator random variables (hat-check problem)
+
+- Lean source: `CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean`
+- Status: `proved` for the uniform-permutation model over `Equiv.Perm (Fin n)`
+- Main proved theorems:
+  - `CLRS.Chapter05.permSendProb_eq`
+  - `CLRS.Chapter05.probFixesPoint`
+  - `CLRS.Chapter05.expectedFixedPoints_eq_one`
+- Proof pattern: model a uniform random permutation as `Equiv.Perm (Fin n)` with
+  the shared `fintypeExpect` toolkit; prove the image `π i` is uniform by
+  translation invariance of the uniform measure under left multiplication by a
+  transposition (`fintypeExpect_equiv`); conclude the fixed-point probability is
+  `1/n`; sum the `n` fixed-point indicators with `fintypeExpect_sum` to get the
+  expected number of fixed points `1` (hat-check, CLRS eq. (5.1)-(5.2))
+- Current gap: none for the uniform-permutation model
+
+### Section 5.3 - Randomized algorithms (RANDOMIZE-IN-PLACE)
+
+- Lean source: `CLRSLean/Chapter_05/Section_05_3_Randomized_Algorithms.lean`
+- Status: `proved` for the independent-swap-choice model
+- Main proved theorems:
+  - `CLRS.Chapter05.randomizeInPlace_injective`
+  - `CLRS.Chapter05.randomizeInPlace_surjective`
+  - `CLRS.Chapter05.randomizeInPlace_equiv`
+  - `CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.5: uniform random
+    permutation)
+- Proof pattern: model the swap choices as `ChoiceVector n = ∏_i Fin (n-i)`;
+  define `randomizeInPlace` by induction on `n` using the liftPerm construction
+  (swap 0 with position c0, then recurse on the remaining coordinates); prove
+  injectivity by induction and surjectivity by a cardinality argument (both
+  domain and codomain have cardinality n!); then the uniform measure on the
+  choice space pushes forward to the uniform measure on permutations via
+  `fintypeExpect_equiv`.
+- Current gap: none for the current model; mutable-Array operational semantics
+  for the shuffle loop remain a future refinement target.
+
+### Section 5.4 - Probabilistic analysis (birthday paradox, balls and bins)
+
+- Lean source: `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
+- Status: `proved` for the product-uniform model over `Fin k → Fin n`
+- Main proved theorems:
+  - `CLRS.Chapter05.singleBinProb`
+  - `CLRS.Chapter05.pairSameProb`
+  - `CLRS.Chapter05.expectedCollisions_eq`
+  - `CLRS.Chapter05.expectedBallsInBin_eq`
+- Proof pattern: sample space `Fin k → Fin n` (each coordinate an independent
+  uniform draw); re-derive the single-coordinate marginal (`singleBinProb = 1/n`)
+  and pairwise-collision probability (`pairSameProb = 1/n`) from the toolkit's
+  `fintypeExpect_equiv` / `fintypeExpect_fst` product independence; then linearity
+  (`fintypeExpect_sum`) gives the birthday expectation `k(k-1)/(2n)` (CLRS
+  eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10))
+- Current gap: streak main theorem (expected longest run bound) and on-line hiring analysis are deferred
+- New definitions: `CoinFlip` sample space, `hasRunOfLength` (decidable run predicate),
+  `longestStreak` (length via Nat.find)
 
 ## Chapter 6 - Heapsort
 
@@ -621,7 +723,7 @@ proved comparison-count and recurrence facts.
 
 - Lean source: `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean`
 - Status: `proved` for the expected-comparison recurrence model
-- **Probability model**: `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort_Probability.lean` — proves
+- **Probability model**: `CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort/Comparison_Probability.lean` — proves
   `P(compared i j) = 2/(j-i+1)` using the uniform random permutation
   symmetry lemma (`isFirst_prob`).
 - Main proved theorems:
@@ -651,8 +753,10 @@ proved comparison-count and recurrence facts.
 
 - Lean sources:
   - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean`
-  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort_Array.lean`
-- Status: `proved` for the stable bucket specification
+  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean`
+  - `CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray.lean`
+- Status: `proved` for the stable bucket specification, the count-table
+  refinement, and the mutable output-array refinement
 - Main proved theorems:
   - `CLRS.Chapter08.countingSortBy_ordered`
   - `CLRS.Chapter08.countingSortBy_bucket_eq`
@@ -664,6 +768,12 @@ proved comparison-count and recurrence facts.
   - `CLRS.Chapter08.cumulativeCountTable_length`
   - `CLRS.Chapter08.countingSortByTable_correct`
   - `CLRS.Chapter08.ReverseScan.countingSortByReverse_correct`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_toList`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_correct`
+  - `CLRS.Chapter08.MutableOutput.scatter_range_size`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_size`
+  - `CLRS.Chapter08.MutableOutput.countingSortArray_size_of_allKeysLe`
+  - `CLRS.Chapter08.MutableOutput.countingSortArrayCost_bigO`
 - Proof pattern: model counting sort as a stable scan over key buckets
   `0, 1, ..., maxKey`; prove each bucket contains exactly the input elements
   with that key, prove output keys are ordered by concatenating ordered buckets,
@@ -671,9 +781,16 @@ proved comparison-count and recurrence facts.
   permutation preservation by comparing counts through each element's own
   key-bucket.  The count-table refinement then proves that table lengths,
   cumulative boundaries, and per-key reverse scans are extensionally equal to
-  the stable bucket specification.
-- Current gap: the remaining imperative refinement is a single mutable output
-  array with mutable cumulative counters, plus a concrete linear-time cost model.
+  the stable bucket specification.  The mutable output-array refinement fills a
+  single physical `Array` by appending each key's reverse-scan segment, proves
+  the array reads back extensionally equal to `countingSortBy` (so it inherits
+  ordered/stable/membership/permutation correctness), identifies the fill
+  offsets with the cumulative counts, and records the linear `O(n + k)` per-pass
+  work bound.
+- Current gap: a full RAM/step-count operational cost semantics charging
+  individual array reads and writes through an execution model remains out of
+  scope; the linear work bound is a per-pass step count matching the CLRS
+  accounting.
 
 This section proves the mathematical CLRS correctness spine for counting sort.
 The theorem `CLRS.Chapter08.countingSortBy_bucket_eq` is deliberately stronger
@@ -752,6 +869,8 @@ theorem remains as a compact special case.
   - `CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`
   - `CLRS.Chapter08.expectedBucketSortCost_self_eq`
   - `CLRS.Chapter08.expectedBucketSortCost_linear_bound`
+  - `CLRS.Chapter08.expectedBucketSortCost_isBigO`
+  - `CLRS.Chapter08.expectedBucketQuadraticCost_eq_secondMoment`
 - Proof pattern: scan bucket indices in increasing order, prove each per-bucket
   sorter preserves the bucket as a permutation, prove all emitted elements have
   the scanned bucket index, and use a cross-bucket monotonicity assumption to
@@ -759,10 +878,14 @@ theorem remains as a compact special case.
   layer proves the singleton-bucket and two-bucket collision probabilities and
   packages the CLRS second-moment expression
   `E[Σ_i n_i^2] = n + n(n-1)/m`.  The abstract expected-cost wrapper adds the
-  linear scan/distribution term and proves the concrete `≤ 3n` bound for `n`
-  elements in `n` buckets.
-- Current gap: connect the second-moment interface to an explicit independent
-  input distribution and a concrete bucket-sort cost model.
+  linear scan/distribution term and proves the concrete `≤ 3n` bound and
+  `isBigO` for `n` elements in `n` buckets.  The second moment is additionally
+  proved as a **true expectation** over the explicit independent uniform input
+  distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`),
+  where the pairwise independence step reuses
+  `CLRS.Probability.expect_mul_of_indep`.
+- Current gap: RAM/step-count cost semantics (this layer measures expected
+  comparison/occupancy cost, not machine steps).
 
 The executable wrapper `CLRS.Chapter08.bucketSortByRank` sorts each bucket with
 Lean's verified `mergeSort`.  Its correctness theorem proves ordered output,
@@ -848,6 +971,10 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   - `CLRS.Chapter09.medianOfMediansSelect?_mem`
   - `CLRS.Chapter09.medianOfMediansSelect?_rankCorrect`
   - `CLRS.Chapter09.medianOfMediansSelect?_correct`
+  - `CLRS.Chapter09.selectCost_linear_step`
+  - `CLRS.Chapter09.selectCostFuel_linear_bound`
+  - `CLRS.Chapter09.selectCost_linear_bound`
+  - `CLRS.Chapter09.medianOfMediansSelectCost_linear_bound`
 - Proof pattern: abstract over a pivot function with
   `CLRS.Chapter09.PivotMembership`, then reuse the Chapter 9.2
   `RankCertificate` lifting lemmas for the low side, pivot block, and high
@@ -860,26 +987,67 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   full-input count lower bounds around a median-of-medians pivot.  The
   partition-size wrapper packages these count bounds as
   `10 * branchSize ≤ 7 * n + 12` for both strict recursive branches.
-- Current gap: the abstract recurrence and linear bound are proved; the next
-  strengthening target is a concrete cost semantics for
-  `medianOfMediansSelect?` that feeds into the recurrence hypothesis.
+- Current gap: the abstract recurrence, the linear bound, and a concrete
+  executable cost counter (`CLRS.Chapter09.medianOfMediansSelectCost`, defined
+  by the same recursion as `medianOfMediansSelect?`) with the explicit bound
+  `medianOfMediansSelectCost k xs ≤ 17 * xs.length` are all proved.  The counter
+  charges the linear partition scan along the recursion path and folds the
+  median-of-medians pivot selection into a linear-cost oracle; the next
+  strengthening target is a fully operational RAM step-count that also unfolds
+  the recursive cost of computing the pivot.
 
-### Section 9.3 and randomized SELECT refinements
+### Section 9.2 - Randomized SELECT expected running time
 
-- Lean source: randomized SELECT is not yet created; median-of-medians runtime
-  refinement should build on
+- Lean source: `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`
+- Status: `proved` for the randomized-select expected-comparison model, its
+  recurrence, and the CLRS Theorem 9.2 linear expected-time bound
+- Main proved theorems:
+  - `CLRS.Chapter09.randSelectExpectedCost_succ`
+  - `CLRS.Chapter09.randSelectExpectedCost_recurrence`
+  - `CLRS.Chapter09.expect_eq_fintypeExpect`
+  - `CLRS.Chapter09.randSelectExpectedCost_recurrence_fintype`
+  - `CLRS.Chapter09.randSelectExpectedCost_nonneg`
+  - `CLRS.Chapter09.maxSideSum_add_two`
+  - `CLRS.Chapter09.four_mul_maxSideSum_le`
+  - `CLRS.Chapter09.sum_maxSide_real_bound`
+  - `CLRS.Chapter09.randSelectExpectedCost_le`
+  - `CLRS.Chapter09.randSelectExpectedCost_bigO_linear`
+  - `CLRS.Chapter09.randomizedSelect_expected_bigO_linear`
+  - `CLRS.Chapter09.pivotAtIndex?_mem`
+  - `CLRS.Chapter09.randomizedSelectAtIndex?_rankCorrect`
+  - `CLRS.Chapter09.randomizedSelectAtIndex?_mem`
+- Proof pattern: the expected cost `randSelectExpectedCost c` is defined as the
+  CLRS majorizing recurrence, where each step averages over a uniform,
+  independent pivot rank via the shared toolkit `CLRS.Probability.expect`
+  (`expect_eq_fintypeExpect` restates that average as `CLRS.Probability.fintypeExpect`
+  over the per-step sample space `Fin n`); `randSelectExpectedCost_recurrence`
+  *derives* the CLRS recurrence `E[T(n+1)] = c(n+1) + expect (n+1) (fun i => E[T(max i (n-i))])`
+  from that definition.  The linear bound `randSelectExpectedCost_le`
+  (`E[T(n)] ≤ 4·c·n`) is the substitution method: the combinatorial core
+  `four_mul_maxSideSum_le` proves `4·Σ_{i<n} max i (n-1-i) ≤ 3·n²` (via the
+  two-step recurrence `maxSideSum_add_two`), which is the constant `< 1` the
+  substitution needs.  `randomizedSelect_expected_bigO_linear` packages this as
+  `CLRS.Chapter03.isBigO (fun n => E[T n]) (fun n => (n : ℝ))` (CLRS Theorem 9.2).
+  Rank correctness is inherited by instantiating the Section 9.3
+  pivot-parametric `selectWithPivot?` skeleton with an index pivot oracle
+  (`randomizedSelectAtIndex?_rankCorrect`).
+- Current gap: the model charges the larger partition side (the standard
+  majorizing recurrence upper-bounding the true expected cost); a fully joint
+  distribution over all recursion levels and a concrete step-count cost model
+  remain future refinements.
+
+### Section 9.3 and median-of-medians runtime refinements
+
+- Lean source: median-of-medians runtime refinement should build on
   `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean`
-- Status: `future-work` for executable median-of-medians cost refinement;
-  `blocked-design` for randomized expected time
+- Status: `future-work` for executable median-of-medians cost refinement
 - Planned theorem targets:
-  - randomized SELECT returns a value satisfying
-    `CLRS.Chapter09.RankCertificate`;
   - connect executable `medianOfMediansSelect?` cost semantics to the proved
-    abstract recurrence and `CLRS.Chapter09.clrsSelectRecurrence_linear_bound`;
-  - expected randomized bounds under an explicit probability model.
-- Difficulty note: randomized expected-time analysis requires a probability
-  model; deterministic linear time now mainly requires a cost-refinement layer
-  over the proved median-of-medians branch-size and recurrence theorems.
+    abstract recurrence and `CLRS.Chapter09.clrsSelectRecurrence_linear_bound`.
+- Difficulty note: deterministic linear time now mainly requires a
+  cost-refinement layer over the proved median-of-medians branch-size and
+  recurrence theorems.  Randomized SELECT expected time is now proved (see the
+  Section 9.2 randomized SELECT page above).
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -911,6 +1079,27 @@ stack top is list head, and queue front is list head with enqueue at the back.
 - Proof pattern: list recursion, membership preservation, filter membership
 - Current gap: predecessor/successor pointer updates and free-list allocation
   require an imperative memory model
+
+### Section 10.4 - Representing rooted trees
+
+- Lean source: `CLRSLean/Chapter_10/Section_10_4_Rooted_Trees.lean`
+- Status: `proved` for the functional rose-tree / left-child-right-sibling model
+- Models: `CLRS.Chapter10.RoseTree` (multiway rooted tree: label plus
+  `List (RoseTree α)` children) and `CLRS.Chapter10.LCRSTree` (binary
+  left-child/right-sibling tree)
+- Main theorems:
+  - `CLRS.Chapter10.ofLCRSForest_toLCRSForest` (decode ∘ encode = id on forests)
+  - `CLRS.Chapter10.toLCRSForest_ofLCRSForest` (encode ∘ decode = id on LCRS trees)
+  - `CLRS.Chapter10.lcrsEquiv` (the round trip as an `Equiv` bijection
+    `List (RoseTree α) ≃ LCRSTree α`)
+  - `CLRS.Chapter10.ofLCRS_toLCRS` (single-tree round trip)
+  - `CLRS.Chapter10.toLCRSForest_preorder` (preorder label sequence preserved)
+  - `CLRS.Chapter10.toLCRSForest_numNodes` (node count preserved)
+- Proof pattern: nested `RoseTree`/`List` recursion with `sizeOf`-based
+  well-founded termination; functional induction via `toLCRSForest.induct`;
+  structural induction on `LCRSTree`
+- Current gap: the pointer/free-list RAM realization of the two-pointer node
+  layout (imperative-memory epic); §10.3 pointers-and-objects is separate
 
 ## Chapter 11 - Hash Tables
 
@@ -951,19 +1140,50 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter11.expectedSearchChainLength_finiteHashInsert`
   - `CLRS.Chapter11.finiteHashLoadFactor_finiteHashInsert`
   - `CLRS.Chapter11.expectedUnsuccessfulSearchCost_finiteHashInsert`
+  - `CLRS.Chapter11.expectedRandomChainLength_eq_loadFactor`
+  - `CLRS.Chapter11.expectedRandomUnsuccessfulSearchCost`
+  - `CLRS.Chapter11.pairCollisionProb`
+  - `CLRS.Chapter11.expectedRandomSuccessfulSearchCost`
+  - `CLRS.Chapter11.universal_expected_collisions`
+  - `CLRS.Chapter11.universal_expected_search_cost`
 - Proof pattern: deterministic bucket update/delete for a fixed hash function,
-  plus a finite-uniform bucket expectation layer over `Fin m`.  The toolkit now
+  plus a finite-uniform bucket expectation layer over `Fin m`.  The toolkit
   includes average additivity, nonnegativity, load-factor equality, and
   single-insert changes to total chain length, load factor, expected chain
-  length, and unsuccessful-search cost.
-- Current gap: lift the finite-uniform bucket abstraction to a probability
-  model over random keys or random hash functions with independence assumptions
+  length, and unsuccessful-search cost.  The SUHA layer proves the expected
+  chain length `α = n/m`, expected unsuccessful-search cost `1 + α`, the pairwise
+  collision probability `1/m` (two-coordinate marginalisation of
+  `CLRS.Probability.fintypeExpect` via `hashSplitPair`), and the expected
+  successful-search cost `1 + (n-1)/(2m)` (CLRS Theorem 11.2), all as **true
+  expectations** over the explicit independent uniform hashing distribution
+  `Fin n → Fin m`.  A separate universal random-hash-*function* model
+  (`IsUniversal`) bounds expected collisions by `α` and search cost by `1 + α`
+  (CLRS Theorem 11.3) from the universality hypothesis alone.
+- Current gap: RAM/probe-count operational semantics.
+
+### Section 11.5 - Perfect Hashing
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_5_Perfect_Hashing.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.PerfectHashTable` (structure)
+  - `CLRS.Chapter11.perfectSearch_iff_mem`
+  - `CLRS.Chapter11.perfectHash_collision_free_prob_ge_half`
+  - `CLRS.Chapter11.perfectHash_expected_total_space_lt_2n`
+- Proof pattern: two-level perfect hash model (primary universal hash + per-bucket
+  collision-free secondary hash).  Theorem 11.9 uses `pairCollisionProb` and
+  `sum_upper_triangle` from §11.2 to bound the expected collision count, then
+  Markov's inequality to convert to a probability bound.  Theorem 11.10 uses the
+  algebraic identity `Σ_j n_j² = Σ_i Σ_k indicator(a i = a k)` and SUHA pairwise
+  collision probability `1/n` to get `E[Σ_j n_j²] = 2n - 1 < 2n`.
+- Current gap: construction/rebuild running time and RAM cost semantics.
 
 ## Chapter 12 - Binary Search Trees
 
 ### Section 12.1 - Binary search trees
 
 - Lean source: `CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean`
+- Interface test: `Tests/Chapter_12_Interface.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter12.BSTree.search_eq_true_iff`
@@ -993,11 +1213,32 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter12.BSTree.successor?_delete_eq_none_iff`
   - `CLRS.Chapter12.BSTree.predecessor?_delete_eq_some_iff`
   - `CLRS.Chapter12.BSTree.predecessor?_delete_eq_none_iff`
+  - `CLRS.Chapter12.BSTree.searchZipper_toTree` (parent-pointer view is faithful)
+  - `CLRS.Chapter12.BSTree.searchIter_eq_search` (iterative search)
+  - `CLRS.Chapter12.BSTree.transplant_preserves_ordered` (TRANSPLANT)
+  - `CLRS.Chapter12.BSTree.deleteViaTransplant_eq_delete` (TREE-DELETE via transplant)
+  - `CLRS.Chapter12.BSTree.successorZipper_eq_successor?` (parent-pointer successor)
+  - `CLRS.Chapter12.BSTree.predecessorZipper_eq_predecessor?` (parent-pointer predecessor)
+  - `CLRS.Chapter12.BSTree.RepresentsW.tree_unique` (pointer heap determines a unique BST)
+  - `CLRS.Chapter12.BSTree.RepresentsW.set_of_not_mem` (pointer frame rule)
+  - `CLRS.Chapter12.BSTree.RepresentsW.of_agreeChild` (parent-write invisibility)
+  - `CLRS.Chapter12.BSTree.transplantChild_left_representsW` (in-place TRANSPLANT, left)
+  - `CLRS.Chapter12.BSTree.transplantChild_right_representsW` (in-place TRANSPLANT, right)
+  - `CLRS.Chapter12.BSTree.transplantChild_left_refines_transplant` (refines functional zipper `transplant`)
+  - `CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant` (refines functional zipper `transplant`)
+  - `CLRS.Chapter12.BSTree.insertPointer_right_representsW` (pointer TREE-INSERT leaf)
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
-  extremal-path recursion, iff specifications for successor/predecessor, and
-  successor-replacement deletion
-- Current gap: parent-pointer successor/predecessor procedures, transplant,
-  and pointer-level mutation remain future section targets
+  extremal-path recursion, iff specifications for successor/predecessor,
+  successor-replacement deletion, and a zipper (cursor + context path) layer
+  encoding parent pointers, with all zipper operations proved equivalent to the
+  functional operations via a `toTree` reconstruction bridge; plus an imperative
+  pointer-heap layer (`Node` records with `left`/`right`/`parent` cells over a
+  `Std.HashMap` store) whose `RepresentsW` abstraction bakes in acyclicity/no
+  sharing, so in-place `TRANSPLANT` and `TREE-INSERT` are proved to refine the
+  functional subtree-replacement specification via pointer frame rules
+- Current gap: an explicit RAM cost model over the pointer operations remains
+  future work; the imperative in-place child/parent pointer updates (TRANSPLANT
+  and leaf TREE-INSERT) are now proved to refine the functional specification
 
 This section proves the core ordered-tree interface: search is equivalent to
 membership, minimum/maximum return actual extremal keys, functional
@@ -1011,6 +1252,15 @@ search-after-delete wrapper says that exactly the old keys different from the
 deleted key remain searchable.  The successor/predecessor-after-delete wrappers
 state the same post-deletion view for extremal queries: the returned successor
 or predecessor is computed over the old tree with the deleted key excluded.
+The zipper refinement additionally records the root-to-focus context, proves
+that iterative search reconstructs the original tree, and connects functional
+subtree replacement, deletion, and parent-ascent navigation to the established
+BST interface.  Building on this, an imperative pointer-heap layer models nodes
+as records with mutable `left`/`right`/`parent` cells over a `Std.HashMap`
+store; the `RepresentsW` heap-to-tree abstraction bakes in the no-sharing
+invariant, and in-place `TRANSPLANT` (both child sides) and leaf `TREE-INSERT`
+are proved to refine functional subtree replacement.  It deliberately stops
+before RAM cost semantics.
 
 ## Chapter 13 - Red-Black Trees
 
@@ -1046,6 +1296,26 @@ or predecessor is computed over the old tree with the deleted key excluded.
   - `CLRS.Chapter13.RBTree.insertFixupLocal_leftRight_certificate`
   - `CLRS.Chapter13.RBTree.insertFixupLocal_rightLeft_certificate`
   - `CLRS.Chapter13.RBTree.insertFixupLocal_rightRight_certificate`
+  - `CLRS.Chapter13.RBTree.size_add_one_ge_two_pow_blackHeight` (Lemma A)
+  - `CLRS.Chapter13.RBTree.height_le_two_mul_blackHeight_of_RedBlackShape` (Lemma B)
+  - `CLRS.Chapter13.RBTree.height_log_bound` (**CLRS Lemma 13.1**)
+  - `CLRS.Chapter13.RBTree.inTree_deleteFixupCase1_iff` .. `_case4_iff`
+    (delete-fixup cases preserve membership)
+  - `CLRS.Chapter13.RBTree.deleteFixupCase4_shape` (terminating delete-fixup case)
+  - `CLRS.Chapter13.RBTree.balance` (Okasaki rebalancer for deletion)
+  - `CLRS.Chapter13.RBTree.sub1` (demotes a black node, decreasing bh by 1)
+  - `CLRS.Chapter13.RBTree.balLeft`, `CLRS.Chapter13.RBTree.balRight` (deletion rebalancers)
+  - `CLRS.Chapter13.RBTree.app` (in-order splice for two-child delete)
+  - `CLRS.Chapter13.RBTree.del`, `CLRS.Chapter13.RBTree.delete` (executable RB-DELETE)
+  - `CLRS.Chapter13.RBTree.AllKeys`, `CLRS.Chapter13.RBTree.Ordered` (BST ordering invariant)
+  - `CLRS.Chapter13.RBTree.allKeys_of_inTree` (AllKeys distributes over InTree)
+  - `CLRS.Chapter13.RBTree.inTree_balance_iff`, `CLRS.Chapter13.RBTree.inTree_sub1_iff` (key-set preservation)
+  - `CLRS.Chapter13.RBTree.inTree_balLeft_iff`, `CLRS.Chapter13.RBTree.inTree_balRight_iff` (key-set preservation)
+  - `CLRS.Chapter13.RBTree.inTree_app_iff` (app preserves key set)
+  - `CLRS.Chapter13.RBTree.inTree_del_iff` (del removes exactly the target key)
+  - `CLRS.Chapter13.RBTree.inTree_delete_iff` (headline deletion correctness)
+  - `CLRS.Chapter13.RBTree.noRedRed_balance`, `CLRS.Chapter13.RBTree.balancedBlackHeight_balance` (balance shape lemmas)
+  - `CLRS.Chapter13.RBTree.noRedRed_sub1`, `CLRS.Chapter13.RBTree.blackHeight_sub1_black` (sub1 shape lemmas)
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
   red-red rotation repair certificates, and four insertion-fixup local
   rotation/recoloring certificates.  Each insertion-fixup case separately
@@ -1053,10 +1323,20 @@ or predecessor is computed over the old tree with the deleted key excluded.
   red-black shape invariant from red-black-shaped fringe subtrees with matching
   black heights.  The `insertFixupLocal` dispatcher and certificate structure
   package those three facts behind one branch-indexed interface for a future
-  executable fixup.
-- Current gap: compose the local insertion-fixup certificates into executable
-  `RB-INSERT`/`RB-INSERT-FIXUP`; full `RB-DELETE` and `RB-DELETE-FIXUP` are not
-  mechanized
+  executable fixup.  The logarithmic-height bound (CLRS Lemma 13.1) is proved by
+  the standard two-lemma decomposition: a balanced-black-height tree has at
+  least `2^bh - 1` internal nodes (Lemma A), and a no-red-red tree has height at
+  most twice its black height (Lemma B), combined via `Nat.log`.
+  Deletion follows the Okasaki/Kahrs functional RB-DELETE design: `balance`
+  repairs red-red violations, `sub1` exposes a doubly-black deficit, and
+  `balLeft`/`balRight` thread the deficit upward while the `app` combinator
+  handles the two-child case.  Membership correctness (`inTree_delete_iff`) is
+  proved by induction using the BST ordering invariant `Ordered`.
+- Current gap: RedBlackShape preservation through `del` (requires
+  `RB-INSERT`/`RB-INSERT-FIXUP`; the local `RB-DELETE-FIXUP` case rewrites and
+  the terminating Case-4 certificate are proved, but the fully-composed
+  executable `RB-DELETE` loop (threading the doubly-black deficit through
+  Cases 1-3 into Case 4) is not yet mechanized
 
 The section builds the local invariant library needed before mechanizing the
 full balancing algorithms.
@@ -1091,16 +1371,28 @@ full balancing algorithms.
   - `CLRS.Chapter14.OSTree.rotateRight_recomputeSizes_wellSized`
   - `CLRS.Chapter14.OSTree.osSelect?_rotateLeft_recomputeSizes_eq_rankSelect?`
   - `CLRS.Chapter14.OSTree.osSelect?_rotateRight_recomputeSizes_eq_rankSelect?`
+  - `CLRS.Chapter14.OSRBTree.wellSized_insert`
+  - `CLRS.Chapter14.OSRBTree.storedSize_insert`
+  - `CLRS.Chapter14.OSRBTree.osSelect?_insert_eq_rankSelect?`
+  - `CLRS.Chapter14.OSRBTree.toRB_insert`
+  - `CLRS.Chapter14.OSRBTree.redBlackShape_toRB_insert`
+  - `CLRS.Chapter14.OSRBTree.mem_keys_insert`
 - Proof pattern: separate cached size fields from mathematical subtree size,
   prove recomputation establishes the augmentation invariant, prove local
   rotations preserve inorder keys, mathematical size, cached root size, the
   ideal rank-selection result, and the size invariant, then prove the cached
   order-statistic selector agrees with the ideal selector under that invariant.
   The recompute-then-rotate bridge removes the need for an incoming well-sized
-  hypothesis when preparing a local balancing step.
-- Current gap: connect the functional rotations to the Chapter 13 red-black
-  balancing layer; interval trees and the general augmentation theorem remain
-  future targets
+  hypothesis when preparing a local balancing step.  The augmented red-black
+  tree `OSRBTree` then threads the same size invariant through an *executable*
+  red-black insertion: its `balanceLeft`/`balanceRight`/`insertFixup`/`insert`
+  rebuild every node with a size-recomputing smart constructor `mk`, so
+  `wellSized_insert` follows by structural induction, and the size-erasing
+  projection `toRB` makes `insert` refine the Chapter 13 `RBTree.insert`,
+  transferring its shape and membership theorems.
+- Current gap: thread the augmentation through executable red-black *deletion*
+  (blocked on the Chapter 13 executable delete loop) and package the final
+  textbook-level general augmentation interface
 
 This first pass captures the core mathematical idea of order-statistic trees:
 the augmented size field is useful exactly because the selector can branch on
@@ -1112,12 +1404,69 @@ that ideal semantics on well-sized trees.  The recompute-then-rotate wrappers
 also show that an arbitrary functional tree can be locally prepared for a
 rotation and still expose the same ideal rank-selection behavior afterward.
 
+### Section 14.3 - Interval trees and the general augmentation theorem
+
+- Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
+- Status: `proved` for the functional well-augmented BST model, the general
+  augmentation theorem (CLRS Theorem 14.1), the value-level red-black
+  rotation bridge, and the general executable augmentation interface (an
+  arbitrary augmentation threaded through an executable red-black insertion
+  refining Chapter 13 `RBTree.insert`)
+- Main proved declarations:
+  - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.storedAug_eq_realAug_of_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.rotateLeft_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.rotateRight_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.insert_wellAugmented`
+  - `CLRS.Chapter14.AugmentedTree.mem_keys_insert`
+  - `CLRS.Chapter14.AugmentedTree.augmentation_theorem`
+  - `CLRS.Chapter14.realAug_sizeAug_eq_length`
+  - `CLRS.Chapter14.Interval.overlaps_iff`
+  - `CLRS.Chapter14.IntervalTree.recompute_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.rotateLeft_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.rotateRight_wellAugmented`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`
+  - `CLRS.Chapter14.IntervalTree.intervalSearch?_spec`
+  - `CLRS.Chapter14.RBBridge.rb_augmentation_bridge`
+  - `CLRS.Chapter14.RBBridge.rbRealAug_sizeAug_eq_length`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_mk`
+  - `CLRS.Chapter14.AugmentedRBTree.storedAug_eq_realAug_of_wellAugmented`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_balanceLeft`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_balanceRight`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_insertFixup`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_insertFixup`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.inTree_toRB`
+  - `CLRS.Chapter14.AugmentedRBTree.redBlackShape_toRB_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.sizeAug_realAug_eq_length`
+  - `CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`
+- Proof pattern: use the generic `Augmentation`/`AugmentedTree` framework and
+  its `IsRotationInvariant` law to maintain local cached values through
+  recomputation, rotations, and BST insertion. Instantiate it with maximum
+  interval high endpoints and subtree size, then prove that the CLRS
+  interval-search pruning test is both sound and complete.  The generic
+  `AugmentedRBTree` then threads an *arbitrary* augmentation through an
+  executable red-black insertion whose Okasaki balancer rebuilds every node with
+  the augmentation-recomputing smart constructor `mk`, so `wellAugmented_insert`
+  follows by structural induction, and the augmentation-erasing projection `toRB`
+  makes `insert` (at `natLt`) refine Chapter 13 `RBTree.insert`, transferring its
+  shape and membership theorems.  The `sizeAug` and `maxHighAug` fields are
+  recovered as instances of this single interface.
+- Current gap: thread the augmentation through executable red-black *deletion*
+  (blocked on the Chapter 13 executable delete loop).  The stored-augmentation
+  refinement through executable `RBTree.insert` is now proved generically.
+
 ## Chapter 15 - Dynamic Programming
 
 ### Section 15.1 - Rod cutting
 
 - Lean source: `CLRSLean/Chapter_15/Section_15_1_Rod_Cutting.lean`
-- Status: `proved` for the mathematical cut-optimality layer
+- Status: `proved` for the mathematical cut-optimality layer and the mutable-array
+  bottom-up implementation refinement
 - Main proved theorems:
   - `CLRS.Chapter15.firstCutValue_le_of_rodCutRecurrence`
   - `CLRS.Chapter15.rodRevenue_le_of_firstCutValue_bounds`
@@ -1136,16 +1485,27 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter15.planValue_le_optimalPlanValue_of_same_length`
   - `CLRS.Chapter15.planValue_le_tablePlanValue_of_same_length`
   - `CLRS.Chapter15.planValue_le_bottomUpRodPlanValue_of_same_length`
+  - `CLRS.Chapter15.rodRevenueArrayAux_size`
+  - `CLRS.Chapter15.arrGet_rodRevenueArrayAux`
+  - `CLRS.Chapter15.rodRevenueArray_size`
+  - `CLRS.Chapter15.rodRevenueArray_correct`
+  - `CLRS.Chapter15.rodRevenueArray_full`
+  - `CLRS.Chapter15.rodRevenueArray_rodCutTableRecurrence`
+  - `CLRS.Chapter15.planValue_le_rodRevenueArray`
 - Proof pattern: state the Bellman first-cut recurrence abstractly, expose a
   finite bottom-up table-prefix recurrence, prove every admissible first cut is
   bounded by the recurrence/table value, then induct over positive-piece
-  cutting plans to prove global optimality certificates
-- Current gap: mutable-array and memoized implementation correctness remains a
-  future refinement target
+  cutting plans to prove global optimality certificates; finally build the CLRS
+  `BOTTOM-UP-CUT-ROD` table as an `Array Nat` filled one `Array.push` at a time and
+  prove by induction that every filled entry refines the pure recurrence value,
+  from which the array read inherits `RodCutTableRecurrence` and the plan bound
+- Current gap: top-down memoized-cache implementation and RAM-cost semantics remain
+  future refinement targets
 
 This first dynamic-programming proof establishes the textbook optimal
 substructure argument and the correctness condition for a bottom-up table
-prefix independently of a particular mutable-array implementation.
+prefix, then refines it to an executable mutable-`Array` bottom-up table whose
+reads are proved equal to the pure recurrence value.
 
 ### Section 15.2 - Matrix-chain multiplication
 
@@ -1313,6 +1673,32 @@ bundles sublist membership, feasibility, and optimal length; the companion
 `CLRS.ActivitySelection.activitySelection_cons_correct` exposes the same bundle
 for the nonempty recursive step.
 
+### Section 16.2 - Greedy-choice property and optimal substructure (meta-theorems)
+
+- Lean source: `CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean`
+- Status: `proved` for the abstract structural lemmas
+- Main results:
+  - `CLRS.GreedyMeta.GreedyProblem` — abstract structure bundling the
+    greedy-choice property and optimal substructure (CLRS §16.2)
+  - `CLRS.GreedyMeta.gsolve` — generic recursive greedy solver
+  - `CLRS.GreedyMeta.gsolve_optimal` — meta-theorem: any `GreedyProblem`
+    instance admits an optimal greedy solution
+  - `CLRS.GreedyMeta.GreedyChoiceProperty` — predicate form of Lemma 16.1
+  - `CLRS.GreedyMeta.OptimalSubstructure` — predicate form of Lemma 16.2
+- Proof pattern: the `GreedyProblem` structure packages the two §16.2
+  structural lemmas as axioms; the meta-theorem `gsolve_optimal` proves
+  greedy optimality by strong induction on the size measure.
+- Current gap: concrete instantiations (activity selection, Huffman) are
+  proved directly in their respective sections; a formal bridge recovering
+  those results from the meta-theorem remains future work.
+
+The section formalizes the CLRS §16.2 claim that any optimisation problem
+with the greedy-choice property and optimal substructure can be solved
+optimally by a greedy algorithm.  The abstract `GreedyProblem` structure
+records the two properties as axioms; `gsolve` implements the generic
+recursive greedy procedure; and `gsolve_optimal` proves its optimality by
+strong induction on the problem size.
+
 ### Section 16.3 - Huffman codes
 
 - Lean source: `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean`
@@ -1330,13 +1716,70 @@ nonempty frequency table with distinct symbols and positive frequencies.  The
 while `huffmanOfFreqs_cost_le` gives the direct minimum-cost comparison against
 any consistent tree with the same frequency table.
 
+### Section 16.4 - Matroids and greedy methods
+
+- Lean source: `CLRSLean/Chapter_16/Section_16_4_Matroids.lean`
+- Status: `proved`
+- Reuses Mathlib's matroid library (`Mathlib.Combinatorics.Matroid.*`); does not
+  redefine matroid theory.
+- Main proved theorems:
+  - `CLRS.Matroid16.greedy_isBasis` — the greedy output is a basis (maximal
+    independent set) of the elements it scanned
+  - `CLRS.Matroid16.greedy_optimal` — CLRS Theorem 16.10 / Corollary 16.11: over
+    a nonincreasing-weight scan of the ground set, `greedy` returns a
+    maximum-weight independent set
+  - `CLRS.Matroid16.greedy_choice` — CLRS Theorem 16.6 (greedy-choice property)
+  - `CLRS.Matroid16.optimal_substructure` — CLRS Lemma 16.7 (optimal
+    substructure through the contraction `M ／ {x}`)
+  - `CLRS.Matroid16.greedyRun_optimal` — self-contained optimality over a
+    `Fintype`, sorting the ground set internally
+- Proof pattern: per-threshold basis domination via `Matroid.Indep.augment_finset`
+  plus a layer-cake weight decomposition; exchange for Theorem 16.6.
+- Current gap: none for the current theorem statements (independent competitors
+  are taken as coerced `Finset`s over a finite ground set).
+
+The section defines a `WeightedMatroid` (a `Matroid α` with weights `w : α → ℕ`)
+and the executable `greedy` fold.  The centerpiece `greedy_optimal` proves the
+CLRS matroid greedy theorem: greedy restricted to each high-weight prefix is
+again a greedy run, hence a basis of that threshold set, so it dominates every
+independent set threshold-by-threshold; the layer-cake identity upgrades this to
+weight domination.
+
+### Section 16.5 - A task-scheduling problem as a matroid
+
+- Lean source: `CLRSLean/Chapter_16/Section_16_5_Task_Scheduling.lean`
+- Status: `proved`
+- Reuses the §16.4 weighted-matroid greedy optimality theorem via
+  `CLRS.Matroid16.greedyRun_optimal`.
+- Main definitions:
+  - `CLRS.SchedulingMatroid.scheduleIndependent` — independence predicate
+    (`∀ t, N_t(A) ≤ t`, CLRS Lemma 16.12)
+  - `CLRS.SchedulingMatroid.schedulingMatroid` — the task-scheduling matroid
+    (CLRS Theorem 16.13)
+  - `CLRS.SchedulingMatroid.Nt` — deadline-count function `N_t(A)`
+- Main proved theorems:
+  - `CLRS.SchedulingMatroid.schedulingMatroid` — `IndepMatroid.ofFinset`
+    construction satisfying the three matroid axioms (empty, subset,
+    augmentation); the augmentation proof picks a task of maximal deadline
+    in `C \ A` and uses `|C| > |A|` to bound `N_t(A) + 1 ≤ N_t(C) ≤ t`
+  - `CLRS.SchedulingMatroid.minPenaltySchedule_correct` — `greedyRun` on
+    the scheduling matroid with penalty weights returns a maximum-penalty
+    independent set (instantiation of §16.4 greedy optimality)
+- Proof pattern: define `scheduleIndependent` via `N_t`; prove the finite
+  matroid exchange axiom directly; construct the matroid via
+  `IndepMatroid.ofFinset`; apply `greedyRun_optimal` for the optimality theorem.
+- Current gap: none for the current theorem statement; an explicit
+  earliest-deadline-first schedule construction remains a separate
+  strengthening target.
+
 ## Chapter 17 - Amortized Analysis
 
 - Lean source:
   `CLRSLean/Chapter_17.lean`,
   `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`,
-  `CLRSLean/Chapter_17/Section_17_2_Stack_And_Counter.lean`, and
-  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`
+  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`,
+  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`, and
+  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter17.aggregate_bound_of_prefix_bound`
@@ -1405,6 +1848,17 @@ any consistent tree with the same frequency table.
   - `CLRS.Chapter17.dynamicTableDelete_amortizedCost_eq`
   - `CLRS.Chapter17.dynamicTableDelete_amortizedBound`
   - `CLRS.Chapter17.dynamicTable_amortizedBound`
+  - `CLRS.Chapter17.growTo` (physical array copy operation)
+  - `CLRS.Chapter17.growTo_size` and `CLRS.Chapter17.growTo_toList`
+  - `CLRS.Chapter17.insert_copy_cost` (insertion = copy + write)
+  - `CLRS.Chapter17.dynamicTableCopyCount_eq_growCopyCost` (abstract copy = physical copy)
+  - `CLRS.Chapter17.arrayTable_toState_insert` and `CLRS.Chapter17.arrayTable_insertCost_eq`
+  - `CLRS.Chapter17.sharpPotential` and `CLRS.Chapter17.sharpPotentialZ` (load-factor potential)
+  - `CLRS.Chapter17.sharpPotentialZ_nonneg` and `CLRS.Chapter17.sharpPotential_nonneg`
+  - `CLRS.Chapter17.sharpInsert_amortized_le_three` (insertion amortized <= 3)
+  - `CLRS.Chapter17.sharpDelete_amortized_le_three` (deletion amortized <= 3)
+  - `CLRS.Chapter17.sharpDelete_loadFactor_eq_half_of_contract` (alpha = 1/2 after contraction)
+  - `CLRS.Chapter17.sharpDelete_loadFactor_ge_half_of_contract` (alpha >= 1/2 after contraction)
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
   telescoping, executable counter trace induction, size-level table potential
   nonnegativity, capacity feasibility/direction, post-state field equations,
@@ -1415,8 +1869,12 @@ any consistent tree with the same frequency table.
   actual-cost and capacity-choice case specs, zero/positive deletion-cost wrappers,
   premise-light deletion-cost branch wrappers,
   lower/upper bounds, and transitions
-- Current gap: mutable-array copying, RAM/allocation constants, and sharper
-  CLRS load-factor potential refinements remain strengthening targets.
+- Mutable-array copying modelled via `growTo`, `ArrayTable`, and
+  `insert_copy_cost` (Sub-issue A).
+- CLRS load-factor potential with constant amortized bounds (<=3)
+  proved for both insertion and deletion (Sub-issue B).
+- Current gap: general allocator / RAM cost semantics and amortized
+  analysis over interleaved insert/delete traces.
 
 Chapter 17 now provides the reusable amortized-analysis layer for later data
 structure chapters.  The generic aggregate/accounting/potential facts are
@@ -1429,10 +1887,11 @@ stored-count and capacity corollaries, post-transition potential
 nonnegativity, concrete amortized-cost unfolding wrappers, resize-branch
 capacity wrappers, post-state field equations, actual-cost and capacity-choice
 case specs, exact zero/positive deletion-cost wrappers, premise-light
-deletion-cost branch wrappers, positive-cost and upper-bound transition facts,
-while
-mutable-array copying and
-allocator semantics remain future refinements.
+deletion-cost branch wrappers, positive-cost and upper-bound transition facts.
+The sharper section adds a mutable-array copy model (`growTo`, `ArrayTable`,
+`insert_copy_cost`) and the CLRS load-factor potential (`sharpPotential`) with
+constant (<=3) amortized bounds for both insertion and deletion under the
+sharper contraction strategy.
 
 ## Chapter 18 - B-Trees
 
@@ -1698,12 +2157,51 @@ maximum-degree theorem is still deliberately conservative for this first pass;
 it bounds the proxy by a key-count budget rather than proving the full
 Fibonacci logarithmic theorem.
 
+### Section 19.4 - Bounding the maximum degree
+
+- Module: `CLRSLean/Chapter_19/Section_19_4_Bounding_Maximum_Degree.lean`
+- Model: a concrete rooted-tree type `CLRS.Chapter19.FTree` (a node carrying an
+  ordered list of child subtrees) with `degree` and `size`, plus the CLRS
+  Lemma 19.1 marked-tree invariant `CLRS.Chapter19.FTree.Wellformed`
+  ("child in position `j` has degree at least `j - 1`", the invariant
+  `CONSOLIDATE` and cascading cuts maintain).
+- Tracked key theorems:
+  - `CLRS.Chapter19.FTree.Wellformed`
+  - `CLRS.Chapter19.FTree.wellformed_leaf`
+  - `CLRS.Chapter19.FTree.sum_lb_from`
+  - `CLRS.Chapter19.FTree.wellformed_size_ge_fibLowerBound` (Lemma 19.4:
+    `size(x) ≥ F(d+2)`)
+  - `CLRS.Chapter19.FTree.size_pos`
+  - `CLRS.Chapter19.FTree.goldenRatio_pow_le_fibLowerBound` (`φ^d ≤ F(d+2)`)
+  - `CLRS.Chapter19.FTree.wellformed_goldenRatio_pow_le_size` (`φ^d ≤ size`)
+  - `CLRS.Chapter19.FTree.wellformed_degree_le_logb` (Lemma 19.5: `D(n) ≤ log_φ n`)
+  - `CLRS.Chapter19.FTree.wellformed_degree_le_floor_logb` (`D(n) ≤ ⌊log_φ n⌋`)
+  - `CLRS.Chapter19.FTree.wellformed_degree_le_twice_log_two` (`d ≤ 2·⌊log₂ n⌋ + 1`)
+  - `CLRS.Chapter19.FTree.wellformed_append_child` (Lemma 19.1 preservation)
+  - `CLRS.Chapter19.FTree.link`, `CLRS.Chapter19.FTree.link_degree`,
+    `CLRS.Chapter19.FTree.link_wellformed` (the `CONSOLIDATE` equal-degree link)
+  - `CLRS.Chapter19.FTree.minTree`, `CLRS.Chapter19.FTree.minTree_degree`,
+    `CLRS.Chapter19.FTree.minTree_size`, `CLRS.Chapter19.FTree.minTree_wellformed`
+  - `CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound` (the bound is
+    tight: the extremal tree of degree `d` has size exactly `F(d+2)`)
+- Proof pattern: an offset cons-induction numeric core (`sum_lb_from`) feeding a
+  well-founded (`sizeOf`) tree induction for the subtree-size bound; a two-step
+  strong induction using `φ² = φ + 1` for the golden-ratio bound; `Real.logb`
+  monotonicity and `⌊·⌋` for the maximum-degree bound; and an append-child
+  invariant-maintenance lemma reused by both `link` and the extremal `minTree`
+  tightness family.
+- Current gap: the executable pointer forest, destructive `CONSOLIDATE` and
+  cascading-cut procedures, and the amortized `O(log n)`/`O(1)` cost accounting
+  remain strengthening targets.  The structural combinatorial core they depend
+  on — the true Fibonacci logarithmic degree bound — is now sealed.
+
 ## Chapter 20 - van Emde Boas Trees
 
 - Lean source:
   `CLRSLean/Chapter_20.lean`,
-  `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean`, and
-  `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean`
+  `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean`,
+  `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean`, and
+  `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter20.VEB.index_high_low`
@@ -1836,6 +2334,19 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEB.operationDepth_linear`
   - `CLRS.Chapter20.VEB.operationDepth_monotone`
   - `CLRS.Chapter20.VEB.operationDepth_strict_mono`
+  - `CLRS.Chapter20.uSize_succ` (recursive tower universe `2 ^ (2 ^ k)`)
+  - `CLRS.Chapter20.VEBTree.toFinset_lt_uSize`
+  - `CLRS.Chapter20.VEBTree.toFinset_empty`
+  - `CLRS.Chapter20.VEBTree.member_correct` (recursive membership refinement)
+  - `CLRS.Chapter20.VEBTree.insert_toFinset` (recursive insert refinement)
+  - `CLRS.Chapter20.VEBTree.member_insert_iff`
+  - `CLRS.Chapter20.VEBTree.member_insert_self`
+  - `CLRS.Chapter20.VEBTree.memberCost_recurrence` (`T(u) = T(√u) + 1`)
+  - `CLRS.Chapter20.VEBTree.memberCost_le`
+  - `CLRS.Chapter20.VEBTree.log_uSize`
+  - `CLRS.Chapter20.VEBTree.loglog_uSize`
+  - `CLRS.Chapter20.VEBTree.depth_loglog_u`
+  - `CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u` (`O(log log u)`)
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,
   extrema/successor via `Finset.min'`/`max'`, successful-query universe-bound
@@ -1852,9 +2363,15 @@ Fibonacci logarithmic theorem.
   membership/order wrappers, update-query
   universe-bound corollaries, and definition unfolding for
   first-pass operation-depth recurrence and monotonicity facts
-- Current gap: recursive min/max-summary-cluster state, word-RAM base cases,
-  and an explicit Chapter 3 asymptotic bridge for `O(log log u)` remain
-  strengthening targets.
+- Current gap: recursive `successor` / `predecessor` / `delete` on the
+  summary/cluster structure and the `min` / `max` double-recursion-avoidance
+  optimisation that makes `insert` itself run in `O(log log u)` remain
+  strengthening targets.  Section 20.3 now provides the recursive
+  summary/cluster `VEBTree` over the tower universe `uSize k = 2 ^ (2 ^ k)`,
+  with `member` and `insert` refined against the finite-set specification and
+  the operation-count recurrence `T(u) = T(√u) + 1` solved to a
+  `log₂ (log₂ u) + 1` depth bound and an `O(log log u)` big-O packaging via the
+  Chapter 3 wrapper.
 
 Chapter 20 now proves the high/low/index arithmetic, including both directions
 of bounded high/low recomposition, and a set-specification layer for the main
@@ -1877,6 +2394,91 @@ corollaries for successful queries after updates.  The
 current operation-depth facts expose the base case, successor step, and a
 linear/monotone wrapper over the universe exponent, not yet a full asymptotic
 translation for the original universe size.
+
+## Chapter 21 - Data Structures for Disjoint Sets
+
+### Section 21.1 - Abstract Operations
+
+- Model: `CLRS.Chapter21.Partition`, an explicit equivalence relation.
+- Core interface:
+  - `Partition.merge_sameSet_iff`
+  - `Partition.merge_related_sameSet_iff`
+  - `stepSpec_union_sameSet_iff`
+  - `runSpec_append`
+  - `runSpec_preserves_sameSet`
+- Boundary: `FIND-SET` preserves the partition and `UNION` merges exactly two
+  represented classes.
+
+### Section 21.2 - Linked-List Representation
+
+- Model: head and size tables over `Fin n`; weighted union redirects the
+  smaller represented class and returns the pointer-rewrite charge.
+- Correctness:
+  - `LinkedList.State.weightedUnion_sameSet_iff`
+  - `LinkedList.State.weightedUnion_refines_merge`
+  - `LinkedList.State.weightedUnion_preserves_headInvariant`
+- Complexity:
+  - `LinkedList.State.weightedUnion_changed_doubles`
+  - `LinkedList.State.move_count_le_log2`
+  - `LinkedList.State.total_rewrites_le_n_mul_log2`
+- Boundary: the standard aggregate `O(n log n)` representative-rewrite
+  argument is proved for the table-level model.
+
+### Section 21.3 - Disjoint-Set Forests
+
+- Implementation: `Batteries.Data.UnionFind`, including union by rank and path
+  compression.
+- Initialization and find:
+  - `Forest.singletonForest_equiv_iff`
+  - `Forest.find_preserves_sameSet`
+  - `Forest.find_returns_representative`
+  - `Forest.find_compresses_path`
+- Union and query:
+  - `Forest.union_sameSet_iff`
+  - `Forest.union_refines_merge`
+  - `Forest.checkEquiv_correct`
+  - `Forest.checkEquiv_preserves_sameSet`
+- Boundary: executable functional correctness is complete for the represented
+  Batteries API.
+
+### Section 21.4 - Rank And Path-Compression Analysis
+
+- Rank/path layer:
+  - `Analysis.parentPath_rank_bound`
+  - `Analysis.rank_le_log2`
+  - `Analysis.parentPath_length_le_log2`
+- Concrete Batteries execution layer:
+  - `Analysis.Costed.findEdges_parentPath`
+  - `Analysis.Costed.RankBudget.afterUnion`
+  - `Analysis.Costed.costedFind_cost_le_log2`
+  - `Analysis.Costed.costedUnion_cost_le_log2`
+  - `Analysis.Costed.run_erase`
+  - `Analysis.Costed.run_refines_spec`
+  - `Analysis.Costed.run_rank_le_log2`
+  - `Analysis.Costed.run_cost_le`
+- Inverse-Ackermann/potential layer:
+  - `Analysis.inverseAckermann_spec`
+  - `Analysis.inverseAckermann_minimal`
+  - `Analysis.total_cost_le_of_inverseAckermann_certificate`
+  - `Analysis.Ackermann.potential_find_le`
+  - `Analysis.Ackermann.potential_link_le_add_two`
+  - `Analysis.Ackermann.costedFind_amortized_le`
+  - `Analysis.Ackermann.costedUnion_amortized_le`
+  - `Analysis.Ackermann.step_amortized_le`
+  - `Analysis.Ackermann.run_cost_le_inverseAckermann`
+  - `Analysis.Ackermann.run_cost_le_inverseAckermann_of_universe_le_ops`
+- Boundary: the concrete Batteries machine now instantiates the
+  inverse-Ackermann potential directly.  Its actual cost is bounded by
+  `9 * (m+n) * alpha(n)`, and by `18 * m * alpha(n)` when `n <= m`.
+- Closure audit: `docs/proof-audits/chapter-21-closure-2026-07-10.md`.
+
+### Chapter 23 Bridge
+
+- `MST.UnionFindConnectivityRefinement.checkEquiv_iff_connected`
+- `MST.UnionFindConnectivityRefinement.cycleTest_correct`
+- Boundary: a connectivity-faithful state family yields the existing verified
+  Kruskal cycle-test interface.  Incremental state threading remains a
+  performance refinement.
 
 ## Chapter 22 - Elementary Graph Algorithms
 
@@ -1941,11 +2543,11 @@ track.
 
 - Lean sources:
   - `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_WhitePath.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_Intervals.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_SCC.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_Bridge.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS_EdgeClassification.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S2_Intervals.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S3_Bridge.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S4_SCC.lean`
+  - `CLRSLean/Chapter_22/Section_22_3_DFS/S5_EdgeClassification.lean`
 - Status: `proved`
 - DFS and white-path layer:
   - `CLRS.Chapter22.Graph.DFSState`
@@ -1992,8 +2594,8 @@ track.
 ### Section 22.5 - Strongly connected components
 
 - Lean sources:
-  - `CLRSLean/Chapter_22/Section_22_5_MergeSort_Congr.lean`
   - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean`
+  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean`
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter22.Graph.transpose`
@@ -2022,7 +2624,7 @@ track.
 
 - Lean source:
   `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorem: `CLRS.MST.safe_edge_of_lightest_crossing`
 - Supporting theorems:
   - `CLRS.MST.Graph.connected_crosses_cut`
@@ -2033,80 +2635,237 @@ track.
   - `CLRS.MST.FiniteGraph.exists_crossing_tree_edge_preserving_prefix`
   - `CLRS.MST.mst_exchange_step`
 - Proof pattern: cut property, safe edge, exchange argument
-- Current gap: the path/cut crossing-edge lemma now exists; Section 23.2 turns
-  an explicit path-decomposition certificate into a replacement spanning-tree
-  theorem.  The remaining gap is deriving that certificate automatically from a
-  canonical finite simple path or cycle representation.
 
 This section contains the mathematical core of the CLRS MST proof.  It proves
 that a light edge crossing a cut is safe once the graph-specific exchange
 certificate is supplied, proves that the abstract empty-prefix optimum
 specification is equivalent to the concrete finite-graph MST specification, and
-it now derives the cut-crossing tree edge needed to preserve an accepted prefix
-across a respecting cut.
+derives the cut-crossing tree edge needed to preserve an accepted prefix across
+a respecting cut.  Section 23.2 now discharges the exchange certificate
+automatically.
 
 ### Section 23.2 - Kruskal and Prim
 
 - Lean source: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
-- Status: `partial`
+- Interface tests: `Tests/Chapter_23_Interface.lean`,
+  `Tests/Chapter_23_Closure.lean`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorems:
-  - `CLRS.MST.kruskal_optimal`
-  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_cycle_test`
+  - `CLRS.MST.FiniteGraph.canonicalSimplePath_unique`
+  - `CLRS.MST.FiniteGraph.exists_crossing_exchangePath_of_spanningTree`
+  - `CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing_auto`
+  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_sorted_complete_exact_component_empty`
+  - `CLRS.MST.FiniteGraph.prim_minimum_spanning_tree`
 - Supporting theorems:
-  - `CLRS.MST.Graph.ExchangePath`
-  - `CLRS.MST.Graph.InsertedEdgeConnection`
-  - `CLRS.MST.Graph.exchangePath_connected_insert`
-  - `CLRS.MST.Graph.insertedEdgeConnection_of_exchangePath`
-  - `CLRS.MST.Graph.exchangePath_of_insert_connected`
-  - `CLRS.MST.Graph.exchangePath_iff_insertedEdgeConnection`
-  - `CLRS.MST.FiniteGraph.exchangePath_of_insert_connects_erased_edge`
-  - `CLRS.MST.FiniteGraph.exchangePath_iff_insertedEdgeConnection_of_spanningTree`
-  - `CLRS.MST.FiniteGraph.exchangePath_of_insertedEdgeConnection`
-  - `CLRS.MST.FiniteGraph.spanningTree_exchange_of_path_certificate`
-  - `CLRS.MST.FiniteGraph.cut_exchange_certificate`
-  - `CLRS.MST.FiniteGraph.exists_replacement_spanning_tree_of_cut`
-  - `CLRS.MST.FiniteGraph.cutCertificate_of_lightest_crossing`
-  - `CLRS.MST.lightest_crossing_of_sorted_prefix`
-  - `CLRS.MST.cut_certificate_of_component_oracle_sorted_prefix`
-  - `CLRS.MST.processed_edge_mem_or_connected_of_exact_component_kruskal`
-  - `CLRS.MST.processed_prefix_excludes_of_exact_component_kruskal`
-  - `CLRS.MST.lightest_crossing_of_exact_component_kruskal_prefix`
-  - `CLRS.MST.cut_certificate_of_exact_component_kruskal_prefix`
-  - `CLRS.MST.FiniteGraph.kruskal_subset_edges`
-  - `CLRS.MST.FiniteGraph.kruskal_forest_of_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_spans_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_spanning_tree_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_complete_exact_component_empty`
-  - `CLRS.MST.FiniteGraph.kruskal_minimum_spanning_tree_of_complete_exact_component_empty`
-  - `CLRS.MST.FiniteGraph.kruskal_optimal`
-- Proof pattern: exact-component prefix accounting, sorted-order lightness,
-  component-cycle-test forest preservation, complete-scan spanning, and
-  safe-edge induction over an edge list
-- Deferred implementation: union-find correctness
-- Current gaps:
-  - refine exact components to an executable union-find implementation if
-    implementation correctness becomes part of scope;
-  - derive the inserted-edge connection automatically from a canonical finite
-    simple path/cycle representation;
-  - discharge the prefix-local sorted-lightness proof in the full recursive
-    optimality wrapper, rather than requiring a global lightness hypothesis;
-  - add Prim's algorithm theorem interface.
+  - `CLRS.MST.Graph.selectedSimpleGraph`
+  - `CLRS.MST.Graph.exists_pathExchange_of_simplePath_crosses`
+  - `CLRS.MST.FiniteGraph.selectedSimpleGraph_isAcyclic`
+  - `CLRS.MST.FiniteGraph.safeEdge_of_lightest_crossing_auto`
+  - `CLRS.MST.FiniteGraph.cutCertificate_of_exactComponentKruskalPrefix_auto`
+  - `CLRS.MST.FiniteGraph.kruskal_preserves_mst_of_sorted_exact_component`
+  - `CLRS.MST.FiniteGraph.kruskal_optimal_of_sorted_complete_exact_component`
+  - `CLRS.MST.FiniteGraph.PrimTrace`
+  - `CLRS.MST.FiniteGraph.PrimCertificate`
+  - `CLRS.MST.FiniteGraph.prim_forest_of_trace`
+  - `CLRS.MST.FiniteGraph.prim_preserves_mst`
+  - `CLRS.MST.FiniteGraph.prim_spanning_tree_of_certificate`
+  - `CLRS.MST.FiniteGraph.prim_optimal`
+- Proof pattern: Mathlib simple-path normalization, forest path uniqueness,
+  automatic cut exchange, exact-component prefix accounting, local
+  sorted-lightness recursion, and shared safe-edge induction for Kruskal and
+  Prim.
+- Closure audit: `docs/proof-audits/chapter-23-closure-2026-07-11.md`.
+- Implementation refinement now proved: stateful Chapter 21 union-find
+  threading for Kruskal, exact operation-trace correspondence, complete
+  sorting/scan/union-find work composition, executable indexed-queue Prim,
+  and binary-heap operation-count bounds.
+- Deferred without reopening the milestone: semantic refinement to the
+  concrete `Batteries.BinaryHeap` array and mutable/RAM write accounting.
 
-The section proves the sorted-order lightness step in two layers: first with an
-explicit processed-prefix exclusion invariant, then from exact components for a
-real Kruskal prefix.  It also proves the certificate-based replacement exchange
-step: `ExchangePath` is enough to prove that adding one edge and deleting one
-tree edge preserves spanning-tree structure and the accepted prefix.  The new
-bridge lemmas show that `ExchangePath` is equivalent to the named cycle-style
-`InsertedEdgeConnection` once the erased tree edge disconnects its endpoints.
-It also proves forest preservation for the exact-component cycle test and proves that a
-complete scan of a connected finite graph returns a spanning tree.  The
-finite-graph optimality wrapper can now discharge the final spanning-tree side
-condition from exact components, complete edge coverage, graph connectedness,
-and an initial forest.  The finite cycle-test wrapper separately exposes the
-same `IsMinimumSpanningTree` conclusion whenever a cycle-test implementation's
-accepted edge set is already known to be a spanning tree.
+The former manual `ExchangePath`, global-lightness, and missing-Prim gaps are
+closed.  A canonical simple tree path now produces the crossing replacement
+edge; the sorted Kruskal wrapper builds each local cut certificate during its
+recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
+
+## Chapter 24 - Single-Source Shortest Paths
+
+- Chapter status: `selected-section-complete`
+- Chapter guide: `CLRSLean/Chapter_24.lean`
+
+### Section 24.1 - The Bellman-Ford algorithm
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean`
+- Status: `proved`
+- Model layer:
+  - `CLRS.Chapter24.WeightedGraph`
+  - `CLRS.Chapter24.WeightedGraph.Adj`
+  - `CLRS.Chapter24.WeightedGraph.walkWeight`
+  - `CLRS.Chapter24.WeightedGraph.IsWalkFrom`
+- Relaxation dynamic program:
+  - `CLRS.Chapter24.WeightedGraph.relaxStep`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_succ_le`
+- Correctness layer:
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_le_walkWeight` (upper-bound property)
+  - `CLRS.Chapter24.WeightedGraph.exists_walk_of_relaxDist` (realizability)
+  - `CLRS.Chapter24.WeightedGraph.NoNegCycle`
+  - `CLRS.Chapter24.WeightedGraph.exists_simple_le` (cycle removal)
+  - `CLRS.Chapter24.WeightedGraph.IsShortestDist`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_isShortestDist` (CLRS Theorem 24.4)
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_stabilizes` (convergence)
+- Work bound:
+  - `CLRS.Chapter24.WeightedGraph.bellmanFordWork`
+  - `CLRS.Chapter24.WeightedGraph.bellmanFordWork_le` (`O(V·E)`)
+- Proof pattern: a synchronous `WithTop ℝ`-valued relaxation dynamic program;
+  induction on the round count for the upper-bound and realizability properties;
+  duplicate-vertex decomposition plus `walkWeight` additivity for cycle removal;
+  and identification of `relaxDist (|V|-1)` with the shortest-path distance `δ`.
+
+### Section 24.2 - Single-source shortest paths in DAGs
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean`
+- Status: `proved`
+- Topological order and acyclicity (over `WeightedGraph.Adj`):
+  - `CLRS.Chapter24.WeightedGraph.IsTopoOrder`
+  - `CLRS.Chapter24.WeightedGraph.IsAcyclic`
+  - `CLRS.Chapter24.WeightedGraph.isAcyclic_of_isTopoOrder` (DAG hypothesis, for free)
+  - `CLRS.Chapter24.WeightedGraph.idxOf_lt_of_split`
+- Relaxation pass:
+  - `CLRS.Chapter24.WeightedGraph.relaxFrom` (single-vertex out-edge relaxation)
+  - `CLRS.Chapter24.WeightedGraph.dagRelax` (fold `relaxFrom` along the order)
+  - `CLRS.Chapter24.WeightedGraph.dagRelax_respects_edge`
+- Correctness:
+  - `CLRS.Chapter24.WeightedGraph.le_add_walkWeight_of_respects` (path relaxation)
+  - `CLRS.Chapter24.WeightedGraph.IsRealizable`
+  - `CLRS.Chapter24.WeightedGraph.dagRelax_isRealizable`
+  - `CLRS.Chapter24.WeightedGraph.dagRelax_isShortestDist` (CLRS §24.2 correctness)
+- Work bound:
+  - `CLRS.Chapter24.WeightedGraph.outdegree`
+  - `CLRS.Chapter24.WeightedGraph.sum_outdegree`
+  - `CLRS.Chapter24.WeightedGraph.dagSSSPWork`
+  - `CLRS.Chapter24.WeightedGraph.dagSSSPWork_eq` (`Θ(V + E)`)
+- Proof pattern: restate the topological-order predicate over `WeightedGraph.Adj`;
+  split the fold at the processed vertex to show its estimate is already final and
+  that processing it lowers each out-neighbor to `≤ d u + w u v`; telescope the
+  per-edge upper bound along a walk for the lower bound; preserve realizability
+  through the fold; and count `|V|` vertex visits plus `∑ outdegree = |E|` edge
+  relaxations for the `Θ(V + E)` bound.
+
+### Section 24.3 - Dijkstra's algorithm
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
+- Status: `proved`
+- Nonnegative-weight layer:
+  - `CLRS.Chapter24.WeightedGraph.Nonneg`
+  - `CLRS.Chapter24.WeightedGraph.walkWeight_nonneg`
+  - `CLRS.Chapter24.WeightedGraph.noNegCycle_of_nonneg`
+- Greedy correctness:
+  - `CLRS.Chapter24.WeightedGraph.exists_crossing`
+  - `CLRS.Chapter24.WeightedGraph.dijkstra_extractMin_correct` (CLRS Theorem 24.6)
+- Work bound:
+  - `CLRS.Chapter24.WeightedGraph.dijkstraWork`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraWork_le_edge_log` (`O(E log V)`)
+- Proof pattern: nonnegative walk-weight induction; frontier-crossing induction
+  on the realizing shortest walk; and a `walkWeight` split at the frontier edge
+  combined with the Section 24.1 shortest-distance lower bound and the Dijkstra
+  relaxation invariants to force `d u = δ u` for the extracted minimum.
+
+### Section 24.4 - Difference constraints and shortest paths
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean`
+- Status: `proved`
+- Model:
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem` (difference-constraint system)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.IsFeasible` (satisfying assignment)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.constraintGraph` (constraint graph with source)
+- Supporting lemmas:
+  - `CLRS.Chapter24.WeightedGraph.le_add_walkWeight_of_potential` (potential-function lemma)
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_respects_edge` (Bellman-Ford triangle inequality)
+- CLRS Theorem 24.9:
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.noNegCycle_of_feasible` (feasible → NoNegCycle)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.feasible_of_noNegCycle` (NoNegCycle → feasible via Bellman-Ford)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.diffConstraint_feasible_iff_noNegCycle` (full equivalence)
+- Proof pattern: potential function for the forward direction; Bellman-Ford
+  `δ(s, ·)` distances as the explicit feasible assignment in the reverse direction.
+
+### Chapter 24 remaining work
+
+- Deferred without a false claim: the executable Dijkstra priority-queue loop
+  threading the settled set and tentative distances (Section 24.3 proves the
+  greedy invariant that makes such a loop correct);
+  per-edge relaxation ordering and
+  mutable/RAM cost accounting for the abstract synchronous model.
+
+## Chapter 25 - All-Pairs Shortest Paths
+
+### Section 25.1 - All-Pairs Shortest Paths Model
+
+- Lean source: `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean`
+- Status: `proved` (under no negative-weight cycles)
+- Main theorems:
+  - `CLRS.Chapter25.AllPairs.weightMatrix` (edge-weight matrix W)
+  - `CLRS.Chapter25.AllPairs.minPlusMul` (min-plus matrix product)
+  - `CLRS.Chapter25.AllPairs.extendShortestPaths` (EXTEND-SHORTEST-PATHS)
+  - `CLRS.Chapter25.AllPairs.L` (inductive distance sequence L^(m))
+  - `CLRS.Chapter25.AllPairs.fasterAPSP` (FASTER-APSP algorithm)
+  - `CLRS.Chapter25.AllPairs.lemma_25_1` (L^(m+1) = min_k (L^m_ik + w_kj))
+  - `CLRS.Chapter25.AllPairs.L_sq_eq_minPlusMul` (Lemma 25.2: L^(2m) = L^m ◁ L^m)
+  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
+  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
+- Proof pattern: min-plus algebra, repeated squaring, linking to Ch24's relaxDist for walk properties, fixpoint via monotonicity + attainability
+- Current gap: Floyd-Warshall (Section 25.2), predecessor matrix, negative-cycle detection
+
+The section builds the all-pairs shortest-path model on the Chapter 24 WeightedGraph
+infrastructure.  The min-plus product and FASTER-APSP are defined, Lemmas 25.1 and
+25.2 are proved as algebraic identities, and the correctness of FASTER-APSP is
+established under the no-negative-cycles hypothesis by connecting L^(m) to the
+Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
+
+### Chapter 25 remaining work
+
+- Floyd-Warshall algorithm (Section 25.2).
+- Predecessor matrix Pi and path reconstruction.
+- Negative-cycle detection (CLRS Theorem 25.3).
+
+## Chapter 26 - Maximum Flow
+
+### Section 26.1 - Flow Networks
+
+- Lean source: `CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean`
+- Status: `proved`
+- Model:
+  - `CLRS.Chapter26.FlowNetwork` (capacity `c : V → V → ℝ`, source `s`, sink `t`,
+    nonnegative capacity, zero self-loops, `s ≠ t`)
+  - `CLRS.Chapter26.FlowNetwork.Flow` (feasible flow with capacity constraint,
+    skew symmetry, and flow conservation)
+  - `CLRS.Chapter26.FlowNetwork.Flow.value` (flow value `|f| = ∑_v f(s,v)`)
+- Auxiliary lemmas:
+  - `CLRS.Chapter26.FlowNetwork.Flow.self_zero` (flow on self-loop is zero)
+  - `CLRS.Chapter26.FlowNetwork.Flow.nonneg_of_zero_reverse_cap`
+  - `CLRS.Chapter26.FlowNetwork.Flow.nonpos_of_zero_cap`
+  - `CLRS.Chapter26.FlowNetwork.Flow.range_of_zero_reverse_cap`
+  - `CLRS.Chapter26.FlowNetwork.Flow.add_skew`
+- Cut lemma:
+  - `CLRS.Chapter26.FlowNetwork.Flow.netFlowAcrossCut` (net flow across `(S,Sᶜ)`)
+  - `CLRS.Chapter26.FlowNetwork.Flow.skew_symm_cancel`
+  - `CLRS.Chapter26.FlowNetwork.Flow.netFlow_eq_value` (**Lemma 26.5**: net flow
+    across any cut equals the flow value)
+  - `CLRS.Chapter26.FlowNetwork.Flow.value_le_cut_capacity` (flow value bounded by any cut capacity)
+- Residual network:
+  - `CLRS.Chapter26.FlowNetwork.Flow.residualCapacity` (`cf(u,v) = c(u,v) - f(u,v)`)
+  - `CLRS.Chapter26.FlowNetwork.Flow.residualEdge` (positive residual capacity)
+  - `CLRS.Chapter26.FlowNetwork.Flow.augmentingPathReachable` (reachability in the residual network)
+  - `CLRS.Chapter26.FlowNetwork.Flow.hasAugmentingPath` (sink reachable from source)
+- Ford-Fulkerson correctness:
+  - `CLRS.Chapter26.FlowNetwork.Flow.isMaximal` (maximum flow predicate)
+  - `CLRS.Chapter26.FlowNetwork.Flow.maximal_of_noAugmentingPath` (generic
+    Ford-Fulkerson: no augmenting path implies maximal flow)
+- Proof pattern: Lemma 26.5 uses skew-symmetry cancellation and conservation to
+  equate net cut flow with `|f|`.  The Ford-Fulkerson direction constructs a cut
+  from the set of vertices reachable from `s` in the residual network, shows every
+  crossing edge is saturated, and concludes maximality via the cut-capacity bound.
+- Current gap: the full Max-Flow Min-Cut converse direction, the Edmonds-Karp
+  analysis, and the executable augmenting-path loop.
 
 ## Deferred And Blocked Items
 
@@ -2117,21 +2876,21 @@ accepted edge set is already known to be a spanning tree.
 | Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
-| Chapter 8 bucket-sort expected time | `blocked-design` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the finite-uniform collision, second-moment bound, and abstract `≤ 3n` expected-cost wrapper are proved, but the full expected-time theorem still needs an explicit independent input distribution and concrete cost model. |
-| Chapter 9 randomized SELECT expected time | `blocked-design` | Selection-by-rank correctness is proved for the specification selector, pivot-style quickselect, and pivot-parametric deterministic SELECT; randomized expected time needs a probability model and cost recurrence. |
-| Chapter 9 deterministic linear-time SELECT | `future-work` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. The remaining target is a concrete executable cost theorem feeding that recurrence. |
+| Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the CLRS second moment `E[Σ n_i²] = n + n(n-1)/m` is proved as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`), and the abstract expected cost is `O(n)` (`expectedBucketSortCost_isBigO`). Remaining: RAM/step-count cost semantics. |
+| Chapter 9 randomized SELECT expected time | `proved` | Proved in `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`: `randSelectExpectedCost` models the uniform independent-pivot expected cost via `CLRS.Probability.expect`, `randSelectExpectedCost_recurrence` derives the CLRS recurrence, and `randomizedSelect_expected_bigO_linear` gives `E[T(n)] = O(n)` (CLRS Theorem 9.2). Remaining refinement: a joint distribution over all recursion levels and a concrete step-count cost model. |
+| Chapter 9 deterministic linear-time SELECT | `proved-abstract` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. A concrete executable cost counter `medianOfMediansSelectCost` (same recursion as `medianOfMediansSelect?`) now has the explicit linear bound `medianOfMediansSelectCost k xs ≤ 17 * xs.length` (`medianOfMediansSelectCost_linear_bound`), via the generic `selectCost_linear_bound`. Remaining refinement: a fully operational RAM step-count that also unfolds the recursive cost of computing the pivot. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
-| Hash-table expected-time analysis | `blocked-design` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes when the searched bucket is uniform; the remaining work is a full random key or random hash-function model with independence assumptions. |
+| Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m`, expected unsuccessful-search cost `1 + α`, pairwise collision probability `1/m`, and expected successful-search cost `1 + (n-1)/(2m)` (CLRS Theorem 11.2) are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`, `pairCollisionProb`, `expectedRandomSuccessfulSearchCost`); a universal random hash-*function* model bounds expected collisions by `α` and search cost by `1 + α` (CLRS Theorem 11.3, `IsUniversal`, `universal_expected_collisions`, `universal_expected_search_cost`). Remaining: RAM/probe-count semantics. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
-| BST transplant and parent-pointer navigation | `partial-transplant` | Functional `replaceSubtree` (CLRS `TRANSPLANT` analogue) is defined; pointer-level parent updates and full membership-preservation theorems remain future refinement targets. |
-| Chapter 12 executable pointer-level BST | `deferred-implementation` | All functional BST operations (search, insert, delete, successor, predecessor) are proved complete with iff specifications; parent-pointer navigation and `TRANSPLANT` require an imperative memory model. |
+| BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
+| Chapter 12 executable pointer-level BST | `proved` | Imperative pointer-heap model (`Node` records with `left`/`right`/`parent` cells over a `Std.HashMap` `Store`) with `RepresentsW` heap-to-tree abstraction; in-place `TRANSPLANT` (`transplantChild_left_representsW`/`transplantChild_right_representsW`) and leaf `TREE-INSERT` (`insertPointer_right_representsW`) refine functional subtree replacement. Only an explicit RAM cost model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
-| Full red-black insertion/deletion | `blocked-design` | Needs a balancing representation and invariant-preservation proof across fixup cases. |
-| Automatic MST exchange-path extraction | `blocked-design` | The certificate-based replacement spanning-tree theorem is proved from `ExchangePath`, and inserted-edge connectivity now bridges to that certificate; the remaining design work is extracting that inserted connection from a canonical finite simple path/cycle API. |
-| Prim's algorithm | `statement` | Section file exists only through the Chapter 23.2 target; theorem interface has not been added yet. |
+| Red-black deletion and height | `blocked-design` | Executable insertion is proved; deletion/fixup still needs a case-stable invariant proof, followed by the logarithmic-height theorem. |
+| Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |
+| Prim's algorithm | `proved` | `PrimTrace` packages dynamic light-edge choices, and `prim_minimum_spanning_tree` proves the direct finite-graph MST conclusion for a complete certified run. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |
 | Chapter-end problems | `future-work` | Treat as a second track with explicit priority and difficulty labels. |
 | Full RAM semantics | `future-work` | Requires an imperative machine/cost semantics rather than only mathematical functions and recurrences. |
