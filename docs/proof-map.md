@@ -457,7 +457,9 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   `fintypeExpect_equiv` / `fintypeExpect_fst` product independence; then linearity
   (`fintypeExpect_sum`) gives the birthday expectation `k(k-1)/(2n)` (CLRS
   eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10))
-- Current gap: streaks and the on-line hiring problem from §5.4 are deferred
+- Current gap: streak main theorem (expected longest run bound) and on-line hiring analysis are deferred
+- New definitions: `CoinFlip` sample space, `hasRunOfLength` (decidable run predicate),
+  `longestStreak` (length via Nat.find)
 
 ## Chapter 6 - Heapsort
 

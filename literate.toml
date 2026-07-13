@@ -591,13 +591,11 @@ title = "24.2. Single-Source Shortest Paths in DAGs"
 [modules."CLRSLean.Chapter_24.Section_24_3_Dijkstra"]
 title = "24.3. Dijkstra's Algorithm"
 
-<<<<<<< HEAD
 [modules."CLRSLean.Chapter_24.Section_24_4_Difference_Constraints"]
 title = "24.4. Difference Constraints and Shortest Paths"
-=======
+
 [modules."CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model"]
 title = "25.1. All-Pairs Shortest Paths Model"
->>>>>>> iss30-ch25-apspext
 
 [modules."CLRSLean.Chapter_26"]
 title = "Chapter 26. Maximum Flow"
