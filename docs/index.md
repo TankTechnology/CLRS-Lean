@@ -87,6 +87,7 @@ CLRSLean/Chapter_15/Section_15_2_Matrix_Chain_Multiplication.lean
 CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean
 CLRSLean/Chapter_15/Section_15_5_Optimal_Binary_Search_Trees.lean
 CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean
+CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
 CLRSLean/Chapter_16/Section_16_4_Matroids.lean
 CLRSLean/Chapter_16/Section_16_5_Task_Scheduling.lean
