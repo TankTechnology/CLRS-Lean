@@ -12,7 +12,7 @@ When the CSV changes, regenerate this page with
 * Chapters represented in Lean: 26.
 * Tracked reader-facing theorem entries: 1218.
 * Proved tracked theorem entries: 1218.
-* Remaining core theorem groups: 32.
+* Remaining core theorem groups: 31.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -40,7 +40,7 @@ Ch  Chapter                                                     Status          
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                60        1
  7  7. Quicksort                                                partial                              7.1;7.2;7.3                        25        3
  8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.2;8.3;8.4                        27        1
- 9  9. Medians and Order Statistics                             partial                              9.2;9.3                            43        1
+ 9  9. Medians and Order Statistics                             partial                              9.2;9.3                            43        0
 10  10. Elementary Data Structures                              selected-section-complete            10.1;10.2;10.4                     12        2
 11  11. Hash Tables                                             partial                              11.1;11.2;11.3;11.4;11.5           51        1
 12  12. Binary Search Trees                                     partial                              12.1                               40        1
