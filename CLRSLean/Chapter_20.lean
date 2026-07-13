@@ -189,10 +189,13 @@ wrappers.
 Section 20.3 now provides the recursive summary/cluster structure with
 {lit}`member` and {lit}`insert` refined against the finite-set specification and
 the {lit}`O(log log u)` bound proved for the single-recursion {lit}`member`
-operation via the Chapter 3 big-O wrapper.  Remaining targets are recursive
-{lit}`successor` / {lit}`predecessor` / {lit}`delete` on the recursive
-structure and the {lit}`min` / {lit}`max` double-recursion-avoidance
-optimisation that makes {lit}`insert` itself run in {lit}`O(log log u)`.
+operation via the Chapter 3 big-O wrapper, plus the min/max-augmented
+{lit}`VEBTreeMM` structure with stored {lit}`minimum`/{lit}`maximum` fields
+enabling single-recursion {lit}`successor`/{lit}`predecessor`/{lit}`delete`
+with {lit}`O(log log u)` cost bounds.  The remaining target is the
+{lit}`min`/{lit}`max` double-recursion-avoidance optimisation that makes
+{lit}`insert` itself run in {lit}`O(log log u)` and full correctness
+theorems for {lit}`successor`/{lit}`predecessor`/{lit}`delete` on {lit}`VEBTreeMM`.
 -/
 
 namespace CLRS
