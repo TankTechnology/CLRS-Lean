@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
+import CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut
 
 /-! # Chapter 26 - Maximum Flow
 
@@ -20,6 +21,10 @@ method.
   {lit}`CLRS.Chapter26.FlowNetwork.Flow.augmentingPathReachable`,
   {lit}`CLRS.Chapter26.FlowNetwork.Flow.maximal_of_noAugmentingPath`.
 
+* 26.1 Max-Flow Min-Cut Theorem.
+  Main declarations:
+  {lit}`CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`.
+
 ## Current Shape
 
 Section 26.1 defines a {lit}`FlowNetwork` as a capacity function {lit}`c : V → V → ℝ`
@@ -29,9 +34,14 @@ conservation.  The section proves Lemma 26.5 (net flow across any cut equals
 flow value) and the generic Ford-Fulkerson correctness theorem: if there is no
 augmenting path in the residual network, the flow is maximal.
 
+The companion file `Section_26_6_MaxFlow_MinCut` proves the easy direction of the
+Max-Flow Min-Cut Theorem: if `|f| = c(S,T)` for some cut, then `f` is maximal.
+The converse direction (maximal `f` implies existence of such a cut) and the
+full three-condition equivalence are deferred.
+
 ## Deferred Work
 
-* The full Max-Flow Min-Cut Theorem (the converse direction).
+* The converse (and constructive) direction of the Max-Flow Min-Cut Theorem.
 * The specific Edmonds-Karp analysis (Section 26.2).
 * Executable augmenting-path search and the augmenting loop.
 -/
