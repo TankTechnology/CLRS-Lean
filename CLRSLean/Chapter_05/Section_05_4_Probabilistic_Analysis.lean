@@ -308,13 +308,15 @@ noncomputable def longestStreak (n : ℕ) (a : CoinFlip n) : ℕ :=
     intro h; rcases h with ⟨hle, hi⟩; omega
   ⟩ : ∃ t, ¬ hasRunOfLength n t a)).pred
 
+open CLRS.Probability
+
 /-- The probability that all `t` coin flips in a sequence of exactly `t` flips are
 heads is `1 / 2^t`. -/
 lemma prob_first_t_heads (t : ℕ) :
-    CLRS.Probability.fintypeExpect (fun (a : CoinFlip t) => CLRS.Probability.indicator (∀ j : Fin t, a j = (1 : Fin 2))) = 1 / ((2 : ℝ) ^ t) := by
+    fintypeExpect (fun (a : CoinFlip t) => indicator (∀ j : Fin t, a j = (1 : Fin 2))) = 1 / ((2 : ℝ) ^ t) := by
   let constOne : CoinFlip t := fun _ => (1 : Fin 2)
-  have h_indicator : (fun (a : CoinFlip t) => CLRS.Probability.indicator (∀ j : Fin t, a j = (1 : Fin 2))) =
-      (fun a => CLRS.Probability.indicator (a = constOne)) := by
+  have h_indicator : (fun (a : CoinFlip t) => indicator (∀ j : Fin t, a j = (1 : Fin 2))) =
+      (fun a => indicator (a = constOne)) := by
     ext a
     have h_eq : (∀ j : Fin t, a j = (1 : Fin 2)) ↔ (a = constOne) := by
       constructor
@@ -331,6 +333,133 @@ lemma prob_first_t_heads (t : ℕ) :
     rw [h_nat]
     simp
   calc
-    CLRS.Probability.fintypeExpect (fun (a : CoinFlip t) => CLRS.Probability.indicator (a = constOne))
-        = 1 / (Fintype.card (CoinFlip t) : ℝ) := CLRS.Probability.fintypeExpect_indicator_singleton constOne
+    fintypeExpect (fun (a : CoinFlip t) => indicator (a = constOne))
+        = 1 / (Fintype.card (CoinFlip t) : ℝ) := fintypeExpect_indicator_singleton constOne
     _ = 1 / ((2 : ℝ) ^ t) := by rw [h_card]
+
+/-- For `k < n`, `headAt` is the same as direct indexing. -/
+lemma headAt_eq_of_lt (n : ℕ) (a : CoinFlip n) (k : ℕ) (hk : k < n) : headAt n a k = a ⟨k, hk⟩ := by
+  simp [headAt, hk]
+
+/-- If `k ≥ n`, `headAt` returns 0. -/
+lemma headAt_eq_zero_of_ge (n : ℕ) (a : CoinFlip n) (k : ℕ) (hk : n ≤ k) : headAt n a k = (0 : Fin 2) := by
+  simp [headAt, hk]
+
+/-- The Finset of positions `{i, i+1, ..., i+t-1}` in `Fin n`, given `i + t ≤ n`. -/
+def streakS (n t i : ℕ) (h : i + t ≤ n) : Finset (Fin n) :=
+  Finset.image (λ (j : Fin t) => ⟨i + j.val, by
+    have := j.isLt; omega⟩) (Finset.univ : Finset (Fin t))
+
+lemma card_streakS (n t i : ℕ) (h : i + t ≤ n) : (streakS n t i h).card = t := by
+  unfold streakS
+  have hinj : Function.Injective (λ (j : Fin t) => ⟨i + j.val, by
+    have := j.isLt; omega⟩ : Fin t → Fin n) := by
+    intro x y h
+    apply Fin.ext
+    have hval : (i + x.val : ℕ) = i + y.val := congr_arg (λ (z : Fin n) => z.val) h
+    omega
+  simp [Finset.card_image_of_injective, hinj, Fintype.card_fin]
+
+/-- A run of `t` consecutive heads starting at position `i` expressed via the
+`streakS` Finset is equivalent to the same run expressed via `headAt`. -/
+lemma streakS_all_heads_iff (n t i : ℕ) (h : i + t ≤ n) (a : CoinFlip n) :
+    (∀ x ∈ streakS n t i h, a x = (1 : Fin 2)) ↔ (∀ j ∈ Finset.range t, headAt n a (i + j) = (1 : Fin 2)) := by
+  constructor
+  · intro hS j hj
+    have hj_lt_t : (j : ℕ) < t := Finset.mem_range.1 hj
+    have hpos : i + j < n := by omega
+    let j_fin : Fin t := ⟨j, hj_lt_t⟩
+    have hmem : (⟨i + j, hpos⟩ : Fin n) ∈ streakS n t i h := by
+      apply Finset.mem_image.mpr
+      exact ⟨j_fin, Finset.mem_univ _, rfl⟩
+    rw [headAt_eq_of_lt n a (i + j) hpos]
+    exact hS ⟨i + j, hpos⟩ hmem
+  · intro hheads x hx
+    rcases Finset.mem_image.mp hx with ⟨j_fin, _, hx_eq⟩
+    have hj_val_lt_t : j_fin.val < t := j_fin.isLt
+    have hj_val_mem_range : j_fin.val ∈ Finset.range t := Finset.mem_range.mpr hj_val_lt_t
+    have hpos : i + j_fin.val < n := by omega
+    subst hx_eq
+    rw [← headAt_eq_of_lt n a (i + j_fin.val) hpos]
+    exact hheads (j_fin.val) hj_val_mem_range
+
+/-- Bijection between sequences where every position in a Finset `S` is heads and
+functions on the complement of `S`.  Used to count sequences with a fixed pattern
+of heads. -/
+noncomputable def headsSetBijection {n : ℕ} (S : Finset (Fin n)) :
+    {a : CoinFlip n // ∀ x ∈ S, a x = (1 : Fin 2)} ≃ (↥(Finset.univ \ S) → Fin 2) where
+  toFun a := λ x : ↥(Finset.univ \ S) => a.1 x.val
+  invFun f :=
+    { val := λ x : Fin n =>
+        if h : x ∈ S then (1 : Fin 2) else f ⟨x, by
+          have hmem : x ∈ (Finset.univ : Finset (Fin n)) := Finset.mem_univ x
+          exact Finset.mem_sdiff.mpr ⟨hmem, h⟩
+        ⟩
+      property := by
+        intro x hx; simp [hx] }
+  left_inv a := by
+    apply Subtype.ext
+    funext x
+    dsimp
+    split_ifs with hx
+    · exact (a.property x hx).symm
+    · rfl
+  right_inv f := by
+    ext x
+    dsimp
+    have hx : x.val ∉ S := by
+      have hx_mem : x.val ∈ Finset.univ \ S := x.property
+      exact (Finset.mem_sdiff.mp hx_mem).2
+    simp [hx]
+
+/-- The probability that the `t` consecutive positions `{i, ..., i + t - 1}` are
+all heads in a sequence of `n` fair coin flips (given `i + t ≤ n`) is exactly
+`1 / 2^t`. -/
+lemma prob_run_at (n t i : ℕ) (h : i + t ≤ n) :
+    fintypeExpect (fun (a : CoinFlip n) => indicator (∀ x ∈ streakS n t i h, a x = (1 : Fin 2)))
+    = 1 / ((2 : ℝ) ^ t) := by
+  let S := streakS n t i h
+  have hScard : S.card = t := card_streakS n t i h
+  have h_total_card : (Fintype.card (CoinFlip n) : ℝ) = (2 : ℝ) ^ n := by
+    have h_nat : Fintype.card (CoinFlip n) = 2 ^ n := by
+      calc
+        Fintype.card (CoinFlip n) = Fintype.card (Fin n → Fin 2) := rfl
+        _ = (Fintype.card (Fin 2)) ^ (Fintype.card (Fin n)) := by rw [Fintype.card_fun]
+        _ = 2 ^ n := by simp
+    rw [h_nat]; simp
+  have h_heads_card : (Fintype.card {a : CoinFlip n // ∀ x ∈ S, a x = (1 : Fin 2)} : ℝ) = (2 : ℝ) ^ (n - t) := by
+    have h_card_nat : Fintype.card {a : CoinFlip n // ∀ x ∈ S, a x = (1 : Fin 2)} = 2 ^ (n - t) := by
+      calc
+        Fintype.card {a : CoinFlip n // ∀ x ∈ S, a x = (1 : Fin 2)}
+            = Fintype.card (↥(Finset.univ \ S) → Fin 2) :=
+              Fintype.card_congr (headsSetBijection S)
+        _ = (Fintype.card (Fin 2)) ^ Fintype.card (↥(Finset.univ \ S)) := by rw [Fintype.card_fun]
+        _ = 2 ^ (Finset.card (Finset.univ \ S)) := by
+          rw [Fintype.card_coe, Fintype.card_fin]
+        _ = 2 ^ (n - t) := by
+          have htle : t ≤ n := by omega
+          have huniv : (Finset.univ : Finset (Fin n)).card = n := by simp
+          have hsub : S ⊆ Finset.univ := Finset.subset_univ _
+          have hsum : (Finset.univ \ S).card + S.card = (Finset.univ : Finset (Fin n)).card :=
+            Finset.card_sdiff_add_card_eq_card hsub
+          rw [hScard, huniv] at hsum
+          have : (Finset.univ \ S).card = n - t :=
+            (Nat.add_right_cancel
+              (calc
+                (Finset.univ \ S).card + t = n := hsum
+                _ = (n - t) + t := by rw [Nat.sub_add_cancel htle]))
+          rw [this]
+    simpa using congrArg (fun (x : ℕ) => (x : ℝ)) h_card_nat
+  calc
+    fintypeExpect (fun (a : CoinFlip n) => indicator (∀ x ∈ S, a x = (1 : Fin 2)))
+        = (∑ a : CoinFlip n, indicator (∀ x ∈ S, a x = (1 : Fin 2))) / (Fintype.card (CoinFlip n) : ℝ) := rfl
+    _ = ((Fintype.card {a : CoinFlip n // ∀ x ∈ S, a x = (1 : Fin 2)} : ℝ)) / (Fintype.card (CoinFlip n) : ℝ) := by
+      simp [indicator, Fintype.card_subtype]
+    _ = ((2 : ℝ) ^ (n - t)) / ((2 : ℝ) ^ n) := by rw [h_heads_card, h_total_card]
+    _ = 1 / ((2 : ℝ) ^ t) := by
+      have hpos' : (2 : ℝ) ^ t ≠ 0 := by positivity
+      field_simp [hpos']
+      have h_eq : (n - t) + t = n := Nat.sub_add_cancel (by omega)
+      calc
+        ((2 : ℝ) ^ (n - t)) * ((2 : ℝ) ^ t) = (2 : ℝ) ^ ((n - t) + t) := by rw [pow_add]
+        _ = (2 : ℝ) ^ n := by rw [h_eq]
