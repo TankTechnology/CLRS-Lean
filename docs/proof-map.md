@@ -2742,12 +2742,30 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   combined with the Section 24.1 shortest-distance lower bound and the Dijkstra
   relaxation invariants to force `d u = δ u` for the extracted minimum.
 
+### Section 24.4 - Difference constraints and shortest paths
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean`
+- Status: `proved`
+- Model:
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem` (difference-constraint system)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.IsFeasible` (satisfying assignment)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.constraintGraph` (constraint graph with source)
+- Supporting lemmas:
+  - `CLRS.Chapter24.WeightedGraph.le_add_walkWeight_of_potential` (potential-function lemma)
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_respects_edge` (Bellman-Ford triangle inequality)
+- CLRS Theorem 24.9:
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.noNegCycle_of_feasible` (feasible → NoNegCycle)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.feasible_of_noNegCycle` (NoNegCycle → feasible via Bellman-Ford)
+  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.diffConstraint_feasible_iff_noNegCycle` (full equivalence)
+- Proof pattern: potential function for the forward direction; Bellman-Ford
+  `δ(s, ·)` distances as the explicit feasible assignment in the reverse direction.
+
 ### Chapter 24 remaining work
 
 - Deferred without a false claim: the executable Dijkstra priority-queue loop
   threading the settled set and tentative distances (Section 24.3 proves the
   greedy invariant that makes such a loop correct);
-  difference constraints (Section 24.4); per-edge relaxation ordering and
+  per-edge relaxation ordering and
   mutable/RAM cost accounting for the abstract synchronous model.
 
 ## Chapter 26 - Maximum Flow
