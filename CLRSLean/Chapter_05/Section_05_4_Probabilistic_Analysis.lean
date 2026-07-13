@@ -282,3 +282,28 @@ theorem expectedBallsInBin_eq {k n : Nat} (q : Fin n) (hn : 0 < n) :
 
 end Chapter05
 end CLRS
+
+/-! ## Streaks (longest run of heads) -/
+
+/-- Sample space of `n` independent fair coin flips (0 = tails, 1 = heads). -/
+def CoinFlip (n : ℕ) : Type := Fin n → Fin 2
+
+instance (n : ℕ) : Fintype (CoinFlip n) := inferInstanceAs (Fintype (Fin n → Fin 2))
+instance (n : ℕ) : DecidableEq (CoinFlip n) := inferInstanceAs (DecidableEq (Fin n → Fin 2))
+
+/-- Read position `k` of coin-flip sequence `a`, returning 0 if out of bounds. -/
+def headAt (n : ℕ) (a : CoinFlip n) (k : ℕ) : Fin 2 :=
+  if h : k < n then a ⟨k, h⟩ else (0 : Fin 2)
+
+/-- `hasRunOfLength n t a` iff sequence `a` contains at least `t` consecutive heads. -/
+def hasRunOfLength (n t : ℕ) (a : CoinFlip n) : Prop :=
+  t ≤ n ∧ ∃ (i : ℕ), i ∈ Finset.range (n+1) ∧ i + t ≤ n ∧ (∀ j ∈ Finset.range t, headAt n a (i + j) = (1 : Fin 2))
+
+instance (n t : ℕ) (a : CoinFlip n) : Decidable (hasRunOfLength n t a) := by
+  unfold hasRunOfLength; infer_instance
+
+/-- Length of the longest run of heads in `a`. -/
+noncomputable def longestStreak (n : ℕ) (a : CoinFlip n) : ℕ :=
+  (Nat.find (⟨n+1, by
+    intro h; rcases h with ⟨hle, hi⟩; omega
+  ⟩ : ∃ t, ¬ hasRunOfLength n t a)).pred
