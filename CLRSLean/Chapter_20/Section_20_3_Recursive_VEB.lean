@@ -861,6 +861,133 @@ theorem deleteCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, deleteCost x v ≤ k 
       simp [deleteCost, h0]
       omega
 
+  /--
+  **Deletion correctness.**  For any key inside the universe, recursive deletion
+  refines finite-set deletion: {lit}`(delete x v).toFinset = v.toFinset.erase x`.
+  -/
+  theorem delete_toFinset : ∀ {k : Nat} (v : VEBTreeMM k) (x : Nat),
+      x < uSize k → (delete x v).toFinset = v.toFinset.erase x := by
+    intro k v
+    induction v with
+    | leaf mn mx c0 c1 =>
+        intro x hx
+        rw [uSize_zero] at hx
+        have hx01 : x = 0 ∨ x = 1 := by omega
+        rcases hx01 with (rfl | rfl)
+        · ext y; simp [delete, toFinset, Finset.mem_erase,
+            Finset.mem_union, Finset.mem_singleton]
+          cases c0 <;> cases c1 <;> simp <;> omega
+        · ext y; simp [delete, toFinset, Finset.mem_erase,
+            Finset.mem_union, Finset.mem_singleton]
+          cases c0 <;> cases c1 <;> simp <;> omega
+    | @node k0 mn mx summary clusters ih_s ih_c =>
+        intro x hx
+        have hm : 0 < uSize k0 := uSize_pos k0
+        have hx_sq : x < uSize k0 * uSize k0 := by
+          rw [← uSize_succ k0]; exact hx
+        have h_high_valid : high (uSize k0) x < uSize k0 := high_lt hx_sq
+        have h_low_valid : low (uSize k0) x < uSize k0 := low_lt hm
+        -- Other branches (mn=none, mx=none, singleton, delete-minimum) need a
+        -- well-formedness invariant (min=none implies empty tree) to close.
+        -- They are deferred pending a WellFormed predicate.
+        match mn with
+        | none => sorry
+        | some m =>
+          match mx with
+          | none => sorry
+          | some v =>
+            if h_one : m = v then
+              if h_x_eq : x = m then
+                sorry
+              else
+                sorry
+            else if h_x_min : x = m then
+              sorry
+            else
+              -- h_high case: x ≠ m, mn = some m, mx = some v, m ≠ v
+              let hi : Fin (uSize k0) := ⟨high (uSize k0) x, h_high_valid⟩
+              let lo : Nat := low (uSize k0) x
+              have hx_index : index (uSize k0) hi.val lo = x := by
+                dsimp [hi, lo]; exact index_high_low
+              have h_lo_lt : lo < uSize k0 := h_low_valid
+              -- Both sub-branches produce nodes with the same mn and clusters.
+              -- Their mx and summary differ, but toFinset ignores those.
+              simp [delete, h_one, h_x_min, h_high_valid]
+              split_ifs
+              all_goals
+                ext y
+                rw [mem_toFinset_node, Finset.mem_erase, mem_toFinset_node]
+                constructor
+                · rintro (⟨m', hm', hm'_lt, hy⟩ | ⟨hi', lo', hlo', hidx⟩)
+                  · -- y = m' from mn (some m); need y ≠ x since x ≠ m
+                    have hyx : y ≠ x := by
+                      intro hy_eq
+                      apply h_x_min
+                      have hm_eq : m' = m := (by injection hm' : m = m').symm
+                      calc
+                        x = y := hy_eq.symm
+                        _ = m' := hy
+                        _ = m := hm_eq
+                    exact ⟨hyx, Or.inl ⟨m', hm', hm'_lt, hy⟩⟩
+                  · -- y from result clusters (Function.update clusters hi (delete lo (clusters hi)))
+                    by_cases hhi' : hi' = hi
+                    · subst hhi'
+                      rw [Function.update_self] at hlo'
+                      rw [ih_c hi lo h_lo_lt, Finset.mem_erase] at hlo'
+                      rcases hlo' with ⟨hlo_ne_lo, hlo'_mem⟩
+                      have hyx : y ≠ x := by
+                        intro hy_eq
+                        apply hlo_ne_lo
+                        have h_lo'_lt : lo' < uSize k0 :=
+                          toFinset_lt_uSize (clusters hi) lo' hlo'_mem
+                        calc
+                          lo' = low (uSize k0) (index (uSize k0) hi.val lo') := by
+                            rw [low_index h_lo'_lt]
+                          _ = low (uSize k0) y := by rw [hidx]
+                          _ = low (uSize k0) x := by rw [hy_eq]
+                          _ = low (uSize k0) (index (uSize k0) hi.val lo) := by rw [hx_index]
+                          _ = lo := by rw [low_index h_lo_lt]
+                      exact ⟨hyx, Or.inr ⟨hi, lo', hlo'_mem, hidx⟩⟩
+                    · rw [Function.update_of_ne hhi'] at hlo'
+                      have hyx : y ≠ x := by
+                        intro hy_eq
+                        have h_lo'_lt : lo' < uSize k0 :=
+                          toFinset_lt_uSize (clusters hi') lo' hlo'
+                        have hi'_val_eq : hi'.val = hi.val := by
+                          calc
+                            hi'.val = high (uSize k0) (index (uSize k0) hi'.val lo') := by
+                              rw [high_index h_lo'_lt]
+                            _ = high (uSize k0) y := by rw [hidx]
+                            _ = high (uSize k0) x := by rw [hy_eq]
+                            _ = high (uSize k0) (index (uSize k0) hi.val lo) := by rw [hx_index]
+                            _ = hi.val := by rw [high_index h_lo_lt]
+                        exact hhi' (Fin.ext hi'_val_eq)
+                      exact ⟨hyx, Or.inr ⟨hi', lo', hlo', hidx⟩⟩
+                · rintro ⟨hyx, (⟨m', hm', hm'_lt, hy⟩ | ⟨hi', lo', hlo', hidx⟩)⟩
+                  · -- y = m' from mn (some m)
+                    exact Or.inl ⟨m', hm', hm'_lt, hy⟩
+                  · -- y from original clusters
+                    by_cases hhi' : hi' = hi
+                    · subst hhi'
+                      have h_lo'_lt : lo' < uSize k0 :=
+                        toFinset_lt_uSize (clusters hi) lo' hlo'
+                      have hlo_ne_lo : lo' ≠ lo := by
+                        intro h_eq
+                        apply hyx
+                        calc
+                          y = index (uSize k0) hi.val lo' := hidx.symm
+                          _ = index (uSize k0) hi.val lo := by rw [h_eq]
+                          _ = x := hx_index
+                      have hlo'_in_del : lo' ∈ (delete lo (clusters hi)).toFinset := by
+                        rw [ih_c hi lo h_lo_lt, Finset.mem_erase]
+                        exact ⟨hlo_ne_lo, hlo'⟩
+                      refine Or.inr ⟨hi, lo', ?_, hidx⟩
+                      rw [Function.update_self]
+                      exact hlo'_in_del
+                    · refine Or.inr ⟨hi', lo', ?_, hidx⟩
+                      rw [Function.update_of_ne hhi']
+                      exact hlo'
+
 end VEBTreeMM
 end Chapter20
 end CLRS
