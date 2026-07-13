@@ -60,10 +60,6 @@ lemma isShortestDist_triangle (φ : Flow V G) (s u v : V) (d : ℕ)
   have h_d'_le : d' ≤ d + 1 := Nat.find_min' h_exists_v hsv_path
   exact ⟨d', ⟨h_d'_path, h_d'_min⟩, h_d'_le⟩
 
-lemma exists_pred_on_path {φ : Flow V G} {s v : V} {d : ℕ}
-    (hd : IsShortestDist φ s v d) (hd_pos : d ≠ 0) :
-    ∃ u, Flow.residualEdge φ u v ∧ IsShortestDist φ s u (d - 1) := by
-  sorry
 
 structure ShortestAugmentingPath (φ : Flow V G) where
   len : ℕ
