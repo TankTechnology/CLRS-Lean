@@ -745,5 +745,85 @@ theorem quickSort_correct (xs : List Nat) :
     Ordered (quickSort xs) ∧ (quickSort xs).Perm xs :=
   ⟨quickSort_ordered xs, quickSort_perm xs⟩
 
+/-! ## Mutable-Array PARTITION refinement -/
+
+/-- A nonempty list equals its `dropLast` prefix followed by its last element. -/
+lemma dropLast_append_getLast {α : Type} (xs : List α) (h : xs ≠ []) :
+    xs.dropLast ++ [xs.getLast h] = xs := by
+  induction xs with
+  | nil => exact absurd rfl h
+  | cons x xs ih =>
+    by_cases hxs : xs = []
+    · subst hxs; simp
+    · have h_ih := ih hxs
+      have h_last : (x :: xs).getLast h = xs.getLast hxs := by simp [hxs]
+      have h_drop : (x :: xs).dropLast = x :: xs.dropLast := by
+        cases xs; exact absurd rfl hxs; rfl
+      calc
+        (x :: xs).dropLast ++ [(x :: xs).getLast h]
+            = (x :: xs.dropLast) ++ [xs.getLast hxs] := by simp [h_drop, h_last]
+        _ = x :: (xs.dropLast ++ [xs.getLast hxs]) := by simp
+        _ = x :: xs := by simp [h_ih]
+
+/-- Rotating the first element to the end yields a permutation. -/
+lemma perm_rotate_one {α : Type} (x : α) (xs : List α) :
+    (x :: xs).Perm (xs ++ [x]) := by
+  induction xs with
+  | nil => simp
+  | cons y ys ih =>
+    have h_swap : (x :: y :: ys).Perm (y :: x :: ys) := (List.Perm.swap x y ys).symm
+    have h_cons : (y :: x :: ys).Perm (y :: (ys ++ [x])) := List.Perm.cons y ih
+    simpa using h_swap.trans h_cons
+
+/-- CLRS PARTITION on an Array. The last input element is the pivot.
+Returns (partitioned array, pivot index). -/
+def partitionOnArray (a : Array Nat) : Array Nat × Nat :=
+  if h_empty : a.toList = [] then (a, 0) else
+  (((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+    [a.toList.getLast h_empty] ++
+    (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).toArray,
+   (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low.length)
+
+/-- The output array has the same size as the input. -/
+theorem partitionOnArray_size (a : Array Nat) :
+    (partitionOnArray a).1.size = a.size := by
+  unfold partitionOnArray
+  split
+  · rfl
+  · rename_i h_empty
+    have hperm : ((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+      (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).Perm (a.toList.dropLast) :=
+      partitionLoop_perm (a.toList.getLast h_empty) (a.toList.dropLast)
+    have hlen : ((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+      [a.toList.getLast h_empty] ++
+      (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).length = a.size := by
+      calc
+        ((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+          [a.toList.getLast h_empty] ++
+          (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).length
+            = ((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+              (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).length + 1 := by
+          simp; omega
+        _ = (a.toList.dropLast).length + 1 := by
+          have hlen_eq : ((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+            (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).length =
+            (a.toList.dropLast).length := hperm.length_eq
+          rw [hlen_eq]
+        _ = a.size := by
+          have h_eq : (a.toList.dropLast) ++ [a.toList.getLast h_empty] = a.toList :=
+            dropLast_append_getLast a.toList h_empty
+          calc
+            (a.toList.dropLast).length + 1 = ((a.toList.dropLast) ++ [a.toList.getLast h_empty]).length := by simp
+            _ = a.toList.length := by rw [h_eq]
+            _ = a.size := by simp
+    calc
+      ((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+        [a.toList.getLast h_empty] ++
+        (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).toArray.size
+          = ((partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).low ++
+            [a.toList.getLast h_empty] ++
+            (partitionLoop (a.toList.getLast h_empty) (a.toList.dropLast)).high).length := by simp
+      _ = a.size := hlen
+
 end Chapter07
 end CLRS
