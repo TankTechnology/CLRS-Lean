@@ -436,5 +436,272 @@ theorem veb_operation_bigO_loglog_u :
   linarith
 
 end VEBTree
+
+/-! ## Min/max-augmented recursive vEB tree (CLRS §20.3) -/
+
+inductive VEBTreeMM : Nat → Type where
+  | leaf (mn mx : Option Nat) (c0 c1 : Bool) : VEBTreeMM 0
+  | node {k : Nat} (mn mx : Option Nat) (summary : VEBTreeMM k)
+      (clusters : Fin (uSize k) → VEBTreeMM k) : VEBTreeMM (k + 1)
+
+namespace VEBTreeMM
+
+def minimum : {k : Nat} → VEBTreeMM k → Option Nat
+  | _, .leaf mn _ _ _ => mn
+  | _, .node mn _ _ _ => mn
+
+def maximum : {k : Nat} → VEBTreeMM k → Option Nat
+  | _, .leaf _ mx _ _ => mx
+  | _, .node _ mx _ _ => mx
+
+def toFinset : {k : Nat} → VEBTreeMM k → Finset Nat
+  | _, .leaf _ _ c0 c1 => (if c0 then {0} else ∅) ∪ (if c1 then {1} else ∅)
+  | _, @VEBTreeMM.node k _ _ _ clusters =>
+      Finset.univ.biUnion fun hi : Fin (uSize k) =>
+        (toFinset (clusters hi)).image fun lo => index (uSize k) hi.val lo
+
+theorem mem_toFinset_leaf (mn mx : Option Nat) (c0 c1 : Bool) (y : Nat) :
+    y ∈ (.leaf mn mx c0 c1 : VEBTreeMM 0).toFinset ↔ (c0 = true ∧ y = 0) ∨ (c1 = true ∧ y = 1) := by
+  cases c0 <;> cases c1 <;> simp [toFinset, Finset.mem_union, Finset.mem_singleton]
+
+theorem mem_toFinset_node {k : Nat} (mn mx : Option Nat) (summary : VEBTreeMM k)
+    (clusters : Fin (uSize k) → VEBTreeMM k) (y : Nat) :
+    y ∈ (VEBTreeMM.node mn mx summary clusters).toFinset ↔
+      ∃ hi : Fin (uSize k), ∃ lo ∈ (clusters hi).toFinset,
+        index (uSize k) hi.val lo = y := by
+  simp [toFinset, Finset.mem_biUnion, Finset.mem_univ, true_and, Finset.mem_image, exists_prop]
+
+theorem toFinset_lt_uSize : ∀ {k : Nat} (v : VEBTreeMM k), ∀ y ∈ v.toFinset, y < uSize k := by
+  intro k v; induction v with
+  | leaf mn mx c0 c1 =>
+      intro y hy; rw [mem_toFinset_leaf mn mx c0 c1 y] at hy; rw [uSize_zero]
+      rcases hy with (⟨_, rfl⟩ | ⟨_, rfl⟩) <;> omega
+  | @node k0 mn mx summary clusters ih_s ih_c =>
+      intro y hy; rw [mem_toFinset_node mn mx summary clusters y] at hy
+      rcases hy with ⟨hi, lo, hlo, rfl⟩
+      have hlo' : lo < uSize k0 := ih_c hi lo hlo
+      have hhi : hi.val < uSize k0 := hi.isLt
+      calc index (uSize k0) hi.val lo < uSize k0 * uSize k0 := index_lt hhi hlo'
+        _ = uSize (k0 + 1) := (uSize_succ k0).symm
+
+def empty : (k : Nat) → VEBTreeMM k
+  | 0 => .leaf none none false false
+  | k + 1 => VEBTreeMM.node none none (empty k) (fun _ => empty k)
+
+theorem toFinset_empty : ∀ k, (empty k).toFinset = ∅ := by
+  intro k; induction k with
+  | zero => simp [empty, toFinset]
+  | succ k ih => simp [empty, toFinset, ih]; ext y; simp
+
+def singleton (k : Nat) (x : Nat) (hx : x < uSize k) : VEBTreeMM k :=
+  match k with
+  | 0 => if x = 0 then .leaf (some 0) (some 0) true false else .leaf (some 1) (some 1) false true
+  | k' + 1 => VEBTreeMM.node (some x) (some x) (empty k') (fun _ => empty k')
+
+def member : {k : Nat} → Nat → VEBTreeMM k → Bool
+  | _, x, .leaf _ _ c0 c1 => if x = 0 then c0 else if x = 1 then c1 else false
+  | _, x, @VEBTreeMM.node k0 _ _ _ clusters =>
+      if h : high (uSize k0) x < uSize k0 then
+        member (low (uSize k0) x) (clusters ⟨high (uSize k0) x, h⟩)
+      else false
+
+theorem member_correct {k : Nat} (v : VEBTreeMM k) : ∀ x, member x v = true ↔ x ∈ v.toFinset := by
+  induction v with
+  | leaf mn mx c0 c1 =>
+      intro x; rw [mem_toFinset_leaf mn mx c0 c1]; simp only [member]
+      by_cases hx0 : x = 0; · subst hx0; cases c0 <;> simp
+      · by_cases hx1 : x = 1
+        · subst hx1; cases c1 <;> simp [hx0]
+        · simp [hx0, hx1]
+  | @node k0 mn mx summary clusters ih_s ih_c =>
+      intro x; rw [mem_toFinset_node mn mx summary clusters x]; simp only [member]
+      by_cases h : high (uSize k0) x < uSize k0
+      · simp [h, ih_c ⟨high (uSize k0) x, h⟩ (low (uSize k0) x)]
+        constructor
+        · intro hlo; exact ⟨⟨high (uSize k0) x, h⟩, low (uSize k0) x, hlo, index_high_low⟩
+        · rintro ⟨hi, lo, hlo, hidx⟩
+          have hlolt : lo < uSize k0 := toFinset_lt_uSize (clusters hi) lo hlo
+          have hh : high (uSize k0) x = hi.val := by rw [← hidx, high_index hlolt]
+          have hl : low (uSize k0) x = lo := by rw [← hidx, low_index hlolt]
+          have hfin : (⟨high (uSize k0) x, h⟩ : Fin (uSize k0)) = hi := Fin.ext hh
+          rw [hl, hfin]; exact hlo
+      · constructor
+        · intro htrue
+          exfalso
+          apply h
+          have hfalse : member x (VEBTreeMM.node mn mx summary clusters) = false := by
+            simp [member, h]
+          have : (false : Bool) = true := calc
+            false = member x (VEBTreeMM.node mn mx summary clusters) := by symm; exact hfalse
+            _ = true := htrue
+          simp at this
+        · intro hmem
+          exfalso
+          apply h
+          obtain ⟨hi, h_inner⟩ := hmem
+          obtain ⟨lo, h_rest⟩ := h_inner
+          obtain ⟨hlo, hidx⟩ := h_rest
+          have h_lo_lt : lo < uSize k0 := toFinset_lt_uSize (clusters hi) lo hlo
+          have h_high_eq : high (uSize k0) x = hi.val := by
+            rw [← hidx, high_index h_lo_lt]
+          have h_hi_lt : hi.val < uSize k0 := hi.isLt
+          rw [h_high_eq]
+          exact h_hi_lt
+
+def insert : {k : Nat} → Nat → VEBTreeMM k → VEBTreeMM k
+  | _, x, .leaf _ _ c0 c1 =>
+      let c0' := if x = 0 then true else c0; let c1' := if x = 1 then true else c1
+      .leaf (if c0' then some 0 else if c1' then some 1 else none)
+            (if c1' then some 1 else if c0' then some 0 else none) c0' c1'
+  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
+      match mn with
+      | none => VEBTreeMM.node (some x) (some x) summary clusters
+      | some m =>
+          let x' := if x < m then m else x
+          let mn' := if x < m then some x else mn
+          let mx' := match mx with | none => some x | some v => if x > v then some x else mx
+          if h : high (uSize k0) x' < uSize k0 then
+            let hi : Fin (uSize k0) := ⟨high (uSize k0) x', h⟩
+            let lo := low (uSize k0) x'
+            have h_lo : lo < uSize k0 := low_lt (uSize_pos k0)
+            if (clusters hi).minimum = none then
+              VEBTreeMM.node mn' mx' (insert (high (uSize k0) x') summary)
+                (Function.update clusters hi (singleton k0 lo h_lo))
+            else
+              VEBTreeMM.node mn' mx' summary
+                (Function.update clusters hi (insert lo (clusters hi)))
+          else VEBTreeMM.node mn' mx' summary clusters
+
+def successor : {k : Nat} → Nat → VEBTreeMM k → Option Nat
+  | _, x, .leaf _ _ c0 c1 => if x = 0 then (if c1 then some 1 else none) else none
+  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
+      match mn with
+      | none => none
+      | some m =>
+          if x < m then some m
+          else
+            if h : high (uSize k0) x < uSize k0 then
+              let hi := ⟨high (uSize k0) x, h⟩; let lo := low (uSize k0) x; let cluster := clusters hi
+              match cluster.maximum with
+              | none =>
+                  match successor (high (uSize k0) x) summary with
+                  | none => none
+                  | some nextHi =>
+                      if hNext : nextHi < uSize k0 then
+                        match (clusters ⟨nextHi, hNext⟩).minimum with
+                        | none => none
+                        | some offset => some (index (uSize k0) nextHi offset)
+                      else none
+              | some maxLo =>
+                  if lo < maxLo then
+                    match successor lo cluster with
+                    | none => none
+                    | some offset => some (index (uSize k0) hi.val offset)
+                  else
+                    match successor (high (uSize k0) x) summary with
+                    | none => none
+                    | some nextHi =>
+                        if hNext : nextHi < uSize k0 then
+                          match (clusters ⟨nextHi, hNext⟩).minimum with
+                          | none => none
+                          | some offset => some (index (uSize k0) nextHi offset)
+                        else none
+            else none
+
+def predecessor : {k : Nat} → Nat → VEBTreeMM k → Option Nat
+  | _, x, .leaf _ _ c0 c1 =>
+      if x = 1 then (if c0 then some 0 else none) else
+      if x = 0 then none else
+      if c1 then some 1 else if c0 then some 0 else none
+  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
+      match mx with
+      | none => none
+      | some m =>
+          if x > m then some m
+          else
+            if h : high (uSize k0) x < uSize k0 then
+              let hi := ⟨high (uSize k0) x, h⟩; let lo := low (uSize k0) x; let cluster := clusters hi
+              match cluster.minimum with
+              | none =>
+                  match predecessor (high (uSize k0) x) summary with
+                  | none => none
+                  | some prevHi =>
+                      if hPrev : prevHi < uSize k0 then
+                        match (clusters ⟨prevHi, hPrev⟩).maximum with
+                        | none => none
+                        | some offset => some (index (uSize k0) prevHi offset)
+                      else none
+              | some minLo =>
+                  if lo > minLo then
+                    match predecessor lo cluster with
+                    | none => none
+                    | some offset => some (index (uSize k0) hi.val offset)
+                  else
+                    match predecessor (high (uSize k0) x) summary with
+                    | none => none
+                    | some prevHi =>
+                        if hPrev : prevHi < uSize k0 then
+                          match (clusters ⟨prevHi, hPrev⟩).maximum with
+                          | none => none
+                          | some offset => some (index (uSize k0) prevHi offset)
+                        else none
+            else
+              match predecessor (high (uSize k0) x) summary with
+              | none => none
+              | some prevHi =>
+                  if hPrev : prevHi < uSize k0 then
+                    match (clusters ⟨prevHi, hPrev⟩).maximum with
+                    | none => none
+                    | some offset => some (index (uSize k0) prevHi offset)
+                  else none
+
+def successorCost : {k : Nat} → Nat → VEBTreeMM k → Nat
+  | _, x, .leaf _ _ _ _ => 1
+  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
+      1 + successorCost (high (uSize k0) x) (clusters ⟨0, by simpa using uSize_pos k0⟩)
+
+theorem successorCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, successorCost x v ≤ k + 1 := by
+  induction v with
+  | leaf mn mx c0 c1 => intro x; simp [successorCost]
+  | @node k0 mn mx summary clusters ih_s ih_c =>
+      intro x
+      have h0 : 0 < uSize k0 := uSize_pos k0
+      have h_ih := ih_c ⟨0, h0⟩ (high (uSize k0) x)
+      simp [successorCost, h0]
+      omega
+
+def predecessorCost : {k : Nat} → Nat → VEBTreeMM k → Nat
+  | _, x, .leaf _ _ _ _ => 1
+  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
+      1 + predecessorCost (high (uSize k0) x) (clusters ⟨0, by simpa using uSize_pos k0⟩)
+
+theorem predecessorCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, predecessorCost x v ≤ k + 1 := by
+  induction v with
+  | leaf mn mx c0 c1 => intro x; simp [predecessorCost]
+  | @node k0 mn mx summary clusters ih_s ih_c =>
+      intro x
+      have h0 : 0 < uSize k0 := uSize_pos k0
+      have h_ih := ih_c ⟨0, h0⟩ (high (uSize k0) x)
+      simp [predecessorCost, h0]
+      omega
+
+theorem veb_operation_bigO_loglog_u :
+    CLRS.Chapter03.isBigO
+      (fun k => (k + 1 : ℝ))
+      (fun k => (Nat.log 2 (Nat.log 2 (uSize k)) : ℝ)) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨2, by norm_num, 1, ?_⟩
+  intro n hn
+  have hlog : Nat.log 2 (Nat.log 2 (uSize n)) = n := VEBTree.loglog_uSize n
+  simp [hlog]
+  push_cast
+  have hn0 : (0 : ℝ) ≤ (n : ℝ) := by exact_mod_cast (Nat.zero_le n)
+  have hn1 : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+  have h_abs1 : |(n : ℝ) + 1| = (n : ℝ) + 1 := abs_of_nonneg (by nlinarith)
+  have h_abs2 : |(n : ℝ)| = (n : ℝ) := abs_of_nonneg hn0
+  have : (n : ℝ) + 1 ≤ 2 * (n : ℝ) := by nlinarith
+  simpa [hlog, h_abs1, h_abs2]
+
+end VEBTreeMM
 end Chapter20
 end CLRS
