@@ -1139,6 +1139,23 @@ stack top is list head, and queue front is list head with enqueue at the back.
   (CLRS Theorem 11.3) from the universality hypothesis alone.
 - Current gap: RAM/probe-count operational semantics.
 
+### Section 11.5 - Perfect Hashing
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_5_Perfect_Hashing.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.PerfectHashTable` (structure)
+  - `CLRS.Chapter11.perfectSearch_iff_mem`
+  - `CLRS.Chapter11.perfectHash_collision_free_prob_ge_half`
+  - `CLRS.Chapter11.perfectHash_expected_total_space_lt_2n`
+- Proof pattern: two-level perfect hash model (primary universal hash + per-bucket
+  collision-free secondary hash).  Theorem 11.9 uses `pairCollisionProb` and
+  `sum_upper_triangle` from §11.2 to bound the expected collision count, then
+  Markov's inequality to convert to a probability bound.  Theorem 11.10 uses the
+  algebraic identity `Σ_j n_j² = Σ_i Σ_k indicator(a i = a k)` and SUHA pairwise
+  collision probability `1/n` to get `E[Σ_j n_j²] = 2n - 1 < 2n`.
+- Current gap: construction/rebuild running time and RAM cost semantics.
+
 ## Chapter 12 - Binary Search Trees
 
 ### Section 12.1 - Binary search trees
