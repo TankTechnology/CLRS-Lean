@@ -887,7 +887,9 @@ theorem deleteCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, deleteCost x v ≤ k 
           rw [← uSize_succ k0]; exact hx
         have h_high_valid : high (uSize k0) x < uSize k0 := high_lt hx_sq
         have h_low_valid : low (uSize k0) x < uSize k0 := low_lt hm
-        -- Focus on h_high (non-minimum) case.  Other branches deferred.
+        -- Other branches (mn=none, mx=none, singleton, delete-minimum) need a
+        -- well-formedness invariant (min=none implies empty tree) to close.
+        -- They are deferred pending a WellFormed predicate.
         match mn with
         | none => sorry
         | some m =>
