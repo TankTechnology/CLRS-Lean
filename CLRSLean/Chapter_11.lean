@@ -2,6 +2,7 @@ import CLRSLean.Chapter_11.Section_11_1_Direct_Address_Tables
 import CLRSLean.Chapter_11.Section_11_2_Chained_Hash_Tables
 import CLRSLean.Chapter_11.Section_11_3_Hash_Functions
 import CLRSLean.Chapter_11.Section_11_4_Open_Addressing
+import CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing
 
 /-!
 # Chapter 11 - Hash Tables
@@ -55,6 +56,10 @@ unsuccessful-search cost by {lit}`1/m`.
   {lit}`CLRS.Chapter11.doubleHashProbe_bijective`,
   {lit}`CLRS.Chapter11.expectedUnsuccessfulProbes_le`,
   and {lit}`CLRS.Chapter11.expectedSuccessfulProbes_le`.
+* 11.5 Perfect hashing: {lit}`proved`.
+  Main results: {lit}`CLRS.Chapter11.perfectSearch_iff_mem`,
+  {lit}`CLRS.Chapter11.perfectHash_collision_free_prob_ge_half`,
+  and {lit}`CLRS.Chapter11.perfectHash_expected_total_space_lt_2n`.
 
 ## Current Gaps
 
@@ -71,7 +76,11 @@ formalises the open addressing model with probe sequences (linear, quadratic,
 double hashing) and proves the uniform-hashing expected-probe bounds:
 unsuccessful search and insertion {lit}`≤ 1/(1-α)` (CLRS Theorems 11.6-11.7)
 and successful search `(1/α) · ∑_{j<n} 1/(m-j)` (CLRS Theorem 11.8 harmonic
-form).  The remaining gap is RAM / probe-count operational semantics.
+form).  Section 11.5 formalises the two-level perfect-hashing scheme: a primary
+hash into `m = n` buckets plus per-bucket secondary tables of size `n_j²`, which
+are collision-free with probability ≥ 1/2 (Theorem 11.9) and collectively use
+expected `O(n)` space (Theorem 11.10).  The remaining gap is RAM / probe-count
+operational semantics.
 -/
 
 namespace CLRS
