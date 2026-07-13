@@ -1671,6 +1671,32 @@ bundles sublist membership, feasibility, and optimal length; the companion
 `CLRS.ActivitySelection.activitySelection_cons_correct` exposes the same bundle
 for the nonempty recursive step.
 
+### Section 16.2 - Greedy-choice property and optimal substructure (meta-theorems)
+
+- Lean source: `CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean`
+- Status: `proved` for the abstract structural lemmas
+- Main results:
+  - `CLRS.GreedyMeta.GreedyProblem` — abstract structure bundling the
+    greedy-choice property and optimal substructure (CLRS §16.2)
+  - `CLRS.GreedyMeta.gsolve` — generic recursive greedy solver
+  - `CLRS.GreedyMeta.gsolve_optimal` — meta-theorem: any `GreedyProblem`
+    instance admits an optimal greedy solution
+  - `CLRS.GreedyMeta.GreedyChoiceProperty` — predicate form of Lemma 16.1
+  - `CLRS.GreedyMeta.OptimalSubstructure` — predicate form of Lemma 16.2
+- Proof pattern: the `GreedyProblem` structure packages the two §16.2
+  structural lemmas as axioms; the meta-theorem `gsolve_optimal` proves
+  greedy optimality by strong induction on the size measure.
+- Current gap: concrete instantiations (activity selection, Huffman) are
+  proved directly in their respective sections; a formal bridge recovering
+  those results from the meta-theorem remains future work.
+
+The section formalizes the CLRS §16.2 claim that any optimisation problem
+with the greedy-choice property and optimal substructure can be solved
+optimally by a greedy algorithm.  The abstract `GreedyProblem` structure
+records the two properties as axioms; `gsolve` implements the generic
+recursive greedy procedure; and `gsolve_optimal` proves its optimality by
+strong induction on the problem size.
+
 ### Section 16.3 - Huffman codes
 
 - Lean source: `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean`

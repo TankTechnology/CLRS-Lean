@@ -134,6 +134,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_16" = [
   "CLRSLean.Chapter_16.Section_16_1_Activity_Selection",
+  "CLRSLean.Chapter_16.Section_16_2_Greedy_Meta",
   "CLRSLean.Chapter_16.Section_16_3_Huffman_Codes",
   "CLRSLean.Chapter_16.Section_16_4_Matroids",
   "CLRSLean.Chapter_16.Section_16_5_Task_Scheduling",
@@ -502,6 +503,9 @@ title = "16.3. Huffman Codes"
 
 [modules."CLRSLean.Chapter_16.Section_16_1_Activity_Selection"]
 title = "16.1. Activity Selection"
+
+[modules."CLRSLean.Chapter_16.Section_16_2_Greedy_Meta"]
+title = "16.2. Greedy-Choice Property and Optimal Substructure (Meta-Theorems)"
 
 [modules."CLRSLean.Chapter_16.Section_16_4_Matroids"]
 title = "16.4. Matroids and Greedy Methods"
