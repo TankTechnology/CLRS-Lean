@@ -2343,7 +2343,19 @@ Fibonacci logarithmic theorem.
   with `member` and `insert` refined against the finite-set specification and
   the operation-count recurrence `T(u) = T(√u) + 1` solved to a
   `log₂ (log₂ u) + 1` depth bound and an `O(log log u)` big-O packaging via the
-  Chapter 3 wrapper.
+  Chapter 3 wrapper.  The min/max-augmented `VEBTreeMM` structure adds stored
+  `minimum`/`maximum` fields enabling single-recursion `successor`/`predecessor`/
+  `delete` with `O(log log u)` cost bounds.  Existing definitions
+  (`toFinset`, `member`, `member_correct`) were updated to correctly include the
+  stored minimum in the represented finite set.
+- Added theorems (VEBTreeMM):
+  - `CLRS.Chapter20.VEBTreeMM.delete` (recursive vEB-Tree-Delete)
+  - `CLRS.Chapter20.VEBTreeMM.deleteCost` (per-level cost)
+  - `CLRS.Chapter20.VEBTreeMM.deleteCost_le` (depth ≤ k+1)
+  - `CLRS.Chapter20.VEBTreeMM.successorCost` (per-level cost)
+  - `CLRS.Chapter20.VEBTreeMM.successorCost_le` (depth ≤ k+1)
+  - `CLRS.Chapter20.VEBTreeMM.predecessorCost` (per-level cost)
+  - `CLRS.Chapter20.VEBTreeMM.predecessorCost_le` (depth ≤ k+1)
 
 Chapter 20 now proves the high/low/index arithmetic, including both directions
 of bounded high/low recomposition, and a set-specification layer for the main
