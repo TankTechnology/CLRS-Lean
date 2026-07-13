@@ -10,8 +10,8 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 26.
-* Tracked reader-facing theorem entries: 1220.
-* Proved tracked theorem entries: 1220.
+* Tracked reader-facing theorem entries: 1224.
+* Proved tracked theorem entries: 1224.
 * Remaining core theorem groups: 31.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -51,13 +51,13 @@ Ch  Chapter                                                     Status          
 17  17. Amortized Analysis                                      partial                              17.1;17.2;17.4                     66        1
 18  18. B-Trees                                                 partial                              18.1;18.2;18.3                     62        1
 19  19. Fibonacci Heaps                                         partial                              19.1;19.4                         112        1
-20  20. van Emde Boas Trees                                     partial                              20.1;20.2;20.3                    149        1
+20  20. van Emde Boas Trees                                     partial                              20.1;20.2;20.3                    152        1
 21  21. Data Structures for Disjoint Sets                       main-proof-complete                  21.1;21.2;21.3;21.4                84        0
 22  22. Elementary Graph Algorithms                             main-proof-complete-for-correctness  22.1;22.2;22.3;22.4;22.5           47        0
 23  23. Minimum Spanning Trees                                  main-proof-complete-for-correctness  23.1;23.2                          52        0
 24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4                22        0
 25  25. All-Pairs Shortest Paths                                partial                              25.1                               15        2
-26  26. Maximum Flow                                            partial                              26.1                                5        0
+26  26. Maximum Flow                                            partial                              26.1;26.6                           6        0
 27  27. Multithreaded Algorithms                                not-started                          not represented                     0        1
 28  28. Matrix Operations                                       not-started                          not represented                     0        1
 29  29. Linear Programming                                      not-started                          not represented                     0        1
