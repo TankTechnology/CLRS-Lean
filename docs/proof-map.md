@@ -2825,7 +2825,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
   - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
 - Proof pattern: min-plus algebra, repeated squaring, linking to Ch24's relaxDist for walk properties, fixpoint via monotonicity + attainability
-- Current gap: Floyd-Warshall (Section 25.2), predecessor matrix, negative-cycle detection
+- Current gap: Floyd-Warshall correctness, predecessor matrix, negative-cycle detection
 
 The section builds the all-pairs shortest-path model on the Chapter 24 WeightedGraph
 infrastructure.  The min-plus product and FASTER-APSP are defined, Lemmas 25.1 and
@@ -2833,9 +2833,20 @@ infrastructure.  The min-plus product and FASTER-APSP are defined, Lemmas 25.1 a
 established under the no-negative-cycles hypothesis by connecting L^(m) to the
 Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
+### Section 25.2 - Floyd-Warshall Algorithm
+
+- Lean source: `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean`
+- Status: `partial` (definitions only; correctness proofs deferred)
+- Main declarations:
+  - `CLRS.Chapter24.WeightedGraph.fwStep` (one Floyd-Warshall iteration)
+  - `CLRS.Chapter24.WeightedGraph.D` (Floyd-Warshall DP recurrence)
+  - `CLRS.Chapter24.WeightedGraph.floydWarshall` (full algorithm)
+  - `CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed` (O(V³) work bound)
+- Current gap: D_le_simple (Lemma 25.7), D_attainable, floydWarshall_correct (Theorem 25.8)
+
 ### Chapter 25 remaining work
 
-- Floyd-Warshall algorithm (Section 25.2).
+- Floyd-Warshall correctness proofs.
 - Predecessor matrix Pi and path reconstruction.
 - Negative-cycle detection (CLRS Theorem 25.3).
 
