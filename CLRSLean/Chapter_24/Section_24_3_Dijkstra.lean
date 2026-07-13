@@ -176,6 +176,309 @@ theorem dijkstraWork_le_edge_log {vertices edges : Nat} (hconn : vertices ≤ 2 
   apply Nat.mul_le_mul_right
   omega
 
+/-! ## Executable priority-queue loop -/
+
+/-- The state of the Dijkstra algorithm: the set of settled vertices and the current
+tentative distance map. -/
+@[ext]
+structure DijkstraState (V : Type*) where
+  /-- Settled vertices (those whose exact distance is known). -/
+  S : Finset V
+  /-- Tentative distances. -/
+  d : V → WithTop ℝ
+
+/-- The initial state: all unsettled, source at distance `0`, all others at `⊤`. -/
+def dijkstraInit (s : V) : DijkstraState V :=
+  { S := ∅, d := fun v => if v = s then (0 : WithTop ℝ) else ⊤ }
+
+/-- One iteration: extract an unsettled vertex of minimum tentative distance,
+settle it, and relax its outgoing edges.  When no unsettled vertex remains, the
+state is unchanged.  Noncomputable because `V` is not assumed to be linearly
+ordered. -/
+noncomputable def dijkstraStep (G : WeightedGraph V) (st : DijkstraState V) : DijkstraState V :=
+  let U := Finset.univ \ st.S
+  if hU : U.Nonempty then
+    have h_min : ∃ u ∈ U, ∀ v ∈ U, st.d u ≤ st.d v := U.exists_min_image st.d hU
+    let u := Classical.choose h_min
+    { S := insert u st.S
+      d := fun v => if (u, v) ∈ G.edges then min (st.d v) (st.d u + (G.w u v : WithTop ℝ)) else st.d v }
+  else st
+
+/-- The Dijkstra loop invariant.  For a state `st` satisfying this invariant,
+settled vertices have their exact shortest-path distance, and the unsettled
+vertices satisfy the two properties required by CLRS Theorem 24.6. -/
+structure DijkstraInvariant (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ v, G.IsShortestDist s v (δ v)) (st : DijkstraState V) : Prop where
+  /-- The source is settled. -/
+  hsS : s ∈ st.S
+  /-- Every settled vertex has its exact distance. -/
+  hsettled : ∀ x ∈ st.S, st.d x = δ x
+  /-- For every frontier edge, the tentative distance at the unsettled endpoint
+  is at most the optimal distance to the settled endpoint plus the edge weight. -/
+  htent : ∀ y ∉ st.S, ∀ x ∈ st.S, (x, y) ∈ G.edges →
+    st.d y ≤ δ x + (G.w x y : WithTop ℝ)
+  /-- Tentative distances never underestimate the true shortest-path distance. -/
+  hvalid : ∀ y ∉ st.S, δ y ≤ st.d y
+
+/-- The shortest-path distance from a vertex to itself is zero. -/
+theorem isShortestDist_self_zero (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ v, G.IsShortestDist s v (δ v)) : δ s = (0 : WithTop ℝ) := by
+  have h_walk : G.IsWalkFrom s s [s] :=
+    ⟨List.isChain_singleton s, by simp, by simp⟩
+  have h_le : δ s ≤ (0 : WithTop ℝ) := (hδ s).1 [s] h_walk
+  rcases (hδ s).2 with htop | ⟨p, hp, hpw⟩
+  · rw [htop] at h_le; simp at h_le
+  · have h_nonneg : (0 : ℝ) ≤ walkWeight G.w p := G.walkWeight_nonneg hnn hp.chain
+    have hδ_nonneg : (0 : WithTop ℝ) ≤ δ s := by
+      rw [← hpw]; exact_mod_cast h_nonneg
+    exact le_antisymm h_le hδ_nonneg
+
+/-- If `(u, v)` is an edge, then the shortest-path distance to `v` is bounded above
+by the shortest-path distance to `u` plus the edge weight (triangle inequality). -/
+theorem delta_le_delta_add_edge (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ t, G.IsShortestDist s t (δ t)) (u v : V) (h_edge : (u, v) ∈ G.edges) :
+    δ v ≤ δ u + (G.w u v : WithTop ℝ) := by
+  rcases (hδ u).2 with hutop | ⟨q, hq, hqw⟩
+  · -- δ u = ⊤, then RHS = ⊤, and the inequality holds trivially
+    rw [hutop]; simp
+  · -- δ u is finite, realized by walk q from s to u
+    rcases (hδ v).2 with htop | ⟨p, hp, hpw⟩
+    · -- δ v = ⊤: impossible because q ++ [v] is a walk from s to v (via u)
+      exfalso
+      have h_walk : G.IsWalkFrom s v (q ++ [v]) := by
+        refine ⟨?_, ?_, ?_⟩
+        · refine hq.chain.append (List.isChain_singleton v) ?_
+          intro a ha b hb
+          have ha_u : a = u := by
+            rw [Option.mem_def, hq.last] at ha
+            exact (Option.some.inj ha).symm
+          subst ha_u
+          have hb_v : b = v := by
+            simpa using hb.symm
+          subst hb_v
+          exact h_edge
+        · rw [List.head?_append_of_ne_nil _ hq.ne_nil]
+          exact hq.head
+        · simp
+      have h_contra : δ v ≤ (walkWeight G.w (q ++ [v]) : WithTop ℝ) := (hδ v).1 _ h_walk
+      rw [htop] at h_contra
+      simp at h_contra
+    · -- both δ u and δ v are finite
+      have h_getlast_u : q.getLast hq.ne_nil = u := by
+        have htemp := List.getLast?_eq_getLast_of_ne_nil hq.ne_nil
+        have h_eq_some : some u = some (q.getLast hq.ne_nil) := by
+          rw [← hq.last, htemp]
+        exact (Option.some_inj.mp h_eq_some).symm
+      have h_walk : G.IsWalkFrom s v (q ++ [v]) := by
+        refine ⟨?_, ?_, ?_⟩
+        · refine hq.chain.append (List.isChain_singleton v) ?_
+          intro a ha b hb
+          have ha_u : a = u := by
+            rw [Option.mem_def, hq.last] at ha
+            exact (Option.some.inj ha).symm
+          subst ha_u
+          have hb_v : b = v := by
+            simpa using hb.symm
+          subst hb_v
+          exact h_edge
+        · rw [List.head?_append_of_ne_nil _ hq.ne_nil]
+          exact hq.head
+        · simp
+      have h_weight : (walkWeight G.w (q ++ [v]) : WithTop ℝ) = δ u + (G.w u v : WithTop ℝ) := by
+        calc
+          (walkWeight G.w (q ++ [v]) : WithTop ℝ) = ((walkWeight G.w q + G.w (q.getLast hq.ne_nil) v : ℝ) : WithTop ℝ) := by
+            exact_mod_cast walkWeight_append_singleton G.w q hq.ne_nil v
+          _ = (walkWeight G.w q : WithTop ℝ) + (G.w (q.getLast hq.ne_nil) v : WithTop ℝ) := by simp
+          _ = (walkWeight G.w q : WithTop ℝ) + (G.w u v : WithTop ℝ) := by simp [h_getlast_u]
+          _ = δ u + (G.w u v : WithTop ℝ) := by rw [hqw]
+      have h_walk_weight : δ v ≤ (walkWeight G.w (q ++ [v]) : WithTop ℝ) :=
+        (hδ v).1 (q ++ [v]) h_walk
+      rw [h_weight] at h_walk_weight
+      exact h_walk_weight
+
+/-- If the Dijkstra invariant holds, then any unsettled vertex `u` that minimizes
+`st.d` among unsettled vertices satisfies `st.d u = δ u`. -/
+theorem extractMin_correct_of_invariant (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ v, G.IsShortestDist s v (δ v))
+    (st : DijkstraState V) (h_inv : DijkstraInvariant G hnn s δ hδ st)
+    (u : V) (hu : u ∉ st.S) (hmin : ∀ y, y ∉ st.S → st.d u ≤ st.d y) :
+    st.d u = δ u :=
+  G.dijkstra_extractMin_correct hnn s δ hδ st.S h_inv.hsS st.d h_inv.htent h_inv.hvalid u hu hmin
+
+
+/-- If the Dijkstra invariant holds for `st`, then it also holds after one more
+`dijkstraStep`. -/
+theorem dijkstraStep_invariant (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ v, G.IsShortestDist s v (δ v))
+    (st : DijkstraState V) (h_inv : DijkstraInvariant G hnn s δ hδ st) :
+    DijkstraInvariant G hnn s δ hδ (dijkstraStep G st) := by
+  unfold dijkstraStep
+  let U := Finset.univ \ st.S
+  by_cases hU : U.Nonempty
+  · have h_min : ∃ u ∈ U, ∀ v ∈ U, st.d u ≤ st.d v := U.exists_min_image st.d hU
+    let u := Classical.choose h_min
+    have hu_mem : u ∈ U := (Classical.choose_spec h_min).1
+    have hu_min : ∀ v ∈ U, st.d u ≤ st.d v := (Classical.choose_spec h_min).2
+    have hu_notin_S : u ∉ st.S := (Finset.mem_sdiff.1 hu_mem).2
+    have hu_min_all : ∀ y, y ∉ st.S → st.d u ≤ st.d y := by
+      intro y hy
+      apply hu_min y
+      exact Finset.mem_sdiff.mpr ⟨Finset.mem_univ y, hy⟩
+    have h_du_eq_δu : st.d u = δ u :=
+      G.extractMin_correct_of_invariant hnn s δ hδ st h_inv u hu_notin_S hu_min_all
+    rw [dif_pos hU]
+    let S' := insert u st.S
+    let d' := fun v => if (u, v) ∈ G.edges then min (st.d v) (st.d u + (G.w u v : WithTop ℝ)) else st.d v
+    have h_s_S' : s ∈ S' := Finset.mem_insert_of_mem h_inv.hsS
+    have h_settled' : ∀ x ∈ S', d' x = δ x := by
+      intro x hx
+      rcases Finset.mem_insert.1 hx with (rfl | hx_S)
+      · -- x = u
+        dsimp [d']
+        by_cases h_edge_uu : (u, u) ∈ G.edges
+        · have h_nonneg_w : 0 ≤ G.w u u := hnn u u h_edge_uu
+          have h_add : st.d u ≤ st.d u + (G.w u u : WithTop ℝ) := by
+            have h_nonneg_w' : (0 : WithTop ℝ) ≤ (G.w u u : WithTop ℝ) := by exact_mod_cast h_nonneg_w
+            exact le_add_of_nonneg_right h_nonneg_w'
+          simp [h_edge_uu]
+          have h_min_eq : min (st.d u) (st.d u + (G.w u u : WithTop ℝ)) = st.d u :=
+            min_eq_left h_add
+          rw [h_min_eq, h_du_eq_δu]
+        · simp [h_edge_uu, h_du_eq_δu]
+      · -- x ∈ st.S
+        have h_dx_eq_δx : st.d x = δ x := h_inv.hsettled x hx_S
+        dsimp [d']
+        by_cases h_edge_ux : (u, x) ∈ G.edges
+        · have h_ineq : δ x ≤ δ u + (G.w u x : WithTop ℝ) :=
+            G.delta_le_delta_add_edge hnn s δ hδ u x h_edge_ux
+          have h_add : st.d x ≤ st.d u + (G.w u x : WithTop ℝ) := by
+            rw [h_dx_eq_δx, h_du_eq_δu]
+            exact h_ineq
+          simp [h_edge_ux]
+          have h_min_eq : min (st.d x) (st.d u + (G.w u x : WithTop ℝ)) = st.d x :=
+            min_eq_left h_add
+          rw [h_min_eq, h_dx_eq_δx]
+        · simp [h_edge_ux, h_dx_eq_δx]
+    have h_htent' : ∀ y ∉ S', ∀ x ∈ S', (x, y) ∈ G.edges → d' y ≤ δ x + (G.w x y : WithTop ℝ) := by
+      intro y hy_S' x hx_S' h_edge
+      have hy_notin_S : y ∉ st.S := by
+        intro hy_S; apply hy_S'; simp [S', hy_S]
+      rcases Finset.mem_insert.1 hx_S' with (rfl | hx_S)
+      · -- x = u
+        dsimp [d']
+        have h_edge_uy : (u, y) ∈ G.edges := h_edge
+        calc
+          (if (u, y) ∈ G.edges then min (st.d y) (st.d u + (G.w u y : WithTop ℝ)) else st.d y)
+              = min (st.d y) (st.d u + (G.w u y : WithTop ℝ)) := by simp [h_edge_uy]
+          _ ≤ st.d u + (G.w u y : WithTop ℝ) := min_le_right _ _
+          _ = δ u + (G.w u y : WithTop ℝ) := by rw [h_du_eq_δu]
+      · -- x ∈ st.S
+        have h_old_htent : st.d y ≤ δ x + (G.w x y : WithTop ℝ) :=
+          h_inv.htent y hy_notin_S x hx_S h_edge
+        dsimp [d']
+        by_cases h_edge_uy : (u, y) ∈ G.edges
+        · calc
+            (if (u, y) ∈ G.edges then min (st.d y) (st.d u + (G.w u y : WithTop ℝ)) else st.d y)
+                = min (st.d y) (st.d u + (G.w u y : WithTop ℝ)) := by simp [h_edge_uy]
+            _ ≤ st.d y := min_le_left _ _
+            _ ≤ δ x + (G.w x y : WithTop ℝ) := h_old_htent
+        · simp [h_edge_uy, h_old_htent]
+    have h_valid' : ∀ y ∉ S', δ y ≤ d' y := by
+      intro y hy_S'
+      have hy_notin_S : y ∉ st.S := by
+        intro hy_S; apply hy_S'; simp [S', hy_S]
+      have h_old_valid : δ y ≤ st.d y := h_inv.hvalid y hy_notin_S
+      by_cases h_edge_uy : (u, y) ∈ G.edges
+      · have h_ineq : δ y ≤ δ u + (G.w u y : WithTop ℝ) :=
+          G.delta_le_delta_add_edge hnn s δ hδ u y h_edge_uy
+        have h_hvalid_via_add : δ y ≤ st.d u + (G.w u y : WithTop ℝ) := by
+          rw [h_du_eq_δu]
+          exact h_ineq
+        simpa [d', h_edge_uy] using le_min_iff.mpr ⟨h_old_valid, h_hvalid_via_add⟩
+      · simpa [d', h_edge_uy] using h_old_valid
+    exact ⟨h_s_S', h_settled', h_htent', h_valid'⟩
+  · rw [dif_neg hU]
+    exact h_inv
+
+/-- Fuelled Dijkstra loop.  `dijkstraLoop G s n` runs `n` iterations from the initial
+state. -/
+noncomputable def dijkstraLoop (G : WeightedGraph V) (s : V) (n : ℕ) : DijkstraState V :=
+  Nat.recOn n (dijkstraInit s) (fun _ st => dijkstraStep G st)
+
+/-- Each step adds exactly one vertex (if unsettled vertices remain) or zero (if all are settled).
+    Returns `(card unchanged ∧ already all settled)` or `(+1 advancement)`. -/
+lemma dijkstraStep_card_S (st : DijkstraState V) :
+    ((dijkstraStep G st).S.card = st.S.card ∧ st.S = Finset.univ) ∨
+    (dijkstraStep G st).S.card = st.S.card + 1 := by
+  by_cases h_all : st.S = Finset.univ
+  · -- all settled, step adds nothing
+    have hcard : (dijkstraStep G st).S.card = st.S.card := by
+      unfold dijkstraStep
+      simp [h_all]
+    left
+    exact ⟨hcard, h_all⟩
+  · -- unsettled vertices remain, step adds one
+    have hU : (Finset.univ \ st.S).Nonempty := by
+      have h_exists : ∃ v, v ∉ st.S := by
+        by_contra! h_all_in
+        apply h_all
+        exact Finset.eq_univ_iff_forall.mpr h_all_in
+      rcases h_exists with ⟨v, hv⟩
+      refine ⟨v, Finset.mem_sdiff.mpr ⟨Finset.mem_univ v, hv⟩⟩
+    have hcard' : (dijkstraStep G st).S.card = st.S.card + 1 := by
+      unfold dijkstraStep
+      rw [dif_pos hU]
+      have h_min : ∃ u ∈ (Finset.univ \ st.S), ∀ v ∈ (Finset.univ \ st.S), st.d u ≤ st.d v :=
+        (Finset.univ \ st.S).exists_min_image st.d hU
+      let u := Classical.choose h_min
+      have hu_mem : u ∈ (Finset.univ \ st.S) :=
+        (Classical.choose_spec h_min).1
+      have hu_notin_S : u ∉ st.S := (Finset.mem_sdiff.1 hu_mem).2
+      dsimp
+      rw [Finset.card_insert_of_notMem hu_notin_S]
+    right
+    exact hcard'
+
+/-- After `k` steps from the initial state, the settled set has size at least
+`min k (Fintype.card V)`. -/
+lemma dijkstraLoop_card_ge (G : WeightedGraph V) (s : V) (k : ℕ) :
+    (dijkstraLoop G s k).S.card ≥ min k (Fintype.card V) := by
+  induction k with
+  | zero => simp [dijkstraLoop]
+  | succ k ih =>
+    have h_eq : dijkstraLoop G s (k+1) = dijkstraStep G (dijkstraLoop G s k) := by
+      simp [dijkstraLoop]
+    rw [h_eq]
+    have hcases := G.dijkstraStep_card_S (dijkstraLoop G s k)
+    rcases hcases with (⟨hcard, h_univ⟩ | hcard)
+    · -- No addition, all vertices are already settled
+      rw [hcard]
+      have hcard' : (dijkstraLoop G s k).S.card = Fintype.card V := by
+        simp [h_univ]
+      rw [hcard']
+      exact Nat.min_le_right (k+1) (Fintype.card V)
+    · -- Added one unsettled vertex
+      rw [hcard]
+      omega
+
+/-- After at least `Fintype.card V` iterations, all vertices are settled. -/
+theorem dijkstraLoop_finish (G : WeightedGraph V) (s : V) (n : ℕ) (hn : Fintype.card V ≤ n) :
+    (dijkstraLoop G s n).S = Finset.univ := by
+  have hcard_ge : (dijkstraLoop G s n).S.card ≥ Fintype.card V := by
+    have hmin : min n (Fintype.card V) = Fintype.card V := Nat.min_eq_right hn
+    have h := G.dijkstraLoop_card_ge s n
+    rw [hmin] at h
+    exact h
+  have hcard_le : (dijkstraLoop G s n).S.card ≤ Fintype.card V := by
+    calc
+      (dijkstraLoop G s n).S.card ≤ (Finset.univ : Finset V).card :=
+        Finset.card_le_card (Finset.subset_univ _)
+      _ = Fintype.card V := card_univ
+  have hcard_eq : (dijkstraLoop G s n).S.card = Fintype.card V := by omega
+  have h_sub : (dijkstraLoop G s n).S ⊆ Finset.univ := Finset.subset_univ _
+  exact Finset.eq_of_subset_of_card_le h_sub (by
+    rw [hcard_eq, card_univ])
+
 end WeightedGraph
 end Chapter24
 end CLRS
