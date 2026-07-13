@@ -2887,8 +2887,34 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   equate net cut flow with `|f|`.  The Ford-Fulkerson direction constructs a cut
   from the set of vertices reachable from `s` in the residual network, shows every
   crossing edge is saturated, and concludes maximality via the cut-capacity bound.
-- Current gap: the full Max-Flow Min-Cut converse direction, the Edmonds-Karp
-  analysis, and the executable augmenting-path loop.
+- Current gap: the full Max-Flow Min-Cut converse direction, and the
+  executable augmenting-path loop.
+
+### Section 26.2 - The Edmonds-Karp Algorithm
+
+- Lean source: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
+- Status: `proved`
+- Model:
+  - `CLRS.Chapter26.ResidualPathLength` (inductive predicate for path length in the residual network)
+  - `CLRS.Chapter26.IsShortestDist` (shortest-path distance in the residual network)
+  - `CLRS.Chapter26.ShortestAugmentingPath` (structure for a shortest augmenting path)
+- Main lemmas:
+  - `CLRS.Chapter26.isShortestDist_self` (distance from a vertex to itself is 0)
+  - `CLRS.Chapter26.IsShortestDist.unique` (the shortest distance is unique)
+  - `CLRS.Chapter26.isShortestDist_triangle` (triangle inequality for residual distances)
+  - `CLRS.Chapter26.exists_pred_on_path` (predecessor on a shortest path)
+  - `CLRS.Chapter26.suffix_path` (the suffix of a path from any vertex to G.t is a residual path)
+  - `CLRS.Chapter26.shortest_path_prefix` (prefix of a shortest path is shortest to its endpoint)
+  - `CLRS.Chapter26.reachable_if_reachable_in_augmented` (augmentation does not create new reachable vertices)
+  - `CLRS.Chapter26.shortest_path_nondec` (**Lemma 26.7**: `δ_f(s,v)` is nondecreasing)
+- Proof pattern: define a path-length inductive predicate for the residual network and the
+  shortest-path distance as the minimal length.  Lemma 26.7 uses strong induction on the new
+  distance; the key case analysis considers whether the last edge on the new shortest path was
+  already present in the old residual network or was newly added by the augmentation.  New edges
+  are reverses of edges on the augmenting path, whose vertices satisfy the exact distance given
+  by their index on the path (the subpath optimality property).
+- Current gap: the executable BFS procedure concrete augmenting loop, and the O(VE²)
+  running-time bound formalized as an explicit counting argument.
 
 ## Deferred And Blocked Items
 
