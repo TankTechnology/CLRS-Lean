@@ -161,3 +161,7 @@ import CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
 #check CLRS.Chapter20.VEBTree.loglog_uSize
 #check CLRS.Chapter20.VEBTree.depth_loglog_u
 #check CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u
+
+#check CLRS.Chapter20.VEBTreeMM.delete
+#check CLRS.Chapter20.VEBTreeMM.deleteCost
+#check CLRS.Chapter20.VEBTreeMM.deleteCost_le
