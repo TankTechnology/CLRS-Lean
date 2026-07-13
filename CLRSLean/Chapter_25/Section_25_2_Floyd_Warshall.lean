@@ -38,12 +38,12 @@ noncomputable def floydWarshall (G : WeightedGraph V) : V → V → WithTop ℝ 
 lemma mem_of_getLast?_eq_some {l : List α} {a : α} (h : l.getLast? = some a) : a ∈ l := by
   induction l with
   | nil => simp at h
-  | cons x xs ih =>
+  | cons x xs h_rec =>
     simp
     rcases xs with (_ | ⟨y, ys⟩)
     · simp at h; subst a; simp
     · have h' : (y :: ys).getLast? = some a := by simpa using h
-      have hmem : a ∈ (y :: ys) := ih h'
+      have hmem : a ∈ (y :: ys) := h_rec h'
       exact Or.inr hmem
 
 lemma walkWeight_append_adjacent (w : V → V → ℝ) (q1 q2 : List V) (k : V)
@@ -137,15 +137,15 @@ lemma concat_walks_weight (w : V → V → ℝ) {p1 p2 : List V} (hp1 : G.IsWalk
 
 /-! ## Correctness: lower bound for simple walks -/
 
-theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
-    (hq : G.IsWalkFrom i j q) (hq_simple : q.Nodup)
-    (h_verts : ∀ x ∈ q, x = i ∨ x = j ∨ x ∈ ks) :
-    G.D ks i j ≤ (walkWeight G.w q : WithTop ℝ) := by
-  induction ks generalizing i j q with
-  | nil =>
+theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (path : List V)
+    (hq : G.IsWalkFrom i j path) (hq_simple : path.Nodup)
+    (h_verts : ∀ x ∈ path, x = i ∨ x = j ∨ x ∈ ks) :
+    G.D ks i j ≤ (walkWeight G.w path : WithTop ℝ) := by
+  match ks with
+  | [] =>
     rw [D_nil]
     unfold weightMatrix
-    have hall_ij : ∀ x ∈ q, x = i ∨ x = j := by
+    have hall_ij : ∀ x ∈ path, x = i ∨ x = j := by
       intro x hx
       rcases h_verts x hx with (h | h | h)
       · exact Or.inl h
@@ -153,12 +153,14 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
       · simp at h
     by_cases hij : i = j
     · subst j
-      have hq_single : q = [i] := by
-        have hall_i : ∀ x ∈ q, x = i := by
+      have hq_single : path = [i] := by
+        have hall_i : ∀ x ∈ path, x = i := by
           intro x hx; rcases hall_ij x hx with (h | h); exact h; exact h
         rcases q with (_ | ⟨x, xs⟩)
         · exact absurd rfl hq.ne_nil
-        · have hx_i : x = i := hall_i x (by simp)
+        · have hx_i : x = i := hall_i x (by
+            have : x ∈ (x :: xs) := by simp
+            exact this)
           subst x
           have hxs_nil : xs = [] := by
             by_contra! hne
@@ -175,37 +177,40 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
       simp [hq_single]
     · have h_edge : G.Adj i j := by
         have h_first_two : ∃ r, q = i :: j :: r := by
-          have hhead : q.head? = some i := hq.head
+          have hhead : path.head? = some i := hq.head
           rcases q with (_ | ⟨a, r⟩)
           · exact absurd rfl hq.ne_nil
           · have ha_i : a = i := by simpa using hhead
             subst a
             rcases r with (_ | ⟨b, r'⟩)
-            · -- r = []: q = [i], but then hq.last implies j = i, contradicting i ≠ j
+            · -- r = []: path = [i], but then hq.last implies j = i, contradicting i ≠ j
               have : j = i := by
                 have hlast_i : (i :: []).getLast? = some j := hq.last
-                simpa using hlast_i
-              exact absurd this Ne.symm hij
-            · -- r = b :: r': need to show b = j
+                have h_eq : i = j := by
+                  simpa using hlast_i
+                exact h_eq.symm
+              exact (Ne.symm hij) this
               have hb_j : b = j := by
                 have hb_vert : b = i ∨ b = j ∨ b ∈ [] := h_verts b (by simp)
                 rcases hb_vert with (h | h | h)
-                · have : (i :: i :: b :: r').Nodup := hq_simple
-                  simp at this
+                · subst h; simp at hq_simple
                 · exact h
+                · simp at h
                 · exact (h : False).elim
               subst b; exact ⟨r', rfl⟩
         rcases h_first_two with ⟨r, hq_eq⟩
         have hchain : List.IsChain G.Adj q := hq.chain
         rw [hq_eq] at hchain
         exact hchain.rel_head
-      have hq_ij : q = [i, j] := by
-        have hhead : q.head? = some i := hq.head
-        have hlast : q.getLast? = some j := hq.last
-        have hlen2 : q.length = 2 := by
-          have h_ge_2 : q.length ≥ 2 := by
+      have hq_ij : path = [i, j] := by
+        have hhead : path.head? = some i := hq.head
+        have hlast : path.getLast? = some j := hq.last
+        have hlen2 : path.length = 2 := by
+          have h_ge_2 : path.length ≥ 2 := by
             by_contra! h
-            have hlen1 : q.length = 1 := by omega
+            have hlen1 : path.length = 1 := by
+              have : path.length < 2 := by omega
+              omega
             rcases q with (_ | ⟨a, r⟩)
             · exact absurd rfl hq.ne_nil
             · rcases r with (_ | ⟨b, r'⟩)
@@ -214,46 +219,46 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
                 exact hij (ha_i.trans ha_j.symm)
               · simp at hlen1
           by_contra! h
-          have h_ge_3 : q.length ≥ 3 := by omega
-          have hcard_eq_len : Finset.card (q.toFinset) = q.length :=
+          have h_ge_3 : path.length ≥ 3 := by omega
+          have hcard_eq_len : Finset.card (path.toFinset) = path.length :=
             List.toFinset_card_of_nodup hq_simple
-          have hset_subset : q.toFinset ⊆ ({i, j} : Finset V) := by
+          have hset_subset : path.toFinset ⊆ ({i, j} : Finset V) := by
             intro x hx
-            have hx' : x ∈ q := by
+            have hx' : x ∈ path := by
               rw [List.mem_toFinset] at hx; exact hx
             rcases hall_ij x hx' with (h | h)
             · simp [h]
             · simp [h]
-          have hcard_le_2 : Finset.card (q.toFinset) ≤ 2 := by
+          have hcard_le_2 : Finset.card (path.toFinset) ≤ 2 := by
             calc
-              Finset.card (q.toFinset) ≤ Finset.card ({i, j} : Finset V) :=
+              Finset.card (path.toFinset) ≤ Finset.card ({i, j} : Finset V) :=
                 Finset.card_le_card hset_subset
               _ = 2 := by simp
           rw [hcard_eq_len] at hcard_le_2
           omega
         obtain ⟨x, y, hq_eq⟩ := List.length_eq_two.mp hlen2
         have hx_i : x = i := by
-          have : q.head? = some x := by
+          have : path.head? = some x := by
             rw [hq_eq]; simp
           simpa [this, hhead]
         have hy_j : y = j := by
-          have : q.getLast? = some y := by
+          have : path.getLast? = some y := by
             rw [hq_eq]; simp
           simpa [this, hlast]
         rw [hx_i, hy_j] at hq_eq
         exact hq_eq
       simp [hij, hq_ij, h_edge]
-  | cons k ks' ih =>
+  | k :: ks' =>
     have h_rec := D_le_simple hNC ks'
     rw [D_cons]
-    by_cases hk : k ∈ q
+    by_cases hk : k ∈ path
     · rcases List.mem_iff_append.mp hk with ⟨l1, l2, hq_eq, hk_notin_l1⟩
       have hk_notin_l2 : k ∉ l2 := by
         intro hk_l2
-        have hcount_q : Multiset.count k (q : Multiset V) = 1 :=
+        have hcount_q : Multiset.count k (path : Multiset V) = 1 :=
           List.count_eq_one_of_mem hq_simple hk
-        have hcount_ge_2 : Multiset.count k (q : Multiset V) ≥ 2 := by
-          have hq_ms_eq : (q : Multiset V) = (l1 ++ k :: l2 : Multiset V) := by
+        have hcount_ge_2 : Multiset.count k (path : Multiset V) ≥ 2 := by
+          have hq_ms_eq : (path : Multiset V) = (l1 ++ k :: l2 : Multiset V) := by
             simpa [hq_eq]
           rw [hq_ms_eq]
           simp [hk_notin_l1, hk_l2]
@@ -270,9 +275,9 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
         · simp [q1]
       have hq1_simple : q1.Nodup :=
         hq_simple.sublist (by rw [hq_eq]; simp)
-      have hq1_verts : ∀ x ∈ q1, x = i ∨ x = k ∨ x ∈ ks' := by
+      have hq1_verts : ∀ x ∈ path1, x = i ∨ x = k ∨ x ∈ ks' := by
         intro x hx
-        have hx_in_q : x ∈ q := by
+        have hx_in_q : x ∈ path := by
           rw [hq_eq]
           rcases hx with (hx_l1 | hx_k)
           · exact Or.inl hx_l1
@@ -283,16 +288,16 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
           · subst j; exact Or.inr (Or.inl rfl)
           · have hj_notin_l1 : j ∉ l1 := by
               intro hj
-              have : Multiset.count j (q : Multiset V) ≥ 2 := by
+              have : Multiset.count j (path : Multiset V) ≥ 2 := by
                 rw [hq_eq]
                 have hj_in_suffix : j ∈ k :: l2 := by
-                  have hlast : q.getLast? = some j := hq.last
+                  have hlast : path.getLast? = some j := hq.last
                   rw [hq_eq] at hlast
                   have hlast_suff : (k :: l2).getLast? = some j := by
                     simpa [getLast?_append_cons] using hlast
                   exact mem_of_getLast?_eq_some hlast_suff
                 simp [hj, hj_in_suffix]
-              have : Multiset.count j (q : Multiset V) = 1 :=
+              have : Multiset.count j (path : Multiset V) = 1 :=
                 List.count_eq_one_of_mem hq_simple (mem_of_getLast?_eq_some hq.last)
               omega
             rcases hx with (hx_l1 | hx_k)
@@ -308,14 +313,14 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
           have h_suffix : (k :: l2) <:+ (l1 ++ k :: l2) := ⟨l1, by simp⟩
           exact hchain.suffix h_suffix
         · simp [q2]
-        · have hlast : q.getLast? = some j := hq.last
+        · have hlast : path.getLast? = some j := hq.last
           rw [hq_eq] at hlast
           simpa [getLast?_append_cons] using hlast
       have hq2_simple : q2.Nodup :=
         hq_simple.sublist (by rw [hq_eq]; simp)
-      have hq2_verts : ∀ x ∈ q2, x = k ∨ x = j ∨ x ∈ ks' := by
+      have hq2_verts : ∀ x ∈ path2, x = k ∨ x = j ∨ x ∈ ks' := by
         intro x hx
-        have hx_in_q : x ∈ q := by
+        have hx_in_q : x ∈ path := by
           rw [hq_eq]
           rcases hx with (hx_k | hx_l2)
           · simp
@@ -325,10 +330,10 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
           · subst i; exact Or.inl rfl
           · have hi_notin_l2 : i ∉ l2 := by
               intro hi
-              have : Multiset.count i (q : Multiset V) ≥ 2 := by
+              have : Multiset.count i (path : Multiset V) ≥ 2 := by
                 rw [hq_eq]
                 have hi_in_prefix : i ∈ l1 := by
-                  have hhead : q.head? = some i := hq.head
+                  have hhead : path.head? = some i := hq.head
                   rw [hq_eq] at hhead
                   by_cases hl1_nil : l1 = []
                   · subst l1; simp at hhead; exact hik.symm (by simpa using hhead)
@@ -337,7 +342,7 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
                     · simp at hl1_nil
                     · simp; simpa using hhead_l1
                 simp [hi_in_prefix, hi]
-              have : Multiset.count i (q : Multiset V) = 1 :=
+              have : Multiset.count i (path : Multiset V) = 1 :=
                 List.count_eq_one_of_mem hq_simple (mem_of_getLast?_eq_some hq.head)
               omega
             rcases hx with (hx_k | hx_l2)
@@ -362,7 +367,7 @@ theorem D_le_simple (hNC : G.NoNegCycle) (ks : List V) (i j : V) (q : List V)
         min (G.D ks' i j) (G.D ks' i k + G.D ks' k j) ≤ G.D ks' i k + G.D ks' k j := min_le_right _ _
         _ ≤ (walkWeight G.w q1 : WithTop ℝ) + (walkWeight G.w q2 : WithTop ℝ) := add_le_add h1 h2
         _ = (walkWeight G.w q : WithTop ℝ) := hsplit
-    · have h_verts_ks' : ∀ x ∈ q, x = i ∨ x = j ∨ x ∈ ks' := by
+    · have h_verts_ks' : ∀ x ∈ path, x = i ∨ x = j ∨ x ∈ ks' := by
         intro x hx
         rcases h_verts x hx with (h | h | h)
         · exact Or.inl h
@@ -380,6 +385,7 @@ theorem D_attainable (ks : List V) (i j : V) (h : G.D ks i j ≠ ⊤) :
     ∃ p, G.IsWalkFrom i j p ∧ (walkWeight G.w p : WithTop ℝ) = G.D ks i j := by
   induction ks generalizing i j with
   | nil =>
+    intro i j q hq hq_simple h_verts
     rw [D_nil] at h
     unfold weightMatrix at h
     by_cases hij : i = j
@@ -404,7 +410,8 @@ theorem D_attainable (ks : List V) (i j : V) (h : G.D ks i j ≠ ⊤) :
         · simp
         · simp
       · simp [weightMatrix, hij, hedge]
-  | cons k ks' ih =>
+  | k :: ks' =>
+    have h_rec := D_le_simple hNC ks'
     rw [D_cons] at h
     have hmin : min (G.D ks' i j) (G.D ks' i k + G.D ks' k j) ≠ ⊤ := h
     by_cases hij' : G.D ks' i j = ⊤
@@ -415,8 +422,8 @@ theorem D_attainable (ks : List V) (i j : V) (h : G.D ks i j ≠ ⊤) :
       have h_add : G.D ks' i k ≠ ⊤ ∧ G.D ks' k j ≠ ⊤ := by
           simpa using hsum
       rcases h_add with ⟨hik, hkj⟩
-      rcases ih i k hik with ⟨p1, hp1, hp1_eq⟩
-      rcases ih k j hkj with ⟨p2, hp2, hp2_eq⟩
+      rcases h_rec i k hik with ⟨p1, hp1, hp1_eq⟩
+      rcases h_rec k j hkj with ⟨p2, hp2, hp2_eq⟩
       have hp_combined : G.IsWalkFrom i j (p1 ++ p2.tail) :=
         concat_walks hp1 hp2
       have hp_weight : (walkWeight G.w (p1 ++ p2.tail) : WithTop ℝ) = G.D (k :: ks') i j := by
@@ -429,10 +436,41 @@ theorem D_attainable (ks : List V) (i j : V) (h : G.D ks i j ≠ ⊤) :
           _ = G.D ks' i k + G.D ks' k j := by simp [hp1_eq, hp2_eq]
           _ = min (G.D ks' i j) (G.D ks' i k + G.D ks' k j) := by simp [hij']
       refine ⟨p1 ++ p2.tail, hp_combined, hp_weight⟩
-    · rcases ih i j hij' with ⟨p, hp, hp_eq⟩
-      refine ⟨p, hp, ?_⟩
-      rw [D_cons]
-      simp [hij', hp_eq]
+    · by_cases h_le : G.D ks' i j ≤ G.D ks' i k + G.D ks' k j
+      · rcases h_rec i j hij' with ⟨p, hp, hp_eq⟩
+        refine ⟨p, hp, ?_⟩
+        rw [D_cons]
+        simp [h_le, hp_eq]
+      · have h_lt : G.D ks' i k + G.D ks' k j < G.D ks' i j := by
+          -- Since the min is finite and ≠ G.D ks' i j, the sum must be the min
+          -- Also G.D ks' i j is finite (hij')
+          -- We need to show the sum is finite (it is, since min ≠ ⊤)
+          have hsum : G.D ks' i k + G.D ks' k j ≠ ⊤ := by
+            intro hsum_top
+            apply hmin
+            simp [hij', hsum_top]
+          -- Now G.D ks' i k + G.D ks' k j is the min
+          have h_min_val : min (G.D ks' i j) (G.D ks' i k + G.D ks' k j) = G.D ks' i k + G.D ks' k j := by
+            simp [h_le, hsum]
+          rw [h_min_val]
+          -- Need walks for both parts
+          have h_add : G.D ks' i k ≠ ⊤ ∧ G.D ks' k j ≠ ⊤ := by
+            simpa using hsum
+          rcases h_add with ⟨hik, hkj⟩
+          rcases h_rec i k hik with ⟨p1, hp1, hp1_eq⟩
+          rcases h_rec k j hkj with ⟨p2, hp2, hp2_eq⟩
+          have hp_combined : G.IsWalkFrom i j (p1 ++ p2.tail) :=
+            concat_walks hp1 hp2
+          have hp_weight : (walkWeight G.w (p1 ++ p2.tail) : WithTop ℝ) = G.D (k :: ks') i j := by
+            rw [D_cons]
+            have hcalc : walkWeight G.w (p1 ++ p2.tail) = walkWeight G.w p1 + walkWeight G.w p2 :=
+              concat_walks_weight G.w hp1 hp2
+            calc
+              (walkWeight G.w (p1 ++ p2.tail) : WithTop ℝ) =
+                  (walkWeight G.w p1 + walkWeight G.w p2 : WithTop ℝ) := by rw [hcalc]
+              _ = G.D ks' i k + G.D ks' k j := by simp [hp1_eq, hp2_eq]
+              _ = min (G.D ks' i j) (G.D ks' i k + G.D ks' k j) := by simp [h_le]
+          refine ⟨p1 ++ p2.tail, hp_combined, hp_weight⟩
 
 /-! ## Main correctness theorem -/
 
@@ -441,7 +479,7 @@ theorem floydWarshall_correct (hNC : G.NoNegCycle) (i j : V) :
   constructor
   · intro p hp
     rcases G.exists_simple_le hNC i j p.length p (le_refl _) hp with ⟨q, hq, hq_simple, hqle⟩
-    have h_verts : ∀ x ∈ q, x = i ∨ x = j ∨ x ∈ (Finset.univ.toList : List V) := by
+    have h_verts : ∀ x ∈ path, x = i ∨ x = j ∨ x ∈ (Finset.univ.toList : List V) := by
       intro x hx
       have hx_mem : x ∈ (Finset.univ : Finset V) := Finset.mem_univ x
       have hx_list : x ∈ (Finset.univ : Finset V).toList := by
