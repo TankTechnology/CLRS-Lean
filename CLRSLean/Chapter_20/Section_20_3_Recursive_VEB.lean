@@ -914,6 +914,28 @@ theorem erase_of_ne {m x : Nat} {s : Finset Nat} (h : MinCorrect (some m) s)
   exact ⟨Finset.mem_erase.mpr ⟨hmx, h.1⟩,
     fun y hy => h.2 y (Finset.mem_of_mem_erase hy)⟩
 
+/-- Inserting a smaller key makes that key the new cached minimum. -/
+theorem insert_of_lt {m x : Nat} {s : Finset Nat} (h : MinCorrect (some m) s)
+    (hxm : x < m) : MinCorrect (some x) (Insert.insert x s) := by
+  refine ⟨Finset.mem_insert_self x s, ?_⟩
+  intro y hy
+  rw [Finset.mem_insert] at hy
+  rcases hy with hyx | hy
+  · subst y
+    exact Nat.le_refl _
+  · exact Nat.le_trans (Nat.le_of_lt hxm) (h.le hy)
+
+/-- Inserting no key below the cached minimum preserves that minimum. -/
+theorem insert_of_not_lt {m x : Nat} {s : Finset Nat}
+    (h : MinCorrect (some m) s) (hxm : ¬ x < m) :
+    MinCorrect (some m) (Insert.insert x s) := by
+  refine ⟨Finset.mem_insert_of_mem h.mem, ?_⟩
+  intro y hy
+  rw [Finset.mem_insert] at hy
+  rcases hy with rfl | hy
+  · exact Nat.le_of_not_gt hxm
+  · exact h.le hy
+
 end MinCorrect
 
 namespace MaxCorrect
@@ -943,6 +965,28 @@ theorem erase_of_ne {m x : Nat} {s : Finset Nat} (h : MaxCorrect (some m) s)
     (hmx : m ≠ x) : MaxCorrect (some m) (s.erase x) := by
   exact ⟨Finset.mem_erase.mpr ⟨hmx, h.1⟩,
     fun y hy => h.2 y (Finset.mem_of_mem_erase hy)⟩
+
+/-- Inserting a larger key makes that key the new cached maximum. -/
+theorem insert_of_gt {m x : Nat} {s : Finset Nat} (h : MaxCorrect (some m) s)
+    (hmx : m < x) : MaxCorrect (some x) (Insert.insert x s) := by
+  refine ⟨Finset.mem_insert_self x s, ?_⟩
+  intro y hy
+  rw [Finset.mem_insert] at hy
+  rcases hy with hyx | hy
+  · subst y
+    exact Nat.le_refl _
+  · exact Nat.le_trans (h.le hy) (Nat.le_of_lt hmx)
+
+/-- Inserting no key above the cached maximum preserves that maximum. -/
+theorem insert_of_not_gt {m x : Nat} {s : Finset Nat}
+    (h : MaxCorrect (some m) s) (hmx : ¬ m < x) :
+    MaxCorrect (some m) (Insert.insert x s) := by
+  refine ⟨Finset.mem_insert_of_mem h.mem, ?_⟩
+  intro y hy
+  rw [Finset.mem_insert] at hy
+  rcases hy with rfl | hy
+  · exact Nat.le_of_not_gt hmx
+  · exact h.le hy
 
 end MaxCorrect
 
@@ -1182,6 +1226,167 @@ theorem update_clusters_wellFormed {k : Nat}
   · subst j
     simpa using hnew
   · simpa [Function.update_of_ne hji] using hall j
+
+/-- Replacing one cluster by a finite-set insertion inserts the recombined key
+into the whole node. -/
+theorem toFinset_update_cluster_insert {k : Nat}
+    (mn mx : Option Nat) (summary : VEBTreeMM k)
+    (clusters : Fin (uSize k) → VEBTreeMM k)
+    (hi : Fin (uSize k)) (cluster' : VEBTreeMM k) (x : Nat)
+    (hcluster : cluster'.toFinset = Insert.insert x (clusters hi).toFinset) :
+    (VEBTreeMM.node mn mx summary
+      (Function.update clusters hi cluster')).toFinset =
+      Insert.insert (index (uSize k) hi.val x)
+        (VEBTreeMM.node mn mx summary clusters).toFinset := by
+  ext y
+  rw [mem_toFinset_node_update_cluster, Finset.mem_insert,
+    mem_toFinset_node, hcluster]
+  simp only [Finset.mem_insert]
+  constructor
+  · rintro (hmin | hnew | hold)
+    · exact Or.inr (Or.inl hmin)
+    · rcases hnew with ⟨lo, hlo, rfl⟩
+      rcases hlo with (rfl | hlo)
+      · exact Or.inl rfl
+      · exact Or.inr (Or.inr ⟨hi, lo, hlo, rfl⟩)
+    · rcases hold with ⟨j, hji, lo, hlo, hidx⟩
+      exact Or.inr (Or.inr ⟨j, lo, hlo, hidx⟩)
+  · rintro (rfl | hrest)
+    · exact Or.inr (Or.inl ⟨x, Or.inl rfl, rfl⟩)
+    · rcases hrest with (hmin | hclusterOld)
+      · exact Or.inl hmin
+      · rcases hclusterOld with ⟨j, lo, hlo, rfl⟩
+        by_cases hji : j = hi
+        · subst j
+          exact Or.inr (Or.inl ⟨lo, Or.inr hlo, rfl⟩)
+        · exact Or.inr (Or.inr ⟨j, hji, lo, hlo, rfl⟩)
+
+/-- Installing the first detached minimum adds exactly that key to a node. -/
+theorem toFinset_replace_none_min {k : Nat} (x : Nat) (mx : Option Nat)
+    (summary : VEBTreeMM k) (clusters : Fin (uSize k) → VEBTreeMM k)
+    (hx : x < uSize (k + 1)) :
+    (VEBTreeMM.node (some x) mx summary clusters).toFinset =
+      Insert.insert x (VEBTreeMM.node none mx summary clusters).toFinset := by
+  ext y
+  rw [mem_toFinset_node, Finset.mem_insert, mem_toFinset_node]
+  constructor
+  · rintro (⟨m, hmn, hm, hym⟩ | hcluster)
+    · have hmx : m = x := by simpa using Option.some.inj hmn.symm
+      exact Or.inl (hym.trans hmx)
+    · exact Or.inr (Or.inr hcluster)
+  · rintro (hyx | hnode)
+    · subst y
+      exact Or.inl ⟨x, rfl, hx, rfl⟩
+    · rcases hnode with (⟨m, hmn, _, _⟩ | hcluster)
+      · simp at hmn
+      · exact Or.inr hcluster
+
+/-- Swapping the detached minimum with a smaller inserted key preserves the
+finite-set insertion semantics once the old minimum is inserted into a
+cluster. -/
+theorem toFinset_swap_min_insert {k : Nat} (x m : Nat) (mx : Option Nat)
+    (summary : VEBTreeMM k) (clusters : Fin (uSize k) → VEBTreeMM k)
+    (hx : x < uSize (k + 1)) (hm : m < uSize (k + 1)) :
+    Insert.insert m (VEBTreeMM.node (some x) mx summary clusters).toFinset =
+      Insert.insert x (VEBTreeMM.node (some m) mx summary clusters).toFinset := by
+  ext y
+  rw [Finset.mem_insert, mem_toFinset_node, Finset.mem_insert, mem_toFinset_node]
+  constructor
+  · rintro (hym | ⟨stored, hstored, _, hstoredY⟩ | hcluster)
+    · subst y
+      exact Or.inr (Or.inl ⟨m, rfl, hm, rfl⟩)
+    · have hstoredX : stored = x := by
+        simpa using Option.some.inj hstored.symm
+      exact Or.inl (hstoredY.trans hstoredX)
+    · exact Or.inr (Or.inr hcluster)
+  · rintro (hyx | ⟨stored, hstored, _, hstoredY⟩ | hcluster)
+    · subst y
+      exact Or.inr (Or.inl ⟨x, rfl, hx, rfl⟩)
+    · have hstoredM : stored = m := by
+        simpa using Option.some.inj hstored.symm
+      exact Or.inl (hstoredY.trans hstoredM)
+    · exact Or.inr (Or.inr hcluster)
+
+/-- When an empty cluster receives its first key and its index is inserted into
+the summary, the summary-to-cluster correspondence remains exact. -/
+theorem summary_mem_iff_update_insert_empty {k : Nat}
+    {summary summary' : VEBTreeMM k}
+    {clusters : Fin (uSize k) → VEBTreeMM k}
+    {hi : Fin (uSize k)} {cluster' : VEBTreeMM k}
+    (hsummary : ∀ j : Fin (uSize k),
+      j.val ∈ summary.toFinset ↔ (clusters j).toFinset.Nonempty)
+    (hsummary' : summary'.toFinset = Insert.insert hi.val summary.toFinset)
+    (_hempty : (clusters hi).toFinset = ∅)
+    (hnew : cluster'.toFinset.Nonempty) :
+    ∀ j : Fin (uSize k), j.val ∈ summary'.toFinset ↔
+      (Function.update clusters hi cluster' j).toFinset.Nonempty := by
+  intro j
+  rw [hsummary']
+  by_cases hji : j = hi
+  · subst j
+    simp [hnew]
+  · have hval : j.val ≠ hi.val := by
+      intro hval
+      exact hji (Fin.ext hval)
+    rw [Function.update_of_ne hji, Finset.mem_insert, hsummary j]
+    simp [hval]
+
+/-- Inserting one low offset into a cluster preserves detachment of an
+unchanged stored minimum when the recombined new key differs from it. -/
+theorem node_min_detached_update_insert {k : Nat} {mn : Option Nat}
+    {clusters : Fin (uSize k) → VEBTreeMM k} {hi : Fin (uSize k)}
+    {lo : Nat} {cluster' : VEBTreeMM k}
+    (hdet : ∀ m, mn = some m → ∀ (j : Fin (uSize k)) (off : Nat),
+      off ∈ (clusters j).toFinset → index (uSize k) j.val off ≠ m)
+    (hcluster : cluster'.toFinset = Insert.insert lo (clusters hi).toFinset)
+    (hnew : ∀ m, mn = some m → index (uSize k) hi.val lo ≠ m) :
+    ∀ m, mn = some m → ∀ (j : Fin (uSize k)) (off : Nat),
+      off ∈ (Function.update clusters hi cluster' j).toFinset →
+        index (uSize k) j.val off ≠ m := by
+  intro m hmn j off hoff
+  by_cases hji : j = hi
+  · subst j
+    rw [Function.update_self, hcluster, Finset.mem_insert] at hoff
+    rcases hoff with rfl | hoff
+    · exact hnew m hmn
+    · exact hdet m hmn hi off hoff
+  · rw [Function.update_of_ne hji] at hoff
+    exact hdet m hmn j off hoff
+
+/-- When insertion swaps in a strictly smaller detached minimum, every old
+cluster key and the reinserted old minimum remain distinct from it. -/
+theorem node_min_detached_update_insert_of_lt {k : Nat} {x m : Nat}
+    {mx : Option Nat} {summary : VEBTreeMM k}
+    {clusters : Fin (uSize k) → VEBTreeMM k} {hi : Fin (uSize k)}
+    {lo : Nat} {cluster' : VEBTreeMM k}
+    (hwf : WellFormed (VEBTreeMM.node (some m) mx summary clusters))
+    (hcluster : cluster'.toFinset = Insert.insert lo (clusters hi).toFinset)
+    (hindex : index (uSize k) hi.val lo = m) (hxm : x < m) :
+    ∀ m', (some x : Option Nat) = some m' →
+      ∀ (j : Fin (uSize k)) (off : Nat),
+        off ∈ (Function.update clusters hi cluster' j).toFinset →
+          index (uSize k) j.val off ≠ m' := by
+  intro m' hm' j off hoff
+  have hm'x : m' = x := Option.some.inj hm'.symm
+  subst m'
+  have holdNe (j' : Fin (uSize k)) (off' : Nat)
+      (hoff' : off' ∈ (clusters j').toFinset) :
+      index (uSize k) j'.val off' ≠ x := by
+    have holdMem : index (uSize k) j'.val off' ∈
+        (VEBTreeMM.node (some m) mx summary clusters).toFinset := by
+      rw [mem_toFinset_node]
+      exact Or.inr ⟨j', off', hoff', rfl⟩
+    have hmle := hwf.minimum_le rfl holdMem
+    omega
+  by_cases hji : j = hi
+  · subst j
+    rw [Function.update_self, hcluster, Finset.mem_insert] at hoff
+    rcases hoff with rfl | hoff
+    · rw [hindex]
+      omega
+    · exact holdNe hi off hoff
+  · rw [Function.update_of_ne hji] at hoff
+    exact holdNe j off hoff
 
 /-- Replacing the cluster addressed by `x` with a low-part erasure implements
 whole-node erasure when `x` is not the detached stored minimum. -/
@@ -1562,6 +1767,430 @@ theorem promoted_min_detached {k : Nat}
         rw [high_index hloLt]
       _ = high (uSize k) (index (uSize k) hi.val offset) := by rw [hEq]
       _ = hi.val := by rw [high_index hoffLt]
+
+
+/-- **Recursive vEB insertion correctness.**  Insertion preserves the CLRS
+representation invariant and refines finite-set insertion. -/
+theorem insert_correct : ∀ {k : Nat} (v : VEBTreeMM k) (x : Nat),
+    WellFormed v → x < uSize k →
+      WellFormed (insert x v) ∧
+        (insert x v).toFinset = Insert.insert x v.toFinset := by
+  intro k
+  induction k using Nat.strong_induction_on with
+  | h k ih =>
+      intro v x hwf hx
+      cases v with
+      | leaf mn mx c0 c1 =>
+          rw [uSize_zero] at hx
+          interval_cases x <;> cases c0 <;> cases c1 <;>
+            simp [insert, WellFormed, MinCorrect, MaxCorrect, toFinset,
+              Finset.pair_comm]
+      | @node k0 mn mx summary clusters =>
+          cases mn with
+          | none =>
+              have holdEmpty :
+                  (VEBTreeMM.node none mx summary clusters).toFinset = ∅ :=
+                hwf.minimum_none_iff.mp rfl
+              have hmx : mx = none := by
+                cases mx with
+                | none => rfl
+                | some v =>
+                    have hv : v ∈
+                        (VEBTreeMM.node none (some v) summary clusters).toFinset :=
+                      hwf.maximum_mem rfl
+                    simpa [holdEmpty] using hv
+              subst mx
+              have hsem :
+                  (VEBTreeMM.node (some x) (some x) summary clusters).toFinset =
+                    Insert.insert x
+                      (VEBTreeMM.node none none summary clusters).toFinset :=
+                toFinset_replace_none_min x (some x) summary clusters hx
+              have hnewSet :
+                  (VEBTreeMM.node (some x) (some x) summary clusters).toFinset = {x} := by
+                rw [hsem, holdEmpty]
+                simp
+              have hdetached : ∀ m, (some x : Option Nat) = some m →
+                  ∀ (j : Fin (uSize k0)) (off : Nat),
+                    off ∈ (clusters j).toFinset →
+                      index (uSize k0) j.val off ≠ m := by
+                intro m hm j off hoff
+                have hmEq : m = x := Option.some.inj hm.symm
+                subst m
+                have holdMem : index (uSize k0) j.val off ∈
+                    (VEBTreeMM.node none none summary clusters).toFinset := by
+                  rw [mem_toFinset_node]
+                  exact Or.inr ⟨j, off, hoff, rfl⟩
+                simpa [holdEmpty] using holdMem
+              have hresult : WellFormed
+                  (VEBTreeMM.node (some x) (some x) summary clusters) := by
+                refine ⟨?_, ?_, hdetached,
+                  (fun j => hwf.node_summary_mem_iff j),
+                  hwf.node_summary, fun j => hwf.node_cluster j⟩
+                · rw [hnewSet]
+                  simp [MinCorrect]
+                · rw [hnewSet]
+                  simp [MaxCorrect]
+              constructor
+              · simpa [insert] using hresult
+              · simpa [insert] using hsem
+          | some m =>
+              cases mx with
+              | none =>
+                  have holdEmpty :
+                      (VEBTreeMM.node (some m) none summary clusters).toFinset = ∅ :=
+                    hwf.maximum_none_iff.mp rfl
+                  have hm : m ∈
+                      (VEBTreeMM.node (some m) none summary clusters).toFinset :=
+                    hwf.minimum_mem rfl
+                  simpa [holdEmpty] using hm
+              | some v =>
+                  have hmMem : m ∈
+                      (VEBTreeMM.node (some m) (some v) summary clusters).toFinset :=
+                    hwf.minimum_mem rfl
+                  have hvMem : v ∈
+                      (VEBTreeMM.node (some m) (some v) summary clusters).toFinset :=
+                    hwf.maximum_mem rfl
+                  have hmBound : m < uSize (k0 + 1) :=
+                    toFinset_lt_uSize _ m hmMem
+                  have hmv : m ≤ v := hwf.minimum_le rfl hvMem
+                  by_cases hsame : x = m
+                  · subst x
+                    have hset : Insert.insert m
+                        (VEBTreeMM.node (some m) (some v) summary clusters).toFinset =
+                        (VEBTreeMM.node (some m) (some v) summary clusters).toFinset :=
+                      Finset.insert_eq_self.mpr hmMem
+                    constructor
+                    · simpa [insert] using hwf
+                    · simpa [insert, hset]
+                  · by_cases hxm : x < m
+                    · have hvx : ¬ v < x := by omega
+                      have hhigh : high (uSize k0) m < uSize k0 := by
+                        apply high_lt
+                        simpa [uSize_succ] using hmBound
+                      let hi : Fin (uSize k0) := ⟨high (uSize k0) m, hhigh⟩
+                      let lo := low (uSize k0) m
+                      have hlo : lo < uSize k0 := low_lt (uSize_pos k0)
+                      have hindex : index (uSize k0) hi.val lo = m := by
+                        simpa [hi, lo] using
+                          (index_high_low (m := uSize k0) (x := m))
+                      cases hcmin : (clusters hi).minimum with
+                      | none =>
+                          have holdEmpty : (clusters hi).toFinset = ∅ :=
+                            (hwf.node_cluster hi).minimum_none_iff.mp hcmin
+                          let cluster' := singleton k0 lo hlo
+                          let newClusters := Function.update clusters hi cluster'
+                          let summary' := insert hi.val summary
+                          have hclusterWf : WellFormed cluster' := by
+                            exact singleton_wellFormed k0 lo hlo
+                          have hclusterSet : cluster'.toFinset =
+                              Insert.insert lo (clusters hi).toFinset := by
+                            rw [holdEmpty]
+                            simpa [cluster'] using singleton_toFinset k0 lo hlo
+                          have hsummaryRec := ih k0 (Nat.lt_succ_self k0)
+                            summary hi.val hwf.node_summary hi.isLt
+                          have hsummaryWf : WellFormed summary' := by
+                            simpa [summary'] using hsummaryRec.1
+                          have hsummarySet : summary'.toFinset =
+                              Insert.insert hi.val summary.toFinset := by
+                            simpa [summary'] using hsummaryRec.2
+                          have hnewNonempty : cluster'.toFinset.Nonempty := by
+                            rw [hclusterSet]
+                            exact ⟨lo, Finset.mem_insert_self lo _⟩
+                          have hsummaryExact : ∀ j : Fin (uSize k0),
+                              j.val ∈ summary'.toFinset ↔
+                                (newClusters j).toFinset.Nonempty := by
+                            exact summary_mem_iff_update_insert_empty
+                              (fun j => hwf.node_summary_mem_iff j)
+                              hsummarySet holdEmpty hnewNonempty
+                          have hall : ∀ j, WellFormed (newClusters j) :=
+                            update_clusters_wellFormed
+                              (fun j => hwf.node_cluster j) hclusterWf
+                          have hsem :
+                              (VEBTreeMM.node (some x) (some v) summary'
+                                newClusters).toFinset =
+                              Insert.insert x
+                                (VEBTreeMM.node (some m) (some v) summary
+                                  clusters).toFinset := by
+                            calc
+                              _ = Insert.insert m
+                                  (VEBTreeMM.node (some x) (some v) summary'
+                                    clusters).toFinset := by
+                                simpa [newClusters, hindex] using
+                                  (toFinset_update_cluster_insert
+                                    (some x) (some v) summary' clusters hi cluster' lo
+                                    hclusterSet)
+                              _ = Insert.insert x
+                                  (VEBTreeMM.node (some m) (some v) summary'
+                                    clusters).toFinset :=
+                                toFinset_swap_min_insert x m (some v) summary'
+                                  clusters hx hmBound
+                              _ = Insert.insert x
+                                  (VEBTreeMM.node (some m) (some v) summary
+                                    clusters).toFinset := by rfl
+                          have hdetached : ∀ m', (some x : Option Nat) = some m' →
+                              ∀ (j : Fin (uSize k0)) (off : Nat),
+                                off ∈ (newClusters j).toFinset →
+                                  index (uSize k0) j.val off ≠ m' := by
+                            simpa [newClusters] using
+                              (node_min_detached_update_insert_of_lt hwf
+                                hclusterSet hindex hxm)
+                          have hresult : WellFormed
+                              (VEBTreeMM.node (some x) (some v) summary'
+                                newClusters) := by
+                            refine ⟨?_, ?_, hdetached, hsummaryExact,
+                              hsummaryWf, hall⟩
+                            · rw [hsem]
+                              exact MinCorrect.insert_of_lt hwf.minCorrect hxm
+                            · rw [hsem]
+                              exact MaxCorrect.insert_of_not_gt hwf.maxCorrect hvx
+                          constructor
+                          · simpa [insert, hsame, hxm, hvx, hhigh, hi, lo,
+                              cluster', newClusters, summary', hcmin] using hresult
+                          · simpa [insert, hsame, hxm, hvx, hhigh, hi, lo,
+                              cluster', newClusters, summary', hcmin] using hsem
+                      | some cmin =>
+                          have holdNonempty : (clusters hi).toFinset.Nonempty :=
+                            ⟨cmin, (hwf.node_cluster hi).minimum_mem hcmin⟩
+                          let cluster' := insert lo (clusters hi)
+                          let newClusters := Function.update clusters hi cluster'
+                          have hclusterRec := ih k0 (Nat.lt_succ_self k0)
+                            (clusters hi) lo (hwf.node_cluster hi) hlo
+                          have hclusterWf : WellFormed cluster' := by
+                            simpa [cluster'] using hclusterRec.1
+                          have hclusterSet : cluster'.toFinset =
+                              Insert.insert lo (clusters hi).toFinset := by
+                            simpa [cluster'] using hclusterRec.2
+                          have hnewNonempty : cluster'.toFinset.Nonempty :=
+                            ⟨lo, by rw [hclusterSet]; exact Finset.mem_insert_self lo _⟩
+                          have hsummaryExact : ∀ j : Fin (uSize k0),
+                              j.val ∈ summary.toFinset ↔
+                                (newClusters j).toFinset.Nonempty :=
+                            summary_mem_iff_update_nonempty
+                              (fun j => hwf.node_summary_mem_iff j)
+                              holdNonempty hnewNonempty
+                          have hall : ∀ j, WellFormed (newClusters j) :=
+                            update_clusters_wellFormed
+                              (fun j => hwf.node_cluster j) hclusterWf
+                          have hsem :
+                              (VEBTreeMM.node (some x) (some v) summary
+                                newClusters).toFinset =
+                              Insert.insert x
+                                (VEBTreeMM.node (some m) (some v) summary
+                                  clusters).toFinset := by
+                            calc
+                              _ = Insert.insert m
+                                  (VEBTreeMM.node (some x) (some v) summary
+                                    clusters).toFinset := by
+                                simpa [newClusters, hindex] using
+                                  (toFinset_update_cluster_insert
+                                    (some x) (some v) summary clusters hi cluster' lo
+                                    hclusterSet)
+                              _ = Insert.insert x
+                                  (VEBTreeMM.node (some m) (some v) summary
+                                    clusters).toFinset :=
+                                toFinset_swap_min_insert x m (some v) summary
+                                  clusters hx hmBound
+                          have hdetached : ∀ m', (some x : Option Nat) = some m' →
+                              ∀ (j : Fin (uSize k0)) (off : Nat),
+                                off ∈ (newClusters j).toFinset →
+                                  index (uSize k0) j.val off ≠ m' := by
+                            simpa [newClusters] using
+                              (node_min_detached_update_insert_of_lt hwf
+                                hclusterSet hindex hxm)
+                          have hresult : WellFormed
+                              (VEBTreeMM.node (some x) (some v) summary
+                                newClusters) := by
+                            refine ⟨?_, ?_, hdetached, hsummaryExact,
+                              hwf.node_summary, hall⟩
+                            · rw [hsem]
+                              exact MinCorrect.insert_of_lt hwf.minCorrect hxm
+                            · rw [hsem]
+                              exact MaxCorrect.insert_of_not_gt hwf.maxCorrect hvx
+                          constructor
+                          · simpa [insert, hsame, hxm, hvx, hhigh, hi, lo,
+                              cluster', newClusters, hcmin] using hresult
+                          · simpa [insert, hsame, hxm, hvx, hhigh, hi, lo,
+                              cluster', newClusters, hcmin] using hsem
+                    · have hmx : m < x := by omega
+                      have hhigh : high (uSize k0) x < uSize k0 := by
+                        apply high_lt
+                        simpa [uSize_succ] using hx
+                      let hi : Fin (uSize k0) := ⟨high (uSize k0) x, hhigh⟩
+                      let lo := low (uSize k0) x
+                      have hlo : lo < uSize k0 := low_lt (uSize_pos k0)
+                      have hindex : index (uSize k0) hi.val lo = x := by
+                        simpa [hi, lo] using
+                          (index_high_low (m := uSize k0) (x := x))
+                      let newMx : Option Nat := if v < x then some x else some v
+                      have hmaxInsert : MaxCorrect newMx
+                          (Insert.insert x
+                            (VEBTreeMM.node (some m) (some v) summary
+                              clusters).toFinset) := by
+                        dsimp [newMx]
+                        split
+                        · next hvx =>
+                            exact MaxCorrect.insert_of_gt hwf.maxCorrect hvx
+                        · next hvx =>
+                            exact MaxCorrect.insert_of_not_gt hwf.maxCorrect hvx
+                      cases hcmin : (clusters hi).minimum with
+                      | none =>
+                          have holdEmpty : (clusters hi).toFinset = ∅ :=
+                            (hwf.node_cluster hi).minimum_none_iff.mp hcmin
+                          let cluster' := singleton k0 lo hlo
+                          let newClusters := Function.update clusters hi cluster'
+                          let summary' := insert hi.val summary
+                          have hclusterWf : WellFormed cluster' :=
+                            singleton_wellFormed k0 lo hlo
+                          have hclusterSet : cluster'.toFinset =
+                              Insert.insert lo (clusters hi).toFinset := by
+                            rw [holdEmpty]
+                            simpa [cluster'] using singleton_toFinset k0 lo hlo
+                          have hsummaryRec := ih k0 (Nat.lt_succ_self k0)
+                            summary hi.val hwf.node_summary hi.isLt
+                          have hsummaryWf : WellFormed summary' := by
+                            simpa [summary'] using hsummaryRec.1
+                          have hsummarySet : summary'.toFinset =
+                              Insert.insert hi.val summary.toFinset := by
+                            simpa [summary'] using hsummaryRec.2
+                          have hnewNonempty : cluster'.toFinset.Nonempty := by
+                            rw [hclusterSet]
+                            exact ⟨lo, Finset.mem_insert_self lo _⟩
+                          have hsummaryExact : ∀ j : Fin (uSize k0),
+                              j.val ∈ summary'.toFinset ↔
+                                (newClusters j).toFinset.Nonempty :=
+                            summary_mem_iff_update_insert_empty
+                              (fun j => hwf.node_summary_mem_iff j)
+                              hsummarySet holdEmpty hnewNonempty
+                          have hall : ∀ j, WellFormed (newClusters j) :=
+                            update_clusters_wellFormed
+                              (fun j => hwf.node_cluster j) hclusterWf
+                          have hsem :
+                              (VEBTreeMM.node (some m) newMx summary'
+                                newClusters).toFinset =
+                              Insert.insert x
+                                (VEBTreeMM.node (some m) (some v) summary
+                                  clusters).toFinset := by
+                            simpa [newClusters, hindex, toFinset] using
+                              (toFinset_update_cluster_insert
+                                (some m) newMx summary' clusters hi cluster' lo
+                                hclusterSet)
+                          have hdetached : ∀ m', (some m : Option Nat) = some m' →
+                              ∀ (j : Fin (uSize k0)) (off : Nat),
+                                off ∈ (newClusters j).toFinset →
+                                  index (uSize k0) j.val off ≠ m' := by
+                            simpa [newClusters] using
+                              (node_min_detached_update_insert hwf.node_min_detached
+                                hclusterSet (by
+                                  intro m' hm'
+                                  have hmm' : m = m' := Option.some.inj hm'
+                                  subst m'
+                                  rw [hindex]
+                                  omega))
+                          have hresult : WellFormed
+                              (VEBTreeMM.node (some m) newMx summary'
+                                newClusters) := by
+                            refine ⟨?_, ?_, hdetached, hsummaryExact,
+                              hsummaryWf, hall⟩
+                            · rw [hsem]
+                              exact MinCorrect.insert_of_not_lt hwf.minCorrect hxm
+                            · rw [hsem]
+                              exact hmaxInsert
+                          constructor
+                          · simpa [insert, hsame, hxm, hhigh, hi, lo, newMx,
+                              cluster', newClusters, summary', hcmin] using hresult
+                          · simpa [insert, hsame, hxm, hhigh, hi, lo, newMx,
+                              cluster', newClusters, summary', hcmin] using hsem
+                      | some cmin =>
+                          have holdNonempty : (clusters hi).toFinset.Nonempty :=
+                            ⟨cmin, (hwf.node_cluster hi).minimum_mem hcmin⟩
+                          let cluster' := insert lo (clusters hi)
+                          let newClusters := Function.update clusters hi cluster'
+                          have hclusterRec := ih k0 (Nat.lt_succ_self k0)
+                            (clusters hi) lo (hwf.node_cluster hi) hlo
+                          have hclusterWf : WellFormed cluster' := by
+                            simpa [cluster'] using hclusterRec.1
+                          have hclusterSet : cluster'.toFinset =
+                              Insert.insert lo (clusters hi).toFinset := by
+                            simpa [cluster'] using hclusterRec.2
+                          have hnewNonempty : cluster'.toFinset.Nonempty :=
+                            ⟨lo, by rw [hclusterSet]; exact Finset.mem_insert_self lo _⟩
+                          have hsummaryExact : ∀ j : Fin (uSize k0),
+                              j.val ∈ summary.toFinset ↔
+                                (newClusters j).toFinset.Nonempty :=
+                            summary_mem_iff_update_nonempty
+                              (fun j => hwf.node_summary_mem_iff j)
+                              holdNonempty hnewNonempty
+                          have hall : ∀ j, WellFormed (newClusters j) :=
+                            update_clusters_wellFormed
+                              (fun j => hwf.node_cluster j) hclusterWf
+                          have hsem :
+                              (VEBTreeMM.node (some m) newMx summary
+                                newClusters).toFinset =
+                              Insert.insert x
+                                (VEBTreeMM.node (some m) (some v) summary
+                                  clusters).toFinset := by
+                            simpa [newClusters, hindex, toFinset] using
+                              (toFinset_update_cluster_insert
+                                (some m) newMx summary clusters hi cluster' lo
+                                hclusterSet)
+                          have hdetached : ∀ m', (some m : Option Nat) = some m' →
+                              ∀ (j : Fin (uSize k0)) (off : Nat),
+                                off ∈ (newClusters j).toFinset →
+                                  index (uSize k0) j.val off ≠ m' := by
+                            simpa [newClusters] using
+                              (node_min_detached_update_insert hwf.node_min_detached
+                                hclusterSet (by
+                                  intro m' hm'
+                                  have hmm' : m = m' := Option.some.inj hm'
+                                  subst m'
+                                  rw [hindex]
+                                  omega))
+                          have hresult : WellFormed
+                              (VEBTreeMM.node (some m) newMx summary
+                                newClusters) := by
+                            refine ⟨?_, ?_, hdetached, hsummaryExact,
+                              hwf.node_summary, hall⟩
+                            · rw [hsem]
+                              exact MinCorrect.insert_of_not_lt hwf.minCorrect hxm
+                            · rw [hsem]
+                              exact hmaxInsert
+                          constructor
+                          · simpa [insert, hsame, hxm, hhigh, hi, lo, newMx,
+                              cluster', newClusters, hcmin] using hresult
+                          · simpa [insert, hsame, hxm, hhigh, hi, lo, newMx,
+                              cluster', newClusters, hcmin] using hsem
+
+/-- Recursive insertion preserves the min/max-augmented vEB invariant. -/
+theorem insert_wellFormed {k : Nat} (v : VEBTreeMM k) (x : Nat)
+    (hwf : WellFormed v) (hx : x < uSize k) :
+    WellFormed (insert x v) :=
+  (insert_correct v x hwf hx).1
+
+/-- Recursive insertion refines finite-set insertion. -/
+theorem insert_toFinset {k : Nat} (v : VEBTreeMM k) (x : Nat)
+    (hwf : WellFormed v) (hx : x < uSize k) :
+    (insert x v).toFinset = Insert.insert x v.toFinset :=
+  (insert_correct v x hwf hx).2
+
+/-- Membership after recursive insertion is exactly new-or-old membership. -/
+theorem member_insert_iff {k : Nat} (v : VEBTreeMM k) (x y : Nat)
+    (hwf : WellFormed v) (hx : x < uSize k) :
+    member y (insert x v) = true ↔ y = x ∨ member y v = true := by
+  rw [member_correct (insert x v) y, insert_toFinset v x hwf hx,
+    Finset.mem_insert, ← member_correct v y]
+
+/-- A bounded inserted key is represented after recursive insertion. -/
+theorem member_insert_self {k : Nat} (v : VEBTreeMM k) (x : Nat)
+    (hwf : WellFormed v) (hx : x < uSize k) :
+    member x (insert x v) = true :=
+  (member_insert_iff v x x hwf hx).2 (Or.inl rfl)
+
+/-- Every old member remains represented after recursive insertion. -/
+theorem member_insert_old {k : Nat} (v : VEBTreeMM k) (x y : Nat)
+    (hwf : WellFormed v) (hx : x < uSize k)
+    (hy : member y v = true) :
+    member y (insert x v) = true :=
+  (member_insert_iff v x y hwf hx).2 (Or.inr hy)
 
 
 /-- **Recursive vEB deletion correctness.**  Deletion preserves the CLRS
@@ -2016,6 +2645,27 @@ theorem delete_wellFormed {k : Nat} (v : VEBTreeMM k) (x : Nat)
 theorem delete_toFinset {k : Nat} (v : VEBTreeMM k) (x : Nat)
     (hwf : WellFormed v) : (delete x v).toFinset = v.toFinset.erase x :=
   (delete_correct v x hwf).2
+
+/-- Membership after deletion is exactly old membership away from the erased key. -/
+theorem delete_member_iff {k : Nat} (v : VEBTreeMM k) (x y : Nat)
+    (hwf : WellFormed v) :
+    member y (delete x v) = true ↔ y ≠ x ∧ member y v = true := by
+  rw [member_correct (delete x v) y, delete_toFinset v x hwf,
+    Finset.mem_erase, ← member_correct v y]
+
+/-- The erased key is absent after recursive deletion. -/
+theorem delete_member_deleted_false {k : Nat} (v : VEBTreeMM k) (x : Nat)
+    (hwf : WellFormed v) :
+    member x (delete x v) = false := by
+  apply Bool.eq_false_iff.mpr
+  intro hmem
+  exact (delete_member_iff v x x hwf).1 hmem |>.1 rfl
+
+/-- Deletion preserves every old member different from the erased key. -/
+theorem delete_member_of_ne {k : Nat} (v : VEBTreeMM k) (x y : Nat)
+    (hwf : WellFormed v) (hyx : y ≠ x) (hy : member y v = true) :
+    member y (delete x v) = true :=
+  (delete_member_iff v x y hwf).2 ⟨hyx, hy⟩
 
 end VEBTreeMM
 end Chapter20
