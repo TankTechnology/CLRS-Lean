@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECK_SCRIPTS = [
     "scripts/check_progress_csv.py",
     "scripts/check_site_consistency.py",
+    "scripts/test_check_repository.py",
     "scripts/test_literate_config.py",
     "scripts/test_literate_navigation.py",
     "scripts/test_optimize_literate_html.py",
@@ -109,6 +110,35 @@ def check_lean_placeholders() -> None:
     print("Lean placeholder policy OK")
 
 
+def strip_markdown_fenced_code(text: str) -> str:
+    """Blank fenced code blocks while preserving line numbers and offsets."""
+    output: list[str] = []
+    fence_char: str | None = None
+    fence_length = 0
+
+    for line in text.splitlines(keepends=True):
+        marker = re.match(r"^[ \t]{0,3}(`{3,}|~{3,})", line)
+        if fence_char is None:
+            if marker is not None:
+                fence_char = marker.group(1)[0]
+                fence_length = len(marker.group(1))
+                output.append("\n" if line.endswith("\n") else "")
+            else:
+                output.append(line)
+            continue
+
+        closing = re.match(
+            rf"^[ \t]{{0,3}}{re.escape(fence_char)}{{{fence_length},}}[ \t]*(?:\n)?$",
+            line,
+        )
+        if closing is not None:
+            fence_char = None
+            fence_length = 0
+        output.append("\n" if line.endswith("\n") else "")
+
+    return "".join(output)
+
+
 def check_markdown_links() -> None:
     print("==> Markdown local links", flush=True)
     link_pattern = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
@@ -117,7 +147,8 @@ def check_markdown_links() -> None:
 
     for path in markdown_files:
         text = path.read_text(encoding="utf-8")
-        for match in link_pattern.finditer(text):
+        link_text = strip_markdown_fenced_code(text)
+        for match in link_pattern.finditer(link_text):
             target = match.group(1).strip()
             if target.startswith(("http://", "https://", "mailto:", "#")):
                 continue
