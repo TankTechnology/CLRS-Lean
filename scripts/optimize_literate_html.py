@@ -14,10 +14,18 @@ import argparse
 import html
 import os
 import re
+import sys
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Iterable, TextIO
+
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.literate_navigation import prune_reader_sidebar
 
 
 VOID_ELEMENTS = {
@@ -60,8 +68,8 @@ NAV_STATE_SCRIPT_RE = re.compile(
 NAV_STATE_SCRIPT = r"""
 <script id="clrs-nav-state-script">
 (() => {
-  const STATE_KEY = "clrs.nav.state.v6";
-  const SCROLL_KEY = "clrs.nav.scroll.v6";
+  const STATE_KEY = "clrs.nav.state.v7";
+  const SCROLL_KEY = "clrs.nav.scroll.v7";
 
   function storageArea() {
     try {
@@ -100,8 +108,7 @@ NAV_STATE_SCRIPT = r"""
     }
   }
 
-  function stableNavPath(link) {
-    const raw = link?.getAttribute("href");
+  function stablePath(raw) {
     if (!raw) return "";
     try {
       const path = new URL(raw, document.baseURI).pathname
@@ -112,6 +119,10 @@ NAV_STATE_SCRIPT = r"""
     } catch (_err) {
       return raw;
     }
+  }
+
+  function stableNavPath(link) {
+    return stablePath(link?.getAttribute("href"));
   }
 
   function navKey(details, index) {
@@ -156,7 +167,27 @@ NAV_STATE_SCRIPT = r"""
       }
     });
 
-    const current = nav.querySelector(".current");
+    let current = nav.querySelector(".current");
+    if (!current) {
+      const pagePath = stablePath(window.location.href);
+      let bestParent = null;
+      let bestLength = -1;
+      for (const link of nav.querySelectorAll("a[title]")) {
+        const candidate = stableNavPath(link);
+        if (
+          candidate &&
+          (pagePath === candidate || pagePath.startsWith(`${candidate}/`)) &&
+          candidate.length > bestLength
+        ) {
+          bestParent = link.closest("summary, .leaf");
+          bestLength = candidate.length;
+        }
+      }
+      if (bestParent) {
+        bestParent.classList.add("current");
+        current = bestParent;
+      }
+    }
     let parent = current?.closest("details");
     while (parent) {
       parent.open = true;
@@ -243,6 +274,8 @@ class PageStats:
     injected_nav_scripts: int
     injected_verification_meta: int
     opened_nav_details: int
+    removed_nav_modules: int
+    flattened_nav_details: int
 
     @property
     def changed(self) -> bool:
@@ -258,6 +291,8 @@ class PageStats:
             or self.injected_nav_scripts > 0
             or self.injected_verification_meta > 0
             or self.opened_nav_details > 0
+            or self.removed_nav_modules > 0
+            or self.flattened_nav_details > 0
         )
 
 
@@ -503,9 +538,16 @@ def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
             tmp.write_text(text, encoding="utf-8", newline="")
 
     text = tmp.read_text(encoding="utf-8", errors="replace")
+    sidebar = prune_reader_sidebar(text)
+    text = sidebar.html
     text, injected_nav_scripts = inject_nav_state_script(text)
     text, injected_verification_meta = inject_google_site_verification(text)
-    if injected_nav_scripts or injected_verification_meta:
+    if (
+        sidebar.removed_modules
+        or sidebar.flattened_modules
+        or injected_nav_scripts
+        or injected_verification_meta
+    ):
         tmp.write_text(text, encoding="utf-8", newline="")
 
     after = tmp.stat().st_size
@@ -523,6 +565,8 @@ def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
         injected_nav_scripts=injected_nav_scripts,
         injected_verification_meta=injected_verification_meta,
         opened_nav_details=parser.opened_nav_details,
+        removed_nav_modules=len(sidebar.removed_modules),
+        flattened_nav_details=len(sidebar.flattened_modules),
     )
 
     if stats.changed:
@@ -581,7 +625,9 @@ def main() -> int:
                 f"inline hover scripts: {stats.removed_inline_hover_scripts}, "
                 f"nav scripts: {stats.injected_nav_scripts}, "
                 f"verification meta: {stats.injected_verification_meta}, "
-                f"opened nav details: {stats.opened_nav_details})"
+                f"opened nav details: {stats.opened_nav_details}, "
+                f"removed nav modules: {stats.removed_nav_modules}, "
+                f"flattened nav details: {stats.flattened_nav_details})"
             )
 
     print(

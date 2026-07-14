@@ -84,14 +84,16 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
         self.assertIn("localStorage", text)
         self.assertIn("sessionStorage", text)
         self.assertIn("details.open = true", text)
-        self.assertIn("clrs.nav.state.v6", text)
-        self.assertIn("clrs.nav.scroll.v6", text)
-        self.assertNotIn("clrs.nav.state.v5", text)
-        self.assertNotIn("clrs.nav.scroll.v5", text)
+        self.assertIn("clrs.nav.state.v7", text)
+        self.assertIn("clrs.nav.scroll.v7", text)
+        self.assertNotIn("clrs.nav.state.v6", text)
+        self.assertNotIn("clrs.nav.scroll.v6", text)
         self.assertIn("stableNavPath", text)
         self.assertIn("new URL(raw, document.baseURI)", text)
         self.assertIn("CLRS-Lean", text)
         self.assertIn('replace(/^.*\\/CLRSLean\\//, "/CLRS-Lean/")', text)
+        self.assertIn("window.location.href", text)
+        self.assertIn("bestParent", text)
         self.assertIn("saveStateNow();", text)
         self.assertIn('window.addEventListener("pagehide"', text)
 
@@ -140,6 +142,8 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
 
         self.assertTrue(first.changed)
         self.assertFalse(second.changed)
+        self.assertEqual(second.removed_nav_modules, 0)
+        self.assertEqual(second.flattened_nav_details, 0)
         self.assertEqual(first_text, second_text)
         self.assertEqual(second_text.count("clrs-nav-state-script"), 1)
 
@@ -165,8 +169,35 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
 
         self.assertTrue(stats.changed)
         self.assertEqual(text.count("clrs-nav-state-script"), 1)
-        self.assertIn("clrs.nav.state.v6", text)
+        self.assertIn("clrs.nav.state.v7", text)
         self.assertNotIn("clrs.nav.state.v4", text)
+
+    def test_prunes_hidden_sidebar_modules_and_flattens_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "index.html"
+            page.write_text(
+                """<!doctype html>
+<html>
+  <body>
+    <nav class="module-tree">
+      <details open><summary class="current"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/" title="CLRSLean.Chapter_22.Section_22_3_DFS">22.3</a></summary>
+        <div class="leaf"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath/" title="CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath">White Path</a></div>
+      </details>
+    </nav>
+  </body>
+</html>
+""",
+                encoding="utf-8",
+            )
+
+            stats = optimizer.optimize_file(page, strip_attrs_min_bytes=1_000_000)
+            text = page.read_text(encoding="utf-8")
+
+        self.assertNotIn("S1_WhitePath", text)
+        self.assertIn('title="CLRSLean.Chapter_22.Section_22_3_DFS"', text)
+        self.assertIn('<div class="leaf current">', text)
+        self.assertEqual(stats.removed_nav_modules, 1)
+        self.assertEqual(stats.flattened_nav_details, 1)
 
 
 if __name__ == "__main__":
