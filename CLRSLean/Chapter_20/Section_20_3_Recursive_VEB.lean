@@ -37,19 +37,25 @@ Main results:
 - Definition {lit}`VEBTreeMM.WellFormed`: the semantic invariant for cached
   extrema, detached minima, recursively well-formed clusters, and exact
   summary/nonempty-cluster correspondence.
+- Theorems {lit}`VEBTreeMM.minimum_correct` and
+  {lit}`VEBTreeMM.maximum_correct`: cached extrema implement the finite-set
+  minimum and maximum specifications in constant time.
+- Theorem {lit}`VEBTreeMM.insert_correct`: lazy-min recursive insertion
+  preserves {lit}`WellFormed` and exactly refines {lit}`Finset.insert`.
+- Theorems {lit}`VEBTreeMM.successor_spec` and
+  {lit}`VEBTreeMM.predecessor_spec`: recursive neighbor queries implement the
+  least-greater and greatest-less finite-set specifications.
 - Theorem {lit}`VEBTreeMM.delete_correct`: recursive deletion preserves
   {lit}`WellFormed` and refines {lit}`Finset.erase`, with projections
   {lit}`VEBTreeMM.delete_wellFormed` and {lit}`VEBTreeMM.delete_toFinset`.
+- Theorem {lit}`VEBTreeMM.veb_all_operations_bigO_loglog_u`: branch-faithful
+  costs for the recursive operations are {lit}`O(log log u)`; deletion counts
+  both recursive calls when an emptied cluster also updates the summary.
 
-Current gaps:
-
-- Correctness of {lit}`VEBTreeMM.successor` and
-  {lit}`VEBTreeMM.predecessor`, plus the {lit}`min` / {lit}`max`
-  double-recursion-avoidance optimisation for {lit}`insert`, remain future
-  refinement targets.
-- The current {lit}`successorCost` / {lit}`predecessorCost` /
-  {lit}`deleteCost` definitions are structural depth surrogates.  A cost model
-  that follows the algorithms' actual control flow remains to be developed.
+The recursive cached-min/max model now proves all seven vEB operations correct,
+with constant cached extrema and control-flow-aware O(log log u) bounds for the
+recursive operations. Concrete pointer/array allocation and hardware-level RAM
+timing remain a separate implementation refinement.
 -/
 
 namespace CLRS
@@ -956,7 +962,8 @@ theorem veb_operation_bigO_loglog_u :
 /-- Recursive vEB deletion (CLRS vEB-Tree-Delete) on the min/max-augmented
 structure.  The stored minimum is promoted from the first nonempty cluster when
 the deleted key is the minimum, and the maximum is repaired when the deleted key
-is the maximum.  At most one recursive cluster call is needed per level. -/
+is the maximum.  Each level makes at most one recursive cluster call and, when
+that call empties the cluster, one additional summary call. -/
 def delete : {k : Nat} → Nat → VEBTreeMM k → VEBTreeMM k
   | _, x, .leaf mn mx c0 c1 =>
     let c0' := if x = 0 then false else c0

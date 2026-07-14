@@ -2213,7 +2213,7 @@ Fibonacci logarithmic theorem.
   `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean`,
   `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean`, and
   `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean`
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorems:
   - `CLRS.Chapter20.VEB.index_high_low`
   - `CLRS.Chapter20.VEB.high_index`
@@ -2362,10 +2362,26 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEBTreeMM.MaxCorrect`
   - `CLRS.Chapter20.VEBTreeMM.WellFormed`
   - `CLRS.Chapter20.VEBTreeMM.empty_wellFormed`
+  - `CLRS.Chapter20.VEBTreeMM.minimum_correct`
+  - `CLRS.Chapter20.VEBTreeMM.maximum_correct`
+  - `CLRS.Chapter20.VEBTreeMM.insert_correct`
+  - `CLRS.Chapter20.VEBTreeMM.insert_wellFormed`
+  - `CLRS.Chapter20.VEBTreeMM.insert_toFinset`
+  - `CLRS.Chapter20.VEBTreeMM.successor_spec`
+  - `CLRS.Chapter20.VEBTreeMM.successor_correct`
+  - `CLRS.Chapter20.VEBTreeMM.predecessor_spec`
+  - `CLRS.Chapter20.VEBTreeMM.predecessor_correct`
   - `CLRS.Chapter20.VEBTreeMM.delete_correct` (invariant preservation and
     finite-set erasure refinement)
   - `CLRS.Chapter20.VEBTreeMM.delete_wellFormed`
   - `CLRS.Chapter20.VEBTreeMM.delete_toFinset`
+  - `CLRS.Chapter20.VEBTreeMM.memberCost_le`
+  - `CLRS.Chapter20.VEBTreeMM.insertCost_le`
+  - `CLRS.Chapter20.VEBTreeMM.successorCost_le`
+  - `CLRS.Chapter20.VEBTreeMM.predecessorCost_le`
+  - `CLRS.Chapter20.VEBTreeMM.deleteCost_le`
+  - `CLRS.Chapter20.VEBTreeMM.deleteDepth_le`
+  - `CLRS.Chapter20.VEBTreeMM.veb_all_operations_bigO_loglog_u`
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,
   extrema/successor via `Finset.min'`/`max'`, successful-query universe-bound
@@ -2382,54 +2398,18 @@ Fibonacci logarithmic theorem.
   membership/order wrappers, update-query
   universe-bound corollaries, and definition unfolding for
   first-pass operation-depth recurrence and monotonicity facts
-- Current gap: recursive `successor` / `predecessor` correctness on the
-  summary/cluster structure and the `min` / `max` double-recursion-avoidance
-  optimisation that makes `insert` itself run in `O(log log u)` remain
-  strengthening targets.  Section 20.3 now provides the recursive
-  summary/cluster `VEBTree` over the tower universe `uSize k = 2 ^ (2 ^ k)`,
-  with `member` and `insert` refined against the finite-set specification and
-  the operation-count recurrence `T(u) = T(√u) + 1` solved to a
-  `log₂ (log₂ u) + 1` depth bound and an `O(log log u)` big-O packaging via the
-  Chapter 3 wrapper.  The min/max-augmented `VEBTreeMM` structure adds stored
-  `minimum`/`maximum` fields and a structural `WellFormed` invariant.  Recursive
-  deletion now preserves that invariant and exactly refines `Finset.erase`.
-  The current successor/predecessor/delete cost definitions are structural
-  depth surrogates; control-flow-faithful operation counts remain future work.
-- Added theorems (VEBTreeMM):
-  - `CLRS.Chapter20.VEBTreeMM.delete` (recursive vEB-Tree-Delete)
-  - `CLRS.Chapter20.VEBTreeMM.deleteCost` (per-level cost)
-  - `CLRS.Chapter20.VEBTreeMM.deleteCost_le` (depth ≤ k+1)
-  - `CLRS.Chapter20.VEBTreeMM.successorCost` (per-level cost)
-  - `CLRS.Chapter20.VEBTreeMM.successorCost_le` (depth ≤ k+1)
-  - `CLRS.Chapter20.VEBTreeMM.predecessorCost` (per-level cost)
-  - `CLRS.Chapter20.VEBTreeMM.predecessorCost_le` (depth ≤ k+1)
-  - `CLRS.Chapter20.VEBTreeMM.WellFormed` (recursive representation invariant)
-  - `CLRS.Chapter20.VEBTreeMM.empty_wellFormed`
-  - `CLRS.Chapter20.VEBTreeMM.delete_correct` (preservation plus erase refinement)
-  - `CLRS.Chapter20.VEBTreeMM.delete_wellFormed`
-  - `CLRS.Chapter20.VEBTreeMM.delete_toFinset`
+- Completion boundary: The recursive cached-min/max model now proves all seven
+  vEB operations correct, with constant cached extrema and control-flow-aware
+  O(log log u) bounds for the recursive operations. Concrete pointer/array
+  allocation and hardware-level RAM timing remain a separate implementation
+  refinement.
 
-Chapter 20 now proves the high/low/index arithmetic, including both directions
-of bounded high/low recomposition, and a set-specification layer for the main
-vEB queries and updates.  This includes both positive and empty-result
-extrema/successor/predecessor cases plus successful-query universe-bound
-corollaries, direct extrema membership/lower- and upper-bound wrappers,
-direct insertion-query old-key membership wrappers,
-direct base/insert/delete neighbor membership/order wrappers,
-membership-after-update, direct extrema-after-update membership/order wrappers,
-direct updated-key and old-key member-preservation corollaries, exact failed
-member-query corollaries, direct failed member-query preservation wrappers,
-positive and empty-result extrema-after-update, and both positive and
-no-neighbor specifications for neighbor queries after updates, plus direct
-no-neighbor query wrappers, premise-light no-neighbor wrappers over old
-represented sets, direct extrema empty-result wrappers, direct base
-extrema/neighbor nonempty-result wrappers, direct updated-neighbor
-nonempty-result wrappers, direct deletion-extrema nonempty-result wrappers,
-and direct universe-bound
-corollaries for successful queries after updates.  The
-current operation-depth facts expose the base case, successor step, and a
-linear/monotone wrapper over the universe exponent, not yet a full asymptotic
-translation for the original universe size.
+The recursive result combines a tower-universe summary/cluster representation,
+detached-minimum and exact summary invariants, finite-set refinement for insert
+and delete, strong least-greater/greatest-less specifications for neighbor
+queries, and operation costs that follow the executable branch structure.
+Deletion records work and depth separately: work counts the conditional second
+summary call, while recursive depth remains at most `k + 1`.
 
 ## Chapter 21 - Data Structures for Disjoint Sets
 

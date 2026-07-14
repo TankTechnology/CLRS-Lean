@@ -1,6 +1,6 @@
 # Chapter 20 - van Emde Boas Trees
 
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Lean entry: `CLRSLean/Chapter_20.lean`
 - Interface test: `Tests/Chapter_20_Interface.lean`
 
@@ -139,22 +139,29 @@
 
 ## Remaining Work
 
-The current chapter proves side-length universe arithmetic, including bounded
-high/low recomposition facts, and finite-set operation specifications.
-It also records direct member-query corollaries for inserted/deleted keys,
-old-key preservation, and exact failed member queries after updates,
-direct failed member-query preservation wrappers, successful-query
-universe-bound corollaries, direct extrema membership/lower- and upper-bound
-wrappers, direct extrema-after-update membership/order wrappers, direct
-base/insert/delete neighbor membership/order wrappers, positive and
-empty-result extrema-after-update
-specs, positive and no-neighbor update-query specs, update-query
-universe-bound corollaries, direct no-neighbor query wrappers, premise-light
-no-neighbor wrappers over old represented sets, direct extrema empty-result
-wrappers, direct base extrema/neighbor nonempty-result wrappers, direct
-updated-neighbor nonempty-result wrappers, direct deletion-extrema
-nonempty-result wrappers, plus the
-first-pass operation-depth base, step, linear, and
-monotonicity facts.
-Recursive summary/cluster state, word-RAM base cases, and a full `O(log log u)`
-asymptotic bridge are still open.
+The recursive cached-min/max model now proves all seven vEB operations correct,
+with constant cached extrema and control-flow-aware O(log log u) bounds for the
+recursive operations. Concrete pointer/array allocation and hardware-level RAM
+timing remain a separate implementation refinement.
+
+## Recursive Completion Surface
+
+- `CLRS.Chapter20.VEBTreeMM.minimum_correct`
+- `CLRS.Chapter20.VEBTreeMM.maximum_correct`
+- `CLRS.Chapter20.VEBTreeMM.insert_correct`
+- `CLRS.Chapter20.VEBTreeMM.insert_wellFormed`
+- `CLRS.Chapter20.VEBTreeMM.insert_toFinset`
+- `CLRS.Chapter20.VEBTreeMM.successor_spec`
+- `CLRS.Chapter20.VEBTreeMM.successor_correct`
+- `CLRS.Chapter20.VEBTreeMM.predecessor_spec`
+- `CLRS.Chapter20.VEBTreeMM.predecessor_correct`
+- `CLRS.Chapter20.VEBTreeMM.delete_correct`
+- `CLRS.Chapter20.VEBTreeMM.delete_wellFormed`
+- `CLRS.Chapter20.VEBTreeMM.delete_toFinset`
+- `CLRS.Chapter20.VEBTreeMM.memberCost_le`
+- `CLRS.Chapter20.VEBTreeMM.insertCost_le`
+- `CLRS.Chapter20.VEBTreeMM.successorCost_le`
+- `CLRS.Chapter20.VEBTreeMM.predecessorCost_le`
+- `CLRS.Chapter20.VEBTreeMM.deleteCost_le`
+- `CLRS.Chapter20.VEBTreeMM.deleteDepth_le`
+- `CLRS.Chapter20.VEBTreeMM.veb_all_operations_bigO_loglog_u`

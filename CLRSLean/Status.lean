@@ -59,10 +59,14 @@ the detailed maintainer ledger.
   reconstruction results.  Rod cutting additionally has a mutable-array bottom-up
   table proved to refine the pure recurrence value.  Mutable-array/memoized
   refinement for the remaining DP sections and explicit RAM costs remain.
-* **Chapters 17-20:** amortized analysis, B-trees, Fibonacci heaps, and van Emde
-  Boas trees have substantial mathematical or size-level specifications.
-  Pointer/page/cluster representations and sharper asymptotic implementation
-  theorems remain.
+* **Chapters 17-19:** amortized analysis, B-trees, and Fibonacci heaps have
+  substantial mathematical or size-level specifications.  Pointer/page
+  representations and sharper implementation theorems remain.
+* **Chapter 20:** the recursive cached-min/max van Emde Boas model proves all
+  seven operations correct, with constant cached extrema and control-flow-aware
+  `O(log log u)` bounds for the recursive operations.  Concrete pointer/array
+  allocation and hardware-level RAM timing remain a separate implementation
+  refinement.
 * **Chapter 23:** mathematical MST correctness is sealed.  Canonical tree
   paths generate exchange edges automatically, sorted exact-component Kruskal
   has an end-to-end optimum wrapper, and complete Prim light-edge traces return
