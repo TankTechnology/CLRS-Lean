@@ -139,10 +139,14 @@ remaining declarations are projections rather than independent proofs.
 
 ## Control-flow-aware cost semantics
 
-Each operation receives an instrumented evaluator whose first projection is
-the existing result and whose second projection is the recursive cost:
+Each operation receives either an instrumented evaluator whose first projection
+is the existing result and whose second projection is the recursive cost, or a
+constant-cost witness for the cached extrema:
 
 ```lean
+memberWithCost      : Nat → VEBTreeMM k → Bool × Nat
+minimumWithCost     : VEBTreeMM k → Option Nat × Nat
+maximumWithCost     : VEBTreeMM k → Option Nat × Nat
 insertWithCost      : Nat → VEBTreeMM k → VEBTreeMM k × Nat
 successorWithCost   : Nat → VEBTreeMM k → Option Nat × Nat
 predecessorWithCost : Nat → VEBTreeMM k → Option Nat × Nat
@@ -158,9 +162,10 @@ The corresponding result theorems prevent the instrumentation from drifting:
 (deleteWithCost x v).1 = delete x v
 ```
 
-`insertWithCost`, `successorWithCost`, and `predecessorWithCost` charge one
-unit for the current universe level and follow exactly one recursive branch.
-Their costs are bounded by `k + 1`.
+`minimumWithCost` and `maximumWithCost` read their cached fields and have cost
+one.  `memberWithCost`, `insertWithCost`, `successorWithCost`, and
+`predecessorWithCost` charge one unit for the current universe level and follow
+exactly one recursive branch.  Their costs are bounded by `k + 1`.
 
 Deletion requires an explicit CLRS accounting lemma.  If deletion from a
 nonempty cluster makes that cluster empty, exact `Finset.erase` refinement
@@ -174,10 +179,11 @@ entry is exposed, it may use a constant-factor linear bound; the public
 asymptotic result must not pretend that two constant local tests are one machine
 instruction.
 
-For every operation, the final theorem composes the linear tower-level bound
-with `VEBTree.loglog_uSize` and the Chapter 3 `isBigO` wrapper.  The headline
-chapter theorem states that all seven recursive operations have constant or
-`O(log log u)` cost as appropriate.
+For every nonconstant operation, the final theorem composes the linear
+tower-level bound with `VEBTree.loglog_uSize` and the Chapter 3 `isBigO`
+wrapper.  Cached minimum and maximum receive direct constant-cost theorems.
+The headline chapter theorem states that all seven recursive operations have
+constant or `O(log log u)` cost as appropriate.
 
 ## File and interface strategy
 
@@ -212,8 +218,9 @@ site consistency check.
 3. Add successor strong-spec and wrapper names to the interface, observe the
    failures, then prove the successor family.
 4. Repeat the red-green cycle for predecessor.
-5. Add the four instrumented evaluators, result equalities, linear bounds, and
-   asymptotic theorem names to the interface before implementing them.
+5. Add all seven cost/result interfaces, including cached-extrema constant
+   costs, member depth, four instrumented complex operations, linear bounds,
+   and asymptotic theorem names to the interface before implementing them.
 6. Synchronize reader-facing status only after all headline theorems compile.
 
 No finite-set rebuild may replace the recursive algorithms.  Finsets remain
