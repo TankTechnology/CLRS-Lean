@@ -2358,6 +2358,14 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEBTree.loglog_uSize`
   - `CLRS.Chapter20.VEBTree.depth_loglog_u`
   - `CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u` (`O(log log u)`)
+  - `CLRS.Chapter20.VEBTreeMM.MinCorrect`
+  - `CLRS.Chapter20.VEBTreeMM.MaxCorrect`
+  - `CLRS.Chapter20.VEBTreeMM.WellFormed`
+  - `CLRS.Chapter20.VEBTreeMM.empty_wellFormed`
+  - `CLRS.Chapter20.VEBTreeMM.delete_correct` (invariant preservation and
+    finite-set erasure refinement)
+  - `CLRS.Chapter20.VEBTreeMM.delete_wellFormed`
+  - `CLRS.Chapter20.VEBTreeMM.delete_toFinset`
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,
   extrema/successor via `Finset.min'`/`max'`, successful-query universe-bound
@@ -2374,7 +2382,7 @@ Fibonacci logarithmic theorem.
   membership/order wrappers, update-query
   universe-bound corollaries, and definition unfolding for
   first-pass operation-depth recurrence and monotonicity facts
-- Current gap: recursive `successor` / `predecessor` / `delete` on the
+- Current gap: recursive `successor` / `predecessor` correctness on the
   summary/cluster structure and the `min` / `max` double-recursion-avoidance
   optimisation that makes `insert` itself run in `O(log log u)` remain
   strengthening targets.  Section 20.3 now provides the recursive
@@ -2383,10 +2391,10 @@ Fibonacci logarithmic theorem.
   the operation-count recurrence `T(u) = T(√u) + 1` solved to a
   `log₂ (log₂ u) + 1` depth bound and an `O(log log u)` big-O packaging via the
   Chapter 3 wrapper.  The min/max-augmented `VEBTreeMM` structure adds stored
-  `minimum`/`maximum` fields enabling single-recursion `successor`/`predecessor`/
-  `delete` with `O(log log u)` cost bounds.  Existing definitions
-  (`toFinset`, `member`, `member_correct`) were updated to correctly include the
-  stored minimum in the represented finite set.
+  `minimum`/`maximum` fields and a structural `WellFormed` invariant.  Recursive
+  deletion now preserves that invariant and exactly refines `Finset.erase`.
+  The current successor/predecessor/delete cost definitions are structural
+  depth surrogates; control-flow-faithful operation counts remain future work.
 - Added theorems (VEBTreeMM):
   - `CLRS.Chapter20.VEBTreeMM.delete` (recursive vEB-Tree-Delete)
   - `CLRS.Chapter20.VEBTreeMM.deleteCost` (per-level cost)
@@ -2395,6 +2403,11 @@ Fibonacci logarithmic theorem.
   - `CLRS.Chapter20.VEBTreeMM.successorCost_le` (depth ≤ k+1)
   - `CLRS.Chapter20.VEBTreeMM.predecessorCost` (per-level cost)
   - `CLRS.Chapter20.VEBTreeMM.predecessorCost_le` (depth ≤ k+1)
+  - `CLRS.Chapter20.VEBTreeMM.WellFormed` (recursive representation invariant)
+  - `CLRS.Chapter20.VEBTreeMM.empty_wellFormed`
+  - `CLRS.Chapter20.VEBTreeMM.delete_correct` (preservation plus erase refinement)
+  - `CLRS.Chapter20.VEBTreeMM.delete_wellFormed`
+  - `CLRS.Chapter20.VEBTreeMM.delete_toFinset`
 
 Chapter 20 now proves the high/low/index arithmetic, including both directions
 of bounded high/low recomposition, and a set-specification layer for the main

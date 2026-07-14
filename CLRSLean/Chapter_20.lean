@@ -167,8 +167,9 @@ wrappers.
 * 20.3 Recursive vEB structure: {lit}`partial`.  The genuine recursive
   summary/cluster structure over the tower universe {lit}`uSize k = 2 ^ (2 ^ k)`,
   with {lit}`member` and {lit}`insert` proved to refine the finite-set
-  specification and the operation-count recurrence
-  {lit}`T(u) = T(√u) + 1` solved to an {lit}`O(log log u)` bound.
+  specification, recursive deletion proved correct for well-formed
+  min/max-augmented trees, and the operation-count recurrence
+  {lit}`T(u) = T(√u) + 1` solved to an {lit}`O(log log u)` bound for member.
   Main results:
   {lit}`CLRS.Chapter20.uSize_succ`,
   {lit}`CLRS.Chapter20.VEBTree.toFinset_lt_uSize`,
@@ -181,8 +182,13 @@ wrappers.
   {lit}`CLRS.Chapter20.VEBTree.memberCost_le`,
   {lit}`CLRS.Chapter20.VEBTree.log_uSize`,
   {lit}`CLRS.Chapter20.VEBTree.loglog_uSize`,
-  {lit}`CLRS.Chapter20.VEBTree.depth_loglog_u`, and
-  {lit}`CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u`.
+  {lit}`CLRS.Chapter20.VEBTree.depth_loglog_u`,
+  {lit}`CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.WellFormed`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.empty_wellFormed`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.delete_correct`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.delete_wellFormed`, and
+  {lit}`CLRS.Chapter20.VEBTreeMM.delete_toFinset`.
 
 ## Current Gaps
 
@@ -191,11 +197,13 @@ Section 20.3 now provides the recursive summary/cluster structure with
 the {lit}`O(log log u)` bound proved for the single-recursion {lit}`member`
 operation via the Chapter 3 big-O wrapper, plus the min/max-augmented
 {lit}`VEBTreeMM` structure with stored {lit}`minimum`/{lit}`maximum` fields
-enabling single-recursion {lit}`successor`/{lit}`predecessor`/{lit}`delete`
-with {lit}`O(log log u)` cost bounds.  The remaining target is the
+and a semantic {lit}`WellFormed` invariant under which recursive
+{lit}`delete` preserves the invariant and exactly implements
+{lit}`Finset.erase`.  The remaining targets are correctness of
+{lit}`successor`/{lit}`predecessor`, the
 {lit}`min`/{lit}`max` double-recursion-avoidance optimisation that makes
-{lit}`insert` itself run in {lit}`O(log log u)` and full correctness
-theorems for {lit}`successor`/{lit}`predecessor`/{lit}`delete` on {lit}`VEBTreeMM`.
+{lit}`insert` itself run in {lit}`O(log log u)`, and operation-cost definitions
+that follow the algorithms' actual control flow rather than structural depth.
 -/
 
 namespace CLRS

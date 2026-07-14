@@ -34,14 +34,22 @@ Main results:
   {lit}`log₂ (log₂ u) + 1`.
 - Theorem {lit}`VEBTree.veb_operation_bigO_loglog_u`: the asymptotic
   {lit}`O(log log u)` packaging via the Chapter 3 big-O wrapper.
+- Definition {lit}`VEBTreeMM.WellFormed`: the semantic invariant for cached
+  extrema, detached minima, recursively well-formed clusters, and exact
+  summary/nonempty-cluster correspondence.
+- Theorem {lit}`VEBTreeMM.delete_correct`: recursive deletion preserves
+  {lit}`WellFormed` and refines {lit}`Finset.erase`, with projections
+  {lit}`VEBTreeMM.delete_wellFormed` and {lit}`VEBTreeMM.delete_toFinset`.
 
 Current gaps:
 
-- {lit}`successor` / {lit}`predecessor` / {lit}`delete` on the recursive
-  structure, and the {lit}`min` / {lit}`max` double-recursion-avoidance
-  optimisation that makes *insert* itself run in {lit}`O(log log u)`, remain
-  future refinement targets; here the {lit}`O(log log u)` bound is proved for
-  the (single-recursion) {lit}`member` operation.
+- Correctness of {lit}`VEBTreeMM.successor` and
+  {lit}`VEBTreeMM.predecessor`, plus the {lit}`min` / {lit}`max`
+  double-recursion-avoidance optimisation for {lit}`insert`, remain future
+  refinement targets.
+- The current {lit}`successorCost` / {lit}`predecessorCost` /
+  {lit}`deleteCost` definitions are structural depth surrogates.  A cost model
+  that follows the algorithms' actual control flow remains to be developed.
 -/
 
 namespace CLRS
