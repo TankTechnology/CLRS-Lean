@@ -165,3 +165,10 @@ import CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
 #check CLRS.Chapter20.VEBTreeMM.delete
 #check CLRS.Chapter20.VEBTreeMM.deleteCost
 #check CLRS.Chapter20.VEBTreeMM.deleteCost_le
+#check CLRS.Chapter20.VEBTreeMM.MinCorrect
+#check CLRS.Chapter20.VEBTreeMM.MaxCorrect
+#check CLRS.Chapter20.VEBTreeMM.WellFormed
+#check CLRS.Chapter20.VEBTreeMM.empty_wellFormed
+#check CLRS.Chapter20.VEBTreeMM.delete_correct
+#check CLRS.Chapter20.VEBTreeMM.delete_wellFormed
+#check CLRS.Chapter20.VEBTreeMM.delete_toFinset
