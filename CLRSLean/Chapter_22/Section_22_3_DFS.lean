@@ -15,6 +15,16 @@ model are proved in the companion {lit}`Section_22_3_DFS.S1_WhitePath` and
 form of the parenthesis theorem.  The ancestor characterization and unique
 tree/back/forward/cross classification are proved in the downstream companion
 modules.
+
+## Implementation details
+
+The detailed DFS proof layers remain available outside the main sidebar:
+
+* [White-Path Theorem](CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath/)
+* [Intervals and Timestamps](CLRSLean/Chapter_22/Section_22_3_DFS/S2_Intervals/)
+* [Discovery-State Bridge](CLRSLean/Chapter_22/Section_22_3_DFS/S3_Bridge/)
+* [SCC Preliminaries](CLRSLean/Chapter_22/Section_22_3_DFS/S4_SCC/)
+* [Edge Classification](CLRSLean/Chapter_22/Section_22_3_DFS/S5_EdgeClassification/)
 -/
 
 namespace CLRS

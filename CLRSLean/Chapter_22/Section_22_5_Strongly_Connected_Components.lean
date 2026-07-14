@@ -28,6 +28,12 @@ finish-time-ordering lemmas ({lit}`scc_finish_time_order`
 and {lit}`scc_finish_order`), as well as the final SCC correctness
 theorems.
 
+## Implementation details
+
+The supporting merge-sort congruence proof remains available outside the main sidebar:
+
+* [Merge-Sort Congruence](CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr/)
+
 Current status:
 
 - The finish-time-ordering proof ({lit}`Graph.scc_finish_time_order`) is

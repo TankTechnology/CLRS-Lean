@@ -31,6 +31,12 @@ Main results:
 - Theorem {lit}`expectedComparisons_quadratic`: {lit}`T(n) <= n^2`
 - Theorem {lit}`expectedComparisons_monotone`: {lit}`T(n) <= T(n+1)`
 
+## Implementation details
+
+The detailed probability proof remains available outside the main sidebar:
+
+* [7.3 Randomized Quicksort: Comparison Probability](CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort/Comparison_Probability/)
+
 Notation conventions:
 
 - {lit}`harmonic n` : {lit}`H_n`, the {lit}`n`-th harmonic number in {lit}`Q`

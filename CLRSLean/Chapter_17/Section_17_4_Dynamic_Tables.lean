@@ -84,6 +84,12 @@ Main results:
 - Theorem {lit}`dynamicTable_amortizedBound`: the abstract dynamic-table
   amortized cost is bounded by actual cost plus the post-operation potential.
 
+## Implementation details
+
+The mutable-array refinement remains available outside the main sidebar:
+
+* [Mutable-Array Tables and Sharper Potential](CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables/)
+
 Current gaps:
 
 - Mutable-array copying and allocator semantics are deferred.

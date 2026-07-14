@@ -64,6 +64,12 @@ Main results:
   partition-comparison cost of {lit}`medianOfMediansSelect?` obeys the explicit
   linear bound {lit}`medianOfMediansSelectCost k xs ≤ 17 * xs.length`.
 
+## Implementation details
+
+The randomized-selection analysis remains available outside the main sidebar:
+
+* [Randomized SELECT Expected Time](CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select/)
+
 Current gaps:
 
 * The concrete cost {lit}`medianOfMediansSelectCost` counts the linear partition
