@@ -48,28 +48,38 @@ Lean literate source
 `literate.toml` controls the sidebar order and page titles.  The public website
 should not depend on a hand-written `docs/site/index.html`.
 
-Source-module boundaries do not have to become peer entries in the reader
-navigation.  When one CLRS section is split into supporting proof modules, keep
-the files independently importable, place them under the main section's module
-path (for example, `Section_xx_y/Helper.lean`), and list them under that parent
-in `[order_children]`.  Child-page titles should name the proof layer without
-repeating the parent section number and title.  The module hierarchy creates
-the sidebar nesting; `[order_children]` only controls sibling order.
+Source-module boundaries do not have to become entries in the reader
+navigation.  The sidebar keeps the existing flat top-level pages and, within a
+chapter, shows only the chapter page plus its direct `Section_*` children.
+Supporting modules below a section, and children below top-level support pages
+such as `ProofPatterns` and `Probability`, are omitted from the sidebar.  They
+are still generated as complete pages and remain reachable from the nearest
+visible parent's **Implementation details** section, site search, the sitemap,
+and their direct URLs.  Keep these files independently importable and place
+them under the main section's module path (for example,
+`Section_xx_y/Helper.lean`).  Their `[order_children]` entries continue to
+control generation and search order even though they are not reader-visible
+navigation rows.
 
 Large generated proof pages are post-processed before deployment.  The optimizer
 keeps anchors, rendered Lean code, search assets, and copy buttons, while
 removing tactic-state DOM and hover metadata that make browser parsing slow on
-long files such as the Huffman proof.  The same post-processing step opens the
-module sidebar by default and injects a small navigation-state script so reader
-sidebar scroll and manual chapter collapse/expand choices persist across page
+long files such as the Huffman proof.  The same post-processing step prunes
+non-reader modules from the static sidebar HTML and turns any visible
+disclosure that loses all visible children into an ordinary leaf row, avoiding
+empty arrows.  On a hidden implementation page, the navigation script marks
+the nearest visible parent as current.
+
+All chapter disclosures still start open.  A small navigation-state script
+persists sidebar scroll and manual chapter collapse/expand choices across page
 loads.  New navigation-state versions intentionally start from an all-expanded
-tree so stale browser storage cannot hide chapters after a redesign.  The script
-stores disclosure state under stable normalized page paths, not raw relative
-`href` values, so the same chapter remains open or closed after moving between
-shallow chapter pages and deep section pages.  Chapter-title
-links inside the sidebar must navigate without also toggling their parent
-disclosure row; otherwise a click can accidentally save a collapsed state
-immediately before the next page loads.
+tree so stale browser storage cannot hide chapters after a redesign.  The
+script stores disclosure state under stable normalized page paths, not raw
+relative `href` values, so the same chapter remains open or closed after moving
+between shallow chapter pages and deep section pages.  Chapter-title links
+inside the sidebar must navigate without also toggling their parent disclosure
+row; otherwise a click can accidentally save a collapsed state immediately
+before the next page loads.
 
 ## Reader Flow
 

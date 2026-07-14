@@ -39,7 +39,7 @@ Files and responsibilities:
 - Create: `scripts/literate_navigation.py`
 - Create: `scripts/test_literate_navigation.py`
 
-- [ ] **Step 1: Write failing visibility tests**
+- [x] **Step 1: Write failing visibility tests**
 
 Create `scripts/test_literate_navigation.py` with these cases:
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run the tests and confirm the missing-module failure**
+- [x] **Step 2: Run the tests and confirm the missing-module failure**
 
 Run:
 
@@ -94,7 +94,7 @@ python3 -m unittest scripts.test_literate_navigation
 
 Expected: `ERROR` with `ModuleNotFoundError: No module named 'scripts.literate_navigation'`.
 
-- [ ] **Step 3: Implement the minimal visibility predicate**
+- [x] **Step 3: Implement the minimal visibility predicate**
 
 Create `scripts/literate_navigation.py` with this public function:
 
@@ -121,7 +121,7 @@ def is_reader_sidebar_module(module_name: str) -> bool:
     )
 ```
 
-- [ ] **Step 4: Run the visibility tests**
+- [x] **Step 4: Run the visibility tests**
 
 Run:
 
@@ -131,7 +131,7 @@ python3 -m unittest scripts.test_literate_navigation
 
 Expected: 4 tests pass.
 
-- [ ] **Step 5: Commit the policy**
+- [x] **Step 5: Commit the policy**
 
 ```bash
 git add scripts/literate_navigation.py scripts/test_literate_navigation.py
@@ -145,7 +145,7 @@ git commit -m "test(site): define reader-visible sidebar modules"
 - Modify: `scripts/literate_navigation.py`
 - Modify: `scripts/test_literate_navigation.py`
 
-- [ ] **Step 1: Add failing rewrite tests**
+- [x] **Step 1: Add failing rewrite tests**
 
 Extend `scripts/test_literate_navigation.py` with a representative Verso tree. The test input must contain:
 
@@ -182,7 +182,7 @@ self.assertIn('<div class="leaf current">', result.html)
 self.assertEqual(prune_reader_sidebar(result.html).html, result.html)
 ```
 
-- [ ] **Step 2: Run the rewrite tests and confirm the import failure**
+- [x] **Step 2: Run the rewrite tests and confirm the import failure**
 
 Run:
 
@@ -192,7 +192,7 @@ python3 -m unittest scripts.test_literate_navigation
 
 Expected: `ImportError` because `prune_reader_sidebar` is not defined.
 
-- [ ] **Step 3: Implement the deterministic Verso tree rewrite**
+- [x] **Step 3: Implement the deterministic Verso tree rewrite**
 
 Add these public result types and API to `scripts/literate_navigation.py`:
 
@@ -242,7 +242,7 @@ class _Text:
 
 Use `_ModuleTreeParser(HTMLParser)` to build this tree, `_rewrite_owner()` to remove or flatten navigation owners, and `_render()` to serialize the result. Do not add an HTML parsing dependency to the project.
 
-- [ ] **Step 4: Run the rewrite tests**
+- [x] **Step 4: Run the rewrite tests**
 
 Run:
 
@@ -252,7 +252,7 @@ python3 -m unittest scripts.test_literate_navigation
 
 Expected: all visibility and rewrite tests pass.
 
-- [ ] **Step 5: Commit the static rewrite**
+- [x] **Step 5: Commit the static rewrite**
 
 ```bash
 git add scripts/literate_navigation.py scripts/test_literate_navigation.py
@@ -266,7 +266,7 @@ git commit -m "feat(site): prune proof modules from Verso sidebar"
 - Modify: `scripts/optimize_literate_html.py`
 - Modify: `scripts/test_optimize_literate_html.py`
 
-- [ ] **Step 1: Write failing optimizer integration tests**
+- [x] **Step 1: Write failing optimizer integration tests**
 
 Add tests that optimize an HTML file containing the Task 2 navigation fixture and assert:
 
@@ -290,7 +290,7 @@ self.assertNotIn('clrs.nav.state.v6', text)
 
 Keep the existing idempotence test and add an assertion that the second optimization removes zero modules and flattens zero details.
 
-- [ ] **Step 2: Run the optimizer tests and confirm failure**
+- [x] **Step 2: Run the optimizer tests and confirm failure**
 
 Run:
 
@@ -300,7 +300,7 @@ python3 -m unittest scripts.test_optimize_literate_html
 
 Expected: failures for missing `PageStats` fields and state version v7.
 
-- [ ] **Step 3: Apply the sidebar rewrite in `optimize_file`**
+- [x] **Step 3: Apply the sidebar rewrite in `optimize_file`**
 
 Import `prune_reader_sidebar`. After the streaming optimizer writes its temporary file and before script/meta injection, execute:
 
@@ -332,7 +332,7 @@ if str(ROOT) not in sys.path:
 from scripts.literate_navigation import prune_reader_sidebar
 ```
 
-- [ ] **Step 4: Upgrade the navigation state and add nearest-visible-parent highlighting**
+- [x] **Step 4: Upgrade the navigation state and add nearest-visible-parent highlighting**
 
 Change both storage keys to v7. Refactor path normalization into:
 
@@ -383,7 +383,7 @@ if (!current) {
 
 Leave the existing default `details.open = true`, saved disclosure state, scroll restoration, and summary-link click handling unchanged.
 
-- [ ] **Step 5: Run optimizer and navigation tests**
+- [x] **Step 5: Run optimizer and navigation tests**
 
 Run:
 
@@ -393,7 +393,7 @@ python3 -m unittest scripts.test_literate_navigation scripts.test_optimize_liter
 
 Expected: all tests pass.
 
-- [ ] **Step 6: Commit optimizer integration**
+- [x] **Step 6: Commit optimizer integration**
 
 ```bash
 git add scripts/optimize_literate_html.py scripts/test_optimize_literate_html.py
@@ -408,7 +408,7 @@ git commit -m "feat(site): integrate simplified sidebar navigation"
 - Create: `scripts/test_check_literate_rendering.py`
 - Modify: `scripts/check_repository.py`
 
-- [ ] **Step 1: Write failing rendered-site contract tests**
+- [x] **Step 1: Write failing rendered-site contract tests**
 
 Refactor the checker around `check_site(site_root: Path) -> list[str]`. In a temporary site, create:
 
@@ -426,7 +426,7 @@ Add tests asserting that `check_site()` reports:
 
 End `scripts/test_check_literate_rendering.py` with `if __name__ == "__main__": unittest.main()` so `check_repository.py` can execute it directly.
 
-- [ ] **Step 2: Run checker tests and confirm failure**
+- [x] **Step 2: Run checker tests and confirm failure**
 
 Run:
 
@@ -436,7 +436,7 @@ python3 -m unittest scripts.test_check_literate_rendering
 
 Expected: import or assertion failures because `check_site` does not exist.
 
-- [ ] **Step 3: Implement generated-site validation**
+- [x] **Step 3: Implement generated-site validation**
 
 In `check_literate_rendering.py`:
 
@@ -452,7 +452,7 @@ Use the same repository-root `sys.path` bootstrap as the optimizer before import
 
 Keep CLI behavior stable: print every failure, exit 1 on any failure, otherwise print `literate rendering OK: <site_root>`.
 
-- [ ] **Step 4: Register new fast tests**
+- [x] **Step 4: Register new fast tests**
 
 Add these entries to `CHECK_SCRIPTS` in `scripts/check_repository.py` before the placeholder scan:
 
@@ -461,7 +461,7 @@ Add these entries to `CHECK_SCRIPTS` in `scripts/check_repository.py` before the
 "scripts/test_check_literate_rendering.py",
 ```
 
-- [ ] **Step 5: Run all Python site tests**
+- [x] **Step 5: Run all Python site tests**
 
 Run:
 
@@ -475,7 +475,7 @@ python3 -m unittest \
 
 Expected: all tests pass.
 
-- [ ] **Step 6: Commit the deployment guard**
+- [x] **Step 6: Commit the deployment guard**
 
 ```bash
 git add scripts/check_literate_rendering.py scripts/test_check_literate_rendering.py scripts/check_repository.py
@@ -498,7 +498,7 @@ git commit -m "test(site): enforce simplified rendered navigation"
 - Modify: `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean`
 - Modify: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
 
-- [ ] **Step 1: Run the rendered-site checker against an optimized build and capture missing-link failures**
+- [x] **Step 1: Run the rendered-site checker against an optimized build and capture missing-link failures**
 
 Run:
 
@@ -510,7 +510,7 @@ python3 scripts/check_literate_rendering.py "$SITE"
 
 Expected: failure listing the hidden modules whose visible parent pages do not yet contain implementation links.
 
-- [ ] **Step 2: Add exact site-root links to module-level docs**
+- [x] **Step 2: Add exact site-root links to module-level docs**
 
 Add a `## Implementation details` section before each module doc comment closes. Use these exact targets:
 
@@ -541,7 +541,7 @@ The following proof-support pages remain available outside the main sidebar:
 
 Use each child module's title from `literate.toml` as its link label. Do not change imports, namespaces, declarations, or proofs.
 
-- [ ] **Step 3: Rebuild the literate site and run the checker**
+- [x] **Step 3: Rebuild the literate site and run the checker**
 
 Run:
 
@@ -553,7 +553,7 @@ python3 scripts/check_literate_rendering.py "$SITE"
 
 Expected: `literate rendering OK` and no missing implementation-page links.
 
-- [ ] **Step 4: Build the Lean library**
+- [x] **Step 4: Build the Lean library**
 
 Run:
 
@@ -563,7 +563,7 @@ lake build CLRSLean
 
 Expected: exit 0. Existing linter warnings are allowed; new Lean errors are not.
 
-- [ ] **Step 5: Commit reader links**
+- [x] **Step 5: Commit reader links**
 
 ```bash
 git add CLRSLean/ProofPatterns.lean CLRSLean/Probability.lean \
@@ -586,7 +586,7 @@ git commit -m "docs(site): link hidden proof implementation pages"
 - Modify: `docs/site-architecture.md`
 - Modify: `docs/superpowers/plans/2026-07-14-verso-sidebar-simplification-plan.md` (check completed steps)
 
-- [ ] **Step 1: Update site architecture**
+- [x] **Step 1: Update site architecture**
 
 Document these facts in `docs/site-architecture.md`:
 
@@ -596,7 +596,7 @@ Document these facts in `docs/site-architecture.md`:
 - hidden pages highlight their nearest visible parent;
 - all chapter disclosures still default open and retain saved state.
 
-- [ ] **Step 2: Run the complete Python site suite**
+- [x] **Step 2: Run the complete Python site suite**
 
 ```bash
 python3 -m unittest \
@@ -608,7 +608,7 @@ python3 -m unittest \
 
 Expected: all tests pass with zero failures.
 
-- [ ] **Step 3: Build, optimize, check, and generate sitemap from fresh output**
+- [x] **Step 3: Build, optimize, check, and generate sitemap from fresh output**
 
 ```bash
 rm -rf .lake/build/literate-html _site
@@ -623,7 +623,7 @@ python3 scripts/generate_sitemap.py _site --base-url "https://tanktechnology.git
 
 Expected: fresh Verso build succeeds, rendering check passes, and sitemap generation reports URLs.
 
-- [ ] **Step 4: Verify the original Chapter 22 symptom and retained pages**
+- [x] **Step 4: Verify the original Chapter 22 symptom and retained pages**
 
 Run exact assertions:
 
@@ -637,7 +637,7 @@ rg 'CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath/' _site/sitemap.xml
 
 Expected: no hidden sidebar title, both hidden HTML files exist, and parent page plus sitemap contain the retained White-Path URL.
 
-- [ ] **Step 5: Run the repository checker and record only the known baseline exception**
+- [x] **Step 5: Run the repository checker and record only the known baseline exception**
 
 ```bash
 python3 scripts/check_repository.py
@@ -645,7 +645,7 @@ python3 scripts/check_repository.py
 
 Expected on base `c14a957`: site-related scripts pass, followed by the same five pre-existing Chapter 20 `sorry` findings. Any new failure is a regression and must be fixed.
 
-- [ ] **Step 6: Perform desktop and mobile browser verification**
+- [x] **Step 6: Perform desktop and mobile browser verification**
 
 Serve `_site` locally and use Playwright to check:
 
@@ -658,14 +658,14 @@ Serve `_site` locally and use Playwright to check:
 
 Capture screenshots for the homepage, Chapter 22, hidden White-Path page, and mobile Chapter 22 page.
 
-- [ ] **Step 7: Commit architecture documentation and checked plan**
+- [x] **Step 7: Commit architecture documentation and checked plan**
 
 ```bash
 git add docs/site-architecture.md docs/superpowers/plans/2026-07-14-verso-sidebar-simplification-plan.md
 git commit -m "docs(site): record simplified sidebar architecture"
 ```
 
-- [ ] **Step 8: Run final diff and history checks**
+- [x] **Step 8: Run final diff and history checks**
 
 ```bash
 git diff --check main...HEAD
