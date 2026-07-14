@@ -172,6 +172,16 @@ import CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
 #check CLRS.Chapter20.VEBTreeMM.member_insert_iff
 #check CLRS.Chapter20.VEBTreeMM.member_insert_self
 #check CLRS.Chapter20.VEBTreeMM.member_insert_old
+#check CLRS.Chapter20.VEBTreeMM.SuccessorSpec
+#check CLRS.Chapter20.VEBTreeMM.successor_spec
+#check CLRS.Chapter20.VEBTreeMM.successor_correct
+#check CLRS.Chapter20.VEBTreeMM.successor_mem
+#check CLRS.Chapter20.VEBTreeMM.successor_gt
+#check CLRS.Chapter20.VEBTreeMM.successor_le
+#check CLRS.Chapter20.VEBTreeMM.successor_lt_uSize
+#check CLRS.Chapter20.VEBTreeMM.successor_none_iff
+#check CLRS.Chapter20.VEBTreeMM.successor_none_of_no_gt
+#check CLRS.Chapter20.VEBTreeMM.successor_ne_none_of_exists_gt
 #check CLRS.Chapter20.VEBTreeMM.delete_member_iff
 #check CLRS.Chapter20.VEBTreeMM.delete_member_deleted_false
 #check CLRS.Chapter20.VEBTreeMM.delete_member_of_ne
