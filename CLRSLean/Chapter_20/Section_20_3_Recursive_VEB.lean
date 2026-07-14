@@ -1042,25 +1042,138 @@ def delete : {k : Nat} → Nat → VEBTreeMM k → VEBTreeMM k
           else
             VEBTreeMM.node mn mx summary clusters
 
-/-- The per-level operation-count cost of {lit}`delete`.  At each recursion
-level we charge one unit for the constant lookup-and-branch work plus the cost
-of the single recursive call into the relevant cluster.
--/
+/-- Actual recursive work of deletion.  When deleting from a cluster empties
+that cluster, the subsequent summary deletion is charged as a second call. -/
 def deleteCost : {k : Nat} → Nat → VEBTreeMM k → Nat
-  | _, x, .leaf _ _ _ _ => 1
+  | _, _, .leaf _ _ _ _ => 1
   | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
-      1 + deleteCost (low (uSize k0) x) (clusters ⟨0, by simpa using uSize_pos k0⟩)
+      match mn with
+      | none => 1
+      | some m =>
+          match mx with
+          | none => 1
+          | some v =>
+              if m = v then 1
+              else if x = m then
+                match summary.minimum with
+                | none => 1
+                | some fc =>
+                    if hfc : fc < uSize k0 then
+                      let hi : Fin (uSize k0) := ⟨fc, hfc⟩
+                      match (clusters hi).minimum with
+                      | none => 1
+                      | some offset =>
+                          let cluster' := delete offset (clusters hi)
+                          if cluster'.minimum.isNone then
+                            1 + deleteCost offset (clusters hi) +
+                              deleteCost fc summary
+                          else 1 + deleteCost offset (clusters hi)
+                    else 1
+              else if h : high (uSize k0) x < uSize k0 then
+                let hi : Fin (uSize k0) := ⟨high (uSize k0) x, h⟩
+                let lo := low (uSize k0) x
+                let cluster' := delete lo (clusters hi)
+                if cluster'.minimum.isNone then
+                  1 + deleteCost lo (clusters hi) +
+                    deleteCost (high (uSize k0) x) summary
+                else 1 + deleteCost lo (clusters hi)
+              else 1
 
-/-- The {lit}`delete` recursion depth is at most {lit}`k + 1`. -/
-theorem deleteCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, deleteCost x v ≤ k + 1 := by
-  induction v with
-  | leaf mn mx c0 c1 => intro x; simp [deleteCost]
+/-- Recursion depth of deletion.  A cluster-emptying branch takes the maximum
+of the cluster and summary depths rather than adding their work. -/
+def deleteDepth : {k : Nat} → Nat → VEBTreeMM k → Nat
+  | _, _, .leaf _ _ _ _ => 1
+  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
+      match mn with
+      | none => 1
+      | some m =>
+          match mx with
+          | none => 1
+          | some v =>
+              if m = v then 1
+              else if x = m then
+                match summary.minimum with
+                | none => 1
+                | some fc =>
+                    if hfc : fc < uSize k0 then
+                      let hi : Fin (uSize k0) := ⟨fc, hfc⟩
+                      match (clusters hi).minimum with
+                      | none => 1
+                      | some offset =>
+                          let cluster' := delete offset (clusters hi)
+                          if cluster'.minimum.isNone then
+                            1 + max (deleteDepth offset (clusters hi))
+                              (deleteDepth fc summary)
+                          else 1 + deleteDepth offset (clusters hi)
+                    else 1
+              else if h : high (uSize k0) x < uSize k0 then
+                let hi : Fin (uSize k0) := ⟨high (uSize k0) x, h⟩
+                let lo := low (uSize k0) x
+                let cluster' := delete lo (clusters hi)
+                if cluster'.minimum.isNone then
+                  1 + max (deleteDepth lo (clusters hi))
+                    (deleteDepth (high (uSize k0) x) summary)
+                else 1 + deleteDepth lo (clusters hi)
+              else 1
+
+def deleteWithCost {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    VEBTreeMM k × Nat :=
+  (delete x v, deleteCost x v)
+
+theorem deleteWithCost_result {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    (deleteWithCost x v).1 = delete x v := rfl
+
+/-- The longest recursive deletion path has at most one frame per tower level. -/
+theorem deleteDepth_le {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    deleteDepth x v ≤ k + 1 := by
+  induction v generalizing x with
+  | leaf => simp [deleteDepth]
   | @node k0 mn mx summary clusters ih_s ih_c =>
-      intro x
-      have h0 : 0 < uSize k0 := uSize_pos k0
-      have h_ih := ih_c ⟨0, h0⟩ (low (uSize k0) x)
-      simp [deleteCost, h0]
-      omega
+      cases mn with
+      | none => simp [deleteDepth]
+      | some m =>
+          cases mx with
+          | none => simp [deleteDepth]
+          | some v =>
+              by_cases hone : m = v
+              · simp [deleteDepth, hone]
+              · by_cases hxmin : x = m
+                · cases hsmin : summary.minimum with
+                  | none => simp [deleteDepth, hone, hxmin, hsmin]
+                  | some fc =>
+                      by_cases hfc : fc < uSize k0
+                      · let hi : Fin (uSize k0) := ⟨fc, hfc⟩
+                        cases hcmin : (clusters hi).minimum with
+                        | none =>
+                            simp [deleteDepth, hone, hxmin, hsmin, hfc, hi, hcmin]
+                        | some offset =>
+                            by_cases hempty :
+                                (delete offset (clusters hi)).minimum.isNone
+                            · have hc := ih_c ⟨fc, hfc⟩ offset
+                              have hs := ih_s fc
+                              simp [deleteDepth, hone, hxmin, hsmin, hfc, hi,
+                                hcmin, hempty]
+                              omega
+                            · have hc := ih_c ⟨fc, hfc⟩ offset
+                              simp [deleteDepth, hone, hxmin, hsmin, hfc, hi,
+                                hcmin, hempty]
+                              omega
+                      · simp [deleteDepth, hone, hxmin, hsmin, hfc]
+                · by_cases hhigh : high (uSize k0) x < uSize k0
+                  · let hi : Fin (uSize k0) :=
+                      ⟨high (uSize k0) x, hhigh⟩
+                    let lo := low (uSize k0) x
+                    by_cases hempty : (delete lo (clusters hi)).minimum.isNone
+                    · have hc := ih_c ⟨high (uSize k0) x, hhigh⟩
+                          (low (uSize k0) x)
+                      have hs := ih_s (high (uSize k0) x)
+                      simp [deleteDepth, hone, hxmin, hhigh, hi, lo, hempty]
+                      omega
+                    · have hc := ih_c ⟨high (uSize k0) x, hhigh⟩
+                          (low (uSize k0) x)
+                      simp [deleteDepth, hone, hxmin, hhigh, hi, lo, hempty]
+                      omega
+                  · simp [deleteDepth, hone, hxmin, hhigh]
 
 /-- `MinCorrect mn s` states that `mn` is exactly the minimum cache for `s`:
 `none` represents the empty set, while `some m` names a least member. -/
@@ -3657,6 +3770,217 @@ theorem delete_wellFormed {k : Nat} (v : VEBTreeMM k) (x : Nat)
 theorem delete_toFinset {k : Nat} (v : VEBTreeMM k) (x : Nat)
     (hwf : WellFormed v) : (delete x v).toFinset = v.toFinset.erase x :=
   (delete_correct v x hwf).2
+
+/-- Deleting the only possible represented key takes no recursive branch. -/
+theorem deleteCost_eq_one_of_subsingleton {k : Nat}
+    (v : VEBTreeMM k) (x : Nat) (hwf : WellFormed v)
+    (hsub : v.toFinset ⊆ {x}) :
+    deleteCost x v = 1 := by
+  cases v with
+  | leaf => rfl
+  | @node k0 mn mx summary clusters =>
+      cases mn with
+      | none => simp [deleteCost]
+      | some m =>
+          cases mx with
+          | none => simp [deleteCost]
+          | some v =>
+              have hm : m ∈
+                  (VEBTreeMM.node (some m) (some v) summary clusters).toFinset :=
+                hwf.minimum_mem rfl
+              have hv : v ∈
+                  (VEBTreeMM.node (some m) (some v) summary clusters).toFinset :=
+                hwf.maximum_mem rfl
+              have hmx : m = x := by simpa using hsub hm
+              have hvx : v = x := by simpa using hsub hv
+              subst m
+              subst v
+              simp [deleteCost]
+
+/-- If erasing `x` empties a finite set, every old member was `x`. -/
+theorem toFinset_subset_singleton_of_erase_eq_empty {k : Nat}
+    (v : VEBTreeMM k) (x : Nat)
+    (hempty : v.toFinset.erase x = ∅) :
+    v.toFinset ⊆ {x} := by
+  intro y hy
+  by_cases hyx : y = x
+  · simpa [hyx]
+  · have hmem : y ∈ v.toFinset.erase x :=
+      Finset.mem_erase.mpr ⟨hyx, hy⟩
+    exfalso
+    simpa [hempty] using hmem
+
+/-- Sequential deletion work is at most two recursive calls per tower level. -/
+theorem deleteCost_le : ∀ {k : Nat} (v : VEBTreeMM k) (x : Nat),
+    WellFormed v → deleteCost x v ≤ 2 * k + 1 := by
+  intro k
+  induction k using Nat.strong_induction_on with
+  | h k ih =>
+      intro v x hwf
+      cases v with
+      | leaf => simp [deleteCost]
+      | @node k0 mn mx summary clusters =>
+          cases mn with
+          | none => simp [deleteCost]
+          | some m =>
+              cases mx with
+              | none => simp [deleteCost]
+              | some v =>
+                  by_cases hone : m = v
+                  · simp [deleteCost, hone]
+                  · by_cases hxmin : x = m
+                    · cases hsmin : summary.minimum with
+                      | none => simp [deleteCost, hone, hxmin, hsmin]
+                      | some fc =>
+                          by_cases hfc : fc < uSize k0
+                          · let hi : Fin (uSize k0) := ⟨fc, hfc⟩
+                            cases hcmin : (clusters hi).minimum with
+                            | none =>
+                                simp [deleteCost, hone, hxmin, hsmin, hfc, hi,
+                                  hcmin]
+                            | some offset =>
+                                let cluster' := delete offset (clusters hi)
+                                have hdel := delete_correct (clusters hi) offset
+                                  (hwf.node_cluster hi)
+                                have hclusterWf : WellFormed cluster' := by
+                                  simpa [cluster'] using hdel.1
+                                cases hcafter : cluster'.minimum with
+                                | none =>
+                                    have hresultEmpty : cluster'.toFinset = ∅ :=
+                                      hclusterWf.minimum_none_iff.mp hcafter
+                                    have heraseEmpty :
+                                        (clusters hi).toFinset.erase offset = ∅ := by
+                                      rw [← hdel.2]
+                                      exact hresultEmpty
+                                    have hsub :=
+                                      toFinset_subset_singleton_of_erase_eq_empty
+                                        (clusters hi) offset heraseEmpty
+                                    have hclusterCost :
+                                        deleteCost offset (clusters hi) = 1 :=
+                                      deleteCost_eq_one_of_subsingleton
+                                        (clusters hi) offset (hwf.node_cluster hi) hsub
+                                    have hclusterCost' : deleteCost offset
+                                        (clusters ⟨fc, hfc⟩) = 1 := by
+                                      simpa [hi] using hclusterCost
+                                    have hsummaryCost := ih k0 (Nat.lt_succ_self k0)
+                                      summary fc hwf.node_summary
+                                    simp [deleteCost, hone, hxmin, hsmin, hfc, hi,
+                                      hcmin, cluster', hcafter]
+                                    omega
+                                | some remaining =>
+                                    have hclusterCost := ih k0 (Nat.lt_succ_self k0)
+                                      (clusters ⟨fc, hfc⟩) offset
+                                      (by simpa [hi] using hwf.node_cluster hi)
+                                    simp [deleteCost, hone, hxmin, hsmin, hfc, hi,
+                                      hcmin, cluster', hcafter]
+                                    omega
+                          · simp [deleteCost, hone, hxmin, hsmin, hfc]
+                    · by_cases hhigh : high (uSize k0) x < uSize k0
+                      · let hi : Fin (uSize k0) :=
+                          ⟨high (uSize k0) x, hhigh⟩
+                        let lo := low (uSize k0) x
+                        let cluster' := delete lo (clusters hi)
+                        have hdel := delete_correct (clusters hi) lo
+                          (hwf.node_cluster hi)
+                        have hclusterWf : WellFormed cluster' := by
+                          simpa [cluster'] using hdel.1
+                        cases hcafter : cluster'.minimum with
+                        | none =>
+                            have hresultEmpty : cluster'.toFinset = ∅ :=
+                              hclusterWf.minimum_none_iff.mp hcafter
+                            have heraseEmpty :
+                                (clusters hi).toFinset.erase lo = ∅ := by
+                              rw [← hdel.2]
+                              exact hresultEmpty
+                            have hsub :=
+                              toFinset_subset_singleton_of_erase_eq_empty
+                                (clusters hi) lo heraseEmpty
+                            have hclusterCost : deleteCost lo (clusters hi) = 1 :=
+                              deleteCost_eq_one_of_subsingleton
+                                (clusters hi) lo (hwf.node_cluster hi) hsub
+                            have hclusterCost' : deleteCost (low (uSize k0) x)
+                                (clusters ⟨high (uSize k0) x, hhigh⟩) = 1 := by
+                              simpa [hi, lo] using hclusterCost
+                            have hsummaryCost := ih k0 (Nat.lt_succ_self k0)
+                              summary (high (uSize k0) x) hwf.node_summary
+                            simp [deleteCost, hone, hxmin, hhigh, hi, lo,
+                              cluster', hcafter]
+                            omega
+                        | some remaining =>
+                            have hclusterCost := ih k0 (Nat.lt_succ_self k0)
+                              (clusters ⟨high (uSize k0) x, hhigh⟩)
+                              (low (uSize k0) x)
+                              (by simpa [hi] using hwf.node_cluster hi)
+                            simp [deleteCost, hone, hxmin, hhigh, hi, lo,
+                              cluster', hcafter]
+                            omega
+                      · simp [deleteCost, hone, hxmin, hhigh]
+
+/-- Worst-case bound shared by member, insert, successor, and predecessor. -/
+def standardOperationCostBound (k : Nat) : Nat := k + 1
+
+/-- Worst-case sequential-work bound for deletion. -/
+def deleteCostBound (k : Nat) : Nat := 2 * k + 1
+
+theorem memberCost_le_bound {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    memberCost x v ≤ standardOperationCostBound k :=
+  memberCost_le v x
+
+theorem insertCost_le_bound {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    insertCost x v ≤ standardOperationCostBound k :=
+  insertCost_le v x
+
+theorem successorCost_le_bound {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    successorCost x v ≤ standardOperationCostBound k :=
+  successorCost_le v x
+
+theorem predecessorCost_le_bound {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    predecessorCost x v ≤ standardOperationCostBound k :=
+  predecessorCost_le v x
+
+theorem deleteCost_le_bound {k : Nat} (v : VEBTreeMM k) (x : Nat)
+    (hwf : WellFormed v) : deleteCost x v ≤ deleteCostBound k :=
+  deleteCost_le v x hwf
+
+/-- The standard recursive-operation bound is `O(log log u)`. -/
+theorem standardOperationCostBound_bigO_loglog_u :
+    CLRS.Chapter03.isBigO
+      (fun k => (standardOperationCostBound k : ℝ))
+      (fun k => (Nat.log 2 (Nat.log 2 (uSize k)) : ℝ)) := by
+  simpa [standardOperationCostBound] using veb_operation_bigO_loglog_u
+
+/-- Sequential delete work is also `O(log log u)`. -/
+theorem deleteCostBound_bigO_loglog_u :
+    CLRS.Chapter03.isBigO
+      (fun k => (deleteCostBound k : ℝ))
+      (fun k => (Nat.log 2 (Nat.log 2 (uSize k)) : ℝ)) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨3, by norm_num, 1, ?_⟩
+  intro n hn
+  have hlog : Nat.log 2 (Nat.log 2 (uSize n)) = n :=
+    VEBTree.loglog_uSize n
+  simp only [deleteCostBound, hlog]
+  push_cast
+  have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+    exact_mod_cast (Nat.zero_le n)
+  have hn1 : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+  have hleft : |2 * (n : ℝ) + 1| = 2 * (n : ℝ) + 1 :=
+    abs_of_nonneg (by positivity)
+  have hright : |(n : ℝ)| = (n : ℝ) := abs_of_nonneg hn0
+  rw [hleft, hright]
+  linarith
+
+/-- All recursive vEB operations have `O(log log u)` worst-case bounds.
+Cached extrema are constant-time and therefore no larger than this family. -/
+theorem veb_all_operations_bigO_loglog_u :
+    CLRS.Chapter03.isBigO
+        (fun k => (standardOperationCostBound k : ℝ))
+        (fun k => (Nat.log 2 (Nat.log 2 (uSize k)) : ℝ)) ∧
+      CLRS.Chapter03.isBigO
+        (fun k => (deleteCostBound k : ℝ))
+        (fun k => (Nat.log 2 (Nat.log 2 (uSize k)) : ℝ)) :=
+  ⟨standardOperationCostBound_bigO_loglog_u,
+    deleteCostBound_bigO_loglog_u⟩
 
 /-- Membership after deletion is exactly old membership away from the erased key. -/
 theorem delete_member_iff {k : Nat} (v : VEBTreeMM k) (x y : Nat)
