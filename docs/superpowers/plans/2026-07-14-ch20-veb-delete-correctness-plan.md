@@ -25,7 +25,7 @@
 
 - Modify: `Tests/Chapter_20_Interface.lean:143-170`
 
-- [ ] **Step 1: Add the intended public names**
+- [x] **Step 1: Add the intended public names**
 
 Append these checks to the Section 20.3 block:
 
@@ -39,7 +39,7 @@ Append these checks to the Section 20.3 block:
 #check CLRS.Chapter20.VEBTreeMM.delete_toFinset
 ```
 
-- [ ] **Step 2: Verify the red state**
+- [x] **Step 2: Verify the red state**
 
 Run:
 
@@ -49,7 +49,7 @@ lake env lean Tests/Chapter_20_Interface.lean
 
 Expected: failure because `MinCorrect` (and the other new declarations) do not exist.
 
-- [ ] **Step 3: Commit the interface test**
+- [x] **Step 3: Commit the interface test**
 
 ```bash
 git add Tests/Chapter_20_Interface.lean
@@ -62,7 +62,7 @@ git commit -m "test(ch20.3): require recursive deletion correctness interface"
 
 - Modify: `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean:844-868`
 
-- [ ] **Step 1: Define the predicates before deletion correctness**
+- [x] **Step 1: Define the predicates before deletion correctness**
 
 Add documented definitions:
 
@@ -78,7 +78,7 @@ def MaxCorrect (mx : Option Nat) (s : Finset Nat) : Prop :=
   | some m => m ∈ s ∧ ∀ y ∈ s, y ≤ m
 ```
 
-- [ ] **Step 2: Prove the exact Option/Finset bridge family**
+- [x] **Step 2: Prove the exact Option/Finset bridge family**
 
 Add documented lemmas with these statements:
 
@@ -94,7 +94,7 @@ theorem MaxCorrect.mem {m s} (h : MaxCorrect (some m) s) : m ∈ s
 theorem MaxCorrect.le {m y s} (h : MaxCorrect (some m) s) (hy : y ∈ s) : y ≤ m
 ```
 
-- [ ] **Step 3: Build the section**
+- [x] **Step 3: Build the section**
 
 Run `lake build CLRSLean.Chapter_20.Section_20_3_Recursive_VEB`.
 
@@ -106,7 +106,7 @@ Expected: the new definitions and lemmas compile; the old five `sorry` warnings 
 
 - Modify: `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean`
 
-- [ ] **Step 1: Define `WellFormed` structurally**
+- [x] **Step 1: Define `WellFormed` structurally**
 
 Use the following clause shape:
 
@@ -125,14 +125,14 @@ def WellFormed : ∀ {k : Nat}, VEBTreeMM k → Prop
       ∀ hi, WellFormed (clusters hi)
 ```
 
-- [ ] **Step 2: Add named projections**
+- [x] **Step 2: Add named projections**
 
 Provide documented theorems for node minimum correctness, maximum correctness,
 detachment, summary membership, summary well-formedness, and cluster
 well-formedness.  Each theorem must be a direct projection from `WellFormed` so
 later delete branches do not destruct a six-way conjunction repeatedly.
 
-- [ ] **Step 3: Prove `empty_wellFormed`**
+- [x] **Step 3: Prove `empty_wellFormed`**
 
 Use induction on `k`, `toFinset_empty`, and the recursive induction hypothesis:
 
@@ -144,7 +144,7 @@ theorem empty_wellFormed (k : Nat) : WellFormed (empty k) := by
       simp [WellFormed, MinCorrect, MaxCorrect, empty, toFinset_empty, ih]
 ```
 
-- [ ] **Step 4: Re-run the narrow build**
+- [x] **Step 4: Re-run the narrow build**
 
 Expected: invariant declarations compile; only the old deletion theorem still
 contains placeholders.
@@ -155,7 +155,7 @@ contains placeholders.
 
 - Modify: `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean:868-end`
 
-- [ ] **Step 1: Replace the old theorem statement**
+- [x] **Step 1: Replace the old theorem statement**
 
 Introduce the bundled truth source:
 
@@ -169,20 +169,20 @@ theorem delete_correct {k : Nat} (v : VEBTreeMM k) (x : Nat)
 Start with `Nat.strong_induction_on k` so both summary and cluster recursive
 calls receive the bundled induction hypothesis.
 
-- [ ] **Step 2: Close the leaf branch**
+- [x] **Step 2: Close the leaf branch**
 
 Split `x = 0`, `x = 1`, and the outside-universe case.  Simplify `delete`,
 `toFinset`, `MinCorrect`, `MaxCorrect`, and `WellFormed`; finish Boolean and
 finite-set membership cases by extensionality.
 
-- [ ] **Step 3: Close empty and singleton node branches**
+- [x] **Step 3: Close empty and singleton node branches**
 
 Use `MinCorrect.none_iff` to turn `mn = none` into `toFinset = ∅`; use extrema
 bounds plus detached minimum to show `mn = mx = some m` represents exactly
 `{m}`.  Prove both the unchanged and erase-singleton branches, including
 well-formedness of the recursively empty result.
 
-- [ ] **Step 4: Close delete-minimum**
+- [x] **Step 4: Close delete-minimum**
 
 From summary minimum correctness and summary membership exactness, obtain the
 first nonempty cluster.  From the cluster minimum correctness obtain its offset
@@ -192,7 +192,7 @@ Re-establish whole-set extrema, detached minimum, exact summary membership, and
 all recursive well-formedness fields.  Rewrite the represented set with the two
 induction equalities and `index_high_low`/`high_index`/`low_index`.
 
-- [ ] **Step 5: Close ordinary cluster deletion**
+- [x] **Step 5: Close ordinary cluster deletion**
 
 Use the high/low index decomposition already proved in the file.  Apply the
 bundled cluster induction hypothesis.  Split on whether the updated cluster is
@@ -201,7 +201,7 @@ bundled summary induction hypothesis.  Repair the cached maximum only when the
 erased key was the old maximum.  Prove unchanged clusters through
 `Function.update_of_ne` and the changed cluster through `Function.update_self`.
 
-- [ ] **Step 6: Add projection theorems**
+- [x] **Step 6: Add projection theorems**
 
 ```lean
 theorem delete_wellFormed (v) (x) (hwf : WellFormed v) :
@@ -212,13 +212,13 @@ theorem delete_toFinset (v) (x) (hwf : WellFormed v) :
   (delete_correct v x hwf).2
 ```
 
-- [ ] **Step 7: Run the red interface test again**
+- [x] **Step 7: Run the red interface test again**
 
 Run `lake env lean Tests/Chapter_20_Interface.lean`.
 
 Expected: all new names resolve and the test exits successfully.
 
-- [ ] **Step 8: Prove axiom cleanliness**
+- [x] **Step 8: Prove axiom cleanliness**
 
 Create a temporary check command that imports the section and runs:
 
@@ -237,14 +237,14 @@ Expected: only standard Lean/Mathlib axioms, with no `sorryAx`.
 - Modify: `docs/clrs-proof-progress.csv:21`
 - Modify: `CLRSLean/Progress.lean` when generated output changes
 
-- [ ] **Step 1: Update the chapter guide**
+- [x] **Step 1: Update the chapter guide**
 
 List `VEBTreeMM.WellFormed`, `empty_wellFormed`, `delete_correct`,
 `delete_wellFormed`, and `delete_toFinset` as main Section 20.3 results.  State
 that successor/predecessor correctness and control-flow-faithful cost semantics
 remain partial.
 
-- [ ] **Step 2: Update the proof map and CSV prose**
+- [x] **Step 2: Update the proof map and CSV prose**
 
 Remove recursive deletion correctness from the gap, retain the two explicit
 remaining targets, and describe deletion as correct for well-formed recursive
@@ -252,7 +252,7 @@ trees.  Set Chapter 20 `tracked_key_theorems` and
 `proved_tracked_theorems` to 153, adding one tracked group for the bundled
 recursive deletion theorem.
 
-- [ ] **Step 3: Regenerate the progress dashboard**
+- [x] **Step 3: Regenerate the progress dashboard**
 
 Run:
 
@@ -267,7 +267,7 @@ description change.
 
 **Files:** all modified files above.
 
-- [ ] **Step 1: Reject unfinished proof markers**
+- [x] **Step 1: Reject unfinished proof markers**
 
 Run:
 
@@ -278,7 +278,7 @@ rg -n '\b(sorry|admit|axiom)\b' \
 
 Expected: no executable unfinished marker in the scoped files.
 
-- [ ] **Step 2: Run the narrow and repository checks**
+- [x] **Step 2: Run the narrow and repository checks**
 
 ```bash
 lake build CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
@@ -289,7 +289,7 @@ git diff --check
 
 Expected: every command exits zero.
 
-- [ ] **Step 3: Run full Lean and website builds**
+- [x] **Step 3: Run full Lean and website builds**
 
 ```bash
 lake build CLRSLean
@@ -299,7 +299,7 @@ lake build :literateHtml
 Expected: both builds exit zero; pre-existing documentation warnings may remain
 but there are no errors or placeholder-policy failures.
 
-- [ ] **Step 4: Review the final diff and commit**
+- [x] **Step 4: Review the final diff and commit**
 
 ```bash
 git diff --stat main...HEAD

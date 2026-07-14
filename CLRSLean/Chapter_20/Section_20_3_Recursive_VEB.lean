@@ -1521,7 +1521,7 @@ theorem delete_correct : ∀ {k : Nat} (v : VEBTreeMM k) (x : Nat),
           · subst x
             cases mn <;> cases mx <;> cases c0 <;> cases c1 <;>
               simp [WellFormed, MinCorrect, MaxCorrect, delete, toFinset,
-                Finset.ext_iff] at hwf ⊢ <;> omega
+                Finset.ext_iff] at hwf ⊢
           · by_cases hx1 : x = 1
             · subst x
               cases mn <;> cases mx <;> cases c0 <;> cases c1 <;>
@@ -1529,7 +1529,7 @@ theorem delete_correct : ∀ {k : Nat} (v : VEBTreeMM k) (x : Nat),
                   Finset.ext_iff, hx0] at hwf ⊢ <;> omega
             · cases mn <;> cases mx <;> cases c0 <;> cases c1 <;>
                 simp [WellFormed, MinCorrect, MaxCorrect, delete, toFinset,
-                  Finset.ext_iff, hx0, hx1] at hwf ⊢ <;> omega
+                  Finset.ext_iff, hx0, hx1] at hwf ⊢
       | @node k0 mn mx summary clusters =>
           cases mn with
           | none =>
