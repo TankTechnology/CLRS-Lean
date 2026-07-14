@@ -721,35 +721,220 @@ def predecessor : {k : Nat} → Nat → VEBTreeMM k → Option Nat
                     | some offset => some (index (uSize k0) prevHi offset)
                   else none
 
+/-- Branch-faithful recursive-call cost for membership. -/
+def memberCost : {k : Nat} → Nat → VEBTreeMM k → Nat
+  | _, _, .leaf _ _ _ _ => 1
+  | _, x, @VEBTreeMM.node k0 mn _ _ clusters =>
+      if mn = some x then 1
+      else if h : high (uSize k0) x < uSize k0 then
+        1 + memberCost (low (uSize k0) x)
+          (clusters ⟨high (uSize k0) x, h⟩)
+      else 1
+
+def memberWithCost {k : Nat} (x : Nat) (v : VEBTreeMM k) : Bool × Nat :=
+  (member x v, memberCost x v)
+
+theorem memberWithCost_result {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    (memberWithCost x v).1 = member x v := rfl
+
+/-- Cached minimum lookup has constant cost. -/
+def minimumWithCost {k : Nat} (v : VEBTreeMM k) : Option Nat × Nat :=
+  (minimum v, 1)
+
+theorem minimumWithCost_result {k : Nat} (v : VEBTreeMM k) :
+    (minimumWithCost v).1 = minimum v := rfl
+
+theorem minimumCost_eq_one {k : Nat} (v : VEBTreeMM k) :
+    (minimumWithCost v).2 = 1 := rfl
+
+/-- Cached maximum lookup has constant cost. -/
+def maximumWithCost {k : Nat} (v : VEBTreeMM k) : Option Nat × Nat :=
+  (maximum v, 1)
+
+theorem maximumWithCost_result {k : Nat} (v : VEBTreeMM k) :
+    (maximumWithCost v).1 = maximum v := rfl
+
+theorem maximumCost_eq_one {k : Nat} (v : VEBTreeMM k) :
+    (maximumWithCost v).2 = 1 := rfl
+
+/-- Branch-faithful recursive-call cost for insertion. -/
+def insertCost : {k : Nat} → Nat → VEBTreeMM k → Nat
+  | _, _, .leaf _ _ _ _ => 1
+  | _, x, @VEBTreeMM.node k0 mn _ summary clusters =>
+      match mn with
+      | none => 1
+      | some m =>
+          if x = m then 1
+          else
+            let x' := if x < m then m else x
+            if h : high (uSize k0) x' < uSize k0 then
+              let hi : Fin (uSize k0) := ⟨high (uSize k0) x', h⟩
+              let lo := low (uSize k0) x'
+              if (clusters hi).minimum = none then
+                1 + insertCost (high (uSize k0) x') summary
+              else
+                1 + insertCost lo (clusters hi)
+            else 1
+
+def insertWithCost {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    VEBTreeMM k × Nat :=
+  (insert x v, insertCost x v)
+
+theorem insertWithCost_result {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    (insertWithCost x v).1 = insert x v := rfl
+
+/-- Branch-faithful recursive-call cost for successor. -/
 def successorCost : {k : Nat} → Nat → VEBTreeMM k → Nat
-  | _, x, .leaf _ _ _ _ => 1
-  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
-      1 + successorCost (high (uSize k0) x) (clusters ⟨0, by simpa using uSize_pos k0⟩)
+  | _, _, .leaf _ _ _ _ => 1
+  | _, x, @VEBTreeMM.node k0 mn _ summary clusters =>
+      match mn with
+      | none => 1
+      | some m =>
+          if x < m then 1
+          else if h : high (uSize k0) x < uSize k0 then
+            let hi : Fin (uSize k0) := ⟨high (uSize k0) x, h⟩
+            let lo := low (uSize k0) x
+            match (clusters hi).maximum with
+            | none => 1 + successorCost (high (uSize k0) x) summary
+            | some maxLo =>
+                if lo < maxLo then 1 + successorCost lo (clusters hi)
+                else 1 + successorCost (high (uSize k0) x) summary
+          else 1
 
-theorem successorCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, successorCost x v ≤ k + 1 := by
-  induction v with
-  | leaf mn mx c0 c1 => intro x; simp [successorCost]
-  | @node k0 mn mx summary clusters ih_s ih_c =>
-      intro x
-      have h0 : 0 < uSize k0 := uSize_pos k0
-      have h_ih := ih_c ⟨0, h0⟩ (high (uSize k0) x)
-      simp [successorCost, h0]
-      omega
+def successorWithCost {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    Option Nat × Nat :=
+  (successor x v, successorCost x v)
 
+theorem successorWithCost_result {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    (successorWithCost x v).1 = successor x v := rfl
+
+/-- Branch-faithful recursive-call cost for predecessor, including the
+out-of-range summary query. -/
 def predecessorCost : {k : Nat} → Nat → VEBTreeMM k → Nat
-  | _, x, .leaf _ _ _ _ => 1
-  | _, x, @VEBTreeMM.node k0 mn mx summary clusters =>
-      1 + predecessorCost (high (uSize k0) x) (clusters ⟨0, by simpa using uSize_pos k0⟩)
+  | _, _, .leaf _ _ _ _ => 1
+  | _, x, @VEBTreeMM.node k0 _ mx summary clusters =>
+      match mx with
+      | none => 1
+      | some m =>
+          if m < x then 1
+          else if h : high (uSize k0) x < uSize k0 then
+            let hi : Fin (uSize k0) := ⟨high (uSize k0) x, h⟩
+            let lo := low (uSize k0) x
+            match (clusters hi).minimum with
+            | none => 1 + predecessorCost (high (uSize k0) x) summary
+            | some minLo =>
+                if minLo < lo then 1 + predecessorCost lo (clusters hi)
+                else 1 + predecessorCost (high (uSize k0) x) summary
+          else 1 + predecessorCost (high (uSize k0) x) summary
 
-theorem predecessorCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, predecessorCost x v ≤ k + 1 := by
-  induction v with
-  | leaf mn mx c0 c1 => intro x; simp [predecessorCost]
+def predecessorWithCost {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    Option Nat × Nat :=
+  (predecessor x v, predecessorCost x v)
+
+theorem predecessorWithCost_result {k : Nat} (x : Nat) (v : VEBTreeMM k) :
+    (predecessorWithCost x v).1 = predecessor x v := rfl
+
+theorem memberCost_le {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    memberCost x v ≤ k + 1 := by
+  induction v generalizing x with
+  | leaf => simp [memberCost]
   | @node k0 mn mx summary clusters ih_s ih_c =>
-      intro x
-      have h0 : 0 < uSize k0 := uSize_pos k0
-      have h_ih := ih_c ⟨0, h0⟩ (high (uSize k0) x)
-      simp [predecessorCost, h0]
-      omega
+      by_cases hmn : mn = some x
+      · simp [memberCost, hmn]
+      · by_cases hhigh : high (uSize k0) x < uSize k0
+        · have hrec := ih_c ⟨high (uSize k0) x, hhigh⟩
+            (low (uSize k0) x)
+          simp [memberCost, hmn, hhigh]
+          omega
+        · simp [memberCost, hmn, hhigh]
+
+theorem insertCost_le {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    insertCost x v ≤ k + 1 := by
+  induction v generalizing x with
+  | leaf => simp [insertCost]
+  | @node k0 mn mx summary clusters ih_s ih_c =>
+      cases mn with
+      | none => simp [insertCost]
+      | some m =>
+          by_cases hsame : x = m
+          · simp [insertCost, hsame]
+          · let x' := if x < m then m else x
+            by_cases hhigh : high (uSize k0) x' < uSize k0
+            · let hi : Fin (uSize k0) := ⟨high (uSize k0) x', hhigh⟩
+              let lo := low (uSize k0) x'
+              by_cases hempty : (clusters hi).minimum = none
+              · have hrec := ih_s
+                    (high (uSize k0) (if x < m then m else x))
+                simp [insertCost, hsame, x', hhigh, hi, lo, hempty]
+                omega
+              · have hhigh' : high (uSize k0) (if x < m then m else x) <
+                    uSize k0 := by simpa [x'] using hhigh
+                have hrec := ih_c
+                  ⟨high (uSize k0) (if x < m then m else x), hhigh'⟩
+                  (low (uSize k0) (if x < m then m else x))
+                simp [insertCost, hsame, x', hhigh, hi, lo, hempty]
+                omega
+            · simp [insertCost, hsame, x', hhigh]
+
+theorem successorCost_le {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    successorCost x v ≤ k + 1 := by
+  induction v generalizing x with
+  | leaf => simp [successorCost]
+  | @node k0 mn mx summary clusters ih_s ih_c =>
+      cases mn with
+      | none => simp [successorCost]
+      | some m =>
+          by_cases hxm : x < m
+          · simp [successorCost, hxm]
+          · by_cases hhigh : high (uSize k0) x < uSize k0
+            · let hi : Fin (uSize k0) := ⟨high (uSize k0) x, hhigh⟩
+              let lo := low (uSize k0) x
+              cases hmax : (clusters hi).maximum with
+              | none =>
+                  have hrec := ih_s (high (uSize k0) x)
+                  simp [successorCost, hxm, hhigh, hi, lo, hmax]
+                  omega
+              | some maxLo =>
+                  by_cases hlo : lo < maxLo
+                  · have hrec := ih_c ⟨high (uSize k0) x, hhigh⟩
+                        (low (uSize k0) x)
+                    simp [successorCost, hxm, hhigh, hi, lo, hmax, hlo]
+                    omega
+                  · have hrec := ih_s (high (uSize k0) x)
+                    simp [successorCost, hxm, hhigh, hi, lo, hmax, hlo]
+                    omega
+            · simp [successorCost, hxm, hhigh]
+
+theorem predecessorCost_le {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    predecessorCost x v ≤ k + 1 := by
+  induction v generalizing x with
+  | leaf => simp [predecessorCost]
+  | @node k0 mn mx summary clusters ih_s ih_c =>
+      cases mx with
+      | none => simp [predecessorCost]
+      | some m =>
+          by_cases hmx : m < x
+          · simp [predecessorCost, hmx]
+          · by_cases hhigh : high (uSize k0) x < uSize k0
+            · let hi : Fin (uSize k0) := ⟨high (uSize k0) x, hhigh⟩
+              let lo := low (uSize k0) x
+              cases hmin : (clusters hi).minimum with
+              | none =>
+                  have hrec := ih_s (high (uSize k0) x)
+                  simp [predecessorCost, hmx, hhigh, hi, lo, hmin]
+                  omega
+              | some minLo =>
+                  by_cases hlo : minLo < lo
+                  · have hrec := ih_c ⟨high (uSize k0) x, hhigh⟩
+                        (low (uSize k0) x)
+                    simp [predecessorCost, hmx, hhigh, hi, lo, hmin, hlo]
+                    omega
+                  · have hrec := ih_s (high (uSize k0) x)
+                    simp [predecessorCost, hmx, hhigh, hi, lo, hmin, hlo]
+                    omega
+            · have hrec := ih_s (high (uSize k0) x)
+              simp [predecessorCost, hmx, hhigh]
+              omega
 
 theorem veb_operation_bigO_loglog_u :
     CLRS.Chapter03.isBigO
