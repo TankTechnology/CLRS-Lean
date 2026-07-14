@@ -162,6 +162,19 @@ import CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
 #check CLRS.Chapter20.VEBTree.depth_loglog_u
 #check CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u
 
+#check CLRS.Chapter20.VEBTreeMM.minimum_correct
+#check CLRS.Chapter20.VEBTreeMM.maximum_correct
+#check CLRS.Chapter20.VEBTreeMM.singleton_toFinset
+#check CLRS.Chapter20.VEBTreeMM.singleton_wellFormed
+#check CLRS.Chapter20.VEBTreeMM.insert_correct
+#check CLRS.Chapter20.VEBTreeMM.insert_wellFormed
+#check CLRS.Chapter20.VEBTreeMM.insert_toFinset
+#check CLRS.Chapter20.VEBTreeMM.member_insert_iff
+#check CLRS.Chapter20.VEBTreeMM.member_insert_self
+#check CLRS.Chapter20.VEBTreeMM.member_insert_old
+#check CLRS.Chapter20.VEBTreeMM.delete_member_iff
+#check CLRS.Chapter20.VEBTreeMM.delete_member_deleted_false
+#check CLRS.Chapter20.VEBTreeMM.delete_member_of_ne
 #check CLRS.Chapter20.VEBTreeMM.delete
 #check CLRS.Chapter20.VEBTreeMM.deleteCost
 #check CLRS.Chapter20.VEBTreeMM.deleteCost_le
