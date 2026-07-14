@@ -164,12 +164,13 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.operationDepth_linear`,
   {lit}`CLRS.Chapter20.VEB.operationDepth_monotone`, and
   {lit}`CLRS.Chapter20.VEB.operationDepth_strict_mono`.
-* 20.3 Recursive vEB structure: {lit}`partial`.  The genuine recursive
-  summary/cluster structure over the tower universe {lit}`uSize k = 2 ^ (2 ^ k)`,
-  with {lit}`member` and {lit}`insert` proved to refine the finite-set
-  specification, recursive deletion proved correct for well-formed
-  min/max-augmented trees, and the operation-count recurrence
-  {lit}`T(u) = T(√u) + 1` solved to an {lit}`O(log log u)` bound for member.
+* 20.3 Recursive vEB structure:
+  {lit}`main-proof-complete-for-correctness`.  The genuine recursive
+  cached-min/max summary/cluster structure over the tower universe
+  {lit}`uSize k = 2 ^ (2 ^ k)` proves all seven vEB operations against its
+  finite-set semantics.  Cached extrema are constant time, the other recursive
+  operations have branch-faithful cost models, and their tower-level bounds are
+  packaged as {lit}`O(log log u)`.
   Main results:
   {lit}`CLRS.Chapter20.uSize_succ`,
   {lit}`CLRS.Chapter20.VEBTree.toFinset_lt_uSize`,
@@ -186,24 +187,32 @@ wrappers.
   {lit}`CLRS.Chapter20.VEBTree.veb_operation_bigO_loglog_u`,
   {lit}`CLRS.Chapter20.VEBTreeMM.WellFormed`,
   {lit}`CLRS.Chapter20.VEBTreeMM.empty_wellFormed`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.minimum_correct`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.maximum_correct`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.insert_correct`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.insert_wellFormed`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.insert_toFinset`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.successor_spec`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.successor_correct`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.predecessor_spec`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.predecessor_correct`,
   {lit}`CLRS.Chapter20.VEBTreeMM.delete_correct`,
-  {lit}`CLRS.Chapter20.VEBTreeMM.delete_wellFormed`, and
-  {lit}`CLRS.Chapter20.VEBTreeMM.delete_toFinset`.
+  {lit}`CLRS.Chapter20.VEBTreeMM.delete_wellFormed`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.delete_toFinset`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.memberCost_le`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.insertCost_le`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.successorCost_le`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.predecessorCost_le`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.deleteCost_le`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.deleteDepth_le`, and
+  {lit}`CLRS.Chapter20.VEBTreeMM.veb_all_operations_bigO_loglog_u`.
 
-## Current Gaps
+## Implementation Boundary
 
-Section 20.3 now provides the recursive summary/cluster structure with
-{lit}`member` and {lit}`insert` refined against the finite-set specification and
-the {lit}`O(log log u)` bound proved for the single-recursion {lit}`member`
-operation via the Chapter 3 big-O wrapper, plus the min/max-augmented
-{lit}`VEBTreeMM` structure with stored {lit}`minimum`/{lit}`maximum` fields
-and a semantic {lit}`WellFormed` invariant under which recursive
-{lit}`delete` preserves the invariant and exactly implements
-{lit}`Finset.erase`.  The remaining targets are correctness of
-{lit}`successor`/{lit}`predecessor`, the
-{lit}`min`/{lit}`max` double-recursion-avoidance optimisation that makes
-{lit}`insert` itself run in {lit}`O(log log u)`, and operation-cost definitions
-that follow the algorithms' actual control flow rather than structural depth.
+The recursive cached-min/max model now proves all seven vEB operations correct,
+with constant cached extrema and control-flow-aware O(log log u) bounds for the
+recursive operations. Concrete pointer/array allocation and hardware-level RAM
+timing remain a separate implementation refinement.
 -/
 
 namespace CLRS
