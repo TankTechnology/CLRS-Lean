@@ -18,4 +18,13 @@ Current modules:
 * {lit}`Fiber`: key-fiber decomposition for buckets, digit classes, and chains.
 * {lit}`Interval`: strict before/nested interval relations for DFS and recursive
   decompositions.
+
+## Implementation details
+
+The reusable proof-support pages remain available outside the main sidebar:
+
+* [Proof Pattern: Boundary Shifts](CLRSLean/ProofPatterns/Boundary/)
+* [Proof Pattern: Exchange Certificates](CLRSLean/ProofPatterns/Exchange/)
+* [Proof Pattern: Fiber Decomposition](CLRSLean/ProofPatterns/Fiber/)
+* [Proof Pattern: Interval Nesting](CLRSLean/ProofPatterns/Interval/)
 -/

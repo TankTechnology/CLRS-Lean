@@ -31,6 +31,14 @@ Closure results:
 The nested implementation modules now provide the incremental stateful
 union-find scan, executable indexed-queue Prim, and algorithm-level work
 bounds.  Mutable/RAM semantics and concrete array-heap refinement remain.
+
+## Implementation details
+
+The executable MST refinements remain available outside the main sidebar:
+
+* [Union-Find Refinement](CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S1_UnionFindBridge/)
+* [Stateful Kruskal](CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S2_StatefulKruskal/)
+* [Executable Prim](CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S3_ExecutablePrim/)
 -/
 
 namespace CLRS
