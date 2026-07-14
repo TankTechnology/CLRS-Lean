@@ -615,20 +615,23 @@ def insert : {k : Nat} → Nat → VEBTreeMM k → VEBTreeMM k
       match mn with
       | none => VEBTreeMM.node (some x) (some x) summary clusters
       | some m =>
-          let x' := if x < m then m else x
-          let mn' := if x < m then some x else mn
-          let mx' := match mx with | none => some x | some v => if x > v then some x else mx
-          if h : high (uSize k0) x' < uSize k0 then
-            let hi : Fin (uSize k0) := ⟨high (uSize k0) x', h⟩
-            let lo := low (uSize k0) x'
-            have h_lo : lo < uSize k0 := low_lt (uSize_pos k0)
-            if (clusters hi).minimum = none then
-              VEBTreeMM.node mn' mx' (insert (high (uSize k0) x') summary)
-                (Function.update clusters hi (singleton k0 lo h_lo))
-            else
-              VEBTreeMM.node mn' mx' summary
-                (Function.update clusters hi (insert lo (clusters hi)))
-          else VEBTreeMM.node mn' mx' summary clusters
+          if h_same : x = m then
+            VEBTreeMM.node mn mx summary clusters
+          else
+            let x' := if x < m then m else x
+            let mn' := if x < m then some x else mn
+            let mx' := match mx with | none => some x | some v => if x > v then some x else mx
+            if h : high (uSize k0) x' < uSize k0 then
+              let hi : Fin (uSize k0) := ⟨high (uSize k0) x', h⟩
+              let lo := low (uSize k0) x'
+              have h_lo : lo < uSize k0 := low_lt (uSize_pos k0)
+              if (clusters hi).minimum = none then
+                VEBTreeMM.node mn' mx' (insert (high (uSize k0) x') summary)
+                  (Function.update clusters hi (singleton k0 lo h_lo))
+              else
+                VEBTreeMM.node mn' mx' summary
+                  (Function.update clusters hi (insert lo (clusters hi)))
+            else VEBTreeMM.node mn' mx' summary clusters
 
 def successor : {k : Nat} → Nat → VEBTreeMM k → Option Nat
   | _, x, .leaf _ _ c0 c1 => if x = 0 then (if c1 then some 1 else none) else none
@@ -1061,6 +1064,16 @@ theorem toFinset_eq_singleton {k : Nat} {v : VEBTreeMM k} {m : Nat}
 
 end WellFormed
 
+/-- The cached minimum exactly describes the least represented key. -/
+theorem minimum_correct {k : Nat} {v : VEBTreeMM k} (hwf : WellFormed v) :
+    MinCorrect v.minimum v.toFinset :=
+  hwf.minCorrect
+
+/-- The cached maximum exactly describes the greatest represented key. -/
+theorem maximum_correct {k : Nat} {v : VEBTreeMM k} (hwf : WellFormed v) :
+    MaxCorrect v.maximum v.toFinset :=
+  hwf.maxCorrect
+
 /-- The recursively empty min/max-augmented vEB tree satisfies `WellFormed`. -/
 theorem empty_wellFormed (k : Nat) : WellFormed (empty k) := by
   induction k with
@@ -1068,6 +1081,51 @@ theorem empty_wellFormed (k : Nat) : WellFormed (empty k) := by
   | succ k ih =>
       simp [WellFormed, MinCorrect, MaxCorrect, empty, toFinset_empty, ih]
       simpa [empty] using (toFinset_empty (k + 1))
+
+/-- A bounded singleton tree represents exactly its supplied key. -/
+theorem singleton_toFinset (k : Nat) (x : Nat) (hx : x < uSize k) :
+    (singleton k x hx).toFinset = {x} := by
+  cases k with
+  | zero =>
+      rw [uSize_zero] at hx
+      by_cases hx0 : x = 0
+      · subst x
+        simp [singleton, toFinset]
+      · have hx1 : x = 1 := by omega
+        subst x
+        simp [singleton, toFinset]
+  | succ k =>
+      ext y
+      simp [singleton, toFinset, toFinset_empty, hx]
+
+/-- A bounded singleton tree satisfies the recursive cached-extrema invariant. -/
+theorem singleton_wellFormed (k : Nat) (x : Nat) (hx : x < uSize k) :
+    WellFormed (singleton k x hx) := by
+  cases k with
+  | zero =>
+      rw [uSize_zero] at hx
+      by_cases hx0 : x = 0
+      · subst x
+        simp [singleton, WellFormed, MinCorrect, MaxCorrect, toFinset]
+      · have hx1 : x = 1 := by omega
+        subst x
+        simp [singleton, WellFormed, MinCorrect, MaxCorrect, toFinset]
+  | succ k =>
+      simp only [singleton, WellFormed]
+      have hset :
+          (VEBTreeMM.node (some x) (some x) (empty k)
+            (fun _ => empty k)).toFinset = {x} := by
+        simpa [singleton] using singleton_toFinset (k + 1) x hx
+      rw [hset]
+      refine ⟨?_, ?_, ?_, ?_, empty_wellFormed k, ?_⟩
+      · simp [MinCorrect]
+      · simp [MaxCorrect]
+      · intro m hm hi lo hlo
+        simpa [toFinset_empty] using hlo
+      · intro hi
+        simp [toFinset_empty]
+      · intro hi
+        exact empty_wellFormed k
 
 /-- Keys in an earlier vEB cluster precede every key in a later cluster. -/
 theorem index_lt_index_of_high_lt {m hi₁ hi₂ lo₁ lo₂ : Nat}
