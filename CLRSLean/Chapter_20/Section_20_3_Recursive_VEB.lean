@@ -861,6 +861,194 @@ theorem deleteCost_le {k : Nat} (v : VEBTreeMM k) : ∀ x, deleteCost x v ≤ k 
       simp [deleteCost, h0]
       omega
 
+/-- `MinCorrect mn s` states that `mn` is exactly the minimum cache for `s`:
+`none` represents the empty set, while `some m` names a least member. -/
+def MinCorrect (mn : Option Nat) (s : Finset Nat) : Prop :=
+  match mn with
+  | none => s = ∅
+  | some m => m ∈ s ∧ ∀ y ∈ s, m ≤ y
+
+/-- `MaxCorrect mx s` states that `mx` is exactly the maximum cache for `s`:
+`none` represents the empty set, while `some m` names a greatest member. -/
+def MaxCorrect (mx : Option Nat) (s : Finset Nat) : Prop :=
+  match mx with
+  | none => s = ∅
+  | some m => m ∈ s ∧ ∀ y ∈ s, y ≤ m
+
+namespace MinCorrect
+
+/-- A correct minimum cache is absent exactly when its represented set is empty. -/
+theorem none_iff {mn : Option Nat} {s : Finset Nat} (h : MinCorrect mn s) :
+    mn = none ↔ s = ∅ := by
+  cases mn with
+  | none => simpa [MinCorrect] using h
+  | some m =>
+      change m ∈ s ∧ (∀ y ∈ s, m ≤ y) at h
+      simp only [Option.some_ne_none, false_iff]
+      intro hs
+      simpa [hs] using h.1
+
+/-- A cached minimum satisfying `MinCorrect` belongs to the represented set. -/
+theorem mem {m : Nat} {s : Finset Nat} (h : MinCorrect (some m) s) : m ∈ s := by
+  exact h.1
+
+/-- A cached minimum satisfying `MinCorrect` bounds every represented key. -/
+theorem le {m y : Nat} {s : Finset Nat} (h : MinCorrect (some m) s)
+    (hy : y ∈ s) : m ≤ y := by
+  exact h.2 y hy
+
+end MinCorrect
+
+namespace MaxCorrect
+
+/-- A correct maximum cache is absent exactly when its represented set is empty. -/
+theorem none_iff {mx : Option Nat} {s : Finset Nat} (h : MaxCorrect mx s) :
+    mx = none ↔ s = ∅ := by
+  cases mx with
+  | none => simpa [MaxCorrect] using h
+  | some m =>
+      change m ∈ s ∧ (∀ y ∈ s, y ≤ m) at h
+      simp only [Option.some_ne_none, false_iff]
+      intro hs
+      simpa [hs] using h.1
+
+/-- A cached maximum satisfying `MaxCorrect` belongs to the represented set. -/
+theorem mem {m : Nat} {s : Finset Nat} (h : MaxCorrect (some m) s) : m ∈ s := by
+  exact h.1
+
+/-- A cached maximum satisfying `MaxCorrect` bounds every represented key. -/
+theorem le {m y : Nat} {s : Finset Nat} (h : MaxCorrect (some m) s)
+    (hy : y ∈ s) : y ≤ m := by
+  exact h.2 y hy
+
+end MaxCorrect
+
+/-- The CLRS representation invariant for the min/max-augmented recursive tree.
+
+Cached extrema describe the represented set exactly.  At a node, the stored
+minimum is kept outside the clusters, the summary represents exactly the
+nonempty cluster indices, and every recursive component is well formed. -/
+def WellFormed : ∀ {k : Nat}, VEBTreeMM k → Prop
+  | _, .leaf mn mx c0 c1 =>
+      let s := (VEBTreeMM.leaf mn mx c0 c1).toFinset
+      MinCorrect mn s ∧ MaxCorrect mx s
+  | _, @VEBTreeMM.node k mn mx summary clusters =>
+      let s := (VEBTreeMM.node mn mx summary clusters).toFinset
+      MinCorrect mn s ∧
+      MaxCorrect mx s ∧
+      (∀ m, mn = some m → ∀ (hi : Fin (uSize k)) (lo : Nat),
+        lo ∈ (clusters hi).toFinset → index (uSize k) hi.val lo ≠ m) ∧
+      (∀ hi : Fin (uSize k),
+        hi.val ∈ summary.toFinset ↔ (clusters hi).toFinset.Nonempty) ∧
+      WellFormed summary ∧
+      ∀ hi : Fin (uSize k), WellFormed (clusters hi)
+
+namespace WellFormed
+
+/-- A well-formed tree's cached minimum is correct for its represented set. -/
+theorem minCorrect {k : Nat} {v : VEBTreeMM k} (h : WellFormed v) :
+    MinCorrect v.minimum v.toFinset := by
+  cases v <;> exact h.1
+
+/-- A well-formed tree's cached maximum is correct for its represented set. -/
+theorem maxCorrect {k : Nat} {v : VEBTreeMM k} (h : WellFormed v) :
+    MaxCorrect v.maximum v.toFinset := by
+  cases v with
+  | leaf => exact h.2
+  | node => exact h.2.1
+
+/-- A well-formed tree has no cached minimum exactly when it represents no keys. -/
+theorem minimum_none_iff {k : Nat} {v : VEBTreeMM k} (h : WellFormed v) :
+    v.minimum = none ↔ v.toFinset = ∅ :=
+  MinCorrect.none_iff h.minCorrect
+
+/-- A well-formed tree has no cached maximum exactly when it represents no keys. -/
+theorem maximum_none_iff {k : Nat} {v : VEBTreeMM k} (h : WellFormed v) :
+    v.maximum = none ↔ v.toFinset = ∅ :=
+  MaxCorrect.none_iff h.maxCorrect
+
+/-- The cached minimum of a well-formed tree is represented. -/
+theorem minimum_mem {k : Nat} {v : VEBTreeMM k} {m : Nat}
+    (h : WellFormed v) (hm : v.minimum = some m) : m ∈ v.toFinset := by
+  have hc := h.minCorrect
+  rw [hm] at hc
+  exact MinCorrect.mem hc
+
+/-- The cached minimum of a well-formed tree bounds every represented key. -/
+theorem minimum_le {k : Nat} {v : VEBTreeMM k} {m y : Nat}
+    (h : WellFormed v) (hm : v.minimum = some m) (hy : y ∈ v.toFinset) : m ≤ y := by
+  have hc := h.minCorrect
+  rw [hm] at hc
+  exact MinCorrect.le hc hy
+
+/-- The cached maximum of a well-formed tree is represented. -/
+theorem maximum_mem {k : Nat} {v : VEBTreeMM k} {m : Nat}
+    (h : WellFormed v) (hm : v.maximum = some m) : m ∈ v.toFinset := by
+  have hc := h.maxCorrect
+  rw [hm] at hc
+  exact MaxCorrect.mem hc
+
+/-- Every represented key is bounded by the cached maximum of a well-formed tree. -/
+theorem le_maximum {k : Nat} {v : VEBTreeMM k} {m y : Nat}
+    (h : WellFormed v) (hm : v.maximum = some m) (hy : y ∈ v.toFinset) : y ≤ m := by
+  have hc := h.maxCorrect
+  rw [hm] at hc
+  exact MaxCorrect.le hc hy
+
+/-- The stored node minimum is absent from every cluster payload. -/
+theorem node_min_detached {k : Nat} {mn mx : Option Nat} {summary : VEBTreeMM k}
+    {clusters : Fin (uSize k) → VEBTreeMM k}
+    (h : WellFormed (VEBTreeMM.node mn mx summary clusters)) :
+    ∀ m, mn = some m → ∀ (hi : Fin (uSize k)) (lo : Nat),
+      lo ∈ (clusters hi).toFinset → index (uSize k) hi.val lo ≠ m :=
+  h.2.2.1
+
+/-- A node summary represents exactly the indices of nonempty clusters. -/
+theorem node_summary_mem_iff {k : Nat} {mn mx : Option Nat} {summary : VEBTreeMM k}
+    {clusters : Fin (uSize k) → VEBTreeMM k}
+    (h : WellFormed (VEBTreeMM.node mn mx summary clusters))
+    (hi : Fin (uSize k)) :
+    hi.val ∈ summary.toFinset ↔ (clusters hi).toFinset.Nonempty :=
+  h.2.2.2.1 hi
+
+/-- The summary subtree of a well-formed node is well formed. -/
+theorem node_summary {k : Nat} {mn mx : Option Nat} {summary : VEBTreeMM k}
+    {clusters : Fin (uSize k) → VEBTreeMM k}
+    (h : WellFormed (VEBTreeMM.node mn mx summary clusters)) : WellFormed summary :=
+  h.2.2.2.2.1
+
+/-- Every cluster subtree of a well-formed node is well formed. -/
+theorem node_cluster {k : Nat} {mn mx : Option Nat} {summary : VEBTreeMM k}
+    {clusters : Fin (uSize k) → VEBTreeMM k}
+    (h : WellFormed (VEBTreeMM.node mn mx summary clusters))
+    (hi : Fin (uSize k)) : WellFormed (clusters hi) :=
+  h.2.2.2.2.2 hi
+
+/-- Equal cached minimum and maximum force a well-formed tree to represent one key. -/
+theorem toFinset_eq_singleton {k : Nat} {v : VEBTreeMM k} {m : Nat}
+    (h : WellFormed v) (hmin : v.minimum = some m) (hmax : v.maximum = some m) :
+    v.toFinset = {m} := by
+  ext y
+  constructor
+  · intro hy
+    have hmy : m ≤ y := h.minimum_le hmin hy
+    have hym : y ≤ m := h.le_maximum hmax hy
+    simpa [Nat.le_antisymm hym hmy]
+  · intro hy
+    have hym : y = m := by simpa using hy
+    subst y
+    exact h.minimum_mem hmin
+
+end WellFormed
+
+/-- The recursively empty min/max-augmented vEB tree satisfies `WellFormed`. -/
+theorem empty_wellFormed (k : Nat) : WellFormed (empty k) := by
+  induction k with
+  | zero => simp [WellFormed, MinCorrect, MaxCorrect, empty, toFinset]
+  | succ k ih =>
+      simp [WellFormed, MinCorrect, MaxCorrect, empty, toFinset_empty, ih]
+      simpa [empty] using (toFinset_empty (k + 1))
+
   /--
   **Deletion correctness.**  For any key inside the universe, recursive deletion
   refines finite-set deletion: {lit}`(delete x v).toFinset = v.toFinset.erase x`.
