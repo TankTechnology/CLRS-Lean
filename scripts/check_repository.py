@@ -15,7 +15,9 @@ CHECK_SCRIPTS = [
     "scripts/check_progress_csv.py",
     "scripts/check_site_consistency.py",
     "scripts/test_literate_config.py",
+    "scripts/test_literate_navigation.py",
     "scripts/test_optimize_literate_html.py",
+    "scripts/test_check_literate_rendering.py",
 ]
 
 
