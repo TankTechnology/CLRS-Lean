@@ -1,17 +1,26 @@
 import Mathlib
 
 /-!
-# CLRS Section 9.2 - Selection by rank
+# CLRS Section 9.2 - Selection in expected linear time
 
 This file gives the first Chapter 9 correctness interface: a selector returns
 an element with the requested zero-based order statistic.  The implementation is
-the simple specification program obtained by sorting and indexing; randomized
-or deterministic linear-time SELECT can later refine to this interface.
+the simple specification program obtained by sorting and indexing.  The
+randomized and deterministic linear-time SELECT developments refine this
+shared rank-certificate interface.
 
 The public certificate is phrased by counts, so duplicates are handled in the
 usual order-statistic way: if the selected value is {lit}`x`, then at most
 {lit}`k` elements are strictly smaller than {lit}`x`, and more than {lit}`k`
 elements are at most {lit}`x`.
+
+## Expected-time analysis
+
+The uniform-pivot recurrence, fresh per-call stochastic execution, and CLRS
+Theorem 9.2 expected linear comparison bound are proved on a support page that
+remains available outside the main sidebar:
+
+* [Randomized SELECT Expected Time](CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select/)
 -/
 
 namespace CLRS
