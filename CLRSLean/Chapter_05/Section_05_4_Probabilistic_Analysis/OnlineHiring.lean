@@ -140,6 +140,15 @@ theorem hiringStrategy_record {n : ℕ} {k : ℕ}
     (h : hiringStrategy k π = some j) : isRecordAt π j :=
   (hiringStrategy_some_iff.mp h).2.1
 
+/-- Finite success probability of the threshold strategy under the uniform
+distribution on permutations of the candidate positions. -/
+noncomputable def probHireBest (n k : ℕ) : ℝ := by
+  classical
+  exact fintypeExpect fun π : Equiv.Perm (Fin n) =>
+    match hiringStrategy k π with
+    | some i => if isAbsoluteBest π i then 1 else 0
+    | none => 0
+
 end OnlineHiring
 
 end Chapter05
