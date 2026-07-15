@@ -442,24 +442,39 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 - Current gap: none for the current model; mutable-Array operational semantics
   for the shuffle loop remain a future refinement target.
 
-### Section 5.4 - Probabilistic analysis (birthday paradox, balls and bins)
+### Section 5.4 - Probabilistic analysis
 
-- Lean source: `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
-- Status: `proved` for the product-uniform model over `Fin k → Fin n`
+- Lean sources:
+  - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
+  - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring.lean`
+- Status: `proved` for the birthday/balls-and-bins product-uniform model, the
+  longest-streak tail bound, and the executable finite on-line hiring strategy;
+  `partial` for the two headline expectation analyses
 - Main proved theorems:
   - `CLRS.Chapter05.singleBinProb`
   - `CLRS.Chapter05.pairSameProb`
   - `CLRS.Chapter05.expectedCollisions_eq`
   - `CLRS.Chapter05.expectedBallsInBin_eq`
+  - `CLRS.Chapter05.longestStreak_upperBound`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_some_iff`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_none_iff`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_after_observation`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_record`
 - Proof pattern: sample space `Fin k → Fin n` (each coordinate an independent
   uniform draw); re-derive the single-coordinate marginal (`singleBinProb = 1/n`)
   and pairwise-collision probability (`pairSameProb = 1/n`) from the toolkit's
   `fintypeExpect_equiv` / `fintypeExpect_fst` product independence; then linearity
   (`fintypeExpect_sum`) gives the birthday expectation `k(k-1)/(2n)` (CLRS
-  eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10))
-- Current gap: streak main theorem (expected longest run bound) and on-line hiring analysis are deferred
-- New definitions: `CoinFlip` sample space, `hasRunOfLength` (decidable run predicate),
-  `longestStreak` (length via Nat.find)
+  eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10)).  For
+  streaks, finite counting plus a union bound gives
+  `Pr[longestStreak ≥ t] ≤ n / 2^t`.  For on-line hiring, filter record
+  positions after the observation threshold and select their minimum.
+- Executable definitions: `CoinFlip`, `hasRunOfLength`, `longestStreak`,
+  `expectedLongestStreak`, `CLRS.Chapter05.OnlineHiring.hiringStrategy`, and
+  `CLRS.Chapter05.OnlineHiring.probHireBest`
+- Current gaps: prove `expectedLongestStreak n = Θ(log n)` from the streak tail
+  infrastructure; prove the threshold strategy's harmonic success-probability
+  formula and derive the textbook `1/e` asymptotic
 
 ## Chapter 6 - Heapsort
 
