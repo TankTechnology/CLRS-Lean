@@ -8,8 +8,9 @@ import CLRSLean.Chapter_08.Section_08_4_Bucket_Sort
 # Chapter 8 - Sorting in Linear Time
 
 The first Chapter 8 pass focuses on pure correctness for stable linear-time
-sorting primitives, with a first finite-uniform expected-cost interface for the
-bucket-sort second-moment argument.
+sorting primitives, with a finite-uniform expected-cost interface for the
+bucket-sort second-moment argument and its CLRS abstract unit-cost random
+variable.
 
 ## Sections
 
@@ -43,22 +44,23 @@ bucket-sort second-moment argument.
   {lit}`CLRS.Chapter08.radixDigitOrderRespectsKey_of_bounded`, and
   {lit}`CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_bounded`.
 * 8.4 Bucket sort: {lit}`proved` for a deterministic bucket-index model, plus
-  a finite-uniform collision/second-moment interface and abstract linear
-  expected-cost wrapper for the expected-time argument.
+  {lit}`proved-abstract` for the finite-uniform collision/second-moment
+  interface and the CLRS textbook unit-cost random variable.
   Main results:
   {lit}`CLRS.Chapter08.bucketSortBy_correct` and
   {lit}`CLRS.Chapter08.bucketSortByRank_correct`;
   {lit}`CLRS.Chapter08.uniformAverageFin2_collision`,
   {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_eq`,
   {lit}`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`,
-  {lit}`CLRS.Chapter08.expectedBucketSortCost_self_eq`, and
-  {lit}`CLRS.Chapter08.expectedBucketSortCost_linear_bound`.
+  {lit}`CLRS.Chapter08.textbookBucketSortCost`,
+  {lit}`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`,
+  and {lit}`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`.
 
 ## Current Gaps
 
-* Full bucket-sort probabilistic expected-time analysis over an explicit input
-  distribution and independence model; the current expected-cost theorem starts
-  from the already-isolated finite-uniform second-moment expression.
+* The CLRS unit-cost random variable has linear expectation.  Remaining: a
+  single-pass executable bucket builder, a costed per-bucket sorter, and a
+  refinement theorem connecting their execution cost to the abstract model.
 -/
 
 namespace CLRS

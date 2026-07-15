@@ -27,8 +27,13 @@ the detailed maintainer ledger.
   bottom-up {lit}`BUILD-MAX-HEAP`, heapsort, and represented priority-queue
   operation specifications.
 * **Chapter 8 correctness:** represented counting-sort, radix-sort, and
-  bucket-sort correctness.  Imperative output-array and full probabilistic cost
-  semantics remain refinements.
+  bucket-sort correctness.  The CLRS unit-cost bucket-sort random variable is
+  {lit}`CLRS.Chapter08.textbookBucketSortCost`; its expectation identity is
+  {lit}`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`,
+  and {lit}`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO` proves linear
+  expectation.  The remaining bucket-sort layer is a single-pass executable
+  bucket builder, a costed per-bucket sorter, and a refinement theorem
+  connecting their execution cost to the abstract model.
 * **Chapter 9:** pairwise simultaneous extrema, order-statistic correctness,
   fresh-choice RANDOMIZED-SELECT expected comparisons, and end-to-end
   recursive median-of-medians worst-case comparisons.
