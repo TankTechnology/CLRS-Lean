@@ -7,10 +7,11 @@ import CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm
 
 Chapter 25 generalises the single-source shortest-path machinery of Chapter 24
 to the **all-pairs** setting: compute the shortest-path distance for every
-ordered pair of vertices.  The chapter formalises two main families of algorithms:
+ordered pair of vertices.  The chapter formalises three main families of algorithms:
 
 1. Repeated squaring of the min-plus matrix product (Section 25.1, this section).
 2. The Floyd-Warshall algorithm (Section 25.2).
+3. Johnson's sparse-graph algorithm (Section 25.3).
 
 ## Sections
 
@@ -33,6 +34,13 @@ ordered pair of vertices.  The chapter formalises two main families of algorithm
   {lit}`CLRS.Chapter24.WeightedGraph.floydWarshall`,
   {lit}`CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed`.
 
+* 25.3 Johnson's algorithm (`Section_25_3_Johnsons_Algorithm`).
+  Main declarations:
+  {lit}`CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`,
+  {lit}`CLRS.Chapter24.WeightedGraph.reweightedGraph`,
+  {lit}`CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq`,
+  and {lit}`CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`.
+
 ## Current Shape
 
 Section 25.1 defines the edge-weight matrix {lit}`W`, the min-plus matrix product
@@ -50,14 +58,22 @@ Section 25.2 defines the Floyd-Warshall DP recurrence `D` and the
 `floydWarshall` algorithm.  The Θ(V³) work bound is recorded.  The
 correctness proofs (Lemma 25.7 and Theorem 25.8) are deferred.
 
+Section 25.3 defines Johnson's augmented graph and reweighted graph, proves the
+telescoping identity for every walk, and proves edge-weight nonnegativity from
+the potential triangle inequality.  It does not yet construct the Bellman-Ford
+potential, prove shortest-path preservation, or package the repeated Dijkstra
+runs into an end-to-end Johnson correctness theorem.
+
 ## Deferred Work
 
 * Floyd-Warshall correctness: `D_le_simple` and `D_attainable` lemmas.
 * Predecessor matrix {lit}`Π` and path reconstruction.
 * Negative-cycle detection (CLRS Theorem 25.3).
 * Transitive closure (Section 25.2 variant).
-* {lit}`O(n³ log n)` work count refinement (the current proof gives
-  correctness; an explicit cost model is a separate refinement).
+* Johnson's Bellman-Ford potential construction, shortest-path preservation,
+  and end-to-end correctness/work theorem.
+* An explicit {lit}`O(n³ log n)` work-count refinement for repeated squaring;
+  Section 25.1 already proves its mathematical correctness.
 -/
 
 namespace CLRS

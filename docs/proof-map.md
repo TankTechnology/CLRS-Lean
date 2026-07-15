@@ -1477,14 +1477,14 @@ before RAM cost semantics.
   `balLeft`/`balRight` thread the deficit upward while the `app` combinator
   handles the two-child case.  Membership correctness (`inTree_delete_iff`) is
   proved by induction using the BST ordering invariant `Ordered`.
-- Current gap: RedBlackShape preservation through `del` (requires
-  `RB-INSERT`/`RB-INSERT-FIXUP`; the local `RB-DELETE-FIXUP` case rewrites and
-  the terminating Case-4 certificate are proved, but the fully-composed
-  executable `RB-DELETE` loop (threading the doubly-black deficit through
-  Cases 1-3 into Case 4) is not yet mechanized
+- Current gap: `RedBlackShape` preservation through the already executable
+  `del`/`delete` pipeline.  Membership correctness, the logarithmic-height
+  theorem, local `RB-DELETE-FIXUP` case rewrites, and the terminating Case-4
+  certificate are proved; what remains is the global invariant composition
+  while the doubly-black deficit is threaded through the recursive helpers.
 
-The section builds the local invariant library needed before mechanizing the
-full balancing algorithms.
+The section now has the executable deletion algorithm and its key-set
+semantics; the remaining work is the composed shape certificate.
 
 ## Chapter 14 - Augmenting Data Structures
 
@@ -1536,7 +1536,7 @@ full balancing algorithms.
   projection `toRB` makes `insert` refine the Chapter 13 `RBTree.insert`,
   transferring its shape and membership theorems.
 - Current gap: thread the augmentation through executable red-black *deletion*
-  (blocked on the Chapter 13 executable delete loop) and package the final
+  (blocked on Chapter 13's composed deletion-shape certificate) and package the final
   textbook-level general augmentation interface
 
 This first pass captures the core mathematical idea of order-statistic trees:
@@ -1602,7 +1602,7 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   shape and membership theorems.  The `sizeAug` and `maxHighAug` fields are
   recovered as instances of this single interface.
 - Current gap: thread the augmentation through executable red-black *deletion*
-  (blocked on the Chapter 13 executable delete loop).  The stored-augmentation
+  (blocked on Chapter 13's composed deletion-shape certificate).  The stored-augmentation
   refinement through executable `RBTree.insert` is now proved generically.
 
 ## Chapter 15 - Dynamic Programming
@@ -2277,8 +2277,9 @@ mutation proof.
   plus a two-step doubling induction over even indices, a half-index bridge,
   and a conditional binary-log degree budget
 - Current gap: pointer handles, heap-ordered forest/cascading-cut transition
-  system, consolidation arrays, duplicate keys, and the subtree-size induction
-  leading to the true Fibonacci log-degree proof remain strengthening targets.
+  system, consolidation arrays, duplicate keys, and their amortized cost
+  accounting remain strengthening targets.  Section 19.4 separately seals the
+  true Fibonacci logarithmic degree theorem on the concrete rooted-tree model.
 
 Chapter 19 now records the operation-level Fibonacci-heap contracts against an
 abstract finite key set, including empty-heap construction and empty-result
@@ -2295,12 +2296,10 @@ potential function now has zero-initial and nonnegativity facts and is connected
 to the Chapter 17 telescoping theorem, and the Fibonacci lower-bound
 sequence now exposes its local recurrence, positivity, and adjacent
 monotonicity, plus the derived arbitrary-index monotonicity theorem and an
-even-index and half-index power-of-two lower bound.  A conditional
-degree-to-binary-log bridge now packages the arithmetic step that will be used
-once a pointer-forest subtree-size invariant is available.  The current
-maximum-degree theorem is still deliberately conservative for this first pass;
-it bounds the proxy by a key-count budget rather than proving the full
-Fibonacci logarithmic theorem.
+even-index and half-index power-of-two lower bound.  Section 19.4 supplies the
+concrete rooted-tree invariant and closes the true Fibonacci logarithmic degree
+theorem; the abstract finite-set heap still uses a conservative degree budget
+until it is refined to that tree model.
 
 ### Section 19.4 - Bounding the maximum degree
 
@@ -2839,7 +2838,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ## Chapter 24 - Single-Source Shortest Paths
 
-- Chapter status: `selected-section-complete`
+- Chapter status: `partial`
 - Chapter guide: `CLRSLean/Chapter_24.lean`
 
 ### Section 24.1 - The Bellman-Ford algorithm
@@ -2904,7 +2903,8 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 ### Section 24.3 - Dijkstra's algorithm
 
 - Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
-- Status: `proved`
+- Status: `partial` (greedy theorem and loop skeleton proved; final loop
+  correctness pending)
 - Nonnegative-weight layer:
   - `CLRS.Chapter24.WeightedGraph.Nonneg`
   - `CLRS.Chapter24.WeightedGraph.walkWeight_nonneg`
@@ -2912,6 +2912,14 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 - Greedy correctness:
   - `CLRS.Chapter24.WeightedGraph.exists_crossing`
   - `CLRS.Chapter24.WeightedGraph.dijkstra_extractMin_correct` (CLRS Theorem 24.6)
+- Executable state machine:
+  - `CLRS.Chapter24.WeightedGraph.DijkstraState`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraInit`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraStep`
+  - `CLRS.Chapter24.WeightedGraph.DijkstraInvariant`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraStep_invariant`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraLoop`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraLoop_finish`
 - Work bound:
   - `CLRS.Chapter24.WeightedGraph.dijkstraWork`
   - `CLRS.Chapter24.WeightedGraph.dijkstraWork_le_edge_log` (`O(E log V)`)
@@ -2940,11 +2948,13 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Chapter 24 remaining work
 
-- Deferred without a false claim: the executable Dijkstra priority-queue loop
-  threading the settled set and tentative distances (Section 24.3 proves the
-  greedy invariant that makes such a loop correct);
-  per-edge relaxation ordering and
-  mutable/RAM cost accounting for the abstract synchronous model.
+- Core gap: repair the initialization/invariant boundary
+  (`dijkstraInit.S = ∅`, while `DijkstraInvariant.hsS` requires `s ∈ S`), lift
+  the proved step invariant through `dijkstraLoop`, and conclude that the final
+  distance map equals `δ`.  The state, step, loop, step-preservation theorem,
+  and eventual-settlement theorem already exist.
+- Deferred without reopening the mathematical milestone: per-edge relaxation
+  ordering and mutable/RAM cost accounting for the abstract synchronous model.
 
 ## Chapter 25 - All-Pairs Shortest Paths
 
@@ -2953,17 +2963,17 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 - Lean source: `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean`
 - Status: `proved` (under no negative-weight cycles)
 - Main theorems:
-  - `CLRS.Chapter25.AllPairs.weightMatrix` (edge-weight matrix W)
-  - `CLRS.Chapter25.AllPairs.minPlusMul` (min-plus matrix product)
-  - `CLRS.Chapter25.AllPairs.extendShortestPaths` (EXTEND-SHORTEST-PATHS)
-  - `CLRS.Chapter25.AllPairs.L` (inductive distance sequence L^(m))
-  - `CLRS.Chapter25.AllPairs.fasterAPSP` (FASTER-APSP algorithm)
-  - `CLRS.Chapter25.AllPairs.lemma_25_1` (L^(m+1) = min_k (L^m_ik + w_kj))
-  - `CLRS.Chapter25.AllPairs.L_sq_eq_minPlusMul` (Lemma 25.2: L^(2m) = L^m ◁ L^m)
-  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
-  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
+  - `CLRS.Chapter24.WeightedGraph.weightMatrix` (edge-weight matrix W)
+  - `CLRS.Chapter24.WeightedGraph.minPlusMul` (min-plus matrix product)
+  - `CLRS.Chapter24.WeightedGraph.extendShortestPaths` (EXTEND-SHORTEST-PATHS)
+  - `CLRS.Chapter24.WeightedGraph.L` (inductive distance sequence L^(m))
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSP` (FASTER-APSP algorithm)
+  - `CLRS.Chapter24.WeightedGraph.lemma_25_1` (L^(m+1) = min_k (L^m_ik + w_kj))
+  - `CLRS.Chapter24.WeightedGraph.L_sq_eq_minPlusMul` (Lemma 25.2: L^(2m) = L^m ◁ L^m)
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
 - Proof pattern: min-plus algebra, repeated squaring, linking to Ch24's relaxDist for walk properties, fixpoint via monotonicity + attainability
-- Current gap: Floyd-Warshall correctness, predecessor matrix, negative-cycle detection
+- Current gap: none within Section 25.1; the later-section gaps are listed below.
 
 The section builds the all-pairs shortest-path model on the Chapter 24 WeightedGraph
 infrastructure.  The min-plus product and FASTER-APSP are defined, Lemmas 25.1 and
@@ -2982,11 +2992,29 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed` (O(V³) work bound)
 - Current gap: D_le_simple (Lemma 25.7), D_attainable, floydWarshall_correct (Theorem 25.8)
 
+### Section 25.3 - Johnson's Algorithm
+
+- Lean source: `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean`
+- Status: `partial` (reweighting algebra proved; algorithm correctness deferred)
+- Main declarations and theorems:
+  - `CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`
+  - `CLRS.Chapter24.WeightedGraph.no_incoming_to_none_johnsonAugmentedGraph`
+  - `CLRS.Chapter24.WeightedGraph.reweightedWeight`
+  - `CLRS.Chapter24.WeightedGraph.reweightedGraph`
+  - `CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq`
+  - `CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`
+- Current gap: prove the augmented graph preserves absence of negative cycles,
+  construct the Bellman-Ford potential, lift the telescoping identity to
+  shortest-path preservation, and package the repeated Dijkstra runs into the
+  end-to-end Johnson theorem and work bound.
+
 ### Chapter 25 remaining work
 
 - Floyd-Warshall correctness proofs.
 - Predecessor matrix Pi and path reconstruction.
 - Negative-cycle detection (CLRS Theorem 25.3).
+- Johnson's potential construction, shortest-path preservation, and complete
+  algorithm correctness/work theorem.
 
 ## Chapter 26 - Maximum Flow
 
@@ -2997,29 +3025,29 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Model:
   - `CLRS.Chapter26.FlowNetwork` (capacity `c : V → V → ℝ`, source `s`, sink `t`,
     nonnegative capacity, zero self-loops, `s ≠ t`)
-  - `CLRS.Chapter26.FlowNetwork.Flow` (feasible flow with capacity constraint,
+  - `CLRS.Chapter26.Flow` (feasible flow with capacity constraint,
     skew symmetry, and flow conservation)
-  - `CLRS.Chapter26.FlowNetwork.Flow.value` (flow value `|f| = ∑_v f(s,v)`)
+  - `CLRS.Chapter26.Flow.value` (flow value `|f| = ∑_v f(s,v)`)
 - Auxiliary lemmas:
-  - `CLRS.Chapter26.FlowNetwork.Flow.self_zero` (flow on self-loop is zero)
-  - `CLRS.Chapter26.FlowNetwork.Flow.nonneg_of_zero_reverse_cap`
-  - `CLRS.Chapter26.FlowNetwork.Flow.nonpos_of_zero_cap`
-  - `CLRS.Chapter26.FlowNetwork.Flow.range_of_zero_reverse_cap`
-  - `CLRS.Chapter26.FlowNetwork.Flow.add_skew`
+  - `CLRS.Chapter26.Flow.self_zero` (flow on self-loop is zero)
+  - `CLRS.Chapter26.Flow.nonneg_of_zero_reverse_cap`
+  - `CLRS.Chapter26.Flow.nonpos_of_zero_cap`
+  - `CLRS.Chapter26.Flow.range_of_zero_reverse_cap`
+  - `CLRS.Chapter26.Flow.add_skew`
 - Cut lemma:
-  - `CLRS.Chapter26.FlowNetwork.Flow.netFlowAcrossCut` (net flow across `(S,Sᶜ)`)
-  - `CLRS.Chapter26.FlowNetwork.Flow.skew_symm_cancel`
-  - `CLRS.Chapter26.FlowNetwork.Flow.netFlow_eq_value` (**Lemma 26.5**: net flow
+  - `CLRS.Chapter26.Flow.netFlowAcrossCut` (net flow across `(S,Sᶜ)`)
+  - `CLRS.Chapter26.Flow.skew_symm_cancel`
+  - `CLRS.Chapter26.Flow.netFlow_eq_value` (**Lemma 26.5**: net flow
     across any cut equals the flow value)
-  - `CLRS.Chapter26.FlowNetwork.Flow.value_le_cut_capacity` (flow value bounded by any cut capacity)
+  - `CLRS.Chapter26.Flow.value_le_cut_capacity` (flow value bounded by any cut capacity)
 - Residual network:
-  - `CLRS.Chapter26.FlowNetwork.Flow.residualCapacity` (`cf(u,v) = c(u,v) - f(u,v)`)
-  - `CLRS.Chapter26.FlowNetwork.Flow.residualEdge` (positive residual capacity)
-  - `CLRS.Chapter26.FlowNetwork.Flow.augmentingPathReachable` (reachability in the residual network)
-  - `CLRS.Chapter26.FlowNetwork.Flow.hasAugmentingPath` (sink reachable from source)
+  - `CLRS.Chapter26.Flow.residualCapacity` (`cf(u,v) = c(u,v) - f(u,v)`)
+  - `CLRS.Chapter26.Flow.residualEdge` (positive residual capacity)
+  - `CLRS.Chapter26.Flow.augmentingPathReachable` (reachability in the residual network)
+  - `CLRS.Chapter26.Flow.hasAugmentingPath` (sink reachable from source)
 - Ford-Fulkerson correctness:
-  - `CLRS.Chapter26.FlowNetwork.Flow.isMaximal` (maximum flow predicate)
-  - `CLRS.Chapter26.FlowNetwork.Flow.maximal_of_noAugmentingPath` (generic
+  - `CLRS.Chapter26.Flow.isMaximal` (maximum flow predicate)
+  - `CLRS.Chapter26.Flow.maximal_of_noAugmentingPath` (generic
     Ford-Fulkerson: no augmenting path implies maximal flow)
 - Proof pattern: Lemma 26.5 uses skew-symmetry cancellation and conservation to
   equate net cut flow with `|f|`.  The Ford-Fulkerson direction constructs a cut
@@ -3031,7 +3059,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
 - Lean source: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
-- Status: `proved`
+- Status: `partial` (Lemma 26.7 proved; executable algorithm and counting theorem pending)
 - Model:
   - `CLRS.Chapter26.ResidualPathLength` (inductive predicate for path length in the residual network)
   - `CLRS.Chapter26.IsShortestDist` (shortest-path distance in the residual network)
@@ -3054,15 +3082,31 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Current gap: the executable BFS procedure concrete augmenting loop, and the O(VE²)
   running-time bound formalized as an explicit counting argument.
 
+### Section 26.3 - Maximum Bipartite Matching
+
+- Status: `not represented on main`
+- Current gap: define the bipartite-network reduction, connect integral flows
+  to matchings in both directions, and prove maximum matching iff maximum flow.
+
+### Section 26.6 - The Max-Flow Min-Cut Theorem
+
+- Lean source: `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean`
+- Status: `partial`
+- Proved theorem:
+  - `CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`
+    (the easy direction: equality with a cut capacity implies maximality)
+- Current gap: construct a minimum cut from a maximal flow/no residual
+  augmenting path and package the full max-flow/min-cut equivalence.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
 | --- | --- | --- |
-| Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
+| Union-find implementation correctness | `proved` | Chapter 21's executable Batteries union-find and Chapter 23's stateful Kruskal bridge are proved, including the inverse-Ackermann scan bound.  Only low-level mutable-array/RAM constants remain optional. |
 | Chapter 6 tight/RAM costs | `deferred-implementation` | Array heap predicates, recursive `MAX-HEAPIFY`, bottom-up build-heap, in-place heapsort, and priority-queue state correctness are proved.  Costed executions erase to heapify/build/heapsort and satisfy connected coarse `O(n)`, `O(n^2)`, and `O(n^2)` envelopes.  The metric counts heapify frames plus nontrivial extraction transitions, but not build orchestration, guards, list operations, or allocation; tight `O(log n)`, `O(n)`, and `O(n log n)` bounds and RAM refinement remain open. |
-| Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
-| Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
-| Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
+| Chapter 7 mutable-array partition | `proved` | `partitionOnArray` supplies the mutable-Array partition refinement; only optional lower-level RAM accounting remains. |
+| Chapter 7 randomized probability semantics | `partial` | Random-permutation first-choice symmetry and `compared_prob = 2/(j-i+1)` are proved.  The remaining core target is the total-comparison random variable, expectation-sum identity, and `Theta(n log n)` bridge. |
+| Chapter 8 mutable output-array implementation | `proved` | The cumulative-count reverse scan fills a physical `Array`, refines `countingSortBy`, and has a linear work bound. |
 | Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; `expectedBucketQuadraticCost_eq_secondMoment` proves the CLRS second moment as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m`. `textbookBucketSortCost` is the CLRS unit-cost random variable, `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` identifies its true finite-uniform expectation, and `expectedTextbookBucketSortCost_isBigO` proves that expectation is linear. Remaining: a single-pass executable bucket builder, a costed per-bucket sorter, and a refinement theorem connecting their execution cost to the abstract model. |
 | Chapter 9 randomized SELECT expected time | `proved` | `randomizedSelectCostWithSchedule` consumes one occurrence-rank choice per visited state and charges `c * currentLength`, rejecting invalid/exhausted schedules; its erasure theorem connects successful runs to rank-correct SELECT. `randomizedSelectExpectedCostFuel` is a nested conditional-uniform process over the current `Fin n`, and `randomizedSelectExpectedCost_le_randSelectExpectedCost` couples it to the CLRS larger-side majorizer, yielding `randomizedSelectExpectedCost_linear_bound : E[C] ≤ 4 * c * n`. The metric excludes RNG, `selectByRank?` specification sorting, list primitives, and RAM work. |
 | Chapter 9 deterministic linear-time SELECT | `proved` | Selector correctness and totality, five-element certificates, full-input split counts, the `7n/10 + O(1)` branch bound, and the recursively computed median-of-medians pivot are proved. `recursiveMedianOfMediansComparisonCost_linear_bound` composes group work, nested pivot selection, partition scans, and the selected strict branch into the end-to-end bound `≤ 100n`. |
@@ -3075,7 +3119,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
-| Red-black deletion and height | `blocked-design` | Executable insertion is proved; deletion/fixup still needs a case-stable invariant proof, followed by the logarithmic-height theorem. |
+| Red-black deletion shape | `partial` | `height_log_bound`, executable `delete`, exact deletion membership, and local fixup certificates are proved.  The remaining core theorem is `RedBlackShape` preservation through composed `del`/`delete`. |
 | Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |
 | Prim's algorithm | `proved` | `PrimTrace` packages dynamic light-edge choices, and `prim_minimum_spanning_tree` proves the direct finite-graph MST conclusion for a complete certified run. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |
