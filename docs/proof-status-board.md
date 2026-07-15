@@ -5,25 +5,31 @@ status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
 The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
 priorities, not theorem-by-theorem duplication.
 
-Last repository-wide status reconciliation: 2026-07-11.
+Last repository-wide status reconciliation: 2026-07-15.
 
 ## Complete For The Current Scope
 
 | Scope | Completed boundary | Refinements that do not reopen it |
 | --- | --- | --- |
 | Chapter 2 | Insertion sort, merge sort, and represented cost/recurrence results | Full RAM semantics and arbitrary-size merge-sort recurrence |
-| Chapter 5.1 | Hiring probability, harmonic expectation, and logarithmic asymptotic bound | General probability toolkit and other randomized examples |
-| Chapter 6 | Heap predicate, heapify, build-heap, heapsort, and represented priority-queue correctness | Line-by-line RAM costs |
-| Chapter 8 correctness | Represented counting-sort correctness with a mutable output-array (`Array`) refinement filled by a cumulative-count reverse scan and its linear `O(n + k)` work bound, radix-sort, bucket-sort correctness, and the bucket-sort second moment `E[Σ n_i²] = n + n(n-1)/m` as a true expectation over the independent uniform input distribution | RAM/step-count cost semantics |
-| Chapter 9 | Pairwise extrema, rank-correct selection, fresh-choice RANDOMIZED-SELECT with `E[C] ≤ 4n`, and recursive median-of-medians SELECT with complete comparison cost `≤ 100n` | Mutable partition arrays, random-number generator implementation, and RAM accounting |
-| Chapter 10.1-10.2 | Functional stacks, queues, and linked lists | Pointer memory and allocation |
-| Chapter 16.1 and 16.3 | Activity-selection and Huffman optimality | Other greedy sections |
-| Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and stateful Chapter 23 integration |
+| Chapter 3 | Asymptotic wrappers, the standard-function comparison hierarchy, Fibonacci growth, and the iterated logarithm | Exercises and alternative asymptotic packaging |
+| Chapter 4 | Maximum-subarray correctness and execution-attached abstract runtime `Θ(n log n)`, recursive Strassen correctness/runtime, and textbook-facing Master cases 1–3 | Explicit split-tree construction, integer operations, `List` allocation/copying, and RAM semantics |
+| Chapter 5 represented sections | Hiring, indicators, random permutations, birthday collisions, balls-and-bins occupancy, the longest-streak tail bound, and an executable on-line hiring strategy | Expected-longest-streak and on-line hiring asymptotics remain chapter-end Problems |
+| Chapter 6 | Heap predicate, heapify, build-heap, heapsort, represented priority-queue correctness, and costed executions with connected coarse `O(n)`, `O(n²)`, and `O(n²)` envelopes | Tight textbook bounds and List/RAM accounting |
+| Chapter 8 correctness | Represented counting-sort correctness with a mutable output-array (`Array`) refinement and linear `O(n + k)` work bound, radix-sort and bucket-sort correctness, the bucket-sort second moment, and the true linear expected CLRS unit-cost theorem (`expectedTextbookBucketSortCost_isBigO`) | Optional executable bucket-builder and execution-cost refinements |
+| Chapter 9 | Pairwise extrema, rank-correct selection, schedule-driven RANDOMIZED-SELECT with nested conditional-uniform expectation and `E[C] ≤ 4*c*n`, and recursive median-of-medians SELECT with complete comparison cost `≤ 100n` | Random-number generator implementation, List primitives, allocation, and RAM accounting |
+| Chapter 10 represented sections | Functional stacks, queues, linked lists, and the rooted-tree left-child/right-sibling isomorphism | Pointer memory and allocation |
+| Chapter 11 correctness | Direct address, chaining with SUHA true expectations, universal hashing, open addressing, and perfect hashing | Probe-machine/RAM operational semantics |
+| Chapter 12 correctness | Functional BSTs, zipper navigation/transplant, and represented pointer-heap transplant/insert refinements | In-place pointer delete and RAM accounting |
+| Chapter 15 represented sections | Rod cutting, matrix chain, LCS, and optimal BST optimality with executable recurrence/reconstruction layers | Additional mutable-array/RAM refinements |
+| Chapter 16 | Activity selection, greedy meta-theorems, Huffman coding, matroid greedy, and task scheduling | Exercises |
+| Chapter 17 represented sections | Aggregate/accounting/potential methods, stack/counter traces, and dynamic-table amortized analysis | Allocator constants and RAM refinement |
+| Chapter 20 correctness | All seven operations of the recursive cached-min/max vEB model and control-flow-aware `O(log log u)` bounds | Concrete allocation and hardware-level RAM timing |
+| Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and mutable-array refinement |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
 | Chapter 23 correctness and functional implementation | Cut property, unique tree paths, automatic exchange, sorted and stateful Kruskal, concrete indexed-queue Prim, and explicit algorithm-level work bounds | `Batteries.BinaryHeap` array refinement and mutable/RAM write accounting |
-| Chapter 24.1 and 24.3 | Weighted directed-graph model, Bellman-Ford relaxation dynamic program with CLRS Theorem 24.4 correctness/convergence and `O(V·E)` work, and Dijkstra's greedy invariant (CLRS Theorem 24.6) under nonnegative weights with `O(E log V)` work | Executable Dijkstra priority-queue loop, SSSP in DAGs, difference constraints, and per-edge/RAM cost refinement |
 
-Chapters 21-23 are formally sealed by their interface tests and
+Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
 dated closure audits.  Their listed implementation refinements are new layers,
 not missing core theorem groups.
 
@@ -31,24 +37,18 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 3 | CLRS asymptotic wrappers and the complete standard-function comparison table (`1 ≺ log(log n) ≺ log n ≺ n ≺ n^a ≺ 2^n ≺ n!`, plus `log_b` base change) | Iterated logarithm `lg* n` and Fibonacci-number growth |
-| 4 | Maximum subarray, Strassen 2x2, substitution, recursion trees, and textbook-facing Master cases 1-3 | Recursive Strassen and algorithm/RAM refinements |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, plus the random-permutation symmetry lemma (`isFirst_prob`) and pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3) over the shared `Probability.FiniteExpectation` toolkit | End-to-end total-comparison expectation (`expected_comparisons_eq_sum`) and the `Θ(n log n)` asymptotic bridge |
-| 11 | Deterministic hash tables, finite-uniform bucket averages, and the SUHA true-expectation chain-length `α`/unsuccessful-search `1+α` analysis over the explicit independent uniform hashing distribution | Successful-search analysis and a random hash-*function* model |
-| 12 | Functional BST operations plus zipper-based parent navigation, transplant, and deletion equivalence | Imperative in-place pointer mutation and RAM refinement |
-| 13 | Executable red-black insertion, invariant proofs, the logarithmic-height theorem (Lemma 13.1), and local `RB-DELETE-FIXUP` case certificates (membership + terminating Case-4 shape) | Fully-composed executable `RB-DELETE`/`RB-DELETE-FIXUP` loop |
+| 13 | Executable insertion, the logarithmic-height theorem, executable deletion with exact membership correctness, and local delete-fixup certificates | `RedBlackShape` preservation through the composed `del`/`delete` pipeline |
 | 14 | Order-statistic augmentation, the general augmentation theorem (CLRS Theorem 14.1), interval-search correctness, and the size invariant threaded through executable red-black insertion (`OSRBTree.wellSized_insert`, refining Chapter 13 `RBTree.insert` via `toRB_insert`) | Stored-field refinement through executable red-black deletion |
-| 15 | Rod cutting, matrix chain, LCS, and optimal BST optimality with pure executable tables/reconstruction | Mutable-array/memoized refinement and RAM costs |
-| 17 | Aggregate/accounting/potential framework, mutable-array table model, and CLRS load-factor potential (<=3 amortized) | Allocator costs, interleaved insert/delete trace analysis |
-| 18 | Mathematical B-tree search/split/insert/delete specs | Occupancy/depth invariants and page mutation |
-| 19 | Abstract finite-set Fibonacci-heap operation specs and potential facts | Pointer forest, cascading cuts, consolidation, true degree theorem |
-| 20 | vEB arithmetic and finite-set operation specs | Recursive cluster representation and `O(log log u)` bridge |
+| 18 | Mathematical B-tree search/split/insert/delete specs | Separator/occupancy/same-depth invariants and deletion repair |
+| 19 | Finite-set operation specs, potential facts, and the concrete rooted-tree logarithmic degree theorem | Executable heap-forest consolidation/cascading cuts and their amortized costs |
+| 24 | Bellman-Ford, DAG SSSP, Dijkstra greedy theory and state/step/loop skeleton, plus difference constraints | Repair the initialization/invariant boundary and prove final Dijkstra distance correctness |
+| 25 | Correct FASTER-APSP; Floyd-Warshall definitions/work; Johnson reweighting algebra | Floyd-Warshall correctness, path reconstruction/negative cycles, and end-to-end Johnson correctness |
+| 26 | Flow model, generic Ford-Fulkerson maximality direction, MFMC easy direction, and Edmonds-Karp Lemma 26.7 | MFMC converse, executable Edmonds-Karp with `O(VE²)`, and Section 26.3 matching reduction |
 
 ## Not Represented On Main
 
-- Chapters 25-35.
-- Chapter 24 beyond Sections 24.1 and 24.3 (SSSP in DAGs, difference
-  constraints, and the executable Dijkstra loop).
+- Chapters 27-35.
 
 Open branches and pull requests are intentionally excluded until they are
 reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
@@ -57,10 +57,11 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 0 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
-| 1 | Chapter 24 remaining sections | Sections 24.1 (Bellman-Ford) and 24.3 (Dijkstra greedy correctness) are proved; add SSSP in DAGs (24.2), difference constraints (24.4), and the executable Dijkstra priority-queue loop |
-| 2 | Chapter 23 implementation track | Add a stateful costed Kruskal scan using Chapter 21's proved inverse-Ackermann machine bound |
-| 3 | Existing partial implementation layers | Select one concrete pointer, mutable-array, or RAM refinement and finish it end-to-end |
+| 0 | Chapter 24 Dijkstra closure | Align `dijkstraInit` with `DijkstraInvariant`, lift the invariant through `dijkstraLoop`, and prove the final distance map equals `δ` |
+| 1 | Chapter 25 correctness | Prove Floyd-Warshall first; then close Johnson and the predecessor/negative-cycle interfaces |
+| 2 | Chapter 26 correctness | Prove the MFMC converse, then the Edmonds-Karp counting theorem and bipartite-matching reduction |
+| 3 | Chapter 13/14 tree integration | Prove composed red-black deletion shape preservation, then transport augmentation through deletion |
+| 4 | Chapter 7 randomized analysis | Build the total-comparison random variable and expectation-sum bridge |
 
 ## High-Difficulty Queue
 

@@ -45,6 +45,10 @@ def short(text: str, limit: int = 62) -> str:
 
 def build_block() -> str:
     rows = list(csv.DictReader(CSV.open(encoding="utf-8")))
+    represented = [
+        int(r["chapter_no"]) for r in rows if r["repo_status"] != "not-started"
+    ]
+    last_represented = max(represented)
     lines = [
         BEGIN,
         "",
@@ -55,21 +59,28 @@ def build_block() -> str:
     for r in rows:
         ch = int(r["chapter_no"])
         total += int(r["proved_tracked_theorems"])
-        if ch >= 25:
+        if ch > last_represented:
             continue
         status = BADGE.get(r["repo_status"], r["repo_status"])
-        remaining = short(r["remaining_core_groups"])
+        remaining = (
+            "—"
+            if int(r["missing_core_groups"]) == 0
+            else short(r["remaining_core_groups"])
+        )
         lines.append(
             f"| {ch} | {r['chapter_title']} | {status} | "
             f"{r['proved_tracked_theorems']} | {remaining} |"
         )
-    lines.append(
-        "| 25–35 | All-Pairs SP, Max-Flow, … | ⬜ not started | 0 | "
-        "whole chapters (Ch25/26 issues filed) |"
-    )
+    last_chapter = max(int(r["chapter_no"]) for r in rows)
+    if last_represented < last_chapter:
+        lines.append(
+            f"| {last_represented + 1}–{last_chapter} | Remaining chapters | "
+            "⬜ not started | 0 | whole chapters |"
+        )
     lines += [
         "",
-        f"**Total: {total} kernel-checked theorems across Chapters 1–24** "
+        f"**Total: {total} kernel-checked theorems across Chapters "
+        f"1–{last_represented}** "
         "(no `sorry`/`admit`/axiom on `main`).",
         END,
     ]

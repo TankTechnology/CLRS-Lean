@@ -23,6 +23,14 @@ the detailed maintainer ledger.
 
 * **Chapter 2:** insertion sort, merge sort, and the represented cost/recurrence
   wrappers.
+* **Chapter 3:** asymptotic wrappers, the standard-function comparison table,
+  Fibonacci growth, and the iterated logarithm.
+* **Chapter 4:** maximum-subarray correctness, the costed executable midpoint
+  selector with execution-attached scan counts and an all-input
+  {lit}`Theta(n log n)` bound, recursive Strassen correctness/runtime, and
+  the textbook-facing Master cases are proved.  Explicit split-tree
+  construction, integer operations, {lit}`List` allocation/copying, and RAM
+  semantics remain optional lower-level refinements.
 * **Chapter 6:** the current heap predicate, recursive {lit}`MAX-HEAPIFY`,
   bottom-up {lit}`BUILD-MAX-HEAP`, heapsort, and represented priority-queue
   operation specifications.  A costed execution mirrors heapify, build-heap,
@@ -53,61 +61,57 @@ the detailed maintainer ledger.
 * **Chapter 22 correctness:** BFS shortest distances and predecessor tree, DFS
   white-path/timestamp/ancestor/edge-classification theory, Kahn and DFS
   topological sorting, and Kosaraju SCC partition correctness.
-* **Selected complete sections:** Chapter 5.1 hiring, Chapter 10.1-10.2
-  functional elementary structures, and Chapter 16.1/16.3 activity selection
-  and Huffman coding.
+* **Chapter 23 correctness and functional implementation:** canonical exchange,
+  stateful Kruskal, executable indexed-queue Prim, and their algorithm-level
+  work bounds.
+* **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
+  search costs, universal hashing, open addressing, and perfect hashing.
+* **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
+  and the represented pointer-heap transplant/insert refinement.
+* **Chapter 15 represented sections:** rod cutting, matrix chain, LCS, and
+  optimal BST optimality with executable recurrence/reconstruction layers.
+* **Chapter 16:** activity selection, the greedy meta-theorem, Huffman coding,
+  matroid greedy, and task scheduling.
+* **Chapter 17 represented sections:** aggregate, accounting, and potential
+  methods plus stack/counter and dynamic-table amortized analyses.
+* **Chapter 20 correctness:** all seven operations of the recursive cached-
+  extrema vEB model and their control-flow-aware {lit}`O(log log u)` bounds.
+* **Selected complete sections:** Chapter 5.1--5.4 core models and Chapter
+  10.1, 10.2, and 10.4 functional structures.  Chapter 5 also represents the
+  longest-streak tail bound and an executable on-line hiring strategy; their
+  remaining asymptotics are chapter-end Problems.  Pointer/RAM refinements are
+  separate tracks.
 
 ## Structured But Partial
 
-* **Chapter 3:** the asymptotic wrapper and broad standard-function comparison
-  library are proved for the represented table.
-* **Chapter 4:** the exact-power and all-input Master-theorem stack and the
-  textbook-facing case 1, case 2, and regular case 3 scales are proved.
-  Section 4.1 also has a costed executable midpoint maximum-subarray selector:
-  erasure and result correctness, execution-attached exact linear scan counts,
-  its exact mixed floor/ceiling cost recurrence, and an all-input
-  {lit}`Theta(n log n)` abstract control-step bound are proved.
-  This metric excludes explicit split-tree construction, integer-operation
-  costs, {lit}`List` allocation/copying, and RAM semantics; those remain
-  lower-level refinements rather than missing algorithm-level runtime or Master
-  cases.
-* **Chapter 5:** Sections 5.1--5.3 and the birthday/balls-and-bins part of
-  Section 5.4 are proved.  Section 5.4 also has the longest-streak tail bound
-  and an executable on-line threshold hiring strategy with exact selection
-  contracts and a finite success-probability definition.  The expected-longest-
-  streak logarithmic theorem, the hiring success-probability harmonic formula,
-  and its {lit}`1/e` asymptotic remain open.
-* **Chapters 7 and 11:** deterministic correctness and recurrence or finite-
-  average layers exist.  End-to-end randomized expected-time or hashing-model
-  bridges remain central gaps.
-* **Chapters 12-14:** functional BST operations plus a zipper-based
-  parent-navigation/transplant layer, executable red-black insertion,
-  order-statistic augmentation, generic local augmentation facts, and interval-
-  search correctness exist.  Imperative pointer mutation, red-black
-  deletion/height, and integration between balancing and augmentation remain.
-* **Chapter 15:** rod cutting, matrix-chain multiplication, LCS, and optimal BST
-  have mathematical optimality layers and pure executable recurrence or
-  reconstruction results.  Rod cutting additionally has a mutable-array bottom-up
-  table proved to refine the pure recurrence value.  Mutable-array/memoized
-  refinement for the remaining DP sections and explicit RAM costs remain.
-* **Chapters 17-19:** amortized analysis, B-trees, and Fibonacci heaps have
-  substantial mathematical or size-level specifications.  Pointer/page
-  representations and sharper implementation theorems remain.
-* **Chapter 20:** the recursive cached-min/max van Emde Boas model proves all
-  seven operations correct, with constant cached extrema and control-flow-aware
-  `O(log log u)` bounds for the recursive operations.  Concrete pointer/array
-  allocation and hardware-level RAM timing remain a separate implementation
-  refinement.
-* **Chapter 23:** mathematical MST correctness is sealed.  Canonical tree
-  paths generate exchange edges automatically, sorted exact-component Kruskal
-  has an end-to-end optimum wrapper, and complete Prim light-edge traces return
-  minimum spanning trees.  Stateful scans, priority queues, and RAM costs are
-  implementation refinements.
+* **Chapter 7:** functional and mutable-array correctness, comparison
+  recurrences, random-permutation symmetry, and pairwise comparison probability
+  are proved.  The total-comparison random variable and expectation-sum bridge
+  remain.
+* **Chapters 13-14:** executable red-black insertion and deletion membership,
+  the logarithmic-height theorem, order-statistic augmentation, generic local
+  augmentation facts, and interval-search correctness exist.  The central gap
+  is composed deletion shape preservation and then augmentation through it.
+* **Chapters 18-19:** B-trees and Fibonacci heaps have substantial mathematical
+  or size-level specifications.  B-tree structural invariants and the
+  executable Fibonacci-heap forest operations/cost analysis remain central
+  theorem groups.
+* **Chapter 24:** Bellman-Ford, DAG SSSP, Dijkstra's greedy theorem, a concrete
+  state/step/loop skeleton, and difference constraints are represented.  The
+  loop still needs an initialization-to-invariant bridge and final distance-correctness
+  theorem.
+* **Chapter 25:** FASTER-APSP is correct; Floyd-Warshall currently has its
+  recurrence/work wrapper; Johnson currently has reweighting algebra.  Their
+  remaining correctness interfaces are tracked explicitly.
+* **Chapter 26:** the flow model, generic no-augmenting-path maximality,
+  Edmonds-Karp monotonic distance, and one MFMC direction are proved.  The MFMC
+  converse, executable Edmonds-Karp complexity theorem, and Section 26.3 remain.
 
 ## Not Represented On Main
 
-Chapters 24-35 do not currently have represented section modules on
-{lit}`main`.  Open pull requests are not counted until their scope is reviewed,
+Chapters 27-35 do not currently have represented section modules on
+{lit}`main`.  Chapters 24-26 are represented but remain partial as described
+above.  Open pull requests are not counted until their scope is reviewed,
 merged, and added to the progress source.
 
 ## Sealed Chapters 21-23 Boundary
@@ -126,14 +130,15 @@ milestone:
 
 ## Highest-Value Open Proof Groups
 
-1. Build the reusable finite probability/expectation layer and close one
-   randomized theorem end-to-end, starting with Chapter 7 comparison
-   probability and total expectation.
-2. Prove red-black deletion/fixup and the logarithmic-height theorem, then
-   connect balancing to Chapter 14 augmentation.
-3. Open Chapter 24 with a weighted graph model and Bellman-Ford correctness.
-4. Add the concrete cost or imperative refinements that connect existing
-   mathematical theorem interfaces to CLRS pseudocode.
+1. Close Chapter 24 by aligning Dijkstra initialization with its invariant and
+   proving final loop distance correctness.
+2. Prove Floyd-Warshall correctness, then Johnson's end-to-end correctness and
+   the remaining path-reconstruction/negative-cycle interfaces in Chapter 25.
+3. Complete the MFMC converse, Edmonds-Karp counting theorem, and bipartite-
+   matching reduction in Chapter 26.
+4. Prove Chapter 13 deletion shape preservation and transport Chapter 14
+   augmentation through deletion.
+5. Close Chapter 7's total-comparison expectation bridge.
 
 ## Reader Contract
 

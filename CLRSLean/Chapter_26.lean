@@ -14,13 +14,13 @@ method.
 * 26.1 Flow networks.
   Main declarations:
   {lit}`CLRS.Chapter26.FlowNetwork`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.value`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.netFlow_eq_value`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.residualCapacity`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.residualEdge`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.augmentingPathReachable`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.maximal_of_noAugmentingPath`.
+  {lit}`CLRS.Chapter26.Flow`,
+  {lit}`CLRS.Chapter26.Flow.value`,
+  {lit}`CLRS.Chapter26.Flow.netFlow_eq_value`,
+  {lit}`CLRS.Chapter26.Flow.residualCapacity`,
+  {lit}`CLRS.Chapter26.Flow.residualEdge`,
+  {lit}`CLRS.Chapter26.Flow.augmentingPathReachable`,
+  {lit}`CLRS.Chapter26.Flow.maximal_of_noAugmentingPath`.
 
 * 26.2 Edmonds-Karp algorithm.
   Main declarations:
@@ -28,6 +28,10 @@ method.
   {lit}`CLRS.Chapter26.IsShortestDist`,
   {lit}`CLRS.Chapter26.ShortestAugmentingPath`,
   {lit}`CLRS.Chapter26.shortest_path_nondec`.
+
+* 26.3 Maximum bipartite matching.
+  No section module is present on {lit}`main`; the flow reduction and its
+  correctness remain a tracked core gap.
 
 * 26.6 Max-Flow Min-Cut Theorem.
   Main declarations:
@@ -56,7 +60,10 @@ full three-condition equivalence are deferred.
 ## Deferred Work
 
 * The converse (and constructive) direction of the Max-Flow Min-Cut Theorem.
-* The executable BFS procedure and concrete Edmonds-Karp augmenting loop.
+* The executable BFS procedure, concrete Edmonds-Karp augmenting loop, and the
+  augmentation-count/{lit}`O(VE²)` theorem built from Lemma 26.7.
+* Section 26.3's bipartite-matching reduction, integrality bridge, and final
+  matching/flow equivalence.
 -/
 
 namespace CLRS
