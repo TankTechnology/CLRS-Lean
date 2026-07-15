@@ -150,11 +150,11 @@ theorem arrayHeapSortStepWithCost_cost_le_heapSize
     (arrayHeapSortStepWithCost a heapSize).2 ≤ heapSize := by
   cases heapSize with
   | zero =>
-      rfl
+      simp [arrayHeapSortStepWithCost]
   | succ heapSize =>
       cases heapSize with
       | zero =>
-          rfl
+          simp [arrayHeapSortStepWithCost]
       | succ newHeapSize =>
           have hheapify := maxHeapifyFuelWithCost_cost_le_fuel
             (newHeapSize + 1) (swapAt a 0 (newHeapSize + 1))
@@ -242,6 +242,113 @@ theorem arrayHeapSortInPlaceWithCost_result (xs : List Nat) :
   unfold arrayHeapSortInPlaceWithCost arrayHeapSortInPlace
   rw [arrayHeapSortInPlaceLoopWithCost_result,
     arrayBuildMaxHeapWithCost_result]
+
+/-! ## Concrete control-step envelopes -/
+
+/-- Linear envelope for the visited frames of one fuelled heapify run. -/
+def maxHeapifyControlBound (n : Nat) : Nat := n
+
+/-- Coarse quadratic envelope for bottom-up heap construction. -/
+def buildMaxHeapControlBound (n : Nat) : Nat := n * n
+
+/-- Coarse quadratic envelope for heap construction plus all extraction steps. -/
+def heapSortControlBound (n : Nat) : Nat := 2 * n * n + n
+
+/-- The fuel bound on heapify is exactly its named linear envelope. -/
+theorem maxHeapifyFuelWithCost_cost_le_controlBound
+    (fuel : Nat) (a : List Nat) (heapSize i : Nat) :
+    (maxHeapifyFuelWithCost fuel a heapSize i).2 ≤
+      maxHeapifyControlBound fuel := by
+  simpa [maxHeapifyControlBound] using
+    maxHeapifyFuelWithCost_cost_le_fuel fuel a heapSize i
+
+/-- A costed bottom-up build is bounded by the named quadratic envelope. -/
+theorem arrayBuildMaxHeapWithCost_cost_le (xs : List Nat) :
+    (arrayBuildMaxHeapWithCost xs).2 ≤
+      buildMaxHeapControlBound xs.length := by
+  unfold arrayBuildMaxHeapWithCost buildMaxHeapControlBound
+  exact (buildMaxHeapLoopWithCost_cost_le
+    (xs.length / 2) xs xs.length).trans
+      (Nat.mul_le_mul_right xs.length (Nat.div_le_self xs.length 2))
+
+/-- A full costed heapsort run is bounded by the named quadratic envelope. -/
+theorem arrayHeapSortInPlaceWithCost_cost_le (xs : List Nat) :
+    (arrayHeapSortInPlaceWithCost xs).2 ≤ heapSortControlBound xs.length := by
+  let built := arrayBuildMaxHeapWithCost xs
+  have hbuiltLength : built.1.length = xs.length := by
+    rw [show built.1 = arrayBuildMaxHeap xs by
+      simpa [built] using arrayBuildMaxHeapWithCost_result xs]
+    exact (arrayBuildMaxHeap_correct xs).2.2
+  have hbuild : built.2 ≤ xs.length * xs.length := by
+    simpa [built, buildMaxHeapControlBound] using
+      arrayBuildMaxHeapWithCost_cost_le xs
+  have hloopRaw := arrayHeapSortInPlaceLoopWithCost_cost_le
+    (built.1.length - 1) built.1 built.1.length
+  have hloop :
+      (arrayHeapSortInPlaceLoopWithCost
+        (built.1.length - 1) built.1 built.1.length).2 ≤
+        xs.length * (xs.length + 1) := by
+    calc
+      (arrayHeapSortInPlaceLoopWithCost
+          (built.1.length - 1) built.1 built.1.length).2 ≤
+          (built.1.length - 1) * (built.1.length + 1) := hloopRaw
+      _ = (xs.length - 1) * (xs.length + 1) := by rw [hbuiltLength]
+      _ ≤ xs.length * (xs.length + 1) :=
+        Nat.mul_le_mul_right (xs.length + 1) (Nat.sub_le xs.length 1)
+  unfold arrayHeapSortInPlaceWithCost
+  change built.2 +
+      (arrayHeapSortInPlaceLoopWithCost
+        (built.1.length - 1) built.1 built.1.length).2 ≤
+      heapSortControlBound xs.length
+  calc
+    built.2 +
+        (arrayHeapSortInPlaceLoopWithCost
+          (built.1.length - 1) built.1 built.1.length).2 ≤
+        xs.length * xs.length + xs.length * (xs.length + 1) :=
+      Nat.add_le_add hbuild hloop
+    _ = heapSortControlBound xs.length := by
+      unfold heapSortControlBound
+      ring
+
+/-- The costed run is a sorted permutation and satisfies its concrete envelope. -/
+theorem arrayHeapSortInPlaceWithCost_correct_and_cost (xs : List Nat) :
+    OrderedAsc (arrayHeapSortInPlaceWithCost xs).1 ∧
+      (arrayHeapSortInPlaceWithCost xs).1.Perm xs ∧
+      (arrayHeapSortInPlaceWithCost xs).2 ≤ heapSortControlBound xs.length := by
+  rw [arrayHeapSortInPlaceWithCost_result]
+  exact ⟨arrayHeapSortInPlace_orderedAsc xs,
+    arrayHeapSortInPlace_perm xs, arrayHeapSortInPlaceWithCost_cost_le xs⟩
+
+/-! ## Honest asymptotic wrappers for the coarse envelopes -/
+
+/-- The linear heapify control envelope is `O(n)`. -/
+theorem maxHeapifyControlBound_isBigO_n :
+    isBigO (fun n : Nat => (maxHeapifyControlBound n : ℝ))
+      (fun n : Nat => (n : ℝ)) := by
+  rw [isBigO_iff]
+  refine ⟨1, by norm_num, 1, fun n _ => ?_⟩
+  simp [maxHeapifyControlBound]
+
+/-- The coarse build-heap control envelope is `O(n²)`. -/
+theorem buildMaxHeapControlBound_isBigO_nsq :
+    isBigO (fun n : Nat => (buildMaxHeapControlBound n : ℝ))
+      (fun n : Nat => (n : ℝ) * n) := by
+  rw [isBigO_iff]
+  refine ⟨1, by norm_num, 1, fun n _ => ?_⟩
+  simp [buildMaxHeapControlBound, Nat.cast_mul]
+
+/-- The coarse heapsort control envelope is `O(n²)`. -/
+theorem heapSortControlBound_isBigO_nsq :
+    isBigO (fun n : Nat => (heapSortControlBound n : ℝ))
+      (fun n : Nat => (n : ℝ) * n) := by
+  rw [isBigO_iff]
+  refine ⟨3, by norm_num, 1, fun n hn => ?_⟩
+  simp only [heapSortControlBound, Nat.cast_add, Nat.cast_mul,
+    Nat.cast_ofNat]
+  rw [abs_of_nonneg (by positivity), abs_of_nonneg (by positivity)]
+  have hnReal : (1 : ℝ) ≤ n := by exact_mod_cast hn
+  have hnNonneg : (0 : ℝ) ≤ n := by positivity
+  nlinarith [mul_nonneg hnNonneg (sub_nonneg.mpr hnReal)]
 
 end Chapter06
 end CLRS
