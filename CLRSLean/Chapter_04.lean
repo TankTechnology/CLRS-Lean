@@ -12,10 +12,10 @@ Chapter 4 has several good Lean targets.  The current first pass contains both
 an algorithmic specification for the maximum-subarray problem and the recurrence
 proof infrastructure used by later divide-and-conquer analyses.  Sections 4.3
 and 4.4 provide the proof-method infrastructure used by the Master-method file
-and by future divide-and-conquer runtime proofs.
+and by the executable maximum-subarray and Strassen runtime proofs.
 
-* Section 4.1 - The maximum-subarray problem: {lit}`proved` for the current
-  functional correctness model.
+* Section 4.1 - The maximum-subarray problem: {lit}`proved` for functional
+  correctness and the executable abstract control-step runtime.
   The file proves that the candidate enumerator contains exactly the nonempty
   contiguous subarrays, and that {lit}`maxSubarray` returns a candidate with
   maximum sum.  It also proves that {lit}`maxCrossingSubarray` returns a
@@ -23,10 +23,18 @@ and by future divide-and-conquer runtime proofs.
   {lit}`subarray_append_left_or_right_or_crossing` and
   {lit}`subarray_append_optimal_of_cases` provide the proof interface for the
   recursive combine step, and {lit}`maxSubarrayDivideStep_correct` proves the
-  executable combine step itself.  The recursive layer is captured by
-  {lit}`maxSubarrayDivideTree_correct` for explicit split trees and
-  {lit}`maxSubarrayDivideFuel_correct` for a fuelled midpoint splitter.  The
-  remaining refinement target is runtime/RAM-cost analysis.
+  executable combine step itself.  The executable midpoint layer uses
+  {lit}`maxPrefixLinear_result_correct`,
+  {lit}`maxSuffixLinear_result_correct`, and
+  {lit}`maxCrossingSubarrayLinear_result_correct` to avoid exhaustive search at
+  recursive nodes.  {lit}`maxSubarrayDivideCosted_result` erases the attached
+  cost, {lit}`maxSubarrayDivideCosted_correct` proves the returned candidate,
+  and {lit}`maxSubarrayDivideCosted_cost_eq` plus
+  {lit}`maxSubarrayDivideCost_unfold` connect the measured run to its actual
+  mixed floor/ceiling recurrence.  Finally,
+  {lit}`maxSubarrayDivideCost_isBigTheta_nlogn` proves the all-input
+  {lit}`Theta(n log n)` bound.  The remaining refinement target is a
+  lower-level list-allocation/integer-operation/RAM cost model.
 * Section 4.2 - Strassen's algorithm for matrix multiplication:
   {lit}`proved` for 2 by 2 block algebra, the recursive algorithm, and runtime.
   The file proves {lit}`CLRS.Chapter04.strassen2x2_correct`: Strassen's seven
@@ -77,8 +85,9 @@ and by future divide-and-conquer runtime proofs.
   case-2 scale is {lit}`Θ(n^(log_b a) log n)`, and the named exact/floor/
   ceiling case-2 wrappers expose that textbook scale directly.  The case-3
   regularity bridge connects the discrete tail-dominated scale to the textbook
-  forcing function.  The remaining chapter work is recursive Strassen and
-  selected runtime/RAM refinements, not a missing Master case.
+  forcing function.  The remaining chapter work is lower-level representation
+  and RAM refinement, not recursive Strassen, maximum-subarray algorithm-level
+  runtime, or a missing Master case.
 -/
 
 namespace CLRS

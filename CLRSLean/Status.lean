@@ -59,11 +59,17 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapters 3-4:** the asymptotic wrapper, broad standard-function library,
-  exact-power and all-input Master-theorem stack, and textbook-facing case 1,
-  case 2, and regular case 3 comparison scales are proved.  The remaining work
-  is table completion and algorithm/runtime refinement, not the core Master
-  case-3 bridge.
+* **Chapter 3:** the asymptotic wrapper and broad standard-function comparison
+  library are proved for the represented table.
+* **Chapter 4:** the exact-power and all-input Master-theorem stack and the
+  textbook-facing case 1, case 2, and regular case 3 scales are proved.
+  Section 4.1 also has a costed executable midpoint maximum-subarray selector:
+  erasure and result correctness, its exact mixed floor/ceiling cost recurrence,
+  and an all-input {lit}`Theta(n log n)` abstract control-step bound are proved.
+  This metric excludes explicit split-tree construction, integer-operation
+  costs, {lit}`List` allocation/copying, and RAM semantics; those remain
+  lower-level refinements rather than missing algorithm-level runtime or Master
+  cases.
 * **Chapter 5:** Sections 5.1--5.3 and the birthday/balls-and-bins part of
   Section 5.4 are proved.  Section 5.4 also has the longest-streak tail bound
   and an executable on-line threshold hiring strategy with exact selection

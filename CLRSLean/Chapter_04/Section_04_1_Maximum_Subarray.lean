@@ -11,8 +11,9 @@ subarrays, and choose a candidate with maximum sum.
 
 The first executable selector is an exhaustive finite search, which gives a
 clean specification.  The file then builds the CLRS divide-and-conquer proof
-layers on top of that specification: the crossing helper, the executable
-combine step, and a structurally recursive selector over explicit split trees.
+layers on top of that specification: linear prefix, suffix, and crossing
+scans; a structurally recursive selector over midpoint split trees with unit
+leaves; and an execution-attached abstract control-step cost.
 
 Main results:
 
@@ -26,6 +27,10 @@ Main results:
   maximum-sum candidate among all candidates crossing a split.
 - Theorem {lit}`maxCrossingSubarray_isNonemptySubarray_append`: the crossing
   helper returns a valid nonempty subarray of the concatenated input.
+- Theorems {lit}`maxPrefixLinear_result_correct`,
+  {lit}`maxSuffixLinear_result_correct`, and
+  {lit}`maxCrossingSubarrayLinear_result_correct`: the linear scans return
+  optimal prefix, suffix, and crossing candidates.
 - Theorem {lit}`subarray_append_left_or_right_or_crossing`: every nonempty
   subarray of {lit}`left ++ right` is left-only, right-only, or crossing.
 - Theorem {lit}`subarray_append_optimal_of_cases`: a candidate that dominates
@@ -39,6 +44,14 @@ Main results:
 - Theorem {lit}`maxSubarrayDivideFuel_correct`: a fuelled midpoint splitter
   gives an executable divide-and-conquer selector with the same correctness
   contract.
+- Theorems {lit}`maxSubarrayDivideCosted_result` and
+  {lit}`maxSubarrayDivideCosted_correct`: erasing the measured cost recovers
+  the midpoint execution, whose result is a maximum subarray.
+- Theorems {lit}`maxSubarrayDivideCosted_cost_eq` and
+  {lit}`maxSubarrayDivideCost_unfold`: the measured cost depends only on input
+  length and follows the actual floor/ceiling midpoint recurrence.
+- Theorem {lit}`maxSubarrayDivideCost_isBigTheta_nlogn`: that executable
+  control-step cost is {lit}`Theta(n log n)` on all natural input lengths.
 - Theorem {lit}`maxSubarray_exists_of_ne_nil`: nonempty inputs have a selected
   maximum-subarray candidate.
 - Theorem {lit}`maxSubarray_correct`: the executable maximum-subarray selector
@@ -47,9 +60,10 @@ Main results:
 
 Current gaps:
 
-- The recursive divide-and-conquer correctness theorem is proved for an
-  explicit/fuelled split model.  Runtime and RAM-cost analysis are future
-  strengthening targets.
+- The proved metric counts recursive frames, linear scan transitions, and
+  constant-size candidate choices.  It does not charge explicit split-tree
+  construction, integer-operation costs, Lean {lit}`List` allocation/copying,
+  or garbage collection; a full imperative/RAM refinement remains open.
 -/
 
 namespace CLRS
