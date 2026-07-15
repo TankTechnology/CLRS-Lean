@@ -10,20 +10,21 @@ the algorithm must decide immediately whether to hire the current candidate and
 stop, or to continue.  The goal is to maximize the probability of hiring the
 **best** candidate.
 
-The optimal strategy (CLRS p. 139): interview the first {lit}`k` applicants
-without hiring (the *observation phase*), then hire the first applicant who is
-better than every applicant seen so far.  For {lit}`k = n/e` the probability of
-hiring the best candidate approaches {lit}`1/e`.
+The threshold strategy interviews the first {lit}`k` applicants without hiring
+(the *observation phase*), then hires the first applicant who is better than
+every applicant seen so far.
 
-**Status:** Definitions are in place; the probability formula
-{lit}`Pr[hire best] = (k/n)·(H_{n-1} - H_{k-1})` and the asymptotic
-{lit}`1/e` bound are **deferred** to a future refinement.
+**Status:** The finite record-selection strategy is executable and comes with
+exact {lit}`some` and {lit}`none` contracts.  The harmonic closed form for its
+success probability and the asymptotic {lit}`1/e` result are **deferred**.
 -/
 
 namespace CLRS
 namespace Chapter05
 
 open CLRS.Probability
+
+namespace OnlineHiring
 
 /-! ## Model
 
@@ -37,30 +38,109 @@ The absolute best candidate: the one mapped to {lit}`0` (smallest score) by
 the permutation.
 -/
 def isAbsoluteBest {n : ℕ} (π : Equiv.Perm (Fin n)) (i : Fin n) : Prop :=
-  π i = 0
+  (π i).val = 0
 
 /--
-The {lit}`k`-threshold hiring strategy (specification).  Interview the first
-{lit}`k` candidates without hiring, then hire the first candidate whose score
-is smaller than all previous scores (i.e., the first best-so-far after
-position {lit}`k`).
-
-The implementation as a computable function over {lit}`Fin n` positions is
-deferred; the probability analysis is deferred.
+Candidate {lit}`j` is a record when its score is better (numerically smaller)
+than every earlier candidate's score.
 -/
-def hiringStrategy {n : ℕ} (k : Fin n) (π : Equiv.Perm (Fin n)) : Option (Fin n) :=
-  -- Deferred: return the first position j ≥ k such that π j = min_{i ≤ j} π i
-  none
+def isRecordAt {n : ℕ} (π : Equiv.Perm (Fin n)) (j : Fin n) : Prop :=
+  ∀ i : Fin n, i.val < j.val → (π j).val < (π i).val
+
+instance {n : ℕ} (π : Equiv.Perm (Fin n)) (j : Fin n) :
+    Decidable (isRecordAt π j) := by
+  unfold isRecordAt
+  infer_instance
 
 /--
-Probability that the threshold-{lit}`k` strategy hires the absolute best
-candidate, over the uniform random permutation of {lit}`Fin n`.
+The record positions at or after the natural-number observation threshold.
 -/
-noncomputable def probHireBest (n : ℕ) (k : Fin n) : ℝ :=
-  fintypeExpect (fun π : Equiv.Perm (Fin n) =>
-    indicator (match hiringStrategy k π with
-    | some i => isAbsoluteBest π i
-    | none => False))
+def eligiblePositions {n : ℕ} (k : ℕ)
+    (π : Equiv.Perm (Fin n)) : Finset (Fin n) :=
+  Finset.univ.filter fun j => k ≤ j.val ∧ isRecordAt π j
+
+/-- The executable threshold strategy selects the earliest eligible record. -/
+def hiringStrategy {n : ℕ} (k : ℕ)
+    (π : Equiv.Perm (Fin n)) : Option (Fin n) :=
+  let eligible := eligiblePositions k π
+  if h : eligible.Nonempty then some (eligible.min' h) else none
+
+/-- Membership in the executable candidate set is exactly the threshold and
+record condition. -/
+theorem mem_eligiblePositions_iff {n : ℕ} {k : ℕ}
+    {π : Equiv.Perm (Fin n)} {j : Fin n} :
+    j ∈ eligiblePositions k π ↔ k ≤ j.val ∧ isRecordAt π j := by
+  simp [eligiblePositions]
+
+/-- Exact contract for a successful threshold selection: the returned
+position is an eligible record and is no later than any other eligible record.
+-/
+theorem hiringStrategy_some_iff {n : ℕ} {k : ℕ}
+    {π : Equiv.Perm (Fin n)} {j : Fin n} :
+    hiringStrategy k π = some j ↔
+      k ≤ j.val ∧ isRecordAt π j ∧
+        ∀ i : Fin n, k ≤ i.val → isRecordAt π i → j ≤ i := by
+  classical
+  unfold hiringStrategy
+  dsimp only
+  split_ifs with hne
+  · constructor
+    · intro h
+      have hj : (eligiblePositions k π).min' hne = j := Option.some.inj h
+      subst j
+      have hmem : (eligiblePositions k π).min' hne ∈ eligiblePositions k π :=
+        Finset.min'_mem _ hne
+      have helig := mem_eligiblePositions_iff.mp hmem
+      refine ⟨helig.1, helig.2, ?_⟩
+      intro i hi hrecord
+      exact Finset.min'_le _ i (mem_eligiblePositions_iff.mpr ⟨hi, hrecord⟩)
+    · rintro ⟨hj, hrecord, hleast⟩
+      apply congrArg some
+      apply le_antisymm
+      · exact Finset.min'_le _ j (mem_eligiblePositions_iff.mpr ⟨hj, hrecord⟩)
+      · have hminmem :
+            (eligiblePositions k π).min' hne ∈ eligiblePositions k π :=
+          Finset.min'_mem _ hne
+        have hmin := mem_eligiblePositions_iff.mp hminmem
+        exact hleast _ hmin.1 hmin.2
+  · constructor
+    · intro h
+      simp at h
+    · rintro ⟨hj, hrecord, _⟩
+      exact False.elim (hne ⟨j, mem_eligiblePositions_iff.mpr ⟨hj, hrecord⟩⟩)
+
+/-- Exact contract for failure: there is no record position at or after the
+observation threshold. -/
+theorem hiringStrategy_none_iff {n : ℕ} {k : ℕ}
+    {π : Equiv.Perm (Fin n)} :
+    hiringStrategy k π = none ↔
+      ∀ j : Fin n, k ≤ j.val → ¬ isRecordAt π j := by
+  classical
+  constructor
+  · intro hnone j hj hrecord
+    have hne : (eligiblePositions k π).Nonempty :=
+      ⟨j, mem_eligiblePositions_iff.mpr ⟨hj, hrecord⟩⟩
+    simp [hiringStrategy, hne] at hnone
+  · intro hnone
+    have hempty : ¬ (eligiblePositions k π).Nonempty := by
+      rintro ⟨j, hjmem⟩
+      have hj := mem_eligiblePositions_iff.mp hjmem
+      exact hnone j hj.1 hj.2
+    simp [hiringStrategy, hempty]
+
+/-- A successful hire occurs at or after the observation threshold. -/
+theorem hiringStrategy_after_observation {n : ℕ} {k : ℕ}
+    {π : Equiv.Perm (Fin n)} {j : Fin n}
+    (h : hiringStrategy k π = some j) : k ≤ j.val :=
+  (hiringStrategy_some_iff.mp h).1
+
+/-- A successfully hired candidate is a record at their interview position. -/
+theorem hiringStrategy_record {n : ℕ} {k : ℕ}
+    {π : Equiv.Perm (Fin n)} {j : Fin n}
+    (h : hiringStrategy k π = some j) : isRecordAt π j :=
+  (hiringStrategy_some_iff.mp h).2.1
+
+end OnlineHiring
 
 end Chapter05
 end CLRS
