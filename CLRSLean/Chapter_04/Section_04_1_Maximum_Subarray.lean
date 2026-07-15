@@ -524,6 +524,9 @@ theorem maxCrossingSubarray_isNonemptySubarray_append {left right best : List In
 /-- A running prefix sum paired with the length of the represented prefix. -/
 abbrev PrefixScore := Int × Nat
 
+/-- An executable subarray candidate paired with its cached sum. -/
+abbrev ScoredSubarray := List Int × Int
+
 /--
 Build all running prefix sums in one traversal.  The accumulator stores the
 sum and length of the input consumed before the current list.
@@ -824,6 +827,124 @@ theorem maxCrossingSubarrayLinear_result_correct (left right : List Int) :
             have hpreLe := hprefix.2 pre hpre
             simp only [subarraySum, List.sum_append] at hsufLe hpreLe ⊢
             omega
+
+/-! ### Cached-score execution interface -/
+
+/-- The linear prefix scan together with the selected prefix's cached sum. -/
+def maxPrefixLinearScored (xs : List Int) : Option ScoredSubarray :=
+  match bestPrefixScore (prefixScores xs) with
+  | none => none
+  | some best => some (xs.take best.2, best.1)
+
+/-- Erasing the cached sum recovers the public linear prefix selector. -/
+theorem maxPrefixLinearScored_result (xs : List Int) :
+    (maxPrefixLinearScored xs).map Prod.fst = maxPrefixLinear xs := by
+  unfold maxPrefixLinearScored maxPrefixLinear
+  cases bestPrefixScore (prefixScores xs) <;> rfl
+
+/-- The cached prefix score equals the sum of the returned prefix. -/
+theorem maxPrefixLinearScored_sum (xs : List Int) :
+    match maxPrefixLinearScored xs with
+    | none => True
+    | some best => best.2 = subarraySum best.1 := by
+  unfold maxPrefixLinearScored
+  cases hscore : bestPrefixScore (prefixScores xs) with
+  | none => trivial
+  | some bestScore =>
+      rcases bestPrefixScore_correct hscore with ⟨hmem, _⟩
+      rcases mem_prefixScores_iff.mp hmem with
+        ⟨best, hprefix, hsum, hlen⟩
+      have htake : xs.take bestScore.2 = best := by
+        rcases hprefix with ⟨_, rest, hxs⟩
+        rw [hlen, hxs]
+        simp
+      change bestScore.1 = subarraySum (xs.take bestScore.2)
+      rw [htake]
+      exact hsum
+
+/-- The linear suffix scan together with the selected suffix's cached sum. -/
+def maxSuffixLinearScored (xs : List Int) : Option ScoredSubarray :=
+  (maxPrefixLinearScored xs.reverse).map
+    (fun best => (best.1.reverse, best.2))
+
+/-- Erasing the cached sum recovers the public linear suffix selector. -/
+theorem maxSuffixLinearScored_result (xs : List Int) :
+    (maxSuffixLinearScored xs).map Prod.fst = maxSuffixLinear xs := by
+  unfold maxSuffixLinearScored maxSuffixLinear
+  rw [← maxPrefixLinearScored_result xs.reverse]
+  cases maxPrefixLinearScored xs.reverse <;> rfl
+
+/-- The cached suffix score equals the sum of the returned suffix. -/
+theorem maxSuffixLinearScored_sum (xs : List Int) :
+    match maxSuffixLinearScored xs with
+    | none => True
+    | some best => best.2 = subarraySum best.1 := by
+  have hsum := maxPrefixLinearScored_sum xs.reverse
+  cases hprefix : maxPrefixLinearScored xs.reverse with
+  | none =>
+      simp [maxSuffixLinearScored, hprefix]
+  | some best =>
+      rw [hprefix] at hsum
+      simp only [maxSuffixLinearScored, hprefix, Option.map_some]
+      change best.2 = subarraySum best.1.reverse
+      simpa [subarraySum_reverse] using hsum
+
+/-- The linear crossing scan together with its cached sum. -/
+def maxCrossingSubarrayLinearScored
+    (left right : List Int) : Option ScoredSubarray :=
+  match maxSuffixLinearScored left, maxPrefixLinearScored right with
+  | some suf, some pre => some (suf.1 ++ pre.1, suf.2 + pre.2)
+  | _, _ => none
+
+/-- Erasing the cached sum recovers the public linear crossing selector. -/
+theorem maxCrossingSubarrayLinearScored_result (left right : List Int) :
+    (maxCrossingSubarrayLinearScored left right).map Prod.fst =
+      maxCrossingSubarrayLinear left right := by
+  unfold maxCrossingSubarrayLinearScored maxCrossingSubarrayLinear
+  rw [← maxSuffixLinearScored_result left,
+    ← maxPrefixLinearScored_result right]
+  cases maxSuffixLinearScored left <;>
+    cases maxPrefixLinearScored right <;> rfl
+
+/-- The cached crossing score equals the sum of the returned crossing subarray. -/
+theorem maxCrossingSubarrayLinearScored_sum (left right : List Int) :
+    match maxCrossingSubarrayLinearScored left right with
+    | none => True
+    | some best => best.2 = subarraySum best.1 := by
+  have hsuffix := maxSuffixLinearScored_sum left
+  have hprefix := maxPrefixLinearScored_sum right
+  cases hs : maxSuffixLinearScored left <;>
+    cases hp : maxPrefixLinearScored right <;>
+      simp_all [maxCrossingSubarrayLinearScored, subarraySum, List.sum_append]
+
+/-- Strong crossing contract for the cached-score execution. -/
+theorem maxCrossingSubarrayLinearScored_result_correct
+    (left right : List Int) :
+    match maxCrossingSubarrayLinearScored left right with
+    | none => ∀ cand, ¬ IsCrossingSubarray cand left right
+    | some best =>
+        IsCrossingSubarray best.1 left right ∧
+          best.2 = subarraySum best.1 ∧
+            ∀ cand, IsCrossingSubarray cand left right →
+              subarraySum cand ≤ best.2 := by
+  have hresult := maxCrossingSubarrayLinearScored_result left right
+  have hsum := maxCrossingSubarrayLinearScored_sum left right
+  cases hcross : maxCrossingSubarrayLinearScored left right with
+  | none =>
+      rw [hcross] at hresult hsum
+      have hplain := maxCrossingSubarrayLinear_result_correct left right
+      have hnone : maxCrossingSubarrayLinear left right = none := by
+        simpa using hresult.symm
+      rw [hnone] at hplain
+      exact hplain
+  | some best =>
+      rw [hcross] at hresult hsum
+      have hplain := maxCrossingSubarrayLinear_result_correct left right
+      have hsome : maxCrossingSubarrayLinear left right = some best.1 := by
+        simpa using hresult.symm
+      rw [hsome] at hplain
+      exact ⟨hplain.1, hsum, fun cand hcand =>
+        le_trans (hplain.2 cand hcand) (le_of_eq hsum.symm)⟩
 
 /-! ## Maximum-subarray selector -/
 
