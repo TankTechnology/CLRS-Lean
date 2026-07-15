@@ -46,9 +46,12 @@ import CLRSLean.Chapter_09
 
 -- Fresh schedule execution and its state-dependent nested expected cost.
 #check CLRS.Chapter09.randomizedSelectCostWithSchedule
+#check CLRS.Chapter09.randomizedSelectCostWithSchedule_result
+#check CLRS.Chapter09.randomizedSelectCostWithSchedule_rankCorrect
 #check CLRS.Chapter09.randomizedSelectExpectedCostFuel
 #check CLRS.Chapter09.randomizedSelectExpectedCostFuel_succ
 #check CLRS.Chapter09.randomizedSelectExpectedCost
+#check CLRS.Chapter09.randomizedSelectExpectedCost_one
 #check CLRS.Chapter09.randomizedSelectExpectedCost_nonneg
 #check CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost
 #check CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound

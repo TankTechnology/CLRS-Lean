@@ -43,6 +43,18 @@ Main results:
   {lit}`CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound`:
   fresh per-call pivot choices for the actual selected continuation have
   expected comparison cost at most {lit}`4n`.
+- Definition {lit}`CLRS.Chapter09.randomizedSelectCostWithSchedule`: an
+  executable fresh-rank path cost that rejects exhausted or invalid schedules;
+  theorem {lit}`CLRS.Chapter09.randomizedSelectCostWithSchedule_rankCorrect`
+  erases successful cost runs to rank-correct SELECT results.
+- Definition {lit}`CLRS.Chapter09.randomizedSelectExpectedCostFuel` and theorem
+  {lit}`CLRS.Chapter09.randomizedSelectExpectedCostFuel_succ`: the exact nested
+  conditional-uniform expectation with local charge {lit}`c * currentLength`.
+- Theorems
+  {lit}`CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost`
+  and {lit}`CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound`: every
+  concrete state-dependent expected cost is bounded by the CLRS majorizer and
+  hence by {lit}`4 * c * n`.
 - Theorem {lit}`CLRS.Chapter09.freshRandomizedSelectWithRanks?_correct`: every
   executable finite sample path driven by successive pivot ranks is rank-correct.
 - Theorem
@@ -389,6 +401,9 @@ Cost of one concrete fresh-rank execution path.  Every visited nonempty state
 charges `c * length` and consumes exactly one rank from `choices`.  Running out
 of fuel or choices, or presenting a rank outside the current subproblem,
 rejects the path instead of silently assigning zero cost.
+
+This partition-work metric does not charge the specification implementation of
+`selectByRank?`, random-number generation, list primitives, or RAM operations.
 -/
 def randomizedSelectCostWithScheduleFuel :
     Nat → Nat → Nat → List Nat → List Nat → Option Nat
@@ -617,7 +632,10 @@ noncomputable def freshRandomizedSelectExpectedComparisons
 Nested expected cost of fresh-rank RANDOMIZED-SELECT with local charge
 `c * length`.  The expectation is taken anew over the current subproblem at
 every recursive level; invalid ranks are absent because the sample space has
-cardinality equal to the current list length.
+cardinality equal to the current list length.  This is a recursively nested
+conditional-uniform semantics, not a flat uniform distribution over
+variable-length schedules, and it carries the same partition-work boundary as
+`randomizedSelectCostWithSchedule`.
 -/
 noncomputable def randomizedSelectExpectedCostFuel :
     Nat → Nat → Nat → List Nat → Real
