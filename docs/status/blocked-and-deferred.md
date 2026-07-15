@@ -183,7 +183,8 @@ from an explicit probability space for random pivots or random permutations.
 - Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
   sort
 - Status: `future-work` for count-array and numeric-order refinements;
-  `blocked-design` for the full bucket-sort expected-time theorem
+  `proved-abstract` for the bucket-sort textbook cost model, with executable
+  cost refinement still `future-work`
 
 Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
@@ -208,15 +209,22 @@ proves deterministic bucket-sort correctness:
 preservation, and permutation preservation for the merge-sorted bucket model.
 It also proves the finite-uniform collision and second-moment core:
 `CLRS.Chapter08.uniformAverageFin2_collision` and
-`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
+`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.  The CLRS
+unit-cost random variable is `CLRS.Chapter08.textbookBucketSortCost`; its
+expectation is identified by
+`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
+and proved linear by
+`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`.
 
 The remaining CLRS refinements split into three tracks.  The array-level
 `COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
 bucket specification.  Radix sort still has implementation and cost refinement
 work, but the bounded fixed-width ordinary key-order theorem is now proved.
-The remaining bucket-sort expected-time work is to connect that second-moment
-interface to an explicit independent input distribution and a concrete
-bucket-sort cost model.
+For bucket sort, the CLRS unit-cost random variable has linear expectation.
+Remaining: a single-pass executable bucket builder, a costed per-bucket sorter,
+and a refinement theorem connecting their execution cost to the abstract
+model.  The current `bucketSortByRank` repeatedly filters the input and is not
+instrumented by this abstract random variable.
 
 ### Pointer-Level Linked Lists
 
