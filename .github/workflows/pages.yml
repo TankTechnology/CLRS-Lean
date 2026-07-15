@@ -57,23 +57,12 @@ jobs:
       - name: Check generated HTML freshness
         run: python3 scripts/check_literate_html_freshness.py "${{ steps.build-site.outputs.path }}"
 
-      - name: Assemble _site
+      - name: Assemble optimized _site
         run: |
-          VERSO_OUT="${{ steps.build-site.outputs.path }}"
-          echo "Verso output: $VERSO_OUT"
-          rm -rf _site
-          mkdir -p _site
-          cp -r "$VERSO_OUT"/* _site/
-          cp docs/literate/clrs-literate.css _site/clrs-literate.css
-
-      - name: Optimize generated HTML
-        run: python3 scripts/optimize_literate_html.py _site
-
-      - name: Check rendered HTML
-        run: python3 scripts/check_literate_rendering.py _site
-
-      - name: Generate sitemap
-        run: python3 scripts/generate_sitemap.py _site --base-url "https://tanktechnology.github.io/CLRS-Lean/"
+          python3 scripts/prepare_literate_site.py \
+            "${{ steps.build-site.outputs.path }}" \
+            _site \
+            --base-url "https://tanktechnology.github.io/CLRS-Lean/"
 
       - uses: actions/upload-pages-artifact@v3
         with:

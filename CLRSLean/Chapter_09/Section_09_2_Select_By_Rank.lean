@@ -14,11 +14,12 @@ usual order-statistic way: if the selected value is {lit}`x`, then at most
 {lit}`k` elements are strictly smaller than {lit}`x`, and more than {lit}`k`
 elements are at most {lit}`x`.
 
-## Expected-time analysis
+## Randomized SELECT theorem page
 
 The uniform-pivot recurrence, fresh per-call stochastic execution, and CLRS
-Theorem 9.2 expected linear comparison bound are proved on a support page that
-remains available outside the main sidebar:
+Theorem 9.2 expected linear comparison bound are proved on the Section 9.2
+support page below.  It remains directly available without adding another row
+to the reader sidebar:
 
 * [Randomized SELECT Expected Time](CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select/)
 -/

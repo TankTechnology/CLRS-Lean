@@ -4,7 +4,7 @@ Date: 2026-07-15
 
 Status: `main-proof-complete`
 
-Core completion commit: `353ec4a`
+Main completion commit: `ad8b3a8` ([PR #92](https://github.com/TankTechnology/CLRS-Lean/pull/92))
 
 ## Acceptance Boundary
 
