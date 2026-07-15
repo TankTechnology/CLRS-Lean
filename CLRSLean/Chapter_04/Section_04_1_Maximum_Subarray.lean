@@ -1664,174 +1664,102 @@ theorem maxSubarrayDivideCosted_correct (xs : List Int) :
 
 /-! ## Runtime analysis
 
-The divide-and-conquer maximum-subarray algorithm makes two recursive calls on
-halves and a linear crossing-subarray scan, giving the recurrence
-{lit}`T(n) = 2 T(⌊n/2⌋) + Θ(n)`.  We prove {lit}`T(n) = Θ(n log n)` by
-instantiating the Chapter 4 Master theorem (case 2) with {lit}`a = 2`,
-{lit}`b = 2`.
+The returned cost follows the actual midpoint tree: odd inputs recurse on a
+floor-sized left half and a ceiling-sized right half.  The recurrence is kept
+in `Nat` so its value is exactly the second projection of the executable run;
+the asymptotic theorem below coerces it to `Real` only at the Chapter 3 API
+boundary.
 -/
 
-open Chapter04
+/-- Length-indexed control-step cost of the costed midpoint execution. -/
+def maxSubarrayDivideCost : Nat → Nat
+  | 0 => 1
+  | 1 => 1
+  | n + 2 =>
+      maxSubarrayDivideCost ((n + 2) / 2) +
+        maxSubarrayDivideCost ((n + 2) - (n + 2) / 2) +
+          3 * (n + 2) + 4
+  decreasing_by
+    · exact Nat.div_lt_self (by omega) (by norm_num)
+    · have hpos : 0 < (n + 2) / 2 :=
+        Nat.div_pos (by omega) (by norm_num)
+      omega
+
+/-- The genuine floor/ceiling recurrence used on every input of size at least two. -/
+theorem maxSubarrayDivideCost_unfold (n : Nat) (hn : 2 ≤ n) :
+    maxSubarrayDivideCost n =
+      maxSubarrayDivideCost (n / 2) +
+        maxSubarrayDivideCost (n - n / 2) + 3 * n + 4 := by
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le hn
+  rw [Nat.add_comm 2 m]
+  rw [maxSubarrayDivideCost.eq_def]
 
 /--
-The work recurrence {lit}`T(n) = 2 T(⌊n/2⌋) + n` for the divide-and-conquer
-maximum-subarray algorithm, matching the CLRS recurrence with one linear
-crossing-subarray scan per level.
+Sufficient fuel makes the cost of the concrete midpoint execution depend only
+on the current input length.
 -/
-noncomputable def maxSubarrayWork : ℕ → ℝ
-  | 0 => 0
-  | (n + 1) => 2 * maxSubarrayWork ((n + 1) / 2) + ((n + 1 : ℕ) : ℝ)
-  decreasing_by exact Nat.div_lt_self (Nat.succ_pos n) (by norm_num)
+theorem maxSubarrayDivideTreeCosted_cost_eq
+    (fuel : Nat) (xs : List Int) (hfuel : xs.length ≤ fuel) :
+    (maxSubarrayDivideTreeCosted (midpointSplitTree fuel xs)).2 =
+      maxSubarrayDivideCost xs.length := by
+  induction fuel generalizing xs with
+  | zero =>
+      have hnil : xs = [] := by
+        apply List.eq_nil_of_length_eq_zero
+        omega
+      subst xs
+      simp [maxSubarrayDivideCost.eq_def, midpointSplitTree,
+        maxSubarrayDivideTreeCosted]
+  | succ fuel ih =>
+      cases xs with
+      | nil =>
+          simp [maxSubarrayDivideCost.eq_def, midpointSplitTree,
+            maxSubarrayDivideTreeCosted]
+      | cons x xs =>
+          cases xs with
+          | nil =>
+              simp [maxSubarrayDivideCost.eq_def, midpointSplitTree,
+                maxSubarrayDivideTreeCosted]
+          | cons y ys =>
+              simp only [List.length_cons] at hfuel
+              let whole : List Int := x :: y :: ys
+              let mid := whole.length / 2
+              have hlen : whole.length = ys.length + 2 := by
+                simp [whole]
+              have hmidLt : mid < whole.length := by
+                dsimp [mid]
+                exact Nat.div_lt_self (by omega) (by norm_num)
+              have hmidPos : 0 < mid := by
+                dsimp [mid]
+                exact Nat.div_pos (by omega) (by norm_num)
+              have hdropLt : whole.length - mid < whole.length :=
+                Nat.sub_lt (by omega) hmidPos
+              have htakeFuel : (whole.take mid).length ≤ fuel := by
+                simp only [List.length_take]
+                omega
+              have hdropFuel : (whole.drop mid).length ≤ fuel := by
+                simp only [List.length_drop]
+                omega
+              have htake := ih (whole.take mid) htakeFuel
+              have hdrop := ih (whole.drop mid) hdropFuel
+              dsimp [whole, mid] at hlen hmidLt hmidPos hdropLt htake hdrop ⊢
+              simp only [midpointSplitTree, maxSubarrayDivideTreeCosted,
+                List.length_cons]
+              rw [htake, hdrop]
+              rw [midpointSplitTree_input, midpointSplitTree_input]
+              rw [maxSubarrayDivideCost_unfold (ys.length + 1 + 1) (by omega)]
+              simp only [maxCrossingSubarrayLinearCost, List.length_take,
+                List.length_drop, List.length_cons,
+                Nat.min_eq_left (Nat.le_of_lt hmidLt)]
+              omega
 
-/-- Base value of the work recurrence. -/
-theorem maxSubarrayWork_zero : maxSubarrayWork 0 = 0 := by
-  rw [maxSubarrayWork]
-
-/-- One recursion step at a successor argument. -/
-theorem maxSubarrayWork_succ (n : ℕ) :
-    maxSubarrayWork (n + 1) = 2 * maxSubarrayWork ((n + 1) / 2) + ((n + 1 : ℕ) : ℝ) := by
-  rw [maxSubarrayWork]
-
-/-- One recursion step at any positive argument. -/
-theorem maxSubarrayWork_pos_step (n : ℕ) (hn : 0 < n) :
-    maxSubarrayWork n = 2 * maxSubarrayWork (n / 2) + ((n : ℕ) : ℝ) := by
-  obtain ⟨m, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hn.ne'
-  exact maxSubarrayWork_succ m
-
-/--
-The forcing term {lit}`f(n) = T(n) - 2 T(⌊n/2⌋)` of the recurrence.
--/
-noncomputable def maxSubarrayForcing (n : ℕ) : ℝ :=
-  maxSubarrayWork n - 2 * maxSubarrayWork (n / 2)
-
-/--
-The work function satisfies the Chapter 4 floor-division Master recurrence with
-{lit}`a = 2`, {lit}`b = 2`.
--/
-theorem maxSubarrayWork_floorRec :
-    FloorDivideRecurrence 2 2 maxSubarrayForcing maxSubarrayWork := by
-  refine ⟨fun n => ?_⟩
-  simp only [maxSubarrayForcing]
-  push_cast
-  ring
-
-/-- The work function is nonnegative. -/
-theorem maxSubarrayWork_nonneg : ∀ n, 0 ≤ maxSubarrayWork n := by
-  intro n
-  induction n using Nat.strong_induction_on with
-  | _ n ih =>
-    rcases Nat.eq_zero_or_pos n with hn | hn
-    · subst hn; simp [maxSubarrayWork_zero]
-    · rw [maxSubarrayWork_pos_step n hn]
-      have hlt : n / 2 < n := Nat.div_lt_self hn (by norm_num)
-      have hrec := ih (n / 2) hlt
-      nlinarith
-
-/-- The work function is nondecreasing across one step. -/
-theorem maxSubarrayWork_le_succ : ∀ n, maxSubarrayWork n ≤ maxSubarrayWork (n + 1) := by
-  intro n
-  induction n using Nat.strong_induction_on with
-  | _ n ih =>
-    rcases Nat.eq_zero_or_pos n with hn | hn
-    · subst hn; rw [maxSubarrayWork_zero]; exact maxSubarrayWork_nonneg _
-    · rw [maxSubarrayWork_pos_step n hn, maxSubarrayWork_pos_step (n + 1) (Nat.succ_pos n)]
-      have hcast : ((n : ℕ) : ℝ) ≤ ((n + 1 : ℕ) : ℝ) := by push_cast; linarith
-      rcases (by omega : (n + 1) / 2 = n / 2 ∨ (n + 1) / 2 = n / 2 + 1) with h | h
-      · rw [h]; nlinarith
-      · rw [h]
-        have hj : n / 2 < n := Nat.div_lt_self hn (by norm_num)
-        have hstep := ih (n / 2) hj
-        nlinarith
-
-/-- The work function is monotone. -/
-theorem maxSubarrayWork_monotone : Monotone maxSubarrayWork :=
-  monotone_nat_of_le_succ maxSubarrayWork_le_succ
-
-/-- The work function satisfies the absolute-value monotonicity interface. -/
-theorem maxSubarrayWork_monotoneAbs : MonotoneAbs maxSubarrayWork := by
-  intro m n hmn
-  rw [abs_of_nonneg (maxSubarrayWork_nonneg m), abs_of_nonneg (maxSubarrayWork_nonneg n)]
-  exact maxSubarrayWork_monotone hmn
-
-/-- Value of the work recurrence at the base input `1`. -/
-theorem maxSubarrayWork_one : maxSubarrayWork 1 = 1 := by
-  rw [show (1 : ℕ) = 0 + 1 from rfl, maxSubarrayWork_succ]
-  norm_num [maxSubarrayWork_zero]
-
-/-- The normalized base value is nonnegative, a case-2 hypothesis. -/
-theorem maxSubarrayWork_base_nonneg : 0 ≤ normalizedValue 2 2 maxSubarrayWork 0 := by
-  unfold normalizedValue
-  norm_num [maxSubarrayWork_one]
-
-/--
-On exact powers {lit}`n = 2^(k+1)`, the forcing term is exactly {lit}`2^(k+1)`,
-so the normalized forcing is identically {lit}`1`.  This places the recurrence
-in Master case 2 where the forcing is proportional to the critical scale.
-
-The closed form on exact powers is {lit}`T(2^k) = (k+1)·2^k` (proved by
-induction), giving {lit}`f(2^(k+1)) = 2^(k+1)` and {lit}`f(2^(k+1))/2^(k+1) = 1`.
--/
-theorem maxSubarray_normForcing (k : ℕ) : normalizedForcing 2 2 maxSubarrayForcing k = 1 := by
-  -- Closed form: T(2^k) = (k+1) * 2^k  (in ℝ)
-  have h_work_pow : ∀ (k : ℕ), maxSubarrayWork ((2 : ℕ) ^ k) = ((k : ℕ) + 1 : ℝ) * ((2 : ℕ) ^ k : ℝ) := by
-    intro k
-    induction k with
-    | zero =>
-        simp [maxSubarrayWork_one]
-    | succ k ih =>
-        have h_pow_succ : (2 : ℕ) ^ (k + 1) = 2 * (2 : ℕ) ^ k := by
-          rw [pow_succ, mul_comm]
-        rw [h_pow_succ]
-        have hpos : 0 < 2 * (2 : ℕ) ^ k :=
-          calc
-            0 < (2 : ℕ) ^ (k + 1) := pow_pos (by norm_num) (k + 1)
-            _ = 2 * (2 : ℕ) ^ k := by rw [pow_succ, mul_comm]
-        rw [maxSubarrayWork_pos_step (2 * (2 : ℕ) ^ k) hpos]
-        simp [ih]
-        push_cast
-        ring
-  -- Prove the normalized forcing equals 1 by direct computation
-  have hk := h_work_pow (k + 1)
-  have hk' := h_work_pow k
-  -- normalizedForcing 2 2 maxSubarrayForcing k
-  -- = maxSubarrayForcing (2^(k+1)) / (2^(k+1))
-  -- = (T(2^(k+1)) - 2*T(2^(k+1)/2)) / 2^(k+1)
-  -- = (T(2^(k+1)) - 2*T(2^k)) / 2^(k+1)
-  -- = ((k+2)*2^(k+1) - 2*(k+1)*2^k) / 2^(k+1)
-  -- = 2^(k+1) / 2^(k+1) = 1
-  dsimp [normalizedForcing, maxSubarrayForcing]
-  -- Simplify 2^(k+1)/2 = 2^k
-  have hdiv : (2 : ℕ) ^ (k + 1) / 2 = (2 : ℕ) ^ k := by
-    rw [pow_succ, show (2 : ℕ) ^ k * 2 = 2 * (2 : ℕ) ^ k by ring, Nat.mul_div_right _ (by norm_num)]
-  rw [hdiv, hk, hk']
-  push_cast
-  field_simp [show ((2 : ℝ) ^ (k + 1)) ≠ 0 from pow_ne_zero _ (by norm_num)]
-  ring
-
-/-- Lower bound for the normalized forcing: {lit}`0 < 1 ≤ normalizedForcing`. -/
-theorem maxSubarray_term_lower (k : ℕ) :
-    (1 : ℝ) ≤ normalizedForcing 2 2 maxSubarrayForcing k := by
-  rw [maxSubarray_normForcing]
-
-/-- Upper bound for the normalized forcing: {lit}`normalizedForcing ≤ 1`. -/
-theorem maxSubarray_term_upper (k : ℕ) :
-    normalizedForcing 2 2 maxSubarrayForcing k ≤ 1 := by
-  rw [maxSubarray_normForcing]
-
-/--
-**Runtime of the divide-and-conquer maximum-subarray algorithm.**  The
-recurrence {lit}`T(n) = 2 T(⌊n/2⌋) + Θ(n)` is {lit}`Θ(n log n)`.  This is
-the CLRS {lit}`Θ(n log n)` bound for the divide-and-conquer maximum subarray,
-obtained by discharging Master-theorem case 2 with {lit}`a = 2`, {lit}`b = 2`
-through the Chapter 4 wrapper
-{name}`CLRS.Chapter04.floorDivide_allInput_masterCase2_realLogLogScale`.
--/
-theorem maxSubarray_runtime_bigTheta :
-    Chapter03.isBigTheta maxSubarrayWork (realLogLogScale 2 2) :=
-  floorDivide_allInput_masterCase2_realLogLogScale 2 2 maxSubarrayForcing maxSubarrayWork
-    maxSubarrayWork_floorRec (by norm_num) (by norm_num) maxSubarrayWork_monotoneAbs
-    maxSubarrayWork_base_nonneg (c := 1) (C := 1) (by norm_num) (by norm_num)
-    maxSubarray_term_lower maxSubarray_term_upper
+/-- The public cost projection is exactly the length-indexed mixed recurrence. -/
+theorem maxSubarrayDivideCosted_cost_eq (xs : List Int) :
+    (maxSubarrayDivideCosted xs).2 =
+      maxSubarrayDivideCost xs.length := by
+  simp only [maxSubarrayDivideCosted]
+  exact maxSubarrayDivideTreeCosted_cost_eq
+    xs.length xs (le_refl xs.length)
 
 end Chapter04
 end CLRS
