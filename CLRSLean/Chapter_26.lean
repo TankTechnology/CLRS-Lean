@@ -29,6 +29,10 @@ method.
   {lit}`CLRS.Chapter26.ShortestAugmentingPath`,
   {lit}`CLRS.Chapter26.shortest_path_nondec`.
 
+* 26.3 Maximum bipartite matching.
+  No section module is present on {lit}`main`; the flow reduction and its
+  correctness remain a tracked core gap.
+
 * 26.6 Max-Flow Min-Cut Theorem.
   Main declarations:
   {lit}`CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`.
@@ -56,7 +60,10 @@ full three-condition equivalence are deferred.
 ## Deferred Work
 
 * The converse (and constructive) direction of the Max-Flow Min-Cut Theorem.
-* The executable BFS procedure and concrete Edmonds-Karp augmenting loop.
+* The executable BFS procedure, concrete Edmonds-Karp augmenting loop, and the
+  augmentation-count/{lit}`O(VE²)` theorem built from Lemma 26.7.
+* Section 26.3's bipartite-matching reduction, integrality bridge, and final
+  matching/flow equivalence.
 -/
 
 namespace CLRS

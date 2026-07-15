@@ -59,17 +59,21 @@ The deferred layer is narrower: refine the indexed Prim queue to the concrete
 array state of `Batteries.BinaryHeap`, and add explicit mutable-array write and
 RAM charges.  The mathematical and functional algorithm proofs are closed.
 
-## Blocked Design
+## Completed Abstract Layers
 
 ### Hash-Table Expected-Time Analysis
 
 - Related section: Section 11.2 - Chained hash tables
-- Status: `blocked-design`
+- Status: `proved-abstract`
 
-The deterministic chained-table interface is in place for a fixed hash
-function, including insert/delete/search behavior.  The CLRS expected-time
-theorem needs a probability model over keys, hash functions, or random
-assignments before we can state simple uniform hashing precisely.
+The deterministic chained-table interface and the probability models are both
+in place.  The chapter proves SUHA chain length, unsuccessful-search cost,
+pairwise collision probability, and successful-search cost as true
+expectations over an explicit independent uniform assignment.  It also proves
+universal-hashing collision/search bounds and instantiates them with a concrete
+affine family.  Only optional probe-machine/RAM accounting remains.
+
+## Scoped Future Work
 
 ### Master Theorem Generalization Beyond The Current Assumptions
 
@@ -154,12 +158,11 @@ The power-of-two recurrence is proved.  The arbitrary-size recurrence
 floor/ceiling arithmetic, monotonicity, and a clean asymptotic theorem for all
 input sizes.
 
-### Quicksort Mutable-Array Partition And Randomized Analysis
+### Quicksort Randomized Analysis
 
 - Related sections: Sections 7.2-7.4 - Quicksort performance and randomized
   quicksort
-- Status: `future-work` for mutable-array partition refinement;
-  `blocked-design` for expected randomized analysis
+- Status: `partial-proof`
 
 Section 7.1 proves the functional partition/quicksort correctness spine:
 `CLRS.Chapter07.partitionAround_correct` proves stable-filter partition
@@ -171,20 +174,20 @@ postcondition, `CLRS.Chapter07.clrsPartitionArray_correct_with_trace` adds an
 explicit adjacent-swap trace, and `CLRS.Chapter07.quickSort_correct` packages
 sortedness plus permutation preservation for the functional quicksort model.
 
-The remaining CLRS refinements are harder.  The mutable-array `PARTITION` proof
-needs an index-level array segment invariant that tracks the less/equal and
-greater regions while preserving the backing-list permutation.  The
-expected-comparison recurrence and harmonic bound are already proved in the
-current model; the remaining randomized-analysis layer is deriving that model
-from an explicit probability space for random pivots or random permutations.
+The mutable-array `PARTITION` refinement is now proved by
+`CLRS.Chapter07.partitionOnArray` and its array/list correspondence theorems.
+The randomized layer also proves the random-permutation first-choice symmetry
+and the pairwise comparison probability
+`compared_prob = 2 / (j - i + 1)`.  The remaining core target is the
+total-comparison random variable, the expectation-sum identity, and the final
+`Theta(n log n)` bridge.  Sharp tails and RAM accounting are optional.
 
 ### Chapter 8 Linear-Time Sorting Refinements
 
 - Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
   sort
-- Status: `future-work` for count-array and numeric-order refinements;
-  `proved-abstract` for the bucket-sort textbook cost model, with executable
-  cost refinement still `future-work`
+- Status: `proved` for correctness and the CLRS unit-cost expectation;
+  executable cost refinement is optional future work
 
 Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
@@ -216,15 +219,15 @@ expectation is identified by
 and proved linear by
 `CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`.
 
-The remaining CLRS refinements split into three tracks.  The array-level
-`COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
-bucket specification.  Radix sort still has implementation and cost refinement
-work, but the bounded fixed-width ordinary key-order theorem is now proved.
-For bucket sort, the CLRS unit-cost random variable has linear expectation.
-Remaining: a single-pass executable bucket builder, a costed per-bucket sorter,
-and a refinement theorem connecting their execution cost to the abstract
-model.  The current `bucketSortByRank` repeatedly filters the input and is not
-instrumented by this abstract random variable.
+The array-level `COUNTING-SORT` refinement is now proved: a cumulative-count
+reverse scan fills a physical output `Array`, refines the stable bucket
+specification, and has a linear work bound.  Bucket sort has the exact second
+moment as a true expectation over the explicit independent uniform input
+distribution.  Its CLRS unit-cost random variable is identified with that
+expectation and proved linear by `expectedTextbookBucketSortCost_isBigO`.
+A single-pass executable bucket builder, a costed per-bucket sorter, and an
+execution-cost refinement remain optional implementation layers; they do not
+block the mathematical correctness milestone.
 
 ### Pointer-Level Linked Lists
 
@@ -250,12 +253,14 @@ parent-pointer layer is now also proved: iterative search
 proved equivalent to the functional operation.  The remaining BST work is the
 imperative in-place pointer-mutation (RAM) refinement.
 
-### Red-Black Deletion And Height
+### Red-Black Deletion Shape Preservation
 
 - Related section: Section 13.1 - Red-black trees
 - Status: `future-work`
 
-The current Chapter 13 file includes executable insertion with membership,
-shape, and black-height theorems.  The remaining CLRS proof layer is executable
-`RB-DELETE`, `RB-DELETE-FIXUP`, invariant preservation, and the logarithmic
-height bound.
+The current Chapter 13 file includes executable insertion, the logarithmic
+height theorem, executable `RB-DELETE`, and exact deletion-membership
+correctness, together with local delete-fixup certificates.  The remaining
+core theorem is `RedBlackShape` preservation through the composed
+`del`/`delete` recursion.  Chapter 14 deletion augmentation is blocked only on
+that global shape certificate.
