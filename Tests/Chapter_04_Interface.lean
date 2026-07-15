@@ -16,6 +16,8 @@ namespace Chapter04
 #check maxSubarrayDivideCost
 #check maxSubarrayDivideCosted_cost_eq
 #check maxSubarrayDivideCost_unfold
+#check maxSubarrayDivideCost_monotone
+#check maxSubarrayDivideCost_pow_two
 #check maxSubarrayDivideCost_isBigTheta_nlogn
 
 example : maxPrefixLinear ([] : List Int) = none := by native_decide
