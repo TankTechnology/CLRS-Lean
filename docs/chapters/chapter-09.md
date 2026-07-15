@@ -3,6 +3,8 @@
 Chapter 9 has a clean Section 9.1--9.3 structure and is complete for its
 advertised pure functional and comparison-cost models.
 
+- Closure audit: `docs/proof-audits/chapter-09-closure-2026-07-15.md`
+
 ## Section 9.1 - Minimum and maximum
 
 - Lean source: `CLRSLean/Chapter_09/Section_09_1_Minimum_And_Maximum.lean`

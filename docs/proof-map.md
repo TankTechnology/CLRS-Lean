@@ -1092,6 +1092,7 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
 
 - Status: `main-proof-complete`.
 - Stable interface test: `Tests/Chapter_09_Interface.lean`.
+- Closure audit: `docs/proof-audits/chapter-09-closure-2026-07-15.md`.
 - Sections 9.1--9.3 are complete for pure functional correctness and CLRS
   comparison costs.  Mutable arrays, random-number generation, RAM timing,
   allocation, and instruction-level traces are later implementation refinements.
