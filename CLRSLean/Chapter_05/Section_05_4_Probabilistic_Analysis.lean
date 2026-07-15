@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Probability.FiniteExpectation
 import Mathlib
 
@@ -279,9 +280,6 @@ theorem expectedBallsInBin_eq {k n : Nat} (q : Fin n) (hn : 0 < n) :
     (fun (i : Fin k) (a : Fin k → Fin n) => indicator (a i = q))]
   simp only [singleBinProb _ q hn]
   rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one_div]
-
-end Chapter05
-end CLRS
 
 /-! ## Streaks (longest run of heads) -/
 
@@ -697,3 +695,22 @@ theorem longestStreak_upperBound (n t : ℕ) (ht : 0 < t) :
     rw [h_zero]
     have hn_nonneg : 0 ≤ (n : ℝ) := Nat.cast_nonneg _
     positivity
+
+/-! ## Expected longest streak
+
+The expected longest streak of heads satisfies {lit}`E[L] = Θ(log n)`.  The
+upper bound {lit}`O(log n)` follows from the tail bound
+{name}`longestStreak_upperBound` via {lit}`E[L] = Σ_{t≥1} Pr[L ≥ t]`; the
+matching lower bound {lit}`Ω(log n)` uses a block-partition argument.  Both
+proofs are deferred to a future refinement.
+-/
+
+/--
+Expected value of the longest streak of heads in {lit}`n` independent fair coin
+flips.
+-/
+noncomputable def expectedLongestStreak (n : ℕ) : ℝ :=
+  fintypeExpect (fun a : CoinFlip n => (longestStreak n a : ℝ))
+
+end Chapter05
+end CLRS
