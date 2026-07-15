@@ -83,6 +83,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_06.Section_06_4_Heapsort",
   "CLRSLean.Chapter_06.Section_06_5_Priority_Queues",
 ]
+"CLRSLean.Chapter_06.Section_06_4_Heapsort" = [
+  "CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution",
+]
 "CLRSLean.Chapter_07" = [
   "CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort",
   "CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort",
@@ -430,6 +433,9 @@ title = "6.3. Building a Heap"
 
 [modules."CLRSLean.Chapter_06.Section_06_4_Heapsort"]
 title = "6.4. The Heapsort Algorithm"
+
+[modules."CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution"]
+title = "6.4. Costed Heapsort Execution"
 
 [modules."CLRSLean.Chapter_06.Section_06_5_Priority_Queues"]
 title = "6.5. Priority Queues"

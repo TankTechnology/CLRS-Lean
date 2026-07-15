@@ -555,7 +555,10 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 ### Section 6.4 - The heapsort algorithm
 
 - Lean source: `CLRSLean/Chapter_06/Section_06_4_Heapsort.lean`
-- Status: `proved` for the in-place CLRS loop refinement
+- Costed source:
+  `CLRSLean/Chapter_06/Section_06_4_Heapsort/CostedExecution.lean`
+- Status: `proved` for the in-place CLRS loop refinement and its connected
+  coarse unit control-step envelopes
 - Main proved theorems:
   - `CLRS.Chapter06.ArrayMaxHeapExcept.of_swap_root_last`
   - `CLRS.Chapter06.SortedSuffix.of_swap_root_last`
@@ -594,6 +597,24 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter06.arrayHeapSort_orderedAsc`
   - `CLRS.Chapter06.arrayHeapSort_perm`
   - `CLRS.Chapter06.arrayHeapSort_correct`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_result`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_fuel`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_controlBound`
+  - `CLRS.Chapter06.buildMaxHeapLoopWithCost_result`
+  - `CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le`
+  - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_result`
+  - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_correct`
+  - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_cost_le`
+  - `CLRS.Chapter06.arrayHeapSortStepWithCost_result`
+  - `CLRS.Chapter06.arrayHeapSortStepWithCost_cost_le_heapSize`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_result`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_cost_le`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_result`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_cost_le`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_cost`
+  - `CLRS.Chapter06.maxHeapifyControlBound_isBigO_n`
+  - `CLRS.Chapter06.buildMaxHeapControlBound_isBigO_nsq`
+  - `CLRS.Chapter06.heapSortControlBound_isBigO_nsq`
 - Proof pattern: the in-place loop repeatedly swaps the root with the last
   heap-prefix cell, shrinks the prefix, and heapifies the root.  The
   sorted-suffix invariant is represented by `SortedSuffix`, `PrefixLeSuffix`,
@@ -616,9 +637,16 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   length preservation in one package, with exact non-existential top-level
   packages provided by `arrayHeapSortInPlace_exact_state_correct` and
   `arrayHeapSort_exact_state_correct`.  The public `arrayHeapSort` name is
-  definitionally tied to this in-place loop.
-- Current gap: none for the current functional-array correctness theorem; RAM
-  costs and lower-level imperative array semantics remain separate refinements.
+  definitionally tied to this in-place loop.  The costed definitions mirror
+  the same heapify, build, extraction-step, and shrinking-loop transitions;
+  projection theorems recover the existing results, so correctness is reused
+  rather than reproved.  The metric counts visited `MAX-HEAPIFY` frames and one
+  extraction/swap transition for each nontrivial heapsort step.  Build-loop
+  orchestration, guards, list operations, allocation, and calls are free in
+  this model.  The named connected envelopes establish `O(n)` heapify,
+  `O(n^2)` build-heap, and `O(n^2)` heapsort upper bounds.
+- Current gap: tight textbook `O(log n)`, `O(n)`, and `O(n log n)` costs and a
+  lower-level imperative array/RAM semantics remain separate refinements.
 
 ### Section 6.5 - Priority queues
 
@@ -2988,7 +3016,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Item | Status | Reason |
 | --- | --- | --- |
 | Union-find implementation correctness | `deferred-implementation` | Not needed for the mathematical MST correctness theorem. |
-| Chapter 6 priority-queue RAM costs | `deferred-implementation` | Array heap predicates, localized heap predicates, `largest` lemmas, no-swap heapify repair, recursive fuelled `MAX-HEAPIFY` repair, bottom-up build-heap, in-place heapsort loop correctness, bundled heapsort state-correctness, swap preservation, array `HEAP-MAXIMUM`, full fuelled `HEAP-INCREASE-KEY`, array `HEAP-EXTRACT-MAX`, and index-based `HEAP-DELETE` state correctness are proved; RAM costs remain refinement targets. |
+| Chapter 6 tight/RAM costs | `deferred-implementation` | Array heap predicates, recursive `MAX-HEAPIFY`, bottom-up build-heap, in-place heapsort, and priority-queue state correctness are proved.  Costed executions erase to heapify/build/heapsort and satisfy connected coarse `O(n)`, `O(n^2)`, and `O(n^2)` envelopes.  The metric counts heapify frames plus nontrivial extraction transitions, but not build orchestration, guards, list operations, or allocation; tight `O(log n)`, `O(n)`, and `O(n log n)` bounds and RAM refinement remain open. |
 | Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |

@@ -29,10 +29,16 @@ heap as the main result.  It proves the indexed array heap layer, recursive
 fuelled `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort with a
 shrinking heap prefix and sorted suffix, top-level heapsort sortedness and
 permutation preservation, and array-level priority-queue state theorems for
-maximum, increase-key, extract-max, and delete.
+maximum, increase-key, extract-max, and delete.  The connected costed execution
+now mirrors heapify, build-heap, and heapsort and proves coarse `O(n)`,
+`O(n^2)`, and `O(n^2)` envelopes after erasing the cost component.
 
-The deferred implementation layer is now the line-by-line CLRS RAM-cost model,
-not the array heap proof itself.
+The proved unit control-step metric counts visited `MAX-HEAPIFY` frames and
+one extraction/swap transition per nontrivial heapsort step.  Build-loop
+orchestration, guards, `List` operations, allocation, and calls are not charged
+separately.  The deferred layer is therefore the tight textbook `O(log n)`,
+`O(n)`, and `O(n log n)` analysis plus a line-by-line imperative array/RAM
+refinement, not the array heap or erasure proof itself.
 
 ### Chapter 23 Mutable Heap And RAM Refinement
 

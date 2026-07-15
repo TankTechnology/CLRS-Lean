@@ -4,7 +4,8 @@ Chapter 6 now has one public file per CLRS section.  The implementation still
 has a compact functional heap scaffold, but the reader-facing layer separates
 the array heap predicate, recursive `MAX-HEAPIFY` repair, bottom-up
 `BUILD-MAX-HEAP`, the in-place heapsort loop with a proved sorted-suffix
-invariant and sortedness theorem, and priority-queue operations.
+invariant and sortedness theorem, an erasure-linked unit control-step model,
+and priority-queue operations.
 
 ## Completed
 
@@ -68,6 +69,25 @@ invariant and sortedness theorem, and priority-queue operations.
   - `CLRS.Chapter06.arrayHeapSort_orderedAsc`
   - `CLRS.Chapter06.arrayHeapSort_perm`
   - `CLRS.Chapter06.arrayHeapSort_correct`
+  - Costed execution and erasure:
+    - `CLRS.Chapter06.maxHeapifyFuelWithCost_result`
+    - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_fuel`
+    - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_controlBound`
+    - `CLRS.Chapter06.buildMaxHeapLoopWithCost_result`
+    - `CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le`
+    - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_result`
+    - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_correct`
+    - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_cost_le`
+    - `CLRS.Chapter06.arrayHeapSortStepWithCost_result`
+    - `CLRS.Chapter06.arrayHeapSortStepWithCost_cost_le_heapSize`
+    - `CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_result`
+    - `CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_cost_le`
+    - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_result`
+    - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_cost_le`
+    - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_cost`
+    - `CLRS.Chapter06.maxHeapifyControlBound_isBigO_n`
+    - `CLRS.Chapter06.buildMaxHeapControlBound_isBigO_nsq`
+    - `CLRS.Chapter06.heapSortControlBound_isBigO_nsq`
 - Section 6.5, priority queues:
   - `CLRS.Chapter06.heapInsert_orderedDesc`
   - `CLRS.Chapter06.heapInsert_perm`
@@ -87,4 +107,13 @@ invariant and sortedness theorem, and priority-queue operations.
 
 ## Open Refinements
 
-- Add RAM-cost bounds after the project has a shared imperative cost model.
+- The costed execution counts visited `MAX-HEAPIFY` frames and one
+  extraction/swap transition for every nontrivial heapsort step.  The
+  bottom-up build loop only sums heapify-frame counts; its orchestration is not
+  charged separately.  Guards, `List` reads/writes, allocation, and calls are
+  also outside this metric.
+- The current connected envelopes intentionally prove only `O(n)` for the
+  heapify fuel bound and `O(n^2)` for both build-heap and heapsort.  Tight
+  textbook `O(log n)`, `O(n)`, and `O(n log n)` bounds remain open.
+- Add an imperative array/RAM refinement that charges concrete list or array
+  operations and connects those charges to the textbook bounds.

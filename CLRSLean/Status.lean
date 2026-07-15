@@ -25,7 +25,12 @@ the detailed maintainer ledger.
   wrappers.
 * **Chapter 6:** the current heap predicate, recursive {lit}`MAX-HEAPIFY`,
   bottom-up {lit}`BUILD-MAX-HEAP`, heapsort, and represented priority-queue
-  operation specifications.
+  operation specifications.  A costed execution mirrors heapify, build-heap,
+  and heapsort, erases to those algorithms, and proves coarse connected
+  {lit}`O(n)`, {lit}`O(n²)`, and {lit}`O(n²)` unit control-step envelopes.
+  This metric counts visited heapify frames and nontrivial extraction
+  transitions, but not build-loop orchestration, guards, list-operation costs,
+  or RAM semantics; tight textbook bounds remain refinements.
 * **Chapter 8 correctness:** represented counting-sort, radix-sort, and
   bucket-sort correctness.  The CLRS unit-cost bucket-sort random variable is
   {lit}`CLRS.Chapter08.textbookBucketSortCost`; its expectation identity is
