@@ -58,5 +58,62 @@ theorem maxHeapifyFuelWithCost_cost_le_fuel
           (maxChildIndex a heapSize i)
         omega
 
+/-! ## Costed bottom-up heap construction -/
+
+/-- Bottom-up heap construction paired with the sum of heapify frame counts. -/
+def buildMaxHeapLoopWithCost : Nat → List Nat → Nat → List Nat × Nat
+  | 0, a, _ => (a, 0)
+  | count + 1, a, heapSize =>
+      let repaired := maxHeapifyFuelWithCost heapSize a heapSize count
+      let rest := buildMaxHeapLoopWithCost count repaired.1 heapSize
+      (rest.1, repaired.2 + rest.2)
+
+/-- Erasing build-loop cost recovers the existing bottom-up builder. -/
+theorem buildMaxHeapLoopWithCost_result
+    (count : Nat) (a : List Nat) (heapSize : Nat) :
+    (buildMaxHeapLoopWithCost count a heapSize).1 =
+      buildMaxHeapLoop count a heapSize := by
+  induction count generalizing a with
+  | zero =>
+      simp [buildMaxHeapLoopWithCost, buildMaxHeapLoop]
+  | succ count ih =>
+      simp only [buildMaxHeapLoopWithCost, buildMaxHeapLoop]
+      rw [ih, maxHeapifyFuelWithCost_result]
+
+/-- The bottom-up build loop uses at most `count * heapSize` control steps. -/
+theorem buildMaxHeapLoopWithCost_cost_le
+    (count : Nat) (a : List Nat) (heapSize : Nat) :
+    (buildMaxHeapLoopWithCost count a heapSize).2 ≤ count * heapSize := by
+  induction count generalizing a with
+  | zero =>
+      simp [buildMaxHeapLoopWithCost]
+  | succ count ih =>
+      simp only [buildMaxHeapLoopWithCost]
+      have hrepair := maxHeapifyFuelWithCost_cost_le_fuel
+        heapSize a heapSize count
+      have hrest := ih
+        (maxHeapifyFuelWithCost heapSize a heapSize count).1
+      simpa [Nat.succ_mul, Nat.add_comm] using Nat.add_le_add hrepair hrest
+
+/-- Top-level bottom-up heap construction with its unit control-step cost. -/
+def arrayBuildMaxHeapWithCost (xs : List Nat) : List Nat × Nat :=
+  buildMaxHeapLoopWithCost (xs.length / 2) xs xs.length
+
+/-- Erasing cost from the costed builder recovers `arrayBuildMaxHeap`. -/
+theorem arrayBuildMaxHeapWithCost_result (xs : List Nat) :
+    (arrayBuildMaxHeapWithCost xs).1 = arrayBuildMaxHeap xs := by
+  simpa [arrayBuildMaxHeapWithCost, arrayBuildMaxHeap] using
+    buildMaxHeapLoopWithCost_result (xs.length / 2) xs xs.length
+
+/-- The costed builder returns a full max-heap and preserves the input multiset. -/
+theorem arrayBuildMaxHeapWithCost_correct (xs : List Nat) :
+    ArrayMaxHeap (arrayBuildMaxHeapWithCost xs).1 xs.length ∧
+      (arrayBuildMaxHeapWithCost xs).1.Perm xs := by
+  rw [arrayBuildMaxHeapWithCost_result]
+  constructor
+  · simpa [arrayBuildMaxHeap, buildMaxHeapLoop_length] using
+      arrayBuildMaxHeap_isMaxHeap xs
+  · exact arrayBuildMaxHeap_perm xs
+
 end Chapter06
 end CLRS
