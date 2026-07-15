@@ -40,10 +40,26 @@ docs/workflows/chapter-workflow.md    maintainer workflow notes
 Lean literate source
 -> lake build
 -> lake build :literateHtml
--> scripts/optimize_literate_html.py
+-> scripts/prepare_literate_site.py
 -> _site
 -> GitHub Pages
 ```
+
+## Local Preview
+
+Build and preview the same optimized site that GitHub Pages publishes:
+
+```bash
+VERSO_OUT="$(lake query :literateHtml)"
+python3 scripts/check_literate_html_freshness.py "$VERSO_OUT"
+python3 scripts/prepare_literate_site.py "$VERSO_OUT" _site
+python3 -m http.server --directory _site 8000
+```
+
+Then open `http://localhost:8000/`.  Do not serve the raw Verso output
+directly: reader-sidebar pruning, large-page optimization, rendering checks,
+the project stylesheet, and the sitemap are all applied by the shared
+preparation command.
 
 `literate.toml` controls the sidebar order and page titles.  The public website
 should not depend on a hand-written `docs/site/index.html`.
@@ -61,8 +77,10 @@ them under the main section's module path (for example,
 control generation and search order even though they are not reader-visible
 navigation rows.
 
-Large generated proof pages are post-processed before deployment.  The optimizer
-keeps anchors, rendered Lean code, search assets, and copy buttons, while
+Large generated proof pages are post-processed before deployment.  The shared
+site-preparation command invokes the optimizer, rendering checks, stylesheet
+copy, and sitemap generation for both local previews and GitHub Pages.  The
+optimizer keeps anchors, rendered Lean code, search assets, and copy buttons, while
 removing tactic-state DOM and hover metadata that make browser parsing slow on
 long files such as the Huffman proof.  The same post-processing step prunes
 non-reader modules from the static sidebar HTML and turns any visible

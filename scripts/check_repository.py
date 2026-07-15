@@ -19,6 +19,7 @@ CHECK_SCRIPTS = [
     "scripts/test_literate_navigation.py",
     "scripts/test_optimize_literate_html.py",
     "scripts/test_check_literate_rendering.py",
+    "scripts/test_prepare_literate_site.py",
 ]
 
 

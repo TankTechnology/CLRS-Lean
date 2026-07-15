@@ -115,9 +115,7 @@ When all boxes are checked, record:
 ```markdown
 | Chapter | Section | Auditor | Date | Commit |
 |---|---|---|---|---|
-| 9 | 9.1-9.3 | Codex | 2026-07-15 | 353ec4a |
-| 22 | 22.1-22.5 | Codex | 2026-07-10 | 1aeb257 |
-| 13 | 13.1 | (name) | 2026-07-01 | a6c71af |
+| XX | XX.1-XX.M | Name | YYYY-MM-DD | abc1234 |
 ```
 
 Add the row below the table in this file when the audit is complete.
@@ -126,3 +124,4 @@ Add the row below the table in this file when the audit is complete.
 
 | Chapter | Section | Auditor | Date | Commit |
 |---|---|---|---|---|
+| 9 | 9.1-9.3 | Codex | 2026-07-15 | [`ad8b3a8`](https://github.com/TankTechnology/CLRS-Lean/commit/ad8b3a865ce843addf0d77b55548b4d9a8cebad4) ([#92](https://github.com/TankTechnology/CLRS-Lean/pull/92)) |
