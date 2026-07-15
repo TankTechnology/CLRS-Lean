@@ -668,39 +668,5 @@ theorem randomizedSelectAtIndex?_mem {i k : ℕ} {xs : List ℕ} {x : ℕ}
     x ∈ xs :=
   (randomizedSelectAtIndex?_rankCorrect hsel).1
 
-/-! ## Concrete step-count model
-
-The abstract expected-cost recurrence {name}`randSelectExpectedCost` models the
-CLRS majorizing recurrence; {name}`randomizedSelect_expected_bigO_linear` proves
-{lit}`E[T(n)] = O(n)`.  We now define a concrete cost counter that instruments
-the actual {name}`selectCostFuel` recursion with independent uniform random
-pivot choices at each level.
--/
-
-/--
-Concrete expected cost for one run of RANDOMIZED-SELECT.  At each recursion
-level a pivot index {lit}`i` is drawn uniformly from {lit}`Fin xs.length`, and
-the fuelled cost counter {lit}`CLRS.Chapter09.selectCostFuel` charges
-{lit}`c * ys.length` local partition-comparison work.
-
-This expectation over the root-level pivot choice recovers the one-level
-average of the abstract recurrence.  The full joint-distribution induction
-that connects the multi-level expectation to {name}`randSelectExpectedCost`
-is deferred.
--/
-noncomputable def randomizedSelectCost (c fuel k : ℕ) (xs : List ℕ) : ℝ :=
-  fintypeExpect (fun (i : Fin xs.length) =>
-    (selectCostFuel (pivotAtIndex? (i : ℕ)) (fun ys => c * ys.length) fuel k xs : ℝ))
-
-/--
-The expected cost is nonnegative.
--/
-theorem randomizedSelectCost_nonneg (c fuel k : ℕ) (xs : List ℕ) :
-    0 ≤ randomizedSelectCost c fuel k xs := by
-  dsimp [randomizedSelectCost]
-  apply fintypeExpect_nonneg
-  intro i
-  positivity
-
 end Chapter09
 end CLRS
