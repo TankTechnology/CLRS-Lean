@@ -1026,6 +1026,218 @@ theorem maxSubarray_result_correct (xs : List Int) :
   | some best =>
       exact maxSubarray_correct hbest
 
+/-! ## Cached-score maximum-subarray results -/
+
+/--
+Maximum-subarray correctness with an additional invariant saying that the
+cached score is exactly the returned list's sum.
+-/
+def IsScoredMaxSubarrayResult
+    (xs : List Int) : Option ScoredSubarray → Prop
+  | none => ∀ cand, ¬ IsNonemptySubarray cand xs
+  | some best =>
+      IsNonemptySubarray best.1 xs ∧
+        best.2 = subarraySum best.1 ∧
+          ∀ cand, IsNonemptySubarray cand xs → subarraySum cand ≤ best.2
+
+/-- Erasing a valid cached score gives the ordinary maximum-subarray result. -/
+theorem IsScoredMaxSubarrayResult.erase {xs : List Int}
+    {result : Option ScoredSubarray}
+    (hresult : IsScoredMaxSubarrayResult xs result) :
+    IsMaxSubarrayResult xs (result.map Prod.fst) := by
+  cases result with
+  | none =>
+      exact hresult
+  | some best =>
+      exact ⟨hresult.1, fun cand hcand => by
+        rw [← hresult.2.1]
+        exact hresult.2.2 cand hcand⟩
+
+/-- Choose the candidate with larger cached score, breaking ties to the first. -/
+def betterScoredCandidate (a b : ScoredSubarray) : ScoredSubarray :=
+  if a.2 < b.2 then b else a
+
+/-- Finite maximum selector using cached candidate sums. -/
+def bestScoredCandidate : List ScoredSubarray → Option ScoredSubarray
+  | [] => none
+  | candidate :: rest =>
+      match bestScoredCandidate rest with
+      | none => some candidate
+      | some best => some (betterScoredCandidate candidate best)
+
+/-- The cached-score selector returns a member with maximal cached score. -/
+theorem bestScoredCandidate_correct
+    {candidates : List ScoredSubarray} {best : ScoredSubarray}
+    (hbest : bestScoredCandidate candidates = some best) :
+    best ∈ candidates ∧
+      ∀ candidate, candidate ∈ candidates → candidate.2 ≤ best.2 := by
+  induction candidates generalizing best with
+  | nil =>
+      simp [bestScoredCandidate] at hbest
+  | cons candidate rest ih =>
+      simp only [bestScoredCandidate] at hbest
+      cases hrest : bestScoredCandidate rest with
+      | none =>
+          have hrestNil : rest = [] := by
+            cases rest with
+            | nil => rfl
+            | cons next tail =>
+                cases htail : bestScoredCandidate tail <;>
+                  simp [bestScoredCandidate, htail] at hrest
+          subst rest
+          have heq : candidate = best := by
+            exact Option.some.inj (by simpa [bestScoredCandidate] using hbest)
+          subst best
+          simp
+      | some restBest =>
+          simp [hrest] at hbest
+          have hrestCorrect := ih hrest
+          by_cases hlt : candidate.2 < restBest.2
+          · simp [betterScoredCandidate, hlt] at hbest
+            subst best
+            constructor
+            · simp [hrestCorrect.1]
+            · intro other hother
+              simp at hother
+              rcases hother with rfl | hin
+              · exact le_of_lt hlt
+              · exact hrestCorrect.2 other hin
+          · simp [betterScoredCandidate, hlt] at hbest
+            subst best
+            constructor
+            · simp
+            · intro other hother
+              simp at hother
+              rcases hother with rfl | hin
+              · exact le_rfl
+              · exact le_trans (hrestCorrect.2 other hin) (le_of_not_gt hlt)
+
+/-- A missing cached-score winner implies an empty candidate list. -/
+theorem bestScoredCandidate_none_eq_nil {candidates : List ScoredSubarray}
+    (hbest : bestScoredCandidate candidates = none) : candidates = [] := by
+  cases candidates with
+  | nil => rfl
+  | cons candidate rest =>
+      cases hrest : bestScoredCandidate rest <;>
+        simp [bestScoredCandidate, hrest] at hbest
+
+/--
+Combine the recursive left and right winners with the linear crossing winner,
+using only their cached sums for the final constant-size choice.
+-/
+def maxSubarrayCombineLinearScored (left right : List Int)
+    (leftBest rightBest : Option ScoredSubarray) : Option ScoredSubarray :=
+  bestScoredCandidate
+    (leftBest.toList ++ rightBest.toList ++
+      (maxCrossingSubarrayLinearScored left right).toList)
+
+/-- The cached-score linear combine step preserves the full result contract. -/
+theorem maxSubarrayCombineLinearScored_result_correct
+    {left right : List Int} {leftBest rightBest : Option ScoredSubarray}
+    (hleft : IsScoredMaxSubarrayResult left leftBest)
+    (hright : IsScoredMaxSubarrayResult right rightBest) :
+    IsScoredMaxSubarrayResult (left ++ right)
+      (maxSubarrayCombineLinearScored left right leftBest rightBest) := by
+  cases hbest :
+      maxSubarrayCombineLinearScored left right leftBest rightBest with
+  | none =>
+      unfold maxSubarrayCombineLinearScored at hbest
+      have hnil := bestScoredCandidate_none_eq_nil hbest
+      simp at hnil
+      rcases hnil with ⟨hleftNone, hrightNone, hcrossNone⟩
+      intro cand hcand
+      rcases subarray_append_left_or_right_or_crossing hcand with
+        hcandLeft | hcandRight | hcandCross
+      · rw [hleftNone] at hleft
+        exact hleft cand hcandLeft
+      · rw [hrightNone] at hright
+        exact hright cand hcandRight
+      · have hcross :=
+          maxCrossingSubarrayLinearScored_result_correct left right
+        rw [hcrossNone] at hcross
+        exact hcross cand hcandCross
+  | some best =>
+      unfold maxSubarrayCombineLinearScored at hbest
+      rcases bestScoredCandidate_correct hbest with
+        ⟨hbestMem, hbestOptimal⟩
+      have hbestCases :
+          (IsNonemptySubarray best.1 left ∧
+              best.2 = subarraySum best.1) ∨
+            (IsNonemptySubarray best.1 right ∧
+              best.2 = subarraySum best.1) ∨
+            (IsCrossingSubarray best.1 left right ∧
+              best.2 = subarraySum best.1) := by
+        simp at hbestMem
+        rcases hbestMem with hleftMem | hrightMem | hcrossMem
+        · rw [hleftMem] at hleft
+          exact Or.inl ⟨hleft.1, hleft.2.1⟩
+        · rw [hrightMem] at hright
+          exact Or.inr (Or.inl ⟨hright.1, hright.2.1⟩)
+        · have hcrossBest :
+              maxCrossingSubarrayLinearScored left right = some best := by
+            simpa using hcrossMem
+          have hcross :=
+            maxCrossingSubarrayLinearScored_result_correct left right
+          rw [hcrossBest] at hcross
+          exact Or.inr (Or.inr ⟨hcross.1, hcross.2.1⟩)
+      have hvalid : IsNonemptySubarray best.1 (left ++ right) := by
+        rcases hbestCases with hleftBest | hrightBest | hcrossBest
+        · exact isNonemptySubarray_append_left hleftBest.1
+        · exact isNonemptySubarray_append_right (left := left) hrightBest.1
+        · exact crossingSubarray_isNonemptySubarray_append hcrossBest.1
+      have hscore : best.2 = subarraySum best.1 := by
+        rcases hbestCases with hleftBest | hrightBest | hcrossBest
+        · exact hleftBest.2
+        · exact hrightBest.2
+        · exact hcrossBest.2
+      refine ⟨hvalid, hscore, ?_⟩
+      intro cand hcand
+      rcases subarray_append_left_or_right_or_crossing hcand with
+        hcandLeft | hcandRight | hcandCross
+      · cases hleftBest : leftBest with
+        | none =>
+            rw [hleftBest] at hleft
+            exact False.elim (hleft cand hcandLeft)
+        | some leftWinner =>
+            rw [hleftBest] at hleft
+            have hwinnerMem :
+                leftWinner ∈
+                  leftBest.toList ++ rightBest.toList ++
+                    (maxCrossingSubarrayLinearScored left right).toList := by
+              simp [hleftBest]
+            exact le_trans (hleft.2.2 cand hcandLeft)
+              (hbestOptimal leftWinner hwinnerMem)
+      · cases hrightBest : rightBest with
+        | none =>
+            rw [hrightBest] at hright
+            exact False.elim (hright cand hcandRight)
+        | some rightWinner =>
+            rw [hrightBest] at hright
+            have hwinnerMem :
+                rightWinner ∈
+                  leftBest.toList ++ rightBest.toList ++
+                    (maxCrossingSubarrayLinearScored left right).toList := by
+              simp [hrightBest]
+            exact le_trans (hright.2.2 cand hcandRight)
+              (hbestOptimal rightWinner hwinnerMem)
+      · cases hcrossBest : maxCrossingSubarrayLinearScored left right with
+        | none =>
+            have hcross :=
+              maxCrossingSubarrayLinearScored_result_correct left right
+            rw [hcrossBest] at hcross
+            exact False.elim (hcross cand hcandCross)
+        | some crossWinner =>
+            have hcross :=
+              maxCrossingSubarrayLinearScored_result_correct left right
+            rw [hcrossBest] at hcross
+            have hwinnerMem :
+                crossWinner ∈
+                  leftBest.toList ++ rightBest.toList ++
+                    (maxCrossingSubarrayLinearScored left right).toList := by
+              simp [hcrossBest]
+            exact le_trans (hcross.2.2 cand hcandCross)
+              (hbestOptimal crossWinner hwinnerMem)
+
 /-! ## Executable divide-and-conquer combine step -/
 
 /--
@@ -1262,6 +1474,129 @@ theorem maxSubarrayDivideFuel_correct {fuel : Nat} {xs best : List Int}
     maxSubarrayDivideTree_correct
       (tree := midpointSplitTree fuel xs) (best := best) hbest
   simpa [maxSubarrayDivideFuel, midpointSplitTree_input] using htree
+
+/-! ## Fully expanded linear divide-and-conquer execution -/
+
+namespace SubarraySplitTree
+
+/-- Every terminal problem in the tree has size at most one. -/
+def UnitLeaves : SubarraySplitTree → Prop
+  | .leaf xs => xs.length ≤ 1
+  | .split left right => left.UnitLeaves ∧ right.UnitLeaves
+
+end SubarraySplitTree
+
+/-- Sufficient midpoint-splitting fuel leaves only empty or singleton inputs. -/
+theorem midpointSplitTree_unitLeaves (fuel : Nat) (xs : List Int)
+    (hfuel : xs.length ≤ fuel) :
+    (midpointSplitTree fuel xs).UnitLeaves := by
+  induction fuel generalizing xs with
+  | zero =>
+      have hnil : xs = [] := by
+        apply List.eq_nil_of_length_eq_zero
+        omega
+      subst xs
+      simp [midpointSplitTree, SubarraySplitTree.UnitLeaves]
+  | succ fuel ih =>
+      cases xs with
+      | nil =>
+          simp [midpointSplitTree, SubarraySplitTree.UnitLeaves]
+      | cons x xs =>
+          cases xs with
+          | nil =>
+              simp [midpointSplitTree, SubarraySplitTree.UnitLeaves]
+          | cons y ys =>
+              simp only [List.length_cons] at hfuel
+              have hmidLt : (ys.length + 2) / 2 < ys.length + 2 :=
+                Nat.div_lt_self (by omega) (by norm_num)
+              have hmidPos : 0 < (ys.length + 2) / 2 :=
+                Nat.div_pos (by omega) (by norm_num)
+              have hdropLt :
+                  (ys.length + 2) - (ys.length + 2) / 2 < ys.length + 2 :=
+                Nat.sub_lt (by omega) hmidPos
+              simp only [midpointSplitTree, SubarraySplitTree.UnitLeaves]
+              constructor
+              · apply ih
+                simp only [List.length_take, List.length_cons]
+                omega
+              · apply ih
+                simp only [List.length_drop, List.length_cons]
+                omega
+
+/-- Solve an empty or singleton leaf without invoking exhaustive enumeration. -/
+def singletonMaxSubarrayScored : List Int → Option ScoredSubarray
+  | [] => none
+  | x :: _ => some ([x], x)
+
+/-- Erase the cached score from the singleton leaf solver. -/
+def singletonMaxSubarray (xs : List Int) : Option (List Int) :=
+  (singletonMaxSubarrayScored xs).map Prod.fst
+
+/-- The singleton leaf solver is correct whenever the leaf invariant holds. -/
+theorem singletonMaxSubarrayScored_result_correct {xs : List Int}
+    (hunit : xs.length ≤ 1) :
+    IsScoredMaxSubarrayResult xs (singletonMaxSubarrayScored xs) := by
+  cases xs with
+  | nil =>
+      change ∀ cand, ¬ IsNonemptySubarray cand []
+      exact maxSubarray_none_no_subarray (by rfl)
+  | cons x tail =>
+      have htail : tail = [] := by
+        apply List.eq_nil_of_length_eq_zero
+        simp only [List.length_cons] at hunit
+        omega
+      subst tail
+      have hplain := maxSubarray_result_correct [x]
+      have hmax : maxSubarray [x] = some [x] := by rfl
+      rw [hmax] at hplain
+      exact ⟨hplain.1, by simp [subarraySum], fun cand hcand => by
+        simpa [subarraySum] using hplain.2 cand hcand⟩
+
+/-- Erased singleton execution satisfies the ordinary result specification. -/
+theorem singletonMaxSubarray_result_correct {xs : List Int}
+    (hunit : xs.length ≤ 1) :
+    IsMaxSubarrayResult xs (singletonMaxSubarray xs) := by
+  have hscored := singletonMaxSubarrayScored_result_correct hunit
+  simpa [singletonMaxSubarray] using hscored.erase
+
+/--
+Recursive maximum-subarray execution over a split tree.  Cached sums flow from
+children to the constant-size combine choice, and crossing candidates come
+from the accumulated-sum linear scan.
+-/
+def maxSubarrayDivideTreeScored : SubarraySplitTree → Option ScoredSubarray
+  | .leaf xs => singletonMaxSubarrayScored xs
+  | .split left right =>
+      maxSubarrayCombineLinearScored left.input right.input
+        (maxSubarrayDivideTreeScored left)
+        (maxSubarrayDivideTreeScored right)
+
+/-- The cached-score split-tree execution satisfies the maximum contract. -/
+theorem maxSubarrayDivideTreeScored_result_correct
+    {tree : SubarraySplitTree} (hunit : tree.UnitLeaves) :
+    IsScoredMaxSubarrayResult tree.input
+      (maxSubarrayDivideTreeScored tree) := by
+  induction tree with
+  | leaf xs =>
+      exact singletonMaxSubarrayScored_result_correct hunit
+  | split left right hleft hright =>
+      exact maxSubarrayCombineLinearScored_result_correct
+        (hleft hunit.1) (hright hunit.2)
+
+/--
+Top-level executable divide-and-conquer maximum-subarray selector.  Splitting
+continues until all terminal inputs have length at most one.
+-/
+def maxSubarrayDivide (xs : List Int) : Option (List Int) :=
+  (maxSubarrayDivideTreeScored (midpointSplitTree xs.length xs)).map Prod.fst
+
+/-- The fully expanded linear divide-and-conquer selector is correct. -/
+theorem maxSubarrayDivide_result_correct (xs : List Int) :
+    IsMaxSubarrayResult xs (maxSubarrayDivide xs) := by
+  have hunit := midpointSplitTree_unitLeaves xs.length xs (le_refl xs.length)
+  have hscored := maxSubarrayDivideTreeScored_result_correct hunit
+  have herased := hscored.erase
+  simpa [maxSubarrayDivide, midpointSplitTree_input] using herased
 
 /-! ## Runtime analysis
 
