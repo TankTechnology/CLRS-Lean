@@ -43,3 +43,29 @@ import CLRSLean.Chapter_09
 #check CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize
 #check CLRS.Chapter09.freshRandomizedSelectExpectedComparisons
 #check CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound
+
+-- Fresh schedule execution and its state-dependent nested expected cost.
+#check CLRS.Chapter09.randomizedSelectCostWithSchedule
+#check CLRS.Chapter09.randomizedSelectExpectedCostFuel
+#check CLRS.Chapter09.randomizedSelectExpectedCostFuel_succ
+#check CLRS.Chapter09.randomizedSelectExpectedCost
+#check CLRS.Chapter09.randomizedSelectExpectedCost_nonneg
+#check CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost
+#check CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound
+
+example :
+    CLRS.Chapter09.randomizedSelectCostWithSchedule
+      1 0 [1, 2] [1, 0] = some 3 := by
+  native_decide
+
+example :
+    CLRS.Chapter09.randomizedSelectCostWithSchedule
+      1 0 [1, 2] [1, 1] = none := by
+  native_decide
+
+example :
+    CLRS.Chapter09.randomizedSelectExpectedCost 1 0 [1, 2] =
+      (5 : Real) / 2 := by
+  norm_num [CLRS.Chapter09.randomizedSelectExpectedCost,
+    CLRS.Chapter09.randomizedSelectExpectedCostFuel,
+    CLRS.Probability.expect]
