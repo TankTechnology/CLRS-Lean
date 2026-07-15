@@ -15,6 +15,7 @@ Last repository-wide status reconciliation: 2026-07-11.
 | Chapter 5.1 | Hiring probability, harmonic expectation, and logarithmic asymptotic bound | General probability toolkit and other randomized examples |
 | Chapter 6 | Heap predicate, heapify, build-heap, heapsort, and represented priority-queue correctness | Line-by-line RAM costs |
 | Chapter 8 correctness | Represented counting-sort correctness with a mutable output-array (`Array`) refinement filled by a cumulative-count reverse scan and its linear `O(n + k)` work bound, radix-sort, bucket-sort correctness, and the bucket-sort second moment `E[Σ n_i²] = n + n(n-1)/m` as a true expectation over the independent uniform input distribution | RAM/step-count cost semantics |
+| Chapter 9 | Pairwise extrema, rank-correct selection, fresh-choice RANDOMIZED-SELECT with `E[C] ≤ 4n`, and recursive median-of-medians SELECT with complete comparison cost `≤ 100n` | Mutable partition arrays, random-number generator implementation, and RAM accounting |
 | Chapter 10.1-10.2 | Functional stacks, queues, and linked lists | Pointer memory and allocation |
 | Chapter 16.1 and 16.3 | Activity-selection and Huffman optimality | Other greedy sections |
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and stateful Chapter 23 integration |
@@ -22,9 +23,9 @@ Last repository-wide status reconciliation: 2026-07-11.
 | Chapter 23 correctness and functional implementation | Cut property, unique tree paths, automatic exchange, sorted and stateful Kruskal, concrete indexed-queue Prim, and explicit algorithm-level work bounds | `Batteries.BinaryHeap` array refinement and mutable/RAM write accounting |
 | Chapter 24.1 and 24.3 | Weighted directed-graph model, Bellman-Ford relaxation dynamic program with CLRS Theorem 24.4 correctness/convergence and `O(V·E)` work, and Dijkstra's greedy invariant (CLRS Theorem 24.6) under nonnegative weights with `O(E log V)` work | Executable Dijkstra priority-queue loop, SSSP in DAGs, difference constraints, and per-edge/RAM cost refinement |
 
-Chapters 21-23 are formally sealed by their interface tests and dated
-closure audits.  Their listed implementation refinements are new layers, not
-missing core theorem groups.
+Chapters 21-23 are formally sealed by their interface tests and
+dated closure audits.  Their listed implementation refinements are new layers,
+not missing core theorem groups.
 
 ## Structured But Partial
 
@@ -33,7 +34,6 @@ missing core theorem groups.
 | 3 | CLRS asymptotic wrappers and the complete standard-function comparison table (`1 ≺ log(log n) ≺ log n ≺ n ≺ n^a ≺ 2^n ≺ n!`, plus `log_b` base change) | Iterated logarithm `lg* n` and Fibonacci-number growth |
 | 4 | Maximum subarray, Strassen 2x2, substitution, recursion trees, and textbook-facing Master cases 1-3 | Recursive Strassen and algorithm/RAM refinements |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, plus the random-permutation symmetry lemma (`isFirst_prob`) and pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3) over the shared `Probability.FiniteExpectation` toolkit | End-to-end total-comparison expectation (`expected_comparisons_eq_sum`) and the `Θ(n log n)` asymptotic bridge |
-| 9 | Rank selection, executable median-of-medians correctness with linear recurrence wrapper, and randomized SELECT expected `O(n)` time (`randomizedSelect_expected_bigO_linear`, CLRS Theorem 9.2) | Concrete executable cost semantics for deterministic median-of-medians |
 | 11 | Deterministic hash tables, finite-uniform bucket averages, and the SUHA true-expectation chain-length `α`/unsuccessful-search `1+α` analysis over the explicit independent uniform hashing distribution | Successful-search analysis and a random hash-*function* model |
 | 12 | Functional BST operations plus zipper-based parent navigation, transplant, and deletion equivalence | Imperative in-place pointer mutation and RAM refinement |
 | 13 | Executable red-black insertion, invariant proofs, the logarithmic-height theorem (Lemma 13.1), and local `RB-DELETE-FIXUP` case certificates (membership + terminating Case-4 shape) | Fully-composed executable `RB-DELETE`/`RB-DELETE-FIXUP` loop |
@@ -57,17 +57,16 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 0 | Chapters 5/7/8/9/11 probability infrastructure | General finite `Fintype` expectation/probability API, then Chapter 7 total comparison expectation and `O/Theta(n log n)` bridge |
-| 1 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
-| 2 | Chapter 24 remaining sections | Sections 24.1 (Bellman-Ford) and 24.3 (Dijkstra greedy correctness) are proved; add SSSP in DAGs (24.2), difference constraints (24.4), and the executable Dijkstra priority-queue loop |
-| 3 | Chapter 23 implementation track | Add a stateful costed Kruskal scan using Chapter 21's proved inverse-Ackermann machine bound |
-| 4 | Existing partial implementation layers | Select one concrete pointer, mutable-array, or RAM refinement and finish it end-to-end |
+| 0 | Chapter 13/14 tree integration | Red-black deletion/height, then augmentation preservation through balancing |
+| 1 | Chapter 24 remaining sections | Sections 24.1 (Bellman-Ford) and 24.3 (Dijkstra greedy correctness) are proved; add SSSP in DAGs (24.2), difference constraints (24.4), and the executable Dijkstra priority-queue loop |
+| 2 | Chapter 23 implementation track | Add a stateful costed Kruskal scan using Chapter 21's proved inverse-Ackermann machine bound |
+| 3 | Existing partial implementation layers | Select one concrete pointer, mutable-array, or RAM refinement and finish it end-to-end |
 
 ## High-Difficulty Queue
 
 | Scope | Why it is difficult | Recommended boundary |
 | --- | --- | --- |
-| Randomized expected-time analysis | Requires a reusable probability model, expectation algebra, combinatorial symmetry, and asymptotics | Finish one Chapter 7 model end-to-end before sharing it with Chapters 8, 9, and 11 |
+| Randomized expected-time analysis | Requires a reusable probability model, expectation algebra, combinatorial symmetry, and asymptotics | Reuse Chapter 9's fresh-choice finite expectation and pointwise continuation coupling for Chapter 7's end-to-end comparison expectation |
 | Red-black deletion | Large case split over shape, colors, rotations, and black height | Stabilize one local fixup certificate per case before composing an executable algorithm |
 | Imperative/RAM semantics | Introduces a new state and cost layer across many chapters | Treat it as an explicit refinement project, not an implicit condition on mathematical correctness |
 

@@ -6,18 +6,18 @@ import CLRSLean.Chapter_09.Section_09_3_Deterministic_Select
 /-!
 # CLRS Section 9.2 - Randomized SELECT expected running time
 
-This support page adds the probabilistic layer that Chapter 9 was missing:
-`RANDOMIZED-SELECT`, its expected-comparison recurrence, and the CLRS Theorem 9.2
-bound {lit}`E[T(n)] = O(n)`.
+This support page formalizes the standard majorizing recurrence used in the
+analysis of `RANDOMIZED-SELECT` and proves that this recurrence is linear.
 
 The model is built directly on the shared finite-expectation toolkit
-{lit}`CLRS.Probability.expect` / {lit}`CLRS.Probability.fintypeExpect`.  At each
-recursive step a pivot is chosen **uniformly at random and independently**: the
-per-step sample space is the pivot rank {lit}`Fin n`, and the expectation over
-that rank is a genuine {lit}`CLRS.Probability.expect`.  The recursion always
-charges the *larger* of the two partition sides (CLRS's majorizing recurrence),
-so the resulting quantity {lit}`CLRS.Chapter09.randSelectExpectedCost` is an
-upper bound on the true expected cost.
+{lit}`CLRS.Probability.expect` / {lit}`CLRS.Probability.fintypeExpect`.  One
+recurrence step averages uniformly over the pivot rank {lit}`Fin n` and charges
+the *larger* of the two partition sides.  The section also defines the actual
+state-dependent stochastic execution: every recursive call takes a fresh
+uniform pivot-rank choice, follows the branch selected by the requested rank,
+and charges its partition comparisons.  That continuation is bounded
+pointwise by the larger-side recurrence, yielding expected cost at most
+{lit}`4n`.
 
 Main results:
 
@@ -35,9 +35,20 @@ Main results:
   per-step sample space {lit}`Fin (n+1)`.
 - Theorem {lit}`CLRS.Chapter09.randSelectExpectedCost_le`: the substitution-method
   solution {lit}`E[T(n)] ≤ 4·c·n`.
-- Theorem {lit}`CLRS.Chapter09.randomizedSelect_expected_bigO_linear`: the CLRS
-  Theorem 9.2 asymptotic bound
+- Theorem {lit}`CLRS.Chapter09.randomizedSelectMajorizer_bigO_linear`: the
+  asymptotic bound for the majorizing recurrence
   {lit}`isBigO (fun n => E[T n]) (fun n => (n : ℝ))`.
+- Definition {lit}`CLRS.Chapter09.freshRandomizedSelectExpectedComparisons` and
+  theorem
+  {lit}`CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound`:
+  fresh per-call pivot choices for the actual selected continuation have
+  expected comparison cost at most {lit}`4n`.
+- Theorem {lit}`CLRS.Chapter09.freshRandomizedSelectWithRanks?_correct`: every
+  executable finite sample path driven by successive pivot ranks is rank-correct.
+- Theorem
+  {lit}`CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize`:
+  the actual selected continuation is pointwise bounded by the larger-side
+  recurrence argument.
 - Theorem {lit}`CLRS.Chapter09.randomizedSelectAtIndex?_rankCorrect`: the
   randomized selector reuses the pivot-parametric SELECT skeleton, so rank
   correctness is inherited.
@@ -308,10 +319,10 @@ theorem randSelectExpectedCost_le (c : ℝ) (hc : 0 ≤ c) :
       linarith [hfrac, hcm]
 
 /--
-Expected comparison count of `RANDOMIZED-SELECT`, with the CLRS local-work
+The CLRS majorizing expected-comparison recurrence with unit local-work
 constant (`n` comparisons per partition, i.e. `c = 1`).
 -/
-noncomputable def randomizedSelectExpectedComparisons (n : ℕ) : ℝ :=
+noncomputable def randomizedSelectMajorizingExpectedComparisons (n : ℕ) : ℝ :=
   randSelectExpectedCost 1 n
 
 /--
@@ -330,19 +341,297 @@ theorem randSelectExpectedCost_bigO_linear (c : ℝ) (hc : 0 ≤ c) :
   nlinarith [hle, hcast]
 
 /--
-**CLRS Theorem 9.2.**  The expected running time (comparison count) of
-`RANDOMIZED-SELECT` is `O(n)`.
+The majorizing recurrence used in the proof of CLRS Theorem 9.2 is `O(n)`.
+The fresh-choice state-dependent execution and its coupling to the same
+larger-side argument are proved separately below.
 -/
-theorem randomizedSelect_expected_bigO_linear :
+theorem randomizedSelectMajorizer_bigO_linear :
     CLRS.Chapter03.isBigO
-      (fun n => randomizedSelectExpectedComparisons n) (fun n => (n : ℝ)) :=
+      (fun n => randomizedSelectMajorizingExpectedComparisons n) (fun n => (n : ℝ)) :=
   randSelectExpectedCost_bigO_linear 1 (by norm_num)
+
+/-! ## Fresh-choice RANDOMIZED-SELECT semantics -/
+
+/--
+Fuelled RANDOMIZED-SELECT path interpreter driven by a sequence of pivot ranks.
+Each recursive call consumes one new rank.  A stochastic implementation obtains
+that next rank from the current `Fin xs.length`; keeping the choices explicit
+here makes every finite sample path executable and independently testable.
+-/
+def freshRandomizedSelectWithRanksFuel? :
+    Nat → List Nat → Nat → List Nat → Option Nat
+  | 0, _, _, _ => none
+  | _ + 1, [], _, _ => none
+  | fuel + 1, i :: choices, k, xs =>
+      match selectByRank? i xs with
+      | none => none
+      | some pivot =>
+          if k < ltCount pivot xs then
+            freshRandomizedSelectWithRanksFuel? fuel choices k
+              (xs.filter fun y => decide (y < pivot))
+          else if k < leCount pivot xs then
+            some pivot
+          else
+            freshRandomizedSelectWithRanksFuel? fuel choices
+              (k - leCount pivot xs)
+              (xs.filter fun y => decide (pivot < y))
+
+/-- Public rank-choice path interpreter with enough fuel for strict recursion. -/
+def freshRandomizedSelectWithRanks? (choices : List Nat)
+    (k : Nat) (xs : List Nat) : Option Nat :=
+  freshRandomizedSelectWithRanksFuel? xs.length choices k xs
+
+/-- Every successful fresh-rank sample path returns the requested order statistic. -/
+theorem freshRandomizedSelectWithRanksFuel?_correct :
+    ∀ (fuel : Nat) (choices : List Nat) (k : Nat) (xs : List Nat) {x : Nat},
+      freshRandomizedSelectWithRanksFuel? fuel choices k xs = some x →
+        RankCertificate xs k x := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro choices k xs x hrun
+      simp [freshRandomizedSelectWithRanksFuel?] at hrun
+  | succ fuel ih =>
+      intro choices k xs selected hrun
+      cases choices with
+      | nil =>
+          simp [freshRandomizedSelectWithRanksFuel?] at hrun
+      | cons i choices =>
+          cases hpivot : selectByRank? i xs with
+          | none =>
+              simp [freshRandomizedSelectWithRanksFuel?, hpivot] at hrun
+          | some pivot =>
+              have hpivotMem : pivot ∈ xs := selectByRank?_mem hpivot
+              by_cases hlo : k < ltCount pivot xs
+              · have hlow :
+                    freshRandomizedSelectWithRanksFuel? fuel choices k
+                        (xs.filter fun y => decide (y < pivot)) =
+                      some selected := by
+                  simpa [freshRandomizedSelectWithRanksFuel?, hpivot, hlo]
+                    using hrun
+                exact rankCertificate_low_lift (ih choices k _ hlow)
+              · by_cases hmid : k < leCount pivot xs
+                · have hselected : selected = pivot := by
+                    exact Eq.symm (by
+                      simpa [freshRandomizedSelectWithRanksFuel?, hpivot, hlo,
+                        hmid] using hrun)
+                  subst selected
+                  exact rankCertificate_pivot hpivotMem hlo hmid
+                · have hhigh :
+                      freshRandomizedSelectWithRanksFuel? fuel choices
+                          (k - leCount pivot xs)
+                          (xs.filter fun y => decide (pivot < y)) =
+                        some selected := by
+                    simpa [freshRandomizedSelectWithRanksFuel?, hpivot, hlo,
+                      hmid] using hrun
+                  exact rankCertificate_high_lift (Nat.le_of_not_gt hmid)
+                    (ih choices (k - leCount pivot xs) _ hhigh)
+
+/-- Correctness of the public fresh-rank path interpreter. -/
+theorem freshRandomizedSelectWithRanks?_correct {choices : List Nat}
+    {k : Nat} {xs : List Nat} {x : Nat}
+    (hrun : freshRandomizedSelectWithRanks? choices k xs = some x) :
+    RankCertificate xs k x := by
+  exact freshRandomizedSelectWithRanksFuel?_correct xs.length choices k xs
+    (by simpa [freshRandomizedSelectWithRanks?] using hrun)
+
+/-- Size of the continuation actually selected by one pivot-rank choice. -/
+def freshRandomizedSelectContinuationSize (k i : Nat) (xs : List Nat) : Nat :=
+  match selectByRank? i xs with
+  | none => 0
+  | some pivot =>
+      if k < ltCount pivot xs then ltCount pivot xs
+      else if k < leCount pivot xs then 0
+      else gtCount pivot xs
+
+/--
+Pointwise coupling to the CLRS larger-side recurrence: for every valid sampled
+pivot rank, the continuation actually chosen by the requested order statistic
+is no larger than `max i (n - 1 - i)`.
+-/
+theorem freshRandomizedSelectContinuationSize_le_subproblemSize
+    {k i : Nat} {xs : List Nat} (hi : i < xs.length) :
+    freshRandomizedSelectContinuationSize k i xs ≤
+      subproblemSize xs.length i := by
+  rcases selectByRank?_isSome_of_lt hi with ⟨pivot, hpivot⟩
+  have hrank : RankCertificate xs i pivot :=
+    selectByRank?_rankCorrect hpivot
+  by_cases hlo : k < ltCount pivot xs
+  · simp only [freshRandomizedSelectContinuationSize, hpivot, hlo, if_pos,
+      subproblemSize]
+    exact le_trans hrank.2.1 (Nat.le_max_left _ _)
+  · by_cases hmid : k < leCount pivot xs
+    · simp [freshRandomizedSelectContinuationSize, hpivot, hlo, hmid]
+    · simp only [freshRandomizedSelectContinuationSize, hpivot, hlo, hmid,
+        if_false, subproblemSize]
+      have hhigh : gtCount pivot xs ≤ xs.length - 1 - i := by
+        rw [gtCount_eq_length_sub_leCount]
+        have hirank : i + 1 ≤ leCount pivot xs :=
+          Nat.succ_le_of_lt hrank.2.2
+        have hsub := Nat.sub_le_sub_left hirank xs.length
+        simpa [Nat.sub_sub, Nat.add_comm] using hsub
+      exact le_trans hhigh (Nat.le_max_right _ _)
+
+/--
+Expected comparisons of RANDOMIZED-SELECT with an explicit fresh uniform
+pivot-rank choice at every recursive call.
+
+The sampled rank `i` ranges uniformly over the current `Fin xs.length`; the
+value `selectByRank? i xs` is the corresponding uniformly sampled occurrence
+written in rank coordinates.  This is an analysis reindexing of choosing a
+uniform input position, not an extra order-statistic computation charged to the
+algorithm.  After the partition scan, the expectation recursively averages
+again on the selected strict subproblem, so choices at different levels are
+fresh rather than a single fixed index reused throughout the run.
+-/
+noncomputable def freshRandomizedSelectExpectedComparisonsFuel :
+    Nat → Nat → List Nat → ℝ
+  | 0, _, _ => 0
+  | _ + 1, _, [] => 0
+  | fuel + 1, k, (x :: xs) =>
+      ((x :: xs).length : ℝ) +
+        Probability.expect (x :: xs).length (fun i =>
+          match selectByRank? i (x :: xs) with
+          | none => 0
+          | some pivot =>
+              if k < ltCount pivot (x :: xs) then
+                freshRandomizedSelectExpectedComparisonsFuel fuel k
+                  ((x :: xs).filter fun y => decide (y < pivot))
+              else if k < leCount pivot (x :: xs) then
+                0
+              else
+                freshRandomizedSelectExpectedComparisonsFuel fuel
+                  (k - leCount pivot (x :: xs))
+                  ((x :: xs).filter fun y => decide (pivot < y)))
+
+/-- Public fresh-choice expectation, with one unit of fuel per input element. -/
+noncomputable def freshRandomizedSelectExpectedComparisons
+    (k : Nat) (xs : List Nat) : ℝ :=
+  freshRandomizedSelectExpectedComparisonsFuel xs.length k xs
+
+/--
+The actual recursive continuation selected at pivot rank `i` is bounded by the
+larger-side term `max i (n-1-i)` used in the CLRS majorizing recurrence.
+Consequently the fresh-choice stochastic execution has expected comparison
+cost at most `4n`.
+-/
+theorem freshRandomizedSelectExpectedComparisonsFuel_linear_bound :
+    ∀ (fuel k : Nat) (xs : List Nat),
+      freshRandomizedSelectExpectedComparisonsFuel fuel k xs ≤
+        4 * (xs.length : ℝ) := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro k xs
+      simp [freshRandomizedSelectExpectedComparisonsFuel]
+  | succ fuel ih =>
+      intro k xs
+      cases xs with
+      | nil =>
+          simp [freshRandomizedSelectExpectedComparisonsFuel]
+      | cons x xs =>
+          let ys := x :: xs
+          let X : Nat → ℝ := fun i =>
+            match selectByRank? i ys with
+            | none => 0
+            | some pivot =>
+                if k < ltCount pivot ys then
+                  freshRandomizedSelectExpectedComparisonsFuel fuel k
+                    (ys.filter fun y => decide (y < pivot))
+                else if k < leCount pivot ys then
+                  0
+                else
+                  freshRandomizedSelectExpectedComparisonsFuel fuel
+                    (k - leCount pivot ys)
+                    (ys.filter fun y => decide (pivot < y))
+          have hterm : ∀ i ∈ Finset.range ys.length,
+              X i ≤ 4 * ((max i (xs.length - i) : Nat) : ℝ) := by
+            intro i hi
+            have hiLt : i < ys.length := Finset.mem_range.mp hi
+            rcases selectByRank?_isSome_of_lt hiLt with ⟨pivot, hpivot⟩
+            have hrank : RankCertificate ys i pivot :=
+              selectByRank?_rankCorrect hpivot
+            simp only [X, hpivot]
+            by_cases hlo : k < ltCount pivot ys
+            · simp only [hlo, if_pos]
+              have hrec := ih k (ys.filter fun y => decide (y < pivot))
+              have hsize :
+                  (ys.filter fun y => decide (y < pivot)).length ≤
+                    max i (xs.length - i) := by
+                exact le_trans hrank.2.1 (Nat.le_max_left _ _)
+              have hcast :
+                  4 * ((ys.filter fun y => decide (y < pivot)).length : ℝ) ≤
+                    4 * ((max i (xs.length - i) : Nat) : ℝ) := by
+                exact_mod_cast Nat.mul_le_mul_left 4 hsize
+              exact le_trans hrec hcast
+            · by_cases hmid : k < leCount pivot ys
+              · simp [hlo, hmid]
+              · simp only [hlo, hmid, if_false]
+                have hrec := ih (k - leCount pivot ys)
+                  (ys.filter fun y => decide (pivot < y))
+                have hhigh : gtCount pivot ys ≤ xs.length - i := by
+                  rw [gtCount_eq_length_sub_leCount]
+                  have hirank : i < leCount pivot ys := hrank.2.2
+                  have hlenys : ys.length = xs.length + 1 := by simp [ys]
+                  omega
+                have hsize :
+                    (ys.filter fun y => decide (pivot < y)).length ≤
+                      max i (xs.length - i) := by
+                  exact le_trans hhigh (Nat.le_max_right _ _)
+                have hcast :
+                    4 * ((ys.filter fun y => decide (pivot < y)).length : ℝ) ≤
+                      4 * ((max i (xs.length - i) : Nat) : ℝ) := by
+                  exact_mod_cast Nat.mul_le_mul_left 4 hsize
+                exact le_trans hrec hcast
+          have hsum :
+              (∑ i ∈ Finset.range ys.length, X i) ≤
+                4 * (∑ i ∈ Finset.range ys.length,
+                  ((max i (xs.length - i) : Nat) : ℝ)) := by
+            calc
+              (∑ i ∈ Finset.range ys.length, X i) ≤
+                  ∑ i ∈ Finset.range ys.length,
+                    4 * ((max i (xs.length - i) : Nat) : ℝ) :=
+                Finset.sum_le_sum hterm
+              _ = 4 * (∑ i ∈ Finset.range ys.length,
+                    ((max i (xs.length - i) : Nat) : ℝ)) := by
+                rw [Finset.mul_sum]
+          have hmax :
+              4 * (∑ i ∈ Finset.range ys.length,
+                  ((max i (xs.length - i) : Nat) : ℝ)) ≤
+                3 * (ys.length : ℝ) ^ 2 := by
+            simpa [ys, Nat.cast_add, Nat.cast_one] using
+              sum_maxSide_real_bound xs.length
+          have hsumBound :
+              (∑ i ∈ Finset.range ys.length, X i) ≤
+                3 * (ys.length : ℝ) ^ 2 := le_trans hsum hmax
+          have hlenPos : (0 : ℝ) < (ys.length : ℝ) := by
+            have hnat : 0 < ys.length := by simp [ys]
+            exact_mod_cast hnat
+          have hfrac :
+              (∑ i ∈ Finset.range ys.length, X i) / (ys.length : ℝ) ≤
+                3 * (ys.length : ℝ) := by
+            apply (div_le_iff₀ hlenPos).2
+            nlinarith
+          change (ys.length : ℝ) + Probability.expect ys.length X ≤
+            4 * (ys.length : ℝ)
+          unfold Probability.expect
+          linarith
+
+/--
+Fresh-choice RANDOMIZED-SELECT has expected linear comparison cost on every
+input and requested rank: `E[C] ≤ 4n`.
+-/
+theorem freshRandomizedSelectExpectedComparisons_linear_bound
+    (k : Nat) (xs : List Nat) :
+    freshRandomizedSelectExpectedComparisons k xs ≤ 4 * (xs.length : ℝ) := by
+  exact freshRandomizedSelectExpectedComparisonsFuel_linear_bound xs.length k xs
 
 /-! ## Rank correctness via a randomized pivot oracle -/
 
 /--
-Pivot oracle that selects the element at a designated (random) index, reusing the
-pivot-parametric SELECT skeleton of Section 9.3.
+Pivot oracle that selects the element at a designated index, reusing the
+pivot-parametric SELECT skeleton of Section 9.3.  Fixing one index does not by
+itself model fresh random choices across recursive calls.
 -/
 def pivotAtIndex? (i : ℕ) (xs : List ℕ) : Option ℕ := xs[i]?
 
@@ -353,17 +642,18 @@ theorem pivotAtIndex?_mem (i : ℕ) : PivotMembership (pivotAtIndex? i) := by
   simp
 
 /--
-`RANDOMIZED-SELECT` with the pivot chosen at index `i`, obtained by instantiating
-the pivot-parametric selector {lit}`CLRS.Chapter09.selectWithPivot?`.  Modelling
-`i` as uniform over the current input recovers the randomized algorithm whose
-expected cost is analysed above.
+SELECT with the pivot chosen at a fixed index `i`, obtained by instantiating the
+pivot-parametric selector {lit}`CLRS.Chapter09.selectWithPivot?`.  This is a
+deterministic specialization used only for conditional rank correctness; it
+does not model the fresh per-call choices of `RANDOMIZED-SELECT`.
 -/
 def randomizedSelectAtIndex? (i k : ℕ) (xs : List ℕ) : Option ℕ :=
   selectWithPivot? (pivotAtIndex? i) k xs
 
 /--
-Rank correctness of `RANDOMIZED-SELECT` is inherited from the pivot-parametric
-skeleton: any successful result is a valid zero-based order statistic.
+Rank correctness of the fixed-index specialization is inherited from the
+pivot-parametric skeleton: any successful result is a valid zero-based order
+statistic.
 -/
 theorem randomizedSelectAtIndex?_rankCorrect {i k : ℕ} {xs : List ℕ} {x : ℕ}
     (hsel : randomizedSelectAtIndex? i k xs = some x) :

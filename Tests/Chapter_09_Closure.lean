@@ -1,0 +1,19 @@
+import CLRSLean.Chapter_09
+
+#check CLRS.Chapter09.minMax?_correct
+#check CLRS.Chapter09.minMax?_comparisons_le
+#check CLRS.Chapter09.quickSelect?_correct
+#check CLRS.Chapter09.freshRandomizedSelectWithRanks?_correct
+#check CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize
+#check CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound
+#check CLRS.Chapter09.recursiveMedianOfMediansSelect?_correct
+#check CLRS.Chapter09.recursiveMedianOfMediansComparisonCost_linear_bound
+
+#print axioms CLRS.Chapter09.minMax?_correct
+#print axioms CLRS.Chapter09.minMax?_comparisons_le
+#print axioms CLRS.Chapter09.quickSelect?_correct
+#print axioms CLRS.Chapter09.freshRandomizedSelectWithRanks?_correct
+#print axioms CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize
+#print axioms CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound
+#print axioms CLRS.Chapter09.recursiveMedianOfMediansSelect?_correct
+#print axioms CLRS.Chapter09.recursiveMedianOfMediansComparisonCost_linear_bound

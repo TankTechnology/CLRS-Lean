@@ -265,3 +265,16 @@ chapters.
   of `new :: h.erase old`, and deletion is a rebuild of `h.erase key`.
 - Record the array `MAX-HEAPIFY`/in-place heapsort layer as a refinement target,
   not as an unproved theorem hidden inside the functional model.
+
+## 2026-07-15 - After Chapter 9 Selection Closure
+
+- A path-only cost counter is not an end-to-end divide-and-conquer cost when
+  pivot construction is itself recursive.  Define the nested pivot charge and
+  the selected strict-branch charge in the same operational cost semantics.
+- Strengthen the cost induction with both pivot fuel and selector fuel.  This
+  makes the group-median recursive call and the outer strict-branch call
+  available from one strong induction on input length.
+- For fresh randomized recursion, define expectation at the current state and
+  average anew over `Fin n` at every recursive call.  Rank certificates then
+  give the pointwise bridge from the actual chosen continuation to
+  `max i (n - 1 - i)`, avoiding a fake fixed-index random model.

@@ -67,6 +67,7 @@ CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray.lean
 CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
 CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean
+CLRSLean/Chapter_09/Section_09_1_Minimum_And_Maximum.lean
 CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean

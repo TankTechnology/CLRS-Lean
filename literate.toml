@@ -98,6 +98,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray",
 ]
 "CLRSLean.Chapter_09" = [
+  "CLRSLean.Chapter_09.Section_09_1_Minimum_And_Maximum",
   "CLRSLean.Chapter_09.Section_09_2_Select_By_Rank",
   "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select",
 ]
@@ -454,11 +455,14 @@ title = "8.3. Radix Sort"
 [modules."CLRSLean.Chapter_08.Section_08_4_Bucket_Sort"]
 title = "8.4. Bucket Sort"
 
+[modules."CLRSLean.Chapter_09.Section_09_1_Minimum_And_Maximum"]
+title = "9.1. Minimum and Maximum"
+
 [modules."CLRSLean.Chapter_09.Section_09_2_Select_By_Rank"]
-title = "9.2. Selection by Rank"
+title = "9.2. Selection in Expected Linear Time"
 
 [modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select"]
-title = "9.3. Deterministic Selection"
+title = "9.3. Selection in Worst-Case Linear Time"
 
 [modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select"]
 title = "Randomized SELECT Expected Time"
