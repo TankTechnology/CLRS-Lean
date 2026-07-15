@@ -1,4 +1,3 @@
-import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Chapter_06.Section_06_3_Building_A_Heap
 
 /-!

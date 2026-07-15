@@ -6,10 +6,10 @@ import CLRSLean.Chapter_06.Section_06_4_Heapsort
 
 This module instruments the executable Chapter 6 heap operations with an
 abstract unit control-step count.  Projecting the first component recovers the
-existing execution exactly.  The metric counts visited `MAX-HEAPIFY` frames
+existing execution exactly.  The metric counts visited {lit}`MAX-HEAPIFY` frames
 and one extraction/swap transition for each nontrivial heapsort step.  Build-
-loop orchestration and function calls are not charged separately, and this is
-not a RAM-cost model for Lean lists.
+loop orchestration, guards, list reads/writes, allocation, and function calls
+are not charged separately; this is not a RAM-cost model for Lean lists.
 -/
 
 namespace CLRS
@@ -17,9 +17,9 @@ namespace Chapter06
 
 open Chapter03
 
-/-! ## Costed `MAX-HEAPIFY` -/
+/-! ## Costed {lit}`MAX-HEAPIFY` -/
 
-/-- `MAX-HEAPIFY` paired with the number of visited recursive frames. -/
+/-- {lit}`MAX-HEAPIFY` paired with the number of visited recursive frames. -/
 def maxHeapifyFuelWithCost : Nat → List Nat → Nat → Nat → List Nat × Nat
   | 0, a, _, _ => (a, 0)
   | fuel + 1, a, heapSize, i =>
@@ -82,7 +82,7 @@ theorem buildMaxHeapLoopWithCost_result
       simp only [buildMaxHeapLoopWithCost, buildMaxHeapLoop]
       rw [ih, maxHeapifyFuelWithCost_result]
 
-/-- The bottom-up build loop uses at most `count * heapSize` control steps. -/
+/-- The bottom-up build loop uses at most {lit}`count * heapSize` control steps. -/
 theorem buildMaxHeapLoopWithCost_cost_le
     (count : Nat) (a : List Nat) (heapSize : Nat) :
     (buildMaxHeapLoopWithCost count a heapSize).2 ≤ count * heapSize := by
@@ -101,7 +101,7 @@ theorem buildMaxHeapLoopWithCost_cost_le
 def arrayBuildMaxHeapWithCost (xs : List Nat) : List Nat × Nat :=
   buildMaxHeapLoopWithCost (xs.length / 2) xs xs.length
 
-/-- Erasing cost from the costed builder recovers `arrayBuildMaxHeap`. -/
+/-- Erasing cost from the costed builder recovers {lit}`arrayBuildMaxHeap`. -/
 theorem arrayBuildMaxHeapWithCost_result (xs : List Nat) :
     (arrayBuildMaxHeapWithCost xs).1 = arrayBuildMaxHeap xs := by
   simpa [arrayBuildMaxHeapWithCost, arrayBuildMaxHeap] using
@@ -129,7 +129,7 @@ def arrayHeapSortStepWithCost (a : List Nat) (heapSize : Nat) : List Nat × Nat 
         (swapAt a 0 (newHeapSize + 1)) (newHeapSize + 1) 0
       (repaired.1, repaired.2 + 1)
 
-/-- Erasing one costed extraction step recovers `arrayHeapSortStep`. -/
+/-- Erasing one costed extraction step recovers {lit}`arrayHeapSortStep`. -/
 theorem arrayHeapSortStepWithCost_result (a : List Nat) (heapSize : Nat) :
     (arrayHeapSortStepWithCost a heapSize).1 = arrayHeapSortStep a heapSize := by
   cases heapSize with
@@ -321,7 +321,7 @@ theorem arrayHeapSortInPlaceWithCost_correct_and_cost (xs : List Nat) :
 
 /-! ## Honest asymptotic wrappers for the coarse envelopes -/
 
-/-- The linear heapify control envelope is `O(n)`. -/
+/-- The linear heapify control envelope is {lit}`O(n)`. -/
 theorem maxHeapifyControlBound_isBigO_n :
     isBigO (fun n : Nat => (maxHeapifyControlBound n : ℝ))
       (fun n : Nat => (n : ℝ)) := by
@@ -329,7 +329,7 @@ theorem maxHeapifyControlBound_isBigO_n :
   refine ⟨1, by norm_num, 1, fun n _ => ?_⟩
   simp [maxHeapifyControlBound]
 
-/-- The coarse build-heap control envelope is `O(n²)`. -/
+/-- The coarse build-heap control envelope is {lit}`O(n²)`. -/
 theorem buildMaxHeapControlBound_isBigO_nsq :
     isBigO (fun n : Nat => (buildMaxHeapControlBound n : ℝ))
       (fun n : Nat => (n : ℝ) * n) := by
@@ -337,7 +337,7 @@ theorem buildMaxHeapControlBound_isBigO_nsq :
   refine ⟨1, by norm_num, 1, fun n _ => ?_⟩
   simp [buildMaxHeapControlBound, Nat.cast_mul]
 
-/-- The coarse heapsort control envelope is `O(n²)`. -/
+/-- The coarse heapsort control envelope is {lit}`O(n²)`. -/
 theorem heapSortControlBound_isBigO_nsq :
     isBigO (fun n : Nat => (heapSortControlBound n : ℝ))
       (fun n : Nat => (n : ℝ) * n) := by
