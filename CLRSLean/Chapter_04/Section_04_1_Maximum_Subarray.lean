@@ -519,6 +519,312 @@ theorem maxCrossingSubarray_isNonemptySubarray_append {left right best : List In
   exact crossingSubarray_isNonemptySubarray_append
     (maxCrossingSubarray_correct hbest).1
 
+/-! ## Linear crossing-subarray scan -/
+
+/-- A running prefix sum paired with the length of the represented prefix. -/
+abbrev PrefixScore := Int × Nat
+
+/--
+Build all running prefix sums in one traversal.  The accumulator stores the
+sum and length of the input consumed before the current list.
+-/
+def prefixScoresAux : List Int → Int → Nat → List PrefixScore
+  | [], _, _ => []
+  | x :: xs, total, len =>
+      let total' := total + x
+      let len' := len + 1
+      (total', len') :: prefixScoresAux xs total' len'
+
+/-- Running sums and lengths of every nonempty prefix. -/
+def prefixScores (xs : List Int) : List PrefixScore :=
+  prefixScoresAux xs 0 0
+
+/-- The accumulated score traversal represents exactly the nonempty prefixes. -/
+theorem mem_prefixScoresAux_iff {score : Int} {len : Nat} {xs : List Int}
+    {total : Int} {offset : Nat} :
+    (score, len) ∈ prefixScoresAux xs total offset ↔
+      ∃ pre rest,
+        pre ≠ [] ∧ xs = pre ++ rest ∧
+          score = total + subarraySum pre ∧
+          len = offset + pre.length := by
+  induction xs generalizing score len total offset with
+  | nil =>
+      simp [prefixScoresAux]
+  | cons x xs ih =>
+      constructor
+      · intro h
+        simp only [prefixScoresAux, List.mem_cons, Prod.mk.injEq] at h
+        rcases h with ⟨hscore, hlen⟩ | htail
+        · refine ⟨[x], xs, by simp, by simp, ?_, ?_⟩
+          · simpa [subarraySum] using hscore
+          · simpa using hlen
+        · rcases (ih (total := total + x) (offset := offset + 1)).mp htail with
+            ⟨pre, rest, hpre, hxs, hscore, hlen⟩
+          refine ⟨x :: pre, rest, by simp, by simp [hxs], ?_, ?_⟩
+          · simp only [subarraySum, List.sum_cons] at hscore ⊢
+            omega
+          · simp only [List.length_cons] at hlen ⊢
+            omega
+      · rintro ⟨pre, rest, hpre, hxs, hscore, hlen⟩
+        cases pre with
+        | nil =>
+            exact False.elim (hpre rfl)
+        | cons y ys =>
+            simp only [List.cons_append] at hxs
+            injection hxs with hxy htail
+            subst y
+            cases ys with
+            | nil =>
+                simp only [prefixScoresAux, List.mem_cons, Prod.mk.injEq]
+                left
+                constructor
+                · simpa [subarraySum] using hscore
+                · simpa using hlen
+            | cons z zs =>
+                simp only [prefixScoresAux, List.mem_cons, Prod.mk.injEq]
+                right
+                apply (ih (total := total + x) (offset := offset + 1)).mpr
+                refine ⟨z :: zs, rest, by simp, htail, ?_, ?_⟩
+                · simp only [subarraySum, List.sum_cons] at hscore ⊢
+                  omega
+                · simp only [List.length_cons] at hlen ⊢
+                  omega
+
+/-- The top-level running-score list is an exact scored prefix enumerator. -/
+theorem mem_prefixScores_iff {score : Int} {len : Nat} {xs : List Int} :
+    (score, len) ∈ prefixScores xs ↔
+      ∃ pre,
+        IsNonemptyPrefix pre xs ∧ score = subarraySum pre ∧ len = pre.length := by
+  rw [prefixScores, mem_prefixScoresAux_iff]
+  constructor
+  · rintro ⟨pre, rest, hpre, hxs, hscore, hlen⟩
+    exact ⟨pre, ⟨hpre, rest, hxs⟩, by simpa using hscore, by simpa using hlen⟩
+  · rintro ⟨pre, ⟨hpre, rest, hxs⟩, hscore, hlen⟩
+    exact ⟨pre, rest, hpre, hxs, by simpa using hscore, by simpa using hlen⟩
+
+/-- Choose the larger recorded sum, breaking ties toward the first score. -/
+def betterPrefixScore (a b : PrefixScore) : PrefixScore :=
+  if a.1 < b.1 then b else a
+
+/-- Select a maximum recorded prefix sum. -/
+def bestPrefixScore : List PrefixScore → Option PrefixScore
+  | [] => none
+  | score :: rest =>
+      match bestPrefixScore rest with
+      | none => some score
+      | some best => some (betterPrefixScore score best)
+
+/-- The score selector returns a member whose recorded sum is maximal. -/
+theorem bestPrefixScore_correct {scores : List PrefixScore} {best : PrefixScore}
+    (hbest : bestPrefixScore scores = some best) :
+    best ∈ scores ∧ ∀ score, score ∈ scores → score.1 ≤ best.1 := by
+  induction scores generalizing best with
+  | nil =>
+      simp [bestPrefixScore] at hbest
+  | cons score rest ih =>
+      simp only [bestPrefixScore] at hbest
+      cases hrest : bestPrefixScore rest with
+      | none =>
+          have hrestNil : rest = [] := by
+            cases rest with
+            | nil => rfl
+            | cons next tail =>
+                cases htail : bestPrefixScore tail <;>
+                  simp [bestPrefixScore, htail] at hrest
+          subst rest
+          have heq : score = best := by
+            exact Option.some.inj (by simpa [bestPrefixScore] using hbest)
+          subst best
+          simp
+      | some restBest =>
+          simp [hrest] at hbest
+          have hrestCorrect := ih hrest
+          by_cases hlt : score.1 < restBest.1
+          · simp [betterPrefixScore, hlt] at hbest
+            subst best
+            constructor
+            · simp [hrestCorrect.1]
+            · intro other hother
+              simp at hother
+              rcases hother with rfl | hin
+              · exact le_of_lt hlt
+              · exact hrestCorrect.2 other hin
+          · simp [betterPrefixScore, hlt] at hbest
+            subst best
+            constructor
+            · simp
+            · intro other hother
+              simp at hother
+              rcases hother with rfl | hin
+              · exact le_rfl
+              · exact le_trans (hrestCorrect.2 other hin) (le_of_not_gt hlt)
+
+/-- If no best score is returned, the score list was empty. -/
+theorem bestPrefixScore_none_eq_nil {scores : List PrefixScore}
+    (hbest : bestPrefixScore scores = none) : scores = [] := by
+  cases scores with
+  | nil => rfl
+  | cons score rest =>
+      cases hrest : bestPrefixScore rest <;>
+        simp [bestPrefixScore, hrest] at hbest
+
+/--
+Maximum-sum nonempty prefix computed from accumulated sums.  Only the selected
+prefix is materialized after the two linear score traversals.
+-/
+def maxPrefixLinear (xs : List Int) : Option (List Int) :=
+  match bestPrefixScore (prefixScores xs) with
+  | none => none
+  | some best => some (xs.take best.2)
+
+/-- The accumulated-sum prefix scan returns an optimal nonempty prefix. -/
+theorem maxPrefixLinear_result_correct (xs : List Int) :
+    match maxPrefixLinear xs with
+    | none => xs = []
+    | some best =>
+        IsNonemptyPrefix best xs ∧
+          ∀ cand, IsNonemptyPrefix cand xs →
+            subarraySum cand ≤ subarraySum best := by
+  unfold maxPrefixLinear
+  cases hscore : bestPrefixScore (prefixScores xs) with
+  | none =>
+      change xs = []
+      have hscores := bestPrefixScore_none_eq_nil hscore
+      cases xs with
+      | nil => rfl
+      | cons x tail =>
+          simp [prefixScores, prefixScoresAux] at hscores
+  | some bestScore =>
+      rcases bestPrefixScore_correct hscore with ⟨hmem, hoptimal⟩
+      rcases mem_prefixScores_iff.mp hmem with
+        ⟨best, hbestPrefix, hbestSum, hbestLen⟩
+      have htake : xs.take bestScore.2 = best := by
+        rcases hbestPrefix with ⟨_, rest, hxs⟩
+        rw [hbestLen, hxs]
+        simp
+      change
+        IsNonemptyPrefix (xs.take bestScore.2) xs ∧
+          ∀ cand, IsNonemptyPrefix cand xs →
+            subarraySum cand ≤ subarraySum (xs.take bestScore.2)
+      rw [htake]
+      refine ⟨hbestPrefix, ?_⟩
+      intro cand hcand
+      have hcandMem : (subarraySum cand, cand.length) ∈ prefixScores xs :=
+        mem_prefixScores_iff.mpr ⟨cand, hcand, rfl, rfl⟩
+      have hle := hoptimal (subarraySum cand, cand.length) hcandMem
+      simpa [hbestSum] using hle
+
+/-- Reversing turns nonempty suffixes into nonempty prefixes, and conversely. -/
+theorem isNonemptySuffix_iff_reverse_prefix {suf xs : List Int} :
+    IsNonemptySuffix suf xs ↔ IsNonemptyPrefix suf.reverse xs.reverse := by
+  constructor
+  · rintro ⟨hsuf, before, hxs⟩
+    constructor
+    · simpa using hsuf
+    · refine ⟨before.reverse, ?_⟩
+      simp [hxs, List.reverse_append]
+  · rintro ⟨hrev, rest, hxs⟩
+    constructor
+    · simpa using hrev
+    · refine ⟨rest.reverse, ?_⟩
+      have h := congrArg List.reverse hxs
+      simpa [List.reverse_append] using h
+
+/-- Reversal preserves the sum used by the maximum-subarray specification. -/
+theorem subarraySum_reverse (xs : List Int) :
+    subarraySum xs.reverse = subarraySum xs := by
+  simp [subarraySum]
+
+/-- Maximum-sum nonempty suffix obtained by one reverse-prefix traversal. -/
+def maxSuffixLinear (xs : List Int) : Option (List Int) :=
+  (maxPrefixLinear xs.reverse).map List.reverse
+
+/-- The reverse-prefix suffix scan returns an optimal nonempty suffix. -/
+theorem maxSuffixLinear_result_correct (xs : List Int) :
+    match maxSuffixLinear xs with
+    | none => xs = []
+    | some best =>
+        IsNonemptySuffix best xs ∧
+          ∀ cand, IsNonemptySuffix cand xs →
+            subarraySum cand ≤ subarraySum best := by
+  have hp := maxPrefixLinear_result_correct xs.reverse
+  cases hprefix : maxPrefixLinear xs.reverse with
+  | none =>
+      simp only [maxSuffixLinear, hprefix, Option.map_none]
+      change xs = []
+      rw [hprefix] at hp
+      simpa using congrArg List.reverse hp
+  | some bestPrefix =>
+      simp only [maxSuffixLinear, hprefix, Option.map_some]
+      rw [hprefix] at hp
+      change
+        IsNonemptySuffix bestPrefix.reverse xs ∧
+          ∀ cand, IsNonemptySuffix cand xs →
+            subarraySum cand ≤ subarraySum bestPrefix.reverse
+      constructor
+      · apply isNonemptySuffix_iff_reverse_prefix.mpr
+        simpa using hp.1
+      · intro cand hcand
+        have hrev : IsNonemptyPrefix cand.reverse xs.reverse :=
+          isNonemptySuffix_iff_reverse_prefix.mp hcand
+        have hle := hp.2 cand.reverse hrev
+        simpa [subarraySum_reverse] using hle
+
+/--
+Maximum-sum crossing subarray from one maximum-suffix scan on the left and one
+maximum-prefix scan on the right.
+-/
+def maxCrossingSubarrayLinear (left right : List Int) : Option (List Int) :=
+  match maxSuffixLinear left, maxPrefixLinear right with
+  | some suf, some pre => some (suf ++ pre)
+  | _, _ => none
+
+/-- The linear crossing scan returns exactly the optimal crossing result. -/
+theorem maxCrossingSubarrayLinear_result_correct (left right : List Int) :
+    match maxCrossingSubarrayLinear left right with
+    | none => ∀ cand, ¬ IsCrossingSubarray cand left right
+    | some best =>
+        IsCrossingSubarray best left right ∧
+          ∀ cand, IsCrossingSubarray cand left right →
+            subarraySum cand ≤ subarraySum best := by
+  have hsuffix := maxSuffixLinear_result_correct left
+  have hprefix := maxPrefixLinear_result_correct right
+  cases hs : maxSuffixLinear left with
+  | none =>
+      simp only [maxCrossingSubarrayLinear, hs]
+      rw [hs] at hsuffix
+      change ∀ cand, ¬ IsCrossingSubarray cand left right
+      intro cand hcross
+      rcases hcross with ⟨suf, pre, hsuf, _hpre, _⟩
+      subst left
+      simpa [IsNonemptySuffix] using hsuf
+  | some bestSuffix =>
+      rw [hs] at hsuffix
+      cases hp : maxPrefixLinear right with
+      | none =>
+          simp only [maxCrossingSubarrayLinear, hs, hp]
+          rw [hp] at hprefix
+          change ∀ cand, ¬ IsCrossingSubarray cand left right
+          intro cand hcross
+          rcases hcross with ⟨suf, pre, _hsuf, hpre, _⟩
+          subst right
+          simpa [IsNonemptyPrefix] using hpre
+      | some bestPrefix =>
+          simp only [maxCrossingSubarrayLinear, hs, hp]
+          rw [hp] at hprefix
+          change
+            IsCrossingSubarray (bestSuffix ++ bestPrefix) left right ∧
+              ∀ cand, IsCrossingSubarray cand left right →
+                subarraySum cand ≤ subarraySum (bestSuffix ++ bestPrefix)
+          constructor
+          · exact ⟨bestSuffix, bestPrefix, hsuffix.1, hprefix.1, rfl⟩
+          · intro cand hcross
+            rcases hcross with ⟨suf, pre, hsuf, hpre, rfl⟩
+            have hsufLe := hsuffix.2 suf hsuf
+            have hpreLe := hprefix.2 pre hpre
+            simp only [subarraySum, List.sum_append] at hsufLe hpreLe ⊢
+            omega
+
 /-! ## Maximum-subarray selector -/
 
 /--
