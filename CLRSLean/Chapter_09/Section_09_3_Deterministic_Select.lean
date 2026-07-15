@@ -1,7 +1,7 @@
 import CLRSLean.Chapter_09.Section_09_2_Select_By_Rank
 
 /-!
-# CLRS Section 9.3 - Deterministic selection
+# CLRS Section 9.3 - Selection in worst-case linear time
 
 This file factors the Chapter 9 selection proof through a pivot-parametric
 interface.  The key point is pure correctness rather than running time: any
@@ -11,73 +11,26 @@ Section 9.2.
 
 Main results:
 
-* Theorem {lit}`selectWithPivot?_correct`: a pivot-parametric SELECT is rank
-  correct whenever the pivot rule returns members of the current list.
-* Theorem {lit}`medianOfFive?_certificate`: the median selected from a
-  five-element group has at least three elements below it weakly and at least
-  three elements above it weakly.
-* Theorems {lit}`medianGroupCertificates_leCount_lower_bound` and
-  {lit}`medianGroupCertificates_geCount_lower_bound`: a collection of certified
-  five-element groups contributes three original elements for every group
-  median on the corresponding side of a pivot.
-* Theorem {lit}`fullGroupsOfFive_medianPivot_split_counts`: the executable
-  full-grouping wrapper constructs the certificates and obtains the split
-  counts for a median of the group medians.
-* Theorem {lit}`fullGroupsOfFive_medianPivot_fullInput_split_counts`: the
-  grouped split counts lift to the original input list because the flattened
-  full groups are a sublist of the input.
-* Theorem {lit}`fullGroupsOfFive_medianPivot_partition_size_bound`: both
-  strict recursive branches around the pivot satisfy the familiar
-  {lit}`7n/10 + O(1)` CLRS size bound.
-* Theorem {lit}`selectRecurrence_linear_step`: a pure {lean}`Nat`
-  substitution step
-  for closing a linear envelope from one one-fifth median subproblem, one
-  {lit}`7n/10 + O(1)` strict branch, and local-work slack.
-* Theorem {lit}`medianOfMediansPivot?_recursive_branch_size_bound`: the
-  proved count bound specialized to the actual filtered recursive branch
-  lists.
-* Theorems {lit}`medianOfMediansPivot?_low_branch_linear_work_step` and
-  {lit}`medianOfMediansPivot?_high_branch_linear_work_step`: executable
-  branch wrappers that connect the median-of-medians pivot bound to the
-  linear-work recurrence step.
-* Theorem {lit}`deterministicSelect?_correct`: a deterministic median-pivot
-  instance is rank correct.
-* Theorem {lit}`selectRecurrence_linear_induction`: a threshold-parametric
-  strong induction that lifts {lit}`selectRecurrence_linear_step` to the full
-  recursion tree for any cost function satisfying the CLRS subproblem-size
-  bounds.
-* Theorem {lit}`medianOfMedians_linear_bound`: a concrete instantiation with
-  the standard median-of-medians branch sizes {lit}`n/5` and {lit}`(7n+12)/10`,
-  proving linear cost whenever the per-element work coefficient is bounded
-  relative to the overall constant.
-* Theorem {lit}`clrsSelectRecurrence_linear_bound`: a CLRS-facing name for the
-  same linear-time SELECT recurrence closure.
-* Definition {lit}`selectCostFuel` and wrapper {lit}`selectCost`: an executable
-  {lit}`Nat`-valued cost counter that mirrors the {lit}`selectWithPivotFuel?`
-  recursion, charging a parametric local-work term at each level.
-* Theorems {lit}`selectCostFuel_linear_bound` and {lit}`selectCost_linear_bound`:
-  the concrete cost is linear ({lit}`≤ 17 * a * n`) whenever the pivot rule
-  satisfies the CLRS {lit}`10 * branch ≤ 7 * n + 12` bound and the local work is
-  linear.
-* Definition {lit}`medianOfMediansSelectCost` and theorem
-  {lit}`medianOfMediansSelectCost_linear_bound`: the concrete
-  partition-comparison cost of {lit}`medianOfMediansSelect?` obeys the explicit
-  linear bound {lit}`medianOfMediansSelectCost k xs ≤ 17 * xs.length`.
+* {lit}`selectWithPivot?_correct` proves the pivot-parametric rank interface.
+* {lit}`fullGroupsOfFive_medianPivot_partition_size_bound` proves the CLRS
+  grouped-pivot branch bound.
+* {lit}`recursiveMedianOfMediansSelect?_correct` proves total rank correctness
+  for the executable recursive selector.
+* {lit}`recursiveMedianOfMediansComparisonCost_linear_bound` accounts for
+  grouping, nested pivot selection, partitioning, and recursive selection, with
+  total cost at most {lit}`100 * xs.length`.
 
-## Implementation details
+## Shared source support
 
-The randomized-selection analysis remains available outside the main sidebar:
+The Section 9.2 randomized analysis is stored below this module path so that it
+can reuse the pivot-parametric infrastructure.  It is a support page for 9.2,
+not an additional subsection of 9.3, and therefore stays outside the sidebar:
 
 * [Randomized SELECT Expected Time](CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select/)
 
-Current gaps:
-
-* The concrete cost {lit}`medianOfMediansSelectCost` counts the linear partition
-  scan along the recursion path and treats the median-of-medians pivot selection
-  as a linear-cost oracle (folded into the parametric local work), matching the
-  CLRS assumption that the median subproblem is solved in linear time.  A fully
-  operational RAM step-count that also unfolds the recursive cost of computing
-  the pivot remains a future refinement.
+Completion boundary: the section proves pure functional correctness and a
+complete CLRS comparison-cost model.  In-place array partitioning and
+hardware-level RAM accounting are lower-level refinements.
 -/
 
 namespace CLRS
@@ -91,6 +44,10 @@ of the current input list.
 -/
 def PivotMembership (choosePivot? : List Nat → Option Nat) : Prop :=
   ∀ {xs : List Nat} {pivot : Nat}, choosePivot? xs = some pivot → pivot ∈ xs
+
+/-- A pivot rule is total when it returns a pivot for every nonempty input. -/
+def PivotTotal (choosePivot? : List Nat → Option Nat) : Prop :=
+  ∀ {xs : List Nat}, xs ≠ [] → ∃ pivot, choosePivot? xs = some pivot
 
 /--
 Fuelled SELECT with an abstract deterministic pivot rule.
@@ -219,6 +176,76 @@ theorem selectWithPivot?_correct
     {x : Nat} (hsel : selectWithPivot? choosePivot? k xs = some x) :
     RankCertificate xs k x :=
   selectWithPivot?_rankCorrect choosePivot? hpivot hsel
+
+/--
+A membership-safe, total pivot rule makes the fuelled selector succeed for
+every in-range rank.  This is the termination half of total correctness; the
+returned value's rank certificate is supplied by
+{lit}`selectWithPivotFuel?_rankCorrect`.
+-/
+theorem selectWithPivotFuel?_isSome_of_lt
+    (choosePivot? : List Nat → Option Nat)
+    (hpivot : PivotMembership choosePivot?)
+    (htotal : PivotTotal choosePivot?) :
+    ∀ (fuel k : Nat) (xs : List Nat), xs.length ≤ fuel → k < xs.length →
+      ∃ x, selectWithPivotFuel? choosePivot? fuel k xs = some x := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro k xs hlen hk
+      omega
+  | succ fuel ih =>
+      intro k xs hlen hk
+      have hxs : xs ≠ [] := by
+        intro hnil
+        subst xs
+        simp at hk
+      rcases htotal hxs with ⟨pivot, hchoose⟩
+      have hpivot_mem : pivot ∈ xs := hpivot hchoose
+      have hlow_len :
+          (xs.filter fun y => decide (y < pivot)).length ≤ fuel := by
+        have hstrict :
+            (xs.filter fun y => decide (y < pivot)).length < xs.length :=
+          filter_length_lt_of_mem_false (fun y => decide (y < pivot))
+            hpivot_mem (by simp)
+        exact Nat.lt_succ_iff.mp (Nat.lt_of_lt_of_le hstrict hlen)
+      have hhigh_len :
+          (xs.filter fun y => decide (pivot < y)).length ≤ fuel := by
+        have hstrict :
+            (xs.filter fun y => decide (pivot < y)).length < xs.length :=
+          filter_length_lt_of_mem_false (fun y => decide (pivot < y))
+            hpivot_mem (by simp)
+        exact Nat.lt_succ_iff.mp (Nat.lt_of_lt_of_le hstrict hlen)
+      by_cases hlo : k < ltCount pivot xs
+      · have hk_low :
+            k < (xs.filter fun y => decide (y < pivot)).length := by
+          simpa [ltCount] using hlo
+        rcases ih k (xs.filter fun y => decide (y < pivot)) hlow_len hk_low with
+          ⟨x, hrun⟩
+        exact ⟨x, by simp [selectWithPivotFuel?, hchoose, hlo, hrun]⟩
+      · by_cases hmid : k < leCount pivot xs
+        · exact ⟨pivot, by simp [selectWithPivotFuel?, hchoose, hlo, hmid]⟩
+        · have hge : leCount pivot xs ≤ k := Nat.le_of_not_gt hmid
+          have hk_high :
+              k - leCount pivot xs <
+                (xs.filter fun y => decide (pivot < y)).length := by
+            change k - leCount pivot xs < gtCount pivot xs
+            rw [gtCount_eq_length_sub_leCount]
+            omega
+          rcases ih (k - leCount pivot xs)
+              (xs.filter fun y => decide (pivot < y)) hhigh_len hk_high with
+            ⟨x, hrun⟩
+          exact ⟨x, by simp [selectWithPivotFuel?, hchoose, hlo, hmid, hrun]⟩
+
+/-- A total safe pivot rule makes public SELECT succeed on every valid rank. -/
+theorem selectWithPivot?_isSome_of_lt
+    (choosePivot? : List Nat → Option Nat)
+    (hpivot : PivotMembership choosePivot?)
+    (htotal : PivotTotal choosePivot?) {k : Nat} {xs : List Nat}
+    (hk : k < xs.length) :
+    ∃ x, selectWithPivot? choosePivot? k xs = some x := by
+  exact selectWithPivotFuel?_isSome_of_lt choosePivot? hpivot htotal
+    xs.length k xs (Nat.le_refl xs.length) hk
 
 /-! ## Five-element median certificate -/
 
@@ -773,7 +800,48 @@ theorem fullGroupsOfFive_medianPivot_partition_lengths
     omega
 
 /--
-CLRS-style partition-size packaging for executable median-of-medians grouping.
+CLRS-style partition-size packaging for any rank-correct median of the
+executable group medians.
+-/
+theorem fullGroupsOfFive_rankPivot_partition_size_bound
+    {xs medians : List Nat} {pivot : Nat}
+    (hmedians : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians)
+    (hrank : RankCertificate medians (medians.length / 2) pivot) :
+    10 * ltCount pivot xs ≤ 7 * xs.length + 12 ∧
+      10 * gtCount pivot xs ≤ 7 * xs.length + 12 := by
+  have hgrouped := fullGroupsOfFive_selectPivot_split_counts hmedians hrank
+  have hsub : (List.flatten (fullGroupsOfFive xs)).Sublist xs :=
+    fullGroupsOfFive_flatten_sublist xs
+  have hsplit :
+      3 * (medians.length / 2 + 1) ≤ leCount pivot xs ∧
+        3 * (medians.length - medians.length / 2) ≤ geCount pivot xs :=
+    ⟨le_trans hgrouped.1 (leCount_le_of_sublist hsub),
+      le_trans hgrouped.2 (geCount_le_of_sublist hsub)⟩
+  have hlt_len : ltCount pivot xs ≤ xs.length := by
+    unfold ltCount
+    exact List.length_filter_le (fun y => decide (y < pivot)) xs
+  have hle_len : leCount pivot xs ≤ xs.length := by
+    unfold leCount
+    exact List.length_filter_le (fun y => decide (y ≤ pivot)) xs
+  have hparts :
+      ltCount pivot xs ≤
+          xs.length - 3 * (medians.length - medians.length / 2) ∧
+        gtCount pivot xs ≤ xs.length - 3 * (medians.length / 2 + 1) := by
+    constructor
+    · rw [geCount_eq_length_sub_ltCount] at hsplit
+      omega
+    · rw [gtCount_eq_length_sub_leCount]
+      omega
+  have hcert := fullGroupsOfFive_medianGroupCertificates hmedians
+  have hnear : xs.length ≤ 5 * medians.length + 4 := by
+    have hbase := fullGroupsOfFive_length_near xs
+    simpa [hcert.1] using hbase
+  constructor
+  · omega
+  · omega
+
+/--
+CLRS-style partition-size packaging for the sorting-backed median wrapper.
 
 Both strict recursive branches have size at most {lit}`7n/10 + O(1)`, stated
 without division as {lit}`10 * branchSize ≤ 7 * n + 12`.
@@ -783,16 +851,9 @@ theorem fullGroupsOfFive_medianPivot_partition_size_bound
     (hmedians : medianOfFiveGroups? (fullGroupsOfFive xs) = some medians)
     (hpivot : selectByRank? (medians.length / 2) medians = some pivot) :
     10 * ltCount pivot xs ≤ 7 * xs.length + 12 ∧
-      10 * gtCount pivot xs ≤ 7 * xs.length + 12 := by
-  have hparts :=
-    fullGroupsOfFive_medianPivot_partition_lengths hmedians hpivot
-  have hcert := fullGroupsOfFive_medianGroupCertificates hmedians
-  have hnear : xs.length ≤ 5 * medians.length + 4 := by
-    have hbase := fullGroupsOfFive_length_near xs
-    simpa [hcert.1] using hbase
-  constructor
-  · omega
-  · omega
+      10 * gtCount pivot xs ≤ 7 * xs.length + 12 :=
+  fullGroupsOfFive_rankPivot_partition_size_bound hmedians
+    (selectByRank?_rankCorrect hpivot)
 
 /-! ## Deterministic median-pivot instance -/
 
@@ -811,6 +872,40 @@ theorem deterministicPivot?_mem :
     PivotMembership deterministicPivot? := by
   intro xs pivot hsel
   exact selectByRank?_mem (by simpa [deterministicPivot?] using hsel)
+
+/-- The specification-median pivot exists on every nonempty input. -/
+theorem deterministicPivot?_isSome_of_ne_nil :
+    PivotTotal deterministicPivot? := by
+  intro xs hxs
+  apply selectByRank?_isSome_of_lt
+  have hpos : 0 < xs.length := by
+    cases xs with
+    | nil => contradiction
+    | cons _ _ => simp
+  omega
+
+/-- A specification median leaves at most half of the input on either strict side. -/
+theorem deterministicPivot?_half_partition_size_bound {xs : List Nat}
+    {pivot : Nat} (hsel : deterministicPivot? xs = some pivot) :
+    2 * ltCount pivot xs ≤ xs.length ∧
+      2 * gtCount pivot xs ≤ xs.length := by
+  have hrank : RankCertificate xs (xs.length / 2) pivot :=
+    selectByRank?_rankCorrect (by simpa [deterministicPivot?] using hsel)
+  have hlt : ltCount pivot xs ≤ xs.length / 2 := hrank.2.1
+  have hle : xs.length / 2 < leCount pivot xs := hrank.2.2
+  have hdiv : 2 * (xs.length / 2) ≤ xs.length := by omega
+  constructor
+  · exact le_trans (Nat.mul_le_mul_left 2 hlt) hdiv
+  · rw [gtCount_eq_length_sub_leCount]
+    omega
+
+/-- The specification median also satisfies the looser CLRS `7n/10 + O(1)` bound. -/
+theorem deterministicPivot?_partition_size_bound {xs : List Nat}
+    {pivot : Nat} (hsel : deterministicPivot? xs = some pivot) :
+    10 * ltCount pivot xs ≤ 7 * xs.length + 12 ∧
+      10 * gtCount pivot xs ≤ 7 * xs.length + 12 := by
+  have hhalf := deterministicPivot?_half_partition_size_bound hsel
+  constructor <;> omega
 
 /-- Deterministic SELECT using the specification median as its pivot rule. -/
 def deterministicSelect? (k : Nat) (xs : List Nat) : Option Nat :=
@@ -872,6 +967,26 @@ theorem medianOfMediansPivot?_mem :
             medianOfFiveGroups?_mem_flatten hgroups hpivot_medians
           exact (fullGroupsOfFive_flatten_sublist xs).subset hpivot_flat
 
+/-- The median-of-medians pivot wrapper succeeds on every nonempty input. -/
+theorem medianOfMediansPivot?_isSome_of_ne_nil :
+    PivotTotal medianOfMediansPivot? := by
+  intro xs hxs
+  unfold medianOfMediansPivot?
+  cases hgroups : medianOfFiveGroups? (fullGroupsOfFive xs) with
+  | none =>
+      rcases fullGroupsOfFive_medianOfFiveGroups?_isSome xs with
+        ⟨medians, hmedians⟩
+      rw [hgroups] at hmedians
+      contradiction
+  | some medians =>
+      cases medians with
+      | nil =>
+          exact deterministicPivot?_isSome_of_ne_nil hxs
+      | cons median medians =>
+          apply selectByRank?_isSome_of_lt
+          simp only [List.length_cons]
+          omega
+
 /--
 Any pivot returned by the median-of-medians pivot rule satisfies the proved
 CLRS branch-size bound.  The fallback branch can only occur when there are no
@@ -911,6 +1026,152 @@ theorem medianOfMediansPivot?_partition_size_bound {xs : List Nat}
           exact fullGroupsOfFive_medianPivot_partition_size_bound
             (xs := xs) (medians := median :: medians) (pivot := pivot)
             hgroups (by simpa [hgroups] using hsel)
+
+/-! ## Recursive median-of-medians pivot -/
+
+/--
+Fuelled recursive median-of-medians pivot construction.
+
+For a nonempty list of full-group medians, the pivot is selected by the same
+pivot-parametric selector using the previous fuel level as its pivot rule.
+Thus the group-median subproblem is solved recursively instead of by sorting.
+The specification median is used only when the fuel is exhausted or there is
+no full group (the input then has fewer than five elements).
+-/
+def recursiveMedianOfMediansPivotFuel? : Nat → List Nat → Option Nat
+  | 0, xs => deterministicPivot? xs
+  | fuel + 1, xs =>
+      if xs.length < 50 then
+        deterministicPivot? xs
+      else
+        match medianOfFiveGroups? (fullGroupsOfFive xs) with
+        | some (median :: medians) =>
+            selectWithPivot? (recursiveMedianOfMediansPivotFuel? fuel)
+              ((median :: medians).length / 2) (median :: medians)
+        | _ => deterministicPivot? xs
+
+/-- Every fuel level of the recursive pivot construction returns an input member. -/
+theorem recursiveMedianOfMediansPivotFuel?_mem (fuel : Nat) :
+    PivotMembership (recursiveMedianOfMediansPivotFuel? fuel) := by
+  induction fuel with
+  | zero =>
+      intro xs pivot hsel
+      exact deterministicPivot?_mem
+        (by simpa [recursiveMedianOfMediansPivotFuel?] using hsel)
+  | succ fuel ih =>
+      intro xs pivot hsel
+      simp only [recursiveMedianOfMediansPivotFuel?] at hsel
+      by_cases hsmall : xs.length < 50
+      · exact deterministicPivot?_mem (by simpa [hsmall] using hsel)
+      · simp only [hsmall, ↓reduceIte] at hsel
+        cases hgroups : medianOfFiveGroups? (fullGroupsOfFive xs) with
+        | none =>
+            exact deterministicPivot?_mem (by simpa [hgroups] using hsel)
+        | some medians =>
+            cases medians with
+            | nil =>
+                exact deterministicPivot?_mem (by simpa [hgroups] using hsel)
+            | cons median medians =>
+                have hpivot_medians : pivot ∈ median :: medians :=
+                  selectWithPivot?_mem
+                    (recursiveMedianOfMediansPivotFuel? fuel) ih
+                    (by simpa [hgroups] using hsel)
+                have hpivot_flat : pivot ∈ List.flatten (fullGroupsOfFive xs) :=
+                  medianOfFiveGroups?_mem_flatten hgroups hpivot_medians
+                exact (fullGroupsOfFive_flatten_sublist xs).subset hpivot_flat
+
+/-- Every fuel level of the recursive pivot construction succeeds on nonempty input. -/
+theorem recursiveMedianOfMediansPivotFuel?_isSome_of_ne_nil (fuel : Nat) :
+    PivotTotal (recursiveMedianOfMediansPivotFuel? fuel) := by
+  induction fuel with
+  | zero =>
+      intro xs hxs
+      simpa [recursiveMedianOfMediansPivotFuel?] using
+        (deterministicPivot?_isSome_of_ne_nil hxs)
+  | succ fuel ih =>
+      intro xs hxs
+      simp only [recursiveMedianOfMediansPivotFuel?]
+      by_cases hsmall : xs.length < 50
+      · simpa [hsmall] using deterministicPivot?_isSome_of_ne_nil hxs
+      · simp only [hsmall, ↓reduceIte]
+        cases hgroups : medianOfFiveGroups? (fullGroupsOfFive xs) with
+        | none =>
+            rcases fullGroupsOfFive_medianOfFiveGroups?_isSome xs with
+              ⟨medians, hmedians⟩
+            rw [hgroups] at hmedians
+            contradiction
+        | some medians =>
+            cases medians with
+            | nil =>
+                exact deterministicPivot?_isSome_of_ne_nil hxs
+            | cons median medians =>
+                apply selectWithPivot?_isSome_of_lt
+                  (recursiveMedianOfMediansPivotFuel? fuel)
+                  (recursiveMedianOfMediansPivotFuel?_mem fuel) ih
+                simp only [List.length_cons]
+                omega
+
+/-- Public recursive pivot with enough fuel for every nested median subproblem. -/
+def recursiveMedianOfMediansPivot? (xs : List Nat) : Option Nat :=
+  recursiveMedianOfMediansPivotFuel? xs.length xs
+
+/-- The public recursive median-of-medians pivot always belongs to its input. -/
+theorem recursiveMedianOfMediansPivot?_mem :
+    PivotMembership recursiveMedianOfMediansPivot? := by
+  intro xs pivot hsel
+  exact recursiveMedianOfMediansPivotFuel?_mem xs.length
+    (by simpa [recursiveMedianOfMediansPivot?] using hsel)
+
+/-- The public recursive median-of-medians pivot succeeds on nonempty input. -/
+theorem recursiveMedianOfMediansPivot?_isSome_of_ne_nil :
+    PivotTotal recursiveMedianOfMediansPivot? := by
+  intro xs hxs
+  simpa [recursiveMedianOfMediansPivot?] using
+    (recursiveMedianOfMediansPivotFuel?_isSome_of_ne_nil xs.length hxs)
+
+/-- Every fuel level of the recursive pivot satisfies the CLRS branch bound. -/
+theorem recursiveMedianOfMediansPivotFuel?_partition_size_bound (fuel : Nat)
+    {xs : List Nat} {pivot : Nat}
+    (hsel : recursiveMedianOfMediansPivotFuel? fuel xs = some pivot) :
+    10 * ltCount pivot xs ≤ 7 * xs.length + 12 ∧
+      10 * gtCount pivot xs ≤ 7 * xs.length + 12 := by
+  induction fuel with
+  | zero =>
+      exact deterministicPivot?_partition_size_bound
+        (by simpa [recursiveMedianOfMediansPivotFuel?] using hsel)
+  | succ fuel ih =>
+      simp only [recursiveMedianOfMediansPivotFuel?] at hsel
+      by_cases hsmall : xs.length < 50
+      · exact deterministicPivot?_partition_size_bound
+          (by simpa [hsmall] using hsel)
+      · simp only [hsmall, ↓reduceIte] at hsel
+        cases hgroups : medianOfFiveGroups? (fullGroupsOfFive xs) with
+        | none =>
+            exact deterministicPivot?_partition_size_bound
+              (by simpa [hgroups] using hsel)
+        | some medians =>
+            cases medians with
+            | nil =>
+                exact deterministicPivot?_partition_size_bound
+                  (by simpa [hgroups] using hsel)
+            | cons median medians =>
+                have hrank :
+                    RankCertificate (median :: medians)
+                      ((median :: medians).length / 2) pivot :=
+                  selectWithPivot?_rankCorrect
+                    (recursiveMedianOfMediansPivotFuel? fuel)
+                    (recursiveMedianOfMediansPivotFuel?_mem fuel)
+                    (by simpa [hgroups] using hsel)
+                exact fullGroupsOfFive_rankPivot_partition_size_bound
+                  hgroups hrank
+
+/-- The public recursively computed pivot satisfies the CLRS strict-branch bound. -/
+theorem recursiveMedianOfMediansPivot?_partition_size_bound {xs : List Nat}
+    {pivot : Nat} (hsel : recursiveMedianOfMediansPivot? xs = some pivot) :
+    10 * ltCount pivot xs ≤ 7 * xs.length + 12 ∧
+      10 * gtCount pivot xs ≤ 7 * xs.length + 12 := by
+  exact recursiveMedianOfMediansPivotFuel?_partition_size_bound xs.length
+    (by simpa [recursiveMedianOfMediansPivot?] using hsel)
 
 /-! ## Recurrence-size wrappers -/
 
@@ -1145,6 +1406,14 @@ theorem clrsSelectRecurrence_linear_bound
 def medianOfMediansSelect? (k : Nat) (xs : List Nat) : Option Nat :=
   selectWithPivot? medianOfMediansPivot? k xs
 
+/-- Median-of-medians SELECT succeeds whenever the requested rank is valid. -/
+theorem medianOfMediansSelect?_isSome_of_lt {k : Nat} {xs : List Nat}
+    (hk : k < xs.length) :
+    ∃ x, medianOfMediansSelect? k xs = some x := by
+  simpa [medianOfMediansSelect?] using
+    (selectWithPivot?_isSome_of_lt medianOfMediansPivot?
+      medianOfMediansPivot?_mem medianOfMediansPivot?_isSome_of_ne_nil hk)
+
 /-- Rank-correctness theorem for median-of-medians SELECT. -/
 theorem medianOfMediansSelect?_rankCorrect {k : Nat} {xs : List Nat}
     {x : Nat} (hsel : medianOfMediansSelect? k xs = some x) :
@@ -1165,11 +1434,37 @@ theorem medianOfMediansSelect?_correct {k : Nat} {xs : List Nat} {x : Nat}
     RankCertificate xs k x :=
   medianOfMediansSelect?_rankCorrect hsel
 
+/-! ## Recursive median-of-medians selector -/
+
+/--
+Executable SELECT whose pivot construction recursively selects the median of
+the full-group medians.
+-/
+def recursiveMedianOfMediansSelect? (k : Nat) (xs : List Nat) : Option Nat :=
+  selectWithPivot? recursiveMedianOfMediansPivot? k xs
+
+/-- The recursive median-of-medians selector succeeds for every valid rank. -/
+theorem recursiveMedianOfMediansSelect?_isSome_of_lt {k : Nat} {xs : List Nat}
+    (hk : k < xs.length) :
+    ∃ x, recursiveMedianOfMediansSelect? k xs = some x := by
+  simpa [recursiveMedianOfMediansSelect?] using
+    (selectWithPivot?_isSome_of_lt recursiveMedianOfMediansPivot?
+      recursiveMedianOfMediansPivot?_mem
+      recursiveMedianOfMediansPivot?_isSome_of_ne_nil hk)
+
+/-- Successful recursive median-of-medians SELECT runs are rank-correct. -/
+theorem recursiveMedianOfMediansSelect?_correct {k : Nat} {xs : List Nat}
+    {x : Nat} (hsel : recursiveMedianOfMediansSelect? k xs = some x) :
+    RankCertificate xs k x := by
+  exact selectWithPivot?_correct recursiveMedianOfMediansPivot?
+    recursiveMedianOfMediansPivot?_mem
+    (by simpa [recursiveMedianOfMediansSelect?] using hsel)
+
 /-! ## Concrete executable cost semantics
 
-This section closes the Chapter 9 running-time story with an **executable
+This section supplies an **executable
 {lit}`Nat`-valued cost function** for the pivot-parametric selector and a proved
-explicit linear bound {lit}`cost n ≤ 17 * n`.
+explicit bound {lit}`cost n ≤ 17 * n` for its outer partition path.
 
 The cost counter {lit}`selectCostFuel` mirrors the recursion of
 {lit}`selectWithPivotFuel?` exactly: at every recursion level it charges a local
@@ -1185,11 +1480,10 @@ the one-level slack {lit}`a n + 17 a b ≤ 17 a n` reduces to the pure {lit}`Nat
 {lit}`17 b ≤ 16 n`, which {tactic}`omega` derives from
 {lit}`10 * b ≤ 7 * n + 12` together with the strict-sublist fact {lit}`b < n`.
 
-The pivot-selection work of {lit}`medianOfMediansPivot?` is treated as a
-linear-cost oracle (its per-level cost is folded into {lit}`stepCost`), matching
-the CLRS assumption that the median subproblem is solved in linear time; the
-generic bound below is parametric in {lit}`stepCost`, so a heavier linear local
-cost slots in without changing the argument.
+The pivot-selection work is excluded from this legacy diagnostic counter.  The
+complete composed counter and its linear theorem are
+{lit}`recursiveMedianOfMediansComparisonCost` and
+{lit}`recursiveMedianOfMediansComparisonCost_linear_bound` below.
 -/
 
 /--
@@ -1348,25 +1642,584 @@ theorem selectCost_linear_bound
   selectCostFuel_linear_bound choosePivot? stepCost hpivot hbound hstep
     xs.length k xs (Nat.le_refl xs.length)
 
+/-! ## End-to-end recursive median-of-medians comparison cost -/
+
 /--
-Concrete partition-comparison cost of the executable median-of-medians
+Comparison charge for constructing a recursive median-of-medians pivot.
+
+Below the fixed CLRS base threshold, `n²` comparisons cover a simple local
+comparison sort.  Above the threshold, {lit}`2n` covers forming and selecting the
+medians of the full five-element groups (at most ten comparisons per group),
+and the remaining term is the complete recursive SELECT cost on the list of
+group medians.  Its step charge contains both the partition scan and the next
+nested pivot construction, so no recursive pivot work is omitted.
+-/
+def recursiveMedianOfMediansPivotComparisonCostFuel : Nat → List Nat → Nat
+  | 0, xs => xs.length * xs.length
+  | fuel + 1, xs =>
+      if xs.length < 50 then
+        xs.length * xs.length
+      else
+        match medianOfFiveGroups? (fullGroupsOfFive xs) with
+        | some (median :: medians) =>
+            2 * xs.length +
+              selectCost (recursiveMedianOfMediansPivotFuel? fuel)
+                (fun ys => ys.length +
+                  recursiveMedianOfMediansPivotComparisonCostFuel fuel ys)
+                ((median :: medians).length / 2) (median :: medians)
+        | _ => xs.length * xs.length
+
+/-- Public pivot-construction comparison charge, using the pivot's canonical fuel. -/
+def recursiveMedianOfMediansPivotComparisonCost (xs : List Nat) : Nat :=
+  recursiveMedianOfMediansPivotComparisonCostFuel xs.length xs
+
+/--
+End-to-end comparison cost of the executable recursive median-of-medians
+selector.  Every visited SELECT node charges its partition scan plus the full
+recursive cost of constructing that node's pivot.
+-/
+def recursiveMedianOfMediansComparisonCost (k : Nat) (xs : List Nat) : Nat :=
+  selectCost recursiveMedianOfMediansPivot?
+    (fun ys => ys.length + recursiveMedianOfMediansPivotComparisonCost ys) k xs
+
+/-- Arithmetic closure for a recursive (non-base) SELECT node. -/
+private theorem recursiveMedianOfMediansComparisonCost_large_step
+    {n medianBranch strictBranch : Nat}
+    (hn : 50 ≤ n) (hmedian : 5 * medianBranch ≤ n)
+    (hbranch : 10 * strictBranch ≤ 7 * n + 12) :
+    n + (2 * n + 100 * medianBranch) + 100 * strictBranch ≤ 100 * n := by
+  have hlocal : 10 * (3 * n) + 12 * 100 ≤ 100 * n := by omega
+  have h := selectRecurrence_linear_step (C := 100) hmedian hbranch hlocal
+  nlinarith
+
+/-- Arithmetic closure for a base-case median SELECT node. -/
+private theorem recursiveMedianOfMediansComparisonCost_small_step
+    {n strictBranch : Nat} (hn : n < 50)
+    (hbranch : 2 * strictBranch ≤ n) :
+    n + n * n + 100 * strictBranch ≤ 100 * n := by
+  nlinarith
+
+/--
+Linear bound for SELECT using a fixed recursive-pivot fuel.  The hypotheses
+say that both the input and the SELECT recursion fit in their available fuel.
+This is the strengthened induction needed by the nested median subproblem.
+-/
+private theorem recursiveMedianOfMediansFixedComparisonCostFuel_linear_bound :
+    ∀ n : Nat, ∀ (xs : List Nat) (pivotFuel selectorFuel k : Nat),
+      xs.length = n → xs.length ≤ pivotFuel → xs.length ≤ selectorFuel →
+        selectCostFuel (recursiveMedianOfMediansPivotFuel? pivotFuel)
+          (fun ys => ys.length +
+            recursiveMedianOfMediansPivotComparisonCostFuel pivotFuel ys)
+          selectorFuel k xs ≤ 100 * xs.length := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      intro xs pivotFuel selectorFuel k hlen hpivotFuel hselectorFuel
+      cases selectorFuel with
+      | zero =>
+          simp [selectCostFuel]
+      | succ selectorFuel =>
+          cases hchoose : recursiveMedianOfMediansPivotFuel? pivotFuel xs with
+          | none =>
+              simp [selectCostFuel, hchoose]
+          | some pivot =>
+              have hpivotMem : pivot ∈ xs :=
+                recursiveMedianOfMediansPivotFuel?_mem pivotFuel hchoose
+              have hpivotBound :=
+                recursiveMedianOfMediansPivotFuel?_partition_size_bound
+                  pivotFuel hchoose
+              have hselectorSucc : n ≤ selectorFuel + 1 := by
+                simpa [hlen] using hselectorFuel
+              by_cases hsmall : n < 50
+              · have hpivotCost :
+                    recursiveMedianOfMediansPivotComparisonCostFuel pivotFuel xs =
+                      n * n := by
+                  cases pivotFuel with
+                  | zero =>
+                      simp [recursiveMedianOfMediansPivotComparisonCostFuel, hlen]
+                  | succ fuel =>
+                      simp [recursiveMedianOfMediansPivotComparisonCostFuel,
+                        hlen, hsmall]
+                have hdet : deterministicPivot? xs = some pivot := by
+                  cases pivotFuel with
+                  | zero =>
+                      simpa [recursiveMedianOfMediansPivotFuel?] using hchoose
+                  | succ fuel =>
+                      simpa [recursiveMedianOfMediansPivotFuel?, hlen, hsmall]
+                        using hchoose
+                have hhalf := deterministicPivot?_half_partition_size_bound hdet
+                by_cases hlo : k < ltCount pivot xs
+                · let low := xs.filter fun y => decide (y < pivot)
+                  have hlowLt : low.length < xs.length :=
+                    filter_length_lt_of_mem_false
+                      (fun y => decide (y < pivot)) hpivotMem (by simp)
+                  have hlowLtN : low.length < n := by simpa [hlen] using hlowLt
+                  have hlowPivotFuel : low.length ≤ pivotFuel := by
+                    omega
+                  have hlowSelectorFuel : low.length ≤ selectorFuel := by
+                    omega
+                  have hih := ih low.length hlowLtN low pivotFuel selectorFuel k
+                    rfl hlowPivotFuel hlowSelectorFuel
+                  have hclose :
+                      n + n * n + 100 * low.length ≤ 100 * n :=
+                    recursiveMedianOfMediansComparisonCost_small_step hsmall
+                      (by simpa [hlen, low, ltCount] using hhalf.1)
+                  simp only [selectCostFuel, hchoose, hlo, if_pos, hpivotCost]
+                  calc
+                    xs.length + n * n +
+                        selectCostFuel
+                          (recursiveMedianOfMediansPivotFuel? pivotFuel)
+                          (fun ys => ys.length +
+                            recursiveMedianOfMediansPivotComparisonCostFuel
+                              pivotFuel ys)
+                          selectorFuel k
+                          (xs.filter fun y => decide (y < pivot))
+                        ≤ n + n * n + 100 * low.length := by
+                            simpa [hlen, low] using
+                              Nat.add_le_add_left hih (n + n * n)
+                    _ ≤ 100 * n := hclose
+                    _ = 100 * xs.length := by rw [hlen]
+                · by_cases hmid : k < leCount pivot xs
+                  · simp only [selectCostFuel, hchoose, hlo, hmid, if_false,
+                      if_pos, hpivotCost]
+                    have hclose : n + n * n ≤ 100 * n := by
+                      have := recursiveMedianOfMediansComparisonCost_small_step
+                        (strictBranch := 0) hsmall (by omega)
+                      simpa using this
+                    simpa [hlen] using hclose
+                  · let high := xs.filter fun y => decide (pivot < y)
+                    have hhighLt : high.length < xs.length :=
+                      filter_length_lt_of_mem_false
+                        (fun y => decide (pivot < y)) hpivotMem (by simp)
+                    have hhighLtN : high.length < n := by
+                      simpa [hlen] using hhighLt
+                    have hhighPivotFuel : high.length ≤ pivotFuel := by omega
+                    have hhighSelectorFuel : high.length ≤ selectorFuel := by omega
+                    have hih := ih high.length hhighLtN high pivotFuel selectorFuel
+                      (k - leCount pivot xs) rfl hhighPivotFuel hhighSelectorFuel
+                    have hclose :
+                        n + n * n + 100 * high.length ≤ 100 * n :=
+                      recursiveMedianOfMediansComparisonCost_small_step hsmall
+                        (by simpa [hlen, high, gtCount] using hhalf.2)
+                    simp only [selectCostFuel, hchoose, hlo, hmid, if_false,
+                      hpivotCost]
+                    calc
+                      xs.length + n * n +
+                          selectCostFuel
+                            (recursiveMedianOfMediansPivotFuel? pivotFuel)
+                            (fun ys => ys.length +
+                              recursiveMedianOfMediansPivotComparisonCostFuel
+                                pivotFuel ys)
+                            selectorFuel (k - leCount pivot xs)
+                            (xs.filter fun y => decide (pivot < y))
+                          ≤ n + n * n + 100 * high.length := by
+                              simpa [hlen, high] using
+                                Nat.add_le_add_left hih (n + n * n)
+                      _ ≤ 100 * n := hclose
+                      _ = 100 * xs.length := by rw [hlen]
+              · have hnlarge : 50 ≤ n := Nat.le_of_not_gt hsmall
+                cases pivotFuel with
+                | zero =>
+                    have : n = 0 := by omega
+                    omega
+                | succ fuel =>
+                    cases hgroups : medianOfFiveGroups? (fullGroupsOfFive xs) with
+                    | none =>
+                        rcases fullGroupsOfFive_medianOfFiveGroups?_isSome xs with
+                          ⟨medians, hmedians⟩
+                        rw [hgroups] at hmedians
+                        contradiction
+                    | some medians =>
+                        cases medians with
+                        | nil =>
+                            have hcert :
+                                MedianGroupCertificates (fullGroupsOfFive xs) [] :=
+                              fullGroupsOfFive_medianGroupCertificates hgroups
+                            have hgroupsLen : (fullGroupsOfFive xs).length = 0 := by
+                              simpa using hcert.1
+                            have hnear := fullGroupsOfFive_length_near xs
+                            rw [hgroupsLen] at hnear
+                            omega
+                        | cons median medians =>
+                            let ms := median :: medians
+                            have hcert :
+                                MedianGroupCertificates (fullGroupsOfFive xs) ms :=
+                              fullGroupsOfFive_medianGroupCertificates hgroups
+                            have hmedianSizeXs : 5 * ms.length ≤ xs.length := by
+                              have hgroupsSize :=
+                                fullGroupsOfFive_length_mul_five_le xs
+                              simpa [hcert.1] using hgroupsSize
+                            have hmedianSize : 5 * ms.length ≤ n := by
+                              simpa [hlen] using hmedianSizeXs
+                            have hmedianLtN : ms.length < n := by omega
+                            have hmedianFuel : ms.length ≤ fuel := by omega
+                            have hinner := ih ms.length hmedianLtN ms fuel ms.length
+                              (ms.length / 2) rfl hmedianFuel (Nat.le_refl ms.length)
+                            have hpivotCost :
+                                recursiveMedianOfMediansPivotComparisonCostFuel
+                                    (fuel + 1) xs ≤
+                                  2 * n + 100 * ms.length := by
+                              dsimp [ms] at hinner ⊢
+                              simp only [recursiveMedianOfMediansPivotComparisonCostFuel,
+                                hlen, hsmall, ↓reduceIte, hgroups]
+                              simpa [selectCost] using
+                                Nat.add_le_add_left hinner (2 * n)
+                            by_cases hlo : k < ltCount pivot xs
+                            · let low := xs.filter fun y => decide (y < pivot)
+                              have hlowLt : low.length < xs.length :=
+                                filter_length_lt_of_mem_false
+                                  (fun y => decide (y < pivot)) hpivotMem (by simp)
+                              have hlowLtN : low.length < n := by
+                                simpa [hlen] using hlowLt
+                              have hlowPivotFuel : low.length ≤ fuel + 1 := by omega
+                              have hlowSelectorFuel : low.length ≤ selectorFuel := by omega
+                              have hih := ih low.length hlowLtN low (fuel + 1)
+                                selectorFuel k rfl hlowPivotFuel hlowSelectorFuel
+                              have hclose :=
+                                recursiveMedianOfMediansComparisonCost_large_step
+                                  hnlarge hmedianSize
+                                  (by simpa [hlen, low, ltCount] using hpivotBound.1)
+                              simp only [selectCostFuel, hchoose, hlo, if_pos]
+                              calc
+                                xs.length +
+                                      recursiveMedianOfMediansPivotComparisonCostFuel
+                                        (fuel + 1) xs +
+                                    selectCostFuel
+                                      (recursiveMedianOfMediansPivotFuel? (fuel + 1))
+                                      (fun ys => ys.length +
+                                        recursiveMedianOfMediansPivotComparisonCostFuel
+                                          (fuel + 1) ys)
+                                      selectorFuel k
+                                      (xs.filter fun y => decide (y < pivot))
+                                    ≤ n + (2 * n + 100 * ms.length) +
+                                        100 * low.length := by
+                                          exact Nat.add_le_add
+                                            (by simpa [hlen] using
+                                              Nat.add_le_add_left hpivotCost n) hih
+                                _ ≤ 100 * n := hclose
+                                _ = 100 * xs.length := by rw [hlen]
+                            · by_cases hmid : k < leCount pivot xs
+                              · simp only [selectCostFuel, hchoose, hlo, hmid,
+                                  if_false, if_pos]
+                                have hclose :=
+                                  recursiveMedianOfMediansComparisonCost_large_step
+                                    hnlarge hmedianSize (strictBranch := 0) (by omega)
+                                have hbase :
+                                    xs.length +
+                                        recursiveMedianOfMediansPivotComparisonCostFuel
+                                          (fuel + 1) xs ≤
+                                      n + (2 * n + 100 * ms.length) + 100 * 0 := by
+                                  simpa [hlen] using
+                                    Nat.add_le_add_left hpivotCost xs.length
+                                exact le_trans hbase (by simpa [hlen] using hclose)
+                              · let high := xs.filter fun y => decide (pivot < y)
+                                have hhighLt : high.length < xs.length :=
+                                  filter_length_lt_of_mem_false
+                                    (fun y => decide (pivot < y)) hpivotMem (by simp)
+                                have hhighLtN : high.length < n := by
+                                  simpa [hlen] using hhighLt
+                                have hhighPivotFuel : high.length ≤ fuel + 1 := by omega
+                                have hhighSelectorFuel : high.length ≤ selectorFuel := by
+                                  omega
+                                have hih := ih high.length hhighLtN high (fuel + 1)
+                                  selectorFuel (k - leCount pivot xs) rfl
+                                  hhighPivotFuel hhighSelectorFuel
+                                have hclose :=
+                                  recursiveMedianOfMediansComparisonCost_large_step
+                                    hnlarge hmedianSize
+                                    (by simpa [hlen, high, gtCount] using hpivotBound.2)
+                                simp only [selectCostFuel, hchoose, hlo, hmid]
+                                calc
+                                  xs.length +
+                                        recursiveMedianOfMediansPivotComparisonCostFuel
+                                          (fuel + 1) xs +
+                                      selectCostFuel
+                                        (recursiveMedianOfMediansPivotFuel? (fuel + 1))
+                                        (fun ys => ys.length +
+                                          recursiveMedianOfMediansPivotComparisonCostFuel
+                                            (fuel + 1) ys)
+                                        selectorFuel (k - leCount pivot xs)
+                                        (xs.filter fun y => decide (pivot < y))
+                                      ≤ n + (2 * n + 100 * ms.length) +
+                                          100 * high.length := by
+                                            exact Nat.add_le_add
+                                              (by simpa [hlen] using
+                                                Nat.add_le_add_left hpivotCost n) hih
+                                  _ ≤ 100 * n := hclose
+                                  _ = 100 * xs.length := by rw [hlen]
+
+/-- Strengthened public-cost induction with arbitrary sufficient SELECT fuel. -/
+private theorem recursiveMedianOfMediansComparisonCostFuel_linear_bound :
+    ∀ n : Nat, ∀ (xs : List Nat) (selectorFuel k : Nat),
+      xs.length = n → xs.length ≤ selectorFuel →
+        selectCostFuel recursiveMedianOfMediansPivot?
+          (fun ys => ys.length + recursiveMedianOfMediansPivotComparisonCost ys)
+          selectorFuel k xs ≤ 100 * xs.length := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      intro xs selectorFuel k hlen hselectorFuel
+      cases selectorFuel with
+      | zero =>
+          simp [selectCostFuel]
+      | succ selectorFuel =>
+          cases hchoose : recursiveMedianOfMediansPivot? xs with
+          | none =>
+              simp [selectCostFuel, hchoose]
+          | some pivot =>
+              have hpivotMem : pivot ∈ xs :=
+                recursiveMedianOfMediansPivot?_mem hchoose
+              have hpivotBound :=
+                recursiveMedianOfMediansPivot?_partition_size_bound hchoose
+              have hnpos : 0 < n := by
+                have hxsne : xs ≠ [] := by
+                  intro hnil
+                  subst xs
+                  simp at hpivotMem
+                have : 0 < xs.length := by
+                  rw [List.length_pos_iff_ne_nil]
+                  exact hxsne
+                simpa [hlen] using this
+              have hselectorSucc : n ≤ selectorFuel + 1 := by
+                simpa [hlen] using hselectorFuel
+              by_cases hsmall : n < 50
+              · have hpivotCost :
+                    recursiveMedianOfMediansPivotComparisonCost xs = n * n := by
+                  unfold recursiveMedianOfMediansPivotComparisonCost
+                  rw [hlen]
+                  cases n with
+                  | zero => omega
+                  | succ n =>
+                      simp [recursiveMedianOfMediansPivotComparisonCostFuel,
+                        hlen, hsmall]
+                have hdet : deterministicPivot? xs = some pivot := by
+                  unfold recursiveMedianOfMediansPivot? at hchoose
+                  rw [hlen] at hchoose
+                  cases n with
+                  | zero => omega
+                  | succ n =>
+                      simpa [recursiveMedianOfMediansPivotFuel?, hlen, hsmall]
+                        using hchoose
+                have hhalf := deterministicPivot?_half_partition_size_bound hdet
+                by_cases hlo : k < ltCount pivot xs
+                · let low := xs.filter fun y => decide (y < pivot)
+                  have hlowLt : low.length < xs.length :=
+                    filter_length_lt_of_mem_false
+                      (fun y => decide (y < pivot)) hpivotMem (by simp)
+                  have hlowLtN : low.length < n := by simpa [hlen] using hlowLt
+                  have hlowSelectorFuel : low.length ≤ selectorFuel := by omega
+                  have hih := ih low.length hlowLtN low selectorFuel k rfl
+                    hlowSelectorFuel
+                  have hclose :
+                      n + n * n + 100 * low.length ≤ 100 * n :=
+                    recursiveMedianOfMediansComparisonCost_small_step hsmall
+                      (by simpa [hlen, low, ltCount] using hhalf.1)
+                  simp only [selectCostFuel, hchoose, hlo, if_pos, hpivotCost]
+                  calc
+                    xs.length + n * n +
+                        selectCostFuel recursiveMedianOfMediansPivot?
+                          (fun ys => ys.length +
+                            recursiveMedianOfMediansPivotComparisonCost ys)
+                          selectorFuel k
+                          (xs.filter fun y => decide (y < pivot))
+                        ≤ n + n * n + 100 * low.length := by
+                            simpa [hlen, low] using
+                              Nat.add_le_add_left hih (n + n * n)
+                    _ ≤ 100 * n := hclose
+                    _ = 100 * xs.length := by rw [hlen]
+                · by_cases hmid : k < leCount pivot xs
+                  · simp only [selectCostFuel, hchoose, hlo, hmid, if_false,
+                      if_pos, hpivotCost]
+                    have hclose : n + n * n ≤ 100 * n := by
+                      have := recursiveMedianOfMediansComparisonCost_small_step
+                        (strictBranch := 0) hsmall (by omega)
+                      simpa using this
+                    simpa [hlen] using hclose
+                  · let high := xs.filter fun y => decide (pivot < y)
+                    have hhighLt : high.length < xs.length :=
+                      filter_length_lt_of_mem_false
+                        (fun y => decide (pivot < y)) hpivotMem (by simp)
+                    have hhighLtN : high.length < n := by
+                      simpa [hlen] using hhighLt
+                    have hhighSelectorFuel : high.length ≤ selectorFuel := by omega
+                    have hih := ih high.length hhighLtN high selectorFuel
+                      (k - leCount pivot xs) rfl hhighSelectorFuel
+                    have hclose :
+                        n + n * n + 100 * high.length ≤ 100 * n :=
+                      recursiveMedianOfMediansComparisonCost_small_step hsmall
+                        (by simpa [hlen, high, gtCount] using hhalf.2)
+                    simp only [selectCostFuel, hchoose, hlo, hmid, if_false,
+                      hpivotCost]
+                    calc
+                      xs.length + n * n +
+                          selectCostFuel recursiveMedianOfMediansPivot?
+                            (fun ys => ys.length +
+                              recursiveMedianOfMediansPivotComparisonCost ys)
+                            selectorFuel (k - leCount pivot xs)
+                            (xs.filter fun y => decide (pivot < y))
+                          ≤ n + n * n + 100 * high.length := by
+                              simpa [hlen, high] using
+                                Nat.add_le_add_left hih (n + n * n)
+                      _ ≤ 100 * n := hclose
+                      _ = 100 * xs.length := by rw [hlen]
+              · have hnlarge : 50 ≤ n := Nat.le_of_not_gt hsmall
+                cases n with
+                | zero => omega
+                | succ n =>
+                    cases hgroups : medianOfFiveGroups? (fullGroupsOfFive xs) with
+                    | none =>
+                        rcases fullGroupsOfFive_medianOfFiveGroups?_isSome xs with
+                          ⟨medians, hmedians⟩
+                        rw [hgroups] at hmedians
+                        contradiction
+                    | some medians =>
+                        cases medians with
+                        | nil =>
+                            have hcert :
+                                MedianGroupCertificates (fullGroupsOfFive xs) [] :=
+                              fullGroupsOfFive_medianGroupCertificates hgroups
+                            have hgroupsLen : (fullGroupsOfFive xs).length = 0 := by
+                              simpa using hcert.1
+                            have hnear := fullGroupsOfFive_length_near xs
+                            rw [hgroupsLen] at hnear
+                            omega
+                        | cons median medians =>
+                            let ms := median :: medians
+                            have hcert :
+                                MedianGroupCertificates (fullGroupsOfFive xs) ms :=
+                              fullGroupsOfFive_medianGroupCertificates hgroups
+                            have hmedianSizeXs : 5 * ms.length ≤ xs.length := by
+                              have hgroupsSize :=
+                                fullGroupsOfFive_length_mul_five_le xs
+                              simpa [hcert.1] using hgroupsSize
+                            have hmedianSize : 5 * ms.length ≤ n + 1 := by
+                              simpa [hlen] using hmedianSizeXs
+                            have hmedianLtN : ms.length < n + 1 := by omega
+                            have hmedianFuel : ms.length ≤ n := by omega
+                            have hinner :=
+                              recursiveMedianOfMediansFixedComparisonCostFuel_linear_bound
+                                ms.length ms n ms.length (ms.length / 2) rfl
+                                hmedianFuel (Nat.le_refl ms.length)
+                            have hpivotCost :
+                                recursiveMedianOfMediansPivotComparisonCost xs ≤
+                                  2 * (n + 1) + 100 * ms.length := by
+                              dsimp [ms] at hinner ⊢
+                              unfold recursiveMedianOfMediansPivotComparisonCost
+                              rw [hlen]
+                              simp only [recursiveMedianOfMediansPivotComparisonCostFuel,
+                                hlen, hsmall, ↓reduceIte, hgroups]
+                              simpa [selectCost] using
+                                Nat.add_le_add_left hinner (2 * (n + 1))
+                            by_cases hlo : k < ltCount pivot xs
+                            · let low := xs.filter fun y => decide (y < pivot)
+                              have hlowLt : low.length < xs.length :=
+                                filter_length_lt_of_mem_false
+                                  (fun y => decide (y < pivot)) hpivotMem (by simp)
+                              have hlowLtN : low.length < n + 1 := by
+                                simpa [hlen] using hlowLt
+                              have hlowSelectorFuel : low.length ≤ selectorFuel := by
+                                omega
+                              have hih := ih low.length hlowLtN low selectorFuel k
+                                rfl hlowSelectorFuel
+                              have hclose :=
+                                recursiveMedianOfMediansComparisonCost_large_step
+                                  hnlarge hmedianSize
+                                  (by simpa [hlen, low, ltCount] using hpivotBound.1)
+                              simp only [selectCostFuel, hchoose, hlo, if_pos]
+                              calc
+                                xs.length +
+                                      recursiveMedianOfMediansPivotComparisonCost xs +
+                                    selectCostFuel recursiveMedianOfMediansPivot?
+                                      (fun ys => ys.length +
+                                        recursiveMedianOfMediansPivotComparisonCost ys)
+                                      selectorFuel k
+                                      (xs.filter fun y => decide (y < pivot))
+                                    ≤ (n + 1) +
+                                        (2 * (n + 1) + 100 * ms.length) +
+                                          100 * low.length := by
+                                            exact Nat.add_le_add
+                                              (by simpa [hlen] using
+                                                Nat.add_le_add_left hpivotCost (n + 1)) hih
+                                _ ≤ 100 * (n + 1) := hclose
+                                _ = 100 * xs.length := by rw [hlen]
+                            · by_cases hmid : k < leCount pivot xs
+                              · simp only [selectCostFuel, hchoose, hlo, hmid,
+                                  if_false, if_pos]
+                                have hclose :=
+                                  recursiveMedianOfMediansComparisonCost_large_step
+                                    hnlarge hmedianSize (strictBranch := 0) (by omega)
+                                have hbase :
+                                    xs.length +
+                                        recursiveMedianOfMediansPivotComparisonCost xs ≤
+                                      (n + 1) +
+                                        (2 * (n + 1) + 100 * ms.length) + 100 * 0 := by
+                                  simpa [hlen] using
+                                    Nat.add_le_add_left hpivotCost xs.length
+                                exact le_trans hbase (by simpa [hlen] using hclose)
+                              · let high := xs.filter fun y => decide (pivot < y)
+                                have hhighLt : high.length < xs.length :=
+                                  filter_length_lt_of_mem_false
+                                    (fun y => decide (pivot < y)) hpivotMem (by simp)
+                                have hhighLtN : high.length < n + 1 := by
+                                  simpa [hlen] using hhighLt
+                                have hhighSelectorFuel : high.length ≤ selectorFuel := by
+                                  omega
+                                have hih := ih high.length hhighLtN high selectorFuel
+                                  (k - leCount pivot xs) rfl hhighSelectorFuel
+                                have hclose :=
+                                  recursiveMedianOfMediansComparisonCost_large_step
+                                    hnlarge hmedianSize
+                                    (by simpa [hlen, high, gtCount] using hpivotBound.2)
+                                simp only [selectCostFuel, hchoose, hlo, hmid]
+                                calc
+                                  xs.length +
+                                        recursiveMedianOfMediansPivotComparisonCost xs +
+                                      selectCostFuel recursiveMedianOfMediansPivot?
+                                        (fun ys => ys.length +
+                                          recursiveMedianOfMediansPivotComparisonCost ys)
+                                        selectorFuel (k - leCount pivot xs)
+                                        (xs.filter fun y => decide (pivot < y))
+                                      ≤ (n + 1) +
+                                          (2 * (n + 1) + 100 * ms.length) +
+                                            100 * high.length := by
+                                              exact Nat.add_le_add
+                                                (by simpa [hlen] using
+                                                  Nat.add_le_add_left hpivotCost (n + 1)) hih
+                                  _ ≤ 100 * (n + 1) := hclose
+                                  _ = 100 * xs.length := by rw [hlen]
+
+/--
+The complete comparison charge of recursive median-of-medians SELECT is
+linear, including every nested pivot-selection subproblem and every selected
+outer partition branch.
+-/
+theorem recursiveMedianOfMediansComparisonCost_linear_bound
+    (k : Nat) (xs : List Nat) :
+    recursiveMedianOfMediansComparisonCost k xs ≤ 100 * xs.length := by
+  unfold recursiveMedianOfMediansComparisonCost selectCost
+  exact recursiveMedianOfMediansComparisonCostFuel_linear_bound xs.length xs
+    xs.length k rfl (Nat.le_refl xs.length)
+
+/--
+Partition-path comparison cost of the executable median selector
 {lit}`medianOfMediansSelect?`.
 
 The local work at each recursion level is {lit}`xs.length`: one comparison per
 element for the linear partition scan around the median-of-medians pivot.  This
-is a genuine {lit}`Nat`-valued cost on list input, computed by the same recursion the
-selector runs.
+is a genuine {lit}`Nat`-valued cost on list input, computed by the selector's
+outer recursion.  It deliberately excludes the cost of constructing each
+pivot.
 -/
-def medianOfMediansSelectCost (k : Nat) (xs : List Nat) : Nat :=
+def medianOfMediansPartitionPathCost (k : Nat) (xs : List Nat) : Nat :=
   selectCost medianOfMediansPivot? (fun ys => ys.length) k xs
 
 /--
-**Concrete linear cost bound for deterministic median-of-medians SELECT.**
+**Linear bound for the outer partition path.**
 
 The partition-comparison cost of {lit}`medianOfMediansSelect?` is linear with the
 explicit constant {lit}`17`:
 
-{lit}`medianOfMediansSelectCost k xs ≤ 17 * xs.length`.
+{lit}`medianOfMediansPartitionPathCost k xs ≤ 17 * xs.length`.
 
 This is the concrete counterpart of the abstract recurrence closure
 {lit}`medianOfMedians_linear_bound`: the CLRS branch bound
@@ -1375,8 +2228,8 @@ This is the concrete counterpart of the abstract recurrence closure
 {lit}`selectCost_linear_bound` sums the linear local work into the closed form
 {lit}`≤ 17 n`.
 -/
-theorem medianOfMediansSelectCost_linear_bound (k : Nat) (xs : List Nat) :
-    medianOfMediansSelectCost k xs ≤ 17 * xs.length := by
+theorem medianOfMediansPartitionPathCost_linear_bound (k : Nat) (xs : List Nat) :
+    medianOfMediansPartitionPathCost k xs ≤ 17 * xs.length := by
   have hbound : ∀ (ys : List Nat) (pivot : Nat),
       medianOfMediansPivot? ys = some pivot →
         10 * ltCount pivot ys ≤ 7 * ys.length + 12 ∧
@@ -1386,7 +2239,28 @@ theorem medianOfMediansSelectCost_linear_bound (k : Nat) (xs : List Nat) :
     fun ys => by simp
   have h := selectCost_linear_bound (a := 1) medianOfMediansPivot?
     (fun ys => ys.length) medianOfMediansPivot?_mem hbound hstep k xs
-  simpa [medianOfMediansSelectCost] using h
+  simpa [medianOfMediansPartitionPathCost] using h
+
+/-- Outer partition-path cost for the recursive median-of-medians selector. -/
+def recursiveMedianOfMediansPartitionPathCost (k : Nat) (xs : List Nat) : Nat :=
+  selectCost recursiveMedianOfMediansPivot? (fun ys => ys.length) k xs
+
+/--
+The outer partition path of the recursive selector is linear.  This diagnostic
+bound intentionally omits nested pivot construction; the end-to-end theorem
+{lit}`recursiveMedianOfMediansComparisonCost_linear_bound` includes it.
+-/
+theorem recursiveMedianOfMediansPartitionPathCost_linear_bound
+    (k : Nat) (xs : List Nat) :
+    recursiveMedianOfMediansPartitionPathCost k xs ≤ 17 * xs.length := by
+  have hstep : ∀ ys : List Nat, (fun zs => zs.length) ys ≤ 1 * ys.length :=
+    fun ys => by simp
+  have h := selectCost_linear_bound (a := 1) recursiveMedianOfMediansPivot?
+    (fun ys => ys.length) recursiveMedianOfMediansPivot?_mem
+    (fun _ys _pivot hsel =>
+      recursiveMedianOfMediansPivot?_partition_size_bound hsel)
+    hstep k xs
+  simpa [recursiveMedianOfMediansPartitionPathCost] using h
 
 end Chapter09
 end CLRS

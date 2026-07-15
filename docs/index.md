@@ -53,6 +53,7 @@ CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean
 CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean
 CLRSLean/Chapter_05/Section_05_3_Randomized_Algorithms.lean
 CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean
+CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring.lean
 CLRSLean/Chapter_06/Section_06_1_Heaps.lean
 CLRSLean/Chapter_06/Section_06_2_Maintaining_Heap_Property.lean
 CLRSLean/Chapter_06/Section_06_3_Building_A_Heap.lean
@@ -67,6 +68,7 @@ CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray.lean
 CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
 CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean
+CLRSLean/Chapter_09/Section_09_1_Minimum_And_Maximum.lean
 CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean
