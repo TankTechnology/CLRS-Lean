@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 26.
-* Tracked reader-facing theorem entries: 1234.
-* Proved tracked theorem entries: 1234.
-* Remaining core theorem groups: 31.
+* Tracked reader-facing theorem entries: 1283.
+* Proved tracked theorem entries: 1283.
+* Remaining core theorem groups: 30.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -21,9 +21,9 @@ are not yet represented or not yet complete.
 ## Status Counts
 
 * {lit}`main-proof-complete`: 3 chapters.
-* {lit}`main-proof-complete-for-correctness`: 3 chapters.
+* {lit}`main-proof-complete-for-correctness`: 4 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 15 chapters.
+* {lit}`partial`: 14 chapters.
 * {lit}`not-started`: 9 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -39,7 +39,7 @@ Ch  Chapter                                                     Status          
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1;5.2;5.3;5.4                    17        1
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                60        1
  7  7. Quicksort                                                partial                              7.1;7.2;7.3                        30        2
- 8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.2;8.3;8.4                        27        1
+ 8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.2;8.3;8.4                        29        1
  9  9. Medians and Order Statistics                             partial                              9.2;9.3                            43        0
 10  10. Elementary Data Structures                              selected-section-complete            10.1;10.2;10.4                     12        2
 11  11. Hash Tables                                             partial                              11.1;11.2;11.3;11.4;11.5           51        1
@@ -51,7 +51,7 @@ Ch  Chapter                                                     Status          
 17  17. Amortized Analysis                                      partial                              17.1;17.2;17.4                     66        1
 18  18. B-Trees                                                 partial                              18.1;18.2;18.3                     62        1
 19  19. Fibonacci Heaps                                         partial                              19.1;19.4                         112        1
-20  20. van Emde Boas Trees                                     partial                              20.1;20.2;20.3                    153        1
+20  20. van Emde Boas Trees                                     main-proof-complete-for-correctness  20.1;20.2;20.3                    200        0
 21  21. Data Structures for Disjoint Sets                       main-proof-complete                  21.1;21.2;21.3;21.4                84        0
 22  22. Elementary Graph Algorithms                             main-proof-complete-for-correctness  22.1;22.2;22.3;22.4;22.5           47        0
 23  23. Minimum Spanning Trees                                  main-proof-complete-for-correctness  23.1;23.2                          52        0

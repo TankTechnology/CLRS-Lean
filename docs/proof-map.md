@@ -882,6 +882,9 @@ theorem remains as a compact special case.
   - `CLRS.Chapter08.expectedBucketSortCost_linear_bound`
   - `CLRS.Chapter08.expectedBucketSortCost_isBigO`
   - `CLRS.Chapter08.expectedBucketQuadraticCost_eq_secondMoment`
+  - `CLRS.Chapter08.textbookBucketSortCost`
+  - `CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
+  - `CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`
 - Proof pattern: scan bucket indices in increasing order, prove each per-bucket
   sorter preserves the bucket as a permutation, prove all emitted elements have
   the scanned bucket index, and use a cross-bucket monotonicity assumption to
@@ -894,17 +897,25 @@ theorem remains as a compact special case.
   proved as a **true expectation** over the explicit independent uniform input
   distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`),
   where the pairwise independence step reuses
-  `CLRS.Probability.expect_mul_of_indep`.
-- Current gap: RAM/step-count cost semantics (this layer measures expected
-  comparison/occupancy cost, not machine steps).
+  `CLRS.Probability.expect_mul_of_indep`.  The random variable
+  `textbookBucketSortCost` charges `n + Σⱼ nⱼ²`; its named expectation identity
+  is `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`, and
+  `expectedTextbookBucketSortCost_isBigO` proves linear expectation.
+- Current gap: a single-pass executable bucket builder, a costed per-bucket
+  sorter, and a refinement theorem connecting their execution cost to the
+  abstract model.  The current `bucketSortByRank` repeatedly filters the input,
+  so `textbookBucketSortCost` is not an execution counter for it.
 
 The executable wrapper `CLRS.Chapter08.bucketSortByRank` sorts each bucket with
 Lean's verified `mergeSort`.  Its correctness theorem proves ordered output,
 membership preservation, and permutation preservation under the deterministic
-bucket interval hypothesis.  The theorem
-`CLRS.Chapter08.expectedBucketSortCost_linear_bound` captures the linear
-expected-cost wrapper used by the textbook proof when the number of buckets
-equals the number of input elements.
+bucket interval hypothesis.  Separately,
+`CLRS.Chapter08.textbookBucketSortCost` names the abstract textbook random
+variable,
+`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
+connects its expectation to the existing closed form, and
+`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO` proves that expectation
+is linear.  None of these theorems instruments `bucketSortByRank`.
 
 ## Chapter 9 - Medians and Order Statistics
 
@@ -2929,7 +2940,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Chapter 7 mutable-array partition | `future-work` | Stable-filter partition classification, scan-state partition-loop correctness, a returned pivot-index wrapper, an adjacent-swap trace, functional quicksort correctness, and deterministic comparison-count bounds are proved; the next refinement is the CLRS array `PARTITION` index-level loop invariant. |
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
-| Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the CLRS second moment `E[Σ n_i²] = n + n(n-1)/m` is proved as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`), and the abstract expected cost is `O(n)` (`expectedBucketSortCost_isBigO`). Remaining: RAM/step-count cost semantics. |
+| Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; `textbookBucketSortCost` is the CLRS unit-cost random variable, `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` identifies its true finite-uniform expectation, and `expectedTextbookBucketSortCost_isBigO` proves that expectation is linear. Remaining: a single-pass executable bucket builder, a costed per-bucket sorter, and a refinement theorem connecting their execution cost to the abstract model. |
 | Chapter 9 randomized SELECT expected time | `proved` | Proved in `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`: `randSelectExpectedCost` models the uniform independent-pivot expected cost via `CLRS.Probability.expect`, `randSelectExpectedCost_recurrence` derives the CLRS recurrence, and `randomizedSelect_expected_bigO_linear` gives `E[T(n)] = O(n)` (CLRS Theorem 9.2). Remaining refinement: a joint distribution over all recursion levels and a concrete step-count cost model. |
 | Chapter 9 deterministic linear-time SELECT | `proved-abstract` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. A concrete executable cost counter `medianOfMediansSelectCost` (same recursion as `medianOfMediansSelect?`) now has the explicit linear bound `medianOfMediansSelectCost k xs ≤ 17 * xs.length` (`medianOfMediansSelectCost_linear_bound`), via the generic `selectCost_linear_bound`. Remaining refinement: a fully operational RAM step-count that also unfolds the recursive cost of computing the pivot. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |

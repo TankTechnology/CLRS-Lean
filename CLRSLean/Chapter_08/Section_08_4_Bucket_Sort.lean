@@ -34,8 +34,12 @@ Beyond the definitional layer, we also prove the CLRS second moment
 independent uniform input distribution `Fin n → Fin m` (each key hashed
 independently and uniformly to a bucket), reusing
 {name}`CLRS.Probability.expect_mul_of_indep` for the independence step
-(`expectedBucketQuadraticCost_eq_secondMoment`).  The abstract expected cost is
-shown to be {lit}`O(n)` via `expectedBucketSortCost_isBigO`.
+(`expectedBucketQuadraticCost_eq_secondMoment`).  The textbook random variable
+is {lit}`textbookBucketSortCost`; its expectation is identified with the
+existing abstract expression by
+{lit}`fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` and shown
+to be {lit}`O(n)` by {lit}`expectedTextbookBucketSortCost_isBigO`.  This cost
+model does not instrument the current executable bucket builder or sorter.
 -/
 
 namespace CLRS
