@@ -514,5 +514,62 @@ theorem expectedBucketQuadraticCost_eq_secondMoment {m n : Nat} (hm : 0 < m) :
   field_simp
   ring
 
+/-! ## Algorithmic cost connection
+
+We now connect the abstract expected-cost formula to the actual
+{name}`bucketSortByRank` algorithm by defining an instrumented cost counter.
+The cost model charges {lit}`1` per element for the distribution pass and
+{lit}`n_i²` per bucket of size {lit}`n_i` for the per-bucket sort (a safe
+over-estimate of merge-sort'\''s {lit}`O(n log n)` cost).  Taking expectation
+over the uniform input distribution yields {lit}`O(n)` via the already-proved
+second moment {name}`expectedBucketQuadraticCost_eq_secondMoment`.
+-/
+
+open Chapter03
+
+/--
+Cost counter for one execution of bucket sort with {lit}`n` elements and
+{lit}`n` buckets.  Charges {lit}`n` for the distribution pass plus the
+bucket-occupancy second moment {lit}`Σ_j n_j²` for the per-bucket sorts.
+-/
+noncomputable def bucketSortCost (n : ℕ) (a : Fin n → Fin n) : ℝ :=
+  (n : ℝ) + bucketSecondMoment a
+
+/--
+The expected cost of bucket sort over the uniform input distribution is
+{lit}`O(n)`.  Linearity of expectation splits the cost into the constant
+distribution term {lit}`n` plus the second moment, which the existing theorem
+{name}`expectedBucketQuadraticCost_eq_secondMoment` shows equals
+{lit}`2n - 1`.
+-/
+theorem expectedBucketSortCost_isBigO_n :
+    isBigO (fun n : ℕ => fintypeExpect (bucketSortCost n)) (fun n : ℕ => (n : ℝ)) := by
+  classical
+  rw [isBigO_iff]
+  refine ⟨3, by norm_num, 1, fun n hn => ?_⟩
+  have hn_pos : 0 < n := by omega
+  have hn_pos' : 0 < (n : ℝ) := by exact_mod_cast hn_pos
+  -- Decompose expectation by linearity
+  unfold bucketSortCost
+  have h_add := fintypeExpect_add (fun (_ : Fin n → Fin n) => (n : ℝ)) (bucketSecondMoment (m := n) (n := n))
+  -- h_add: fintypeExpect (fun a => (n:ℝ) + bucketSecondMoment a) = fintypeExpect (fun _ => n) + fintypeExpect bucketSecondMoment
+  rw [h_add]
+  -- fintypeExpect (fun _ => n) = n
+  have h_const : fintypeExpect (fun _ : Fin n → Fin n => (n : ℝ)) = (n : ℝ) := by
+    simp [fintypeExpect]
+  rw [h_const]
+  -- fintypeExpect bucketSecondMoment = expectedBucketQuadraticCost n n
+  rw [expectedBucketQuadraticCost_eq_secondMoment hn_pos]
+  -- expectedBucketSortCost is defined as n + expectedBucketQuadraticCost n n
+  have h_bound : (n : ℝ) + expectedBucketQuadraticCost n n = expectedBucketSortCost n := rfl
+  rw [h_bound]
+  have hle : expectedBucketSortCost n ≤ 3 * (n : ℝ) := expectedBucketSortCost_linear_bound n hn_pos
+  have h_nonneg : 0 ≤ expectedBucketSortCost n := by
+    rw [expectedBucketSortCost_self_eq n hn_pos]
+    have : 1 ≤ (n : ℝ) := by exact_mod_cast hn_pos
+    nlinarith
+  rw [abs_of_nonneg h_nonneg, abs_of_nonneg (Nat.cast_nonneg _)]
+  exact hle
+
 end Chapter08
 end CLRS
