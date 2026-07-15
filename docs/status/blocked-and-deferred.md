@@ -226,43 +226,6 @@ and a refinement theorem connecting their execution cost to the abstract
 model.  The current `bucketSortByRank` repeatedly filters the input and is not
 instrumented by this abstract random variable.
 
-### Chapter 9 Selection Refinements
-
-- Related sections: Sections 9.2-9.4 - Selection and order statistics
-- Status: `future-work` for CLRS median-of-medians runtime refinement;
-  `blocked-design` for randomized expected-time analysis
-
-Section 9.2 proves the stable rank-certificate interface:
-`CLRS.Chapter09.selectByRank?_correct` shows that the specification selector
-returns an input value whose strict-lower count is at most the requested rank
-and whose weak-lower count is greater than that rank.  The same certificate is
-now proved for pivot-style quickselect by `CLRS.Chapter09.quickSelect?_correct`.
-Section 9.3 factors the proof through a pivot-parametric deterministic SELECT
-interface: `CLRS.Chapter09.selectWithPivot?_correct` proves correctness for any
-membership-safe pivot rule, `CLRS.Chapter09.deterministicSelect?_correct`
-instantiates it with a deterministic median pivot, and
-`CLRS.Chapter09.medianOfMediansSelect?_correct` instantiates it with an
-executable median-of-medians pivot.  It also proves
-`CLRS.Chapter09.medianOfFive?_certificate`, the local 3/3 count certificate for
-a five-element group.  The executable grouping and grouped counting core are
-now proved as well: `CLRS.Chapter09.fullGroupsOfFive_length_near`,
-`CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`,
-`CLRS.Chapter09.leCount_le_of_sublist`,
-`CLRS.Chapter09.geCount_le_of_sublist`,
-`CLRS.Chapter09.medianOfFiveGroups?_certificates`,
-`CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
-`CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`,
-`CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`, and
-`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`.  The
-CLRS-style branch-size packaging is proved by
-`CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`.
-
-The remaining hard work splits into two tracks.  Randomized SELECT needs a
-probability model for random pivots and an expected-cost argument.
-Deterministic linear-time SELECT already has the abstract recurrence induction
-and linear-bound wrapper; it still needs a concrete executable cost semantics
-for `medianOfMediansSelect?` that feeds the proved recurrence hypothesis.
-
 ### Pointer-Level Linked Lists
 
 - Related section: Section 10.2 - Linked lists

@@ -34,6 +34,9 @@ the detailed maintainer ledger.
   expectation.  The remaining bucket-sort layer is a single-pass executable
   bucket builder, a costed per-bucket sorter, and a refinement theorem
   connecting their execution cost to the abstract model.
+* **Chapter 9:** pairwise simultaneous extrema, order-statistic correctness,
+  fresh-choice RANDOMIZED-SELECT expected comparisons, and end-to-end
+  recursive median-of-medians worst-case comparisons.
 * **Chapter 21:** abstract and executable disjoint-set correctness, weighted
   linked-list analysis, reachable rank mass, concrete Batteries traversal
   costs, and the {lit}`O((m+n) alpha(n))` potential analysis.
@@ -51,9 +54,9 @@ the detailed maintainer ledger.
   case 2, and regular case 3 comparison scales are proved.  The remaining work
   is table completion and algorithm/runtime refinement, not the core Master
   case-3 bridge.
-* **Chapters 7, 9, and 11:** deterministic correctness and recurrence or finite-
-  average layers exist.  A reusable finite probability/expectation model and
-  end-to-end randomized expected-time bridges remain central gaps.
+* **Chapters 7 and 11:** deterministic correctness and recurrence or finite-
+  average layers exist.  End-to-end randomized expected-time or hashing-model
+  bridges remain central gaps.
 * **Chapters 12-14:** functional BST operations plus a zipper-based
   parent-navigation/transplant layer, executable red-black insertion,
   order-statistic augmentation, generic local augmentation facts, and interval-
@@ -84,9 +87,9 @@ Chapters 24-35 do not currently have represented section modules on
 {lit}`main`.  Open pull requests are not counted until their scope is reviewed,
 merged, and added to the progress source.
 
-## Sealed Chapters 22-23 Boundary
+## Sealed Chapters 21-23 Boundary
 
-Chapters 22 and 23 are {lit}`main-proof-complete-for-correctness`.  Their
+Chapters 21--23 are complete for their advertised boundaries.  Their
 closure boundaries are protected by focused interface and closure tests plus
 dated audits under {lit}`docs/proof-audits/`.
 
