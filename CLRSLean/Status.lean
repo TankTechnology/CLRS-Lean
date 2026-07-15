@@ -54,6 +54,12 @@ the detailed maintainer ledger.
   case 2, and regular case 3 comparison scales are proved.  The remaining work
   is table completion and algorithm/runtime refinement, not the core Master
   case-3 bridge.
+* **Chapter 5:** Sections 5.1--5.3 and the birthday/balls-and-bins part of
+  Section 5.4 are proved.  Section 5.4 also has the longest-streak tail bound
+  and an executable on-line threshold hiring strategy with exact selection
+  contracts and a finite success-probability definition.  The expected-longest-
+  streak logarithmic theorem, the hiring success-probability harmonic formula,
+  and its {lit}`1/e` asymptotic remain open.
 * **Chapters 7 and 11:** deterministic correctness and recurrence or finite-
   average layers exist.  End-to-end randomized expected-time or hashing-model
   bridges remain central gaps.

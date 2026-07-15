@@ -53,6 +53,7 @@ CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean
 CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean
 CLRSLean/Chapter_05/Section_05_3_Randomized_Algorithms.lean
 CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean
+CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring.lean
 CLRSLean/Chapter_06/Section_06_1_Heaps.lean
 CLRSLean/Chapter_06/Section_06_2_Maintaining_Heap_Property.lean
 CLRSLean/Chapter_06/Section_06_3_Building_A_Heap.lean

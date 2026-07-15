@@ -116,6 +116,22 @@ the textbook pseudocode.
 
 ## Future Work
 
+### Chapter 5.4 Longest-Streak And On-Line Hiring Analysis
+
+- Related section: Section 5.4 - Probabilistic analysis of randomized algorithms
+- Status: `future-work`
+
+The finite foundations are present.  The streak model proves
+`CLRS.Chapter05.longestStreak_upperBound` and defines
+`CLRS.Chapter05.expectedLongestStreak`.  The on-line hiring model provides an
+executable threshold strategy, exact `some`/`none` contracts, and the finite
+uniform success probability `CLRS.Chapter05.OnlineHiring.probHireBest`.
+
+Two textbook-facing analyses remain: derive the logarithmic expectation bound
+for the longest streak, and prove the on-line strategy's harmonic success
+formula together with its `1/e` asymptotic.  These theorem gaps do not block use
+of either executable finite model.
+
 ### CLRS Exercises
 
 - Related scope: all chapters

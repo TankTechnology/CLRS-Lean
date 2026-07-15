@@ -73,6 +73,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_05.Section_05_3_Randomized_Algorithms",
   "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis",
 ]
+"CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis" = [
+  "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
+]
 "CLRSLean.Chapter_06" = [
   "CLRSLean.Chapter_06.Section_06_1_Heaps",
   "CLRSLean.Chapter_06.Section_06_2_Maintaining_Heap_Property",
@@ -412,6 +415,9 @@ title = "5.3. Randomized algorithms"
 
 [modules."CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis"]
 title = "5.4. Probabilistic analysis"
+
+[modules."CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring"]
+title = "The On-line Hiring Problem"
 
 [modules."CLRSLean.Chapter_06.Section_06_1_Heaps"]
 title = "6.1. Heaps"
