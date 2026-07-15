@@ -382,6 +382,41 @@ def freshRandomizedSelectWithRanks? (choices : List Nat)
     (k : Nat) (xs : List Nat) : Option Nat :=
   freshRandomizedSelectWithRanksFuel? xs.length choices k xs
 
+/-! ## Schedule-driven concrete cost semantics -/
+
+/--
+Cost of one concrete fresh-rank execution path.  Every visited nonempty state
+charges `c * length` and consumes exactly one rank from `choices`.  Running out
+of fuel or choices, or presenting a rank outside the current subproblem,
+rejects the path instead of silently assigning zero cost.
+-/
+def randomizedSelectCostWithScheduleFuel :
+    Nat → Nat → Nat → List Nat → List Nat → Option Nat
+  | 0, _, _, _, _ => none
+  | _ + 1, _, _, [], _ => none
+  | _ + 1, _, _, _, [] => none
+  | fuel + 1, c, k, x :: xs, i :: choices =>
+      match selectByRank? i (x :: xs) with
+      | none => none
+      | some pivot =>
+          let here := c * (x :: xs).length
+          if k < ltCount pivot (x :: xs) then
+            Option.map (here + ·)
+              (randomizedSelectCostWithScheduleFuel fuel c k
+                ((x :: xs).filter fun y => decide (y < pivot)) choices)
+          else if k < leCount pivot (x :: xs) then
+            some here
+          else
+            Option.map (here + ·)
+              (randomizedSelectCostWithScheduleFuel fuel c
+                (k - leCount pivot (x :: xs))
+                ((x :: xs).filter fun y => decide (pivot < y)) choices)
+
+/-- Public schedule cost with one fuel unit for every input occurrence. -/
+def randomizedSelectCostWithSchedule
+    (c k : Nat) (xs choices : List Nat) : Option Nat :=
+  randomizedSelectCostWithScheduleFuel xs.length c k xs choices
+
 /-- Every successful fresh-rank sample path returns the requested order statistic. -/
 theorem freshRandomizedSelectWithRanksFuel?_correct :
     ∀ (fuel : Nat) (choices : List Nat) (k : Nat) (xs : List Nat) {x : Nat},
@@ -435,6 +470,74 @@ theorem freshRandomizedSelectWithRanks?_correct {choices : List Nat}
     RankCertificate xs k x := by
   exact freshRandomizedSelectWithRanksFuel?_correct xs.length choices k xs
     (by simpa [freshRandomizedSelectWithRanks?] using hrun)
+
+/-- A successful costed path erases to a successful fresh-rank SELECT path. -/
+theorem randomizedSelectCostWithScheduleFuel_result :
+    ∀ {fuel c k : Nat} {xs choices : List Nat} {cost : Nat},
+      randomizedSelectCostWithScheduleFuel fuel c k xs choices = some cost →
+        ∃ x, freshRandomizedSelectWithRanksFuel? fuel choices k xs = some x := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro c k xs choices cost hcost
+      simp [randomizedSelectCostWithScheduleFuel] at hcost
+  | succ fuel ih =>
+      intro c k xs choices cost hcost
+      cases xs with
+      | nil =>
+          simp [randomizedSelectCostWithScheduleFuel] at hcost
+      | cons x xs =>
+          cases choices with
+          | nil =>
+              simp [randomizedSelectCostWithScheduleFuel] at hcost
+          | cons i choices =>
+              cases hpivot : selectByRank? i (x :: xs) with
+              | none =>
+                  simp [randomizedSelectCostWithScheduleFuel, hpivot] at hcost
+              | some pivot =>
+                  by_cases hlo : k < ltCount pivot (x :: xs)
+                  · cases hrec : randomizedSelectCostWithScheduleFuel fuel c k
+                        ((x :: xs).filter fun y => decide (y < pivot)) choices with
+                    | none =>
+                        simp [randomizedSelectCostWithScheduleFuel, hpivot, hlo,
+                          hrec] at hcost
+                    | some subcost =>
+                        rcases ih hrec with ⟨selected, hselected⟩
+                        exact ⟨selected, by
+                          simpa [freshRandomizedSelectWithRanksFuel?, hpivot, hlo]
+                            using hselected⟩
+                  · by_cases hmid : k < leCount pivot (x :: xs)
+                    · exact ⟨pivot, by
+                        simp [freshRandomizedSelectWithRanksFuel?, hpivot, hlo,
+                          hmid]⟩
+                    · cases hrec : randomizedSelectCostWithScheduleFuel fuel c
+                          (k - leCount pivot (x :: xs))
+                          ((x :: xs).filter fun y => decide (pivot < y)) choices with
+                      | none =>
+                          simp [randomizedSelectCostWithScheduleFuel, hpivot, hlo,
+                            hmid, hrec] at hcost
+                      | some subcost =>
+                          rcases ih hrec with ⟨selected, hselected⟩
+                          exact ⟨selected, by
+                            simpa [freshRandomizedSelectWithRanksFuel?, hpivot, hlo,
+                              hmid] using hselected⟩
+
+/-- A successful public cost execution erases to the public fresh-rank path. -/
+theorem randomizedSelectCostWithSchedule_result
+    {c k : Nat} {xs choices : List Nat} {cost : Nat}
+    (hcost : randomizedSelectCostWithSchedule c k xs choices = some cost) :
+    ∃ x, freshRandomizedSelectWithRanks? choices k xs = some x := by
+  exact randomizedSelectCostWithScheduleFuel_result
+    (by simpa [randomizedSelectCostWithSchedule,
+      freshRandomizedSelectWithRanks?] using hcost)
+
+/-- Every successful costed schedule returns a rank-correct SELECT result. -/
+theorem randomizedSelectCostWithSchedule_rankCorrect
+    {c k : Nat} {xs choices : List Nat} {cost : Nat}
+    (hcost : randomizedSelectCostWithSchedule c k xs choices = some cost) :
+    ∃ x, RankCertificate xs k x := by
+  rcases randomizedSelectCostWithSchedule_result hcost with ⟨x, hx⟩
+  exact ⟨x, freshRandomizedSelectWithRanks?_correct hx⟩
 
 /-- Size of the continuation actually selected by one pivot-rank choice. -/
 def freshRandomizedSelectContinuationSize (k i : Nat) (xs : List Nat) : Nat :=
