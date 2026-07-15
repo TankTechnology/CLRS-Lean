@@ -183,7 +183,8 @@ from an explicit probability space for random pivots or random permutations.
 - Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
   sort
 - Status: `future-work` for count-array and numeric-order refinements;
-  `blocked-design` for the full bucket-sort expected-time theorem
+  `proved-abstract` for the bucket-sort textbook cost model, with executable
+  cost refinement still `future-work`
 
 Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
@@ -208,52 +209,22 @@ proves deterministic bucket-sort correctness:
 preservation, and permutation preservation for the merge-sorted bucket model.
 It also proves the finite-uniform collision and second-moment core:
 `CLRS.Chapter08.uniformAverageFin2_collision` and
-`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
+`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.  The CLRS
+unit-cost random variable is `CLRS.Chapter08.textbookBucketSortCost`; its
+expectation is identified by
+`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
+and proved linear by
+`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`.
 
 The remaining CLRS refinements split into three tracks.  The array-level
 `COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
 bucket specification.  Radix sort still has implementation and cost refinement
 work, but the bounded fixed-width ordinary key-order theorem is now proved.
-The remaining bucket-sort expected-time work is to connect that second-moment
-interface to an explicit independent input distribution and a concrete
-bucket-sort cost model.
-
-### Chapter 9 Selection Refinements
-
-- Related sections: Sections 9.2-9.4 - Selection and order statistics
-- Status: `future-work` for CLRS median-of-medians runtime refinement;
-  `blocked-design` for randomized expected-time analysis
-
-Section 9.2 proves the stable rank-certificate interface:
-`CLRS.Chapter09.selectByRank?_correct` shows that the specification selector
-returns an input value whose strict-lower count is at most the requested rank
-and whose weak-lower count is greater than that rank.  The same certificate is
-now proved for pivot-style quickselect by `CLRS.Chapter09.quickSelect?_correct`.
-Section 9.3 factors the proof through a pivot-parametric deterministic SELECT
-interface: `CLRS.Chapter09.selectWithPivot?_correct` proves correctness for any
-membership-safe pivot rule, `CLRS.Chapter09.deterministicSelect?_correct`
-instantiates it with a deterministic median pivot, and
-`CLRS.Chapter09.medianOfMediansSelect?_correct` instantiates it with an
-executable median-of-medians pivot.  It also proves
-`CLRS.Chapter09.medianOfFive?_certificate`, the local 3/3 count certificate for
-a five-element group.  The executable grouping and grouped counting core are
-now proved as well: `CLRS.Chapter09.fullGroupsOfFive_length_near`,
-`CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`,
-`CLRS.Chapter09.leCount_le_of_sublist`,
-`CLRS.Chapter09.geCount_le_of_sublist`,
-`CLRS.Chapter09.medianOfFiveGroups?_certificates`,
-`CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
-`CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`,
-`CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`, and
-`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`.  The
-CLRS-style branch-size packaging is proved by
-`CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`.
-
-The remaining hard work splits into two tracks.  Randomized SELECT needs a
-probability model for random pivots and an expected-cost argument.
-Deterministic linear-time SELECT already has the abstract recurrence induction
-and linear-bound wrapper; it still needs a concrete executable cost semantics
-for `medianOfMediansSelect?` that feeds the proved recurrence hypothesis.
+For bucket sort, the CLRS unit-cost random variable has linear expectation.
+Remaining: a single-pass executable bucket builder, a costed per-bucket sorter,
+and a refinement theorem connecting their execution cost to the abstract
+model.  The current `bucketSortByRank` repeatedly filters the input and is not
+instrumented by this abstract random variable.
 
 ### Pointer-Level Linked Lists
 
