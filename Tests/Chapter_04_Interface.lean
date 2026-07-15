@@ -17,6 +17,7 @@ namespace Chapter04
 #check maxSubarrayDivideCosted_cost_eq
 #check maxSubarrayDivideCost_unfold
 #check maxSubarrayDivideCost_monotone
+#check maxSubarrayDivideCost_power_sandwich
 #check maxSubarrayDivideCost_pow_two
 #check maxSubarrayDivideCost_isBigTheta_nlogn
 

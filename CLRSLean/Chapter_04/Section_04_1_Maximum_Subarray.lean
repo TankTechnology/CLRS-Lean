@@ -1761,5 +1761,202 @@ theorem maxSubarrayDivideCosted_cost_eq (xs : List Int) :
   exact maxSubarrayDivideTreeCosted_cost_eq
     xs.length xs (le_refl xs.length)
 
+/-! ### All-input asymptotics -/
+
+/-- The mixed floor/ceiling cost cannot decrease when the input grows by one. -/
+theorem maxSubarrayDivideCost_le_succ : ∀ n,
+    maxSubarrayDivideCost n ≤ maxSubarrayDivideCost (n + 1) := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn0 : n = 0
+      · subst n
+        norm_num [maxSubarrayDivideCost.eq_def]
+      by_cases hn1 : n = 1
+      · subst n
+        norm_num [maxSubarrayDivideCost.eq_def]
+      have hn : 2 ≤ n := by omega
+      have hnsucc : 2 ≤ n + 1 := by omega
+      rw [maxSubarrayDivideCost_unfold n hn,
+        maxSubarrayDivideCost_unfold (n + 1) hnsucc]
+      have hfloorLt : n / 2 < n :=
+        Nat.div_lt_self (by omega) (by norm_num)
+      have hhalfPos : 0 < n / 2 :=
+        Nat.div_pos (by omega) (by norm_num)
+      have hceilLt : n - n / 2 < n :=
+        Nat.sub_lt (by omega) hhalfPos
+      have hfloorStep :
+          (n + 1) / 2 = n / 2 ∨ (n + 1) / 2 = n / 2 + 1 := by
+        omega
+      have hceilStep :
+          (n + 1) - (n + 1) / 2 = n - n / 2 ∨
+            (n + 1) - (n + 1) / 2 = (n - n / 2) + 1 := by
+        omega
+      have hfloorCost :
+          maxSubarrayDivideCost (n / 2) ≤
+            maxSubarrayDivideCost ((n + 1) / 2) := by
+        rcases hfloorStep with hsame | hstep
+        · rw [hsame]
+        · rw [hstep]
+          exact ih (n / 2) hfloorLt
+      have hceilCost :
+          maxSubarrayDivideCost (n - n / 2) ≤
+            maxSubarrayDivideCost ((n + 1) - (n + 1) / 2) := by
+        rcases hceilStep with hsame | hstep
+        · rw [hsame]
+        · rw [hstep]
+          exact ih (n - n / 2) hceilLt
+      omega
+
+/-- The concrete length-indexed cost is monotone on all natural inputs. -/
+theorem maxSubarrayDivideCost_monotone : Monotone maxSubarrayDivideCost :=
+  monotone_nat_of_le_succ maxSubarrayDivideCost_le_succ
+
+/--
+Every positive input cost is bounded by the costs at the adjacent powers of
+two surrounding its length.
+-/
+theorem maxSubarrayDivideCost_power_sandwich (n : Nat) (hn : 0 < n) :
+    maxSubarrayDivideCost (2 ^ Nat.log 2 n) ≤ maxSubarrayDivideCost n ∧
+      maxSubarrayDivideCost n ≤
+        maxSubarrayDivideCost (2 ^ (Nat.log 2 n + 1)) := by
+  rcases powerInterval_of_pos 2 n (by norm_num) hn.ne' with ⟨hlo, hhi⟩
+  exact ⟨maxSubarrayDivideCost_monotone hlo,
+    maxSubarrayDivideCost_monotone (Nat.le_of_lt hhi)⟩
+
+/--
+Exact cost at balanced powers of two, in a subtraction-free form convenient
+for natural-number arithmetic.
+-/
+theorem maxSubarrayDivideCost_pow_two (k : Nat) :
+    maxSubarrayDivideCost (2 ^ k) + 4 =
+      (3 * k + 5) * 2 ^ k := by
+  induction k with
+  | zero =>
+      norm_num [maxSubarrayDivideCost.eq_def]
+  | succ k ih =>
+      let m := 2 ^ k
+      have hmpos : 0 < m := pow_pos (by norm_num) k
+      have hpow : 2 ^ (k + 1) = m * 2 := by
+        simp [m, pow_succ]
+      have hn : 2 ≤ 2 ^ (k + 1) := by
+        rw [hpow]
+        omega
+      have hdiv : (2 ^ (k + 1)) / 2 = m := by
+        rw [hpow]
+        exact Nat.mul_div_left m (by norm_num)
+      have hceil : 2 ^ (k + 1) - (2 ^ (k + 1)) / 2 = m := by
+        rw [hdiv, hpow]
+        omega
+      rw [maxSubarrayDivideCost_unfold (2 ^ (k + 1)) hn,
+        hceil, hdiv, hpow]
+      calc
+        maxSubarrayDivideCost m + maxSubarrayDivideCost m +
+              3 * (m * 2) + 4 + 4 =
+            2 * (maxSubarrayDivideCost m + 4) + 6 * m := by omega
+        _ = 2 * ((3 * k + 5) * m) + 6 * m := by rw [ih]
+        _ = (3 * (k + 1) + 5) * (m * 2) := by ring
+
+private theorem maxSubarrayDivideCost_pow_two_lower (k : Nat) :
+    (k + 1) * 2 ^ k ≤ maxSubarrayDivideCost (2 ^ k) := by
+  have hformula := maxSubarrayDivideCost_pow_two k
+  have hpow : 1 ≤ 2 ^ k := Nat.one_le_pow k 2 (by norm_num)
+  have hfour : 4 ≤ 4 * 2 ^ k := by
+    simpa using Nat.mul_le_mul_left 4 hpow
+  have hcoeff : k + 5 ≤ 3 * k + 5 := by omega
+  have hbound : (k + 1) * 2 ^ k + 4 ≤ (3 * k + 5) * 2 ^ k := by
+    calc
+      (k + 1) * 2 ^ k + 4 ≤ (k + 1) * 2 ^ k + 4 * 2 ^ k :=
+        Nat.add_le_add_left hfour _
+      _ = (k + 5) * 2 ^ k := by ring
+      _ ≤ (3 * k + 5) * 2 ^ k := Nat.mul_le_mul_right _ hcoeff
+  omega
+
+private theorem maxSubarrayDivideCost_pow_two_upper (k : Nat) :
+    maxSubarrayDivideCost (2 ^ k) ≤ 5 * (k + 1) * 2 ^ k := by
+  have hformula := maxSubarrayDivideCost_pow_two k
+  have hcoeff : 3 * k + 5 ≤ 5 * (k + 1) := by omega
+  calc
+    maxSubarrayDivideCost (2 ^ k) ≤ maxSubarrayDivideCost (2 ^ k) + 4 :=
+      Nat.le_add_right _ _
+    _ = (3 * k + 5) * 2 ^ k := hformula
+    _ ≤ 5 * (k + 1) * 2 ^ k := by
+      simpa [mul_assoc] using Nat.mul_le_mul_right (2 ^ k) hcoeff
+
+/-- Real coercion of the executable natural-number control-step cost. -/
+def maxSubarrayDivideCostReal (n : Nat) : Real :=
+  maxSubarrayDivideCost n
+
+private theorem maxSubarrayDivideCost_power_isBigTheta :
+    Chapter03.isBigTheta
+      (fun k : Nat => maxSubarrayDivideCostReal (2 ^ k))
+      (fun k : Nat => ((k : Real) + 1) * (2 : Real) ^ k) := by
+  rw [Chapter03.isBigTheta_iff]
+  constructor
+  · rw [Chapter03.isBigO_iff]
+    refine ⟨5, by norm_num, 0, ?_⟩
+    intro k _hk
+    have hcostNonneg : 0 ≤ maxSubarrayDivideCostReal (2 ^ k) := by
+      dsimp [maxSubarrayDivideCostReal]
+      positivity
+    have hscaleNonneg : 0 ≤ ((k : Real) + 1) * (2 : Real) ^ k := by
+      positivity
+    rw [abs_of_nonneg hcostNonneg, abs_of_nonneg hscaleNonneg]
+    have hupper :
+        maxSubarrayDivideCost (2 ^ k) ≤ 5 * ((k + 1) * 2 ^ k) := by
+      simpa [mul_assoc] using maxSubarrayDivideCost_pow_two_upper k
+    dsimp [maxSubarrayDivideCostReal]
+    exact_mod_cast hupper
+  · rw [Chapter03.isBigO_iff]
+    refine ⟨1, by norm_num, 0, ?_⟩
+    intro k _hk
+    have hcostNonneg : 0 ≤ maxSubarrayDivideCostReal (2 ^ k) := by
+      dsimp [maxSubarrayDivideCostReal]
+      positivity
+    have hscaleNonneg : 0 ≤ ((k : Real) + 1) * (2 : Real) ^ k := by
+      positivity
+    rw [abs_of_nonneg hscaleNonneg, abs_of_nonneg hcostNonneg]
+    norm_num
+    dsimp [maxSubarrayDivideCostReal]
+    exact_mod_cast maxSubarrayDivideCost_pow_two_lower k
+
+private theorem maxSubarrayDivideCostReal_monotoneAbs :
+    MonotoneAbs maxSubarrayDivideCostReal := by
+  intro m n hmn
+  have hm : 0 ≤ maxSubarrayDivideCostReal m := by
+    dsimp [maxSubarrayDivideCostReal]
+    positivity
+  have hn : 0 ≤ maxSubarrayDivideCostReal n := by
+    dsimp [maxSubarrayDivideCostReal]
+    positivity
+  rw [abs_of_nonneg hm, abs_of_nonneg hn]
+  dsimp [maxSubarrayDivideCostReal]
+  exact_mod_cast maxSubarrayDivideCost_monotone hmn
+
+/-- The concrete cost has the Chapter 4 real-log-log comparison scale. -/
+theorem maxSubarrayDivideCost_isBigTheta_realLogLogScale :
+    Chapter03.isBigTheta maxSubarrayDivideCostReal
+      (realLogLogScale 2 2) := by
+  have hcritical :
+      Chapter03.isBigTheta maxSubarrayDivideCostReal
+        (criticalPowerLogScale 2 2) :=
+    allInput_bigTheta_of_criticalPowerLogScale 2 2
+      maxSubarrayDivideCostReal (by norm_num) (by norm_num)
+      maxSubarrayDivideCostReal_monotoneAbs
+      maxSubarrayDivideCost_power_isBigTheta
+  exact Chapter03.isBigTheta_trans hcritical
+    (criticalPowerLogScale_isBigTheta_realLogLogScale 2 2
+      (by norm_num) (by norm_num))
+
+/--
+The executable midpoint divide-and-conquer control-step cost is
+`Theta(n log n)` on all natural input lengths.  For `a = b = 2`,
+`realLogLogScale` is the repository's textbook `n log n` scale.
+-/
+theorem maxSubarrayDivideCost_isBigTheta_nlogn :
+    Chapter03.isBigTheta maxSubarrayDivideCostReal
+      (realLogLogScale 2 2) :=
+  maxSubarrayDivideCost_isBigTheta_realLogLogScale
+
 end Chapter04
 end CLRS
