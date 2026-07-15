@@ -714,3 +714,31 @@ noncomputable def expectedLongestStreak (n : ℕ) : ℝ :=
 
 end Chapter05
 end CLRS
+
+/-! ## Root compatibility aliases
+
+The streak development predated the `CLRS.Chapter05` namespace.  Keep its
+original root-level proof surface available to downstream users while the new
+chapter-facing declarations remain namespaced.
+-/
+
+abbrev CoinFlip := CLRS.Chapter05.CoinFlip
+abbrev headAt := CLRS.Chapter05.headAt
+abbrev hasRunOfLength := CLRS.Chapter05.hasRunOfLength
+noncomputable abbrev longestStreak := CLRS.Chapter05.longestStreak
+abbrev streakS := CLRS.Chapter05.streakS
+noncomputable abbrev headsSetBijection {n : ℕ} (S : Finset (Fin n)) :=
+  CLRS.Chapter05.headsSetBijection S
+
+alias prob_first_t_heads := CLRS.Chapter05.prob_first_t_heads
+alias headAt_eq_of_lt := CLRS.Chapter05.headAt_eq_of_lt
+alias headAt_eq_zero_of_ge := CLRS.Chapter05.headAt_eq_zero_of_ge
+alias card_streakS := CLRS.Chapter05.card_streakS
+alias streakS_all_heads_iff := CLRS.Chapter05.streakS_all_heads_iff
+alias prob_run_at := CLRS.Chapter05.prob_run_at
+alias hasRunOfLength_mono := CLRS.Chapter05.hasRunOfLength_mono
+alias longestStreak_ge_iff_hasRunOfLength :=
+  CLRS.Chapter05.longestStreak_ge_iff_hasRunOfLength
+alias fintypeExpect_mono := CLRS.Chapter05.fintypeExpect_mono
+alias prob_run_at_bound := CLRS.Chapter05.prob_run_at_bound
+alias longestStreak_upperBound := CLRS.Chapter05.longestStreak_upperBound
