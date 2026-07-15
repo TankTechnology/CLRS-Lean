@@ -11,72 +11,20 @@ Section 9.2.
 
 Main results:
 
-* Theorem {lit}`selectWithPivot?_correct`: a pivot-parametric SELECT is rank
-  correct whenever the pivot rule returns members of the current list.
-* Theorem {lit}`medianOfFive?_certificate`: the median selected from a
-  five-element group has at least three elements below it weakly and at least
-  three elements above it weakly.
-* Theorems {lit}`medianGroupCertificates_leCount_lower_bound` and
-  {lit}`medianGroupCertificates_geCount_lower_bound`: a collection of certified
-  five-element groups contributes three original elements for every group
-  median on the corresponding side of a pivot.
-* Theorem {lit}`fullGroupsOfFive_medianPivot_split_counts`: the executable
-  full-grouping wrapper constructs the certificates and obtains the split
-  counts for a median of the group medians.
-* Theorem {lit}`fullGroupsOfFive_medianPivot_fullInput_split_counts`: the
-  grouped split counts lift to the original input list because the flattened
-  full groups are a sublist of the input.
-* Theorem {lit}`fullGroupsOfFive_medianPivot_partition_size_bound`: both
-  strict recursive branches around the pivot satisfy the familiar
-  {lit}`7n/10 + O(1)` CLRS size bound.
-* Theorem {lit}`selectRecurrence_linear_step`: a pure {lean}`Nat`
-  substitution step
-  for closing a linear envelope from one one-fifth median subproblem, one
-  {lit}`7n/10 + O(1)` strict branch, and local-work slack.
-* Theorem {lit}`medianOfMediansPivot?_recursive_branch_size_bound`: the
-  proved count bound specialized to the actual filtered recursive branch
-  lists.
-* Theorems {lit}`medianOfMediansPivot?_low_branch_linear_work_step` and
-  {lit}`medianOfMediansPivot?_high_branch_linear_work_step`: executable
-  branch wrappers that connect the median-of-medians pivot bound to the
-  linear-work recurrence step.
-* Theorem {lit}`deterministicSelect?_correct`: a deterministic median-pivot
-  instance is rank correct.
-* Theorem {lit}`selectRecurrence_linear_induction`: a threshold-parametric
-  strong induction that lifts {lit}`selectRecurrence_linear_step` to the full
-  recursion tree for any cost function satisfying the CLRS subproblem-size
-  bounds.
-* Theorem {lit}`medianOfMedians_linear_bound`: a concrete instantiation with
-  the standard median-of-medians branch sizes {lit}`n/5` and {lit}`(7n+12)/10`,
-  proving linear cost whenever the per-element work coefficient is bounded
-  relative to the overall constant.
-* Theorem {lit}`clrsSelectRecurrence_linear_bound`: a CLRS-facing name for the
-  same linear-time SELECT recurrence closure.
-* Definition {lit}`selectCostFuel` and wrapper {lit}`selectCost`: an executable
-  {lit}`Nat`-valued cost counter that mirrors the {lit}`selectWithPivotFuel?`
-  recursion, charging a parametric local-work term at each level.
-* Theorems {lit}`selectCostFuel_linear_bound` and {lit}`selectCost_linear_bound`:
-  the concrete cost is linear ({lit}`≤ 17 * a * n`) whenever the pivot rule
-  satisfies the CLRS {lit}`10 * branch ≤ 7 * n + 12` bound and the local work is
-  linear.
-* Definition {lit}`medianOfMediansPartitionPathCost` and theorem
-  {lit}`medianOfMediansPartitionPathCost_linear_bound`: the partition scans on
-  the selector's outer recursion path obey the explicit linear bound
-  {lit}`medianOfMediansPartitionPathCost k xs ≤ 17 * xs.length`.
-* Theorems {lit}`recursiveMedianOfMediansPivot?_partition_size_bound`,
-  {lit}`recursiveMedianOfMediansSelect?_isSome_of_lt`, and
-  {lit}`recursiveMedianOfMediansSelect?_correct`: a recursively computed
-  median-of-medians pivot retains the CLRS branch bound and yields a total,
-  rank-correct selector.
-* Definition {lit}`recursiveMedianOfMediansComparisonCost` and theorem
-  {lit}`recursiveMedianOfMediansComparisonCost_linear_bound`: the complete
-  comparison cost includes five-element grouping, recursive pivot selection,
-  the current partition, and the selected strict branch, and is at most
-  {lit}`100 * xs.length`.
+* {lit}`selectWithPivot?_correct` proves the pivot-parametric rank interface.
+* {lit}`fullGroupsOfFive_medianPivot_partition_size_bound` proves the CLRS
+  grouped-pivot branch bound.
+* {lit}`recursiveMedianOfMediansSelect?_correct` proves total rank correctness
+  for the executable recursive selector.
+* {lit}`recursiveMedianOfMediansComparisonCost_linear_bound` accounts for
+  grouping, nested pivot selection, partitioning, and recursive selection, with
+  total cost at most {lit}`100 * xs.length`.
 
-## Implementation details
+## Shared source support
 
-The randomized-selection analysis remains available outside the main sidebar:
+The Section 9.2 randomized analysis is stored below this module path so that it
+can reuse the pivot-parametric infrastructure.  It is a support page for 9.2,
+not an additional subsection of 9.3, and therefore stays outside the sidebar:
 
 * [Randomized SELECT Expected Time](CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select/)
 
