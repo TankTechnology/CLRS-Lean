@@ -38,27 +38,27 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 4 | Divide-and-Conquer | 🟠 partial | 81 | Runtime/RAM layers for maximum subarray |
 | 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 17 | §5.4 streaks and on-line hiring analyses are not yet… |
 | 6 | Heapsort | 🟢 complete | 60 | Full RAM/runtime cost semantics for priority-queue and heap… |
-| 7 | Quicksort | 🟠 partial | 25 | Index-level mutable-array PARTITION refinement; explicit… |
+| 7 | Quicksort | 🟠 partial | 30 | explicit pivot probability/independence model; sharp n log n… |
 | 8 | Sorting in Linear Time | 🟢 correctness | 27 | Full bucket-sort expected-time theorem over an explicit… |
-| 9 | Medians and Order Statistics | 🟠 partial | 43 | Randomized SELECT expected time |
+| 9 | Medians and Order Statistics | 🟢 complete | 64 | — |
 | 10 | Elementary Data Structures | 🟡 sections | 12 | Pointer-level linked lists; free-list allocation |
 | 11 | Hash Tables | 🟠 partial | 51 | RAM or probe-count operational semantics for hashing |
 | 12 | Binary Search Trees | 🟠 partial | 40 | Explicit RAM cost model over pointer operations;… |
 | 13 | Red-Black Trees | 🟠 partial | 34 | Prove RB-DELETE/RB-DELETE-FIXUP and the logarithmic-height… |
 | 14 | Augmenting Data Structures | 🟠 partial | 55 | Thread augmentation through executable red-black deletion |
 | 15 | Dynamic Programming | 🟠 partial | 76 | Mutable-array/memoized implementations for the remaining DP… |
-| 16 | Greedy Algorithms | 🟡 sections | 30 | Remaining greedy sections (16.2 backpack; 16.5 exercises)… |
+| 16 | Greedy Algorithms | 🟡 sections | 32 | Remaining greedy sections (16.5 exercises) not represented |
 | 17 | Amortized Analysis | 🟠 partial | 66 | Mutable-array copying allocator/RAM constants and sharper… |
 | 18 | B-Trees | 🟠 partial | 62 | Full occupancy/separator/same-depth invariant stack… |
 | 19 | Fibonacci Heaps | 🟠 partial | 112 | Pointer forest circular root lists executable CONSOLIDATE… |
-| 20 | van Emde Boas Trees | 🟠 partial | 149 | Recursive successor/predecessor/delete on the… |
+| 20 | van Emde Boas Trees | 🟢 correctness | 200 | Concrete pointer/array storage and hardware-level RAM… |
 | 21 | Data Structures for Disjoint Sets | 🟢 complete | 84 | No remaining core Chapter 21 group; lower-level… |
 | 22 | Elementary Graph Algorithms | 🟢 correctness | 47 | No remaining core correctness group; explicit work and… |
 | 23 | Minimum Spanning Trees | 🟢 correctness | 52 | No remaining core mathematical or functional algorithm… |
 | 24 | Single-Source Shortest Paths | 🟡 sections | 22 | Executable Dijkstra priority-queue loop threading the… |
 | 25–35 | All-Pairs SP, Max-Flow, … | ⬜ not started | 0 | whole chapters (Ch25/26 issues filed) |
 
-**Total: 1218 kernel-checked theorems across Chapters 1–24** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1302 kernel-checked theorems across Chapters 1–24** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
@@ -71,8 +71,9 @@ Notable results across the library:
 
 - **Ch4** — recursive Strassen with a `Θ(n^{lg 7})` runtime via the Master theorem.
 - **Ch7 / 9 / 11** — a shared finite-expectation toolkit powering randomized
-  quicksort's pairwise comparison probability, randomized `SELECT` expected
-  `O(n)`, and SUHA + universal-hashing expected search costs.
+  quicksort's pairwise comparison probability, fresh-choice randomized
+  `SELECT` with expected cost at most `4n`, and SUHA + universal-hashing
+  expected search costs.
 - **Ch19** — the true Fibonacci logarithmic degree bound `D(n) ≤ log_φ n`
   (CLRS Lemma 19.4/19.5), proved tight.
 - **Ch20** — a recursive van Emde Boas structure with the `O(log log u)`

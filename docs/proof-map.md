@@ -908,7 +908,26 @@ equals the number of input elements.
 
 ## Chapter 9 - Medians and Order Statistics
 
-### Section 9.2 - Selection by rank
+### Section 9.1 - Minimum and maximum
+
+- Lean source: `CLRSLean/Chapter_09/Section_09_1_Minimum_And_Maximum.lean`
+- Status: `proved` for the executable pairwise simultaneous-extrema algorithm
+- Main proved theorems:
+  - `CLRS.Chapter09.minMax?_isSome_iff`
+  - `CLRS.Chapter09.minMax?_correct`
+  - `CLRS.Chapter09.minMax?_minimum_mem`
+  - `CLRS.Chapter09.minMax?_maximum_mem`
+  - `CLRS.Chapter09.minMax?_minimum_le`
+  - `CLRS.Chapter09.minMax?_le_maximum`
+  - `CLRS.Chapter09.minMax?_comparisons_le`
+- Proof pattern: compare the two members of every pair once, merge the smaller
+  member only with the recursive minimum, and merge the larger member only
+  with the recursive maximum.  The bundled certificate proves membership and
+  both extremal bounds; the recursive counter proves the CLRS bound
+  `comparisons ≤ 3 * floor(n / 2)`.
+- Current gap: none for the mathematical comparison model.
+
+### Section 9.2 - Selection correctness interface
 
 - Lean source: `CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean`
 - Status: `proved` for the specification selector and pivot-style quickselect
@@ -926,24 +945,25 @@ equals the number of input elements.
   zero-based indexing; prove pivot-style quickselect by recursively preserving
   a count-based rank certificate through the `< pivot`, pivot-block, and
   `> pivot` branches.
-- Current gap: randomized SELECT and runtime analysis remain strengthening
-  targets; the deterministic median-of-medians split-size wrapper is now
-  proved in Section 9.3.
+- Current gap: none for rank correctness or the fresh-choice expected
+  comparison model.  The Section 9.2 support page proves both the CLRS
+  majorizer and the actual state-dependent stochastic execution are linear.
 
 The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
 `quickSelect? k xs` returns `x`, then `x ∈ xs`, the number of elements below
 `x` is at most `k`, and the number of elements at most `x` is greater than
 `k`.
 
-### Section 9.3 - Deterministic selection
+### Section 9.3 - Selection in worst-case linear time
 
 - Lean source: `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean`
-- Status: `proved` for pivot-parametric deterministic SELECT correctness and
-  executable median-of-medians SELECT correctness and partition-size bounds
+- Status: `proved`; pivot-parametric and executable selector correctness,
+  totality, partition-size bounds, and end-to-end comparison cost are proved
 - Main proved theorems:
   - `CLRS.Chapter09.selectWithPivot?_mem`
   - `CLRS.Chapter09.selectWithPivot?_rankCorrect`
   - `CLRS.Chapter09.selectWithPivot?_correct`
+  - `CLRS.Chapter09.selectWithPivot?_isSome_of_lt`
   - `CLRS.Chapter09.medianOfFive?_certificate`
   - `CLRS.Chapter09.medianOfFive?_isSome_of_length_eq_five`
   - `CLRS.Chapter09.gtCount_eq_length_sub_leCount`
@@ -978,14 +998,25 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   - `CLRS.Chapter09.deterministicSelect?_rankCorrect`
   - `CLRS.Chapter09.deterministicSelect?_correct`
   - `CLRS.Chapter09.medianOfMediansPivot?_mem`
+  - `CLRS.Chapter09.medianOfMediansPivot?_isSome_of_ne_nil`
   - `CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`
   - `CLRS.Chapter09.medianOfMediansSelect?_mem`
   - `CLRS.Chapter09.medianOfMediansSelect?_rankCorrect`
   - `CLRS.Chapter09.medianOfMediansSelect?_correct`
+  - `CLRS.Chapter09.medianOfMediansSelect?_isSome_of_lt`
+  - `CLRS.Chapter09.recursiveMedianOfMediansPivot?_mem`
+  - `CLRS.Chapter09.recursiveMedianOfMediansPivot?_isSome_of_ne_nil`
+  - `CLRS.Chapter09.recursiveMedianOfMediansPivot?_partition_size_bound`
+  - `CLRS.Chapter09.recursiveMedianOfMediansSelect?_isSome_of_lt`
+  - `CLRS.Chapter09.recursiveMedianOfMediansSelect?_correct`
+  - `CLRS.Chapter09.deterministicPivot?_half_partition_size_bound`
+  - `CLRS.Chapter09.recursiveMedianOfMediansPivotFuel?_partition_size_bound`
   - `CLRS.Chapter09.selectCost_linear_step`
   - `CLRS.Chapter09.selectCostFuel_linear_bound`
   - `CLRS.Chapter09.selectCost_linear_bound`
-  - `CLRS.Chapter09.medianOfMediansSelectCost_linear_bound`
+  - `CLRS.Chapter09.medianOfMediansPartitionPathCost_linear_bound`
+  - `CLRS.Chapter09.recursiveMedianOfMediansPartitionPathCost_linear_bound`
+  - `CLRS.Chapter09.recursiveMedianOfMediansComparisonCost_linear_bound`
 - Proof pattern: abstract over a pivot function with
   `CLRS.Chapter09.PivotMembership`, then reuse the Chapter 9.2
   `RankCertificate` lifting lemmas for the low side, pivot block, and high
@@ -998,20 +1029,18 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   full-input count lower bounds around a median-of-medians pivot.  The
   partition-size wrapper packages these count bounds as
   `10 * branchSize ≤ 7 * n + 12` for both strict recursive branches.
-- Current gap: the abstract recurrence, the linear bound, and a concrete
-  executable cost counter (`CLRS.Chapter09.medianOfMediansSelectCost`, defined
-  by the same recursion as `medianOfMediansSelect?`) with the explicit bound
-  `medianOfMediansSelectCost k xs ≤ 17 * xs.length` are all proved.  The counter
-  charges the linear partition scan along the recursion path and folds the
-  median-of-medians pivot selection into a linear-cost oracle; the next
-  strengthening target is a fully operational RAM step-count that also unfolds
-  the recursive cost of computing the pivot.
+  `recursiveMedianOfMediansComparisonCost` additionally charges full-group
+  local work, recursive selection of the median of group medians, the current
+  partition, and the selected strict branch.  A strengthened induction over
+  the input size and both fuel parameters closes the concrete bound
+  `recursiveMedianOfMediansComparisonCost k xs ≤ 100 * xs.length`.
+- Current gap: none for the pure comparison model.
 
 ### Section 9.2 - Randomized SELECT expected running time
 
 - Lean source: `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`
-- Status: `proved` for the randomized-select expected-comparison model, its
-  recurrence, and the CLRS Theorem 9.2 linear expected-time bound
+- Status: `proved`; both the larger-side majorizer and fresh-choice actual
+  expected comparison cost are linear
 - Main proved theorems:
   - `CLRS.Chapter09.randSelectExpectedCost_succ`
   - `CLRS.Chapter09.randSelectExpectedCost_recurrence`
@@ -1023,13 +1052,17 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   - `CLRS.Chapter09.sum_maxSide_real_bound`
   - `CLRS.Chapter09.randSelectExpectedCost_le`
   - `CLRS.Chapter09.randSelectExpectedCost_bigO_linear`
-  - `CLRS.Chapter09.randomizedSelect_expected_bigO_linear`
+  - `CLRS.Chapter09.randomizedSelectMajorizer_bigO_linear`
+  - `CLRS.Chapter09.freshRandomizedSelectWithRanks?_correct`
+  - `CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize`
+  - `CLRS.Chapter09.freshRandomizedSelectExpectedComparisonsFuel_linear_bound`
+  - `CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound`
   - `CLRS.Chapter09.pivotAtIndex?_mem`
   - `CLRS.Chapter09.randomizedSelectAtIndex?_rankCorrect`
   - `CLRS.Chapter09.randomizedSelectAtIndex?_mem`
-- Proof pattern: the expected cost `randSelectExpectedCost c` is defined as the
-  CLRS majorizing recurrence, where each step averages over a uniform,
-  independent pivot rank via the shared toolkit `CLRS.Probability.expect`
+- Proof pattern: `randSelectExpectedCost c` is defined as the CLRS majorizing
+  recurrence, where one step averages over a uniform pivot rank via the shared
+  toolkit `CLRS.Probability.expect`
   (`expect_eq_fintypeExpect` restates that average as `CLRS.Probability.fintypeExpect`
   over the per-step sample space `Fin n`); `randSelectExpectedCost_recurrence`
   *derives* the CLRS recurrence `E[T(n+1)] = c(n+1) + expect (n+1) (fun i => E[T(max i (n-i))])`
@@ -1037,28 +1070,32 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   (`E[T(n)] ≤ 4·c·n`) is the substitution method: the combinatorial core
   `four_mul_maxSideSum_le` proves `4·Σ_{i<n} max i (n-1-i) ≤ 3·n²` (via the
   two-step recurrence `maxSideSum_add_two`), which is the constant `< 1` the
-  substitution needs.  `randomizedSelect_expected_bigO_linear` packages this as
-  `CLRS.Chapter03.isBigO (fun n => E[T n]) (fun n => (n : ℝ))` (CLRS Theorem 9.2).
+  substitution needs. `randomizedSelectMajorizer_bigO_linear` packages this as
+  `CLRS.Chapter03.isBigO (fun n => E[T n]) (fun n => (n : ℝ))`.
+  `freshRandomizedSelectExpectedComparisonsFuel` then supplies the actual
+  state-dependent stochastic semantics. Every recursive state averages anew
+  over the current `Fin n`; rank correctness bounds its low continuation by
+  `i` and its high continuation by `n-1-i`. Thus every real continuation is
+  pointwise below the same larger-side term, and
+  `freshRandomizedSelectExpectedComparisons_linear_bound` proves `E[C] ≤ 4n`.
+  The executable path interpreter `freshRandomizedSelectWithRanks?` consumes
+  one pivot rank at each level; its correctness theorem proves every successful
+  finite sample path satisfies the common `RankCertificate`.
   Rank correctness is inherited by instantiating the Section 9.3
   pivot-parametric `selectWithPivot?` skeleton with an index pivot oracle
   (`randomizedSelectAtIndex?_rankCorrect`).
-- Current gap: the model charges the larger partition side (the standard
-  majorizing recurrence upper-bounding the true expected cost); a fully joint
-  distribution over all recursion levels and a concrete step-count cost model
-  remain future refinements.
+- Current gap: none for the finite fresh-choice comparison model.  The older
+  `randomizedSelectAtIndex? i` remains only a conditional correctness helper;
+  it is not used as the probability model.
 
-### Section 9.3 and median-of-medians runtime refinements
+### Chapter 9 completion boundary
 
-- Lean source: median-of-medians runtime refinement should build on
-  `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean`
-- Status: `future-work` for executable median-of-medians cost refinement
-- Planned theorem targets:
-  - connect executable `medianOfMediansSelect?` cost semantics to the proved
-    abstract recurrence and `CLRS.Chapter09.clrsSelectRecurrence_linear_bound`.
-- Difficulty note: deterministic linear time now mainly requires a
-  cost-refinement layer over the proved median-of-medians branch-size and
-  recurrence theorems.  Randomized SELECT expected time is now proved (see the
-  Section 9.2 randomized SELECT page above).
+- Status: `main-proof-complete`.
+- Stable interface test: `Tests/Chapter_09_Interface.lean`.
+- Closure audit: `docs/proof-audits/chapter-09-closure-2026-07-15.md`.
+- Sections 9.1--9.3 are complete for pure functional correctness and CLRS
+  comparison costs.  Mutable arrays, random-number generation, RAM timing,
+  allocation, and instruction-level traces are later implementation refinements.
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -2930,8 +2967,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Chapter 7 randomized probability semantics | `blocked-design` | The expected-comparison recurrence and harmonic bound are proved in a recurrence model; the remaining target is a probability model for random pivots or random permutations, plus sharper tail/lower-bound packaging. |
 | Chapter 8 mutable output-array implementation | `future-work` | Stable bucket correctness, count-table lengths, cumulative boundaries, and per-key reverse-scan refinement are proved; the next refinement is a single mutable output array with mutable cumulative counters connected to `countingSortBy`. |
 | Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; the CLRS second moment `E[Σ n_i²] = n + n(n-1)/m` is proved as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`), and the abstract expected cost is `O(n)` (`expectedBucketSortCost_isBigO`). Remaining: RAM/step-count cost semantics. |
-| Chapter 9 randomized SELECT expected time | `proved` | Proved in `CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean`: `randSelectExpectedCost` models the uniform independent-pivot expected cost via `CLRS.Probability.expect`, `randSelectExpectedCost_recurrence` derives the CLRS recurrence, and `randomizedSelect_expected_bigO_linear` gives `E[T(n)] = O(n)` (CLRS Theorem 9.2). Remaining refinement: a joint distribution over all recursion levels and a concrete step-count cost model. |
-| Chapter 9 deterministic linear-time SELECT | `proved-abstract` | Pivot-parametric deterministic SELECT correctness is proved by `deterministicSelect?_correct`; executable median-of-medians SELECT correctness is proved by `medianOfMediansSelect?_correct`; the local five-element median certificate is proved by `medianOfFive?_certificate`; executable full-input split-count bounds are proved by `fullGroupsOfFive_medianPivot_fullInput_split_counts`; the `7n/10 + O(1)` branch-size bound is proved by `medianOfMediansPivot?_partition_size_bound`; the abstract recurrence induction, linear bound, and CLRS-facing recurrence wrapper are proved by `selectRecurrence_linear_induction`, `medianOfMedians_linear_bound`, and `clrsSelectRecurrence_linear_bound`. A concrete executable cost counter `medianOfMediansSelectCost` (same recursion as `medianOfMediansSelect?`) now has the explicit linear bound `medianOfMediansSelectCost k xs ≤ 17 * xs.length` (`medianOfMediansSelectCost_linear_bound`), via the generic `selectCost_linear_bound`. Remaining refinement: a fully operational RAM step-count that also unfolds the recursive cost of computing the pivot. |
+| Chapter 9 randomized SELECT expected time | `proved` | `randSelectExpectedCost_recurrence` defines the uniform-pivot larger-side recurrence, while `freshRandomizedSelectExpectedComparisons` averages the actual selected continuation with a fresh `Fin n` choice at every recursive state. The pointwise coupling and `3n²/4` sum bound yield `freshRandomizedSelectExpectedComparisons_linear_bound : E[C] ≤ 4n`. |
+| Chapter 9 deterministic linear-time SELECT | `proved` | Selector correctness and totality, five-element certificates, full-input split counts, the `7n/10 + O(1)` branch bound, and the recursively computed median-of-medians pivot are proved. `recursiveMedianOfMediansComparisonCost_linear_bound` composes group work, nested pivot selection, partition scans, and the selected strict branch into the end-to-end bound `≤ 100n`. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
 | Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m`, expected unsuccessful-search cost `1 + α`, pairwise collision probability `1/m`, and expected successful-search cost `1 + (n-1)/(2m)` (CLRS Theorem 11.2) are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`, `pairCollisionProb`, `expectedRandomSuccessfulSearchCost`); a universal random hash-*function* model bounds expected collisions by `α` and search cost by `1 + α` (CLRS Theorem 11.3, `IsUniversal`, `universal_expected_collisions`, `universal_expected_search_cost`). Remaining: RAM/probe-count semantics. |

@@ -115,6 +115,7 @@ When all boxes are checked, record:
 ```markdown
 | Chapter | Section | Auditor | Date | Commit |
 |---|---|---|---|---|
+| 9 | 9.1-9.3 | Codex | 2026-07-15 | 353ec4a |
 | 22 | 22.1-22.5 | Codex | 2026-07-10 | 1aeb257 |
 | 13 | 13.1 | (name) | 2026-07-01 | a6c71af |
 ```
