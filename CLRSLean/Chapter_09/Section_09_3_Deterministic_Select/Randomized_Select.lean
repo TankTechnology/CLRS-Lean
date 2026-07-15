@@ -614,6 +614,117 @@ noncomputable def freshRandomizedSelectExpectedComparisons
   freshRandomizedSelectExpectedComparisonsFuel xs.length k xs
 
 /--
+Nested expected cost of fresh-rank RANDOMIZED-SELECT with local charge
+`c * length`.  The expectation is taken anew over the current subproblem at
+every recursive level; invalid ranks are absent because the sample space has
+cardinality equal to the current list length.
+-/
+noncomputable def randomizedSelectExpectedCostFuel :
+    Nat → Nat → Nat → List Nat → Real
+  | 0, _, _, _ => 0
+  | _ + 1, _, _, [] => 0
+  | fuel + 1, c, k, x :: xs =>
+      c * ((x :: xs).length : Real) +
+        Probability.expect (x :: xs).length fun i =>
+          match selectByRank? i (x :: xs) with
+          | none => 0
+          | some pivot =>
+              if k < ltCount pivot (x :: xs) then
+                randomizedSelectExpectedCostFuel fuel c k
+                  ((x :: xs).filter fun y => decide (y < pivot))
+              else if k < leCount pivot (x :: xs) then
+                0
+              else
+                randomizedSelectExpectedCostFuel fuel c
+                  (k - leCount pivot (x :: xs))
+                  ((x :: xs).filter fun y => decide (pivot < y))
+
+/-- Public expected cost with one fuel unit for every input occurrence. -/
+noncomputable def randomizedSelectExpectedCost
+    (c k : Nat) (xs : List Nat) : Real :=
+  randomizedSelectExpectedCostFuel xs.length c k xs
+
+/-- Exact one-step unfolding of the state-dependent nested expectation. -/
+theorem randomizedSelectExpectedCostFuel_succ
+    (fuel c k x : Nat) (xs : List Nat) :
+    randomizedSelectExpectedCostFuel (fuel + 1) c k (x :: xs) =
+      c * ((x :: xs).length : Real) +
+        Probability.expect (x :: xs).length (fun i =>
+          match selectByRank? i (x :: xs) with
+          | none => 0
+          | some pivot =>
+              if k < ltCount pivot (x :: xs) then
+                randomizedSelectExpectedCostFuel fuel c k
+                  ((x :: xs).filter fun y => decide (y < pivot))
+              else if k < leCount pivot (x :: xs) then
+                0
+              else
+                randomizedSelectExpectedCostFuel fuel c
+                  (k - leCount pivot (x :: xs))
+                  ((x :: xs).filter fun y => decide (pivot < y))) := by
+  rw [randomizedSelectExpectedCostFuel]
+
+/-- Unit local charge recovers the existing fresh-comparison expectation. -/
+theorem randomizedSelectExpectedCost_one
+    (fuel k : Nat) (xs : List Nat) :
+    randomizedSelectExpectedCostFuel fuel 1 k xs =
+      freshRandomizedSelectExpectedComparisonsFuel fuel k xs := by
+  induction fuel generalizing k xs with
+  | zero =>
+      simp [randomizedSelectExpectedCostFuel,
+        freshRandomizedSelectExpectedComparisonsFuel]
+  | succ fuel ih =>
+      cases xs with
+      | nil =>
+          simp [randomizedSelectExpectedCostFuel,
+            freshRandomizedSelectExpectedComparisonsFuel]
+      | cons x xs =>
+          rw [randomizedSelectExpectedCostFuel,
+            freshRandomizedSelectExpectedComparisonsFuel]
+          simp only [Nat.cast_one, one_mul]
+          congr 1
+          apply congrArg (Probability.expect (x :: xs).length)
+          funext i
+          cases hpivot : selectByRank? i (x :: xs) with
+          | none =>
+              simp
+          | some pivot =>
+              by_cases hlo : k < ltCount pivot (x :: xs)
+              · simp [hlo, ih]
+              · by_cases hmid : k < leCount pivot (x :: xs)
+                · simp [hlo, hmid]
+                · simp [hlo, hmid, ih]
+
+/-- The nested fresh-choice expected cost is nonnegative. -/
+theorem randomizedSelectExpectedCost_nonneg
+    (fuel c k : Nat) (xs : List Nat) :
+    0 ≤ randomizedSelectExpectedCostFuel fuel c k xs := by
+  induction fuel generalizing c k xs with
+  | zero =>
+      simp [randomizedSelectExpectedCostFuel]
+  | succ fuel ih =>
+      cases xs with
+      | nil =>
+          simp [randomizedSelectExpectedCostFuel]
+      | cons x xs =>
+          rw [randomizedSelectExpectedCostFuel]
+          apply add_nonneg (by positivity)
+          apply Probability.expect_nonneg
+          intro i
+          cases selectByRank? i (x :: xs) with
+          | none =>
+              simp
+          | some pivot =>
+              by_cases hlo : k < ltCount pivot (x :: xs)
+              · simpa [hlo] using ih c k
+                  ((x :: xs).filter fun y => decide (y < pivot))
+              · by_cases hmid : k < leCount pivot (x :: xs)
+                · simp [hlo, hmid]
+                · simpa [hlo, hmid] using ih c
+                    (k - leCount pivot (x :: xs))
+                    ((x :: xs).filter fun y => decide (pivot < y))
+
+/--
 The actual recursive continuation selected at pivot rank `i` is bounded by the
 larger-side term `max i (n-1-i)` used in the CLRS majorizing recurrence.
 Consequently the fresh-choice stochastic execution has expected comparison
