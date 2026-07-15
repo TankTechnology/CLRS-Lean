@@ -724,6 +724,175 @@ theorem randomizedSelectExpectedCost_nonneg
                     (k - leCount pivot (x :: xs))
                     ((x :: xs).filter fun y => decide (pivot < y))
 
+/-- The size-only RANDOMIZED-SELECT majorizer is monotone in input size. -/
+private theorem randSelectExpectedCost_monotone (c : Real) (hc : 0 ≤ c) :
+    Monotone (randSelectExpectedCost c) := by
+  apply monotone_nat_of_le_succ
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      rcases n with _ | m
+      · rw [randSelectExpectedCost_zero, randSelectExpectedCost_succ]
+        simp
+        exact hc
+      · have hmonoBelow : ∀ {a b : Nat}, a ≤ b → b ≤ m + 1 →
+            randSelectExpectedCost c a ≤ randSelectExpectedCost c b := by
+          intro a b hab hb
+          refine Nat.le_induction (m := a)
+            (P := fun j _ => j ≤ m + 1 →
+              randSelectExpectedCost c a ≤ randSelectExpectedCost c j)
+            (fun _ => le_rfl)
+            (fun j _ hchain hj =>
+              le_trans (hchain (by omega)) (ih j (by omega)))
+            b hab hb
+        let A : Nat → Real := fun i =>
+          randSelectExpectedCost c (max i (m - i))
+        let B : Nat → Real := fun i =>
+          randSelectExpectedCost c (max i (m + 1 - i))
+        let SA : Real := ∑ i ∈ Finset.range (m + 1), A i
+        let SB : Real := ∑ i ∈ Finset.range (m + 1), B i
+        have hAB : SA ≤ SB := by
+          apply Finset.sum_le_sum
+          intro i hi
+          have hiLt : i < m + 1 := Finset.mem_range.mp hi
+          apply hmonoBelow
+          · omega
+          · omega
+        have hAT :
+            SA ≤ (m + 1 : Real) * randSelectExpectedCost c (m + 1) := by
+          calc
+            SA ≤ ∑ _i ∈ Finset.range (m + 1),
+                randSelectExpectedCost c (m + 1) := by
+              apply Finset.sum_le_sum
+              intro i hi
+              apply hmonoBelow
+              · have hiLt : i < m + 1 := Finset.mem_range.mp hi
+                omega
+              · exact le_rfl
+            _ = (m + 1 : Real) * randSelectExpectedCost c (m + 1) := by
+              simp
+        have hn : (0 : Real) < m + 1 := by positivity
+        have hnp : (0 : Real) < m + 2 := by positivity
+        have hmulAB : (m + 1 : Real) * SA ≤ (m + 1 : Real) * SB :=
+          mul_le_mul_of_nonneg_left hAB hn.le
+        have hnum : SA * (m + 2 : Real) ≤
+            (SB + randSelectExpectedCost c (m + 1)) * (m + 1 : Real) := by
+          nlinarith [hAT, hmulAB]
+        have hAvg : SA / (m + 1 : Real) ≤
+            (SB + randSelectExpectedCost c (m + 1)) / (m + 2 : Real) := by
+          exact (div_le_div_iff₀ hn hnp).2 hnum
+        have hSBsucc :
+            (∑ i ∈ Finset.range (m + 1 + 1),
+                randSelectExpectedCost c (max i (m + 1 - i))) =
+              SB + randSelectExpectedCost c (m + 1) := by
+          rw [Finset.sum_range_succ]
+          simp [SB, B]
+        rw [randSelectExpectedCost_succ, randSelectExpectedCost_succ, hSBsucc]
+        have hlocal : c * (m + 1 : Real) ≤ c * (m + 2 : Real) := by
+          nlinarith
+        dsimp [SA, A] at hAvg
+        convert add_le_add hlocal hAvg using 1
+        · push_cast
+          ring
+
+/--
+The state-dependent nested expected cost is bounded by the CLRS larger-side
+majorizer on every input, rank, fuel amount, and nonnegative natural local-work
+constant.
+-/
+theorem randomizedSelectExpectedCost_le_randSelectExpectedCost :
+    ∀ (fuel c k : Nat) (xs : List Nat),
+      randomizedSelectExpectedCostFuel fuel c k xs ≤
+        randSelectExpectedCost c xs.length := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro c k xs
+      rw [randomizedSelectExpectedCostFuel]
+      exact randSelectExpectedCost_nonneg c (by positivity) xs.length
+  | succ fuel ih =>
+      intro c k xs
+      cases xs with
+      | nil =>
+          simp [randomizedSelectExpectedCostFuel, randSelectExpectedCost_zero]
+      | cons x xs =>
+          let ys := x :: xs
+          let X : Nat → Real := fun i =>
+            match selectByRank? i ys with
+            | none => 0
+            | some pivot =>
+                if k < ltCount pivot ys then
+                  randomizedSelectExpectedCostFuel fuel c k
+                    (ys.filter fun y => decide (y < pivot))
+                else if k < leCount pivot ys then
+                  0
+                else
+                  randomizedSelectExpectedCostFuel fuel c
+                    (k - leCount pivot ys)
+                    (ys.filter fun y => decide (pivot < y))
+          let Y : Nat → Real := fun i =>
+            randSelectExpectedCost c (max i (xs.length - i))
+          have hterm : ∀ i ∈ Finset.range ys.length, X i ≤ Y i := by
+            intro i hi
+            have hiLt : i < ys.length := Finset.mem_range.mp hi
+            rcases selectByRank?_isSome_of_lt hiLt with ⟨pivot, hpivot⟩
+            simp only [X, hpivot]
+            by_cases hlo : k < ltCount pivot ys
+            · simp only [hlo, if_pos]
+              have hsize :=
+                freshRandomizedSelectContinuationSize_le_subproblemSize
+                  (k := k) (i := i) (xs := ys) hiLt
+              have hlen :
+                  (ys.filter fun y => decide (y < pivot)).length ≤
+                    max i (xs.length - i) := by
+                change ltCount pivot ys ≤ max i (xs.length - i)
+                simpa [freshRandomizedSelectContinuationSize, hpivot, hlo,
+                  subproblemSize, ys] using hsize
+              exact le_trans (ih c k _)
+                (randSelectExpectedCost_monotone c (by positivity) hlen)
+            · by_cases hmid : k < leCount pivot ys
+              · simp only [hlo, hmid, if_false, if_true]
+                exact randSelectExpectedCost_nonneg c (by positivity) _
+              · simp only [hlo, hmid, if_false]
+                have hsize :=
+                  freshRandomizedSelectContinuationSize_le_subproblemSize
+                    (k := k) (i := i) (xs := ys) hiLt
+                have hlen :
+                    (ys.filter fun y => decide (pivot < y)).length ≤
+                      max i (xs.length - i) := by
+                  change gtCount pivot ys ≤ max i (xs.length - i)
+                  simpa [freshRandomizedSelectContinuationSize, hpivot, hlo,
+                    hmid, subproblemSize, ys] using hsize
+                exact le_trans (ih c (k - leCount pivot ys) _)
+                  (randSelectExpectedCost_monotone c (by positivity) hlen)
+          have hExpect :
+              Probability.expect ys.length X ≤
+                Probability.expect ys.length Y := by
+            unfold Probability.expect
+            apply div_le_div_of_nonneg_right
+            · exact Finset.sum_le_sum hterm
+            · positivity
+          rw [randomizedSelectExpectedCostFuel]
+          change (c : Real) * (ys.length : Real) +
+              Probability.expect ys.length X ≤
+            randSelectExpectedCost c (xs.length + 1)
+          rw [randSelectExpectedCost_recurrence]
+          have hadd := add_le_add_left hExpect ((c : Real) * (ys.length : Real))
+          simpa [Y, ys, Nat.cast_add, Nat.cast_one] using hadd
+
+/--
+Fresh per-recursion RANDOMIZED-SELECT has expected cost at most `4 * c * n`
+under the explicit local charge `c * currentLength`.
+-/
+theorem randomizedSelectExpectedCost_linear_bound
+    (c k : Nat) (xs : List Nat) :
+    randomizedSelectExpectedCost c k xs ≤
+      4 * c * (xs.length : Real) := by
+  unfold randomizedSelectExpectedCost
+  exact le_trans
+    (randomizedSelectExpectedCost_le_randSelectExpectedCost xs.length c k xs)
+    (randSelectExpectedCost_le c (by positivity) xs.length)
+
 /--
 The actual recursive continuation selected at pivot rank `i` is bounded by the
 larger-side term `max i (n-1-i)` used in the CLRS majorizing recurrence.
