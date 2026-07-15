@@ -47,6 +47,10 @@ Main results:
 - Theorems {lit}`maxSubarrayDivideCosted_result` and
   {lit}`maxSubarrayDivideCosted_correct`: erasing the measured cost recovers
   the midpoint execution, whose result is a maximum subarray.
+- Theorems {lit}`maxPrefixLinearScoredWithCost_cost`,
+  {lit}`maxSuffixLinearScoredWithCost_cost`, and
+  {lit}`maxCrossingSubarrayLinearScoredWithCost_cost`: the attached scan
+  counters equal their concrete linear transition counts.
 - Theorems {lit}`maxSubarrayDivideCosted_cost_eq` and
   {lit}`maxSubarrayDivideCost_unfold`: the measured cost depends only on input
   length and follows the actual floor/ceiling midpoint recurrence.
@@ -1612,38 +1616,177 @@ theorem maxSubarrayDivide_result_correct (xs : List Int) :
   have herased := hscored.erase
   simpa [maxSubarrayDivide, midpointSplitTree_input] using herased
 
-/-! ## Costed divide-and-conquer execution -/
+/-! ## Costed linear scans and recursive execution -/
 
-/-- One budget unit for each element visited by the prefix scan. -/
-def maxPrefixLinearCost (xs : List Int) : Nat := xs.length
+/-- Running-prefix-score construction paired with visited input cells. -/
+def prefixScoresAuxWithCost :
+    List Int → Int → Nat → List PrefixScore × Nat
+  | [], _, _ => ([], 0)
+  | x :: xs, total, len =>
+      let rest := prefixScoresAuxWithCost xs (total + x) (len + 1)
+      ((total + x, len + 1) :: rest.1, rest.2 + 1)
 
-/-- Two traversal-budget units per element for reverse-plus-prefix execution. -/
-def maxSuffixLinearCost (xs : List Int) : Nat := 2 * xs.length
+/-- Erasing the transition count recovers running-prefix-score construction. -/
+theorem prefixScoresAuxWithCost_result
+    (xs : List Int) (total : Int) (len : Nat) :
+    (prefixScoresAuxWithCost xs total len).1 =
+      prefixScoresAux xs total len := by
+  induction xs generalizing total len with
+  | nil => rfl
+  | cons x xs ih =>
+      simp [prefixScoresAuxWithCost, prefixScoresAux, ih]
 
-/--
-A uniform three-pass budget for the two scans at a split, plus one combine
-step.  This deliberately charges the unused pass on the right as slack, making
-the node cost depend only on the combined input length.  List allocation and
-integer arithmetic are outside this abstract control-step metric.
--/
-def maxCrossingSubarrayLinearCost (left right : List Int) : Nat :=
-  3 * (left.length + right.length) + 1
+/-- Running-prefix-score construction visits each input cell exactly once. -/
+theorem prefixScoresAuxWithCost_cost
+    (xs : List Int) (total : Int) (len : Nat) :
+    (prefixScoresAuxWithCost xs total len).2 = xs.length := by
+  induction xs generalizing total len with
+  | nil => rfl
+  | cons x xs ih =>
+      simp [prefixScoresAuxWithCost, ih]
 
-/--
-Run the same cached-score recursion while returning its structural control-step
-budget.  The first projection uses the exact same combine transition as
-`maxSubarrayDivideTreeScored`.
--/
+/-- Top-level costed running-prefix-score construction. -/
+def prefixScoresWithCost (xs : List Int) : List PrefixScore × Nat :=
+  prefixScoresAuxWithCost xs 0 0
+
+theorem prefixScoresWithCost_result (xs : List Int) :
+    (prefixScoresWithCost xs).1 = prefixScores xs := by
+  exact prefixScoresAuxWithCost_result xs 0 0
+
+theorem prefixScoresWithCost_cost (xs : List Int) :
+    (prefixScoresWithCost xs).2 = xs.length := by
+  exact prefixScoresAuxWithCost_cost xs 0 0
+
+/-- The running-prefix-score list contains one record per input element. -/
+theorem prefixScoresAux_length
+    (xs : List Int) (total : Int) (len : Nat) :
+    (prefixScoresAux xs total len).length = xs.length := by
+  induction xs generalizing total len with
+  | nil => rfl
+  | cons x xs ih =>
+      simp [prefixScoresAux, ih]
+
+theorem prefixScores_length (xs : List Int) :
+    (prefixScores xs).length = xs.length := by
+  exact prefixScoresAux_length xs 0 0
+
+/-- Maximum-score selection paired with visited score records. -/
+def bestPrefixScoreWithCost :
+    List PrefixScore → Option PrefixScore × Nat
+  | [] => (none, 0)
+  | score :: rest =>
+      let next := bestPrefixScoreWithCost rest
+      match next.1 with
+      | none => (some score, next.2 + 1)
+      | some best => (some (betterPrefixScore score best), next.2 + 1)
+
+/-- Erasing the transition count recovers maximum-score selection. -/
+theorem bestPrefixScoreWithCost_result (scores : List PrefixScore) :
+    (bestPrefixScoreWithCost scores).1 = bestPrefixScore scores := by
+  induction scores with
+  | nil => rfl
+  | cons score rest ih =>
+      simp only [bestPrefixScoreWithCost, bestPrefixScore]
+      rw [ih]
+      split <;> rfl
+
+/-- Maximum-score selection visits each score record exactly once. -/
+theorem bestPrefixScoreWithCost_cost (scores : List PrefixScore) :
+    (bestPrefixScoreWithCost scores).2 = scores.length := by
+  induction scores with
+  | nil => rfl
+  | cons score rest ih =>
+      simp only [bestPrefixScoreWithCost]
+      split <;> simp [ih]
+
+/-- Linear prefix selection with an execution-attached control-step count. -/
+def maxPrefixLinearScoredWithCost
+    (xs : List Int) : Option ScoredSubarray × Nat :=
+  let scores := prefixScoresWithCost xs
+  let best := bestPrefixScoreWithCost scores.1
+  let result := match best.1 with
+    | none => none
+    | some winner => some (xs.take winner.2, winner.1)
+  (result, scores.2 + best.2 + 1)
+
+/-- Erasing cost recovers cached-score linear prefix selection. -/
+theorem maxPrefixLinearScoredWithCost_result (xs : List Int) :
+    (maxPrefixLinearScoredWithCost xs).1 = maxPrefixLinearScored xs := by
+  simp only [maxPrefixLinearScoredWithCost]
+  unfold maxPrefixLinearScored
+  rw [prefixScoresWithCost_result, bestPrefixScoreWithCost_result]
+
+/-- Prefix selection performs two length-many scans and one wrapper step. -/
+theorem maxPrefixLinearScoredWithCost_cost (xs : List Int) :
+    (maxPrefixLinearScoredWithCost xs).2 = 2 * xs.length + 1 := by
+  simp only [maxPrefixLinearScoredWithCost]
+  rw [prefixScoresWithCost_cost, bestPrefixScoreWithCost_cost,
+    prefixScoresWithCost_result, prefixScores_length]
+  omega
+
+/-- Reverse-prefix suffix selection with an execution-attached count. -/
+def maxSuffixLinearScoredWithCost
+    (xs : List Int) : Option ScoredSubarray × Nat :=
+  let prefixRun := maxPrefixLinearScoredWithCost xs.reverse
+  (prefixRun.1.map (fun best => (best.1.reverse, best.2)),
+    prefixRun.2 + xs.length + 1)
+
+/-- Erasing cost recovers cached-score linear suffix selection. -/
+theorem maxSuffixLinearScoredWithCost_result (xs : List Int) :
+    (maxSuffixLinearScoredWithCost xs).1 = maxSuffixLinearScored xs := by
+  simp only [maxSuffixLinearScoredWithCost]
+  unfold maxSuffixLinearScored
+  rw [maxPrefixLinearScoredWithCost_result]
+
+/-- Suffix selection charges the reverse traversal and the two prefix scans. -/
+theorem maxSuffixLinearScoredWithCost_cost (xs : List Int) :
+    (maxSuffixLinearScoredWithCost xs).2 = 3 * xs.length + 2 := by
+  simp only [maxSuffixLinearScoredWithCost]
+  rw [maxPrefixLinearScoredWithCost_cost, List.length_reverse]
+  omega
+
+/-- Linear crossing selection with execution-attached scan costs. -/
+def maxCrossingSubarrayLinearScoredWithCost
+    (left right : List Int) : Option ScoredSubarray × Nat :=
+  let suffix := maxSuffixLinearScoredWithCost left
+  let prefixRun := maxPrefixLinearScoredWithCost right
+  let result := match suffix.1, prefixRun.1 with
+    | some suf, some pre => some (suf.1 ++ pre.1, suf.2 + pre.2)
+    | _, _ => none
+  (result, suffix.2 + prefixRun.2 + 1)
+
+/-- Erasing cost recovers cached-score linear crossing selection. -/
+theorem maxCrossingSubarrayLinearScoredWithCost_result
+    (left right : List Int) :
+    (maxCrossingSubarrayLinearScoredWithCost left right).1 =
+      maxCrossingSubarrayLinearScored left right := by
+  simp only [maxCrossingSubarrayLinearScoredWithCost]
+  unfold maxCrossingSubarrayLinearScored
+  rw [maxSuffixLinearScoredWithCost_result,
+    maxPrefixLinearScoredWithCost_result]
+
+/-- The crossing execution has a concrete linear cost in both input lengths. -/
+theorem maxCrossingSubarrayLinearScoredWithCost_cost
+    (left right : List Int) :
+    (maxCrossingSubarrayLinearScoredWithCost left right).2 =
+      3 * left.length + 2 * right.length + 4 := by
+  simp only [maxCrossingSubarrayLinearScoredWithCost]
+  rw [maxSuffixLinearScoredWithCost_cost,
+    maxPrefixLinearScoredWithCost_cost]
+  omega
+
+/-- Costed split-tree execution using the costed linear crossing scan. -/
 def maxSubarrayDivideTreeCosted :
     SubarraySplitTree → Option ScoredSubarray × Nat
   | .leaf xs => (singletonMaxSubarrayScored xs, 1)
   | .split left right =>
       let leftRun := maxSubarrayDivideTreeCosted left
       let rightRun := maxSubarrayDivideTreeCosted right
-      (maxSubarrayCombineLinearScored left.input right.input
-          leftRun.1 rightRun.1,
-        leftRun.2 + rightRun.2 +
-          maxCrossingSubarrayLinearCost left.input right.input + 3)
+      let crossing := maxCrossingSubarrayLinearScoredWithCost
+        left.input right.input
+      let result := bestScoredCandidate
+        (leftRun.1.toList ++ rightRun.1.toList ++ crossing.1.toList)
+      (result, leftRun.2 + rightRun.2 + crossing.2 + 1)
 
 /-- Erasing tree-execution cost recovers the cached-score recursion. -/
 theorem maxSubarrayDivideTreeCosted_result (tree : SubarraySplitTree) :
@@ -1654,7 +1797,9 @@ theorem maxSubarrayDivideTreeCosted_result (tree : SubarraySplitTree) :
   | split left right hleft hright =>
       simp only [maxSubarrayDivideTreeCosted,
         maxSubarrayDivideTreeScored]
-      rw [hleft, hright]
+      rw [hleft, hright,
+        maxCrossingSubarrayLinearScoredWithCost_result]
+      simp [maxSubarrayCombineLinearScored]
 
 /-- Public costed execution, with cached sums erased from its result. -/
 def maxSubarrayDivideCosted
@@ -1676,45 +1821,63 @@ theorem maxSubarrayDivideCosted_correct (xs : List Int) :
   rw [maxSubarrayDivideCosted_result]
   exact maxSubarrayDivide_result_correct xs
 
-/-! ## Runtime analysis
+/-- Structural control cost of a cached-score split-tree execution. -/
+def maxSubarrayDivideTreeCost : SubarraySplitTree → Nat
+  | .leaf _ => 1
+  | .split left right =>
+      maxSubarrayDivideTreeCost left + maxSubarrayDivideTreeCost right +
+        3 * left.input.length + 2 * right.input.length + 5
 
-The returned cost follows the actual midpoint tree: odd inputs recurse on a
-floor-sized left half and a ceiling-sized right half.  The recurrence is kept
-in `Nat` so its value is exactly the second projection of the executable run;
-the asymptotic theorem below coerces it to `Real` only at the Chapter 3 API
-boundary.
--/
-
-/-- Length-indexed control-step cost of the costed midpoint execution. -/
-def maxSubarrayDivideCost : Nat → Nat
-  | 0 => 1
-  | 1 => 1
-  | n + 2 =>
-      maxSubarrayDivideCost ((n + 2) / 2) +
-        maxSubarrayDivideCost ((n + 2) - (n + 2) / 2) +
-          3 * (n + 2) + 4
-  decreasing_by
-    · exact Nat.div_lt_self (by omega) (by norm_num)
-    · have hpos : 0 < (n + 2) / 2 :=
-        Nat.div_pos (by omega) (by norm_num)
+/-- The cost component of tree execution is exactly its structural cost. -/
+theorem maxSubarrayDivideTreeCosted_cost (tree : SubarraySplitTree) :
+    (maxSubarrayDivideTreeCosted tree).2 =
+      maxSubarrayDivideTreeCost tree := by
+  induction tree with
+  | leaf xs => rfl
+  | split left right hleft hright =>
+      simp only [maxSubarrayDivideTreeCosted,
+        maxSubarrayDivideTreeCost]
+      rw [hleft, hright,
+        maxCrossingSubarrayLinearScoredWithCost_cost]
       omega
 
-/-- The genuine floor/ceiling recurrence used on every input of size at least two. -/
+/--
+Length-indexed cost of the fully expanded midpoint recursion.  For nontrivial
+inputs the two recursive sizes are the actual floor and ceiling halves.
+-/
+def maxSubarrayDivideCost (n : Nat) : Nat :=
+  if n ≤ 1 then
+    1
+  else
+    maxSubarrayDivideCost (n / 2) +
+      maxSubarrayDivideCost (n - n / 2) +
+        3 * (n / 2) + 2 * (n - n / 2) + 5
+termination_by n
+decreasing_by
+  · exact Nat.div_lt_self (by omega) (by norm_num)
+  · exact Nat.sub_lt (by omega) (Nat.div_pos (by omega) (by norm_num))
+
+/-- Base equation for empty and singleton inputs. -/
+theorem maxSubarrayDivideCost_of_le_one {n : Nat} (hn : n ≤ 1) :
+    maxSubarrayDivideCost n = 1 := by
+  rw [maxSubarrayDivideCost]
+  simp [hn]
+
+/-- The exact mixed floor/ceiling recurrence on every nontrivial input. -/
 theorem maxSubarrayDivideCost_unfold (n : Nat) (hn : 2 ≤ n) :
     maxSubarrayDivideCost n =
       maxSubarrayDivideCost (n / 2) +
-        maxSubarrayDivideCost (n - n / 2) + 3 * n + 4 := by
-  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le hn
-  rw [Nat.add_comm 2 m]
-  rw [maxSubarrayDivideCost.eq_def]
+        maxSubarrayDivideCost (n - n / 2) +
+          3 * (n / 2) + 2 * (n - n / 2) + 5 := by
+  rw [maxSubarrayDivideCost]
+  simp [show ¬ n ≤ 1 by omega]
 
 /--
-Sufficient fuel makes the cost of the concrete midpoint execution depend only
-on the current input length.
+Any sufficiently fuelled midpoint tree has the length-indexed structural cost.
 -/
-theorem maxSubarrayDivideTreeCosted_cost_eq
+theorem maxSubarrayDivideTreeCost_midpoint
     (fuel : Nat) (xs : List Int) (hfuel : xs.length ≤ fuel) :
-    (maxSubarrayDivideTreeCosted (midpointSplitTree fuel xs)).2 =
+    maxSubarrayDivideTreeCost (midpointSplitTree fuel xs) =
       maxSubarrayDivideCost xs.length := by
   induction fuel generalizing xs with
   | zero =>
@@ -1722,113 +1885,123 @@ theorem maxSubarrayDivideTreeCosted_cost_eq
         apply List.eq_nil_of_length_eq_zero
         omega
       subst xs
-      simp [maxSubarrayDivideCost.eq_def, midpointSplitTree,
-        maxSubarrayDivideTreeCosted]
+      simp [midpointSplitTree, maxSubarrayDivideTreeCost,
+        maxSubarrayDivideCost_of_le_one]
   | succ fuel ih =>
       cases xs with
       | nil =>
-          simp [maxSubarrayDivideCost.eq_def, midpointSplitTree,
-            maxSubarrayDivideTreeCosted]
+          simp [midpointSplitTree, maxSubarrayDivideTreeCost,
+            maxSubarrayDivideCost_of_le_one]
       | cons x xs =>
           cases xs with
           | nil =>
-              simp [maxSubarrayDivideCost.eq_def, midpointSplitTree,
-                maxSubarrayDivideTreeCosted]
+              simp [midpointSplitTree, maxSubarrayDivideTreeCost,
+                maxSubarrayDivideCost_of_le_one]
           | cons y ys =>
               simp only [List.length_cons] at hfuel
-              let whole : List Int := x :: y :: ys
-              let mid := whole.length / 2
-              have hlen : whole.length = ys.length + 2 := by
-                simp [whole]
-              have hmidLt : mid < whole.length := by
-                dsimp [mid]
-                exact Nat.div_lt_self (by omega) (by norm_num)
-              have hmidPos : 0 < mid := by
-                dsimp [mid]
-                exact Nat.div_pos (by omega) (by norm_num)
-              have hdropLt : whole.length - mid < whole.length :=
+              have hlen : (x :: y :: ys).length = ys.length + 2 := by
+                simp
+              have hmidLt : (ys.length + 2) / 2 < ys.length + 2 :=
+                Nat.div_lt_self (by omega) (by norm_num)
+              have hmidPos : 0 < (ys.length + 2) / 2 :=
+                Nat.div_pos (by omega) (by norm_num)
+              have hdropLt :
+                  (ys.length + 2) - (ys.length + 2) / 2 < ys.length + 2 :=
                 Nat.sub_lt (by omega) hmidPos
-              have htakeFuel : (whole.take mid).length ≤ fuel := by
-                simp only [List.length_take]
+              have htakeLen :
+                  ((x :: y :: ys).take
+                    ((x :: y :: ys).length / 2)).length =
+                      (ys.length + 2) / 2 := by
+                simp only [List.length_take, hlen]
+                exact Nat.min_eq_left (Nat.le_of_lt hmidLt)
+              have hdropLen :
+                  ((x :: y :: ys).drop
+                    ((x :: y :: ys).length / 2)).length =
+                      (ys.length + 2) - (ys.length + 2) / 2 := by
+                simp [List.length_drop, hlen]
+              have htakeFuel :
+                  ((x :: y :: ys).take
+                    ((x :: y :: ys).length / 2)).length ≤ fuel := by
+                simp only [List.length_take, List.length_cons]
                 omega
-              have hdropFuel : (whole.drop mid).length ≤ fuel := by
-                simp only [List.length_drop]
+              have hdropFuel :
+                  ((x :: y :: ys).drop
+                    ((x :: y :: ys).length / 2)).length ≤ fuel := by
+                simp only [List.length_drop, List.length_cons]
                 omega
-              have htake := ih (whole.take mid) htakeFuel
-              have hdrop := ih (whole.drop mid) hdropFuel
-              dsimp [whole, mid] at hlen hmidLt hmidPos hdropLt htake hdrop ⊢
-              simp only [midpointSplitTree, maxSubarrayDivideTreeCosted,
-                List.length_cons]
+              have htake := ih _ htakeFuel
+              have hdrop := ih _ hdropFuel
+              simp only [midpointSplitTree, maxSubarrayDivideTreeCost]
               rw [htake, hdrop]
-              rw [midpointSplitTree_input, midpointSplitTree_input]
-              rw [maxSubarrayDivideCost_unfold (ys.length + 1 + 1) (by omega)]
-              simp only [maxCrossingSubarrayLinearCost, List.length_take,
-                List.length_drop, List.length_cons,
-                Nat.min_eq_left (Nat.le_of_lt hmidLt)]
-              omega
+              simp only [midpointSplitTree_input]
+              rw [htakeLen, hdropLen, hlen]
+              rw [maxSubarrayDivideCost_unfold (ys.length + 2) (by omega)]
 
-/-- The public cost projection is exactly the length-indexed mixed recurrence. -/
-theorem maxSubarrayDivideCosted_cost_eq (xs : List Int) :
-    (maxSubarrayDivideCosted xs).2 =
-      maxSubarrayDivideCost xs.length := by
+/-- The public execution cost is exactly the real midpoint recurrence. -/
+theorem maxSubarrayDivideCosted_cost (xs : List Int) :
+    (maxSubarrayDivideCosted xs).2 = maxSubarrayDivideCost xs.length := by
   simp only [maxSubarrayDivideCosted]
-  exact maxSubarrayDivideTreeCosted_cost_eq
-    xs.length xs (le_refl xs.length)
+  rw [maxSubarrayDivideTreeCosted_cost]
+  exact maxSubarrayDivideTreeCost_midpoint xs.length xs (le_refl xs.length)
 
-/-! ### All-input asymptotics -/
+/-- Compatibility-facing name for the exact executable-cost equation. -/
+theorem maxSubarrayDivideCosted_cost_eq (xs : List Int) :
+    (maxSubarrayDivideCosted xs).2 = maxSubarrayDivideCost xs.length :=
+  maxSubarrayDivideCosted_cost xs
 
-/-- The mixed floor/ceiling cost cannot decrease when the input grows by one. -/
-theorem maxSubarrayDivideCost_le_succ : ∀ n,
-    maxSubarrayDivideCost n ≤ maxSubarrayDivideCost (n + 1) := by
+/-! ## Runtime analysis
+
+The measured execution makes recursive calls on the actual midpoint sizes
+{lit}`⌊n/2⌋` and {lit}`⌈n/2⌉`.  Its per-node scan cost is linear.  Exact powers
+of two therefore satisfy the usual case-2 bounds, and the all-input transfer
+theorem yields {lit}`Θ(n log n)`.
+-/
+
+/-- The measured length cost is nondecreasing at each successor input. -/
+theorem maxSubarrayDivideCost_le_succ :
+    ∀ n, maxSubarrayDivideCost n ≤ maxSubarrayDivideCost (n + 1) := by
   intro n
   induction n using Nat.strong_induction_on with
   | h n ih =>
-      by_cases hn0 : n = 0
-      · subst n
-        norm_num [maxSubarrayDivideCost.eq_def]
-      by_cases hn1 : n = 1
-      · subst n
-        norm_num [maxSubarrayDivideCost.eq_def]
-      have hn : 2 ≤ n := by omega
-      have hnsucc : 2 ≤ n + 1 := by omega
-      rw [maxSubarrayDivideCost_unfold n hn,
-        maxSubarrayDivideCost_unfold (n + 1) hnsucc]
-      have hfloorLt : n / 2 < n :=
-        Nat.div_lt_self (by omega) (by norm_num)
-      have hhalfPos : 0 < n / 2 :=
-        Nat.div_pos (by omega) (by norm_num)
-      have hceilLt : n - n / 2 < n :=
-        Nat.sub_lt (by omega) hhalfPos
-      have hfloorStep :
-          (n + 1) / 2 = n / 2 ∨ (n + 1) / 2 = n / 2 + 1 := by
-        omega
-      have hceilStep :
-          (n + 1) - (n + 1) / 2 = n - n / 2 ∨
-            (n + 1) - (n + 1) / 2 = (n - n / 2) + 1 := by
-        omega
-      have hfloorCost :
-          maxSubarrayDivideCost (n / 2) ≤
-            maxSubarrayDivideCost ((n + 1) / 2) := by
-        rcases hfloorStep with hsame | hstep
+      by_cases hsmall : n ≤ 1
+      · have hnCases : n = 0 ∨ n = 1 := by omega
+        rcases hnCases with rfl | rfl
+        · rw [maxSubarrayDivideCost_of_le_one (by norm_num),
+            maxSubarrayDivideCost_of_le_one (by norm_num)]
+        · rw [maxSubarrayDivideCost_of_le_one (by norm_num),
+            maxSubarrayDivideCost_unfold 2 (by norm_num)]
+          norm_num [maxSubarrayDivideCost_of_le_one]
+      · have hn : 2 ≤ n := by omega
+        have hfloorLt : n / 2 < n :=
+          Nat.div_lt_self (by omega) (by norm_num)
+        have hmidPos : 0 < n / 2 :=
+          Nat.div_pos (by omega) (by norm_num)
+        have hceilLt : n - n / 2 < n :=
+          Nat.sub_lt (by omega) hmidPos
+        have hfloorStep := ih (n / 2) hfloorLt
+        have hceilStep := ih (n - n / 2) hceilLt
+        rw [maxSubarrayDivideCost_unfold n hn,
+          maxSubarrayDivideCost_unfold (n + 1) (by omega)]
+        rcases (by omega :
+            (n + 1) / 2 = n / 2 ∨ (n + 1) / 2 = n / 2 + 1) with
+          hsame | hnext
         · rw [hsame]
-        · rw [hstep]
-          exact ih (n / 2) hfloorLt
-      have hceilCost :
-          maxSubarrayDivideCost (n - n / 2) ≤
-            maxSubarrayDivideCost ((n + 1) - (n + 1) / 2) := by
-        rcases hceilStep with hsame | hstep
-        · rw [hsame]
-        · rw [hstep]
-          exact ih (n - n / 2) hceilLt
-      omega
+          have hceilNext :
+              (n + 1) - n / 2 = (n - n / 2) + 1 := by omega
+          rw [hceilNext]
+          omega
+        · rw [hnext]
+          have hceilSame :
+              (n + 1) - (n / 2 + 1) = n - n / 2 := by omega
+          rw [hceilSame]
+          omega
 
-/-- The concrete length-indexed cost is monotone on all natural inputs. -/
+/-- The measured length cost is monotone. -/
 theorem maxSubarrayDivideCost_monotone : Monotone maxSubarrayDivideCost :=
   monotone_nat_of_le_succ maxSubarrayDivideCost_le_succ
 
 /--
-Every positive input cost is bounded by the costs at the adjacent powers of
-two surrounding its length.
+Every positive input cost is bounded by its two adjacent power-of-two costs.
 -/
 theorem maxSubarrayDivideCost_power_sandwich (n : Nat) (hn : 0 < n) :
     maxSubarrayDivideCost (2 ^ Nat.log 2 n) ≤ maxSubarrayDivideCost n ∧
@@ -1838,139 +2011,138 @@ theorem maxSubarrayDivideCost_power_sandwich (n : Nat) (hn : 0 < n) :
   exact ⟨maxSubarrayDivideCost_monotone hlo,
     maxSubarrayDivideCost_monotone (Nat.le_of_lt hhi)⟩
 
-/--
-Exact cost at balanced powers of two, in a subtraction-free form convenient
-for natural-number arithmetic.
--/
-theorem maxSubarrayDivideCost_pow_two (k : Nat) :
-    maxSubarrayDivideCost (2 ^ k) + 4 =
-      (3 * k + 5) * 2 ^ k := by
-  induction k with
-  | zero =>
-      norm_num [maxSubarrayDivideCost.eq_def]
-  | succ k ih =>
-      let m := 2 ^ k
-      have hmpos : 0 < m := pow_pos (by norm_num) k
-      have hpow : 2 ^ (k + 1) = m * 2 := by
-        simp [m, pow_succ]
-      have hn : 2 ≤ 2 ^ (k + 1) := by
-        rw [hpow]
-        omega
-      have hdiv : (2 ^ (k + 1)) / 2 = m := by
-        rw [hpow]
-        exact Nat.mul_div_left m (by norm_num)
-      have hceil : 2 ^ (k + 1) - (2 ^ (k + 1)) / 2 = m := by
-        rw [hdiv, hpow]
-        omega
-      rw [maxSubarrayDivideCost_unfold (2 ^ (k + 1)) hn,
-        hceil, hdiv, hpow]
-      calc
-        maxSubarrayDivideCost m + maxSubarrayDivideCost m +
-              3 * (m * 2) + 4 + 4 =
-            2 * (maxSubarrayDivideCost m + 4) + 6 * m := by omega
-        _ = 2 * ((3 * k + 5) * m) + 6 * m := by rw [ih]
-        _ = (3 * (k + 1) + 5) * (m * 2) := by ring
+/-- Real-valued view of the execution-attached natural control-step count. -/
+def maxSubarrayDivideCostReal (n : Nat) : Real :=
+  (maxSubarrayDivideCost n : Real)
 
-private theorem maxSubarrayDivideCost_pow_two_lower (k : Nat) :
-    (k + 1) * 2 ^ k ≤ maxSubarrayDivideCost (2 ^ k) := by
-  have hformula := maxSubarrayDivideCost_pow_two k
-  have hpow : 1 ≤ 2 ^ k := Nat.one_le_pow k 2 (by norm_num)
-  have hfour : 4 ≤ 4 * 2 ^ k := by
-    simpa using Nat.mul_le_mul_left 4 hpow
-  have hcoeff : k + 5 ≤ 3 * k + 5 := by omega
-  have hbound : (k + 1) * 2 ^ k + 4 ≤ (3 * k + 5) * 2 ^ k := by
-    calc
-      (k + 1) * 2 ^ k + 4 ≤ (k + 1) * 2 ^ k + 4 * 2 ^ k :=
-        Nat.add_le_add_left hfour _
-      _ = (k + 5) * 2 ^ k := by ring
-      _ ≤ (3 * k + 5) * 2 ^ k := Nat.mul_le_mul_right _ hcoeff
+/-- The real-valued execution cost satisfies the all-input monotonicity API. -/
+theorem maxSubarrayDivideCostReal_monotoneAbs :
+    MonotoneAbs maxSubarrayDivideCostReal := by
+  intro m n hmn
+  change |(maxSubarrayDivideCost m : Real)| ≤
+    |(maxSubarrayDivideCost n : Real)|
+  rw [abs_of_nonneg (Nat.cast_nonneg _),
+    abs_of_nonneg (Nat.cast_nonneg _)]
+  exact_mod_cast maxSubarrayDivideCost_monotone hmn
+
+/-- Exact-power successor equation for the measured mixed recurrence. -/
+theorem maxSubarrayDivideCost_pow_succ (k : Nat) :
+    maxSubarrayDivideCost (2 ^ (k + 1)) =
+      2 * maxSubarrayDivideCost (2 ^ k) + 5 * 2 ^ k + 5 := by
+  have hpow : 2 ^ (k + 1) = 2 * 2 ^ k := by
+    rw [pow_succ, Nat.mul_comm]
+  have hpos : 2 ≤ 2 ^ (k + 1) := by
+    rw [hpow]
+    have : 0 < 2 ^ k := pow_pos (by norm_num) k
+    omega
+  rw [maxSubarrayDivideCost_unfold (2 ^ (k + 1)) hpos]
+  rw [pow_succ_div_base (b := 2) (i := k) (by norm_num)]
+  have hsub : 2 ^ (k + 1) - 2 ^ k = 2 ^ k := by
+    rw [hpow]
+    omega
+  rw [hsub]
   omega
 
-private theorem maxSubarrayDivideCost_pow_two_upper (k : Nat) :
-    maxSubarrayDivideCost (2 ^ k) ≤ 5 * (k + 1) * 2 ^ k := by
-  have hformula := maxSubarrayDivideCost_pow_two k
-  have hcoeff : 3 * k + 5 ≤ 5 * (k + 1) := by omega
-  calc
-    maxSubarrayDivideCost (2 ^ k) ≤ maxSubarrayDivideCost (2 ^ k) + 4 :=
-      Nat.le_add_right _ _
-    _ = (3 * k + 5) * 2 ^ k := hformula
-    _ ≤ 5 * (k + 1) * 2 ^ k := by
-      simpa [mul_assoc] using Nat.mul_le_mul_right (2 ^ k) hcoeff
+/-- Exact cost on powers of two, in a subtraction-free natural-number form. -/
+theorem maxSubarrayDivideCost_pow_two (k : Nat) :
+    2 * maxSubarrayDivideCost (2 ^ k) + 10 =
+      (5 * k + 12) * 2 ^ k := by
+  induction k with
+  | zero =>
+      rw [maxSubarrayDivideCost_of_le_one (by norm_num)]
+      norm_num
+  | succ k ih =>
+      rw [maxSubarrayDivideCost_pow_succ, pow_succ]
+      nlinarith
 
-/-- Real coercion of the executable natural-number control-step cost. -/
-def maxSubarrayDivideCostReal (n : Nat) : Real :=
-  maxSubarrayDivideCost n
+/-- Lower exact-power case-2 bound for the measured execution cost. -/
+theorem maxSubarrayDivideCost_pow_lower (k : Nat) :
+    (k + 1) * 2 ^ k ≤ maxSubarrayDivideCost (2 ^ k) := by
+  induction k with
+  | zero =>
+      rw [maxSubarrayDivideCost_of_le_one (by norm_num)]
+      norm_num
+  | succ k ih =>
+      rw [maxSubarrayDivideCost_pow_succ]
+      rw [pow_succ]
+      nlinarith [pow_pos (by norm_num : 0 < (2 : Nat)) k]
 
-private theorem maxSubarrayDivideCost_power_isBigTheta :
+/-- Upper exact-power case-2 bound for the measured execution cost. -/
+theorem maxSubarrayDivideCost_pow_upper (k : Nat) :
+    maxSubarrayDivideCost (2 ^ k) ≤ 12 * (k + 1) * 2 ^ k := by
+  induction k with
+  | zero =>
+      rw [maxSubarrayDivideCost_of_le_one (by norm_num)]
+      norm_num
+  | succ k ih =>
+      rw [maxSubarrayDivideCost_pow_succ]
+      rw [pow_succ]
+      nlinarith [pow_pos (by norm_num : 0 < (2 : Nat)) k]
+
+/-- Exact powers of the execution cost have the critical case-2 scale. -/
+theorem maxSubarrayDivideCostReal_exactPowers_bigTheta :
     Chapter03.isBigTheta
       (fun k : Nat => maxSubarrayDivideCostReal (2 ^ k))
       (fun k : Nat => ((k : Real) + 1) * (2 : Real) ^ k) := by
-  rw [Chapter03.isBigTheta_iff]
   constructor
-  · rw [Chapter03.isBigO_iff]
-    refine ⟨5, by norm_num, 0, ?_⟩
-    intro k _hk
-    have hcostNonneg : 0 ≤ maxSubarrayDivideCostReal (2 ^ k) := by
-      dsimp [maxSubarrayDivideCostReal]
-      positivity
-    have hscaleNonneg : 0 ≤ ((k : Real) + 1) * (2 : Real) ^ k := by
-      positivity
-    rw [abs_of_nonneg hcostNonneg, abs_of_nonneg hscaleNonneg]
-    have hupper :
-        maxSubarrayDivideCost (2 ^ k) ≤ 5 * ((k + 1) * 2 ^ k) := by
-      simpa [mul_assoc] using maxSubarrayDivideCost_pow_two_upper k
-    dsimp [maxSubarrayDivideCostReal]
-    exact_mod_cast hupper
-  · rw [Chapter03.isBigO_iff]
-    refine ⟨1, by norm_num, 0, ?_⟩
-    intro k _hk
-    have hcostNonneg : 0 ≤ maxSubarrayDivideCostReal (2 ^ k) := by
-      dsimp [maxSubarrayDivideCostReal]
-      positivity
-    have hscaleNonneg : 0 ≤ ((k : Real) + 1) * (2 : Real) ^ k := by
-      positivity
-    rw [abs_of_nonneg hscaleNonneg, abs_of_nonneg hcostNonneg]
-    norm_num
-    dsimp [maxSubarrayDivideCostReal]
-    exact_mod_cast maxSubarrayDivideCost_pow_two_lower k
+  · refine (Chapter03.isBigO_iff _ _).mpr
+      ⟨12, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (Nat.cast_nonneg _),
+      abs_of_nonneg (mul_nonneg (by positivity) (by positivity))]
+    have h := maxSubarrayDivideCost_pow_upper k
+    have hreal :
+        (maxSubarrayDivideCost (2 ^ k) : Real) ≤
+          (12 * (k + 1) * 2 ^ k : Nat) := by
+      exact_mod_cast h
+    simpa [maxSubarrayDivideCostReal, Nat.cast_mul, Nat.cast_add,
+      Nat.cast_pow, mul_assoc] using hreal
+  · change Chapter03.isBigO
+      (fun k : Nat => ((k : Real) + 1) * (2 : Real) ^ k)
+      (fun k : Nat => maxSubarrayDivideCostReal (2 ^ k))
+    refine (Chapter03.isBigO_iff _ _).mpr
+      ⟨1, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (mul_nonneg (by positivity) (by positivity)),
+      abs_of_nonneg (Nat.cast_nonneg _)]
+    have h := maxSubarrayDivideCost_pow_lower k
+    have hreal :
+        ((k + 1) * 2 ^ k : Nat) ≤
+          (maxSubarrayDivideCost (2 ^ k) : Real) := by
+      exact_mod_cast h
+    simpa [maxSubarrayDivideCostReal, Nat.cast_mul, Nat.cast_add,
+      Nat.cast_pow] using hreal
 
-private theorem maxSubarrayDivideCostReal_monotoneAbs :
-    MonotoneAbs maxSubarrayDivideCostReal := by
-  intro m n hmn
-  have hm : 0 ≤ maxSubarrayDivideCostReal m := by
-    dsimp [maxSubarrayDivideCostReal]
-    positivity
-  have hn : 0 ≤ maxSubarrayDivideCostReal n := by
-    dsimp [maxSubarrayDivideCostReal]
-    positivity
-  rw [abs_of_nonneg hm, abs_of_nonneg hn]
-  dsimp [maxSubarrayDivideCostReal]
-  exact_mod_cast maxSubarrayDivideCost_monotone hmn
-
-/-- The concrete cost has the Chapter 4 real-log-log comparison scale. -/
-theorem maxSubarrayDivideCost_isBigTheta_realLogLogScale :
-    Chapter03.isBigTheta maxSubarrayDivideCostReal
-      (realLogLogScale 2 2) := by
+/--
+**Runtime of the executable divide-and-conquer maximum-subarray algorithm.**
+The abstract control-step count returned by {name}`maxSubarrayDivideCosted` is
+{lit}`Θ(n log n)`.  This theorem does not claim RAM costs for Lean list
+allocation or garbage collection.
+-/
+theorem maxSubarray_runtime_bigTheta :
+    Chapter03.isBigTheta maxSubarrayDivideCostReal (realLogLogScale 2 2) := by
   have hcritical :
       Chapter03.isBigTheta maxSubarrayDivideCostReal
         (criticalPowerLogScale 2 2) :=
     allInput_bigTheta_of_criticalPowerLogScale 2 2
       maxSubarrayDivideCostReal (by norm_num) (by norm_num)
       maxSubarrayDivideCostReal_monotoneAbs
-      maxSubarrayDivideCost_power_isBigTheta
+      maxSubarrayDivideCostReal_exactPowers_bigTheta
   exact Chapter03.isBigTheta_trans hcritical
     (criticalPowerLogScale_isBigTheta_realLogLogScale 2 2
       (by norm_num) (by norm_num))
 
-/--
-The executable midpoint divide-and-conquer control-step cost is
-`Theta(n log n)` on all natural input lengths.  For `a = b = 2`,
-`realLogLogScale` is the repository's textbook `n log n` scale.
--/
+/-- The execution-attached cost has the Chapter 4 real-log-log scale. -/
+theorem maxSubarrayDivideCost_isBigTheta_realLogLogScale :
+    Chapter03.isBigTheta maxSubarrayDivideCostReal
+      (realLogLogScale 2 2) :=
+  maxSubarray_runtime_bigTheta
+
+/-- Textbook-facing name for the executable `Θ(n log n)` runtime theorem. -/
 theorem maxSubarrayDivideCost_isBigTheta_nlogn :
     Chapter03.isBigTheta maxSubarrayDivideCostReal
       (realLogLogScale 2 2) :=
-  maxSubarrayDivideCost_isBigTheta_realLogLogScale
+  maxSubarray_runtime_bigTheta
 
 end Chapter04
 end CLRS

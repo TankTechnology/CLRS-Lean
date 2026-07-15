@@ -21,6 +21,9 @@ boundary of Section 4.1; theorem-level status remains canonical in
   - `CLRS.Chapter04.maxSubarrayDivideCosted_result`
   - `CLRS.Chapter04.maxSubarrayDivideCosted_correct`
 - Execution-attached cost:
+  - `CLRS.Chapter04.maxPrefixLinearScoredWithCost_cost`
+  - `CLRS.Chapter04.maxSuffixLinearScoredWithCost_cost`
+  - `CLRS.Chapter04.maxCrossingSubarrayLinearScoredWithCost_cost`
   - `CLRS.Chapter04.maxSubarrayDivideCosted_cost_eq`
   - `CLRS.Chapter04.maxSubarrayDivideCost_unfold`
   - `CLRS.Chapter04.maxSubarrayDivideCost_monotone`
@@ -32,12 +35,15 @@ The measured run has base cost `C(0) = C(1) = 1`.  For `2 ≤ n`, its exact
 length-indexed recurrence is
 
 ```text
-C(n) = C(n / 2) + C(n - n / 2) + 3n + 4.
+C(n) = C(n / 2) + C(n - n / 2)
+     + 3(n / 2) + 2(n - n / 2) + 5.
 ```
 
-Thus odd inputs retain distinct floor and ceiling branches.  Monotonicity,
-the exact power-of-two formula, and adjacent-power sandwiching lift the balanced
-bound to all positive lengths, yielding `Theta(n log n)`.
+Thus odd inputs retain distinct floor and ceiling branches, and the asymmetric
+linear term is the proved count of the reverse/prefix scans rather than a
+detached recurrence weight.  On powers of two,
+`2 C(2^k) + 10 = (5k + 12)2^k`; monotonicity and adjacent-power sandwiching
+lift the balanced bound to all positive lengths, yielding `Theta(n log n)`.
 
 ## Open Refinements
 

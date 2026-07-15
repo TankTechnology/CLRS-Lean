@@ -215,6 +215,9 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter04.maxSubarrayDivide_result_correct`
   - `CLRS.Chapter04.maxSubarrayDivideCosted_result`
   - `CLRS.Chapter04.maxSubarrayDivideCosted_correct`
+  - `CLRS.Chapter04.maxPrefixLinearScoredWithCost_cost`
+  - `CLRS.Chapter04.maxSuffixLinearScoredWithCost_cost`
+  - `CLRS.Chapter04.maxCrossingSubarrayLinearScoredWithCost_cost`
   - `CLRS.Chapter04.maxSubarrayDivideCosted_cost_eq`
   - `CLRS.Chapter04.maxSubarrayDivideCost_unfold`
   - `CLRS.Chapter04.maxSubarrayDivideCost_monotone`
@@ -226,9 +229,11 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 - Proof pattern: use exhaustive enumeration only as the specification; prove
   linear prefix/suffix/crossing scans optimal; show the midpoint tree has only
   empty or singleton leaves; prove the costed recursive execution erases to a
-  correct selector; identify its cost with the mixed recurrence
-  `C(n / 2) + C(n - n / 2) + 3n + 4`; and transfer exact power-of-two bounds to
-  all inputs through monotonicity and adjacent-power sandwiching
+  correct selector; prove that the prefix/suffix/crossing counters equal the
+  corresponding scan transitions; identify the recursive cost with the mixed
+  recurrence `C(n / 2) + C(n - n / 2) + 3(n / 2) +
+  2(n - n / 2) + 5`; and transfer exact power-of-two bounds to all inputs
+  through monotonicity and adjacent-power sandwiching
 - Current gap: the abstract metric counts recursive frames, scan transitions,
   and constant-size candidate choices.  It excludes explicit split-tree
   construction, integer-operation costs, `List` allocation/copying, and full

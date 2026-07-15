@@ -29,7 +29,8 @@ and by the executable maximum-subarray and Strassen runtime proofs.
   {lit}`maxCrossingSubarrayLinear_result_correct` to avoid exhaustive search at
   recursive nodes.  {lit}`maxSubarrayDivideCosted_result` erases the attached
   cost, {lit}`maxSubarrayDivideCosted_correct` proves the returned candidate,
-  and {lit}`maxSubarrayDivideCosted_cost_eq` plus
+  the costed prefix/suffix/crossing executions prove their exact linear scan
+  counts, and {lit}`maxSubarrayDivideCosted_cost_eq` plus
   {lit}`maxSubarrayDivideCost_unfold` connect the measured run to its actual
   mixed floor/ceiling recurrence.  Finally,
   {lit}`maxSubarrayDivideCost_isBigTheta_nlogn` proves the all-input

@@ -48,7 +48,9 @@ refinement, not the array heap or erasure proof itself.
 
 `CLRS.Chapter04.maxSubarrayDivideCosted` measures the executable midpoint
 divide-and-conquer selector that uses linear prefix, suffix, and crossing
-scans.  `CLRS.Chapter04.maxSubarrayDivideCosted_result` proves cost erasure,
+scans.  The costed scan executions prove that their counters equal the actual
+visited prefix-score and selection transitions.
+`CLRS.Chapter04.maxSubarrayDivideCosted_result` proves cost erasure,
 `CLRS.Chapter04.maxSubarrayDivideCosted_correct` proves result correctness,
 and `CLRS.Chapter04.maxSubarrayDivideCosted_cost_eq` identifies the measured
 cost with the length-indexed recurrence.  Its mixed floor/ceiling unfolding is

@@ -64,8 +64,9 @@ the detailed maintainer ledger.
 * **Chapter 4:** the exact-power and all-input Master-theorem stack and the
   textbook-facing case 1, case 2, and regular case 3 scales are proved.
   Section 4.1 also has a costed executable midpoint maximum-subarray selector:
-  erasure and result correctness, its exact mixed floor/ceiling cost recurrence,
-  and an all-input {lit}`Theta(n log n)` abstract control-step bound are proved.
+  erasure and result correctness, execution-attached exact linear scan counts,
+  its exact mixed floor/ceiling cost recurrence, and an all-input
+  {lit}`Theta(n log n)` abstract control-step bound are proved.
   This metric excludes explicit split-tree construction, integer-operation
   costs, {lit}`List` allocation/copying, and RAM semantics; those remain
   lower-level refinements rather than missing algorithm-level runtime or Master
