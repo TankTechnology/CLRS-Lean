@@ -1598,6 +1598,70 @@ theorem maxSubarrayDivide_result_correct (xs : List Int) :
   have herased := hscored.erase
   simpa [maxSubarrayDivide, midpointSplitTree_input] using herased
 
+/-! ## Costed divide-and-conquer execution -/
+
+/-- One budget unit for each element visited by the prefix scan. -/
+def maxPrefixLinearCost (xs : List Int) : Nat := xs.length
+
+/-- Two traversal-budget units per element for reverse-plus-prefix execution. -/
+def maxSuffixLinearCost (xs : List Int) : Nat := 2 * xs.length
+
+/--
+A uniform three-pass budget for the two scans at a split, plus one combine
+step.  This deliberately charges the unused pass on the right as slack, making
+the node cost depend only on the combined input length.  List allocation and
+integer arithmetic are outside this abstract control-step metric.
+-/
+def maxCrossingSubarrayLinearCost (left right : List Int) : Nat :=
+  3 * (left.length + right.length) + 1
+
+/--
+Run the same cached-score recursion while returning its structural control-step
+budget.  The first projection uses the exact same combine transition as
+`maxSubarrayDivideTreeScored`.
+-/
+def maxSubarrayDivideTreeCosted :
+    SubarraySplitTree → Option ScoredSubarray × Nat
+  | .leaf xs => (singletonMaxSubarrayScored xs, 1)
+  | .split left right =>
+      let leftRun := maxSubarrayDivideTreeCosted left
+      let rightRun := maxSubarrayDivideTreeCosted right
+      (maxSubarrayCombineLinearScored left.input right.input
+          leftRun.1 rightRun.1,
+        leftRun.2 + rightRun.2 +
+          maxCrossingSubarrayLinearCost left.input right.input + 3)
+
+/-- Erasing tree-execution cost recovers the cached-score recursion. -/
+theorem maxSubarrayDivideTreeCosted_result (tree : SubarraySplitTree) :
+    (maxSubarrayDivideTreeCosted tree).1 =
+      maxSubarrayDivideTreeScored tree := by
+  induction tree with
+  | leaf xs => rfl
+  | split left right hleft hright =>
+      simp only [maxSubarrayDivideTreeCosted,
+        maxSubarrayDivideTreeScored]
+      rw [hleft, hright]
+
+/-- Public costed execution, with cached sums erased from its result. -/
+def maxSubarrayDivideCosted
+    (xs : List Int) : Option (List Int) × Nat :=
+  let run := maxSubarrayDivideTreeCosted
+    (midpointSplitTree xs.length xs)
+  (run.1.map Prod.fst, run.2)
+
+/-- Erasing the public cost recovers the executable divide-and-conquer result. -/
+theorem maxSubarrayDivideCosted_result (xs : List Int) :
+    (maxSubarrayDivideCosted xs).1 = maxSubarrayDivide xs := by
+  simp only [maxSubarrayDivideCosted]
+  unfold maxSubarrayDivide
+  rw [maxSubarrayDivideTreeCosted_result]
+
+/-- The costed execution returns a correct maximum subarray. -/
+theorem maxSubarrayDivideCosted_correct (xs : List Int) :
+    IsMaxSubarrayResult xs (maxSubarrayDivideCosted xs).1 := by
+  rw [maxSubarrayDivideCosted_result]
+  exact maxSubarrayDivide_result_correct xs
+
 /-! ## Runtime analysis
 
 The divide-and-conquer maximum-subarray algorithm makes two recursive calls on
