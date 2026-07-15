@@ -29,10 +29,16 @@ heap as the main result.  It proves the indexed array heap layer, recursive
 fuelled `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort with a
 shrinking heap prefix and sorted suffix, top-level heapsort sortedness and
 permutation preservation, and array-level priority-queue state theorems for
-maximum, increase-key, extract-max, and delete.
+maximum, increase-key, extract-max, and delete.  The connected costed execution
+now mirrors heapify, build-heap, and heapsort and proves coarse `O(n)`,
+`O(n^2)`, and `O(n^2)` envelopes after erasing the cost component.
 
-The deferred implementation layer is now the line-by-line CLRS RAM-cost model,
-not the array heap proof itself.
+The proved unit control-step metric counts visited `MAX-HEAPIFY` frames and
+one extraction/swap transition per nontrivial heapsort step.  Build-loop
+orchestration, guards, `List` operations, allocation, and calls are not charged
+separately.  The deferred layer is therefore the tight textbook `O(log n)`,
+`O(n)`, and `O(n log n)` analysis plus a line-by-line imperative array/RAM
+refinement, not the array heap or erasure proof itself.
 
 ### Chapter 23 Mutable Heap And RAM Refinement
 
@@ -116,6 +122,22 @@ the textbook pseudocode.
 
 ## Future Work
 
+### Chapter 5.4 Longest-Streak And On-Line Hiring Analysis
+
+- Related section: Section 5.4 - Probabilistic analysis of randomized algorithms
+- Status: `future-work`
+
+The finite foundations are present.  The streak model proves
+`CLRS.Chapter05.longestStreak_upperBound` and defines
+`CLRS.Chapter05.expectedLongestStreak`.  The on-line hiring model provides an
+executable threshold strategy, exact `some`/`none` contracts, and the finite
+uniform success probability `CLRS.Chapter05.OnlineHiring.probHireBest`.
+
+Two textbook-facing analyses remain: derive the logarithmic expectation bound
+for the longest streak, and prove the on-line strategy's harmonic success
+formula together with its `1/e` asymptotic.  These theorem gaps do not block use
+of either executable finite model.
+
 ### CLRS Exercises
 
 - Related scope: all chapters
@@ -183,7 +205,8 @@ from an explicit probability space for random pivots or random permutations.
 - Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
   sort
 - Status: `future-work` for count-array and numeric-order refinements;
-  `blocked-design` for the full bucket-sort expected-time theorem
+  `proved-abstract` for the bucket-sort textbook cost model, with executable
+  cost refinement still `future-work`
 
 Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
@@ -208,52 +231,22 @@ proves deterministic bucket-sort correctness:
 preservation, and permutation preservation for the merge-sorted bucket model.
 It also proves the finite-uniform collision and second-moment core:
 `CLRS.Chapter08.uniformAverageFin2_collision` and
-`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
+`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.  The CLRS
+unit-cost random variable is `CLRS.Chapter08.textbookBucketSortCost`; its
+expectation is identified by
+`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
+and proved linear by
+`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`.
 
 The remaining CLRS refinements split into three tracks.  The array-level
 `COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
 bucket specification.  Radix sort still has implementation and cost refinement
 work, but the bounded fixed-width ordinary key-order theorem is now proved.
-The remaining bucket-sort expected-time work is to connect that second-moment
-interface to an explicit independent input distribution and a concrete
-bucket-sort cost model.
-
-### Chapter 9 Selection Refinements
-
-- Related sections: Sections 9.2-9.4 - Selection and order statistics
-- Status: `future-work` for CLRS median-of-medians runtime refinement;
-  `blocked-design` for randomized expected-time analysis
-
-Section 9.2 proves the stable rank-certificate interface:
-`CLRS.Chapter09.selectByRank?_correct` shows that the specification selector
-returns an input value whose strict-lower count is at most the requested rank
-and whose weak-lower count is greater than that rank.  The same certificate is
-now proved for pivot-style quickselect by `CLRS.Chapter09.quickSelect?_correct`.
-Section 9.3 factors the proof through a pivot-parametric deterministic SELECT
-interface: `CLRS.Chapter09.selectWithPivot?_correct` proves correctness for any
-membership-safe pivot rule, `CLRS.Chapter09.deterministicSelect?_correct`
-instantiates it with a deterministic median pivot, and
-`CLRS.Chapter09.medianOfMediansSelect?_correct` instantiates it with an
-executable median-of-medians pivot.  It also proves
-`CLRS.Chapter09.medianOfFive?_certificate`, the local 3/3 count certificate for
-a five-element group.  The executable grouping and grouped counting core are
-now proved as well: `CLRS.Chapter09.fullGroupsOfFive_length_near`,
-`CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`,
-`CLRS.Chapter09.leCount_le_of_sublist`,
-`CLRS.Chapter09.geCount_le_of_sublist`,
-`CLRS.Chapter09.medianOfFiveGroups?_certificates`,
-`CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
-`CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`,
-`CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`, and
-`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`.  The
-CLRS-style branch-size packaging is proved by
-`CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`.
-
-The remaining hard work splits into two tracks.  Randomized SELECT needs a
-probability model for random pivots and an expected-cost argument.
-Deterministic linear-time SELECT already has the abstract recurrence induction
-and linear-bound wrapper; it still needs a concrete executable cost semantics
-for `medianOfMediansSelect?` that feeds the proved recurrence hypothesis.
+For bucket sort, the CLRS unit-cost random variable has linear expectation.
+Remaining: a single-pass executable bucket builder, a costed per-bucket sorter,
+and a refinement theorem connecting their execution cost to the abstract
+model.  The current `bucketSortByRank` repeatedly filters the input and is not
+instrumented by this abstract random variable.
 
 ### Pointer-Level Linked Lists
 

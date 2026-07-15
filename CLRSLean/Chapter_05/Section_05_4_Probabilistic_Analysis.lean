@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Probability.FiniteExpectation
 import Mathlib
 
@@ -279,9 +280,6 @@ theorem expectedBallsInBin_eq {k n : Nat} (q : Fin n) (hn : 0 < n) :
     (fun (i : Fin k) (a : Fin k → Fin n) => indicator (a i = q))]
   simp only [singleBinProb _ q hn]
   rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one_div]
-
-end Chapter05
-end CLRS
 
 /-! ## Streaks (longest run of heads) -/
 
@@ -697,3 +695,50 @@ theorem longestStreak_upperBound (n t : ℕ) (ht : 0 < t) :
     rw [h_zero]
     have hn_nonneg : 0 ≤ (n : ℝ) := Nat.cast_nonneg _
     positivity
+
+/-! ## Expected longest streak
+
+The expected longest streak of heads satisfies {lit}`E[L] = Θ(log n)`.  The
+upper bound {lit}`O(log n)` follows from the tail bound
+{name}`longestStreak_upperBound` via {lit}`E[L] = Σ_{t≥1} Pr[L ≥ t]`; the
+matching lower bound {lit}`Ω(log n)` uses a block-partition argument.  Both
+proofs are deferred to a future refinement.
+-/
+
+/--
+Expected value of the longest streak of heads in {lit}`n` independent fair coin
+flips.
+-/
+noncomputable def expectedLongestStreak (n : ℕ) : ℝ :=
+  fintypeExpect (fun a : CoinFlip n => (longestStreak n a : ℝ))
+
+end Chapter05
+end CLRS
+
+/-! ## Root compatibility aliases
+
+The streak development predated the `CLRS.Chapter05` namespace.  Keep its
+original root-level proof surface available to downstream users while the new
+chapter-facing declarations remain namespaced.
+-/
+
+abbrev CoinFlip := CLRS.Chapter05.CoinFlip
+abbrev headAt := CLRS.Chapter05.headAt
+abbrev hasRunOfLength := CLRS.Chapter05.hasRunOfLength
+noncomputable abbrev longestStreak := CLRS.Chapter05.longestStreak
+abbrev streakS := CLRS.Chapter05.streakS
+noncomputable abbrev headsSetBijection {n : ℕ} (S : Finset (Fin n)) :=
+  CLRS.Chapter05.headsSetBijection S
+
+alias prob_first_t_heads := CLRS.Chapter05.prob_first_t_heads
+alias headAt_eq_of_lt := CLRS.Chapter05.headAt_eq_of_lt
+alias headAt_eq_zero_of_ge := CLRS.Chapter05.headAt_eq_zero_of_ge
+alias card_streakS := CLRS.Chapter05.card_streakS
+alias streakS_all_heads_iff := CLRS.Chapter05.streakS_all_heads_iff
+alias prob_run_at := CLRS.Chapter05.prob_run_at
+alias hasRunOfLength_mono := CLRS.Chapter05.hasRunOfLength_mono
+alias longestStreak_ge_iff_hasRunOfLength :=
+  CLRS.Chapter05.longestStreak_ge_iff_hasRunOfLength
+alias fintypeExpect_mono := CLRS.Chapter05.fintypeExpect_mono
+alias prob_run_at_bound := CLRS.Chapter05.prob_run_at_bound
+alias longestStreak_upperBound := CLRS.Chapter05.longestStreak_upperBound
