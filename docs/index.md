@@ -58,6 +58,7 @@ CLRSLean/Chapter_06/Section_06_1_Heaps.lean
 CLRSLean/Chapter_06/Section_06_2_Maintaining_Heap_Property.lean
 CLRSLean/Chapter_06/Section_06_3_Building_A_Heap.lean
 CLRSLean/Chapter_06/Section_06_4_Heapsort.lean
+CLRSLean/Chapter_06/Section_06_4_Heapsort/CostedExecution.lean
 CLRSLean/Chapter_06/Section_06_5_Priority_Queues.lean
 CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean

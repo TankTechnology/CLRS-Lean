@@ -2,6 +2,7 @@ import CLRSLean.Chapter_06.Section_06_1_Heaps
 import CLRSLean.Chapter_06.Section_06_2_Maintaining_Heap_Property
 import CLRSLean.Chapter_06.Section_06_3_Building_A_Heap
 import CLRSLean.Chapter_06.Section_06_4_Heapsort
+import CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution
 import CLRSLean.Chapter_06.Section_06_5_Priority_Queues
 
 /-!
@@ -15,6 +16,8 @@ formulas, an indexed heap predicate, {lit}`MAX-HEAPIFY`'s recursive repair
 theorem, bottom-up {lit}`BUILD-MAX-HEAP` by repeated heapify, the executable
 in-place {lit}`HEAPSORT` loop with a proved sorted-suffix invariant and
 sortedness theorem, and the array-level {lit}`HEAP-MAXIMUM` theorem.
+The heapsort execution also has an erasure-linked unit control-step layer that
+counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions.
 
 ## Sections
 
@@ -72,6 +75,13 @@ sortedness theorem, and the array-level {lit}`HEAP-MAXIMUM` theorem.
   {lit}`CLRS.Chapter06.arrayHeapSort_state_correct`,
   {lit}`CLRS.Chapter06.arrayHeapSort_exact_state_correct`, and
   {lit}`CLRS.Chapter06.arrayHeapSort_correct`.
+  Costed-execution results:
+  {lit}`CLRS.Chapter06.maxHeapifyFuelWithCost_result`,
+  {lit}`CLRS.Chapter06.arrayBuildMaxHeapWithCost_correct`,
+  {lit}`CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_cost`,
+  {lit}`CLRS.Chapter06.maxHeapifyControlBound_isBigO_n`,
+  {lit}`CLRS.Chapter06.buildMaxHeapControlBound_isBigO_nsq`, and
+  {lit}`CLRS.Chapter06.heapSortControlBound_isBigO_nsq`.
 * 6.5 Priority queues: {lit}`proved` for the functional heap interface, with
   array-level {lit}`HEAP-MAXIMUM`, full fuelled
   {lit}`HEAP-INCREASE-KEY`, {lit}`HEAP-EXTRACT-MAX`, and
@@ -92,7 +102,11 @@ sortedness theorem, and the array-level {lit}`HEAP-MAXIMUM` theorem.
 
 ## Current Gaps
 
-Runtime/RAM semantics remain refinement targets.
+The proved metric is deliberately coarse: build orchestration is free, while
+visited heapify frames and nontrivial extraction transitions are charged.
+Tight textbook {lit}`O(log n)`, {lit}`O(n)`, and {lit}`O(n log n)` bounds,
+the costs of guards and list operations, and an imperative RAM refinement
+remain open.
 -/
 
 namespace CLRS
