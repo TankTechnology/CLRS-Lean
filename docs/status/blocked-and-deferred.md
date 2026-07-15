@@ -40,6 +40,31 @@ separately.  The deferred layer is therefore the tight textbook `O(log n)`,
 `O(n)`, and `O(n log n)` analysis plus a line-by-line imperative array/RAM
 refinement, not the array heap or erasure proof itself.
 
+### Chapter 4.1 Maximum-Subarray Low-Level Cost Refinement
+
+- Related section: Section 4.1 - The maximum-subarray problem
+- Status: `deferred-implementation`
+- Functional and algorithm-level runtime status: proved
+
+`CLRS.Chapter04.maxSubarrayDivideCosted` measures the executable midpoint
+divide-and-conquer selector that uses linear prefix, suffix, and crossing
+scans.  The costed scan executions prove that their counters equal the actual
+visited prefix-score and selection transitions.
+`CLRS.Chapter04.maxSubarrayDivideCosted_result` proves cost erasure,
+`CLRS.Chapter04.maxSubarrayDivideCosted_correct` proves result correctness,
+and `CLRS.Chapter04.maxSubarrayDivideCosted_cost_eq` identifies the measured
+cost with the length-indexed recurrence.  Its mixed floor/ceiling unfolding is
+`CLRS.Chapter04.maxSubarrayDivideCost_unfold`, and
+`CLRS.Chapter04.maxSubarrayDivideCost_isBigTheta_nlogn` proves the all-input
+`Theta(n log n)` bound.
+
+The proved metric counts recursive frames, scan transitions, and constant-size
+candidate choices.  It does not charge construction of the explicit split
+tree, integer arithmetic, `List` allocation/copying, or garbage collection.
+The deferred layer is a lower-level direct recursion or imperative array/RAM
+refinement with those operations attached; the CLRS algorithm-level runtime is
+not deferred.
+
 ### Chapter 9 RANDOMIZED-SELECT Low-Level Cost Refinement
 
 - Related section: Section 9.2 - Selection in expected linear time
@@ -118,31 +143,9 @@ variants, but there is no remaining core case-3 comparison gap.
 
 These sections are not excluded from CLRS-Lean.  The remaining refinements need
 distinct representation choices: general-size recursive block matrices for
-Strassen and explicit algorithm/RAM cost models.  The current Master-theorem
-comparison stack covers all three textbook cases under its stated assumptions.
-
-### Maximum-Subarray Runtime Analysis
-
-- Related section: Section 4.1 - The maximum-subarray problem
-- Status: `future-work`
-
-The exhaustive-search specification is now compiler-clean:
-`CLRS.Chapter04.maxSubarray_correct` proves that the executable selector returns
-a nonempty contiguous subarray of maximum sum.  The crossing-helper layer is
-also compiler-clean:
-`CLRS.Chapter04.maxCrossingSubarray_correct` proves optimality among candidates
-crossing a split.  The combine-interface layer is compiler-clean as well:
-`CLRS.Chapter04.subarray_append_left_or_right_or_crossing` classifies every
-candidate as left-only, right-only, or crossing, and
-`CLRS.Chapter04.subarray_append_optimal_of_cases` packages the corresponding
-optimality argument.  The executable combine step
-`CLRS.Chapter04.maxSubarrayDivideStep_correct` is now compiler-clean too.  The
-recursive correctness layer is also compiler-clean:
-`CLRS.Chapter04.maxSubarrayDivideTree_correct` proves the split-tree selector,
-and `CLRS.Chapter04.maxSubarrayDivideFuel_correct` proves a fuelled midpoint
-divide-and-conquer selector against the original input.  The remaining CLRS
-refinement is runtime recurrence analysis and, eventually, a RAM-cost model for
-the textbook pseudocode.
+Strassen and lower-level representation/RAM cost models.  The current
+Master-theorem comparison stack covers all three textbook cases under its
+stated assumptions, and Section 4.1's executable abstract runtime is complete.
 
 ## Future Work
 

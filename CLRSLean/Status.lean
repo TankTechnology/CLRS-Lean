@@ -25,6 +25,12 @@ the detailed maintainer ledger.
   wrappers.
 * **Chapter 3:** asymptotic wrappers, the standard-function comparison table,
   Fibonacci growth, and the iterated logarithm.
+* **Chapter 4:** maximum-subarray correctness, the costed executable midpoint
+  selector with execution-attached scan counts and an all-input
+  {lit}`Theta(n log n)` bound, recursive Strassen correctness/runtime, and
+  the textbook-facing Master cases are proved.  Explicit split-tree
+  construction, integer operations, {lit}`List` allocation/copying, and RAM
+  semantics remain optional lower-level refinements.
 * **Chapter 6:** the current heap predicate, recursive {lit}`MAX-HEAPIFY`,
   bottom-up {lit}`BUILD-MAX-HEAP`, heapsort, and represented priority-queue
   operation specifications.  A costed execution mirrors heapify, build-heap,
@@ -78,9 +84,6 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapter 4:** maximum-subarray correctness, recursive Strassen correctness
-  and runtime, and the complete textbook-facing Master cases are proved.  The
-  remaining core item is the maximum-subarray runtime recurrence.
 * **Chapter 7:** functional and mutable-array correctness, comparison
   recurrences, random-permutation symmetry, and pairwise comparison probability
   are proved.  The total-comparison random variable and expectation-sum bridge
@@ -95,7 +98,7 @@ the detailed maintainer ledger.
   theorem groups.
 * **Chapter 24:** Bellman-Ford, DAG SSSP, Dijkstra's greedy theorem, a concrete
   state/step/loop skeleton, and difference constraints are represented.  The
-  loop still needs an initialization invariant and final distance-correctness
+  loop still needs an initialization-to-invariant bridge and final distance-correctness
   theorem.
 * **Chapter 25:** FASTER-APSP is correct; Floyd-Warshall currently has its
   recurrence/work wrapper; Johnson currently has reweighting algebra.  Their

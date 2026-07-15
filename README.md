@@ -35,7 +35,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 1 | The Role of Algorithms | ⚪ guide | 0 | — |
 | 2 | Getting Started | 🟢 complete | 6 | — |
 | 3 | Growth of Functions | 🟢 complete | 47 | — |
-| 4 | Divide-and-Conquer | 🟠 partial | 81 | Divide-and-conquer maximum-subarray recurrence and Theta(n… |
+| 4 | Divide-and-Conquer | 🟢 complete | 94 | — |
 | 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 23 | — |
 | 6 | Heapsort | 🟢 complete | 78 | — |
 | 7 | Quicksort | 🟠 partial | 30 | End-to-end total-comparison random variable and… |
@@ -60,7 +60,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 26 | Maximum Flow | 🟠 partial | 9 | Full Max-Flow Min-Cut converse/equivalence; executable BFS… |
 | 27–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1336 kernel-checked theorems across Chapters 1–26** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1349 kernel-checked theorems across Chapters 1–26** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
@@ -71,7 +71,8 @@ Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed)
 
 Notable results across the library:
 
-- **Ch4** — recursive Strassen with a `Θ(n^{lg 7})` runtime via the Master theorem.
+- **Ch4** — an execution-attached maximum-subarray `Θ(n log n)` bound and
+  recursive Strassen with a `Θ(n^{lg 7})` runtime via the Master theorem.
 - **Ch7 / 9 / 11** — a shared finite-expectation toolkit powering randomized
   quicksort's pairwise comparison probability, schedule-driven randomized
   `SELECT` with expected partition-work cost at most `4*c*n`, and SUHA + universal-hashing

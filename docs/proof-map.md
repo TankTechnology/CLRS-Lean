@@ -176,10 +176,10 @@ golden-ratio Fibonacci facts and the iterated logarithm.
 ## Chapter 4 - Divide and Conquer
 
 Chapter 4 is not limited to the Master-method file.  The current development
-now includes a maximum-subarray specification theorem, Strassen's 2 by 2 block
-algebra correctness theorem, recurrence layers for the substitution and
-recursion-tree proof methods, the exact-power Master theorem core, and a first
-all-input asymptotic transfer bridge.  Section 4.6 now also proves the
+now includes a maximum-subarray specification and costed executable theorem,
+Strassen's 2 by 2 block algebra correctness theorem, recurrence layers for the
+substitution and recursion-tree proof methods, the exact-power Master theorem
+core, and an all-input asymptotic transfer bridge.  Section 4.6 now also proves the
 adjacent-power bridge that generates power-sandwich witnesses from one-step
 comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   floor/ceiling Master cases, and natural-exponent polynomial comparison wrappers
@@ -188,32 +188,56 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   bridge connects the case-2 discrete scale to `n^(log_b a) log n`; exact/floor/
   ceiling case-1 and case-2 wrappers are exposed directly in those textbook
   scales.  The case-3 regularity bridge now connects the discrete
-  tail-dominated scale to the textbook forcing function; remaining Chapter 4
-  work is algorithm and cost refinement.
+  tail-dominated scale to the textbook forcing function.  The algorithm-level
+  maximum-subarray and Strassen runtimes are connected to their executions;
+  remaining Chapter 4 work is lower-level representation and RAM refinement.
 
 ### Section 4.1 - The maximum-subarray problem
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_1_Maximum_Subarray.lean`
-- Status: `proved` for the current functional correctness model
+- Status: `proved` for functional correctness and the execution-attached
+  abstract control-step runtime
 - Main proved theorems:
   - `CLRS.Chapter04.mem_nonemptySubarrays_iff`
   - `CLRS.Chapter04.mem_crossingSubarrays_iff`
   - `CLRS.Chapter04.bestCandidate_correct`
   - `CLRS.Chapter04.maxCrossingSubarray_correct`
   - `CLRS.Chapter04.maxCrossingSubarray_isNonemptySubarray_append`
+  - `CLRS.Chapter04.maxPrefixLinear_result_correct`
+  - `CLRS.Chapter04.maxSuffixLinear_result_correct`
+  - `CLRS.Chapter04.maxCrossingSubarrayLinear_result_correct`
   - `CLRS.Chapter04.subarray_append_left_or_right_or_crossing`
   - `CLRS.Chapter04.subarray_append_optimal_of_cases`
   - `CLRS.Chapter04.maxSubarrayDivideStep_correct`
   - `CLRS.Chapter04.maxSubarrayDivideTree_correct`
   - `CLRS.Chapter04.maxSubarrayDivideFuel_correct`
+  - `CLRS.Chapter04.midpointSplitTree_unitLeaves`
+  - `CLRS.Chapter04.maxSubarrayDivide_result_correct`
+  - `CLRS.Chapter04.maxSubarrayDivideCosted_result`
+  - `CLRS.Chapter04.maxSubarrayDivideCosted_correct`
+  - `CLRS.Chapter04.maxPrefixLinearScoredWithCost_cost`
+  - `CLRS.Chapter04.maxSuffixLinearScoredWithCost_cost`
+  - `CLRS.Chapter04.maxCrossingSubarrayLinearScoredWithCost_cost`
+  - `CLRS.Chapter04.maxSubarrayDivideCosted_cost_eq`
+  - `CLRS.Chapter04.maxSubarrayDivideCost_unfold`
+  - `CLRS.Chapter04.maxSubarrayDivideCost_monotone`
+  - `CLRS.Chapter04.maxSubarrayDivideCost_power_sandwich`
+  - `CLRS.Chapter04.maxSubarrayDivideCost_pow_two`
+  - `CLRS.Chapter04.maxSubarrayDivideCost_isBigTheta_nlogn`
   - `CLRS.Chapter04.maxSubarray_exists_of_ne_nil`
   - `CLRS.Chapter04.maxSubarray_correct`
-- Proof pattern: enumerate all nonempty contiguous subarrays, prove the
-  enumerator exact, prove the crossing-helper enumerator exact, prove the
-  left/right/crossing split classification, then prove finite argmax optimality
-  for the exhaustive selector, the executable combine step, and recursive
-  split-tree/fuelled divide-and-conquer selectors
-- Current gap: add runtime analysis and a lower-level RAM/pseudocode cost model
+- Proof pattern: use exhaustive enumeration only as the specification; prove
+  linear prefix/suffix/crossing scans optimal; show the midpoint tree has only
+  empty or singleton leaves; prove the costed recursive execution erases to a
+  correct selector; prove that the prefix/suffix/crossing counters equal the
+  corresponding scan transitions; identify the recursive cost with the mixed
+  recurrence `C(n / 2) + C(n - n / 2) + 3(n / 2) +
+  2(n - n / 2) + 5`; and transfer exact power-of-two bounds to all inputs
+  through monotonicity and adjacent-power sandwiching
+- Current gap: the abstract metric counts recursive frames, scan transitions,
+  and constant-size candidate choices.  It excludes explicit split-tree
+  construction, integer-operation costs, `List` allocation/copying, and full
+  RAM/pseudocode semantics.
 
 ### Section 4.2 - Strassen's algorithm for matrix multiplication
 
@@ -2939,15 +2963,15 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 - Lean source: `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean`
 - Status: `proved` (under no negative-weight cycles)
 - Main theorems:
-  - `CLRS.Chapter25.AllPairs.weightMatrix` (edge-weight matrix W)
-  - `CLRS.Chapter25.AllPairs.minPlusMul` (min-plus matrix product)
-  - `CLRS.Chapter25.AllPairs.extendShortestPaths` (EXTEND-SHORTEST-PATHS)
-  - `CLRS.Chapter25.AllPairs.L` (inductive distance sequence L^(m))
-  - `CLRS.Chapter25.AllPairs.fasterAPSP` (FASTER-APSP algorithm)
-  - `CLRS.Chapter25.AllPairs.lemma_25_1` (L^(m+1) = min_k (L^m_ik + w_kj))
-  - `CLRS.Chapter25.AllPairs.L_sq_eq_minPlusMul` (Lemma 25.2: L^(2m) = L^m ◁ L^m)
-  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
-  - `CLRS.Chapter25.AllPairs.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
+  - `CLRS.Chapter24.WeightedGraph.weightMatrix` (edge-weight matrix W)
+  - `CLRS.Chapter24.WeightedGraph.minPlusMul` (min-plus matrix product)
+  - `CLRS.Chapter24.WeightedGraph.extendShortestPaths` (EXTEND-SHORTEST-PATHS)
+  - `CLRS.Chapter24.WeightedGraph.L` (inductive distance sequence L^(m))
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSP` (FASTER-APSP algorithm)
+  - `CLRS.Chapter24.WeightedGraph.lemma_25_1` (L^(m+1) = min_k (L^m_ik + w_kj))
+  - `CLRS.Chapter24.WeightedGraph.L_sq_eq_minPlusMul` (Lemma 25.2: L^(2m) = L^m ◁ L^m)
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
 - Proof pattern: min-plus algebra, repeated squaring, linking to Ch24's relaxDist for walk properties, fixpoint via monotonicity + attainability
 - Current gap: none within Section 25.1; the later-section gaps are listed below.
 
@@ -3001,29 +3025,29 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Model:
   - `CLRS.Chapter26.FlowNetwork` (capacity `c : V → V → ℝ`, source `s`, sink `t`,
     nonnegative capacity, zero self-loops, `s ≠ t`)
-  - `CLRS.Chapter26.FlowNetwork.Flow` (feasible flow with capacity constraint,
+  - `CLRS.Chapter26.Flow` (feasible flow with capacity constraint,
     skew symmetry, and flow conservation)
-  - `CLRS.Chapter26.FlowNetwork.Flow.value` (flow value `|f| = ∑_v f(s,v)`)
+  - `CLRS.Chapter26.Flow.value` (flow value `|f| = ∑_v f(s,v)`)
 - Auxiliary lemmas:
-  - `CLRS.Chapter26.FlowNetwork.Flow.self_zero` (flow on self-loop is zero)
-  - `CLRS.Chapter26.FlowNetwork.Flow.nonneg_of_zero_reverse_cap`
-  - `CLRS.Chapter26.FlowNetwork.Flow.nonpos_of_zero_cap`
-  - `CLRS.Chapter26.FlowNetwork.Flow.range_of_zero_reverse_cap`
-  - `CLRS.Chapter26.FlowNetwork.Flow.add_skew`
+  - `CLRS.Chapter26.Flow.self_zero` (flow on self-loop is zero)
+  - `CLRS.Chapter26.Flow.nonneg_of_zero_reverse_cap`
+  - `CLRS.Chapter26.Flow.nonpos_of_zero_cap`
+  - `CLRS.Chapter26.Flow.range_of_zero_reverse_cap`
+  - `CLRS.Chapter26.Flow.add_skew`
 - Cut lemma:
-  - `CLRS.Chapter26.FlowNetwork.Flow.netFlowAcrossCut` (net flow across `(S,Sᶜ)`)
-  - `CLRS.Chapter26.FlowNetwork.Flow.skew_symm_cancel`
-  - `CLRS.Chapter26.FlowNetwork.Flow.netFlow_eq_value` (**Lemma 26.5**: net flow
+  - `CLRS.Chapter26.Flow.netFlowAcrossCut` (net flow across `(S,Sᶜ)`)
+  - `CLRS.Chapter26.Flow.skew_symm_cancel`
+  - `CLRS.Chapter26.Flow.netFlow_eq_value` (**Lemma 26.5**: net flow
     across any cut equals the flow value)
-  - `CLRS.Chapter26.FlowNetwork.Flow.value_le_cut_capacity` (flow value bounded by any cut capacity)
+  - `CLRS.Chapter26.Flow.value_le_cut_capacity` (flow value bounded by any cut capacity)
 - Residual network:
-  - `CLRS.Chapter26.FlowNetwork.Flow.residualCapacity` (`cf(u,v) = c(u,v) - f(u,v)`)
-  - `CLRS.Chapter26.FlowNetwork.Flow.residualEdge` (positive residual capacity)
-  - `CLRS.Chapter26.FlowNetwork.Flow.augmentingPathReachable` (reachability in the residual network)
-  - `CLRS.Chapter26.FlowNetwork.Flow.hasAugmentingPath` (sink reachable from source)
+  - `CLRS.Chapter26.Flow.residualCapacity` (`cf(u,v) = c(u,v) - f(u,v)`)
+  - `CLRS.Chapter26.Flow.residualEdge` (positive residual capacity)
+  - `CLRS.Chapter26.Flow.augmentingPathReachable` (reachability in the residual network)
+  - `CLRS.Chapter26.Flow.hasAugmentingPath` (sink reachable from source)
 - Ford-Fulkerson correctness:
-  - `CLRS.Chapter26.FlowNetwork.Flow.isMaximal` (maximum flow predicate)
-  - `CLRS.Chapter26.FlowNetwork.Flow.maximal_of_noAugmentingPath` (generic
+  - `CLRS.Chapter26.Flow.isMaximal` (maximum flow predicate)
+  - `CLRS.Chapter26.Flow.maximal_of_noAugmentingPath` (generic
     Ford-Fulkerson: no augmenting path implies maximal flow)
 - Proof pattern: Lemma 26.5 uses skew-symmetry cancellation and conservation to
   equate net cut flow with `|f|`.  The Ford-Fulkerson direction constructs a cut
@@ -3035,7 +3059,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
 - Lean source: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
-- Status: `proved`
+- Status: `partial` (Lemma 26.7 proved; executable algorithm and counting theorem pending)
 - Model:
   - `CLRS.Chapter26.ResidualPathLength` (inductive predicate for path length in the residual network)
   - `CLRS.Chapter26.IsShortestDist` (shortest-path distance in the residual network)
@@ -3069,7 +3093,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Lean source: `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean`
 - Status: `partial`
 - Proved theorem:
-  - `CLRS.Chapter26.FlowNetwork.Flow.eq_cutCapacity_implies_maximal`
+  - `CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`
     (the easy direction: equality with a cut capacity implies maximality)
 - Current gap: construct a minimum cut from a maximal flow/no residual
   augmenting path and package the full max-flow/min-cut equivalence.
@@ -3086,7 +3110,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; `expectedBucketQuadraticCost_eq_secondMoment` proves the CLRS second moment as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m`. `textbookBucketSortCost` is the CLRS unit-cost random variable, `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` identifies its true finite-uniform expectation, and `expectedTextbookBucketSortCost_isBigO` proves that expectation is linear. Remaining: a single-pass executable bucket builder, a costed per-bucket sorter, and a refinement theorem connecting their execution cost to the abstract model. |
 | Chapter 9 randomized SELECT expected time | `proved` | `randomizedSelectCostWithSchedule` consumes one occurrence-rank choice per visited state and charges `c * currentLength`, rejecting invalid/exhausted schedules; its erasure theorem connects successful runs to rank-correct SELECT. `randomizedSelectExpectedCostFuel` is a nested conditional-uniform process over the current `Fin n`, and `randomizedSelectExpectedCost_le_randSelectExpectedCost` couples it to the CLRS larger-side majorizer, yielding `randomizedSelectExpectedCost_linear_bound : E[C] ≤ 4 * c * n`. The metric excludes RNG, `selectByRank?` specification sorting, list primitives, and RAM work. |
 | Chapter 9 deterministic linear-time SELECT | `proved` | Selector correctness and totality, five-element certificates, full-input split counts, the `7n/10 + O(1)` branch bound, and the recursively computed median-of-medians pivot are proved. `recursiveMedianOfMediansComparisonCost_linear_bound` composes group work, nested pivot selection, partition scans, and the selected strict branch into the end-to-end bound `≤ 100n`. |
-| Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
+| Maximum-subarray low-level cost refinement | `deferred-implementation` | The costed midpoint selector erases to a correct execution; its measured cost satisfies the actual mixed floor/ceiling recurrence and `maxSubarrayDivideCost_isBigTheta_nlogn` proves the all-input `Theta(n log n)` abstract control-step bound.  Explicit split-tree construction, integer operations, `List` allocation/copying, garbage collection, and RAM semantics remain outside the metric. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |
 | Hash-table expected-time analysis | `proved-abstract` | The finite-uniform bucket toolkit proves load-factor equality, nonnegativity, and single-insert expected-cost changes; under SUHA the expected chain length `α = n/m`, expected unsuccessful-search cost `1 + α`, pairwise collision probability `1/m`, and expected successful-search cost `1 + (n-1)/(2m)` (CLRS Theorem 11.2) are proved as true expectations over the explicit independent uniform hashing distribution `Fin n → Fin m` (`expectedRandomChainLength_eq_loadFactor`, `expectedRandomUnsuccessfulSearchCost`, `pairCollisionProb`, `expectedRandomSuccessfulSearchCost`); a universal random hash-*function* model bounds expected collisions by `α` and search cost by `1 + α` (CLRS Theorem 11.3, `IsUniversal`, `universal_expected_collisions`, `universal_expected_search_cost`). Remaining: RAM/probe-count semantics. |
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |

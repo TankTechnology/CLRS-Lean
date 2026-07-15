@@ -13,6 +13,7 @@ Last repository-wide status reconciliation: 2026-07-15.
 | --- | --- | --- |
 | Chapter 2 | Insertion sort, merge sort, and represented cost/recurrence results | Full RAM semantics and arbitrary-size merge-sort recurrence |
 | Chapter 3 | Asymptotic wrappers, the standard-function comparison hierarchy, Fibonacci growth, and the iterated logarithm | Exercises and alternative asymptotic packaging |
+| Chapter 4 | Maximum-subarray correctness and execution-attached abstract runtime `Θ(n log n)`, recursive Strassen correctness/runtime, and textbook-facing Master cases 1–3 | Explicit split-tree construction, integer operations, `List` allocation/copying, and RAM semantics |
 | Chapter 5 represented sections | Hiring, indicators, random permutations, birthday collisions, balls-and-bins occupancy, the longest-streak tail bound, and an executable on-line hiring strategy | Expected-longest-streak and on-line hiring asymptotics remain chapter-end Problems |
 | Chapter 6 | Heap predicate, heapify, build-heap, heapsort, represented priority-queue correctness, and costed executions with connected coarse `O(n)`, `O(n²)`, and `O(n²)` envelopes | Tight textbook bounds and List/RAM accounting |
 | Chapter 8 correctness | Represented counting-sort correctness with a mutable output-array (`Array`) refinement and linear `O(n + k)` work bound, radix-sort and bucket-sort correctness, the bucket-sort second moment, and the true linear expected CLRS unit-cost theorem (`expectedTextbookBucketSortCost_isBigO`) | Optional executable bucket-builder and execution-cost refinements |
@@ -36,7 +37,6 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 4 | Maximum-subarray correctness, recursive Strassen correctness/runtime, substitution, recursion trees, and textbook-facing Master cases 1-3 | Maximum-subarray runtime recurrence (PR #87); RAM is optional |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, plus the random-permutation symmetry lemma (`isFirst_prob`) and pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3) over the shared `Probability.FiniteExpectation` toolkit | End-to-end total-comparison expectation (`expected_comparisons_eq_sum`) and the `Θ(n log n)` asymptotic bridge |
 | 13 | Executable insertion, the logarithmic-height theorem, executable deletion with exact membership correctness, and local delete-fixup certificates | `RedBlackShape` preservation through the composed `del`/`delete` pipeline |
 | 14 | Order-statistic augmentation, the general augmentation theorem (CLRS Theorem 14.1), interval-search correctness, and the size invariant threaded through executable red-black insertion (`OSRBTree.wellSized_insert`, refining Chapter 13 `RBTree.insert` via `toRB_insert`) | Stored-field refinement through executable red-black deletion |

@@ -14,13 +14,13 @@ method.
 * 26.1 Flow networks.
   Main declarations:
   {lit}`CLRS.Chapter26.FlowNetwork`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.value`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.netFlow_eq_value`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.residualCapacity`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.residualEdge`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.augmentingPathReachable`,
-  {lit}`CLRS.Chapter26.FlowNetwork.Flow.maximal_of_noAugmentingPath`.
+  {lit}`CLRS.Chapter26.Flow`,
+  {lit}`CLRS.Chapter26.Flow.value`,
+  {lit}`CLRS.Chapter26.Flow.netFlow_eq_value`,
+  {lit}`CLRS.Chapter26.Flow.residualCapacity`,
+  {lit}`CLRS.Chapter26.Flow.residualEdge`,
+  {lit}`CLRS.Chapter26.Flow.augmentingPathReachable`,
+  {lit}`CLRS.Chapter26.Flow.maximal_of_noAugmentingPath`.
 
 * 26.2 Edmonds-Karp algorithm.
   Main declarations:

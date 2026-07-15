@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 26.
-* Tracked reader-facing theorem entries: 1336.
-* Proved tracked theorem entries: 1336.
-* Remaining core theorem groups: 23.
+* Tracked reader-facing theorem entries: 1349.
+* Proved tracked theorem entries: 1349.
+* Remaining core theorem groups: 22.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -20,10 +20,10 @@ are not yet represented or not yet complete.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 6 chapters.
+* {lit}`main-proof-complete`: 7 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 9 chapters.
+* {lit}`partial`: 8 chapters.
 * {lit}`not-started`: 9 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -35,7 +35,7 @@ Ch  Chapter                                                     Status          
  1  1. The Role of Algorithms                                   expository                           Chapter_01                          0        0
  2  2. Getting Started                                          main-proof-complete                  2.1;2.2;2.3                         6        0
  3  3. Growth of Functions                                      main-proof-complete                  3.1;3.2                            47        0
- 4  4. Divide-and-Conquer                                       partial                              4.1;4.2;4.3;4.4;4.5;4.6            81        1
+ 4  4. Divide-and-Conquer                                       main-proof-complete                  4.1;4.2;4.3;4.4;4.5;4.6            94        0
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1;5.2;5.3;5.4                    23        0
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                78        0
  7  7. Quicksort                                                partial                              7.1;7.2;7.3                        30        1
