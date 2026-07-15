@@ -1,5 +1,7 @@
+import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort
 import Mathlib
+import Mathlib.NumberTheory.Harmonic.Bounds
 
 /-!
 # CLRS Section 7.3 - Randomized quicksort
@@ -356,6 +358,163 @@ theorem expectedComparisons_monotone (n : Nat) : expectedComparisons n ≤ expec
     refine div_nonneg ?_ (by positivity)
     nlinarith
   linarith
+
+/-! ## Asymptotic Θ(n log n) bound
+
+We now lift the harmonic upper bound to the textbook asymptotic statement
+{lit}`T(n) = Θ(n log n)` using the standard harmonic bounds
+{lit}`log(n+1) ≤ H_n ≤ 1 + log n` from Mathlib.
+-/
+
+open Chapter03
+
+/--
+The rational harmonic number defined in this section equals Mathlib's global
+harmonic number after casting to {lit}`ℝ`.
+-/
+theorem harmonic_eq_mathlib_harmonic (n : ℕ) : (harmonic n : ℝ) = (_root_.harmonic n : ℝ) := by
+  induction n with
+  | zero => simp [harmonic, _root_.harmonic]
+  | succ n ih =>
+    rw [harmonic_succ, _root_.harmonic_succ]
+    push_cast
+    rw [ih]
+    simp
+
+/--
+Expected comparisons cast to {lit}`ℝ`, for use with the Chapter 3 asymptotic
+wrappers.
+-/
+noncomputable def expectedComparisonsReal (n : ℕ) : ℝ := (expectedComparisons n : ℝ)
+
+/-- Cast of the harmonic upper bound to {lit}`ℝ`. -/
+theorem expectedComparisons_harmonic_bound_real (n : ℕ) :
+    expectedComparisonsReal n ≤ 2 * (n : ℝ) * (harmonic n : ℝ) := by
+  have h := expectedComparisons_harmonic_bound n
+  dsimp [expectedComparisonsReal]
+  exact_mod_cast h
+
+/--
+**Lower bound.**  For {lit}`n ≥ 1`, the expected number of comparisons is at
+least {lit}`n * H_n - 4n`.
+-/
+theorem expectedComparisons_lower_bound_real (n : ℕ) (_hn : 1 ≤ n) :
+    (n : ℝ) * (harmonic n : ℝ) - 4 * (n : ℝ) ≤ expectedComparisonsReal n := by
+  dsimp [expectedComparisonsReal, expectedComparisons]
+  push_cast
+  have h_nonneg : 0 ≤ (harmonic n : ℝ) := by exact mod_cast harmonic_nonneg n
+  nlinarith
+
+/-- The local harmonic after casting is bounded by {lit}`1 + log n`. -/
+theorem harmonic_le_one_add_log' (n : ℕ) : (harmonic n : ℝ) ≤ 1 + Real.log (n : ℝ) := by
+  rw [harmonic_eq_mathlib_harmonic n]
+  exact harmonic_le_one_add_log n
+
+/-- The local harmonic after casting is bounded below by {lit}`log (n+1)`. -/
+theorem log_add_one_le_harmonic' (n : ℕ) : Real.log ((n : ℝ) + 1) ≤ (harmonic n : ℝ) := by
+  rw [harmonic_eq_mathlib_harmonic n]
+  simpa [Nat.cast_add, Nat.cast_one] using log_add_one_le_harmonic n
+
+/--
+**Randomized quicksort is {lit}`O(n log n)`.**  The expected number of
+comparisons satisfies {lit}`T(n) = O(n log n)`.
+-/
+theorem expectedComparisons_isBigO_nlogn :
+    isBigO expectedComparisonsReal (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) := by
+  rw [isBigO_iff]
+  have h_harm_le : ∀ n : ℕ, (harmonic n : ℝ) ≤ 1 + Real.log (n : ℝ) := harmonic_le_one_add_log'
+  -- Real.log → ∞, so eventually log n ≥ 1
+  have h_log_eventually : ∀ᶠ (n : ℕ) in Filter.atTop, (1 : ℝ) ≤ Real.log (n : ℝ) :=
+    (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop) (Filter.eventually_ge_atTop (1 : ℝ))
+  rcases Filter.eventually_atTop.mp h_log_eventually with ⟨n₁, hn₁⟩
+  refine ⟨4, by norm_num, max 2 n₁, fun n hn => ?_⟩
+  have hn2 : 2 ≤ n := le_trans (le_max_left _ _) hn
+  have hn_log_ge_one : (1 : ℝ) ≤ Real.log (n : ℝ) := hn₁ n (le_trans (le_max_right _ _) hn)
+  have hn_pos : 1 ≤ n := by omega
+  have hn_real_pos : 1 ≤ (n : ℝ) := by exact_mod_cast hn_pos
+  have hlog_nonneg : 0 ≤ Real.log (n : ℝ) := Real.log_nonneg hn_real_pos
+  have hT_nonneg : 0 ≤ expectedComparisonsReal n := by
+    dsimp [expectedComparisonsReal]; exact mod_cast expectedComparisons_nonneg n
+  have hmul_nonneg : 0 ≤ (n : ℝ) * Real.log (n : ℝ) := by positivity
+  rw [abs_of_nonneg hT_nonneg, abs_of_nonneg hmul_nonneg]
+  calc
+    expectedComparisonsReal n ≤ 2 * (n : ℝ) * (harmonic n : ℝ) := expectedComparisons_harmonic_bound_real n
+    _ ≤ 2 * (n : ℝ) * (1 + Real.log (n : ℝ)) := by
+      have h_nonneg : 0 ≤ 2 * (n : ℝ) := by positivity
+      gcongr
+      exact h_harm_le n
+    _ = 2 * (n : ℝ) + 2 * ((n : ℝ) * Real.log (n : ℝ)) := by ring
+    _ ≤ 4 * ((n : ℝ) * Real.log (n : ℝ)) := by
+      -- 2n ≤ 2n*log n  when log n ≥ 1, so 2n + 2n*log n ≤ 4n*log n
+      have h : 2 * (n : ℝ) ≤ 2 * ((n : ℝ) * Real.log (n : ℝ)) := by
+        have hn_nonneg : 0 ≤ (n : ℝ) := Nat.cast_nonneg _
+        calc
+          2 * (n : ℝ) = 2 * (n : ℝ) * (1 : ℝ) := by ring
+          _ ≤ 2 * (n : ℝ) * Real.log (n : ℝ) := by gcongr
+          _ = 2 * ((n : ℝ) * Real.log (n : ℝ)) := by ring
+      nlinarith
+
+/--
+**Randomized quicksort is {lit}`Ω(n log n)`.**  The expected number of
+comparisons satisfies {lit}`T(n) = Ω(n log n)`.
+-/
+theorem expectedComparisons_isBigOmega_nlogn :
+    isBigOmega expectedComparisonsReal (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) := by
+  rw [isBigOmega_iff]
+  -- Use log(n+1) ≤ H_n and T(n) ≥ n*H_n - 4n
+  have h_harm_lower : ∀ n : ℕ, Real.log ((n : ℝ) + 1) ≤ (harmonic n : ℝ) :=
+    log_add_one_le_harmonic'
+  -- Real.log → ∞, so eventually log n ≥ 8
+  have h_log_eventually : ∀ᶠ (n : ℕ) in Filter.atTop, (8 : ℝ) ≤ Real.log (n : ℝ) :=
+    (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop) (Filter.eventually_ge_atTop (8 : ℝ))
+  rcases Filter.eventually_atTop.mp h_log_eventually with ⟨n₀₁, hn₀₁⟩
+  -- Also need log(n+1) ≥ (1/2)*log n for large n
+  -- Since log(n+1)/log n → 1, for log n ≥ 8 we have log(n+1) ≥ (3/4)*log n
+  -- Actually log(n+1) ≥ log n ≥ (1/2)*log n trivially
+  let n₀ := max n₀₁ 8
+  refine ⟨1/8, by norm_num, n₀, fun n hn => ?_⟩
+  have hn₁ : n₀₁ ≤ n := le_trans (le_max_left _ _) hn
+  have hn_pos : 8 ≤ n := le_trans (le_max_right _ _) hn
+  have hn_real_pos : 0 < (n : ℝ) := by
+    have : 0 < n := by omega
+    exact_mod_cast this
+  have hT_nonneg : 0 ≤ expectedComparisonsReal n := by
+    dsimp [expectedComparisonsReal]; exact mod_cast expectedComparisons_nonneg n
+  have hn1pos : 1 ≤ n := by omega
+  have hn1real : 1 ≤ (n : ℝ) := by exact_mod_cast hn1pos
+  have hlog_nonneg : 0 ≤ Real.log (n : ℝ) := Real.log_nonneg hn1real
+  have hmul_nonneg : 0 ≤ (n : ℝ) * Real.log (n : ℝ) := by positivity
+  rw [abs_of_nonneg hT_nonneg, abs_of_nonneg hmul_nonneg]
+  have h_log_ge_eight : (8 : ℝ) ≤ Real.log (n : ℝ) := hn₀₁ n hn₁
+  -- log(n+1) ≥ log n ≥ 8 for n ≥ n₀
+  have h_log_succ_ge : Real.log (n : ℝ) ≤ Real.log ((n : ℝ) + 1) :=
+    Real.log_le_log (by positivity) (by nlinarith)
+  -- T(n) ≥ n*H_n - 4n ≥ n*log(n+1) - 4n ≥ n*log n - 4n
+  -- Since log n ≥ 8, we have log n/8 ≥ 1, so 4n ≤ (log n/2)*n = n*log n/2
+  -- Thus n*log n - 4n ≥ n*log n/2 ≥ n*log n/8
+  calc
+    (1/8 : ℝ) * ((n : ℝ) * Real.log (n : ℝ)) = ((n : ℝ) * Real.log (n : ℝ)) / 8 := by ring
+    _ ≤ ((n : ℝ) * Real.log (n : ℝ)) - 4 * (n : ℝ) := by
+      -- Need: (n*log n)/8 ≤ n*log n - 4n  ⇔  4n ≤ (7/8)*n*log n  ⇔  32/7 ≤ log n ≈ 4.57
+      -- Since log n ≥ 8, this holds.
+      have h : 4 * (n : ℝ) ≤ (7/8 : ℝ) * ((n : ℝ) * Real.log (n : ℝ)) := by
+        calc
+          4 * (n : ℝ) = (n : ℝ) * 4 := by ring
+          _ ≤ (n : ℝ) * ((7/8 : ℝ) * Real.log (n : ℝ)) := by
+            nlinarith [h_log_ge_eight]
+          _ = (7/8 : ℝ) * ((n : ℝ) * Real.log (n : ℝ)) := by ring
+      nlinarith
+    _ ≤ (n : ℝ) * Real.log ((n : ℝ) + 1) - 4 * (n : ℝ) := by nlinarith
+    _ ≤ (n : ℝ) * (harmonic n : ℝ) - 4 * (n : ℝ) := by nlinarith [h_harm_lower n]
+    _ ≤ expectedComparisonsReal n := expectedComparisons_lower_bound_real n hn1pos
+
+/--
+**Randomized quicksort is {lit}`Θ(n log n)`.**  The expected number of
+comparisons satisfies {lit}`T(n) = Θ(n log n)`.
+-/
+theorem expectedComparisons_isBigTheta_nlogn :
+    isBigTheta expectedComparisonsReal (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) :=
+  ⟨expectedComparisons_isBigO_nlogn, expectedComparisons_isBigOmega_nlogn⟩
 
 end Chapter07
 end CLRS
