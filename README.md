@@ -36,11 +36,11 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 2 | Getting Started | 🟢 complete | 6 | — |
 | 3 | Growth of Functions | 🟢 complete | 47 | — |
 | 4 | Divide-and-Conquer | 🟠 partial | 81 | Divide-and-conquer maximum-subarray recurrence and Theta(n… |
-| 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 17 | — |
-| 6 | Heapsort | 🟢 complete | 60 | — |
+| 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 23 | — |
+| 6 | Heapsort | 🟢 complete | 78 | — |
 | 7 | Quicksort | 🟠 partial | 30 | End-to-end total-comparison random variable and… |
 | 8 | Sorting in Linear Time | 🟢 correctness | 29 | — |
-| 9 | Medians and Order Statistics | 🟢 complete | 64 | — |
+| 9 | Medians and Order Statistics | 🟢 complete | 72 | — |
 | 10 | Elementary Data Structures | 🟡 sections | 12 | — |
 | 11 | Hash Tables | 🟢 correctness | 51 | — |
 | 12 | Binary Search Trees | 🟢 correctness | 40 | — |
@@ -60,7 +60,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 26 | Maximum Flow | 🟠 partial | 9 | Full Max-Flow Min-Cut converse/equivalence; executable BFS… |
 | 27–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1304 kernel-checked theorems across Chapters 1–26** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1336 kernel-checked theorems across Chapters 1–26** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
@@ -73,8 +73,8 @@ Notable results across the library:
 
 - **Ch4** — recursive Strassen with a `Θ(n^{lg 7})` runtime via the Master theorem.
 - **Ch7 / 9 / 11** — a shared finite-expectation toolkit powering randomized
-  quicksort's pairwise comparison probability, fresh-choice randomized
-  `SELECT` with expected cost at most `4n`, and SUHA + universal-hashing
+  quicksort's pairwise comparison probability, schedule-driven randomized
+  `SELECT` with expected partition-work cost at most `4*c*n`, and SUHA + universal-hashing
   expected search costs.
 - **Ch19** — the true Fibonacci logarithmic degree bound `D(n) ≤ log_φ n`
   (CLRS Lemma 19.4/19.5), proved tight.

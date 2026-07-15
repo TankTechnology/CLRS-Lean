@@ -43,6 +43,18 @@ Main results:
   {lit}`CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound`:
   fresh per-call pivot choices for the actual selected continuation have
   expected comparison cost at most {lit}`4n`.
+- Definition {lit}`CLRS.Chapter09.randomizedSelectCostWithSchedule`: an
+  executable fresh-rank path cost that rejects exhausted or invalid schedules;
+  theorem {lit}`CLRS.Chapter09.randomizedSelectCostWithSchedule_rankCorrect`
+  erases successful cost runs to rank-correct SELECT results.
+- Definition {lit}`CLRS.Chapter09.randomizedSelectExpectedCostFuel` and theorem
+  {lit}`CLRS.Chapter09.randomizedSelectExpectedCostFuel_succ`: the exact nested
+  conditional-uniform expectation with local charge {lit}`c * currentLength`.
+- Theorems
+  {lit}`CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost`
+  and {lit}`CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound`: every
+  concrete state-dependent expected cost is bounded by the CLRS majorizer and
+  hence by {lit}`4 * c * n`.
 - Theorem {lit}`CLRS.Chapter09.freshRandomizedSelectWithRanks?_correct`: every
   executable finite sample path driven by successive pivot ranks is rank-correct.
 - Theorem
@@ -64,6 +76,7 @@ namespace CLRS
 namespace Chapter09
 
 open scoped BigOperators
+open CLRS.Probability
 
 /-! ## Subproblem size and the expected-cost model -/
 
@@ -381,6 +394,44 @@ def freshRandomizedSelectWithRanks? (choices : List Nat)
     (k : Nat) (xs : List Nat) : Option Nat :=
   freshRandomizedSelectWithRanksFuel? xs.length choices k xs
 
+/-! ## Schedule-driven concrete cost semantics -/
+
+/--
+Cost of one concrete fresh-rank execution path.  Every visited nonempty state
+charges `c * length` and consumes exactly one rank from `choices`.  Running out
+of fuel or choices, or presenting a rank outside the current subproblem,
+rejects the path instead of silently assigning zero cost.
+
+This partition-work metric does not charge the specification implementation of
+`selectByRank?`, random-number generation, list primitives, or RAM operations.
+-/
+def randomizedSelectCostWithScheduleFuel :
+    Nat → Nat → Nat → List Nat → List Nat → Option Nat
+  | 0, _, _, _, _ => none
+  | _ + 1, _, _, [], _ => none
+  | _ + 1, _, _, _, [] => none
+  | fuel + 1, c, k, x :: xs, i :: choices =>
+      match selectByRank? i (x :: xs) with
+      | none => none
+      | some pivot =>
+          let here := c * (x :: xs).length
+          if k < ltCount pivot (x :: xs) then
+            Option.map (here + ·)
+              (randomizedSelectCostWithScheduleFuel fuel c k
+                ((x :: xs).filter fun y => decide (y < pivot)) choices)
+          else if k < leCount pivot (x :: xs) then
+            some here
+          else
+            Option.map (here + ·)
+              (randomizedSelectCostWithScheduleFuel fuel c
+                (k - leCount pivot (x :: xs))
+                ((x :: xs).filter fun y => decide (pivot < y)) choices)
+
+/-- Public schedule cost with one fuel unit for every input occurrence. -/
+def randomizedSelectCostWithSchedule
+    (c k : Nat) (xs choices : List Nat) : Option Nat :=
+  randomizedSelectCostWithScheduleFuel xs.length c k xs choices
+
 /-- Every successful fresh-rank sample path returns the requested order statistic. -/
 theorem freshRandomizedSelectWithRanksFuel?_correct :
     ∀ (fuel : Nat) (choices : List Nat) (k : Nat) (xs : List Nat) {x : Nat},
@@ -434,6 +485,74 @@ theorem freshRandomizedSelectWithRanks?_correct {choices : List Nat}
     RankCertificate xs k x := by
   exact freshRandomizedSelectWithRanksFuel?_correct xs.length choices k xs
     (by simpa [freshRandomizedSelectWithRanks?] using hrun)
+
+/-- A successful costed path erases to a successful fresh-rank SELECT path. -/
+theorem randomizedSelectCostWithScheduleFuel_result :
+    ∀ {fuel c k : Nat} {xs choices : List Nat} {cost : Nat},
+      randomizedSelectCostWithScheduleFuel fuel c k xs choices = some cost →
+        ∃ x, freshRandomizedSelectWithRanksFuel? fuel choices k xs = some x := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro c k xs choices cost hcost
+      simp [randomizedSelectCostWithScheduleFuel] at hcost
+  | succ fuel ih =>
+      intro c k xs choices cost hcost
+      cases xs with
+      | nil =>
+          simp [randomizedSelectCostWithScheduleFuel] at hcost
+      | cons x xs =>
+          cases choices with
+          | nil =>
+              simp [randomizedSelectCostWithScheduleFuel] at hcost
+          | cons i choices =>
+              cases hpivot : selectByRank? i (x :: xs) with
+              | none =>
+                  simp [randomizedSelectCostWithScheduleFuel, hpivot] at hcost
+              | some pivot =>
+                  by_cases hlo : k < ltCount pivot (x :: xs)
+                  · cases hrec : randomizedSelectCostWithScheduleFuel fuel c k
+                        ((x :: xs).filter fun y => decide (y < pivot)) choices with
+                    | none =>
+                        simp [randomizedSelectCostWithScheduleFuel, hpivot, hlo,
+                          hrec] at hcost
+                    | some subcost =>
+                        rcases ih hrec with ⟨selected, hselected⟩
+                        exact ⟨selected, by
+                          simpa [freshRandomizedSelectWithRanksFuel?, hpivot, hlo]
+                            using hselected⟩
+                  · by_cases hmid : k < leCount pivot (x :: xs)
+                    · exact ⟨pivot, by
+                        simp [freshRandomizedSelectWithRanksFuel?, hpivot, hlo,
+                          hmid]⟩
+                    · cases hrec : randomizedSelectCostWithScheduleFuel fuel c
+                          (k - leCount pivot (x :: xs))
+                          ((x :: xs).filter fun y => decide (pivot < y)) choices with
+                      | none =>
+                          simp [randomizedSelectCostWithScheduleFuel, hpivot, hlo,
+                            hmid, hrec] at hcost
+                      | some subcost =>
+                          rcases ih hrec with ⟨selected, hselected⟩
+                          exact ⟨selected, by
+                            simpa [freshRandomizedSelectWithRanksFuel?, hpivot, hlo,
+                              hmid] using hselected⟩
+
+/-- A successful public cost execution erases to the public fresh-rank path. -/
+theorem randomizedSelectCostWithSchedule_result
+    {c k : Nat} {xs choices : List Nat} {cost : Nat}
+    (hcost : randomizedSelectCostWithSchedule c k xs choices = some cost) :
+    ∃ x, freshRandomizedSelectWithRanks? choices k xs = some x := by
+  exact randomizedSelectCostWithScheduleFuel_result
+    (by simpa [randomizedSelectCostWithSchedule,
+      freshRandomizedSelectWithRanks?] using hcost)
+
+/-- Every successful costed schedule returns a rank-correct SELECT result. -/
+theorem randomizedSelectCostWithSchedule_rankCorrect
+    {c k : Nat} {xs choices : List Nat} {cost : Nat}
+    (hcost : randomizedSelectCostWithSchedule c k xs choices = some cost) :
+    ∃ x, RankCertificate xs k x := by
+  rcases randomizedSelectCostWithSchedule_result hcost with ⟨x, hx⟩
+  exact ⟨x, freshRandomizedSelectWithRanks?_correct hx⟩
 
 /-- Size of the continuation actually selected by one pivot-rank choice. -/
 def freshRandomizedSelectContinuationSize (k i : Nat) (xs : List Nat) : Nat :=
@@ -508,6 +627,289 @@ noncomputable def freshRandomizedSelectExpectedComparisonsFuel :
 noncomputable def freshRandomizedSelectExpectedComparisons
     (k : Nat) (xs : List Nat) : ℝ :=
   freshRandomizedSelectExpectedComparisonsFuel xs.length k xs
+
+/--
+Nested expected cost of fresh-rank RANDOMIZED-SELECT with local charge
+`c * length`.  The expectation is taken anew over the current subproblem at
+every recursive level; invalid ranks are absent because the sample space has
+cardinality equal to the current list length.  This is a recursively nested
+conditional-uniform semantics, not a flat uniform distribution over
+variable-length schedules, and it carries the same partition-work boundary as
+`randomizedSelectCostWithSchedule`.
+-/
+noncomputable def randomizedSelectExpectedCostFuel :
+    Nat → Nat → Nat → List Nat → Real
+  | 0, _, _, _ => 0
+  | _ + 1, _, _, [] => 0
+  | fuel + 1, c, k, x :: xs =>
+      c * ((x :: xs).length : Real) +
+        Probability.expect (x :: xs).length fun i =>
+          match selectByRank? i (x :: xs) with
+          | none => 0
+          | some pivot =>
+              if k < ltCount pivot (x :: xs) then
+                randomizedSelectExpectedCostFuel fuel c k
+                  ((x :: xs).filter fun y => decide (y < pivot))
+              else if k < leCount pivot (x :: xs) then
+                0
+              else
+                randomizedSelectExpectedCostFuel fuel c
+                  (k - leCount pivot (x :: xs))
+                  ((x :: xs).filter fun y => decide (pivot < y))
+
+/-- Public expected cost with one fuel unit for every input occurrence. -/
+noncomputable def randomizedSelectExpectedCost
+    (c k : Nat) (xs : List Nat) : Real :=
+  randomizedSelectExpectedCostFuel xs.length c k xs
+
+/-- Exact one-step unfolding of the state-dependent nested expectation. -/
+theorem randomizedSelectExpectedCostFuel_succ
+    (fuel c k x : Nat) (xs : List Nat) :
+    randomizedSelectExpectedCostFuel (fuel + 1) c k (x :: xs) =
+      c * ((x :: xs).length : Real) +
+        Probability.expect (x :: xs).length (fun i =>
+          match selectByRank? i (x :: xs) with
+          | none => 0
+          | some pivot =>
+              if k < ltCount pivot (x :: xs) then
+                randomizedSelectExpectedCostFuel fuel c k
+                  ((x :: xs).filter fun y => decide (y < pivot))
+              else if k < leCount pivot (x :: xs) then
+                0
+              else
+                randomizedSelectExpectedCostFuel fuel c
+                  (k - leCount pivot (x :: xs))
+                  ((x :: xs).filter fun y => decide (pivot < y))) := by
+  rw [randomizedSelectExpectedCostFuel]
+
+/-- Unit local charge recovers the existing fresh-comparison expectation. -/
+theorem randomizedSelectExpectedCost_one
+    (fuel k : Nat) (xs : List Nat) :
+    randomizedSelectExpectedCostFuel fuel 1 k xs =
+      freshRandomizedSelectExpectedComparisonsFuel fuel k xs := by
+  induction fuel generalizing k xs with
+  | zero =>
+      simp [randomizedSelectExpectedCostFuel,
+        freshRandomizedSelectExpectedComparisonsFuel]
+  | succ fuel ih =>
+      cases xs with
+      | nil =>
+          simp [randomizedSelectExpectedCostFuel,
+            freshRandomizedSelectExpectedComparisonsFuel]
+      | cons x xs =>
+          rw [randomizedSelectExpectedCostFuel,
+            freshRandomizedSelectExpectedComparisonsFuel]
+          simp only [Nat.cast_one, one_mul]
+          congr 1
+          apply congrArg (Probability.expect (x :: xs).length)
+          funext i
+          cases hpivot : selectByRank? i (x :: xs) with
+          | none =>
+              simp
+          | some pivot =>
+              by_cases hlo : k < ltCount pivot (x :: xs)
+              · simp [hlo, ih]
+              · by_cases hmid : k < leCount pivot (x :: xs)
+                · simp [hlo, hmid]
+                · simp [hlo, hmid, ih]
+
+/-- The nested fresh-choice expected cost is nonnegative. -/
+theorem randomizedSelectExpectedCost_nonneg
+    (fuel c k : Nat) (xs : List Nat) :
+    0 ≤ randomizedSelectExpectedCostFuel fuel c k xs := by
+  induction fuel generalizing c k xs with
+  | zero =>
+      simp [randomizedSelectExpectedCostFuel]
+  | succ fuel ih =>
+      cases xs with
+      | nil =>
+          simp [randomizedSelectExpectedCostFuel]
+      | cons x xs =>
+          rw [randomizedSelectExpectedCostFuel]
+          apply add_nonneg (by positivity)
+          apply Probability.expect_nonneg
+          intro i
+          cases selectByRank? i (x :: xs) with
+          | none =>
+              simp
+          | some pivot =>
+              by_cases hlo : k < ltCount pivot (x :: xs)
+              · simpa [hlo] using ih c k
+                  ((x :: xs).filter fun y => decide (y < pivot))
+              · by_cases hmid : k < leCount pivot (x :: xs)
+                · simp [hlo, hmid]
+                · simpa [hlo, hmid] using ih c
+                    (k - leCount pivot (x :: xs))
+                    ((x :: xs).filter fun y => decide (pivot < y))
+
+/-- The size-only RANDOMIZED-SELECT majorizer is monotone in input size. -/
+private theorem randSelectExpectedCost_monotone (c : Real) (hc : 0 ≤ c) :
+    Monotone (randSelectExpectedCost c) := by
+  apply monotone_nat_of_le_succ
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      rcases n with _ | m
+      · rw [randSelectExpectedCost_zero, randSelectExpectedCost_succ]
+        simp
+        exact hc
+      · have hmonoBelow : ∀ {a b : Nat}, a ≤ b → b ≤ m + 1 →
+            randSelectExpectedCost c a ≤ randSelectExpectedCost c b := by
+          intro a b hab hb
+          refine Nat.le_induction (m := a)
+            (P := fun j _ => j ≤ m + 1 →
+              randSelectExpectedCost c a ≤ randSelectExpectedCost c j)
+            (fun _ => le_rfl)
+            (fun j _ hchain hj =>
+              le_trans (hchain (by omega)) (ih j (by omega)))
+            b hab hb
+        let A : Nat → Real := fun i =>
+          randSelectExpectedCost c (max i (m - i))
+        let B : Nat → Real := fun i =>
+          randSelectExpectedCost c (max i (m + 1 - i))
+        let SA : Real := ∑ i ∈ Finset.range (m + 1), A i
+        let SB : Real := ∑ i ∈ Finset.range (m + 1), B i
+        have hAB : SA ≤ SB := by
+          apply Finset.sum_le_sum
+          intro i hi
+          have hiLt : i < m + 1 := Finset.mem_range.mp hi
+          apply hmonoBelow
+          · omega
+          · omega
+        have hAT :
+            SA ≤ (m + 1 : Real) * randSelectExpectedCost c (m + 1) := by
+          calc
+            SA ≤ ∑ _i ∈ Finset.range (m + 1),
+                randSelectExpectedCost c (m + 1) := by
+              apply Finset.sum_le_sum
+              intro i hi
+              apply hmonoBelow
+              · have hiLt : i < m + 1 := Finset.mem_range.mp hi
+                omega
+              · exact le_rfl
+            _ = (m + 1 : Real) * randSelectExpectedCost c (m + 1) := by
+              simp
+        have hn : (0 : Real) < m + 1 := by positivity
+        have hnp : (0 : Real) < m + 2 := by positivity
+        have hmulAB : (m + 1 : Real) * SA ≤ (m + 1 : Real) * SB :=
+          mul_le_mul_of_nonneg_left hAB hn.le
+        have hnum : SA * (m + 2 : Real) ≤
+            (SB + randSelectExpectedCost c (m + 1)) * (m + 1 : Real) := by
+          nlinarith [hAT, hmulAB]
+        have hAvg : SA / (m + 1 : Real) ≤
+            (SB + randSelectExpectedCost c (m + 1)) / (m + 2 : Real) := by
+          exact (div_le_div_iff₀ hn hnp).2 hnum
+        have hSBsucc :
+            (∑ i ∈ Finset.range (m + 1 + 1),
+                randSelectExpectedCost c (max i (m + 1 - i))) =
+              SB + randSelectExpectedCost c (m + 1) := by
+          rw [Finset.sum_range_succ]
+          simp [SB, B]
+        rw [randSelectExpectedCost_succ, randSelectExpectedCost_succ, hSBsucc]
+        have hlocal : c * (m + 1 : Real) ≤ c * (m + 2 : Real) := by
+          nlinarith
+        dsimp [SA, A] at hAvg
+        convert add_le_add hlocal hAvg using 1
+        · push_cast
+          ring
+
+/--
+The state-dependent nested expected cost is bounded by the CLRS larger-side
+majorizer on every input, rank, fuel amount, and nonnegative natural local-work
+constant.
+-/
+theorem randomizedSelectExpectedCost_le_randSelectExpectedCost :
+    ∀ (fuel c k : Nat) (xs : List Nat),
+      randomizedSelectExpectedCostFuel fuel c k xs ≤
+        randSelectExpectedCost c xs.length := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro c k xs
+      rw [randomizedSelectExpectedCostFuel]
+      exact randSelectExpectedCost_nonneg c (by positivity) xs.length
+  | succ fuel ih =>
+      intro c k xs
+      cases xs with
+      | nil =>
+          simp [randomizedSelectExpectedCostFuel, randSelectExpectedCost_zero]
+      | cons x xs =>
+          let ys := x :: xs
+          let X : Nat → Real := fun i =>
+            match selectByRank? i ys with
+            | none => 0
+            | some pivot =>
+                if k < ltCount pivot ys then
+                  randomizedSelectExpectedCostFuel fuel c k
+                    (ys.filter fun y => decide (y < pivot))
+                else if k < leCount pivot ys then
+                  0
+                else
+                  randomizedSelectExpectedCostFuel fuel c
+                    (k - leCount pivot ys)
+                    (ys.filter fun y => decide (pivot < y))
+          let Y : Nat → Real := fun i =>
+            randSelectExpectedCost c (max i (xs.length - i))
+          have hterm : ∀ i ∈ Finset.range ys.length, X i ≤ Y i := by
+            intro i hi
+            have hiLt : i < ys.length := Finset.mem_range.mp hi
+            rcases selectByRank?_isSome_of_lt hiLt with ⟨pivot, hpivot⟩
+            simp only [X, hpivot]
+            by_cases hlo : k < ltCount pivot ys
+            · simp only [hlo, if_pos]
+              have hsize :=
+                freshRandomizedSelectContinuationSize_le_subproblemSize
+                  (k := k) (i := i) (xs := ys) hiLt
+              have hlen :
+                  (ys.filter fun y => decide (y < pivot)).length ≤
+                    max i (xs.length - i) := by
+                change ltCount pivot ys ≤ max i (xs.length - i)
+                simpa [freshRandomizedSelectContinuationSize, hpivot, hlo,
+                  subproblemSize, ys] using hsize
+              exact le_trans (ih c k _)
+                (randSelectExpectedCost_monotone c (by positivity) hlen)
+            · by_cases hmid : k < leCount pivot ys
+              · simp only [hlo, hmid, if_false, if_true]
+                exact randSelectExpectedCost_nonneg c (by positivity) _
+              · simp only [hlo, hmid, if_false]
+                have hsize :=
+                  freshRandomizedSelectContinuationSize_le_subproblemSize
+                    (k := k) (i := i) (xs := ys) hiLt
+                have hlen :
+                    (ys.filter fun y => decide (pivot < y)).length ≤
+                      max i (xs.length - i) := by
+                  change gtCount pivot ys ≤ max i (xs.length - i)
+                  simpa [freshRandomizedSelectContinuationSize, hpivot, hlo,
+                    hmid, subproblemSize, ys] using hsize
+                exact le_trans (ih c (k - leCount pivot ys) _)
+                  (randSelectExpectedCost_monotone c (by positivity) hlen)
+          have hExpect :
+              Probability.expect ys.length X ≤
+                Probability.expect ys.length Y := by
+            unfold Probability.expect
+            apply div_le_div_of_nonneg_right
+            · exact Finset.sum_le_sum hterm
+            · positivity
+          rw [randomizedSelectExpectedCostFuel]
+          change (c : Real) * (ys.length : Real) +
+              Probability.expect ys.length X ≤
+            randSelectExpectedCost c (xs.length + 1)
+          rw [randSelectExpectedCost_recurrence]
+          have hadd := add_le_add_left hExpect ((c : Real) * (ys.length : Real))
+          simpa [Y, ys, Nat.cast_add, Nat.cast_one] using hadd
+
+/--
+Fresh per-recursion RANDOMIZED-SELECT has expected cost at most `4 * c * n`
+under the explicit local charge `c * currentLength`.
+-/
+theorem randomizedSelectExpectedCost_linear_bound
+    (c k : Nat) (xs : List Nat) :
+    randomizedSelectExpectedCost c k xs ≤
+      4 * c * (xs.length : Real) := by
+  unfold randomizedSelectExpectedCost
+  exact le_trans
+    (randomizedSelectExpectedCost_le_randSelectExpectedCost xs.length c k xs)
+    (randSelectExpectedCost_le c (by positivity) xs.length)
 
 /--
 The actual recursive continuation selected at pivot rank `i` is bounded by the

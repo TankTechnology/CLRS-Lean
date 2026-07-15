@@ -442,24 +442,39 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 - Current gap: none for the current model; mutable-Array operational semantics
   for the shuffle loop remain a future refinement target.
 
-### Section 5.4 - Probabilistic analysis (birthday paradox, balls and bins)
+### Section 5.4 - Probabilistic analysis
 
-- Lean source: `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
-- Status: `proved` for the product-uniform model over `Fin k → Fin n`
+- Lean sources:
+  - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
+  - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring.lean`
+- Status: `proved` for the birthday/balls-and-bins product-uniform model, the
+  longest-streak tail bound, and the executable finite on-line hiring strategy;
+  `partial` for the two headline expectation analyses
 - Main proved theorems:
   - `CLRS.Chapter05.singleBinProb`
   - `CLRS.Chapter05.pairSameProb`
   - `CLRS.Chapter05.expectedCollisions_eq`
   - `CLRS.Chapter05.expectedBallsInBin_eq`
+  - `CLRS.Chapter05.longestStreak_upperBound`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_some_iff`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_none_iff`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_after_observation`
+  - `CLRS.Chapter05.OnlineHiring.hiringStrategy_record`
 - Proof pattern: sample space `Fin k → Fin n` (each coordinate an independent
   uniform draw); re-derive the single-coordinate marginal (`singleBinProb = 1/n`)
   and pairwise-collision probability (`pairSameProb = 1/n`) from the toolkit's
   `fintypeExpect_equiv` / `fintypeExpect_fst` product independence; then linearity
   (`fintypeExpect_sum`) gives the birthday expectation `k(k-1)/(2n)` (CLRS
-  eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10))
-- Current gap: streak main theorem (expected longest run bound) and on-line hiring analysis are deferred
-- New definitions: `CoinFlip` sample space, `hasRunOfLength` (decidable run predicate),
-  `longestStreak` (length via Nat.find)
+  eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10)).  For
+  streaks, finite counting plus a union bound gives
+  `Pr[longestStreak ≥ t] ≤ n / 2^t`.  For on-line hiring, filter record
+  positions after the observation threshold and select their minimum.
+- Executable definitions: `CoinFlip`, `hasRunOfLength`, `longestStreak`,
+  `expectedLongestStreak`, `CLRS.Chapter05.OnlineHiring.hiringStrategy`, and
+  `CLRS.Chapter05.OnlineHiring.probHireBest`
+- Current gaps: prove `expectedLongestStreak n = Θ(log n)` from the streak tail
+  infrastructure; prove the threshold strategy's harmonic success-probability
+  formula and derive the textbook `1/e` asymptotic
 
 ## Chapter 6 - Heapsort
 
@@ -540,7 +555,10 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 ### Section 6.4 - The heapsort algorithm
 
 - Lean source: `CLRSLean/Chapter_06/Section_06_4_Heapsort.lean`
-- Status: `proved` for the in-place CLRS loop refinement
+- Costed source:
+  `CLRSLean/Chapter_06/Section_06_4_Heapsort/CostedExecution.lean`
+- Status: `proved` for the in-place CLRS loop refinement and its connected
+  coarse unit control-step envelopes
 - Main proved theorems:
   - `CLRS.Chapter06.ArrayMaxHeapExcept.of_swap_root_last`
   - `CLRS.Chapter06.SortedSuffix.of_swap_root_last`
@@ -579,6 +597,24 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter06.arrayHeapSort_orderedAsc`
   - `CLRS.Chapter06.arrayHeapSort_perm`
   - `CLRS.Chapter06.arrayHeapSort_correct`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_result`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_fuel`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_controlBound`
+  - `CLRS.Chapter06.buildMaxHeapLoopWithCost_result`
+  - `CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le`
+  - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_result`
+  - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_correct`
+  - `CLRS.Chapter06.arrayBuildMaxHeapWithCost_cost_le`
+  - `CLRS.Chapter06.arrayHeapSortStepWithCost_result`
+  - `CLRS.Chapter06.arrayHeapSortStepWithCost_cost_le_heapSize`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_result`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_cost_le`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_result`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_cost_le`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_cost`
+  - `CLRS.Chapter06.maxHeapifyControlBound_isBigO_n`
+  - `CLRS.Chapter06.buildMaxHeapControlBound_isBigO_nsq`
+  - `CLRS.Chapter06.heapSortControlBound_isBigO_nsq`
 - Proof pattern: the in-place loop repeatedly swaps the root with the last
   heap-prefix cell, shrinks the prefix, and heapifies the root.  The
   sorted-suffix invariant is represented by `SortedSuffix`, `PrefixLeSuffix`,
@@ -601,9 +637,16 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   length preservation in one package, with exact non-existential top-level
   packages provided by `arrayHeapSortInPlace_exact_state_correct` and
   `arrayHeapSort_exact_state_correct`.  The public `arrayHeapSort` name is
-  definitionally tied to this in-place loop.
-- Current gap: none for the current functional-array correctness theorem; RAM
-  costs and lower-level imperative array semantics remain separate refinements.
+  definitionally tied to this in-place loop.  The costed definitions mirror
+  the same heapify, build, extraction-step, and shrinking-loop transitions;
+  projection theorems recover the existing results, so correctness is reused
+  rather than reproved.  The metric counts visited `MAX-HEAPIFY` frames and one
+  extraction/swap transition for each nontrivial heapsort step.  Build-loop
+  orchestration, guards, list operations, allocation, and calls are free in
+  this model.  The named connected envelopes establish `O(n)` heapify,
+  `O(n^2)` build-heap, and `O(n^2)` heapsort upper bounds.
+- Current gap: tight textbook `O(log n)`, `O(n)`, and `O(n log n)` costs and a
+  lower-level imperative array/RAM semantics remain separate refinements.
 
 ### Section 6.5 - Priority queues
 
@@ -1068,6 +1111,15 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   - `CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize`
   - `CLRS.Chapter09.freshRandomizedSelectExpectedComparisonsFuel_linear_bound`
   - `CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound`
+  - `CLRS.Chapter09.randomizedSelectCostWithSchedule`
+  - `CLRS.Chapter09.randomizedSelectCostWithSchedule_result`
+  - `CLRS.Chapter09.randomizedSelectCostWithSchedule_rankCorrect`
+  - `CLRS.Chapter09.randomizedSelectExpectedCostFuel`
+  - `CLRS.Chapter09.randomizedSelectExpectedCostFuel_succ`
+  - `CLRS.Chapter09.randomizedSelectExpectedCost_one`
+  - `CLRS.Chapter09.randomizedSelectExpectedCost_nonneg`
+  - `CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost`
+  - `CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound`
   - `CLRS.Chapter09.pivotAtIndex?_mem`
   - `CLRS.Chapter09.randomizedSelectAtIndex?_rankCorrect`
   - `CLRS.Chapter09.randomizedSelectAtIndex?_mem`
@@ -1083,21 +1135,29 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
   two-step recurrence `maxSideSum_add_two`), which is the constant `< 1` the
   substitution needs. `randomizedSelectMajorizer_bigO_linear` packages this as
   `CLRS.Chapter03.isBigO (fun n => E[T n]) (fun n => (n : ℝ))`.
-  `freshRandomizedSelectExpectedComparisonsFuel` then supplies the actual
-  state-dependent stochastic semantics. Every recursive state averages anew
-  over the current `Fin n`; rank correctness bounds its low continuation by
-  `i` and its high continuation by `n-1-i`. Thus every real continuation is
-  pointwise below the same larger-side term, and
-  `freshRandomizedSelectExpectedComparisons_linear_bound` proves `E[C] ≤ 4n`.
-  The executable path interpreter `freshRandomizedSelectWithRanks?` consumes
-  one pivot rank at each level; its correctness theorem proves every successful
-  finite sample path satisfies the common `RankCertificate`.
+  `randomizedSelectCostWithSchedule` supplies the concrete cost-path semantics:
+  every visited state consumes one occurrence rank and charges
+  `c * currentLength`; exhausted or invalid schedules return `none`, and the
+  result/rank-correctness theorems erase successful runs to
+  `freshRandomizedSelectWithRanks?`.  The recursively nested expectation
+  `randomizedSelectExpectedCostFuel` averages anew over the current `Fin n` at
+  every state.  This is conditional-uniform sampling at each recursion level,
+  not a flat distribution over variable-length schedules.  Rank correctness
+  bounds each low or high continuation by the same larger-side recurrence term;
+  `randomizedSelectExpectedCost_le_randSelectExpectedCost` proves the bridge for
+  every input, rank, fuel value, and natural `c`, and
+  `randomizedSelectExpectedCost_linear_bound` derives `E[C] ≤ 4 * c * n`.
+  `randomizedSelectExpectedCost_one` records compatibility with the older
+  unit-charge fresh-comparison expectation.
   Rank correctness is inherited by instantiating the Section 9.3
   pivot-parametric `selectWithPivot?` skeleton with an index pivot oracle
   (`randomizedSelectAtIndex?_rankCorrect`).
-- Current gap: none for the finite fresh-choice comparison model.  The older
-  `randomizedSelectAtIndex? i` remains only a conditional correctness helper;
-  it is not used as the probability model.
+- Current gap: none for the finite fresh-choice partition-work model.  The
+  metric does not charge `selectByRank?`'s specification sorting, RNG work,
+  `List` primitives, allocation, or RAM operations, and no theorem identifies
+  the nested process with a flat distribution on variable-length schedules.
+  The older `randomizedSelectAtIndex? i` remains only a conditional correctness
+  helper; it is not used as the probability model.
 
 ### Chapter 9 completion boundary
 
@@ -1105,8 +1165,10 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
 - Stable interface test: `Tests/Chapter_09_Interface.lean`.
 - Closure audit: `docs/proof-audits/chapter-09-closure-2026-07-15.md`.
 - Sections 9.1--9.3 are complete for pure functional correctness and CLRS
-  comparison costs.  Mutable arrays, random-number generation, RAM timing,
-  allocation, and instruction-level traces are later implementation refinements.
+  comparison/partition-work costs.  The randomized metric charges
+  `c * currentLength` and uses nested current-state uniform choices; mutable
+  arrays, concrete random-number generation, specification-selector/list costs,
+  RAM timing, allocation, and instruction-level traces are later refinements.
 
 ## Chapter 10 - Elementary Data Structures
 
@@ -3017,12 +3079,12 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Item | Status | Reason |
 | --- | --- | --- |
 | Union-find implementation correctness | `proved` | Chapter 21's executable Batteries union-find and Chapter 23's stateful Kruskal bridge are proved, including the inverse-Ackermann scan bound.  Only low-level mutable-array/RAM constants remain optional. |
-| Chapter 6 priority-queue RAM costs | `deferred-implementation` | Array heap predicates, localized heap predicates, `largest` lemmas, no-swap heapify repair, recursive fuelled `MAX-HEAPIFY` repair, bottom-up build-heap, in-place heapsort loop correctness, bundled heapsort state-correctness, swap preservation, array `HEAP-MAXIMUM`, full fuelled `HEAP-INCREASE-KEY`, array `HEAP-EXTRACT-MAX`, and index-based `HEAP-DELETE` state correctness are proved; RAM costs remain refinement targets. |
+| Chapter 6 tight/RAM costs | `deferred-implementation` | Array heap predicates, recursive `MAX-HEAPIFY`, bottom-up build-heap, in-place heapsort, and priority-queue state correctness are proved.  Costed executions erase to heapify/build/heapsort and satisfy connected coarse `O(n)`, `O(n^2)`, and `O(n^2)` envelopes.  The metric counts heapify frames plus nontrivial extraction transitions, but not build orchestration, guards, list operations, or allocation; tight `O(log n)`, `O(n)`, and `O(n log n)` bounds and RAM refinement remain open. |
 | Chapter 7 mutable-array partition | `proved` | `partitionOnArray` supplies the mutable-Array partition refinement; only optional lower-level RAM accounting remains. |
 | Chapter 7 randomized probability semantics | `partial` | Random-permutation first-choice symmetry and `compared_prob = 2/(j-i+1)` are proved.  The remaining core target is the total-comparison random variable, expectation-sum identity, and `Theta(n log n)` bridge. |
 | Chapter 8 mutable output-array implementation | `proved` | The cumulative-count reverse scan fills a physical `Array`, refines `countingSortBy`, and has a linear work bound. |
-| Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; `expectedBucketQuadraticCost_eq_secondMoment` proves the CLRS second moment over explicit independent uniform inputs. `textbookBucketSortCost`, `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`, and `expectedTextbookBucketSortCost_isBigO` give the true linear expected CLRS unit-cost theorem. A single-pass executable builder, costed per-bucket sorter, and execution-cost refinement remain optional implementation layers. |
-| Chapter 9 randomized SELECT expected time | `proved` | `randSelectExpectedCost_recurrence` defines the uniform-pivot larger-side recurrence, while `freshRandomizedSelectExpectedComparisons` averages the actual selected continuation with a fresh `Fin n` choice at every recursive state. The pointwise coupling and `3n²/4` sum bound yield `freshRandomizedSelectExpectedComparisons_linear_bound : E[C] ≤ 4n`. |
+| Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; `expectedBucketQuadraticCost_eq_secondMoment` proves the CLRS second moment as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m`. `textbookBucketSortCost` is the CLRS unit-cost random variable, `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` identifies its true finite-uniform expectation, and `expectedTextbookBucketSortCost_isBigO` proves that expectation is linear. Remaining: a single-pass executable bucket builder, a costed per-bucket sorter, and a refinement theorem connecting their execution cost to the abstract model. |
+| Chapter 9 randomized SELECT expected time | `proved` | `randomizedSelectCostWithSchedule` consumes one occurrence-rank choice per visited state and charges `c * currentLength`, rejecting invalid/exhausted schedules; its erasure theorem connects successful runs to rank-correct SELECT. `randomizedSelectExpectedCostFuel` is a nested conditional-uniform process over the current `Fin n`, and `randomizedSelectExpectedCost_le_randSelectExpectedCost` couples it to the CLRS larger-side majorizer, yielding `randomizedSelectExpectedCost_linear_bound : E[C] ≤ 4 * c * n`. The metric excludes RNG, `selectByRank?` specification sorting, list primitives, and RAM work. |
 | Chapter 9 deterministic linear-time SELECT | `proved` | Selector correctness and totality, five-element certificates, full-input split counts, the `7n/10 + O(1)` branch bound, and the recursively computed median-of-medians pivot are proved. `recursiveMedianOfMediansComparisonCost_linear_bound` composes group work, nested pivot selection, partition scans, and the selected strict branch into the end-to-end bound `≤ 100n`. |
 | Maximum-subarray runtime analysis | `future-work` | Exhaustive-search, crossing-helper optimality, the executable combine step, and recursive split-tree/fuelled selector correctness are proved; runtime recurrence and RAM-cost refinement remain. |
 | Chapter 4 concrete all-input Master-theorem instantiation | `proved` | Floor/ceiling exact-power extraction, generic all-input transfer, adjacent-power sandwich generation, the discrete critical-power, log-critical, and tail-dominated wrappers, packaged floor/ceiling cases 1/2/3, natural-exponent polynomial wrappers for cases 1/2, the real-log bridge and named case-1 wrappers, the real-log-log bridge and named case-2 wrappers, and the case-3 regularity bridge (connecting `tailDominatedScale` to `f(n)`) are all proved. |

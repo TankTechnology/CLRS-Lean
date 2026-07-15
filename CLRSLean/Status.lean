@@ -27,7 +27,12 @@ the detailed maintainer ledger.
   Fibonacci growth, and the iterated logarithm.
 * **Chapter 6:** the current heap predicate, recursive {lit}`MAX-HEAPIFY`,
   bottom-up {lit}`BUILD-MAX-HEAP`, heapsort, and represented priority-queue
-  operation specifications.
+  operation specifications.  A costed execution mirrors heapify, build-heap,
+  and heapsort, erases to those algorithms, and proves coarse connected
+  {lit}`O(n)`, {lit}`O(n²)`, and {lit}`O(n²)` unit control-step envelopes.
+  This metric counts visited heapify frames and nontrivial extraction
+  transitions, but not build-loop orchestration, guards, list-operation costs,
+  or RAM semantics; tight textbook bounds remain refinements.
 * **Chapter 8 correctness:** represented counting-sort, radix-sort, and
   bucket-sort correctness.  The CLRS unit-cost bucket-sort random variable is
   {lit}`CLRS.Chapter08.textbookBucketSortCost`; its expectation identity is
@@ -37,8 +42,13 @@ the detailed maintainer ledger.
   bucket builder, a costed per-bucket sorter, and a refinement theorem
   connecting their execution cost to the abstract model.
 * **Chapter 9:** pairwise simultaneous extrema, order-statistic correctness,
-  fresh-choice RANDOMIZED-SELECT expected comparisons, and end-to-end
-  recursive median-of-medians worst-case comparisons.
+  a schedule-driven RANDOMIZED-SELECT path cost with erasure/rank correctness,
+  the nested fresh-choice expectation and its bridge to the CLRS larger-side
+  majorizer ({lit}`≤ 4 * c * n`), and end-to-end recursive median-of-medians
+  worst-case comparisons.  The randomized metric charges
+  {lit}`c * currentLength` partition work only; concrete RNG, internal
+  {lit}`selectByRank?` sorting cost, list primitives, and RAM accounting remain
+  lower-level refinements.
 * **Chapter 21:** abstract and executable disjoint-set correctness, weighted
   linked-list analysis, reachable rank mass, concrete Batteries traversal
   costs, and the {lit}`O((m+n) alpha(n))` potential analysis.
@@ -61,8 +71,10 @@ the detailed maintainer ledger.
 * **Chapter 20 correctness:** all seven operations of the recursive cached-
   extrema vEB model and their control-flow-aware {lit}`O(log log u)` bounds.
 * **Selected complete sections:** Chapter 5.1--5.4 core models and Chapter
-  10.1, 10.2, and 10.4 functional structures.  Chapter-end Problems and
-  pointer/RAM refinements are separate tracks.
+  10.1, 10.2, and 10.4 functional structures.  Chapter 5 also represents the
+  longest-streak tail bound and an executable on-line hiring strategy; their
+  remaining asymptotics are chapter-end Problems.  Pointer/RAM refinements are
+  separate tracks.
 
 ## Structured But Partial
 

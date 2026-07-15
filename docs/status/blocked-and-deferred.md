@@ -29,10 +29,36 @@ heap as the main result.  It proves the indexed array heap layer, recursive
 fuelled `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort with a
 shrinking heap prefix and sorted suffix, top-level heapsort sortedness and
 permutation preservation, and array-level priority-queue state theorems for
-maximum, increase-key, extract-max, and delete.
+maximum, increase-key, extract-max, and delete.  The connected costed execution
+now mirrors heapify, build-heap, and heapsort and proves coarse `O(n)`,
+`O(n^2)`, and `O(n^2)` envelopes after erasing the cost component.
 
-The deferred implementation layer is now the line-by-line CLRS RAM-cost model,
-not the array heap proof itself.
+The proved unit control-step metric counts visited `MAX-HEAPIFY` frames and
+one extraction/swap transition per nontrivial heapsort step.  Build-loop
+orchestration, guards, `List` operations, allocation, and calls are not charged
+separately.  The deferred layer is therefore the tight textbook `O(log n)`,
+`O(n)`, and `O(n log n)` analysis plus a line-by-line imperative array/RAM
+refinement, not the array heap or erasure proof itself.
+
+### Chapter 9 RANDOMIZED-SELECT Low-Level Cost Refinement
+
+- Related section: Section 9.2 - Selection in expected linear time
+- Status: `deferred-implementation`
+- Functional and partition-work status: proved
+
+`randomizedSelectCostWithSchedule` now consumes one occurrence-rank choice per
+visited recursive state, charges `c * currentLength`, rejects exhausted or
+out-of-range schedules, and erases successful runs to rank-correct SELECT.
+`randomizedSelectExpectedCostFuel` samples a fresh uniform rank from the current
+`Fin n` at each level; `randomizedSelectExpectedCost_le_randSelectExpectedCost`
+couples that nested process to the CLRS larger-side recurrence, and
+`randomizedSelectExpectedCost_linear_bound` proves `E[C] ≤ 4 * c * n`.
+
+The deferred layer is lower-level execution accounting: a concrete RNG,
+mutable in-place partitioning, costs of `List` primitives and the
+`selectByRank?` specification sorter, allocation, and RAM operations.  The
+proved expectation is recursively conditional-uniform; it is not stated as a
+flat uniform expectation over variable-length schedules.
 
 ### Chapter 23 Mutable Heap And RAM Refinement
 
@@ -119,6 +145,22 @@ refinement is runtime recurrence analysis and, eventually, a RAM-cost model for
 the textbook pseudocode.
 
 ## Future Work
+
+### Chapter 5.4 Longest-Streak And On-Line Hiring Analysis
+
+- Related section: Section 5.4 - Probabilistic analysis of randomized algorithms
+- Status: `future-work`
+
+The finite foundations are present.  The streak model proves
+`CLRS.Chapter05.longestStreak_upperBound` and defines
+`CLRS.Chapter05.expectedLongestStreak`.  The on-line hiring model provides an
+executable threshold strategy, exact `some`/`none` contracts, and the finite
+uniform success probability `CLRS.Chapter05.OnlineHiring.probHireBest`.
+
+Two textbook-facing analyses remain: derive the logarithmic expectation bound
+for the longest streak, and prove the on-line strategy's harmonic success
+formula together with its `1/e` asymptotic.  These theorem gaps do not block use
+of either executable finite model.
 
 ### CLRS Exercises
 
