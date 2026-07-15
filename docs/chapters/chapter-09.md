@@ -26,22 +26,38 @@ count is at most `3 * floor(n / 2)`.
 - Status: `proved`
 - Main theorems: `CLRS.Chapter09.quickSelect?_correct`,
   `CLRS.Chapter09.randomizedSelectMajorizer_bigO_linear`,
-  `CLRS.Chapter09.freshRandomizedSelectWithRanks?_correct`,
-  `CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize`, and
-  `CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound`
+  `CLRS.Chapter09.randomizedSelectCostWithSchedule_rankCorrect`,
+  `CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize`,
+  `CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost`, and
+  `CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound`
 
 The common rank certificate handles duplicates by requiring that the number
 of strictly smaller values is at most the requested zero-based rank and that
 the number of weakly smaller values is greater than the rank. The expected-cost
 support first derives the uniform-pivot larger-side recurrence and proves that
-it is `O(n)`. It then defines the actual state-dependent expected comparison
-cost: every recursive call samples a fresh uniform pivot rank from the current
-`Fin n`, partitions the current input, and follows only the branch selected by
-the requested rank. `freshRandomizedSelectWithRanks?` is the executable
-finite-path interpreter, and every successful choice path is rank-correct.
-Each real continuation is bounded by
-`max i (n - 1 - i)`, and the existing `3n²/4` sum bound closes
-`freshRandomizedSelectExpectedComparisons k xs ≤ 4 * xs.length`.
+it is `O(n)`. The schedule interpreter
+`randomizedSelectCostWithSchedule c k xs choices` consumes one occurrence rank
+per visited state, charges exactly `c * currentLength`, rejects exhausted or
+out-of-range schedules, and erases every successful cost run to the same
+rank-correct SELECT path.
+
+The expected semantics is recursively state-dependent: every recursive call
+samples a fresh uniform occurrence rank from the current `Fin n`, partitions
+the current input, and follows only the branch selected by the requested rank.
+This is a nested conditional-uniform process, not a flat uniform distribution
+over variable-length schedules. Each real continuation is bounded by
+`max i (n - 1 - i)` even with duplicate values. The theorem
+`randomizedSelectExpectedCost_le_randSelectExpectedCost` couples every input,
+rank, fuel value, and natural local-work constant to the CLRS majorizer;
+`randomizedSelectExpectedCost_linear_bound` then proves
+`E[C] ≤ 4 * c * xs.length`. The older unit-charge theorem
+`freshRandomizedSelectExpectedComparisons_linear_bound` remains compatible via
+`randomizedSelectExpectedCost_one`.
+
+The metric is deliberately a partition-work abstraction. It does not charge
+the specification implementation of `selectByRank?` (which sorts to expose an
+occurrence rank), random-number generation, `List` primitives, allocation, or
+RAM instructions.
 
 ## Section 9.3 - Selection in worst-case linear time
 
@@ -72,5 +88,6 @@ strengthened induction over input size and both fuel parameters proves
 
 The chapter is `main-proof-complete` for pure functional correctness and CLRS
 comparison costs. Mutable-array partitioning, an implementation of the random
-number generator, allocation, and hardware-level RAM timing are lower-level
-engineering refinements and do not reopen this proof boundary.
+number generator, the internal cost of the rank-coordinate analysis function,
+allocation, and hardware-level RAM timing are lower-level engineering
+refinements and do not reopen this proof boundary.

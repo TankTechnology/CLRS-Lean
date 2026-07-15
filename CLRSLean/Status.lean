@@ -40,8 +40,13 @@ the detailed maintainer ledger.
   bucket builder, a costed per-bucket sorter, and a refinement theorem
   connecting their execution cost to the abstract model.
 * **Chapter 9:** pairwise simultaneous extrema, order-statistic correctness,
-  fresh-choice RANDOMIZED-SELECT expected comparisons, and end-to-end
-  recursive median-of-medians worst-case comparisons.
+  a schedule-driven RANDOMIZED-SELECT path cost with erasure/rank correctness,
+  the nested fresh-choice expectation and its bridge to the CLRS larger-side
+  majorizer ({lit}`≤ 4 * c * n`), and end-to-end recursive median-of-medians
+  worst-case comparisons.  The randomized metric charges
+  {lit}`c * currentLength` partition work only; concrete RNG, internal
+  {lit}`selectByRank?` sorting cost, list primitives, and RAM accounting remain
+  lower-level refinements.
 * **Chapter 21:** abstract and executable disjoint-set correctness, weighted
   linked-list analysis, reachable rank mass, concrete Batteries traversal
   costs, and the {lit}`O((m+n) alpha(n))` potential analysis.

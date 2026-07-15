@@ -43,3 +43,40 @@ import CLRSLean.Chapter_09
 #check CLRS.Chapter09.freshRandomizedSelectContinuationSize_le_subproblemSize
 #check CLRS.Chapter09.freshRandomizedSelectExpectedComparisons
 #check CLRS.Chapter09.freshRandomizedSelectExpectedComparisons_linear_bound
+
+-- Fresh schedule execution and its state-dependent nested expected cost.
+#check CLRS.Chapter09.randomizedSelectCostWithSchedule
+#check CLRS.Chapter09.randomizedSelectCostWithSchedule_result
+#check CLRS.Chapter09.randomizedSelectCostWithSchedule_rankCorrect
+#check CLRS.Chapter09.randomizedSelectExpectedCostFuel
+#check CLRS.Chapter09.randomizedSelectExpectedCostFuel_succ
+#check CLRS.Chapter09.randomizedSelectExpectedCost
+#check CLRS.Chapter09.randomizedSelectExpectedCost_one
+#check CLRS.Chapter09.randomizedSelectExpectedCost_nonneg
+#check CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost
+#check CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound
+
+example :
+    CLRS.Chapter09.randomizedSelectCostWithSchedule
+      1 0 [1, 2] [1, 0] = some 3 := by
+  native_decide
+
+example :
+    CLRS.Chapter09.randomizedSelectCostWithSchedule
+      1 0 [1, 2] [1, 1] = none := by
+  native_decide
+
+example :
+    CLRS.Chapter09.randomizedSelectExpectedCost 1 0 [1, 2] =
+      (5 : Real) / 2 := by
+  have hfirst : CLRS.Chapter09.selectByRank? 0 [1, 2] = some 1 := by
+    native_decide
+  have hsecond : CLRS.Chapter09.selectByRank? 1 [1, 2] = some 2 := by
+    native_decide
+  have hsingleton : CLRS.Chapter09.selectByRank? 0 [1] = some 1 := by
+    native_decide
+  norm_num [CLRS.Chapter09.randomizedSelectExpectedCost,
+    CLRS.Chapter09.randomizedSelectExpectedCostFuel,
+    CLRS.Probability.expect, CLRS.Chapter09.ltCount,
+    CLRS.Chapter09.leCount, Finset.sum_range_succ,
+    hfirst, hsecond, hsingleton]
