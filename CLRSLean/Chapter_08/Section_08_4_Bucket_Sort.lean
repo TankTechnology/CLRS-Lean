@@ -514,55 +514,47 @@ theorem expectedBucketQuadraticCost_eq_secondMoment {m n : Nat} (hm : 0 < m) :
   field_simp
   ring
 
-/-! ## Algorithmic cost connection
+/-! ## Textbook abstract bucket-sort cost
 
-We now connect the abstract expected-cost formula to the actual
-{name}`bucketSortByRank` algorithm by defining an instrumented cost counter.
-The cost model charges {lit}`1` per element for the distribution pass and
-{lit}`n_i²` per bucket of size {lit}`n_i` for the per-bucket sort (a safe
-over-estimate of merge-sort'\''s {lit}`O(n log n)` cost).  Taking expectation
-over the uniform input distribution yields {lit}`O(n)` via the already-proved
-second moment {name}`expectedBucketQuadraticCost_eq_secondMoment`.
+The CLRS unit-cost random variable charges {lit}`n + Σ_j n_j²` for an
+assignment of {lit}`n` keys to {lit}`n` buckets: {lit}`n` for the scan and
+distribution term, and the occupancy-square sum for the textbook per-bucket
+sorting bound.  This is an abstract model over uniformly random bucket
+assignments.  It does not instrument the current executable
+{name}`bucketSortByRank`, whose implementation repeatedly filters the input to
+construct its buckets.
 -/
 
 open Chapter03
 
-/--
-Cost counter for one execution of bucket sort with {lit}`n` elements and
-{lit}`n` buckets.  Charges {lit}`n` for the distribution pass plus the
-bucket-occupancy second moment {lit}`Σ_j n_j²` for the per-bucket sorts.
--/
-noncomputable def bucketSortCost (n : ℕ) (a : Fin n → Fin n) : ℝ :=
+/-- The CLRS abstract unit-cost random variable {lit}`n + Σ_j n_j²`. -/
+noncomputable def textbookBucketSortCost (n : ℕ) (a : Fin n → Fin n) : ℝ :=
   (n : ℝ) + bucketSecondMoment a
 
 /--
-The expected cost of bucket sort over the uniform input distribution is
-{lit}`O(n)`.  Linearity of expectation splits the cost into the constant
-distribution term {lit}`n` plus the second moment, which the existing theorem
-{name}`expectedBucketQuadraticCost_eq_secondMoment` shows equals
-{lit}`2n - 1`.
+The expectation of the textbook random variable is exactly the existing
+abstract expected-cost expression.  The second-moment term is discharged by
+{name}`expectedBucketQuadraticCost_eq_secondMoment`.
 -/
-theorem expectedBucketSortCost_isBigO_n :
-    isBigO (fun n : ℕ => fintypeExpect (bucketSortCost n)) (fun n : ℕ => (n : ℝ)) := by
+theorem fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost
+    (n : ℕ) (hn : 0 < n) :
+    fintypeExpect (textbookBucketSortCost n) = expectedBucketSortCost n := by
   classical
+  unfold textbookBucketSortCost
+  rw [fintypeExpect_add]
+  have h_const : fintypeExpect (fun _ : Fin n → Fin n => (n : ℝ)) = (n : ℝ) := by
+    simp [fintypeExpect]
+  rw [h_const, expectedBucketQuadraticCost_eq_secondMoment hn]
+  rfl
+
+/-- The CLRS abstract unit-cost random variable has linear expectation. -/
+theorem expectedTextbookBucketSortCost_isBigO :
+    isBigO (fun n : ℕ => fintypeExpect (textbookBucketSortCost n))
+      (fun n : ℕ => (n : ℝ)) := by
   rw [isBigO_iff]
   refine ⟨3, by norm_num, 1, fun n hn => ?_⟩
   have hn_pos : 0 < n := by omega
-  have hn_pos' : 0 < (n : ℝ) := by exact_mod_cast hn_pos
-  -- Decompose expectation by linearity
-  unfold bucketSortCost
-  have h_add := fintypeExpect_add (fun (_ : Fin n → Fin n) => (n : ℝ)) (bucketSecondMoment (m := n) (n := n))
-  -- h_add: fintypeExpect (fun a => (n:ℝ) + bucketSecondMoment a) = fintypeExpect (fun _ => n) + fintypeExpect bucketSecondMoment
-  rw [h_add]
-  -- fintypeExpect (fun _ => n) = n
-  have h_const : fintypeExpect (fun _ : Fin n → Fin n => (n : ℝ)) = (n : ℝ) := by
-    simp [fintypeExpect]
-  rw [h_const]
-  -- fintypeExpect bucketSecondMoment = expectedBucketQuadraticCost n n
-  rw [expectedBucketQuadraticCost_eq_secondMoment hn_pos]
-  -- expectedBucketSortCost is defined as n + expectedBucketQuadraticCost n n
-  have h_bound : (n : ℝ) + expectedBucketQuadraticCost n n = expectedBucketSortCost n := rfl
-  rw [h_bound]
+  rw [fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost n hn_pos]
   have hle : expectedBucketSortCost n ≤ 3 * (n : ℝ) := expectedBucketSortCost_linear_bound n hn_pos
   have h_nonneg : 0 ≤ expectedBucketSortCost n := by
     rw [expectedBucketSortCost_self_eq n hn_pos]
