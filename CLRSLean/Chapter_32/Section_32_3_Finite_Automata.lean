@@ -19,24 +19,49 @@ namespace Chapter32
 section SuffixLemmas
 variable {α : Type}
 
+lemma isSuffix_eq_drop {s t : Text α} (h : isSuffix s t) : s = t.drop (t.length - s.length) := by
+  rcases h with ⟨p, hp⟩
+  have hlen : p.length + s.length = t.length := by
+    simpa [List.length_append] using congrArg List.length hp
+  have h_sub : t.length - s.length = p.length := by omega
+  calc
+    s = (p ++ s).drop p.length := by simp
+    _ = t.drop p.length := by rw [hp]
+    _ = t.drop (t.length - s.length) := by rw [h_sub]
+
 lemma suffix_unique {s s' t : Text α} (h : isSuffix s t) (h' : isSuffix s' t)
     (hlen : s.length = s'.length) : s = s' := by
-  sorry
+  rw [isSuffix_eq_drop h, isSuffix_eq_drop h', hlen]
 
 lemma suffix_append_right {s t u : Text α} (h : isSuffix s t) : isSuffix (s ++ u) (t ++ u) := by
-  sorry
+  rcases h with ⟨p, hp⟩
+  refine ⟨p, ?_⟩
+  calc
+    p ++ (s ++ u) = (p ++ s) ++ u := by rw [List.append_assoc]
+    _ = t ++ u := by rw [hp]
 
 lemma suffix_trans {r s t : Text α} (hrs : isSuffix r s) (hst : isSuffix s t) :
     isSuffix r t := by
-  sorry
+  rcases hrs with ⟨p, hp⟩
+  rcases hst with ⟨q, hq⟩
+  refine ⟨q ++ p, ?_⟩
+  calc
+    (q ++ p) ++ r = q ++ (p ++ r) := by rw [List.append_assoc]
+    _ = q ++ s := by rw [hp]
+    _ = t := hq
 
 lemma suffix_dropLast {s t : Text α} {a : α} (h : isSuffix (s ++ [a]) (t ++ [a])) :
     isSuffix s t := by
+  -- Proof deferred: requires list cancellation after dropping last element
   sorry
 
 lemma suffix_last_eq_of_append {s t : Text α} {a : α} (hSuf : isSuffix s (t ++ [a]))
     (hs_ne : s ≠ []) : s.getLast? = some a := by
-  sorry
+  rcases hSuf with ⟨p, hp⟩
+  have hlast : (t ++ [a]).getLast? = some a := by simp
+  have := congrArg List.getLast? hp
+  simp [hs_ne, hlast] at this ⊢
+  exact this
 
 lemma dropLast_take_eq_take_pred {P : Text α} {k : ℕ} (hk : 0 < k) (hkP : k ≤ P.length) :
     (P.take k).dropLast = P.take (k-1) := by

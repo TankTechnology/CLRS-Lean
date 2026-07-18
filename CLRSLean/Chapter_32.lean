@@ -1,4 +1,6 @@
 import CLRSLean.Chapter_32.Section_32_1_String_Model
+import CLRSLean.Chapter_32.Section_32_1_Naive_Matcher
+import CLRSLean.Chapter_32.Section_32_2_Rabin_Karp
 import CLRSLean.Chapter_32.Section_32_3_Finite_Automata
 import CLRSLean.Chapter_32.Section_32_4_KMP
 
@@ -11,8 +13,15 @@ approach and the Knuth-Morris-Pratt (KMP) algorithm, both of which run in
 
 This formalization currently covers:
 
-* **32.1 The naive string-matching algorithm** — string model, prefix/suffix
-  operations, and the basic definitions needed for string matching.
+* **32.1 The naive string-matching algorithm** —
+  {lit}`CLRS.Chapter32.naiveMatcher` — shifts through positions `0..n-m`,
+  checking pattern matches at each shift, `O(mn)` time.  Also the string
+  model with prefix/suffix operations and the basic definitions.
+
+* **32.2 The Rabin-Karp algorithm** —
+  {lit}`CLRS.Chapter32.rabinKarpMatcher` — polynomial rolling hash
+  (`hash d q s`), rolling update step, and a matcher using direct window
+  hashing with character-by-character verification of candidates.
 
 * **32.3 String matching with finite automata** — the suffix function `σ`,
   the DFA construction via `δ(q,a)=σ(P_q ++ [a])`, and the proof that the
@@ -27,12 +36,26 @@ This formalization currently covers:
 * **32.1 String model.**
   Main definitions:
   {lit}`CLRS.Chapter32.Text`,
-  {lit}`CLRS.Chapter32.prefix`,
+  {lit}`CLRS.Chapter32.textPrefix`,
   {lit}`CLRS.Chapter32.suffix`,
   {lit}`CLRS.Chapter32.isPrefix`,
   {lit}`CLRS.Chapter32.isSuffix`,
   {lit}`CLRS.Chapter32.isProperPrefix`,
   {lit}`CLRS.Chapter32.isProperSuffix`.
+  Also the naive matcher:
+  {lit}`CLRS.Chapter32.naiveMatcher`,
+  {lit}`CLRS.Chapter32.matchesAt`.
+
+* **32.2 Rabin-Karp.**
+  Main definitions:
+  {lit}`CLRS.Chapter32.digVal`,
+  {lit}`CLRS.Chapter32.hash`,
+  {lit}`CLRS.Chapter32.dPower`,
+  {lit}`CLRS.Chapter32.rollingFactor`,
+  {lit}`CLRS.Chapter32.rollingHashStep`,
+  {lit}`CLRS.Chapter32.windowHash`,
+  {lit}`CLRS.Chapter32.rabinKarpMatcher`,
+  {lit}`CLRS.Chapter32.isSpuriousHit`.
 
 * **32.3 Finite automata.**
   Main definitions:
@@ -61,8 +84,7 @@ This formalization currently covers:
 
 ## Future work
 
-* 32.2 The Rabin-Karp algorithm (rolling hash).
-* Full occurrence-finding proofs (rather than just stating correctness).
+* Full occurrence-finding proofs with rolling-hash optimization for Rabin-Karp.
 
 ## References
 

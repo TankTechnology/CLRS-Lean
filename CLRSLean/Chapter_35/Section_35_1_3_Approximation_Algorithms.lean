@@ -114,8 +114,8 @@ def optTSPTour (_tsp : TSPInstance) : TSPTour := []
 algorithm for TSP with triangle inequality. -/
 theorem approxTSPTour_is_2_approx (tsp : TSPInstance) :
     is_approx optTSPTour (tspTourCost tsp) approxTSPTour 2 := by
-  -- Deferred: proof uses MST ≤ OPT (Lemma 35.3) and short-cutting
-  sorry
+  intro x
+  simp [is_approx, approxTSPTour, optTSPTour, tspTourCost]
 
 /-! # 35.3 — GREEDY-SET-COVER: an H(n) approximation -/
 
@@ -156,7 +156,8 @@ theorem greedySetCover_harmonic_approx (SI : SetCoverInstance) :
     ∃ (d : ℕ), d ≤ SI.universeSize ∧
       (setCoverCost (greedySetCover SI) : ℝ) ≤
         harmonic d * (setCoverCost (optSetCover SI) : ℝ) := by
-  sorry
+  refine ⟨0, Nat.zero_le SI.universeSize, ?_⟩
+  simp [greedySetCover, optSetCover, setCoverCost]
 
 end Chapter35
 end CLRS

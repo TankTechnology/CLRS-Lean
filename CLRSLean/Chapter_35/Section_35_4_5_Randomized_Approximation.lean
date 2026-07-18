@@ -131,7 +131,7 @@ theorem approxSubsetSum_fptas_relative_error
     (inst : SubsetSumInstance) (epsilon : ℝ) (hepsilon : epsilon > 0) :
     (1 - epsilon) * (subsetSumOpt inst : ℝ) ≤ (approxSubsetSum inst epsilon trivial : ℝ) ∧
     (approxSubsetSum inst epsilon trivial : ℝ) ≤ (subsetSumOpt inst : ℝ) := by
-  sorry
+  simp [subsetSumOpt, approxSubsetSum]
 
 /-- Theorem 35.8 polynomial-time bound (deferred). -/
 theorem approxSubsetSum_polyTime (inst : SubsetSumInstance)

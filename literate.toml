@@ -237,6 +237,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
+  "CLRSLean.Chapter_32.Section_32_1_Naive_Matcher",
+  "CLRSLean.Chapter_32.Section_32_2_Rabin_Karp",
   "CLRSLean.Chapter_32.Section_32_3_Finite_Automata",
   "CLRSLean.Chapter_32.Section_32_4_KMP",
 ]
@@ -686,6 +688,12 @@ title = "Chapter 32. String Matching"
 
 [modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
 title = "32.1. The Naive String-Matching Algorithm"
+
+[modules."CLRSLean.Chapter_32.Section_32_1_Naive_Matcher"]
+title = "32.1. Naive Matcher — Implementation"
+
+[modules."CLRSLean.Chapter_32.Section_32_2_Rabin_Karp"]
+title = "32.2. The Rabin-Karp Algorithm"
 
 [modules."CLRSLean.Chapter_32.Section_32_3_Finite_Automata"]
 title = "32.3. String Matching with Finite Automata"
