@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model
+import CLRSLean.Chapter_25.Section_25_2_Predecessor_Paths
 
 /-!
 # Chapter 25 - All-Pairs Shortest Paths
@@ -7,45 +8,47 @@ Chapter 25 generalises the single-source shortest-path machinery of Chapter 24
 to the **all-pairs** setting: compute the shortest-path distance for every
 ordered pair of vertices.  The chapter formalises two main families of algorithms:
 
-1. Repeated squaring of the min-plus matrix product (Section 25.1, this section).
-2. The Floyd-Warshall algorithm (Section 25.2).
+1. Repeated squaring of the min-plus matrix product (Section 25.1).
+2. The Floyd-Warshall algorithm with predecessor matrix and path reconstruction
+   (Section 25.2).
 
 ## Sections
 
 * 25.1 All-pairs shortest paths model and repeated-squaring DP.
   Main declarations:
-  {lit}`CLRS.Chapter25.AllPairs.weightMatrix`,
-  {lit}`CLRS.Chapter25.AllPairs.minPlusMul`,
-  {lit}`CLRS.Chapter25.AllPairs.extendShortestPaths`,
-  {lit}`CLRS.Chapter25.AllPairs.L`,
-  {lit}`CLRS.Chapter25.AllPairs.fasterAPSP`,
-  {lit}`CLRS.Chapter25.AllPairs.lemma_25_1`,
-  {lit}`CLRS.Chapter25.AllPairs.L_sq_eq_minPlusMul` (Lemma 25.2),
-  {lit}`CLRS.Chapter25.AllPairs.fasterAPSP_eq_L`,
-  {lit}`CLRS.Chapter25.AllPairs.fasterAPSP_eq_shortestDist`.
+  {lit}`CLRS.Chapter24.WeightedGraph.weightMatrix`,
+  {lit}`CLRS.Chapter24.WeightedGraph.minPlusMul`,
+  {lit}`CLRS.Chapter24.WeightedGraph.extendShortestPaths`,
+  {lit}`CLRS.Chapter24.WeightedGraph.L`,
+  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP`.
+
+* 25.2 Predecessor matrix and Floyd-Warshall algorithm.
+  Main declarations:
+  {lit}`CLRS.Chapter24.WeightedGraph.PredecessorMatrix`,
+  {lit}`CLRS.Chapter24.WeightedGraph.initPredecessorMatrix`,
+  {lit}`CLRS.Chapter24.WeightedGraph.floydWarshallStep`,
+  {lit}`CLRS.Chapter24.WeightedGraph.floydWarshall`,
+  {lit}`CLRS.Chapter24.WeightedGraph.reconstructPath`,
+  {lit}`CLRS.Chapter24.WeightedGraph.hasNegCycle`,
+  {lit}`CLRS.Chapter24.WeightedGraph.detectsNegCycle`.
 
 ## Current Shape
 
 Section 25.1 defines the edge-weight matrix {lit}`W`, the min-plus matrix product
 {lit}`A ◁ B`, and the inductive sequence {lit}`L^(m)` of shortest-path weights
 using at most {lit}`m` edges.  It then defines {lit}`FASTER-APSP` as repeated
-squaring (via {lit}`Function.iterate`) and proves:
+squaring (via {lit}`Function.iterate`).
 
-* Lemma 25.1: {lit}`L^(m+1)_ij = min_k (L^m_ik + w_kj)`.
-* Lemma 25.2 (squaring identity): {lit}`L^(2m) = L^m ◁ L^m`.
-* Under no negative-weight cycles, {lit}`L^m = L^{|V|-1}` for all {lit}`m ≥ |V|-1`.
-* {lit}`fasterAPSP = L^{|V|-1} = δ`, the all-pairs shortest-path matrix
-  ({lit}`fasterAPSP_eq_shortestDist`).
-
-The proof uses the link to Chapter 24's {lit}`relaxDist` and {lit}`NoNegCycle`,
-avoiding a separate triangle-inequality fixpoint argument by leveraging
-monotonicity of {lit}`L` and the walk-attainability lemma.
+Section 25.2 defines the predecessor matrix {lit}`Π` for path reconstruction,
+the Floyd-Warshall algorithm with predecessor tracking, and negative cycle
+detection via negative diagonal entries ({lit}`hasNegCycle`).  Full correctness
+proofs are deferred.
 
 ## Deferred Work
 
-* Floyd-Warshall (Section 25.2).
-* Predecessor matrix {lit}`Π` and path reconstruction.
-* Negative-cycle detection (CLRS Theorem 25.3).
+* Full correctness proofs for Floyd-Warshall.
+* Path reconstruction correctness ({lit}`reconstructPath_is_walk`).
+* Negative-cycle detection proof (CLRS Theorem 25.3).
 * Transitive closure (Section 25.2 variant).
 * {lit}`O(n³ log n)` work count refinement (the current proof gives
   correctness; an explicit cost model is a separate refinement).

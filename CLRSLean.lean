@@ -30,6 +30,7 @@ import CLRSLean.Chapter_27
 import CLRSLean.Chapter_28
 import CLRSLean.Chapter_29
 import CLRSLean.Chapter_30
+import CLRSLean.Chapter_31
 import CLRSLean.Chapter_32
 import CLRSLean.Chapter_33
 import CLRSLean.Chapter_34

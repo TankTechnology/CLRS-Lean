@@ -41,6 +41,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_28",
   "CLRSLean.Chapter_29",
   "CLRSLean.Chapter_30",
+  "CLRSLean.Chapter_31",
   "CLRSLean.Chapter_32",
   "CLRSLean.Chapter_33",
   "CLRSLean.Chapter_34",
@@ -62,6 +63,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_02.Section_02_1_Insertion_Sort",
   "CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms",
   "CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms",
+  "CLRSLean.Chapter_02.Section_02_3_Merge_Sort",
 ]
 "CLRSLean.Chapter_03" = [
   "CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation",
@@ -215,6 +217,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_25" = [
   "CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model",
+  "CLRSLean.Chapter_25.Section_25_2_Predecessor_Paths",
 ]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
@@ -234,6 +237,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_30" = [
   "CLRSLean.Chapter_30.Section_30_1_DFT_FFT",
   "CLRSLean.Chapter_30.Section_30_3_Efficient_FFT",
+]
+"CLRSLean.Chapter_31" = [
+  "CLRSLean.Chapter_31.Section_31_8_9_Primality_Factoring",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -415,6 +421,9 @@ title = "2.2. Analyzing Algorithms"
 
 [modules."CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms"]
 title = "2.3. Designing Algorithms"
+
+[modules."CLRSLean.Chapter_02.Section_02_3_Merge_Sort"]
+title = "2.3. Merge Sort (Arbitrary-Size Input)"
 
 [modules."CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation"]
 title = "3.1. Asymptotic Notation"
@@ -682,6 +691,12 @@ title = "30.1–30.2. DFT and FFT"
 
 [modules."CLRSLean.Chapter_30.Section_30_3_Efficient_FFT"]
 title = "30.3. Efficient FFT Implementations"
+
+[modules."CLRSLean.Chapter_31"]
+title = "Chapter 31. Number-Theoretic Algorithms"
+
+[modules."CLRSLean.Chapter_31.Section_31_8_9_Primality_Factoring"]
+title = "31.8–31.9. Primality Testing and Integer Factorization"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
