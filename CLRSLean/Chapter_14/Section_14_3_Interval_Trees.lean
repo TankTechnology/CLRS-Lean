@@ -51,14 +51,13 @@ augmentation theorem, the red-black rotation bridge, and the general executable
 augmentation interface (an arbitrary augmentation threaded through an executable
 red-black insertion, refining Chapter 13's {lit}`RBTree.insert`).
 
-Deferred refinements: monoid-based augmentation, and threading an augmentation
-through executable red-black *deletion*.  Chapter 13's deletion-shape
-certificate ({lit}`RBTree.redBlackShape_delete`) and Section 14.1's
-{lit}`OSRBTree` deletion mirror are now proved; the remaining work is the
-generic {lit}`AugmentedRBTree` mirror of the {lit}`baldL`/{lit}`baldR`/
-{lit}`splitMin`/{lit}`join`/{lit}`del`/{lit}`delete` pipeline.  The
-stored-augmentation-field refinement through executable {lit}`RBTree.insert`
-is now proved generically.
+Deferred refinements: monoid-based augmentation, and {lit}`toRB` refinement
+lemmas for the deletion pipeline (the {lit}`wellAugmented_delete` proof and
+the executable pipeline are complete; the Chapter 13 refinement erasure
+proofs for {lit}`baldL`/{lit}`baldR`/{lit}`splitMin`/{lit}`join`/{lit}`del`
+are future work).  Both the stored-augmentation-field refinement through
+executable {lit}`RBTree.insert` and the generic deletion pipeline preserving
+{lit}`WellAugmented` are now proved.
 -/
 
 namespace CLRS
@@ -1126,6 +1125,266 @@ theorem storedAug_insert (lt : α → α → Bool) (x : α) {t : AugmentedRBTree
     (h : WellAugmented aug t) :
     storedAug aug (insert aug lt x t) = realAug aug (insert aug lt x t) :=
   storedAug_eq_realAug_of_wellAugmented aug (wellAugmented_insert aug lt x h)
+
+/-! ### Executable red-black deletion with augmentation recomputation
+
+The deletion pipeline mirrors `OSRBTree` but is generic in `α`, `β`, and `aug`.
+Every function recomputes augmentations via `mk aug`. -/
+
+/-- Repaint with arbitrary color, keeping cached augmentation fields. -/
+def repaintRoot (c : Color) (t : AugmentedRBTree α β) : AugmentedRBTree α β :=
+  match t with
+  | empty => empty
+  | node _ l k a r => node c l k a r
+
+/-- Boolean black-root test. -/
+def rootBlack : AugmentedRBTree α β → Bool
+  | empty => true
+  | node c _ _ _ _ => c = Color.black
+
+/-- Deletion re-balancer for a black-deficient left child. -/
+def baldL (l : AugmentedRBTree α β) (k : α) (r : AugmentedRBTree α β) :
+    AugmentedRBTree α β :=
+  match l with
+  | node Color.red a x _ b => mk aug Color.red (mk aug Color.black a x b) k r
+  | _ =>
+    match r with
+    | node Color.black c y _ d => balanceRight aug l k (mk aug Color.red c y d)
+    | node Color.red (node Color.black c y _ d) z _ e =>
+        mk aug Color.red (mk aug Color.black l k c) y
+          (balanceRight aug d z (repaintRoot Color.red e))
+    | _ => mk aug Color.red l k r
+
+/-- Deletion re-balancer for a black-deficient right child. -/
+def baldR (l : AugmentedRBTree α β) (k : α) (r : AugmentedRBTree α β) :
+    AugmentedRBTree α β :=
+  match r with
+  | node Color.red c y _ d => mk aug Color.red l k (mk aug Color.black c y d)
+  | _ =>
+    match l with
+    | node Color.black a x _ b => balanceLeft aug (mk aug Color.red a x b) k r
+    | node Color.red a x _ (node Color.black c y _ d) =>
+        mk aug Color.red (balanceLeft aug (repaintRoot Color.red a) x c) y
+          (mk aug Color.black d k r)
+    | _ => mk aug Color.red l k r
+
+/-- Find and remove the minimum key, recomputing augmentations on the way up. -/
+def splitMin [Inhabited α] : AugmentedRBTree α β → α × AugmentedRBTree α β
+  | empty => (default, empty)
+  | node _ empty k _ r => (k, r)
+  | node _ l k _ r =>
+      let (m, l') := splitMin l
+      if rootBlack l then (m, baldL aug l' k r)
+      else (m, mk aug Color.red l' k r)
+
+/-- Merge two trees, used when deleting a node with two children. -/
+def join [Inhabited α] (l r : AugmentedRBTree α β) : AugmentedRBTree α β :=
+  match r with
+  | empty => l
+  | _ =>
+    match l with
+    | empty => r
+    | _ =>
+      let (m, r') := splitMin aug r
+      if rootBlack r then baldR aug l m r'
+      else mk aug Color.red l m r'
+
+/-- Recursive deletion. -/
+def del [Inhabited α] [DecidableEq α] (x : α) (lt : α → α → Bool) :
+    AugmentedRBTree α β → AugmentedRBTree α β
+  | empty => empty
+  | node _c l y _a r =>
+    if lt x y then
+      if rootBlack l then baldL aug (del x lt l) y r
+      else mk aug Color.red (del x lt l) y r
+    else if lt y x then
+      if rootBlack r then baldR aug l y (del x lt r)
+      else mk aug Color.red l y (del x lt r)
+    else join aug l r
+
+/-- Delete a key and repaint the root black. -/
+def delete [Inhabited α] [DecidableEq α] (x : α) (lt : α → α → Bool)
+    (t : AugmentedRBTree α β) : AugmentedRBTree α β :=
+  repaintBlack (del aug x lt t)
+
+/-! #### The augmentation invariant survives deletion -/
+
+theorem wellAugmented_repaintRoot (c : Color) {t : AugmentedRBTree α β}
+    (h : WellAugmented aug t) : WellAugmented aug (repaintRoot c t) := by
+  cases t with
+  | empty => trivial
+  | node c' l k a r => exact ⟨h.1, h.2.1, h.2.2⟩
+
+theorem wellAugmented_baldL {l : AugmentedRBTree α β} {k : α} {r : AugmentedRBTree α β}
+    (hl : WellAugmented aug l) (hr : WellAugmented aug r) :
+    WellAugmented aug (baldL aug l k r) := by
+  unfold baldL
+  -- Use case analysis that matches the definition's pattern-matching structure
+  cases l with
+  | empty =>
+      cases r with
+      | empty => exact wellAugmented_mk aug hl hr
+      | node rc rl rk ra rr =>
+          cases rc with
+          | black =>
+              obtain ⟨hc, hd, _⟩ := hr
+              exact wellAugmented_balanceRight aug hl (wellAugmented_mk aug hc hd)
+          | red =>
+              cases rl with
+              | empty => exact wellAugmented_mk aug hl hr
+              | node rlc rll rlk rla rlr =>
+                  cases rlc with
+                  | black =>
+                      obtain ⟨⟨hc, hd, _⟩, he, _⟩ := hr
+                      exact wellAugmented_mk aug (wellAugmented_mk aug hl hc)
+                        (wellAugmented_balanceRight aug hd
+                          (wellAugmented_repaintRoot aug Color.red he))
+                  | red => exact wellAugmented_mk aug hl hr
+  | node lc ll lk la lr =>
+      cases lc with
+      | red =>
+          obtain ⟨ha, hb, _⟩ := hl
+          exact wellAugmented_mk aug (wellAugmented_mk aug ha hb) hr
+      | black =>
+          cases r with
+          | empty => exact wellAugmented_mk aug hl hr
+          | node rc rl rk ra rr =>
+              cases rc with
+              | black =>
+                  obtain ⟨hc, hd, _⟩ := hr
+                  exact wellAugmented_balanceRight aug hl
+                    (wellAugmented_mk aug hc hd)
+              | red =>
+                  cases rl with
+                  | empty => exact wellAugmented_mk aug hl hr
+                  | node rlc rll rlk rla rlr =>
+                      cases rlc with
+                      | black =>
+                          obtain ⟨⟨hc, hd, _⟩, he, _⟩ := hr
+                          exact wellAugmented_mk aug (wellAugmented_mk aug hl hc)
+                            (wellAugmented_balanceRight aug hd
+                              (wellAugmented_repaintRoot aug Color.red he))
+                      | red => exact wellAugmented_mk aug hl hr
+
+theorem wellAugmented_baldR {l : AugmentedRBTree α β} {k : α} {r : AugmentedRBTree α β}
+    (hl : WellAugmented aug l) (hr : WellAugmented aug r) :
+    WellAugmented aug (baldR aug l k r) := by
+  unfold baldR
+  cases r with
+  | empty =>
+      cases l with
+      | empty => exact wellAugmented_mk aug hl hr
+      | node lc ll lk la lr =>
+          cases lc with
+          | black =>
+              obtain ⟨ha, hb, _⟩ := hl
+              exact wellAugmented_balanceLeft aug (wellAugmented_mk aug ha hb) hr
+          | red =>
+              cases lr with
+              | empty => exact wellAugmented_mk aug hl hr
+              | node lrc lrl lrk lra lrr =>
+                  cases lrc with
+                  | black =>
+                      obtain ⟨ha, ⟨hc, hd, _⟩, _⟩ := hl
+                      exact wellAugmented_mk aug
+                        (wellAugmented_balanceLeft aug
+                          (wellAugmented_repaintRoot aug Color.red ha) hc)
+                        (wellAugmented_mk aug hd hr)
+                  | red => exact wellAugmented_mk aug hl hr
+  | node rc rl rk ra rr =>
+      cases rc with
+      | red =>
+          obtain ⟨hc, hd, _⟩ := hr
+          exact wellAugmented_mk aug hl (wellAugmented_mk aug hc hd)
+      | black =>
+          cases l with
+          | empty => exact wellAugmented_mk aug hl hr
+          | node lc ll lk la lr =>
+              cases lc with
+              | black =>
+                  obtain ⟨ha, hb, _⟩ := hl
+                  exact wellAugmented_balanceLeft aug
+                    (wellAugmented_mk aug ha hb) hr
+              | red =>
+                  cases lr with
+                  | empty => exact wellAugmented_mk aug hl hr
+                  | node lrc lrl lrk lra lrr =>
+                      cases lrc with
+                      | black =>
+                          obtain ⟨ha, ⟨hc, hd, _⟩, _⟩ := hl
+                          exact wellAugmented_mk aug
+                            (wellAugmented_balanceLeft aug
+                              (wellAugmented_repaintRoot aug Color.red ha) hc)
+                            (wellAugmented_mk aug hd hr)
+                      | red => exact wellAugmented_mk aug hl hr
+
+theorem wellAugmented_splitMin [Inhabited α] {t : AugmentedRBTree α β}
+    (h : WellAugmented aug t) : WellAugmented aug (splitMin aug t).2 := by
+  induction t with
+  | empty => trivial
+  | node c l k a r ihl =>
+    cases l with
+    | empty => exact h.2.1
+    | node lc ll lk la lr =>
+      have hws : WellAugmented aug (splitMin aug (node lc ll lk la lr)).2 := ihl h.1
+      by_cases hrb : rootBlack (node lc ll lk la lr) = true
+      · have hsp : (splitMin aug (node c (node lc ll lk la lr) k a r)).2 =
+            baldL aug (splitMin aug (node lc ll lk la lr)).2 k r := by
+          simp [splitMin, hrb]
+        rw [hsp]
+        exact wellAugmented_baldL aug hws h.2.1
+      · have hsp : (splitMin aug (node c (node lc ll lk la lr) k a r)).2 =
+            mk aug Color.red (splitMin aug (node lc ll lk la lr)).2 k r := by
+          simp [splitMin, hrb]
+        rw [hsp]
+        exact wellAugmented_mk aug hws h.2.1
+
+theorem wellAugmented_join [Inhabited α] {l r : AugmentedRBTree α β}
+    (hl : WellAugmented aug l) (hr : WellAugmented aug r) :
+    WellAugmented aug (join aug l r) := by
+  unfold join
+  split
+  · exact hl
+  · rename_i hneR
+    split
+    · exact hr
+    · rename_i hneL
+      dsimp
+      by_cases hrb : rootBlack r = true
+      · simp [hrb]
+        exact wellAugmented_baldR aug hl (wellAugmented_splitMin aug hr)
+      · simp [hrb]
+        exact wellAugmented_mk aug hl (wellAugmented_splitMin aug hr)
+
+theorem wellAugmented_del [Inhabited α] [DecidableEq α] (x : α) (lt : α → α → Bool)
+    {t : AugmentedRBTree α β} (h : WellAugmented aug t) :
+    WellAugmented aug (del aug x lt t) := by
+  induction t with
+  | empty => exact h
+  | node c l y a r ihl ihr =>
+    have hl : WellAugmented aug l := h.1
+    have hr : WellAugmented aug r := h.2.1
+    simp only [del]
+    split
+    · split
+      · exact wellAugmented_baldL aug (ihl hl) hr
+      · exact wellAugmented_mk aug (ihl hl) hr
+    · split
+      · split
+        · exact wellAugmented_baldR aug hl (ihr hr)
+        · exact wellAugmented_mk aug hl (ihr hr)
+      · exact wellAugmented_join aug hl hr
+
+theorem wellAugmented_delete [Inhabited α] [DecidableEq α] (x : α) (lt : α → α → Bool)
+    {t : AugmentedRBTree α β} (h : WellAugmented aug t) :
+    WellAugmented aug (delete aug x lt t) := by
+  unfold delete
+  exact wellAugmented_repaintBlack aug (wellAugmented_del aug x lt h)
+
+theorem storedAug_delete [Inhabited α] [DecidableEq α] (x : α) (lt : α → α → Bool)
+    {t : AugmentedRBTree α β} (h : WellAugmented aug t) :
+    storedAug aug (delete aug x lt t) = realAug aug (delete aug x lt t) :=
+  storedAug_eq_realAug_of_wellAugmented aug (wellAugmented_delete aug x lt h)
 
 end Generic
 

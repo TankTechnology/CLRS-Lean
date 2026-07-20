@@ -1628,10 +1628,11 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   makes `insert` (at `natLt`) refine Chapter 13 `RBTree.insert`, transferring its
   shape and membership theorems.  The `sizeAug` and `maxHighAug` fields are
   recovered as instances of this single interface.
-- Current gap: thread the generic augmentation through executable red-black
-  *deletion*.  Chapter 13's composed deletion-shape certificate
-  (`redBlackShape_delete`) and Section 14.1's `OSRBTree` deletion mirror
-  (`wellSized_delete`, `toRB_delete`) are now proved; what remains is the
+- Current gap: the generic deletion pipeline is proved (`wellAugmented_delete`
+  preserves the augmentation invariant through `baldL`/`baldR`/`splitMin`/
+  `join`/`del`/`delete` for any `Augmentation`).  What remains is the `toRB`
+  refinement lemma for the deletion pipeline (linking `AugmentedRBTree.delete`
+  back to Chapter 13's `RBTree.delete`).
   generic `AugmentedRBTree` mirror of the `baldL`/`baldR`/`splitMin`/`join`/
   `del`/`delete` pipeline (roughly 300 lines following the Section 14.1
   template).  The stored-augmentation refinement through executable

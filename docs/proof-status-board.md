@@ -22,6 +22,7 @@ Last repository-wide status reconciliation: 2026-07-15.
 | Chapter 11 correctness | Direct address, chaining with SUHA true expectations, universal hashing, open addressing, and perfect hashing | Probe-machine/RAM operational semantics |
 | Chapter 12 correctness | Functional BSTs, zipper navigation/transplant, and represented pointer-heap transplant/insert refinements | In-place pointer delete and RAM accounting |
 | Chapter 13 correctness | Executable red-black insertion and deletion with exact membership correctness, red-black shape preservation (`redBlackShape_insert`, `redBlackShape_delete` via the `baldL`/`baldR`/`splitMin`/`join` rebalancing pipeline), and the logarithmic-height theorem (CLRS Lemma 13.1) | Pointer-level mutation and RAM cost semantics |
+| Chapter 14 correctness | Order-statistic tree operations with `wellSized_insert`/`wellSized_delete`, interval-tree search with `maxHighAug`, general augmentation theorem (CLRS Theorem 14.1), and generic `AugmentedRBTree` executable insertion and deletion (`wellAugmented_insert`, `wellAugmented_delete`) for any augmentation | Pointer-level mutation and RAM cost semantics |
 | Chapter 15 represented sections | Rod cutting, matrix chain, LCS, and optimal BST optimality with executable recurrence/reconstruction layers | Additional mutable-array/RAM refinements |
 | Chapter 16 | Activity selection, greedy meta-theorems, Huffman coding, matroid greedy, and task scheduling | Exercises |
 | Chapter 17 represented sections | Aggregate/accounting/potential methods, stack/counter traces, and dynamic-table amortized analysis | Allocator constants and RAM refinement |
@@ -39,7 +40,6 @@ not missing core theorem groups.
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, random-permutation symmetry lemma (`isFirst_prob`), pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3), and the sum-of-probabilities-to-closed-form bridge (`sum_compared_prob_eq_expectedComparisons`) with `Θ(n log n)` asymptotic | Optional: total-comparison random variable with `fintypeExpect` linearity wrapper |
-| 14 | Order-statistic augmentation, the general augmentation theorem (CLRS Theorem 14.1), interval-search correctness, and the size invariant threaded through executable red-black insertion and deletion (`OSRBTree.wellSized_insert`, `OSRBTree.wellSized_delete`, refining Chapter 13 via `toRB_insert`/`toRB_delete` with `redBlackShape_toRB_delete` and `mem_keys_delete`) | Generic Section 14.3 augmentation (`AugmentedRBTree`) threaded through executable red-black deletion |
 | 18 | Mathematical B-tree search/split/insert/delete specs | Separator/occupancy/same-depth invariants and deletion repair |
 | 19 | Finite-set operation specs, potential facts, and the concrete rooted-tree logarithmic degree theorem | Executable heap-forest consolidation/cascading cuts and their amortized costs |
 | 25 | Correct FASTER-APSP; Floyd-Warshall definitions/work; Johnson reweighting algebra | Floyd-Warshall correctness, path reconstruction/negative cycles, and end-to-end Johnson correctness |
@@ -59,7 +59,7 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | --- | --- | --- |
 | 1 | Chapter 25 correctness | Prove Floyd-Warshall first; then close Johnson and the predecessor/negative-cycle interfaces |
 | 2 | Chapter 26 correctness | Prove the MFMC converse, then the Edmonds-Karp counting theorem and bipartite-matching reduction |
-| 3 | Chapter 14 generic deletion threading | Mirror the Chapter 13 \`baldL\`/\`baldR\`/\`splitMin\`/\`join\`/\`del\` pipeline for \`AugmentedRBTree\` and prove \`wellAugmented_delete\` plus the \`toRB_delete\` refinement |
+| 3 | Chapter 25 correctness | Prove Floyd-Warshall first; then close Johnson and the predecessor/negative-cycle interfaces |
 | 4 | Chapter 18/19 tree/heap consolidation | Prove full B-tree separator/occupancy invariants and Fibonacci heap CONSOLIDATE with amortized costs |
 
 ## High-Difficulty Queue
