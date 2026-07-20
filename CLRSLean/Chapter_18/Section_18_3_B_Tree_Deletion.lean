@@ -1016,6 +1016,43 @@ decreasing_by
     have hmem : child ∈ cs :=
       (List.mem_iff_getElem? (a := child) (l := cs)).mpr ⟨0, hc⟩
     exact heightOf_mem_lt hmem
+/-! ## `composedDelete` preserves `WellFormed` for leaves -/
+
+theorem composedDelete_leaf_wellFormed (t x : Nat) (ht : 2 ≤ t) (ks : List Nat)
+    (hwf : WellFormed t (node ks [])) :
+    WellFormed t (composedDelete t x (node ks [])) := by
+  have hleaf : composedDelete t x (node ks []) = node (sortedRemove x ks) [] := by
+    simp [composedDelete]
+  rw [hleaf]
+  obtain ⟨hs, hcb, hocc, hsd⟩ := hwf
+  -- Extract Sorted
+  have hs_keys : List.Pairwise (· ≤ ·) ks := by
+    unfold Sorted at hs; simp at hs; exact hs
+  -- Extract Occupancy bounds
+  unfold Occupancy at hocc
+  have hks_up : ks.length ≤ 2*t-1 := hocc.2.1
+  -- Build result components
+  have h_sorted : Sorted (node (sortedRemove x ks) []) := by
+    unfold Sorted; simp; exact sortedRemove_sorted_leaf x ks hs_keys
+  have h_childBounded : ChildBounded (node (sortedRemove x ks) []) :=
+    childBounded_node_nil (sortedRemove x ks)
+  have h_occupancy : Occupancy t true (node (sortedRemove x ks) []) := by
+    unfold Occupancy
+    refine ⟨?_, ?_, by simp, fun c hc => by simp at hc⟩
+    · -- lower bound: (if result = [] then 0 else 1) ≤ result.length
+      dsimp
+      by_cases h0 : (sortedRemove x ks).length = 0
+      · simp [h0]
+      · have h_low : 1 ≤ (sortedRemove x ks).length := by omega
+        simp [h0, h_low]
+    · -- upper bound: result.length ≤ 2*t-1
+      have hlen := sortedRemove_length_le x ks
+      omega
+  have h_sameDepth : SameDepth (node (sortedRemove x ks) []) :=
+    SameDepth.leaf (sortedRemove x ks)
+  unfold WellFormed
+  exact ⟨h_sorted, h_childBounded, h_occupancy, h_sameDepth⟩
+
 end BTree
 end Chapter18
 end CLRS
