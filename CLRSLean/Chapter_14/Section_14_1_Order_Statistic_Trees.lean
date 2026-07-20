@@ -81,10 +81,16 @@ Chapter 13 development and to the ideal order-statistic semantics:
   (Theorems {lit}`OSRBTree.redBlackShape_toRB_insert` and
   {lit}`OSRBTree.mem_keys_insert`).
 
+Deletion is threaded through the augmentation as well: the smart-constructor
+mirrors {lit}`OSRBTree.baldL`/{lit}`baldR`/{lit}`splitMin`/{lit}`join`/
+{lit}`del`/{lit}`delete` refine Chapter 13's executable deletion
+({lit}`OSRBTree.toRB_delete`), so Chapter 13's shape and membership theorems
+transfer ({lit}`OSRBTree.redBlackShape_toRB_delete`,
+{lit}`OSRBTree.mem_keys_delete`), and {lit}`OSRBTree.wellSized_delete` shows the
+size invariant survives deletion (CLRS 14.1 maintained through {lit}`RB-DELETE`).
+
 Current gaps:
 
-* Deletion is not yet threaded through the augmentation (it depends on the
-  Chapter 13 executable {lit}`RB-DELETE` loop, which is still local-case only).
 * Interval trees and the general augmentation theorem remain future targets.
 -/
 
@@ -885,6 +891,480 @@ theorem redBlackShape_toRB_insert (x : Nat) {t : OSRBTree}
 theorem mem_keys_insert (x y : Nat) (t : OSRBTree) :
     y ∈ keys (insert x t) ↔ y = x ∨ y ∈ keys t := by
   simp only [← inTree_toRB, toRB_insert, RBTree.inTree_insert_iff]
+
+/-! ### Executable red-black deletion with size recomputation
+
+The deletion machinery of Chapter 13, mirrored node-for-node with the smart
+constructor {lit}`mk` so that the size invariant is preserved automatically.
+Every definition below refines its Chapter 13 counterpart exactly once the
+cached size field is erased (see the refinement subsection further down). -/
+
+/-- Repaint the root with an arbitrary colour, keeping the cached size fields. -/
+def repaintRoot (c : Color) : OSRBTree → OSRBTree
+  | empty => empty
+  | node _ l k s r => node c l k s r
+
+/-- Boolean black-root test.  Mirrors {lit}`CLRS.Chapter13.RBTree.rootBlack`. -/
+def rootBlack : OSRBTree → Bool
+  | empty => true
+  | node c _ _ _ _ => c = Color.black
+
+/-- Deletion re-balancer for a black-deficient **left** child, recomputing
+sizes.  Mirrors {lit}`CLRS.Chapter13.RBTree.baldL`. -/
+def baldL : OSRBTree → Nat → OSRBTree → OSRBTree
+  | node Color.red a x _ b, k, r => mk Color.red (mk Color.black a x b) k r
+  | l, k, node Color.black c y _ d => balanceRight l k (mk Color.red c y d)
+  | l, k, node Color.red (node Color.black c y _ d) z _ e =>
+      mk Color.red (mk Color.black l k c) y (balanceRight d z (repaintRoot Color.red e))
+  | l, k, r => mk Color.red l k r
+
+/-- Deletion re-balancer for a black-deficient **right** child, recomputing
+sizes.  Mirrors {lit}`CLRS.Chapter13.RBTree.baldR`. -/
+def baldR : OSRBTree → Nat → OSRBTree → OSRBTree
+  | l, k, node Color.red c y _ d => mk Color.red l k (mk Color.black c y d)
+  | node Color.black a x _ b, k, r => balanceLeft (mk Color.red a x b) k r
+  | node Color.red a x _ (node Color.black c y _ d), k, r =>
+      mk Color.red (balanceLeft (repaintRoot Color.red a) x c) y (mk Color.black d k r)
+  | l, k, r => mk Color.red l k r
+
+/-- Find and remove the minimum key from a non-empty tree, recomputing sizes on
+the way back up.  Mirrors {lit}`CLRS.Chapter13.RBTree.splitMin`. -/
+def splitMin : OSRBTree → Nat × OSRBTree
+  | empty => (0, empty)  -- unreachable on valid inputs
+  | node _ empty k _ r => (k, r)
+  | node _ l k _ r =>
+      let (m, l') := splitMin l
+      if rootBlack l then (m, baldL l' k r)
+      else (m, mk Color.red l' k r)
+
+/-- Merge two trees into one, used when deleting a node with two children.
+Mirrors {lit}`CLRS.Chapter13.RBTree.join`. -/
+def join (l r : OSRBTree) : OSRBTree :=
+  if r = empty then l
+  else if l = empty then r
+  else
+    let (m, r') := splitMin r
+    if rootBlack r then baldR l m r'
+    else mk Color.red l m r'
+
+/-- Recursive deletion from an augmented red-black tree, recomputing sizes.
+Mirrors {lit}`CLRS.Chapter13.RBTree.del`. -/
+def del (x : Nat) : OSRBTree → OSRBTree
+  | empty => empty
+  | node _c l y _s r =>
+    if x < y then
+      if rootBlack l then baldL (del x l) y r
+      else mk Color.red (del x l) y r
+    else if x > y then
+      if rootBlack r then baldR l y (del x r)
+      else mk Color.red l y (del x r)
+    else join l r
+
+/-- Delete a key from an augmented red-black tree and repaint the root black.
+Mirrors {lit}`CLRS.Chapter13.RBTree.delete`. -/
+def delete (x : Nat) (t : OSRBTree) : OSRBTree :=
+  repaintBlack (del x t)
+
+/-! #### The augmentation invariant survives deletion -/
+
+/-- Repainting the root preserves the size augmentation invariant. -/
+theorem wellSized_repaintRoot (c : Color) {t : OSRBTree} (h : WellSized t) :
+    WellSized (repaintRoot c t) := by
+  cases t with
+  | empty => trivial
+  | node c' l k s r => exact ⟨h.1, h.2.1, h.2.2⟩
+
+/-- {lit}`baldL` preserves the size augmentation invariant. -/
+theorem wellSized_baldL {l : OSRBTree} {k : Nat} {r : OSRBTree}
+    (hl : WellSized l) (hr : WellSized r) :
+    WellSized (baldL l k r) := by
+  cases l with
+  | empty =>
+      cases r with
+      | empty => exact wellSized_mk hl hr
+      | node rc rl rk rs rr =>
+          cases rc with
+          | black =>
+              obtain ⟨hc, hd, _⟩ := hr
+              exact wellSized_balanceRight hl (wellSized_mk hc hd)
+          | red =>
+              cases rl with
+              | empty => exact wellSized_mk hl hr
+              | node rlc rll rlk rls rlr =>
+                  cases rlc with
+                  | black =>
+                      obtain ⟨⟨hc, hd, _⟩, he, _⟩ := hr
+                      exact wellSized_mk (wellSized_mk hl hc)
+                        (wellSized_balanceRight hd (wellSized_repaintRoot _ he))
+                  | red => exact wellSized_mk hl hr
+  | node lc ll lk ls lr =>
+      cases lc with
+      | red =>
+          obtain ⟨ha, hb, _⟩ := hl
+          exact wellSized_mk (wellSized_mk ha hb) hr
+      | black =>
+          cases r with
+          | empty => exact wellSized_mk hl hr
+          | node rc rl rk rs rr =>
+              cases rc with
+              | black =>
+                  obtain ⟨hc, hd, _⟩ := hr
+                  exact wellSized_balanceRight hl (wellSized_mk hc hd)
+              | red =>
+                  cases rl with
+                  | empty => exact wellSized_mk hl hr
+                  | node rlc rll rlk rls rlr =>
+                      cases rlc with
+                      | black =>
+                          obtain ⟨⟨hc, hd, _⟩, he, _⟩ := hr
+                          exact wellSized_mk (wellSized_mk hl hc)
+                            (wellSized_balanceRight hd (wellSized_repaintRoot _ he))
+                      | red => exact wellSized_mk hl hr
+
+/-- {lit}`baldR` preserves the size augmentation invariant. -/
+theorem wellSized_baldR {l : OSRBTree} {k : Nat} {r : OSRBTree}
+    (hl : WellSized l) (hr : WellSized r) :
+    WellSized (baldR l k r) := by
+  cases r with
+  | empty =>
+      cases l with
+      | empty => exact wellSized_mk hl hr
+      | node lc ll lk ls lr =>
+          cases lc with
+          | black =>
+              obtain ⟨ha, hb, _⟩ := hl
+              exact wellSized_balanceLeft (wellSized_mk ha hb) hr
+          | red =>
+              cases lr with
+              | empty => exact wellSized_mk hl hr
+              | node lrc lrl lrk lrs lrr =>
+                  cases lrc with
+                  | black =>
+                      obtain ⟨ha, ⟨hc, hd, _⟩, _⟩ := hl
+                      exact wellSized_mk
+                        (wellSized_balanceLeft (wellSized_repaintRoot _ ha) hc)
+                        (wellSized_mk hd hr)
+                  | red => exact wellSized_mk hl hr
+  | node rc rl rk rs rr =>
+      cases rc with
+      | red =>
+          obtain ⟨hc, hd, _⟩ := hr
+          exact wellSized_mk hl (wellSized_mk hc hd)
+      | black =>
+          cases l with
+          | empty => exact wellSized_mk hl hr
+          | node lc ll lk ls lr =>
+              cases lc with
+              | black =>
+                  obtain ⟨ha, hb, _⟩ := hl
+                  exact wellSized_balanceLeft (wellSized_mk ha hb) hr
+              | red =>
+                  cases lr with
+                  | empty => exact wellSized_mk hl hr
+                  | node lrc lrl lrk lrs lrr =>
+                      cases lrc with
+                      | black =>
+                          obtain ⟨ha, ⟨hc, hd, _⟩, _⟩ := hl
+                          exact wellSized_mk
+                            (wellSized_balanceLeft (wellSized_repaintRoot _ ha) hc)
+                            (wellSized_mk hd hr)
+                      | red => exact wellSized_mk hl hr
+
+/-- {lit}`splitMin` preserves the size augmentation invariant. -/
+theorem wellSized_splitMin {t : OSRBTree} (h : WellSized t) :
+    WellSized (splitMin t).2 := by
+  induction t with
+  | empty => trivial
+  | node c l k s r ihl =>
+    cases l with
+    | empty => exact h.2.1
+    | node lc ll lk ls lr =>
+      have hws : WellSized (splitMin (node lc ll lk ls lr)).2 := ihl h.1
+      by_cases hrb : rootBlack (node lc ll lk ls lr) = true
+      · have hsp : (splitMin (node c (node lc ll lk ls lr) k s r)).2 =
+            baldL (splitMin (node lc ll lk ls lr)).2 k r := by simp [splitMin, hrb]
+        rw [hsp]
+        exact wellSized_baldL hws h.2.1
+      · have hsp : (splitMin (node c (node lc ll lk ls lr) k s r)).2 =
+            mk Color.red (splitMin (node lc ll lk ls lr)).2 k r := by simp [splitMin, hrb]
+        rw [hsp]
+        exact wellSized_mk hws h.2.1
+
+/-- {lit}`join` on two non-empty trees with a black-rooted right tree absorbs
+the deficit with {lit}`baldR`. -/
+theorem join_eq_baldR {l r : OSRBTree} (hre : r ≠ empty) (hle : l ≠ empty)
+    (hrb : rootBlack r = true) :
+    join l r = baldR l (splitMin r).1 (splitMin r).2 := by
+  simp [join, hre, hle, hrb]
+
+/-- {lit}`join` on two non-empty trees with a red-rooted right tree rebuilds a
+plain red node (no deficit arises). -/
+theorem join_eq_mk_red {l r : OSRBTree} (hre : r ≠ empty) (hle : l ≠ empty)
+    (hrb : rootBlack r ≠ true) :
+    join l r = mk Color.red l (splitMin r).1 (splitMin r).2 := by
+  simp [join, hre, hle, hrb]
+
+/-- {lit}`join` preserves the size augmentation invariant. -/
+theorem wellSized_join {l r : OSRBTree} (hl : WellSized l) (hr : WellSized r) :
+    WellSized (join l r) := by
+  by_cases hre : r = empty
+  · subst hre
+    exact hl
+  · by_cases hle : l = empty
+    · subst hle
+      have he : join empty r = r := by simp [join, hre]
+      rw [he]
+      exact hr
+    · by_cases hrb : rootBlack r = true
+      · rw [join_eq_baldR hre hle hrb]
+        exact wellSized_baldR hl (wellSized_splitMin hr)
+      · rw [join_eq_mk_red hre hle hrb]
+        exact wellSized_mk hl (wellSized_splitMin hr)
+
+/-- {lit}`del` preserves the size augmentation invariant. -/
+theorem wellSized_del (x : Nat) {t : OSRBTree} (h : WellSized t) :
+    WellSized (del x t) := by
+  induction t with
+  | empty => exact h
+  | node c l y s r ihl ihr =>
+    have hl : WellSized l := h.1
+    have hr : WellSized r := h.2.1
+    simp only [del]
+    split
+    · split
+      · exact wellSized_baldL (ihl hl) hr
+      · exact wellSized_mk (ihl hl) hr
+    · split
+      · split
+        · exact wellSized_baldR hl (ihr hr)
+        · exact wellSized_mk hl (ihr hr)
+      · exact wellSized_join hl hr
+
+/--
+**Augmentation invariant through executable deletion (CLRS 14.1 through
+`RB-DELETE`).**  Deleting a key from a well-sized augmented red-black tree
+produces a well-sized tree: every cached subtree-size field remains correct
+after the red-black rebalancing (CLRS 14.1 maintained through {lit}`delete`).
+-/
+theorem wellSized_delete (x : Nat) {t : OSRBTree} (h : WellSized t) :
+    WellSized (delete x t) := by
+  unfold delete
+  exact wellSized_repaintBlack (wellSized_del x h)
+
+/-- After deletion the cached root size equals the mathematical subtree size. -/
+theorem storedSize_delete (x : Nat) {t : OSRBTree} (h : WellSized t) :
+    storedSize (delete x t) = realSize (delete x t) :=
+  storedSize_eq_realSize_of_wellSized (wellSized_delete x h)
+
+/--
+After deletion the augmented (cached-size) selector still implements the ideal
+recomputed-size rank selector.
+-/
+theorem osSelect?_delete_eq_rankSelect? (x : Nat) {t : OSRBTree}
+    (h : WellSized t) (i : Nat) :
+    osSelect? (delete x t) i = rankSelect? (delete x t) i :=
+  osSelect?_eq_rankSelect?_of_wellSized (wellSized_delete x h)
+
+/-! ### Refinement onto the executable Chapter 13 red-black deletion -/
+
+/-- Erasing the size field commutes with repainting the root. -/
+theorem toRB_repaintRoot (c : Color) (t : OSRBTree) :
+    toRB (repaintRoot c t) = RBTree.repaintRoot c (toRB t) := by
+  cases t with
+  | empty => rfl
+  | node c' l k s r => rfl
+
+/-- Erasing the size field commutes with the black-root test. -/
+theorem toRB_rootBlack (t : OSRBTree) :
+    RBTree.rootBlack (toRB t) = rootBlack t := by
+  cases t with
+  | empty => rfl
+  | node c l k s r => rfl
+
+/-- Erasure hits the empty tree only at the empty tree. -/
+theorem toRB_eq_empty_iff (t : OSRBTree) :
+    toRB t = RBTree.empty ↔ t = empty := by
+  cases t with
+  | empty => simp [toRB]
+  | node c l k s r => simp [toRB]
+
+/-- Erasing the size field commutes with {lit}`baldL`. -/
+theorem toRB_baldL (l : OSRBTree) (k : Nat) (r : OSRBTree) :
+    toRB (baldL l k r) = RBTree.baldL (toRB l) k (toRB r) := by
+  cases l with
+  | empty =>
+      cases r with
+      | empty => rfl
+      | node rc rl rk rs rr =>
+          cases rc with
+          | black =>
+              simp only [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight]
+          | red =>
+              cases rl with
+              | empty => rfl
+              | node rlc rll rlk rls rlr =>
+                  cases rlc with
+                  | black =>
+                      simp only [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight,
+                        toRB_repaintRoot]
+                  | red => rfl
+  | node lc ll lk ls lr =>
+      cases lc with
+      | red => rfl
+      | black =>
+          cases r with
+          | empty => rfl
+          | node rc rl rk rs rr =>
+              cases rc with
+              | black =>
+                  simp only [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight]
+              | red =>
+                  cases rl with
+                  | empty => rfl
+                  | node rlc rll rlk rls rlr =>
+                      cases rlc with
+                      | black =>
+                          simp only [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight,
+                            toRB_repaintRoot]
+                      | red => rfl
+
+/-- Erasing the size field commutes with {lit}`baldR`. -/
+theorem toRB_baldR (l : OSRBTree) (k : Nat) (r : OSRBTree) :
+    toRB (baldR l k r) = RBTree.baldR (toRB l) k (toRB r) := by
+  cases r with
+  | empty =>
+      cases l with
+      | empty => rfl
+      | node lc ll lk ls lr =>
+          cases lc with
+          | black =>
+              simp only [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft]
+          | red =>
+              cases lr with
+              | empty => rfl
+              | node lrc lrl lrk lrs lrr =>
+                  cases lrc with
+                  | black =>
+                      simp only [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft,
+                        toRB_repaintRoot]
+                  | red => rfl
+  | node rc rl rk rs rr =>
+      cases rc with
+      | red => rfl
+      | black =>
+          cases l with
+          | empty => rfl
+          | node lc ll lk ls lr =>
+              cases lc with
+              | black =>
+                  simp only [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft]
+              | red =>
+                  cases lr with
+                  | empty => rfl
+                  | node lrc lrl lrk lrs lrr =>
+                      cases lrc with
+                      | black =>
+                          simp only [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft,
+                            toRB_repaintRoot]
+                      | red => rfl
+
+/-- Erasing the size field commutes with {lit}`splitMin`. -/
+theorem toRB_splitMin (t : OSRBTree) :
+    (splitMin t).1 = (RBTree.splitMin (toRB t)).1 ∧
+      toRB (splitMin t).2 = (RBTree.splitMin (toRB t)).2 := by
+  induction t with
+  | empty => exact ⟨rfl, rfl⟩
+  | node c l k s r ihl =>
+    cases l with
+    | empty => exact ⟨rfl, rfl⟩
+    | node lc ll lk ls lr =>
+      obtain ⟨ih1, ih2⟩ := ihl
+      by_cases hrb : rootBlack (node lc ll lk ls lr) = true
+      · have hrb' : RBTree.rootBlack (RBTree.node lc (toRB ll) lk (toRB lr)) = true := hrb
+        refine ⟨?_, ?_⟩
+        · have h1 : (splitMin (node c (node lc ll lk ls lr) k s r)).1 =
+              (splitMin (node lc ll lk ls lr)).1 := by simp [splitMin, hrb]
+          rw [h1, ih1]
+          simp [RBTree.splitMin, toRB, hrb']
+        · have h1 : (splitMin (node c (node lc ll lk ls lr) k s r)).2 =
+              baldL (splitMin (node lc ll lk ls lr)).2 k r := by simp [splitMin, hrb]
+          rw [h1, toRB_baldL, ih2]
+          simp [RBTree.splitMin, toRB, hrb']
+      · have hrb' : RBTree.rootBlack (RBTree.node lc (toRB ll) lk (toRB lr)) ≠ true := hrb
+        refine ⟨?_, ?_⟩
+        · have h1 : (splitMin (node c (node lc ll lk ls lr) k s r)).1 =
+              (splitMin (node lc ll lk ls lr)).1 := by simp [splitMin, hrb]
+          rw [h1, ih1]
+          simp [RBTree.splitMin, toRB, hrb']
+        · have h1 : (splitMin (node c (node lc ll lk ls lr) k s r)).2 =
+              mk Color.red (splitMin (node lc ll lk ls lr)).2 k r := by simp [splitMin, hrb]
+          rw [h1, toRB_mk, ih2]
+          simp [RBTree.splitMin, toRB, hrb']
+
+/-- Erasing the size field commutes with {lit}`join`. -/
+theorem toRB_join (l r : OSRBTree) :
+    toRB (join l r) = RBTree.join (toRB l) (toRB r) := by
+  by_cases hr : r = empty
+  · subst hr
+    rfl
+  · by_cases hl : l = empty
+    · subst hl
+      have hre : toRB r ≠ RBTree.empty := fun h => hr ((toRB_eq_empty_iff r).mp h)
+      simp [join, RBTree.join, hr, hre, toRB]
+    · have hre : toRB r ≠ RBTree.empty := fun h => hr ((toRB_eq_empty_iff r).mp h)
+      have hle : toRB l ≠ RBTree.empty := fun h => hl ((toRB_eq_empty_iff l).mp h)
+      by_cases hrb : rootBlack r = true
+      · have hrb' : RBTree.rootBlack (toRB r) = true := by
+          rw [toRB_rootBlack]; exact hrb
+        have e2 : RBTree.join (toRB l) (toRB r) =
+            RBTree.baldR (toRB l) (RBTree.splitMin (toRB r)).1
+              (RBTree.splitMin (toRB r)).2 := by
+          simp [RBTree.join, hre, hle, hrb']
+        rw [join_eq_baldR hr hl hrb, e2, toRB_baldR, (toRB_splitMin r).1,
+          (toRB_splitMin r).2]
+      · have hrb' : RBTree.rootBlack (toRB r) ≠ true := by
+          rw [toRB_rootBlack]; exact hrb
+        have e2 : RBTree.join (toRB l) (toRB r) =
+            RBTree.node Color.red (toRB l) (RBTree.splitMin (toRB r)).1
+              (RBTree.splitMin (toRB r)).2 := by
+          simp [RBTree.join, hre, hle, hrb']
+        rw [join_eq_mk_red hr hl hrb, e2, toRB_mk, (toRB_splitMin r).1,
+          (toRB_splitMin r).2]
+
+/-- Erasing the size field commutes with {lit}`del`. -/
+theorem toRB_del (x : Nat) (t : OSRBTree) :
+    toRB (del x t) = RBTree.del x (toRB t) := by
+  induction t with
+  | empty => rfl
+  | node c l y s r ihl ihr =>
+    simp only [del, RBTree.del, toRB, apply_ite toRB, toRB_mk, toRB_baldL, toRB_baldR,
+      toRB_join, ihl, ihr, ← toRB_rootBlack]
+
+/--
+**Refinement.**  The augmented deletion refines the *executable* Chapter 13
+red-black deletion: erasing the cached size fields turns
+{lit}`OSRBTree.delete` into {lit}`CLRS.Chapter13.RBTree.delete`.
+-/
+theorem toRB_delete (x : Nat) (t : OSRBTree) :
+    toRB (delete x t) = RBTree.delete x (toRB t) := by
+  unfold delete RBTree.delete
+  rw [toRB_repaintBlack, toRB_del]
+
+/--
+Through the refinement, the Chapter 13 red-black shape invariant is maintained by
+the augmented deletion.
+-/
+theorem redBlackShape_toRB_delete (x : Nat) {t : OSRBTree}
+    (h : RBTree.RedBlackShape (toRB t)) :
+    RBTree.RedBlackShape (toRB (delete x t)) := by
+  rw [toRB_delete]
+  exact RBTree.redBlackShape_delete h
+
+/-- Through the refinement, deletion preserves membership (as an inorder key);
+requires the tree to be a binary search tree. -/
+theorem mem_keys_delete (x y : Nat) (t : OSRBTree) (hbst : RBTree.BST (toRB t)) :
+    y ∈ keys (delete x t) ↔ y ∈ keys t ∧ y ≠ x := by
+  simp only [← inTree_toRB, toRB_delete, RBTree.inTree_delete_iff x y (toRB t) hbst]
 
 end OSRBTree
 
