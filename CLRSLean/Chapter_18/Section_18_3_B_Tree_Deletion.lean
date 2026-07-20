@@ -854,6 +854,38 @@ lemma sortedRemove_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤
       intro a ha
       exact hk a (mem_of_sortedRemove ha)
 
+/-! ### `sortedRemove` length bounds -/
+
+lemma sortedRemove_length_le (x : Nat) (ks : List Nat) :
+    (sortedRemove x ks).length ≤ ks.length := by
+  induction ks with
+  | nil => simp
+  | cons k ks ih =>
+    rw [sortedRemove_cons]; split <;> simp [ih]
+
+lemma sortedRemove_length_ge (x : Nat) (ks : List Nat) :
+    ks.length - 1 ≤ (sortedRemove x ks).length := by
+  induction ks with
+  | nil => simp
+  | cons k ks ih =>
+    rw [sortedRemove_cons]; split
+    · simp
+    · simp; omega
+
+/-! ### `sortedRemove` preserves leaf invariants -/
+
+lemma sortedRemove_sorted_leaf (x : Nat) (ks : List Nat)
+    (hs : List.Pairwise (· ≤ ·) ks) :
+    List.Pairwise (· ≤ ·) (sortedRemove x ks) := by
+  induction ks with
+  | nil => exact hs
+  | cons k ks ih =>
+    rw [sortedRemove_cons]; split
+    · exact hs.tail
+    · refine List.Pairwise.cons ?_ (ih hs.tail)
+      obtain ⟨hk, _⟩ := List.pairwise_cons.mp hs
+      intro a ha; exact hk a (mem_of_sortedRemove ha)
+
 /-! ## Composed delete (CLRS B-TREE-DELETE) -/
 
 
