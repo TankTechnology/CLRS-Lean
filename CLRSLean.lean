@@ -26,6 +26,7 @@ import CLRSLean.Chapter_23
 import CLRSLean.Chapter_24
 import CLRSLean.Chapter_25
 import CLRSLean.Chapter_26
+import CLRSLean.Chapter_27
 import CLRSLean.Progress
 import CLRSLean.Status
 import CLRSLean.Workflow
