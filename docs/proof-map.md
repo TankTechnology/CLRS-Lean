@@ -1412,7 +1412,8 @@ before RAM cost semantics.
 ### Section 13.1 - Red-black trees
 
 - Lean source: `CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean`
-- Status: `partial`
+- Status: `proved` for executable insertion and deletion with exact membership
+  correctness, red-black shape preservation, and the logarithmic-height theorem
 - Main proved theorems:
   - `CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`
   - `CLRS.Chapter13.RBTree.inTree_rotateRight_iff`
@@ -1447,20 +1448,28 @@ before RAM cost semantics.
   - `CLRS.Chapter13.RBTree.inTree_deleteFixupCase1_iff` .. `_case4_iff`
     (delete-fixup cases preserve membership)
   - `CLRS.Chapter13.RBTree.deleteFixupCase4_shape` (terminating delete-fixup case)
-  - `CLRS.Chapter13.RBTree.balance` (Okasaki rebalancer for deletion)
-  - `CLRS.Chapter13.RBTree.sub1` (demotes a black node, decreasing bh by 1)
-  - `CLRS.Chapter13.RBTree.balLeft`, `CLRS.Chapter13.RBTree.balRight` (deletion rebalancers)
-  - `CLRS.Chapter13.RBTree.app` (in-order splice for two-child delete)
+  - `CLRS.Chapter13.RBTree.baldL`, `CLRS.Chapter13.RBTree.baldR`
+    (deficit-absorbing deletion rebalancers)
+  - `CLRS.Chapter13.RBTree.splitMin` (rebalancing minimum split)
+  - `CLRS.Chapter13.RBTree.join` (in-order splice for two-child delete)
   - `CLRS.Chapter13.RBTree.del`, `CLRS.Chapter13.RBTree.delete` (executable RB-DELETE)
-  - `CLRS.Chapter13.RBTree.AllKeys`, `CLRS.Chapter13.RBTree.Ordered` (BST ordering invariant)
-  - `CLRS.Chapter13.RBTree.allKeys_of_inTree` (AllKeys distributes over InTree)
-  - `CLRS.Chapter13.RBTree.inTree_balance_iff`, `CLRS.Chapter13.RBTree.inTree_sub1_iff` (key-set preservation)
-  - `CLRS.Chapter13.RBTree.inTree_balLeft_iff`, `CLRS.Chapter13.RBTree.inTree_balRight_iff` (key-set preservation)
-  - `CLRS.Chapter13.RBTree.inTree_app_iff` (app preserves key set)
+  - `CLRS.Chapter13.RBTree.BST` (BST ordering invariant)
+  - `CLRS.Chapter13.RBTree.inTree_splitMin_mem`,
+    `CLRS.Chapter13.RBTree.inTree_splitMin_iff` (splitMin membership)
+  - `CLRS.Chapter13.RBTree.inTree_join_iff` (join preserves the union of key sets)
+  - `CLRS.Chapter13.RBTree.inTree_del_forward`,
+    `CLRS.Chapter13.RBTree.inTree_del_backward` (del membership preservation)
+  - `CLRS.Chapter13.RBTree.not_inTree_del_self`,
+    `CLRS.Chapter13.RBTree.not_inTree_delete_self` (the deleted key is absent)
   - `CLRS.Chapter13.RBTree.inTree_del_iff` (del removes exactly the target key)
   - `CLRS.Chapter13.RBTree.inTree_delete_iff` (headline deletion correctness)
-  - `CLRS.Chapter13.RBTree.noRedRed_balance`, `CLRS.Chapter13.RBTree.balancedBlackHeight_balance` (balance shape lemmas)
-  - `CLRS.Chapter13.RBTree.noRedRed_sub1`, `CLRS.Chapter13.RBTree.blackHeight_sub1_black` (sub1 shape lemmas)
+  - `CLRS.Chapter13.RBTree.baldL_shape`, `CLRS.Chapter13.RBTree.baldR_shape`
+    (rebalancers absorb a one-level black-height deficit)
+  - `CLRS.Chapter13.RBTree.splitMin_invariant` (splitMin preserves the
+    red-black invariants, dropping black height only at a black root)
+  - `CLRS.Chapter13.RBTree.del_invariant` (inductive deletion certificate)
+  - `CLRS.Chapter13.RBTree.redBlackShape_delete` (**deletion preserves
+    red-black shape**)
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
   red-red rotation repair certificates, and four insertion-fixup local
   rotation/recoloring certificates.  Each insertion-fixup case separately
@@ -1472,26 +1481,26 @@ before RAM cost semantics.
   the standard two-lemma decomposition: a balanced-black-height tree has at
   least `2^bh - 1` internal nodes (Lemma A), and a no-red-red tree has height at
   most twice its black height (Lemma B), combined via `Nat.log`.
-  Deletion follows the Okasaki/Kahrs functional RB-DELETE design: `balance`
-  repairs red-red violations, `sub1` exposes a doubly-black deficit, and
-  `balLeft`/`balRight` thread the deficit upward while the `app` combinator
-  handles the two-child case.  Membership correctness (`inTree_delete_iff`) is
-  proved by induction using the BST ordering invariant `Ordered`.
-- Current gap: `RedBlackShape` preservation through the already executable
-  `del`/`delete` pipeline.  Membership correctness, the logarithmic-height
-  theorem, local `RB-DELETE-FIXUP` case rewrites, and the terminating Case-4
-  certificate are proved; what remains is the global invariant composition
-  while the doubly-black deficit is threaded through the recursive helpers.
+  Deletion follows the Okasaki/Kahrs functional RB-DELETE design: `baldL` and
+  `baldR` absorb a one-level black-height (doubly-black) deficit, `splitMin`
+  rebalances on the way back up like `del`, and `join` handles the two-child
+  case, rebuilding a red node directly when the right subtree is red-rooted.
+  Membership correctness (`inTree_delete_iff`) is proved using the BST
+  ordering invariant `BST`, and shape preservation (`redBlackShape_delete`)
+  is proved from the `baldL_shape`/`baldR_shape` deficit certificates through
+  the `splitMin_invariant` and `del_invariant` induction certificates.
 
-The section now has the executable deletion algorithm and its key-set
-semantics; the remaining work is the composed shape certificate.
+The section now has the executable deletion algorithm, its key-set semantics,
+and the composed shape certificate; only optional pointer/RAM refinements
+remain.
 
 ## Chapter 14 - Augmenting Data Structures
 
 ### Section 14.1 - Order-statistic trees
 
 - Lean source: `CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean`
-- Status: `partial`
+- Status: `proved` for the order-statistic size augmentation threaded through
+  executable red-black insertion and deletion
 - Main proved theorems:
   - `CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`
   - `CLRS.Chapter14.OSTree.recomputeSizes_wellSized`
@@ -1522,6 +1531,18 @@ semantics; the remaining work is the composed shape certificate.
   - `CLRS.Chapter14.OSRBTree.toRB_insert`
   - `CLRS.Chapter14.OSRBTree.redBlackShape_toRB_insert`
   - `CLRS.Chapter14.OSRBTree.mem_keys_insert`
+  - `CLRS.Chapter14.OSRBTree.wellSized_baldL`, `CLRS.Chapter14.OSRBTree.wellSized_baldR`
+  - `CLRS.Chapter14.OSRBTree.wellSized_splitMin`, `CLRS.Chapter14.OSRBTree.wellSized_join`
+  - `CLRS.Chapter14.OSRBTree.wellSized_del`
+  - `CLRS.Chapter14.OSRBTree.wellSized_delete`
+  - `CLRS.Chapter14.OSRBTree.storedSize_delete`
+  - `CLRS.Chapter14.OSRBTree.osSelect?_delete_eq_rankSelect?`
+  - `CLRS.Chapter14.OSRBTree.toRB_baldL`, `CLRS.Chapter14.OSRBTree.toRB_baldR`
+  - `CLRS.Chapter14.OSRBTree.toRB_splitMin`, `CLRS.Chapter14.OSRBTree.toRB_join`
+  - `CLRS.Chapter14.OSRBTree.toRB_del`
+  - `CLRS.Chapter14.OSRBTree.toRB_delete`
+  - `CLRS.Chapter14.OSRBTree.redBlackShape_toRB_delete`
+  - `CLRS.Chapter14.OSRBTree.mem_keys_delete`
 - Proof pattern: separate cached size fields from mathematical subtree size,
   prove recomputation establishes the augmentation invariant, prove local
   rotations preserve inorder keys, mathematical size, cached root size, the
@@ -1534,10 +1555,12 @@ semantics; the remaining work is the composed shape certificate.
   rebuild every node with a size-recomputing smart constructor `mk`, so
   `wellSized_insert` follows by structural induction, and the size-erasing
   projection `toRB` makes `insert` refine the Chapter 13 `RBTree.insert`,
-  transferring its shape and membership theorems.
-- Current gap: thread the augmentation through executable red-black *deletion*
-  (blocked on Chapter 13's composed deletion-shape certificate) and package the final
-  textbook-level general augmentation interface
+  transferring its shape and membership theorems.  The same mirroring now
+  covers deletion: `baldL`/`baldR`/`splitMin`/`join`/`del`/`delete` rebuild
+  every node with `mk`, so `wellSized_delete` keeps the size invariant through
+  `RB-DELETE`, and `toRB_delete` refines Chapter 13's executable `RBTree.delete`,
+  transferring `redBlackShape_delete` and `inTree_delete_iff`
+  (`redBlackShape_toRB_delete`, `mem_keys_delete`).
 
 This first pass captures the core mathematical idea of order-statistic trees:
 the augmented size field is useful exactly because the selector can branch on
@@ -1601,9 +1624,14 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   makes `insert` (at `natLt`) refine Chapter 13 `RBTree.insert`, transferring its
   shape and membership theorems.  The `sizeAug` and `maxHighAug` fields are
   recovered as instances of this single interface.
-- Current gap: thread the augmentation through executable red-black *deletion*
-  (blocked on Chapter 13's composed deletion-shape certificate).  The stored-augmentation
-  refinement through executable `RBTree.insert` is now proved generically.
+- Current gap: thread the generic augmentation through executable red-black
+  *deletion*.  Chapter 13's composed deletion-shape certificate
+  (`redBlackShape_delete`) and Section 14.1's `OSRBTree` deletion mirror
+  (`wellSized_delete`, `toRB_delete`) are now proved; what remains is the
+  generic `AugmentedRBTree` mirror of the `baldL`/`baldR`/`splitMin`/`join`/
+  `del`/`delete` pipeline (roughly 300 lines following the Section 14.1
+  template).  The stored-augmentation refinement through executable
+  `RBTree.insert` is proved generically.
 
 ## Chapter 15 - Dynamic Programming
 
@@ -3169,7 +3197,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
-| Red-black deletion shape | `partial` | `height_log_bound`, executable `delete`, exact deletion membership, and local fixup certificates are proved.  The remaining core theorem is `RedBlackShape` preservation through composed `del`/`delete`. |
+| Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |
+| Generic augmentation through red-black deletion | `future-work` | Section 14.1 threads the size augmentation through executable deletion (`OSRBTree.wellSized_delete`, `toRB_delete`, `redBlackShape_toRB_delete`, `mem_keys_delete`).  The remaining work is the generic Section 14.3 `AugmentedRBTree` mirror of the Chapter 13 deletion pipeline (roughly 300 lines following the Section 14.1 template). |
 | Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |
 | Prim's algorithm | `proved` | `PrimTrace` packages dynamic light-edge choices, and `prim_minimum_spanning_tree` proves the direct finite-graph MST conclusion for a complete certified run. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |

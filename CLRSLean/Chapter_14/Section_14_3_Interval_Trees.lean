@@ -52,9 +52,13 @@ augmentation interface (an arbitrary augmentation threaded through an executable
 red-black insertion, refining Chapter 13's {lit}`RBTree.insert`).
 
 Deferred refinements: monoid-based augmentation, and threading an augmentation
-through executable red-black *deletion* (blocked on the Chapter 13 executable
-delete loop).  The stored-augmentation-field refinement through executable
-{lit}`RBTree.insert` is now proved generically.
+through executable red-black *deletion*.  Chapter 13's deletion-shape
+certificate ({lit}`RBTree.redBlackShape_delete`) and Section 14.1's
+{lit}`OSRBTree` deletion mirror are now proved; the remaining work is the
+generic {lit}`AugmentedRBTree` mirror of the {lit}`baldL`/{lit}`baldR`/
+{lit}`splitMin`/{lit}`join`/{lit}`del`/{lit}`delete` pipeline.  The
+stored-augmentation-field refinement through executable {lit}`RBTree.insert`
+is now proved generically.
 -/
 
 namespace CLRS
