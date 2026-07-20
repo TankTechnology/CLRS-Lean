@@ -68,6 +68,11 @@ the detailed maintainer ledger.
   search costs, universal hashing, open addressing, and perfect hashing.
 * **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
   and the represented pointer-heap transplant/insert refinement.
+* **Chapter 13 correctness:** executable red-black insertion and deletion with
+  exact membership correctness, red-black shape preservation through both
+  operations ({lit}`redBlackShape_insert`, {lit}`redBlackShape_delete` via the
+  {lit}`baldL`/{lit}`baldR`/{lit}`splitMin`/{lit}`join` doubly-black
+  rebalancing pipeline), and the logarithmic-height theorem (CLRS Lemma 13.1).
 * **Chapter 15 represented sections:** rod cutting, matrix chain, LCS, and
   optimal BST optimality with executable recurrence/reconstruction layers.
 * **Chapter 16:** activity selection, the greedy meta-theorem, Huffman coding,
@@ -88,10 +93,12 @@ the detailed maintainer ledger.
   recurrences, random-permutation symmetry, and pairwise comparison probability
   are proved.  The total-comparison random variable and expectation-sum bridge
   remain.
-* **Chapters 13-14:** executable red-black insertion and deletion membership,
-  the logarithmic-height theorem, order-statistic augmentation, generic local
-  augmentation facts, and interval-search correctness exist.  The central gap
-  is composed deletion shape preservation and then augmentation through it.
+* **Chapter 14:** order-statistic augmentation (including the size invariant
+  threaded through executable red-black insertion and deletion via
+  {lit}`OSRBTree.wellSized_insert` and {lit}`OSRBTree.wellSized_delete`),
+  generic local augmentation facts, and interval-search correctness exist.  The
+  remaining core group is threading the generic Section 14.3 augmentation
+  interface ({lit}`AugmentedRBTree`) through executable red-black deletion.
 * **Chapters 18-19:** B-trees and Fibonacci heaps have substantial mathematical
   or size-level specifications.  B-tree structural invariants and the
   executable Fibonacci-heap forest operations/cost analysis remain central
@@ -136,8 +143,9 @@ milestone:
    the remaining path-reconstruction/negative-cycle interfaces in Chapter 25.
 3. Complete the MFMC converse, Edmonds-Karp counting theorem, and bipartite-
    matching reduction in Chapter 26.
-4. Prove Chapter 13 deletion shape preservation and transport Chapter 14
-   augmentation through deletion.
+4. Thread the generic Chapter 14 augmentation interface
+   ({lit}`AugmentedRBTree`) through executable red-black deletion, mirroring
+   the Chapter 13 {lit}`del` pipeline.
 5. Close Chapter 7's total-comparison expectation bridge.
 
 ## Reader Contract

@@ -298,14 +298,21 @@ parent-pointer layer is now also proved: iterative search
 proved equivalent to the functional operation.  The remaining BST work is the
 imperative in-place pointer-mutation (RAM) refinement.
 
-### Red-Black Deletion Shape Preservation
+### Generic Augmentation Through Red-Black Deletion
 
-- Related section: Section 13.1 - Red-black trees
+- Related section: Section 14.3 - Interval trees
 - Status: `future-work`
 
-The current Chapter 13 file includes executable insertion, the logarithmic
-height theorem, executable `RB-DELETE`, and exact deletion-membership
-correctness, together with local delete-fixup certificates.  The remaining
-core theorem is `RedBlackShape` preservation through the composed
-`del`/`delete` recursion.  Chapter 14 deletion augmentation is blocked only on
-that global shape certificate.
+Chapter 13 now proves `RedBlackShape` preservation through the composed
+executable `del`/`delete` pipeline (`redBlackShape_delete`, built on the
+`baldL`/`baldR`/`splitMin`/`join` doubly-black rebalancing certificates), and
+Section 14.1 threads the order-statistic size augmentation through that
+deletion (`OSRBTree.wellSized_delete`, `toRB_delete`,
+`redBlackShape_toRB_delete`, `mem_keys_delete`).
+
+The remaining work is the generic mirror: an `AugmentedRBTree` copy of the
+Chapter 13 `baldL`/`baldR`/`splitMin`/`join`/`del`/`delete` pipeline that
+rebuilds every node with the augmentation-recomputing smart constructor `mk`,
+plus the corresponding `wellAugmented_delete` invariant proof and
+`toRB_delete` refinement.  This is not blocked on Chapter 13; it is roughly
+300 lines of generic mirroring following the Section 14.1 template.
