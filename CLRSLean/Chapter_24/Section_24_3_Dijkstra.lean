@@ -187,9 +187,18 @@ structure DijkstraState (V : Type*) where
   /-- Tentative distances. -/
   d : V → WithTop ℝ
 
-/-- The initial state: all unsettled, source at distance `0`, all others at `⊤`. -/
+/-- The initial state: source pre-settled with distance 0, and every outgoing edge
+`(s, v)` pre-relaxed to `w s v`.  All other vertices have tentative distance `⊤`.
+
+This pre-settles the source and pre-relaxes its outgoing edges so that
+`DijkstraInvariant` holds from the start, matching CLRS's implicit first
+iteration that extracts `s` and relaxes its edges before entering the loop. -/
 def dijkstraInit (s : V) : DijkstraState V :=
-  { S := ∅, d := fun v => if v = s then (0 : WithTop ℝ) else ⊤ }
+  { S := {s}
+    d := fun v =>
+      if v = s then (0 : WithTop ℝ)
+      else if (s, v) ∈ G.edges then (G.w s v : WithTop ℝ)
+      else ⊤ }
 
 /-- One iteration: extract an unsettled vertex of minimum tentative distance,
 settle it, and relax its outgoing edges.  When no unsettled vertex remains, the
@@ -403,7 +412,7 @@ theorem dijkstraStep_invariant (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
 /-- Fuelled Dijkstra loop.  `dijkstraLoop G s n` runs `n` iterations from the initial
 state. -/
 noncomputable def dijkstraLoop (G : WeightedGraph V) (s : V) (n : ℕ) : DijkstraState V :=
-  Nat.recOn n (dijkstraInit s) (fun _ st => dijkstraStep G st)
+  Nat.recOn n (dijkstraInit G s) (fun _ st => dijkstraStep G st)
 
 /-- Each step adds exactly one vertex (if unsettled vertices remain) or zero (if all are settled).
     Returns `(card unchanged ∧ already all settled)` or `(+1 advancement)`. -/
@@ -478,6 +487,71 @@ theorem dijkstraLoop_finish (G : WeightedGraph V) (s : V) (n : ℕ) (hn : Fintyp
   have h_sub : (dijkstraLoop G s n).S ⊆ Finset.univ := Finset.subset_univ _
   exact Finset.eq_of_subset_of_card_le h_sub (by
     rw [hcard_eq, card_univ])
+
+/-! ## Initial invariant and final correctness -/
+
+/-- The initial Dijkstra state satisfies the invariant: the source is pre-settled
+with distance 0 (which equals `δ s` by `isShortestDist_self_zero`), every
+outgoing edge `(s, y)` is pre-relaxed to `w s y`, the frontier-edge condition
+holds because `d y = w s y = δ s + w s y`, and `δ y ≤ w s y` holds because
+`[s, y]` is a walk from `s` to `y`. -/
+theorem dijkstraInit_invariant (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ v, G.IsShortestDist s v (δ v)) :
+    DijkstraInvariant G hnn s δ hδ (dijkstraInit G s) := by
+  refine {
+    hsS := by simp [dijkstraInit]
+    hsettled := by
+      intro x hx
+      have hxS : x = s := by simpa [dijkstraInit] using hx
+      subst x
+      have hδs : δ s = (0 : WithTop ℝ) := G.isShortestDist_self_zero hnn s δ hδ
+      simp [dijkstraInit, hδs]
+    htent := by
+      intro y hyS x hxS hedge
+      have hx : x = s := by simpa [dijkstraInit] using hxS
+      subst x
+      have hy : y ≠ s := by
+        intro h; subst y; exact hyS (by simp [dijkstraInit])
+      have hδs : δ s = (0 : WithTop ℝ) := G.isShortestDist_self_zero hnn s δ hδ
+      simp [dijkstraInit, hy, hedge, hδs]
+    hvalid := by
+      intro y hyS
+      have hy : y ≠ s := by
+        intro h; subst y; exact hyS (by simp [dijkstraInit])
+      by_cases hedge : (s, y) ∈ G.edges
+      · -- δ y ≤ w s y because [s, y] is a walk
+        have h_walk : G.IsWalkFrom s y [s, y] := by
+          refine ⟨?_, by simp, by simp⟩
+          simp [WeightedGraph.Adj, hedge, List.isChain_singleton]
+        have hδy_le : δ y ≤ (G.w s y : WithTop ℝ) := by
+          simpa [walkWeight_singleton, walkWeight_cons_cons] using (hδ y).1 [s, y] h_walk
+        simp [dijkstraInit, hy, hedge, hδy_le]
+      · simp [dijkstraInit, hy, hedge]
+  }
+
+/-- The Dijkstra invariant is preserved by the fuelled loop: if it holds for the
+initial state, it holds after any number of iterations. -/
+theorem dijkstraLoop_invariant (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ v, G.IsShortestDist s v (δ v)) (k : ℕ) :
+    DijkstraInvariant G hnn s δ hδ (dijkstraLoop G s k) := by
+  induction k with
+  | zero =>
+      simpa [dijkstraLoop] using dijkstraInit_invariant G hnn s δ hδ
+  | succ k ih =>
+      rw [dijkstraLoop]
+      exact dijkstraStep_invariant G hnn s δ hδ (dijkstraLoop G s k) ih
+
+/-- **Dijkstra correctness.**  After `Fintype.card V` iterations, every vertex
+has its exact shortest-path distance: `(dijkstraLoop G s n).d v = δ v` for all
+`v`, provided `n ≥ Fintype.card V`.  In particular, `n = Fintype.card V`
+suffices. -/
+theorem dijkstraLoop_correct (hnn : G.Nonneg) (s : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ v, G.IsShortestDist s v (δ v)) (n : ℕ) (hn : Fintype.card V ≤ n) (v : V) :
+    (dijkstraLoop G s n).d v = δ v := by
+  have hfin := G.dijkstraLoop_finish s n hn
+  have hinv := dijkstraLoop_invariant G hnn s δ hδ n
+  have h_mem : v ∈ (dijkstraLoop G s n).S := by rw [hfin]; exact Finset.mem_univ v
+  exact hinv.hsettled v h_mem
 
 end WeightedGraph
 end Chapter24

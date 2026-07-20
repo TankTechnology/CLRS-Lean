@@ -37,12 +37,11 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, plus the random-permutation symmetry lemma (`isFirst_prob`) and pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3) over the shared `Probability.FiniteExpectation` toolkit | End-to-end total-comparison expectation (`expected_comparisons_eq_sum`) and the `Θ(n log n)` asymptotic bridge |
+| 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, random-permutation symmetry lemma (`isFirst_prob`), pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3), and the sum-of-probabilities-to-closed-form bridge (`sum_compared_prob_eq_expectedComparisons`) with `Θ(n log n)` asymptotic | Optional: total-comparison random variable with `fintypeExpect` linearity wrapper |
 | 13 | Executable insertion, the logarithmic-height theorem, executable deletion with exact membership correctness, and local delete-fixup certificates | `RedBlackShape` preservation through the composed `del`/`delete` pipeline |
 | 14 | Order-statistic augmentation, the general augmentation theorem (CLRS Theorem 14.1), interval-search correctness, and the size invariant threaded through executable red-black insertion (`OSRBTree.wellSized_insert`, refining Chapter 13 `RBTree.insert` via `toRB_insert`) | Stored-field refinement through executable red-black deletion |
 | 18 | Mathematical B-tree search/split/insert/delete specs | Separator/occupancy/same-depth invariants and deletion repair |
 | 19 | Finite-set operation specs, potential facts, and the concrete rooted-tree logarithmic degree theorem | Executable heap-forest consolidation/cascading cuts and their amortized costs |
-| 24 | Bellman-Ford, DAG SSSP, Dijkstra greedy theory and state/step/loop skeleton, plus difference constraints | Repair the initialization/invariant boundary and prove final Dijkstra distance correctness |
 | 25 | Correct FASTER-APSP; Floyd-Warshall definitions/work; Johnson reweighting algebra | Floyd-Warshall correctness, path reconstruction/negative cycles, and end-to-end Johnson correctness |
 | 26 | Flow model, generic Ford-Fulkerson maximality direction, MFMC easy direction, and Edmonds-Karp Lemma 26.7 | MFMC converse, executable Edmonds-Karp with `O(VE²)`, and Section 26.3 matching reduction |
 | 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms (work `Θ(n³)`/`Θ(n)`/`Θ(n log n)`/`Θ(n^(log₂ 7))`, spans `Θ(log n)`/`Θ(log² n)`/`Θ(log³ n)`) plus all-input P-MATMUL bounds | Greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the merge-based costs, and executable algorithm refinements |
@@ -58,11 +57,10 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 0 | Chapter 24 Dijkstra closure | Align `dijkstraInit` with `DijkstraInvariant`, lift the invariant through `dijkstraLoop`, and prove the final distance map equals `δ` |
 | 1 | Chapter 25 correctness | Prove Floyd-Warshall first; then close Johnson and the predecessor/negative-cycle interfaces |
 | 2 | Chapter 26 correctness | Prove the MFMC converse, then the Edmonds-Karp counting theorem and bipartite-matching reduction |
 | 3 | Chapter 13/14 tree integration | Prove composed red-black deletion shape preservation, then transport augmentation through deletion |
-| 4 | Chapter 7 randomized analysis | Build the total-comparison random variable and expectation-sum bridge |
+| 4 | Chapter 18/19 tree/heap consolidation | Prove full B-tree separator/occupancy invariants and Fibonacci heap CONSOLIDATE with amortized costs |
 
 ## High-Difficulty Queue
 
