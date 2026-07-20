@@ -113,11 +113,20 @@ the detailed maintainer ledger.
 * **Chapter 26:** the flow model, generic no-augmenting-path maximality,
   Edmonds-Karp monotonic distance, and one MFMC direction are proved.  The MFMC
   converse, executable Edmonds-Karp complexity theorem, and Section 26.3 remain.
+* **Chapter 27:** the dynamic-multithreading model (computation DAG with an
+  honestly computed longest-path span, spawn/sync trees, balanced
+  parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
+  work/span recurrences of P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel
+  Strassen are executable cost functions with exact power-of-two closed forms
+  (work `Θ(n³)`, `Θ(n)`, `Θ(n log n)`, `Θ(n^(log₂ 7))`; spans `Θ(log n)`,
+  `Θ(log² n)`, `Θ(log³ n)`), plus all-input upper bounds for P-MATMUL.  The
+  greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the
+  merge-based costs, and executable algorithm refinements remain.
 
 ## Not Represented On Main
 
-Chapters 27-35 do not currently have represented section modules on
-{lit}`main`.  Chapters 24-26 are represented but remain partial as described
+Chapters 28-35 do not currently have represented section modules on
+{lit}`main`.  Chapters 24-27 are represented but remain partial as described
 above.  Open pull requests are not counted until their scope is reviewed,
 merged, and added to the progress source.
 

@@ -44,8 +44,8 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 10 | Elementary Data Structures | 🟡 sections | 12 | — |
 | 11 | Hash Tables | 🟢 correctness | 51 | — |
 | 12 | Binary Search Trees | 🟢 correctness | 40 | — |
-| 13 | Red-Black Trees | 🟢 correctness | 39 | — |
-| 14 | Augmenting Data Structures | 🟠 partial | 61 | Thread the generic augmentation interface (Section 14.3… |
+| 13 | Red-Black Trees | 🟠 partial | 34 | Prove RedBlackShape preservation through the composed… |
+| 14 | Augmenting Data Structures | 🟠 partial | 55 | Thread augmentation through executable red-black deletion |
 | 15 | Dynamic Programming | 🟡 sections | 76 | — |
 | 16 | Greedy Algorithms | 🟢 complete | 32 | — |
 | 17 | Amortized Analysis | 🟡 sections | 66 | — |
@@ -58,9 +58,10 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 24 | Single-Source Shortest Paths | 🟠 partial | 22 | Repair the initialization/invariant boundary and prove the… |
 | 25 | All-Pairs Shortest Paths | 🟠 partial | 16 | Floyd-Warshall correctness; predecessor matrix and path… |
 | 26 | Maximum Flow | 🟠 partial | 9 | Full Max-Flow Min-Cut converse/equivalence; executable BFS… |
-| 27–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
+| 27 | Multithreaded Algorithms | 🟠 partial | 28 | Greedy-scheduler bound (Theorem 27.1/27.2); all-input… |
+| 28–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1360 kernel-checked theorems across Chapters 1–26** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1377 kernel-checked theorems across Chapters 1–27** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·

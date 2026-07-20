@@ -9,10 +9,10 @@ When the CSV changes, regenerate this page with
 ## Snapshot
 
 * CLRS chapters tracked: 35.
-* Chapters represented in Lean: 26.
-* Tracked reader-facing theorem entries: 1360.
-* Proved tracked theorem entries: 1360.
-* Remaining core theorem groups: 21.
+* Chapters represented in Lean: 27.
+* Tracked reader-facing theorem entries: 1377.
+* Proved tracked theorem entries: 1377.
+* Remaining core theorem groups: 22.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -21,10 +21,10 @@ are not yet represented or not yet complete.
 ## Status Counts
 
 * {lit}`main-proof-complete`: 7 chapters.
-* {lit}`main-proof-complete-for-correctness`: 7 chapters.
+* {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 7 chapters.
-* {lit}`not-started`: 9 chapters.
+* {lit}`partial`: 9 chapters.
+* {lit}`not-started`: 8 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -44,8 +44,8 @@ Ch  Chapter                                                     Status          
 10  10. Elementary Data Structures                              selected-section-complete            10.1;10.2;10.4                     12        0
 11  11. Hash Tables                                             main-proof-complete-for-correctness  11.1;11.2;11.3;11.4;11.5           51        0
 12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1                               40        0
-13  13. Red-Black Trees                                         main-proof-complete-for-correctness  13.1                               39        0
-14  14. Augmenting Data Structures                              partial                              14.1;14.3                          61        1
+13  13. Red-Black Trees                                         partial                              13.1                               34        1
+14  14. Augmenting Data Structures                              partial                              14.1;14.3                          55        1
 15  15. Dynamic Programming                                     selected-section-complete            15.1;15.2;15.4;15.5                76        0
 16  16. Greedy Algorithms                                       main-proof-complete                  16.1;16.2;16.3;16.4;16.5           32        0
 17  17. Amortized Analysis                                      selected-section-complete            17.1;17.2;17.4                     66        0
@@ -58,7 +58,7 @@ Ch  Chapter                                                     Status          
 24  24. Single-Source Shortest Paths                            partial                              24.1;24.2;24.3;24.4                22        1
 25  25. All-Pairs Shortest Paths                                partial                              25.1;25.2;25.3                     16        4
 26  26. Maximum Flow                                            partial                              26.1;26.2;26.6                      9        3
-27  27. Multithreaded Algorithms                                not-started                          not represented                     0        1
+27  27. Multithreaded Algorithms                                partial                              27.1;27.2                          28        1
 28  28. Matrix Operations                                       not-started                          not represented                     0        1
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
