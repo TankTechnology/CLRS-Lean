@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CLRS-Lean 前 26 章证明进展</title>
+  <style>
+    :root {
+      --ink: #17212b;
+      --muted: #5e6a75;
+      --line: #d9e0e5;
+      --paper: #f7f8f6;
+      --panel: #ffffff;
+      --red: #b4232c;
+      --green: #16835d;
+      --green-bg: #e9f6f0;
+      --blue: #1769aa;
+      --blue-bg: #eaf3fb;
+      --amber: #a96b00;
+      --amber-bg: #fff4d9;
+      --coral: #c4472d;
+      --coral-bg: #fff0eb;
+      --gray: #66717b;
+      --gray-bg: #edf0f2;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 1600px;
+      min-height: 2200px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    body {
+      padding: 64px;
+      background-image:
+        linear-gradient(#e8ece9 1px, transparent 1px),
+        linear-gradient(90deg, #e8ece9 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    main {
+      width: 1472px;
+      min-height: 2072px;
+      padding: 52px 48px 42px;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid #d7ddd9;
+      box-shadow: 0 18px 55px rgba(27, 39, 34, 0.10);
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 36px;
+      padding-bottom: 30px;
+      border-bottom: 5px solid var(--red);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 58px;
+      line-height: 1.08;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 14px 0 0;
+      font-size: 24px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .date {
+      padding-bottom: 5px;
+      color: var(--muted);
+      font-size: 22px;
+      white-space: nowrap;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      margin: 30px 0 28px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 21px 18px 20px;
+      text-align: center;
+      border-right: 1px solid var(--line);
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .metric strong {
+      display: block;
+      color: var(--red);
+      font-size: 38px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .legend-title {
+      margin-right: 4px;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border: 1px solid currentColor;
+      border-radius: 5px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .chip::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .sealed { color: var(--green); background: var(--green-bg); }
+    .scoped { color: var(--blue); background: var(--blue-bg); }
+    .deep { color: var(--amber); background: var(--amber-bg); }
+    .frontier { color: var(--coral); background: var(--coral-bg); }
+    .intro { color: var(--gray); background: var(--gray-bg); }
+
+    .tables {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    col.number { width: 68px; }
+    col.chapter { width: 176px; }
+    col.status { width: 128px; }
+
+    th {
+      height: 48px;
+      padding: 0 13px;
+      text-align: left;
+      color: #ffffff;
+      background: #28343e;
+      border-right: 1px solid #46515a;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    th:last-child { border-right: 0; }
+
+    td {
+      height: 98px;
+      padding: 12px 13px;
+      vertical-align: middle;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 18px;
+      line-height: 1.38;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    td:last-child { border-right: 0; }
+
+    .num {
+      color: var(--red);
+      font-size: 25px;
+      font-weight: 800;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chapter-name {
+      font-size: 21px;
+      font-weight: 750;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 34px;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .detail {
+      color: #3f4a53;
+      font-size: 17px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .summary-item {
+      padding: 15px 10px;
+      border-top: 6px solid currentColor;
+      background: #fafbfa;
+      text-align: center;
+    }
+
+    .summary-item strong {
+      display: block;
+      font-size: 31px;
+      line-height: 1;
+    }
+
+    .summary-item span {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: 17px;
+      font-weight: 650;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    footer strong { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>CLRS-Lean 前 26 章证明进展</h1>
+        <p class="subtitle">覆盖不等于整章逐题完成；状态按当前数学、算法与实现证明边界统计。</p>
+      </div>
+      <div class="date">截至 2026-07-15</div>
+    </header>
+
+    <section class="metrics" aria-label="项目指标">
+      <div class="metric"><strong>26</strong><span>已覆盖章节</span></div>
+      <div class="metric"><strong>1,302</strong><span>关键证明条目</span></div>
+      <div class="metric"><strong>2,728</strong><span>定理 / 引理声明</span></div>
+      <div class="metric"><strong>69,374</strong><span>Lean 文件行数</span></div>
+      <div class="metric"><strong>0</strong><span>sorry / admit</span></div>
+    </section>
+
+    <section class="legend" aria-label="状态图例">
+      <span class="legend-title">状态：</span>
+      <span class="chip sealed">封板 / 主干完成</span>
+      <span class="chip scoped">当前范围完成</span>
+      <span class="chip deep">深度推进</span>
+      <span class="chip frontier">核心攻坚</span>
+      <span class="chip intro">导读</span>
+    </section>
+
+    <section class="tables">
+      <table aria-label="第1章至第13章">
+        <colgroup><col class="number"><col class="chapter"><col class="status"><col></colgroup>
+        <thead><tr><th>章</th><th>主题</th><th>状态</th><th>代表进展与主要缺口</th></tr></thead>
+        <tbody>
+          <tr><td class="num">01</td><td class="chapter-name">导论</td><td><span class="status intro">导读</span></td><td class="detail">项目约定、证明边界与读者指南</td></tr>
+          <tr><td class="num">02</td><td class="chapter-name">排序入门</td><td><span class="status sealed">主干完成</span></td><td class="detail">插入排序、归并排序及主要成本递推</td></tr>
+          <tr><td class="num">03</td><td class="chapter-name">函数增长</td><td><span class="status scoped">核心完成</span></td><td class="detail">渐近记号、函数层级、Fibonacci 与迭代对数</td></tr>
+          <tr><td class="num">04</td><td class="chapter-name">分治</td><td><span class="status deep">深度推进</span></td><td class="detail">Master 三情形、递归 Strassen；最大子数组成本待补</td></tr>
+          <tr><td class="num">05</td><td class="chapter-name">概率分析</td><td><span class="status scoped">选定完成</span></td><td class="detail">雇用、随机排列、生日悖论与球箱模型</td></tr>
+          <tr><td class="num">06</td><td class="chapter-name">堆排序</td><td><span class="status sealed">正确性封板</span></td><td class="detail">堆、堆排序和优先队列；精细 RAM 成本待补</td></tr>
+          <tr><td class="num">07</td><td class="chapter-name">快速排序</td><td><span class="status deep">深度推进</span></td><td class="detail">快排、比较概率、Θ(n log n)；总期望桥接待补</td></tr>
+          <tr><td class="num">08</td><td class="chapter-name">线性时间排序</td><td><span class="status scoped">正确性完成</span></td><td class="detail">计数、基数、桶排序；可执行成本模型待补</td></tr>
+          <tr><td class="num">09</td><td class="chapter-name">顺序统计</td><td><span class="status sealed">正式封板</span></td><td class="detail">Quickselect、随机 SELECT、确定性线性 SELECT</td></tr>
+          <tr><td class="num">10</td><td class="chapter-name">基本数据结构</td><td><span class="status scoped">选定完成</span></td><td class="detail">栈、队列、链表与有根树编码</td></tr>
+          <tr><td class="num">11</td><td class="chapter-name">哈希表</td><td><span class="status deep">深度推进</span></td><td class="detail">链地址、通用哈希、开放寻址与完美哈希</td></tr>
+          <tr><td class="num">12</td><td class="chapter-name">二叉搜索树</td><td><span class="status deep">深度推进</span></td><td class="detail">BST、zipper、TRANSPLANT 与指针堆精化</td></tr>
+          <tr><td class="num">13</td><td class="chapter-name">红黑树</td><td><span class="status frontier">核心攻坚</span></td><td class="detail">删除已可执行；全局红黑形状保持待证</td></tr>
+        </tbody>
+      </table>
+
+      <table aria-label="第14章至第26章">
+        <colgroup><col class="number"><col class="chapter"><col class="status"><col></colgroup>
+        <thead><tr><th>章</th><th>主题</th><th>状态</th><th>代表进展与主要缺口</th></tr></thead>
+        <tbody>
+          <tr><td class="num">14</td><td class="chapter-name">数据结构增强</td><td><span class="status deep">深度推进</span></td><td class="detail">顺序统计树、区间树与通用增强定理</td></tr>
+          <tr><td class="num">15</td><td class="chapter-name">动态规划</td><td><span class="status scoped">主体完成</span></td><td class="detail">钢条切割、矩阵链、LCS 与最优 BST</td></tr>
+          <tr><td class="num">16</td><td class="chapter-name">贪心算法</td><td><span class="status scoped">选定完成</span></td><td class="detail">活动选择、Huffman、拟阵与任务调度</td></tr>
+          <tr><td class="num">17</td><td class="chapter-name">摊还分析</td><td><span class="status deep">深度推进</span></td><td class="detail">聚合、记账、势能方法与动态表</td></tr>
+          <tr><td class="num">18</td><td class="chapter-name">B 树</td><td><span class="status frontier">核心攻坚</span></td><td class="detail">局部修复；组合删除与磁盘页模型待补</td></tr>
+          <tr><td class="num">19</td><td class="chapter-name">Fibonacci 堆</td><td><span class="status deep">深度推进</span></td><td class="detail">抽象语义、势能框架与紧致度数界</td></tr>
+          <tr><td class="num">20</td><td class="chapter-name">vEB 树</td><td><span class="status sealed">数学模型封板</span></td><td class="detail">七种递归操作及 O(log log u) 控制流成本界</td></tr>
+          <tr><td class="num">21</td><td class="chapter-name">并查集</td><td><span class="status sealed">正式封板</span></td><td class="detail">路径压缩、按秩合并及 O((m+n) α(n)) 摊还界</td></tr>
+          <tr><td class="num">22</td><td class="chapter-name">图算法</td><td><span class="status sealed">正确性封板</span></td><td class="detail">BFS、DFS、拓扑排序与 Kosaraju SCC</td></tr>
+          <tr><td class="num">23</td><td class="chapter-name">最小生成树</td><td><span class="status sealed">正确性封板</span></td><td class="detail">割性质、Kruskal、Prim 与并查集成本组合</td></tr>
+          <tr><td class="num">24</td><td class="chapter-name">单源最短路</td><td><span class="status scoped">选定完成</span></td><td class="detail">Bellman-Ford、DAG 最短路、Dijkstra、差分约束</td></tr>
+          <tr><td class="num">25</td><td class="chapter-name">全源最短路</td><td><span class="status frontier">部分完成</span></td><td class="detail">FASTER-APSP；Floyd-Warshall 与 Johnson 待补</td></tr>
+          <tr><td class="num">26</td><td class="chapter-name">最大流</td><td><span class="status frontier">部分完成</span></td><td class="detail">流网络；MFMC 逆向和 Edmonds-Karp 待补</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="summary" aria-label="状态汇总">
+      <div class="summary-item sealed"><strong>7</strong><span>封板 / 主干完成</span></div>
+      <div class="summary-item scoped"><strong>7</strong><span>当前范围完成</span></div>
+      <div class="summary-item deep"><strong>7</strong><span>深度推进</span></div>
+      <div class="summary-item frontier"><strong>4</strong><span>核心攻坚</span></div>
+      <div class="summary-item intro"><strong>1</strong><span>导读</span></div>
+    </section>
+
+    <footer>
+      <span><strong>CLRS-Lean</strong> · Lean 4 formalization of Introduction to Algorithms</span>
+      <span>github.com/TankTechnology/CLRS-Lean</span>
+    </footer>
+  </main>
+</body>
+</html>

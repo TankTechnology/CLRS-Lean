@@ -38,14 +38,14 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 4 | Divide-and-Conquer | 🟢 complete | 94 | — |
 | 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 23 | — |
 | 6 | Heapsort | 🟢 complete | 78 | — |
-| 7 | Quicksort | 🟠 partial | 30 | End-to-end total-comparison random variable and… |
+| 7 | Quicksort | 🟡 sections | 30 | — |
 | 8 | Sorting in Linear Time | 🟢 correctness | 29 | — |
 | 9 | Medians and Order Statistics | 🟢 complete | 72 | — |
 | 10 | Elementary Data Structures | 🟡 sections | 12 | — |
 | 11 | Hash Tables | 🟢 correctness | 51 | — |
 | 12 | Binary Search Trees | 🟢 correctness | 40 | — |
 | 13 | Red-Black Trees | 🟢 correctness | 39 | — |
-| 14 | Augmenting Data Structures | 🟠 partial | 61 | Thread the generic augmentation interface (Section 14.3… |
+| 14 | Augmenting Data Structures | 🟢 correctness | 67 | — |
 | 15 | Dynamic Programming | 🟡 sections | 76 | — |
 | 16 | Greedy Algorithms | 🟢 complete | 32 | — |
 | 17 | Amortized Analysis | 🟡 sections | 66 | — |
@@ -55,13 +55,13 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 21 | Data Structures for Disjoint Sets | 🟢 complete | 84 | — |
 | 22 | Elementary Graph Algorithms | 🟢 correctness | 47 | — |
 | 23 | Minimum Spanning Trees | 🟢 correctness | 52 | — |
-| 24 | Single-Source Shortest Paths | 🟠 partial | 22 | Repair the initialization/invariant boundary and prove the… |
+| 24 | Single-Source Shortest Paths | 🟡 sections | 22 | — |
 | 25 | All-Pairs Shortest Paths | 🟠 partial | 16 | Floyd-Warshall correctness; predecessor matrix and path… |
 | 26 | Maximum Flow | 🟠 partial | 9 | Full Max-Flow Min-Cut converse/equivalence; executable BFS… |
 | 27 | Multithreaded Algorithms | 🟠 partial | 28 | Greedy-scheduler bound (Theorem 27.1/27.2); all-input… |
 | 28–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1388 kernel-checked theorems across Chapters 1–27** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1394 kernel-checked theorems across Chapters 1–27** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
