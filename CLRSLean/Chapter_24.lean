@@ -48,9 +48,13 @@ cycle removal under the no-negative-cycle hypothesis, exact correctness after
   {lit}`CLRS.Chapter24.WeightedGraph.exists_crossing`,
   {lit}`CLRS.Chapter24.WeightedGraph.dijkstra_extractMin_correct`,
   {lit}`CLRS.Chapter24.WeightedGraph.DijkstraState`,
+  {lit}`CLRS.Chapter24.WeightedGraph.dijkstraInit`,
+  {lit}`CLRS.Chapter24.WeightedGraph.dijkstraInit_invariant`,
   {lit}`CLRS.Chapter24.WeightedGraph.dijkstraStep_invariant`,
   {lit}`CLRS.Chapter24.WeightedGraph.dijkstraLoop`,
+  {lit}`CLRS.Chapter24.WeightedGraph.dijkstraLoop_invariant`,
   {lit}`CLRS.Chapter24.WeightedGraph.dijkstraLoop_finish`,
+  {lit}`CLRS.Chapter24.WeightedGraph.dijkstraLoop_correct`,
   and {lit}`CLRS.Chapter24.WeightedGraph.dijkstraWork_le_edge_log`.
 
 * 24.4 Difference constraints and shortest paths.
@@ -85,12 +89,14 @@ that a walk from a settled to an unsettled vertex crosses the settled frontier
 ({lit}`dijkstra_extractMin_correct`): the unsettled vertex of minimum tentative
 distance already has the exact shortest-path distance.  It also records the
 {lit}`(|V| + |E|)·log|V|` = {lit}`O(E log V)` binary-heap work decomposition
-({lit}`dijkstraWork_le_edge_log`).  The file additionally defines an executable
-state/step/loop skeleton, proves one-step invariant preservation, and proves
-that sufficiently many steps settle every vertex.  Those declarations do not
-yet form an end-to-end correctness theorem: {lit}`dijkstraInit` starts with an
-empty settled set, whereas {lit}`DijkstraInvariant` requires the source to be
-settled.
+({lit}`dijkstraWork_le_edge_log`).  The file defines an executable state/step/loop
+skeleton: {lit}`dijkstraInit` pre-settles the source with distance 0 and pre-relaxes
+its outgoing edges so that {lit}`DijkstraInvariant` holds from the start
+({lit}`dijkstraInit_invariant`); one-step invariant preservation
+({lit}`dijkstraStep_invariant`) lifts the invariant through {lit}`dijkstraLoop`
+({lit}`dijkstraLoop_invariant`); and the end-to-end correctness theorem
+({lit}`dijkstraLoop_correct`) proves that after {lit}`|V|` iterations every vertex
+has its exact shortest-path distance.
 
 Section 24.2 formalizes CLRS's {lit}`DAG-SHORTEST-PATHS`.  It restates the
 topological-order predicate over {lit}`WeightedGraph.Adj` ({lit}`IsTopoOrder`), shows a
@@ -116,19 +122,14 @@ Bellman-Ford solution {lit}`x i = δ(s, i)`.
 
 ## Deferred Work
 
-* Align {lit}`dijkstraInit` with {lit}`DijkstraInvariant`, lift the invariant
-  through {lit}`dijkstraLoop`, and prove that the final distance map equals the
-  shortest-path distances.  The state, step, loop, step-preservation theorem,
-  and eventual-settlement theorem already exist.
 * Per-edge relaxation ordering and mutable/RAM cost refinement of the abstract
   synchronous relaxation model.
 
 The advertised Bellman-Ford correctness/work chain (Section 24.1), the
 DAG-shortest-paths correctness and {lit}`Θ(V + E)` work bound (Section 24.2), the
-Dijkstra greedy theorem and abstract work bound (Section 24.3), and the
-difference-constraint feasibility characterisation (Section 24.4) are proved.
-Chapter 24 remains partial until the Dijkstra loop is connected from
-initialization to its final distance-correctness theorem.
+Dijkstra greedy theorem, executable loop with end-to-end correctness, and
+abstract work bound (Section 24.3), and the difference-constraint feasibility
+characterisation (Section 24.4) are proved.
 -/
 
 namespace CLRS

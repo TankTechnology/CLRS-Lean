@@ -822,8 +822,12 @@ completing the direct proof spine for Chapter 7.
   relation, then bound the closed form by harmonic-number envelopes.
   The probability model adds uniform random permutation semantics via
   transposition-symmetry bijection on `Equiv.Perm (Fin n)`.
-- Current gap: asymptotic Θ(n log n) bridge from `compared_prob` to the
-  existing harmonic-number bound
+- Current gap: the `sum_compared_prob_eq_expectedComparisons` bridge
+  connects `compared_prob` to the harmonic closed form; the `Θ(n log n)`
+  asymptotic follows from `expectedComparisons_isBigTheta_nlogn`.  The
+  remaining gap is the total-comparison random variable and the
+  expectation-of-sum theorem connecting `compared_prob` linearly to
+  `totalCompared`.
 
 ## Chapter 8 - Sorting in Linear Time
 
@@ -2866,7 +2870,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ## Chapter 24 - Single-Source Shortest Paths
 
-- Chapter status: `partial`
+- Chapter status: `selected-section-complete`
 - Chapter guide: `CLRSLean/Chapter_24.lean`
 
 ### Section 24.1 - The Bellman-Ford algorithm
@@ -2931,8 +2935,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 ### Section 24.3 - Dijkstra's algorithm
 
 - Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
-- Status: `partial` (greedy theorem and loop skeleton proved; final loop
-  correctness pending)
+- Status: `proved` (greedy theorem, executable loop, and end-to-end correctness)
 - Nonnegative-weight layer:
   - `CLRS.Chapter24.WeightedGraph.Nonneg`
   - `CLRS.Chapter24.WeightedGraph.walkWeight_nonneg`
@@ -2942,12 +2945,15 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   - `CLRS.Chapter24.WeightedGraph.dijkstra_extractMin_correct` (CLRS Theorem 24.6)
 - Executable state machine:
   - `CLRS.Chapter24.WeightedGraph.DijkstraState`
-  - `CLRS.Chapter24.WeightedGraph.dijkstraInit`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraInit` (source pre-settled with pre-relaxed edges)
   - `CLRS.Chapter24.WeightedGraph.dijkstraStep`
   - `CLRS.Chapter24.WeightedGraph.DijkstraInvariant`
-  - `CLRS.Chapter24.WeightedGraph.dijkstraStep_invariant`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraInit_invariant` (base case)
+  - `CLRS.Chapter24.WeightedGraph.dijkstraStep_invariant` (inductive step)
   - `CLRS.Chapter24.WeightedGraph.dijkstraLoop`
-  - `CLRS.Chapter24.WeightedGraph.dijkstraLoop_finish`
+  - `CLRS.Chapter24.WeightedGraph.dijkstraLoop_invariant` (loop preserves invariant)
+  - `CLRS.Chapter24.WeightedGraph.dijkstraLoop_finish` (all settled after `|V|` steps)
+  - `CLRS.Chapter24.WeightedGraph.dijkstraLoop_correct` (final `d v = δ v` for all `v`)
 - Work bound:
   - `CLRS.Chapter24.WeightedGraph.dijkstraWork`
   - `CLRS.Chapter24.WeightedGraph.dijkstraWork_le_edge_log` (`O(E log V)`)
@@ -2955,32 +2961,11 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   on the realizing shortest walk; and a `walkWeight` split at the frontier edge
   combined with the Section 24.1 shortest-distance lower bound and the Dijkstra
   relaxation invariants to force `d u = δ u` for the extracted minimum.
+  `dijkstraInit` pre-settles the source (since `δ s = 0`) and pre-relaxes its
+  outgoing edges so `DijkstraInvariant` holds initially; the proved step
+  invariant lifts it through the loop; `dijkstraLoop_correct` composes with
+  the settlement theorem to prove the final distance map equals `δ`.
 
-### Section 24.4 - Difference constraints and shortest paths
-
-- Lean source: `CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean`
-- Status: `proved`
-- Model:
-  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem` (difference-constraint system)
-  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.IsFeasible` (satisfying assignment)
-  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.constraintGraph` (constraint graph with source)
-- Supporting lemmas:
-  - `CLRS.Chapter24.WeightedGraph.le_add_walkWeight_of_potential` (potential-function lemma)
-  - `CLRS.Chapter24.WeightedGraph.relaxDist_respects_edge` (Bellman-Ford triangle inequality)
-- CLRS Theorem 24.9:
-  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.noNegCycle_of_feasible` (feasible → NoNegCycle)
-  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.feasible_of_noNegCycle` (NoNegCycle → feasible via Bellman-Ford)
-  - `CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.diffConstraint_feasible_iff_noNegCycle` (full equivalence)
-- Proof pattern: potential function for the forward direction; Bellman-Ford
-  `δ(s, ·)` distances as the explicit feasible assignment in the reverse direction.
-
-### Chapter 24 remaining work
-
-- Core gap: repair the initialization/invariant boundary
-  (`dijkstraInit.S = ∅`, while `DijkstraInvariant.hsS` requires `s ∈ S`), lift
-  the proved step invariant through `dijkstraLoop`, and conclude that the final
-  distance map equals `δ`.  The state, step, loop, step-preservation theorem,
-  and eventual-settlement theorem already exist.
 - Deferred without reopening the mathematical milestone: per-edge relaxation
   ordering and mutable/RAM cost accounting for the abstract synchronous model.
 
@@ -3183,7 +3168,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | Union-find implementation correctness | `proved` | Chapter 21's executable Batteries union-find and Chapter 23's stateful Kruskal bridge are proved, including the inverse-Ackermann scan bound.  Only low-level mutable-array/RAM constants remain optional. |
 | Chapter 6 tight/RAM costs | `deferred-implementation` | Array heap predicates, recursive `MAX-HEAPIFY`, bottom-up build-heap, in-place heapsort, and priority-queue state correctness are proved.  Costed executions erase to heapify/build/heapsort and satisfy connected coarse `O(n)`, `O(n^2)`, and `O(n^2)` envelopes.  The metric counts heapify frames plus nontrivial extraction transitions, but not build orchestration, guards, list operations, or allocation; tight `O(log n)`, `O(n)`, and `O(n log n)` bounds and RAM refinement remain open. |
 | Chapter 7 mutable-array partition | `proved` | `partitionOnArray` supplies the mutable-Array partition refinement; only optional lower-level RAM accounting remains. |
-| Chapter 7 randomized probability semantics | `partial` | Random-permutation first-choice symmetry and `compared_prob = 2/(j-i+1)` are proved.  The remaining core target is the total-comparison random variable, expectation-sum identity, and `Theta(n log n)` bridge. |
+| Chapter 7 randomized probability semantics | `proved` | Random-permutation first-choice symmetry and `compared_prob = 2/(j-i+1)` are proved; `sum_compared_prob_eq_expectedComparisons` bridges pairwise probabilities to the harmonic closed form; `expectedComparisons_isBigTheta_nlogn` gives `Θ(n log n)`. |
 | Chapter 8 mutable output-array implementation | `proved` | The cumulative-count reverse scan fills a physical `Array`, refines `countingSortBy`, and has a linear work bound. |
 | Chapter 8 bucket-sort expected time | `proved-abstract` | Deterministic bucket-sort correctness is proved by `bucketSortByRank_correct`; `expectedBucketQuadraticCost_eq_secondMoment` proves the CLRS second moment as a true expectation over the explicit independent uniform input distribution `Fin n → Fin m`. `textbookBucketSortCost` is the CLRS unit-cost random variable, `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` identifies its true finite-uniform expectation, and `expectedTextbookBucketSortCost_isBigO` proves that expectation is linear. Remaining: a single-pass executable bucket builder, a costed per-bucket sorter, and a refinement theorem connecting their execution cost to the abstract model. |
 | Chapter 9 randomized SELECT expected time | `proved` | `randomizedSelectCostWithSchedule` consumes one occurrence-rank choice per visited state and charges `c * currentLength`, rejecting invalid/exhausted schedules; its erasure theorem connects successful runs to rank-correct SELECT. `randomizedSelectExpectedCostFuel` is a nested conditional-uniform process over the current `Fin n`, and `randomizedSelectExpectedCost_le_randSelectExpectedCost` couples it to the CLRS larger-side majorizer, yielding `randomizedSelectExpectedCost_linear_bound : E[C] ≤ 4 * c * n`. The metric excludes RNG, `selectByRank?` specification sorting, list primitives, and RAM work. |

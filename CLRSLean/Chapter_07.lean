@@ -37,7 +37,8 @@ probability space for random pivot choices.
   {lit}`CLRS.Chapter07.quickSortComparisons_quadratic`.
 
 * 7.3 Randomized quicksort: {lit}`proved` for the expected-comparison closed
-  form and {lit}`O(n log n)` harmonic bound.  Main results:
+  form and {lit}`Θ(n log n)` asymptotic bound, including the bridge between the
+  random-permutation probability model and the algebraic closed form.  Main results:
   {lit}`CLRS.Chapter07.harmonic_succ`,
   {lit}`CLRS.Chapter07.sum_mul_harmonic_eq`,
   {lit}`CLRS.Chapter07.sum_expectedComparisons_eq`,
@@ -46,16 +47,23 @@ probability space for random pivot choices.
   {lit}`CLRS.Chapter07.expectedComparisons_telescope`,
   {lit}`CLRS.Chapter07.expectedComparisons_clrs_harmonic_bound`,
   {lit}`CLRS.Chapter07.expectedComparisons_harmonic_bound`,
-  {lit}`CLRS.Chapter07.expectedComparisons_quadratic`, and
-  {lit}`CLRS.Chapter07.expectedComparisons_monotone`.
+  {lit}`CLRS.Chapter07.expectedComparisons_quadratic`,
+  {lit}`CLRS.Chapter07.expectedComparisons_monotone`,
+  {lit}`CLRS.Chapter07.expectedComparisons_isBigTheta_nlogn`,
+  {lit}`CLRS.Chapter07.expectedComparisons_succ_add_two`, and
+  {lit}`CLRS.Chapter07.sum_compared_prob_eq_expectedComparisons`.
 
 ## Current Gaps
 
-* Index-level mutable-array {lit}`PARTITION` loop refinement.
-* Probabilistic model (explicit probability space, independence of pivot
-  choices) — currently folded into the deterministic recurrence coefficients.
+* Index-level mutable-array {lit}`PARTITION` loop refinement and RAM cost model.
 * Sharp {lit}`n log n` tail bound (Chernoff/Hoeffding) and lower bound
   ({lit}`Omega(n log n)` for comparison sorting).
+
+The expected-comparison closed form, the {lit}`Θ(n log n)` asymptotic, and the
+bridge between the random-permutation probability model and the algebraic formula
+({lit}`sum_compared_prob_eq_expectedComparisons`) are now proved.  The remaining
+random pivot-choice independence assertion and expectation-of-sum theorem are
+deferred refinements.
 -/
 
 namespace CLRS

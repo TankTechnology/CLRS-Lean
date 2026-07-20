@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort
+import CLRSLean.Probability.FiniteExpectation
 import Mathlib
 import Mathlib.NumberTheory.Harmonic.Bounds
 
@@ -515,6 +516,133 @@ comparisons satisfies {lit}`T(n) = Θ(n log n)`.
 theorem expectedComparisons_isBigTheta_nlogn :
     isBigTheta expectedComparisonsReal (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) :=
   ⟨expectedComparisons_isBigO_nlogn, expectedComparisons_isBigOmega_nlogn⟩
+
+/-! ## Bridge: probability model to closed form
+
+We connect the random-permutation pairwise comparison probability
+(`compared_prob`, CLRS Theorem 7.3) to the deterministic closed form
+`expectedComparisons n` and the `Θ(n log n)` asymptotic.
+-/
+
+open CLRS.Probability
+
+/-- Additive recurrence: `T(n+1) = T(n) + 2*(H_{n+1} - 1)`. -/
+theorem expectedComparisons_succ_add_two (n : ℕ) :
+    expectedComparisons (n+1) = expectedComparisons n + 2 * (harmonic (n+1) - 1) := by
+  have ht := expectedComparisons_telescope n
+  have hpos : ((n+1 : ℕ) : ℚ) ≠ 0 := Nat.cast_ne_zero.mpr (Nat.succ_ne_zero n)
+  have hT_succ : expectedComparisons (n+1) =
+      (((n : ℚ) + 2) * expectedComparisons n + 2 * (n : ℚ)) / ((n+1 : ℕ) : ℚ) :=
+    (eq_div_iff_mul_eq hpos).mpr (by simpa [mul_comm] using ht)
+  rw [hT_succ]
+  rw [show expectedComparisons n = 2 * ((n : ℚ) + 1) * harmonic n - 4 * (n : ℚ) from rfl]
+  have hH_succ : harmonic (n+1) = harmonic n + (1 : ℚ) / ((n+1 : ℕ) : ℚ) := harmonic_succ n
+  rw [hH_succ]
+  push_cast
+  field_simp [show ((n : ℚ) + 1) ≠ 0 from by positivity]
+  ring
+
+/-- The double sum of pairwise comparison probabilities `2/(j-i+1)`
+over all `0 ≤ i < j < n` equals the expected-comparison closed form. -/
+theorem sum_compared_prob_eq_expectedComparisons (n : ℕ) :
+    (∑ i ∈ Finset.range n, ∑ j ∈ Finset.range n,
+      if i < j then (2 : ℚ) / ((j - i + 1 : ℕ) : ℚ) else 0) =
+    (expectedComparisons n : ℚ) := by
+  induction n with
+  | zero => simp [expectedComparisons]
+  | succ n ih =>
+    -- S(n+1) = S(n) + A(n), where A(n) = Σ_{i<n} 2/(n-i+1)
+    -- Split the outer sum: i=n contributes nothing (n < j never holds in range (n+1))
+    rw [Finset.sum_range_succ]
+    have h_last_row_zero : (∑ j ∈ Finset.range (n+1),
+        if (n : ℕ) < j then (2 : ℚ) / ((j - n + 1 : ℕ) : ℚ) else 0) = 0 := by
+      apply Finset.sum_eq_zero; intro j hj
+      rw [Finset.mem_range] at hj
+      simp [show ¬ (n : ℕ) < j from by omega]
+    rw [h_last_row_zero, add_zero]
+    -- For i < n, split inner sum at j = n (the new column)
+    have h_inner_split : (∑ i ∈ Finset.range n, ∑ j ∈ Finset.range (n+1),
+        if i < j then (2 : ℚ) / ((j - i + 1 : ℕ) : ℚ) else 0) =
+        (∑ i ∈ Finset.range n, ∑ j ∈ Finset.range n,
+          if i < j then (2 : ℚ) / ((j - i + 1 : ℕ) : ℚ) else 0) +
+        (∑ i ∈ Finset.range n, (2 : ℚ) / (((n : ℕ) - i + 1 : ℕ) : ℚ)) := by
+      calc
+        (∑ i ∈ Finset.range n, ∑ j ∈ Finset.range (n+1),
+          if i < j then (2 : ℚ) / ((j - i + 1 : ℕ) : ℚ) else 0)
+            = (∑ i ∈ Finset.range n,
+                ((∑ j ∈ Finset.range n, if i < j then (2 : ℚ) / ((j - i + 1 : ℕ) : ℚ) else 0) +
+                  (if i < n then (2 : ℚ) / (((n : ℕ) - i + 1 : ℕ) : ℚ) else 0))) := by
+          refine Finset.sum_congr rfl (fun i hi => ?_)
+          rw [Finset.sum_range_succ]
+        _ = (∑ i ∈ Finset.range n, ∑ j ∈ Finset.range n,
+              if i < j then (2 : ℚ) / ((j - i + 1 : ℕ) : ℚ) else 0) +
+            (∑ i ∈ Finset.range n,
+              (if i < n then (2 : ℚ) / (((n : ℕ) - i + 1 : ℕ) : ℚ) else 0)) := by
+          rw [Finset.sum_add_distrib]
+        _ = (∑ i ∈ Finset.range n, ∑ j ∈ Finset.range n,
+              if i < j then (2 : ℚ) / ((j - i + 1 : ℕ) : ℚ) else 0) +
+            (∑ i ∈ Finset.range n, (2 : ℚ) / (((n : ℕ) - i + 1 : ℕ) : ℚ)) := by
+          congr 1
+          apply Finset.sum_congr rfl; intro i hi
+          have hi_lt_n : i < n := Finset.mem_range.1 hi
+          simp [hi_lt_n]
+    rw [h_inner_split, ih]
+    rw [expectedComparisons_succ_add_two n]
+    congr 1
+    -- Prove A(n) = 2*(H_{n+1} - 1) using the same recurrence
+    -- A(0) = 0, A(n+1) = A(n) + 2/(n+2)
+    -- Both sides satisfy this recurrence
+    have hA_recurrence : ∀ m, (∑ i ∈ Finset.range m, (2 : ℚ) / (((m : ℕ) - i + 1 : ℕ) : ℚ)) =
+        2 * (harmonic (m+1) - 1) := by
+      intro m
+      induction m with
+      | zero => simp [harmonic]
+      | succ m ih =>
+        -- A(m+1) = Σ_{i∈range(m+1)} 2/((m+1)-i+1)
+        -- Decompose: i=0 term = 2/(m+2), remaining shifted by i↦i+1
+        have h_decomp : (Finset.range (m+1) : Finset ℕ) =
+            ({0} : Finset ℕ) ∪ ((Finset.range m).map ⟨(· + 1), Nat.succ_injective⟩) := by
+          ext i; constructor
+          · intro hi
+            have hi_val : i < m+1 := Finset.mem_range.1 hi
+            rcases Nat.eq_zero_or_pos i with (rfl | hpos)
+            · apply Finset.mem_union_left; simp
+            · apply Finset.mem_union_right
+              apply Finset.mem_map.mpr
+              have h_bound : i - 1 < m := by omega
+              refine ⟨i-1, Finset.mem_range.2 h_bound, ?_⟩
+              have h_one_le : 1 ≤ i := Nat.one_le_of_lt hpos
+              dsimp
+              rw [Nat.sub_add_cancel h_one_le]
+          · intro hi
+            rcases Finset.mem_union.1 hi with (h | h)
+            · rcases Finset.mem_singleton.1 h with rfl
+              exact Finset.mem_range.2 (by
+                have : 0 < m+1 := Nat.zero_lt_succ m
+                exact this)
+            · rcases Finset.mem_map.1 h with ⟨j, hj, rfl⟩
+              have hj_val : j < m := Finset.mem_range.1 hj
+              have : j+1 < m+1 := Nat.add_lt_add_right hj_val 1
+              exact Finset.mem_range.2 this
+        have h_disjoint : Disjoint ({0} : Finset ℕ) ((Finset.range m).map ⟨(· + 1), Nat.succ_injective⟩) := by
+          refine Finset.disjoint_singleton_left.mpr (fun h => ?_)
+          rcases Finset.mem_map.1 h with ⟨j, hj, h⟩
+          have : j + 1 = 0 := h
+          omega
+        rw [h_decomp, Finset.sum_union h_disjoint,
+          Finset.sum_singleton, Finset.sum_map]
+        -- Now: 2/((m+1)-0+1) + Σ_{j∈range m} 2/((m+1)-(j+1)+1)
+        -- = 2/(m+2) + Σ_{j∈range m} 2/(m-j+1)
+        -- = 2/(m+2) + A(m)
+        simp only [Function.Embedding.coeFn_mk]
+        have h0 : ((m+1 : ℕ) - 0 + 1 : ℕ) = (m+2 : ℕ) := by omega
+        have h_shift : ∀ j, ((m+1 : ℕ) - (j+1) + 1 : ℕ) = ((m : ℕ) - j + 1 : ℕ) := by
+          intro j; omega
+        simp_rw [h0, h_shift]
+        rw [ih]
+        rw [harmonic_succ (m+1)]
+        push_cast; ring
+    exact hA_recurrence n
 
 end Chapter07
 end CLRS
