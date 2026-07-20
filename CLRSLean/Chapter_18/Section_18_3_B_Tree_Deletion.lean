@@ -49,8 +49,12 @@ Main results:
 Current gaps:
 
 - `composedDelete` is now defined (total, via `heightOf` termination) and
-  implements the CLRS merge-recurse strategy (case 2c simplified).  Invariant
-  preservation theorems (`WellFormed`) remain to be proved.
+  implements the CLRS merge-recurse strategy.  `mergeNodes_sorted` is proved.
+  The invariant preservation theorem (`composedDelete_wellFormed`) needs:
+  (1) a `rotateLeft` definition (mirror of the existing `rotateRight`) with
+  its preservation lemmas; (2) pre-emptive child-repair logic in
+  `composedDelete`; (3) the full four-component induction proof following the
+  `insertNonFull_wellFormed` pattern (see the roadmap below).
 - Disk-page semantics remain a strengthening target.
 -/
 
@@ -486,6 +490,63 @@ lemma mergeNodes_occupancy {t : Nat} (ht : 2 ≤ t)
     rcases hc with hc | hc
     · exact hL_sub c hc
     · exact hR_sub c hc
+
+/-! ## `mergeNodes` preserves `Sorted` -/
+
+lemma mergeNodes_sorted {lKeys rKeys : List Nat} {lCh rCh : List BTree} {sep : Nat}
+    (hL_s : Sorted (node lKeys lCh)) (hR_s : Sorted (node rKeys rCh))
+    (hL_le : ∀ k ∈ keysOf (node lKeys lCh), k ≤ sep)
+    (hR_ge : ∀ k ∈ keysOf (node rKeys rCh), sep ≤ k) :
+    Sorted (mergeNodes (node lKeys lCh) sep (node rKeys rCh)) := by
+  rw [mergeNodes_node]
+  unfold Sorted; unfold Sorted at hL_s hR_s
+  obtain ⟨hL_pw, hL_ch⟩ := hL_s
+  obtain ⟨hR_pw, hR_ch⟩ := hR_s
+  refine ⟨?_, ?_⟩
+  · have hL_all : ∀ k ∈ lKeys, k ≤ sep := by
+      intro k hk; apply hL_le k; simp [keysOf, hk]
+    have hR_all : ∀ k ∈ rKeys, sep ≤ k := by
+      intro k hk; apply hR_ge k; simp [keysOf, hk]
+    have h_sep_rKeys_pw : List.Pairwise (· ≤ ·) (sep :: rKeys) :=
+      List.Pairwise.cons hR_all hR_pw
+    have h_cross : ∀ a ∈ lKeys, ∀ b ∈ sep :: rKeys, a ≤ b := by
+      intro a ha b hb
+      rcases List.mem_cons.mp hb with (rfl | hb_rKeys)
+      · exact hL_all a ha
+      · exact le_trans (hL_all a ha) (hR_all b hb_rKeys)
+    rw [List.pairwise_append]
+    exact ⟨hL_pw, h_sep_rKeys_pw, h_cross⟩
+  · intro c hc
+    rw [List.mem_append] at hc
+    rcases hc with hc | hc
+    · exact hL_ch c hc
+    · exact hR_ch c hc
+
+/-! ## `composedDelete` preserves `WellFormed` — proof roadmap
+
+The main invariant theorem `composedDelete_wellFormed` states that for any
+`WellFormed` B-tree, `composedDelete` preserves `Sorted`, `ChildBounded`,
+`Occupancy`, and `SameDepth`.  The proof uses strong induction on `heightOf`
+with the three cases of the algorithm:
+
+1. **Leaf case**: `sortedRemove` reduces keys by at most 1.
+2. **Key-at-separator case**: merge neighboring children via `mergeNodes`
+   (using `mergeNodes_sorted`, `mergeNodes_sameDepth`, `mergeNodes_occupancy`),
+   then recurse.
+3. **Recurse-into-child case**: IH on the child.
+
+The remaining work is the **pre-emptive repair** logic (CLRS case 3): before
+case 3, ensure the target child has ≥ `t` keys by borrowing from a sibling
+(`rotateRight`/`rotateLeft`) or merging.  The building blocks are ready:
+`mergeNodes_sorted` (proved above), `mergeNodes_sameDepth`,
+`mergeNodes_occupancy`, and `rotateRight_preserves`.  What's missing:
+a `rotateLeft` definition (mirror of `rotateRight`) with its preservation
+lemmas, and the full `composedDelete_wellFormed` proof assembling all four
+invariant components.
+
+The proof structure follows the `insertNonFull_wellFormed` pattern from
+Section 18.2, using a custom `.induct` lemma for case analysis.
+-/
 
 /-- From `ChildBounded`, a node either has no children or has exactly one more
 child than keys. -/
