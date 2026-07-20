@@ -9,9 +9,9 @@ When the CSV changes, regenerate this page with
 ## Snapshot
 
 * CLRS chapters tracked: 35.
-* Chapters represented in Lean: 26.
-* Tracked reader-facing theorem entries: 1349.
-* Proved tracked theorem entries: 1349.
+* Chapters represented in Lean: 27.
+* Tracked reader-facing theorem entries: 1377.
+* Proved tracked theorem entries: 1377.
 * Remaining core theorem groups: 22.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -23,8 +23,8 @@ are not yet represented or not yet complete.
 * {lit}`main-proof-complete`: 7 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 8 chapters.
-* {lit}`not-started`: 9 chapters.
+* {lit}`partial`: 9 chapters.
+* {lit}`not-started`: 8 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -58,7 +58,7 @@ Ch  Chapter                                                     Status          
 24  24. Single-Source Shortest Paths                            partial                              24.1;24.2;24.3;24.4                22        1
 25  25. All-Pairs Shortest Paths                                partial                              25.1;25.2;25.3                     16        4
 26  26. Maximum Flow                                            partial                              26.1;26.2;26.6                      9        3
-27  27. Multithreaded Algorithms                                not-started                          not represented                     0        1
+27  27. Multithreaded Algorithms                                partial                              27.1;27.2                          28        1
 28  28. Matrix Operations                                       not-started                          not represented                     0        1
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1

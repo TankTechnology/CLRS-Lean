@@ -37,6 +37,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_24",
   "CLRSLean.Chapter_25",
   "CLRSLean.Chapter_26",
+  "CLRSLean.Chapter_27",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
@@ -221,6 +222,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
   "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp",
   "CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut",
+]
+"CLRSLean.Chapter_27" = [
+  "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -634,3 +639,12 @@ title = "26.2. The Edmonds-Karp Algorithm"
 
 [modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
 title = "26.6. Max-Flow Min-Cut Theorem (partial)"
+
+[modules."CLRSLean.Chapter_27"]
+title = "Chapter 27. Multithreaded Algorithms"
+
+[modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model"]
+title = "27.1. The Basics of Dynamic Multithreading"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms"]
+title = "27.2-27.4. Multithreaded Algorithms"

@@ -3098,6 +3098,56 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Current gap: construct a minimum cut from a maximal flow/no residual
   augmenting path and package the full max-flow/min-cut equivalence.
 
+## Chapter 27 - Multithreaded Algorithms
+
+### Section 27.1 - The Basics of Dynamic Multithreading
+
+- Lean source: `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean`
+- Status: `proved` (for the represented model)
+- Model:
+  - `CLRS.Chapter27.CompDAG` (computation DAG with forward/topologically
+    ordered edges)
+  - `CLRS.Chapter27.CompDAG.work` (T₁, total work)
+  - `CLRS.Chapter27.CompDAG.longestTo` / `CLRS.Chapter27.CompDAG.span`
+    (T∞, honestly computed longest weighted path by DP)
+  - `CLRS.Chapter27.SpawnTree` (spawn/sync tree with unit spawn overhead)
+  - `CLRS.Chapter27.parallelLoopTree` (balanced parallel-loop spawn tree)
+- Proved theorems:
+  - `CLRS.Chapter27.CompDAG.longestTo_le`, `CLRS.Chapter27.CompDAG.span_le_work`
+    (T∞ ≤ T₁ on DAGs)
+  - `CLRS.Chapter27.SpawnTree.span_le_work` (T∞ ≤ T₁ on spawn trees)
+  - `CLRS.Chapter27.parallelLoop_work` (exact work `n * w + (n - 1)`)
+  - `CLRS.Chapter27.parallelLoop_span` (exact span `w + depth`)
+  - `CLRS.Chapter27.parallelLoopDepth_pow` (`n ≤ 2 ^ depth`, the
+    span-is-logarithmic direction)
+- Current gap: the greedy-scheduler bound (Theorem 27.1/27.2) needs an
+  explicit time-step execution model; a matching `depth ≤ log₂ n + 1` upper
+  bound is future work.
+
+### Section 27.2-27.4 - Multithreaded Algorithms
+
+- Lean source: `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
+- Status: `proved` (exact closed forms on powers of two)
+- Model: executable work/span recurrences `pMatMulWork`, `pMatMulSpan`,
+  `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
+  `strassenWork`, `strassenSpan`, each with an `*_unfold` recurrence lemma.
+- Proved theorems (power-of-two closed forms):
+  - `CLRS.Chapter27.pMatMulWork_pow_two` (`T₁(2ᵏ) + 4ᵏ = 2·8ᵏ`, work Θ(n³))
+    and `CLRS.Chapter27.pMatMulWork_le` (all-input `T₁(n) + n² ≤ 2n³`)
+  - `CLRS.Chapter27.pMatMulSpan_pow_two` (`T∞(2ᵏ) = k + 1`) and
+    `CLRS.Chapter27.pMatMulSpan_le` (all-input `T∞(n) ≤ ⌊log₂ n⌋ + 1`)
+  - `CLRS.Chapter27.pMergeWork_pow_two` (`T₁(2ᵏ) + (k+3) = 4·2ᵏ`, work Θ(n))
+  - `CLRS.Chapter27.pMergeSpan_pow_two` (`2·T∞(2ᵏ) = (k+1)(k+2)`, span Θ(log² n))
+  - `CLRS.Chapter27.pMergeSortWork_pow_two` (`T₁(2ᵏ) = 2ᵏ·(k+1)`, work
+    Θ(n log n))
+  - `CLRS.Chapter27.pMergeSortSpan_pow_two`
+    (`6·T∞(2ᵏ) = 6 + k·(k² + 6k + 11)`, span Θ(log³ n))
+  - `CLRS.Chapter27.strassenWork_pow_two` (`3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`, work
+    Θ(n^(log₂ 7)))
+  - `CLRS.Chapter27.strassenSpan_pow_two` (`T∞(2ᵏ) = k + 1`, span Θ(log n))
+- Current gap: all-input Θ-bounds for the merge-based costs (power-sandwich
+  transfer as in Chapter 4) and executable algorithm refinements.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
