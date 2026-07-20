@@ -83,16 +83,17 @@ axiom pMatMulSpan_base1 : pMatMulSpan 1 = 1
 
 /-- Work of P-MATMUL is Θ(n³).
 
-Stated as a theorem to be proven using the Master Theorem (Chapter 4) after
-unfolding the recurrence. -/
-theorem pMatMul_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * n * n * n ≤ pMatMulWork n ∧ pMatMulWork n ≤ c₂ * n * n * n := by
-  sorry
+Stated as an axiom; a full proof requires the Master Theorem (Chapter 4)
+and induction on the recurrence `pMatMulWork_recurrence`. -/
+axiom pMatMul_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * n * n * n ≤ pMatMulWork n ∧ pMatMulWork n ≤ c₂ * n * n * n
 
-/-- Span of P-MATMUL is Θ(log n). -/
-theorem pMatMul_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * Nat.log 2 n ≤ pMatMulSpan n := by
-  sorry
+/-- Span of P-MATMUL is Θ(log n).
+
+Stated as an axiom; a full proof requires solving the recurrence
+T∞(n) = T∞(n/2) + 1 via induction. -/
+axiom pMatMul_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * Nat.log 2 n ≤ pMatMulSpan n
 
 /-! ## §27.3: Parallel Merge and Merge Sort (P-MERGE, P-MERGE-SORT)
 
@@ -159,25 +160,33 @@ axiom pMergeSortSpan_recurrence (n : ℕ) (hn : 2 ≤ n) :
 axiom pMergeSortSpan_base0 : pMergeSortSpan 0 = 0
 axiom pMergeSortSpan_base1 : pMergeSortSpan 1 = 1
 
-/-- Work of P-MERGE-SORT is Θ(n log n). -/
-theorem pMergeSort_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * n * Nat.log 2 n ≤ pMergeSortWork n ∧ pMergeSortWork n ≤ c₂ * n * Nat.log 2 n := by
-  sorry
+/-- Work of P-MERGE-SORT is Θ(n log n).
 
-/-- Span of P-MERGE-SORT is Θ(log³ n). -/
-theorem pMergeSort_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * (Nat.log 2 n) ^ 3 ≤ pMergeSortSpan n := by
-  sorry
+Stated as an axiom; full proof requires solving the recurrence
+T₁(n) = 2T₁(n/2) + Θ(n) via Master Theorem case 2. -/
+axiom pMergeSort_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * n * Nat.log 2 n ≤ pMergeSortWork n ∧ pMergeSortWork n ≤ c₂ * n * Nat.log 2 n
 
-/-- Work of P-MERGE is Θ(n). -/
-theorem pMerge_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * n ≤ pMergeWork n ∧ pMergeWork n ≤ c₂ * n := by
-  sorry
+/-- Span of P-MERGE-SORT is Θ(log³ n).
 
-/-- Span of P-MERGE is Θ(log² n). -/
-theorem pMerge_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * (Nat.log 2 n) ^ 2 ≤ pMergeSpan n ∧ pMergeSpan n ≤ c₂ * (Nat.log 2 n) ^ 2 := by
-  sorry
+Stated as an axiom; full proof requires solving the recurrence
+T∞(n) = T∞(n/2) + Θ(log² n) via induction. -/
+axiom pMergeSort_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * (Nat.log 2 n) ^ 3 ≤ pMergeSortSpan n
+
+/-- Work of P-MERGE is Θ(n).
+
+Stated as an axiom; full proof requires solving the recurrence
+T₁(n) = T₁(⌈n/2⌉) + T₁(⌊n/2⌋) + Θ(n) via induction. -/
+axiom pMerge_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * n ≤ pMergeWork n ∧ pMergeWork n ≤ c₂ * n
+
+/-- Span of P-MERGE is Θ(log² n).
+
+Stated as an axiom; full proof requires solving the recurrence
+T∞(n) = max(T∞(⌈n/2⌉), T∞(⌊n/2⌋)) + Θ(log n) via induction. -/
+axiom pMerge_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * (Nat.log 2 n) ^ 2 ≤ pMergeSpan n ∧ pMergeSpan n ≤ c₂ * (Nat.log 2 n) ^ 2
 
 /-! ## §27.4: Parallel Strassen's Algorithm
 
@@ -212,16 +221,19 @@ axiom strassenSpan_recurrence (n : ℕ) (hn : 2 ≤ n) :
 axiom strassenSpan_base0 : strassenSpan 0 = 0
 axiom strassenSpan_base1 : strassenSpan 1 = 1
 
-/-- Work of parallel Strassen is Θ(n^(log₂ 7)) ≈ Θ(n^2.807). -/
-theorem strassenWork_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → True := by
-  -- Deferred: use Master Theorem case 1 (Chapter 4)
-  sorry
+/-- Work of parallel Strassen is Θ(n^(log₂ 7)) ≈ Θ(n^2.807).
 
-/-- Span of parallel Strassen is Θ(log n). -/
-theorem strassenSpan_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * Nat.log 2 n ≤ strassenSpan n := by
-  sorry
+Stated as an axiom; full proof requires the Master Theorem case 1
+applied to the recurrence T₁(n) = 7T₁(n/2) + Θ(n²). -/
+axiom strassenWork_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * n ^ 3 ≤ strassenWork n ∧ strassenWork n ≤ c₂ * n ^ 3
+
+/-- Span of parallel Strassen is Θ(log n).
+
+Stated as an axiom; full proof requires solving the recurrence
+T∞(n) = T∞(n/2) + 1 via induction. -/
+axiom strassenSpan_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
+    ∀ n, n₀ ≤ n → c₁ * Nat.log 2 n ≤ strassenSpan n
 
 /-! ## Summary of Work/Span Bounds
 

@@ -169,31 +169,57 @@ theorem idft_dft (n : ℕ) (a : Fin n → ℂ) (hn : n ≠ 0) : idft n (dft n a)
   --   (∑ k : Fin n, (∑ ℓ : Fin n, a ℓ * (ω n)^(ℓ.val * k.val)) * (ω n)^(-(((j.val*k.val) : ℤ)))) / (n : ℂ)
   --   = a j
   --
-  -- ═══ PROOF SKETCH (orthogonality of roots of unity) ═══
+  -- ═══ DETAILED PROOF SKETCH (orthogonality of roots of unity) ═══
   --
-  -- Step 1 — Swap the double sum (Fubini):
+  -- This proof uses the identity: for the n-th roots of unity ω_n = exp(2πi/n),
+  -- we have Σ_{k=0}^{n-1} ω_n^{k·(ℓ-j)} = n if ℓ ≡ j (mod n), else 0.
+  --
+  -- STEP 1 — Swap the double sum (Fubini):
   --   Σ_k (Σ_ℓ a_ℓ · ω^{ℓ·k}) · ω^{-j·k}
-  --     = Σ_ℓ a_ℓ · (Σ_k ω^{ℓ·k} · ω^{-j·k})
-  --     = Σ_ℓ a_ℓ · (Σ_k ω^{(ℓ-j)·k})
-  --   (Uses Finset.sum_comm and zpow_add for integer exponents.)
+  --     = Σ_k Σ_ℓ a_ℓ · ω^{ℓ·k} · ω^{-j·k}
+  --     = Σ_ℓ a_ℓ · (Σ_k ω^{ℓ·k} · ω^{-j·k})          [Finset.sum_comm]
+  --     = Σ_ℓ a_ℓ · (Σ_k ω^{(ℓ-j)·k})                   [zpow_add]
   --
-  -- Step 2 — Apply orthogonality (ω_sum_eq_zero generalized to ℤ differences):
-  --   Lemma orthogonality_int (m : ℤ) :
-  --     Σ k : Fin n, (ω n)^(m * (k : ℤ)).toNat = if (n : ℤ) ∣ m then (n : ℂ) else 0
-  --   Here m = ℓ - j.
-  --   • If ℓ = j (as Fin n), then m = 0, so n ∣ 0, sum = n.
-  --   • If ℓ ≠ j, then 0 < |ℓ - j| < n, so n ∤ (ℓ - j), sum = 0.
+  -- STEP 2 — Handle integer exponents. Define:
+  --   (ω n)^(m : ℤ) using Complex.zpow for m ≥ 0, and as the conjugate for m < 0.
+  --   Since ω_n = exp(2πi/n) lies on the unit circle, (ω n)^(-m) = conj(ω n)^m.
+  --   Alternatively, use that ℓ and j are in Fin n, so |ℓ - j| < n as integers.
+  --   The sum Σ_k ω_n^{k·(ℓ-j)} telescopes via the geometric series formula:
+  --     Σ_{k=0}^{n-1} ω_n^{k·d} = (ω_n^{n·d} - 1)/(ω_n^d - 1)  if ω_n^d ≠ 1
+  --   Since ω_n^n = 1 (by ω_pow_n_eq_one), the numerator is 0 when n ∤ d.
+  --   When ℓ = j (as Fin n), d = 0 and each term is ω_n^0 = 1, so sum = n.
+  --   When ℓ ≠ j, we have 0 < |ℓ.val - j.val| < n, so n ∤ (ℓ-j) as ℤ differences,
+  --   hence ω_n^{ℓ-j} ≠ 1 and the sum is 0.
   --
-  -- Step 3 — Conclusion:
-  --   The double sum simplifies to a_j · n, and dividing by (n : ℂ) gives a_j.
+  --   The key lemma needed (generalizing ω_sum_eq_zero to ℤ differences):
+  --     lemma orthogonality_fin_diff (ℓ j : Fin n) (hn : n ≠ 0) :
+  --       ∑ k : Fin n, (ω n) ^ ((ℓ.val : ℤ) - (j.val : ℤ) + (n : ℤ)) * (k.val : ℤ) = 
+  --       if ℓ = j then (n : ℂ) else 0
+  --   This requires:
+  --     a) converting the integer exponent to ℕ via zpow_ofNat or similar
+  --     b) using ω_pow_eq_one_iff for the "n ∣ d" condition
+  --     c) a lemma that for ℓ ≠ j in Fin n, n ∤ |ℓ.val - j.val| as ℤ
   --
-  -- Remaining work for a complete formalization:
-  --   1. Lemma `zpow_ω_mul` : (ω n)^(a:ℤ) * (ω n)^(b:ℤ) = (ω n)^(a+b:ℤ)
-  --      (follows from `zpow_add` for groups)
-  --   2. Lemma `orthogonality_int` — the ℤ version of `ω_sum_eq_zero`
-  --   3. `Finset.sum_comm` to swap the double sum
-  --   4. Case analysis: `if h : ℓ = j then ... else ...` with Fin equality
-  --   5. Division by `(n : ℂ)` after extracting the factor
+  --   Simpler approach using the existing ω_sum_eq_zero (which works in ℕ):
+  --     For ℓ, j : Fin n, consider d = |ℓ.val - j.val|. Since 0 < d < n when ℓ ≠ j,
+  --     ω_sum_eq_zero n d hn gives Σ_k ω_n^{k·d} = 0.
+  --     The slightly tricky part is handling the sign in the exponent:
+  --     ω_n^{k·(ℓ - j)} = (ω_n^{ℓ-j})^k. When ℓ.val > j.val, exponent is positive;
+  --     when ℓ.val < j.val, use ω_n^{-d} = conj(ω_n)^d and symmetry.
+  --
+  -- STEP 3 — After applying orthogonality, the outer sum collapses:
+  --   Σ_ℓ a_ℓ · (n if ℓ = j else 0) = a_j · n
+  --
+  -- STEP 4 — Divide by (n : ℂ):
+  --   (a_j · n) / n = a_j
+  --
+  -- REMAINING WORK for a complete Lean formalization:
+  --   a. Lemma `ω_zpow_add` : (ω n)^((a:ℤ)+(b:ℤ)) = (ω n)^(a:ℤ) * (ω n)^(b:ℤ)
+  --      (uses `zpow_add` from `DivInvMonoid` since ℂˣ is a group)
+  --   b. Lemma `orthogonality_fin_diff` as described above
+  --   c. `Finset.sum_comm` for swapping double sums (already available in Mathlib)
+  --   d. `simp` lemmas for `zpow_ofNat` and negative integer powers of ω
+  --   e. The case split on `ℓ = j` with `Fin` decidable equality
   sorry
 
 /-!
@@ -255,8 +281,151 @@ theorem dft_split_even_odd (m : ℕ) (a : Fin (2*m) → ℂ) (k : Fin m) (hm : m
     dft (2*m) a ⟨k.val, by
       have hk := k.is_lt
       omega⟩ = dft m a_even k + (ω (2*m))^(k.val) * dft m a_odd k := by
-  -- Proof sketch above. A full formalization needs the steps outlined in the comments.
-  sorry
+  intro a_even a_odd
+  -- Build the bijection ψ : Fin m ⊕ Fin m → Fin (2*m)
+  let ψ : Fin m ⊕ Fin m → Fin (2*m) := λ x => match x with
+    | Sum.inl r => ⟨2 * r.val, by
+        have h := r.is_lt
+        omega⟩
+    | Sum.inr r => ⟨2 * r.val + 1, by
+        have h := r.is_lt
+        omega⟩
+  -- ψ is a bijection: construct the two-sided inverse φ
+  have hψ_bijective : Function.Bijective ψ := by
+    let φ : Fin (2*m) → Fin m ⊕ Fin m := λ j =>
+      have h_div_lt : j.val / 2 < m := by
+        apply (Nat.div_lt_iff_lt_mul (by norm_num : 0 < 2)).mpr
+        simpa [mul_comm] using j.is_lt
+      if h : j.val % 2 = 0 then
+        Sum.inl ⟨j.val / 2, h_div_lt⟩
+      else
+        Sum.inr ⟨j.val / 2, h_div_lt⟩
+    have h_left_inv : Function.LeftInverse φ ψ := by
+      intro x
+      cases x with
+      | inl r =>
+        have hmod : (2 * r.val) % 2 = 0 := by simp
+        have hdiv : (2 * r.val) / 2 = r.val := by omega
+        dsimp [ψ, φ]
+        simp [hmod, hdiv]
+      | inr r =>
+        have hmod : (2 * r.val + 1) % 2 = 1 := by simp
+        have hdiv : (2 * r.val + 1) / 2 = r.val := by omega
+        dsimp [ψ, φ]
+        simp [hmod, hdiv]
+    have h_right_inv : Function.RightInverse φ ψ := by
+      intro j
+      dsimp [φ]
+      by_cases h : j.val % 2 = 0
+      · dsimp [ψ]
+        apply Fin.ext
+        have hdvd : 2 ∣ j.val := Nat.dvd_of_mod_eq_zero h
+        -- Complex Fin index arithmetic: deferred
+        sorry
+      · have h_mod_one : j.val % 2 = 1 := by
+          have h_mod := Nat.mod_two_eq_zero_or_one j.val
+          rcases h_mod with (hz | ho)
+          · exact absurd hz h
+          · exact ho
+        have hval_eq : j.val = 2 * (j.val / 2) + 1 := by omega
+        dsimp [ψ]
+        apply Fin.ext
+        -- Complex Fin index arithmetic: deferred
+        sorry
+    exact ⟨h_left_inv.injective, h_right_inv.surjective⟩
+  -- From the bijection ψ : Fin m ⊕ Fin m → Fin (2*m), get an Equiv
+  let e : Fin m ⊕ Fin m ≃ Fin (2*m) :=
+    Equiv.ofBijective ψ hψ_bijective
+  dsimp [dft, a_even, a_odd]
+  -- Fintype.sum_equiv reindexes: Σ_x f(x) = Σ_y g(y) where f(x) = g(e(x))
+  have h_reindex : (∑ j : Fin (2*m), a j * (ω (2*m)) ^ ((j.val : ℕ) * (k.val : ℕ))) =
+      (∑ x : Fin m ⊕ Fin m, a (e x) * (ω (2*m)) ^ (((e x).val : ℕ) * (k.val : ℕ))) := by
+    rw [← Fintype.sum_equiv e
+      (λ x => a (e x) * (ω (2*m)) ^ (((e x).val : ℕ) * (k.val : ℕ)))
+      (λ j => a j * (ω (2*m)) ^ ((j.val : ℕ) * (k.val : ℕ)))
+      (λ _ => rfl)]
+  -- Step 1: replace e(x) with ψ(x) (they are equal)
+  have h_simplify : (∑ x : Fin m ⊕ Fin m, a (e x) * (ω (2*m)) ^ (((e x).val : ℕ) * (k.val : ℕ))) =
+      (∑ x : Fin m ⊕ Fin m, a (ψ x) * (ω (2*m)) ^ (((ψ x).val : ℕ) * (k.val : ℕ))) := by
+    simp [e, ψ]
+  -- Step 2: expand ψ for inl/inr cases
+  have h_expand : (∑ x : Fin m ⊕ Fin m, a (ψ x) * (ω (2*m)) ^ (((ψ x).val : ℕ) * (k.val : ℕ))) =
+      (∑ r : Fin m,
+        a ⟨2 * r.val, by have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val) : ℕ) * (k.val : ℕ))) +
+      (∑ r : Fin m,
+        a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val + 1) : ℕ) * (k.val : ℕ))) := by
+    calc
+      (∑ x : Fin m ⊕ Fin m, a (ψ x) * (ω (2*m)) ^ (((ψ x).val : ℕ) * (k.val : ℕ))) =
+        (∑ x : Fin m ⊕ Fin m,
+          (match x with
+           | Sum.inl r => a ⟨2 * r.val, by
+               have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val) : ℕ) * (k.val : ℕ))
+           | Sum.inr r => a ⟨2 * r.val + 1, by
+               have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val + 1) : ℕ) * (k.val : ℕ)))) := by
+        refine Finset.sum_congr rfl (λ x _ => ?_)
+        cases x with
+        | inl r => simp [ψ]
+        | inr r => simp [ψ]
+      _ = (∑ r : Fin m,
+            a ⟨2 * r.val, by have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val) : ℕ) * (k.val : ℕ))) +
+          (∑ r : Fin m,
+            a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val + 1) : ℕ) * (k.val : ℕ))) := by
+        simp
+  -- Step 3: Apply ω_cancellation and factor out ω_{2m}^k
+  have h_omega_cancel (r : Fin m) : (ω (2*m)) ^ (((2 * r.val) : ℕ) * (k.val : ℕ)) = (ω m) ^ ((r.val : ℕ) * (k.val : ℕ)) := by
+    calc
+      (ω (2*m)) ^ (((2 * r.val) : ℕ) * (k.val : ℕ)) = (ω (2*m)) ^ ((2 : ℕ) * (r.val * k.val)) := by ring
+      _ = (ω m) ^ ((r.val : ℕ) * (k.val : ℕ)) := by
+        rw [ω_cancellation 2 m (r.val * k.val) (by norm_num : (2 : ℕ) ≠ 0)]
+  have h_odd_term (r : Fin m) : (ω (2*m)) ^ (((2 * r.val + 1) : ℕ) * (k.val : ℕ)) =
+      (ω (2*m)) ^ (k.val) * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ)) := by
+    calc
+      (ω (2*m)) ^ (((2 * r.val + 1) : ℕ) * (k.val : ℕ))
+          = (ω (2*m)) ^ ((2 * r.val * k.val) + k.val) := by ring
+      _ = (ω (2*m)) ^ (2 * r.val * k.val) * (ω (2*m)) ^ (k.val) := by rw [pow_add]
+      _ = (ω (2*m)) ^ (k.val) * (ω (2*m)) ^ (2 * r.val * k.val) := by ring
+      _ = (ω (2*m)) ^ (k.val) * (ω (2*m)) ^ ((2 * r.val) * k.val) := by ring
+      _ = (ω (2*m)) ^ (k.val) * (ω (2*m)) ^ (((2 * r.val) : ℕ) * (k.val : ℕ)) := by simp
+      _ = (ω (2*m)) ^ (k.val) * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ)) := by rw [h_omega_cancel r]
+  have h_even_sum : (∑ r : Fin m,
+      a ⟨2 * r.val, by have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val) : ℕ) * (k.val : ℕ))) =
+    (∑ r : Fin m,
+      a ⟨2 * r.val, by have h := r.is_lt; omega⟩ * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ))) := by
+    refine Finset.sum_congr rfl (λ r _ => ?_)
+    rw [h_omega_cancel r]
+  have h_odd_sum : (∑ r : Fin m,
+      a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val + 1) : ℕ) * (k.val : ℕ))) =
+    (ω (2*m)) ^ (k.val) *
+    (∑ r : Fin m,
+      a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ))) := by
+    calc
+      (∑ r : Fin m,
+        a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ * (ω (2*m)) ^ (((2 * r.val + 1) : ℕ) * (k.val : ℕ))) =
+      (∑ r : Fin m,
+        a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ *
+        ((ω (2*m)) ^ (k.val) * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ)))) := by
+        refine Finset.sum_congr rfl (λ r _ => ?_)
+        rw [h_odd_term r]
+      _ = (∑ r : Fin m,
+        ((ω (2*m)) ^ (k.val)) * (a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ *
+        (ω m) ^ ((r.val : ℕ) * (k.val : ℕ)))) := by
+        refine Finset.sum_congr rfl (λ r _ => ?_)
+        ring
+      _ = (ω (2*m)) ^ (k.val) *
+        (∑ r : Fin m,
+          a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ))) := by
+        rw [Finset.mul_sum]
+  -- Combine all steps
+  calc
+    dft (2*m) a ⟨k.val, by have hk := k.is_lt; omega⟩
+        = ∑ j : Fin (2*m), a j * (ω (2*m)) ^ ((j.val : ℕ) * (k.val : ℕ)) := rfl
+    _ = (∑ r : Fin m,
+          a ⟨2 * r.val, by have h := r.is_lt; omega⟩ * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ))) +
+        (ω (2*m)) ^ (k.val) *
+        (∑ r : Fin m,
+          a ⟨2 * r.val + 1, by have h := r.is_lt; omega⟩ * (ω m) ^ ((r.val : ℕ) * (k.val : ℕ))) := by
+      rw [h_reindex, h_simplify, h_expand, h_even_sum, h_odd_sum]
+    _ = dft m a_even k + (ω (2*m))^(k.val) * dft m a_odd k := rfl
 
 /-!
 ## FFT Correctness
@@ -302,7 +471,48 @@ Remaining work:
 -/
 theorem fftPow2_eq_dft (n : ℕ) (a : Fin n → ℂ) (hpow : ∃ k, n = 2^k) (hn : n ≠ 0) :
     fftPow2 n hpow a = dft n a := by
-  -- Proof sketch above. Depends on completing dft_split_even_odd and fftPow2.
+  -- NOTE: This theorem cannot currently be proved because `fftPow2` is a
+  -- placeholder defined as the identity function (`a`), which differs from
+  -- the true DFT in general. The proof depends on two items that must be
+  -- completed first:
+  --
+  -- 1. `fftPow2` must be properly defined using `Nat.strongRec` (or
+  --    `WellFounded.fix`) to implement the recursive Cooley-Tukey algorithm:
+  --    * Base case n = 1: return a unchanged (size-1 DFT is identity).
+  --    * Recursive case n = 2m (m = 2^{k-1} > 0):
+  --        let a_even[j] = a[2j], a_odd[j] = a[2j+1] for j < m
+  --        let A = fftPow2 m a_even
+  --        let B = fftPow2 m a_odd
+  --        for j < m:
+  --          result[j]     = A[j] + ω_{2m}^j * B[j]
+  --          result[j + m] = A[j] - ω_{2m}^j * B[j]
+  --
+  -- 2. `dft_split_even_odd` must be proved (the core decomposition lemma).
+  --    This lemma states that DFT_{2m}(a) can be computed from DFT_m(a_even)
+  --    and DFT_m(a_odd) using the butterfly operation described above.
+  --
+  -- PROOF SKETCH (once dependencies are met):
+  --
+  -- By strong induction on n (equivalently, on k where n = 2^k).
+  --
+  -- Base case n = 1 (k = 0): A size-1 DFT is the identity since
+  --   dft 1 a 0 = a 0 * (ω 1)^{0*0} = a 0 * 1 = a 0.
+  --   And fftPow2 1 ... a = a (by the base case of the recursive definition).
+  --
+  -- Inductive step n = 2m where m = 2^{k-1} > 0:
+  --   By definition of fftPow2 (once properly implemented):
+  --     fftPow2 n a
+  --       = combine(fftPow2 m a_even, fftPow2 m a_odd)
+  --   By induction hypothesis (n/2 < n since n > 1):
+  --     fftPow2 m a_even = DFT_m a_even
+  --     fftPow2 m a_odd  = DFT_m a_odd
+  --   By `dft_split_even_odd`:
+  --     combine(DFT_m a_even, DFT_m a_odd) = DFT_{2m} a
+  --   Therefore fftPow2 n a = DFT_n a.
+  --
+  -- The combine operation must also be proven to satisfy the butterfly
+  -- formula used in the second half of dft_split_even_odd (which uses
+  -- ω_{2m}^m = -1 for the minus sign).
   sorry
 
 end Chapter30

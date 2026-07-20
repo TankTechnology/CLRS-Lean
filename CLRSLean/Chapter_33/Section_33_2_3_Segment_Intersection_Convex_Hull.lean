@@ -116,6 +116,46 @@ noncomputable def polarLess (p₀ p1 p2 : Point) : Prop :=
   let cp := cross (vsub p1 p₀) (vsub p2 p₀)
   cp > 0 ∨ (cp = 0 ∧ vsub p1 p₀ = (0, 0) ∧ vsub p2 p₀ ≠ (0, 0))
 
+/-! ### Helper definitions for convex hull -/
+
+/-- 从点列表中找出 y 坐标最小的点（若有多个，取 x 最小的）。 -/
+noncomputable def findLowestPoint (pts : List Point) : Point :=
+  open Classical in
+  match pts with
+  | [] => (0, 0)
+  | p :: ps =>
+    List.foldl (λ (best : Point) (q : Point) =>
+      if q.2 < best.2 ∨ (q.2 = best.2 ∧ q.1 < best.1) then q else best
+    ) p ps
+
+/-- 根据相对于基准点 p₀ 的极角，将点 p 插入已排序列表 sorted 中的正确位置。 -/
+noncomputable def insertByPolar (p₀ : Point) (p : Point) (sorted : List Point) : List Point :=
+  open Classical in
+  match sorted with
+  | [] => [p]
+  | q :: qs =>
+    if polarLess p₀ p q then
+      p :: q :: qs
+    else
+      q :: insertByPolar p₀ p qs
+
+/-- 根据相对于基准点 p₀ 的极角对点列表进行排序（插入排序）。 -/
+noncomputable def sortByPolar (p₀ : Point) (pts : List Point) : List Point :=
+  match pts with
+  | [] => []
+  | p :: ps => insertByPolar p₀ p (sortByPolar p₀ ps)
+
+/-- Graham 扫描的单步处理：给定当前栈和新点 p，
+不断弹出栈顶直到栈顶两个点与新点形成左转（CCW）。 -/
+noncomputable def grahamScanPop (p₀ : Point) (stack : List Point) (p : Point) : List Point :=
+  match stack with
+  | a :: b :: rest =>
+    if orientation b a p = Orientation.Counterclockwise then
+      stack  -- 左转，保留栈不变
+    else
+      grahamScanPop p₀ (b :: rest) p  -- 右转或共线，弹出 a
+  | _ => stack
+
 /--
 Graham 扫描：从点集构建凸包。
 
@@ -127,14 +167,28 @@ Graham 扫描：从点集构建凸包。
    - 将新点压入栈
 4. 栈中剩余的点即为凸包的顶点（逆时针排列）
 
-由于 `polarLess` 依赖 `ℝ` 上的不可判定比较，排序步骤无法在 Lean 中
-直接构造为可计算函数。此处使用 `sorry` 标记算法体，待后续使用 `ℚ` 重写。
--/
+由于 `polarLess` 依赖 `ℝ` 上的不可判定比较，排序和 Graham 扫描
+均定义为 `noncomputable`。若需要可计算版本，应使用 `ℚ` 重写。
+
+返回点集的凸包顶点列表（按逆时针排列）。
+若点数 < 3，返回原点集。 -/
 noncomputable def convexHull (pts : List Point) : List Point :=
   if h : pts.length < 3 then
     pts
   else
-    sorry
+    let p₀ := findLowestPoint pts
+    let rest := pts.filter (λ q => q ≠ p₀)
+    -- 按极角排序剩余点
+    let sorted := p₀ :: sortByPolar p₀ rest
+    -- Graham 扫描主循环：处理排序后的点
+    let rec loop (remaining : List Point) (stack : List Point) : List Point :=
+      match remaining with
+      | [] => stack
+      | p :: ps =>
+        let stack' := grahamScanPop p₀ stack p
+        loop ps (p :: stack')
+    loop (sorted.tail?.getD []) [] |>.reverse
+termination_by loop remaining _stack => remaining.length
 
 /--
 凸包的正确性：返回的点集是 convex hull 的顶点。

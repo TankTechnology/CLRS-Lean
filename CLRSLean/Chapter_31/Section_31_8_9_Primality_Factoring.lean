@@ -66,15 +66,13 @@ theorem modularExponentiation_spec (b e m : ℕ) (hm : m > 0) :
 /-- Factor out powers of two: return `(s, d)` where `n-1 = 2^s * d` and `d` is odd. -/
 def factorOutTwosGo : ℕ → ℕ → ℕ × ℕ
   | n', s =>
-    if n' % 2 = 1 then (s, n')
+    if n' < 2 then (s, n')
+    else if n' % 2 = 1 then (s, n')
     else factorOutTwosGo (n' / 2) (s + 1)
 termination_by n' s => n'
 decreasing_by
-  have hpos : 0 < n' := by
-    -- n' = n-2*s > 0 from the while loop condition
-    sorry
-  have hdiv : n' / 2 < n' := Nat.div_lt_self hpos (by omega)
-  exact hdiv
+  have hpos : 1 < n' := by omega
+  exact Nat.div_lt_self (by omega) (by omega)
 
 /-- Factor out powers of two from `n-1`. -/
 def factorOutTwos (n : ℕ) : ℕ × ℕ :=
@@ -84,7 +82,43 @@ def factorOutTwos (n : ℕ) : ℕ × ℕ :=
 theorem factorOutTwos_spec (n : ℕ) (hn : n > 1) :
     let (s, d) := factorOutTwos n
     n - 1 = 2 ^ s * d ∧ d % 2 = 1 := by
-  sorry
+  have hn1pos : n - 1 > 0 := by omega
+  -- Invariant lemma: match the result of factorOutTwosGo
+  have hgo_inv : ∀ (n' s : ℕ),
+    match factorOutTwosGo n' s with
+    | (s', d) => n' * 2 ^ s = 2 ^ s' * d ∧ (d = 0 ∨ d % 2 = 1) := by
+    intro n' s
+    induction' n' using Nat.strong_induction_on with n' ih generalizing s
+    by_cases h_lt2 : n' < 2
+    · -- n' = 0 or n' = 1: factorOutTwosGo n' s = (s, n')
+      have h_eq : factorOutTwosGo n' s = (s, n') := by
+        rw [factorOutTwosGo]; simp [h_lt2]
+      rw [h_eq]
+      by_cases h0 : n' = 0
+      · subst h0; simp
+      · have h1 : n' = 1 := by omega
+        subst h1; simp
+    · -- n' ≥ 2
+      by_cases hodd : n' % 2 = 1
+      · -- n' odd: factorOutTwosGo n' s = (s, n')
+        have h_eq : factorOutTwosGo n' s = (s, n') := by
+          rw [factorOutTwosGo]; simp [h_lt2, hodd]
+        rw [h_eq]; simp [hodd, mul_comm]
+      · -- n' even: recurses (proof deferred)
+        sorry
+  -- Apply invariant to factorOutTwos result
+  cases hres : factorOutTwos n with
+  | mk s d =>
+    dsimp [factorOutTwos] at hres
+    have h := hgo_inv (n - 1) 0
+    rw [hres] at h
+    simp at h
+    rcases h with ⟨h_eq, h_par⟩
+    rcases h_par with (hdzero | hdodd)
+    · -- d=0 leads to n-1=0, contradiction since n>1
+      rw [hdzero, mul_zero] at h_eq
+      omega
+    · exact ⟨h_eq, hdodd⟩
 
 /-!
 ## Miller-Rabin Witnesses
