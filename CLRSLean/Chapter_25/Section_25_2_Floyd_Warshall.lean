@@ -129,7 +129,148 @@ lemma D_le_simpleWalk (ks : List V) (i j : V) (p : List V)
     (hp_walk : G.IsWalkFrom i j p) (hNodup : p.Nodup)
     (hp_through : Through (ks.toFinset) i j p) :
     (G.D ks i j : WithTop ℝ) ≤ (walkWeight G.w p : WithTop ℝ) := by
-  sorry
+  revert i j p hp_walk hNodup hp_through
+  induction ks with
+  | nil =>
+    intro i j p hp_walk hNodup hp_through; rw [D_nil]
+    have hp_ne_nil : p ≠ [] := hp_walk.ne_nil
+    match p with
+    | [] => exact absurd rfl hp_ne_nil
+    | [a] =>
+      have ha_i : a = i := by have h := hp_walk.head; simp at h; exact h
+      have ha_j : a = j := by have h := hp_walk.last; simp at h; exact h
+      subst ha_i; subst ha_j; simp [weightMatrix_self G]
+    | [a, b] =>
+      have ha_i : a = i := by have h := hp_walk.head; simp at h; exact h
+      have hb_j : b = j := by
+        have hlast : [a, b].getLast? = some b := by simp
+        have h := hp_walk.last; rw [hlast] at h; simpa using h
+      rw [ha_i, hb_j]; rw [ha_i, hb_j] at hp_walk; rw [ha_i, hb_j] at hNodup
+      by_cases hij : i = j
+      · subst hij; simp at hNodup
+      · have h_adj : G.Adj i j := by
+          have h := (List.isChain_cons.mp hp_walk.chain).1
+          exact h j (by simp)
+        dsimp [weightMatrix]; simp [hij, h_adj]
+    | a :: b :: c :: _ =>
+      have ha_or : a = i ∨ a = j := by
+        have := hp_through a (by simp); simpa using this
+      have hb_or : b = i ∨ b = j := by
+        have := hp_through b (by simp); simpa using this
+      have hc_or : c = i ∨ c = j := by
+        have := hp_through c (by simp); simpa using this
+      rcases ha_or with (rfl|rfl) <;> rcases hb_or with (rfl|rfl) <;>
+        rcases hc_or with (rfl|rfl) <;> simp at hNodup
+  | cons k ks ih =>
+    intro i j p hp_walk hNodup hp_through; rw [D_cons]
+    by_cases hk_mem : k ∈ p
+    · by_cases hk_i : k = i
+      · have hp_ks : Through (ks.toFinset) i j p := by
+          intro v hv; have h := hp_through v hv
+          rcases h with (hvi | hrest)
+          · exact Or.inl hvi
+          · rcases hrest with (hvj | hm)
+            · exact Or.inr (Or.inl hvj)
+            · have hm' : v ∈ ({k} ∪ (ks.toFinset : Finset V)) := by
+                have h_eq : (k :: ks).toFinset = {k} ∪ ks.toFinset := by simp
+                rw [h_eq] at hm; exact hm
+              rcases Finset.mem_union.mp hm' with (hvk_sing | hS)
+              · have hvk : v = k := Finset.mem_singleton.mp hvk_sing
+                rw [hk_i] at hvk; exact Or.inl hvk
+              · exact Or.inr (Or.inr hS)
+        have hle := ih i j p hp_walk hNodup hp_ks
+        exact le_trans (min_le_left _ _) hle
+      · by_cases hk_j : k = j
+        · have hp_ks : Through (ks.toFinset) i j p := by
+            intro v hv; have h := hp_through v hv
+            rcases h with (hvi | hrest)
+            · exact Or.inl hvi
+            · rcases hrest with (hvj | hm)
+              · exact Or.inr (Or.inl hvj)
+              · have hm' : v ∈ ({k} ∪ (ks.toFinset : Finset V)) := by
+                  have h_eq : (k :: ks).toFinset = {k} ∪ ks.toFinset := by simp
+                  rw [h_eq] at hm; exact hm
+                rcases Finset.mem_union.mp hm' with (hvk_sing | hS)
+                · have hvk : v = k := Finset.mem_singleton.mp hvk_sing
+                  rw [hk_j] at hvk; exact Or.inr (Or.inl hvk)
+                · exact Or.inr (Or.inr hS)
+          have hle := ih i j p hp_walk hNodup hp_ks
+          exact le_trans (min_le_left _ _) hle
+        · obtain ⟨l₁, l₂, hp_eq⟩ := List.mem_iff_append.mp hk_mem
+          rw [hp_eq] at hp_walk hNodup hp_through ⊢
+          have hchain : List.IsChain G.Adj (l₁ ++ k :: l₂) := hp_walk.chain
+          have hchain_app := List.isChain_append.mp hchain
+          have hp₁_chain : List.IsChain G.Adj (l₁ ++ [k]) := by
+            refine List.IsChain.append hchain_app.1 (List.isChain_singleton k) ?_
+            intro a ha b hb
+            have hb' : b = k := by have h := hb; simp at h; exact h.symm
+            rw [hb']; exact hchain_app.2.2 a ha k (by simp)
+          have hp₁_head : (l₁ ++ [k]).head? = some i := by
+            by_cases hl₁ : l₁ = []
+            · subst hl₁; simp
+              have hh : (k :: l₂).head? = some i := hp_walk.head
+              have hhead_k : (k :: l₂).head? = some k := by simp
+              rw [hhead_k] at hh; simp at hh; exact absurd hh hk_i
+            · have hhead := hp_walk.head
+              rw [List.head?_append_of_ne_nil _ hl₁] at hhead
+              rw [List.head?_append_of_ne_nil _ hl₁]; exact hhead
+          have hp₁_walk : G.IsWalkFrom i k (l₁ ++ [k]) :=
+            ⟨hp₁_chain, hp₁_head, by simp⟩
+          have hp₂_last : (k :: l₂).getLast? = some j := by
+            by_cases hl₂ : l₂ = []
+            · subst hl₂; simp
+              have hl : (l₁ ++ [k]).getLast? = some j := hp_walk.last
+              simp at hl; exact absurd hl hk_j
+            · have halast : (l₁ ++ k :: l₂).getLast? = some j := hp_walk.last
+              simpa [hl₂] using halast
+          have hp₂_walk : G.IsWalkFrom k j (k :: l₂) :=
+            ⟨hchain_app.2.1, by simp, hp₂_last⟩
+          have hp₁_nodup : (l₁ ++ [k]).Nodup :=
+            hNodup.sublist (List.Sublist.append (List.Sublist.refl l₁)
+              (show List.Sublist [k] (k :: l₂) from by
+                have : [k] = k :: [] := by simp
+                rw [this]
+                exact List.Sublist.cons_cons k (List.nil_sublist l₂)))
+          have hp₂_nodup : (k :: l₂).Nodup :=
+            hNodup.sublist (List.sublist_append_right l₁ (k :: l₂))
+          have hp_union : Through ({k} ∪ (ks.toFinset)) i j (l₁ ++ k :: l₂) := by
+            have h_eq : (k :: ks).toFinset = {k} ∪ ks.toFinset := by simp
+            rw [h_eq] at hp_through; exact hp_through
+          have hp₁_through : Through (ks.toFinset) i k (l₁ ++ [k]) :=
+            through_subwalk_left hNodup hp_union hp_walk.last hk_i hk_j
+          have hp₂_through : Through (ks.toFinset) k j (k :: l₂) :=
+            through_subwalk_right hNodup hp_union hp_walk.head hk_i hk_j
+          have hle₁ : (G.D ks i k : WithTop ℝ) ≤ (walkWeight G.w (l₁ ++ [k]) : WithTop ℝ) :=
+            ih i k (l₁ ++ [k]) hp₁_walk hp₁_nodup hp₁_through
+          have hle₂ : (G.D ks k j : WithTop ℝ) ≤ (walkWeight G.w (k :: l₂) : WithTop ℝ) :=
+            ih k j (k :: l₂) hp₂_walk hp₂_nodup hp₂_through
+          have hsum : (G.D ks i k + G.D ks k j : WithTop ℝ) ≤
+              (walkWeight G.w (l₁ ++ [k]) + walkWeight G.w (k :: l₂) : WithTop ℝ) :=
+            add_le_add hle₁ hle₂
+          have hweight : walkWeight G.w (l₁ ++ k :: l₂) =
+              walkWeight G.w (l₁ ++ [k]) + walkWeight G.w (k :: l₂) :=
+            walkWeight_split G.w l₁ k l₂
+          have hsum' : (walkWeight G.w (l₁ ++ [k]) + walkWeight G.w (k :: l₂) : WithTop ℝ) =
+              (walkWeight G.w (l₁ ++ k :: l₂) : WithTop ℝ) := by
+            exact_mod_cast hweight.symm
+          rw [hsum'] at hsum
+          apply le_trans (min_le_right _ _); exact hsum
+    · have hp_ks : Through (ks.toFinset) i j p := by
+        intro v hv; have h := hp_through v hv
+        rcases h with (hvi | hrest)
+        · exact Or.inl hvi
+        · rcases hrest with (hvj | hm)
+          · exact Or.inr (Or.inl hvj)
+          · have hm' : v ∈ ({k} ∪ (ks.toFinset : Finset V)) := by
+              have h_eq : (k :: ks).toFinset = {k} ∪ ks.toFinset := by simp
+              rw [h_eq] at hm; exact hm
+            rcases Finset.mem_union.mp hm' with (hvk_sing | hS)
+            · exfalso
+              have hvk : v = k := Finset.mem_singleton.mp hvk_sing
+              subst hvk; exact hk_mem hv
+            · exact Or.inr (Or.inr hS)
+      have hle := ih i j p hp_walk hNodup hp_ks
+      exact le_trans (min_le_left _ _) hle
 
 /-! ## General lower bound via cycle removal -/
 
