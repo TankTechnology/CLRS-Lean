@@ -50,10 +50,26 @@ scripts/check_repository.py  ← fast repository-wide checks
 ```bash
 uv sync --frozen                    # prepare Python helper environment
 uv run python scripts/check_repository.py
-lake build CLRSLean                 # compile Lean library
-lake -R -Kenv=dev build CLRSLean:docs  # build doc-gen4 API docs
-lake build :literateHtml            # generate Verso website
 ```
+
+### Single-file proof development (fast feedback)
+
+Use the lightest command that answers your question.  Full details in
+`docs/build-and-agents.md`.
+
+| Situation | Command |
+|---|---|
+| Checking a single proof compiles | `lake lean <file>` |
+| Checking + caching olean | `lake build +<Module.Path>` |
+| Quick re-check after small edit | `lake build --old CLRSLean` |
+| Full check before committing | `lake build CLRSLean` |
+| Lakefile / dependency changes | `lake build --reconfigure CLRSLean` |
+| Suspect stale trace / weird error | `lake build --rehash CLRSLean` |
+| Build Verso website | `lake build :literateHtml` |
+| Build doc-gen4 API docs | `lake -R -Kenv=dev build CLRSLean:docs` |
+
+**Typical latency** (warm build, single-file edit): `lake lean <file>` ≈ 5 s,
+`lake build --old` ≈ 3 s, full `lake build` ≈ 6 s.
 
 ## Parallel agents & build infrastructure
 
