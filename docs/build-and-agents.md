@@ -83,6 +83,74 @@ sorry-free.** Before merging any agent's branch:
    per-chapter union and **regenerate** `CLRSLean/Progress.lean` from the CSV
    (`python3 scripts/check_progress_csv.py --write-dashboard`); never hand-merge it.
 
+## Single-file proof development (fast feedback)
+
+When iterating on a proof in a single `.lean` file, do **not** run a full
+`lake build CLRSLean` after every edit.  Use the following instead, from
+fastest to most thorough:
+
+### Tier 1 — elaborate one file (fastest)
+
+```bash
+lake lean CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean
+```
+
+This builds the file's dependencies once, then elaborates only the target
+file.  It does **not** produce a cached `.olean`, so downstream modules are
+unaffected (and unchecked).  Typical latency: ~5 s.
+
+Use this for the inner loop of proof writing — checking whether a single
+lemma compiles.
+
+### Tier 2 — build a single module
+
+```bash
+lake build CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall
+```
+
+Same as Tier 1 but also writes the `.olean` and `.ilean`.  Equally fast, and
+leaves the build cache up-to-date so a later full build starts warm.
+
+### Tier 3 — skip transitive dependencies
+
+```bash
+lake build --old CLRSLean
+```
+
+Rebuilds **only** the modules whose source files changed, ignoring transitive
+downstream dependents.  This catches syntax/elaboration errors in the edited
+file without waiting for the whole library to relink.  ~3–4 s.
+
+**Caveat:** `--old` does not check that downstream modules still import
+correctly; use Tier 4 before pushing.
+
+### Tier 4 — full incremental build
+
+```bash
+lake build CLRSLean
+```
+
+The standard build.  Only re-elaborates modules whose transitive dependencies
+changed.  ~6 s after a single-file edit.
+
+### Tier 5 — cold / verification build
+
+```bash
+lake build --reconfigure CLRSLean   # if lakefile.lean changed
+lake build --rehash CLRSLean        # if build traces are suspect
+```
+
+### Decision table for agents
+
+| Situation | Command |
+|---|---|
+| Checking a single proof compiles | `lake lean <file>` |
+| Checking a file + caching its olean | `lake build +<Module.Path>` |
+| Quick re-check after a small edit | `lake build --old CLRSLean` |
+| Full check before committing | `lake build CLRSLean` |
+| Lakefile / dependency changes | `lake build --reconfigure CLRSLean` |
+| Suspect stale trace / weird error | `lake build --rehash CLRSLean` |
+
 ## Recovery runbook (corrupted `.lake`)
 
 If Mathlib is deleted/emptied (e.g., an interrupted re-clone):
