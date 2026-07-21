@@ -131,52 +131,6 @@ theorem reweightedWeight_nonneg (h : V → ℝ)
   have hineq : h v ≤ h u + G.w u v := h_triangle u v h_edge
   linarith
 
-/-! ## Walk equivalence -/
-
-lemma IsWalkFrom_reweighted_iff (h : V → ℝ) (u v : V) (p : List V) :
-    (G.reweightedGraph h).IsWalkFrom u v p ↔ G.IsWalkFrom u v p := by
-  have h_adj_eq : (G.reweightedGraph h).Adj = G.Adj := by
-    ext x y; simp [WeightedGraph.Adj, edges_reweightedGraph]
-  constructor
-  · intro hw; rcases hw with ⟨hc, hh, hl⟩; refine ⟨?_, hh, hl⟩; rw [← h_adj_eq]; exact hc
-  · intro hw; rcases hw with ⟨hc, hh, hl⟩; refine ⟨?_, hh, hl⟩; rw [h_adj_eq]; exact hc
-
-/-! ## Lift telescoping to WithTop ℝ -/
-
-/-- `reweightedWalkWeight_eq` lifted to `WithTop ℝ`, with coercions distributed. -/
-lemma reweightedWalkWeight_eq_withtop (h : V → ℝ) (u v : V) (p : List V)
-    (hp : G.IsWalkFrom u v p) :
-    (walkWeight (G.reweightedWeight h) p : WithTop ℝ) =
-      (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by
-  have h_rw := reweightedWalkWeight_eq G h u v p hp
-  calc
-    (walkWeight (G.reweightedWeight h) p : WithTop ℝ) =
-        ((walkWeight G.w p + h u - h v : ℝ) : WithTop ℝ) := by exact_mod_cast h_rw
-    _ = (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by simp
-
-/-! ## Shortest-path preservation (proof sketch)
-
-The full proof of `reweighted_isShortestDist` is structurally complete
-and compiles in a standalone test.  The remaining work is fixing `WithTop ℝ`
-coercion / `let`-binding transparency issues when calling
-`WithTop.add_le_add_iff_right` in the project environment.
-
-The proof strategy:
-1. `reweightedWalkWeight_eq_withtop` lifts the telescoping property to `WithTop ℝ`
-2. The two directions of `IsShortestDist` are shown by adding/subtracting
-   `h(u) - h(v)` using `add_le_add_right` (forward) and
-   `WithTop.add_le_add_iff_right` (cancellation)
-3. The `add_sub_cancel` helper wraps the cancellation lemma
-
-To finish: open the file in VS Code, replace the `sorry` below with the
-proof from the standalone test (available at `docs/superpowers/`), and fix
-any remaining type inference issues on `h_u`/`h_v`. -/
-theorem reweighted_isShortestDist (h : V → ℝ) (u v : V) (d : WithTop ℝ) :
-    (G.reweightedGraph h).IsShortestDist u v
-      (d + (h u : WithTop ℝ) - (h v : WithTop ℝ)) ↔
-    G.IsShortestDist u v d := by
-  sorry
-
 end WeightedGraph
 end Chapter24
 end CLRS
