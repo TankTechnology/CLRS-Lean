@@ -298,13 +298,98 @@ walks, overlapping at `k`). -/
 lemma D_attainable (ks : List V) (i j : V) :
     (G.D ks i j = ⊤) ∨
     (∃ p, G.IsWalkFrom i j p ∧ (walkWeight G.w p : WithTop ℝ) = G.D ks i j) := by
-  sorry
+  induction' ks with k ks ih generalizing i j
+  · rw [D_nil]; dsimp [weightMatrix]
+    by_cases hij : i = j
+    · subst hij
+      have hw : G.weightMatrix i i = (0 : WithTop ℝ) := weightMatrix_self G i
+      simp [hw]
+      refine ⟨[i], ?_, ?_⟩
+      · exact { chain := List.isChain_singleton i, head := by simp, last := by simp }
+      · simp
+    · by_cases hadj : G.Adj i j
+      · refine Or.inr ⟨[i, j], ?_, ?_⟩
+        · refine ⟨?_, by simp, by simp⟩
+          refine (List.isChain_cons (x := i) (l := [j])).mpr ⟨?_, List.isChain_singleton j⟩
+          intro b hb; simp at hb; subst hb; exact hadj
+        · simp [walkWeight, hij, hadj]
+      · simp [hij, hadj]
+  · rw [D_cons]
+    rcases min_choice (G.D ks i j) (G.D ks i k + G.D ks k j) with (hmin | hmin)
+    · rw [hmin]; exact ih i j
+    · rw [hmin]
+      rcases ih i k with (htop_ik | ⟨pik, hpik, hpikw⟩)
+      · simp [htop_ik]
+      · rcases ih k j with (htop_kj | ⟨pkj, hpkj, hpkjw⟩)
+        · simp [htop_kj]
+        · -- Concatenate pik ++ pkj.tail (overlap at k)
+          have hpik_ne_nil : pik ≠ [] := hpik.ne_nil
+          cases pkj with
+          | nil => exact absurd rfl hpkj.ne_nil
+          | cons a as =>
+            have ha_k : a = k := by simpa using hpkj.head
+            -- Work with as = pkj.tail, and a = k
+            have hpkj_chain' : List.IsChain G.Adj (k :: as) := by
+              rw [← ha_k]; exact hpkj.chain
+            have chain_decomp := List.isChain_cons.mp hpkj_chain'
+            have as_chain : List.IsChain G.Adj as := chain_decomp.2
+            have head_adj : ∀ y ∈ as.head?, G.Adj k y := chain_decomp.1
+            set q := pik ++ as with hq_def
+            -- Chain for concatenated walk
+            have hq_chain : List.IsChain G.Adj q := by
+              rw [hq_def]
+              -- use the iff version of isChain_append
+              apply (List.isChain_append (l₁ := pik) (l₂ := as)).mpr
+              refine ⟨hpik.chain, as_chain, ?_⟩
+              intro a' ha' b' hb'
+              rw [hpik.last] at ha'
+              simp at ha'
+              have ha'_k : a' = k := ha'.symm
+              rw [ha'_k]; exact head_adj b' hb'
+            have hq_head : q.head? = some i := by
+              rw [hq_def, List.head?_append_of_ne_nil _ hpik_ne_nil]; exact hpik.head
+            have hq_last : q.getLast? = some j := by
+              rw [hq_def]
+              by_cases has : as = []
+              · subst has; simp
+                have hk_eq_j : k = j := by
+                  have hlast := hpkj.last; simp at hlast; rw [ha_k] at hlast; exact hlast
+                have hpik_last' := hpik.last; rw [hk_eq_j] at hpik_last'; exact hpik_last'
+              · have hlast' : (pik ++ as).getLast? = as.getLast? :=
+                  List.getLast?_append_of_ne_nil _ has
+                rw [hlast']
+                have htail_last : as.getLast? = some j := by
+                  have hlast_pkj := hpkj.last
+                  rw [ha_k] at hlast_pkj
+                  have h_getLast : (k :: as).getLast? = as.getLast? := by
+                    simpa using List.getLast?_cons_of_ne_nil has
+                  rw [h_getLast] at hlast_pkj
+                  exact hlast_pkj
+                exact htail_last
+            have hq_walk : G.IsWalkFrom i j q := ⟨hq_chain, hq_head, hq_last⟩
+            -- Weight equality
+            have hpik_last_eq := hpik.last
+            rcases List.getLast?_eq_some_iff.mp hpik_last_eq with ⟨l, hpik_snoc⟩
+            have hq_weight : (walkWeight G.w q : WithTop ℝ) = G.D ks i k + G.D ks k j := by
+              rw [hq_def, hpik_snoc]
+              have h_list_eq : (l ++ [k]) ++ as = l ++ k :: as := by simp
+              rw [h_list_eq]
+              rw [walkWeight_split G.w l k as, ← hpik_snoc]
+              have h_pkj_eq : (k :: as) = (a :: as) := by
+                rw [ha_k]
+              rw [h_pkj_eq]
+              push_cast; rw [hpikw, hpkjw]
+            exact Or.inr ⟨q, hq_walk, hq_weight⟩
 
 /-! ## Theorem 25.8: Floyd-Warshall computes exact shortest distances -/
 
 theorem floydWarshall_isShortestDist (hNC : G.NoNegCycle) (i j : V) :
     G.IsShortestDist i j (G.floydWarshall i j) := by
-  sorry
+  constructor
+  · intro p hp; exact G.floydWarshall_le_walk hNC i j p hp
+  · rcases G.D_attainable (Finset.univ.toList : List V) i j with (htop | ⟨p, hp, hpw⟩)
+    · left; simpa [floydWarshall] using htop
+    · right; refine ⟨p, hp, ?_⟩; simpa [floydWarshall] using hpw
 
 end WeightedGraph
 end Chapter24
