@@ -94,11 +94,10 @@ matrix ring, i.e., nonsingular).
 -/
 theorem one_mul_matrixInverse_eq_one (A : Mat n n) :
     matrixInverse A * A = 1 := by
-  sorry
-  -- From A * A⁻¹ = I and associativity, one can show (A⁻¹ * A - I) * A⁻¹ = 0,
-  -- then use the fact that A⁻¹ has a right inverse (namely A) to conclude
-  -- A⁻¹ * A = I.  Also follows from the general ring-theoretic fact that a
-  -- square matrix with a right inverse is invertible and the inverse is unique.
+  have h := matrixInverse_mul_eq_one A
+  -- h: A * matrixInverse A = 1
+  -- In the ring of square matrices, a * b = 1 ↔ b * a = 1
+  exact (Matrix.mul_eq_one_comm.mp h)
 
 /-! #### Column-wise inverse computation -/
 
@@ -153,8 +152,25 @@ If `A` is positive-definite, then `A i i > 0` for every `i` (use
 -/
 theorem positiveDefinite_diag_pos {A : Mat n n} (h : IsPositiveDefinite A)
     (i : Fin n) : A i i > 0 := by
-  sorry
   -- Take x = eᵢ (standard basis vector).  Then xᵀ A x = A i i > 0.
+  let e := stdBasis n i
+  have he_nonzero : e ≠ (λ _ => (0 : ℝ)) := by
+    intro hzero
+    have h := congrFun hzero i
+    simp [e, stdBasis] at h
+  have hpos := h e he_nonzero
+  -- hpos : (∑ k : Fin n, e k * (Matrix.mulVec A e) k) > 0
+  -- Compute the sum: only the i-th term is nonzero
+  have hsum : (∑ k : Fin n, e k * (Matrix.mulVec A e) k) = A i i := by
+    calc
+      (∑ k : Fin n, e k * (Matrix.mulVec A e) k)
+          = (∑ k : Fin n, e k * (∑ j : Fin n, A k j * e j)) := rfl
+      _ = (∑ k : Fin n, e k * A k i) := by
+        refine Finset.sum_congr rfl (λ k hk => ?_)
+        simp [e, stdBasis, Matrix.mulVec]
+      _ = A i i := by
+        simp [e, stdBasis]
+  linarith
 
 /--
 **SPD matrices have positive diagonal entries.**

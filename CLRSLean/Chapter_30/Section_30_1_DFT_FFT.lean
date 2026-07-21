@@ -157,70 +157,157 @@ theorem ω_sum_eq_zero (n k : ℕ) (hn : n ≠ 0) :
 /-!
 ## Inverse DFT Correctness
 
-Provides a detailed proof sketch using orthogonality of roots of unity.
-A complete formalization requires additional lemmas for integer exponents and sum swapping.
+Proved using orthogonality of roots of unity.  The key trick is to
+convert the ℤ‑power `(ω n)⁻¹` to the ℕ‑power `(ω n) ^ (n-1)`, which
+lets us reuse `ω_sum_eq_zero`.
 -/
 
+/-- `(ω n)⁻¹ = (ω n) ^ (n - 1)`.  Follows from `(ω n) * (ω n)^(n-1) = (ω n)^n = 1`. -/
+theorem ω_inv_eq_pow (n : ℕ) (hn : n ≠ 0) : (ω n)⁻¹ = (ω n) ^ (n - 1) := by
+  have hpos : 1 ≤ n := Nat.one_le_of_lt (Nat.pos_of_ne_zero hn)
+  apply inv_eq_of_mul_eq_one_right
+  calc
+    (ω n) * (ω n) ^ (n - 1) = (ω n) ^ (n - 1) * (ω n) := mul_comm _ _
+    _ = (ω n) ^ n := by
+      rw [← pow_succ, Nat.sub_add_cancel hpos]
+    _ = 1 := ω_pow_n_eq_one n hn
+
+/-- Convert the negative ℤ‑power in the IDFT to an ℕ‑power:
+`(ω n) ^ (-(j*k : ℤ)) = (ω n) ^ ((n-1) * j * k)`.
+This uses `(ω n)⁻¹ = (ω n)^(n-1)`. -/
+theorem ω_zpow_neg_mul_eq_npow (n j k : ℕ) (hn : n ≠ 0) :
+    (ω n) ^ (-(((j * k : ℕ) : ℤ))) = (ω n) ^ ((n - 1) * j * k) := by
+  calc
+    (ω n) ^ (-(((j * k : ℕ) : ℤ))) = ((ω n) ^ (((j * k : ℕ) : ℤ)))⁻¹ := by rw [zpow_neg]
+    _ = ((ω n) ^ (j * k : ℕ))⁻¹ := by rw [zpow_natCast]
+    _ = ((ω n)⁻¹) ^ (j * k : ℕ) := by rw [inv_pow]
+    _ = ((ω n) ^ (n - 1)) ^ (j * k : ℕ) := by rw [ω_inv_eq_pow n hn]
+    _ = (ω n) ^ ((n - 1) * (j * k)) := by rw [← pow_mul]
+    _ = (ω n) ^ ((n - 1) * j * k) := by ring
+
+/-- Orthogonality lemma tailored for the inverse DFT:
+`∑_{k:Fin n} (ω n) ^ (ℓ*k) * (ω n) ^ ((n-1)*j*k) = n` if `ℓ = j`, else `0`. -/
+theorem orthogonality_idft (n ℓ j : ℕ) (hℓ : ℓ < n) (hj : j < n) (hn : n ≠ 0) :
+    ∑ k : Fin n,
+      (ω n) ^ (ℓ * (k : ℕ)) * (ω n) ^ ((n - 1) * j * (k : ℕ)) =
+    if ℓ = j then (n : ℂ) else 0 := by
+  -- Combine exponents: (ℓ + (n-1)*j) * k
+  have h_combine (k : Fin n) :
+      (ω n) ^ (ℓ * (k : ℕ)) * (ω n) ^ ((n - 1) * j * (k : ℕ)) =
+      (ω n) ^ ((ℓ + (n - 1) * j) * (k : ℕ)) := by
+    calc
+      (ω n) ^ (ℓ * (k : ℕ)) * (ω n) ^ ((n - 1) * j * (k : ℕ)) =
+          (ω n) ^ (ℓ * (k : ℕ) + (n - 1) * j * (k : ℕ)) := by rw [pow_add]
+      _ = (ω n) ^ ((ℓ + (n - 1) * j) * (k : ℕ)) := by ring
+  -- Rewrite the sum using this identity
+  have h_sum_eq : (∑ k : Fin n, (ω n) ^ (ℓ * (k : ℕ)) * (ω n) ^ ((n - 1) * j * (k : ℕ))) =
+                 (∑ k : Fin n, (ω n) ^ ((ℓ + (n - 1) * j) * (k : ℕ))) :=
+    Finset.sum_congr rfl (fun k _ => h_combine k)
+  rw [h_sum_eq]
+  -- Now we have Σ_k (ω n) ^ ((ℓ + (n-1)*j) * (k : ℕ))
+  -- First commute the multiplication, then use Fin.sum_univ_eq_sum_range
+  have h_convert : (∑ k : Fin n, (ω n) ^ ((ℓ + (n - 1) * j) * (k : ℕ))) =
+                  (∑ k ∈ Finset.range n, (ω n) ^ (k * (ℓ + (n - 1) * j))) := by
+    have h_comm : (∑ k : Fin n, (ω n) ^ ((ℓ + (n - 1) * j) * (k : ℕ))) =
+                 (∑ k : Fin n, (ω n) ^ ((k : ℕ) * (ℓ + (n - 1) * j))) := by
+      refine Finset.sum_congr rfl (λ k _ => ?_)
+      rw [mul_comm]
+    rw [h_comm]
+    rw [Fin.sum_univ_eq_sum_range (λ x : ℕ => (ω n) ^ (x * (ℓ + (n - 1) * j)))]
+  rw [h_convert]
+  -- Apply ω_sum_eq_zero: sum = n if n∣(ℓ+(n-1)*j), else 0
+  rw [ω_sum_eq_zero n (ℓ + (n - 1) * j) hn]
+  -- Need to decide: n ∣ (ℓ + (n-1)*j) ↔ ℓ = j
+  by_cases h_eq : ℓ = j
+  · rw [h_eq]
+    have hn_div : n ∣ (j + (n - 1) * j) := by
+      use j
+      calc
+        j + (n - 1) * j = (1 + (n - 1)) * j := by ring
+        _ = n * j := by
+          have : 1 + (n - 1) = n := by omega
+          rw [this]
+    rw [if_pos hn_div]
+    simp
+  · have hn_not_div : ¬ n ∣ (ℓ + (n - 1) * j) := by
+      intro hdiv
+      -- hdiv: n ∣ (ℓ + (n-1)*j) in ℕ → convert to ℤ: n ∣ (ℓ - j)
+      have h_int_div : (n : ℤ) ∣ ((ℓ : ℤ) - (j : ℤ)) := by
+        rcases hdiv with ⟨q, hq⟩
+        -- hq: ℓ + (n-1)*j = n*q in ℕ
+        have hn1 : 1 ≤ n := Nat.one_le_of_lt (Nat.pos_of_ne_zero hn)
+        have hq_int : (ℓ : ℤ) + ((n : ℤ) - 1) * (j : ℤ) = (n : ℤ) * (q : ℤ) := by
+          push_cast
+          simpa [Nat.cast_sub hn1] using congrArg (fun x : ℕ => (x : ℤ)) hq
+        use ((q : ℤ) - (j : ℤ))
+        nlinarith
+      -- |ℓ-j| < n and n ∣ (ℓ-j) → ℓ - j = 0 → ℓ = j
+      have h_diff_zero : (ℓ : ℤ) - (j : ℤ) = 0 := by
+        rcases h_int_div with ⟨q, hq⟩
+        by_cases hqz : q = 0
+        · rw [hqz, mul_zero] at hq; omega
+        · have hq_cases : q ≥ 1 ∨ q ≤ -1 := by omega
+          rcases hq_cases with (hqge1 | hqle_neg1)
+          · have hℓ_lt : (ℓ : ℤ) < (n : ℤ) := by exact_mod_cast hℓ
+            have hj_ge : (j : ℤ) ≥ 0 := by exact_mod_cast (Nat.zero_le j)
+            nlinarith
+          · have hℓ_ge : (ℓ : ℤ) ≥ 0 := by exact_mod_cast (Nat.zero_le ℓ)
+            have hj_lt : (j : ℤ) < (n : ℤ) := by exact_mod_cast hj
+            nlinarith
+      have : (ℓ : ℤ) = (j : ℤ) := by omega
+      exact h_eq (by omega)
+    rw [if_neg hn_not_div]
+    simp [h_eq]
+
+/-- IDFT inverts DFT: idft n (dft n a) = a. -/
 theorem idft_dft (n : ℕ) (a : Fin n → ℂ) (hn : n ≠ 0) : idft n (dft n a) = a := by
   have hnz : (n : ℂ) ≠ 0 := by exact_mod_cast hn
   ext j
   dsimp [idft, dft]
-  -- Goal:
-  --   (∑ k : Fin n, (∑ ℓ : Fin n, a ℓ * (ω n)^(ℓ.val * k.val)) * (ω n)^(-(((j.val*k.val) : ℤ)))) / (n : ℂ)
-  --   = a j
-  --
-  -- ═══ DETAILED PROOF SKETCH (orthogonality of roots of unity) ═══
-  --
-  -- This proof uses the identity: for the n-th roots of unity ω_n = exp(2πi/n),
-  -- we have Σ_{k=0}^{n-1} ω_n^{k·(ℓ-j)} = n if ℓ ≡ j (mod n), else 0.
-  --
-  -- STEP 1 — Swap the double sum (Fubini):
-  --   Σ_k (Σ_ℓ a_ℓ · ω^{ℓ·k}) · ω^{-j·k}
-  --     = Σ_k Σ_ℓ a_ℓ · ω^{ℓ·k} · ω^{-j·k}
-  --     = Σ_ℓ a_ℓ · (Σ_k ω^{ℓ·k} · ω^{-j·k})          [Finset.sum_comm]
-  --     = Σ_ℓ a_ℓ · (Σ_k ω^{(ℓ-j)·k})                   [zpow_add]
-  --
-  -- STEP 2 — Handle integer exponents. Define:
-  --   (ω n)^(m : ℤ) using Complex.zpow for m ≥ 0, and as the conjugate for m < 0.
-  --   Since ω_n = exp(2πi/n) lies on the unit circle, (ω n)^(-m) = conj(ω n)^m.
-  --   Alternatively, use that ℓ and j are in Fin n, so |ℓ - j| < n as integers.
-  --   The sum Σ_k ω_n^{k·(ℓ-j)} telescopes via the geometric series formula:
-  --     Σ_{k=0}^{n-1} ω_n^{k·d} = (ω_n^{n·d} - 1)/(ω_n^d - 1)  if ω_n^d ≠ 1
-  --   Since ω_n^n = 1 (by ω_pow_n_eq_one), the numerator is 0 when n ∤ d.
-  --   When ℓ = j (as Fin n), d = 0 and each term is ω_n^0 = 1, so sum = n.
-  --   When ℓ ≠ j, we have 0 < |ℓ.val - j.val| < n, so n ∤ (ℓ-j) as ℤ differences,
-  --   hence ω_n^{ℓ-j} ≠ 1 and the sum is 0.
-  --
-  --   The key lemma needed (generalizing ω_sum_eq_zero to ℤ differences):
-  --     lemma orthogonality_fin_diff (ℓ j : Fin n) (hn : n ≠ 0) :
-  --       ∑ k : Fin n, (ω n) ^ ((ℓ.val : ℤ) - (j.val : ℤ) + (n : ℤ)) * (k.val : ℤ) = 
-  --       if ℓ = j then (n : ℂ) else 0
-  --   This requires:
-  --     a) converting the integer exponent to ℕ via zpow_ofNat or similar
-  --     b) using ω_pow_eq_one_iff for the "n ∣ d" condition
-  --     c) a lemma that for ℓ ≠ j in Fin n, n ∤ |ℓ.val - j.val| as ℤ
-  --
-  --   Simpler approach using the existing ω_sum_eq_zero (which works in ℕ):
-  --     For ℓ, j : Fin n, consider d = |ℓ.val - j.val|. Since 0 < d < n when ℓ ≠ j,
-  --     ω_sum_eq_zero n d hn gives Σ_k ω_n^{k·d} = 0.
-  --     The slightly tricky part is handling the sign in the exponent:
-  --     ω_n^{k·(ℓ - j)} = (ω_n^{ℓ-j})^k. When ℓ.val > j.val, exponent is positive;
-  --     when ℓ.val < j.val, use ω_n^{-d} = conj(ω_n)^d and symmetry.
-  --
-  -- STEP 3 — After applying orthogonality, the outer sum collapses:
-  --   Σ_ℓ a_ℓ · (n if ℓ = j else 0) = a_j · n
-  --
-  -- STEP 4 — Divide by (n : ℂ):
-  --   (a_j · n) / n = a_j
-  --
-  -- REMAINING WORK for a complete Lean formalization:
-  --   a. Lemma `ω_zpow_add` : (ω n)^((a:ℤ)+(b:ℤ)) = (ω n)^(a:ℤ) * (ω n)^(b:ℤ)
-  --      (uses `zpow_add` from `DivInvMonoid` since ℂˣ is a group)
-  --   b. Lemma `orthogonality_fin_diff` as described above
-  --   c. `Finset.sum_comm` for swapping double sums (already available in Mathlib)
-  --   d. `simp` lemmas for `zpow_ofNat` and negative integer powers of ω
-  --   e. The case split on `ℓ = j` with `Fin` decidable equality
-  sorry
+  calc
+    (∑ k : Fin n,
+      (∑ ℓ : Fin n, a ℓ * (ω n) ^ (ℓ.val * k.val)) * (ω n) ^ (-(((j.val * k.val : ℕ) : ℤ)))) / (n : ℂ)
+        = (∑ k : Fin n,
+            ∑ ℓ : Fin n,
+              (a ℓ * (ω n) ^ (ℓ.val * k.val)) * (ω n) ^ (-(((j.val * k.val : ℕ) : ℤ)))) / (n : ℂ) := by
+      refine congrArg (· / (n : ℂ)) (Finset.sum_congr rfl (fun k _ => ?_))
+      rw [Finset.sum_mul]
+    _ = (∑ ℓ : Fin n,
+          ∑ k : Fin n,
+            a ℓ * (ω n) ^ (ℓ.val * k.val) * (ω n) ^ (-(((j.val * k.val : ℕ) : ℤ)))) / (n : ℂ) := by
+      rw [Finset.sum_comm]
+    _ = (∑ ℓ : Fin n,
+          a ℓ * (∑ k : Fin n,
+            (ω n) ^ (ℓ.val * k.val) * (ω n) ^ (-(((j.val * k.val : ℕ) : ℤ))))) / (n : ℂ) := by
+      refine congrArg (· / (n : ℂ)) (Finset.sum_congr rfl (fun ℓ _ => ?_))
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl (fun k _ => ?_)
+      ring
+    _ = (∑ ℓ : Fin n,
+          a ℓ * (∑ k : Fin n,
+            (ω n) ^ (ℓ.val * k.val) * (ω n) ^ ((n - 1) * j.val * k.val))) / (n : ℂ) := by
+      refine congrArg (· / (n : ℂ)) (Finset.sum_congr rfl (fun ℓ _ => ?_))
+      refine congrArg (a ℓ * ·) (Finset.sum_congr rfl (fun k _ => ?_))
+      rw [ω_zpow_neg_mul_eq_npow n j.val k.val hn]
+    _ = (∑ ℓ : Fin n,
+          a ℓ * (if ℓ.val = j.val then (n : ℂ) else 0)) / (n : ℂ) := by
+      refine congrArg (· / (n : ℂ)) (Finset.sum_congr rfl (fun ℓ _ => ?_))
+      rw [orthogonality_idft n ℓ.val j.val (ℓ.is_lt) (j.is_lt) hn]
+    _ = (a j * (n : ℂ)) / (n : ℂ) := by
+      have hsum : (∑ ℓ : Fin n, a ℓ * (if ℓ.val = j.val then (n : ℂ) else 0)) =
+                 a j * (n : ℂ) := by
+        calc
+          (∑ ℓ : Fin n, a ℓ * (if ℓ.val = j.val then (n : ℂ) else 0))
+              = (∑ ℓ : Fin n, if ℓ = j then a ℓ * (n : ℂ) else 0) := by
+            refine Finset.sum_congr rfl (λ ℓ hℓ => ?_)
+            by_cases hℓj : ℓ = j
+            · subst hℓj; simp
+            · have hval_ne : ℓ.val ≠ j.val := by
+                intro h; apply hℓj; exact Fin.ext h
+              simp [hval_ne, hℓj]
+          _ = a j * (n : ℂ) := by simp
+      rw [hsum]
+    _ = a j := by field_simp [hnz]
 
 /-!
 ## FFT Decomposition (Cooley-Tukey)
@@ -317,21 +404,19 @@ theorem dft_split_even_odd (m : ℕ) (a : Fin (2*m) → ℂ) (k : Fin m) (hm : m
       intro j
       dsimp [φ]
       by_cases h : j.val % 2 = 0
-      · dsimp [ψ]
+      · simp [ψ, h]
         apply Fin.ext
         have hdvd : 2 ∣ j.val := Nat.dvd_of_mod_eq_zero h
-        -- Complex Fin index arithmetic: deferred
-        sorry
+        simpa using Nat.mul_div_cancel' hdvd
       · have h_mod_one : j.val % 2 = 1 := by
           have h_mod := Nat.mod_two_eq_zero_or_one j.val
           rcases h_mod with (hz | ho)
           · exact absurd hz h
           · exact ho
         have hval_eq : j.val = 2 * (j.val / 2) + 1 := by omega
-        dsimp [ψ]
+        simp [ψ, h_mod_one]
         apply Fin.ext
-        -- Complex Fin index arithmetic: deferred
-        sorry
+        simpa using hval_eq.symm
     exact ⟨h_left_inv.injective, h_right_inv.surjective⟩
   -- From the bijection ψ : Fin m ⊕ Fin m → Fin (2*m), get an Equiv
   let e : Fin m ⊕ Fin m ≃ Fin (2*m) :=
