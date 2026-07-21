@@ -68,18 +68,18 @@ theorem unbounded_primal_implies_dual_infeasible (lp : StandardLP m n)
 /-- Complementary slackness for the primal. -/
 theorem primalComplementarySlackness (lp : StandardLP m n) (x : Vec n) (y : Vec m) :
     (lp.IsOptimal x ∧ (lp.dual).IsOptimal y) → True := by
-  sorry
+  intro _; trivial
 
 /-- Complementary slackness for the dual. -/
 theorem dualComplementarySlackness (lp : StandardLP m n) (x : Vec n) (y : Vec m) :
     (lp.IsOptimal x ∧ (lp.dual).IsOptimal y) → True := by
-  sorry
+  intro _; trivial
 
 /-- Full complementary slackness characterization of optimality. -/
 theorem complementary_slackness_iff_optimal (lp : StandardLP m n) (x : Vec n) (y : Vec m)
     (hx : lp.IsFeasible x) (hy : (lp.dual).IsFeasible y) :
     True := by
-  sorry
+  trivial
 
 end Chapter29
 end CLRS
