@@ -131,6 +131,145 @@ theorem reweightedWeight_nonneg (h : V → ℝ)
   have hineq : h v ≤ h u + G.w u v := h_triangle u v h_edge
   linarith
 
+/-! ## Walk equivalence: original graph ↔ reweighted graph -/
+
+lemma IsWalkFrom_reweighted_iff (h : V → ℝ) (u v : V) (p : List V) :
+    (G.reweightedGraph h).IsWalkFrom u v p ↔ G.IsWalkFrom u v p := by
+  have h_adj_eq : (G.reweightedGraph h).Adj = G.Adj := by
+    ext x y; simp [WeightedGraph.Adj, edges_reweightedGraph]
+  constructor
+  · intro hw; rcases hw with ⟨hc, hh, hl⟩; refine ⟨?_, hh, hl⟩; rw [← h_adj_eq]; exact hc
+  · intro hw; rcases hw with ⟨hc, hh, hl⟩; refine ⟨?_, hh, hl⟩; rw [h_adj_eq]; exact hc
+
+/-! ## Lift telescoping property to WithTop ℝ -/
+
+lemma reweightedWalkWeight_eq_withtop (h : V → ℝ) (u v : V) (p : List V)
+    (hp : G.IsWalkFrom u v p) :
+    (walkWeight (G.reweightedWeight h) p : WithTop ℝ) =
+      (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by
+  have h_rw := reweightedWalkWeight_eq G h u v p hp
+  calc
+    (walkWeight (G.reweightedWeight h) p : WithTop ℝ) =
+        ((walkWeight G.w p + h u - h v : ℝ) : WithTop ℝ) := by exact_mod_cast h_rw
+    _ = (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by simp
+
+/-! ## WithTop helpers -/
+
+private lemma add_sub_cancel {a b c : WithTop ℝ} (hc : c ≠ ⊤) (h : a + c ≤ b + c) : a ≤ b :=
+  (WithTop.add_le_add_iff_right hc).mp h
+
+private lemma add_sub_assoc {a b c : WithTop ℝ} (hb : b ≠ ⊤) (hc : c ≠ ⊤) :
+    (a + b) - c = a + (b - c) := by
+  have ⟨b', hb'⟩ := Option.ne_none_iff_exists'.mp hb
+  have ⟨c', hc'⟩ := Option.ne_none_iff_exists'.mp hc
+  subst hb' hc'
+  by_cases ha : a = ⊤
+  · subst ha
+    calc
+      ((⊤ : WithTop ℝ) + (b' : WithTop ℝ)) - (c' : WithTop ℝ) = (⊤ : WithTop ℝ) - (c' : WithTop ℝ) := by simp
+      _ = (⊤ : WithTop ℝ) := by simp
+      _ = (⊤ : WithTop ℝ) + ((b' : WithTop ℝ) - (c' : WithTop ℝ)) := by rw [WithTop.top_add]
+  · have ⟨a', ha'⟩ := Option.ne_none_iff_exists'.mp ha
+    subst ha'
+    -- ℝ equality: (a'+b'-c') = (a'+(b'-c')) in ℝ, lifted to WithTop ℝ
+    calc
+      ((a' : ℝ) : WithTop ℝ) + ((b' : ℝ) : WithTop ℝ) - ((c' : ℝ) : WithTop ℝ) =
+          (((a' + b' - c' : ℝ) : ℝ) : WithTop ℝ) := by simp
+      _ = (((a' + (b' - c') : ℝ) : ℝ) : WithTop ℝ) := by rw [show (a' + b' - c' : ℝ) = (a' + (b' - c') : ℝ) by ring]
+      _ = ((a' : ℝ) : WithTop ℝ) + (((b' : ℝ) : WithTop ℝ) - ((c' : ℝ) : WithTop ℝ)) := by simp
+
+/-! ## Shortest-path preservation under reweighting -/
+
+/-- **Shortest-path preservation.**  For any potential `h`, the reweighted
+shortest distance equals the original shortest distance shifted by
+`h(u) - h(v)`.  This holds without any feasibility assumption on `h`. -/
+theorem reweighted_isShortestDist (h : V → ℝ) (u v : V) (d : WithTop ℝ) :
+    (G.reweightedGraph h).IsShortestDist u v
+      (d + (h u : WithTop ℝ) - (h v : WithTop ℝ)) ↔
+    G.IsShortestDist u v d := by
+  have h_fin_hu : (h u : WithTop ℝ) ≠ ⊤ := by simp
+  have h_fin_hv : (h v : WithTop ℝ) ≠ ⊤ := by simp
+  have h_fin_diff : ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≠ ⊤ := by simp
+  have h_walk_iff := IsWalkFrom_reweighted_iff G h
+  have h_rw_eq := reweightedWalkWeight_eq_withtop G h
+  constructor
+  · intro h_rsd; rcases h_rsd with ⟨h_lower, h_att⟩; constructor
+    · intro p hp
+      have hp_hat : (G.reweightedGraph h).IsWalkFrom u v p := (h_walk_iff u v p).mpr hp
+      have h_bound := h_lower p hp_hat
+      have h_rw' := h_rw_eq u v p hp
+      have h_bound' : d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
+          (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
+        -- Regroup using add_sub_assoc and use h_bound + h_rw'
+        simpa [add_sub_assoc h_fin_hu h_fin_hv] using
+          calc
+            d + (h u : WithTop ℝ) - (h v : WithTop ℝ) ≤
+                (walkWeight (G.reweightedWeight h) p : WithTop ℝ) := h_bound
+            _ = (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := h_rw'
+      exact add_sub_cancel h_fin_diff h_bound'
+    · rcases h_att with (h_dtop | ⟨p, hp_hat, hpw⟩)
+      · -- h_dtop: (d + h_u - h_v) = ⊤ in reweighted graph
+        -- Need: d = ⊤ in original graph.  Since h_u, h_v are finite,
+        -- (d + h_u) - h_v = ⊤ implies d + h_u = ⊤, which implies d = ⊤.
+        by_cases hd_top : d = ⊤
+        · exact Or.inl hd_top
+        · exfalso
+          -- d ≠ ⊤, h_u ≠ ⊤, h_v ≠ ⊤ → d + h_u - h_v ≠ ⊤, contradicting h_dtop
+          have h_sum_fin : d + (h u : WithTop ℝ) - (h v : WithTop ℝ) ≠ ⊤ := by
+            -- All three are finite ℝ values, so the sum is finite
+            -- Proof: case analysis to extract the ℝ values
+            rcases Option.ne_none_iff_exists'.mp hd_top with ⟨d', hd'⟩
+            rcases Option.ne_none_iff_exists'.mp h_fin_hu with ⟨hu', hhu'⟩
+            rcases Option.ne_none_iff_exists'.mp h_fin_hv with ⟨hv', hhv'⟩
+            rw [hd', hhu', hhv']
+            simp
+          exact h_sum_fin h_dtop
+      · right
+        have hp : G.IsWalkFrom u v p := (h_walk_iff u v p).mp hp_hat
+        have h_rw' := h_rw_eq u v p hp
+        have hpw' : (walkWeight G.w p : WithTop ℝ) = d := by
+          have h_eq : (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) =
+              d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
+            calc
+              (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) =
+                  (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by
+                rw [add_sub_assoc h_fin_hu h_fin_hv]
+              _ = (walkWeight (G.reweightedWeight h) p : WithTop ℝ) := by symm; exact h_rw'
+              _ = d + (h u : WithTop ℝ) - (h v : WithTop ℝ) := hpw
+              _ = d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
+                rw [add_sub_assoc h_fin_hu h_fin_hv]
+          apply le_antisymm
+          · apply add_sub_cancel h_fin_diff; exact h_eq.le
+          · apply add_sub_cancel h_fin_diff; exact h_eq.ge
+        refine ⟨p, hp, hpw'⟩
+  · intro h_sd; rcases h_sd with ⟨h_lower, h_att⟩; constructor
+    · intro p hp_hat
+      have hp : G.IsWalkFrom u v p := (h_walk_iff u v p).mp hp_hat
+      have h_rw' := h_rw_eq u v p hp
+      rw [add_sub_assoc h_fin_hu h_fin_hv]
+      have h_add_both : d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
+          (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
+        gcongr; exact h_lower p hp
+      calc
+        d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
+            (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := h_add_both
+        _ = (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by
+          rw [add_sub_assoc h_fin_hu h_fin_hv]
+        _ = (walkWeight (G.reweightedWeight h) p : WithTop ℝ) := h_rw'.symm
+    · rcases h_att with (h_dtop | ⟨p, hp, hpw⟩)
+      · -- h_dtop: d = ⊤ in original graph
+        -- Need: d + h_u - h_v = ⊤ in reweighted graph
+        refine Or.inl ?_
+        rw [h_dtop]; simp
+      · right
+        have hp_hat : (G.reweightedGraph h).IsWalkFrom u v p := (h_walk_iff u v p).mpr hp
+        have h_rw' := h_rw_eq u v p hp
+        refine ⟨p, hp_hat, ?_⟩
+        calc
+          (walkWeight (G.reweightedWeight h) p : WithTop ℝ) =
+              (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := h_rw'
+          _ = d + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by rw [hpw]
+
 end WeightedGraph
 end Chapter24
 end CLRS
