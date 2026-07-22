@@ -2998,13 +2998,22 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 25.2 - Floyd-Warshall Algorithm
 
 - Lean source: `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean`
-- Status: `partial` (definitions only; correctness proofs deferred)
+- Status: `partial` (core correctness complete; path-reconstruction weight equality deferred)
 - Main declarations:
   - `CLRS.Chapter24.WeightedGraph.fwStep` (one Floyd-Warshall iteration)
   - `CLRS.Chapter24.WeightedGraph.D` (Floyd-Warshall DP recurrence)
   - `CLRS.Chapter24.WeightedGraph.floydWarshall` (full algorithm)
-  - `CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed` (O(V³) work bound)
-- Current gap: D_le_simple (Lemma 25.7), D_attainable, floydWarshall_correct (Theorem 25.8)
+  - `CLRS.Chapter24.WeightedGraph.Pi` (predecessor matrix Π)
+  - `CLRS.Chapter24.WeightedGraph.floydWarshallPi` (final predecessor matrix)
+  - `CLRS.Chapter24.WeightedGraph.fwReconstructPath` (path reconstruction)
+- Proved theorems:
+  - `D_le_simpleWalk` (Lemma 25.7), `D_attainable`,
+    `floydWarshall_isShortestDist` (Theorem 25.8)
+  - `Pi_adj` (every predecessor follows a real edge)
+  - `floydWarshall_nonneg_diag`, `negative_diagonal_implies_negative_cycle`
+    (CLRS Theorem 25.3, negative-cycle detection)
+- Current gap: `fwReconstructPath` weight equality (`walkWeight = floydWarshall`);
+  transitive closure
 
 ### Section 25.3 - Johnson's Algorithm
 
@@ -3018,17 +3027,17 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq`
   - `CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`
 - Current gap: prove the augmented graph preserves absence of negative cycles,
-  construct the Bellman-Ford potential, lift the telescoping identity to
-  shortest-path preservation, and package the repeated Dijkstra runs into the
-  end-to-end Johnson theorem and work bound.
+  construct the Bellman-Ford potential, and package the repeated Dijkstra runs
+  into the end-to-end Johnson theorem and work bound.  (Note:
+  `reweighted_isShortestDist` — shortest-path preservation under reweighting
+  — is already proved.)
 
 ### Chapter 25 remaining work
 
-- Floyd-Warshall correctness proofs.
-- Predecessor matrix Pi and path reconstruction.
-- Negative-cycle detection (CLRS Theorem 25.3).
-- Johnson's potential construction, shortest-path preservation, and complete
-  algorithm correctness/work theorem.
+- Predecessor-matrix path-reconstruction weight equality
+  (walk validity from `Pi_adj` is proved; `walkWeight = floydWarshall` deferred).
+- Johnson's Bellman-Ford potential construction and complete algorithm
+  correctness/work theorem.
 
 ## Chapter 26 - Maximum Flow
 
