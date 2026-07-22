@@ -52,33 +52,37 @@ This lemma cannot be used as a function/term in this Mathlib version.
 
 **Fix**: Use explicit `rw` instead: `rcases ... with ⟨a', ha_eq⟩; rw [ha_eq]`.
 
-### 5. `add_le_add_right` missing for `WithTop ℝ`
+### 5. Using the wrong `h_lower` — function vs applied
 
-**Problem**: `add_le_add_right h_lower c` fails because the
-`AddRightMono (WithTop ℝ)` typeclass instance is missing in Mathlib v4.32.0-rc1.
+**Problem**: In `reweighted_isShortestDist`, `h_lower` comes from
+`rcases h_sd with ⟨h_lower, h_att⟩` where `h_sd : G.IsShortestDist u v d`.
+`IsShortestDist` defines `h_lower : ∀ p, G.IsWalkFrom u v p → d ≤ (walkWeight G.w p : WithTop ℝ)`.
+This is a FUNCTION `∀ p, ...`, not a specific inequality for a specific `p`.
 
-**Symptom**: `Application type mismatch: The argument`.
+Both `gcongr; exact h_lower` and `(WithTop.add_le_add_iff_right ...).mpr h_lower`
+FAIL because `h_lower` has type `∀ p, ...`, not `d ≤ walkWeight G.w p`.
 
-**Fix**: Use `gcongr; exact h_lower` — `gcongr` bypasses the typeclass by using
-a generalized congruence tactic that works on the goal structure directly.
+**Root cause confirmed**: `AddRightMono (WithTop ℝ)` IS present in Mathlib
+v4.32.0-rc1 (`#check inferInstance : AddRightMono (WithTop ℝ)` succeeds).
+Both `.mpr` and `gcongr` work correctly when given the APPLIED inequality.
 
-### 6. Using the wrong `h_lower` — function vs applied
+**Fix**: Use `h_lower p hp` (apply to the specific walk `p` and walk proof `hp`):
+```lean
+gcongr; exact h_lower p hp
+-- OR equivalently:
+exact ((WithTop.add_le_add_iff_right (z := diff) h_fin_diff).mpr (h_lower p hp))
+```
 
-**Problem**: `gcongr; exact h_lower` failed because `h_lower : ∀ p, ...` (a
-function from `IsShortestDist`) rather than `h_lower p hp` (applied to a
-specific walk `p`). The `gcongr` reduces `d + c ≤ w + c` to `d ≤ w`, which
-matches `h_lower p hp` but NOT the function `h_lower`.
-
-**Fix**: `gcongr; exact h_lower p hp`.
-
-### 7. Over-investing in case analysis when `gcongr` suffices
+### 6. Over-investing in case analysis when simple lemmas suffice
 
 **Problem**: Spent hours writing 30-line case analyses (⊤/finite/ℝ-lifting)
-for `d + c ≤ w + c` from `d ≤ w` in `WithTop ℝ`. The entire proof is one line.
+for `d + c ≤ w + c` from `d ≤ w` in `WithTop ℝ`. The entire proof is one line
+using either the lemma directly or `gcongr`.
 
-**Fix**: Try `gcongr` FIRST before writing manual case analysis for `WithTop`
-inequalities. `gcongr` handles the `+` congruence, `⊤` cases, and
-coercion lifting automatically.
+**Fix**: 
+- First try the lemma: `(WithTop.add_le_add_iff_right (z := c) hc).mpr h`
+- Then try `gcongr; exact h`
+- Only write manual case analysis as last resort
 
 ## Successful Patterns
 
