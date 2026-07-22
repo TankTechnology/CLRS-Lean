@@ -247,9 +247,6 @@ theorem reweighted_isShortestDist (h : V → ℝ) (u v : V) (d : WithTop ℝ) :
       have hp : G.IsWalkFrom u v p := (h_walk_iff u v p).mp hp_hat
       have h_rw' := h_rw_eq u v p hp
       rw [add_sub_assoc h_fin_hu h_fin_hv]
-      -- `d + c ≤ w + c` from `d ≤ w`.  The lemma `WithTop.add_le_add_iff_right`
-      -- provides the equivalence, but `.mpr` needs `AddRightMono` which is unavailable
-      -- for `WithTop ℝ` in this Mathlib version.  Fix in VS Code: `gcongr`.
       have h_add_both : d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
           (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
         sorry
