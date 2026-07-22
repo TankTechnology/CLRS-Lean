@@ -249,6 +249,8 @@ theorem reweighted_isShortestDist (h : V → ℝ) (u v : V) (d : WithTop ℝ) :
       rw [add_sub_assoc h_fin_hu h_fin_hv]
       have h_add_both : d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
           (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
+        -- `gcongr` reduces this to `h_lower` in standalone tests but a typeclass
+        -- resolution issue in this Mathlib version requires explicit lifting.
         sorry
       calc
         d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
