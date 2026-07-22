@@ -249,12 +249,6 @@ theorem reweighted_isShortestDist (h : V → ℝ) (u v : V) (d : WithTop ℝ) :
       rw [add_sub_assoc h_fin_hu h_fin_hv]
       have h_add_both : d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
           (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
-        -- h_lower: d ≤ walkWeight G.w p.  Adding same term to both sides.
-        -- This is `add_le_add_right` on WithTop ℝ, which is available via the
-        -- OrderedAddCommMonoid instance.  The explicit argument is needed to
-        -- guide type inference.
-        -- h_lower: d ≤ walkWeight G.w p.  Adding diff to both sides.
-        -- The proof is a simple case analysis on finiteness (⊤ or ℝ).
         sorry
       calc
         d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
