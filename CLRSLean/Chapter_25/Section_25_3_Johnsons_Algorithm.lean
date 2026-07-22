@@ -249,9 +249,7 @@ theorem reweighted_isShortestDist (h : V → ℝ) (u v : V) (d : WithTop ℝ) :
       rw [add_sub_assoc h_fin_hu h_fin_hv]
       have h_add_both : d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
           (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
-        -- The proof is: gcongr reduces to d ≤ walkWeight G.w p, which is h_lower.
-        -- The remaining type mismatch is a WithTop ℝ coercion that resolves in VS Code.
-        sorry
+        gcongr; exact h_lower p hp
       calc
         d + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) ≤
             (walkWeight G.w p : WithTop ℝ) + ((h u : WithTop ℝ) - (h v : WithTop ℝ)) := h_add_both
