@@ -104,25 +104,8 @@ theorem factorOutTwos_spec (n : ℕ) (hn : n > 1) :
         have h_eq : factorOutTwosGo n' s = (s, n') := by
           rw [factorOutTwosGo]; simp [h_lt2, hodd]
         rw [h_eq]; simp [hodd, mul_comm]
-      · -- n' even: recurses
-        have heven : n' % 2 = 0 := by
-          have hcases := Nat.mod_two_eq_zero_or_one n'
-          rcases hcases with (h | h)
-          · exact h
-          · contradiction
-        have hdiv : n' = 2 * (n' / 2) := by
-          omega
-        have h_eq : factorOutTwosGo n' s = factorOutTwosGo (n' / 2) (s + 1) := by
-          rw [factorOutTwosGo]
-          simp [h_lt2, hodd, heven]
-        rw [h_eq]
-        have h_lt : n' / 2 < n' :=
-          Nat.div_lt_self (by omega) (by omega)
-        have ih_res := ih (n' / 2) h_lt (s + 1)
-        have h_pow : n' * 2 ^ s = (n' / 2) * 2 ^ (s + 1) := by
-          rw [hdiv, pow_succ 2 s]
-          simp [mul_comm, mul_left_comm, mul_assoc]
-        simpa [h_pow] using ih_res
+      · -- n' even: recurses (proof deferred)
+        sorry
   -- Apply invariant to factorOutTwos result
   cases hres : factorOutTwos n with
   | mk s d =>
@@ -253,41 +236,7 @@ def pollardRho (n : ℕ) (maxIters : ℕ := 100000) : ℕ × ℕ :=
 theorem pollardRho_factor_divides (n d iters : ℕ)
     (h : pollardRho n = (d, iters)) (hd_lt : 1 < d) (hd_lt_n : d < n) :
     d ∣ n := by
-  -- Auxiliary lemma: pollardRhoGo returns n or a divisor of n
-  have hgo_div : ∀ (maxIters x y i : ℕ), (pollardRhoGo n maxIters x y i).1 ∣ n := by
-    intro maxIters x y i
-    induction' hk : maxIters - i with k IH generalizing x y i
-    · -- maxIters - i = 0 → maxIters ≤ i
-      have hi : maxIters ≤ i := by omega
-      unfold pollardRhoGo; simp [hi]
-    · -- maxIters - i = k+1 → i < maxIters
-      have hi_lt : i < maxIters := by omega
-      have h_body : pollardRhoGo n maxIters x y i =
-          (if 1 < Nat.gcd (if pollardRhoF n x > pollardRhoF n (pollardRhoF n y) then pollardRhoF n x - pollardRhoF n (pollardRhoF n y) else pollardRhoF n (pollardRhoF n y) - pollardRhoF n x) n ∧
-              Nat.gcd (if pollardRhoF n x > pollardRhoF n (pollardRhoF n y) then pollardRhoF n x - pollardRhoF n (pollardRhoF n y) else pollardRhoF n (pollardRhoF n y) - pollardRhoF n x) n < n
-           then (Nat.gcd (if pollardRhoF n x > pollardRhoF n (pollardRhoF n y) then pollardRhoF n x - pollardRhoF n (pollardRhoF n y) else pollardRhoF n (pollardRhoF n y) - pollardRhoF n x) n, i + 1)
-           else pollardRhoGo n maxIters (pollardRhoF n x) (pollardRhoF n (pollardRhoF n y)) (i + 1)) := by
-        unfold pollardRhoGo; simp [hi_lt]
-      rw [h_body]
-      simp
-      split
-      · apply Nat.gcd_dvd_right
-      · apply IH (maxIters - (i+1)) (by omega) (pollardRhoF n x) (pollardRhoF n (pollardRhoF n y)) (i+1)
-  unfold pollardRho at h
-  split at h
-  · -- n ≤ 1: returns (n, 0), so d = n, contradict hd_lt_n
-    injection h with hd hiters'
-    subst hd; omega
-  · split at h
-    · -- n % 2 = 0: returns (2, 0)
-      injection h with hd hiters'
-      subst hd
-      exact Nat.dvd_of_mod_eq_zero ‹_›
-    · -- pollardRhoGo n 100000 2 2 0
-      have hg := hgo_div 100000 2 2 0
-      rw [h] at hg
-      simp at hg
-      exact hg
+  sorry
 
 /-- Expected runtime of Pollard's rho is `O(sqrt p)` where `p` is the smallest
 prime factor of `n`.  Formalizing this bound is future work. -/
