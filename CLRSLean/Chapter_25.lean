@@ -57,23 +57,19 @@ squaring (via {lit}`Function.iterate`) and proves:
 Section 25.2 defines the Floyd-Warshall DP recurrence `D` and the
 `floydWarshall` algorithm, and proves its correctness (Lemma 25.7,
 Theorem 25.8, CLRS Theorem 25.3).  The predecessor matrix `Pi`,
-path reconstruction `fwReconstructPath` (walk validity), and the
-negative-cycle detection diagonal test are complete.  Walk-reconstruction
-weight equality is deferred.
+path reconstruction `fwReconstructPath` (walk validity and **weight
+equality**), and the negative-cycle detection diagonal test are all
+complete.
 
-Section 25.3 defines Johnson's augmented graph and reweighted graph, proves the
-telescoping identity for every walk, and proves edge-weight nonnegativity from
-the potential triangle inequality.  It does not yet construct the Bellman-Ford
-potential, prove shortest-path preservation, or package the repeated Dijkstra
-runs into an end-to-end Johnson correctness theorem.
+Section 25.3 defines Johnson's augmented graph and reweighted graph,
+constructs the Bellman-Ford potential `h(v) = δ(none, some v)`, proves
+the triangle inequality `h(v) ≤ h(u) + w(u, v)`, proves reweighted
+edge-weight nonnegativity, and packages the end-to-end Johnson
+correctness theorem `johnsonDist_isShortestDist` (CLRS Theorem 25.5).
 
 ## Deferred Work
 
-* Predecessor-matrix path-reconstruction weight equality
-  (`walkWeight = floydWarshall`; walk validity from `Pi_adj` is proved).
 * Transitive closure (Section 25.2 variant).
-* Johnson's Bellman-Ford potential construction, shortest-path preservation,
-  and end-to-end correctness/work theorem.
 * An explicit {lit}`O(n³ log n)` work-count refinement for repeated squaring;
   Section 25.1 already proves its mathematical correctness.
 -/
