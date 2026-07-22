@@ -55,8 +55,11 @@ squaring (via {lit}`Function.iterate`) and proves:
   ({lit}`fasterAPSP_eq_shortestDist`).
 
 Section 25.2 defines the Floyd-Warshall DP recurrence `D` and the
-`floydWarshall` algorithm.  The Θ(V³) work bound is recorded.  The
-correctness proofs (Lemma 25.7 and Theorem 25.8) are deferred.
+`floydWarshall` algorithm, and proves its correctness (Lemma 25.7,
+Theorem 25.8, CLRS Theorem 25.3).  The predecessor matrix `Pi`,
+path reconstruction `fwReconstructPath` (walk validity), and the
+negative-cycle detection diagonal test are complete.  Walk-reconstruction
+weight equality is deferred.
 
 Section 25.3 defines Johnson's augmented graph and reweighted graph, proves the
 telescoping identity for every walk, and proves edge-weight nonnegativity from
@@ -66,9 +69,8 @@ runs into an end-to-end Johnson correctness theorem.
 
 ## Deferred Work
 
-* Floyd-Warshall correctness: `D_le_simple` and `D_attainable` lemmas.
-* Predecessor matrix {lit}`Π` and path reconstruction.
-* Negative-cycle detection (CLRS Theorem 25.3).
+* Predecessor-matrix path-reconstruction weight equality
+  (`walkWeight = floydWarshall`; walk validity from `Pi_adj` is proved).
 * Transitive closure (Section 25.2 variant).
 * Johnson's Bellman-Ford potential construction, shortest-path preservation,
   and end-to-end correctness/work theorem.

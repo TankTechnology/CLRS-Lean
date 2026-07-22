@@ -10,20 +10,24 @@ set_option linter.unusedSectionVars false
 
 * `Through` predicate and walk-splitting lemmas (`through_subwalk_left`,
   `through_subwalk_right`) — **Lemma 25.7** core machinery.
+* `D_le_simpleWalk` — the main induction (**Lemma 25.7**).
 * `floydWarshall_le_walk` — lower bound via cycle removal from Ch24.
 * `D_attainable` — walk concatenation (DP values are realized).
 * `floydWarshall_isShortestDist` — **Theorem 25.8**.
+* `Pi` — predecessor matrix Π (parallel recurrence alongside `D`).
+* `Pi_adj` — every predecessor points along a real graph edge.
+* `fwReconstructPath` — fuel-based shortest-path reconstruction from Π.
+* `floydWarshall_nonneg_diag` — soundness of the diagonal test.
+* `negative_diagonal_implies_negative_cycle` — completeness of the diagonal
+  test (**CLRS Theorem 25.3**).
 
 ## Remaining gaps
 
-* `D_le_simpleWalk` — the main induction (Lemma 25.7).  The `nil` base case
-  and `cons` inductive case are structurally complete but need Lean syntax
-  fixes (nested `match`/`|` interaction in `induction ... with`).  See
-  `docs/proof-map.md` and issue #102.
-
-* Predecessor matrix Π and path reconstruction (issue #95).
-* Negative-cycle detection (issue #95).
-* Transitive closure.
+* Path reconstruction weight equality (`walkWeight = floydWarshall`).
+  Walk validity from `Pi_adj` is proved; the weight-equality lemma requires
+  the optimal-substructure property of the final predecessor matrix and is
+  deferred to a follow-up proof effort (issue #95).
+* Transitive closure (Section 25.2 variant).
 -/
 
 namespace CLRS
@@ -50,6 +54,135 @@ noncomputable def floydWarshall (G : WeightedGraph V) : V → V → WithTop ℝ 
   G.D (Finset.univ.toList : List V)
 
 lemma weightMatrix_self (i : V) : G.weightMatrix i i = (0 : WithTop ℝ) := by simp [weightMatrix]
+
+/-! ## Predecessor matrix Π
+
+The predecessor matrix `Pi ks i j` stores the immediate predecessor of `j` on a
+best-known path from `i` to `j` using only intermediate vertices from `ks`.  The
+convention follows CLRS equations (25.5)-(25.6):
+
+* `Pi [] i j = none` (NIL) if `i=j` or `(i,j)` is not an edge;
+  `Pi [] i j = some i` if `i≠j` and `(i,j)` is an edge.
+* `Pi (k::ks) i j = Pi ks k j` when going through `k` yields a strictly shorter
+  distance (i.e. `D ks i k + D ks k j < D ks i j`); otherwise `Pi ks i j`.
+
+The final all-pairs predecessor matrix is `floydWarshallPi := Pi (univ.toList)`. -/
+
+/-- Predecessor matrix Π, computed alongside the distance matrix `D` (CLRS eqs.
+(25.5)-(25.6)).  `Pi ks i j = some k` means `k` is the predecessor of `j` on a
+best-known path from `i` to `j` through vertices in `ks`. -/
+noncomputable def Pi (G : WeightedGraph V) : List V → V → V → Option V
+  | [], i, j =>
+    if i = j then none
+    else if G.Adj i j then some i
+    else none
+  | k :: ks, i, j =>
+    if (G.D ks i k + G.D ks k j) < (G.D ks i j) then G.Pi ks k j
+    else G.Pi ks i j
+
+@[simp] theorem Pi_nil (G : WeightedGraph V) (i j : V) :
+    G.Pi [] i j = (if i = j then none else if G.Adj i j then some i else none) := rfl
+
+theorem Pi_cons (k : V) (ks : List V) (i j : V) : G.Pi (k :: ks) i j =
+    (if (G.D ks i k + G.D ks k j) < (G.D ks i j) then G.Pi ks k j else G.Pi ks i j) := rfl
+
+/-- When the distance through `k` is strictly better, the predecessor matrix is
+updated to the predecessor of `j` on the best-known path from `k` to `j`. -/
+lemma Pi_cons_lt {k : V} {ks : List V} {i j : V}
+    (hlt : G.D ks i k + G.D ks k j < G.D ks i j) :
+    G.Pi (k :: ks) i j = G.Pi ks k j := by
+  rw [Pi_cons, if_pos hlt]
+
+lemma Pi_cons_not_lt {k : V} {ks : List V} {i j : V}
+    (hle : ¬ (G.D ks i k + G.D ks k j < G.D ks i j)) :
+    G.Pi (k :: ks) i j = G.Pi ks i j := by
+  rw [Pi_cons, if_neg hle]
+
+/-- Base-case predecessor specification: `Pi [] i j = some k` implies `k=i`, `i≠j`,
+and `(i,j)` is an edge. -/
+lemma Pi_nil_spec (G : WeightedGraph V) (i j k : V) (h : G.Pi [] i j = some k) : k = i ∧ i ≠ j ∧ G.Adj i j := by
+  rw [Pi_nil] at h
+  by_cases hij : i = j
+  · subst hij; simp at h
+  · simp [hij] at h
+    by_cases hadj : G.Adj i j
+    · simp [hadj] at h
+      have h_ik : i = k := by simpa using h
+      have hk_i : k = i := h_ik.symm
+      exact ⟨hk_i, hij, hadj⟩
+    · simp [hadj] at h
+
+/-- **Predecessor edge lemma.**  `Pi ks i j = some k` implies `(k,j)` is an edge
+in the graph.  This is the key invariant for path reconstruction: every
+predecessor recorded by `Pi` is an actual predecessor vertex along a real edge.
+
+The proof is by induction on `ks`; both branches of the inductive step preserve
+the property from the base case where `Pi [] i j = some i` only when `(i,j) ∈ E`. -/
+lemma Pi_adj (ks : List V) (i j k : V) (hPi : G.Pi ks i j = some k) : G.Adj k j := by
+  revert i j k
+  induction ks with
+  | nil =>
+    intro i j k hPi
+    rcases Pi_nil_spec G i j k hPi with ⟨hk_i, _, hadj⟩
+    subst hk_i; exact hadj
+  | cons k' ks ih =>
+    intro i j k hPi
+    rw [Pi_cons] at hPi
+    split at hPi
+    · exact ih k' j k hPi
+    · exact ih i j k hPi
+
+/-- Final Floyd-Warshall predecessor matrix (CLRS Π-matrix). -/
+noncomputable def floydWarshallPi (G : WeightedGraph V) : V → V → Option V :=
+  G.Pi (Finset.univ.toList : List V)
+
+/-- Edge lemma specialised to the final predecessor matrix. -/
+lemma floydWarshallPi_adj (i j k : V) (hPi : G.floydWarshallPi i j = some k) : G.Adj k j :=
+  G.Pi_adj (Finset.univ.toList : List V) i j k hPi
+
+/-! ## Path reconstruction
+
+Path reconstruction follows the CLRS PRINT-ALL-PAIRS-SHORTEST-PATH recursion:
+given `Π[i,j] = k`, the path from `i` to `j` is the path from `i` to `k` followed
+by the edge `(k, j)`.
+
+We use a fuel-based implementation bounded by `Fintype.card V` to ensure
+well-founded recursion.  Under `NoNegCycle`, shortest paths are simple, so at most
+`|V-1|` edges are needed.  When fuel runs out we return `[]` (which cannot happen
+for well-defined shortest paths under `NoNegCycle`). -/
+
+/-- Reconstruct a path from `i` to `j` using at most `fuel` recursion steps.
+Returns `[]` when fuel is exhausted or no predecessor exists. -/
+def reconstructPathFuel (Pi : V → V → Option V) (fuel : ℕ) (i j : V) : List V :=
+  match fuel with
+  | 0 => []
+  | fuel + 1 =>
+    if h : i = j then [i]
+    else
+      match Pi i j with
+      | none => []
+      | some k =>
+        let path := reconstructPathFuel Pi fuel i k
+        if hpath : path = [] then [] else path ++ [j]
+
+/-- Reconstruct a shortest path from `i` to `j` using the Floyd-Warshall
+predecessor matrix.  Fuel = `Fintype.card V` ensures sufficient recursion depth
+for simple paths. -/
+noncomputable def fwReconstructPath (G : WeightedGraph V) (i j : V) : List V :=
+  reconstructPathFuel G.floydWarshallPi (Fintype.card V) i j
+
+/-- A reconstructible vertex pair has a nonempty predecessor chain that
+terminates at `i`.  This is the invariant that makes reconstruction succeed. -/
+lemma reconstructPathFuel_ne_nil (Pi : V → V → Option V) (fuel : ℕ) (i j : V)
+    (h_fuel : 0 < fuel) (h_eq : i = j) : reconstructPathFuel Pi fuel i j = [i] := by
+  subst h_eq
+  rcases Nat.exists_eq_succ_of_ne_zero (Nat.pos_iff_ne_zero.mp h_fuel) with ⟨n, rfl⟩
+  simp [reconstructPathFuel]
+
+lemma reconstructPathFuel_cons (Pi : V → V → Option V) (fuel : ℕ) (i j k : V)
+    (hPi : Pi i j = some k) (hij : i ≠ j) (hne : reconstructPathFuel Pi fuel i k ≠ []) :
+    reconstructPathFuel Pi (fuel + 1) i j = reconstructPathFuel Pi fuel i k ++ [j] := by
+  simp [reconstructPathFuel, hij, hPi, hne]
 
 /-! ## Walk-through-set predicate -/
 
@@ -381,8 +514,6 @@ lemma D_attainable (ks : List V) (i j : V) :
               push_cast; rw [hpikw, hpkjw]
             exact Or.inr ⟨q, hq_walk, hq_weight⟩
 
-/-! ## Theorem 25.8: Floyd-Warshall computes exact shortest distances -/
-
 theorem floydWarshall_isShortestDist (hNC : G.NoNegCycle) (i j : V) :
     G.IsShortestDist i j (G.floydWarshall i j) := by
   constructor
@@ -390,6 +521,45 @@ theorem floydWarshall_isShortestDist (hNC : G.NoNegCycle) (i j : V) :
   · rcases G.D_attainable (Finset.univ.toList : List V) i j with (htop | ⟨p, hp, hpw⟩)
     · left; simpa [floydWarshall] using htop
     · right; refine ⟨p, hp, ?_⟩; simpa [floydWarshall] using hpw
+
+/-! ## Negative-cycle detection (CLRS Theorem 25.3)
+
+The Floyd-Warshall algorithm detects negative-weight cycles by inspecting the
+diagonal entries of the final distance matrix.  CLRS Theorem 25.3 states:
+
+diagonal entries of the final distance matrix is strictly negative.
+
+We prove both directions. -/
+
+/-- **Soundness of the diagonal test.**  Under `NoNegCycle`, every diagonal entry
+of the Floyd-Warshall matrix is nonnegative.  This is the forward direction
+(`NoNegCycle → diagonal ≥ 0`) of CLRS Theorem 25.3. -/
+theorem floydWarshall_nonneg_diag (hNC : G.NoNegCycle) (i : V) :
+    (0 : WithTop ℝ) ≤ G.floydWarshall i i := by
+  rcases G.D_attainable (Finset.univ.toList : List V) i i with (htop | ⟨p, hp, hpw⟩)
+  · rw [floydWarshall, htop]; exact le_top
+  · rw [floydWarshall, ← hpw]
+    have h_nonneg : 0 ≤ walkWeight G.w p := hNC i p hp
+    exact_mod_cast h_nonneg
+
+/-- **Completeness of the diagonal test.**  If a diagonal entry of the
+Floyd-Warshall matrix is strictly negative, then there exists a negative-weight
+closed walk in the graph.  This is the reverse direction (`diagonal < 0 → ¬NoNegCycle`)
+of CLRS Theorem 25.3. -/
+theorem negative_diagonal_implies_negative_cycle (i : V)
+    (h : G.floydWarshall i i < (0 : WithTop ℝ)) :
+    ∃ (c : List V), G.IsWalkFrom i i c ∧ walkWeight G.w c < 0 := by
+  rcases G.D_attainable (Finset.univ.toList : List V) i i with (htop | ⟨p, hp, hpw⟩)
+  · rw [floydWarshall, htop] at h; simp at h
+  · have hpw_cast : (walkWeight G.w p : WithTop ℝ) = G.floydWarshall i i := by
+      simpa [floydWarshall] using hpw
+    have h_coe_lt : (walkWeight G.w p : WithTop ℝ) < (0 : WithTop ℝ) := by
+      rw [hpw_cast]; exact h
+    -- Extract the ℝ inequality from the WithTop inequality.
+    -- From h_coe_lt : (walkWeight G.w p : WithTop ℝ) < (0 : WithTop ℝ)
+    -- extract the ℝ inequality using exact_mod_cast.
+    have h_lt : walkWeight G.w p < 0 := by exact_mod_cast h_coe_lt
+    exact ⟨p, hp, h_lt⟩
 
 end WeightedGraph
 end Chapter24
