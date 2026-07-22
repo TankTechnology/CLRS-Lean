@@ -485,12 +485,19 @@ lemma johnsonPotential_finite (_hNC : G.NoNegCycle) (v : V) :
     h_noninc (Fintype.card V) hcardV
   intro htop; rw [htop] at h_final; simpa using h_final
 
+/-- The **Johnson potential** `h(v) = δ(none, some v)` in the augmented graph,
+computed via Bellman-Ford relaxation up to `|V'|-1` rounds.  The potential is
+always finite (see `johnsonPotential_finite`), so the `⊤` branch is unreachable
+and defaults to `0`. -/
 noncomputable def johnsonPotential (_hNC : G.NoNegCycle) (v : V) : ℝ :=
   let G' := G.johnsonAugmentedGraph
   match G'.relaxDist none (Fintype.card (Option V) - 1) (some v) with
   | ⊤ => 0
   | some h => h
 
+/-- The Johnson potential coerced to `WithTop ℝ` equals the `relaxDist` value
+in the augmented graph.  This rewrites the unreachable-`⊤` match to a direct
+coercion. -/
 lemma johnsonPotential_eq (hNC : G.NoNegCycle) (v : V) :
     (G.johnsonPotential hNC v : WithTop ℝ) =
     G.johnsonAugmentedGraph.relaxDist none (Fintype.card (Option V) - 1) (some v) := by
@@ -505,6 +512,8 @@ lemma johnsonPotential_eq (hNC : G.NoNegCycle) (v : V) :
   -- Goal: (h : WithTop ℝ) = some h — definitional since the coercion is `some`
   rfl
 
+/-- The Johnson potential is the shortest distance from `none` to `some v`
+in the augmented graph: `IsShortestDist none (some v) h(v)`. -/
 lemma johnsonPotential_isShortestDist (hNC : G.NoNegCycle) (v : V) :
     G.johnsonAugmentedGraph.IsShortestDist none (some v)
       ((G.johnsonPotential hNC v : ℝ) : WithTop ℝ) := by
