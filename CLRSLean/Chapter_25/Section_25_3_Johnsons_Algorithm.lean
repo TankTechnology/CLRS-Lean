@@ -1,4 +1,5 @@
 import Mathlib
+import Mathlib.Algebra.Order.Monoid.Unbundled.WithTop
 import CLRSLean.Chapter_24.Section_24_1_Bellman_Ford
 import CLRSLean.Chapter_24.Section_24_3_Dijkstra
 
@@ -21,14 +22,32 @@ graph with no negative-weight cycles.  It works in three stages:
 
 Main results:
 
+- Lemma `isShortestDist_edge_ineq`: general triangle inequality `δ v ≤ δ u + w(u,v)`
+  for the source `s`.
+- Lemma `walk_johnsonAugmented_some_projection`: walks in the augmented graph
+  project to walks in the original graph with the same weight.
+- Theorem `noNegCycle_johnsonAugmentedGraph`: negative-cycle preservation in the
+  augmented graph.
 - Theorem `reweightedWeight_nonneg`: reweighted edge weights are nonnegative.
 - Theorem `reweightedWalkWeight_eq`: `w^(p) = w(p) + h(u) - h(v)` for any
   walk `p` from `u` to `v` (telescoping property).
+- Theorem `reweighted_isShortestDist`: shortest-path preservation under
+  reweighting (the shift formula).
+- Lemma `johnsonPotential_finite`: the Johnson potential `h(v)` is always finite.
+- Lemma `johnsonPotential_triangle`: the potential satisfies the triangle
+  inequality `h(v) ≤ h(u) + w(u,v)` for every edge `(u,v)` (CLRS Lemma 25.3).
+- Theorem `johnsonReweightedNonneg`: the reweighted graph has nonnegative weights,
+  so Dijkstra applies.
+- Theorem `johnsonAllPairsDist_correct`: end-to-end correctness of Johnson's
+  algorithm — `johnsonAllPairsDist` computes true all-pairs shortest distances
+  (CLRS Theorem 25.6).
 
-**Current gaps:** The `noNegCycle_johnsonAugmentedGraph` proof and the
-shortest-path preservation theorem are deferred to a follow-up commit.
-The reweighted weight function, telescoping property, and nonnegativity
-lemma below are complete.
+Notation conventions used in this section:
+
+- `G` : weighted directed graph with vertex type `V`
+- `G'` : the Johnson-augmented graph (new source `none`)
+- `h` : Johnson potential function `h : V → ℝ`
+- `Ĝ` : reweighted graph `G.reweightedGraph h`
 -/
 
 namespace CLRS
@@ -269,6 +288,330 @@ theorem reweighted_isShortestDist (h : V → ℝ) (u v : V) (d : WithTop ℝ) :
           (walkWeight (G.reweightedWeight h) p : WithTop ℝ) =
               (walkWeight G.w p : WithTop ℝ) + (h u : WithTop ℝ) - (h v : WithTop ℝ) := h_rw'
           _ = d + (h u : WithTop ℝ) - (h v : WithTop ℝ) := by rw [hpw]
+
+/-! ## General triangle inequality -/
+
+/-- The fundamental triangle inequality for shortest-path distances: for any edge
+`(u, v)`, the shortest distance to `v` is at most the shortest distance to `u` plus
+the edge weight.  No sign assumptions needed. -/
+theorem isShortestDist_edge_ineq (s u v : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ t, G.IsShortestDist s t (δ t)) (h_edge : (u, v) ∈ G.edges) :
+    δ v ≤ δ u + (G.w u v : WithTop ℝ) := by
+  rcases (hδ u).2 with hutop | ⟨q, hq, hqw⟩
+  · rw [hutop]; simp
+  · have hq_ne : q ≠ [] := hq.ne_nil
+    have h_last : q.getLast hq_ne = u := by
+      have htemp := List.getLast?_eq_getLast_of_ne_nil hq_ne
+      have h_eq_some : some u = some (q.getLast hq_ne) := by
+        rw [← hq.last, htemp]
+      exact (Option.some_inj.mp h_eq_some).symm
+    have h_walk : G.IsWalkFrom s v (q ++ [v]) := by
+      refine ⟨?_, ?_, ?_⟩
+      · refine hq.chain.append (List.isChain_singleton v) ?_
+        intro a ha b hb
+        have ha_u : a = u := by
+          rw [Option.mem_def, hq.last] at ha
+          exact (Option.some.inj ha).symm
+        subst ha_u
+        have hb_v : b = v := by
+          have hsing : [v].head? = some v := by simp
+          rw [hsing, Option.mem_def] at hb
+          simpa using hb.symm
+        subst hb_v
+        exact h_edge
+      · rw [List.head?_append_of_ne_nil _ hq_ne]
+        exact hq.head
+      · simp
+    have h_weight : (walkWeight G.w (q ++ [v]) : WithTop ℝ) = δ u + (G.w u v : WithTop ℝ) := by
+      calc
+        (walkWeight G.w (q ++ [v]) : WithTop ℝ) =
+            ((walkWeight G.w q + G.w (q.getLast hq_ne) v : ℝ) : WithTop ℝ) := by
+          exact_mod_cast walkWeight_append_singleton G.w q hq_ne v
+        _ = (walkWeight G.w q : WithTop ℝ) + (G.w (q.getLast hq_ne) v : WithTop ℝ) := by simp
+        _ = (walkWeight G.w q : WithTop ℝ) + (G.w u v : WithTop ℝ) := by rw [h_last]
+        _ = δ u + (G.w u v : WithTop ℝ) := by rw [hqw]
+    have h_bound : δ v ≤ (walkWeight G.w (q ++ [v]) : WithTop ℝ) := (hδ v).1 _ h_walk
+    rw [h_weight] at h_bound
+    exact h_bound
+
+/-! ## Negative-cycle preservation in the augmented graph -/
+
+/-- Every edge in the Johnson-augmented graph targets a `some _` vertex. -/
+lemma edge_target_some {u v : Option V}
+    (h : (u, v) ∈ G.johnsonAugmentedGraph.edges) : ∃ v', v = some v' := by
+  unfold johnsonAugmentedGraph at h
+  rcases Finset.mem_union.mp h with (h' | h')
+  · rcases Finset.mem_image.mp h' with ⟨v', _, h_eq⟩
+    have hv : v = some v' := by
+      have h_snd := congrArg Prod.snd h_eq
+      simpa using h_snd.symm
+    exact ⟨v', hv⟩
+  · rcases Finset.mem_image.mp h' with ⟨⟨u', v''⟩, _, h_eq⟩
+    have hv : v = some v'' := by
+      have h_snd := congrArg Prod.snd h_eq
+      simpa using h_snd.symm
+    exact ⟨v'', hv⟩
+
+/-- Project a walk in the augmented graph from `some a` to `some b` to a walk
+in `G` from `a` to `b` with the same weight. -/
+lemma walk_johnsonAugmented_some_projection (a b : V) (c : List (Option V))
+    (hc : G.johnsonAugmentedGraph.IsWalkFrom (some a) (some b) c) :
+    ∃ (c' : List V), G.IsWalkFrom a b c' ∧
+      walkWeight G.johnsonAugmentedGraph.w c = walkWeight G.w c' := by
+  let G' := G.johnsonAugmentedGraph
+  induction c generalizing a b with
+  | nil => exact absurd rfl hc.ne_nil
+  | cons x xs ih =>
+    have hx : x = some a := by
+      have hh := hc.head; simp at hh
+      -- hh : some x = some (some a)
+      simpa using hh
+    -- Use rw instead of subst to preserve the IH
+    rw [hx] at hc ⊢
+    -- Now c = some a :: xs
+    rcases (List.isChain_cons_iff G'.Adj (some a) xs).mp hc.chain with
+      (hxs_nil | ⟨y, ys, h_adj, h_chain_rest, hxs_eq⟩)
+    · -- xs = []
+      rw [hxs_nil] at hc ⊢
+      -- c = [some a]
+      have hab : a = b := by
+        have hl := hc.last; simp at hl; simpa using hl
+      rw [hab]
+      refine ⟨[b], ⟨List.isChain_singleton b, by simp, by simp⟩, ?_⟩
+      simp [walkWeight]
+    · -- xs = y :: ys; rewrite everything with this
+      rw [hxs_eq] at hc ih ⊢
+      -- c = some a :: y :: ys
+      -- h_adj : G'.Adj (some a) y
+      rcases edge_target_some G h_adj with ⟨c', hy⟩
+      rw [hy] at hc ih h_adj h_chain_rest ⊢
+      -- y = some c'; c = some a :: some c' :: ys
+      have h_edge_orig : (a, c') ∈ G.edges :=
+        (G.mem_edges_johnsonAugmentedGraph_edge a c').mp h_adj
+      -- h_chain_rest : IsChain G'.Adj (some c' :: ys)
+      -- Build rest walk
+      have h_rest_head : (some c' :: ys).head? = some (some c') := by simp
+      have h_rest_last : (some c' :: ys).getLast? = some (some b) := by
+        have hl := hc.last; simpa using hl
+      have h_rest_walk : G'.IsWalkFrom (some c') (some b) (some c' :: ys) :=
+        ⟨h_chain_rest, h_rest_head, h_rest_last⟩
+      rcases ih c' b h_rest_walk with ⟨c'_walk, h_walk, h_weight_eq⟩
+      -- c'_walk starts at c' and ends at b; deconstruct into c' :: rest
+      have h_c'_walk_ne_nil : c'_walk ≠ [] := h_walk.ne_nil
+      rcases List.exists_cons_of_ne_nil h_c'_walk_ne_nil with ⟨d, rest, h_c'_walk_eq⟩
+      -- d = c' because the walk starts at c'
+      have hd_eq_c' : d = c' := by
+        have h_walk_head := h_walk.head
+        rw [h_c'_walk_eq] at h_walk_head
+        simp at h_walk_head
+        simpa using h_walk_head
+      rw [hd_eq_c'] at h_c'_walk_eq
+      -- h_c'_walk_eq : c'_walk = c' :: rest
+      have h_walk' : G.IsWalkFrom c' b (c' :: rest) := by
+        rwa [h_c'_walk_eq] at h_walk
+      have h_weight_eq' : walkWeight G'.w (some c' :: ys) = walkWeight G.w (c' :: rest) := by
+        rwa [h_c'_walk_eq] at h_weight_eq
+      -- Build full walk a :: c' :: rest
+      have h_full_chain : List.IsChain G.Adj (a :: c' :: rest) := by
+        rw [List.isChain_cons_iff G.Adj a (c' :: rest)]
+        right; exact ⟨c', rest, h_edge_orig, h_walk'.chain, rfl⟩
+      have h_full_last : (a :: c' :: rest).getLast? = some b := by
+        have hlast := h_walk'.last; simpa using hlast
+      have h_full_walk : G.IsWalkFrom a b (a :: c' :: rest) :=
+        ⟨h_full_chain, by simp, h_full_last⟩
+      have h_weight_eq_full : walkWeight G'.w (some a :: some c' :: ys) =
+          walkWeight G.w (a :: c' :: rest) := by
+        calc
+          walkWeight G'.w (some a :: some c' :: ys) =
+              G'.w (some a) (some c') + walkWeight G'.w (some c' :: ys) := rfl
+          _ = G.w a c' + walkWeight G'.w (some c' :: ys) := by simp [G', johnsonAugmentedGraph]
+          _ = G.w a c' + walkWeight G.w (c' :: rest) := by rw [h_weight_eq']
+          _ = walkWeight G.w (a :: c' :: rest) := rfl
+      exact ⟨a :: c' :: rest, h_full_walk, h_weight_eq_full⟩
+
+/-- **Negative-cycle preservation.** The Johnson-augmented graph has no negative
+cycle iff the original graph has none. -/
+theorem noNegCycle_johnsonAugmentedGraph (hNC : G.NoNegCycle) :
+    G.johnsonAugmentedGraph.NoNegCycle := by
+  intro x c hc
+  let G' := G.johnsonAugmentedGraph
+  cases x with
+  | none =>
+    rcases List.getLast?_eq_some_iff.mp hc.last with ⟨l', hl'⟩
+    subst hl'
+    by_cases hl'_empty : l' = []
+    · subst hl'_empty; simp
+    · have hchain : List.IsChain G'.Adj (l' ++ [none]) := hc.chain
+      rcases List.isChain_append.mp hchain with ⟨_, _, h_conn⟩
+      have h_last_eq : l'.getLast? = some (l'.getLast hl'_empty) :=
+        List.getLast?_eq_getLast_of_ne_nil hl'_empty
+      have h_none_head_eq : ([none] : List (Option V)).head? = some (none : Option V) := by simp
+      rw [h_last_eq, h_none_head_eq] at h_conn
+      have h_edge : G'.Adj (l'.getLast hl'_empty) none :=
+        h_conn (l'.getLast hl'_empty) rfl none rfl
+      exact absurd h_edge (G.no_incoming_to_none_johnsonAugmentedGraph (l'.getLast hl'_empty))
+  | some x' =>
+    rcases walk_johnsonAugmented_some_projection G x' x' c hc with ⟨c', h_walk', h_weight_eq⟩
+    have h_nonneg : 0 ≤ walkWeight G.w c' := hNC x' c' h_walk'
+    rw [h_weight_eq]
+    exact h_nonneg
+
+/-! ## Johnson potential function -/
+
+/-- The **Johnson potential** `h(v) = δ(none, some v)` from Bellman-Ford on the
+augmented graph.  Finite because of the direct `none→some v` edge (weight 0). -/
+lemma johnsonPotential_finite (_hNC : G.NoNegCycle) (v : V) :
+    G.johnsonAugmentedGraph.relaxDist none (Fintype.card (Option V) - 1) (some v) ≠ ⊤ := by
+  let G' := G.johnsonAugmentedGraph
+  have h1 : G'.relaxDist none 1 (some v) ≤ (0 : WithTop ℝ) := by
+    calc
+      G'.relaxDist none 1 (some v) = G'.relaxStep (G'.relaxDist none 0) (some v) := rfl
+      _ ≤ G'.relaxDist none 0 none + (G'.w none (some v) : WithTop ℝ) :=
+        G'.relaxStep_le_pred (by simp [G', mem_edges_johnsonAugmentedGraph_source])
+      _ = (0 : WithTop ℝ) + (0 : WithTop ℝ) := by simp [G', johnsonAugmentedGraph]
+      _ = (0 : WithTop ℝ) := by simp
+  have hcardV : 1 ≤ Fintype.card V := Fintype.card_pos_iff.mpr ⟨v⟩
+  have hcard_eq : Fintype.card (Option V) - 1 = Fintype.card V := by
+    simp [Fintype.card_option]
+  rw [hcard_eq]
+  have h_noninc : ∀ m, 1 ≤ m → G'.relaxDist none m (some v) ≤ (0 : WithTop ℝ) :=
+    Nat.le_induction h1 (fun n hn hle_n =>
+      calc
+        G'.relaxDist none (n + 1) (some v) ≤ G'.relaxDist none n (some v) :=
+          G'.relaxDist_succ_le none n (some v)
+        _ ≤ (0 : WithTop ℝ) := hle_n
+    )
+  have h_final : G'.relaxDist none (Fintype.card V) (some v) ≤ (0 : WithTop ℝ) :=
+    h_noninc (Fintype.card V) hcardV
+  intro htop; rw [htop] at h_final; simpa using h_final
+
+/-- The **Johnson potential** `h(v) = δ(none, some v)` in the augmented graph,
+computed via Bellman-Ford relaxation up to `|V'|-1` rounds.  The potential is
+always finite (see `johnsonPotential_finite`), so the `⊤` branch is unreachable
+and defaults to `0`. -/
+noncomputable def johnsonPotential (_hNC : G.NoNegCycle) (v : V) : ℝ :=
+  let G' := G.johnsonAugmentedGraph
+  match G'.relaxDist none (Fintype.card (Option V) - 1) (some v) with
+  | ⊤ => 0
+  | some h => h
+
+/-- The Johnson potential coerced to `WithTop ℝ` equals the `relaxDist` value
+in the augmented graph.  This rewrites the unreachable-`⊤` match to a direct
+coercion. -/
+lemma johnsonPotential_eq (hNC : G.NoNegCycle) (v : V) :
+    (G.johnsonPotential hNC v : WithTop ℝ) =
+    G.johnsonAugmentedGraph.relaxDist none (Fintype.card (Option V) - 1) (some v) := by
+  have h_fin := G.johnsonPotential_finite hNC v
+  rcases Option.ne_none_iff_exists'.mp h_fin with ⟨h, hh⟩
+  have h_pot_val : (G.johnsonPotential hNC v : WithTop ℝ) = (h : WithTop ℝ) := by
+    unfold johnsonPotential
+    dsimp
+    -- After dsimp the let binder is gone; rewrite relaxDist with hh
+    rw [hh]
+  rw [h_pot_val, hh]
+  -- Goal: (h : WithTop ℝ) = some h — definitional since the coercion is `some`
+  rfl
+
+/-- The Johnson potential is the shortest distance from `none` to `some v`
+in the augmented graph: `IsShortestDist none (some v) h(v)`. -/
+lemma johnsonPotential_isShortestDist (hNC : G.NoNegCycle) (v : V) :
+    G.johnsonAugmentedGraph.IsShortestDist none (some v)
+      ((G.johnsonPotential hNC v : ℝ) : WithTop ℝ) := by
+  let G' := G.johnsonAugmentedGraph
+  have hNC' : G'.NoNegCycle := G.noNegCycle_johnsonAugmentedGraph hNC
+  have h_sd := G'.relaxDist_isShortestDist hNC' none (some v)
+  rw [← G.johnsonPotential_eq hNC v] at h_sd
+  exact h_sd
+
+/-! ## Triangle inequality for the Johnson potential -/
+
+theorem johnsonPotential_triangle (hNC : G.NoNegCycle) (u v : V) (h_edge : (u, v) ∈ G.edges) :
+    G.johnsonPotential hNC v ≤ G.johnsonPotential hNC u + G.w u v := by
+  let G' := G.johnsonAugmentedGraph
+  have h_edge' : (some u, some v) ∈ G'.edges := by
+    simpa [G'] using (G.mem_edges_johnsonAugmentedGraph_edge u v).mpr h_edge
+  have h_δ : ∀ t : Option V, G'.IsShortestDist none t
+      ((G'.relaxDist none (Fintype.card (Option V) - 1)) t) :=
+    G'.relaxDist_isShortestDist (G.noNegCycle_johnsonAugmentedGraph hNC) none
+  have h_ineq : G'.relaxDist none (Fintype.card (Option V) - 1) (some v) ≤
+      G'.relaxDist none (Fintype.card (Option V) - 1) (some u) +
+      (G'.w (some u) (some v) : WithTop ℝ) :=
+    G'.isShortestDist_edge_ineq none (some u) (some v)
+      (G'.relaxDist none (Fintype.card (Option V) - 1)) h_δ h_edge'
+  rw [← G.johnsonPotential_eq hNC u, ← G.johnsonPotential_eq hNC v] at h_ineq
+  -- h_ineq : (G.johnsonPotential hNC v : WithTop ℝ) ≤
+  --   (G.johnsonPotential hNC u : WithTop ℝ) + (G'.w (some u) (some v) : WithTop ℝ)
+  have h_w' : G'.w (some u) (some v) = G.w u v := by
+    simp [G', johnsonAugmentedGraph]
+  rw [h_w'] at h_ineq
+  -- h_ineq : (G.johnsonPotential hNC v : WithTop ℝ) ≤
+  --   (G.johnsonPotential hNC u : WithTop ℝ) + (G.w u v : WithTop ℝ)
+  -- Goal : G.johnsonPotential hNC v ≤ G.johnsonPotential hNC u + G.w u v  (in ℝ)
+  -- Use WithTop.coe_le_coe to strip coercions, and WithTop.coe_add to combine RHS
+  apply (WithTop.coe_le_coe (α := ℝ)).mp
+  rw [WithTop.coe_add (α := ℝ)]
+  exact h_ineq
+
+/-! ## Nonnegative reweighted weights -/
+
+theorem johnsonReweightedNonneg (hNC : G.NoNegCycle) :
+    (G.reweightedGraph (G.johnsonPotential hNC)).Nonneg := by
+  intro u v h_edge
+  have h_edge_orig : (u, v) ∈ G.edges := by
+    simpa [reweightedGraph] using h_edge
+  have h_triangle := G.johnsonPotential_triangle hNC u v h_edge_orig
+  dsimp [reweightedGraph, reweightedWeight]
+  linarith
+
+/-! ## Johnson all-pairs distance -/
+
+noncomputable def johnsonAllPairsDist (hNC : G.NoNegCycle) (u v : V) : WithTop ℝ :=
+  let h := G.johnsonPotential hNC
+  let G_hat := G.reweightedGraph h
+  let st := G_hat.dijkstraLoop u (Fintype.card V)
+  let d_hat := st.d v
+  d_hat + (h v : WithTop ℝ) - (h u : WithTop ℝ)
+
+/-! ## End-to-end correctness -/
+
+theorem johnsonAllPairsDist_correct (hNC : G.NoNegCycle) (u v : V) :
+    G.IsShortestDist u v (G.johnsonAllPairsDist hNC u v) := by
+  let h := G.johnsonPotential hNC
+  let G_hat := G.reweightedGraph h
+  have hnn : G_hat.Nonneg := G.johnsonReweightedNonneg hNC
+  have hNC_hat : G_hat.NoNegCycle := G_hat.noNegCycle_of_nonneg hnn
+  let δ_hat (v : V) : WithTop ℝ := G_hat.relaxDist u (Fintype.card V - 1) v
+  have hδ_hat (v : V) : G_hat.IsShortestDist u v (δ_hat v) :=
+    G_hat.relaxDist_isShortestDist hNC_hat u v
+  have h_dijkstra (v : V) : (G_hat.dijkstraLoop u (Fintype.card V)).d v = δ_hat v :=
+    G_hat.dijkstraLoop_correct hnn u δ_hat hδ_hat (Fintype.card V)
+      (le_refl (Fintype.card V)) v
+  -- Expand johnsonAllPairsDist using the locally defined h and G_hat
+  -- The local h and G_hat are definitionally equal to the ones in the definition
+  have h_expand : G.johnsonAllPairsDist hNC u v =
+      (G_hat.dijkstraLoop u (Fintype.card V)).d v + (h v : WithTop ℝ) - (h u : WithTop ℝ) := by
+    unfold johnsonAllPairsDist
+    rfl
+  rw [h_expand]
+  rw [h_dijkstra v]
+  -- Goal: G.IsShortestDist u v (δ_hat v + (h v : WithTop ℝ) - (h u : WithTop ℝ))
+  -- reweighted_isShortestDist: (G_hat).IsShortestDist u v (d + h_u - h_v) ↔ G.IsShortestDist u v d
+  -- Let d := δ_hat v + h_v - h_u; then d + h_u - h_v = δ_hat v
+  have h_fin_hu : (h u : WithTop ℝ) ≠ ⊤ := by simp
+  have h_fin_hv : (h v : WithTop ℝ) ≠ ⊤ := by simp
+  set d := δ_hat v + (h v : WithTop ℝ) - (h u : WithTop ℝ) with hd
+  have h_eq : d + (h u : WithTop ℝ) - (h v : WithTop ℝ) = δ_hat v := by
+    dsimp [d]
+    rcases Option.ne_none_iff_exists'.mp h_fin_hu with ⟨hu_val, hhu⟩
+    rcases Option.ne_none_iff_exists'.mp h_fin_hv with ⟨hv_val, hhv⟩
+    rw [hhu, hhv]
+    by_cases hδ_top : δ_hat v = ⊤
+    · rw [hδ_top]; simp
+    · rcases Option.ne_none_iff_exists'.mp hδ_top with ⟨δv_val, hδv⟩
+      rw [hδv]; simp
+  have h_sd_d : G_hat.IsShortestDist u v (d + (h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
+    rw [h_eq]; exact hδ_hat v
+  exact (G.reweighted_isShortestDist h u v d).mp h_sd_d
 
 end WeightedGraph
 end Chapter24
