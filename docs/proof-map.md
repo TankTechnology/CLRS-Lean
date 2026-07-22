@@ -3018,26 +3018,29 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 25.3 - Johnson's Algorithm
 
 - Lean source: `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean`
-- Status: `partial` (reweighting algebra proved; algorithm correctness deferred)
+- Status: `proved` (reweighting algebra, potential construction, and end-to-end correctness)
 - Main declarations and theorems:
   - `CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`
   - `CLRS.Chapter24.WeightedGraph.no_incoming_to_none_johnsonAugmentedGraph`
+  - `CLRS.Chapter24.WeightedGraph.isShortestDist_edge_ineq` — general triangle inequality
+  - `CLRS.Chapter24.WeightedGraph.walk_johnsonAugmented_some_projection`
+  - `CLRS.Chapter24.WeightedGraph.noNegCycle_johnsonAugmentedGraph` — negative-cycle preservation
   - `CLRS.Chapter24.WeightedGraph.reweightedWeight`
   - `CLRS.Chapter24.WeightedGraph.reweightedGraph`
-  - `CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq`
+  - `CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq` — telescoping property
   - `CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`
-- Current gap: prove the augmented graph preserves absence of negative cycles,
-  construct the Bellman-Ford potential, and package the repeated Dijkstra runs
-  into the end-to-end Johnson theorem and work bound.  (Note:
-  `reweighted_isShortestDist` — shortest-path preservation under reweighting
-  — is already proved.)
+  - `CLRS.Chapter24.WeightedGraph.reweighted_isShortestDist` — shift formula
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential` — Bellman-Ford potential
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential_finite`
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential_triangle` — Lemma 25.3
+  - `CLRS.Chapter24.WeightedGraph.johnsonReweightedNonneg`
+  - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist` — Johnson distance function
+  - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist_correct` — Theorem 25.6
 
 ### Chapter 25 remaining work
 
 - Predecessor-matrix path-reconstruction weight equality
   (walk validity from `Pi_adj` is proved; `walkWeight = floydWarshall` deferred).
-- Johnson's Bellman-Ford potential construction and complete algorithm
-  correctness/work theorem.
 
 ## Chapter 26 - Maximum Flow
 
