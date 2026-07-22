@@ -21,12 +21,15 @@ set_option linter.unusedSectionVars false
 * `negative_diagonal_implies_negative_cycle` — completeness of the diagonal
   test (**CLRS Theorem 25.3**).
 
+* `Pi_D_ge` — optimal-substructure lower bound for the predecessor matrix.
+* `floydWarshallPi_D_eq` — `floydWarshall i j = floydWarshall i k + w(k,j)`
+  when `floydWarshallPi i j = some k`.
+* `reconstructPathFuel_isWalkFrom` — reconstructed path is a valid walk.
+* `reconstructPathFuel_weight_eq` — reconstructed path has weight
+  `floydWarshall i j` (**path-reconstruction correctness**).
+
 ## Remaining gaps
 
-* Path reconstruction weight equality (`walkWeight = floydWarshall`).
-  Walk validity from `Pi_adj` is proved; the weight-equality lemma requires
-  the optimal-substructure property of the final predecessor matrix and is
-  deferred to a follow-up proof effort (issue #95).
 * Transitive closure (Section 25.2 variant).
 -/
 
@@ -560,6 +563,271 @@ theorem negative_diagonal_implies_negative_cycle (i : V)
     -- extract the ℝ inequality using exact_mod_cast.
     have h_lt : walkWeight G.w p < 0 := by exact_mod_cast h_coe_lt
     exact ⟨p, hp, h_lt⟩
+
+/-! ## Pi-D optimal substructure
+
+The key invariant connecting `Pi` and `D`: if `Pi ks i j = some k` with `i ≠ j`,
+then `D ks i j ≥ D ks i k + w(k,j)`.  This is the lower-bound direction of the
+optimal-substructure property.  Combined with the upper bound from the edge
+inequality for `IsShortestDist`, we obtain equality for the final
+`floydWarshall`/`floydWarshallPi` matrices. -/
+
+/-- Under `NoNegCycle`, the diagonal of `D` is zero for any intermediate set.
+The empty walk `[i]` has weight 0, and any closed walk has nonnegative weight,
+so the minimum closed-walk weight through `ks` is exactly 0. -/
+lemma D_diag_eq_zero (hNC : G.NoNegCycle) (ks : List V) (i : V) : G.D ks i i = (0 : WithTop ℝ) := by
+  rcases G.D_attainable ks i i with (htop | ⟨p, hp, hpw⟩)
+  · -- D = ⊤: impossible since [i] is a walk from i to i with weight 0
+    have h_walk : G.IsWalkFrom i i [i] :=
+      ⟨List.isChain_singleton i, by simp, by simp⟩
+    have h0 : (G.D ks i i : WithTop ℝ) ≤ (walkWeight G.w [i] : WithTop ℝ) :=
+      G.D_le_simpleWalk ks i i [i] h_walk (by simp) (by
+        intro v hv; simp at hv; subst hv; exact Or.inl rfl)
+    simp [walkWeight] at h0
+    rw [htop] at h0; simp at h0
+  · -- D is finite and realized by closed walk p
+    have h_nonneg : (0 : ℝ) ≤ walkWeight G.w p := hNC i p hp
+    have h_zero : (G.D ks i i : WithTop ℝ) ≤ (0 : WithTop ℝ) := by
+      have h_walk : G.IsWalkFrom i i [i] :=
+        ⟨List.isChain_singleton i, by simp, by simp⟩
+      have h_le := G.D_le_simpleWalk ks i i [i] h_walk (by simp) (by
+        intro v hv; simp at hv; subst hv; exact Or.inl rfl)
+      simpa [walkWeight] using h_le
+    have h_nonneg' : (0 : WithTop ℝ) ≤ (G.D ks i i : WithTop ℝ) := by
+      rw [← hpw]; exact_mod_cast h_nonneg
+    exact le_antisymm h_zero h_nonneg'
+
+/-- **Pi-D lower bound.**  If `Pi ks i j = some k` with `i ≠ j`, then the
+DP distance satisfies `D ks i k + w(k,j) ≤ D ks i j`.  In words: the path that
+goes optimally to `k` and then takes the direct edge `(k,j)` is no heavier than
+the optimal path to `j`.
+
+The proof is by induction on `ks`.  The critical observation is that
+`D (v::ks) i k = min (D ks i k) (D ks i v + D ks v k)` supplies exactly the
+inequality needed to apply the induction hypothesis via `min_le_left` or
+`min_le_right`. -/
+lemma Pi_D_ge (hNC : G.NoNegCycle) (ks : List V) (i j k : V) (hPi : G.Pi ks i j = some k)
+    (hij : i ≠ j) : G.D ks i k + (G.w k j : WithTop ℝ) ≤ G.D ks i j := by
+  revert i j k hPi hij
+  induction ks with
+  | nil =>
+    intro i j k hPi hij
+    rcases Pi_nil_spec G i j k hPi with ⟨hk_i, _, hadj⟩
+    rw [hk_i]
+    have hD_ij : G.D [] i j = (G.w i j : WithTop ℝ) := by
+      rw [D_nil]; dsimp [weightMatrix]; simp [hij, hadj]
+    have hD_ik : G.D [] i i = (0 : WithTop ℝ) := by
+      rw [D_nil, weightMatrix_self G i]
+    rw [hD_ij, hD_ik]; simp
+  | cons v ks' ih =>
+    intro i j k hPi hij
+    rw [Pi_cons] at hPi
+    split at hPi
+    · -- UPDATE: D ks' i v + D ks' v j < D ks' i j, Pi ks' v j = some k
+      rename_i h_lt
+      have hvj : v ≠ j := by
+        intro heq
+        rw [heq] at h_lt
+        have h_diag : G.D ks' j j = (0 : WithTop ℝ) := D_diag_eq_zero G hNC ks' j
+        rw [h_diag] at h_lt
+        simp at h_lt
+      have ih_kj := ih v j k hPi hvj
+      rw [D_cons]
+      have hD_ij : G.D (v :: ks') i j = G.D ks' i v + G.D ks' v j := by
+        rw [D_cons]; exact min_eq_right (le_of_lt h_lt)
+      rw [hD_ij]
+      have hD_ik : G.D (v :: ks') i k ≤ G.D ks' i v + G.D ks' v k := by
+        rw [D_cons]; exact min_le_right _ _
+      calc
+        G.D (v :: ks') i k + (G.w k j : WithTop ℝ) ≤
+            (G.D ks' i v + G.D ks' v k) + (G.w k j : WithTop ℝ) := by
+          gcongr
+        _ = G.D ks' i v + (G.D ks' v k + (G.w k j : WithTop ℝ)) := by abel
+        _ ≤ G.D ks' i v + G.D ks' v j := by
+          gcongr
+    · -- NO-UPDATE: ¬ D ks' i v + D ks' v j < D ks' i j, Pi ks' i j = some k
+      rename_i h_not_lt
+      have ih_ij := ih i j k hPi hij
+      rw [D_cons]
+      have hD_ij : G.D (v :: ks') i j = G.D ks' i j := by
+        rw [D_cons]; exact min_eq_left (by rw [not_lt] at h_not_lt; exact h_not_lt)
+      rw [hD_ij]
+      have hD_ik : G.D (v :: ks') i k ≤ G.D ks' i k := by
+        rw [D_cons]; exact min_le_left _ _
+      calc
+        G.D (v :: ks') i k + (G.w k j : WithTop ℝ) ≤
+            G.D ks' i k + (G.w k j : WithTop ℝ) := by
+          gcongr
+        _ ≤ G.D ks' i j := ih_ij
+
+/-! ## Edge inequality for shortest-path distances
+
+For any source `s` with shortest distances `δ(t) = δ(s, t)` and any edge
+`(u, v)`, we have `δ(v) ≤ δ(u) + w(u, v)`.  This is a general property of
+shortest paths: extend a walk realizing `δ(u)` with the edge `(u, v)`.
+Reproved here to avoid a cross-section dependency. -/
+
+theorem isShortestDist_edge_ineq (s u v : V) (δ : V → WithTop ℝ)
+    (hδ : ∀ t, G.IsShortestDist s t (δ t)) (h_edge : (u, v) ∈ G.edges) :
+    δ v ≤ δ u + (G.w u v : WithTop ℝ) := by
+  rcases (hδ u).2 with hutop | ⟨q, hq, hqw⟩
+  · rw [hutop]; simp
+  · have hq_ne : q ≠ [] := hq.ne_nil
+    have h_last : q.getLast hq_ne = u := by
+      have htemp := List.getLast?_eq_getLast_of_ne_nil hq_ne
+      have h_eq_some : some u = some (q.getLast hq_ne) := by
+        rw [← hq.last, htemp]
+      exact (Option.some_inj.mp h_eq_some).symm
+    have h_walk : G.IsWalkFrom s v (q ++ [v]) := by
+      refine ⟨?_, ?_, ?_⟩
+      · refine hq.chain.append (List.isChain_singleton v) ?_
+        intro a ha b hb
+        have ha_u : a = u := by
+          rw [Option.mem_def, hq.last] at ha
+          exact (Option.some.inj ha).symm
+        subst ha_u
+        have hb_v : b = v := by
+          have hsing : [v].head? = some v := by simp
+          rw [hsing, Option.mem_def] at hb
+          simpa using hb.symm
+        subst hb_v
+        exact h_edge
+      · rw [List.head?_append_of_ne_nil _ hq_ne]
+        exact hq.head
+      · simp
+    have h_weight : (walkWeight G.w (q ++ [v]) : WithTop ℝ) = δ u + (G.w u v : WithTop ℝ) := by
+      calc
+        (walkWeight G.w (q ++ [v]) : WithTop ℝ) =
+            ((walkWeight G.w q + G.w (q.getLast hq_ne) v : ℝ) : WithTop ℝ) := by
+          exact_mod_cast walkWeight_append_singleton G.w q hq_ne v
+        _ = (walkWeight G.w q : WithTop ℝ) + (G.w (q.getLast hq_ne) v : WithTop ℝ) := by simp
+        _ = (walkWeight G.w q : WithTop ℝ) + (G.w u v : WithTop ℝ) := by rw [h_last]
+        _ = δ u + (G.w u v : WithTop ℝ) := by rw [hqw]
+    have h_bound : δ v ≤ (walkWeight G.w (q ++ [v]) : WithTop ℝ) := (hδ v).1 _ h_walk
+    rw [h_weight] at h_bound
+    exact h_bound
+
+/-- **Pi-D equality for the final Floyd-Warshall matrices.**  If the predecessor
+matrix records `k` as the immediate predecessor of `j` on a shortest path from
+`i` to `j`, then `floydWarshall i j = floydWarshall i k + w(k,j)`.
+
+The lower bound comes from `Pi_D_ge` specialised to `ks := univ.toList`.
+The upper bound is the edge inequality for `IsShortestDist`. -/
+lemma floydWarshallPi_D_eq (hNC : G.NoNegCycle) (i j k : V)
+    (hPi : G.floydWarshallPi i j = some k) (hij : i ≠ j) :
+    G.floydWarshall i j = G.floydWarshall i k + (G.w k j : WithTop ℝ) := by
+  have h_edge : (k, j) ∈ G.edges := G.floydWarshallPi_adj i j k hPi
+  have h_sd_i := G.floydWarshall_isShortestDist hNC i
+  -- Upper bound: floydWarshall i j ≤ floydWarshall i k + G.w k j
+  have h_upper : (G.floydWarshall i j : WithTop ℝ) ≤ G.floydWarshall i k + (G.w k j : WithTop ℝ) := by
+    have h_ineq := G.isShortestDist_edge_ineq i k j (fun t => G.floydWarshall i t) h_sd_i h_edge
+    simpa using h_ineq
+  -- Lower bound: floydWarshall i k + G.w k j ≤ floydWarshall i j
+  have h_lower : G.floydWarshall i k + (G.w k j : WithTop ℝ) ≤ (G.floydWarshall i j : WithTop ℝ) := by
+    simpa [floydWarshall, floydWarshallPi] using
+      Pi_D_ge G hNC (Finset.univ.toList : List V) i j k hPi hij
+  exact (le_antisymm h_lower h_upper).symm
+
+/-! ## Path-reconstruction correctness
+
+We prove that the path reconstructed by `reconstructPathFuel` from the
+Floyd-Warshall predecessor matrix `floydWarshallPi` is a valid walk whose
+weight exactly equals `floydWarshall i j`. -/
+
+/-- The path reconstructed by `reconstructPathFuel` is a valid walk, provided
+the predecessor matrix satisfies the adjacency property. -/
+lemma reconstructPathFuel_isWalkFrom (Pi : V → V → Option V) (fuel : ℕ) (i j : V)
+    (hPi_adj : ∀ i j k, Pi i j = some k → G.Adj k j)
+    (h_ne : reconstructPathFuel Pi fuel i j ≠ []) :
+    G.IsWalkFrom i j (reconstructPathFuel Pi fuel i j) := by
+  induction fuel generalizing i j with
+  | zero => simp [reconstructPathFuel] at h_ne
+  | succ fuel ih =>
+    unfold reconstructPathFuel at h_ne ⊢
+    dsimp at h_ne ⊢
+    by_cases hij : i = j
+    · subst i; simp
+      exact ⟨List.isChain_singleton j, by simp, by simp⟩
+    · simp [hij, reconstructPathFuel] at h_ne ⊢
+      cases hPi : Pi i j with
+      | none => simpa [reconstructPathFuel, hij, hPi] using h_ne
+      | some k =>
+        simp [reconstructPathFuel, hPi, hij] at h_ne ⊢
+        by_cases hpath : reconstructPathFuel Pi fuel i k = []
+        · simp [hpath] at h_ne
+        · simp [hpath] at h_ne ⊢
+          have hwalk_ik := ih i k hpath
+          have h_adj : G.Adj k j := hPi_adj i j k hPi
+          have hchain : List.IsChain G.Adj
+              (reconstructPathFuel Pi fuel i k ++ [j]) := by
+            refine hwalk_ik.chain.append (List.isChain_singleton j) ?_
+            intro a ha b hb
+            rw [hwalk_ik.last] at ha
+            have ha_k : a = k := by
+              simpa using ha.symm
+            subst ha_k
+            have hb_j : b = j := by
+              have hsing : [j].head? = some j := by simp
+              rw [hsing] at hb; simpa using hb.symm
+            subst hb_j; exact h_adj
+          refine ⟨hchain, ?_, ?_⟩
+          · rw [List.head?_append_of_ne_nil _ hpath]
+            exact hwalk_ik.head
+          · simp
+
+/-- **Path-reconstruction weight equality.**  For the Floyd-Warshall predecessor
+matrix under `NoNegCycle`, the reconstructed path has weight `floydWarshall i j`.
+
+The proof is by induction on `fuel`.  At each step we use `floydWarshallPi_D_eq`
+to decompose the shortest distance through the recorded predecessor. -/
+lemma reconstructPathFuel_weight_eq (hNC : G.NoNegCycle) (fuel : ℕ) (i j : V)
+    (h_ne : reconstructPathFuel G.floydWarshallPi fuel i j ≠ []) :
+    (walkWeight G.w (reconstructPathFuel G.floydWarshallPi fuel i j) : WithTop ℝ) = G.floydWarshall i j := by
+  have h_adj : ∀ i j k, G.floydWarshallPi i j = some k → G.Adj k j :=
+    G.floydWarshallPi_adj
+  induction fuel generalizing i j with
+  | zero => simp [reconstructPathFuel] at h_ne
+  | succ fuel ih =>
+    unfold reconstructPathFuel at h_ne ⊢
+    dsimp at h_ne ⊢
+    by_cases hij : i = j
+    · subst i; simp [walkWeight]
+      have h_diag : G.floydWarshall j j = (0 : WithTop ℝ) :=
+        D_diag_eq_zero G hNC (Finset.univ.toList) j
+      simp [h_diag]
+    · simp [hij, reconstructPathFuel] at h_ne ⊢
+      cases hPi : G.floydWarshallPi i j with
+      | none => simpa [reconstructPathFuel, hij, hPi] using h_ne
+      | some k =>
+        simp [reconstructPathFuel, hPi, hij] at h_ne ⊢
+        by_cases hpath : reconstructPathFuel G.floydWarshallPi fuel i k = []
+        · simp [hpath] at h_ne
+        · simp [hpath] at h_ne ⊢
+          have hwalk_ik : G.IsWalkFrom i k (reconstructPathFuel G.floydWarshallPi fuel i k) :=
+            reconstructPathFuel_isWalkFrom G G.floydWarshallPi fuel i k h_adj hpath
+          have hweight_ik : (walkWeight G.w (reconstructPathFuel G.floydWarshallPi fuel i k) : WithTop ℝ) =
+              G.floydWarshall i k := ih i k hpath
+          have h_getlast : (reconstructPathFuel G.floydWarshallPi fuel i k).getLast hpath = k := by
+            have hlast := hwalk_ik.last
+            have htemp := List.getLast?_eq_getLast_of_ne_nil hpath
+            have h_eq : some ((reconstructPathFuel G.floydWarshallPi fuel i k).getLast hpath) = some k := by
+              rw [htemp] at hlast; exact hlast
+            exact Option.some_inj.mp h_eq
+          -- Weight of ik_path ++ [j] = floydWarshall i k + G.w k j
+          have hweight_full : (walkWeight G.w (reconstructPathFuel G.floydWarshallPi fuel i k ++ [j]) : WithTop ℝ) =
+              G.floydWarshall i k + (G.w k j : WithTop ℝ) := by
+            calc
+              (walkWeight G.w (reconstructPathFuel G.floydWarshallPi fuel i k ++ [j]) : WithTop ℝ) =
+                  ((walkWeight G.w (reconstructPathFuel G.floydWarshallPi fuel i k) +
+                    G.w ((reconstructPathFuel G.floydWarshallPi fuel i k).getLast hpath) j : ℝ) : WithTop ℝ) := by
+                exact_mod_cast walkWeight_append_singleton G.w
+                  (reconstructPathFuel G.floydWarshallPi fuel i k) hpath j
+              _ = ((walkWeight G.w (reconstructPathFuel G.floydWarshallPi fuel i k) + G.w k j : ℝ) : WithTop ℝ) := by rw [h_getlast]
+              _ = (walkWeight G.w (reconstructPathFuel G.floydWarshallPi fuel i k) : WithTop ℝ) + (G.w k j : WithTop ℝ) := by simp
+              _ = G.floydWarshall i k + (G.w k j : WithTop ℝ) := by rw [hweight_ik]
+          rw [hweight_full]
+          exact (floydWarshallPi_D_eq G hNC i j k hPi hij).symm
+
 
 end WeightedGraph
 end Chapter24
