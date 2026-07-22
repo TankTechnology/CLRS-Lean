@@ -1136,6 +1136,7 @@ theorem blackHeight_insert {x : Nat} {t : RBTree} (h : RedBlackShape t) :
     blackHeight (insert x t) = blackHeight t ∨ blackHeight (insert x t) = blackHeight t + 1 := by
   have hInv := @insertFixup_invariant x t (redBlackShape_redRootedRB h)
   have hHeight : blackHeight (insertFixup x t) = blackHeight t := hInv.2.1
+  classical
   by_cases hRoot : RootBlack (insertFixup x t)
   · left
     rw [insert]
