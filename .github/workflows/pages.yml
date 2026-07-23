@@ -23,7 +23,7 @@ jobs:
 
       - uses: leanprover/lean-action@v1
         with:
-          build: true
+          build: false
           test: false
           use-mathlib-cache: true
 
@@ -42,7 +42,9 @@ jobs:
 
       - name: Build Verso literate HTML
         id: build-site
-        run: echo "path=$(lake query :literateHtml)" >> "$GITHUB_OUTPUT"
+        run: |
+          lake build :literateHtml
+          echo "path=$(lake query :literateHtml)" >> "$GITHUB_OUTPUT"
 
       - name: Save Verso literate cache
         if: steps.restore-verso-cache.outputs.cache-hit != 'true'
