@@ -46,6 +46,13 @@ def nearest_visible_parent(module_name: str) -> str | None:
     return None
 
 
+# Implementation sub-modules that are imported by chapter guides
+# but cannot be linked from section parents due to circular imports.
+_IMPLEMENTATION_SUBMODULES = {
+    "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
+    "CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution",
+}
+
 def check_site(site_root: Path) -> list[str]:
     failures: list[str] = []
     module_files: dict[str, Path] = {}
@@ -70,7 +77,7 @@ def check_site(site_root: Path) -> list[str]:
             failures.append(f"{html_file}: unclassified sidebar link: {href}")
 
     for module_name, html_file in sorted(module_files.items()):
-        if is_reader_sidebar_module(module_name):
+        if is_reader_sidebar_module(module_name) or module_name in _IMPLEMENTATION_SUBMODULES:
             continue
         parent_module = nearest_visible_parent(module_name)
         parent_file = module_files.get(parent_module or "")
