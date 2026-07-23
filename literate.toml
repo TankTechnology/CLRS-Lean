@@ -63,7 +63,6 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_02.Section_02_1_Insertion_Sort",
   "CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms",
   "CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms",
-  "CLRSLean.Chapter_02.Section_02_3_Merge_Sort_Recurrence",
 ]
 "CLRSLean.Chapter_03" = [
   "CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation",
@@ -255,10 +254,12 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
-  "CLRSLean.Chapter_32.Section_32_1_Naive_Matcher",
   "CLRSLean.Chapter_32.Section_32_2_Rabin_Karp",
   "CLRSLean.Chapter_32.Section_32_3_Finite_Automata",
   "CLRSLean.Chapter_32.Section_32_4_KMP",
+]
+"CLRSLean.Chapter_32.Section_32_1_String_Model" = [
+  "CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
 ]
 "CLRSLean.Chapter_33" = [
   "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
@@ -434,8 +435,6 @@ title = "2.2. Analyzing Algorithms"
 [modules."CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms"]
 title = "2.3. Designing Algorithms"
 
-[modules."CLRSLean.Chapter_02.Section_02_3_Merge_Sort_Recurrence"]
-title = "2.3. Merge-Sort Recurrence"
 
 [modules."CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation"]
 title = "3.1. Asymptotic Notation"
@@ -740,8 +739,9 @@ title = "Chapter 32. String Matching"
 [modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
 title = "32.1. The Naive String-Matching Algorithm"
 
-[modules."CLRSLean.Chapter_32.Section_32_1_Naive_Matcher"]
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
 title = "32.1. Naive Matcher — Implementation"
+
 
 [modules."CLRSLean.Chapter_32.Section_32_2_Rabin_Karp"]
 title = "32.2. The Rabin-Karp Algorithm"

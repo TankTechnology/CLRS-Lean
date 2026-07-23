@@ -141,6 +141,25 @@ CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean
 CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
 CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean
+CLRSLean/Chapter_28/Section_28_1_LUP_Decomposition.lean
+CLRSLean/Chapter_28/Section_28_2_3_Matrix_Inversion_LS.lean
+CLRSLean/Chapter_29/Section_29_1_3_Simplex.lean
+CLRSLean/Chapter_29/Section_29_4_5_Duality.lean
+CLRSLean/Chapter_30/Section_30_1_DFT_FFT.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT.lean
+CLRSLean/Chapter_31/Section_31_8_9_Primality_Factoring.lean
+CLRSLean/Chapter_32/Section_32_1_String_Model.lean
+CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
+CLRSLean/Chapter_32/Section_32_2_Rabin_Karp.lean
+CLRSLean/Chapter_32/Section_32_3_Finite_Automata.lean
+CLRSLean/Chapter_32/Section_32_4_KMP.lean
+CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
+CLRSLean/Chapter_33/Section_33_2_3_Segment_Intersection_Convex_Hull.lean
+CLRSLean/Chapter_33/Section_33_4_Closest_Pair.lean
+CLRSLean/Chapter_34/Section_34_1_3_NP_Foundations.lean
+CLRSLean/Chapter_34/Section_34_4_5_NP_Completeness.lean
+CLRSLean/Chapter_35/Section_35_1_3_Approximation_Algorithms.lean
+CLRSLean/Chapter_35/Section_35_4_5_Randomized_Approximation.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.

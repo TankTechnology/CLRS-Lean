@@ -1,6 +1,6 @@
 import Mathlib
 import CLRSLean.Chapter_32.Section_32_1_String_Model
-import CLRSLean.Chapter_32.Section_32_1_Naive_Matcher
+import CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher
 
 /-! # Section 32.2 — The Rabin-Karp Algorithm
 
