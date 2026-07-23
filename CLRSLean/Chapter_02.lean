@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_02.Section_02_1_Insertion_Sort
 import CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms
 import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms
+import CLRSLean.Chapter_02.Section_02_3_Merge_Sort_Recurrence
 
 /-!
 # Chapter 2 - Getting Started
