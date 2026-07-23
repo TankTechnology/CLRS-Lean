@@ -27,7 +27,7 @@ analyses: the **birthday paradox** (expected number of same-birthday pairs is
 {lit}`k(k-1)/(2n)`) and **balls and bins** (expected number of balls in a fixed
 bin is {lit}`k/n`).  Its on-line hiring model additionally provides an
 executable threshold strategy over finite permutations and the corresponding
-finite success probability {lit}`CLRS.Chapter05.OnlineHiring.probHireBest`.
+finite success probability {lit}`CLRS.Chapter05.OnlineHiring.probHireBest` (see {name}`CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring`).
 The harmonic closed form and asymptotic {lit}`1/e` theorem remain open.
 
 * Section 5.1: {lit}`proved` for the finite rank-symmetry model, including
