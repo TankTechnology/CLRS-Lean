@@ -141,6 +141,7 @@ CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean
 CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
 CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean
+CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.
