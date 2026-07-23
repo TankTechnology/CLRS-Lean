@@ -38,6 +38,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25",
   "CLRSLean.Chapter_26",
   "CLRSLean.Chapter_27",
+  "CLRSLean.Chapter_32",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
@@ -227,6 +228,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_27" = [
   "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms",
+]
+
+"CLRSLean.Chapter_32" = [
+  "CLRSLean.Chapter_32.Section_32_1_String_Model",
+]
+"CLRSLean.Chapter_32.Section_32_1_String_Model" = [
+  "CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -652,3 +660,12 @@ title = "27.1. The Basics of Dynamic Multithreading"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms"]
 title = "27.2-27.4. Multithreaded Algorithms"
+
+[modules."CLRSLean.Chapter_32"]
+title = "Chapter 32. String Matching"
+
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
+title = "32.1. The Naive String-Matching Algorithm"
+
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
+title = "32.1. Naive Matcher — Implementation"
