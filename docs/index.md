@@ -41,6 +41,7 @@ on `main` are:
 CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
 CLRSLean/Chapter_02/Section_02_2_Analyzing_Algorithms.lean
 CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms.lean
+CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms/Merge_Sort_Recurrence.lean
 CLRSLean/Chapter_03/Section_03_1_Asymptotic_Notation.lean
 CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean
 CLRSLean/Chapter_04/Section_04_1_Maximum_Subarray.lean
