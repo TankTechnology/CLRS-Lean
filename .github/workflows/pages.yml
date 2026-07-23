@@ -23,7 +23,7 @@ jobs:
 
       - uses: leanprover/lean-action@v1
         with:
-          build: false
+          build: true
           test: false
           use-mathlib-cache: true
 
