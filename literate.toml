@@ -221,6 +221,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
   "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp",
+  "CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching",
   "CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut",
 ]
 "CLRSLean.Chapter_27" = [
@@ -636,6 +637,9 @@ title = "26.1. Flow Networks"
 
 [modules."CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp"]
 title = "26.2. The Edmonds-Karp Algorithm"
+
+[modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
+title = "26.3. Maximum Bipartite Matching"
 
 [modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
 title = "26.6. Max-Flow Min-Cut Theorem (partial)"
