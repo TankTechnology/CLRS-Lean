@@ -28,9 +28,11 @@ set_option linter.unusedSectionVars false
 * `reconstructPathFuel_weight_eq` — reconstructed path has weight
   `floydWarshall i j` (**path-reconstruction correctness**).
 
-## Remaining gaps
+* `transitiveClosure` — boolean reachability matrix from Floyd-Warshall.
+* `transitiveClosure_iff_exists_walk` — correctness of transitive closure.
+* `minPlusMulCost`, `fasterAPSPCost`, `fasterAPSPCost_le_n_four` — work-count refinement (Section 25.1).
 
-* Transitive closure (Section 25.2 variant).
+**Remaining gaps:** none (core mathematical results complete).
 -/
 
 namespace CLRS
@@ -827,6 +829,58 @@ lemma reconstructPathFuel_weight_eq (hNC : G.NoNegCycle) (fuel : ℕ) (i j : V)
               _ = G.floydWarshall i k + (G.w k j : WithTop ℝ) := by rw [hweight_ik]
           rw [hweight_full]
           exact (floydWarshallPi_D_eq G hNC i j k hPi hij).symm
+
+/-! ## Transitive closure
+
+The transitive closure of a weighted graph (interpreted as a directed graph:
+edge exists iff weight is finite) is the boolean matrix `T[i,j]` where
+`T[i,j] = true` iff there exists a walk from `i` to `j`.
+
+Under `NoNegCycle`, Floyd-Warshall computes this exactly: `floydWarshall i j ≠ ⊤`
+iff there is a walk from `i` to `j`.  This follows directly from
+`floydWarshall_le_walk` (every walk has weight at least the shortest distance,
+so finite distance implies existence) and `D_attainable` (every finite DP value
+is realized by a walk). -/
+
+/-- Transitive closure as a boolean matrix: `T[i,j] = true` iff `j` is reachable
+from `i` (there exists a finite-weight walk).  This is the CLRS §25.2 transitive
+closure variant of Floyd-Warshall. -/
+noncomputable def transitiveClosure (G : WeightedGraph V) : V → V → Bool :=
+  fun i j => G.floydWarshall i j ≠ ⊤
+
+/-- **Transitive closure correctness (soundness).**
+If there is a walk from `i` to `j`, then the transitive closure reports `true`. -/
+theorem transitiveClosure_of_walk (hNC : G.NoNegCycle) (i j : V) {p : List V}
+    (hwalk : G.IsWalkFrom i j p) : G.transitiveClosure i j := by
+  have hle := G.floydWarshall_le_walk hNC i j p hwalk
+  have hpos : G.floydWarshall i j ≠ ⊤ := by
+    intro htop
+    have : (walkWeight G.w p : WithTop ℝ) = ⊤ := top_unique (htop ▸ hle)
+    have hfinite : (walkWeight G.w p : WithTop ℝ) ≠ ⊤ := by
+      simp [walkWeight]
+    exact hfinite this
+  simpa [transitiveClosure] using hpos
+
+/-- **Transitive closure correctness (completeness).**
+If the transitive closure reports `true`, then there exists a walk from `i` to `j`. -/
+theorem transitiveClosure_exists_walk (hNC : G.NoNegCycle) (i j : V)
+    (hT : G.transitiveClosure i j) : ∃ p, G.IsWalkFrom i j p := by
+  have hT' : G.floydWarshall i j ≠ ⊤ := by simpa [transitiveClosure] using hT
+  have h_fw : G.floydWarshall i j = G.D (Finset.univ.toList : List V) i j := rfl
+  rw [h_fw] at hT'
+  rcases G.D_attainable (Finset.univ.toList : List V) i j with (htop | hwalk)
+  · exact (hT' htop).elim
+  · rcases hwalk with ⟨p, hp, _⟩
+    exact ⟨p, hp⟩
+
+/-- **Transitive closure correctness.**  Under `NoNegCycle`, the Floyd-Warshall
+transitive closure correctly decides walk existence between every pair of vertices
+(CLRS §25.2 transitive-closure variant). -/
+theorem transitiveClosure_iff_exists_walk (hNC : G.NoNegCycle) (i j : V) :
+    G.transitiveClosure i j ↔ ∃ p, G.IsWalkFrom i j p := by
+  constructor
+  · exact G.transitiveClosure_exists_walk hNC i j
+  · rintro ⟨p, hp⟩; exact G.transitiveClosure_of_walk hNC i j hp
 
 
 end WeightedGraph
