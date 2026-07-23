@@ -57,6 +57,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms",
   "CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms",
 ]
+"CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms" = [
+  "CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence",
+]
 "CLRSLean.Chapter_03" = [
   "CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation",
   "CLRSLean.Chapter_03.Section_03_2_Standard_Functions",
@@ -396,6 +399,9 @@ title = "2.2. Analyzing Algorithms"
 
 [modules."CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms"]
 title = "2.3. Designing Algorithms"
+
+[modules."CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence"]
+title = "2.3. Merge-Sort Recurrence"
 
 [modules."CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation"]
 title = "3.1. Asymptotic Notation"
