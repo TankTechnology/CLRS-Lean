@@ -143,6 +143,7 @@ CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
 CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
+CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 ```
 
