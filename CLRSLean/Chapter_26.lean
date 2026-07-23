@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp
+import CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching
 import CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut
 
 /-! # Chapter 26 - Maximum Flow
@@ -30,8 +31,11 @@ method.
   {lit}`CLRS.Chapter26.shortest_path_nondec`.
 
 * 26.3 Maximum bipartite matching.
-  No section module is present on {lit}`main`; the flow reduction and its
-  correctness remain a tracked core gap.
+  Main declarations:
+  {lit}`CLRS.Chapter26.BipartiteGraph`,
+  {lit}`CLRS.Chapter26.Matching`,
+  {lit}`CLRS.Chapter26.toFlowNetwork`,
+  {lit}`CLRS.Chapter26.matchingToFlow_value`.
 
 * 26.6 Max-Flow Min-Cut Theorem.
   Main declarations:
@@ -62,8 +66,6 @@ full three-condition equivalence are deferred.
 * The converse (and constructive) direction of the Max-Flow Min-Cut Theorem.
 * The executable BFS procedure, concrete Edmonds-Karp augmenting loop, and the
   augmentation-count/{lit}`O(VE²)` theorem built from Lemma 26.7.
-* Section 26.3's bipartite-matching reduction, integrality bridge, and final
-  matching/flow equivalence.
 -/
 
 namespace CLRS
