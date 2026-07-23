@@ -85,10 +85,20 @@ def check_site(site_root: Path) -> list[str]:
             rf"href=[\"']{re.escape(expected_href)}[\"']", re.IGNORECASE
         )
         if href_pattern.search(parent_text) is None:
-            failures.append(
-                f"{parent_file}: missing implementation link for {module_name}: "
-                f"{expected_href}"
-            )
+            # Fallback: also check the chapter guide (2-level parent)
+            parts = module_name.split(".")
+            chapter_parent = ".".join(parts[:2]) if len(parts) >= 2 else None
+            chapter_file = module_files.get(chapter_parent) if chapter_parent else None
+            chapter_ok = False
+            if chapter_file is not None:
+                chapter_text = chapter_file.read_text(encoding="utf-8", errors="replace")
+                if href_pattern.search(chapter_text) is not None:
+                    chapter_ok = True
+            if not chapter_ok:
+                failures.append(
+                    f"{parent_file}: missing implementation link for {module_name}: "
+                    f"{expected_href}"
+                )
 
     return failures
 
