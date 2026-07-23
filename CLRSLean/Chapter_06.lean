@@ -17,7 +17,7 @@ theorem, bottom-up {lit}`BUILD-MAX-HEAP` by repeated heapify, the executable
 in-place {lit}`HEAPSORT` loop with a proved sorted-suffix invariant and
 sortedness theorem, and the array-level {lit}`HEAP-MAXIMUM` theorem.
 The heapsort execution also has an erasure-linked unit control-step layer that
-counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions (see {name}`CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution`).
+counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions.
 
 ## Sections
 
