@@ -1300,6 +1300,16 @@ lemma keysOf_composedDelete_subset (t x : Nat) (tr : BTree) (k : Nat)
     (hk : k ∈ keysOf (composedDelete t x tr)) : k ∈ keysOf tr := by
   sorry
 
+/-! ## Key-bound transfer lemma
+
+Proves that if all keys in a tree are bounded by `lo` and `hi`, the same
+bounds hold for `composedDelete`.  Used to transfer `ChildBounded` key bounds
+from original child to result child in the direct-recursion case.
+-/
+
+lemma composedDelete_key_bound_lo (t x : Nat) (tr : BTree) (lo : Nat)
+    (hlo : ∀ k ∈ keysOf tr, lo ≤ k) : (∀ k ∈ keysOf (composedDelete t x tr), lo ≤ k) := by
+  sorry
 /-! ## `composedDelete` preserves `ChildBounded`
 
 Uses `childBounded_set` from Section 18.2.  The key-bound transfer (result keys
