@@ -38,6 +38,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25",
   "CLRSLean.Chapter_26",
   "CLRSLean.Chapter_27",
+  "CLRSLean.Chapter_33",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
@@ -227,6 +228,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_27" = [
   "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms",
+]
+
+"CLRSLean.Chapter_33" = [
+  "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -652,3 +657,9 @@ title = "27.1. The Basics of Dynamic Multithreading"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms"]
 title = "27.2-27.4. Multithreaded Algorithms"
+
+[modules."CLRSLean.Chapter_33"]
+title = "Chapter 33. Computational Geometry"
+
+[modules."CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties"]
+title = "33.1. Line-Segment Properties"
