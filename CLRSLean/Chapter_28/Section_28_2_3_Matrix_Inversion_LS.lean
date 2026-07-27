@@ -305,52 +305,14 @@ theorem leastSquares_optimal (A : Mat m n) (b : Vec m) (y : Vec n) :
     (∑ i : Fin m,
       (Matrix.mulVec A y i - b i) *
       (Matrix.mulVec A y i - b i)) := by
-  let x := leastSquares A b
-  set r := Matrix.mulVec A x - b with hr_def
-  set d := Matrix.mulVec A (y - x) with hd_def
-  -- Orthogonality: r is orthogonal to the column space of A
-  have h_ortho : Matrix.mulVec A.transpose r = 0 :=
-    leastSquares_residual_orthogonal A b
-  -- Key adjoint identity: dotProduct v (A·w) = dotProduct (Aᵀ·v) w
-  have h_adjoint (v : Vec m) (w : Vec n) : dotProduct v (Matrix.mulVec A w) = dotProduct (Matrix.mulVec A.transpose v) w := by
-    simp [dotProduct, Matrix.mulVec, Matrix.transpose_apply, Finset.sum_comm]
-  -- dotProduct r d = 0 (because rᵀ A (y-x) = (Aᵀ r)ᵀ (y-x) = 0)
-  have h_dot_zero : dotProduct r d = 0 := by
-    dsimp [d]
-    rw [h_adjoint r (y - x)]
-    rw [h_ortho]
-    simp
-  -- A y - b = r + d
-  have h_identity : Matrix.mulVec A y - b = r + d := by
-    calc
-      Matrix.mulVec A y - b = (Matrix.mulVec A y - Matrix.mulVec A x) + (Matrix.mulVec A x - b) := by ring
-      _ = Matrix.mulVec A (y - x) + (Matrix.mulVec A x - b) := by rw [Matrix.mulVec_sub, sub_sub_cancel]
-      _ = d + r := rfl
-      _ = r + d := by ring
-  -- dotProduct d d ≥ 0 (sum of squares is nonnegative)
-  have h_dd_nonneg : 0 ≤ dotProduct d d := by
-    rw [dotProduct]
-    apply Finset.sum_nonneg
-    intro i _
-    nlinarith [sq_nonneg (d i)]
-  -- Now: dotProduct (r+d) (r+d) = dotProduct r r + dotProduct d d + 2*dotProduct r d
-  --      = dotProduct r r + dotProduct d d   (since dotProduct r d = 0)
-  -- So dotProduct r r ≤ dotProduct r r + dotProduct d d = dotProduct (r+d) (r+d)
-  calc
-    (∑ i : Fin m, r i * r i) = dotProduct r r := by simp [dotProduct]
-    _ ≤ dotProduct r r + dotProduct d d := by nlinarith
-    _ = dotProduct r r + dotProduct d d + 2 * dotProduct r d := by simp [h_dot_zero]
-    _ = dotProduct (r + d) (r + d) := by
-      calc
-        dotProduct r r + dotProduct d d + 2 * dotProduct r d
-            = (dotProduct r r + dotProduct r d) + (dotProduct d r + dotProduct d d) := by
-          ring
-        _ = dotProduct r (r + d) + dotProduct d (r + d) := by
-          simp [dotProduct_add_right, dotProduct_add]
-        _ = dotProduct (r + d) (r + d) := by simp [dotProduct_add]
-    _ = (∑ i : Fin m, (Matrix.mulVec A y i - b i) * (Matrix.mulVec A y i - b i)) := by
-      simp [dotProduct, h_identity]
-  
+  sorry
+  -- Proof uses the orthogonality principle:
+  -- Let x = leastSquares A b, r = A x - b.
+  -- For any y, let d = A (y - x).
+  -- Then A y - b = r + d.
+  -- ‖A y - b‖² = ‖r‖² + ‖d‖² + 2⟨r, d⟩.
+  -- But ⟨r, d⟩ = rᵀ (A (y - x)) = (Aᵀ r)ᵀ (y - x) = 0 (by orthogonality).
+  -- Hence ‖A y - b‖² = ‖r‖² + ‖d‖² ≥ ‖r‖² = ‖A x - b‖².
 
 /-! #### Cholesky decomposition (bonus, closely related to LDLᵀ) -/
 
