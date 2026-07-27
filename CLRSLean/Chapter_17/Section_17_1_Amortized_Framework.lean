@@ -21,6 +21,12 @@ Main results:
 - Theorem {lit}`potential_totalCost_le_totalAmortized`: nondecreasing endpoint
   potential bounds total actual cost by total amortized cost.
 
+## Implementation details
+
+The worked stack and counter examples remain available outside the main sidebar:
+
+* [Stack and Counter Examples](CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter/)
+
 Status: `proved` for the aggregate, accounting, and potential-method framework.
 
 Examples are in Sections 17.2 and 17.4.

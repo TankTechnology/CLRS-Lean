@@ -38,14 +38,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25",
   "CLRSLean.Chapter_26",
   "CLRSLean.Chapter_27",
-  "CLRSLean.Chapter_28",
-  "CLRSLean.Chapter_29",
-  "CLRSLean.Chapter_30",
-  "CLRSLean.Chapter_31",
   "CLRSLean.Chapter_32",
   "CLRSLean.Chapter_33",
-  "CLRSLean.Chapter_34",
-  "CLRSLean.Chapter_35",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
@@ -63,8 +57,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_02.Section_02_1_Insertion_Sort",
   "CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms",
   "CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms",
-  "CLRSLean.Chapter_02.Section_02_3_Merge_Sort",
-  "CLRSLean.Chapter_02.Section_02_3_Merge_Sort_Recurrence",
+]
+"CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms" = [
+  "CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence",
 ]
 "CLRSLean.Chapter_03" = [
   "CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation",
@@ -84,12 +79,18 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_05.Section_05_3_Randomized_Algorithms",
   "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis",
 ]
+"CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis" = [
+  "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
+]
 "CLRSLean.Chapter_06" = [
   "CLRSLean.Chapter_06.Section_06_1_Heaps",
   "CLRSLean.Chapter_06.Section_06_2_Maintaining_Heap_Property",
   "CLRSLean.Chapter_06.Section_06_3_Building_A_Heap",
   "CLRSLean.Chapter_06.Section_06_4_Heapsort",
   "CLRSLean.Chapter_06.Section_06_5_Priority_Queues",
+]
+"CLRSLean.Chapter_06.Section_06_4_Heapsort" = [
+  "CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution",
 ]
 "CLRSLean.Chapter_07" = [
   "CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort",
@@ -109,6 +110,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray",
 ]
 "CLRSLean.Chapter_09" = [
+  "CLRSLean.Chapter_09.Section_09_1_Minimum_And_Maximum",
   "CLRSLean.Chapter_09.Section_09_2_Select_By_Rank",
   "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select",
 ]
@@ -218,49 +220,28 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_25" = [
   "CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model",
-  "CLRSLean.Chapter_25.Section_25_2_Predecessor_Paths",
+  "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
+  "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
+  "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp",
+  "CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching",
+  "CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut",
 ]
 "CLRSLean.Chapter_27" = [
   "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms",
 ]
-"CLRSLean.Chapter_28" = [
-  "CLRSLean.Chapter_28.Section_28_1_LUP_Decomposition",
-  "CLRSLean.Chapter_28.Section_28_2_3_Matrix_Inversion_LS",
-]
-"CLRSLean.Chapter_29" = [
-  "CLRSLean.Chapter_29.Section_29_1_3_Simplex",
-  "CLRSLean.Chapter_29.Section_29_4_5_Duality",
-]
-"CLRSLean.Chapter_30" = [
-  "CLRSLean.Chapter_30.Section_30_1_DFT_FFT",
-  "CLRSLean.Chapter_30.Section_30_3_Efficient_FFT",
-]
-"CLRSLean.Chapter_31" = [
-  "CLRSLean.Chapter_31.Section_31_8_9_Primality_Factoring",
-]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
-  "CLRSLean.Chapter_32.Section_32_1_Naive_Matcher",
-  "CLRSLean.Chapter_32.Section_32_2_Rabin_Karp",
-  "CLRSLean.Chapter_32.Section_32_3_Finite_Automata",
-  "CLRSLean.Chapter_32.Section_32_4_KMP",
 ]
+"CLRSLean.Chapter_32.Section_32_1_String_Model" = [
+  "CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
+]
+
 "CLRSLean.Chapter_33" = [
   "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
-  "CLRSLean.Chapter_33.Section_33_2_3_Segment_Intersection_Convex_Hull",
-  "CLRSLean.Chapter_33.Section_33_4_Closest_Pair",
-]
-"CLRSLean.Chapter_34" = [
-  "CLRSLean.Chapter_34.Section_34_1_3_NP_Foundations",
-  "CLRSLean.Chapter_34.Section_34_4_5_NP_Completeness",
-]
-"CLRSLean.Chapter_35" = [
-  "CLRSLean.Chapter_35.Section_35_1_3_Approximation_Algorithms",
-  "CLRSLean.Chapter_35.Section_35_4_5_Randomized_Approximation",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -423,11 +404,8 @@ title = "2.2. Analyzing Algorithms"
 [modules."CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms"]
 title = "2.3. Designing Algorithms"
 
-[modules."CLRSLean.Chapter_02.Section_02_3_Merge_Sort"]
-title = "2.3. Merge Sort (Arbitrary-Size Input)"
-
-[modules."CLRSLean.Chapter_02.Section_02_3_Merge_Sort_Recurrence"]
-title = "2.3. Merge Sort Recurrence and Θ(n log n)"
+[modules."CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence"]
+title = "2.3. Merge-Sort Recurrence"
 
 [modules."CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation"]
 title = "3.1. Asymptotic Notation"
@@ -465,6 +443,9 @@ title = "5.3. Randomized algorithms"
 [modules."CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis"]
 title = "5.4. Probabilistic analysis"
 
+[modules."CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring"]
+title = "The On-line Hiring Problem"
+
 [modules."CLRSLean.Chapter_06.Section_06_1_Heaps"]
 title = "6.1. Heaps"
 
@@ -476,6 +457,9 @@ title = "6.3. Building a Heap"
 
 [modules."CLRSLean.Chapter_06.Section_06_4_Heapsort"]
 title = "6.4. The Heapsort Algorithm"
+
+[modules."CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution"]
+title = "6.4. Costed Heapsort Execution"
 
 [modules."CLRSLean.Chapter_06.Section_06_5_Priority_Queues"]
 title = "6.5. Priority Queues"
@@ -507,11 +491,14 @@ title = "8.3. Radix Sort"
 [modules."CLRSLean.Chapter_08.Section_08_4_Bucket_Sort"]
 title = "8.4. Bucket Sort"
 
+[modules."CLRSLean.Chapter_09.Section_09_1_Minimum_And_Maximum"]
+title = "9.1. Minimum and Maximum"
+
 [modules."CLRSLean.Chapter_09.Section_09_2_Select_By_Rank"]
-title = "9.2. Selection by Rank"
+title = "9.2. Selection in Expected Linear Time"
 
 [modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select"]
-title = "9.3. Deterministic Selection"
+title = "9.3. Selection in Worst-Case Linear Time"
 
 [modules."CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select"]
 title = "Randomized SELECT Expected Time"
@@ -654,11 +641,26 @@ title = "24.4. Difference Constraints and Shortest Paths"
 [modules."CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model"]
 title = "25.1. All-Pairs Shortest Paths Model"
 
+[modules."CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall"]
+title = "25.2. The Floyd-Warshall Algorithm"
+
+[modules."CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm"]
+title = "25.3. Johnson's Algorithm for Sparse Graphs"
+
 [modules."CLRSLean.Chapter_26"]
 title = "Chapter 26. Maximum Flow"
 
 [modules."CLRSLean.Chapter_26.Section_26_1_Flow_Networks"]
 title = "26.1. Flow Networks"
+
+[modules."CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp"]
+title = "26.2. The Edmonds-Karp Algorithm"
+
+[modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
+title = "26.3. Maximum Bipartite Matching"
+
+[modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
+title = "26.6. Max-Flow Min-Cut Theorem (partial)"
 
 [modules."CLRSLean.Chapter_27"]
 title = "Chapter 27. Multithreaded Algorithms"
@@ -667,86 +669,18 @@ title = "Chapter 27. Multithreaded Algorithms"
 title = "27.1. The Basics of Dynamic Multithreading"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms"]
-title = "27.2–27.4. Parallel Matrix Multiplication, Merge Sort, Strassen"
-
-[modules."CLRSLean.Chapter_28"]
-title = "Chapter 28. Matrix Operations"
-
-[modules."CLRSLean.Chapter_28.Section_28_1_LUP_Decomposition"]
-title = "28.1. Solving Systems of Linear Equations with LUP Decomposition"
-
-[modules."CLRSLean.Chapter_28.Section_28_2_3_Matrix_Inversion_LS"]
-title = "28.2–28.3. Matrix Inversion, SPD Matrices & Least-Squares"
-
-[modules."CLRSLean.Chapter_29"]
-title = "Chapter 29. Linear Programming"
-
-[modules."CLRSLean.Chapter_29.Section_29_1_3_Simplex"]
-title = "29.1–29.3. Standard Form, Slack Form, and the Simplex Algorithm"
-
-[modules."CLRSLean.Chapter_29.Section_29_4_5_Duality"]
-title = "29.4–29.5. Duality and Complementary Slackness"
-
-[modules."CLRSLean.Chapter_30"]
-title = "Chapter 30. Polynomials and the FFT"
-
-[modules."CLRSLean.Chapter_30.Section_30_1_DFT_FFT"]
-title = "30.1–30.2. DFT and FFT"
-
-[modules."CLRSLean.Chapter_30.Section_30_3_Efficient_FFT"]
-title = "30.3. Efficient FFT Implementations"
-
-[modules."CLRSLean.Chapter_31"]
-title = "Chapter 31. Number-Theoretic Algorithms"
-
-[modules."CLRSLean.Chapter_31.Section_31_8_9_Primality_Factoring"]
-title = "31.8–31.9. Primality Testing and Integer Factorization"
-
+title = "27.2-27.4. Multithreaded Algorithms"
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
 
 [modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
 title = "32.1. The Naive String-Matching Algorithm"
 
-[modules."CLRSLean.Chapter_32.Section_32_1_Naive_Matcher"]
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
 title = "32.1. Naive Matcher — Implementation"
-
-[modules."CLRSLean.Chapter_32.Section_32_2_Rabin_Karp"]
-title = "32.2. The Rabin-Karp Algorithm"
-
-[modules."CLRSLean.Chapter_32.Section_32_3_Finite_Automata"]
-title = "32.3. String Matching with Finite Automata"
-
-[modules."CLRSLean.Chapter_32.Section_32_4_KMP"]
-title = "32.4. The Knuth-Morris-Pratt Algorithm"
 
 [modules."CLRSLean.Chapter_33"]
 title = "Chapter 33. Computational Geometry"
 
 [modules."CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties"]
 title = "33.1. Line-Segment Properties"
-
-[modules."CLRSLean.Chapter_33.Section_33_2_3_Segment_Intersection_Convex_Hull"]
-title = "33.2-33.3. Segment Intersection & Convex Hull"
-
-[modules."CLRSLean.Chapter_33.Section_33_4_Closest_Pair"]
-title = "33.4. Finding the Closest Pair of Points"
-
-[modules."CLRSLean.Chapter_34"]
-title = "Chapter 34. NP-Completeness"
-
-[modules."CLRSLean.Chapter_34.Section_34_1_3_NP_Foundations"]
-title = "34.1-34.3. NP Foundations: P, NP, and Reducibility"
-
-[modules."CLRSLean.Chapter_34.Section_34_4_5_NP_Completeness"]
-title = "34.4-34.5. NP-Complete Problems and the Reduction Chain"
-
-[modules."CLRSLean.Chapter_35"]
-title = "Chapter 35. Approximation Algorithms"
-
-[modules."CLRSLean.Chapter_35.Section_35_1_3_Approximation_Algorithms"]
-title = "35.1-35.3. Deterministic Approximation Algorithms"
-
-[modules."CLRSLean.Chapter_35.Section_35_4_5_Randomized_Approximation"]
-title = "35.4-35.5. Randomized Approximation and FPTAS"
-

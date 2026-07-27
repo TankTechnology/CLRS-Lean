@@ -141,10 +141,11 @@ Main results:
 - Theorem {lit}`VEB.operationDepth_linear`: the first-pass recurrence-depth
   wrapper is linear in the universe exponent.
 
-Current gaps:
-
-- Recursive summary/cluster storage and word-RAM base cases are future
-  refinement targets.
+This section is the finite-set specification layer.  Section 20.3 supplies the
+recursive cached-min/max summary/cluster model and proves all seven operations
+correct with control-flow-aware {lit}`O(log log u)` bounds.  Concrete
+pointer/array allocation and hardware-level RAM timing remain a separate
+implementation refinement.
 -/
 
 namespace CLRS

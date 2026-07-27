@@ -41,6 +41,7 @@ on `main` are:
 CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
 CLRSLean/Chapter_02/Section_02_2_Analyzing_Algorithms.lean
 CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms.lean
+CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms/Merge_Sort_Recurrence.lean
 CLRSLean/Chapter_03/Section_03_1_Asymptotic_Notation.lean
 CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean
 CLRSLean/Chapter_04/Section_04_1_Maximum_Subarray.lean
@@ -53,10 +54,12 @@ CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean
 CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean
 CLRSLean/Chapter_05/Section_05_3_Randomized_Algorithms.lean
 CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean
+CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring.lean
 CLRSLean/Chapter_06/Section_06_1_Heaps.lean
 CLRSLean/Chapter_06/Section_06_2_Maintaining_Heap_Property.lean
 CLRSLean/Chapter_06/Section_06_3_Building_A_Heap.lean
 CLRSLean/Chapter_06/Section_06_4_Heapsort.lean
+CLRSLean/Chapter_06/Section_06_4_Heapsort/CostedExecution.lean
 CLRSLean/Chapter_06/Section_06_5_Priority_Queues.lean
 CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean
@@ -67,6 +70,7 @@ CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray.lean
 CLRSLean/Chapter_08/Section_08_3_Radix_Sort.lean
 CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean
+CLRSLean/Chapter_09/Section_09_1_Minimum_And_Maximum.lean
 CLRSLean/Chapter_09/Section_09_2_Select_By_Rank.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select.lean
 CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select.lean
@@ -130,7 +134,17 @@ CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean
 CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
 CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean
 CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean
+CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean
+CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean
 CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean
+CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean
+CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean
+CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean
+CLRSLean/Chapter_32/Section_32_1_String_Model.lean
+CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
+CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.

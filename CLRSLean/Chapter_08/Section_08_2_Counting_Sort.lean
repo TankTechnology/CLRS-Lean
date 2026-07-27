@@ -19,6 +19,13 @@ by the textbook proof:
 
 The count-array implementation and linear-time cost model are future
 refinements of this stable bucket specification.
+
+## Implementation details
+
+The executable refinement pages remain available outside the main sidebar:
+
+* [Count-Table Refinement](CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables/)
+* [Mutable Output-Array Refinement](CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray/)
 -/
 
 namespace CLRS

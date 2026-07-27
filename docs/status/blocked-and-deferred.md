@@ -29,10 +29,61 @@ heap as the main result.  It proves the indexed array heap layer, recursive
 fuelled `MAX-HEAPIFY`, bottom-up `BUILD-MAX-HEAP`, in-place heapsort with a
 shrinking heap prefix and sorted suffix, top-level heapsort sortedness and
 permutation preservation, and array-level priority-queue state theorems for
-maximum, increase-key, extract-max, and delete.
+maximum, increase-key, extract-max, and delete.  The connected costed execution
+now mirrors heapify, build-heap, and heapsort and proves coarse `O(n)`,
+`O(n^2)`, and `O(n^2)` envelopes after erasing the cost component.
 
-The deferred implementation layer is now the line-by-line CLRS RAM-cost model,
-not the array heap proof itself.
+The proved unit control-step metric counts visited `MAX-HEAPIFY` frames and
+one extraction/swap transition per nontrivial heapsort step.  Build-loop
+orchestration, guards, `List` operations, allocation, and calls are not charged
+separately.  The deferred layer is therefore the tight textbook `O(log n)`,
+`O(n)`, and `O(n log n)` analysis plus a line-by-line imperative array/RAM
+refinement, not the array heap or erasure proof itself.
+
+### Chapter 4.1 Maximum-Subarray Low-Level Cost Refinement
+
+- Related section: Section 4.1 - The maximum-subarray problem
+- Status: `deferred-implementation`
+- Functional and algorithm-level runtime status: proved
+
+`CLRS.Chapter04.maxSubarrayDivideCosted` measures the executable midpoint
+divide-and-conquer selector that uses linear prefix, suffix, and crossing
+scans.  The costed scan executions prove that their counters equal the actual
+visited prefix-score and selection transitions.
+`CLRS.Chapter04.maxSubarrayDivideCosted_result` proves cost erasure,
+`CLRS.Chapter04.maxSubarrayDivideCosted_correct` proves result correctness,
+and `CLRS.Chapter04.maxSubarrayDivideCosted_cost_eq` identifies the measured
+cost with the length-indexed recurrence.  Its mixed floor/ceiling unfolding is
+`CLRS.Chapter04.maxSubarrayDivideCost_unfold`, and
+`CLRS.Chapter04.maxSubarrayDivideCost_isBigTheta_nlogn` proves the all-input
+`Theta(n log n)` bound.
+
+The proved metric counts recursive frames, scan transitions, and constant-size
+candidate choices.  It does not charge construction of the explicit split
+tree, integer arithmetic, `List` allocation/copying, or garbage collection.
+The deferred layer is a lower-level direct recursion or imperative array/RAM
+refinement with those operations attached; the CLRS algorithm-level runtime is
+not deferred.
+
+### Chapter 9 RANDOMIZED-SELECT Low-Level Cost Refinement
+
+- Related section: Section 9.2 - Selection in expected linear time
+- Status: `deferred-implementation`
+- Functional and partition-work status: proved
+
+`randomizedSelectCostWithSchedule` now consumes one occurrence-rank choice per
+visited recursive state, charges `c * currentLength`, rejects exhausted or
+out-of-range schedules, and erases successful runs to rank-correct SELECT.
+`randomizedSelectExpectedCostFuel` samples a fresh uniform rank from the current
+`Fin n` at each level; `randomizedSelectExpectedCost_le_randSelectExpectedCost`
+couples that nested process to the CLRS larger-side recurrence, and
+`randomizedSelectExpectedCost_linear_bound` proves `E[C] ≤ 4 * c * n`.
+
+The deferred layer is lower-level execution accounting: a concrete RNG,
+mutable in-place partitioning, costs of `List` primitives and the
+`selectByRank?` specification sorter, allocation, and RAM operations.  The
+proved expectation is recursively conditional-uniform; it is not stated as a
+flat uniform expectation over variable-length schedules.
 
 ### Chapter 23 Mutable Heap And RAM Refinement
 
@@ -59,17 +110,21 @@ The deferred layer is narrower: refine the indexed Prim queue to the concrete
 array state of `Batteries.BinaryHeap`, and add explicit mutable-array write and
 RAM charges.  The mathematical and functional algorithm proofs are closed.
 
-## Blocked Design
+## Completed Abstract Layers
 
 ### Hash-Table Expected-Time Analysis
 
 - Related section: Section 11.2 - Chained hash tables
-- Status: `blocked-design`
+- Status: `proved-abstract`
 
-The deterministic chained-table interface is in place for a fixed hash
-function, including insert/delete/search behavior.  The CLRS expected-time
-theorem needs a probability model over keys, hash functions, or random
-assignments before we can state simple uniform hashing precisely.
+The deterministic chained-table interface and the probability models are both
+in place.  The chapter proves SUHA chain length, unsuccessful-search cost,
+pairwise collision probability, and successful-search cost as true
+expectations over an explicit independent uniform assignment.  It also proves
+universal-hashing collision/search bounds and instantiates them with a concrete
+affine family.  Only optional probe-machine/RAM accounting remains.
+
+## Scoped Future Work
 
 ### Master Theorem Generalization Beyond The Current Assumptions
 
@@ -88,33 +143,27 @@ variants, but there is no remaining core case-3 comparison gap.
 
 These sections are not excluded from CLRS-Lean.  The remaining refinements need
 distinct representation choices: general-size recursive block matrices for
-Strassen and explicit algorithm/RAM cost models.  The current Master-theorem
-comparison stack covers all three textbook cases under its stated assumptions.
-
-### Maximum-Subarray Runtime Analysis
-
-- Related section: Section 4.1 - The maximum-subarray problem
-- Status: `future-work`
-
-The exhaustive-search specification is now compiler-clean:
-`CLRS.Chapter04.maxSubarray_correct` proves that the executable selector returns
-a nonempty contiguous subarray of maximum sum.  The crossing-helper layer is
-also compiler-clean:
-`CLRS.Chapter04.maxCrossingSubarray_correct` proves optimality among candidates
-crossing a split.  The combine-interface layer is compiler-clean as well:
-`CLRS.Chapter04.subarray_append_left_or_right_or_crossing` classifies every
-candidate as left-only, right-only, or crossing, and
-`CLRS.Chapter04.subarray_append_optimal_of_cases` packages the corresponding
-optimality argument.  The executable combine step
-`CLRS.Chapter04.maxSubarrayDivideStep_correct` is now compiler-clean too.  The
-recursive correctness layer is also compiler-clean:
-`CLRS.Chapter04.maxSubarrayDivideTree_correct` proves the split-tree selector,
-and `CLRS.Chapter04.maxSubarrayDivideFuel_correct` proves a fuelled midpoint
-divide-and-conquer selector against the original input.  The remaining CLRS
-refinement is runtime recurrence analysis and, eventually, a RAM-cost model for
-the textbook pseudocode.
+Strassen and lower-level representation/RAM cost models.  The current
+Master-theorem comparison stack covers all three textbook cases under its
+stated assumptions, and Section 4.1's executable abstract runtime is complete.
 
 ## Future Work
+
+### Chapter 5.4 Longest-Streak And On-Line Hiring Analysis
+
+- Related section: Section 5.4 - Probabilistic analysis of randomized algorithms
+- Status: `future-work`
+
+The finite foundations are present.  The streak model proves
+`CLRS.Chapter05.longestStreak_upperBound` and defines
+`CLRS.Chapter05.expectedLongestStreak`.  The on-line hiring model provides an
+executable threshold strategy, exact `some`/`none` contracts, and the finite
+uniform success probability `CLRS.Chapter05.OnlineHiring.probHireBest`.
+
+Two textbook-facing analyses remain: derive the logarithmic expectation bound
+for the longest streak, and prove the on-line strategy's harmonic success
+formula together with its `1/e` asymptotic.  These theorem gaps do not block use
+of either executable finite model.
 
 ### CLRS Exercises
 
@@ -154,12 +203,11 @@ The power-of-two recurrence is proved.  The arbitrary-size recurrence
 floor/ceiling arithmetic, monotonicity, and a clean asymptotic theorem for all
 input sizes.
 
-### Quicksort Mutable-Array Partition And Randomized Analysis
+### Quicksort Randomized Analysis
 
 - Related sections: Sections 7.2-7.4 - Quicksort performance and randomized
   quicksort
-- Status: `future-work` for mutable-array partition refinement;
-  `blocked-design` for expected randomized analysis
+- Status: `partial-proof`
 
 Section 7.1 proves the functional partition/quicksort correctness spine:
 `CLRS.Chapter07.partitionAround_correct` proves stable-filter partition
@@ -171,19 +219,20 @@ postcondition, `CLRS.Chapter07.clrsPartitionArray_correct_with_trace` adds an
 explicit adjacent-swap trace, and `CLRS.Chapter07.quickSort_correct` packages
 sortedness plus permutation preservation for the functional quicksort model.
 
-The remaining CLRS refinements are harder.  The mutable-array `PARTITION` proof
-needs an index-level array segment invariant that tracks the less/equal and
-greater regions while preserving the backing-list permutation.  The
-expected-comparison recurrence and harmonic bound are already proved in the
-current model; the remaining randomized-analysis layer is deriving that model
-from an explicit probability space for random pivots or random permutations.
+The mutable-array `PARTITION` refinement is now proved by
+`CLRS.Chapter07.partitionOnArray` and its array/list correspondence theorems.
+The randomized layer also proves the random-permutation first-choice symmetry
+and the pairwise comparison probability
+`compared_prob = 2 / (j - i + 1)`.  The remaining core target is the
+total-comparison random variable, the expectation-sum identity, and the final
+`Theta(n log n)` bridge.  Sharp tails and RAM accounting are optional.
 
 ### Chapter 8 Linear-Time Sorting Refinements
 
 - Related sections: Sections 8.2-8.4 - Counting sort, radix sort, and bucket
   sort
-- Status: `future-work` for count-array and numeric-order refinements;
-  `blocked-design` for the full bucket-sort expected-time theorem
+- Status: `proved` for correctness and the CLRS unit-cost expectation;
+  executable cost refinement is optional future work
 
 Section 8.2 proves the stable bucket specification for counting sort:
 `CLRS.Chapter08.countingSortBy_ordered` proves ordered output by key,
@@ -208,52 +257,22 @@ proves deterministic bucket-sort correctness:
 preservation, and permutation preservation for the merge-sorted bucket model.
 It also proves the finite-uniform collision and second-moment core:
 `CLRS.Chapter08.uniformAverageFin2_collision` and
-`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.
+`CLRS.Chapter08.expectedBucketQuadraticCost_self_linear_bound`.  The CLRS
+unit-cost random variable is `CLRS.Chapter08.textbookBucketSortCost`; its
+expectation is identified by
+`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
+and proved linear by
+`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`.
 
-The remaining CLRS refinements split into three tracks.  The array-level
-`COUNTING-SORT` proof should connect count arrays and prefix sums to the stable
-bucket specification.  Radix sort still has implementation and cost refinement
-work, but the bounded fixed-width ordinary key-order theorem is now proved.
-The remaining bucket-sort expected-time work is to connect that second-moment
-interface to an explicit independent input distribution and a concrete
-bucket-sort cost model.
-
-### Chapter 9 Selection Refinements
-
-- Related sections: Sections 9.2-9.4 - Selection and order statistics
-- Status: `future-work` for CLRS median-of-medians runtime refinement;
-  `blocked-design` for randomized expected-time analysis
-
-Section 9.2 proves the stable rank-certificate interface:
-`CLRS.Chapter09.selectByRank?_correct` shows that the specification selector
-returns an input value whose strict-lower count is at most the requested rank
-and whose weak-lower count is greater than that rank.  The same certificate is
-now proved for pivot-style quickselect by `CLRS.Chapter09.quickSelect?_correct`.
-Section 9.3 factors the proof through a pivot-parametric deterministic SELECT
-interface: `CLRS.Chapter09.selectWithPivot?_correct` proves correctness for any
-membership-safe pivot rule, `CLRS.Chapter09.deterministicSelect?_correct`
-instantiates it with a deterministic median pivot, and
-`CLRS.Chapter09.medianOfMediansSelect?_correct` instantiates it with an
-executable median-of-medians pivot.  It also proves
-`CLRS.Chapter09.medianOfFive?_certificate`, the local 3/3 count certificate for
-a five-element group.  The executable grouping and grouped counting core are
-now proved as well: `CLRS.Chapter09.fullGroupsOfFive_length_near`,
-`CLRS.Chapter09.fullGroupsOfFive_flatten_sublist`,
-`CLRS.Chapter09.leCount_le_of_sublist`,
-`CLRS.Chapter09.geCount_le_of_sublist`,
-`CLRS.Chapter09.medianOfFiveGroups?_certificates`,
-`CLRS.Chapter09.fullGroupsOfFive_medianGroupCertificates`,
-`CLRS.Chapter09.medianGroupCertificates_leCount_lower_bound`,
-`CLRS.Chapter09.medianGroupCertificates_geCount_lower_bound`, and
-`CLRS.Chapter09.fullGroupsOfFive_medianPivot_fullInput_split_counts`.  The
-CLRS-style branch-size packaging is proved by
-`CLRS.Chapter09.medianOfMediansPivot?_partition_size_bound`.
-
-The remaining hard work splits into two tracks.  Randomized SELECT needs a
-probability model for random pivots and an expected-cost argument.
-Deterministic linear-time SELECT already has the abstract recurrence induction
-and linear-bound wrapper; it still needs a concrete executable cost semantics
-for `medianOfMediansSelect?` that feeds the proved recurrence hypothesis.
+The array-level `COUNTING-SORT` refinement is now proved: a cumulative-count
+reverse scan fills a physical output `Array`, refines the stable bucket
+specification, and has a linear work bound.  Bucket sort has the exact second
+moment as a true expectation over the explicit independent uniform input
+distribution.  Its CLRS unit-cost random variable is identified with that
+expectation and proved linear by `expectedTextbookBucketSortCost_isBigO`.
+A single-pass executable bucket builder, a costed per-bucket sorter, and an
+execution-cost refinement remain optional implementation layers; they do not
+block the mathematical correctness milestone.
 
 ### Pointer-Level Linked Lists
 
@@ -279,12 +298,21 @@ parent-pointer layer is now also proved: iterative search
 proved equivalent to the functional operation.  The remaining BST work is the
 imperative in-place pointer-mutation (RAM) refinement.
 
-### Red-Black Deletion And Height
+### Generic Augmentation Through Red-Black Deletion
 
-- Related section: Section 13.1 - Red-black trees
+- Related section: Section 14.3 - Interval trees
 - Status: `future-work`
 
-The current Chapter 13 file includes executable insertion with membership,
-shape, and black-height theorems.  The remaining CLRS proof layer is executable
-`RB-DELETE`, `RB-DELETE-FIXUP`, invariant preservation, and the logarithmic
-height bound.
+Chapter 13 now proves `RedBlackShape` preservation through the composed
+executable `del`/`delete` pipeline (`redBlackShape_delete`, built on the
+`baldL`/`baldR`/`splitMin`/`join` doubly-black rebalancing certificates), and
+Section 14.1 threads the order-statistic size augmentation through that
+deletion (`OSRBTree.wellSized_delete`, `toRB_delete`,
+`redBlackShape_toRB_delete`, `mem_keys_delete`).
+
+The remaining work is the generic mirror: an `AugmentedRBTree` copy of the
+Chapter 13 `baldL`/`baldR`/`splitMin`/`join`/`del`/`delete` pipeline that
+rebuilds every node with the augmentation-recomputing smart constructor `mk`,
+plus the corresponding `wellAugmented_delete` invariant proof and
+`toRB_delete` refinement.  This is not blocked on Chapter 13; it is roughly
+300 lines of generic mirroring following the Section 14.1 template.

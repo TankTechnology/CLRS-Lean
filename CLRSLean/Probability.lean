@@ -13,4 +13,10 @@ Current modules:
 * {lit}`FiniteExpectation`: uniform average over a finite index type, linearity,
   and the indicator/expectation bridge used by the Chapter 7 comparison
   probability argument.
+
+## Implementation details
+
+The reusable probability support page remains available outside the main sidebar:
+
+* [Finite Expectation Toolkit](CLRSLean/Probability/FiniteExpectation/)
 -/

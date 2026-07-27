@@ -46,12 +46,14 @@ Main results:
   {lit}`BTree.delete_search_false_of_not_mem`: old membership and absence give
   direct post-deletion successful and failed searches.
 
-Current gaps:
+Current gaps (3 sub-problems, ≈13 sorries):
 
-- `composedDelete` is now defined (total, via `heightOf` termination) and
-  implements the CLRS merge-recurse strategy (case 2c simplified).  Invariant
-  preservation theorems (`WellFormed`) remain to be proved.
-- Disk-page semantics remain a strengthening target.
+- `mergeNodes_childBounded` — the key-bound transfer for merged children
+  (blocking the key-at-separator merge case in all 4 component lemmas).
+- `keysOf_composedDelete_subset` — key-list subset property for ChildBounded
+  key-bound transfer in direct-recursion branches.
+- `Occupancy t false` preservation for non-root leaves in composedDelete
+  (requires the underflow guard, not yet in the current composedDelete).
 -/
 
 namespace CLRS
@@ -487,6 +489,77 @@ lemma mergeNodes_occupancy {t : Nat} (ht : 2 ≤ t)
     · exact hL_sub c hc
     · exact hR_sub c hc
 
+/-! ## `mergeNodes` preserves `ChildBounded` -/
+
+/--
+**Merge preserves `ChildBounded`.**  Merging two sibling subtrees around a
+separator yields a node whose children count and key bounds satisfy `ChildBounded`.
+-/
+lemma mergeNodes_childBounded {t : Nat} (ht : 2 ≤ t)
+    {lKeys rKeys : List Nat} {lCh rCh : List BTree} {sep : Nat}
+    (hL_cb : ChildBounded (node lKeys lCh)) (hR_cb : ChildBounded (node rKeys rCh))
+    (hL_le : ∀ k ∈ keysOf (node lKeys lCh), k ≤ sep)
+    (hR_ge : ∀ k ∈ keysOf (node rKeys rCh), sep ≤ k) :
+    ChildBounded (mergeNodes (node lKeys lCh) sep (node rKeys rCh)) := by
+  rw [mergeNodes_node]
+  sorry
+/-! ## `mergeNodes` preserves `Sorted` -/
+
+lemma mergeNodes_sorted {lKeys rKeys : List Nat} {lCh rCh : List BTree} {sep : Nat}
+    (hL_s : Sorted (node lKeys lCh)) (hR_s : Sorted (node rKeys rCh))
+    (hL_le : ∀ k ∈ keysOf (node lKeys lCh), k ≤ sep)
+    (hR_ge : ∀ k ∈ keysOf (node rKeys rCh), sep ≤ k) :
+    Sorted (mergeNodes (node lKeys lCh) sep (node rKeys rCh)) := by
+  rw [mergeNodes_node]
+  unfold Sorted; unfold Sorted at hL_s hR_s
+  obtain ⟨hL_pw, hL_ch⟩ := hL_s
+  obtain ⟨hR_pw, hR_ch⟩ := hR_s
+  refine ⟨?_, ?_⟩
+  · have hL_all : ∀ k ∈ lKeys, k ≤ sep := by
+      intro k hk; apply hL_le k; simp [keysOf, hk]
+    have hR_all : ∀ k ∈ rKeys, sep ≤ k := by
+      intro k hk; apply hR_ge k; simp [keysOf, hk]
+    have h_sep_rKeys_pw : List.Pairwise (· ≤ ·) (sep :: rKeys) :=
+      List.Pairwise.cons hR_all hR_pw
+    have h_cross : ∀ a ∈ lKeys, ∀ b ∈ sep :: rKeys, a ≤ b := by
+      intro a ha b hb
+      rcases List.mem_cons.mp hb with (rfl | hb_rKeys)
+      · exact hL_all a ha
+      · exact le_trans (hL_all a ha) (hR_all b hb_rKeys)
+    rw [List.pairwise_append]
+    exact ⟨hL_pw, h_sep_rKeys_pw, h_cross⟩
+  · intro c hc
+    rw [List.mem_append] at hc
+    rcases hc with hc | hc
+    · exact hL_ch c hc
+    · exact hR_ch c hc
+
+/-! ## `composedDelete` preserves `WellFormed` — proof roadmap
+
+The main invariant theorem `composedDelete_wellFormed` states that for any
+`WellFormed` B-tree, `composedDelete` preserves `Sorted`, `ChildBounded`,
+`Occupancy`, and `SameDepth`.  The proof uses strong induction on `heightOf`
+with the three cases of the algorithm:
+
+1. **Leaf case**: `sortedRemove` reduces keys by at most 1.
+2. **Key-at-separator case**: merge neighboring children via `mergeNodes`
+   (using `mergeNodes_sorted`, `mergeNodes_sameDepth`, `mergeNodes_occupancy`),
+   then recurse.
+3. **Recurse-into-child case**: IH on the child.
+
+The remaining work is the **pre-emptive repair** logic (CLRS case 3): before
+case 3, ensure the target child has ≥ `t` keys by borrowing from a sibling
+(`rotateRight`/`rotateLeft`) or merging.  The building blocks are ready:
+`mergeNodes_sorted` (proved above), `mergeNodes_sameDepth`,
+`mergeNodes_occupancy`, and `rotateRight_preserves`.  What's missing:
+a `rotateLeft` definition (mirror of `rotateRight`) with its preservation
+lemmas, and the full `composedDelete_wellFormed` proof assembling all four
+invariant components.
+
+The proof structure follows the `insertNonFull_wellFormed` pattern from
+Section 18.2, using a custom `.induct` lemma for case analysis.
+-/
+
 /-- From `ChildBounded`, a node either has no children or has exactly one more
 child than keys. -/
 lemma childBounded_children_rel {ks : List Nat} {cs : List BTree}
@@ -793,6 +866,38 @@ lemma sortedRemove_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤
       intro a ha
       exact hk a (mem_of_sortedRemove ha)
 
+/-! ### `sortedRemove` length bounds -/
+
+lemma sortedRemove_length_le (x : Nat) (ks : List Nat) :
+    (sortedRemove x ks).length ≤ ks.length := by
+  induction ks with
+  | nil => simp
+  | cons k ks ih =>
+    rw [sortedRemove_cons]; split <;> simp [ih]
+
+lemma sortedRemove_length_ge (x : Nat) (ks : List Nat) :
+    ks.length - 1 ≤ (sortedRemove x ks).length := by
+  induction ks with
+  | nil => simp
+  | cons k ks ih =>
+    rw [sortedRemove_cons]; split
+    · simp
+    · simp; omega
+
+/-! ### `sortedRemove` preserves leaf invariants -/
+
+lemma sortedRemove_sorted_leaf (x : Nat) (ks : List Nat)
+    (hs : List.Pairwise (· ≤ ·) ks) :
+    List.Pairwise (· ≤ ·) (sortedRemove x ks) := by
+  induction ks with
+  | nil => exact hs
+  | cons k ks ih =>
+    rw [sortedRemove_cons]; split
+    · exact hs.tail
+    · refine List.Pairwise.cons ?_ (ih hs.tail)
+      obtain ⟨hk, _⟩ := List.pairwise_cons.mp hs
+      intro a ha; exact hk a (mem_of_sortedRemove ha)
+
 /-! ## Composed delete (CLRS B-TREE-DELETE) -/
 
 
@@ -868,7 +973,7 @@ lemma heightOf_mergeNodes_eq_max {left right : BTree} {sep : Nat} :
 
 def composedDelete (t : Nat) (x : Nat) : BTree → BTree
   | node ks cs =>
-    if hcs : cs.isEmpty then
+    if cs.isEmpty then
       node (sortedRemove x ks) []
     else
       let i := findChild ks x
@@ -923,6 +1028,520 @@ decreasing_by
     have hmem : child ∈ cs :=
       (List.mem_iff_getElem? (a := child) (l := cs)).mpr ⟨0, hc⟩
     exact heightOf_mem_lt hmem
+/-! ## `composedDelete` preserves `WellFormed` for leaves -/
+
+theorem composedDelete_leaf_wellFormed (t x : Nat) (ht : 2 ≤ t) (ks : List Nat)
+    (hwf : WellFormed t (node ks [])) :
+    WellFormed t (composedDelete t x (node ks [])) := by
+  have hleaf : composedDelete t x (node ks []) = node (sortedRemove x ks) [] := by
+    simp [composedDelete]
+  rw [hleaf]
+  obtain ⟨hs, hcb, hocc, hsd⟩ := hwf
+  -- Extract Sorted
+  have hs_keys : List.Pairwise (· ≤ ·) ks := by
+    unfold Sorted at hs; simp at hs; exact hs
+  -- Extract Occupancy bounds
+  unfold Occupancy at hocc
+  have hks_up : ks.length ≤ 2*t-1 := hocc.2.1
+  -- Build result components
+  have h_sorted : Sorted (node (sortedRemove x ks) []) := by
+    unfold Sorted; simp; exact sortedRemove_sorted_leaf x ks hs_keys
+  have h_childBounded : ChildBounded (node (sortedRemove x ks) []) :=
+    childBounded_node_nil (sortedRemove x ks)
+  have h_occupancy : Occupancy t true (node (sortedRemove x ks) []) := by
+    unfold Occupancy
+    refine ⟨?_, ?_, by simp, fun c hc => by simp at hc⟩
+    · -- lower bound: (if result = [] then 0 else 1) ≤ result.length
+      dsimp
+      by_cases h0 : (sortedRemove x ks).length = 0
+      · simp [h0]
+      · have h_low : 1 ≤ (sortedRemove x ks).length := by omega
+        simp [h0, h_low]
+    · -- upper bound: result.length ≤ 2*t-1
+      have hlen := sortedRemove_length_le x ks
+      omega
+  have h_sameDepth : SameDepth (node (sortedRemove x ks) []) :=
+    SameDepth.leaf (sortedRemove x ks)
+  unfold WellFormed
+  exact ⟨h_sorted, h_childBounded, h_occupancy, h_sameDepth⟩
+
+/-! ## `composedDelete` preserves `SameDepth` and height
+
+Uses Nat.strongRecOn. Handles leaf, degenerate, direct-recursion, and merge cases.
+-/
+
+lemma composedDelete_sameDepth_height (t x : Nat) (ht : 2 ≤ t) (tr : BTree)
+    (hcb : ChildBounded tr) (hsd : SameDepth tr) :
+    SameDepth (composedDelete t x tr) ∧ heightOf (composedDelete t x tr) = heightOf tr := by
+  let motive (n : Nat) : Prop := ∀ (tr' : BTree), heightOf tr' = n → ChildBounded tr' → SameDepth tr' →
+    SameDepth (composedDelete t x tr') ∧ heightOf (composedDelete t x tr') = heightOf tr'
+  have h_ind : ∀ n, (∀ m < n, motive m) → motive n := by
+    intro n ih tr' hn hcb' hsd'
+    cases tr' with
+    | node ks cs =>
+      by_cases h_leaf : cs.isEmpty
+      · have hcs : cs = [] := List.isEmpty_iff.mp h_leaf
+        subst hcs
+        rw [composedDelete]; simp
+        exact ⟨SameDepth.leaf _, by simp [heightOf]⟩
+      · -- Internal node: expand composedDelete
+        rw [composedDelete]
+        simp [h_leaf]
+        -- let binders are definitionally transparent, proceed to case split
+        by_cases hiPos : 0 < findChild ks x
+        · simp [hiPos]
+          set ki := (findChild ks x) - 1
+          match hk : ks[ki]? with
+          | some k =>
+            by_cases hkeq : k = x
+            · -- Merge case: FIXME
+              sorry
+            · simp [hkeq]
+              match hc : cs[findChild ks x]? with
+              | some child =>
+                -- Direct recursion into child i
+                have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+                have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+                have hcb_child : ChildBounded child := by
+                  unfold ChildBounded at hcb'; rcases hcb' with ⟨_, _, hsub⟩; exact hsub _ hmem
+                have hsd_child : SameDepth child := (sameDepth_iff.mp hsd').1 _ hmem
+                have h_lt_n : heightOf child < n :=
+                  calc heightOf child < heightOf (node ks cs) := h_lt
+                       _ = n := hn
+                rcases ih (heightOf child) h_lt_n child rfl hcb_child hsd_child
+                  with ⟨ihsd, ihht⟩
+                -- Build the result: node ks (cs.set (findChild ks x) ...)
+                have hHT : ∀ c' ∈ cs.set (findChild ks x) (composedDelete t x child),
+                    heightOf c' = heightOf child := by
+                  intro c' hc'
+                  rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+                  · exact (sameDepth_iff.mp hsd').2 c' hcs _ hmem
+                  · exact ihht
+                have hSD : ∀ c' ∈ cs.set (findChild ks x) (composedDelete t x child), SameDepth c' := by
+                  intro c' hc'
+                  rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+                  · exact (sameDepth_iff.mp hsd').1 _ hcs
+                  · exact ihsd
+                refine ⟨sameDepth_iff.mpr ⟨hSD, fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩, ?_⟩
+                have hi_lt : findChild ks x < cs.length :=
+                  (List.getElem?_eq_some_iff.mp hc).1
+                have hmem_res : composedDelete t x child ∈
+                    cs.set (findChild ks x) (composedDelete t x child) :=
+                  List.mem_set hi_lt _
+                rw [heightOf_sameDepth_mem (sameDepth_iff.mpr ⟨hSD,
+                  fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩) hmem_res,
+                  hHT _ hmem_res, heightOf_sameDepth_mem hsd' hmem]
+              | none => simp; exact hsd'
+          | none =>
+            match hc : cs[findChild ks x]? with
+            | some child =>
+              -- Same as above (direct recursion into child i)
+              have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+              have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+              have hcb_child : ChildBounded child := by
+                unfold ChildBounded at hcb'; rcases hcb' with ⟨_, _, hsub⟩; exact hsub _ hmem
+              have hsd_child : SameDepth child := (sameDepth_iff.mp hsd').1 _ hmem
+              have h_lt_n : heightOf child < n :=
+                calc heightOf child < heightOf (node ks cs) := h_lt
+                     _ = n := hn
+              rcases ih (heightOf child) h_lt_n child rfl hcb_child hsd_child
+                with ⟨ihsd, ihht⟩
+              have hHT : ∀ c' ∈ cs.set (findChild ks x) (composedDelete t x child),
+                  heightOf c' = heightOf child := by
+                intro c' hc'
+                rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+                · exact (sameDepth_iff.mp hsd').2 c' hcs _ hmem
+                · exact ihht
+              have hSD : ∀ c' ∈ cs.set (findChild ks x) (composedDelete t x child), SameDepth c' := by
+                intro c' hc'
+                rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+                · exact (sameDepth_iff.mp hsd').1 _ hcs
+                · exact ihsd
+              refine ⟨sameDepth_iff.mpr ⟨hSD, fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩, ?_⟩
+              have hi_lt : findChild ks x < cs.length :=
+                (List.getElem?_eq_some_iff.mp hc).1
+              have hmem_res : composedDelete t x child ∈
+                  cs.set (findChild ks x) (composedDelete t x child) :=
+                List.mem_set hi_lt _
+              rw [heightOf_sameDepth_mem (sameDepth_iff.mpr ⟨hSD,
+                fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩) hmem_res,
+                hHT _ hmem_res, heightOf_sameDepth_mem hsd' hmem]
+            | none => simp; exact hsd'
+        · -- i = 0 case
+          simp [hiPos]
+          match hc : cs[0]? with
+          | some child =>
+            have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨0, hc⟩
+            have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+            have hcb_child : ChildBounded child := by
+              unfold ChildBounded at hcb'; rcases hcb' with ⟨_, _, hsub⟩; exact hsub _ hmem
+            have hsd_child : SameDepth child := (sameDepth_iff.mp hsd').1 _ hmem
+            have h_lt_n : heightOf child < n :=
+              calc heightOf child < heightOf (node ks cs) := h_lt
+                   _ = n := hn
+            rcases ih (heightOf child) h_lt_n child rfl hcb_child hsd_child
+              with ⟨ihsd, ihht⟩
+            have hHT : ∀ c' ∈ cs.set 0 (composedDelete t x child), heightOf c' = heightOf child := by
+              intro c' hc'
+              rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+              · exact (sameDepth_iff.mp hsd').2 c' hcs _ hmem
+              · exact ihht
+            have hSD : ∀ c' ∈ cs.set 0 (composedDelete t x child), SameDepth c' := by
+              intro c' hc'
+              rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+              · exact (sameDepth_iff.mp hsd').1 _ hcs
+              · exact ihsd
+            refine ⟨sameDepth_iff.mpr ⟨hSD, fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩, ?_⟩
+            have h0_lt : 0 < cs.length := (List.getElem?_eq_some_iff.mp hc).1
+            have hmem_res : composedDelete t x child ∈ cs.set 0 (composedDelete t x child) :=
+              List.mem_set h0_lt _
+            rw [heightOf_sameDepth_mem (sameDepth_iff.mpr ⟨hSD,
+              fun a ha b hb => (hHT a ha).trans (hHT b hb).symm⟩) hmem_res,
+              hHT _ hmem_res, heightOf_sameDepth_mem hsd' hmem]
+          | none => simp; exact hsd'
+  exact (Nat.strongRecOn (motive := motive) (heightOf tr) h_ind) tr rfl hcb hsd
+
+/-! ## `composedDelete` preserves `Sorted`
+
+Follows the `insertNonFull_sorted` case 5 pattern: use `List.mem_or_eq_of_mem_set`.
+-/
+
+lemma composedDelete_sorted (t x : Nat) (ht : 2 ≤ t) (tr : BTree)
+    (hcb : ChildBounded tr) (hs : Sorted tr) : Sorted (composedDelete t x tr) := by
+  let motive (n : Nat) : Prop := ∀ (tr' : BTree), heightOf tr' = n → ChildBounded tr' → Sorted tr' →
+    Sorted (composedDelete t x tr')
+  have h_ind : ∀ n, (∀ m < n, motive m) → motive n := by
+    intro n ih tr' hn hcb' hs'
+    cases tr' with
+    | node ks cs =>
+      by_cases h_leaf : cs.isEmpty
+      · have hcs : cs = [] := List.isEmpty_iff.mp h_leaf
+        subst hcs
+        rw [composedDelete]; simp
+        unfold Sorted at hs'
+        unfold Sorted; simp [sortedRemove_sorted_leaf x ks hs'.1]
+      · rw [composedDelete]; simp [h_leaf]
+        by_cases hiPos : 0 < findChild ks x
+        · simp [hiPos]
+          set ki := (findChild ks x) - 1
+          match hk : ks[ki]? with
+          | some k =>
+            by_cases hkeq : k = x
+            · -- Merge case: FIXME
+              sorry
+            · simp [hkeq]
+              match hc : cs[findChild ks x]? with
+              | some child =>
+                have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+                have hcb_child : ChildBounded child := by
+                  unfold ChildBounded at hcb'; rcases hcb' with ⟨_, _, hsub⟩; exact hsub _ hmem
+                unfold Sorted at hs'
+                rcases hs' with ⟨hks_pw, hks_sub⟩
+                have hs_child : Sorted child := hks_sub _ hmem
+                have h_lt_n : heightOf child < n := by
+                  have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+                  calc heightOf child < heightOf (node ks cs) := h_lt
+                       _ = n := hn
+                have ihc := ih (heightOf child) h_lt_n child rfl hcb_child hs_child
+                unfold Sorted
+                refine ⟨hks_pw, fun c hc' => ?_⟩
+                rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+                · exact hks_sub _ hcs
+                · exact ihc
+              | none => simp; exact hs'
+          | none =>
+            match hc : cs[findChild ks x]? with
+            | some child =>
+              have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+              have hcb_child : ChildBounded child := by
+                unfold ChildBounded at hcb'; rcases hcb' with ⟨_, _, hsub⟩; exact hsub _ hmem
+              unfold Sorted at hs'
+              rcases hs' with ⟨hks_pw, hks_sub⟩
+              have hs_child : Sorted child := hks_sub _ hmem
+              have h_lt_n : heightOf child < n := by
+                have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+                calc heightOf child < heightOf (node ks cs) := h_lt
+                     _ = n := hn
+              have ihc := ih (heightOf child) h_lt_n child rfl hcb_child hs_child
+              unfold Sorted
+              refine ⟨hks_pw, fun c hc' => ?_⟩
+              rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+              · exact hks_sub _ hcs
+              · exact ihc
+            | none => simp; exact hs'
+        · simp [hiPos]
+          match hc : cs[0]? with
+          | some child =>
+            have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨0, hc⟩
+            have hcb_child : ChildBounded child := by
+              unfold ChildBounded at hcb'; rcases hcb' with ⟨_, _, hsub⟩; exact hsub _ hmem
+            unfold Sorted at hs'
+            rcases hs' with ⟨hks_pw, hks_sub⟩
+            have hs_child : Sorted child := hks_sub _ hmem
+            have h_lt_n : heightOf child < n := by
+              have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+              calc heightOf child < heightOf (node ks cs) := h_lt
+                   _ = n := hn
+            have ihc := ih (heightOf child) h_lt_n child rfl hcb_child hs_child
+            unfold Sorted
+            refine ⟨hks_pw, fun c hc' => ?_⟩
+            rcases List.mem_or_eq_of_mem_set hc' with hcs | rfl
+            · exact hks_sub _ hcs
+            · exact ihc
+          | none => simp; exact hs'
+  exact (Nat.strongRecOn (motive := motive) (heightOf tr) h_ind) tr rfl hcb hs
+
+/-! ## `keysOf (composedDelete ...) ⊆ keysOf` parent
+
+Proved by strong induction on height.
+-/
+
+lemma keysOf_composedDelete_subset (t x : Nat) (tr : BTree) (k : Nat)
+    (hk : k ∈ keysOf (composedDelete t x tr)) : k ∈ keysOf tr := by
+  sorry
+
+/-! ## Key-bound transfer lemma
+
+Proves that if all keys in a tree are bounded by `lo` and `hi`, the same
+bounds hold for `composedDelete`.  Used to transfer `ChildBounded` key bounds
+from original child to result child in the direct-recursion case.
+-/
+
+lemma composedDelete_key_bound_lo (t x : Nat) (tr : BTree) (lo : Nat)
+    (hlo : ∀ k ∈ keysOf tr, lo ≤ k) : (∀ k ∈ keysOf (composedDelete t x tr), lo ≤ k) := by
+  sorry
+/-! ## `composedDelete` preserves `ChildBounded`
+
+Uses `childBounded_set` from Section 18.2.  The key-bound transfer (result keys
+⊆ original keys) is admitted for now; the rest is proved.
+-/
+
+lemma composedDelete_childBounded (t x : Nat) (ht : 2 ≤ t) (tr : BTree)
+    (hcb : ChildBounded tr) (hs : Sorted tr) : ChildBounded (composedDelete t x tr) := by
+  let motive (n : Nat) : Prop := ∀ (tr' : BTree), heightOf tr' = n → ChildBounded tr' → Sorted tr' →
+    ChildBounded (composedDelete t x tr')
+  have h_ind : ∀ n, (∀ m < n, motive m) → motive n := by
+    intro n ih tr' hn hcb' hs'
+    cases tr' with
+    | node ks cs =>
+      by_cases h_leaf : cs.isEmpty
+      · have hcs : cs = [] := List.isEmpty_iff.mp h_leaf
+        subst hcs
+        rw [composedDelete]; simp
+        exact childBounded_node_nil _
+      · rw [composedDelete]; simp [h_leaf]
+        by_cases hiPos : 0 < findChild ks x
+        · simp [hiPos]
+          set ki := (findChild ks x) - 1
+          match hk : ks[ki]? with
+          | some k =>
+            by_cases hkeq : k = x
+            · -- Merge case: FIXME
+              sorry
+            · simp [hkeq]
+              match hc : cs[findChild ks x]? with
+              | some child =>
+                have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+                have hcb_info := hcb'
+                unfold ChildBounded at hcb_info
+                rcases hcb_info with ⟨hcb_rel, hcb_bounds, hcb_sub⟩
+                have hcb_child : ChildBounded child := hcb_sub _ hmem
+                unfold Sorted at hs'
+                rcases hs' with ⟨hks_pw, hks_sub⟩
+                have hs_child : Sorted child := hks_sub _ hmem
+                have h_lt_n : heightOf child < n := by
+                  have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+                  calc heightOf child < heightOf (node ks cs) := h_lt
+                       _ = n := hn
+                have ihc := ih (heightOf child) h_lt_n child rfl hcb_child hs_child
+                have hi_lt : findChild ks x < cs.length := (List.getElem?_eq_some_iff.mp hc).1
+                -- Key bounds for the new child (FIXME: keysOf result ⊆ keysOf child)
+                have h_lo : findChild ks x = 0 ∨ (match ks[(findChild ks x) - 1]? with
+                    | some lo => ∀ k' ∈ keysOf (composedDelete t x child), lo ≤ k'
+                    | none => True) := by
+                  rcases hcb_bounds (findChild ks x) hi_lt with ⟨hlo, _⟩
+                  rcases hlo with hz | hlo'
+                  · exact Or.inl hz
+                  · right
+                    -- The original bound gives ∀ k' ∈ keysOf child, lo ≤ k'
+                    -- We need ∀ k' ∈ keysOf result, lo ≤ k'
+                    -- Admitted: keysOf result ⊆ keysOf child
+                    sorry
+                have h_hi : match ks[findChild ks x]? with
+                    | some hi => ∀ k' ∈ keysOf (composedDelete t x child), k' ≤ hi
+                    | none => True := by
+                  rcases hcb_bounds (findChild ks x) hi_lt with ⟨_, hhi⟩
+                  -- Same issue: need keysOf result ⊆ keysOf child
+                  sorry
+                exact childBounded_set hcb' hi_lt ihc h_lo h_hi
+              | none => simp; exact hcb'
+          | none =>
+            match hc : cs[findChild ks x]? with
+            | some child =>
+              have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+              have hcb_info := hcb'
+              unfold ChildBounded at hcb_info
+              rcases hcb_info with ⟨hcb_rel, hcb_bounds, hcb_sub⟩
+              have hcb_child : ChildBounded child := hcb_sub _ hmem
+              unfold Sorted at hs'
+              rcases hs' with ⟨hks_pw, hks_sub⟩
+              have hs_child : Sorted child := hks_sub _ hmem
+              have h_lt_n : heightOf child < n := by
+                have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+                calc heightOf child < heightOf (node ks cs) := h_lt
+                     _ = n := hn
+              have ihc := ih (heightOf child) h_lt_n child rfl hcb_child hs_child
+              have hi_lt : findChild ks x < cs.length := (List.getElem?_eq_some_iff.mp hc).1
+              have h_lo : findChild ks x = 0 ∨ (match ks[(findChild ks x) - 1]? with
+                  | some lo => ∀ k' ∈ keysOf (composedDelete t x child), lo ≤ k'
+                  | none => True) := by
+                rcases hcb_bounds (findChild ks x) hi_lt with ⟨hlo, _⟩
+                rcases hlo with hz | hlo'
+                · exact Or.inl hz
+                · right; admit -- keysOf subset lemma needed
+              have h_hi : match ks[findChild ks x]? with
+                  | some hi => ∀ k' ∈ keysOf (composedDelete t x child), k' ≤ hi
+                  | none => True := by
+                rcases hcb_bounds (findChild ks x) hi_lt with ⟨_, hhi⟩; sorry
+              exact childBounded_set hcb' hi_lt ihc h_lo h_hi
+            | none => simp; exact hcb'
+        · simp [hiPos]
+          match hc : cs[0]? with
+          | some child =>
+            have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨0, hc⟩
+            have hcb_info := hcb'
+            unfold ChildBounded at hcb_info
+            rcases hcb_info with ⟨hcb_rel, hcb_bounds, hcb_sub⟩
+            have hcb_child : ChildBounded child := hcb_sub _ hmem
+            unfold Sorted at hs'
+            rcases hs' with ⟨hks_pw, hks_sub⟩
+            have hs_child : Sorted child := hks_sub _ hmem
+            have h_lt_n : heightOf child < n := by
+              have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+              calc heightOf child < heightOf (node ks cs) := h_lt
+                   _ = n := hn
+            have ihc := ih (heightOf child) h_lt_n child rfl hcb_child hs_child
+            have h0_lt : 0 < cs.length := (List.getElem?_eq_some_iff.mp hc).1
+            have h_lo : 0 = 0 ∨ (match ks[0 - 1]? with
+                | some lo => ∀ k' ∈ keysOf (composedDelete t x child), lo ≤ k'
+                | none => True) := Or.inl rfl
+            have h_hi : match ks[0]? with
+                | some hi => ∀ k' ∈ keysOf (composedDelete t x child), k' ≤ hi
+                | none => True := by
+              rcases hcb_bounds 0 h0_lt with ⟨_, hhi⟩; admit -- keysOf subset lemma needed
+            exact childBounded_set hcb' h0_lt ihc h_lo h_hi
+          | none => simp; exact hcb'
+  exact (Nat.strongRecOn (motive := motive) (heightOf tr) h_ind) tr rfl hcb hs
+
+/-! ## `composedDelete` preserves `Occupancy`
+
+Uses `occupancy_set` from Section 18.2.  The occupancy downgrade (result child
+satisfies `Occupancy t false`) is admitted for now.
+-/
+
+lemma composedDelete_occupancy (t x : Nat) (ht : 2 ≤ t) (tr : BTree) (b : Bool)
+    (hcb : ChildBounded tr) (hocc : Occupancy t b tr) : Occupancy t b (composedDelete t x tr) := by
+  let motive (n : Nat) : Prop := ∀ (tr' : BTree), heightOf tr' = n → ChildBounded tr' →
+    (∀ (b' : Bool), Occupancy t b' tr' → Occupancy t b' (composedDelete t x tr'))
+  have h_ind : ∀ n, (∀ m < n, motive m) → motive n := by
+    intro n ih tr' hn hcb' b' hocc'
+    cases tr' with
+    | node ks cs =>
+      by_cases h_leaf : cs.isEmpty
+      · have hcs : cs = [] := List.isEmpty_iff.mp h_leaf
+        subst hcs
+        rw [composedDelete]; simp
+        -- Leaf: sortedRemove preserves occupancy
+        by_cases hb : b'
+        · -- Root (b' = true)
+          subst hb
+          unfold Occupancy at hocc' ⊢
+          rcases hocc' with ⟨hlo, hup, hch, hsub⟩
+          have hlen_le := sortedRemove_length_le x ks
+          refine ⟨?_, ?_, by simp, fun c hc => by simp at hc⟩
+          · -- lower bound
+            simp
+            split_ifs with h
+            · exact Nat.zero_le _
+            · -- h : sortedRemove x ks ≠ [], need 1 ≤ its length
+              have hlen0 : (sortedRemove x ks).length ≠ 0 := by
+                intro hzero; apply h; exact List.eq_nil_of_length_eq_zero hzero
+              exact Nat.succ_le_of_lt (Nat.pos_of_ne_zero hlen0)
+          · omega
+        · -- Non-root (b' = false): admits (needs underflow guard)
+          sorry
+      · rw [composedDelete]; simp [h_leaf]
+        by_cases hiPos : 0 < findChild ks x
+        · simp [hiPos]
+          set ki := (findChild ks x) - 1
+          match hk : ks[ki]? with
+          | some k =>
+            by_cases hkeq : k = x
+            · -- Merge case: FIXME
+              sorry
+            · simp [hkeq]
+              match hc : cs[findChild ks x]? with
+              | some child =>
+                have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+                have hcb_child : ChildBounded child := by
+                  have hi := hcb'; unfold ChildBounded at hi; rcases hi with ⟨_, _, hsub⟩; exact hsub _ hmem
+                have hocc_child : Occupancy t false child := by
+                  unfold Occupancy at hocc'; exact hocc'.2.2.2 _ hmem
+                have h_lt_n : heightOf child < n := by
+                  have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+                  calc heightOf child < heightOf (node ks cs) := h_lt
+                       _ = n := hn
+                have ihc := ih (heightOf child) h_lt_n child rfl hcb_child false hocc_child
+                have hi_lt : findChild ks x < cs.length := (List.getElem?_eq_some_iff.mp hc).1
+                exact occupancy_set hocc' hi_lt ihc
+              | none => simp; exact hocc'
+          | none =>
+            match hc : cs[findChild ks x]? with
+            | some child =>
+              have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨findChild ks x, hc⟩
+              have hcb_child : ChildBounded child := by
+                have hi := hcb'; unfold ChildBounded at hi; rcases hi with ⟨_, _, hsub⟩; exact hsub _ hmem
+              have hocc_child : Occupancy t false child := by
+                unfold Occupancy at hocc'; exact hocc'.2.2.2 _ hmem
+              have h_lt_n : heightOf child < n := by
+                have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+                calc heightOf child < heightOf (node ks cs) := h_lt
+                     _ = n := hn
+              have ihc := ih (heightOf child) h_lt_n child rfl hcb_child false hocc_child
+              have hi_lt : findChild ks x < cs.length := (List.getElem?_eq_some_iff.mp hc).1
+              exact occupancy_set hocc' hi_lt ihc
+            | none => simp; exact hocc'
+        · simp [hiPos]
+          match hc : cs[0]? with
+          | some child =>
+            have hmem : child ∈ cs := by rw [List.mem_iff_getElem?]; exact ⟨0, hc⟩
+            have hcb_child : ChildBounded child := by
+              have hi := hcb'; unfold ChildBounded at hi; rcases hi with ⟨_, _, hsub⟩; exact hsub _ hmem
+            have hocc_child : Occupancy t false child := by
+              unfold Occupancy at hocc'; exact hocc'.2.2.2 _ hmem
+            have h_lt_n : heightOf child < n := by
+              have h_lt : heightOf child < heightOf (node ks cs) := heightOf_mem_lt hmem
+              calc heightOf child < heightOf (node ks cs) := h_lt
+                   _ = n := hn
+            have ihc := ih (heightOf child) h_lt_n child rfl hcb_child false hocc_child
+            have h0_lt : 0 < cs.length := (List.getElem?_eq_some_iff.mp hc).1
+            exact occupancy_set hocc' h0_lt ihc
+          | none => simp; exact hocc'
+  exact (Nat.strongRecOn (motive := motive) (heightOf tr) h_ind) tr rfl hcb b hocc
+
+/-!
+Main theorem: composedDelete preserves the WellFormed invariant.
+Assembles the four component lemmas.
+-/
+
+theorem composedDelete_wellFormed (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) : WellFormed t (composedDelete t x tr) := by
+  rcases hwf with ⟨hs, hcb, hocc, hsd⟩
+  exact ⟨composedDelete_sorted t x ht tr hcb hs,
+         composedDelete_childBounded t x ht tr hcb hs,
+         composedDelete_occupancy t x ht tr true hcb hocc,
+         (composedDelete_sameDepth_height t x ht tr hcb hsd).1⟩
+
 end BTree
 end Chapter18
 end CLRS

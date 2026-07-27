@@ -34,8 +34,12 @@ Beyond the definitional layer, we also prove the CLRS second moment
 independent uniform input distribution `Fin n → Fin m` (each key hashed
 independently and uniformly to a bucket), reusing
 {name}`CLRS.Probability.expect_mul_of_indep` for the independence step
-(`expectedBucketQuadraticCost_eq_secondMoment`).  The abstract expected cost is
-shown to be {lit}`O(n)` via `expectedBucketSortCost_isBigO`.
+(`expectedBucketQuadraticCost_eq_secondMoment`).  The textbook random variable
+is {lit}`textbookBucketSortCost`; its expectation is identified with the
+existing abstract expression by
+{lit}`fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` and shown
+to be {lit}`O(n)` by {lit}`expectedTextbookBucketSortCost_isBigO`.  This cost
+model does not instrument the current executable bucket builder or sorter.
 -/
 
 namespace CLRS
@@ -513,6 +517,55 @@ theorem expectedBucketQuadraticCost_eq_secondMoment {m n : Nat} (hm : 0 < m) :
   unfold expectedBucketQuadraticCost
   field_simp
   ring
+
+/-! ## Textbook abstract bucket-sort cost
+
+The CLRS unit-cost random variable charges {lit}`n + Σ_j n_j²` for an
+assignment of {lit}`n` keys to {lit}`n` buckets: {lit}`n` for the scan and
+distribution term, and the occupancy-square sum for the textbook per-bucket
+sorting bound.  This is an abstract model over uniformly random bucket
+assignments.  It does not instrument the current executable
+{name}`bucketSortByRank`, whose implementation repeatedly filters the input to
+construct its buckets.
+-/
+
+open Chapter03
+
+/-- The CLRS abstract unit-cost random variable {lit}`n + Σ_j n_j²`. -/
+noncomputable def textbookBucketSortCost (n : ℕ) (a : Fin n → Fin n) : ℝ :=
+  (n : ℝ) + bucketSecondMoment a
+
+/--
+The expectation of the textbook random variable is exactly the existing
+abstract expected-cost expression.  The second-moment term is discharged by
+{name}`expectedBucketQuadraticCost_eq_secondMoment`.
+-/
+theorem fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost
+    (n : ℕ) (hn : 0 < n) :
+    fintypeExpect (textbookBucketSortCost n) = expectedBucketSortCost n := by
+  classical
+  unfold textbookBucketSortCost
+  rw [fintypeExpect_add]
+  have h_const : fintypeExpect (fun _ : Fin n → Fin n => (n : ℝ)) = (n : ℝ) := by
+    simp [fintypeExpect]
+  rw [h_const, expectedBucketQuadraticCost_eq_secondMoment hn]
+  rfl
+
+/-- The CLRS abstract unit-cost random variable has linear expectation. -/
+theorem expectedTextbookBucketSortCost_isBigO :
+    isBigO (fun n : ℕ => fintypeExpect (textbookBucketSortCost n))
+      (fun n : ℕ => (n : ℝ)) := by
+  rw [isBigO_iff]
+  refine ⟨3, by norm_num, 1, fun n hn => ?_⟩
+  have hn_pos : 0 < n := by omega
+  rw [fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost n hn_pos]
+  have hle : expectedBucketSortCost n ≤ 3 * (n : ℝ) := expectedBucketSortCost_linear_bound n hn_pos
+  have h_nonneg : 0 ≤ expectedBucketSortCost n := by
+    rw [expectedBucketSortCost_self_eq n hn_pos]
+    have : 1 ≤ (n : ℝ) := by exact_mod_cast hn_pos
+    nlinarith
+  rw [abs_of_nonneg h_nonneg, abs_of_nonneg (Nat.cast_nonneg _)]
+  exact hle
 
 end Chapter08
 end CLRS

@@ -1,252 +1,305 @@
-import Mathlib
+import Mathlib.Tactic
 import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model
 
 /-!
 # 27.2–27.4. Multithreaded Algorithms
 
-This file formalizes the parallel algorithms from CLRS §§27.2–27.4:
+This file formalizes the work/span recurrences of the parallel algorithms
+from CLRS §§27.2–27.4 as executable recursive cost functions, in the style of
+Chapter 4's divide-and-conquer cost analysis:
 
-- **§27.2 P-MATMUL**: parallel matrix multiplication with work Θ(n³) and span Θ(log n).
-- **§27.3 P-MERGE / P-MERGE-SORT**: parallel merge and merge sort with work Θ(n log n)
-  and span Θ(log³ n).
-- **§27.4 Parallel Strassen**: multithreaded Strassen's algorithm with work Θ(n^(log₂ 7))
-  and span Θ(log² n).
+- **§27.2 P-MATMUL**: work `T₁(n) = 8 T₁(n/2) + n²`, span `T∞(n) = T∞(n/2) + 1`.
+- **§27.3 P-MERGE**: work `T₁(n) = T₁(⌊n/2⌋) + T₁(⌈n/2⌉) + (⌊log₂ n⌋ + 1)`
+  (two parallel recursive merges plus a binary-search combine),
+  span `T∞(n) = T∞(⌈n/2⌉) + (⌊log₂ n⌋ + 1)`.
+- **§27.3 P-MERGE-SORT**: work `T₁(n) = T₁(⌊n/2⌋) + T₁(⌈n/2⌉) + n`,
+  span `T∞(n) = T∞(⌈n/2⌉) + (P-MERGE span)`.
+- **§27.4 Parallel Strassen**: work `T₁(n) = 7 T₁(n/2) + n²`,
+  span `T∞(n) = T∞(n/2) + 1`.
 
-Each algorithm is formalized with work and span recurrences, and the asymptotically
-optimal bounds are stated as theorems (proofs deferred).
+## Main results (exact closed forms on powers of two)
 
-Main results:
+* `pMatMulWork_pow_two`: `T₁(2ᵏ) + 4ᵏ = 2·8ᵏ`, i.e. work `Θ(n³)`.
+* `pMatMulWork_le`: the all-input bound `T₁(n) + n² ≤ 2n³`.
+* `pMatMulSpan_pow_two`: `T∞(2ᵏ) = k + 1`, i.e. span `Θ(log n)`;
+  `pMatMulSpan_le`: the all-input bound `T∞(n) ≤ ⌊log₂ n⌋ + 1`.
+* `pMergeWork_pow_two`: `T₁(2ᵏ) + (k + 3) = 4·2ᵏ`, i.e. work `Θ(n)`.
+* `pMergeSpan_pow_two`: `2·T∞(2ᵏ) = (k+1)(k+2)`, i.e. span `Θ(log² n)`.
+* `pMergeSortWork_pow_two`: `T₁(2ᵏ) = 2ᵏ·(k+1)`, i.e. work `Θ(n log n)`.
+* `pMergeSortSpan_pow_two`: `6·T∞(2ᵏ) = 6 + k·(k² + 6k + 11)`,
+  i.e. span `Θ(log³ n)`.
+* `strassenWork_pow_two`: `3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`, i.e. work
+  `Θ(n^(log₂ 7))`.
+* `strassenSpan_pow_two`: `T∞(2ᵏ) = k + 1`, i.e. span `Θ(log n)`.
 
-- `ParallelMatMul`: parallel matrix multiplication, work = Θ(n³), span = Θ(log n).
-- `PMerge`, `PMergeSort`: parallel merge/merge-sort, work = Θ(n log n), span = Θ(log³ n).
-- `ParallelStrassen`: parallel Strassen, work = Θ(n^(log₂ 7)), span = Θ(log² n).
+## Deferred work
 
-**Current gaps**: all work/span proofs are deferred; only definitions and
-theorem statements are provided.
+* All-input (floor/ceiling) Θ-bounds for the merge-based costs via the
+  power-sandwich technique of Chapter 4 (`powerInterval_of_pos`), which
+  requires monotonicity lemmas for each cost function.
+* Executable P-MERGE / P-MERGE-SORT implementations refining these costs.
 -/
-
-set_option autoImplicit true
 
 namespace CLRS
 namespace Chapter27
 
-open Matrix
-open Chapter27 (CompDAG SpawnTree)
+private theorem pow_two_succ_eq (k : ℕ) : 2 ^ (k + 1) / 2 = 2 ^ k := by
+  rw [pow_succ]
+  omega
 
-/-! ## Matrix Representation
+private theorem pow_two_succ_sub (k : ℕ) : 2 ^ (k + 1) - 2 ^ (k + 1) / 2 = 2 ^ k := by
+  rw [pow_succ]
+  omega
 
-We use `Matrix (Fin m) (Fin n) α` for matrices. Parallel algorithms operate
-on power-of-two square matrices, with padding as needed. -/
+private theorem log_two_pow (k : ℕ) : Nat.log 2 (2 ^ k) = k :=
+  Nat.log_pow (by norm_num) k
 
-/-- A square matrix of size `n` over a semiring `α`. -/
-abbrev SqMat (n : ℕ) (α : Type*) [Semiring α] := Matrix (Fin n) (Fin n) α
+private theorem two_le_two_pow_succ (k : ℕ) : 2 ≤ 2 ^ (k + 1) := by
+  rw [pow_succ]
+  have := Nat.one_le_pow k 2 (by norm_num)
+  omega
 
-/-! ## §27.2: Parallel Matrix Multiplication (P-MATMUL)
+private theorem two_pow_succ_mul (k : ℕ) : 2 ^ (k + 1) * 2 ^ (k + 1) = 4 ^ (k + 1) := by
+  have h42 : (4 : ℕ) = 2 ^ 2 := by norm_num
+  rw [h42, ← pow_mul, ← pow_add]
+  congr 1
+  omega
 
-The algorithm recursively divides matrices into quadrants, spawns 8 parallel
-sub-multiplications, and adds results. This yields:
-- Work: T₁(n) = 8 T₁(n/2) + Θ(n²) → Θ(n³)
-- Span: T∞(n) = T∞(n/2) + Θ(1) → Θ(log n) -/
+/-! ## §27.2: Parallel matrix multiplication (P-MATMUL) -/
 
-/-- Parallel matrix multiplication spawn tree for `n × n` matrices.
+/-- Work recurrence for P-MATMUL: `T₁(n) = 8 T₁(n/2) + n²`. -/
+def pMatMulWork (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    8 * pMatMulWork (n / 2) + n * n
+termination_by n
+decreasing_by exact Nat.div_lt_self (by omega) (by norm_num)
 
-We model the recursive decomposition: split into 4 quadrants, spawn 8 parallel
-sub-problems (compute each quadrant product), then add. -/
-axiom pMatMulTree (n : ℕ) : SpawnTree
+theorem pMatMulWork_unfold {n : ℕ} (hn : 2 ≤ n) :
+    pMatMulWork n = 8 * pMatMulWork (n / 2) + n * n := by
+  rw [pMatMulWork]
+  simp [show ¬n ≤ 1 by omega]
 
-/-- Work recurrence for parallel matrix multiplication:
-    T₁(n) = 8 T₁(n/2) + Θ(n²) → T₁(n) = Θ(n³)
+/-- Exact work on powers of two: `T₁(2ᵏ) + 4ᵏ = 2·8ᵏ` (work `Θ(n³)`). -/
+theorem pMatMulWork_pow_two (k : ℕ) :
+    pMatMulWork (2 ^ k) + 4 ^ k = 2 * 8 ^ k := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [pMatMulWork_unfold (two_le_two_pow_succ k), pow_two_succ_eq,
+        two_pow_succ_mul]
+      nlinarith [ih, pow_succ (4 : ℕ) k, pow_succ (8 : ℕ) k]
 
-Declared as an axiom representing the unique solution of this recurrence. -/
-axiom pMatMulWork (n : ℕ) : ℕ
+/-- All-input upper bound: `T₁(n) + n² ≤ 2n³`. -/
+theorem pMatMulWork_le (n : ℕ) : pMatMulWork n + n * n ≤ 2 * n * n * n := by
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
+          ⟨n / 2, by omega⟩
+        · have hdiv : 2 * m / 2 = m := by omega
+          rw [pMatMulWork_unfold (by omega), hdiv]
+          have ihm := ih m (by omega)
+          nlinarith [ihm]
+        · have hdiv : (2 * m + 1) / 2 = m := by omega
+          rw [pMatMulWork_unfold (by omega), hdiv]
+          have ihm := ih m (by omega)
+          nlinarith [ihm]
 
-/-- Span recurrence for parallel matrix multiplication:
-    T∞(n) = T∞(n/2) + Θ(1) → T∞(n) = Θ(log n) -/
-axiom pMatMulSpan (n : ℕ) : ℕ
+/-- Span recurrence for P-MATMUL: `T∞(n) = T∞(n/2) + 1`. -/
+def pMatMulSpan (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    pMatMulSpan (n / 2) + 1
+termination_by n
+decreasing_by exact Nat.div_lt_self (by omega) (by norm_num)
 
-/-- The work recurrence is satisfied for n ≥ 2:
-`pMatMulWork n = 8 * pMatMulWork (n / 2) + n * n` -/
-axiom pMatMulWork_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    pMatMulWork n = 8 * pMatMulWork (n / 2) + n * n
+theorem pMatMulSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
+    pMatMulSpan n = pMatMulSpan (n / 2) + 1 := by
+  rw [pMatMulSpan]
+  simp [show ¬n ≤ 1 by omega]
 
-/-- Base cases for work: pMatMulWork 0 = 0, pMatMulWork 1 = 1. -/
-axiom pMatMulWork_base0 : pMatMulWork 0 = 0
-axiom pMatMulWork_base1 : pMatMulWork 1 = 1
+/-- Exact span on powers of two: `T∞(2ᵏ) = k + 1` (span `Θ(log n)`). -/
+theorem pMatMulSpan_pow_two (k : ℕ) : pMatMulSpan (2 ^ k) = k + 1 := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [pMatMulSpan_unfold (two_le_two_pow_succ k), pow_two_succ_eq, ih]
 
-/-- The span recurrence: pMatMulSpan n = pMatMulSpan (n / 2) + 1 (for n ≥ 2) -/
-axiom pMatMulSpan_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    pMatMulSpan n = pMatMulSpan (n / 2) + 1
+/-- All-input span bound: `T∞(n) ≤ ⌊log₂ n⌋ + 1`. -/
+theorem pMatMulSpan_le (n : ℕ) : pMatMulSpan n ≤ Nat.log 2 n + 1 := by
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · rw [pMatMulSpan_unfold (by omega)]
+        have ihm := ih (n / 2) (by omega)
+        have hlog := Nat.log_div_base 2 n
+        have hlogpos : 1 ≤ Nat.log 2 n :=
+          Nat.le_log_of_pow_le (by norm_num) (by omega)
+        omega
 
-/-- Base cases for span. -/
-axiom pMatMulSpan_base0 : pMatMulSpan 0 = 0
-axiom pMatMulSpan_base1 : pMatMulSpan 1 = 1
+/-! ## §27.3: Parallel merge (P-MERGE) -/
 
-/-- Work of P-MATMUL is Θ(n³).
+/-- Work recurrence for P-MERGE: two parallel recursive merges on the two
+halves plus a `Θ(log n)` binary-search combine,
+`T₁(n) = T₁(⌊n/2⌋) + T₁(⌈n/2⌉) + (⌊log₂ n⌋ + 1)`. -/
+def pMergeWork (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    pMergeWork (n / 2) + pMergeWork (n - n / 2) + (Nat.log 2 n + 1)
+termination_by n
+decreasing_by
+  · exact Nat.div_lt_self (by omega) (by norm_num)
+  · exact Nat.sub_lt (by omega) (Nat.div_pos (by omega) (by norm_num))
 
-Stated as an axiom; a full proof requires the Master Theorem (Chapter 4)
-and induction on the recurrence `pMatMulWork_recurrence`. -/
-axiom pMatMul_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * n * n * n ≤ pMatMulWork n ∧ pMatMulWork n ≤ c₂ * n * n * n
+theorem pMergeWork_unfold {n : ℕ} (hn : 2 ≤ n) :
+    pMergeWork n =
+      pMergeWork (n / 2) + pMergeWork (n - n / 2) + (Nat.log 2 n + 1) := by
+  rw [pMergeWork]
+  simp [show ¬n ≤ 1 by omega]
 
-/-- Span of P-MATMUL is Θ(log n).
+/-- Exact work on powers of two: `T₁(2ᵏ) + (k + 3) = 4·2ᵏ` (work `Θ(n)`). -/
+theorem pMergeWork_pow_two (k : ℕ) :
+    pMergeWork (2 ^ k) + (k + 3) = 4 * 2 ^ k := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [pMergeWork_unfold (two_le_two_pow_succ k), pow_two_succ_sub,
+        pow_two_succ_eq, log_two_pow]
+      nlinarith [ih, pow_succ (2 : ℕ) k]
 
-Stated as an axiom; a full proof requires solving the recurrence
-T∞(n) = T∞(n/2) + 1 via induction. -/
-axiom pMatMul_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * Nat.log 2 n ≤ pMatMulSpan n
+/-- Span recurrence for P-MERGE: the critical path follows the larger half,
+`T∞(n) = T∞(⌈n/2⌉) + (⌊log₂ n⌋ + 1)`. -/
+def pMergeSpan (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    pMergeSpan (n - n / 2) + (Nat.log 2 n + 1)
+termination_by n
+decreasing_by exact Nat.sub_lt (by omega) (Nat.div_pos (by omega) (by norm_num))
 
-/-! ## §27.3: Parallel Merge and Merge Sort (P-MERGE, P-MERGE-SORT)
+theorem pMergeSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
+    pMergeSpan n = pMergeSpan (n - n / 2) + (Nat.log 2 n + 1) := by
+  rw [pMergeSpan]
+  simp [show ¬n ≤ 1 by omega]
 
-P-MERGE merges two sorted arrays of length n₁, n₂ (n₁ ≤ n₂) by finding the
-median element via binary search, spawning parallel merges of the left and
-right halves.
+/-- Exact span on powers of two: `2·T∞(2ᵏ) = (k+1)(k+2)` (span `Θ(log² n)`). -/
+theorem pMergeSpan_pow_two (k : ℕ) :
+    2 * pMergeSpan (2 ^ k) = (k + 1) * (k + 2) := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [pMergeSpan_unfold (two_le_two_pow_succ k), pow_two_succ_sub,
+        log_two_pow]
+      nlinarith [ih]
 
-- Work: T₁(n) = Θ(n)
-- Span: T∞(n) = Θ(log² n)
-
-P-MERGE-SORT recursively sorts halves in parallel:
-- Work: T₁(n) = 2 T₁(n/2) + Θ(n) → Θ(n log n)
-- Span: T∞(n) = T∞(n/2) + Θ(log² n) → Θ(log³ n) -/
-
-/-- P-MERGE spawn tree: merge two sorted sequences of total length n. -/
-axiom pMergeTree (n : ℕ) : SpawnTree
-
-/-- Work recurrence for P-MERGE:
-`T₁(n) = T₁(⌈n/2⌉) + T₁(⌊n/2⌋) + Θ(n) → T₁(n) = Θ(n)` -/
-axiom pMergeWork (n : ℕ) : ℕ
-
-/-- Span recurrence for P-MERGE:
-`T∞(n) = T∞(n/2) + Θ(log n) → T∞(n) = Θ(log² n)` -/
-axiom pMergeSpan (n : ℕ) : ℕ
-
-/-- Recurrence for P-MERGE work (for n ≥ 2):
-`pMergeWork n = pMergeWork (n / 2) + pMergeWork (n - n / 2) + n` -/
-axiom pMergeWork_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    pMergeWork n = pMergeWork (n / 2) + pMergeWork (n - n / 2) + n
-
-axiom pMergeWork_base0 : pMergeWork 0 = 0
-axiom pMergeWork_base1 : pMergeWork 1 = 1
-
-/-- Recurrence for P-MERGE span (for n ≥ 2):
-`pMergeSpan n = max (pMergeSpan (n / 2)) (pMergeSpan (n - n / 2)) + (Nat.log 2 n + 1)` -/
-axiom pMergeSpan_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    pMergeSpan n = max (pMergeSpan (n / 2)) (pMergeSpan (n - n / 2)) + (Nat.log 2 n + 1)
-
-axiom pMergeSpan_base0 : pMergeSpan 0 = 0
-axiom pMergeSpan_base1 : pMergeSpan 1 = 1
-
-/-- P-MERGE-SORT spawn tree: recursively sort in parallel, then P-MERGE. -/
-axiom pMergeSortTree (n : ℕ) : SpawnTree
+/-! ## §27.3: Parallel merge sort (P-MERGE-SORT) -/
 
 /-- Work recurrence for P-MERGE-SORT:
-`T₁(n) = 2 T₁(n/2) + Θ(n) → T₁(n) = Θ(n log n)` -/
-axiom pMergeSortWork (n : ℕ) : ℕ
+`T₁(n) = T₁(⌊n/2⌋) + T₁(⌈n/2⌉) + n`. -/
+def pMergeSortWork (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    pMergeSortWork (n / 2) + pMergeSortWork (n - n / 2) + n
+termination_by n
+decreasing_by
+  · exact Nat.div_lt_self (by omega) (by norm_num)
+  · exact Nat.sub_lt (by omega) (Nat.div_pos (by omega) (by norm_num))
+
+theorem pMergeSortWork_unfold {n : ℕ} (hn : 2 ≤ n) :
+    pMergeSortWork n = pMergeSortWork (n / 2) + pMergeSortWork (n - n / 2) + n := by
+  rw [pMergeSortWork]
+  simp [show ¬n ≤ 1 by omega]
+
+/-- Exact work on powers of two: `T₁(2ᵏ) = 2ᵏ·(k+1)` (work `Θ(n log n)`). -/
+theorem pMergeSortWork_pow_two (k : ℕ) :
+    pMergeSortWork (2 ^ k) = 2 ^ k * (k + 1) := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [pMergeSortWork_unfold (two_le_two_pow_succ k), pow_two_succ_sub,
+        pow_two_succ_eq]
+      nlinarith [ih, pow_succ (2 : ℕ) k]
 
 /-- Span recurrence for P-MERGE-SORT:
-`T∞(n) = T∞(n/2) + Θ(log² n) → T∞(n) = Θ(log³ n)` -/
-axiom pMergeSortSpan (n : ℕ) : ℕ
+`T∞(n) = T∞(⌈n/2⌉) + (P-MERGE span on n elements)`. -/
+def pMergeSortSpan (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    pMergeSortSpan (n - n / 2) + pMergeSpan n
+termination_by n
+decreasing_by exact Nat.sub_lt (by omega) (Nat.div_pos (by omega) (by norm_num))
 
-/-- Recurrence for P-MERGE-SORT work (for n ≥ 2). -/
-axiom pMergeSortWork_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    pMergeSortWork n = 2 * pMergeSortWork (n / 2) + n
+theorem pMergeSortSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
+    pMergeSortSpan n = pMergeSortSpan (n - n / 2) + pMergeSpan n := by
+  rw [pMergeSortSpan]
+  simp [show ¬n ≤ 1 by omega]
 
-axiom pMergeSortWork_base0 : pMergeSortWork 0 = 0
-axiom pMergeSortWork_base1 : pMergeSortWork 1 = 1
+/-- Exact span on powers of two:
+`6·T∞(2ᵏ) = 6 + k·(k² + 6k + 11)` (span `Θ(log³ n)`). -/
+theorem pMergeSortSpan_pow_two (k : ℕ) :
+    6 * pMergeSortSpan (2 ^ k) = 6 + k * (k * k + 6 * k + 11) := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [pMergeSortSpan_unfold (two_le_two_pow_succ k), pow_two_succ_sub]
+      have hS := pMergeSpan_pow_two (k + 1)
+      nlinarith [ih, hS]
 
-/-- Recurrence for P-MERGE-SORT span (for n ≥ 2). -/
-axiom pMergeSortSpan_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    pMergeSortSpan n = pMergeSortSpan (n / 2) + pMergeSpan n
+/-! ## §27.4: Parallel Strassen's algorithm -/
 
-axiom pMergeSortSpan_base0 : pMergeSortSpan 0 = 0
-axiom pMergeSortSpan_base1 : pMergeSortSpan 1 = 1
+/-- Work recurrence for parallel Strassen: `T₁(n) = 7 T₁(n/2) + n²`. -/
+def strassenWork (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    7 * strassenWork (n / 2) + n * n
+termination_by n
+decreasing_by exact Nat.div_lt_self (by omega) (by norm_num)
 
-/-- Work of P-MERGE-SORT is Θ(n log n).
+theorem strassenWork_unfold {n : ℕ} (hn : 2 ≤ n) :
+    strassenWork n = 7 * strassenWork (n / 2) + n * n := by
+  rw [strassenWork]
+  simp [show ¬n ≤ 1 by omega]
 
-Stated as an axiom; full proof requires solving the recurrence
-T₁(n) = 2T₁(n/2) + Θ(n) via Master Theorem case 2. -/
-axiom pMergeSort_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * n * Nat.log 2 n ≤ pMergeSortWork n ∧ pMergeSortWork n ≤ c₂ * n * Nat.log 2 n
+/-- Exact work on powers of two: `3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`
+(work `Θ(n^(log₂ 7))`). -/
+theorem strassenWork_pow_two (k : ℕ) :
+    3 * strassenWork (2 ^ k) + 4 ^ (k + 1) = 7 ^ (k + 1) := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [strassenWork_unfold (two_le_two_pow_succ k), pow_two_succ_eq,
+        two_pow_succ_mul]
+      nlinarith [ih, pow_succ (4 : ℕ) (k + 1), pow_succ (7 : ℕ) (k + 1)]
 
-/-- Span of P-MERGE-SORT is Θ(log³ n).
+/-- Span recurrence for parallel Strassen: `T∞(n) = T∞(n/2) + 1`. -/
+def strassenSpan (n : ℕ) : ℕ :=
+  if n ≤ 1 then
+    n
+  else
+    strassenSpan (n / 2) + 1
+termination_by n
+decreasing_by exact Nat.div_lt_self (by omega) (by norm_num)
 
-Stated as an axiom; full proof requires solving the recurrence
-T∞(n) = T∞(n/2) + Θ(log² n) via induction. -/
-axiom pMergeSort_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * (Nat.log 2 n) ^ 3 ≤ pMergeSortSpan n
+theorem strassenSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
+    strassenSpan n = strassenSpan (n / 2) + 1 := by
+  rw [strassenSpan]
+  simp [show ¬n ≤ 1 by omega]
 
-/-- Work of P-MERGE is Θ(n).
-
-Stated as an axiom; full proof requires solving the recurrence
-T₁(n) = T₁(⌈n/2⌉) + T₁(⌊n/2⌋) + Θ(n) via induction. -/
-axiom pMerge_work_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * n ≤ pMergeWork n ∧ pMergeWork n ≤ c₂ * n
-
-/-- Span of P-MERGE is Θ(log² n).
-
-Stated as an axiom; full proof requires solving the recurrence
-T∞(n) = max(T∞(⌈n/2⌉), T∞(⌊n/2⌋)) + Θ(log n) via induction. -/
-axiom pMerge_span_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * (Nat.log 2 n) ^ 2 ≤ pMergeSpan n ∧ pMergeSpan n ≤ c₂ * (Nat.log 2 n) ^ 2
-
-/-! ## §27.4: Parallel Strassen's Algorithm
-
-Strassen's algorithm for matrix multiplication reduces the problem from 8 to 7
-sub-multiplications of half-size matrices. In parallel:
-
-- Work: T₁(n) = 7 T₁(n/2) + Θ(n²) → Θ(n^(log₂ 7)) ≈ Θ(n^2.807)
-- Span: T∞(n) = T∞(n/2) + Θ(1) → Θ(log n) -/
-
-/-- Strassen's spawn tree for parallel multiplication of n × n matrices. -/
-axiom strassenSpawnTree (n : ℕ) : SpawnTree
-
-/-- Work recurrence for parallel Strassen:
-    T₁(n) = 7 T₁(n/2) + Θ(n²) → T₁(n) = Θ(n^(log₂ 7)) -/
-axiom strassenWork (n : ℕ) : ℕ
-
-/-- Span recurrence for parallel Strassen:
-    T∞(n) = T∞(n/2) + Θ(1) → T∞(n) = Θ(log n) -/
-axiom strassenSpan (n : ℕ) : ℕ
-
-/-- Recurrence for parallel Strassen work (for n ≥ 2). -/
-axiom strassenWork_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    strassenWork n = 7 * strassenWork (n / 2) + n * n
-
-axiom strassenWork_base0 : strassenWork 0 = 0
-axiom strassenWork_base1 : strassenWork 1 = 1
-
-/-- Recurrence for parallel Strassen span (for n ≥ 2). -/
-axiom strassenSpan_recurrence (n : ℕ) (hn : 2 ≤ n) :
-    strassenSpan n = strassenSpan (n / 2) + 1
-
-axiom strassenSpan_base0 : strassenSpan 0 = 0
-axiom strassenSpan_base1 : strassenSpan 1 = 1
-
-/-- Work of parallel Strassen is Θ(n^(log₂ 7)) ≈ Θ(n^2.807).
-
-Stated as an axiom; full proof requires the Master Theorem case 1
-applied to the recurrence T₁(n) = 7T₁(n/2) + Θ(n²). -/
-axiom strassenWork_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * n ^ 3 ≤ strassenWork n ∧ strassenWork n ≤ c₂ * n ^ 3
-
-/-- Span of parallel Strassen is Θ(log n).
-
-Stated as an axiom; full proof requires solving the recurrence
-T∞(n) = T∞(n/2) + 1 via induction. -/
-axiom strassenSpan_exists_bounds : ∃ (n₀ c₁ c₂ : ℕ), c₁ > 0 ∧ c₂ > 0 ∧
-    ∀ n, n₀ ≤ n → c₁ * Nat.log 2 n ≤ strassenSpan n
-
-/-! ## Summary of Work/Span Bounds
-
-| Algorithm          | Work T₁(n)        | Span T∞(n)      | Parallelism T₁/T∞     |
-|--------------------|-------------------|-----------------|-----------------------|
-| P-MATMUL           | Θ(n³)             | Θ(log n)        | Θ(n³ / log n)         |
-| P-MERGE            | Θ(n)              | Θ(log² n)       | Θ(n / log² n)         |
-| P-MERGE-SORT       | Θ(n log n)        | Θ(log³ n)       | Θ(n / log² n)         |
-| Parallel Strassen  | Θ(n^(log₂ 7))     | Θ(log n)        | Θ(n^(log₂ 7) / log n) |
-
-These bounds mirror the CLRS textbook results (Theorem 27.4, Theorem 27.5,
-and the analysis in §27.3-27.4).
--/
+/-- Exact span on powers of two: `T∞(2ᵏ) = k + 1` (span `Θ(log n)`). -/
+theorem strassenSpan_pow_two (k : ℕ) : strassenSpan (2 ^ k) = k + 1 := by
+  induction k with
+  | zero => native_decide
+  | succ k ih =>
+      rw [strassenSpan_unfold (two_le_two_pow_succ k), pow_two_succ_eq, ih]
 
 end Chapter27
 end CLRS

@@ -18,6 +18,14 @@ and reachable rank mass; {lit}`InverseAckermann` instantiates the CLRS/Alstrup
 level-index potential and proves the final {lit}`O((m+n) alpha(n))` execution
 bound.
 
+## Implementation details
+
+The executable and inverse-Ackermann proof layers remain available outside the
+main sidebar:
+
+* [Costed Batteries Execution](CLRSLean/Chapter_21/Section_21_4_Analysis/CostedExecution/)
+* [Inverse-Ackermann Amortization](CLRSLean/Chapter_21/Section_21_4_Analysis/InverseAckermann/)
+
 Main results:
 
 - Theorem {lit}`Analysis.parentPath_rank_bound`: a parent path has length at
