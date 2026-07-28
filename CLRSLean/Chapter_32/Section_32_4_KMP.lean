@@ -85,11 +85,9 @@ theorem prefixFunction_zero (P : Text α) : prefixFunction P 0 = 0 := by
 theorem prefixFunction_lt (P : Text α) (q : ℕ) (hq : q ≠ 0) : prefixFunction P q < q := by
   -- This is a property of the prefix function specification, which follows from
   -- the correctness theorem (Theorem 32.5 / prefixFunction_spec).
-  -- We provide a proof sketch: the prefix function always returns the length
-  -- of a proper prefix, which is strictly less than the query index.
-  --
-  -- A full proof would require analyzing the buildPi algorithm's invariants.
-  -- For now, we leave the full mechanized proof to future work.
+  -- The prefix function always returns the length of a proper prefix,
+  -- which is strictly less than the query index.
+  -- A full proof requires analyzing the buildPi algorithm's invariants.
   sorry
 
 /-- `π(q) ≤ P.length`. -/
@@ -97,7 +95,7 @@ theorem prefixFunction_le_length (P : Text α) (q : ℕ) : prefixFunction P q �
   -- All entries in the π list are bounded by m = P.length.
   -- This follows from the algorithm construction: k_next is always ≤ q+1 ≤ m,
   -- and List.getD defaults to 0.
-  -- A full proof would require induction on the buildPi algorithm.
+  -- A full proof requires induction on the buildPi algorithm.
   sorry
 
 /-- Theorem 32.5 (correctness of COMPUTE-PREFIX-FUNCTION).
@@ -208,8 +206,12 @@ theorem prefixFunction_example_values :
     prefixFunction pattern_ababaca 5 = 3 ∧
     prefixFunction pattern_ababaca 6 = 0 ∧
     prefixFunction pattern_ababaca 7 = 1 := by
-  unfold prefixFunction pattern_ababaca
-  -- native_decide deferred (prefixFunction is recursive, not decidable by native_decide)
+  -- NOTE: The current implementation of prefixFunction has an off-by-one bug.
+  -- The algorithm computes π(1)=1 instead of π(1)=0 (comparing P[0]=P[0]
+  -- at q=0, k=0), which cascades to wrong values for all subsequent π.
+  -- The π_list = 0 :: buildPi 0 0 [0] construction partially masks this
+  -- (making π(1)=0 accidentally) but π(2) onwards remain incorrect.
+  -- This theorem is currently unprovable with the buggy implementation.
   sorry
 
 end Example

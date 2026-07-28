@@ -19,7 +19,7 @@ pattern and for each length-`m` window of the text.
 namespace CLRS
 namespace Chapter32
 
-variable {α : Type} [BEq α] [DecidableEq α]
+variable {α : Type} [BEq α] [DecidableEq α] [LawfulBEq α]
 
 /-! ### Character-to-digit mapping -/
 
@@ -47,9 +47,21 @@ def hash (d q : ℕ) (s : Text α) : ℕ :=
     (acc + (digVal c) * (d ^ exp)) % q
   ) 0
 
-/-- `hash_lt`: the hash is always `< q` for `q > 0`.  (Proof deferred.) -/
+/-- `hash_lt`: the hash is always `< q` for `q > 0`. -/
 theorem hash_lt (d q : ℕ) (s : Text α) (hq : 0 < q) : hash d q s < q := by
-  sorry
+  unfold hash
+  dsimp
+  -- Goal: ((List.range s.length).reverse.zip s).foldl (…) 0 < q
+  have hfold : ∀ (acc : ℕ) (l : List (ℕ × α)), acc < q →
+    (l.foldl (fun (acc' : ℕ) (p : ℕ × α) => (acc' + (digVal p.2) * (d ^ p.1)) % q) acc) < q := by
+    intro acc l hacc
+    induction l generalizing acc with
+    | nil => exact hacc
+    | cons hd tl ih =>
+      have hnew : ((acc + (digVal hd.2) * (d ^ hd.1)) % q) < q := Nat.mod_lt _ hq
+      exact ih ((acc + (digVal hd.2) * (d ^ hd.1)) % q) hnew
+  apply hfold 0 _
+  exact hq
 
 /-- Hash of the empty string is 0. -/
 @[simp]
@@ -80,7 +92,9 @@ theorem rollingHashStep_lt (d q : ℕ) (h : ℕ) (a b : α) (m : ℕ) (hq : 0 < 
   apply Nat.mod_lt
   exact hq
 
-/-- Correctness of the rolling hash step.  (Deferred — needs modular arithmetic.) -/
+/-- Correctness of the rolling hash step. 
+The proof requires deep structural analysis of the hash function on windows,
+combined with modular arithmetic identities. Deferred to future work. -/
 theorem rollingHashStep_correct (d q : ℕ) (T : Text α) (s m : ℕ)
     (hbound : s + m < T.length) (hmpos : 0 < m) :
     rollingHashStep d q (windowHash d q T s m)
@@ -128,8 +142,21 @@ theorem rabinKarpMatcher_sound (d q : ℕ) (T P : Text α) (s : ℕ)
       rcases h with ⟨_, ⟨_, hm⟩⟩
       exact hm
 
-/-- Completeness: `matchesAt T P s` → `s ∈ rabinKarpMatcher d q T P`.
-The hash-equality sub-proof is deferred. -/
+/-- If `a == b` for lists with lawful BEq, then `a = b`. -/
+lemma beq_eq_imp (a b : Text α) (h : a == b) : a = b := by
+  simpa [beq_iff_eq] using h
+
+/-- Helper: from `matchesAt T P s` we get that the window equals the pattern. -/
+lemma take_drop_eq_of_matchesAt (T P : Text α) (s : ℕ) (h : matchesAt T P s) :
+    (T.drop s).take P.length = P := by
+  unfold matchesAt at h
+  split at h
+  · -- h: (T.drop s).take P.length == P = true
+    have hbeq : (T.drop s).take P.length == P := by simpa using h
+    exact beq_eq_imp _ _ hbeq
+  · simp at h
+
+/-- Completeness: `matchesAt T P s` → `s ∈ rabinKarpMatcher d q T P`. -/
 theorem rabinKarpMatcher_complete (d q : ℕ) (T P : Text α) (s : ℕ)
     (hmatch : matchesAt T P s) : s ∈ rabinKarpMatcher d q T P := by
   unfold rabinKarpMatcher
@@ -154,17 +181,18 @@ theorem rabinKarpMatcher_complete (d q : ℕ) (T P : Text α) (s : ℕ)
         · simp at hmatch
       have hshift : s ≤ T.length - P.length := by omega
       have hle : s < (T.length - P.length) + 1 := by omega
-      -- After simplification, the goal is:
-      -- s ∈ filter (λ s => (windowHash ... == hash ...) && matchesAt T P s) (range ((T.length - P.length) + 1))
-      -- `simp [hmzero, hnlt]` would rewrite this to a conjunction.
-      -- We build the components manually.
+      -- From matchesAt, the window equals the pattern
+      have h_window : (T.drop s).take P.length = P :=
+        take_drop_eq_of_matchesAt T P s hmatch
+      -- Therefore the window hash equals the pattern hash
+      have h_window_eq : windowHash d q T s P.length = hash d q P := by
+        unfold windowHash
+        rw [h_window]
       have hgoal : s ∈ (List.range ((T.length - P.length) + 1)).filter
           (fun s_1 => (windowHash d q T s_1 P.length == hash d q P) && matchesAt T P s_1) := by
         apply List.mem_filter.mpr
         refine ⟨List.mem_range.mpr hle, ?_⟩
-        -- Need: ((windowHash ... == hash ...) && matchesAt T P s) = true
-        -- matchesAt is true by hmatch; hash equality is deferred
-        sorry
+        simp [h_window_eq, hmatch]
       simpa [hmzero, hnlt] using hgoal
 
 /-- Spurious hits: hashes match but strings differ. -/
