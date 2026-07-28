@@ -15,30 +15,76 @@ namespace Chapter29
 
 /-- The dual of a standard-form LP: max c·x s.t. Ax ≤ b, x ≥ 0.
     Dual: min b·y s.t. Aᵀy ≥ c, y ≥ 0.
-    Represented as a maximization with negated objective. -/
+    Represented as a StandardLP (maximization) by negating the constraint matrix
+    and RHS: `dual.A = -Aᵀ`, `dual.b = -c` so that IsFeasible checks `(-Aᵀ)y ≤ -c`,
+    which is equivalent to `Aᵀy ≥ c`.  The dual objective `c_dual = -b`, so the
+    maximization objective is `-bᵀy` (i.e., minimizing `bᵀy`). -/
 def StandardLP.dual (lp : StandardLP m n) : StandardLP n m where
-  A := lp.A.transpose
-  b := lp.c
-  c := fun _i => - lp.b _i
+  A := -lp.A.transpose
+  b := fun j => -lp.c j
+  c := fun i => -lp.b i
 
-/-- Dual objective value at y: negated because dual minimizes b·y. -/
+/-- Dual objective value at y: the actual minimization value bᵀy.
+    (The dual StandardLP.objective returns -bᵀy since it is a maximization form.) -/
 def StandardLP.dualObjective (lp : StandardLP m n) (y : Vec m) : ℝ :=
-  - (∑ i : Fin m, lp.b i * y i)
+  ∑ i : Fin m, lp.b i * y i
 
 /-- Primal objective value at x. -/
 def StandardLP.primalObjective (lp : StandardLP m n) (x : Vec n) : ℝ :=
   ∑ j : Fin n, lp.c j * x j
 
 /-- Weak duality: for any feasible primal x and dual y,
-    primal objective ≤ dual objective (as maximization). -/
+    primal objective ≤ dual objective.
+    Proof: cᵀx ≤ (Aᵀy)ᵀx = yᵀAx ≤ yᵀb = bᵀy. -/
 theorem weak_duality (lp : StandardLP m n) (x : Vec n) (y : Vec m)
     (hx : lp.IsFeasible x) (hy : (lp.dual).IsFeasible y) :
     lp.primalObjective x ≤ lp.dualObjective y := by
-  -- NOTE: the dual constraint Aᵀy ≤ c (from StandardLP.IsFeasible) gives
-  -- the wrong inequality direction for standard weak duality (needs Aᵀy ≥ c).
-  -- The theorem is unprovable with the current dual definition; the dual must
-  -- be reformulated as a minimization with the opposite constraint direction.
-  sorry
+  rcases hx with ⟨hAx, hx_nonneg⟩
+  rcases hy with ⟨hAdual, hy_nonneg⟩
+  -- hAdual : ∀ j, Matrix.mulVec (lp.dual).A y j ≤ (lp.dual).b j
+  -- After unfolding dual: -(∑_i A_{i,j} * y_i) ≤ -c_j  ⇔  c_j ≤ ∑_i A_{i,j} * y_i
+  have hATy_ge_c : ∀ j : Fin n, lp.c j ≤ (∑ i : Fin m, lp.A i j * y i) := by
+    intro j
+    have h := hAdual j
+    have h_unfolded : (- (∑ i : Fin m, lp.A i j * y i)) ≤ (- lp.c j) := by
+      have h_mul : (Matrix.mulVec (lp.dual).A y) j = (- (∑ i : Fin m, lp.A i j * y i)) := by
+        dsimp [StandardLP.dual]
+        calc
+          (Matrix.mulVec (-lp.A.transpose) y) j = ∑ i : Fin m, (-lp.A.transpose) j i * y i := rfl
+          _ = ∑ i : Fin m, (-lp.A i j) * y i := by simp [Matrix.transpose]
+          _ = -(∑ i : Fin m, lp.A i j * y i) := by simp
+      have h_b : (lp.dual).b j = (- lp.c j) := rfl
+      rw [h_mul, h_b] at h
+      exact h
+    linarith
+  -- hAx : ∀ i, (∑_j A_{i,j} * x_j) ≤ b_i
+  have hAx_sum : ∀ i : Fin m, (∑ j : Fin n, lp.A i j * x j) ≤ lp.b i := by
+    intro i
+    have h_eq : (Matrix.mulVec lp.A x) i = (∑ j : Fin n, lp.A i j * x j) := rfl
+    have h' := hAx i
+    -- h' : (Matrix.mulVec lp.A x) i ≤ lp.b i
+    rw [h_eq] at h'
+    exact h'
+  calc
+    lp.primalObjective x = ∑ j : Fin n, lp.c j * x j := rfl
+    _ ≤ ∑ j : Fin n, ((∑ i : Fin m, lp.A i j * y i) * x j) := by
+      refine Finset.sum_le_sum (λ j _ => ?_)
+      have hc := hATy_ge_c j
+      have hx := hx_nonneg j
+      nlinarith
+    _ = ∑ i : Fin m, ∑ j : Fin n, (lp.A i j * y i * x j) := by
+      simp only [Finset.sum_mul, Finset.mul_sum]
+      rw [Finset.sum_comm]
+    _ = ∑ i : Fin m, (y i * (∑ j : Fin n, lp.A i j * x j)) := by
+      refine Finset.sum_congr rfl (λ i _ => ?_)
+      simp [Finset.mul_sum, mul_comm, mul_left_comm]
+    _ ≤ ∑ i : Fin m, (y i * lp.b i) := by
+      refine Finset.sum_le_sum (λ i _ => ?_)
+      have hsum := hAx_sum i
+      have hy_i := hy_nonneg i
+      nlinarith
+    _ = lp.dualObjective y := by
+      simp [StandardLP.dualObjective, mul_comm]
 
 /-- Strong duality: if the primal has an optimal solution,
     then the dual also has an optimal solution with the same value. -/
@@ -46,9 +92,12 @@ theorem strong_duality (lp : StandardLP m n) (x : Vec n)
     (hx : lp.IsOptimal x) :
     ∃ (y : Vec m), (lp.dual).IsOptimal y ∧
       lp.primalObjective x = lp.dualObjective y := by
-  -- deferred: constructs dual optimal solution from the simplex final tableau
-  -- of the primal; the tableau's reduced costs give dual variables y with
-  -- complementary slackness and equal objective values.
+  -- Proof sketch: assume primal optimal solution x obtained from simplex final tableau.
+  -- The tableau has basis B with reduced costs c̄ⱼ = cⱼ - c_Bᵀ B⁻¹ A_*ⱼ ≤ 0.
+  -- Set dual variables y = (c_Bᵀ B⁻¹)ᵀ. Then (i) Aᵀy ≥ c (from c̄ ≤ 0),
+  -- (ii) bᵀy = c_Bᵀ B⁻¹b = c_Bᵀ x_B = cᵀx (objective equality).
+  -- Complementary slackness: ∀j, (c̄ⱼ)(xⱼ) = 0 since xⱼ = 0 for nonbasic j.
+  -- Strong duality follows: x feasible primal, y feasible dual, equal objective values.
   sorry
 
 /-- Corollary: if primal and dual have equal objective values for
@@ -69,36 +118,26 @@ theorem optimality_certificate (lp : StandardLP m n) (x : Vec n) (y : Vec m)
   have hy_opt : (lp.dual).IsOptimal y := by
     have h_strong := strong_duality lp x hx_opt
     rcases h_strong with ⟨y0, ⟨hy0_opt, h_eq_val⟩⟩
-    have hy0_obj : (lp.dual).objective y0 = lp.dualObjective y0 := by
-      calc
-        (lp.dual).objective y0 = ∑ i : Fin m, (lp.dual).c i * y0 i := rfl
-        _ = ∑ i : Fin m, (-lp.b i) * y0 i := rfl
-        _ = ∑ i : Fin m, -(lp.b i * y0 i) := by simp [neg_mul]
-        _ = -(∑ i : Fin m, lp.b i * y0 i) := by rw [Finset.sum_neg_distrib]
-        _ = lp.dualObjective y0 := rfl
-    have hy_obj : (lp.dual).objective y = lp.dualObjective y := by
-      calc
-        (lp.dual).objective y = ∑ i : Fin m, (lp.dual).c i * y i := rfl
-        _ = ∑ i : Fin m, (-lp.b i) * y i := rfl
-        _ = ∑ i : Fin m, -(lp.b i * y i) := by simp [neg_mul]
-        _ = -(∑ i : Fin m, lp.b i * y i) := by rw [Finset.sum_neg_distrib]
-        _ = lp.dualObjective y := rfl
-    have h_obj_eq_val : lp.dualObjective y = lp.dualObjective y0 := by
+    -- h_eq_val : lp.primalObjective x = lp.dualObjective y0
+    have h_obj_eq : lp.dualObjective y = lp.dualObjective y0 := by
       rw [← heq, h_eq_val]
-    refine ⟨hy, ?_⟩
-    intro y' hy'
-    rcases hy0_opt with ⟨_, hy0_max⟩
-    have hy'_obj : (lp.dual).objective y' = lp.dualObjective y' := by
+    rcases hy0_opt with ⟨hy0_feas, hy0_max⟩
+    -- (lp.dual).objective z = -lp.dualObjective z (maximization form of minimization)
+    have h_dual_obj (z : Vec m) : (lp.dual).objective z = -lp.dualObjective z := by
       calc
-        (lp.dual).objective y' = ∑ i : Fin m, (lp.dual).c i * y' i := rfl
-        _ = ∑ i : Fin m, (-lp.b i) * y' i := rfl
-        _ = ∑ i : Fin m, -(lp.b i * y' i) := by simp [neg_mul]
-        _ = -(∑ i : Fin m, lp.b i * y' i) := by rw [Finset.sum_neg_distrib]
-        _ = lp.dualObjective y' := rfl
-    rw [hy'_obj, hy_obj]
+        (lp.dual).objective z = ∑ i : Fin m, (lp.dual).c i * z i := rfl
+        _ = ∑ i : Fin m, (-lp.b i) * z i := rfl
+        _ = -(∑ i : Fin m, lp.b i * z i) := by simp [neg_mul, Finset.sum_neg_distrib]
+        _ = -lp.dualObjective z := rfl
+    refine ⟨hy, λ y' hy' => ?_⟩
     have h_le := hy0_max y' hy'
-    rw [hy'_obj, hy0_obj] at h_le
-    linarith
+    rw [h_dual_obj y', h_dual_obj y0] at h_le
+    -- h_le : -lp.dualObjective y' ≤ -lp.dualObjective y0
+    rw [h_dual_obj y', h_dual_obj y]
+    -- Goal: -lp.dualObjective y' ≤ -lp.dualObjective y
+    rw [← h_obj_eq] at h_le
+    -- h_le : -lp.dualObjective y' ≤ -lp.dualObjective y
+    exact h_le
   exact ⟨hx_opt, hy_opt⟩
 
 /-- If the dual has an optimal solution, the primal does with equal value. -/
@@ -106,8 +145,11 @@ theorem strong_duality_converse (lp : StandardLP m n) (y : Vec m)
     (hy : (lp.dual).IsOptimal y) :
     ∃ (x : Vec n), lp.IsOptimal x ∧
       lp.primalObjective x = lp.dualObjective y := by
-  -- deferred: symmetric to strong_duality; applies strong_duality to the dual
-  -- LP (treating it as primal) and converts back via the bidual construction.
+  -- Proof sketch: convert dual to standard-form primal by negating objective and
+  -- constraints (bidual transformation). Apply strong_duality to the dual-as-primal
+  -- LP to obtain primal optimal x' with matching value. Then x' is optimal for
+  -- the original primal: by weak duality (corrected), any feasible primal has
+  -- cᵀx ≤ bᵀy = cᵀx', confirming optimality. The bidual identity yields equality.
   sorry
 
 /-- If the primal is unbounded, the dual is infeasible. -/

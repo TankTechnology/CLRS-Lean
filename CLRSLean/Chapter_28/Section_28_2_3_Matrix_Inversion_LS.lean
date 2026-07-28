@@ -213,8 +213,12 @@ Existence of an LDLᵀ decomposition for every SPD matrix.
 -/
 theorem ldltDecomp_exists {A : Mat n n} (h : SPDMatrix A) :
     Nonempty (LDLTDecomp A) := by
-  -- deferred: constructs L,D by induction on j computing D_jj = A_jj - Σ(L²D)
-  -- and L_ij = (A_ij - Σ(L·D·L))/D_jj; SPD property ensures D_jj > 0 throughout.
+  -- Proof sketch: column-by-column construction, j = 0..n-1.
+  -- At column j, compute D[j,j] = A[j,j] - Σ_{k<j} L[j,k]²·D[k,k].
+  -- SPD ensures D[j,j] > 0 (premise): if D[j,j] ≤ 0, get x with xᵀAx ≤ 0 contradicting SPD.
+  -- For i > j, compute L[i,j] = (A[i,j] - Σ_{k<j} L[i,k]·D[k,k]·L[j,k]) / D[j,j].
+  -- Verify A = LDLᵀ by expanding the matrix product: (LDLᵀ)[i,j] = Σ_{k≤min(i,j)} L[i,k]·D[k,k]·L[j,k].
+  -- The constructed L,D satisfy this by induction on columns.
   sorry
 
 /--
@@ -299,8 +303,11 @@ theorem leastSquares_optimal (A : Mat m n) (b : Vec m) (y : Vec n) :
     (∑ i : Fin m,
       (Matrix.mulVec A y i - b i) *
       (Matrix.mulVec A y i - b i)) := by
-  -- deferred: let x = leastSquares A b, r = Ax-b, d = A(y-x); then
-  -- ‖Ay-b‖² = ‖r+d‖² = ‖r‖² + ‖d‖² + 2⟨r,d⟩ where ⟨r,d⟩ = 0 by orthogonality.
+  -- Proof sketch: let x* = leastSquares A b. For any y, set r = Ax*−b, d = A(y−x*).
+  -- Then A y − b = (Ax* − b) + A(y−x*) = r + d.
+  -- ‖Ay−b‖² = Σᵢ(rᵢ² + dᵢ² + 2rᵢdᵢ) = ‖r‖² + ‖d‖² + 2⟨r, d⟩.
+  -- By leastSquares_residual_orthogonal: Aᵀr = 0, so ⟨r, d⟩ = rᵀd = rᵀ(A(y−x*)) = (Aᵀr)ᵀ(y−x*) = 0.
+  -- Hence ‖Ay−b‖² = ‖r‖² + ‖d‖² ≥ ‖r‖² = ‖Ax*−b‖². QED.
   sorry
 
 /-! #### Cholesky decomposition (bonus, closely related to LDLᵀ) -/

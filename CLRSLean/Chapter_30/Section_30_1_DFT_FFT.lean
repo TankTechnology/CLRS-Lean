@@ -556,8 +556,14 @@ Remaining work:
 -/
 theorem fftPow2_eq_dft (n : ℕ) (a : Fin n → ℂ) (hpow : ∃ k, n = 2^k) (hn : n ≠ 0) :
     fftPow2 n hpow a = dft n a := by
-  -- NOTE: Depends on fftPow2 stub definition — left as `sorry` until fftPow2 is fully defined
-  -- using Nat.strongRec with the Cooley-Tukey butterfly and dft_split_even_odd lemma.
+  -- NOTE: Depends on fftPow2 stub definition — left as `sorry` until fftPow2 is fully defined.
+  -- Proof sketch (when fftPow2 is complete): strong induction on k where n = 2^k.
+  -- Base n=1: fftPow2 1 a = a = dft 1 a (single term, ω₁ = 1).
+  -- Step n=2m: fftPow2 recurses on even/odd halves a_even, a_odd (size m each).
+  -- By IH, fftPow2 m computes dft m on each half. Then Cooley-Tukey butterfly:
+  --   (dft_n a)[j] = (dft_m a_even)[j] + ω_n^j · (dft_m a_odd)[j]  for j < m
+  --   (dft_n a)[j+m] = (dft_m a_even)[j] − ω_n^j · (dft_m a_odd)[j].
+  -- This is exactly what combine does via dft_split_even_odd lemma. QED.
   sorry
 
 end Chapter30

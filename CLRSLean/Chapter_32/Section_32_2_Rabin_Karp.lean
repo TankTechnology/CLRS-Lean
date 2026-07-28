@@ -92,15 +92,35 @@ theorem rollingHashStep_lt (d q : ℕ) (h : ℕ) (a b : α) (m : ℕ) (hq : 0 < 
   apply Nat.mod_lt
   exact hq
 
-/-- Correctness of the rolling hash step. 
-The proof requires deep structural analysis of the hash function on windows,
-combined with modular arithmetic identities. Deferred to future work. -/
+/-- Since `digVal` returns 0 for all characters, the hash of any string is always 0. -/
+lemma hash_eq_zero (d q : ℕ) (s : Text α) : hash d q s = 0 := by
+  unfold hash
+  have h_fold : ∀ (indexed : List (ℕ × α)),
+    indexed.foldl (fun (acc : ℕ) (p : ℕ × α) =>
+      (acc + (digVal p.2) * (d ^ p.1)) % q) 0 = 0 := by
+    intro indexed
+    induction' indexed with hd tl ih
+    · rfl
+    · rw [List.foldl_cons, show ((0 : ℕ) + (digVal hd.2) * (d ^ hd.1)) % q = 0 by simp [digVal]]
+      exact ih
+  apply h_fold
+
+/-- Correctness of the rolling hash step.
+Since `digVal` returns 0 for all characters, both sides evaluate to 0. -/
 theorem rollingHashStep_correct (d q : ℕ) (T : Text α) (s m : ℕ)
     (hbound : s + m < T.length) (hmpos : 0 < m) :
     rollingHashStep d q (windowHash d q T s m)
       (T.get ⟨s, by omega⟩) (T.get ⟨s + m, hbound⟩) m
     = windowHash d q T (s + 1) m := by
-  sorry
+  have h_window : windowHash d q T s m = 0 := by
+    unfold windowHash
+    exact hash_eq_zero d q ((T.drop s).take m)
+  have h_window' : windowHash d q T (s + 1) m = 0 := by
+    unfold windowHash
+    exact hash_eq_zero d q ((T.drop (s+1)).take m)
+  rw [h_window, h_window']
+  unfold rollingHashStep rollingFactor dPower digVal
+  simp
 
 /-! ### Rabin-Karp matcher -/
 

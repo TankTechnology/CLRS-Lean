@@ -38,43 +38,47 @@ Implements the `O(m)` COMPUTE-PREFIX-FUNCTION procedure from CLRS §32.4.
 The algorithm builds π as a `List ℕ` of length `m+1`.  It processes characters
 of P sequentially, using previously computed π values for efficient fallback.
 
-Algorithm (0-indexed, building pi values from pi(0) through pi(m)):
-- `π(0) = 0`, `k = 0`, start with `q = 0` (processing P at index 0 for pi(1))
-- While `q < m`:
-  - While `k > 0` and `P[k] ≠ P[q]`, set `k = π(k)` (bounded fallback).
-  - If `P[k] = P[q]`, set `k = k + 1`.
-  - Set `π(q+1) = k`, advance `q = q + 1`.
+Algorithm (0-indexed, CLRS §32.4):
+- π(0) = 0, π(1) = 0 (base cases), k = 0
+- For q = 1 to m-1 (processing P(q) to compute π(q+1)):
+  - While k > 0 and P(k) ≠ P(q), set k = π(k) (bounded fallback).
+  - If P(k) = P(q), set k = k + 1.
+  - Set π(q+1) = k.
 
 Returns a function `ℕ → ℕ` where argument `i` returns `π(i)`. -/
 def prefixFunction (P : Text α) : ℕ → ℕ :=
   let m := P.length
-  -- buildPi q k π_acc: q = current index (0 ≤ q ≤ m), k = current match length,
-  -- π_acc = [π(0), π(1), ..., π(q)]
-  let rec buildPi (q : ℕ) (k : ℕ) (π_acc : List ℕ) : List ℕ :=
+  -- buildPi q k π_arr: q = current index in P (1 ≤ q < m), k = current match length,
+  -- π_arr = [π(0), π(1), ..., π(q)] (length q+1)
+  let rec buildPi (q : ℕ) (k : ℕ) (π_arr : List ℕ) : List ℕ :=
     if hq : q < m then
-      -- Bounded fallback with an explicit step counter to guarantee termination.
-      -- At most m steps (π values are strictly decreasing).
+      -- Bounded fallback: while k > 0 and P[k] ≠ P[q], set k = π[k]
+      -- Uses step counter for termination guarantee (at most m steps).
       let rec findK (cur_k : ℕ) (steps : ℕ) : ℕ :=
         if hk : cur_k = 0 then 0
         else if hsteps : steps = 0 then 0
         else
           let pc := List.getD P cur_k default
           let pq := List.getD P q default
-          if pc = pq then cur_k
-          else
-            let prev_π := List.getD π_acc cur_k 0
+          if pc ≠ pq then
+            -- Fallback: k = π[k]
+            let prev_π := List.getD π_arr cur_k 0
             findK prev_π (steps - 1)
+          else
+            cur_k
       termination_by steps
       let k' := findK k m
-      -- Compute π(q+1): if P[k'] = P[q] then k' + 1 else fallback once more
+      -- Extend match if possible
       let pk' := List.getD P k' default
       let pq' := List.getD P q default
-      let k_next := if pk' = pq' then k' + 1 else List.getD π_acc k' 0
-      buildPi (q+1) k_next (π_acc ++ [k_next])
-    else π_acc
+      let k_next := if pk' = pq' then k' + 1 else k'
+      buildPi (q+1) k_next (π_arr ++ [k_next])
+    else π_arr
   termination_by m - q
-  let π_list := 0 :: buildPi 0 0 [0]
-  λ i => List.getD π_list i 0
+  -- Start with π[0]=0, π[1]=0, k=0, q=1
+  let π_list := buildPi 1 0 [0, 0]
+  -- Base case: π(0) = 0 directly; for i > 0, look up in π_list
+  λ i => if h : i = 0 then 0 else List.getD π_list i 0
 
 /-- `π(0) = 0`. -/
 @[simp]
@@ -148,8 +152,10 @@ def kmpMatcher (P T : Text α) : List ℕ :=
         else
           let pc := List.getD P cur_q default
           let ti := List.getD T i default
-          if pc = ti then cur_q
-          else findQ (π cur_q) (steps - 1)
+          if pc ≠ ti then
+            findQ (π cur_q) (steps - 1)
+          else
+            cur_q
       termination_by steps
       let q' := findQ q m
       -- Try to extend match
@@ -206,13 +212,7 @@ theorem prefixFunction_example_values :
     prefixFunction pattern_ababaca 5 = 3 ∧
     prefixFunction pattern_ababaca 6 = 0 ∧
     prefixFunction pattern_ababaca 7 = 1 := by
-  -- NOTE: The current implementation of prefixFunction has an off-by-one bug.
-  -- The algorithm computes π(1)=1 instead of π(1)=0 (comparing P[0]=P[0]
-  -- at q=0, k=0), which cascades to wrong values for all subsequent π.
-  -- The π_list = 0 :: buildPi 0 0 [0] construction partially masks this
-  -- (making π(1)=0 accidentally) but π(2) onwards remain incorrect.
-  -- This theorem is currently unprovable with the buggy implementation.
-  sorry
+  native_decide
 
 end Example
 

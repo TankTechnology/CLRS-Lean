@@ -389,9 +389,12 @@ Existence of an LUP decomposition for every nonsingular matrix.
 (CLRS Theorem 28.1, the LUP decomposition theorem.)
 -/
 theorem lupDecomp_exists (A : Mat n n) : Nonempty (LUDecomp A) := by
-  -- deferred: requires constructing L,U,p by induction on columns with
-  -- partial pivoting (max |pivot|), Schur complement update, and proving
-  -- PA = LU via the accumulated multiplier/swap algebra.
+  -- Proof sketch: loop j = 0..n-1, maintain invariant PA = LU on first j columns.
+  -- At column j: select pivot row i ≥ j maximizing |A[i,j]|; swap rows i↔j in A and
+  -- accumulate swap in p; compute multipliers L[k,j] = A[k,j]/A[j,j] for k>j;
+  -- update trailing submatrix A[k,l] -= L[k,j]*A[j,l] (Schur complement).
+  -- By construction, L is unit lower triangular and U is the upper triangular
+  -- remainder. The invariant PA = LU follows from the algebra of multiplier accumulation.
   sorry
 
 /--
@@ -446,9 +449,12 @@ For a nonsingular matrix `A`, `lupSolve A b` satisfies `A * x = b`.
 -/
 theorem lupSolve_correct (A : Mat n n) (b : Vec n) :
     Matrix.mulVec A (lupSolve A b) = b := by
-  -- deferred: unfolds lupSolve into forward/back substitution on L,U,p;
-  -- then chains forwardSubst_spec, backSubst_spec, and permutation-matrix
-  -- algebra to derive Ax = b from PA = LU and Ly = Pb, Ux = y.
+  -- Proof sketch: let (L,U,p) = lupDecomp A with PA = LU.
+  -- Compute b' = Pb (permute RHS), y = forwardSubst L b' (solve Ly = b'),
+  -- x = backSubst U y (solve Ux = y). Then:
+  --   Ax = (P⁻¹LU)x = P⁻¹L(Ux) = P⁻¹L y = P⁻¹ b' = P⁻¹Pb = b.
+  -- Requires: forwardSubst_spec gives Ly = b', backSubst_spec gives Ux = y,
+  -- and the permutation matrix algebra that P * (P⁻¹v) = v on all indices.
   sorry
 
 end Chapter28

@@ -73,7 +73,13 @@ lemma suffix_last_eq_of_append {s t : Text α} {a : α} (hSuf : isSuffix s (t ++
 
 lemma dropLast_take_eq_take_pred {P : Text α} {k : ℕ} (hk : 0 < k) (hkP : k ≤ P.length) :
     (P.take k).dropLast = P.take (k-1) := by
-  sorry
+  have h_len : (P.take k).length = k := by simp [hkP]
+  calc
+    (P.take k).dropLast = (P.take k).take ((P.take k).length - 1) := by
+      rw [List.dropLast_eq_take]
+    _ = (P.take k).take (k - 1) := by rw [h_len]
+    _ = P.take (k - 1) := by
+      rw [List.take_take, min_eq_left (by omega : k - 1 ≤ k)]
 
 lemma take_split_last_eq {P : Text α} {k : ℕ} {a : α} (hk : 0 < k) (hkP : k ≤ P.length)
     (h_last : (P.take k).getLast? = some a) : P.take k = P.take (k-1) ++ [a] := by
@@ -348,21 +354,46 @@ variable {α : Type} (P : Text α)
 
 theorem deltaStar_eq_suffixFn_Pq (q : ℕ) (T : Text α) (hq : q ≤ P.length) :
     deltaStar P q T = suffixFn P (P.take q ++ T) := by
-  sorry
+  induction' T using List.reverseRecOn with T a ih
+  · -- T = []
+    simp [deltaStar, suffixFn_self_prefix P q hq]
+  · -- T = T ++ [a]
+    rw [deltaStar_append P q T [a], deltaStar_singleton P (deltaStar P q T) a, delta]
+    rw [ih]
+    rw [← suffixFn_append_eq P (P.take q ++ T) a]
+    simp [List.append_assoc]
 
 theorem deltaStar_eq_suffixFn (T : Text α) : deltaStar P 0 T = suffixFn P T := by
-  sorry
+  simpa using deltaStar_eq_suffixFn_Pq P 0 T (by simp)
 
 /-- The DFA accepts `T` iff `P` is a suffix of `T`. -/
 theorem accepts_iff_isSuffix (T : Text α) : accepts P T ↔ isSuffix P T := by
-  sorry
+  constructor
+  · intro h
+    unfold accepts at h
+    rw [deltaStar_eq_suffixFn P T] at h
+    have h_satisfies : isSuffix (P.take (suffixFn P T)) T := suffixFn_satisfies P T
+    rw [h] at h_satisfies
+    simpa using h_satisfies
+  · intro h
+    have hP_take : P.take P.length = P := by simp
+    have hlen : P.length ≤ P.length := le_refl _
+    have h_max : P.length ≤ suffixFn P T :=
+      suffixFn_maximal P T P.length hlen (by simpa [hP_take] using h)
+    have h_le : suffixFn P T ≤ P.length := suffixFn_le_length P T
+    have h_eq : suffixFn P T = P.length := by omega
+    unfold accepts
+    rw [deltaStar_eq_suffixFn P T, h_eq]
 
 theorem accepts_empty_pattern (T : Text α) : accepts ([] : Text α) T := by
-  sorry
+  simp [accepts, deltaStar_eq_suffixFn, suffixFn_nil_pattern]
 
 theorem not_accepts_when_text_shorter (T : Text α) (hP : P ≠ []) (hLT : T.length < P.length) :
     ¬ accepts P T := by
-  sorry
+  intro h_acc
+  have h_suf : isSuffix P T := (accepts_iff_isSuffix P T).mp h_acc
+  have h_len : P.length ≤ T.length := isSuffix_length_le h_suf
+  omega
 
 end Correctness
 

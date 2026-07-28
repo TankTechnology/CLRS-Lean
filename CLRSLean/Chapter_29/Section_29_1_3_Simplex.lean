@@ -243,9 +243,13 @@ it returns `some sf'` and the input was feasible.
 theorem simplex_correct (sf : SlackForm N B) (maxIter : ℕ)
     (hFeas : sf.IsFeasible) (hTerm : sf.simplex maxIter = some sf') :
     sf'.IsOptimal := by
-  -- deferred: requires invariant that each pivot preserves feasibility,
-  -- objective is non-decreasing, and Bland's rule guarantees termination;
-  -- optimality follows from ∀j, c_j ≤ 0 (no entering variable).
+  -- Proof sketch: show (i) feasibility invariant — pivot preserves Ax=b, x≥0 at basic solution;
+  -- (ii) objective is non-decreasing — entering variable has positive reduced cost cₑ > 0
+  -- so moving into basis increases (or keeps) objective; (iii) Bland's rule (smallest-index
+  -- entering/leaving) prevents cycling, guaranteeing termination in finitely many pivots.
+  -- At termination, all reduced costs cⱼ ≤ 0, so no improving direction exists — optimal.
+  -- The invariant proof uses row operations: each pivot performs elementary row ops on the
+  -- slack form that preserve the solution space while maintaining the basic feasible form.
   sorry
 
 /--
