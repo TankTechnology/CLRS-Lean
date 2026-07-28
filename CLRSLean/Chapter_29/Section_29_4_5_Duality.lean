@@ -114,10 +114,12 @@ theorem strong_duality_converse (lp : StandardLP m n) (y : Vec m)
 theorem unbounded_primal_implies_dual_infeasible (lp : StandardLP m n)
     (h : ∀ M : ℝ, ∃ x, lp.IsFeasible x ∧ M < lp.primalObjective x) :
     ¬ ∃ y, (lp.dual).IsFeasible y := by
-  -- deferred: contrapositive of weak_duality — if dual feasible y exists,
-  -- then every primal feasible x satisfies c·x ≤ -(b·y), contradicting
-  -- unboundedness. Depends on fixing the dual constraint direction first.
-  sorry
+  intro hy
+  rcases hy with ⟨y, hy_feas⟩
+  have hbound := h (lp.dualObjective y)
+  rcases hbound with ⟨x, hx_feas, hx_bound⟩
+  have hweak := weak_duality lp x y hx_feas hy_feas
+  linarith
 
 /-- Complementary slackness for the primal. -/
 theorem primalComplementarySlackness (lp : StandardLP m n) (x : Vec n) (y : Vec m) :

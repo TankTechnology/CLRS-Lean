@@ -556,9 +556,8 @@ Remaining work:
 -/
 theorem fftPow2_eq_dft (n : ℕ) (a : Fin n → ℂ) (hpow : ∃ k, n = 2^k) (hn : n ≠ 0) :
     fftPow2 n hpow a = dft n a := by
-  -- deferred: requires (1) proper definition of fftPow2 via Nat.strongRec with
-  -- Cooley-Tukey butterfly, and (2) dft_split_even_odd decomposition lemma.
-  -- Induction on k (where n=2^k) using the butterfly identity.
+  -- NOTE: Depends on fftPow2 stub definition — left as `sorry` until fftPow2 is fully defined
+  -- using Nat.strongRec with the Cooley-Tukey butterfly and dft_split_even_odd lemma.
   sorry
 
 end Chapter30
