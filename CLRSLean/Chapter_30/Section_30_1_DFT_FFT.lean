@@ -556,48 +556,9 @@ Remaining work:
 -/
 theorem fftPow2_eq_dft (n : ℕ) (a : Fin n → ℂ) (hpow : ∃ k, n = 2^k) (hn : n ≠ 0) :
     fftPow2 n hpow a = dft n a := by
-  -- NOTE: This theorem cannot currently be proved because `fftPow2` is a
-  -- placeholder defined as the identity function (`a`), which differs from
-  -- the true DFT in general. The proof depends on two items that must be
-  -- completed first:
-  --
-  -- 1. `fftPow2` must be properly defined using `Nat.strongRec` (or
-  --    `WellFounded.fix`) to implement the recursive Cooley-Tukey algorithm:
-  --    * Base case n = 1: return a unchanged (size-1 DFT is identity).
-  --    * Recursive case n = 2m (m = 2^{k-1} > 0):
-  --        let a_even[j] = a[2j], a_odd[j] = a[2j+1] for j < m
-  --        let A = fftPow2 m a_even
-  --        let B = fftPow2 m a_odd
-  --        for j < m:
-  --          result[j]     = A[j] + ω_{2m}^j * B[j]
-  --          result[j + m] = A[j] - ω_{2m}^j * B[j]
-  --
-  -- 2. `dft_split_even_odd` must be proved (the core decomposition lemma).
-  --    This lemma states that DFT_{2m}(a) can be computed from DFT_m(a_even)
-  --    and DFT_m(a_odd) using the butterfly operation described above.
-  --
-  -- PROOF SKETCH (once dependencies are met):
-  --
-  -- By strong induction on n (equivalently, on k where n = 2^k).
-  --
-  -- Base case n = 1 (k = 0): A size-1 DFT is the identity since
-  --   dft 1 a 0 = a 0 * (ω 1)^{0*0} = a 0 * 1 = a 0.
-  --   And fftPow2 1 ... a = a (by the base case of the recursive definition).
-  --
-  -- Inductive step n = 2m where m = 2^{k-1} > 0:
-  --   By definition of fftPow2 (once properly implemented):
-  --     fftPow2 n a
-  --       = combine(fftPow2 m a_even, fftPow2 m a_odd)
-  --   By induction hypothesis (n/2 < n since n > 1):
-  --     fftPow2 m a_even = DFT_m a_even
-  --     fftPow2 m a_odd  = DFT_m a_odd
-  --   By `dft_split_even_odd`:
-  --     combine(DFT_m a_even, DFT_m a_odd) = DFT_{2m} a
-  --   Therefore fftPow2 n a = DFT_n a.
-  --
-  -- The combine operation must also be proven to satisfy the butterfly
-  -- formula used in the second half of dft_split_even_odd (which uses
-  -- ω_{2m}^m = -1 for the minus sign).
+  -- deferred: requires (1) proper definition of fftPow2 via Nat.strongRec with
+  -- Cooley-Tukey butterfly, and (2) dft_split_even_odd decomposition lemma.
+  -- Induction on k (where n=2^k) using the butterfly identity.
   sorry
 
 end Chapter30

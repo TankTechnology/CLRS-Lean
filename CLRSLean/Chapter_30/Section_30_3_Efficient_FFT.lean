@@ -26,20 +26,28 @@ def bitReverse (lg_n : ℕ) (k : ℕ) : ℕ :=
     `lg_n` is log2(n), `a` is the input vector indexed by `Fin n`.
     Deferred: the full butterfly loop requires complex termination proofs. -/
 noncomputable def iterativeFFT (n : ℕ) (a : ℕ → ℂ) : ℕ → ℂ := by
-  -- Deferred: bit-reverse copy + lg_n butterfly stages
+  -- deferred: bit-reverse copy + lg_n butterfly stages.
+  -- Requires: bitReverseCopy to permute a, then s=1..lg_n stages of
+  -- Cooley-Tukey butterflies with ω_{2^s} twiddle factors.
   sorry
 
 /-- Convenience wrapper: iterative FFT on `Fin n` indexed vectors. -/
 noncomputable def fft (n : ℕ) (a : Fin n → ℂ) : Fin n → ℂ := by
+  -- deferred: lift a to ℕ → ℂ, call iterativeFFT, then truncate to Fin n.
   sorry
 
 /-- Correctness: iterative FFT computes the DFT. -/
 theorem iterativeFFT_eq_dft (n : ℕ) (a : Fin n → ℂ) (hn : n ≠ 0) :
     (fun k : Fin n => iterativeFFT n (λ i => if hi : i < n then a ⟨i, hi⟩ else 0) (k.val)) = dft n a := by
+  -- deferred: requires implementing iterativeFFT correctly; then prove by
+  -- induction on lg_n stages that each butterfly stage preserves the DFT
+  -- after bit-reversal permutation.
   sorry
 
 /-- The inverse FFT recovers the original coefficients. -/
 theorem idft_fft_eq (n : ℕ) (a : Fin n → ℂ) (hn : n ≠ 0) : idft n (fft n a) = a := by
+  -- deferred: if fft n a = dft n a, then idft n (fft n a) = idft n (dft n a) = a
+  -- by idft_dft. Depends on implementing fft and proving iterativeFFT_eq_dft.
   sorry
 
 end Chapter30

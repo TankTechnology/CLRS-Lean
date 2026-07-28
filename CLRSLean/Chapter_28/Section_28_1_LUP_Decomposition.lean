@@ -389,15 +389,10 @@ Existence of an LUP decomposition for every nonsingular matrix.
 (CLRS Theorem 28.1, the LUP decomposition theorem.)
 -/
 theorem lupDecomp_exists (A : Mat n n) : Nonempty (LUDecomp A) := by
+  -- deferred: requires constructing L,U,p by induction on columns with
+  -- partial pivoting (max |pivot|), Schur complement update, and proving
+  -- PA = LU via the accumulated multiplier/swap algebra.
   sorry
-  -- The CLRS proof constructs L, U, p iteratively by partial pivoting:
-  -- for k = 0, …, n-2:
-  --   1. Find pivot row p[k] ≥ k with largest |A[p[k], k]|
-  --   2. Swap rows k and p[k] in A (and accumulate permutation)
-  --   3. Compute multipliers L[i,k] = A[i,k] / A[k,k] for i > k
-  --   4. Update Schur complement: A[i,j] -= L[i,k] * A[k,j]
-  -- The resulting U is the upper part of the modified A, L holds
-  -- the multipliers, and p encodes the accumulated swaps.
 
 /--
 **LUP decomposition** (partial pivoting).  Given a nonsingular `n × n` matrix
@@ -451,15 +446,10 @@ For a nonsingular matrix `A`, `lupSolve A b` satisfies `A * x = b`.
 -/
 theorem lupSolve_correct (A : Mat n n) (b : Vec n) :
     Matrix.mulVec A (lupSolve A b) = b := by
+  -- deferred: unfolds lupSolve into forward/back substitution on L,U,p;
+  -- then chains forwardSubst_spec, backSubst_spec, and permutation-matrix
+  -- algebra to derive Ax = b from PA = LU and Ly = Pb, Ux = y.
   sorry
-  -- Proof outline:
-  -- 1. Let PA = LU (from lupDecomp_spec).
-  -- 2. Let y = forwardSubst L (Pb), so Ly = Pb.
-  -- 3. Let x = backSubst U y, so Ux = y.
-  -- 4. Then PAx = LUx = Ly = Pb.
-  -- 5. Multiply both sides by P⁻¹ to get Ax = b.
-  -- This requires forwardSubst_spec and backSubst_spec,
-  -- plus permutation-matrix algebra.
 
 end Chapter28
 end CLRS

@@ -243,6 +243,9 @@ it returns `some sf'` and the input was feasible.
 theorem simplex_correct (sf : SlackForm N B) (maxIter : ℕ)
     (hFeas : sf.IsFeasible) (hTerm : sf.simplex maxIter = some sf') :
     sf'.IsOptimal := by
+  -- deferred: requires invariant that each pivot preserves feasibility,
+  -- objective is non-decreasing, and Bland's rule guarantees termination;
+  -- optimality follows from ∀j, c_j ≤ 0 (no entering variable).
   sorry
 
 /--

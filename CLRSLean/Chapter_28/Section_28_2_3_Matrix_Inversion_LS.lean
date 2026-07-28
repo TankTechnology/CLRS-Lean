@@ -213,15 +213,9 @@ Existence of an LDLᵀ decomposition for every SPD matrix.
 -/
 theorem ldltDecomp_exists {A : Mat n n} (h : SPDMatrix A) :
     Nonempty (LDLTDecomp A) := by
+  -- deferred: constructs L,D by induction on j computing D_jj = A_jj - Σ(L²D)
+  -- and L_ij = (A_ij - Σ(L·D·L))/D_jj; SPD property ensures D_jj > 0 throughout.
   sorry
-  -- The CLRS proof constructs L and D iteratively:
-  -- For j = 0, …, n-1:
-  --   1. D[j,j] = A[j,j] - Σ_{k < j} L[j,k]² * D[k,k]
-  --      (Cholesky-style without square roots)
-  --   2. For i = j+1, …, n-1:
-  --      L[i,j] = (A[i,j] - Σ_{k < j} L[i,k] * D[k,k] * L[j,k]) / D[j,j]
-  -- The diagonal of L is 1 by construction.
-  -- The SPD property guarantees D[j,j] > 0 at every step.
 
 /--
 **LDLᵀ decomposition** for an SPD matrix.
@@ -305,14 +299,9 @@ theorem leastSquares_optimal (A : Mat m n) (b : Vec m) (y : Vec n) :
     (∑ i : Fin m,
       (Matrix.mulVec A y i - b i) *
       (Matrix.mulVec A y i - b i)) := by
+  -- deferred: let x = leastSquares A b, r = Ax-b, d = A(y-x); then
+  -- ‖Ay-b‖² = ‖r+d‖² = ‖r‖² + ‖d‖² + 2⟨r,d⟩ where ⟨r,d⟩ = 0 by orthogonality.
   sorry
-  -- Proof uses the orthogonality principle:
-  -- Let x = leastSquares A b, r = A x - b.
-  -- For any y, let d = A (y - x).
-  -- Then A y - b = r + d.
-  -- ‖A y - b‖² = ‖r‖² + ‖d‖² + 2⟨r, d⟩.
-  -- But ⟨r, d⟩ = rᵀ (A (y - x)) = (Aᵀ r)ᵀ (y - x) = 0 (by orthogonality).
-  -- Hence ‖A y - b‖² = ‖r‖² + ‖d‖² ≥ ‖r‖² = ‖A x - b‖².
 
 /-! #### Cholesky decomposition (bonus, closely related to LDLᵀ) -/
 

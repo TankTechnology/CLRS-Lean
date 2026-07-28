@@ -131,13 +131,20 @@ theorem suffixFn_correct (x : Text α) :
   And.intro (suffixFn_satisfies P x) (suffixFn_maximal P x)
 
 theorem suffixFn_le_x_length (x : Text α) : suffixFn P x ≤ x.length := by
-  sorry
+  have h := isSuffix_length_le (suffixFn_satisfies P x)
+  simp [suffixFn_le_length P x] at h
+  exact h
 
 theorem suffixFn_self_prefix (q : ℕ) (hq : q ≤ P.length) : suffixFn P (P.take q) = q := by
-  sorry
+  apply le_antisymm
+  · have h := isSuffix_length_le (suffixFn_satisfies P (P.take q))
+    simp [suffixFn_le_length P (P.take q), hq] at h
+    exact h
+  · apply suffixFn_maximal P (P.take q) q hq
+    exact isSuffix_self _
 
 @[simp] theorem suffixFn_nil_pattern (x : Text α) : suffixFn ([] : Text α) x = 0 := by
-  sorry
+  simp [suffixFn, suffixGo]
 
 end SuffixFunction
 
@@ -167,14 +174,19 @@ def initialState : ℕ := 0
 def isAcceptingState (q : ℕ) : Prop := q = P.length
 
 theorem delta_valid (q : ℕ) (a : α) (hq : q ≤ P.length) : delta P q a ≤ P.length := by
-  sorry
+  unfold delta
+  exact suffixFn_le_length P ((P.take q) ++ [a])
 
 theorem deltaStar_valid (q : ℕ) (T : Text α) (hq : q ≤ P.length) : deltaStar P q T ≤ P.length := by
-  sorry
+  induction' T with a T ih generalizing q
+  · exact hq
+  · unfold deltaStar; simp
+    apply ih
+    exact delta_valid P q a hq
 
 @[simp] theorem deltaStar_append (q : ℕ) (T₁ T₂ : Text α) :
     deltaStar P q (T₁ ++ T₂) = deltaStar P (deltaStar P q T₁) T₂ := by
-  sorry
+  simp [deltaStar]
 
 @[simp] theorem deltaStar_nil (q : ℕ) : deltaStar P q [] = q := rfl
 

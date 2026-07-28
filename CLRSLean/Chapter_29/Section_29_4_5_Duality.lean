@@ -34,6 +34,10 @@ def StandardLP.primalObjective (lp : StandardLP m n) (x : Vec n) : ℝ :=
 theorem weak_duality (lp : StandardLP m n) (x : Vec n) (y : Vec m)
     (hx : lp.IsFeasible x) (hy : (lp.dual).IsFeasible y) :
     lp.primalObjective x ≤ lp.dualObjective y := by
+  -- NOTE: the dual constraint Aᵀy ≤ c (from StandardLP.IsFeasible) gives
+  -- the wrong inequality direction for standard weak duality (needs Aᵀy ≥ c).
+  -- The theorem is unprovable with the current dual definition; the dual must
+  -- be reformulated as a minimization with the opposite constraint direction.
   sorry
 
 /-- Strong duality: if the primal has an optimal solution,
@@ -42,6 +46,9 @@ theorem strong_duality (lp : StandardLP m n) (x : Vec n)
     (hx : lp.IsOptimal x) :
     ∃ (y : Vec m), (lp.dual).IsOptimal y ∧
       lp.primalObjective x = lp.dualObjective y := by
+  -- deferred: constructs dual optimal solution from the simplex final tableau
+  -- of the primal; the tableau's reduced costs give dual variables y with
+  -- complementary slackness and equal objective values.
   sorry
 
 /-- Corollary: if primal and dual have equal objective values for
@@ -99,12 +106,17 @@ theorem strong_duality_converse (lp : StandardLP m n) (y : Vec m)
     (hy : (lp.dual).IsOptimal y) :
     ∃ (x : Vec n), lp.IsOptimal x ∧
       lp.primalObjective x = lp.dualObjective y := by
+  -- deferred: symmetric to strong_duality; applies strong_duality to the dual
+  -- LP (treating it as primal) and converts back via the bidual construction.
   sorry
 
 /-- If the primal is unbounded, the dual is infeasible. -/
 theorem unbounded_primal_implies_dual_infeasible (lp : StandardLP m n)
     (h : ∀ M : ℝ, ∃ x, lp.IsFeasible x ∧ M < lp.primalObjective x) :
     ¬ ∃ y, (lp.dual).IsFeasible y := by
+  -- deferred: contrapositive of weak_duality — if dual feasible y exists,
+  -- then every primal feasible x satisfies c·x ≤ -(b·y), contradicting
+  -- unboundedness. Depends on fixing the dual constraint direction first.
   sorry
 
 /-- Complementary slackness for the primal. -/
