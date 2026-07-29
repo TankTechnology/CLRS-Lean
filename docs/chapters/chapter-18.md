@@ -2,9 +2,10 @@
 
 - Status: `partial`
 - Lean entry: `CLRSLean/Chapter_18.lean`
-- Interface test: `Tests/Chapter_18_Interface.lean`
+- Interface tests: `Tests/Chapter_18_Interface.lean`,
+  `Tests/Chapter_18_Deletion_Interface.lean`
 
-## Proved First-Pass Surface
+## Proved Public Surface
 
 - `CLRS.Chapter18.BTree.search_correct`
 - `CLRS.Chapter18.BTree.search_true_iff`
@@ -69,17 +70,45 @@
 - `CLRS.Chapter18.BTree.delete_search_false_old`
 - `CLRS.Chapter18.BTree.delete_search_false_of_not_mem`
 
+## Structural Deletion Results
+
+The executable `composedDelete` proof is bundled rather than duplicated across
+the individual invariants:
+
+- `CLRS.Chapter18.BTree.composedDelete_packet`
+- `CLRS.Chapter18.BTree.composedDelete_nonRoot_preserves`
+- `CLRS.Chapter18.BTree.composedDelete_rootResult`
+- `CLRS.Chapter18.BTree.keysOf_composedDelete_subset`
+- `CLRS.Chapter18.BTree.composedDelete_key_bound_lo`
+- `CLRS.Chapter18.BTree.composedDelete_key_bound_hi`
+- `CLRS.Chapter18.BTree.composedDelete_sameDepth_height`
+- `CLRS.Chapter18.BTree.composedDelete_sorted`
+- `CLRS.Chapter18.BTree.composedDelete_childBounded`
+- `CLRS.Chapter18.BTree.composedDelete_occupancy`
+- `CLRS.Chapter18.BTree.normalizeRoot_wellFormed`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_keys_subset`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_height`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_wellFormed`
+
+The 19 former component proof gaps are eliminated.  Conclusions that require
+the full invariant packet project from the bundled preservation result, while
+`composedDelete_sameDepth_height` keeps its weaker
+`ChildBounded + SameDepth` contract through a dedicated structural induction.
+
+Raw root deletion deliberately has the weaker `RootDeleteResult` postcondition:
+it may return an empty root with one child.  `composedDeleteRoot` applies
+`normalizeRoot`, after which `WellFormed` holds, all result keys come from the
+input, and the height is unchanged or decreases by exactly one.
+
 ## Remaining Work
 
-The current chapter uses a mathematical key-membership model, a minimum-key
-height-expression base/positivity facts, recurrence, and monotonicity facts,
-direct base search success/failure wrappers, and specification wrappers for
-split/insert/delete, including direct split validity/preservation corollaries
-and direct successful/unsuccessful query corollaries for the inserted and
-deleted keys plus old-key preservation, insertion/deletion validity short-name
-wrappers, equality-key update-query wrappers, membership-driven
-search-after-update wrappers, and old failed-search preservation, plus
-exact failed membership specifications and direct failed-membership preservation
-wrappers.
-Full separator ordering, same-depth leaves, node-level deletion repair,
-disk-page I/O, and pointer-level mutation remain future refinements.
+The main missing theorem group connects the executable root operation to exact
+deletion semantics: prove that `x` is absent from
+`composedDeleteRoot t x tr` and that every input key different from `x`
+remains represented.  The existing abstract `delete` specification already
+has those membership facts; the refinement to executable CLRS deletion is
+still open, so Chapter 18 remains `partial`.
+
+Disk-page layout, pointer mutation, page I/O counts, and RAM-cost semantics are
+optional lower-level refinements rather than blockers for the mathematical
+deletion theorem.
