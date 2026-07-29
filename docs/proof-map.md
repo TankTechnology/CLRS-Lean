@@ -2075,9 +2075,11 @@ sharper contraction strategy.
 
 - Lean source:
   `CLRSLean/Chapter_18.lean`,
-  `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean`, and
-  `CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean`, and
-  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean`
+  `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean`,
+  `CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean`,
+  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean`, and the
+  `Section_18_3_B_Tree_Deletion/` invariant, repair, reassembly,
+  preservation, projection, and root-normalization modules
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter18.BTree.search_correct`
@@ -2158,7 +2160,22 @@ sharper contraction strategy.
   - `CLRS.Chapter18.BTree.delete_search_false_iff`
   - `CLRS.Chapter18.BTree.delete_search_false_old`
   - `CLRS.Chapter18.BTree.delete_search_false_of_not_mem`
-- Proof pattern: mathematical key-set model, structural validity predicate,
+  - `CLRS.Chapter18.BTree.composedDelete_packet` (one bundled induction for
+    key containment, root-sensitive structural preservation, and raw height)
+  - `CLRS.Chapter18.BTree.composedDelete_nonRoot_preserves`
+  - `CLRS.Chapter18.BTree.composedDelete_rootResult`
+  - `CLRS.Chapter18.BTree.keysOf_composedDelete_subset`
+  - `CLRS.Chapter18.BTree.composedDelete_key_bound_lo`
+  - `CLRS.Chapter18.BTree.composedDelete_key_bound_hi`
+  - `CLRS.Chapter18.BTree.composedDelete_sameDepth_height`
+  - `CLRS.Chapter18.BTree.composedDelete_sorted`
+  - `CLRS.Chapter18.BTree.composedDelete_childBounded`
+  - `CLRS.Chapter18.BTree.composedDelete_occupancy`
+  - `CLRS.Chapter18.BTree.normalizeRoot_wellFormed`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_keys_subset`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_height`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_wellFormed`
+- Proof pattern: mathematical key-set model, full structural invariant packet,
   base search success/failure wrappers, minimum-key expression
   base/positivity arithmetic and height monotonicity, specification-level
   split/insert/delete wrappers, Prop-level deletion direct wrappers,
@@ -2168,13 +2185,17 @@ sharper contraction strategy.
   direct insertion/deletion validity short-name wrappers, equality-key
   update-query wrappers, membership-driven search-after-update wrappers, old
   failed-search preservation wrappers, exact failed membership
-  specifications, and direct failed-membership preservation wrappers
-- Current gap: full node occupancy/separator/same-depth invariant stack,
-  node-level deletion repair, disk-page I/O, and pointer mutation remain
-  strengthening targets.
+  specifications, direct failed-membership preservation wrappers, bundled
+  deletion induction, local merge/rotation repair packets, parent reassembly,
+  root-sensitive raw results, and one-step root normalization
+- Current gap: exact `composedDeleteRoot` membership semantics—deleting the
+  requested key and preserving every different input key.  Disk-page layout,
+  pointer mutation, I/O counts, and RAM costs are optional lower-level
+  refinements.
 
-Chapter 18 now has a first-pass B-tree theorem surface.  Search, split-child,
-insertion, and deletion are proved against an abstract membership model, and
+Chapter 18 now has both the first-pass B-tree theorem surface and a structural
+proof for the executable CLRS deletion routine.  Search, split-child,
+insertion, and abstract deletion are proved against a membership model, and
 the update wrappers expose direct search-after-update specifications plus
 direct split validity/preservation and inserted/deleted-key plus old-key query
 preservation corollaries, direct insertion/deletion validity short-name
@@ -2186,10 +2207,15 @@ split-child, insertion, and deletion.
 The height
 expression is packaged with a height-zero base case, positivity wrappers, a
 minimum-key lower bound and height-step recurrence, plus adjacent and
-arbitrary-height monotonicity facts.  The current split,
-insert, and delete operations are specification
-wrappers, so the chapter is still `partial` rather than a complete page-level
-mutation proof.
+arbitrary-height monotonicity facts.  For executable deletion,
+`composedDelete_packet` covers leaf, predecessor/successor, sibling rotation,
+and sibling merge branches without duplicating the induction across
+invariants.  A raw root may be the permitted one-child empty transient, so
+only `composedDeleteRoot`, which applies `normalizeRoot` after
+`composedDelete`, is stated to preserve root `WellFormed`; its keys form a
+subset of the input and its height is unchanged or decreases by one.  The
+chapter remains `partial` until this executable operation is connected to
+exact deletion membership semantics.
 
 ## Chapter 19 - Fibonacci Heaps
 
@@ -3190,7 +3216,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
 | Chapter 12 executable pointer-level BST | `proved` | Imperative pointer-heap model (`Node` records with `left`/`right`/`parent` cells over a `Std.HashMap` `Store`) with `RepresentsW` heap-to-tree abstraction; in-place `TRANSPLANT` (`transplantChild_left_representsW`/`transplantChild_right_representsW`) and leaf `TREE-INSERT` (`insertPointer_right_representsW`) refine functional subtree replacement. Only an explicit RAM cost model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
-| B-tree structural invariants (occupancy, depth) | `future-work` | The current B-tree model is a membership-level specification with search/split/insert/delete proved correct against abstract key sets. Full structural invariants (node occupancy bounds, same-depth property, separator ordering) require a richer node representation and are a next-pass refinement target. |
+| B-tree executable deletion semantics | `partial` | `composedDelete_packet` proves key containment and the full root-sensitive structural packet through every CLRS repair branch; `composedDeleteRoot_wellFormed` proves root-normalized well-formedness, with subset and height results. Remaining: prove the requested key is absent from `composedDeleteRoot` and every different input key remains. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
 | Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |
 | Generic augmentation through red-black deletion | `future-work` | Section 14.1 threads the size augmentation through executable deletion (`OSRBTree.wellSized_delete`, `toRB_delete`, `redBlackShape_toRB_delete`, `mem_keys_delete`).  The remaining work is the generic Section 14.3 `AugmentedRBTree` mirror of the Chapter 13 deletion pipeline (roughly 300 lines following the Section 14.1 template). |

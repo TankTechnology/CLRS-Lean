@@ -70,6 +70,122 @@ namespace CLRS
 namespace Chapter18
 namespace BTree
 
+/-! ## Compatibility wrappers for `B-TREE-SPLIT-CHILD` -/
+
+/-- Internal bridge from the degree-only `Valid` predicate to `splitChild`'s
+key-multiset preservation theorem. -/
+theorem splitChild_keys_perm_valid {minDegree : Nat} {tr : BTree} {i : Nat}
+    (hvalid : Valid minDegree tr) :
+    (keysOf (splitChild minDegree tr i)).Perm (keysOf tr) := by
+  cases tr with
+  | node keys children =>
+      change 2 ≤ minDegree at hvalid
+      by_cases h_lt : i < children.length
+      · cases hchild_eq : children.get ⟨i, h_lt⟩ with
+        | node cKeys cChildren =>
+            by_cases hfull : cKeys.length = 2 * minDegree - 1
+            · exact splitChild_keys_perm minDegree hvalid keys children cKeys cChildren i
+                h_lt hchild_eq hfull
+            · dsimp [splitChild]
+              rw [dif_pos h_lt]
+              have h_get : children[i] = node cKeys cChildren := by
+                simpa using hchild_eq
+              rw [h_get]
+              simp [hfull]
+      · simp [splitChild, h_lt]
+
+/-- Splitting a child preserves degree-only `Valid` and every key membership fact.
+Structural preservation is stated separately by `splitChild_preserves_wellFormed`. -/
+theorem splitChild_preserves_model {minDegree : Nat} {tr : BTree} {i : Nat}
+    (hvalid : Valid minDegree tr) :
+    Valid minDegree (splitChild minDegree tr i) ∧
+      ∀ x, mem x (splitChild minDegree tr i) ↔ mem x tr := by
+  refine ⟨hvalid, ?_⟩
+  intro x
+  exact (splitChild_keys_perm_valid
+    (minDegree := minDegree) (tr := tr) (i := i) hvalid).mem_iff
+
+/-- Splitting a child preserves degree-only `Valid`; this is not a structural invariant. -/
+theorem splitChild_valid {minDegree : Nat} {tr : BTree} {i : Nat}
+    (hvalid : Valid minDegree tr) :
+    Valid minDegree (splitChild minDegree tr i) :=
+  (splitChild_preserves_model
+    (minDegree := minDegree) (tr := tr) (i := i) hvalid).1
+
+/-- Membership is unchanged by splitting a child. -/
+theorem splitChild_mem_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    mem x (splitChild minDegree tr i) ↔ mem x tr :=
+  (splitChild_preserves_model
+    (minDegree := minDegree) (tr := tr) (i := i) hvalid).2 x
+
+/-- Every old member remains a member after splitting a child. -/
+theorem splitChild_mem_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : mem x tr) :
+    mem x (splitChild minDegree tr i) :=
+  (splitChild_mem_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Non-membership is unchanged by splitting a child. -/
+theorem splitChild_not_mem_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    (¬ mem x (splitChild minDegree tr i)) ↔ ¬ mem x tr :=
+  not_congr (splitChild_mem_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid)
+
+/-- Every old non-member remains absent after splitting a child. -/
+theorem splitChild_not_mem_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : ¬ mem x tr) :
+    ¬ mem x (splitChild minDegree tr i) :=
+  (splitChild_not_mem_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Successful search is unchanged by splitting a child. -/
+theorem splitChild_search_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    search x (splitChild minDegree tr i) = true ↔ search x tr = true := by
+  simpa only [search_true_iff] using
+    (splitChild_mem_iff
+      (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid)
+
+/-- Every old successful search remains successful after splitting a child. -/
+theorem splitChild_search_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : search x tr = true) :
+    search x (splitChild minDegree tr i) = true :=
+  (splitChild_search_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Every old member is searchable after splitting a child. -/
+theorem splitChild_search_of_mem {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : mem x tr) :
+    search x (splitChild minDegree tr i) = true :=
+  splitChild_search_old
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr)
+    hvalid (search_true_of_mem x tr hx)
+
+/-- Failed search is unchanged by splitting a child. -/
+theorem splitChild_search_false_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    search x (splitChild minDegree tr i) = false ↔ search x tr = false := by
+  simpa only [search_false_iff] using
+    (splitChild_not_mem_iff
+      (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid)
+
+/-- Every old failed search remains failed after splitting a child. -/
+theorem splitChild_search_false_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : search x tr = false) :
+    search x (splitChild minDegree tr i) = false :=
+  (splitChild_search_false_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Every old non-member remains an unsuccessful search after splitting a child. -/
+theorem splitChild_search_false_of_not_mem {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : ¬ mem x tr) :
+    search x (splitChild minDegree tr i) = false :=
+  splitChild_search_false_old
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr)
+    hvalid (search_false_of_not_mem x tr hx)
+
 /-- Specification-level B-tree insertion: add the key at a fresh root. -/
 def insert (x : Nat) (t : BTree) : BTree :=
   node (x :: keysOf t) []
@@ -1430,6 +1546,7 @@ lemma occupancy_left_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildren
   have hlen := child_children_len_of_full_cb ht hcb hfull
   have hkl : (cKeys.take (t - 1)).length = t - 1 := by rw [List.length_take, hfull]; omega
   unfold Occupancy at hocc ⊢
+  simp only [Bool.false_eq_true, if_false] at hocc ⊢
   refine ⟨?_, ?_, ?_, ?_⟩
   · show t - 1 ≤ (cKeys.take (t - 1)).length; omega
   · show (cKeys.take (t - 1)).length ≤ 2 * t - 1; omega
@@ -1449,6 +1566,7 @@ lemma occupancy_right_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildre
   have hlen := child_children_len_of_full_cb ht hcb hfull
   have hkl : (cKeys.drop t).length = t - 1 := by rw [List.length_drop, hfull]; omega
   unfold Occupancy at hocc ⊢
+  simp only [Bool.false_eq_true, if_false] at hocc ⊢
   refine ⟨?_, ?_, ?_, ?_⟩
   · show t - 1 ≤ (cKeys.drop t).length; omega
   · show (cKeys.drop t).length ≤ 2 * t - 1; omega
