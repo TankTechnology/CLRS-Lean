@@ -4,6 +4,34 @@ namespace CLRS.Chapter18.BTree
 
 #check findChild
 #check findChild_localizes_mem
+
+#check (UniqueKeys : BTree → Prop)
+#check (WellFormedUnique : Nat → BTree → Prop)
+
+#check (findChild_pos_and_pred_eq_of_mem :
+  ∀ {ks : List Nat} {x : Nat},
+    List.Pairwise (· ≤ ·) ks → x ∈ ks →
+      0 < findChild ks x ∧
+        ks[findChild ks x - 1]? = some x)
+
+#check (findChild_not_mem_child_of_ne :
+  ∀ {ks : List Nat} {cs : List BTree} {x j : Nat} {child : BTree},
+    List.Pairwise (· ≤ ·) ks →
+    ChildBounded (node ks cs) →
+    x ∉ ks →
+    cs[j]? = some child →
+    j ≠ findChild ks x →
+    x ∉ keysOf child)
+
+#check (findChild_selected_child_mem :
+  ∀ {ks : List Nat} {cs : List BTree} {x : Nat} {child : BTree},
+    List.Pairwise (· ≤ ·) ks →
+    ChildBounded (node ks cs) →
+    x ∉ ks →
+    cs[findChild ks x]? = some child →
+    x ∈ keysOf (node ks cs) →
+    x ∈ keysOf child)
+
 #check searchExec
 
 #check (searchExec_sound :
