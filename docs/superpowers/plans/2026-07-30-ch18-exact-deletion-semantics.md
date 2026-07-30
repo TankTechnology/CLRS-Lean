@@ -867,6 +867,7 @@ git commit -m "feat(ch18): prove exact raw B-tree deletion semantics"
 
 ```lean
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.WellFormed
+import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Exact
 
 namespace CLRS.Chapter18.BTree
 
@@ -923,7 +924,14 @@ lake env lean -DwarningAsError=true \
   Tests/Chapter_18_Deletion_Root_Exact_Interface.lean
 ```
 
-Expected: missing root exactness names.  Then commit the RED interface:
+The explicit `Exact` import exposes `keyBag` while the old `WellFormed` module
+still imports only structural preservation.  It keeps the RED output focused
+on exactly the eight missing root exactness names; it does not remove the
+Step 2 requirement that the production `WellFormed.lean` module import
+`Exact` itself.
+
+Expected: exactly the eight missing root exactness names.  Then commit the RED
+interface:
 
 ```bash
 git add Tests/Chapter_18_Deletion_Root_Exact_Interface.lean
@@ -933,7 +941,9 @@ git commit -m "test(ch18): specify exact root deletion semantics"
 - [ ] **Step 2: Make `WellFormed.lean` import `Exact`**
 
 Replace its direct `ComposedPreservation` import by `Exact`; structural
-results remain available transitively.
+results remain available transitively.  Update the module overview at the
+same time so it describes the new exact, uniqueness, specification, and
+search contracts in addition to the structural postconditions.
 
 - [ ] **Step 3: Prove root exactness**
 
@@ -1038,7 +1048,13 @@ lake env lean -DwarningAsError=true \
   Tests/Chapter_18_Search_Interface.lean
 lake env lean -DwarningAsError=true \
   Tests/Chapter_18_Deletion_Interface.lean
+! rg -n '\b(sorry|admit|axiom|sorryAx)\b' \
+  CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/WellFormed.lean
+git diff --check
 ```
+
+The targeted build may replay historical warnings from imported modules, but
+must introduce no warning attributed to the modified `WellFormed.lean`.
 
 - [ ] **Step 9: Commit**
 
