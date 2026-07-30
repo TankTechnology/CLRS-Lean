@@ -18,10 +18,15 @@ cross-product and orientation theorems.
 * `CLRS.Chapter33.Orientation` — inductive `Counterclockwise | Clockwise | Collinear`
 * `CLRS.Chapter33.Segment` — line-segment structure with bounding-box and intersection predicates
 
-**Status: `selected-section-complete`** — Section 33.1 is fully proved (7 theorems, 0 sorries).
+**Status: `partial`** — six cross-product algebra theorems and
+`orientation_spec` are proved.  The `segmentIntersect`, `bboxIntersect`, and
+`sharesEndpoint` definitions still need correctness theorems, in particular
+soundness and completeness against an independent geometric-intersection
+specification covering endpoint and collinear cases.
 
 ## Deferred Work
 
+* 33.1 correctness of the line-segment intersection predicate
 * 33.2–33.3 Sweep-line segment intersection and Graham-scan convex hull
 * 33.4 Closest-pair divide-and-conquer
 -/

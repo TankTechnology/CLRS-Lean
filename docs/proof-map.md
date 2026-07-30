@@ -2078,7 +2078,10 @@ sharper contraction strategy.
   `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean`,
   `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean`,
   `CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean`,
-  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean`, and the
+  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean`,
+  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/KeyMultiset.lean`,
+  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ExactReassembly.lean`,
+  `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Exact.lean`, and the other
   `Section_18_3_B_Tree_Deletion/` invariant, repair, reassembly,
   preservation, projection, and root-normalization modules
 - Status: `partial`
@@ -2182,6 +2185,34 @@ sharper contraction strategy.
   - `CLRS.Chapter18.BTree.composedDeleteRoot_keys_subset`
   - `CLRS.Chapter18.BTree.composedDeleteRoot_height`
   - `CLRS.Chapter18.BTree.composedDeleteRoot_wellFormed`
+  - `CLRS.Chapter18.BTree.UniqueKeys`
+  - `CLRS.Chapter18.BTree.WellFormedUnique`
+  - `CLRS.Chapter18.BTree.findChild_pos_and_pred_eq_of_mem`
+  - `CLRS.Chapter18.BTree.findChild_not_mem_child_of_ne`
+  - `CLRS.Chapter18.BTree.findChild_selected_child_mem`
+  - `CLRS.Chapter18.BTree.keyBag`
+  - `CLRS.Chapter18.BTree.keyBag_erase_of_balance`
+  - `CLRS.Chapter18.BTree.sortedRemove_keyBag`
+  - `CLRS.Chapter18.BTree.mergeNodes_keyBag`
+  - `CLRS.Chapter18.BTree.rotateRight_keyBag`
+  - `CLRS.Chapter18.BTree.rotateLeft_keyBag`
+  - `CLRS.Chapter18.BTree.replaceChild_keyBag_erase`
+  - `CLRS.Chapter18.BTree.replacePredecessor_keyBag_erase`
+  - `CLRS.Chapter18.BTree.replaceSuccessor_keyBag_erase`
+  - `CLRS.Chapter18.BTree.spliceMerged_keyBag_erase`
+  - `CLRS.Chapter18.BTree.rotateRight_reassembly_keyBag_erase`
+  - `CLRS.Chapter18.BTree.rotateLeft_reassembly_keyBag_erase`
+  - `CLRS.Chapter18.BTree.composedDelete_keyBag`
+  - `CLRS.Chapter18.BTree.composedDelete_mem_iff_of_ne`
+  - `CLRS.Chapter18.BTree.composedDelete_uniqueKeys`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_keyBag`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff_of_ne`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_not_mem`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_wellFormedUnique`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff_delete`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_search_eq_delete`
+  - `CLRS.Chapter18.BTree.composedDeleteRoot_correct`
 - Proof pattern: mathematical key-set model, full structural invariant packet,
   base search success/failure wrappers, minimum-key expression
   base/positivity arithmetic and height monotonicity, specification-level
@@ -2194,14 +2225,25 @@ sharper contraction strategy.
   failed-search preservation wrappers, exact failed membership
   specifications, direct failed-membership preservation wrappers, bundled
   deletion induction, local merge/rotation repair packets, parent reassembly,
-  root-sensitive raw results, and one-step root normalization
-- Current gap: exact `composedDeleteRoot` multiset semantics—unconditionally
-  proving that its `keysOf` multiset is the input multiset with one occurrence
-  of the requested key erased, and that every different input key is preserved.
-  Total absence of the requested key and the bridge to the current
-  membership-level deletion specification require a `UniqueKeys` layer.
-  Disk-page layout, pointer mutation, I/O counts, and RAM costs are optional
-  lower-level refinements.
+  root-sensitive raw results, one-step root normalization, exact multiset
+  conservation through local reassembly, and a global uniqueness layer
+- Exact deletion boundary:
+  - For `2 ≤ t`, `composedDelete_keyBag` requires `NodeWF` and
+    `composedDeleteRoot_keyBag` requires `WellFormed`; each applies
+    `Multiset.erase`, removing one requested-key occurrence when present and
+    changing nothing when absent.  The corresponding different-key membership
+    theorems require no `UniqueKeys` premise and no premise that the requested
+    key was present.
+  - Raw uniqueness preservation requires only `NodeWF + UniqueKeys`.
+    Root-level `WellFormedUnique` preservation, deleted-key absence, the full
+    membership iff, and compatibility with specification `delete` require
+    `WellFormedUnique`.  Compatibility is proved for membership and the
+    membership-oracle `search`, not for executable `searchExec` or tree-shape
+    equality.
+- Current gaps: a real top-level insertion operation that splits a full root,
+  and a structural total-key lower bound in terms of height, including the
+  empty-root boundary.  Disk-page layout, pointer mutation, I/O counts, and RAM
+  costs are optional lower-level refinements.
 
 Chapter 18 now has both the first-pass B-tree theorem surface and a structural
 proof for the executable CLRS deletion routine.  Search, split-child,
@@ -2222,12 +2264,18 @@ arbitrary-height monotonicity facts.  For executable deletion,
 and sibling merge branches without duplicating the induction across
 invariants.  A raw root may be the permitted one-child empty transient, so
 only `composedDeleteRoot`, which applies `normalizeRoot` after
-`composedDelete`, is stated to preserve root `WellFormed`; its keys form a
-subset of the input and its height is unchanged or decreases by one.  The
-chapter remains `partial` until the unconditional one-occurrence multiset
-erasure theorem is proved.  Recovering requested-key absence and the existing
-exact membership specification from that theorem additionally requires a
-`UniqueKeys` layer.
+`composedDelete`, is stated to preserve root `WellFormed`; its height is
+unchanged or decreases by one.  Under the same structural assumptions and
+`2 ≤ t`, its `keyBag` is exactly the input bag after `Multiset.erase` removes
+one requested-key occurrence when present, and every different key is
+preserved without uniqueness or a requested-key-present premise.  Raw
+uniqueness is preserved from `NodeWF + UniqueKeys`; under
+`WellFormedUnique`, requested-key absence, the complete root membership
+specification, combined structural/uniqueness preservation, and
+membership-oracle search compatibility with `delete` are also proved.  No
+`searchExec` or tree-shape equality with the specification operation is
+claimed.  Chapter 18 remains `partial` only for top-level full-root insertion
+and the structural total-key/height lower bound.
 
 ## Chapter 19 - Fibonacci Heaps
 
@@ -3036,7 +3084,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 25.2 - Floyd-Warshall Algorithm
 
 - Lean source: `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean`
-- Status: `partial` (core correctness complete; path-reconstruction weight equality deferred)
+- Status: `proved`
 - Main declarations:
   - `CLRS.Chapter24.WeightedGraph.fwStep` (one Floyd-Warshall iteration)
   - `CLRS.Chapter24.WeightedGraph.D` (Floyd-Warshall DP recurrence)
@@ -3048,15 +3096,20 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `D_le_simpleWalk` (Lemma 25.7), `D_attainable`,
     `floydWarshall_isShortestDist` (Theorem 25.8)
   - `Pi_adj` (every predecessor follows a real edge)
+  - `reconstructPathFuel_isWalkFrom` (the reconstructed predecessor path is a
+    valid walk)
+  - `reconstructPathFuel_weight_eq` (the reconstructed walk has weight
+    `floydWarshall i j`)
   - `floydWarshall_nonneg_diag`, `negative_diagonal_implies_negative_cycle`
     (CLRS Theorem 25.3, negative-cycle detection)
-- Current gap: `fwReconstructPath` weight equality (`walkWeight = floydWarshall`);
-  transitive closure
+  - `transitiveClosure_iff_exists_walk` (the Floyd-Warshall boolean variant
+    exactly characterizes reachability)
+- Current gap: none within Section 25.2.
 
 ### Section 25.3 - Johnson's Algorithm
 
 - Lean source: `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean`
-- Status: `partial` (reweighting algebra proved; algorithm correctness deferred)
+- Status: `proved`
 - Main declarations and theorems:
   - `CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`
   - `CLRS.Chapter24.WeightedGraph.no_incoming_to_none_johnsonAugmentedGraph`
@@ -3064,18 +3117,18 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter24.WeightedGraph.reweightedGraph`
   - `CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq`
   - `CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`
-- Current gap: prove the augmented graph preserves absence of negative cycles,
-  construct the Bellman-Ford potential, and package the repeated Dijkstra runs
-  into the end-to-end Johnson theorem and work bound.  (Note:
-  `reweighted_isShortestDist` — shortest-path preservation under reweighting
-  — is already proved.)
+  - `CLRS.Chapter24.WeightedGraph.noNegCycle_johnsonAugmentedGraph`
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential`
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential_triangle`
+  - `CLRS.Chapter24.WeightedGraph.johnsonDist_isShortestDist`
+    (CLRS Theorem 25.5, end-to-end Johnson correctness)
+- Current gap: none within Section 25.3.
 
 ### Chapter 25 remaining work
 
-- Predecessor-matrix path-reconstruction weight equality
-  (walk validity from `Pi_adj` is proved; `walkWeight = floydWarshall` deferred).
-- Johnson's Bellman-Ford potential construction and complete algorithm
-  correctness/work theorem.
+- No remaining core correctness group.  A tighter explicit
+  `O(n³ log n)` repeated-squaring work theorem and lower-level RAM accounting
+  remain optional refinements.
 
 ## Chapter 26 - Maximum Flow
 
@@ -3145,9 +3198,21 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.3 - Maximum Bipartite Matching
 
-- Status: `not represented on main`
-- Current gap: define the bipartite-network reduction, connect integral flows
-  to matchings in both directions, and prove maximum matching iff maximum flow.
+- Lean source: `CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean`
+- Status: `partial`
+- Represented model:
+  - `CLRS.Chapter26.BipartiteGraph`
+  - `CLRS.Chapter26.Matching`
+  - `CLRS.Chapter26.toFlowNetwork`
+  - `CLRS.Chapter26.matchingFlowFun`
+- Proved theorem:
+  - `CLRS.Chapter26.matchingToFlow_value`: if the caller supplies a feasible
+    `Flow φ` whose function is `matchingFlowFun M`, then `φ.value = M.size`.
+    This is a conditional value identity; it does not construct that feasible
+    flow.
+- Current gap: construct a feasible flow from every matching, recover a
+  matching from every integral flow, and prove the maximum matching/max-flow
+  value equivalence (the full CLRS Theorem 26.12).
 
 ### Section 26.6 - The Max-Flow Min-Cut Theorem
 
@@ -3209,6 +3274,39 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Current gap: all-input Θ-bounds for the merge-based costs (power-sandwich
   transfer as in Chapter 4) and executable algorithm refinements.
 
+## Chapter 32 - String Matching
+
+### Section 32.1 - The Naive String-Matching Algorithm
+
+- Lean sources:
+  - `CLRSLean/Chapter_32.lean`
+  - `CLRSLean/Chapter_32/Section_32_1_String_Model.lean`
+  - `CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean`
+- Status: `selected-section-complete`
+- Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
+  plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,
+  `naiveMatcher_complete`, and the three represented boundary theorems.
+- Remaining chapter scope: Sections 32.2--32.4 (Rabin-Karp, finite automata,
+  and Knuth-Morris-Pratt) are not represented.
+
+## Chapter 33 - Computational Geometry
+
+### Section 33.1 - Line-Segment Properties
+
+- Lean sources:
+  - `CLRSLean/Chapter_33.lean`
+  - `CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean`
+- Status: `partial`
+- Proved results: the point/vector and `Segment` models; six cross-product
+  antisymmetry, bilinearity, and self-product theorems; and
+  `orientation_spec`.
+- Current gap: `segmentIntersect`, `bboxIntersect`, and `sharesEndpoint` are
+  definitions only.  Prove `segmentIntersect` soundness and completeness
+  against an independent geometric-intersection specification, including the
+  shared-endpoint cases.
+- Remaining chapter scope: Sections 33.2--33.4 (sweep-line intersection,
+  convex hulls, and closest pair) are not represented.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
@@ -3228,7 +3326,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
 | Chapter 12 executable pointer-level BST | `proved` | Imperative pointer-heap model (`Node` records with `left`/`right`/`parent` cells over a `Std.HashMap` `Store`) with `RepresentsW` heap-to-tree abstraction; in-place `TRANSPLANT` (`transplantChild_left_representsW`/`transplantChild_right_representsW`) and leaf `TREE-INSERT` (`insertPointer_right_representsW`) refine functional subtree replacement. Only an explicit RAM cost model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
-| B-tree executable deletion semantics | `partial` | `composedDelete_packet` proves key containment and the full root-sensitive structural packet through every CLRS repair branch; `composedDeleteRoot_wellFormed` proves root-normalized well-formedness, with subset and height results. Remaining: unconditionally prove that the output `keysOf` multiset is the input multiset with one requested-key occurrence erased, and that every different input key remains. Requested-key absence and the bridge to the current membership-level deletion specification additionally require `UniqueKeys`. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
+| B-tree executable deletion semantics | `proved` | For `2 ≤ t`, `composedDelete_keyBag` under `NodeWF` and `composedDeleteRoot_keyBag` under `WellFormed` prove `Multiset.erase` semantics: one requested-key occurrence is removed when present, and an absent request leaves the bag unchanged. `composedDelete_mem_iff_of_ne` and `composedDeleteRoot_mem_iff_of_ne` preserve every different key without `UniqueKeys` or a requested-key-present premise. Raw uniqueness preservation needs `NodeWF + UniqueKeys`; under `WellFormedUnique`, `composedDeleteRoot_not_mem`, `composedDeleteRoot_mem_iff`, `composedDeleteRoot_wellFormedUnique`, `composedDeleteRoot_mem_iff_delete`, and `composedDeleteRoot_search_eq_delete` prove absence, full root membership behavior, combined invariant preservation, and compatibility with specification deletion and membership-oracle search. The bridge does not assert `searchExec` or tree-shape equality. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
 | Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |
 | Generic augmentation through red-black deletion | `future-work` | Section 14.1 threads the size augmentation through executable deletion (`OSRBTree.wellSized_delete`, `toRB_delete`, `redBlackShape_toRB_delete`, `mem_keys_delete`).  The remaining work is the generic Section 14.3 `AugmentedRBTree` mirror of the Chapter 13 deletion pipeline (roughly 300 lines following the Section 14.1 template). |

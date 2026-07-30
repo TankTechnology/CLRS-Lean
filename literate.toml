@@ -180,6 +180,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.RotationBounds",
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.RotationReassembly",
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ComposedPreservation",
+  "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.KeyMultiset",
+  "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ExactReassembly",
+  "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Exact",
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Subset",
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.SameDepthHeight",
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Sorted",
@@ -627,6 +630,15 @@ title = "Parent Reassembly after Rotation"
 
 [modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ComposedPreservation"]
 title = "Complete Raw Deletion Preservation"
+
+[modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.KeyMultiset"]
+title = "Exact Key Multisets for B-Tree Deletion"
+
+[modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ExactReassembly"]
+title = "Exact Parent Reassembly for B-Tree Deletion"
+
+[modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Exact"]
+title = "Exact Semantics for Raw B-Tree Deletion"
 
 [modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Subset"]
 title = "Delete: Key Subset and Bounds"
