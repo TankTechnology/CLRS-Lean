@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model
+import CLRSLean.Chapter_18.Section_18_1_B_Tree_Search
 import CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant
@@ -20,9 +21,20 @@ import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.WellFormed
 /-!
 # Chapter 18 - B-Trees
 
-Chapter 18 starts with a first-pass mathematical B-tree model.  The current
-Lean surface fixes key membership, search correctness, direct base search
-success/failure wrappers, the CLRS minimum-key height expression,
+Chapter 18 starts with a first-pass mathematical B-tree model.  Its
+specification-level {lit}`search` operation remains a compatibility oracle
+defined from membership, while {lit}`searchExec` is the separator-guided
+executable algorithm.  On sorted, child-bounded trees,
+{lit}`searchExec_true_iff` is the semantic truth source connecting that
+algorithm to membership; {lit}`searchExec_sound` and
+{lit}`searchExec_complete` expose the two directions separately.
+{lit}`findChild_localizes_mem` proves that, in a sorted, child-bounded node, a
+non-separator member lies in the selected child.  This localization result is
+also infrastructure for the still-open exact semantics proof for executable
+deletion.
+
+The current Lean surface additionally fixes direct base-search success/failure
+wrappers, the CLRS minimum-key height expression,
 base/positivity facts, height-step recurrence, height monotonicity, and
 specification-level split/insert/delete wrappers with split membership/search
 preservation plus direct split old-key corollaries, direct split validity,
@@ -44,7 +56,7 @@ root-level well-formedness.
 
 ## Sections
 
-* 18.1 B-tree model: {lit}`partial`.
+* 18.1 B-tree model and search: {lit}`partial`.
   Main results:
   {lit}`CLRS.Chapter18.BTree.search_correct`,
   {lit}`CLRS.Chapter18.BTree.search_true_iff`,
@@ -53,6 +65,13 @@ root-level well-formedness.
   {lit}`CLRS.Chapter18.BTree.search_false_iff`,
   {lit}`CLRS.Chapter18.BTree.search_false_of_not_mem`,
   {lit}`CLRS.Chapter18.BTree.not_mem_of_search_false`,
+  {lit}`CLRS.Chapter18.BTree.findChild`,
+  {lit}`CLRS.Chapter18.BTree.findChild_localizes_mem`,
+  {lit}`CLRS.Chapter18.BTree.searchExec`,
+  {lit}`CLRS.Chapter18.BTree.searchExec_sound`,
+  {lit}`CLRS.Chapter18.BTree.searchExec_complete`,
+  {lit}`CLRS.Chapter18.BTree.searchExec_true_iff`,
+  {lit}`CLRS.Chapter18.BTree.searchExec_eq_search`,
   {lit}`CLRS.Chapter18.BTree.minKeys_zero`,
   {lit}`CLRS.Chapter18.BTree.minKeys_pos`,
   {lit}`CLRS.Chapter18.BTree.one_le_minKeys`,
@@ -130,11 +149,15 @@ root-level well-formedness.
 ## Current Gaps
 
 The structural deletion theorem stack is complete for the current functional
-B-tree model.  The central remaining theorem group is exact semantics for
-{lit}`composedDeleteRoot`: prove that the requested key is absent and every
-different input key is preserved.  Disk-page layout, pointer mutation, I/O
-counts, and RAM costs are optional lower-level refinements.  The chapter
-therefore remains {lit}`partial`.
+B-tree model.  The central remaining theorem is exact multiset semantics for
+{lit}`composedDeleteRoot`: prove a {lit}`keysOf` equation saying that the
+result contains the input multiset with one occurrence of the requested key
+erased.  Preservation of every different key then follows unconditionally.
+Because the current model permits duplicate keys, complete absence of the
+requested key requires a new {lit}`UniqueKeys` layer.  These exact-semantics
+results are not yet proved.  Disk-page layout, pointer mutation, I/O counts,
+and RAM costs are optional lower-level refinements.  The chapter therefore
+remains {lit}`partial`.
 -/
 
 namespace CLRS
