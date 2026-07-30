@@ -51,8 +51,8 @@ theorem list_set_bag_balance
   abel
 
 /--
-Replacing a witnessed element before `flatMap` balances the flattened bags of
-the old and new elements.
+Replacing a witnessed element before {name}`List.flatMap` balances the
+flattened bags of the old and new elements.
 -/
 theorem flatMap_set_bag_balance
     {α β : Type*} {xs : List α} {i : Nat} {old new : α}
@@ -101,7 +101,7 @@ theorem take_drop_succ_bag_balance
 
 /--
 Replacing two witnessed adjacent elements by one element preserves the
-corresponding `flatMap` bag balance.
+corresponding {name}`List.flatMap` bag balance.
 -/
 theorem flatMap_splice_bag_balance
     {α β : Type*} {xs : List α} {j : Nat}
@@ -137,8 +137,8 @@ theorem flatMap_splice_bag_balance
   abel
 
 /--
-A recursive erase equation lifts through a balanced frame whenever every
-occurrence of the deleted key in the old frame is routed through the recursive
+A recursive erase equation lifts through a balanced frame when membership of
+the deleted key in the pre-update frame implies membership in the recursive
 subtree.
 -/
 theorem keyBag_erase_of_balance
@@ -201,7 +201,7 @@ theorem keyBag_erase_of_balance
     rw [Multiset.erase_of_notMem hxBefore]
     exact hsame
 
-/-- `sortedRemove` erases exactly the first matching list occurrence. -/
+/-- {name}`sortedRemove` erases exactly the first matching list occurrence. -/
 theorem sortedRemove_keyBag (x : Nat) (ks : List Nat) :
     (↑(sortedRemove x ks) : Multiset Nat) =
       (↑ks : Multiset Nat).erase x := by
