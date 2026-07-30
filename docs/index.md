@@ -100,6 +100,7 @@ CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Coun
 CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean
 CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables.lean
 CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean
+CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean
 CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Invariant.lean

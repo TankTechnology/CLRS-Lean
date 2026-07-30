@@ -1,5 +1,5 @@
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model
-import CLRSLean.Chapter_18.Section_18_1_B_Tree_Search
+import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search
 import CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant

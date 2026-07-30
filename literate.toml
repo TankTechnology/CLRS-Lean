@@ -164,9 +164,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_18" = [
   "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model",
-  "CLRSLean.Chapter_18.Section_18_1_B_Tree_Search",
   "CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion",
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion",
+]
+"CLRSLean.Chapter_18.Section_18_1_B_Tree_Model" = [
+  "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search",
 ]
 "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion" = [
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant",
@@ -590,8 +592,8 @@ title = "Mutable-Array Tables and Sharper Potential"
 [modules."CLRSLean.Chapter_18.Section_18_1_B_Tree_Model"]
 title = "18.1. B-Tree Model"
 
-[modules."CLRSLean.Chapter_18.Section_18_1_B_Tree_Search"]
-title = "18.1. B-Tree Search"
+[modules."CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search"]
+title = "B-Tree Search"
 
 [modules."CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion"]
 title = "18.2. B-Tree Insertion"

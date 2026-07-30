@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_18.Section_18_1_B_Tree_Search
+import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search
 
 namespace CLRS.Chapter18.BTree
 
