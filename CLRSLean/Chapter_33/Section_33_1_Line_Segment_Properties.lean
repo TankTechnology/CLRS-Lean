@@ -15,7 +15,9 @@ import Mathlib
 - `onBbox` / `bboxIntersect`：包围盒（bounding box）快速剔除测试
 - `segmentIntersect`：完整的线段相交条件（基于方向判定 + 共线特例）
 
-状态：`selected-section-complete` — 定义和算法已形式化，正确性证明待补充。
+状态：`partial` — 定义、叉积代数定理和 `orientation_spec` 已形式化；
+`segmentIntersect` 相对于独立几何相交规格的可靠性与完备性仍待证明，
+包括端点相交与共线情形。
 
 ## 叉积的几何意义
 

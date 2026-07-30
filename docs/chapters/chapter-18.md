@@ -3,8 +3,13 @@
 - Status: `partial`
 - Lean entry: `CLRSLean/Chapter_18.lean`
 - Interface tests: `Tests/Chapter_18_Search_Interface.lean`,
+  `Tests/Chapter_18_KeyMultiset_Interface.lean`,
+  `Tests/Chapter_18_Deletion_Reassembly_Interface.lean`,
+  `Tests/Chapter_18_Deletion_Exact_Interface.lean`,
+  `Tests/Chapter_18_Deletion_Root_Exact_Interface.lean`,
   `Tests/Chapter_18_Interface.lean`,
-  `Tests/Chapter_18_Deletion_Interface.lean`
+  `Tests/Chapter_18_Deletion_Interface.lean`,
+  `Tests/Chapter_18_Root_Occupancy.lean`
 
 ## Search Surfaces
 
@@ -25,9 +30,9 @@ specification oracle.
 On a sorted, child-bounded node,
 `CLRS.Chapter18.BTree.findChild_localizes_mem` proves that when a key is not a
 separator of the current node, any child containing it has exactly the index
-selected by `findChild`.  This theorem supplies the path-localization step
-needed by the still-open exact-semantics proof for executable deletion; it does
-not by itself establish that deletion refinement.
+selected by `findChild`.  The direct routing wrappers built from this theorem
+supply the selected-path facts used by the proved exact-semantics induction
+for executable deletion.
 
 ## Proved Public Surface
 
@@ -131,21 +136,64 @@ it may return an empty root with one child.  `composedDeleteRoot` applies
 `normalizeRoot`, after which `WellFormed` holds, all result keys come from the
 input, and the height is unchanged or decreases by exactly one.
 
+## Exact Deletion Results
+
+The exact deletion layer adds these 28 tracked, reader-facing typed contracts:
+
+- `CLRS.Chapter18.BTree.UniqueKeys`
+- `CLRS.Chapter18.BTree.WellFormedUnique`
+- `CLRS.Chapter18.BTree.findChild_pos_and_pred_eq_of_mem`
+- `CLRS.Chapter18.BTree.findChild_not_mem_child_of_ne`
+- `CLRS.Chapter18.BTree.findChild_selected_child_mem`
+- `CLRS.Chapter18.BTree.keyBag`
+- `CLRS.Chapter18.BTree.keyBag_erase_of_balance`
+- `CLRS.Chapter18.BTree.sortedRemove_keyBag`
+- `CLRS.Chapter18.BTree.mergeNodes_keyBag`
+- `CLRS.Chapter18.BTree.rotateRight_keyBag`
+- `CLRS.Chapter18.BTree.rotateLeft_keyBag`
+- `CLRS.Chapter18.BTree.replaceChild_keyBag_erase`
+- `CLRS.Chapter18.BTree.replacePredecessor_keyBag_erase`
+- `CLRS.Chapter18.BTree.replaceSuccessor_keyBag_erase`
+- `CLRS.Chapter18.BTree.spliceMerged_keyBag_erase`
+- `CLRS.Chapter18.BTree.rotateRight_reassembly_keyBag_erase`
+- `CLRS.Chapter18.BTree.rotateLeft_reassembly_keyBag_erase`
+- `CLRS.Chapter18.BTree.composedDelete_keyBag`
+- `CLRS.Chapter18.BTree.composedDelete_mem_iff_of_ne`
+- `CLRS.Chapter18.BTree.composedDelete_uniqueKeys`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_keyBag`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff_of_ne`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_not_mem`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_wellFormedUnique`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff_delete`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_search_eq_delete`
+- `CLRS.Chapter18.BTree.composedDeleteRoot_correct`
+
+For `2 ≤ t`, `composedDelete_keyBag` needs only `NodeWF`, and
+`composedDeleteRoot_keyBag` needs only `WellFormed`: each output key bag is
+the input key bag after `Multiset.erase` removes one requested-key occurrence
+when present (and leaves the bag unchanged when absent).  The raw and
+normalized different-key membership theorems have the same structural
+assumptions and do not require uniqueness or a requested-key-present premise.
+
+Raw `composedDelete_uniqueKeys` preserves uniqueness from `NodeWF +
+UniqueKeys`; it does not need root well-formedness.  At the normalized root,
+`composedDeleteRoot_wellFormedUnique` preserves the combined
+`WellFormedUnique` predicate.  Deleted-key absence, the complete root
+membership characterization, and compatibility with the specification-level
+`delete` operation require `WellFormedUnique`.  The compatibility theorems
+identify membership and the membership-oracle `search`; they do not claim
+`searchExec` equivalence or equality of the executable and specification tree
+shapes.
+
 ## Remaining Work
 
-The main missing theorem connects the executable root operation to exact
-multiset semantics: prove a `keysOf` equation identifying
-`keysOf (composedDeleteRoot t x tr)` with the input `keysOf` multiset after
-erasing one occurrence of `x`.  Preservation of every key different from `x`
-then follows unconditionally.  Because the current model permits duplicate
-keys, complete absence of `x` is not an unconditional consequence; that
-corollary requires a new `UniqueKeys` layer.  The abstract `delete`
-specification already exposes its specification-level membership behavior,
-but this executable refinement and the `UniqueKeys` layer are not yet proved,
-so Chapter 18 remains `partial`.  The selected-child localization theorem now
-provides the search-path lemma for that future proof, but no exact multiset
-theorem for `composedDeleteRoot` is claimed yet.
+Exact executable deletion is no longer a remaining theorem group.  Chapter 18
+remains `partial` for two independent core groups: a real top-level insertion
+operation that splits a full root before descent, and a structural lower bound
+on the total number of keys in terms of B-tree height, including the
+empty-root boundary.
 
 Disk-page layout, pointer mutation, page I/O counts, and RAM-cost semantics are
-optional lower-level refinements rather than blockers for the mathematical
-deletion theorem.
+optional lower-level refinements rather than blockers for those mathematical
+theorems.

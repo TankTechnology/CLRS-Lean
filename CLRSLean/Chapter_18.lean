@@ -11,6 +11,9 @@ import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.MergeReassembly
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.RotationBounds
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.RotationReassembly
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ComposedPreservation
+import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.KeyMultiset
+import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ExactReassembly
+import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Exact
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Subset
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.SameDepthHeight
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Sorted
@@ -30,8 +33,8 @@ algorithm to membership; {lit}`searchExec_sound` and
 {lit}`searchExec_complete` expose the two directions separately.
 {lit}`findChild_localizes_mem` proves that, in a sorted, child-bounded node, a
 non-separator member lies in the selected child.  This localization result is
-also infrastructure for the still-open exact semantics proof for executable
-deletion.
+used by the exact semantics proof for executable deletion, together with
+direct selected-child and predecessor-routing wrappers.
 
 The current Lean surface additionally fixes direct base-search success/failure
 wrappers, the CLRS minimum-key height expression,
@@ -52,7 +55,15 @@ bundled induction proves key containment and the complete structural invariant
 packet across leaf deletion, separator replacement, rotations, and merges.
 Raw root deletion may produce an empty root with one child; the public
 {lit}`composedDeleteRoot` operation contracts that transient before exposing
-root-level well-formedness.
+root-level well-formedness.  Its key multiset is the input multiset after
+{lit}`Multiset.erase` removes one requested-key occurrence when present,
+assuming only the structural invariant and {lit}`2 ≤ t`; membership of every
+different key is therefore preserved without uniqueness.  Under
+{lit}`WellFormedUnique`, deletion also removes the requested key completely
+and agrees with the specification-level
+{lit}`delete` operation on membership and compatibility-oracle search.  This
+is a semantic refinement, not a claim that the two operations return the same
+tree shape.
 
 ## Sections
 
@@ -108,7 +119,7 @@ root-level well-formedness.
   {lit}`CLRS.Chapter18.BTree.insert_search_false_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_search_false_of_ne`, and
   {lit}`CLRS.Chapter18.BTree.insert_search_false_of_not_mem_ne`.
-* 18.3 B-tree deletion: {lit}`partial`.
+* 18.3 B-tree deletion: proved for the current functional model.
   Main results:
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.delete_valid`,
@@ -143,21 +154,46 @@ root-level well-formedness.
   {lit}`CLRS.Chapter18.BTree.composedDelete_occupancy`,
   {lit}`CLRS.Chapter18.BTree.normalizeRoot_wellFormed`,
   {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_keys_subset`,
-  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_height`, and
-  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_wellFormed`.
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_height`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_wellFormed`,
+  {lit}`CLRS.Chapter18.BTree.UniqueKeys`,
+  {lit}`CLRS.Chapter18.BTree.WellFormedUnique`,
+  {lit}`CLRS.Chapter18.BTree.findChild_pos_and_pred_eq_of_mem`,
+  {lit}`CLRS.Chapter18.BTree.findChild_not_mem_child_of_ne`,
+  {lit}`CLRS.Chapter18.BTree.findChild_selected_child_mem`,
+  {lit}`CLRS.Chapter18.BTree.keyBag`,
+  {lit}`CLRS.Chapter18.BTree.keyBag_erase_of_balance`,
+  {lit}`CLRS.Chapter18.BTree.sortedRemove_keyBag`,
+  {lit}`CLRS.Chapter18.BTree.mergeNodes_keyBag`,
+  {lit}`CLRS.Chapter18.BTree.rotateRight_keyBag`,
+  {lit}`CLRS.Chapter18.BTree.rotateLeft_keyBag`,
+  {lit}`CLRS.Chapter18.BTree.replaceChild_keyBag_erase`,
+  {lit}`CLRS.Chapter18.BTree.replacePredecessor_keyBag_erase`,
+  {lit}`CLRS.Chapter18.BTree.replaceSuccessor_keyBag_erase`,
+  {lit}`CLRS.Chapter18.BTree.spliceMerged_keyBag_erase`,
+  {lit}`CLRS.Chapter18.BTree.rotateRight_reassembly_keyBag_erase`,
+  {lit}`CLRS.Chapter18.BTree.rotateLeft_reassembly_keyBag_erase`,
+  {lit}`CLRS.Chapter18.BTree.composedDelete_keyBag`,
+  {lit}`CLRS.Chapter18.BTree.composedDelete_mem_iff_of_ne`,
+  {lit}`CLRS.Chapter18.BTree.composedDelete_uniqueKeys`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_keyBag`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff_of_ne`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_not_mem`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_wellFormedUnique`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_mem_iff_delete`,
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_search_eq_delete`, and
+  {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_correct`.
 
 ## Current Gaps
 
-The structural deletion theorem stack is complete for the current functional
-B-tree model.  The central remaining theorem is exact multiset semantics for
-{lit}`composedDeleteRoot`: prove a {lit}`keysOf` equation saying that the
-result contains the input multiset with one occurrence of the requested key
-erased.  Preservation of every different key then follows unconditionally.
-Because the current model permits duplicate keys, complete absence of the
-requested key requires a new {lit}`UniqueKeys` layer.  These exact-semantics
-results are not yet proved.  Disk-page layout, pointer mutation, I/O counts,
-and RAM costs are optional lower-level refinements.  The chapter therefore
-remains {lit}`partial`.
+Structural preservation and exact {lit}`Multiset.erase` deletion semantics
+under the documented structural assumptions are complete for the current
+functional B-tree model.  The chapter remains {lit}`partial` for two separate
+core groups: a real top-level insertion operation that handles a full root by
+splitting it, and a structural total-key lower bound derived from B-tree
+height (including the empty-root boundary).  Disk-page layout, pointer
+mutation, I/O counts, and RAM costs are optional lower-level refinements.
 -/
 
 namespace CLRS

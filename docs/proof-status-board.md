@@ -5,7 +5,7 @@ status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
 The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
 priorities, not theorem-by-theorem duplication.
 
-Last repository-wide status reconciliation: 2026-07-15.
+Last repository-wide status reconciliation: 2026-07-30.
 
 ## Complete For The Current Scope
 
@@ -30,6 +30,8 @@ Last repository-wide status reconciliation: 2026-07-15.
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and mutable-array refinement |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
 | Chapter 23 correctness and functional implementation | Cut property, unique tree paths, automatic exchange, sorted and stateful Kruskal, concrete indexed-queue Prim, and explicit algorithm-level work bounds | `Batteries.BinaryHeap` array refinement and mutable/RAM write accounting |
+| Chapter 25 correctness | FASTER-APSP, Floyd-Warshall shortest distances, predecessor reconstruction with walk and weight guarantees, negative-cycle detection, transitive closure, and Johnson's end-to-end correctness theorem | A tighter explicit repeated-squaring work/RAM refinement |
+| Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
 
 Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
 dated closure audits.  Their listed implementation refinements are new layers,
@@ -40,15 +42,15 @@ not missing core theorem groups.
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, random-permutation symmetry lemma (`isFirst_prob`), pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3), and the sum-of-probabilities-to-closed-form bridge (`sum_compared_prob_eq_expectedComparisons`) with `Θ(n log n)` asymptotic | Optional: total-comparison random variable with `fintypeExpect` linearity wrapper |
-| 18 | Mathematical B-tree search/split/insert/delete specs | Separator/occupancy/same-depth invariants and deletion repair |
+| 18 | B-tree search and non-full insertion plus structural and exact `Multiset.erase` semantics for executable deletion under `2 ≤ t` and `NodeWF`/`WellFormed`; full deleted-key/specification behavior under `WellFormedUnique` | Real top-level insertion with a full-root split; structural total-key/height lower bound |
 | 19 | Finite-set operation specs, potential facts, and the concrete rooted-tree logarithmic degree theorem | Executable heap-forest consolidation/cascading cuts and their amortized costs |
-| 25 | Correct FASTER-APSP; Floyd-Warshall definitions/work; Johnson reweighting algebra | Floyd-Warshall correctness, path reconstruction/negative cycles, and end-to-end Johnson correctness |
-| 26 | Flow model, generic Ford-Fulkerson maximality direction, MFMC easy direction, and Edmonds-Karp Lemma 26.7 | MFMC converse, executable Edmonds-Karp with `O(VE²)`, and Section 26.3 matching reduction |
+| 26 | Flow model, generic Ford-Fulkerson maximality direction, MFMC easy direction, Edmonds-Karp Lemma 26.7, and the Section 26.3 bipartite-network model with a conditional matching-flow value theorem | MFMC converse; executable BFS augmentation with `O(VE²)`; feasible matching-flow construction, integral-flow converse, and maximum matching/max-flow value equivalence (full Theorem 26.12) |
 | 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms (work `Θ(n³)`/`Θ(n)`/`Θ(n log n)`/`Θ(n^(log₂ 7))`, spans `Θ(log n)`/`Θ(log² n)`/`Θ(log³ n)`) plus all-input P-MATMUL bounds | Greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the merge-based costs, and executable algorithm refinements |
+| 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main
 
-- Chapters 28-35.
+- Chapters 28--31 and 34--35.
 
 Open branches and pull requests are intentionally excluded until they are
 reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
@@ -57,10 +59,10 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 25 correctness | Prove Floyd-Warshall first; then close Johnson and the predecessor/negative-cycle interfaces |
-| 2 | Chapter 26 correctness | Prove the MFMC converse, then the Edmonds-Karp counting theorem and bipartite-matching reduction |
-| 3 | Chapter 25 correctness | Prove Floyd-Warshall first; then close Johnson and the predecessor/negative-cycle interfaces |
-| 4 | Chapter 18/19 tree/heap consolidation | Prove full B-tree separator/occupancy invariants and Fibonacci heap CONSOLIDATE with amortized costs |
+| 1 | Chapter 26 correctness | Prove the MFMC converse, executable BFS augmentation and `O(VE²)` theorem, then full matching/integral-flow and maximum-value equivalence |
+| 2 | Chapter 18 B-tree completion | Add real full-root insertion and the structural total-key/height lower bound |
+| 3 | Chapter 19 implementation | Prove executable heap-forest CONSOLIDATE and cascading cuts with amortized costs |
+| 4 | Chapter 27 scheduler layer | Add the greedy-scheduler bound and executable refinements |
 
 ## High-Difficulty Queue
 

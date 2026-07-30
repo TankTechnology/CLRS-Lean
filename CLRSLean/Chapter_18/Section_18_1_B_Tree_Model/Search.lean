@@ -23,8 +23,8 @@ Main results:
   executable search to the imported specification oracle
   {name (full := CLRS.Chapter18.BTree.search)}`search`.
 
-The selected-child localization theorem is also intended for the exact
-executable-deletion semantics that remains open at the chapter level.
+The selected-child localization and routing wrappers are used by the proved
+exact erase-one semantics for executable deletion.
 -/
 
 namespace CLRS.Chapter18.BTree
