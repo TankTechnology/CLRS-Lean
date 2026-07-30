@@ -6,20 +6,20 @@ namespace CLRS.Chapter18.BTree
 #check findChild_localizes_mem
 #check searchExec
 
-#check searchExec_sound :
-  ∀ {x : Nat} {tr : BTree}, searchExec x tr = true → mem x tr
+#check (searchExec_sound :
+  ∀ {x : Nat} {tr : BTree}, searchExec x tr = true → mem x tr)
 
-#check searchExec_complete :
+#check (searchExec_complete :
   ∀ {x : Nat} {tr : BTree}, Sorted tr → ChildBounded tr →
-    mem x tr → searchExec x tr = true
+    mem x tr → searchExec x tr = true)
 
-#check searchExec_true_iff :
+#check (searchExec_true_iff :
   ∀ {x : Nat} {tr : BTree}, Sorted tr → ChildBounded tr →
-    (searchExec x tr = true ↔ mem x tr)
+    (searchExec x tr = true ↔ mem x tr))
 
-#check searchExec_eq_search :
+#check (searchExec_eq_search :
   ∀ {x : Nat} {tr : BTree}, Sorted tr → ChildBounded tr →
-    searchExec x tr = search x tr
+    searchExec x tr = search x tr)
 
 example : searchExec 10 (node [10] []) = true := by native_decide
 example : searchExec 5 (node [10] [node [5] [], node [15] []]) = true := by native_decide
