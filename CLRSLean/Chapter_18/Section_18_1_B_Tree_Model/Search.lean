@@ -242,6 +242,91 @@ theorem findChild_localizes_mem
     omega
   omega
 
+/--
+If a key occurs among sorted separators, the selected child index is positive
+and its predecessor separator is that key.
+-/
+theorem findChild_pos_and_pred_eq_of_mem
+    {ks : List Nat} {x : Nat}
+    (hsorted : List.Pairwise (· ≤ ·) ks)
+    (hx : x ∈ ks) :
+    0 < findChild ks x ∧
+      ks[findChild ks x - 1]? = some x := by
+  induction ks with
+  | nil => simp at hx
+  | cons a as ih =>
+      have hsortedTail : List.Pairwise (· ≤ ·) as :=
+        (List.pairwise_cons.mp hsorted).2
+      have ha_le : a ≤ x := by
+        rcases List.mem_cons.mp hx with hxa | hxTail
+        · omega
+        · exact (List.pairwise_cons.mp hsorted).1 x hxTail
+      rw [findChild, if_pos ha_le]
+      refine ⟨by omega, ?_⟩
+      simp only [Nat.add_sub_cancel]
+      by_cases hxTail : x ∈ as
+      · obtain ⟨hpos, hpred⟩ := ih hsortedTail hxTail
+        cases hfind : findChild as x with
+        | zero => omega
+        | succ j =>
+            simp only [hfind, Nat.succ_sub_one] at hpred
+            simpa [hfind] using hpred
+      · have hxa : x = a :=
+          (List.mem_cons.mp hx).resolve_right hxTail
+        subst x
+        have hzero : findChild as a = 0 := by
+          cases as with
+          | nil => rfl
+          | cons b bs =>
+              have hab : a ≤ b :=
+                (List.pairwise_cons.mp hsorted).1 b (by simp)
+              have hne : b ≠ a := by
+                intro hba
+                apply hxTail
+                simp [hba]
+              have hnot : ¬b ≤ a := by omega
+              simp [findChild, hnot]
+        simp [hzero]
+
+/--
+A non-selected child of a sorted, child-bounded node cannot contain a key
+that is absent from the node's separators.
+-/
+theorem findChild_not_mem_child_of_ne
+    {ks : List Nat} {cs : List BTree} {x j : Nat} {child : BTree}
+    (hsorted : List.Pairwise (· ≤ ·) ks)
+    (hbounded : ChildBounded (node ks cs))
+    (hxkeys : x ∉ ks)
+    (hchild : cs[j]? = some child)
+    (hne : j ≠ findChild ks x) :
+    x ∉ keysOf child := by
+  intro hxchild
+  exact hne
+    (findChild_localizes_mem hsorted hbounded hxkeys hchild hxchild)
+
+/--
+If a non-separator key belongs to a sorted, child-bounded node, it belongs to
+the selected child.
+-/
+theorem findChild_selected_child_mem
+    {ks : List Nat} {cs : List BTree} {x : Nat} {child : BTree}
+    (hsorted : List.Pairwise (· ≤ ·) ks)
+    (hbounded : ChildBounded (node ks cs))
+    (hxkeys : x ∉ ks)
+    (hchild : cs[findChild ks x]? = some child)
+    (hx : x ∈ keysOf (node ks cs)) :
+    x ∈ keysOf child := by
+  unfold keysOf at hx
+  rw [List.mem_append, List.mem_flatMap] at hx
+  rcases hx with hxnode | ⟨descendant, hdescendant, hxdescendant⟩
+  · exact (hxkeys hxnode).elim
+  · obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hdescendant
+    have hjfind : j = findChild ks x :=
+      findChild_localizes_mem hsorted hbounded hxkeys hj hxdescendant
+    rw [hjfind, hchild] at hj
+    cases hj
+    exact hxdescendant
+
 /-! ## Executable search -/
 
 /--
