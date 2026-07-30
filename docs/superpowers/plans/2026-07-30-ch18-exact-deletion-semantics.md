@@ -333,12 +333,41 @@ than element-count case explosions.
 
 - [ ] **Step 4: Prove list/frame balance utilities**
 
-Add exact multiplicity lemmas for:
+Add these four generic exact-multiplicity lemmas with the following public
+names and signatures.  They are consumed by `ExactReassembly`, so they must
+remain cross-module visible; do not mark them `private`.
 
-1. `List.set` with a `getElem?` witness.
-2. `take i ++ drop (i + 1)` removing one witnessed element.
-3. `children.set i new` under `flatMap keysOf`.
-4. Replacing adjacent children by one splice under `flatMap keysOf`.
+```lean
+theorem list_set_bag_balance
+    {α : Type*} {xs : List α} {i : Nat} {old new : α}
+    (hold : xs[i]? = some old) :
+    (↑(xs.set i new) : Multiset α) + {old} =
+      (↑xs : Multiset α) + {new}
+
+theorem flatMap_set_bag_balance
+    {α β : Type*} {xs : List α} {i : Nat} {old new : α}
+    (f : α → List β)
+    (hold : xs[i]? = some old) :
+    (↑((xs.set i new).flatMap f) : Multiset β) + ↑(f old) =
+      (↑(xs.flatMap f) : Multiset β) + ↑(f new)
+
+theorem take_drop_succ_bag_balance
+    {α : Type*} {xs : List α} {j : Nat} {old : α}
+    (hold : xs[j]? = some old) :
+    (↑(xs.take j ++ xs.drop (j + 1)) : Multiset α) + {old} =
+      (↑xs : Multiset α)
+
+theorem flatMap_splice_bag_balance
+    {α β : Type*} {xs : List α} {j : Nat}
+    {left right new : α}
+    (f : α → List β)
+    (hleft : xs[j]? = some left)
+    (hright : xs[j + 1]? = some right) :
+    (↑((xs.take j ++ [new] ++ xs.drop (j + 2)).flatMap f) :
+          Multiset β) +
+        ↑(f left) + ↑(f right) =
+      (↑(xs.flatMap f) : Multiset β) + ↑(f new)
+```
 
 Prefer existing permutation lemmas:
 
@@ -425,12 +454,85 @@ import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ExactReassembly
 
 namespace CLRS.Chapter18.BTree
 
-#check replaceChild_keyBag_erase
-#check replacePredecessor_keyBag_erase
-#check replaceSuccessor_keyBag_erase
-#check spliceMerged_keyBag_erase
-#check rotateRight_reassembly_keyBag_erase
-#check rotateLeft_reassembly_keyBag_erase
+#check (replaceChild_keyBag_erase :
+  ∀ {i x : Nat} {ks : List Nat} {cs : List BTree}
+      {old new : BTree},
+    cs[i]? = some old →
+    (x ∈ keysOf (node ks cs) → x ∈ keysOf old) →
+    keyBag new = (keyBag old).erase x →
+    keyBag (node ks (cs.set i new)) =
+      (keyBag (node ks cs)).erase x)
+
+#check (replacePredecessor_keyBag_erase :
+  ∀ {t i sep : Nat} {b : Bool}
+      {ks : List Nat} {cs : List BTree}
+      {left left' : BTree},
+    2 ≤ t →
+    NodeWF t b (node ks cs) →
+    ks[i]? = some sep →
+    cs[i]? = some left →
+    keyBag left' = (keyBag left).erase (maxKey left) →
+    keyBag (node (ks.set i (maxKey left)) (cs.set i left')) =
+      (keyBag (node ks cs)).erase sep)
+
+#check (replaceSuccessor_keyBag_erase :
+  ∀ {t i sep : Nat} {b : Bool}
+      {ks : List Nat} {cs : List BTree}
+      {right right' : BTree},
+    2 ≤ t →
+    NodeWF t b (node ks cs) →
+    ks[i]? = some sep →
+    cs[i + 1]? = some right →
+    keyBag right' = (keyBag right).erase (minKey right) →
+    keyBag
+        (node (ks.set i (minKey right))
+          (cs.set (i + 1) right')) =
+      (keyBag (node ks cs)).erase sep)
+
+#check (spliceMerged_keyBag_erase :
+  ∀ {j sep x : Nat} {ks : List Nat} {cs : List BTree}
+      {left right newMerged : BTree},
+    ks[j]? = some sep →
+    cs[j]? = some left →
+    cs[j + 1]? = some right →
+    (x ∈ keysOf (node ks cs) →
+      x ∈ keysOf (mergeNodes left sep right)) →
+    keyBag newMerged =
+      (keyBag (mergeNodes left sep right)).erase x →
+    let out :=
+      node (ks.take j ++ ks.drop (j + 1))
+        (cs.take j ++ [newMerged] ++ cs.drop (j + 2))
+    keyBag out = (keyBag (node ks cs)).erase x)
+
+#check (rotateRight_reassembly_keyBag_erase :
+  ∀ {j sep x : Nat} {ks : List Nat} {cs : List BTree}
+      {left right left' : BTree},
+    ks[j]? = some sep →
+    cs[j]? = some left →
+    cs[j + 1]? = some right →
+    (x ∈ keysOf (node ks cs) → x ∈ keysOf left) →
+    keyBag left' =
+      (keyBag (rotateRight left sep right).1).erase x →
+    let repaired := rotateRight left sep right
+    keyBag
+        (node (ks.set j repaired.2.1)
+          ((cs.set j left').set (j + 1) repaired.2.2)) =
+      (keyBag (node ks cs)).erase x)
+
+#check (rotateLeft_reassembly_keyBag_erase :
+  ∀ {j sep x : Nat} {ks : List Nat} {cs : List BTree}
+      {left right right' : BTree},
+    ks[j]? = some sep →
+    cs[j]? = some left →
+    cs[j + 1]? = some right →
+    (x ∈ keysOf (node ks cs) → x ∈ keysOf right) →
+    keyBag right' =
+      (keyBag (rotateLeft left sep right).2.2).erase x →
+    let repaired := rotateLeft left sep right
+    keyBag
+        (node (ks.set j repaired.2.1)
+          ((cs.set j repaired.1).set (j + 1) right')) =
+      (keyBag (node ks cs)).erase x)
 
 end CLRS.Chapter18.BTree
 ```
@@ -450,25 +552,36 @@ In `ExactReassembly.lean`, import exactly `KeyMultiset`,
 `MergeReassembly`, and `RotationReassembly`.  Prove:
 
 ```lean
-theorem replaceChild_keyBag_balance ...
-
-theorem replaceChild_keyBag_erase
-    (hold : cs[i]? = some old)
-    (hroute : x ∈ keysOf (node ks cs) → x ∈ keysOf old)
-    (hrec : keyBag new = (keyBag old).erase x) :
-    keyBag (node ks (cs.set i new)) =
-      (keyBag (node ks cs)).erase x
+theorem replaceChild_keyBag_balance
+    {i : Nat} {ks : List Nat} {cs : List BTree}
+    {old new : BTree}
+    (hold : cs[i]? = some old) :
+    keyBag (node ks (cs.set i new)) + keyBag old =
+      keyBag (node ks cs) + keyBag new
 ```
+
+Then implement `replaceChild_keyBag_erase` with exactly the typed contract
+locked in Step 1, using `keyBag_erase_of_balance`.
 
 - [ ] **Step 3: Prove separator replacement**
 
 Prove a generic separator-plus-child balance, then:
 
 ```lean
-theorem replacePredecessor_keyBag_erase ...
-theorem replaceSuccessor_keyBag_erase ...
+theorem replaceSeparatorChild_keyBag_balance
+    {separatorIndex childIndex oldSep newSep : Nat}
+    {ks : List Nat} {cs : List BTree} {old new : BTree}
+    (hsep : ks[separatorIndex]? = some oldSep)
+    (hold : cs[childIndex]? = some old) :
+    keyBag
+          (node (ks.set separatorIndex newSep)
+            (cs.set childIndex new)) +
+        {oldSep} + keyBag old =
+      keyBag (node ks cs) + {newSep} + keyBag new
 ```
 
+Implement `replacePredecessor_keyBag_erase` and
+`replaceSuccessor_keyBag_erase` with exactly the typed contracts from Step 1.
 Use `NodeWF.child`, `NodeWF.nonRoot_allKeysPos`, `maxKey_mem`/`minKey_mem`,
 and `Multiset.cons_erase`.  These branches erase the old separator while the
 recursive predecessor/successor erase is cancelled by inserting its value at
@@ -479,19 +592,21 @@ the parent.
 Prove:
 
 ```lean
-theorem spliceMerged_keyBag_balance ...
-
-theorem spliceMerged_keyBag_erase
-    ...
-    (hroute :
-      x ∈ keysOf (node ks cs) →
-        x ∈ keysOf (mergeNodes left sep right))
-    (hrec :
-      keyBag newMerged =
-        (keyBag (mergeNodes left sep right)).erase x) :
-    keyBag out = (keyBag (node ks cs)).erase x
+theorem spliceMerged_keyBag_balance
+    {j sep : Nat} {ks : List Nat} {cs : List BTree}
+    {left right newMerged : BTree}
+    (hsep : ks[j]? = some sep)
+    (hleft : cs[j]? = some left)
+    (hright : cs[j + 1]? = some right) :
+    let out :=
+      node (ks.take j ++ ks.drop (j + 1))
+        (cs.take j ++ [newMerged] ++ cs.drop (j + 2))
+    keyBag out + keyBag (mergeNodes left sep right) =
+      keyBag (node ks cs) + keyBag newMerged
 ```
 
+Implement `spliceMerged_keyBag_erase` with exactly the typed contract from
+Step 1, using this balance theorem and `keyBag_erase_of_balance`.
 One indexed theorem should serve separator-hit merge, left merge, and zero
 merge by instantiation.
 
@@ -501,17 +616,57 @@ First prove adjacent parent balance and pure rotation conservation.  Add the
 two provenance directions needed by routing:
 
 ```lean
-theorem mem_rotateRight_left_of_mem_left ...
-theorem mem_rotateLeft_right_of_mem_right ...
+theorem replaceAdjacent_keyBag_balance
+    {j sep newSep : Nat} {ks : List Nat} {cs : List BTree}
+    {left right newLeft newRight : BTree}
+    (hsep : ks[j]? = some sep)
+    (hleft : cs[j]? = some left)
+    (hright : cs[j + 1]? = some right) :
+    keyBag
+          (node (ks.set j newSep)
+            ((cs.set j newLeft).set (j + 1) newRight)) +
+        (keyBag left + {sep} + keyBag right) =
+      keyBag (node ks cs) +
+        (keyBag newLeft + {newSep} + keyBag newRight)
+
+theorem rotateRight_parent_keyBag
+    {j sep : Nat} {ks : List Nat} {cs : List BTree}
+    {left right : BTree}
+    (hsep : ks[j]? = some sep)
+    (hleft : cs[j]? = some left)
+    (hright : cs[j + 1]? = some right) :
+    let repaired := rotateRight left sep right
+    keyBag
+        (node (ks.set j repaired.2.1)
+          ((cs.set j repaired.1).set (j + 1) repaired.2.2)) =
+      keyBag (node ks cs)
+
+theorem rotateLeft_parent_keyBag
+    {j sep : Nat} {ks : List Nat} {cs : List BTree}
+    {left right : BTree}
+    (hsep : ks[j]? = some sep)
+    (hleft : cs[j]? = some left)
+    (hright : cs[j + 1]? = some right) :
+    let repaired := rotateLeft left sep right
+    keyBag
+        (node (ks.set j repaired.2.1)
+          ((cs.set j repaired.1).set (j + 1) repaired.2.2)) =
+      keyBag (node ks cs)
+
+theorem mem_rotateRight_left_of_mem_left
+    (left : BTree) (sep : Nat) (right : BTree) {x : Nat}
+    (hx : x ∈ keysOf left) :
+    x ∈ keysOf (rotateRight left sep right).1
+
+theorem mem_rotateLeft_right_of_mem_right
+    (left : BTree) (sep : Nat) (right : BTree) {x : Nat}
+    (hx : x ∈ keysOf right) :
+    x ∈ keysOf (rotateLeft left sep right).2.2
 ```
 
-Then prove:
-
-```lean
-theorem rotateRight_reassembly_keyBag_erase ...
-theorem rotateLeft_reassembly_keyBag_erase ...
-```
-
+Then implement `rotateRight_reassembly_keyBag_erase` and
+`rotateLeft_reassembly_keyBag_erase` with exactly the typed contracts from
+Step 1.
 The routing premise is about the original selected child; provenance carries
 that member into the repaired recursive target.
 
@@ -609,6 +764,23 @@ Use:
 ```lean
 induction x, tr using composedDelete.induct (t := t)
 ```
+
+Before the induction, add this private projection from the bundled node
+invariant to the sorted separator-list fact required by the routing helpers:
+
+```lean
+private theorem NodeWF.node_keys_pairwise
+    {t : Nat} {b : Bool} {ks : List Nat} {cs : List BTree}
+    (h : NodeWF t b (node ks cs)) :
+    List.Pairwise (· ≤ ·) ks := by
+  have hs := h.sorted
+  unfold Sorted at hs
+  exact hs.1
+```
+
+Use `hparent.node_keys_pairwise`; the tempting projection
+`hparent.sorted.1` does not elaborate because `Sorted` must first be unfolded
+at a concrete `node`.
 
 The 12 reachable generated cases, grouped into 11 semantic patterns,
 correspond to the existing `composedDelete_packet` skeleton:
