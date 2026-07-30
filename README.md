@@ -49,19 +49,25 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 15 | Dynamic Programming | 🟡 sections | 76 | — |
 | 16 | Greedy Algorithms | 🟢 complete | 32 | — |
 | 17 | Amortized Analysis | 🟡 sections | 66 | — |
-| 18 | B-Trees | 🟠 partial | 62 | Full occupancy separator and same-depth invariant stack plus… |
+| 18 | B-Trees | 🟠 partial | 111 | Real top-level insertion with full-root splitting;… |
 | 19 | Fibonacci Heaps | 🟠 partial | 112 | Pointer forest circular root lists executable CONSOLIDATE… |
 | 20 | van Emde Boas Trees | 🟢 correctness | 200 | — |
 | 21 | Data Structures for Disjoint Sets | 🟢 complete | 84 | — |
 | 22 | Elementary Graph Algorithms | 🟢 correctness | 47 | — |
 | 23 | Minimum Spanning Trees | 🟢 correctness | 52 | — |
 | 24 | Single-Source Shortest Paths | 🟡 sections | 22 | — |
-| 25 | All-Pairs Shortest Paths | 🟠 partial | 16 | Floyd-Warshall correctness; predecessor matrix and path… |
+| 25 | All-Pairs Shortest Paths | 🟢 correctness | 22 | — |
 | 26 | Maximum Flow | 🟠 partial | 9 | Full Max-Flow Min-Cut converse/equivalence; executable BFS… |
 | 27 | Multithreaded Algorithms | 🟠 partial | 28 | Greedy-scheduler bound (Theorem 27.1/27.2); all-input… |
-| 28–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
+| 28 | Matrix Operations | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
+| 29 | Linear Programming | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
+| 30 | Polynomials and the FFT | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
+| 31 | Number-Theoretic Algorithms | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
+| 32 | String Matching | 🟡 sections | 19 | — |
+| 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
+| 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1394 kernel-checked theorems across Chapters 1–27** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1475 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·

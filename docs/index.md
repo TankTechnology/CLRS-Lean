@@ -112,6 +112,9 @@ CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/MergeReassembly.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/RotationBounds.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/RotationReassembly.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ComposedPreservation.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/KeyMultiset.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ExactReassembly.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Exact.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Subset.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/SameDepthHeight.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Sorted.lean
