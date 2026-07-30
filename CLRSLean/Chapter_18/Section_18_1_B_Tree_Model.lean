@@ -29,6 +29,10 @@ def keysOf : BTree -> List Nat
 
 def mem (x : Nat) (t : BTree) : Prop := x ∈ keysOf t
 
+/-- No represented key occurs more than once anywhere in the tree. -/
+def UniqueKeys (tr : BTree) : Prop :=
+  (keysOf tr).Nodup
+
 instance decidableMem (x : Nat) (t : BTree) : Decidable (mem x t) :=
   inferInstanceAs (Decidable (x ∈ keysOf t))
 
@@ -136,6 +140,10 @@ inductive SameDepth : BTree → Prop
 
 def WellFormed (minDegree : Nat) (t : BTree) : Prop :=
   Sorted t ∧ ChildBounded t ∧ Occupancy minDegree true t ∧ SameDepth t
+
+/-- Structural B-tree well-formedness plus global key uniqueness. -/
+def WellFormedUnique (t : Nat) (tr : BTree) : Prop :=
+  WellFormed t tr ∧ UniqueKeys tr
 
 theorem WellFormed.valid {minDegree : Nat} {t : BTree}
     (hmin : 2 ≤ minDegree) (_h : WellFormed minDegree t) : Valid minDegree t := by
