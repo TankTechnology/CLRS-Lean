@@ -1,10 +1,30 @@
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model
 
 /-!
-# CLRS Section 18.1 - B-tree search helpers
+# CLRS Section 18.1 - Separator-guided B-tree search
 
 Defines the child-selection function used by B-tree search and insertion,
-together with reusable path-localization and height lemmas.
+reusable path-localization and height lemmas, and a total executable search
+that descends through exactly one separator-selected child.
+
+Main results:
+
+* {lit}`findChild_localizes_mem`: localizes a non-separator member to the
+  selected child under sorted and child-bounded node invariants.
+* {lit}`searchExec`: checks the current node and otherwise follows only the
+  separator-selected child.
+* {lit}`searchExec_sound`: successful executable search implies membership
+  without structural assumptions.
+* {lit}`searchExec_complete`: sorted, child-bounded trees expose every member
+  along the selected path.
+* {lit}`searchExec_true_iff`: characterizes successful executable search by
+  membership.
+* {lit}`searchExec_eq_search`: connects executable search to the imported
+  specification oracle
+  {name (full := CLRS.Chapter18.BTree.search)}`search`.
+
+The selected-child localization theorem is also intended for the exact
+executable-deletion semantics that remains open at the chapter level.
 -/
 
 namespace CLRS.Chapter18.BTree
