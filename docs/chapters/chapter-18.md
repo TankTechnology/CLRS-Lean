@@ -2,8 +2,32 @@
 
 - Status: `partial`
 - Lean entry: `CLRSLean/Chapter_18.lean`
-- Interface tests: `Tests/Chapter_18_Interface.lean`,
+- Interface tests: `Tests/Chapter_18_Search_Interface.lean`,
+  `Tests/Chapter_18_Interface.lean`,
   `Tests/Chapter_18_Deletion_Interface.lean`
+
+## Search Surfaces
+
+`CLRS.Chapter18.BTree.search` remains the specification oracle used for
+compatibility with the original model: it decides whether a key belongs to the
+flattened key collection.  `CLRS.Chapter18.BTree.searchExec` is the executable
+CLRS-style search: it checks the current node and otherwise recurses only into
+the child chosen by the separators.
+
+For sorted, child-bounded trees,
+`CLRS.Chapter18.BTree.searchExec_true_iff` is the semantic truth source for the
+executable algorithm.  Its two directions are also available separately as
+`CLRS.Chapter18.BTree.searchExec_sound`, which needs no structural invariant,
+and `CLRS.Chapter18.BTree.searchExec_complete`.
+`CLRS.Chapter18.BTree.searchExec_eq_search` records compatibility with the
+specification oracle.
+
+On a sorted, child-bounded node,
+`CLRS.Chapter18.BTree.findChild_localizes_mem` proves that when a key is not a
+separator of the current node, any child containing it has exactly the index
+selected by `findChild`.  This theorem supplies the path-localization step
+needed by the still-open exact-semantics proof for executable deletion; it does
+not by itself establish that deletion refinement.
 
 ## Proved Public Surface
 
@@ -14,6 +38,13 @@
 - `CLRS.Chapter18.BTree.search_false_iff`
 - `CLRS.Chapter18.BTree.search_false_of_not_mem`
 - `CLRS.Chapter18.BTree.not_mem_of_search_false`
+- `CLRS.Chapter18.BTree.findChild`
+- `CLRS.Chapter18.BTree.findChild_localizes_mem`
+- `CLRS.Chapter18.BTree.searchExec`
+- `CLRS.Chapter18.BTree.searchExec_sound`
+- `CLRS.Chapter18.BTree.searchExec_complete`
+- `CLRS.Chapter18.BTree.searchExec_true_iff`
+- `CLRS.Chapter18.BTree.searchExec_eq_search`
 - `CLRS.Chapter18.BTree.minKeys_zero`
 - `CLRS.Chapter18.BTree.minKeys_pos`
 - `CLRS.Chapter18.BTree.one_le_minKeys`
@@ -102,12 +133,18 @@ input, and the height is unchanged or decreases by exactly one.
 
 ## Remaining Work
 
-The main missing theorem group connects the executable root operation to exact
-deletion semantics: prove that `x` is absent from
-`composedDeleteRoot t x tr` and that every input key different from `x`
-remains represented.  The existing abstract `delete` specification already
-has those membership facts; the refinement to executable CLRS deletion is
-still open, so Chapter 18 remains `partial`.
+The main missing theorem connects the executable root operation to exact
+multiset semantics: prove a `keysOf` equation identifying
+`keysOf (composedDeleteRoot t x tr)` with the input `keysOf` multiset after
+erasing one occurrence of `x`.  Preservation of every key different from `x`
+then follows unconditionally.  Because the current model permits duplicate
+keys, complete absence of `x` is not an unconditional consequence; that
+corollary requires a new `UniqueKeys` layer.  The abstract `delete`
+specification already exposes its specification-level membership behavior,
+but this executable refinement and the `UniqueKeys` layer are not yet proved,
+so Chapter 18 remains `partial`.  The selected-child localization theorem now
+provides the search-path lemma for that future proof, but no exact multiset
+theorem for `composedDeleteRoot` is claimed yet.
 
 Disk-page layout, pointer mutation, page I/O counts, and RAM-cost semantics are
 optional lower-level refinements rather than blockers for the mathematical
