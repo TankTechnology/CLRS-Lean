@@ -17,10 +17,10 @@ Main results:
   without structural assumptions.
 * {lit}`searchExec_complete`: sorted, child-bounded trees expose every member
   along the selected path.
-* {lit}`searchExec_true_iff`: characterizes successful executable search by
-  membership.
-* {lit}`searchExec_eq_search`: connects executable search to the imported
-  specification oracle
+* {lit}`searchExec_true_iff`: on sorted, child-bounded trees, characterizes
+  successful executable search by membership.
+* {lit}`searchExec_eq_search`: on sorted, child-bounded trees, connects
+  executable search to the imported specification oracle
   {name (full := CLRS.Chapter18.BTree.search)}`search`.
 
 The selected-child localization theorem is also intended for the exact
