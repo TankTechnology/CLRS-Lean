@@ -47,10 +47,13 @@ Main results:
   {lit}`BTree.delete_search_false_of_not_mem`: old membership and absence give
   direct post-deletion successful and failed searches.
 
-The remaining semantic refinement is to connect the executable normalized
-operation to the exact membership equation already proved for the
-specification-level {lit}`delete`.  Structural preservation itself has no
-proof placeholders.
+The remaining semantic refinement first proves, without uniqueness assumptions,
+that executable normalized deletion erases one occurrence from the
+{lit}`keysOf` multiset; every different key is therefore preserved.  Because
+specification-level {lit}`delete` filters every occurrence, bridging erase-one
+to its exact membership equation and deriving requested-key absence require a
+{lit}`UniqueKeys` invariant.  Structural preservation itself has no proof
+placeholders.
 -/
 
 namespace CLRS

@@ -2076,6 +2076,7 @@ sharper contraction strategy.
 - Lean source:
   `CLRSLean/Chapter_18.lean`,
   `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean`,
+  `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean`,
   `CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean`,
   `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean`, and the
   `Section_18_3_B_Tree_Deletion/` invariant, repair, reassembly,
@@ -2089,6 +2090,12 @@ sharper contraction strategy.
   - `CLRS.Chapter18.BTree.search_false_iff`
   - `CLRS.Chapter18.BTree.search_false_of_not_mem`
   - `CLRS.Chapter18.BTree.not_mem_of_search_false`
+  - `CLRS.Chapter18.BTree.findChild_localizes_mem`
+  - `CLRS.Chapter18.BTree.searchExec`
+  - `CLRS.Chapter18.BTree.searchExec_sound`
+  - `CLRS.Chapter18.BTree.searchExec_complete`
+  - `CLRS.Chapter18.BTree.searchExec_true_iff`
+  - `CLRS.Chapter18.BTree.searchExec_eq_search`
   - `CLRS.Chapter18.BTree.minKeys_zero`
   - `CLRS.Chapter18.BTree.minKeys_pos`
   - `CLRS.Chapter18.BTree.one_le_minKeys`
@@ -2188,10 +2195,13 @@ sharper contraction strategy.
   specifications, direct failed-membership preservation wrappers, bundled
   deletion induction, local merge/rotation repair packets, parent reassembly,
   root-sensitive raw results, and one-step root normalization
-- Current gap: exact `composedDeleteRoot` membership semantics—deleting the
-  requested key and preserving every different input key.  Disk-page layout,
-  pointer mutation, I/O counts, and RAM costs are optional lower-level
-  refinements.
+- Current gap: exact `composedDeleteRoot` multiset semantics—unconditionally
+  proving that its `keysOf` multiset is the input multiset with one occurrence
+  of the requested key erased, and that every different input key is preserved.
+  Total absence of the requested key and the bridge to the current
+  membership-level deletion specification require a `UniqueKeys` layer.
+  Disk-page layout, pointer mutation, I/O counts, and RAM costs are optional
+  lower-level refinements.
 
 Chapter 18 now has both the first-pass B-tree theorem surface and a structural
 proof for the executable CLRS deletion routine.  Search, split-child,
@@ -2214,8 +2224,10 @@ invariants.  A raw root may be the permitted one-child empty transient, so
 only `composedDeleteRoot`, which applies `normalizeRoot` after
 `composedDelete`, is stated to preserve root `WellFormed`; its keys form a
 subset of the input and its height is unchanged or decreases by one.  The
-chapter remains `partial` until this executable operation is connected to
-exact deletion membership semantics.
+chapter remains `partial` until the unconditional one-occurrence multiset
+erasure theorem is proved.  Recovering requested-key absence and the existing
+exact membership specification from that theorem additionally requires a
+`UniqueKeys` layer.
 
 ## Chapter 19 - Fibonacci Heaps
 
@@ -3216,7 +3228,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
 | Chapter 12 executable pointer-level BST | `proved` | Imperative pointer-heap model (`Node` records with `left`/`right`/`parent` cells over a `Std.HashMap` `Store`) with `RepresentsW` heap-to-tree abstraction; in-place `TRANSPLANT` (`transplantChild_left_representsW`/`transplantChild_right_representsW`) and leaf `TREE-INSERT` (`insertPointer_right_representsW`) refine functional subtree replacement. Only an explicit RAM cost model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
-| B-tree executable deletion semantics | `partial` | `composedDelete_packet` proves key containment and the full root-sensitive structural packet through every CLRS repair branch; `composedDeleteRoot_wellFormed` proves root-normalized well-formedness, with subset and height results. Remaining: prove the requested key is absent from `composedDeleteRoot` and every different input key remains. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
+| B-tree executable deletion semantics | `partial` | `composedDelete_packet` proves key containment and the full root-sensitive structural packet through every CLRS repair branch; `composedDeleteRoot_wellFormed` proves root-normalized well-formedness, with subset and height results. Remaining: unconditionally prove that the output `keysOf` multiset is the input multiset with one requested-key occurrence erased, and that every different input key remains. Requested-key absence and the bridge to the current membership-level deletion specification additionally require `UniqueKeys`. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
 | Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |
 | Generic augmentation through red-black deletion | `future-work` | Section 14.1 threads the size augmentation through executable deletion (`OSRBTree.wellSized_delete`, `toRB_delete`, `redBlackShape_toRB_delete`, `mem_keys_delete`).  The remaining work is the generic Section 14.3 `AugmentedRBTree` mirror of the Chapter 13 deletion pipeline (roughly 300 lines following the Section 14.1 template). |

@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_18.Section_18_1_B_Tree_Search
+import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search
 
 /-!
 # CLRS Section 18.2 - B-tree insertion
