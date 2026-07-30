@@ -1072,9 +1072,13 @@ git commit -m "feat(ch18): expose exact root deletion semantics"
 **Files:**
 
 - Modify: `CLRSLean/Chapter_18.lean`
+- Modify: `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean`
+- Modify: `CLRSLean/Status.lean`
 - Modify: `literate.toml`
+- Modify (generated): `README.md`
 - Modify: `docs/index.md`
 - Modify: `docs/proof-map.md`
+- Modify: `docs/proof-status-board.md`
 - Modify: `docs/chapters/chapter-18.md`
 - Modify: `docs/clrs-proof-progress.csv`
 - Modify (generated): `CLRSLean/Progress.lean`
@@ -1093,6 +1097,11 @@ Register all three in the deletion child-module list and add metadata titles
 in `literate.toml`.  Add their exact source paths to the catalog in
 `docs/index.md`.
 
+Replace the stale `Search.lean` module text that still describes exact
+executable deletion semantics as open.  The search routing lemmas are now
+inputs to the exact deletion proof; they are not themselves the final
+correctness theorem.
+
 - [ ] **Step 2: Correct the chapter status**
 
 Document separately:
@@ -1106,15 +1115,21 @@ Document separately:
 Do not claim the existing specification and executable operations have equal
 tree shape.  Apply the same status correction and new public API list to
 `docs/proof-map.md`, which is the theorem-level status source of truth.
+Synchronize the compact status in `CLRSLean/Status.lean`, the scheduling
+language in `docs/proof-status-board.md`, and the interface-test list in
+`docs/chapters/chapter-18.md`.
 
 Update the Chapter 18 progress CSV row so exact executable deletion is moved
 from “remaining” to “proved”.  Keep the chapter `partial`: the real top-level
 insertion/root-split theorem and a structural total-key height lower bound
-remain separate core groups.  Regenerate the dashboard rather than editing its
-row by hand:
+remain separate core groups.  Count the 28 new typed contracts from Tasks 2–6,
+reconcile the stale `76/76` CSV row with the current 83-contract facade/docs
+inventory, and record the resulting `111/111` total with 2 remaining core
+groups.  Regenerate both derived views rather than editing them by hand:
 
 ```bash
 uv run python scripts/check_progress_csv.py --write-dashboard
+python3 scripts/gen_readme_table.py
 ```
 
 - [ ] **Step 3: Run full verification**
@@ -1123,7 +1138,15 @@ uv run python scripts/check_progress_csv.py --write-dashboard
 python3 scripts/test_literate_config.py
 python3 scripts/check_site_consistency.py
 uv run python scripts/check_progress_csv.py --write-dashboard
+python3 scripts/gen_readme_table.py --check
 python3 scripts/check_repository.py
+lake env lean -DwarningAsError=true CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean
+lake env lean -DwarningAsError=true CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/KeyMultiset.lean
+lake env lean -DwarningAsError=true CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ExactReassembly.lean
+lake env lean -DwarningAsError=true CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Exact.lean
+lake env lean -DwarningAsError=true CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/WellFormed.lean
+lake env lean -DwarningAsError=true CLRSLean/Chapter_18.lean
+lake env lean -DwarningAsError=true CLRSLean/Status.lean
 lake build CLRSLean.Chapter_18
 lake env lean -DwarningAsError=true Tests/Chapter_18_Search_Interface.lean
 lake env lean -DwarningAsError=true Tests/Chapter_18_KeyMultiset_Interface.lean
@@ -1134,15 +1157,30 @@ lake env lean -DwarningAsError=true Tests/Chapter_18_Interface.lean
 lake env lean -DwarningAsError=true Tests/Chapter_18_Deletion_Interface.lean
 lake env lean -DwarningAsError=true Tests/Chapter_18_Root_Occupancy.lean
 lake build :literateHtml
+rg -n '\b(sorry|admit|axiom)\b|sorryAx' \
+  CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/KeyMultiset.lean \
+  CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ExactReassembly.lean \
+  CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Exact.lean \
+  CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/WellFormed.lean \
+  Tests/Chapter_18_KeyMultiset_Interface.lean \
+  Tests/Chapter_18_Deletion_Reassembly_Interface.lean \
+  Tests/Chapter_18_Deletion_Exact_Interface.lean \
+  Tests/Chapter_18_Deletion_Root_Exact_Interface.lean
 git diff --check
 ```
+
+The marker scan is expected to return no matches.  Review all generated
+dashboard and README changes, including any pre-existing CSV-to-output drift
+outside Chapter 18, before committing them.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add CLRSLean/Chapter_18.lean CLRSLean/Progress.lean literate.toml \
-  docs/index.md docs/proof-map.md docs/chapters/chapter-18.md \
-  docs/clrs-proof-progress.csv
+git add README.md CLRSLean/Chapter_18.lean \
+  CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean \
+  CLRSLean/Progress.lean CLRSLean/Status.lean literate.toml \
+  docs/index.md docs/proof-map.md docs/proof-status-board.md \
+  docs/chapters/chapter-18.md docs/clrs-proof-progress.csv
 git commit -m "docs(ch18): register exact deletion semantics"
 ```
 
