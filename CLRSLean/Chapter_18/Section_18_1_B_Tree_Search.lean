@@ -156,4 +156,203 @@ lemma findChild_x_lo (ks : List Nat) (x : Nat) :
       exact ⟨findChild ks x - 1, by rw [List.getElem?_take_of_lt (by omega)]; exact hlo⟩
     exact findChild_take_le x ks lo hmem
 
+/--
+If a key absent from a sorted node's separators occurs in one of its children,
+that child is exactly the one selected by {name}`findChild`.
+-/
+theorem findChild_localizes_mem
+    {ks : List Nat} {cs : List BTree} {x j : Nat} {child : BTree}
+    (hsorted : List.Pairwise (· ≤ ·) ks)
+    (hbounded : ChildBounded (node ks cs))
+    (hxkeys : x ∉ ks)
+    (hchild : cs[j]? = some child)
+    (hxchild : x ∈ keysOf child) :
+    j = findChild ks x := by
+  have hjcs : j < cs.length :=
+    _root_.of_getElem?_eq_some (c := cs) (i := j) hchild
+  have hchild_get : cs.get ⟨j, hjcs⟩ = child :=
+    (_root_.getElem?_eq_some_iff.mp hchild).choose_spec
+  unfold ChildBounded at hbounded
+  rcases hbounded with ⟨hshape, hbounds, _⟩
+  have hlength : cs.length = ks.length + 1 := by
+    rcases hshape with hempty | hlength
+    · have : cs.length = 0 := by simpa using hempty
+      omega
+    · exact hlength
+  have hjbounds := hbounds j hjcs
+  dsimp only at hjbounds
+  rw [hchild_get] at hjbounds
+  have hnot_left : ¬j < findChild ks x := by
+    intro hjleft
+    have hjks : j < ks.length := by
+      have := findChild_le ks x
+      omega
+    have hsep_mem : ks[j] ∈ ks.take (findChild ks x) := by
+      rw [List.mem_iff_getElem?]
+      refine ⟨j, ?_⟩
+      rw [List.getElem?_take_of_lt hjleft, List.getElem?_eq_getElem hjks]
+    have hsep_le : ks[j] ≤ x :=
+      findChild_take_le x ks ks[j] hsep_mem
+    have hkey_le : x ≤ ks[j] := by
+      have hupper := hjbounds.2
+      simp only [List.getElem?_eq_getElem hjks] at hupper
+      exact hupper x hxchild
+    apply hxkeys
+    rw [show x = ks[j] by omega]
+    exact List.getElem_mem hjks
+  have hnot_right : ¬findChild ks x < j := by
+    intro hjright
+    have hjpos : 0 < j := by omega
+    have hjpred : j - 1 < ks.length := by omega
+    have hsep_mem : ks[j - 1] ∈ ks.drop (findChild ks x) := by
+      rw [List.mem_iff_getElem?]
+      refine ⟨j - 1 - findChild ks x, ?_⟩
+      rw [List.getElem?_drop]
+      have hindex :
+          findChild ks x + (j - 1 - findChild ks x) = j - 1 := by
+        omega
+      rw [hindex, List.getElem?_eq_getElem hjpred]
+    have hx_lt : x < ks[j - 1] :=
+      findChild_drop_gt x hsorted (ks[j - 1]) hsep_mem
+    have hsep_le : ks[j - 1] ≤ x := by
+      rcases hjbounds.1 with hjzero | hlower
+      · omega
+      · simp only [List.getElem?_eq_getElem hjpred] at hlower
+        exact hlower x hxchild
+    omega
+  omega
+
+/-! ## Executable search -/
+
+/--
+Separator-guided executable B-tree search.  The current node is checked first;
+on a miss, search continues only in the child selected by {name}`findChild`.
+-/
+def searchExec (x : Nat) : BTree → Bool
+  | node ks cs =>
+      if x ∈ ks then
+        true
+      else
+        match _hc : cs[findChild ks x]? with
+        | some child => searchExec x child
+        | none => false
+termination_by tr => heightOf tr
+decreasing_by
+  exact heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨findChild ks x, _hc⟩)
+
+/--
+Executable search is sound on every B-tree: a successful result witnesses
+membership in the tree, without requiring structural invariants.
+-/
+theorem searchExec_sound {x : Nat} {tr : BTree}
+    (hsearch : searchExec x tr = true) : mem x tr := by
+  revert hsearch
+  induction tr using searchExec.induct x with
+  | case1 ks cs hxkeys =>
+      intro _
+      unfold mem keysOf
+      exact List.mem_append_left _ hxkeys
+  | case2 ks cs hxkeys child hchild ih =>
+      intro hsearch
+      have hchild_search : searchExec x child = true := by
+        rw [searchExec, if_neg hxkeys] at hsearch
+        split at hsearch
+        · rename_i child' hchild'
+          rw [hchild] at hchild'
+          cases hchild'
+          exact hsearch
+        · rename_i hnone
+          rw [hchild] at hnone
+          contradiction
+      have hchild_mem : x ∈ keysOf child := ih hchild_search
+      unfold mem keysOf
+      rw [List.mem_append, List.mem_flatMap]
+      right
+      exact ⟨child, List.mem_iff_getElem?.mpr ⟨findChild ks x, hchild⟩, hchild_mem⟩
+  | case3 ks cs hxkeys hchild =>
+      intro hsearch
+      rw [searchExec, if_neg hxkeys] at hsearch
+      split at hsearch
+      · rename_i child hsome
+        rw [hchild] at hsome
+        contradiction
+      · simp at hsearch
+
+/--
+On sorted, child-bounded B-trees, executable search is complete: every member
+is found by the separator-selected descent path.
+-/
+theorem searchExec_complete {x : Nat} {tr : BTree}
+    (hsorted : Sorted tr) (hbounded : ChildBounded tr)
+    (hmem : mem x tr) : searchExec x tr = true := by
+  revert hsorted hbounded hmem
+  induction tr using searchExec.induct x with
+  | case1 ks cs hxkeys =>
+      intro _ _ _
+      rw [searchExec, if_pos hxkeys]
+  | case2 ks cs hxkeys child hchild ih =>
+      intro hsorted hbounded hmem
+      unfold Sorted at hsorted
+      rcases hsorted with ⟨hkeys_sorted, hchildren_sorted⟩
+      unfold mem keysOf at hmem
+      rw [List.mem_append, List.mem_flatMap] at hmem
+      rcases hmem with hxnode | ⟨descendant, hdescendant, hxdescendant⟩
+      · exact (hxkeys hxnode).elim
+      · obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hdescendant
+        have hjfind : j = findChild ks x :=
+          findChild_localizes_mem hkeys_sorted hbounded hxkeys hj hxdescendant
+        subst j
+        rw [hchild] at hj
+        cases hj
+        have hchild_mem : child ∈ cs :=
+          List.mem_iff_getElem?.mpr ⟨findChild ks x, hchild⟩
+        have hchild_sorted : Sorted child :=
+          hchildren_sorted child hchild_mem
+        have hchild_bounded : ChildBounded child := by
+          unfold ChildBounded at hbounded
+          exact hbounded.2.2 child hchild_mem
+        have hchild_search : searchExec x child = true :=
+          ih hchild_sorted hchild_bounded hxdescendant
+        rw [searchExec, if_neg hxkeys]
+        split
+        · rename_i child' hchild'
+          rw [hchild] at hchild'
+          cases hchild'
+          exact hchild_search
+        · rename_i hnone
+          rw [hchild] at hnone
+          contradiction
+  | case3 ks cs hxkeys hchild =>
+      intro hsorted hbounded hmem
+      unfold Sorted at hsorted
+      rcases hsorted with ⟨hkeys_sorted, _⟩
+      unfold mem keysOf at hmem
+      rw [List.mem_append, List.mem_flatMap] at hmem
+      rcases hmem with hxnode | ⟨descendant, hdescendant, hxdescendant⟩
+      · exact (hxkeys hxnode).elim
+      · obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hdescendant
+        have hjfind : j = findChild ks x :=
+          findChild_localizes_mem hkeys_sorted hbounded hxkeys hj hxdescendant
+        rw [hjfind, hchild] at hj
+        contradiction
+
+/--
+On sorted, child-bounded trees, executable search returns true exactly for
+members of the tree.
+-/
+theorem searchExec_true_iff {x : Nat} {tr : BTree}
+    (hsorted : Sorted tr) (hbounded : ChildBounded tr) :
+    searchExec x tr = true ↔ mem x tr :=
+  ⟨searchExec_sound, searchExec_complete hsorted hbounded⟩
+
+/--
+On sorted, child-bounded trees, separator-guided executable search agrees with
+the specification-level membership oracle {name}`search`.
+-/
+theorem searchExec_eq_search {x : Nat} {tr : BTree}
+    (hsorted : Sorted tr) (hbounded : ChildBounded tr) :
+    searchExec x tr = search x tr := by
+  apply Bool.eq_iff_iff.mpr
+  exact (searchExec_true_iff hsorted hbounded).trans (search_true_iff x tr).symm
+
 end CLRS.Chapter18.BTree
