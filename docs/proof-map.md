@@ -2084,6 +2084,7 @@ sharper contraction strategy.
   `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Exact.lean`, and the other
   `Section_18_3_B_Tree_Deletion/` invariant, repair, reassembly,
   preservation, projection, and root-normalization modules
+- Insertion interface test: `Tests/Chapter_18_Insertion_Interface.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter18.BTree.search_correct`
@@ -2149,6 +2150,22 @@ sharper contraction strategy.
   - `CLRS.Chapter18.BTree.insert_search_false_iff`
   - `CLRS.Chapter18.BTree.insert_search_false_of_ne`
   - `CLRS.Chapter18.BTree.insert_search_false_of_not_mem_ne`
+  - `CLRS.Chapter18.BTree.splitRoot`
+  - `CLRS.Chapter18.BTree.insertRoot`
+  - `CLRS.Chapter18.BTree.splitRoot_keys_perm`
+  - `CLRS.Chapter18.BTree.splitRoot_wellFormed`
+  - `CLRS.Chapter18.BTree.splitRoot_height`
+  - `CLRS.Chapter18.BTree.splitRoot_rootKeyCount`
+  - `CLRS.Chapter18.BTree.splitRoot_nonFull`
+  - `CLRS.Chapter18.BTree.insertRoot_keys_perm`
+  - `CLRS.Chapter18.BTree.insertRoot_wellFormed`
+  - `CLRS.Chapter18.BTree.insertRoot_height`
+  - `CLRS.Chapter18.BTree.insertRoot_mem_iff`
+  - `CLRS.Chapter18.BTree.insertRoot_wellFormedUnique`
+  - `CLRS.Chapter18.BTree.insertRoot_mem_iff_insert`
+  - `CLRS.Chapter18.BTree.insertRoot_search_eq_insert`
+  - `CLRS.Chapter18.BTree.insertRoot_searchExec_true_iff`
+  - `CLRS.Chapter18.BTree.insertRoot_correct`
   - `CLRS.Chapter18.BTree.delete_preserves_model`
   - `CLRS.Chapter18.BTree.delete_valid`
   - `CLRS.Chapter18.BTree.delete_mem_iff`
@@ -2227,6 +2244,27 @@ sharper contraction strategy.
   deletion induction, local merge/rotation repair packets, parent reassembly,
   root-sensitive raw results, one-step root normalization, exact multiset
   conservation through local reassembly, and a global uniqueness layer
+- Top-level insertion boundary:
+  - The flat `insert` operation remains the specification layer.
+    `splitRoot` installs a full old root as the sole child of a transient empty
+    parent and applies the existing full-child split.  The transient parent
+    itself is not claimed `WellFormed`; `splitRoot_wellFormed` proves that the
+    completed split output is.
+  - `insertRoot` is the real top-level CLRS insertion operation.  It splits a
+    full root before calling `insertNonFull`, and calls `insertNonFull` directly
+    when the root is non-full.
+  - `insertRoot_keys_perm` proves the exact `List.Perm` result
+    `keysOf tr ++ [x]`; `insertRoot_wellFormed` proves the output invariant; and
+    `insertRoot_height` gives the exact full-root conditional between unchanged
+    height and height plus one.
+  - `insertRoot_mem_iff` gives `y = x ∨ mem y tr`.
+    `insertRoot_mem_iff_insert` and `insertRoot_search_eq_insert` prove
+    specification membership/search compatibility, while
+    `insertRoot_searchExec_true_iff` proves executable-search correctness.
+    `insertRoot_wellFormedUnique` additionally assumes `¬ mem x tr`.
+  - This is extensional compatibility only: no executable/specification
+    tree-shape equality is claimed.  Section 18.2 is proved for the current
+    functional correctness model.
 - Exact deletion boundary:
   - For `2 ≤ t`, `composedDelete_keyBag` requires `NodeWF` and
     `composedDeleteRoot_keyBag` requires `WellFormed`; each applies
@@ -2240,14 +2278,15 @@ sharper contraction strategy.
     `WellFormedUnique`.  Compatibility is proved for membership and the
     membership-oracle `search`, not for executable `searchExec` or tree-shape
     equality.
-- Current gaps: a real top-level insertion operation that splits a full root,
-  and a structural total-key lower bound in terms of height, including the
-  empty-root boundary.  Disk-page layout, pointer mutation, I/O counts, and RAM
-  costs are optional lower-level refinements.
+- Current gap: exactly one core group remains—a structural total-key lower bound
+  in terms of height, including the legal empty-root boundary, packaged as the
+  CLRS logarithmic height theorem.  Disk-page layout, pointer mutation, I/O
+  counts, and RAM costs are optional lower-level refinements.
 
-Chapter 18 now has both the first-pass B-tree theorem surface and a structural
-proof for the executable CLRS deletion routine.  Search, split-child,
-insertion, and abstract deletion are proved against a membership model, and
+Chapter 18 now has the first-pass B-tree theorem surface, real top-level CLRS
+insertion, and a structural proof for the executable CLRS deletion routine.
+Search, split-child, specification insertion, and abstract deletion are proved
+against a membership model, and
 the update wrappers expose direct search-after-update specifications plus
 direct split validity/preservation and inserted/deleted-key plus old-key query
 preservation corollaries, direct insertion/deletion validity short-name
@@ -2256,6 +2295,13 @@ search-after-update wrappers, exact unsuccessful-search specifications, and
 direct old failed-search preservation wrappers.
 The same specification layer now exposes exact failed membership facts for
 split-child, insertion, and deletion.
+Top-level `insertRoot` handles a full root by `splitRoot` followed by
+`insertNonFull`; its exact add-one `List.Perm` semantics, structural
+well-formedness, conditional height, membership, specification
+membership/search compatibility, executable-search correctness, and
+conditional uniqueness preservation are proved.  The empty wrapper used inside
+`splitRoot` is transient rather than `WellFormed`, and no tree-shape equality
+with flat specification `insert` is claimed.
 The height
 expression is packaged with a height-zero base case, positivity wrappers, a
 minimum-key lower bound and height-step recurrence, plus adjacent and
@@ -2274,8 +2320,9 @@ uniqueness is preserved from `NodeWF + UniqueKeys`; under
 specification, combined structural/uniqueness preservation, and
 membership-oracle search compatibility with `delete` are also proved.  No
 `searchExec` or tree-shape equality with the specification operation is
-claimed.  Chapter 18 remains `partial` only for top-level full-root insertion
-and the structural total-key/height lower bound.
+claimed.  Chapter 18 remains `partial` only for the structural total-key
+lower bound from height, including the legal empty root, and its CLRS
+logarithmic height packaging.
 
 ## Chapter 19 - Fibonacci Heaps
 

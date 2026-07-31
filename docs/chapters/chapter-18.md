@@ -3,6 +3,7 @@
 - Status: `partial`
 - Lean entry: `CLRSLean/Chapter_18.lean`
 - Interface tests: `Tests/Chapter_18_Search_Interface.lean`,
+  `Tests/Chapter_18_Insertion_Interface.lean`,
   `Tests/Chapter_18_KeyMultiset_Interface.lean`,
   `Tests/Chapter_18_Deletion_Reassembly_Interface.lean`,
   `Tests/Chapter_18_Deletion_Exact_Interface.lean`,
@@ -106,6 +107,50 @@ for executable deletion.
 - `CLRS.Chapter18.BTree.delete_search_false_old`
 - `CLRS.Chapter18.BTree.delete_search_false_of_not_mem`
 
+## Top-Level Insertion Results
+
+Section 18.2 is proved for the current functional correctness model.  The
+existing flat `CLRS.Chapter18.BTree.insert` remains the specification layer;
+the executable top-level CLRS operation is
+`CLRS.Chapter18.BTree.insertRoot`.  When the root is full, `splitRoot` installs
+it as the sole child of a transient empty parent, applies the full-child split,
+and then `insertRoot` calls `insertNonFull`.  The transient parent is not
+claimed to satisfy `WellFormed`; `splitRoot_wellFormed` establishes the
+invariant only for the completed split result.
+
+The 16 newly tracked public contracts are:
+
+- `CLRS.Chapter18.BTree.splitRoot`
+- `CLRS.Chapter18.BTree.insertRoot`
+- `CLRS.Chapter18.BTree.splitRoot_keys_perm`
+- `CLRS.Chapter18.BTree.splitRoot_wellFormed`
+- `CLRS.Chapter18.BTree.splitRoot_height`
+- `CLRS.Chapter18.BTree.splitRoot_rootKeyCount`
+- `CLRS.Chapter18.BTree.splitRoot_nonFull`
+- `CLRS.Chapter18.BTree.insertRoot_keys_perm`
+- `CLRS.Chapter18.BTree.insertRoot_wellFormed`
+- `CLRS.Chapter18.BTree.insertRoot_height`
+- `CLRS.Chapter18.BTree.insertRoot_mem_iff`
+- `CLRS.Chapter18.BTree.insertRoot_wellFormedUnique`
+- `CLRS.Chapter18.BTree.insertRoot_mem_iff_insert`
+- `CLRS.Chapter18.BTree.insertRoot_search_eq_insert`
+- `CLRS.Chapter18.BTree.insertRoot_searchExec_true_iff`
+- `CLRS.Chapter18.BTree.insertRoot_correct`
+
+`insertRoot_keys_perm` gives the exact content equation as a `List.Perm` of the
+old flattened keys followed by `[x]`.  The output is `WellFormed`, and
+`insertRoot_height` states the exact conditional: height increases by one
+precisely in the full-root branch and is otherwise unchanged.
+`insertRoot_mem_iff` says membership is exactly `y = x ∨ mem y tr`;
+`insertRoot_mem_iff_insert` and `insertRoot_search_eq_insert` give membership
+and membership-oracle search compatibility with the flat specification, while
+`insertRoot_searchExec_true_iff` proves executable-search correctness on the
+output.  `insertRoot_wellFormedUnique` requires the necessary premise
+`¬ mem x tr`.
+
+These compatibility theorems are extensional.  They do not claim equality
+between the executable and specification tree shapes.
+
 ## Structural Deletion Results
 
 The executable `composedDelete` proof is bundled rather than duplicated across
@@ -188,11 +233,11 @@ shapes.
 
 ## Remaining Work
 
-Exact executable deletion is no longer a remaining theorem group.  Chapter 18
-remains `partial` for two independent core groups: a real top-level insertion
-operation that splits a full root before descent, and a structural lower bound
-on the total number of keys in terms of B-tree height, including the
-empty-root boundary.
+Top-level insertion and exact executable deletion are no longer remaining
+theorem groups.  Chapter 18 remains `partial` for exactly one core group: a
+structural lower bound on the total number of keys in terms of B-tree height,
+including the legal empty-root boundary, packaged as the CLRS logarithmic
+height theorem.
 
 Disk-page layout, pointer mutation, page I/O counts, and RAM-cost semantics are
 optional lower-level refinements rather than blockers for those mathematical

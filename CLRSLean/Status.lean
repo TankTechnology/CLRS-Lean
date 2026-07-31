@@ -104,13 +104,18 @@ the detailed maintainer ledger.
   generic local augmentation facts, and interval-search correctness exist.  The
   remaining core group is threading the generic Section 14.3 augmentation
   interface ({lit}`AugmentedRBTree`) through executable red-black deletion.
-* **Chapter 18:** B-tree structural deletion and exact executable
-  {lit}`Multiset.erase` semantics are proved under {lit}`2 ≤ t` and the
-  appropriate {lit}`NodeWF` or {lit}`WellFormed` invariant.  Under
-  {lit}`WellFormedUnique`, root deletion also has deleted-key absence and
-  membership-oracle compatibility with the specification.  The remaining core
-  groups are real top-level insertion with a full-root split and a structural
-  total-key/height lower bound.
+* **Chapter 18:** real top-level CLRS insertion is proved for the current
+  functional correctness model: it handles a full root with {lit}`splitRoot`,
+  preserves {lit}`WellFormed`, has exact add-one key and conditional-height
+  semantics, and supports specification and executable-search compatibility.
+  B-tree structural deletion and exact executable {lit}`Multiset.erase`
+  semantics are also proved under {lit}`2 ≤ t` and the appropriate
+  {lit}`NodeWF` or {lit}`WellFormed` invariant.  Under
+  {lit}`WellFormedUnique`, insertion requires an absent new key, while root
+  deletion has deleted-key absence and membership-oracle compatibility with the
+  specification.  The only remaining core group is the structural total-key
+  lower bound from height, including the legal empty root, packaged as the CLRS
+  logarithmic height theorem.
 * **Chapter 19:** Fibonacci heaps have substantial mathematical and size-level
   specifications.  Executable heap-forest operations and their cost analysis
   remain central theorem groups.
@@ -167,8 +172,8 @@ milestone:
 2. Complete the MFMC converse, the executable Edmonds-Karp loop and counting
    theorem, and the full bidirectional matching/integral-flow and maximum-value
    equivalence of Theorem 26.12.
-3. Add Chapter 18's real top-level full-root insertion and structural
-   total-key/height lower bound.
+3. Prove Chapter 18's structural total-key lower bound from height, including
+   the legal empty root, and package it as the CLRS logarithmic height theorem.
 4. Thread the generic Chapter 14 augmentation interface
    ({lit}`AugmentedRBTree`) through executable red-black deletion, mirroring
    the Chapter 13 {lit}`del` pipeline.
