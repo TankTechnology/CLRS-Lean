@@ -177,7 +177,8 @@ theorem wellFormed_empty_or_totalKeys_add_one_lower_bound
           have hcount : 2 ≤ (c0 :: cs).length := by
             have hocc' := hocc
             unfold Occupancy at hocc'
-            rcases hocc'.2.2.1 with hchildrenEmpty | hchildrenBounds
+            rcases hocc' with ⟨_, _, hchildren, _⟩
+            rcases hchildren with hchildrenEmpty | hchildrenBounds
             · simp at hchildrenEmpty
             · exact hchildrenBounds.1
           let q := t ^ (heightOf c0 + 1)
@@ -241,8 +242,10 @@ theorem wellFormed_height_log_bound
     hempty | hbound
   · subst tr
     simp [heightOf, totalKeys, keysOf]
-  · apply Nat.le_log_of_pow_le (by omega)
-    apply (Nat.le_div_iff_mul_le (by omega)).2
+  · have htBase : 1 < t := by omega
+    apply Nat.le_log_of_pow_le htBase
+    have htwo : 0 < 2 := by omega
+    apply (Nat.le_div_iff_mul_le htwo).2
     simpa [Nat.mul_comm] using hbound
 
 end BTree
