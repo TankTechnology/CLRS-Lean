@@ -4,9 +4,9 @@ import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
 /-!
 # 26.2. The Edmonds-Karp Algorithm (partial)
 
-This section currently formalizes the residual-distance infrastructure used by
-the Edmonds-Karp analysis.  It does not yet prove the monotonic distance lemma
-(CLRS Lemma 26.7).
+This section formalizes the residual-distance infrastructure used by the
+Edmonds-Karp analysis and proves the monotonic residual-distance theorem
+(CLRS Lemma 26.7) for augmentation along a shortest residual path.
 
 Main results:
 
@@ -17,10 +17,16 @@ Main results:
 - `isShortestDist_triangle`: one residual edge extends a shortest path by at
   most one step
 - `ShortestAugmentingPath`: bundled shortest source-to-sink residual path data
+- `IsShortestDist.exists_predecessor`: predecessor and exact-distance witness
+  for a positive shortest path
+- `ShortestAugmentingPath.shortest_prefix`: every prefix of a shortest
+  augmenting path is itself shortest
+- `ShortestAugmentingPath.exists_shortestDist_le_augment`: augmentation cannot
+  create a smaller finite source distance
+- `shortest_path_nondec`: CLRS Lemma 26.7
 
 Current gaps:
 
-- Prove the predecessor/prefix and augmentation-edge bridges, then Lemma 26.7.
 - Add executable BFS, the Edmonds-Karp augmentation loop, and its `O(VE²)` work
   theorem.
 -/

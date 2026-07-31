@@ -3255,6 +3255,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter26.Flow.AugmentingPath.edges_nonempty`
   - `CLRS.Chapter26.Flow.AugmentingPath.bottleneck_pos`
   - `CLRS.Chapter26.Flow.AugmentingPath.bottleneck_le_residualCapacity`
+  - `CLRS.Chapter26.Flow.augment_residualCapacity`
+  - `CLRS.Chapter26.Flow.AugmentingPath.reverse_mem_edges_of_new_residualEdge`
 - Main theorems:
   - `CLRS.Chapter26.Flow.augmentBy_value`
   - `CLRS.Chapter26.Flow.augment_value`
@@ -3266,13 +3268,13 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   edge delta along its consecutive pairs, and bound the update by the minimum
   residual capacity.  Cycle deletion turns a residual reachability witness into
   a simple path without changing its endpoints.
-- Current gap: none for this layer.  Lemma 26.7 and the executable
-  Edmonds--Karp loop remain separate targets below.
+- Current gap: none for this layer.  The executable Edmonds--Karp loop remains
+  a separate target below; Lemma 26.7 is proved in the companion analysis.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
 - Lean source: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
-- Status: `partial` (residual-distance infrastructure only)
+- Status: `partial` (Lemma 26.7 proved; executable BFS/loop pending)
 - Current declarations:
   - `CLRS.Chapter26.ResidualPathLength` (inductive predicate for path length in the residual network)
   - `CLRS.Chapter26.IsShortestDist` (shortest-path distance in the residual network)
@@ -3281,13 +3283,25 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter26.isShortestDist_self` (distance from a vertex to itself is 0)
   - `CLRS.Chapter26.IsShortestDist.unique` (the shortest distance is unique)
   - `CLRS.Chapter26.isShortestDist_triangle` (triangle inequality for residual distances)
-- Proof pattern: define a path-length inductive predicate for the residual network and the
-  shortest-path distance as the minimal length, then prove the self-distance,
-  uniqueness, and one-edge triangle helpers.
-- Current gap: prove predecessor and shortest-prefix facts plus the bridge for
-  residual edges created by augmentation, and use them to prove Lemma 26.7.
-  Executable BFS, the concrete Edmonds-Karp loop, and the `O(VE²)` counting
-  theorem remain after that lemma.
+  - `CLRS.Chapter26.IsShortestDist.exists_predecessor` (a positive shortest
+    distance has an incoming residual edge from a vertex one level earlier)
+  - `CLRS.Chapter26.ShortestAugmentingPath.prefix_path`
+  - `CLRS.Chapter26.ShortestAugmentingPath.suffix_path`
+  - `CLRS.Chapter26.ShortestAugmentingPath.shortest_prefix` (each prefix of a
+    shortest augmenting path is itself shortest)
+  - `CLRS.Chapter26.ShortestAugmentingPath.exists_shortestDist_le_augment`
+    (every finite post-augmentation distance has a no-larger pre-augmentation
+    witness)
+  - `CLRS.Chapter26.shortest_path_nondec` (**Lemma 26.7**: shortest residual
+    distances do not decrease after shortest-path augmentation)
+- Proof pattern: define shortest distance through a length-indexed residual-path
+  predicate; prove exact predecessor and shortest-prefix facts; then induct over
+  a post-augmentation path.  Old residual edges use the one-edge triangle
+  theorem, while genuinely new edges are reversals of edges on the selected
+  augmenting path and are discharged by prefix optimality.
+- Interface evidence: `Tests/Chapter_26_Edmonds_Karp_Interface.lean`.
+- Current gap: executable BFS, the concrete Edmonds-Karp loop, and the
+  `O(VE²)` counting theorem.
 
 ### Section 26.3 - Maximum Bipartite Matching
 
@@ -3325,9 +3339,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Chapter 26 remaining order
 
-1. Lemma 26.7 via predecessor/prefix and augmentation-edge bridges.
-2. Executable BFS/Edmonds-Karp and the `O(VE²)` work theorem.
-3. Matching-flow feasibility, the integral-flow converse, and the maximum-value
+1. Executable BFS/Edmonds-Karp and the `O(VE²)` work theorem.
+2. Matching-flow feasibility, the integral-flow converse, and the maximum-value
    statement of Theorem 26.12.
 
 Sections 26.4 and 26.5 are deferred outside the current selected milestone.

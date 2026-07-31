@@ -44,8 +44,12 @@ exposes infrastructure for the later algorithms.
   {lit}`CLRS.Chapter26.IsShortestDist`,
   {lit}`CLRS.Chapter26.isShortestDist_self`,
   {lit}`CLRS.Chapter26.IsShortestDist.unique`,
-  {lit}`CLRS.Chapter26.isShortestDist_triangle`, and
-  {lit}`CLRS.Chapter26.ShortestAugmentingPath`.
+  {lit}`CLRS.Chapter26.isShortestDist_triangle`,
+  {lit}`CLRS.Chapter26.IsShortestDist.exists_predecessor`,
+  {lit}`CLRS.Chapter26.ShortestAugmentingPath`,
+  {lit}`CLRS.Chapter26.ShortestAugmentingPath.shortest_prefix`,
+  {lit}`CLRS.Chapter26.ShortestAugmentingPath.exists_shortestDist_le_augment`,
+  and {lit}`CLRS.Chapter26.shortest_path_nondec` (Lemma 26.7).
 
 * 26.3 Maximum bipartite matching (partial).
   Main declarations:
@@ -77,9 +81,10 @@ concrete simple-path representation and uses augmentation to prove that any
 flow with an augmenting path is not maximal.
 
 The Edmonds-Karp module defines residual path lengths and shortest residual
-distances.  It proves the self-distance, uniqueness, and one-edge triangle
-helpers, and bundles a shortest augmenting path.  The predecessor/prefix and
-augmentation-edge bridges needed for Lemma 26.7 have not yet been proved.
+distances.  It proves predecessor and shortest-prefix facts, characterizes the
+new residual edges introduced by augmentation, and combines those bridges into
+the monotonic residual-distance theorem of Lemma 26.7.  Executable BFS and the
+full Edmonds-Karp loop remain separate implementation targets.
 
 Section 26.3 defines bipartite graphs, matchings, the unit-capacity reduction,
 and a matching-induced flow function.  Its current theorem
@@ -93,8 +98,6 @@ source-to-sink path and to equality with the capacity of some cut.
 
 ## Deferred Work
 
-* Prove Lemma 26.7 using predecessor/prefix facts and a bridge characterizing
-  residual edges introduced by augmentation.
 * Implement BFS and the Edmonds-Karp loop, then prove the {lit}`O(VE²)` work
   bound.
 * Construct feasible flows from matchings, prove the integral-flow converse,

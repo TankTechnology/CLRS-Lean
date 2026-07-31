@@ -27,8 +27,9 @@ Main results:
 - `Flow.not_maximal_of_hasAugmentingPath`: a flow with an augmenting path is
   not maximal.
 
-Current gaps: none for the concrete mathematical augmentation layer.  Lemma
-26.7 and the executable Edmonds--Karp loop remain in the companion analysis.
+Current gaps: none for the concrete mathematical augmentation layer.  The
+executable Edmonds--Karp loop remains in the companion analysis; its Lemma
+26.7 distance-monotonicity foundation is proved there.
 -/
 
 set_option autoImplicit true
