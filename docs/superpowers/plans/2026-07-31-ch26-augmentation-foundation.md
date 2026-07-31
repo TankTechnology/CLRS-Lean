@@ -90,7 +90,7 @@ failure in the work log; do not commit a deliberately failing test.
 **Files:**
 
 - Create:
-  `CLRSLean/Chapter_26/Section_26_2_Ford_Fulkerson_Augmentation.lean`
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
 
 - [ ] Import only `Section_26_1_Flow_Networks` plus Mathlib.
 - [ ] Define:
@@ -119,7 +119,7 @@ abbrev Flow.AugmentingPath (φ : Flow V G) :=
 - [ ] Compile the new module after each theorem:
 
 ```bash
-lake build CLRSLean.Chapter_26.Section_26_2_Ford_Fulkerson_Augmentation
+lake build CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
 ```
 
 ## Task 3: Define the bottleneck and its bounds
@@ -127,7 +127,7 @@ lake build CLRSLean.Chapter_26.Section_26_2_Ford_Fulkerson_Augmentation
 **Files:**
 
 - Modify:
-  `CLRSLean/Chapter_26/Section_26_2_Ford_Fulkerson_Augmentation.lean`
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
 
 - [ ] Form the finite nonempty set of residual capacities of path edges.
 - [ ] Define the real-valued bottleneck with `Finset.min'`; the definition may
@@ -144,7 +144,7 @@ lake build CLRSLean.Chapter_26.Section_26_2_Ford_Fulkerson_Augmentation
 **Files:**
 
 - Modify:
-  `CLRSLean/Chapter_26/Section_26_2_Ford_Fulkerson_Augmentation.lean`
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
 
 - [ ] Define a signed one-edge delta and recursively sum it over consecutive
   vertices:
@@ -178,7 +178,7 @@ def Flow.pathDelta (δ : ℝ) : List V → V → V → ℝ
 **Files:**
 
 - Modify:
-  `CLRSLean/Chapter_26/Section_26_2_Ford_Fulkerson_Augmentation.lean`
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
 
 - [ ] Define `Flow.augmentBy` for any nonnegative `δ` bounded by every path
   residual capacity.  Its flow function is old flow plus `pathDelta`.
@@ -220,7 +220,7 @@ theorem Flow.value_lt_augment :
 - [ ] Run:
 
 ```bash
-lake build CLRSLean.Chapter_26.Section_26_2_Ford_Fulkerson_Augmentation
+lake build CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
 lake env lean -DwarningAsError=true Tests/Chapter_26_Augmentation_Interface.lean
 lake env lean -DwarningAsError=true Tests/Chapter_26_Interface.lean
 lake build CLRSLean.Chapter_26
@@ -241,7 +241,7 @@ feat(ch26): add residual-path augmentation foundation
 **Files:**
 
 - Modify:
-  `CLRSLean/Chapter_26/Section_26_2_Ford_Fulkerson_Augmentation.lean`
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
 - Modify: `Tests/Chapter_26_Augmentation_Interface.lean`
 
 - [ ] Use `List.exists_isChain_ne_nil_of_relationReflTransGen` to obtain a
