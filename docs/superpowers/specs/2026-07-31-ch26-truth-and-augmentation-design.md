@@ -92,7 +92,7 @@ separate later milestones.
 ### New augmentation layer
 
 Create
-`CLRSLean/Chapter_26/Section_26_1_Flow_Networks/Augmentation.lean`.
+`CLRSLean/Chapter_26/Section_26_2_Ford_Fulkerson_Augmentation.lean`.
 It will contain one focused family:
 
 - `ResidualPath`: a source-to-sink simple residual path;
@@ -196,7 +196,7 @@ git diff --check
 Proof commits:
 
 ```bash
-lake build CLRSLean.Chapter_26.Section_26_1_Flow_Networks.Augmentation
+lake build CLRSLean.Chapter_26.Section_26_2_Ford_Fulkerson_Augmentation
 lake env lean -DwarningAsError=true Tests/Chapter_26_Augmentation_Interface.lean
 lake env lean -DwarningAsError=true Tests/Chapter_26_Interface.lean
 lake build CLRSLean.Chapter_26
