@@ -5,7 +5,7 @@ status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
 The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
 priorities, not theorem-by-theorem duplication.
 
-Last repository-wide status reconciliation: 2026-07-30.
+Last repository-wide status reconciliation: 2026-07-31.
 
 ## Complete For The Current Scope
 
@@ -26,6 +26,7 @@ Last repository-wide status reconciliation: 2026-07-30.
 | Chapter 15 represented sections | Rod cutting, matrix chain, LCS, and optimal BST optimality with executable recurrence/reconstruction layers | Additional mutable-array/RAM refinements |
 | Chapter 16 | Activity selection, greedy meta-theorems, Huffman coding, matroid greedy, and task scheduling | Exercises |
 | Chapter 17 represented sections | Aggregate/accounting/potential methods, stack/counter traces, and dynamic-table amortized analysis | Allocator constants and RAM refinement |
+| Chapter 18 correctness | B-tree search, real top-level insertion with full-root splitting, exact executable deletion, structural minimum-key bounds with an explicit legal-empty-root branch, and the universal logarithmic-height theorem | Disk pages, pointer mutation, I/O counts, RAM costs, and tree-shape refinement |
 | Chapter 20 correctness | All seven operations of the recursive cached-min/max vEB model and control-flow-aware `O(log log u)` bounds | Concrete allocation and hardware-level RAM timing |
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and mutable-array refinement |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
@@ -42,7 +43,6 @@ not missing core theorem groups.
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, random-permutation symmetry lemma (`isFirst_prob`), pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3), and the sum-of-probabilities-to-closed-form bridge (`sum_compared_prob_eq_expectedComparisons`) with `Θ(n log n)` asymptotic | Optional: total-comparison random variable with `fintypeExpect` linearity wrapper |
-| 18 | B-tree search and real top-level insertion with full-root splitting, exact add-one key semantics, `WellFormed`/conditional-height preservation, specification compatibility, and executable-search correctness; structural and exact `Multiset.erase` semantics for executable deletion under `2 ≤ t` and `NodeWF`/`WellFormed`; conditional insertion uniqueness and full deleted-key/specification behavior under `WellFormedUnique` | Structural total-key lower bound from height, including the legal empty root, packaged as the CLRS logarithmic height theorem |
 | 19 | Finite-set operation specs, potential facts, and the concrete rooted-tree logarithmic degree theorem | Executable heap-forest consolidation/cascading cuts and their amortized costs |
 | 26 | Flow model, generic Ford-Fulkerson maximality direction, MFMC easy direction, Edmonds-Karp Lemma 26.7, and the Section 26.3 bipartite-network model with a conditional matching-flow value theorem | MFMC converse; executable BFS augmentation with `O(VE²)`; feasible matching-flow construction, integral-flow converse, and maximum matching/max-flow value equivalence (full Theorem 26.12) |
 | 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms (work `Θ(n³)`/`Θ(n)`/`Θ(n log n)`/`Θ(n^(log₂ 7))`, spans `Θ(log n)`/`Θ(log² n)`/`Θ(log³ n)`) plus all-input P-MATMUL bounds | Greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the merge-based costs, and executable algorithm refinements |
@@ -60,9 +60,8 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
 | 1 | Chapter 26 correctness | Prove the MFMC converse, executable BFS augmentation and `O(VE²)` theorem, then full matching/integral-flow and maximum-value equivalence |
-| 2 | Chapter 18 B-tree completion | Prove the structural total-key lower bound from height, including the legal empty root, and package the CLRS logarithmic height theorem |
-| 3 | Chapter 19 implementation | Prove executable heap-forest CONSOLIDATE and cascading cuts with amortized costs |
-| 4 | Chapter 27 scheduler layer | Add the greedy-scheduler bound and executable refinements |
+| 2 | Chapter 19 implementation | Prove executable heap-forest CONSOLIDATE and cascading cuts with amortized costs |
+| 3 | Chapter 27 scheduler layer | Add the greedy-scheduler bound and executable refinements |
 
 ## High-Difficulty Queue
 

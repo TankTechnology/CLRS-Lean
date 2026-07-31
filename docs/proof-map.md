@@ -2077,6 +2077,7 @@ sharper contraction strategy.
   `CLRSLean/Chapter_18.lean`,
   `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean`,
   `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean`,
+  `CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/HeightBound.lean`,
   `CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean`,
   `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean`,
   `CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/KeyMultiset.lean`,
@@ -2085,7 +2086,8 @@ sharper contraction strategy.
   `Section_18_3_B_Tree_Deletion/` invariant, repair, reassembly,
   preservation, projection, and root-normalization modules
 - Insertion interface test: `Tests/Chapter_18_Insertion_Interface.lean`
-- Status: `partial`
+- Height interface test: `Tests/Chapter_18_Height_Interface.lean`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorems:
   - `CLRS.Chapter18.BTree.search_correct`
   - `CLRS.Chapter18.BTree.search_true_iff`
@@ -2107,6 +2109,13 @@ sharper contraction strategy.
   - `CLRS.Chapter18.BTree.minKeys_succ`
   - `CLRS.Chapter18.BTree.minKeys_le_succ`
   - `CLRS.Chapter18.BTree.minKeys_monotone_height`
+  - `CLRS.Chapter18.BTree.totalKeys`
+  - `CLRS.Chapter18.BTree.totalKeys_node`
+  - `CLRS.Chapter18.BTree.nonRoot_totalKeys_add_one_lower_bound`
+  - `CLRS.Chapter18.BTree.wellFormed_empty_or_totalKeys_add_one_lower_bound`
+  - `CLRS.Chapter18.BTree.wellFormed_empty_or_minKeys_le_totalKeys`
+  - `CLRS.Chapter18.BTree.wellFormed_minKeys_le_totalKeys`
+  - `CLRS.Chapter18.BTree.wellFormed_height_log_bound`
   - `CLRS.Chapter18.BTree.splitChild_preserves_model`
   - `CLRS.Chapter18.BTree.splitChild_preserves_sorted`
   - `CLRS.Chapter18.BTree.splitChild_preserves_childBounded`
@@ -2243,7 +2252,9 @@ sharper contraction strategy.
   specifications, direct failed-membership preservation wrappers, bundled
   deletion induction, local merge/rotation repair packets, parent reassembly,
   root-sensitive raw results, one-step root normalization, exact multiset
-  conservation through local reassembly, and a global uniqueness layer
+  conservation through local reassembly, a global uniqueness layer, exact
+  key-slot accounting, non-root and root augmented power lower bounds, and the
+  CLRS logarithmic-height wrapper
 - Top-level insertion boundary:
   - The flat `insert` operation remains the specification layer.
     `splitRoot` installs a full old root as the sole child of a transient empty
@@ -2278,10 +2289,12 @@ sharper contraction strategy.
     `WellFormedUnique`.  Compatibility is proved for membership and the
     membership-oracle `search`, not for executable `searchExec` or tree-shape
     equality.
-- Current gap: exactly one core group remains—a structural total-key lower bound
-  in terms of height, including the legal empty-root boundary, packaged as the
-  CLRS logarithmic height theorem.  Disk-page layout, pointer mutation, I/O
-  counts, and RAM costs are optional lower-level refinements.
+- Correctness boundary: no core group remains for the current functional model.
+  `totalKeys` counts `List` key slots without a uniqueness premise; the root
+  theorem exposes the legal empty tree as an explicit disjunct; and
+  `wellFormed_height_log_bound` is universal over `WellFormed`.  Disk-page
+  layout, pointer mutation, I/O counts, and RAM costs are optional lower-level
+  refinements.
 
 Chapter 18 now has the first-pass B-tree theorem surface, real top-level CLRS
 insertion, and a structural proof for the executable CLRS deletion routine.
@@ -2302,10 +2315,14 @@ membership/search compatibility, executable-search correctness, and
 conditional uniqueness preservation are proved.  The empty wrapper used inside
 `splitRoot` is transient rather than `WellFormed`, and no tree-shape equality
 with flat specification `insert` is claimed.
-The height
-expression is packaged with a height-zero base case, positivity wrappers, a
-minimum-key lower bound and height-step recurrence, plus adjacent and
-arbitrary-height monotonicity facts.  For executable deletion,
+The height expression is packaged with a height-zero base case, positivity
+wrappers, an expression-level minimum-key fact and height-step recurrence,
+plus adjacent and arbitrary-height monotonicity facts.  The structural
+`totalKeys` theorem now connects that expression to actual B-trees: non-root
+subtrees satisfy the augmented power lower bound, a well-formed root is either
+the legal empty tree or satisfies the root lower bound, every nonempty
+well-formed tree satisfies `minKeys`, and every well-formed tree satisfies the
+CLRS logarithmic height theorem.  For executable deletion,
 `composedDelete_packet` covers leaf, predecessor/successor, sibling rotation,
 and sibling merge branches without duplicating the induction across
 invariants.  A raw root may be the permitted one-child empty transient, so
@@ -2320,9 +2337,9 @@ uniqueness is preserved from `NodeWF + UniqueKeys`; under
 specification, combined structural/uniqueness preservation, and
 membership-oracle search compatibility with `delete` are also proved.  No
 `searchExec` or tree-shape equality with the specification operation is
-claimed.  Chapter 18 remains `partial` only for the structural total-key
-lower bound from height, including the legal empty root, and its CLRS
-logarithmic height packaging.
+claimed.  Together these results close Chapter 18's core correctness groups
+for the current functional model.  Disk pages, pointers, I/O counts, and RAM
+costs remain optional lower-level refinements.
 
 ## Chapter 19 - Fibonacci Heaps
 

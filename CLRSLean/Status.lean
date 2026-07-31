@@ -83,6 +83,14 @@ the detailed maintainer ledger.
   matroid greedy, and task scheduling.
 * **Chapter 17 represented sections:** aggregate, accounting, and potential
   methods plus stack/counter and dynamic-table amortized analyses.
+* **Chapter 18 correctness:** separator-guided search, real top-level insertion
+  with full-root splitting, exact executable deletion, and the structural
+  minimum-key/logarithmic-height theorem.  The count theorem uses key slots and
+  requires no uniqueness premise; the root theorem exposes the legal empty
+  tree explicitly, while the logarithmic wrapper is universal over
+  {lit}`WellFormed`.  Disk pages, pointer mutation, I/O counts, RAM costs, and
+  tree-shape equality with specification operations remain optional lower-level
+  refinements.
 * **Chapter 20 correctness:** all seven operations of the recursive cached-
   extrema vEB model and their control-flow-aware {lit}`O(log log u)` bounds.
 * **Selected complete sections:** Chapter 5.1--5.4 core models; Chapter 10.1,
@@ -104,18 +112,6 @@ the detailed maintainer ledger.
   generic local augmentation facts, and interval-search correctness exist.  The
   remaining core group is threading the generic Section 14.3 augmentation
   interface ({lit}`AugmentedRBTree`) through executable red-black deletion.
-* **Chapter 18:** real top-level CLRS insertion is proved for the current
-  functional correctness model: it handles a full root with {lit}`splitRoot`,
-  preserves {lit}`WellFormed`, has exact add-one key and conditional-height
-  semantics, and supports specification and executable-search compatibility.
-  B-tree structural deletion and exact executable {lit}`Multiset.erase`
-  semantics are also proved under {lit}`2 ≤ t` and the appropriate
-  {lit}`NodeWF` or {lit}`WellFormed` invariant.  Under
-  {lit}`WellFormedUnique`, insertion requires an absent new key, while root
-  deletion has deleted-key absence and membership-oracle compatibility with the
-  specification.  The only remaining core group is the structural total-key
-  lower bound from height, including the legal empty root, packaged as the CLRS
-  logarithmic height theorem.
 * **Chapter 19:** Fibonacci heaps have substantial mathematical and size-level
   specifications.  Executable heap-forest operations and their cost analysis
   remain central theorem groups.
@@ -172,12 +168,10 @@ milestone:
 2. Complete the MFMC converse, the executable Edmonds-Karp loop and counting
    theorem, and the full bidirectional matching/integral-flow and maximum-value
    equivalence of Theorem 26.12.
-3. Prove Chapter 18's structural total-key lower bound from height, including
-   the legal empty root, and package it as the CLRS logarithmic height theorem.
-4. Thread the generic Chapter 14 augmentation interface
+3. Thread the generic Chapter 14 augmentation interface
    ({lit}`AugmentedRBTree`) through executable red-black deletion, mirroring
    the Chapter 13 {lit}`del` pipeline.
-5. Close Chapter 7's total-comparison expectation bridge.
+4. Close Chapter 7's total-comparison expectation bridge.
 
 ## Reader Contract
 
