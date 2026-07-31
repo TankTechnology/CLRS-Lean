@@ -49,7 +49,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 15 | Dynamic Programming | 🟡 sections | 76 | — |
 | 16 | Greedy Algorithms | 🟢 complete | 32 | — |
 | 17 | Amortized Analysis | 🟡 sections | 66 | — |
-| 18 | B-Trees | 🟠 partial | 127 | Structural total-key lower bound from height including the… |
+| 18 | B-Trees | 🟢 correctness | 134 | — |
 | 19 | Fibonacci Heaps | 🟠 partial | 112 | Pointer forest circular root lists executable CONSOLIDATE… |
 | 20 | van Emde Boas Trees | 🟢 correctness | 200 | — |
 | 21 | Data Structures for Disjoint Sets | 🟢 complete | 84 | — |
@@ -67,7 +67,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
 | 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1491 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1498 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·

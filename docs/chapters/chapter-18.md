@@ -1,6 +1,6 @@
 # Chapter 18 - B-Trees
 
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Lean entry: `CLRSLean/Chapter_18.lean`
 - Interface tests: `Tests/Chapter_18_Search_Interface.lean`,
   `Tests/Chapter_18_Insertion_Interface.lean`,
@@ -8,6 +8,7 @@
   `Tests/Chapter_18_Deletion_Reassembly_Interface.lean`,
   `Tests/Chapter_18_Deletion_Exact_Interface.lean`,
   `Tests/Chapter_18_Deletion_Root_Exact_Interface.lean`,
+  `Tests/Chapter_18_Height_Interface.lean`,
   `Tests/Chapter_18_Interface.lean`,
   `Tests/Chapter_18_Deletion_Interface.lean`,
   `Tests/Chapter_18_Root_Occupancy.lean`
@@ -58,6 +59,13 @@ for executable deletion.
 - `CLRS.Chapter18.BTree.minKeys_succ`
 - `CLRS.Chapter18.BTree.minKeys_le_succ`
 - `CLRS.Chapter18.BTree.minKeys_monotone_height`
+- `CLRS.Chapter18.BTree.totalKeys`
+- `CLRS.Chapter18.BTree.totalKeys_node`
+- `CLRS.Chapter18.BTree.nonRoot_totalKeys_add_one_lower_bound`
+- `CLRS.Chapter18.BTree.wellFormed_empty_or_totalKeys_add_one_lower_bound`
+- `CLRS.Chapter18.BTree.wellFormed_empty_or_minKeys_le_totalKeys`
+- `CLRS.Chapter18.BTree.wellFormed_minKeys_le_totalKeys`
+- `CLRS.Chapter18.BTree.wellFormed_height_log_bound`
 - `CLRS.Chapter18.BTree.splitChild_preserves_model`
 - `CLRS.Chapter18.BTree.splitChild_valid`
 - `CLRS.Chapter18.BTree.splitChild_mem_iff`
@@ -106,6 +114,24 @@ for executable deletion.
 - `CLRS.Chapter18.BTree.delete_search_false_iff`
 - `CLRS.Chapter18.BTree.delete_search_false_old`
 - `CLRS.Chapter18.BTree.delete_search_false_of_not_mem`
+
+## Structural Key-Count and Height Results
+
+Section 18.1 now connects the B-tree invariants to the textbook minimum-key
+and logarithmic-height bounds.  `totalKeys` counts key slots in the flattened
+`List`, so the structural argument does not assume `UniqueKeys`.
+`nonRoot_totalKeys_add_one_lower_bound` proves the augmented power lower bound
+for every occupied non-root subtree.  At the root,
+`wellFormed_empty_or_totalKeys_add_one_lower_bound` preserves the legal empty
+tree as an explicit disjunct and proves the stronger augmented count in the
+nonempty branch.
+
+The older `minKeys_lower_bound` is only an expression-level unfolding fact.
+The new `wellFormed_empty_or_minKeys_le_totalKeys` and
+`wellFormed_minKeys_le_totalKeys` theorems connect that expression to an actual
+well-formed tree.  Finally, `wellFormed_height_log_bound` packages the CLRS
+base-minimum-degree logarithmic height theorem for every `WellFormed` tree,
+including the empty root.
 
 ## Top-Level Insertion Results
 
@@ -233,12 +259,10 @@ shapes.
 
 ## Remaining Work
 
-Top-level insertion and exact executable deletion are no longer remaining
-theorem groups.  Chapter 18 remains `partial` for exactly one core group: a
-structural lower bound on the total number of keys in terms of B-tree height,
-including the legal empty-root boundary, packaged as the CLRS logarithmic
-height theorem.
+Chapter 18 has no remaining core correctness group in the current functional
+B-tree model: search, real top-level insertion, exact executable deletion, and
+the structural minimum-key/logarithmic-height theorem are proved.
 
-Disk-page layout, pointer mutation, page I/O counts, and RAM-cost semantics are
-optional lower-level refinements rather than blockers for those mathematical
-theorems.
+Disk-page layout, pointer mutation, page I/O counts, and RAM-cost semantics
+remain optional lower-level refinements and do not reopen this correctness
+milestone.
