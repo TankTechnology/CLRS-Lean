@@ -11,6 +11,8 @@ and the headline monotonicity theorem of CLRS Lemma 26.7.
 #check CLRS.Chapter26.Flow.ResidualPath.exists_index_of_mem_edges
 #check CLRS.Chapter26.ResidualPathLength.trans
 #check CLRS.Chapter26.IsShortestDist.exists_predecessor
+#check CLRS.Chapter26.ShortestAugmentingPath.prefix_path
+#check CLRS.Chapter26.ShortestAugmentingPath.suffix_path
 #check CLRS.Chapter26.ShortestAugmentingPath.shortest_prefix
 #check CLRS.Chapter26.Flow.augment_residualCapacity
 #check CLRS.Chapter26.Flow.AugmentingPath.reverse_mem_edges_of_new_residualEdge
