@@ -262,4 +262,3 @@ Once these contracts pass and are registered:
   correctness-complete label;
 - disk pages, pointer mutation, I/O counts, and RAM costs remain explicitly
   optional lower-level refinements rather than hidden proof gaps.
-
