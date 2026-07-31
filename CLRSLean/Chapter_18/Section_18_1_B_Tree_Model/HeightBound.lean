@@ -149,6 +149,102 @@ theorem nonRoot_totalKeys_add_one_lower_bound
         _ ≤ (c0 :: cs).length * q := hmul
         _ ≤ ((c0 :: cs).map (fun child => totalKeys child + 1)).sum := hsum
 
+/-! ## Root minimum-key and logarithmic-height bounds -/
+
+/--
+A well-formed root is either the legal empty tree or has the CLRS augmented
+minimum key count for its height.
+-/
+theorem wellFormed_empty_or_totalKeys_add_one_lower_bound
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    tr = node [] [] ∨
+      2 * t ^ heightOf tr ≤ totalKeys tr + 1 := by
+  rcases hwf with ⟨_hsorted, hcb, hocc, hsd⟩
+  cases tr with
+  | node ks children =>
+      cases children with
+      | nil =>
+          by_cases hks : ks = []
+          · left
+            simp [hks]
+          · right
+            simp [Occupancy, hks] at hocc
+            simp [heightOf, totalKeys_node]
+            omega
+      | cons c0 cs =>
+          right
+          have hcount : 2 ≤ (c0 :: cs).length := by
+            have hocc' := hocc
+            unfold Occupancy at hocc'
+            rcases hocc'.2.2.1 with hchildrenEmpty | hchildrenBounds
+            · simp at hchildrenEmpty
+            · exact hchildrenBounds.1
+          let q := t ^ (heightOf c0 + 1)
+          have hpoint :
+              ∀ child ∈ c0 :: cs, q ≤ totalKeys child + 1 := by
+            intro child hc
+            simpa [q, heightOf_eq_head_of_mem hsd hc] using
+              (nonRoot_totalKeys_add_one_lower_bound t ht
+                (childBounded_of_mem hcb hc)
+                (occupancy_false_of_mem hocc hc)
+                (sameDepth_of_mem hsd hc))
+          have hsum :
+              (c0 :: cs).length * q ≤
+                ((c0 :: cs).map (fun child => totalKeys child + 1)).sum :=
+            length_mul_le_sum_map (c0 :: cs) q
+              (fun child => totalKeys child + 1) hpoint
+          have hmul : 2 * q ≤ (c0 :: cs).length * q :=
+            Nat.mul_le_mul_right q hcount
+          rw [totalKeys_add_one_eq_sum_children hcb]
+          calc
+            2 * t ^ heightOf (node ks (c0 :: cs)) = 2 * q := by
+              rw [heightOf_internal_of_sameDepth hsd]
+              simp [q, Nat.add_comm]
+            _ ≤ (c0 :: cs).length * q := hmul
+            _ ≤ ((c0 :: cs).map (fun child => totalKeys child + 1)).sum := hsum
+
+/--
+A well-formed tree is empty or satisfies the textbook minimum-key expression.
+-/
+theorem wellFormed_empty_or_minKeys_le_totalKeys
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    tr = node [] [] ∨ minKeys t (heightOf tr) ≤ totalKeys tr := by
+  rcases wellFormed_empty_or_totalKeys_add_one_lower_bound t ht hwf with
+    hempty | hbound
+  · exact Or.inl hempty
+  · right
+    unfold minKeys
+    omega
+
+/-- Every nonempty well-formed tree satisfies the textbook minimum-key bound. -/
+theorem wellFormed_minKeys_le_totalKeys
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr)
+    (hne : tr ≠ node [] []) :
+    minKeys t (heightOf tr) ≤ totalKeys tr := by
+  rcases wellFormed_empty_or_minKeys_le_totalKeys t ht hwf with
+    hempty | hbound
+  · exact (hne hempty).elim
+  · exact hbound
+
+/--
+The height of every well-formed B-tree, including the empty tree, is at most
+the minimum-degree-base logarithm of its CLRS normalized key count.
+-/
+theorem wellFormed_height_log_bound
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    heightOf tr ≤ Nat.log t ((totalKeys tr + 1) / 2) := by
+  rcases wellFormed_empty_or_totalKeys_add_one_lower_bound t ht hwf with
+    hempty | hbound
+  · subst tr
+    simp [heightOf, totalKeys, keysOf]
+  · apply Nat.le_log_of_pow_le (by omega)
+    apply (Nat.le_div_iff_mul_le (by omega)).2
+    simpa [Nat.mul_comm] using hbound
+
 end BTree
 end Chapter18
 end CLRS
