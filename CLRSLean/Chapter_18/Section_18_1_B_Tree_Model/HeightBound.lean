@@ -13,8 +13,6 @@ namespace CLRS
 namespace Chapter18
 namespace BTree
 
-open List
-
 /-! ## Exact key accounting -/
 
 /-- The number of key slots represented by a B-tree. -/
@@ -46,6 +44,7 @@ private lemma totalKeys_add_one_eq_sum_children
 
 /-! ## Internal-child projections -/
 
+/-- Every child position of a child-bounded internal node is child-bounded. -/
 private lemma childBounded_of_mem
     {ks : List Nat} {c0 child : BTree} {cs : List BTree}
     (hcb : ChildBounded (node ks (c0 :: cs)))
@@ -54,6 +53,7 @@ private lemma childBounded_of_mem
   unfold ChildBounded at hcb
   exact hcb.2.2 child hc
 
+/-- Every child position of an occupied node satisfies non-root occupancy. -/
 private lemma occupancy_false_of_mem
     {t : Nat} {isRoot : Bool} {ks : List Nat} {c0 child : BTree}
     {cs : List BTree}
@@ -63,6 +63,7 @@ private lemma occupancy_false_of_mem
   unfold Occupancy at hocc
   exact hocc.2.2.2 child hc
 
+/-- Every child position of a same-depth internal node is itself same-depth. -/
 private lemma sameDepth_of_mem
     {ks : List Nat} {c0 child : BTree} {cs : List BTree}
     (hsd : SameDepth (node ks (c0 :: cs)))
@@ -72,6 +73,7 @@ private lemma sameDepth_of_mem
   · exact sameDepth_head_sd hsd
   · exact sameDepth_tail_sd hsd child hcTail
 
+/-- Every child of a same-depth internal node has the head child's height. -/
 private lemma heightOf_eq_head_of_mem
     {ks : List Nat} {c0 child : BTree} {cs : List BTree}
     (hsd : SameDepth (node ks (c0 :: cs)))
