@@ -43,21 +43,18 @@ Main results:
 - `exists_recovery_step`: if `(u,v)` is critical at step `i` and again lies
   on a selected path at step `j > i + 1`, some intermediate step augments
   along `(v,u)` (the residual-capacity recovery argument)
+- `criticalAt_growth`: CLRS Lemma 26.8 on the timeline — if `(u,v)` is
+  critical at steps `i` and `j` with `i + 1 < j`, the residual distance to
+  `u` grows by at least two
+- `criticalAt_not_succ` and `criticalAt_growth_strict`: consecutive critical
+  steps are impossible, so distances strictly increase between critical
+  occurrences
+- `critical_count_bound`: each edge is critical at most `|V|` times
+- `augmentation_count_bound`: at most `|V|² · |V|` augmenting steps, giving
+  the `O(VE²)` bound once each step is charged `O(E)` for BFS
 
-**Current gaps**: the final counting argument.  The remaining pieces are
-(1) `criticalAt_growth`: combine `exists_recovery_step`,
-`critical_dist_increase_rev`, and `distAt_mono` to show the residual distance
-to `u` at step `j` exceeds that at step `i` by at least two when `(u,v)` is
-critical at both steps (the `j`-side distance exists because `criticalAt j
-u v` puts `u` on the selected path; extract the shortest-path bundle at step
-`j` from `ekPath j = some p_j` exactly as `criticalAt_growth`'s draft did at
-step `i`), and (2) the counting theorems `critical_count_bound` (each edge is
-critical at most `Fintype.card V` times, via strict distance growth and
-`IsShortestDist.lt_card`, using a `Finset.card_le_card_of_injOn`-style
-injection into `Fin (Fintype.card V)`) and `augmentation_count_bound`
-(augmenting steps are covered by the union of critical-edge steps, so there
-are at most `Fintype.card (V × V) * Fintype.card V` of them), yielding the
-`O(VE²)` bound once each step is charged `O(E)` for BFS.
+The `O(VE²)` counting argument is complete.  The remaining piece of the
+section is an executable BFS in a follow-up module.
 -/
 
 set_option autoImplicit true
@@ -390,6 +387,216 @@ lemma exists_recovery_step {V : Type*} [Fintype V] [DecidableEq V]
   refine ⟨k', h, ?_, ?_, hrev⟩
   · omega
   · exact hk'_le
+
+/-! ## Counting the augmentations -/
+
+/-- If `ekPath n = some p`, the selected path `p` is the path of the
+shortest-augmenting-path witness at step `n`. -/
+lemma ekPath_some_spec {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} {n : ℕ} {p : Flow.AugmentingPath (ekSeq (G := G) n)}
+    (h : ekPath (G := G) n = some p) :
+    ∃ h' : Nonempty (ShortestAugmentingPath (ekSeq (G := G) n)),
+      (Classical.choice h').path = p := by
+  by_cases h' : Nonempty (ShortestAugmentingPath (ekSeq (G := G) n))
+  · refine ⟨h', ?_⟩
+    have : ekPath (G := G) n = some (Classical.choice h').path := by
+      unfold ekPath
+      simp [h']
+    simpa [this] using h
+  · have hnone : ekPath (G := G) n = none := by
+      unfold ekPath
+      simp [h']
+    simp [hnone] at h
+
+/-- **Timeline Lemma 26.8.**  If `(u,v)` is critical at step `i` and again at
+step `j` with `i + 1 < j`, the residual distance to `u` at step `j` exceeds
+that at step `i` by at least two. -/
+lemma criticalAt_growth {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} {i j : ℕ} (hij : i + 1 < j) {u v : V}
+    (hci : criticalAt (G := G) i u v) (hcj : criticalAt (G := G) j u v) :
+    ∃ du du', IsShortestDist (ekSeq (G := G) i) G.s u du ∧
+      IsShortestDist (ekSeq (G := G) j) G.s u du' ∧ du + 2 ≤ du' := by
+  rcases exists_recovery_step (G := G) hij hci hcj with ⟨k, h_k, hik, hkj, hrev⟩
+  rcases hci with ⟨p_i, hekpath_i, hp_edges, _⟩
+  rcases hcj with ⟨p_j, hekpath_j, hp_edges_j, _⟩
+  rcases ekPath_some_spec (G := G) hekpath_i with ⟨h_i, hpath_i⟩
+  rcases ekPath_some_spec (G := G) hekpath_j with ⟨h_j, hpath_j⟩
+  rcases critical_dist_increase_rev (φ := ekSeq (G := G) i) (Classical.choice h_i)
+      (ψ := ekSeq (G := G) k) (Classical.choice h_k)
+      (by simpa [hpath_i] using hp_edges) hrev
+      (fun w d' hd' => distAt_mono (G := G) (i := i) (j := k) (by omega) w hd')
+    with ⟨du, dk, hdu, hdk, hgrow⟩
+  rcases shortest_edge_dist (Classical.choice h_j) (by simpa [hpath_j] using hp_edges_j)
+    with ⟨dj, hdu_j, _⟩
+  rcases distAt_mono (G := G) (i := k) (j := j) (by omega) u hdu_j with ⟨dk', hdk', hle⟩
+  have hdk_eq : dk' = dk := hdk'.unique hdk
+  refine ⟨du, dj, hdu, hdu_j, ?_⟩
+  omega
+
+/-- A critical edge cannot be critical at the following step: the previous
+augmentation saturated it, leaving residual capacity zero. -/
+lemma criticalAt_not_succ {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} {n : ℕ} {u v : V}
+    (hci : criticalAt (G := G) n u v) :
+    ¬ criticalAt (G := G) (n + 1) u v := by
+  rcases hci with ⟨p_n, hekpath_n, hp_edges, hpost⟩
+  rcases ekPath_some_spec (G := G) hekpath_n with ⟨h_n, hpath_n⟩
+  have hekstep : ekStep (ekIter (zeroFlow G) n) = (ekIter (zeroFlow G) n).augment p_n := by
+    change ekStep (ekSeq (G := G) n) = (ekSeq (G := G) n).augment p_n
+    unfold ekStep
+    simp [h_n, hpath_n]
+  have heq : ekSeq (G := G) (n + 1) = (ekSeq (G := G) n).augment p_n := by
+    simp [ekSeq, ekIter, hekstep]
+  have hzero : (ekSeq (G := G) (n + 1)).residualCapacity u v = 0 := by
+    simpa [heq] using hpost
+  intro hcj
+  rcases hcj with ⟨p_j, hekpath_j, hp_edges_j, _⟩
+  have hres : (ekSeq (G := G) (n + 1)).residualEdge u v :=
+    Flow.ResidualPath.residualEdge_of_mem_edges (φ := ekSeq (G := G) (n + 1)) p_j hp_edges_j
+  have hpos : 0 < (ekSeq (G := G) (n + 1)).residualCapacity u v := hres
+  linarith
+
+/-- Strict distance growth between critical occurrences: the residual distance
+to `u` at the later critical step is strictly larger than at the earlier one. -/
+lemma criticalAt_growth_strict {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} {i j : ℕ} (hij : i < j) {u v : V}
+    (hci : criticalAt (G := G) i u v) (hcj : criticalAt (G := G) j u v) :
+    ∃ du du', IsShortestDist (ekSeq (G := G) i) G.s u du ∧
+      IsShortestDist (ekSeq (G := G) j) G.s u du' ∧ du < du' := by
+  by_cases hsep : i + 1 < j
+  · rcases criticalAt_growth (G := G) hsep hci hcj with ⟨du, du', hdu, hdu', hgrow⟩
+    exact ⟨du, du', hdu, hdu', by omega⟩
+  · exfalso
+    have hsucc : j = i + 1 := by omega
+    exact criticalAt_not_succ hci (by simpa [hsucc] using hcj)
+
+/-- At a critical step, the tail `u` of the critical edge has a residual
+distance, bounded by `|V| - 1`. -/
+lemma criticalAt_dist {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} {n : ℕ} {u v : V} (h : criticalAt (G := G) n u v) :
+    ∃ d, IsShortestDist (ekSeq (G := G) n) G.s u d ∧ d < Fintype.card V := by
+  rcases h with ⟨p, hekpath, hp_edges, _⟩
+  rcases ekPath_some_spec (G := G) hekpath with ⟨h_n, hpath⟩
+  rcases shortest_edge_dist (Classical.choice h_n) (by simpa [hpath] using hp_edges)
+    with ⟨d, hdu, _⟩
+  exact ⟨d, hdu, IsShortestDist.lt_card hdu⟩
+
+/-- Every augmenting step has at least one critical edge. -/
+lemma exists_critical_pair_at {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (n : ℕ) (h : (ekSeq (G := G) n).hasAugmentingPath) :
+    ∃ u v, criticalAt (G := G) n u v := by
+  rcases ekPath_eq_of_hasAugmentingPath (G := G) n h with ⟨p, hekpath, _⟩
+  rcases exists_critical_edge p with ⟨u, v, he, hpost⟩
+  exact ⟨u, v, p, hekpath, he, hpost⟩
+
+/-- **Edge criticality count.**  A fixed edge `(u,v)` is critical at most
+`|V|` times: every critical occurrence determines a residual distance to `u`,
+and that distance strictly increases between occurrences. -/
+lemma critical_count_bound {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (u v : V) (N : ℕ) :
+    ((Finset.range N).filter (fun n => criticalAt (G := G) n u v)).card ≤
+      Fintype.card V := by
+  let s : Finset ℕ := (Finset.range N).filter (fun n => criticalAt (G := G) n u v)
+  let hcrit : ∀ x : {n : ℕ // n ∈ s}, criticalAt (G := G) x.1 u v :=
+    fun x => (Finset.mem_filter.mp x.2).2
+  let distOf : {n : ℕ // n ∈ s} → ℕ :=
+    fun x => Classical.choose (criticalAt_dist (hcrit x))
+  let f : {n : ℕ // n ∈ s} → Fin (Fintype.card V) :=
+    fun x => ⟨distOf x, (Classical.choose_spec (criticalAt_dist (hcrit x))).2⟩
+  have hinj : Set.InjOn f (↑(s.attach) : Set {n : ℕ // n ∈ s}) := by
+    intro x hx y hy hxy
+    apply Subtype.ext
+    by_contra hne
+    have hxy' : distOf x = distOf y :=
+      congrArg (fun z : Fin (Fintype.card V) => z.1) hxy
+    have hlt_or : x.1 < y.1 ∨ y.1 < x.1 := by omega
+    rcases hlt_or with hxy_lt | hyx_lt
+    · rcases criticalAt_growth_strict (G := G) hxy_lt (hcrit x) (hcrit y) with
+        ⟨du, du', hdu, hdu', hgrow⟩
+      have hdx : distOf x = du :=
+        (Classical.choose_spec (criticalAt_dist (hcrit x))).1.unique hdu
+      have hdy : distOf y = du' :=
+        (Classical.choose_spec (criticalAt_dist (hcrit y))).1.unique hdu'
+      omega
+    · rcases criticalAt_growth_strict (G := G) hyx_lt (hcrit y) (hcrit x) with
+        ⟨du, du', hdu, hdu', hgrow⟩
+      have hdy : distOf y = du :=
+        (Classical.choose_spec (criticalAt_dist (hcrit y))).1.unique hdu
+      have hdx : distOf x = du' :=
+        (Classical.choose_spec (criticalAt_dist (hcrit x))).1.unique hdu'
+      omega
+  have hsub : s.attach.image f ⊆ (Finset.univ : Finset (Fin (Fintype.card V))) := by
+    intro x hx
+    simp
+  have hcard : (s.attach.image f).card = s.attach.card :=
+    Finset.card_image_of_injOn hinj
+  calc
+    s.card = s.attach.card := Finset.card_attach.symm
+    _ = (s.attach.image f).card := hcard.symm
+    _ ≤ (Finset.univ : Finset (Fin (Fintype.card V))).card := Finset.card_le_card hsub
+    _ = Fintype.card V := by simp
+
+/-- **Augmentation count.**  There are at most `|V|² · |V|` augmenting steps:
+each one has a critical edge, and each of the `|V|²` edges is critical at most
+`|V|` times. -/
+lemma augmentation_count_bound {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (N : ℕ) :
+    ((Finset.range N).filter (fun n => (ekSeq (G := G) n).hasAugmentingPath)).card ≤
+      Fintype.card (V × V) * Fintype.card V := by
+  let s : Finset ℕ :=
+    (Finset.range N).filter (fun n => (ekSeq (G := G) n).hasAugmentingPath)
+  let haug : ∀ x : {n : ℕ // n ∈ s}, (ekSeq (G := G) x.1).hasAugmentingPath :=
+    fun x => (Finset.mem_filter.mp x.2).2
+  let pair : {n : ℕ // n ∈ s} → V × V := fun x =>
+    let h := exists_critical_pair_at (G := G) x.1 (haug x)
+    (Classical.choose h, Classical.choose (Classical.choose_spec h))
+  let hcrit : ∀ x : {n : ℕ // n ∈ s},
+      criticalAt (G := G) x.1 (pair x).1 (pair x).2 :=
+    fun x =>
+      Classical.choose_spec
+        (Classical.choose_spec (exists_critical_pair_at (G := G) x.1 (haug x)))
+  let distOf : {n : ℕ // n ∈ s} → ℕ :=
+    fun x => Classical.choose (criticalAt_dist (hcrit x))
+  let f : {n : ℕ // n ∈ s} → (V × V) × Fin (Fintype.card V) :=
+    fun x => (pair x, ⟨distOf x, (Classical.choose_spec (criticalAt_dist (hcrit x))).2⟩)
+  have hinj : Set.InjOn f (↑(s.attach) : Set {n : ℕ // n ∈ s}) := by
+    intro x hx y hy hxy
+    apply Subtype.ext
+    by_contra hne
+    have hpair_eq : pair x = pair y := congrArg Prod.fst hxy
+    have hdist_eq : distOf x = distOf y :=
+      congrArg (fun z : (V × V) × Fin (Fintype.card V) => z.2.1) hxy
+    have hcy : criticalAt (G := G) y.1 (pair x).1 (pair x).2 := by
+      simpa [hpair_eq] using hcrit y
+    have hlt_or : x.1 < y.1 ∨ y.1 < x.1 := by omega
+    rcases hlt_or with hxy_lt | hyx_lt
+    · rcases criticalAt_growth_strict (G := G) hxy_lt (hcrit x) hcy with
+        ⟨du, du', hdu, hdu', hgrow⟩
+      have hdx : distOf x = du :=
+        (Classical.choose_spec (criticalAt_dist (hcrit x))).1.unique hdu
+      have hdy : distOf y = du' := by
+        have hd := (Classical.choose_spec (criticalAt_dist (hcrit y))).1
+        exact hd.unique (by simpa [hpair_eq] using hdu')
+      omega
+    · rcases criticalAt_growth_strict (G := G) hyx_lt hcy (hcrit x) with
+        ⟨du, du', hdu, hdu', hgrow⟩
+      have hdy : distOf y = du := by
+        have hd := (Classical.choose_spec (criticalAt_dist (hcrit y))).1
+        exact hd.unique (by simpa [hpair_eq] using hdu)
+      have hdx : distOf x = du' :=
+        (Classical.choose_spec (criticalAt_dist (hcrit x))).1.unique hdu'
+      omega
+  have hsub : s.attach.image f ⊆ (Finset.univ : Finset ((V × V) × Fin (Fintype.card V))) := by
+    intro x hx
+    simp
+  have hcard : (s.attach.image f).card = s.attach.card :=
+    Finset.card_image_of_injOn hinj
+  calc
+    s.card = s.attach.card := Finset.card_attach.symm
+    _ = (s.attach.image f).card := hcard.symm
+    _ ≤ (Finset.univ : Finset ((V × V) × Fin (Fintype.card V))).card :=
+      Finset.card_le_card hsub
+    _ = Fintype.card (V × V) * Fintype.card V := by simp
 
 end Chapter26
 end CLRS
