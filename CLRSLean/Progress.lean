@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 29.
-* Tracked reader-facing theorem entries: 1475.
-* Proved tracked theorem entries: 1475.
-* Remaining core theorem groups: 14.
+* Tracked reader-facing theorem entries: 1498.
+* Proved tracked theorem entries: 1498.
+* Remaining core theorem groups: 12.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -21,9 +21,9 @@ are not yet represented or not yet complete.
 ## Status Counts
 
 * {lit}`main-proof-complete`: 7 chapters.
-* {lit}`main-proof-complete-for-correctness`: 9 chapters.
+* {lit}`main-proof-complete-for-correctness`: 10 chapters.
 * {lit}`selected-section-complete`: 7 chapters.
-* {lit}`partial`: 5 chapters.
+* {lit}`partial`: 4 chapters.
 * {lit}`not-started`: 6 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -49,7 +49,7 @@ Ch  Chapter                                                     Status          
 15  15. Dynamic Programming                                     selected-section-complete            15.1;15.2;15.4;15.5                76        0
 16  16. Greedy Algorithms                                       main-proof-complete                  16.1;16.2;16.3;16.4;16.5           32        0
 17  17. Amortized Analysis                                      selected-section-complete            17.1;17.2;17.4                     66        0
-18  18. B-Trees                                                 partial                              18.1;18.2;18.3                    111        2
+18  18. B-Trees                                                 main-proof-complete-for-correctness  18.1;18.2;18.3                    134        0
 19  19. Fibonacci Heaps                                         partial                              19.1;19.4                         112        1
 20  20. van Emde Boas Trees                                     main-proof-complete-for-correctness  20.1;20.2;20.3                    200        0
 21  21. Data Structures for Disjoint Sets                       main-proof-complete                  21.1;21.2;21.3;21.4                84        0
