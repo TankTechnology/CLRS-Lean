@@ -23,11 +23,14 @@ Main results:
   `s ∈ S` and `t ∉ S`, the net flow across the cut equals `|f|`.
 - `Flow.residualCapacity` and `Flow.residualEdge`: the residual network.
 - `Flow.augmentingPathReachable`: reachability in the residual network.
+- `Flow.exists_cut_value_eq_of_noAugmentingPath`: absence of an augmenting
+  path yields a source-side cut whose capacity equals the flow value.
 - `Flow.maximal_of_noAugmentingPath`: if no augmenting path exists in the
   residual network, the flow is maximal (generic Ford-Fulkerson correctness).
 
-**Current gaps**: the full Max-Flow Min-Cut Theorem (converse direction),
-Edmonds-Karp analysis, and the executable augmenting-path loop.
+The complete Max-Flow Min-Cut equivalence is assembled in
+`Section_26_6_MaxFlow_MinCut`.  Edmonds-Karp analysis and the executable
+augmenting-path loop remain separate algorithmic obligations.
 
 Notation conventions:
 
@@ -186,7 +189,7 @@ theorem Flow.netFlow_eq_value {V : Type*} [Fintype V] [DecidableEq V] {G : FlowN
       rw [Finset.disjoint_singleton_left]
       exact h_not_mem
     have h_union : ({G.s} : Finset V) ∪ (S.erase G.s) = S := by
-      ext u; simp [hs, Finset.mem_insert, Finset.mem_erase, Finset.mem_union]
+      ext u; simp [hs]
     have h_split : Finset.sum S (fun u => Finset.sum (Finset.univ : Finset V) (fun v => φ.f u v)) =
         Finset.sum (Finset.univ : Finset V) (fun v => φ.f G.s v) +
         (Finset.sum (S.erase G.s) (fun u => Finset.sum (Finset.univ : Finset V) (fun v => φ.f u v))) := by
@@ -269,6 +272,7 @@ def Flow.isMaximal {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
     (φ : Flow V G) : Prop :=
   ∀ ψ : Flow V G, ψ.value ≤ φ.value
 
+set_option linter.unusedVariables false in
 /-- The value of any feasible flow is bounded above by the capacity of any cut
 `(S,T)`:
 
@@ -287,18 +291,18 @@ theorem Flow.value_le_cut_capacity {V : Type*} [Fintype V] [DecidableEq V]
     exact ψ.hcapacity u v
   linarith
 
-/-- If no augmenting path exists from `s` to `t` in the residual network, then
-the flow is maximal.
+/-- If no augmenting path exists from `s` to `t`, residual reachability from
+the source determines a cut whose capacity equals the current flow value.
 
-This is the generic Ford-Fulkerson correctness argument (the forward direction
-of the Max-Flow Min-Cut Theorem, CLRS Theorem 26.6).  The proof constructs the
-cut `S = {v | s → v in the residual network}` and shows that every edge across
-this cut is saturated, so the cut capacity equals `|f|` and hence upper-bounds
-any other flow.
+This is the cut-certificate core of the Ford--Fulkerson correctness argument:
+every edge leaving the reachable side has zero residual capacity and is
+therefore saturated.
 -/
-theorem Flow.maximal_of_noAugmentingPath {V : Type*} [Fintype V] [DecidableEq V]
-    {G : FlowNetwork V} (φ : Flow V G) (hNoPath : ¬ Flow.hasAugmentingPath φ) :
-    Flow.isMaximal φ := by
+theorem Flow.exists_cut_value_eq_of_noAugmentingPath {V : Type*} [Fintype V]
+    [DecidableEq V] {G : FlowNetwork V} (φ : Flow V G)
+    (hNoPath : ¬ Flow.hasAugmentingPath φ) :
+    ∃ S : Finset V, G.s ∈ S ∧ G.t ∉ S ∧
+      φ.value = Finset.sum S (fun u => Finset.sum (Sᶜ) (fun v => G.c u v)) := by
   -- Build the cut S from residual-network reachability
   let S : Finset V := Finset.filter (fun v => Flow.augmentingPathReachable φ G.s v) Finset.univ
   have hs_S : G.s ∈ S := by
@@ -336,7 +340,20 @@ theorem Flow.maximal_of_noAugmentingPath {V : Type*} [Fintype V] [DecidableEq V]
         refine Finset.sum_congr rfl fun u hu => Finset.sum_congr rfl fun v hv => ?_
         have hv_not_S : v ∉ S := by simpa using hv
         rw [h_saturated u hu v hv_not_S]
-  -- For any other flow ψ, its value is bounded by the same cut capacity
+  exact ⟨S, hs_S, ht_not_S, h_cut_capacity⟩
+
+/-- If no augmenting path exists from `s` to `t` in the residual network, then
+the flow is maximal.
+
+This is the generic Ford-Fulkerson correctness argument (the forward direction
+of the Max-Flow Min-Cut Theorem, CLRS Theorem 26.6).  It reuses the saturated
+cut certificate supplied by `exists_cut_value_eq_of_noAugmentingPath`.
+-/
+theorem Flow.maximal_of_noAugmentingPath {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (φ : Flow V G) (hNoPath : ¬ Flow.hasAugmentingPath φ) :
+    Flow.isMaximal φ := by
+  rcases Flow.exists_cut_value_eq_of_noAugmentingPath φ hNoPath with
+    ⟨S, hs_S, ht_not_S, h_cut_capacity⟩
   intro ψ
   have hψ_value_le : ψ.value ≤ Finset.sum S (fun u => Finset.sum (Sᶜ) (fun v => G.c u v)) :=
     Flow.value_le_cut_capacity φ ψ S hs_S ht_not_S

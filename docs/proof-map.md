@@ -3231,12 +3231,43 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter26.Flow.isMaximal` (maximum flow predicate)
   - `CLRS.Chapter26.Flow.maximal_of_noAugmentingPath` (generic
     Ford-Fulkerson: no augmenting path implies maximal flow)
+  - `CLRS.Chapter26.Flow.exists_cut_value_eq_of_noAugmentingPath` (the residual
+    reachable set supplies a cut whose capacity equals the flow value)
 - Proof pattern: Lemma 26.5 uses skew-symmetry cancellation and conservation to
   equate net cut flow with `|f|`.  The Ford-Fulkerson direction constructs a cut
   from the set of vertices reachable from `s` in the residual network, shows every
   crossing edge is saturated, and concludes maximality via the cut-capacity bound.
-- Current gap: define concrete augmentation and prove strict flow-value
-  increase, then use it to complete the Max-Flow Min-Cut converse/equivalence.
+- Current gap: none within Section 26.1.
+
+### Section 26.2 - Ford--Fulkerson Augmentation
+
+- Lean source:
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
+- Status: `proved` for the concrete mathematical augmentation layer
+- Path and augmentation model:
+  - `CLRS.Chapter26.Flow.ResidualPath`
+  - `CLRS.Chapter26.Flow.AugmentingPath`
+  - `CLRS.Chapter26.Flow.AugmentingPath.bottleneck`
+  - `CLRS.Chapter26.Flow.augmentBy`
+  - `CLRS.Chapter26.Flow.augment`
+- Path and bottleneck facts:
+  - `CLRS.Chapter26.Flow.ResidualPath.residualEdge_of_mem_edges`
+  - `CLRS.Chapter26.Flow.AugmentingPath.edges_nonempty`
+  - `CLRS.Chapter26.Flow.AugmentingPath.bottleneck_pos`
+  - `CLRS.Chapter26.Flow.AugmentingPath.bottleneck_le_residualCapacity`
+- Main theorems:
+  - `CLRS.Chapter26.Flow.augmentBy_value`
+  - `CLRS.Chapter26.Flow.augment_value`
+  - `CLRS.Chapter26.Flow.value_lt_augment`
+  - `CLRS.Chapter26.Flow.hasAugmentingPath_iff_nonempty_augmentingPath`
+  - `CLRS.Chapter26.Flow.not_maximal_of_augmentingPath`
+  - `CLRS.Chapter26.Flow.not_maximal_of_hasAugmentingPath`
+- Proof pattern: represent the path by a nodup vertex list, sum a skew-symmetric
+  edge delta along its consecutive pairs, and bound the update by the minimum
+  residual capacity.  Cycle deletion turns a residual reachability witness into
+  a simple path without changing its endpoints.
+- Current gap: none for this layer.  Lemma 26.7 and the executable
+  Edmonds--Karp loop remain separate targets below.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
@@ -3279,22 +3310,24 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Theorem 26.6 - The Max-Flow Min-Cut Theorem
 
 - Lean source: `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean`
-- Status: `partial`
-- Proved theorem:
+- Status: `proved`
+- Proved theorems:
   - `CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`
     (the easy direction: equality with a cut capacity implies maximality)
-- Current gap: concrete augmentation and strict value increase are needed to
-  derive `maximal ⇒ no augmenting path`; composing that result with the
-  existing reachable-cut argument will yield the converse and full
-  max-flow/min-cut equivalence.
+  - `CLRS.Chapter26.Flow.maximal_iff_noAugmentingPath`
+    (maximality is equivalent to the absence of an augmenting path)
+  - `CLRS.Chapter26.Flow.maximal_iff_exists_cut_value_eq`
+    (maximality is equivalent to equality with the capacity of some cut)
+- Proof pattern: concrete augmentation proves that an augmenting path rules out
+  maximality; the residual reachable set supplies the equal-capacity cut when
+  no augmenting path exists; cut equality supplies the reverse implication.
+- Current gap: none for the mathematical Max-Flow Min-Cut equivalence.
 
 ### Chapter 26 remaining order
 
-1. Concrete augmentation, strict flow-value increase, and the full MFMC
-   converse/equivalence.
-2. Lemma 26.7 via predecessor/prefix and augmentation-edge bridges.
-3. Executable BFS/Edmonds-Karp and the `O(VE²)` work theorem.
-4. Matching-flow feasibility, the integral-flow converse, and the maximum-value
+1. Lemma 26.7 via predecessor/prefix and augmentation-edge bridges.
+2. Executable BFS/Edmonds-Karp and the `O(VE²)` work theorem.
+3. Matching-flow feasibility, the integral-flow converse, and the maximum-value
    statement of Theorem 26.12.
 
 Sections 26.4 and 26.5 are deferred outside the current selected milestone.
