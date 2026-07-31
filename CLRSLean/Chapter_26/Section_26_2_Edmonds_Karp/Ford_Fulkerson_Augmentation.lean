@@ -72,6 +72,33 @@ def ResidualPath.edges {V : Type*} [Fintype V] [DecidableEq V]
     (p : ResidualPath φ u v) : List (V × V) :=
   p.vertices.zip p.vertices.tail
 
+/-- The number of directed edges is one less than the number of vertices. -/
+theorem ResidualPath.edges_length {V : Type*} [Fintype V]
+    [DecidableEq V] {G : FlowNetwork V} {φ : Flow V G} {u v : V}
+    (p : ResidualPath φ u v) :
+    p.edges.length = p.vertices.length - 1 := by
+  simp [ResidualPath.edges]
+
+/-- Membership in the directed edge list determines a consecutive pair of
+vertex indices. -/
+theorem ResidualPath.exists_index_of_mem_edges {V : Type*} [Fintype V]
+    [DecidableEq V] {G : FlowNetwork V} {φ : Flow V G} {s t u v : V}
+    (p : ResidualPath φ s t) (huv : (u, v) ∈ p.edges) :
+    ∃ i, ∃ hi : i + 1 < p.vertices.length,
+      p.vertices[i] = u ∧ p.vertices[i + 1] = v := by
+  rw [List.mem_iff_getElem] at huv
+  rcases huv with ⟨i, hi, hget⟩
+  have hi_vertices : i + 1 < p.vertices.length := by
+    rw [p.edges_length] at hi
+    omega
+  refine ⟨i, hi_vertices, ?_⟩
+  have hpair : (p.vertices[i], p.vertices[i + 1]) = (u, v) := by
+    calc
+      (p.vertices[i], p.vertices[i + 1]) = p.edges[i] := by
+        simp [ResidualPath.edges, List.getElem_zip, List.getElem_tail]
+      _ = (u, v) := hget
+  exact ⟨congrArg Prod.fst hpair, congrArg Prod.snd hpair⟩
+
 private theorem residualEdge_of_mem_zip_tail {V : Type*}
     {r : V → V → Prop} {vertices : List V} (hchain : vertices.IsChain r)
     {u v : V} (hmem : (u, v) ∈ vertices.zip vertices.tail) : r u v := by
@@ -401,6 +428,44 @@ noncomputable def augment {V : Type*} [Fintype V] [DecidableEq V]
     intro e he
     rcases e with ⟨u, v⟩
     exact p.bottleneck_le_residualCapacity (by simpa using he))
+
+/-- Exact residual-capacity update for full augmentation along a simple path.
+
+The formula remains valid when the original network has anti-parallel positive
+capacities: it records directed path membership rather than classifying an
+edge as globally forward or backward.
+-/
+theorem augment_residualCapacity {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (φ : Flow V G) (p : AugmentingPath φ) (u v : V) :
+    (φ.augment p).residualCapacity u v =
+      φ.residualCapacity u v -
+        (if (u, v) ∈ p.edges then p.bottleneck else 0) +
+        (if (v, u) ∈ p.edges then p.bottleneck else 0) := by
+  change G.c u v - (φ.f u v + pathDelta p.bottleneck p.vertices u v) = _
+  rw [pathDelta_eq_edgeIndicators_of_nodup
+    p.bottleneck p.vertices u v p.nodup]
+  simp only [ResidualPath.edges]
+  unfold residualCapacity
+  ring_nf
+
+/-- Every residual edge created by full augmentation reverses a directed edge
+of the augmented path. -/
+theorem AugmentingPath.reverse_mem_edges_of_new_residualEdge
+    {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} {φ : Flow V G} (p : AugmentingPath φ) {u v : V}
+    (hnew : (φ.augment p).residualEdge u v)
+    (hold : ¬φ.residualEdge u v) :
+    (v, u) ∈ p.edges := by
+  have hold_nonpos : φ.residualCapacity u v ≤ 0 := le_of_not_gt hold
+  change (φ.augment p).residualCapacity u v > 0 at hnew
+  rw [φ.augment_residualCapacity p] at hnew
+  by_contra hreverse
+  rw [if_neg hreverse] at hnew
+  by_cases hforward : (u, v) ∈ p.edges
+  · rw [if_pos hforward] at hnew
+    nlinarith [p.bottleneck_pos]
+  · rw [if_neg hforward] at hnew
+    linarith
 
 /-- Full bottleneck augmentation increases value by exactly the bottleneck. -/
 theorem augment_value {V : Type*} [Fintype V] [DecidableEq V]
