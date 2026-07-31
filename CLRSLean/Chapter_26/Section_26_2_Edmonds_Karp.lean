@@ -30,10 +30,15 @@ The shortest-path construction itself lives in the companion submodule
 `exists_shortest_augmenting_path` turns residual reachability into an explicit
 shortest augmenting path.
 
+The work analysis lives in `S3_WorkAnalysis` (critical edges, Lemma 26.8,
+the recovery-step timeline lemma); its final counting theorems
+(`critical_count_bound` and `augmentation_count_bound`, giving the `O(VE²)`
+bound) remain in progress.
+
 Current gaps:
 
-- Add the Edmonds-Karp augmentation loop, its `O(VE²)` work theorem, and an
-  executable BFS.
+- Finish the `O(VE²)` counting argument in `S3_WorkAnalysis`.
+- Add an executable BFS.
 -/
 
 set_option autoImplicit true

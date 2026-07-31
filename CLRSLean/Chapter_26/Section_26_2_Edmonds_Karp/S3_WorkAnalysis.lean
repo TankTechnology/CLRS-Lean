@@ -31,9 +31,33 @@ Main results:
 - `exists_critical_edge`: every augmentation saturates at least one edge
 - `shortest_edge_dist`: edges of a shortest path join adjacent distance
   levels
-- `critical_dist_increase`: CLRS Lemma 26.8 (distance to `u` grows by at
-  least two between consecutive critical appearances)
+- `critical_dist_increase`: CLRS Lemma 26.8, forward direction (distance to
+  `u` grows by at least two when `(v,u)` later lies on a shortest path)
+- `critical_dist_increase_rev`: the reverse-direction variant used by the
+  timeline argument
 - `IsShortestDist.lt_card`: residual distances are bounded by `|V| - 1`
+- `ekSeq`/`ekPath`/`criticalAt`: the Edmonds-Karp timeline (flow after `n`
+  steps, selected shortest path, critical-edge predicate)
+- `ekStep_dist_nondec` and `distAt_mono`: reverse distance monotonicity
+  across one and several steps
+- `exists_recovery_step`: if `(u,v)` is critical at step `i` and again lies
+  on a selected path at step `j > i + 1`, some intermediate step augments
+  along `(v,u)` (the residual-capacity recovery argument)
+
+**Current gaps**: the final counting argument.  The remaining pieces are
+(1) `criticalAt_growth`: combine `exists_recovery_step`,
+`critical_dist_increase_rev`, and `distAt_mono` to show the residual distance
+to `u` at step `j` exceeds that at step `i` by at least two when `(u,v)` is
+critical at both steps (the `j`-side distance exists because `criticalAt j
+u v` puts `u` on the selected path; extract the shortest-path bundle at step
+`j` from `ekPath j = some p_j` exactly as `criticalAt_growth`'s draft did at
+step `i`), and (2) the counting theorems `critical_count_bound` (each edge is
+critical at most `Fintype.card V` times, via strict distance growth and
+`IsShortestDist.lt_card`, using a `Finset.card_le_card_of_injOn`-style
+injection into `Fin (Fintype.card V)`) and `augmentation_count_bound`
+(augmenting steps are covered by the union of critical-edge steps, so there
+are at most `Fintype.card (V × V) * Fintype.card V` of them), yielding the
+`O(VE²)` bound once each step is charged `O(E)` for BFS.
 -/
 
 set_option autoImplicit true
