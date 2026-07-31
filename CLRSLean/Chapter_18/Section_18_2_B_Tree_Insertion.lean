@@ -1973,6 +1973,61 @@ theorem insertRoot_mem_iff
   exact or_comm
 
 /--
+Top-level CLRS insertion preserves global key uniqueness when the inserted key
+was absent from the input tree.
+-/
+theorem insertRoot_wellFormedUnique
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormedUnique t tr)
+    (hnot : ¬ mem x tr) :
+    WellFormedUnique t (insertRoot t x tr) := by
+  refine ⟨insertRoot_wellFormed t x ht hwf.1, ?_⟩
+  have hkeys : (keysOf tr ++ [x]).Nodup := by
+    rw [List.nodup_append]
+    refine ⟨hwf.2, by simp, ?_⟩
+    intro a ha b hb
+    simp only [List.mem_singleton] at hb
+    subst b
+    intro hax
+    subst a
+    exact hnot ha
+  exact (insertRoot_keys_perm t x ht hwf.1).nodup_iff.mpr hkeys
+
+/--
+Executable top-level insertion and specification insertion have identical
+membership semantics.
+-/
+theorem insertRoot_mem_iff_insert
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    mem y (insertRoot t x tr) ↔ mem y (insert x tr) :=
+  (insertRoot_mem_iff t x y ht hwf).trans (insert_mem_iff x y tr).symm
+
+/--
+Membership-oracle search agrees after executable and specification insertion.
+-/
+theorem insertRoot_search_eq_insert
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    search y (insertRoot t x tr) = search y (insert x tr) := by
+  apply Bool.eq_iff_iff.mpr
+  simpa only [search_true_iff] using
+    insertRoot_mem_iff_insert t x y ht hwf
+
+/--
+Executable search after top-level insertion succeeds exactly for the inserted
+key or an old member.
+-/
+theorem insertRoot_searchExec_true_iff
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    searchExec y (insertRoot t x tr) = true ↔ y = x ∨ mem y tr := by
+  have hout := insertRoot_wellFormed t x ht hwf
+  exact
+    (searchExec_true_iff hout.1 hout.2.1).trans
+      (insertRoot_mem_iff t x y ht hwf)
+
+/--
 Top-level CLRS insertion simultaneously has exact add-one semantics, preserves
 well-formedness, and preserves or increases height by one level.
 -/
