@@ -1,9 +1,9 @@
 import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp
+import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S1_ShortestAugmentingPath
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S2_EK_Loop
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S3_WorkAnalysis
-import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
 import CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching
 import CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut
 
