@@ -3,10 +3,10 @@ import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search
 /-!
 # CLRS Section 18.2 - B-tree insertion
 
-This first-pass section gives specification-level split and insertion wrappers
-over the mathematical B-tree model from Section 18.1.  The goal is a stable
-public theorem surface before introducing full node occupancy and separator
-repair proofs.
+This section retains the first-pass specification-level split and insertion
+wrappers over the mathematical B-tree model from Section 18.1, and proves the
+real functional `B-TREE-INSERT-NONFULL` and top-level `B-TREE-INSERT`
+algorithms against the full structural invariant.
 
 Main results:
 
@@ -59,11 +59,38 @@ Main results:
 - Theorems {lit}`BTree.insert_search_of_mem` and
   {lit}`BTree.insert_search_false_of_not_mem_ne`: old membership and absent
   noninserted keys give direct post-insertion search results.
+- Definitions {lit}`BTree.splitRoot` and {lit}`BTree.insertRoot`: the top-level
+  CLRS operation splits a full root and then descends with
+  {lit}`BTree.insertNonFull`.
+- Theorems {lit}`BTree.splitRoot_keys_perm`,
+  {lit}`BTree.splitRoot_wellFormed`, {lit}`BTree.splitRoot_height`,
+  {lit}`BTree.splitRoot_rootKeyCount`, and {lit}`BTree.splitRoot_nonFull`:
+  splitting a full root preserves its keys, produces a well-formed one-key
+  non-full root, and adds exactly one level.
+- Theorems {lit}`BTree.insertRoot_keys_perm`,
+  {lit}`BTree.insertRoot_wellFormed`, and {lit}`BTree.insertRoot_height`:
+  top-level insertion adds exactly one key, preserves {lit}`BTree.WellFormed`,
+  and has the exact full-root conditional height equation.
+- Theorems {lit}`BTree.insertRoot_mem_iff`,
+  {lit}`BTree.insertRoot_mem_iff_insert`,
+  {lit}`BTree.insertRoot_search_eq_insert`, and
+  {lit}`BTree.insertRoot_searchExec_true_iff`: executable insertion has exact
+  membership semantics, agrees extensionally with specification insertion, and
+  supports correct executable search.
+- Theorem {lit}`BTree.insertRoot_wellFormedUnique`: uniqueness is preserved
+  when the inserted key was absent.
+- Theorem {lit}`BTree.insertRoot_correct`: exact add-one key semantics,
+  well-formedness, and same-or-one-higher height are bundled together.
 
-**Note:** the `insert` stub above is the early specification layer (membership /
-search behaviour); the real CLRS `B-TREE-INSERT-NONFULL` and its `WellFormed`
-preservation are proved by `insertNonFull` and its six companion theorems below
-(all 0 `sorry`).
+**Model boundary:** the flat {lit}`BTree.insert` remains the specification
+layer.  {lit}`BTree.splitRoot` installs the old full root under a transient
+empty parent and applies the full-child split; that transient parent itself is
+not claimed to be {lit}`BTree.WellFormed`.  The proved compatibility between
+{lit}`BTree.insertRoot` and {lit}`BTree.insert` is membership/search
+compatibility, not executable/specification tree-shape equality.
+
+Section 18.2 is proved for the current functional correctness model.  Disk
+pages, pointer mutation, I/O counts, and RAM costs are optional refinements.
 -/
 
 namespace CLRS

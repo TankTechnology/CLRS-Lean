@@ -50,6 +50,18 @@ together with exact failed membership
 specifications and direct failed-membership
 preservation wrappers after split, insert, and delete.
 
+Section 18.2 retains the flat {lit}`insert` as its specification layer and now
+proves the real top-level CLRS insertion operation {lit}`insertRoot`.
+{lit}`splitRoot` installs a full old root below a transient empty parent and
+applies the full-child split; the transient parent itself is not claimed
+{lit}`WellFormed`, but the split output is.  Top-level insertion adds exactly
+one key, preserves {lit}`WellFormed`, has an exact same-or-one-higher
+conditional height theorem, agrees with the specification on membership and
+membership-oracle search, and supports correct executable search.  This is an
+extensional compatibility result, not executable/specification tree-shape
+equality.  Preservation of {lit}`WellFormedUnique` additionally requires that
+the inserted key was absent.
+
 Section 18.3 also contains the executable node-level deletion proof.  A single
 bundled induction proves key containment and the complete structural invariant
 packet across leaf deletion, separator replacement, rotations, and merges.
@@ -90,7 +102,7 @@ tree shape.
   {lit}`CLRS.Chapter18.BTree.minKeys_succ`,
   {lit}`CLRS.Chapter18.BTree.minKeys_le_succ`, and
   {lit}`CLRS.Chapter18.BTree.minKeys_monotone_height`.
-* 18.2 B-tree insertion: {lit}`partial`.
+* 18.2 B-tree insertion: proved for the current functional correctness model.
   Main results:
   {lit}`CLRS.Chapter18.BTree.splitChild_preserves_model`,
   {lit}`CLRS.Chapter18.BTree.splitChild_valid`,
@@ -117,8 +129,24 @@ tree shape.
   {lit}`CLRS.Chapter18.BTree.insert_not_mem_iff`,
   {lit}`CLRS.Chapter18.BTree.insert_not_mem_of_ne`,
   {lit}`CLRS.Chapter18.BTree.insert_search_false_iff`,
-  {lit}`CLRS.Chapter18.BTree.insert_search_false_of_ne`, and
-  {lit}`CLRS.Chapter18.BTree.insert_search_false_of_not_mem_ne`.
+  {lit}`CLRS.Chapter18.BTree.insert_search_false_of_ne`,
+  {lit}`CLRS.Chapter18.BTree.insert_search_false_of_not_mem_ne`,
+  {lit}`CLRS.Chapter18.BTree.splitRoot`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot`,
+  {lit}`CLRS.Chapter18.BTree.splitRoot_keys_perm`,
+  {lit}`CLRS.Chapter18.BTree.splitRoot_wellFormed`,
+  {lit}`CLRS.Chapter18.BTree.splitRoot_height`,
+  {lit}`CLRS.Chapter18.BTree.splitRoot_rootKeyCount`,
+  {lit}`CLRS.Chapter18.BTree.splitRoot_nonFull`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_keys_perm`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_wellFormed`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_height`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_mem_iff`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_wellFormedUnique`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_mem_iff_insert`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_search_eq_insert`,
+  {lit}`CLRS.Chapter18.BTree.insertRoot_searchExec_true_iff`, and
+  {lit}`CLRS.Chapter18.BTree.insertRoot_correct`.
 * 18.3 B-tree deletion: proved for the current functional model.
   Main results:
   {lit}`CLRS.Chapter18.BTree.delete_preserves_model`,
@@ -187,13 +215,13 @@ tree shape.
 
 ## Current Gaps
 
-Structural preservation and exact {lit}`Multiset.erase` deletion semantics
-under the documented structural assumptions are complete for the current
-functional B-tree model.  The chapter remains {lit}`partial` for two separate
-core groups: a real top-level insertion operation that handles a full root by
-splitting it, and a structural total-key lower bound derived from B-tree
-height (including the empty-root boundary).  Disk-page layout, pointer
-mutation, I/O counts, and RAM costs are optional lower-level refinements.
+Top-level insertion and structural preservation plus exact
+{lit}`Multiset.erase` deletion semantics under the documented assumptions are
+complete for the current functional B-tree model.  The chapter remains
+{lit}`partial` for exactly one core group: a structural total-key lower bound
+derived from B-tree height, including the legal empty-root boundary, packaged
+as the CLRS logarithmic height theorem.  Disk-page layout, pointer mutation,
+I/O counts, and RAM costs are optional lower-level refinements.
 -/
 
 namespace CLRS

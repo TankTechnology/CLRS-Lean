@@ -42,7 +42,7 @@ not missing core theorem groups.
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
 | 7 | Functional quicksort correctness, comparison recurrence, harmonic bounds, random-permutation symmetry lemma (`isFirst_prob`), pairwise comparison probability (`compared_prob = 2/(j-i+1)`, CLRS Theorem 7.3), and the sum-of-probabilities-to-closed-form bridge (`sum_compared_prob_eq_expectedComparisons`) with `Θ(n log n)` asymptotic | Optional: total-comparison random variable with `fintypeExpect` linearity wrapper |
-| 18 | B-tree search and non-full insertion plus structural and exact `Multiset.erase` semantics for executable deletion under `2 ≤ t` and `NodeWF`/`WellFormed`; full deleted-key/specification behavior under `WellFormedUnique` | Real top-level insertion with a full-root split; structural total-key/height lower bound |
+| 18 | B-tree search and real top-level insertion with full-root splitting, exact add-one key semantics, `WellFormed`/conditional-height preservation, specification compatibility, and executable-search correctness; structural and exact `Multiset.erase` semantics for executable deletion under `2 ≤ t` and `NodeWF`/`WellFormed`; conditional insertion uniqueness and full deleted-key/specification behavior under `WellFormedUnique` | Structural total-key lower bound from height, including the legal empty root, packaged as the CLRS logarithmic height theorem |
 | 19 | Finite-set operation specs, potential facts, and the concrete rooted-tree logarithmic degree theorem | Executable heap-forest consolidation/cascading cuts and their amortized costs |
 | 26 | Flow model, generic Ford-Fulkerson maximality direction, MFMC easy direction, Edmonds-Karp Lemma 26.7, and the Section 26.3 bipartite-network model with a conditional matching-flow value theorem | MFMC converse; executable BFS augmentation with `O(VE²)`; feasible matching-flow construction, integral-flow converse, and maximum matching/max-flow value equivalence (full Theorem 26.12) |
 | 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms (work `Θ(n³)`/`Θ(n)`/`Θ(n log n)`/`Θ(n^(log₂ 7))`, spans `Θ(log n)`/`Θ(log² n)`/`Θ(log³ n)`) plus all-input P-MATMUL bounds | Greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the merge-based costs, and executable algorithm refinements |
@@ -60,7 +60,7 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
 | 1 | Chapter 26 correctness | Prove the MFMC converse, executable BFS augmentation and `O(VE²)` theorem, then full matching/integral-flow and maximum-value equivalence |
-| 2 | Chapter 18 B-tree completion | Add real full-root insertion and the structural total-key/height lower bound |
+| 2 | Chapter 18 B-tree completion | Prove the structural total-key lower bound from height, including the legal empty root, and package the CLRS logarithmic height theorem |
 | 3 | Chapter 19 implementation | Prove executable heap-forest CONSOLIDATE and cascading cuts with amortized costs |
 | 4 | Chapter 27 scheduler layer | Add the greedy-scheduler bound and executable refinements |
 
