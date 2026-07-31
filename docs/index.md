@@ -161,6 +161,7 @@ CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean
 CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean
 CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S1_ShortestAugmentingPath.lean
 CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S2_EK_Loop.lean
+CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S3_WorkAnalysis.lean
 CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean
 CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
 CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean
