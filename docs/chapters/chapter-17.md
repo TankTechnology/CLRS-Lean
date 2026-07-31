@@ -1,6 +1,6 @@
 # Chapter 17 - Amortized Analysis
 
-- Status: `partial`
+- Status: `selected-section-complete`
 - Lean entry: `CLRSLean/Chapter_17.lean`
 - Interface test: `Tests/Chapter_17_Interface.lean`
 
@@ -72,23 +72,24 @@
 - `CLRS.Chapter17.dynamicTableDelete_amortizedCost_eq`
 - `CLRS.Chapter17.dynamicTableDelete_amortizedBound`
 - `CLRS.Chapter17.dynamicTable_amortizedBound`
+- `CLRS.Chapter17.growTo_toList`
+- `CLRS.Chapter17.growTo_size`
+- `CLRS.Chapter17.arrayTable_toState_insert`
+- `CLRS.Chapter17.arrayTable_insertCost_eq`
+- `CLRS.Chapter17.insert_copy_cost`
+- `CLRS.Chapter17.dynamicTableCopyCount_eq_growCopyCost`
+- `CLRS.Chapter17.sharpPotentialZ_nonneg`
+- `CLRS.Chapter17.sharpPotential_nonneg`
+- `CLRS.Chapter17.sharpInsert_amortized_le_three`
+- `CLRS.Chapter17.sharpDelete_amortized_le_three`
+- `CLRS.Chapter17.sharpDelete_loadFactor_eq_half_of_contract`
+- `CLRS.Chapter17.sharpDelete_loadFactor_ge_half_of_contract`
 
-## Remaining Work
+## Optional Refinements
 
-The current chapter is a mathematical first pass.  It now includes the exact
-one-step and multi-step binary-counter flip/potential proofs, while deferring
-mutable-array copying, allocation, RAM-cost constants, and sharper load-factor
-potential refinements for dynamic tables.  The dynamic-table layer currently
-exposes a nonnegative potential and checks that the chosen post-operation
-capacity can hold the resulting element count while moving in the expected
-direction for insertion and deletion, including direct post-state capacity
-corollaries, positive insertion/deletion count/capacity wrappers, direct
-resize-branch capacity wrappers, post-state field
-equations, allocation-size case wrappers, and stored-count direction facts.  It
-also records positive actual-cost facts for insertion and nonempty deletion,
-exact zero/positive deletion-cost wrappers, bounds the first-pass transition
-costs by the corresponding element-count copying budgets, and records direct
-actual-cost, premise-light deletion-cost branch, capacity-choice, post-state
-allocation-size case, post-transition potential nonnegativity, and concrete
-amortized-cost unfolding wrappers, but it is still a size-level model rather
-than an array-copying model.
+The represented aggregate, accounting, potential, stack/counter, and dynamic-
+table analyses are complete.  The dynamic-table surface includes a physical
+array-copy model and its connection to the abstract copying cost, plus the CLRS
+load-factor potential with constant amortized bounds for insertion and deletion.
+General allocator semantics, lower-level RAM constants, and broader interleaved
+operation-trace packaging remain optional refinements.

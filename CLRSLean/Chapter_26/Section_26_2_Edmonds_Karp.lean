@@ -2,17 +2,27 @@ import Mathlib
 import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
 
 /-!
-# 26.2. The Edmonds-Karp Algorithm
+# 26.2. The Edmonds-Karp Algorithm (partial)
 
-This section formalizes the Edmonds-Karp monotonic distance lemma
+This section currently formalizes the residual-distance infrastructure used by
+the Edmonds-Karp analysis.  It does not yet prove the monotonic distance lemma
 (CLRS Lemma 26.7).
 
 Main results:
 
 - `ResidualPathLength`: inductive predicate for path existence in `G_f`
 - `IsShortestDist`: shortest-path distance in `G_f`
-- `shortest_path_nondec` (Lemma 26.7): `δ_f(s,v)` is nondecreasing after
-  augmenting along a shortest augmenting path
+- `isShortestDist_self`: the residual distance from a vertex to itself is zero
+- `IsShortestDist.unique`: shortest residual distances are unique
+- `isShortestDist_triangle`: one residual edge extends a shortest path by at
+  most one step
+- `ShortestAugmentingPath`: bundled shortest source-to-sink residual path data
+
+Current gaps:
+
+- Prove the predecessor/prefix and augmentation-edge bridges, then Lemma 26.7.
+- Add executable BFS, the Edmonds-Karp augmentation loop, and its `O(VE²)` work
+  theorem.
 -/
 
 set_option autoImplicit true

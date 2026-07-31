@@ -2,16 +2,22 @@ import Mathlib
 import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
 
 /-!
-# 26.3. Maximum bipartite matching
+# 26.3. Maximum bipartite matching (partial)
 
-Reduction from maximum bipartite matching to maximum flow, proving that
-the maximum-flow value of the constructed flow network equals the size
-of a maximum matching (CLRS Theorem 26.12).
+This file defines the bipartite-to-flow-network reduction and the flow function
+induced by a matching.  Its current value theorem is conditional: the caller
+must supply an existing feasible `Flow` whose function is exactly
+`matchingFlowFun`.  The file does not yet construct feasibility, recover a
+matching from an integral flow, or prove the maximum-value equivalence of CLRS
+Theorem 26.12.
 
 Main results:
 
-In the interests of a clean import structure, we place this module under
-`CLRS.Chapter26` alongside the other Chapter 26 sections.
+- `BipartiteGraph`, `Matching`, and `Matching.size`
+- `capFunc` and `toFlowNetwork`
+- `matchingFlowFun`
+- `matchingToFlow_value`: conditional value identity for an already-feasible
+  matching-induced flow
 -/
 
 namespace CLRS

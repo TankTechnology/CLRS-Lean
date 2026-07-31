@@ -2,7 +2,7 @@ import Mathlib
 import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
 
 /-!
-# 26.1. Max-Flow Min-Cut Theorem (partial)
+# Theorem 26.6. Max-Flow Min-Cut Theorem (partial)
 
 This file proves part of the Max-Flow Min-Cut Theorem (CLRS Theorem 26.6).
 

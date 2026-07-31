@@ -104,25 +104,29 @@
 - `CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`
 - `CLRS.Chapter19.FibHeap.degree_bound_log`
 
+## Section 19.4 Structural Degree Surface
+
+- `CLRS.Chapter19.FTree.Wellformed`
+- `CLRS.Chapter19.FTree.wellformed_size_ge_fibLowerBound`
+- `CLRS.Chapter19.FTree.goldenRatio_pow_le_fibLowerBound`
+- `CLRS.Chapter19.FTree.wellformed_goldenRatio_pow_le_size`
+- `CLRS.Chapter19.FTree.wellformed_degree_le_logb`
+- `CLRS.Chapter19.FTree.wellformed_degree_le_floor_logb`
+- `CLRS.Chapter19.FTree.wellformed_degree_le_twice_log_two`
+- `CLRS.Chapter19.FTree.wellformed_append_child`
+- `CLRS.Chapter19.FTree.link_wellformed`
+- `CLRS.Chapter19.FTree.minTree`
+- `CLRS.Chapter19.FTree.minTree_size`
+- `CLRS.Chapter19.FTree.minTree_wellformed`
+- `CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound`
+
 ## Remaining Work
 
-The current chapter is an abstract finite-key-set specification with the
-standard heap potential's zero-initial, nonnegative, and telescoping facts.  It
-exposes direct operation-key membership corollaries for insert, extract-min,
-decrease-key, and delete, plus old-key preservation corollaries for the
-set-updating operations and exact failed membership specifications after heap
-operations, direct failed-membership preservation wrappers, direct
-operation-result validity wrappers for normalized counters, direct minimum
-membership/lower-bound wrappers,
-insert/union/extract-min-remaining/decrease-key/delete minimum direct
-membership/lower-bound wrappers, direct minimum/extract-min empty-result
-wrappers, nonempty-result query wrappers, and positive/empty minimum-after-update
-specifications.  It
-also includes the first power-of-two lower-bound bridge for the Fibonacci-style
-degree sequence, including the half-index form used by later logarithmic-degree
-arguments and a conditional natural binary-log bridge from a Fibonacci-style
-subtree-size lower bound to a degree budget.  The chapter still defers pointer
-handles, heap-ordered
-forests, cascading cuts, consolidation
-arrays, duplicate keys, and the subtree-size induction leading to the true
-Fibonacci logarithmic degree theorem.
+The finite-key-set operation specifications and potential facts are joined by
+Section 19.4's concrete rooted-tree invariant.  For `FTree.Wellformed`, the
+formalization proves the true Fibonacci subtree-size lower bound, sharp
+logarithmic degree bounds, preservation by equal-degree linking, and a `minTree`
+family witnessing tightness.  The remaining core work is an executable heap
+forest with circular root lists, consolidation and cascading-cut procedures,
+duplicate-handle semantics, and the corresponding `O(log n)`/`O(1)` amortized
+cost analysis.

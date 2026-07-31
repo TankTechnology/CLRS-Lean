@@ -814,20 +814,19 @@ completing the direct proof spine for Chapter 7.
   - `CLRS.Chapter07.expectedComparisons_harmonic_bound`
   - `CLRS.Chapter07.expectedComparisons_quadratic`
   - `CLRS.Chapter07.expectedComparisons_monotone`
+  - `CLRS.Chapter07.expectedComparisons_isBigTheta_nlogn`
 - Probability model theorems:
   - `CLRS.Chapter07.isFirst_prob` — symmetry lemma: P(s first in S) = 1/|S|
   - `CLRS.Chapter07.comparedInQuicksort` / `CLRS.Chapter07.compared_prob` — CLRS Thm 7.3
+  - `CLRS.Chapter07.sum_compared_prob_eq_expectedComparisons` — the pairwise
+    probability sum equals the closed-form expected-comparison sequence
 - Proof pattern: define the CLRS expected-comparison sequence over rationals,
   expose the named closed form, prove the recurrence identity and telescoping
   relation, then bound the closed form by harmonic-number envelopes.
   The probability model adds uniform random permutation semantics via
   transposition-symmetry bijection on `Equiv.Perm (Fin n)`.
-- Current gap: the `sum_compared_prob_eq_expectedComparisons` bridge
-  connects `compared_prob` to the harmonic closed form; the `Θ(n log n)`
-  asymptotic follows from `expectedComparisons_isBigTheta_nlogn`.  The
-  remaining gap is the total-comparison random variable and the
-  expectation-of-sum theorem connecting `compared_prob` linearly to
-  `totalCompared`.
+- Current gap: none for the selected mathematical scope.  A lower-level
+  mutable-array execution-cost/RAM refinement is optional.
 
 ## Chapter 8 - Sorting in Linear Time
 
@@ -1582,8 +1581,8 @@ rotation and still expose the same ideal rank-selection behavior afterward.
 - Status: `proved` for the functional well-augmented BST model, the general
   augmentation theorem (CLRS Theorem 14.1), the value-level red-black
   rotation bridge, and the general executable augmentation interface (an
-  arbitrary augmentation threaded through an executable red-black insertion
-  refining Chapter 13 `RBTree.insert`)
+  arbitrary augmentation threaded through executable red-black insertion and
+  deletion; the insertion erasure refinement to Chapter 13 is also proved)
 - Main proved declarations:
   - `CLRS.Chapter14.AugmentedTree.recompute_wellAugmented`
   - `CLRS.Chapter14.AugmentedTree.storedAug_eq_realAug_of_wellAugmented`
@@ -1608,6 +1607,13 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_balanceRight`
   - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_insertFixup`
   - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_baldL`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_baldR`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_splitMin`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_join`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_del`
+  - `CLRS.Chapter14.AugmentedRBTree.wellAugmented_delete`
+  - `CLRS.Chapter14.AugmentedRBTree.storedAug_delete`
   - `CLRS.Chapter14.AugmentedRBTree.toRB_insertFixup`
   - `CLRS.Chapter14.AugmentedRBTree.toRB_insert`
   - `CLRS.Chapter14.AugmentedRBTree.inTree_toRB`
@@ -1626,17 +1632,15 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   the augmentation-recomputing smart constructor `mk`, so `wellAugmented_insert`
   follows by structural induction, and the augmentation-erasing projection `toRB`
   makes `insert` (at `natLt`) refine Chapter 13 `RBTree.insert`, transferring its
-  shape and membership theorems.  The `sizeAug` and `maxHighAug` fields are
-  recovered as instances of this single interface.
+  shape and membership theorems.  The deletion mirror similarly rebuilds every
+  node with `mk`, and `wellAugmented_delete` proves invariant preservation
+  through `baldL`/`baldR`/`splitMin`/`join`/`del`/`delete`.  The `sizeAug` and
+  `maxHighAug` fields are recovered as instances of this single interface.
 - Current gap: the generic deletion pipeline is proved (`wellAugmented_delete`
   preserves the augmentation invariant through `baldL`/`baldR`/`splitMin`/
   `join`/`del`/`delete` for any `Augmentation`).  What remains is the `toRB`
   refinement lemma for the deletion pipeline (linking `AugmentedRBTree.delete`
   back to Chapter 13's `RBTree.delete`).
-  generic `AugmentedRBTree` mirror of the `baldL`/`baldR`/`splitMin`/`join`/
-  `del`/`delete` pipeline (roughly 300 lines following the Section 14.1
-  template).  The stored-augmentation refinement through executable
-  `RBTree.insert` is proved generically.
 
 ## Chapter 15 - Dynamic Programming
 
@@ -1958,7 +1962,7 @@ weight domination.
   `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`,
   `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`, and
   `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables.lean`
-- Status: `partial`
+- Status: `selected-section-complete`
 - Main proved theorems:
   - `CLRS.Chapter17.aggregate_bound_of_prefix_bound`
   - `CLRS.Chapter17.accounting_totalCost_eq_totalCharge_sub_delta`
@@ -2051,8 +2055,8 @@ weight domination.
   `insert_copy_cost` (Sub-issue A).
 - CLRS load-factor potential with constant amortized bounds (<=3)
   proved for both insertion and deletion (Sub-issue B).
-- Current gap: general allocator / RAM cost semantics and amortized
-  analysis over interleaved insert/delete traces.
+- Optional refinements: general allocator/RAM cost semantics and broader
+  amortized packaging for interleaved insert/delete traces.
 
 Chapter 17 now provides the reusable amortized-analysis layer for later data
 structure chapters.  The generic aggregate/accounting/potential facts are
@@ -3231,14 +3235,14 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   equate net cut flow with `|f|`.  The Ford-Fulkerson direction constructs a cut
   from the set of vertices reachable from `s` in the residual network, shows every
   crossing edge is saturated, and concludes maximality via the cut-capacity bound.
-- Current gap: the full Max-Flow Min-Cut converse direction, and the
-  executable augmenting-path loop.
+- Current gap: define concrete augmentation and prove strict flow-value
+  increase, then use it to complete the Max-Flow Min-Cut converse/equivalence.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
 - Lean source: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
-- Status: `partial` (Lemma 26.7 proved; executable algorithm and counting theorem pending)
-- Model:
+- Status: `partial` (residual-distance infrastructure only)
+- Current declarations:
   - `CLRS.Chapter26.ResidualPathLength` (inductive predicate for path length in the residual network)
   - `CLRS.Chapter26.IsShortestDist` (shortest-path distance in the residual network)
   - `CLRS.Chapter26.ShortestAugmentingPath` (structure for a shortest augmenting path)
@@ -3246,19 +3250,13 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter26.isShortestDist_self` (distance from a vertex to itself is 0)
   - `CLRS.Chapter26.IsShortestDist.unique` (the shortest distance is unique)
   - `CLRS.Chapter26.isShortestDist_triangle` (triangle inequality for residual distances)
-  - `CLRS.Chapter26.exists_pred_on_path` (predecessor on a shortest path)
-  - `CLRS.Chapter26.suffix_path` (the suffix of a path from any vertex to G.t is a residual path)
-  - `CLRS.Chapter26.shortest_path_prefix` (prefix of a shortest path is shortest to its endpoint)
-  - `CLRS.Chapter26.reachable_if_reachable_in_augmented` (augmentation does not create new reachable vertices)
-  - `CLRS.Chapter26.shortest_path_nondec` (**Lemma 26.7**: `δ_f(s,v)` is nondecreasing)
 - Proof pattern: define a path-length inductive predicate for the residual network and the
-  shortest-path distance as the minimal length.  Lemma 26.7 uses strong induction on the new
-  distance; the key case analysis considers whether the last edge on the new shortest path was
-  already present in the old residual network or was newly added by the augmentation.  New edges
-  are reverses of edges on the augmenting path, whose vertices satisfy the exact distance given
-  by their index on the path (the subpath optimality property).
-- Current gap: the executable BFS procedure concrete augmenting loop, and the O(VE²)
-  running-time bound formalized as an explicit counting argument.
+  shortest-path distance as the minimal length, then prove the self-distance,
+  uniqueness, and one-edge triangle helpers.
+- Current gap: prove predecessor and shortest-prefix facts plus the bridge for
+  residual edges created by augmentation, and use them to prove Lemma 26.7.
+  Executable BFS, the concrete Edmonds-Karp loop, and the `O(VE²)` counting
+  theorem remain after that lemma.
 
 ### Section 26.3 - Maximum Bipartite Matching
 
@@ -3278,15 +3276,28 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   matching from every integral flow, and prove the maximum matching/max-flow
   value equivalence (the full CLRS Theorem 26.12).
 
-### Section 26.6 - The Max-Flow Min-Cut Theorem
+### Theorem 26.6 - The Max-Flow Min-Cut Theorem
 
 - Lean source: `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean`
 - Status: `partial`
 - Proved theorem:
   - `CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`
     (the easy direction: equality with a cut capacity implies maximality)
-- Current gap: construct a minimum cut from a maximal flow/no residual
-  augmenting path and package the full max-flow/min-cut equivalence.
+- Current gap: concrete augmentation and strict value increase are needed to
+  derive `maximal ⇒ no augmenting path`; composing that result with the
+  existing reachable-cut argument will yield the converse and full
+  max-flow/min-cut equivalence.
+
+### Chapter 26 remaining order
+
+1. Concrete augmentation, strict flow-value increase, and the full MFMC
+   converse/equivalence.
+2. Lemma 26.7 via predecessor/prefix and augmentation-edge bridges.
+3. Executable BFS/Edmonds-Karp and the `O(VE²)` work theorem.
+4. Matching-flow feasibility, the integral-flow converse, and the maximum-value
+   statement of Theorem 26.12.
+
+Sections 26.4 and 26.5 are deferred outside the current selected milestone.
 
 ## Chapter 27 - Multithreaded Algorithms
 
@@ -3393,7 +3404,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 | B-tree executable deletion semantics | `proved` | For `2 ≤ t`, `composedDelete_keyBag` under `NodeWF` and `composedDeleteRoot_keyBag` under `WellFormed` prove `Multiset.erase` semantics: one requested-key occurrence is removed when present, and an absent request leaves the bag unchanged. `composedDelete_mem_iff_of_ne` and `composedDeleteRoot_mem_iff_of_ne` preserve every different key without `UniqueKeys` or a requested-key-present premise. Raw uniqueness preservation needs `NodeWF + UniqueKeys`; under `WellFormedUnique`, `composedDeleteRoot_not_mem`, `composedDeleteRoot_mem_iff`, `composedDeleteRoot_wellFormedUnique`, `composedDeleteRoot_mem_iff_delete`, and `composedDeleteRoot_search_eq_delete` prove absence, full root membership behavior, combined invariant preservation, and compatibility with specification deletion and membership-oracle search. The bridge does not assert `searchExec` or tree-shape equality. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
 | Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |
-| Generic augmentation through red-black deletion | `future-work` | Section 14.1 threads the size augmentation through executable deletion (`OSRBTree.wellSized_delete`, `toRB_delete`, `redBlackShape_toRB_delete`, `mem_keys_delete`).  The remaining work is the generic Section 14.3 `AugmentedRBTree` mirror of the Chapter 13 deletion pipeline (roughly 300 lines following the Section 14.1 template). |
+| Generic augmentation deletion erasure | `future-work` | Section 14.3 already proves the generic executable deletion pipeline and `AugmentedRBTree.wellAugmented_delete`.  The remaining work is the generic `AugmentedRBTree.toRB_delete` erasure/refinement bridge to Chapter 13's `RBTree.delete`. |
 | Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |
 | Prim's algorithm | `proved` | `PrimTrace` packages dynamic light-edge choices, and `prim_minimum_spanning_tree` proves the direct finite-graph MST conclusion for a complete certified run. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |

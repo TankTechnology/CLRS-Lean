@@ -5,10 +5,9 @@ import CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut
 
 /-! # Chapter 26 - Maximum Flow
 
-Chapter 26 opens the maximum-flow part of the CLRS graph track.  It builds a
-flow-network model on top of the Chapter 22-style finite directed graph
-vocabulary (using a capacity function approach) and formalizes the Ford-Fulkerson
-method.
+Chapter 26 opens the maximum-flow part of the CLRS graph track.  The current
+partial development builds a finite capacity-function model, proves the core
+flow/cut foundation, and exposes infrastructure for the later algorithms.
 
 ## Sections
 
@@ -23,21 +22,23 @@ method.
   {lit}`CLRS.Chapter26.Flow.augmentingPathReachable`,
   {lit}`CLRS.Chapter26.Flow.maximal_of_noAugmentingPath`.
 
-* 26.2 Edmonds-Karp algorithm.
+* 26.2 Edmonds-Karp algorithm (partial).
   Main declarations:
   {lit}`CLRS.Chapter26.ResidualPathLength`,
   {lit}`CLRS.Chapter26.IsShortestDist`,
-  {lit}`CLRS.Chapter26.ShortestAugmentingPath`,
-  {lit}`CLRS.Chapter26.shortest_path_nondec`.
+  {lit}`CLRS.Chapter26.isShortestDist_self`,
+  {lit}`CLRS.Chapter26.IsShortestDist.unique`,
+  {lit}`CLRS.Chapter26.isShortestDist_triangle`, and
+  {lit}`CLRS.Chapter26.ShortestAugmentingPath`.
 
-* 26.3 Maximum bipartite matching.
+* 26.3 Maximum bipartite matching (partial).
   Main declarations:
   {lit}`CLRS.Chapter26.BipartiteGraph`,
   {lit}`CLRS.Chapter26.Matching`,
   {lit}`CLRS.Chapter26.toFlowNetwork`,
   {lit}`CLRS.Chapter26.matchingToFlow_value`.
 
-* 26.6 Max-Flow Min-Cut Theorem.
+* Theorem 26.6, Max-Flow Min-Cut (partial).
   Main declarations:
   {lit}`CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`.
 
@@ -50,22 +51,33 @@ conservation.  The section proves Lemma 26.5 (net flow across any cut equals
 flow value) and the generic Ford-Fulkerson correctness theorem: if there is no
 augmenting path in the residual network, the flow is maximal.
 
-Section 26.2 defines the residual path-length predicate {lit}`ResidualPathLength`
-and the shortest-path distance {lit}`IsShortestDist`.  It proves the
-Edmonds-Karp monotonic distance lemma (Lemma 26.7): after augmenting along a
-shortest augmenting path, the distances {lit}`δ_f(s,v)` in the residual network
-are nondecreasing.  This is the key lemma for the `O(VE²)` running-time bound.
+Section 26.2 defines residual path lengths and shortest residual distances.  It
+proves the self-distance, uniqueness, and one-edge triangle helpers, and bundles
+a shortest augmenting path.  The predecessor/prefix and augmentation-edge
+bridges needed for Lemma 26.7 have not yet been proved.
 
-The companion file `Section_26_6_MaxFlow_MinCut` proves the easy direction of the
+Section 26.3 defines bipartite graphs, matchings, the unit-capacity reduction,
+and a matching-induced flow function.  Its current theorem
+{lit}`matchingToFlow_value` is conditional: it assumes that the caller already
+has a feasible {lit}`Flow` whose function equals {lit}`matchingFlowFun`.  It
+does not construct that feasible flow or prove the integral-flow converse.
+
+The companion file `Section_26_6_MaxFlow_MinCut` proves one direction of the
 Max-Flow Min-Cut Theorem: if `|f| = c(S,T)` for some cut, then `f` is maximal.
-The converse direction (maximal `f` implies existence of such a cut) and the
-full three-condition equivalence are deferred.
+The converse and the full three-condition equivalence are deferred.
 
 ## Deferred Work
 
-* The converse (and constructive) direction of the Max-Flow Min-Cut Theorem.
-* The executable BFS procedure, concrete Edmonds-Karp augmenting loop, and the
-  augmentation-count/{lit}`O(VE²)` theorem built from Lemma 26.7.
+* Define concrete augmentation, prove strict flow-value increase, and complete
+  the constructive Max-Flow Min-Cut converse/equivalence.
+* Prove Lemma 26.7 using predecessor/prefix facts and a bridge characterizing
+  residual edges introduced by augmentation.
+* Implement BFS and the Edmonds-Karp loop, then prove the {lit}`O(VE²)` work
+  bound.
+* Construct feasible flows from matchings, prove the integral-flow converse,
+  and derive the maximum-value statement of Theorem 26.12.
+
+Sections 26.4 and 26.5 are deferred outside the current selected milestone.
 -/
 
 namespace CLRS

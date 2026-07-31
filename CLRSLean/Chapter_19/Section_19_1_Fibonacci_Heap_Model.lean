@@ -114,7 +114,7 @@ Main results:
   monotone for arbitrary indices.
 - Theorems {lit}`FibHeap.fibLowerBound_add_two_ge_double` and
   {lit}`FibHeap.fibLowerBound_even_lower_bound`: the lower-bound sequence has
-  the first exponential-growth bridge needed by the future degree proof.
+  the exponential-growth bridge reused by Section 19.4's degree proof.
 - Theorem {lit}`FibHeap.fibLowerBound_half_lower_bound`: the exponential-growth
   bridge is available at half of any degree index.
 - Theorems {lit}`FibHeap.degreeIndex_half_le_log_card` and
@@ -128,7 +128,10 @@ Current gaps:
 
 - Handles, duplicate keys, consolidation arrays, and destructive pointer
   mutation are future refinement targets.
-- The full subtree-size-to-logarithmic-degree theorem remains future work.
+- Section 19.4 proves the true subtree-size and logarithmic-degree theorems for
+  {lit}`FTree.Wellformed`; connecting that tree model to an executable pointer
+  forest with consolidation, cascading cuts, and amortized costs remains a
+  refinement target.
 -/
 
 namespace CLRS

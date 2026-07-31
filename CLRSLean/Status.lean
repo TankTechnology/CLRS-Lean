@@ -39,6 +39,11 @@ the detailed maintainer ledger.
   This metric counts visited heapify frames and nontrivial extraction
   transitions, but not build-loop orchestration, guards, list-operation costs,
   or RAM semantics; tight textbook bounds remain refinements.
+* **Chapter 7 represented sections:** functional and mutable-array quicksort
+  correctness, comparison recurrences, random-permutation symmetry, pairwise
+  comparison probability, the sum-of-probabilities bridge
+  ({lit}`sum_compared_prob_eq_expectedComparisons`), and the
+  {lit}`Theta(n log n)` expected-comparison bound.
 * **Chapter 8 correctness:** represented counting-sort, radix-sort, and
   bucket-sort correctness.  The CLRS unit-cost bucket-sort random variable is
   {lit}`CLRS.Chapter08.textbookBucketSortCost`; its expectation identity is
@@ -64,6 +69,9 @@ the detailed maintainer ledger.
 * **Chapter 23 correctness and functional implementation:** canonical exchange,
   stateful Kruskal, executable indexed-queue Prim, and their algorithm-level
   work bounds.
+* **Chapter 24 represented sections:** Bellman-Ford, DAG shortest paths,
+  Dijkstra's greedy theorem, the proved initialization/loop invariant bridge
+  and final {lit}`dijkstraLoop_correct` theorem, and difference constraints.
 * **Chapter 25 correctness:** FASTER-APSP, Floyd-Warshall correctness,
   predecessor-path reconstruction with walk and weight guarantees,
   negative-cycle detection, transitive closure, and Johnson's end-to-end
@@ -77,12 +85,19 @@ the detailed maintainer ledger.
   operations ({lit}`redBlackShape_insert`, {lit}`redBlackShape_delete` via the
   {lit}`baldL`/{lit}`baldR`/{lit}`splitMin`/{lit}`join` doubly-black
   rebalancing pipeline), and the logarithmic-height theorem (CLRS Lemma 13.1).
+* **Chapter 14 correctness:** order-statistic and interval-tree augmentation,
+  including the size-specialized deletion refinement and the generic
+  {lit}`AugmentedRBTree.wellAugmented_delete` invariant-preservation pipeline.
+  The generic {lit}`toRB_delete` erasure/refinement lemma and pointer/RAM
+  semantics remain separate refinements.
 * **Chapter 15 represented sections:** rod cutting, matrix chain, LCS, and
   optimal BST optimality with executable recurrence/reconstruction layers.
 * **Chapter 16:** activity selection, the greedy meta-theorem, Huffman coding,
   matroid greedy, and task scheduling.
-* **Chapter 17 represented sections:** aggregate, accounting, and potential
-  methods plus stack/counter and dynamic-table amortized analyses.
+* **Chapter 17 selected sections:** the represented aggregate, accounting, and
+  potential methods plus stack/counter and dynamic-table amortized analyses are
+  complete.  Allocator constants, lower-level RAM semantics, and broader
+  interleaved-trace packaging are optional refinements.
 * **Chapter 18 correctness:** separator-guided search, real top-level insertion
   with full-root splitting, exact executable deletion, and the structural
   minimum-key/logarithmic-height theorem.  The count theorem uses key slots and
@@ -102,30 +117,20 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapter 7:** functional and mutable-array correctness, comparison
-  recurrences, random-permutation symmetry, and pairwise comparison probability
-  are proved.  The total-comparison random variable and expectation-sum bridge
-  remain.
-* **Chapter 14:** order-statistic augmentation (including the size invariant
-  threaded through executable red-black insertion and deletion via
-  {lit}`OSRBTree.wellSized_insert` and {lit}`OSRBTree.wellSized_delete`),
-  generic local augmentation facts, and interval-search correctness exist.  The
-  remaining core group is threading the generic Section 14.3 augmentation
-  interface ({lit}`AugmentedRBTree`) through executable red-black deletion.
 * **Chapter 19:** Fibonacci heaps have substantial mathematical and size-level
-  specifications.  Executable heap-forest operations and their cost analysis
-  remain central theorem groups.
-* **Chapter 24:** Bellman-Ford, DAG SSSP, Dijkstra's greedy theorem, a concrete
-  state/step/loop skeleton, and difference constraints are represented.  The
-  loop still needs an initialization-to-invariant bridge and final distance-correctness
-  theorem.
+  specifications.  Section 19.4 proves the {lit}`FTree.Wellformed` subtree-size
+  and true logarithmic-degree bounds, equal-degree {lit}`link_wellformed`, and
+  the tight {lit}`minTree` witness.  Executable heap forests, consolidation,
+  cascading cuts, and their amortized costs remain central theorem groups.
 * **Chapter 26:** the flow model, generic no-augmenting-path maximality,
-  Edmonds-Karp monotonic distance, one MFMC direction, and the Section 26.3
+  residual-distance infrastructure, one MFMC direction, and the Section 26.3
   bipartite-network model with a conditional matching-flow value theorem are
-  proved.  The remaining groups are the MFMC converse, an executable
-  Edmonds-Karp loop with its {lit}`O(VE²)` theorem, and the full Theorem 26.12
-  bridge: feasible-flow construction from a matching, the integral-flow
-  converse, and maximum matching/max-flow value equivalence.
+  proved.  The four remaining groups are concrete augmentation/strict value
+  increase plus the MFMC converse/equivalence; Lemma 26.7 with its
+  predecessor/prefix and augmentation-edge bridges; executable BFS and the
+  Edmonds-Karp loop with its {lit}`O(VE²)` theorem; and feasible matching-flow
+  construction, the integral-flow converse, and the maximum-value statement of
+  Theorem 26.12.
 * **Chapter 27:** the dynamic-multithreading model (computation DAG with an
   honestly computed longest-path span, spawn/sync trees, balanced
   parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
@@ -163,15 +168,14 @@ milestone:
 
 ## Highest-Value Open Proof Groups
 
-1. Close Chapter 24 by aligning Dijkstra initialization with its invariant and
-   proving final loop distance correctness.
-2. Complete the MFMC converse, the executable Edmonds-Karp loop and counting
-   theorem, and the full bidirectional matching/integral-flow and maximum-value
-   equivalence of Theorem 26.12.
-3. Thread the generic Chapter 14 augmentation interface
-   ({lit}`AugmentedRBTree`) through executable red-black deletion, mirroring
-   the Chapter 13 {lit}`del` pipeline.
-4. Close Chapter 7's total-comparison expectation bridge.
+1. Define concrete flow augmentation, prove strict value increase, and compose
+   it with the existing cut argument to obtain the MFMC converse/equivalence.
+2. Prove Lemma 26.7 from predecessor/prefix facts and an augmentation-edge
+   bridge.
+3. Implement BFS and the Edmonds-Karp loop and prove the {lit}`O(VE²)` work
+   theorem.
+4. Complete Theorem 26.12 with matching-flow feasibility, the integral-flow
+   converse, and maximum matching/max-flow value equality.
 
 ## Reader Contract
 
