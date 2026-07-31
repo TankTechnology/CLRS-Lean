@@ -33,6 +33,16 @@ added only when the corresponding definitions or theorems are implemented.
 #check CLRS.Chapter26.capFunc
 #check CLRS.Chapter26.toFlowNetwork
 #check CLRS.Chapter26.matchingFlowFun
+#check CLRS.Chapter26.matchingFlowFunSummand
+#check CLRS.Chapter26.matchingToFlow
 #check CLRS.Chapter26.matchingToFlow_value
+#check CLRS.Chapter26.Flow.IsIntegral
+#check CLRS.Chapter26.matchingOfIntegralFlow
+#check CLRS.Chapter26.matchingOfIntegralFlow_size
+#check CLRS.Chapter26.maxMatching_eq_maxFlow_value
+#check CLRS.Chapter26.zeroFlow
+#check CLRS.Chapter26.augmentOnce
+#check CLRS.Chapter26.iterAugment
+#check CLRS.Chapter26.exists_noAugmentingPath_iter
 
 #check CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal

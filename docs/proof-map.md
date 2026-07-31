@@ -3306,20 +3306,49 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 26.3 - Maximum Bipartite Matching
 
 - Lean source: `CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean`
-- Status: `partial`
+- Status: `proved`
 - Represented model:
   - `CLRS.Chapter26.BipartiteGraph`
   - `CLRS.Chapter26.Matching`
   - `CLRS.Chapter26.toFlowNetwork`
-  - `CLRS.Chapter26.matchingFlowFun`
-- Proved theorem:
-  - `CLRS.Chapter26.matchingToFlow_value`: if the caller supplies a feasible
-    `Flow φ` whose function is `matchingFlowFun M`, then `φ.value = M.size`.
-    This is a conditional value identity; it does not construct that feasible
-    flow.
-- Current gap: construct a feasible flow from every matching, recover a
-  matching from every integral flow, and prove the maximum matching/max-flow
-  value equivalence (the full CLRS Theorem 26.12).
+  - `CLRS.Chapter26.matchingFlowFun` and `matchingFlowFunSummand`
+- Flow construction (value direction):
+  - `CLRS.Chapter26.matchingFlowFun_skew_symm`, `matchingFlowFun_capacity`,
+    and `matchingFlowFun_conservation`: the matching-induced function is a
+    feasible flow
+  - `CLRS.Chapter26.matchingToFlow`: the feasible flow induced by a matching
+  - `CLRS.Chapter26.matchingToFlow_value`: its value equals `|M|` (no longer
+    conditional)
+- Integral-flow converse:
+  - `CLRS.Chapter26.Flow.IsIntegral`: integer-valued flow predicate
+  - `CLRS.Chapter26.matchingFlow_lr_bounds` and
+    `matchingFlow_conservation_left/right`: in the unit-capacity network the
+    flow on `L→R` pairs lies in `[0,1]` and conservation holds at every
+    partition vertex
+  - `CLRS.Chapter26.matchingOfIntegralFlow`: the matching recovered from an
+    integral flow (all `L→R` pairs carrying one unit)
+  - `CLRS.Chapter26.matchingOfIntegralFlow_size`: its size equals the flow
+    value
+- Integral maximum flow (Ford-Fulkerson iteration):
+  - `CLRS.Chapter26.zeroFlow`, `augmentOnce`, and `iterAugment`: repeated
+    augmentation from the zero flow
+  - `CLRS.Chapter26.bottleneck_ge_one` and `IsIntegral_augment`: integrality
+    and value increase by at least one per step
+  - `CLRS.Chapter26.exists_noAugmentingPath_iter`: iteration terminates at a
+    flow without augmenting paths (value bound by the integral source-side
+    cut capacity)
+- Main theorem:
+  - `CLRS.Chapter26.maxMatching_eq_maxFlow_value` (**Theorem 26.12**): there
+    is a matching at least as large as every matching, and a maximal flow
+    whose value is exactly its size
+- Proof pattern: the disjoint partitions force every reverse capacity to
+  zero, so unit-capacity bounds give `f(l,r) ∈ {0,1}` on `L→R` pairs and the
+  conservation identities reduce recovery to a cardinality count.  The
+  maximum-flow direction iterates augmentation from the zero flow; each step
+  increases the integral value by at least one, so termination is bounded by
+  the integral source-side cut capacity, and the no-augmenting-path theorem
+  yields maximality.
+- Current gap: none within Section 26.3.
 
 ### Theorem 26.6 - The Max-Flow Min-Cut Theorem
 
