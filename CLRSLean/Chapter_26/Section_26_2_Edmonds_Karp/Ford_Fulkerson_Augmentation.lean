@@ -4,14 +4,31 @@ import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
 /-!
 # 26.2. Ford--Fulkerson Augmentation
 
-This file begins the constructive half of the Ford--Fulkerson method.  It
-packages a simple residual path as an explicit list of vertices and defines
-the path bottleneck as the minimum residual capacity of its directed edges.
+This file formalizes the constructive augmentation step of the Ford--Fulkerson
+method.  It packages a simple residual path as an explicit list of vertices,
+defines its bottleneck, constructs the resulting feasible flow, and proves the
+exact and strict increase in flow value.  It also converts residual
+source-to-sink reachability into a concrete simple augmenting path and derives
+non-maximality from that witness.
 
 The directed-edge representation is important for networks with anti-parallel
 capacities: traversing an ordered edge always consumes its directed residual
 capacity, whether that capacity comes from unused forward capacity,
 cancellation of existing flow, or both.
+
+Main results:
+
+- `Flow.augmentBy_value` and `Flow.augment_value`: augmentation increases the
+  flow value by exactly the selected amount or path bottleneck.
+- `Flow.value_lt_augment`: full bottleneck augmentation strictly increases the
+  flow value.
+- `Flow.hasAugmentingPath_iff_nonempty_augmentingPath`: residual reachability
+  is equivalent to an explicit simple augmenting path.
+- `Flow.not_maximal_of_hasAugmentingPath`: a flow with an augmenting path is
+  not maximal.
+
+Current gaps: none for the concrete mathematical augmentation layer.  Lemma
+26.7 and the executable Edmonds--Karp loop remain in the companion analysis.
 -/
 
 set_option autoImplicit true
@@ -401,6 +418,148 @@ theorem value_lt_augment {V : Type*} [Fintype V] [DecidableEq V]
     φ.value < (φ.augment p).value := by
   rw [φ.augment_value p]
   linarith [p.bottleneck_pos]
+
+/-! ## Reachability bridge and non-maximality -/
+
+private theorem exists_dup_decomp {α : Type*} [DecidableEq α] :
+    ∀ {xs : List α}, ¬xs.Nodup →
+      ∃ (x : α) (left middle right : List α),
+        xs = left ++ x :: middle ++ x :: right := by
+  intro xs
+  induction xs with
+  | nil =>
+      intro h
+      simp at h
+  | cons a tail ih =>
+      intro h
+      by_cases ha : a ∈ tail
+      · obtain ⟨middle, right, htail⟩ := List.mem_iff_append.mp ha
+        exact ⟨a, [], middle, right, by rw [htail]; simp⟩
+      · have htail : ¬tail.Nodup :=
+          fun htail => h (List.nodup_cons.mpr ⟨ha, htail⟩)
+        obtain ⟨x, left, middle, right, htail_eq⟩ := ih htail
+        exact ⟨x, a :: left, middle, right, by rw [htail_eq]; simp⟩
+
+private theorem exists_nodup_chain_same_ends
+    {α : Type*} [DecidableEq α] {r : α → α → Prop} :
+    ∀ (n : ℕ) (xs : List α), xs.length ≤ n → xs ≠ [] →
+      xs.IsChain r →
+      ∃ ys : List α,
+        ys ≠ [] ∧ ys.IsChain r ∧ ys.head? = xs.head? ∧
+          ys.getLast? = xs.getLast? ∧ ys.Nodup := by
+  intro n
+  induction n with
+  | zero =>
+      intro xs hlen hne _
+      have hnil : xs = [] := List.length_eq_zero_iff.mp (Nat.le_zero.mp hlen)
+      exact (hne hnil).elim
+  | succ n ih =>
+      intro xs hlen hne hchain
+      by_cases hnodup : xs.Nodup
+      · exact ⟨xs, hne, hchain, rfl, rfl, hnodup⟩
+      · obtain ⟨x, left, middle, right, hxs⟩ := exists_dup_decomp hnodup
+        let shorter := left ++ x :: right
+        have hleft_middle : (left ++ x :: middle) <+: xs := by
+          refine ⟨x :: right, ?_⟩
+          rw [hxs]
+        have hright : (x :: right) <:+ xs := by
+          refine ⟨left ++ x :: middle, ?_⟩
+          rw [hxs]
+        have hchain_left_middle : (left ++ x :: middle).IsChain r :=
+          hchain.prefix hleft_middle
+        have hchain_left : left.IsChain r := hchain_left_middle.left_of_append
+        have hchain_right : (x :: right).IsChain r := hchain.suffix hright
+        have hchain_shorter : shorter.IsChain r := by
+          dsimp [shorter]
+          refine hchain_left.append hchain_right ?_
+          intro a ha b hb
+          have hbx : b = x := (show x = b by simpa using hb).symm
+          rw [hbx]
+          exact (List.isChain_append.1 hchain_left_middle).2.2 a ha x (by simp)
+        have hhead_shorter : shorter.head? = xs.head? := by
+          dsimp [shorter]
+          rw [hxs]
+          cases left <;> simp
+        have hlast_shorter : shorter.getLast? = xs.getLast? := by
+          dsimp [shorter]
+          have hxright : (x :: right).getLast? = xs.getLast? := by
+            rw [hxs, List.getLast?_append_of_ne_nil _ (by simp : (x :: right) ≠ [])]
+          rw [List.getLast?_append_of_ne_nil _ (by simp : (x :: right) ≠ [])]
+          exact hxright
+        have hshorter_ne : shorter ≠ [] := by
+          dsimp [shorter]
+          simp
+        have hlen_xs : xs.length = left.length + middle.length + right.length + 2 := by
+          rw [hxs]
+          simp only [List.length_append, List.length_cons]
+          omega
+        have hlen_shorter : shorter.length = left.length + right.length + 1 := by
+          dsimp [shorter]
+          simp only [List.length_append, List.length_cons]
+          omega
+        have hshorter_le : shorter.length ≤ n := by omega
+        obtain ⟨ys, hys_ne, hys_chain, hys_head, hys_last, hys_nodup⟩ :=
+          ih shorter hshorter_le hshorter_ne hchain_shorter
+        exact ⟨ys, hys_ne, hys_chain, hys_head.trans hhead_shorter,
+          hys_last.trans hlast_shorter, hys_nodup⟩
+
+/-- Residual reachability from source to sink is equivalent to the existence
+of an explicit simple augmenting path. -/
+theorem hasAugmentingPath_iff_nonempty_augmentingPath
+    {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} {φ : Flow V G} :
+    φ.hasAugmentingPath ↔ Nonempty (AugmentingPath φ) := by
+  constructor
+  · intro hreach
+    rcases List.exists_isChain_ne_nil_of_relationReflTransGen hreach with
+      ⟨xs, hxs_ne, hxs_chain, hxs_head, hxs_last⟩
+    obtain ⟨ys, hys_ne, hys_chain, hys_head, hys_last, hys_nodup⟩ :=
+      exists_nodup_chain_same_ends xs.length xs le_rfl hxs_ne hxs_chain
+    have hxs_head_option : xs.head? = some G.s :=
+      (List.head?_eq_some_head hxs_ne).trans (congrArg some hxs_head)
+    have hxs_last_option : xs.getLast? = some G.t :=
+      (List.getLast?_eq_some_getLast hxs_ne).trans (congrArg some hxs_last)
+    exact ⟨{
+      vertices := ys
+      chain := hys_chain
+      head_eq := hys_head.trans hxs_head_option
+      last_eq := hys_last.trans hxs_last_option
+      nodup := hys_nodup
+    }⟩
+  · rintro ⟨path⟩
+    have hvertices_ne : path.vertices ≠ [] := by
+      intro hnil
+      simpa [hnil] using path.head_eq
+    have hhead : path.vertices.head hvertices_ne = G.s := by
+      have h := path.head_eq
+      rw [List.head?_eq_some_head hvertices_ne] at h
+      exact Option.some.inj h
+    have hlast : path.vertices.getLast hvertices_ne = G.t := by
+      have h := path.last_eq
+      rw [List.getLast?_eq_some_getLast hvertices_ne] at h
+      exact Option.some.inj h
+    have hreach := List.relationReflTransGen_of_exists_isChain
+      path.vertices path.chain hvertices_ne
+    simpa [hasAugmentingPath, augmentingPathReachable, hhead, hlast]
+      using hreach
+
+/-- A concrete augmenting path witnesses that the current flow is not
+maximal. -/
+theorem not_maximal_of_augmentingPath
+    {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (φ : Flow V G) (p : AugmentingPath φ) :
+    ¬φ.isMaximal := by
+  intro hmaximal
+  exact (not_le_of_gt (φ.value_lt_augment p)) (hmaximal (φ.augment p))
+
+/-- Residual source-to-sink reachability implies that the current flow is not
+maximal. -/
+theorem not_maximal_of_hasAugmentingPath
+    {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (φ : Flow V G) (hpath : φ.hasAugmentingPath) :
+    ¬φ.isMaximal := by
+  rcases hasAugmentingPath_iff_nonempty_augmentingPath.mp hpath with ⟨p⟩
+  exact φ.not_maximal_of_augmentingPath p
 
 end Flow
 

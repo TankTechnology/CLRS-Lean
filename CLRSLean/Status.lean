@@ -122,12 +122,12 @@ the detailed maintainer ledger.
   and true logarithmic-degree bounds, equal-degree {lit}`link_wellformed`, and
   the tight {lit}`minTree` witness.  Executable heap forests, consolidation,
   cascading cuts, and their amortized costs remain central theorem groups.
-* **Chapter 26:** the flow model, generic no-augmenting-path maximality,
-  residual-distance infrastructure, one MFMC direction, and the Section 26.3
+* **Chapter 26:** the flow model, concrete residual-path augmentation with exact
+  and strict value increase, the residual-reachability bridge, the full MFMC
+  equivalence, residual-distance infrastructure, and the Section 26.3
   bipartite-network model with a conditional matching-flow value theorem are
-  proved.  The four remaining groups are concrete augmentation/strict value
-  increase plus the MFMC converse/equivalence; Lemma 26.7 with its
-  predecessor/prefix and augmentation-edge bridges; executable BFS and the
+  proved.  The three remaining groups are Lemma 26.7 with its predecessor,
+  shortest-prefix, and augmentation-edge bridges; executable BFS and the
   Edmonds-Karp loop with its {lit}`O(VE²)` theorem; and feasible matching-flow
   construction, the integral-flow converse, and the maximum-value statement of
   Theorem 26.12.
@@ -168,13 +168,11 @@ milestone:
 
 ## Highest-Value Open Proof Groups
 
-1. Define concrete flow augmentation, prove strict value increase, and compose
-   it with the existing cut argument to obtain the MFMC converse/equivalence.
-2. Prove Lemma 26.7 from predecessor/prefix facts and an augmentation-edge
+1. Prove Lemma 26.7 from predecessor/prefix facts and an augmentation-edge
    bridge.
-3. Implement BFS and the Edmonds-Karp loop and prove the {lit}`O(VE²)` work
+2. Implement BFS and the Edmonds-Karp loop and prove the {lit}`O(VE²)` work
    theorem.
-4. Complete Theorem 26.12 with matching-flow feasibility, the integral-flow
+3. Complete Theorem 26.12 with matching-flow feasibility, the integral-flow
    converse, and maximum matching/max-flow value equality.
 
 ## Reader Contract

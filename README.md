@@ -57,7 +57,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 23 | Minimum Spanning Trees | 🟢 correctness | 52 | — |
 | 24 | Single-Source Shortest Paths | 🟡 sections | 22 | — |
 | 25 | All-Pairs Shortest Paths | 🟢 correctness | 22 | — |
-| 26 | Maximum Flow | 🟠 partial | 8 | Lemma 26.7 with the predecessor, shortest-prefix, and… |
+| 26 | Maximum Flow | 🟠 partial | 9 | Lemma 26.7 with the predecessor, shortest-prefix, and… |
 | 27 | Multithreaded Algorithms | 🟠 partial | 28 | Greedy-scheduler bound (Theorem 27.1/27.2); all-input… |
 | 28 | Matrix Operations | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 29 | Linear Programming | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
@@ -67,7 +67,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
 | 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1497 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1498 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·

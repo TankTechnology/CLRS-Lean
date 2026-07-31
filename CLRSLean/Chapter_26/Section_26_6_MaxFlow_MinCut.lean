@@ -1,28 +1,28 @@
 import Mathlib
-import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
+import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
 
 /-!
-# Theorem 26.6. Max-Flow Min-Cut Theorem (partial)
+# Theorem 26.6. Max-Flow Min-Cut Theorem
 
-This file proves part of the Max-Flow Min-Cut Theorem (CLRS Theorem 26.6).
+This file proves the complete Max-Flow Min-Cut equivalence (CLRS Theorem 26.6).
+For a feasible flow, the following conditions are equivalent:
 
-**Proved**:
-* `eq_cutCapacity_implies_maximal`: if `|f| = c(S,T)` for some cut `(S,T)` with `s ∈ S`, `t ∉ S`,
-  then `f` is maximal (the easy direction, using `value_le_cut_capacity`).
+- the flow is maximal;
+- the residual network has no source-to-sink augmenting path;
+- some source-to-sink cut has capacity equal to the flow value.
 
-**Missing**:
-* The forward direction of the equivalence: `maximal ⇒ ∃ cut with |f| = c(S,T)`.
-  This requires constructing the cut from the residual-network reachability set and proving
-  `|f| = c(S,Sᶜ)` when `f` is maximal. The construction is already written in
-  `maximal_of_noAugmentingPath` for the case `¬hasAugmentingPath`; the converse
-  `maximal ⇒ ¬hasAugmentingPath` requires the constructive augmentation lemma
-  (`hasAugmentingPath ⇒ ¬isMaximal`) which is deferred to a follow-up formalization.
+Main results:
 
-* The three-condition equivalence `maximal ↔ no augmenting path ↔ |f| = c(S,T)` is not yet
-  proved as a single chain.  The forward implication `no augmenting path ⇒ maximal` is already
-  proved in `Section_26_1_Flow_Networks` as `Flow.maximal_of_noAugmentingPath`.
+- `Flow.eq_cutCapacity_implies_maximal`: equality with one cut capacity
+  certifies maximality.
+- `Flow.maximal_iff_noAugmentingPath`: maximality is equivalent to the absence
+  of an augmenting path.
+- `Flow.maximal_iff_exists_cut_value_eq`: maximality is equivalent to the
+  existence of a cut whose capacity equals the flow value.
 
-**Status**: partial.
+**Current gaps**: none for the mathematical Max-Flow Min-Cut equivalence.
+Executable Ford--Fulkerson and Edmonds--Karp algorithms are developed
+separately.
 -/
 
 set_option autoImplicit true
@@ -40,7 +40,7 @@ lemma forall_zip_edges_of_isChain {V : Type*} {r : V → V → Prop} {a : V} {l 
     · left; rfl
     · right; refine ⟨_, _, rfl⟩
   rcases h_eq with (hl | ⟨b, l', hl⟩)
-  · subst hl; cases h <;> simp
+  · subst hl; simp
   · subst hl
     have h_cons_cons := (List.isChain_cons_cons (a := a) (b := b) (l := l')).mp h
     rcases h_cons_cons with ⟨h_rel, h_chain⟩
@@ -61,6 +61,31 @@ theorem Flow.eq_cutCapacity_implies_maximal {V : Type*} [Fintype V] [DecidableEq
   have hψ_le : ψ.value ≤ Finset.sum S (fun u => Finset.sum (Sᶜ) (fun v => G.c u v)) :=
     Flow.value_le_cut_capacity φ ψ S hs ht
   linarith
+
+/-- A feasible flow is maximal exactly when its residual network contains no
+source-to-sink augmenting path. -/
+theorem Flow.maximal_iff_noAugmentingPath {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (φ : Flow V G) :
+    φ.isMaximal ↔ ¬φ.hasAugmentingPath := by
+  constructor
+  · intro hmax hpath
+    exact φ.not_maximal_of_hasAugmentingPath hpath hmax
+  · exact φ.maximal_of_noAugmentingPath
+
+/-- **Max-Flow Min-Cut Theorem (CLRS Theorem 26.6).** A feasible flow is
+maximal exactly when some cut separating source and sink has capacity equal to
+the flow value. -/
+theorem Flow.maximal_iff_exists_cut_value_eq {V : Type*} [Fintype V]
+    [DecidableEq V] {G : FlowNetwork V} (φ : Flow V G) :
+    φ.isMaximal ↔
+      ∃ S : Finset V, G.s ∈ S ∧ G.t ∉ S ∧
+        φ.value = Finset.sum S (fun u => Finset.sum (Sᶜ) (fun v => G.c u v)) := by
+  constructor
+  · intro hmax
+    exact φ.exists_cut_value_eq_of_noAugmentingPath
+      ((φ.maximal_iff_noAugmentingPath).mp hmax)
+  · rintro ⟨S, hs, ht, hvalue⟩
+    exact φ.eq_cutCapacity_implies_maximal S hs ht hvalue
 
 end Chapter26
 end CLRS
