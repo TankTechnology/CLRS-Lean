@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search
+import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.HeightBound
 import CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant
@@ -50,6 +51,12 @@ together with exact failed membership
 specifications and direct failed-membership
 preservation wrappers after split, insert, and delete.
 
+Section 18.1 now also connects the structural invariants to the textbook
+height analysis.  {lit}`totalKeys` counts represented key slots without a
+uniqueness premise; the root lower bound explicitly separates the legal empty
+tree, while {lit}`wellFormed_height_log_bound` applies to every
+{lit}`WellFormed` tree and packages the CLRS logarithmic-height theorem.
+
 Section 18.2 retains the flat {lit}`insert` as its specification layer and now
 proves the real top-level CLRS insertion operation {lit}`insertRoot`.
 {lit}`splitRoot` installs a full old root below a transient empty parent and
@@ -79,7 +86,8 @@ tree shape.
 
 ## Sections
 
-* 18.1 B-tree model and search: {lit}`partial`.
+* 18.1 B-tree model, search, and height bound: proved for the current
+  functional correctness model.
   Main results:
   {lit}`CLRS.Chapter18.BTree.search_correct`,
   {lit}`CLRS.Chapter18.BTree.search_true_iff`,
@@ -100,8 +108,15 @@ tree shape.
   {lit}`CLRS.Chapter18.BTree.one_le_minKeys`,
   {lit}`CLRS.Chapter18.BTree.minKeys_lower_bound`,
   {lit}`CLRS.Chapter18.BTree.minKeys_succ`,
-  {lit}`CLRS.Chapter18.BTree.minKeys_le_succ`, and
-  {lit}`CLRS.Chapter18.BTree.minKeys_monotone_height`.
+  {lit}`CLRS.Chapter18.BTree.minKeys_le_succ`,
+  {lit}`CLRS.Chapter18.BTree.minKeys_monotone_height`,
+  {lit}`CLRS.Chapter18.BTree.totalKeys`,
+  {lit}`CLRS.Chapter18.BTree.totalKeys_node`,
+  {lit}`CLRS.Chapter18.BTree.nonRoot_totalKeys_add_one_lower_bound`,
+  {lit}`CLRS.Chapter18.BTree.wellFormed_empty_or_totalKeys_add_one_lower_bound`,
+  {lit}`CLRS.Chapter18.BTree.wellFormed_empty_or_minKeys_le_totalKeys`,
+  {lit}`CLRS.Chapter18.BTree.wellFormed_minKeys_le_totalKeys`, and
+  {lit}`CLRS.Chapter18.BTree.wellFormed_height_log_bound`.
 * 18.2 B-tree insertion: proved for the current functional correctness model.
   Main results:
   {lit}`CLRS.Chapter18.BTree.splitChild_preserves_model`,
@@ -213,15 +228,13 @@ tree shape.
   {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_search_eq_delete`, and
   {lit}`CLRS.Chapter18.BTree.composedDeleteRoot_correct`.
 
-## Current Gaps
+## Completion Boundary
 
-Top-level insertion and structural preservation plus exact
-{lit}`Multiset.erase` deletion semantics under the documented assumptions are
-complete for the current functional B-tree model.  The chapter remains
-{lit}`partial` for exactly one core group: a structural total-key lower bound
-derived from B-tree height, including the legal empty-root boundary, packaged
-as the CLRS logarithmic height theorem.  Disk-page layout, pointer mutation,
-I/O counts, and RAM costs are optional lower-level refinements.
+Search, top-level insertion and structural preservation, exact
+{lit}`Multiset.erase` deletion semantics, and the structural total-key and
+logarithmic-height bounds are complete under the documented assumptions for
+the current functional B-tree model.  Disk-page layout, pointer mutation, I/O
+counts, and RAM costs remain optional lower-level refinements.
 -/
 
 namespace CLRS
