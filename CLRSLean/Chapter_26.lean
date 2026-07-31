@@ -51,12 +51,17 @@ exposes infrastructure for the later algorithms.
   {lit}`CLRS.Chapter26.ShortestAugmentingPath.exists_shortestDist_le_augment`,
   and {lit}`CLRS.Chapter26.shortest_path_nondec` (Lemma 26.7).
 
-* 26.3 Maximum bipartite matching (partial).
+* 26.3 Maximum bipartite matching.
   Main declarations:
   {lit}`CLRS.Chapter26.BipartiteGraph`,
   {lit}`CLRS.Chapter26.Matching`,
   {lit}`CLRS.Chapter26.toFlowNetwork`,
-  {lit}`CLRS.Chapter26.matchingToFlow_value`.
+  {lit}`CLRS.Chapter26.matchingToFlow`,
+  {lit}`CLRS.Chapter26.matchingToFlow_value`,
+  {lit}`CLRS.Chapter26.matchingOfIntegralFlow`,
+  {lit}`CLRS.Chapter26.matchingOfIntegralFlow_size`, and
+  {lit}`CLRS.Chapter26.maxMatching_eq_maxFlow_value`
+  (Theorem 26.12).
 
 * Theorem 26.6, Max-Flow Min-Cut.
   Main declarations:
@@ -86,11 +91,14 @@ new residual edges introduced by augmentation, and combines those bridges into
 the monotonic residual-distance theorem of Lemma 26.7.  Executable BFS and the
 full Edmonds-Karp loop remain separate implementation targets.
 
-Section 26.3 defines bipartite graphs, matchings, the unit-capacity reduction,
-and a matching-induced flow function.  Its current theorem
-{lit}`matchingToFlow_value` is conditional: it assumes that the caller already
-has a feasible {lit}`Flow` whose function equals {lit}`matchingFlowFun`.  It
-does not construct that feasible flow or prove the integral-flow converse.
+Section 26.3 defines bipartite graphs, matchings, and the unit-capacity
+reduction.  It constructs the feasible flow induced by every matching
+({lit}`matchingToFlow`) with value equal to its size, recovers a matching of
+size `v` from every integral flow of value `v` ({lit}`matchingOfIntegralFlow`),
+and iterates shortest-free augmentation from the zero flow to obtain an
+integral maximum flow.  These pieces combine into CLRS Theorem 26.12
+({lit}`maxMatching_eq_maxFlow_value`): the maximum matching size equals the
+maximum flow value.
 
 The companion file `Section_26_6_MaxFlow_MinCut` proves the full Max-Flow
 Min-Cut Theorem: maximality is equivalent both to the absence of a residual
@@ -98,10 +106,8 @@ source-to-sink path and to equality with the capacity of some cut.
 
 ## Deferred Work
 
-* Implement BFS and the Edmonds-Karp loop, then prove the {lit}`O(VE²)` work
-  bound.
-* Construct feasible flows from matchings, prove the integral-flow converse,
-  and derive the maximum-value statement of Theorem 26.12.
+* Implement executable BFS and the Edmonds-Karp loop, then prove the
+  {lit}`O(VE²)` work bound.
 
 Sections 26.4 and 26.5 are deferred outside the current selected milestone.
 -/
