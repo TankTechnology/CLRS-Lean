@@ -26,7 +26,7 @@ Last repository-wide status reconciliation: 2026-07-31.
 | Chapter 15 represented sections | Rod cutting, matrix chain, LCS, and optimal BST optimality with executable recurrence/reconstruction layers | Additional mutable-array/RAM refinements |
 | Chapter 16 | Activity selection, greedy meta-theorems, Huffman coding, matroid greedy, and task scheduling | Exercises |
 | Chapter 17 represented sections | Aggregate/accounting/potential methods, stack/counter traces, and dynamic-table amortized analysis | Allocator constants and RAM refinement |
-| Chapter 18 correctness | B-tree search, real top-level insertion with full-root splitting, exact executable deletion, structural minimum-key bounds with an explicit legal-empty-root branch, and the universal logarithmic-height theorem | Disk pages, pointer mutation, I/O counts, RAM costs, and tree-shape refinement |
+| Chapter 18 correctness | B-tree search, real top-level insertion with full-root splitting, exact executable deletion, structural minimum-key bounds with an explicit legal-empty-root branch, and the logarithmic-height theorem for `2 ≤ t` | Disk pages, pointer mutation, I/O counts, and RAM costs |
 | Chapter 20 correctness | All seven operations of the recursive cached-min/max vEB model and control-flow-aware `O(log log u)` bounds | Concrete allocation and hardware-level RAM timing |
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and mutable-array refinement |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |

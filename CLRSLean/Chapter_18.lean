@@ -54,8 +54,8 @@ preservation wrappers after split, insert, and delete.
 Section 18.1 now also connects the structural invariants to the textbook
 height analysis.  {lit}`totalKeys` counts represented key slots without a
 uniqueness premise; the root lower bound explicitly separates the legal empty
-tree, while {lit}`wellFormed_height_log_bound` applies to every
-{lit}`WellFormed` tree and packages the CLRS logarithmic-height theorem.
+tree, while for {lit}`2 ≤ t`, {lit}`wellFormed_height_log_bound` applies to
+every {lit}`WellFormed` tree and packages the CLRS logarithmic-height theorem.
 
 Section 18.2 retains the flat {lit}`insert` as its specification layer and now
 proves the real top-level CLRS insertion operation {lit}`insertRoot`.
