@@ -183,5 +183,57 @@ theorem ShortestAugmentingPath.shortest_prefix {φ : Flow V G}
     omega
   omega
 
+private theorem ShortestAugmentingPath.exists_shortestDist_le_pathLength_augment
+    {φ : Flow V G} (p : ShortestAugmentingPath φ) {v : V} {n : ℕ}
+    (hpath : ResidualPathLength (φ.augment p.path) G.s v n) :
+    ∃ d, IsShortestDist φ G.s v d ∧ d ≤ n := by
+  induction hpath with
+  | refl =>
+      exact ⟨0, isShortestDist_self φ G.s, le_rfl⟩
+  | tail u v n hpath_to_u hedge ih =>
+      rcases ih with ⟨du, hdu, hdu_le⟩
+      by_cases hold : φ.residualEdge u v
+      · rcases isShortestDist_triangle φ G.s u v du hdu hold with
+          ⟨dv, hdv, hdv_le⟩
+        exact ⟨dv, hdv, by omega⟩
+      · have hreverse : (v, u) ∈ p.path.edges :=
+          p.path.reverse_mem_edges_of_new_residualEdge hedge hold
+        rcases p.path.exists_index_of_mem_edges hreverse with
+          ⟨i, hi, hvi, hui⟩
+        have hpref_v := p.shortest_prefix i (by omega)
+        have hpref_u := p.shortest_prefix (i + 1) hi
+        have hdv : IsShortestDist φ G.s v i := by
+          simpa [hvi] using hpref_v
+        have hdu_path : IsShortestDist φ G.s u (i + 1) := by
+          simpa [hui] using hpref_u
+        have hdu_eq : du = i + 1 := hdu.unique hdu_path
+        exact ⟨i, hdv, by omega⟩
+
+/-- Every vertex at finite residual distance after augmentation already had a
+finite residual distance before augmentation, no larger than the new one.
+
+This is the path-lifting core of Lemma 26.7.  An edge that already existed uses
+the one-edge triangle theorem.  If an edge is new, the concrete augmentation
+formula identifies its reverse on the chosen augmenting path; shortest-prefix
+optimality then supplies the old distance directly.
+-/
+theorem ShortestAugmentingPath.exists_shortestDist_le_augment
+    {φ : Flow V G} (p : ShortestAugmentingPath φ) {v : V} {d' : ℕ}
+    (hd' : IsShortestDist (φ.augment p.path) G.s v d') :
+    ∃ d, IsShortestDist φ G.s v d ∧ d ≤ d' := by
+  exact p.exists_shortestDist_le_pathLength_augment hd'.1
+
+/-- **CLRS Lemma 26.7 (monotonic residual distance).**  Augmenting along a
+shortest residual source-to-sink path cannot decrease the finite residual
+distance from the source to any vertex. -/
+theorem shortest_path_nondec (φ : Flow V G) (p : ShortestAugmentingPath φ)
+    {v : V} {d d' : ℕ}
+    (hd : IsShortestDist φ G.s v d)
+    (hd' : IsShortestDist (φ.augment p.path) G.s v d') :
+    d ≤ d' := by
+  rcases p.exists_shortestDist_le_augment hd' with ⟨d₀, hd₀, hd₀_le⟩
+  have hdist : d = d₀ := hd.unique hd₀
+  omega
+
 end Chapter26
 end CLRS
