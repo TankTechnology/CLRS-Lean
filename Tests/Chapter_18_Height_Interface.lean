@@ -39,12 +39,12 @@ example : totalKeys (node [] []) = 0 := by
   native_decide
 
 example :
-    heightOf (node [] []) ≤
+    heightOf (node [] []) =
       Nat.log 2 ((totalKeys (node [] []) + 1) / 2) := by
   native_decide
 
 example :
-    heightOf (node [1] []) ≤
+    heightOf (node [1] []) =
       Nat.log 2 ((totalKeys (node [1] []) + 1) / 2) := by
   native_decide
 
