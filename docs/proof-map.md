@@ -2292,9 +2292,9 @@ sharper contraction strategy.
 - Correctness boundary: no core group remains for the current functional model.
   `totalKeys` counts `List` key slots without a uniqueness premise; the root
   theorem exposes the legal empty tree as an explicit disjunct; and
-  `wellFormed_height_log_bound` is universal over `WellFormed`.  Disk-page
-  layout, pointer mutation, I/O counts, and RAM costs are optional lower-level
-  refinements.
+  for `2 ≤ t`, `wellFormed_height_log_bound` applies to every `WellFormed`
+  tree.  Disk-page layout, pointer mutation, I/O counts, and RAM costs are
+  optional lower-level refinements.
 
 Chapter 18 now has the first-pass B-tree theorem surface, real top-level CLRS
 insertion, and a structural proof for the executable CLRS deletion routine.
@@ -2321,8 +2321,8 @@ plus adjacent and arbitrary-height monotonicity facts.  The structural
 `totalKeys` theorem now connects that expression to actual B-trees: non-root
 subtrees satisfy the augmented power lower bound, a well-formed root is either
 the legal empty tree or satisfies the root lower bound, every nonempty
-well-formed tree satisfies `minKeys`, and every well-formed tree satisfies the
-CLRS logarithmic height theorem.  For executable deletion,
+well-formed tree satisfies `minKeys`, and for `2 ≤ t` every well-formed tree
+satisfies the CLRS logarithmic height theorem.  For executable deletion,
 `composedDelete_packet` covers leaf, predecessor/successor, sibling rotation,
 and sibling merge branches without duplicating the induction across
 invariants.  A raw root may be the permitted one-child empty transient, so

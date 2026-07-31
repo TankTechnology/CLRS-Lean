@@ -87,10 +87,10 @@ the detailed maintainer ledger.
   with full-root splitting, exact executable deletion, and the structural
   minimum-key/logarithmic-height theorem.  The count theorem uses key slots and
   requires no uniqueness premise; the root theorem exposes the legal empty
-  tree explicitly, while the logarithmic wrapper is universal over
-  {lit}`WellFormed`.  Disk pages, pointer mutation, I/O counts, RAM costs, and
-  tree-shape equality with specification operations remain optional lower-level
-  refinements.
+  tree explicitly, while for {lit}`2 ≤ t` the logarithmic wrapper applies to
+  every {lit}`WellFormed` tree.  No tree-shape equality with the flat
+  specification operations is claimed.  Disk pages, pointer mutation, I/O
+  counts, and RAM costs remain optional lower-level refinements.
 * **Chapter 20 correctness:** all seven operations of the recursive cached-
   extrema vEB model and their control-flow-aware {lit}`O(log log u)` bounds.
 * **Selected complete sections:** Chapter 5.1--5.4 core models; Chapter 10.1,
