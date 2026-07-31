@@ -362,10 +362,10 @@ def insertNonFull (t x : Nat) : BTree → BTree
       node (sortedInsert x ks) []
     else
       let i := findChild ks x
-      match hc : cs[i]? with
+      match _hc : cs[i]? with
       | none => node ks cs
       | some c =>
-        match hcc : c with
+        match _hcc : c with
         | node cKeys cChildren =>
           if cKeys.length = 2 * t - 1 then
             let median := cKeys.getD (t - 1) 0
@@ -384,10 +384,10 @@ def insertNonFull (t x : Nat) : BTree → BTree
 termination_by tr => heightOf tr
 decreasing_by
   all_goals
-    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨i, hc⟩
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨i, _hc⟩
     refine lt_of_le_of_lt ?_ (heightOf_mem_lt hmem)
     first
-      | exact le_of_eq (congrArg heightOf hcc)
+      | exact le_of_eq (congrArg heightOf _hcc)
       | exact heightOf_le_of_children_subset (List.take_subset _ _)
       | exact heightOf_le_of_children_subset (List.drop_subset _ _)
 
@@ -515,7 +515,7 @@ theorem insertNonFull_keys_perm (t x : Nat) (ht : 2 ≤ t) :
     conv_lhs => rw [keysOf]
     conv_rhs => rw [keysOf, hcs]
     simp only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil, keysOf,
-      hck, hcc, ← Multiset.coe_add, ← Multiset.coe_nil, ← Multiset.cons_coe,
+      hck, hcc, ← Multiset.coe_add, ← Multiset.cons_coe,
       ← Multiset.singleton_add, hihc]
     rw [show (↑ks : Multiset Nat) = ↑(ks.take (findChild ks x)) + ↑(ks.drop (findChild ks x)) from by
       rw [Multiset.coe_add, List.take_append_drop]]
@@ -573,7 +573,7 @@ theorem insertNonFull_keys_perm (t x : Nat) (ht : 2 ≤ t) :
     conv_lhs => rw [keysOf]
     conv_rhs => rw [keysOf, hcs]
     simp only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil, keysOf,
-      hck, hcc, ← Multiset.coe_add, ← Multiset.coe_nil, ← Multiset.cons_coe,
+      hck, hcc, ← Multiset.coe_add, ← Multiset.cons_coe,
       ← Multiset.singleton_add, hihc]
     rw [show (↑ks : Multiset Nat) = ↑(ks.take (findChild ks x)) + ↑(ks.drop (findChild ks x)) from by
       rw [Multiset.coe_add, List.take_append_drop]]
@@ -1438,6 +1438,78 @@ lemma occupancy_right_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildre
 /-- The number of keys at the root node (used for the non-full precondition). -/
 def rootKeyCount : BTree → Nat
   | node ks _ => ks.length
+
+/-! ### Top-level `B-TREE-INSERT` operations -/
+
+/-- CLRS `B-TREE-INSERT` splits a full root by first installing it as the sole
+child of a fresh empty root, then applying `B-TREE-SPLIT-CHILD` at index `0`. -/
+def splitRoot (t : Nat) (tr : BTree) : BTree :=
+  splitChild t (node [] [tr]) 0
+
+/-- The executable top-level CLRS insertion step: split a full root before
+descending with `B-TREE-INSERT-NONFULL`; otherwise descend directly. -/
+def insertRoot (t x : Nat) (tr : BTree) : BTree :=
+  if rootKeyCount tr = 2 * t - 1 then
+    insertNonFull t x (splitRoot t tr)
+  else
+    insertNonFull t x tr
+
+/-- Expanding `splitRoot` on a full root exposes the promoted median and the
+two CLRS split halves. -/
+lemma splitRoot_full_eq
+    (t : Nat) (ht : 2 ≤ t) (ks : List Nat) (cs : List BTree)
+    (hfull : ks.length = 2 * t - 1) :
+    splitRoot t (node ks cs) =
+      node [ks[t - 1]'(by omega)]
+        [node (ks.take (t - 1)) (cs.take t),
+         node (ks.drop t) (cs.drop t)] := by
+  have h_lt : 0 < ([node ks cs] : List BTree).length := by simp
+  have hchild_eq :
+      ([node ks cs] : List BTree).get ⟨0, h_lt⟩ = node ks cs := by
+    simp
+  unfold splitRoot
+  simpa using
+    (splitChild_full_eq t ht [] [node ks cs] 0 ks cs h_lt hchild_eq hfull)
+
+/-- Splitting a full root only redistributes its keys: the flattened key list
+is a permutation of the original tree's flattened key list. -/
+theorem splitRoot_keys_perm
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    (keysOf (splitRoot t tr)).Perm (keysOf tr) := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have h_lt : 0 < ([node ks cs] : List BTree).length := by simp
+      have hchild_eq :
+          ([node ks cs] : List BTree).get ⟨0, h_lt⟩ = node ks cs := by
+        simp
+      unfold splitRoot
+      have hperm :=
+        splitChild_keys_perm t ht [] [node ks cs] ks cs 0 h_lt hchild_eq hfull
+      simpa only [keysOf, List.nil_append, List.flatMap_cons, List.flatMap_nil,
+        List.append_nil] using hperm
+
+/-- Splitting a full CLRS root creates a fresh root containing exactly the
+promoted median key. -/
+lemma splitRoot_rootKeyCount
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    rootKeyCount (splitRoot t tr) = 1 := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      rw [splitRoot_full_eq t ht ks cs hfull]
+      rfl
+
+/-- The fresh one-key root produced by splitting a full root satisfies the
+non-full precondition required by `B-TREE-INSERT-NONFULL`. -/
+lemma splitRoot_nonFull
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    rootKeyCount (splitRoot t tr) < 2 * t - 1 := by
+  rw [splitRoot_rootKeyCount t ht hfull]
+  omega
 
 /-- Replacing child `j` with an `Occupancy`-valid (non-root) subtree preserves `Occupancy`. -/
 lemma occupancy_set {t : Nat} {b : Bool} {ks : List Nat} {cs : List BTree} {j : Nat} {c' : BTree}
