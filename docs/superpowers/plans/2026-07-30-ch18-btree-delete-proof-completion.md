@@ -4,7 +4,7 @@
 
 **Status:** Completed by `f3f61b4` for the structural deletion milestone. The task boxes below preserve the original execution plan; they are not current repository TODOs. That commit also completed same-depth preservation and root deletion height behavior. Exact deletion semantics was completed in a subsequent milestone; the 2026-07-31 minimum-key and logarithmic-height work then brought Chapter 18 to `134/134`.
 
-> **For Codex:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
+> **Historical execution note:** The original execution template required `superpowers:subagent-driven-development` to implement this plan task-by-task. This archived line is not a current instruction.
 
 **Goal (historical):** Close every structural Chapter 18.3 deletion proof placeholder under mathematically correct contracts, add root contraction, restore the missing `splitChild` public wrappers, and pass the Chapter 18 and documentation gates without `sorry`, `admit`, or new axioms.
 
