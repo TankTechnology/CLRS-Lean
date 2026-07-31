@@ -115,7 +115,8 @@ theorem nonRoot_totalKeys_add_one_lower_bound
       have hcount : t ≤ (c0 :: cs).length := by
         have hocc' := hocc
         simp [Occupancy] at hocc'
-        exact hocc'.2.2.1.1
+        rcases hocc' with ⟨_, _, ⟨hcount, _⟩, _, _⟩
+        exact hcount
       let q := t ^ (heightOf c0 + 1)
       have hpoint :
           ∀ child ∈ c0 :: cs, q ≤ totalKeys child + 1 := by
