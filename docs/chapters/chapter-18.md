@@ -130,8 +130,8 @@ The older `minKeys_lower_bound` is only an expression-level unfolding fact.
 The new `wellFormed_empty_or_minKeys_le_totalKeys` and
 `wellFormed_minKeys_le_totalKeys` theorems connect that expression to an actual
 well-formed tree.  Finally, `wellFormed_height_log_bound` packages the CLRS
-base-minimum-degree logarithmic height theorem for every `WellFormed` tree,
-including the empty root.
+base-minimum-degree logarithmic height theorem for `2 ≤ t` and every
+`WellFormed` tree, including the empty root.
 
 ## Top-Level Insertion Results
 
