@@ -305,6 +305,7 @@ example :
 #check DeleteReady
 #check KeysSubset
 #check RootDeleteResult
+#check composedDelete_packet
 #check composedDelete_nonRoot_preserves
 #check composedDelete_rootResult
 #check normalizeRoot
@@ -318,6 +319,8 @@ example :
 #check composedDelete_sorted
 #check composedDelete_childBounded
 #check composedDelete_occupancy
+#check composedDelete_key_bound_lo
+#check composedDelete_key_bound_hi
 
 end BTree
 end Chapter18
