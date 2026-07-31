@@ -1511,6 +1511,170 @@ lemma splitRoot_nonFull
   rw [splitRoot_rootKeyCount t ht hfull]
   omega
 
+/-- A full old root satisfies the ordinary non-root occupancy bounds when it
+becomes the sole child of the transient empty root. -/
+lemma occupancy_false_of_full_root
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hcb : ChildBounded tr)
+    (hocc : Occupancy t true tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    Occupancy t false tr := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have hlen := child_children_len_of_full_cb ht hcb hfull
+      unfold Occupancy at hocc ⊢
+      simp only [if_true] at hocc
+      simp only [Bool.false_eq_true, if_false]
+      refine ⟨?_, hocc.2.1, ?_, hocc.2.2.2⟩
+      · omega
+      · rcases hlen with h0 | h2t
+        · left
+          cases cs with
+          | nil => simp
+          | cons c cs => simp at h0
+        · right
+          constructor <;> omega
+
+/-- `Sorted` component for the transient empty root used by `splitRoot`. -/
+private lemma sorted_transient_root {tr : BTree} (hs : Sorted tr) :
+    Sorted (node [] [tr]) := by
+  unfold Sorted
+  refine ⟨by simp, ?_⟩
+  intro child hchild
+  simp only [List.mem_singleton] at hchild
+  subst child
+  exact hs
+
+/-- `ChildBounded` component for the transient empty root used by `splitRoot`. -/
+private lemma childBounded_transient_root {tr : BTree} (hcb : ChildBounded tr) :
+    ChildBounded (node [] [tr]) := by
+  unfold ChildBounded
+  refine ⟨?_, ?_, ?_⟩
+  · right
+    simp
+  · intro i hi
+    have hi0 : i = 0 := by
+      simp at hi
+      omega
+    subst i
+    simp
+  · intro child hchild
+    simp only [List.mem_singleton] at hchild
+    subst child
+    exact hcb
+
+/-- `SameDepth` component for the transient empty root used by `splitRoot`. -/
+private lemma sameDepth_transient_root {tr : BTree} (hsd : SameDepth tr) :
+    SameDepth (node [] [tr]) := by
+  exact SameDepth.internal [] tr [] (by simp) hsd (by simp)
+
+/-- Splitting a full root establishes root occupancy directly, without
+requiring the transient empty wrapper itself to satisfy root occupancy. -/
+lemma splitRoot_occupancy
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hcb : ChildBounded tr)
+    (hocc : Occupancy t true tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    Occupancy t true (splitRoot t tr) := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have hocc_child : Occupancy t false (node ks cs) :=
+        occupancy_false_of_full_root t ht hcb hocc hfull
+      have hocc_left :=
+        occupancy_left_half t ht hocc_child hcb hfull
+      have hocc_right :=
+        occupancy_right_half t ht hocc_child hcb hfull
+      rw [splitRoot_full_eq t ht ks cs hfull]
+      unfold Occupancy
+      simp only [if_true, List.length_cons, List.length_nil, Nat.zero_add,
+        List.isEmpty_cons, Bool.false_eq_true, and_false, if_false, false_or]
+      refine ⟨?_, ?_, ?_, ?_⟩
+      · omega
+      · omega
+      · constructor <;> omega
+      · intro child hchild
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hchild
+        rcases hchild with rfl | rfl
+        · exact hocc_left
+        · exact hocc_right
+
+/-- Splitting a full well-formed root preserves every structural B-tree
+invariant. -/
+theorem splitRoot_wellFormed
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    WellFormed t (splitRoot t tr) := by
+  obtain ⟨hs, hcb, hocc, hsd⟩ := hwf
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have h_lt : 0 < ([node ks cs] : List BTree).length := by simp
+      have hchild_eq :
+          ([node ks cs] : List BTree).get ⟨0, h_lt⟩ = node ks cs := by
+        simp
+      have hchildren : cs = [] ∨ t < cs.length := by
+        rcases child_children_len_of_full_cb ht hcb hfull with h0 | h2t
+        · left
+          exact List.eq_nil_of_length_eq_zero h0
+        · right
+          omega
+      have hs_wrapper := sorted_transient_root hs
+      have hcb_wrapper := childBounded_transient_root hcb
+      have hsd_wrapper := sameDepth_transient_root hsd
+      have hs_split :=
+        splitChild_preserves_sorted t ht [] [node ks cs] ks cs 0
+          h_lt hchild_eq hfull hs_wrapper hcb_wrapper
+      have hcb_split :=
+        splitChild_preserves_childBounded t ht [] [node ks cs] ks cs 0
+          h_lt hchild_eq hfull hcb_wrapper hs_wrapper
+      have hsd_split :=
+        splitChild_preserves_sameDepth t ht [] [node ks cs] ks cs 0
+          h_lt hchild_eq hfull hchildren hsd_wrapper
+      exact ⟨by simpa only [splitRoot] using hs_split,
+        by simpa only [splitRoot] using hcb_split,
+        splitRoot_occupancy t ht hcb hocc hfull,
+        by simpa only [splitRoot] using hsd_split⟩
+
+/-- Splitting a full root adds exactly one level to the tree. -/
+theorem splitRoot_height
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    heightOf (splitRoot t tr) = heightOf tr + 1 := by
+  obtain ⟨_, hcb, _, hsd⟩ := hwf
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have hchildren : cs = [] ∨ t < cs.length := by
+        rcases child_children_len_of_full_cb ht hcb hfull with h0 | h2t
+        · left
+          exact List.eq_nil_of_length_eq_zero h0
+        · right
+          omega
+      have hparts :=
+        heightOf_split_parts_eq ks cs t hsd (by omega) hchildren
+      have hleft :
+          heightOf (node (ks.take (t - 1)) (cs.take t)) =
+            heightOf (node ks cs) := by
+        simpa using hparts.1
+      have hright :
+          heightOf (node (ks.drop t) (cs.drop t)) =
+            heightOf (node ks cs) := by
+        simpa [List.drop_drop, show (t - 1) + 1 = t from by omega] using hparts.2
+      rw [splitRoot_full_eq t ht ks cs hfull]
+      have huniform :
+          ∀ c ∈ [node (ks.drop t) (cs.drop t)],
+            heightOf c = heightOf (node (ks.take (t - 1)) (cs.take t)) := by
+        intro c hc
+        simp only [List.mem_singleton] at hc
+        subst c
+        exact hright.trans hleft.symm
+      rw [heightOf_uniform_children huniform, hleft]
+      omega
+
 /-- Replacing child `j` with an `Occupancy`-valid (non-root) subtree preserves `Occupancy`. -/
 lemma occupancy_set {t : Nat} {b : Bool} {ks : List Nat} {cs : List BTree} {j : Nat} {c' : BTree}
     (hocc : Occupancy t b (node ks cs)) (hj : j < cs.length) (hc' : Occupancy t false c') :
