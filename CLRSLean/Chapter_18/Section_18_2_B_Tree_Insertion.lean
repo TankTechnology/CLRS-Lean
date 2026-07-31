@@ -1899,6 +1899,100 @@ theorem insertNonFull_wellFormed (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
          insertNonFull_occupancy t x ht tr true hcb hocc hnf,
          insertNonFull_sameDepth t x ht hcb hsd⟩
 
+/--
+Top-level CLRS insertion adds exactly one occurrence of the requested key,
+including when the old root must first be split.
+-/
+theorem insertRoot_keys_perm
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    (keysOf (insertRoot t x tr)).Perm (keysOf tr ++ [x]) := by
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · rw [insertRoot, if_pos hfull]
+    have hsplitWf := splitRoot_wellFormed t ht hwf hfull
+    exact
+      (insertNonFull_keys_perm t x ht (splitRoot t tr) hsplitWf.2.1).trans
+        ((splitRoot_keys_perm t ht hfull).append_right [x])
+  · rw [insertRoot, if_neg hfull]
+    exact insertNonFull_keys_perm t x ht tr hwf.2.1
+
+/--
+Top-level CLRS insertion preserves every structural B-tree invariant.
+-/
+theorem insertRoot_wellFormed
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    WellFormed t (insertRoot t x tr) := by
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · rw [insertRoot, if_pos hfull]
+    exact
+      insertNonFull_wellFormed t x ht
+        (splitRoot_wellFormed t ht hwf hfull)
+        (splitRoot_nonFull t ht hfull)
+  · have hle : rootKeyCount tr ≤ 2 * t - 1 := by
+      cases tr with
+      | node ks cs =>
+          have hocc := hwf.2.2.1
+          unfold Occupancy at hocc
+          exact hocc.2.1
+    have hnf : rootKeyCount tr < 2 * t - 1 := by
+      omega
+    rw [insertRoot, if_neg hfull]
+    exact insertNonFull_wellFormed t x ht hwf hnf
+
+/--
+Top-level CLRS insertion preserves height unless it splits a full root, in
+which case it adds exactly one level.
+-/
+theorem insertRoot_height
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    heightOf (insertRoot t x tr) =
+      if rootKeyCount tr = 2 * t - 1 then heightOf tr + 1
+      else heightOf tr := by
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · rw [insertRoot, if_pos hfull, if_pos hfull]
+    have hsplitWf := splitRoot_wellFormed t ht hwf hfull
+    exact
+      (insertNonFull_height t x ht hsplitWf.2.1 hsplitWf.2.2.2).trans
+        (splitRoot_height t ht hwf hfull)
+  · rw [insertRoot, if_neg hfull, if_neg hfull]
+    exact insertNonFull_height t x ht hwf.2.1 hwf.2.2.2
+
+/--
+Membership after top-level CLRS insertion is old membership or equality with
+the inserted key.
+-/
+theorem insertRoot_mem_iff
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    mem y (insertRoot t x tr) ↔ y = x ∨ mem y tr := by
+  unfold mem
+  rw [(insertRoot_keys_perm t x ht hwf).mem_iff, List.mem_append,
+    List.mem_singleton]
+  exact or_comm
+
+/--
+Top-level CLRS insertion simultaneously has exact add-one semantics, preserves
+well-formedness, and preserves or increases height by one level.
+-/
+theorem insertRoot_correct
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    (keysOf (insertRoot t x tr)).Perm (keysOf tr ++ [x]) ∧
+    WellFormed t (insertRoot t x tr) ∧
+    (heightOf (insertRoot t x tr) = heightOf tr ∨
+      heightOf (insertRoot t x tr) = heightOf tr + 1) := by
+  refine
+    ⟨insertRoot_keys_perm t x ht hwf,
+      insertRoot_wellFormed t x ht hwf, ?_⟩
+  have hheight := insertRoot_height t x ht hwf
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · right
+    simpa [hfull] using hheight
+  · left
+    simpa [hfull] using hheight
+
 end BTree
 end Chapter18
 end CLRS
