@@ -738,13 +738,13 @@ title = "Chapter 26. Maximum Flow"
 title = "26.1. Flow Networks"
 
 [modules."CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp"]
-title = "26.2. The Edmonds-Karp Algorithm"
+title = "26.2. The Edmonds-Karp Algorithm (partial)"
 
 [modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
-title = "26.3. Maximum Bipartite Matching"
+title = "26.3. Maximum Bipartite Matching (partial)"
 
 [modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
-title = "26.6. Max-Flow Min-Cut Theorem (partial)"
+title = "Theorem 26.6. Max-Flow Min-Cut (partial)"
 
 [modules."CLRSLean.Chapter_27"]
 title = "Chapter 27. Multithreaded Algorithms"

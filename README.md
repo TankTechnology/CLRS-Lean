@@ -21,7 +21,7 @@ of pseudocode.  A chapter may be complete for its current mathematical model
 while still leaving pointer mutation, RAM costs, or imperative refinement for a
 later layer.
 
-**All tracked theorems across Chapters 1–26 are kernel-checked** — `main`
+**All tracked theorems are kernel-checked** — `main`
 contains no `sorry`, `admit`, or project axiom, and headline theorems depend
 only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 `Quot.sound`). The per-chapter table below is generated from
@@ -57,7 +57,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 23 | Minimum Spanning Trees | 🟢 correctness | 52 | — |
 | 24 | Single-Source Shortest Paths | 🟡 sections | 22 | — |
 | 25 | All-Pairs Shortest Paths | 🟢 correctness | 22 | — |
-| 26 | Maximum Flow | 🟠 partial | 9 | Full Max-Flow Min-Cut converse/equivalence; executable BFS… |
+| 26 | Maximum Flow | 🟠 partial | 8 | Lemma 26.7 with the predecessor, shortest-prefix, and… |
 | 27 | Multithreaded Algorithms | 🟠 partial | 28 | Greedy-scheduler bound (Theorem 27.1/27.2); all-input… |
 | 28 | Matrix Operations | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 29 | Linear Programming | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
@@ -67,7 +67,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
 | 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1498 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1497 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
@@ -93,8 +93,9 @@ Notable results across the library:
 - **Ch22 / 23** — sealed BFS/DFS/topological-sort/SCC theory and MST
   (Kruskal + Prim) correctness.
 - **Ch24** — Bellman-Ford correctness (Thm 24.4), Dijkstra's greedy theorem
-  (Thm 24.6), and their abstract work bounds; final Dijkstra loop correctness
-  remains tracked.
+  (Thm 24.6), `dijkstraInit_invariant`, final `dijkstraLoop_correct`, and the
+  abstract work bounds; per-edge ordering and mutable/RAM refinements are
+  optional.
 
 See the [proof status board](docs/proof-status-board.md) for the scheduling
 view and the [proof map](docs/proof-map.md) for theorem-level detail.
