@@ -25,10 +25,15 @@ Main results:
   create a smaller finite source distance
 - `shortest_path_nondec`: CLRS Lemma 26.7
 
+The shortest-path construction itself lives in the companion submodule
+`S1_ShortestAugmentingPath`, whose headline result
+`exists_shortest_augmenting_path` turns residual reachability into an explicit
+shortest augmenting path.
+
 Current gaps:
 
-- Add executable BFS, the Edmonds-Karp augmentation loop, and its `O(VE²)` work
-  theorem.
+- Add the Edmonds-Karp augmentation loop, its `O(VE²)` work theorem, and an
+  executable BFS.
 -/
 
 set_option autoImplicit true

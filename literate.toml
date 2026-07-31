@@ -255,6 +255,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp" = [
   "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation",
+  "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S1_ShortestAugmentingPath",
+  "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S2_EK_Loop",
 ]
 "CLRSLean.Chapter_27" = [
   "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model",
@@ -745,6 +747,12 @@ title = "Ford-Fulkerson Augmentation Foundation (partial)"
 
 [modules."CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp"]
 title = "26.2. The Edmonds-Karp Algorithm (partial)"
+
+[modules."CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S1_ShortestAugmentingPath"]
+title = "26.2 S1. Shortest Augmenting Paths"
+
+[modules."CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S2_EK_Loop"]
+title = "26.2 S2. The Edmonds-Karp Loop"
 
 [modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
 title = "26.3. Maximum Bipartite Matching (partial)"
