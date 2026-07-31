@@ -45,7 +45,7 @@ not missing core theorem groups.
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
 | 19 | Finite-set operation specs and potential facts plus `FTree.Wellformed`, the true Fibonacci subtree-size/log-degree bound, `link_wellformed`, and the tight `minTree` witness | Executable pointer-forest consolidation/cascading cuts and their amortized costs |
-| 26 | Flow model, concrete residual-path augmentation with exact and strict value increase, residual-reachability bridge, full MFMC equivalence, residual-length/shortest-distance helpers, and the Section 26.3 bipartite-network model with a conditional matching-flow value theorem | Lemma 26.7 predecessor/shortest-prefix/augmentation-edge bridges; executable BFS/Edmonds-Karp with `O(VE²)`; matching-flow feasibility, integral converse, and maximum-value Theorem 26.12 |
+| 26 | Flow model, concrete residual-path augmentation with exact and strict value increase, residual-reachability bridge, full MFMC equivalence, residual-length/shortest-distance infrastructure through Lemma 26.7, and the Section 26.3 bipartite-network model with a conditional matching-flow value theorem | Executable BFS/Edmonds-Karp with `O(VE²)`; matching-flow feasibility, integral converse, and maximum-value Theorem 26.12 |
 | 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms (work `Θ(n³)`/`Θ(n)`/`Θ(n log n)`/`Θ(n^(log₂ 7))`, spans `Θ(log n)`/`Θ(log² n)`/`Θ(log³ n)`) plus all-input P-MATMUL bounds | Greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the merge-based costs, and executable algorithm refinements |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
@@ -60,11 +60,10 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 26 Lemma 26.7 | Prove predecessor/prefix facts and the augmentation-edge bridge, then monotonic residual distance |
-| 2 | Chapter 26 Edmonds-Karp | Implement BFS and the augmentation loop and prove the `O(VE²)` work theorem |
-| 3 | Chapter 26 matching | Prove matching-flow feasibility, the integral-flow converse, and maximum-value Theorem 26.12 |
-| 4 | Chapter 19 implementation | Prove executable heap-forest CONSOLIDATE and cascading cuts with amortized costs |
-| 5 | Chapter 27 scheduler layer | Add the greedy-scheduler bound and executable refinements |
+| 1 | Chapter 26 Edmonds-Karp | Implement BFS and the augmentation loop and prove the `O(VE²)` work theorem |
+| 2 | Chapter 26 matching | Prove matching-flow feasibility, the integral-flow converse, and maximum-value Theorem 26.12 |
+| 3 | Chapter 19 implementation | Prove executable heap-forest CONSOLIDATE and cascading cuts with amortized costs |
+| 4 | Chapter 27 scheduler layer | Add the greedy-scheduler bound and executable refinements |
 
 ## High-Difficulty Queue
 

@@ -124,13 +124,13 @@ the detailed maintainer ledger.
   cascading cuts, and their amortized costs remain central theorem groups.
 * **Chapter 26:** the flow model, concrete residual-path augmentation with exact
   and strict value increase, the residual-reachability bridge, the full MFMC
-  equivalence, residual-distance infrastructure, and the Section 26.3
-  bipartite-network model with a conditional matching-flow value theorem are
-  proved.  The three remaining groups are Lemma 26.7 with its predecessor,
-  shortest-prefix, and augmentation-edge bridges; executable BFS and the
-  Edmonds-Karp loop with its {lit}`O(VE²)` theorem; and feasible matching-flow
-  construction, the integral-flow converse, and the maximum-value statement of
-  Theorem 26.12.
+  equivalence, residual-distance infrastructure through the predecessor,
+  shortest-prefix, augmentation-edge, and Lemma 26.7 monotonicity theorems, and
+  the Section 26.3 bipartite-network model with a conditional matching-flow
+  value theorem are proved.  The two remaining groups are executable BFS and
+  the Edmonds-Karp loop with its {lit}`O(VE²)` theorem; and feasible
+  matching-flow construction, the integral-flow converse, and the maximum-value
+  statement of Theorem 26.12.
 * **Chapter 27:** the dynamic-multithreading model (computation DAG with an
   honestly computed longest-path span, spawn/sync trees, balanced
   parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
@@ -168,11 +168,9 @@ milestone:
 
 ## Highest-Value Open Proof Groups
 
-1. Prove Lemma 26.7 from predecessor/prefix facts and an augmentation-edge
-   bridge.
-2. Implement BFS and the Edmonds-Karp loop and prove the {lit}`O(VE²)` work
+1. Implement BFS and the Edmonds-Karp loop and prove the {lit}`O(VE²)` work
    theorem.
-3. Complete Theorem 26.12 with matching-flow feasibility, the integral-flow
+2. Complete Theorem 26.12 with matching-flow feasibility, the integral-flow
    converse, and maximum matching/max-flow value equality.
 
 ## Reader Contract
