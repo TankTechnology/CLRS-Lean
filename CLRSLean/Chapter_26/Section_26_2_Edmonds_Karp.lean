@@ -2,7 +2,7 @@ import Mathlib
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
 
 /-!
-# 26.2. The Edmonds-Karp Algorithm (partial)
+# 26.2. The Edmonds-Karp Algorithm
 
 This section formalizes the residual-distance infrastructure used by the
 Edmonds-Karp analysis and proves the monotonic residual-distance theorem
@@ -32,11 +32,10 @@ shortest augmenting path.
 
 The work analysis lives in `S3_WorkAnalysis`: critical edges, Lemma 26.8,
 the recovery-step timeline lemma, and the full `O(VE²)` counting argument
-(`critical_count_bound` and `augmentation_count_bound`).
-
-Current gaps:
-
-- Add an executable BFS.
+(`critical_count_bound` and `augmentation_count_bound`).  The executable
+breadth-first search computing shortest residual paths — and with them the
+shortest augmenting paths the loop augments along — lives in
+`S4_ExecutableBFS` (`residualBFS`, `bfs_shortestAugmenting`).
 -/
 
 set_option autoImplicit true

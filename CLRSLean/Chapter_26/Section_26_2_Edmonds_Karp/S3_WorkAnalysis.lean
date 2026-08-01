@@ -53,8 +53,8 @@ Main results:
 - `augmentation_count_bound`: at most `|V|² · |V|` augmenting steps, giving
   the `O(VE²)` bound once each step is charged `O(E)` for BFS
 
-The `O(VE²)` counting argument is complete.  The remaining piece of the
-section is an executable BFS in a follow-up module.
+The `O(VE²)` counting argument is complete; the executable BFS that
+computes the shortest augmenting paths lives in `S4_ExecutableBFS`.
 -/
 
 set_option autoImplicit true
