@@ -149,25 +149,6 @@ stated assumptions, and Section 4.1's executable abstract runtime is complete.
 
 ## Future Work
 
-### Chapter 5.4 On-Line Hiring Analysis
-
-- Related section: Section 5.4 - Probabilistic analysis of randomized algorithms
-- Status: `future-work`
-
-The finite foundations are present.  The streak model proves
-`CLRS.Chapter05.longestStreak_upperBound` and defines
-`CLRS.Chapter05.expectedLongestStreak`; the logarithmic expectation bound is
-now proved as `CLRS.Chapter05.expectedLongestStreak_le`
-(`E[L] ≤ log2 n + 2`) via the tail-sum identity
-`CLRS.Chapter05.expectedLongestStreak_eq_tailSum`.  The on-line hiring model
-provides an executable threshold strategy, exact `some`/`none` contracts, and
-the finite uniform success probability `CLRS.Chapter05.OnlineHiring.probHireBest`.
-
-One textbook-facing analysis remains: prove the on-line strategy's harmonic
-success formula `probHireBest n k = (k/n) * (H_{n-1} - H_{k-1})` together with
-its `1/e` asymptotic.  This theorem gap does not block use of either
-executable finite model.  Tracked by issue #127.
-
 ### CLRS Exercises
 
 - Related scope: all chapters
