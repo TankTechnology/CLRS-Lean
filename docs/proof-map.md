@@ -3273,8 +3273,11 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
-- Lean source: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
-- Status: `partial` (Lemma 26.7 proved; executable BFS/loop pending)
+- Lean sources: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
+  plus the submodules `Ford_Fulkerson_Augmentation`, `S1_ShortestAugmentingPath`,
+  `S2_EK_Loop`, and `S3_WorkAnalysis`.
+- Status: `partial` (Lemma 26.7, the loop, and the `O(VE²)` counting proved;
+  executable BFS pending)
 - Current declarations:
   - `CLRS.Chapter26.ResidualPathLength` (inductive predicate for path length in the residual network)
   - `CLRS.Chapter26.IsShortestDist` (shortest-path distance in the residual network)
@@ -3294,14 +3297,52 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
     witness)
   - `CLRS.Chapter26.shortest_path_nondec` (**Lemma 26.7**: shortest residual
     distances do not decrease after shortest-path augmentation)
+- Shortest-path construction (`S1_ShortestAugmentingPath`):
+  - `CLRS.Chapter26.back` and its structural facts `back_head`, `back_last`,
+    `back_length`, `back_nodup`, `back_getElem_shortest`, `back_chain_rev`:
+    the backwards exact-predecessor walk realizing a residual distance
+  - `CLRS.Chapter26.shortestFlow.ResidualPath` and
+    `shortestFlow.ResidualPath_edges_length`: the assembled shortest
+    source-to-sink residual path
+  - `CLRS.Chapter26.exists_shortest_augmenting_path`: residual reachability
+    yields an explicit shortest augmenting path
+- Edmonds-Karp loop (`S2_EK_Loop`):
+  - `CLRS.Chapter26.shortestAugmentingPath_iff_hasAugmentingPath`: shortest
+    augmenting paths exist exactly when the sink is residual-reachable
+  - `CLRS.Chapter26.ekStep` and `ekIter`: the loop; `IsIntegral_ekStep`,
+    `ekStep_value_increase`, `ekIter_value_ge` keep integrality and value
+    increase
+  - `CLRS.Chapter26.exists_noAugmentingPath_ekIter`: termination at a flow
+    without augmenting paths (value bounded by the integral cut capacity)
+  - `CLRS.Chapter26.edmondsKarp_maximal`: on integral-capacity networks the
+    loop reaches an integral maximal flow
+- Work analysis (`S3_WorkAnalysis`):
+  - `CLRS.Chapter26.Flow.AugmentingPath.isCritical` and
+    `exists_critical_edge`: every augmentation saturates at least one edge
+  - `CLRS.Chapter26.shortest_edge_dist`, `critical_dist_increase`, and
+    `critical_dist_increase_rev` (**Lemma 26.8**: the residual distance to
+    `u` grows by at least two when `(v,u)` later lies on a shortest path)
+  - `CLRS.Chapter26.IsShortestDist.lt_card`: residual distances are bounded
+    by `|V| - 1`
+  - the timeline `ekSeq`/`ekPath`/`criticalAt` with `ekStep_dist_nondec`,
+    `distAt_mono`, and `exists_recovery_step`: the recovery argument that a
+    later critical occurrence is preceded by augmentation along the reverse
+    edge
+  - `CLRS.Chapter26.criticalAt_growth` and `criticalAt_growth_strict`:
+    distances strictly grow between critical occurrences (no consecutive
+    critical steps)
+  - `CLRS.Chapter26.critical_count_bound`: each edge is critical at most
+    `|V|` times; `augmentation_count_bound`: at most `|V|² · |V|` augmenting
+    steps — the `O(VE²)` bound once each step is charged `O(E)` for BFS
 - Proof pattern: define shortest distance through a length-indexed residual-path
   predicate; prove exact predecessor and shortest-prefix facts; then induct over
   a post-augmentation path.  Old residual edges use the one-edge triangle
   theorem, while genuinely new edges are reversals of edges on the selected
-  augmenting path and are discharged by prefix optimality.
+  augmenting path and are discharged by prefix optimality.  The counting
+  argument combines the recovery-step timeline lemma with reverse distance
+  monotonicity and injects critical occurrences into `Fin (Fintype.card V)`.
 - Interface evidence: `Tests/Chapter_26_Edmonds_Karp_Interface.lean`.
-- Current gap: executable BFS, the concrete Edmonds-Karp loop, and the
-  `O(VE²)` counting theorem.
+- Current gap: an executable BFS computing shortest residual paths.
 
 ### Section 26.3 - Maximum Bipartite Matching
 
