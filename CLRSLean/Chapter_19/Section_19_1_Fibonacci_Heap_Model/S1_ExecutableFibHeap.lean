@@ -976,6 +976,134 @@ theorem markFalse_wellformed (t : FHNode) (ht : t.Wellformed) :
   cases t with
   | node k m cs => simpa [markFalse, FHNode.Wellformed, FHNode.toFTree] using ht
 
+/-- The key set of a node is its root key together with all child-subtree keys. -/
+theorem keySet_node_eq (k : Int) (m : Bool) (cs : List FHNode) :
+    (FHNode.node k m cs).keySet = {k} ∪ FHNode.forestKeySet cs := by
+  rw [forestKeySet_eq_flatMap]
+  ext z
+  simp [FHNode.keySet, FHNode.keysList, List.mem_toFinset, Finset.mem_union]
+
+/-- Permuting roots does not change the represented forest key set. -/
+theorem forestKeySet_eq_of_perm {xs ys : List FHNode} (h : xs.Perm ys) :
+    FHNode.forestKeySet xs = FHNode.forestKeySet ys := by
+  rw [forestKeySet_eq_flatMap, forestKeySet_eq_flatMap]
+  exact List.toFinset_eq_of_perm _ _
+    (h.flatMap (fun _ _ => List.Perm.refl _))
+
+/-- Remove a direct child by list index and clear the promoted child's mark. -/
+def cutChildAt (t : FHNode) (childIndex : Nat) :
+    Option (FHNode × FHNode) :=
+  match t with
+  | FHNode.node k marked children =>
+      match children[childIndex]? with
+      | none => none
+      | some child =>
+          some (markFalse child,
+            FHNode.node k marked (children.eraseIdx childIndex))
+
+/-- An indexed child cut splits the original node's key set between the
+promoted child and the remaining parent. -/
+theorem cutChildAt_keys {t cut parent' : FHNode} {i : Nat}
+    (hcut : cutChildAt t i = some (cut, parent')) :
+    cut.keySet ∪ parent'.keySet = t.keySet := by
+  cases t with
+  | node k marked children =>
+      unfold cutChildAt at hcut
+      cases hget : children[i]? with
+      | none => simp [hget] at hcut
+      | some child =>
+          simp [hget] at hcut
+          have hcut' : markFalse child = cut := hcut.1
+          have hparent' : FHNode.node k marked (children.eraseIdx i) = parent' := hcut.2
+          subst cut
+          subst parent'
+          obtain ⟨hi, hchild⟩ := List.getElem?_eq_some_iff.mp hget
+          have hperm : (child :: children.eraseIdx i).Perm children := by
+            simpa only [hchild] using List.getElem_cons_eraseIdx_perm hi
+          have hforest :
+              child.keySet ∪ FHNode.forestKeySet (children.eraseIdx i) =
+                FHNode.forestKeySet children := by
+            change FHNode.forestKeySet (child :: children.eraseIdx i) =
+              FHNode.forestKeySet children
+            exact forestKeySet_eq_of_perm hperm
+          rw [markFalse_keySet, keySet_node_eq, keySet_node_eq]
+          rw [← hforest]
+          ac_rfl
+
+/-- An indexed child cut preserves heap order for both the promoted child and
+the remaining parent. -/
+theorem cutChildAt_heapOrdered {t cut parent' : FHNode} {i : Nat}
+    (hcut : cutChildAt t i = some (cut, parent'))
+    (ht : t.HeapOrdered) :
+    cut.HeapOrdered ∧ parent'.HeapOrdered := by
+  cases t with
+  | node k marked children =>
+      cases ht with
+      | node hle hall =>
+          unfold cutChildAt at hcut
+          cases hget : children[i]? with
+          | none => simp [hget] at hcut
+          | some child =>
+              simp [hget] at hcut
+              have hcut' : markFalse child = cut := hcut.1
+              have hparent' :
+                  FHNode.node k marked (children.eraseIdx i) = parent' := hcut.2
+              subst cut
+              subst parent'
+              obtain ⟨hi, hchild⟩ := List.getElem?_eq_some_iff.mp hget
+              have hmem : child ∈ children := by
+                have hmemAt : children[i] ∈ children := List.getElem_mem hi
+                simpa [hchild] using hmemAt
+              constructor
+              · exact markFalse_heapOrdered child (hall child hmem)
+              · exact FHNode.HeapOrdered.node
+                  (fun c hc => hle c (mem_eraseIdx_of_mem i hc))
+                  (fun c hc => hall c (mem_eraseIdx_of_mem i hc))
+
+/-- An indexed child cut preserves structural wellformedness for both the
+promoted child and the remaining parent. -/
+theorem cutChildAt_wellformed {t cut parent' : FHNode} {i : Nat}
+    (hcut : cutChildAt t i = some (cut, parent'))
+    (ht : t.Wellformed) :
+    cut.Wellformed ∧ parent'.Wellformed := by
+  cases t with
+  | node k marked children =>
+      unfold cutChildAt at hcut
+      cases hget : children[i]? with
+      | none => simp [hget] at hcut
+      | some child =>
+          simp [hget] at hcut
+          have hcut' : markFalse child = cut := hcut.1
+          have hparent' :
+              FHNode.node k marked (children.eraseIdx i) = parent' := hcut.2
+          subst cut
+          subst parent'
+          obtain ⟨hi, hchild⟩ := List.getElem?_eq_some_iff.mp hget
+          have hmem : child ∈ children := by
+            have hmemAt : children[i] ∈ children := List.getElem_mem hi
+            simpa [hchild] using hmemAt
+          have htree : (FTree.node (children.map FHNode.toFTree)).Wellformed := by
+            simpa [FHNode.Wellformed, FHNode.toFTree] using ht
+          cases htree with
+          | node hdeg hall =>
+              have hchildTree : child.toFTree.Wellformed :=
+                hall child.toFTree (List.mem_map.mpr ⟨child, hmem, rfl⟩)
+              have hchildWellformed : child.Wellformed := by
+                simpa [FHNode.Wellformed] using hchildTree
+              constructor
+              · exact markFalse_wellformed child hchildWellformed
+              · have hw' :
+                    (FTree.node
+                      ((children.map FHNode.toFTree).eraseIdx i)).Wellformed :=
+                    FTree.wellformed_remove_index
+                      (FTree.Wellformed.node hdeg hall) i
+                      (by simpa [List.length_map] using hi)
+                have hmap :
+                    (children.eraseIdx i).map FHNode.toFTree =
+                      (children.map FHNode.toFTree).eraseIdx i :=
+                  map_eraseIdx FHNode.toFTree children i
+                simpa [FHNode.Wellformed, FHNode.toFTree, hmap] using hw'
+
 /-- **FIB-HEAP-CUT on a child.**  Remove the child with key `k` from a tree,
 clearing its mark; the child becomes a new root.  Returns `none` when no such
 child exists. -/
