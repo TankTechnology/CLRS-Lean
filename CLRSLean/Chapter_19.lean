@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
 import CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree
+import CLRSLean.Chapter_19.S1_ExecutableFibHeap
 
 /-!
 # Chapter 19 - Fibonacci Heaps
