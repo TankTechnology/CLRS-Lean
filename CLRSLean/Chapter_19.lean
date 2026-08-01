@@ -25,7 +25,10 @@ strengthening, together with a Fibonacci-style lower-bound recurrence,
 positivity, adjacent monotonicity, monotonicity, and the first exponential
 growth bridge over even and half indices, plus conditional natural-log degree
 budget wrappers.  The query surface includes empty-result specifications for
-minimum and extract-min.
+minimum and extract-min.  A second, implementation-facing layer now provides
+key-carrying heap-ordered forests with marks, executable equal-degree
+`LINK`/`CONSOLIDATE`, index-addressed direct-child CUT on a complete heap
+state, and the exact CUT change in the standard `t(H) + 2m(H)` potential.
 
 ## Sections
 
@@ -129,6 +132,22 @@ minimum and extract-min.
   {lit}`CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`, and
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 
+  The executable forest layer additionally exposes
+  {lit}`CLRS.Chapter19.FHNode.consolidateList_keys`,
+  {lit}`CLRS.Chapter19.FHNode.consolidateList_good`,
+  {lit}`CLRS.Chapter19.FHNode.consolidateList_degreeStrict`,
+  {lit}`CLRS.Chapter19.FH.cutChildAt_keys`,
+  {lit}`CLRS.Chapter19.FH.cutChildAt_heapOrdered`,
+  {lit}`CLRS.Chapter19.FH.cutChildAt_wellformed`,
+  {lit}`CLRS.Chapter19.FH.cutRootChildAt_keys`,
+  {lit}`CLRS.Chapter19.FH.cutRootChildAt_size`,
+  {lit}`CLRS.Chapter19.FH.cutRootChildAt_roots_length`,
+  {lit}`CLRS.Chapter19.FH.cutRootChildAt_good`,
+  {lit}`CLRS.Chapter19.FH.potential_makeHeap`,
+  {lit}`CLRS.Chapter19.FH.potential_insert`,
+  {lit}`CLRS.Chapter19.FH.cutRootChildAt_potential_eq`, and
+  {lit}`CLRS.Chapter19.FH.cutRootChildAt_potential_le`.
+
 * 19.4 Bounding the maximum degree: {lit}`partial`.
   A concrete rooted-tree model (`FTree`) with the CLRS Lemma 19.1 marked-tree
   invariant ({lit}`CLRS.Chapter19.FTree.Wellformed`), the true subtree-size
@@ -146,11 +165,13 @@ minimum and extract-min.
 
 ## Current Gaps
 
-The pointer-level circular root lists, the executable `CONSOLIDATE` and
-cascading-cut procedures, and the amortized-cost accounting over the potential
-function remain strengthening targets.  Section 19.4 now seals the structural
-combinatorial core those procedures rely on: the true Fibonacci subtree-size
-degree bound `size(x) ≥ F(d+2) ≥ φ^d`, hence `D(n) ≤ ⌊log_φ n⌋`.
+A global executable validity/representation bridge, `extractMin` wired to the
+proved `CONSOLIDATE`, arbitrary-node handles or paths, cascading cuts,
+executable `decreaseKey`/`delete`, and actual operation-cost accounting remain
+strengthening targets.  Circular pointer lists are a lower-level refinement of
+the executable persistent forest.  Section 19.4 seals the structural
+combinatorial core: `size(x) ≥ F(d+2) ≥ φ^d`, hence
+`D(n) ≤ ⌊log_φ n⌋`.
 -/
 
 namespace CLRS
