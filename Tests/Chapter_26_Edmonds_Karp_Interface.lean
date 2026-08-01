@@ -27,6 +27,10 @@ theorems of the work analysis.
 #check CLRS.Chapter26.criticalAt_growth_strict
 #check CLRS.Chapter26.critical_count_bound
 #check CLRS.Chapter26.augmentation_count_bound
+#check CLRS.Chapter26.residualBFS
+#check CLRS.Chapter26.bfsState_distance_eq_some_iff
+#check CLRS.Chapter26.bfs_shortestAugmenting
+#check CLRS.Chapter26.ekStep_shortest_path_bfs
 
 namespace CLRS.Chapter26
 
@@ -43,3 +47,4 @@ end CLRS.Chapter26
 
 #print axioms CLRS.Chapter26.shortest_path_nondec
 #print axioms CLRS.Chapter26.augmentation_count_bound
+#print axioms CLRS.Chapter26.bfs_shortestAugmenting
