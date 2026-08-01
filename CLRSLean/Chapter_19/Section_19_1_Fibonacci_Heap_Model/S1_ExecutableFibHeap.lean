@@ -30,19 +30,25 @@ Main results:
   its correctness
 - `FHNode.insertConsolidated` and `FHNode.consolidateList`: the executable
   `CONSOLIDATE` (degree-bucket merging)
-- `FHNode.consolidateList_keys`, `consolidateList_heapOrdered`,
-  `consolidateList_wellformed`: `CONSOLIDATE` correctness
-- `FHNode.consolidateList_degree_unique`: at most one root per degree after
+- `FHNode.consolidateList_keys`, `consolidateList_good`, and
+  `consolidateList_degreeStrict`: `CONSOLIDATE` correctness and at most one
+  root per degree after
   consolidation
 - `FH`: an executable heap (root forest + node count)
-- `FH.makeHeap` / `FH.insert` / `FH.union` / `FH.minimum` / `FH.extractMin`:
+- `FH.makeHeap` / `FH.insert` / `FH.union` / `FH.minimum`:
   executable operations with key-set specifications
+- `FH.cutChildAt` / `FH.cutRootChildAt`: index-addressed direct-child CUT,
+  lifted to a complete heap state with key-set and invariant preservation
+- `FH.potential` / `FH.cutRootChildAt_potential_eq`: executable
+  `t(H) + 2m(H)` accounting and the exact one-step CUT potential change
 
 Current gaps:
 
-- The cascading-cut procedure and the amortized cost accounting remain
-  future targets; the degree-bucket consolidation here is their structural
-  core.
+- A global executable `FH.Valid`/`FH.Represents` bridge, an `extractMin` that
+  invokes `consolidateList`, arbitrary-node handles or paths, cascading cuts,
+  executable `decreaseKey`/`delete`, and actual-operation cost semantics remain
+  future targets.  Circular pointer lists are a lower-level refinement of the
+  persistent root-list model used here.
 -/
 
 namespace CLRS
