@@ -79,7 +79,7 @@ def size : FHNode → Nat
 
 /-- The keys of a subtree, as a list (multiset view). -/
 def keysList : FHNode → List Int
-  | node k _ cs => k :: cs.flatMap keysList
+  | node k _ cs => k :: cs.flatMap FHNode.keysList
 
 /-- The key set of a subtree (duplicates collapsed). -/
 def keySet (t : FHNode) : Finset Int := t.keysList.toFinset
@@ -108,7 +108,7 @@ def forestKeySet (ts : List FHNode) : Finset Int :=
   rw [size]
 
 @[simp] theorem keysList_node (k : Int) (m : Bool) (cs : List FHNode) :
-    (node k m cs).keysList = k :: cs.flatMap keysList := by
+    (node k m cs).keysList = k :: cs.flatMap FHNode.keysList := by
   rw [keysList]
 
 /-- Heap order: every node's key is at most the keys of its children, and the
@@ -688,3 +688,131 @@ theorem minimum_mem {h : FH} {x : Int} (hmin : minimum h = some x) :
     rw [← hmin']
     exact Finset.min'_mem h.keys hne
   · simp [hne] at hmin
+
+/-! ## Cutting and cascading cuts -/
+
+/-- Remove the first element satisfying `p` from a list, returning it together
+with the remaining list. -/
+def findAndRemove (p : FHNode → Prop) [DecidablePred p] :
+    List FHNode → Option (FHNode × List FHNode)
+  | [] => none
+  | x :: xs =>
+      if p x then some (x, xs)
+      else match findAndRemove p xs with
+        | none => none
+        | some (y, rest) => some (y, x :: rest)
+
+/-- The forest key set equals the flattened key list's `toFinset`. -/
+theorem forestKeySet_eq_flatMap (ts : List FHNode) :
+    FHNode.forestKeySet ts = (ts.flatMap FHNode.keysList).toFinset := by
+  induction ts with
+  | nil => simp [FHNode.forestKeySet]
+  | cons t ts ih =>
+      change t.keySet ∪ FHNode.forestKeySet ts =
+        (t.keysList ++ ts.flatMap FHNode.keysList).toFinset
+      rw [ih, FHNode.keySet]
+      rw [List.toFinset_append]
+
+theorem findAndRemove_keys {p : FHNode → Prop} [DecidablePred p]
+    (cs : List FHNode) : ∀ (c : FHNode) (rest : List FHNode),
+    findAndRemove p cs = some (c, rest) →
+      FHNode.forestKeySet cs = c.keySet ∪ FHNode.forestKeySet rest := by
+  induction cs with
+  | nil => intro c rest h; simp [findAndRemove] at h
+  | cons x xs ih =>
+      intro c rest h
+      unfold findAndRemove at h
+      by_cases hx : p x
+      · simp [hx] at h
+        have hc : x = c := h.1
+        have hrest : xs = rest := h.2
+        subst c
+        subst rest
+        simp [FHNode.forestKeySet]
+      · simp [hx] at h
+        cases hfr : findAndRemove p xs with
+        | none => simp [hfr] at h
+        | some pair =>
+            cases pair with
+            | mk y r =>
+                have hy : some (y, x :: r) = some (c, rest) := by
+                  simpa [hfr] using h
+                have hpair : (y, x :: r) = (c, rest) := Option.some.inj hy
+                have hyc : y = c := congrArg Prod.fst hpair
+                have hrest' : x :: r = rest := congrArg Prod.snd hpair
+                have hrec : FHNode.forestKeySet xs = y.keySet ∪ FHNode.forestKeySet r :=
+                  ih y r hfr
+                subst c
+                rw [← hrest']
+                change x.keySet ∪ FHNode.forestKeySet xs =
+                  y.keySet ∪ FHNode.forestKeySet (x :: r)
+                rw [hrec]
+                simp [FHNode.forestKeySet]
+                ext k
+                simp [Finset.mem_union]
+                tauto
+
+/-- Clear the mark bit of a node. -/
+def markFalse : FHNode → FHNode
+  | FHNode.node k _ cs => FHNode.node k false cs
+
+/-- Clearing a mark preserves the key set. -/
+theorem markFalse_keySet (t : FHNode) : (markFalse t).keySet = t.keySet := by
+  cases t with
+  | node k m cs =>
+      simp [markFalse, FHNode.keySet]
+
+/-- Clearing a mark preserves heap order and wellformedness (marks are
+structurally inert). -/
+theorem markFalse_heapOrdered (t : FHNode) (ht : t.HeapOrdered) :
+    (markFalse t).HeapOrdered := by
+  cases t with
+  | node k m cs =>
+      cases ht with
+      | node hle hall =>
+          exact FHNode.HeapOrdered.node hle hall
+
+theorem markFalse_wellformed (t : FHNode) (ht : t.Wellformed) :
+    (markFalse t).Wellformed := by
+  cases t with
+  | node k m cs => simpa [markFalse, FHNode.Wellformed, FHNode.toFTree] using ht
+
+/-- **FIB-HEAP-CUT on a child.**  Remove the child with key `k` from a tree,
+clearing its mark; the child becomes a new root.  Returns `none` when no such
+child exists. -/
+noncomputable def cutChild (t : FHNode) (k : Int) : Option (FHNode × FHNode) :=
+  match findAndRemove (fun c => c.key = k) t.children with
+  | none => none
+  | some (c, rest) => some (markFalse c, FHNode.node t.key t.marked rest)
+
+/-- `cutChild` splits the tree's key set between the cut child and the
+remaining tree. -/
+theorem cutChild_keys {t : FHNode} {k : Int} {c t' : FHNode}
+    (h : cutChild t k = some (c, t')) :
+    c.keySet ∪ t'.keySet = t.keySet := by
+  unfold cutChild at h
+  cases hc : findAndRemove (fun c => c.key = k) t.children with
+  | none => simp [hc] at h
+  | some pair =>
+      cases pair with
+      | mk c' rest =>
+          simp [hc] at h
+          have hc' : markFalse c' = c := h.1
+          have hrest : FHNode.node t.key t.marked rest = t' := h.2
+          subst t'
+          rw [← hc']
+          rw [markFalse_keySet]
+          have hsplit := findAndRemove_keys t.children c' rest hc
+          cases t with
+          | node k' m' cs =>
+              ext z
+              have hsplit' : (∃ a ∈ cs, z ∈ a.keysList) ↔
+                  z ∈ c'.keySet ∨ ∃ a ∈ rest, z ∈ a.keysList := by
+                have h1 := congrArg (fun s : Finset Int => z ∈ s) hsplit
+                simp [FHNode.children] at h1
+                rw [FH.forestKeySet_eq_flatMap cs, FH.forestKeySet_eq_flatMap rest] at h1
+                simpa [List.mem_toFinset, List.mem_flatMap, Finset.mem_union] using h1
+              simp [FHNode.keySet, FHNode.keysList, List.toFinset_cons,
+                List.mem_toFinset, Finset.mem_union]
+              rw [hsplit']
+              simpa [FHNode.keySet, List.mem_toFinset]
