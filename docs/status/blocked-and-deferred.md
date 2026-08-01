@@ -149,27 +149,6 @@ stated assumptions, and Section 4.1's executable abstract runtime is complete.
 
 ## Future Work
 
-### Chapter 5.4 On-Line Hiring 1/e Asymptotic
-
-- Related section: Section 5.4 - Probabilistic analysis of randomized algorithms
-- Status: `future-work`
-
-The finite foundations are present.  The streak model proves
-`CLRS.Chapter05.longestStreak_upperBound` and defines
-`CLRS.Chapter05.expectedLongestStreak`; the logarithmic expectation bound is
-proved as `CLRS.Chapter05.expectedLongestStreak_le`
-(`E[L] ≤ log2 n + 2`) via the tail-sum identity
-`CLRS.Chapter05.expectedLongestStreak_eq_tailSum`.  The on-line hiring model
-provides an executable threshold strategy, exact `some`/`none` contracts, and
-the finite uniform success probability `CLRS.Chapter05.OnlineHiring.probHireBest`,
-whose harmonic closed form `probHireBest n k = (k/n) * (H_{n-1} - H_{k-1})`
-is proved as `CLRS.Chapter05.OnlineHiring.probHireBest_eq`.
-
-One textbook-facing analysis remains: derive the `1/e` asymptotic, that
-choosing `k ≈ n/e` makes the success probability tend to `1/e`.  This
-asymptotic does not block use of the executable finite model or the closed
-form.  Tracked by issue #127.
-
 ### CLRS Exercises
 
 - Related scope: all chapters

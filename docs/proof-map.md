@@ -472,10 +472,10 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
   - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring.lean`
 - Status: `proved` for the birthday/balls-and-bins product-uniform model, the
-  longest-streak tail bound, the executable finite on-line hiring strategy, and
-  the harmonic closed form of the on-line hiring success probability;
-  `partial` for the expected-longest-streak `Θ(log n)` lower bound and the
-  on-line hiring `1/e` asymptotic
+  longest-streak tail bound, the executable finite on-line hiring strategy,
+  the harmonic closed form of the on-line hiring success probability, and its
+  `1/e` asymptotic; `partial` only for the expected-longest-streak `Θ(log n)`
+  lower bound
 - Main proved theorems:
   - `CLRS.Chapter05.singleBinProb`
   - `CLRS.Chapter05.pairSameProb`
@@ -490,6 +490,7 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter05.OnlineHiring.hiringStrategy_some_iff_minInFirstK`
   - `CLRS.Chapter05.OnlineHiring.probBestAt`
   - `CLRS.Chapter05.OnlineHiring.probHireBest_eq` (the harmonic closed form)
+  - `CLRS.Chapter05.OnlineHiring.probHireBest_asymptotic` (the `1/e` limit)
 - Proof pattern: sample space `Fin k → Fin n` (each coordinate an independent
   uniform draw); re-derive the single-coordinate marginal (`singleBinProb = 1/n`)
   and pairwise-collision probability (`pairSameProb = 1/n`) from the toolkit's
@@ -508,8 +509,8 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   `expectedLongestStreak`, `CLRS.Chapter05.OnlineHiring.hiringStrategy`, and
   `CLRS.Chapter05.OnlineHiring.probHireBest`
 - Current gaps: prove the `expectedLongestStreak n = Θ(log n)` lower bound from
-  the streak tail infrastructure (the upper bound `E[L] ≤ log2 n + 2` is done);
-  derive the on-line hiring `1/e` asymptotic for `k ≈ n/e`
+  the streak tail infrastructure (the upper bound `E[L] ≤ log2 n + 2` is done).
+  The on-line hiring `1/e` asymptotic for the threshold `⌊n/e⌋` is proved.
 
 ## Chapter 6 - Heapsort
 
