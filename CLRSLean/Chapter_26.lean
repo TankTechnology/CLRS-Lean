@@ -91,8 +91,14 @@ flow with an augmenting path is not maximal.
 The Edmonds-Karp module defines residual path lengths and shortest residual
 distances.  It proves predecessor and shortest-prefix facts, characterizes the
 new residual edges introduced by augmentation, and combines those bridges into
-the monotonic residual-distance theorem of Lemma 26.7.  Executable BFS and the
-full Edmonds-Karp loop remain separate implementation targets.
+the monotonic residual-distance theorem of Lemma 26.7.  The companion
+submodules assemble the explicit shortest augmenting path from residual
+reachability, run the Edmonds-Karp loop to an integral maximal flow
+({lit}`edmondsKarp_maximal`), and prove the critical-edge counting argument
+that bounds the number of augmentations by `O(VE²)`
+({lit}`critical_count_bound`, {lit}`augmentation_count_bound`).  An executable
+BFS computing the shortest residual paths remains the final implementation
+target.
 
 Section 26.3 defines bipartite graphs, matchings, and the unit-capacity
 reduction.  It constructs the feasible flow induced by every matching
@@ -109,8 +115,8 @@ source-to-sink path and to equality with the capacity of some cut.
 
 ## Deferred Work
 
-* Implement executable BFS and the Edmonds-Karp loop, then prove the
-  {lit}`O(VE²)` work bound.
+* Implement an executable BFS for the residual graph, completing the
+  Edmonds-Karp section.
 
 Sections 26.4 and 26.5 are deferred outside the current selected milestone.
 -/
