@@ -122,13 +122,18 @@ def forestMarks (roots : List FHNode) : Nat :=
 
 @[simp] theorem marks_node (k : Int) (m : Bool) (cs : List FHNode) :
     (node k m cs).marks =
-      (if m then 1 else 0) + (cs.map marks).sum := rfl
+      (if m then 1 else 0) + (cs.map marks).sum := by
+  rw [marks]
 
 @[simp] theorem forestMarks_nil : forestMarks [] = 0 := rfl
 
 @[simp] theorem forestMarks_cons (t : FHNode) (ts : List FHNode) :
     forestMarks (t :: ts) = t.marks + forestMarks ts := by
   simp [forestMarks]
+
+theorem forestKeySet_cons (t : FHNode) (ts : List FHNode) :
+    forestKeySet (t :: ts) = t.keySet ∪ forestKeySet ts := by
+  simp [forestKeySet]
 
 /-- Heap order: every node's key is at most the keys of its children, and the
 children are heap-ordered.  By transitivity the node's key is at most every
@@ -1103,6 +1108,217 @@ theorem cutChildAt_wellformed {t cut parent' : FHNode} {i : Nat}
                       (children.map FHNode.toFTree).eraseIdx i :=
                   map_eraseIdx FHNode.toFTree children i
                 simpa [FHNode.Wellformed, FHNode.toFTree, hmap] using hw'
+
+/-- Cut a direct child of an indexed root and promote it into the root list.
+The stored node count is unchanged because the operation only moves a node. -/
+def cutRootChildAt (h : FH) (rootIndex childIndex : Nat) : Option FH :=
+  match h.roots[rootIndex]? with
+  | none => none
+  | some parent =>
+      match cutChildAt parent childIndex with
+      | none => none
+      | some (cut, parent') =>
+          some
+            { roots := cut :: h.roots.set rootIndex parent'
+            , size := h.size }
+
+/-- Replacing a present forest root satisfies the key-set union balance used
+to lift local CUT facts to the complete root forest. -/
+theorem forestKeySet_set_balance {roots : List FHNode} {i : Nat}
+    {old new : FHNode} (hget : roots[i]? = some old) :
+    FHNode.forestKeySet (roots.set i new) ∪ old.keySet =
+      FHNode.forestKeySet roots ∪ new.keySet := by
+  induction roots generalizing i with
+  | nil => simp at hget
+  | cons root roots ih =>
+      cases i with
+      | zero =>
+          simp only [List.getElem?_cons_zero] at hget
+          injection hget with hroot
+          subst old
+          simp only [List.set_cons_zero]
+          change (new.keySet ∪ FHNode.forestKeySet roots) ∪ root.keySet =
+            (root.keySet ∪ FHNode.forestKeySet roots) ∪ new.keySet
+          ac_rfl
+      | succ i =>
+          simp only [List.getElem?_cons_succ] at hget
+          have hbalance := ih hget
+          simp only [List.set_cons_succ]
+          change (root.keySet ∪ FHNode.forestKeySet (roots.set i new)) ∪
+              old.keySet =
+            (root.keySet ∪ FHNode.forestKeySet roots) ∪ new.keySet
+          calc
+            _ = root.keySet ∪
+                (FHNode.forestKeySet (roots.set i new) ∪ old.keySet) :=
+              Finset.union_assoc _ _ _
+            _ = root.keySet ∪
+                (FHNode.forestKeySet roots ∪ new.keySet) := by rw [hbalance]
+            _ = _ := (Finset.union_assoc _ _ _).symm
+
+/-- If a replacement root and an extra promoted root partition the old root,
+then replacing and prepending preserves the whole forest key set. -/
+theorem forestKeySet_cut_set {roots : List FHNode} {i : Nat}
+    {old cut new : FHNode} (hget : roots[i]? = some old)
+    (hkeys : cut.keySet ∪ new.keySet = old.keySet) :
+    cut.keySet ∪ FHNode.forestKeySet (roots.set i new) =
+      FHNode.forestKeySet roots := by
+  induction roots generalizing i with
+  | nil => simp at hget
+  | cons root roots ih =>
+      cases i with
+      | zero =>
+          simp only [List.getElem?_cons_zero] at hget
+          injection hget with hroot
+          subst old
+          simp only [List.set_cons_zero]
+          rw [FHNode.forestKeySet_cons, FHNode.forestKeySet_cons]
+          rw [← Finset.union_assoc, hkeys]
+      | succ i =>
+          simp only [List.getElem?_cons_succ] at hget
+          have htail := ih hget
+          simp only [List.set_cons_succ]
+          change cut.keySet ∪
+              (root.keySet ∪ FHNode.forestKeySet (roots.set i new)) =
+            root.keySet ∪ FHNode.forestKeySet roots
+          ext z
+          have htailMem := Finset.ext_iff.mp htail z
+          simp only [Finset.mem_union] at htailMem ⊢
+          tauto
+
+/-- Replacing a present root by a good root preserves structural goodness of
+the root forest. -/
+theorem forestGood_set {roots : List FHNode} {i : Nat}
+    {old new : FHNode} (hget : roots[i]? = some old)
+    (hroots : FHNode.ForestGood roots)
+    (hnew : new.HeapOrdered ∧ new.Wellformed) :
+    FHNode.ForestGood (roots.set i new) := by
+  induction roots generalizing i with
+  | nil => simp at hget
+  | cons root roots ih =>
+      have hrootOrdered : root.HeapOrdered := hroots.1 root (by simp)
+      have hrootWellformed : root.Wellformed := hroots.2 root (by simp)
+      have htail : FHNode.ForestGood roots :=
+        ⟨(fun t ht => hroots.1 t (by simp [ht])),
+          (fun t ht => hroots.2 t (by simp [ht]))⟩
+      cases i with
+      | zero =>
+          simp only [List.getElem?_cons_zero] at hget
+          simp only [List.set_cons_zero]
+          exact
+            ⟨(fun t ht => by
+                simp only [List.mem_cons] at ht
+                rcases ht with rfl | ht
+                · exact hnew.1
+                · exact htail.1 t ht),
+              (fun t ht => by
+                simp only [List.mem_cons] at ht
+                rcases ht with rfl | ht
+                · exact hnew.2
+                · exact htail.2 t ht)⟩
+      | succ i =>
+          simp only [List.getElem?_cons_succ] at hget
+          have htailSet := ih hget htail
+          simp only [List.set_cons_succ]
+          exact
+            ⟨(fun t ht => by
+                simp only [List.mem_cons] at ht
+                rcases ht with rfl | ht
+                · exact hrootOrdered
+                · exact htailSet.1 t ht),
+              (fun t ht => by
+                simp only [List.mem_cons] at ht
+                rcases ht with rfl | ht
+                · exact hrootWellformed
+                · exact htailSet.2 t ht)⟩
+
+/-- A successful heap-level CUT preserves the stored node count. -/
+theorem cutRootChildAt_size {h h' : FH} {ri ci : Nat}
+    (hcut : cutRootChildAt h ri ci = some h') :
+    h'.size = h.size := by
+  unfold cutRootChildAt at hcut
+  cases hparent : h.roots[ri]? with
+  | none => simp [hparent] at hcut
+  | some parent =>
+      cases hlocal : cutChildAt parent ci with
+      | none => simp [hparent, hlocal] at hcut
+      | some result =>
+          rcases result with ⟨cut, parent'⟩
+          simp [hparent, hlocal] at hcut
+          subst h'
+          rfl
+
+/-- A successful heap-level CUT adds exactly one root. -/
+theorem cutRootChildAt_roots_length {h h' : FH} {ri ci : Nat}
+    (hcut : cutRootChildAt h ri ci = some h') :
+    h'.roots.length = h.roots.length + 1 := by
+  unfold cutRootChildAt at hcut
+  cases hparent : h.roots[ri]? with
+  | none => simp [hparent] at hcut
+  | some parent =>
+      cases hlocal : cutChildAt parent ci with
+      | none => simp [hparent, hlocal] at hcut
+      | some result =>
+          rcases result with ⟨cut, parent'⟩
+          simp [hparent, hlocal] at hcut
+          subst h'
+          simp [List.length_set]
+
+/-- A successful heap-level CUT preserves the complete heap key set. -/
+theorem cutRootChildAt_keys {h h' : FH} {ri ci : Nat}
+    (hcut : cutRootChildAt h ri ci = some h') :
+    keys h' = keys h := by
+  unfold cutRootChildAt at hcut
+  cases hparent : h.roots[ri]? with
+  | none => simp [hparent] at hcut
+  | some parent =>
+      cases hlocal : cutChildAt parent ci with
+      | none => simp [hparent, hlocal] at hcut
+      | some result =>
+          rcases result with ⟨cut, parent'⟩
+          simp [hparent, hlocal] at hcut
+          subst h'
+          change cut.keySet ∪
+              FHNode.forestKeySet (h.roots.set ri parent') =
+            FHNode.forestKeySet h.roots
+          exact forestKeySet_cut_set hparent (cutChildAt_keys hlocal)
+
+/-- A successful heap-level CUT preserves heap order and structural
+wellformedness of the complete root forest. -/
+theorem cutRootChildAt_good {h h' : FH} {ri ci : Nat}
+    (hcut : cutRootChildAt h ri ci = some h')
+    (hgood : FHNode.ForestGood h.roots) :
+    FHNode.ForestGood h'.roots := by
+  unfold cutRootChildAt at hcut
+  cases hparent : h.roots[ri]? with
+  | none => simp [hparent] at hcut
+  | some parent =>
+      cases hlocal : cutChildAt parent ci with
+      | none => simp [hparent, hlocal] at hcut
+      | some result =>
+          rcases result with ⟨cut, parent'⟩
+          simp [hparent, hlocal] at hcut
+          subst h'
+          obtain ⟨hri, hparentEq⟩ := List.getElem?_eq_some_iff.mp hparent
+          have hparentMem : parent ∈ h.roots := by
+            have hmemAt : h.roots[ri] ∈ h.roots := List.getElem_mem hri
+            simpa [hparentEq] using hmemAt
+          have hordered := cutChildAt_heapOrdered hlocal
+            (hgood.1 parent hparentMem)
+          have hwellformed := cutChildAt_wellformed hlocal
+            (hgood.2 parent hparentMem)
+          have hset : FHNode.ForestGood (h.roots.set ri parent') :=
+            forestGood_set hparent hgood ⟨hordered.2, hwellformed.2⟩
+          exact
+            ⟨(fun t ht => by
+                simp only [List.mem_cons] at ht
+                rcases ht with rfl | ht
+                · exact hordered.1
+                · exact hset.1 t ht),
+              (fun t ht => by
+                simp only [List.mem_cons] at ht
+                rcases ht with rfl | ht
+                · exact hwellformed.1
+                · exact hset.2 t ht)⟩
 
 /-- **FIB-HEAP-CUT on a child.**  Remove the child with key `k` from a tree,
 clearing its mark; the child becomes a new root.  Returns `none` when no such
