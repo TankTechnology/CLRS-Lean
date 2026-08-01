@@ -37,10 +37,14 @@ The harmonic closed form and asymptotic {lit}`1/e` theorem remain open.
 * Section 5.3: {lit}`proved` for the independent-swap-choice model, including
   {lit}`CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.5).
 * Section 5.4: {lit}`proved` for the product-uniform birthday and balls-and-bins
-  models, including {lit}`CLRS.Chapter05.expectedCollisions_eq` and
-  {lit}`CLRS.Chapter05.expectedBallsInBin_eq`; {lit}`partial` for on-line
-  hiring, with executable selection and finite probability but without the
-  harmonic closed form or {lit}`1/e` asymptotic.
+  models ({lit}`CLRS.Chapter05.expectedCollisions_eq`,
+  {lit}`CLRS.Chapter05.expectedBallsInBin_eq`), the longest-streak
+  {lit}`Θ(log n)` bounds
+  ({lit}`CLRS.Chapter05.expectedLongestStreak_le`,
+  {lit}`CLRS.Chapter05.expectedLongestStreak_lowerBound`), and on-line hiring,
+  whose success probability has the harmonic closed form
+  ({lit}`CLRS.Chapter05.OnlineHiring.probHireBest_eq`) and the {lit}`1/e`
+  asymptotic ({lit}`CLRS.Chapter05.OnlineHiring.probHireBest_asymptotic`).
 -/
 
 namespace CLRS
