@@ -3188,8 +3188,16 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter24.WeightedGraph.noNegCycle_johnsonAugmentedGraph`
   - `CLRS.Chapter24.WeightedGraph.johnsonPotential`
   - `CLRS.Chapter24.WeightedGraph.johnsonPotential_triangle`
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential_finite`
   - `CLRS.Chapter24.WeightedGraph.johnsonDist_isShortestDist`
     (CLRS Theorem 25.5, end-to-end Johnson correctness)
+  - `CLRS.Chapter24.WeightedGraph.isShortestDist_edge_ineq`
+    (general triangle inequality for shortest-path distances)
+  - `CLRS.Chapter24.WeightedGraph.walk_johnsonAugmented_some_projection`
+  - `CLRS.Chapter24.WeightedGraph.johnsonReweightedNonneg`
+  - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist_correct`
+    (CLRS Theorem 25.6, Johnson's algorithm computes all-pairs shortest
+    distances via Dijkstra; merged from the closed duplicate PR #113)
 - Current gap: none within Section 25.3.
 
 ### Chapter 25 remaining work
