@@ -181,6 +181,35 @@ instance isMinInFirst_decidable {n m : ℕ} (hm : m ≤ n) (π : Equiv.Perm (Fin
   unfold isMinInFirst
   infer_instance
 
+/-- Two `Fin` elements with the same value are equal, whatever bound proofs
+are supplied (proof irrelevance of the `val < n` witness). -/
+@[simp] theorem Fin.mk_val_mk_val {n : ℕ} {a : ℕ} (h1 h2 : a < n) :
+    (⟨a, h1⟩ : Fin n) = ⟨a, h2⟩ := by
+  apply Fin.ext
+  rfl
+
+/-- `⟨x.val, h⟩` is `x` for any valid bound proof `h`. -/
+theorem Fin.eq_of_val_mk {n : ℕ} (x : Fin n) (h : x.val < n) : (⟨x.val, h⟩ : Fin n) = x := by
+  apply Fin.ext
+  rfl
+
+/-- A position holding the minimum among the first `j` positions is strictly
+smaller in score than every other position of the first `j`. -/
+lemma isMinInFirst_lt {n j : ℕ} (hjn : j ≤ n) (π : Equiv.Perm (Fin n)) (p : Fin j)
+    (hp : isMinInFirst hjn π p) (i : Fin n) (hpi : i.val < j) (hne : i ≠ liftFirst hjn p) :
+    (π ⟨p.val, lt_of_lt_of_le p.isLt hjn⟩).val < (π i).val := by
+  have hle : (π ⟨p.val, lt_of_lt_of_le p.isLt hjn⟩).val ≤ (π i).val := by
+    have hbi : liftFirst hjn ⟨i.val, hpi⟩ = i := by
+      change ⟨i.val, lt_of_lt_of_le hpi hjn⟩ = i
+      exact Fin.eq_of_val_mk i (lt_of_lt_of_le hpi hjn)
+    rw [← hbi]
+    exact hp ⟨i.val, hpi⟩
+  have hne_val : (π ⟨p.val, lt_of_lt_of_le p.isLt hjn⟩).val ≠ (π i).val := by
+    intro h
+    have hπeq : π ⟨p.val, lt_of_lt_of_le p.isLt hjn⟩ = π i := Fin.ext h
+    exact hne (π.injective hπeq).symm
+  exact lt_of_le_of_ne hle hne_val
+
 /-- Swap the scores at positions `a` and `b` of a permutation (right-composition
 with the transposition). -/
 def swapValues {n : ℕ} (a b : Fin n) (π : Equiv.Perm (Fin n)) : Equiv.Perm (Fin n) :=
@@ -450,6 +479,244 @@ lemma sum_card_bestAt (n : ℕ) (hn : 0 < n) :
             _ = 1 := by simp
     _ = n.factorial := by
           simp [Fintype.card_perm]
+
+/-! ## The per-position probabilities
+
+We combine the counting lemmas into the two probabilities the closed form
+needs: score `0` is at `pos` with probability `1/n`, and (given the minimum of
+the first `m` positions is at `p`) that joint event has probability `1/(nm)`.
+-/
+
+/-- A position other than the best has nonzero score. -/
+lemma val_ne_zero_of_ne_best {n : ℕ} (j i : Fin n) (π : Equiv.Perm (Fin n))
+    (hbest : (π j).val = 0) (hne : i ≠ j) : (π i).val ≠ 0 := by
+  intro h
+  apply hne
+  apply π.injective
+  apply Fin.ext
+  rw [hbest, h]
+
+/-- The real-valued sum of indicators over a finite type is the cardinality of
+the corresponding filtered set. -/
+lemma sum_indicator_eq_card {α : Type} [Fintype α] (p : α → Prop) [DecidablePred p] :
+    (∑ a : α, indicator (p a)) = (((Finset.univ : Finset α).filter p).card : ℝ) := by
+  unfold indicator
+  rw [Finset.card_filter]
+  push_cast
+  rfl
+
+/-- **The best score `0` is at position `pos` with probability `1/n`**, by the
+uniformity of the position of score `0` over the `n` positions. -/
+theorem prob_bestAt (n : ℕ) (pos : Fin n) (hn : 0 < n) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator ((π pos).val = 0)) = 1 / (n : ℝ) := by
+  classical
+  have hfac_card : (Fintype.card (Equiv.Perm (Fin n)) : ℝ) = (n.factorial : ℝ) := by
+    rw [Fintype.card_perm]
+    simp
+  have hnum : (∑ π : Equiv.Perm (Fin n), indicator ((π pos).val = 0))
+      = (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π pos).val = 0)).card : ℝ) := by
+    exact sum_indicator_eq_card (fun π : Equiv.Perm (Fin n) => (π pos).val = 0)
+  rw [fintypeExpect, hnum, hfac_card]
+  let c : ℕ := ((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π pos).val = 0)).card
+  have h_uniform : (∑ a : Fin n, (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π a).val = 0)).card : ℝ))
+      = (n : ℝ) * (c : ℝ) := by
+    calc
+      (∑ a : Fin n, (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π a).val = 0)).card : ℝ))
+          = ∑ a : Fin n, (c : ℝ) := by
+            refine Finset.sum_congr rfl (fun a _ => ?_)
+            have h := card_bestAt_eq n a pos
+            exact_mod_cast h
+      _ = (n : ℝ) * (c : ℝ) := by simp
+  have h_sum : (∑ a : Fin n, (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π a).val = 0)).card : ℝ))
+      = (n.factorial : ℝ) := by
+    exact_mod_cast sum_card_bestAt n hn
+  have h_eq : (n : ℝ) * (c : ℝ) = (n.factorial : ℝ) := by
+    rw [← h_uniform]
+    exact h_sum
+  have hposn : (n : ℝ) ≠ 0 := by positivity
+  have hposfact : (n.factorial : ℝ) ≠ 0 := by positivity
+  have hfrac : (c : ℝ) / (n.factorial : ℝ) = 1 / (n : ℝ) := by
+    field_simp [hposn, hposfact]
+    linarith [h_eq]
+  change (c : ℝ) / (n.factorial : ℝ) = 1 / (n : ℝ)
+  exact hfrac
+
+/-- **Given score `0` at `pos` and the minimum of the first `m` positions at
+`p`, the probability is `1/(n·m)`**: the joint event counts, for each of the
+`n` choices of the position of score `0` and the `m` choices of the minimum
+position, the same number of permutations. -/
+theorem prob_bestMin (n m : ℕ) (hm : m ≤ n) (hmpos : 0 < m) (pos : Fin n) (hpos : m ≤ pos.val)
+    (hn : 0 < n) (p : Fin m) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) =>
+      indicator ((π pos).val = 0 ∧ isMinInFirst hm π p))
+    = (1 : ℝ) / (n : ℝ) * (1 : ℝ) / (m : ℝ) := by
+  classical
+  have hfac_card : (Fintype.card (Equiv.Perm (Fin n)) : ℝ) = (n.factorial : ℝ) := by
+    rw [Fintype.card_perm]
+    simp
+  have hnum : (∑ π : Equiv.Perm (Fin n), indicator ((π pos).val = 0 ∧ isMinInFirst hm π p))
+      = (bestMinCount n m hm pos p : ℝ) := by
+    rw [bestMinCount, bestMinSet]
+    exact sum_indicator_eq_card (fun π : Equiv.Perm (Fin n) => (π pos).val = 0 ∧ isMinInFirst hm π p)
+  rw [fintypeExpect, hnum, hfac_card]
+  let T : ℕ := bestMinCount n m hm pos p
+  have h_uniform : (∑ q : Fin m, (bestMinCount n m hm pos q : ℝ)) = (m : ℝ) * (T : ℝ) := by
+    calc
+      (∑ q : Fin m, (bestMinCount n m hm pos q : ℝ))
+          = ∑ q : Fin m, (T : ℝ) := by
+            refine Finset.sum_congr rfl (fun q _ => ?_)
+            have h : bestMinCount n m hm pos p = bestMinCount n m hm pos q := by
+              by_cases hpq : p = q
+              · subst q; rfl
+              · exact bestMinCount_eq hm pos hpos hpq
+            exact_mod_cast h.symm
+      _ = (m : ℝ) * (T : ℝ) := by simp
+  have h_sum : (∑ q : Fin m, (bestMinCount n m hm pos q : ℝ))
+      = (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π pos).val = 0)).card : ℝ) := by
+    exact_mod_cast sum_bestMinCount hm hmpos pos
+  have h_eq : (m : ℝ) * (T : ℝ)
+      = (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π pos).val = 0)).card : ℝ) := by
+    rw [← h_uniform]
+    exact h_sum
+  -- restate prob_bestAt as `#(bestAt pos)/n! = 1/n`
+  have h_pb : (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π pos).val = 0)).card : ℝ)
+      / (n.factorial : ℝ) = 1 / (n : ℝ) := by
+    have h' := prob_bestAt n pos hn
+    rw [fintypeExpect, hfac_card] at h'
+    have hnum' : (∑ π : Equiv.Perm (Fin n), indicator ((π pos).val = 0))
+        = (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π pos).val = 0)).card : ℝ) := by
+      exact sum_indicator_eq_card (fun π : Equiv.Perm (Fin n) => (π pos).val = 0)
+    rw [hnum'] at h'
+    exact h'
+  have hposn : (n : ℝ) ≠ 0 := by positivity
+  have hposm : (m : ℝ) ≠ 0 := by positivity
+  have hposfact : (n.factorial : ℝ) ≠ 0 := by positivity
+  have hfrac : (T : ℝ) / (n.factorial : ℝ) = (1 : ℝ) / (n : ℝ) * (1 : ℝ) / (m : ℝ) := by
+    field_simp [hposn, hposm, hposfact]
+    -- goal: T * n * m = n! ; from h_eq: m·T = B and h_pb: B/n! = 1/n
+    have h_pb_mul : (((Finset.univ : Finset (Equiv.Perm (Fin n))).filter (fun π => (π pos).val = 0)).card : ℝ)
+        * (n : ℝ) = (n.factorial : ℝ) := by
+      field_simp [hposn, hposfact] at h_pb
+      exact h_pb
+    nlinarith [h_eq, h_pb_mul]
+  change (T : ℝ) / (n.factorial : ℝ) = (1 : ℝ) / (n : ℝ) * (1 : ℝ) / (m : ℝ)
+  exact hfrac
+
+/-! ## Characterizing when the best candidate is hired
+
+Given the best candidate is at position `j`, the strategy hires it exactly when
+no record occurs in positions `{k, ..., j-1}`.  A record is a left-to-right
+minimum of the scores, so this is equivalent to the minimum score among the
+first `j.val` positions already being achieved at a position below `k`. -/
+
+/-- The minimum score among the first `j.val` positions is achieved at a
+position below the threshold `k`. -/
+def minInFirstK (n k : ℕ) (j : Fin n) (hkj : k ≤ j.val) (hjn : j.val ≤ n)
+    (π : Equiv.Perm (Fin n)) : Prop :=
+  ∃ p : Fin k, isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩
+
+instance minInFirstK_decidable (n k : ℕ) (j : Fin n) (hkj : k ≤ j.val) (hjn : j.val ≤ n)
+    (π : Equiv.Perm (Fin n)) : Decidable (minInFirstK n k j hkj hjn π) := by
+  unfold minInFirstK
+  infer_instance
+
+/-- **Best-candidate characterization.**  The strategy hires the best candidate
+at position `j` if and only if the best is at `j` and the minimum score among
+the first `j.val` positions is among the first `k` positions. -/
+theorem hiringStrategy_some_iff_minInFirstK (n k : ℕ) (hk : 0 < k) (j : Fin n) (hkj : k ≤ j.val)
+    (hjn : j.val ≤ n) (π : Equiv.Perm (Fin n)) :
+    (hiringStrategy k π = some j ∧ isAbsoluteBest π j) ↔
+      (isAbsoluteBest π j ∧ minInFirstK n k j hkj hjn π) := by
+  classical
+  constructor
+  · intro h
+    rcases h with ⟨hsj, hbest⟩
+    refine ⟨hbest, ?_⟩
+    have hs := hiringStrategy_some_iff.mp hsj
+    rcases hs with ⟨_, _, hno_rec⟩
+    have hjpos : 0 < j.val := lt_of_lt_of_le hk hkj
+    rcases isMinInFirst_exists hjn hjpos π with ⟨m, hm⟩
+    have hmln : m.val < n := lt_of_lt_of_le m.isLt hjn
+    have hk_le_m : ¬ k ≤ m.val := by
+      intro hkm
+      have hrec_m : isRecordAt π ⟨m.val, hmln⟩ := by
+        unfold isRecordAt
+        intro i hi
+        change i.val < m.val at hi
+        exact isMinInFirst_lt hjn π m hm i (lt_trans hi m.isLt)
+          (by intro h
+              have hval : m.val = i.val := by simpa [liftFirst] using congrArg Fin.val h.symm
+              exact (ne_of_lt hi) hval.symm)
+      have hjm : j ≤ ⟨m.val, hmln⟩ := hno_rec ⟨m.val, hmln⟩ hkm hrec_m
+      have hjm_val : j.val ≤ m.val := Fin.le_def.mp hjm
+      omega
+    exact ⟨⟨m.val, lt_of_not_ge hk_le_m⟩, hm⟩
+  · intro h
+    rcases h with ⟨hbest, hmin⟩
+    refine ⟨?_, hbest⟩
+    refine (hiringStrategy_some_iff.mpr ⟨hkj, ?_, ?_⟩)
+    · unfold isRecordAt
+      intro i hi
+      have h0 : (π i).val ≠ 0 := by
+        apply val_ne_zero_of_ne_best j i π hbest
+        intro hij
+        have : i.val = j.val := congrArg Fin.val hij
+        omega
+      have hpos : 0 < (π i).val := Nat.pos_of_ne_zero h0
+      rw [hbest]
+      exact hpos
+    · intro i hki hrec_i
+      by_contra hji
+      have hiltj : i.val < j.val := Fin.lt_def.mp (lt_of_not_ge hji)
+      rcases hmin with ⟨p, hp⟩
+      have hplj : p.val < j.val := lt_of_lt_of_le p.isLt hkj
+      have hplti : p.val < i.val := by omega
+      have hne : i ≠ liftFirst hjn ⟨p.val, hplj⟩ := by
+        intro h
+        have : p.val = i.val := congrArg Fin.val h.symm
+        omega
+      have hlt : (π ⟨p.val, lt_of_lt_of_le hplj hjn⟩).val < (π i).val :=
+        isMinInFirst_lt hjn π ⟨p.val, hplj⟩ hp i hiltj hne
+      have hpln : p.val < n := lt_of_lt_of_le hplj hjn
+      have hlt2 : (π i).val < (π ⟨p.val, hpln⟩).val := hrec_i ⟨p.val, hpln⟩ hplti
+      exact (lt_asymm hlt (by simpa using hlt2)).elim
+
+/-- The indicator of `minInFirstK` is the sum over `p : Fin k` of the
+indicators of the individual minimum positions (the minimum is unique). -/
+lemma indicator_minInFirstK_eq (n k : ℕ) (hk : 0 < k) (j : Fin n) (hkj : k ≤ j.val)
+    (hjn : j.val ≤ n) (π : Equiv.Perm (Fin n)) :
+    indicator (minInFirstK n k j hkj hjn π)
+      = ∑ p : Fin k, indicator (isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩) := by
+  classical
+  unfold minInFirstK indicator
+  by_cases h : ∃ p : Fin k, isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩
+  · rcases h with ⟨p0, hp0⟩
+    have honly : ∀ p : Fin k, isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩ ↔ p = p0 := by
+      intro p
+      constructor
+      · intro hpp
+        have he := isMinInFirst_unique hjn π hpp hp0
+        exact Fin.ext (by simpa using congrArg Fin.val he)
+      · intro hpp; subst p; exact hp0
+    have hsum : (∑ p : Fin k, indicator (isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩)) = 1 := by
+      have hre : (∑ p : Fin k, indicator (isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩))
+          = ∑ p : Fin k, indicator (p = p0) := by
+        refine Finset.sum_congr rfl (fun p _ => ?_)
+        unfold indicator
+        exact if_congr (honly p) rfl rfl
+      rw [hre]
+      simp [indicator]
+    rw [if_pos ⟨p0, hp0⟩]
+    exact hsum.symm
+  · have hsum : (∑ p : Fin k, indicator (isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩)) = 0 := by
+      apply Finset.sum_eq_zero
+      intro p _
+      have : ¬ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩ := by
+        intro hpp
+        exact h ⟨p, hpp⟩
+      simp [indicator, this]
+    rw [if_neg h]
+    exact hsum.symm
 
 end OnlineHiring
 
