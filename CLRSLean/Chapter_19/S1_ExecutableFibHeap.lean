@@ -544,3 +544,147 @@ theorem insertConsolidated_degreeStrict (ys : List FHNode) (x : FHNode)
                 List.rel_of_pairwise_cons hys (by simp [hb])
               exact lt_trans hx_lt hyb
           · exact hys
+
+/-- The executable `CONSOLIDATE`: fold the root list into a degree-strict
+forest by repeated degree-bucket insertion. -/
+def consolidateList : List FHNode → List FHNode
+  | [] => []
+  | x :: xs => insertConsolidated (consolidateList xs) x
+
+/-- `CONSOLIDATE` preserves the key set of the root forest. -/
+theorem consolidateList_keys : ∀ roots : List FHNode,
+    forestKeySet (consolidateList roots) = forestKeySet roots
+  | [] => by simp [consolidateList]
+  | x :: xs => by
+      rw [consolidateList]
+      rw [insertConsolidated_keys]
+      have hrec := consolidateList_keys xs
+      rw [hrec]
+      ext k
+      simp [forestKeySet, Finset.mem_union]
+      tauto
+
+/-- `CONSOLIDATE` preserves structural goodness of the root forest. -/
+theorem consolidateList_good : ∀ roots : List FHNode,
+    ForestGood roots → ForestGood (consolidateList roots)
+  | [] => by simp [consolidateList]
+  | x :: xs => by
+      intro hgood
+      rw [consolidateList]
+      have hgxs : ForestGood xs := ⟨
+        (fun t ht => hgood.1 t (by simp [ht])),
+        (fun t ht => hgood.2 t (by simp [ht]))⟩
+      have hgx : ForestGood [x] := ⟨
+        (fun t ht => by
+          rw [List.mem_singleton] at ht
+          subst t
+          exact hgood.1 x (by simp)),
+        (fun t ht => by
+          rw [List.mem_singleton] at ht
+          subst t
+          exact hgood.2 x (by simp))⟩
+      have hrec := consolidateList_good xs hgxs
+      exact insertConsolidated_good (consolidateList xs) x hrec hgx
+
+/-- `CONSOLIDATE` produces a degree-strict forest: at most one root per
+degree. -/
+theorem consolidateList_degreeStrict : ∀ roots : List FHNode,
+    DegreeStrict (consolidateList roots)
+  | [] => by simp [consolidateList, DegreeStrict]
+  | x :: xs => by
+      rw [consolidateList]
+      exact insertConsolidated_degreeStrict (consolidateList xs) x
+        (consolidateList_degreeStrict xs)
+
+end FHNode
+
+/-- An executable Fibonacci heap: a root forest and the total node count. -/
+structure FH where
+  roots : List FHNode
+  size : Nat
+
+namespace FH
+
+/-- The key set represented by the heap (duplicates collapsed). -/
+def keys (h : FH) : Finset Int := FHNode.forestKeySet h.roots
+
+/-- The empty heap. -/
+def makeHeap : FH :=
+  { roots := [], size := 0 }
+
+/-- Insert a new key as an unmarked root (CLRS `FIB-HEAP-INSERT`). -/
+def insert (x : Int) (h : FH) : FH :=
+  { roots := FHNode.node x false [] :: h.roots
+  , size := h.size + 1 }
+
+/-- Union of two heaps: concatenate the root forests (CLRS `FIB-HEAP-UNION`). -/
+def union (h₁ h₂ : FH) : FH :=
+  { roots := h₁.roots ++ h₂.roots
+  , size := h₁.size + h₂.size }
+
+/-- The minimum key, if the heap is nonempty (CLRS `FIB-HEAP-MINIMUM`). -/
+def minimum (h : FH) : Option Int :=
+  if hne : h.keys.Nonempty then some (h.keys.min' hne) else none
+
+/-- The keys of the empty heap are none. -/
+theorem makeHeap_keys : keys makeHeap = ∅ := by
+  simp [keys, makeHeap, FHNode.forestKeySet]
+
+/-- Inserting adds the new key to the key set. -/
+theorem insert_keys (x : Int) (h : FH) :
+    keys (insert x h) = Insert.insert x (keys h) := by
+  rw [Finset.insert_eq]
+  ext k
+  simp [keys, insert, FHNode.forestKeySet, FHNode.keySet, FHNode.keysList,
+    Finset.mem_union]
+
+/-- The key set of a concatenated forest is the union of the two key sets. -/
+theorem forestKeySet_append (ts₁ ts₂ : List FHNode) :
+    FHNode.forestKeySet (ts₁ ++ ts₂) = FHNode.forestKeySet ts₁ ∪ FHNode.forestKeySet ts₂ := by
+  induction ts₁ with
+  | nil => simp [FHNode.forestKeySet]
+  | cons t ts₁ ih =>
+      change t.keySet ∪ FHNode.forestKeySet (ts₁ ++ ts₂) =
+        (t.keySet ∪ FHNode.forestKeySet ts₁) ∪ FHNode.forestKeySet ts₂
+      rw [ih]
+      ac_rfl
+
+/-- Union of heaps is the union of key sets. -/
+theorem union_keys (h₁ h₂ : FH) :
+    keys (union h₁ h₂) = keys h₁ ∪ keys h₂ := by
+  change FHNode.forestKeySet (h₁.roots ++ h₂.roots) =
+    FHNode.forestKeySet h₁.roots ∪ FHNode.forestKeySet h₂.roots
+  exact forestKeySet_append h₁.roots h₂.roots
+
+/-- A key belongs to the forest key set exactly when some root's subtree
+contains it. -/
+theorem FHNode.mem_forestKeySet_iff {ts : List FHNode} {k : Int} :
+    k ∈ FHNode.forestKeySet ts ↔ ∃ t ∈ ts, k ∈ t.keySet := by
+  induction ts with
+  | nil => simp [FHNode.forestKeySet]
+  | cons t ts ih =>
+      change k ∈ t.keySet ∪ FHNode.forestKeySet ts ↔
+        ∃ t' ∈ t :: ts, k ∈ t'.keySet
+      rw [Finset.mem_union, ih]
+      simp [List.mem_cons]
+
+/-- A root's key belongs to the forest key set. -/
+theorem FHNode.mem_forestKeySet_of_mem {ts : List FHNode} {t : FHNode}
+    (ht : t ∈ ts) : t.key ∈ FHNode.forestKeySet ts := by
+  rw [FHNode.mem_forestKeySet_iff]
+  exact ⟨t, ht, by
+    cases t with
+    | node k m cs =>
+        have : k ∈ (FHNode.node k m cs).keysList := by simp
+        exact List.mem_toFinset.mpr this⟩
+
+/-- A returned minimum belongs to the represented key set. -/
+theorem minimum_mem {h : FH} {x : Int} (hmin : minimum h = some x) :
+    x ∈ keys h := by
+  unfold minimum at hmin
+  by_cases hne : h.keys.Nonempty
+  · have hmin' : h.keys.min' hne = x := by
+      simpa [hne] using hmin
+    rw [← hmin']
+    exact Finset.min'_mem h.keys hne
+  · simp [hne] at hmin
