@@ -713,6 +713,8 @@ theorem forestKeySet_eq_flatMap (ts : List FHNode) :
       rw [ih, FHNode.keySet]
       rw [List.toFinset_append]
 
+/-- The key set of a removed element is exactly what `findAndRemove` splits
+off. -/
 theorem findAndRemove_keys {p : FHNode → Prop} [DecidablePred p]
     (cs : List FHNode) : ∀ (c : FHNode) (rest : List FHNode),
     findAndRemove p cs = some (c, rest) →
@@ -724,8 +726,7 @@ theorem findAndRemove_keys {p : FHNode → Prop} [DecidablePred p]
       unfold findAndRemove at h
       by_cases hx : p x
       · simp [hx] at h
-        have hc : x = c := h.1
-        have hrest : xs = rest := h.2
+        rcases h with ⟨hcx, hrestx⟩
         subst c
         subst rest
         simp [FHNode.forestKeySet]
@@ -752,6 +753,184 @@ theorem findAndRemove_keys {p : FHNode → Prop} [DecidablePred p]
                 simp [Finset.mem_union]
                 tauto
 
+/-- The remaining list of `findAndRemove` consists of elements of the
+original list. -/
+theorem findAndRemove_rest_mem {p : FHNode → Prop} [DecidablePred p]
+    (cs : List FHNode) : ∀ (c : FHNode) (rest : List FHNode),
+    findAndRemove p cs = some (c, rest) → ∀ v ∈ rest, v ∈ cs := by
+  induction cs with
+  | nil => intro c rest h v hv; simp [findAndRemove] at h
+  | cons x xs ih =>
+      intro c rest h v hv
+      unfold findAndRemove at h
+      by_cases hx : p x
+      · simp [hx] at h
+        rcases h with ⟨hcx, hrestx⟩
+        subst c
+        subst rest
+        exact List.mem_cons.mpr (Or.inr hv)
+      · simp [hx] at h
+        cases hfr : findAndRemove p xs with
+        | none => simp [hfr] at h
+        | some pair =>
+            cases pair with
+            | mk y r =>
+                have hy : some (y, x :: r) = some (c, rest) := by
+                  simpa [hfr] using h
+                have hpair : (y, x :: r) = (c, rest) := Option.some.inj hy
+                have hrest' : x :: r = rest := congrArg Prod.snd hpair
+                subst rest
+                rw [List.mem_cons] at hv
+                rcases hv with hv | hv
+                · exact List.mem_cons.mpr (Or.inl hv)
+                · exact List.mem_cons.mpr (Or.inr (ih y r hfr v hv))
+
+/-- `findAndRemove` removes exactly the first matching element: the rest is
+the original list with that position erased. -/
+theorem findAndRemove_eq_eraseIdx {p : FHNode → Prop} [DecidablePred p]
+    (cs : List FHNode) : ∀ (c : FHNode) (rest : List FHNode),
+    findAndRemove p cs = some (c, rest) →
+      ∃ (i : Nat) (hi : i < cs.length), cs[i]'(hi) = c ∧ rest = cs.eraseIdx i := by
+  induction cs with
+  | nil => intro c rest h; simp [findAndRemove] at h
+  | cons x xs ih =>
+      intro c rest h
+      unfold findAndRemove at h
+      by_cases hx : p x
+      · simp [hx] at h
+        rcases h with ⟨hcx, hrestx⟩
+        subst c
+        subst rest
+        refine ⟨0, by simp, ?_, rfl⟩
+        · show (x :: xs)[0]'(by simp) = x
+          simp
+      · simp [hx] at h
+        cases hfr : findAndRemove p xs with
+        | none => simp [hfr] at h
+        | some pair =>
+            cases pair with
+            | mk y r =>
+                have hy : some (y, x :: r) = some (c, rest) := by
+                  simpa [hfr] using h
+                have hpair : (y, x :: r) = (c, rest) := Option.some.inj hy
+                have hyc : y = c := congrArg Prod.fst hpair
+                have hrest' : x :: r = rest := congrArg Prod.snd hpair
+                rcases ih y r hfr with ⟨i, hi, hget, herase⟩
+                subst c
+                subst rest
+                refine ⟨i + 1, by simp [hi], ?_, ?_⟩
+                · show (x :: xs)[i + 1]'(by simp [hi]) = y
+                  simpa [hget]
+                · simp [List.eraseIdx, herase]
+
+/-- Mapping commutes with `List.eraseIdx`. -/
+lemma map_eraseIdx {α β : Type} (f : α → β) (cs : List α) (i : Nat) :
+    ((cs.eraseIdx i).map f) = (cs.map f).eraseIdx i := by
+  revert i
+  induction cs with
+  | nil => intro i; simp
+  | cons x xs ih =>
+      intro i
+      cases i with
+      | zero => rfl
+      | succ i =>
+          simp [List.eraseIdx, ih i]
+
+/-- Elements of the erased list are elements of the original list. -/
+lemma mem_eraseIdx_of_mem {α : Type} {cs : List α} (i : Nat) {a : α}
+    (h : a ∈ cs.eraseIdx i) : a ∈ cs := by
+  revert i
+  induction cs with
+  | nil => intro i h; simp at h
+  | cons x xs ih =>
+      intro i h
+      cases i with
+      | zero =>
+          exact List.mem_cons.mpr (Or.inr (by simpa [List.eraseIdx] using h))
+      | succ i =>
+          simp [List.eraseIdx] at h ⊢
+          rcases h with h | h
+          · exact Or.inl h
+          · exact Or.inr (ih i h)
+
+/-- The element before the removed index is unchanged. -/
+lemma eraseIdx_getElem_lt {α : Type} {cs : List α} (i j : Nat)
+    (hi : i < cs.length) (hji : j < i) (hj' : j < (cs.eraseIdx i).length) :
+    (cs.eraseIdx i)[j]'(hj') = cs[j]'(lt_trans hji hi) := by
+  revert i j
+  induction cs with
+  | nil => intro i j hi hji hj'; simp at hi
+  | cons x xs ih =>
+      intro i j hi hji hj'
+      cases i with
+      | zero => simp at hji
+      | succ i =>
+          cases j with
+          | zero => simp [List.eraseIdx]
+          | succ j =>
+              have hj'' : j < (xs.eraseIdx i).length := by
+                simpa [List.eraseIdx] using hj'
+              have hji' : j < i := by omega
+              have hi' : i < xs.length := by simp at hi; omega
+              have hrec := ih i j hi' hji' hj''
+              simpa [List.eraseIdx] using hrec
+
+/-- The element at or after the removed index shifts down by one. -/
+lemma eraseIdx_getElem_ge {α : Type} {cs : List α} (i j : Nat)
+    (hi : i < cs.length) (hij : i ≤ j) (hj : j < (cs.eraseIdx i).length)
+    (hj₁ : j + 1 < cs.length) :
+    (cs.eraseIdx i)[j]'(hj) = cs[j + 1]'(hj₁) := by
+  revert i j
+  induction cs with
+  | nil => intro i j hi hij hj hj₁; simp at hi
+  | cons x xs ih =>
+      intro i j hi hij hj hj₁
+      cases i with
+      | zero =>
+          simp [List.eraseIdx]
+      | succ i =>
+          cases j with
+          | zero => simp at hij
+          | succ j =>
+              have hj'' : j < (xs.eraseIdx i).length := by
+                simpa [List.eraseIdx] using hj
+              have hj₁'' : j + 1 < xs.length := by
+                simpa [List.eraseIdx] using hj₁
+              have hij' : i ≤ j := by omega
+              have hi' : i < xs.length := by simp at hi; omega
+              have hrec := ih i j hi' hij' hj'' hj₁''
+              simpa [List.eraseIdx] using hrec
+
+theorem FTree.wellformed_remove_index {cs : List FTree}
+    (hw : FTree.Wellformed (FTree.node cs)) (i : Nat) (hi : i < cs.length) :
+    FTree.Wellformed (FTree.node (cs.eraseIdx i)) := by
+  cases hw with
+  | node hdeg hall =>
+      refine FTree.Wellformed.node ?_ ?_
+      · intro j hj
+        by_cases hji : j < i
+        · have hget := eraseIdx_getElem_lt (α := FTree) i j hi hji hj
+          rw [hget]
+          exact hdeg j (lt_trans hji hi)
+        · have hget := eraseIdx_getElem_ge (α := FTree) i j hi (le_of_not_gt hji) hj
+            (by
+              have hjlen : (cs.eraseIdx i).length = cs.length - 1 :=
+                List.length_eraseIdx_of_lt hi
+              rw [hjlen] at hj
+              omega)
+          rw [hget]
+          have hjn : j + 1 < cs.length := by
+            have hjlen : (cs.eraseIdx i).length = cs.length - 1 :=
+              List.length_eraseIdx_of_lt hi
+            rw [hjlen] at hj
+            omega
+          have hdeg' : (j + 1) - 1 ≤ (cs[j + 1]).degree :=
+            hdeg (j + 1) hjn
+          have : j - 1 ≤ (j + 1) - 1 := by omega
+          exact le_trans this hdeg'
+      · intro c hc
+        exact hall c (mem_eraseIdx_of_mem i hc)
+
 /-- Clear the mark bit of a node. -/
 def markFalse : FHNode → FHNode
   | FHNode.node k _ cs => FHNode.node k false cs
@@ -762,8 +941,7 @@ theorem markFalse_keySet (t : FHNode) : (markFalse t).keySet = t.keySet := by
   | node k m cs =>
       simp [markFalse, FHNode.keySet]
 
-/-- Clearing a mark preserves heap order and wellformedness (marks are
-structurally inert). -/
+/-- Clearing a mark preserves heap order (marks are structurally inert). -/
 theorem markFalse_heapOrdered (t : FHNode) (ht : t.HeapOrdered) :
     (markFalse t).HeapOrdered := by
   cases t with
@@ -772,6 +950,8 @@ theorem markFalse_heapOrdered (t : FHNode) (ht : t.HeapOrdered) :
       | node hle hall =>
           exact FHNode.HeapOrdered.node hle hall
 
+/-- Clearing a mark preserves wellformedness (marks are structurally
+inert). -/
 theorem markFalse_wellformed (t : FHNode) (ht : t.Wellformed) :
     (markFalse t).Wellformed := by
   cases t with
@@ -816,3 +996,58 @@ theorem cutChild_keys {t : FHNode} {k : Int} {c t' : FHNode}
                 List.mem_toFinset, Finset.mem_union]
               rw [hsplit']
               simpa [FHNode.keySet, List.mem_toFinset]
+
+/-- `cutChild` preserves wellformedness: the remaining tree stays wellformed
+when the original tree is. -/
+theorem cutChild_wellformed {t t' : FHNode} {k : Int} {c : FHNode}
+    (h : cutChild t k = some (c, t')) (ht : t.Wellformed) :
+    t'.Wellformed := by
+  unfold cutChild at h
+  cases hc : findAndRemove (fun c => c.key = k) t.children with
+  | none => simp [hc] at h
+  | some pair =>
+      cases pair with
+      | mk c' rest =>
+          simp [hc] at h
+          have hrest : FHNode.node t.key t.marked rest = t' := h.2
+          subst t'
+          cases t with
+          | node k' m' cs =>
+              rcases findAndRemove_eq_eraseIdx cs c' rest hc with ⟨i, hi, hget, herase⟩
+              rw [herase]
+              unfold FHNode.Wellformed
+              have hmap : ((cs.eraseIdx i).map FHNode.toFTree) =
+                  (cs.map FHNode.toFTree).eraseIdx i :=
+                map_eraseIdx FHNode.toFTree cs i
+              have hw' : (FTree.node ((cs.map FHNode.toFTree).eraseIdx i)).Wellformed :=
+                FTree.wellformed_remove_index (by
+                  simpa [FHNode.Wellformed, FHNode.toFTree] using ht) i
+                  (by simpa [List.length_map] using hi)
+              simpa [FHNode.toFTree, ← hmap] using hw'
+
+/-- `cutChild` preserves heap order of the remaining tree: removing a child
+cannot break the parent's key bounds. -/
+theorem cutChild_heapOrdered {t t' : FHNode} {k : Int} {c : FHNode}
+    (h : cutChild t k = some (c, t')) (ht : t.HeapOrdered) :
+    t'.HeapOrdered := by
+  unfold cutChild at h
+  cases hc : findAndRemove (fun c => c.key = k) t.children with
+  | none => simp [hc] at h
+  | some pair =>
+      cases pair with
+      | mk c' rest =>
+          simp [hc] at h
+          have hrest : FHNode.node t.key t.marked rest = t' := h.2
+          subst t'
+          cases t with
+          | node k' m' cs =>
+              cases ht with
+              | node hle hall =>
+                  have hmem : ∀ v ∈ rest, v ∈ cs :=
+                    findAndRemove_rest_mem cs c' rest hc
+                  refine FHNode.HeapOrdered.node ?_ ?_
+                  · intro v hv
+                    exact hle v (hmem v hv)
+                  · intro v hv
+                    exact hall v (hmem v hv)
+
