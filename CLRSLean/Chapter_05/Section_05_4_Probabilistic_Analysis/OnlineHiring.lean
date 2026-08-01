@@ -17,8 +17,8 @@ every applicant seen so far.
 **Status:** The finite record-selection strategy is executable and comes with
 exact {lit}`some` and {lit}`none` contracts, and its success probability has
 the harmonic closed form {lit}`(k/n) * (H_{n-1} - H_{k-1})`
-({lit}`probHireBest_eq`).  The asymptotic {lit}`1/e` result for
-{lit}`k ≈ n/e` is **deferred**.
+({lit}`probHireBest_eq`).  The {lit}`1/e` asymptotic is proved for the
+threshold {lit}`⌊n/e⌋` ({lit}`probHireBest_asymptotic`).
 -/
 
 namespace CLRS
@@ -51,6 +51,7 @@ than every earlier candidate's score.
 def isRecordAt {n : ℕ} (π : Equiv.Perm (Fin n)) (j : Fin n) : Prop :=
   ∀ i : Fin n, i.val < j.val → (π j).val < (π i).val
 
+/-- `isRecordAt` is decidable: it is a finite universal over the scores. -/
 instance {n : ℕ} (π : Equiv.Perm (Fin n)) (j : Fin n) :
     Decidable (isRecordAt π j) := by
   unfold isRecordAt
@@ -180,6 +181,8 @@ def liftFirst {n m : ℕ} (hm : m ≤ n) (t : Fin m) : Fin n :=
 def isMinInFirst {n m : ℕ} (hm : m ≤ n) (π : Equiv.Perm (Fin n)) (p : Fin m) : Prop :=
   ∀ t : Fin m, (π (liftFirst hm p)).val ≤ (π (liftFirst hm t)).val
 
+/-- `isMinInFirst` is decidable: it is a finite universal over the first `m`
+positions. -/
 instance isMinInFirst_decidable {n m : ℕ} (hm : m ≤ n) (π : Equiv.Perm (Fin n)) (p : Fin m) :
     Decidable (isMinInFirst hm π p) := by
   unfold isMinInFirst
@@ -619,6 +622,7 @@ def minInFirstK (n k : ℕ) (j : Fin n) (hkj : k ≤ j.val) (hjn : j.val ≤ n)
     (π : Equiv.Perm (Fin n)) : Prop :=
   ∃ p : Fin k, isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩
 
+/-- `minInFirstK` is decidable: it is a finite existential over `Fin k`. -/
 instance minInFirstK_decidable (n k : ℕ) (j : Fin n) (hkj : k ≤ j.val) (hjn : j.val ≤ n)
     (π : Equiv.Perm (Fin n)) : Decidable (minInFirstK n k j hkj hjn π) := by
   unfold minInFirstK
