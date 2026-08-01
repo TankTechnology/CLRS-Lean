@@ -718,6 +718,254 @@ lemma indicator_minInFirstK_eq (n k : ℕ) (hk : 0 < k) (j : Fin n) (hkj : k ≤
     rw [if_neg h]
     exact hsum.symm
 
+/-! ## The closed form
+
+Combining the per-position probability with the harmonic sum gives the
+textbook closed form for the on-line hiring success probability. -/
+
+/-- The event "the strategy hires the best at position `j`" is decidable. -/
+noncomputable instance hiringStrategy_best_decidable (n k : ℕ) (j : Fin n) (π : Equiv.Perm (Fin n)) :
+    Decidable (hiringStrategy k π = some j ∧ isAbsoluteBest π j) :=
+  Classical.propDecidable _
+
+/-- **Per-position success probability.**  The probability that the strategy
+hires the best candidate at position `j` is `k/(n·j.val)`: the best is at `j`
+with probability `1/n`, and given that, the minimum of the first `j.val`
+positions is below `k` with probability `k/j.val`. -/
+theorem probBestAt (n k : ℕ) (hk : 0 < k) (j : Fin n) (hkj : k ≤ j.val) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) =>
+      indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j))
+    = (1 : ℝ) / (n : ℝ) * (k : ℝ) / (j.val : ℝ) := by
+  classical
+  let hjn : j.val ≤ n := j.isLt.le
+  have hn : 0 < n := lt_of_lt_of_le (lt_of_lt_of_le hk hkj) j.isLt.le
+  have hrewrite :
+      fintypeExpect (fun π => indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j))
+      = fintypeExpect (fun π => indicator (isAbsoluteBest π j ∧ minInFirstK n k j hkj hjn π)) := by
+    apply congrArg fintypeExpect
+    funext π
+    unfold indicator
+    exact if_congr (hiringStrategy_some_iff_minInFirstK n k hk j hkj hjn π) rfl rfl
+  rw [hrewrite]
+  have hsplit : ∀ π : Equiv.Perm (Fin n),
+      indicator (isAbsoluteBest π j ∧ minInFirstK n k j hkj hjn π)
+      = ∑ p : Fin k, indicator (isAbsoluteBest π j ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩) := by
+    intro π
+    have hmul : indicator (isAbsoluteBest π j ∧ minInFirstK n k j hkj hjn π)
+        = indicator (isAbsoluteBest π j) * indicator (minInFirstK n k j hkj hjn π) := by
+      by_cases hb : isAbsoluteBest π j <;> by_cases hmin : minInFirstK n k j hkj hjn π <;> simp [indicator, hb, hmin]
+    rw [hmul]
+    rw [indicator_minInFirstK_eq n k hk j hkj hjn π]
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun p _ => ?_)
+    by_cases hb : isAbsoluteBest π j <;> by_cases hmin : isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩ <;> simp [indicator, hb, hmin]
+  have hEsum : fintypeExpect (fun π => indicator (isAbsoluteBest π j ∧ minInFirstK n k j hkj hjn π))
+      = ∑ p : Fin k, fintypeExpect (fun π => indicator (isAbsoluteBest π j ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩)) := by
+    rw [show fintypeExpect (fun π => indicator (isAbsoluteBest π j ∧ minInFirstK n k j hkj hjn π))
+        = fintypeExpect (fun π => ∑ p : Fin k, indicator (isAbsoluteBest π j ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩)) from by
+          apply congrArg fintypeExpect
+          funext π
+          exact hsplit π]
+    simpa [fintypeExpect_sum]
+  rw [hEsum]
+  have hterm : ∀ p : Fin k,
+      fintypeExpect (fun π => indicator (isAbsoluteBest π j ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩))
+      = (1 : ℝ) / (n : ℝ) * (1 : ℝ) / (j.val : ℝ) := by
+    intro p
+    have hif : ∀ π, indicator (isAbsoluteBest π j ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩)
+        = indicator ((π j).val = 0 ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩) := by
+      intro π
+      unfold indicator
+      exact if_congr Iff.rfl rfl rfl
+    have heq : fintypeExpect (fun π => indicator (isAbsoluteBest π j ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩))
+        = fintypeExpect (fun π => indicator ((π j).val = 0 ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩)) := by
+      apply congrArg fintypeExpect
+      funext π
+      exact hif π
+    rw [heq]
+    exact prob_bestMin n (j.val) hjn (lt_of_lt_of_le hk hkj) j (le_refl (j.val)) hn ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩
+  rw [show (∑ p : Fin k, fintypeExpect (fun π => indicator (isAbsoluteBest π j ∧ isMinInFirst hjn π ⟨p.val, lt_of_lt_of_le p.isLt hkj⟩)))
+      = (k : ℝ) * ((1 : ℝ) / (n : ℝ) * (1 : ℝ) / (j.val : ℝ)) from by
+        rw [Finset.sum_congr rfl (fun p _ => hterm p)]
+        simp]
+  ring
+
+/-- The sum `Σ_{j=k}^{n-1} 1/j` equals the harmonic difference `H_{n-1} - H_{k-1}`. -/
+lemma sum_recip_Icc_eq_harmonic_sub (k n : ℕ) (hk : 1 ≤ k) (hkn : k ≤ n) :
+    ∑ j ∈ Finset.Icc k (n - 1), (1 : ℝ) / (j : ℝ) = (harmonic (n - 1) : ℝ) - (harmonic (k - 1) : ℝ) := by
+  have hharm : ∀ m : ℕ, (harmonic m : ℝ) = ∑ i ∈ Finset.range m, (1 : ℝ) / ((i : ℝ) + 1) := by
+    intro m
+    unfold harmonic
+    simp [one_div]
+  have hset : Finset.Icc k (n - 1) = Finset.Ico k n := by
+    ext j
+    constructor
+    · intro hj
+      rw [Finset.mem_Icc] at hj
+      rw [Finset.mem_Ico]
+      rcases hj with ⟨hkj, hjn1⟩
+      refine ⟨hkj, ?_⟩
+      omega
+    · intro hj
+      rw [Finset.mem_Ico] at hj
+      rw [Finset.mem_Icc]
+      rcases hj with ⟨hkj, hjn⟩
+      refine ⟨hkj, ?_⟩
+      omega
+  calc
+    ∑ j ∈ Finset.Icc k (n - 1), (1 : ℝ) / (j : ℝ)
+        = ∑ j ∈ Finset.Ico k n, (1 : ℝ) / (j : ℝ) := by rw [hset]
+    _ = (harmonic (n - 1) : ℝ) - (harmonic (k - 1) : ℝ) := by
+          have hleft : ∑ j ∈ Finset.Ico k n, (1 : ℝ) / (j : ℝ)
+              = ∑ t ∈ Finset.range (n - k), (1 : ℝ) / ((k + t : ℕ) : ℝ) := by
+            rw [Finset.sum_Ico_eq_sum_range]
+          have hright : (harmonic (n - 1) : ℝ) - (harmonic (k - 1) : ℝ)
+              = ∑ t ∈ Finset.range (n - k), (1 : ℝ) / ((k + t : ℕ) : ℝ) := by
+            rw [hharm (n - 1), hharm (k - 1)]
+            rw [← Finset.sum_Ico_eq_sub (f := fun i : ℕ => (1 : ℝ) / ((i : ℝ) + 1)) (m := k - 1) (n := n - 1) (by omega : k - 1 ≤ n - 1)]
+            rw [Finset.sum_Ico_eq_sum_range]
+            have hsub : (n - 1) - (k - 1) = n - k := by omega
+            rw [hsub]
+            refine Finset.sum_congr rfl (fun t _ => ?_)
+            have hden : (↑((k - 1) + t) : ℝ) + 1 = ↑(k + t) := by
+              have hnat : ((k - 1) + t) + 1 = k + t := by omega
+              exact_mod_cast hnat
+            rw [hden]
+          rw [hleft, hright]
+
+/-- **On-line hiring closed form (CLRS §5.4.4).**  The success probability of
+the threshold strategy that observes the first `k` candidates and then hires
+the first record is `(k/n) · (H_{n-1} - H_{k-1})`. -/
+theorem probHireBest_eq (n k : ℕ) (hk : 0 < k) (hkn : k ≤ n) :
+    probHireBest n k = (k : ℝ) / (n : ℝ) * ((harmonic (n - 1) : ℝ) - (harmonic (k - 1) : ℝ)) := by
+  classical
+  have hn : 0 < n := lt_of_lt_of_le hk hkn
+  have hsuccess : ∀ π : Equiv.Perm (Fin n),
+      (match hiringStrategy k π with
+        | some i => if isAbsoluteBest π i then 1 else 0
+        | none => 0)
+      = ∑ j : Fin n, indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j) := by
+    intro π
+    by_cases hs : ∃ j0 : Fin n, hiringStrategy k π = some j0
+    · rcases hs with ⟨j0, hsj0⟩
+      have hL : (match hiringStrategy k π with
+          | some i => if isAbsoluteBest π i then (1 : ℝ) else 0
+          | none => 0) = if isAbsoluteBest π j0 then (1 : ℝ) else 0 := by
+        rw [hsj0]
+      have hR : (∑ j : Fin n, indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j))
+          = if isAbsoluteBest π j0 then (1 : ℝ) else 0 := by
+        have h0 : indicator (hiringStrategy k π = some j0 ∧ isAbsoluteBest π j0)
+            = if isAbsoluteBest π j0 then (1 : ℝ) else 0 := by
+          simp [indicator, hsj0]
+        rw [← h0]
+        exact Finset.sum_eq_single (s := Finset.univ) (a := j0)
+          (by intro j _ hne
+              have hnot : ¬ (hiringStrategy k π = some j ∧ isAbsoluteBest π j) := by
+                intro h
+                rcases h with ⟨hsj, _⟩
+                exact hne (Option.some.inj (hsj0.symm.trans hsj)).symm
+              simp [indicator, hnot])
+          (by intro hj0; exact False.elim (hj0 (Finset.mem_univ _)))
+      exact hL.trans hR.symm
+    · have hnone : hiringStrategy k π = none := by
+        cases hg : hiringStrategy k π with
+        | none => rfl
+        | some j => exact False.elim (hs ⟨j, hg⟩)
+      have hL : (match hiringStrategy k π with
+          | some i => if isAbsoluteBest π i then (1 : ℝ) else 0
+          | none => 0) = 0 := by
+        rw [hnone]
+      have hR : (∑ j : Fin n, indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j)) = 0 := by
+        have hnot : ∀ j : Fin n, ¬ (hiringStrategy k π = some j ∧ isAbsoluteBest π j) := by
+          intro j h
+          rcases h with ⟨hsj, _⟩
+          rw [hnone] at hsj
+          simp at hsj
+        rw [Finset.sum_eq_zero]
+        intro j _
+        simp [indicator, hnot j]
+      exact hL.trans hR.symm
+  have hsum : probHireBest n k
+      = ∑ j : Fin n, fintypeExpect (fun π : Equiv.Perm (Fin n) =>
+          indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j)) := by
+    unfold probHireBest
+    rw [show fintypeExpect (fun π : Equiv.Perm (Fin n) =>
+          (match hiringStrategy k π with
+            | some i => if isAbsoluteBest π i then 1 else 0
+            | none => 0))
+        = fintypeExpect (fun π : Equiv.Perm (Fin n) =>
+            ∑ j : Fin n, indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j)) from by
+          apply congrArg fintypeExpect
+          funext π
+          exact hsuccess π]
+    rw [fintypeExpect_sum (S := Finset.univ)
+      (f := fun j π => indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j))]
+  rw [hsum]
+  have hterm_zero : ∀ j : Fin n, j.val < k →
+      fintypeExpect (fun π => indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j)) = 0 := by
+    intro j hjlt
+    have hzero : ∀ π, indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j) = 0 := by
+      intro π
+      have hnot : ¬ (hiringStrategy k π = some j ∧ isAbsoluteBest π j) := by
+        intro h
+        rcases h with ⟨hsj, _⟩
+        have hk_le : k ≤ j.val := hiringStrategy_after_observation hsj
+        omega
+      simp [indicator, hnot]
+    have hcongr : fintypeExpect (fun π => indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j))
+        = fintypeExpect (fun π : Equiv.Perm (Fin n) => (0 : ℝ)) := by
+      apply congrArg fintypeExpect
+      funext π
+      exact hzero π
+    rw [hcongr]
+    rw [fintypeExpect_const Fintype.card_ne_zero]
+  have hsum_range :
+      (∑ j : Fin n, fintypeExpect (fun π => indicator (hiringStrategy k π = some j ∧ isAbsoluteBest π j)))
+      = ∑ m ∈ Finset.range n, (if m < k then (0 : ℝ) else (1 : ℝ) / (n : ℝ) * (k : ℝ) / (m : ℝ)) := by
+    rw [Finset.sum_fin_eq_sum_range]
+    refine Finset.sum_congr rfl (fun m hm => ?_)
+    have hmn : m < n := Finset.mem_range.mp hm
+    rw [dif_pos hmn]
+    by_cases hmk : m < k
+    · simp [hmk, hterm_zero ⟨m, hmn⟩ hmk]
+    · have hterm := probBestAt n k hk ⟨m, hmn⟩ (Nat.le_of_not_lt hmk)
+      simp [hmk, hterm]
+  rw [hsum_range]
+  have hdrop :
+      (∑ m ∈ Finset.range n, (if m < k then (0 : ℝ) else (1 : ℝ) / (n : ℝ) * (k : ℝ) / (m : ℝ)))
+      = ∑ m ∈ Finset.Icc k (n - 1), (1 : ℝ) / (n : ℝ) * (k : ℝ) / (m : ℝ) := by
+    have hite : (∑ m ∈ Finset.range n, (if m < k then (0 : ℝ) else (1 : ℝ) / (n : ℝ) * (k : ℝ) / (m : ℝ)))
+        = ∑ m ∈ Finset.range n, (if ¬ m < k then (1 : ℝ) / (n : ℝ) * (k : ℝ) / (m : ℝ) else (0 : ℝ)) := by
+      refine Finset.sum_congr rfl (fun m _ => ?_)
+      by_cases hmk : m < k <;> simp [hmk]
+    rw [hite]
+    rw [← Finset.sum_filter]
+    have hset : (Finset.range n).filter (fun m => ¬ m < k) = Finset.Icc k (n - 1) := by
+      ext m
+      constructor
+      · intro hm
+        rw [Finset.mem_filter, Finset.mem_range] at hm
+        rw [Finset.mem_Icc]
+        rcases hm with ⟨hmn, hk_le⟩
+        refine ⟨Nat.le_of_not_lt hk_le, ?_⟩
+        omega
+      · intro hm
+        rw [Finset.mem_Icc] at hm
+        rw [Finset.mem_filter, Finset.mem_range]
+        rcases hm with ⟨hkm, hmn1⟩
+        refine ⟨by omega, ?_⟩
+        exact Nat.not_lt_of_ge hkm
+    rw [hset]
+  rw [hdrop]
+  have hfactor :
+      (∑ m ∈ Finset.Icc k (n - 1), (1 : ℝ) / (n : ℝ) * (k : ℝ) / (m : ℝ))
+      = (k : ℝ) / (n : ℝ) * (∑ m ∈ Finset.Icc k (n - 1), (1 : ℝ) / (m : ℝ)) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun m _ => ?_)
+    field_simp
+  rw [hfactor]
+  rw [sum_recip_Icc_eq_harmonic_sub k n hk hkn]
+
 end OnlineHiring
 
 end Chapter05
