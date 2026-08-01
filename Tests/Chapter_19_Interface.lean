@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
+import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S1_ExecutableFibHeap
 import CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree
 
 #check CLRS.Chapter19.FibHeap.Valid
@@ -102,6 +103,22 @@ import CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree
 #check CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card
 #check CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one
 #check CLRS.Chapter19.FibHeap.degree_bound_log
+#check CLRS.Chapter19.FHNode.marks
+#check CLRS.Chapter19.FHNode.forestMarks
+#check CLRS.Chapter19.FH.cutChildAt
+#check CLRS.Chapter19.FH.cutChildAt_keys
+#check CLRS.Chapter19.FH.cutChildAt_heapOrdered
+#check CLRS.Chapter19.FH.cutChildAt_wellformed
+#check CLRS.Chapter19.FH.potential
+#check CLRS.Chapter19.FH.potential_makeHeap
+#check CLRS.Chapter19.FH.potential_insert
+#check CLRS.Chapter19.FH.cutRootChildAt
+#check CLRS.Chapter19.FH.cutRootChildAt_keys
+#check CLRS.Chapter19.FH.cutRootChildAt_size
+#check CLRS.Chapter19.FH.cutRootChildAt_roots_length
+#check CLRS.Chapter19.FH.cutRootChildAt_good
+#check CLRS.Chapter19.FH.cutRootChildAt_potential_eq
+#check CLRS.Chapter19.FH.cutRootChildAt_potential_le
 #check CLRS.Chapter19.FTree
 #check CLRS.Chapter19.FTree.degree
 #check CLRS.Chapter19.FTree.size
