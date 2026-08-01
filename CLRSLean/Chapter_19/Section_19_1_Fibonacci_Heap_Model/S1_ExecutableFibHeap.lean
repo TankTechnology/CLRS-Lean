@@ -91,6 +91,15 @@ def forestKeyList (ts : List FHNode) : List Int := ts.flatMap keysList
 def forestKeySet (ts : List FHNode) : Finset Int :=
   (ts.map keySet).foldr (fun a b => a ∪ b) ∅
 
+/-- The number of marked nodes in a subtree, including the root. -/
+def marks : FHNode → Nat
+  | node _ marked children =>
+      (if marked then 1 else 0) + (children.map marks).sum
+
+/-- The number of marked nodes in a forest. -/
+def forestMarks (roots : List FHNode) : Nat :=
+  (roots.map marks).sum
+
 @[simp] theorem key_node (k : Int) (m : Bool) (cs : List FHNode) :
     (node k m cs).key = k := rfl
 
@@ -110,6 +119,16 @@ def forestKeySet (ts : List FHNode) : Finset Int :=
 @[simp] theorem keysList_node (k : Int) (m : Bool) (cs : List FHNode) :
     (node k m cs).keysList = k :: cs.flatMap FHNode.keysList := by
   rw [keysList]
+
+@[simp] theorem marks_node (k : Int) (m : Bool) (cs : List FHNode) :
+    (node k m cs).marks =
+      (if m then 1 else 0) + (cs.map marks).sum := rfl
+
+@[simp] theorem forestMarks_nil : forestMarks [] = 0 := rfl
+
+@[simp] theorem forestMarks_cons (t : FHNode) (ts : List FHNode) :
+    forestMarks (t :: ts) = t.marks + forestMarks ts := by
+  simp [forestMarks]
 
 /-- Heap order: every node's key is at most the keys of its children, and the
 children are heap-ordered.  By transitivity the node's key is at most every
@@ -1054,115 +1073,31 @@ theorem cutChild_heapOrdered {t t' : FHNode} {k : Int} {c : FHNode}
 
 /-! ## The potential function and amortized bounds -/
 
-/-- The number of marked nodes in a forest. -/
-def forestMarks : List FHNode → Nat
-  | [] => 0
-  | t :: ts => t.marks + FHNode.forestMarks ts
+/-- The standard Fibonacci-heap potential `t(H) + 2m(H)` (CLRS equation
+19.2), computed from the complete executable heap state. -/
+def potential (h : FH) : Int :=
+  Int.ofNat h.roots.length +
+    2 * Int.ofNat (FHNode.forestMarks h.roots)
 
-@[simp] theorem marks_node (k : Int) (m : Bool) (cs : List FHNode) :
-    (FHNode.node k m cs).marks = (if m then 1 else 0) + (cs.map FHNode.marks).sum := rfl
-
-/-- The standard Fibonacci-heap potential: `trees + 2 * marks` (CLRS equation
-19.2). -/
-def potential (roots : List FHNode) : Int :=
-  Int.ofNat roots.length + 2 * Int.ofNat (FHNode.forestMarks roots)
-
-/-- The potential is always nonnegative. -/
-theorem potential_nonneg (roots : List FHNode) :
-    0 ≤ potential roots := by
+/-- The executable heap potential is always nonnegative. -/
+theorem potential_nonneg (h : FH) : 0 ≤ potential h := by
   unfold potential
-  exact add_nonneg (Int.natCast_nonneg roots.length)
-    (mul_nonneg (by norm_num) (Int.natCast_nonneg (FHNode.forestMarks roots)))
+  exact add_nonneg (Int.natCast_nonneg h.roots.length)
+    (mul_nonneg (by norm_num)
+      (Int.natCast_nonneg (FHNode.forestMarks h.roots)))
 
-/-- The empty forest has zero potential. -/
-theorem potential_empty : potential [] = 0 := by
-  simp [potential, FHNode.forestMarks]
+/-- The empty executable heap has zero potential. -/
+theorem potential_makeHeap : potential makeHeap = 0 := by
+  simp [potential, makeHeap]
 
-/-- Inserting an unmarked root raises the potential by exactly one: the root
-count grows by one and the mark count is unchanged. -/
-theorem potential_insert (x : Int) (roots : List FHNode) :
-    potential (FHNode.node x false [] :: roots) = potential roots + 1 := by
-  unfold potential
-  simp [FHNode.forestMarks, FHNode.marks]
+/-- Inserting an unmarked singleton root raises the potential by exactly one. -/
+theorem potential_insert (x : Int) (h : FH) :
+    potential (insert x h) = potential h + 1 := by
+  simp [potential, insert]
   omega
 
-/-- Clearing the mark of a single node drops the mark count by exactly the
-node's mark contribution. -/
-theorem markFalse_marks (t : FHNode) :
-    (markFalse t).marks = t.marks - (if t.marked then 1 else 0) := by
+/-- Clearing a node's mark removes exactly its root-mark contribution. -/
+theorem markFalse_marks_add (t : FHNode) :
+    (markFalse t).marks + (if t.marked then 1 else 0) = t.marks := by
   cases t with
-  | node k m cs =>
-      change (FHNode.node k false cs).marks =
-        (FHNode.node k m cs).marks - (if m then 1 else 0)
-      rw [FHNode.marks.eq_1]
-      simp
-      omega
-
-/-- The mark count of the removed element's remainder is the original count
-minus the removed element's marks. -/
-theorem findAndRemove_marks {p : FHNode → Prop} [DecidablePred p]
-    (cs : List FHNode) : ∀ (c : FHNode) (rest : List FHNode),
-    findAndRemove p cs = some (c, rest) →
-      FHNode.forestMarks rest = FHNode.forestMarks cs - c.marks := by
-  induction cs with
-  | nil => intro c rest h; simp [findAndRemove] at h
-  | cons x xs ih =>
-      intro c rest h
-      unfold findAndRemove at h
-      by_cases hx : p x
-      · simp [hx] at h
-        rcases h with ⟨hcx, hrestx⟩
-        subst c
-        subst rest
-        simp [FHNode.forestMarks, FHNode.marks]
-      · simp [hx] at h
-        cases hfr : findAndRemove p xs with
-        | none => simp [hfr] at h
-        | some pair =>
-            cases pair with
-            | mk y r =>
-                have hy : some (y, x :: r) = some (c, rest) := by
-                  simpa [hfr] using h
-                have hpair : (y, x :: r) = (c, rest) := Option.some.inj hy
-                have hrest' : x :: r = rest := congrArg Prod.snd hpair
-                have hrec : FHNode.forestMarks r = FHNode.forestMarks xs - y.marks :=
-                  ih y r hfr
-                subst rest
-                simp [FHNode.forestMarks]
-                have hyc : y = c := congrArg Prod.fst hpair
-                subst c
-                -- x.marks + (FHNode.forestMarks xs - y.marks) = (x.marks + FHNode.forestMarks xs) - y.marks
-                rw [hrec]
-                omega
-
-/-- **FIB-HEAP-CUT amortized bound.**  Cutting a child adds one root and
-clears the cut child's mark, so the potential grows by at most one:
-`Φ(cut) ≤ Φ(before) + 1`. -/
-theorem cutChild_potential {t c t' : FHNode} {k : Int}
-    (h : cutChild t k = some (c, t')) :
-    potential (c :: t'.children) ≤ potential t.children + 1 := by
-  unfold cutChild at h
-  cases hc : findAndRemove (fun c => c.key = k) t.children with
-  | none => simp [hc] at h
-  | some pair =>
-      cases pair with
-      | mk c' rest =>
-          simp [hc] at h
-          have hc' : markFalse c' = c := h.1
-          have hrest : FHNode.node t.key t.marked rest = t' := h.2
-          subst t'
-          rw [← hc']
-          have hm := findAndRemove_marks t.children c' rest hc
-          -- potential (markFalse c' :: rest) ≤ potential (c' :: rest) + 1
-          -- markFalse 清除标记：标记数不变或减 1
-          unfold potential FHNode.forestMarks
-          have hlen : (markFalse c' :: rest).length = (c' :: rest).length := rfl
-          rw [hlen]
-          -- 2 * (markFalse c').marks + 2 * FHNode.forestMarks rest ≤
-          --   2 * c'.marks + 2 * FHNode.forestMarks rest + 1
-          have hmm := markFalse_marks c'
-          -- (markFalse c').marks ≤ c'.marks
-          have hle_m : (markFalse c').marks ≤ c'.marks := by
-            rw [hmm]
-            omega
-          omega
+  | node k m cs => cases m <;> simp [markFalse] <;> omega
