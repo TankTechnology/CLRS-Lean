@@ -3275,9 +3275,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 - Lean sources: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
   plus the submodules `Ford_Fulkerson_Augmentation`, `S1_ShortestAugmentingPath`,
-  `S2_EK_Loop`, and `S3_WorkAnalysis`.
-- Status: `partial` (Lemma 26.7, the loop, and the `O(VE²)` counting proved;
-  executable BFS pending)
+  `S2_EK_Loop`, `S3_WorkAnalysis`, and `S4_ExecutableBFS`.
+- Status: `proved` (Lemma 26.7, the loop, the `O(VE²)` counting, and the
+  executable BFS)
 - Current declarations:
   - `CLRS.Chapter26.ResidualPathLength` (inductive predicate for path length in the residual network)
   - `CLRS.Chapter26.IsShortestDist` (shortest-path distance in the residual network)
@@ -3341,8 +3341,23 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   augmenting path and are discharged by prefix optimality.  The counting
   argument combines the recovery-step timeline lemma with reverse distance
   monotonicity and injects critical occurrences into `Fin (Fintype.card V)`.
+- Executable BFS (`S4_ExecutableBFS`):
+  - `CLRS.Chapter26.residualBFS`: the fuelled breadth-first search over the
+    residual network, mirroring the Chapter 22 BFS state and invariants
+    (`BFSState`, `BFSClosedInv`, `BFSQueueInv`, `BFSDistanceInvariant`)
+  - `CLRS.Chapter26.residualBFS_distanceInvariant` and
+    `residualBFS_queue_empty`: the invariants hold and the queue exhausts
+    after `|V|` steps (measure argument)
+  - `CLRS.Chapter26.bfsState_distance_eq_some_iff`: the BFS distance of a
+    vertex is exactly its residual shortest distance `IsShortestDist`
+  - `CLRS.Chapter26.bfsParentResidualPath` and its length lemma: the parent
+    chain from the sink assembles a simple residual path realizing the
+    recorded distance
+  - `CLRS.Chapter26.bfs_shortestAugmenting`: an executable shortest
+    augmenting path whenever one exists
+  - `CLRS.Chapter26.ekStep_shortest_path_bfs`: the Edmonds-Karp step
+    augments along a shortest path of the same length as the BFS path
 - Interface evidence: `Tests/Chapter_26_Edmonds_Karp_Interface.lean`.
-- Current gap: an executable BFS computing shortest residual paths.
 
 ### Section 26.3 - Maximum Bipartite Matching
 

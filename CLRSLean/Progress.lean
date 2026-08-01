@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 29.
-* Tracked reader-facing theorem entries: 1505.
-* Proved tracked theorem entries: 1505.
-* Remaining core theorem groups: 10.
+* Tracked reader-facing theorem entries: 1507.
+* Proved tracked theorem entries: 1507.
+* Remaining core theorem groups: 9.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -20,10 +20,10 @@ are not yet represented or not yet complete.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 7 chapters.
+* {lit}`main-proof-complete`: 8 chapters.
 * {lit}`main-proof-complete-for-correctness`: 10 chapters.
 * {lit}`selected-section-complete`: 7 chapters.
-* {lit}`partial`: 4 chapters.
+* {lit}`partial`: 3 chapters.
 * {lit}`not-started`: 6 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -57,7 +57,7 @@ Ch  Chapter                                                     Status          
 23  23. Minimum Spanning Trees                                  main-proof-complete-for-correctness  23.1;23.2                          52        0
 24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4                22        0
 25  25. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  25.1;25.2;25.3                     22        0
-26  26. Maximum Flow                                            partial                              26.1;26.2;26.3;26.6                16        1
+26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
 27  27. Multithreaded Algorithms                                partial                              27.1;27.2                          28        1
 28  28. Matrix Operations                                       not-started                          not represented                     0        1
 29  29. Linear Programming                                      not-started                          not represented                     0        1
