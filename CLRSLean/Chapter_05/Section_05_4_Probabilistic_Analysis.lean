@@ -700,9 +700,10 @@ theorem longestStreak_upperBound (n t : ℕ) (ht : 0 < t) :
 
 The expected longest streak of heads satisfies {lit}`E[L] = Θ(log n)`.  The
 upper bound {lit}`O(log n)` follows from the tail bound
-{name}`longestStreak_upperBound` via {lit}`E[L] = Σ_{t≥1} Pr[L ≥ t]`; the
-matching lower bound {lit}`Ω(log n)` uses a block-partition argument.  Both
-proofs are deferred to a future refinement.
+{name}`longestStreak_upperBound` via the layer-cake identity
+{lit}`E[L] = Σ_{t≥1} Pr[L ≥ t]` ({lit}`expectedLongestStreak_le`); the
+matching lower bound {lit}`Ω(log n)` uses a block-partition argument and is
+deferred to a future refinement.
 -/
 
 /--
@@ -711,6 +712,170 @@ flips.
 -/
 noncomputable def expectedLongestStreak (n : ℕ) : ℝ :=
   fintypeExpect (fun a : CoinFlip n => (longestStreak n a : ℝ))
+
+/-- The longest streak of heads never exceeds the number `n` of flips: a run of
+`n + 1` heads would require `n + 1 ≤ n` positions. -/
+lemma longestStreak_le (n : ℕ) (a : CoinFlip n) : longestStreak n a ≤ n := by
+  by_contra h
+  push_neg at h
+  have hrun := (longestStreak_ge_iff_hasRunOfLength n (n + 1) a).mp h
+  rcases hrun with ⟨hle, _⟩
+  omega
+
+/-- Pointwise layer-cake: every `m ≤ B` equals the number of thresholds
+`t ∈ [1, B]` that it reaches. -/
+lemma natCast_eq_sum_ite_Icc (m B : ℕ) (hm : m ≤ B) :
+    (m : ℝ) = ∑ t ∈ Finset.Icc 1 B, (if m ≥ t then (1 : ℝ) else 0) := by
+  have hfilter : (Finset.Icc 1 B).filter (fun t => m ≥ t) = Finset.Icc 1 m := by
+    ext t
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · rintro ⟨⟨h1t, -⟩, htm⟩
+      exact ⟨h1t, htm⟩
+    · rintro ⟨h1t, htm⟩
+      exact ⟨⟨h1t, by omega⟩, htm⟩
+  rw [← Finset.sum_filter, hfilter, Finset.sum_const, Nat.card_Icc, nsmul_eq_mul]
+  simp
+
+/-- The expected longest streak equals the sum of the tail probabilities
+`Pr[L ≥ t]` over `t = 1, …, n` (the layer-cake / tail-sum formula for the
+ℕ-valued random variable `longestStreak n`, which is bounded by `n`). -/
+lemma expectedLongestStreak_eq_tailSum (n : ℕ) :
+    expectedLongestStreak n =
+      ∑ t ∈ Finset.Icc 1 n,
+        fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t)) := by
+  have hpoint : ∀ a : CoinFlip n, (longestStreak n a : ℝ)
+      = ∑ t ∈ Finset.Icc 1 n, indicator (longestStreak n a ≥ t) := by
+    intro a
+    show (longestStreak n a : ℝ)
+      = ∑ t ∈ Finset.Icc 1 n, (if longestStreak n a ≥ t then (1 : ℝ) else 0)
+    exact natCast_eq_sum_ite_Icc (longestStreak n a) n (longestStreak_le n a)
+  unfold expectedLongestStreak
+  rw [← fintypeExpect_sum (Finset.Icc 1 n)
+    (fun t (a : CoinFlip n) => indicator (longestStreak n a ≥ t))]
+  exact congrArg fintypeExpect (funext hpoint)
+
+/-- **Expected longest streak upper bound** (CLRS §5.4.3): the expected length
+of the longest run of heads in `n` independent fair coin flips is at most
+`log₂ n + 2`.  The tail-sum formula {name}`expectedLongestStreak_eq_tailSum`
+splits the thresholds at `Nat.log 2 n + 1`: thresholds below the split
+contribute at most `1` each, and thresholds above it are summable thanks to
+{name}`longestStreak_upperBound`, whose geometric tail adds at most `1`. -/
+theorem expectedLongestStreak_le (n : ℕ) :
+    expectedLongestStreak n ≤ Real.logb 2 n + 2 := by
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · rw [expectedLongestStreak_eq_tailSum,
+      Finset.Icc_eq_empty_of_lt (by norm_num : (0 : ℕ) < 1), Finset.sum_empty]
+    simp [Real.logb_zero]
+  · have hcard : Fintype.card (CoinFlip n) ≠ 0 := by
+      haveI : Nonempty (CoinFlip n) := ⟨fun _ => (0 : Fin 2)⟩
+      exact Fintype.card_ne_zero
+    -- Each tail probability is at most `1`, since an indicator is bounded by `1`.
+    have hlow : ∀ t ∈ Finset.Icc 1 n, t ≤ Nat.log 2 n + 1 →
+        fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t)) ≤ 1 := by
+      intro t _ _
+      have h0 : ∀ a : CoinFlip n, (0 : ℝ) ≤ indicator (longestStreak n a ≥ t) := by
+        intro a; unfold indicator; split <;> norm_num
+      have h1 : ∀ a : CoinFlip n, indicator (longestStreak n a ≥ t) ≤ 1 := by
+        intro a; unfold indicator; split <;> norm_num
+      have hle := fintypeExpect_mono h0 (fun _ => zero_le_one) h1
+      rwa [fintypeExpect_const hcard 1] at hle
+    -- The partial geometric series `∑ k < m, 2⁻ᵏ` is bounded by `2`.
+    have hgeo : ∀ m : ℕ, ∑ k ∈ Finset.range m, (1 / 2 : ℝ) ^ k ≤ 2 := by
+      intro m
+      rw [geom_sum_eq (by norm_num : (1 / 2 : ℝ) ≠ 1)]
+      have hpos1 : (0 : ℝ) ≤ (1 / 2 : ℝ) ^ m := by positivity
+      have heq : ((1 / 2 : ℝ) ^ m - 1) / ((1 / 2 : ℝ) - 1)
+          = 2 * (1 - (1 / 2 : ℝ) ^ m) := by
+        field_simp
+        ring
+      rw [heq]
+      linarith
+    -- The geometric tail past the split point is at most `2^{-(Nat.log 2 n + 1)}`.
+    have htail : ∑ t ∈ Finset.Ioc (Nat.log 2 n + 1) n, (1 / 2 : ℝ) ^ t
+        ≤ (1 / 2 : ℝ) ^ (Nat.log 2 n + 1) := by
+      have hset : Finset.Ioc (Nat.log 2 n + 1) n
+          = Finset.Ico (Nat.log 2 n + 1 + 1) (n + 1) := by
+        ext t
+        simp only [Finset.mem_Ioc, Finset.mem_Ico]
+        omega
+      rw [hset, Finset.sum_Ico_eq_sum_range]
+      have hterm : ∀ i : ℕ, (1 / 2 : ℝ) ^ (Nat.log 2 n + 1 + 1 + i)
+          = (1 / 2 : ℝ) ^ (Nat.log 2 n + 1 + 1) * (1 / 2 : ℝ) ^ i :=
+        fun i => pow_add _ _ _
+      rw [Finset.sum_congr rfl (fun i _ => hterm i), ← Finset.mul_sum]
+      calc (1 / 2 : ℝ) ^ (Nat.log 2 n + 1 + 1)
+            * ∑ i ∈ Finset.range (n + 1 - (Nat.log 2 n + 1 + 1)), (1 / 2 : ℝ) ^ i
+          ≤ (1 / 2 : ℝ) ^ (Nat.log 2 n + 1 + 1) * 2 :=
+            mul_le_mul_of_nonneg_left (hgeo _) (by positivity)
+        _ = (1 / 2 : ℝ) ^ (Nat.log 2 n + 1) := by rw [pow_succ]; ring
+    -- Thresholds below the split contribute at most `Nat.log 2 n + 1` in total.
+    have hsumlow : ∑ t ∈ (Finset.Icc 1 n).filter (fun t => t ≤ Nat.log 2 n + 1),
+        fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t))
+          ≤ (Nat.log 2 n + 1 : ℝ) := by
+      have hsub : (Finset.Icc 1 n).filter (fun t => t ≤ Nat.log 2 n + 1)
+          ⊆ Finset.Icc 1 (Nat.log 2 n + 1) := by
+        intro t ht
+        rw [Finset.mem_filter, Finset.mem_Icc] at ht
+        rw [Finset.mem_Icc]
+        exact ⟨ht.1.1, ht.2⟩
+      calc ∑ t ∈ (Finset.Icc 1 n).filter (fun t => t ≤ Nat.log 2 n + 1),
+              fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t))
+          ≤ ∑ t ∈ (Finset.Icc 1 n).filter (fun t => t ≤ Nat.log 2 n + 1), (1 : ℝ) := by
+            refine Finset.sum_le_sum (fun t ht => hlow t (Finset.mem_of_mem_filter t ht)
+              (Finset.mem_filter.mp ht).2)
+        _ = (((Finset.Icc 1 n).filter (fun t => t ≤ Nat.log 2 n + 1)).card : ℝ) := by
+            rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+        _ ≤ (Nat.log 2 n + 1 : ℝ) := by
+            have hcardle : ((Finset.Icc 1 n).filter (fun t => t ≤ Nat.log 2 n + 1)).card
+                ≤ Nat.log 2 n + 1 := by
+              calc _ ≤ (Finset.Icc 1 (Nat.log 2 n + 1)).card := Finset.card_le_card hsub
+                _ = Nat.log 2 n + 1 := by simp
+            exact_mod_cast hcardle
+    -- Thresholds above the split contribute at most `1`, by the union bound
+    -- `longestStreak_upperBound` and the geometric tail `htail`.
+    have hsumhigh : ∑ t ∈ (Finset.Icc 1 n).filter (fun t => ¬ t ≤ Nat.log 2 n + 1),
+        fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t)) ≤ 1 := by
+      have hsub : (Finset.Icc 1 n).filter (fun t => ¬ t ≤ Nat.log 2 n + 1)
+          ⊆ Finset.Ioc (Nat.log 2 n + 1) n := by
+        intro t ht
+        rw [Finset.mem_filter, Finset.mem_Icc] at ht
+        rw [Finset.mem_Ioc]
+        exact ⟨Nat.lt_of_not_le ht.2, ht.1.2⟩
+      have hn2 : (n : ℝ) ≤ (2 : ℝ) ^ (Nat.log 2 n + 1) := by
+        have h : n < 2 ^ (Nat.log 2 n + 1) := Nat.lt_pow_succ_log_self (by norm_num) n
+        exact_mod_cast h.le
+      calc ∑ t ∈ (Finset.Icc 1 n).filter (fun t => ¬ t ≤ Nat.log 2 n + 1),
+              fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t))
+          ≤ ∑ t ∈ (Finset.Icc 1 n).filter (fun t => ¬ t ≤ Nat.log 2 n + 1),
+              (n : ℝ) / (2 : ℝ) ^ t := by
+            refine Finset.sum_le_sum (fun t ht => ?_)
+            have htmem := Finset.mem_Icc.mp (Finset.mem_of_mem_filter t ht)
+            exact longestStreak_upperBound n t htmem.1
+        _ ≤ ∑ t ∈ Finset.Ioc (Nat.log 2 n + 1) n, (n : ℝ) / (2 : ℝ) ^ t :=
+            Finset.sum_le_sum_of_subset_of_nonneg hsub (fun t _ _ => by positivity)
+        _ = (n : ℝ) * ∑ t ∈ Finset.Ioc (Nat.log 2 n + 1) n, (1 / 2 : ℝ) ^ t := by
+            rw [Finset.mul_sum]
+            refine Finset.sum_congr rfl (fun t _ => ?_)
+            rw [div_pow, one_pow, mul_one_div]
+        _ ≤ (n : ℝ) * (1 / 2 : ℝ) ^ (Nat.log 2 n + 1) :=
+            mul_le_mul_of_nonneg_left htail (by positivity)
+        _ ≤ 1 := by
+            have hpos : (0 : ℝ) < (2 : ℝ) ^ (Nat.log 2 n + 1) := by positivity
+            rw [one_div, inv_pow, ← div_eq_mul_inv, div_le_one hpos]
+            exact hn2
+    -- `Nat.log 2 n + 1 ≤ log₂ n + 1`, by monotonicity of `Real.logb`.
+    have hlog : (Nat.log 2 n + 1 : ℝ) ≤ Real.logb 2 n + 1 := by
+      have h2le : (2 : ℝ) ^ Nat.log 2 n ≤ (n : ℝ) := by
+        exact_mod_cast Nat.pow_log_le_self 2 hn.ne'
+      have hmono := Real.logb_le_logb_of_le (by norm_num : (1 : ℝ) < 2)
+        (by positivity : (0 : ℝ) < (2 : ℝ) ^ Nat.log 2 n) h2le
+      rw [Real.logb_pow, Real.logb_self_eq_one (by norm_num : (1 : ℝ) < 2), mul_one] at hmono
+      linarith
+    rw [expectedLongestStreak_eq_tailSum,
+      ← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 n) (fun t => t ≤ Nat.log 2 n + 1)
+        (fun t => fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t)))]
+    linarith [hsumlow, hsumhigh, hlog]
 
 end Chapter05
 end CLRS
@@ -742,3 +907,7 @@ alias longestStreak_ge_iff_hasRunOfLength :=
 alias fintypeExpect_mono := CLRS.Chapter05.fintypeExpect_mono
 alias prob_run_at_bound := CLRS.Chapter05.prob_run_at_bound
 alias longestStreak_upperBound := CLRS.Chapter05.longestStreak_upperBound
+alias longestStreak_le := CLRS.Chapter05.longestStreak_le
+alias natCast_eq_sum_ite_Icc := CLRS.Chapter05.natCast_eq_sum_ite_Icc
+alias expectedLongestStreak_eq_tailSum := CLRS.Chapter05.expectedLongestStreak_eq_tailSum
+alias expectedLongestStreak_le := CLRS.Chapter05.expectedLongestStreak_le
