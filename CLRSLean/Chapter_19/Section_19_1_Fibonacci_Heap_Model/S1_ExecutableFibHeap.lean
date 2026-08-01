@@ -1445,3 +1445,100 @@ theorem markFalse_marks_add (t : FHNode) :
     (markFalse t).marks + (if t.marked then 1 else 0) = t.marks := by
   cases t with
   | node k m cs => cases m <;> simp [markFalse] <;> omega
+
+/-- Replacing a present forest root satisfies the corresponding mark-count
+balance equation. -/
+theorem forestMarks_set_add {roots : List FHNode} {i : Nat}
+    {old new : FHNode} (hget : roots[i]? = some old) :
+    FHNode.forestMarks (roots.set i new) + old.marks =
+      FHNode.forestMarks roots + new.marks := by
+  induction roots generalizing i with
+  | nil => simp at hget
+  | cons root roots ih =>
+      cases i with
+      | zero =>
+          simp only [List.getElem?_cons_zero] at hget
+          injection hget with hroot
+          subst old
+          simp only [List.set_cons_zero, FHNode.forestMarks_cons]
+          omega
+      | succ i =>
+          simp only [List.getElem?_cons_succ] at hget
+          have hbalance := ih hget
+          simp only [List.set_cons_succ, FHNode.forestMarks_cons]
+          omega
+
+/-- A local indexed CUT preserves all marks except the selected child's root
+mark, which is cleared on promotion. -/
+theorem cutChildAt_marks_add {parent child cut parent' : FHNode} {i : Nat}
+    (hchild : parent.children[i]? = some child)
+    (hcut : cutChildAt parent i = some (cut, parent')) :
+    cut.marks + parent'.marks + (if child.marked then 1 else 0) =
+      parent.marks := by
+  cases parent with
+  | node k marked children =>
+      simp only [FHNode.children_node] at hchild
+      unfold cutChildAt at hcut
+      simp [hchild] at hcut
+      have hcut' : markFalse child = cut := hcut.1
+      have hparent' :
+          FHNode.node k marked (children.eraseIdx i) = parent' := hcut.2
+      subst cut
+      subst parent'
+      obtain ⟨hi, hchildAt⟩ := List.getElem?_eq_some_iff.mp hchild
+      have hperm : (child :: children.eraseIdx i).Perm children := by
+        simpa only [hchildAt] using List.getElem_cons_eraseIdx_perm hi
+      have hsum :
+          child.marks + ((children.eraseIdx i).map FHNode.marks).sum =
+            (children.map FHNode.marks).sum := by
+        simpa using (hperm.map FHNode.marks).sum_eq
+      have hmark := markFalse_marks_add child
+      simp only [FHNode.marks_node]
+      omega
+
+/-- At heap level, CUT removes exactly the selected child's old root-mark
+contribution from the total marked-node count. -/
+theorem cutRootChildAt_forestMarks_add {h h' : FH}
+    {parent child : FHNode} {ri ci : Nat}
+    (hparent : h.roots[ri]? = some parent)
+    (hchild : parent.children[ci]? = some child)
+    (hcut : cutRootChildAt h ri ci = some h') :
+    FHNode.forestMarks h'.roots + (if child.marked then 1 else 0) =
+      FHNode.forestMarks h.roots := by
+  unfold cutRootChildAt at hcut
+  rw [hparent] at hcut
+  cases hlocal : cutChildAt parent ci with
+  | none => simp [hlocal] at hcut
+  | some result =>
+      rcases result with ⟨cut, parent'⟩
+      simp [hlocal] at hcut
+      subst h'
+      have hset := forestMarks_set_add (new := parent') hparent
+      have hnode := cutChildAt_marks_add hchild hlocal
+      simp only [FHNode.forestMarks_cons]
+      omega
+
+/-- Exact potential change of a heap-level direct-child CUT.  The new root
+contributes `+1`; clearing a previously marked child contributes `-2`. -/
+theorem cutRootChildAt_potential_eq {h h' : FH}
+    {parent child : FHNode} {ri ci : Nat}
+    (hparent : h.roots[ri]? = some parent)
+    (hchild : parent.children[ci]? = some child)
+    (hcut : cutRootChildAt h ri ci = some h') :
+    potential h' = potential h + 1 -
+      2 * Int.ofNat (if child.marked then 1 else 0) := by
+  have hlength := cutRootChildAt_roots_length hcut
+  have hmarks := cutRootChildAt_forestMarks_add hparent hchild hcut
+  unfold potential
+  cases hmarked : child.marked <;> simp [hmarked] at hmarks ⊢ <;> omega
+
+/-- A heap-level direct-child CUT raises the standard potential by at most
+one. -/
+theorem cutRootChildAt_potential_le {h h' : FH}
+    {parent child : FHNode} {ri ci : Nat}
+    (hparent : h.roots[ri]? = some parent)
+    (hchild : parent.children[ci]? = some child)
+    (hcut : cutRootChildAt h ri ci = some h') :
+    potential h' ≤ potential h + 1 := by
+  rw [cutRootChildAt_potential_eq hparent hchild hcut]
+  cases hmarked : child.marked <;> simp [hmarked]
