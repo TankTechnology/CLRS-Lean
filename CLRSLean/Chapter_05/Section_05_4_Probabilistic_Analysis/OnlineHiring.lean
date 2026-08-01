@@ -25,6 +25,8 @@ namespace CLRS
 namespace Chapter05
 
 open CLRS.Probability
+open Filter
+open scoped Topology
 
 namespace OnlineHiring
 
@@ -968,6 +970,224 @@ theorem probHireBest_eq (n k : ℕ) (hk : 0 < k) (hkn : k ≤ n) :
   rw [hfactor]
   rw [sum_recip_Icc_eq_harmonic_sub k n hk hkn]
 
+/-! ## The `1/e` asymptotic
+
+The classic secretary-problem optimum threshold `k ≈ n/e` makes the success
+probability tend to `1/e` (CLRS §5.4.4).  The closed form
+{name}`probHireBest_eq` gives `(k/n)(H_{n-1} - H_{k-1})`; the factor `k/n`
+tends to `1/e` (floor asymptotics), and the harmonic difference tends to `1`
+(the Euler-Mascheroni asymptotics of the harmonic numbers cancel the shared
+`γ`, leaving `log(n/k) → log e = 1`).
+-/
+
+/-- Euler's number `e`. -/
+noncomputable def e0 : ℝ := Real.exp 1
+noncomputable section
+
+/-- The optimal threshold `⌊n/e⌋`. -/
+def optThreshold (n : ℕ) : ℕ := ⌊(n : ℝ) / e0⌋₊
+
+/-- `e > 0`. -/
+lemma e0_pos : 0 < e0 := by
+  unfold e0
+  positivity
+
+/-- `e ≠ 0`. -/
+lemma e0_ne_zero : e0 ≠ 0 := ne_of_gt e0_pos
+
+/-- `log e = 1`. -/
+lemma log_e0 : Real.log e0 = 1 := by
+  unfold e0
+  rw [Real.log_exp]
+
+/-- `(n : ℝ) / e` tends to infinity. -/
+lemma tendsto_div_e0_atTop : Tendsto (fun n : ℕ => (n : ℝ) / e0) atTop atTop := by
+  simpa [div_eq_mul_inv] using
+    (Filter.Tendsto.atTop_mul_const (inv_pos.mpr e0_pos) tendsto_natCast_atTop_atTop)
+
+/-- `⌊n/e⌋` tends to infinity. -/
+lemma tendsto_optThreshold_atTop : Tendsto (fun n : ℕ => optThreshold n) atTop atTop := by
+  unfold optThreshold
+  exact tendsto_nat_floor_atTop.comp tendsto_div_e0_atTop
+
+/-- `⌊n/e⌋ / n` tends to `1/e`. -/
+lemma tendsto_optThreshold_div_n :
+    Tendsto (fun n : ℕ => (optThreshold n : ℝ) / (n : ℝ)) atTop (𝓝 (1 / e0)) := by
+  let x : ℕ → ℝ := fun n => (n : ℝ) / e0
+  have hx_atTop : Tendsto x atTop atTop := tendsto_div_e0_atTop
+  have hf : Tendsto (fun n : ℕ => (⌊x n⌋₊ : ℝ) / x n) atTop (𝓝 1) :=
+    tendsto_nat_floor_div_atTop.comp hx_atTop
+  have hg : Tendsto (fun n : ℕ => x n / (n : ℝ)) atTop (𝓝 (1 / e0)) := by
+    have h : (fun n : ℕ => x n / (n : ℝ)) =ᶠ[atTop] fun _ : ℕ => 1 / e0 := by
+      filter_upwards [eventually_ge_atTop 1] with n hn
+      unfold x
+      field_simp [e0_ne_zero, (show (n : ℝ) ≠ 0 from by exact_mod_cast (Nat.ne_of_gt hn))]
+    exact (tendsto_const_nhds : Tendsto (fun _ : ℕ => 1 / e0) atTop (𝓝 (1 / e0))).congr' h.symm
+  have hmul : Tendsto (fun n : ℕ => (⌊x n⌋₊ : ℝ) / x n * (x n / (n : ℝ))) atTop (𝓝 (1 * (1 / e0))) :=
+    hf.mul hg
+  have hid : (fun n : ℕ => (⌊x n⌋₊ : ℝ) / x n * (x n / (n : ℝ))) =ᶠ[atTop]
+      fun n : ℕ => (optThreshold n : ℝ) / (n : ℝ) := by
+    filter_upwards [eventually_ge_atTop 1] with n hn
+    have hx0 : x n ≠ 0 := by
+      unfold x
+      exact div_ne_zero (by exact_mod_cast (Nat.ne_of_gt hn)) e0_ne_zero
+    field_simp [hx0, (show (n : ℝ) ≠ 0 from by exact_mod_cast (Nat.ne_of_gt hn))]
+    unfold optThreshold x
+    ring
+  simpa using hmul.congr' hid
+
+/-- `log (n - 1) - log n` tends to `0`. -/
+lemma tendsto_log_pred_sub_log :
+    Tendsto (fun n : ℕ => Real.log (n - 1 : ℕ) - Real.log (n : ℝ)) atTop (𝓝 0) := by
+  have h := Real.tendsto_log_comp_add_sub_log (-1 : ℝ)
+  have h' : Tendsto (fun n : ℕ => Real.log ((n : ℝ) - 1) - Real.log (n : ℝ)) atTop (𝓝 0) :=
+    h.comp tendsto_natCast_atTop_atTop
+  have hid : (fun n : ℕ => Real.log ((n : ℝ) - 1) - Real.log (n : ℝ)) =ᶠ[atTop]
+      fun n : ℕ => Real.log (n - 1 : ℕ) - Real.log (n : ℝ) := by
+    filter_upwards [eventually_ge_atTop 1] with n hn
+    have hcast : ((n : ℝ) - 1) = (n - 1 : ℕ) := by
+      rw [Nat.cast_sub hn]
+      norm_num
+    rw [hcast]
+  exact h'.congr' hid
+
+/-- `log (n - 1) - log n` over the threshold tends to `0`. -/
+lemma tendsto_log_opt_pred_sub_log :
+    Tendsto (fun n : ℕ => Real.log (optThreshold n - 1 : ℕ) - Real.log (optThreshold n : ℝ)) atTop (𝓝 0) := by
+  have h := Real.tendsto_log_comp_add_sub_log (-1 : ℝ)
+  have h' : Tendsto (fun n : ℕ => Real.log ((n : ℝ) - 1) - Real.log (n : ℝ)) atTop (𝓝 0) :=
+    h.comp tendsto_natCast_atTop_atTop
+  have hcomp : Tendsto (fun n : ℕ =>
+      Real.log ((optThreshold n : ℝ) - 1) - Real.log (optThreshold n : ℝ)) atTop (𝓝 0) :=
+    h'.comp tendsto_optThreshold_atTop
+  have hid : (fun n : ℕ => Real.log ((optThreshold n : ℝ) - 1) - Real.log (optThreshold n : ℝ)) =ᶠ[atTop]
+      fun n : ℕ => Real.log (optThreshold n - 1 : ℕ) - Real.log (optThreshold n : ℝ) := by
+    filter_upwards [tendsto_optThreshold_atTop.eventually_gt_atTop 0] with n hn
+    have hcast : ((optThreshold n : ℝ) - 1) = (optThreshold n - 1 : ℕ) := by
+      rw [Nat.cast_sub hn]
+      norm_num
+    rw [hcast]
+  exact hcomp.congr' hid
+
+/-- `log n - log ⌊n/e⌋` tends to `1`. -/
+lemma tendsto_log_sub_log_opt :
+    Tendsto (fun n : ℕ => Real.log (n : ℝ) - Real.log (optThreshold n : ℝ)) atTop (𝓝 1) := by
+  have hn : Tendsto (fun n : ℕ => (n : ℝ) / (optThreshold n : ℝ)) atTop (𝓝 e0) := by
+    have h := tendsto_optThreshold_div_n
+    -- inverse of k/n → 1/e0 is n/k → e0
+    have hinv : Tendsto (fun n : ℕ => (((optThreshold n : ℝ) / (n : ℝ))⁻¹)) atTop (𝓝 (1 / e0)⁻¹) :=
+      h.inv₀ (ne_of_gt (one_div_pos.mpr e0_pos))
+    have hb : (1 / e0)⁻¹ = e0 := by field_simp [e0_ne_zero]
+    -- (k/n)⁻¹ = n/k
+    have hid : (fun n : ℕ => (((optThreshold n : ℝ) / (n : ℝ))⁻¹)) =ᶠ[atTop]
+        fun n : ℕ => (n : ℝ) / (optThreshold n : ℝ) := by
+      filter_upwards [eventually_ge_atTop 1, tendsto_optThreshold_atTop.eventually_gt_atTop 0] with n hn hk
+      field_simp [(show (optThreshold n : ℝ) ≠ 0 from by exact_mod_cast (Nat.ne_of_gt hk)),
+        (show (n : ℝ) ≠ 0 from by exact_mod_cast (Nat.ne_of_gt hn))]
+    have hgoal : Tendsto (fun n : ℕ => (n : ℝ) / (optThreshold n : ℝ)) atTop (𝓝 ((1 / e0)⁻¹)) :=
+      hinv.congr' hid
+    rw [hb] at hgoal
+    exact hgoal
+  -- log(n/k) → log e0 = 1
+  have hlog : Tendsto (fun n : ℕ => Real.log ((n : ℝ) / (optThreshold n : ℝ))) atTop (𝓝 (Real.log e0)) :=
+    (ContinuousAt.tendsto (Real.continuousAt_log e0_ne_zero)).comp hn
+  have hid : (fun n : ℕ => Real.log ((n : ℝ) / (optThreshold n : ℝ))) =ᶠ[atTop]
+      fun n : ℕ => Real.log (n : ℝ) - Real.log (optThreshold n : ℝ) := by
+    filter_upwards [eventually_ge_atTop 1, tendsto_optThreshold_atTop.eventually_gt_atTop 0] with n hn hk
+    rw [Real.log_div (by exact_mod_cast (Nat.ne_of_gt hn)) (by exact_mod_cast (Nat.ne_of_gt hk))]
+  simpa [log_e0] using hlog.congr' hid
+
+/-- `log (n-1) - log ⌊n/e⌋-1` tends to `1`. -/
+lemma tendsto_log_pred_sub_log_opt :
+    Tendsto (fun n : ℕ => Real.log (n - 1 : ℕ) - Real.log (optThreshold n - 1 : ℕ)) atTop (𝓝 1) := by
+  -- decompose: (log(n-1)-log n) + (log n - log k) + (log k - log(k-1))
+  have h1 := tendsto_log_pred_sub_log
+  have h2 := tendsto_log_sub_log_opt
+  have h3 : Tendsto (fun n : ℕ => Real.log (optThreshold n : ℝ) - Real.log (optThreshold n - 1 : ℕ)) atTop (𝓝 0) := by
+    have h := tendsto_log_opt_pred_sub_log
+    simpa using h.neg
+  have hsum : Tendsto (fun n : ℕ =>
+      (Real.log (n - 1 : ℕ) - Real.log (n : ℝ))
+        + (Real.log (n : ℝ) - Real.log (optThreshold n : ℝ))
+        + (Real.log (optThreshold n : ℝ) - Real.log (optThreshold n - 1 : ℕ)))
+      atTop (𝓝 (0 + 1 + 0)) :=
+    (h1.add h2).add h3
+  have hid : (fun n : ℕ =>
+      (Real.log (n - 1 : ℕ) - Real.log (n : ℝ))
+        + (Real.log (n : ℝ) - Real.log (optThreshold n : ℝ))
+        + (Real.log (optThreshold n : ℝ) - Real.log (optThreshold n - 1 : ℕ)))
+      =ᶠ[atTop] fun n : ℕ => Real.log (n - 1 : ℕ) - Real.log (optThreshold n - 1 : ℕ) := by
+    filter_upwards with n
+    ring
+  simpa using hsum.congr' hid
+
+/-- `H_{n-1} - H_{⌊n/e⌋-1}` tends to `1`. -/
+lemma tendsto_harmonic_diff :
+    Tendsto (fun n : ℕ => (harmonic (n - 1) : ℝ) - (harmonic (optThreshold n - 1) : ℝ))
+      atTop (𝓝 1) := by
+  let γ : ℝ := Real.eulerMascheroniConstant
+  have hpred : Tendsto (fun n : ℕ => n - 1) atTop atTop := by
+    rw [tendsto_atTop]
+    intro m
+    filter_upwards [eventually_ge_atTop (m + 1)] with n hn
+    omega
+  have hpred_opt : Tendsto (fun n : ℕ => optThreshold n - 1) atTop atTop :=
+    hpred.comp tendsto_optThreshold_atTop
+  have h_n : Tendsto (fun n : ℕ => (harmonic (n - 1) : ℝ) - Real.log (n - 1 : ℕ)) atTop (𝓝 γ) := by
+    have h := Real.tendsto_harmonic_sub_log.comp hpred
+    change Tendsto (fun n : ℕ => (harmonic (n - 1) : ℝ) - Real.log (↑(n - 1) : ℝ)) atTop (𝓝 γ)
+    exact h
+  have h_k : Tendsto (fun n : ℕ => (harmonic (optThreshold n - 1) : ℝ) - Real.log (optThreshold n - 1 : ℕ)) atTop (𝓝 γ) := by
+    have h := Real.tendsto_harmonic_sub_log.comp hpred_opt
+    change Tendsto (fun n : ℕ => (harmonic (optThreshold n - 1) : ℝ) - Real.log (↑(optThreshold n - 1) : ℝ)) atTop (𝓝 γ)
+    exact h
+  have h_log := tendsto_log_pred_sub_log_opt
+  have hcomb : Tendsto (fun n : ℕ =>
+      ((harmonic (n - 1) : ℝ) - Real.log (n - 1 : ℕ))
+        - ((harmonic (optThreshold n - 1) : ℝ) - Real.log (optThreshold n - 1 : ℕ))
+        + (Real.log (n - 1 : ℕ) - Real.log (optThreshold n - 1 : ℕ)))
+      atTop (𝓝 (γ - γ + 1)) :=
+    (h_n.sub h_k).add h_log
+  have hid : (fun n : ℕ =>
+      ((harmonic (n - 1) : ℝ) - Real.log (n - 1 : ℕ))
+        - ((harmonic (optThreshold n - 1) : ℝ) - Real.log (optThreshold n - 1 : ℕ))
+        + (Real.log (n - 1 : ℕ) - Real.log (optThreshold n - 1 : ℕ)))
+      =ᶠ[atTop] fun n : ℕ => (harmonic (n - 1) : ℝ) - (harmonic (optThreshold n - 1) : ℝ) := by
+    filter_upwards with n
+    ring
+  simpa using hcomb.congr' hid
+
+/-- **On-line hiring `1/e` asymptotic.**  Choosing the threshold `k = ⌊n/e⌋`
+makes the success probability tend to `1/e` as `n → ∞` (CLRS §5.4.4). -/
+theorem probHireBest_asymptotic :
+    Tendsto (fun n : ℕ => probHireBest n (optThreshold n)) atTop (𝓝 (1 / e0)) := by
+  have hk_pos : ∀ᶠ n in atTop, 0 < optThreshold n :=
+    tendsto_optThreshold_atTop.eventually_gt_atTop 0
+  have hk_le : ∀ᶠ n in atTop, optThreshold n ≤ n := by
+    filter_upwards [eventually_ge_atTop 1] with n hn
+    unfold optThreshold
+    have h1 : (⌊(n : ℝ) / e0⌋₊ : ℝ) ≤ (n : ℝ) / e0 := Nat.floor_le (div_nonneg (by positivity) (le_of_lt e0_pos))
+    have h2 : (n : ℝ) / e0 ≤ (n : ℝ) := by
+      have he1 : 1 ≤ e0 := by
+        have hlt : (1 : ℝ) < e0 := by
+          unfold e0
+          simpa using (Real.exp_lt_exp.mpr (by norm_num : (0 : ℝ) < 1))
+        exact le_of_lt hlt
+      exact (div_le_iff₀ e0_pos).mpr (by nlinarith [he1])
+    exact_mod_cast (le_trans h1 h2)
+  have hclosed : (fun n : ℕ => probHireBest n (optThreshold n)) =ᶠ[atTop]
+      fun n : ℕ => (optThreshold n : ℝ) / (n : ℝ)
+        * ((harmonic (n - 1) : ℝ) - (harmonic (optThreshold n - 1) : ℝ)) := by
+    filter_upwards [hk_pos, hk_le] with n hpos hle
+    rw [probHireBest_eq n (optThreshold n) hpos hle]
+  have ht : Tendsto (fun n : ℕ => (optThreshold n : ℝ) / (n : ℝ)
+      * ((harmonic (n - 1) : ℝ) - (harmonic (optThreshold n - 1) : ℝ)))
+      atTop (𝓝 ((1 / e0) * 1)) :=
+    tendsto_optThreshold_div_n.mul tendsto_harmonic_diff
+  have hfinal : (1 / e0) * 1 = 1 / e0 := by ring
+  simpa [hfinal] using ht.congr' hclosed.symm
+
+end
 end OnlineHiring
 
 end Chapter05
