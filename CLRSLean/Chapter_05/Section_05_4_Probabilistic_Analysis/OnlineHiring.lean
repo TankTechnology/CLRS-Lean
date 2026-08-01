@@ -15,8 +15,10 @@ The threshold strategy interviews the first {lit}`k` applicants without hiring
 every applicant seen so far.
 
 **Status:** The finite record-selection strategy is executable and comes with
-exact {lit}`some` and {lit}`none` contracts.  The harmonic closed form for its
-success probability and the asymptotic {lit}`1/e` result are **deferred**.
+exact {lit}`some` and {lit}`none` contracts, and its success probability has
+the harmonic closed form {lit}`(k/n) * (H_{n-1} - H_{k-1})`
+({lit}`probHireBest_eq`).  The asymptotic {lit}`1/e` result for
+{lit}`k ≈ n/e` is **deferred**.
 -/
 
 namespace CLRS
