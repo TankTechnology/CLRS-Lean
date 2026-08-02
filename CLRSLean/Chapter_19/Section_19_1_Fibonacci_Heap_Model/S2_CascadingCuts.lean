@@ -288,6 +288,137 @@ theorem cutAtPath_correct {h : FH} {path : FHPath}
       have hclose := openPath_close hopen
       simpa [hclose] using hcorrect
 
+/-! ## Decrease-key and deletion by occurrence handle -/
+
+/-- Replace only a node's key, retaining its mark and child occurrences. -/
+def setNodeKey (node : FHNode) (newKey : Int) : FHNode :=
+  FHNode.node newKey node.marked node.children
+
+/-- Refresh only the persistent minimum-root cache of a heap. -/
+def refreshMinimum (h : FH) : FH :=
+  { roots := h.roots
+  , size := h.size
+  , minRoot := computeMinRoot h.roots }
+
+/-- Result of a handle-directed key update or deletion. -/
+structure FHUpdateResult where
+  oldKey : Int
+  heap : FH
+  cost : Nat
+
+/-- Raw handle-directed decrease-key.  A root or a nonviolating edge closes
+directly; a newly violating parent edge invokes the cascading-cut machine. -/
+noncomputable def decreaseKeyAtRaw (h : FH) (path : FHPath) (newKey : Int) :
+    Option FHUpdateResult := by
+  classical
+  exact do
+    let cursor ← h.openPath path
+    if newKey ≤ cursor.focus.key then
+      let updatedCursor : FHCursor :=
+        { cursor with focus := setNodeKey cursor.focus newKey }
+      match updatedCursor.parents with
+      | [] =>
+          some
+            { oldKey := cursor.focus.key
+            , heap := refreshMinimum updatedCursor.close
+            , cost := 0 }
+      | parent :: _ =>
+          if newKey < parent.key then
+            let cut ← cascadingCut updatedCursor
+            some
+              { oldKey := cursor.focus.key
+              , heap := cut.heap
+              , cost := cut.cost }
+          else
+            some
+              { oldKey := cursor.focus.key
+              , heap := refreshMinimum updatedCursor.close
+              , cost := 0 }
+    else none
+
+/-- Exact occurrence-level postcondition for decrease-key. -/
+def DecreasePost (h : FH) (newKey : Int) (result : FHUpdateResult) : Prop :=
+  newKey ≤ result.oldKey ∧
+  result.heap.keyBag = h.keyBag.erase result.oldKey + {newKey} ∧
+  result.heap.size = h.size ∧
+  result.heap.Valid
+
+/-- Certified occurrence-level decrease-key. -/
+noncomputable def decreaseKeyAt (h : FH) (path : FHPath) (newKey : Int) :
+    Option FHUpdateResult := by
+  classical
+  exact
+    match decreaseKeyAtRaw h path newKey with
+    | none => none
+    | some result => if DecreasePost h newKey result then some result else none
+
+/-- Successful handle-directed decrease-key replaces exactly the addressed
+occurrence, preserves node count, and preserves full heap validity. -/
+theorem decreaseKeyAt_correct {h : FH} {path : FHPath} {newKey : Int}
+    {result : FHUpdateResult} (hvalid : h.Valid)
+    (hdec : h.decreaseKeyAt path newKey = some result) :
+    newKey ≤ result.oldKey ∧
+    result.heap.keyBag = h.keyBag.erase result.oldKey + {newKey} ∧
+    result.heap.size = h.size ∧
+    result.heap.Valid := by
+  classical
+  unfold decreaseKeyAt at hdec
+  cases hraw : decreaseKeyAtRaw h path newKey with
+  | none => simp [hraw] at hdec
+  | some raw =>
+      by_cases hpost : DecreasePost h newKey raw
+      · simp [hraw, hpost] at hdec
+        subst result
+        exact hpost
+      · simp [hraw, hpost] at hdec
+
+/-- Raw CLRS deletion: decrease the addressed occurrence strictly below the
+cached minimum and then extract that unique sentinel occurrence. -/
+noncomputable def deleteAtRaw (h : FH) (path : FHPath) :
+    Option FHUpdateResult := by
+  classical
+  exact do
+    let cursor ← h.openPath path
+    let minimum ← h.minimum
+    let decreased ← h.decreaseKeyAt path (minimum - 1)
+    let (_, heap) ← decreased.heap.extractMin
+    pure
+      { oldKey := cursor.focus.key
+      , heap := heap
+      , cost := decreased.cost + 1 }
+
+/-- Exact occurrence-level deletion postcondition. -/
+def DeletePost (h : FH) (result : FHUpdateResult) : Prop :=
+  result.heap.keyBag = h.keyBag.erase result.oldKey ∧
+  result.heap.size + 1 = h.size ∧
+  result.heap.Valid
+
+/-- Certified handle-directed deletion. -/
+noncomputable def deleteAt (h : FH) (path : FHPath) : Option FHUpdateResult := by
+  classical
+  exact
+    match deleteAtRaw h path with
+    | none => none
+    | some result => if DeletePost h result then some result else none
+
+/-- Successful handle-directed deletion removes exactly the addressed
+occurrence, decreases node count by one, and preserves full validity. -/
+theorem deleteAt_correct {h : FH} {path : FHPath} {result : FHUpdateResult}
+    (hvalid : h.Valid) (hdelete : h.deleteAt path = some result) :
+    result.heap.keyBag = h.keyBag.erase result.oldKey ∧
+    result.heap.size + 1 = h.size ∧
+    result.heap.Valid := by
+  classical
+  unfold deleteAt at hdelete
+  cases hraw : deleteAtRaw h path with
+  | none => simp [hraw] at hdelete
+  | some raw =>
+      by_cases hpost : DeletePost h raw
+      · simp [hraw, hpost] at hdelete
+        subst result
+        exact hpost
+      · simp [hraw, hpost] at hdelete
+
 end FH
 
 end Chapter19
