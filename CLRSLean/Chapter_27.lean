@@ -39,26 +39,44 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 
 * 27.2–27.4 Multithreaded algorithms.
   Executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and
-  parallel Strassen, each with an exact closed form on powers of two (and
-  all-input upper bounds for P-MATMUL).
+  parallel Strassen, each with an exact closed form on powers of two.  The
+  merge-based and parallel-Strassen recurrences also have monotonicity,
+  adjacent-power sandwich, and all-input Θ theorems; P-MATMUL has all-input
+  upper bounds.
   Main declarations:
   {lit}`CLRS.Chapter27.pMatMulWork`, {lit}`CLRS.Chapter27.pMatMulWork_pow_two`,
   {lit}`CLRS.Chapter27.pMatMulWork_le`,
   {lit}`CLRS.Chapter27.pMatMulSpan`, {lit}`CLRS.Chapter27.pMatMulSpan_pow_two`,
   {lit}`CLRS.Chapter27.pMatMulSpan_le`,
   {lit}`CLRS.Chapter27.pMergeWork`, {lit}`CLRS.Chapter27.pMergeWork_pow_two`,
+  {lit}`CLRS.Chapter27.pMergeWork_monotone`,
+  {lit}`CLRS.Chapter27.pMergeWork_power_sandwich`,
+  {lit}`CLRS.Chapter27.pMergeWork_allInput_bigTheta`,
   {lit}`CLRS.Chapter27.pMergeSpan`, {lit}`CLRS.Chapter27.pMergeSpan_pow_two`,
+  {lit}`CLRS.Chapter27.pMergeSpan_monotone`,
+  {lit}`CLRS.Chapter27.pMergeSpan_power_sandwich`,
+  {lit}`CLRS.Chapter27.pMergeSpan_allInput_bigTheta`,
   {lit}`CLRS.Chapter27.pMergeSortWork`,
   {lit}`CLRS.Chapter27.pMergeSortWork_pow_two`,
+  {lit}`CLRS.Chapter27.pMergeSortWork_monotone`,
+  {lit}`CLRS.Chapter27.pMergeSortWork_power_sandwich`,
+  {lit}`CLRS.Chapter27.pMergeSortWork_allInput_bigTheta`,
   {lit}`CLRS.Chapter27.pMergeSortSpan`,
   {lit}`CLRS.Chapter27.pMergeSortSpan_pow_two`,
+  {lit}`CLRS.Chapter27.pMergeSortSpan_monotone`,
+  {lit}`CLRS.Chapter27.pMergeSortSpan_power_sandwich`,
+  {lit}`CLRS.Chapter27.pMergeSortSpan_allInput_bigTheta`,
   {lit}`CLRS.Chapter27.strassenWork`, {lit}`CLRS.Chapter27.strassenWork_pow_two`,
-  {lit}`CLRS.Chapter27.strassenSpan`, {lit}`CLRS.Chapter27.strassenSpan_pow_two`.
+  {lit}`CLRS.Chapter27.strassenWork_monotone`,
+  {lit}`CLRS.Chapter27.strassenWork_power_sandwich`,
+  {lit}`CLRS.Chapter27.strassenWork_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.strassenSpan`, {lit}`CLRS.Chapter27.strassenSpan_pow_two`,
+  {lit}`CLRS.Chapter27.strassenSpan_monotone`,
+  {lit}`CLRS.Chapter27.strassenSpan_power_sandwich`,
+  {lit}`CLRS.Chapter27.strassenSpan_allInput_bigTheta`.
 
 ## Deferred work
 
-* All-input Θ-bounds for the merge-based costs (power-sandwich transfer as
-  in Chapter 4) need monotonicity lemmas for the cost functions.
 * Executable P-MERGE / P-MERGE-SORT implementations refining the recurrences.
 -/
 

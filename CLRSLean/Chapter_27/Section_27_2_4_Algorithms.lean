@@ -18,7 +18,7 @@ Chapter 4's divide-and-conquer cost analysis:
 - **§27.4 Parallel Strassen**: work `T₁(n) = 7 T₁(n/2) + n²`,
   span `T∞(n) = T∞(n/2) + 1`.
 
-## Main results (exact closed forms on powers of two)
+## Main results
 
 * `pMatMulWork_pow_two`: `T₁(2ᵏ) + 4ᵏ = 2·8ᵏ`, i.e. work `Θ(n³)`.
 * `pMatMulWork_le`: the all-input bound `T₁(n) + n² ≤ 2n³`.
@@ -32,12 +32,23 @@ Chapter 4's divide-and-conquer cost analysis:
 * `strassenWork_pow_two`: `3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`, i.e. work
   `Θ(n^(log₂ 7))`.
 * `strassenSpan_pow_two`: `T∞(2ᵏ) = k + 1`, i.e. span `Θ(log n)`.
+* `pMergeWork_monotone`, `pMergeSpan_monotone`,
+  `pMergeSortWork_monotone`, `pMergeSortSpan_monotone`,
+  `strassenWork_monotone`, and `strassenSpan_monotone`: all six merge-based
+  and parallel-Strassen cost functions are monotone on arbitrary inputs.
+* `pMergeWork_power_sandwich`, `pMergeSpan_power_sandwich`,
+  `pMergeSortWork_power_sandwich`, `pMergeSortSpan_power_sandwich`,
+  `strassenWork_power_sandwich`, and `strassenSpan_power_sandwich`: every
+  positive-input cost lies between the costs at its adjacent powers of two.
+* `pMergeWork_allInput_bigTheta` and `pMergeSpan_allInput_bigTheta`: P-MERGE
+  has all-input work `Θ(n)` and span `Θ(log² n)`.
+* `pMergeSortWork_allInput_bigTheta` and `pMergeSortSpan_allInput_bigTheta`:
+  P-MERGE-SORT has all-input work `Θ(n log n)` and span `Θ(log³ n)`.
+* `strassenWork_allInput_bigTheta` and `strassenSpan_allInput_bigTheta`:
+  parallel Strassen has all-input work `Θ(n^(log₂ 7))` and span `Θ(log n)`.
 
 ## Deferred work
 
-* All-input (floor/ceiling) Θ-bounds for the merge-based costs via the
-  power-sandwich technique of Chapter 4 (`powerInterval_of_pos`), which
-  requires monotonicity lemmas for each cost function.
 * Executable P-MERGE / P-MERGE-SORT implementations refining these costs.
 -/
 
