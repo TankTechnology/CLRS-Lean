@@ -2430,9 +2430,14 @@ costs remain optional lower-level refinements.
 
 - Lean source:
   `CLRSLean/Chapter_19.lean` and
-  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean`, plus
-  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S1_ExecutableFibHeap.lean`,
-  `S2_CascadingCuts.lean`, and `S3_AmortizedCosts.lean`
+  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean`,
+  `CLRSLean/Chapter_19/Section_19_2_Mergeable_Heap_Operations.lean`,
+  `CLRSLean/Chapter_19/Section_19_3_Decreasing_A_Key_And_Deleting_A_Node.lean`,
+  its `Amortized_Costs.lean` companion, and
+  `CLRSLean/Chapter_19/Section_19_4_Bounding_Maximum_Degree.lean`
+- Compatibility imports: the former `S1_ExecutableFibHeap`,
+  `S2_CascadingCuts`, and `S3_AmortizedCosts` paths remain as import-only
+  shims below Section 19.1.
 - Status: `main-proof-complete-for-correctness`
 - Main proved theorems:
   - `CLRS.Chapter19.FibHeap.makeHeap_correct`
@@ -2639,6 +2644,28 @@ duplicate keys), implements CASCADING-CUT, decrease-key, and delete, and proves
 their exact multiset/validity contracts.  The executable cost layer establishes
 constant amortized decrease-key, logarithmic extract-min/delete, and a genuine
 operation-trace telescope bounded by the sum of dynamic per-operation budgets.
+
+### Section 19.1 - Fibonacci heaps
+
+- Module: `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean`
+- Model: an abstract finite key set with root/mark counters, operation
+  contracts, minimum-query wrappers, and the standard potential.
+
+### Section 19.2 - Mergeable-heap operations
+
+- Module: `CLRSLean/Chapter_19/Section_19_2_Mergeable_Heap_Operations.lean`
+- Model: persistent heap-ordered forests with exact key bags, cached minimum,
+  `LINK`, degree-bucket `CONSOLIDATE`, and executable `extractMin`.
+
+### Section 19.3 - Decreasing a key and deleting a node
+
+- Module:
+  `CLRSLean/Chapter_19/Section_19_3_Decreasing_A_Key_And_Deleting_A_Node.lean`
+- Cost module:
+  `CLRSLean/Chapter_19/Section_19_3_Decreasing_A_Key_And_Deleting_A_Node/Amortized_Costs.lean`
+- Model: occurrence paths and zippers, arbitrary-node CUT and CASCADING-CUT,
+  executable decrease-key/delete, and certified operation/trace amortized
+  bounds.
 
 ### Section 19.4 - Bounding the maximum degree
 

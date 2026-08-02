@@ -6,6 +6,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LITERATE_TOML = ROOT / "literate.toml"
 
+COMPATIBILITY_MODULES = {
+    "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S1_ExecutableFibHeap",
+    "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S2_CascadingCuts",
+    "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S3_AmortizedCosts",
+}
+
 
 def _parse_order_children(text: str) -> dict[str, list[str]]:
     blocks: dict[str, list[str]] = {}
@@ -76,7 +82,11 @@ class LiterateConfigTest(unittest.TestCase):
             if not imported_sections:
                 continue
 
-            ordered_sections = _ordered_descendants(order_children, chapter_module)
+            ordered_sections = [
+                module
+                for module in _ordered_descendants(order_children, chapter_module)
+                if module not in COMPATIBILITY_MODULES
+            ]
             with self.subTest(chapter=chapter_module):
                 self.assertEqual(imported_sections, ordered_sections)
 
@@ -93,6 +103,14 @@ class LiterateConfigTest(unittest.TestCase):
             ],
             "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework": [
                 "CLRSLean.Chapter_17.Section_17_1_Amortized_Framework.Section_17_2_Stack_And_Counter",
+            ],
+            "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model": [
+                "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S1_ExecutableFibHeap",
+                "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S2_CascadingCuts",
+                "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S3_AmortizedCosts",
+            ],
+            "CLRSLean.Chapter_19.Section_19_3_Decreasing_A_Key_And_Deleting_A_Node": [
+                "CLRSLean.Chapter_19.Section_19_3_Decreasing_A_Key_And_Deleting_A_Node.Amortized_Costs",
             ],
             "CLRSLean.Chapter_22.Section_22_3_DFS": [
                 "CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath",
