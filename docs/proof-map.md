@@ -3482,8 +3482,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   edge delta along its consecutive pairs, and bound the update by the minimum
   residual capacity.  Cycle deletion turns a residual reachability witness into
   a simple path without changing its endpoints.
-- Current gap: none for this layer.  The executable Edmonds--Karp loop remains
-  a separate target below; Lemma 26.7 is proved in the companion analysis.
+- Current gap: none for this layer.  The executable Edmonds--Karp loop and its
+  analysis are proved in the companion modules documented below.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
@@ -3636,13 +3636,10 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   no augmenting path exists; cut equality supplies the reverse implication.
 - Current gap: none for the mathematical Max-Flow Min-Cut equivalence.
 
-### Chapter 26 remaining order
+### Chapter 26 current boundary
 
-1. Executable BFS/Edmonds-Karp and the `O(VE²)` work theorem.
-2. Matching-flow feasibility, the integral-flow converse, and the maximum-value
-   statement of Theorem 26.12.
-
-Sections 26.4 and 26.5 are deferred outside the current selected milestone.
+No core proof group remains within the selected milestone.  Sections 26.4 and
+26.5 are deferred outside that milestone.
 
 ## Chapter 27 - Multithreaded Algorithms
 
@@ -3656,19 +3653,43 @@ Sections 26.4 and 26.5 are deferred outside the current selected milestone.
   - `CLRS.Chapter27.CompDAG.work` (T₁, total work)
   - `CLRS.Chapter27.CompDAG.longestTo` / `CLRS.Chapter27.CompDAG.span`
     (T∞, honestly computed longest weighted path by DP)
+  - `CLRS.Chapter27.GreedyScheduleAccounting` (aggregate complete/incomplete
+    step accounting certificate)
+  - `CLRS.Chapter27.GreedyScheduleTrace` (ordered complete/incomplete trace)
+  - `CLRS.Chapter27.GreedyScheduleRun` (per-step work consumption and span
+    decrease, with local progress obligations)
+  - `CLRS.Chapter27.CompDAG.ready` / `CLRS.Chapter27.CompDAG.execute`
+    (computed ready set and one-unit residual-state transition)
+  - `CLRS.Chapter27.DAGScheduleStep` / `CLRS.Chapter27.DAGSchedule`
+    (maximally busy greedy steps and type-safe chained executions)
   - `CLRS.Chapter27.SpawnTree` (spawn/sync tree with unit spawn overhead)
   - `CLRS.Chapter27.parallelLoopTree` (balanced parallel-loop spawn tree)
 - Proved theorems:
   - `CLRS.Chapter27.CompDAG.longestTo_le`, `CLRS.Chapter27.CompDAG.span_le_work`
     (T∞ ≤ T₁ on DAGs)
+  - `CLRS.Chapter27.GreedyScheduleAccounting.time_le_work_div_add_span`,
+    `CLRS.Chapter27.GreedyScheduleTrace.time_le_work_div_add_span`, and
+    `CLRS.Chapter27.GreedyScheduleRun.time_le_work_div_add_span`
+    (`Tₚ ≤ T₁ / p + T∞` at the aggregate, ordered-trace, and local per-step
+    accounting boundaries)
+  - `CLRS.Chapter27.CompDAG.remainingSpan_execute_ready_add_one_le`
+    (executing every ready node decreases a nonempty residual critical path)
+  - `CLRS.Chapter27.DAGScheduleStep.incomplete_run_eq_ready` and
+    `CLRS.Chapter27.DAGScheduleStep.incomplete_progress`
+    (the greedy-step invariant derived from explicit ready-set semantics)
+  - `CLRS.Chapter27.DAGSchedule.work_balance`,
+    `CLRS.Chapter27.DAGSchedule.span_balance`, and
+    `CLRS.Chapter27.DAGSchedule.final_work_eq_zero`, together with
+    `CLRS.Chapter27.DAGSchedule.time_le_work_div_add_span`
+    (completed executions, telescoping resource budgets, and the explicit-DAG
+    form of CLRS Theorems 27.1/27.2)
   - `CLRS.Chapter27.SpawnTree.span_le_work` (T∞ ≤ T₁ on spawn trees)
   - `CLRS.Chapter27.parallelLoop_work` (exact work `n * w + (n - 1)`)
   - `CLRS.Chapter27.parallelLoop_span` (exact span `w + depth`)
   - `CLRS.Chapter27.parallelLoopDepth_pow` (`n ≤ 2 ^ depth`, the
     span-is-logarithmic direction)
-- Current gap: the greedy-scheduler bound (Theorem 27.1/27.2) needs an
-  explicit time-step execution model; a matching `depth ≤ log₂ n + 1` upper
-  bound is future work.
+- Current gap: a matching `parallelLoopDepth n ≤ Nat.log 2 n + 1` upper bound
+  is future work.
 
 ### Section 27.2-27.4 - Multithreaded Algorithms
 

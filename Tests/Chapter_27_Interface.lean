@@ -12,6 +12,38 @@ namespace Chapter27
 #check CompDAG.span_le_work
 #check CompDAG.speedup
 #check CompDAG.parallelism
+#check CompDAG.remainingWork
+#check CompDAG.ready
+#check CompDAG.execute
+#check CompDAG.remainingWork_execute_add_card
+#check CompDAG.longestTo_mono_work
+#check CompDAG.remainingSpan_mono
+#check CompDAG.remainingSpan_execute_le
+#check CompDAG.remainingSpan_execute_ready_add_one_le
+#check DAGScheduleStep
+#check DAGScheduleStep.after
+#check DAGScheduleStep.kind
+#check DAGScheduleStep.metricStep
+#check DAGScheduleStep.remainingWork_after_add_card
+#check DAGScheduleStep.incomplete_run_eq_ready
+#check DAGScheduleStep.incomplete_progress
+#check DAGSchedule
+#check DAGSchedule.metricSteps
+#check DAGSchedule.final_work_eq_zero
+#check DAGSchedule.toRun
+#check DAGSchedule.time_le_work_div_add_span
+#check GreedyScheduleAccounting
+#check GreedyScheduleAccounting.time
+#check GreedyScheduleAccounting.time_le_work_div_add_span
+#check GreedyStepKind
+#check GreedyScheduleTrace
+#check GreedyScheduleTrace.accounting
+#check GreedyScheduleTrace.time_le_work_div_add_span
+#check GreedyScheduleStep
+#check GreedyScheduleRun
+#check GreedyScheduleRun.trace
+#check GreedyScheduleRun.accounting
+#check GreedyScheduleRun.time_le_work_div_add_span
 #check SpawnTree
 #check SpawnTree.work
 #check SpawnTree.span
@@ -63,6 +95,27 @@ def forkJoinDAG : CompDAG where
   h_edges_in_bounds := by decide
   h_edges_forward := by decide
 
+/-- A one-node unit-work DAG used to exercise the completed schedule
+constructor rather than only checking declaration names. -/
+def unitDAG : CompDAG where
+  n := 1
+  node_work := fun i => if i = 0 then 1 else 0
+  edges := []
+  h_edges_in_bounds := by decide
+  h_edges_forward := by decide
+
+def unitDAGStep : DAGScheduleStep unitDAG 1 where
+  remaining := unitDAG.node_work
+  run := {0}
+  run_subset_ready := by native_decide
+  run_card_eq_min := by native_decide
+
+/-- The unit DAG has one active step and then a genuinely zero-work final
+state. -/
+def unitDAGSchedule : DAGSchedule unitDAG 1 unitDAG.node_work :=
+  .step unitDAGStep (by native_decide)
+    (.done unitDAGStep.after (by native_decide))
+
 example : chainDAG.work = 6 := by native_decide
 
 example : chainDAG.span = 6 := by native_decide
@@ -70,6 +123,14 @@ example : chainDAG.span = 6 := by native_decide
 example : forkJoinDAG.work = 7 := by native_decide
 
 example : forkJoinDAG.span = 6 := by native_decide
+
+example : unitDAGSchedule.time = 1 := by native_decide
+
+example : unitDAG.remainingWork unitDAGSchedule.finalState = 0 :=
+  unitDAGSchedule.final_work_eq_zero
+
+example : unitDAGSchedule.time ≤ unitDAG.work / 1 + unitDAG.span :=
+  unitDAGSchedule.time_le_work_div_add_span (by decide)
 
 example (G : CompDAG) : G.span ≤ G.work := G.span_le_work
 
