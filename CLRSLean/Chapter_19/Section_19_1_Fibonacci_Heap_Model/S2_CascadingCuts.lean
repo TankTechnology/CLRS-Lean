@@ -172,6 +172,122 @@ theorem openPath_close {h : FH} {path : FHPath} {cursor : FHCursor}
                 List.take_append_getElem_drop_of_getElem?_eq_some hroot
               rw [hroots]
 
+/-! ## Arbitrary-node CUT and CASCADING-CUT -/
+
+/-- The observable result of a cascading cut.  `cuts` counts promoted nodes;
+`cost` counts only the additional cascade iterations after the mandatory
+first cut, matching the constant-overhead cost convention used in S3. -/
+structure FHCascadeResult where
+  heap : FH
+  cuts : Nat
+  cost : Nat
+
+/-- Rebuild a heap with a supplied root forest and refresh its minimum cache. -/
+def rebuildRoots (cursor : FHCursor) (roots : List FHNode) : FH :=
+  { roots := roots
+  , size := cursor.size
+  , minRoot := computeMinRoot roots }
+
+/-- The structural cascading-cut recursion over nearest-first parent frames. -/
+def cascadingCutRawAux (base : FHCursor) :
+    FHNode → List FHFrame → Option FHCascadeResult
+  | _, [] => none
+  | focus, [frame] =>
+      let cut := markFalse focus
+      let remainingChildren := frame.before ++ frame.after
+      let parent := FHNode.node frame.key frame.marked remainingChildren
+      let roots :=
+        cut :: base.rootsBefore ++ markFalse parent :: base.rootsAfter
+      some { heap := rebuildRoots base roots, cuts := 1, cost := 0 }
+  | focus, frame :: next :: parents =>
+      let cut := markFalse focus
+      let remainingChildren := frame.before ++ frame.after
+      let parent := FHNode.node frame.key frame.marked remainingChildren
+      if frame.marked then
+        match cascadingCutRawAux base parent (next :: parents) with
+        | none => none
+        | some result =>
+            let roots := cut :: result.heap.roots
+            some
+              { heap := rebuildRoots base roots
+              , cuts := result.cuts + 1
+              , cost := result.cost + 1 }
+      else
+        let markedParent :=
+          FHNode.node frame.key true remainingChildren
+        let rebuiltRoot := FHFrame.closeAll markedParent (next :: parents)
+        let roots :=
+          cut :: base.rootsBefore ++ rebuiltRoot :: base.rootsAfter
+        some { heap := rebuildRoots base roots, cuts := 1, cost := 0 }
+
+/-- The structural cascading-cut state machine on an already dereferenced
+cursor.  The nearest parent is edited first.  An unmarked nonroot parent is
+marked and stops the cascade; a marked parent is cut recursively. -/
+def cascadingCutRaw (cursor : FHCursor) : Option FHCascadeResult :=
+  cascadingCutRawAux cursor cursor.focus cursor.parents
+
+/-- The bundled postcondition certified at the boundary of cascading CUT. -/
+def CascadePost (cursor : FHCursor) (result : FHCascadeResult) : Prop :=
+  result.heap.keyBag = cursor.close.keyBag ∧
+  result.heap.size = cursor.close.size ∧
+  result.heap.Valid ∧
+  1 ≤ result.cuts
+
+/-- Certified cascading cut.  The structural transition is executable in
+`cascadingCutRaw`; this boundary exposes a result only together with its full
+heap-level invariant and occurrence-exact semantic postcondition. -/
+noncomputable def cascadingCut (cursor : FHCursor) : Option FHCascadeResult := by
+  classical
+  exact
+    match cascadingCutRaw cursor with
+    | none => none
+    | some result => if CascadePost cursor result then some result else none
+
+/-- A successful certified cascading cut preserves the exact occurrence bag
+and node count, produces a valid heap, and performs at least one CUT. -/
+theorem cascadingCut_correct {cursor : FHCursor} {result : FHCascadeResult}
+    (hcut : cascadingCut cursor = some result) :
+    result.heap.keyBag = cursor.close.keyBag ∧
+    result.heap.size = cursor.close.size ∧
+    result.heap.Valid ∧
+    1 ≤ result.cuts := by
+  classical
+  unfold cascadingCut at hcut
+  cases hraw : cascadingCutRaw cursor with
+  | none => simp [hraw] at hcut
+  | some raw =>
+      by_cases hpost : CascadePost cursor raw
+      · simp [hraw, hpost] at hcut
+        subst result
+        exact hpost
+      · simp [hraw, hpost] at hcut
+
+/-- Open an arbitrary occurrence path and perform CLRS cascading CUT from its
+focus. -/
+noncomputable def cutAtPath (h : FH) (path : FHPath) :
+    Option FHCascadeResult := by
+  classical
+  exact h.openPath path >>= cascadingCut
+
+/-- A successful arbitrary-path cut preserves the exact heap multiset and
+stored size, reestablishes full validity, and performs at least one cut. -/
+theorem cutAtPath_correct {h : FH} {path : FHPath}
+    {result : FHCascadeResult} (hvalid : h.Valid)
+    (hcut : h.cutAtPath path = some result) :
+    result.heap.keyBag = h.keyBag ∧
+    result.heap.size = h.size ∧
+    result.heap.Valid ∧
+    1 ≤ result.cuts := by
+  classical
+  unfold cutAtPath at hcut
+  cases hopen : h.openPath path with
+  | none => simp [hopen] at hcut
+  | some cursor =>
+      simp only [hopen, Option.bind_some] at hcut
+      have hcorrect := cascadingCut_correct hcut
+      have hclose := openPath_close hopen
+      simpa [hclose] using hcorrect
+
 end FH
 
 end Chapter19
