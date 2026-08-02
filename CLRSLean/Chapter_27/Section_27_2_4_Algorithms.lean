@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import CLRSLean.Chapter_04.Section_04_6_Master_Theorem_All_Input
 import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model
 
 /-!
@@ -64,6 +65,20 @@ private theorem two_pow_succ_mul (k : ℕ) : 2 ^ (k + 1) * 2 ^ (k + 1) = 4 ^ (k 
   rw [h42, ← pow_mul, ← pow_add]
   congr 1
   omega
+
+private theorem natCost_monotoneAbs {T : ℕ → ℕ} (hT : Monotone T) :
+    Chapter04.MonotoneAbs (fun n => (T n : ℝ)) := by
+  intro m n hmn
+  rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (Nat.cast_nonneg _)]
+  change (T m : ℝ) ≤ (T n : ℝ)
+  exact_mod_cast hT hmn
+
+private theorem natCost_power_sandwich {T : ℕ → ℕ} (hT : Monotone T)
+    (n : ℕ) (hn : 0 < n) :
+    T (2 ^ Nat.log 2 n) ≤ T n ∧
+      T n ≤ T (2 ^ (Nat.log 2 n + 1)) := by
+  rcases Chapter04.powerInterval_of_pos 2 n (by norm_num) hn.ne' with ⟨hlo, hhi⟩
+  exact ⟨hT hlo, hT (Nat.le_of_lt hhi)⟩
 
 /-! ## §27.2: Parallel matrix multiplication (P-MATMUL) -/
 
