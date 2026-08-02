@@ -101,6 +101,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability",
 ]
 "CLRSLean.Chapter_08" = [
+  "CLRSLean.Chapter_08.Section_08_1_Lower_Bound_For_Sorting",
   "CLRSLean.Chapter_08.Section_08_2_Counting_Sort",
   "CLRSLean.Chapter_08.Section_08_3_Radix_Sort",
   "CLRSLean.Chapter_08.Section_08_4_Bucket_Sort",
@@ -506,6 +507,9 @@ title = "7.3. Randomized Quicksort"
 
 [modules."CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability"]
 title = "7.3. Randomized Quicksort: Comparison Probability"
+
+[modules."CLRSLean.Chapter_08.Section_08_1_Lower_Bound_For_Sorting"]
+title = "8.1. Lower Bounds for Sorting"
 
 [modules."CLRSLean.Chapter_08.Section_08_2_Counting_Sort"]
 title = "8.2. Counting Sort"
