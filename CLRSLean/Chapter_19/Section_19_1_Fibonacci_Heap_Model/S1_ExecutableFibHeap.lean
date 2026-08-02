@@ -21,6 +21,13 @@ smaller key becomes the parent), which raises the degree by one and the
 merging continues.  The degree-array formulation is the physical
 implementation of this bucket list.
 
+The heap abstraction records keys both as a duplicate-collapsing `Finset` and
+as an exact `Multiset`.  `FH.Valid` combines heap order, the Section 19.4
+marked-tree invariant, unmarked roots, and agreement between the stored node
+count and the actual forest size.  The executable `FH.extractMin` removes a
+minimum root, clears the marks of its promoted children, calls
+`consolidateList`, and removes exactly one minimum-key occurrence.
+
 Main results:
 
 - `FHNode`: a key-carrying tree node with mark bit and link-ordered children
@@ -31,12 +38,16 @@ Main results:
 - `FHNode.insertConsolidated` and `FHNode.consolidateList`: the executable
   `CONSOLIDATE` (degree-bucket merging)
 - `FHNode.consolidateList_keys`, `consolidateList_good`, and
-  `consolidateList_degreeStrict`: `CONSOLIDATE` correctness and at most one
-  root per degree after
-  consolidation
+  `consolidateList_keyBag`, `consolidateList_forestSize`,
+  `consolidateList_rootsUnmarked`, and `consolidateList_degreeStrict`:
+  `CONSOLIDATE` correctness and at most one root per degree after consolidation
 - `FH`: an executable heap (root forest + node count)
-- `FH.makeHeap` / `FH.insert` / `FH.union` / `FH.minimum`:
-  executable operations with key-set specifications
+- `FH.keyBag`, `FH.Represents`, and `FH.Valid`: exact representation and the
+  executable global invariant
+- `FH.makeHeap` / `FH.insert` / `FH.union` / `FH.minimum` / `FH.extractMin`:
+  executable operations with key-set, key-bag, and validity specifications
+- `FH.extractMin_correct`: global minimum selection, exact one-occurrence
+  deletion, validity preservation, and consolidated root-degree uniqueness
 - `FH.cutChildAt` / `FH.cutRootChildAt`: index-addressed direct-child CUT,
   lifted to a complete heap state with key-set and invariant preservation
 - `FH.potential` / `FH.cutRootChildAt_potential_eq`: executable
@@ -44,10 +55,10 @@ Main results:
 
 Current gaps:
 
-- A global executable `FH.Valid`/`FH.Represents` bridge, an `extractMin` that
-  invokes `consolidateList`, arbitrary-node handles or paths, cascading cuts,
-  executable `decreaseKey`/`delete`, and actual-operation cost semantics remain
-  future targets.  Circular pointer lists are a lower-level refinement of the
+- A cached minimum pointer, stable node identity/handles (including duplicate
+  keys), arbitrary-node paths, cascading cuts, executable
+  `decreaseKey`/`delete`, and actual-operation cost semantics remain future
+  targets.  Circular pointer lists are a lower-level refinement of the
   persistent root-list model used here.
 -/
 

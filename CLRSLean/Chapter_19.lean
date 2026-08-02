@@ -28,7 +28,10 @@ budget wrappers.  The query surface includes empty-result specifications for
 minimum and extract-min.  A second, implementation-facing layer now provides
 key-carrying heap-ordered forests with marks, executable equal-degree
 `LINK`/`CONSOLIDATE`, index-addressed direct-child CUT on a complete heap
-state, and the exact CUT change in the standard `t(H) + 2m(H)` potential.
+state, exact multiset representation and a global `FH.Valid` invariant, a
+stable minimum-root selector, an executable `extractMin` that promotes children
+and invokes `CONSOLIDATE`, exact one-occurrence deletion, and the exact CUT
+change in the standard `t(H) + 2m(H)` potential.
 
 ## Sections
 
@@ -133,9 +136,36 @@ state, and the exact CUT change in the standard `t(H) + 2m(H)` potential.
   {lit}`CLRS.Chapter19.FibHeap.degree_bound_log`.
 
   The executable forest layer additionally exposes
+  {lit}`CLRS.Chapter19.FHNode.keyBag`,
+  {lit}`CLRS.Chapter19.FHNode.forestKeyBag`,
+  {lit}`CLRS.Chapter19.FHNode.forestSize`,
+  {lit}`CLRS.Chapter19.FHNode.RootsUnmarked`,
   {lit}`CLRS.Chapter19.FHNode.consolidateList_keys`,
+  {lit}`CLRS.Chapter19.FHNode.consolidateList_keyBag`,
+  {lit}`CLRS.Chapter19.FHNode.consolidateList_forestSize`,
+  {lit}`CLRS.Chapter19.FHNode.consolidateList_rootsUnmarked`,
   {lit}`CLRS.Chapter19.FHNode.consolidateList_good`,
   {lit}`CLRS.Chapter19.FHNode.consolidateList_degreeStrict`,
+  {lit}`CLRS.Chapter19.FH.keyBag`,
+  {lit}`CLRS.Chapter19.FH.Represents`,
+  {lit}`CLRS.Chapter19.FH.Valid`,
+  {lit}`CLRS.Chapter19.FH.makeHeap_valid`,
+  {lit}`CLRS.Chapter19.FH.insert_valid`,
+  {lit}`CLRS.Chapter19.FH.union_valid`,
+  {lit}`CLRS.Chapter19.FH.removeMinRoot`,
+  {lit}`CLRS.Chapter19.FH.removeMinRoot_none_iff`,
+  {lit}`CLRS.Chapter19.FH.removeMinRoot_perm`,
+  {lit}`CLRS.Chapter19.FH.removeMinRoot_min`,
+  {lit}`CLRS.Chapter19.FH.extractMin`,
+  {lit}`CLRS.Chapter19.FH.extractMin_correct`,
+  {lit}`CLRS.Chapter19.FH.extractMin_keyBag`,
+  {lit}`CLRS.Chapter19.FH.extractMin_valid`,
+  {lit}`CLRS.Chapter19.FH.extractMin_degreeStrict`,
+  {lit}`CLRS.Chapter19.FH.extractMin_size`,
+  {lit}`CLRS.Chapter19.FH.extractMin_minimum`,
+  {lit}`CLRS.Chapter19.FH.extractMin_mem_iff_of_ne`,
+  {lit}`CLRS.Chapter19.FH.extractMin_none_iff`,
+  {lit}`CLRS.Chapter19.FH.extractMin_none_iff_size_zero`,
   {lit}`CLRS.Chapter19.FH.cutChildAt_keys`,
   {lit}`CLRS.Chapter19.FH.cutChildAt_heapOrdered`,
   {lit}`CLRS.Chapter19.FH.cutChildAt_wellformed`,
@@ -165,13 +195,12 @@ state, and the exact CUT change in the standard `t(H) + 2m(H)` potential.
 
 ## Current Gaps
 
-A global executable validity/representation bridge, `extractMin` wired to the
-proved `CONSOLIDATE`, arbitrary-node handles or paths, cascading cuts,
-executable `decreaseKey`/`delete`, and actual operation-cost accounting remain
-strengthening targets.  Circular pointer lists are a lower-level refinement of
-the executable persistent forest.  Section 19.4 seals the structural
-combinatorial core: `size(x) ≥ F(d+2) ≥ φ^d`, hence
-`D(n) ≤ ⌊log_φ n⌋`.
+A cached minimum pointer, stable node identity/handles for duplicate keys,
+arbitrary-node paths, cascading cuts, executable `decreaseKey`/`delete`, and
+actual operation-cost accounting remain strengthening targets.  Circular
+pointer lists are a lower-level refinement of the executable persistent
+forest.  Section 19.4 seals the structural combinatorial core:
+`size(x) ≥ F(d+2) ≥ φ^d`, hence `D(n) ≤ ⌊log_φ n⌋`.
 -/
 
 namespace CLRS
