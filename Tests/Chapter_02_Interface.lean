@@ -13,3 +13,4 @@ import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms
 #check CLRS.Chapter02.mergeSort_perm
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm
+#check CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
