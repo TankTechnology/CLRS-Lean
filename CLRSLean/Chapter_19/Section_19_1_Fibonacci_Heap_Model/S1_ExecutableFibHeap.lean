@@ -219,6 +219,22 @@ def toFTree : FHNode → FTree
 model: the child in position `j` has degree at least `j - 1`. -/
 def Wellformed (t : FHNode) : Prop := (t.toFTree).Wellformed
 
+/-- The mark-aware form of the CLRS child-loss invariant.  An unmarked child
+in link position `j` has not yet lost a child and therefore retains degree at
+least `j`; a marked child may have lost one child and retains degree at least
+`j - 1`.  Every descendant satisfies the same invariant. -/
+inductive LossInvariant : FHNode → Prop where
+  | node {k : Int} {marked : Bool} {children : List FHNode}
+      (hdeg : ∀ (j : Nat) (hj : j < children.length),
+        j - (if children[j].marked then 1 else 0) ≤ children[j].degree)
+      (hall : ∀ child ∈ children, LossInvariant child) :
+      LossInvariant (node k marked children)
+
+/-- Every root subtree in a forest satisfies the mark-aware child-loss
+invariant. -/
+def ForestLossInvariant (roots : List FHNode) : Prop :=
+  ∀ root ∈ roots, root.LossInvariant
+
 @[simp] theorem toFTree_node (k : Int) (m : Bool) (cs : List FHNode) :
     (node k m cs).toFTree = FTree.node (cs.map toFTree) := by
   rw [toFTree]
@@ -239,6 +255,33 @@ theorem toFTree_size (t : FHNode) : (t.toFTree).size = t.size := by
   · simp
   · intro c cs ih_c ih_cs
     simp [ih_c, ih_cs]
+
+/-- The mark-aware loss invariant implies the weaker Lemma 19.1 structural
+invariant used by the Fibonacci subtree-size theorem. -/
+theorem lossInvariant_wellformed :
+    ∀ t : FHNode, t.LossInvariant → t.Wellformed
+  | node k marked children, hloss => by
+      cases hloss with
+      | node hdeg hall =>
+          unfold Wellformed
+          rw [toFTree]
+          refine FTree.Wellformed.node ?_ ?_
+          · intro j hj
+            have hjchildren : j < children.length := by
+              simpa [List.length_map] using hj
+            have hbound := hdeg j hjchildren
+            have hdegree : (children.map toFTree)[j].degree = children[j].degree := by
+              rw [List.getElem_map, toFTree_degree]
+            rw [hdegree]
+            cases hmark : children[j].marked <;> simp [hmark] at hbound <;> omega
+          · intro child hchild
+            obtain ⟨source, hsource, rfl⟩ := List.mem_map.mp hchild
+            exact lossInvariant_wellformed source (hall source hsource)
+  termination_by t => sizeOf t
+  decreasing_by
+    have hlt : sizeOf source < sizeOf children := List.sizeOf_lt_of_mem hsource
+    simp only [FHNode.node.sizeOf_spec]
+    omega
 
 /-- A wellformed node of degree `d` has subtree size at least `F(d+2)`
 (CLRS Lemma 19.4, inherited from the `FTree` model). -/
@@ -262,6 +305,44 @@ theorem leaf_heapOrdered (k : Int) : HeapOrdered (node k false []) := by
 
 theorem leaf_wellformed (k : Int) : (node k false []).Wellformed := by
   simpa [Wellformed, toFTree] using FTree.wellformed_leaf
+
+/-- A singleton node has not lost any children. -/
+theorem leaf_lossInvariant (k : Int) : (node k false []).LossInvariant := by
+  refine LossInvariant.node ?_ ?_ <;> simp
+
+/-- Appending an unmarked equal-degree child preserves the mark-aware loss
+invariant.  This is the local structural fact used by `LINK`. -/
+theorem lossInvariant_append_child (k : Int) (marked : Bool)
+    (children : List FHNode) (child : FHNode)
+    (hparent : (node k marked children).LossInvariant)
+    (hchild : child.LossInvariant) (hchildMark : child.marked = false)
+    (hdegree : (node k marked children).degree = child.degree) :
+    (node k marked (children ++ [child])).LossInvariant := by
+  cases hparent with
+  | node hdeg hall =>
+      refine LossInvariant.node ?_ ?_
+      · intro j hj
+        rw [List.length_append, List.length_singleton] at hj
+        rcases Nat.lt_or_ge j children.length with hlt | hge
+        · have hget : (children ++ [child])[j] = children[j] :=
+            List.getElem_append_left hlt
+          rw [hget]
+          exact hdeg j hlt
+        · have hjeq : j = children.length := by omega
+          have hget : (children ++ [child])[j] = child := by
+            rw [List.getElem_concat_length hjeq]
+          rw [hget, hjeq, hchildMark]
+          simp only [Bool.false_eq_true, ↓reduceIte, Nat.sub_zero]
+          have hdegree' : children.length = child.degree := by
+            simpa [degree, FHNode.children] using hdegree
+          exact hdegree'.le
+      · intro current hcurrent
+        rw [List.mem_append] at hcurrent
+        rcases hcurrent with hcurrent | hcurrent
+        · exact hall current hcurrent
+        · rw [List.mem_singleton] at hcurrent
+          subst current
+          exact hchild
 
 /-- Heap order is preserved by appending a child whose key is at least the
 parent's, when both are heap-ordered. -/
@@ -348,6 +429,29 @@ theorem link_wellformed (x y : FHNode) (hx : x.Wellformed) (hy : y.Wellformed)
         have hw := FTree.link_wellformed (FTree.node (cs.map toFTree)) x.toFTree
           (by simpa [Wellformed, toFTree] using hy) hx hdeg
         simpa [toFTree, FTree.link] using hw
+
+/-- Equal-degree linking of unmarked roots preserves the mark-aware child-loss
+invariant.  The losing root is appended in the new position at exactly the
+degree required of an unmarked child. -/
+theorem link_lossInvariant (x y : FHNode)
+    (hx : x.LossInvariant) (hy : y.LossInvariant)
+    (hxmark : x.marked = false) (hymark : y.marked = false)
+    (hdegree : x.degree = y.degree) :
+    (link x y).LossInvariant := by
+  unfold link
+  by_cases hkey : x.key ≤ y.key
+  · cases x with
+    | node k marked children =>
+        have hkey' : k ≤ y.key := by simpa using hkey
+        simp only [key_node, marked_node, children_node]
+        rw [if_pos hkey']
+        exact lossInvariant_append_child k marked children y hx hy hymark hdegree
+  · cases y with
+    | node k marked children =>
+        have hkey' : ¬ x.key ≤ k := by simpa using hkey
+        simp only [key_node, marked_node, children_node]
+        rw [if_neg hkey']
+        exact lossInvariant_append_child k marked children x hy hx hxmark hdegree.symm
 
 /-- `LINK` preserves the key set of the two subtrees. -/
 theorem link_keys (x y : FHNode) :
@@ -670,6 +774,53 @@ theorem insertConsolidated_rootsUnmarked (ys : List FHNode) (x : FHNode)
               exact hy
             · exact hys' t ht
 
+/-- Bucket insertion preserves the mark-aware loss invariant when all inputs
+are unmarked roots. -/
+theorem insertConsolidated_lossInvariant (ys : List FHNode) (x : FHNode)
+    (hys : ForestLossInvariant ys) (hx : x.LossInvariant)
+    (hunmarked : RootsUnmarked ys) (hxmark : x.marked = false) :
+    ForestLossInvariant (insertConsolidated ys x) := by
+  induction ys generalizing x with
+  | nil =>
+      intro t ht
+      simp [insertConsolidated] at ht
+      subst t
+      exact hx
+  | cons y ys ih =>
+      have hy : y.LossInvariant := hys y (by simp)
+      have hys' : ForestLossInvariant ys := by
+        intro t ht
+        exact hys t (by simp [ht])
+      have hymark : y.marked = false := hunmarked y (by simp)
+      have hunmarked' : RootsUnmarked ys := by
+        intro t ht
+        exact hunmarked t (by simp [ht])
+      unfold insertConsolidated
+      by_cases hdegree : y.degree = x.degree
+      · rw [if_pos hdegree]
+        have hlink : (link x y).LossInvariant :=
+          link_lossInvariant x y hx hy hxmark hymark hdegree.symm
+        have hlinkMark : (link x y).marked = false :=
+          link_marked_false x y hxmark hymark
+        exact ih (link x y) hys' hlink hunmarked' hlinkMark
+      · rw [if_neg hdegree]
+        by_cases hlt : y.degree < x.degree
+        · rw [if_pos hlt]
+          intro t ht
+          rw [List.mem_cons] at ht
+          rcases ht with rfl | ht
+          · exact hy
+          · exact ih x hys' hx hunmarked' hxmark t ht
+        · rw [if_neg hlt]
+          intro t ht
+          rw [List.mem_cons] at ht
+          rcases ht with rfl | ht
+          · exact hx
+          · rw [List.mem_cons] at ht
+            rcases ht with rfl | ht
+            · exact hy
+            · exact hys' t ht
+
 /-- Inserting into a degree-strict forest preserves the lower bound `k <
 degree` of every tree. -/
 theorem insertConsolidated_degree_gt (ys : List FHNode) (x : FHNode) (k : Nat)
@@ -802,6 +953,29 @@ theorem consolidateList_rootsUnmarked : ∀ roots : List FHNode,
         exact hunmarked t (by simp [ht])
       exact insertConsolidated_rootsUnmarked (consolidateList xs) x
         (consolidateList_rootsUnmarked xs hxs) hx
+
+/-- `CONSOLIDATE` preserves the mark-aware loss invariant of an unmarked root
+forest. -/
+theorem consolidateList_lossInvariant : ∀ roots : List FHNode,
+    ForestLossInvariant roots → RootsUnmarked roots →
+      ForestLossInvariant (consolidateList roots)
+  | [] => by
+      intro _ _ root hroot
+      simp [consolidateList] at hroot
+  | x :: xs => by
+      intro hloss hunmarked
+      rw [consolidateList]
+      have hx : x.LossInvariant := hloss x (by simp)
+      have hxs : ForestLossInvariant xs := by
+        intro t ht
+        exact hloss t (by simp [ht])
+      have hxmark : x.marked = false := hunmarked x (by simp)
+      have hxsmark : RootsUnmarked xs := by
+        intro t ht
+        exact hunmarked t (by simp [ht])
+      exact insertConsolidated_lossInvariant (consolidateList xs) x
+        (consolidateList_lossInvariant xs hxs hxsmark) hx
+        (consolidateList_rootsUnmarked xs hxsmark) hxmark
 
 /-- `CONSOLIDATE` preserves structural goodness of the root forest. -/
 theorem consolidateList_good : ∀ roots : List FHNode,
@@ -1390,6 +1564,16 @@ theorem FTree.wellformed_remove_index {cs : List FTree}
 /-- Clear the mark bit of a node. -/
 def markFalse : FHNode → FHNode
   | FHNode.node k _ cs => FHNode.node k false cs
+
+/-- Clearing a node's own mark leaves every mark-aware child-degree obligation
+unchanged. -/
+theorem markFalse_lossInvariant (t : FHNode) (ht : t.LossInvariant) :
+    (markFalse t).LossInvariant := by
+  cases t with
+  | node k marked children =>
+      cases ht with
+      | node hdeg hall =>
+          exact FHNode.LossInvariant.node hdeg hall
 
 /-- Clearing a mark preserves the key set. -/
 theorem markFalse_keySet (t : FHNode) : (markFalse t).keySet = t.keySet := by
