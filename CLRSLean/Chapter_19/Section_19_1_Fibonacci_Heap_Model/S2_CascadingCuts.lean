@@ -1861,7 +1861,7 @@ theorem decreaseKeyAtRaw_amortized {h : FH} {path : FHPath} {newKey : Int}
               rw [← hpotential]
               have hindicator :
                   0 ≤ Int.ofNat (if updated.focus.marked then 1 else 0) :=
-                Int.ofNat_nonneg
+                Int.natCast_nonneg (if updated.focus.marked then 1 else 0)
               omega
             · simp [updated, hparents, hviolates] at hdec
               subst result
