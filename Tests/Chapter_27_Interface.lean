@@ -74,6 +74,24 @@ namespace Chapter27
 #check strassenWork_pow_two
 #check strassenSpan
 #check strassenSpan_pow_two
+#check pMergeWork_monotone
+#check pMergeSpan_monotone
+#check pMergeSortWork_monotone
+#check pMergeSortSpan_monotone
+#check strassenWork_monotone
+#check strassenSpan_monotone
+#check pMergeWork_power_sandwich
+#check pMergeSpan_power_sandwich
+#check pMergeSortWork_power_sandwich
+#check pMergeSortSpan_power_sandwich
+#check strassenWork_power_sandwich
+#check strassenSpan_power_sandwich
+#check pMergeWork_allInput_bigTheta
+#check pMergeSpan_allInput_bigTheta
+#check pMergeSortWork_allInput_bigTheta
+#check pMergeSortSpan_allInput_bigTheta
+#check strassenWork_allInput_bigTheta
+#check strassenSpan_allInput_bigTheta
 
 /-- A three-node chain with unit-weight edges forward: work and span both 6. -/
 def chainDAG : CompDAG where
