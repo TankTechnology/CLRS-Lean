@@ -1681,6 +1681,16 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   - `CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert`
   - `CLRS.Chapter14.AugmentedRBTree.sizeAug_realAug_eq_length`
   - `CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_repaintRoot`
+  - `CLRS.Chapter14.AugmentedRBTree.rootBlack_toRB`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_empty_iff`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_baldL`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_baldR`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_splitMin_min`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_splitMin_tree`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_join`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_del`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_delete`
 - Proof pattern: use the generic `Augmentation`/`AugmentedTree` framework and
   its `IsRotationInvariant` law to maintain local cached values through
   recomputation, rotations, and BST insertion. Instantiate it with maximum
@@ -1693,13 +1703,15 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   makes `insert` (at `natLt`) refine Chapter 13 `RBTree.insert`, transferring its
   shape and membership theorems.  The deletion mirror similarly rebuilds every
   node with `mk`, and `wellAugmented_delete` proves invariant preservation
-  through `baldL`/`baldR`/`splitMin`/`join`/`del`/`delete`.  The `sizeAug` and
-  `maxHighAug` fields are recovered as instances of this single interface.
-- Current gap: the generic deletion pipeline is proved (`wellAugmented_delete`
-  preserves the augmentation invariant through `baldL`/`baldR`/`splitMin`/
-  `join`/`del`/`delete` for any `Augmentation`).  What remains is the `toRB`
-  refinement lemma for the deletion pipeline (linking `AugmentedRBTree.delete`
-  back to Chapter 13's `RBTree.delete`).
+  through `baldL`/`baldR`/`splitMin`/`join`/`del`/`delete`; the same erasure
+  (`toRB_delete`, with the `toRB_baldL`/`toRB_baldR`/`toRB_splitMin`/
+  `toRB_join`/`toRB_del` commutations) makes `delete` refine Chapter 13's
+  `RBTree.delete`.  The `sizeAug` and `maxHighAug` fields are recovered as
+  instances of this single interface.
+- Current gap: none for the generic interface.  The generic deletion pipeline
+  preserves the augmentation invariant (`wellAugmented_delete`) and refines
+  Chapter 13's `RBTree.delete` (`toRB_delete`) for any `Augmentation`; only the
+  optional monoid-based augmentation is deferred.
 
 ## Chapter 15 - Dynamic Programming
 

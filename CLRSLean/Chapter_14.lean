@@ -59,7 +59,9 @@ rank selector.
   {lit}`CLRS.Chapter14.AugmentedRBTree.wellAugmented_insert`,
   {lit}`CLRS.Chapter14.AugmentedRBTree.toRB_insert`,
   {lit}`CLRS.Chapter14.AugmentedRBTree.redBlackShape_toRB_insert`,
-  {lit}`CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`, and the size and
+  {lit}`CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.wellAugmented_delete`, and
+  {lit}`CLRS.Chapter14.AugmentedRBTree.toRB_delete`, and the size and
   interval instances
   {lit}`CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert` and
   {lit}`CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`.
@@ -71,13 +73,16 @@ correctness for a functional tree, including size-preserving local rotations,
 and interval-search correctness for well-augmented BSTs.  The size augmentation
 is threaded through an executable red-black insertion via the size-specific
 {lit}`OSRBTree`, and the general augmentation interface now threads an
-*arbitrary* augmentation through an executable red-black insertion on the generic
-{lit}`AugmentedRBTree`: {lit}`AugmentedRBTree.wellAugmented_insert` shows the
-invariant survives balancing for any augmentation, and
-{lit}`AugmentedRBTree.toRB_insert` shows the augmentation-erasing projection
-refines the executable Chapter 13 {lit}`RBTree.insert`; the size and interval
-fields are recovered as instances.  The remaining gap is augmentation through
-*deletion* (blocked on the Chapter 13 executable red-black deletion loop).
+*arbitrary* augmentation through an executable red-black insertion **and**
+deletion on the generic {lit}`AugmentedRBTree`:
+{lit}`AugmentedRBTree.wellAugmented_insert` and
+{lit}`AugmentedRBTree.wellAugmented_delete` show the invariant survives both
+balancing and deletion for any augmentation, and
+{lit}`AugmentedRBTree.toRB_insert` / {lit}`AugmentedRBTree.toRB_delete` show
+the augmentation-erasing projection refines the executable Chapter 13
+{lit}`RBTree.insert` / {lit}`RBTree.delete`; the size and interval fields are
+recovered as instances.  The only deferred refinement is the optional
+monoid-based augmentation.
 -/
 
 namespace CLRS
