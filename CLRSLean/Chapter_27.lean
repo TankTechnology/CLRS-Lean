@@ -13,7 +13,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   The computation-DAG model with forward (topologically ordered) edges, an
   honestly computed longest-path span, and the spawn/sync tree model with
   unit spawn overhead; the balanced parallel-loop spawn tree comes with exact
-  work and span characterizations.
+  work and span characterizations.  Complete/incomplete greedy-schedule
+  accounting is formalized both as an ordered trace and through local per-step
+  work/span progress obligations.
   Main declarations:
   {lit}`CLRS.Chapter27.Strand`,
   {lit}`CLRS.Chapter27.CompDAG`,
@@ -21,6 +23,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.CompDAG.longestTo`,
   {lit}`CLRS.Chapter27.CompDAG.span`,
   {lit}`CLRS.Chapter27.CompDAG.span_le_work`,
+  {lit}`CLRS.Chapter27.GreedyScheduleAccounting.time_le_work_div_add_span`,
+  {lit}`CLRS.Chapter27.GreedyScheduleTrace.time_le_work_div_add_span`,
+  {lit}`CLRS.Chapter27.GreedyScheduleRun.time_le_work_div_add_span`,
   {lit}`CLRS.Chapter27.SpawnTree`,
   {lit}`CLRS.Chapter27.SpawnTree.span_le_work`,
   {lit}`CLRS.Chapter27.parallelLoopTree`,
@@ -48,8 +53,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 
 ## Deferred work
 
-* The greedy-scheduler bound (CLRS Theorem 27.1/27.2) requires an explicit
-  time-step execution model and is not claimed.
+* The greedy-scheduler accounting bound (CLRS Theorem 27.1/27.2) is proved from
+  local per-step progress.  Constructing those obligations from an explicit
+  ready-strand execution of `CompDAG` remains deferred.
 * All-input Θ-bounds for the merge-based costs (power-sandwich transfer as
   in Chapter 4) need monotonicity lemmas for the cost functions.
 * Executable P-MERGE / P-MERGE-SORT implementations refining the recurrences.
