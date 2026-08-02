@@ -361,6 +361,36 @@ theorem link_keys (x y : FHNode) :
               List.flatMap_singleton, List.toFinset_append, Finset.mem_union]
             simp only [or_left_comm, or_assoc, or_comm]
 
+/-- `LINK` preserves the exact key multiset of both subtrees. -/
+theorem link_keyBag (x y : FHNode) :
+    (link x y).keyBag = x.keyBag + y.keyBag := by
+  unfold link
+  by_cases h : x.key ≤ y.key
+  · cases x with
+    | node k m cs =>
+        have h' : k ≤ y.key := by simpa using h
+        simp only [key_node, marked_node, children_node]
+        rw [if_pos h']
+        simp [forestKeyBag_append, add_assoc]
+  · cases y with
+    | node k m cs =>
+        have h' : ¬x.key ≤ k := by simpa using h
+        simp only [key_node, marked_node, children_node]
+        rw [if_neg h']
+        simp [forestKeyBag_append]
+        ac_rfl
+
+/-- Linking two unmarked roots leaves the resulting root unmarked. -/
+theorem link_marked_false (x y : FHNode)
+    (hx : x.marked = false) (hy : y.marked = false) :
+    (link x y).marked = false := by
+  unfold link
+  by_cases h : x.key ≤ y.key
+  · rw [if_pos h]
+    exact hx
+  · rw [if_neg h]
+    exact hy
+
 /-- The degree of a link of equal-degree roots: exactly one more. -/
 theorem link_degree_eq (x y : FHNode) (hxy : x.degree = y.degree) :
     (link x y).degree = x.degree + 1 := by
@@ -467,6 +497,48 @@ theorem insertConsolidated_keys (ys : List FHNode) (x : FHNode) :
           simp [Finset.mem_union]
           tauto
 
+/-- One bucket insertion preserves the exact key multiset. -/
+theorem insertConsolidated_keyBag (ys : List FHNode) (x : FHNode) :
+    forestKeyBag (insertConsolidated ys x) = forestKeyBag ys + x.keyBag := by
+  revert x
+  induction ys with
+  | nil => intro x; simp [insertConsolidated]
+  | cons y ys ih =>
+      intro x
+      unfold insertConsolidated
+      by_cases h1 : y.degree = x.degree
+      · rw [if_pos h1, ih, link_keyBag]
+        simp only [forestKeyBag_cons]
+        ac_rfl
+      · rw [if_neg h1]
+        by_cases h2 : y.degree < x.degree
+        · rw [if_pos h2, forestKeyBag_cons, ih, forestKeyBag_cons]
+          ac_rfl
+        · rw [if_neg h2]
+          simp only [forestKeyBag_cons]
+          ac_rfl
+
+/-- One bucket insertion preserves the actual number of represented nodes. -/
+theorem insertConsolidated_forestSize (ys : List FHNode) (x : FHNode) :
+    forestSize (insertConsolidated ys x) = forestSize ys + x.size := by
+  revert x
+  induction ys with
+  | nil => intro x; simp [insertConsolidated]
+  | cons y ys ih =>
+      intro x
+      unfold insertConsolidated
+      by_cases h1 : y.degree = x.degree
+      · rw [if_pos h1, ih, link_size]
+        simp only [forestSize_cons]
+        omega
+      · rw [if_neg h1]
+        by_cases h2 : y.degree < x.degree
+        · rw [if_pos h2, forestSize_cons, ih, forestSize_cons]
+          omega
+        · rw [if_neg h2]
+          simp only [forestSize_cons]
+          omega
+
 /-- Structural goodness is preserved by one insertion with consolidation. -/
 theorem insertConsolidated_good (ys : List FHNode) (x : FHNode)
     (hys : ForestGood ys) (hx : ForestGood [x]) :
@@ -537,6 +609,50 @@ theorem insertConsolidated_good (ys : List FHNode) (x : FHNode)
               rcases ht with ht | ht
               · simpa [ht] using hyw
               · exact hwf t (by simp [ht]))⟩
+
+/-- Bucket insertion preserves the CLRS rule that every root is unmarked. -/
+theorem insertConsolidated_rootsUnmarked (ys : List FHNode) (x : FHNode)
+    (hys : RootsUnmarked ys) (hx : x.marked = false) :
+    RootsUnmarked (insertConsolidated ys x) := by
+  revert x
+  induction ys with
+  | nil =>
+      intro x hx
+      intro t ht
+      change t ∈ [x] at ht
+      rw [List.mem_singleton] at ht
+      subst t
+      exact hx
+  | cons y ys ih =>
+      intro x hx
+      have hy : y.marked = false := hys y (by simp)
+      have hys' : RootsUnmarked ys := by
+        intro t ht
+        exact hys t (by simp [ht])
+      unfold insertConsolidated
+      by_cases h1 : y.degree = x.degree
+      · rw [if_pos h1]
+        exact ih hys' (link x y) (link_marked_false x y hx hy)
+      · rw [if_neg h1]
+        by_cases h2 : y.degree < x.degree
+        · rw [if_pos h2]
+          intro t ht
+          rw [List.mem_cons] at ht
+          rcases ht with ht | ht
+          · subst t
+            exact hy
+          · exact ih hys' x hx t ht
+        · rw [if_neg h2]
+          intro t ht
+          rw [List.mem_cons] at ht
+          rcases ht with ht | ht
+          · subst t
+            exact hx
+          · rw [List.mem_cons] at ht
+            rcases ht with ht | ht
+            · subst t
+              exact hy
+            · exact hys' t ht
 
 /-- Inserting into a degree-strict forest preserves the lower bound `k <
 degree` of every tree. -/
@@ -638,6 +754,38 @@ theorem consolidateList_keys : ∀ roots : List FHNode,
       ext k
       simp [forestKeySet, Finset.mem_union]
       tauto
+
+/-- `CONSOLIDATE` preserves the exact forest key multiset. -/
+theorem consolidateList_keyBag : ∀ roots : List FHNode,
+    forestKeyBag (consolidateList roots) = forestKeyBag roots
+  | [] => by simp [consolidateList]
+  | x :: xs => by
+      rw [consolidateList, insertConsolidated_keyBag,
+        consolidateList_keyBag, forestKeyBag_cons]
+      ac_rfl
+
+/-- `CONSOLIDATE` preserves the actual number of represented nodes. -/
+theorem consolidateList_forestSize : ∀ roots : List FHNode,
+    forestSize (consolidateList roots) = forestSize roots
+  | [] => by simp [consolidateList]
+  | x :: xs => by
+      rw [consolidateList, insertConsolidated_forestSize,
+        consolidateList_forestSize, forestSize_cons]
+      omega
+
+/-- `CONSOLIDATE` preserves the CLRS root-mark rule. -/
+theorem consolidateList_rootsUnmarked : ∀ roots : List FHNode,
+    RootsUnmarked roots → RootsUnmarked (consolidateList roots)
+  | [] => by simp [consolidateList, RootsUnmarked]
+  | x :: xs => by
+      intro hunmarked
+      rw [consolidateList]
+      have hx : x.marked = false := hunmarked x (by simp)
+      have hxs : RootsUnmarked xs := by
+        intro t ht
+        exact hunmarked t (by simp [ht])
+      exact insertConsolidated_rootsUnmarked (consolidateList xs) x
+        (consolidateList_rootsUnmarked xs hxs) hx
 
 /-- `CONSOLIDATE` preserves structural goodness of the root forest. -/
 theorem consolidateList_good : ∀ roots : List FHNode,
