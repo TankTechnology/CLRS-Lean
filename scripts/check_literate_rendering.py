@@ -46,11 +46,15 @@ def nearest_visible_parent(module_name: str) -> str | None:
     return None
 
 
-# Implementation sub-modules that are imported by chapter guides
-# but cannot be linked from section parents due to circular imports.
+# Hidden modules that intentionally have no reader-page link: two are imported
+# directly by chapter guides to avoid circular imports, and the Chapter 19
+# entries are compatibility-only URLs rather than canonical reading pages.
 _IMPLEMENTATION_SUBMODULES = {
     "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
     "CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution",
+    "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S1_ExecutableFibHeap",
+    "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S2_CascadingCuts",
+    "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S3_AmortizedCosts",
 }
 
 def check_site(site_root: Path) -> list[str]:

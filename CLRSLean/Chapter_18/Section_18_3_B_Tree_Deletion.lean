@@ -54,6 +54,29 @@ specification-level {lit}`delete` filters every occurrence, bridging erase-one
 to its exact membership equation and deriving requested-key absence require a
 {lit}`UniqueKeys` invariant.  Structural preservation itself has no proof
 placeholders.
+
+## Implementation details
+
+The deletion proof layers remain available outside the main sidebar:
+
+* [Deletion invariants and root normalization](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Invariant/)
+* [Rotation preservation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Rotation/)
+* [Bundled local repair invariants](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Repair/)
+* [Leaf and raw-result preservation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Preservation/)
+* [Parent reassembly](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Reassembly/)
+* [Parent reassembly after merging](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/MergeReassembly/)
+* [Separator bounds after rotation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/RotationBounds/)
+* [Parent reassembly after rotation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/RotationReassembly/)
+* [Complete raw deletion preservation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ComposedPreservation/)
+* [Exact key multisets](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/KeyMultiset/)
+* [Exact parent reassembly](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ExactReassembly/)
+* [Exact raw-deletion semantics](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Exact/)
+* [Key subset and bounds](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Subset/)
+* [Same-depth and height preservation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/SameDepthHeight/)
+* [Sortedness preservation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Sorted/)
+* [Child-bound preservation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ChildBounded/)
+* [Occupancy preservation](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Occupancy/)
+* [Root-normalized deletion](CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/WellFormed/)
 -/
 
 namespace CLRS
