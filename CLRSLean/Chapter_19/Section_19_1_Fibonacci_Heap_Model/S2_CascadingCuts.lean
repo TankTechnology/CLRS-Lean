@@ -417,6 +417,66 @@ theorem markTrue_lossInvariant {node : FHNode} (hloss : node.LossInvariant) :
       cases hloss with
       | node hdeg hall => exact LossInvariant.node hdeg hall
 
+/-- Add one structurally good root to a structurally good forest. -/
+theorem forestGood_cons {root : FHNode} {roots : List FHNode}
+    (hordered : root.HeapOrdered) (hwellformed : root.Wellformed)
+    (hforest : ForestGood roots) : ForestGood (root :: roots) := by
+  constructor <;> intro current hcurrent
+  · rcases List.mem_cons.mp hcurrent with rfl | hcurrent
+    · exact hordered
+    · exact hforest.1 current hcurrent
+  · rcases List.mem_cons.mp hcurrent with rfl | hcurrent
+    · exact hwellformed
+    · exact hforest.2 current hcurrent
+
+/-- Add one loss-invariant root to a loss-invariant forest. -/
+theorem forestLossInvariant_cons {root : FHNode} {roots : List FHNode}
+    (hroot : root.LossInvariant) (hforest : ForestLossInvariant roots) :
+    ForestLossInvariant (root :: roots) := by
+  intro current hcurrent
+  rcases List.mem_cons.mp hcurrent with rfl | hcurrent
+  · exact hroot
+  · exact hforest current hcurrent
+
+/-- Add one unmarked root to an unmarked root forest. -/
+theorem rootsUnmarked_cons {root : FHNode} {roots : List FHNode}
+    (hroot : root.marked = false) (hforest : RootsUnmarked roots) :
+    RootsUnmarked (root :: roots) := by
+  intro current hcurrent
+  rcases List.mem_cons.mp hcurrent with rfl | hcurrent
+  · exact hroot
+  · exact hforest current hcurrent
+
+/-- Concatenate structurally good root forests. -/
+theorem forestGood_append {left right : List FHNode}
+    (hleft : ForestGood left) (hright : ForestGood right) :
+    ForestGood (left ++ right) := by
+  constructor <;> intro current hcurrent
+  · rcases List.mem_append.mp hcurrent with hcurrent | hcurrent
+    · exact hleft.1 current hcurrent
+    · exact hright.1 current hcurrent
+  · rcases List.mem_append.mp hcurrent with hcurrent | hcurrent
+    · exact hleft.2 current hcurrent
+    · exact hright.2 current hcurrent
+
+/-- Concatenate loss-invariant root forests. -/
+theorem forestLossInvariant_append {left right : List FHNode}
+    (hleft : ForestLossInvariant left) (hright : ForestLossInvariant right) :
+    ForestLossInvariant (left ++ right) := by
+  intro current hcurrent
+  rcases List.mem_append.mp hcurrent with hcurrent | hcurrent
+  · exact hleft current hcurrent
+  · exact hright current hcurrent
+
+/-- Concatenate unmarked root forests. -/
+theorem rootsUnmarked_append {left right : List FHNode}
+    (hleft : RootsUnmarked left) (hright : RootsUnmarked right) :
+    RootsUnmarked (left ++ right) := by
+  intro current hcurrent
+  rcases List.mem_append.mp hcurrent with hcurrent | hcurrent
+  · exact hleft current hcurrent
+  · exact hright current hcurrent
+
 /-- Open a path below one root, returning the focus and nearest-first parent
 frames. -/
 def openChildren : FHNode → List Nat → Option (FHNode × List FHFrame)
@@ -473,6 +533,10 @@ end FHNode
 
 namespace FH
 
+@[simp] theorem markFalse_marked (node : FHNode) :
+    (markFalse node).marked = false := by
+  cases node <;> rfl
+
 /-- Open a duplicate-safe occurrence path in a heap. -/
 def openPath (h : FH) (path : FHPath) : Option FHCursor :=
   match h.roots[path.root]? with
@@ -525,49 +589,322 @@ structure FHCascadeResult where
   cuts : Nat
   cost : Nat
 
+/-- Internal tree-level result.  Keeping promoted roots separate from the one
+rebuilt original root makes node-count and invariant preservation compositional
+during a cascade; no recursively produced intermediate is mislabeled as a
+complete heap. -/
+structure FHCascadeTreeResult where
+  promoted : List FHNode
+  root : FHNode
+  cuts : Nat
+  cost : Nat
+
+namespace FHCascadeTreeResult
+
+/-- The root forest contributed by the edited original root occurrence. -/
+def roots (result : FHCascadeTreeResult) : List FHNode :=
+  result.promoted ++ [result.root]
+
+end FHCascadeTreeResult
+
 /-- Rebuild a heap with a supplied root forest and refresh its minimum cache. -/
 def rebuildRoots (cursor : FHCursor) (roots : List FHNode) : FH :=
   { roots := roots
   , size := cursor.size
   , minRoot := computeMinRoot roots }
 
-/-- The structural cascading-cut recursion over nearest-first parent frames. -/
-def cascadingCutRawAux (base : FHCursor) :
-    FHNode → List FHFrame → Option FHCascadeResult
+/-- The structural cascading-cut recursion over nearest-first parent frames.
+It returns only the roots replacing the selected original root; the complete
+heap is rebuilt once, after recursion has finished. -/
+def cascadingCutTreeRawAux :
+    FHNode → List FHFrame → Option FHCascadeTreeResult
   | _, [] => none
   | focus, [frame] =>
       let cut := markFalse focus
-      let remainingChildren := frame.before ++ frame.after
-      let parent := FHNode.node frame.key frame.marked remainingChildren
-      let roots :=
-        cut :: base.rootsBefore ++ markFalse parent :: base.rootsAfter
-      some { heap := rebuildRoots base roots, cuts := 1, cost := 0 }
+      let parent := frame.removeFocus
+      some
+        { promoted := [cut]
+        , root := markFalse parent
+        , cuts := 1
+        , cost := 0 }
   | focus, frame :: next :: parents =>
       let cut := markFalse focus
-      let remainingChildren := frame.before ++ frame.after
-      let parent := FHNode.node frame.key frame.marked remainingChildren
+      let parent := frame.removeFocus
       if frame.marked then
-        match cascadingCutRawAux base parent (next :: parents) with
+        match cascadingCutTreeRawAux parent (next :: parents) with
         | none => none
         | some result =>
-            let roots := cut :: result.heap.roots
             some
-              { heap := rebuildRoots base roots
+              { promoted := cut :: result.promoted
+              , root := result.root
               , cuts := result.cuts + 1
               , cost := result.cost + 1 }
       else
-        let markedParent :=
-          FHNode.node frame.key true remainingChildren
+        let markedParent := parent.markTrue
         let rebuiltRoot := FHFrame.closeAll markedParent (next :: parents)
-        let roots :=
-          cut :: base.rootsBefore ++ rebuiltRoot :: base.rootsAfter
-        some { heap := rebuildRoots base roots, cuts := 1, cost := 0 }
+        some
+          { promoted := [cut]
+          , root := rebuiltRoot
+          , cuts := 1
+          , cost := 0 }
+
+/-- Direct, check-free postcondition for the tree-level cascade recursion. -/
+def CascadeTreePost (focus : FHNode) (parents : List FHFrame)
+    (result : FHCascadeTreeResult) : Prop :=
+  FHNode.forestKeyBag result.roots =
+      (FHFrame.closeAll focus parents).keyBag ∧
+  FHNode.forestSize result.roots =
+      (FHFrame.closeAll focus parents).size ∧
+  FHNode.ForestGood result.roots ∧
+  FHNode.ForestLossInvariant result.roots ∧
+  FHNode.RootsUnmarked result.roots ∧
+  result.cuts = result.promoted.length ∧
+  result.cost + 1 = result.cuts
+
+/-- The raw structural recursion itself preserves the exact occurrence bag,
+node count, heap order, loss invariant, and root-mark rule.  `original` is the
+pre-loss version of the current focus stored in the valid enclosing context;
+the recursively carried `focus` may already have lost the child promoted by
+the preceding cascade step. -/
+theorem cascadingCutTreeRawAux_correct {focus original : FHNode}
+    {parents : List FHFrame} {result : FHCascadeTreeResult}
+    (hfocusOrdered : focus.HeapOrdered)
+    (hfocusLoss : focus.LossInvariant)
+    (horiginalOrdered :
+      (FHFrame.closeAll original parents).HeapOrdered)
+    (horiginalLoss :
+      (FHFrame.closeAll original parents).LossInvariant)
+    (horiginalRootUnmarked :
+      (FHFrame.closeAll original parents).marked = false)
+    (hraw : cascadingCutTreeRawAux focus parents = some result) :
+    CascadeTreePost focus parents result := by
+  induction parents generalizing focus original result with
+  | nil => simp [cascadingCutTreeRawAux] at hraw
+  | cons frame tail ih =>
+      cases tail with
+      | nil =>
+          simp [cascadingCutTreeRawAux] at hraw
+          subst result
+          have horiginalParentOrdered :
+              (frame.close original).HeapOrdered := by
+            simpa [FHFrame.closeAll] using horiginalOrdered
+          have horiginalParentLoss :
+              (frame.close original).LossInvariant := by
+            simpa [FHFrame.closeAll] using horiginalLoss
+          have hparentOrdered :=
+            (FHFrame.close_heapOrdered_remove horiginalParentOrdered).2
+          have hparentLoss :=
+            (FHFrame.close_lossInvariant_remove horiginalParentLoss).2
+          have hcutOrdered := markFalse_heapOrdered focus hfocusOrdered
+          have hcutLoss := markFalse_lossInvariant focus hfocusLoss
+          have hrootOrdered := markFalse_heapOrdered frame.removeFocus hparentOrdered
+          have hrootLoss := markFalse_lossInvariant frame.removeFocus hparentLoss
+          have hforestGood : FHNode.ForestGood
+              [markFalse focus, markFalse frame.removeFocus] :=
+            FHNode.forestGood_cons hcutOrdered
+              (FHNode.lossInvariant_wellformed _ hcutLoss)
+              (FHNode.forestGood_cons hrootOrdered
+                (FHNode.lossInvariant_wellformed _ hrootLoss)
+                (by simp [FHNode.ForestGood]))
+          have hforestLoss : FHNode.ForestLossInvariant
+              [markFalse focus, markFalse frame.removeFocus] :=
+            FHNode.forestLossInvariant_cons hcutLoss
+              (FHNode.forestLossInvariant_cons hrootLoss
+                (by simp [FHNode.ForestLossInvariant]))
+          have hrootsUnmarked : FHNode.RootsUnmarked
+              [markFalse focus, markFalse frame.removeFocus] :=
+            FHNode.rootsUnmarked_cons (markFalse_marked focus)
+              (FHNode.rootsUnmarked_cons (markFalse_marked frame.removeFocus)
+                (by simp [FHNode.RootsUnmarked]))
+          refine ⟨?_, ?_, hforestGood, hforestLoss, hrootsUnmarked, rfl, rfl⟩
+          · simp only [FHCascadeTreeResult.roots, List.cons_append,
+              List.nil_append, List.append_nil, FHNode.forestKeyBag_cons,
+              FHNode.forestKeyBag_nil, FHFrame.closeAll, List.foldl_cons,
+              List.foldl_nil]
+            rw [markFalse_keyBag, markFalse_keyBag]
+            simpa only [add_zero] using
+              FHFrame.close_keyBag_balance frame focus
+          · simp only [FHCascadeTreeResult.roots, List.cons_append,
+              List.nil_append, List.append_nil, FHNode.forestSize_cons,
+              FHNode.forestSize_nil, FHFrame.closeAll, List.foldl_cons,
+              List.foldl_nil]
+            rw [markFalse_size, markFalse_size]
+            exact FHFrame.close_size_balance frame focus
+      | cons next parents =>
+          have horiginalParentOrdered :
+              (frame.close original).HeapOrdered := by
+            exact FHFrame.heapOrdered_focus_of_closeAll
+              (focus := frame.close original) (parents := next :: parents)
+              (by simpa [FHFrame.closeAll] using horiginalOrdered)
+          have horiginalParentLoss :
+              (frame.close original).LossInvariant := by
+            exact FHFrame.lossInvariant_focus_of_closeAll
+              (focus := frame.close original) (parents := next :: parents)
+              (by simpa [FHFrame.closeAll] using horiginalLoss)
+          have hparentOrdered :=
+            (FHFrame.close_heapOrdered_remove horiginalParentOrdered).2
+          have hparentLoss :=
+            (FHFrame.close_lossInvariant_remove horiginalParentLoss).2
+          have hcutOrdered := markFalse_heapOrdered focus hfocusOrdered
+          have hcutLoss := markFalse_lossInvariant focus hfocusLoss
+          by_cases hmarked : frame.marked = true
+          · cases hrecursive : cascadingCutTreeRawAux frame.removeFocus
+                (next :: parents) with
+            | none =>
+                simp [cascadingCutTreeRawAux, hmarked, hrecursive] at hraw
+            | some recursive =>
+                simp [cascadingCutTreeRawAux, hmarked, hrecursive] at hraw
+                subst result
+                have hrecursivePost := ih
+                  (focus := frame.removeFocus)
+                  (original := frame.close original)
+                  (result := recursive)
+                  hparentOrdered hparentLoss
+                  (by simpa [FHFrame.closeAll] using horiginalOrdered)
+                  (by simpa [FHFrame.closeAll] using horiginalLoss)
+                  (by simpa [FHFrame.closeAll] using horiginalRootUnmarked)
+                  hrecursive
+                rcases hrecursivePost with
+                  ⟨hbag, hsize, hgood, hloss, hunmarked, hcuts, hcost⟩
+                have hnewGood : FHNode.ForestGood
+                    (markFalse focus :: recursive.roots) :=
+                  FHNode.forestGood_cons hcutOrdered
+                    (FHNode.lossInvariant_wellformed _ hcutLoss) hgood
+                have hnewLoss : FHNode.ForestLossInvariant
+                    (markFalse focus :: recursive.roots) :=
+                  FHNode.forestLossInvariant_cons hcutLoss hloss
+                have hnewUnmarked : FHNode.RootsUnmarked
+                    (markFalse focus :: recursive.roots) :=
+                  FHNode.rootsUnmarked_cons (markFalse_marked focus) hunmarked
+                refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+                · simp only [FHCascadeTreeResult.roots, List.cons_append,
+                    FHNode.forestKeyBag_cons, markFalse_keyBag]
+                  unfold FHCascadeTreeResult.roots at hbag
+                  rw [hbag]
+                  simpa [FHFrame.closeAll] using
+                    (FHFrame.closeAll_keyBag_balance
+                      (parents := next :: parents)
+                      (FHFrame.close_keyBag_balance frame focus))
+                · simp only [FHCascadeTreeResult.roots, List.cons_append,
+                    FHNode.forestSize_cons, markFalse_size]
+                  unfold FHCascadeTreeResult.roots at hsize
+                  rw [hsize]
+                  simpa [FHFrame.closeAll] using
+                    (FHFrame.closeAll_size_balance
+                      (parents := next :: parents)
+                      (FHFrame.close_size_balance frame focus))
+                · simpa [FHCascadeTreeResult.roots] using hnewGood
+                · simpa [FHCascadeTreeResult.roots] using hnewLoss
+                · simpa [FHCascadeTreeResult.roots] using hnewUnmarked
+                · simp [hcuts]
+                · change recursive.cost + 1 + 1 = recursive.cuts + 1
+                  omega
+          · have hmarkedFalse : frame.marked = false := by
+              cases h : frame.marked <;> simp_all
+            simp [cascadingCutTreeRawAux, hmarkedFalse] at hraw
+            subst result
+            let markedParent := FHNode.markTrue frame.removeFocus
+            have hmarkedParentOrdered : markedParent.HeapOrdered :=
+              FHNode.markTrue_heapOrdered hparentOrdered
+            have hmarkedParentLoss : markedParent.LossInvariant :=
+              FHNode.markTrue_lossInvariant hparentLoss
+            have holdChildMarked : (frame.close original).marked = false := by
+              simpa [FHFrame.close] using hmarkedFalse
+            have hdegreeLoss : markedParent.degree + 1 =
+                (frame.close original).degree := by
+              simp [markedParent, FHNode.markTrue, FHFrame.removeFocus,
+                FHFrame.close, FHNode.degree]
+              omega
+            have hfirstLoss :
+                (next.close markedParent).LossInvariant :=
+              FHFrame.close_lossInvariant_firstLoss
+                (old := frame.close original)
+                (new := markedParent)
+                (by
+                  apply FHFrame.lossInvariant_focus_of_closeAll
+                  simpa [FHFrame.closeAll] using horiginalLoss)
+                hmarkedParentLoss hdegreeLoss holdChildMarked (by
+                  simp [markedParent])
+            have hrebuiltLoss :
+                (FHFrame.closeAll markedParent (next :: parents)).LossInvariant := by
+              apply FHFrame.closeAll_lossInvariant_replace
+                (old := next.close (frame.close original))
+                (new := next.close markedParent)
+                (parents := parents)
+              · simpa [FHFrame.closeAll] using horiginalLoss
+              · exact hfirstLoss
+              · simp [FHFrame.close, FHNode.degree]
+              · rfl
+            have hrebuiltOrdered :
+                (FHFrame.closeAll markedParent (next :: parents)).HeapOrdered :=
+              FHFrame.closeAll_heapOrdered_replace
+                horiginalOrdered hmarkedParentOrdered (by rfl)
+            have hrebuiltUnmarked :
+                (FHFrame.closeAll markedParent (next :: parents)).marked = false := by
+              rw [← FHFrame.closeAll_marked_eq_of_cons
+                (frame.close original) markedParent next parents]
+              simpa [FHFrame.closeAll] using horiginalRootUnmarked
+            have hforestGood : FHNode.ForestGood
+                [markFalse focus,
+                  FHFrame.closeAll markedParent (next :: parents)] :=
+              FHNode.forestGood_cons hcutOrdered
+                (FHNode.lossInvariant_wellformed _ hcutLoss)
+                (FHNode.forestGood_cons hrebuiltOrdered
+                  (FHNode.lossInvariant_wellformed _ hrebuiltLoss)
+                  (by simp [FHNode.ForestGood]))
+            have hforestLoss : FHNode.ForestLossInvariant
+                [markFalse focus,
+                  FHFrame.closeAll markedParent (next :: parents)] :=
+              FHNode.forestLossInvariant_cons hcutLoss
+                (FHNode.forestLossInvariant_cons hrebuiltLoss
+                  (by simp [FHNode.ForestLossInvariant]))
+            have hrootsUnmarked : FHNode.RootsUnmarked
+                [markFalse focus,
+                  FHFrame.closeAll markedParent (next :: parents)] :=
+              FHNode.rootsUnmarked_cons (markFalse_marked focus)
+                (FHNode.rootsUnmarked_cons hrebuiltUnmarked
+                  (by simp [FHNode.RootsUnmarked]))
+            refine ⟨?_, ?_, hforestGood, hforestLoss, hrootsUnmarked, rfl, rfl⟩
+            · simp only [FHCascadeTreeResult.roots, List.cons_append,
+                List.nil_append, List.append_nil, FHNode.forestKeyBag_cons,
+                FHNode.forestKeyBag_nil]
+              have hlocal :
+                  (markFalse focus).keyBag + markedParent.keyBag =
+                    (frame.close focus).keyBag := by
+                simpa [markedParent, FHNode.markTrue_keyBag,
+                  markFalse_keyBag] using
+                  FHFrame.close_keyBag_balance frame focus
+              simpa only [add_zero, FHFrame.closeAll, List.foldl_cons] using
+                (FHFrame.closeAll_keyBag_balance
+                  (parents := next :: parents) hlocal)
+            · simp only [FHCascadeTreeResult.roots, List.cons_append,
+                List.nil_append, List.append_nil, FHNode.forestSize_cons,
+                FHNode.forestSize_nil]
+              have hlocal :
+                  (markFalse focus).size + markedParent.size =
+                    (frame.close focus).size := by
+                simpa [markedParent, FHNode.markTrue_size,
+                  markFalse_size] using FHFrame.close_size_balance frame focus
+              change (markFalse focus).size +
+                  (FHFrame.closeAll markedParent (next :: parents)).size =
+                (FHFrame.closeAll (frame.close focus) (next :: parents)).size
+              exact
+                (FHFrame.closeAll_size_balance
+                  (parents := next :: parents) hlocal)
 
 /-- The structural cascading-cut state machine on an already dereferenced
 cursor.  The nearest parent is edited first.  An unmarked nonroot parent is
 marked and stops the cascade; a marked parent is cut recursively. -/
 def cascadingCutRaw (cursor : FHCursor) : Option FHCascadeResult :=
-  cascadingCutRawAux cursor cursor.focus cursor.parents
+  match cascadingCutTreeRawAux cursor.focus cursor.parents with
+  | none => none
+  | some tree =>
+      let roots :=
+        cursor.rootsBefore ++ tree.promoted ++ tree.root :: cursor.rootsAfter
+      some
+        { heap := rebuildRoots cursor roots
+        , cuts := tree.cuts
+        , cost := tree.cost }
 
 /-- The bundled postcondition certified at the boundary of cascading CUT. -/
 def CascadePost (cursor : FHCursor) (result : FHCascadeResult) : Prop :=
@@ -576,44 +913,163 @@ def CascadePost (cursor : FHCursor) (result : FHCascadeResult) : Prop :=
   result.heap.Valid ∧
   1 ≤ result.cuts
 
-/-- Certified cascading cut.  The structural transition is executable in
-`cascadingCutRaw`; this boundary exposes a result only together with its full
-heap-level invariant and occurrence-exact semantic postcondition. -/
-noncomputable def cascadingCut (cursor : FHCursor) : Option FHCascadeResult := by
-  classical
-  exact
-    match cascadingCutRaw cursor with
-    | none => none
-    | some result => if CascadePost cursor result then some result else none
+/-- The executable raw cascade directly satisfies the complete heap-level
+postcondition; no proposition-valued result filter is involved. -/
+theorem cascadingCutRaw_correct {cursor : FHCursor} {result : FHCascadeResult}
+    (hvalid : cursor.close.Valid)
+    (hcut : cascadingCutRaw cursor = some result) :
+    result.heap.keyBag = cursor.close.keyBag ∧
+    result.heap.size = cursor.close.size ∧
+    result.heap.Valid ∧
+    1 ≤ result.cuts := by
+  rcases hvalid with ⟨hgood, hloss, hunmarked, hstoredSize, hminimum⟩
+  have hselectedMem : cursor.closeNode ∈ cursor.close.roots := by
+    simp [FHCursor.close]
+  have hselectedOrdered : cursor.closeNode.HeapOrdered :=
+    hgood.1 cursor.closeNode hselectedMem
+  have hselectedLoss : cursor.closeNode.LossInvariant :=
+    hloss cursor.closeNode hselectedMem
+  have hselectedUnmarked : cursor.closeNode.marked = false :=
+    hunmarked cursor.closeNode hselectedMem
+  cases htree : cascadingCutTreeRawAux cursor.focus cursor.parents with
+  | none => simp [cascadingCutRaw, htree] at hcut
+  | some tree =>
+      simp [cascadingCutRaw, htree] at hcut
+      subst result
+      have htreePost := cascadingCutTreeRawAux_correct
+        (focus := cursor.focus) (original := cursor.focus)
+        (parents := cursor.parents) (result := tree)
+        (FHFrame.heapOrdered_focus_of_closeAll
+          (by simpa [FHCursor.closeNode] using hselectedOrdered))
+        (FHFrame.lossInvariant_focus_of_closeAll
+          (by simpa [FHCursor.closeNode] using hselectedLoss))
+        (by simpa [FHCursor.closeNode] using hselectedOrdered)
+        (by simpa [FHCursor.closeNode] using hselectedLoss)
+        (by simpa [FHCursor.closeNode] using hselectedUnmarked)
+        htree
+      rcases htreePost with
+        ⟨htreeBag, htreeSize, htreeGood, htreeLoss,
+          htreeUnmarked, htreeCuts, htreeCost⟩
+      have htreeBag' : FHNode.forestKeyBag tree.roots =
+          cursor.closeNode.keyBag := by
+        simpa [FHCursor.closeNode] using htreeBag
+      have htreeSize' : FHNode.forestSize tree.roots =
+          cursor.closeNode.size := by
+        simpa [FHCursor.closeNode] using htreeSize
+      let roots :=
+        cursor.rootsBefore ++ tree.promoted ++ tree.root :: cursor.rootsAfter
+      have hrootsEq :
+          roots = cursor.rootsBefore ++ tree.roots ++ cursor.rootsAfter := by
+        simp [roots, FHCascadeTreeResult.roots, List.append_assoc]
+      have hbeforeGood : FHNode.ForestGood cursor.rootsBefore := by
+        constructor <;> intro current hcurrent
+        · exact hgood.1 current (by simp [FHCursor.close, hcurrent])
+        · exact hgood.2 current (by simp [FHCursor.close, hcurrent])
+      have hafterGood : FHNode.ForestGood cursor.rootsAfter := by
+        constructor <;> intro current hcurrent
+        · exact hgood.1 current (by simp [FHCursor.close, hcurrent])
+        · exact hgood.2 current (by simp [FHCursor.close, hcurrent])
+      have hbeforeLoss :
+          FHNode.ForestLossInvariant cursor.rootsBefore := by
+        intro current hcurrent
+        exact hloss current (by simp [FHCursor.close, hcurrent])
+      have hafterLoss :
+          FHNode.ForestLossInvariant cursor.rootsAfter := by
+        intro current hcurrent
+        exact hloss current (by simp [FHCursor.close, hcurrent])
+      have hbeforeUnmarked : FHNode.RootsUnmarked cursor.rootsBefore := by
+        intro current hcurrent
+        exact hunmarked current (by simp [FHCursor.close, hcurrent])
+      have hafterUnmarked : FHNode.RootsUnmarked cursor.rootsAfter := by
+        intro current hcurrent
+        exact hunmarked current (by simp [FHCursor.close, hcurrent])
+      have hrootsGood : FHNode.ForestGood roots := by
+        rw [hrootsEq]
+        exact FHNode.forestGood_append
+          (FHNode.forestGood_append hbeforeGood htreeGood) hafterGood
+      have hrootsLoss : FHNode.ForestLossInvariant roots := by
+        rw [hrootsEq]
+        exact FHNode.forestLossInvariant_append
+          (FHNode.forestLossInvariant_append hbeforeLoss htreeLoss) hafterLoss
+      have hrootsUnmarked : FHNode.RootsUnmarked roots := by
+        rw [hrootsEq]
+        exact FHNode.rootsUnmarked_append
+          (FHNode.rootsUnmarked_append hbeforeUnmarked htreeUnmarked)
+          hafterUnmarked
+      have hrootsBag : FHNode.forestKeyBag roots =
+          FHNode.forestKeyBag cursor.close.roots := by
+        rw [hrootsEq]
+        simp only [FHNode.forestKeyBag_append, htreeBag']
+        simp only [FHCursor.close, FHNode.forestKeyBag_append,
+          FHNode.forestKeyBag_cons]
+        ac_rfl
+      have hrootsSize : FHNode.forestSize roots =
+          FHNode.forestSize cursor.close.roots := by
+        rw [hrootsEq]
+        simp only [FHNode.forestSize_append, htreeSize']
+        simp only [FHCursor.close, FHNode.forestSize_append,
+          FHNode.forestSize_cons]
+        omega
+      have hstoredSize' : cursor.size = FHNode.forestSize roots := by
+        have horiginal : cursor.size =
+            FHNode.forestSize cursor.close.roots := by
+          simpa [FHCursor.close] using hstoredSize
+        rw [hrootsSize]
+        exact horiginal
+      have hresultValid : (rebuildRoots cursor roots).Valid := by
+        refine ⟨hrootsGood, hrootsLoss, hrootsUnmarked, hstoredSize', ?_⟩
+        simpa [rebuildRoots] using
+          computeMinRoot_valid roots cursor.size hrootsGood
+      refine ⟨?_, rfl, ?_, ?_⟩
+      · simpa [rebuildRoots, keyBag, roots, List.append_assoc] using hrootsBag
+      · simpa [roots] using hresultValid
+      · change 1 ≤ tree.cuts
+        omega
 
-/-- A successful certified cascading cut preserves the exact occurrence bag
-and node count, produces a valid heap, and performs at least one CUT. -/
+/-- Public executable cascading cut. -/
+def cascadingCut (cursor : FHCursor) : Option FHCascadeResult :=
+  cascadingCutRaw cursor
+
+/-- A successful cascading cut preserves the exact occurrence bag and node
+count, produces a valid heap, and performs at least one CUT. -/
 theorem cascadingCut_correct {cursor : FHCursor} {result : FHCascadeResult}
+    (hvalid : cursor.close.Valid)
     (hcut : cascadingCut cursor = some result) :
     result.heap.keyBag = cursor.close.keyBag ∧
     result.heap.size = cursor.close.size ∧
     result.heap.Valid ∧
     1 ≤ result.cuts := by
-  classical
-  unfold cascadingCut at hcut
-  cases hraw : cascadingCutRaw cursor with
-  | none => simp [hraw] at hcut
-  | some raw =>
-      by_cases hpost : CascadePost cursor raw
-      · simp [hraw, hpost] at hcut
-        subst result
-        exact hpost
-      · simp [hraw, hpost] at hcut
+  exact cascadingCutRaw_correct hvalid hcut
 
-/-- Open an arbitrary occurrence path and perform CLRS cascading CUT from its
-focus. -/
-noncomputable def cutAtPath (h : FH) (path : FHPath) :
-    Option FHCascadeResult := by
-  classical
-  exact h.openPath path >>= cascadingCut
+/-- Open an arbitrary occurrence path and perform raw CLRS cascading CUT from
+its focus. -/
+def cutAtPathRaw (h : FH) (path : FHPath) : Option FHCascadeResult :=
+  h.openPath path >>= cascadingCutRaw
+
+/-- Public executable arbitrary-occurrence CUT. -/
+def cutAtPath (h : FH) (path : FHPath) : Option FHCascadeResult :=
+  h.cutAtPathRaw path
 
 /-- A successful arbitrary-path cut preserves the exact heap multiset and
 stored size, reestablishes full validity, and performs at least one cut. -/
+theorem cutAtPath_raw_correct {h : FH} {path : FHPath}
+    {result : FHCascadeResult} (hvalid : h.Valid)
+    (hcut : h.cutAtPathRaw path = some result) :
+    result.heap.keyBag = h.keyBag ∧
+    result.heap.size = h.size ∧
+    result.heap.Valid ∧
+    1 ≤ result.cuts := by
+  unfold cutAtPathRaw at hcut
+  cases hopen : h.openPath path with
+  | none => simp [hopen] at hcut
+  | some cursor =>
+      simp only [hopen] at hcut
+      have hclose := openPath_close hopen
+      have hcursorValid : cursor.close.Valid := by simpa [hclose] using hvalid
+      have hcorrect := cascadingCutRaw_correct hcursorValid hcut
+      simpa [hclose] using hcorrect
+
+/-- Public arbitrary-path CUT correctness is the raw executable theorem. -/
 theorem cutAtPath_correct {h : FH} {path : FHPath}
     {result : FHCascadeResult} (hvalid : h.Valid)
     (hcut : h.cutAtPath path = some result) :
@@ -621,15 +1077,7 @@ theorem cutAtPath_correct {h : FH} {path : FHPath}
     result.heap.size = h.size ∧
     result.heap.Valid ∧
     1 ≤ result.cuts := by
-  classical
-  unfold cutAtPath at hcut
-  cases hopen : h.openPath path with
-  | none => simp [hopen] at hcut
-  | some cursor =>
-      simp only [hopen, Option.bind_some] at hcut
-      have hcorrect := cascadingCut_correct hcut
-      have hclose := openPath_close hopen
-      simpa [hclose] using hcorrect
+  exact cutAtPath_raw_correct hvalid hcut
 
 /-! ## Decrease-key and deletion by occurrence handle -/
 
