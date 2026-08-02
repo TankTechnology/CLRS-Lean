@@ -158,7 +158,7 @@ theorem span_le_work (G : CompDAG) : G.span ≤ G.work := by
           Finset.mem_range.mpr (by
             have hx' := Finset.mem_range.mp hx
             omega))
-              (by simp)
+        (by simp)
 
 /-! ### Residual computation states -/
 
