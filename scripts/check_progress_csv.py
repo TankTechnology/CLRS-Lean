@@ -58,6 +58,25 @@ def require(condition: bool, message: str) -> None:
         raise SystemExit(message)
 
 
+def sections_from_filename(filename: str) -> set[str]:
+    """Return the textbook section(s) encoded by a section-module filename."""
+    match = re.match(r"Section_(\d+)_(\d+)(?:_(\d+))?_", filename)
+    require(match is not None, f"Unexpected section filename: {filename}")
+    chapter = int(match.group(1))
+    first_section = int(match.group(2))
+    last_section = (
+        int(match.group(3)) if match.group(3) is not None else first_section
+    )
+    require(
+        first_section <= last_section,
+        f"Invalid section range in filename: {filename}",
+    )
+    return {
+        f"{chapter}.{section}"
+        for section in range(first_section, last_section + 1)
+    }
+
+
 def int_field(row: dict[str, str], name: str) -> int:
     raw = row[name]
     try:
@@ -132,9 +151,7 @@ def validate(rows: list[dict[str, str]]) -> None:
         require(chapter_dir.is_dir(), f"Chapter {chapter_no}: missing section directory")
         actual_sections: set[str] = set()
         for section_file in chapter_dir.rglob("Section_*.lean"):
-            match = re.match(r"Section_(\d+)_(\d+)_", section_file.name)
-            require(match is not None, f"Unexpected section filename: {section_file.name}")
-            actual_sections.add(f"{int(match.group(1))}.{int(match.group(2))}")
+            actual_sections.update(sections_from_filename(section_file.name))
 
         require(
             expected_sections == actual_sections,
