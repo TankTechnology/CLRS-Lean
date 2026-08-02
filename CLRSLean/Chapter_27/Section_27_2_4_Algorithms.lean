@@ -184,7 +184,12 @@ private theorem pMergeWork_le_succ : ∀ n, pMergeWork n ≤ pMergeWork (n + 1) 
   induction n using Nat.strong_induction_on with
   | h n ih =>
       by_cases hn : n ≤ 1
-      · interval_cases n <;> native_decide
+      · interval_cases n
+        · rw [show pMergeWork 0 = 0 by rw [pMergeWork]; norm_num]
+          exact Nat.zero_le _
+        · have hone : pMergeWork 1 = 1 := by rw [pMergeWork]; norm_num
+          rw [hone, pMergeWork_unfold (n := 2) (by norm_num)]
+          norm_num [hone]
       · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
           ⟨n / 2, by omega⟩
         · have hdiv0 : 2 * m / 2 = m := by omega
@@ -245,7 +250,12 @@ private theorem pMergeSpan_le_succ : ∀ n, pMergeSpan n ≤ pMergeSpan (n + 1) 
   induction n using Nat.strong_induction_on with
   | h n ih =>
       by_cases hn : n ≤ 1
-      · interval_cases n <;> native_decide
+      · interval_cases n
+        · rw [show pMergeSpan 0 = 0 by rw [pMergeSpan]; norm_num]
+          exact Nat.zero_le _
+        · have hone : pMergeSpan 1 = 1 := by rw [pMergeSpan]; norm_num
+          rw [hone, pMergeSpan_unfold (n := 2) (by norm_num)]
+          norm_num [hone]
       · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
           ⟨n / 2, by omega⟩
         · have hceil0 : 2 * m - 2 * m / 2 = m := by omega
@@ -305,7 +315,12 @@ private theorem pMergeSortWork_le_succ : ∀ n, pMergeSortWork n ≤ pMergeSortW
   induction n using Nat.strong_induction_on with
   | h n ih =>
       by_cases hn : n ≤ 1
-      · interval_cases n <;> native_decide
+      · interval_cases n
+        · rw [show pMergeSortWork 0 = 0 by rw [pMergeSortWork]; norm_num]
+          exact Nat.zero_le _
+        · have hone : pMergeSortWork 1 = 1 := by rw [pMergeSortWork]; norm_num
+          rw [hone, pMergeSortWork_unfold (n := 2) (by norm_num)]
+          norm_num [hone]
       · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
           ⟨n / 2, by omega⟩
         · have hdiv0 : 2 * m / 2 = m := by omega
@@ -362,7 +377,12 @@ private theorem pMergeSortSpan_le_succ : ∀ n, pMergeSortSpan n ≤ pMergeSortS
   induction n using Nat.strong_induction_on with
   | h n ih =>
       by_cases hn : n ≤ 1
-      · interval_cases n <;> native_decide
+      · interval_cases n
+        · rw [show pMergeSortSpan 0 = 0 by rw [pMergeSortSpan]; norm_num]
+          exact Nat.zero_le _
+        · have hone : pMergeSortSpan 1 = 1 := by rw [pMergeSortSpan]; norm_num
+          rw [hone, pMergeSortSpan_unfold (n := 2) (by norm_num)]
+          norm_num [hone]
       · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
           ⟨n / 2, by omega⟩
         · have hceil0 : 2 * m - 2 * m / 2 = m := by omega
@@ -418,7 +438,12 @@ private theorem strassenWork_le_succ : ∀ n, strassenWork n ≤ strassenWork (n
   induction n using Nat.strong_induction_on with
   | h n ih =>
       by_cases hn : n ≤ 1
-      · interval_cases n <;> native_decide
+      · interval_cases n
+        · rw [show strassenWork 0 = 0 by rw [strassenWork]; norm_num]
+          exact Nat.zero_le _
+        · have hone : strassenWork 1 = 1 := by rw [strassenWork]; norm_num
+          rw [hone, strassenWork_unfold (n := 2) (by norm_num)]
+          norm_num [hone]
       · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
           ⟨n / 2, by omega⟩
         · have hdiv0 : 2 * m / 2 = m := by omega
@@ -473,7 +498,12 @@ private theorem strassenSpan_le_succ : ∀ n, strassenSpan n ≤ strassenSpan (n
   induction n using Nat.strong_induction_on with
   | h n ih =>
       by_cases hn : n ≤ 1
-      · interval_cases n <;> native_decide
+      · interval_cases n
+        · rw [show strassenSpan 0 = 0 by rw [strassenSpan]; norm_num]
+          exact Nat.zero_le _
+        · have hone : strassenSpan 1 = 1 := by rw [strassenSpan]; norm_num
+          rw [hone, strassenSpan_unfold (n := 2) (by norm_num)]
+          norm_num [hone]
       · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
           ⟨n / 2, by omega⟩
         · have hdiv0 : 2 * m / 2 = m := by omega
