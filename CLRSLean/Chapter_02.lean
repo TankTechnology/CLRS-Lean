@@ -25,7 +25,9 @@ basic pattern used throughout the project:
 * 2.3 Designing algorithms: {lit}`proved`.
   Main results: {lit}`CLRS.Chapter02.mergeSort_sortedLE`,
   {lit}`CLRS.Chapter02.mergeSort_perm`,
-  {lit}`CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm`.
+  {lit}`CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm`,
+  {lit}`CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_on_exact_powers`, and
+  {lit}`CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs`.
 
 ## Proof Themes
 
@@ -41,8 +43,9 @@ semantics.
 
 Merge sort uses Lean's verified List.mergeSort implementation for the first
 chapter pass.  The section exposes CLRS-facing theorem names for sortedness,
-permutation preservation, and the exact closed form of the power-of-two
-recurrence.
+permutation preservation, the exact closed form of the power-of-two
+recurrence, and the all-input Θ(n log n) bound for the arbitrary-size
+floor/ceiling recurrence (via the Chapter 4.6 Master-theorem sandwich bridge).
 
 ## Strengthening Targets
 
@@ -50,6 +53,5 @@ Future Chapter 2 work should keep the main theorem pages stable while adding
 stronger optional layers:
 
 * a full RAM or pseudocode cost semantics;
-* an arbitrary-size merge-sort recurrence using floors and ceilings;
 * selected exercises after the main section interfaces remain stable.
 -/

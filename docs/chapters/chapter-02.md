@@ -164,12 +164,12 @@ with the claimed line-by-line cost.
 
 ## Merge-Sort Complexity Scope
 
-The power-of-two recurrence is not hard and is now Lean-formalized in Section
-2.3.  The fully general recurrence for every `n`,
-with `T(n) = T(⌈n / 2⌉) + T(⌊n / 2⌋) + n`, is more work: it needs floor/ceiling
-arithmetic, monotonicity lemmas, and a clean asymptotic theorem statement.
-That general version is a good future strengthening target, but it is not
-needed to claim a complete first pass through the main Chapter 2 thread.
+The power-of-two recurrence is Lean-formalized in Section 2.3, and so is the
+fully general recurrence for every `n`, with
+`T(n) = T(⌈n / 2⌉) + T(⌊n / 2⌋) + n`: `MergeSortRecurrence.theta_n_log_n_all_inputs`
+proves the all-input Θ(n log n) bound for any monotone cost function satisfying
+the recurrence, using floor/ceiling arithmetic and the Chapter 4.6 Master-theorem
+sandwich bridge.
 
 ## Chapter 2 Completion Scope
 
@@ -179,8 +179,8 @@ thread:
 - Section 2.1: insertion sort correctness;
 - Section 2.2: insertion-sort worst-case quadratic bound in a lightweight cost
   model;
-- Section 2.3: merge sort correctness and the exact power-of-two recurrence
-  solution.
+- Section 2.3: merge sort correctness, the exact power-of-two recurrence
+  solution, and the all-input Θ(n log n) recurrence bound.
 
-Exercises, chapter-end problems, a full RAM semantics, and the arbitrary-size
-floor/ceiling merge-sort recurrence are intentionally future work.
+Exercises, chapter-end problems, and a full RAM semantics are intentionally
+future work.

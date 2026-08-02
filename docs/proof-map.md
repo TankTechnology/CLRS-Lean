@@ -72,14 +72,21 @@ is bounded by a quadratic function.
   - `CLRS.Chapter02.mergeSort_sortedLE`
   - `CLRS.Chapter02.mergeSort_perm`
   - `CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm`
+  - `CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_on_exact_powers`
+  - `CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs`
 - Proof pattern: divide and conquer, sortedness, permutation preservation,
-  recurrence solving
-- Current gap: arbitrary-size floor/ceiling recurrence and full RAM execution
-  cost are future strengthening targets
+  recurrence solving, Master Theorem on exact powers, all-input transfer via
+  the Chapter 4.6 floor/ceiling sandwich bridge
+- Current gap: full RAM execution cost is a future strengthening target; the
+  arbitrary-size floor/ceiling recurrence now has the all-input Θ(n log n)
+  bound.
 
 The section proves functional correctness for merge sort using Lean's verified
 `List.mergeSort` implementation.  It also proves the exact closed form of the
-standard recurrence on input sizes `2^k`.
+standard recurrence on input sizes `2^k`, the Θ(n log n) bound on exact powers
+via the Master Theorem, and the all-input Θ(n log n) bound
+(`theta_n_log_n_all_inputs`) for any monotone cost function satisfying the
+arbitrary-size floor/ceiling recurrence.
 
 ## Chapter 3 - Growth of Functions
 
