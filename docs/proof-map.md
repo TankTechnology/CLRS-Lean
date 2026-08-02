@@ -3694,7 +3694,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Section 27.2-27.4 - Multithreaded Algorithms
 
 - Lean source: `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
-- Status: `proved` (exact closed forms on powers of two)
+- Status: `partial` (cost-recurrence analysis proved, executable refinements open)
 - Model: executable work/span recurrences `pMatMulWork`, `pMatMulSpan`,
   `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
   `strassenWork`, `strassenSpan`, each with an `*_unfold` recurrence lemma.
@@ -3712,8 +3712,27 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRS.Chapter27.strassenWork_pow_two` (`3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`, work
     Θ(n^(log₂ 7)))
   - `CLRS.Chapter27.strassenSpan_pow_two` (`T∞(2ᵏ) = k + 1`, span Θ(log n))
-- Current gap: all-input Θ-bounds for the merge-based costs (power-sandwich
-  transfer as in Chapter 4) and executable algorithm refinements.
+- Proved monotonicity and adjacent-power transfer interface:
+  - `CLRS.Chapter27.pMergeWork_monotone`,
+    `CLRS.Chapter27.pMergeSpan_monotone`,
+    `CLRS.Chapter27.pMergeSortWork_monotone`,
+    `CLRS.Chapter27.pMergeSortSpan_monotone`,
+    `CLRS.Chapter27.strassenWork_monotone`, and
+    `CLRS.Chapter27.strassenSpan_monotone`
+  - the corresponding six `*_power_sandwich` theorems, placing every positive
+    input between its adjacent power-of-two costs
+- Proved all-input asymptotic theorems:
+  - `CLRS.Chapter27.pMergeWork_allInput_bigTheta`: Θ(n)
+  - `CLRS.Chapter27.pMergeSpan_allInput_bigTheta`: Θ(log² n)
+  - `CLRS.Chapter27.pMergeSortWork_allInput_bigTheta`: Θ(n log n)
+  - `CLRS.Chapter27.pMergeSortSpan_allInput_bigTheta`: Θ(log³ n)
+  - `CLRS.Chapter27.strassenWork_allInput_bigTheta`: Θ(n^(log₂ 7))
+  - `CLRS.Chapter27.strassenSpan_allInput_bigTheta`: Θ(log n)
+- Proof pattern: prove each natural-valued recurrence monotone, sandwich an
+  arbitrary positive input between `2 ^ log₂ n` and the next power of two,
+  then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
+- Current gap: executable P-MERGE and P-MERGE-SORT implementations with
+  correctness/refinement links to these cost recurrences.
 
 ## Chapter 32 - String Matching
 

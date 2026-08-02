@@ -10,8 +10,8 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 29.
-* Tracked reader-facing theorem entries: 1658.
-* Proved tracked theorem entries: 1658.
+* Tracked reader-facing theorem entries: 1676.
+* Proved tracked theorem entries: 1676.
 * Remaining core theorem groups: 8.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -58,7 +58,7 @@ Ch  Chapter                                                     Status          
 24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4;24.5           27        0
 25  25. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  25.1;25.2;25.3                     24        0
 26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
-27  27. Multithreaded Algorithms                                partial                              27.1;27.2                          48        1
+27  27. Multithreaded Algorithms                                partial                              27.1;27.2                          66        1
 28  28. Matrix Operations                                       not-started                          not represented                     0        1
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1

@@ -135,10 +135,12 @@ the detailed maintainer ledger.
   work/span recurrences of P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel
   Strassen are executable cost functions with exact power-of-two closed forms
   (work `Θ(n³)`, `Θ(n)`, `Θ(n log n)`, `Θ(n^(log₂ 7))`; spans `Θ(log n)`,
-  `Θ(log² n)`, `Θ(log³ n)`), plus all-input upper bounds for P-MATMUL.  The
+  `Θ(log² n)`, `Θ(log³ n)`).  P-MERGE, P-MERGE-SORT, and parallel Strassen
+  additionally have monotonicity, adjacent-power sandwich, and all-input Θ
+  theorems; P-MATMUL has all-input upper bounds.  The
   explicit ready-set DAG execution model proves the greedy-scheduler bound
-  (Theorem 27.1/27.2) for completed schedules.  All-input Θ-bounds for the
-  merge-based costs and executable algorithm refinements remain.
+  (Theorem 27.1/27.2) for completed schedules.  Executable P-MERGE and
+  P-MERGE-SORT implementations refining the proved recurrences remain.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

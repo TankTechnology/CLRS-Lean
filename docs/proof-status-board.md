@@ -5,7 +5,7 @@ status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
 The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
 priorities, not theorem-by-theorem duplication.
 
-Last repository-wide status reconciliation: 2026-08-02.
+Last repository-wide status reconciliation: 2026-08-03.
 
 ## Complete For The Current Scope
 
@@ -46,7 +46,7 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; completed explicit ready-set schedules with the greedy bound `Tₚ ≤ T₁/p + T∞`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms (work `Θ(n³)`/`Θ(n)`/`Θ(n log n)`/`Θ(n^(log₂ 7))`, spans `Θ(log n)`/`Θ(log² n)`/`Θ(log³ n)`) plus all-input P-MATMUL bounds | All-input Θ-bounds for the merge-based costs and executable algorithm refinements |
+| 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; completed explicit ready-set schedules with the greedy bound `Tₚ ≤ T₁/p + T∞`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms; all-input P-MERGE `Θ(n)`/`Θ(log² n)`, P-MERGE-SORT `Θ(n log n)`/`Θ(log³ n)`, and parallel-Strassen `Θ(n^(log₂ 7))`/`Θ(log n)` bounds via monotonicity and adjacent-power sandwiches; all-input P-MATMUL upper bounds | Executable P-MERGE and P-MERGE-SORT implementations with correctness links to the recurrences |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main
@@ -60,10 +60,9 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 27 all-input bounds ([#121](https://github.com/TankTechnology/CLRS-Lean/issues/121)) | Extend the merge-based work/span bounds beyond the exact power-of-two boundary |
-| 2 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Refine P-MERGE and P-MERGE-SORT to executable implementations with correctness links |
-| 3 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
-| 4 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
+| 1 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Refine P-MERGE and P-MERGE-SORT to executable implementations with correctness links |
+| 2 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
+| 3 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
 
 ## High-Difficulty Queue
 
