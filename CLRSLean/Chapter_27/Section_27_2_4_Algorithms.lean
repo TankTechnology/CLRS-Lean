@@ -219,6 +219,12 @@ private theorem pMergeWork_le_succ : ∀ n, pMergeWork n ≤ pMergeWork (n + 1) 
 theorem pMergeWork_monotone : Monotone pMergeWork :=
   monotone_nat_of_le_succ pMergeWork_le_succ
 
+/-- Every positive P-MERGE work cost lies between its adjacent power-of-two costs. -/
+theorem pMergeWork_power_sandwich (n : ℕ) (hn : 0 < n) :
+    pMergeWork (2 ^ Nat.log 2 n) ≤ pMergeWork n ∧
+      pMergeWork n ≤ pMergeWork (2 ^ (Nat.log 2 n + 1)) :=
+  natCost_power_sandwich pMergeWork_monotone n hn
+
 /-- Exact work on powers of two: `T₁(2ᵏ) + (k + 3) = 4·2ᵏ` (work `Θ(n)`). -/
 theorem pMergeWork_pow_two (k : ℕ) :
     pMergeWork (2 ^ k) + (k + 3) = 4 * 2 ^ k := by
@@ -279,6 +285,12 @@ private theorem pMergeSpan_le_succ : ∀ n, pMergeSpan n ≤ pMergeSpan (n + 1) 
 /-- P-MERGE span is monotone in the input size. -/
 theorem pMergeSpan_monotone : Monotone pMergeSpan :=
   monotone_nat_of_le_succ pMergeSpan_le_succ
+
+/-- Every positive P-MERGE span cost lies between its adjacent power-of-two costs. -/
+theorem pMergeSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
+    pMergeSpan (2 ^ Nat.log 2 n) ≤ pMergeSpan n ∧
+      pMergeSpan n ≤ pMergeSpan (2 ^ (Nat.log 2 n + 1)) :=
+  natCost_power_sandwich pMergeSpan_monotone n hn
 
 /-- Exact span on powers of two: `2·T∞(2ᵏ) = (k+1)(k+2)` (span `Θ(log² n)`). -/
 theorem pMergeSpan_pow_two (k : ℕ) :
@@ -346,6 +358,12 @@ private theorem pMergeSortWork_le_succ : ∀ n, pMergeSortWork n ≤ pMergeSortW
 theorem pMergeSortWork_monotone : Monotone pMergeSortWork :=
   monotone_nat_of_le_succ pMergeSortWork_le_succ
 
+/-- Every positive P-MERGE-SORT work cost lies between its adjacent power-of-two costs. -/
+theorem pMergeSortWork_power_sandwich (n : ℕ) (hn : 0 < n) :
+    pMergeSortWork (2 ^ Nat.log 2 n) ≤ pMergeSortWork n ∧
+      pMergeSortWork n ≤ pMergeSortWork (2 ^ (Nat.log 2 n + 1)) :=
+  natCost_power_sandwich pMergeSortWork_monotone n hn
+
 /-- Exact work on powers of two: `T₁(2ᵏ) = 2ᵏ·(k+1)` (work `Θ(n log n)`). -/
 theorem pMergeSortWork_pow_two (k : ℕ) :
     pMergeSortWork (2 ^ k) = 2 ^ k * (k + 1) := by
@@ -404,6 +422,12 @@ private theorem pMergeSortSpan_le_succ : ∀ n, pMergeSortSpan n ≤ pMergeSortS
 /-- P-MERGE-SORT span is monotone in the input size. -/
 theorem pMergeSortSpan_monotone : Monotone pMergeSortSpan :=
   monotone_nat_of_le_succ pMergeSortSpan_le_succ
+
+/-- Every positive P-MERGE-SORT span cost lies between its adjacent power-of-two costs. -/
+theorem pMergeSortSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
+    pMergeSortSpan (2 ^ Nat.log 2 n) ≤ pMergeSortSpan n ∧
+      pMergeSortSpan n ≤ pMergeSortSpan (2 ^ (Nat.log 2 n + 1)) :=
+  natCost_power_sandwich pMergeSortSpan_monotone n hn
 
 /-- Exact span on powers of two:
 `6·T∞(2ᵏ) = 6 + k·(k² + 6k + 11)` (span `Θ(log³ n)`). -/
@@ -467,6 +491,13 @@ private theorem strassenWork_le_succ : ∀ n, strassenWork n ≤ strassenWork (n
 theorem strassenWork_monotone : Monotone strassenWork :=
   monotone_nat_of_le_succ strassenWork_le_succ
 
+/-- Every positive parallel-Strassen work cost lies between its adjacent
+power-of-two costs. -/
+theorem strassenWork_power_sandwich (n : ℕ) (hn : 0 < n) :
+    strassenWork (2 ^ Nat.log 2 n) ≤ strassenWork n ∧
+      strassenWork n ≤ strassenWork (2 ^ (Nat.log 2 n + 1)) :=
+  natCost_power_sandwich strassenWork_monotone n hn
+
 /-- Exact work on powers of two: `3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`
 (work `Θ(n^(log₂ 7))`). -/
 theorem strassenWork_pow_two (k : ℕ) :
@@ -519,6 +550,13 @@ private theorem strassenSpan_le_succ : ∀ n, strassenSpan n ≤ strassenSpan (n
 /-- Parallel Strassen span is monotone in the input size. -/
 theorem strassenSpan_monotone : Monotone strassenSpan :=
   monotone_nat_of_le_succ strassenSpan_le_succ
+
+/-- Every positive parallel-Strassen span cost lies between its adjacent
+power-of-two costs. -/
+theorem strassenSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
+    strassenSpan (2 ^ Nat.log 2 n) ≤ strassenSpan n ∧
+      strassenSpan n ≤ strassenSpan (2 ^ (Nat.log 2 n + 1)) :=
+  natCost_power_sandwich strassenSpan_monotone n hn
 
 /-- Exact span on powers of two: `T∞(2ᵏ) = k + 1` (span `Θ(log n)`). -/
 theorem strassenSpan_pow_two (k : ℕ) : strassenSpan (2 ^ k) = k + 1 := by

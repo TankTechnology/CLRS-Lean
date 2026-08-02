@@ -93,6 +93,15 @@ namespace Chapter27
 #check strassenWork_allInput_bigTheta
 #check strassenSpan_allInput_bigTheta
 
+example : pMergeWork 3 ≤ pMergeWork 4 :=
+  pMergeWork_monotone (by omega)
+
+example : pMergeSortSpan (2 ^ Nat.log 2 5) ≤ pMergeSortSpan 5 :=
+  (pMergeSortSpan_power_sandwich 5 (by omega)).1
+
+example : strassenWork 5 ≤ strassenWork (2 ^ (Nat.log 2 5 + 1)) :=
+  (strassenWork_power_sandwich 5 (by omega)).2
+
 /-- A three-node chain with unit-weight edges forward: work and span both 6. -/
 def chainDAG : CompDAG where
   n := 3
