@@ -229,7 +229,9 @@ theorem pMergeWork_power_sandwich (n : ℕ) (hn : 0 < n) :
 theorem pMergeWork_pow_two (k : ℕ) :
     pMergeWork (2 ^ k) + (k + 3) = 4 * 2 ^ k := by
   induction k with
-  | zero => native_decide
+  | zero =>
+      rw [pMergeWork]
+      norm_num
   | succ k ih =>
       rw [pMergeWork_unfold (two_le_two_pow_succ k), pow_two_succ_sub,
         pow_two_succ_eq, log_two_pow]
@@ -296,7 +298,9 @@ theorem pMergeSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
 theorem pMergeSpan_pow_two (k : ℕ) :
     2 * pMergeSpan (2 ^ k) = (k + 1) * (k + 2) := by
   induction k with
-  | zero => native_decide
+  | zero =>
+      rw [pMergeSpan]
+      norm_num
   | succ k ih =>
       rw [pMergeSpan_unfold (two_le_two_pow_succ k), pow_two_succ_sub,
         log_two_pow]
@@ -368,7 +372,9 @@ theorem pMergeSortWork_power_sandwich (n : ℕ) (hn : 0 < n) :
 theorem pMergeSortWork_pow_two (k : ℕ) :
     pMergeSortWork (2 ^ k) = 2 ^ k * (k + 1) := by
   induction k with
-  | zero => native_decide
+  | zero =>
+      rw [pMergeSortWork]
+      norm_num
   | succ k ih =>
       rw [pMergeSortWork_unfold (two_le_two_pow_succ k), pow_two_succ_sub,
         pow_two_succ_eq]
@@ -434,7 +440,9 @@ theorem pMergeSortSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
 theorem pMergeSortSpan_pow_two (k : ℕ) :
     6 * pMergeSortSpan (2 ^ k) = 6 + k * (k * k + 6 * k + 11) := by
   induction k with
-  | zero => native_decide
+  | zero =>
+      rw [pMergeSortSpan]
+      norm_num
   | succ k ih =>
       rw [pMergeSortSpan_unfold (two_le_two_pow_succ k), pow_two_succ_sub]
       have hS := pMergeSpan_pow_two (k + 1)
@@ -503,7 +511,9 @@ theorem strassenWork_power_sandwich (n : ℕ) (hn : 0 < n) :
 theorem strassenWork_pow_two (k : ℕ) :
     3 * strassenWork (2 ^ k) + 4 ^ (k + 1) = 7 ^ (k + 1) := by
   induction k with
-  | zero => native_decide
+  | zero =>
+      rw [strassenWork]
+      norm_num
   | succ k ih =>
       rw [strassenWork_unfold (two_le_two_pow_succ k), pow_two_succ_eq,
         two_pow_succ_mul]
@@ -561,9 +571,274 @@ theorem strassenSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
 /-- Exact span on powers of two: `T∞(2ᵏ) = k + 1` (span `Θ(log n)`). -/
 theorem strassenSpan_pow_two (k : ℕ) : strassenSpan (2 ^ k) = k + 1 := by
   induction k with
-  | zero => native_decide
+  | zero =>
+      rw [strassenSpan]
+      norm_num
   | succ k ih =>
       rw [strassenSpan_unfold (two_le_two_pow_succ k), pow_two_succ_eq, ih]
+
+/-! ## All-input work and span bounds -/
+
+private theorem add_three_le_three_mul_pow_two (k : ℕ) :
+    k + 3 ≤ 3 * 2 ^ k := by
+  induction k with
+  | zero => norm_num
+  | succ k ih =>
+      rw [pow_succ]
+      have hpow : 1 ≤ 2 ^ k := Nat.one_le_pow k 2 (by norm_num)
+      nlinarith
+
+private theorem pMergeWork_exactPower_bounds (k : ℕ) :
+    2 ^ k ≤ pMergeWork (2 ^ k) ∧ pMergeWork (2 ^ k) ≤ 4 * 2 ^ k := by
+  have hexact := pMergeWork_pow_two k
+  have hlinear := add_three_le_three_mul_pow_two k
+  omega
+
+private theorem pMergeWork_exactPower_bigTheta :
+    Chapter03.isBigTheta
+      (fun k : ℕ => (pMergeWork (2 ^ k) : ℝ))
+      (fun k : ℕ => (2 : ℝ) ^ k) := by
+  constructor
+  · refine (Chapter03.isBigO_iff _ _).mpr ⟨4, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (by positivity)]
+    have hreal :
+        (pMergeWork (2 ^ k) : ℝ) ≤ ((4 * 2 ^ k : ℕ) : ℝ) := by
+      exact_mod_cast (pMergeWork_exactPower_bounds k).2
+    simpa [Nat.cast_mul, Nat.cast_pow] using hreal
+  · refine (Chapter03.isBigOmega_iff _ _).mpr ⟨1, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (by positivity : 0 ≤ (2 : ℝ) ^ k),
+      abs_of_nonneg (Nat.cast_nonneg _)]
+    have hreal : ((2 ^ k : ℕ) : ℝ) ≤ (pMergeWork (2 ^ k) : ℝ) := by
+      exact_mod_cast (pMergeWork_exactPower_bounds k).1
+    simpa [Nat.cast_pow] using hreal
+
+private theorem pMergeSpan_exactPower_bigTheta :
+    Chapter03.isBigTheta
+      (fun k : ℕ => (pMergeSpan (2 ^ k) : ℝ))
+      (fun k : ℕ => ((k : ℝ) + 1) ^ 2) := by
+  constructor
+  · refine (Chapter03.isBigO_iff _ _).mpr ⟨1, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (by positivity)]
+    have hexact :
+        (2 : ℝ) * (pMergeSpan (2 ^ k) : ℝ) =
+          ((k : ℝ) + 1) * ((k : ℝ) + 2) := by
+      exact_mod_cast pMergeSpan_pow_two k
+    have hk : 0 ≤ (k : ℝ) := Nat.cast_nonneg k
+    have hproduct : 0 ≤ (k : ℝ) * ((k : ℝ) + 1) :=
+      mul_nonneg hk (by positivity)
+    nlinarith
+  · refine (Chapter03.isBigOmega_iff _ _).mpr
+      ⟨(2 : ℝ)⁻¹, by positivity, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (by positivity : 0 ≤ ((k : ℝ) + 1) ^ 2),
+      abs_of_nonneg (Nat.cast_nonneg _)]
+    have hexact :
+        (2 : ℝ) * (pMergeSpan (2 ^ k) : ℝ) =
+          ((k : ℝ) + 1) * ((k : ℝ) + 2) := by
+      exact_mod_cast pMergeSpan_pow_two k
+    have hk : 0 ≤ (k : ℝ) := Nat.cast_nonneg k
+    nlinarith
+
+private theorem pMergeSortWork_exactPower_bigTheta :
+    Chapter03.isBigTheta
+      (fun k : ℕ => (pMergeSortWork (2 ^ k) : ℝ))
+      (fun k : ℕ => ((k : ℝ) + 1) * (2 : ℝ) ^ k) := by
+  have hfun :
+      (fun k : ℕ => (pMergeSortWork (2 ^ k) : ℝ)) =
+        (fun k : ℕ => ((k : ℝ) + 1) * (2 : ℝ) ^ k) := by
+    funext k
+    rw [pMergeSortWork_pow_two]
+    push_cast
+    ring
+  rw [hfun]
+  exact Chapter03.isBigTheta_refl _
+
+private theorem pMergeSortSpan_exactPower_closed (k : ℕ) :
+    6 * pMergeSortSpan (2 ^ k) = (k + 1) * (k + 2) * (k + 3) := by
+  rw [pMergeSortSpan_pow_two]
+  ring
+
+private theorem pMergeSortSpan_exactPower_bigTheta :
+    Chapter03.isBigTheta
+      (fun k : ℕ => (pMergeSortSpan (2 ^ k) : ℝ))
+      (fun k : ℕ => ((k : ℝ) + 1) ^ 3) := by
+  constructor
+  · refine (Chapter03.isBigO_iff _ _).mpr ⟨1, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (by positivity)]
+    have hexact :
+        (6 : ℝ) * (pMergeSortSpan (2 ^ k) : ℝ) =
+          ((k : ℝ) + 1) * ((k : ℝ) + 2) * ((k : ℝ) + 3) := by
+      exact_mod_cast pMergeSortSpan_exactPower_closed k
+    have hk : 0 ≤ (k : ℝ) := Nat.cast_nonneg k
+    have hk2 : 0 ≤ (k : ℝ) * (k : ℝ) := mul_nonneg hk hk
+    have hk3 : 0 ≤ (k : ℝ) * ((k : ℝ) * (k : ℝ)) := mul_nonneg hk hk2
+    nlinarith
+  · refine (Chapter03.isBigOmega_iff _ _).mpr
+      ⟨(6 : ℝ)⁻¹, by positivity, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (by positivity : 0 ≤ ((k : ℝ) + 1) ^ 3),
+      abs_of_nonneg (Nat.cast_nonneg _)]
+    have hexact :
+        (6 : ℝ) * (pMergeSortSpan (2 ^ k) : ℝ) =
+          ((k : ℝ) + 1) * ((k : ℝ) + 2) * ((k : ℝ) + 3) := by
+      exact_mod_cast pMergeSortSpan_exactPower_closed k
+    have hk : 0 ≤ (k : ℝ) := Nat.cast_nonneg k
+    have hk2 : 0 ≤ (k : ℝ) * (k : ℝ) := mul_nonneg hk hk
+    nlinarith
+
+private theorem strassenWork_exactPower_bounds (k : ℕ) :
+    7 ^ k ≤ strassenWork (2 ^ k) ∧ strassenWork (2 ^ k) ≤ 3 * 7 ^ k := by
+  have hexact := strassenWork_pow_two k
+  rw [pow_succ (4 : ℕ) k, pow_succ (7 : ℕ) k] at hexact
+  have hpow : 4 ^ k ≤ 7 ^ k := Nat.pow_le_pow_left (by norm_num) k
+  constructor <;> omega
+
+private theorem strassenWork_exactPower_bigTheta :
+    Chapter03.isBigTheta
+      (fun k : ℕ => (strassenWork (2 ^ k) : ℝ))
+      (fun k : ℕ => (7 : ℝ) ^ k) := by
+  constructor
+  · refine (Chapter03.isBigO_iff _ _).mpr ⟨3, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (by positivity)]
+    have hreal :
+        (strassenWork (2 ^ k) : ℝ) ≤ ((3 * 7 ^ k : ℕ) : ℝ) := by
+      exact_mod_cast (strassenWork_exactPower_bounds k).2
+    simpa [Nat.cast_mul, Nat.cast_pow] using hreal
+  · refine (Chapter03.isBigOmega_iff _ _).mpr ⟨1, by norm_num, 0, ?_⟩
+    intro k _
+    rw [abs_of_nonneg (by positivity : 0 ≤ (7 : ℝ) ^ k),
+      abs_of_nonneg (Nat.cast_nonneg _)]
+    have hreal : ((7 ^ k : ℕ) : ℝ) ≤ (strassenWork (2 ^ k) : ℝ) := by
+      exact_mod_cast (strassenWork_exactPower_bounds k).1
+    simpa [Nat.cast_pow] using hreal
+
+private theorem strassenSpan_exactPower_bigTheta :
+    Chapter03.isBigTheta
+      (fun k : ℕ => (strassenSpan (2 ^ k) : ℝ))
+      (fun k : ℕ => (k : ℝ) + 1) := by
+  have hfun :
+      (fun k : ℕ => (strassenSpan (2 ^ k) : ℝ)) =
+        (fun k : ℕ => (k : ℝ) + 1) := by
+    funext k
+    rw [strassenSpan_pow_two]
+    push_cast
+    norm_num
+  rw [hfun]
+  exact Chapter03.isBigTheta_refl _
+
+/-- P-MERGE has linear work on every positive input size. -/
+theorem pMergeWork_allInput_bigTheta :
+    Chapter03.isBigTheta (fun n : ℕ => (pMergeWork n : ℝ))
+      (Chapter04.polynomialScale 1) := by
+  have hcritical :
+      Chapter03.isBigTheta (fun n : ℕ => (pMergeWork n : ℝ))
+        (Chapter04.criticalPowerScale 2 2) :=
+    Chapter04.allInput_bigTheta_of_criticalPowerScale 2 2
+      (fun n : ℕ => (pMergeWork n : ℝ)) (by norm_num) (by norm_num)
+      (natCost_monotoneAbs pMergeWork_monotone)
+      pMergeWork_exactPower_bigTheta
+  exact Chapter03.isBigTheta_trans hcritical (by
+    simpa using Chapter04.criticalPowerScale_isBigTheta_polynomialScale 2 1
+      (by norm_num))
+
+/-- P-MERGE has quadratic-logarithmic span on every positive input size. -/
+theorem pMergeSpan_allInput_bigTheta :
+    Chapter03.isBigTheta (fun n : ℕ => (pMergeSpan n : ℝ))
+      (Chapter04.criticalPowerLogPolylogScale 1 2 1) := by
+  have hpower :
+      Chapter03.isBigTheta
+        (fun i : ℕ => (pMergeSpan (2 ^ i) : ℝ))
+        (fun i : ℕ => Chapter04.criticalPowerLogPolylogScale 1 2 1 (2 ^ i)) := by
+    have hscale :
+        (fun i : ℕ => Chapter04.criticalPowerLogPolylogScale 1 2 1 (2 ^ i)) =
+          (fun i : ℕ => ((i : ℝ) + 1) ^ 2) := by
+      funext i
+      simp [Chapter04.criticalPowerLogPolylogScale_exactPower]
+    rw [hscale]
+    exact pMergeSpan_exactPower_bigTheta
+  exact Chapter04.allInput_bigTheta_of_powerStep 2
+    (fun n : ℕ => (pMergeSpan n : ℝ))
+    (Chapter04.criticalPowerLogPolylogScale 1 2 1) (by norm_num)
+    (natCost_monotoneAbs pMergeSpan_monotone)
+    (Chapter04.criticalPowerLogPolylogScale_monotoneAbs 1 2 1 (by norm_num))
+    (Chapter04.criticalPowerLogPolylogScale_powerStepBound 1 2 1
+      (by norm_num) (by norm_num))
+    hpower
+
+/-- P-MERGE-SORT has `n log n` work on every positive input size. -/
+theorem pMergeSortWork_allInput_bigTheta :
+    Chapter03.isBigTheta (fun n : ℕ => (pMergeSortWork n : ℝ))
+      (Chapter04.polynomialLogScale 2 1) := by
+  have hcritical :
+      Chapter03.isBigTheta (fun n : ℕ => (pMergeSortWork n : ℝ))
+        (Chapter04.criticalPowerLogScale 2 2) :=
+    Chapter04.allInput_bigTheta_of_criticalPowerLogScale 2 2
+      (fun n : ℕ => (pMergeSortWork n : ℝ)) (by norm_num) (by norm_num)
+      (natCost_monotoneAbs pMergeSortWork_monotone)
+      pMergeSortWork_exactPower_bigTheta
+  exact Chapter03.isBigTheta_trans hcritical (by
+    simpa using Chapter04.criticalPowerLogScale_isBigTheta_polynomialLogScale 2 1
+      (by norm_num))
+
+/-- P-MERGE-SORT has cubic-logarithmic span on every positive input size. -/
+theorem pMergeSortSpan_allInput_bigTheta :
+    Chapter03.isBigTheta (fun n : ℕ => (pMergeSortSpan n : ℝ))
+      (Chapter04.criticalPowerLogPolylogScale 1 2 2) := by
+  have hpower :
+      Chapter03.isBigTheta
+        (fun i : ℕ => (pMergeSortSpan (2 ^ i) : ℝ))
+        (fun i : ℕ => Chapter04.criticalPowerLogPolylogScale 1 2 2 (2 ^ i)) := by
+    have hscale :
+        (fun i : ℕ => Chapter04.criticalPowerLogPolylogScale 1 2 2 (2 ^ i)) =
+          (fun i : ℕ => ((i : ℝ) + 1) ^ 3) := by
+      funext i
+      simp [Chapter04.criticalPowerLogPolylogScale_exactPower]
+    rw [hscale]
+    exact pMergeSortSpan_exactPower_bigTheta
+  exact Chapter04.allInput_bigTheta_of_powerStep 2
+    (fun n : ℕ => (pMergeSortSpan n : ℝ))
+    (Chapter04.criticalPowerLogPolylogScale 1 2 2) (by norm_num)
+    (natCost_monotoneAbs pMergeSortSpan_monotone)
+    (Chapter04.criticalPowerLogPolylogScale_monotoneAbs 1 2 2 (by norm_num))
+    (Chapter04.criticalPowerLogPolylogScale_powerStepBound 1 2 2
+      (by norm_num) (by norm_num))
+    hpower
+
+/-- Parallel Strassen has work `n^(log₂ 7)` on every positive input size. -/
+theorem strassenWork_allInput_bigTheta :
+    Chapter03.isBigTheta (fun n : ℕ => (strassenWork n : ℝ))
+      (Chapter04.realLogScale 7 2) := by
+  have hcritical :
+      Chapter03.isBigTheta (fun n : ℕ => (strassenWork n : ℝ))
+        (Chapter04.criticalPowerScale 7 2) :=
+    Chapter04.allInput_bigTheta_of_criticalPowerScale 7 2
+      (fun n : ℕ => (strassenWork n : ℝ)) (by norm_num) (by norm_num)
+      (natCost_monotoneAbs strassenWork_monotone)
+      strassenWork_exactPower_bigTheta
+  exact Chapter03.isBigTheta_trans hcritical
+    (Chapter04.criticalPowerScale_isBigTheta_realLogScale 7 2
+      (by norm_num) (by norm_num))
+
+/-- Parallel Strassen has logarithmic span on every positive input size. -/
+theorem strassenSpan_allInput_bigTheta :
+    Chapter03.isBigTheta (fun n : ℕ => (strassenSpan n : ℝ))
+      (Chapter04.polynomialLogScale 2 0) := by
+  have hcritical :
+      Chapter03.isBigTheta (fun n : ℕ => (strassenSpan n : ℝ))
+        (Chapter04.criticalPowerLogScale 1 2) :=
+    Chapter04.allInput_bigTheta_of_criticalPowerLogScale 1 2
+      (fun n : ℕ => (strassenSpan n : ℝ)) (by norm_num) (by norm_num)
+      (natCost_monotoneAbs strassenSpan_monotone) (by
+        simpa only [Nat.cast_one, one_pow, mul_one] using
+          strassenSpan_exactPower_bigTheta)
+  exact Chapter03.isBigTheta_trans hcritical (by
+    simpa using Chapter04.criticalPowerLogScale_isBigTheta_polynomialLogScale 2 0
+      (by norm_num))
 
 end Chapter27
 end CLRS
