@@ -13,25 +13,26 @@ random, the treap on a fixed set of {lit}`(key, priority)` pairs is unique and
 has expected height {lit}`O(log n)`, which makes a treap a randomized balanced
 BST.
 
-This module is a **prototype**: the executable definitions and the two
-membership theorems are kernel-checked, but the headline *expected-height*
-result is not yet stated (it needs the finite-expectation layer).  The module
-is **not** registered in {lit}`literate.toml` and does not appear on the site
-until it is promoted.
+This module is a **prototype**: the executable `insert`/`member` and the
+*correctness* half — membership, BST preservation, and max-heap preservation —
+are all kernel-checked.  The headline *expected-height* result is the next
+planned step (it needs the finite-expectation layer).  The module is **not**
+registered in {lit}`literate.toml` and does not appear on the site until it is
+promoted.
 
 The membership theorems carry an {lit}`IsBST` (binary-search-tree) hypothesis:
 the executable {lit}`member` really is a guided search, and for a non-BST tree
 a rotation can change what the search finds, so the statement is only
 meaningful for well-formed trees.
 
-Main results:
+Main results (all kernel-checked):
 
-- Theorem {lit}`keys_insert`: inserting {lit}`(x, p)` adds exactly {lit}`x` to
-  the key set.
-- Theorem {lit}`member_insert`: for well-formed trees, membership of
-  {lit}`insert x p t` equals the old membership together with the new key.
-- Theorem {lit}`insert_member`: after inserting {lit}`x`, searching for
-  {lit}`x` succeeds.
+- Membership: {lit}`keys_insert`, {lit}`member_iff_keys`, {lit}`member_insert`,
+  {lit}`insert_member`.
+- BST preservation: {lit}`IsBST_insert` (with {lit}`IsBST_rotL`/`IsBST_rotR`).
+- Heap preservation: {lit}`prioOf_insert` (the structural core),
+  {lit}`IsHeap_insert` (the capstone), with {lit}`prioLE_insert`,
+  {lit}`insert_of_mem_keys`, {lit}`IsHeap_rotL`/`IsHeap_rotR`.
 
 Planned (not yet stated — needs the finite-expectation layer):
 
