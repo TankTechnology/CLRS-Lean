@@ -36,6 +36,14 @@ the recovery-step timeline lemma, and the full `O(VE²)` counting argument
 breadth-first search computing shortest residual paths — and with them the
 shortest augmenting paths the loop augments along — lives in
 `S4_ExecutableBFS` (`residualBFS`, `bfs_shortestAugmenting`).
+
+## Implementation details
+
+* [Ford-Fulkerson augmentation foundation](CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation/)
+* [Shortest augmenting paths](CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S1_ShortestAugmentingPath/)
+* [The Edmonds-Karp loop](CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S2_EK_Loop/)
+* [The O(VE²) work analysis](CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S3_WorkAnalysis/)
+* [Executable residual BFS](CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S4_ExecutableBFS/)
 -/
 
 set_option autoImplicit true

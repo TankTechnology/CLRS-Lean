@@ -9,6 +9,11 @@ Defines the B-tree data type, key membership, and the full structural invariants
 `splitChild_preserves_sorted`, `splitChild_preserves_childBounded`,
 `splitChild_preserves_occupancy`, and `splitChild_preserves_sameDepth`, combined
 into `splitChild_preserves_wellFormed` (all with 0 `sorry`).
+
+## Implementation details
+
+* [B-tree search](CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search/)
+* [Key count and height bound](CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/HeightBound/)
 -/
 
 namespace CLRS

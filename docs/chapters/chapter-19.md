@@ -3,8 +3,12 @@
 - Status: `main-proof-complete-for-correctness`
 - Lean entry: `CLRSLean/Chapter_19.lean`
 - Interface test: `Tests/Chapter_19_Interface.lean`
+- Canonical sections: `Section_19_1_Fibonacci_Heap_Model`,
+  `Section_19_2_Mergeable_Heap_Operations`,
+  `Section_19_3_Decreasing_A_Key_And_Deleting_A_Node`, and
+  `Section_19_4_Bounding_Maximum_Degree`
 
-## Proved First-Pass Surface
+## Section 19.1 Abstract Contract Surface
 
 - `CLRS.Chapter19.FibHeap.makeHeap_correct`
 - `CLRS.Chapter19.FibHeap.makeHeap_valid`
@@ -120,7 +124,7 @@
 - `CLRS.Chapter19.FTree.minTree_wellformed`
 - `CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound`
 
-## Executable Core and Amortized Analysis
+## Sections 19.2 and 19.3 Executable Core and Amortized Analysis
 
 The persistent `FHNode`/`FH` layer now completes the represented Chapter 19
 algorithm stack: exact duplicate-preserving key bags, a cached minimum,
@@ -138,3 +142,7 @@ standard `t(H) + 2m(H)` potential proves:
 Mutable circular doubly linked lists, allocation, and a concrete RAM/pointer
 latency refinement remain optional implementation layers; they are not missing
 core correctness groups for the persistent executable model.
+
+The former `S1_ExecutableFibHeap`, `S2_CascadingCuts`, and
+`S3_AmortizedCosts` modules remain available as compatibility imports only;
+new code and the website use the canonical textbook-section modules above.
