@@ -3653,19 +3653,29 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRS.Chapter27.CompDAG.work` (T₁, total work)
   - `CLRS.Chapter27.CompDAG.longestTo` / `CLRS.Chapter27.CompDAG.span`
     (T∞, honestly computed longest weighted path by DP)
+  - `CLRS.Chapter27.GreedyScheduleAccounting` (aggregate complete/incomplete
+    step accounting certificate)
+  - `CLRS.Chapter27.GreedyScheduleTrace` (ordered complete/incomplete trace)
+  - `CLRS.Chapter27.GreedyScheduleRun` (per-step work consumption and span
+    decrease, with local progress obligations)
   - `CLRS.Chapter27.SpawnTree` (spawn/sync tree with unit spawn overhead)
   - `CLRS.Chapter27.parallelLoopTree` (balanced parallel-loop spawn tree)
 - Proved theorems:
   - `CLRS.Chapter27.CompDAG.longestTo_le`, `CLRS.Chapter27.CompDAG.span_le_work`
     (T∞ ≤ T₁ on DAGs)
+  - `CLRS.Chapter27.GreedyScheduleAccounting.time_le_work_div_add_span`,
+    `CLRS.Chapter27.GreedyScheduleTrace.time_le_work_div_add_span`, and
+    `CLRS.Chapter27.GreedyScheduleRun.time_le_work_div_add_span`
+    (`Tₚ ≤ T₁ / p + T∞` at the aggregate, ordered-trace, and local per-step
+    accounting boundaries)
   - `CLRS.Chapter27.SpawnTree.span_le_work` (T∞ ≤ T₁ on spawn trees)
   - `CLRS.Chapter27.parallelLoop_work` (exact work `n * w + (n - 1)`)
   - `CLRS.Chapter27.parallelLoop_span` (exact span `w + depth`)
   - `CLRS.Chapter27.parallelLoopDepth_pow` (`n ≤ 2 ^ depth`, the
     span-is-logarithmic direction)
-- Current gap: the greedy-scheduler bound (Theorem 27.1/27.2) needs an
-  explicit time-step execution model; a matching `depth ≤ log₂ n + 1` upper
-  bound is future work.
+- Current gap: construct `GreedyScheduleRun` from explicit `CompDAG`
+  ready-strand steps, thereby discharging local work/span progress from the DAG
+  semantics; a matching `depth ≤ log₂ n + 1` upper bound is future work.
 
 ### Section 27.2-27.4 - Multithreaded Algorithms
 

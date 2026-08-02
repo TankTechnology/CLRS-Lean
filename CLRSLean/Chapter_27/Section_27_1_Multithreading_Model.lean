@@ -24,6 +24,10 @@ Main results:
 
 - `CompDAG.longestTo_le`, `CompDAG.span_le_work`: the span never exceeds the
   work (T∞ ≤ T₁).
+- `GreedyScheduleAccounting.time_le_work_div_add_span` and
+  `GreedyScheduleRun.time_le_work_div_add_span`: the CLRS complete-step /
+  incomplete-step accounting argument gives `Tₚ ≤ T₁ / p + T∞`, both at the
+  aggregate boundary and from local per-step progress obligations.
 - `SpawnTree.span_le_work`: the same inequality for spawn trees.
 - `parallelLoop_work`: the work of the parallel-loop tree is exactly
   `n * w + (n - 1)`.
@@ -34,8 +38,9 @@ Main results:
 
 ## Deferred work
 
-* The greedy-scheduler bound (CLRS Theorem 27.1/27.2, `Tp ≤ T₁/p + T∞`)
-  requires an explicit time-step execution model and is not claimed here.
+* Constructing `GreedyScheduleRun` from an explicit ready-strand execution of
+  `CompDAG` remains to connect the per-step theorem directly to the executable
+  DAG model.
 * A matching upper bound `parallelLoopDepth n ≤ Nat.log 2 n + 1` (i.e.
   `Nat.clog`-style exact characterization) is future work.
 -/
@@ -160,6 +165,239 @@ theorem span_le_work (G : CompDAG) : G.span ≤ G.work := by
         (by simp)
 
 end CompDAG
+
+/-! ## Greedy-scheduler accounting
+
+CLRS partitions a greedy execution into complete steps, which execute one
+strand on every processor, and incomplete steps, which execute every ready
+strand.  Complete steps are paid for by total work; incomplete steps are paid
+for by a unit decrease in the remaining span.  This structure records exactly
+the two obligations needed by that argument, independently of the concrete DAG
+execution representation that produces them. -/
+
+/-- The accounting certificate extracted from a greedy schedule.
+
+`completeSteps` steps each consume `processors` units of work, while the number
+of `incompleteSteps` is bounded by the initial span. -/
+structure GreedyScheduleAccounting where
+  /-- Number of processors used by the schedule. -/
+  processors : ℕ
+  /-- Total work `T₁` of the computation. -/
+  totalWork : ℕ
+  /-- Initial span `T∞` of the computation. -/
+  totalSpan : ℕ
+  /-- Number of time steps that use every processor. -/
+  completeSteps : ℕ
+  /-- Number of time steps that execute fewer than all processors. -/
+  incompleteSteps : ℕ
+  /-- A schedule has at least one processor. -/
+  processors_pos : 0 < processors
+  /-- Complete steps cannot consume more than the available total work. -/
+  complete_work_bound : completeSteps * processors ≤ totalWork
+  /-- Every incomplete step consumes at least one unit of remaining span. -/
+  incomplete_span_bound : incompleteSteps ≤ totalSpan
+
+namespace GreedyScheduleAccounting
+
+/-- Parallel running time is the number of complete plus incomplete steps. -/
+def time (A : GreedyScheduleAccounting) : ℕ :=
+  A.completeSteps + A.incompleteSteps
+
+/-- CLRS Theorems 27.1/27.2 at the accounting boundary:
+`Tₚ ≤ T₁ / p + T∞`. -/
+theorem time_le_work_div_add_span (A : GreedyScheduleAccounting) :
+    A.time ≤ A.totalWork / A.processors + A.totalSpan := by
+  have hcomplete : A.completeSteps ≤ A.totalWork / A.processors :=
+    (Nat.le_div_iff_mul_le A.processors_pos).2 A.complete_work_bound
+  exact Nat.add_le_add hcomplete A.incomplete_span_bound
+
+end GreedyScheduleAccounting
+
+/-! ## Greedy-schedule traces -/
+
+/-- Whether a greedy-schedule step keeps every processor busy or exhausts the
+currently ready strands before doing so. -/
+inductive GreedyStepKind where
+  | complete
+  | incomplete
+deriving Repr, DecidableEq
+
+/-- A finite greedy-schedule trace together with the two global bounds that
+justify its complete and incomplete steps.  Unlike
+`GreedyScheduleAccounting`, this representation retains the order of steps. -/
+structure GreedyScheduleTrace where
+  /-- Number of processors used by the schedule. -/
+  processors : ℕ
+  /-- Total work `T₁` of the computation. -/
+  totalWork : ℕ
+  /-- Initial span `T∞` of the computation. -/
+  totalSpan : ℕ
+  /-- Complete and incomplete steps, in execution order. -/
+  steps : List GreedyStepKind
+  /-- A schedule has at least one processor. -/
+  processors_pos : 0 < processors
+  /-- The complete steps cannot consume more than the available work. -/
+  complete_work_bound : steps.count .complete * processors ≤ totalWork
+  /-- The incomplete steps cannot outnumber the initial span. -/
+  incomplete_span_bound : steps.count .incomplete ≤ totalSpan
+
+namespace GreedyScheduleTrace
+
+/-- Parallel running time is the number of recorded schedule steps. -/
+def time (S : GreedyScheduleTrace) : ℕ :=
+  S.steps.length
+
+/-- Forget step order and retain the accounting data used by the bound. -/
+def accounting (S : GreedyScheduleTrace) : GreedyScheduleAccounting where
+  processors := S.processors
+  totalWork := S.totalWork
+  totalSpan := S.totalSpan
+  completeSteps := S.steps.count .complete
+  incompleteSteps := S.steps.count .incomplete
+  processors_pos := S.processors_pos
+  complete_work_bound := S.complete_work_bound
+  incomplete_span_bound := S.incomplete_span_bound
+
+private theorem count_complete_add_count_incomplete
+    (steps : List GreedyStepKind) :
+    steps.count .complete + steps.count .incomplete = steps.length := by
+  induction steps with
+  | nil => simp
+  | cons step steps ih =>
+      cases step <;> simp <;> omega
+
+/-- The schedule-trace form of the greedy-scheduler bound:
+`Tₚ ≤ T₁ / p + T∞`. -/
+theorem time_le_work_div_add_span (S : GreedyScheduleTrace) :
+    S.time ≤ S.totalWork / S.processors + S.totalSpan := by
+  have h := S.accounting.time_le_work_div_add_span
+  rw [GreedyScheduleAccounting.time] at h
+  rw [time, ← count_complete_add_count_incomplete S.steps]
+  exact h
+
+end GreedyScheduleTrace
+
+/-! ## Per-step greedy-schedule accounting -/
+
+/-- The metric changes caused by one greedy-schedule step. -/
+structure GreedyScheduleStep where
+  /-- Whether the step filled every processor. -/
+  kind : GreedyStepKind
+  /-- Amount of remaining work consumed by the step. -/
+  workConsumed : ℕ
+  /-- Amount by which the remaining span decreases. -/
+  spanDecrease : ℕ
+deriving Repr, DecidableEq
+
+/-- A schedule run whose resource bounds and progress obligations are stated
+locally, one execution step at a time.
+
+The eventual ready-set semantics only needs to produce this interface: a
+complete step consumes at least `processors` work, and an incomplete step
+decreases the remaining span by at least one. -/
+structure GreedyScheduleRun where
+  /-- Number of processors used by the schedule. -/
+  processors : ℕ
+  /-- Initial work `T₁`. -/
+  totalWork : ℕ
+  /-- Initial span `T∞`. -/
+  totalSpan : ℕ
+  /-- Metric changes of the execution steps, in order. -/
+  steps : List GreedyScheduleStep
+  /-- A schedule has at least one processor. -/
+  processors_pos : 0 < processors
+  /-- All step work consumptions fit within the initial work. -/
+  work_budget : (steps.map GreedyScheduleStep.workConsumed).sum ≤ totalWork
+  /-- All span decreases fit within the initial span. -/
+  span_budget : (steps.map GreedyScheduleStep.spanDecrease).sum ≤ totalSpan
+  /-- Every complete step keeps all processors busy. -/
+  complete_progress : ∀ step ∈ steps,
+    step.kind = .complete → processors ≤ step.workConsumed
+  /-- Every incomplete step advances the critical path. -/
+  incomplete_progress : ∀ step ∈ steps,
+    step.kind = .incomplete → 1 ≤ step.spanDecrease
+
+namespace GreedyScheduleRun
+
+/-- Parallel running time is the number of execution steps. -/
+def time (S : GreedyScheduleRun) : ℕ :=
+  S.steps.length
+
+private theorem complete_count_mul_le_work
+    (processors : ℕ) (steps : List GreedyScheduleStep)
+    (hprogress : ∀ step ∈ steps,
+      step.kind = .complete → processors ≤ step.workConsumed) :
+    (steps.map GreedyScheduleStep.kind).count .complete * processors ≤
+      (steps.map GreedyScheduleStep.workConsumed).sum := by
+  induction steps with
+  | nil => simp
+  | cons step steps ih =>
+      have htail : ∀ tailStep ∈ steps,
+          tailStep.kind = .complete → processors ≤ tailStep.workConsumed := by
+        intro tailStep hmem
+        exact hprogress tailStep (List.mem_cons_of_mem step hmem)
+      have ih' := ih htail
+      cases hkind : step.kind with
+      | complete =>
+          have hstep : processors ≤ step.workConsumed :=
+            hprogress step List.mem_cons_self hkind
+          simp [hkind]
+          rw [Nat.add_mul]
+          omega
+      | incomplete =>
+          simp [hkind]
+          omega
+
+private theorem incomplete_count_le_span
+    (steps : List GreedyScheduleStep)
+    (hprogress : ∀ step ∈ steps,
+      step.kind = .incomplete → 1 ≤ step.spanDecrease) :
+    (steps.map GreedyScheduleStep.kind).count .incomplete ≤
+      (steps.map GreedyScheduleStep.spanDecrease).sum := by
+  induction steps with
+  | nil => simp
+  | cons step steps ih =>
+      have htail : ∀ tailStep ∈ steps,
+          tailStep.kind = .incomplete → 1 ≤ tailStep.spanDecrease := by
+        intro tailStep hmem
+        exact hprogress tailStep (List.mem_cons_of_mem step hmem)
+      have ih' := ih htail
+      cases hkind : step.kind with
+      | complete =>
+          simp [hkind]
+          omega
+      | incomplete =>
+          have hstep : 1 ≤ step.spanDecrease :=
+            hprogress step List.mem_cons_self hkind
+          simp [hkind]
+          omega
+
+/-- Forget metric magnitudes while deriving the global trace bounds from the
+per-step progress and resource-budget obligations. -/
+def trace (S : GreedyScheduleRun) : GreedyScheduleTrace where
+  processors := S.processors
+  totalWork := S.totalWork
+  totalSpan := S.totalSpan
+  steps := S.steps.map GreedyScheduleStep.kind
+  processors_pos := S.processors_pos
+  complete_work_bound :=
+    (complete_count_mul_le_work S.processors S.steps S.complete_progress).trans
+      S.work_budget
+  incomplete_span_bound :=
+    (incomplete_count_le_span S.steps S.incomplete_progress).trans S.span_budget
+
+/-- The aggregate accounting certificate derived from local step progress. -/
+def accounting (S : GreedyScheduleRun) : GreedyScheduleAccounting :=
+  S.trace.accounting
+
+/-- The per-step execution form of the greedy-scheduler bound:
+`Tₚ ≤ T₁ / p + T∞`. -/
+theorem time_le_work_div_add_span (S : GreedyScheduleRun) :
+    S.time ≤ S.totalWork / S.processors + S.totalSpan := by
+  have h := S.trace.time_le_work_div_add_span
+  simpa [time, GreedyScheduleTrace.time, trace] using h
+
+end GreedyScheduleRun
 
 /-! ## Spawn trees
 
