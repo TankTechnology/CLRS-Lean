@@ -41,7 +41,7 @@ Main results:
   `consolidateList_keyBag`, `consolidateList_forestSize`,
   `consolidateList_rootsUnmarked`, and `consolidateList_degreeStrict`:
   `CONSOLIDATE` correctness and at most one root per degree after consolidation
-- `FH`: an executable heap (root forest + node count)
+- `FH`: an executable heap (root forest + node count + cached minimum root)
 - `FH.keyBag`, `FH.Represents`, and `FH.Valid`: exact representation and the
   executable global invariant
 - `FH.makeHeap` / `FH.insert` / `FH.union` / `FH.minimum` / `FH.extractMin`:
@@ -53,13 +53,10 @@ Main results:
 - `FH.potential` / `FH.cutRootChildAt_potential_eq`: executable
   `t(H) + 2m(H)` accounting and the exact one-step CUT potential change
 
-Current gaps:
-
-- A cached minimum pointer, stable node identity/handles (including duplicate
-  keys), arbitrary-node paths, cascading cuts, executable
-  `decreaseKey`/`delete`, and actual-operation cost semantics remain future
-  targets.  Circular pointer lists are a lower-level refinement of the
-  persistent root-list model used here.
+The follow-on S2/S3 modules add duplicate-safe occurrence paths, arbitrary-node
+cascading cuts, executable decrease/delete, and certified operation/trace
+costs.  Circular doubly linked lists and mutable pointer allocation remain
+lower-level refinements of this persistent forest model.
 -/
 
 namespace CLRS
@@ -164,6 +161,10 @@ def forestMarks (roots : List FHNode) : Nat :=
     forestMarks (t :: ts) = t.marks + forestMarks ts := by
   simp [forestMarks]
 
+@[simp] theorem forestMarks_append (left right : List FHNode) :
+    forestMarks (left ++ right) = forestMarks left + forestMarks right := by
+  simp [forestMarks]
+
 @[simp] theorem keyBag_node (k : Int) (m : Bool) (cs : List FHNode) :
     keyBag (node k m cs) = {k} + forestKeyBag cs := by
   simp [keyBag, forestKeyBag]
@@ -219,6 +220,22 @@ def toFTree : FHNode → FTree
 model: the child in position `j` has degree at least `j - 1`. -/
 def Wellformed (t : FHNode) : Prop := (t.toFTree).Wellformed
 
+/-- The mark-aware form of the CLRS child-loss invariant.  An unmarked child
+in link position `j` has not yet lost a child and therefore retains degree at
+least `j`; a marked child may have lost one child and retains degree at least
+`j - 1`.  Every descendant satisfies the same invariant. -/
+inductive LossInvariant : FHNode → Prop where
+  | node {k : Int} {marked : Bool} {children : List FHNode}
+      (hdeg : ∀ (j : Nat) (hj : j < children.length),
+        j - (if children[j].marked then 1 else 0) ≤ children[j].degree)
+      (hall : ∀ child ∈ children, LossInvariant child) :
+      LossInvariant (node k marked children)
+
+/-- Every root subtree in a forest satisfies the mark-aware child-loss
+invariant. -/
+def ForestLossInvariant (roots : List FHNode) : Prop :=
+  ∀ root ∈ roots, root.LossInvariant
+
 @[simp] theorem toFTree_node (k : Int) (m : Bool) (cs : List FHNode) :
     (node k m cs).toFTree = FTree.node (cs.map toFTree) := by
   rw [toFTree]
@@ -239,6 +256,33 @@ theorem toFTree_size (t : FHNode) : (t.toFTree).size = t.size := by
   · simp
   · intro c cs ih_c ih_cs
     simp [ih_c, ih_cs]
+
+/-- The mark-aware loss invariant implies the weaker Lemma 19.1 structural
+invariant used by the Fibonacci subtree-size theorem. -/
+theorem lossInvariant_wellformed :
+    ∀ t : FHNode, t.LossInvariant → t.Wellformed
+  | node k marked children, hloss => by
+      cases hloss with
+      | node hdeg hall =>
+          unfold Wellformed
+          rw [toFTree]
+          refine FTree.Wellformed.node ?_ ?_
+          · intro j hj
+            have hjchildren : j < children.length := by
+              simpa [List.length_map] using hj
+            have hbound := hdeg j hjchildren
+            have hdegree : (children.map toFTree)[j].degree = children[j].degree := by
+              rw [List.getElem_map, toFTree_degree]
+            rw [hdegree]
+            cases hmark : children[j].marked <;> simp [hmark] at hbound <;> omega
+          · intro child hchild
+            obtain ⟨source, hsource, rfl⟩ := List.mem_map.mp hchild
+            exact lossInvariant_wellformed source (hall source hsource)
+  termination_by t => sizeOf t
+  decreasing_by
+    have hlt : sizeOf source < sizeOf children := List.sizeOf_lt_of_mem hsource
+    simp only [FHNode.node.sizeOf_spec]
+    omega
 
 /-- A wellformed node of degree `d` has subtree size at least `F(d+2)`
 (CLRS Lemma 19.4, inherited from the `FTree` model). -/
@@ -262,6 +306,44 @@ theorem leaf_heapOrdered (k : Int) : HeapOrdered (node k false []) := by
 
 theorem leaf_wellformed (k : Int) : (node k false []).Wellformed := by
   simpa [Wellformed, toFTree] using FTree.wellformed_leaf
+
+/-- A singleton node has not lost any children. -/
+theorem leaf_lossInvariant (k : Int) : (node k false []).LossInvariant := by
+  refine LossInvariant.node ?_ ?_ <;> simp
+
+/-- Appending an unmarked equal-degree child preserves the mark-aware loss
+invariant.  This is the local structural fact used by `LINK`. -/
+theorem lossInvariant_append_child (k : Int) (marked : Bool)
+    (children : List FHNode) (child : FHNode)
+    (hparent : (node k marked children).LossInvariant)
+    (hchild : child.LossInvariant) (hchildMark : child.marked = false)
+    (hdegree : (node k marked children).degree = child.degree) :
+    (node k marked (children ++ [child])).LossInvariant := by
+  cases hparent with
+  | node hdeg hall =>
+      refine LossInvariant.node ?_ ?_
+      · intro j hj
+        rw [List.length_append, List.length_singleton] at hj
+        rcases Nat.lt_or_ge j children.length with hlt | hge
+        · have hget : (children ++ [child])[j] = children[j] :=
+            List.getElem_append_left hlt
+          rw [hget]
+          exact hdeg j hlt
+        · have hjeq : j = children.length := by omega
+          have hget : (children ++ [child])[j] = child := by
+            rw [List.getElem_concat_length hjeq]
+          rw [hget, hjeq, hchildMark]
+          simp only [Bool.false_eq_true, ↓reduceIte, Nat.sub_zero]
+          have hdegree' : children.length = child.degree := by
+            simpa [degree, FHNode.children] using hdegree
+          exact hdegree'.le
+      · intro current hcurrent
+        rw [List.mem_append] at hcurrent
+        rcases hcurrent with hcurrent | hcurrent
+        · exact hall current hcurrent
+        · rw [List.mem_singleton] at hcurrent
+          subst current
+          exact hchild
 
 /-- Heap order is preserved by appending a child whose key is at least the
 parent's, when both are heap-ordered. -/
@@ -348,6 +430,29 @@ theorem link_wellformed (x y : FHNode) (hx : x.Wellformed) (hy : y.Wellformed)
         have hw := FTree.link_wellformed (FTree.node (cs.map toFTree)) x.toFTree
           (by simpa [Wellformed, toFTree] using hy) hx hdeg
         simpa [toFTree, FTree.link] using hw
+
+/-- Equal-degree linking of unmarked roots preserves the mark-aware child-loss
+invariant.  The losing root is appended in the new position at exactly the
+degree required of an unmarked child. -/
+theorem link_lossInvariant (x y : FHNode)
+    (hx : x.LossInvariant) (hy : y.LossInvariant)
+    (hxmark : x.marked = false) (hymark : y.marked = false)
+    (hdegree : x.degree = y.degree) :
+    (link x y).LossInvariant := by
+  unfold link
+  by_cases hkey : x.key ≤ y.key
+  · cases x with
+    | node k marked children =>
+        have hkey' : k ≤ y.key := by simpa using hkey
+        simp only [key_node, marked_node, children_node]
+        rw [if_pos hkey']
+        exact lossInvariant_append_child k marked children y hx hy hymark hdegree
+  · cases y with
+    | node k marked children =>
+        have hkey' : ¬ x.key ≤ k := by simpa using hkey
+        simp only [key_node, marked_node, children_node]
+        rw [if_neg hkey']
+        exact lossInvariant_append_child k marked children x hy hx hxmark hdegree.symm
 
 /-- `LINK` preserves the key set of the two subtrees. -/
 theorem link_keys (x y : FHNode) :
@@ -455,6 +560,27 @@ theorem link_size (x y : FHNode) : (link x y).size = x.size + y.size := by
             simp [size]
             omega
 
+/-- Linking roots preserves the total number of marked nodes in their two
+subtrees. -/
+theorem link_marks (x y : FHNode) :
+    (link x y).marks = x.marks + y.marks := by
+  unfold link
+  by_cases h : x.key ≤ y.key
+  · cases x with
+    | node k m cs =>
+        have h' : k ≤ y.key := by simpa using h
+        simp only [key_node, marked_node, children_node]
+        rw [if_pos h']
+        simp [marks, forestMarks]
+        omega
+  · cases y with
+    | node k m cs =>
+        have h' : ¬ x.key ≤ k := by simpa using h
+        simp only [key_node, marked_node, children_node]
+        rw [if_neg h']
+        simp [marks, forestMarks]
+        omega
+
 /-! ## CONSOLIDATE by degree-bucket merging -/
 
 /-- A forest is structurally good when every tree is heap-ordered and
@@ -467,6 +593,42 @@ increasing (the invariant `CONSOLIDATE` maintains: at most one root per
 degree, roots ordered by degree). -/
 def DegreeStrict (ts : List FHNode) : Prop :=
   ts.Pairwise (fun a b => a.degree < b.degree)
+
+/-- A tree in a forest contributes no more nodes than the complete forest. -/
+theorem size_le_forestSize_of_mem {roots : List FHNode} {root : FHNode}
+    (hroot : root ∈ roots) : root.size ≤ forestSize roots := by
+  induction roots with
+  | nil => simp at hroot
+  | cons current roots ih =>
+      simp only [List.mem_cons] at hroot
+      simp only [forestSize, List.map_cons, List.sum_cons]
+      rcases hroot with rfl | hroot
+      · omega
+      · have := ih hroot
+        simp only [forestSize] at this
+        omega
+
+/-- A degree-strict forest whose root degrees are bounded by `bound` has at
+most `bound + 1` roots. -/
+theorem length_le_succ_of_degreeStrict {roots : List FHNode} {bound : Nat}
+    (hstrict : DegreeStrict roots)
+    (hbound : ∀ root ∈ roots, root.degree ≤ bound) :
+    roots.length ≤ bound + 1 := by
+  let degrees := roots.map FHNode.degree
+  have hpairwise : degrees.Pairwise (fun a b => a < b) := by
+    exact List.pairwise_map.mpr hstrict
+  have hnodup : degrees.Nodup := hpairwise.nodup
+  have hsubset : degrees.toFinset ⊆ Finset.range (bound + 1) := by
+    intro degree hdegree
+    rw [List.mem_toFinset] at hdegree
+    obtain ⟨root, hroot, rfl⟩ := List.mem_map.mp hdegree
+    rw [Finset.mem_range, Nat.lt_succ_iff]
+    exact hbound root hroot
+  calc
+    roots.length = degrees.length := by simp [degrees]
+    _ = degrees.toFinset.card := (List.toFinset_card_of_nodup hnodup).symm
+    _ ≤ (Finset.range (bound + 1)).card := Finset.card_le_card hsubset
+    _ = bound + 1 := Finset.card_range (bound + 1)
 
 /-- Insert a root into a degree-strict forest, linking it with the stored
 root of the same degree (the smaller key becomes the parent) and continuing
@@ -553,6 +715,27 @@ theorem insertConsolidated_forestSize (ys : List FHNode) (x : FHNode) :
           omega
         · rw [if_neg h2]
           simp only [forestSize_cons]
+          omega
+
+/-- One degree-bucket insertion preserves the total marked-node count. -/
+theorem insertConsolidated_forestMarks (ys : List FHNode) (x : FHNode) :
+    forestMarks (insertConsolidated ys x) = forestMarks ys + x.marks := by
+  revert x
+  induction ys with
+  | nil => intro x; simp [insertConsolidated]
+  | cons y ys ih =>
+      intro x
+      unfold insertConsolidated
+      by_cases h1 : y.degree = x.degree
+      · rw [if_pos h1, ih, link_marks]
+        simp only [forestMarks_cons]
+        omega
+      · rw [if_neg h1]
+        by_cases h2 : y.degree < x.degree
+        · rw [if_pos h2, forestMarks_cons, ih, forestMarks_cons]
+          omega
+        · rw [if_neg h2]
+          simp only [forestMarks_cons]
           omega
 
 /-- Structural goodness is preserved by one insertion with consolidation. -/
@@ -668,6 +851,53 @@ theorem insertConsolidated_rootsUnmarked (ys : List FHNode) (x : FHNode)
             rcases ht with ht | ht
             · subst t
               exact hy
+            · exact hys' t ht
+
+/-- Bucket insertion preserves the mark-aware loss invariant when all inputs
+are unmarked roots. -/
+theorem insertConsolidated_lossInvariant (ys : List FHNode) (x : FHNode)
+    (hys : ForestLossInvariant ys) (hx : x.LossInvariant)
+    (hunmarked : RootsUnmarked ys) (hxmark : x.marked = false) :
+    ForestLossInvariant (insertConsolidated ys x) := by
+  induction ys generalizing x with
+  | nil =>
+      intro t ht
+      simp [insertConsolidated] at ht
+      subst t
+      exact hx
+  | cons y ys ih =>
+      have hy : y.LossInvariant := hys y (by simp)
+      have hys' : ForestLossInvariant ys := by
+        intro t ht
+        exact hys t (by simp [ht])
+      have hymark : y.marked = false := hunmarked y (by simp)
+      have hunmarked' : RootsUnmarked ys := by
+        intro t ht
+        exact hunmarked t (by simp [ht])
+      unfold insertConsolidated
+      by_cases hdegree : y.degree = x.degree
+      · rw [if_pos hdegree]
+        have hlink : (link x y).LossInvariant :=
+          link_lossInvariant x y hx hy hxmark hymark hdegree.symm
+        have hlinkMark : (link x y).marked = false :=
+          link_marked_false x y hxmark hymark
+        exact ih (link x y) hys' hlink hunmarked' hlinkMark
+      · rw [if_neg hdegree]
+        by_cases hlt : y.degree < x.degree
+        · rw [if_pos hlt]
+          intro t ht
+          rw [List.mem_cons] at ht
+          rcases ht with rfl | ht
+          · exact hy
+          · exact ih x hys' hx hunmarked' hxmark t ht
+        · rw [if_neg hlt]
+          intro t ht
+          rw [List.mem_cons] at ht
+          rcases ht with rfl | ht
+          · exact hx
+          · rw [List.mem_cons] at ht
+            rcases ht with rfl | ht
+            · exact hy
             · exact hys' t ht
 
 /-- Inserting into a degree-strict forest preserves the lower bound `k <
@@ -789,6 +1019,15 @@ theorem consolidateList_forestSize : ∀ roots : List FHNode,
         consolidateList_forestSize, forestSize_cons]
       omega
 
+/-- `CONSOLIDATE` preserves the complete marked-node count. -/
+theorem consolidateList_forestMarks : ∀ roots : List FHNode,
+    forestMarks (consolidateList roots) = forestMarks roots
+  | [] => by simp [consolidateList]
+  | x :: xs => by
+      rw [consolidateList, insertConsolidated_forestMarks,
+        consolidateList_forestMarks, forestMarks_cons]
+      omega
+
 /-- `CONSOLIDATE` preserves the CLRS root-mark rule. -/
 theorem consolidateList_rootsUnmarked : ∀ roots : List FHNode,
     RootsUnmarked roots → RootsUnmarked (consolidateList roots)
@@ -802,6 +1041,29 @@ theorem consolidateList_rootsUnmarked : ∀ roots : List FHNode,
         exact hunmarked t (by simp [ht])
       exact insertConsolidated_rootsUnmarked (consolidateList xs) x
         (consolidateList_rootsUnmarked xs hxs) hx
+
+/-- `CONSOLIDATE` preserves the mark-aware loss invariant of an unmarked root
+forest. -/
+theorem consolidateList_lossInvariant : ∀ roots : List FHNode,
+    ForestLossInvariant roots → RootsUnmarked roots →
+      ForestLossInvariant (consolidateList roots)
+  | [] => by
+      intro _ _ root hroot
+      simp [consolidateList] at hroot
+  | x :: xs => by
+      intro hloss hunmarked
+      rw [consolidateList]
+      have hx : x.LossInvariant := hloss x (by simp)
+      have hxs : ForestLossInvariant xs := by
+        intro t ht
+        exact hloss t (by simp [ht])
+      have hxmark : x.marked = false := hunmarked x (by simp)
+      have hxsmark : RootsUnmarked xs := by
+        intro t ht
+        exact hunmarked t (by simp [ht])
+      exact insertConsolidated_lossInvariant (consolidateList xs) x
+        (consolidateList_lossInvariant xs hxs hxsmark) hx
+        (consolidateList_rootsUnmarked xs hxsmark) hxmark
 
 /-- `CONSOLIDATE` preserves structural goodness of the root forest. -/
 theorem consolidateList_good : ∀ roots : List FHNode,
@@ -837,10 +1099,13 @@ theorem consolidateList_degreeStrict : ∀ roots : List FHNode,
 
 end FHNode
 
-/-- An executable Fibonacci heap: a root forest and the total node count. -/
+/-- An executable Fibonacci heap: a root forest, the total node count, and a
+persistent cached minimum root.  Caching the root value models the CLRS
+minimum pointer without making root-list positions part of its identity. -/
 structure FH where
   roots : List FHNode
   size : Nat
+  minRoot : Option FHNode
 
 namespace FH
 
@@ -855,35 +1120,60 @@ def keyBag (h : FH) : Multiset Int :=
 def Represents (h : FH) (bag : Multiset Int) : Prop :=
   h.keyBag = bag
 
-/-- Structural, root-mark, and stored-size validity. -/
+/-- The cached minimum is absent exactly for the empty forest; otherwise it is
+an actual root whose key is no greater than every represented occurrence. -/
+def MinRootValid (h : FH) : Prop :=
+  match h.minRoot with
+  | none => h.roots = []
+  | some root =>
+      root ∈ h.roots ∧ ∀ y ∈ h.keyBag, root.key ≤ y
+
+/-- Structural, mark-aware, root-mark, stored-size, and minimum-cache
+validity. -/
 def Valid (h : FH) : Prop :=
   FHNode.ForestGood h.roots ∧
+  FHNode.ForestLossInvariant h.roots ∧
   FHNode.RootsUnmarked h.roots ∧
-  h.size = FHNode.forestSize h.roots
+  h.size = FHNode.forestSize h.roots ∧
+  h.MinRootValid
 
 /-- The empty heap. -/
 def makeHeap : FH :=
-  { roots := [], size := 0 }
+  { roots := [], size := 0, minRoot := none }
 
 /-- Insert a new key as an unmarked root (CLRS `FIB-HEAP-INSERT`). -/
 def insert (x : Int) (h : FH) : FH :=
-  { roots := FHNode.node x false [] :: h.roots
-  , size := h.size + 1 }
+  let root := FHNode.node x false []
+  { roots := root :: h.roots
+  , size := h.size + 1
+  , minRoot :=
+      match h.minRoot with
+      | none => some root
+      | some old => if x ≤ old.key then some root else some old }
 
 /-- Union of two heaps: concatenate the root forests (CLRS `FIB-HEAP-UNION`). -/
 def union (h₁ h₂ : FH) : FH :=
   { roots := h₁.roots ++ h₂.roots
-  , size := h₁.size + h₂.size }
+  , size := h₁.size + h₂.size
+  , minRoot :=
+      match h₁.minRoot, h₂.minRoot with
+      | none, none => none
+      | some root, none => some root
+      | none, some root => some root
+      | some left, some right =>
+          if left.key ≤ right.key then some left else some right }
 
 /-- The empty executable heap is valid. -/
 theorem makeHeap_valid : makeHeap.Valid := by
-  simp [Valid, makeHeap, FHNode.ForestGood, FHNode.RootsUnmarked]
+  simp [Valid, MinRootValid, makeHeap, FHNode.ForestGood,
+    FHNode.ForestLossInvariant, FHNode.RootsUnmarked]
 
 /-- Inserting an unmarked singleton root preserves executable validity. -/
 theorem insert_valid (x : Int) (h : FH) (hvalid : h.Valid) :
     (insert x h).Valid := by
-  rcases hvalid with ⟨⟨hordered, hwellformed⟩, hunmarked, hsize⟩
-  refine ⟨?_, ?_, ?_⟩
+  rcases hvalid with
+    ⟨⟨hordered, hwellformed⟩, hloss, hunmarked, hsize, hminimum⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · constructor
     · intro t ht
       change t ∈ FHNode.node x false [] :: h.roots at ht
@@ -902,6 +1192,12 @@ theorem insert_valid (x : Int) (h : FH) (hvalid : h.Valid) :
   · intro t ht
     change t ∈ FHNode.node x false [] :: h.roots at ht
     rw [List.mem_cons] at ht
+    rcases ht with rfl | ht
+    · exact FHNode.leaf_lossInvariant x
+    · exact hloss t ht
+  · intro t ht
+    change t ∈ FHNode.node x false [] :: h.roots at ht
+    rw [List.mem_cons] at ht
     rcases ht with ht | ht
     · subst t
       rfl
@@ -910,14 +1206,52 @@ theorem insert_valid (x : Int) (h : FH) (hvalid : h.Valid) :
     rw [FHNode.forestSize_cons, hsize]
     simp
     omega
+  · unfold insert MinRootValid
+    dsimp only
+    cases hcache : h.minRoot with
+    | none =>
+        have hroots : h.roots = [] := by
+          simpa [MinRootValid, hcache] using hminimum
+        rw [hroots]
+        simp [keyBag, FHNode.keyBag]
+    | some old =>
+        have hcacheValid :
+            old ∈ h.roots ∧ ∀ y ∈ h.keyBag, old.key ≤ y := by
+          simpa [MinRootValid, hcache] using hminimum
+        by_cases hx : x ≤ old.key
+        · simp only [hcache, hx, ↓reduceIte]
+          constructor
+          · simp
+          · intro y hy
+            change y ∈ (FHNode.node x false []).keyBag +
+              FHNode.forestKeyBag h.roots at hy
+            rw [Multiset.mem_add] at hy
+            rcases hy with hy | hy
+            · have hyx : y = x := by simpa using hy
+              simpa [hyx]
+            · exact le_trans hx (hcacheValid.2 y (by simpa [keyBag] using hy))
+        · simp only [hcache, hx, ↓reduceIte]
+          constructor
+          · simp [hcacheValid.1]
+          · intro y hy
+            change y ∈ (FHNode.node x false []).keyBag +
+              FHNode.forestKeyBag h.roots at hy
+            rw [Multiset.mem_add] at hy
+            rcases hy with hy | hy
+            · have hyx : y = x := by simpa using hy
+              subst y
+              exact le_of_not_ge hx
+            · exact hcacheValid.2 y (by simpa [keyBag] using hy)
 
 /-- Concatenating two valid root forests preserves executable validity. -/
 theorem union_valid (h₁ h₂ : FH)
     (hvalid₁ : h₁.Valid) (hvalid₂ : h₂.Valid) :
     (union h₁ h₂).Valid := by
-  rcases hvalid₁ with ⟨⟨hordered₁, hwellformed₁⟩, hunmarked₁, hsize₁⟩
-  rcases hvalid₂ with ⟨⟨hordered₂, hwellformed₂⟩, hunmarked₂, hsize₂⟩
-  refine ⟨?_, ?_, ?_⟩
+  rcases hvalid₁ with
+    ⟨⟨hordered₁, hwellformed₁⟩, hloss₁, hunmarked₁, hsize₁, hminimum₁⟩
+  rcases hvalid₂ with
+    ⟨⟨hordered₂, hwellformed₂⟩, hloss₂, hunmarked₂, hsize₂, hminimum₂⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · constructor
     · intro t ht
       change t ∈ h₁.roots ++ h₂.roots at ht
@@ -930,13 +1264,80 @@ theorem union_valid (h₁ h₂ : FH)
   · intro t ht
     change t ∈ h₁.roots ++ h₂.roots at ht
     rw [List.mem_append] at ht
+    exact ht.elim (hloss₁ t) (hloss₂ t)
+  · intro t ht
+    change t ∈ h₁.roots ++ h₂.roots at ht
+    rw [List.mem_append] at ht
     exact ht.elim (hunmarked₁ t) (hunmarked₂ t)
   · change h₁.size + h₂.size = FHNode.forestSize (h₁.roots ++ h₂.roots)
     rw [FHNode.forestSize_append, hsize₁, hsize₂]
+  · unfold union MinRootValid
+    dsimp only
+    cases hcache₁ : h₁.minRoot with
+    | none =>
+        have hroots₁ : h₁.roots = [] := by
+          simpa [MinRootValid, hcache₁] using hminimum₁
+        cases hcache₂ : h₂.minRoot with
+        | none =>
+            have hroots₂ : h₂.roots = [] := by
+              simpa [MinRootValid, hcache₂] using hminimum₂
+            simp [hcache₁, hcache₂, hroots₁, hroots₂]
+        | some right =>
+            have hright :
+                right ∈ h₂.roots ∧ ∀ y ∈ h₂.keyBag, right.key ≤ y := by
+              simpa [MinRootValid, hcache₂] using hminimum₂
+            simp only [hcache₁, hcache₂]
+            constructor
+            · simp [hright.1]
+            · intro y hy
+              rw [keyBag, FHNode.forestKeyBag_append] at hy
+              rw [hroots₁] at hy
+              simpa [keyBag] using hright.2 y (by simpa [keyBag] using hy)
+    | some left =>
+        have hleft :
+            left ∈ h₁.roots ∧ ∀ y ∈ h₁.keyBag, left.key ≤ y := by
+          simpa [MinRootValid, hcache₁] using hminimum₁
+        cases hcache₂ : h₂.minRoot with
+        | none =>
+            have hroots₂ : h₂.roots = [] := by
+              simpa [MinRootValid, hcache₂] using hminimum₂
+            simp only [hcache₁, hcache₂]
+            constructor
+            · simp [hleft.1]
+            · intro y hy
+              rw [keyBag, FHNode.forestKeyBag_append, hroots₂] at hy
+              exact hleft.2 y (by simpa [keyBag] using hy)
+        | some right =>
+            have hright :
+                right ∈ h₂.roots ∧ ∀ y ∈ h₂.keyBag, right.key ≤ y := by
+              simpa [MinRootValid, hcache₂] using hminimum₂
+            by_cases hlr : left.key ≤ right.key
+            · simp only [hcache₁, hcache₂, hlr, ↓reduceIte]
+              constructor
+              · simp [hleft.1]
+              · intro y hy
+                rw [keyBag, FHNode.forestKeyBag_append, Multiset.mem_add] at hy
+                rcases hy with hy | hy
+                · exact hleft.2 y (by simpa [keyBag] using hy)
+                · exact le_trans hlr (hright.2 y (by simpa [keyBag] using hy))
+            · simp only [hcache₁, hcache₂, hlr, ↓reduceIte]
+              constructor
+              · simp [hright.1]
+              · intro y hy
+                rw [keyBag, FHNode.forestKeyBag_append, Multiset.mem_add] at hy
+                rcases hy with hy | hy
+                · exact le_trans (le_of_not_ge hlr)
+                    (hleft.2 y (by simpa [keyBag] using hy))
+                · exact hright.2 y (by simpa [keyBag] using hy)
 
 /-- The minimum key, if the heap is nonempty (CLRS `FIB-HEAP-MINIMUM`). -/
 def minimum (h : FH) : Option Int :=
-  if hne : h.keys.Nonempty then some (h.keys.min' hne) else none
+  h.minRoot.map FHNode.key
+
+/-- The minimum query is exactly the constant-time projection of the cached
+minimum root. -/
+theorem minimum_cached (h : FH) :
+    h.minimum = h.minRoot.map FHNode.key := rfl
 
 /-- Remove the leftmost minimum-key root, returning it and the remaining
 roots in their original relative order. -/
@@ -1001,16 +1402,40 @@ theorem FHNode.mem_forestKeySet_of_mem {ts : List FHNode} {t : FHNode}
         have : k ∈ (FHNode.node k m cs).keysList := by simp
         exact List.mem_toFinset.mpr this⟩
 
-/-- A returned minimum belongs to the represented key set. -/
-theorem minimum_mem {h : FH} {x : Int} (hmin : minimum h = some x) :
+/-- A returned cached minimum of a cache-valid heap belongs to its represented
+key set. -/
+theorem minimum_mem {h : FH} {x : Int} (hvalid : h.MinRootValid)
+    (hmin : minimum h = some x) :
     x ∈ keys h := by
   unfold minimum at hmin
-  by_cases hne : h.keys.Nonempty
-  · have hmin' : h.keys.min' hne = x := by
-      simpa [hne] using hmin
-    rw [← hmin']
-    exact Finset.min'_mem h.keys hne
-  · simp [hne] at hmin
+  cases hcache : h.minRoot with
+  | none => simp [hcache] at hmin
+  | some root =>
+      have hx : root.key = x := by simpa [hcache] using hmin
+      have hvalid' :
+          root ∈ h.roots ∧ ∀ y ∈ h.keyBag, root.key ≤ y := by
+        simpa [MinRootValid, hcache] using hvalid
+      have hroot : root ∈ h.roots := by
+        exact hvalid'.1
+      subst x
+      exact FHNode.mem_forestKeySet_of_mem hroot
+
+/-- A successful cached-minimum query is no greater than every represented
+key occurrence. -/
+theorem minimum_le_keyBag {h : FH} {x y : Int}
+    (hvalid : h.MinRootValid) (hmin : minimum h = some x)
+    (hy : y ∈ h.keyBag) :
+    x ≤ y := by
+  unfold minimum at hmin
+  cases hcache : h.minRoot with
+  | none => simp [hcache] at hmin
+  | some root =>
+      have hx : root.key = x := by simpa [hcache] using hmin
+      have hvalid' :
+          root ∈ h.roots ∧ ∀ z ∈ h.keyBag, root.key ≤ z := by
+        simpa [MinRootValid, hcache] using hvalid
+      rw [← hx]
+      exact hvalid'.2 y hy
 
 /-- Minimum-root removal fails exactly on the empty root forest. -/
 theorem removeMinRoot_none_iff (roots : List FHNode) :
@@ -1100,6 +1525,19 @@ theorem removeMinRoot_rootsUnmarked {roots : List FHNode} {z : FHNode}
   refine ⟨hunmarked z hz, ?_⟩
   intro t ht
   exact hunmarked t (hperm.mem_iff.mp (by simp [ht]))
+
+/-- Minimum-root removal projects the mark-aware invariant to the selected
+root and to the remaining forest. -/
+theorem removeMinRoot_lossInvariant {roots : List FHNode} {z : FHNode}
+    {rest : List FHNode}
+    (hremove : removeMinRoot roots = some (z, rest))
+    (hloss : FHNode.ForestLossInvariant roots) :
+    z.LossInvariant ∧ FHNode.ForestLossInvariant rest := by
+  have hperm := removeMinRoot_perm hremove
+  have hz : z ∈ roots := hperm.mem_iff.mp (by simp)
+  refine ⟨hloss z hz, ?_⟩
+  intro t ht
+  exact hloss t (hperm.mem_iff.mp (by simp [ht]))
 
 /-- The selected root has a key no greater than any original root key. -/
 theorem removeMinRoot_min {roots : List FHNode} {z : FHNode}
@@ -1387,9 +1825,51 @@ theorem FTree.wellformed_remove_index {cs : List FTree}
       · intro c hc
         exact hall c (mem_eraseIdx_of_mem i hc)
 
+/-- Removing one child preserves the mark-aware loss invariant of the
+remaining parent and projects the invariant to the removed child. -/
+theorem lossInvariant_remove_index {k : Int} {marked : Bool}
+    {children : List FHNode}
+    (hloss : (FHNode.node k marked children).LossInvariant)
+    (i : Nat) (hi : i < children.length) :
+    children[i].LossInvariant ∧
+      (FHNode.node k marked (children.eraseIdx i)).LossInvariant := by
+  cases hloss with
+  | node hdeg hall =>
+      have hselected : children[i].LossInvariant :=
+        hall children[i] (List.getElem_mem hi)
+      refine ⟨hselected, FHNode.LossInvariant.node ?_ ?_⟩
+      · intro j hj
+        by_cases hji : j < i
+        · have hget := eraseIdx_getElem_lt (α := FHNode) i j hi hji hj
+          rw [hget]
+          exact hdeg j (lt_trans hji hi)
+        · have hjnext : j + 1 < children.length := by
+            have hjlen : (children.eraseIdx i).length = children.length - 1 :=
+              List.length_eraseIdx_of_lt hi
+            rw [hjlen] at hj
+            omega
+          have hget := eraseIdx_getElem_ge (α := FHNode) i j hi
+            (le_of_not_gt hji) hj hjnext
+          rw [hget]
+          have hold := hdeg (j + 1) hjnext
+          cases hmark : children[j + 1].marked <;>
+            simp [hmark] at hold ⊢ <;> omega
+      · intro child hchild
+        exact hall child (mem_eraseIdx_of_mem i hchild)
+
 /-- Clear the mark bit of a node. -/
 def markFalse : FHNode → FHNode
   | FHNode.node k _ cs => FHNode.node k false cs
+
+/-- Clearing a node's own mark leaves every mark-aware child-degree obligation
+unchanged. -/
+theorem markFalse_lossInvariant (t : FHNode) (ht : t.LossInvariant) :
+    (markFalse t).LossInvariant := by
+  cases t with
+  | node k marked children =>
+      cases ht with
+      | node hdeg hall =>
+          exact FHNode.LossInvariant.node hdeg hall
 
 /-- Clearing a mark preserves the key set. -/
 theorem markFalse_keySet (t : FHNode) : (markFalse t).keySet = t.keySet := by
@@ -1464,6 +1944,14 @@ theorem map_markFalse_rootsUnmarked (roots : List FHNode) :
   cases root
   rfl
 
+/-- Clearing promoted roots' marks preserves the recursive loss invariant. -/
+theorem map_markFalse_lossInvariant (roots : List FHNode)
+    (hloss : FHNode.ForestLossInvariant roots) :
+    FHNode.ForestLossInvariant (roots.map markFalse) := by
+  intro t ht
+  obtain ⟨root, hroot, rfl⟩ := List.mem_map.mp ht
+  exact markFalse_lossInvariant root (hloss root hroot)
+
 /-- Clearing every root mark preserves the exact forest key multiset. -/
 theorem map_markFalse_forestKeyBag (roots : List FHNode) :
     FHNode.forestKeyBag (roots.map markFalse) =
@@ -1482,6 +1970,21 @@ theorem map_markFalse_forestSize (roots : List FHNode) :
   | nil => simp
   | cons root roots ih =>
       simp only [List.map_cons, FHNode.forestSize_cons, markFalse_size, ih]
+
+/-- Clearing the marks of promoted roots cannot increase the total number of
+marked nodes. -/
+theorem map_markFalse_forestMarks_le (roots : List FHNode) :
+    FHNode.forestMarks (roots.map markFalse) ≤
+      FHNode.forestMarks roots := by
+  induction roots with
+  | nil => simp
+  | cons root roots ih =>
+      simp only [List.map_cons, FHNode.forestMarks_cons]
+      have hroot : (markFalse root).marks ≤ root.marks := by
+        cases root with
+        | node key marked children =>
+            cases marked <;> simp [markFalse]
+      omega
 
 /-- A heap-ordered root key is no greater than every key in its subtree. -/
 theorem FHNode.heapOrdered_key_le_of_mem_keyBag {t : FHNode} {y : Int}
@@ -1508,6 +2011,29 @@ theorem removeMinRoot_min_key {roots : List FHNode} {z : FHNode}
   exact le_trans (removeMinRoot_min hremove root hroot)
     (FHNode.heapOrdered_key_le_of_mem_keyBag (hgood.1 root hroot) hyRoot)
 
+/-- Compute the persistent minimum-root cache from a root forest. -/
+def computeMinRoot (roots : List FHNode) : Option FHNode :=
+  (removeMinRoot roots).map Prod.fst
+
+/-- Scanning a structurally good forest produces a valid minimum cache. -/
+theorem computeMinRoot_valid (roots : List FHNode) (size : Nat)
+    (hgood : FHNode.ForestGood roots) :
+    MinRootValid
+      { roots := roots
+      , size := size
+      , minRoot := computeMinRoot roots } := by
+  unfold computeMinRoot MinRootValid
+  cases hremove : removeMinRoot roots with
+  | none =>
+      simpa [hremove] using (removeMinRoot_none_iff roots).mp hremove
+  | some pair =>
+      rcases pair with ⟨z, rest⟩
+      simp only [hremove, Option.map_some, Prod.fst]
+      constructor
+      · exact (removeMinRoot_perm hremove).mem_iff.mp (by simp)
+      · intro y hy
+        exact removeMinRoot_min_key hremove hgood y hy
+
 /-- Executable CLRS `FIB-HEAP-EXTRACT-MIN`: remove a minimum root, promote
 and unmark its children, then consolidate equal-degree roots. -/
 def extractMin (h : FH) : Option (Int × FH) :=
@@ -1519,7 +2045,8 @@ def extractMin (h : FH) : Option (Int × FH) :=
       some
         (z.key,
           { roots := roots'
-          , size := h.size - 1 })
+          , size := h.size - 1
+          , minRoot := computeMinRoot roots' })
 
 /-- A successful executable extract-min returns a global minimum, removes
 exactly one occurrence, preserves heap validity, and leaves distinct root
@@ -1532,7 +2059,7 @@ theorem extractMin_correct {h h' : FH} {x : Int}
     h'.keyBag = h.keyBag.erase x ∧
     h'.Valid ∧
     FHNode.DegreeStrict h'.roots := by
-  rcases hvalid with ⟨hgood, hunmarked, hsize⟩
+  rcases hvalid with ⟨hgood, hloss, hunmarked, hsize, hminimum⟩
   cases hremove : removeMinRoot h.roots with
   | none => simp [extractMin, hremove] at hextract
   | some pair =>
@@ -1540,10 +2067,16 @@ theorem extractMin_correct {h h' : FH} {x : Int}
       let promoted := z.children.map markFalse
       let roots' := FHNode.consolidateList (promoted ++ rest)
       have hpair :
-          (z.key, { roots := roots', size := h.size - 1 }) = (x, h') := by
+          (z.key,
+            { roots := roots'
+            , size := h.size - 1
+            , minRoot := computeMinRoot roots' }) = (x, h') := by
         simpa [extractMin, hremove, promoted, roots'] using hextract
       have hx : z.key = x := congrArg Prod.fst hpair
-      have hh : ({ roots := roots', size := h.size - 1 } : FH) = h' :=
+      have hh :
+          ({ roots := roots'
+           , size := h.size - 1
+           , minRoot := computeMinRoot roots' } : FH) = h' :=
         congrArg Prod.snd hpair
       subst x
       subst h'
@@ -1590,6 +2123,24 @@ theorem extractMin_correct {h h' : FH} {x : Int}
       have hrootsGood : FHNode.ForestGood roots' := by
         dsimp [roots']
         exact FHNode.consolidateList_good (promoted ++ rest) happendGood
+      have hselectedLoss := removeMinRoot_lossInvariant hremove hloss
+      have hchildrenLoss : FHNode.ForestLossInvariant z.children := by
+        cases hselectedLoss.1 with
+        | node hdeg hall => exact hall
+      have hpromotedLoss : FHNode.ForestLossInvariant promoted :=
+        map_markFalse_lossInvariant z.children hchildrenLoss
+      have happendLoss : FHNode.ForestLossInvariant (promoted ++ rest) := by
+        intro t ht
+        rw [List.mem_append] at ht
+        exact ht.elim (hpromotedLoss t) (hselectedLoss.2 t)
+      have hrootsLoss : FHNode.ForestLossInvariant roots' := by
+        dsimp [roots']
+        exact FHNode.consolidateList_lossInvariant (promoted ++ rest)
+          happendLoss (by
+            intro t ht
+            rw [List.mem_append] at ht
+            exact ht.elim (map_markFalse_rootsUnmarked z.children t)
+              ((removeMinRoot_rootsUnmarked hremove hunmarked).2 t))
       have hrestUnmarked : FHNode.RootsUnmarked rest :=
         (removeMinRoot_rootsUnmarked hremove hunmarked).2
       have hpromotedUnmarked : FHNode.RootsUnmarked promoted :=
@@ -1618,9 +2169,15 @@ theorem extractMin_correct {h h' : FH} {x : Int}
           FHNode.forestSize_append, map_markFalse_forestSize]
       have hstoredSize : h.size - 1 = FHNode.forestSize roots' := by
         omega
+      have hcache :
+          MinRootValid
+            { roots := roots'
+            , size := h.size - 1
+            , minRoot := computeMinRoot roots' } := by
+        exact computeMinRoot_valid roots' (h.size - 1) hrootsGood
       refine ⟨hzMem, hzMin, ?_, ?_, ?_⟩
       · exact hbagErase
-      · exact ⟨hrootsGood, hrootsUnmarked, hstoredSize⟩
+      · exact ⟨hrootsGood, hrootsLoss, hrootsUnmarked, hstoredSize, hcache⟩
       · dsimp [roots']
         exact FHNode.consolidateList_degreeStrict (promoted ++ rest)
 
@@ -1645,13 +2202,57 @@ theorem extractMin_degreeStrict {h h' : FH} {x : Int}
     FHNode.DegreeStrict h'.roots :=
   (extractMin_correct hvalid hextract).2.2.2.2
 
+/-- Extract-min never increases the number of marked nodes: the selected
+root was unmarked, its promoted children are unmarked, and consolidation
+preserves marks exactly. -/
+theorem extractMin_forestMarks_le {h h' : FH} {x : Int}
+    (hvalid : h.Valid)
+    (hextract : extractMin h = some (x, h')) :
+    FHNode.forestMarks h'.roots ≤ FHNode.forestMarks h.roots := by
+  cases hremove : removeMinRoot h.roots with
+  | none => simp [extractMin, hremove] at hextract
+  | some pair =>
+      rcases pair with ⟨z, rest⟩
+      let promoted := z.children.map markFalse
+      let roots' := FHNode.consolidateList (promoted ++ rest)
+      have hpair :
+          (z.key,
+            { roots := roots'
+            , size := h.size - 1
+            , minRoot := computeMinRoot roots' }) = (x, h') := by
+        simpa [extractMin, hremove, promoted, roots'] using hextract
+      have hh :
+          ({ roots := roots'
+           , size := h.size - 1
+           , minRoot := computeMinRoot roots' } : FH) = h' :=
+        congrArg Prod.snd hpair
+      subst h'
+      have hzUnmarked : z.marked = false :=
+        (removeMinRoot_rootsUnmarked hremove hvalid.2.2.1).1
+      have hzMarks : z.marks = FHNode.forestMarks z.children := by
+        cases z with
+        | node key marked children =>
+            simp only [FHNode.marked_node] at hzUnmarked
+            subst marked
+            simp [FHNode.marks, FHNode.forestMarks]
+      have hsplit :
+          z.marks + FHNode.forestMarks rest =
+            FHNode.forestMarks h.roots := by
+        have hsum := ((removeMinRoot_perm hremove).map FHNode.marks).sum_eq
+        simpa [FHNode.forestMarks] using hsum
+      have hpromoted := map_markFalse_forestMarks_le z.children
+      dsimp [roots', promoted]
+      rw [FHNode.consolidateList_forestMarks,
+        FHNode.forestMarks_append]
+      omega
+
 /-- A successful executable extract-min decreases the stored node count by
 exactly one. -/
 theorem extractMin_size {h h' : FH} {x : Int}
     (hvalid : h.Valid)
     (hextract : extractMin h = some (x, h')) :
     h'.size + 1 = h.size := by
-  rcases hvalid with ⟨hgood, hunmarked, hsize⟩
+  rcases hvalid with ⟨hgood, hloss, hunmarked, hsize, hminimum⟩
   cases hremove : removeMinRoot h.roots with
   | none => simp [extractMin, hremove] at hextract
   | some pair =>
@@ -1660,7 +2261,10 @@ theorem extractMin_size {h h' : FH} {x : Int}
           (z.key,
             { roots := FHNode.consolidateList
                 (z.children.map markFalse ++ rest)
-            , size := h.size - 1 }) = (x, h') := by
+            , size := h.size - 1
+            , minRoot := computeMinRoot
+                (FHNode.consolidateList
+                  (z.children.map markFalse ++ rest)) }) = (x, h') := by
         simpa [extractMin, hremove] using hextract
       have hstored := congrArg (fun result : Int × FH => result.2.size) hpair
       change h.size - 1 = h'.size at hstored
@@ -1682,18 +2286,28 @@ theorem extractMin_minimum {h h' : FH} {x : Int}
     (hextract : extractMin h = some (x, h')) :
     h.minimum = some x := by
   have hcorrect := extractMin_correct hvalid hextract
-  have hx : x ∈ h.keys := by
-    rw [keys_eq_keyBag_toFinset]
-    simpa using hcorrect.1
-  have hnonempty : h.keys.Nonempty := ⟨x, hx⟩
-  unfold minimum
-  simp only [dif_pos hnonempty, Option.some.injEq]
-  apply (Finset.min'_eq_iff h.keys hnonempty x).2
-  refine ⟨hx, ?_⟩
-  intro y hy
-  apply hcorrect.2.1 y
-  rw [keys_eq_keyBag_toFinset] at hy
-  simpa using hy
+  have hcache := hvalid.2.2.2.2
+  cases hmin : h.minRoot with
+  | none =>
+      have hroots : h.roots = [] := by
+        simpa [MinRootValid, hmin] using hcache
+      have hempty : h.keyBag = 0 := by simp [keyBag, hroots]
+      rw [hempty] at hcorrect
+      simp at hcorrect
+  | some root =>
+      have hcache' :
+          root ∈ h.roots ∧ ∀ y ∈ h.keyBag, root.key ≤ y := by
+        simpa [MinRootValid, hmin] using hcache
+      have hrootMin : ∀ y ∈ h.keyBag, root.key ≤ y := by
+        exact hcache'.2
+      have hle₁ : root.key ≤ x := hrootMin x hcorrect.1
+      have hrootMem : root.key ∈ h.keyBag := by
+        have hroot : root ∈ h.roots := by
+          exact hcache'.1
+        exact FHNode.mem_forestKeyBag_iff.mpr
+          ⟨root, hroot, by cases root <;> simp [FHNode.keyBag]⟩
+      have hle₂ : x ≤ root.key := hcorrect.2.1 root.key hrootMem
+      simp [minimum, hmin, le_antisymm hle₁ hle₂]
 
 /-- Extracting one occurrence does not change membership of a different key. -/
 theorem extractMin_mem_iff_of_ne {h h' : FH} {x y : Int}
@@ -1742,7 +2356,7 @@ theorem extractMin_none_iff (h : FH) :
 node count is zero. -/
 theorem extractMin_none_iff_size_zero (h : FH) (hvalid : h.Valid) :
     extractMin h = none ↔ h.size = 0 := by
-  rw [extractMin_none_iff, hvalid.2.2]
+  rw [extractMin_none_iff, hvalid.2.2.2.1]
   exact (FHNode.forestSize_eq_zero_iff h.roots).symm
 
 /-- The key set of a node is its root key together with all child-subtree keys. -/
@@ -1884,7 +2498,8 @@ def cutRootChildAt (h : FH) (rootIndex childIndex : Nat) : Option FH :=
       | some (cut, parent') =>
           some
             { roots := cut :: h.roots.set rootIndex parent'
-            , size := h.size }
+            , size := h.size
+            , minRoot := computeMinRoot (cut :: h.roots.set rootIndex parent') }
 
 /-- Replacing a present forest root satisfies the key-set union balance used
 to lift local CUT facts to the complete root forest. -/
@@ -2203,6 +2818,13 @@ theorem potential_insert (x : Int) (h : FH) :
     potential (insert x h) = potential h + 1 := by
   simp [potential, insert]
   omega
+
+/-- Heap union adds the potentials of its two disjoint root forests. -/
+theorem potential_union (h₁ h₂ : FH) :
+    potential (union h₁ h₂) = potential h₁ + potential h₂ := by
+  simp only [potential, union, List.length_append,
+    FHNode.forestMarks_append, Int.ofNat_eq_natCast, Nat.cast_add]
+  ring
 
 /-- Clearing a node's mark removes exactly its root-mark contribution. -/
 theorem markFalse_marks_add (t : FHNode) :
