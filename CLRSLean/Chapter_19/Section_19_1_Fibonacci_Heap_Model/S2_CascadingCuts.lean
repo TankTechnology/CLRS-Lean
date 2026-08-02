@@ -58,6 +58,20 @@ theorem eraseIdx_close_children (frame : FHFrame) (child : FHNode) :
             sibling :: (before ++ after)
           rw [ih]
 
+/-- Replacing the focused child is list replacement at the split position. -/
+theorem set_close_children (frame : FHFrame) (old new : FHNode) :
+    (frame.before ++ old :: frame.after).set frame.before.length new =
+      frame.before ++ new :: frame.after := by
+  cases frame with
+  | mk key marked before after =>
+      induction before with
+      | nil => rfl
+      | cons sibling before ih =>
+          change sibling ::
+              ((before ++ old :: after).set before.length new) =
+            sibling :: (before ++ new :: after)
+          rw [ih]
+
 /-- Removing a focused child preserves heap order of the parent and projects
 heap order to the removed subtree. -/
 theorem close_heapOrdered_remove {frame : FHFrame} {child : FHNode}
@@ -79,6 +93,30 @@ theorem close_heapOrdered_remove {frame : FHFrame} {child : FHNode}
               List.mem_cons] at hcurrent ⊢
             tauto)
 
+/-- Replacing the focused subtree by a heap-ordered subtree with the same key
+preserves heap order of that parent. -/
+theorem close_heapOrdered_replace {frame : FHFrame} {old new : FHNode}
+    (hordered : (frame.close old).HeapOrdered)
+    (hnew : new.HeapOrdered) (hkey : new.key = old.key) :
+    (frame.close new).HeapOrdered := by
+  cases hordered with
+  | node hle hall =>
+      refine FHNode.HeapOrdered.node ?_ ?_
+      · intro current hcurrent
+        simp only [close, List.mem_append, List.mem_cons] at hcurrent ⊢
+        rcases hcurrent with hbefore | rfl | hafter
+        · exact hle current (by simp [hbefore])
+        · have hold := hle old (by simp)
+          rw [hkey]
+          exact hold
+        · exact hle current (by simp [hafter])
+      · intro current hcurrent
+        simp only [close, List.mem_append, List.mem_cons] at hcurrent ⊢
+        rcases hcurrent with hbefore | rfl | hafter
+        · exact hall current (by simp [hbefore])
+        · exact hnew
+        · exact hall current (by simp [hafter])
+
 /-- Removing a focused child preserves the loss invariant of the parent and
 projects it to the removed subtree. -/
 theorem close_lossInvariant_remove {frame : FHFrame} {child : FHNode}
@@ -94,6 +132,93 @@ theorem close_lossInvariant_remove {frame : FHFrame} {child : FHNode}
   rw [eraseIdx_close_children] at hremove
   exact hremove
 
+/-- Replacing the focused subtree by one with the same degree and mark
+preserves the parent's mark-aware loss invariant. -/
+theorem close_lossInvariant_replace {frame : FHFrame} {old new : FHNode}
+    (hloss : (frame.close old).LossInvariant)
+    (hnew : new.LossInvariant) (hdegree : new.degree = old.degree)
+    (hmarked : new.marked = old.marked) :
+    (frame.close new).LossInvariant := by
+  cases hloss with
+  | node hdeg hall =>
+      refine FHNode.LossInvariant.node ?_ ?_
+      · intro j hj
+        have hjold : j < (frame.before ++ old :: frame.after).length := by
+          simpa using hj
+        have hset := set_close_children frame old new
+        have hjset : j <
+            ((frame.before ++ old :: frame.after).set
+              frame.before.length new).length := by
+          simpa [hset] using hj
+        have hget := List.getElem_set
+          (l := frame.before ++ old :: frame.after)
+          (i := frame.before.length) (j := j) (a := new) hjset
+        have hget' :
+            (frame.before ++ new :: frame.after)[j] =
+              if frame.before.length = j then new
+              else (frame.before ++ old :: frame.after)[j] := by
+          simpa only [hset] using hget
+        by_cases hindex : frame.before.length = j
+        · simp only [hindex, if_true] at hget'
+          rw [hget']
+          subst j
+          have hold := hdeg frame.before.length (by simp)
+          simpa [hdegree, hmarked] using hold
+        · simp only [hindex, if_false] at hget'
+          rw [hget']
+          exact hdeg j hjold
+      · intro child hchild
+        simp only [close, List.mem_append, List.mem_cons] at hchild ⊢
+        rcases hchild with hbefore | rfl | hafter
+        · exact hall child (by simp [hbefore])
+        · exact hnew
+        · exact hall child (by simp [hafter])
+
+/-- Replacing an unmarked child after its first child loss preserves the
+parent's mark-aware loss invariant: the new mark accounts for exactly the one
+unit decrease in degree. -/
+theorem close_lossInvariant_firstLoss {frame : FHFrame} {old new : FHNode}
+    (hloss : (frame.close old).LossInvariant)
+    (hnew : new.LossInvariant) (hdegree : new.degree + 1 = old.degree)
+    (holdMarked : old.marked = false) (hnewMarked : new.marked = true) :
+    (frame.close new).LossInvariant := by
+  cases hloss with
+  | node hdeg hall =>
+      refine FHNode.LossInvariant.node ?_ ?_
+      · intro j hj
+        have hjold : j < (frame.before ++ old :: frame.after).length := by
+          simpa using hj
+        have hset := set_close_children frame old new
+        have hjset : j <
+            ((frame.before ++ old :: frame.after).set
+              frame.before.length new).length := by
+          simpa [hset] using hj
+        have hget := List.getElem_set
+          (l := frame.before ++ old :: frame.after)
+          (i := frame.before.length) (j := j) (a := new) hjset
+        have hget' :
+            (frame.before ++ new :: frame.after)[j] =
+              if frame.before.length = j then new
+              else (frame.before ++ old :: frame.after)[j] := by
+          simpa only [hset] using hget
+        by_cases hindex : frame.before.length = j
+        · simp only [hindex, if_true] at hget'
+          rw [hget']
+          subst j
+          have hold := hdeg frame.before.length (by simp)
+          simp [holdMarked] at hold
+          simp [hnewMarked]
+          omega
+        · simp only [hindex, if_false] at hget'
+          rw [hget']
+          exact hdeg j hjold
+      · intro child hchild
+        simp only [close, List.mem_append, List.mem_cons] at hchild ⊢
+        rcases hchild with hbefore | rfl | hafter
+        · exact hall child (by simp [hbefore])
+        · exact hnew
+        · exact hall child (by simp [hafter])
+
 /-- Removing and promoting a focused child preserves the exact subtree-key
 multiset balance. -/
 theorem close_keyBag_balance (frame : FHFrame) (child : FHNode) :
@@ -107,6 +232,116 @@ theorem close_size_balance (frame : FHFrame) (child : FHNode) :
     child.size + frame.removeFocus.size = (frame.close child).size := by
   simp [close, removeFocus, FHNode.forestSize_append]
   omega
+
+/-- Heap order of a fully closed context projects to its focused subtree. -/
+theorem heapOrdered_focus_of_closeAll {focus : FHNode}
+    {parents : List FHFrame}
+    (hordered : (closeAll focus parents).HeapOrdered) :
+    focus.HeapOrdered := by
+  induction parents generalizing focus with
+  | nil => simpa [closeAll] using hordered
+  | cons frame parents ih =>
+      have hparent : (frame.close focus).HeapOrdered := by
+        apply ih
+        simpa [closeAll] using hordered
+      exact (close_heapOrdered_remove hparent).1
+
+/-- The loss invariant of a fully closed context projects to its focused
+subtree. -/
+theorem lossInvariant_focus_of_closeAll {focus : FHNode}
+    {parents : List FHFrame}
+    (hloss : (closeAll focus parents).LossInvariant) :
+    focus.LossInvariant := by
+  induction parents generalizing focus with
+  | nil => simpa [closeAll] using hloss
+  | cons frame parents ih =>
+      have hparent : (frame.close focus).LossInvariant := by
+        apply ih
+        simpa [closeAll] using hloss
+      exact (close_lossInvariant_remove hparent).1
+
+/-- Replacing the focused subtree by an ordered subtree with the same root key
+preserves heap order through every enclosing zipper frame. -/
+theorem closeAll_heapOrdered_replace {old new : FHNode}
+    {parents : List FHFrame}
+    (hordered : (closeAll old parents).HeapOrdered)
+    (hnew : new.HeapOrdered) (hkey : new.key = old.key) :
+    (closeAll new parents).HeapOrdered := by
+  induction parents generalizing old new with
+  | nil => simpa [closeAll] using hnew
+  | cons frame parents ih =>
+      have holdParent : (frame.close old).HeapOrdered := by
+        apply heapOrdered_focus_of_closeAll
+        simpa [closeAll] using hordered
+      have hnewParent : (frame.close new).HeapOrdered :=
+        close_heapOrdered_replace holdParent hnew hkey
+      apply ih (old := frame.close old) (new := frame.close new)
+      · simpa [closeAll] using hordered
+      · exact hnewParent
+      · rfl
+
+/-- Replacing the focused subtree by one with the same degree and mark
+preserves the loss invariant through every enclosing zipper frame. -/
+theorem closeAll_lossInvariant_replace {old new : FHNode}
+    {parents : List FHFrame}
+    (hloss : (closeAll old parents).LossInvariant)
+    (hnew : new.LossInvariant) (hdegree : new.degree = old.degree)
+    (hmarked : new.marked = old.marked) :
+    (closeAll new parents).LossInvariant := by
+  induction parents generalizing old new with
+  | nil => simpa [closeAll] using hnew
+  | cons frame parents ih =>
+      have holdParent : (frame.close old).LossInvariant := by
+        apply lossInvariant_focus_of_closeAll
+        simpa [closeAll] using hloss
+      have hnewParent : (frame.close new).LossInvariant :=
+        close_lossInvariant_replace holdParent hnew hdegree hmarked
+      apply ih (old := frame.close old) (new := frame.close new)
+      · simpa [closeAll] using hloss
+      · exact hnewParent
+      · simp [close, FHNode.degree]
+      · rfl
+
+/-- A replacement under at least one frame preserves the mark of the rebuilt
+root, because every frame supplies that enclosing node's mark. -/
+theorem closeAll_marked_eq_of_cons (old new : FHNode) (frame : FHFrame)
+    (parents : List FHFrame) :
+    (closeAll old (frame :: parents)).marked =
+      (closeAll new (frame :: parents)).marked := by
+  induction parents generalizing frame old new with
+  | nil => rfl
+  | cons next parents ih =>
+      simpa [closeAll] using
+        (ih (frame := next) (old := frame.close old) (new := frame.close new))
+
+/-- Exact key-multiset balance is preserved by any enclosing zipper context. -/
+theorem closeAll_keyBag_balance {cut remaining original : FHNode}
+    {parents : List FHFrame}
+    (hbalance : cut.keyBag + remaining.keyBag = original.keyBag) :
+    cut.keyBag + (closeAll remaining parents).keyBag =
+      (closeAll original parents).keyBag := by
+  induction parents generalizing remaining original with
+  | nil => simpa [closeAll] using hbalance
+  | cons frame parents ih =>
+      apply ih
+      simp only [close, FHNode.keyBag_node, FHNode.forestKeyBag_append,
+        FHNode.forestKeyBag_cons, FHNode.forestKeyBag_nil]
+      rw [← hbalance]
+      ac_rfl
+
+/-- Exact subtree-size balance is preserved by any enclosing zipper context. -/
+theorem closeAll_size_balance {cut remaining original : FHNode}
+    {parents : List FHFrame}
+    (hbalance : cut.size + remaining.size = original.size) :
+    cut.size + (closeAll remaining parents).size =
+      (closeAll original parents).size := by
+  induction parents generalizing remaining original with
+  | nil => simpa [closeAll] using hbalance
+  | cons frame parents ih =>
+      apply ih
+      simp only [close, FHNode.size_node, List.map_append, List.map_cons,
+        List.map_nil, List.sum_append, List.sum_cons, List.sum_nil]
+      omega
 
 end FHFrame
 
@@ -146,6 +381,41 @@ theorem List.take_append_getElem_drop_of_getElem?_eq_some
     _ = xs := List.take_append_drop i xs
 
 namespace FHNode
+
+/-- Set a node's mark while leaving its key and children unchanged. -/
+def markTrue : FHNode → FHNode
+  | node key _ children => node key true children
+
+@[simp] theorem markTrue_key (node : FHNode) : node.markTrue.key = node.key := by
+  cases node <;> rfl
+
+@[simp] theorem markTrue_marked (node : FHNode) : node.markTrue.marked = true := by
+  cases node <;> rfl
+
+@[simp] theorem markTrue_degree (node : FHNode) : node.markTrue.degree = node.degree := by
+  cases node <;> rfl
+
+@[simp] theorem markTrue_size (node : FHNode) : node.markTrue.size = node.size := by
+  cases node <;> simp [markTrue, size]
+
+@[simp] theorem markTrue_keyBag (node : FHNode) : node.markTrue.keyBag = node.keyBag := by
+  cases node <;> simp [markTrue, keyBag, keysList]
+
+/-- Marking a node does not change heap order. -/
+theorem markTrue_heapOrdered {node : FHNode} (hordered : node.HeapOrdered) :
+    node.markTrue.HeapOrdered := by
+  cases node with
+  | node key marked children =>
+      cases hordered with
+      | node hle hall => exact HeapOrdered.node hle hall
+
+/-- Marking a node does not change its own child-loss obligations. -/
+theorem markTrue_lossInvariant {node : FHNode} (hloss : node.LossInvariant) :
+    node.markTrue.LossInvariant := by
+  cases node with
+  | node key marked children =>
+      cases hloss with
+      | node hdeg hall => exact LossInvariant.node hdeg hall
 
 /-- Open a path below one root, returning the focus and nearest-first parent
 frames. -/
