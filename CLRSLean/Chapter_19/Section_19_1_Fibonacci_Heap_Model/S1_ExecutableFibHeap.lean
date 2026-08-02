@@ -41,7 +41,7 @@ Main results:
   `consolidateList_keyBag`, `consolidateList_forestSize`,
   `consolidateList_rootsUnmarked`, and `consolidateList_degreeStrict`:
   `CONSOLIDATE` correctness and at most one root per degree after consolidation
-- `FH`: an executable heap (root forest + node count)
+- `FH`: an executable heap (root forest + node count + cached minimum root)
 - `FH.keyBag`, `FH.Represents`, and `FH.Valid`: exact representation and the
   executable global invariant
 - `FH.makeHeap` / `FH.insert` / `FH.union` / `FH.minimum` / `FH.extractMin`:
@@ -53,13 +53,10 @@ Main results:
 - `FH.potential` / `FH.cutRootChildAt_potential_eq`: executable
   `t(H) + 2m(H)` accounting and the exact one-step CUT potential change
 
-Current gaps:
-
-- A cached minimum pointer, stable node identity/handles (including duplicate
-  keys), arbitrary-node paths, cascading cuts, executable
-  `decreaseKey`/`delete`, and actual-operation cost semantics remain future
-  targets.  Circular pointer lists are a lower-level refinement of the
-  persistent root-list model used here.
+The follow-on S2/S3 modules add duplicate-safe occurrence paths, arbitrary-node
+cascading cuts, executable decrease/delete, and certified operation/trace
+costs.  Circular doubly linked lists and mutable pointer allocation remain
+lower-level refinements of this persistent forest model.
 -/
 
 namespace CLRS
@@ -2821,6 +2818,13 @@ theorem potential_insert (x : Int) (h : FH) :
     potential (insert x h) = potential h + 1 := by
   simp [potential, insert]
   omega
+
+/-- Heap union adds the potentials of its two disjoint root forests. -/
+theorem potential_union (h₁ h₂ : FH) :
+    potential (union h₁ h₂) = potential h₁ + potential h₂ := by
+  simp only [potential, union, List.length_append,
+    FHNode.forestMarks_append, Int.ofNat_eq_natCast, Nat.cast_add]
+  ring
 
 /-- Clearing a node's mark removes exactly its root-mark contribution. -/
 theorem markFalse_marks_add (t : FHNode) :

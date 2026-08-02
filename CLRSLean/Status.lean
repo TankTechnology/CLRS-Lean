@@ -106,6 +106,14 @@ the detailed maintainer ledger.
   every {lit}`WellFormed` tree.  No tree-shape equality with the flat
   specification operations is claimed.  Disk pages, pointer mutation, I/O
   counts, and RAM costs remain optional lower-level refinements.
+* **Chapter 19 correctness and amortized analysis:** the persistent executable
+  Fibonacci heap has a cached minimum, exact duplicate-preserving key bags,
+  degree-bucket {lit}`LINK`/{lit}`CONSOLIDATE`, extract-min, occurrence paths
+  and zippers, arbitrary-node CUT/CASCADING-CUT, decrease-key, and delete.
+  These transitions preserve the global mark-aware validity invariant.  The
+  {lit}`t(H) + 2m(H)` analysis proves constant amortized decrease-key,
+  logarithmic extract-min/delete, and an exact trace-level telescope.  Mutable
+  circular lists and RAM/pointer costs remain optional lower-level refinements.
 * **Chapter 20 correctness:** all seven operations of the recursive cached-
   extrema vEB model and their control-flow-aware {lit}`O(log log u)` bounds.
 * **Selected complete sections:** Chapter 5.1--5.4 core models; Chapter 10.1,
@@ -117,18 +125,6 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapter 19:** Fibonacci heaps have substantial mathematical and size-level
-  specifications.  Section 19.4 proves the {lit}`FTree.Wellformed` subtree-size
-  and true logarithmic-degree bounds, equal-degree {lit}`link_wellformed`, and
-  the tight {lit}`minTree` witness.  The executable {lit}`FHNode`/{lit}`FH`
-  layer proves equal-degree {lit}`CONSOLIDATE`, direct-child heap-level CUT,
-  exact multiset representation and a global validity invariant, stable
-  minimum-root selection, executable {lit}`extractMin` through the proved
-  consolidation, exact one-occurrence deletion, forest-invariant preservation,
-  and the exact {lit}`t(H) + 2m(H)` direct-child CUT potential change.  Cached
-  minimum pointers, stable node identity and arbitrary-node handles/paths,
-  cascading cuts, executable decrease/delete, and operation-cost bounds remain
-  central theorem groups.
 * **Chapter 26:** the flow model, concrete residual-path augmentation with exact
   and strict value increase, the residual-reachability bridge, the full MFMC
   equivalence, residual-distance infrastructure through the predecessor,
