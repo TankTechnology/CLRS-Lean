@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_08.Section_08_1_Lower_Bound_For_Sorting
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort.CountTables
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray
@@ -10,10 +11,22 @@ import CLRSLean.Chapter_08.Section_08_4_Bucket_Sort
 The first Chapter 8 pass focuses on pure correctness for stable linear-time
 sorting primitives, with a finite-uniform expected-cost interface for the
 bucket-sort second-moment argument and its CLRS abstract unit-cost random
-variable.
+variable.  Section 8.1 proves the decision-tree lower bound that any
+comparison-based sort needs at least `(n/2)·(log₂ n - 1)` comparisons in the
+worst case.
 
 ## Sections
 
+* 8.1 Lower bounds for sorting: {lit}`proved` for the decision-tree model over
+  {lit}`Fin n` distinct elements.
+  Main results:
+  {lit}`CLRS.Chapter08.leafCount_le_two_pow_height`,
+  {lit}`CLRS.Chapter08.run_injective_of_correctSort`,
+  {lit}`CLRS.Chapter08.factorial_le_leafCount_of_correctSort`,
+  {lit}`CLRS.Chapter08.height_le_logb_factorial`,
+  {lit}`CLRS.Chapter08.factorial_sq_ge_pow_self`,
+  {lit}`CLRS.Chapter08.logb_factorial_ge_half_mul_logb`, and
+  {lit}`CLRS.Chapter08.comparisonSort_worstCase_lowerBound`.
 * 8.2 Counting sort: {lit}`proved` for a stable bucket specification, a
   count-table/prefix-count refinement layer, and a mutable output-array
   refinement filled by a cumulative-count reverse scan.
@@ -58,6 +71,8 @@ variable.
 
 ## Current Gaps
 
+* Section 8.1 is complete for the decision-tree model; RAM-level bookkeeping
+  of individual comparisons is out of scope.
 * The CLRS unit-cost random variable has linear expectation.  Remaining: a
   single-pass executable bucket builder, a costed per-bucket sorter, and a
   refinement theorem connecting their execution cost to the abstract model.
