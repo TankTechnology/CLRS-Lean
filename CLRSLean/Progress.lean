@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 29.
-* Tracked reader-facing theorem entries: 1579.
-* Proved tracked theorem entries: 1579.
-* Remaining core theorem groups: 9.
+* Tracked reader-facing theorem entries: 1638.
+* Proved tracked theorem entries: 1638.
+* Remaining core theorem groups: 8.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -21,9 +21,9 @@ are not yet represented or not yet complete.
 ## Status Counts
 
 * {lit}`main-proof-complete`: 8 chapters.
-* {lit}`main-proof-complete-for-correctness`: 10 chapters.
+* {lit}`main-proof-complete-for-correctness`: 11 chapters.
 * {lit}`selected-section-complete`: 7 chapters.
-* {lit}`partial`: 3 chapters.
+* {lit}`partial`: 2 chapters.
 * {lit}`not-started`: 6 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -50,7 +50,7 @@ Ch  Chapter                                                     Status          
 16  16. Greedy Algorithms                                       main-proof-complete                  16.1;16.2;16.3;16.4;16.5           32        0
 17  17. Amortized Analysis                                      selected-section-complete            17.1;17.2;17.4                     66        0
 18  18. B-Trees                                                 main-proof-complete-for-correctness  18.1;18.2;18.3                    134        0
-19  19. Fibonacci Heaps                                         partial                              19.1;19.4                         155        1
+19  19. Fibonacci Heaps                                         main-proof-complete-for-correctness  19.1;19.4                         214        0
 20  20. van Emde Boas Trees                                     main-proof-complete-for-correctness  20.1;20.2;20.3                    200        0
 21  21. Data Structures for Disjoint Sets                       main-proof-complete                  21.1;21.2;21.3;21.4                84        0
 22  22. Elementary Graph Algorithms                             main-proof-complete-for-correctness  22.1;22.2;22.3;22.4;22.5           47        0
