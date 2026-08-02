@@ -277,6 +277,100 @@ lemma maxExtend_uniform {n : ℕ} {b : Fin n} (T : Finset (Fin n)) {c : Fin n}
     _ = (Finset.univ.filter (fun σ : PrioPerm n =>
           ∀ a ∈ T, MaxOver σ (Finset.Icc a b) a)).card := by rw [hcover]
 
+lemma leftAncestors_product {n : ℕ} {b : Fin n} (S : Finset (Fin n))
+    (hS : ∀ a ∈ S, a < b) :
+    ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card : ℝ) =
+      (Fintype.card (PrioPerm n) : ℝ) * ∏ a ∈ S, (1 / ((Finset.Icc a b).card : ℝ)) := by
+  classical
+  have hIH : ∀ m : ℕ, ∀ S : Finset (Fin n), S.card = m → (∀ a ∈ S, a < b) →
+      ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card : ℝ) =
+        (Fintype.card (PrioPerm n) : ℝ) * ∏ a ∈ S, (1 / ((Finset.Icc a b).card : ℝ)) := by
+    intro m
+    induction m with
+    | zero =>
+        intro S hcard hS
+        have hSempty : S = ∅ := (Finset.card_eq_zero.mp hcard)
+        subst S
+        simp
+    | succ m ih =>
+        intro S hcard hS
+        by_cases hempty : S = ∅
+        · subst S
+          simp
+        · have hSne : S.Nonempty := Finset.nonempty_iff_ne_empty.mpr hempty
+          let c : Fin n := S.max' hSne
+          have hcS : c ∈ S := Finset.max'_mem S hSne
+          have hcb : c < b := hS c hcS
+          have hothers : ∀ a ∈ S.erase c, a < c := by
+            intro a ha
+            rw [Finset.mem_erase] at ha
+            have hle : a ≤ c := Finset.le_max' S a ha.2
+            exact lt_of_le_of_ne hle ha.1
+          have hSsplit : Insert.insert c (S.erase c) = S := Finset.insert_erase hcS
+          have hcard2 : (S.erase c).card = m := by
+            have : (S.erase c).card = S.card - 1 := Finset.card_erase_of_mem hcS
+            omega
+          have hS2 : ∀ a ∈ S.erase c, a < b := by
+            intro a ha
+            rw [Finset.mem_erase] at ha
+            exact hS a ha.2
+          have hme := maxExtend_uniform (S.erase c) hothers hcb
+          have hSsplit' : S = Insert.insert c (S.erase c) := hSsplit.symm
+          have hcardId : (Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card *
+              (Finset.Icc c b).card =
+            (Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S.erase c, MaxOver σ (Finset.Icc a b) a)).card := by
+            have hSetEq : (Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)) =
+                (Finset.univ.filter (fun σ : PrioPerm n => (∀ a ∈ S.erase c, MaxOver σ (Finset.Icc a b) a) ∧
+                  MaxOver σ (Finset.Icc c b) c)) := by
+              ext σ
+              simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+              constructor
+              · intro h
+                constructor
+                · intro a ha
+                  rw [Finset.mem_erase] at ha
+                  exact h a ha.2
+                · exact h c hcS
+              · intro h
+                intro a ha
+                by_cases hac : a = c
+                · subst a
+                  exact h.2
+                · exact h.1 a (Finset.mem_erase.mpr ⟨hac, ha⟩)
+            rw [hSetEq]
+            simpa using hme
+          have hcn0 : ((Finset.Icc c b).card : ℝ) ≠ 0 := by
+            have hpos : 0 < (Finset.Icc c b).card := by
+              have : c ∈ Finset.Icc c b := Finset.mem_Icc.mpr ⟨le_rfl, le_of_lt hcb⟩
+              exact Finset.card_pos.mpr ⟨c, this⟩
+            exact_mod_cast (ne_of_gt hpos)
+          -- hcardId: |{all S}|·|[c,b]| = |{all S.erase c}|
+          -- so |{all S}| = |{all S.erase c}|/|[c,b]|
+          have hdiv : ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card : ℝ) =
+              ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S.erase c, MaxOver σ (Finset.Icc a b) a)).card : ℝ) /
+                ((Finset.Icc c b).card : ℝ) := by
+            have hcardId' : ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card : ℝ) *
+                ((Finset.Icc c b).card : ℝ) =
+              ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S.erase c, MaxOver σ (Finset.Icc a b) a)).card : ℝ) := by
+              exact_mod_cast hcardId
+            exact (eq_div_iff hcn0).mpr hcardId'
+          calc
+            ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card : ℝ)
+                = ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S.erase c, MaxOver σ (Finset.Icc a b) a)).card : ℝ) *
+                    (1 / ((Finset.Icc c b).card : ℝ)) := by
+                  rw [hdiv]
+                  ring
+            _ = (Fintype.card (PrioPerm n) : ℝ) * (∏ a ∈ S.erase c, (1 / ((Finset.Icc a b).card : ℝ))) *
+                  (1 / ((Finset.Icc c b).card : ℝ)) := by
+                  rw [ih (S.erase c) hcard2 hS2]
+            _ = (Fintype.card (PrioPerm n) : ℝ) * (∏ a ∈ S, (1 / ((Finset.Icc a b).card : ℝ))) := by
+                  rw [← hSsplit]
+                  rw [Finset.prod_insert]
+                  · rw [Finset.erase_insert (by simp)]
+                    ring
+                  · simp
+  exact hIH S.card S rfl hS
+
 end Treap
 
 end CLRS.Extensions
