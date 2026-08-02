@@ -97,6 +97,22 @@ def forestKeyList (ts : List FHNode) : List Int := ts.flatMap keysList
 def forestKeySet (ts : List FHNode) : Finset Int :=
   (ts.map keySet).foldr (fun a b => a ∪ b) ∅
 
+/-- The keys of one subtree with multiplicity. -/
+def keyBag (t : FHNode) : Multiset Int :=
+  ↑t.keysList
+
+/-- The keys of a root forest with multiplicity. -/
+def forestKeyBag (roots : List FHNode) : Multiset Int :=
+  ↑(roots.flatMap FHNode.keysList)
+
+/-- The actual number of nodes represented by a root forest. -/
+def forestSize (roots : List FHNode) : Nat :=
+  (roots.map FHNode.size).sum
+
+/-- Every root has the CLRS root mark `false`. -/
+def RootsUnmarked (roots : List FHNode) : Prop :=
+  ∀ root ∈ roots, root.marked = false
+
 /-- The number of marked nodes in a subtree, including the root. -/
 def marks : FHNode → Nat
   | node _ marked children =>
@@ -136,6 +152,35 @@ def forestMarks (roots : List FHNode) : Nat :=
 @[simp] theorem forestMarks_cons (t : FHNode) (ts : List FHNode) :
     forestMarks (t :: ts) = t.marks + forestMarks ts := by
   simp [forestMarks]
+
+@[simp] theorem keyBag_node (k : Int) (m : Bool) (cs : List FHNode) :
+    keyBag (node k m cs) = {k} + forestKeyBag cs := by
+  simp [keyBag, forestKeyBag]
+
+@[simp] theorem forestKeyBag_nil : forestKeyBag [] = 0 := rfl
+
+@[simp] theorem forestKeyBag_cons (t : FHNode) (ts : List FHNode) :
+    forestKeyBag (t :: ts) = t.keyBag + forestKeyBag ts := by
+  simp [forestKeyBag, keyBag]
+
+theorem forestKeyBag_append (xs ys : List FHNode) :
+    forestKeyBag (xs ++ ys) = forestKeyBag xs + forestKeyBag ys := by
+  simp [forestKeyBag, List.flatMap_append]
+
+@[simp] theorem forestSize_nil : forestSize [] = 0 := rfl
+
+@[simp] theorem forestSize_cons (t : FHNode) (ts : List FHNode) :
+    forestSize (t :: ts) = t.size + forestSize ts := by
+  simp [forestSize]
+
+theorem forestSize_append (xs ys : List FHNode) :
+    forestSize (xs ++ ys) = forestSize xs + forestSize ys := by
+  simp [forestSize, List.sum_append]
+
+theorem size_eq_one_add_forestSize (t : FHNode) :
+    t.size = 1 + forestSize t.children := by
+  cases t
+  simp [forestSize]
 
 theorem forestKeySet_cons (t : FHNode) (ts : List FHNode) :
     forestKeySet (t :: ts) = t.keySet ∪ forestKeySet ts := by
@@ -638,6 +683,20 @@ namespace FH
 /-- The key set represented by the heap (duplicates collapsed). -/
 def keys (h : FH) : Finset Int := FHNode.forestKeySet h.roots
 
+/-- The executable heap's exact key multiset. -/
+def keyBag (h : FH) : Multiset Int :=
+  FHNode.forestKeyBag h.roots
+
+/-- Exact multiset representation for the executable heap. -/
+def Represents (h : FH) (bag : Multiset Int) : Prop :=
+  h.keyBag = bag
+
+/-- Structural, root-mark, and stored-size validity. -/
+def Valid (h : FH) : Prop :=
+  FHNode.ForestGood h.roots ∧
+  FHNode.RootsUnmarked h.roots ∧
+  h.size = FHNode.forestSize h.roots
+
 /-- The empty heap. -/
 def makeHeap : FH :=
   { roots := [], size := 0 }
@@ -651,6 +710,65 @@ def insert (x : Int) (h : FH) : FH :=
 def union (h₁ h₂ : FH) : FH :=
   { roots := h₁.roots ++ h₂.roots
   , size := h₁.size + h₂.size }
+
+/-- The empty executable heap is valid. -/
+theorem makeHeap_valid : makeHeap.Valid := by
+  simp [Valid, makeHeap, FHNode.ForestGood, FHNode.RootsUnmarked]
+
+/-- Inserting an unmarked singleton root preserves executable validity. -/
+theorem insert_valid (x : Int) (h : FH) (hvalid : h.Valid) :
+    (insert x h).Valid := by
+  rcases hvalid with ⟨⟨hordered, hwellformed⟩, hunmarked, hsize⟩
+  refine ⟨?_, ?_, ?_⟩
+  · constructor
+    · intro t ht
+      change t ∈ FHNode.node x false [] :: h.roots at ht
+      rw [List.mem_cons] at ht
+      rcases ht with ht | ht
+      · subst t
+        exact FHNode.leaf_heapOrdered x
+      · exact hordered t ht
+    · intro t ht
+      change t ∈ FHNode.node x false [] :: h.roots at ht
+      rw [List.mem_cons] at ht
+      rcases ht with ht | ht
+      · subst t
+        exact FHNode.leaf_wellformed x
+      · exact hwellformed t ht
+  · intro t ht
+    change t ∈ FHNode.node x false [] :: h.roots at ht
+    rw [List.mem_cons] at ht
+    rcases ht with ht | ht
+    · subst t
+      rfl
+    · exact hunmarked t ht
+  · change h.size + 1 = FHNode.forestSize (FHNode.node x false [] :: h.roots)
+    rw [FHNode.forestSize_cons, hsize]
+    simp
+    omega
+
+/-- Concatenating two valid root forests preserves executable validity. -/
+theorem union_valid (h₁ h₂ : FH)
+    (hvalid₁ : h₁.Valid) (hvalid₂ : h₂.Valid) :
+    (union h₁ h₂).Valid := by
+  rcases hvalid₁ with ⟨⟨hordered₁, hwellformed₁⟩, hunmarked₁, hsize₁⟩
+  rcases hvalid₂ with ⟨⟨hordered₂, hwellformed₂⟩, hunmarked₂, hsize₂⟩
+  refine ⟨?_, ?_, ?_⟩
+  · constructor
+    · intro t ht
+      change t ∈ h₁.roots ++ h₂.roots at ht
+      rw [List.mem_append] at ht
+      exact ht.elim (hordered₁ t) (hordered₂ t)
+    · intro t ht
+      change t ∈ h₁.roots ++ h₂.roots at ht
+      rw [List.mem_append] at ht
+      exact ht.elim (hwellformed₁ t) (hwellformed₂ t)
+  · intro t ht
+    change t ∈ h₁.roots ++ h₂.roots at ht
+    rw [List.mem_append] at ht
+    exact ht.elim (hunmarked₁ t) (hunmarked₂ t)
+  · change h₁.size + h₂.size = FHNode.forestSize (h₁.roots ++ h₂.roots)
+    rw [FHNode.forestSize_append, hsize₁, hsize₂]
 
 /-- The minimum key, if the heap is nonempty (CLRS `FIB-HEAP-MINIMUM`). -/
 def minimum (h : FH) : Option Int :=
@@ -742,6 +860,12 @@ theorem forestKeySet_eq_flatMap (ts : List FHNode) :
         (t.keysList ++ ts.flatMap FHNode.keysList).toFinset
       rw [ih, FHNode.keySet]
       rw [List.toFinset_append]
+
+/-- The duplicate-collapsing key set is the support of the exact key bag. -/
+theorem keys_eq_keyBag_toFinset (h : FH) :
+    h.keys = h.keyBag.toFinset := by
+  rw [keys, forestKeySet_eq_flatMap]
+  rfl
 
 /-- The key set of a removed element is exactly what `findAndRemove` splits
 off. -/
