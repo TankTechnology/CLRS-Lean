@@ -855,6 +855,33 @@ completing the direct proof spine for Chapter 7.
 
 ## Chapter 8 - Sorting in Linear Time
 
+### Section 8.1 - Lower bounds for sorting
+
+- Lean source: `CLRSLean/Chapter_08/Section_08_1_Lower_Bound_For_Sorting.lean`
+- Status: `proved` for the decision-tree model over `Fin n` distinct elements
+- Main proved theorems:
+  - `CLRS.Chapter08.leafCount_le_two_pow_height`
+  - `CLRS.Chapter08.run_injective_of_correctSort`
+  - `CLRS.Chapter08.factorial_le_leafCount_of_correctSort`
+  - `CLRS.Chapter08.height_le_logb_factorial`
+  - `CLRS.Chapter08.factorial_sq_ge_pow_self`
+  - `CLRS.Chapter08.logb_factorial_ge_half_mul_logb`
+  - `CLRS.Chapter08.comparisonSort_worstCase_lowerBound`
+- Proof pattern: model a comparison sort on `n` distinct elements as a binary
+  decision tree `SortTree n` whose internal nodes compare two positions and
+  whose leaves are labelled with output permutations.  Correctness of the tree
+  (`CorrectSort`) means the run on input arrangement `π` reaches the leaf
+  labelled `π⁻¹`, the unique sorted arrangement.  Since distinct inputs have
+  distinct sorted arrangements, the run is injective; the counting lemma
+  `card_le_leafCount_of_injective` then shows a correct tree has at least `n!`
+  leaves.  Together with the combinatorial fact that a binary tree of height
+  `h` has at most `2^h` leaves, this gives `h ≥ log₂(n!)`.  Finally the
+  pairing bound `(n!)² ≥ nⁿ` (each factor pair `k`, `n+1-k` multiplies to at
+  least `n`) yields `log₂(n!) ≥ (n/2)·log₂ n`, so the worst-case number of
+  comparisons is at least `(n/2)·(log₂ n - 1)`, which is `Ω(n log n)`.
+- Current gap: none for the decision-tree model.  RAM-level bookkeeping of
+  individual comparisons through an execution semantics is out of scope.
+
 ### Section 8.2 - Counting sort
 
 - Lean sources:
