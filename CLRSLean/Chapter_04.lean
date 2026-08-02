@@ -61,7 +61,11 @@ and by the executable maximum-subarray and Strassen runtime proofs.
 * Section 4.5 - The master method: {lit}`proved` for exact-power recurrences.
   The file proves the normalized recurrence expansion and three Master-style
   exact-power criteria for bounded, constant, and tail-dominated normalized
-  forcing.
+  forcing, plus a **polylog case-2** extension
+  ({lit}`CLRS.Chapter04.master_case2_polylog_forcing`): polynomial normalized
+  forcing {lit}`c·j^k ≤ forcing ≤ C·j^k` gives
+  {lit}`T(b^i) = Θ((i+1)^(k+1)·a^i)`, i.e. the standard
+  {lit}`f(n) = Θ(n^(log_b a)·log^k n)` textbook case.
 * Section 4.6 - Proof of the master theorem: {lit}`partial`.
   The file proves floor/ceiling all-input recurrence interfaces, extracts
   exact-power recurrences from those models, and proves a compiler-clean
@@ -71,7 +75,9 @@ and by the executable maximum-subarray and Strassen runtime proofs.
   direct {lit}`allInput_bigTheta_of_powerStep` theorem that discharges those
   sandwich hypotheses from monotone comparison scales with eventual one-step
   control.  The discrete {lit}`criticalPowerScale` and
-  {lit}`criticalPowerLogScale` and {lit}`tailDominatedScale` wrappers now turn
+  {lit}`criticalPowerLogScale` (including the polylog
+  {lit}`criticalPowerLogPolylogScale`) and {lit}`tailDominatedScale` wrappers
+  now turn
   exact-power {lit}`T(b^i) = Θ(a^i)`, {lit}`T(b^i) = Θ((i+1)a^i)`, and
   tail-dominated bounds into all-input bounds, and Section 4.6 packages the
   floor/ceiling recurrence forms of exact-power Master cases 1, 2, and 3 for

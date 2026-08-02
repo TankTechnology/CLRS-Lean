@@ -310,10 +310,16 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter04.master_case1_geometric`
   - `CLRS.Chapter04.master_case2_constant_forcing`
   - `CLRS.Chapter04.master_case3_tail_dominated`
+  - `CLRS.Chapter04.master_case2_polylog_forcing`
 - Proof pattern: unroll the exact-power recurrence after dividing by `a^i`,
-  then prove bounded, constant, and tail-dominated normalized-forcing criteria
-- Current gap: extending exact powers `n = b^i` to all input sizes needs a
-  monotone recurrence model and floor/ceiling sandwiching
+  then prove bounded, constant, and tail-dominated normalized-forcing criteria.
+  The polylog case-2 extension proves that polynomial normalized forcing
+  `c·j^k ≤ forcing ≤ C·j^k` (the `f(n) = Θ(n^(log_b a)·log^k n)` textbook
+  case) gives `T(b^i) = Θ((i+1)^(k+1)·a^i)`, using the
+  `Σ_{j<i} j^k = Θ(i^(k+1))` sum bound.
+- Current gap: none for the exact-power model.  The all-input floor/ceiling
+  transfer is handled by Section 4.6, including the polylog case-2 wrapper
+  `master_case2_polylog_forcing_all_input`.
 
 ### Section 4.6 - Proof of the master theorem
 
@@ -343,6 +349,10 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter04.criticalPowerLogScale_monotoneAbs`
   - `CLRS.Chapter04.criticalPowerLogScale_powerStepBound`
   - `CLRS.Chapter04.allInput_bigTheta_of_criticalPowerLogScale`
+  - `CLRS.Chapter04.criticalPowerLogPolylogScale`
+  - `CLRS.Chapter04.criticalPowerLogPolylogScale_monotoneAbs`
+  - `CLRS.Chapter04.criticalPowerLogPolylogScale_powerStepBound`
+  - `CLRS.Chapter04.master_case2_polylog_forcing_all_input`
   - `CLRS.Chapter04.tailDominatedScale`
   - `CLRS.Chapter04.tailDominatedScale_exactPower`
   - `CLRS.Chapter04.allInput_bigTheta_of_tailDominatedScale`
