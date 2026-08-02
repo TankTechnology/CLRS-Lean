@@ -24,10 +24,9 @@ Main results:
 
 - `CompDAG.longestTo_le`, `CompDAG.span_le_work`: the span never exceeds the
   work (T∞ ≤ T₁).
-- `GreedyScheduleAccounting.time_le_work_div_add_span` and
-  `GreedyScheduleRun.time_le_work_div_add_span`: the CLRS complete-step /
-  incomplete-step accounting argument gives `Tₚ ≤ T₁ / p + T∞`, both at the
-  aggregate boundary and from local per-step progress obligations.
+- `DAGSchedule.time_le_work_div_add_span`: the CLRS complete-step /
+  incomplete-step argument gives `Tₚ ≤ T₁ / p + T∞` for an explicit greedy
+  execution of the computation DAG.
 - `SpawnTree.span_le_work`: the same inequality for spawn trees.
 - `parallelLoop_work`: the work of the parallel-loop tree is exactly
   `n * w + (n - 1)`.
@@ -38,9 +37,6 @@ Main results:
 
 ## Deferred work
 
-* Constructing `GreedyScheduleRun` from an explicit ready-strand execution of
-  `CompDAG` remains to connect the per-step theorem directly to the executable
-  DAG model.
 * A matching upper bound `parallelLoopDepth n ≤ Nat.log 2 n + 1` (i.e.
   `Nat.clog`-style exact characterization) is future work.
 -/
@@ -162,7 +158,277 @@ theorem span_le_work (G : CompDAG) : G.span ≤ G.work := by
           Finset.mem_range.mpr (by
             have hx' := Finset.mem_range.mp hx
             omega))
-        (by simp)
+              (by simp)
+
+/-! ### Residual computation states -/
+
+/-- Work remaining in a partially executed computation. -/
+def remainingWork (G : CompDAG) (remaining : ℕ → ℕ) : ℕ :=
+  ∑ i ∈ Finset.range G.n, remaining i
+
+/-- Reuse the dependency graph with a new node-work function. -/
+def withWork (G : CompDAG) (nodeWork : ℕ → ℕ) : CompDAG where
+  n := G.n
+  node_work := nodeWork
+  edges := G.edges
+  h_edges_in_bounds := G.h_edges_in_bounds
+  h_edges_forward := G.h_edges_forward
+
+/-- Critical-path work remaining in a partially executed computation. -/
+def remainingSpan (G : CompDAG) (remaining : ℕ → ℕ) : ℕ :=
+  (G.withWork remaining).span
+
+/-- Execute one unit of work at each selected node. -/
+def execute (_G : CompDAG) (remaining : ℕ → ℕ) (run : Finset ℕ) : ℕ → ℕ :=
+  fun v => if v ∈ run then remaining v - 1 else remaining v
+
+private theorem foldr_max_map_le {α : Type} (items : List α) (f g : α → ℕ)
+    (hfg : ∀ item ∈ items, f item ≤ g item) :
+    (items.map f).foldr max 0 ≤ (items.map g).foldr max 0 := by
+  induction items with
+  | nil => simp
+  | cons item items ih =>
+      simp only [List.map_cons, List.foldr_cons]
+      exact max_le_max (hfg item List.mem_cons_self)
+        (ih fun tailItem hmem => hfg tailItem (List.mem_cons_of_mem item hmem))
+
+private theorem foldr_max_map_add_one_le {α : Type} (items : List α)
+    (f : α → ℕ) (bound : ℕ) (hbound : 0 < bound)
+    (hf : ∀ item ∈ items, f item + 1 ≤ bound) :
+    (items.map f).foldr max 0 + 1 ≤ bound := by
+  induction items with
+  | nil => simp; omega
+  | cons item items ih =>
+      have hitem := hf item List.mem_cons_self
+      have htail := ih fun tailItem hmem =>
+        hf tailItem (List.mem_cons_of_mem item hmem)
+      simp only [List.map_cons, List.foldr_cons]
+      rcases le_total (f item) ((items.map f).foldr max 0) with hle | hge
+      · rw [max_eq_right hle]
+        exact htail
+      · rw [max_eq_left hge]
+        exact hitem
+
+/-- Increasing node work can only increase the longest path ending at a node. -/
+theorem longestTo_mono_work (G : CompDAG) (smaller larger : ℕ → ℕ)
+    (hwork : ∀ v, smaller v ≤ larger v) (v : ℕ) :
+    (G.withWork smaller).longestTo v ≤ (G.withWork larger).longestTo v := by
+  induction v using Nat.strong_induction_on with
+  | h v ih =>
+      rw [longestTo, longestTo]
+      apply Nat.add_le_add (hwork v)
+      apply foldr_max_map_le
+      intro edge _hmem
+      have hfilt := List.mem_filter.mp edge.property
+      have htarget : edge.val.2 = v := of_decide_eq_true hfilt.2
+      have hsource_lt : edge.val.1 < v := by
+        have hforward := G.h_edges_forward edge.val hfilt.1
+        omega
+      exact ih edge.val.1 hsource_lt
+
+/-- Residual span is monotone in every node's remaining work. -/
+theorem remainingSpan_mono (G : CompDAG) (smaller larger : ℕ → ℕ)
+    (hwork : ∀ v, smaller v ≤ larger v) :
+    G.remainingSpan smaller ≤ G.remainingSpan larger := by
+  unfold remainingSpan span
+  apply foldr_max_map_le
+  intro v _hv
+  exact G.longestTo_mono_work smaller larger hwork v
+
+/-- Executing work cannot increase the residual critical path. -/
+theorem remainingSpan_execute_le (G : CompDAG) (remaining : ℕ → ℕ)
+    (run : Finset ℕ) :
+    G.remainingSpan (G.execute remaining run) ≤ G.remainingSpan remaining := by
+  apply G.remainingSpan_mono
+  intro v
+  simp only [execute]
+  split <;> omega
+
+/-- Nodes that have positive remaining work and whose immediate predecessors
+have finished. -/
+def ready (G : CompDAG) (remaining : ℕ → ℕ) : Finset ℕ :=
+  (Finset.range G.n).filter fun v =>
+    0 < remaining v ∧
+      ∀ edge ∈ G.edges, edge.2 = v → remaining edge.1 = 0
+
+theorem mem_ready_iff (G : CompDAG) (remaining : ℕ → ℕ) (v : ℕ) :
+    v ∈ G.ready remaining ↔
+      v < G.n ∧ 0 < remaining v ∧
+        ∀ edge ∈ G.edges, edge.2 = v → remaining edge.1 = 0 := by
+  simp [ready]
+
+private theorem longestTo_execute_ready_add_one_le (G : CompDAG)
+    (remaining : ℕ → ℕ) (v : ℕ) (hv : v < G.n)
+    (hpositive : 0 < (G.withWork remaining).longestTo v) :
+    (G.withWork (G.execute remaining (G.ready remaining))).longestTo v + 1 ≤
+      (G.withWork remaining).longestTo v := by
+  induction v using Nat.strong_induction_on with
+  | h v ih =>
+      let predEdges := (G.edges.filter fun edge => edge.2 = v).attach
+      let beforeMax :=
+        (predEdges.map fun edge =>
+          (G.withWork remaining).longestTo edge.val.1).foldr max 0
+      let afterMax :=
+        (predEdges.map fun edge =>
+          (G.withWork (G.execute remaining (G.ready remaining))).longestTo
+            edge.val.1).foldr max 0
+      rw [longestTo] at hpositive
+      rw [longestTo, longestTo]
+      change 0 < remaining v + beforeMax at hpositive
+      change G.execute remaining (G.ready remaining) v + afterMax + 1 ≤
+        remaining v + beforeMax
+      have hnode_mono : ∀ node,
+          G.execute remaining (G.ready remaining) node ≤ remaining node := by
+        intro node
+        simp only [execute]
+        split <;> omega
+      have hmax_mono : afterMax ≤ beforeMax := by
+        apply foldr_max_map_le
+        intro edge _hmem
+        exact G.longestTo_mono_work _ _ hnode_mono edge.val.1
+      have hmax_drop (hmax_positive : 0 < beforeMax) :
+          afterMax + 1 ≤ beforeMax := by
+        apply foldr_max_map_add_one_le predEdges _ beforeMax hmax_positive
+        intro edge _hmem
+        have hfilt := List.mem_filter.mp edge.property
+        have htarget : edge.val.2 = v := of_decide_eq_true hfilt.2
+        have hsource_lt : edge.val.1 < v := by
+          have hforward := G.h_edges_forward edge.val hfilt.1
+          omega
+        have hsource_bound : edge.val.1 < G.n :=
+          (G.h_edges_in_bounds edge.val hfilt.1).1
+        by_cases hpred_positive :
+            0 < (G.withWork remaining).longestTo edge.val.1
+        · have hdrop := ih edge.val.1 hsource_lt hsource_bound hpred_positive
+          have hmem : (G.withWork remaining).longestTo edge.val.1 ∈
+              predEdges.map fun predecessor =>
+                (G.withWork remaining).longestTo predecessor.val.1 :=
+            List.mem_map.mpr ⟨edge, _hmem, rfl⟩
+          have hle := List.le_max_of_le' 0 hmem (le_refl _)
+          exact hdrop.trans hle
+        · have hbefore_zero :
+              (G.withWork remaining).longestTo edge.val.1 = 0 :=
+            Nat.eq_zero_of_not_pos hpred_positive
+          have hafter_le :=
+            G.longestTo_mono_work _ _ hnode_mono edge.val.1
+          have hafter_zero :
+              (G.withWork (G.execute remaining (G.ready remaining))).longestTo
+                  edge.val.1 = 0 := by
+            omega
+          omega
+      by_cases hready : v ∈ G.ready remaining
+      · have hvpos := ((G.mem_ready_iff remaining v).mp hready).2.1
+        have hexecute :
+            G.execute remaining (G.ready remaining) v = remaining v - 1 := by
+          simp [execute, hready]
+        rw [hexecute]
+        omega
+      · have hbefore_max_positive : 0 < beforeMax := by
+          by_cases hvpos : 0 < remaining v
+          · have hnot_all :
+                ¬ ∀ edge ∈ G.edges,
+                  edge.2 = v → remaining edge.1 = 0 := by
+              intro hall
+              exact hready ((G.mem_ready_iff remaining v).mpr ⟨hv, hvpos, hall⟩)
+            push Not at hnot_all
+            obtain ⟨edge, hedge, htarget, hsource_ne⟩ := hnot_all
+            let attached :
+                { candidate // candidate ∈
+                  (G.edges.filter fun candidate => candidate.2 = v) } :=
+              ⟨edge, List.mem_filter.mpr ⟨hedge, by simp [htarget]⟩⟩
+            have hsource_pos : 0 < remaining edge.1 := Nat.pos_of_ne_zero hsource_ne
+            have hlongest_pos :
+                0 < (G.withWork remaining).longestTo edge.1 := by
+              rw [longestTo]
+              change 0 < remaining edge.1 + _
+              omega
+            have hmem :
+                (G.withWork remaining).longestTo edge.1 ∈
+                  predEdges.map fun predecessor =>
+                    (G.withWork remaining).longestTo predecessor.val.1 :=
+              List.mem_map.mpr ⟨attached, by
+                simp [predEdges], rfl⟩
+            have hle := List.le_max_of_le' 0 hmem (le_refl _)
+            exact Nat.lt_of_lt_of_le hlongest_pos hle
+          · have hvzero : remaining v = 0 := Nat.eq_zero_of_not_pos hvpos
+            omega
+        have hexecute :
+            G.execute remaining (G.ready remaining) v = remaining v := by
+          simp [execute, hready]
+        rw [hexecute]
+        exact Nat.add_le_add_left (hmax_drop hbefore_max_positive) (remaining v)
+
+/-- If unfinished work remains, executing every ready node removes at least one
+unit from the residual critical path. -/
+theorem remainingSpan_execute_ready_add_one_le (G : CompDAG)
+    (remaining : ℕ → ℕ) (hwork : 0 < G.remainingWork remaining) :
+    G.remainingSpan (G.execute remaining (G.ready remaining)) + 1 ≤
+      G.remainingSpan remaining := by
+  have hwork' : 0 < ∑ v ∈ Finset.range G.n, remaining v := by
+    simpa [remainingWork] using hwork
+  obtain ⟨v, hvrange, hvpos⟩ := Finset.sum_pos_iff.mp hwork'
+  have hvlt : v < G.n := Finset.mem_range.mp hvrange
+  have hlongest_pos : 0 < (G.withWork remaining).longestTo v := by
+    rw [longestTo]
+    change 0 < remaining v + _
+    omega
+  have hspan_positive : 0 < G.remainingSpan remaining := by
+    unfold remainingSpan span
+    have hmem : (G.withWork remaining).longestTo v ∈
+        (List.range G.n).map (G.withWork remaining).longestTo :=
+      List.mem_map.mpr ⟨v, List.mem_range.mpr hvlt, rfl⟩
+    have hle := List.le_max_of_le' 0 hmem (le_refl _)
+    exact Nat.lt_of_lt_of_le hlongest_pos hle
+  unfold remainingSpan span
+  apply foldr_max_map_add_one_le (List.range G.n) _ _ hspan_positive
+  intro node hnode
+  have hnode_lt : node < G.n := List.mem_range.mp hnode
+  by_cases hnode_positive : 0 < (G.withWork remaining).longestTo node
+  · have hdrop :=
+      G.longestTo_execute_ready_add_one_le remaining node hnode_lt hnode_positive
+    have hmem : (G.withWork remaining).longestTo node ∈
+        (List.range G.n).map (G.withWork remaining).longestTo :=
+      List.mem_map.mpr ⟨node, hnode, rfl⟩
+    have hle := List.le_max_of_le' 0 hmem (le_refl _)
+    exact hdrop.trans hle
+  · have hbefore_zero : (G.withWork remaining).longestTo node = 0 :=
+      Nat.eq_zero_of_not_pos hnode_positive
+    have hnode_mono : ∀ i,
+        G.execute remaining (G.ready remaining) i ≤ remaining i := by
+      intro i
+      simp only [execute]
+      split <;> omega
+    have hafter_le := G.longestTo_mono_work _ _ hnode_mono node
+    omega
+
+/-- Executing a set of ready nodes consumes exactly one work unit per selected
+node. -/
+theorem remainingWork_execute_add_card (G : CompDAG) (remaining : ℕ → ℕ)
+    (run : Finset ℕ) (hrun : run ⊆ G.ready remaining) :
+    G.remainingWork (G.execute remaining run) + run.card =
+      G.remainingWork remaining := by
+  have hrun_range : run ⊆ Finset.range G.n := by
+    intro v hv
+    exact Finset.mem_range.mpr ((G.mem_ready_iff remaining v).mp (hrun hv)).1
+  have hfilter :
+      (Finset.range G.n).filter (fun v => v ∈ run) = run := by
+    ext v
+    simp only [Finset.mem_filter]
+    constructor
+    · exact fun hv => hv.2
+    · exact fun hv => ⟨hrun_range hv, hv⟩
+  have hcard :
+      (∑ v ∈ Finset.range G.n, if v ∈ run then 1 else 0) = run.card := by
+    rw [← Finset.sum_filter, hfilter]
+    simp
+  rw [remainingWork, remainingWork, ← hcard, ← Finset.sum_add_distrib]
+  apply Finset.sum_congr rfl
+  intro v hv
+  by_cases hvrun : v ∈ run
+  · have hvpos : 0 < remaining v :=
+      ((G.mem_ready_iff remaining v).mp (hrun hvrun)).2.1
+    simp [execute, hvrun, Nat.sub_add_cancel hvpos]
+  · simp [execute, hvrun]
 
 end CompDAG
 
@@ -289,6 +555,197 @@ structure GreedyScheduleStep where
   spanDecrease : ℕ
 deriving Repr, DecidableEq
 
+/-! ## Concrete computation-DAG steps -/
+
+/-- One greedy time step over an explicit residual `CompDAG` state.
+
+`run` contains only ready nodes and has the largest cardinality allowed by the
+processor count.  Thus an incomplete step necessarily executes every ready
+node. -/
+structure DAGScheduleStep (G : CompDAG) (processors : ℕ) where
+  /-- Work remaining at every DAG node before the step. -/
+  remaining : ℕ → ℕ
+  /-- Ready nodes selected for one unit of execution. -/
+  run : Finset ℕ
+  /-- Only ready nodes may execute. -/
+  run_subset_ready : run ⊆ G.ready remaining
+  /-- A greedy step uses as many processors as the ready set permits. -/
+  run_card_eq_min : run.card = min processors (G.ready remaining).card
+
+namespace DAGScheduleStep
+
+/-- Residual state after executing the selected ready nodes. -/
+def after {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) : ℕ → ℕ :=
+  G.execute S.remaining S.run
+
+/-- A step is complete exactly when it fills every processor. -/
+def kind {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) : GreedyStepKind :=
+  if S.run.card = processors then .complete else .incomplete
+
+/-- Expose a concrete DAG step at the per-step accounting boundary. -/
+def metricStep {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) : GreedyScheduleStep where
+  kind := S.kind
+  workConsumed := S.run.card
+  spanDecrease := G.remainingSpan S.remaining - G.remainingSpan S.after
+
+theorem kind_eq_complete_iff {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) :
+    S.kind = .complete ↔ S.run.card = processors := by
+  simp [kind]
+
+theorem kind_eq_incomplete_iff {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) :
+    S.kind = .incomplete ↔ S.run.card ≠ processors := by
+  simp [kind]
+
+/-- The concrete residual-work balance for one DAG step. -/
+theorem remainingWork_after_add_card {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) :
+    G.remainingWork S.after + S.run.card = G.remainingWork S.remaining := by
+  exact G.remainingWork_execute_add_card S.remaining S.run S.run_subset_ready
+
+/-- The accounting work obligation is automatic for complete DAG steps. -/
+theorem complete_progress {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) (hcomplete : S.kind = .complete) :
+    processors ≤ S.metricStep.workConsumed := by
+  have hcard := (S.kind_eq_complete_iff).mp hcomplete
+  simp [metricStep, hcard]
+
+/-- If a greedy step is incomplete, it executes the entire ready set. -/
+theorem incomplete_run_eq_ready {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors) (hincomplete : S.kind = .incomplete) :
+    S.run = G.ready S.remaining := by
+  have hcard_ne : S.run.card ≠ processors :=
+    (S.kind_eq_incomplete_iff).mp hincomplete
+  have hready_lt : (G.ready S.remaining).card < processors := by
+    by_contra hnot
+    have hprocessors_le : processors ≤ (G.ready S.remaining).card :=
+      Nat.le_of_not_gt hnot
+    have : S.run.card = processors := by
+      rw [S.run_card_eq_min, Nat.min_eq_left hprocessors_le]
+    exact hcard_ne this
+  have hcards : S.run.card = (G.ready S.remaining).card := by
+    rw [S.run_card_eq_min, Nat.min_eq_right (Nat.le_of_lt hready_lt)]
+  exact Finset.eq_of_subset_of_card_le S.run_subset_ready hcards.ge
+
+/-- The accounting span obligation is automatic for every active incomplete
+DAG step. -/
+theorem incomplete_progress {G : CompDAG} {processors : ℕ}
+    (S : DAGScheduleStep G processors)
+    (hactive : 0 < G.remainingWork S.remaining)
+    (hincomplete : S.kind = .incomplete) :
+    1 ≤ S.metricStep.spanDecrease := by
+  have hrun := S.incomplete_run_eq_ready hincomplete
+  have hdrop := G.remainingSpan_execute_ready_add_one_le S.remaining hactive
+  simp only [metricStep, after]
+  rw [hrun]
+  omega
+
+end DAGScheduleStep
+
+/-! ## Chained computation-DAG schedules -/
+
+/-- A type-safe sequence of active greedy DAG steps.
+
+The index is the initial residual state.  In the `step` constructor the tail is
+indexed by `S.after`, so consecutive states agree by construction. -/
+inductive DAGSchedule (G : CompDAG) (processors : ℕ) : (ℕ → ℕ) → Type where
+  | done (remaining : ℕ → ℕ) : DAGSchedule G processors remaining
+  | step (S : DAGScheduleStep G processors)
+      (active : 0 < G.remainingWork S.remaining)
+      (tail : DAGSchedule G processors S.after) :
+      DAGSchedule G processors S.remaining
+
+namespace DAGSchedule
+
+/-- Per-step accounting records of a chained DAG execution. -/
+def metricSteps {G : CompDAG} {processors : ℕ} :
+    {remaining : ℕ → ℕ} → DAGSchedule G processors remaining →
+      List GreedyScheduleStep
+  | _, .done _ => []
+  | _, .step S _ tail => S.metricStep :: tail.metricSteps
+
+/-- The residual state where the recorded execution stops. -/
+def finalState {G : CompDAG} {processors : ℕ} :
+    {remaining : ℕ → ℕ} → DAGSchedule G processors remaining → ℕ → ℕ
+  | _, .done remaining => remaining
+  | _, .step _ _ tail => tail.finalState
+
+/-- Parallel time of the chained execution. -/
+def time {G : CompDAG} {processors : ℕ} {remaining : ℕ → ℕ}
+    (D : DAGSchedule G processors remaining) : ℕ :=
+  D.metricSteps.length
+
+/-- Work consumption telescopes over a chained execution. -/
+theorem work_balance {G : CompDAG} {processors : ℕ} {remaining : ℕ → ℕ}
+    (D : DAGSchedule G processors remaining) :
+    (D.metricSteps.map GreedyScheduleStep.workConsumed).sum +
+        G.remainingWork D.finalState =
+      G.remainingWork remaining := by
+  induction D with
+  | done => simp [metricSteps, finalState]
+  | step S _active tail ih =>
+      have hstep := S.remainingWork_after_add_card
+      simp only [metricSteps, List.map_cons, List.sum_cons,
+        DAGScheduleStep.metricStep]
+      change S.run.card +
+          (tail.metricSteps.map GreedyScheduleStep.workConsumed).sum +
+            G.remainingWork tail.finalState =
+        G.remainingWork S.remaining
+      omega
+
+/-- Span decreases telescope over a chained execution. -/
+theorem span_balance {G : CompDAG} {processors : ℕ} {remaining : ℕ → ℕ}
+    (D : DAGSchedule G processors remaining) :
+    (D.metricSteps.map GreedyScheduleStep.spanDecrease).sum +
+        G.remainingSpan D.finalState =
+      G.remainingSpan remaining := by
+  induction D with
+  | done => simp [metricSteps, finalState]
+  | step S _active tail ih =>
+      have hmono : G.remainingSpan S.after ≤ G.remainingSpan S.remaining := by
+        simpa [DAGScheduleStep.after] using
+          G.remainingSpan_execute_le S.remaining S.run
+      simp only [metricSteps, List.map_cons, List.sum_cons,
+        DAGScheduleStep.metricStep, DAGScheduleStep.after]
+      change (G.remainingSpan S.remaining - G.remainingSpan S.after) +
+          (tail.metricSteps.map GreedyScheduleStep.spanDecrease).sum +
+            G.remainingSpan tail.finalState =
+        G.remainingSpan S.remaining
+      omega
+
+private theorem all_complete_progress {G : CompDAG} {processors : ℕ}
+    {remaining : ℕ → ℕ} (D : DAGSchedule G processors remaining) :
+    ∀ step ∈ D.metricSteps,
+      step.kind = .complete → processors ≤ step.workConsumed := by
+  induction D with
+  | done => simp [metricSteps]
+  | step S _active tail ih =>
+      intro step hmem hcomplete
+      simp only [metricSteps, List.mem_cons] at hmem
+      rcases hmem with rfl | htail
+      · simpa [DAGScheduleStep.metricStep] using S.complete_progress hcomplete
+      · exact ih step htail hcomplete
+
+private theorem all_incomplete_progress {G : CompDAG} {processors : ℕ}
+    {remaining : ℕ → ℕ} (D : DAGSchedule G processors remaining) :
+    ∀ step ∈ D.metricSteps,
+      step.kind = .incomplete → 1 ≤ step.spanDecrease := by
+  induction D with
+  | done => simp [metricSteps]
+  | step S active tail ih =>
+      intro step hmem hincomplete
+      simp only [metricSteps, List.mem_cons] at hmem
+      rcases hmem with rfl | htail
+      · simpa [DAGScheduleStep.metricStep] using
+          S.incomplete_progress active hincomplete
+      · exact ih step htail hincomplete
+
+end DAGSchedule
+
 /-- A schedule run whose resource bounds and progress obligations are stated
 locally, one execution step at a time.
 
@@ -398,6 +855,48 @@ theorem time_le_work_div_add_span (S : GreedyScheduleRun) :
   simpa [time, GreedyScheduleTrace.time, trace] using h
 
 end GreedyScheduleRun
+
+namespace DAGSchedule
+
+/-- Convert a type-safe DAG execution into the local per-step accounting
+interface.  Both global budgets are derived by telescoping; neither is supplied
+by the caller. -/
+def toRun {G : CompDAG} {processors : ℕ} {remaining : ℕ → ℕ}
+    (D : DAGSchedule G processors remaining) (hprocessors : 0 < processors) :
+    GreedyScheduleRun where
+  processors := processors
+  totalWork := G.remainingWork remaining
+  totalSpan := G.remainingSpan remaining
+  steps := D.metricSteps
+  processors_pos := hprocessors
+  work_budget := by
+    have hbalance := D.work_balance
+    omega
+  span_budget := by
+    have hbalance := D.span_balance
+    omega
+  complete_progress := all_complete_progress D
+  incomplete_progress := all_incomplete_progress D
+
+/-- Greedy-scheduler bound for a chained execution from an arbitrary residual
+state. -/
+theorem time_le_remainingWork_div_add_remainingSpan
+    {G : CompDAG} {processors : ℕ} {remaining : ℕ → ℕ}
+    (D : DAGSchedule G processors remaining) (hprocessors : 0 < processors) :
+    D.time ≤ G.remainingWork remaining / processors + G.remainingSpan remaining := by
+  have hbound := (D.toRun hprocessors).time_le_work_div_add_span
+  simpa [time, toRun, GreedyScheduleRun.time] using hbound
+
+/-- CLRS Theorems 27.1/27.2 for an explicit greedy execution of a computation
+DAG: `Tₚ ≤ T₁ / p + T∞`. -/
+theorem time_le_work_div_add_span {G : CompDAG} {processors : ℕ}
+    (D : DAGSchedule G processors G.node_work) (hprocessors : 0 < processors) :
+    D.time ≤ G.work / processors + G.span := by
+  have hbound := D.time_le_remainingWork_div_add_remainingSpan hprocessors
+  simpa [CompDAG.remainingWork, CompDAG.work, CompDAG.remainingSpan,
+    CompDAG.withWork] using hbound
+
+end DAGSchedule
 
 /-! ## Spawn trees
 
