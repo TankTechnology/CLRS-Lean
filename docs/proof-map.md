@@ -349,6 +349,10 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter04.criticalPowerLogScale_monotoneAbs`
   - `CLRS.Chapter04.criticalPowerLogScale_powerStepBound`
   - `CLRS.Chapter04.allInput_bigTheta_of_criticalPowerLogScale`
+  - `CLRS.Chapter04.criticalPowerLogPolylogScale`
+  - `CLRS.Chapter04.criticalPowerLogPolylogScale_monotoneAbs`
+  - `CLRS.Chapter04.criticalPowerLogPolylogScale_powerStepBound`
+  - `CLRS.Chapter04.master_case2_polylog_forcing_all_input`
   - `CLRS.Chapter04.tailDominatedScale`
   - `CLRS.Chapter04.tailDominatedScale_exactPower`
   - `CLRS.Chapter04.allInput_bigTheta_of_tailDominatedScale`

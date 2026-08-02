@@ -64,16 +64,20 @@ extension of {name}`criticalPowerLogScale`.
 def criticalPowerLogPolylogScale (a b k : ℕ) (n : ℕ) : ℝ :=
   ((Nat.log b n : ℝ) + 1) ^ (k + 1) * criticalPowerScale a b n
 
+/-- The discrete polylog case-2 scale is nonnegative. -/
 theorem criticalPowerLogPolylogScale_nonneg (a b k n : ℕ) :
     0 ≤ criticalPowerLogPolylogScale a b k n := by
   unfold criticalPowerLogPolylogScale criticalPowerScale
   positivity
 
+/-- On an exact power the discrete polylog case-2 scale collapses to
+{lit}`(i+1)^(k+1)·a^i`. -/
 theorem criticalPowerLogPolylogScale_exactPower (a b k i : ℕ) (hb : 1 < b) :
     criticalPowerLogPolylogScale a b k (b ^ i) =
       ((i : ℝ) + 1) ^ (k + 1) * ((a : ℝ) ^ i) := by
   simp [criticalPowerLogPolylogScale, criticalPowerScale, Nat.log_pow hb]
 
+/-- The discrete polylog case-2 scale is monotone in absolute value. -/
 theorem criticalPowerLogPolylogScale_monotoneAbs
     (a b k : ℕ) (ha : 1 ≤ a) :
     MonotoneAbs (criticalPowerLogPolylogScale a b k) := by
@@ -94,6 +98,8 @@ theorem criticalPowerLogPolylogScale_monotoneAbs
   unfold criticalPowerLogPolylogScale criticalPowerScale
   exact mul_le_mul hpow_factor hpow (pow_nonneg ha_nonneg _) (by positivity)
 
+/-- The discrete polylog case-2 scale has eventual one-step control across one
+multiplication by {lit}`b`. -/
 theorem criticalPowerLogPolylogScale_powerStepBound
     (a b k : ℕ) (ha : 1 ≤ a) (hb : 1 < b) :
     EventuallyPowerStepBound b (criticalPowerLogPolylogScale a b k) := by

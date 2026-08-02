@@ -75,7 +75,9 @@ and by the executable maximum-subarray and Strassen runtime proofs.
   direct {lit}`allInput_bigTheta_of_powerStep` theorem that discharges those
   sandwich hypotheses from monotone comparison scales with eventual one-step
   control.  The discrete {lit}`criticalPowerScale` and
-  {lit}`criticalPowerLogScale` and {lit}`tailDominatedScale` wrappers now turn
+  {lit}`criticalPowerLogScale` (including the polylog
+  {lit}`criticalPowerLogPolylogScale`) and {lit}`tailDominatedScale` wrappers
+  now turn
   exact-power {lit}`T(b^i) = Θ(a^i)`, {lit}`T(b^i) = Θ((i+1)a^i)`, and
   tail-dominated bounds into all-input bounds, and Section 4.6 packages the
   floor/ceiling recurrence forms of exact-power Master cases 1, 2, and 3 for

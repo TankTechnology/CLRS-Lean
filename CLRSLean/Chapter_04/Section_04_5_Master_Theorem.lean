@@ -23,6 +23,10 @@ Main result:
   forcing, obtained from a geometric upper bound, gives {lit}`T(b^i) = Θ(a^i)`.
 - Theorem {lit}`CLRS.Chapter04.master_case2_constant_forcing`: constant
   normalized forcing gives {lit}`T(b^i) = Θ((i+1)a^i)`.
+- Theorem {lit}`CLRS.Chapter04.master_case2_polylog_forcing`: polynomial
+  normalized forcing {lit}`c·j^k ≤ forcing ≤ C·j^k` (the
+  {lit}`f(n) = Θ(n^(log_b a)·log^k n)` textbook case) gives
+  {lit}`T(b^i) = Θ((i+1)^(k+1)a^i)`.
 - Theorem {lit}`CLRS.Chapter04.master_case3_tail_dominated`: tail-dominated
   normalized forcing gives the third Master-style exact-power case.
 
