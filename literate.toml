@@ -245,6 +245,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_24.Section_24_2_SSSP_In_DAGs",
   "CLRSLean.Chapter_24.Section_24_3_Dijkstra",
   "CLRSLean.Chapter_24.Section_24_4_Difference_Constraints",
+  "CLRSLean.Chapter_24.Section_24_5_Shortest_Path_Properties",
 ]
 "CLRSLean.Chapter_25" = [
   "CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model",
@@ -739,6 +740,9 @@ title = "24.3. Dijkstra's Algorithm"
 
 [modules."CLRSLean.Chapter_24.Section_24_4_Difference_Constraints"]
 title = "24.4. Difference Constraints and Shortest Paths"
+
+[modules."CLRSLean.Chapter_24.Section_24_5_Shortest_Path_Properties"]
+title = "24.5. Proofs of Shortest Paths"
 
 [modules."CLRSLean.Chapter_25.Section_25_1_All_Pairs_Model"]
 title = "25.1. All-Pairs Shortest Paths Model"

@@ -155,6 +155,7 @@ CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean
 CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean
 CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
 CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean
+CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean
 CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean
 CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean
 CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean
