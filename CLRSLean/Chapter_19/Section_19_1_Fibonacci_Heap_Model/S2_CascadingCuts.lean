@@ -31,9 +31,82 @@ namespace FHFrame
 def close (frame : FHFrame) (child : FHNode) : FHNode :=
   FHNode.node frame.key frame.marked (frame.before ++ child :: frame.after)
 
+/-- Remove the focused child from one parent frame. -/
+def removeFocus (frame : FHFrame) : FHNode :=
+  FHNode.node frame.key frame.marked (frame.before ++ frame.after)
+
 /-- Close parent frames ordered from the nearest parent to the root. -/
 def closeAll (focus : FHNode) (parents : List FHFrame) : FHNode :=
   parents.foldl (fun child frame => frame.close child) focus
+
+/-- The focused child occurs at the split position of its frame. -/
+theorem getElem?_close_children (frame : FHFrame) (child : FHNode) :
+    (frame.before ++ child :: frame.after)[frame.before.length]? = some child := by
+  simp
+
+/-- Erasing the focused position leaves exactly the two stored sibling lists. -/
+theorem eraseIdx_close_children (frame : FHFrame) (child : FHNode) :
+    (frame.before ++ child :: frame.after).eraseIdx frame.before.length =
+      frame.before ++ frame.after := by
+  cases frame with
+  | mk key marked before after =>
+      induction before with
+      | nil => rfl
+      | cons sibling before ih =>
+          change sibling ::
+              ((before ++ child :: after).eraseIdx before.length) =
+            sibling :: (before ++ after)
+          rw [ih]
+
+/-- Removing a focused child preserves heap order of the parent and projects
+heap order to the removed subtree. -/
+theorem close_heapOrdered_remove {frame : FHFrame} {child : FHNode}
+    (hordered : (frame.close child).HeapOrdered) :
+    child.HeapOrdered ∧ frame.removeFocus.HeapOrdered := by
+  cases hordered with
+  | node hle hall =>
+      constructor
+      · exact hall child (by simp [close])
+      · refine FHNode.HeapOrdered.node ?_ ?_
+        · intro current hcurrent
+          exact hle current (by
+            simp only [removeFocus, close, List.mem_append,
+              List.mem_cons] at hcurrent ⊢
+            tauto)
+        · intro current hcurrent
+          exact hall current (by
+            simp only [removeFocus, close, List.mem_append,
+              List.mem_cons] at hcurrent ⊢
+            tauto)
+
+/-- Removing a focused child preserves the loss invariant of the parent and
+projects it to the removed subtree. -/
+theorem close_lossInvariant_remove {frame : FHFrame} {child : FHNode}
+    (hloss : (frame.close child).LossInvariant) :
+    child.LossInvariant ∧ frame.removeFocus.LossInvariant := by
+  have hi : frame.before.length <
+      (frame.before ++ child :: frame.after).length := by simp
+  have hremove := FH.lossInvariant_remove_index hloss
+    frame.before.length hi
+  obtain ⟨_, hget⟩ := List.getElem?_eq_some_iff.mp
+    (getElem?_close_children frame child)
+  rw [hget] at hremove
+  rw [eraseIdx_close_children] at hremove
+  exact hremove
+
+/-- Removing and promoting a focused child preserves the exact subtree-key
+multiset balance. -/
+theorem close_keyBag_balance (frame : FHFrame) (child : FHNode) :
+    child.keyBag + frame.removeFocus.keyBag = (frame.close child).keyBag := by
+  simp [close, removeFocus, FHNode.forestKeyBag_append]
+  ac_rfl
+
+/-- Removing and promoting a focused child preserves the exact node-count
+balance. -/
+theorem close_size_balance (frame : FHFrame) (child : FHNode) :
+    child.size + frame.removeFocus.size = (frame.close child).size := by
+  simp [close, removeFocus, FHNode.forestSize_append]
+  omega
 
 end FHFrame
 
