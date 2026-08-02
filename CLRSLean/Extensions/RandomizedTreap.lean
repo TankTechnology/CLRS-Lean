@@ -375,6 +375,192 @@ theorem insert_member [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α
   rw [member_iff_keys x (insert x p t) (IsBST_insert x p t h), keys_insert]
   exact Finset.mem_insert_self x (keys t)
 
+/-! ## Heap correctness
+
+A treap must also satisfy the *max-heap* property on priorities: every node's
+priority is at least its children's.  This section proves that `insert`
+preserves it.  The subtle part is that a single rotation repairs exactly one
+heap violation along the insertion path; the structural fact that makes it
+tick is `prioOf_insert` — insertion attaches the new priority `p` only to the
+new key `x` and leaves every existing key's priority untouched. -/
+
+/-- The priority attached to a key `y` in a treap (`0` if `y` is absent). -/
+def prioOf [LinearOrder α] [DecidableEq α] [DecidableLT α] (t : Treap α) (y : α) : Nat :=
+  match t with
+  | nil => 0
+  | node k p l r =>
+      if y = k then p
+      else if y < k then prioOf l y
+      else prioOf r y
+
+/-- `prioLE p t`: the priority of every key present in `t` is at most `p`. -/
+def prioLE [LinearOrder α] [DecidableEq α] [DecidableLT α] (p : Nat) (t : Treap α) : Prop :=
+  ∀ y ∈ keys t, prioOf t y ≤ p
+
+/-- A treap is a *max-heap on priorities* when every node's priority is at
+least the priorities of its children, recursively. -/
+def IsHeap [LinearOrder α] [DecidableEq α] [DecidableLT α] : Treap α → Prop
+  | nil => True
+  | node _ p l r => IsHeap l ∧ IsHeap r ∧ prioLE p l ∧ prioLE p r
+
+/-- Right rotation preserves the priority attached to every key, on a
+well-formed (BST) treap. -/
+theorem prioOf_rotR [LinearOrder α] [DecidableEq α] [DecidableLT α] {t : Treap α}
+    (h : IsBST t) (y : α) : prioOf (rotR t) y = prioOf t y := by
+  cases t with
+  | nil => rfl
+  | node a pa l r =>
+      cases l with
+      | nil => rfl
+      | node b pb lb rb =>
+          rcases h with ⟨hl, hr, hlt, hgt⟩
+          rcases hl with ⟨hlb, hrb, hltb, hgtrb⟩
+          have hba : b < a := hlt b (by simp [keys])
+          by_cases h1 : y = b
+          · simp [prioOf, rotR, h1, hba, ne_of_lt hba]
+          · have h1ne : y ≠ b := h1
+            by_cases h2 : y < b
+            · have hya : y < a := lt_trans h2 hba
+              have hyane : y ≠ a := ne_of_lt hya
+              simp [prioOf, rotR, h1ne, h2, hya, hyane]
+            · by_cases h3 : y = a
+              · have hanb : ¬ a < b := fun hab => lt_asymm hab hba
+                simp [prioOf, rotR, h1ne, h2, h3, Ne.symm (ne_of_lt hba), hanb]
+              · have h3ne : y ≠ a := h3
+                by_cases h4 : y < a
+                · simp [prioOf, rotR, h1ne, h2, h3ne, h4]
+                · simp [prioOf, rotR, h1ne, h2, h3ne, h4]
+
+/-- Left rotation preserves the priority attached to every key, on a
+well-formed (BST) treap. -/
+theorem prioOf_rotL [LinearOrder α] [DecidableEq α] [DecidableLT α] {t : Treap α}
+    (h : IsBST t) (y : α) : prioOf (rotL t) y = prioOf t y := by
+  cases t with
+  | nil => rfl
+  | node a pa l r =>
+      cases r with
+      | nil => rfl
+      | node b pb lb rb =>
+          rcases h with ⟨hl, hr, hlt, hgt⟩
+          rcases hr with ⟨hlb, hrb, hltb, hgtrb⟩
+          have hab : a < b := hgt b (by simp [keys])
+          by_cases h1 : y = a
+          · simp [prioOf, rotL, h1, hab, ne_of_lt hab]
+          · have h1ne : y ≠ a := h1
+            by_cases h2 : y < a
+            · have hyb : y < b := lt_trans h2 hab
+              have hybne : y ≠ b := ne_of_lt hyb
+              simp [prioOf, rotL, h1ne, h2, hyb, hybne]
+            · by_cases h3 : y = b
+              · have hbna : ¬ b < a := fun hba => lt_asymm hba hab
+                simp [prioOf, rotL, h1ne, h2, h3, Ne.symm (ne_of_lt hab), hbna]
+              · have h3ne : y ≠ b := h3
+                by_cases h4 : y < b
+                · simp [prioOf, rotL, h1ne, h2, h3ne, h4]
+                · simp [prioOf, rotL, h1ne, h2, h3ne, h4]
+
+/-- Inserting a fresh key attaches the new priority `p` exactly to the new key
+`x` and leaves every existing key's priority untouched. -/
+theorem prioOf_insert [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α) (p : Nat)
+    (t : Treap α) (h : IsBST t) (hx : x ∉ keys t) :
+    ∀ y : α, prioOf (insert x p t) y = if y = x then p else prioOf t y := by
+  intro y
+  induction t with
+  | nil => simp [insert, prioOf]
+  | node k pk l r ih_l ih_r =>
+      rcases h with ⟨hl, hr, hlt, hgt⟩
+      have hxl : x ∉ keys l := by
+        intro hxl'
+        exact hx (by simp [keys, hxl'])
+      have hxr : x ∉ keys r := by
+        intro hxr'
+        exact hx (by simp [keys, hxr'])
+      by_cases h1 : x < k
+      · by_cases h2 : k < x
+        · exfalso
+          exact (lt_asymm h1 h2)
+        · -- x < k
+          cases hl' : insert x p l with
+          | nil => exfalso; exact insert_ne_nil x p l hl'
+          | node b pb lb rb =>
+              have hlbst : IsBST (node b pb lb rb) := by rw [← hl']; exact IsBST_insert x p l hl
+              have hnew : IsBST (node k pk (node b pb lb rb) r) := by
+                refine ⟨hlbst, hr, ?_, hgt⟩
+                intro z hz
+                have hzins : z ∈ keys (insert x p l) := by rw [hl']; exact hz
+                have hzkeys : z ∈ Insert.insert x (keys l) := by rw [keys_insert x p l] at hzins; exact hzins
+                by_cases hzx : z = x
+                · rw [hzx]; exact h1
+                · exact hlt z (by simpa [hzx] using hzkeys)
+              by_cases hrot : pb > pk
+              · -- rotR branch
+                simp [insert, h1, hl', hrot]
+                have hprio : prioOf (rotR (node k pk (node b pb lb rb) r)) y =
+                    prioOf (node k pk (node b pb lb rb) r) y := prioOf_rotR hnew y
+                rw [hprio]
+                by_cases hyk : y = k
+                · simp [prioOf, hyk, Ne.symm (ne_of_lt h1)]
+                · have hykne : y ≠ k := hyk
+                  by_cases hylt : y < k
+                  · rw [← hl']
+                    simp [prioOf, hykne, hylt]
+                    exact ih_l hl hxl
+                  · have hyxne : y ≠ x := fun hyx => hylt (by simpa [hyx] using h1)
+                    simp [prioOf, hykne, hylt, hyxne]
+              · simp [insert, h1, hl', hrot]
+                by_cases hyk : y = k
+                · simp [prioOf, hyk, Ne.symm (ne_of_lt h1)]
+                · have hykne : y ≠ k := hyk
+                  by_cases hylt : y < k
+                  · rw [← hl']
+                    simp [prioOf, hykne, hylt]
+                    exact ih_l hl hxl
+                  · have hyxne : y ≠ x := fun hyx => hylt (by simpa [hyx] using h1)
+                    simp [prioOf, hykne, hylt, hyxne]
+      · by_cases h2 : k < x
+        · -- k < x
+          cases hr' : insert x p r with
+          | nil => exfalso; exact insert_ne_nil x p r hr'
+          | node b pb lb rb =>
+              have hrbst : IsBST (node b pb lb rb) := by rw [← hr']; exact IsBST_insert x p r hr
+              have hnew : IsBST (node k pk l (node b pb lb rb)) := by
+                refine ⟨hl, hrbst, hlt, ?_⟩
+                intro z hz
+                have hzins : z ∈ keys (insert x p r) := by rw [hr']; exact hz
+                have hzkeys : z ∈ Insert.insert x (keys r) := by rw [keys_insert x p r] at hzins; exact hzins
+                by_cases hzx : z = x
+                · rw [hzx]; exact h2
+                · exact hgt z (by simpa [hzx] using hzkeys)
+              by_cases hrot : pb > pk
+              · -- rotL branch
+                simp [insert, h1, h2, hr', hrot]
+                have hprio : prioOf (rotL (node k pk l (node b pb lb rb))) y =
+                    prioOf (node k pk l (node b pb lb rb)) y := prioOf_rotL hnew y
+                rw [hprio]
+                by_cases hyk : y = k
+                · simp [prioOf, hyk, ne_of_lt h2]
+                · have hykne : y ≠ k := hyk
+                  by_cases hylt : y < k
+                  · have hyxne : y ≠ x := fun hyx => h1 (by simpa [hyx] using hylt)
+                    simp [prioOf, hykne, hylt, hyxne]
+                  · rw [← hr']
+                    simp [prioOf, hykne, hylt]
+                    exact ih_r hr hxr
+              · simp [insert, h1, h2, hr', hrot]
+                by_cases hyk : y = k
+                · simp [prioOf, hyk, ne_of_lt h2]
+                · have hykne : y ≠ k := hyk
+                  by_cases hylt : y < k
+                  · have hyxne : y ≠ x := fun hyx => h1 (by simpa [hyx] using hylt)
+                    simp [prioOf, hykne, hylt, hyxne]
+                  · rw [← hr']
+                    simp [prioOf, hykne, hylt]
+                    exact ih_r hr hxr
+        · -- x = k (impossible: x is fresh)
+          have hxk : x = k := le_antisymm (le_of_not_gt h2) (le_of_not_gt h1)
+          exfalso
+          exact hx (by simp [keys, hxk])
+
 end Treap
 
 end CLRS.Extensions
