@@ -378,13 +378,15 @@ theorem insert_member [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α
 /-! ## Heap correctness
 
 A treap must also satisfy the *max-heap* property on priorities: every node's
-priority is at least its children's.  This section proves that `insert`
+priority is at least its children's.  This section proves that {lit}`insert`
 preserves it.  The subtle part is that a single rotation repairs exactly one
 heap violation along the insertion path; the structural fact that makes it
-tick is `prioOf_insert` — insertion attaches the new priority `p` only to the
-new key `x` and leaves every existing key's priority untouched. -/
+tick is {lit}`prioOf_insert` — insertion attaches the new priority {lit}`p`
+only to the new key {lit}`x` and leaves every existing key's priority
+untouched. -/
 
-/-- The priority attached to a key `y` in a treap (`0` if `y` is absent). -/
+/-- The priority attached to a key {lit}`y` in a treap ({lit}`0` if {lit}`y`
+is absent). -/
 def prioOf [LinearOrder α] [DecidableEq α] [DecidableLT α] (t : Treap α) (y : α) : Nat :=
   match t with
   | nil => 0
@@ -393,7 +395,8 @@ def prioOf [LinearOrder α] [DecidableEq α] [DecidableLT α] (t : Treap α) (y 
       else if y < k then prioOf l y
       else prioOf r y
 
-/-- `prioLE p t`: the priority of every key present in `t` is at most `p`. -/
+/-- {lit}`prioLE p t`: the priority of every key present in {lit}`t` is at
+most {lit}`p`. -/
 def prioLE [LinearOrder α] [DecidableEq α] [DecidableLT α] (p : Nat) (t : Treap α) : Prop :=
   ∀ y ∈ keys t, prioOf t y ≤ p
 
@@ -459,8 +462,8 @@ theorem prioOf_rotL [LinearOrder α] [DecidableEq α] [DecidableLT α] {t : Trea
                 · simp [prioOf, rotL, h1ne, h2, h3ne, h4]
                 · simp [prioOf, rotL, h1ne, h2, h3ne, h4]
 
-/-- Inserting a fresh key attaches the new priority `p` exactly to the new key
-`x` and leaves every existing key's priority untouched. -/
+/-- Inserting a fresh key attaches the new priority {lit}`p` exactly to the
+new key {lit}`x` and leaves every existing key's priority untouched. -/
 theorem prioOf_insert [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α) (p : Nat)
     (t : Treap α) (h : IsBST t) (hx : x ∉ keys t) :
     ∀ y : α, prioOf (insert x p t) y = if y = x then p else prioOf t y := by
@@ -560,6 +563,183 @@ theorem prioOf_insert [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α
           have hxk : x = k := le_antisymm (le_of_not_gt h2) (le_of_not_gt h1)
           exfalso
           exact hx (by simp [keys, hxk])
+
+/-- Inserting an already-present key leaves the treap unchanged (duplicate
+keys are ignored), on a well-formed treap. -/
+theorem insert_of_mem_keys [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α) (p : Nat)
+    (t : Treap α) (h : IsBST t) (hh : IsHeap t) : x ∈ keys t → insert x p t = t := by
+  intro hx
+  induction t with
+  | nil => simp [keys] at hx
+  | node k pk l r ih_l ih_r =>
+      rcases h with ⟨hl, hr, hlt, hgt⟩
+      rcases hh with ⟨hhl, hhr, hpl, hpr⟩
+      by_cases h1 : x < k
+      · by_cases h2 : k < x
+        · exfalso
+          exact (lt_asymm h1 h2)
+        · -- x < k: the BST routes x into the left subtree
+          have hxl : x ∈ keys l := by
+            have hx' : x ∈ Insert.insert k (keys l ∪ keys r) := by simpa [keys] using hx
+            have hxk : x ≠ k := ne_of_lt h1
+            have hxnr : x ∉ keys r := by
+              intro hxr
+              exact (lt_asymm h1 (hgt x hxr))
+            simpa [hxk, hxnr] using hx'
+          have hrec : insert x p l = l := ih_l hl hhl hxl
+          simp [insert, h1, hrec]
+          cases l with
+          | nil => simp
+          | node b pb lb rb =>
+              have hpb_pk : pb ≤ pk := by
+                simpa [prioOf] using hpl b (by simp [keys])
+              by_cases hrot : pb > pk
+              · exfalso
+                exact (not_lt_of_ge hpb_pk) hrot
+              · simp [hrot]
+      · by_cases h2 : k < x
+        · -- k < x: the BST routes x into the right subtree
+          have hxr : x ∈ keys r := by
+            have hx' : x ∈ Insert.insert k (keys l ∪ keys r) := by simpa [keys] using hx
+            have hxk : x ≠ k := ne_of_gt h2
+            have hxnl : x ∉ keys l := by
+              intro hxl
+              exact (lt_asymm (hlt x hxl) h2)
+            simpa [hxk, hxnl] using hx'
+          have hrec : insert x p r = r := ih_r hr hhr hxr
+          simp [insert, h1, h2, hrec]
+          cases r with
+          | nil => simp
+          | node b pb lb rb =>
+              have hpb_pk : pb ≤ pk := by
+                simpa [prioOf] using hpr b (by simp [keys])
+              by_cases hrot : pb > pk
+              · exfalso
+                exact (not_lt_of_ge hpb_pk) hrot
+              · simp [hrot]
+        · -- x = k: the node is returned unchanged
+          simp [insert, h1, h2]
+
+/-- Inserting a key of priority {lit}`p ≤ c` into a treap whose priorities are
+all at most {lit}`c` keeps every priority at most {lit}`c`. -/
+theorem prioLE_insert [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α) (p c : Nat)
+    (t : Treap α) (h : IsBST t) (hh : IsHeap t) (hc : prioLE c t) (hp : p ≤ c) :
+    prioLE c (insert x p t) := by
+  unfold prioLE
+  intro y hy
+  have hy' : y ∈ Insert.insert x (keys t) := by
+    rw [keys_insert x p t] at hy
+    exact hy
+  by_cases hxm : x ∈ keys t
+  · -- duplicate: insert keeps the tree, so the bound is unchanged
+    have hdup : insert x p t = t := insert_of_mem_keys x p t h hh hxm
+    rw [hdup] at hy ⊢
+    exact hc y hy
+  · -- fresh key: the only new priority is `p`, which is already ≤ c
+    by_cases hyx : y = x
+    · rw [prioOf_insert x p t h hxm y]
+      simp [hyx]
+      exact hp
+    · have hyt : y ∈ keys t := by
+        simpa [hyx] using hy'
+      rw [prioOf_insert x p t h hxm y]
+      simp [hyx]
+      exact hc y hyt
+
+/-- The priority of an absent key is {lit}`0`. -/
+theorem prioOf_eq_zero_of_not_mem [LinearOrder α] [DecidableEq α] [DecidableLT α] {t : Treap α}
+    {y : α} (h : y ∉ keys t) : prioOf t y = 0 := by
+  induction t with
+  | nil => rfl
+  | node k pk l r ih_l ih_r =>
+      have hyk : y ≠ k := by
+        intro hyk
+        exact h (by simp [keys, hyk])
+      by_cases hylt : y < k
+      · have hyl : y ∉ keys l := by
+          intro hyl'
+          exact h (by simp [keys, hyl'])
+        simp [prioOf, hyk, hylt]
+        exact ih_l hyl
+      · have hyr : y ∉ keys r := by
+          intro hyr'
+          exact h (by simp [keys, hyr'])
+        simp [prioOf, hyk, hylt]
+        exact ih_r hyr
+
+/-- A {lit}`prioLE` bound applies to the priority of every key, present or
+absent. -/
+theorem prioOf_le_of_prioLE [LinearOrder α] [DecidableEq α] [DecidableLT α] {t : Treap α}
+    {c : Nat} (h : prioLE c t) : ∀ y, prioOf t y ≤ c := by
+  intro y
+  by_cases hym : y ∈ keys t
+  · exact h y hym
+  · have hz : prioOf t y = 0 := prioOf_eq_zero_of_not_mem hym
+    rw [hz]
+    exact Nat.zero_le c
+
+/-- Promoting the left child above the root keeps the max-heap property, given
+that the promoted child's priority is at least the root's and the moved subtree
+stays bounded by the root's priority. -/
+theorem IsHeap_rotR [LinearOrder α] [DecidableEq α] [DecidableLT α] {a b : α} {pa pb : Nat}
+    {lb rb r : Treap α} (hl' : IsHeap (node b pb lb rb)) (hr : IsHeap r)
+    (hpb : pa ≤ pb) (hpa_rb : prioLE pa rb) (hpa_r : prioLE pa r) :
+    IsHeap (rotR (node a pa (node b pb lb rb) r)) := by
+  rcases hl' with ⟨hlb, hrb, hpb_lb, hpb_rb⟩
+  change IsHeap (node b pb lb (node a pa rb r))
+  refine ⟨hlb, ?_, hpb_lb, ?_⟩
+  · -- IsHeap (node a pa rb r)
+    refine ⟨hrb, hr, hpa_rb, hpa_r⟩
+  · -- prioLE pb (node a pa rb r)
+    unfold prioLE
+    intro y hy
+    have hy' : y ∈ Insert.insert a (keys rb ∪ keys r) := by simpa [keys] using hy
+    by_cases hya : y = a
+    · rw [hya]
+      have hpa_prio : prioOf (node a pa rb r) a = pa := by simp [prioOf]
+      rw [hpa_prio]
+      exact hpb
+    · have hya_ne : y ≠ a := hya
+      by_cases hylt : y < a
+      · have hprio : prioOf (node a pa rb r) y = prioOf rb y := by
+          simp [prioOf, hya_ne, hylt]
+        rw [hprio]
+        exact prioOf_le_of_prioLE hpb_rb y
+      · have hprio : prioOf (node a pa rb r) y = prioOf r y := by
+          simp [prioOf, hya_ne, hylt]
+        rw [hprio]
+        exact le_trans (prioOf_le_of_prioLE hpa_r y) hpb
+
+/-- Promoting the right child above the root keeps the max-heap property,
+symmetrically. -/
+theorem IsHeap_rotL [LinearOrder α] [DecidableEq α] [DecidableLT α] {a b : α} {pa pb : Nat}
+    {l lb rb : Treap α} (hl : IsHeap l) (hr' : IsHeap (node b pb lb rb))
+    (hpb : pa ≤ pb) (hpa_lb : prioLE pa lb) (hpa_l : prioLE pa l) :
+    IsHeap (rotL (node a pa l (node b pb lb rb))) := by
+  rcases hr' with ⟨hlb, hrb, hpb_lb, hpb_rb⟩
+  change IsHeap (node b pb (node a pa l lb) rb)
+  refine ⟨?_, hrb, ?_, hpb_rb⟩
+  · -- IsHeap (node a pa l lb)
+    refine ⟨hl, hlb, hpa_l, hpa_lb⟩
+  · -- prioLE pb (node a pa l lb)
+    unfold prioLE
+    intro y hy
+    have hy' : y ∈ Insert.insert a (keys l ∪ keys lb) := by simpa [keys] using hy
+    by_cases hya : y = a
+    · rw [hya]
+      have hpa_prio : prioOf (node a pa l lb) a = pa := by simp [prioOf]
+      rw [hpa_prio]
+      exact hpb
+    · have hya_ne : y ≠ a := hya
+      by_cases hylt : y < a
+      · have hprio : prioOf (node a pa l lb) y = prioOf l y := by
+          simp [prioOf, hya_ne, hylt]
+        rw [hprio]
+        exact le_trans (prioOf_le_of_prioLE hpa_l y) hpb
+      · have hprio : prioOf (node a pa l lb) y = prioOf lb y := by
+          simp [prioOf, hya_ne, hylt]
+        rw [hprio]
+        exact le_trans (prioOf_le_of_prioLE hpa_lb y) hpb
 
 end Treap
 
