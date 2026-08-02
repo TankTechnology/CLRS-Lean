@@ -10,8 +10,8 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 29.
-* Tracked reader-facing theorem entries: 1572.
-* Proved tracked theorem entries: 1572.
+* Tracked reader-facing theorem entries: 1577.
+* Proved tracked theorem entries: 1577.
 * Remaining core theorem groups: 9.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -55,7 +55,7 @@ Ch  Chapter                                                     Status          
 21  21. Data Structures for Disjoint Sets                       main-proof-complete                  21.1;21.2;21.3;21.4                84        0
 22  22. Elementary Graph Algorithms                             main-proof-complete-for-correctness  22.1;22.2;22.3;22.4;22.5           47        0
 23  23. Minimum Spanning Trees                                  main-proof-complete-for-correctness  23.1;23.2                          52        0
-24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4                22        0
+24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4;24.5           27        0
 25  25. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  25.1;25.2;25.3                     24        0
 26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
 27  27. Multithreaded Algorithms                                partial                              27.1;27.2                          28        1

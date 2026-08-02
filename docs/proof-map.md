@@ -3254,6 +3254,31 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 - Deferred without reopening the mathematical milestone: per-edge relaxation
   ordering and mutable/RAM cost accounting for the abstract synchronous model.
 
+### Section 24.5 - Proofs of shortest paths
+
+- Lean source: `CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean`
+- Status: `proved` for the shortest-path distance function and the no-path,
+  upper-bound, and triangle-inequality properties (CLRS Lemmas 24.11-24.13)
+- Main proved theorems:
+  - `CLRS.Chapter24.WeightedGraph.shortestDist`
+  - `CLRS.Chapter24.WeightedGraph.shortestDist_isShortestDist`
+  - `CLRS.Chapter24.WeightedGraph.noPath_iff_top`
+  - `CLRS.Chapter24.WeightedGraph.shortestDist_le_walkWeight`
+  - `CLRS.Chapter24.WeightedGraph.IsWalkFrom.append_edge`
+  - `CLRS.Chapter24.WeightedGraph.shortestDist_triangleInequality`
+- Proof pattern: define the single-source distance `δ(s, v)` as the Bellman-Ford
+  relaxation after `|V| - 1` rounds (Theorem 24.4), so `shortestDist_isShortestDist`
+  gives both the lower bound on every walk weight and the attainment/`⊤`
+  dichotomy.  The no-path property is the `⊤` case of that dichotomy; the
+  upper-bound property is the lower-bound conjunct; the triangle inequality
+  appends the edge `(u, v)` to a realizing walk of `δ(s, u)` (via
+  `IsWalkFrom.append_edge` and `walkWeight_append_singleton`) and applies the
+  lower bound to the resulting `s → v` walk.
+- Current gap: the subpath property (Lemma 24.10), convergence/path-relaxation
+  (Lemmas 24.14-24.15), and predecessor-subgraph (Lemma 24.16) are not restated;
+  Dijkstra correctness is proved in Section 24.3 and Bellman-Ford convergence in
+  `relaxDist_stabilizes`.
+
 ## Chapter 25 - All-Pairs Shortest Paths
 
 ### Section 25.1 - All-Pairs Shortest Paths Model

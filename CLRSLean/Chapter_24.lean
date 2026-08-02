@@ -2,6 +2,7 @@ import CLRSLean.Chapter_24.Section_24_1_Bellman_Ford
 import CLRSLean.Chapter_24.Section_24_2_SSSP_In_DAGs
 import CLRSLean.Chapter_24.Section_24_3_Dijkstra
 import CLRSLean.Chapter_24.Section_24_4_Difference_Constraints
+import CLRSLean.Chapter_24.Section_24_5_Shortest_Path_Properties
 
 /-! # Chapter 24 - Single-Source Shortest Paths
 
@@ -67,6 +68,17 @@ cycle removal under the no-negative-cycle hypothesis, exact correctness after
   {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.noNegCycle_of_feasible`,
   {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.feasible_of_noNegCycle`,
   and {lit}`CLRS.Chapter24.WeightedGraph.DiffConstraintSystem.diffConstraint_feasible_iff_noNegCycle`.
+
+* 24.5 Proofs of shortest paths: the {lit}`shortestDist` distance function
+  {lit}`δ`, the no-path property, the upper-bound property, and the triangle
+  inequality (CLRS Lemmas 24.11-24.13).
+  Main declarations:
+  {lit}`CLRS.Chapter24.WeightedGraph.shortestDist`,
+  {lit}`CLRS.Chapter24.WeightedGraph.shortestDist_isShortestDist`,
+  {lit}`CLRS.Chapter24.WeightedGraph.noPath_iff_top`,
+  {lit}`CLRS.Chapter24.WeightedGraph.shortestDist_le_walkWeight`,
+  {lit}`CLRS.Chapter24.WeightedGraph.IsWalkFrom.append_edge`, and
+  {lit}`CLRS.Chapter24.WeightedGraph.shortestDist_triangleInequality`.
 
 ## Current Shape
 
