@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 CHECK_SCRIPTS = [
     "scripts/check_progress_csv.py",
+    "scripts/test_check_progress_csv.py",
     "scripts/check_site_consistency.py",
     "scripts/test_check_repository.py",
     "scripts/test_literate_config.py",
