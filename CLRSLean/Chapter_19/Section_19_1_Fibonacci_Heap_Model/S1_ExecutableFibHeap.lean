@@ -597,6 +597,42 @@ degree, roots ordered by degree). -/
 def DegreeStrict (ts : List FHNode) : Prop :=
   ts.Pairwise (fun a b => a.degree < b.degree)
 
+/-- A tree in a forest contributes no more nodes than the complete forest. -/
+theorem size_le_forestSize_of_mem {roots : List FHNode} {root : FHNode}
+    (hroot : root ∈ roots) : root.size ≤ forestSize roots := by
+  induction roots with
+  | nil => simp at hroot
+  | cons current roots ih =>
+      simp only [List.mem_cons] at hroot
+      simp only [forestSize, List.map_cons, List.sum_cons]
+      rcases hroot with rfl | hroot
+      · omega
+      · have := ih hroot
+        simp only [forestSize] at this
+        omega
+
+/-- A degree-strict forest whose root degrees are bounded by `bound` has at
+most `bound + 1` roots. -/
+theorem length_le_succ_of_degreeStrict {roots : List FHNode} {bound : Nat}
+    (hstrict : DegreeStrict roots)
+    (hbound : ∀ root ∈ roots, root.degree ≤ bound) :
+    roots.length ≤ bound + 1 := by
+  let degrees := roots.map FHNode.degree
+  have hpairwise : degrees.Pairwise (fun a b => a < b) := by
+    exact List.pairwise_map.mpr hstrict
+  have hnodup : degrees.Nodup := hpairwise.nodup
+  have hsubset : degrees.toFinset ⊆ Finset.range (bound + 1) := by
+    intro degree hdegree
+    rw [List.mem_toFinset] at hdegree
+    obtain ⟨root, hroot, rfl⟩ := List.mem_map.mp hdegree
+    rw [Finset.mem_range, Nat.lt_succ_iff]
+    exact hbound root hroot
+  calc
+    roots.length = degrees.length := by simp [degrees]
+    _ = degrees.toFinset.card := (List.toFinset_card_of_nodup hnodup).symm
+    _ ≤ (Finset.range (bound + 1)).card := Finset.card_le_card hsubset
+    _ = bound + 1 := Finset.card_range (bound + 1)
+
 /-- Insert a root into a degree-strict forest, linking it with the stored
 root of the same degree (the smaller key becomes the parent) and continuing
 with the raised degree — exactly the CLRS `CONSOLIDATE` inner loop. -/
@@ -2168,6 +2204,50 @@ theorem extractMin_degreeStrict {h h' : FH} {x : Int}
     (hextract : extractMin h = some (x, h')) :
     FHNode.DegreeStrict h'.roots :=
   (extractMin_correct hvalid hextract).2.2.2.2
+
+/-- Extract-min never increases the number of marked nodes: the selected
+root was unmarked, its promoted children are unmarked, and consolidation
+preserves marks exactly. -/
+theorem extractMin_forestMarks_le {h h' : FH} {x : Int}
+    (hvalid : h.Valid)
+    (hextract : extractMin h = some (x, h')) :
+    FHNode.forestMarks h'.roots ≤ FHNode.forestMarks h.roots := by
+  cases hremove : removeMinRoot h.roots with
+  | none => simp [extractMin, hremove] at hextract
+  | some pair =>
+      rcases pair with ⟨z, rest⟩
+      let promoted := z.children.map markFalse
+      let roots' := FHNode.consolidateList (promoted ++ rest)
+      have hpair :
+          (z.key,
+            { roots := roots'
+            , size := h.size - 1
+            , minRoot := computeMinRoot roots' }) = (x, h') := by
+        simpa [extractMin, hremove, promoted, roots'] using hextract
+      have hh :
+          ({ roots := roots'
+           , size := h.size - 1
+           , minRoot := computeMinRoot roots' } : FH) = h' :=
+        congrArg Prod.snd hpair
+      subst h'
+      have hzUnmarked : z.marked = false :=
+        (removeMinRoot_rootsUnmarked hremove hvalid.2.2.1).1
+      have hzMarks : z.marks = FHNode.forestMarks z.children := by
+        cases z with
+        | node key marked children =>
+            simp only [FHNode.marked_node] at hzUnmarked
+            subst marked
+            simp [FHNode.marks, FHNode.forestMarks]
+      have hsplit :
+          z.marks + FHNode.forestMarks rest =
+            FHNode.forestMarks h.roots := by
+        have hsum := ((removeMinRoot_perm hremove).map FHNode.marks).sum_eq
+        simpa [FHNode.forestMarks] using hsum
+      have hpromoted := map_markFalse_forestMarks_le z.children
+      dsimp [roots', promoted]
+      rw [FHNode.consolidateList_forestMarks,
+        FHNode.forestMarks_append]
+      omega
 
 /-- A successful executable extract-min decreases the stored node count by
 exactly one. -/

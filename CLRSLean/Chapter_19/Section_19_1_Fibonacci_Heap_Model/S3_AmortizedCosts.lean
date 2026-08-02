@@ -46,14 +46,31 @@ def ExtractMinPost (h : FH) (result : Result (Int × FH)) : Prop :=
   Int.ofNat result.cost + FH.potential result.value.2 - FH.potential h ≤
     12 * Int.ofNat (Nat.log 2 h.size + 1) + 8
 
-/-- Costed extract-min exposing only results certified against the standard
-`t(H) + 2m(H)` potential. -/
-noncomputable def extractMin (h : FH) : Option (Result (Int × FH)) := by
-  classical
-  exact
-    match extractMinRaw h with
-    | none => none
-    | some result => if ExtractMinPost h result then some result else none
+/-- Costed extract-min.  The implementation is fully executable; its
+amortized certificate is established below instead of checked at runtime. -/
+def extractMin (h : FH) : Option (Result (Int × FH)) :=
+  extractMinRaw h
+
+/-- A raw costed result exposes the selected root, the executable transition,
+and its exact abstract charge. -/
+theorem extractMinRaw_components {h : FH} {result : Result (Int × FH)}
+    (hextract : extractMinRaw h = some result) :
+    ∃ minimumRoot rest value,
+      FH.removeMinRoot h.roots = some (minimumRoot, rest) ∧
+      h.extractMin = some value ∧
+      result.value = value ∧
+      result.cost = h.roots.length + minimumRoot.degree + 1 := by
+  unfold extractMinRaw at hextract
+  cases hremove : FH.removeMinRoot h.roots with
+  | none => simp [hremove] at hextract
+  | some pair =>
+      rcases pair with ⟨minimumRoot, rest⟩
+      cases hplain : h.extractMin with
+      | none => simp [hremove, hplain] at hextract
+      | some value =>
+          simp [hremove, hplain] at hextract
+          subst result
+          exact ⟨minimumRoot, rest, value, rfl, rfl, rfl, rfl⟩
 
 /-- A successful costed extract-min satisfies the explicit logarithmic
 amortized bound. -/
@@ -62,42 +79,54 @@ theorem extractMin_amortized_le_log {h : FH}
     (hextract : extractMin h = some result) :
     Int.ofNat result.cost + FH.potential result.value.2 - FH.potential h ≤
       12 * Int.ofNat (Nat.log 2 h.size + 1) + 8 := by
-  classical
-  unfold extractMin at hextract
-  cases hraw : extractMinRaw h with
-  | none => simp [hraw] at hextract
-  | some raw =>
-      by_cases hpost : ExtractMinPost h raw
-      · simp [hraw, hpost] at hextract
-        subst result
-        exact hpost.2
-      · simp [hraw, hpost] at hextract
+  obtain ⟨minimumRoot, rest, value, hremove, hplain, hvalue, hcost⟩ :=
+    extractMinRaw_components (show extractMinRaw h = some result from hextract)
+  rcases value with ⟨minimum, h'⟩
+  have hvalid' : h'.Valid := FH.extractMin_valid hvalid hplain
+  have hsize' : h'.size + 1 = h.size := FH.extractMin_size hvalid hplain
+  have hselected := FH.removeMinRoot_good hremove hvalid.1
+  have hminimumMem : minimumRoot ∈ h.roots :=
+    (FH.removeMinRoot_perm hremove).mem_iff.mp (by simp)
+  have hminimumSize : minimumRoot.size ≤ h.size := by
+    rw [hvalid.2.2.2.1]
+    exact FHNode.size_le_forestSize_of_mem hminimumMem
+  have hminimumDegree :
+      minimumRoot.degree ≤ 2 * Nat.log 2 h.size + 1 :=
+    FHNode.wellformed_degree_le_twice_log_two minimumRoot hselected.2.1
+      hminimumSize
+  have hrootDegree : ∀ root ∈ h'.roots,
+      root.degree ≤ 2 * Nat.log 2 h.size + 1 := by
+    intro root hroot
+    have hrootSize : root.size ≤ h'.size := by
+      rw [hvalid'.2.2.2.1]
+      exact FHNode.size_le_forestSize_of_mem hroot
+    exact FHNode.wellformed_degree_le_twice_log_two root
+      (hvalid'.1.2 root hroot) (by omega)
+  have hrootCount :
+      h'.roots.length ≤ 2 * Nat.log 2 h.size + 1 + 1 :=
+    FHNode.length_le_succ_of_degreeStrict
+      (FH.extractMin_degreeStrict hvalid hplain) hrootDegree
+  have hmarks :
+      FHNode.forestMarks h'.roots ≤ FHNode.forestMarks h.roots :=
+    FH.extractMin_forestMarks_le hvalid hplain
+  rw [hvalue, hcost]
+  unfold FH.potential
+  simp only [Int.ofNat_eq_natCast, Nat.cast_add, Nat.cast_one]
+  omega
 
 /-- Erasing a successful costed extract-min yields the executable transition. -/
 theorem extractMin_erases {h : FH} {result : Result (Int × FH)}
     (hextract : extractMin h = some result) :
     h.extractMin = some result.value := by
-  classical
-  unfold extractMin at hextract
-  cases hraw : extractMinRaw h with
-  | none => simp [hraw] at hextract
-  | some raw =>
-      by_cases hpost : ExtractMinPost h raw
-      · simp [hraw, hpost] at hextract
-        subst result
-        unfold extractMinRaw at hraw
-        cases hremove : FH.removeMinRoot h.roots <;>
-          cases hplain : h.extractMin <;> simp [hremove, hplain] at hraw
-        rcases hraw with rfl
-        simpa using hplain
-      · simp [hraw, hpost] at hextract
+  obtain ⟨minimumRoot, rest, value, hremove, hplain, hvalue, hcost⟩ :=
+    extractMinRaw_components (show extractMinRaw h = some result from hextract)
+  simpa [hvalue] using hplain
 
 /-- Raw costed decrease-key reuses the cascade-iteration charge stored by the
 structural transition. -/
-noncomputable def decreaseKeyAtRaw (h : FH) (path : FHPath) (newKey : Int) :
-    Option (Result FHUpdateResult) := by
-  classical
-  exact (h.decreaseKeyAt path newKey).map fun value =>
+def decreaseKeyAtRaw (h : FH) (path : FHPath) (newKey : Int) :
+    Option (Result FHUpdateResult) :=
+  (h.decreaseKeyAtRaw path newKey).map fun value =>
     { value := value, cost := value.cost }
 
 /-- The certified constant amortized postcondition for decrease-key. -/
@@ -105,14 +134,11 @@ def DecreaseKeyPost (h : FH) (result : Result FHUpdateResult) : Prop :=
   result.value.heap.Valid ∧
   Int.ofNat result.cost + FH.potential result.value.heap - FH.potential h ≤ 3
 
-/-- Costed handle-directed decrease-key. -/
-noncomputable def decreaseKeyAt (h : FH) (path : FHPath) (newKey : Int) :
-    Option (Result FHUpdateResult) := by
-  classical
-  exact
-    match decreaseKeyAtRaw h path newKey with
-    | none => none
-    | some result => if DecreaseKeyPost h result then some result else none
+/-- Costed handle-directed decrease-key.  Certification is a theorem about
+the executable result, rather than a proposition-valued runtime filter. -/
+def decreaseKeyAt (h : FH) (path : FHPath) (newKey : Int) :
+    Option (Result FHUpdateResult) :=
+  decreaseKeyAtRaw h path newKey
 
 /-- A successful costed decrease-key has amortized charge at most three under
 the additional-cascade-iterations convention. -/
@@ -120,23 +146,42 @@ theorem decreaseKey_amortized_le_three {h : FH} {path : FHPath}
     {newKey : Int} {result : Result FHUpdateResult} (hvalid : h.Valid)
     (hdec : decreaseKeyAt h path newKey = some result) :
     Int.ofNat result.cost + FH.potential result.value.heap - FH.potential h ≤ 3 := by
-  classical
-  unfold decreaseKeyAt at hdec
-  cases hraw : decreaseKeyAtRaw h path newKey with
+  unfold decreaseKeyAt decreaseKeyAtRaw at hdec
+  cases hraw : h.decreaseKeyAtRaw path newKey with
   | none => simp [hraw] at hdec
   | some raw =>
-      by_cases hpost : DecreaseKeyPost h raw
-      · simp [hraw, hpost] at hdec
-        subst result
-        exact hpost.2
-      · simp [hraw, hpost] at hdec
+      simp [hraw] at hdec
+      subst result
+      exact FH.decreaseKeyAtRaw_amortized hvalid hraw
 
-/-- Raw costed delete uses the structural composition charge. -/
-noncomputable def deleteAtRaw (h : FH) (path : FHPath) :
-    Option (Result FHUpdateResult) := by
-  classical
-  exact (h.deleteAt path).map fun value =>
-    { value := value, cost := value.cost }
+/-- Erasing the cost wrapper yields the structural decrease-key transition. -/
+theorem decreaseKeyAt_erases {h : FH} {path : FHPath} {newKey : Int}
+    {result : Result FHUpdateResult}
+    (hdec : decreaseKeyAt h path newKey = some result) :
+    h.decreaseKeyAtRaw path newKey = some result.value := by
+  unfold decreaseKeyAt decreaseKeyAtRaw at hdec
+  cases hraw : h.decreaseKeyAtRaw path newKey with
+  | none => simp [hraw] at hdec
+  | some raw =>
+      simp [hraw] at hdec
+      subst result
+      rfl
+
+/-- Raw costed delete composes the executable decrease-key and extract-min
+machines.  Its outer charge is the sum of their abstract charges, while the
+embedded structural result retains the core transition's own cost field. -/
+def deleteAtRaw (h : FH) (path : FHPath) :
+    Option (Result FHUpdateResult) := do
+  let cursor ← h.openPath path
+  let minimum ← h.minimum
+  let decreased ← decreaseKeyAtRaw h path (minimum - 1)
+  let extracted ← extractMinRaw decreased.value.heap
+  pure
+    { value :=
+        { oldKey := cursor.focus.key
+        , heap := extracted.value.2
+        , cost := decreased.value.cost + 1 }
+    , cost := decreased.cost + extracted.cost }
 
 /-- The certified logarithmic amortized postcondition for deletion. -/
 def DeletePost (h : FH) (result : Result FHUpdateResult) : Prop :=
@@ -144,14 +189,49 @@ def DeletePost (h : FH) (result : Result FHUpdateResult) : Prop :=
   Int.ofNat result.cost + FH.potential result.value.heap - FH.potential h ≤
     12 * Int.ofNat (Nat.log 2 h.size + 1) + 11
 
-/-- Costed handle-directed deletion. -/
-noncomputable def deleteAt (h : FH) (path : FHPath) :
-    Option (Result FHUpdateResult) := by
-  classical
-  exact
-    match deleteAtRaw h path with
-    | none => none
-    | some result => if DeletePost h result then some result else none
+/-- Costed handle-directed deletion, with certification supplied by theorem. -/
+def deleteAt (h : FH) (path : FHPath) :
+    Option (Result FHUpdateResult) :=
+  deleteAtRaw h path
+
+/-- A successful costed delete exposes both component transitions. -/
+theorem deleteAtRaw_components {h : FH} {path : FHPath}
+    {result : Result FHUpdateResult}
+    (hdelete : deleteAtRaw h path = some result) :
+    ∃ cursor minimum decreased extracted,
+      h.openPath path = some cursor ∧
+      h.minimum = some minimum ∧
+      decreaseKeyAtRaw h path (minimum - 1) = some decreased ∧
+      extractMinRaw decreased.value.heap = some extracted ∧
+      result.value =
+        { oldKey := cursor.focus.key
+        , heap := extracted.value.2
+        , cost := decreased.value.cost + 1 } ∧
+      result.cost = decreased.cost + extracted.cost := by
+  unfold deleteAtRaw at hdelete
+  cases hopen : h.openPath path with
+  | none => simp [hopen] at hdelete
+  | some cursor =>
+      simp only [hopen, Option.bind_eq_bind, Option.bind_some] at hdelete
+      cases hminimum : h.minimum with
+      | none => simp [hminimum] at hdelete
+      | some minimum =>
+          simp only [hminimum, Option.bind_eq_bind, Option.bind_some] at hdelete
+          cases hdecreased : decreaseKeyAtRaw h path (minimum - 1) with
+          | none => simp [hdecreased] at hdelete
+          | some decreased =>
+              simp only [hdecreased, Option.bind_eq_bind, Option.bind_some] at hdelete
+              cases hextracted : extractMinRaw decreased.value.heap with
+              | none => simp [hextracted] at hdelete
+              | some extracted =>
+                  simp [hextracted] at hdelete
+                  subst result
+                  exact ⟨cursor, minimum, decreased, extracted,
+                    by simpa using hopen,
+                    by simpa using hminimum,
+                    by simpa using hdecreased,
+                    by simpa using hextracted,
+                    rfl, rfl⟩
 
 /-- A successful costed delete satisfies the explicit logarithmic amortized
 bound. -/
@@ -160,16 +240,43 @@ theorem delete_amortized_le_log {h : FH} {path : FHPath}
     (hdelete : deleteAt h path = some result) :
     Int.ofNat result.cost + FH.potential result.value.heap - FH.potential h ≤
       12 * Int.ofNat (Nat.log 2 h.size + 1) + 11 := by
-  classical
-  unfold deleteAt at hdelete
-  cases hraw : deleteAtRaw h path with
-  | none => simp [hraw] at hdelete
-  | some raw =>
-      by_cases hpost : DeletePost h raw
-      · simp [hraw, hpost] at hdelete
-        subst result
-        exact hpost.2
-      · simp [hraw, hpost] at hdelete
+  obtain ⟨cursor, minimum, decreased, extracted, hopen, hminimum,
+      hdecreased, hextracted, hvalue, hcost⟩ :=
+    deleteAtRaw_components (show deleteAtRaw h path = some result from hdelete)
+  have hdecreasedCore :
+      h.decreaseKeyAtRaw path (minimum - 1) = some decreased.value :=
+    decreaseKeyAt_erases hdecreased
+  have hdecreasedCorrect :=
+    FH.decreaseKeyAtRaw_correct hvalid hdecreasedCore
+  have hdecreasedBound := decreaseKey_amortized_le_three hvalid hdecreased
+  have hextractedPlain :
+      decreased.value.heap.extractMin = some extracted.value :=
+    extractMin_erases hextracted
+  have hextractedBound :=
+    extractMin_amortized_le_log hdecreasedCorrect.2.2.2 hextracted
+  have hsameSize : decreased.value.heap.size = h.size :=
+    hdecreasedCorrect.2.2.1
+  rw [hsameSize] at hextractedBound
+  rw [hvalue, hcost]
+  simp only [Int.ofNat_eq_natCast, Nat.cast_add] at hdecreasedBound hextractedBound ⊢
+  omega
+
+/-- Erasing the cost wrapper yields the executable structural deletion. -/
+theorem deleteAt_erases {h : FH} {path : FHPath}
+    {result : Result FHUpdateResult}
+    (hdelete : deleteAt h path = some result) :
+    h.deleteAtRaw path = some result.value := by
+  obtain ⟨cursor, minimum, decreased, extracted, hopen, hminimum,
+      hdecreased, hextracted, hvalue, hcost⟩ :=
+    deleteAtRaw_components (show deleteAtRaw h path = some result from hdelete)
+  have hdecreasedCore :
+      h.decreaseKeyAtRaw path (minimum - 1) = some decreased.value :=
+    decreaseKeyAt_erases hdecreased
+  have hextractedPlain :
+      decreased.value.heap.extractMin = some extracted.value :=
+    extractMin_erases hextracted
+  unfold FH.deleteAtRaw
+  simp [hopen, hminimum, hdecreasedCore, hextractedPlain, hvalue]
 
 /-! ## Operation traces -/
 
