@@ -85,6 +85,198 @@ noncomputable def treapHeight {n : ℕ} (σ : PrioPerm n) : ℕ :=
 noncomputable def expectedTreapHeight {n : ℕ} : ℝ :=
   fintypeExpect (fun σ : PrioPerm n => (treapHeight σ : ℝ))
 
+/-! ## Exponential tail on the depth -/
+
+/-- Right-multiplication by a transposition is a bijection on `PrioPerm n`; it
+swaps the priorities carried by the keys `c` and `t`. -/
+lemma swapComp'_bijective {c t : Fin n} :
+    Function.Bijective (fun (σ : PrioPerm n) => σ * (Equiv.swap c t)) := by
+  constructor
+  · intro σ₁ σ₂ h
+    apply_fun (fun φ : PrioPerm n => φ * (Equiv.swap c t)) at h
+    simpa [mul_assoc] using h
+  · intro σ
+    refine ⟨σ * (Equiv.swap c t), ?_⟩
+    simp [mul_assoc]
+
+/-- Swapping the priorities carried by the keys `c` and `t` (neither of which is
+the leader `a`) preserves `a` carrying the maximum priority of `I`. -/
+lemma maxOver_swap_key {n : ℕ} {I : Finset (Fin n)} {a c t : Fin n} (σ : PrioPerm n)
+    (hca : c ≠ a) (hta : t ≠ a) (hcI : c ∈ I) (htI : t ∈ I)
+    (hmax : MaxOver σ I a) :
+    MaxOver (σ * (Equiv.swap c t)) I a := by
+  rcases hmax with ⟨haI, hle⟩
+  refine ⟨haI, ?_⟩
+  intro k hkI
+  have hswapa : Equiv.swap c t a = a := Equiv.swap_apply_of_ne_of_ne (Ne.symm hca) (Ne.symm hta)
+  have ha' : prioOfPerm (σ * (Equiv.swap c t)) a = prioOfPerm σ a := by
+    unfold prioOfPerm
+    rw [Equiv.Perm.mul_apply, hswapa]
+  rw [ha']
+  have hk' : prioOfPerm (σ * (Equiv.swap c t)) k = prioOfPerm σ (Equiv.swap c t k) := by
+    unfold prioOfPerm
+    rw [Equiv.Perm.mul_apply]
+  rw [hk']
+  by_cases hkc : k = c
+  · subst k
+    rw [Equiv.swap_apply_left]
+    exact hle t htI
+  · by_cases hkt : k = t
+    · subst k
+      rw [Equiv.swap_apply_right]
+      exact hle c hcI
+    · have hk'' : Equiv.swap c t k = k := Equiv.swap_apply_of_ne_of_ne hkc hkt
+      rw [hk'']
+      exact hle k hkI
+
+/-- Swapping the priorities carried by `c` and `t` moves the maximum priority of
+`U` from `c` to `t` (both in `U`). -/
+lemma maxOver_swap_max {n : ℕ} {U : Finset (Fin n)} {c t : Fin n} (σ : PrioPerm n)
+    (hcU : c ∈ U) (htU : t ∈ U) (hmax : MaxOver σ U c) :
+    MaxOver (σ * (Equiv.swap c t)) U t := by
+  rcases hmax with ⟨hcU', hle⟩
+  refine ⟨htU, ?_⟩
+  intro k hkU
+  have ht' : prioOfPerm (σ * (Equiv.swap c t)) t = prioOfPerm σ c := by
+    unfold prioOfPerm
+    rw [Equiv.Perm.mul_apply, Equiv.swap_apply_right]
+  rw [ht']
+  have hk' : prioOfPerm (σ * (Equiv.swap c t)) k = prioOfPerm σ (Equiv.swap c t k) := by
+    unfold prioOfPerm
+    rw [Equiv.Perm.mul_apply]
+  rw [hk']
+  by_cases hkc : k = c
+  · subst k
+    rw [Equiv.swap_apply_left]
+    exact hle t htU
+  · by_cases hkt : k = t
+    · subst k
+      rw [Equiv.swap_apply_right]
+    · have hk'' : Equiv.swap c t k = k := Equiv.swap_apply_of_ne_of_ne hkc hkt
+      rw [hk'']
+      exact hle k hkU
+
+/-- Given that all keys of `T` are left-ancestors of `b` (with every `a ∈ T`
+strictly below `c`), the maximum priority of `Icc c b` is equally likely to sit
+at any of its keys.  Counted: the `c`-max events have one `|Icc c b|`-th of the
+mass of the `T`-max events. -/
+lemma maxExtend_uniform {n : ℕ} {b : Fin n} (T : Finset (Fin n)) {c : Fin n}
+    (hT : ∀ a ∈ T, a < c) (hc : c < b) :
+    ((Finset.univ.filter (fun σ : PrioPerm n =>
+        (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ (Finset.Icc c b) c)).card) *
+      (Finset.Icc c b).card =
+    (Finset.univ.filter (fun σ : PrioPerm n =>
+        ∀ a ∈ T, MaxOver σ (Finset.Icc a b) a)).card := by
+  classical
+  let U : Finset (Fin n) := Finset.Icc c b
+  have hcU : c ∈ U := by dsimp [U]; exact Finset.mem_Icc.mpr ⟨le_rfl, le_of_lt hc⟩
+  -- For each a ∈ T, the swap of {a}∪{c,t}... build the "all T maxima preserved" helper.
+  have hTswap : ∀ (a : Fin n), a ∈ T → ∀ (t : Fin n), t ∈ U →
+      ∀ (σ : PrioPerm n), MaxOver σ (Finset.Icc a b) a →
+        MaxOver (σ * (Equiv.swap c t)) (Finset.Icc a b) a := by
+    intro a haT t htU σ hmax
+    have hac : a < c := hT a haT
+    have hca' : c ≠ a := ne_of_gt hac
+    have hta' : t ≠ a := ne_of_gt (lt_of_lt_of_le hac (Finset.mem_Icc.mp htU).1)
+    have haI : a ∈ Finset.Icc a b := Finset.mem_Icc.mpr ⟨le_rfl, le_of_lt (lt_trans hac hc)⟩
+    have hcI : c ∈ Finset.Icc a b := Finset.mem_Icc.mpr ⟨le_of_lt hac, le_of_lt hc⟩
+    have htI : t ∈ Finset.Icc a b := by
+      rw [Finset.mem_Icc] at htU
+      exact Finset.mem_Icc.mpr ⟨le_trans (le_of_lt hac) htU.1, htU.2⟩
+    exact maxOver_swap_key σ hca' hta' hcI htI hmax
+  -- Step 1: for each t ∈ U, the events {t = max of U} within {all T maxima} are equiprobable
+  -- via the swap c t bijection.
+  have hEq : ∀ t ∈ U, (Finset.univ.filter (fun σ : PrioPerm n =>
+        (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U t)).card =
+      (Finset.univ.filter (fun σ : PrioPerm n =>
+        (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U c)).card := by
+    intro t htU
+    apply Finset.card_bij (fun σ _ => σ * (Equiv.swap c t))
+    · -- maps the t-set into the c-set
+      intro σ hσ
+      rw [Finset.mem_filter] at hσ
+      rcases hσ with ⟨hσu, ⟨hTσ, htmax⟩⟩
+      refine Finset.mem_filter.mpr ⟨Finset.mem_univ _, ?_⟩
+      constructor
+      · intro a haT
+        exact hTswap a haT t htU σ (hTσ a haT)
+      · -- c is the max of U under σ * swap ct
+        have hc' : MaxOver (σ * (Equiv.swap c t)) U c := by
+          simpa [Equiv.swap_comm] using maxOver_swap_max (c := t) (t := c) σ htU hcU htmax
+        exact hc'
+    · -- injectivity
+      intro σ₁ hσ₁ σ₂ hσ₂ h
+      exact (swapComp'_bijective (c := c) (t := t)).1 h
+    · -- surjectivity onto the c-set
+      intro σ hσ
+      rw [Finset.mem_filter] at hσ
+      rcases hσ with ⟨hσu, ⟨hTσ, hcmax⟩⟩
+      refine ⟨σ * (Equiv.swap c t), ?_, ?_⟩
+      · refine Finset.mem_filter.mpr ⟨Finset.mem_univ _, ?_⟩
+        constructor
+        · intro a haT
+          exact hTswap a haT t htU σ (hTσ a haT)
+        · -- t is the max of U under σ * swap ct
+          exact maxOver_swap_max σ hcU htU hcmax
+      · -- σ * swap * swap = σ
+        simpa [mul_assoc]
+  -- Step 2: the {t = max of U} events partition {all T maxima}.
+  have hcover : (Finset.univ.filter (fun σ : PrioPerm n =>
+        ∀ a ∈ T, MaxOver σ (Finset.Icc a b) a)) =
+      Finset.biUnion U (fun t => Finset.univ.filter (fun σ : PrioPerm n =>
+        (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U t)) := by
+    apply Finset.Subset.antisymm
+    · intro σ hσ
+      rw [Finset.mem_filter] at hσ
+      rcases hσ with ⟨hσu, hTσ⟩
+      -- the max of U under σ is at some t ∈ U
+      have hmaxU : ∃ t ∈ U, MaxOver σ U t := by
+        have hUne : U.Nonempty := ⟨c, hcU⟩
+        rcases Finset.exists_max_image U (prioOfPerm σ) hUne with ⟨m, hmU, hmax⟩
+        refine ⟨m, hmU, ?_⟩
+        exact ⟨hmU, hmax⟩
+      rcases hmaxU with ⟨t, htU, htmax⟩
+      apply Finset.mem_biUnion.mpr
+      exact ⟨t, htU, Finset.mem_filter.mpr ⟨Finset.mem_univ _, ⟨hTσ, htmax⟩⟩⟩
+    · intro σ hσ
+      rw [Finset.mem_biUnion] at hσ
+      rcases hσ with ⟨t, htU, hσt⟩
+      rw [Finset.mem_filter] at hσt
+      exact Finset.mem_filter.mpr ⟨hσt.1, hσt.2.1⟩
+  -- Step 3: the {t = max of U} sets are pairwise disjoint
+  have hdisj : ∀ t₁ ∈ U, ∀ t₂ ∈ U, t₁ ≠ t₂ →
+      Disjoint (Finset.univ.filter (fun σ : PrioPerm n =>
+          (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U t₁))
+               (Finset.univ.filter (fun σ : PrioPerm n =>
+          (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U t₂)) := by
+    intro t₁ ht₁ t₂ ht₂ hne
+    apply Finset.disjoint_filter.2
+    intro σ _ h₁ h₂
+    -- MaxOver σ U t₁ and MaxOver σ U t₂ imply t₁ = t₂ (unique max)
+    have hu1 : MaxOver σ U t₁ := h₁.2
+    have hu2 : MaxOver σ U t₂ := h₂.2
+    -- uniqueness: MaxOver U t₁ ∧ MaxOver U t₂ → t₁ = t₂
+    have ht1t2 : t₁ = t₂ := by
+      have h12 : (σ t₂).1 ≤ (σ t₁).1 := hu1.2 t₂ ht₂
+      have h21 : (σ t₁).1 ≤ (σ t₂).1 := hu2.2 t₁ ht₁
+      have heq : (σ t₁).1 = (σ t₂).1 := le_antisymm h21 h12
+      exact σ.injective (Fin.ext heq)
+    exact hne ht1t2
+  calc
+    ((Finset.univ.filter (fun σ : PrioPerm n =>
+        (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U c)).card) * U.card
+        = (∑ t ∈ U, (Finset.univ.filter (fun σ : PrioPerm n =>
+            (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U t)).card) := by
+          rw [Finset.sum_congr rfl (fun t ht => hEq t ht)]
+          rw [Finset.sum_const]
+          simp [nsmul_eq_mul, mul_comm]
+    _ = (Finset.biUnion U (fun t => Finset.univ.filter (fun σ : PrioPerm n =>
+          (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) ∧ MaxOver σ U t))).card := by
+          rw [← Finset.card_biUnion]
+          · exact hdisj
+    _ = (Finset.univ.filter (fun σ : PrioPerm n =>
+          ∀ a ∈ T, MaxOver σ (Finset.Icc a b) a)).card := by rw [hcover]
+
 end Treap
 
 end CLRS.Extensions
