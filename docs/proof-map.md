@@ -3482,8 +3482,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   edge delta along its consecutive pairs, and bound the update by the minimum
   residual capacity.  Cycle deletion turns a residual reachability witness into
   a simple path without changing its endpoints.
-- Current gap: none for this layer.  The executable Edmonds--Karp loop remains
-  a separate target below; Lemma 26.7 is proved in the companion analysis.
+- Current gap: none for this layer.  The executable Edmonds--Karp loop and its
+  analysis are proved in the companion modules documented below.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
@@ -3636,13 +3636,10 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   no augmenting path exists; cut equality supplies the reverse implication.
 - Current gap: none for the mathematical Max-Flow Min-Cut equivalence.
 
-### Chapter 26 remaining order
+### Chapter 26 current boundary
 
-1. Executable BFS/Edmonds-Karp and the `O(VE²)` work theorem.
-2. Matching-flow feasibility, the integral-flow converse, and the maximum-value
-   statement of Theorem 26.12.
-
-Sections 26.4 and 26.5 are deferred outside the current selected milestone.
+No core proof group remains within the selected milestone.  Sections 26.4 and
+26.5 are deferred outside that milestone.
 
 ## Chapter 27 - Multithreaded Algorithms
 
