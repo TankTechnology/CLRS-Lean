@@ -226,6 +226,58 @@ theorem close_keyBag_balance (frame : FHFrame) (child : FHNode) :
   simp [close, removeFocus, FHNode.forestKeyBag_append]
   ac_rfl
 
+/-- A frame contributes a fixed multiset around its focused child. -/
+theorem close_keyBag_eq (frame : FHFrame) (child : FHNode) :
+    (frame.close child).keyBag =
+      child.keyBag +
+        ({frame.key} + FHNode.forestKeyBag frame.before +
+          FHNode.forestKeyBag frame.after) := by
+  simp [close, FHNode.forestKeyBag_append]
+  ac_rfl
+
+/-- An exact one-occurrence multiset replacement is preserved by one zipper
+frame, even when the erased key also occurs elsewhere in the context. -/
+theorem close_keyBag_update {old new : FHNode} {erased inserted : Int}
+    (frame : FHFrame) (hmem : erased ∈ old.keyBag)
+    (hupdate : new.keyBag = old.keyBag.erase erased + {inserted}) :
+    (frame.close new).keyBag =
+      (frame.close old).keyBag.erase erased + {inserted} := by
+  let context :=
+    ({frame.key} + FHNode.forestKeyBag frame.before +
+      FHNode.forestKeyBag frame.after : Multiset Int)
+  rw [close_keyBag_eq, close_keyBag_eq, hupdate]
+  change (old.keyBag.erase erased + {inserted}) + context =
+    (old.keyBag + context).erase erased + {inserted}
+  rw [Multiset.erase_add_left_pos context hmem]
+  ac_rfl
+
+/-- Exact one-occurrence multiset replacement is preserved through the full
+zipper context. -/
+theorem closeAll_keyBag_update {old new : FHNode} {erased inserted : Int}
+    {parents : List FHFrame} (hmem : erased ∈ old.keyBag)
+    (hupdate : new.keyBag = old.keyBag.erase erased + {inserted}) :
+    (closeAll new parents).keyBag =
+      (closeAll old parents).keyBag.erase erased + {inserted} := by
+  induction parents generalizing old new with
+  | nil => simpa [closeAll] using hupdate
+  | cons frame parents ih =>
+      have hstep := close_keyBag_update frame hmem hupdate
+      have hmemParent : erased ∈ (frame.close old).keyBag := by
+        rw [close_keyBag_eq]
+        exact Multiset.mem_add.mpr (Or.inl hmem)
+      simpa [closeAll] using ih hmemParent hstep
+
+/-- A key occurrence in the focus remains present after closing every frame. -/
+theorem closeAll_mem_keyBag {focus : FHNode} {key : Int}
+    {parents : List FHFrame} (hmem : key ∈ focus.keyBag) :
+    key ∈ (closeAll focus parents).keyBag := by
+  induction parents generalizing focus with
+  | nil => simpa [closeAll] using hmem
+  | cons frame parents ih =>
+      apply ih
+      rw [close_keyBag_eq]
+      exact Multiset.mem_add.mpr (Or.inl hmem)
+
 /-- Removing and promoting a focused child preserves the exact node-count
 balance. -/
 theorem close_size_balance (frame : FHFrame) (child : FHNode) :
@@ -341,6 +393,19 @@ theorem closeAll_size_balance {cut remaining original : FHNode}
       apply ih
       simp only [close, FHNode.size_node, List.map_append, List.map_cons,
         List.map_nil, List.sum_append, List.sum_cons, List.sum_nil]
+      omega
+
+/-- Replacing a focused subtree by one of equal size preserves the size of the
+fully rebuilt root. -/
+theorem closeAll_size_congr {old new : FHNode} {parents : List FHFrame}
+    (hsize : new.size = old.size) :
+    (closeAll new parents).size = (closeAll old parents).size := by
+  induction parents generalizing old new with
+  | nil => simpa [closeAll] using hsize
+  | cons frame parents ih =>
+      apply ih
+      simp only [close, FHNode.size_node, List.map_append, List.map_cons,
+        List.sum_append, List.sum_cons]
       omega
 
 end FHFrame
@@ -913,39 +978,43 @@ def CascadePost (cursor : FHCursor) (result : FHCascadeResult) : Prop :=
   result.heap.Valid ∧
   1 ≤ result.cuts
 
-/-- The executable raw cascade directly satisfies the complete heap-level
-postcondition; no proposition-valued result filter is involved. -/
-theorem cascadingCutRaw_correct {cursor : FHCursor} {result : FHCascadeResult}
-    (hvalid : cursor.close.Valid)
+/-- General raw-cascade correctness after the focused subtree has been edited.
+`originalFocus` supplies the pre-edit valid enclosing context; the edited focus
+itself supplies the subtree invariants and equal-size frame condition. -/
+theorem cascadingCutRaw_correct_of_original {cursor : FHCursor}
+    {originalFocus : FHNode} {result : FHCascadeResult}
+    (hvalid : ({ cursor with focus := originalFocus } : FHCursor).close.Valid)
+    (hfocusOrdered : cursor.focus.HeapOrdered)
+    (hfocusLoss : cursor.focus.LossInvariant)
+    (hfocusSize : cursor.focus.size = originalFocus.size)
     (hcut : cascadingCutRaw cursor = some result) :
     result.heap.keyBag = cursor.close.keyBag ∧
     result.heap.size = cursor.close.size ∧
     result.heap.Valid ∧
     1 ≤ result.cuts := by
   rcases hvalid with ⟨hgood, hloss, hunmarked, hstoredSize, hminimum⟩
-  have hselectedMem : cursor.closeNode ∈ cursor.close.roots := by
-    simp [FHCursor.close]
-  have hselectedOrdered : cursor.closeNode.HeapOrdered :=
-    hgood.1 cursor.closeNode hselectedMem
-  have hselectedLoss : cursor.closeNode.LossInvariant :=
-    hloss cursor.closeNode hselectedMem
-  have hselectedUnmarked : cursor.closeNode.marked = false :=
-    hunmarked cursor.closeNode hselectedMem
+  let originalRoot := FHFrame.closeAll originalFocus cursor.parents
+  have hselectedMem : originalRoot ∈
+      ({ cursor with focus := originalFocus } : FHCursor).close.roots := by
+    simp [FHCursor.close, FHCursor.closeNode, originalRoot]
+  have hselectedOrdered : originalRoot.HeapOrdered :=
+    hgood.1 originalRoot hselectedMem
+  have hselectedLoss : originalRoot.LossInvariant :=
+    hloss originalRoot hselectedMem
+  have hselectedUnmarked : originalRoot.marked = false :=
+    hunmarked originalRoot hselectedMem
   cases htree : cascadingCutTreeRawAux cursor.focus cursor.parents with
   | none => simp [cascadingCutRaw, htree] at hcut
   | some tree =>
       simp [cascadingCutRaw, htree] at hcut
       subst result
       have htreePost := cascadingCutTreeRawAux_correct
-        (focus := cursor.focus) (original := cursor.focus)
+        (focus := cursor.focus) (original := originalFocus)
         (parents := cursor.parents) (result := tree)
-        (FHFrame.heapOrdered_focus_of_closeAll
-          (by simpa [FHCursor.closeNode] using hselectedOrdered))
-        (FHFrame.lossInvariant_focus_of_closeAll
-          (by simpa [FHCursor.closeNode] using hselectedLoss))
-        (by simpa [FHCursor.closeNode] using hselectedOrdered)
-        (by simpa [FHCursor.closeNode] using hselectedLoss)
-        (by simpa [FHCursor.closeNode] using hselectedUnmarked)
+        hfocusOrdered hfocusLoss
+        (by simpa [originalRoot] using hselectedOrdered)
+        (by simpa [originalRoot] using hselectedLoss)
+        (by simpa [originalRoot] using hselectedUnmarked)
         htree
       rcases htreePost with
         ⟨htreeBag, htreeSize, htreeGood, htreeLoss,
@@ -1012,9 +1081,20 @@ theorem cascadingCutRaw_correct {cursor : FHCursor} {result : FHCascadeResult}
         omega
       have hstoredSize' : cursor.size = FHNode.forestSize roots := by
         have horiginal : cursor.size =
-            FHNode.forestSize cursor.close.roots := by
+            FHNode.forestSize
+              ({ cursor with focus := originalFocus } : FHCursor).close.roots := by
           simpa [FHCursor.close] using hstoredSize
+        have hcurrentSize : FHNode.forestSize cursor.close.roots =
+            FHNode.forestSize
+              ({ cursor with focus := originalFocus } : FHCursor).close.roots := by
+          simp only [FHCursor.close, FHCursor.closeNode,
+            FHNode.forestSize_append,
+            FHNode.forestSize_cons]
+          have hrootSize := FHFrame.closeAll_size_congr
+            (parents := cursor.parents) hfocusSize
+          omega
         rw [hrootsSize]
+        rw [hcurrentSize]
         exact horiginal
       have hresultValid : (rebuildRoots cursor roots).Valid := by
         refine ⟨hrootsGood, hrootsLoss, hrootsUnmarked, hstoredSize', ?_⟩
@@ -1025,6 +1105,22 @@ theorem cascadingCutRaw_correct {cursor : FHCursor} {result : FHCascadeResult}
       · simpa [roots] using hresultValid
       · change 1 ≤ tree.cuts
         omega
+
+/-- The executable raw cascade directly satisfies the complete heap-level
+postcondition; no proposition-valued result filter is involved. -/
+theorem cascadingCutRaw_correct {cursor : FHCursor} {result : FHCascadeResult}
+    (hvalid : cursor.close.Valid)
+    (hcut : cascadingCutRaw cursor = some result) :
+    result.heap.keyBag = cursor.close.keyBag ∧
+    result.heap.size = cursor.close.size ∧
+    result.heap.Valid ∧
+    1 ≤ result.cuts := by
+  exact cascadingCutRaw_correct_of_original hvalid
+    (FHFrame.heapOrdered_focus_of_closeAll
+      (hvalid.1.1 cursor.closeNode (by simp [FHCursor.close])))
+    (FHFrame.lossInvariant_focus_of_closeAll
+      (hvalid.2.1 cursor.closeNode (by simp [FHCursor.close])))
+    rfl hcut
 
 /-- Public executable cascading cut. -/
 def cascadingCut (cursor : FHCursor) : Option FHCascadeResult :=
@@ -1085,11 +1181,249 @@ theorem cutAtPath_correct {h : FH} {path : FHPath}
 def setNodeKey (node : FHNode) (newKey : Int) : FHNode :=
   FHNode.node newKey node.marked node.children
 
+@[simp] theorem setNodeKey_key (node : FHNode) (newKey : Int) :
+    (setNodeKey node newKey).key = newKey := by
+  cases node <;> rfl
+
+@[simp] theorem setNodeKey_marked (node : FHNode) (newKey : Int) :
+    (setNodeKey node newKey).marked = node.marked := by
+  cases node <;> rfl
+
+@[simp] theorem setNodeKey_degree (node : FHNode) (newKey : Int) :
+    (setNodeKey node newKey).degree = node.degree := by
+  cases node <;> rfl
+
+@[simp] theorem setNodeKey_size (node : FHNode) (newKey : Int) :
+    (setNodeKey node newKey).size = node.size := by
+  cases node <;> simp [setNodeKey]
+
+/-- Replacing a node key changes exactly its root occurrence in the subtree
+multiset, including when the same key occurs elsewhere below it. -/
+theorem setNodeKey_keyBag (node : FHNode) (newKey : Int) :
+    (setNodeKey node newKey).keyBag =
+      node.keyBag.erase node.key + {newKey} := by
+  cases node with
+  | node key marked children =>
+      simp [setNodeKey, FHNode.keyBag_node, Multiset.erase_cons_head,
+        Multiset.singleton_add, add_comm]
+
+/-- Decreasing a node key preserves heap order within its own subtree. -/
+theorem setNodeKey_heapOrdered {node : FHNode} {newKey : Int}
+    (hordered : node.HeapOrdered) (hdecrease : newKey ≤ node.key) :
+    (setNodeKey node newKey).HeapOrdered := by
+  cases node with
+  | node key marked children =>
+      cases hordered with
+      | node hle hall =>
+          exact FHNode.HeapOrdered.node
+            (fun child hchild => le_trans hdecrease (hle child hchild)) hall
+
+/-- Key replacement does not affect mark-aware child-loss obligations. -/
+theorem setNodeKey_lossInvariant {node : FHNode} {newKey : Int}
+    (hloss : node.LossInvariant) :
+    (setNodeKey node newKey).LossInvariant := by
+  cases node with
+  | node key marked children =>
+      cases hloss with
+      | node hdeg hall => exact FHNode.LossInvariant.node hdeg hall
+
+/-- A decreased child whose new key still respects its parent edge can replace
+the old child while preserving that parent's heap order. -/
+theorem FHFrame.close_heapOrdered_decrease {frame : FHFrame}
+    {old new : FHNode} (hordered : (frame.close old).HeapOrdered)
+    (hnew : new.HeapOrdered) (hparent : frame.key ≤ new.key) :
+    (frame.close new).HeapOrdered := by
+  cases hordered with
+  | node hle hall =>
+      refine FHNode.HeapOrdered.node ?_ ?_
+      · intro current hcurrent
+        simp only [FHFrame.close, List.mem_append, List.mem_cons] at hcurrent ⊢
+        rcases hcurrent with hbefore | rfl | hafter
+        · exact hle current (by simp [hbefore])
+        · exact hparent
+        · exact hle current (by simp [hafter])
+      · intro current hcurrent
+        simp only [FHFrame.close, List.mem_append, List.mem_cons] at hcurrent ⊢
+        rcases hcurrent with hbefore | rfl | hafter
+        · exact hall current (by simp [hbefore])
+        · exact hnew
+        · exact hall current (by simp [hafter])
+
+/-- A nonviolating decrease preserves heap order through the complete zipper
+context. -/
+theorem FHFrame.closeAll_heapOrdered_decrease {old new : FHNode}
+    {frame : FHFrame} {parents : List FHFrame}
+    (hordered : (FHFrame.closeAll old (frame :: parents)).HeapOrdered)
+    (hnew : new.HeapOrdered) (hparent : frame.key ≤ new.key) :
+    (FHFrame.closeAll new (frame :: parents)).HeapOrdered := by
+  have holdParent : (frame.close old).HeapOrdered :=
+    FHFrame.heapOrdered_focus_of_closeAll
+      (by simpa [FHFrame.closeAll] using hordered)
+  have hnewParent := FHFrame.close_heapOrdered_decrease
+    holdParent hnew hparent
+  exact FHFrame.closeAll_heapOrdered_replace
+    (old := frame.close old) (new := frame.close new) (parents := parents)
+    (by simpa [FHFrame.closeAll] using hordered) hnewParent rfl
+
 /-- Refresh only the persistent minimum-root cache of a heap. -/
 def refreshMinimum (h : FH) : FH :=
   { roots := h.roots
   , size := h.size
   , minRoot := computeMinRoot h.roots }
+
+/-- The addressed root-key occurrence remains present in its subtree bag. -/
+theorem focus_key_mem_keyBag (node : FHNode) : node.key ∈ node.keyBag := by
+  cases node
+  simp [FHNode.keyBag_node]
+
+/-- Closing a cursor after replacing its focused node key performs exactly one
+occurrence replacement in the complete heap multiset. -/
+theorem close_setNodeKey_keyBag (cursor : FHCursor) (newKey : Int) :
+    ({ cursor with focus := setNodeKey cursor.focus newKey } : FHCursor).close.keyBag =
+      cursor.close.keyBag.erase cursor.focus.key + {newKey} := by
+  let oldRoot := FHFrame.closeAll cursor.focus cursor.parents
+  let newRoot :=
+    FHFrame.closeAll (setNodeKey cursor.focus newKey) cursor.parents
+  have hfocusMem := focus_key_mem_keyBag cursor.focus
+  have hrootUpdate : newRoot.keyBag =
+      oldRoot.keyBag.erase cursor.focus.key + {newKey} := by
+    exact FHFrame.closeAll_keyBag_update hfocusMem
+      (setNodeKey_keyBag cursor.focus newKey)
+  have hrootMem : cursor.focus.key ∈ oldRoot.keyBag :=
+    FHFrame.closeAll_mem_keyBag hfocusMem
+  let context := FHNode.forestKeyBag cursor.rootsBefore +
+    FHNode.forestKeyBag cursor.rootsAfter
+  have holdForest : cursor.close.keyBag = oldRoot.keyBag + context := by
+    simp only [FHCursor.close, keyBag, FHNode.forestKeyBag_append,
+      FHNode.forestKeyBag_cons, oldRoot, context]
+    ac_rfl
+  have hnewForest :
+      ({ cursor with focus := setNodeKey cursor.focus newKey } : FHCursor).close.keyBag =
+        newRoot.keyBag + context := by
+    simp only [FHCursor.close, FHCursor.closeNode, keyBag,
+      FHNode.forestKeyBag_append, FHNode.forestKeyBag_cons, newRoot, context]
+    ac_rfl
+  rw [hnewForest, holdForest, hrootUpdate]
+  rw [Multiset.erase_add_left_pos context hrootMem]
+  ac_rfl
+
+/-- Key replacement leaves the represented node count unchanged after closing
+the cursor. -/
+theorem close_setNodeKey_size (cursor : FHCursor) (newKey : Int) :
+    ({ cursor with focus := setNodeKey cursor.focus newKey } : FHCursor).close.size =
+      cursor.close.size := rfl
+
+/-- If the rebuilt selected root is heap-ordered, refreshing the minimum cache
+after a focused key replacement reestablishes full heap validity. -/
+theorem refreshMinimum_setNodeKey_close_valid (cursor : FHCursor) (newKey : Int)
+    (hvalid : cursor.close.Valid)
+    (hnewRootOrdered :
+      (FHFrame.closeAll (setNodeKey cursor.focus newKey)
+        cursor.parents).HeapOrdered) :
+    (refreshMinimum
+      ({ cursor with focus := setNodeKey cursor.focus newKey } : FHCursor).close).Valid := by
+  rcases hvalid with ⟨hgood, hloss, hunmarked, hstoredSize, hminimum⟩
+  have holdRootMem : cursor.closeNode ∈ cursor.close.roots := by
+    simp [FHCursor.close]
+  have holdRootLoss : cursor.closeNode.LossInvariant :=
+    hloss cursor.closeNode holdRootMem
+  have holdRootUnmarked : cursor.closeNode.marked = false :=
+    hunmarked cursor.closeNode holdRootMem
+  have hfocusLoss : cursor.focus.LossInvariant :=
+    FHFrame.lossInvariant_focus_of_closeAll
+      (by simpa [FHCursor.closeNode] using holdRootLoss)
+  have hnewFocusLoss : (setNodeKey cursor.focus newKey).LossInvariant :=
+    setNodeKey_lossInvariant hfocusLoss
+  have hnewRootLoss :
+      (FHFrame.closeAll (setNodeKey cursor.focus newKey)
+        cursor.parents).LossInvariant :=
+    FHFrame.closeAll_lossInvariant_replace
+      (by simpa [FHCursor.closeNode] using holdRootLoss)
+      hnewFocusLoss (setNodeKey_degree cursor.focus newKey)
+      (setNodeKey_marked cursor.focus newKey)
+  have hnewRootUnmarked :
+      (FHFrame.closeAll (setNodeKey cursor.focus newKey)
+        cursor.parents).marked = false := by
+    cases hparents : cursor.parents with
+    | nil =>
+        have hold : cursor.focus.marked = false := by
+          simpa [FHCursor.closeNode, hparents, FHFrame.closeAll] using
+            holdRootUnmarked
+        simpa [hparents, FHFrame.closeAll] using hold
+    | cons frame parents =>
+        rw [← FHFrame.closeAll_marked_eq_of_cons cursor.focus
+          (setNodeKey cursor.focus newKey) frame parents]
+        simpa [FHCursor.closeNode, hparents] using holdRootUnmarked
+  have hbeforeGood : FHNode.ForestGood cursor.rootsBefore := by
+    constructor <;> intro current hcurrent
+    · exact hgood.1 current (by simp [FHCursor.close, hcurrent])
+    · exact hgood.2 current (by simp [FHCursor.close, hcurrent])
+  have hafterGood : FHNode.ForestGood cursor.rootsAfter := by
+    constructor <;> intro current hcurrent
+    · exact hgood.1 current (by simp [FHCursor.close, hcurrent])
+    · exact hgood.2 current (by simp [FHCursor.close, hcurrent])
+  have hbeforeLoss : FHNode.ForestLossInvariant cursor.rootsBefore := by
+    intro current hcurrent
+    exact hloss current (by simp [FHCursor.close, hcurrent])
+  have hafterLoss : FHNode.ForestLossInvariant cursor.rootsAfter := by
+    intro current hcurrent
+    exact hloss current (by simp [FHCursor.close, hcurrent])
+  have hbeforeUnmarked : FHNode.RootsUnmarked cursor.rootsBefore := by
+    intro current hcurrent
+    exact hunmarked current (by simp [FHCursor.close, hcurrent])
+  have hafterUnmarked : FHNode.RootsUnmarked cursor.rootsAfter := by
+    intro current hcurrent
+    exact hunmarked current (by simp [FHCursor.close, hcurrent])
+  let newRoot :=
+    FHFrame.closeAll (setNodeKey cursor.focus newKey) cursor.parents
+  let roots := cursor.rootsBefore ++ newRoot :: cursor.rootsAfter
+  have hrootsGood : FHNode.ForestGood roots := by
+    constructor <;> intro current hcurrent
+    · simp only [roots, List.mem_append, List.mem_cons] at hcurrent
+      rcases hcurrent with hbefore | rfl | hafter
+      · exact hbeforeGood.1 current hbefore
+      · exact hnewRootOrdered
+      · exact hafterGood.1 current hafter
+    · simp only [roots, List.mem_append, List.mem_cons] at hcurrent
+      rcases hcurrent with hbefore | rfl | hafter
+      · exact hbeforeGood.2 current hbefore
+      · exact FHNode.lossInvariant_wellformed _ hnewRootLoss
+      · exact hafterGood.2 current hafter
+  have hrootsLoss : FHNode.ForestLossInvariant roots := by
+    intro current hcurrent
+    simp only [roots, List.mem_append, List.mem_cons] at hcurrent
+    rcases hcurrent with hbefore | rfl | hafter
+    · exact hbeforeLoss current hbefore
+    · exact hnewRootLoss
+    · exact hafterLoss current hafter
+  have hrootsUnmarked : FHNode.RootsUnmarked roots := by
+    intro current hcurrent
+    simp only [roots, List.mem_append, List.mem_cons] at hcurrent
+    rcases hcurrent with hbefore | rfl | hafter
+    · exact hbeforeUnmarked current hbefore
+    · exact hnewRootUnmarked
+    · exact hafterUnmarked current hafter
+  have hnewRootSize : newRoot.size = cursor.closeNode.size := by
+    exact FHFrame.closeAll_size_congr (setNodeKey_size cursor.focus newKey)
+  have hrootsSize : cursor.size = FHNode.forestSize roots := by
+    have holdSize : cursor.size = FHNode.forestSize cursor.close.roots := by
+      simpa [FHCursor.close] using hstoredSize
+    simp only [roots, FHCursor.close, FHNode.forestSize_append,
+      FHNode.forestSize_cons] at holdSize ⊢
+    omega
+  change Valid (refreshMinimum
+    ({ cursor with focus := setNodeKey cursor.focus newKey } : FHCursor).close)
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · simpa [refreshMinimum, FHCursor.close, FHCursor.closeNode, roots, newRoot]
+      using hrootsGood
+  · simpa [refreshMinimum, FHCursor.close, FHCursor.closeNode, roots, newRoot]
+      using hrootsLoss
+  · simpa [refreshMinimum, FHCursor.close, FHCursor.closeNode, roots, newRoot]
+      using hrootsUnmarked
+  · simpa [refreshMinimum, FHCursor.close, FHCursor.closeNode, roots, newRoot]
+      using hrootsSize
+  · simpa [refreshMinimum, FHCursor.close, FHCursor.closeNode, roots, newRoot]
+      using computeMinRoot_valid roots cursor.size hrootsGood
 
 /-- Result of a handle-directed key update or deletion. -/
 structure FHUpdateResult where
@@ -1099,10 +1433,8 @@ structure FHUpdateResult where
 
 /-- Raw handle-directed decrease-key.  A root or a nonviolating edge closes
 directly; a newly violating parent edge invokes the cascading-cut machine. -/
-noncomputable def decreaseKeyAtRaw (h : FH) (path : FHPath) (newKey : Int) :
-    Option FHUpdateResult := by
-  classical
-  exact do
+def decreaseKeyAtRaw (h : FH) (path : FHPath) (newKey : Int) :
+    Option FHUpdateResult := do
     let cursor ← h.openPath path
     if newKey ≤ cursor.focus.key then
       let updatedCursor : FHCursor :=
@@ -1115,7 +1447,7 @@ noncomputable def decreaseKeyAtRaw (h : FH) (path : FHPath) (newKey : Int) :
             , cost := 0 }
       | parent :: _ =>
           if newKey < parent.key then
-            let cut ← cascadingCut updatedCursor
+            let cut ← cascadingCutRaw updatedCursor
             some
               { oldKey := cursor.focus.key
               , heap := cut.heap
@@ -1134,14 +1466,141 @@ def DecreasePost (h : FH) (newKey : Int) (result : FHUpdateResult) : Prop :=
   result.heap.size = h.size ∧
   result.heap.Valid
 
-/-- Certified occurrence-level decrease-key. -/
-noncomputable def decreaseKeyAt (h : FH) (path : FHPath) (newKey : Int) :
-    Option FHUpdateResult := by
-  classical
-  exact
-    match decreaseKeyAtRaw h path newKey with
-    | none => none
-    | some result => if DecreasePost h newKey result then some result else none
+/-- The raw executable decrease-key directly replaces the addressed occurrence
+and preserves full heap validity. -/
+theorem decreaseKeyAtRaw_correct {h : FH} {path : FHPath} {newKey : Int}
+    {result : FHUpdateResult} (hvalid : h.Valid)
+    (hdec : h.decreaseKeyAtRaw path newKey = some result) :
+    newKey ≤ result.oldKey ∧
+    result.heap.keyBag = h.keyBag.erase result.oldKey + {newKey} ∧
+    result.heap.size = h.size ∧
+    result.heap.Valid := by
+  unfold decreaseKeyAtRaw at hdec
+  cases hopen : h.openPath path with
+  | none => simp [hopen] at hdec
+  | some cursor =>
+      simp only [hopen, Option.bind_eq_bind, Option.bind_some] at hdec
+      have hclose := openPath_close hopen
+      have hcursorValid : cursor.close.Valid := by simpa [hclose] using hvalid
+      have holdRootOrdered : cursor.closeNode.HeapOrdered :=
+        hcursorValid.1.1 cursor.closeNode (by simp [FHCursor.close])
+      have hfocusOrdered : cursor.focus.HeapOrdered :=
+        FHFrame.heapOrdered_focus_of_closeAll
+          (by simpa [FHCursor.closeNode] using holdRootOrdered)
+      have holdRootLoss : cursor.closeNode.LossInvariant :=
+        hcursorValid.2.1 cursor.closeNode (by simp [FHCursor.close])
+      have hfocusLoss : cursor.focus.LossInvariant :=
+        FHFrame.lossInvariant_focus_of_closeAll
+          (by simpa [FHCursor.closeNode] using holdRootLoss)
+      by_cases hdecrease : newKey ≤ cursor.focus.key
+      · rw [if_pos hdecrease] at hdec
+        let updated : FHCursor :=
+          { cursor with focus := setNodeKey cursor.focus newKey }
+        have hnewFocusOrdered : updated.focus.HeapOrdered := by
+          exact setNodeKey_heapOrdered hfocusOrdered hdecrease
+        have hnewFocusLoss : updated.focus.LossInvariant := by
+          exact setNodeKey_lossInvariant hfocusLoss
+        have hnewFocusSize : updated.focus.size = cursor.focus.size := by
+          exact setNodeKey_size cursor.focus newKey
+        have hupdatedBag : updated.close.keyBag =
+            cursor.close.keyBag.erase cursor.focus.key + {newKey} := by
+          simpa [updated] using close_setNodeKey_keyBag cursor newKey
+        cases hparents : cursor.parents with
+        | nil =>
+            simp [updated, hparents] at hdec
+            subst result
+            have hnewRootOrdered :
+                (FHFrame.closeAll (setNodeKey cursor.focus newKey) []).HeapOrdered := by
+              simpa [FHFrame.closeAll] using hnewFocusOrdered
+            have hresultValid := refreshMinimum_setNodeKey_close_valid
+              cursor newKey hcursorValid
+              (by simpa [hparents] using hnewRootOrdered)
+            refine ⟨hdecrease, ?_, ?_, ?_⟩
+            · simpa [updated, refreshMinimum, keyBag, hclose, hparents] using
+                hupdatedBag
+            · simpa [FHCursor.close, updated, refreshMinimum, hparents] using
+                congrArg FH.size hclose
+            · simpa [hparents] using hresultValid
+        | cons parent parents =>
+            by_cases hviolates : newKey < parent.key
+            · simp only [hparents, hviolates, if_true] at hdec
+              obtain ⟨cut, hcutExplicit, hresult⟩ :=
+                Option.bind_eq_some_iff.mp hdec
+              simp at hresult
+              subst result
+              have hcut : cascadingCutRaw updated = some cut := by
+                simpa [updated, hparents] using hcutExplicit
+              have hsourceValid :
+                  ({ updated with focus := cursor.focus } : FHCursor).close.Valid := by
+                simpa [updated] using hcursorValid
+              have hcascade := cascadingCutRaw_correct_of_original
+                (cursor := updated) (originalFocus := cursor.focus)
+                (result := cut) hsourceValid hnewFocusOrdered hnewFocusLoss
+                hnewFocusSize hcut
+              refine ⟨hdecrease, ?_, ?_, hcascade.2.2.1⟩
+              · rw [hcascade.1, hupdatedBag, hclose]
+              · rw [hcascade.2.1]
+                simpa [updated, FHCursor.close] using congrArg FH.size hclose
+            · have hparent : parent.key ≤ newKey := le_of_not_gt hviolates
+              have hnewRootOrdered :
+                  (FHFrame.closeAll (setNodeKey cursor.focus newKey)
+                    (parent :: parents)).HeapOrdered :=
+                FHFrame.closeAll_heapOrdered_decrease
+                  (by simpa [FHCursor.closeNode, hparents] using holdRootOrdered)
+                  hnewFocusOrdered hparent
+              simp [updated, hparents, hviolates] at hdec
+              subst result
+              have hresultValid := refreshMinimum_setNodeKey_close_valid
+                cursor newKey hcursorValid
+                (by simpa [hparents] using hnewRootOrdered)
+              refine ⟨hdecrease, ?_, ?_, ?_⟩
+              · simpa [updated, refreshMinimum, keyBag, hclose, hparents] using
+                  hupdatedBag
+              · simpa [FHCursor.close, updated, refreshMinimum, hparents] using
+                  congrArg FH.size hclose
+              · simpa [hparents] using hresultValid
+      · rw [if_neg hdecrease] at hdec
+        contradiction
+
+/-- The `oldKey` returned by raw decrease-key is the key of the occurrence
+selected by the supplied path, rather than merely some equal heap key. -/
+theorem decreaseKeyAtRaw_oldKey {h : FH} {path : FHPath} {newKey : Int}
+    {result : FHUpdateResult}
+    (hdec : h.decreaseKeyAtRaw path newKey = some result) :
+    ∃ cursor, h.openPath path = some cursor ∧
+      result.oldKey = cursor.focus.key := by
+  unfold decreaseKeyAtRaw at hdec
+  cases hopen : h.openPath path with
+  | none => simp [hopen] at hdec
+  | some cursor =>
+      simp only [hopen, Option.bind_eq_bind, Option.bind_some] at hdec
+      by_cases hdecrease : newKey ≤ cursor.focus.key
+      · rw [if_pos hdecrease] at hdec
+        let updated : FHCursor :=
+          { cursor with focus := setNodeKey cursor.focus newKey }
+        cases hparents : cursor.parents with
+        | nil =>
+            simp [updated, hparents] at hdec
+            subst result
+            exact ⟨cursor, rfl, rfl⟩
+        | cons parent parents =>
+            by_cases hviolates : newKey < parent.key
+            · simp only [hparents, hviolates, if_true] at hdec
+              obtain ⟨cut, hcut, hresult⟩ :=
+                Option.bind_eq_some_iff.mp hdec
+              simp at hresult
+              subst result
+              exact ⟨cursor, rfl, rfl⟩
+            · simp [updated, hparents, hviolates] at hdec
+              subst result
+              exact ⟨cursor, rfl, rfl⟩
+      · rw [if_neg hdecrease] at hdec
+        contradiction
+
+/-- Public executable occurrence-level decrease-key. -/
+def decreaseKeyAt (h : FH) (path : FHPath) (newKey : Int) :
+    Option FHUpdateResult :=
+  h.decreaseKeyAtRaw path newKey
 
 /-- Successful handle-directed decrease-key replaces exactly the addressed
 occurrence, preserves node count, and preserves full heap validity. -/
@@ -1152,26 +1611,14 @@ theorem decreaseKeyAt_correct {h : FH} {path : FHPath} {newKey : Int}
     result.heap.keyBag = h.keyBag.erase result.oldKey + {newKey} ∧
     result.heap.size = h.size ∧
     result.heap.Valid := by
-  classical
-  unfold decreaseKeyAt at hdec
-  cases hraw : decreaseKeyAtRaw h path newKey with
-  | none => simp [hraw] at hdec
-  | some raw =>
-      by_cases hpost : DecreasePost h newKey raw
-      · simp [hraw, hpost] at hdec
-        subst result
-        exact hpost
-      · simp [hraw, hpost] at hdec
+  exact decreaseKeyAtRaw_correct hvalid hdec
 
 /-- Raw CLRS deletion: decrease the addressed occurrence strictly below the
 cached minimum and then extract that unique sentinel occurrence. -/
-noncomputable def deleteAtRaw (h : FH) (path : FHPath) :
-    Option FHUpdateResult := by
-  classical
-  exact do
+def deleteAtRaw (h : FH) (path : FHPath) : Option FHUpdateResult := do
     let cursor ← h.openPath path
     let minimum ← h.minimum
-    let decreased ← h.decreaseKeyAt path (minimum - 1)
+    let decreased ← h.decreaseKeyAtRaw path (minimum - 1)
     let (_, heap) ← decreased.heap.extractMin
     pure
       { oldKey := cursor.focus.key
@@ -1184,13 +1631,78 @@ def DeletePost (h : FH) (result : FHUpdateResult) : Prop :=
   result.heap.size + 1 = h.size ∧
   result.heap.Valid
 
+/-- Raw deletion removes exactly the occurrence addressed by the path,
+decreases the stored size by one, and preserves full heap validity. -/
+theorem deleteAtRaw_correct {h : FH} {path : FHPath}
+    {result : FHUpdateResult} (hvalid : h.Valid)
+    (hdelete : h.deleteAtRaw path = some result) :
+    result.heap.keyBag = h.keyBag.erase result.oldKey ∧
+    result.heap.size + 1 = h.size ∧
+    result.heap.Valid := by
+  unfold deleteAtRaw at hdelete
+  cases hopen : h.openPath path with
+  | none => simp [hopen] at hdelete
+  | some cursor =>
+      simp only [hopen, Option.bind_eq_bind, Option.bind_some] at hdelete
+      cases hmin : h.minimum with
+      | none => simp [hmin] at hdelete
+      | some minimum =>
+          simp only [hmin, Option.bind_eq_bind, Option.bind_some] at hdelete
+          cases hdec : h.decreaseKeyAtRaw path (minimum - 1) with
+          | none => simp [hdec] at hdelete
+          | some decreased =>
+              simp only [hdec, Option.bind_eq_bind, Option.bind_some] at hdelete
+              cases hextract : decreased.heap.extractMin with
+              | none => simp [hextract] at hdelete
+              | some pair =>
+                  rcases pair with ⟨extracted, heap⟩
+                  simp [hextract] at hdelete
+                  subst result
+                  have hdecreased := decreaseKeyAtRaw_correct hvalid hdec
+                  have holdKeyPath := decreaseKeyAtRaw_oldKey hdec
+                  obtain ⟨selected, hselected, holdKey⟩ := holdKeyPath
+                  rw [hopen] at hselected
+                  cases hselected
+                  have hdecreasedBag :
+                      decreased.heap.keyBag =
+                        h.keyBag.erase cursor.focus.key + {minimum - 1} := by
+                    simpa [holdKey] using hdecreased.2.1
+                  have hdecreasedValid : decreased.heap.Valid :=
+                    hdecreased.2.2.2
+                  have hextractCorrect :=
+                    extractMin_correct hdecreasedValid hextract
+                  have hsentinelMem :
+                      minimum - 1 ∈ decreased.heap.keyBag := by
+                    rw [hdecreasedBag]
+                    simp
+                  have hextractedLe : extracted ≤ minimum - 1 :=
+                    hextractCorrect.2.1 (minimum - 1) hsentinelMem
+                  have hextractedEq : extracted = minimum - 1 := by
+                    have hextractedMem := hextractCorrect.1
+                    rw [hdecreasedBag, Multiset.mem_add] at hextractedMem
+                    rcases hextractedMem with hremaining | hsentinel
+                    · have horiginal : extracted ∈ h.keyBag :=
+                        Multiset.mem_of_mem_erase hremaining
+                      have hminimumLe : minimum ≤ extracted :=
+                        minimum_le_keyBag hvalid.2.2.2.2 hmin horiginal
+                      omega
+                    · simpa using hsentinel
+                  refine ⟨?_, ?_, hextractCorrect.2.2.2.1⟩
+                  · rw [hextractCorrect.2.2.1, hextractedEq,
+                      hdecreasedBag,
+                      Multiset.erase_add_right_pos
+                        (h.keyBag.erase cursor.focus.key) (by simp)]
+                    simp
+                  · have hextractSize :=
+                      extractMin_size hdecreasedValid hextract
+                    have hdecreasedSize : decreased.heap.size = h.size :=
+                      hdecreased.2.2.1
+                    change heap.size + 1 = h.size
+                    omega
+
 /-- Certified handle-directed deletion. -/
-noncomputable def deleteAt (h : FH) (path : FHPath) : Option FHUpdateResult := by
-  classical
-  exact
-    match deleteAtRaw h path with
-    | none => none
-    | some result => if DeletePost h result then some result else none
+def deleteAt (h : FH) (path : FHPath) : Option FHUpdateResult :=
+  h.deleteAtRaw path
 
 /-- Successful handle-directed deletion removes exactly the addressed
 occurrence, decreases node count by one, and preserves full validity. -/
@@ -1199,16 +1711,7 @@ theorem deleteAt_correct {h : FH} {path : FHPath} {result : FHUpdateResult}
     result.heap.keyBag = h.keyBag.erase result.oldKey ∧
     result.heap.size + 1 = h.size ∧
     result.heap.Valid := by
-  classical
-  unfold deleteAt at hdelete
-  cases hraw : deleteAtRaw h path with
-  | none => simp [hraw] at hdelete
-  | some raw =>
-      by_cases hpost : DeletePost h raw
-      · simp [hraw, hpost] at hdelete
-        subst result
-        exact hpost
-      · simp [hraw, hpost] at hdelete
+  exact deleteAtRaw_correct hvalid hdelete
 
 end FH
 
