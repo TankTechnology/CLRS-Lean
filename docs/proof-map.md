@@ -472,10 +472,10 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis.lean`
   - `CLRSLean/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring.lean`
 - Status: `proved` for the birthday/balls-and-bins product-uniform model, the
-  longest-streak tail bound, the executable finite on-line hiring strategy,
-  the harmonic closed form of the on-line hiring success probability, and its
-  `1/e` asymptotic; `partial` only for the expected-longest-streak `Θ(log n)`
-  lower bound
+  longest-streak tail bound, the expected-longest-streak `Θ(log n)` upper and
+  lower bounds, the executable finite on-line hiring strategy, the harmonic
+  closed form of the on-line hiring success probability, and its `1/e`
+  asymptotic
 - Main proved theorems:
   - `CLRS.Chapter05.singleBinProb`
   - `CLRS.Chapter05.pairSameProb`
@@ -483,6 +483,9 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter05.expectedBallsInBin_eq`
   - `CLRS.Chapter05.longestStreak_upperBound`
   - `CLRS.Chapter05.expectedLongestStreak_le` (`E[L] ≤ log2 n + 2`)
+  - `CLRS.Chapter05.prob_noFullHeadBlock` (the exact `(1 - 2^{-k})^m` count)
+  - `CLRS.Chapter05.expectedLongestStreak_lowerBound`
+    (`E[L] ≥ log₂ n / 8` for `n ≥ 16`)
   - `CLRS.Chapter05.OnlineHiring.hiringStrategy_some_iff`
   - `CLRS.Chapter05.OnlineHiring.hiringStrategy_none_iff`
   - `CLRS.Chapter05.OnlineHiring.hiringStrategy_after_observation`
@@ -499,18 +502,28 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   eq. (5.8)) and the balls-in-bin occupancy `k/n` (CLRS eq. (5.10)).  For
   streaks, finite counting plus a union bound gives
   `Pr[longestStreak ≥ t] ≤ n / 2^t`, and the layer-cake identity gives
-  `E[L] ≤ log2 n + 2`.  For on-line hiring, filter record positions after the
-  observation threshold and select their minimum; the success probability
-  conditions on the best candidate's position `j`, where the best is at `j`
-  with probability `1/n` and the minimum of the first `j.val` positions is
-  below the threshold `k` with probability `k/j.val` (a left-to-right score
-  minimum), giving `probHireBest n k = (k/n)(H_{n-1} - H_{k-1})`.
+  `E[L] ≤ log2 n + 2`.  For the lower bound, partition the first `m = ⌊n/k⌋`
+  positions into disjoint blocks of size `k`; the bijection
+  `noFullHeadBlockBijection` (sequences ↔ per-block restrictions plus a free
+  tail) gives the exact count `(2^k - 1)^m · 2^(n - m·k)` of sequences with no
+  full block, so `Pr[no full block] = (1 - 2^{-k})^m`.  Since a full block is a
+  run of `k` heads, `Pr[L < k] ≤ (1 - 2^{-k})^m`, and with
+  `k = ⌊log₂ n / 2⌋`, `m = ⌊n/k⌋` the estimates `m ≥ 2^k` give
+  `Pr[L ≥ k] ≥ 1/2`; the layer-cake lower bound `E[L] ≥ k·Pr[L ≥ k]` yields
+  `E[L] ≥ log₂ n / 8` for `n ≥ 16`.  For on-line hiring, filter record
+  positions after the observation threshold and select their minimum; the
+  success probability conditions on the best candidate's position `j`, where
+  the best is at `j` with probability `1/n` and the minimum of the first
+  `j.val` positions is below the threshold `k` with probability `k/j.val` (a
+  left-to-right score minimum), giving
+  `probHireBest n k = (k/n)(H_{n-1} - H_{k-1})`.
 - Executable definitions: `CoinFlip`, `hasRunOfLength`, `longestStreak`,
   `expectedLongestStreak`, `CLRS.Chapter05.OnlineHiring.hiringStrategy`, and
   `CLRS.Chapter05.OnlineHiring.probHireBest`
-- Current gaps: prove the `expectedLongestStreak n = Θ(log n)` lower bound from
-  the streak tail infrastructure (the upper bound `E[L] ≤ log2 n + 2` is done).
-  The on-line hiring `1/e` asymptotic for the threshold `⌊n/e⌋` is proved.
+- Current gaps: none for the current model.  The expected-longest-streak lower
+  bound `E[L] ≥ log₂ n / 8` (`expectedLongestStreak_lowerBound`) completes the
+  `Θ(log n)` analysis; a tighter asymptotic `E[L] ∼ log₂ n` or a stronger
+  constant remains optional future work.
 
 ## Chapter 6 - Heapsort
 

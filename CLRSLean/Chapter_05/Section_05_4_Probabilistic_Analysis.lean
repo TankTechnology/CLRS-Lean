@@ -702,8 +702,14 @@ The expected longest streak of heads satisfies {lit}`E[L] = Θ(log n)`.  The
 upper bound {lit}`O(log n)` follows from the tail bound
 {name}`longestStreak_upperBound` via the layer-cake identity
 {lit}`E[L] = Σ_{t≥1} Pr[L ≥ t]` ({lit}`expectedLongestStreak_le`); the
-matching lower bound {lit}`Ω(log n)` uses a block-partition argument and is
-deferred to a future refinement.
+matching lower bound {lit}`Ω(log n)` is proved below with a block-partition
+argument: the `m = ⌊n/k⌋` disjoint blocks of size `k = ⌊log₂ n / 2⌋` are
+independent, so the exact count
+{lit}`prob_noFullHeadBlock` gives
+{lit}`Pr[L ≥ k] ≥ 1 - (1 - 2^{-k})^m ≥ 1/2`, and the layer-cake lower bound
+{lit}`expectedLongestStreak_ge_mul_tail` yields
+{lit}`E[L] ≥ k/2 ≥ (log₂ n - 2)/4 ≥ log₂ n / 8`
+({lit}`expectedLongestStreak_lowerBound`).
 -/
 
 /--
@@ -876,6 +882,545 @@ theorem expectedLongestStreak_le (n : ℕ) :
       ← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 n) (fun t => t ≤ Nat.log 2 n + 1)
         (fun t => fintypeExpect (fun a : CoinFlip n => indicator (longestStreak n a ≥ t)))]
     linarith [hsumlow, hsumhigh, hlog]
+
+/-! ## Expected longest streak: lower bound (block partition)
+
+The lower bound {lit}`E[L] ≥ c · log₂ n` uses the standard block-partition
+argument.  Fix a block size {lit}`k` and let {lit}`m = ⌊n/k⌋`.  The `m` disjoint
+blocks of `k` consecutive positions are independent; a block is *full* if all
+its positions are heads.  The exact count of sequences with no full block is
+`(2^k - 1)^m · 2^(n - m·k)` ({lit}`card_noFullHeadBlock`), witnessed by the
+bijection {lit}`noFullHeadBlockBijection` that decomposes a sequence into its
+`m` block restrictions plus a free tail.  Hence
+`Pr[no full block] = (1 - 2^{-k})^m` ({lit}`prob_noFullHeadBlock`).
+Since a full block is a run of `k` heads, `Pr[L < k] ≤ (1 - 2^{-k})^m`
+({lit}`prob_longestStreak_lt_le`), so `Pr[L ≥ k] ≥ 1 - (1 - 2^{-k})^m`.  The
+Bernoulli bound `(1 - 2^{-k})^m ≤ 1/(1 + m·2^{-k})`
+({lit}`one_sub_pow_le_inv_one_add_mul`) gives
+`Pr[L ≥ k] ≥ m·2^{-k}/(1 + m·2^{-k})` ({lit}`prob_longestStreak_ge_mul`), and
+the layer-cake identity lower bound `E[L] ≥ k · Pr[L ≥ k]`
+({lit}`expectedLongestStreak_ge_mul_tail`).
+
+Choosing `k = ⌊log₂ n / 2⌋` and `m = ⌊n/k⌋`, the estimates `m ≥ 2^k` and
+`2^k·(k+1) ≤ n` show `m·2^{-k} ≥ 1`, hence `Pr[L ≥ k] ≥ 1/2` and
+`E[L] ≥ k/2`.  With `k ≥ (log₂ n - 2)/2`, this yields
+`E[L] ≥ (log₂ n - 2)/4 ≥ log₂ n / 8` for `n ≥ 16`
+({lit}`expectedLongestStreak_lowerBound`).
+-/
+
+/-- A block of `k` consecutive flips, viewed as a standalone sequence, is all heads. -/
+def blockAllHeads (k : ℕ) (w : Fin k → Fin 2) : Prop :=
+  ∀ r : Fin k, w r = (1 : Fin 2)
+
+instance (k : ℕ) (w : Fin k → Fin 2) : Decidable (blockAllHeads k w) := by
+  unfold blockAllHeads; infer_instance
+
+/-- Restriction of a sequence to the block of `k` consecutive positions starting at `j * k`. -/
+def blockRestriction (n k j : ℕ) (a : CoinFlip n) : Fin k → Fin 2 :=
+  fun r => headAt n a (j * k + r.val)
+
+/-- The block of `k` consecutive positions starting at `j * k` is all heads. -/
+def blockIsAllHeads (n k j : ℕ) (a : CoinFlip n) : Prop :=
+  blockAllHeads k (blockRestriction n k j a)
+
+/-- Among the first `m` blocks of size `k` (positions `0..m*k-1`), none is all heads. -/
+def noFullHeadBlock (n k m : ℕ) (a : CoinFlip n) : Prop :=
+  ∀ j : Fin m, ¬ blockIsAllHeads n k j.val a
+
+instance (n k m : ℕ) (a : CoinFlip n) : Decidable (noFullHeadBlock n k m a) := by
+  unfold noFullHeadBlock blockIsAllHeads blockRestriction headAt
+  infer_instance
+
+/-- A full block inside the first `m*k` positions gives a run of `k` heads. -/
+lemma blockIsAllHeads_hasRunOfLength (n k j : ℕ) (a : CoinFlip n)
+    (hj : j * k + k ≤ n) : blockIsAllHeads n k j a → hasRunOfLength n k a := by
+  intro hblock
+  refine ⟨by omega, j * k, ?_, ?_, ?_⟩
+  · exact Finset.mem_range.mpr (by omega)
+  · simpa using hj
+  · intro t ht
+    exact hblock ⟨t, Finset.mem_range.mp ht⟩
+
+/-- If the longest streak is below `k`, then none of the first `m` blocks is full. -/
+lemma noFullHeadBlock_of_lt (n k m : ℕ) (hmk : m * k ≤ n) (a : CoinFlip n) :
+    longestStreak n a < k → noFullHeadBlock n k m a := by
+  intro hl j hblock
+  have hjm : j.val + 1 ≤ m := Nat.succ_le_of_lt j.isLt
+  have hjmk : (j.val + 1) * k ≤ m * k := Nat.mul_le_mul_right k hjm
+  have hcalc : j.val * k + k ≤ m * k := by simpa [Nat.succ_mul] using hjmk
+  have hjk : j.val * k + k ≤ n := le_trans hcalc hmk
+  have hrun := blockIsAllHeads_hasRunOfLength n k j.val a hjk hblock
+  have hge : longestStreak n a ≥ k := (longestStreak_ge_iff_hasRunOfLength n k a).mpr hrun
+  omega
+
+/-- The number of non-all-heads block sequences of length `k` is `2^k - 1`. -/
+lemma card_notBlockAllHeads (k : ℕ) :
+    Fintype.card {w : Fin k → Fin 2 // ¬ blockAllHeads k w} = 2 ^ k - 1 := by
+  classical
+  let constOne : Fin k → Fin 2 := fun _ => (1 : Fin 2)
+  have hcard_all : Fintype.card {w : Fin k → Fin 2 // blockAllHeads k w} = 1 := by
+    have hbio : {w : Fin k → Fin 2 // blockAllHeads k w} ≃
+        {w : Fin k → Fin 2 // w = constOne} :=
+      { toFun := fun w => ⟨w.1, by
+          funext r
+          change w.1 r = (1 : Fin 2)
+          exact w.2 r⟩
+        invFun := fun w => ⟨w.1, by
+          intro r
+          have h := congrFun w.2 r
+          change w.1 r = (1 : Fin 2)
+          simpa [constOne] using h⟩
+        left_inv := fun w => rfl
+        right_inv := fun w => rfl }
+    rw [Fintype.card_congr hbio]
+    simp
+  calc
+    Fintype.card {w : Fin k → Fin 2 // ¬ blockAllHeads k w}
+        = Fintype.card (Fin k → Fin 2) - Fintype.card {w : Fin k → Fin 2 // blockAllHeads k w} := by
+          rw [Fintype.card_subtype_compl (fun w : Fin k → Fin 2 => blockAllHeads k w)]
+    _ = 2 ^ k - 1 := by simp [hcard_all]
+
+/-- The tuple of the first `m` block restrictions of a sequence. -/
+def blocksOf (n k m : ℕ) (a : CoinFlip n) : Π j : Fin m, Fin k → Fin 2 :=
+  fun j => blockRestriction n k j.val a
+
+/-- The restriction of a sequence to the free tail positions `m*k, ..., n-1`. -/
+def freeOf (n k m : ℕ) (a : CoinFlip n) : Fin (n - m * k) → Fin 2 :=
+  fun t => headAt n a (m * k + t.val)
+
+/-- Reconstruct a full sequence from the `m` block restrictions and the free tail. -/
+def reconstructBlocks (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n)
+    (w : Π j : Fin m, Fin k → Fin 2) (u : Fin (n - m * k) → Fin 2) : CoinFlip n :=
+  fun x : Fin n =>
+    if hx : x.val < m * k then
+      (w ⟨x.val / k, by exact (Nat.div_lt_iff_lt_mul hk).mpr hx⟩) ⟨x.val % k, by exact Nat.mod_lt x.val hk⟩
+    else
+      u ⟨x.val - m * k, by omega⟩
+
+/-- On a position inside block `j`, the reconstruction returns the block's own value. -/
+lemma reconstruct_in_block (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n)
+    (w : Π j : Fin m, Fin k → Fin 2) (u : Fin (n - m * k) → Fin 2)
+    (j : Fin m) (r : Fin k) (h : j.val * k + r.val < n) :
+    headAt n (reconstructBlocks n k m hk hmk w u) (j.val * k + r.val) = w j r := by
+  rw [headAt_eq_of_lt n (reconstructBlocks n k m hk hmk w u) (j.val * k + r.val) h]
+  have hxlt : j.val * k + r.val < m * k := by
+    have hjm : j.val + 1 ≤ m := Nat.succ_le_of_lt j.isLt
+    have hjmk : (j.val + 1) * k ≤ m * k := Nat.mul_le_mul_right k hjm
+    have hcalc : j.val * k + k ≤ m * k := by simpa [Nat.succ_mul] using hjmk
+    omega
+  have hdiv : (j.val * k + r.val) / k = j.val := by
+    calc
+      (j.val * k + r.val) / k = (r.val + j.val * k) / k := by rw [Nat.add_comm]
+      _ = r.val / k + j.val := Nat.add_mul_div_right r.val j.val hk
+      _ = j.val := by rw [Nat.div_eq_of_lt r.isLt]; simp
+  have hmod : (j.val * k + r.val) % k = r.val := Nat.mul_add_mod_of_lt r.isLt
+  have hf_j : (⟨(j.val * k + r.val) / k, by exact (Nat.div_lt_iff_lt_mul hk).mpr hxlt⟩ : Fin m) = j := by
+    apply Fin.ext
+    change (j.val * k + r.val) / k = j.val
+    rw [hdiv]
+  have hf_r : (⟨(j.val * k + r.val) % k, by exact Nat.mod_lt (j.val * k + r.val) hk⟩ : Fin k) = r := by
+    apply Fin.ext
+    change (j.val * k + r.val) % k = r.val
+    rw [hmod]
+  unfold reconstructBlocks
+  simp [hxlt, hf_j, hf_r, Nat.mod_eq_of_lt r.isLt]
+
+/-- On a free position, the reconstruction returns the free tail's own value. -/
+lemma reconstruct_out_block (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n)
+    (w : Π j : Fin m, Fin k → Fin 2) (u : Fin (n - m * k) → Fin 2)
+    (t : Fin (n - m * k)) (h : m * k + t.val < n) :
+    headAt n (reconstructBlocks n k m hk hmk w u) (m * k + t.val) = u t := by
+  rw [headAt_eq_of_lt n (reconstructBlocks n k m hk hmk w u) (m * k + t.val) h]
+  have hge : m * k ≤ m * k + t.val := by omega
+  have hsub : m * k + t.val - m * k = t.val := by omega
+  have hf_t : (⟨t.val, by omega⟩ : Fin (n - m * k)) = t := by
+    apply Fin.ext; rfl
+  simp [reconstructBlocks, hge, hsub, hf_t]
+
+/-- Bijection between sequences with no full block among the first `m` blocks and
+tuples of `m` non-all-heads blocks plus a free tail.  This is the product
+decomposition witnessing independence of the `m` disjoint blocks. -/
+noncomputable def noFullHeadBlockBijection (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n) :
+    {a : CoinFlip n // noFullHeadBlock n k m a} ≃
+      (Π j : Fin m, {w : Fin k → Fin 2 // ¬ blockAllHeads k w}) × (Fin (n - m * k) → Fin 2) where
+  toFun a :=
+    ( (fun j : Fin m => ⟨blockRestriction n k j.val a.1, a.2 j⟩),
+      (fun t : Fin (n - m * k) => headAt n a.1 (m * k + t.val)) )
+  invFun wu :=
+    ⟨ reconstructBlocks n k m hk hmk (fun j => (wu.1 j).1) wu.2, by
+      intro j hblock
+      have hw : blockAllHeads k (wu.1 j).1 := by
+        intro r
+        have hr := hblock r
+        have hxlt' : j.val * k + r.val < n := by
+          have hjm : j.val + 1 ≤ m := Nat.succ_le_of_lt j.isLt
+          have hjmk : (j.val + 1) * k ≤ m * k := Nat.mul_le_mul_right k hjm
+          have hcalc : j.val * k + k ≤ m * k := by simpa [Nat.succ_mul] using hjmk
+          omega
+        rw [blockRestriction] at hr
+        rw [reconstruct_in_block n k m hk hmk (fun j => (wu.1 j).1) wu.2 j r hxlt'] at hr
+        exact hr
+      exact (wu.1 j).2 hw ⟩
+  left_inv := by
+    intro a
+    apply Subtype.ext
+    funext x
+    by_cases hx : x.val < m * k
+    · have hdiv : (x.val / k) * k + x.val % k = x.val := Nat.div_add_mod' x.val k
+      have hxval : x.val / k < m := by exact (Nat.div_lt_iff_lt_mul hk).mpr hx
+      have hmod : x.val % k < k := Nat.mod_lt x.val hk
+      calc
+        reconstructBlocks n k m hk hmk (blocksOf n k m a.1) (freeOf n k m a.1) x
+            = (blocksOf n k m a.1) ⟨x.val / k, hxval⟩ ⟨x.val % k, hmod⟩ := by
+              simp [reconstructBlocks, hx]
+        _ = blockRestriction n k (x.val / k) a.1 ⟨x.val % k, hmod⟩ := by rfl
+        _ = headAt n a.1 ((x.val / k) * k + (x.val % k)) := by rfl
+        _ = headAt n a.1 (x.val) := by rw [hdiv]
+        _ = a.1 x := by
+          rw [headAt_eq_of_lt n a.1 x.val x.isLt]
+    · have hge : m * k ≤ x.val := Nat.le_of_not_gt hx
+      calc
+        reconstructBlocks n k m hk hmk (blocksOf n k m a.1) (freeOf n k m a.1) x
+            = (freeOf n k m a.1) ⟨x.val - m * k, by omega⟩ := by
+              simp [reconstructBlocks, hx]
+        _ = headAt n a.1 (m * k + (x.val - m * k)) := by rfl
+        _ = headAt n a.1 (x.val) := by rw [Nat.add_sub_of_le hge]
+        _ = a.1 x := by
+          rw [headAt_eq_of_lt n a.1 x.val x.isLt]
+  right_inv := by
+    intro wu
+    apply Prod.ext
+    · funext j
+      apply Subtype.ext
+      funext r
+      have hxlt' : j.val * k + r.val < n := by
+        have hjm : j.val + 1 ≤ m := Nat.succ_le_of_lt j.isLt
+        have hjmk : (j.val + 1) * k ≤ m * k := Nat.mul_le_mul_right k hjm
+        have hcalc : j.val * k + k ≤ m * k := by simpa [Nat.succ_mul] using hjmk
+        omega
+      calc
+        blockRestriction n k j.val (reconstructBlocks n k m hk hmk (fun j => (wu.1 j).1) wu.2) r
+            = headAt n (reconstructBlocks n k m hk hmk (fun j => (wu.1 j).1) wu.2) (j.val * k + r.val) := rfl
+        _ = (fun j => (wu.1 j).1) j r :=
+          reconstruct_in_block n k m hk hmk (fun j => (wu.1 j).1) wu.2 j r hxlt'
+        _ = (wu.1 j).1 r := rfl
+    · funext t
+      have hxlt' : m * k + t.val < n := by
+        have ht : t.val < n - m * k := t.isLt
+        omega
+      calc
+        headAt n (reconstructBlocks n k m hk hmk (fun j => (wu.1 j).1) wu.2) (m * k + t.val)
+            = wu.2 t := reconstruct_out_block n k m hk hmk (fun j => (wu.1 j).1) wu.2 t hxlt'
+
+/-- The number of sequences with no full block among the first `m` blocks is
+`(2^k - 1)^m · 2^(n - m*k)`. -/
+lemma card_noFullHeadBlock (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n) :
+    Fintype.card {a : CoinFlip n // noFullHeadBlock n k m a}
+    = (2 ^ k - 1) ^ m * 2 ^ (n - m * k) := by
+  calc
+    Fintype.card {a : CoinFlip n // noFullHeadBlock n k m a}
+        = Fintype.card ((Π j : Fin m, {w : Fin k → Fin 2 // ¬ blockAllHeads k w}) × (Fin (n - m * k) → Fin 2)) :=
+          Fintype.card_congr (noFullHeadBlockBijection n k m hk hmk)
+    _ = Fintype.card (Π j : Fin m, {w : Fin k → Fin 2 // ¬ blockAllHeads k w}) * Fintype.card (Fin (n - m * k) → Fin 2) := by simp
+    _ = (∏ j : Fin m, Fintype.card {w : Fin k → Fin 2 // ¬ blockAllHeads k w}) * Fintype.card (Fin (n - m * k) → Fin 2) := by rw [Fintype.card_pi]
+    _ = (2 ^ k - 1) ^ m * 2 ^ (n - m * k) := by
+      have hprod : (∏ j : Fin m, Fintype.card {w : Fin k → Fin 2 // ¬ blockAllHeads k w})
+          = (2 ^ k - 1) ^ m := by
+        rw [Finset.prod_const, card_notBlockAllHeads k]
+        simp
+      rw [hprod]
+      simp [Fintype.card_fun]
+
+/-- **Bernoulli-type bound**: for `0 ≤ x ≤ 1`, `(1 - x)^m ≤ 1 / (1 + m·x)`. -/
+lemma one_sub_pow_le_inv_one_add_mul {m : ℕ} {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) :
+    (1 - x) ^ m ≤ (1 + (m : ℝ) * x)⁻¹ := by
+  have hx_pos : (0 : ℝ) < 1 + x := by nlinarith
+  have hle1 : 1 - x ≤ (1 + x)⁻¹ := by
+    have hdiv : 1 - x ≤ 1 / (1 + x) := by
+      rw [le_div_iff₀ hx_pos]
+      nlinarith [sq_nonneg x]
+    simpa using hdiv
+  have hle2 : (1 - x) ^ m ≤ (1 + x)⁻¹ ^ m := by
+    exact pow_le_pow_left₀ (by linarith : 0 ≤ 1 - x) hle1 m
+  have hbern : 1 + (m : ℝ) * x ≤ (1 + x) ^ m := by
+    exact one_add_mul_le_pow (by nlinarith : -2 ≤ x) m
+  have hpos : (0 : ℝ) < (1 + x) ^ m := by positivity
+  have hpos2 : (0 : ℝ) < 1 + (m : ℝ) * x := by nlinarith
+  calc
+    (1 - x) ^ m ≤ (1 + x)⁻¹ ^ m := hle2
+    _ = ((1 + x) ^ m)⁻¹ := by rw [← inv_pow]
+    _ ≤ (1 + (m : ℝ) * x)⁻¹ := by
+      rw [inv_le_inv₀ hpos hpos2]
+      exact hbern
+
+/-- If `x ≥ 1`, then `x/(1+x) ≥ 1/2`. -/
+lemma half_le_self_div_one_add_self {x : ℝ} (hx : 1 ≤ x) :
+    (1 / 2 : ℝ) ≤ x / (1 + x) := by
+  have hpos : (0 : ℝ) < 1 + x := by linarith
+  have hnum : (1 / 2 : ℝ) * (1 + x) ≤ x := by nlinarith
+  exact (le_div_iff₀ hpos).mpr hnum
+
+/-- The probability that no full block appears among the first `m` blocks of size
+`k` (within `n` flips) is exactly `(1 - 2^{-k})^m`. -/
+lemma prob_noFullHeadBlock (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n) :
+    fintypeExpect (fun a : CoinFlip n => indicator (noFullHeadBlock n k m a))
+    = (1 - 1 / (2 : ℝ) ^ k) ^ m := by
+  have htotal : (Fintype.card (CoinFlip n) : ℝ) = (2 : ℝ) ^ n := by
+    have h_nat : Fintype.card (CoinFlip n) = 2 ^ n := by
+      calc
+        Fintype.card (CoinFlip n) = Fintype.card (Fin n → Fin 2) := rfl
+        _ = (Fintype.card (Fin 2)) ^ (Fintype.card (Fin n)) := by rw [Fintype.card_fun]
+        _ = 2 ^ n := by simp
+    rw [h_nat]; simp
+  have hcard := card_noFullHeadBlock n k m hk hmk
+  have hcardsub : (Fintype.card {a : CoinFlip n // noFullHeadBlock n k m a} : ℝ)
+      = ((2 ^ k - 1) ^ m * 2 ^ (n - m * k) : ℕ) := by
+    exact_mod_cast hcard
+  calc
+    fintypeExpect (fun a => indicator (noFullHeadBlock n k m a))
+        = (∑ a : CoinFlip n, indicator (noFullHeadBlock n k m a)) / (Fintype.card (CoinFlip n) : ℝ) := rfl
+    _ = ((Fintype.card {a : CoinFlip n // noFullHeadBlock n k m a} : ℝ)) / (Fintype.card (CoinFlip n) : ℝ) := by
+          simp [indicator, Fintype.card_subtype]
+    _ = ((2 ^ k - 1) ^ m * 2 ^ (n - m * k) : ℕ) / ((2 : ℝ) ^ n) := by rw [hcardsub, htotal]
+    _ = (1 - 1 / (2 : ℝ) ^ k) ^ m := by
+      have hnat : (((2 ^ k - 1) ^ m * 2 ^ (n - m * k) : ℕ) : ℝ)
+          = ((2 : ℝ) ^ k - 1) ^ m * (2 : ℝ) ^ (n - m * k) := by norm_num
+      rw [hnat]
+      have hpow : (2 : ℝ) ^ n = (2 : ℝ) ^ (m * k) * (2 : ℝ) ^ (n - m * k) := by
+        rw [← pow_add, Nat.add_sub_of_le hmk]
+      rw [hpow]
+      have hmain : (1 - 1 / (2 : ℝ) ^ k) ^ m = (((2 : ℝ) ^ k - 1) / (2 : ℝ) ^ k) ^ m := by
+        congr 1
+        field_simp
+      rw [hmain]
+      rw [show (2 : ℝ) ^ (m * k) = ((2 : ℝ) ^ k) ^ m by rw [mul_comm, pow_mul]]
+      field_simp
+      rw [div_pow]
+      field_simp
+
+/-- If the longest streak is below `k`, the indicator of `L < k` is bounded by
+the indicator that no full block occurs. -/
+lemma prob_longestStreak_lt_le (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n) :
+    fintypeExpect (fun a => indicator (longestStreak n a < k))
+    ≤ (1 - 1 / (2 : ℝ) ^ k) ^ m := by
+  have hX : ∀ a : CoinFlip n, 0 ≤ indicator (longestStreak n a < k) := by
+    intro a; unfold indicator; split <;> norm_num
+  have hY : ∀ a : CoinFlip n, 0 ≤ indicator (noFullHeadBlock n k m a) := by
+    intro a; unfold indicator; split <;> norm_num
+  have hXY : ∀ a : CoinFlip n, indicator (longestStreak n a < k) ≤ indicator (noFullHeadBlock n k m a) := by
+    intro a
+    by_cases hL : longestStreak n a < k
+    · have hnf : noFullHeadBlock n k m a := noFullHeadBlock_of_lt n k m hmk a hL
+      simp [indicator, hL, hnf]
+    · simp [indicator, hL]
+      split <;> norm_num
+  have hmono : fintypeExpect (fun a => indicator (longestStreak n a < k))
+      ≤ fintypeExpect (fun a => indicator (noFullHeadBlock n k m a)) :=
+    fintypeExpect_mono hX hY hXY
+  rwa [prob_noFullHeadBlock n k m hk hmk] at hmono
+
+/-- The tail probability `Pr[L ≥ k]` is at least `1 - (1 - 2^{-k})^m`. -/
+lemma prob_longestStreak_ge_lower (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n) :
+    1 - (1 - 1 / (2 : ℝ) ^ k) ^ m ≤ fintypeExpect (fun a => indicator (longestStreak n a ≥ k)) := by
+  have hpoint : (fun a => indicator (longestStreak n a ≥ k)) =
+      (fun a => 1 - indicator (longestStreak n a < k)) := by
+    funext a
+    by_cases h : longestStreak n a ≥ k
+    · have hnot : ¬ longestStreak n a < k := by omega
+      simp [indicator, h, hnot]
+    · have hlt : longestStreak n a < k := by omega
+      simp [indicator, h, hlt]
+  have hcomp : fintypeExpect (fun a => indicator (longestStreak n a ≥ k)) =
+      1 - fintypeExpect (fun a => indicator (longestStreak n a < k)) := by
+    rw [hpoint]
+    unfold fintypeExpect
+    rw [Finset.sum_sub_distrib, Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+    rw [sub_div]
+    have hcard : (Fintype.card (CoinFlip n) : ℝ) ≠ 0 := by
+      haveI : Nonempty (CoinFlip n) := ⟨fun _ => (0 : Fin 2)⟩
+      exact_mod_cast (Fintype.card_ne_zero)
+    field_simp [hcard]
+  rw [hcomp]
+  linarith [prob_longestStreak_lt_le n k m hk hmk]
+
+/-- The tail probability `Pr[L ≥ k]` is at least `m·2^{-k} / (1 + m·2^{-k})`. -/
+lemma prob_longestStreak_ge_mul (n k m : ℕ) (hk : 0 < k) (hmk : m * k ≤ n) :
+    (m : ℝ) * (1 / (2 : ℝ) ^ k) / (1 + (m : ℝ) * (1 / (2 : ℝ) ^ k))
+    ≤ fintypeExpect (fun a => indicator (longestStreak n a ≥ k)) := by
+  let x : ℝ := 1 / (2 : ℝ) ^ k
+  have hx0 : 0 ≤ x := by unfold x; positivity
+  have hx1 : x ≤ 1 := by
+    unfold x
+    rw [one_div]
+    have h2 : (1 : ℝ) ≤ (2 : ℝ) ^ k := by
+      simpa using (pow_le_pow_left₀ (by norm_num : 0 ≤ (1 : ℝ)) (by norm_num : (1 : ℝ) ≤ (2 : ℝ)) k)
+    exact inv_le_one_of_one_le₀ h2
+  have hbern : (1 - x) ^ m ≤ (1 + (m : ℝ) * x)⁻¹ := one_sub_pow_le_inv_one_add_mul hx0 hx1
+  have hlow : 1 - (1 - x) ^ m ≥ (m : ℝ) * x / (1 + (m : ℝ) * x) := by
+    have hden : (0 : ℝ) < 1 + (m : ℝ) * x := by positivity
+    have hcomp : 1 - (1 + (m : ℝ) * x)⁻¹ = (m : ℝ) * x / (1 + (m : ℝ) * x) := by
+      field_simp [hden.ne']
+      ring
+    rw [← hcomp]
+    linarith
+  unfold x at hlow
+  linarith [prob_longestStreak_ge_lower n k m hk hmk, hlow]
+
+/-- Tail probabilities `Pr[L ≥ t]` are monotone in the threshold. -/
+lemma tailProb_mono (n k t : ℕ) (htk : t ≤ k) :
+    fintypeExpect (fun a => indicator (longestStreak n a ≥ k))
+    ≤ fintypeExpect (fun a => indicator (longestStreak n a ≥ t)) := by
+  have hX : ∀ a : CoinFlip n, 0 ≤ indicator (longestStreak n a ≥ k) := by
+    intro a; unfold indicator; split <;> norm_num
+  have hY : ∀ a : CoinFlip n, 0 ≤ indicator (longestStreak n a ≥ t) := by
+    intro a; unfold indicator; split <;> norm_num
+  have hXY : ∀ a : CoinFlip n, indicator (longestStreak n a ≥ k) ≤ indicator (longestStreak n a ≥ t) := by
+    intro a
+    by_cases hk : longestStreak n a ≥ k
+    · have ht : longestStreak n a ≥ t := le_trans htk hk
+      simp [indicator, hk, ht]
+    · simp [indicator, hk]
+      split <;> norm_num
+  exact fintypeExpect_mono hX hY hXY
+
+/-- The layer-cake identity lower bound: `E[L] ≥ k · Pr[L ≥ k]`. -/
+lemma expectedLongestStreak_ge_mul_tail (n k : ℕ) (hk : 0 < k) (hkn : k ≤ n) :
+    (k : ℝ) * fintypeExpect (fun a => indicator (longestStreak n a ≥ k))
+    ≤ expectedLongestStreak n := by
+  rw [expectedLongestStreak_eq_tailSum]
+  have hsum_le : (k : ℝ) * fintypeExpect (fun a => indicator (longestStreak n a ≥ k))
+      ≤ ∑ t ∈ Finset.Icc 1 k, fintypeExpect (fun a => indicator (longestStreak n a ≥ t)) := by
+    calc
+      (k : ℝ) * fintypeExpect (fun a => indicator (longestStreak n a ≥ k))
+          = ∑ t ∈ Finset.Icc 1 k, fintypeExpect (fun a => indicator (longestStreak n a ≥ k)) := by
+            simp [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ ∑ t ∈ Finset.Icc 1 k, fintypeExpect (fun a => indicator (longestStreak n a ≥ t)) := by
+            refine Finset.sum_le_sum (fun t ht => tailProb_mono n k t (Finset.mem_Icc.mp ht).2)
+  have hsubset : ∑ t ∈ Finset.Icc 1 k, fintypeExpect (fun a => indicator (longestStreak n a ≥ t))
+      ≤ ∑ t ∈ Finset.Icc 1 n, fintypeExpect (fun a => indicator (longestStreak n a ≥ t)) := by
+    exact Finset.sum_le_sum_of_subset_of_nonneg
+      (Finset.Icc_subset_Icc_right (by omega : k ≤ n))
+      (fun t _ _ => fintypeExpect_nonneg (fun a => by unfold indicator; split <;> norm_num))
+  linarith
+
+/-- **Expected longest streak lower bound** (CLRS §5.4.3): for `n ≥ 16` flips the
+expected longest run of heads is at least `log₂ n / 8`.  With `k = ⌊log₂ n / 2⌋`
+and `m = ⌊n / k⌋`, the `m` disjoint blocks of size `k` give
+`Pr[L ≥ k] ≥ 1/2` (via the exact count `(1 - 2^{-k})^m`), and the layer-cake
+lower bound `E[L] ≥ k·Pr[L ≥ k]` yields `E[L] ≥ k/2 ≥ (log₂ n - 2)/4 ≥ log₂ n / 8`. -/
+theorem expectedLongestStreak_lowerBound (n : ℕ) (hn : 16 ≤ n) :
+    Real.logb 2 n / 8 ≤ expectedLongestStreak n := by
+  let k : ℕ := Nat.log 2 n / 2
+  let m : ℕ := n / k
+  let ℓ : ℝ := Real.logb 2 n
+  have hL2ge : 4 ≤ Nat.log 2 n := by
+    have hmono := Nat.log_mono_right (b := 2) (by omega : 16 ≤ n)
+    norm_num at hmono
+    exact hmono
+  have h1le_L2 : 1 ≤ Nat.log 2 n := by omega
+  have hL2le : (Nat.log 2 n : ℝ) ≤ ℓ := by
+    have hpow_n : (2 : ℝ) ^ Nat.log 2 n ≤ (n : ℝ) := by
+      exact_mod_cast (Nat.pow_log_le_self 2 (by omega : n ≠ 0))
+    have hmono := Real.logb_le_logb_of_le (by norm_num : (1 : ℝ) < 2)
+      (by positivity : (0 : ℝ) < (2 : ℝ) ^ Nat.log 2 n) hpow_n
+    simpa [ℓ, Real.logb_pow, Real.logb_self_eq_one] using hmono
+  have hlt : ℓ - 1 < (Nat.log 2 n : ℝ) := by
+    have hlt_nat : n < 2 ^ (Nat.log 2 n + 1) := Nat.lt_pow_succ_log_self (by norm_num : 1 < 2) n
+    have hmono := Real.logb_lt_logb (by norm_num : (1 : ℝ) < 2)
+      (by positivity : (0 : ℝ) < (n : ℝ))
+      (by exact_mod_cast hlt_nat : (n : ℝ) < (2 : ℝ) ^ (Nat.log 2 n + 1))
+    have hrhs : Real.logb 2 (2 ^ (Nat.log 2 n + 1)) = (Nat.log 2 n + 1 : ℝ) := by
+      simp [Real.logb_pow, Real.logb_self_eq_one]
+    rw [hrhs] at hmono
+    linarith
+  have hk : 0 < k := by
+    have : 0 < Nat.log 2 n / 2 := by omega
+    simpa [k] using this
+  have hkn : k ≤ n := by
+    have hL2lt : Nat.log 2 n < n := by
+      have h1 : Nat.log 2 n < 2 ^ Nat.log 2 n := Nat.lt_two_pow_self
+      exact lt_of_lt_of_le h1 (Nat.pow_log_le_self 2 (by omega : n ≠ 0))
+    have hk_le_L2 : k ≤ Nat.log 2 n := by
+      have : Nat.log 2 n / 2 ≤ Nat.log 2 n := by omega
+      simpa [k] using this
+    omega
+  have hmk : m * k ≤ n := by
+    have : n / k * k ≤ n := Nat.div_mul_le_self n k
+    simpa [m] using this
+  have h2k_le_L2 : 2 * k ≤ Nat.log 2 n := by
+    have : 2 * (Nat.log 2 n / 2) ≤ Nat.log 2 n := by omega
+    simpa [k] using this
+  have hk2k : k * 2 ^ k ≤ n := by
+    have hpow_le : (2 : ℕ) ^ (2 * k) ≤ 2 ^ Nat.log 2 n :=
+      Nat.pow_le_pow_right (by norm_num : 0 < 2) h2k_le_L2
+    have hpow_n : 2 ^ Nat.log 2 n ≤ n := Nat.pow_log_le_self 2 (by omega : n ≠ 0)
+    have hle : 2 ^ (2 * k) ≤ n := le_trans hpow_le hpow_n
+    have hk1 : k + 1 ≤ 2 ^ k := Nat.succ_le_of_lt Nat.lt_two_pow_self
+    have hbound : k * 2 ^ k + k ≤ 2 ^ (2 * k) := by
+      calc
+        k * 2 ^ k + k ≤ k * 2 ^ k + 2 ^ k := by omega
+        _ = (k + 1) * 2 ^ k := by ring
+        _ ≤ 2 ^ k * 2 ^ k := Nat.mul_le_mul_right (2 ^ k) hk1
+        _ = 2 ^ (2 * k) := by
+          rw [← pow_two, ← pow_mul, mul_comm]
+    omega
+  have hmge2k : 2 ^ k ≤ m := by
+    have hle : k * 2 ^ k ≤ n := hk2k
+    have hdiv : 2 ^ k ≤ n / k := by
+      exact (Nat.le_div_iff_mul_le hk).mpr (by simpa [Nat.mul_comm] using hle)
+    simpa [m] using hdiv
+  have hP : (m : ℝ) * (1 / (2 : ℝ) ^ k) / (1 + (m : ℝ) * (1 / (2 : ℝ) ^ k))
+      ≤ fintypeExpect (fun a => indicator (longestStreak n a ≥ k)) :=
+    prob_longestStreak_ge_mul n k m hk hmk
+  have hx : (1 : ℝ) ≤ (m : ℝ) * (1 / (2 : ℝ) ^ k) := by
+    have hc : ((2 ^ k : ℕ) : ℝ) ≤ (m : ℝ) := by exact_mod_cast hmge2k
+    have h2k_pos : (0 : ℝ) < (2 : ℝ) ^ k := by positivity
+    calc
+      (1 : ℝ) = ((2 ^ k : ℕ) : ℝ) / (2 : ℝ) ^ k := by simp
+      _ ≤ (m : ℝ) / (2 : ℝ) ^ k := by exact div_le_div_of_nonneg_right hc (le_of_lt h2k_pos)
+      _ = (m : ℝ) * (1 / (2 : ℝ) ^ k) := by ring
+  have hP2 : (1 / 2 : ℝ) ≤ fintypeExpect (fun a => indicator (longestStreak n a ≥ k)) := by
+    have hdiv : (1 / 2 : ℝ) ≤ (m : ℝ) * (1 / (2 : ℝ) ^ k) / (1 + (m : ℝ) * (1 / (2 : ℝ) ^ k)) :=
+      half_le_self_div_one_add_self hx
+    linarith [hP, hdiv]
+  have hE : (k : ℝ) / 2 ≤ expectedLongestStreak n := by
+    have hmul : (k : ℝ) * (1 / 2 : ℝ) ≤ expectedLongestStreak n := by
+      exact le_trans (mul_le_mul_of_nonneg_left hP2 (by positivity : 0 ≤ (k : ℝ)))
+        (expectedLongestStreak_ge_mul_tail n k hk hkn)
+    linarith
+  have h2k_ge : Nat.log 2 n - 1 ≤ 2 * k := by
+    have : Nat.log 2 n - 1 ≤ 2 * (Nat.log 2 n / 2) := by omega
+    simpa [k] using this
+  have hk_ge : (ℓ - 2) / 2 ≤ (k : ℝ) := by
+    have hlt2 : ℓ - 2 < (2 * k : ℝ) := by
+      have h1 : ℓ - 2 < (Nat.log 2 n : ℝ) - 1 := by linarith
+      have h2 : (Nat.log 2 n : ℝ) - 1 ≤ (2 : ℝ) * (k : ℝ) := by
+        have hcast : ((Nat.log 2 n - 1 : ℕ) : ℝ) ≤ ((2 * k : ℕ) : ℝ) := by exact_mod_cast h2k_ge
+        have hsub : ((Nat.log 2 n - 1 : ℕ) : ℝ) = (Nat.log 2 n : ℝ) - 1 := by
+          rw [Nat.cast_sub h1le_L2]
+          norm_num
+        rwa [hsub, Nat.cast_mul] at hcast
+      linarith
+    have hdiv : (ℓ - 2) / 2 < (k : ℝ) := by
+      have h2pos : (0 : ℝ) < 2 := by norm_num
+      have hlt2' : ℓ - 2 < (k : ℝ) * 2 := by
+        simpa [mul_comm] using hlt2
+      exact (div_lt_iff₀ h2pos).mpr hlt2'
+    linarith
+  have hℓ : (4 : ℝ) ≤ ℓ := by
+    have hmono := Real.logb_le_logb_of_le (by norm_num : (1 : ℝ) < 2)
+      (by norm_num : (0 : ℝ) < (16 : ℝ))
+      (by exact_mod_cast (by omega : (16 : ℕ) ≤ n) : (16 : ℝ) ≤ (n : ℝ))
+    have h16 : Real.logb 2 (16 : ℝ) = 4 := by
+      have hpow : (16 : ℝ) = (2 : ℝ) ^ 4 := by norm_num
+      rw [hpow, Real.logb_pow, Real.logb_self_eq_one (by norm_num : (1 : ℝ) < 2)]
+      norm_num
+    rw [h16] at hmono
+    simpa [ℓ] using hmono
+  have hfinal : ℓ / 8 ≤ (ℓ - 2) / 4 := by
+    nlinarith
+  linarith
+
 
 end Chapter05
 end CLRS
