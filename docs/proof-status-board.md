@@ -5,7 +5,7 @@ status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
 The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
 priorities, not theorem-by-theorem duplication.
 
-Last repository-wide status reconciliation: 2026-07-31.
+Last repository-wide status reconciliation: 2026-08-02.
 
 ## Complete For The Current Scope
 
@@ -28,12 +28,14 @@ Last repository-wide status reconciliation: 2026-07-31.
 | Chapter 16 | Activity selection, greedy meta-theorems, Huffman coding, matroid greedy, and task scheduling | Exercises |
 | Chapter 17 selected sections | Aggregate/accounting/potential methods, stack/counter traces, and dynamic-table amortized analysis | General allocator/RAM semantics and broader interleaved operation-trace packaging |
 | Chapter 18 correctness | B-tree search, real top-level insertion with full-root splitting, exact executable deletion, structural minimum-key bounds with an explicit legal-empty-root branch, and the logarithmic-height theorem for `2 ≤ t` | Disk pages, pointer mutation, I/O counts, and RAM costs |
+| Chapter 19 correctness and amortized analysis | Persistent executable Fibonacci heaps with exact duplicate-preserving key bags, `LINK`/`CONSOLIDATE`, extract-min, arbitrary-node cascading cuts, decrease-key/delete, and operation- plus trace-level amortized bounds | Mutable circular-list allocation and RAM/pointer latency |
 | Chapter 20 correctness | All seven operations of the recursive cached-min/max vEB model and control-flow-aware `O(log log u)` bounds | Concrete allocation and hardware-level RAM timing |
 | Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and mutable-array refinement |
 | Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
 | Chapter 23 correctness and functional implementation | Cut property, unique tree paths, automatic exchange, sorted and stateful Kruskal, concrete indexed-queue Prim, and explicit algorithm-level work bounds | `Batteries.BinaryHeap` array refinement and mutable/RAM write accounting |
 | Chapter 24 selected sections | Bellman-Ford, DAG shortest paths, Dijkstra's greedy theorem, the executable invariant-preserving loop, `dijkstraLoop_correct`, and difference constraints | Per-edge relaxation ordering and mutable/RAM cost refinement |
 | Chapter 25 correctness | FASTER-APSP, Floyd-Warshall shortest distances, predecessor reconstruction with walk and weight guarantees, negative-cycle detection, transitive closure, and Johnson's end-to-end correctness theorem | A tighter explicit repeated-squaring work/RAM refinement |
+| Chapter 26 | Max-Flow Min-Cut, executable residual BFS and Edmonds-Karp, the `O(VE²)` augmentation bound, and maximum bipartite matching through Theorem 26.12 | Sections 26.4 and 26.5 are deferred outside the current selected milestone |
 | Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
 
 Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
@@ -44,8 +46,6 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 19 | Finite-set operation specs and potential facts plus `FTree.Wellformed`, the true Fibonacci subtree-size/log-degree bound, `link_wellformed`, and the tight `minTree` witness | Executable pointer-forest consolidation/cascading cuts and their amortized costs |
-| 26 | Flow model, concrete residual-path augmentation with exact and strict value increase, residual-reachability bridge, full MFMC equivalence, residual-length/shortest-distance infrastructure through Lemma 26.7, and the Section 26.3 bipartite-network model with a conditional matching-flow value theorem | Executable BFS/Edmonds-Karp with `O(VE²)`; matching-flow feasibility, integral converse, and maximum-value Theorem 26.12 |
 | 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; completed explicit ready-set schedules with the greedy bound `Tₚ ≤ T₁/p + T∞`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms (work `Θ(n³)`/`Θ(n)`/`Θ(n log n)`/`Θ(n^(log₂ 7))`, spans `Θ(log n)`/`Θ(log² n)`/`Θ(log³ n)`) plus all-input P-MATMUL bounds | All-input Θ-bounds for the merge-based costs and executable algorithm refinements |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
@@ -60,10 +60,10 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 26 Edmonds-Karp | Implement BFS and the augmentation loop and prove the `O(VE²)` work theorem |
-| 2 | Chapter 26 matching | Prove matching-flow feasibility, the integral-flow converse, and maximum-value Theorem 26.12 |
-| 3 | Chapter 19 implementation | Prove executable heap-forest CONSOLIDATE and cascading cuts with amortized costs |
-| 4 | Chapter 27 algorithm layer | Add all-input merge-based bounds and executable P-MERGE/P-MERGE-SORT refinements |
+| 1 | Chapter 27 all-input bounds ([#121](https://github.com/TankTechnology/CLRS-Lean/issues/121)) | Extend the merge-based work/span bounds beyond the exact power-of-two boundary |
+| 2 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Refine P-MERGE and P-MERGE-SORT to executable implementations with correctness links |
+| 3 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
+| 4 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
 
 ## High-Difficulty Queue
 
