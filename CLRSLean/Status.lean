@@ -122,10 +122,13 @@ the detailed maintainer ledger.
   and true logarithmic-degree bounds, equal-degree {lit}`link_wellformed`, and
   the tight {lit}`minTree` witness.  The executable {lit}`FHNode`/{lit}`FH`
   layer proves equal-degree {lit}`CONSOLIDATE`, direct-child heap-level CUT,
-  forest-invariant preservation, and its exact {lit}`t(H) + 2m(H)` potential
-  change.  Global representation, {lit}`extractMin`, arbitrary-node handles,
-  cascading cuts, decrease/delete, and operation-cost bounds remain central
-  theorem groups.
+  exact multiset representation and a global validity invariant, stable
+  minimum-root selection, executable {lit}`extractMin` through the proved
+  consolidation, exact one-occurrence deletion, forest-invariant preservation,
+  and the exact {lit}`t(H) + 2m(H)` direct-child CUT potential change.  Cached
+  minimum pointers, stable node identity and arbitrary-node handles/paths,
+  cascading cuts, executable decrease/delete, and operation-cost bounds remain
+  central theorem groups.
 * **Chapter 26:** the flow model, concrete residual-path augmentation with exact
   and strict value increase, the residual-reachability bridge, the full MFMC
   equivalence, residual-distance infrastructure through the predecessor,
