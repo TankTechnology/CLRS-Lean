@@ -78,6 +78,8 @@ The strongest completed boundaries on the current main branch are:
   bucket-sort models.
 * Chapter 16 activity-selection and Huffman optimality for the represented
   finite models.
+* Chapter 19 persistent Fibonacci-heap correctness, including all core
+  operations and the standard potential-based amortized bounds.
 * Chapter 22 main functional correctness, formally sealed for BFS shortest
   paths and predecessor trees, DFS theory and edge classification, Kahn and DFS
   topological sorting, and Kosaraju SCC decomposition.
@@ -86,8 +88,8 @@ Several other chapters contain substantial theorem stacks while remaining
 honestly partial.  In particular, Chapters 3 and 4 contain the asymptotic and
 Master-theorem infrastructure; Chapters 7, 9, and 11 expose the remaining
 probability-model gap; Chapters 12-15 cover functional tree and dynamic-
-programming interfaces; Chapters 17-20 cover advanced data structures at
-mathematical or size-level specifications; Chapter 21 supplies disjoint-set
+programming interfaces; Chapters 17, 18, and 20 cover advanced data structures
+at mathematical or size-level specifications; Chapter 21 supplies disjoint-set
 semantics, executable union-find correctness, and its Kruskal bridge; and
 Chapter 23 contains the current MST cut/exchange/Kruskal layer.
 

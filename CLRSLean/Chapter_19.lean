@@ -1,7 +1,7 @@
 import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model
-import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S1_ExecutableFibHeap
-import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S2_CascadingCuts
-import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S3_AmortizedCosts
+import CLRSLean.Chapter_19.Section_19_2_Mergeable_Heap_Operations
+import CLRSLean.Chapter_19.Section_19_3_Decreasing_A_Key_And_Deleting_A_Node
+import CLRSLean.Chapter_19.Section_19_3_Decreasing_A_Key_And_Deleting_A_Node.Amortized_Costs
 import CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree
 
 /-!
@@ -38,9 +38,15 @@ for the standard `t(H) + 2m(H)` potential.
 
 ## Sections
 
-* 19.1--19.4 Fibonacci heaps: {lit}`main-proof-complete-for-correctness` for
-  the persistent executable model.
-  Main results:
+* 19.1 gives the abstract finite-set model and operation contracts.
+* 19.2 implements mergeable-heap operations, including `LINK`,
+  `CONSOLIDATE`, and `extractMin`.
+* 19.3 implements handle-directed CUT, CASCADING-CUT, decrease-key, delete,
+  and their amortized costs.
+* 19.4 proves Fibonacci subtree-size and logarithmic maximum-degree bounds.
+
+Together these sections are {lit}`main-proof-complete-for-correctness` for the
+persistent executable model.  Main results:
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_correct`,
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_valid`,
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_minimum_none`,
