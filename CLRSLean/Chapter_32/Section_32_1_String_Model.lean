@@ -22,6 +22,10 @@ executability, instantiate {lit}`α := Char` or {lit}`α := UInt8`.
 
 All operations are zero-indexed: the first character is at position 0,
 and taking a prefix of length 0 yields the empty list.
+
+## Implementation details
+
+* [Naive string matcher](CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher/)
 -/
 
 namespace CLRS

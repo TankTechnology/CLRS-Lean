@@ -35,7 +35,9 @@ filenames as the canonical chapter organization.
 The chapter aggregator imports canonical modules only.  The main Chapter 19
 interface test also imports canonical modules, while a small legacy-import test
 ensures all three old paths continue to expose representative declarations.
-No theorem is renamed or restated merely for the move.
+The book root imports the compatibility modules solely to include their
+registered pages in Verso's module set; reader-sidebar pruning still hides
+section descendants.  No theorem is renamed or restated merely for the move.
 
 ## Website structure
 
