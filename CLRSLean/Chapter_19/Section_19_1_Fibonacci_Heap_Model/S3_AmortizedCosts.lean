@@ -294,38 +294,199 @@ structure TraceState where
   heap : FH
   cost : Nat
 
-/-- Execute one costed operation, leaving the heap unchanged when a partial
-operation has no certified result. -/
-noncomputable def step (state : TraceState) (operation : Operation) :
-    TraceState := by
-  classical
-  exact
-    match operation with
-    | .insert key => { heap := FH.insert key state.heap, cost := state.cost + 1 }
-    | .unionWith heap =>
-        { heap := FH.union state.heap heap, cost := state.cost + 1 }
-    | .minimum => { state with cost := state.cost + 1 }
-    | .extractMin =>
-        match extractMin state.heap with
-        | none => state
-        | some result =>
-            { heap := result.value.2, cost := state.cost + result.cost }
-    | .decreaseKeyAt path newKey =>
-        match decreaseKeyAt state.heap path newKey with
-        | none => state
-        | some result =>
-            { heap := result.value.heap, cost := state.cost + result.cost }
-    | .deleteAt path =>
-        match deleteAt state.heap path with
-        | none => state
-        | some result =>
-            { heap := result.value.heap, cost := state.cost + result.cost }
+namespace Operation
 
-/-- Fold the operation machine over a trace. -/
-noncomputable def runState (initial : FH) (operations : List Operation) :
-    TraceState := by
-  classical
-  exact operations.foldl step { heap := initial, cost := 0 }
+/-- Preconditions carried by a trace.  Only union needs an additional valid
+heap; all other partial operations safely leave the state unchanged when their
+handle or minimum is absent. -/
+def Admissible : Operation → Prop
+  | .unionWith heap => heap.Valid
+  | _ => True
+
+/-- Per-operation amortized budget.  Union transfers the second heap's
+potential into the one-state machine, so that potential appears explicitly in
+its budget. -/
+def bound (source : FH) : Operation → Int
+  | .insert _ => 2
+  | .unionWith heap => 1 + heap.potential
+  | .minimum => 1
+  | .extractMin => 12 * Int.ofNat (Nat.log 2 source.size + 1) + 8
+  | .decreaseKeyAt _ _ => 3
+  | .deleteAt _ => 12 * Int.ofNat (Nat.log 2 source.size + 1) + 11
+
+end Operation
+
+/-- Execute one costed operation, leaving the heap unchanged when a partial
+operation has no executable result. -/
+def step (state : TraceState) (operation : Operation) : TraceState :=
+  match operation with
+  | .insert key => { heap := FH.insert key state.heap, cost := state.cost + 1 }
+  | .unionWith heap =>
+      { heap := FH.union state.heap heap, cost := state.cost + 1 }
+  | .minimum => { state with cost := state.cost + 1 }
+  | .extractMin =>
+      match extractMin state.heap with
+      | none => state
+      | some result =>
+          { heap := result.value.2, cost := state.cost + result.cost }
+  | .decreaseKeyAt path newKey =>
+      match decreaseKeyAt state.heap path newKey with
+      | none => state
+      | some result =>
+          { heap := result.value.heap, cost := state.cost + result.cost }
+  | .deleteAt path =>
+      match deleteAt state.heap path with
+      | none => state
+      | some result =>
+          { heap := result.value.heap, cost := state.cost + result.cost }
+
+/-- Every admissible machine step preserves full heap validity. -/
+theorem step_valid {state : TraceState} {operation : Operation}
+    (hvalid : state.heap.Valid) (hadmissible : operation.Admissible) :
+    (step state operation).heap.Valid := by
+  cases operation with
+  | insert key => simpa [step] using FH.insert_valid key state.heap hvalid
+  | unionWith heap => simpa [step] using FH.union_valid state.heap heap hvalid hadmissible
+  | minimum => simpa [step] using hvalid
+  | extractMin =>
+      cases hextract : extractMin state.heap with
+      | none => simpa [step, hextract] using hvalid
+      | some result =>
+          simp only [step, hextract]
+          exact FH.extractMin_valid hvalid (extractMin_erases hextract)
+  | decreaseKeyAt path newKey =>
+      cases hdecrease : decreaseKeyAt state.heap path newKey with
+      | none => simpa [step, hdecrease] using hvalid
+      | some result =>
+          simp only [step, hdecrease]
+          exact (FH.decreaseKeyAtRaw_correct hvalid
+            (decreaseKeyAt_erases hdecrease)).2.2.2
+  | deleteAt path =>
+      cases hdelete : deleteAt state.heap path with
+      | none => simpa [step, hdelete] using hvalid
+      | some result =>
+          simp only [step, hdelete]
+          exact (FH.deleteAtRaw_correct hvalid (deleteAt_erases hdelete)).2.2
+
+/-- The actual cost increment plus the potential change of one step. -/
+def stepCharge (state : TraceState) (operation : Operation) : Int :=
+  let next := step state operation
+  Int.ofNat next.cost - Int.ofNat state.cost +
+    next.heap.potential - state.heap.potential
+
+/-- Each executable transition satisfies its advertised amortized budget. -/
+theorem stepCharge_le_bound {state : TraceState} {operation : Operation}
+    (hvalid : state.heap.Valid) (hadmissible : operation.Admissible) :
+    stepCharge state operation ≤ operation.bound state.heap := by
+  cases operation with
+  | insert key =>
+      simp only [stepCharge, step, Operation.bound]
+      rw [FH.potential_insert]
+      simp only [Int.ofNat_eq_natCast, Nat.cast_add, Nat.cast_one]
+      omega
+  | unionWith heap =>
+      simp only [stepCharge, step, Operation.bound]
+      rw [FH.potential_union]
+      simp only [Int.ofNat_eq_natCast, Nat.cast_add, Nat.cast_one]
+      omega
+  | minimum =>
+      simp only [stepCharge, step, Operation.bound]
+      simp only [Int.ofNat_eq_natCast, Nat.cast_add, Nat.cast_one]
+      omega
+  | extractMin =>
+      cases hextract : extractMin state.heap with
+      | none =>
+          simp [stepCharge, step, Operation.bound, hextract]
+          positivity
+      | some result =>
+          have hbound := extractMin_amortized_le_log hvalid hextract
+          simp only [stepCharge, step, Operation.bound, hextract,
+            Int.ofNat_eq_natCast, Nat.cast_add] at hbound ⊢
+          omega
+  | decreaseKeyAt path newKey =>
+      cases hdecrease : decreaseKeyAt state.heap path newKey with
+      | none => simp [stepCharge, step, Operation.bound, hdecrease]
+      | some result =>
+          have hbound := decreaseKey_amortized_le_three hvalid hdecrease
+          simp only [stepCharge, step, Operation.bound, hdecrease,
+            Int.ofNat_eq_natCast, Nat.cast_add] at hbound ⊢
+          omega
+  | deleteAt path =>
+      cases hdelete : deleteAt state.heap path with
+      | none =>
+          simp [stepCharge, step, Operation.bound, hdelete]
+          positivity
+      | some result =>
+          have hbound := delete_amortized_le_log hvalid hdelete
+          simp only [stepCharge, step, Operation.bound, hdelete,
+            Int.ofNat_eq_natCast, Nat.cast_add] at hbound ⊢
+          omega
+
+/-- Execute a trace from an arbitrary accumulator state. -/
+def runFrom : TraceState → List Operation → TraceState
+  | state, [] => state
+  | state, operation :: operations =>
+      runFrom (step state operation) operations
+
+/-- Execute a trace from a heap with zero accumulated actual cost. -/
+def runState (initial : FH) (operations : List Operation) : TraceState :=
+  runFrom { heap := initial, cost := 0 } operations
+
+/-- Dynamic trace precondition, evaluated at each intermediate state. -/
+def TraceAdmissible : TraceState → List Operation → Prop
+  | _, [] => True
+  | state, operation :: operations =>
+      operation.Admissible ∧
+        TraceAdmissible (step state operation) operations
+
+/-- Exact sum of the per-step amortized charges. -/
+def traceAmortized : TraceState → List Operation → Int
+  | _, [] => 0
+  | state, operation :: operations =>
+      stepCharge state operation +
+        traceAmortized (step state operation) operations
+
+/-- Sum of the advertised per-operation bounds along a trace. -/
+def traceBound : TraceState → List Operation → Int
+  | _, [] => 0
+  | state, operation :: operations =>
+      operation.bound state.heap + traceBound (step state operation) operations
+
+/-- Validity propagates through every admissible operation in a trace. -/
+theorem runFrom_valid {state : TraceState} {operations : List Operation}
+    (hvalid : state.heap.Valid)
+    (hadmissible : TraceAdmissible state operations) :
+    (runFrom state operations).heap.Valid := by
+  induction operations generalizing state with
+  | nil => simpa [runFrom] using hvalid
+  | cons operation operations ih =>
+      exact ih (step_valid hvalid hadmissible.1) hadmissible.2
+
+/-- The sum of local amortized charges telescopes exactly to total actual cost
+change plus the endpoint potential difference. -/
+theorem traceAmortized_eq (state : TraceState) (operations : List Operation) :
+    traceAmortized state operations =
+      Int.ofNat (runFrom state operations).cost - Int.ofNat state.cost +
+        (runFrom state operations).heap.potential - state.heap.potential := by
+  induction operations generalizing state with
+  | nil => simp [traceAmortized, runFrom]
+  | cons operation operations ih =>
+      rw [traceAmortized, runFrom, ih]
+      simp only [stepCharge]
+      omega
+
+/-- The true trace-level amortized sum is bounded by the sum of the certified
+per-operation budgets. -/
+theorem traceAmortized_le_traceBound {state : TraceState}
+    {operations : List Operation} (hvalid : state.heap.Valid)
+    (hadmissible : TraceAdmissible state operations) :
+    traceAmortized state operations ≤ traceBound state operations := by
+  induction operations generalizing state with
+  | nil => simp [traceAmortized, traceBound]
+  | cons operation operations ih =>
+      rw [traceAmortized, traceBound]
+      exact add_le_add (stepCharge_le_bound hvalid hadmissible.1)
+        (ih (step_valid hvalid hadmissible.1) hadmissible.2)
 
 /-- Final trace result together with its exact potential-method telescoping
 budget. -/
@@ -334,15 +495,42 @@ structure RunResult where
   cost : Nat
   amortizedBound : Int
 
-/-- Execute a trace and record the telescoping amortized total. -/
-noncomputable def run (initial : FH) (operations : List Operation) : RunResult := by
-  classical
+/-- Execute a trace and record the sum of its local amortized charges. -/
+def run (initial : FH) (operations : List Operation) : RunResult := by
   let final := runState initial operations
   exact
     { heap := final.heap
     , cost := final.cost
     , amortizedBound :=
-        Int.ofNat final.cost + FH.potential final.heap - FH.potential initial }
+        traceAmortized { heap := initial, cost := 0 } operations }
+
+/-- The recorded amortized total is the genuine per-step telescope. -/
+theorem run_amortized_eq (initial : FH) (operations : List Operation) :
+    (run initial operations).amortizedBound =
+      Int.ofNat (run initial operations).cost +
+        (run initial operations).heap.potential - initial.potential := by
+  unfold run runState
+  dsimp only
+  rw [traceAmortized_eq]
+  simp
+
+/-- An admissible valid trace stays valid. -/
+theorem run_valid {initial : FH} {operations : List Operation}
+    (hvalid : initial.Valid)
+    (hadmissible :
+      TraceAdmissible { heap := initial, cost := 0 } operations) :
+    (run initial operations).heap.Valid := by
+  simpa [run, runState] using runFrom_valid hvalid hadmissible
+
+/-- The recorded amortized total is bounded by the dynamic sum of all
+operation-specific certificates. -/
+theorem run_amortized_le_bound {initial : FH} {operations : List Operation}
+    (hvalid : initial.Valid)
+    (hadmissible :
+      TraceAdmissible { heap := initial, cost := 0 } operations) :
+    (run initial operations).amortizedBound ≤
+      traceBound { heap := initial, cost := 0 } operations := by
+  simpa [run] using traceAmortized_le_traceBound hvalid hadmissible
 
 /-- The potential-method telescope bounds total actual cost by total
 amortized charge plus the initial potential. -/
@@ -350,10 +538,8 @@ theorem run_totalCost_le (initial : FH) (operations : List Operation)
     (hvalid : initial.Valid) :
     Int.ofNat (run initial operations).cost ≤
       (run initial operations).amortizedBound + FH.potential initial := by
-  classical
-  unfold run
-  dsimp only
-  have hnonneg := FH.potential_nonneg (runState initial operations).heap
+  rw [run_amortized_eq]
+  have hnonneg := FH.potential_nonneg (run initial operations).heap
   omega
 
 end Costed

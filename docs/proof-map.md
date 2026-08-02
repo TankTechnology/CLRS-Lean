@@ -2431,8 +2431,9 @@ costs remain optional lower-level refinements.
 - Lean source:
   `CLRSLean/Chapter_19.lean` and
   `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean`, plus
-  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S1_ExecutableFibHeap.lean`
-- Status: `partial`
+  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S1_ExecutableFibHeap.lean`,
+  `S2_CascadingCuts.lean`, and `S3_AmortizedCosts.lean`
+- Status: `main-proof-complete-for-correctness`
 - Main proved theorems:
   - `CLRS.Chapter19.FibHeap.makeHeap_correct`
   - `CLRS.Chapter19.FibHeap.makeHeap_valid`
@@ -2574,6 +2575,15 @@ costs remain optional lower-level refinements.
   - `CLRS.Chapter19.FH.extractMin_mem_iff_of_ne`
   - `CLRS.Chapter19.FH.extractMin_none_iff`
   - `CLRS.Chapter19.FH.extractMin_none_iff_size_zero`
+  - `CLRS.Chapter19.FH.cascadingCutRaw_correct`
+  - `CLRS.Chapter19.FH.cascadingCutRaw_amortized`
+  - `CLRS.Chapter19.FH.decreaseKeyAtRaw_correct`
+  - `CLRS.Chapter19.FH.decreaseKeyAtRaw_amortized`
+  - `CLRS.Chapter19.FH.deleteAtRaw_correct`
+  - `CLRS.Chapter19.FH.Costed.extractMin_amortized_le_log`
+  - `CLRS.Chapter19.FH.Costed.delete_amortized_le_log`
+  - `CLRS.Chapter19.FH.Costed.traceAmortized_eq`
+  - `CLRS.Chapter19.FH.Costed.run_amortized_le_bound`
 - Proof pattern: finite-set key semantics, normalized root/mark counters,
   direct operation-result validity wrappers, empty-result query
   characterization, direct minimum/extract-min empty-result and nonempty-result wrappers,
@@ -2592,12 +2602,11 @@ costs remain optional lower-level refinements.
   invariant, stable minimum-root selection, child promotion with mark clearing,
   executable extract-min through consolidation, exact one-occurrence deletion,
   index-addressed CUT, strong list-replacement balance lemmas, and exact
-  root/mark potential accounting
-- Current gap: a cached minimum pointer, stable node identity and
-  arbitrary-node handles or paths, cascading cuts, executable decrease/delete,
-  duplicate-handle semantics, and actual operation-cost accounting remain
-  strengthening targets.  Circular pointer lists are a lower-level
-  representation refinement.
+  root/mark potential accounting, duplicate-safe occurrence zippers,
+  arbitrary-node cascading cuts, executable decrease/delete, and certified
+  per-operation plus trace-level amortized costs
+- Current gap: mutable circular pointer lists, allocation, and concrete RAM
+  latency remain optional lower-level representation refinements.
 
 Chapter 19 now records the operation-level Fibonacci-heap contracts against an
 abstract finite key set, including empty-heap construction and empty-result
@@ -2625,6 +2634,11 @@ one key occurrence, preserves validity, and leaves unique root degrees.  The
 complete heap-level direct-child CUT preserves the represented key set, stored
 size, heap order, and marked-tree wellformedness, adds exactly one root, and
 changes `t(H) + 2m(H)` by exactly `1 - 2·mark(child)` (therefore by at most one).
+The zipper refinement extends this to arbitrary occurrences (including
+duplicate keys), implements CASCADING-CUT, decrease-key, and delete, and proves
+their exact multiset/validity contracts.  The executable cost layer establishes
+constant amortized decrease-key, logarithmic extract-min/delete, and a genuine
+operation-trace telescope bounded by the sum of dynamic per-operation budgets.
 
 ### Section 19.4 - Bounding the maximum degree
 

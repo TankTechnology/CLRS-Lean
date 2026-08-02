@@ -29,15 +29,17 @@ growth bridge over even and half indices, plus conditional natural-log degree
 budget wrappers.  The query surface includes empty-result specifications for
 minimum and extract-min.  A second, implementation-facing layer now provides
 key-carrying heap-ordered forests with marks, executable equal-degree
-`LINK`/`CONSOLIDATE`, index-addressed direct-child CUT on a complete heap
-state, exact multiset representation and a global `FH.Valid` invariant, a
-stable minimum-root selector, an executable `extractMin` that promotes children
-and invokes `CONSOLIDATE`, exact one-occurrence deletion, and the exact CUT
-change in the standard `t(H) + 2m(H)` potential.
+`LINK`/`CONSOLIDATE`, a cached minimum, duplicate-safe occurrence paths and
+zippers, arbitrary-node CUT and CASCADING-CUT, executable `extractMin`,
+`decreaseKey`, and `delete`, exact multiset representation and a global
+`FH.Valid` invariant.  The costed layer proves constant amortized decrease-key,
+logarithmic extract-min/delete, and a genuine trace-level potential telescope
+for the standard `t(H) + 2m(H)` potential.
 
 ## Sections
 
-* 19.1 Fibonacci-heap model: {lit}`partial`.
+* 19.1--19.4 Fibonacci heaps: {lit}`main-proof-complete-for-correctness` for
+  the persistent executable model.
   Main results:
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_correct`,
   {lit}`CLRS.Chapter19.FibHeap.makeHeap_valid`,

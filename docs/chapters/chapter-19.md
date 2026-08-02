@@ -1,6 +1,6 @@
 # Chapter 19 - Fibonacci Heaps
 
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Lean entry: `CLRSLean/Chapter_19.lean`
 - Interface test: `Tests/Chapter_19_Interface.lean`
 
@@ -120,13 +120,21 @@
 - `CLRS.Chapter19.FTree.minTree_wellformed`
 - `CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound`
 
-## Remaining Work
+## Executable Core and Amortized Analysis
 
-The finite-key-set operation specifications and potential facts are joined by
-Section 19.4's concrete rooted-tree invariant.  For `FTree.Wellformed`, the
-formalization proves the true Fibonacci subtree-size lower bound, sharp
-logarithmic degree bounds, preservation by equal-degree linking, and a `minTree`
-family witnessing tightness.  The remaining core work is an executable heap
-forest with circular root lists, consolidation and cascading-cut procedures,
-duplicate-handle semantics, and the corresponding `O(log n)`/`O(1)` amortized
-cost analysis.
+The persistent `FHNode`/`FH` layer now completes the represented Chapter 19
+algorithm stack: exact duplicate-preserving key bags, a cached minimum,
+degree-bucket `LINK`/`CONSOLIDATE`, executable extract-min, duplicate-safe
+occurrence paths and zippers, arbitrary-node CUT and CASCADING-CUT, executable
+decrease-key and delete, and preservation of `FH.Valid` throughout.  Its
+standard `t(H) + 2m(H)` potential proves:
+
+- constant amortized cost for handle-directed decrease-key;
+- logarithmic amortized cost for extract-min and delete;
+- exact erasure from costed operations to the structural algorithms; and
+- an exact operation-trace telescope bounded by the sum of the certified
+  per-operation budgets.
+
+Mutable circular doubly linked lists, allocation, and a concrete RAM/pointer
+latency refinement remain optional implementation layers; they are not missing
+core correctness groups for the persistent executable model.
