@@ -2408,7 +2408,8 @@ costs remain optional lower-level refinements.
 
 - Lean source:
   `CLRSLean/Chapter_19.lean` and
-  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean`
+  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean`, plus
+  `CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S1_ExecutableFibHeap.lean`
 - Status: `partial`
 - Main proved theorems:
   - `CLRS.Chapter19.FibHeap.makeHeap_correct`
@@ -2508,6 +2509,49 @@ costs remain optional lower-level refinements.
   - `CLRS.Chapter19.FibHeap.degreeIndex_half_le_log_card`
   - `CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`
   - `CLRS.Chapter19.FibHeap.degree_bound_log`
+  - `CLRS.Chapter19.FHNode.marks`
+  - `CLRS.Chapter19.FHNode.forestMarks`
+  - `CLRS.Chapter19.FH.cutChildAt`
+  - `CLRS.Chapter19.FH.cutChildAt_keys`
+  - `CLRS.Chapter19.FH.cutChildAt_heapOrdered`
+  - `CLRS.Chapter19.FH.cutChildAt_wellformed`
+  - `CLRS.Chapter19.FH.potential`
+  - `CLRS.Chapter19.FH.potential_makeHeap`
+  - `CLRS.Chapter19.FH.potential_insert`
+  - `CLRS.Chapter19.FH.cutRootChildAt`
+  - `CLRS.Chapter19.FH.cutRootChildAt_keys`
+  - `CLRS.Chapter19.FH.cutRootChildAt_size`
+  - `CLRS.Chapter19.FH.cutRootChildAt_roots_length`
+  - `CLRS.Chapter19.FH.cutRootChildAt_good`
+  - `CLRS.Chapter19.FH.cutRootChildAt_potential_eq`
+  - `CLRS.Chapter19.FH.cutRootChildAt_potential_le`
+  - `CLRS.Chapter19.FHNode.keyBag`
+  - `CLRS.Chapter19.FHNode.forestKeyBag`
+  - `CLRS.Chapter19.FHNode.forestSize`
+  - `CLRS.Chapter19.FHNode.RootsUnmarked`
+  - `CLRS.Chapter19.FH.keyBag`
+  - `CLRS.Chapter19.FH.Represents`
+  - `CLRS.Chapter19.FH.Valid`
+  - `CLRS.Chapter19.FH.makeHeap_valid`
+  - `CLRS.Chapter19.FH.insert_valid`
+  - `CLRS.Chapter19.FH.union_valid`
+  - `CLRS.Chapter19.FH.removeMinRoot`
+  - `CLRS.Chapter19.FH.removeMinRoot_none_iff`
+  - `CLRS.Chapter19.FH.removeMinRoot_perm`
+  - `CLRS.Chapter19.FH.removeMinRoot_min`
+  - `CLRS.Chapter19.FHNode.consolidateList_keyBag`
+  - `CLRS.Chapter19.FHNode.consolidateList_forestSize`
+  - `CLRS.Chapter19.FHNode.consolidateList_rootsUnmarked`
+  - `CLRS.Chapter19.FH.extractMin`
+  - `CLRS.Chapter19.FH.extractMin_correct`
+  - `CLRS.Chapter19.FH.extractMin_keyBag`
+  - `CLRS.Chapter19.FH.extractMin_valid`
+  - `CLRS.Chapter19.FH.extractMin_degreeStrict`
+  - `CLRS.Chapter19.FH.extractMin_size`
+  - `CLRS.Chapter19.FH.extractMin_minimum`
+  - `CLRS.Chapter19.FH.extractMin_mem_iff_of_ne`
+  - `CLRS.Chapter19.FH.extractMin_none_iff`
+  - `CLRS.Chapter19.FH.extractMin_none_iff_size_zero`
 - Proof pattern: finite-set key semantics, normalized root/mark counters,
   direct operation-result validity wrappers, empty-result query
   characterization, direct minimum/extract-min empty-result and nonempty-result wrappers,
@@ -2519,13 +2563,19 @@ costs remain optional lower-level refinements.
   direct failed-membership preservation wrappers, replaced-key decrease-key
   query wrappers, returned
   minimum-after-update positive and empty-result specifications,
-  Fibonacci lower-bound recurrence
-  plus a two-step doubling induction over even indices, a half-index bridge,
-  and a conditional binary-log degree budget
-- Current gap: pointer handles, heap-ordered forest/cascading-cut transition
-  system, consolidation arrays, duplicate keys, and their amortized cost
-  accounting remain strengthening targets.  Section 19.4 separately seals the
-  true Fibonacci logarithmic degree theorem on the concrete rooted-tree model.
+  Fibonacci lower-bound recurrence plus a two-step doubling induction over even
+  indices, a half-index bridge, a conditional binary-log degree budget, and an
+  executable key-carrying forest with equal-degree bucket consolidation,
+  exact multiset and real-size summaries, a global executable validity
+  invariant, stable minimum-root selection, child promotion with mark clearing,
+  executable extract-min through consolidation, exact one-occurrence deletion,
+  index-addressed CUT, strong list-replacement balance lemmas, and exact
+  root/mark potential accounting
+- Current gap: a cached minimum pointer, stable node identity and
+  arbitrary-node handles or paths, cascading cuts, executable decrease/delete,
+  duplicate-handle semantics, and actual operation-cost accounting remain
+  strengthening targets.  Circular pointer lists are a lower-level
+  representation refinement.
 
 Chapter 19 now records the operation-level Fibonacci-heap contracts against an
 abstract finite key set, including empty-heap construction and empty-result
@@ -2545,7 +2595,14 @@ monotonicity, plus the derived arbitrary-index monotonicity theorem and an
 even-index and half-index power-of-two lower bound.  Section 19.4 supplies the
 concrete rooted-tree invariant and closes the true Fibonacci logarithmic degree
 theorem; the abstract finite-set heap still uses a conservative degree budget
-until it is refined to that tree model.
+until it is refined to that tree model.  The executable `FHNode`/`FH` layer now
+bridges those two views with an exact key multiset, real forest size, and
+`FH.Valid`; its executable extract-min chooses a minimum root, promotes and
+unmarks its children, invokes equal-degree `LINK`/`CONSOLIDATE`, removes exactly
+one key occurrence, preserves validity, and leaves unique root degrees.  The
+complete heap-level direct-child CUT preserves the represented key set, stored
+size, heap order, and marked-tree wellformedness, adds exactly one root, and
+changes `t(H) + 2m(H)` by exactly `1 - 2·mark(child)` (therefore by at most one).
 
 ### Section 19.4 - Bounding the maximum degree
 
@@ -2580,10 +2637,12 @@ until it is refined to that tree model.
   monotonicity and `⌊·⌋` for the maximum-degree bound; and an append-child
   invariant-maintenance lemma reused by both `link` and the extremal `minTree`
   tightness family.
-- Current gap: the executable pointer forest, destructive `CONSOLIDATE` and
-  cascading-cut procedures, and the amortized `O(log n)`/`O(1)` cost accounting
-  remain strengthening targets.  The structural combinatorial core they depend
-  on — the true Fibonacci logarithmic degree bound — is now sealed.
+- Current gap: cached minimum pointers, stable node identity and arbitrary-node
+  handles/paths, cascading cuts, executable decrease/delete, and amortized
+  `O(log n)`/`O(1)` operation-cost theorems remain strengthening targets.
+  Circular pointer mutation is a lower-level refinement.  The structural
+  logarithmic-degree core, executable extract-min correctness, and the one-step
+  direct-child CUT potential delta are sealed.
 
 ## Chapter 20 - van Emde Boas Trees
 
@@ -3600,7 +3659,7 @@ Sections 26.4 and 26.5 are deferred outside the current selected milestone.
 | Chapter 12 executable pointer-level BST | `proved` | Imperative pointer-heap model (`Node` records with `left`/`right`/`parent` cells over a `Std.HashMap` `Store`) with `RepresentsW` heap-to-tree abstraction; in-place `TRANSPLANT` (`transplantChild_left_representsW`/`transplantChild_right_representsW`) and leaf `TREE-INSERT` (`insertPointer_right_representsW`) refine functional subtree replacement. Only an explicit RAM cost model remains. |
 | Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
 | B-tree executable deletion semantics | `proved` | For `2 ≤ t`, `composedDelete_keyBag` under `NodeWF` and `composedDeleteRoot_keyBag` under `WellFormed` prove `Multiset.erase` semantics: one requested-key occurrence is removed when present, and an absent request leaves the bag unchanged. `composedDelete_mem_iff_of_ne` and `composedDeleteRoot_mem_iff_of_ne` preserve every different key without `UniqueKeys` or a requested-key-present premise. Raw uniqueness preservation needs `NodeWF + UniqueKeys`; under `WellFormedUnique`, `composedDeleteRoot_not_mem`, `composedDeleteRoot_mem_iff`, `composedDeleteRoot_wellFormedUnique`, `composedDeleteRoot_mem_iff_delete`, and `composedDeleteRoot_search_eq_delete` prove absence, full root membership behavior, combined invariant preservation, and compatibility with specification deletion and membership-oracle search. The bridge does not assert `searchExec` or tree-shape equality. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
-| Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations (make, insert, union, extractMin, decreaseKey, delete) are proved correct against a finite-set model; pointer handles, heap-ordered forest, cascading cut, and consolidation array require a pointer-level model.
+| Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations are specified against an abstract finite-set model; a persistent executable heap forest now proves exact multiset representation, a global validity invariant, minimum-root selection, executable extract-min through equal-degree `CONSOLIDATE`, heap-level direct-child CUT, and the exact CUT potential delta. Cached minimum pointers, stable node identity, handles/arbitrary paths, cascading cuts, executable decrease/delete, actual costs, and circular pointer mutation remain. |
 | Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |
 | Generic augmentation deletion erasure | `future-work` | Section 14.3 already proves the generic executable deletion pipeline and `AugmentedRBTree.wellAugmented_delete`.  The remaining work is the generic `AugmentedRBTree.toRB_delete` erasure/refinement bridge to Chapter 13's `RBTree.delete`. |
 | Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |

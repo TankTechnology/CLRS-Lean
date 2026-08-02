@@ -125,6 +125,7 @@ CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Occupancy.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/WellFormed.lean
 CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean
 CLRSLean/Chapter_19/Section_19_4_Bounding_Maximum_Degree.lean
+CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S1_ExecutableFibHeap.lean
 CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean
 CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean
 CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean
