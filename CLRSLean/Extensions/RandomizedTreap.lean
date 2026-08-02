@@ -741,6 +741,180 @@ theorem IsHeap_rotL [LinearOrder α] [DecidableEq α] [DecidableLT α] {a b : α
         rw [hprio]
         exact le_trans (prioOf_le_of_prioLE hpa_lb y) hpb
 
+/-- In a max-heap treap, if the root priority is at most {lit}`c` then every
+priority is at most {lit}`c`. -/
+theorem prioLE_of_heap_root_le [LinearOrder α] [DecidableEq α] [DecidableLT α]
+    {b : α} {pb c : Nat} {lb rb : Treap α}
+    (hheap : IsHeap (node b pb lb rb)) (hpb : pb ≤ c) :
+    prioLE c (node b pb lb rb) := by
+  rcases hheap with ⟨hlb, hrb, hpb_lb, hpb_rb⟩
+  unfold prioLE
+  intro y hy
+  have hy' : y ∈ Insert.insert b (keys lb ∪ keys rb) := by simpa [keys] using hy
+  by_cases hyb : y = b
+  · rw [hyb]
+    have hprio : prioOf (node b pb lb rb) b = pb := by simp [prioOf]
+    rw [hprio]
+    exact hpb
+  · by_cases hylt : y < b
+    · have hprio : prioOf (node b pb lb rb) y = prioOf lb y := by simp [prioOf, hyb, hylt]
+      rw [hprio]
+      exact le_trans (prioOf_le_of_prioLE hpb_lb y) hpb
+    · have hprio : prioOf (node b pb lb rb) y = prioOf rb y := by simp [prioOf, hyb, hylt]
+      rw [hprio]
+      exact le_trans (prioOf_le_of_prioLE hpb_rb y) hpb
+
+/-- **Capstone.**  Inserting into a well-formed (BST + heap) treap keeps it a
+valid treap: the single rotation along the insertion path repairs exactly the
+one heap violation. -/
+theorem IsHeap_insert [LinearOrder α] [DecidableEq α] [DecidableLT α] (x : α) (p : Nat)
+    (t : Treap α) : IsBST t → IsHeap t → IsHeap (insert x p t) := by
+  intro h hh
+  induction t with
+  | nil => simp [insert, IsHeap, prioLE, keys]
+  | node k pk l r ih_l ih_r =>
+      rcases h with ⟨hl, hr, hlt, hgt⟩
+      rcases hh with ⟨hhl, hhr, hpl, hpr⟩
+      by_cases h1 : x < k
+      · by_cases h2 : k < x
+        · exfalso
+          exact (lt_asymm h1 h2)
+        · -- x < k: insert into the left subtree
+          have hhl' : IsHeap (insert x p l) := ih_l hl hhl
+          cases hl' : insert x p l with
+          | nil => exfalso; exact insert_ne_nil x p l hl'
+          | node b pb lb rb =>
+              have hlbst' : IsBST (node b pb lb rb) := by rw [← hl']; exact IsBST_insert x p l hl
+              have hhl'' : IsHeap (node b pb lb rb) := by simpa [hl'] using hhl'
+              by_cases hrot : pb > pk
+              · -- rotation branch: the moved subtree rb stays bounded by pk
+                have hxnl : x ∉ keys l := by
+                  intro hxl
+                  have hdup : insert x p l = l := insert_of_mem_keys x p l hl hhl hxl
+                  rw [hdup] at hl'
+                  have hpb_pk : pb ≤ pk := by
+                    have hpb' : prioOf l b ≤ pk := hpl b (by simp [keys, hl'])
+                    simpa [hl', prioOf] using hpb'
+                  exact (not_lt_of_ge hpb_pk) hrot
+                have hbx : b = x := by
+                  have hb_mem' : b ∈ keys (insert x p l) := by rw [hl']; simp [keys]
+                  have hbmem : b ∈ Insert.insert x (keys l) := by
+                    rw [keys_insert x p l] at hb_mem'
+                    exact hb_mem'
+                  by_cases hbxl : b = x
+                  · exact hbxl
+                  · exfalso
+                    have hb_l : b ∈ keys l := by simpa [hbxl] using hbmem
+                    have hpb_eq : pb = prioOf l b := by
+                      have hpi : prioOf (insert x p l) b = if b = x then p else prioOf l b :=
+                        prioOf_insert x p l hl hxnl b
+                      have hpi' : prioOf (insert x p l) b = pb := by rw [hl']; simp [prioOf]
+                      rw [hpi'] at hpi
+                      simp [hbxl] at hpi
+                      exact hpi
+                    have hpb_pk : pb ≤ pk := by rw [hpb_eq]; exact hpl b hb_l
+                    exact (not_lt_of_ge hpb_pk) hrot
+                have hpk_rb : prioLE pk rb := by
+                  unfold prioLE
+                  intro z hz
+                  have hb_lt_z : b < z := hlbst'.2.2.2 z hz
+                  have hzx : z ≠ x := by
+                    intro hzx'
+                    have : x < x := by simp [hbx, hzx'] at hb_lt_z ⊢
+                    exact (lt_irrefl x this)
+                  have hzins : z ∈ keys (insert x p l) := by rw [hl']; simp [keys, hz]
+                  have hzkeys : z ∈ Insert.insert x (keys l) := by
+                    rw [keys_insert x p l] at hzins
+                    exact hzins
+                  have hzl : z ∈ keys l := by simpa [hzx] using hzkeys
+                  have hprio : prioOf rb z = prioOf l z := by
+                    have hpi : prioOf (insert x p l) z = if z = x then p else prioOf l z :=
+                      prioOf_insert x p l hl hxnl z
+                    have hpi' : prioOf (insert x p l) z = prioOf rb z := by
+                      rw [hl']
+                      have hzb : z ≠ b := ne_of_gt hb_lt_z
+                      have hznlt : ¬ z < b := not_lt_of_gt hb_lt_z
+                      simp [prioOf, hzb, hznlt]
+                    rw [hpi'] at hpi
+                    simp [hzx] at hpi
+                    exact hpi
+                  rw [hprio]
+                  exact hpl z hzl
+                simp [insert, h1, hl', hrot]
+                exact IsHeap_rotR hhl'' hhr (le_of_lt hrot) hpk_rb hpr
+              · -- no rotation: the root priority already bounds everything
+                simp [insert, h1, hl', hrot]
+                refine ⟨hhl'', hhr, prioLE_of_heap_root_le hhl'' (not_lt.mp hrot), hpr⟩
+      · by_cases h2 : k < x
+        · -- k < x: insert into the right subtree (symmetric)
+          have hhr' : IsHeap (insert x p r) := ih_r hr hhr
+          cases hr' : insert x p r with
+          | nil => exfalso; exact insert_ne_nil x p r hr'
+          | node b pb lb rb =>
+              have hrbst' : IsBST (node b pb lb rb) := by rw [← hr']; exact IsBST_insert x p r hr
+              have hhr'' : IsHeap (node b pb lb rb) := by simpa [hr'] using hhr'
+              by_cases hrot : pb > pk
+              · -- rotation branch: the moved subtree lb stays bounded by pk
+                have hxnr : x ∉ keys r := by
+                  intro hxr
+                  have hdup : insert x p r = r := insert_of_mem_keys x p r hr hhr hxr
+                  rw [hdup] at hr'
+                  have hpb_pk : pb ≤ pk := by
+                    have hpb' : prioOf r b ≤ pk := hpr b (by simp [keys, hr'])
+                    simpa [hr', prioOf] using hpb'
+                  exact (not_lt_of_ge hpb_pk) hrot
+                have hbx : b = x := by
+                  have hb_mem' : b ∈ keys (insert x p r) := by rw [hr']; simp [keys]
+                  have hbmem : b ∈ Insert.insert x (keys r) := by
+                    rw [keys_insert x p r] at hb_mem'
+                    exact hb_mem'
+                  by_cases hbxl : b = x
+                  · exact hbxl
+                  · exfalso
+                    have hb_r : b ∈ keys r := by simpa [hbxl] using hbmem
+                    have hpb_eq : pb = prioOf r b := by
+                      have hpi : prioOf (insert x p r) b = if b = x then p else prioOf r b :=
+                        prioOf_insert x p r hr hxnr b
+                      have hpi' : prioOf (insert x p r) b = pb := by rw [hr']; simp [prioOf]
+                      rw [hpi'] at hpi
+                      simp [hbxl] at hpi
+                      exact hpi
+                    have hpb_pk : pb ≤ pk := by rw [hpb_eq]; exact hpr b hb_r
+                    exact (not_lt_of_ge hpb_pk) hrot
+                have hpk_lb : prioLE pk lb := by
+                  unfold prioLE
+                  intro z hz
+                  have hz_lt_b : z < b := hrbst'.2.2.1 z hz
+                  have hzx : z ≠ x := by
+                    intro hzx'
+                    have : x < x := by simp [hbx, hzx'] at hz_lt_b ⊢
+                    exact (lt_irrefl x this)
+                  have hzins : z ∈ keys (insert x p r) := by rw [hr']; simp [keys, hz]
+                  have hzkeys : z ∈ Insert.insert x (keys r) := by
+                    rw [keys_insert x p r] at hzins
+                    exact hzins
+                  have hzr : z ∈ keys r := by simpa [hzx] using hzkeys
+                  have hprio : prioOf lb z = prioOf r z := by
+                    have hpi : prioOf (insert x p r) z = if z = x then p else prioOf r z :=
+                      prioOf_insert x p r hr hxnr z
+                    have hpi' : prioOf (insert x p r) z = prioOf lb z := by
+                      rw [hr']
+                      have hzb : z ≠ b := ne_of_lt hz_lt_b
+                      simp [prioOf, hzb, hz_lt_b]
+                    rw [hpi'] at hpi
+                    simp [hzx] at hpi
+                    exact hpi
+                  rw [hprio]
+                  exact hpr z hzr
+                simp [insert, h1, h2, hr', hrot]
+                exact IsHeap_rotL hhl hhr'' (le_of_lt hrot) hpk_lb hpl
+              · -- no rotation
+                simp [insert, h1, h2, hr', hrot]
+                refine ⟨hhl, hhr'', hpl, prioLE_of_heap_root_le hhr'' (not_lt.mp hrot)⟩
+        · -- x = k: duplicate, tree unchanged
+          simp [insert, h1, h2]
+          exact ⟨hhl, hhr, hpl, hpr⟩
+
 end Treap
 
 end CLRS.Extensions
