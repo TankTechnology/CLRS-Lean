@@ -6,6 +6,10 @@ import CLRSLean.Chapter_19.Section_19_2_Mergeable_Heap_Operations
 This module gives the persistent Fibonacci-heap model a duplicate-safe node
 handle.  A path selects a concrete root-list occurrence and then concrete
 child-list occurrences; keys are deliberately not used as identities.
+
+## Implementation details
+
+* [Amortized operation costs](CLRSLean/Chapter_19/Section_19_3_Decreasing_A_Key_And_Deleting_A_Node/Amortized_Costs/)
 -/
 
 namespace CLRS

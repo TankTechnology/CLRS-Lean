@@ -1,16 +1,33 @@
 import re
+import sys
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 LITERATE_TOML = ROOT / "literate.toml"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.literate_navigation import is_reader_sidebar_module
 
 COMPATIBILITY_MODULES = {
     "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S1_ExecutableFibHeap",
     "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S2_CascadingCuts",
     "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S3_AmortizedCosts",
 }
+
+LINK_EXEMPT_MODULES = COMPATIBILITY_MODULES | {
+    "CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
+    "CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution",
+}
+
+
+def _module_source(module: str) -> Path:
+    parts = module.split(".")
+    if parts == ["CLRSLean"]:
+        return ROOT / "CLRSLean.lean"
+    return ROOT / Path(*parts[:-1]) / f"{parts[-1]}.lean"
 
 
 def _parse_order_children(text: str) -> dict[str, list[str]]:
@@ -52,11 +69,15 @@ class LiterateConfigTest(unittest.TestCase):
         order_children = _parse_order_children(text)
         titled_modules = _parse_module_titles(text)
 
-        imported_modules = re.findall(
-            r"^import\s+(CLRSLean\.[^\s]+)",
-            (ROOT / "CLRSLean.lean").read_text(),
-            re.MULTILINE,
-        )
+        imported_modules = [
+            module
+            for module in re.findall(
+                r"^import\s+(CLRSLean\.[^\s]+)",
+                (ROOT / "CLRSLean.lean").read_text(),
+                re.MULTILINE,
+            )
+            if module not in COMPATIBILITY_MODULES
+        ]
 
         self.assertEqual(imported_modules, order_children["CLRSLean"])
 
@@ -127,6 +148,30 @@ class LiterateConfigTest(unittest.TestCase):
         for parent, children in expected.items():
             with self.subTest(parent=parent):
                 self.assertEqual(children, order_children[parent])
+
+    def test_hidden_support_pages_are_linked_from_reader_pages(self) -> None:
+        order_children = _parse_order_children(LITERATE_TOML.read_text())
+
+        for chapter in order_children["CLRSLean"]:
+            if not chapter.startswith("CLRSLean.Chapter_"):
+                continue
+            chapter_text = _module_source(chapter).read_text()
+            for module in _ordered_descendants(order_children, chapter):
+                if is_reader_sidebar_module(module) or module in LINK_EXEMPT_MODULES:
+                    continue
+                parts = module.split(".")
+                while len(parts) > 1:
+                    parts.pop()
+                    parent = ".".join(parts)
+                    if is_reader_sidebar_module(parent):
+                        break
+                parent_text = _module_source(parent).read_text()
+                expected_link = f"{module.replace('.', '/')}/"
+                with self.subTest(module=module):
+                    self.assertTrue(
+                        expected_link in parent_text or expected_link in chapter_text,
+                        f"missing implementation link for {module}: {expected_link}",
+                    )
 
     def test_sibling_pages_do_not_repeat_clrs_section_numbers(self) -> None:
         order_children = _parse_order_children(LITERATE_TOML.read_text())

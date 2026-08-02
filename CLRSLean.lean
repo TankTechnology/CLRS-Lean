@@ -19,6 +19,11 @@ import CLRSLean.Chapter_16
 import CLRSLean.Chapter_17
 import CLRSLean.Chapter_18
 import CLRSLean.Chapter_19
+-- Keep registered Chapter 19 compatibility pages in Verso's module set while
+-- the chapter aggregator itself exposes only canonical textbook sections.
+import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S1_ExecutableFibHeap
+import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S2_CascadingCuts
+import CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S3_AmortizedCosts
 import CLRSLean.Chapter_20
 import CLRSLean.Chapter_21
 import CLRSLean.Chapter_22

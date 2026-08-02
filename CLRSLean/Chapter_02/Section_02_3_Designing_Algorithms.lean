@@ -17,6 +17,10 @@ It also records the exact solution of the textbook recurrence on powers of two:
 
 A later strengthening can inline the merge routine and prove the split/merge
 lemmas locally if we want a from-scratch artifact.
+
+## Implementation details
+
+* [Merge-sort recurrence](CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms/Merge_Sort_Recurrence/)
 -/
 
 namespace CLRS
