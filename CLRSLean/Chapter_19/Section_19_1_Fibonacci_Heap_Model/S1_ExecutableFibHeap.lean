@@ -164,6 +164,10 @@ def forestMarks (roots : List FHNode) : Nat :=
     forestMarks (t :: ts) = t.marks + forestMarks ts := by
   simp [forestMarks]
 
+@[simp] theorem forestMarks_append (left right : List FHNode) :
+    forestMarks (left ++ right) = forestMarks left + forestMarks right := by
+  simp [forestMarks]
+
 @[simp] theorem keyBag_node (k : Int) (m : Bool) (cs : List FHNode) :
     keyBag (node k m cs) = {k} + forestKeyBag cs := by
   simp [keyBag, forestKeyBag]
@@ -559,6 +563,27 @@ theorem link_size (x y : FHNode) : (link x y).size = x.size + y.size := by
             simp [size]
             omega
 
+/-- Linking roots preserves the total number of marked nodes in their two
+subtrees. -/
+theorem link_marks (x y : FHNode) :
+    (link x y).marks = x.marks + y.marks := by
+  unfold link
+  by_cases h : x.key ≤ y.key
+  · cases x with
+    | node k m cs =>
+        have h' : k ≤ y.key := by simpa using h
+        simp only [key_node, marked_node, children_node]
+        rw [if_pos h']
+        simp [marks, forestMarks]
+        omega
+  · cases y with
+    | node k m cs =>
+        have h' : ¬ x.key ≤ k := by simpa using h
+        simp only [key_node, marked_node, children_node]
+        rw [if_neg h']
+        simp [marks, forestMarks]
+        omega
+
 /-! ## CONSOLIDATE by degree-bucket merging -/
 
 /-- A forest is structurally good when every tree is heap-ordered and
@@ -657,6 +682,27 @@ theorem insertConsolidated_forestSize (ys : List FHNode) (x : FHNode) :
           omega
         · rw [if_neg h2]
           simp only [forestSize_cons]
+          omega
+
+/-- One degree-bucket insertion preserves the total marked-node count. -/
+theorem insertConsolidated_forestMarks (ys : List FHNode) (x : FHNode) :
+    forestMarks (insertConsolidated ys x) = forestMarks ys + x.marks := by
+  revert x
+  induction ys with
+  | nil => intro x; simp [insertConsolidated]
+  | cons y ys ih =>
+      intro x
+      unfold insertConsolidated
+      by_cases h1 : y.degree = x.degree
+      · rw [if_pos h1, ih, link_marks]
+        simp only [forestMarks_cons]
+        omega
+      · rw [if_neg h1]
+        by_cases h2 : y.degree < x.degree
+        · rw [if_pos h2, forestMarks_cons, ih, forestMarks_cons]
+          omega
+        · rw [if_neg h2]
+          simp only [forestMarks_cons]
           omega
 
 /-- Structural goodness is preserved by one insertion with consolidation. -/
@@ -938,6 +984,15 @@ theorem consolidateList_forestSize : ∀ roots : List FHNode,
   | x :: xs => by
       rw [consolidateList, insertConsolidated_forestSize,
         consolidateList_forestSize, forestSize_cons]
+      omega
+
+/-- `CONSOLIDATE` preserves the complete marked-node count. -/
+theorem consolidateList_forestMarks : ∀ roots : List FHNode,
+    forestMarks (consolidateList roots) = forestMarks roots
+  | [] => by simp [consolidateList]
+  | x :: xs => by
+      rw [consolidateList, insertConsolidated_forestMarks,
+        consolidateList_forestMarks, forestMarks_cons]
       omega
 
 /-- `CONSOLIDATE` preserves the CLRS root-mark rule. -/
@@ -1882,6 +1937,21 @@ theorem map_markFalse_forestSize (roots : List FHNode) :
   | nil => simp
   | cons root roots ih =>
       simp only [List.map_cons, FHNode.forestSize_cons, markFalse_size, ih]
+
+/-- Clearing the marks of promoted roots cannot increase the total number of
+marked nodes. -/
+theorem map_markFalse_forestMarks_le (roots : List FHNode) :
+    FHNode.forestMarks (roots.map markFalse) ≤
+      FHNode.forestMarks roots := by
+  induction roots with
+  | nil => simp
+  | cons root roots ih =>
+      simp only [List.map_cons, FHNode.forestMarks_cons]
+      have hroot : (markFalse root).marks ≤ root.marks := by
+        cases root with
+        | node key marked children =>
+            cases marked <;> simp [markFalse]
+      omega
 
 /-- A heap-ordered root key is no greater than every key in its subtree. -/
 theorem FHNode.heapOrdered_key_le_of_mem_keyBag {t : FHNode} {y : Int}

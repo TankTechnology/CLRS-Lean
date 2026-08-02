@@ -285,6 +285,22 @@ theorem close_size_balance (frame : FHFrame) (child : FHNode) :
   simp [close, removeFocus, FHNode.forestSize_append]
   omega
 
+/-- Removing and promoting a focused child preserves all subtree marks; the
+focused subtree and remaining parent partition the original mark count. -/
+theorem close_marks_balance (frame : FHFrame) (child : FHNode) :
+    child.marks + frame.removeFocus.marks = (frame.close child).marks := by
+  simp [close, removeFocus, FHNode.marks, FHNode.forestMarks]
+  omega
+
+/-- One zipper frame transports the mark-count difference between two focused
+subtrees unchanged. -/
+theorem close_marks_exchange (frame : FHFrame) (old new : FHNode) :
+    (frame.close new).marks + old.marks =
+      (frame.close old).marks + new.marks := by
+  simp only [close, FHNode.marks_node, List.map_append, List.map_cons,
+    List.sum_append, List.sum_cons]
+  omega
+
 /-- Heap order of a fully closed context projects to its focused subtree. -/
 theorem heapOrdered_focus_of_closeAll {focus : FHNode}
     {parents : List FHFrame}
@@ -395,6 +411,48 @@ theorem closeAll_size_balance {cut remaining original : FHNode}
         List.map_nil, List.sum_append, List.sum_cons, List.sum_nil]
       omega
 
+/-- Exact mark-count balance is preserved by every enclosing zipper frame. -/
+theorem closeAll_marks_balance {cut remaining original : FHNode}
+    {parents : List FHFrame}
+    (hbalance : cut.marks + remaining.marks = original.marks) :
+    cut.marks + (closeAll remaining parents).marks =
+      (closeAll original parents).marks := by
+  induction parents generalizing remaining original with
+  | nil => simpa [closeAll] using hbalance
+  | cons frame parents ih =>
+      apply ih
+      simp only [close, FHNode.marks_node, List.map_append, List.map_cons,
+        List.map_nil, List.sum_append, List.sum_cons, List.sum_nil]
+      omega
+
+/-- Replacing a focused subtree by one with the same mark count preserves the
+mark count of the fully rebuilt root. -/
+theorem closeAll_marks_congr {old new : FHNode} {parents : List FHFrame}
+    (hmarks : new.marks = old.marks) :
+    (closeAll new parents).marks = (closeAll old parents).marks := by
+  induction parents generalizing old new with
+  | nil => simpa [closeAll] using hmarks
+  | cons frame parents ih =>
+      apply ih
+      simp only [close, FHNode.marks_node, List.map_append, List.map_cons,
+        List.sum_append, List.sum_cons]
+      omega
+
+/-- The mark-count difference between two focused subtrees is transported
+unchanged through every enclosing zipper frame. -/
+theorem closeAll_marks_exchange (old new : FHNode)
+    (parents : List FHFrame) :
+    (closeAll new parents).marks + old.marks =
+      (closeAll old parents).marks + new.marks := by
+  induction parents generalizing old new with
+  | nil => simp [closeAll, add_comm]
+  | cons frame parents ih =>
+      have houter := ih (frame.close old) (frame.close new)
+      have hinner := close_marks_exchange frame old new
+      change (closeAll (frame.close new) parents).marks + old.marks =
+        (closeAll (frame.close old) parents).marks + new.marks
+      omega
+
 /-- Replacing a focused subtree by one of equal size preserves the size of the
 fully rebuilt root. -/
 theorem closeAll_size_congr {old new : FHNode} {parents : List FHFrame}
@@ -462,6 +520,14 @@ def markTrue : FHNode → FHNode
 
 @[simp] theorem markTrue_size (node : FHNode) : node.markTrue.size = node.size := by
   cases node <;> simp [markTrue, size]
+
+/-- Marking an unmarked node adds exactly one marked node. -/
+theorem markTrue_marks_of_unmarked {node : FHNode}
+    (hmarked : node.marked = false) :
+    node.markTrue.marks = node.marks + 1 := by
+  cases node with
+  | node key marked children =>
+      cases marked <;> simp_all [markTrue] <;> omega
 
 @[simp] theorem markTrue_keyBag (node : FHNode) : node.markTrue.keyBag = node.keyBag := by
   cases node <;> simp [markTrue, keyBag, keysList]
@@ -677,6 +743,34 @@ def rebuildRoots (cursor : FHCursor) (roots : List FHNode) : FH :=
   { roots := roots
   , size := cursor.size
   , minRoot := computeMinRoot roots }
+
+/-- Potential contribution of a root forest, factored out so zipper-local
+potential changes can be proved compositionally. -/
+def forestPotential (roots : List FHNode) : Int :=
+  Int.ofNat roots.length + 2 * Int.ofNat (FHNode.forestMarks roots)
+
+/-- Potential contribution of a single rooted tree occurrence. -/
+def nodePotential (node : FHNode) : Int :=
+  1 + 2 * Int.ofNat node.marks
+
+@[simp] theorem forestPotential_nil : forestPotential [] = 0 := by
+  simp [forestPotential]
+
+@[simp] theorem forestPotential_cons (root : FHNode) (roots : List FHNode) :
+    forestPotential (root :: roots) =
+      nodePotential root + forestPotential roots := by
+  simp [forestPotential, nodePotential]
+  omega
+
+@[simp] theorem forestPotential_append (left right : List FHNode) :
+    forestPotential (left ++ right) =
+      forestPotential left + forestPotential right := by
+  simp [forestPotential]
+  omega
+
+/-- The heap potential is exactly the contribution of its root forest. -/
+theorem potential_eq_forestPotential (h : FH) :
+    h.potential = forestPotential h.roots := rfl
 
 /-- The structural cascading-cut recursion over nearest-first parent frames.
 It returns only the roots replacing the selected original root; the complete
@@ -957,6 +1051,91 @@ theorem cascadingCutTreeRawAux_correct {focus original : FHNode}
                 (FHFrame.closeAll_size_balance
                   (parents := next :: parents) hlocal)
 
+/-- The cascade recursion pays for every additional cut from the standard
+potential.  The stronger focus-mark term is what makes the marked recursive
+case close with a constant bound. -/
+theorem cascadingCutTreeRawAux_amortized {focus original : FHNode}
+    {parents : List FHFrame} {result : FHCascadeTreeResult}
+    (horiginalRootUnmarked :
+      (FHFrame.closeAll original parents).marked = false)
+    (hraw : cascadingCutTreeRawAux focus parents = some result) :
+    Int.ofNat result.cost + forestPotential result.roots -
+        nodePotential (FHFrame.closeAll focus parents) ≤
+      3 - 2 * Int.ofNat (if focus.marked then 1 else 0) := by
+  induction parents generalizing focus original result with
+  | nil => simp [cascadingCutTreeRawAux] at hraw
+  | cons frame tail ih =>
+      cases tail with
+      | nil =>
+          simp [cascadingCutTreeRawAux] at hraw
+          subst result
+          have hframeUnmarked : frame.marked = false := by
+            simpa [FHFrame.closeAll, FHFrame.close] using
+              horiginalRootUnmarked
+          have hbalance := FHFrame.close_marks_balance frame focus
+          have hfocusClear := markFalse_marks_add focus
+          have hparentClear := markFalse_marks_add frame.removeFocus
+          simp only [FHCascadeTreeResult.cost, Int.ofNat_zero, zero_add,
+            FHCascadeTreeResult.roots, List.cons_append, List.nil_append,
+            List.append_nil, forestPotential_cons, forestPotential_nil,
+            add_zero, FHFrame.closeAll, List.foldl_cons, List.foldl_nil]
+          cases hfocusMarked : focus.marked <;>
+            simp [nodePotential, hframeUnmarked, hfocusMarked,
+              FHFrame.removeFocus] at hbalance hfocusClear hparentClear ⊢ <;>
+            omega
+      | cons next parents =>
+          have hbalanceLocal := FHFrame.close_marks_balance frame focus
+          have hbalanceAll := FHFrame.closeAll_marks_balance
+            (parents := next :: parents) hbalanceLocal
+          have hfocusClear := markFalse_marks_add focus
+          by_cases hmarked : frame.marked = true
+          · cases hrecursive : cascadingCutTreeRawAux frame.removeFocus
+                (next :: parents) with
+            | none =>
+                simp [cascadingCutTreeRawAux, hmarked, hrecursive] at hraw
+            | some recursive =>
+                simp [cascadingCutTreeRawAux, hmarked, hrecursive] at hraw
+                subst result
+                have hrecursiveBound := ih
+                  (focus := frame.removeFocus)
+                  (original := frame.close original)
+                  (result := recursive)
+                  (by simpa [FHFrame.closeAll] using horiginalRootUnmarked)
+                  hrecursive
+                have hparentMarked : frame.removeFocus.marked = true := by
+                  simp [FHFrame.removeFocus, hmarked]
+                change Int.ofNat (recursive.cost + 1) +
+                    forestPotential (markFalse focus :: recursive.roots) -
+                    nodePotential
+                      (FHFrame.closeAll (frame.close focus) (next :: parents)) ≤
+                  3 - 2 * Int.ofNat (if focus.marked then 1 else 0)
+                cases hfocusMarked : focus.marked <;>
+                  simp [nodePotential, hfocusMarked, hparentMarked] at hrecursiveBound hfocusClear ⊢ <;>
+                  omega
+          · have hmarkedFalse : frame.marked = false := by
+              cases h : frame.marked <;> simp_all
+            simp [cascadingCutTreeRawAux, hmarkedFalse] at hraw
+            subst result
+            let parent := frame.removeFocus
+            let markedParent := parent.markTrue
+            have hparentUnmarked : parent.marked = false := by
+              simp [parent, FHFrame.removeFocus, hmarkedFalse]
+            have hmarkedParentMarks : markedParent.marks = parent.marks + 1 := by
+              exact FHNode.markTrue_marks_of_unmarked hparentUnmarked
+            have htransport := FHFrame.closeAll_marks_exchange parent
+              markedParent (next :: parents)
+            dsimp [parent, markedParent] at hmarkedParentMarks htransport
+            simp only [FHCascadeTreeResult.cost, Int.ofNat_zero, zero_add,
+              FHCascadeTreeResult.roots, List.cons_append, List.nil_append,
+              List.append_nil, forestPotential_cons, forestPotential_nil,
+              add_zero]
+            norm_num
+            rw [show FHFrame.closeAll focus (frame :: next :: parents) =
+                FHFrame.closeAll (frame.close focus) (next :: parents) by rfl]
+            cases hfocusMarked : focus.marked <;>
+              simp [nodePotential, hfocusMarked] at hfocusClear ⊢ <;>
+              omega
+
 /-- The structural cascading-cut state machine on an already dereferenced
 cursor.  The nearest parent is edited first.  An unmarked nonroot parent is
 marked and stops the cascade; a marked parent is cut recursively. -/
@@ -1122,6 +1301,50 @@ theorem cascadingCutRaw_correct {cursor : FHCursor} {result : FHCascadeResult}
       (hvalid.2.1 cursor.closeNode (by simp [FHCursor.close])))
     rfl hcut
 
+/-- The actual additional cascade-iteration charge plus the potential change
+is at most three.  A marked focus gives the stronger residual bound used by
+the recursive proof. -/
+theorem cascadingCutRaw_amortized {cursor : FHCursor}
+    {result : FHCascadeResult}
+    (hrootUnmarked : cursor.closeNode.marked = false)
+    (hcut : cascadingCutRaw cursor = some result) :
+    Int.ofNat result.cost + result.heap.potential - cursor.close.potential ≤
+      3 - 2 * Int.ofNat (if cursor.focus.marked then 1 else 0) := by
+  cases htree : cascadingCutTreeRawAux cursor.focus cursor.parents with
+  | none => simp [cascadingCutRaw, htree] at hcut
+  | some tree =>
+      simp [cascadingCutRaw, htree] at hcut
+      subst result
+      have htreeBound := cascadingCutTreeRawAux_amortized
+        (focus := cursor.focus) (original := cursor.focus)
+        (parents := cursor.parents) (result := tree)
+        (by simpa [FHCursor.closeNode] using hrootUnmarked) htree
+      let roots :=
+        cursor.rootsBefore ++
+          (tree.promoted ++ tree.root :: cursor.rootsAfter)
+      have hresultPotential :
+          (rebuildRoots cursor roots).potential =
+            forestPotential cursor.rootsBefore +
+              forestPotential tree.roots +
+              forestPotential cursor.rootsAfter := by
+        simp [potential, forestPotential, rebuildRoots, roots,
+          FHCascadeTreeResult.roots, List.append_assoc]
+        omega
+      have hsourcePotential :
+          cursor.close.potential =
+            forestPotential cursor.rootsBefore +
+              nodePotential
+                (FHFrame.closeAll cursor.focus cursor.parents) +
+              forestPotential cursor.rootsAfter := by
+        simp [potential, forestPotential, nodePotential, FHCursor.close,
+          FHCursor.closeNode]
+        omega
+      change Int.ofNat tree.cost + (rebuildRoots cursor roots).potential -
+          cursor.close.potential ≤
+        3 - 2 * Int.ofNat (if cursor.focus.marked then 1 else 0)
+      rw [hresultPotential, hsourcePotential]
+      omega
+
 /-- Public executable cascading cut. -/
 def cascadingCut (cursor : FHCursor) : Option FHCascadeResult :=
   cascadingCutRaw cursor
@@ -1197,6 +1420,10 @@ def setNodeKey (node : FHNode) (newKey : Int) : FHNode :=
     (setNodeKey node newKey).size = node.size := by
   cases node <;> simp [setNodeKey]
 
+@[simp] theorem setNodeKey_marks (node : FHNode) (newKey : Int) :
+    (setNodeKey node newKey).marks = node.marks := by
+  cases node <;> simp [setNodeKey]
+
 /-- Replacing a node key changes exactly its root occurrence in the subtree
 multiset, including when the same key occurs elsewhere below it. -/
 theorem setNodeKey_keyBag (node : FHNode) (newKey : Int) :
@@ -1270,6 +1497,19 @@ def refreshMinimum (h : FH) : FH :=
   { roots := h.roots
   , size := h.size
   , minRoot := computeMinRoot h.roots }
+
+@[simp] theorem refreshMinimum_potential (h : FH) :
+    (refreshMinimum h).potential = h.potential := rfl
+
+/-- Replacing only the focused key leaves the complete heap potential
+unchanged. -/
+theorem close_setNodeKey_potential (cursor : FHCursor) (newKey : Int) :
+    ({ cursor with focus := setNodeKey cursor.focus newKey } : FHCursor).close.potential =
+      cursor.close.potential := by
+  have hrootMarks := FHFrame.closeAll_marks_congr
+    (parents := cursor.parents) (setNodeKey_marks cursor.focus newKey)
+  unfold potential
+  simp [FHCursor.close, FHCursor.closeNode, hrootMarks]
 
 /-- The addressed root-key occurrence remains present in its subtree bag. -/
 theorem focus_key_mem_keyBag (node : FHNode) : node.key ∈ node.keyBag := by
@@ -1559,6 +1799,79 @@ theorem decreaseKeyAtRaw_correct {h : FH} {path : FHPath} {newKey : Int}
               · simpa [FHCursor.close, updated, refreshMinimum, hparents] using
                   congrArg FH.size hclose
               · simpa [hparents] using hresultValid
+      · rw [if_neg hdecrease] at hdec
+        contradiction
+
+/-- Raw handle-directed decrease-key has constant amortized cost under the
+additional-cascade-iterations convention stored in `FHUpdateResult.cost`. -/
+theorem decreaseKeyAtRaw_amortized {h : FH} {path : FHPath} {newKey : Int}
+    {result : FHUpdateResult} (hvalid : h.Valid)
+    (hdec : h.decreaseKeyAtRaw path newKey = some result) :
+    Int.ofNat result.cost + result.heap.potential - h.potential ≤ 3 := by
+  unfold decreaseKeyAtRaw at hdec
+  cases hopen : h.openPath path with
+  | none => simp [hopen] at hdec
+  | some cursor =>
+      simp only [hopen, Option.bind_eq_bind, Option.bind_some] at hdec
+      have hclose := openPath_close hopen
+      have hcursorValid : cursor.close.Valid := by simpa [hclose] using hvalid
+      have hsourcePotential (key : Int) :
+          ({ cursor with focus := setNodeKey cursor.focus key } : FHCursor).close.potential =
+            h.potential := by
+        rw [close_setNodeKey_potential, hclose]
+      by_cases hdecrease : newKey ≤ cursor.focus.key
+      · rw [if_pos hdecrease] at hdec
+        let updated : FHCursor :=
+          { cursor with focus := setNodeKey cursor.focus newKey }
+        cases hparents : cursor.parents with
+        | nil =>
+            simp [updated, hparents] at hdec
+            subst result
+            simp only [FHUpdateResult.cost, Int.ofNat_zero, zero_add,
+              FHUpdateResult.heap]
+            rw [refreshMinimum_potential]
+            have hpotential := hsourcePotential newKey
+            simp [updated, hparents] at hpotential
+            rw [hpotential]
+            norm_num
+        | cons parent parents =>
+            by_cases hviolates : newKey < parent.key
+            · simp only [hparents, hviolates, if_true] at hdec
+              obtain ⟨cut, hcutExplicit, hresult⟩ :=
+                Option.bind_eq_some_iff.mp hdec
+              simp at hresult
+              subst result
+              have hcut : cascadingCutRaw updated = some cut := by
+                simpa [updated, hparents] using hcutExplicit
+              have holdRootUnmarked : cursor.closeNode.marked = false :=
+                hcursorValid.2.2.1 cursor.closeNode (by simp [FHCursor.close])
+              have hupdatedRootUnmarked : updated.closeNode.marked = false := by
+                have hnew :
+                    (FHFrame.closeAll (setNodeKey cursor.focus newKey)
+                      (parent :: parents)).marked = false := by
+                  rw [← FHFrame.closeAll_marked_eq_of_cons cursor.focus
+                    (setNodeKey cursor.focus newKey) parent parents]
+                  simpa [FHCursor.closeNode, hparents] using holdRootUnmarked
+                simpa [updated, FHCursor.closeNode, hparents] using hnew
+              have hbound := cascadingCutRaw_amortized
+                hupdatedRootUnmarked hcut
+              have hpotential : updated.close.potential = h.potential := by
+                simpa [updated] using hsourcePotential newKey
+              change Int.ofNat cut.cost + cut.heap.potential - h.potential ≤ 3
+              rw [← hpotential]
+              have hindicator :
+                  0 ≤ Int.ofNat (if updated.focus.marked then 1 else 0) :=
+                Int.ofNat_nonneg
+              omega
+            · simp [updated, hparents, hviolates] at hdec
+              subst result
+              simp only [FHUpdateResult.cost, Int.ofNat_zero, zero_add,
+                FHUpdateResult.heap]
+              rw [refreshMinimum_potential]
+              have hpotential := hsourcePotential newKey
+              simp [updated, hparents] at hpotential
+              rw [hpotential]
+              norm_num
       · rw [if_neg hdecrease] at hdec
         contradiction
 
