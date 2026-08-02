@@ -2,6 +2,7 @@ import Mathlib
 import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms
 import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Chapter_04.Section_04_5_Master_Theorem
+import CLRSLean.Chapter_04.Section_04_6_Master_Theorem_All_Input
 
 /-!
 # CLRS §2.3 — Merge Sort Recurrence and Θ(n log n) Bound
@@ -10,7 +11,10 @@ This file formalizes the merge sort recurrence from CLRS §2.3:
 
 > T(n) = T(⌊n/2⌋) + T(⌈n/2⌉) + Θ(n)
 
-and proves the tight asymptotic bound T(n) = Θ(n log n).
+and proves the tight asymptotic bound T(n) = Θ(n log n) for **all** input
+sizes.  The exact-power bound `T(2^i) = Θ((i+1)·2^i)` comes from the Master
+Theorem; `theta_n_log_n_all_inputs` extends it to every natural input through
+the Chapter 4 §4.6 floor/ceiling sandwich bridge.
 
 ## Approach
 
@@ -133,6 +137,71 @@ theorem theta_n_log_n_on_exact_powers (T : ℕ → ℝ) (hRec : Recurrence T)
   exact Chapter04.master_case2_constant_forcing 2 2 (fun n : ℕ => (n : ℝ)) T
     h_rec_mt ha_pos h_base_nonneg (by norm_num) (by norm_num) h_term_lower h_term_upper
 
+/-! ### All-input Θ(n log n) bound -/
+
+/-- On an exact power of two the discrete case-2 scale
+`(⌊log₂ n⌋ + 1)·2^(⌊log₂ n⌋)` collapses to `(i+1)·2^i`. -/
+lemma exactPower_scale_eq_criticalPowerLogScale (i : ℕ) :
+    ((i : ℝ) + 1) * ((2 : ℝ) ^ i) = Chapter04.criticalPowerLogScale 2 2 (2 ^ i) := by
+  rw [Chapter04.criticalPowerLogScale_exactPower 2 2 i (by norm_num : (1 : ℕ) < 2)]
+  norm_num
+
+/-- For `a = b = 2` the textbook case-2 scale `n^(log₂2)·log n` is exactly
+`n·log n`. -/
+lemma realLogLogScale_two_two (n : ℕ) :
+    Chapter04.realLogLogScale 2 2 n = (n : ℝ) * Real.log (n : ℝ) := by
+  unfold Chapter04.realLogLogScale Chapter04.realLogScale Chapter04.realLogExponent
+  have hlog2_pos : 0 < Real.log ((2 : ℕ) : ℝ) := by
+    exact Real.log_pos (by norm_num : (1 : ℝ) < ((2 : ℕ) : ℝ))
+  have hlog2_ne : Real.log ((2 : ℕ) : ℝ) ≠ 0 := ne_of_gt hlog2_pos
+  have hexp : Real.log ((2 : ℕ) : ℝ) / Real.log ((2 : ℕ) : ℝ) = 1 := by
+    rw [div_self hlog2_ne]
+  rw [hexp]
+  simp
+
+/--
+**Merge sort is Θ(n log n) for all input sizes** (CLRS §2.3).
+
+For any cost function `T` satisfying the merge-sort recurrence on every input,
+with `T(1) > 0` and `T` monotone in absolute value, `T` is Θ(n·log n).
+
+This extends `theta_n_log_n_on_exact_powers` from exact powers of two to
+every natural input using the Chapter 4 §4.6 all-input Master-theorem bridge:
+the exact-power bound `T(2^i) = Θ((i+1)·2^i)` is transferred to all inputs
+through the discrete log scale `(⌊log₂ n⌋+1)·2^(⌊log₂ n⌋)`, which is then
+identified with `n·log n`.
+-/
+theorem theta_n_log_n_all_inputs (T : ℕ → ℝ)
+    (hRec : Recurrence T) (hT1 : 0 < T 1)
+    (hT_mono : Chapter04.MonotoneAbs T) :
+    Chapter03.isBigTheta T (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) := by
+  have h_power : Chapter03.isBigTheta
+      (fun i : ℕ => T (2 ^ i))
+      (fun i : ℕ => Chapter04.criticalPowerLogScale 2 2 (2 ^ i)) := by
+    convert theta_n_log_n_on_exact_powers T hRec hT1 using 1
+    funext i
+    exact (exactPower_scale_eq_criticalPowerLogScale i).symm
+  have h_all : Chapter03.isBigTheta T (Chapter04.criticalPowerLogScale 2 2) :=
+    Chapter04.allInput_bigTheta_of_powerStep 2 T (Chapter04.criticalPowerLogScale 2 2)
+      (by norm_num : (1 : ℕ) < 2)
+      hT_mono
+      (Chapter04.criticalPowerLogScale_monotoneAbs 2 2 (by norm_num : (1 : ℕ) ≤ 2))
+      (Chapter04.criticalPowerLogScale_powerStepBound 2 2 (by norm_num : (1 : ℕ) ≤ 2)
+        (by norm_num : (1 : ℕ) < 2))
+      h_power
+  have h_scale : Chapter03.isBigTheta
+      (Chapter04.criticalPowerLogScale 2 2) (Chapter04.realLogLogScale 2 2) :=
+    Chapter04.criticalPowerLogScale_isBigTheta_realLogLogScale 2 2
+      (by norm_num : (1 : ℕ) ≤ 2) (by norm_num : (1 : ℕ) < 2)
+  have h_loglog : Chapter03.isBigTheta T (Chapter04.realLogLogScale 2 2) :=
+    Chapter03.isBigTheta_trans h_all h_scale
+  have h_eq_scale : Chapter03.isBigTheta
+      (Chapter04.realLogLogScale 2 2) (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) := by
+    convert Chapter03.isBigTheta_refl (fun n : ℕ => (n : ℝ) * Real.log (n : ℝ)) using 1
+    funext n
+    exact realLogLogScale_two_two n
+  exact Chapter03.isBigTheta_trans h_loglog h_eq_scale
+
 /-!
 ### Connection to existing results
 
@@ -142,9 +211,9 @@ power-of-two recurrence.  The result above recovers the same asymptotic
 bound (Θ(n log n)) from the general recurrence using the Master Theorem,
 without computing the exact closed form.
 
-For the full arbitrary-input bound (with floors/ceilings), see
-Chapter 4 §4.6, which extends the Master Theorem to all input sizes
-via floor/ceiling sandwiching.
+The all-input bound `theta_n_log_n_all_inputs` now extends this from exact
+powers of two to every natural input size, using the Chapter 4 §4.6
+floor/ceiling sandwich bridge.
 -/
 
 end MergeSortRecurrence

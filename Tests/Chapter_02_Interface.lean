@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_02.Section_02_1_Insertion_Sort
 import CLRSLean.Chapter_02.Section_02_2_Analyzing_Algorithms
 import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms
+import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence
 
 #check CLRS.Chapter02.insertionSort
 #check CLRS.Chapter02.insertionSort_sorted
@@ -13,3 +14,4 @@ import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms
 #check CLRS.Chapter02.mergeSort_perm
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm
+#check CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
