@@ -165,9 +165,13 @@ import CLRSLean.Chapter_19.Section_19_4_Bounding_Maximum_Degree
 #check CLRS.Chapter19.FH.cascadingCutRaw_correct
 #check CLRS.Chapter19.FH.cutAtPath_raw_correct
 #check CLRS.Chapter19.FH.decreaseKeyAt
+#check CLRS.Chapter19.FH.decreaseKeyAtRaw_correct
+#check CLRS.Chapter19.FH.decreaseKeyAtRaw_oldKey
 #check CLRS.Chapter19.FH.decreaseKeyAt_correct
 #check CLRS.Chapter19.FH.deleteAt
+#check CLRS.Chapter19.FH.deleteAtRaw_correct
 #check CLRS.Chapter19.FH.deleteAt_correct
+#check CLRS.Chapter19.FH.minimum_le_keyBag
 #check CLRS.Chapter19.FH.Costed.consolidate
 #check CLRS.Chapter19.FH.Costed.extractMin
 #check CLRS.Chapter19.FH.Costed.decreaseKeyAt

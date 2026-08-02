@@ -1332,6 +1332,23 @@ theorem minimum_mem {h : FH} {x : Int} (hvalid : h.MinRootValid)
       subst x
       exact FHNode.mem_forestKeySet_of_mem hroot
 
+/-- A successful cached-minimum query is no greater than every represented
+key occurrence. -/
+theorem minimum_le_keyBag {h : FH} {x y : Int}
+    (hvalid : h.MinRootValid) (hmin : minimum h = some x)
+    (hy : y ∈ h.keyBag) :
+    x ≤ y := by
+  unfold minimum at hmin
+  cases hcache : h.minRoot with
+  | none => simp [hcache] at hmin
+  | some root =>
+      have hx : root.key = x := by simpa [hcache] using hmin
+      have hvalid' :
+          root ∈ h.roots ∧ ∀ z ∈ h.keyBag, root.key ≤ z := by
+        simpa [MinRootValid, hcache] using hvalid
+      rw [← hx]
+      exact hvalid'.2 y hy
+
 /-- Minimum-root removal fails exactly on the empty root forest. -/
 theorem removeMinRoot_none_iff (roots : List FHNode) :
     removeMinRoot roots = none ↔ roots = [] := by
