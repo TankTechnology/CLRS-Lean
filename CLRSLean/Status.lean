@@ -76,6 +76,10 @@ the detailed maintainer ledger.
   predecessor-path reconstruction with walk and weight guarantees,
   negative-cycle detection, transitive closure, and Johnson's end-to-end
   shortest-distance theorem.
+* **Chapter 26:** concrete augmenting-path augmentation, the Max-Flow Min-Cut
+  equivalence, executable residual BFS and Edmonds-Karp, the {lit}`O(VE²)`
+  augmentation bound, and maximum bipartite matching through Theorem 26.12.
+  Sections 26.4 and 26.5 are outside the current selected milestone.
 * **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
   search costs, universal hashing, open addressing, and perfect hashing.
 * **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
@@ -125,15 +129,6 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapter 26:** the flow model, concrete residual-path augmentation with exact
-  and strict value increase, the residual-reachability bridge, the full MFMC
-  equivalence, residual-distance infrastructure through the predecessor,
-  shortest-prefix, augmentation-edge, and Lemma 26.7 monotonicity theorems, and
-  the Section 26.3 bipartite-network model with a conditional matching-flow
-  value theorem are proved.  The two remaining groups are executable BFS and
-  the Edmonds-Karp loop with its {lit}`O(VE²)` theorem; and feasible
-  matching-flow construction, the integral-flow converse, and the maximum-value
-  statement of Theorem 26.12.
 * **Chapter 27:** the dynamic-multithreading model (computation DAG with an
   honestly computed longest-path span, spawn/sync trees, balanced
   parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
@@ -168,13 +163,6 @@ milestone:
 * imperative adjacency-list or RAM refinement;
 * mutable-array refinement of the Chapter 23 union-find and Prim queue models;
 * exercises and chapter-end problems.
-
-## Highest-Value Open Proof Groups
-
-1. Implement BFS and the Edmonds-Karp loop and prove the {lit}`O(VE²)` work
-   theorem.
-2. Complete Theorem 26.12 with matching-flow feasibility, the integral-flow
-   converse, and maximum matching/max-flow value equality.
 
 ## Reader Contract
 
