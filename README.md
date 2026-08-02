@@ -5,6 +5,11 @@ CLRS-Lean is a Lean 4 companion for the mathematical correctness arguments in
 book-style Verso site: chapter guides explain the formalization boundary, while
 section modules contain executable definitions, theorem interfaces, and proofs.
 
+> 🎉 **Major milestone: the core formalization of CLRS Chapters 1–26 is complete!**
+> All 1,584 tracked theorem entries across Chapters 1–26 are kernel-checked,
+> with no remaining core proof groups. Exercises and chapter-end Problems are
+> intentionally reserved for a later phase.
+
 - [Website](https://tanktechnology.github.io/CLRS-Lean/)
 - [Generated progress dashboard](https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Progress/)
 - [Reader-facing proof status](https://tanktechnology.github.io/CLRS-Lean/CLRSLean/Status/)
@@ -33,32 +38,32 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | Ch | Title | Status | Theorems | Core remaining |
 |---:|-------|--------|-------:|----------------|
 | 1 | The Role of Algorithms | ⚪ guide | 0 | — |
-| 2 | Getting Started | 🟢 complete | 6 | — |
+| 2 | Getting Started | 🟢 complete | 7 | — |
 | 3 | Growth of Functions | 🟢 complete | 47 | — |
-| 4 | Divide-and-Conquer | 🟢 complete | 94 | — |
-| 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 23 | — |
+| 4 | Divide-and-Conquer | 🟢 complete | 96 | — |
+| 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 25 | — |
 | 6 | Heapsort | 🟢 complete | 78 | — |
 | 7 | Quicksort | 🟡 sections | 30 | — |
-| 8 | Sorting in Linear Time | 🟢 correctness | 29 | — |
+| 8 | Sorting in Linear Time | 🟢 correctness | 36 | — |
 | 9 | Medians and Order Statistics | 🟢 complete | 72 | — |
 | 10 | Elementary Data Structures | 🟡 sections | 12 | — |
 | 11 | Hash Tables | 🟢 correctness | 51 | — |
 | 12 | Binary Search Trees | 🟢 correctness | 40 | — |
 | 13 | Red-Black Trees | 🟢 correctness | 39 | — |
-| 14 | Augmenting Data Structures | 🟢 correctness | 67 | — |
+| 14 | Augmenting Data Structures | 🟢 correctness | 77 | — |
 | 15 | Dynamic Programming | 🟡 sections | 76 | — |
 | 16 | Greedy Algorithms | 🟢 complete | 32 | — |
 | 17 | Amortized Analysis | 🟡 sections | 66 | — |
 | 18 | B-Trees | 🟢 correctness | 134 | — |
-| 19 | Fibonacci Heaps | 🟠 partial | 112 | Pointer forest circular root lists executable CONSOLIDATE… |
+| 19 | Fibonacci Heaps | 🟢 correctness | 214 | — |
 | 20 | van Emde Boas Trees | 🟢 correctness | 200 | — |
 | 21 | Data Structures for Disjoint Sets | 🟢 complete | 84 | — |
 | 22 | Elementary Graph Algorithms | 🟢 correctness | 47 | — |
 | 23 | Minimum Spanning Trees | 🟢 correctness | 52 | — |
-| 24 | Single-Source Shortest Paths | 🟡 sections | 22 | — |
-| 25 | All-Pairs Shortest Paths | 🟢 correctness | 22 | — |
-| 26 | Maximum Flow | 🟠 partial | 10 | Executable BFS and Edmonds-Karp loop with the O(VE²)… |
-| 27 | Multithreaded Algorithms | 🟠 partial | 28 | Greedy-scheduler bound (Theorem 27.1/27.2); all-input… |
+| 24 | Single-Source Shortest Paths | 🟡 sections | 27 | — |
+| 25 | All-Pairs Shortest Paths | 🟢 correctness | 24 | — |
+| 26 | Maximum Flow | 🟢 complete | 18 | — |
+| 27 | Multithreaded Algorithms | 🟠 partial | 48 | All-input Theta-bounds for the merge-based costs; executable… |
 | 28 | Matrix Operations | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 29 | Linear Programming | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 30 | Polynomials and the FFT | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
@@ -67,7 +72,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
 | 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1499 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1658 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
