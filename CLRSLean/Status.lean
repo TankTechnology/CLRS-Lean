@@ -136,8 +136,9 @@ the detailed maintainer ledger.
   Strassen are executable cost functions with exact power-of-two closed forms
   (work `Θ(n³)`, `Θ(n)`, `Θ(n log n)`, `Θ(n^(log₂ 7))`; spans `Θ(log n)`,
   `Θ(log² n)`, `Θ(log³ n)`), plus all-input upper bounds for P-MATMUL.  The
-  greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the
-  merge-based costs, and executable algorithm refinements remain.
+  explicit ready-set DAG execution model proves the greedy-scheduler bound
+  (Theorem 27.1/27.2) for completed schedules.  All-input Θ-bounds for the
+  merge-based costs and executable algorithm refinements remain.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

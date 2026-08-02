@@ -648,12 +648,14 @@ end DAGScheduleStep
 
 /-! ## Chained computation-DAG schedules -/
 
-/-- A type-safe sequence of active greedy DAG steps.
+/-- A type-safe sequence of active greedy DAG steps ending at zero work.
 
 The index is the initial residual state.  In the `step` constructor the tail is
-indexed by `S.after`, so consecutive states agree by construction. -/
+indexed by `S.after`, so consecutive states agree by construction; `done`
+requires that no work remains. -/
 inductive DAGSchedule (G : CompDAG) (processors : ℕ) : (ℕ → ℕ) → Type where
-  | done (remaining : ℕ → ℕ) : DAGSchedule G processors remaining
+  | done (remaining : ℕ → ℕ) (complete : G.remainingWork remaining = 0) :
+      DAGSchedule G processors remaining
   | step (S : DAGScheduleStep G processors)
       (active : 0 < G.remainingWork S.remaining)
       (tail : DAGSchedule G processors S.after) :
@@ -665,14 +667,22 @@ namespace DAGSchedule
 def metricSteps {G : CompDAG} {processors : ℕ} :
     {remaining : ℕ → ℕ} → DAGSchedule G processors remaining →
       List GreedyScheduleStep
-  | _, .done _ => []
+  | _, .done _ _ => []
   | _, .step S _ tail => S.metricStep :: tail.metricSteps
 
 /-- The residual state where the recorded execution stops. -/
 def finalState {G : CompDAG} {processors : ℕ} :
     {remaining : ℕ → ℕ} → DAGSchedule G processors remaining → ℕ → ℕ
-  | _, .done remaining => remaining
+  | _, .done remaining _ => remaining
   | _, .step _ _ tail => tail.finalState
+
+/-- Every recorded execution stops only after all DAG work is complete. -/
+theorem final_work_eq_zero {G : CompDAG} {processors : ℕ}
+    {remaining : ℕ → ℕ} (D : DAGSchedule G processors remaining) :
+    G.remainingWork D.finalState = 0 := by
+  induction D with
+  | done _ complete => exact complete
+  | step _ _ _ ih => exact ih
 
 /-- Parallel time of the chained execution. -/
 def time {G : CompDAG} {processors : ℕ} {remaining : ℕ → ℕ}
@@ -749,9 +759,9 @@ end DAGSchedule
 /-- A schedule run whose resource bounds and progress obligations are stated
 locally, one execution step at a time.
 
-The eventual ready-set semantics only needs to produce this interface: a
-complete step consumes at least `processors` work, and an incomplete step
-decreases the remaining span by at least one. -/
+`DAGSchedule.toRun` produces this interface from the concrete ready-set
+semantics: a complete step consumes at least `processors` work, and an
+incomplete step decreases the remaining span by at least one. -/
 structure GreedyScheduleRun where
   /-- Number of processors used by the schedule. -/
   processors : ℕ
