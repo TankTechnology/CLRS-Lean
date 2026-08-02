@@ -774,6 +774,17 @@ theorem union_valid (h₁ h₂ : FH)
 def minimum (h : FH) : Option Int :=
   if hne : h.keys.Nonempty then some (h.keys.min' hne) else none
 
+/-- Remove the leftmost minimum-key root, returning it and the remaining
+roots in their original relative order. -/
+def removeMinRoot : List FHNode → Option (FHNode × List FHNode)
+  | [] => none
+  | x :: xs =>
+      match removeMinRoot xs with
+      | none => some (x, [])
+      | some (y, rest) =>
+          if x.key ≤ y.key then some (x, xs)
+          else some (y, x :: rest)
+
 /-- The keys of the empty heap are none. -/
 theorem makeHeap_keys : keys makeHeap = ∅ := by
   simp [keys, makeHeap, FHNode.forestKeySet]
@@ -836,6 +847,133 @@ theorem minimum_mem {h : FH} {x : Int} (hmin : minimum h = some x) :
     rw [← hmin']
     exact Finset.min'_mem h.keys hne
   · simp [hne] at hmin
+
+/-- Minimum-root removal fails exactly on the empty root forest. -/
+theorem removeMinRoot_none_iff (roots : List FHNode) :
+    removeMinRoot roots = none ↔ roots = [] := by
+  cases roots with
+  | nil => simp [removeMinRoot]
+  | cons x xs =>
+      cases hrec : removeMinRoot xs with
+      | none => simp [removeMinRoot, hrec]
+      | some pair =>
+          rcases pair with ⟨y, rest⟩
+          by_cases hxy : x.key ≤ y.key <;> simp [removeMinRoot, hrec, hxy]
+
+/-- Successful minimum-root removal returns a permutation decomposition of
+the original root forest. -/
+theorem removeMinRoot_perm {roots : List FHNode} {z : FHNode}
+    {rest : List FHNode}
+    (hremove : removeMinRoot roots = some (z, rest)) :
+    (z :: rest).Perm roots := by
+  induction roots generalizing z rest with
+  | nil => simp [removeMinRoot] at hremove
+  | cons x xs ih =>
+      rw [removeMinRoot] at hremove
+      cases hrec : removeMinRoot xs with
+      | none =>
+          simp only [hrec] at hremove
+          simp only [Option.some.injEq, Prod.mk.injEq] at hremove
+          rcases hremove with ⟨rfl, rfl⟩
+          have hxs : xs = [] := (removeMinRoot_none_iff xs).mp hrec
+          subst xs
+          exact List.Perm.refl [x]
+      | some pair =>
+          rcases pair with ⟨y, r⟩
+          simp only [hrec] at hremove
+          by_cases hxy : x.key ≤ y.key
+          · rw [if_pos hxy] at hremove
+            simp only [Option.some.injEq, Prod.mk.injEq] at hremove
+            rcases hremove with ⟨rfl, rfl⟩
+            exact List.Perm.refl (x :: xs)
+          · rw [if_neg hxy] at hremove
+            simp only [Option.some.injEq, Prod.mk.injEq] at hremove
+            rcases hremove with ⟨rfl, rfl⟩
+            exact (List.Perm.swap x y r).trans ((ih hrec).cons x)
+
+/-- Minimum-root removal splits the exact forest key bag. -/
+theorem removeMinRoot_keyBag {roots : List FHNode} {z : FHNode}
+    {rest : List FHNode}
+    (hremove : removeMinRoot roots = some (z, rest)) :
+    FHNode.forestKeyBag roots = z.keyBag + FHNode.forestKeyBag rest := by
+  rw [← FHNode.forestKeyBag_cons]
+  unfold FHNode.forestKeyBag
+  apply Multiset.coe_eq_coe.mpr
+  exact (removeMinRoot_perm hremove).flatMap
+    (fun t _ => List.Perm.refl t.keysList) |>.symm
+
+/-- Minimum-root removal splits the actual forest node count. -/
+theorem removeMinRoot_forestSize {roots : List FHNode} {z : FHNode}
+    {rest : List FHNode}
+    (hremove : removeMinRoot roots = some (z, rest)) :
+    FHNode.forestSize roots = z.size + FHNode.forestSize rest := by
+  rw [← FHNode.forestSize_cons]
+  exact ((removeMinRoot_perm hremove).map FHNode.size).sum_eq.symm
+
+/-- Structural goodness projects to the selected root and remaining forest. -/
+theorem removeMinRoot_good {roots : List FHNode} {z : FHNode}
+    {rest : List FHNode}
+    (hremove : removeMinRoot roots = some (z, rest))
+    (hgood : FHNode.ForestGood roots) :
+    z.HeapOrdered ∧ z.Wellformed ∧ FHNode.ForestGood rest := by
+  have hperm := removeMinRoot_perm hremove
+  have hz : z ∈ roots := hperm.mem_iff.mp (by simp)
+  refine ⟨hgood.1 z hz, hgood.2 z hz, ?_⟩
+  constructor
+  · intro t ht
+    exact hgood.1 t (hperm.mem_iff.mp (by simp [ht]))
+  · intro t ht
+    exact hgood.2 t (hperm.mem_iff.mp (by simp [ht]))
+
+/-- The selected root and every remaining root inherit the root-mark rule. -/
+theorem removeMinRoot_rootsUnmarked {roots : List FHNode} {z : FHNode}
+    {rest : List FHNode}
+    (hremove : removeMinRoot roots = some (z, rest))
+    (hunmarked : FHNode.RootsUnmarked roots) :
+    z.marked = false ∧ FHNode.RootsUnmarked rest := by
+  have hperm := removeMinRoot_perm hremove
+  have hz : z ∈ roots := hperm.mem_iff.mp (by simp)
+  refine ⟨hunmarked z hz, ?_⟩
+  intro t ht
+  exact hunmarked t (hperm.mem_iff.mp (by simp [ht]))
+
+/-- The selected root has a key no greater than any original root key. -/
+theorem removeMinRoot_min {roots : List FHNode} {z : FHNode}
+    {rest : List FHNode}
+    (hremove : removeMinRoot roots = some (z, rest)) :
+    ∀ root ∈ roots, z.key ≤ root.key := by
+  induction roots generalizing z rest with
+  | nil => simp [removeMinRoot] at hremove
+  | cons x xs ih =>
+      rw [removeMinRoot] at hremove
+      cases hrec : removeMinRoot xs with
+      | none =>
+          simp only [hrec] at hremove
+          simp only [Option.some.injEq, Prod.mk.injEq] at hremove
+          rcases hremove with ⟨rfl, rfl⟩
+          have hxs : xs = [] := (removeMinRoot_none_iff xs).mp hrec
+          subst xs
+          simp
+      | some pair =>
+          rcases pair with ⟨y, r⟩
+          simp only [hrec] at hremove
+          by_cases hxy : x.key ≤ y.key
+          · rw [if_pos hxy] at hremove
+            simp only [Option.some.injEq, Prod.mk.injEq] at hremove
+            rcases hremove with ⟨rfl, rfl⟩
+            intro root hroot
+            rw [List.mem_cons] at hroot
+            rcases hroot with rfl | hroot
+            · exact le_rfl
+            · exact le_trans hxy (ih hrec root hroot)
+          · rw [if_neg hxy] at hremove
+            simp only [Option.some.injEq, Prod.mk.injEq] at hremove
+            rcases hremove with ⟨rfl, rfl⟩
+            intro root hroot
+            rw [List.mem_cons] at hroot
+            rcases hroot with rfl | hroot
+            · exact le_of_not_ge hxy
+            · exact ih hrec root hroot
 
 /-! ## Cutting and cascading cuts -/
 
