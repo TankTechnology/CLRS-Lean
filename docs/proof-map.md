@@ -3679,9 +3679,10 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     (the greedy-step invariant derived from explicit ready-set semantics)
   - `CLRS.Chapter27.DAGSchedule.work_balance`,
     `CLRS.Chapter27.DAGSchedule.span_balance`, and
+    `CLRS.Chapter27.DAGSchedule.final_work_eq_zero`, together with
     `CLRS.Chapter27.DAGSchedule.time_le_work_div_add_span`
-    (telescoping resource budgets and the explicit-DAG form of CLRS Theorems
-    27.1/27.2)
+    (completed executions, telescoping resource budgets, and the explicit-DAG
+    form of CLRS Theorems 27.1/27.2)
   - `CLRS.Chapter27.SpawnTree.span_le_work` (T∞ ≤ T₁ on spawn trees)
   - `CLRS.Chapter27.parallelLoop_work` (exact work `n * w + (n - 1)`)
   - `CLRS.Chapter27.parallelLoop_span` (exact span `w + depth`)
