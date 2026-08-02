@@ -1720,6 +1720,38 @@ theorem FTree.wellformed_remove_index {cs : List FTree}
       · intro c hc
         exact hall c (mem_eraseIdx_of_mem i hc)
 
+/-- Removing one child preserves the mark-aware loss invariant of the
+remaining parent and projects the invariant to the removed child. -/
+theorem lossInvariant_remove_index {k : Int} {marked : Bool}
+    {children : List FHNode}
+    (hloss : (FHNode.node k marked children).LossInvariant)
+    (i : Nat) (hi : i < children.length) :
+    children[i].LossInvariant ∧
+      (FHNode.node k marked (children.eraseIdx i)).LossInvariant := by
+  cases hloss with
+  | node hdeg hall =>
+      have hselected : children[i].LossInvariant :=
+        hall children[i] (List.getElem_mem hi)
+      refine ⟨hselected, FHNode.LossInvariant.node ?_ ?_⟩
+      · intro j hj
+        by_cases hji : j < i
+        · have hget := eraseIdx_getElem_lt (α := FHNode) i j hi hji hj
+          rw [hget]
+          exact hdeg j (lt_trans hji hi)
+        · have hjnext : j + 1 < children.length := by
+            have hjlen : (children.eraseIdx i).length = children.length - 1 :=
+              List.length_eraseIdx_of_lt hi
+            rw [hjlen] at hj
+            omega
+          have hget := eraseIdx_getElem_ge (α := FHNode) i j hi
+            (le_of_not_gt hji) hj hjnext
+          rw [hget]
+          have hold := hdeg (j + 1) hjnext
+          cases hmark : children[j + 1].marked <;>
+            simp [hmark] at hold ⊢ <;> omega
+      · intro child hchild
+        exact hall child (mem_eraseIdx_of_mem i hchild)
+
 /-- Clear the mark bit of a node. -/
 def markFalse : FHNode → FHNode
   | FHNode.node k _ cs => FHNode.node k false cs
