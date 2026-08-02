@@ -49,15 +49,15 @@ Main results:
 Status: {lit}`proved` for the interval-tree augmentation framework, the general
 augmentation theorem, the red-black rotation bridge, and the general executable
 augmentation interface (an arbitrary augmentation threaded through an executable
-red-black insertion, refining Chapter 13's {lit}`RBTree.insert`).
+red-black insertion **and** deletion, refining Chapter 13's {lit}`RBTree.insert`
+and {lit}`RBTree.delete`).
 
-Deferred refinements: monoid-based augmentation, and {lit}`toRB` refinement
-lemmas for the deletion pipeline (the {lit}`wellAugmented_delete` proof and
-the executable pipeline are complete; the Chapter 13 refinement erasure
-proofs for {lit}`baldL`/{lit}`baldR`/{lit}`splitMin`/{lit}`join`/{lit}`del`
-are future work).  Both the stored-augmentation-field refinement through
-executable {lit}`RBTree.insert` and the generic deletion pipeline preserving
-{lit}`WellAugmented` are now proved.
+Deferred refinements: monoid-based augmentation.  The stored-augmentation-field
+refinement through executable {lit}`RBTree.insert` ({lit}`toRB_insert`), the
+generic deletion pipeline preserving {lit}`WellAugmented`
+({lit}`wellAugmented_delete`), and the deletion refinement erasure
+({lit}`toRB_delete` with the {lit}`baldL`/{lit}`baldR`/{lit}`splitMin`/
+{lit}`join`/{lit}`del` commutations) are now proved.
 -/
 
 namespace CLRS
@@ -1508,6 +1508,177 @@ theorem redBlackShape_toRB_insert (x : Nat) {t : AugmentedRBTree Nat β}
 theorem mem_keys_insert (x y : Nat) (t : AugmentedRBTree Nat β) :
     y ∈ keys (insert aug natLt x t) ↔ y = x ∨ y ∈ keys t := by
   simp only [← inTree_toRB, toRB_insert, RBTree.inTree_insert_iff]
+
+/-! ### Refinement of the deletion pipeline -/
+
+omit [Inhabited β] in
+/-- Erasing the augmentation commutes with repainting the root in any colour. -/
+theorem toRB_repaintRoot (c : Color) (t : AugmentedRBTree Nat β) :
+    toRB (repaintRoot c t) = RBTree.repaintRoot c (toRB t) := by
+  cases t <;> rfl
+
+omit [Inhabited β] in
+/-- Erasing the augmentation preserves the boolean black-root test. -/
+theorem rootBlack_toRB (t : AugmentedRBTree Nat β) :
+    RBTree.rootBlack (toRB t) = rootBlack t := by
+  cases t <;> rfl
+
+omit [Inhabited β] in
+/-- Erasing the augmentation preserves the empty/non-empty distinction. -/
+theorem toRB_empty_iff (t : AugmentedRBTree Nat β) :
+    toRB t = RBTree.empty ↔ t = AugmentedRBTree.empty := by
+  cases t <;> simp [toRB]
+
+/-- Erasing the augmentation commutes with {name}`baldL`. -/
+theorem toRB_baldL (l : AugmentedRBTree Nat β) (k : Nat) (r : AugmentedRBTree Nat β) :
+    toRB (baldL aug l k r) = RBTree.baldL (toRB l) k (toRB r) := by
+  cases l with
+  | empty =>
+      cases r with
+      | empty => rfl
+      | node rc cl cy sc cr =>
+          cases rc with
+          | black => simp [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight, toRB_repaintRoot]
+          | red =>
+              cases cl with
+              | empty => simp [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight, toRB_repaintRoot]
+              | node clc cll clk cls clr =>
+                  cases clc <;>
+                    simp [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight, toRB_repaintRoot]
+  | node lc a x s b =>
+      cases lc with
+      | red => simp [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight, toRB_repaintRoot]
+      | black =>
+          cases r with
+          | empty => rfl
+          | node rc cl cy sc cr =>
+              cases rc with
+              | black => simp [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight, toRB_repaintRoot]
+              | red =>
+                  cases cl with
+                  | empty => simp [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight, toRB_repaintRoot]
+                  | node clc cll clk cls clr =>
+                      cases clc <;>
+                        simp [baldL, RBTree.baldL, toRB, toRB_mk, toRB_balanceRight, toRB_repaintRoot]
+
+/-- Erasing the augmentation commutes with {name}`baldR`. -/
+theorem toRB_baldR (l : AugmentedRBTree Nat β) (k : Nat) (r : AugmentedRBTree Nat β) :
+    toRB (baldR aug l k r) = RBTree.baldR (toRB l) k (toRB r) := by
+  cases r with
+  | empty =>
+      cases l with
+      | empty => rfl
+      | node lc a x s b =>
+          cases lc with
+          | black => simp [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft, toRB_repaintRoot]
+          | red =>
+              cases b with
+              | empty => simp [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft, toRB_repaintRoot]
+              | node bc bl bk bs br =>
+                  cases bc <;>
+                    simp [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft, toRB_repaintRoot]
+  | node rc c y s d =>
+      cases rc with
+      | red => simp [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft, toRB_repaintRoot]
+      | black =>
+          cases l with
+          | empty => rfl
+          | node lc a x s b =>
+              cases lc with
+              | black => simp [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft, toRB_repaintRoot]
+              | red =>
+                  cases b with
+                  | empty => simp [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft, toRB_repaintRoot]
+                  | node bc bl bk bs br =>
+                      cases bc <;>
+                        simp [baldR, RBTree.baldR, toRB, toRB_mk, toRB_balanceLeft, toRB_repaintRoot]
+
+/-- Erasing the augmentation commutes with the minimum key of {name}`splitMin`. -/
+theorem toRB_splitMin_min (t : AugmentedRBTree Nat β) :
+    (RBTree.splitMin (toRB t)).1 = (splitMin aug t).1 := by
+  induction t with
+  | empty => rfl
+  | node c l k a r ihl =>
+      cases l with
+      | empty => rfl
+      | node lc ll lk la lr =>
+          cases lc with
+          | black => simpa [splitMin, RBTree.splitMin, toRB, rootBlack, RBTree.rootBlack] using ihl
+          | red => simpa [splitMin, RBTree.splitMin, toRB, rootBlack, RBTree.rootBlack] using ihl
+
+/-- Erasing the augmentation commutes with the tree component of {name}`splitMin`. -/
+theorem toRB_splitMin_tree (t : AugmentedRBTree Nat β) :
+    toRB (splitMin aug t).2 = (RBTree.splitMin (toRB t)).2 := by
+  induction t with
+  | empty => rfl
+  | node c l k a r ihl =>
+      cases l with
+      | empty => rfl
+      | node lc ll lk la lr =>
+          cases lc with
+          | black => simpa [splitMin, RBTree.splitMin, toRB, rootBlack, RBTree.rootBlack,
+              toRB_baldL] using
+              (congrArg (fun t : RBTree => RBTree.baldL t k r.toRB) ihl)
+          | red => simpa [splitMin, RBTree.splitMin, toRB, rootBlack, RBTree.rootBlack,
+              toRB_mk] using
+              (congrArg (fun t : RBTree => RBTree.node Color.red t k r.toRB) ihl)
+
+/-- Erasing the augmentation commutes with {name}`join`. -/
+theorem toRB_join (l r : AugmentedRBTree Nat β) :
+    toRB (join aug l r) = RBTree.join (toRB l) (toRB r) := by
+  cases r with
+  | empty =>
+      cases l with
+      | empty => rfl
+      | node _ _ _ _ _ => simp [join, RBTree.join, toRB_empty_iff, apply_ite toRB,
+          toRB_splitMin_min, toRB_splitMin_tree]
+  | node rc rl rk sr rr =>
+      cases l with
+      | empty => simp [join, RBTree.join, toRB_empty_iff, apply_ite toRB,
+          toRB_splitMin_min, toRB_splitMin_tree]
+      | node lc ll lk sl lr =>
+          cases rc with
+          | black =>
+              simp [join, RBTree.join, toRB_empty_iff, apply_ite toRB,
+                rootBlack, rootBlack_toRB, toRB_splitMin_tree, toRB_baldR]
+              rw [toRB_splitMin_min]
+          | red =>
+              simp [join, RBTree.join, toRB_empty_iff, apply_ite toRB,
+                rootBlack, rootBlack_toRB, toRB_splitMin_tree, toRB_mk]
+              rw [toRB_splitMin_min]
+
+/-- Erasing the augmentation commutes with recursive deletion. -/
+theorem toRB_del (x : Nat) (t : AugmentedRBTree Nat β) :
+    toRB (del aug x natLt t) = RBTree.del x (toRB t) := by
+  induction t with
+  | empty => rfl
+  | node c l y a r ihl ihr =>
+      by_cases hxy : x < y
+      · have hxy' : natLt x y = true := natLt_true_iff.mpr hxy
+        simp [del, RBTree.del, toRB, apply_ite toRB, rootBlack,
+          hxy, hxy', rootBlack_toRB, toRB_baldL, toRB_mk, ihl]
+      · by_cases hyx : y < x
+        · have hxy' : natLt x y = false := by simp [natLt, hxy]
+          have hyx' : natLt y x = true := natLt_true_iff.mpr hyx
+          simp [del, RBTree.del, toRB, apply_ite toRB, rootBlack,
+            hxy, hyx, hxy', hyx', rootBlack_toRB, toRB_baldR, toRB_mk, ihr]
+        · have hxy' : natLt x y = false := by simp [natLt, hxy]
+          have hyx' : natLt y x = false := by simp [natLt, hyx]
+          simp [del, RBTree.del, toRB, apply_ite toRB,
+            hxy, hyx, hxy', hyx', toRB_join]
+
+/--
+**Deletion refinement.**  The augmented deletion refines the *executable*
+Chapter 13 red-black deletion: erasing the cached augmentation turns
+{name}`delete` (at {name}`natLt`) into
+{name}`CLRS.Chapter13.RBTree.delete`.  This extends
+{lit}`OSRBTree.toRB_delete` from the size field to an arbitrary augmentation,
+closing the deletion half of the generic {name}`AugmentedRBTree` refinement.
+-/
+theorem toRB_delete (x : Nat) (t : AugmentedRBTree Nat β) :
+    toRB (delete aug x natLt t) = RBTree.delete x (toRB t) := by
+  unfold delete RBTree.delete
+  rw [toRB_repaintBlack, toRB_del]
 
 end Refinement
 
