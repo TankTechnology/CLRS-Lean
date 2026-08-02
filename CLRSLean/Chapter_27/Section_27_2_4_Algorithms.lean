@@ -178,6 +178,42 @@ theorem pMergeWork_unfold {n : ℕ} (hn : 2 ≤ n) :
   rw [pMergeWork]
   simp [show ¬n ≤ 1 by omega]
 
+/-- The P-MERGE work recurrence does not decrease at a successor step. -/
+private theorem pMergeWork_le_succ : ∀ n, pMergeWork n ≤ pMergeWork (n + 1) := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
+          ⟨n / 2, by omega⟩
+        · have hdiv0 : 2 * m / 2 = m := by omega
+          have hdiv1 : (2 * m + 1) / 2 = m := by omega
+          have hceil0 : 2 * m - 2 * m / 2 = m := by omega
+          have hceil1 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          rw [pMergeWork_unfold (n := 2 * m) (by omega),
+            pMergeWork_unfold (n := 2 * m + 1) (by omega),
+            hceil0, hceil1, hdiv0, hdiv1]
+          have ihm := ih m (by omega)
+          have hlog : Nat.log 2 (2 * m) ≤ Nat.log 2 (2 * m + 1) :=
+            Nat.log_mono_right (by omega)
+          omega
+        · have hdiv0 : (2 * m + 1) / 2 = m := by omega
+          have hdiv1 : (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          have hceil0 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          have hceil1 : 2 * m + 1 + 1 - (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          rw [pMergeWork_unfold (n := 2 * m + 1) (by omega),
+            pMergeWork_unfold (n := 2 * m + 1 + 1) (by omega),
+            hceil0, hceil1, hdiv0, hdiv1]
+          have ihm := ih m (by omega)
+          have hlog : Nat.log 2 (2 * m + 1) ≤ Nat.log 2 (2 * m + 1 + 1) :=
+            Nat.log_mono_right (by omega)
+          omega
+
+/-- P-MERGE work is monotone in the input size. -/
+theorem pMergeWork_monotone : Monotone pMergeWork :=
+  monotone_nat_of_le_succ pMergeWork_le_succ
+
 /-- Exact work on powers of two: `T₁(2ᵏ) + (k + 3) = 4·2ᵏ` (work `Θ(n)`). -/
 theorem pMergeWork_pow_two (k : ℕ) :
     pMergeWork (2 ^ k) + (k + 3) = 4 * 2 ^ k := by
@@ -202,6 +238,37 @@ theorem pMergeSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
     pMergeSpan n = pMergeSpan (n - n / 2) + (Nat.log 2 n + 1) := by
   rw [pMergeSpan]
   simp [show ¬n ≤ 1 by omega]
+
+/-- The P-MERGE span recurrence does not decrease at a successor step. -/
+private theorem pMergeSpan_le_succ : ∀ n, pMergeSpan n ≤ pMergeSpan (n + 1) := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
+          ⟨n / 2, by omega⟩
+        · have hceil0 : 2 * m - 2 * m / 2 = m := by omega
+          have hceil1 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          rw [pMergeSpan_unfold (n := 2 * m) (by omega),
+            pMergeSpan_unfold (n := 2 * m + 1) (by omega),
+            hceil0, hceil1]
+          have ihm := ih m (by omega)
+          have hlog : Nat.log 2 (2 * m) ≤ Nat.log 2 (2 * m + 1) :=
+            Nat.log_mono_right (by omega)
+          omega
+        · have hceil0 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          have hceil1 : 2 * m + 1 + 1 - (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          rw [pMergeSpan_unfold (n := 2 * m + 1) (by omega),
+            pMergeSpan_unfold (n := 2 * m + 1 + 1) (by omega),
+            hceil0, hceil1]
+          have hlog : Nat.log 2 (2 * m + 1) ≤ Nat.log 2 (2 * m + 1 + 1) :=
+            Nat.log_mono_right (by omega)
+          omega
+
+/-- P-MERGE span is monotone in the input size. -/
+theorem pMergeSpan_monotone : Monotone pMergeSpan :=
+  monotone_nat_of_le_succ pMergeSpan_le_succ
 
 /-- Exact span on powers of two: `2·T∞(2ᵏ) = (k+1)(k+2)` (span `Θ(log² n)`). -/
 theorem pMergeSpan_pow_two (k : ℕ) :
@@ -232,6 +299,38 @@ theorem pMergeSortWork_unfold {n : ℕ} (hn : 2 ≤ n) :
   rw [pMergeSortWork]
   simp [show ¬n ≤ 1 by omega]
 
+/-- The P-MERGE-SORT work recurrence does not decrease at a successor step. -/
+private theorem pMergeSortWork_le_succ : ∀ n, pMergeSortWork n ≤ pMergeSortWork (n + 1) := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
+          ⟨n / 2, by omega⟩
+        · have hdiv0 : 2 * m / 2 = m := by omega
+          have hdiv1 : (2 * m + 1) / 2 = m := by omega
+          have hceil0 : 2 * m - 2 * m / 2 = m := by omega
+          have hceil1 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          rw [pMergeSortWork_unfold (n := 2 * m) (by omega),
+            pMergeSortWork_unfold (n := 2 * m + 1) (by omega),
+            hceil0, hceil1, hdiv0, hdiv1]
+          have ihm := ih m (by omega)
+          omega
+        · have hdiv0 : (2 * m + 1) / 2 = m := by omega
+          have hdiv1 : (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          have hceil0 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          have hceil1 : 2 * m + 1 + 1 - (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          rw [pMergeSortWork_unfold (n := 2 * m + 1) (by omega),
+            pMergeSortWork_unfold (n := 2 * m + 1 + 1) (by omega),
+            hceil0, hceil1, hdiv0, hdiv1]
+          have ihm := ih m (by omega)
+          omega
+
+/-- P-MERGE-SORT work is monotone in the input size. -/
+theorem pMergeSortWork_monotone : Monotone pMergeSortWork :=
+  monotone_nat_of_le_succ pMergeSortWork_le_succ
+
 /-- Exact work on powers of two: `T₁(2ᵏ) = 2ᵏ·(k+1)` (work `Θ(n log n)`). -/
 theorem pMergeSortWork_pow_two (k : ℕ) :
     pMergeSortWork (2 ^ k) = 2 ^ k * (k + 1) := by
@@ -256,6 +355,35 @@ theorem pMergeSortSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
     pMergeSortSpan n = pMergeSortSpan (n - n / 2) + pMergeSpan n := by
   rw [pMergeSortSpan]
   simp [show ¬n ≤ 1 by omega]
+
+/-- The P-MERGE-SORT span recurrence does not decrease at a successor step. -/
+private theorem pMergeSortSpan_le_succ : ∀ n, pMergeSortSpan n ≤ pMergeSortSpan (n + 1) := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
+          ⟨n / 2, by omega⟩
+        · have hceil0 : 2 * m - 2 * m / 2 = m := by omega
+          have hceil1 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          rw [pMergeSortSpan_unfold (n := 2 * m) (by omega),
+            pMergeSortSpan_unfold (n := 2 * m + 1) (by omega), hceil0, hceil1]
+          have ihm := ih m (by omega)
+          have hp : pMergeSpan (2 * m) ≤ pMergeSpan (2 * m + 1) :=
+            pMergeSpan_monotone (by omega)
+          omega
+        · have hceil0 : 2 * m + 1 - (2 * m + 1) / 2 = m + 1 := by omega
+          have hceil1 : 2 * m + 1 + 1 - (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          rw [pMergeSortSpan_unfold (n := 2 * m + 1) (by omega),
+            pMergeSortSpan_unfold (n := 2 * m + 1 + 1) (by omega), hceil0, hceil1]
+          have hp : pMergeSpan (2 * m + 1) ≤ pMergeSpan (2 * m + 1 + 1) :=
+            pMergeSpan_monotone (by omega)
+          omega
+
+/-- P-MERGE-SORT span is monotone in the input size. -/
+theorem pMergeSortSpan_monotone : Monotone pMergeSortSpan :=
+  monotone_nat_of_le_succ pMergeSortSpan_le_succ
 
 /-- Exact span on powers of two:
 `6·T∞(2ᵏ) = 6 + k·(k² + 6k + 11)` (span `Θ(log³ n)`). -/
@@ -284,6 +412,36 @@ theorem strassenWork_unfold {n : ℕ} (hn : 2 ≤ n) :
   rw [strassenWork]
   simp [show ¬n ≤ 1 by omega]
 
+/-- The parallel Strassen work recurrence does not decrease at a successor step. -/
+private theorem strassenWork_le_succ : ∀ n, strassenWork n ≤ strassenWork (n + 1) := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
+          ⟨n / 2, by omega⟩
+        · have hdiv0 : 2 * m / 2 = m := by omega
+          have hdiv1 : (2 * m + 1) / 2 = m := by omega
+          rw [strassenWork_unfold (n := 2 * m) (by omega),
+            strassenWork_unfold (n := 2 * m + 1) (by omega), hdiv0, hdiv1]
+          have hsquare : (2 * m) * (2 * m) ≤ (2 * m + 1) * (2 * m + 1) := by
+            nlinarith
+          omega
+        · have hdiv0 : (2 * m + 1) / 2 = m := by omega
+          have hdiv1 : (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          rw [strassenWork_unfold (n := 2 * m + 1) (by omega),
+            strassenWork_unfold (n := 2 * m + 1 + 1) (by omega), hdiv0, hdiv1]
+          have ihm := ih m (by omega)
+          have hsquare : (2 * m + 1) * (2 * m + 1) ≤
+              (2 * m + 1 + 1) * (2 * m + 1 + 1) := by
+            nlinarith
+          omega
+
+/-- Parallel Strassen work is monotone in the input size. -/
+theorem strassenWork_monotone : Monotone strassenWork :=
+  monotone_nat_of_le_succ strassenWork_le_succ
+
 /-- Exact work on powers of two: `3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`
 (work `Θ(n^(log₂ 7))`). -/
 theorem strassenWork_pow_two (k : ℕ) :
@@ -308,6 +466,29 @@ theorem strassenSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
     strassenSpan n = strassenSpan (n / 2) + 1 := by
   rw [strassenSpan]
   simp [show ¬n ≤ 1 by omega]
+
+/-- The parallel Strassen span recurrence does not decrease at a successor step. -/
+private theorem strassenSpan_le_succ : ∀ n, strassenSpan n ≤ strassenSpan (n + 1) := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hn : n ≤ 1
+      · interval_cases n <;> native_decide
+      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
+          ⟨n / 2, by omega⟩
+        · have hdiv0 : 2 * m / 2 = m := by omega
+          have hdiv1 : (2 * m + 1) / 2 = m := by omega
+          rw [strassenSpan_unfold (n := 2 * m) (by omega),
+            strassenSpan_unfold (n := 2 * m + 1) (by omega), hdiv0, hdiv1]
+        · have hdiv0 : (2 * m + 1) / 2 = m := by omega
+          have hdiv1 : (2 * m + 1 + 1) / 2 = m + 1 := by omega
+          rw [strassenSpan_unfold (n := 2 * m + 1) (by omega),
+            strassenSpan_unfold (n := 2 * m + 1 + 1) (by omega), hdiv0, hdiv1]
+          exact Nat.add_le_add_right (ih m (by omega)) 1
+
+/-- Parallel Strassen span is monotone in the input size. -/
+theorem strassenSpan_monotone : Monotone strassenSpan :=
+  monotone_nat_of_le_succ strassenSpan_le_succ
 
 /-- Exact span on powers of two: `T∞(2ᵏ) = k + 1` (span `Θ(log n)`). -/
 theorem strassenSpan_pow_two (k : ℕ) : strassenSpan (2 ^ k) = k + 1 := by
