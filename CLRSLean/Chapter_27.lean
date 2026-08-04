@@ -17,6 +17,8 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.Execut
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.Monotonicity
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.PowerBounds
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.AllInputBounds
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
