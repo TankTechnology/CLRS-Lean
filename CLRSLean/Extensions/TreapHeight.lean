@@ -373,6 +373,187 @@ lemma leftAncestors_product {n : ℕ} {b : Fin n} (S : Finset (Fin n))
                   · simp
   exact hIH S.card S rfl hS
 
+/- `(n+1).choose n = n+1`. -/
+private lemma choose_succ (n : ℕ) : Nat.choose (n + 1) n = n + 1 := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      rw [Nat.choose_succ_succ]
+      rw [ih, Nat.choose_self]
+
+lemma eSymm_le {α : Type} [DecidableEq α] (C : Finset α) (x : α → ℝ)
+    (hx : ∀ a, 0 ≤ x a) (k : ℕ) :
+    (∑ s ∈ Finset.powersetCard k C, ∏ a ∈ s, x a) ≤
+      (∑ a ∈ C, x a)^k / (Nat.factorial k : ℝ) := by
+  classical
+  let S : Finset α → ℝ := fun D => ∑ a ∈ D, x a
+  let e : Finset α → ℕ → ℝ := fun D k => ∑ s ∈ Finset.powersetCard k D, ∏ a ∈ s, x a
+  have hmain : ∀ D : Finset α, ∀ k : ℕ, e D k ≤ (S D)^k / (Nat.factorial k : ℝ) := by
+    intro D
+    induction D using Finset.induction_on with
+    | empty =>
+        intro k
+        by_cases hk : k = 0
+        · subst k; simp [e, S]
+        · have hpc : Finset.powersetCard k (∅ : Finset α) = ∅ := by
+            ext s
+            rw [Finset.mem_powersetCard]
+            constructor
+            · intro h
+              have hs_empty : s = ∅ := Finset.subset_empty.mp h.1
+              have hcard0 : s.card = 0 := by rw [hs_empty]; simp
+              omega
+            · intro h; simp at h
+          have hS : S ∅ = 0 := by simp [S]
+          have he : e ∅ k = 0 := by
+            unfold e
+            rw [hpc]
+            simp
+          rw [he, hS]
+          have hz : (0 : ℝ)^k = 0 := zero_pow hk
+          simp [hz]
+    | @insert a D' haD ih =>
+        intro k
+        by_cases hk : k = 0
+        · subst k
+          simp [e, S]
+        · -- k ≥ 1, write k = n+1
+          have hkn : k = (k - 1) + 1 := by omega
+          -- powersetCard (n+1) (insert a D') splits
+          have hsplit : Finset.powersetCard k (Insert.insert a D') =
+              Finset.powersetCard k D' ∪ Finset.image (Insert.insert a) (Finset.powersetCard (k - 1) D') := by
+            rw [hkn]
+            exact Finset.powersetCard_succ_insert haD (k - 1)
+          have hdisj : Disjoint (Finset.powersetCard k D')
+              (Finset.image (Insert.insert a) (Finset.powersetCard (k - 1) D')) := by
+            -- one side has a, the other doesn't
+            rw [Finset.disjoint_left]
+            intro s hs hs2
+            rw [Finset.mem_image] at hs2
+            rcases hs2 with ⟨t, ht, hst⟩
+            -- s ∈ powersetCard k D' (so a ∉ s since a ∉ D'), but s = insert a t ∋ a. Contradiction.
+            have hsD : s ⊆ D' := (Finset.mem_powersetCard.mp hs).1
+            have has : a ∈ s := by rw [← hst]; exact Finset.mem_insert_self a t
+            have has' : a ∉ s := fun h => haD (hsD h)
+            exact has' has
+          -- e k (insert a D') = e k D' + x a * e (k-1) D'
+          have he : e (Insert.insert a D') k = e D' k + x a * e D' (k - 1) := by
+            unfold e
+            rw [hsplit, Finset.sum_union hdisj]
+            congr 1
+            -- the image part
+            rw [Finset.sum_image]
+            · -- ∑_{t ∈ powersetCard (k-1) D'} ∏_{a' ∈ insert a t} x a' = x a · e D' (k-1)
+              rw [show (∑ t ∈ Finset.powersetCard (k - 1) D', ∏ a' ∈ Insert.insert a t, x a') =
+                  x a * (∑ t ∈ Finset.powersetCard (k - 1) D', ∏ a' ∈ t, x a') by
+                rw [Finset.mul_sum]
+                apply Finset.sum_congr rfl
+                intro t ht
+                have hat : a ∉ t := fun h => haD ((Finset.mem_powersetCard.mp ht).1 h)
+                rw [Finset.prod_insert hat]]
+            · intro t₁ ht₁ t₂ ht₂ h
+              -- insert a t₁ = insert a t₂ → t₁ = t₂ (since a ∉ t₁, t₂)
+              have hat₁ : a ∉ t₁ := fun h' => haD ((Finset.mem_powersetCard.mp ht₁).1 h')
+              have hat₂ : a ∉ t₂ := fun h' => haD ((Finset.mem_powersetCard.mp ht₂).1 h')
+              have her : (Insert.insert a t₁).erase a = (Insert.insert a t₂).erase a := by
+                rw [h]
+              rw [Finset.erase_insert hat₁, Finset.erase_insert hat₂] at her
+              exact her
+          -- bound e D' k and e D' (k-1) by IH
+          have ihk : e D' k ≤ (S D')^k / (Nat.factorial k : ℝ) := ih k
+          have ihk1 : e D' (k - 1) ≤ (S D')^(k - 1) / (Nat.factorial (k - 1) : ℝ) := ih (k - 1)
+          -- binomial inequality: (S D' + x a)^k ≥ (S D')^k + k·x a·(S D')^(k-1)
+          have hbin : (S D')^k + (k : ℝ) * x a * (S D')^(k - 1) ≤ (S D' + x a)^k := by
+            let t : ℕ → ℝ := fun m => (Nat.choose k m : ℝ) * (S D')^m * (x a)^(k - m)
+            have htk : t k = (S D')^k := by
+              unfold t
+              rw [Nat.sub_self, pow_zero, mul_one, Nat.choose_self]
+              ring
+            have htk1 : t (k - 1) = (k : ℝ) * (S D')^(k - 1) * x a := by
+              unfold t
+              have hsub : k - (k - 1) = 1 := by omega
+              rw [hsub, pow_one]
+              have hc : (Nat.choose k (k - 1) : ℝ) = (k : ℝ) := by
+                have : Nat.choose k (k - 1) = k := by
+                  rcases k with _ | k'
+                  · exfalso; exact hk rfl
+                  · have : Nat.choose (k' + 1) (k' + 1 - 1) = k' + 1 := by
+                      rw [show k' + 1 - 1 = k' by omega]
+                      exact choose_succ k'
+                    simpa using this
+                exact_mod_cast this
+              rw [hc]
+            have hS_nonneg : 0 ≤ S D' := Finset.sum_nonneg (fun a ha => hx a)
+            have hnonneg : ∀ m, 0 ≤ t m := by
+              intro m
+              unfold t
+              exact mul_nonneg (mul_nonneg (by exact_mod_cast (Nat.zero_le (Nat.choose k m))) (pow_nonneg hS_nonneg m)) (pow_nonneg (hx a) (k - m))
+            have hle : t k + t (k - 1) ≤ ∑ m ∈ Finset.range (k + 1), t m := by
+              have hind : (∑ m ∈ Finset.range (k + 1), if m = k ∨ m = k - 1 then t m else 0) ≤
+                  ∑ m ∈ Finset.range (k + 1), t m := by
+                exact Finset.sum_le_sum (fun m hm => by
+                  by_cases h : m = k ∨ m = k - 1
+                  · simp [h]
+                  · simp [h, hnonneg m])
+              have hind' : (∑ m ∈ Finset.range (k + 1), if m = k ∨ m = k - 1 then t m else 0) = t k + t (k - 1) := by
+                rw [show (∑ m ∈ Finset.range (k + 1), if m = k ∨ m = k - 1 then t m else 0) =
+                    (∑ m ∈ Finset.range (k + 1), ((if m = k then t m else 0) + (if m = k - 1 then t m else 0))) by
+                  apply Finset.sum_congr rfl
+                  intro m hm
+                  have hne : k ≠ k - 1 := by omega
+                  by_cases h1 : m = k
+                  · subst m; simp [hne]
+                  · by_cases h2 : m = k - 1
+                    · subst m
+                      have hne' : k - 1 ≠ k := by omega
+                      simp [hne']
+                    · simp [h1, h2]]
+                rw [Finset.sum_add_distrib]
+                rw [Finset.sum_ite_eq']
+                rw [Finset.sum_ite_eq']
+                have hk1mem : k - 1 ∈ Finset.range (k + 1) := by
+                  rw [Finset.mem_range]; omega
+                have hkmem : k ∈ Finset.range (k + 1) := by simp
+                simp [hk1mem, hkmem]
+              rw [← hind']
+              exact hind
+            have hsum : (S D' + x a)^k = ∑ m ∈ Finset.range (k + 1), t m := by
+              rw [add_pow]
+              congr 1
+              funext m
+              simp [t]
+              ring
+            calc
+              (S D')^k + (k : ℝ) * x a * (S D')^(k - 1) = t k + t (k - 1) := by
+                rw [htk, htk1]; ring
+              _ ≤ ∑ m ∈ Finset.range (k + 1), t m := hle
+              _ = (S D' + x a)^k := hsum.symm
+          -- assemble
+          have hS' : S (Insert.insert a D') = S D' + x a := by
+            unfold S
+            rw [Finset.sum_insert haD]
+            ring
+          -- final
+          calc
+            e (Insert.insert a D') k = e D' k + x a * e D' (k - 1) := he
+            _ ≤ (S D')^k / (Nat.factorial k : ℝ) + x a * ((S D')^(k - 1) / (Nat.factorial (k - 1) : ℝ)) := by
+                  have hxa : 0 ≤ x a := hx a
+                  nlinarith [ihk, ihk1, hxa]
+            _ ≤ (S (Insert.insert a D'))^k / (Nat.factorial k : ℝ) := by
+                  rw [hS']
+                  -- need: S^k/k! + a·S^(k-1)/(k-1)! ≤ (S+a)^k/k!
+                  -- ⟺ S^k + k·a·S^(k-1) ≤ (S+a)^k  (multiply by k!, using k! = k·(k-1)!)
+                  have hfac : (Nat.factorial k : ℝ) = (k : ℝ) * (Nat.factorial (k - 1) : ℝ) := by
+                    have hnfac : Nat.factorial k = k * Nat.factorial (k - 1) := by
+                      rw [hkn]
+                      rw [Nat.factorial_succ]
+                      congr 1
+                    exact_mod_cast hnfac
+                  rw [hfac]
+                  field_simp
+                  nlinarith [hbin]
+  exact hmain C k
+
 end Treap
 
 end CLRS.Extensions
