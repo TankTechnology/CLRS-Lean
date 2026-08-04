@@ -5,6 +5,8 @@ import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S3_GreedyAccounting
 import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S4_ExecutableScheduler
 import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S5_SpawnTreeAndLoops
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S2_Recurrences
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
