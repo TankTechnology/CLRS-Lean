@@ -99,6 +99,10 @@ example : pMergeWork 3 ≤ pMergeWork 4 :=
 example : pMergeSortSpan (2 ^ Nat.log 2 5) ≤ pMergeSortSpan 5 :=
   (pMergeSortSpan_power_sandwich 5 (by omega)).1
 
+example : pMergeWork (2 ^ Nat.log 2 5) ≤ pMergeWork 5 ∧
+    pMergeWork 5 ≤ pMergeWork (2 ^ (Nat.log 2 5 + 1)) :=
+  Chapter04.monotone_power_sandwich pMergeWork_monotone 2 5 (by omega) (by omega)
+
 example : strassenWork 5 ≤ strassenWork (2 ^ (Nat.log 2 5 + 1)) :=
   (strassenWork_power_sandwich 5 (by omega)).2
 
