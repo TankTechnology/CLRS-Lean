@@ -11,6 +11,9 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.Definitions
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.ExecutionEqualities
 
 /-! # Chapter 27 - Multithreaded Algorithms
 

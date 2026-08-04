@@ -187,6 +187,9 @@ CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/ExecutionEqualities.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean

@@ -61,6 +61,30 @@ example :
 #check pMatMul_correct
 #print axioms pMatMul_correct
 
+#check pAddWork
+#check pAddSpan
+#check pAdd_work_eq
+#check pAdd_span_eq
+#check pMatMulExecWork
+#check pMatMulExecSpan
+#check pMatMul_work_eq
+#check pMatMul_span_eq
+#print axioms pMatMul_span_eq
+
+example : pAddWork 0 = 1 ∧ pAddWork 1 = 1 ∧ pAddWork 2 = 7 := by
+  native_decide
+
+example : pAddSpan 0 = 1 ∧ pAddSpan 1 = 1 ∧ pAddSpan 2 = 3 := by
+  native_decide
+
+example :
+    pMatMulExecWork 0 = 1 ∧ pMatMulExecWork 1 = 1 ∧ pMatMulExecWork 2 = 22 := by
+  native_decide
+
+example :
+    pMatMulExecSpan 0 = 1 ∧ pMatMulExecSpan 1 = 1 ∧ pMatMulExecSpan 2 = 7 := by
+  native_decide
+
 example :
     let result := pAdd ℤ 0 7 (-2)
     result.value = 5 ∧ result.work = 1 ∧ result.span = 1 := by
@@ -82,6 +106,10 @@ example :
 example (A B : Chapter04.SqMat ℤ 1) :
     (pAdd ℤ 1 A B).value = A + B := by
   exact pAdd_correct ℤ 1 A B
+
+example (A B : Chapter04.SqMat ℤ 1) :
+    (pAdd ℤ 1 A B).work = pAddWork 2 := by
+  simpa using pAdd_work_eq ℤ 1 A B
 
 example :
     let result := pMatMul ℤ 0 7 (-2)
@@ -106,5 +134,9 @@ example :
 example (A B : Chapter04.SqMat ℤ 1) :
     (pMatMul ℤ 1 A B).value = A * B := by
   exact pMatMul_correct ℤ 1 A B
+
+example (A B : Chapter04.SqMat ℤ 1) :
+    (pMatMul ℤ 1 A B).span = pMatMulExecSpan 2 := by
+  simpa using pMatMul_span_eq ℤ 1 A B
 
 end CLRS.Chapter27
