@@ -219,8 +219,74 @@ lemma det_unitLowerTriangular {n : ℕ} {M : Matrix (Fin n) (Fin n) F}
     exfalso
     exact hσ1 (by simp)
 
+/-- Reindex `Fin (n + 1)` as `Fin 1 ⊕ Fin n`: row `0 ↦ inl ()`, row `succ i ↦ inr i`.
+This is the bookkeeping that lets an `(n + 1) × (n + 1)` matrix be viewed as a
+`2 × 2` block matrix with a `1 × 1` top-left block. -/
+noncomputable def finOneSumFin (n : ℕ) : Fin (n + 1) ≃ Fin 1 ⊕ Fin n where
+  toFun i := if h : i = 0 then Sum.inl ⟨0, by omega⟩ else Sum.inr (i.pred h)
+  invFun x := Sum.elim (fun _ => (0 : Fin (n + 1))) Fin.succ x
+  left_inv := by
+    intro i
+    by_cases h : i = 0
+    · simp [h]
+    · simp [h]
+  right_inv := by
+    intro x
+    cases x with
+    | inl j =>
+        have hj : (⟨0, by omega⟩ : Fin 1) = j := by
+          ext
+          omega
+        simp [hj]
+    | inr i =>
+        simp
 
+@[simp]
+lemma finOneSumFin_symm_inl (n : ℕ) (j : Fin 1) :
+    (finOneSumFin n).symm (Sum.inl j) = (0 : Fin (n + 1)) := by
+  rfl
 
+@[simp]
+lemma finOneSumFin_symm_inr (n : ℕ) (i : Fin n) :
+    (finOneSumFin n).symm (Sum.inr i) = Fin.succ i := by
+  rfl
+
+/-- The determinant of a 1×1 matrix is its single entry. -/
+lemma det_const_fin_one (x : F) : Matrix.det (fun _ _ : Fin 1 => x) = x := by
+  simp
+
+/-- The determinant of a block-lower-triangular matrix: if the first column of `C`
+below the pivot is all zero, then `det C = C 0 0 · det M` where `M` is the Schur
+complement (the `succ`/`succ` submatrix).  This is the `n + 1` case of CLRS
+Lemma 28.1's determinant step. -/
+lemma det_block_schur {n : ℕ} (C : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
+    (h : ∀ i : Fin n, C (Fin.succ i) 0 = 0) :
+    C.det = C 0 0 * Matrix.det (fun i j : Fin n => C (Fin.succ i) (Fin.succ j)) := by
+  classical
+  let e : Fin (n + 1) ≃ Fin 1 ⊕ Fin n := finOneSumFin n
+  let C' : Matrix (Fin 1 ⊕ Fin n) (Fin 1 ⊕ Fin n) F := C.reindex e e
+  have hdet : C'.det = C.det := by
+    simp [C']
+  have h21 : C'.toBlocks₂₁ = 0 := by
+    ext i j
+    simp [C', Matrix.reindex_apply, e, Matrix.toBlocks₂₁]
+    exact h i
+  have h11 : C'.toBlocks₁₁ = (fun _ _ : Fin 1 => C 0 0) := by
+    ext i j
+    simp [C', Matrix.reindex_apply, e, Matrix.toBlocks₁₁]
+  have h22 : C'.toBlocks₂₂ = (fun i j : Fin n => C (Fin.succ i) (Fin.succ j)) := by
+    ext i j
+    simp [C', Matrix.reindex_apply, e, Matrix.toBlocks₂₂]
+  calc
+    C.det = C'.det := by rw [hdet]
+    _ = (Matrix.fromBlocks C'.toBlocks₁₁ C'.toBlocks₁₂ C'.toBlocks₂₁ C'.toBlocks₂₂).det := by
+      rw [Matrix.fromBlocks_toBlocks]
+    _ = C'.toBlocks₁₁.det * C'.toBlocks₂₂.det := by
+      rw [h21]
+      rw [Matrix.det_fromBlocks_zero₂₁]
+    _ = C 0 0 * Matrix.det (fun i j : Fin n => C (Fin.succ i) (Fin.succ j)) := by
+      rw [h11, h22]
+      rw [det_const_fin_one]
 
 end Chapter28
 
