@@ -284,6 +284,8 @@ lemma maxExtend_uniform {n : ℕ} {b : Fin n} (T : Finset (Fin n)) {c : Fin n}
     _ = (Finset.univ.filter (fun σ : PrioPerm n =>
           ∀ a ∈ T, MaxOver σ (Finset.Icc a b) a)).card := by rw [hcover]
 
+/-- The probability that every key of `S` is a left-ancestor of `b` is the
+product of the interval-reciprocals `∏ a ∈ S, 1/|[a,b]|`. -/
 lemma leftAncestors_product {n : ℕ} {b : Fin n} (S : Finset (Fin n))
     (hS : ∀ a ∈ S, a < b) :
     ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card : ℝ) =
@@ -386,6 +388,8 @@ private lemma choose_succ (n : ℕ) : Nat.choose (n + 1) n = n + 1 := by
       rw [Nat.choose_succ_succ]
       rw [ih, Nat.choose_self]
 
+/-- The elementary-symmetric sum over `k`-subsets of `C` is at most
+`(Σ a ∈ C, x a)^k / k!` (Maclaurin's inequality, elementary form). -/
 lemma eSymm_le {α : Type} [DecidableEq α] (C : Finset α) (x : α → ℝ)
     (hx : ∀ a, 0 ≤ x a) (k : ℕ) :
     (∑ s ∈ Finset.powersetCard k C, ∏ a ∈ s, x a) ≤
@@ -559,11 +563,15 @@ lemma eSymm_le {α : Type} [DecidableEq α] (C : Finset α) (x : α → ℝ)
                   nlinarith [hbin]
   exact hmain C k
 
+/-- `fintypeExpect` is monotone: a pointwise inequality yields an inequality of
+expectations. -/
 lemma fintypeExpect_le {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X Y : Ω → ℝ)
     (h : ∀ ω, X ω ≤ Y ω) : fintypeExpect X ≤ fintypeExpect Y := by
   unfold fintypeExpect
   exact div_le_div_of_nonneg_right (Finset.sum_le_sum (fun ω _ => h ω)) (by positivity)
 
+/-- The probability that key `b` has at least `k` left-ancestors is at most
+`(Σ a, if a < b then 1/|[a,b]| else 0)^k / k!`. -/
 lemma leftAncestors_tail {n : ℕ} {b : Fin n} (k : ℕ) :
     fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ leftAncestors σ b)) ≤
       (∑ a : Fin n, if a < b then (1 / ((Finset.Icc a b).card : ℝ)) else 0)^k /
@@ -668,7 +676,7 @@ lemma leftAncestors_tail {n : ℕ} {b : Fin n} (k : ℕ) :
           unfold C
           rw [Finset.sum_filter]
 
--- The left-ancestor sum over the interval reciprocals is at most H_n.
+/-- The left-ancestor sum over the interval reciprocals is at most `H_n`. -/
 lemma left_sum_le_harmonicReal {n : ℕ} {b : Fin n} :
     (∑ a : Fin n, if a < b then (1 / ((Finset.Icc a b).card : ℝ)) else 0) ≤ harmonicReal n := by
   classical
@@ -1225,6 +1233,9 @@ private lemma pow_div_factorial_le_inv_two {H : ℝ} (t : ℕ) (ht1 : 1 ≤ t) (
   have hpow : (3 * H / t)^t ≤ ((1 : ℝ) / 2)^t := pow_le_pow_left₀ hdiv0 hdiv t
   exact le_trans h1 hpow
 
+/-- **Expected-height bound.**  For the uniform random treap on `n` keys,
+`E[height] ≤ 30 · H_n = O(log n)` (CLRS Theorem 13.1-style analysis; here the
+exponential-tail argument for the randomized treap). -/
 theorem expectedTreapHeight_le {n : ℕ} :
     expectedTreapHeight (n := n) ≤ 30 * (harmonic n : ℝ) := by
   classical
@@ -1415,7 +1426,6 @@ theorem expectedTreapHeight_le {n : ℕ} :
             have hK2 : 12 * H + 14 ≤ 30 * H := by nlinarith [hH1]
             nlinarith [hK1, hK2, hHreal]
 
-set_option linter.unusedTactic false
 
 end Treap
 
