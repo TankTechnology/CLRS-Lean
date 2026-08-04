@@ -147,10 +147,13 @@ the detailed maintainer ledger.
   the actual execution-attached P-MATMUL span.  This matrix evidence is split
   across the {lit}`ParallelMatrix/Definitions`, {lit}`Correctness`, and
   {lit}`Costs/ExecutionEqualities`, {lit}`Costs/Monotonicity`,
-  {lit}`Costs/PowerBounds`, and {lit}`Costs/AllInputBounds` modules.  P-MERGE,
-  P-MERGE-SORT, and retained parallel Strassen have recurrence-level
-  power-of-two and all-input analyses.  Executable P-MERGE and P-MERGE-SORT
-  implementations refining those recurrences remain open.
+  {lit}`Costs/PowerBounds`, and {lit}`Costs/AllInputBounds` modules.  Executable
+  P-MERGE uses midpoint normalization and duplicate-sensitive lower bound;
+  {lit}`pMerge_correct` proves sortedness, permutation, and exact output length.
+  P-MERGE, P-MERGE-SORT, and retained parallel Strassen have recurrence-level
+  power-of-two and all-input analyses.  P-MERGE's execution-cost link and the
+  executable P-MERGE-SORT implementation refining those recurrences remain
+  open.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

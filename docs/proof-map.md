@@ -3709,10 +3709,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds.lean`
-- Interface test: `Tests/Chapter_27_Matrix_Interface.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Boundaries.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main.lean`
+- Interface tests: `Tests/Chapter_27_Matrix_Interface.lean` and
+  `Tests/Chapter_27_ParallelMerge_Interface.lean`
 - Status: `partial` (executable P-ADD and race-free P-MATMUL correctness,
   execution-attached cost equalities, and their all-input asymptotics are
-  proved; executable P-MERGE/P-MERGE-SORT refinements remain open)
+  proved; executable P-MERGE value correctness is proved; its execution-cost
+  link and executable P-MERGE-SORT remain open)
 - Model:
   - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
     sequential composition and deterministic balanced `par4`/`par8` trees.
@@ -3743,6 +3749,19 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - Interface examples confirm exact scalar P-ADD/P-MATMUL work/span `1/1`,
     depth-one P-ADD work/span `7/3`, and depth-one P-MATMUL work/span `22/7`,
     together with concrete `2 × 2` values.
+- Proved executable P-MERGE boundary:
+  - `CLRS.Chapter27.pMerge` normalizes the longer input, chooses its midpoint,
+    partitions the shorter input with duplicate-sensitive binary lower bound,
+    runs the lower and upper recursive merges through `Costed.par`, and joins
+    them around the pivot.
+  - `CLRS.Chapter27.PMergeSpec` bundles sortedness, permutation of `xs ++ ys`,
+    and exact output length.
+  - `CLRS.Chapter27.pMerge_correct` proves that specification for all sorted
+    inputs by strong induction on total length; `pMerge_value_sorted`,
+    `pMerge_value_perm`, and `pMerge_value_length` expose its projections.
+  - The boundary proof handles duplicates by using the lower-bound theorem's
+    strict-left/nonstrict-right partition and handles normalization swaps by an
+    explicit block permutation.
 - Proved execution-cost equalities:
   - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
     the work and span carried by P-ADD with `pAddWork (2^k)` and
@@ -3794,8 +3813,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Proof pattern: prove each natural-valued recurrence monotone, sandwich an
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
-- Current gap: executable P-MERGE and P-MERGE-SORT implementations with
-  correctness/refinement links to these cost recurrences.
+- Current gap: connect executable P-MERGE's carried work/span to its recurrence
+  and all-input bounds, then implement and prove P-MERGE-SORT with the same
+  correctness and execution-cost links.
 
 ## Chapter 32 - String Matching
 

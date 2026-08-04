@@ -29,12 +29,13 @@ P-MERGE-SORT, and retained Strassen.  The executable binary lower bound used by
 P-MERGE additionally has a complete duplicate-sensitive partition theorem and
 logarithmic work/span bounds.  {name}`CLRS.Chapter27.MergeSplit` and
 {name}`CLRS.Chapter27.pMerge` implement the actual midpoint/binary-search
-P-MERGE control structure.
+P-MERGE control structure, and {name}`CLRS.Chapter27.pMerge_correct` proves its
+sortedness, permutation, and exact-length specification.
 
 ## Deferred work
 
-P-MERGE value correctness and execution-attached cost theorems, together with
-the complete executable P-MERGE-SORT implementation, remain deferred.
+P-MERGE execution-attached cost theorems, together with the complete executable
+P-MERGE-SORT implementation, remain deferred.
 
 ## Implementation details
 
@@ -54,6 +55,10 @@ the complete executable P-MERGE-SORT implementation, remain deferred.
 * [P-MERGE split data](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/MergeSplit/)
 * [P-MERGE](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/)
 * [Executable P-MERGE](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions/)
+* [P-MERGE correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/)
+* [P-MERGE order boundaries](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Boundaries/)
+* [P-MERGE permutation](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation/)
+* [P-MERGE strong-induction proof](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main/)
 * [Parallel merge correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Correctness/)
 * [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
 * [Binary lower-bound definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions/)

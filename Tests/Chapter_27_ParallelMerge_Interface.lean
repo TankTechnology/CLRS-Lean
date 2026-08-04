@@ -35,6 +35,31 @@ example : (pMerge [1, 2, 2] [2, 2, 3]).value = [1, 2, 2, 2, 2, 3] := by
 example : (pMerge [2, 4] [1, 3, 5]).value = [1, 2, 3, 4, 5] := by
   native_decide
 
+/-! The theorem interface covers duplicates and the odd-total normalization
+branch, independently of the direct-execution examples above. -/
+
+example : (pMerge [1, 2, 2] [2, 2, 3]).value.Pairwise (· ≤ ·) := by
+  exact pMerge_value_sorted [1, 2, 2] [2, 2, 3] (by simp) (by simp)
+
+example : (pMerge [1, 2, 2] [2, 2, 3]).value.Perm
+    ([1, 2, 2] ++ [2, 2, 3]) := by
+  exact pMerge_value_perm [1, 2, 2] [2, 2, 3] (by simp) (by simp)
+
+example : (pMerge [1, 2, 2] [2, 2, 3]).value.length = 6 := by
+  simpa using pMerge_value_length [1, 2, 2] [2, 2, 3] (by simp) (by simp)
+
+example : PMergeSpec [2, 4] [1, 3, 5] (pMerge [2, 4] [1, 3, 5]).value := by
+  exact pMerge_correct [2, 4] [1, 3, 5] (by simp) (by simp)
+
+example : (pMerge [2, 4] [1, 3, 5]).value.Pairwise (· ≤ ·) := by
+  exact (pMerge_correct [2, 4] [1, 3, 5] (by simp) (by simp)).sorted
+
+example : (pMerge [2, 4] [1, 3, 5]).value.Perm ([2, 4] ++ [1, 3, 5]) := by
+  exact (pMerge_correct [2, 4] [1, 3, 5] (by simp) (by simp)).perm
+
+example : (pMerge [2, 4] [1, 3, 5]).value.length = 5 := by
+  simpa using (pMerge_correct [2, 4] [1, 3, 5] (by simp) (by simp)).length_eq
+
 example : (binaryLowerBound ([] : List ℕ) 3).value = 0 := by native_decide
 example : (binaryLowerBound ([] : List ℕ) 3).work = 0 := by native_decide
 example : (binaryLowerBound ([] : List ℕ) 3).span = 0 := by native_decide
@@ -111,5 +136,9 @@ example : (binaryLowerBound [1, 2, 2, 2, 3] 2).span ≤ Nat.log 2 5 + 1 := by
 #print axioms binaryLowerBound_partition
 #print axioms binaryLowerBound_work_le_log
 #print axioms binaryLowerBound_span_le_log
+#print axioms pMerge_correct
+#print axioms pMerge_value_sorted
+#print axioms pMerge_value_perm
+#print axioms pMerge_value_length
 
 end CLRS.Chapter27
