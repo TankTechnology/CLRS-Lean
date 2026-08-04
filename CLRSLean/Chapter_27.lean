@@ -5,6 +5,7 @@ import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S3_GreedyAccounting
 import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S4_ExecutableScheduler
 import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S5_SpawnTreeAndLoops
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S1_CostModel
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S2_Recurrences
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds
 
@@ -48,12 +49,16 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.parallelLoop_span_le_log`.
 
 * 27.2–27.4 Multithreaded algorithms.
-  Executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and
-  parallel Strassen, each with an exact closed form on powers of two.  The
-  merge-based and parallel-Strassen recurrences also have monotonicity,
-  adjacent-power sandwich, and all-input Θ theorems; P-MATMUL has all-input
-  upper bounds.
+  An executable {lit}`Costed` layer attaches values to their work and span, with
+  sequential and balanced parallel composition.  Executable work/span
+  recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen each
+  have an exact closed form on powers of two.  The merge-based and
+  parallel-Strassen recurrences also have monotonicity, adjacent-power
+  sandwich, and all-input Θ theorems; P-MATMUL has all-input upper bounds.
   Main declarations:
+  {lit}`CLRS.Chapter27.Costed`,
+  {lit}`CLRS.Chapter27.Costed.seq`, {lit}`CLRS.Chapter27.Costed.par`,
+  {lit}`CLRS.Chapter27.Costed.par4`, {lit}`CLRS.Chapter27.Costed.par8`,
   {lit}`CLRS.Chapter27.pMatMulWork`, {lit}`CLRS.Chapter27.pMatMulWork_pow_two`,
   {lit}`CLRS.Chapter27.pMatMulWork_le`,
   {lit}`CLRS.Chapter27.pMatMulSpan`, {lit}`CLRS.Chapter27.pMatMulSpan_pow_two`,
