@@ -34,8 +34,10 @@ sortedness, permutation, and exact-length specification.
 
 ## Deferred work
 
-P-MERGE execution-attached cost theorems, together with the complete executable
-P-MERGE-SORT implementation, remain deferred.
+P-MERGE's actual split accounting, three-quarter child bound, and exact
+one-step execution costs are complete.  Its global linear-work and
+quadratic-log-span bounds, together with the complete executable P-MERGE-SORT
+implementation, remain deferred.
 
 ## Implementation details
 
@@ -60,6 +62,9 @@ P-MERGE-SORT implementation, remain deferred.
 * [P-MERGE permutation](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation/)
 * [P-MERGE strong-induction proof](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main/)
 * [Parallel merge correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Correctness/)
+* [P-MERGE costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/)
+* [P-MERGE structural bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure/)
+* [P-MERGE one-step costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step/)
 * [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
 * [Binary lower-bound definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions/)
 * [Binary lower-bound correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness/)

@@ -63,7 +63,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 24 | Single-Source Shortest Paths | 🟡 sections | 27 | — |
 | 25 | All-Pairs Shortest Paths | 🟢 correctness | 24 | — |
 | 26 | Maximum Flow | 🟢 complete | 18 | — |
-| 27 | Multithreaded Algorithms | 🟠 partial | 78 | Executable P-MERGE and P-MERGE-SORT implementations with… |
+| 27 | Multithreaded Algorithms | 🟠 partial | 82 | Global executable P-MERGE linear-work and quadratic-log-span… |
 | 28 | Matrix Operations | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 29 | Linear Programming | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 30 | Polynomials and the FFT | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
@@ -72,7 +72,7 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
 | 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1688 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1692 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·

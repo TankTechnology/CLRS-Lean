@@ -31,6 +31,9 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correc
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Permutation
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Main
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Structure
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
@@ -117,6 +120,10 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.pMerge_value_sorted`,
   {lit}`CLRS.Chapter27.pMerge_value_perm`,
   {lit}`CLRS.Chapter27.pMerge_value_length`,
+  {lit}`CLRS.Chapter27.pMerge_childSizes_add_one`,
+  {lit}`CLRS.Chapter27.pMerge_childSize_le_threeQuarters`,
+  {lit}`CLRS.Chapter27.pMerge_work_step_eq`,
+  {lit}`CLRS.Chapter27.pMerge_span_step_eq`,
   {lit}`CLRS.Chapter27.pMergeWork`, {lit}`CLRS.Chapter27.pMergeWork_pow_two`,
   {lit}`CLRS.Chapter27.pMergeWork_monotone`,
   {lit}`CLRS.Chapter27.pMergeWork_power_sandwich`,
@@ -146,8 +153,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 
 ## Deferred work
 
-* P-MERGE execution-attached cost proofs and the full executable P-MERGE-SORT
-  implementation.
+* P-MERGE now has exact one-step execution costs and the actual three-quarter
+  child bound.  Its global linear-work and quadratic-log-span proofs, and the
+  full executable P-MERGE-SORT implementation, remain open.
 -/
 
 namespace CLRS
