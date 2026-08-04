@@ -29,8 +29,9 @@ Main result (target, not yet proved):
   constant {lit}`c`.
 
 Status: prototype, not registered in {lit}`literate.toml`.  The depth
-decomposition and left-ancestor product formula are kernel-checked; the
-exponential-tail and final expected-height bounds remain future work.
+decomposition, the left-ancestor product formula, the exponential tails on the
+left- and right-ancestor counts, and the single-key depth tail are
+kernel-checked.  The final expected-height bound (Step 3) remains future work.
 -/
 
 /-- The left-ancestors of key {lit}`b`: keys strictly below {lit}`b` that are
@@ -687,6 +688,201 @@ lemma left_sum_le_harmonicReal {n : ℕ} {b : Fin n} :
           have hn1 : 1 ≤ n := Nat.succ_le_of_lt (lt_of_le_of_lt (Nat.zero_le b.val) b.isLt)
           exact below_sum_le_harmonic_val (n := n) (b := b.val) hn1 b.isLt
     _ ≤ harmonicReal n := by linarith
+
+/-! ## Right-ancestor tail via reflection -/
+
+/-- Right-composition with the order-reversing involution {lit}`Fin.revPerm` is
+an involution (hence a bijection) on {lit}`PrioPerm n`. -/
+noncomputable def revCompEquiv {n : ℕ} : PrioPerm n ≃ PrioPerm n where
+  toFun σ := σ * Fin.revPerm
+  invFun σ := σ * Fin.revPerm
+  left_inv := by
+    intro σ
+    ext x
+    simp [Equiv.Perm.mul_apply, Fin.revPerm_apply, Fin.rev_rev]
+  right_inv := by
+    intro σ
+    ext x
+    simp [Equiv.Perm.mul_apply, Fin.revPerm_apply, Fin.rev_rev]
+
+/-- The ancestor relation commutes with order reversal: for {lit}`b < a`, the
+key {lit}`a` is an ancestor of {lit}`b` under {lit}`σ` iff the reversed key is
+an ancestor of the reversed key under {lit}`σ * Fin.revPerm`. -/
+lemma ancestor_rev_perm {n : ℕ} {σ : PrioPerm n} {a b : Fin n} (hab : b < a) :
+    Ancestor (σ * Fin.revPerm) (Fin.revPerm a) (Fin.revPerm b) ↔ Ancestor σ a b := by
+  classical
+  have hane : a ≠ b := ne_of_gt hab
+  have hne' : Fin.revPerm a ≠ Fin.revPerm b := by
+    intro h
+    exact hane (Fin.revPerm.injective h)
+  have hra : Fin.revPerm a < Fin.revPerm b := by
+    simpa [Fin.revPerm_apply] using (Fin.rev_lt_rev (i := a) (j := b)).2 hab
+  have hmin1 : min (Fin.revPerm a) (Fin.revPerm b) = Fin.revPerm a := min_eq_left (le_of_lt hra)
+  have hmax1 : max (Fin.revPerm a) (Fin.revPerm b) = Fin.revPerm b := max_eq_right (le_of_lt hra)
+  have hmin2 : min a b = b := min_eq_right (le_of_lt hab)
+  have hmax2 : max a b = a := max_eq_left (le_of_lt hab)
+  unfold Ancestor
+  rw [hmin1, hmax1, hmin2, hmax2]
+  simp only [hne', hane, or_false, false_or]
+  constructor
+  · intro h k hk
+    have hk' : Fin.revPerm k ∈ Finset.Icc (Fin.revPerm a) (Fin.revPerm b) := by
+      rw [Finset.mem_Icc] at hk ⊢
+      rcases hk with ⟨hbk, hka⟩
+      constructor
+      · exact (Fin.rev_le_rev (i := a) (j := k)).2 hka
+      · exact (Fin.rev_le_rev (i := k) (j := b)).2 hbk
+    have hp := h (Fin.revPerm k) hk'
+    simpa [prioOfPerm, Equiv.Perm.mul_apply, Fin.revPerm_apply, Fin.rev_rev] using hp
+  · intro h k hk
+    have hk' : Fin.revPerm k ∈ Finset.Icc b a := by
+      rw [Finset.mem_Icc] at hk ⊢
+      rcases hk with ⟨hrak, hkrb⟩
+      constructor
+      · simpa [Fin.revPerm_apply] using (Fin.le_rev_iff (i := k) (j := b)).1 hkrb
+      · simpa [Fin.revPerm_apply] using (Fin.rev_le_iff (i := a) (j := k)).1 hrak
+    have hp := h (Fin.revPerm k) hk'
+    simpa [prioOfPerm, Equiv.Perm.mul_apply, Fin.revPerm_apply, Fin.rev_rev] using hp
+
+/-- The right-ancestors of {lit}`b` are exactly the left-ancestors of the
+reversed key under the reflected permutation. -/
+lemma rightAncestors_eq_left_rev {n : ℕ} (σ : PrioPerm n) (b : Fin n) :
+    rightAncestors σ b = leftAncestors (σ * Fin.revPerm) (Fin.revPerm b) := by
+  classical
+  unfold rightAncestors leftAncestors
+  apply Finset.card_nbij (fun a => Fin.revPerm a)
+  · intro a ha
+    simp only [Finset.mem_coe, Finset.mem_filter, Finset.mem_univ, true_and] at ha ⊢
+    rcases ha with ⟨hba, hanc⟩
+    constructor
+    · simpa [Fin.revPerm_apply] using (Fin.rev_lt_rev (i := a) (j := b)).2 hba
+    · exact (ancestor_rev_perm hba).2 hanc
+  · intro a₁ ha₁ a₂ ha₂ h
+    exact Fin.revPerm.injective h
+  · intro b' hb'
+    simp only [Finset.mem_coe, Finset.mem_filter, Finset.mem_univ, true_and] at hb'
+    rcases hb' with ⟨hb'l, hanc'⟩
+    refine ⟨Fin.revPerm b', ?_, ?_⟩
+    · simp only [Finset.mem_coe, Finset.mem_filter, Finset.mem_univ, true_and]
+      constructor
+      · simpa [Fin.revPerm_apply] using (Fin.lt_rev_iff (i := b) (j := b')).2 hb'l
+      · refine (ancestor_rev_perm (a := Fin.revPerm b') (b := b) ?_).1 ?_
+        · simpa [Fin.revPerm_apply] using (Fin.lt_rev_iff (i := b) (j := b')).2 hb'l
+        · simpa [Fin.revPerm_apply, Fin.rev_rev] using hanc'
+    · simp [Fin.revPerm_apply, Fin.rev_rev]
+
+/-- If {lit}`S ≤ H_n` and {lit}`S ≥ 0`, then {lit}`S^k/k! ≤ H_n^k/k!`. -/
+private lemma harmonic_pow_div_le {n : ℕ} (k : ℕ) (S : ℝ)
+    (hS : S ≤ harmonicReal n) (hS0 : 0 ≤ S) :
+    S^k / (Nat.factorial k : ℝ) ≤ (harmonicReal n)^k / (Nat.factorial k : ℝ) := by
+  have hH0 : 0 ≤ harmonicReal n := by
+    unfold harmonicReal
+    exact Finset.sum_nonneg (fun i hi => inv_nonneg.mpr (by positivity))
+  have hpow : S^k ≤ (harmonicReal n)^k := pow_le_pow_left₀ hS0 hS k
+  exact div_le_div_of_nonneg_right hpow (by positivity)
+
+/-- The probability that key {lit}`b` has at least {lit}`k` left-ancestors is
+at most {lit}`H_n^k / k!`. -/
+lemma leftAncestors_tail_le_harmonic {n : ℕ} {b : Fin n} (k : ℕ) :
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ leftAncestors σ b)) ≤
+      (harmonicReal n)^k / (Nat.factorial k : ℝ) := by
+  classical
+  calc
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ leftAncestors σ b)) ≤
+      (∑ a : Fin n, if a < b then (1 / ((Finset.Icc a b).card : ℝ)) else 0)^k /
+        (Nat.factorial k : ℝ) := by
+          exact leftAncestors_tail (b := b) k
+    _ ≤ (harmonicReal n)^k / (Nat.factorial k : ℝ) := by
+          exact harmonic_pow_div_le k _ (left_sum_le_harmonicReal (n := n) (b := b)) (by
+            exact Finset.sum_nonneg (fun a ha => by
+              by_cases h : a < b
+              · rw [if_pos h]; positivity
+              · rw [if_neg h]))
+
+/-- The probability that key {lit}`b` has at least {lit}`k` right-ancestors is
+at most {lit}`H_n^k / k!`. -/
+lemma rightAncestors_tail_le_harmonic {n : ℕ} {b : Fin n} (k : ℕ) :
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ rightAncestors σ b)) ≤
+      (harmonicReal n)^k / (Nat.factorial k : ℝ) := by
+  classical
+  calc
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ rightAncestors σ b))
+        = fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ leftAncestors (σ * Fin.revPerm) (Fin.revPerm b))) := by
+          congr 1
+          funext σ
+          simpa [rightAncestors_eq_left_rev σ b]
+    _ = fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ leftAncestors σ (Fin.revPerm b))) := by
+          exact fintypeExpect_equiv (revCompEquiv)
+            (fun σ : PrioPerm n => indicator (k ≤ leftAncestors σ (Fin.revPerm b)))
+    _ ≤ (∑ a : Fin n, if a < Fin.revPerm b then (1 / ((Finset.Icc a (Fin.revPerm b)).card : ℝ)) else 0)^k /
+          (Nat.factorial k : ℝ) := by
+          exact leftAncestors_tail (b := Fin.revPerm b) k
+    _ ≤ (harmonicReal n)^k / (Nat.factorial k : ℝ) := by
+          exact harmonic_pow_div_le k _ (left_sum_le_harmonicReal (n := n) (b := Fin.revPerm b)) (by
+            exact Finset.sum_nonneg (fun a ha => by
+              by_cases h : a < Fin.revPerm b
+              · rw [if_pos h]; positivity
+              · rw [if_neg h]))
+
+/-! ## Depth tail -/
+
+/-- The probability that the depth of key {lit}`b` is at least {lit}`k` is at
+most {lit}`2 · H_n^t / t!` where {lit}`t = (k - 1) / 2`.  Depth splits into
+left-ancestors plus right-ancestors plus itself, so {lit}`depth ≥ k` forces at
+least one side to carry at least {lit}`t` ancestors; each side has an
+exponential tail. -/
+lemma depth_tail {n : ℕ} (b : Fin n) (k : ℕ) :
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ depth σ b)) ≤
+      2 * (harmonicReal n)^((k - 1) / 2) / (Nat.factorial ((k - 1) / 2) : ℝ) := by
+  classical
+  let t : ℕ := (k - 1) / 2
+  have hcov : ∀ σ, indicator (k ≤ depth σ b) ≤
+      indicator (t ≤ leftAncestors σ b) + indicator (t ≤ rightAncestors σ b) := by
+    intro σ
+    by_cases hk : k ≤ depth σ b
+    · have hsome : t ≤ leftAncestors σ b ∨ t ≤ rightAncestors σ b := by
+        by_contra hnone
+        have hLt : leftAncestors σ b < t := Nat.lt_of_not_ge (fun h => hnone (Or.inl h))
+        have hRt : rightAncestors σ b < t := Nat.lt_of_not_ge (fun h => hnone (Or.inr h))
+        have h2t : 2 * t ≤ k := by dsimp [t]; omega
+        have hbad : depth σ b < k := by
+          rw [depth_eq_left_add_right σ b]
+          omega
+        exact (not_le_of_gt hbad) hk
+      rw [indicator, if_pos hk]
+      rcases hsome with hL | hR
+      · have h1 : indicator (t ≤ leftAncestors σ b) = 1 := by rw [indicator, if_pos hL]
+        rw [h1]
+        have hR0 : 0 ≤ indicator (t ≤ rightAncestors σ b) := by
+          unfold indicator
+          by_cases h : t ≤ rightAncestors σ b <;> simp [h]
+        linarith
+      · have h1 : indicator (t ≤ rightAncestors σ b) = 1 := by rw [indicator, if_pos hR]
+        rw [h1]
+        have hL0 : 0 ≤ indicator (t ≤ leftAncestors σ b) := by
+          unfold indicator
+          by_cases h : t ≤ leftAncestors σ b <;> simp [h]
+        linarith
+    · rw [indicator, if_neg hk]
+      have hR0 : 0 ≤ indicator (t ≤ rightAncestors σ b) := by
+        unfold indicator
+        by_cases h : t ≤ rightAncestors σ b <;> simp [h]
+      have hL0 : 0 ≤ indicator (t ≤ leftAncestors σ b) := by
+        unfold indicator
+        by_cases h : t ≤ leftAncestors σ b <;> simp [h]
+      linarith
+  calc
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ depth σ b))
+        ≤ fintypeExpect (fun σ : PrioPerm n => indicator (t ≤ leftAncestors σ b) + indicator (t ≤ rightAncestors σ b)) := by
+          exact fintypeExpect_le _ _ hcov
+    _ = fintypeExpect (fun σ : PrioPerm n => indicator (t ≤ leftAncestors σ b)) +
+        fintypeExpect (fun σ : PrioPerm n => indicator (t ≤ rightAncestors σ b)) := by
+          rw [fintypeExpect_add]
+    _ ≤ (harmonicReal n)^t / (Nat.factorial t : ℝ) + (harmonicReal n)^t / (Nat.factorial t : ℝ) := by
+          have hL := leftAncestors_tail_le_harmonic (b := b) t
+          have hR := rightAncestors_tail_le_harmonic (b := b) t
+          nlinarith
+    _ = 2 * (harmonicReal n)^t / (Nat.factorial t : ℝ) := by ring
 
 set_option linter.unusedTactic false
 
