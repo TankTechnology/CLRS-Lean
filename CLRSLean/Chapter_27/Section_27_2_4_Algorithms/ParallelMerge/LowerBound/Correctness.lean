@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Definitions
 
 /-!
 # CLRS Chapter 27.3 — Binary Lower-Bound Correctness

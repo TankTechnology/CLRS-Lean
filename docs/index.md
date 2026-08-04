@@ -195,7 +195,11 @@ CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds.l
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/MergeSplit.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Costs.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Correctness.lean

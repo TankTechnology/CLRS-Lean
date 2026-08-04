@@ -49,8 +49,12 @@ models remain deferred.
 * [All-input matrix asymptotics](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds/)
 * [Parallel merge](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/)
 * [Parallel merge definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Definitions/)
+* [P-MERGE split data](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/MergeSplit/)
+* [P-MERGE](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/)
+* [Executable P-MERGE](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions/)
 * [Parallel merge correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Correctness/)
 * [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
+* [Binary lower-bound definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions/)
 * [Binary lower-bound correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness/)
 * [Binary lower-bound costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Costs/)
 -/
