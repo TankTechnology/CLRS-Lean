@@ -14,6 +14,12 @@ namespace CLRS.Chapter27
 #check pMerge_value_perm
 #check pMerge_value_length
 #check pMerge_correct
+#check pMerge_childSizes_add_one
+#check pMerge_childSize_le_threeQuarters
+#check pMerge_work_step_eq
+#check pMerge_span_step_eq
+#check pMerge_work_step_le
+#check pMerge_span_step_le
 
 /-! The executable P-MERGE boundary covers empty inputs, an empty secondary
 input, interleaving inputs, duplicates, and normalization by swapping the
@@ -24,6 +30,43 @@ example : (pMerge ([] : List ℕ) []).value = [] := by native_decide
 example : (pMerge [7] []).value = [7] := by native_decide
 example : (pMerge [7] []).work = 2 := by native_decide
 example : (pMerge [7] []).span = 2 := by native_decide
+
+/-! Structural accounting includes small totals and odd, unequal normalized
+splits.  The step equations expose the exact two units beyond binary search:
+one fork/join and one pivot placement. -/
+
+example :
+    let S := mergeSplit [7] ([] : List ℕ) (by simp)
+    S.leftSize + S.rightSize + 1 = S.totalSize := by
+  exact pMerge_childSizes_add_one _
+
+example :
+    let S := mergeSplit [7] ([] : List ℕ) (by simp)
+    S.leftSize ≤ S.totalSize - S.totalSize / 4 ∧
+      S.rightSize ≤ S.totalSize - S.totalSize / 4 := by
+  exact pMerge_childSize_le_threeQuarters _
+
+example :
+    let S := mergeSplit [2, 4] [1, 3, 5] (by simp)
+    S.leftSize ≤ S.totalSize - S.totalSize / 4 ∧
+      S.rightSize ≤ S.totalSize - S.totalSize / 4 := by
+  exact pMerge_childSize_le_threeQuarters _
+
+example :
+    let S := mergeSplit [2, 4] [1, 3, 5] (by simp)
+    (pMerge [2, 4] [1, 3, 5]).work =
+      S.search.work +
+        (pMerge S.lowerPrimary S.lowerSecondary).work +
+        (pMerge S.upperPrimary S.upperSecondary).work + 2 := by
+  exact pMerge_work_step_eq _ _ (by simp)
+
+example :
+    let S := mergeSplit [2, 4] [1, 3, 5] (by simp)
+    (pMerge [2, 4] [1, 3, 5]).span =
+      S.search.span +
+        max (pMerge S.lowerPrimary S.lowerSecondary).span
+          (pMerge S.upperPrimary S.upperSecondary).span + 2 := by
+  exact pMerge_span_step_eq _ _ (by simp)
 
 example : (pMerge [1, 3, 5] [2, 4, 6]).value = [1, 2, 3, 4, 5, 6] := by
   native_decide
@@ -140,5 +183,7 @@ example : (binaryLowerBound [1, 2, 2, 2, 3] 2).span ≤ Nat.log 2 5 + 1 := by
 #print axioms pMerge_value_sorted
 #print axioms pMerge_value_perm
 #print axioms pMerge_value_length
+#print axioms pMerge_childSizes_add_one
+#print axioms pMerge_childSize_le_threeQuarters
 
 end CLRS.Chapter27
