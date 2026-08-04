@@ -18,9 +18,10 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   The computation-DAG model with forward (topologically ordered) edges, an
   honestly computed longest-path span, and the spawn/sync tree model with
   unit spawn overhead; the balanced parallel-loop spawn tree comes with exact
-  work and span characterizations.  Complete/incomplete greedy-schedule
-  accounting is connected to an explicit ready-set execution of the weighted
-  computation DAG, proving `Tₚ ≤ T₁ / p + T∞`.
+  work and span characterizations and all-input logarithmic depth and span
+  upper bounds.  Complete/incomplete greedy-schedule accounting is connected
+  to an explicit ready-set execution of the weighted computation DAG, proving
+  `Tₚ ≤ T₁ / p + T∞`.
   Main declarations:
   {lit}`CLRS.Chapter27.Strand`,
   {lit}`CLRS.Chapter27.CompDAG`,
@@ -40,7 +41,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.parallelLoopTree`,
   {lit}`CLRS.Chapter27.parallelLoop_work`,
   {lit}`CLRS.Chapter27.parallelLoop_span`,
-  {lit}`CLRS.Chapter27.parallelLoopDepth_pow`.
+  {lit}`CLRS.Chapter27.parallelLoopDepth_pow`,
+  {lit}`CLRS.Chapter27.parallelLoopDepth_le_log`,
+  {lit}`CLRS.Chapter27.parallelLoop_span_le_log`.
 
 * 27.2–27.4 Multithreaded algorithms.
   Executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and
