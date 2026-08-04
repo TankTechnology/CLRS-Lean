@@ -305,6 +305,12 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Costs",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -899,6 +905,18 @@ title = "27.3. Parallel Merge"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions"]
 title = "27.3. Parallel Merge — Definitions"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound"]
+title = "27.3. Binary Lower Bound"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness"]
+title = "27.3. Binary Lower Bound — Correctness"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Costs"]
+title = "27.3. Binary Lower Bound — Costs"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness"]
+title = "27.3. Parallel Merge — Correctness"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"

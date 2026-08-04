@@ -19,6 +19,10 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.PowerB
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.AllInputBounds
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Costs
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
@@ -70,7 +74,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   all-input Θ theorems: P-ADD has quadratic work and logarithmic span, while
   P-MATMUL has cubic work and log-squared span ({lit}`Theta(log^2 n)`).  The earlier
   idealized P-MATMUL recurrence retains its logarithmic-span upper bound.  The
-  merge-based and parallel-Strassen recurrences also have monotonicity,
+  executable binary lower bound used by P-MERGE has a proved strict-left,
+  nonstrict-right partition and logarithmic work/span.  The merge-based and
+  parallel-Strassen recurrences also have monotonicity,
   adjacent-power sandwich, and all-input Θ theorems.
   Main declarations:
   {lit}`CLRS.Chapter27.Costed`,
@@ -88,6 +94,10 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.pMatMulWork_le`,
   {lit}`CLRS.Chapter27.pMatMulSpan`, {lit}`CLRS.Chapter27.pMatMulSpan_pow_two`,
   {lit}`CLRS.Chapter27.pMatMulSpan_le`,
+  {lit}`CLRS.Chapter27.binaryLowerBound`,
+  {lit}`CLRS.Chapter27.binaryLowerBound_partition`,
+  {lit}`CLRS.Chapter27.binaryLowerBound_work_le_log`,
+  {lit}`CLRS.Chapter27.binaryLowerBound_span_le_log`,
   {lit}`CLRS.Chapter27.pMergeWork`, {lit}`CLRS.Chapter27.pMergeWork_pow_two`,
   {lit}`CLRS.Chapter27.pMergeWork_monotone`,
   {lit}`CLRS.Chapter27.pMergeWork_power_sandwich`,
