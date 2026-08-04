@@ -19,6 +19,14 @@ example : (Costed.charge 5 3 11).value = 11 ∧
   native_decide
 
 example :
+    let result := Costed.map (fun x : ℕ => x + 1) (Costed.charge 5 3 11)
+    result.value = 12 ∧ result.work = 5 ∧ result.span = 3 := by
+  native_decide
+
+example : (Costed.map (fun x : ℕ => x + 1) (Costed.charge 5 3 11)).value = 12 := by
+  simp
+
+example :
     let result := Costed.seq (Costed.charge 2 3 4)
       (fun x => Costed.charge 5 7 (x + 1))
     result.value = 5 ∧ result.work = 7 ∧ result.span = 10 := by
