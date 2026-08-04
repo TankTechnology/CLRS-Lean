@@ -1,5 +1,4 @@
 import Mathlib.Tactic
-import CLRSLean.Chapter_27.Section_27_1_Multithreading_Model
 
 /-!
 # 27.2–27.3. Parallel Recurrences
