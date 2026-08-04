@@ -306,9 +306,15 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.MergeSplit",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness",
 ]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions",
+]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Definitions",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Costs",
 ]
@@ -906,8 +912,20 @@ title = "27.3. Parallel Merge"
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions"]
 title = "27.3. Parallel Merge — Definitions"
 
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.MergeSplit"]
+title = "27.3. P-MERGE — Normalized Split Data"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge"]
+title = "27.3. P-MERGE"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions"]
+title = "27.3. P-MERGE — Executable Definition"
+
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound"]
 title = "27.3. Binary Lower Bound"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Definitions"]
+title = "27.3. Binary Lower Bound — Definitions"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness"]
 title = "27.3. Binary Lower Bound — Correctness"

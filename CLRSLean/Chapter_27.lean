@@ -20,8 +20,12 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.AllInp
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Definitions
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Definitions
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Costs
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.MergeSplit
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness
 
 /-! # Chapter 27 - Multithreaded Algorithms
@@ -98,6 +102,8 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.binaryLowerBound_partition`,
   {lit}`CLRS.Chapter27.binaryLowerBound_work_le_log`,
   {lit}`CLRS.Chapter27.binaryLowerBound_span_le_log`,
+  {lit}`CLRS.Chapter27.MergeSplit`,
+  {lit}`CLRS.Chapter27.pMerge`,
   {lit}`CLRS.Chapter27.pMergeWork`, {lit}`CLRS.Chapter27.pMergeWork_pow_two`,
   {lit}`CLRS.Chapter27.pMergeWork_monotone`,
   {lit}`CLRS.Chapter27.pMergeWork_power_sandwich`,

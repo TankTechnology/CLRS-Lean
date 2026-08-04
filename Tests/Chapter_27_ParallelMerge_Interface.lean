@@ -9,6 +9,31 @@ namespace CLRS.Chapter27
 #check LowerBoundSpec
 #check binaryLowerBound_span_eq_work
 #check binaryLowerBound_span_le_log
+#check pMerge
+#check pMerge_value_sorted
+#check pMerge_value_perm
+#check pMerge_value_length
+#check pMerge_correct
+
+/-! The executable P-MERGE boundary covers empty inputs, an empty secondary
+input, interleaving inputs, duplicates, and normalization by swapping the
+longer input into the primary position. -/
+
+example : (pMerge ([] : List ℕ) []).value = [] := by native_decide
+
+example : (pMerge [7] []).value = [7] := by native_decide
+example : (pMerge [7] []).work = 2 := by native_decide
+example : (pMerge [7] []).span = 2 := by native_decide
+
+example : (pMerge [1, 3, 5] [2, 4, 6]).value = [1, 2, 3, 4, 5, 6] := by
+  native_decide
+
+example : (pMerge [1, 2, 2] [2, 2, 3]).value = [1, 2, 2, 2, 2, 3] := by
+  native_decide
+
+-- The second input is longer and has odd total length, so it becomes primary.
+example : (pMerge [2, 4] [1, 3, 5]).value = [1, 2, 3, 4, 5] := by
+  native_decide
 
 example : (binaryLowerBound ([] : List ℕ) 3).value = 0 := by native_decide
 example : (binaryLowerBound ([] : List ℕ) 3).work = 0 := by native_decide
