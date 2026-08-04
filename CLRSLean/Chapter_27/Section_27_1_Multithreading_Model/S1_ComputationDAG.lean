@@ -12,6 +12,8 @@ namespace Chapter27
 
 /-! ## Strands and computation DAGs -/
 
+/-- A strand is an atomic unit of computation with a nonnegative work weight:
+the number of time units it takes on a single processor. -/
 structure Strand where
   /-- Work weight in time units. -/
   work : ℕ
