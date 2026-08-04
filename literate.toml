@@ -284,6 +284,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S4_ExecutableScheduler",
   "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S5_SpawnTreeAndLoops",
 ]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S2_Recurrences",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds",
+]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
 ]
@@ -834,7 +838,13 @@ title = "27.1 S4. Executable Scheduler"
 title = "27.1 S5. Spawn Trees and Parallel Loops"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms"]
-title = "27.2-27.4. Multithreaded Algorithms"
+title = "27.2-27.4. Multithreaded Algorithms (Compatibility)"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S2_Recurrences"]
+title = "27.2-27.3 S2. Parallel Recurrences"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds"]
+title = "27.2-27.3 S3. All-Input Bounds"
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
 
