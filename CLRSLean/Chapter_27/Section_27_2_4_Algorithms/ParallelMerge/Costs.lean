@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Structure
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span
 
 /-!
 # CLRS Chapter 27.3 — P-MERGE Costs
@@ -13,4 +14,5 @@ one-step execution cost equations, and pointwise linear work bounds.
 * [Structural bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure/)
 * [One-step costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step/)
 * [Linear work](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/)
+* [Quadratic-log span](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/)
 -/

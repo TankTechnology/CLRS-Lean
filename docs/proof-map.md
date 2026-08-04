@@ -3719,13 +3719,19 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/LogPotential.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Envelope.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound.lean`
 - Interface tests: `Tests/Chapter_27_Matrix_Interface.lean` and
   `Tests/Chapter_27_ParallelMerge_Interface.lean`
 - Status: `partial` (executable P-ADD and race-free P-MATMUL correctness,
   execution-attached cost equalities, and their all-input asymptotics are
   proved; executable P-MERGE value correctness, exact child accounting, its
   actual three-quarter split bound, one-step costs, and global pointwise linear
-  work are proved; global P-MERGE span and executable P-MERGE-SORT remain open)
+  work and matching quadratic-logarithmic span bounds are proved; executable
+  P-MERGE-SORT remains open)
 - Model:
   - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
     sequential composition and deterministic balanced `par4`/`par8` trees.
@@ -3785,6 +3791,20 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     potential invariant `work + 8 * log₂(total + 1) ≤ 64 * total`; the actual
     three-quarter child bound supplies the logarithmic credit that pays for
     every node's binary search.
+  - `CLRS.Chapter27.pMerge_span_upper` proves the universal pointwise bound
+    `span ≤ 64 * (log₂(total) + 1)^2`.  The monotone envelope recurs on the
+    actual `n - n / 4` child bound.  Its solution unfolds three shrink levels:
+    two levels do not always lower `Nat.log` (for example near 31), whereas
+    three place the child below the current highest power of two above the
+    finite kernel.
+  - `CLRS.Chapter27.evenKeys` and `CLRS.Chapter27.oddKeys` are sorted
+    interleaved witness lists.  Their lower P-MERGE child is the same family at
+    half size.  The binary-search path satisfies
+    `log₂(length + 1) ≤ span`; on the power-of-two witness this gives search
+    span at least `k+1`, yielding the recurrence
+    `2*S(k+1) ≥ 2*S(k) + (k+1) + 4` and the public matching witness
+    `CLRS.Chapter27.pMerge_interleaved_span_lower`:
+    `(k+1)^2 ≤ 8 * span` on inputs of size `2^k` each.
 - Proved execution-cost equalities:
   - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
     the work and span carried by P-ADD with `pAddWork (2^k)` and

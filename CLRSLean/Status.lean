@@ -153,10 +153,13 @@ the detailed maintainer ledger.
   The pointwise theorems {lit}`pMerge_work_lower` and
   {lit}`pMerge_work_upper` connect the executable algorithm to linear work via
   a logarithmic-potential strong induction over its actual three-quarter split.
+  The universal theorem {lit}`pMerge_span_upper` and the sorted interleaved
+  witness theorem {lit}`pMerge_interleaved_span_lower` give matching
+  quadratic-logarithmic execution-span bounds; the upper proof uses three
+  three-quarter shrinks per binary-log level.
   P-MERGE, P-MERGE-SORT, and retained parallel Strassen have recurrence-level
-  power-of-two and all-input analyses.  P-MERGE's global quadratic-log span
-  bound and the executable P-MERGE-SORT implementation refining those
-  recurrences remain open.
+  power-of-two and all-input analyses.  The executable P-MERGE-SORT
+  implementation refining those recurrences remains open.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric
