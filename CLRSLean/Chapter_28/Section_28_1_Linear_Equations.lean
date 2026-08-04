@@ -306,6 +306,20 @@ lemma conjPermMatrix {m n : Type*} [DecidableEq m] [DecidableEq n] (e : m ≃ n)
   simp [Equiv.Perm.permMatrix, PEquiv.toMatrix_apply, Equiv.toPEquiv_apply, Matrix.reindex_apply,
     Matrix.submatrix_apply, Equiv.trans_apply, Equiv.symm_symm, Equiv.apply_eq_iff_eq_symm_apply]
 
+/-- If `i < j` in `Fin (n + 1)` then `j` is not the zero row. -/
+lemma ne_zero_of_lt_succ {n : ℕ} {i j : Fin (n + 1)} (hij : i < j) : j ≠ 0 := by
+  intro hj0
+  have hi0 : i < (0 : Fin (n + 1)) := by simpa [hj0] using hij
+  have hi0v : i.val < 0 := by simpa using hi0
+  exact (Nat.not_lt_zero i.val) hi0v
+
+/-- If `j < i` in `Fin (n + 1)` then `i` is not the zero row. -/
+lemma ne_zero_of_lt {n : ℕ} {i j : Fin (n + 1)} (hji : j < i) : i ≠ 0 := by
+  intro hi0
+  have hj0 : j < (0 : Fin (n + 1)) := by simpa [hi0] using hji
+  have hj0v : j.val < 0 := by simpa using hj0
+  exact (Nat.not_lt_zero j.val) hj0v
+
 /--
 **Theorem 28.1 (LUP decomposition).**  Every nonsingular `n × n` matrix `A` over a
 field admits an LUP decomposition: a permutation `σ`, a unit lower-triangular `L`,
@@ -431,7 +445,125 @@ theorem exists_lup_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : 
         rw [conjPermMatrix re (Equiv.Perm.sumCongr (1 : Equiv.Perm (Fin 1)) σ₁)]
         rw [← fromBlocks_one_zero_zero_permMatrix σ₁]
         dsimp [P₁]
-      sorry
+      have hDiagE'D : diagP * E' * D = L * U := by
+        apply (reindexRingEquiv F re).injective
+        change (reindexRingEquiv F re) (diagP * E' * D) = (reindexRingEquiv F re) (L * U)
+        rw [map_mul, map_mul]
+        rw [show (reindexRingEquiv F re) D = Matrix.fromBlocks α v (0 : Matrix (Fin n) (Fin 1) F) M by
+          simpa using hDblocks]
+        rw [map_mul]
+        rw [show (reindexRingEquiv F re) diagP = Matrix.fromBlocks 1 0 0 P₁ by
+          simp [diagP, Matrix.reindex_apply, Matrix.submatrix_submatrix]]
+        rw [show (reindexRingEquiv F re) E' = Matrix.fromBlocks 1 0 mult
+            (1 : Matrix (Fin n) (Fin n) F) by
+          simp [E', Matrix.reindex_apply, Matrix.submatrix_submatrix]]
+        rw [show (reindexRingEquiv F re) L = Matrix.fromBlocks 1 0 (P₁ * mult) L₁ by
+          simp [L, Matrix.reindex_apply, Matrix.submatrix_submatrix]]
+        rw [show (reindexRingEquiv F re) U = Matrix.fromBlocks α v (0 : Matrix (Fin n) (Fin 1) F) U₁ by
+          simp [U, Matrix.reindex_apply, Matrix.submatrix_submatrix]]
+        simp [Matrix.fromBlocks_multiply, P₁, hMfac]
+      have hBD : B = E' * D := by
+        calc
+          B = 1 * B := by rw [one_mul]
+          _ = (E' * E) * B := by rw [hEinv]
+          _ = E' * (E * B) := by rw [Matrix.mul_assoc]
+          _ = E' * D := by rfl
+      have hDiagB : diagP * B = L * U := by
+        calc
+          diagP * B = diagP * (E' * D) := by rw [hBD]
+          _ = (diagP * E') * D := by rw [Matrix.mul_assoc]
+          _ = L * U := hDiagE'D
+      have hEq : σ₀.permMatrix F * A = L * U := by
+        calc
+          σ₀.permMatrix F * A = (σ * σP).permMatrix F * A := by rfl
+          _ = (σP.permMatrix F * σ.permMatrix F) * A := by rw [Matrix.permMatrix_mul]
+          _ = σP.permMatrix F * (σ.permMatrix F * A) := by rw [Matrix.mul_assoc]
+          _ = σP.permMatrix F * B := by rfl
+          _ = diagP * B := by rw [hσP]
+          _ = L * U := hDiagB
+      have hL : IsUnitLowerTriangular L := by
+        constructor
+        · intro i j hij
+          by_cases hi : i = 0
+          · have hj : j ≠ 0 := ne_zero_of_lt_succ hij
+            dsimp only [L]
+            rw [Matrix.reindex_apply, Matrix.submatrix_apply, Equiv.symm_symm]
+            have hri : re i = Sum.inl (⟨0, by omega⟩ : Fin 1) := by
+              dsimp [re]
+              simp [hi, finOneSumFin]
+            have hrj : re j = Sum.inr (j.pred hj) := by
+              dsimp [re]
+              simp [hj, finOneSumFin]
+            rw [hri, hrj]
+            simp
+          · have hj : j ≠ 0 := ne_zero_of_lt_succ hij
+            dsimp only [L]
+            rw [Matrix.reindex_apply, Matrix.submatrix_apply, Equiv.symm_symm]
+            have hri : re i = Sum.inr (i.pred hi) := by
+              dsimp [re]
+              simp [hi, finOneSumFin]
+            have hrj : re j = Sum.inr (j.pred hj) := by
+              dsimp [re]
+              simp [hj, finOneSumFin]
+            rw [hri, hrj]
+            simp
+            apply hL₁.1
+            have hsi : i = Fin.succ (i.pred hi) := (Fin.succ_pred i hi).symm
+            have hsj : j = Fin.succ (j.pred hj) := (Fin.succ_pred j hj).symm
+            have hlt : Fin.succ (i.pred hi) < Fin.succ (j.pred hj) := by
+              rw [hsi, hsj] at hij
+              exact hij
+            exact Fin.succ_lt_succ_iff.mp hlt
+        · intro i
+          by_cases hi : i = 0
+          · dsimp only [L]
+            rw [Matrix.reindex_apply, Matrix.submatrix_apply, Equiv.symm_symm]
+            have hri : re i = Sum.inl (⟨0, by omega⟩ : Fin 1) := by
+              dsimp [re]
+              simp [hi, finOneSumFin]
+            rw [hri]
+            simp
+          · dsimp only [L]
+            rw [Matrix.reindex_apply, Matrix.submatrix_apply, Equiv.symm_symm]
+            have hri : re i = Sum.inr (i.pred hi) := by
+              dsimp [re]
+              simp [hi, finOneSumFin]
+            rw [hri]
+            simp
+            exact hL₁.2 (i.pred hi)
+      have hU : IsUpperTriangular U := by
+        intro i j hji
+        by_cases hj : j = 0
+        · have hi : i ≠ 0 := ne_zero_of_lt hji
+          dsimp only [U]
+          rw [Matrix.reindex_apply, Matrix.submatrix_apply, Equiv.symm_symm]
+          have hrj : re j = Sum.inl (⟨0, by omega⟩ : Fin 1) := by
+            dsimp [re]
+            simp [hj, finOneSumFin]
+          have hri : re i = Sum.inr (i.pred hi) := by
+            dsimp [re]
+            simp [hi, finOneSumFin]
+          rw [hrj, hri]
+          simp
+        · have hi : i ≠ 0 := ne_zero_of_lt hji
+          dsimp only [U]
+          rw [Matrix.reindex_apply, Matrix.submatrix_apply, Equiv.symm_symm]
+          have hrj : re j = Sum.inr (j.pred hj) := by
+            dsimp [re]
+            simp [hj, finOneSumFin]
+          have hri : re i = Sum.inr (i.pred hi) := by
+            dsimp [re]
+            simp [hi, finOneSumFin]
+          rw [hrj, hri]
+          simp
+          apply hU₁
+          have hsj : j = Fin.succ (j.pred hj) := (Fin.succ_pred j hj).symm
+          have hsi : i = Fin.succ (i.pred hi) := (Fin.succ_pred i hi).symm
+          have hlt : Fin.succ (j.pred hj) < Fin.succ (i.pred hi) := by
+            rw [hsj, hsi] at hji
+            exact hji
+          exact Fin.succ_lt_succ_iff.mp hlt
+      exact ⟨σ₀, L, U, hL, hU, hEq⟩
 
 end Chapter28
 
