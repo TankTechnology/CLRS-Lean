@@ -14,6 +14,25 @@ namespace CLRS.Chapter27
 #check CompDAG.greedySchedule_final_work_eq_zero
 #check CompDAG.greedySchedule_time_le_work_div_add_span
 
+/-- An initially complete DAG exercises the scheduler's immediate done branch. -/
+def schedulerZeroDAG : CompDAG where
+  n := 1
+  node_work := fun _ => 0
+  edges := []
+  h_edges_in_bounds := by decide
+  h_edges_forward := by decide
+
+/-- The zero-step two-processor schedule for {name}`schedulerZeroDAG`. -/
+def schedulerZeroSchedule : DAGSchedule schedulerZeroDAG 2 schedulerZeroDAG.node_work :=
+  schedulerZeroDAG.greedySchedule 2 (by decide)
+
+example : schedulerZeroSchedule.time = 0 := by native_decide
+
+example : schedulerZeroDAG.remainingWork schedulerZeroSchedule.finalState = 0 := by
+  native_decide
+
+example : schedulerZeroSchedule.finalState 0 = 0 := by native_decide
+
 /-- A single unit-work node exercises the scheduler's active and done branches. -/
 def schedulerUnitDAG : CompDAG where
   n := 1
@@ -35,6 +54,25 @@ example : schedulerUnitSchedule.time ≤
     schedulerUnitDAG.work / 1 + schedulerUnitDAG.span :=
   schedulerUnitDAG.greedySchedule_time_le_work_div_add_span 1 (by decide)
 
+/-- A single node with three work units stays ready across three executions. -/
+def schedulerWorkThreeDAG : CompDAG where
+  n := 1
+  node_work := fun i => if i = 0 then 3 else 0
+  edges := []
+  h_edges_in_bounds := by decide
+  h_edges_forward := by decide
+
+/-- The one-processor schedule that revisits the still-active node three times. -/
+def schedulerWorkThreeSchedule :
+    DAGSchedule schedulerWorkThreeDAG 1 schedulerWorkThreeDAG.node_work :=
+  schedulerWorkThreeDAG.greedySchedule 1 (by decide)
+
+example : schedulerWorkThreeSchedule.time = 3 := by native_decide
+
+example :
+    schedulerWorkThreeDAG.remainingWork schedulerWorkThreeSchedule.finalState = 0 := by
+  native_decide
+
 /-- A unit-work fork whose two children become ready together after node zero. -/
 def schedulerForkDAG : CompDAG where
   n := 3
@@ -42,6 +80,16 @@ def schedulerForkDAG : CompDAG where
   edges := [(0, 1), (0, 2)]
   h_edges_in_bounds := by decide
   h_edges_forward := by decide
+
+/-- Residual fork state after its root has executed once. -/
+def schedulerForkAfterRoot : ℕ → ℕ :=
+  schedulerForkDAG.execute schedulerForkDAG.node_work {0}
+
+example : schedulerForkDAG.readyRun schedulerForkAfterRoot 1 = {1} := by
+  native_decide
+
+example : schedulerForkDAG.readyRun schedulerForkAfterRoot 2 = {1, 2} := by
+  native_decide
 
 /-- The deterministic serial schedule for {name}`schedulerForkDAG`. -/
 def schedulerForkScheduleOne :
