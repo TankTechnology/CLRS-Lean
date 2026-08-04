@@ -315,10 +315,17 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Structure",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span",
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work.LogPotential",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work.Bounds",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.Envelope",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.Bounds",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.WitnessLists",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.LowerBound",
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions",
@@ -981,6 +988,21 @@ title = "27.3. P-MERGE Work — Logarithmic Potential"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work.Bounds"]
 title = "27.3. P-MERGE Work — Pointwise Bounds"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span"]
+title = "27.3. P-MERGE Costs — Quadratic-Log Span"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.Envelope"]
+title = "27.3. P-MERGE Span — Three-Quarter Envelope"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.Bounds"]
+title = "27.3. P-MERGE Span — Pointwise Upper Bound"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.WitnessLists"]
+title = "27.3. P-MERGE Span — Interleaved Witness Lists"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.LowerBound"]
+title = "27.3. P-MERGE Span — Matching Lower Witness"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"

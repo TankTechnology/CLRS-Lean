@@ -22,6 +22,8 @@ namespace CLRS.Chapter27
 #check pMerge_span_step_le
 #check pMerge_work_lower
 #check pMerge_work_upper
+#check pMerge_span_upper
+#check pMerge_interleaved_span_lower
 
 /-! The executable P-MERGE boundary covers empty inputs, an empty secondary
 input, interleaving inputs, duplicates, and normalization by swapping the
@@ -133,6 +135,46 @@ example :
 -- This direct execution check independently confirms the concrete upper bound.
 example : (pMerge [1, 2, 2] [2, 2, 3]).work ≤ 64 * 7 := by native_decide
 
+/-! The pointwise span theorem covers the empty and singleton boundaries,
+duplicates, and the odd unequal normalization branch. -/
+
+example : (pMerge ([] : List ℕ) []).span ≤
+    64 * (Nat.log 2 (0 + 0) + 1) ^ 2 := pMerge_span_upper [] []
+
+example : (pMerge [7] ([] : List ℕ)).span ≤
+    64 * (Nat.log 2 (1 + 0) + 1) ^ 2 := pMerge_span_upper [7] []
+
+example : (pMerge [1, 2, 2] [2, 2, 3]).span ≤
+    64 * (Nat.log 2 (3 + 3) + 1) ^ 2 :=
+  pMerge_span_upper [1, 2, 2] [2, 2, 3]
+
+example : (pMerge [2, 4] [1, 3, 5]).span ≤
+    64 * (Nat.log 2 (2 + 3) + 1) ^ 2 :=
+  pMerge_span_upper [2, 4] [1, 3, 5]
+
+/-! The interleaved witnesses are genuinely sorted inputs.  Small concrete
+executions complement the uniform theorem. -/
+
+example (k : ℕ) : PMergeSpec (evenKeys (2 ^ k)) (oddKeys (2 ^ k))
+    (pMerge (evenKeys (2 ^ k)) (oddKeys (2 ^ k))).value := by
+  exact pMerge_correct _ _ (evenKeys_sorted _) (oddKeys_sorted _)
+
+example : (0 + 1) ^ 2 ≤
+    8 * (pMerge (evenKeys (2 ^ 0)) (oddKeys (2 ^ 0))).span := by native_decide
+
+example : (1 + 1) ^ 2 ≤
+    8 * (pMerge (evenKeys (2 ^ 1)) (oddKeys (2 ^ 1))).span := by native_decide
+
+example : (2 + 1) ^ 2 ≤
+    8 * (pMerge (evenKeys (2 ^ 2)) (oddKeys (2 ^ 2))).span := by native_decide
+
+example : (3 + 1) ^ 2 ≤
+    8 * (pMerge (evenKeys (2 ^ 3)) (oddKeys (2 ^ 3))).span := by native_decide
+
+example (k : ℕ) : (k + 1) ^ 2 ≤
+    8 * (pMerge (evenKeys (2 ^ k)) (oddKeys (2 ^ k))).span :=
+  pMerge_interleaved_span_lower k
+
 example : (binaryLowerBound ([] : List ℕ) 3).value = 0 := by native_decide
 example : (binaryLowerBound ([] : List ℕ) 3).work = 0 := by native_decide
 example : (binaryLowerBound ([] : List ℕ) 3).span = 0 := by native_decide
@@ -217,5 +259,7 @@ example : (binaryLowerBound [1, 2, 2, 2, 3] 2).span ≤ Nat.log 2 5 + 1 := by
 #print axioms pMerge_childSize_le_threeQuarters
 #print axioms pMerge_work_lower
 #print axioms pMerge_work_upper
+#print axioms pMerge_span_upper
+#print axioms pMerge_interleaved_span_lower
 
 end CLRS.Chapter27
