@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.ProofPatterns.Exchange
 
 /-!
 # CLRS Section 16.1 - Activity selection
@@ -361,6 +362,32 @@ structure MaxCardinality (available selected : List Activity) : Prop where
     ∀ other, other.Sublist available → Feasible other →
       other.length ≤ selected.length
 
+namespace MaxCardinality
+
+/-- View activity-selection maximum cardinality through the generic optimality
+kernel. -/
+theorem toOptimal {available selected : List Activity}
+    (h : MaxCardinality available selected) :
+    ProofPatterns.Optimal
+      (fun candidate => candidate.Sublist available ∧ Feasible candidate)
+      (ProofPatterns.ExchangeCertificate.NoLessScore List.length)
+      selected :=
+  ⟨⟨h.sublist, h.feasible⟩,
+    fun other hother => h.maximum other hother.1 hother.2⟩
+
+end MaxCardinality
+
+/-- Recover the chapter-facing maximum-cardinality certificate from the generic
+optimality kernel. -/
+theorem maxCardinality_of_optimal {available selected : List Activity}
+    (h : ProofPatterns.Optimal
+      (fun candidate => candidate.Sublist available ∧ Feasible candidate)
+      (ProofPatterns.ExchangeCertificate.NoLessScore List.length)
+      selected) :
+    MaxCardinality available selected :=
+  ⟨h.feasible_chosen.1, h.feasible_chosen.2,
+    fun other hsub hfeasible => h.noWorse_than other ⟨hsub, hfeasible⟩⟩
+
 /--
 A one-step greedy-choice certificate.  The field {lit}`exchange` is the CLRS
 exchange argument: every feasible competitor can be converted, without losing
@@ -480,15 +507,22 @@ theorem greedy_choice_optimal_from_certificate
     (hopt : MaxCardinality after selected)
     (hcert : GreedyChoiceCertificate available after selected a) :
     MaxCardinality available (a :: selected) := by
-  refine ⟨hcert.chosen_sublist, ?_, ?_⟩
-  · exact feasible_cons hopt.feasible hcert.selected_after
-  · intro other hsub hfeasible
-    rcases hcert.exchange other hsub hfeasible with
+  apply maxCardinality_of_optimal
+  apply ProofPatterns.optimal_of_exchange
+      (target := fun candidate =>
+        ∃ tail, candidate = a :: tail ∧ tail.Sublist after ∧ Feasible tail)
+  · exact ⟨hcert.chosen_sublist,
+      feasible_cons hopt.feasible hcert.selected_after⟩
+  · intro other hother
+    rcases hcert.exchange other hother.1 hother.2 with
       ⟨tail, htail_sub, htail_feasible, hle_exchange⟩
-    have htail_bound :
-        (a :: tail).length ≤ (a :: selected).length :=
-      chosen_tail_bound_of_tail_optimal hopt htail_sub htail_feasible
-    exact Nat.le_trans hle_exchange htail_bound
+    exact ⟨a :: tail, ⟨tail, rfl, htail_sub, htail_feasible⟩,
+      hle_exchange⟩
+  · intro candidate hcandidate
+    rcases hcandidate with ⟨tail, rfl, htail_sub, htail_feasible⟩
+    exact chosen_tail_bound_of_tail_optimal hopt htail_sub htail_feasible
+  · intro x y z hxy hyz
+    exact Nat.le_trans hyz hxy
 
 /--
 **Full finite-list optimality for sorted inputs.**  If the candidate activities

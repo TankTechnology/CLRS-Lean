@@ -3,6 +3,7 @@ import CLRSLean.Chapter_04.Section_04_6_Master_Theorem_All_Input
 import CLRSLean.Chapter_05.Section_05_4_Probabilistic_Analysis
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort
 import CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing
+import CLRSLean.Chapter_16.Section_16_1_Activity_Selection
 import CLRSLean.Chapter_22.Section_22_3_DFS.S2_Intervals
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms
 import CLRSLean.ProofPatterns.Exchange
@@ -38,6 +39,9 @@ groups.
 #check CLRS.Chapter05.fintypeExpect_mono
 #check CLRS.Chapter11.fintypeExpect_mono
 #check CLRS.Chapter11.fintypeExpect_neg
+#check CLRS.ActivitySelection.MaxCardinality.toOptimal
+#check CLRS.ActivitySelection.maxCardinality_of_optimal
+#check CLRS.ActivitySelection.greedy_choice_optimal_from_certificate
 
 namespace CLRS
 
