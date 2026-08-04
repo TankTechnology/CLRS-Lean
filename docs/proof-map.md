@@ -3688,8 +3688,10 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRS.Chapter27.parallelLoop_span` (exact span `w + depth`)
   - `CLRS.Chapter27.parallelLoopDepth_pow` (`n ≤ 2 ^ depth`, the
     span-is-logarithmic direction)
-- Current gap: a matching `parallelLoopDepth n ≤ Nat.log 2 n + 1` upper bound
-  is future work.
+  - `CLRS.Chapter27.parallelLoopDepth_le_log`
+    (`parallelLoopDepth n ≤ Nat.log 2 n + 1` on every input)
+  - `CLRS.Chapter27.parallelLoop_span_le_log`
+    (all-input span bound `span ≤ w + Nat.log 2 n + 1`)
 
 ### Section 27.2-27.4 - Multithreaded Algorithms
 
