@@ -54,6 +54,8 @@ namespace Chapter27
 #check parallelLoopDepth
 #check parallelLoop_span
 #check parallelLoopDepth_pow
+#check CLRS.Chapter27.parallelLoopDepth_le_log
+#check CLRS.Chapter27.parallelLoop_span_le_log
 #check pMatMulWork
 #check pMatMulWork_unfold
 #check pMatMulWork_pow_two
