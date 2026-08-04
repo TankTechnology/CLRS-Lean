@@ -33,9 +33,23 @@ groups.
 namespace CLRS
 
 example {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X Y : Ω → ℝ}
+    (hXY : ∀ ω, X ω ≤ Y ω) :
+    Probability.fintypeExpect X ≤ Probability.fintypeExpect Y :=
+  Probability.fintypeExpect_mono hXY
+
+example {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X : Ω → ℝ) :
+    Probability.fintypeExpect (fun ω => -X ω) = -Probability.fintypeExpect X :=
+  Probability.fintypeExpect_neg X
+
+example {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X Y : Ω → ℝ}
     (hX : ∀ ω, 0 ≤ X ω) (hY : ∀ ω, 0 ≤ Y ω) (hXY : ∀ ω, X ω ≤ Y ω) :
     Probability.fintypeExpect X ≤ Probability.fintypeExpect Y :=
   Chapter05.fintypeExpect_mono hX hY hXY
+
+example {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X Y : Ω → ℝ}
+    (hXY : ∀ ω, X ω ≤ Y ω) :
+    Probability.fintypeExpect X ≤ Probability.fintypeExpect Y :=
+  Chapter11.fintypeExpect_mono hXY
 
 example (n : ℕ) (hn : 0 < n) :
     Chapter27.pMergeWork (2 ^ Nat.log 2 n) ≤ Chapter27.pMergeWork n ∧

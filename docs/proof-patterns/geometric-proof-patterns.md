@@ -10,13 +10,16 @@
 
 当前已经抽出的 Lean 模块位于 `CLRSLean/ProofPatterns/`：
 
-- `Boundary.lean`：一维边界推进。
-- `Exchange.lean`：贪心交换证书。
-- `Fiber.lean`：bucket/fiber 分解。
-- `Interval.lean`：严格区间先后与嵌套。
+- `Boundary.lean`：一维边界推进，目前是教学骨架，尚无章节消费者。
+- `Exchange.lean`：贪心交换证书，目前因 witness 形状不同而暂缓接入。
+- `Fiber.lean`：bucket/fiber 分解，Chapter 8 已通过精确 bridge 使用。
+- `Interval.lean`：严格区间先后与嵌套，Chapter 22 DFS 已实际使用。
 
 摊还分析的势能望远镜已经在 `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`
 里形成通用框架，因此暂时不重复迁移。
+
+公共库的所有权、兼容面和 theorem-group 计数规则见
+[`common-proof-library-decision-matrix.md`](common-proof-library-decision-matrix.md)。
 
 ## 1. Boundary Shift
 
@@ -129,20 +132,23 @@ fiber_fiber_eq
 
 **项目实例**
 
-- Counting sort：当前的 `bucket` 是自然数 key 的专用版本。
+- Counting sort：`bucket_eq_fiber` 已证明自然数 key 的 `bucket` 与通用
+  `fiber` 完全相同；`bucket_append`、`mem_bucket_iff`、
+  `bucket_all_keys_eq`、`bucket_bucket_eq` 已委托给通用引理。
 - Radix sort：digit class 是多层 fiber 叠加。
 - Bucket sort：bucket index 决定元素落点，期望分析里还要数 bucket size。
 - Hash tables：链地址法的每条链可以看成 hash key 的 fiber。
 
 **复用方式**
 
-后续如果要重构 Chapter 8，可以先把局部 `bucket` 定义替换或桥接到 `fiber`：
+Chapter 8 保留教材侧 `bucket` 语言，并通过精确 bridge 使用通用库：
 
 ```lean
 bucket key xs k = fiber key xs k
 ```
 
-不要急着改现有已证定理；更稳的做法是在新 theorem 中用 `fiber_*` 引理，等重复出现两三次后再回收旧局部 lemma。
+旧 theorem 名继续作为稳定接口。下一步只有在 radix、bucket sort 或 hash
+chain 出现新的共同需求时，才扩充 `Fiber` API。
 
 ## 4. Interval Nesting
 
@@ -177,19 +183,25 @@ NatInterval.strictlyBefore_asymm
 
 **项目实例**
 
-- DFS：`intervalNestedInside` 比较 discovery/finish intervals。
+- DFS：`dfsInterval` 把 discovery/finish timestamps 投影到
+  `NatInterval`；`finishesBeforeDiscovered_iff_strictlyBefore` 和
+  `intervalNestedInside_iff_nestedInside` 提供定义级等价，
+  `intervalNestedInside_asymm` 已复用通用反对称引理。
 - Maximum subarray：left/right/crossing 是围绕边界的区间分解。
 - Master theorem all-input bridge：任意输入被夹在相邻 exact powers 之间。
 
 **复用方式**
 
-遇到新的 timestamp 或 index-interval 证明时，可以先定义一个到 `NatInterval` 的投影：
+遇到新的 timestamp 或 index-interval 证明时，沿用 Chapter 22 已验证的方式，
+先定义到 `NatInterval` 的投影：
 
 ```lean
 def dfsInterval (s : DFSState V) (u : V) : NatInterval := ...
 ```
 
-然后复用通用的 asymmetry/transitivity 引理，把 DFS 专属事实留给发现/完成时间本身。
+然后复用通用的 asymmetry/transitivity 引理，把算法专属事实留给原章节。
+Chapter 22 的 parenthesis、ancestor 和 edge-classification 证明仍然保持
+DFS 语言，没有为抽象统一而整体重写。
 
 ## 5. Local Surgery
 
@@ -304,22 +316,27 @@ exact power <= n < next exact power
 
 **复用方式**
 
-这一类目前保留在 Chapter 4，因为它强依赖 asymptotic notation 和 exact-power recurrence。
-如果 Chapter 24-26 的复杂度证明再次需要“exact spine -> all input”的桥，再考虑抽到 ProofPatterns。
+这一类保留在 Chapter 4，因为它强依赖 asymptotic notation 和 exact-power
+recurrence。Chapter 27 已直接复用 `monotoneAbs_natCast` 和
+`monotone_power_sandwich`，删除了自己的私有通用副本。只有当非递归领域也
+需要同一接口、且导入 Chapter 4 不再合理时，才考虑继续上移。
 
 ## Extraction Rule
 
 沉淀规则保持保守：
 
 - 一个 pattern 先进入这份 atlas。
-- 至少两个章节独立复用后，再抽 Lean 小模块。
+- 至少两个章节独立复用后，再抽 Lean 小模块；对已经存在的候选模块，允许先用
+  一个精确 bridge 建立真实消费者，但不因此扩张其 API。
 - 小模块只抽几何骨架和通用代数，不抽具体算法语义。
 - 已稳定章节不为“漂亮抽象”做大重构；新证明优先使用这些模块，等自然重复后再回收旧 lemma。
 
 当前优先级：
 
-1. 新证明优先使用 `Boundary`、`Fiber`、`Interval`、`Exchange`。
-2. Chapter 8 后续重构可把 `bucket` 和 `fiber` 桥接起来。
-3. Chapter 22 DFS parenthesis/white-path 后续证明可用 `NatInterval` 做外层区间语言。
-4. Chapter 23/24 的图算法 greedy/cut 证明继续试用 `ExchangeCertificate`。
+1. Chapter 8 新的 bucket/fiber 引理优先落到 `Fiber`，再保留章节 wrapper。
+2. Chapter 22 新的纯区间代数优先通过 `dfsInterval` 复用 `NatInterval`。
+3. 有限期望代数统一进入 `CLRS.Probability`；Chapter 4 和 Chapter 17 继续
+   作为已经有跨章节消费者的 domain library。
+4. `Boundary` 和 `Exchange` 继续作为候选骨架，等真实 proof site 能无损接入
+   后再推广，不因已有模块就强制重构章节。
 5. `LocalSurgery` 和 DP grid 暂时维持文档模式，等复用压力更明确再抽代码。
