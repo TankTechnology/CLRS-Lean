@@ -51,4 +51,8 @@ example :
       result.work = 7 ∧ result.span = 3 := by
   native_decide
 
+#check pAdd
+#check pAdd_value
+#check pAdd_correct
+
 end CLRS.Chapter27
