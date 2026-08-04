@@ -3697,31 +3697,75 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 - Lean sources:
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S1_CostModel.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/ExecutionEqualities.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds.lean`
 - Interface test: `Tests/Chapter_27_Matrix_Interface.lean`
-- Status: `partial` (executable P-ADD correctness and cost-recurrence analysis
-  proved; executable P-MERGE/P-MERGE-SORT refinements open)
-- Model: `Costed` executable values with exact work/span, depth-indexed
-  power-of-two matrices, balanced four-way P-ADD, and executable work/span
-  recurrences `pMatMulWork`, `pMatMulSpan`,
-  `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
-  `strassenWork`, `strassenSpan`, each with an `*_unfold` recurrence lemma.
-- Proved executable P-ADD boundary:
+- Status: `partial` (executable P-ADD and race-free P-MATMUL correctness,
+  execution-attached cost equalities, and their all-input asymptotics are
+  proved; executable P-MERGE/P-MERGE-SORT refinements remain open)
+- Model:
+  - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
+    sequential composition and deterministic balanced `par4`/`par8` trees.
+  - `CLRS.Chapter04.SqMat R k` represents a `2^k × 2^k` square matrix.
+  - `pAddWork`, `pAddSpan`, `pMatMulExecWork`, and `pMatMulExecSpan` are the
+    recurrences proved equal to the costs carried by executable P-ADD and
+    P-MATMUL.
+  - The older `pMatMulWork`/`pMatMulSpan` pair is an **idealized recurrence**
+    with constant combine span.  Its logarithmic span result is not the span
+    carried by executable P-MATMUL, whose sequential P-ADD phase produces
+    log-squared span.
+  - `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
+    `strassenWork`, and `strassenSpan` remain recurrence-level models.
+- Proved executable matrix boundary:
+  - `CLRS.Chapter27.Costed.pure`, `charge`, `map`, `seq`, `par`, `par4`, and
+    `par8` form the value/work/span execution layer.
   - `CLRS.Chapter27.pAdd` charges one work/span unit at scalar leaves, executes
     four quadrant additions through deterministic balanced `Costed.par4`, and
     reassembles the row-major quadrant tuple.
-  - `CLRS.Chapter27.pAdd_value` proves the returned value is ordinary matrix
-    addition at every depth over any `Ring`.
-  - `CLRS.Chapter27.pAdd_correct` is the reader-facing correctness wrapper.
-  - Executable interface examples confirm exact scalar work/span `1/1` and
-    depth-one work/span `7/3` together with concrete `2 × 2` values.
-- Proved theorems (power-of-two closed forms):
+  - `CLRS.Chapter27.pMatMul` runs eight recursive products in balanced
+    `Costed.par8`, constructs two fresh immutable temporary matrices, and then
+    applies P-ADD.  The functional temporaries rule out concurrent writes and
+    make the executable interpretation data-race free.
+  - `CLRS.Chapter27.pAdd_value` / `CLRS.Chapter27.pAdd_correct` prove ordinary
+    matrix addition; `CLRS.Chapter27.pMatMul_value` /
+    `CLRS.Chapter27.pMatMul_correct` prove ordinary matrix multiplication.
+    All four statements hold at every depth over any `Ring`.
+  - Interface examples confirm exact scalar P-ADD/P-MATMUL work/span `1/1`,
+    depth-one P-ADD work/span `7/3`, and depth-one P-MATMUL work/span `22/7`,
+    together with concrete `2 × 2` values.
+- Proved execution-cost equalities:
+  - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
+    the work and span carried by P-ADD with `pAddWork (2^k)` and
+    `pAddSpan (2^k)`.
+  - `CLRS.Chapter27.pMatMul_work_eq` and `CLRS.Chapter27.pMatMul_span_eq`
+    identify the work and span carried by P-MATMUL with
+    `pMatMulExecWork (2^k)` and `pMatMulExecSpan (2^k)`.
+- Proved execution-attached matrix asymptotics:
+  - `CLRS.Chapter27.pAddWork_allInput_bigTheta`: Θ(n²)
+  - `CLRS.Chapter27.pAddSpan_allInput_bigTheta`: Θ(log n)
+  - `CLRS.Chapter27.pMatMulExecWork_allInput_bigTheta`: Θ(n³)
+  - `CLRS.Chapter27.pMatMulExecSpan_allInput_bigTheta`: Θ(log² n), including
+    the sequential P-ADD phase of the actual costed implementation
+  - The four corresponding `*_monotone` and `*_power_sandwich` theorems justify
+    transfer from the power-of-two formulas/bounds to every positive input.
+- Proved idealized P-MATMUL recurrence results:
   - `CLRS.Chapter27.pMatMulWork_pow_two` (`T₁(2ᵏ) + 4ᵏ = 2·8ᵏ`, work Θ(n³))
     and `CLRS.Chapter27.pMatMulWork_le` (all-input `T₁(n) + n² ≤ 2n³`)
   - `CLRS.Chapter27.pMatMulSpan_pow_two` (`T∞(2ᵏ) = k + 1`) and
     `CLRS.Chapter27.pMatMulSpan_le` (all-input `T∞(n) ≤ ⌊log₂ n⌋ + 1`)
+  - These theorems describe `pMatMulWork`/`pMatMulSpan`; in particular their
+    Θ(log n) span is intentionally not claimed for executable P-MATMUL.
+- Other proved recurrence results (power-of-two closed forms):
   - `CLRS.Chapter27.pMergeWork_pow_two` (`T₁(2ᵏ) + (k+3) = 4·2ᵏ`, work Θ(n))
   - `CLRS.Chapter27.pMergeSpan_pow_two` (`2·T∞(2ᵏ) = (k+1)(k+2)`, span Θ(log² n))
   - `CLRS.Chapter27.pMergeSortWork_pow_two` (`T₁(2ᵏ) = 2ᵏ·(k+1)`, work
