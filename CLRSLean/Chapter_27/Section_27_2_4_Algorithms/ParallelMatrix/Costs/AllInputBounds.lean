@@ -15,7 +15,7 @@ Main results:
 - Theorem {lit}`pMatMulExecWork_allInput_bigTheta`: executable P-MATMUL work is
   cubic.
 - Theorem {lit}`pMatMulExecSpan_allInput_bigTheta`: executable P-MATMUL span is
-  quadratic-logarithmic.
+  log-squared ({lit}`Theta(log^2 n)`).
 -/
 
 namespace CLRS
@@ -67,9 +67,9 @@ theorem pMatMulExecWork_allInput_bigTheta :
     simpa using Chapter04.criticalPowerScale_isBigTheta_polynomialScale 2 3
       (by norm_num))
 
-/-- Executable P-MATMUL has quadratic-logarithmic span on every positive input
-size.  This is the actual span of the costed implementation, including the
-sequential P-ADD phase. -/
+/-- Executable P-MATMUL has log-squared span, {lit}`Theta(log^2 n)`, on every
+positive input size.  This is the actual span of the costed implementation,
+including the sequential P-ADD phase. -/
 theorem pMatMulExecSpan_allInput_bigTheta :
     Chapter03.isBigTheta (fun n : ℕ => (pMatMulExecSpan n : ℝ))
       (Chapter04.criticalPowerLogPolylogScale 1 2 1) := by
