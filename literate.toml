@@ -293,6 +293,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.Definitions",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.ExecutionEqualities",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -856,13 +861,22 @@ title = "27.2-27.3 S2. Parallel Recurrences"
 title = "27.2-27.3 S3. All-Input Bounds"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix"]
-title = "27.2. Parallel Matrix Addition"
+title = "27.2. Parallel Matrix Algorithms"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions"]
-title = "27.2. Parallel Matrix Addition — Definitions"
+title = "27.2. Parallel Matrix Algorithms — Definitions"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness"]
-title = "27.2. Parallel Matrix Addition — Correctness"
+title = "27.2. Parallel Matrix Algorithms — Correctness"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs"]
+title = "27.2. Parallel Matrix Algorithms — Exact Costs"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.Definitions"]
+title = "27.2. Exact Matrix Costs — Definitions"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.ExecutionEqualities"]
+title = "27.2. Exact Matrix Costs — Execution Equalities"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
