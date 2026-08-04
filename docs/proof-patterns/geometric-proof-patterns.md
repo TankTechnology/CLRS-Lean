@@ -11,7 +11,8 @@
 当前已经抽出的 Lean 模块位于 `CLRSLean/ProofPatterns/`：
 
 - `Boundary.lean`：一维边界推进，目前是教学骨架，尚无章节消费者。
-- `Exchange.lean`：贪心交换证书，目前因 witness 形状不同而暂缓接入。
+- `Exchange.lean`：通用最优性与交换传递内核，Chapter 16 和 Chapter 23
+  已通过各自的领域证书实际使用。
 - `Fiber.lean`：bucket/fiber 分解，Chapter 8 已通过精确 bridge 使用。
 - `Interval.lean`：严格区间先后与嵌套，Chapter 22 DFS 已实际使用。
 
@@ -64,7 +65,7 @@ Invariant (i + 1) (state (i + 1))
 
 最后再用 `boundary_holds` 或 `boundary_holds_upto` 推到终点。
 
-## 2. Exchange Certificate
+## 2. Exchange Optimality and Certificates
 
 **几何直觉**
 
@@ -81,7 +82,20 @@ new feasible solution containing greedy choice
 
 **Lean 骨架**
 
-`CLRS.ProofPatterns.ExchangeCertificate` 只固定最小公共形状：
+`Optimal feasible noWorse chosen` 统一表示“`chosen` 可行，并且不劣于每个
+可行竞争者”。核心传递定理是：
+
+```lean
+CLRS.ProofPatterns.Optimal.of_noWorse
+CLRS.ProofPatterns.optimal_of_exchange
+```
+
+`Optimal.of_noWorse` 处理一次可行且不变差的替换；
+`optimal_of_exchange` 处理“每个竞争者先交换到一个中间 target，再由
+`chosen` 支配 target”的证明。
+
+原有 `CLRS.ProofPatterns.ExchangeCertificate` 继续提供适合全函数交换的
+最小公共形状：
 
 ```lean
 exchange : Solution -> Solution
@@ -95,15 +109,19 @@ noWorse_exchange : feasible s -> noWorse (exchange s) s
 
 **项目实例**
 
-- Activity selection：把任意最优选择交换成以最早结束活动开头的选择。
+- Activity selection：`MaxCardinality.toOptimal` 把章节最优性证书投影到
+  通用内核，`greedy_choice_optimal_from_certificate` 调用
+  `optimal_of_exchange`。
 - Huffman：通过 split-leaf/exchange 把两个最低频率符号放进 sibling leaves。
-- MST/Kruskal：把 light crossing edge 加入生成树，再删除路径上的一条边。
+- MST/Kruskal：`IsMSTExtending.toOptimal` 投影前缀最优性，
+  `mst_exchange_preserves_prefix` 调用 `Optimal.of_noWorse`。
 
 **复用方式**
 
-新的 greedy 证明不要先写“算法一定最优”的大定理。
-先写一个 exchange certificate，证明任意 competitor 都能被换成含有 greedy 局部选择的 competitor。
-然后把递归子问题或 cut property 接上。
+新的 greedy 证明先写领域侧 exchange certificate，证明任意 competitor
+都能被换成含有 greedy 局部选择的 competitor，再用 `Optimal` 内核组合
+最终的 no-worse 关系。Chapter 16 保留活动 tail witness；Chapter 23 保留
+cut、path 和换边 witness。公共库不选择 witness，也不引入 classical choice。
 
 ## 3. Fiber Decomposition
 
@@ -337,6 +355,6 @@ recurrence。Chapter 27 已直接复用 `monotoneAbs_natCast` 和
 2. Chapter 22 新的纯区间代数优先通过 `dfsInterval` 复用 `NatInterval`。
 3. 有限期望代数统一进入 `CLRS.Probability`；Chapter 4 和 Chapter 17 继续
    作为已经有跨章节消费者的 domain library。
-4. `Boundary` 和 `Exchange` 继续作为候选骨架，等真实 proof site 能无损接入
-   后再推广，不因已有模块就强制重构章节。
+4. `Exchange` 已由 Chapter 16 和 Chapter 23 实际复用；`Boundary` 继续作为
+   候选骨架，等真实 proof site 能无损接入后再推广。
 5. `LocalSurgery` 和 DP grid 暂时维持文档模式，等复用压力更明确再抽代码。

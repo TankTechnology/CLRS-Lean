@@ -5,10 +5,15 @@ algorithm formalizations.
 
 ## Shape
 
-The generic Lean skeleton is `CLRS.ProofPatterns.ExchangeCertificate` in
-`CLRSLean/ProofPatterns/Exchange.lean`.  Chapter-specific proofs should still
-define their own certificate fields when needed, then expose a small bridge to
-the generic shape once the same exchange move appears in another chapter.
+The generic Lean layer is `CLRS.ProofPatterns.Optimal` together with
+`Optimal.of_noWorse` and `optimal_of_exchange` in
+`CLRSLean/ProofPatterns/Exchange.lean`.  Chapter-specific certificates still
+construct the exchange witness; the shared kernel transports the final
+optimality relation.
+
+The older total-function `ExchangeCertificate` remains available for problems
+whose exchange operation is naturally functional.  Activity selection does
+not force its existential tail witness through classical choice.
 
 1. State the recursive greedy algorithm on a small functional model.
 2. Identify the greedy choice and the post-greedy subproblem.
@@ -26,7 +31,8 @@ then uses only the filtered tail subproblem.
 
 The proof then has two layers:
 
-- `greedy_choice_optimal_from_certificate` is the reusable exchange step.
+- `greedy_choice_optimal_from_certificate` retains the activity-facing theorem
+  and delegates its final transitivity step to `optimal_of_exchange`.
 - `finishSorted_greedyChoiceCertificate` builds the certificate automatically
   from finish-time order.
 

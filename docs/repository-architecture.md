@@ -73,11 +73,11 @@ Reusable proof infrastructure has two valid owners:
   as boundary shifts, exchange certificates, fibers, and interval relations.
 
 An existing proof-pattern module is not by itself a reason to rewrite a sealed
-chapter.  `Fiber` and `Interval` now have exact Chapter 8 and Chapter 22
-bridges; `Boundary` and `Exchange` remain deferred until a real proof site fits
-their interfaces without semantic distortion.  Shared modules must not absorb
-chapter-specific algorithms merely to reduce local line counts.  The current
-ownership decisions are recorded in
+chapter.  `Fiber`, `Interval`, and the `Exchange` optimality kernel now have
+concrete chapter bridges.  `Boundary` remains deferred until a real proof site
+can use its trace interface without duplicating the chapter induction.  Shared
+modules must not absorb chapter-specific algorithms merely to reduce local line
+counts.  The current ownership decisions are recorded in
 [`proof-patterns/common-proof-library-decision-matrix.md`](proof-patterns/common-proof-library-decision-matrix.md).
 
 ### Tests
