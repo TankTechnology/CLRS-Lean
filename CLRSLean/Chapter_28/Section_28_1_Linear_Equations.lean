@@ -173,6 +173,55 @@ lemma elimination_mul_col_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1))
   field_simp [h]
   ring
 
+/-- A permutation of `Fin n` other than the identity sends some index strictly
+below itself (so the identity is the only `≤`-monotone bijection). -/
+lemma exists_lt_of_perm_ne_id {n : ℕ} {σ : Equiv.Perm (Fin n)} (hσ : σ ≠ 1) :
+    ∃ i : Fin n, σ i < i := by
+  classical
+  by_contra h
+  have hle : ∀ i : Fin n, i ≤ σ i := by
+    intro i
+    exact le_of_not_gt (fun hgt => h ⟨i, hgt⟩)
+  have hsum : (∑ i : Fin n, (σ i).val) = ∑ i : Fin n, i.val := by
+    simpa using (Equiv.sum_comp σ (fun i : Fin n => i.val))
+  by_cases hall : ∀ i : Fin n, σ i = i
+  · exact hσ (Equiv.ext (fun i => hall i))
+  · rcases not_forall.mp hall with ⟨i, hne⟩
+    have hgt : i < σ i := lt_of_le_of_ne (hle i) (Ne.symm hne)
+    have hlt : (∑ i : Fin n, i.val) < (∑ i : Fin n, (σ i).val) := by
+      exact Finset.sum_lt_sum (fun j hj => hle j) ⟨i, by simp, hgt⟩
+    exact (not_lt_of_ge (le_of_eq hsum)) hlt
+
+
+
+/-- A unit lower-triangular matrix has determinant one: in the expansion, every
+non-identity permutation `σ` picks a factor `M (σ i) i` with `σ i < i`, which
+is zero. -/
+lemma det_unitLowerTriangular {n : ℕ} {M : Matrix (Fin n) (Fin n) F}
+    (hM : IsUnitLowerTriangular M) : M.det = 1 := by
+  classical
+  rw [Matrix.det_apply]
+  have hId : Equiv.Perm.sign (1 : Equiv.Perm (Fin n)) • ∏ i : Fin n, M i i = 1 := by
+    simp [hM.2]
+  have hone : ∀ σ : Equiv.Perm (Fin n), σ ≠ 1 →
+      Equiv.Perm.sign σ • ∏ i : Fin n, M (σ i) i = 0 := by
+    intro σ hσ
+    rcases exists_lt_of_perm_ne_id hσ with ⟨i, hi⟩
+    have hzero : M (σ i) i = 0 := hM.1 hi
+    have hprod : (∏ i : Fin n, M (σ i) i) = 0 := by
+      exact Finset.prod_eq_zero (Finset.mem_univ i) hzero
+    simp [hprod]
+  rw [Finset.sum_eq_single (1 : Equiv.Perm (Fin n))]
+  · simpa using hId
+  · intro σ hσ hne
+    exact hone σ hne
+  · intro hσ1
+    exfalso
+    exact hσ1 (by simp)
+
+
+
+
 end Chapter28
 
 end CLRS
