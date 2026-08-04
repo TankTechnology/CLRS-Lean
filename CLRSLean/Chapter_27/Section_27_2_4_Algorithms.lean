@@ -33,14 +33,17 @@ P-MERGE control structure, and {name}`CLRS.Chapter27.pMerge_correct` proves its
 sortedness, permutation, and exact-length specification.  The pointwise
 {name}`CLRS.Chapter27.pMerge_work_lower` and
 {name}`CLRS.Chapter27.pMerge_work_upper` theorems prove its actual execution
-has linear work.
+has linear work.  The theorem {name}`CLRS.Chapter27.pMerge_span_upper` proves
+the universal quadratic-logarithmic span upper bound, and sorted interleaved
+power-of-two inputs attain the matching bound through
+{name}`CLRS.Chapter27.pMerge_interleaved_span_lower`.
 
 ## Deferred work
 
 P-MERGE's actual split accounting, three-quarter child bound, exact one-step
-execution costs, and global pointwise linear work are complete.  Its
-quadratic-log-span bound, together with the complete executable P-MERGE-SORT
-implementation, remains deferred.
+execution costs, global pointwise linear work, and matching quadratic-log span
+bounds are complete.  The complete executable P-MERGE-SORT implementation
+remains deferred.
 
 ## Implementation details
 
@@ -71,6 +74,11 @@ implementation, remains deferred.
 * [P-MERGE linear work](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/)
 * [P-MERGE logarithmic work potential](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/LogPotential/)
 * [P-MERGE pointwise work bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds/)
+* [P-MERGE span](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/)
+* [P-MERGE span envelope](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Envelope/)
+* [P-MERGE pointwise span bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds/)
+* [P-MERGE witness lists](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists/)
+* [P-MERGE interleaved lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound/)
 * [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
 * [Binary lower-bound definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions/)
 * [Binary lower-bound correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness/)

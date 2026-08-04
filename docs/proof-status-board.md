@@ -46,7 +46,7 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; completed explicit ready-set schedules with the greedy bound `Tₚ ≤ T₁/p + T∞`; executable work/span recurrences for P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel Strassen with exact power-of-two closed forms; all-input P-MERGE `Θ(n)`/`Θ(log² n)`, P-MERGE-SORT `Θ(n log n)`/`Θ(log³ n)`, and parallel-Strassen `Θ(n^(log₂ 7))`/`Θ(log n)` bounds via monotonicity and adjacent-power sandwiches; all-input P-MATMUL upper bounds | Executable P-MERGE and P-MERGE-SORT implementations with correctness links to the recurrences |
+| 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; completed explicit ready-set schedules with the greedy bound `Tₚ ≤ T₁/p + T∞`; executable P-ADD/P-MATMUL correctness and execution costs; executable P-MERGE sortedness/permutation, linear pointwise work, universal quadratic-log span, and a matching sorted interleaved lower witness; recurrence-level all-input P-MERGE, P-MERGE-SORT, and parallel-Strassen bounds | Executable P-MERGE-SORT correctness and cost links to the proved recurrence-level models |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main
@@ -60,7 +60,7 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Refine P-MERGE and P-MERGE-SORT to executable implementations with correctness links |
+| 1 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Implement P-MERGE-SORT with correctness and execution-cost links; executable P-MERGE is complete |
 | 2 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
 | 3 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
 
