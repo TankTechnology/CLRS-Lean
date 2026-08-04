@@ -34,6 +34,9 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Structure
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work.LogPotential
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work.Bounds
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
@@ -90,9 +93,10 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {name}`CLRS.Chapter27.MergeSplit` and {name}`CLRS.Chapter27.pMerge` layer
   implements the actual midpoint/binary-search P-MERGE control structure;
   {name}`CLRS.Chapter27.pMerge_correct` proves its value is a sorted
-  permutation of the two sorted inputs with exact output length.  The
-  merge-based and parallel-Strassen recurrences also have monotonicity,
-  adjacent-power sandwich, and all-input Θ theorems.
+  permutation of the two sorted inputs with exact output length.  Its actual
+  execution also has pointwise linear work, proved by logarithmic-potential
+  strong induction.  The merge-based and parallel-Strassen recurrences also
+  have monotonicity, adjacent-power sandwich, and all-input Θ theorems.
   Main declarations:
   {lit}`CLRS.Chapter27.Costed`,
   {lit}`CLRS.Chapter27.Costed.seq`, {lit}`CLRS.Chapter27.Costed.par`,
@@ -124,6 +128,8 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.pMerge_childSize_le_threeQuarters`,
   {lit}`CLRS.Chapter27.pMerge_work_step_eq`,
   {lit}`CLRS.Chapter27.pMerge_span_step_eq`,
+  {lit}`CLRS.Chapter27.pMerge_work_lower`,
+  {lit}`CLRS.Chapter27.pMerge_work_upper`,
   {lit}`CLRS.Chapter27.pMergeWork`, {lit}`CLRS.Chapter27.pMergeWork_pow_two`,
   {lit}`CLRS.Chapter27.pMergeWork_monotone`,
   {lit}`CLRS.Chapter27.pMergeWork_power_sandwich`,
@@ -153,9 +159,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 
 ## Deferred work
 
-* P-MERGE now has exact one-step execution costs and the actual three-quarter
-  child bound.  Its global linear-work and quadratic-log-span proofs, and the
-  full executable P-MERGE-SORT implementation, remain open.
+* P-MERGE now has exact one-step execution costs, the actual three-quarter
+  child bound, and global pointwise linear work.  Its quadratic-log-span proof
+  and the full executable P-MERGE-SORT implementation remain open.
 -/
 
 namespace CLRS
