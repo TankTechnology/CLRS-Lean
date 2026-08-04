@@ -13,6 +13,24 @@ greedy accounting, an executable-scheduler extension point, and spawn-tree
 parallel loops. Existing imports of this module continue to expose the full
 public API.
 
+## Main results
+
+* `CompDAG.longestTo_le` and `CompDAG.span_le_work` prove T∞ ≤ T₁ for the
+  weighted computation DAG.
+* `DAGSchedule.time_le_work_div_add_span` realizes the CLRS complete-step /
+  incomplete-step argument, giving `Tₚ ≤ T₁ / p + T∞` for an explicit greedy
+  DAG execution.
+* `SpawnTree.span_le_work` proves the corresponding spawn-tree bound.
+* `parallelLoop_work` and `parallelLoop_span` give the exact balanced-loop
+  work and span, while `parallelLoopDepth_pow` proves the logarithmic-depth
+  direction `n ≤ 2 ^ parallelLoopDepth n`.
+
+## Deferred work
+
+The matching upper bound
+`parallelLoopDepth n ≤ Nat.log 2 n + 1` (an exact `Nat.clog`-style
+characterization) remains future work.
+
 ## Implementation details
 
 * [Computation DAG foundation](CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S1_ComputationDAG/)
