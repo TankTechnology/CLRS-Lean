@@ -77,20 +77,6 @@ private theorem two_pow_succ_mul (k : ℕ) : 2 ^ (k + 1) * 2 ^ (k + 1) = 4 ^ (k 
   congr 1
   omega
 
-private theorem natCost_monotoneAbs {T : ℕ → ℕ} (hT : Monotone T) :
-    Chapter04.MonotoneAbs (fun n => (T n : ℝ)) := by
-  intro m n hmn
-  rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (Nat.cast_nonneg _)]
-  change (T m : ℝ) ≤ (T n : ℝ)
-  exact_mod_cast hT hmn
-
-private theorem natCost_power_sandwich {T : ℕ → ℕ} (hT : Monotone T)
-    (n : ℕ) (hn : 0 < n) :
-    T (2 ^ Nat.log 2 n) ≤ T n ∧
-      T n ≤ T (2 ^ (Nat.log 2 n + 1)) := by
-  rcases Chapter04.powerInterval_of_pos 2 n (by norm_num) hn.ne' with ⟨hlo, hhi⟩
-  exact ⟨hT hlo, hT (Nat.le_of_lt hhi)⟩
-
 /-! ## §27.2: Parallel matrix multiplication (P-MATMUL) -/
 
 /-- Work recurrence for P-MATMUL: `T₁(n) = 8 T₁(n/2) + n²`. -/
@@ -234,7 +220,7 @@ theorem pMergeWork_monotone : Monotone pMergeWork :=
 theorem pMergeWork_power_sandwich (n : ℕ) (hn : 0 < n) :
     pMergeWork (2 ^ Nat.log 2 n) ≤ pMergeWork n ∧
       pMergeWork n ≤ pMergeWork (2 ^ (Nat.log 2 n + 1)) :=
-  natCost_power_sandwich pMergeWork_monotone n hn
+  Chapter04.monotone_power_sandwich pMergeWork_monotone 2 n (by norm_num) hn.ne'
 
 /-- Exact work on powers of two: `T₁(2ᵏ) + (k + 3) = 4·2ᵏ` (work `Θ(n)`). -/
 theorem pMergeWork_pow_two (k : ℕ) :
@@ -303,7 +289,7 @@ theorem pMergeSpan_monotone : Monotone pMergeSpan :=
 theorem pMergeSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
     pMergeSpan (2 ^ Nat.log 2 n) ≤ pMergeSpan n ∧
       pMergeSpan n ≤ pMergeSpan (2 ^ (Nat.log 2 n + 1)) :=
-  natCost_power_sandwich pMergeSpan_monotone n hn
+  Chapter04.monotone_power_sandwich pMergeSpan_monotone 2 n (by norm_num) hn.ne'
 
 /-- Exact span on powers of two: `2·T∞(2ᵏ) = (k+1)(k+2)` (span `Θ(log² n)`). -/
 theorem pMergeSpan_pow_two (k : ℕ) :
@@ -377,7 +363,7 @@ theorem pMergeSortWork_monotone : Monotone pMergeSortWork :=
 theorem pMergeSortWork_power_sandwich (n : ℕ) (hn : 0 < n) :
     pMergeSortWork (2 ^ Nat.log 2 n) ≤ pMergeSortWork n ∧
       pMergeSortWork n ≤ pMergeSortWork (2 ^ (Nat.log 2 n + 1)) :=
-  natCost_power_sandwich pMergeSortWork_monotone n hn
+  Chapter04.monotone_power_sandwich pMergeSortWork_monotone 2 n (by norm_num) hn.ne'
 
 /-- Exact work on powers of two: `T₁(2ᵏ) = 2ᵏ·(k+1)` (work `Θ(n log n)`). -/
 theorem pMergeSortWork_pow_two (k : ℕ) :
@@ -444,7 +430,7 @@ theorem pMergeSortSpan_monotone : Monotone pMergeSortSpan :=
 theorem pMergeSortSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
     pMergeSortSpan (2 ^ Nat.log 2 n) ≤ pMergeSortSpan n ∧
       pMergeSortSpan n ≤ pMergeSortSpan (2 ^ (Nat.log 2 n + 1)) :=
-  natCost_power_sandwich pMergeSortSpan_monotone n hn
+  Chapter04.monotone_power_sandwich pMergeSortSpan_monotone 2 n (by norm_num) hn.ne'
 
 /-- Exact span on powers of two:
 `6·T∞(2ᵏ) = 6 + k·(k² + 6k + 11)` (span `Θ(log³ n)`). -/
@@ -515,7 +501,7 @@ power-of-two costs. -/
 theorem strassenWork_power_sandwich (n : ℕ) (hn : 0 < n) :
     strassenWork (2 ^ Nat.log 2 n) ≤ strassenWork n ∧
       strassenWork n ≤ strassenWork (2 ^ (Nat.log 2 n + 1)) :=
-  natCost_power_sandwich strassenWork_monotone n hn
+  Chapter04.monotone_power_sandwich strassenWork_monotone 2 n (by norm_num) hn.ne'
 
 /-- Exact work on powers of two: `3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`
 (work `Θ(n^(log₂ 7))`). -/
@@ -577,7 +563,7 @@ power-of-two costs. -/
 theorem strassenSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
     strassenSpan (2 ^ Nat.log 2 n) ≤ strassenSpan n ∧
       strassenSpan n ≤ strassenSpan (2 ^ (Nat.log 2 n + 1)) :=
-  natCost_power_sandwich strassenSpan_monotone n hn
+  Chapter04.monotone_power_sandwich strassenSpan_monotone 2 n (by norm_num) hn.ne'
 
 /-- Exact span on powers of two: `T∞(2ᵏ) = k + 1` (span `Θ(log n)`). -/
 theorem strassenSpan_pow_two (k : ℕ) : strassenSpan (2 ^ k) = k + 1 := by
@@ -751,7 +737,7 @@ theorem pMergeWork_allInput_bigTheta :
         (Chapter04.criticalPowerScale 2 2) :=
     Chapter04.allInput_bigTheta_of_criticalPowerScale 2 2
       (fun n : ℕ => (pMergeWork n : ℝ)) (by norm_num) (by norm_num)
-      (natCost_monotoneAbs pMergeWork_monotone)
+      (Chapter04.monotoneAbs_natCast pMergeWork_monotone)
       pMergeWork_exactPower_bigTheta
   exact Chapter03.isBigTheta_trans hcritical (by
     simpa using Chapter04.criticalPowerScale_isBigTheta_polynomialScale 2 1
@@ -775,7 +761,7 @@ theorem pMergeSpan_allInput_bigTheta :
   exact Chapter04.allInput_bigTheta_of_powerStep 2
     (fun n : ℕ => (pMergeSpan n : ℝ))
     (Chapter04.criticalPowerLogPolylogScale 1 2 1) (by norm_num)
-    (natCost_monotoneAbs pMergeSpan_monotone)
+    (Chapter04.monotoneAbs_natCast pMergeSpan_monotone)
     (Chapter04.criticalPowerLogPolylogScale_monotoneAbs 1 2 1 (by norm_num))
     (Chapter04.criticalPowerLogPolylogScale_powerStepBound 1 2 1
       (by norm_num) (by norm_num))
@@ -790,7 +776,7 @@ theorem pMergeSortWork_allInput_bigTheta :
         (Chapter04.criticalPowerLogScale 2 2) :=
     Chapter04.allInput_bigTheta_of_criticalPowerLogScale 2 2
       (fun n : ℕ => (pMergeSortWork n : ℝ)) (by norm_num) (by norm_num)
-      (natCost_monotoneAbs pMergeSortWork_monotone)
+      (Chapter04.monotoneAbs_natCast pMergeSortWork_monotone)
       pMergeSortWork_exactPower_bigTheta
   exact Chapter03.isBigTheta_trans hcritical (by
     simpa using Chapter04.criticalPowerLogScale_isBigTheta_polynomialLogScale 2 1
@@ -814,7 +800,7 @@ theorem pMergeSortSpan_allInput_bigTheta :
   exact Chapter04.allInput_bigTheta_of_powerStep 2
     (fun n : ℕ => (pMergeSortSpan n : ℝ))
     (Chapter04.criticalPowerLogPolylogScale 1 2 2) (by norm_num)
-    (natCost_monotoneAbs pMergeSortSpan_monotone)
+    (Chapter04.monotoneAbs_natCast pMergeSortSpan_monotone)
     (Chapter04.criticalPowerLogPolylogScale_monotoneAbs 1 2 2 (by norm_num))
     (Chapter04.criticalPowerLogPolylogScale_powerStepBound 1 2 2
       (by norm_num) (by norm_num))
@@ -829,7 +815,7 @@ theorem strassenWork_allInput_bigTheta :
         (Chapter04.criticalPowerScale 7 2) :=
     Chapter04.allInput_bigTheta_of_criticalPowerScale 7 2
       (fun n : ℕ => (strassenWork n : ℝ)) (by norm_num) (by norm_num)
-      (natCost_monotoneAbs strassenWork_monotone)
+      (Chapter04.monotoneAbs_natCast strassenWork_monotone)
       strassenWork_exactPower_bigTheta
   exact Chapter03.isBigTheta_trans hcritical
     (Chapter04.criticalPowerScale_isBigTheta_realLogScale 7 2
@@ -844,7 +830,7 @@ theorem strassenSpan_allInput_bigTheta :
         (Chapter04.criticalPowerLogScale 1 2) :=
     Chapter04.allInput_bigTheta_of_criticalPowerLogScale 1 2
       (fun n : ℕ => (strassenSpan n : ℝ)) (by norm_num) (by norm_num)
-      (natCost_monotoneAbs strassenSpan_monotone) (by
+      (Chapter04.monotoneAbs_natCast strassenSpan_monotone) (by
         simpa only [Nat.cast_one, one_pow, mul_one] using
           strassenSpan_exactPower_bigTheta)
   exact Chapter03.isBigTheta_trans hcritical (by

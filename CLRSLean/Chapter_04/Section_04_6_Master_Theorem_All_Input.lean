@@ -24,6 +24,15 @@ namespace Chapter04
 def MonotoneAbs (T : ℕ → ℝ) : Prop :=
   ∀ {m n : ℕ}, m ≤ n → |T m| ≤ |T n|
 
+/-- A monotone natural-valued cost remains monotone after casting to real
+absolute values. -/
+theorem monotoneAbs_natCast {T : ℕ → ℕ} (hT : Monotone T) :
+    MonotoneAbs (fun n => (T n : ℝ)) := by
+  intro m n hmn
+  rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (Nat.cast_nonneg _)]
+  change (T m : ℝ) ≤ (T n : ℝ)
+  exact_mod_cast hT hmn
+
 /--
 Eventual one-step control for a comparison scale across one multiplication by
 the Master-theorem base.  This is the local regularity assumption that turns
@@ -855,6 +864,15 @@ theorem powerInterval_of_pos (b n : ℕ) (hb : 1 < b) (hn : n ≠ 0) :
     b ^ Nat.log b n ≤ n ∧ n < b ^ (Nat.log b n + 1) :=
   ⟨Nat.pow_log_le_self b hn, by
     simpa [Nat.succ_eq_add_one] using Nat.lt_pow_succ_log_self hb n⟩
+
+/-- Mapping the adjacent-power interval through a monotone natural-valued
+cost gives the corresponding cost sandwich. -/
+theorem monotone_power_sandwich {T : ℕ → ℕ} (hT : Monotone T)
+    (b n : ℕ) (hb : 1 < b) (hn : n ≠ 0) :
+    T (b ^ Nat.log b n) ≤ T n ∧
+      T n ≤ T (b ^ (Nat.log b n + 1)) := by
+  rcases powerInterval_of_pos b n hb hn with ⟨hlo, hhi⟩
+  exact ⟨hT hlo, hT (Nat.le_of_lt hhi)⟩
 
 private theorem power_log_ge_step_threshold
     {b step n j₀ : ℕ} (hb : 1 < b)
