@@ -3940,11 +3940,13 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Section 28.1 - Solving Systems of Linear Equations
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean`
-- Status: `in-progress` (LUP decomposition target)
+- Status: `selected-section-complete` (Theorem 28.1 proved)
 - Model:
   - `CLRS.Chapter28.IsUpperTriangular` / `IsLowerTriangular` /
     `IsUnitLowerTriangular` (triangularity predicates)
   - `CLRS.Chapter28.elimination` (Gaussian-elimination step matrix)
+  - `CLRS.Chapter28.finOneSumFin`: the `Fin (n+1) ≃ Fin 1 ⊕ Fin n` reindexing
+    that views an `(n+1) × (n+1)` matrix as a `2 × 2` block matrix.
 - Proved:
   - `exists_col_zero_ne_zero`: a nonsingular matrix has a nonzero first-column
     pivot (from `det_apply` and column-expansion).
@@ -3953,11 +3955,22 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `elimination_unitLowerTriangular`, `elimination_mul_zero_zero`,
     `elimination_mul_col_zero`: the elimination step is unit lower-triangular,
     fixes the pivot, and zeroes the subdiagonal of column 0.
-- Target theorem: `exists_lup_decomposition` (CLRS Theorem 28.1) —
-  `P·A = L·U` for a permutation `P`, unit lower-triangular `L`, upper
-  triangular `U`.  The Gaussian-elimination induction over `n` needs the block
-  (Schur-complement) structure, block-determinant nonsingularity, and the
-  block assembly of the `L`/`U` factors.
+  - `det_unitLowerTriangular`: a unit lower-triangular matrix has determinant 1
+    (via `exists_lt_of_perm_ne_id` on the permutation expansion).
+  - `det_block_schur`: with the first column below the pivot zero,
+    `det C = C 0 0 · det M` for the Schur complement `M`.
+  - `fromBlocks_one_zero_zero_permMatrix`, `conjPermMatrix`: permutation-matrix
+    bookkeeping for the block-diagonal and reindexed permutations.
+  - `exists_lup_decomposition` (CLRS Theorem 28.1): every nonsingular `A` over a
+    field admits `σ.permMatrix · A = L · U` with `σ` a permutation, `L` unit
+    lower-triangular and `U` upper-triangular.  The proof is by induction on `n`:
+    pivot the first column, apply one Gaussian-elimination step, apply the
+    induction hypothesis to the (nonsingular) Schur complement, and assemble the
+    block factors `L = [[1,0],[P₁·m, L₁]]`, `U = [[α,v],[0,U₁]]` with
+    `σ = swap 0 p · diag(1, σ₁)`.
+- Remaining chapter scope: Sections 28.2 (matrix inversion) and 28.3
+  (symmetric positive-definite / least-squares approximation) are not
+  represented.
 
 ## Chapter 32 - String Matching
 

@@ -11,7 +11,18 @@ underlies Gaussian elimination, the determinant, and matrix inversion.
 
 Main results:
 
-- Theorem {lit}`exists_lup_decomposition`: the LUP decomposition existence.
+- Theorem {lit}`exists_lup_decomposition`: every nonsingular matrix admits an
+  LUP decomposition `σ.permMatrix · A = L · U`.  The proof is by induction on
+  `n`: the pivot row is swapped into row 0, one Gaussian-elimination step
+  ({lit}`elimination`) zeroes the subdiagonal, the induction hypothesis is
+  applied to the nonsingular Schur complement (nonsingularity via
+  {lit}`det_block_schur`), and the block factors are assembled with the
+  {lit}`finOneSumFin` reindexing.  Supporting lemmas cover pivot selection
+  ({lit}`exists_col_zero_ne_zero`), the elimination step
+  ({lit}`elimination_unitLowerTriangular` / {lit}`elimination_mul_zero_zero` /
+  {lit}`elimination_mul_col_zero`), the unit-triangular determinant
+  ({lit}`det_unitLowerTriangular`), and the permutation-matrix bookkeeping
+  ({lit}`fromBlocks_one_zero_zero_permMatrix` / {lit}`conjPermMatrix`).
 
 Notation conventions:
 
@@ -91,7 +102,7 @@ lemma perm_mul_zero_zero_ne_zero {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1
 
 /-- The Gaussian-elimination step matrix: unit lower-triangular, with the
 subdiagonal entries of column `0` chosen to zero them out in `E * B`. -/
-def elimination {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F) (h : B 0 0 ≠ 0) :
+def elimination {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F) (_h : B 0 0 ≠ 0) :
     Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
   fun i j => if i = j then 1 else if j = 0 then -B i 0 / B 0 0 else 0
 
@@ -293,7 +304,8 @@ permutation matrix of the sum-of-permutations `sumCongr 1 σ₁`. -/
 lemma fromBlocks_one_zero_zero_permMatrix {n : ℕ} (σ₁ : Equiv.Perm (Fin n)) :
     Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 0 (σ₁.permMatrix F) =
       (Equiv.Perm.sumCongr (1 : Equiv.Perm (Fin 1)) σ₁).permMatrix F := by
-  ext i j <;> cases i <;> cases j <;>
+  ext i j
+  cases i <;> cases j <;>
     simp [Matrix.fromBlocks, Matrix.one_apply, Equiv.Perm.permMatrix, PEquiv.toMatrix_apply,
       Equiv.toPEquiv_apply, Pi.single_apply, eq_comm]
 
@@ -306,6 +318,7 @@ lemma conjPermMatrix {m n : Type*} [DecidableEq m] [DecidableEq n] (e : m ≃ n)
   simp [Equiv.Perm.permMatrix, PEquiv.toMatrix_apply, Equiv.toPEquiv_apply, Matrix.reindex_apply,
     Matrix.submatrix_apply, Equiv.trans_apply, Equiv.symm_symm, Equiv.apply_eq_iff_eq_symm_apply]
 
+set_option linter.unnecessarySimpa false in
 /-- If `i < j` in `Fin (n + 1)` then `j` is not the zero row. -/
 lemma ne_zero_of_lt_succ {n : ℕ} {i j : Fin (n + 1)} (hij : i < j) : j ≠ 0 := by
   intro hj0
@@ -313,6 +326,7 @@ lemma ne_zero_of_lt_succ {n : ℕ} {i j : Fin (n + 1)} (hij : i < j) : j ≠ 0 :
   have hi0v : i.val < 0 := by simpa using hi0
   exact (Nat.not_lt_zero i.val) hi0v
 
+set_option linter.unnecessarySimpa false in
 /-- If `j < i` in `Fin (n + 1)` then `i` is not the zero row. -/
 lemma ne_zero_of_lt {n : ℕ} {i j : Fin (n + 1)} (hji : j < i) : i ≠ 0 := by
   intro hi0
@@ -429,8 +443,6 @@ theorem exists_lup_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : 
               simp [re, E, elimination, Matrix.reindex_apply, Matrix.toBlocks₂₂, Matrix.one_apply]
       have hEinv : E' * E = 1 := by
         apply (reindexRingEquiv F re).injective
-        change (reindexRingEquiv F re) (E' * E) =
-          (reindexRingEquiv F re) (1 : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
         rw [map_mul, map_one]
         rw [show (reindexRingEquiv F re) E' = Matrix.fromBlocks 1 0 mult
             (1 : Matrix (Fin n) (Fin n) F) by
@@ -447,7 +459,6 @@ theorem exists_lup_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : 
         dsimp [P₁]
       have hDiagE'D : diagP * E' * D = L * U := by
         apply (reindexRingEquiv F re).injective
-        change (reindexRingEquiv F re) (diagP * E' * D) = (reindexRingEquiv F re) (L * U)
         rw [map_mul, map_mul]
         rw [show (reindexRingEquiv F re) D = Matrix.fromBlocks α v (0 : Matrix (Fin n) (Fin 1) F) M by
           simpa using hDblocks]
