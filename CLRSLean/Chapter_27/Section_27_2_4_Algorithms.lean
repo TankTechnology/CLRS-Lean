@@ -5,6 +5,7 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge
 
 /-!
 # 27.2–27.4. Multithreaded Algorithms (Compatibility)
@@ -44,4 +45,6 @@ models remain deferred.
 * [Matrix cost monotonicity](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity/)
 * [Power-of-two matrix cost bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds/)
 * [All-input matrix asymptotics](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds/)
+* [Parallel merge](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/)
+* [Parallel merge definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Definitions/)
 -/
