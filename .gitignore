@@ -1,6 +1,7 @@
 /.lake
 /build
 .claude/
+.worktrees/
 *.olean
 *.ilean
 *.c
