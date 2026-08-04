@@ -1,6 +1,6 @@
 # Common Proof Infrastructure Consolidation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Checked boxes record the completed implementation.
 
 **Goal:** Give recurring finite-expectation, adjacent-power, fiber, and interval proofs one canonical implementation while preserving every established chapter-facing theorem statement.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Create: `Tests/Common_Proof_Infrastructure.lean`
 
-- [ ] **Step 1: Add imports and checks for all canonical helpers and bridges**
+- [x] **Step 1: Add imports and checks for all canonical helpers and bridges**
 
 ```lean
 import CLRSLean.Probability.FiniteExpectation
@@ -41,13 +41,13 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms
 
 Add small `example` terms for the Chapter 5 redundant-hypothesis wrapper, the Chapter 27 adjacent-power shape, the bucket/fiber equality, and DFS nesting asymmetry. This makes the test check usable theorem shapes rather than name existence alone.
 
-- [ ] **Step 2: Run the focused test and record the expected failure**
+- [x] **Step 2: Run the focused test and record the expected failure**
 
 Run: `lake env lean Tests/Common_Proof_Infrastructure.lean`
 
 Expected: failure on the new canonical and bridge names; existing compatibility names still elaborate.
 
-- [ ] **Step 3: Commit the red interface contract**
+- [x] **Step 3: Commit the red interface contract**
 
 ```bash
 git add Tests/Common_Proof_Infrastructure.lean
@@ -63,7 +63,7 @@ git commit -m "test(proofs): specify shared infrastructure interface"
 - Test: `Tests/Common_Proof_Infrastructure.lean`
 - Test: `Tests/Chapter_05_Interface.lean`
 
-- [ ] **Step 1: Add canonical monotonicity and negation theorems beside the existing generic algebra**
+- [x] **Step 1: Add canonical monotonicity and negation theorems beside the existing generic algebra**
 
 ```lean
 /-- Pointwise order is preserved by finite uniform expectation. -/
@@ -80,16 +80,18 @@ theorem fintypeExpect_neg {Ω : Type} [Fintype Ω] [DecidableEq Ω]
   simp [fintypeExpect, Finset.sum_neg_distrib, neg_div]
 ```
 
-- [ ] **Step 2: Replace Chapter 5's proof body with a compatibility delegation**
+- [x] **Step 2: Replace Chapter 5's proof body with a compatibility delegation**
 
 Keep the existing statement, including `hX` and `hY`, unchanged:
 
 ```lean
-  clear hX hY
-  exact Probability.fintypeExpect_mono hXY
+  refine Probability.fintypeExpect_mono fun ω => ?_
+  have _ := hX ω
+  have _ := hY ω
+  exact hXY ω
 ```
 
-- [ ] **Step 3: Replace Chapter 11's two proof bodies with compatibility delegations**
+- [x] **Step 3: Replace Chapter 11's two proof bodies with compatibility delegations**
 
 ```lean
   exact Probability.fintypeExpect_mono hXY
@@ -101,7 +103,7 @@ and
   exact Probability.fintypeExpect_neg X
 ```
 
-- [ ] **Step 4: Run focused builds**
+- [x] **Step 4: Run focused builds**
 
 ```bash
 lake env lean CLRSLean/Probability/FiniteExpectation.lean
@@ -112,7 +114,7 @@ lake env lean Tests/Chapter_05_Interface.lean
 
 Expected: success, with no changed chapter-facing theorem type.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CLRSLean/Probability/FiniteExpectation.lean \
@@ -130,7 +132,7 @@ git commit -m "refactor(probability): canonicalize finite expectation algebra"
 - Modify: `Tests/Chapter_27_Interface.lean`
 - Test: `Tests/Common_Proof_Infrastructure.lean`
 
-- [ ] **Step 1: Add the natural-cost cast adapter after `MonotoneAbs`**
+- [x] **Step 1: Add the natural-cost cast adapter after `MonotoneAbs`**
 
 ```lean
 /-- A monotone natural-valued cost is monotone after casting to real absolute values. -/
@@ -142,7 +144,7 @@ theorem monotoneAbs_natCast {T : ℕ → ℕ} (hT : Monotone T) :
   exact_mod_cast hT hmn
 ```
 
-- [ ] **Step 2: Map the adjacent-power interval through any monotone natural-valued function**
+- [x] **Step 2: Map the adjacent-power interval through any monotone natural-valued function**
 
 Place this immediately after `powerInterval_of_pos`:
 
@@ -156,7 +158,7 @@ theorem monotone_power_sandwich {T : ℕ → ℕ} (hT : Monotone T)
   exact ⟨hT hlo, hT (Nat.le_of_lt hhi)⟩
 ```
 
-- [ ] **Step 3: Delete Chapter 27's two private helpers and use Chapter 4 directly**
+- [x] **Step 3: Delete Chapter 27's two private helpers and use Chapter 4 directly**
 
 Replace every local call with:
 
@@ -170,11 +172,11 @@ and every monotonicity adapter with:
 Chapter04.monotoneAbs_natCast COST_monotone
 ```
 
-- [ ] **Step 4: Extend the existing Chapter 4 and 27 interface checks**
+- [x] **Step 4: Extend the existing Chapter 4 and 27 interface checks**
 
 Add `#check` lines for the two shared helpers to Chapter 4. Keep Chapter 27's six reader-facing sandwich and all-input checks, adding an example that calls the Chapter 4 generic theorem with a Chapter 27 cost.
 
-- [ ] **Step 5: Run focused builds and interfaces**
+- [x] **Step 5: Run focused builds and interfaces**
 
 ```bash
 lake env lean CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean
@@ -183,7 +185,7 @@ lake env lean Tests/Chapter_04_Interface.lean
 lake env lean Tests/Chapter_27_Interface.lean
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean \
@@ -199,7 +201,7 @@ git commit -m "refactor(master): share adjacent-power transfer helpers"
 - Modify: `Tests/Chapter_08_Interface.lean`
 - Test: `Tests/Common_Proof_Infrastructure.lean`
 
-- [ ] **Step 1: Import the generic Fiber module and add the exact bridge**
+- [x] **Step 1: Import the generic Fiber module and add the exact bridge**
 
 ```lean
 import CLRSLean.ProofPatterns.Fiber
@@ -207,23 +209,26 @@ import CLRSLean.ProofPatterns.Fiber
 /-- Counting-sort buckets are exactly the generic key fibers. -/
 theorem bucket_eq_fiber (key : α → Nat) (xs : List α) (k : Nat) :
     bucket key xs k = ProofPatterns.fiber key xs k := by
-  simp [bucket, ProofPatterns.fiber]
+  unfold bucket ProofPatterns.fiber
+  apply congrArg (fun p => xs.filter p)
+  funext x
+  exact beq_eq_decide (key x) k
 ```
 
-- [ ] **Step 2: Delegate the matching local theorem bodies**
+- [x] **Step 2: Delegate the matching local theorem bodies**
 
 Rewrite `bucket_append`, `mem_bucket_iff`, `bucket_all_keys_eq`, and `bucket_bucket_eq` by transporting the corresponding `ProofPatterns.fiber_*` theorem through `bucket_eq_fiber`. Preserve all four statements and public names exactly.
 
-- [ ] **Step 3: Extend the Chapter 8 interface with the bridge and a generic-fiber use example**
+- [x] **Step 3: Extend the Chapter 8 interface with the bridge and a generic-fiber use example**
 
-- [ ] **Step 4: Run focused builds**
+- [x] **Step 4: Run focused builds**
 
 ```bash
 lake env lean CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean
 lake env lean Tests/Chapter_08_Interface.lean
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean Tests/Chapter_08_Interface.lean
@@ -237,7 +242,7 @@ git commit -m "refactor(counting-sort): bridge buckets to generic fibers"
 - Modify: `Tests/Chapter_22_Interface.lean`
 - Test: `Tests/Common_Proof_Infrastructure.lean`
 
-- [ ] **Step 1: Import the generic Interval module and define the projection**
+- [x] **Step 1: Import the generic Interval module and define the projection**
 
 ```lean
 import CLRSLean.ProofPatterns.Interval
@@ -248,7 +253,7 @@ def dfsInterval (s : DFSState V) (u : V) : ProofPatterns.NatInterval where
   hi := finishTime s u
 ```
 
-- [ ] **Step 2: Add exact representation bridges**
+- [x] **Step 2: Add exact representation bridges**
 
 ```lean
 theorem finishesBeforeDiscovered_iff_strictlyBefore
@@ -264,18 +269,18 @@ theorem intervalNestedInside_iff_nestedInside
   Iff.rfl
 ```
 
-- [ ] **Step 3: Expose one useful DFS-facing algebra consequence**
+- [x] **Step 3: Expose one useful DFS-facing algebra consequence**
 
 Add `intervalNestedInside_asymm`, proved by converting the hypothesis and conclusion with `intervalNestedInside_iff_nestedInside` and invoking `NatInterval.nestedInside_asymm`. This establishes a real consumer without rewriting the parenthesis stack.
 
-- [ ] **Step 4: Extend and run the Chapter 22 interface**
+- [x] **Step 4: Extend and run the Chapter 22 interface**
 
 ```bash
 lake env lean CLRSLean/Chapter_22/Section_22_3_DFS/S2_Intervals.lean
 lake env lean Tests/Chapter_22_Interface.lean
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CLRSLean/Chapter_22/Section_22_3_DFS/S2_Intervals.lean Tests/Chapter_22_Interface.lean
@@ -290,7 +295,7 @@ git commit -m "refactor(dfs): bridge timestamps to generic intervals"
 - Modify: `docs/proof-patterns/geometric-proof-patterns.md`
 - Modify: `docs/repository-architecture.md`
 
-- [ ] **Step 1: Finalize executable examples in the common test**
+- [x] **Step 1: Finalize executable examples in the common test**
 
 The test must demonstrate:
 
@@ -300,7 +305,7 @@ The test must demonstrate:
 - `bucket_eq_fiber` used in a concrete list expression;
 - DFS interval nesting asymmetry obtained through the shared interval algebra.
 
-- [ ] **Step 2: Run the common test and all affected interfaces**
+- [x] **Step 2: Run the common test and all affected interfaces**
 
 ```bash
 lake env lean Tests/Common_Proof_Infrastructure.lean
@@ -311,21 +316,21 @@ lake env lean Tests/Chapter_22_Interface.lean
 lake env lean Tests/Chapter_27_Interface.lean
 ```
 
-- [ ] **Step 3: Add the decision matrix**
+- [x] **Step 3: Add the decision matrix**
 
 Document each candidate with canonical owner, current consumers, compatibility surface, progress-count treatment, and extraction threshold. Mark Probability, Chapter 4, Chapter 17, Fiber, and Interval as active; Boundary and Exchange as deferred; local surgery and DP grids as atlas-only.
 
-- [ ] **Step 4: Update the atlas and repository architecture**
+- [x] **Step 4: Update the atlas and repository architecture**
 
 Record Chapter 8 and Chapter 22 as actual Fiber/Interval consumers. Distinguish domain libraries, demonstrated geometric patterns, and pedagogical/deferred patterns. Add the theorem-group counting rule: a shared theorem is counted once, wrappers/aliases/bridges never add counts, and chapter instances count only distinct textbook obligations.
 
-- [ ] **Step 5: Confirm no progress ledger moved**
+- [x] **Step 5: Confirm no progress ledger moved**
 
 Run: `git diff --name-only $(git merge-base HEAD origin/main)..HEAD | rg 'clrs-proof-progress|Progress\.lean|proof-status-board'`
 
 Expected: no output.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Tests/Common_Proof_Infrastructure.lean \
@@ -340,7 +345,7 @@ git commit -m "docs(proofs): record common library ownership and counting"
 - Create temporarily, then remove: `Tests/Common_Proof_Infrastructure_Axioms.lean`
 - Verify all changed Lean and documentation files
 
-- [ ] **Step 1: Audit canonical theorem dependencies**
+- [x] **Step 1: Audit canonical theorem dependencies**
 
 Create a temporary audit importing the focused modules and printing axioms for:
 
@@ -355,7 +360,7 @@ Create a temporary audit importing the focused modules and printing axioms for:
 
 Run it with `lake env lean`, inspect for `sorryAx` or project axioms, then delete the temporary file.
 
-- [ ] **Step 2: Scan changed Lean files for placeholders**
+- [x] **Step 2: Scan changed Lean files for placeholders**
 
 ```bash
 git diff --name-only $(git merge-base HEAD origin/main)..HEAD -- '*.lean' \
@@ -364,20 +369,20 @@ git diff --name-only $(git merge-base HEAD origin/main)..HEAD -- '*.lean' \
 
 Expected: no placeholders in changed Lean files.
 
-- [ ] **Step 3: Run formatting and repository metadata checks**
+- [x] **Step 3: Run formatting and repository metadata checks**
 
 ```bash
 git diff --check
 uv run python scripts/check_repository.py
 ```
 
-- [ ] **Step 4: Run the final Lean aggregate only**
+- [x] **Step 4: Run the final Lean aggregate only**
 
 Run: `lake build CLRSLean`
 
 Expected: success. Existing linter warnings are acceptable; no website/HTML target is built.
 
-- [ ] **Step 5: Review the complete branch diff and commit any verification-only cleanup**
+- [x] **Step 5: Review the complete branch diff and commit any verification-only cleanup**
 
 ```bash
 git status --short
