@@ -3991,6 +3991,30 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Remaining chapter scope: Section 28.3 (symmetric positive-definite matrices,
   Cholesky decomposition, and least-squares approximation) is not represented.
 
+## Chapter 28 - Matrix Operations
+
+### Section 28.1 - Solving Systems of Linear Equations
+
+- Lean source: `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean`
+- Status: `in-progress` (LUP decomposition target)
+- Model:
+  - `CLRS.Chapter28.IsUpperTriangular` / `IsLowerTriangular` /
+    `IsUnitLowerTriangular` (triangularity predicates)
+  - `CLRS.Chapter28.elimination` (Gaussian-elimination step matrix)
+- Proved:
+  - `exists_col_zero_ne_zero`: a nonsingular matrix has a nonzero first-column
+    pivot (from `det_apply` and column-expansion).
+  - `permMatrix_mul_apply`: `(σ.permMatrix * A) i j = A (σ i) j`.
+  - `perm_mul_zero_zero_ne_zero`: pivoting makes the leading entry nonzero.
+  - `elimination_unitLowerTriangular`, `elimination_mul_zero_zero`,
+    `elimination_mul_col_zero`: the elimination step is unit lower-triangular,
+    fixes the pivot, and zeroes the subdiagonal of column 0.
+- Target theorem: `exists_lup_decomposition` (CLRS Theorem 28.1) —
+  `P·A = L·U` for a permutation `P`, unit lower-triangular `L`, upper
+  triangular `U`.  The Gaussian-elimination induction over `n` needs the block
+  (Schur-complement) structure, block-determinant nonsingularity, and the
+  block assembly of the `L`/`U` factors.
+
 ## Chapter 32 - String Matching
 
 ### Section 32.1 - The Naive String-Matching Algorithm
