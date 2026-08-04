@@ -252,11 +252,13 @@ noncomputable def finOneSumFin (n : ℕ) : Fin (n + 1) ≃ Fin 1 ⊕ Fin n where
     | inr i =>
         simp
 
+/-- The `inl` summand reindexes back to row `0` of `Fin (n + 1)`. -/
 @[simp]
 lemma finOneSumFin_symm_inl (n : ℕ) (j : Fin 1) :
     (finOneSumFin n).symm (Sum.inl j) = (0 : Fin (n + 1)) := by
   rfl
 
+/-- The `inr` summand reindexes back to row `succ i` of `Fin (n + 1)`. -/
 @[simp]
 lemma finOneSumFin_symm_inr (n : ℕ) (i : Fin n) :
     (finOneSumFin n).symm (Sum.inr i) = Fin.succ i := by

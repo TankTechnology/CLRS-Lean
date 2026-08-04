@@ -16,3 +16,11 @@ determinants, and matrix inversion.
   {lit}`CLRS.Chapter28.IsUnitLowerTriangular`,
   and {lit}`CLRS.Chapter28.exists_lup_decomposition`.
 -/
+
+namespace CLRS
+
+namespace Chapter28
+
+end Chapter28
+
+end CLRS
