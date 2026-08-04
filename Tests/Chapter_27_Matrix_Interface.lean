@@ -71,6 +71,26 @@ example :
 #check pMatMul_span_eq
 #print axioms pMatMul_span_eq
 
+#check pAddWork_allInput_bigTheta
+#check pAddSpan_allInput_bigTheta
+#check pMatMulExecWork_allInput_bigTheta
+#check pMatMulExecSpan_allInput_bigTheta
+#check pAddWork_monotone
+#check pAddSpan_monotone
+#check pMatMulExecWork_monotone
+#check pMatMulExecSpan_monotone
+#check pAddWork_power_sandwich
+#check pAddSpan_power_sandwich
+#check pMatMulExecWork_power_sandwich
+#check pMatMulExecSpan_power_sandwich
+#print axioms pAddWork_allInput_bigTheta
+#print axioms pMatMulExecSpan_allInput_bigTheta
+
+example :
+    pMatMulExecSpan (2 ^ Nat.log 2 5) ≤ pMatMulExecSpan 5 ∧
+      pMatMulExecSpan 5 ≤ pMatMulExecSpan (2 ^ (Nat.log 2 5 + 1)) := by
+  exact pMatMulExecSpan_power_sandwich 5 (by norm_num)
+
 example : pAddWork 0 = 1 ∧ pAddWork 1 = 1 ∧ pAddWork 2 = 7 := by
   native_decide
 

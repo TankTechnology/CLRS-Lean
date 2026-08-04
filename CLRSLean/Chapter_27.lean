@@ -14,6 +14,9 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.Definitions
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.ExecutionEqualities
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.Monotonicity
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.PowerBounds
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs.AllInputBounds
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
@@ -56,20 +59,29 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 
 * 27.2–27.4 Multithreaded algorithms.
   An executable {lit}`Costed` layer attaches values to their work and span, with
-  sequential and balanced parallel composition.  The main-text P-ADD executes
-  four quadrant additions through a balanced fork/join tree, and
-  {name}`CLRS.Chapter27.pAdd_correct` proves that its value is ordinary matrix
-  addition over any ring.  Executable work/span recurrences for P-MATMUL,
-  P-MERGE, P-MERGE-SORT, and parallel Strassen each have an exact closed form
-  on powers of two.  The merge-based and
-  parallel-Strassen recurrences also have monotonicity, adjacent-power
-  sandwich, and all-input Θ theorems; P-MATMUL has all-input upper bounds.
+  sequential and balanced parallel composition.  The main-text P-ADD and
+  P-MATMUL execute quadrant operations through balanced fork/join trees, and
+  {name}`CLRS.Chapter27.pAdd_correct` and
+  {name}`CLRS.Chapter27.pMatMul_correct` prove their matrix values correct over
+  any ring.  Their execution-attached work/span recurrences are monotone, have
+  exact power-of-two solutions or constant-factor bounds, and lift to
+  all-input Θ theorems: P-ADD has quadratic work and logarithmic span, while
+  P-MATMUL has cubic work and quadratic-logarithmic span.  The earlier
+  idealized P-MATMUL recurrence retains its logarithmic-span upper bound.  The
+  merge-based and parallel-Strassen recurrences also have monotonicity,
+  adjacent-power sandwich, and all-input Θ theorems.
   Main declarations:
   {lit}`CLRS.Chapter27.Costed`,
   {lit}`CLRS.Chapter27.Costed.seq`, {lit}`CLRS.Chapter27.Costed.par`,
   {lit}`CLRS.Chapter27.Costed.par4`, {lit}`CLRS.Chapter27.Costed.par8`,
   {lit}`CLRS.Chapter27.pAdd`, {lit}`CLRS.Chapter27.pAdd_value`,
   {lit}`CLRS.Chapter27.pAdd_correct`,
+  {lit}`CLRS.Chapter27.pMatMul`, {lit}`CLRS.Chapter27.pMatMul_value`,
+  {lit}`CLRS.Chapter27.pMatMul_correct`,
+  {lit}`CLRS.Chapter27.pAddWork_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pAddSpan_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pMatMulExecWork_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pMatMulExecSpan_allInput_bigTheta`,
   {lit}`CLRS.Chapter27.pMatMulWork`, {lit}`CLRS.Chapter27.pMatMulWork_pow_two`,
   {lit}`CLRS.Chapter27.pMatMulWork_le`,
   {lit}`CLRS.Chapter27.pMatMulSpan`, {lit}`CLRS.Chapter27.pMatMulSpan_pow_two`,
