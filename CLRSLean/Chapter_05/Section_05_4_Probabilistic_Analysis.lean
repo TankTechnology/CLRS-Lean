@@ -539,17 +539,10 @@ lemma longestStreak_ge_iff_hasRunOfLength (n t : ℕ) (a : CoinFlip n) :
 lemma fintypeExpect_mono {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X Y : Ω → ℝ}
     (hX : ∀ ω, 0 ≤ X ω) (hY : ∀ ω, 0 ≤ Y ω) (hXY : ∀ ω, X ω ≤ Y ω) :
     fintypeExpect X ≤ fintypeExpect Y := by
-  have h_nonneg_diff : ∀ ω, 0 ≤ Y ω - X ω := by
-    intro ω; have h := hXY ω; linarith
-  have h_nonneg_expect_diff : 0 ≤ fintypeExpect (Y - X) :=
-    fintypeExpect_nonneg h_nonneg_diff
-  have h_add : fintypeExpect (X + (Y - X)) =
-      fintypeExpect X + fintypeExpect (Y - X) :=
-    fintypeExpect_add X (Y - X)
-  have h_eq : X + (Y - X) = Y := by
-    ext ω; dsimp; ring
-  rw [h_eq] at h_add
-  linarith
+  refine Probability.fintypeExpect_mono fun ω => ?_
+  have _ := hX ω
+  have _ := hY ω
+  exact hXY ω
 
 lemma prob_run_at_bound (n t i : ℕ) :
     fintypeExpect (fun (a : CoinFlip n) => indicator (∀ j ∈ Finset.range t, headAt n a (i + j) = (1 : Fin 2)))

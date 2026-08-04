@@ -16,7 +16,8 @@ Main definitions:
 Main theorems:
 - `expect_add`, `expect_const`, `expect_nonneg`, `expect_sum`, `expect_indicator`
 - `prob_singleton`, `prob_add_of_disjoint`
-- `fintypeExpect_add`, `fintypeExpect_nonneg`, `fintypeExpect_const`,
+- `fintypeExpect_add`, `fintypeExpect_nonneg`, `fintypeExpect_mono`,
+  `fintypeExpect_neg`, `fintypeExpect_const`,
   `fintypeExpect_indicator_singleton`, `fintypeExpect_sum`, `fintypeExpect_equiv`
 - `expect_mul_of_indep`: expectation of a product of independent variables
 - `fintypeExpect_fst`: marginalise out an unused independent coordinate
@@ -108,6 +109,18 @@ theorem fintypeExpect_nonneg {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X : Ω �
     (hX : ∀ ω, 0 ≤ X ω) : 0 ≤ fintypeExpect X := by
   unfold fintypeExpect
   exact div_nonneg (Finset.sum_nonneg fun ω _ => hX ω) (by positivity)
+
+/-- Pointwise order is preserved by finite uniform expectation. -/
+theorem fintypeExpect_mono {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X Y : Ω → ℝ}
+    (hXY : ∀ ω, X ω ≤ Y ω) : fintypeExpect X ≤ fintypeExpect Y := by
+  unfold fintypeExpect
+  refine div_le_div_of_nonneg_right (Finset.sum_le_sum fun ω _ => hXY ω) ?_
+  positivity
+
+/-- Finite uniform expectation commutes with pointwise negation. -/
+theorem fintypeExpect_neg {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X : Ω → ℝ) :
+    fintypeExpect (fun ω => -X ω) = -fintypeExpect X := by
+  simp [fintypeExpect, Finset.sum_neg_distrib, neg_div]
 
 /-- The `fintypeExpect` of a constant over a nonempty space is that constant. -/
 theorem fintypeExpect_const {Ω : Type} [Fintype Ω] [DecidableEq Ω]

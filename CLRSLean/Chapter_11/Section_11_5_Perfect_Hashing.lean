@@ -105,14 +105,12 @@ theorem perfectSearch_iff_mem [DecidableEq K] (T : PerfectHashTable K m) (x : K)
 `E[X] ≤ E[Y]`. -/
 theorem fintypeExpect_mono {Ω : Type} [Fintype Ω] [DecidableEq Ω] {X Y : Ω → ℝ}
     (hXY : ∀ ω, X ω ≤ Y ω) : fintypeExpect X ≤ fintypeExpect Y := by
-  unfold fintypeExpect
-  refine div_le_div_of_nonneg_right (Finset.sum_le_sum (fun ω _ => hXY ω)) ?_
-  positivity
+  exact Probability.fintypeExpect_mono hXY
 
 /-- `fintypeExpect` of a negated random variable is the negation of the expectation. -/
 theorem fintypeExpect_neg {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X : Ω → ℝ) :
     fintypeExpect (fun ω => -X ω) = -fintypeExpect X := by
-  simp [fintypeExpect, Finset.sum_neg_distrib, neg_div]
+  exact Probability.fintypeExpect_neg X
 
 /--
 Number of colliding unordered pairs `{i, j}` with `i < j` under a hash assignment
