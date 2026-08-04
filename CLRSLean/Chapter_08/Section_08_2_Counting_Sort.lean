@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.ProofPatterns.Fiber
 
 /-!
 # CLRS Section 8.2 - Counting sort
@@ -121,18 +122,26 @@ theorem orderedBy_of_all_keys_eq {key : α → Nat} {xs : List α} {k : Nat}
 def bucket (key : α → Nat) (xs : List α) (k : Nat) : List α :=
   xs.filter fun x => key x == k
 
+/-- Counting-sort buckets are exactly the generic key fibers. -/
+theorem bucket_eq_fiber (key : α → Nat) (xs : List α) (k : Nat) :
+    bucket key xs k = ProofPatterns.fiber key xs k := by
+  unfold bucket ProofPatterns.fiber
+  apply congrArg (fun p => xs.filter p)
+  funext x
+  exact beq_eq_decide (key x) k
+
 theorem bucket_append (key : α → Nat) (xs ys : List α) (k : Nat) :
     bucket key (xs ++ ys) k = bucket key xs k ++ bucket key ys k := by
-  simp [bucket]
+  simpa only [bucket_eq_fiber] using ProofPatterns.fiber_append key xs ys k
 
 theorem mem_bucket_iff {key : α → Nat} {xs : List α} {k : Nat} {x : α} :
     x ∈ bucket key xs k ↔ x ∈ xs ∧ key x = k := by
-  simp [bucket]
+  simpa only [bucket_eq_fiber] using
+    (ProofPatterns.mem_fiber_iff (key := key) (xs := xs) (k := k) (x := x))
 
 theorem bucket_all_keys_eq (key : α → Nat) (xs : List α) (k : Nat) :
     ∀ x ∈ bucket key xs k, key x = k := by
-  intro x hx
-  exact (mem_bucket_iff.mp hx).2
+  simpa only [bucket_eq_fiber] using ProofPatterns.fiber_all_keys_eq key xs k
 
 theorem bucket_orderedBy (key : α → Nat) (xs : List α) (k : Nat) :
     OrderedBy key (bucket key xs k) :=
@@ -147,15 +156,7 @@ theorem count_bucket_self [DecidableEq α]
 theorem bucket_bucket_eq (key : α → Nat) (xs : List α) (j k : Nat) :
     bucket key (bucket key xs j) k =
       if j = k then bucket key xs k else [] := by
-  by_cases hjk : j = k
-  · subst hjk
-    simp [bucket, List.filter_filter]
-  · simp [hjk]
-    apply List.eq_nil_iff_forall_not_mem.mpr
-    intro x hx
-    have hxj : key x = j := (mem_bucket_iff.mp (mem_bucket_iff.mp hx).1).2
-    have hxk : key x = k := (mem_bucket_iff.mp hx).2
-    exact hjk (hxj ▸ hxk)
+  simpa only [bucket_eq_fiber] using ProofPatterns.fiber_fiber_eq key xs j k
 
 theorem bucket_eq_nil_of_allKeysLe_lt {key : α → Nat} {xs : List α}
     {upper k : Nat} (hxs : AllKeysLe key xs upper) (hgt : upper < k) :
