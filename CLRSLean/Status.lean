@@ -132,15 +132,25 @@ the detailed maintainer ledger.
 * **Chapter 27:** the dynamic-multithreading model (computation DAG with an
   honestly computed longest-path span, spawn/sync trees, balanced
   parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
-  work/span recurrences of P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel
-  Strassen are executable cost functions with exact power-of-two closed forms
-  (work `Θ(n³)`, `Θ(n)`, `Θ(n log n)`, `Θ(n^(log₂ 7))`; spans `Θ(log n)`,
-  `Θ(log² n)`, `Θ(log³ n)`).  P-MERGE, P-MERGE-SORT, and parallel Strassen
-  additionally have monotonicity, adjacent-power sandwich, and all-input Θ
-  theorems; P-MATMUL has all-input upper bounds.  The
   explicit ready-set DAG execution model proves the greedy-scheduler bound
-  (Theorem 27.1/27.2) for completed schedules.  Executable P-MERGE and
-  P-MERGE-SORT implementations refining the proved recurrences remain.
+  (Theorem 27.1/27.2) for completed schedules.  A {lit}`Costed` execution layer
+  supplies balanced P-ADD and race-free P-MATMUL over depth-indexed matrices;
+  {lit}`pAdd_correct` and {lit}`pMatMul_correct` prove ordinary addition and
+  multiplication over any ring.  The four theorems {lit}`pAdd_work_eq`,
+  {lit}`pAdd_span_eq`, {lit}`pMatMul_work_eq`, and {lit}`pMatMul_span_eq`
+  connect their carried costs to execution recurrences.  The all-input results
+  {lit}`pAddWork_allInput_bigTheta`, {lit}`pAddSpan_allInput_bigTheta`,
+  {lit}`pMatMulExecWork_allInput_bigTheta`, and
+  {lit}`pMatMulExecSpan_allInput_bigTheta` prove Θ(n²), Θ(log n), Θ(n³), and
+  Θ(log² n), respectively.  The older {lit}`pMatMulWork` / {lit}`pMatMulSpan`
+  pair is an idealized constant-combine recurrence: its span is Θ(log n), not
+  the actual execution-attached P-MATMUL span.  This matrix evidence is split
+  across the {lit}`ParallelMatrix/Definitions`, {lit}`Correctness`, and
+  {lit}`Costs/ExecutionEqualities`, {lit}`Costs/Monotonicity`,
+  {lit}`Costs/PowerBounds`, and {lit}`Costs/AllInputBounds` modules.  P-MERGE,
+  P-MERGE-SORT, and retained parallel Strassen have recurrence-level
+  power-of-two and all-input analyses.  Executable P-MERGE and P-MERGE-SORT
+  implementations refining those recurrences remain open.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric
