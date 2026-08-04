@@ -3856,9 +3856,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Proof pattern: prove each natural-valued recurrence monotone, sandwich an
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
-- Current gap: lift P-MERGE's proved one-step span inequality to a global
-  quadratic-log bound, then implement and prove P-MERGE-SORT with the same
-  correctness and execution-cost links.
+- Current gap: implement executable P-MERGE-SORT and prove its correctness,
+  execution work, and execution span are linked to the proved recurrence-level
+  P-MERGE-SORT models.  P-MERGE's global matching span bounds are complete.
 
 ## Chapter 32 - String Matching
 
