@@ -3695,11 +3695,28 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 27.2-27.4 - Multithreaded Algorithms
 
-- Lean source: `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
-- Status: `partial` (cost-recurrence analysis proved, executable refinements open)
-- Model: executable work/span recurrences `pMatMulWork`, `pMatMulSpan`,
+- Lean sources:
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean`
+- Interface test: `Tests/Chapter_27_Matrix_Interface.lean`
+- Status: `partial` (executable P-ADD correctness and cost-recurrence analysis
+  proved; executable P-MERGE/P-MERGE-SORT refinements open)
+- Model: `Costed` executable values with exact work/span, depth-indexed
+  power-of-two matrices, balanced four-way P-ADD, and executable work/span
+  recurrences `pMatMulWork`, `pMatMulSpan`,
   `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
   `strassenWork`, `strassenSpan`, each with an `*_unfold` recurrence lemma.
+- Proved executable P-ADD boundary:
+  - `CLRS.Chapter27.pAdd` charges one work/span unit at scalar leaves, executes
+    four quadrant additions through deterministic balanced `Costed.par4`, and
+    reassembles the row-major quadrant tuple.
+  - `CLRS.Chapter27.pAdd_value` proves the returned value is ordinary matrix
+    addition at every depth over any `Ring`.
+  - `CLRS.Chapter27.pAdd_correct` is the reader-facing correctness wrapper.
+  - Executable interface examples confirm exact scalar work/span `1/1` and
+    depth-one work/span `7/3` together with concrete `2 × 2` values.
 - Proved theorems (power-of-two closed forms):
   - `CLRS.Chapter27.pMatMulWork_pow_two` (`T₁(2ᵏ) + 4ᵏ = 2·8ᵏ`, work Θ(n³))
     and `CLRS.Chapter27.pMatMulWork_le` (all-input `T₁(n) + n² ≤ 2n³`)

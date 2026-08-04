@@ -54,5 +54,28 @@ example :
 #check pAdd
 #check pAdd_value
 #check pAdd_correct
+#print axioms pAdd_correct
+
+example :
+    let result := pAdd ℤ 0 7 (-2)
+    result.value = 5 ∧ result.work = 1 ∧ result.span = 1 := by
+  norm_num [pAdd, Costed.charge]
+
+example :
+    let A : Chapter04.SqMat ℤ 1 := !![1, 2; 3, 4]
+    let B : Chapter04.SqMat ℤ 1 := !![5, 6; 7, 8]
+    let result := pAdd ℤ 1 A B
+    result.value = !![6, 8; 10, 12] ∧
+      result.work = 7 ∧ result.span = 3 := by
+  dsimp only
+  constructor
+  · funext i j
+    fin_cases i <;> fin_cases j <;>
+      norm_num [pAdd, Costed.par4, Costed.par, Costed.map, Costed.charge]
+  · norm_num [pAdd, Costed.par4, Costed.par, Costed.map, Costed.charge]
+
+example (A B : Chapter04.SqMat ℤ 1) :
+    (pAdd ℤ 1 A B).value = A + B := by
+  exact pAdd_correct ℤ 1 A B
 
 end CLRS.Chapter27
