@@ -277,6 +277,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms",
 ]
+"CLRSLean.Chapter_27.Section_27_1_Multithreading_Model" = [
+  "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S1_ComputationDAG",
+  "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S2_ReadyExecution",
+  "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S3_GreedyAccounting",
+  "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S4_ExecutableScheduler",
+  "CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S5_SpawnTreeAndLoops",
+]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
 ]
@@ -810,6 +817,21 @@ title = "Chapter 27. Multithreaded Algorithms"
 
 [modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model"]
 title = "27.1. The Basics of Dynamic Multithreading"
+
+[modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S1_ComputationDAG"]
+title = "27.1 S1. Computation DAGs"
+
+[modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S2_ReadyExecution"]
+title = "27.1 S2. Ready Execution"
+
+[modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S3_GreedyAccounting"]
+title = "27.1 S3. Greedy Accounting"
+
+[modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S4_ExecutableScheduler"]
+title = "27.1 S4. Executable Scheduler"
+
+[modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model.S5_SpawnTreeAndLoops"]
+title = "27.1 S5. Spawn Trees and Parallel Loops"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms"]
 title = "27.2-27.4. Multithreaded Algorithms"
