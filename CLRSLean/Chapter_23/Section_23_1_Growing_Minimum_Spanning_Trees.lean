@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.ProofPatterns.Exchange
 
 open Finset
 
@@ -229,6 +230,30 @@ structure IsMSTExtending (P : Problem E) (w : E → Nat)
   includes : A ⊆ T
   optimal : ∀ U, P.IsSpanningTree U → A ⊆ U → weight w T ≤ weight w U
 
+namespace IsMSTExtending
+
+/-- View an optimum extending a prefix through the generic optimality kernel. -/
+theorem toOptimal {P : Problem E} {w : E → Nat} {A T : Finset E}
+    (h : IsMSTExtending P w A T) :
+    ProofPatterns.Optimal
+      (fun candidate => P.IsSpanningTree candidate ∧ A ⊆ candidate)
+      (ProofPatterns.ExchangeCertificate.NoGreaterCost (weight w)) T :=
+  ⟨⟨h.tree, h.includes⟩,
+    fun other hother => h.optimal other hother.1 hother.2⟩
+
+end IsMSTExtending
+
+/-- Recover the MST-facing optimum certificate from the generic kernel. -/
+theorem isMSTExtending_of_optimal {P : Problem E} {w : E → Nat}
+    {A T : Finset E}
+    (h : ProofPatterns.Optimal
+      (fun candidate => P.IsSpanningTree candidate ∧ A ⊆ candidate)
+      (ProofPatterns.ExchangeCertificate.NoGreaterCost (weight w)) T) :
+    IsMSTExtending P w A T :=
+  ⟨h.feasible_chosen.1, h.feasible_chosen.2,
+    fun other htree hincludes =>
+      h.noWorse_than other ⟨htree, hincludes⟩⟩
+
 namespace FiniteGraph
 
 /--
@@ -314,11 +339,13 @@ theorem mst_exchange_preserves_prefix {P : Problem E} {w : E → Nat} {A T : Fin
     (h_tree : P.IsSpanningTree (insert e (T.erase f)))
     (h_extends : A ⊆ insert e (T.erase f)) (h_weight : w e ≤ w f) :
     IsMSTExtending P w A (insert e (T.erase f)) := by
-  refine ⟨h_tree, ?_, ?_⟩
-  · exact h_extends
-  · intro U hUtree hUextends
-    exact (weight_insert_erase_le w hf he h_weight).trans
-      (hT.optimal U hUtree hUextends)
+  apply isMSTExtending_of_optimal
+  exact ProofPatterns.Optimal.of_noWorse hT.toOptimal
+    ⟨h_tree, h_extends⟩
+    (weight_insert_erase_le w hf he h_weight)
+    (by
+      intro X Y Z hXY hYZ
+      exact Nat.le_trans hXY hYZ)
 
 /-- The same exchange step, packaged for the enlarged prefix. -/
 theorem mst_exchange_step {P : Problem E} {w : E → Nat} {A T : Finset E}

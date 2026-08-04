@@ -1,5 +1,9 @@
 import CLRSLean.Chapter_23
 
+#check CLRS.MST.IsMSTExtending.toOptimal
+#check CLRS.MST.isMSTExtending_of_optimal
+#check CLRS.MST.mst_exchange_preserves_prefix
+
 #check CLRS.MST.Graph.selectedSimpleGraph
 #check CLRS.MST.Graph.PathExchange
 #check CLRS.MST.Graph.exists_pathExchange_of_simplePath_crosses
