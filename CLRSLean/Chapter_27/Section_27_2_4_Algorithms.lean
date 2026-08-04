@@ -19,9 +19,11 @@ retained §27.4 extension until its later closure split.
 The imported modules provide an executable value/work/span layer for attaching
 costs directly to algorithm results, executable and proved-correct P-ADD and
 P-MATMUL algorithms, exact equalities between their recorded costs and their
-execution recurrences, exact power-of-two work/span recurrences, P-MATMUL
-all-input upper bounds, and
-monotonicity, adjacent-power sandwich, and all-input `Θ` results for P-MERGE,
+execution recurrences, monotonicity and adjacent-power sandwiches for all four
+matrix costs, power-of-two solutions, and all-input {lit}`Theta` results for
+P-ADD and executable P-MATMUL.  The earlier idealized P-MATMUL recurrence
+retains its all-input upper bounds.  The imports also provide monotonicity,
+adjacent-power sandwiches, and all-input {lit}`Theta` results for P-MERGE,
 P-MERGE-SORT, and retained Strassen.
 
 ## Deferred work
@@ -39,4 +41,7 @@ models remain deferred.
 * [Exact execution costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/)
 * [Exact cost recurrences](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Definitions/)
 * [Execution cost equalities](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/ExecutionEqualities/)
+* [Matrix cost monotonicity](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity/)
+* [Power-of-two matrix cost bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds/)
+* [All-input matrix asymptotics](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds/)
 -/
