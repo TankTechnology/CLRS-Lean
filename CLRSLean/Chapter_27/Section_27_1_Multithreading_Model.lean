@@ -22,14 +22,9 @@ public API.
   DAG execution.
 * `SpawnTree.span_le_work` proves the corresponding spawn-tree bound.
 * `parallelLoop_work` and `parallelLoop_span` give the exact balanced-loop
-  work and span, while `parallelLoopDepth_pow` proves the logarithmic-depth
-  direction `n ≤ 2 ^ parallelLoopDepth n`.
-
-## Deferred work
-
-The matching upper bound
-`parallelLoopDepth n ≤ Nat.log 2 n + 1` (an exact `Nat.clog`-style
-characterization) remains future work.
+  work and span. `parallelLoopDepth_pow` gives the lower logarithmic direction,
+  while `parallelLoopDepth_le_log` and `parallelLoop_span_le_log` give
+  all-input logarithmic upper bounds for the depth and span.
 
 ## Implementation details
 
