@@ -1,3 +1,7 @@
+import CLRSLean.Extensions.RandomizedTreap
+import CLRSLean.Extensions.TreapHeight
+import CLRSLean.Extensions.TreapRandom
+
 /-!
 # Extensions beyond the textbook
 
@@ -24,6 +28,8 @@ Planned extensions:
 - **Edit distance**: sequence alignment as a refinement of the Chapter 15
   longest-common-subsequence dynamic program.
 
-Status: no extension promoted yet; the first prototype (the randomized treap)
-lives in {lit}`CLRSLean/Extensions/RandomizedTreap.lean`.
+Status: no extension has been promoted to the textbook ledger.  The randomized
+treap prototype has kernel-checked executable correctness and expected-depth
+analysis; {lit}`CLRSLean/Extensions/TreapHeight.lean` contains the next
+expected-height proof layer, whose final bound remains future work.
 -/

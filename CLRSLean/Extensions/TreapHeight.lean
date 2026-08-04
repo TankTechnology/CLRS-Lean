@@ -10,8 +10,8 @@ namespace Treap
 /-!
 # Randomized treap: expected height
 
-This module completes the treap analysis by bounding the expected **height**
-(the maximum depth over all keys), which is {lit}`O(log n)`.
+This module develops the next proof layer toward bounding the expected
+**height** (the maximum depth over all keys) by {lit}`O(log n)`.
 
 The depth of a single key was bounded in {lit}`TreapRandom` via its harmonic
 ancestor sum.  The height needs more: a bound on the *maximum* depth, which is
@@ -23,12 +23,14 @@ exactly the left-to-right record maxima of the priority sequence
 has an exponential tail, so the depth does too, and a union bound over the keys
 turns it into an {lit}`O(log n)` expected-height bound.
 
-Main results (targets):
+Main result (target, not yet proved):
 
 - Theorem {lit}`height_le_harmonic`: {lit}`E[height] ≤ c · H_n` for an explicit
   constant {lit}`c`.
 
-Status: prototype, not registered in {lit}`literate.toml`.
+Status: prototype, not registered in {lit}`literate.toml`.  The depth
+decomposition and left-ancestor product formula are kernel-checked; the
+exponential-tail and final expected-height bounds remain future work.
 -/
 
 /-- The left-ancestors of key {lit}`b`: keys strictly below {lit}`b` that are
