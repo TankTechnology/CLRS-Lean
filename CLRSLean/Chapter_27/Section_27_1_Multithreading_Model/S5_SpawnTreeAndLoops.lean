@@ -188,6 +188,54 @@ theorem parallelLoopDepth_pow (n : ℕ) : n ≤ 2 ^ parallelLoopDepth n := by
         · rw [max_eq_left h]
           omega
 
+/-- The balanced parallel-loop depth is bounded by one more than the
+base-two floor logarithm on every input. -/
+theorem parallelLoopDepth_le_log (n : ℕ) :
+    parallelLoopDepth n ≤ Nat.log 2 n + 1 := by
+  have hdepth_clog : parallelLoopDepth n ≤ Nat.clog 2 n := by
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        by_cases hn : n ≤ 1
+        · rw [parallelLoopDepth_of_le_one hn]
+          exact Nat.zero_le _
+        · have hfloor := ih (n / 2) (by omega)
+          have hceil := ih (n - n / 2) (by omega)
+          have hfloor_le_ceil : n / 2 ≤ n - n / 2 := by omega
+          have hhalf : (n + 2 - 1) / 2 = n - n / 2 := by omega
+          rw [parallelLoopDepth_unfold (by omega),
+            Nat.clog_of_two_le (by norm_num) (by omega), hhalf]
+          exact Nat.add_le_add_right
+            (max_le (hfloor.trans (Nat.clog_mono_right 2 hfloor_le_ceil)) hceil) 1
+  apply hdepth_clog.trans
+  rw [Nat.clog_le_iff_le_pow (by norm_num)]
+  exact (Nat.lt_pow_succ_log_self (by norm_num) n).le
+
+/-- The balanced parallel-loop span is at most one iteration's weight plus
+one more than the base-two floor logarithm, on every input. -/
+theorem parallelLoop_span_le_log (n w : ℕ) :
+    (parallelLoopTree n w).span ≤ w + Nat.log 2 n + 1 := by
+  rw [parallelLoop_span]
+  by_cases hn : n ≤ 1
+  · rw [if_pos hn]
+    interval_cases n <;> simp
+  · rw [if_neg hn]
+    exact Nat.add_le_add_left (parallelLoopDepth_le_log n) w
+
+example : parallelLoopDepth 0 = 0 := by native_decide
+
+example : parallelLoopDepth 1 = 0 := by native_decide
+
+example : parallelLoopDepth 2 = 1 := by native_decide
+
+example : parallelLoopDepth 3 = 2 := by native_decide
+
+example : parallelLoopDepth 8 = 3 := by native_decide
+
+example : parallelLoopDepth 9 = 4 := by native_decide
+
+example : (parallelLoopTree 9 3).span ≤ 3 + Nat.log 2 9 + 1 :=
+  parallelLoop_span_le_log 9 3
+
 
 end Chapter27
 end CLRS

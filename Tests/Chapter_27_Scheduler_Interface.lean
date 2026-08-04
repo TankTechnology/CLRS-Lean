@@ -119,4 +119,7 @@ example : schedulerForkScheduleTwo.time ≤
     schedulerForkDAG.work / 2 + schedulerForkDAG.span :=
   schedulerForkDAG.greedySchedule_time_le_work_div_add_span 2 (by decide)
 
+#check parallelLoopDepth_le_log
+#check parallelLoop_span_le_log
+
 end CLRS.Chapter27
