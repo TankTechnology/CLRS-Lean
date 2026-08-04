@@ -554,6 +554,115 @@ lemma eSymm_le {α : Type} [DecidableEq α] (C : Finset α) (x : α → ℝ)
                   nlinarith [hbin]
   exact hmain C k
 
+lemma fintypeExpect_le {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X Y : Ω → ℝ)
+    (h : ∀ ω, X ω ≤ Y ω) : fintypeExpect X ≤ fintypeExpect Y := by
+  unfold fintypeExpect
+  exact div_le_div_of_nonneg_right (Finset.sum_le_sum (fun ω _ => h ω)) (by positivity)
+
+lemma leftAncestors_tail {n : ℕ} {b : Fin n} (k : ℕ) :
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ leftAncestors σ b)) ≤
+      (∑ a : Fin n, if a < b then (1 / ((Finset.Icc a b).card : ℝ)) else 0)^k /
+        (Nat.factorial k : ℝ) := by
+  classical
+  let C : Finset (Fin n) := Finset.univ.filter (fun a : Fin n => a < b)
+  have hcov : ∀ σ, indicator (k ≤ leftAncestors σ b) ≤
+      ∑ S ∈ Finset.powersetCard k C, indicator (∀ a ∈ S, MaxOver σ (Finset.Icc a b) a) := by
+    intro σ
+    by_cases hk : k ≤ leftAncestors σ b
+    · have hA : ∃ S ∈ Finset.powersetCard k C, ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a := by
+        let A : Finset (Fin n) := C.filter (fun a => MaxOver σ (Finset.Icc a b) a)
+        have hAcard : k ≤ A.card := by
+          have hAeq : A.card = leftAncestors σ b := by
+            unfold A leftAncestors C
+            congr 1
+            ext a
+            simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+            constructor
+            · intro h
+              rcases h with ⟨h1, h2⟩
+              have hmm : Finset.Icc (min a b) (max a b) = Finset.Icc a b := by
+                rw [min_eq_left (le_of_lt h1), max_eq_right (le_of_lt h1)]
+              exact ⟨h1, (by
+                unfold Ancestor
+                right
+                rw [hmm]
+                exact h2.2)⟩
+            · intro h
+              rcases h with ⟨h1, h2⟩
+              have hmm : Finset.Icc (min a b) (max a b) = Finset.Icc a b := by
+                rw [min_eq_left (le_of_lt h1), max_eq_right (le_of_lt h1)]
+              exact ⟨h1, (by
+                unfold MaxOver
+                unfold Ancestor at h2
+                rcases h2 with h | hle
+                · exfalso; exact (ne_of_lt h1) h
+                · exact ⟨Finset.mem_Icc.mpr ⟨le_rfl, le_of_lt h1⟩, (by rwa [hmm] at hle)⟩)⟩
+          omega
+        rcases Finset.exists_subset_card_eq hAcard with ⟨S, hSA, hScard⟩
+        refine ⟨S, ?_, ?_⟩
+        · exact Finset.mem_powersetCard.mpr ⟨(fun a ha => (Finset.mem_filter.mp (hSA ha)).1), hScard⟩
+        · intro a ha
+          exact (Finset.mem_filter.mp (hSA ha)).2
+      have hrhs : 1 ≤ ∑ S ∈ Finset.powersetCard k C, indicator (∀ a ∈ S, MaxOver σ (Finset.Icc a b) a) := by
+        rcases hA with ⟨S, hS, hSanc⟩
+        have hS1 : indicator (∀ a ∈ S, MaxOver σ (Finset.Icc a b) a) = 1 := by
+          simp [indicator]
+          exact hSanc
+        have hle1 : indicator (∀ a ∈ S, MaxOver σ (Finset.Icc a b) a) ≤
+            ∑ T ∈ Finset.powersetCard k C, indicator (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) := by
+          have hnonneg : ∀ T ∈ Finset.powersetCard k C, 0 ≤ indicator (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) := by
+            intro T hT
+            by_cases hc : (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a)
+            · have h1 : indicator (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) = 1 := by
+                rw [indicator, if_pos hc]
+              rw [h1]; norm_num
+            · have h0 : indicator (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a) = 0 := by
+                rw [indicator, if_neg hc]
+              rw [h0]
+          exact Finset.single_le_sum (s := Finset.powersetCard k C)
+            (f := fun T => indicator (∀ a ∈ T, MaxOver σ (Finset.Icc a b) a))
+            hnonneg (by exact hS)
+        rw [hS1] at hle1
+        exact hle1
+      simpa [hk, hrhs]
+    · have hzero : indicator (k ≤ leftAncestors σ b) = 0 := by
+        rw [indicator, if_neg hk]
+      rw [hzero]
+      exact Finset.sum_nonneg (fun S hS => by
+        by_cases hc : (∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)
+        · rw [indicator, if_pos hc]; norm_num
+        · rw [indicator, if_neg hc])
+  calc
+    fintypeExpect (fun σ : PrioPerm n => indicator (k ≤ leftAncestors σ b))
+        ≤ fintypeExpect (fun σ : PrioPerm n => ∑ S ∈ Finset.powersetCard k C, indicator (∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)) := by
+          exact fintypeExpect_le _ _ hcov
+    _ = ∑ S ∈ Finset.powersetCard k C, fintypeExpect (fun σ : PrioPerm n => indicator (∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)) := by
+          rw [fintypeExpect_sum]
+    _ = ∑ S ∈ Finset.powersetCard k C, ∏ a ∈ S, (1 / ((Finset.Icc a b).card : ℝ)) := by
+          apply Finset.sum_congr rfl
+          intro S hS
+          have hS' : ∀ a ∈ S, a < b := by
+            intro a ha
+            have hSC : S ⊆ C := (Finset.mem_powersetCard.mp hS).1
+            exact (Finset.mem_filter.mp (hSC ha)).2
+          have hprod := leftAncestors_product S hS'
+          unfold fintypeExpect indicator
+          rw [Finset.sum_boole]
+          rw [show (Fintype.card (PrioPerm n) : ℝ) = (Nat.factorial n : ℝ) by simp [PrioPerm, Fintype.card_perm]]
+          have hnfac : (Nat.factorial n : ℝ) ≠ 0 := by positivity
+          have hprod' : ((Finset.univ.filter (fun σ : PrioPerm n => ∀ a ∈ S, MaxOver σ (Finset.Icc a b) a)).card : ℝ) =
+              (Nat.factorial n : ℝ) * ∏ a ∈ S, (1 / ((Finset.Icc a b).card : ℝ)) := by
+            rw [show (Fintype.card (PrioPerm n) : ℝ) = (Nat.factorial n : ℝ) by simp [PrioPerm, Fintype.card_perm]] at hprod
+            exact hprod
+          field_simp [hnfac]
+          exact hprod'
+    _ ≤ (∑ a ∈ C, (1 / ((Finset.Icc a b).card : ℝ)))^k / (Nat.factorial k : ℝ) := by
+          exact eSymm_le C (fun a => 1 / ((Finset.Icc a b).card : ℝ)) (by intro a; positivity) k
+    _ = (∑ a : Fin n, if a < b then (1 / ((Finset.Icc a b).card : ℝ)) else 0)^k / (Nat.factorial k : ℝ) := by
+          congr 1
+          unfold C
+          rw [Finset.sum_filter]
+
 end Treap
 
 end CLRS.Extensions
