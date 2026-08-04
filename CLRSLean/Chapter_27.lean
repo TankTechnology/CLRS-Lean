@@ -66,7 +66,7 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   any ring.  Their execution-attached work/span recurrences are monotone, have
   exact power-of-two solutions or constant-factor bounds, and lift to
   all-input Θ theorems: P-ADD has quadratic work and logarithmic span, while
-  P-MATMUL has cubic work and quadratic-logarithmic span.  The earlier
+  P-MATMUL has cubic work and log-squared span ({lit}`Theta(log^2 n)`).  The earlier
   idealized P-MATMUL recurrence retains its logarithmic-span upper bound.  The
   merge-based and parallel-Strassen recurrences also have monotonicity,
   adjacent-power sandwich, and all-input Θ theorems.
