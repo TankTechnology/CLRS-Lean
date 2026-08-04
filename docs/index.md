@@ -18,6 +18,7 @@ belong.
 | [`workflows/chapter-workflow.md`](workflows/chapter-workflow.md) | End-to-end chapter formalization workflow |
 | [`workflows/lean-fast-verification.md`](workflows/lean-fast-verification.md) | Narrow-to-wide Lean verification loop |
 | [`site-architecture.md`](site-architecture.md) | Verso navigation, rendering, and deployment design |
+| [`randomized-treap-height.md`](randomized-treap-height.md) | Handoff plan for completing the expected-height bound |
 
 ## Documentation Roles
 
