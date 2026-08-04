@@ -312,6 +312,12 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Boundaries",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Permutation",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Main",
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Definitions",
@@ -920,6 +926,18 @@ title = "27.3. P-MERGE"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions"]
 title = "27.3. P-MERGE — Executable Definition"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness"]
+title = "27.3. P-MERGE — Correctness"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Boundaries"]
+title = "27.3. P-MERGE Correctness — Order Boundaries"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Permutation"]
+title = "27.3. P-MERGE Correctness — Permutation"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Main"]
+title = "27.3. P-MERGE Correctness — Strong Induction"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound"]
 title = "27.3. Binary Lower Bound"
