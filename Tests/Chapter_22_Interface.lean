@@ -23,6 +23,10 @@ import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
 #check CLRS.Chapter22.Graph.bfsState_correct
 
 #check CLRS.Chapter22.Graph.IsDFSTreeEdge
+#check CLRS.Chapter22.Graph.dfsInterval
+#check CLRS.Chapter22.Graph.finishesBeforeDiscovered_iff_strictlyBefore
+#check CLRS.Chapter22.Graph.intervalNestedInside_iff_nestedInside
+#check CLRS.Chapter22.Graph.intervalNestedInside_asymm
 #check CLRS.Chapter22.Graph.IsDFSBackEdge
 #check CLRS.Chapter22.Graph.IsDFSForwardEdge
 #check CLRS.Chapter22.Graph.IsDFSCrossEdge
@@ -49,3 +53,13 @@ import CLRSLean.Chapter_22.Section_22_4_Topological_Sort
 #check CLRS.Chapter22.Graph.mem_dfsTopologicalSort_iff
 #check CLRS.Chapter22.Graph.dfsTopologicalSort_pairwise_finish_le
 #check CLRS.Chapter22.Graph.dfsTopologicalSort_isTopologicalOrder
+
+namespace CLRS.Chapter22.Graph
+
+variable {V : Type} [DecidableEq V]
+
+example {s : DFSState V} {u v : V} (h : intervalNestedInside s u v) :
+    ¬ intervalNestedInside s v u :=
+  intervalNestedInside_asymm h
+
+end CLRS.Chapter22.Graph

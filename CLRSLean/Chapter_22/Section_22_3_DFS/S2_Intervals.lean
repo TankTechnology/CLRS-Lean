@@ -1,5 +1,6 @@
 import Mathlib
 import CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath
+import CLRSLean.ProofPatterns.Interval
 
 /-! # DFS theory: parenthesis theorem and ancestor relations
 
@@ -29,6 +30,33 @@ def finishesBeforeDiscovered (s : DFSState V) (u v : V) : Prop :=
 /-- {lit}`v`'s interval is strictly nested inside {lit}`u`'s interval. -/
 def intervalNestedInside (s : DFSState V) (u v : V) : Prop :=
   discoveryTime s u < discoveryTime s v ∧ finishTime s v < finishTime s u
+
+/-- The discovery/finish timestamp interval of a vertex in a DFS state. -/
+def dfsInterval (s : DFSState V) (u : V) : ProofPatterns.NatInterval where
+  lo := discoveryTime s u
+  hi := finishTime s u
+
+/-- Finishing before another vertex is discovered is exactly the generic
+strict interval-order relation. -/
+theorem finishesBeforeDiscovered_iff_strictlyBefore (s : DFSState V) (u v : V) :
+    finishesBeforeDiscovered s u v ↔
+      ProofPatterns.NatInterval.StrictlyBefore (dfsInterval s u) (dfsInterval s v) :=
+  Iff.rfl
+
+/-- DFS timestamp nesting is exactly strict nesting of the projected generic
+intervals. -/
+theorem intervalNestedInside_iff_nestedInside (s : DFSState V) (u v : V) :
+    intervalNestedInside s u v ↔
+      ProofPatterns.NatInterval.NestedInside (dfsInterval s v) (dfsInterval s u) :=
+  Iff.rfl
+
+/-- Strict DFS timestamp nesting is asymmetric. -/
+theorem intervalNestedInside_asymm {s : DFSState V} {u v : V}
+    (h : intervalNestedInside s u v) : ¬ intervalNestedInside s v u := by
+  intro hrev
+  exact ProofPatterns.NatInterval.nestedInside_asymm
+    ((intervalNestedInside_iff_nestedInside s u v).mp h)
+    ((intervalNestedInside_iff_nestedInside s v u).mp hrev)
 
 /-- Two distinct DFS timestamp intervals are laminar when they are disjoint in
 one direction or one is strictly nested inside the other. -/
