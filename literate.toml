@@ -288,6 +288,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S1_CostModel",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S2_Recurrences",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -849,6 +854,16 @@ title = "27.2-27.3 S2. Parallel Recurrences"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S3_AllInputBounds"]
 title = "27.2-27.3 S3. All-Input Bounds"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix"]
+title = "27.2. Parallel Matrix Addition"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions"]
+title = "27.2. Parallel Matrix Addition — Definitions"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness"]
+title = "27.2. Parallel Matrix Addition — Correctness"
+
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
 
