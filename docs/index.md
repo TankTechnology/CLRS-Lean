@@ -178,6 +178,10 @@ CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
+CLRSLean/Extensions.lean
+CLRSLean/Extensions/RandomizedTreap.lean
+CLRSLean/Extensions/TreapHeight.lean
+CLRSLean/Extensions/TreapRandom.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.
