@@ -3713,12 +3713,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Boundaries.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step.lean`
 - Interface tests: `Tests/Chapter_27_Matrix_Interface.lean` and
   `Tests/Chapter_27_ParallelMerge_Interface.lean`
 - Status: `partial` (executable P-ADD and race-free P-MATMUL correctness,
   execution-attached cost equalities, and their all-input asymptotics are
-  proved; executable P-MERGE value correctness is proved; its execution-cost
-  link and executable P-MERGE-SORT remain open)
+  proved; executable P-MERGE value correctness, exact child accounting, its
+  actual three-quarter split bound, and one-step costs are proved; global
+  P-MERGE costs and executable P-MERGE-SORT remain open)
 - Model:
   - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
     sequential composition and deterministic balanced `par4`/`par8` trees.
@@ -3762,6 +3766,14 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - The boundary proof handles duplicates by using the lower-bound theorem's
     strict-left/nonstrict-right partition and handles normalization swaps by an
     explicit block permutation.
+  - `CLRS.Chapter27.pMerge_childSizes_add_one` proves the children partition
+    every element except the pivot, while
+    `CLRS.Chapter27.pMerge_childSize_le_threeQuarters` proves both actual
+    children have size at most `n - n / 4`, including totals below four.
+  - `CLRS.Chapter27.pMerge_work_step_eq` and
+    `CLRS.Chapter27.pMerge_span_step_eq` expose exact nonempty-call costs:
+    binary search plus the two children, one fork/join, and one pivot placement.
+    The corresponding `*_step_le` theorems bound search by `log₂ n + 1`.
 - Proved execution-cost equalities:
   - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
     the work and span carried by P-ADD with `pAddWork (2^k)` and
@@ -3813,9 +3825,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Proof pattern: prove each natural-valued recurrence monotone, sandwich an
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
-- Current gap: connect executable P-MERGE's carried work/span to its recurrence
-  and all-input bounds, then implement and prove P-MERGE-SORT with the same
-  correctness and execution-cost links.
+- Current gap: lift P-MERGE's proved one-step inequalities to global linear
+  work and quadratic-log span, then implement and prove P-MERGE-SORT with the
+  same correctness and execution-cost links.
 
 ## Chapter 32 - String Matching
 

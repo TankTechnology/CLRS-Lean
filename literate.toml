@@ -309,6 +309,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.MergeSplit",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Structure",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step",
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions",
@@ -953,6 +958,15 @@ title = "27.3. Binary Lower Bound — Costs"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Correctness"]
 title = "27.3. Parallel Merge — Correctness"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs"]
+title = "27.3. P-MERGE — Costs"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Structure"]
+title = "27.3. P-MERGE Costs — Structural Bounds"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step"]
+title = "27.3. P-MERGE Costs — One Step"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
