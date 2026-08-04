@@ -150,10 +150,13 @@ the detailed maintainer ledger.
   {lit}`Costs/PowerBounds`, and {lit}`Costs/AllInputBounds` modules.  Executable
   P-MERGE uses midpoint normalization and duplicate-sensitive lower bound;
   {lit}`pMerge_correct` proves sortedness, permutation, and exact output length.
+  The pointwise theorems {lit}`pMerge_work_lower` and
+  {lit}`pMerge_work_upper` connect the executable algorithm to linear work via
+  a logarithmic-potential strong induction over its actual three-quarter split.
   P-MERGE, P-MERGE-SORT, and retained parallel Strassen have recurrence-level
-  power-of-two and all-input analyses.  P-MERGE's execution-cost link and the
-  executable P-MERGE-SORT implementation refining those recurrences remain
-  open.
+  power-of-two and all-input analyses.  P-MERGE's global quadratic-log span
+  bound and the executable P-MERGE-SORT implementation refining those
+  recurrences remain open.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

@@ -20,6 +20,8 @@ namespace CLRS.Chapter27
 #check pMerge_span_step_eq
 #check pMerge_work_step_le
 #check pMerge_span_step_le
+#check pMerge_work_lower
+#check pMerge_work_upper
 
 /-! The executable P-MERGE boundary covers empty inputs, an empty secondary
 input, interleaving inputs, duplicates, and normalization by swapping the
@@ -103,6 +105,34 @@ example : (pMerge [2, 4] [1, 3, 5]).value.Perm ([2, 4] ++ [1, 3, 5]) := by
 example : (pMerge [2, 4] [1, 3, 5]).value.length = 5 := by
   simpa using (pMerge_correct [2, 4] [1, 3, 5] (by simp) (by simp)).length_eq
 
+/-! The pointwise work theorems cover the zero boundary, a singleton, a
+duplicate-heavy merge, and the odd unequal normalization branch. -/
+
+example :
+    0 ≤ (pMerge ([] : List ℕ) []).work + 1 ∧
+      (pMerge ([] : List ℕ) []).work ≤ 64 * (0 + 0 + 1) := by
+  exact ⟨pMerge_work_lower [] [], pMerge_work_upper [] []⟩
+
+example :
+    1 ≤ (pMerge [7] ([] : List ℕ)).work + 1 ∧
+      (pMerge [7] ([] : List ℕ)).work ≤ 64 * (1 + 0 + 1) := by
+  exact ⟨pMerge_work_lower [7] [], pMerge_work_upper [7] []⟩
+
+example :
+    3 + 3 ≤ (pMerge [1, 2, 2] [2, 2, 3]).work + 1 ∧
+      (pMerge [1, 2, 2] [2, 2, 3]).work ≤ 64 * (3 + 3 + 1) := by
+  exact ⟨pMerge_work_lower [1, 2, 2] [2, 2, 3],
+    pMerge_work_upper [1, 2, 2] [2, 2, 3]⟩
+
+example :
+    2 + 3 ≤ (pMerge [2, 4] [1, 3, 5]).work + 1 ∧
+      (pMerge [2, 4] [1, 3, 5]).work ≤ 64 * (2 + 3 + 1) := by
+  exact ⟨pMerge_work_lower [2, 4] [1, 3, 5],
+    pMerge_work_upper [2, 4] [1, 3, 5]⟩
+
+-- This direct execution check independently confirms the concrete upper bound.
+example : (pMerge [1, 2, 2] [2, 2, 3]).work ≤ 64 * 7 := by native_decide
+
 example : (binaryLowerBound ([] : List ℕ) 3).value = 0 := by native_decide
 example : (binaryLowerBound ([] : List ℕ) 3).work = 0 := by native_decide
 example : (binaryLowerBound ([] : List ℕ) 3).span = 0 := by native_decide
@@ -185,5 +215,7 @@ example : (binaryLowerBound [1, 2, 2, 2, 3] 2).span ≤ Nat.log 2 5 + 1 := by
 #print axioms pMerge_value_length
 #print axioms pMerge_childSizes_add_one
 #print axioms pMerge_childSize_le_threeQuarters
+#print axioms pMerge_work_lower
+#print axioms pMerge_work_upper
 
 end CLRS.Chapter27

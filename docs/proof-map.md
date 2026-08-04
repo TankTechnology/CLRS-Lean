@@ -3716,13 +3716,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/LogPotential.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds.lean`
 - Interface tests: `Tests/Chapter_27_Matrix_Interface.lean` and
   `Tests/Chapter_27_ParallelMerge_Interface.lean`
 - Status: `partial` (executable P-ADD and race-free P-MATMUL correctness,
   execution-attached cost equalities, and their all-input asymptotics are
   proved; executable P-MERGE value correctness, exact child accounting, its
-  actual three-quarter split bound, and one-step costs are proved; global
-  P-MERGE costs and executable P-MERGE-SORT remain open)
+  actual three-quarter split bound, one-step costs, and global pointwise linear
+  work are proved; global P-MERGE span and executable P-MERGE-SORT remain open)
 - Model:
   - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
     sequential composition and deterministic balanced `par4`/`par8` trees.
@@ -3774,6 +3777,14 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `CLRS.Chapter27.pMerge_span_step_eq` expose exact nonempty-call costs:
     binary search plus the two children, one fork/join, and one pivot placement.
     The corresponding `*_step_le` theorems bound search by `log₂ n + 1`.
+  - `CLRS.Chapter27.pMerge_work_lower` proves the total input length is at most
+    executable work plus one by counting the pivot removed at each recursive
+    node.
+  - `CLRS.Chapter27.pMerge_work_upper` proves the pointwise bound
+    `work ≤ 64 * (total + 1)`.  Its strong induction establishes the stronger
+    potential invariant `work + 8 * log₂(total + 1) ≤ 64 * total`; the actual
+    three-quarter child bound supplies the logarithmic credit that pays for
+    every node's binary search.
 - Proved execution-cost equalities:
   - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
     the work and span carried by P-ADD with `pAddWork (2^k)` and
@@ -3825,9 +3836,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Proof pattern: prove each natural-valued recurrence monotone, sandwich an
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
-- Current gap: lift P-MERGE's proved one-step inequalities to global linear
-  work and quadratic-log span, then implement and prove P-MERGE-SORT with the
-  same correctness and execution-cost links.
+- Current gap: lift P-MERGE's proved one-step span inequality to a global
+  quadratic-log bound, then implement and prove P-MERGE-SORT with the same
+  correctness and execution-cost links.
 
 ## Chapter 32 - String Matching
 
