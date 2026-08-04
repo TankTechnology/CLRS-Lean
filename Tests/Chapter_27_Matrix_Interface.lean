@@ -56,6 +56,11 @@ example :
 #check pAdd_correct
 #print axioms pAdd_correct
 
+#check pMatMul
+#check pMatMul_value
+#check pMatMul_correct
+#print axioms pMatMul_correct
+
 example :
     let result := pAdd ℤ 0 7 (-2)
     result.value = 5 ∧ result.work = 1 ∧ result.span = 1 := by
@@ -77,5 +82,29 @@ example :
 example (A B : Chapter04.SqMat ℤ 1) :
     (pAdd ℤ 1 A B).value = A + B := by
   exact pAdd_correct ℤ 1 A B
+
+example :
+    let result := pMatMul ℤ 0 7 (-2)
+    result.value = -14 ∧ result.work = 1 ∧ result.span = 1 := by
+  norm_num [pMatMul, Costed.charge]
+
+example :
+    let A : Chapter04.SqMat ℤ 1 := !![1, 2; 3, 4]
+    let B : Chapter04.SqMat ℤ 1 := !![5, 6; 7, 8]
+    let result := pMatMul ℤ 1 A B
+    result.value = !![19, 22; 43, 50] ∧
+      result.work = 22 ∧ result.span = 7 := by
+  dsimp only
+  constructor
+  · funext i j
+    fin_cases i <;> fin_cases j <;>
+      norm_num [pMatMul, pAdd, Costed.seq, Costed.par8, Costed.par4,
+        Costed.par, Costed.map, Costed.charge]
+  · norm_num [pMatMul, pAdd, Costed.seq, Costed.par8, Costed.par4,
+      Costed.par, Costed.map, Costed.charge]
+
+example (A B : Chapter04.SqMat ℤ 1) :
+    (pMatMul ℤ 1 A B).value = A * B := by
+  exact pMatMul_correct ℤ 1 A B
 
 end CLRS.Chapter27
