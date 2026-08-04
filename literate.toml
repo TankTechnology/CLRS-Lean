@@ -38,6 +38,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25",
   "CLRSLean.Chapter_26",
   "CLRSLean.Chapter_27",
+  "CLRSLean.Chapter_28",
   "CLRSLean.Chapter_32",
   "CLRSLean.Chapter_33",
   "CLRSLean.Extensions",
@@ -374,6 +375,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Definitions",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Monotonicity",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds",
+]
+"CLRSLean.Chapter_28" = [
+  "CLRSLean.Chapter_28.Section_28_1_Linear_Equations",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -906,6 +910,9 @@ title = "Theorem 26.6. Max-Flow Min-Cut (partial)"
 [modules."CLRSLean.Chapter_27"]
 title = "Chapter 27. Multithreaded Algorithms"
 
+[modules."CLRSLean.Chapter_28"]
+title = "Chapter 28. Matrix Operations"
+
 [modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model"]
 title = "27.1. The Basics of Dynamic Multithreading"
 
@@ -1097,6 +1104,9 @@ title = "Chapter 27 Extension — Parallel Strassen Monotonicity"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds"]
 title = "Chapter 27 Extension — Parallel Strassen All-Input Bounds"
+
+[modules."CLRSLean.Chapter_28.Section_28_1_Linear_Equations"]
+title = "28.1. Solving Systems of Linear Equations"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"

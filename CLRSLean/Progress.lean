@@ -9,8 +9,8 @@ When the CSV changes, regenerate this page with
 ## Snapshot
 
 * CLRS chapters tracked: 35.
-* Chapters represented in Lean: 29.
-* Tracked reader-facing theorem entries: 1705.
+* Chapters represented in Lean: 30.
+* Tracked reader-facing theorem entries: 1706.
 * Proved tracked theorem entries: 1705.
 * Remaining core theorem groups: 7.
 
@@ -23,8 +23,8 @@ are not yet represented or not yet complete.
 * {lit}`main-proof-complete`: 9 chapters.
 * {lit}`main-proof-complete-for-correctness`: 11 chapters.
 * {lit}`selected-section-complete`: 7 chapters.
-* {lit}`partial`: 1 chapter.
-* {lit}`not-started`: 6 chapters.
+* {lit}`partial`: 2 chapters.
+* {lit}`not-started`: 5 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -59,7 +59,7 @@ Ch  Chapter                                                     Status          
 25  25. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  25.1;25.2;25.3                     24        0
 26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
 27  27. Multithreaded Algorithms                                main-proof-complete                  27.1;27.2;27.3                     95        0
-28  28. Matrix Operations                                       not-started                          not represented                     0        1
+28  28. Matrix Operations                                       partial                              28.1                                1        1
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
 31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1
