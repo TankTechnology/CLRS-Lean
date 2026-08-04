@@ -197,6 +197,10 @@ CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Definitions.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/MergeSplit.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Boundaries.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness.lean
