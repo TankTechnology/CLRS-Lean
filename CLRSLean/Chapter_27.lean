@@ -79,8 +79,10 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   P-MATMUL has cubic work and log-squared span ({lit}`Theta(log^2 n)`).  The earlier
   idealized P-MATMUL recurrence retains its logarithmic-span upper bound.  The
   executable binary lower bound used by P-MERGE has a proved strict-left,
-  nonstrict-right partition and logarithmic work/span.  The merge-based and
-  parallel-Strassen recurrences also have monotonicity,
+  nonstrict-right partition and logarithmic work/span.  The
+  {name}`CLRS.Chapter27.MergeSplit` and {name}`CLRS.Chapter27.pMerge` layer
+  implements the actual midpoint/binary-search P-MERGE control structure.  The
+  merge-based and parallel-Strassen recurrences also have monotonicity,
   adjacent-power sandwich, and all-input Θ theorems.
   Main declarations:
   {lit}`CLRS.Chapter27.Costed`,
@@ -133,7 +135,8 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 
 ## Deferred work
 
-* Executable P-MERGE / P-MERGE-SORT implementations refining the recurrences.
+* P-MERGE value correctness and execution-attached cost proofs, plus the full
+  executable P-MERGE-SORT implementation.
 -/
 
 namespace CLRS

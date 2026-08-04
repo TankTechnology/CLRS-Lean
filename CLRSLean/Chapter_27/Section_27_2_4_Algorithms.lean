@@ -27,12 +27,14 @@ retains its all-input upper bounds.  The imports also provide monotonicity,
 adjacent-power sandwiches, and all-input {lit}`Theta` results for P-MERGE,
 P-MERGE-SORT, and retained Strassen.  The executable binary lower bound used by
 P-MERGE additionally has a complete duplicate-sensitive partition theorem and
-logarithmic work/span bounds.
+logarithmic work/span bounds.  {name}`CLRS.Chapter27.MergeSplit` and
+{name}`CLRS.Chapter27.pMerge` implement the actual midpoint/binary-search
+P-MERGE control structure.
 
 ## Deferred work
 
-Executable P-MERGE / P-MERGE-SORT implementations refining these recurrence
-models remain deferred.
+P-MERGE value correctness and execution-attached cost theorems, together with
+the complete executable P-MERGE-SORT implementation, remain deferred.
 
 ## Implementation details
 
