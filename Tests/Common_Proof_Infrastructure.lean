@@ -31,6 +31,9 @@ groups.
 #check CLRS.ProofPatterns.Optimal.of_noWorse
 #check CLRS.ProofPatterns.optimal_of_exchange
 
+#print axioms CLRS.ProofPatterns.Optimal.of_noWorse
+#print axioms CLRS.ProofPatterns.optimal_of_exchange
+
 -- Established chapter-facing names remain available with their original types.
 #check CLRS.Chapter05.fintypeExpect_mono
 #check CLRS.Chapter11.fintypeExpect_mono
