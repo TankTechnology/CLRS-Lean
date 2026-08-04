@@ -14,7 +14,8 @@ Current modules:
 
 * {lit}`Boundary`: one-step boundary-shift induction for prefix/suffix and scan
   invariants.
-* {lit}`Exchange`: the certificate shape for greedy exchange arguments.
+* {lit}`Exchange`: generic optimality transport plus the total-function
+  certificate shape for greedy exchange arguments.
 * {lit}`Fiber`: key-fiber decomposition for buckets, digit classes, and chains.
 * {lit}`Interval`: strict before/nested interval relations for DFS and recursive
   decompositions.
@@ -24,7 +25,7 @@ Current modules:
 The reusable proof-support pages remain available outside the main sidebar:
 
 * [Proof Pattern: Boundary Shifts](CLRSLean/ProofPatterns/Boundary/)
-* [Proof Pattern: Exchange Certificates](CLRSLean/ProofPatterns/Exchange/)
+* [Proof Pattern: Exchange Optimality and Certificates](CLRSLean/ProofPatterns/Exchange/)
 * [Proof Pattern: Fiber Decomposition](CLRSLean/ProofPatterns/Fiber/)
 * [Proof Pattern: Interval Nesting](CLRSLean/ProofPatterns/Interval/)
 -/

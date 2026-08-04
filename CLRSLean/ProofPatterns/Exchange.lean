@@ -1,11 +1,12 @@
 import Mathlib
 
 /-!
-# Exchange-certificate proof pattern
+# Exchange optimality and certificate proof pattern
 
-This module records the common greedy-exchange shape: transform any feasible
-competitor into one that contains the greedy local choice while becoming no
-worse under the problem's comparison relation.
+This module separates two common greedy-exchange layers.  {lit}`Optimal` and its
+transport theorems combine feasibility with a problem-specific no-worse
+relation.  {lit}`ExchangeCertificate` records the stronger case where witness
+construction is a total exchange function.
 -/
 
 namespace CLRS

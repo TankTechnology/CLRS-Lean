@@ -38,7 +38,7 @@
 **Files:**
 - Modify: `Tests/Common_Proof_Infrastructure.lean`
 
-- [ ] **Step 1: Import the exchange module and add the missing public checks**
+- [x] **Step 1: Import the exchange module and add the missing public checks**
 
 Add this import with the other imports:
 
@@ -81,7 +81,7 @@ example {feasible target : List Nat → Prop} {chosen : List Nat}
     exact Nat.le_trans hbc hab)
 ```
 
-- [ ] **Step 2: Run the focused test and verify the intended red failure**
+- [x] **Step 2: Run the focused test and verify the intended red failure**
 
 Run:
 
@@ -93,7 +93,7 @@ Expected: nonzero exit with `Unknown constant CLRS.ProofPatterns.Optimal` and
 `Unknown constant CLRS.ProofPatterns.optimal_of_exchange`.  Fix only test
 syntax if a different error occurs; do not add production declarations yet.
 
-- [ ] **Step 3: Commit the red interface contract**
+- [x] **Step 3: Commit the red interface contract**
 
 ```bash
 git add Tests/Common_Proof_Infrastructure.lean
@@ -106,7 +106,7 @@ git commit -m "test(proofs): specify exchange optimality kernel"
 - Modify: `CLRSLean/ProofPatterns/Exchange.lean`
 - Modify: `Tests/Common_Proof_Infrastructure.lean`
 
-- [ ] **Step 1: Add `Optimal` and its transport theorem**
+- [x] **Step 1: Add `Optimal` and its transport theorem**
 
 Insert this block after the namespace declarations and before
 `ExchangeCertificate`:
@@ -128,7 +128,7 @@ theorem of_noWorse
     {noWorse : Solution → Solution → Prop} {old new : Solution}
     (hold : Optimal feasible noWorse old)
     (hnew : feasible new) (hnewOld : noWorse new old)
-    (htrans : Transitive noWorse) :
+    (htrans : ∀ {a b c}, noWorse a b → noWorse b c → noWorse a c) :
     Optimal feasible noWorse new := by
   refine ⟨hnew, ?_⟩
   intro other hother
@@ -145,7 +145,7 @@ theorem optimal_of_exchange
     (hexchange : ∀ other, feasible other →
       ∃ exchanged, target exchanged ∧ noWorse exchanged other)
     (htarget : ∀ exchanged, target exchanged → noWorse chosen exchanged)
-    (htrans : Transitive noWorse) :
+    (htrans : ∀ {a b c}, noWorse a b → noWorse b c → noWorse a c) :
     Optimal feasible noWorse chosen := by
   refine ⟨hchosen, ?_⟩
   intro other hother
@@ -153,7 +153,7 @@ theorem optimal_of_exchange
   exact htrans (htarget exchanged hexchanged) hbetter
 ```
 
-- [ ] **Step 2: Add permanent axiom audits to the common interface**
+- [x] **Step 2: Add permanent axiom audits to the common interface**
 
 Add immediately after the new `#check` declarations:
 
@@ -162,12 +162,12 @@ Add immediately after the new `#check` declarations:
 #print axioms CLRS.ProofPatterns.optimal_of_exchange
 ```
 
-- [ ] **Step 3: Run the shared module and interface test**
+- [x] **Step 3: Run the shared module and interface test**
 
 Run:
 
 ```bash
-lake env lean CLRSLean/ProofPatterns/Exchange.lean
+lake build +CLRSLean.ProofPatterns.Exchange
 lake env lean Tests/Common_Proof_Infrastructure.lean
 ```
 
@@ -175,7 +175,7 @@ Expected: both commands exit zero.  The axiom audit must not contain `sorryAx`
 or a project-defined axiom; these two elementary theorems should print an empty
 axiom list.
 
-- [ ] **Step 4: Scan the shared implementation and commit**
+- [x] **Step 4: Scan the shared implementation and commit**
 
 Run:
 
@@ -197,7 +197,7 @@ git commit -m "feat(proofs): add exchange optimality kernel"
 - Modify: `Tests/Common_Proof_Infrastructure.lean`
 - Modify: `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean`
 
-- [ ] **Step 1: Add the Chapter 16 bridge contract before implementation**
+- [x] **Step 1: Add the Chapter 16 bridge contract before implementation**
 
 Add this import to `Tests/Common_Proof_Infrastructure.lean`:
 
@@ -213,7 +213,7 @@ Add these public checks with the other compatibility checks:
 #check CLRS.ActivitySelection.greedy_choice_optimal_from_certificate
 ```
 
-- [ ] **Step 2: Verify the Chapter 16 bridge contract fails for the missing names**
+- [x] **Step 2: Verify the Chapter 16 bridge contract fails for the missing names**
 
 Run:
 
@@ -225,7 +225,7 @@ Expected: nonzero exit reporting missing `MaxCardinality.toOptimal` and
 `maxCardinality_of_optimal`; the established
 `greedy_choice_optimal_from_certificate` check must still resolve.
 
-- [ ] **Step 3: Import the shared exchange module in Chapter 16**
+- [x] **Step 3: Import the shared exchange module in Chapter 16**
 
 Add near the top of
 `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean`:
@@ -234,7 +234,7 @@ Add near the top of
 import CLRSLean.ProofPatterns.Exchange
 ```
 
-- [ ] **Step 4: Add exact `MaxCardinality` conversions**
+- [x] **Step 4: Add exact `MaxCardinality` conversions**
 
 Insert directly after the `MaxCardinality` structure:
 
@@ -243,7 +243,7 @@ namespace MaxCardinality
 
 /-- View activity-selection maximum cardinality through the generic optimality
 kernel. -/
-def toOptimal {available selected : List Activity}
+theorem toOptimal {available selected : List Activity}
     (h : MaxCardinality available selected) :
     ProofPatterns.Optimal
       (fun candidate => candidate.Sublist available ∧ Feasible candidate)
@@ -266,7 +266,7 @@ theorem maxCardinality_of_optimal {available selected : List Activity}
     fun other hsub hfeasible => h.noWorse_than other ⟨hsub, hfeasible⟩⟩
 ```
 
-- [ ] **Step 5: Delegate `greedy_choice_optimal_from_certificate`**
+- [x] **Step 5: Delegate `greedy_choice_optimal_from_certificate`**
 
 Replace only that theorem's proof body with:
 
@@ -293,19 +293,19 @@ by
 Do not modify the theorem statement, `GreedyChoiceCertificate`, or any
 downstream greedy theorem.
 
-- [ ] **Step 6: Run the Chapter 16 source and public interface**
+- [x] **Step 6: Run the Chapter 16 source and public interface**
 
 Run:
 
 ```bash
-lake env lean CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean
+lake build +CLRSLean.Chapter_16.Section_16_1_Activity_Selection
 lake env lean Tests/Common_Proof_Infrastructure.lean
 ```
 
 Expected: both exit zero and the established theorem check prints its original
 type.
 
-- [ ] **Step 7: Commit the Chapter 16 bridge**
+- [x] **Step 7: Commit the Chapter 16 bridge**
 
 ```bash
 git diff --check
@@ -319,7 +319,7 @@ git commit -m "refactor(activity): share exchange optimality transport"
 - Modify: `Tests/Chapter_23_Interface.lean`
 - Modify: `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
 
-- [ ] **Step 1: Add the Chapter 23 bridge contract before implementation**
+- [x] **Step 1: Add the Chapter 23 bridge contract before implementation**
 
 Add these checks near the start of `Tests/Chapter_23_Interface.lean`:
 
@@ -329,7 +329,7 @@ Add these checks near the start of `Tests/Chapter_23_Interface.lean`:
 #check CLRS.MST.mst_exchange_preserves_prefix
 ```
 
-- [ ] **Step 2: Verify the Chapter 23 bridge contract fails for the missing names**
+- [x] **Step 2: Verify the Chapter 23 bridge contract fails for the missing names**
 
 Run:
 
@@ -340,7 +340,7 @@ lake env lean Tests/Chapter_23_Interface.lean
 Expected: nonzero exit reporting missing `IsMSTExtending.toOptimal` and
 `isMSTExtending_of_optimal`; the legacy exchange theorem must still resolve.
 
-- [ ] **Step 3: Import the shared exchange module in Chapter 23**
+- [x] **Step 3: Import the shared exchange module in Chapter 23**
 
 Add near the top of
 `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`:
@@ -349,7 +349,7 @@ Add near the top of
 import CLRSLean.ProofPatterns.Exchange
 ```
 
-- [ ] **Step 4: Add exact `IsMSTExtending` conversions**
+- [x] **Step 4: Add exact `IsMSTExtending` conversions**
 
 Insert directly after the `IsMSTExtending` structure:
 
@@ -357,7 +357,7 @@ Insert directly after the `IsMSTExtending` structure:
 namespace IsMSTExtending
 
 /-- View an optimum extending a prefix through the generic optimality kernel. -/
-def toOptimal {P : Problem E} {w : E → Nat} {A T : Finset E}
+theorem toOptimal {P : Problem E} {w : E → Nat} {A T : Finset E}
     (h : IsMSTExtending P w A T) :
     ProofPatterns.Optimal
       (fun candidate => P.IsSpanningTree candidate ∧ A ⊆ candidate)
@@ -379,7 +379,7 @@ theorem isMSTExtending_of_optimal {P : Problem E} {w : E → Nat}
       h.noWorse_than other ⟨htree, hincludes⟩⟩
 ```
 
-- [ ] **Step 5: Delegate `mst_exchange_preserves_prefix`**
+- [x] **Step 5: Delegate `mst_exchange_preserves_prefix`**
 
 Replace only that theorem's proof body with:
 
@@ -397,12 +397,12 @@ by
 Do not modify the theorem statement, the graph-specific weight lemma, or any
 cut/path certificate.
 
-- [ ] **Step 6: Run the Chapter 23 focused checks**
+- [x] **Step 6: Run the Chapter 23 focused checks**
 
 Run:
 
 ```bash
-lake env lean CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
+lake build +CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees
 lake env lean Tests/Chapter_23_Interface.lean
 lake env lean Tests/Common_Proof_Infrastructure.lean
 ```
@@ -410,7 +410,7 @@ lake env lean Tests/Common_Proof_Infrastructure.lean
 Expected: all three commands exit zero.  The Chapter 23 interface prints the
 legacy theorem and both bridge declarations.
 
-- [ ] **Step 7: Commit the Chapter 23 bridge**
+- [x] **Step 7: Commit the Chapter 23 bridge**
 
 ```bash
 git diff --check
@@ -426,7 +426,7 @@ git commit -m "refactor(mst): share exchange optimality transport"
 - Modify: `docs/proof-patterns/greedy-exchange-certificates.md`
 - Modify: `docs/repository-architecture.md`
 
-- [ ] **Step 1: Promote the decision-matrix row**
+- [x] **Step 1: Promote the decision-matrix row**
 
 Replace the deferred Exchange row with:
 
@@ -434,7 +434,7 @@ Replace the deferred Exchange row with:
 | Exchange optimality transport | `CLRS.ProofPatterns.Exchange` | Chapters 16 and 23 | Activity selection keeps `MaxCardinality` / `GreedyChoiceCertificate`; MST keeps `IsMSTExtending` / `CutCertificate` | The generic kernel and exact bridges add zero textbook groups; the two chapter optimality obligations retain their existing counts | Extend only when another consumer shares the same feasible/no-worse transport; keep witness construction local | Active geometric pattern |
 ```
 
-- [ ] **Step 2: Update the geometric-pattern atlas**
+- [x] **Step 2: Update the geometric-pattern atlas**
 
 Change the top summary to say:
 
@@ -458,7 +458,7 @@ Chapter 16 保留活动 tail witness；Chapter 23 保留 cut、path 和换边 wi
 Change the closing classification so only `Boundary` remains a deferred
 candidate; `Exchange` is active.
 
-- [ ] **Step 3: Update the greedy-exchange note**
+- [x] **Step 3: Update the greedy-exchange note**
 
 Replace its generic-skeleton introduction with:
 
@@ -478,7 +478,7 @@ State in the Activity Selection subsection that
 `greedy_choice_optimal_from_certificate` delegates its final transitivity step
 to `optimal_of_exchange`.
 
-- [ ] **Step 4: Update repository architecture**
+- [x] **Step 4: Update repository architecture**
 
 Replace the sentence classifying `Boundary` and `Exchange` together with:
 
@@ -488,7 +488,7 @@ chapter bridges.  `Boundary` remains deferred until a real proof site can use
 its trace interface without duplicating the chapter induction.
 ```
 
-- [ ] **Step 5: Verify documentation consistency and unchanged counts**
+- [x] **Step 5: Verify documentation consistency and unchanged counts**
 
 Run:
 
@@ -502,7 +502,7 @@ git diff --check
 Expected: no progress CSV diff, no stale deferred-Exchange description, all
 repository checks pass, and no whitespace errors.
 
-- [ ] **Step 6: Commit documentation**
+- [x] **Step 6: Commit documentation**
 
 ```bash
 git add docs/proof-patterns/common-proof-library-decision-matrix.md docs/proof-patterns/geometric-proof-patterns.md docs/proof-patterns/greedy-exchange-certificates.md docs/repository-architecture.md
@@ -514,7 +514,7 @@ git commit -m "docs(proofs): record shared exchange optimality"
 **Files:**
 - Verify all changed files; do not modify generated website output.
 
-- [ ] **Step 1: Run all focused Lean gates freshly**
+- [x] **Step 1: Run all focused Lean gates freshly**
 
 ```bash
 lake env lean CLRSLean/ProofPatterns/Exchange.lean
@@ -526,7 +526,7 @@ lake env lean Tests/Chapter_23_Interface.lean
 
 Expected: every command exits zero; the axiom prints contain no `sorryAx`.
 
-- [ ] **Step 2: Audit placeholders and actual shared consumption**
+- [x] **Step 2: Audit placeholders and actual shared consumption**
 
 ```bash
 rg -n '\b(sorry|admit|axiom)\b' CLRSLean/ProofPatterns/Exchange.lean CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean Tests/Common_Proof_Infrastructure.lean Tests/Chapter_23_Interface.lean
@@ -536,7 +536,7 @@ rg -n 'ProofPatterns\.(Optimal|optimal_of_exchange)' CLRSLean/Chapter_16/Section
 Expected: no unfinished declarations; both chapter files contain real calls to
 the shared kernel.
 
-- [ ] **Step 3: Run repository and root Lean verification**
+- [x] **Step 3: Run repository and root Lean verification**
 
 ```bash
 uv run python scripts/check_repository.py
@@ -547,7 +547,7 @@ lake build CLRSLean
 Expected: repository checks pass, no whitespace errors, and the root Lean build
 completes successfully.  Do not run `lake build :literateHtml`.
 
-- [ ] **Step 4: Review branch scope and commit any verification-only cleanup**
+- [x] **Step 4: Review branch scope and commit any verification-only cleanup**
 
 ```bash
 git status --short --branch
