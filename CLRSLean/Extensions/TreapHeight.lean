@@ -663,6 +663,33 @@ lemma leftAncestors_tail {n : ℕ} {b : Fin n} (k : ℕ) :
           unfold C
           rw [Finset.sum_filter]
 
+-- The left-ancestor sum over the interval reciprocals is at most H_n.
+lemma left_sum_le_harmonicReal {n : ℕ} {b : Fin n} :
+    (∑ a : Fin n, if a < b then (1 / ((Finset.Icc a b).card : ℝ)) else 0) ≤ harmonicReal n := by
+  classical
+  have hconv : (∑ a : Fin n, if a < b then (1 / ((Finset.Icc a b).card : ℝ)) else 0) =
+      (∑ a : Fin n, if a < b then (((b.val - a.val + 1 : ℕ) : ℝ)⁻¹) else 0) := by
+    apply Finset.sum_congr rfl
+    intro a ha
+    by_cases hab : a < b
+    · have hcard : (Finset.Icc a b).card = b.val - a.val + 1 := by
+        have hab' : a.val < b.val := hab
+        rw [Fin.card_Icc]
+        omega
+      simp [hab, hcard, one_div]
+    · simp [hab]
+  rw [hconv]
+  calc
+    (∑ a : Fin n, if a < b then (((b.val - a.val + 1 : ℕ) : ℝ)⁻¹) else 0)
+        = (∑ i ∈ Finset.range n, if i < b.val then (((b.val - i + 1 : ℕ) : ℝ)⁻¹) else 0) := by
+          rw [sum_fin_eq_range b]
+    _ ≤ harmonicReal n - 1 := by
+          have hn1 : 1 ≤ n := Nat.succ_le_of_lt (lt_of_le_of_lt (Nat.zero_le b.val) b.isLt)
+          exact below_sum_le_harmonic_val (n := n) (b := b.val) hn1 b.isLt
+    _ ≤ harmonicReal n := by linarith
+
+set_option linter.unusedTactic false
+
 end Treap
 
 end CLRS.Extensions
