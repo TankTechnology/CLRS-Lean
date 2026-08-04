@@ -180,6 +180,7 @@ CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
+CLRSLean/Extensions/TreapHeight.lean
 CLRSLean/Extensions/TreapRandom.lean
 ```
 
