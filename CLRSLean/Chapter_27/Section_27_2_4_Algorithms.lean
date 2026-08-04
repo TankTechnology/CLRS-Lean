@@ -25,7 +25,9 @@ matrix costs, power-of-two solutions, and all-input {lit}`Theta` results for
 P-ADD and executable P-MATMUL.  The earlier idealized P-MATMUL recurrence
 retains its all-input upper bounds.  The imports also provide monotonicity,
 adjacent-power sandwiches, and all-input {lit}`Theta` results for P-MERGE,
-P-MERGE-SORT, and retained Strassen.
+P-MERGE-SORT, and retained Strassen.  The executable binary lower bound used by
+P-MERGE additionally has a complete duplicate-sensitive partition theorem and
+logarithmic work/span bounds.
 
 ## Deferred work
 
@@ -47,4 +49,8 @@ models remain deferred.
 * [All-input matrix asymptotics](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds/)
 * [Parallel merge](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/)
 * [Parallel merge definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Definitions/)
+* [Parallel merge correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Correctness/)
+* [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
+* [Binary lower-bound correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness/)
+* [Binary lower-bound costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Costs/)
 -/
