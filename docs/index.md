@@ -267,3 +267,7 @@ lake build CLRSLean
 Dated audits and old implementation plans are retained because they explain
 past design decisions.  They should include a date in their filename or title
 and must not be used as evidence for the current progress snapshot.
+
+- [`proof-audits/chapter-27-closure-2026-08-05.md`](proof-audits/chapter-27-closure-2026-08-05.md)
+  records the sealed Chapter 27 pure-functional main-text boundary and its
+  verification evidence.
