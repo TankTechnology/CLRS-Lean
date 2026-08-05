@@ -80,6 +80,16 @@ the detailed maintainer ledger.
   equivalence, executable residual BFS and Edmonds-Karp, the {lit}`O(VE²)`
   augmentation bound, and maximum bipartite matching through Theorem 26.12.
   Sections 26.4 and 26.5 are outside the current selected milestone.
+* **Chapter 27:** the pure-functional main-text boundary is complete through
+  Section 27.3.  It includes the total ready-set greedy scheduler and
+  `Tₚ ≤ T₁/p + T∞`; exact logarithmic parallel-loop bounds; executable
+  P-ADD/P-MATMUL correctness with execution-attached Θ(n²)/Θ(log n) and
+  Θ(n³)/Θ(log² n) costs; and executable P-MERGE/P-MERGE-SORT correctness,
+  recurrence links, universal upper bounds, and explicit matching worst-case
+  span families.  The historical {lit}`Section_27_2_4_Algorithms` path remains
+  for import compatibility, while parallel-Strassen recurrences live in a
+  separately labeled extension.  Mutable arrays, RAM-level costs, exercises,
+  and chapter-end problems are optional refinements outside this boundary.
 * **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
   search costs, universal hashing, open addressing, and perfect hashing.
 * **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
@@ -126,51 +136,6 @@ the detailed maintainer ledger.
   longest-streak tail bound and an executable on-line hiring strategy; their
   remaining asymptotics are chapter-end Problems.  Pointer/RAM refinements and
   the unrepresented later sections of Chapter 32 are separate tracks.
-
-## Structured Main-Proof Complete
-
-* **Chapter 27:** the dynamic-multithreading model (computation DAG with an
-  honestly computed longest-path span, spawn/sync trees, balanced
-  parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
-  explicit ready-set DAG execution model proves the greedy-scheduler bound
-  (Theorem 27.1/27.2) for completed schedules.  A {lit}`Costed` execution layer
-  supplies balanced P-ADD and race-free P-MATMUL over depth-indexed matrices;
-  {lit}`pAdd_correct` and {lit}`pMatMul_correct` prove ordinary addition and
-  multiplication over any ring.  The four theorems {lit}`pAdd_work_eq`,
-  {lit}`pAdd_span_eq`, {lit}`pMatMul_work_eq`, and {lit}`pMatMul_span_eq`
-  connect their carried costs to execution recurrences.  The all-input results
-  {lit}`pAddWork_allInput_bigTheta`, {lit}`pAddSpan_allInput_bigTheta`,
-  {lit}`pMatMulExecWork_allInput_bigTheta`, and
-  {lit}`pMatMulExecSpan_allInput_bigTheta` prove Θ(n²), Θ(log n), Θ(n³), and
-  Θ(log² n), respectively.  The older {lit}`pMatMulWork` / {lit}`pMatMulSpan`
-  pair is an idealized constant-combine recurrence: its span is Θ(log n), not
-  the actual execution-attached P-MATMUL span.  This matrix evidence is split
-  across the {lit}`ParallelMatrix/Definitions`, {lit}`Correctness`, and
-  {lit}`Costs/ExecutionEqualities`, {lit}`Costs/Monotonicity`,
-  {lit}`Costs/PowerBounds`, and {lit}`Costs/AllInputBounds` modules.  Executable
-  P-MERGE uses midpoint normalization and duplicate-sensitive lower bound;
-  {lit}`pMerge_correct` proves sortedness, permutation, and exact output length.
-  The pointwise theorems {lit}`pMerge_work_lower` and
-  {lit}`pMerge_work_upper` connect the executable algorithm to linear work via
-  a logarithmic-potential strong induction over its actual three-quarter split.
-  The universal theorem {lit}`pMerge_span_upper` and the sorted interleaved
-  witness theorem {lit}`pMerge_interleaved_span_lower` give matching
-  quadratic-logarithmic execution-span bounds; the upper proof uses three
-  three-quarter shrinks per binary-log level.  Executable P-MERGE-SORT now
-  performs the textbook midpoint split, parallel recursive calls, and P-MERGE;
-  {lit}`pMergeSort_correct` proves sortedness, permutation, and exact output
-  length for every input.  Its exact step equations and recurrence links yield
-  the pointwise {lit}`pMergeSort_work_lower`, {lit}`pMergeSort_work_upper`, and
-  {lit}`pMergeSort_span_upper` theorems.  The recursively interleaved
-  {lit}`worstMergeSortInput` family and
-  {lit}`pMergeSort_worstFamily_span_lower` match the cubic-logarithmic upper
-  bound, so executable work is Θ(n log n) and span is Θ(log³ n) in the
-  worst case.  P-MERGE and P-MERGE-SORT also have recurrence-level
-  power-of-two and all-input analyses.  The retained parallel-Strassen
-  recurrences have been isolated in an explicitly labeled compatibility
-  extension with their legacy public names preserved.  The executable
-  P-MERGE-SORT cost gap is closed, and no represented Chapter 27 core proof
-  gap remains.
 
 ## Structured But Partial
 
