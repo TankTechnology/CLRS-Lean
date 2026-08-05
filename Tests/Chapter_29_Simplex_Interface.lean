@@ -74,6 +74,9 @@ example :
 #check Dictionary.IsMinimumRatio.pivotCoefficient_pos
 #check Dictionary.IsMinimumRatio.ratio_le
 #check Dictionary.pivot_isBasicFeasible
+#check Dictionary.pivot_v_eq
+#check Dictionary.pivot_v_mono
+#check Dictionary.pivot_v_strict
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
@@ -83,6 +86,8 @@ example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
 #print axioms Dictionary.pivot_satisfies_iff
 #print axioms Dictionary.pivot_objectiveRhs_eq
 #print axioms Dictionary.pivot_isBasicFeasible
+#print axioms Dictionary.pivot_v_mono
+#print axioms Dictionary.pivot_v_strict
 
 end Chapter29
 end CLRS
