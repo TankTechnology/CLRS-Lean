@@ -88,6 +88,13 @@ example :
 #check Dictionary.blandEntering?
 #check Dictionary.blandEntering?_eq_none_iff
 #check Dictionary.blandEntering?_spec
+#check Dictionary.positiveRows
+#check Dictionary.minimumRatioRows
+#check Dictionary.exists_isMinimumRatio_of_exists_pos
+#check Dictionary.IsBlandLeaving
+#check Dictionary.blandLeaving?
+#check Dictionary.blandLeaving?_eq_none_iff
+#check Dictionary.blandLeaving?_spec
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
