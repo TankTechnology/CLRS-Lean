@@ -147,6 +147,7 @@ private def cyclicSubEquiv {n : Nat} [NeZero n] (j : Fin n) :
     ((Equiv.subRight (ZMod.finEquiv n j)).trans
       (ZMod.finEquiv n).toEquiv.symm)
 
+/-- The cyclic-subtraction equivalence computes the concrete modular index. -/
 private theorem cyclicSubEquiv_apply {n : Nat} [NeZero n]
     (hn : 0 < n) (k j : Fin n) :
     cyclicSubEquiv j k = cyclicSub hn k j := by

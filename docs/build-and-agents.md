@@ -63,10 +63,11 @@ the largest disk; a reflink-capable FS (xfs/btrfs) makes the copies instant.
 
 ## Verifying agent proof work before merge
 
-For a full pre-merge / pre-deploy QA pass — format consistency, proof soundness,
-and rendered-nav/TOC correctness — dispatch the **`clrs-qa-reviewer`** agent
-(`.claude/agents/clrs-qa-reviewer.md`); it builds the site and inspects the
-actual Verso navigation, not just the static `literate.toml`.
+For a full pre-merge QA pass — format consistency, proof soundness, and source
+navigation configuration — dispatch the **`clrs-qa-reviewer`** agent
+(`.claude/agents/clrs-qa-reviewer.md`).  Building the site and inspecting the
+rendered Verso navigation are additional gates only for an explicitly requested
+publishing, release, deployment, or website task.
 
 `lakefile.lean` sets `-Dwarn.sorry=false`, so **a clean build does not imply
 sorry-free.** Before merging any agent's branch:
