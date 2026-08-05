@@ -1072,6 +1072,64 @@ lemma gcd_pow_mul_le_half {p ν t : ℕ} (hp : 0 < p - 1) (hν : 1 ≤ ν) (ht :
   rw [hdiv]
   exact Nat.mul_le_mul_left (2 ^ (ν - 1)) hgu
 
+/-- `|{x : α // p x}|` equals the number of elements of `α` satisfying `p`. -/
+lemma card_subtype_filter {α : Type*} [Fintype α] (p : α → Prop) [DecidablePred p] :
+    Nat.card {x : α // p x} = (Finset.univ.filter p).card := by
+  rw [Nat.card_eq_fintype_card]
+  simpa [Fintype.card_subtype]
+
+/-- The number of elements satisfying `p ∨ q` is at most the sum of the
+numbers satisfying `p` and `q` separately. -/
+lemma card_or_le {α : Type*} [Fintype α] [DecidableEq α] (p q : α → Prop)
+    [DecidablePred p] [DecidablePred q] :
+    Nat.card {x : α // p x ∨ q x} ≤ Nat.card {x : α // p x} + Nat.card {x : α // q x} := by
+  classical
+  rw [card_subtype_filter (fun x => p x ∨ q x), card_subtype_filter p, card_subtype_filter q]
+  have hset : (Finset.univ.filter p) ∪ (Finset.univ.filter q) = Finset.univ.filter (fun x => p x ∨ q x) := by
+    ext x
+    simp [Finset.mem_union, Finset.mem_filter]
+  rw [← hset]
+  exact Finset.card_union_le _ _
+
+/--
+The good set `{x : x^m ∈ {±1}}` has size at most twice the `m`-torsion:
+it splits into the `x^m = 1` and `x^m = −1` parts, and the latter is no
+larger than the former (a fiber of the power map).
+-/
+lemma goodSet_card_le {n : ℕ} [NeZero n] (m : ℕ) :
+    Nat.card {x : (ZMod n)ˣ // x ∈ goodSet m} ≤
+      2 * Nat.card {x : (ZMod n)ˣ // x ^ m = 1} := by
+  classical
+  have h1 : Nat.card {x : (ZMod n)ˣ // x ∈ goodSet m} =
+      Nat.card {x : (ZMod n)ˣ // x ^ m = 1 ∨ x ^ m = -1} := by
+    apply Nat.card_congr
+    refine (Equiv.subtypeEquiv (Equiv.refl _) ?_)
+    intro x
+    exact mem_goodSet_iff m x
+  rw [h1]
+  have h2 := card_or_le (α := (ZMod n)ˣ) (fun x => x ^ m = 1) (fun x => x ^ m = -1)
+  nlinarith [h2, card_pow_le_card_pow_eq_one (α := (ZMod n)ˣ) (m := m) (c := -1)]
+
+/--
+The `m`-torsion of `(ZMod n)ˣ` is the product over the prime factors `p` of
+`n` of `gcd(m, φ(p^(e_p)))`, where `e_p = v_p(n)`.
+-/
+lemma mTorsion_eq_prod {n m : ℕ} (hn : n ≠ 0) (hn_odd : Odd n) :
+    Nat.card {x : (ZMod n)ˣ // x ^ m = 1} =
+      ∏ p : n.primeFactors, Nat.gcd m (Nat.totient (p ^ n.factorization p)) := by
+  rw [card_pow_eq_one_crt hn]
+  apply Finset.prod_congr rfl
+  intro p hp
+  have hpp : Nat.Prime (p : ℕ) := Nat.prime_of_mem_primeFactors p.2
+  have hpne2 : (p : ℕ) ≠ 2 := by
+    intro h2
+    have hdvd : (2 : ℕ) ∣ n := by
+      rw [← h2]
+      exact Nat.dvd_of_mem_primeFactors p.2
+    have hne : ¬ Even n := (Nat.not_even_iff_odd.mpr hn_odd)
+    exact hne (even_iff_two_dvd.mpr hdvd)
+  exact card_pow_eq_one_prime_pow (p := (p : ℕ)) (e := n.factorization (p : ℕ)) (m := m) hpp hpne2
+
 end Chapter31
 
 end CLRS
