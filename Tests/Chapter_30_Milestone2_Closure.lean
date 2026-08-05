@@ -14,6 +14,8 @@ namespace CLRS.Chapter30
 #check iterativeRadix2FFTExec_arithmeticWork
 #check iterativeRadix2FFTExec_totalWork
 #check paddedIterativeFFTWork_allInput_bigTheta
+#check canonicalButterflyLayerCircuit_eval
+#check fftStageCircuit_eval
 #check fftNetwork_eval
 #check fftNetwork_butterflyCount
 #check fftNetwork_butterflyDepth
@@ -26,6 +28,8 @@ namespace CLRS.Chapter30
 #print axioms iterativeRadix2FFT_eq_dft
 #print axioms iterativeRadix2FFTExec_totalWork
 #print axioms paddedIterativeFFTWork_allInput_bigTheta
+#print axioms canonicalButterflyLayerCircuit_eval
+#print axioms fftStageCircuit_eval
 #print axioms fftNetwork_eval
 #print axioms fftNetwork_butterflyCount
 #print axioms fftNetwork_primitiveDepth
