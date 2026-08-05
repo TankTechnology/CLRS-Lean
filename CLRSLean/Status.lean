@@ -90,6 +90,21 @@ the detailed maintainer ledger.
   for import compatibility, while parallel-Strassen recurrences live in a
   separately labeled extension.  Mutable arrays, RAM-level costs, exercises,
   and chapter-end problems are optional refinements outside this boundary.
+* **Chapter 28:** Sections 28.1--28.3 are complete at the finite-matrix layer.
+  The chapter includes LUP decomposition (Theorem 28.1), executable forward
+  and backward substitution, LUP-SOLVE correctness, matrix inversion
+  (Theorem 28.2), Cholesky decomposition with uniqueness (Theorem 28.3),
+  least-squares approximation (Theorem 28.4), and the principal quadratic and
+  cubic work bounds.  Executable LUP factorization directly from an input
+  matrix and RAM-level cost semantics remain optional refinements.
+* **Chapter 29:** Sections 29.1--29.5 are complete at the finite real-matrix
+  and pure-functional tableau layer.  The chapter includes exact standard/slack
+  equivalence; shortest-path, maximum-flow, minimum-cost-flow, and
+  multicommodity-flow LPs; exact PIVOT semantics; terminating Bland SIMPLEX with
+  anti-cycling and finite termination; weak and strong duality; complementary
+  slackness; phase-I initialization; and a certified infeasible/optimal/
+  unbounded solver.  Mutable tableau storage, floating-point analysis, RAM
+  constants, exercises, and chapter-end problems are optional refinements.
 * **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
   search costs, universal hashing, open addressing, and perfect hashing.
 * **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
@@ -139,13 +154,6 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapter 28:** Theorem 28.1 proves that every nonsingular square matrix over
-  a field admits an LUP decomposition with a permutation factor, a unit
-  lower-triangular factor, and an upper-triangular factor.  Section 28.2 also
-  has the algebraic inversion bridge {lit}`inv_eq_lup`.  The chapter remains
-  partial pending executable forward/back substitution, LUP-SOLVE correctness
-  (Theorem 28.2 / #124), executable matrix inversion, and the principal cubic
-  work claims required by the Chapter 28 roadmaps.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric
@@ -153,11 +161,11 @@ the detailed maintainer ledger.
 
 ## Not Represented On Main
 
-Chapters 29--30 and 34--35 do not currently have represented section modules
+Chapters 30 and 34--35 do not currently have represented section modules
 on {lit}`main`.  Chapter 31.1--31.2 and Chapter 33.1 are represented but
-partial; Chapter 28 is complete, and Chapter 32.1 is complete for its
-selected-section scope.  Open pull requests are not counted until their scope
-is reviewed, merged, and added to the progress source.
+partial; Chapters 28 and 29 are complete, and Chapter 32.1 is complete for
+its selected-section scope.  Open pull requests are not counted until their
+scope is reviewed, merged, and added to the progress source.
 
 ## Sealed Chapters 21-23 Boundary
 
