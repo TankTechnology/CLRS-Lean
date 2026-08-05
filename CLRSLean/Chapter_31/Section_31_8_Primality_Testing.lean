@@ -31,16 +31,21 @@ Main results:
   {lit}`millerRabin` is the executable single-base test.  (Evaluating
   `millerRabin 561 2` returns `false`: although 561 is a Carmichael number,
   base 2 witnesses that it is composite.)
+- **Miller-Rabin correctness**: {lit}`strongPseudoprime_of_prime` shows a
+  prime is a strong probable prime to every coprime base — the repeated
+  squaring in STRONG-PSEUDOPRIME can only reach `1` through `−1` modulo a
+  prime (via {lit}`modeq_neg_one_of_sq_eq_one`, the roots-of-unity fact).
+  Consequently {lit}`not_witness_of_prime` (a prime has no witness) and
+  {lit}`witness_not_prime` (a witness certifies compositeness) hold.
 
 Notation:
 
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.totient n` : Euler's totient.
 
-Deferred: the Miller-Rabin correctness theorem (primes never have a witness)
-and the error bound (at most a quarter of the bases are strong liars), plus
-the random-witness analysis (§31.8); the executable pseudoprime loop with an
-operation count.
+Deferred: the Miller-Rabin error bound (at most a quarter of the bases are
+strong liars) and the random-witness analysis (§31.8); the executable
+pseudoprime loop with an operation count.
 -/
 
 namespace CLRS
@@ -189,6 +194,121 @@ returning whether `n` is a strong probable prime to base `a`.
 -/
 def millerRabin (n a : ℕ) : Bool :=
   decide (strongPseudoprime n a)
+
+/--
+**STRONG-PSEUDOPRIME decomposition (CLRS §31.8).**  For `n ≠ 0`,
+`n = 2^s · (n / 2^s)` where `s` is the exponent of 2 in `n` — i.e. the odd part
+of `n` times `2^s` recovers `n`.
+-/
+theorem strongTestParams_spec (n : ℕ) (hn : n ≠ 0) :
+    n = 2 ^ (n.factorization 2) * (n / 2 ^ (n.factorization 2)) := by
+  have hdvd : 2 ^ (n.factorization 2) ∣ n := by
+    exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) hn).2 le_rfl
+  exact (Nat.mul_div_cancel' hdvd).symm
+
+/--
+**Roots of unity modulo a prime.**  If `b^2 ≡ 1 (mod p)` for a prime `p` and
+`b ≢ 1 (mod p)`, then `b ≡ −1 (mod p)`.  This is the only fact about prime
+moduli needed by the Miller-Rabin correctness proof: repeatedly squaring a
+root of unity can only reach `1` through `−1`.
+-/
+theorem modeq_neg_one_of_sq_eq_one {p b : ℕ} (hp : Nat.Prime p) (hb : 1 ≤ b)
+    (hb2 : b ^ 2 ≡ 1 [MOD p]) (hbne : ¬ b ≡ 1 [MOD p]) :
+    b ≡ p - 1 [MOD p] := by
+  have hb2' : 1 ≡ b ^ 2 [MOD p] := hb2.symm
+  have hb2_dvd : p ∣ b ^ 2 - 1 := by
+    exact (Nat.modEq_iff_dvd' (by nlinarith : 1 ≤ b ^ 2)).mp hb2'
+  have hsq : b ^ 2 - 1 = (b - 1) * (b + 1) := by
+    have hsub := Nat.sq_sub_sq b 1
+    simpa [mul_comm] using hsub
+  rw [hsq] at hb2_dvd
+  have hdvd_or := (hp.dvd_mul).1 hb2_dvd
+  rcases hdvd_or with hd1 | hd2
+  · exfalso
+    exact hbne ((Nat.modEq_iff_dvd' hb).mpr hd1).symm
+  · have h0 : b + 1 ≡ 0 [MOD p] := hd2.modEq_zero_nat
+    have h1 : (p - 1) + 1 ≡ 0 [MOD p] := by
+      rw [Nat.sub_add_cancel (Nat.one_le_of_lt hp.pos)]
+      exact Nat.modEq_zero_iff_dvd.mpr (dvd_refl p)
+    have h : b + 1 ≡ (p - 1) + 1 [MOD p] := h0.trans h1.symm
+    exact Nat.ModEq.add_right_cancel (Nat.ModEq.refl 1) h
+
+/--
+**Miller-Rabin correctness, prime direction.**  If `n` is prime and `a` is
+coprime to `n`, then `n` is a strong probable prime to base `a` — i.e. a prime
+has no witness.  Writing `n−1 = 2^s·d`, the sequence `a^d, a^{2d}, …, a^{2^s·d}`
+ends at `1` (Fermat); at the first index where it reaches `1`, the previous
+value is a square root of `1` that is not `1`, hence `−1` (mod a prime).
+-/
+theorem strongPseudoprime_of_prime {n a : ℕ} (hn : Nat.Prime n) (hcop : Nat.Coprime a n) :
+    strongPseudoprime n a := by
+  have hn2 : 2 ≤ n := hn.two_le
+  have hnm1 : n - 1 ≠ 0 := by omega
+  have hdecomp : n - 1 = 2 ^ (strongTestParams n).1 * (strongTestParams n).2 := by
+    have h := strongTestParams_spec (n - 1) hnm1
+    simpa [strongTestParams] using h
+  have hfermat : a ^ (n - 1) ≡ 1 [MOD n] := fermat_test hn hcop
+  let s := (strongTestParams n).1
+  let d := (strongTestParams n).2
+  have h1 : a ^ (2 ^ s * d) ≡ 1 [MOD n] := by
+    rw [← hdecomp]
+    exact hfermat
+  let P : ℕ → Prop := fun i => a ^ (2 ^ i * d) ≡ 1 [MOD n]
+  have hP_s : P s := by
+    simpa [P, hdecomp] using hfermat
+  let i0 := Nat.find ⟨s, hP_s⟩
+  have hP0 : P i0 := by
+    exact Nat.find_spec ⟨s, hP_s⟩
+  have hmin : ∀ m, m < i0 → ¬ P m := by
+    intro m hm
+    exact Nat.find_min ⟨s, hP_s⟩ (by simpa [i0] using hm)
+  have hile : i0 ≤ s := by simpa [i0] using (Nat.find_le (h := ⟨s, hP_s⟩) hP_s)
+  by_cases hi00 : i0 = 0
+  · left
+    have : P 0 := by simpa [hi00] using hP0
+    simpa [P] using this
+  · right
+    let j := i0 - 1
+    have hj : j < s := by omega
+    have hjlt_i0 : j < i0 := by omega
+    have hj1 : j + 1 = i0 := by omega
+    have hb : a ^ (2 ^ j * d) ≡ n - 1 [MOD n] := by
+      have hb2 : (a ^ (2 ^ j * d)) ^ 2 ≡ 1 [MOD n] := by
+        have hsq : (a ^ (2 ^ j * d)) ^ 2 = a ^ (2 ^ i0 * d) := by
+          rw [← pow_mul]
+          congr 1
+          rw [mul_assoc, mul_comm d 2, ← mul_assoc, ← pow_succ, hj1]
+        rw [hsq]
+        simpa [P] using hP0
+      have hbne : ¬ a ^ (2 ^ j * d) ≡ 1 [MOD n] := by
+        exact hmin j hjlt_i0
+      have ha1 : 1 ≤ a := by
+        have ha_ne : a ≠ 0 := by
+          intro ha
+          have hg : Nat.gcd a n = 1 := hcop
+          have hn1 : n = 1 := by
+            rw [ha, Nat.gcd_zero_left] at hg
+            exact hg
+          omega
+        exact Nat.succ_le_of_lt (Nat.pos_of_ne_zero ha_ne)
+      have hb1 : 1 ≤ a ^ (2 ^ j * d) := by
+        exact one_le_pow₀ ha1
+      exact modeq_neg_one_of_sq_eq_one hn hb1 hb2 hbne
+    exact ⟨⟨j, hj⟩, hb⟩
+
+/-- **A prime has no witness**: for `n` prime and `a` coprime to `n`, `a` does
+not witness compositeness of `n`. -/
+theorem not_witness_of_prime {n a : ℕ} (hn : Nat.Prime n) (hcop : Nat.Coprime a n) :
+    ¬ Witness n a := by
+  intro hw
+  exact hw (strongPseudoprime_of_prime hn hcop)
+
+/-- **A witness certifies compositeness**: for `n` and a coprime base `a`, if
+`a` is a witness then `n` is not prime. -/
+theorem witness_not_prime {n a : ℕ} (hcop : Nat.Coprime a n) (hw : Witness n a) :
+    ¬ Nat.Prime n := by
+  intro hn
+  exact (not_witness_of_prime hn hcop) hw
 
 end Chapter31
 

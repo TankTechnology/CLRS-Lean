@@ -87,8 +87,11 @@ primality test, and the Pollard's-rho factorization heuristic.
 * **Miller-Rabin**: {lit}`CLRS.Chapter31.strongTestParams` (the `2^s·d`
   decomposition), {lit}`CLRS.Chapter31.strongPseudoprime` (STRONG-PSEUDOPRIME),
   {lit}`CLRS.Chapter31.Witness`, and the executable
-  {lit}`CLRS.Chapter31.millerRabin` test.  (The correctness and error-bound
-  theorems remain deferred.)
+  {lit}`CLRS.Chapter31.millerRabin` test.  Correctness:
+  {lit}`CLRS.Chapter31.strongPseudoprime_of_prime` (a prime passes every
+  base), {lit}`CLRS.Chapter31.not_witness_of_prime`, and
+  {lit}`CLRS.Chapter31.witness_not_prime` (a witness certifies
+  compositeness).  (The error bound remains deferred.)
 
 ### 31.9 Integer Factorization
 
@@ -99,8 +102,8 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 ## Deferred Work
 
-* 31.8 Miller-Rabin correctness (primes never have a witness) and the
-  error bound (at most 1/4 of the bases are strong liars).
+* 31.8 the Miller-Rabin error bound (at most 1/4 of the bases are strong
+  liars for an odd composite `n`).
 * 31.9 the full Pollard's-rho algorithm and its birthday-paradox analysis.
 -/
 
