@@ -4038,8 +4038,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Section 28.3 - Symmetric Positive-Definite Matrices and Least Squares
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean`
-- Status: `partial` (SPD foundations and least-squares proved; Cholesky
-  existence open)
+- Status: `complete`
 - Model:
   - `IsSymPosDef`: the CLRS definition of symmetric positive-definite —
     symmetric and `xᵀAx > 0` for every nonzero `x`.
@@ -4047,6 +4046,10 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     (via `Matrix.dotProduct`, the Euclidean squared norm over `ℝ`).
   - `choleskySchur`: the Schur complement `A₂₂ - (v·vᵀ)/a` of the leading
     `1×1` block of `A` (the trailing block after one elimination step).
+  - `IsLowerTriangularPosDiag` and `choleskyFactor`: the recursive Cholesky
+    factor `L = [[√a, 0], [v/√a, L₂]]` built from `a = A 0 0`, the first
+    column `v`, and the trailing factor `L₂`, with lower-triangularity and
+    positive diagonal packaged as `IsLowerTriangularPosDiag`.
 - Proved:
   - `isSymPosDef_iff_posDef`: SPD coincides with Mathlib's `Matrix.PosDef`,
     yielding `IsSymPosDef.det_pos` (nonsingular), `.diag_pos` (positive
@@ -4065,9 +4068,13 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     SPD, proved directly via the block quadratic form `schur_quadratic_form`
     (`zᵀAz = a·t² + 2·t·(v ⬝ᵥ y) + yᵀA₂₂y` for `z = (t, y)`) and the choice
     `t = -(v ⬝ᵥ y)/a`.
-- Remaining scope: the Cholesky existence proof (CLRS Theorem 28.3:
-  `A = L·Lᵀ` with `L` lower-triangular and positive diagonal) — assemble the
-  Schur-complement machinery into the inductive block construction.
+  - `cholesky_decomposition` (CLRS Theorem 28.3): every SPD matrix factors as
+    `A = L·Lᵀ` with `L` lower-triangular and positive diagonal.  The induction
+    on `n` reuses `cholesky_schur_complement` to obtain the SPD Schur
+    complement, applies the induction hypothesis to get `S = L₂·L₂ᵀ`, builds
+    `L = choleskyFactor A L₂`, and proves `A = L·Lᵀ` entrywise via the block
+    identities `choleskyFactor_mul_00/0_succ/succ_0/succ_succ_eq` (using
+    `Real.sq_sqrt` and symmetry of `A`).
 
 ## Chapter 32 - String Matching
 

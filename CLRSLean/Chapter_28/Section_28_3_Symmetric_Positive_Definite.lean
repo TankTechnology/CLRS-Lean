@@ -17,6 +17,11 @@ Main results:
   {lit}`mulVec` ({lit}`IsSymPosDef.mulVec_injective`).
 - Theorem {lit}`posDef_mul_transpose`: if {lit}`A` has full column rank, then
   {lit}`AᵀA` is SPD (the Gram matrix is nonsingular).
+- Theorem {lit}`cholesky_decomposition` (Theorem 28.3): every SPD matrix factors
+  as {lit}`A = L·Lᵀ` with {lit}`L` lower-triangular with positive diagonal
+  ({lit}`IsLowerTriangularPosDiag`).  The recursive construction uses the block
+  factor {lit}`L = [[√a, 0],[v/√a, L₂]]` ({lit}`choleskyFactor`) with the
+  positive-definite Schur complement ({lit}`cholesky_schur_complement`).
 - Theorem {lit}`normal_equations_minimizes` (Theorem 28.4): if {lit}`xh`
   satisfies the normal equations {lit}`Aᵀ(A·xh - b) = 0`, then {lit}`xh`
   minimizes the squared residual {lit}`(A·x - b)⬝ᵥ(A·x - b)`.
@@ -25,16 +30,9 @@ Main results:
 - Theorem {lit}`least_squares_closed_form`: {lit}`xh = (AᵀA)⁻¹·(Aᵀ·b)` satisfies
   the normal equations — the closed-form least-squares solution.
 
-**Current gaps.**  The Cholesky decomposition (CLRS Theorem 28.3) is not yet
-proved.  The intended statement is: every SPD {lit}`A` admits a lower-triangular
-{lit}`L` with positive diagonal such that {lit}`A = L·Lᵀ`.  The scaffolding
-provided is the block-recursion heart of the inductive proof: the quadratic-form
-expansion of the vector {lit}`z = (t, y)` ({lit}`schur_quadratic_form`) and the
-strict positive-definiteness of the Schur complement
-({lit}`cholesky_schur_complement`).  A future session should assemble these into
-the inductive existence proof, using the block factor
-{lit}`L = [[√a, 0],[v/√a, L₂]]` with {lit}`a = A 0 0` and
-{lit}`S = L₂·L₂ᵀ`.
+This section now covers the whole of CLRS §28.3: the SPD foundations, the
+Cholesky decomposition (Theorem 28.3), and least-squares approximation
+(Theorem 28.4).
 
 Notation conventions:
 
@@ -480,6 +478,167 @@ theorem cholesky_schur_complement {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 
     have hpos : 0 < z ⬝ᵥ (A *ᵥ z) := hA.dotProduct_pos hz
     rw [hexp] at hpos
     exact hpos
+
+/-- The **Cholesky factor** for the recursion step: with `a = A 0 0` and the
+first-column vector `v i = A (Fin.succ i) 0`, `choleskyFactor A L2` is the block
+lower-triangular matrix `[[√a, 0], [v/√a, L2]]` over `Fin (n+1)` built from the
+scalar `√a`, the column `v/√a`, and the trailing factor `L2`. -/
+noncomputable def choleskyFactor {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ :=
+  fun i j =>
+    Fin.cases
+      (fun j : Fin (n + 1) => if j = 0 then Real.sqrt (A 0 0) else 0)
+      (fun i' : Fin n => fun j : Fin (n + 1) =>
+        Fin.cases (A (Fin.succ i') 0 / Real.sqrt (A 0 0)) (fun j' : Fin n => L2 i' j') j)
+      i j
+
+/-- The top-left entry of the Cholesky factor is `√a`. -/
+@[simp]
+lemma choleskyFactor_00 {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) : choleskyFactor A L2 0 0 = Real.sqrt (A 0 0) := by
+  simp [choleskyFactor]
+
+/-- The first row of the Cholesky factor (right of the diagonal) is zero. -/
+@[simp]
+lemma choleskyFactor_0_succ {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (j : Fin n) : choleskyFactor A L2 0 (Fin.succ j) = 0 := by
+  simp [choleskyFactor]
+
+/-- The first column of the Cholesky factor (below the diagonal) is `v/√a`. -/
+@[simp]
+lemma choleskyFactor_succ_0 {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (i : Fin n) :
+    choleskyFactor A L2 (Fin.succ i) 0 = A (Fin.succ i) 0 / Real.sqrt (A 0 0) := by
+  simp [choleskyFactor]
+
+/-- The trailing block of the Cholesky factor is `L2`. -/
+@[simp]
+lemma choleskyFactor_succ_succ {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (i j : Fin n) :
+    choleskyFactor A L2 (Fin.succ i) (Fin.succ j) = L2 i j := by
+  simp [choleskyFactor]
+
+/-- `L` is **lower-triangular with positive diagonal**: every entry above the
+main diagonal is zero and every diagonal entry is strictly positive. -/
+def IsLowerTriangularPosDiag {n : ℕ} (L : Matrix (Fin n) (Fin n) ℝ) : Prop :=
+  (∀ ⦃i j : Fin n⦄, i < j → L i j = 0) ∧ (∀ i : Fin n, 0 < L i i)
+
+/-- The `(0,0)` entry of `L·Lᵀ` for the Cholesky factor is `a = A 0 0`. -/
+lemma choleskyFactor_mul_00 {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (hpos : 0 < A 0 0) :
+    (choleskyFactor A L2 * (choleskyFactor A L2)ᵀ) 0 0 = A 0 0 := by
+  rw [Matrix.mul_apply]
+  rw [Fin.sum_univ_succ]
+  simp
+  simpa [pow_two] using (Real.sq_sqrt hpos.le)
+
+/-- The `(0, j)` entries of `L·Lᵀ` for the Cholesky factor match `A`. -/
+lemma choleskyFactor_mul_0_succ {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (hA : A.IsSymm) (hpos : 0 < A 0 0) (j : Fin n) :
+    (choleskyFactor A L2 * (choleskyFactor A L2)ᵀ) 0 (Fin.succ j) = A 0 (Fin.succ j) := by
+  rw [Matrix.mul_apply]
+  rw [Fin.sum_univ_succ]
+  simp
+  have hs_ne : Real.sqrt (A 0 0) ≠ 0 := (Real.sqrt_pos.2 hpos).ne'
+  have hv : A 0 (Fin.succ j) = A (Fin.succ j) 0 := by
+    exact (Matrix.IsSymm.ext_iff.mp hA) (Fin.succ j) 0
+  rw [hv]
+  field_simp [hs_ne]
+
+/-- The `(i, 0)` entries of `L·Lᵀ` for the Cholesky factor match `A`. -/
+lemma choleskyFactor_mul_succ_0 {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (hpos : 0 < A 0 0) (i : Fin n) :
+    (choleskyFactor A L2 * (choleskyFactor A L2)ᵀ) (Fin.succ i) 0 = A (Fin.succ i) 0 := by
+  rw [Matrix.mul_apply]
+  rw [Fin.sum_univ_succ]
+  simp
+  have hs_ne : Real.sqrt (A 0 0) ≠ 0 := (Real.sqrt_pos.2 hpos).ne'
+  field_simp [hs_ne]
+
+/-- Entrywise expansion of the trailing block of `L·Lᵀ`:
+`(L·Lᵀ)ᵢⱼ = (vᵢ/√a)·(vⱼ/√a) + (L2·L2ᵀ)ᵢⱼ`. -/
+lemma choleskyFactor_mul_succ_succ {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (i j : Fin n) :
+    (choleskyFactor A L2 * (choleskyFactor A L2)ᵀ) (Fin.succ i) (Fin.succ j) =
+      (A (Fin.succ i) 0 / Real.sqrt (A 0 0)) * (A (Fin.succ j) 0 / Real.sqrt (A 0 0)) +
+        (L2 * L2ᵀ) i j := by
+  rw [Matrix.mul_apply]
+  rw [Fin.sum_univ_succ]
+  simp [Matrix.mul_apply, Matrix.transpose_apply]
+
+/-- When `L2·L2ᵀ` is the Schur complement, the trailing block of `L·Lᵀ` matches
+the trailing block of `A`. -/
+lemma choleskyFactor_mul_succ_succ_eq {n : ℕ} (A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (L2 : Matrix (Fin n) (Fin n) ℝ) (hA : A.IsSymm) (hpos : 0 < A 0 0) (i j : Fin n)
+    (hL2 : choleskySchur A = L2 * L2ᵀ) :
+    (choleskyFactor A L2 * (choleskyFactor A L2)ᵀ) (Fin.succ i) (Fin.succ j) = A (Fin.succ i) (Fin.succ j) := by
+  rw [choleskyFactor_mul_succ_succ A L2 i j]
+  rw [← hL2]
+  unfold choleskySchur
+  have hsym : A 0 (Fin.succ j) = A (Fin.succ j) 0 := by
+    exact (Matrix.IsSymm.ext_iff.mp hA) (Fin.succ j) 0
+  rw [hsym]
+  have hs_ne : Real.sqrt (A 0 0) ≠ 0 := (Real.sqrt_pos.2 hpos).ne'
+  have hs_sq : (Real.sqrt (A 0 0)) ^ 2 = A 0 0 := Real.sq_sqrt hpos.le
+  field_simp [hs_ne, hpos.ne']
+  ring_nf
+  rw [hs_sq]
+  ring
+
+/--
+**Cholesky decomposition (CLRS Theorem 28.3).**  Every symmetric
+positive-definite matrix `A` factors as `A = L·Lᵀ` with `L` lower-triangular
+with positive diagonal.
+
+The proof is the block recursion: writing `a = A 0 0`, `v i = A (Fin.succ i) 0`,
+and `S` for the Schur complement `A₂₂ - v·vᵀ/a`, the strict positivity of `A`
+makes `S` SPD ({lit}`cholesky_schur_complement`), so by induction
+`S = L₂·L₂ᵀ`.  The factor `L = [[√a, 0],[v/√a, L₂]]`
+({lit}`choleskyFactor`) is lower-triangular with positive diagonal and satisfies
+`L·Lᵀ = A`.
+-/
+theorem cholesky_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) ℝ) (hA : IsSymPosDef A) :
+    ∃ L : Matrix (Fin n) (Fin n) ℝ, IsLowerTriangularPosDiag L ∧ A = L * Lᵀ := by
+  induction n with
+  | zero =>
+      refine ⟨1, ?tri, ?eq⟩
+      · constructor
+        · intro i j hij
+          exact Fin.elim0 i
+        · intro i
+          exact Fin.elim0 i
+      · ext i j
+        exact Fin.elim0 i
+  | succ n ih =>
+      let a : ℝ := A 0 0
+      let S : Matrix (Fin n) (Fin n) ℝ := choleskySchur A
+      have ha : 0 < a := by simpa [a] using hA.diag_pos 0
+      have hS : IsSymPosDef S := by simpa [S] using cholesky_schur_complement hA
+      rcases ih S hS with ⟨L2, ⟨hL2lt, hL2pd⟩, hL2eq⟩
+      let L : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ := choleskyFactor A L2
+      refine ⟨L, ?tri', ?eq'⟩
+      · constructor
+        · intro i j hij
+          rcases Fin.eq_zero_or_eq_succ i with rfl | ⟨i', rfl⟩
+          · rcases Fin.eq_zero_or_eq_succ j with rfl | ⟨j', rfl⟩
+            · simp at hij
+            · simp [L]
+          · rcases Fin.eq_zero_or_eq_succ j with rfl | ⟨j', rfl⟩
+            · simp at hij
+            · have hij' : i' < j' := by simpa using hij
+              simpa [L] using (hL2lt hij')
+        · intro i
+          rcases Fin.eq_zero_or_eq_succ i with rfl | ⟨i', rfl⟩
+          · simpa [L, a] using (Real.sqrt_pos.2 ha)
+          · simpa [L] using (hL2pd i')
+      · ext i j
+        rcases Fin.eq_zero_or_eq_succ i with rfl | ⟨i', rfl⟩
+        · rcases Fin.eq_zero_or_eq_succ j with rfl | ⟨j', rfl⟩
+          · simpa [L, a] using (choleskyFactor_mul_00 A L2 ha).symm
+          · simpa [L] using (choleskyFactor_mul_0_succ A L2 hA.isSymm ha j').symm
+        · rcases Fin.eq_zero_or_eq_succ j with rfl | ⟨j', rfl⟩
+          · simpa [L] using (choleskyFactor_mul_succ_0 A L2 ha i').symm
+          · simpa [L] using (choleskyFactor_mul_succ_succ_eq A L2 hA.isSymm ha i' j' hL2eq).symm
 
 end Cholesky
 

@@ -10,8 +10,17 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 30.
+<<<<<<< HEAD
 * Tracked reader-facing theorem entries: 1707.
 * Proved tracked theorem entries: 1707.
+||||||| parent of 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
+* Tracked reader-facing theorem entries: 1679.
+* Proved tracked theorem entries: 1679.
+* Remaining core theorem groups: 8.
+=======
+* Tracked reader-facing theorem entries: 1680.
+* Proved tracked theorem entries: 1680.
+>>>>>>> 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
 * Remaining core theorem groups: 7.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -58,8 +67,16 @@ Ch  Chapter                                                     Status          
 24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4;24.5           27        0
 25  25. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  25.1;25.2;25.3                     24        0
 26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
+<<<<<<< HEAD
 27  27. Multithreaded Algorithms                                main-proof-complete                  27.1;27.2;27.3                     95        0
 28  28. Matrix Operations                                       partial                              28.1;28.2                           2        1
+||||||| parent of 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
+27  27. Multithreaded Algorithms                                partial                              27.1;27.2;27.3;27.4                66        1
+28  28. Matrix Operations                                       partial                              28.1;28.2;28.3                      3        1
+=======
+27  27. Multithreaded Algorithms                                partial                              27.1;27.2;27.3;27.4                66        1
+28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      4        0
+>>>>>>> 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
 31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1
