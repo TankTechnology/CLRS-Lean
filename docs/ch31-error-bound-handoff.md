@@ -169,20 +169,40 @@ page #1770.
 
 ## Concrete attack order (next session)
 
-1. **Milestone 1 — ν(n) and S(n)**: define `ν(n)` (min over prime factors of
-   `v_2(p−1)`), define `S(n)` in `(ZMod n)ˣ`, prove **S is a subgroup**.
-2. **Milestone 2 — L ⊆ S**: prove every strong liar is in `S(n)`, using the
-   order-of-element argument modulo each prime divisor (needs `orderOf_pow`,
-   `orderOf_dvd_iff_pow_eq_one`, and the
-   `e = 2·gcd(e, 2^i·t) ⟹ 2^(i+1) | e` parity lemma).
-3. **Milestone 3 — |S| counting**: via CRT and cyclicity of `(Z/p^e)ˣ`,
-   `|S| = 2^(k(ν−1)+1) · ∏ gcd(t, φ(p_i^{e_i}))`.
-4. **Milestone 4 — three-case bound**: prove `|S| ≤ (n−1)/4` in the three
-   cases (k≥3, k=2, k=1).
-5. **Wrap-up**: update `docs/clrs-proof-progress.csv` (bump tracked count,
-   move `isCarmichael`-era note), `docs/proof-map.md`, chapter guide
-   `CLRSLean/Chapter_31.lean` (remove the deferred item), regenerate
-   `CLRSLean/Progress.lean`, run `check_repository.py`, then the PR.
+> **Milestones 1–3 are DONE (committed on `feat/ch31-refinements`).**
+> Remaining: **Milestone 4 only** — the three-case arithmetic bound.
+
+### Milestone 4 — the three-case bound (the only remaining work)
+
+Everything is in place except the final arithmetic.  The available lemmas
+(31.8) give, for `m = 2^(ν(n)−1)·t` (`t` odd), `k = n.primeFactors.card`:
+
+- `goodSet_card_le`: `|S(n)| ≤ 2·|{x : x^m = 1}|` (the "≡ −1" part is a fiber).
+- `mTorsion_le_prod_half`: `|{x : x^m = 1}| ≤ ∏_{p|n} (p−1)/2`.
+- So **`|S(n)| ≤ 2^(1−k)·∏_{p|n} (p−1)`**, and the target is
+  `2·∏ (p−1)/2 ≤ (n−1)/4`.
+
+**Cases** (verify the arithmetic, then formalize):
+
+- **k ≥ 3**: `∏(p−1) ≤ n−1` (each `p−1 < p`, `∏p ≤ n`) and `2^(1−k) ≤ 1/4`.  Easy.
+- **k = 1** (`n = p^e`): `|S| ≤ 2·(p−1)/2 = p−1 ≤ (p^e−1)/4` (uses `e ≥ 2`, `p ≥ 3`).  Easy.
+- **k = 2** (`n = pq`, `s = v₂(p−1)`, `r = v₂(q−1)`, `ν = min(s,r)`):
+  `|S| = 2·gcd(m,p−1)·gcd(m,q−1) ≤ 2^(2ν−1)·gcd(t,d_p)·gcd(t,d_q)`.
+  - **Sub-case s < r** (ν = s): `|S| ≤ 2^(2ν−1)·d_p·d_q`, and
+    `pq−1 ≥ 2^(s+r)d_p·d_q ≥ 2^(2ν+1)d_p·d_q`, so `|S| ≤ (pq−1)/4`.  Easy —
+    no `d/gcd` analysis needed.
+  - **Sub-case s = r = ν**: `d_p | t` and `d_q | t` both ⟹ `d_p = d_q` ⟹ `p = q`
+    (contradiction), so at least one of `gcd(t,d_p)`, `gcd(t,d_q)` is `≤ d/3`
+    (odd, proper divisor).  Then `|S| ≤ 2^(2ν−1)·d_p·d_q/3` and
+    `pq−1 ≥ 2^(2ν)·d_p·d_q`, giving `|S| ≤ (pq−1)/4`.
+  - Key sub-lemma to prove: **`d_p | t ∧ d_q | t ⟹ d_p = d_q`** for `n = pq`
+    (from `t = (pq−1)/2^v`, `pq−1 = 2^(s+r)d_p d_q + 2^s d_p + 2^r d_q`,
+    divisibility of `t` by `d_p` forces `d_p | d_q`).
+
+**Wrap-up after Milestone 4**: update `docs/clrs-proof-progress.csv` (bump
+tracked count), `docs/proof-map.md`, chapter guide `CLRSLean/Chapter_31.lean`
+(remove the deferred item), regenerate `CLRSLean/Progress.lean`, run
+`check_repository.py`, then the PR.
 6. **Wrap-up**: update `docs/clrs-proof-progress.csv` (bump tracked count,
    move `isCarmichael`-era note), `docs/proof-map.md`, chapter guide
    `CLRSLean/Chapter_31.lean` (remove the deferred item), regenerate
