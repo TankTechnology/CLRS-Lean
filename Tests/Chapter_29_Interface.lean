@@ -57,6 +57,13 @@ example {m n : ℕ} {P : StandardLP m n} {x : Fin n → ℝ} :
 #check Dictionary.dualCertificate
 #check Dictionary.dualCertificate_isDualFeasible
 #check Dictionary.dualCertificate_objective_eq_v
+#check Dictionary.assignmentOriginal
+#check Dictionary.assignmentSlack
+#check Dictionary.combinedAssignment_parts
+#check Dictionary.original_feasible_of_initialDictionary
+#check Dictionary.initialDictionary_objectiveRhs_eq_objective_original
+#check Dictionary.initialDictionary_optimal_to_standardLP
+#check Dictionary.initialDictionary_unbounded_to_standardLP
 
 example {m n : ℕ} {P : StandardLP m n}
     {x : Fin n → ℝ} {y : Fin m → ℝ}
@@ -67,6 +74,7 @@ example {m n : ℕ} {P : StandardLP m n}
 #print axioms StandardLP.weak_duality
 #print axioms StandardLP.complementarySlackness_iff_objective_eq
 #print axioms Dictionary.dualCertificate_isDualFeasible
+#print axioms Dictionary.initialDictionary_optimal_to_standardLP
 
 end Chapter29
 end CLRS
