@@ -4293,7 +4293,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `modeq_neg_one_of_sq_eq_one` (`x² ≡ 1`, `x ≢ 1` mod prime ⇒ `x ≡ −1`).
     `not_witness_of_prime` (a prime has no witness) and `witness_not_prime`
     (a witness certifies compositeness) follow.
-  - Deferred: the Miller-Rabin error bound, and the random-witness analysis.
+  - **Miller-Rabin error bound (Rabin–Monier)**: the good subgroup
+    `goodUnits` = `{x : x^(2^(ν(n)−1)·t) ∈ {±1}}`, with `liar_mem_goodSet`
+    showing every strong liar lies in it.  Counting `|S(n)|` via the cyclicity
+    of prime-power unit groups and the CRT (`card_pow_eq_one_crt`,
+    `mTorsion_eq_prod`), `goodUnits_card_le` bounds `|S(n)| ≤ (n−1)/4` by the
+    three-case analysis: prime power (`n = p^e`), semiprime (`n = p·q`, with
+    the `s < r` / `s = r` sub-cases and the key lemma that `d_p | t ∧ d_q | t`
+    forces `p = q`), and `≥ 3` prime factors.  Hence `strongLiars_card_le`:
+    **at most `(n−1)/4` of the bases are strong liars for odd composite `n`**
+    (Theorem 31.38).  Deferred: the random-witness analysis.
 
 ### Section 31.9 - Integer Factorization
 
