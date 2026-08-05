@@ -407,6 +407,11 @@ end CLRS
   recurrence theorem is not an algorithm runtime until an executable value is
   connected to that cost, and worst-case `Theta` claims need both a universal
   upper bound and an explicit lower-witness family.
+- Chapter 30 FFT closure pass: an algorithmic cost theorem should read counters
+  from the same execution record whose value is proved correct, rather than a
+  detached closed-form recurrence. Likewise, circuit evaluation, gate count,
+  and depth should recurse over the same stored circuit syntax; descriptive
+  metadata is not a verified circuit bound.
 
 ## Honesty Rules
 
