@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.Bounds
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness
 
 /-!
 # CLRS Chapter 27.3 — Interleaved P-MERGE Witness Lists
