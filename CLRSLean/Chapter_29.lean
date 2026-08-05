@@ -62,25 +62,32 @@ import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.Gene
 # Chapter 29 - Linear Programming
 
 Chapter 29 develops linear-programming representations, SIMPLEX, and duality.
-The current milestone represents standard/slack feasibility, the complete
-basic-feasible SIMPLEX algorithm, and weak duality.
+The represented main-text stack covers all five sections and connects the
+textbook formulations to a terminating, initialized SIMPLEX procedure and the
+duality theorems.
 
 ## Represented sections
 
 * 29.1 Standard and slack forms: standard-form definitions and the
   slack-variable feasibility bridge.
+* 29.2 Formulating problems as linear programs: shortest path, maximum flow,
+  minimum-cost flow, and multicommodity flow.
 * 29.3 The simplex algorithm: fixed-slot dictionaries with variable-label
   exchange, basic solutions, the initial dictionary, the PIVOT formulas,
   semantic equivalence, Bland entering/leaving selection, optimal and
   unbounded exits, the textbook anti-cycling proof, and finite termination.
-* 29.4 Duality: dual feasibility and weak duality.
+* 29.4 Duality: weak and strong duality, terminal dual certificates, the
+  duality-gap identity, and complementary slackness.
+* 29.5 Initial basic feasible solution: the auxiliary LP, phase-I pivot and
+  feasibility criterion, objective restoration, phase II, and the certified
+  three-way initialized solver.
 
-## Current gaps
+## Completion boundary
 
-Sections 29.2 and 29.5 are not represented.  Section 29.4 currently contains
-weak duality only; strong duality and complementary slackness remain explicit
-gaps.  Section 29.5 will supply a basic-feasible dictionary before invoking
-the completed Section 29.3 SIMPLEX core.
+The main text is complete at the finite real-matrix and pure functional
+algorithm layer.  Low-level mutable tableau storage, floating-point numerical
+analysis, RAM constants, exercises, and chapter-end problems are optional
+refinements and do not reopen this proof boundary.
 -/
 
 namespace CLRS

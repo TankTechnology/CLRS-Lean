@@ -37,6 +37,7 @@ Last repository-wide status reconciliation: 2026-08-05.
 | Chapter 25 correctness | FASTER-APSP, Floyd-Warshall shortest distances, predecessor reconstruction with walk and weight guarantees, negative-cycle detection, transitive closure, and Johnson's end-to-end correctness theorem | A tighter explicit repeated-squaring work/RAM refinement |
 | Chapter 26 | Max-Flow Min-Cut, executable residual BFS and Edmonds-Karp, the `O(VE²)` augmentation bound, and maximum bipartite matching through Theorem 26.12 | Sections 26.4 and 26.5 are deferred outside the current selected milestone |
 | Chapter 27 | Pure-functional main text through Section 27.3: total greedy scheduling, logarithmic parallel loops, executable P-ADD/P-MATMUL, and executable P-MERGE/P-MERGE-SORT with correctness, execution costs, and matching worst-case span witnesses | Mutable-array/RAM realization, exercises, and chapter-end problems; parallel Strassen remains a separate compatibility extension |
+| Chapter 29 | Sections 29.1--29.5: standard/slack equivalence; four textbook LP formulations; exact PIVOT, Bland anti-cycling, and terminating SIMPLEX; weak/strong duality and complementary slackness; phase-I initialization and the certified three-way solver | Mutable tableau storage, floating-point numerical analysis, RAM constants, exercises, and chapter-end problems |
 | Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
 
 Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
@@ -48,7 +49,6 @@ not missing core theorem groups.
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
 | 28 | Theorem 28.1 proves LUP-decomposition existence; `inv_eq_lup` supplies the Section 28.2 algebraic inversion bridge | Add forward/back substitution, prove LUP-SOLVE correctness (#124), then executable matrix inversion and the principal cubic work claims |
-| 29 | Standard/slack feasibility; complete basic-feasible Bland SIMPLEX with exact PIVOT semantics, optimal/unbounded exits, anti-cycling, and finite termination; CLRS Theorem 29.8 weak duality | Add Section 29.5 INITIALIZE-SIMPLEX, strong duality and complementary slackness, then Section 29.2 graph formulations |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main

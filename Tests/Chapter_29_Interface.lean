@@ -3,8 +3,9 @@ import CLRSLean.Chapter_29
 /-!
 # Chapter 29 Interface Test
 
-Verifies that the represented Chapter 29 standard/slack and weak-duality
-declarations are available through the chapter guide.
+Verifies that the Chapter 29 standard/slack and duality declarations are
+available through the chapter guide.  The formulation, SIMPLEX, initialization,
+and closure surfaces have focused companion tests.
 -/
 
 namespace CLRS

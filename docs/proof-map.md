@@ -3995,7 +3995,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 29.1 - Standard and Slack Forms
 
-- Status: `partial`.
+- Status: `main-proof-complete`.
 - Model: `StandardLP`, `IsNonnegative`, `StandardLP.IsFeasible`, and
   `StandardLP.objective` over `Fin`-indexed real matrices.
 - Proved: `slack_nonnegative_of_feasible`, `slack_equation`,
@@ -4006,6 +4006,20 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   `initialDictionary_satisfies_of_slackExtension`, and
   `initialDictionary_objectiveRhs` connect the Section 29.1 model to the
   Section 29.3 dictionary layer.
+
+### Section 29.2 - Formulating Problems as Linear Programs
+
+- Status: `main-proof-complete`.
+- Shortest path: `ShortestPathLP.IsFeasible` is the textbook edge-difference
+  system with `d s = 0`; `feasible_le_walkWeight` proves every feasible target
+  value is below every source-to-target walk, and `optimal_of_attained_walk`
+  proves an attained bound is optimal.
+- Network vocabulary: `FlowNetwork` uses one gross nonnegative flow variable
+  per ordered vertex pair, with zero capacity representing a nonedge.
+- Flow formulations: `MaximumFlowLP`, `MinimumCostFlowLP`, and
+  `MulticommodityFlowLP` expose the textbook capacity, conservation, demand,
+  aggregate-capacity, and cost objectives.  Their `*_iff` theorems expand the
+  displayed LP constraints and optimality specifications exactly.
 
 ### Section 29.3 - The Simplex Algorithm
 
@@ -4030,21 +4044,45 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   it into a finite bound; and `simplex_optimal_or_unbounded` is the public
   terminal-correctness theorem.
 - Boundary: Section 29.5 supplies a basic-feasible start for arbitrary feasible
-  standard-form inputs; that initialization layer is not part of Section 29.3.
+  standard-form inputs; Section 29.3 itself remains the reusable core for an
+  already basic-feasible dictionary.
 
 ### Section 29.4 - Duality
 
-- Status: `partial`.
+- Status: `main-proof-complete`.
 - Model: `StandardLP.IsDualFeasible` and `StandardLP.dualObjective`.
-- Proved: dot-product monotonicity, `transpose_mulVec_dotProduct`, and
+- Weak duality: dot-product monotonicity, `transpose_mulVec_dotProduct`, and
   `weak_duality` (CLRS Theorem 29.8).
-- Exact gap: strong duality (Theorem 29.9) and complementary slackness
-  (Theorem 29.10).
+- Certificate layer: `Dictionary.dualCertificate_isDualFeasible` and
+  `dualCertificate_objective_eq_v` extract the terminal dual witness;
+  `DictionaryBridge` transfers optimal and unbounded results to `StandardLP`.
+- Strong duality: `strongDuality_or_unbounded_of_feasible`, `strongDuality`,
+  and `strongDuality_of_isOptimal` prove the general textbook result through
+  the finite initialized SIMPLEX construction.
+- Complementary slackness: `dualityGap_eq_slackSums` proves the exact gap
+  identity, and `complementarySlackness_iff_optimal` proves the unconditional
+  feasible primal/dual criterion (CLRS Theorem 29.10).
 
-### Unrepresented main-text sections
+### Section 29.5 - The Initial Basic Feasible Solution
 
-- 29.2 graph problems as linear programs.
-- 29.5 auxiliary LP and INITIALIZE-SIMPLEX.
+- Status: `main-proof-complete`.
+- Phase I: `auxiliary`, `auxiliaryPivotedDictionary_isBasicFeasible`, and
+  `phaseOneRun_isOptimal` implement the artificial LP and the mandatory pivot
+  from the most negative row.
+- Feasibility criterion:
+  `isFeasible_iff_phaseOneTerminal_v_eq_zero` proves that phase I ends at
+  objective zero exactly when the original program is feasible.
+- Cleanup and phase II: `lockVariable` is the fixed-dimension equivalent of
+  deleting the zero artificial variable; `withObjective`, `phaseTwoStart`, and
+  their equivalence theorems restore the original objective and produce a
+  basic-feasible phase-II dictionary.
+- Complete solver: `InitializedSimplexResult`, `initializedSimplex`, and
+  `initializedSimplex_complete` certify exactly infeasible, optimal, or
+  unbounded outcomes.
+- Chapter boundary: Sections 29.1--29.5 are complete at the finite real-matrix
+  and pure-functional tableau layer.  Mutable storage, floating-point
+  stability, RAM constants, exercises, and chapter-end problems are optional
+  refinements.
 
 ## Chapter 32 - String Matching
 

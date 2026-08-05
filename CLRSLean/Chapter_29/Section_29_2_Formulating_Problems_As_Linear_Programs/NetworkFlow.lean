@@ -3,7 +3,7 @@ import Mathlib
 /-!
 # 29.2: Common finite-network definitions
 
-CLRS writes its flow linear programs with one nonnegative variable `f u v`
+CLRS writes its flow linear programs with one nonnegative variable {lit}`f u v`
 for every ordered pair of vertices.  A missing edge is represented by capacity
 zero.  This file records that shared finite-network vocabulary.
 -/
