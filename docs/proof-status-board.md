@@ -5,7 +5,7 @@ status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
 The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
 priorities, not theorem-by-theorem duplication.
 
-Last repository-wide status reconciliation: 2026-08-03.
+Last repository-wide status reconciliation: 2026-08-05.
 
 ## Complete For The Current Scope
 
@@ -36,6 +36,7 @@ Last repository-wide status reconciliation: 2026-08-03.
 | Chapter 24 selected sections | Bellman-Ford, DAG shortest paths, Dijkstra's greedy theorem, the executable invariant-preserving loop, `dijkstraLoop_correct`, and difference constraints | Per-edge relaxation ordering and mutable/RAM cost refinement |
 | Chapter 25 correctness | FASTER-APSP, Floyd-Warshall shortest distances, predecessor reconstruction with walk and weight guarantees, negative-cycle detection, transitive closure, and Johnson's end-to-end correctness theorem | A tighter explicit repeated-squaring work/RAM refinement |
 | Chapter 26 | Max-Flow Min-Cut, executable residual BFS and Edmonds-Karp, the `O(VE²)` augmentation bound, and maximum bipartite matching through Theorem 26.12 | Sections 26.4 and 26.5 are deferred outside the current selected milestone |
+| Chapter 27 | Pure-functional main text through Section 27.3: total greedy scheduling, logarithmic parallel loops, executable P-ADD/P-MATMUL, and executable P-MERGE/P-MERGE-SORT with correctness, execution costs, and matching worst-case span witnesses | Mutable-array/RAM realization, exercises, and chapter-end problems; parallel Strassen remains a separate compatibility extension |
 | Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
 
 Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
@@ -46,7 +47,6 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 27 | Computation-DAG/spawn-tree model with honest span and `T∞ ≤ T₁`; completed explicit ready-set schedules with the greedy bound `Tₚ ≤ T₁/p + T∞`; executable P-ADD/P-MATMUL correctness and execution costs; executable P-MERGE sortedness/permutation, linear pointwise work, universal quadratic-log span, and a matching sorted interleaved lower witness; recurrence-level all-input P-MERGE, P-MERGE-SORT, and parallel-Strassen bounds | Executable P-MERGE-SORT correctness and cost links to the proved recurrence-level models |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main
@@ -60,9 +60,8 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Implement P-MERGE-SORT with correctness and execution-cost links; executable P-MERGE is complete |
-| 2 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
-| 3 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
+| 1 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
+| 2 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
 
 ## High-Difficulty Queue
 
