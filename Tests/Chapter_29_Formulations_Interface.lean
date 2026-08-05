@@ -28,6 +28,10 @@ namespace Chapter29
 #check MaximumFlowLP.isFeasible_iff
 #check MaximumFlowLP.isOptimal_iff
 
+example {V : Type*} [Fintype V] (N : FlowNetwork V) (f : V → V → ℝ) :
+    MaximumFlowLP.objective N f =
+      FlowNetwork.outflow f N.source - FlowNetwork.inflow f N.source := rfl
+
 #check CostedFlowNetwork
 #check MinimumCostFlowLP.IsFeasible
 #check MinimumCostFlowLP.objective
