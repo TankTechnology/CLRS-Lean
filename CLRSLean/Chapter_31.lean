@@ -36,6 +36,14 @@ primality test, and the Pollard's-rho factorization heuristic.
   {lit}`CLRS.Chapter31.gcd_is_smallest_positive_linear_combination`
   (Theorem 31.2), the Corollary 31.3/31.4 facts, and
   {lit}`CLRS.Chapter31.extendedEuclid` + `extendedEuclid_spec`.
+* **Running time (Lamé / Fibonacci)**: {lit}`CLRS.Chapter31.euclidDivisions`
+  counts the recursive calls of `EUCLID`;
+  {lit}`CLRS.Chapter31.fib_le_of_euclidDivisions` (Lemma 31.10) gives
+  `a ≥ F_{k+2}`, `b ≥ F_{k+1}` for `k` calls;
+  {lit}`CLRS.Chapter31.euclidDivisions_lt` (Theorem 31.11, Lamé) bounds the
+  call count by `b < F_{k+1}`; and
+  {lit}`CLRS.Chapter31.euclidDivisions_le_two_log` (Corollary 31.12) is the
+  `O(log b)` bound.
 
 ### 31.3 Modular Arithmetic
 
@@ -82,7 +90,6 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 ## Deferred Work
 
-* 31.2 running-time (Lamé / Fibonacci) analysis of EUCLID.
 * 31.8 Carmichael numbers and the Miller-Rabin test.
 * 31.9 the full Pollard's-rho algorithm and its birthday-paradox analysis.
 -/
