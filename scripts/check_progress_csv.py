@@ -40,6 +40,16 @@ STATUS_ORDER = [
     "expository",
 ]
 
+MILESTONE_LAST_CHAPTER = 29
+MILESTONE_COMPLETE_STATUSES = frozenset(
+    {
+        "main-proof-complete",
+        "main-proof-complete-for-correctness",
+        "selected-section-complete",
+        "expository",
+    }
+)
+
 # Historical import-compatibility names whose numeric suffix is not an
 # advertised textbook-section range.
 ADVERTISED_SECTION_OVERRIDES = {
@@ -181,12 +191,70 @@ def chapter_word(count: int) -> str:
     return "chapter" if count == 1 else "chapters"
 
 
+def completed_prefix(
+    rows: list[dict[str, str]], last_chapter: int = MILESTONE_LAST_CHAPTER
+) -> list[dict[str, str]]:
+    """Return a prefix only when every advertised milestone obligation is closed."""
+    prefix = [row for row in rows if int(row["chapter_no"]) <= last_chapter]
+    chapters = [int(row["chapter_no"]) for row in prefix]
+    expected = list(range(1, last_chapter + 1))
+    if chapters != expected:
+        raise ValueError(
+            f"Milestone rows must cover Chapters 1–{last_chapter}; found {chapters}"
+        )
+
+    noncomplete = [
+        row for row in prefix if row["repo_status"] not in MILESTONE_COMPLETE_STATUSES
+    ]
+    if noncomplete:
+        labels = ", ".join(
+            f"Chapter {row['chapter_no']}={row['repo_status']}" for row in noncomplete
+        )
+        raise ValueError(f"Cannot publish milestone with non-complete status: {labels}")
+    expository = [
+        row["chapter_no"] for row in prefix if row["repo_status"] == "expository"
+    ]
+    if expository != ["1"]:
+        raise ValueError(
+            "The Chapters 1–29 milestone requires Chapter 1 alone to be expository; "
+            f"found {expository}"
+        )
+
+    mismatched = [
+        row
+        for row in prefix
+        if int(row["tracked_key_theorems"])
+        != int(row["proved_tracked_theorems"])
+    ]
+    if mismatched:
+        chapter_list = ", ".join(row["chapter_no"] for row in mismatched)
+        raise ValueError(
+            "Cannot publish milestone while tracked theorem entries are not yet "
+            f"proved or counts are inconsistent in Chapters {chapter_list}"
+        )
+
+    missing = sum(int(row["missing_core_groups"]) for row in prefix)
+    if missing != 0:
+        raise ValueError(
+            f"Cannot publish milestone with {missing} missing core theorem groups"
+        )
+    return prefix
+
+
 def render_dashboard(rows: list[dict[str, str]]) -> str:
     status_counts = Counter(row["repo_status"] for row in rows)
     represented = sum(1 for row in rows if row["represented_sections"].lower() != "none")
     tracked = sum(int(row["tracked_key_theorems"]) for row in rows)
     proved = sum(int(row["proved_tracked_theorems"]) for row in rows)
     missing = sum(int(row["missing_core_groups"]) for row in rows)
+    milestone_rows = completed_prefix(rows)
+    milestone_counts = Counter(row["repo_status"] for row in milestone_rows)
+    milestone_proved = sum(
+        int(row["proved_tracked_theorems"]) for row in milestone_rows
+    )
+    milestone_missing = sum(
+        int(row["missing_core_groups"]) for row in milestone_rows
+    )
 
     lines: list[str] = [
         "/-!",
@@ -208,6 +276,22 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
         "Tracked theorem entries count the public theorem groups currently represented",
         "in Lean.  Remaining core theorem groups count textbook-facing targets that",
         "are not yet represented or not yet complete.",
+        "",
+        "## Chapters 1--29 Milestone",
+        "",
+        "The advertised proof scopes of Chapters 1--29 are complete:",
+        "",
+        f"* {milestone_proved:,} tracked theorem entries are kernel-checked.",
+        f"* {milestone_missing} core theorem groups remain inside those scopes.",
+        f"* {milestone_counts['main-proof-complete']} chapters are "
+        f"{lit('main-proof-complete')}, "
+        f"{milestone_counts['main-proof-complete-for-correctness']} are "
+        f"{lit('main-proof-complete-for-correctness')}, "
+        f"{milestone_counts['selected-section-complete']} are "
+        f"{lit('selected-section-complete')}, and Chapter 1 is {lit('expository')}.",
+        "",
+        "This milestone does not mean every textbook section, exercise, chapter-end",
+        "Problem, pointer/RAM refinement, or floating-point implementation is present.",
         "",
         "## Status Counts",
         "",
@@ -269,12 +353,35 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
+def check_dashboard_freshness(
+    rows: list[dict[str, str]], dashboard_path: Path = DASHBOARD_PATH
+) -> None:
+    """Reject a generated dashboard that no longer matches the CSV."""
+    expected = render_dashboard(rows)
+    actual = (
+        dashboard_path.read_text(encoding="utf-8")
+        if dashboard_path.is_file()
+        else ""
+    )
+    if actual != expected:
+        raise ValueError(
+            f"{dashboard_path} is out of date; run "
+            "`uv run python scripts/check_progress_csv.py --write-dashboard`"
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+    output_mode = parser.add_mutually_exclusive_group()
+    output_mode.add_argument(
         "--write-dashboard",
         action="store_true",
         help="regenerate CLRSLean/Progress.lean from the CSV after validation",
+    )
+    output_mode.add_argument(
+        "--check-dashboard",
+        action="store_true",
+        help="exit nonzero when CLRSLean/Progress.lean is stale",
     )
     args = parser.parse_args()
 
@@ -283,12 +390,16 @@ def main() -> int:
 
     if args.write_dashboard:
         DASHBOARD_PATH.write_text(render_dashboard(rows), encoding="utf-8")
+    elif args.check_dashboard:
+        check_dashboard_freshness(rows)
 
     tracked = sum(int(row["tracked_key_theorems"]) for row in rows)
     proved = sum(int(row["proved_tracked_theorems"]) for row in rows)
     print(f"progress CSV OK: {len(rows)} chapters, {tracked} tracked theorem entries, {proved} proved")
     if args.write_dashboard:
         print(f"wrote {DASHBOARD_PATH.relative_to(ROOT)}")
+    elif args.check_dashboard:
+        print(f"{DASHBOARD_PATH.relative_to(ROOT)} is up to date")
     return 0
 
 

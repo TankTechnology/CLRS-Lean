@@ -76,34 +76,25 @@ There are four useful reading routes:
 The **Reusable CLRS proof patterns** page collects the small cross-chapter APIs
 for boundary shifts, exchange certificates, fibers, and interval geometry.
 
-## Current Milestones
+## Chapters 1--29 Milestone
 
-The strongest completed boundaries on the current main branch are:
+Every chapter from 1 through 29 has completed its advertised proof scope on
+the current {lit}`main` branch.  This prefix milestone includes:
 
-* Chapter 2 sorting correctness and selected cost/recurrence results.
-* Chapter 6 heap, heapify, build-heap, heapsort, and priority-queue correctness
-  for the represented array and functional models.
-* Chapter 8 correctness for the represented counting-sort, radix-sort, and
-  bucket-sort models.
-* Chapter 16 activity-selection and Huffman optimality for the represented
-  finite models.
-* Chapter 19 persistent Fibonacci-heap correctness, including all core
-  operations and the standard potential-based amortized bounds.
-* Chapter 22 main functional correctness, formally sealed for BFS shortest
-  paths and predecessor trees, DFS theory and edge classification, Kahn and DFS
-  topological sorting, and Kosaraju SCC decomposition.
+* complete main theorem stacks for Chapters 2--4, 6, 9, 16, 21, and 26--29;
+* complete correctness stacks for Chapters 8, 11--14, 18--20, 22--23, and 25;
+* complete represented sections for Chapters 5, 7, 10, 15, 17, and 24;
+* the expository Chapter 1 guide.
 
-Several other chapters contain substantial theorem stacks while remaining
-honestly partial.  In particular, Chapters 3 and 4 contain the asymptotic and
-Master-theorem infrastructure; Chapters 7, 9, and 11 expose the remaining
-probability-model gap; Chapters 12-15 cover functional tree and dynamic-
-programming interfaces; Chapters 17, 18, and 20 cover advanced data structures
-at mathematical or size-level specifications; Chapter 21 supplies disjoint-set
-semantics, executable union-find correctness, and its Kruskal bridge; and
-Chapter 23 contains the current MST cut/exchange/Kruskal layer.
+The newest closed chapters are Chapter 27's pure-functional parallel algorithm
+stack, Chapter 28's matrix operations through Cholesky and least squares, and
+Chapter 29's initialized terminating SIMPLEX, strong duality, and complementary
+slackness.
 
-Use the generated dashboard for counts.  Use chapter pages and the proof map
-for exact theorem boundaries.
+This milestone is not a claim that every textbook section, exercise,
+chapter-end Problem, pointer/RAM refinement, or numerical implementation has
+been formalized.  Use the generated dashboard for live counts and status rows;
+use chapter pages and the proof map for exact theorem boundaries.
 
 ## Status Meaning
 

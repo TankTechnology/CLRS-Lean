@@ -18,6 +18,17 @@ Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
 are not yet represented or not yet complete.
 
+## Chapters 1--29 Milestone
+
+The advertised proof scopes of Chapters 1--29 are complete:
+
+* 1,705 tracked theorem entries are kernel-checked.
+* 0 core theorem groups remain inside those scopes.
+* 11 chapters are {lit}`main-proof-complete`, 11 are {lit}`main-proof-complete-for-correctness`, 6 are {lit}`selected-section-complete`, and Chapter 1 is {lit}`expository`.
+
+This milestone does not mean every textbook section, exercise, chapter-end
+Problem, pointer/RAM refinement, or floating-point implementation is present.
+
 ## Status Counts
 
 * {lit}`main-proof-complete`: 11 chapters.

@@ -43,9 +43,10 @@ Main results:
   random treap has logarithmic expected depth.
 
 Status: prototype.  The probabilistic core — the ancestor-probability counting
-and the harmonic bound — is complete.  The expected **height** (the maximum of
-the depths over all keys, not one fixed key) remains future work, as does
-registering the module in {lit}`literate.toml`.
+and the harmonic bound — is complete.  The next module, {lit}`TreapHeight`,
+uses exponential depth tails and a union bound to prove the expected
+**height** result {lit}`E[height] ≤ 30 · H_n`.  Both remain extension work
+outside the textbook coverage ledger.
 -/
 
 namespace CLRS.Extensions
