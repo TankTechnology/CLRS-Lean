@@ -6,6 +6,7 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort
 
 /-!
 # 27.2–27.4. Multithreaded Algorithms (Compatibility)
@@ -37,13 +38,16 @@ has linear work.  The theorem {name}`CLRS.Chapter27.pMerge_span_upper` proves
 the universal quadratic-logarithmic span upper bound, and sorted interleaved
 power-of-two inputs attain the matching bound through
 {name}`CLRS.Chapter27.pMerge_interleaved_span_lower`.
+{name}`CLRS.Chapter27.pMergeSort` executes the textbook midpoint split,
+parallel recursive sorting, and sequential P-MERGE phase;
+{name}`CLRS.Chapter27.pMergeSort_correct` proves sortedness, permutation, and
+exact output length for every input.
 
 ## Deferred work
 
-P-MERGE's actual split accounting, three-quarter child bound, exact one-step
-execution costs, global pointwise linear work, and matching quadratic-log span
-bounds are complete.  The complete executable P-MERGE-SORT implementation
-remains deferred.
+P-MERGE-SORT's executable algorithm and value correctness are complete.  Its
+execution work/span bounds and links to the recurrence-level P-MERGE-SORT
+models remain deferred.
 
 ## Implementation details
 
@@ -79,6 +83,11 @@ remains deferred.
 * [P-MERGE pointwise span bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds/)
 * [P-MERGE witness lists](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists/)
 * [P-MERGE interleaved lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound/)
+* [P-MERGE-SORT](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/)
+* [P-MERGE-SORT definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Definitions/)
+* [P-MERGE-SORT correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/)
+* [P-MERGE-SORT specification](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Spec/)
+* [P-MERGE-SORT strong-induction proof](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Main/)
 * [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
 * [Binary lower-bound definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions/)
 * [Binary lower-bound correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness/)

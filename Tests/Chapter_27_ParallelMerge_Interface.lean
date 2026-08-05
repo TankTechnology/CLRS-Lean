@@ -24,6 +24,44 @@ namespace CLRS.Chapter27
 #check pMerge_work_upper
 #check pMerge_span_upper
 #check pMerge_interleaved_span_lower
+#check pMergeSort
+#check pMergeSort_value_sorted
+#check pMergeSort_value_perm
+#check pMergeSort_value_length
+#check pMergeSort_correct
+
+/-! Executable P-MERGE-SORT covers both base branches, a reversed odd-length
+input, and duplicate-heavy data. -/
+
+example : (pMergeSort ([] : List ℕ)).value = [] := by native_decide
+example : (pMergeSort ([] : List ℕ)).work = 0 := by native_decide
+example : (pMergeSort ([] : List ℕ)).span = 0 := by native_decide
+
+example : (pMergeSort [7]).value = [7] := by native_decide
+example : (pMergeSort [7]).work = 1 := by native_decide
+example : (pMergeSort [7]).span = 1 := by native_decide
+
+example : (pMergeSort [5, 1, 4, 2, 3]).value = [1, 2, 3, 4, 5] := by
+  native_decide
+
+example : (pMergeSort [3, 1, 2, 1, 3, 2, 1]).value = [1, 1, 1, 2, 2, 3, 3] := by
+  native_decide
+
+/-! The reader-facing theorem, rather than direct evaluation alone, exposes
+sortedness, multiset preservation, and exact output length. -/
+
+example : PMergeSortSpec [5, 1, 4, 2, 3]
+    (pMergeSort [5, 1, 4, 2, 3]).value := by
+  exact pMergeSort_correct [5, 1, 4, 2, 3]
+
+example : (pMergeSort [5, 1, 4, 2, 3]).value.Pairwise (· ≤ ·) := by
+  exact pMergeSort_value_sorted [5, 1, 4, 2, 3]
+
+example : (pMergeSort [3, 1, 2, 1]).value.Perm [3, 1, 2, 1] := by
+  exact pMergeSort_value_perm [3, 1, 2, 1]
+
+example : (pMergeSort [5, 1, 4, 2, 3]).value.length = 5 := by
+  simpa using pMergeSort_value_length [5, 1, 4, 2, 3]
 
 /-! The executable P-MERGE boundary covers empty inputs, an empty secondary
 input, interleaving inputs, duplicates, and normalization by swapping the
@@ -261,5 +299,9 @@ example : (binaryLowerBound [1, 2, 2, 2, 3] 2).span ≤ Nat.log 2 5 + 1 := by
 #print axioms pMerge_work_upper
 #print axioms pMerge_span_upper
 #print axioms pMerge_interleaved_span_lower
+#print axioms pMergeSort_correct
+#print axioms pMergeSort_value_sorted
+#print axioms pMergeSort_value_perm
+#print axioms pMergeSort_value_length
 
 end CLRS.Chapter27
