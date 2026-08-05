@@ -43,6 +43,16 @@ example {m n : ℕ} {P : StandardLP m n} {x : Fin n → ℝ} :
 #check StandardLP.dotProduct_mono_left_of_nonnegative
 #check StandardLP.transpose_mulVec_dotProduct
 #check StandardLP.weak_duality
+#check StandardLP.IsOptimal
+#check StandardLP.IsDualOptimal
+#check StandardLP.IsUnbounded
+#check StandardLP.primalSlack
+#check StandardLP.dualSlack
+#check StandardLP.ComplementarySlackness
+#check StandardLP.dualityGap_eq_slackSums
+#check StandardLP.complementarySlackness_iff_objective_eq
+#check StandardLP.optimal_of_complementarySlackness
+#check StandardLP.dualOptimal_of_complementarySlackness
 
 example {m n : ℕ} {P : StandardLP m n}
     {x : Fin n → ℝ} {y : Fin m → ℝ}
@@ -51,6 +61,7 @@ example {m n : ℕ} {P : StandardLP m n}
   P.weak_duality hx hy
 
 #print axioms StandardLP.weak_duality
+#print axioms StandardLP.complementarySlackness_iff_objective_eq
 
 end Chapter29
 end CLRS
