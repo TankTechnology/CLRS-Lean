@@ -11,6 +11,7 @@ When the CSV changes, regenerate this page with
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 30.
 <<<<<<< HEAD
+<<<<<<< HEAD
 * Tracked reader-facing theorem entries: 1707.
 * Proved tracked theorem entries: 1707.
 ||||||| parent of 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
@@ -21,6 +22,13 @@ When the CSV changes, regenerate this page with
 * Tracked reader-facing theorem entries: 1680.
 * Proved tracked theorem entries: 1680.
 >>>>>>> 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
+||||||| parent of 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
+* Tracked reader-facing theorem entries: 1680.
+* Proved tracked theorem entries: 1680.
+=======
+* Tracked reader-facing theorem entries: 1681.
+* Proved tracked theorem entries: 1681.
+>>>>>>> 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
 * Remaining core theorem groups: 7.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -75,8 +83,14 @@ Ch  Chapter                                                     Status          
 28  28. Matrix Operations                                       partial                              28.1;28.2;28.3                      3        1
 =======
 27  27. Multithreaded Algorithms                                partial                              27.1;27.2;27.3;27.4                66        1
+<<<<<<< HEAD
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      4        0
 >>>>>>> 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
+||||||| parent of 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
+28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      4        0
+=======
+28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      5        0
+>>>>>>> 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
 31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1

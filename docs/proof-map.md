@@ -4024,6 +4024,14 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     induction hypothesis to the (nonsingular) Schur complement, and assemble the
     block factors `L = [[1,0],[P₁·m, L₁]]`, `U = [[α,v],[0,U₁]]` with
     `σ = swap 0 p · diag(1, σ₁)`.
+  - `lup_solve_correct` (CLRS §28.1, Algorithm LUP-SOLVE): if
+    `σ.permMatrix · A = L · U` and the substitution equations `L·y = P·b`,
+    `U·x = y` hold, then `A·x = b`.  The proof composes the two equations
+    through the factorization and cancels the permutation matrix (`mulVec` of a
+    permutation matrix is `v ↦ v∘σ`).
+  - `exists_solution_of_nonsingular`: a nonsingular matrix over a field solves
+    every linear system (`∃ x, A·x = b`), via `Matrix.isUnit_iff_isUnit_det`
+    and `Matrix.mulVec_surjective_iff_isUnit`.
 ### Section 28.2 - Inverting Matrices
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`

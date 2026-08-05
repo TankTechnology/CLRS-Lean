@@ -16,7 +16,8 @@ determinants, and matrix inversion.
   {lit}`CLRS.Chapter28.IsUpperTriangular`,
   {lit}`CLRS.Chapter28.IsLowerTriangular`,
   {lit}`CLRS.Chapter28.IsUnitLowerTriangular`,
-  and {lit}`CLRS.Chapter28.exists_lup_decomposition`.
+  {lit}`CLRS.Chapter28.exists_lup_decomposition`,
+  and {lit}`CLRS.Chapter28.lup_solve_correct`.
 * 28.2 Inverting matrices.
   Main declaration: {lit}`CLRS.Chapter28.inv_eq_lup`.
 * 28.3 Symmetric positive-definite matrices and least-squares approximation.

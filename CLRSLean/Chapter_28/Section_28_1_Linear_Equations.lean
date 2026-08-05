@@ -23,6 +23,13 @@ Main results:
   {lit}`elimination_mul_col_zero`), the unit-triangular determinant
   ({lit}`det_unitLowerTriangular`), and the permutation-matrix bookkeeping
   ({lit}`fromBlocks_one_zero_zero_permMatrix` / {lit}`conjPermMatrix`).
+- Theorem {lit}`lup_solve_correct` (CLRS §28.1, Algorithm LUP-SOLVE): if
+  {lit}`σ.permMatrix · A = L · U` is an LUP decomposition and the substitution
+  equations {lit}`L·y = σ.permMatrix·b` and {lit}`U·x = y` hold, then
+  {lit}`A·x = b` — forward then backward substitution through the factors
+  solves the system.
+- Theorem {lit}`exists_solution_of_nonsingular`: a nonsingular matrix over a
+  field solves every linear system ({lit}`∃ x, A·x = b`).
 
 Notation conventions:
 
@@ -575,6 +582,42 @@ theorem exists_lup_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : 
             exact hji
           exact Fin.succ_lt_succ_iff.mp hlt
       exact ⟨σ₀, L, U, hL, hU, hEq⟩
+
+/--
+**LUP-SOLVE correctness (CLRS §28.1, Algorithm LUP-SOLVE).**  If
+`σ.permMatrix · A = L · U` is an LUP decomposition and `y`, `x` are obtained by
+forward and backward substitution (`L·y = σ.permMatrix·b`, `U·x = y`), then `x`
+solves the linear system `A·x = b`.
+
+The proof composes the two substitution equations through the factorization:
+`σ.permMatrix·(A·x) = (σ.permMatrix·A)·x = (L·U)·x = L·(U·x) = L·y =
+σ.permMatrix·b`, then cancels the permutation matrix `σ.permMatrix` (whose
+`mulVec` is the bijection `v ↦ v∘σ`).
+-/
+theorem lup_solve_correct {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F} {σ : Equiv.Perm (Fin n)}
+    (hLUP : σ.permMatrix F * A = L * U) (b x y : Fin n → F)
+    (hLy : L *ᵥ y = σ.permMatrix F *ᵥ b) (hUx : U *ᵥ x = y) :
+    A *ᵥ x = b := by
+  have hPAx : σ.permMatrix F *ᵥ (A *ᵥ x) = σ.permMatrix F *ᵥ b := by
+    rw [Matrix.mulVec_mulVec]
+    rw [hLUP]
+    rw [← Matrix.mulVec_mulVec]
+    rw [hUx]
+    exact hLy
+  have hcomp : (A *ᵥ x) ∘ σ = b ∘ σ := by
+    rw [Matrix.permMatrix_mulVec, Matrix.permMatrix_mulVec] at hPAx
+    exact hPAx
+  have h := congrArg (fun f : Fin n → F => f ∘ σ.symm) hcomp
+  simpa [Function.comp_assoc] using h
+
+/-- A nonsingular matrix over a field solves every linear system: if
+`A.det ≠ 0` then for every right-hand side `b` there is `x` with `A·x = b`. -/
+theorem exists_solution_of_nonsingular {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : A.det ≠ 0)
+    (b : Fin n → F) : ∃ x : Fin n → F, A *ᵥ x = b := by
+  have hunit : IsUnit A := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    exact isUnit_iff_ne_zero.mpr hA
+  exact Matrix.mulVec_surjective_iff_isUnit.2 hunit b
 
 end Chapter28
 
