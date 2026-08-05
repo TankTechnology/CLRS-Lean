@@ -3762,8 +3762,10 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     log-squared span.
   - `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
     `strassenWork`, and `strassenSpan` are recurrence-level cost models.  The
-    executable P-MERGE-SORT cost layer is connected to its recurrence model by
-    two-sided constant-factor links.
+    executable P-MERGE-SORT work is connected to its recurrence model by
+    two-sided constant-factor links.  Its span has an upper recurrence link;
+    the matching lower bound is established separately on the recursive
+    `worstMergeSortInput` family.
 - Proved executable matrix boundary:
   - `CLRS.Chapter27.Costed.pure`, `charge`, `map`, `seq`, `par`, `par4`, and
     `par8` form the value/work/span execution layer.

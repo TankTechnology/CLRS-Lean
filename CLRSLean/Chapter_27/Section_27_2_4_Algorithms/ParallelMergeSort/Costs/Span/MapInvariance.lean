@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Definitions
 
 /-!
 # CLRS Chapter 27.3 — Order-Embedding Cost Invariance
