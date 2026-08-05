@@ -3972,9 +3972,24 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Remaining Section 28.1 scope: executable forward/back substitution and
   LUP-SOLVE correctness (Theorem 28.2 / #124), plus the principal cubic work
   claim required by roadmap #77.
-- Remaining chapter scope: Sections 28.2 (matrix inversion) and 28.3
-  (symmetric positive-definite / least-squares approximation) are not
-  represented.
+- Section 28.2 has an initial algebraic bridge, but its algorithmic scope is
+  still partial.
+
+### Section 28.2 - Inverting Matrices
+
+- Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`
+- Status: `partial` (algebraic inversion identity only)
+- Proved:
+  - `permMatrix_inv`: `(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`.
+  - `permMatrix_mul_inv`: `(σ.permMatrix)⁻¹ * σ.permMatrix = 1`.
+  - `inv_eq_lup`: from an LUP factorization `σ.permMatrix · A = L · U`,
+    `A⁻¹ = U⁻¹ · L⁻¹ · σ.permMatrix`.
+- Boundary: `inv_eq_lup` is a useful identity, not CLRS Theorem 28.2.  The
+  latter is LUP-SOLVE correctness in Section 28.1 (#124).  Section 28.2 still
+  needs an executable matrix-inversion construction, left/right inverse
+  correctness, and the principal cubic work claim.
+- Remaining chapter scope: Section 28.3 (symmetric positive-definite matrices,
+  Cholesky decomposition, and least-squares approximation) is not represented.
 
 ## Chapter 32 - String Matching
 

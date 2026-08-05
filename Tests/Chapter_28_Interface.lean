@@ -20,6 +20,9 @@ namespace Chapter28
 #check det_unitLowerTriangular
 #check det_block_schur
 #check exists_lup_decomposition
+#check permMatrix_inv
+#check permMatrix_mul_inv
+#check inv_eq_lup
 
 example {F : Type} [Field F] {n : ℕ}
     (A : Matrix (Fin n) (Fin n) F) (hA : A.det ≠ 0) :
@@ -28,7 +31,14 @@ example {F : Type} [Field F] {n : ℕ}
         σ.permMatrix F * A = L * U :=
   exists_lup_decomposition A hA
 
+example {F : Type} [Field F] {n : ℕ}
+    {A L U : Matrix (Fin n) (Fin n) F} {σ : Equiv.Perm (Fin n)}
+    (hLUP : σ.permMatrix F * A = L * U) :
+    A⁻¹ = U⁻¹ * L⁻¹ * σ.permMatrix F :=
+  inv_eq_lup hLUP
+
 #print axioms exists_lup_decomposition
+#print axioms inv_eq_lup
 
 end Chapter28
 end CLRS

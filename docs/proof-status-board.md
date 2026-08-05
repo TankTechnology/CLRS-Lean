@@ -47,7 +47,7 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 28 | Theorem 28.1 proves LUP-decomposition existence for every nonsingular square matrix over a field | Add forward/back substitution, prove LUP-SOLVE correctness (#124), and represent the principal cubic work claim |
+| 28 | Theorem 28.1 proves LUP-decomposition existence; `inv_eq_lup` supplies the Section 28.2 algebraic inversion bridge | Add forward/back substitution, prove LUP-SOLVE correctness (#124), then executable matrix inversion and the principal cubic work claims |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main

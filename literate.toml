@@ -378,6 +378,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_28" = [
   "CLRSLean.Chapter_28.Section_28_1_Linear_Equations",
+  "CLRSLean.Chapter_28.Section_28_2_Inverting_Matrices",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -1107,6 +1108,9 @@ title = "Chapter 27 Extension — Parallel Strassen All-Input Bounds"
 
 [modules."CLRSLean.Chapter_28.Section_28_1_Linear_Equations"]
 title = "28.1. Solving Systems of Linear Equations"
+
+[modules."CLRSLean.Chapter_28.Section_28_2_Inverting_Matrices"]
+title = "28.2. Inverting Matrices"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
