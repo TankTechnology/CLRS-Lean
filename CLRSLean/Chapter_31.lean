@@ -84,6 +84,11 @@ primality test, and the Pollard's-rho factorization heuristic.
   passing the Fermat test for every coprime base
   ({lit}`CLRS.Chapter31.carmichael_fermatPseudoprime`);
   {lit}`CLRS.Chapter31.isCarmichael_561` exhibits the smallest one.
+* **Miller-Rabin**: {lit}`CLRS.Chapter31.strongTestParams` (the `2^s·d`
+  decomposition), {lit}`CLRS.Chapter31.strongPseudoprime` (STRONG-PSEUDOPRIME),
+  {lit}`CLRS.Chapter31.Witness`, and the executable
+  {lit}`CLRS.Chapter31.millerRabin` test.  (The correctness and error-bound
+  theorems remain deferred.)
 
 ### 31.9 Integer Factorization
 
@@ -94,7 +99,8 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 ## Deferred Work
 
-* 31.8 the Miller-Rabin test.
+* 31.8 Miller-Rabin correctness (primes never have a witness) and the
+  error bound (at most 1/4 of the bases are strong liars).
 * 31.9 the full Pollard's-rho algorithm and its birthday-paradox analysis.
 -/
 
