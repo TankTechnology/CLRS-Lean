@@ -1,0 +1,96 @@
+import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms
+import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions
+import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables
+import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence
+import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs
+import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow
+import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath
+import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow
+import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow
+import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Definitions
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Semantics
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.BasicSolution
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.InitialDictionary
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Definitions
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Algebra
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SumLemmas
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SemanticEquivalence
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Feasibility
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Objective
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.VariableOrder
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Entering
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Leaving
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Step
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Unboundedness
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalence
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Run
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Pivot
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Reachability
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Trace
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Coefficients
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.NoCycle
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Termination
+import CLRSLean.Chapter_29.Section_29_4_Duality
+import CLRSLean.Chapter_29.Section_29_4_Duality.Definitions
+import CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality
+import CLRSLean.Chapter_29.Section_29_4_Duality.Optimality
+import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlackness
+import CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate
+import CLRSLean.Chapter_29.Section_29_4_Duality.DictionaryBridge
+import CLRSLean.Chapter_29.Section_29_4_Duality.StrongDuality
+import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlacknessTheorem
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.ArtificialLP
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitialPivot
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseOne
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.LockVariable
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.RestoreObjective
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoStart
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoBridge
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitializedSimplex
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.DualProjection
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.GeneralStrongDuality
+
+/-!
+# Chapter 29 - Linear Programming
+
+Chapter 29 develops linear-programming representations, SIMPLEX, and duality.
+The represented main-text stack covers all five sections and connects the
+textbook formulations to a terminating, initialized SIMPLEX procedure and the
+duality theorems.
+
+## Represented sections
+
+* 29.1 Standard and slack forms: standard-form definitions and the
+  slack-variable feasibility bridge.
+* 29.2 Formulating problems as linear programs: shortest path, maximum flow,
+  minimum-cost flow, and multicommodity flow.
+* 29.3 The simplex algorithm: fixed-slot dictionaries with variable-label
+  exchange, basic solutions, the initial dictionary, the PIVOT formulas,
+  semantic equivalence, Bland entering/leaving selection, optimal and
+  unbounded exits, the textbook anti-cycling proof, and finite termination.
+* 29.4 Duality: weak and strong duality, terminal dual certificates, the
+  duality-gap identity, and complementary slackness.
+* 29.5 Initial basic feasible solution: the auxiliary LP, phase-I pivot and
+  feasibility criterion, objective restoration, phase II, and the certified
+  three-way initialized solver.
+
+## Completion boundary
+
+The main text is complete at the finite real-matrix and pure functional
+algorithm layer.  Low-level mutable tableau storage, floating-point numerical
+analysis, RAM constants, exercises, and chapter-end problems are optional
+refinements and do not reopen this proof boundary.
+-/
+
+namespace CLRS
+namespace Chapter29
+end Chapter29
+end CLRS
