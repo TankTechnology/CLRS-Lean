@@ -3645,7 +3645,14 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 27.1 - The Basics of Dynamic Multithreading
 
-- Lean source: `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean`
+- Lean sources:
+  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean`
+  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S1_ComputationDAG.lean`
+  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S2_ReadyExecution.lean`
+  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S3_GreedyAccounting.lean`
+  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S4_ExecutableScheduler.lean`
+  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean`
+- Interface test: `Tests/Chapter_27_Interface.lean`
 - Status: `proved` (for the represented model)
 - Model:
   - `CLRS.Chapter27.CompDAG` (computation DAG with forward/topologically
@@ -3683,56 +3690,250 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `CLRS.Chapter27.DAGSchedule.time_le_work_div_add_span`
     (completed executions, telescoping resource budgets, and the explicit-DAG
     form of CLRS Theorems 27.1/27.2)
+  - `CLRS.Chapter27.CompDAG.greedySchedule_final_work_eq_zero` and
+    `CLRS.Chapter27.CompDAG.greedySchedule_time_le_work_div_add_span`
+    (the total executable scheduler terminates with zero residual work and
+    satisfies the greedy-scheduling bound without an external completion
+    certificate)
   - `CLRS.Chapter27.SpawnTree.span_le_work` (T∞ ≤ T₁ on spawn trees)
   - `CLRS.Chapter27.parallelLoop_work` (exact work `n * w + (n - 1)`)
   - `CLRS.Chapter27.parallelLoop_span` (exact span `w + depth`)
   - `CLRS.Chapter27.parallelLoopDepth_pow` (`n ≤ 2 ^ depth`, the
     span-is-logarithmic direction)
-- Current gap: a matching `parallelLoopDepth n ≤ Nat.log 2 n + 1` upper bound
-  is future work.
+  - `CLRS.Chapter27.parallelLoopDepth_le_log`
+    (`parallelLoopDepth n ≤ Nat.log 2 n + 1` on every input)
+  - `CLRS.Chapter27.parallelLoop_span_le_log`
+    (all-input span bound `span ≤ w + Nat.log 2 n + 1`)
 
-### Section 27.2-27.4 - Multithreaded Algorithms
+### Section 27.2 - Multithreaded Matrix Multiplication
 
-- Lean source: `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
-- Status: `partial` (cost-recurrence analysis proved, executable refinements open)
-- Model: executable work/span recurrences `pMatMulWork`, `pMatMulSpan`,
-  `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
-  `strassenWork`, `strassenSpan`, each with an `*_unfold` recurrence lemma.
-- Proved theorems (power-of-two closed forms):
-  - `CLRS.Chapter27.pMatMulWork_pow_two` (`T₁(2ᵏ) + 4ᵏ = 2·8ᵏ`, work Θ(n³))
-    and `CLRS.Chapter27.pMatMulWork_le` (all-input `T₁(n) + n² ≤ 2n³`)
-  - `CLRS.Chapter27.pMatMulSpan_pow_two` (`T∞(2ᵏ) = k + 1`) and
-    `CLRS.Chapter27.pMatMulSpan_le` (all-input `T∞(n) ≤ ⌊log₂ n⌋ + 1`)
+- Lean sources:
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S1_CostModel.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean`
+    (shared legacy recurrence file containing the idealized P-MATMUL model)
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean`
+    (shared legacy all-input-bound file)
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/ExecutionEqualities.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds.lean`
+- Interface test: `Tests/Chapter_27_Matrix_Interface.lean`
+- Status: `proved` for executable P-ADD and race-free P-MATMUL correctness,
+  execution-attached cost equalities, and all-input work/span asymptotics.
+- Model:
+  - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
+    sequential composition and deterministic balanced `par4`/`par8` trees.
+  - `CLRS.Chapter04.SqMat R k` represents a `2^k × 2^k` square matrix.
+  - `pAddWork`, `pAddSpan`, `pMatMulExecWork`, and `pMatMulExecSpan` are the
+    recurrences proved equal to the costs carried by executable P-ADD and
+    P-MATMUL.
+  - The older `pMatMulWork`/`pMatMulSpan` pair is an **idealized recurrence**
+    with constant combine span.  Its logarithmic span result is not the span
+    carried by executable P-MATMUL, whose sequential P-ADD phase produces
+    log-squared span.
+- Proved executable matrix boundary:
+  - `CLRS.Chapter27.Costed.pure`, `charge`, `map`, `seq`, `par`, `par4`, and
+    `par8` form the value/work/span execution layer.
+  - `CLRS.Chapter27.pAdd` charges one work/span unit at scalar leaves, executes
+    four quadrant additions through deterministic balanced `Costed.par4`, and
+    reassembles the row-major quadrant tuple.
+  - `CLRS.Chapter27.pMatMul` runs eight recursive products in balanced
+    `Costed.par8`, constructs two fresh immutable temporary matrices, and then
+    applies P-ADD.  The functional temporaries rule out concurrent writes and
+    make the executable interpretation data-race free.
+  - `CLRS.Chapter27.pAdd_value` / `CLRS.Chapter27.pAdd_correct` prove ordinary
+    matrix addition; `CLRS.Chapter27.pMatMul_value` /
+    `CLRS.Chapter27.pMatMul_correct` prove ordinary matrix multiplication.
+    All four statements hold at every depth over any `Ring`.
+  - Interface examples confirm exact scalar P-ADD/P-MATMUL work/span `1/1`,
+    depth-one P-ADD work/span `7/3`, and depth-one P-MATMUL work/span `22/7`,
+    together with concrete `2 × 2` values.
+- Proved execution-cost connections and witnesses:
+  - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
+    the work and span carried by P-ADD with `pAddWork (2^k)` and
+    `pAddSpan (2^k)` for every depth-indexed input pair.
+  - `CLRS.Chapter27.pMatMul_work_eq` and `CLRS.Chapter27.pMatMul_span_eq`
+    identify executable P-MATMUL with `pMatMulExecWork (2^k)` and
+    `pMatMulExecSpan (2^k)` for every input pair.
+  - The exact power-of-two formulas and two-sided power bounds in
+    `Costs/PowerBounds.lean` provide explicit lower and upper recurrence
+    witnesses.  Monotonicity and adjacent-power sandwiches then prove
+    `pAddWork_allInput_bigTheta`, `pAddSpan_allInput_bigTheta`,
+    `pMatMulExecWork_allInput_bigTheta`, and
+    `pMatMulExecSpan_allInput_bigTheta`: Θ(n²), Θ(log n), Θ(n³), and
+    Θ(log² n), respectively.
+- Idealized compatibility recurrence:
+  - `CLRS.Chapter27.pMatMulWork_pow_two` and `pMatMulWork_le` give the
+    constant-combine model's cubic work bounds.
+  - `CLRS.Chapter27.pMatMulSpan_pow_two` and `pMatMulSpan_le` give its
+    logarithmic span.  This is not an executable P-MATMUL span claim: the
+    actual sequential P-ADD combine is exactly why `pMatMulExecSpan` is
+    log-squared.
+
+### Section 27.3 - Multithreaded Merge Sort
+
+- Lean sources:
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Main.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Step.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/RecurrenceLinks.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/WitnessInput.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/LowerBound.lean`
+- Interface test: `Tests/Chapter_27_ParallelMerge_Interface.lean`
+- Status: `proved` for executable P-MERGE and P-MERGE-SORT value correctness,
+  exact step costs, execution-to-recurrence links, universal upper bounds, and
+  explicit matching span-witness families.
+- Model: `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, and `pMergeSortSpan`
+  are recurrence-level costs.  Executable merge sort has two-sided work links
+  to `pMergeSortWork` and an upper span link to `pMergeSortSpan`; its matching
+  lower span bound is proved separately on `worstMergeSortInput`.
+- Proved executable P-MERGE boundary:
+  - `CLRS.Chapter27.pMerge` normalizes the longer input, chooses its midpoint,
+    partitions the shorter input with duplicate-sensitive binary lower bound,
+    runs the lower and upper recursive merges through `Costed.par`, and joins
+    them around the pivot.
+  - `CLRS.Chapter27.PMergeSpec` bundles sortedness, permutation of `xs ++ ys`,
+    and exact output length.
+  - `CLRS.Chapter27.pMerge_correct` proves that specification for all sorted
+    inputs by strong induction on total length; `pMerge_value_sorted`,
+    `pMerge_value_perm`, and `pMerge_value_length` expose its projections.
+  - The boundary proof handles duplicates by using the lower-bound theorem's
+    strict-left/nonstrict-right partition and handles normalization swaps by an
+    explicit block permutation.
+  - `CLRS.Chapter27.pMerge_childSizes_add_one` proves the children partition
+    every element except the pivot, while
+    `CLRS.Chapter27.pMerge_childSize_le_threeQuarters` proves both actual
+    children have size at most `n - n / 4`, including totals below four.
+  - `CLRS.Chapter27.pMerge_work_step_eq` and
+    `CLRS.Chapter27.pMerge_span_step_eq` expose exact nonempty-call costs:
+    binary search plus the two children, one fork/join, and one pivot placement.
+    The corresponding `*_step_le` theorems bound search by `log₂ n + 1`.
+  - `CLRS.Chapter27.pMerge_work_lower` proves the total input length is at most
+    executable work plus one by counting the pivot removed at each recursive
+    node.
+  - `CLRS.Chapter27.pMerge_work_upper` proves the pointwise bound
+    `work ≤ 64 * (total + 1)`.  Its strong induction establishes the stronger
+    potential invariant `work + 8 * log₂(total + 1) ≤ 64 * total`; the actual
+    three-quarter child bound supplies the logarithmic credit that pays for
+    every node's binary search.
+  - `CLRS.Chapter27.pMerge_span_upper` proves the universal pointwise bound
+    `span ≤ 64 * (log₂(total) + 1)^2`.  The monotone envelope recurs on the
+    actual `n - n / 4` child bound.  Its solution unfolds three shrink levels:
+    two levels do not always lower `Nat.log` (for example near 31), whereas
+    three place the child below the current highest power of two above the
+    finite kernel.
+  - `CLRS.Chapter27.evenKeys` and `CLRS.Chapter27.oddKeys` are sorted
+    interleaved witness lists.  Their lower P-MERGE child is the same family at
+    half size.  The binary-search path satisfies
+    `log₂(length + 1) ≤ span`; on the power-of-two witness this gives search
+    span at least `k+1`, yielding the recurrence
+    `2*S(k+1) ≥ 2*S(k) + (k+1) + 4` and the public matching witness
+    `CLRS.Chapter27.pMerge_interleaved_span_lower`:
+    `(k+1)^2 ≤ 8 * span` on inputs of size `2^k` each.
+- Proved executable P-MERGE-SORT boundary:
+  - `CLRS.Chapter27.pMergeSort` returns length-zero/one inputs directly and,
+    for every larger list, splits at `length / 2`, runs both recursive sorts
+    through `Costed.par`, and invokes executable P-MERGE sequentially.
+  - `CLRS.Chapter27.PMergeSortSpec` bundles sortedness, permutation of the
+    original input, and exact output length.
+  - `CLRS.Chapter27.pMergeSort_correct` proves this specification for every
+    input by strong induction on length.  The base proof derives sortedness
+    solely from `length ≤ 1`; the recursive proof composes the two child
+    specifications with `pMerge_correct` and reconstructs the input using
+    `List.take_append_drop`.
+  - `pMergeSort_value_sorted`, `pMergeSort_value_perm`, and
+    `pMergeSort_value_length` expose the three reader-facing projections.
+  - `CLRS.Chapter27.pMergeSort_work_step_eq` and
+    `CLRS.Chapter27.pMergeSort_span_step_eq` expose the exact larger-input
+    costs: parallel child sorts, one fork/join, and the sequential P-MERGE.
+  - `CLRS.Chapter27.ParallelMergeSort.Costs.recurrenceWork_le_execution` and
+    `CLRS.Chapter27.ParallelMergeSort.Costs.executionWork_le_recurrence`
+    sandwich actual work between `pMergeSortWork` and a fixed multiple of it;
+    the upper link uses P-MERGE's stronger logarithmic-potential invariant to
+    absorb every fork charge.  The span comparison is internal to the public
+    `pMergeSort_span_upper` proof and connects execution to `pMergeSortSpan`.
+  - `CLRS.Chapter27.pMergeSort_work_lower` and
+    `CLRS.Chapter27.pMergeSort_work_upper` prove all-input executable work is
+    Θ(n log n), with explicit natural-number constants.
+  - `CLRS.Chapter27.pMergeSort_span_upper` proves every execution has span at
+    most `256 * (log₂(length) + 1)^3`.
+  - `CLRS.Chapter27.worstMergeSortInput` recursively interleaves order-embedded
+    copies of its preceding level and has exact length `2^k`.  Order-preserving
+    map invariance carries the recursive critical path through the embedding;
+    the interleaved P-MERGE witness contributes a quadratic term at each level.
+    Consequently `CLRS.Chapter27.pMergeSort_worstFamily_span_lower` proves
+    `(k+1)^3 ≤ 64 * span`, matching the cubic-log upper bound.
+  - Focused executable examples cover empty and singleton costs, an odd
+    reversed list, duplicate-heavy data, and small witness-family instances.
+- Proved recurrence results (power-of-two closed forms):
   - `CLRS.Chapter27.pMergeWork_pow_two` (`T₁(2ᵏ) + (k+3) = 4·2ᵏ`, work Θ(n))
   - `CLRS.Chapter27.pMergeSpan_pow_two` (`2·T∞(2ᵏ) = (k+1)(k+2)`, span Θ(log² n))
   - `CLRS.Chapter27.pMergeSortWork_pow_two` (`T₁(2ᵏ) = 2ᵏ·(k+1)`, work
     Θ(n log n))
   - `CLRS.Chapter27.pMergeSortSpan_pow_two`
     (`6·T∞(2ᵏ) = 6 + k·(k² + 6k + 11)`, span Θ(log³ n))
-  - `CLRS.Chapter27.strassenWork_pow_two` (`3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`, work
-    Θ(n^(log₂ 7)))
-  - `CLRS.Chapter27.strassenSpan_pow_two` (`T∞(2ᵏ) = k + 1`, span Θ(log n))
 - Proved monotonicity and adjacent-power transfer interface:
   - `CLRS.Chapter27.pMergeWork_monotone`,
     `CLRS.Chapter27.pMergeSpan_monotone`,
-    `CLRS.Chapter27.pMergeSortWork_monotone`,
-    `CLRS.Chapter27.pMergeSortSpan_monotone`,
-    `CLRS.Chapter27.strassenWork_monotone`, and
-    `CLRS.Chapter27.strassenSpan_monotone`
-  - the corresponding six `*_power_sandwich` theorems, placing every positive
+    `CLRS.Chapter27.pMergeSortWork_monotone`, and
+    `CLRS.Chapter27.pMergeSortSpan_monotone`
+  - the corresponding four `*_power_sandwich` theorems, placing every positive
     input between its adjacent power-of-two costs
 - Proved all-input asymptotic theorems:
   - `CLRS.Chapter27.pMergeWork_allInput_bigTheta`: Θ(n)
   - `CLRS.Chapter27.pMergeSpan_allInput_bigTheta`: Θ(log² n)
   - `CLRS.Chapter27.pMergeSortWork_allInput_bigTheta`: Θ(n log n)
   - `CLRS.Chapter27.pMergeSortSpan_allInput_bigTheta`: Θ(log³ n)
-  - `CLRS.Chapter27.strassenWork_allInput_bigTheta`: Θ(n^(log₂ 7))
-  - `CLRS.Chapter27.strassenSpan_allInput_bigTheta`: Θ(log n)
 - Proof pattern: prove each natural-valued recurrence monotone, sandwich an
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
-- Current gap: executable P-MERGE and P-MERGE-SORT implementations with
-  correctness/refinement links to these cost recurrences.
+
+### Parallel Strassen Compatibility Extension
+
+- Lean sources:
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Monotonicity.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds.lean`
+- Status: `proved` as a recurrence-only extension.  The legacy names remain
+  available from `import CLRSLean.Chapter_27`, but this is not a Chapter 27
+  main-text Section 27.4 and it has no executable matrix-value claim.
+- Upper/lower witnesses and main theorems:
+  - `strassenWork_pow_two` and `strassenSpan_pow_two` are exact power-of-two
+    witnesses for Θ(n^(log₂ 7)) work and Θ(log n) span.
+  - `strassenWork_monotone`, `strassenSpan_monotone`, and the corresponding
+    `*_power_sandwich` theorems provide adjacent-power lower/upper witnesses.
+  - `strassenWork_allInput_bigTheta` and `strassenSpan_allInput_bigTheta`
+    package the all-input asymptotic conclusions.
+
+- Completion boundary: the represented Chapter 27 main-text core has no open
+  proof group.  The historical `Section_27_2_4_Algorithms` name is retained
+  only for import compatibility; the main text ends at Section 27.3.  Mutable
+  arrays, RAM-level implementation/allocation costs, exercises, and chapter-end
+  problems are outside the sealed pure-functional boundary.  The separately
+  labeled Strassen extension is not a remaining Chapter 27 obligation.
 
 ## Chapter 32 - String Matching
 

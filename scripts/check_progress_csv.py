@@ -40,6 +40,12 @@ STATUS_ORDER = [
     "expository",
 ]
 
+# Historical import-compatibility names whose numeric suffix is not an
+# advertised textbook-section range.
+ADVERTISED_SECTION_OVERRIDES = {
+    "Section_27_2_4_Algorithms.lean": {"27.2", "27.3"},
+}
+
 
 def load_rows() -> list[dict[str, str]]:
     with CSV_PATH.open(newline="", encoding="utf-8") as handle:
@@ -59,7 +65,10 @@ def require(condition: bool, message: str) -> None:
 
 
 def sections_from_filename(filename: str) -> set[str]:
-    """Return the textbook section(s) encoded by a section-module filename."""
+    """Return the advertised textbook sections for a section-module filename."""
+    if filename in ADVERTISED_SECTION_OVERRIDES:
+        return ADVERTISED_SECTION_OVERRIDES[filename].copy()
+
     match = re.match(r"Section_(\d+)_(\d+)(?:_(\d+))?_", filename)
     require(match is not None, f"Unexpected section filename: {filename}")
     chapter = int(match.group(1))

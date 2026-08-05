@@ -80,6 +80,16 @@ the detailed maintainer ledger.
   equivalence, executable residual BFS and Edmonds-Karp, the {lit}`O(VE²)`
   augmentation bound, and maximum bipartite matching through Theorem 26.12.
   Sections 26.4 and 26.5 are outside the current selected milestone.
+* **Chapter 27:** the pure-functional main-text boundary is complete through
+  Section 27.3.  It includes the total ready-set greedy scheduler and
+  `Tₚ ≤ T₁/p + T∞`; exact logarithmic parallel-loop bounds; executable
+  P-ADD/P-MATMUL correctness with execution-attached Θ(n²)/Θ(log n) and
+  Θ(n³)/Θ(log² n) costs; and executable P-MERGE/P-MERGE-SORT correctness,
+  recurrence links, universal upper bounds, and explicit matching worst-case
+  span families.  The historical {lit}`Section_27_2_4_Algorithms` path remains
+  for import compatibility, while parallel-Strassen recurrences live in a
+  separately labeled extension.  Mutable arrays, RAM-level costs, exercises,
+  and chapter-end problems are optional refinements outside this boundary.
 * **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
   search costs, universal hashing, open addressing, and perfect hashing.
 * **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
@@ -129,18 +139,6 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapter 27:** the dynamic-multithreading model (computation DAG with an
-  honestly computed longest-path span, spawn/sync trees, balanced
-  parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
-  work/span recurrences of P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel
-  Strassen are executable cost functions with exact power-of-two closed forms
-  (work `Θ(n³)`, `Θ(n)`, `Θ(n log n)`, `Θ(n^(log₂ 7))`; spans `Θ(log n)`,
-  `Θ(log² n)`, `Θ(log³ n)`).  P-MERGE, P-MERGE-SORT, and parallel Strassen
-  additionally have monotonicity, adjacent-power sandwich, and all-input Θ
-  theorems; P-MATMUL has all-input upper bounds.  The
-  explicit ready-set DAG execution model proves the greedy-scheduler bound
-  (Theorem 27.1/27.2) for completed schedules.  Executable P-MERGE and
-  P-MERGE-SORT implementations refining the proved recurrences remain.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

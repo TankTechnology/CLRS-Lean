@@ -3,6 +3,10 @@ import CLRSLean.Chapter_04
 namespace CLRS
 namespace Chapter04
 
+#check MonotoneAbs
+#check monotoneAbs_natCast
+#check powerInterval_of_pos
+#check monotone_power_sandwich
 #check maxPrefixLinear
 #check maxPrefixLinear_result_correct
 #check maxSuffixLinear

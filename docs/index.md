@@ -175,7 +175,69 @@ CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S4_ExecutableBFS.lean
 CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean
 CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
 CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S1_ComputationDAG.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S2_ReadyExecution.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S3_GreedyAccounting.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S4_ExecutableScheduler.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S1_CostModel.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/ExecutionEqualities.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/MergeSplit.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Boundaries.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/LogPotential.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Envelope.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Spec.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Main.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Step.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/RecurrenceLinks.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/WitnessInput.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/MapInvariance.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/LowerBound.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Monotonicity.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
@@ -206,3 +268,7 @@ lake build CLRSLean
 Dated audits and old implementation plans are retained because they explain
 past design decisions.  They should include a date in their filename or title
 and must not be used as evidence for the current progress snapshot.
+
+- [`proof-audits/chapter-27-closure-2026-08-05.md`](proof-audits/chapter-27-closure-2026-08-05.md)
+  records the sealed Chapter 27 pure-functional main-text boundary and its
+  verification evidence.
