@@ -19,12 +19,14 @@ namespace CLRS
 namespace Chapter27
 
 /-- Halving a non-base power of two returns the preceding power. -/
-private theorem two_pow_succ_div_two (k : ℕ) : 2 ^ (k + 1) / 2 = 2 ^ k := by
+private theorem powerBounds_two_pow_succ_div_two (k : ℕ) :
+    2 ^ (k + 1) / 2 = 2 ^ k := by
   rw [pow_succ]
   omega
 
 /-- A non-base power of two has size at least two. -/
-private theorem two_le_two_pow_succ (k : ℕ) : 2 ≤ 2 ^ (k + 1) := by
+private theorem powerBounds_two_le_two_pow_succ (k : ℕ) :
+    2 ≤ 2 ^ (k + 1) := by
   rw [pow_succ]
   have := Nat.one_le_pow k 2 (by norm_num)
   omega
@@ -39,7 +41,8 @@ theorem pAddWork_pow_two_balance (k : ℕ) :
       rw [pAddWork]
       norm_num
   | succ k ih =>
-      rw [pAddWork_unfold (two_le_two_pow_succ k), two_pow_succ_div_two,
+      rw [pAddWork_unfold (powerBounds_two_le_two_pow_succ k),
+        powerBounds_two_pow_succ_div_two,
         pow_succ]
       omega
 
@@ -58,7 +61,8 @@ theorem pAddSpan_pow_two (k : ℕ) : pAddSpan (2 ^ k) = 2 * k + 1 := by
       rw [pAddSpan]
       norm_num
   | succ k ih =>
-      rw [pAddSpan_unfold (two_le_two_pow_succ k), two_pow_succ_div_two, ih]
+      rw [pAddSpan_unfold (powerBounds_two_le_two_pow_succ k),
+        powerBounds_two_pow_succ_div_two, ih]
       omega
 
 /-! ## P-MATMUL exact powers -/
@@ -73,8 +77,8 @@ theorem pMatMulExecWork_pow_two_balance (k : ℕ) :
       rw [pMatMulExecWork]
       norm_num
   | succ k ih =>
-      rw [pMatMulExecWork_unfold (two_le_two_pow_succ k),
-        two_pow_succ_div_two]
+      rw [pMatMulExecWork_unfold (powerBounds_two_le_two_pow_succ k),
+        powerBounds_two_pow_succ_div_two]
       have hadd := pAddWork_pow_two_balance (k + 1)
       rw [pow_succ] at hadd ⊢
       omega
@@ -90,8 +94,8 @@ theorem pMatMulExecWork_pow_two_bounds (k : ℕ) :
         rw [pMatMulExecWork]
         norm_num
     | succ k ih =>
-        rw [pMatMulExecWork_unfold (two_le_two_pow_succ k),
-          two_pow_succ_div_two, pow_succ]
+        rw [pMatMulExecWork_unfold (powerBounds_two_le_two_pow_succ k),
+          powerBounds_two_pow_succ_div_two, pow_succ]
         omega
   · have hbalance := pMatMulExecWork_pow_two_balance k
     omega
@@ -104,8 +108,8 @@ theorem pMatMulExecSpan_pow_two (k : ℕ) :
       rw [pMatMulExecSpan]
       norm_num
   | succ k ih =>
-      rw [pMatMulExecSpan_unfold (two_le_two_pow_succ k),
-        two_pow_succ_div_two, ih, pAddSpan_pow_two]
+      rw [pMatMulExecSpan_unfold (powerBounds_two_le_two_pow_succ k),
+        powerBounds_two_pow_succ_div_two, ih, pAddSpan_pow_two]
       ring
 
 /-- Executable P-MATMUL span at size {lit}`2^k` is quadratic in {lit}`k+1`. -/
