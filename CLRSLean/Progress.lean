@@ -10,42 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 30.
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-* Tracked reader-facing theorem entries: 1707.
-* Proved tracked theorem entries: 1707.
-||||||| parent of 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
-* Tracked reader-facing theorem entries: 1679.
-* Proved tracked theorem entries: 1679.
-* Remaining core theorem groups: 8.
-=======
-* Tracked reader-facing theorem entries: 1680.
-* Proved tracked theorem entries: 1680.
->>>>>>> 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
-||||||| parent of 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
-* Tracked reader-facing theorem entries: 1680.
-* Proved tracked theorem entries: 1680.
-=======
-* Tracked reader-facing theorem entries: 1681.
-* Proved tracked theorem entries: 1681.
->>>>>>> 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
-||||||| parent of 5a8256c (feat(ch28): constructive substitution, LUP-SOLVE, and uniqueness details)
-* Tracked reader-facing theorem entries: 1681.
-* Proved tracked theorem entries: 1681.
-=======
-* Tracked reader-facing theorem entries: 1684.
-* Proved tracked theorem entries: 1684.
->>>>>>> 5a8256c (feat(ch28): constructive substitution, LUP-SOLVE, and uniqueness details)
-||||||| parent of d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
-* Tracked reader-facing theorem entries: 1684.
-* Proved tracked theorem entries: 1684.
-=======
-* Tracked reader-facing theorem entries: 1685.
-* Proved tracked theorem entries: 1685.
->>>>>>> d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
-* Remaining core theorem groups: 7.
+* Tracked reader-facing theorem entries: 1714.
+* Proved tracked theorem entries: 1714.
+* Remaining core theorem groups: 6.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -53,10 +20,10 @@ are not yet represented or not yet complete.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 9 chapters.
+* {lit}`main-proof-complete`: 10 chapters.
 * {lit}`main-proof-complete-for-correctness`: 11 chapters.
 * {lit}`selected-section-complete`: 7 chapters.
-* {lit}`partial`: 2 chapters.
+* {lit}`partial`: 1 chapter.
 * {lit}`not-started`: 5 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -91,34 +58,8 @@ Ch  Chapter                                                     Status          
 24  24. Single-Source Shortest Paths                            selected-section-complete            24.1;24.2;24.3;24.4;24.5           27        0
 25  25. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  25.1;25.2;25.3                     24        0
 26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
-<<<<<<< HEAD
 27  27. Multithreaded Algorithms                                main-proof-complete                  27.1;27.2;27.3                     95        0
-28  28. Matrix Operations                                       partial                              28.1;28.2                           2        1
-||||||| parent of 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
-27  27. Multithreaded Algorithms                                partial                              27.1;27.2;27.3;27.4                66        1
-<<<<<<< HEAD
-<<<<<<< HEAD
-28  28. Matrix Operations                                       partial                              28.1;28.2;28.3                      3        1
-=======
-27  27. Multithreaded Algorithms                                partial                              27.1;27.2;27.3;27.4                66        1
-<<<<<<< HEAD
-28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      4        0
->>>>>>> 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
-||||||| parent of 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
-28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      4        0
-=======
-28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      5        0
->>>>>>> 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
-||||||| parent of 5a8256c (feat(ch28): constructive substitution, LUP-SOLVE, and uniqueness details)
-28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      5        0
-=======
-28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      8        0
->>>>>>> 5a8256c (feat(ch28): constructive substitution, LUP-SOLVE, and uniqueness details)
-||||||| parent of d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
-28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      8        0
-=======
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
->>>>>>> d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
 31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1

@@ -1,47 +1,5 @@
 import CLRSLean.Chapter_28
 
-<<<<<<< HEAD
-/-!
-# Chapter 28 Interface Test
-
-Verifies that the public Section 28.1 LUP-decomposition declarations are
-available through the chapter guide and that the main theorem has the
-advertised downstream interface.
--/
-
-namespace CLRS
-namespace Chapter28
-
-#check IsUpperTriangular
-#check IsLowerTriangular
-#check IsUnitLowerTriangular
-#check elimination
-#check elimination_unitLowerTriangular
-#check elimination_mul_col_zero
-#check det_unitLowerTriangular
-#check det_block_schur
-#check exists_lup_decomposition
-#check permMatrix_inv
-#check permMatrix_mul_inv
-#check inv_eq_lup
-
-example {F : Type} [Field F] {n : ℕ}
-    (A : Matrix (Fin n) (Fin n) F) (hA : A.det ≠ 0) :
-    ∃ (σ : Equiv.Perm (Fin n)) (L U : Matrix (Fin n) (Fin n) F),
-      IsUnitLowerTriangular L ∧ IsUpperTriangular U ∧
-        σ.permMatrix F * A = L * U :=
-  exists_lup_decomposition A hA
-
-example {F : Type} [Field F] {n : ℕ}
-    {A L U : Matrix (Fin n) (Fin n) F} {σ : Equiv.Perm (Fin n)}
-    (hLUP : σ.permMatrix F * A = L * U) :
-    A⁻¹ = U⁻¹ * L⁻¹ * σ.permMatrix F :=
-  inv_eq_lup hLUP
-
-#print axioms exists_lup_decomposition
-#print axioms inv_eq_lup
-||||||| parent of d4fbcbf (chore(ch28): polish docs, status board, and add interface test)
-=======
 namespace CLRS
 namespace Chapter28
 
@@ -106,7 +64,6 @@ example {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℝ) (hA : Function.Injective A.
     (b : Fin m → ℝ) :
     residualSq A b ((Aᵀ * A)⁻¹ *ᵥ (Aᵀ *ᵥ b)) ≤ residualSq A b 0 :=
   least_squares_closed_form_minimizes A b hA 0
->>>>>>> d4fbcbf (chore(ch28): polish docs, status board, and add interface test)
 
 end Chapter28
 end CLRS

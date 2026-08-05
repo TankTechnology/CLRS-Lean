@@ -36,18 +36,8 @@ Last repository-wide status reconciliation: 2026-08-05.
 | Chapter 24 selected sections | Bellman-Ford, DAG shortest paths, Dijkstra's greedy theorem, the executable invariant-preserving loop, `dijkstraLoop_correct`, and difference constraints | Per-edge relaxation ordering and mutable/RAM cost refinement |
 | Chapter 25 correctness | FASTER-APSP, Floyd-Warshall shortest distances, predecessor reconstruction with walk and weight guarantees, negative-cycle detection, transitive closure, and Johnson's end-to-end correctness theorem | A tighter explicit repeated-squaring work/RAM refinement |
 | Chapter 26 | Max-Flow Min-Cut, executable residual BFS and Edmonds-Karp, the `O(VE²)` augmentation bound, and maximum bipartite matching through Theorem 26.12 | Sections 26.4 and 26.5 are deferred outside the current selected milestone |
-<<<<<<< HEAD
-<<<<<<< HEAD
 | Chapter 27 | Pure-functional main text through Section 27.3: total greedy scheduling, logarithmic parallel loops, executable P-ADD/P-MATMUL, and executable P-MERGE/P-MERGE-SORT with correctness, execution costs, and matching worst-case span witnesses | Mutable-array/RAM realization, exercises, and chapter-end problems; parallel Strassen remains a separate compatibility extension |
-||||||| parent of d4fbcbf (chore(ch28): polish docs, status board, and add interface test)
-=======
-| Chapter 28 | LUP decomposition (Theorem 28.1), matrix inversion from LUP (Theorem 28.2), Cholesky decomposition (Theorem 28.3), and least-squares approximation (Theorem 28.4) | Executable LUP factorization contract; triangular solves (LUP-SOLVE) connecting the factors to linear-system correctness; RAM cost semantics |
->>>>>>> d4fbcbf (chore(ch28): polish docs, status board, and add interface test)
-||||||| parent of 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
-| Chapter 28 | LUP decomposition (Theorem 28.1), matrix inversion from LUP (Theorem 28.2), Cholesky decomposition (Theorem 28.3), and least-squares approximation (Theorem 28.4) | Executable LUP factorization contract; triangular solves (LUP-SOLVE) connecting the factors to linear-system correctness; RAM cost semantics |
-=======
-| Chapter 28 | LUP decomposition (Theorem 28.1), LUP-SOLVE correctness, matrix inversion from LUP (Theorem 28.2), Cholesky decomposition (Theorem 28.3), and least-squares approximation (Theorem 28.4) | Executable LUP factorization and substitution (`lupSolve`) functions with correctness links; RAM cost semantics |
->>>>>>> 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
+| Chapter 28 | LUP decomposition (Theorem 28.1), LUP-SOLVE correctness, forward/backward substitution (Lemmas 28.1-28.2), matrix inversion (Theorem 28.2), Cholesky decomposition (Theorem 28.3) with uniqueness, and least-squares approximation (Theorem 28.4) | Executable LUP factorization from `A`; RAM cost semantics |
 | Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
 
 Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
@@ -58,7 +48,6 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
-| 28 | Theorem 28.1 proves LUP-decomposition existence; `inv_eq_lup` supplies the Section 28.2 algebraic inversion bridge | Add forward/back substitution, prove LUP-SOLVE correctness (#124), then executable matrix inversion and the principal cubic work claims |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main
@@ -67,27 +56,6 @@ not missing core theorem groups.
 
 Open branches and pull requests are intentionally excluded until they are
 reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
-
-## Next Proof Plan
-
-| Priority | Target | Concrete deliverable |
-| --- | --- | --- |
-<<<<<<< HEAD
-| 1 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Add forward/back substitution and prove LUP-SOLVE correctness |
-| 2 | Chapter 28.1 cost boundary ([#77](https://github.com/TankTechnology/CLRS-Lean/issues/77)) | Represent the principal cubic work claim or record its exact cost semantics |
-||||||| parent of d4fbcbf (chore(ch28): polish docs, status board, and add interface test)
-| 1 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Refine P-MERGE and P-MERGE-SORT to executable implementations with correctness links |
-| 2 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
-| 3 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
-=======
-| 1 | Chapter 27 executable algorithms ([#122](https://github.com/TankTechnology/CLRS-Lean/issues/122)) | Refine P-MERGE and P-MERGE-SORT to executable implementations with correctness links |
-<<<<<<< HEAD
-| 2 | Chapter 28 LUP-SOLVE correctness ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness (`Ax = b`) |
->>>>>>> d4fbcbf (chore(ch28): polish docs, status board, and add interface test)
-||||||| parent of 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
-| 2 | Chapter 28 LUP-SOLVE correctness ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness (`Ax = b`) |
-=======
->>>>>>> 1f6c7c5 (feat(ch28): prove LUP-SOLVE correctness (issue #124) and solution existence)
 
 ## High-Difficulty Queue
 
