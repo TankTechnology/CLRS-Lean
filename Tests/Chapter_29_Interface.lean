@@ -34,5 +34,10 @@ example {m n : ℕ} {P : StandardLP m n} {x : Fin n → ℝ} :
 #print axioms StandardLP.isFeasible_iff_exists_slackExtension
 #print axioms StandardLP.existsUnique_slackExtension_iff
 
+#check StandardLP.IsDualFeasible
+#check StandardLP.dualObjective
+#check StandardLP.IsDualFeasible.nonnegative
+#check StandardLP.IsDualFeasible.coefficient_le
+
 end Chapter29
 end CLRS
