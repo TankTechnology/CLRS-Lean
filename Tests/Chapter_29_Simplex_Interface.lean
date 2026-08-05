@@ -83,6 +83,11 @@ example :
 #check Dictionary.nonbasicVariableIndex
 #check Dictionary.basicVariableIndex_injective
 #check Dictionary.nonbasicVariableIndex_injective
+#check Dictionary.enteringCandidates
+#check Dictionary.IsBlandEntering
+#check Dictionary.blandEntering?
+#check Dictionary.blandEntering?_eq_none_iff
+#check Dictionary.blandEntering?_spec
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :

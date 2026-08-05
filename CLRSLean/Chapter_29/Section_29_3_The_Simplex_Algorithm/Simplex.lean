@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.VariableOrder
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Entering
 
 /-!
 # 29.3 SIMPLEX
