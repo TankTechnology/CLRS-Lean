@@ -83,9 +83,6 @@ primality test, and the Pollard's-rho factorization heuristic.
 ## Deferred Work
 
 * 31.2 running-time (Lamé / Fibonacci) analysis of EUCLID.
-* 31.5 the general `k`-modulus CRT via `Nat.chineseRemainderOfList` /
-  `ZMod.chineseRemainder`.
-* 31.7 the RSA proof for messages sharing a factor with the modulus.
 * 31.8 Carmichael numbers and the Miller-Rabin test.
 * 31.9 the full Pollard's-rho algorithm and its birthday-paradox analysis.
 -/
