@@ -31,7 +31,7 @@
 - Create: `scripts/apply_verso_patch.py`
 - Create: `patches/verso/disable-inline-proof-states.patch`
 
-- [ ] **Step 1: Write failing CLI tests**
+- [x] **Step 1: Write failing CLI tests**
 
 Create a temporary Git repository containing the expected upstream file and invoke the not-yet-existing script as a subprocess. Cover first application, second application, source drift, and a missing checkout. The test source must contain the exact renderer context:
 
@@ -77,7 +77,7 @@ self.assertEqual(1, missing.returncode)
 self.assertIn("Verso checkout does not exist", missing.stderr)
 ```
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run:
 
@@ -87,7 +87,7 @@ python3 -m unittest scripts.test_apply_verso_patch
 
 Expected: FAIL because `scripts/apply_verso_patch.py` does not exist, producing a nonzero subprocess status instead of the expected success.
 
-- [ ] **Step 3: Add the tracked patch**
+- [x] **Step 3: Add the tracked patch**
 
 Create `patches/verso/disable-inline-proof-states.patch` with this complete change:
 
@@ -105,7 +105,7 @@ diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-
    let hlCtx : HighlightHtmlM.Context Literate := { emitCtx with options := emitCtx.codeOptions }
 ```
 
-- [ ] **Step 4: Implement minimal patch application**
+- [x] **Step 4: Implement minimal patch application**
 
 Implement `scripts/apply_verso_patch.py` with:
 
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 5: Run the tests and verify GREEN**
+- [x] **Step 5: Run the tests and verify GREEN**
 
 Run:
 
@@ -191,7 +191,7 @@ python3 -m unittest scripts.test_apply_verso_patch
 
 Expected: four tests pass with no warnings.
 
-- [ ] **Step 6: Commit Task 1**
+- [x] **Step 6: Commit Task 1**
 
 ```bash
 git add patches/verso/disable-inline-proof-states.patch scripts/apply_verso_patch.py scripts/test_apply_verso_patch.py
@@ -205,7 +205,7 @@ git commit -m "build(site): disable inline Verso proof states"
 - Create: `scripts/test_check_literate_html_weight.py`
 - Create: `scripts/check_literate_html_weight.py`
 
-- [ ] **Step 1: Write failing CLI tests**
+- [x] **Step 1: Write failing CLI tests**
 
 Exercise the future script entirely through `subprocess.run`. Create temporary site trees with `index.html` pages and assert:
 
@@ -227,7 +227,7 @@ self.assertLess(
 
 For the boundary case, write 65,530 bytes of ordinary text before `<span class="other tactic-state">` so the tag crosses the guard's 64 KiB input boundary. Expect the same tactic-state failure.
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run:
 
@@ -237,7 +237,7 @@ python3 -m unittest scripts.test_check_literate_html_weight
 
 Expected: FAIL because `scripts/check_literate_html_weight.py` does not exist.
 
-- [ ] **Step 3: Implement the streaming guard**
+- [x] **Step 3: Implement the streaming guard**
 
 Create `scripts/check_literate_html_weight.py` with a small HTML parser and deterministic violation model:
 
@@ -328,7 +328,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 4: Run the tests and verify GREEN**
+- [x] **Step 4: Run the tests and verify GREEN**
 
 Run:
 
@@ -338,7 +338,7 @@ python3 -m unittest scripts.test_check_literate_html_weight
 
 Expected: tactic-state, size, boundary, ordering, and clean-page tests all pass.
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```bash
 git add scripts/check_literate_html_weight.py scripts/test_check_literate_html_weight.py
@@ -352,7 +352,7 @@ git commit -m "build(site): guard raw literate HTML weight"
 - Create: `scripts/test_workflow_policy.py`
 - Modify: `.github/workflows/pages.yml`
 
-- [ ] **Step 1: Write the failing workflow-policy test**
+- [x] **Step 1: Write the failing workflow-policy test**
 
 The test reads both workflow files as text. It must assert that the trigger header contains `workflow_dispatch:` and excludes `push:`, `pull_request:`, `schedule:`, and `workflow_run:`. It must also assert this ordering in `pages.yml`:
 
@@ -366,7 +366,7 @@ self.assertLess(build_at, guard_at)
 self.assertLess(guard_at, prepare_at)
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run:
 
@@ -376,7 +376,7 @@ python3 -m unittest scripts.test_workflow_policy
 
 Expected: FAIL because the Pages workflow does not yet invoke the patch applicator or raw HTML guard.
 
-- [ ] **Step 3: Add the two bounded workflow steps**
+- [x] **Step 3: Add the two bounded workflow steps**
 
 After `leanprover/lean-action`, add:
 
@@ -394,7 +394,7 @@ After `Build Verso literate HTML`, add:
 
 Do not modify either workflow's `on:` block.
 
-- [ ] **Step 4: Run the workflow-policy test and verify GREEN**
+- [x] **Step 4: Run the workflow-policy test and verify GREEN**
 
 Run:
 
@@ -404,7 +404,7 @@ python3 -m unittest scripts.test_workflow_policy
 
 Expected: workflow ordering passes and both workflows remain manual-only.
 
-- [ ] **Step 5: Commit Task 3**
+- [x] **Step 5: Commit Task 3**
 
 ```bash
 git add .github/workflows/pages.yml scripts/test_workflow_policy.py
@@ -420,7 +420,7 @@ git commit -m "ci(site): gate manual Verso publishing output"
 - Modify: `CLAUDE.md`
 - Modify: this plan to check completed steps
 
-- [ ] **Step 1: Update publishing documentation**
+- [x] **Step 1: Update publishing documentation**
 
 Document the exact local sequence:
 
@@ -435,7 +435,7 @@ python3 scripts/prepare_literate_site.py "$VERSO_OUT" _site
 
 Explain that dependency setup or a provisioned worktree must exist before patch application, tactic states are removed before serialization, the optimizer remains a fallback, and both GitHub workflows are manually dispatched only. Correct `CLAUDE.md` so it no longer says Pages deploys automatically on push.
 
-- [ ] **Step 2: Run all fast site tests**
+- [x] **Step 2: Run all fast site tests**
 
 Run:
 
@@ -453,7 +453,7 @@ python3 -m unittest \
 
 Expected: all tests pass with zero failures.
 
-- [ ] **Step 3: Run repository and diff checks**
+- [x] **Step 3: Run repository and diff checks**
 
 Run:
 
@@ -464,7 +464,7 @@ git diff --check origin/main...HEAD
 
 Expected: repository checks succeed and the diff has no whitespace errors.
 
-- [ ] **Step 4: Apply the patch to the pinned real Verso checkout twice**
+- [x] **Step 4: Apply the patch to the pinned real Verso checkout twice**
 
 Provision an isolated `.lake` for this worktree from the repository's golden package/build cache. Then run:
 
@@ -475,11 +475,11 @@ python3 scripts/apply_verso_patch.py
 
 Expected output is `applied` followed by `already-applied`. Confirm the dependency checkout is dirty only at `src/verso-literate-html/LiterateHtmlMain.lean`.
 
-- [ ] **Step 5: Build only the patched Verso HTML executable**
+- [x] **Step 5: Build only the patched Verso HTML executable**
 
 Resolve the package target with `lake query` and build only `verso-literate-html`, not the full CLRS-Lean library or full site. Expected: the executable rebuild exits 0 against the pinned dependency.
 
-- [ ] **Step 6: Render the cached S4 SCC module only**
+- [x] **Step 6: Render the cached S4 SCC module only**
 
 Create a temporary one-line module map by selecting `CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC` from the cached `.lake/build/literate-module-map`. Invoke the patched `verso-literate-html` executable with that map and no `literate.toml`, then run:
 
@@ -489,11 +489,11 @@ python3 scripts/check_literate_html_weight.py "$FOCUSED_OUT"
 
 Expected: one raw module page passes, contains the Lean theorem source, contains no tactic-state/tactic-toggle elements, and is below 25 MiB. Record its exact size and render duration; do not run the full site build.
 
-- [ ] **Step 7: Re-run the complete fast verification suite**
+- [x] **Step 7: Re-run the complete fast verification suite**
 
 Run the commands from Steps 2 and 3 again after integration verification. Read the full output and confirm zero failures before making a completion claim.
 
-- [ ] **Step 8: Mark the plan complete and commit documentation**
+- [x] **Step 8: Mark the plan complete and commit documentation**
 
 Change each checkbox in this plan from `[ ]` to `[x]`, then commit:
 
@@ -504,10 +504,28 @@ git commit -m "docs(site): record proof-state build guard"
 
 ## Final acceptance audit
 
-- [ ] The compatibility patch is one renderer option change and applies idempotently.
-- [ ] Unexpected Verso source fails before the expensive site build.
-- [ ] Raw HTML tactic states and pages above 25 MiB fail deterministically.
-- [ ] The existing optimizer remains unchanged as defense in depth.
-- [ ] Both workflow files remain `workflow_dispatch` only.
-- [ ] No full site build runs automatically or during ordinary commit validation.
-- [ ] Fast tests, repository checks, focused executable build, and focused S4 render all pass.
+- [x] The compatibility patch is one renderer option change and applies idempotently.
+- [x] Unexpected Verso source fails before the expensive site build.
+- [x] Raw HTML tactic states and pages above 25 MiB fail deterministically.
+- [x] The existing optimizer remains unchanged as defense in depth.
+- [x] Both workflow files remain `workflow_dispatch` only.
+- [x] No full site build runs automatically or during ordinary commit validation.
+- [x] Fast tests, repository checks, focused executable build, and focused S4 render all pass.
+
+## Verification record
+
+The focused render used the pinned Verso revision
+`963f9471a25dd9bd492766aa9d8c6406a015f38e` and the cached literate JSON for
+`CLRSLean.Chapter_22.Section_22_3_DFS.S4_SCC`.
+
+- patched executable build: exit 0;
+- first patch application: `applied`;
+- second patch application: `already-applied`;
+- focused render time: 0.38 seconds;
+- focused S4 SCC raw HTML: 1,411,807 bytes;
+- previous S4 SCC raw HTML: 471,269,572 bytes;
+- tactic-state/tactic-toggle elements: 0;
+- theorem source marker `exists_discovery_state`: present;
+- raw HTML guard: 3 generated index pages accepted under the 25 MiB limit.
+
+No full site build or GitHub Actions workflow was run during implementation.
