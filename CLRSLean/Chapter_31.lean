@@ -97,6 +97,12 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 * {lit}`CLRS.Chapter31.rhoStep` and
   {lit}`CLRS.Chapter31.rho_collision_factor` (Pollard's rho).
+* **POLLARD-RHO**: {lit}`CLRS.Chapter31.RhoState` (tortoise-and-hare state),
+  {lit}`CLRS.Chapter31.pollardStep`, the loop {lit}`CLRS.Chapter31.pollardRhoLoop`,
+  and the full {lit}`CLRS.Chapter31.pollardRho` algorithm, with soundness
+  {lit}`CLRS.Chapter31.pollardRho_sound` (a returned factor is a nontrivial
+  divisor of `n`) and collision detection
+  {lit}`CLRS.Chapter31.pollardStep_collision_factor`.
 
 **Status: `selected-section-complete`** — Sections 31.1–31.9 fully proved.
 
@@ -104,7 +110,8 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 * 31.8 the Miller-Rabin error bound (at most 1/4 of the bases are strong
   liars for an odd composite `n`).
-* 31.9 the full Pollard's-rho algorithm and its birthday-paradox analysis.
+* 31.9 the birthday-paradox / expected-`O(√p)` running-time analysis of
+  POLLARD-RHO (a heuristic in CLRS, left informal).
 -/
 
 namespace CLRS
