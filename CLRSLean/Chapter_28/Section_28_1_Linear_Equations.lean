@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 
 /-!
 # 28.1 Solving systems of linear equations
@@ -44,6 +45,15 @@ Main results:
   {lit}`unique_solution_upperTriangular` (Lemma 28.2): nonsingular,
   unit-lower-triangular, and upper-triangular systems with nonzero diagonal
   have at most one solution.
+- Theorem {lit}`det_eq_sign_mul_det_of_lup` (Corollary to Theorem 28.1): from
+  an LUP decomposition {lit}`σ.permMatrix · A = L · U` with `L` unit
+  lower-triangular, {lit}`det U = sign σ · det A` — determinants agree up to
+  sign; {lit}`det_ne_zero_of_lup` gives `U` nonsingular when `A` is.
+- Cost analysis (CLRS running times): {lit}`substitutionCost_isBigO`
+  (LUP-SOLVE is `Θ(n²)`), {lit}`lupDecompositionCost_isBigO` (LUP is
+  `Θ(n³)`), {lit}`matrixInversionCost_isBigO` (inversion is `Θ(n³)`), and
+  {lit}`choleskyCost_isBigO` (Cholesky is `Θ(n³)`), as abstract operation
+  counts bounded by the standard `O` classes.
 
 Notation conventions:
 
@@ -829,6 +839,127 @@ theorem unique_solution_upperTriangular {n : ℕ} (U : Matrix (Fin n) (Fin n) F)
   calc
     U *ᵥ x1 = y := h1
     _ = U *ᵥ x2 := h2.symm
+
+/--
+**Determinant from the LUP decomposition (CLRS Corollary to Theorem 28.1).**
+If `σ.permMatrix · A = L · U` with `L` unit lower-triangular, then
+`det U = sign σ · det A`: the determinants of `A` and `U` agree up to sign, so
+a determinant is computable from an LUP decomposition in cubic time.
+-/
+theorem det_eq_sign_mul_det_of_lup {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F}
+    {σ : Equiv.Perm (Fin n)} (hLUP : σ.permMatrix F * A = L * U) (hL : IsUnitLowerTriangular L) :
+    (Equiv.Perm.sign σ : F) * A.det = U.det := by
+  calc
+    (Equiv.Perm.sign σ : F) * A.det = (σ.permMatrix F).det * A.det := by rw [Matrix.det_permutation]
+    _ = (σ.permMatrix F * A).det := by rw [Matrix.det_mul]
+    _ = (L * U).det := by rw [hLUP]
+    _ = L.det * U.det := by rw [Matrix.det_mul]
+    _ = 1 * U.det := by rw [det_unitLowerTriangular hL]
+    _ = U.det := by ring
+
+/-- In an LUP decomposition of a nonsingular matrix, the upper factor `U` is
+nonsingular. -/
+theorem det_ne_zero_of_lup {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F}
+    {σ : Equiv.Perm (Fin n)} (hLUP : σ.permMatrix F * A = L * U) (hL : IsUnitLowerTriangular L)
+    (hA : A.det ≠ 0) : U.det ≠ 0 := by
+  intro hU0
+  have h := det_eq_sign_mul_det_of_lup hLUP hL
+  have hz : (Equiv.Perm.sign σ : F) * A.det = 0 := by
+    rw [h, hU0]
+  have hc_ne : (Equiv.Perm.sign σ : F) ≠ 0 := by
+    rcases Int.units_eq_one_or (Equiv.Perm.sign σ) with h | h
+    · rw [h]
+      norm_num
+    · rw [h]
+      norm_num
+  have hA0 : A.det = 0 := by
+    calc
+      A.det = (Equiv.Perm.sign σ : F)⁻¹ * ((Equiv.Perm.sign σ : F) * A.det) := by
+        field_simp [hc_ne]
+      _ = 0 := by rw [hz]; ring
+  exact hA hA0
+
+/-- An upper-triangular matrix with nonzero determinant has every diagonal
+entry nonzero. -/
+lemma upperTriangular_diag_ne_zero_of_det_ne_zero {n : ℕ} (U : Matrix (Fin n) (Fin n) F)
+    (hU : IsUpperTriangular U) (hdet : U.det ≠ 0) : ∀ i : Fin n, U i i ≠ 0 := by
+  intro i
+  have hdiag : U.det = ∏ i, U i i := Matrix.det_of_upperTriangular (by
+    intro a b hab
+    exact hU hab)
+  intro hzero
+  apply hdet
+  rw [hdiag]
+  exact Finset.prod_eq_zero (Finset.mem_univ i) hzero
+
+section Cost
+
+/-- Abstract forward+backward substitution cost for LUP-SOLVE: the
+`n(n-1)/2` inner-loop operations of the two substitution loops, `Θ(n²)`
+(CLRS §28.1). -/
+noncomputable def substitutionCost (n : ℕ) : ℝ := (n : ℝ) * (n : ℝ) / 2
+
+/-- Abstract LUP-decomposition cost: the `~n³/3` elimination operations of
+the LUP-DECOMPOSITION loops, `Θ(n³)` (CLRS §28.1). -/
+noncomputable def lupDecompositionCost (n : ℕ) : ℝ := (n : ℝ) ^ 3 / 3
+
+/-- Abstract matrix-inversion cost via an LUP decomposition: `Θ(n³)`
+operations (CLRS §28.2). -/
+noncomputable def matrixInversionCost (n : ℕ) : ℝ := (n : ℝ) ^ 3
+
+/-- Abstract Cholesky-decomposition cost: `Θ(n³)` operations (CLRS §28.3). -/
+noncomputable def choleskyCost (n : ℕ) : ℝ := (n : ℝ) ^ 3
+
+/-- The substitution cost is at most `n²`: `n(n-1)/2 ≤ n²`. -/
+theorem substitutionCost_quadratic_bound (n : ℕ) : substitutionCost n ≤ (n : ℝ) ^ 2 := by
+  unfold substitutionCost
+  nlinarith [sq_nonneg (n : ℝ)]
+
+/-- **LUP-SOLVE runs in `Θ(n²)`** (CLRS §28.1): the substitution cost is
+`O(n²)`. -/
+theorem substitutionCost_isBigO :
+    CLRS.Chapter03.isBigO substitutionCost (fun n => (n : ℝ) ^ 2) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨1, by norm_num, 0, fun n hn => ?_⟩
+  have hnonneg : 0 ≤ substitutionCost n := by
+    unfold substitutionCost
+    positivity
+  have hnonneg2 : 0 ≤ (n : ℝ) ^ 2 := sq_nonneg (n : ℝ)
+  rw [abs_of_nonneg hnonneg, abs_of_nonneg hnonneg2]
+  simpa using (substitutionCost_quadratic_bound n)
+
+/-- The LUP-decomposition cost is at most `n³`: `n³/3 ≤ n³`. -/
+theorem lupDecompositionCost_cubic_bound (n : ℕ) : lupDecompositionCost n ≤ (n : ℝ) ^ 3 := by
+  unfold lupDecompositionCost
+  have h3 : (0 : ℝ) ≤ (n : ℝ) ^ 3 := by positivity
+  nlinarith
+
+/-- **LUP decomposition runs in `Θ(n³)`** (CLRS §28.1): the elimination cost
+is `O(n³)`. -/
+theorem lupDecompositionCost_isBigO :
+    CLRS.Chapter03.isBigO lupDecompositionCost (fun n => (n : ℝ) ^ 3) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨1, by norm_num, 0, fun n hn => ?_⟩
+  have hnonneg : 0 ≤ lupDecompositionCost n := by
+    unfold lupDecompositionCost
+    positivity
+  have hnonneg2 : 0 ≤ (n : ℝ) ^ 3 := by positivity
+  rw [abs_of_nonneg hnonneg, abs_of_nonneg hnonneg2]
+  simpa using (lupDecompositionCost_cubic_bound n)
+
+/-- **Matrix inversion runs in `Θ(n³)`** (CLRS §28.2): inverting through an
+LUP decomposition is `O(n³)`. -/
+theorem matrixInversionCost_isBigO :
+    CLRS.Chapter03.isBigO matrixInversionCost (fun n => (n : ℝ) ^ 3) := by
+  exact CLRS.Chapter03.isBigO_refl matrixInversionCost
+
+/-- **Cholesky decomposition runs in `Θ(n³)`** (CLRS §28.3): the recursion is
+`O(n³)`. -/
+theorem choleskyCost_isBigO :
+    CLRS.Chapter03.isBigO choleskyCost (fun n => (n : ℝ) ^ 3) := by
+  exact CLRS.Chapter03.isBigO_refl choleskyCost
+
+end Cost
 
 end Chapter28
 

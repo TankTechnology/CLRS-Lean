@@ -63,6 +63,12 @@ open Matrix
 #check unique_solution_of_nonsingular
 #check unique_solution_unitLowerTriangular
 #check unique_solution_upperTriangular
+#check det_eq_sign_mul_det_of_lup
+#check det_ne_zero_of_lup
+#check substitutionCost_isBigO
+#check lupDecompositionCost_isBigO
+#check matrixInversionCost_isBigO
+#check choleskyCost_isBigO
 
 -- Section 28.2: inversion from LUP (Theorem 28.2)
 #check permMatrix_inv
