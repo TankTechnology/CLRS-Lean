@@ -150,10 +150,10 @@ the detailed maintainer ledger.
   feasibility, the unique nonnegative slack-variable extension, fixed-slot
   basic/nonbasic dictionaries, initial-dictionary refinement, the exact PIVOT
   transformation and semantic equivalence, minimum-ratio feasibility and
-  objective progress, dual feasibility, and weak duality (Theorem 29.8).  The
-  chapter remains partial pending executable SIMPLEX control flow and Bland
-  termination, Sections 29.2 and 29.5, strong duality, and complementary
-  slackness.
+  objective progress, executable Bland-rule SIMPLEX, optimal and unbounded
+  exits, the textbook anti-cycling theorem, finite termination, dual
+  feasibility, and weak duality (Theorem 29.8).  The chapter remains partial
+  pending Sections 29.2 and 29.5, strong duality, and complementary slackness.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

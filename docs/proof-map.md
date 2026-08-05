@@ -4009,7 +4009,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 29.3 - The Simplex Algorithm
 
-- Status: `partial`.
+- Status: `main-proof-complete` for basic-feasible input dictionaries.
 - Model: `LPVar`, `Dictionary`, a fixed row/column coefficient layout, and a
   variable-label equivalence that tracks the current basic and nonbasic sets.
 - Basic-solution layer: `basicAssignment_satisfies`,
@@ -4021,8 +4021,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Progress layer: `IsMinimumRatio`, `pivot_isBasicFeasible`, `pivot_v_mono`,
   and `pivot_v_strict` prove the minimum-ratio feasibility and objective-value
   facts used by SIMPLEX.
-- Exact gap: executable entering/leaving selection, the unbounded result,
-  SIMPLEX exit optimality, and finite termination under Bland's rule.
+- Control and exit layer: `blandEntering?`, `blandLeaving?`, `simplexStep`,
+  `basicAssignment_optimal_of_reducedCosts_nonpos`, and
+  `unbounded_of_entering_column` implement and justify all three textbook
+  outcomes.
+- Anti-cycling and termination: `bland_no_repeated_basis` formalizes the
+  greatest-fickle-variable proof; `simplexRun_basisCount_not_exhausted` turns
+  it into a finite bound; and `simplex_optimal_or_unbounded` is the public
+  terminal-correctness theorem.
+- Boundary: Section 29.5 supplies a basic-feasible start for arbitrary feasible
+  standard-form inputs; that initialization layer is not part of Section 29.3.
 
 ### Section 29.4 - Duality
 
