@@ -14,6 +14,11 @@ namespace Chapter29
 #check StandardLP
 #check StandardLP.IsFeasible
 #check StandardLP.objective
+#check StandardLP.slack
+#check StandardLP.IsSlackExtension
+#check StandardLP.slack_nonnegative_of_feasible
+#check StandardLP.slack_equation
+#check StandardLP.slackExtension_of_feasible
 
 example {m n : ℕ} (P : StandardLP m n) (x : Fin n → ℝ) :
     P.objective x = P.c ⬝ᵥ x := rfl
