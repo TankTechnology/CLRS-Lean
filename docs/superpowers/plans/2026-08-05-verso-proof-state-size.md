@@ -95,7 +95,7 @@ Create `patches/verso/disable-inline-proof-states.patch` with this complete chan
 diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-html/LiterateHtmlMain.lean
 --- a/src/verso-literate-html/LiterateHtmlMain.lean
 +++ b/src/verso-literate-html/LiterateHtmlMain.lean
-@@ -212,7 +212,7 @@ private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
+@@ -2,6 +2,6 @@ private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
    let emitCtx := { ctx with
      options := {}
      traverseContext := { currentModule := mod.name }
