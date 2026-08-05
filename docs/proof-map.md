@@ -4154,6 +4154,51 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   and pure-functional tableau layer.  Mutable storage, floating-point
   stability, RAM constants, exercises, and chapter-end problems are optional
   refinements.
+## Chapter 31 - Number-Theoretic Algorithms
+
+### Section 31.1 - Elementary Number-Theoretic Notions
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_1_Elementary_Number_Theory.lean`
+- Status: `selected-section-complete`
+- Model:
+  - `IsGCD`: the greatest-common-divisor property predicate (divides both, and
+    is divisible by every common divisor — the universal form).
+- Proved:
+  - `division_theorem` (CLRS Theorem 31.1): for `b > 0`, `a = q·b + r` with
+    `r < b` has a unique `(q, r)`, via `Nat.div_add_mod`/`Nat.mod_lt` and the
+    pairwise-uniqueness helper `division_unique`.
+  - `nat_gcd_isGCD` / `IsGCD.eq_gcd`: `Nat.gcd` satisfies the gcd property and
+    the property determines the value.
+  - `divides_refl/zero/trans/mul_right/add/sub` and
+    `divides_linear_combination` (CLRS Lemma 31.1): the basic divisibility
+    facts.
+  - `coprime_iff_gcd_eq_one` / `coprime_iff_no_common_divisor`,
+    `prime_def_gt_one` / `prime_two`, and `exists_prime_ge` (Euclid's theorem:
+    infinitely many primes, via `Nat.exists_infinite_primes`).
+
+### Section 31.2 - Greatest Common Divisor
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Lemma 31.2):
+    the Euclid recursion `gcd(a, b) = gcd(b mod a, a)` and the base cases.
+  - `euclid` + `euclid_eq_gcd` + `euclid_terminates`: the EUCLID algorithm is a
+    total, well-founded function and returns `Nat.gcd a b` (via
+    `Nat.gcd.induction` and `Nat.gcd_succ`).
+  - `gcd_is_linear_combination` (CLRS Lemma 31.3, Bezout): `gcd a b` is an
+    integer linear combination of `a` and `b` (`Nat.gcd_eq_gcd_ab`).
+  - `gcd_dvd_linear_combination` (CLRS Corollary 31.3): `gcd a b` divides
+    every linear combination of `a` and `b`.
+  - `gcd_is_smallest_positive_linear_combination` (CLRS Theorem 31.2): `gcd
+    a b` is the smallest positive linear combination of `a` and `b` (when
+    `a ≠ 0 ∨ b ≠ 0`), via the Bezout combination plus `Int.le_of_dvd`.
+  - `gcd_eq_one_iff_coprime` / `coprime_iff_one_linear_combination` /
+    `gcd_div_gcd_coprime` (CLRS Corollary 31.4): coprime characterizations,
+    including `coprime (a/g) (b/g)` for `g = gcd a b`.
+  - `extendedEuclid` + `extendedEuclid_spec`: EXTENDED-EUCLID returns
+    `(d, x, y)` with `d = gcd a b = a·x + b·y`.
+||||||| c2279d4
 
 ## Chapter 32 - String Matching
 
