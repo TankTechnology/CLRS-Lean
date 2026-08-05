@@ -77,6 +77,12 @@ example :
 #check Dictionary.pivot_v_eq
 #check Dictionary.pivot_v_mono
 #check Dictionary.pivot_v_strict
+#check variableIndex
+#check variableIndex_injective
+#check Dictionary.basicVariableIndex
+#check Dictionary.nonbasicVariableIndex
+#check Dictionary.basicVariableIndex_injective
+#check Dictionary.nonbasicVariableIndex_injective
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
