@@ -4024,9 +4024,18 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     induction hypothesis to the (nonsingular) Schur complement, and assemble the
     block factors `L = [[1,0],[P₁·m, L₁]]`, `U = [[α,v],[0,U₁]]` with
     `σ = swap 0 p · diag(1, σ₁)`.
-- Remaining chapter scope: Sections 28.2 (matrix inversion) and 28.3
-  (symmetric positive-definite / least-squares approximation) are not
-  represented.
+### Section 28.2 - Inverting Matrices
+
+- Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`
+- Status: `selected-section-complete` (Theorem 28.2 proved)
+- Proved:
+  - `permMatrix_inv`: `(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`.
+  - `permMatrix_mul_inv`: `(σ.permMatrix)⁻¹ * σ.permMatrix = 1`.
+  - `inv_eq_lup` (CLRS Theorem 28.2): from an LUP factorization
+    `σ.permMatrix · A = L · U`, `A⁻¹ = U⁻¹ · L⁻¹ · σ.permMatrix` — invert the
+    triangular factors (`Matrix.mul_inv_rev`) and undo the row permutation.
+- Remaining chapter scope: Section 28.3 (symmetric positive-definite matrices,
+  Cholesky decomposition, least-squares approximation) is not represented.
 
 ## Chapter 32 - String Matching
 
