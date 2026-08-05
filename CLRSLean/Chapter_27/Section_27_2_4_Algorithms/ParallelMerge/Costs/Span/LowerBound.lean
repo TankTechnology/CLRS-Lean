@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.WitnessLists
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step
 
 /-!
 # CLRS Chapter 27.3 — Interleaved Span Lower Witness
