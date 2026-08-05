@@ -95,6 +95,10 @@ example :
 #check Dictionary.blandLeaving?
 #check Dictionary.blandLeaving?_eq_none_iff
 #check Dictionary.blandLeaving?_spec
+#check Dictionary.SimplexStepResult
+#check Dictionary.SimplexStepResult.nextDictionary
+#check Dictionary.simplexStep
+#check Dictionary.simplexStep_optimal_iff
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
