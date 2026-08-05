@@ -91,7 +91,16 @@ primality test, and the Pollard's-rho factorization heuristic.
   {lit}`CLRS.Chapter31.strongPseudoprime_of_prime` (a prime passes every
   base), {lit}`CLRS.Chapter31.not_witness_of_prime`, and
   {lit}`CLRS.Chapter31.witness_not_prime` (a witness certifies
-  compositeness).  (The error bound remains deferred.)
+  compositeness).
+* **Miller-Rabin error bound (Rabin–Monier)**: {lit}`CLRS.Chapter31.goodUnits`
+  (`S(n)`, the good subgroup), {lit}`CLRS.Chapter31.liar_mem_goodSet` (every
+  strong liar lies in `S(n)`), and the counting machinery
+  ({lit}`CLRS.Chapter31.card_pow_eq_one_crt`,
+  {lit}`CLRS.Chapter31.mTorsion_le_prod_half`).  The bound
+  {lit}`CLRS.Chapter31.goodUnits_card_le` proves `|S(n)| ≤ (n−1)/4` (three
+  cases: prime power, semiprime, and ≥3 prime factors), giving
+  {lit}`CLRS.Chapter31.strongLiars_card_le` — **at most `(n−1)/4` of the
+  bases are strong liars** (Theorem 31.38).
 
 ### 31.9 Integer Factorization
 
@@ -104,12 +113,11 @@ primality test, and the Pollard's-rho factorization heuristic.
   divisor of `n`) and collision detection
   {lit}`CLRS.Chapter31.pollardStep_collision_factor`.
 
-**Status: `selected-section-complete`** — Sections 31.1–31.9 fully proved.
+**Status: `selected-section-complete`** — Sections 31.1–31.9 fully proved,
+including the Miller-Rabin error bound.
 
 ## Deferred Work
 
-* 31.8 the Miller-Rabin error bound (at most 1/4 of the bases are strong
-  liars for an odd composite `n`).
 * 31.9 the birthday-paradox / expected-`O(√p)` running-time analysis of
   POLLARD-RHO (a heuristic in CLRS, left informal).
 -/

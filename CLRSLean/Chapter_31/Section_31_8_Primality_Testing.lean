@@ -48,16 +48,20 @@ Main results:
   under the power map); and {lit}`liar_mem_goodSet` shows **every strong liar
   lies in `S(n)`** via the order-of-element parity lemma
   {lit}`two_pow_succ_dvd_orderOf` applied modulo each prime divisor.
+- **The Miller-Rabin error bound (Theorem 31.38; Rabin–Monier)**: counting
+  `|S(n)|` via the cyclicity of prime-power unit groups and the CRT, then
+  bounding `|S(n)| ≤ (n−1)/4` by the three-case Rabin–Monier analysis.
+  Theorems {lit}`goodUnits_card_le` (the subgroup bound, split into prime
+  power, semiprime, and ≥3-factors cases) and {lit}`strongLiars_card_le` (at
+  most `(n−1)/4` strong liars for odd composite `n`).
 
 Notation:
 
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.totient n` : Euler's totient.
 
-Deferred: the Miller-Rabin error bound itself — counting `|S(n)|` and proving
-`|S(n)| ≤ (n−1)/4` (the three-case Rabin–Monier bound) — and the
-random-witness analysis (§31.8); the executable pseudoprime loop with an
-operation count.
+Deferred: the random-witness analysis (§31.8); the executable pseudoprime
+loop with an operation count.
 -/
 
 namespace CLRS
@@ -1229,6 +1233,752 @@ lemma mTorsion_le_prod_half {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n) 
       exact gcd_totient_eq_gcd_prime hpp he hpm
     _ ≤ ((p : ℕ) - 1) / 2 := gcd_pow_mul_le_half (p := (p : ℕ)) (ν := nu n) (t := (strongTestParams n).2)
       hppos hν ht hdvd
+
+/-- For an odd prime `p`, `2 ∣ p − 1`. -/
+lemma two_dvd_prime_sub_one_of_odd {p : ℕ} (hp : Nat.Prime p) (hp_odd : Odd p) :
+    2 ∣ p - 1 := by
+  rcases (odd_iff_exists_bit1.mp hp_odd) with ⟨k, rfl⟩
+  exact ⟨k, by omega⟩
+
+/-- A product over the single prime factor `p` of `n` is just the value at `p`. -/
+lemma prod_primeFactors_singleton {n p : ℕ} (hpf : n.primeFactors = ({p} : Finset ℕ))
+    (f : ℕ → ℕ) : ∏ q : n.primeFactors, f (q : ℕ) = f p := by
+  rw [hpf]
+  simp
+
+/--
+The product over the prime factors `p | n` of `p−1` equals `2^k` times the
+product of `(p−1)/2`, since each odd prime factor satisfies `2 | p−1`.
+-/
+lemma prod_prime_sub_one_eq_two_mul {n : ℕ} (hn_odd : Odd n) (hn1 : 1 < n) :
+    ∏ p : n.primeFactors, ((p : ℕ) - 1) =
+      2 ^ n.primeFactors.card * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2 := by
+  calc
+    ∏ p : n.primeFactors, ((p : ℕ) - 1) =
+        ∏ p : n.primeFactors, 2 * (((p : ℕ) - 1) / 2) := by
+      apply Finset.prod_congr rfl
+      intro p hp
+      have hpp : Nat.Prime (p : ℕ) := Nat.prime_of_mem_primeFactors p.2
+      have hpdvd : (p : ℕ) ∣ n := Nat.dvd_of_mem_primeFactors p.2
+      have hpodd : Odd (p : ℕ) := odd_of_dvd_odd hn_odd hpdvd
+      have h2 : 2 ∣ (p : ℕ) - 1 := two_dvd_prime_sub_one_of_odd hpp hpodd
+      rw [mul_comm]
+      exact (Nat.div_mul_cancel h2).symm
+    _ = (∏ p : n.primeFactors, 2) * ∏ p : n.primeFactors, (((p : ℕ) - 1) / 2) := by
+      rw [Finset.prod_mul_distrib]
+    _ = 2 ^ n.primeFactors.card * ∏ p : n.primeFactors, (((p : ℕ) - 1) / 2) := by
+      simp [Finset.prod_const]
+
+/-- `∏_{p|n}(p−1) ≤ n−1`: each `p−1 < p`, and `∏ p ≤ n`. -/
+lemma prod_prime_sub_one_le {n : ℕ} (hn1 : 1 < n) :
+    ∏ p : n.primeFactors, ((p : ℕ) - 1) ≤ n - 1 := by
+  have hlt : ∏ p : n.primeFactors, ((p : ℕ) - 1) < ∏ p : n.primeFactors, (p : ℕ) := by
+    refine Finset.prod_lt_prod (s := (Finset.univ : Finset n.primeFactors)) ?_ ?_ ?_
+    · intro p hp
+      have hpp : Nat.Prime (p : ℕ) := Nat.prime_of_mem_primeFactors p.2
+      have h2 : 2 ≤ (p : ℕ) := hpp.two_le
+      omega
+    · intro p hp
+      exact Nat.sub_le _ _
+    · rcases (Nat.nonempty_primeFactors).2 hn1 with ⟨p0, hp0⟩
+      refine ⟨⟨p0, hp0⟩, by simp, ?_⟩
+      have hpp : Nat.Prime p0 := Nat.prime_of_mem_primeFactors hp0
+      have h2 : 2 ≤ p0 := hpp.two_le
+      change p0 - 1 < p0
+      omega
+  have hle : ∏ p : n.primeFactors, (p : ℕ) ≤ n := by
+    calc
+      ∏ p : n.primeFactors, (p : ℕ) ≤
+          ∏ p : n.primeFactors, (p : ℕ) ^ (n.factorization (p : ℕ)) := by
+        refine Finset.prod_le_prod' (s := (Finset.univ : Finset n.primeFactors))
+          (f := fun p : n.primeFactors => (p : ℕ))
+          (g := fun p : n.primeFactors => (p : ℕ) ^ (n.factorization (p : ℕ))) ?_
+        intro p hp
+        have hpp : Nat.Prime (p : ℕ) := Nat.prime_of_mem_primeFactors p.2
+        have hpos : 0 < n.factorization (p : ℕ) :=
+          hpp.factorization_pos_of_dvd (by omega) (Nat.dvd_of_mem_primeFactors p.2)
+        exact le_self_pow (by have h2 := hpp.two_le; omega) hpos.ne'
+      _ = n := (Nat.prod_pow_primeFactors_factorization (by omega : n ≠ 0)).symm
+  omega
+
+/--
+The good subgroup `S(n)` has size at most `2·∏_{p|n}(p−1)/2`: the union
+bound `goodSet_card_le` splits off the factor 2, and the `m`-torsion is at
+most `∏(p−1)/2` by `mTorsion_le_prod_half`.
+-/
+lemma goodUnits_card_le_prodHalf {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n) :
+    Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤
+      2 * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2 := by
+  unfold goodUnits
+  calc
+    Nat.card {x : (ZMod n)ˣ // x ∈ goodSet (2 ^ (nu n - 1) * (strongTestParams n).2)} ≤
+        2 * Nat.card {x : (ZMod n)ˣ // x ^ (2 ^ (nu n - 1) * (strongTestParams n).2) = 1} :=
+      goodSet_card_le (n := n) (2 ^ (nu n - 1) * (strongTestParams n).2)
+    _ ≤ 2 * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2 := by
+      exact Nat.mul_le_mul_left 2 (mTorsion_le_prod_half (n := n) hn1 hn_odd)
+
+/-- For `n` with at least three prime factors, `|S(n)| ≤ (n−1)/4`. -/
+lemma goodUnits_card_le_of_ge_three {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
+    (hk : 3 ≤ n.primeFactors.card) :
+    Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ (n - 1) / 4 := by
+  have h8 : 8 * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2 ≤ n - 1 := by
+    calc
+      8 * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2
+          ≤ 2 ^ n.primeFactors.card * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2 := by
+            exact Nat.mul_le_mul_right _ (by
+              have hpow : 2 ^ 3 ≤ 2 ^ n.primeFactors.card :=
+                pow_le_pow_right₀ (by norm_num) hk
+              norm_num at hpow
+              exact hpow)
+      _ = ∏ p : n.primeFactors, ((p : ℕ) - 1) :=
+            (prod_prime_sub_one_eq_two_mul (n := n) hn_odd hn1).symm
+      _ ≤ n - 1 := prod_prime_sub_one_le (n := n) hn1
+  have h4 : 4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ n - 1 := by
+    calc
+      4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits}
+          ≤ 4 * (2 * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2) :=
+            Nat.mul_le_mul_left 4 (goodUnits_card_le_prodHalf (n := n) hn1 hn_odd)
+      _ = 8 * ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2 := by ring
+      _ ≤ n - 1 := h8
+  exact (Nat.le_div_iff_mul_le (by norm_num : 0 < 4)).mpr (by simpa [mul_comm] using h4)
+
+/-- For `n = p^e` a prime power (composite), `|S(n)| ≤ (n−1)/4`. -/
+lemma goodUnits_card_le_prime_power {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
+    (hn_comp : ¬ Nat.Prime n) (hk : n.primeFactors.card = 1) :
+    Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ (n - 1) / 4 := by
+  rcases Finset.card_eq_one.mp hk with ⟨p, hpf⟩
+  have hp_mem : p ∈ n.primeFactors := by rw [hpf]; simp
+  have hpp : Nat.Prime p := Nat.prime_of_mem_primeFactors hp_mem
+  have hpodd : Odd p := odd_of_dvd_odd hn_odd (Nat.dvd_of_mem_primeFactors hp_mem)
+  have hne : n = p ^ (n.factorization p) := by
+    conv_lhs => rw [Nat.prod_pow_primeFactors_factorization (by omega : n ≠ 0)]
+    exact prod_primeFactors_singleton (n := n) (p := p) hpf
+      (fun x : ℕ => x ^ (n.factorization x))
+  have he1 : 1 ≤ n.factorization p :=
+    hpp.factorization_pos_of_dvd (by omega) (Nat.dvd_of_mem_primeFactors hp_mem)
+  have hne1 : n.factorization p ≠ 1 := by
+    intro h1
+    have : n = p := by simpa [h1] using hne
+    exact hn_comp (by simpa [this] using hpp)
+  have he : 2 ≤ n.factorization p := by omega
+  have hp_ne2 : p ≠ 2 := by
+    intro h2
+    rw [h2] at hpodd
+    norm_num at hpodd
+  have hp2_le_n : p ^ 2 ≤ n := by
+    have hp2d : p ^ 2 ∣ n := (hpp.pow_dvd_iff_le_factorization (by omega : n ≠ 0)).2 he
+    exact Nat.le_of_dvd (by omega : 0 < n) hp2d
+  have hsp : Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ p - 1 := by
+    calc
+      Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits}
+          ≤ 2 * ∏ q : n.primeFactors, ((q : ℕ) - 1) / 2 :=
+            goodUnits_card_le_prodHalf (n := n) hn1 hn_odd
+      _ = 2 * ((p - 1) / 2) := by
+        rw [hpf]
+        simp
+      _ = p - 1 := by
+        have h2 : 2 ∣ p - 1 := two_dvd_prime_sub_one_of_odd hpp hpodd
+        calc
+          2 * ((p - 1) / 2) = ((p - 1) / 2) * 2 := by omega
+          _ = p - 1 := Nat.div_mul_cancel h2
+  have hp3 : 3 ≤ p := by
+    exact Nat.succ_le_of_lt (lt_of_le_of_ne hpp.two_le (Ne.symm hp_ne2))
+  have hsq : 4 * (p - 1) ≤ p ^ 2 - 1 := by
+    have hsqf : p ^ 2 - 1 = (p - 1) * (p + 1) := by
+      simpa [mul_comm] using (Nat.sq_sub_sq p 1)
+    rw [hsqf]
+    rw [mul_comm 4 (p - 1)]
+    exact Nat.mul_le_mul_left (p - 1) (by omega : 4 ≤ p + 1)
+  have h4p : 4 * (p - 1) ≤ n - 1 := by
+    exact hsq.trans (by omega)
+  have h4 : 4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ n - 1 := by
+    calc
+      4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ 4 * (p - 1) :=
+        Nat.mul_le_mul_left 4 hsp
+      _ ≤ n - 1 := h4p
+  exact (Nat.le_div_iff_mul_le (by norm_num : 0 < 4)).mpr (by simpa [mul_comm] using h4)
+
+/-- An odd divisor `g` of an odd `d` is at most `d/3`. -/
+lemma odd_divisor_le_div_three {d g : ℕ} (hd : Odd d) (hg : g ∣ d) (hlt : g ≠ d) : g ≤ d / 3 := by
+  rcases hg with ⟨c, rfl⟩
+  have hc_ne1 : c ≠ 1 := by
+    intro h1
+    apply hlt
+    rw [h1, mul_one]
+  have hc_ne0 : c ≠ 0 := by
+    intro hc0
+    rw [hc0, mul_zero] at hd
+    norm_num at hd
+  have hodd_c : Odd c := (Nat.odd_mul.mp hd).2
+  have hc3 : 3 ≤ c := by
+    rcases (odd_iff_exists_bit1.mp hodd_c) with ⟨k, rfl⟩
+    have hk0 : 1 ≤ k := by
+      by_contra hk
+      have hk0' : k = 0 := by omega
+      rw [hk0'] at hc_ne1
+      norm_num at hc_ne1
+    omega
+  rw [Nat.le_div_iff_mul_le (by norm_num : 0 < 3)]
+  exact Nat.mul_le_mul_left g hc3
+
+/-- For a prime `p`, `p−1 = 2^s·((p−1)/2^s)` where `s = v₂(p−1)`. -/
+lemma prime_sub_one_decomp {p : ℕ} (hp : Nat.Prime p) :
+    p - 1 = 2 ^ (p - 1).factorization 2 * ((p - 1) / 2 ^ (p - 1).factorization 2) := by
+  have hppos : p - 1 ≠ 0 := by
+    have h2 := hp.two_le
+    omega
+  have hdvd : 2 ^ (p - 1).factorization 2 ∣ p - 1 := by
+    exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) hppos).2 le_rfl
+  exact (Nat.mul_div_cancel' hdvd).symm
+
+/-- The odd part `t` of `n−1` divides `n−1`. -/
+lemma strongTestParams_snd_dvd {n : ℕ} (hn1 : 1 < n) : (strongTestParams n).2 ∣ n - 1 := by
+  unfold strongTestParams
+  change (n - 1) / 2 ^ (n - 1).factorization 2 ∣ n - 1
+  have hdvd : 2 ^ (n - 1).factorization 2 ∣ n - 1 := by
+    exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by omega)).2 le_rfl
+  refine ⟨2 ^ (n - 1).factorization 2, by rw [mul_comm]; exact (Nat.mul_div_cancel' hdvd).symm⟩
+
+/-- `ν(p·q) = min (v₂(p−1)) (v₂(q−1))` for distinct primes `p`, `q`. -/
+lemma nu_semiprime {p q : ℕ} (hp : Nat.Prime p) (hq : Nat.Prime q) :
+    nu (p * q) = min ((p - 1).factorization 2) ((q - 1).factorization 2) := by
+  let s := (p - 1).factorization 2
+  let r := (q - 1).factorization 2
+  have hpq_fac : (p * q).primeFactors = ({p, q} : Finset ℕ) := by
+    rw [Nat.primeFactors_mul hp.ne_zero hq.ne_zero]
+    rw [Nat.Prime.primeFactors hp, Nat.Prime.primeFactors hq]
+    ext x
+    simp
+  unfold nu
+  rw [dif_pos (by rw [hpq_fac]; simp)]
+  simp [hpq_fac]
+
+/-- `gcd(2^(ν−1)·t, 2^s·d) = 2^(ν−1)·gcd(t, d)` when `1 ≤ ν ≤ s` and `t` is odd. -/
+lemma gcd_pow_mul_oddPart {t s ν d : ℕ} (hν1 : 1 ≤ ν) (hνs : ν ≤ s) (ht : Odd t) :
+    (2 ^ (ν - 1) * t).gcd (2 ^ s * d) = 2 ^ (ν - 1) * t.gcd d := by
+  have hpow : 2 ^ s = 2 ^ (ν - 1) * 2 ^ (s - ν + 1) := by
+    rw [← pow_add]
+    congr 1
+    omega
+  rw [hpow]
+  rw [mul_assoc]
+  rw [Nat.gcd_mul_left]
+  have hcop : t.Coprime (2 ^ (s - ν + 1)) := by
+    exact (Nat.coprime_two_right.mpr ht).pow_right (s - ν + 1)
+  rw [gcd_eq_gcd_of_coprime hcop]
+
+/-- `(2^s·d_p)·(2^r·d_q) = 2^(s+r)·(d_p·d_q)`. -/
+lemma pow_mul_mul {s r d_p d_q : ℕ} : (2 ^ s * d_p) * (2 ^ r * d_q) = 2 ^ (s + r) * (d_p * d_q) := by
+  rw [pow_add]
+  ring
+
+/-- For primes `p, q ≥ 3`, `(p−1)(q−1) ≤ p·q−1`. -/
+lemma prod_sub_one_le {p q : ℕ} (hp : 3 ≤ p) (hq : 3 ≤ q) : (p - 1) * (q - 1) ≤ p * q - 1 := by
+  calc
+    (p - 1) * (q - 1) ≤ (p - 1) * q := Nat.mul_le_mul_left (p - 1) (Nat.sub_le _ _)
+    _ = p * q - q := by
+      rw [Nat.mul_sub_right_distrib]
+      simp
+    _ ≤ p * q - 1 := by omega
+
+
+/-- A product over `n.primeFactors = {p, q}` is `f p·f q`. -/
+lemma prod_primeFactors_pair {n p q : ℕ} (hpf : n.primeFactors = ({p, q} : Finset ℕ)) (hpq : p ≠ q)
+    (f : ℕ → ℕ) : ∏ x : n.primeFactors, f (x : ℕ) = f p * f q := by
+  rw [hpf]
+  change (({p, q} : Finset ℕ).attach.prod (fun x : {x // x ∈ ({p, q} : Finset ℕ)} => f (x : ℕ))) = f p * f q
+  simp only [Finset.prod_attach]
+  rw [show ({p, q} : Finset ℕ) = insert p {q} by ext x; simp]
+  rw [Finset.prod_insert]
+  · simp
+  · simp [hpq]
+
+/-- **Key lemma.** For `n = p·q`, if `d_p | t` and `d_q | t` then `d_p = d_q`. -/
+lemma semiprime_key_lemma {p q : ℕ} (hp : Nat.Prime p) (hq : Nat.Prime q) (hpq : p ≠ q) :
+    ((p - 1) / 2 ^ (p - 1).factorization 2) ∣ (strongTestParams (p * q)).2 →
+    ((q - 1) / 2 ^ (q - 1).factorization 2) ∣ (strongTestParams (p * q)).2 →
+    (p - 1) / 2 ^ (p - 1).factorization 2 = (q - 1) / 2 ^ (q - 1).factorization 2 := by
+  classical
+  intro hdp_t hdq_t
+  let s := (p - 1).factorization 2
+  let r := (q - 1).factorization 2
+  let d_p : ℕ := (p - 1) / 2 ^ s
+  let d_q : ℕ := (q - 1) / 2 ^ r
+  let t : ℕ := (strongTestParams (p * q)).2
+  have hp2 : 2 ≤ p := hp.two_le
+  have hq2 : 2 ≤ q := hq.two_le
+  have hpq1 : 1 < p * q := by
+    have h4 : 4 ≤ p * q := Nat.mul_le_mul hp2 hq2
+    omega
+  have hdp : d_p ∣ t := by simpa [d_p, s, t] using hdp_t
+  have hdq : d_q ∣ t := by simpa [d_q, r, t] using hdq_t
+  have htpq : t ∣ p * q - 1 := by simpa [t] using strongTestParams_snd_dvd (n := p * q) hpq1
+  have hdppq : d_p ∣ p * q - 1 := hdp.trans htpq
+  have hp_eq : p = 2 ^ s * d_p + 1 := by
+    have h1 : p - 1 = 2 ^ s * d_p := by
+      dsimp [d_p]
+      simpa [s] using (prime_sub_one_decomp hp)
+    omega
+  have hq_eq : q = 2 ^ r * d_q + 1 := by
+    have h1 : q - 1 = 2 ^ r * d_q := by
+      dsimp [d_q]
+      simpa [r] using (prime_sub_one_decomp hq)
+    omega
+  have hfac : p * q - 1 = d_p * (2 ^ (s + r) * d_q + 2 ^ s) + 2 ^ r * d_q := by
+    rw [hp_eq, hq_eq]
+    calc
+      (2 ^ s * d_p + 1) * (2 ^ r * d_q + 1) - 1
+          = (2 ^ s * d_p) * (2 ^ r * d_q) + 2 ^ s * d_p + 2 ^ r * d_q + 1 - 1 := by
+            have h : (2 ^ s * d_p + 1) * (2 ^ r * d_q + 1) =
+                (2 ^ s * d_p) * (2 ^ r * d_q) + 2 ^ s * d_p + 2 ^ r * d_q + 1 := by ring
+            rw [h]
+      _ = (2 ^ s * d_p) * (2 ^ r * d_q) + 2 ^ s * d_p + 2 ^ r * d_q := by
+            rw [Nat.add_sub_cancel]
+      _ = 2 ^ (s + r) * (d_p * d_q) + 2 ^ s * d_p + 2 ^ r * d_q := by
+        rw [pow_mul_mul (s := s) (r := r)]
+      _ = d_p * (2 ^ (s + r) * d_q + 2 ^ s) + 2 ^ r * d_q := by ring
+  have hdvd_rest : d_p ∣ 2 ^ r * d_q := by
+    rw [hfac] at hdppq
+    have hdpk : d_p ∣ d_p * (2 ^ (s + r) * d_q + 2 ^ s) := dvd_mul_right _ _
+    exact (Nat.dvd_add_iff_left hdpk).mpr (by simpa [add_comm] using hdppq)
+  have hdvd_dq : d_p ∣ d_q := by
+    have hodd_dp : Odd d_p := by
+      dsimp [d_p]
+      have hp1 : p - 1 ≠ 0 := by omega
+      simpa [s] using oddPart_odd (p - 1) hp1
+    have hcop : d_p.Coprime (2 ^ r) := (Nat.coprime_two_right.mpr hodd_dp).pow_right r
+    exact hcop.dvd_of_dvd_mul_right (by simpa [mul_comm] using hdvd_rest)
+  have hdvd_dp : d_q ∣ d_p := by
+    have hdqq : d_q ∣ p * q - 1 := hdq.trans htpq
+    have hfac2 : p * q - 1 = d_q * (2 ^ (s + r) * d_p + 2 ^ r) + 2 ^ s * d_p := by
+      rw [hp_eq, hq_eq]
+      calc
+        (2 ^ s * d_p + 1) * (2 ^ r * d_q + 1) - 1
+            = (2 ^ s * d_p) * (2 ^ r * d_q) + 2 ^ s * d_p + 2 ^ r * d_q + 1 - 1 := by
+              have h : (2 ^ s * d_p + 1) * (2 ^ r * d_q + 1) =
+                  (2 ^ s * d_p) * (2 ^ r * d_q) + 2 ^ s * d_p + 2 ^ r * d_q + 1 := by ring
+              rw [h]
+        _ = (2 ^ s * d_p) * (2 ^ r * d_q) + 2 ^ s * d_p + 2 ^ r * d_q := by
+              rw [Nat.add_sub_cancel]
+        _ = 2 ^ (s + r) * (d_p * d_q) + 2 ^ s * d_p + 2 ^ r * d_q := by
+          rw [pow_mul_mul (s := s) (r := r)]
+        _ = d_q * (2 ^ (s + r) * d_p + 2 ^ r) + 2 ^ s * d_p := by ring
+    have hdvd_rest2 : d_q ∣ 2 ^ s * d_p := by
+      rw [hfac2] at hdqq
+      have hdqk : d_q ∣ d_q * (2 ^ (s + r) * d_p + 2 ^ r) := dvd_mul_right _ _
+      exact (Nat.dvd_add_iff_left hdqk).mpr (by simpa [add_comm] using hdqq)
+    have hodd_dq : Odd d_q := by
+      dsimp [d_q]
+      have hq1 : q - 1 ≠ 0 := by omega
+      simpa [r] using oddPart_odd (q - 1) hq1
+    have hcop : d_q.Coprime (2 ^ s) := (Nat.coprime_two_right.mpr hodd_dq).pow_right s
+    exact hcop.dvd_of_dvd_mul_right (by simpa [mul_comm] using hdvd_rest2)
+  exact Nat.dvd_antisymm hdvd_dq hdvd_dp
+
+/-- `8·gcd(m,p−1)·gcd(m,q−1) ≤ n−1` when `v₂(p−1) ≤ v₂(q−1)`. -/
+lemma semiprime_gcd_bound_sle {p q : ℕ} (hp : Nat.Prime p) (hq : Nat.Prime q) (hpq : p ≠ q)
+    (hp2 : p ≠ 2) (hq2 : q ≠ 2)
+    (hle : (p - 1).factorization 2 ≤ (q - 1).factorization 2) :
+    8 * ((2 ^ (nu (p * q) - 1) * (strongTestParams (p * q)).2).gcd (p - 1)) *
+        ((2 ^ (nu (p * q) - 1) * (strongTestParams (p * q)).2).gcd (q - 1)) ≤
+      p * q - 1 := by
+  classical
+  let s := (p - 1).factorization 2
+  let r := (q - 1).factorization 2
+  let ν := nu (p * q)
+  let t := (strongTestParams (p * q)).2
+  let d_p := (p - 1) / 2 ^ s
+  let d_q := (q - 1) / 2 ^ r
+  let g_p := t.gcd d_p
+  let g_q := t.gcd d_q
+  have hν : ν = s := by
+    have hmin : nu (p * q) = min s r := by simpa [s, r] using nu_semiprime hp hq
+    omega
+  have hp3 : 3 ≤ p := by
+    have h2 := hp.two_le
+    omega
+  have hq3 : 3 ≤ q := by
+    have h2 := hq.two_le
+    omega
+  have hpodd : Odd p := (hp.odd_iff).mpr hp3
+  have hqodd : Odd q := (hq.odd_iff).mpr hq3
+  have ht : Odd t := by
+    dsimp [t]
+    exact strongTestParams_odd (n := p * q) (by
+      have h4 : 4 ≤ p * q := Nat.mul_le_mul hp.two_le hq.two_le
+      omega)
+  have hν1 : 1 ≤ ν := by
+    have hs1 : 1 ≤ s := by
+      dsimp [s]
+      exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by
+        have h2 := hp.two_le; omega)).1 (by
+        simpa using two_dvd_prime_sub_one_of_odd hp hpodd)
+    omega
+  have hodd_dp : Odd d_p := by
+    dsimp [d_p]
+    have hpp1 : p - 1 ≠ 0 := by
+      have h2 := hp.two_le
+      omega
+    simpa [s] using oddPart_odd (p - 1) hpp1
+  have hodd_dq : Odd d_q := by
+    dsimp [d_q]
+    have hqq1 : q - 1 ≠ 0 := by
+      have h2 := hq.two_le
+      omega
+    simpa [r] using oddPart_odd (q - 1) hqq1
+  have hdp : p - 1 = 2 ^ s * d_p := by
+    dsimp [d_p]
+    simpa [s] using prime_sub_one_decomp hp
+  have hdq : q - 1 = 2 ^ r * d_q := by
+    dsimp [d_q]
+    simpa [r] using prime_sub_one_decomp hq
+  have hgs : ν ≤ s := by omega
+  have hgr : ν ≤ r := by omega
+  have hga : (2 ^ (ν - 1) * t).gcd (p - 1) = 2 ^ (ν - 1) * g_p := by
+    rw [hdp]
+    dsimp [g_p]
+    exact gcd_pow_mul_oddPart (t := t) (s := s) (ν := ν) (d := d_p) hν1 hgs ht
+  have hgb : (2 ^ (ν - 1) * t).gcd (q - 1) = 2 ^ (ν - 1) * g_q := by
+    rw [hdq]
+    dsimp [g_q]
+    exact gcd_pow_mul_oddPart (t := t) (s := r) (ν := ν) (d := d_q) hν1 hgr ht
+  have hmain : 8 * (2 ^ (ν - 1) * g_p) * (2 ^ (ν - 1) * g_q) ≤ (p - 1) * (q - 1) := by
+    have hpow8 : 8 * (2 ^ (ν - 1) * g_p) * (2 ^ (ν - 1) * g_q) = 2 ^ (2 * ν + 1) * g_p * g_q := by
+      calc
+        8 * (2 ^ (ν - 1) * g_p) * (2 ^ (ν - 1) * g_q)
+            = 8 * 2 ^ (ν - 1) * g_p * 2 ^ (ν - 1) * g_q := by ring
+        _ = 2 ^ 3 * 2 ^ (ν - 1) * 2 ^ (ν - 1) * g_p * g_q := by
+              rw [show 8 = 2 ^ 3 by norm_num]
+              ring
+        _ = 2 ^ (3 + (ν - 1) + (ν - 1)) * g_p * g_q := by
+              rw [← pow_add]
+              rw [← pow_add]
+        _ = 2 ^ (2 * ν + 1) * g_p * g_q := by
+              have hexp : 3 + (ν - 1) + (ν - 1) = 2 * ν + 1 := by
+                omega
+              rw [hexp]
+    rw [hpow8]
+    have htarget : 2 ^ (2 * ν + 1) * g_p * g_q ≤ 2 ^ (s + r) * (d_p * d_q) := by
+      rw [hν]
+      by_cases hsr : s = r
+      · have h2g : 2 * g_p * g_q ≤ d_p * d_q := by
+          have hnot : ¬ (g_p = d_p ∧ g_q = d_q) := by
+            intro hboth
+            rcases hboth with ⟨hg1, hg2⟩
+            have hd1 : d_p ∣ t := by
+              rw [← hg1]
+              dsimp [g_p]
+              exact Nat.gcd_dvd_left t d_p
+            have hd2 : d_q ∣ t := by
+              rw [← hg2]
+              dsimp [g_q]
+              exact Nat.gcd_dvd_left t d_q
+            have hdeq : d_p = d_q := semiprime_key_lemma hp hq hpq hd1 hd2
+            have hp_eq : p = q := by
+              have h1 : p - 1 = 2 ^ s * d_p := by
+                dsimp [d_p]
+                simpa [s] using prime_sub_one_decomp hp
+              have h2 : q - 1 = 2 ^ r * d_q := by
+                dsimp [d_q]
+                simpa [r] using prime_sub_one_decomp hq
+              have hsub : p - 1 = q - 1 := by
+                calc
+                  p - 1 = 2 ^ s * d_p := h1
+                  _ = 2 ^ r * d_q := by rw [hsr, hdeq]
+                  _ = q - 1 := h2.symm
+              omega
+            exact hpq hp_eq
+          have hprop : g_p ≠ d_p ∨ g_q ≠ d_q := by
+            by_contra hc
+            push Not at hc
+            exact hnot hc
+          have hg_p_dvd : g_p ∣ d_p := by dsimp [g_p]; exact Nat.gcd_dvd_right t d_p
+          have hg_q_dvd : g_q ∣ d_q := by dsimp [g_q]; exact Nat.gcd_dvd_right t d_q
+          have hd_p_pos : 0 < d_p := by
+            dsimp [d_p]
+            have hpp : 0 < p - 1 := by
+              have h2 := hp.two_le
+              omega
+            exact Nat.div_pos (Nat.le_of_dvd hpp (by
+              exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by
+                have h2 := hp.two_le; omega)).2 le_rfl)) (by norm_num : 0 < 2 ^ s)
+          have hd_q_pos : 0 < d_q := by
+            dsimp [d_q]
+            have hqq : 0 < q - 1 := by
+              have h2 := hq.two_le
+              omega
+            exact Nat.div_pos (Nat.le_of_dvd hqq (by
+              exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by
+                have h2 := hq.two_le; omega)).2 le_rfl)) (by norm_num : 0 < 2 ^ r)
+          rcases hprop with hne1 | hne2
+          · have hlt1 : g_p < d_p := lt_of_le_of_ne (Nat.le_of_dvd hd_p_pos hg_p_dvd) hne1
+            have h13 : g_p ≤ d_p / 3 := odd_divisor_le_div_three hodd_dp hg_p_dvd hne1
+            have hq_le : g_q ≤ d_q := Nat.le_of_dvd hd_q_pos hg_q_dvd
+            have h23 : 2 * (d_p / 3) * d_q ≤ d_p * d_q := by
+              have h2 : 2 * (d_p / 3) ≤ d_p := by omega
+              exact Nat.mul_le_mul_right d_q h2
+            calc
+              2 * g_p * g_q ≤ 2 * (d_p / 3) * d_q := by
+                exact Nat.mul_le_mul (Nat.mul_le_mul_left 2 h13) hq_le
+              _ ≤ d_p * d_q := h23
+          · have h23 : g_q ≤ d_q / 3 := odd_divisor_le_div_three hodd_dq hg_q_dvd hne2
+            have hp_le : g_p ≤ d_p := Nat.le_of_dvd hd_p_pos hg_p_dvd
+            have h23' : 2 * (d_q / 3) * d_p ≤ d_q * d_p := by
+              have h2 : 2 * (d_q / 3) ≤ d_q := by omega
+              exact Nat.mul_le_mul_right d_p h2
+            calc
+              2 * g_p * g_q = 2 * g_q * g_p := by ring
+              _ ≤ 2 * (d_q / 3) * d_p := by
+                exact Nat.mul_le_mul (Nat.mul_le_mul_left 2 h23) hp_le
+              _ ≤ d_q * d_p := h23'
+              _ = d_p * d_q := by ring
+        calc
+          2 ^ (2 * s + 1) * g_p * g_q = 2 ^ (s + r) * (2 * g_p * g_q) := by
+            rw [hsr]
+            rw [pow_add]
+            norm_num
+            ring
+          _ ≤ 2 ^ (s + r) * (d_p * d_q) := by
+            exact Nat.mul_le_mul_left (2 ^ (s + r)) h2g
+      · have hlt : s < r := lt_of_le_of_ne hle hsr
+        have hpow_le : 2 ^ (2 * s + 1) ≤ 2 ^ (s + r) := by
+          apply pow_le_pow_right₀ (by norm_num)
+          omega
+        have hg_p_le : g_p ≤ d_p := by
+          have hpp : 0 < d_p := by
+            dsimp [d_p]
+            have hpp' : 0 < p - 1 := by
+              have h2 := hp.two_le
+              omega
+            exact Nat.div_pos (Nat.le_of_dvd hpp' (by
+              exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by
+                have h2 := hp.two_le; omega)).2 le_rfl)) (by norm_num : 0 < 2 ^ s)
+          exact Nat.le_of_dvd hpp (by dsimp [g_p]; exact Nat.gcd_dvd_right t d_p)
+        have hg_q_le : g_q ≤ d_q := by
+          have hqq : 0 < d_q := by
+            dsimp [d_q]
+            have hqq' : 0 < q - 1 := by
+              have h2 := hq.two_le
+              omega
+            exact Nat.div_pos (Nat.le_of_dvd hqq' (by
+              exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by
+                have h2 := hq.two_le; omega)).2 le_rfl)) (by norm_num : 0 < 2 ^ r)
+          exact Nat.le_of_dvd hqq (by dsimp [g_q]; exact Nat.gcd_dvd_right t d_q)
+        calc
+          2 ^ (2 * s + 1) * g_p * g_q ≤ 2 ^ (s + r) * d_p * d_q := by
+            exact Nat.mul_le_mul (Nat.mul_le_mul hpow_le hg_p_le) hg_q_le
+          _ = 2 ^ (s + r) * (d_p * d_q) := by ring
+    calc
+      2 ^ (2 * ν + 1) * g_p * g_q ≤ 2 ^ (s + r) * (d_p * d_q) := htarget
+      _ = (p - 1) * (q - 1) := by
+        rw [hdp, hdq]
+        rw [pow_mul_mul (s := s) (r := r)]
+  calc
+    8 * ((2 ^ (ν - 1) * t).gcd (p - 1)) * ((2 ^ (ν - 1) * t).gcd (q - 1))
+        = 8 * (2 ^ (ν - 1) * g_p) * (2 ^ (ν - 1) * g_q) := by rw [hga, hgb]
+    _ ≤ (p - 1) * (q - 1) := hmain
+    _ ≤ p * q - 1 := prod_sub_one_le hp3 hq3
+
+/-- `8·gcd(m,p−1)·gcd(m,q−1) ≤ n−1` for `n` with `n.primeFactors = {p,q}`. -/
+lemma semiprime_gcd_bound {p q : ℕ} (hp : Nat.Prime p) (hq : Nat.Prime q) (hpq : p ≠ q)
+    (hp2 : p ≠ 2) (hq2 : q ≠ 2) :
+    8 * ((2 ^ (nu (p * q) - 1) * (strongTestParams (p * q)).2).gcd (p - 1)) *
+        ((2 ^ (nu (p * q) - 1) * (strongTestParams (p * q)).2).gcd (q - 1)) ≤
+      p * q - 1 := by
+  by_cases hle : (p - 1).factorization 2 ≤ (q - 1).factorization 2
+  · exact semiprime_gcd_bound_sle hp hq hpq hp2 hq2 hle
+  · have hle' : (q - 1).factorization 2 ≤ (p - 1).factorization 2 := by omega
+    have hmain := semiprime_gcd_bound_sle (p := q) (q := p) hq hp (Ne.symm hpq) hq2 hp2 hle'
+    simpa [mul_comm, mul_left_comm, mul_assoc] using hmain
+
+
+
+
+/-- For primes `p, q ≥ 3`, `2·(p−1)(q−1) ≤ p²q−1`. -/
+lemma crude_bound {p q : ℕ} (hp3 : 3 ≤ p) (hq3 : 3 ≤ q) : 2 * (p - 1) * (q - 1) ≤ p ^ 2 * q - 1 := by
+  have hpq_le : (p - 1) * (q - 1) ≤ p * q := Nat.mul_le_mul (Nat.sub_le _ _) (Nat.sub_le _ _)
+  have h2pq : 2 * (p * q) ≤ p ^ 2 * q - 1 := by
+    have h1pq : 1 ≤ (p - 2) * (p * q) := by
+      have hp2 : 1 ≤ p - 2 := by omega
+      have hpqpos : 1 ≤ p * q := by
+        have h9 : 9 ≤ p * q := Nat.mul_le_mul hp3 hq3
+        omega
+      have hmul : 1 * 1 ≤ (p - 2) * (p * q) := Nat.mul_le_mul hp2 hpqpos
+      simpa using hmul
+    have h'' : 1 ≤ p ^ 2 * q - 2 * (p * q) := by
+      rw [Nat.mul_sub_right_distrib] at h1pq
+      simpa [pow_two, Nat.mul_assoc] using h1pq
+    have hgoal : 2 * (p * q) + 1 ≤ p ^ 2 * q := by omega
+    omega
+  calc
+    2 * (p - 1) * (q - 1) = 2 * ((p - 1) * (q - 1)) := by ring
+    _ ≤ 2 * (p * q) := Nat.mul_le_mul_left 2 hpq_le
+    _ ≤ p ^ 2 * q - 1 := h2pq
+
+/-- For primes `p, q ≥ 3`, `2·(p−1)(q−1) ≤ p·q²−1`. -/
+lemma crude_bound' {p q : ℕ} (hp3 : 3 ≤ p) (hq3 : 3 ≤ q) : 2 * (p - 1) * (q - 1) ≤ p * q ^ 2 - 1 := by
+  have hpq_le : (p - 1) * (q - 1) ≤ p * q := Nat.mul_le_mul (Nat.sub_le _ _) (Nat.sub_le _ _)
+  have h2pq : 2 * (p * q) ≤ p * q ^ 2 - 1 := by
+    have h1pq : 1 ≤ (q - 2) * (p * q) := by
+      have hq2 : 1 ≤ q - 2 := by omega
+      have hpqpos : 1 ≤ p * q := by
+        have h9 : 9 ≤ p * q := Nat.mul_le_mul hp3 hq3
+        omega
+      have hmul : 1 * 1 ≤ (q - 2) * (p * q) := Nat.mul_le_mul hq2 hpqpos
+      simpa using hmul
+    have h'' : 1 ≤ p * q ^ 2 - 2 * (p * q) := by
+      rw [Nat.mul_sub_right_distrib] at h1pq
+      simpa [pow_two, Nat.mul_assoc, Nat.mul_comm, Nat.mul_left_comm] using h1pq
+    have hgoal : 2 * (p * q) + 1 ≤ p * q ^ 2 := by omega
+    omega
+  calc
+    2 * (p - 1) * (q - 1) = 2 * ((p - 1) * (q - 1)) := by ring
+    _ ≤ 2 * (p * q) := Nat.mul_le_mul_left 2 hpq_le
+    _ ≤ p * q ^ 2 - 1 := h2pq
+
+/-- For `n` with exactly two distinct prime factors, `|S(n)| ≤ (n−1)/4`. -/
+lemma goodUnits_card_le_semiprime {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
+    (hk : n.primeFactors.card = 2) :
+    Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ (n - 1) / 4 := by
+  rcases Finset.card_eq_two.mp hk with ⟨p, q, hpq_ne, hpq⟩
+  have hp_mem : p ∈ n.primeFactors := by rw [hpq]; simp
+  have hq_mem : q ∈ n.primeFactors := by rw [hpq]; simp
+  have hp : Nat.Prime p := Nat.prime_of_mem_primeFactors hp_mem
+  have hq : Nat.Prime q := Nat.prime_of_mem_primeFactors hq_mem
+  have hp_ne2 : p ≠ 2 := by
+    intro h2
+    have hpdvd : p ∣ n := Nat.dvd_of_mem_primeFactors hp_mem
+    have hpodd : Odd p := odd_of_dvd_odd hn_odd hpdvd
+    rw [h2] at hpodd
+    norm_num at hpodd
+  have hq_ne2 : q ≠ 2 := by
+    intro h2
+    have hqdvd : q ∣ n := Nat.dvd_of_mem_primeFactors hq_mem
+    have hqodd : Odd q := odd_of_dvd_odd hn_odd hqdvd
+    rw [h2] at hqodd
+    norm_num at hqodd
+  have hne : n = p ^ (n.factorization p) * q ^ (n.factorization q) := by
+    conv_lhs => rw [Nat.prod_pow_primeFactors_factorization (by omega : n ≠ 0)]
+    exact prod_primeFactors_pair hpq hpq_ne (fun x : ℕ => x ^ (n.factorization x))
+  let a := n.factorization p
+  let b := n.factorization q
+  have ha : 1 ≤ a := hp.factorization_pos_of_dvd (by omega) (Nat.dvd_of_mem_primeFactors hp_mem)
+  have hb : 1 ≤ b := hq.factorization_pos_of_dvd (by omega) (Nat.dvd_of_mem_primeFactors hq_mem)
+  have hp2le : 2 ≤ p := hp.two_le
+  have hq2le : 2 ≤ q := hq.two_le
+  have hp3 : 3 ≤ p := by omega
+  have hq3 : 3 ≤ q := by omega
+  by_cases hsq : a = 1 ∧ b = 1
+  · have hnpq : n = p * q := by
+      rw [hne]
+      change p ^ a * q ^ b = p * q
+      rw [hsq.1, hsq.2]
+      simp
+    let m := 2 ^ (nu n - 1) * (strongTestParams n).2
+    have hmTorsion : Nat.card {x : (ZMod n)ˣ // x ^ m = 1} = m.gcd (p - 1) * m.gcd (q - 1) := by
+      rw [mTorsion_eq_prod (n := n) (by omega : n ≠ 0) hn_odd]
+      rw [prod_primeFactors_pair hpq hpq_ne (fun x : ℕ => m.gcd (Nat.totient (x ^ (n.factorization x))))]
+      have hpm : m.Coprime p := by simpa [m] using mExp_coprime_prime (n := n) hn1 hn_odd hp_mem
+      have hqm : m.Coprime q := by simpa [m] using mExp_coprime_prime (n := n) hn1 hn_odd hq_mem
+      rw [gcd_totient_eq_gcd_prime hp (by omega : 0 < a) hpm, gcd_totient_eq_gcd_prime hq (by omega : 0 < b) hqm]
+    have hS : Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ 2 * m.gcd (p - 1) * m.gcd (q - 1) := by
+      unfold goodUnits
+      calc
+        Nat.card {x : (ZMod n)ˣ // x ∈ goodSet m} ≤ 2 * Nat.card {x : (ZMod n)ˣ // x ^ m = 1} :=
+          goodSet_card_le (n := n) m
+        _ = 2 * (m.gcd (p - 1) * m.gcd (q - 1)) := by rw [hmTorsion]
+        _ = 2 * m.gcd (p - 1) * m.gcd (q - 1) := by ring
+    have hb8 : 8 * m.gcd (p - 1) * m.gcd (q - 1) ≤ n - 1 := by
+      have hb' := semiprime_gcd_bound (p := p) (q := q) hp hq hpq_ne hp_ne2 hq_ne2
+      rw [← hnpq] at hb'
+      simpa [m] using hb'
+    have h4 : 4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ n - 1 := by
+      calc
+        4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ 4 * (2 * m.gcd (p - 1) * m.gcd (q - 1)) := by
+          exact Nat.mul_le_mul_left 4 hS
+        _ = 8 * m.gcd (p - 1) * m.gcd (q - 1) := by ring
+        _ ≤ n - 1 := hb8
+    exact (Nat.le_div_iff_mul_le (by norm_num : 0 < 4)).mpr (by simpa [mul_comm] using h4)
+  · have hnsq : 2 ≤ a ∨ 2 ≤ b := by omega
+    have hS' : Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ 2 * ((p - 1) / 2) * ((q - 1) / 2) := by
+      calc
+        Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ 2 * ∏ x : n.primeFactors, ((x : ℕ) - 1) / 2 :=
+          goodUnits_card_le_prodHalf (n := n) hn1 hn_odd
+        _ = 2 * (((p - 1) / 2) * ((q - 1) / 2)) := by
+          rw [prod_primeFactors_pair hpq hpq_ne (fun x : ℕ => (x - 1) / 2)]
+        _ = 2 * ((p - 1) / 2) * ((q - 1) / 2) := by ring
+    have h8 : 8 * ((p - 1) / 2) * ((q - 1) / 2) ≤ n - 1 := by
+      have hp_even : 2 ∣ p - 1 := two_dvd_prime_sub_one_of_odd hp (by
+        have hpdvd : p ∣ n := Nat.dvd_of_mem_primeFactors hp_mem
+        exact odd_of_dvd_odd hn_odd hpdvd)
+      have hq_even : 2 ∣ q - 1 := two_dvd_prime_sub_one_of_odd hq (by
+        have hqdvd : q ∣ n := Nat.dvd_of_mem_primeFactors hq_mem
+        exact odd_of_dvd_odd hn_odd hqdvd)
+      have h8eq : 8 * ((p - 1) / 2) * ((q - 1) / 2) = 2 * (p - 1) * (q - 1) := by
+        calc
+          8 * ((p - 1) / 2) * ((q - 1) / 2) = 2 * (2 * ((p - 1) / 2)) * (2 * ((q - 1) / 2)) := by ring
+          _ = 2 * (p - 1) * (q - 1) := by rw [Nat.mul_div_cancel' hp_even, Nat.mul_div_cancel' hq_even]
+      rw [h8eq]
+      rcases hnsq with ha2 | hb2
+      · have hp2_n : p ^ 2 * q ≤ n := by
+          rw [hne]
+          have hp2a : p ^ 2 ≤ p ^ a := pow_le_pow_right₀ (by omega) ha2
+          have hq1b : q ≤ q ^ b := le_self_pow (by omega) (by omega : b ≠ 0)
+          exact Nat.mul_le_mul hp2a hq1b
+        exact (crude_bound hp3 hq3).trans (by omega)
+      · have hq2_n : p * q ^ 2 ≤ n := by
+          rw [hne]
+          have hp1a : p ≤ p ^ a := le_self_pow (by omega) (by omega : a ≠ 0)
+          have hq2b : q ^ 2 ≤ q ^ b := pow_le_pow_right₀ (by omega) hb2
+          exact Nat.mul_le_mul hp1a hq2b
+        exact (crude_bound' hp3 hq3).trans (by omega)
+    have h4 : 4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ n - 1 := by
+      calc
+        4 * Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ 4 * (2 * ((p - 1) / 2) * ((q - 1) / 2)) := by
+          exact Nat.mul_le_mul_left 4 hS'
+        _ = 8 * ((p - 1) / 2) * ((q - 1) / 2) := by ring
+        _ ≤ n - 1 := h8
+    exact (Nat.le_div_iff_mul_le (by norm_num : 0 < 4)).mpr (by simpa [mul_comm] using h4)
+
+
+/--
+The good subgroup `S(n)` has size at most `(n−1)/4` for odd composite
+`n` (Rabin–Monier).  The proof splits on the number `k` of distinct
+prime factors: `k = 1` (prime power), `k = 2` (semiprime), and
+`k ≥ 3`.
+-/
+theorem goodUnits_card_le {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
+    (hn_comp : ¬ Nat.Prime n) :
+    Nat.card {x : (ZMod n)ˣ // x ∈ goodUnits} ≤ (n - 1) / 4 := by
+  have hcard : 1 ≤ n.primeFactors.card := by
+    have hpos : 0 < n.primeFactors.card :=
+      (Finset.card_pos).mpr ((Nat.nonempty_primeFactors).2 hn1)
+    omega
+  have hcases : n.primeFactors.card = 1 ∨ n.primeFactors.card = 2 ∨
+      3 ≤ n.primeFactors.card := by
+    omega
+  rcases hcases with h1 | h2 | h3
+  · exact goodUnits_card_le_prime_power (n := n) hn1 hn_odd hn_comp h1
+  · exact goodUnits_card_le_semiprime (n := n) hn1 hn_odd h2
+  · exact goodUnits_card_le_of_ge_three (n := n) hn1 hn_odd h3
+
+/--
+**The Miller-Rabin error bound (Theorem 31.38; Rabin–Monier).**  For odd
+composite `n`, at most `(n−1)/4` of the bases in `(Z/nZ)ˣ` are strong liars.
+Every strong liar lies in the good subgroup `S(n)` (`liar_mem_goodSet`), and
+`|S(n)| ≤ (n−1)/4` (`goodUnits_card_le`).
+-/
+theorem strongLiars_card_le {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
+    (hn_comp : ¬ Nat.Prime n) :
+    Nat.card {a : (ZMod n)ˣ // isStrongLiar a} ≤ (n - 1) / 4 := by
+  have hle : Nat.card {a : (ZMod n)ˣ // isStrongLiar a} ≤
+      Nat.card {a : (ZMod n)ˣ // a ∈ goodUnits} := by
+    refine Nat.card_le_card_of_injective
+      (fun a : {a : (ZMod n)ˣ // isStrongLiar a} => ⟨(a : (ZMod n)ˣ),
+        liar_mem_goodSet (n := n) hn_odd hn1 a.2⟩) ?_
+    intro a b h
+    exact Subtype.ext (by simpa using congrArg Subtype.val h)
+  exact hle.trans (goodUnits_card_le (n := n) hn1 hn_odd hn_comp)
 
 end Chapter31
 
