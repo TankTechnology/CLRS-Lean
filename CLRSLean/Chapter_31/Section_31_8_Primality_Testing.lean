@@ -1130,6 +1130,106 @@ lemma mTorsion_eq_prod {n m : ℕ} (hn : n ≠ 0) (hn_odd : Odd n) :
     exact hne (even_iff_two_dvd.mpr hdvd)
   exact card_pow_eq_one_prime_pow (p := (p : ℕ)) (e := n.factorization (p : ℕ)) (m := m) hpp hpne2
 
+/-- `ν(n) ≤ v₂(n−1)`: every prime factor is `≡ 1 (mod 2^ν)`, so `n ≡ 1` and
+`2^ν | n−1`. -/
+lemma nu_le_v2_nat_sub_one {n : ℕ} (hn1 : 1 < n) (hn_odd : Odd n) :
+    nu n ≤ (n - 1).factorization 2 := by
+  have hnne : n.primeFactors.Nonempty := (Nat.nonempty_primeFactors).2 hn1
+  have hmod : ∀ p ∈ n.primeFactors, p ≡ 1 [MOD 2 ^ nu n] := by
+    intro p hp
+    exact ((Nat.modEq_iff_dvd' (a := 1) (b := p) (Nat.succ_le_of_lt (Nat.pos_of_mem_primeFactors hp))).mpr
+      (two_pow_nu_dvd_prime_sub_one (n := n) hnne hp)).symm
+  have hprod : ∏ p : n.primeFactors, (p : ℕ) ^ n.factorization (p : ℕ) ≡ 1 [MOD 2 ^ nu n] := by
+    exact Nat.ModEq.prod_one (s := Finset.univ)
+      (f := fun p : n.primeFactors => (p : ℕ) ^ n.factorization (p : ℕ)) (by
+        intro p hp
+        simpa using (hmod p p.2).pow (n.factorization p))
+  have hn_mod : n ≡ 1 [MOD 2 ^ nu n] := by
+    conv_lhs =>
+      rw [Nat.prod_pow_primeFactors_factorization (by omega : n ≠ 0)]
+    exact hprod
+  have hdvd : 2 ^ nu n ∣ n - 1 := (Nat.modEq_iff_dvd' (a := 1) (b := n) (by omega)).mp hn_mod.symm
+  exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by omega)).1 hdvd
+
+/-- `m = 2^(ν−1)·t` divides `n−1` (since `t·2^s = n−1` and `ν ≤ s`). -/
+lemma mExp_dvd {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n) :
+    2 ^ (nu n - 1) * (strongTestParams n).2 ∣ n - 1 := by
+  have hs : (strongTestParams n).2 * 2 ^ (strongTestParams n).1 = n - 1 := by
+    unfold strongTestParams
+    have hdvd : 2 ^ (n - 1).factorization 2 ∣ n - 1 := by
+      exact (Nat.Prime.pow_dvd_iff_le_factorization (by decide : Nat.Prime 2) (by omega)).2 le_rfl
+    rw [Nat.mul_comm]
+    exact Nat.mul_div_cancel' hdvd
+  have hν_le_s : nu n - 1 ≤ (strongTestParams n).1 := by
+    have hν_s : nu n ≤ (n - 1).factorization 2 := nu_le_v2_nat_sub_one hn1 hn_odd
+    unfold strongTestParams
+    omega
+  have hpow_dvd : 2 ^ (nu n - 1) ∣ 2 ^ (strongTestParams n).1 := by
+    exact pow_dvd_pow 2 hν_le_s
+  have hmul : 2 ^ (nu n - 1) * (strongTestParams n).2 ∣
+      2 ^ (strongTestParams n).1 * (strongTestParams n).2 := by
+    exact Nat.mul_dvd_mul hpow_dvd (dvd_refl _)
+  rw [← hs]
+  simpa [mul_comm] using hmul
+
+/-- `m` is coprime to every prime factor `p` of `n`: `m | n−1` and `p | n`. -/
+lemma mExp_coprime_prime {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
+    {p : ℕ} (hp : p ∈ n.primeFactors) :
+    (2 ^ (nu n - 1) * (strongTestParams n).2).Coprime p := by
+  have hmn : 2 ^ (nu n - 1) * (strongTestParams n).2 ∣ n - 1 := mExp_dvd (n := n) hn1 hn_odd
+  have hpn : p ∣ n := Nat.dvd_of_mem_primeFactors hp
+  have hcop : (n - 1).Coprime n := by
+    exact ((Nat.coprime_self_sub_right (m := 1) (n := n) (by omega)).mpr (by simp)).symm
+  exact (hcop.of_dvd_left hmn).of_dvd_right hpn
+
+/-- `gcd a (b·c) = gcd a c` when `a` is coprime to `b`. -/
+lemma gcd_eq_gcd_of_coprime {a b c : ℕ} (h : a.Coprime b) : a.gcd (b * c) = a.gcd c := by
+  apply Nat.dvd_antisymm
+  · apply Nat.dvd_gcd
+    · exact Nat.gcd_dvd_left _ _
+    · have hd2 : a.gcd (b * c) ∣ b * c := Nat.gcd_dvd_right _ _
+      have hcop : (a.gcd (b * c)).Coprime b := h.of_dvd_left (Nat.gcd_dvd_left _ _)
+      exact hcop.dvd_of_dvd_mul_right (by simpa [mul_comm] using hd2)
+  · apply Nat.dvd_gcd
+    · exact Nat.gcd_dvd_left _ _
+    · exact (Nat.gcd_dvd_right _ _).trans (dvd_mul_left c b)
+
+/-- `gcd(m, φ(p^e)) = gcd(m, p−1)` when `gcd(m, p) = 1` and `0 < e`. -/
+lemma gcd_totient_eq_gcd_prime {p e m : ℕ} (hp : Nat.Prime p) (he : 0 < e)
+    (hpm : m.Coprime p) : m.gcd (Nat.totient (p ^ e)) = m.gcd (p - 1) := by
+  rw [Nat.totient_prime_pow hp he]
+  have hpm' : m.Coprime (p ^ (e - 1)) := hpm.pow_right (e - 1)
+  exact gcd_eq_gcd_of_coprime (a := m) (b := p ^ (e - 1)) (c := p - 1) hpm'
+
+/--
+The `m`-torsion is at most the product over the prime factors of `(p−1)/2`,
+where `m = 2^(ν(n)−1)·t`.
+-/
+lemma mTorsion_le_prod_half {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n) :
+    Nat.card {x : (ZMod n)ˣ // x ^ (2 ^ (nu n - 1) * (strongTestParams n).2) = 1} ≤
+      ∏ p : n.primeFactors, ((p : ℕ) - 1) / 2 := by
+  rw [mTorsion_eq_prod (by omega) hn_odd]
+  have hν : 1 ≤ nu n := nu_pos hn_odd hn1
+  have ht : Odd (strongTestParams n).2 := strongTestParams_odd hn1
+  have hnne : n.primeFactors.Nonempty := (Nat.nonempty_primeFactors).2 hn1
+  apply Finset.prod_le_prod'
+  intro p hp
+  have hpp : Nat.Prime (p : ℕ) := Nat.prime_of_mem_primeFactors p.2
+  have hppos : 0 < (p : ℕ) - 1 := by
+    have := hpp.two_le
+    omega
+  have hpm : (2 ^ (nu n - 1) * (strongTestParams n).2).Coprime (p : ℕ) :=
+    mExp_coprime_prime (n := n) hn1 hn_odd p.2
+  have hdvd : 2 ^ nu n ∣ (p : ℕ) - 1 := two_pow_nu_dvd_prime_sub_one (n := n) hnne p.2
+  have he : 0 < n.factorization (p : ℕ) := by
+    exact hpp.factorization_pos_of_dvd (by omega) (Nat.dvd_of_mem_primeFactors p.2)
+  calc
+    (2 ^ (nu n - 1) * (strongTestParams n).2).gcd (Nat.totient ((p : ℕ) ^ n.factorization (p : ℕ)))
+        = (2 ^ (nu n - 1) * (strongTestParams n).2).gcd ((p : ℕ) - 1) := by
+      exact gcd_totient_eq_gcd_prime hpp he hpm
+    _ ≤ ((p : ℕ) - 1) / 2 := gcd_pow_mul_le_half (p := (p : ℕ)) (ν := nu n) (t := (strongTestParams n).2)
+      hppos hν ht hdvd
+
 end Chapter31
 
 end CLRS
