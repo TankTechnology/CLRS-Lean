@@ -39,5 +39,18 @@ example {m n : ℕ} {P : StandardLP m n} {x : Fin n → ℝ} :
 #check StandardLP.IsDualFeasible.nonnegative
 #check StandardLP.IsDualFeasible.coefficient_le
 
+#check StandardLP.dotProduct_mono_right_of_nonnegative
+#check StandardLP.dotProduct_mono_left_of_nonnegative
+#check StandardLP.transpose_mulVec_dotProduct
+#check StandardLP.weak_duality
+
+example {m n : ℕ} {P : StandardLP m n}
+    {x : Fin n → ℝ} {y : Fin m → ℝ}
+    (hx : P.IsFeasible x) (hy : P.IsDualFeasible y) :
+    P.objective x ≤ P.dualObjective y :=
+  P.weak_duality hx hy
+
+#print axioms StandardLP.weak_duality
+
 end Chapter29
 end CLRS
