@@ -156,10 +156,13 @@ the detailed maintainer ledger.
   The universal theorem {lit}`pMerge_span_upper` and the sorted interleaved
   witness theorem {lit}`pMerge_interleaved_span_lower` give matching
   quadratic-logarithmic execution-span bounds; the upper proof uses three
-  three-quarter shrinks per binary-log level.
-  P-MERGE, P-MERGE-SORT, and retained parallel Strassen have recurrence-level
-  power-of-two and all-input analyses.  The executable P-MERGE-SORT
-  implementation refining those recurrences remains open.
+  three-quarter shrinks per binary-log level.  Executable P-MERGE-SORT now
+  performs the textbook midpoint split, parallel recursive calls, and P-MERGE;
+  {lit}`pMergeSort_correct` proves sortedness, permutation, and exact output
+  length for every input.  P-MERGE, P-MERGE-SORT, and retained parallel
+  Strassen have recurrence-level power-of-two and all-input analyses.  The
+  remaining P-MERGE-SORT core is to connect its carried execution costs to
+  pointwise work/span bounds and those recurrence models.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

@@ -3724,6 +3724,11 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Spec.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Main.lean`
 - Interface tests: `Tests/Chapter_27_Matrix_Interface.lean` and
   `Tests/Chapter_27_ParallelMerge_Interface.lean`
 - Status: `partial` (executable P-ADD and race-free P-MATMUL correctness,
@@ -3731,7 +3736,8 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   proved; executable P-MERGE value correctness, exact child accounting, its
   actual three-quarter split bound, one-step costs, and global pointwise linear
   work and matching quadratic-logarithmic span bounds are proved; executable
-  P-MERGE-SORT remains open)
+  P-MERGE-SORT and its value correctness are proved; its execution work/span
+  bounds and recurrence links remain open)
 - Model:
   - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
     sequential composition and deterministic balanced `par4`/`par8` trees.
@@ -3744,7 +3750,8 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     carried by executable P-MATMUL, whose sequential P-ADD phase produces
     log-squared span.
   - `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
-    `strassenWork`, and `strassenSpan` remain recurrence-level models.
+    `strassenWork`, and `strassenSpan` are recurrence-level cost models.  The
+    executable P-MERGE-SORT value layer now exists; only its cost links remain.
 - Proved executable matrix boundary:
   - `CLRS.Chapter27.Costed.pure`, `charge`, `map`, `seq`, `par`, `par4`, and
     `par8` form the value/work/span execution layer.
@@ -3805,6 +3812,21 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `2*S(k+1) ≥ 2*S(k) + (k+1) + 4` and the public matching witness
     `CLRS.Chapter27.pMerge_interleaved_span_lower`:
     `(k+1)^2 ≤ 8 * span` on inputs of size `2^k` each.
+- Proved executable P-MERGE-SORT boundary:
+  - `CLRS.Chapter27.pMergeSort` returns length-zero/one inputs directly and,
+    for every larger list, splits at `length / 2`, runs both recursive sorts
+    through `Costed.par`, and invokes executable P-MERGE sequentially.
+  - `CLRS.Chapter27.PMergeSortSpec` bundles sortedness, permutation of the
+    original input, and exact output length.
+  - `CLRS.Chapter27.pMergeSort_correct` proves this specification for every
+    input by strong induction on length.  The base proof derives sortedness
+    solely from `length ≤ 1`; the recursive proof composes the two child
+    specifications with `pMerge_correct` and reconstructs the input using
+    `List.take_append_drop`.
+  - `pMergeSort_value_sorted`, `pMergeSort_value_perm`, and
+    `pMergeSort_value_length` expose the three reader-facing projections.
+  - Focused executable examples cover empty and singleton costs, an odd
+    reversed list, and duplicate-heavy data.
 - Proved execution-cost equalities:
   - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
     the work and span carried by P-ADD with `pAddWork (2^k)` and
@@ -3856,9 +3878,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Proof pattern: prove each natural-valued recurrence monotone, sandwich an
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
-- Current gap: implement executable P-MERGE-SORT and prove its correctness,
-  execution work, and execution span are linked to the proved recurrence-level
-  P-MERGE-SORT models.  P-MERGE's global matching span bounds are complete.
+- Current gap: prove executable P-MERGE-SORT's pointwise work/span bounds and
+  link its carried costs to the proved recurrence-level P-MERGE-SORT models.
+  The executable algorithm and complete value correctness are proved.
 
 ## Chapter 32 - String Matching
 

@@ -42,6 +42,11 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.En
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.Bounds
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.WitnessLists
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span.LowerBound
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Definitions
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Spec
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Main
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
@@ -102,8 +107,12 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   execution also has pointwise linear work, proved by logarithmic-potential
   strong induction, and pointwise quadratic-logarithmic span.  A monotone
   three-quarter envelope proves the upper bound, while sorted interleaved
-  even/odd power-of-two inputs provide the matching lower witness.  The
-  merge-based and parallel-Strassen recurrences also
+  even/odd power-of-two inputs provide the matching lower witness.
+  {name}`CLRS.Chapter27.pMergeSort` now implements the full midpoint-split,
+  parallel-recursive, P-MERGE-based sorting control structure, and
+  {name}`CLRS.Chapter27.pMergeSort_correct` proves that every result is a
+  sorted permutation of its input with unchanged length.  The merge-based and
+  parallel-Strassen recurrences also
   have monotonicity, adjacent-power sandwich, and all-input Θ theorems.
   Main declarations:
   {lit}`CLRS.Chapter27.Costed`,
@@ -141,6 +150,12 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.pMerge_span_upper`,
   {lit}`CLRS.Chapter27.evenKeys`, {lit}`CLRS.Chapter27.oddKeys`,
   {lit}`CLRS.Chapter27.pMerge_interleaved_span_lower`,
+  {lit}`CLRS.Chapter27.pMergeSort`,
+  {lit}`CLRS.Chapter27.PMergeSortSpec`,
+  {lit}`CLRS.Chapter27.pMergeSort_correct`,
+  {lit}`CLRS.Chapter27.pMergeSort_value_sorted`,
+  {lit}`CLRS.Chapter27.pMergeSort_value_perm`,
+  {lit}`CLRS.Chapter27.pMergeSort_value_length`,
   {lit}`CLRS.Chapter27.pMergeWork`, {lit}`CLRS.Chapter27.pMergeWork_pow_two`,
   {lit}`CLRS.Chapter27.pMergeWork_monotone`,
   {lit}`CLRS.Chapter27.pMergeWork_power_sandwich`,
@@ -170,9 +185,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 
 ## Deferred work
 
-* P-MERGE now has exact one-step execution costs, the actual three-quarter
-  child bound, global pointwise linear work, and matching quadratic-log span
-  bounds.  The full executable P-MERGE-SORT implementation remains open.
+* P-MERGE-SORT's executable algorithm and value correctness are complete.  Its
+  remaining core is the execution-cost layer: prove pointwise work/span bounds
+  and connect the carried costs to the recurrence-level P-MERGE-SORT analyses.
 -/
 
 namespace CLRS
