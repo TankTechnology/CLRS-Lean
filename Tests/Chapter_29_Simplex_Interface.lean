@@ -29,5 +29,13 @@ example {m n : ℕ} (D : Dictionary m n) :
     D.Satisfies D.basicAssignment :=
   D.basicAssignment_satisfies
 
+#check StandardLP.initialDictionary
+#check StandardLP.combinedAssignment
+#check StandardLP.combinedAssignment_nonnegative_iff
+#check StandardLP.initialDictionary_satisfies_iff
+#check StandardLP.initialDictionary_satisfies_of_slackExtension
+#check StandardLP.initialDictionary_objectiveRhs
+#check StandardLP.initialDictionary_isBasicFeasible_iff
+
 end Chapter29
 end CLRS
