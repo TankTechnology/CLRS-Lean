@@ -13,6 +13,7 @@ When the CSV changes, regenerate this page with
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 * Tracked reader-facing theorem entries: 1707.
 * Proved tracked theorem entries: 1707.
 ||||||| parent of 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
@@ -37,6 +38,13 @@ When the CSV changes, regenerate this page with
 * Tracked reader-facing theorem entries: 1684.
 * Proved tracked theorem entries: 1684.
 >>>>>>> 5a8256c (feat(ch28): constructive substitution, LUP-SOLVE, and uniqueness details)
+||||||| parent of d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
+* Tracked reader-facing theorem entries: 1684.
+* Proved tracked theorem entries: 1684.
+=======
+* Tracked reader-facing theorem entries: 1685.
+* Proved tracked theorem entries: 1685.
+>>>>>>> d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
 * Remaining core theorem groups: 7.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -89,6 +97,7 @@ Ch  Chapter                                                     Status          
 ||||||| parent of 0848be9 (feat(ch28): complete Cholesky decomposition theorem (Theorem 28.3))
 27  27. Multithreaded Algorithms                                partial                              27.1;27.2;27.3;27.4                66        1
 <<<<<<< HEAD
+<<<<<<< HEAD
 28  28. Matrix Operations                                       partial                              28.1;28.2;28.3                      3        1
 =======
 27  27. Multithreaded Algorithms                                partial                              27.1;27.2;27.3;27.4                66        1
@@ -105,6 +114,11 @@ Ch  Chapter                                                     Status          
 =======
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      8        0
 >>>>>>> 5a8256c (feat(ch28): constructive substitution, LUP-SOLVE, and uniqueness details)
+||||||| parent of d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
+28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      8        0
+=======
+28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
+>>>>>>> d7b7872 (feat(ch28): det-via-LUP corollary and CLRS running-time cost bounds)
 29  29. Linear Programming                                      not-started                          not represented                     0        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
 31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1

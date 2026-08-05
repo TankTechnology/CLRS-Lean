@@ -20,7 +20,11 @@ determinants, and matrix inversion.
   {lit}`CLRS.Chapter28.forwardSubst_spec` (Lemma 28.1),
   {lit}`CLRS.Chapter28.backSubst_spec` (Lemma 28.2),
   {lit}`CLRS.Chapter28.lupSolve_correct`,
-  and {lit}`CLRS.Chapter28.unique_solution_of_nonsingular`.
+  {lit}`CLRS.Chapter28.unique_solution_of_nonsingular`,
+  and {lit}`CLRS.Chapter28.det_eq_sign_mul_det_of_lup` (Corollary to Theorem
+  28.1).
+  The section also records the CLRS running times
+  ({lit}`CLRS.Chapter28.substitutionCost_isBigO` and friends).
 * 28.2 Inverting matrices.
   Main declaration: {lit}`CLRS.Chapter28.inv_eq_lup`.
 * 28.3 Symmetric positive-definite matrices and least-squares approximation.

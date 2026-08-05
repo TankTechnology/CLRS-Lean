@@ -4050,6 +4050,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     solution, via `mulVec_injective_iff_isUnit` (for the triangular cases,
     `det_unitLowerTriangular` and `Matrix.det_of_upperTriangular` give
     nonsingularity).
+  - `det_eq_sign_mul_det_of_lup` (Corollary to Theorem 28.1): from
+    `σ.permMatrix · A = L · U` with `L` unit lower-triangular,
+    `det U = sign σ · det A` — determinants agree up to sign; with
+    `det_ne_zero_of_lup` and `upperTriangular_diag_ne_zero_of_det_ne_zero`,
+    `U` is nonsingular and has nonzero diagonal when `A` is.
+  - Cost layer (`section Cost`): abstract operation counts matching the CLRS
+    running times, with `isBigO` bounds — `substitutionCost_isBigO`
+    (LUP-SOLVE `Θ(n²)`), `lupDecompositionCost_isBigO` (LUP `Θ(n³)`),
+    `matrixInversionCost_isBigO` (inversion `Θ(n³)`), and
+    `choleskyCost_isBigO` (Cholesky `Θ(n³)`).
 ### Section 28.2 - Inverting Matrices
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`
