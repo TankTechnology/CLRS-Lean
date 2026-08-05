@@ -4,6 +4,7 @@ import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Leaving
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Step
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Unboundedness
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalence
 
 /-!
 # 29.3 SIMPLEX
