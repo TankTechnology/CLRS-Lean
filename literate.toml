@@ -394,6 +394,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm" = [
   "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary",
   "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex",
 ]
 "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary" = [
   "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Definitions",
@@ -408,6 +409,25 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SemanticEquivalence",
   "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Feasibility",
   "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Objective",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.VariableOrder",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Entering",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Leaving",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Step",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Unboundedness",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalence",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Run",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Termination",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Pivot",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Reachability",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Trace",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Coefficients",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.NoCycle",
 ]
 "CLRSLean.Chapter_29.Section_29_4_Duality" = [
   "CLRSLean.Chapter_29.Section_29_4_Duality.Definitions",
@@ -1198,6 +1218,54 @@ title = "29.3. Minimum-Ratio Feasibility"
 
 [modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Objective"]
 title = "29.3. Objective Progress"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex"]
+title = "29.3. Executable SIMPLEX"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.VariableOrder"]
+title = "29.3. Stable Variable Order"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Entering"]
+title = "29.3. Bland Entering Selection"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Leaving"]
+title = "29.3. Bland Leaving Selection"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Step"]
+title = "29.3. One SIMPLEX Step"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality"]
+title = "29.3. Optimal Exit"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Unboundedness"]
+title = "29.3. Unbounded Ray"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalence"]
+title = "29.3. Dictionary Equivalence"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Run"]
+title = "29.3. Fuelled SIMPLEX Runs"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland"]
+title = "29.3. Bland Anti-Cycling"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Pivot"]
+title = "29.3. Certified Bland Pivots"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Reachability"]
+title = "29.3. Bland Trace Reachability"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Trace"]
+title = "29.3. Fickle Variables"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Coefficients"]
+title = "29.3. Objective Coefficient Identity"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.NoCycle"]
+title = "29.3. Bland No-Cycling Theorem"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Termination"]
+title = "29.3. Finite SIMPLEX Termination"
 
 [modules."CLRSLean.Chapter_29.Section_29_4_Duality"]
 title = "29.4. Duality"
