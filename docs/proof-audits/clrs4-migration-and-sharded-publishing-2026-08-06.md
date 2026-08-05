@@ -1,8 +1,10 @@
 # CLRS fourth-edition migration and sharded publishing audit
 
-Date: 2026-08-06  
-Branch: `codex/clrs4-primary-migration`  
-Audited implementation commit: `6129526`
+Date: 2026-08-06
+
+Branch: `codex/clrs4-primary-migration`
+
+Audited implementation commit: `96a5413`
 
 ## Outcome
 
@@ -57,6 +59,10 @@ content-digested module map, and balances chapter-affine shards by input size.
 The merge rejects digest drift, missing or unexpected shard records, duplicate
 assignments, missing or unexpected actual module pages, unequal file
 collisions, and unequal metadata keys before atomically replacing its output.
+The coordinator contract also requires the root and search pages, `xref.json`,
+the fixed Verso/project JS and CSS dependencies, and exactly one hash-agnostic
+file for each of the 256 search-index buckets. Missing or duplicate shared
+artifacts leave the previous merge destination untouched.
 The serial `lake build :literateHtml` path remains a diagnostic fallback.
 
 Rendering checks run after sidebar pruning and site optimization. Hidden legacy
@@ -81,8 +87,8 @@ They validate the implementation but do not predict GitHub-hosted runner time.
 | Four-job local wall time | 12.65 s |
 | Serial reference wall time | 22.66 s |
 | Local render-stage speedup | 1.79x |
-| Validated atomic merge | 0.41 s |
-| Optimized site assembly | 18.26 s |
+| Validated atomic merge | 0.46 s |
+| Optimized site assembly | 19.05 s |
 
 The serial and merged outputs each contained 665 files and exactly the same 378
 module `index.html` paths: zero missing and zero extra. The merged raw output
