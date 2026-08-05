@@ -165,6 +165,10 @@ example :
 #check Dictionary.Equivalent.entering_coefficient_identity
 #check Dictionary.IsBlandEntering.objectiveCoeff_nonpos_of_index_lt
 #check Dictionary.exists_negative_coefficient_product
+#check Dictionary.bland_no_repeated_basis
+#check Dictionary.bland_acyclic
+
+#print axioms Dictionary.bland_no_repeated_basis
 
 #print axioms Dictionary.simplexRun_equivalent
 #print axioms Dictionary.simplexRun_isBasicFeasible
