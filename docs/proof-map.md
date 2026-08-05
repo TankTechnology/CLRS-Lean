@@ -4198,6 +4198,19 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     including `coprime (a/g) (b/g)` for `g = gcd a b`.
   - `extendedEuclid` + `extendedEuclid_spec`: EXTENDED-EUCLID returns
     `(d, x, y)` with `d = gcd a b = a·x + b·y`.
+  - Running time (Lamé / Fibonacci): `euclidDivisions` counts the recursive
+    calls of `EUCLID` (CLRS recursion `EUCLID(a, b) = EUCLID(b, a mod b)`).
+    `fib_le_of_euclidDivisions` (CLRS Lemma 31.10): `k` calls with `a > b ≥ 1`
+    force `b ≥ F_{k+1}` and `a ≥ F_{k+2}`, proved by strong induction on `b`
+    (base case `a ≥ 2b` when `a mod b = 0`; step via `F_{k+3} = F_{k+1} +
+    F_{k+2}` and `a ≥ b + (a mod b)`).
+    `euclidDivisions_lt` (CLRS Theorem 31.11, **Lamé's theorem**): for
+    `k ≥ 1`, `b < F_{k+1}` implies fewer than `k` calls (contrapositive via
+    `Nat.fib_mono`).
+    `euclidDivisions_le_two_log` (CLRS Corollary 31.12): at most
+    `2·log₂ b + 2` calls, i.e. `O(log b)`, via the exponential growth lemmas
+    `fib_two_step_ge_pow_two` and `pow_two_le_fib` (`2^(n/2) ≤ F_{n+2}`) and
+    `Nat.le_log_of_pow_le`.
 
 ### Section 31.3 - Modular Arithmetic
 
