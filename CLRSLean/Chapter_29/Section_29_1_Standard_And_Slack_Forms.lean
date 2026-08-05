@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions
+import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables
 
 /-!
 # 29.1 Standard and slack forms
