@@ -47,11 +47,13 @@ namespace Chapter28
 
 open Matrix
 
--- Section 28.1: LUP decomposition (Theorem 28.1)
+-- Section 28.1: LUP decomposition (Theorem 28.1) and LUP-SOLVE
 #check IsUpperTriangular
 #check IsLowerTriangular
 #check IsUnitLowerTriangular
 #check exists_lup_decomposition
+#check lup_solve_correct
+#check exists_solution_of_nonsingular
 
 -- Section 28.2: inversion from LUP (Theorem 28.2)
 #check permMatrix_inv
