@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import re
 import sys
 from pathlib import Path
@@ -15,6 +16,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.literate_navigation import (
     is_reader_sidebar_module,
+    load_reader_parent_routes,
     prune_reader_sidebar,
 )
 
@@ -34,30 +36,6 @@ def module_name_for_html(site_root: Path, html_file: Path) -> str | None:
     if relative.name != "index.html" or not relative.parts or relative.parts[0] != "CLRSLean":
         return None
     return ".".join(relative.parent.parts)
-
-
-def load_reader_parent_routes(root: Path = ROOT) -> dict[str, str]:
-    """Map legacy module prefixes to their visible fourth-edition catalog page."""
-    routes: dict[str, str] = {}
-    fourth_edition_dir = root / "CLRSLean" / "FourthEdition"
-    for guide in sorted(fourth_edition_dir.glob("Chapter_[0-9][0-9].lean")):
-        canonical = f"CLRSLean.FourthEdition.{guide.stem}"
-        for source in re.findall(
-            r"^import\s+(CLRSLean\.Chapter_[^\s]+)",
-            guide.read_text(encoding="utf-8"),
-            re.MULTILINE,
-        ):
-            routes[source] = canonical
-
-    online_material = root / "CLRSLean" / "OnlineMaterial.lean"
-    if online_material.is_file():
-        for source in re.findall(
-            r"^import\s+(CLRSLean\.Chapter_[^\s]+)",
-            online_material.read_text(encoding="utf-8"),
-            re.MULTILINE,
-        ):
-            routes[source] = "CLRSLean.OnlineMaterial"
-    return routes
 
 
 def nearest_visible_parent(
@@ -96,6 +74,16 @@ _IMPLEMENTATION_SUBMODULES = {
     "CLRSLean.Chapter_19.Section_19_1_Fibonacci_Heap_Model.S3_AmortizedCosts",
 }
 
+HREF_RE = re.compile(r"href=[\"']([^\"']+)[\"']", re.IGNORECASE)
+
+
+def module_name_for_href(href: str) -> str | None:
+    """Convert a root-relative Verso module URL, including fragments, to a name."""
+    target = html.unescape(href).split("#", 1)[0].split("?", 1)[0].strip("/")
+    if target != "CLRSLean" and not target.startswith("CLRSLean/"):
+        return None
+    return target.replace("/", ".")
+
 def check_site(site_root: Path) -> list[str]:
     failures: list[str] = []
     module_files: dict[str, Path] = {}
@@ -112,13 +100,38 @@ def check_site(site_root: Path) -> list[str]:
             snippet = " ".join(match.group(0).split())[:240]
             failures.append(f"{html_file}: raw Markdown table in paragraph: {snippet}")
 
-        sidebar = prune_reader_sidebar(text)
+        sidebar = prune_reader_sidebar(text, reader_parent_routes)
         for hidden_module in sidebar.removed_modules:
             failures.append(f"{html_file}: forbidden sidebar module: {hidden_module}")
         for flattened_module in sidebar.flattened_modules:
             failures.append(f"{html_file}: empty sidebar disclosure: {flattened_module}")
         for href in sidebar.unclassified_hrefs:
             failures.append(f"{html_file}: unclassified sidebar link: {href}")
+
+    page_links: dict[str, set[str]] = {}
+    for module_name, html_file in module_files.items():
+        text = html_file.read_text(encoding="utf-8", errors="replace")
+        page_links[module_name] = {
+            target
+            for href in HREF_RE.findall(text)
+            if (target := module_name_for_href(href)) in module_files
+        }
+
+    reachable_from: dict[str, set[str]] = {}
+
+    def reachable(start: str) -> set[str]:
+        if start in reachable_from:
+            return reachable_from[start]
+        seen = {start}
+        todo = [start]
+        while todo:
+            current = todo.pop()
+            for target in page_links.get(current, set()):
+                if target not in seen:
+                    seen.add(target)
+                    todo.append(target)
+        reachable_from[start] = seen
+        return seen
 
     for module_name, html_file in sorted(module_files.items()):
         if is_reader_sidebar_module(module_name) or module_name in _IMPLEMENTATION_SUBMODULES:
@@ -130,15 +143,10 @@ def check_site(site_root: Path) -> list[str]:
                 f"{html_file}: missing visible parent page for hidden module {module_name}"
             )
             continue
-        expected_href = f"{module_name.replace('.', '/')}/"
-        parent_text = parent_file.read_text(encoding="utf-8", errors="replace")
-        href_pattern = re.compile(
-            rf"href=[\"']{re.escape(expected_href)}[\"']", re.IGNORECASE
-        )
-        if href_pattern.search(parent_text) is None:
+        if module_name not in reachable(parent_module):
             failures.append(
-                f"{parent_file}: missing implementation link for {module_name}: "
-                f"{expected_href}"
+                f"{parent_file}: missing implementation link for {module_name} "
+                f"(no path to {module_name.replace('.', '/')}/)"
             )
 
     return failures

@@ -330,4 +330,3 @@ ordinary commits do not acquire an automatic full site build.
 - Serial and sharded outputs have identical expected module-page inventories.
 - `uv run python scripts/check_repository.py`, `lake build CLRSLean`, and the
   publishing-specific validation commands pass.
-

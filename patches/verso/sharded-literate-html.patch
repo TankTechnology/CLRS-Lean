@@ -76,12 +76,12 @@ diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-
 +      |>.filter (fun line => !line.trimAscii.isEmpty)
 +      |>.map (fun line => line.trimAscii.toName)
 +      |>.toArray
- 
+
  /--
  Whether a `Code` item is a module docstring (modDoc or markdownModDoc).
 @@ -352,7 +413,8 @@ def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod)
    IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
- 
+
  def emitDir (outDir : System.FilePath) (dir : Dir)
 -    (srcDirs : Lean.NameMap System.FilePath := {}) : EmitM Unit := do
 +    (srcDirs : Lean.NameMap System.FilePath := {})
@@ -98,7 +98,7 @@ diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-
 +          emitMod root outDir m srcDirs
        for c in d.children do
          todo := c.2 :: todo
- 
+
 @@ -476,15 +539,17 @@ def main (args : List String) : IO UInt32 := do
      | .ok v => pure v
    withLogger fun logger => do
@@ -122,12 +122,12 @@ diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-
 +      emitSearchBox (config.outputDir / "-verso-search") (searchPagePath := some "search/")
      let (dir, srcDirs) ← loadModuleMap config.moduleMapFile
 +    let emitModules ← loadEmitList config.emitListFile
- 
+
      -- Load config from TOML if provided
      let litConfig ← match config.configFile with
 @@ -492,26 +557,32 @@ def main (args : List String) : IO UInt32 := do
        | none => pure ({} : LiterateConfig)
- 
+
      -- Generate theme CSS file if theme overrides are present
 -    if let some themeCssContent := generateThemeCss litConfig.theme litConfig.themeDark then
 -      IO.FS.writeFile (config.outputDir / "literate-theme.css") themeCssContent
@@ -160,11 +160,11 @@ diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-
 +      if let some favicon := litConfig.metadata.favicon then
 +        let name := (⟨favicon⟩ : System.FilePath).fileName.getD favicon
 +        IO.FS.writeFile (config.outputDir / name) (← IO.FS.readFile favicon)
- 
+
      -- Apply nav tree transformations (exclude, then order)
      let dir := dir.applyExcludes litConfig.exclude
      let dir := dir.applyOrder litConfig.order litConfig.orderChildren
- 
+
 +    if let some names := emitModules then
 +      for name in names do
 +        if dir.findMod? name |>.isNone then
@@ -225,6 +225,6 @@ diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-
 +    let metadataOut := config.metadataOut.getD (config.outputDir / "-verso-docs.json")
 +    if let some parent := metadataOut.parent then IO.FS.createDirAll parent
 +    IO.FS.writeFile metadataOut finalState.hlState.dedup.docJson.compress
- 
+
  where
    copyButtonJs : String :=

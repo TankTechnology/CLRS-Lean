@@ -34,15 +34,15 @@ class FourthEditionSummaryTest(unittest.TestCase):
 
         self.assertTrue(hasattr(gen_readme_table, "build_snapshot_block"))
         block = gen_readme_table.build_snapshot_block(
-            rows, online_material_theorems=421
+            rows, online_material_theorems=467
         )
 
         self.assertIn("fourth-edition", block)
         self.assertIn("2 of 3 chapters", block)
         self.assertIn("6 proved source-inventory entries", block)
-        self.assertIn("421 additional", block)
-        self.assertIn("facade-level counts are not", block)
-        self.assertIn("a count of distinct fourth-edition", block)
+        self.assertIn("467 additional", block)
+        self.assertIn("disjoint from the canonical chapter counts", block)
+        self.assertNotIn("pending declaration-level remapping", block)
         self.assertNotIn("Milestone", block)
 
     def test_progress_table_keeps_not_started_rows_visible(self) -> None:

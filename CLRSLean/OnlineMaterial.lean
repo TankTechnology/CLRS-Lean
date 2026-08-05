@@ -7,7 +7,8 @@ import CLRSLean.Chapter_16.Section_16_4_Matroids
 import CLRSLean.Chapter_16.Section_16_5_Task_Scheduling
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm
 import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution
-import CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations
+import CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal
+import CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT
 import CLRSLean.Chapter_31.Section_31_9_Integer_Factorization
 
 /-!
@@ -44,8 +45,14 @@ The moved section imports are:
 * {lit}`CLRSLean.Chapter_16.Section_16_5_Task_Scheduling`;
 * {lit}`CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm`;
 * {lit}`CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution`;
-* {lit}`CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations`; and
+* {lit}`CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal`;
+* {lit}`CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT`; and
 * {lit}`CLRSLean.Chapter_31.Section_31_9_Integer_Factorization`.
+
+The machine-readable {lit}`docs/clrs-online-material.csv` ledger owns the
+topic-level theorem counts. In particular, the fourth-edition FFT-circuit
+results remain in canonical Chapter 30 and are not imported through this
+umbrella.
 
 During the compatibility period, declarations keep their existing namespaces.
 See {lit}`docs/migrations/clrs4.md` for the import mapping and removal gates.

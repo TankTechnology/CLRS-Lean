@@ -17,4 +17,3 @@ Status: not-started. This new fourth-edition chapter receives theorem-bearing mo
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

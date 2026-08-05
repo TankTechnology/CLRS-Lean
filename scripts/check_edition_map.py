@@ -9,6 +9,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from online_material import ONLINE_HEADER, load_online_rows, split_source_modules
+
 
 ROOT = Path(__file__).resolve().parents[1]
 MAP_HEADER = [
@@ -78,6 +80,7 @@ def validate_repository(root: Path) -> list[str]:
                 progress_rows = list(progress_reader)
 
     by_chapter: dict[int, list[dict[str, str]]] = defaultdict(list)
+    online_map_sources: set[str] = set()
     keys: set[tuple[int, str]] = set()
     for line, row in enumerate(map_rows, start=2):
         try:
@@ -90,7 +93,19 @@ def validate_repository(root: Path) -> list[str]:
         if key in keys:
             errors.append(f"duplicate map key {chapter}/{section}")
         keys.add(key)
-        by_chapter[chapter].append(row)
+        if chapter == 0:
+            if row["migration_state"].strip() != "online-material":
+                errors.append(f"map line {line}: chapter 0 is reserved for online-material rows")
+            if not section.startswith("online:"):
+                errors.append(f"map line {line}: online section must start with 'online:'")
+        elif 1 <= chapter <= 35:
+            by_chapter[chapter].append(row)
+            if row["migration_state"].strip() == "online-material":
+                errors.append(
+                    f"map line {line}: online-material rows must use reserved chapter 0"
+                )
+        else:
+            errors.append(f"map line {line}: chapter number must be 0 or 1..35")
 
         state = row["migration_state"].strip()
         if state not in VALID_STATES:
@@ -110,9 +125,68 @@ def validate_repository(root: Path) -> list[str]:
                 continue
             if not module_source(root, source).is_file():
                 errors.append(f"source module does not exist: {source}")
+            if chapter == 0:
+                online_map_sources.add(source)
 
     if sorted(by_chapter) != list(range(1, 36)):
         errors.append("map chapters must be exactly 1..35")
+
+    try:
+        online_rows = load_online_rows(root)
+    except ValueError as error:
+        errors.append(str(error))
+        online_rows = []
+
+    online_ledger_sources: set[str] = set()
+    topic_ids: set[str] = set()
+    for line, row in enumerate(online_rows, start=2):
+        topic_id = row["topic_id"].strip()
+        if not topic_id:
+            errors.append(f"online ledger line {line}: empty topic_id")
+        elif topic_id in topic_ids:
+            errors.append(f"duplicate online-material topic: {topic_id}")
+        topic_ids.add(topic_id)
+        for field in ("title", "legacy_location", "coverage_note"):
+            if not row[field].strip():
+                errors.append(f"online ledger line {line}: empty {field}")
+        try:
+            tracked = int(row["tracked_key_theorems"])
+            if tracked <= 0:
+                raise ValueError
+        except ValueError:
+            errors.append(
+                f"online ledger line {line}: tracked_key_theorems must be positive"
+            )
+        sources = split_source_modules(row["source_modules"])
+        if not sources:
+            errors.append(f"online ledger line {line}: source_modules is empty")
+        for source in sources:
+            if source in online_ledger_sources:
+                errors.append(f"duplicate online-material source: {source}")
+            online_ledger_sources.add(source)
+            if not module_source(root, source).is_file():
+                errors.append(f"online source module does not exist: {source}")
+
+    for source in sorted(online_ledger_sources - online_map_sources):
+        errors.append(f"online ledger source is absent from edition map: {source}")
+    for source in sorted(online_map_sources - online_ledger_sources):
+        errors.append(f"edition-map online source is absent from online ledger: {source}")
+
+    online_umbrella = root / "CLRSLean" / "OnlineMaterial.lean"
+    if not online_umbrella.is_file():
+        errors.append("missing file: CLRSLean/OnlineMaterial.lean")
+    else:
+        umbrella_imports = set(
+            re.findall(
+                r"^import\s+(CLRSLean\.[^\s]+)",
+                online_umbrella.read_text(encoding="utf-8"),
+                re.MULTILINE,
+            )
+        )
+        for source in sorted(umbrella_imports - online_ledger_sources):
+            errors.append(f"online-material import is not cataloged: {source}")
+        for source in sorted(online_ledger_sources - umbrella_imports):
+            errors.append(f"cataloged online source is not imported: {source}")
 
     progress_by_chapter: dict[int, dict[str, str]] = {}
     for row in progress_rows:

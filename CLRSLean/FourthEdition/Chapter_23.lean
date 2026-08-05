@@ -17,4 +17,3 @@ The third-edition Chapter 25 Floyd–Warshall and Johnson developments are reuse
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

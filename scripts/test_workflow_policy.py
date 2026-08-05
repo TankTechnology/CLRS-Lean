@@ -43,6 +43,19 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.assertIn("actions/upload-artifact@v4", pages)
         self.assertIn("actions/download-artifact@v4", pages)
 
+    def test_pages_prunes_orphan_literate_json_before_cache_save(self) -> None:
+        pages = PAGES.read_text(encoding="utf-8")
+        prepare = pages[pages.index("  prepare:") : pages.index("\n  render:")]
+
+        build_at = prepare.index("lake build :literate")
+        map_at = prepare.index("python3 scripts/prepare_literate_module_map.py")
+        prune_at = prepare.index("--prune-orphans")
+        save_at = prepare.index("actions/cache/save@v5")
+
+        self.assertLess(build_at, map_at)
+        self.assertLess(map_at, prune_at)
+        self.assertLess(prune_at, save_at)
+
     def test_pages_validates_atomic_merge_before_single_deployment_artifact(self) -> None:
         pages = PAGES.read_text(encoding="utf-8")
         commands = (
@@ -52,6 +65,7 @@ class WorkflowPolicyTests(unittest.TestCase):
             "python3 scripts/merge_literate_shards.py",
             "python3 scripts/check_literate_html_weight.py",
             "python3 scripts/prepare_literate_site.py",
+            "python3 scripts/check_literate_rendering.py _site",
             "actions/upload-pages-artifact@v3",
         )
         for command in commands:
@@ -59,11 +73,15 @@ class WorkflowPolicyTests(unittest.TestCase):
 
         plan_at = pages.index(commands[1])
         render_at = pages.index(commands[2])
-        merge_at, guard_at, prepare_at, upload_at = map(pages.index, commands[3:])
+        merge_at, guard_at, prepare_at, rendering_at, upload_at = map(
+            pages.index, commands[3:]
+        )
         self.assertLess(plan_at, render_at)
         self.assertLess(render_at, merge_at)
         self.assertLess(merge_at, guard_at)
         self.assertLess(guard_at, prepare_at)
+        self.assertLess(prepare_at, rendering_at)
+        self.assertLess(rendering_at, upload_at)
         self.assertLess(prepare_at, upload_at)
         self.assertNotIn("lake build :literateHtml", pages)
 
