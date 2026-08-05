@@ -38,6 +38,35 @@ namespace Chapter29
 #check StandardLP.phaseOneTerminal_reducedCostsNonpositive
 #check StandardLP.phaseOneTerminal_v_nonpositive
 #check StandardLP.isFeasible_iff_phaseOneTerminal_v_eq_zero
+#check Dictionary.embedOldVar
+#check Dictionary.dropAddedSlack
+#check Dictionary.addedSlackVar
+#check Dictionary.lockVariable
+#check Dictionary.lockVariable_satisfies_iff
+#check Dictionary.lockVariable_isBasicFeasible_of_value_eq_zero
+#check Dictionary.Equivalent.lockVariable
+#check Dictionary.withObjective
+#check Dictionary.withObjective_satisfies_iff
+#check Dictionary.withObjective_objectiveRhs
+#check Dictionary.Equivalent.withObjective
+#check StandardLP.objectiveWeight
+#check StandardLP.initialDictionary_withObjective_eq
+#check StandardLP.lockProgram
+#check StandardLP.lockProgram_initialDictionary_eq
+#check StandardLP.lockedAuxiliary
+#check StandardLP.lockedAuxiliary_feasible_iff
+#check StandardLP.phaseOneTerminal_artificial_eq_zero
+#check StandardLP.phaseTwoStart
+#check StandardLP.phaseTwoStart_isBasicFeasible
+#check StandardLP.phaseTwoStart_equivalent_lockedAuxiliary
+#check StandardLP.lockedAuxiliary_objective
+#check StandardLP.lockedAuxiliary_optimal_to_original
+#check StandardLP.lockedAuxiliary_unbounded_to_original
+#check StandardLP.InitializedSimplexResult
+#check StandardLP.initializedSimplex
+#check StandardLP.initializedSimplex_complete
+
+#print axioms StandardLP.initializedSimplex_complete
 
 #print axioms StandardLP.phaseOneRun_isOptimal
 #print axioms StandardLP.isFeasible_iff_phaseOneTerminal_v_eq_zero
