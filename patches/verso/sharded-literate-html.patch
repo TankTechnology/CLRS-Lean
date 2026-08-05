@@ -1,0 +1,230 @@
+diff --git a/src/verso-literate-html/LiterateHtmlMain.lean b/src/verso-literate-html/LiterateHtmlMain.lean
+--- a/src/verso-literate-html/LiterateHtmlMain.lean
++++ b/src/verso-literate-html/LiterateHtmlMain.lean
+@@ -20,11 +20,72 @@ structure Config where
+   outputDir : System.FilePath
+   moduleMapFile : System.FilePath
+   configFile : Option System.FilePath := none
+-
+-def getConfig : List String → Except String Config
+-  | [outputDir, moduleMapFile] => pure { outputDir, moduleMapFile }
+-  | [outputDir, moduleMapFile, configFile] => pure { outputDir, moduleMapFile, configFile := some configFile }
+-  | _ => throw "Usage: verso-literate-html OUTDIR MODULE-MAP [CONFIG]"
++  emitListFile : Option System.FilePath := none
++  metadataOut : Option System.FilePath := none
++  coordinator : Bool := false
++  hoverIdOffset : Nat := 0
++
++private def configUsage :=
++  "Usage: verso-literate-html OUTDIR MODULE-MAP [CONFIG] " ++
++  "[--emit-list FILE] [--metadata-out FILE] [--coordinator] [--hover-id-offset NAT]"
++
++private def parseConfigArgs (args : List String) (positionals : Array String := #[])
++    (emitListFile : Option System.FilePath := none)
++    (metadataOut : Option System.FilePath := none) (coordinator : Bool := false)
++    (hoverIdOffset : Nat := 0) : Except String Config :=
++  match args with
++  | [] =>
++    match positionals.toList with
++    | [outputDir, moduleMapFile] =>
++      pure {
++        outputDir := outputDir
++        moduleMapFile := moduleMapFile
++        emitListFile := emitListFile
++        metadataOut := metadataOut
++        coordinator := coordinator
++        hoverIdOffset := hoverIdOffset
++      }
++    | [outputDir, moduleMapFile, configFile] =>
++      pure {
++        outputDir := outputDir
++        moduleMapFile := moduleMapFile
++        configFile := some configFile
++        emitListFile := emitListFile
++        metadataOut := metadataOut
++        coordinator := coordinator
++        hoverIdOffset := hoverIdOffset
++      }
++    | _ => throw configUsage
++  | "--emit-list" :: path :: rest =>
++    if emitListFile.isSome then throw "--emit-list may be specified only once"
++    else parseConfigArgs rest positionals (some path) metadataOut coordinator hoverIdOffset
++  | "--metadata-out" :: path :: rest =>
++    if metadataOut.isSome then throw "--metadata-out may be specified only once"
++    else parseConfigArgs rest positionals emitListFile (some path) coordinator hoverIdOffset
++  | "--coordinator" :: rest =>
++    parseConfigArgs rest positionals emitListFile metadataOut true hoverIdOffset
++  | "--hover-id-offset" :: value :: rest =>
++    match value.toNat? with
++    | some offset => parseConfigArgs rest positionals emitListFile metadataOut coordinator offset
++    | none => throw s!"invalid --hover-id-offset value: {value}"
++  | positional :: rest =>
++    if positional.startsWith "--" then throw s!"unknown option: {positional}"
++    else parseConfigArgs rest (positionals.push positional) emitListFile metadataOut coordinator hoverIdOffset
++
++def getConfig (args : List String) : Except String Config :=
++  parseConfigArgs args
++
++private def Config.emitsSharedOutput (config : Config) : Bool :=
++  config.coordinator || config.emitListFile.isNone
++
++private def loadEmitList : Option System.FilePath → IO (Option (Array Name))
++  | none => pure none
++  | some path => do
++    let contents ← IO.FS.readFile path
++    pure <| some <| contents.splitOn "\n"
++      |>.filter (fun line => !line.trimAscii.isEmpty)
++      |>.map (fun line => line.trimAscii.toName)
++      |>.toArray
+ 
+ /--
+ Whether a `Code` item is a module docstring (modDoc or markdownModDoc).
+@@ -352,7 +413,8 @@ def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod)
+   IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+ 
+ def emitDir (outDir : System.FilePath) (dir : Dir)
+-    (srcDirs : Lean.NameMap System.FilePath := {}) : EmitM Unit := do
++    (srcDirs : Lean.NameMap System.FilePath := {})
++    (emitModules : Option (Array Name) := none) : EmitM Unit := do
+   let root := dir
+   let mut todo := [dir]
+   repeat
+@@ -361,7 +423,8 @@ def emitDir (outDir : System.FilePath) (dir : Dir)
+     | d :: ds =>
+       todo := ds
+       if let some m := d.mod then
+-        emitMod root outDir m srcDirs
++        if emitModules.all (fun names => names.contains m.name) then
++          emitMod root outDir m srcDirs
+       for c in d.children do
+         todo := c.2 :: todo
+ 
+@@ -476,15 +539,17 @@ def main (args : List String) : IO UInt32 := do
+     | .ok v => pure v
+   withLogger fun logger => do
+     IO.FS.createDirAll config.outputDir
+-    IO.FS.writeFile (config.outputDir / "popper.js") Verso.Code.Highlighted.WebAssets.popper
+-    IO.FS.writeFile (config.outputDir / "tippy.js") Verso.Code.Highlighted.WebAssets.tippy
+-    IO.FS.writeFile (config.outputDir / "tippy-border.css") Verso.Code.Highlighted.WebAssets.tippy.border.css
+-    IO.FS.writeFile (config.outputDir / "marked.js") Verso.Code.Highlighted.WebAssets.marked
+-    IO.FS.writeFile (config.outputDir / "literate.css") literate.css
+-    -- Copy the copy-button JS
+-    IO.FS.writeFile (config.outputDir / "copy-button.js") copyButtonJs
+-    emitSearchBox (config.outputDir / "-verso-search") (searchPagePath := some "search/")
++    if config.emitsSharedOutput then
++      IO.FS.writeFile (config.outputDir / "popper.js") Verso.Code.Highlighted.WebAssets.popper
++      IO.FS.writeFile (config.outputDir / "tippy.js") Verso.Code.Highlighted.WebAssets.tippy
++      IO.FS.writeFile (config.outputDir / "tippy-border.css") Verso.Code.Highlighted.WebAssets.tippy.border.css
++      IO.FS.writeFile (config.outputDir / "marked.js") Verso.Code.Highlighted.WebAssets.marked
++      IO.FS.writeFile (config.outputDir / "literate.css") literate.css
++      -- Copy the copy-button JS
++      IO.FS.writeFile (config.outputDir / "copy-button.js") copyButtonJs
++      emitSearchBox (config.outputDir / "-verso-search") (searchPagePath := some "search/")
+     let (dir, srcDirs) ← loadModuleMap config.moduleMapFile
++    let emitModules ← loadEmitList config.emitListFile
+ 
+     -- Load config from TOML if provided
+     let litConfig ← match config.configFile with
+@@ -492,26 +557,32 @@ def main (args : List String) : IO UInt32 := do
+       | none => pure ({} : LiterateConfig)
+ 
+     -- Generate theme CSS file if theme overrides are present
+-    if let some themeCssContent := generateThemeCss litConfig.theme litConfig.themeDark then
+-      IO.FS.writeFile (config.outputDir / "literate-theme.css") themeCssContent
+-
+-    -- Copy extra CSS files to output directory
+-    for css in litConfig.extraCss do
+-      let name := (⟨css⟩ : System.FilePath).fileName.getD css
+-      IO.FS.writeFile (config.outputDir / name) (← IO.FS.readFile css)
+-    -- Copy extra JS files to output directory
+-    for js in litConfig.extraJs do
+-      let name := (⟨js⟩ : System.FilePath).fileName.getD js
+-      IO.FS.writeFile (config.outputDir / name) (← IO.FS.readFile js)
+-    -- Copy favicon to output directory
+-    if let some favicon := litConfig.metadata.favicon then
+-      let name := (⟨favicon⟩ : System.FilePath).fileName.getD favicon
+-      IO.FS.writeFile (config.outputDir / name) (← IO.FS.readFile favicon)
++    if config.emitsSharedOutput then
++      if let some themeCssContent := generateThemeCss litConfig.theme litConfig.themeDark then
++        IO.FS.writeFile (config.outputDir / "literate-theme.css") themeCssContent
++
++      -- Copy extra CSS files to output directory
++      for css in litConfig.extraCss do
++        let name := (⟨css⟩ : System.FilePath).fileName.getD css
++        IO.FS.writeFile (config.outputDir / name) (← IO.FS.readFile css)
++      -- Copy extra JS files to output directory
++      for js in litConfig.extraJs do
++        let name := (⟨js⟩ : System.FilePath).fileName.getD js
++        IO.FS.writeFile (config.outputDir / name) (← IO.FS.readFile js)
++      -- Copy favicon to output directory
++      if let some favicon := litConfig.metadata.favicon then
++        let name := (⟨favicon⟩ : System.FilePath).fileName.getD favicon
++        IO.FS.writeFile (config.outputDir / name) (← IO.FS.readFile favicon)
+ 
+     -- Apply nav tree transformations (exclude, then order)
+     let dir := dir.applyExcludes litConfig.exclude
+     let dir := dir.applyOrder litConfig.order litConfig.orderChildren
+ 
++    if let some names := emitModules then
++      for name in names do
++        if dir.findMod? name |>.isNone then
++          throw <| .userError s!"module in --emit-list is absent from the complete site graph: {name}"
++
+     -- Validate: declarations in show_docstrings_for / hide_docstrings_for must exist
+     if !litConfig.showDocstringsFor.isEmpty || !litConfig.hideDocstringsFor.isEmpty then
+       let declNames := collectDeclNames dir
+@@ -530,23 +601,37 @@ def main (args : List String) : IO UInt32 := do
+       traverseState
+       litConfig
+     }
+-    let ((), st) ← emitDir config.outputDir dir srcDirs |>.run ctx |>.run {} |>.run logger
+-
+-    -- Landing page: use configured module or auto-generated ToC
+-    let st ← match litConfig.landingPage with
+-      | some landingModName =>
+-        emitLandingFromModule config.outputDir dir landingModName ctx logger st srcDirs
+-      | none =>
+-        emitLandingPage config.outputDir dir litConfig
+-        pure st
+-
+-    emitIndex {} traverseState dir (config.outputDir / "-verso-search") logger
+-    emitSearchResultsPage config.outputDir litConfig
+-    let domainData : Verso.NameMap Verso.Multi.Domain := ({} : Verso.NameMap _)
+-      |>.insert constDomainName traverseState.constantDefDomain
+-      |>.insert moduleDomainName traverseState.moduleDomain
+-    IO.FS.writeFile (config.outputDir / "xref.json") <| Json.compress <| Verso.Multi.xrefJson domainData traverseState.allLinks
+-    IO.FS.writeFile (config.outputDir / "-verso-docs.json") st.hlState.dedup.docJson.compress
++    let initialState : HtmlState := {
++      hlState := {
++        dedup := { nextId := config.hoverIdOffset }
++        idSupply := {}
++      }
++    }
++    let ((), st) ← emitDir config.outputDir dir srcDirs emitModules |>.run ctx |>.run initialState |>.run logger
++
++    let finalState ← if config.emitsSharedOutput then
++      -- Landing page: use configured module or auto-generated ToC
++      let sharedState ← match litConfig.landingPage with
++        | some landingModName =>
++          emitLandingFromModule config.outputDir dir landingModName ctx logger st srcDirs
++        | none =>
++          emitLandingPage config.outputDir dir litConfig
++          pure st
++
++      emitIndex {} traverseState dir (config.outputDir / "-verso-search") logger
++      emitSearchResultsPage config.outputDir litConfig
++      let domainData : Verso.NameMap Verso.Multi.Domain := ({} : Verso.NameMap _)
++        |>.insert constDomainName traverseState.constantDefDomain
++        |>.insert moduleDomainName traverseState.moduleDomain
++      IO.FS.writeFile (config.outputDir / "xref.json") <| Json.compress <|
++        Verso.Multi.xrefJson domainData traverseState.allLinks
++      pure sharedState
++    else
++      pure st
++
++    let metadataOut := config.metadataOut.getD (config.outputDir / "-verso-docs.json")
++    if let some parent := metadataOut.parent then IO.FS.createDirAll parent
++    IO.FS.writeFile metadataOut finalState.hlState.dedup.docJson.compress
+ 
+ where
+   copyButtonJs : String :=

@@ -28,6 +28,9 @@ CHECK_COMMANDS = [
     ("scripts/test_prepare_literate_site.py",),
     ("scripts/test_plan_literate_shards.py",),
     ("scripts/test_merge_literate_shards.py",),
+    ("scripts/test_prepare_literate_module_map.py",),
+    ("scripts/test_render_literate_shard.py",),
+    ("scripts/test_workflow_policy.py",),
 ]
 
 
