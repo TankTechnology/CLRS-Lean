@@ -53,6 +53,10 @@ example {m n : ℕ} {P : StandardLP m n} {x : Fin n → ℝ} :
 #check StandardLP.complementarySlackness_iff_objective_eq
 #check StandardLP.optimal_of_complementarySlackness
 #check StandardLP.dualOptimal_of_complementarySlackness
+#check Dictionary.objectiveCoeff_nonpos_of_reducedCosts
+#check Dictionary.dualCertificate
+#check Dictionary.dualCertificate_isDualFeasible
+#check Dictionary.dualCertificate_objective_eq_v
 
 example {m n : ℕ} {P : StandardLP m n}
     {x : Fin n → ℝ} {y : Fin m → ℝ}
@@ -62,6 +66,7 @@ example {m n : ℕ} {P : StandardLP m n}
 
 #print axioms StandardLP.weak_duality
 #print axioms StandardLP.complementarySlackness_iff_objective_eq
+#print axioms Dictionary.dualCertificate_isDualFeasible
 
 end Chapter29
 end CLRS
