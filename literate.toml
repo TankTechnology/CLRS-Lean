@@ -39,6 +39,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_26",
   "CLRSLean.Chapter_27",
   "CLRSLean.Chapter_28",
+  "CLRSLean.Chapter_29",
   "CLRSLean.Chapter_32",
   "CLRSLean.Chapter_33",
   "CLRSLean.Extensions",
@@ -380,6 +381,85 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_28.Section_28_1_Linear_Equations",
   "CLRSLean.Chapter_28.Section_28_2_Inverting_Matrices",
   "CLRSLean.Chapter_28.Section_28_3_Symmetric_Positive_Definite",
+]
+"CLRSLean.Chapter_29" = [
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms",
+  "CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm",
+  "CLRSLean.Chapter_29.Section_29_4_Duality",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution",
+]
+"CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms" = [
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions",
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables",
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence",
+]
+"CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs" = [
+  "CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow",
+  "CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath",
+  "CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow",
+  "CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow",
+  "CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Definitions",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Semantics",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.BasicSolution",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.InitialDictionary",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Definitions",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Algebra",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SumLemmas",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SemanticEquivalence",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Feasibility",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Objective",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.VariableOrder",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Entering",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Leaving",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Step",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Unboundedness",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalence",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Run",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Termination",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Pivot",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Reachability",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Trace",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Coefficients",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.NoCycle",
+]
+"CLRSLean.Chapter_29.Section_29_4_Duality" = [
+  "CLRSLean.Chapter_29.Section_29_4_Duality.Definitions",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.Optimality",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlackness",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.DictionaryBridge",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.StrongDuality",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlacknessTheorem",
+]
+"CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution" = [
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.ArtificialLP",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitialPivot",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseOne",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.LockVariable",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.RestoreObjective",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoStart",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoBridge",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitializedSimplex",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.DualProjection",
+  "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.GeneralStrongDuality",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -915,6 +995,9 @@ title = "Chapter 27. Multithreaded Algorithms"
 [modules."CLRSLean.Chapter_28"]
 title = "Chapter 28. Matrix Operations"
 
+[modules."CLRSLean.Chapter_29"]
+title = "Chapter 29. Linear Programming"
+
 [modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model"]
 title = "27.1. The Basics of Dynamic Multithreading"
 
@@ -1115,6 +1198,183 @@ title = "28.2. Inverting Matrices"
 
 [modules."CLRSLean.Chapter_28.Section_28_3_Symmetric_Positive_Definite"]
 title = "28.3. Symmetric Positive-Definite Matrices and Least Squares"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms"]
+title = "29.1. Standard and Slack Forms"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions"]
+title = "29.1. Standard-Form Definitions"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables"]
+title = "29.1. Canonical Slack Variables"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence"]
+title = "29.1. Standard/Slack Equivalence"
+
+[modules."CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs"]
+title = "29.2. Formulating Problems as Linear Programs"
+
+[modules."CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow"]
+title = "29.2. Finite Network Model"
+
+[modules."CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath"]
+title = "29.2. Shortest Paths as an LP"
+
+[modules."CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow"]
+title = "29.2. Maximum Flow as an LP"
+
+[modules."CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow"]
+title = "29.2. Minimum-Cost Flow as an LP"
+
+[modules."CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow"]
+title = "29.2. Multicommodity Flow as an LP"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm"]
+title = "29.3. The Simplex Algorithm"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary"]
+title = "29.3. Simplex Dictionaries"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Definitions"]
+title = "29.3. Dictionary Definitions"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Semantics"]
+title = "29.3. Dictionary Semantics"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.BasicSolution"]
+title = "29.3. Basic Solutions"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.InitialDictionary"]
+title = "29.3. Initial Dictionary"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot"]
+title = "29.3. PIVOT"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Definitions"]
+title = "29.3. PIVOT Definitions"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Algebra"]
+title = "29.3. PIVOT Formulas"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SumLemmas"]
+title = "29.3. PIVOT Finite-Sum Algebra"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SemanticEquivalence"]
+title = "29.3. PIVOT Semantic Equivalence"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Feasibility"]
+title = "29.3. Minimum-Ratio Feasibility"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Objective"]
+title = "29.3. Objective Progress"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex"]
+title = "29.3. Functional SIMPLEX"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.VariableOrder"]
+title = "29.3. Stable Variable Order"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Entering"]
+title = "29.3. Bland Entering Selection"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Leaving"]
+title = "29.3. Bland Leaving Selection"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Step"]
+title = "29.3. One SIMPLEX Step"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality"]
+title = "29.3. Optimal Exit"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Unboundedness"]
+title = "29.3. Unbounded Ray"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalence"]
+title = "29.3. Dictionary Equivalence"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Run"]
+title = "29.3. Fuelled SIMPLEX Runs"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland"]
+title = "29.3. Bland Anti-Cycling"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Pivot"]
+title = "29.3. Certified Bland Pivots"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Reachability"]
+title = "29.3. Bland Trace Reachability"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Trace"]
+title = "29.3. Fickle Variables"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Coefficients"]
+title = "29.3. Objective Coefficient Identity"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.NoCycle"]
+title = "29.3. Bland No-Cycling Theorem"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Termination"]
+title = "29.3. Finite SIMPLEX Termination"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality"]
+title = "29.4. Duality"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.Definitions"]
+title = "29.4. Dual Feasibility"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality"]
+title = "29.4. Weak Duality"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.Optimality"]
+title = "29.4. Primal and Dual Optimality"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlackness"]
+title = "29.4. Complementary-Slackness Gap Identity"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate"]
+title = "29.4. Terminal Dual Certificates"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.DictionaryBridge"]
+title = "29.4. Dictionary/Primal Bridge"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.StrongDuality"]
+title = "29.4. Strong Duality"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlacknessTheorem"]
+title = "29.4. Complementary-Slackness Theorem"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution"]
+title = "29.5. The Initial Basic Feasible Solution"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.ArtificialLP"]
+title = "29.5. Artificial LP"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitialPivot"]
+title = "29.5. Initial Artificial Pivot"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseOne"]
+title = "29.5. Phase One"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.LockVariable"]
+title = "29.5. Locking the Artificial Variable"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.RestoreObjective"]
+title = "29.5. Restoring the Objective"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoStart"]
+title = "29.5. Phase-Two Start"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoBridge"]
+title = "29.5. Phase-Two Semantic Bridge"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitializedSimplex"]
+title = "29.5. Initialized SIMPLEX"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.DualProjection"]
+title = "29.5. Dual Projection"
+
+[modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.GeneralStrongDuality"]
+title = "29.5. General Strong Duality"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
