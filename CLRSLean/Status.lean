@@ -139,6 +139,13 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
+* **Chapter 28:** Theorem 28.1 proves that every nonsingular square matrix over
+  a field admits an LUP decomposition with a permutation factor, a unit
+  lower-triangular factor, and an upper-triangular factor.  Section 28.2 also
+  has the algebraic inversion bridge {lit}`inv_eq_lup`.  The chapter remains
+  partial pending executable forward/back substitution, LUP-SOLVE correctness
+  (Theorem 28.2 / #124), executable matrix inversion, and the principal cubic
+  work claims required by the Chapter 28 roadmaps.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric
@@ -146,10 +153,11 @@ the detailed maintainer ledger.
 
 ## Not Represented On Main
 
-Chapters 28--31 and 34--35 do not currently have represented section modules
-on {lit}`main`.  Chapter 32.1 is complete for its selected-section scope;
-Chapter 33.1 is represented but partial.  Open pull requests are not counted
-until their scope is reviewed, merged, and added to the progress source.
+Chapters 29--31 and 34--35 do not currently have represented section modules
+on {lit}`main`.  Chapters 28.1--28.2 and Chapter 33.1 are represented but partial;
+Chapter 32.1 is complete for its selected-section scope.  Open pull requests
+are not counted until their scope is reviewed, merged, and added to the
+progress source.
 
 ## Sealed Chapters 21-23 Boundary
 
