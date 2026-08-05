@@ -918,6 +918,62 @@ theorem card_pow_eq_one_cyclic {α : Type*} [Group α] [Fintype α] [DecidableEq
   rw [card_fin_dvd_mul hN]
   simp [N, Nat.gcd_comm]
 
+/--
+The per-prime-power count: the number of solutions to `x^m = 1` in the unit
+group of `ZMod (p^e)` is `gcd(m, φ(p^e))`, since that group is cyclic for odd
+prime powers.
+-/
+lemma card_pow_eq_one_prime_pow {p e m : ℕ} (hp : Nat.Prime p) (hp2 : p ≠ 2) :
+    Nat.card {x : (ZMod (p ^ e))ˣ // x ^ m = 1} = Nat.gcd m (Nat.totient (p ^ e)) := by
+  classical
+  haveI : NeZero (p ^ e) := ⟨pow_ne_zero e hp.ne_zero⟩
+  have hcyc : IsCyclic (ZMod (p ^ e))ˣ := ZMod.isCyclic_units_of_prime_pow p hp hp2 e
+  have hcard : Fintype.card (ZMod (p ^ e))ˣ = Nat.totient (p ^ e) := by
+    exact ZMod.card_units_eq_totient (p ^ e)
+  have h := CLRS.Chapter31.card_pow_eq_one_cyclic (α := (ZMod (p ^ e))ˣ) m
+  rw [hcard] at h
+  exact h
+
+/--
+In a commutative finite group, the fiber of the `m`-th power map over any
+element in its image has the same size as the kernel (the `m`-torsion).
+-/
+lemma card_pow_eq_c_of_exists {α : Type*} [CommGroup α] [Fintype α] [DecidableEq α]
+    {m : ℕ} {c : α} (hc : ∃ x, x ^ m = c) :
+    Nat.card {x : α // x ^ m = c} = Nat.card {x : α // x ^ m = 1} := by
+  classical
+  rcases hc with ⟨x₀, hx₀⟩
+  let e : {x : α // x ^ m = 1} ≃ {x : α // x ^ m = c} :=
+    { toFun := fun k => ⟨x₀ * k.1, by
+        rw [mul_pow, hx₀, k.2]
+        simp⟩
+      invFun := fun x => ⟨x₀⁻¹ * x.1, by
+        rw [mul_pow, inv_pow, hx₀, x.2]
+        simp⟩
+      left_inv := by
+        intro k
+        apply Subtype.ext
+        simp [mul_assoc]
+      right_inv := by
+        intro x
+        apply Subtype.ext
+        simp [mul_assoc] }
+  exact (Nat.card_congr e).symm
+
+/-- The fiber of the `m`-th power map over any element is no larger than the
+kernel (it is empty, or a coset of the kernel). -/
+lemma card_pow_le_card_pow_eq_one {α : Type*} [CommGroup α] [Fintype α] [DecidableEq α]
+    {m : ℕ} {c : α} : Nat.card {x : α // x ^ m = c} ≤ Nat.card {x : α // x ^ m = 1} := by
+  classical
+  by_cases hc : ∃ x, x ^ m = c
+  · rw [card_pow_eq_c_of_exists hc]
+  · have : Nat.card {x : α // x ^ m = c} = 0 := by
+      rw [Nat.card_eq_fintype_card]
+      rw [Fintype.card_eq_zero_iff]
+      exact ⟨fun x => hc ⟨x.1, x.2⟩⟩
+    rw [this]
+    exact Nat.zero_le _
+
 end Chapter31
 
 end CLRS
