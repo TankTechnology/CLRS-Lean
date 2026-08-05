@@ -7,14 +7,16 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Correctness
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Costs
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen
 
 /-!
 # 27.2–27.4. Multithreaded Algorithms (Compatibility)
 
 The historical `2_4` module name is retained for compatibility.  Its main
 text now covers §§27.2–27.3: parallel-recurrence definitions and all-input
-analysis for P-MATMUL, P-MERGE, and P-MERGE-SORT.  Parallel Strassen remains a
-retained §27.4 extension until its later closure split.
+analysis for P-MATMUL, P-MERGE, and P-MERGE-SORT.  The historical parallel
+Strassen names are imported separately from an explicitly labeled Chapter 27
+extension.
 
 ## Main results
 
@@ -25,10 +27,12 @@ execution recurrences, monotonicity and adjacent-power sandwiches for all four
 matrix costs, power-of-two solutions, and all-input {lit}`Theta` results for
 P-ADD and executable P-MATMUL.  The earlier idealized P-MATMUL recurrence
 retains its all-input upper bounds.  The imports also provide monotonicity,
-adjacent-power sandwiches, and all-input {lit}`Theta` results for P-MERGE,
-P-MERGE-SORT, and retained Strassen.  The executable binary lower bound used by
-P-MERGE additionally has a complete duplicate-sensitive partition theorem and
-logarithmic work/span bounds.  {name}`CLRS.Chapter27.MergeSplit` and
+adjacent-power sandwiches, and all-input {lit}`Theta` results for P-MERGE and
+P-MERGE-SORT.  The compatibility extension retains the corresponding Strassen
+recurrence results without presenting them as Chapter 27 main text.  The
+executable binary lower bound used by P-MERGE additionally has a complete
+duplicate-sensitive partition theorem and logarithmic work/span bounds.
+{name}`CLRS.Chapter27.MergeSplit` and
 {name}`CLRS.Chapter27.pMerge` implement the actual midpoint/binary-search
 P-MERGE control structure, and {name}`CLRS.Chapter27.pMerge_correct` proves its
 sortedness, permutation, and exact-length specification.  The pointwise
@@ -52,9 +56,9 @@ matching recursive witness family.
 
 ## Completion boundary
 
-The executable P-MERGE-SORT cost gap is closed.  After the retained parallel
-Strassen extension is extracted from this compatibility module, no represented
-Chapter 27 main-text core proof obligation remains.
+The executable P-MERGE-SORT cost gap is closed, and the parallel-Strassen
+compatibility extension has been isolated from the main-text recurrence
+modules.  No represented Chapter 27 main-text core proof obligation remains.
 
 ## Implementation details
 
@@ -105,6 +109,10 @@ Chapter 27 main-text core proof obligation remains.
 * [P-MERGE-SORT span witness input](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/WitnessInput/)
 * [P-MERGE-SORT map invariance](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/MapInvariance/)
 * [P-MERGE-SORT span lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/LowerBound/)
+* [Parallel-Strassen recurrence extension](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/)
+* [Parallel-Strassen recurrence definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Definitions/)
+* [Parallel-Strassen recurrence monotonicity](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Monotonicity/)
+* [Parallel-Strassen all-input bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds/)
 * [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
 * [Binary lower-bound definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions/)
 * [Binary lower-bound correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness/)

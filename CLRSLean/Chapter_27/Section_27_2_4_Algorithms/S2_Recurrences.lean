@@ -3,9 +3,9 @@ import Mathlib.Tactic
 /-!
 # 27.2–27.3. Parallel Recurrences
 
-This module defines the work/span recurrence models for P-MATMUL, P-MERGE,
-and P-MERGE-SORT, together with their exact power-of-two solutions.  Parallel
-Strassen remains here as a retained §27.4 extension pending its later closure.
+This module defines the Chapter 27 main-text work/span recurrence models for
+P-MATMUL, P-MERGE, and P-MERGE-SORT, together with their exact power-of-two
+solutions.
 -/
 
 namespace CLRS
@@ -197,59 +197,6 @@ theorem pMergeSortSpan_pow_two (k : ℕ) :
       rw [pMergeSortSpan_unfold (two_le_two_pow_succ k), pow_two_succ_sub]
       have hS := pMergeSpan_pow_two (k + 1)
       nlinarith [ih, hS]
-
-/-! ## §27.4: Parallel Strassen's algorithm -/
-
-/-- Work recurrence for parallel Strassen: `T₁(n) = 7 T₁(n/2) + n²`. -/
-def strassenWork (n : ℕ) : ℕ :=
-  if n ≤ 1 then
-    n
-  else
-    7 * strassenWork (n / 2) + n * n
-termination_by n
-decreasing_by exact Nat.div_lt_self (by omega) (by norm_num)
-
-theorem strassenWork_unfold {n : ℕ} (hn : 2 ≤ n) :
-    strassenWork n = 7 * strassenWork (n / 2) + n * n := by
-  rw [strassenWork]
-  simp [show ¬n ≤ 1 by omega]
-
-/-- Exact work on powers of two: `3·T₁(2ᵏ) + 4ᵏ⁺¹ = 7ᵏ⁺¹`
-(work `Θ(n^(log₂ 7))`). -/
-theorem strassenWork_pow_two (k : ℕ) :
-    3 * strassenWork (2 ^ k) + 4 ^ (k + 1) = 7 ^ (k + 1) := by
-  induction k with
-  | zero =>
-      rw [strassenWork]
-      norm_num
-  | succ k ih =>
-      rw [strassenWork_unfold (two_le_two_pow_succ k), pow_two_succ_eq,
-        two_pow_succ_mul]
-      nlinarith [ih, pow_succ (4 : ℕ) (k + 1), pow_succ (7 : ℕ) (k + 1)]
-
-/-- Span recurrence for parallel Strassen: `T∞(n) = T∞(n/2) + 1`. -/
-def strassenSpan (n : ℕ) : ℕ :=
-  if n ≤ 1 then
-    n
-  else
-    strassenSpan (n / 2) + 1
-termination_by n
-decreasing_by exact Nat.div_lt_self (by omega) (by norm_num)
-
-theorem strassenSpan_unfold {n : ℕ} (hn : 2 ≤ n) :
-    strassenSpan n = strassenSpan (n / 2) + 1 := by
-  rw [strassenSpan]
-  simp [show ¬n ≤ 1 by omega]
-
-/-- Exact span on powers of two: `T∞(2ᵏ) = k + 1` (span `Θ(log n)`). -/
-theorem strassenSpan_pow_two (k : ℕ) : strassenSpan (2 ^ k) = k + 1 := by
-  induction k with
-  | zero =>
-      rw [strassenSpan]
-      norm_num
-  | succ k ih =>
-      rw [strassenSpan_unfold (two_le_two_pow_succ k), pow_two_succ_eq, ih]
-
 
 end Chapter27
 end CLRS

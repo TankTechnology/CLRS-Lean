@@ -291,6 +291,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen",
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMatrix.Definitions",
@@ -365,6 +366,14 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.MapInvariance",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Definitions",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Monotonicity",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -1073,6 +1082,21 @@ title = "27.3. P-MERGE-SORT Span — Order-Map Invariance"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound"]
 title = "27.3. P-MERGE-SORT Span — Matching Lower Witness"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrences"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrences"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Definitions"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrence Definitions"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Monotonicity"]
+title = "Chapter 27 Extension — Parallel Strassen Monotonicity"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds"]
+title = "Chapter 27 Extension — Parallel Strassen All-Input Bounds"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"

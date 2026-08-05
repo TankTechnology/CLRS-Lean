@@ -5,9 +5,8 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S2_Recurrences
 /-!
 # 27.2–27.3. All-Input Bounds
 
-This module lifts the exact power-of-two recurrence solutions to arbitrary
-positive inputs.  Parallel Strassen remains a retained §27.4 extension pending
-its later closure.
+This module lifts the Chapter 27 main-text exact power-of-two recurrence
+solutions to arbitrary positive inputs.
 -/
 
 namespace CLRS
@@ -215,83 +214,6 @@ theorem pMergeSortSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
       pMergeSortSpan n ≤ pMergeSortSpan (2 ^ (Nat.log 2 n + 1)) :=
   Chapter04.monotone_power_sandwich pMergeSortSpan_monotone 2 n (by norm_num) hn.ne'
 
-/-- The parallel Strassen work recurrence does not decrease at a successor step. -/
-private theorem strassenWork_le_succ : ∀ n, strassenWork n ≤ strassenWork (n + 1) := by
-  intro n
-  induction n using Nat.strong_induction_on with
-  | h n ih =>
-      by_cases hn : n ≤ 1
-      · interval_cases n
-        · rw [show strassenWork 0 = 0 by rw [strassenWork]; norm_num]
-          exact Nat.zero_le _
-        · have hone : strassenWork 1 = 1 := by rw [strassenWork]; norm_num
-          rw [hone, strassenWork_unfold (n := 2) (by norm_num)]
-          norm_num [hone]
-      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
-          ⟨n / 2, by omega⟩
-        · have hdiv0 : 2 * m / 2 = m := by omega
-          have hdiv1 : (2 * m + 1) / 2 = m := by omega
-          rw [strassenWork_unfold (n := 2 * m) (by omega),
-            strassenWork_unfold (n := 2 * m + 1) (by omega), hdiv0, hdiv1]
-          have hsquare : (2 * m) * (2 * m) ≤ (2 * m + 1) * (2 * m + 1) := by
-            nlinarith
-          omega
-        · have hdiv0 : (2 * m + 1) / 2 = m := by omega
-          have hdiv1 : (2 * m + 1 + 1) / 2 = m + 1 := by omega
-          rw [strassenWork_unfold (n := 2 * m + 1) (by omega),
-            strassenWork_unfold (n := 2 * m + 1 + 1) (by omega), hdiv0, hdiv1]
-          have ihm := ih m (by omega)
-          have hsquare : (2 * m + 1) * (2 * m + 1) ≤
-              (2 * m + 1 + 1) * (2 * m + 1 + 1) := by
-            nlinarith
-          omega
-
-/-- Parallel Strassen work is monotone in the input size. -/
-theorem strassenWork_monotone : Monotone strassenWork :=
-  monotone_nat_of_le_succ strassenWork_le_succ
-
-/-- Every positive parallel-Strassen work cost lies between its adjacent
-power-of-two costs. -/
-theorem strassenWork_power_sandwich (n : ℕ) (hn : 0 < n) :
-    strassenWork (2 ^ Nat.log 2 n) ≤ strassenWork n ∧
-      strassenWork n ≤ strassenWork (2 ^ (Nat.log 2 n + 1)) :=
-  Chapter04.monotone_power_sandwich strassenWork_monotone 2 n (by norm_num) hn.ne'
-
-/-- The parallel Strassen span recurrence does not decrease at a successor step. -/
-private theorem strassenSpan_le_succ : ∀ n, strassenSpan n ≤ strassenSpan (n + 1) := by
-  intro n
-  induction n using Nat.strong_induction_on with
-  | h n ih =>
-      by_cases hn : n ≤ 1
-      · interval_cases n
-        · rw [show strassenSpan 0 = 0 by rw [strassenSpan]; norm_num]
-          exact Nat.zero_le _
-        · have hone : strassenSpan 1 = 1 := by rw [strassenSpan]; norm_num
-          rw [hone, strassenSpan_unfold (n := 2) (by norm_num)]
-          norm_num [hone]
-      · obtain ⟨m, rfl | rfl⟩ : ∃ m, n = 2 * m ∨ n = 2 * m + 1 :=
-          ⟨n / 2, by omega⟩
-        · have hdiv0 : 2 * m / 2 = m := by omega
-          have hdiv1 : (2 * m + 1) / 2 = m := by omega
-          rw [strassenSpan_unfold (n := 2 * m) (by omega),
-            strassenSpan_unfold (n := 2 * m + 1) (by omega), hdiv0, hdiv1]
-        · have hdiv0 : (2 * m + 1) / 2 = m := by omega
-          have hdiv1 : (2 * m + 1 + 1) / 2 = m + 1 := by omega
-          rw [strassenSpan_unfold (n := 2 * m + 1) (by omega),
-            strassenSpan_unfold (n := 2 * m + 1 + 1) (by omega), hdiv0, hdiv1]
-          exact Nat.add_le_add_right (ih m (by omega)) 1
-
-/-- Parallel Strassen span is monotone in the input size. -/
-theorem strassenSpan_monotone : Monotone strassenSpan :=
-  monotone_nat_of_le_succ strassenSpan_le_succ
-
-/-- Every positive parallel-Strassen span cost lies between its adjacent
-power-of-two costs. -/
-theorem strassenSpan_power_sandwich (n : ℕ) (hn : 0 < n) :
-    strassenSpan (2 ^ Nat.log 2 n) ≤ strassenSpan n ∧
-      strassenSpan n ≤ strassenSpan (2 ^ (Nat.log 2 n + 1)) :=
-  Chapter04.monotone_power_sandwich strassenSpan_monotone 2 n (by norm_num) hn.ne'
-
 /-! ## All-input work and span bounds -/
 
 private theorem add_three_le_three_mul_pow_two (k : ℕ) :
@@ -405,47 +327,6 @@ private theorem pMergeSortSpan_exactPower_bigTheta :
     have hk2 : 0 ≤ (k : ℝ) * (k : ℝ) := mul_nonneg hk hk
     nlinarith
 
-private theorem strassenWork_exactPower_bounds (k : ℕ) :
-    7 ^ k ≤ strassenWork (2 ^ k) ∧ strassenWork (2 ^ k) ≤ 3 * 7 ^ k := by
-  have hexact := strassenWork_pow_two k
-  rw [pow_succ (4 : ℕ) k, pow_succ (7 : ℕ) k] at hexact
-  have hpow : 4 ^ k ≤ 7 ^ k := Nat.pow_le_pow_left (by norm_num) k
-  constructor <;> omega
-
-private theorem strassenWork_exactPower_bigTheta :
-    Chapter03.isBigTheta
-      (fun k : ℕ => (strassenWork (2 ^ k) : ℝ))
-      (fun k : ℕ => (7 : ℝ) ^ k) := by
-  constructor
-  · refine (Chapter03.isBigO_iff _ _).mpr ⟨3, by norm_num, 0, ?_⟩
-    intro k _
-    rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (by positivity)]
-    have hreal :
-        (strassenWork (2 ^ k) : ℝ) ≤ ((3 * 7 ^ k : ℕ) : ℝ) := by
-      exact_mod_cast (strassenWork_exactPower_bounds k).2
-    simpa [Nat.cast_mul, Nat.cast_pow] using hreal
-  · refine (Chapter03.isBigOmega_iff _ _).mpr ⟨1, by norm_num, 0, ?_⟩
-    intro k _
-    rw [abs_of_nonneg (by positivity : 0 ≤ (7 : ℝ) ^ k),
-      abs_of_nonneg (Nat.cast_nonneg _)]
-    have hreal : ((7 ^ k : ℕ) : ℝ) ≤ (strassenWork (2 ^ k) : ℝ) := by
-      exact_mod_cast (strassenWork_exactPower_bounds k).1
-    simpa [Nat.cast_pow] using hreal
-
-private theorem strassenSpan_exactPower_bigTheta :
-    Chapter03.isBigTheta
-      (fun k : ℕ => (strassenSpan (2 ^ k) : ℝ))
-      (fun k : ℕ => (k : ℝ) + 1) := by
-  have hfun :
-      (fun k : ℕ => (strassenSpan (2 ^ k) : ℝ)) =
-        (fun k : ℕ => (k : ℝ) + 1) := by
-    funext k
-    rw [strassenSpan_pow_two]
-    push_cast
-    norm_num
-  rw [hfun]
-  exact Chapter03.isBigTheta_refl _
-
 /-- P-MERGE has linear work on every positive input size. -/
 theorem pMergeWork_allInput_bigTheta :
     Chapter03.isBigTheta (fun n : ℕ => (pMergeWork n : ℝ))
@@ -523,37 +404,6 @@ theorem pMergeSortSpan_allInput_bigTheta :
     (Chapter04.criticalPowerLogPolylogScale_powerStepBound 1 2 2
       (by norm_num) (by norm_num))
     hpower
-
-/-- Parallel Strassen has work `n^(log₂ 7)` on every positive input size. -/
-theorem strassenWork_allInput_bigTheta :
-    Chapter03.isBigTheta (fun n : ℕ => (strassenWork n : ℝ))
-      (Chapter04.realLogScale 7 2) := by
-  have hcritical :
-      Chapter03.isBigTheta (fun n : ℕ => (strassenWork n : ℝ))
-        (Chapter04.criticalPowerScale 7 2) :=
-    Chapter04.allInput_bigTheta_of_criticalPowerScale 7 2
-      (fun n : ℕ => (strassenWork n : ℝ)) (by norm_num) (by norm_num)
-      (Chapter04.monotoneAbs_natCast strassenWork_monotone)
-      strassenWork_exactPower_bigTheta
-  exact Chapter03.isBigTheta_trans hcritical
-    (Chapter04.criticalPowerScale_isBigTheta_realLogScale 7 2
-      (by norm_num) (by norm_num))
-
-/-- Parallel Strassen has logarithmic span on every positive input size. -/
-theorem strassenSpan_allInput_bigTheta :
-    Chapter03.isBigTheta (fun n : ℕ => (strassenSpan n : ℝ))
-      (Chapter04.polynomialLogScale 2 0) := by
-  have hcritical :
-      Chapter03.isBigTheta (fun n : ℕ => (strassenSpan n : ℝ))
-        (Chapter04.criticalPowerLogScale 1 2) :=
-    Chapter04.allInput_bigTheta_of_criticalPowerLogScale 1 2
-      (fun n : ℕ => (strassenSpan n : ℝ)) (by norm_num) (by norm_num)
-      (Chapter04.monotoneAbs_natCast strassenSpan_monotone) (by
-        simpa only [Nat.cast_one, one_pow, mul_one] using
-          strassenSpan_exactPower_bigTheta)
-  exact Chapter03.isBigTheta_trans hcritical (by
-    simpa using Chapter04.criticalPowerLogScale_isBigTheta_polynomialLogScale 2 0
-      (by norm_num))
 
 end Chapter27
 end CLRS
