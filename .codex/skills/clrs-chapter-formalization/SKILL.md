@@ -399,6 +399,11 @@ end CLRS
   element is bounded by the root.  These turn later swap-branch and in-place
   heapsort proofs into invariant transport problems instead of raw index
   arithmetic.
+- Chapter 27 completion pass: split chapter-sized section files into stable
+  aggregators over definitions, correctness, and execution-cost modules. A
+  recurrence theorem is not an algorithm runtime until an executable value is
+  connected to that cost, and worst-case `Theta` claims need both a universal
+  upper bound and an explicit lower-witness family.
 
 ## Honesty Rules
 
