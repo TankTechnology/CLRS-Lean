@@ -157,6 +157,14 @@ example :
 #check Dictionary.greatestFickle
 #check Dictionary.greatestFickle_mem
 #check Dictionary.variableIndex_le_greatestFickle
+#check Dictionary.objectiveCoeff
+#check Dictionary.objectiveCoeff_basicVar
+#check Dictionary.objectiveCoeff_nonbasicVar
+#check Dictionary.objectiveRhs_eq_fullSum
+#check Dictionary.objectiveRhs_enteringRay_as_coeff
+#check Dictionary.Equivalent.entering_coefficient_identity
+#check Dictionary.IsBlandEntering.objectiveCoeff_nonpos_of_index_lt
+#check Dictionary.exists_negative_coefficient_product
 
 #print axioms Dictionary.simplexRun_equivalent
 #print axioms Dictionary.simplexRun_isBasicFeasible
