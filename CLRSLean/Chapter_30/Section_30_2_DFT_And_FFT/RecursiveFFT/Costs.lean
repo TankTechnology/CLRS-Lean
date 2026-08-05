@@ -53,6 +53,7 @@ theorem recursiveFFTWork_exact [Ring K] {k : Nat}
 /-- Numeric closed form extracted from the execution theorem. -/
 def radix2FFTWork (k : Nat) : Nat := 2 * k * 2 ^ k
 
+/-- The execution-derived work agrees with the public numeric cost function. -/
 theorem recursiveFFTWork_eq_radix2FFTWork [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) :
     recursiveFFTWork omega a = radix2FFTWork k := by
@@ -112,20 +113,24 @@ theorem fftCapacity_lt_two_mul {n : Nat} (hn : 1 < n) :
   exact (Nat.mul_lt_mul_left (a := 2) (b := 2 ^ (Nat.clog 2 n).pred)
     (c := n) (by norm_num)).mpr hpred
 
+/-- The selected padding exponent is monotone in the requested capacity. -/
 theorem fftExponent_monotone : Monotone fftExponent := by
   intro m n hmn
   exact Nat.clog_mono_right 2 (max_le_max_left 1 hmn)
 
+/-- The selected power-of-two capacity is monotone. -/
 theorem fftCapacity_monotone : Monotone fftCapacity := by
   intro m n hmn
   exact Nat.pow_le_pow_right (by norm_num) (fftExponent_monotone hmn)
 
+/-- Exact radix-2 FFT work is monotone in the exponent. -/
 private theorem radix2FFTWork_monotone : Monotone radix2FFTWork := by
   intro k l hkl
   unfold radix2FFTWork
   have hpow : 2 ^ k ≤ 2 ^ l := Nat.pow_le_pow_right (by norm_num) hkl
   simpa [Nat.mul_assoc] using Nat.mul_le_mul_left 2 (Nat.mul_le_mul hkl hpow)
 
+/-- Padded FFT work is monotone in the advertised input capacity. -/
 theorem paddedFFTWork_monotone : Monotone paddedFFTWork := by
   intro m n hmn
   exact radix2FFTWork_monotone (fftExponent_monotone hmn)
@@ -137,6 +142,7 @@ theorem paddedFFTWork_pow (k : Nat) :
     Nat.clog_pow 2 k (by norm_num)]
   rfl
 
+/-- On exact powers of two, padded work has the critical linear-log scale. -/
 private theorem paddedFFTWork_exactPower_bigTheta :
     Chapter03.isBigTheta
       (fun k : Nat => (paddedFFTWork (2 ^ k) : ℝ))

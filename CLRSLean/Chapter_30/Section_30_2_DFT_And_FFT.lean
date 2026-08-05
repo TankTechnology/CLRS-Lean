@@ -26,8 +26,8 @@ The generic FFT multiplication execution is correct under the minimal no-wrap
 capacity premise; the complex wrapper constructs a sufficient power-of-two
 capacity and primitive root internally.  The multiplication work field charges
 three recursive transforms, pointwise products, and inverse scaling, with an
-exact composition and an all-input `Theta(n log n)` bound.  Section 30.3 remains
-deferred.
+exact composition and an all-input `Theta(n log n)` bound.  Section 30.3 builds
+the iterative and layered-circuit refinements on this recursive core.
 
 Implementation pages:
 

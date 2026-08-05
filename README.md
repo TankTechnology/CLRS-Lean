@@ -182,7 +182,9 @@ Run the fast repository metadata and configuration checks:
 uv run python scripts/check_repository.py
 ```
 
-Build the public site when a reader-facing page or navigation entry changes:
+Website generation and deployment are separate publishing tasks.  Run the
+Verso build only when the user explicitly requests publishing, release, or
+website work:
 
 ```bash
 lake build :literateHtml
@@ -214,10 +216,12 @@ A theorem-producing change should update code and status together:
 Before a milestone merge or a deploy, run a full review with the
 **`clrs-qa-reviewer`** agent (`.claude/agents/clrs-qa-reviewer.md`): it checks
 format/convention consistency, verifies proofs are genuinely sorry-free via
-`#print axioms`, and — because `-Dwarn.sorry=false` means a clean build is not
-proof of soundness — inspects the *rendered* Verso navigation to catch
-table-of-contents ordering problems. For running many proof agents in parallel,
-see [`docs/build-and-agents.md`](docs/build-and-agents.md) (isolated prebuilt
+`#print axioms`, and validates source navigation configuration.  Rendered Verso
+navigation is additionally inspected only for an explicitly requested
+publishing, release, or website task.  Because `-Dwarn.sorry=false` means a
+clean build is not proof of soundness, the axiom check remains mandatory for
+proof milestones.  For running many proof agents in parallel, see
+[`docs/build-and-agents.md`](docs/build-and-agents.md) (isolated prebuilt
 worktrees, RAM-bound concurrency limits, and the recovery runbook).
 
 Status labels describe the proved model precisely:

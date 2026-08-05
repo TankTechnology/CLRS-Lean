@@ -13,20 +13,24 @@ private def radixTwoIndexEquiv (k : Nat) :
     Fin (2 ^ k) × Fin 2 ≃ Fin (2 ^ (k + 1)) :=
   finProdFinEquiv.trans (finCongr (by simp [pow_succ, Nat.mul_comm]))
 
+/-- The zero branch of radix-two reindexing has the expected even value. -/
 private theorem radixTwoIndexEquiv_zero {k : Nat} (j : Fin (2 ^ k)) :
     (radixTwoIndexEquiv k (j, (0 : Fin 2))).1 = 2 * j.1 := by
   simp [radixTwoIndexEquiv, finProdFinEquiv, Nat.mul_comm]
 
+/-- The one branch of radix-two reindexing has the expected odd value. -/
 private theorem radixTwoIndexEquiv_one {k : Nat} (j : Fin (2 ^ k)) :
     (radixTwoIndexEquiv k (j, (1 : Fin 2))).1 = 2 * j.1 + 1 := by
   simp [radixTwoIndexEquiv, finProdFinEquiv, Nat.mul_comm,
     Nat.add_comm]
 
+/-- The zero branch of radix-two reindexing is `evenIndex`. -/
 private theorem radixTwoIndexEquiv_zero_eq {k : Nat} (j : Fin (2 ^ k)) :
     radixTwoIndexEquiv k (j, (0 : Fin 2)) = evenIndex j := by
   apply Fin.ext
   exact radixTwoIndexEquiv_zero j
 
+/-- The one branch of radix-two reindexing is `oddIndex`. -/
 private theorem radixTwoIndexEquiv_one_eq {k : Nat} (j : Fin (2 ^ k)) :
     radixTwoIndexEquiv k (j, (1 : Fin 2)) = oddIndex j := by
   apply Fin.ext
@@ -52,12 +56,14 @@ theorem polynomial_evenOdd_split [CommRing K] {k : Nat}
     Polynomial.X_pow_eq_monomial, Polynomial.C_mul_monomial,
     Polynomial.X_mul_monomial, pow_mul, Nat.mul_comm, Nat.add_comm]
 
+/-- A DFT coordinate is polynomial evaluation at the corresponding root power. -/
 private theorem dft_apply_eq_eval [CommSemiring K] {n : Nat}
     (omega : K) (a : CoeffVector K n) (i : Fin n) :
     dft omega a i = (vectorToPolynomial a).eval (omega ^ i.1) := by
   rw [dft_eq_pointValues]
   rfl
 
+/-- The lower DFT half splits into even and odd child transforms. -/
 private theorem dft_lower_split [CommRing K] {k : Nat}
     (omega : K) (a : PowTwoVec K (k + 1)) (j : Fin (2 ^ k)) :
     dft omega a (lowerHalfIndex j) =
@@ -74,6 +80,7 @@ private theorem dft_lower_split [CommRing K] {k : Nat}
   rw [hsquare]
   rw [← dft_apply_eq_eval, ← dft_apply_eq_eval]
 
+/-- The upper DFT half uses the negative butterfly combination. -/
 private theorem dft_upper_split [Field K] [CharZero K] {k : Nat}
     {omega : K} (homega : IsPrimitiveRoot omega (2 ^ (k + 1)))
     (a : PowTwoVec K (k + 1)) (j : Fin (2 ^ k)) :
@@ -112,6 +119,7 @@ private theorem dft_upper_split [Field K] [CharZero K] {k : Nat}
   rw [← dft_apply_eq_eval, ← dft_apply_eq_eval]
   ring
 
+/-- Two successor-size vectors are equal when both contiguous halves agree. -/
 private theorem powTwoVec_ext_halves {K : Type*} {k : Nat}
     {f g : PowTwoVec K (k + 1)}
     (hlower : ∀ j : Fin (2 ^ k), f (lowerHalfIndex j) = g (lowerHalfIndex j))

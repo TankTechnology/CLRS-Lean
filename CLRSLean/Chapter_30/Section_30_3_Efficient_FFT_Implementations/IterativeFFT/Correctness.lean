@@ -12,6 +12,7 @@ proved recursive transform to the generic DFT.
 namespace CLRS
 namespace Chapter30
 
+/-- A lifted child stage distributes over two joined halves. -/
 theorem fftStage_join_castSucc [Ring K] {k : Nat} (omega : K)
     (lower upper : PowTwoVec K k) (s : Fin k) :
     fftStage omega (joinHalves lower upper) s.castSucc =

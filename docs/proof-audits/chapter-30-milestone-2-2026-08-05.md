@@ -107,3 +107,32 @@ The following fresh commands ran on 2026-08-05 and exited 0:
 Website generation, rendering inspection, preparation, and deployment are a
 separate publishing task under the project workflow.  They are not proof
 closure gates and are not used as evidence in this audit.
+
+## Pre-merge review
+
+The final review compared the clean Chapter 30 branch with current
+`origin/main`, inspected the representation, DFT, recursive and iterative FFT,
+polynomial-multiplication, circuit, test, progress, and navigation surfaces,
+and found no remaining critical or important semantic issue.  The review did
+repair three documentation-quality gaps before merge:
+
+- the Section 30.2 guide no longer describes completed Section 30.3 as
+  deferred;
+- README, reviewer, and build-agent instructions now consistently reserve
+  website generation and rendered-navigation inspection for explicitly
+  requested publishing work; and
+- every declaration in the new Chapter 30 source tree now has the declaration
+  documentation required by `CLAUDE.md`.
+
+Fresh post-repair verification observed:
+
+- `lake build +CLRSLean.Chapter_30`: success, 8,603 jobs;
+- all nine `Tests/Chapter_30_*.lean` files: success;
+- closure axiom output: only `propext`, `Classical.choice`, and `Quot.sound`;
+- unfinished-proof, unsafe/opaque declaration, production `native_decide`, and
+  missing declaration-documentation scans: no matches;
+- progress, README, repository, local-link, placeholder, and source-navigation
+  checks: success, with 1,793 tracked and 1,793 proved entries; and
+- `lake build CLRSLean`: success, 8,921 jobs in 4.68 seconds.
+
+No Verso HTML build, rendered-site inspection, or deployment was performed.

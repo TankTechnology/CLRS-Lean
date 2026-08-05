@@ -12,11 +12,13 @@ the iterative radix-2 FFT without introducing partial array indexing.
 namespace CLRS
 namespace Chapter30
 
+/-- Decompose a successor-size index into its quotient and low bit. -/
 private def powTwoSuccToQuotBit (k : Nat) :
     Fin (2 ^ (k + 1)) ≃ Fin (2 ^ k) × Fin 2 :=
   (finCongr (by simp [pow_succ])).trans
     (finProdFinEquiv (m := 2 ^ k) (n := 2)).symm
 
+/-- Reassemble a leading bit and remaining fixed-width index. -/
 private def bitRestToPowTwoSucc (k : Nat) :
     Fin 2 × Fin (2 ^ k) ≃ Fin (2 ^ (k + 1)) :=
   (finProdFinEquiv (m := 2) (n := 2 ^ k)).trans
@@ -31,6 +33,7 @@ def bitReverseEquiv : (k : Nat) → Fin (2 ^ k) ≃ Fin (2 ^ k)
           ((Equiv.prodComm (Fin (2 ^ k)) (Fin 2)).trans
             (bitRestToPowTwoSucc k)))
 
+/-- Reversing an even index places the recursively reversed index below. -/
 @[simp] theorem bitReverseEquiv_even {k : Nat} (i : Fin (2 ^ k)) :
     bitReverseEquiv (k + 1) (evenIndex i) =
       lowerHalfIndex (bitReverseEquiv k i) := by
@@ -38,6 +41,7 @@ def bitReverseEquiv : (k : Nat) → Fin (2 ^ k) ≃ Fin (2 ^ k)
   simp [bitReverseEquiv, powTwoSuccToQuotBit, bitRestToPowTwoSucc,
     evenIndex, lowerHalfIndex, powTwoSuccEquiv, Fin.divNat, Fin.modNat]
 
+/-- Reversing an odd index places the recursively reversed index above. -/
 @[simp] theorem bitReverseEquiv_odd {k : Nat} (i : Fin (2 ^ k)) :
     bitReverseEquiv (k + 1) (oddIndex i) =
       upperHalfIndex (bitReverseEquiv k i) := by
@@ -142,6 +146,7 @@ def bitReverseCopy {K : Type*} {k : Nat} (a : PowTwoVec K k) :
     PowTwoVec K k :=
   (bitReverseExec a).value
 
+/-- A successor-size copy joins recursive copies of even and odd coefficients. -/
 @[simp] theorem bitReverseCopy_succ {K : Type*} {k : Nat}
     (a : PowTwoVec K (k + 1)) :
     bitReverseCopy a =

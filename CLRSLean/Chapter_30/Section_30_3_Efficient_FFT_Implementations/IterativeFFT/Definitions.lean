@@ -19,20 +19,24 @@ def lowerHalf {K : Type*} {k : Nat} (a : PowTwoVec K (k + 1)) :
 def upperHalf {K : Type*} {k : Nat} (a : PowTwoVec K (k + 1)) :
     PowTwoVec K k := fun i => a (upperHalfIndex i)
 
+/-- Reading a lower half uses the canonical lower-half embedding. -/
 @[simp] theorem lowerHalf_apply {K : Type*} {k : Nat}
     (a : PowTwoVec K (k + 1)) (i : Fin (2 ^ k)) :
     lowerHalf a i = a (lowerHalfIndex i) := rfl
 
+/-- Reading an upper half uses the canonical upper-half embedding. -/
 @[simp] theorem upperHalf_apply {K : Type*} {k : Nat}
     (a : PowTwoVec K (k + 1)) (i : Fin (2 ^ k)) :
     upperHalf a i = a (upperHalfIndex i) := rfl
 
+/-- Extracting the lower half of joined vectors returns the lower input. -/
 @[simp] theorem lowerHalf_joinHalves {K : Type*} {k : Nat}
     (lower upper : PowTwoVec K k) :
     lowerHalf (joinHalves lower upper) = lower := by
   funext i
   simp [lowerHalf]
 
+/-- Extracting the upper half of joined vectors returns the upper input. -/
 @[simp] theorem upperHalf_joinHalves {K : Type*} {k : Nat}
     (lower upper : PowTwoVec K k) :
     upperHalf (joinHalves lower upper) = upper := by
@@ -67,12 +71,14 @@ def fftStage [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) (s : Fin k) : PowTwoVec K k :=
   (fftStageExec omega a s).value
 
+/-- The final indexed stage is one full butterfly layer. -/
 @[simp] theorem fftStage_final [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K (k + 1)) :
     fftStage omega a (Fin.last k) =
       butterflyLayer omega (lowerHalf a) (upperHalf a) := by
   simp [fftStage, fftStageExec, butterflyLayer]
 
+/-- A nonfinal indexed stage acts independently on the two halves. -/
 @[simp] theorem fftStage_nonfinal [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K (k + 1)) (s : Fin k) :
     fftStage omega a s.castSucc =
@@ -104,10 +110,12 @@ def runFFTStagePrefix [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) (m : Nat) (hm : m ≤ k) : PowTwoVec K k :=
   (runFFTStagePrefixExec omega a m hm).value
 
+/-- The empty ordered stage prefix leaves its input unchanged. -/
 @[simp] theorem runFFTStagePrefix_zero [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) (hm : 0 ≤ k) :
     runFFTStagePrefix omega a 0 hm = a := rfl
 
+/-- Extending a stage prefix applies the next admissible stage. -/
 theorem runFFTStagePrefix_succ [Ring K] {k m : Nat} (omega : K)
     (a : PowTwoVec K k) (hm : m + 1 ≤ k) :
     runFFTStagePrefix omega a (m + 1) hm =
@@ -124,6 +132,7 @@ def runAllFFTStages [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) : PowTwoVec K k :=
   (runAllFFTStagesExec omega a).value
 
+/-- A complete successor-size run ends with the final stage. -/
 theorem runAllFFTStages_succ [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K (k + 1)) :
     runAllFFTStages omega a =
@@ -151,16 +160,19 @@ def iterativeRadix2FFT [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) : PowTwoVec K k :=
   (iterativeRadix2FFTExec omega a).value
 
+/-- The iterative FFT is bit-reversal followed by all ordered stages. -/
 theorem iterativeRadix2FFT_eq_runAll [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) :
     iterativeRadix2FFT omega a =
       runAllFFTStages omega (bitReverseCopy a) := rfl
 
+/-- Erasing iterative execution counters yields the public transform value. -/
 theorem iterativeRadix2FFTExec_value [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) :
     (iterativeRadix2FFTExec omega a).value =
       iterativeRadix2FFT omega a := rfl
 
+/-- The singleton iterative transform is the identity. -/
 @[simp] theorem iterativeRadix2FFT_zero [Ring K] (omega : K)
     (a : PowTwoVec K 0) :
     iterativeRadix2FFT omega a = a := by
