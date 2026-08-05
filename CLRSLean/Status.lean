@@ -19,15 +19,16 @@ the detailed maintainer ledger.
 * {lit}`not-started`: no represented section exists on {lit}`main`.
 * {lit}`expository`: a guide page with no theorem target.
 
-## Chapters 1--29 Milestone
+## Chapters 1--31 Milestone
 
-Chapters 1--29 have zero remaining core theorem groups inside their advertised
+Chapters 1--31 have zero remaining core theorem groups inside their advertised
 proof scopes.  The milestone is intentionally status-aware:
 
 * Chapter 1 is expository.
 * Chapters 5, 7, 10, 15, 17, and 24 are complete for their represented
   sections; unrepresented textbook sections are not silently claimed.
-* The remaining Chapters 2--29 are complete for their advertised main theorem
+* Chapter 31 is complete for its represented Sections 31.1--31.9.
+* The remaining Chapters 2--30 are complete for their advertised main theorem
   or correctness stacks, with any optional implementation refinements named
   below.
 
@@ -122,6 +123,15 @@ scope.
   slackness; phase-I initialization; and a certified infeasible/optimal/
   unbounded solver.  Mutable tableau storage, floating-point analysis, RAM
   constants, exercises, and chapter-end problems are optional refinements.
+* **Chapter 30:** Sections 30.1--30.3 are complete for exact generic arithmetic
+  over fixed and power-of-two vectors.  The library proves representation
+  bridges, DFT inversion and convolution, recursive and iterative radix-2 FFT
+  correctness, generic and automatically sized complex polynomial
+  multiplication, execution-attached exact work and all-input
+  {lit}`Theta(n log n)` bounds, and an evaluated layered FFT circuit with exact
+  gate count and depth.  Mutable or in-place arrays, RAM/cache/hardware costs,
+  floating-point error, concrete parallel scheduling, exercises, and Problems
+  30-1 through 30-6 are separate tracks.
 * **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
   search costs, universal hashing, open addressing, and perfect hashing.
 * **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
@@ -178,10 +188,9 @@ scope.
 
 ## Not Represented On Main
 
-Chapters 30 and 34--35 do not currently have represented section modules
-on {lit}`main`.  Chapter 33.1 is represented but partial; Chapters 28 and 29
-are complete, Chapter 31.1--31.9 is complete for its selected-section scope,
-and Chapter 32.1 is complete for its selected-section scope.  Open pull
+Chapters 34--35 do not currently have represented section modules on
+{lit}`main`.  Chapter 33.1 is represented but partial; Chapter 31.1--31.9 and
+Chapter 32.1 are complete for their selected-section scopes.  Open pull
 requests are not counted until their scope is reviewed, merged, and added to
 the progress source.
 

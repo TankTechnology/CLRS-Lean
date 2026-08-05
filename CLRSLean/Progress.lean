@@ -9,10 +9,10 @@ When the CSV changes, regenerate this page with
 ## Snapshot
 
 * CLRS chapters tracked: 35.
-* Chapters represented in Lean: 32.
-* Tracked reader-facing theorem entries: 1747.
-* Proved tracked theorem entries: 1747.
-* Remaining core theorem groups: 4.
+* Chapters represented in Lean: 33.
+* Tracked reader-facing theorem entries: 1793.
+* Proved tracked theorem entries: 1793.
+* Remaining core theorem groups: 3.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -31,11 +31,11 @@ Problem, pointer/RAM refinement, or floating-point implementation is present.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 11 chapters.
+* {lit}`main-proof-complete`: 12 chapters.
 * {lit}`main-proof-complete-for-correctness`: 11 chapters.
 * {lit}`selected-section-complete`: 8 chapters.
 * {lit}`partial`: 1 chapter.
-* {lit}`not-started`: 3 chapters.
+* {lit}`not-started`: 2 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -72,7 +72,7 @@ Ch  Chapter                                                     Status          
 27  27. Multithreaded Algorithms                                main-proof-complete                  27.1;27.2;27.3                     95        0
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
 29  29. Linear Programming                                      main-proof-complete                  29.1;29.2;29.3;29.4;29.5           17        0
-30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
+30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     46        0
 31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       16        0
 32  32. String Matching                                         selected-section-complete            32.1                               19        0
 33  33. Computational Geometry                                  partial                              33.1                                7        1
