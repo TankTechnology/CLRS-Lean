@@ -57,6 +57,11 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Spa
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.MapInvariance
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Definitions
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Monotonicity
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
