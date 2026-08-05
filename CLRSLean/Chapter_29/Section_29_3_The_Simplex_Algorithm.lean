@@ -19,7 +19,7 @@ basic-feasible dictionary, the minimum-ratio choice preserves basic feasibility;
 a positive reduced cost makes the basic objective value nondecreasing, and the
 increase is strict for a positive leaving value.
 
-The executable control layer implements Bland's stable variable order and
+The functional control layer implements Bland's stable variable order and
 deterministic entering/leaving selectors.  Each step returns a certified
 optimal, unbounded, or pivot outcome.  Optimality follows from nonpositive
 reduced costs; unboundedness follows from the explicit entering ray.

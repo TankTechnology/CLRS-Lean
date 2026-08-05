@@ -93,7 +93,7 @@ the detailed maintainer ledger.
 * **Chapter 29:** Sections 29.1--29.5 are complete at the finite real-matrix
   and pure-functional tableau layer.  The chapter includes exact standard/slack
   equivalence; shortest-path, maximum-flow, minimum-cost-flow, and
-  multicommodity-flow LPs; exact PIVOT semantics; executable Bland SIMPLEX with
+  multicommodity-flow LPs; exact PIVOT semantics; terminating Bland SIMPLEX with
   anti-cycling and finite termination; weak and strong duality; complementary
   slackness; phase-I initialization; and a certified infeasible/optimal/
   unbounded solver.  Mutable tableau storage, floating-point analysis, RAM

@@ -129,4 +129,3 @@ tests; do not run the full library build.
 - Update issue #84 with exact theorem names and keep it open for Sections 29.2,
   29.4, and 29.5.
 - Run the focused final gate and review the complete diff before integration.
-
