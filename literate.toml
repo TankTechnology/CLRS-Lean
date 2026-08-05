@@ -39,6 +39,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_26",
   "CLRSLean.Chapter_27",
   "CLRSLean.Chapter_28",
+  "CLRSLean.Chapter_29",
   "CLRSLean.Chapter_32",
   "CLRSLean.Chapter_33",
   "CLRSLean.Extensions",
@@ -379,6 +380,19 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_28" = [
   "CLRSLean.Chapter_28.Section_28_1_Linear_Equations",
   "CLRSLean.Chapter_28.Section_28_2_Inverting_Matrices",
+]
+"CLRSLean.Chapter_29" = [
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms",
+  "CLRSLean.Chapter_29.Section_29_4_Duality",
+]
+"CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms" = [
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions",
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables",
+  "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence",
+]
+"CLRSLean.Chapter_29.Section_29_4_Duality" = [
+  "CLRSLean.Chapter_29.Section_29_4_Duality.Definitions",
+  "CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -914,6 +928,9 @@ title = "Chapter 27. Multithreaded Algorithms"
 [modules."CLRSLean.Chapter_28"]
 title = "Chapter 28. Matrix Operations"
 
+[modules."CLRSLean.Chapter_29"]
+title = "Chapter 29. Linear Programming"
+
 [modules."CLRSLean.Chapter_27.Section_27_1_Multithreading_Model"]
 title = "27.1. The Basics of Dynamic Multithreading"
 
@@ -1111,6 +1128,27 @@ title = "28.1. Solving Systems of Linear Equations"
 
 [modules."CLRSLean.Chapter_28.Section_28_2_Inverting_Matrices"]
 title = "28.2. Inverting Matrices"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms"]
+title = "29.1. Standard and Slack Forms"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions"]
+title = "29.1. Standard-Form Definitions"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables"]
+title = "29.1. Canonical Slack Variables"
+
+[modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence"]
+title = "29.1. Standard/Slack Equivalence"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality"]
+title = "29.4. Duality"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.Definitions"]
+title = "29.4. Dual Feasibility"
+
+[modules."CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality"]
+title = "29.4. Weak Duality"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"

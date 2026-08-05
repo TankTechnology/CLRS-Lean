@@ -9,9 +9,9 @@ When the CSV changes, regenerate this page with
 ## Snapshot
 
 * CLRS chapters tracked: 35.
-* Chapters represented in Lean: 30.
-* Tracked reader-facing theorem entries: 1707.
-* Proved tracked theorem entries: 1707.
+* Chapters represented in Lean: 31.
+* Tracked reader-facing theorem entries: 1709.
+* Proved tracked theorem entries: 1709.
 * Remaining core theorem groups: 7.
 
 Tracked theorem entries count the public theorem groups currently represented
@@ -23,8 +23,8 @@ are not yet represented or not yet complete.
 * {lit}`main-proof-complete`: 9 chapters.
 * {lit}`main-proof-complete-for-correctness`: 11 chapters.
 * {lit}`selected-section-complete`: 7 chapters.
-* {lit}`partial`: 2 chapters.
-* {lit}`not-started`: 5 chapters.
+* {lit}`partial`: 3 chapters.
+* {lit}`not-started`: 4 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -60,7 +60,7 @@ Ch  Chapter                                                     Status          
 26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
 27  27. Multithreaded Algorithms                                main-proof-complete                  27.1;27.2;27.3                     95        0
 28  28. Matrix Operations                                       partial                              28.1;28.2                           2        1
-29  29. Linear Programming                                      not-started                          not represented                     0        1
+29  29. Linear Programming                                      partial                              29.1;29.4                           2        1
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
 31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1
 32  32. String Matching                                         selected-section-complete            32.1                               19        0
