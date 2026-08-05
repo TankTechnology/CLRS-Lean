@@ -21,7 +21,7 @@
 - Create: `docs/superpowers/plans/2026-08-05-ch30-*.md`
 - Create: `docs/proof-audits/chapter-30-*.md`
 
-- [ ] **Step 1: Apply only Chapter 30-owned files from the stale branch**
+- [x] **Step 1: Apply only Chapter 30-owned files from the stale branch**
 
 Use a path-restricted binary diff from `codex/ch30fight`; do not cherry-pick its
 unrelated Chapter 4--27 or common-infrastructure history.
@@ -37,7 +37,7 @@ git diff --binary origin/main...codex/ch30fight -- \
 
 Expected: only Chapter 30-owned files appear as additions.
 
-- [ ] **Step 2: Run the nine migrated tests before changing semantics**
+- [x] **Step 2: Run the nine migrated tests before changing semantics**
 
 ```bash
 lake build +CLRSLean.Chapter_30
@@ -47,7 +47,7 @@ for test in Tests/Chapter_30_*.lean; do lake env lean "$test"; done
 Expected: the Chapter 30 module builds and all nine tests exit zero on current
 `main` dependencies.
 
-- [ ] **Step 3: Commit the isolated source migration**
+- [x] **Step 3: Commit the isolated source migration**
 
 ```bash
 git add CLRSLean/Chapter_30.lean CLRSLean/Chapter_30 Tests/Chapter_30_*.lean \
@@ -74,21 +74,21 @@ git commit -m "feat(ch30): migrate verified FFT formalization"
 - Modify: `.codex/skills/clrs-chapter-formalization/SKILL.md`
 - Modify: `docs/workflows/chapter-workflow.md`
 
-- [ ] **Step 1: Wire Chapter 30 into the current root and source navigation**
+- [x] **Step 1: Wire Chapter 30 into the current root and source navigation**
 
 Add the Chapter 30 root import after Chapter 29 and before Chapter 31.  Add the
 chapter guide and all Section 30.1--30.3 modules to `literate.toml` and
 `docs/index.md` in numerical order, without replacing the current Chapter 31
 entries.
 
-- [ ] **Step 2: Merge the status truth against current `main`**
+- [x] **Step 2: Merge the status truth against current `main`**
 
 Add the reviewed Chapter 30 proof-map inventory and the CSV row values from the
 Milestone 2 audit while preserving the completed Chapter 27--29 and 31 rows.
 Keep exercises, Problems 30-1--30-6, and machine refinements explicitly outside
 the denominator.  Remove Chapter 30 from active gaps if present.
 
-- [ ] **Step 3: Regenerate generated owners**
+- [x] **Step 3: Regenerate generated owners**
 
 ```bash
 uv run python scripts/check_progress_csv.py --write-dashboard
@@ -98,13 +98,13 @@ uv run python scripts/gen_readme_table.py --write
 Expected: totals are derived from the merged CSV rather than copied from the
 stale branch.
 
-- [ ] **Step 4: Apply the proof-work publishing boundary**
+- [x] **Step 4: Apply the proof-work publishing boundary**
 
 Port only the approved wording that proof tasks do not authorize HTML
 generation or deployment.  Preserve other current versions of the three policy
 files.
 
-- [ ] **Step 5: Verify and commit repository integration**
+- [x] **Step 5: Verify and commit repository integration**
 
 ```bash
 uv run python scripts/check_repository.py
@@ -123,7 +123,7 @@ git commit -m "docs(ch30): integrate current repository status"
 
 - Modify: `Tests/Chapter_30_ParallelFFT_Interface.lean`
 
-- [ ] **Step 1: Add the wished-for public interface**
+- [x] **Step 1: Add the wished-for public interface**
 
 Add checks for these exact declarations:
 
@@ -145,7 +145,7 @@ Add checks for these exact declarations:
 #check FFTLayer.eval
 ```
 
-- [ ] **Step 2: Confirm RED for the expected missing declaration**
+- [x] **Step 2: Confirm RED for the expected missing declaration**
 
 ```bash
 lake env lean Tests/Chapter_30_ParallelFFT_Interface.lean
@@ -161,7 +161,7 @@ otherwise resolve.
 - Modify: `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean`
 - Test: `Tests/Chapter_30_ParallelFFT_Interface.lean`
 
-- [ ] **Step 1: Define an evaluated logical butterfly gate**
+- [x] **Step 1: Define an evaluated logical butterfly gate**
 
 ```lean
 structure FFTButterflyGate (K : Type*) where
@@ -169,10 +169,11 @@ structure FFTButterflyGate (K : Type*) where
 
 def FFTButterflyGate.eval [Ring K] (gate : FFTButterflyGate K)
     (u v : K) : K × K :=
-  (u + gate.twiddle * v, u - gate.twiddle * v)
+  let product := gate.twiddle * v
+  (u + product, u - product)
 ```
 
-- [ ] **Step 2: Define the actual gate family for one local layer**
+- [x] **Step 2: Define the actual gate family for one local layer**
 
 ```lean
 structure ButterflyLayerCircuit (K : Type*) (k : Nat) where
@@ -188,7 +189,7 @@ for every `j`, then joining the first and second outputs.  Prove
 `canonicalButterflyLayerCircuit_eval` by extensionality over the lower and
 upper halves using `butterflyLayer_lower` and `butterflyLayer_upper`.
 
-- [ ] **Step 3: Run the narrow source and interface checks**
+- [x] **Step 3: Run the narrow source and interface checks**
 
 ```bash
 lake build +CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT
@@ -205,7 +206,7 @@ declarations.
 - Modify: `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean`
 - Test: `Tests/Chapter_30_ParallelFFT_Interface.lean`
 
-- [ ] **Step 1: Add syntax mirroring `fftStage`**
+- [x] **Step 1: Add syntax mirroring `fftStage`**
 
 ```lean
 inductive FFTStageCircuit (K : Type*) : Nat -> Type _
@@ -220,7 +221,7 @@ node evaluates its gate family, contributes `2 ^ k` butterflies, and has depth
 one.  A parallel node evaluates children on the two halves, sums counts, and
 takes the maximum depth.
 
-- [ ] **Step 2: Build and prove the canonical stage**
+- [x] **Step 2: Build and prove the canonical stage**
 
 Define `fftStageCircuit omega s` by the same final/nonfinal recursion as
 `fftStageExec`: the final case is a canonical butterfly layer; the nonfinal
@@ -242,7 +243,7 @@ theorem fftStageCircuit_butterflyDepth {K : Type*} [Monoid K]
     (fftStageCircuit omega s).butterflyDepth = 1
 ```
 
-- [ ] **Step 3: Verify GREEN and commit the semantic core**
+- [x] **Step 3: Verify GREEN and commit the semantic core**
 
 ```bash
 lake build +CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT
@@ -260,26 +261,26 @@ git commit -m "fix(ch30): attach FFT stages to evaluated gates"
 - Modify: `Tests/Chapter_30_ParallelFFT_Interface.lean`
 - Modify: `Tests/Chapter_30_Milestone2_Closure.lean`
 
-- [ ] **Step 1: Make each `FFTLayer` own its circuit**
+- [x] **Step 1: Make each `FFTLayer` own its circuit**
 
 Add `circuit : FFTStageCircuit K k` to `FFTLayer`; canonical `fftLayer omega s`
 stores `fftStageCircuit omega s`.  Define `FFTLayer.eval` using the circuit.
 Change `FFTNetwork.evalPrefix` to call `layer.eval previous`.
 
-- [ ] **Step 2: Derive size and depth from stored syntax**
+- [x] **Step 2: Derive size and depth from stored syntax**
 
 Define layer butterfly count/depth from `layer.circuit`.  Define network count
 and depth as sums over stored layers.  Keep primitive gate count as three times
 structural butterfly count and primitive depth as twice structural butterfly
 depth.  Reprove the existing canonical closed forms.
 
-- [ ] **Step 3: Extend closure axiom evidence**
+- [x] **Step 3: Extend closure axiom evidence**
 
 Print axioms for `fftStageCircuit_eval`, `fftNetwork_eval`,
 `fftNetwork_butterflyCount`, and `fftNetwork_primitiveDepth` in the Milestone 2
 closure test.
 
-- [ ] **Step 4: Run the focused GREEN gate and commit**
+- [x] **Step 4: Run the focused GREEN gate and commit**
 
 ```bash
 lake env lean Tests/Chapter_30_ParallelFFT_Interface.lean
@@ -299,13 +300,13 @@ git commit -m "fix(ch30): derive FFT network bounds from circuit syntax"
 - Modify only if reviewed counts change: `docs/clrs-proof-progress.csv`,
   `CLRSLean/Progress.lean`, `README.md`, `CLRSLean/Status.lean`
 
-- [ ] **Step 1: Record the repaired circuit representation and exclusions**
+- [x] **Step 1: Record the repaired circuit representation and exclusions**
 
 Add the gate-to-stage bridge, structural counts, exact verification commands,
 and the unchanged exclusions for exercises, Problems 30-1--30-6, machine
 refinements, and website work.
 
-- [ ] **Step 2: Run every Chapter 30 test**
+- [x] **Step 2: Run every Chapter 30 test**
 
 ```bash
 for test in Tests/Chapter_30_*.lean; do lake env lean "$test"; done
@@ -313,7 +314,7 @@ for test in Tests/Chapter_30_*.lean; do lake env lean "$test"; done
 
 Expected: all nine exit zero.
 
-- [ ] **Step 3: Run closure and placeholder checks**
+- [x] **Step 3: Run closure and placeholder checks**
 
 ```bash
 rg -n '\b(sorry|admit|axiom)\b' CLRSLean/Chapter_30 Tests/Chapter_30_*.lean
@@ -324,7 +325,7 @@ lake env lean Tests/Chapter_30_Milestone2_Closure.lean
 Expected: the source scan has no forbidden declaration; closure output has no
 `sorryAx` or project-defined axiom.
 
-- [ ] **Step 4: Run repository and full proof-build gates**
+- [x] **Step 4: Run repository and full proof-build gates**
 
 ```bash
 uv run python scripts/check_progress_csv.py
@@ -336,7 +337,7 @@ lake build CLRSLean
 
 Expected: every command exits zero.  Do not run `lake build :literateHtml`.
 
-- [ ] **Step 5: Commit the audit**
+- [x] **Step 5: Commit the audit**
 
 ```bash
 git add docs/proof-audits/chapter-30-milestone-2-2026-08-05.md \
@@ -345,7 +346,7 @@ git add docs/proof-audits/chapter-30-milestone-2-2026-08-05.md \
 git commit -m "docs(ch30): record repaired circuit closure"
 ```
 
-- [ ] **Step 6: Stop before replacing the remote PR history**
+- [x] **Step 6: Stop before replacing the remote PR history**
 
 Report the clean local branch, commits, test evidence, and proposed
 `git push --force-with-lease origin codex/ch30-pr-clean:codex/ch30fight`.
