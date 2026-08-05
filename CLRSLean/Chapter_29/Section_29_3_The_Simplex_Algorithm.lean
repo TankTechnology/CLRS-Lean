@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex
 
 /-!
 # 29.3 The simplex algorithm
