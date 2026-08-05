@@ -39,6 +39,7 @@ import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlackness
 import CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate
 import CLRSLean.Chapter_29.Section_29_4_Duality.DictionaryBridge
 import CLRSLean.Chapter_29.Section_29_4_Duality.StrongDuality
+import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlacknessTheorem
 
 /-!
 # Chapter 29 - Linear Programming
