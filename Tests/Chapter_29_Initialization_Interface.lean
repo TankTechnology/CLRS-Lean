@@ -65,8 +65,18 @@ namespace Chapter29
 #check StandardLP.InitializedSimplexResult
 #check StandardLP.initializedSimplex
 #check StandardLP.initializedSimplex_complete
+#check StandardLP.lockedDualTail
+#check StandardLP.lockedAuxiliary_dual_mulVec_original
+#check StandardLP.lockedAuxiliary_dualFeasible_to_original
+#check StandardLP.lockedAuxiliary_dualObjective
+#check StandardLP.strongDuality_or_unbounded_of_feasible
+#check StandardLP.strongDuality
+#check StandardLP.strongDuality_of_isOptimal
+#check StandardLP.complementarySlackness_iff_optimal
 
 #print axioms StandardLP.initializedSimplex_complete
+#print axioms StandardLP.strongDuality
+#print axioms StandardLP.complementarySlackness_iff_optimal
 
 #print axioms StandardLP.phaseOneRun_isOptimal
 #print axioms StandardLP.isFeasible_iff_phaseOneTerminal_v_eq_zero

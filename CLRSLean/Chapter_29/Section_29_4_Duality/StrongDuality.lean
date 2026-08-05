@@ -15,25 +15,27 @@ namespace Chapter29
 
 namespace StandardLP
 
-/-- Strong duality, with the alternative unbounded outcome made explicit,
-for programs whose initial slack dictionary is basic feasible. -/
-theorem strongDuality_or_unbounded_of_initialDictionary_isBasicFeasible
-    (P : StandardLP m n) (hP : P.initialDictionary.IsBasicFeasible) :
+/-- Strong duality from any basic-feasible dictionary equivalent to the
+program's initial dictionary. -/
+theorem strongDuality_or_unbounded_of_equivalent_isBasicFeasible
+    (P : StandardLP m n) (D : Dictionary m n)
+    (hEq₀ : P.initialDictionary.Equivalent D)
+    (hD : D.IsBasicFeasible) :
     P.IsUnbounded ∨
       ∃ x y, P.IsOptimal x ∧ P.IsDualOptimal y ∧
         P.objective x = P.dualObjective y := by
-  let D₀ := P.initialDictionary
   let fuel := Dictionary.basisCount m n
-  cases hrun : D₀.simplexRun fuel with
+  cases hrun : D.simplexRun fuel with
   | optimal terminal hc =>
-      have hEq : D₀.Equivalent terminal := by
-        simpa [hrun, Dictionary.SimplexRunResult.terminalDictionary] using
-          D₀.simplexRun_equivalent fuel
+      have hEq : P.initialDictionary.Equivalent terminal :=
+        hEq₀.trans (by
+          simpa [hrun, Dictionary.SimplexRunResult.terminalDictionary] using
+            D.simplexRun_equivalent fuel)
       have hterminal : terminal.IsBasicFeasible := by
         simpa [hrun, Dictionary.SimplexRunResult.terminalDictionary] using
-          D₀.simplexRun_isBasicFeasible fuel hP
+          D.simplexRun_isBasicFeasible fuel hD
       have hdictOptimal :
-          D₀.IsOptimalAssignment terminal.basicAssignment :=
+          P.initialDictionary.IsOptimalAssignment terminal.basicAssignment :=
         hEq.isOptimalAssignment
           (terminal.basicAssignment_optimal_of_reducedCosts_nonpos
             hterminal hc)
@@ -44,12 +46,14 @@ theorem strongDuality_or_unbounded_of_initialDictionary_isBasicFeasible
           hdictOptimal
       have hyfeasible : P.IsDualFeasible y := by
         exact terminal.dualCertificate_isDualFeasible P hEq hc
-      have hterminalSatD₀ : D₀.Satisfies terminal.basicAssignment :=
+      have hterminalSatD₀ :
+          P.initialDictionary.Satisfies terminal.basicAssignment :=
         (hEq.1 terminal.basicAssignment).2
           terminal.basicAssignment_satisfies
       have hprimalValue : P.objective x = terminal.v := by
         calc
-          P.objective x = D₀.objectiveRhs terminal.basicAssignment :=
+          P.objective x =
+              P.initialDictionary.objectiveRhs terminal.basicAssignment :=
             (Dictionary.initialDictionary_objectiveRhs_eq_objective_original
               P terminal.basicAssignment).symm
           _ = terminal.objectiveRhs terminal.basicAssignment :=
@@ -65,20 +69,31 @@ theorem strongDuality_or_unbounded_of_initialDictionary_isBasicFeasible
         P.dualOptimal_of_complementarySlackness hx.1 hyfeasible hcs
       exact Or.inr ⟨x, y, hx, hy, hvalue⟩
   | unbounded terminal entering he ha =>
-      have hEq : D₀.Equivalent terminal := by
-        simpa [hrun, Dictionary.SimplexRunResult.terminalDictionary] using
-          D₀.simplexRun_equivalent fuel
+      have hEq : P.initialDictionary.Equivalent terminal :=
+        hEq₀.trans (by
+          simpa [hrun, Dictionary.SimplexRunResult.terminalDictionary] using
+            D.simplexRun_equivalent fuel)
       have hterminal : terminal.IsBasicFeasible := by
         simpa [hrun, Dictionary.SimplexRunResult.terminalDictionary] using
-          D₀.simplexRun_isBasicFeasible fuel hP
-      have hunbounded : D₀.IsUnbounded :=
+          D.simplexRun_isBasicFeasible fuel hD
+      have hunbounded : P.initialDictionary.IsUnbounded :=
         hEq.isUnbounded
           (terminal.unbounded_of_entering_column hterminal entering he.1 ha)
       exact Or.inl
         (Dictionary.initialDictionary_unbounded_to_standardLP P hunbounded)
   | exhausted terminal =>
-      exact False.elim (D₀.simplexRun_basisCount_not_exhausted hP (by
+      exact False.elim (D.simplexRun_basisCount_not_exhausted hD (by
         simp [fuel, hrun, Dictionary.SimplexRunResult.IsExhausted]))
+
+/-- Strong duality, with the alternative unbounded outcome made explicit,
+for programs whose initial slack dictionary is basic feasible. -/
+theorem strongDuality_or_unbounded_of_initialDictionary_isBasicFeasible
+    (P : StandardLP m n) (hP : P.initialDictionary.IsBasicFeasible) :
+    P.IsUnbounded ∨
+      ∃ x y, P.IsOptimal x ∧ P.IsDualOptimal y ∧
+        P.objective x = P.dualObjective y :=
+  P.strongDuality_or_unbounded_of_equivalent_isBasicFeasible
+    P.initialDictionary (Dictionary.Equivalent.refl _) hP
 
 /-- If the primal is not unbounded, finite SIMPLEX yields primal and dual
 optima with equal objective values. -/
