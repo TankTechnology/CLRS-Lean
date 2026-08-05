@@ -17,13 +17,17 @@ determinants, and matrix inversion.
   {lit}`CLRS.Chapter28.IsLowerTriangular`,
   {lit}`CLRS.Chapter28.IsUnitLowerTriangular`,
   {lit}`CLRS.Chapter28.exists_lup_decomposition`,
-  and {lit}`CLRS.Chapter28.lup_solve_correct`.
+  {lit}`CLRS.Chapter28.forwardSubst_spec` (Lemma 28.1),
+  {lit}`CLRS.Chapter28.backSubst_spec` (Lemma 28.2),
+  {lit}`CLRS.Chapter28.lupSolve_correct`,
+  and {lit}`CLRS.Chapter28.unique_solution_of_nonsingular`.
 * 28.2 Inverting matrices.
   Main declaration: {lit}`CLRS.Chapter28.inv_eq_lup`.
 * 28.3 Symmetric positive-definite matrices and least-squares approximation.
   Main declarations:
   {lit}`CLRS.Chapter28.IsSymPosDef`,
   {lit}`CLRS.Chapter28.cholesky_decomposition`,
+  {lit}`CLRS.Chapter28.cholesky_unique`,
   {lit}`CLRS.Chapter28.normal_equations_minimizes`,
   and {lit}`CLRS.Chapter28.cholesky_schur_complement`.
 -/

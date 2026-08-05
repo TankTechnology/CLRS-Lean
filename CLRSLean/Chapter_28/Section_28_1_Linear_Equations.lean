@@ -28,8 +28,22 @@ Main results:
   equations {lit}`L·y = σ.permMatrix·b` and {lit}`U·x = y` hold, then
   {lit}`A·x = b` — forward then backward substitution through the factors
   solves the system.
+- Theorem {lit}`forwardSubst_spec` (CLRS Lemma 28.1): `forwardSubst L b`,
+  forward substitution through a unit lower-triangular `L`, satisfies
+  {lit}`L·(forwardSubst L b) = b`.
+- Theorem {lit}`backSubst_spec` (CLRS Lemma 28.2): `backSubst U y`, backward
+  substitution through an upper-triangular `U` with nonzero diagonal,
+  satisfies {lit}`U·(backSubst U y) = y`.
+- Theorem {lit}`lupSolve_correct`: the constructive solver `lupSolve σ L U b`
+  (forward-then-back substitution through the factors) solves {lit}`A·x = b`
+  given an LUP decomposition of `A`.
 - Theorem {lit}`exists_solution_of_nonsingular`: a nonsingular matrix over a
   field solves every linear system ({lit}`∃ x, A·x = b`).
+- Theorems {lit}`unique_solution_of_nonsingular`,
+  {lit}`unique_solution_unitLowerTriangular` (Lemma 28.1), and
+  {lit}`unique_solution_upperTriangular` (Lemma 28.2): nonsingular,
+  unit-lower-triangular, and upper-triangular systems with nonzero diagonal
+  have at most one solution.
 
 Notation conventions:
 
@@ -618,6 +632,203 @@ theorem exists_solution_of_nonsingular {n : ℕ} (A : Matrix (Fin n) (Fin n) F) 
     rw [Matrix.isUnit_iff_isUnit_det]
     exact isUnit_iff_ne_zero.mpr hA
   exact Matrix.mulVec_surjective_iff_isUnit.2 hunit b
+
+/--
+**Forward substitution (CLRS Lemma 28.1).**  `forwardSubst L b` is the vector
+`y` computed by forward substitution through the unit lower-triangular matrix
+`L`; the recursion splits off the first component `y₀ = b₀` and substitutes the
+tail through the trailing block `L₂`.
+
+The constructor `forwardSubst` is total (any `L`); its correctness
+({lit}`forwardSubst_spec`) requires `L` to be unit lower-triangular.
+-/
+noncomputable def forwardSubst : ∀ {n : ℕ}, Matrix (Fin n) (Fin n) F → (Fin n → F) → (Fin n → F)
+  | 0, _, _ => fun i => Fin.elim0 i
+  | n + 1, L, b =>
+      let L2 : Matrix (Fin n) (Fin n) F := fun i j => L (Fin.succ i) (Fin.succ j)
+      Fin.cons (b 0) (forwardSubst L2 (fun i => b (Fin.succ i) - L (Fin.succ i) 0 * b 0))
+
+/-- The trailing block of a unit lower-triangular matrix is unit lower-triangular. -/
+lemma unitLowerTriangular_tail {n : ℕ} (L : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
+    (hL : IsUnitLowerTriangular L) :
+    IsUnitLowerTriangular (fun i j : Fin n => L (Fin.succ i) (Fin.succ j)) := by
+  constructor
+  · intro i j hij
+    exact hL.1 (Fin.succ_lt_succ_iff.mpr hij)
+  · intro i
+    exact hL.2 (Fin.succ i)
+
+/--
+**Forward substitution solves `L·y = b` (CLRS Lemma 28.1).**  For a unit
+lower-triangular `L`, `forwardSubst L b` satisfies `L·(forwardSubst L b) = b`.
+-/
+theorem forwardSubst_spec : ∀ {n : ℕ} (L : Matrix (Fin n) (Fin n) F) (b : Fin n → F),
+    IsUnitLowerTriangular L → L *ᵥ forwardSubst L b = b
+  | 0, _, _, _ => by
+      ext i
+      exact Fin.elim0 i
+  | n + 1, L, b, hL =>
+      by
+      let L2 : Matrix (Fin n) (Fin n) F := fun i j => L (Fin.succ i) (Fin.succ j)
+      let b2 : Fin n → F := fun i => b (Fin.succ i) - L (Fin.succ i) 0 * b 0
+      have hL2 : IsUnitLowerTriangular L2 := by
+        simpa [L2] using (unitLowerTriangular_tail L hL)
+      have hspec : L2 *ᵥ forwardSubst L2 b2 = b2 := forwardSubst_spec L2 b2 hL2
+      change L *ᵥ Fin.cons (b 0) (forwardSubst L2 b2) = b
+      ext i
+      rcases Fin.eq_zero_or_eq_succ i with rfl | ⟨i', rfl⟩
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_succ]
+        have h00 : L 0 0 = 1 := hL.2 0
+        have h0k : ∀ k : Fin n, L 0 (Fin.succ k) = 0 := fun k => hL.1 (Fin.succ_pos k)
+        simp [Fin.cons_zero, Fin.cons_succ, h00, h0k]
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_succ]
+        simp [Fin.cons_zero, Fin.cons_succ]
+        change L (Fin.succ i') 0 * b 0 + (L2 *ᵥ forwardSubst L2 b2) i' = b (Fin.succ i')
+        rw [hspec]
+        simp [b2]
+
+/--
+**Backward substitution (CLRS Lemma 28.2).**  `backSubst U y` is the vector
+`x` computed by backward substitution through the upper-triangular matrix `U`;
+the recursion splits off the last component `xₙ = yₙ/Uₙₙ` and substitutes the
+tail through the leading block `U₁`.
+
+The constructor `backSubst` is total (any `U`); its correctness
+({lit}`backSubst_spec`) requires `U` to be upper-triangular with nonzero
+diagonal.
+-/
+noncomputable def backSubst : ∀ {n : ℕ}, Matrix (Fin n) (Fin n) F → (Fin n → F) → (Fin n → F)
+  | 0, _, _ => fun i => Fin.elim0 i
+  | n + 1, U, y =>
+      let last : Fin (n + 1) := Fin.last n
+      let U1 : Matrix (Fin n) (Fin n) F := fun i j => U (Fin.castSucc i) (Fin.castSucc j)
+      let xl : F := y last / U last last
+      Fin.snoc (backSubst U1 (fun i => y (Fin.castSucc i) - U (Fin.castSucc i) last * xl)) xl
+
+/-- The leading block of an upper-triangular matrix is upper-triangular. -/
+lemma upperTriangular_tail {n : ℕ} (U : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
+    (hU : IsUpperTriangular U) :
+    IsUpperTriangular (fun i j : Fin n => U (Fin.castSucc i) (Fin.castSucc j)) := by
+  intro i j hji
+  exact hU (Fin.castSucc_lt_castSucc_iff.mpr hji)
+
+/--
+**Backward substitution solves `U·x = y` (CLRS Lemma 28.2).**  For an
+upper-triangular `U` with nonzero diagonal, `backSubst U y` satisfies
+`U·(backSubst U y) = y`.
+-/
+theorem backSubst_spec : ∀ {n : ℕ} (U : Matrix (Fin n) (Fin n) F) (y : Fin n → F),
+    IsUpperTriangular U → (∀ i : Fin n, U i i ≠ 0) → U *ᵥ backSubst U y = y
+  | 0, _, _, _, _ => by ext i; exact Fin.elim0 i
+  | n + 1, U, y, hU, hdiag =>
+      by
+      let last : Fin (n + 1) := Fin.last n
+      let U1 : Matrix (Fin n) (Fin n) F := fun i j => U (Fin.castSucc i) (Fin.castSucc j)
+      let xl : F := y last / U last last
+      let y1 : Fin n → F := fun i => y (Fin.castSucc i) - U (Fin.castSucc i) last * xl
+      have hU1 : IsUpperTriangular U1 := by
+        simpa [U1] using (upperTriangular_tail U hU)
+      have hdiag1 : ∀ i : Fin n, U1 i i ≠ 0 := by
+        intro i
+        exact hdiag (Fin.castSucc i)
+      have hspec : U1 *ᵥ backSubst U1 y1 = y1 := backSubst_spec U1 y1 hU1 hdiag1
+      change U *ᵥ Fin.snoc (backSubst U1 y1) xl = y
+      ext i
+      rcases Fin.eq_castSucc_or_eq_last i with ⟨i', rfl⟩ | rfl
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_castSucc]
+        simp [Fin.snoc_castSucc, Fin.snoc_last]
+        change (U1 *ᵥ backSubst U1 y1) i' + U (Fin.castSucc i') last * xl = y (Fin.castSucc i')
+        rw [hspec]
+        simp [y1]
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_castSucc]
+        have hUlast : ∀ j' : Fin n, U last (Fin.castSucc j') = 0 := by
+          intro j'
+          exact hU (Fin.castSucc_lt_last j')
+        simp [Fin.snoc_castSucc, Fin.snoc_last]
+        have hz : (∑ x : Fin n, U (Fin.last n) (Fin.castSucc x) * backSubst U1 y1 x) = 0 := by
+          refine Finset.sum_eq_zero ?_
+          intro x hx
+          have h0 : U (Fin.last n) (Fin.castSucc x) = 0 := hU (Fin.castSucc_lt_last x)
+          simp [h0]
+        rw [hz]
+        simp [xl]
+        have hln : U last last ≠ 0 := hdiag last
+        field_simp [hln]
+        ring
+
+/--
+**LUP-SOLVE.**  `lupSolve σ L U b` solves `A·x = b` through an LUP
+decomposition `σ.permMatrix · A = L · U` by forward-substituting
+`L·y = σ.permMatrix·b` and then back-substituting `U·x = y`.  It is the
+constructive counterpart of the compositional theorem `lup_solve_correct`.
+-/
+noncomputable def lupSolve {n : ℕ} (σ : Equiv.Perm (Fin n)) (L U : Matrix (Fin n) (Fin n) F)
+    (b : Fin n → F) : Fin n → F :=
+  backSubst U (forwardSubst L (σ.permMatrix F *ᵥ b))
+
+/-- **LUP-SOLVE correctness.**  If `σ.permMatrix · A = L · U` is an LUP
+decomposition with `L` unit lower-triangular and `U` upper-triangular with
+nonzero diagonal, then `lupSolve σ L U b` solves `A·x = b`. -/
+theorem lupSolve_correct {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F} {σ : Equiv.Perm (Fin n)}
+    (hLUP : σ.permMatrix F * A = L * U) (hL : IsUnitLowerTriangular L)
+    (hU : IsUpperTriangular U) (hUdiag : ∀ i : Fin n, U i i ≠ 0) (b : Fin n → F) :
+    A *ᵥ lupSolve σ L U b = b := by
+  unfold lupSolve
+  let Pb : Fin n → F := σ.permMatrix F *ᵥ b
+  let y : Fin n → F := forwardSubst L Pb
+  have hLy : L *ᵥ y = σ.permMatrix F *ᵥ b := by
+    simpa [y, Pb] using (forwardSubst_spec L Pb hL)
+  have hUx : U *ᵥ (backSubst U y) = y := by
+    exact backSubst_spec U y hU hUdiag
+  exact lup_solve_correct hLUP b (backSubst U y) y hLy hUx
+
+/-- A nonsingular matrix over a field has a unique solution for every linear
+system: if `A·x₁ = b` and `A·x₂ = b` then `x₁ = x₂`. -/
+theorem unique_solution_of_nonsingular {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : A.det ≠ 0)
+    (b x1 x2 : Fin n → F) (h1 : A *ᵥ x1 = b) (h2 : A *ᵥ x2 = b) : x1 = x2 := by
+  have hunit : IsUnit A := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    exact isUnit_iff_ne_zero.mpr hA
+  apply (Matrix.mulVec_injective_iff_isUnit.2 hunit)
+  calc
+    A *ᵥ x1 = b := h1
+    _ = A *ᵥ x2 := h2.symm
+
+/-- A unit lower-triangular system `L·x = b` has at most one solution
+(CLRS Lemma 28.1: forward substitution computes the unique one). -/
+theorem unique_solution_unitLowerTriangular {n : ℕ} (L : Matrix (Fin n) (Fin n) F)
+    (hL : IsUnitLowerTriangular L) (b x1 x2 : Fin n → F)
+    (h1 : L *ᵥ x1 = b) (h2 : L *ᵥ x2 = b) : x1 = x2 := by
+  have hunit : IsUnit L := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    rw [det_unitLowerTriangular hL]
+    exact isUnit_one
+  apply (Matrix.mulVec_injective_iff_isUnit.2 hunit)
+  calc
+    L *ᵥ x1 = b := h1
+    _ = L *ᵥ x2 := h2.symm
+
+/-- An upper-triangular system `U·x = y` with nonzero diagonal has at most one
+solution (CLRS Lemma 28.2: backward substitution computes the unique one). -/
+theorem unique_solution_upperTriangular {n : ℕ} (U : Matrix (Fin n) (Fin n) F)
+    (hU : IsUpperTriangular U) (hdiag : ∀ i : Fin n, U i i ≠ 0)
+    (y x1 x2 : Fin n → F) (h1 : U *ᵥ x1 = y) (h2 : U *ᵥ x2 = y) : x1 = x2 := by
+  have hdet : U.det ≠ 0 := by
+    rw [Matrix.det_of_upperTriangular]
+    · exact Finset.prod_ne_zero_iff.2 (fun i hi => hdiag i)
+    · intro i j hij
+      exact hU hij
+  have hunit : IsUnit U := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    exact isUnit_iff_ne_zero.mpr hdet
+  apply (Matrix.mulVec_injective_iff_isUnit.2 hunit)
+  calc
+    U *ᵥ x1 = y := h1
+    _ = U *ᵥ x2 := h2.symm
 
 end Chapter28
 

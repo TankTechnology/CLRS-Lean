@@ -22,6 +22,10 @@ Main results:
   ({lit}`IsLowerTriangularPosDiag`).  The recursive construction uses the block
   factor {lit}`L = [[√a, 0],[v/√a, L₂]]` ({lit}`choleskyFactor`) with the
   positive-definite Schur complement ({lit}`cholesky_schur_complement`).
+- Theorem {lit}`cholesky_unique`: the Cholesky factor is unique — if {lit}`L₁`
+  and {lit}`L₂` are lower-triangular with positive diagonal and
+  {lit}`L₁·L₁ᵀ = L₂·L₂ᵀ`, then {lit}`L₁ = L₂` (CLRS §28.3: the decomposition
+  is unique).
 - Theorem {lit}`normal_equations_minimizes` (Theorem 28.4): if {lit}`xh`
   satisfies the normal equations {lit}`Aᵀ(A·xh - b) = 0`, then {lit}`xh`
   minimizes the squared residual {lit}`(A·x - b)⬝ᵥ(A·x - b)`.
@@ -639,6 +643,112 @@ theorem cholesky_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) ℝ) (hA : 
         · rcases Fin.eq_zero_or_eq_succ j with rfl | ⟨j', rfl⟩
           · simpa [L] using (choleskyFactor_mul_succ_0 A L2 ha i').symm
           · simpa [L] using (choleskyFactor_mul_succ_succ_eq A L2 hA.isSymm ha i' j' hL2eq).symm
+
+/-- The **trailing block** `L₂ i j = L (Fin.succ i) (Fin.succ j)` of a matrix
+`L` (its restriction to rows and columns `1..n`). -/
+def trailingBlock {n : ℕ} (L : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ) : Matrix (Fin n) (Fin n) ℝ :=
+  fun i j => L (Fin.succ i) (Fin.succ j)
+
+/-- The `(0,0)` entry of `L·Lᵀ` for a lower-triangular `L` is `L 0 0 · L 0 0`
+(the `1×1` block). -/
+lemma lowerTri_mul_transpose_00 {n : ℕ} (L : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (hL : IsLowerTriangular L) : (L * Lᵀ) 0 0 = L 0 0 * L 0 0 := by
+  rw [Matrix.mul_apply]
+  rw [Fin.sum_univ_succ]
+  simp [Matrix.transpose_apply]
+  have h0k : ∀ k : Fin n, L 0 (Fin.succ k) = 0 := fun k => hL (Fin.succ_pos k)
+  simp [h0k]
+
+/-- The `(i,0)` entry of `L·Lᵀ` for a lower-triangular `L` is `L (succ i) 0 · L 0 0`
+(the first column of `L` against the `1×1` block). -/
+lemma lowerTri_mul_transpose_succ_0 {n : ℕ} (L : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (hL : IsLowerTriangular L) (i : Fin n) : (L * Lᵀ) (Fin.succ i) 0 = L (Fin.succ i) 0 * L 0 0 := by
+  rw [Matrix.mul_apply]
+  rw [Fin.sum_univ_succ]
+  simp [Matrix.transpose_apply]
+  have h0k : ∀ k : Fin n, L 0 (Fin.succ k) = 0 := fun k => hL (Fin.succ_pos k)
+  simp [h0k]
+
+/-- The trailing `(i,j)` entry of `L·Lᵀ` for a lower-triangular `L` splits as
+`L (succ i) 0 · L (succ j) 0 + (L₂·L₂ᵀ) i j` with `L₂` the trailing block. -/
+lemma lowerTri_mul_transpose_succ_succ {n : ℕ} (L : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (hL : IsLowerTriangular L) (i j : Fin n) :
+    (L * Lᵀ) (Fin.succ i) (Fin.succ j) =
+      L (Fin.succ i) 0 * L (Fin.succ j) 0 + (trailingBlock L * (trailingBlock L)ᵀ) i j := by
+  rw [Matrix.mul_apply]
+  rw [Fin.sum_univ_succ]
+  simp [Matrix.transpose_apply]
+  unfold trailingBlock
+  simp [Matrix.mul_apply, Matrix.transpose_apply]
+
+/--
+**Uniqueness of the Cholesky decomposition.**  If `L₁` and `L₂` are both
+lower-triangular with positive diagonal and `L₁·L₁ᵀ = L₂·L₂ᵀ`, then `L₁ = L₂`.
+
+The proof is the block recursion of {lit}`cholesky_decomposition`: the `(0,0)`
+entries give `L₁ 0 0 = L₂ 0 0` (equal squares, both positive), the first column
+then matches, and the trailing blocks satisfy `L₁₂·L₁₂ᵀ = L₂₂·L₂₂ᵀ`, so the
+induction hypothesis applies.
+-/
+theorem cholesky_unique {n : ℕ} (L1 L2 : Matrix (Fin n) (Fin n) ℝ)
+    (h1 : IsLowerTriangularPosDiag L1) (h2 : IsLowerTriangularPosDiag L2)
+    (h : L1 * L1ᵀ = L2 * L2ᵀ) : L1 = L2 := by
+  induction n with
+  | zero =>
+      ext i
+      exact Fin.elim0 i
+  | succ n ih =>
+      have h00 : L1 0 0 = L2 0 0 := by
+        have hsq : L1 0 0 * L1 0 0 = L2 0 0 * L2 0 0 := by
+          calc
+            L1 0 0 * L1 0 0 = (L1 * L1ᵀ) 0 0 := by rw [lowerTri_mul_transpose_00 L1 h1.1]
+            _ = (L2 * L2ᵀ) 0 0 := by rw [h]
+            _ = L2 0 0 * L2 0 0 := by rw [lowerTri_mul_transpose_00 L2 h2.1]
+        have hsq2 : L1 0 0 ^ 2 = L2 0 0 ^ 2 := by simpa [pow_two] using hsq
+        have hp1 : 0 ≤ L1 0 0 := le_of_lt (h1.2 0)
+        have hp2 : 0 ≤ L2 0 0 := le_of_lt (h2.2 0)
+        rcases (sq_eq_sq_iff_eq_or_eq_neg.mp hsq2) with e | e
+        · exact e
+        · nlinarith
+      have hcol : ∀ i : Fin n, L1 (Fin.succ i) 0 = L2 (Fin.succ i) 0 := by
+        intro i
+        have hc : L1 (Fin.succ i) 0 * L1 0 0 = L2 (Fin.succ i) 0 * L2 0 0 := by
+          calc
+            L1 (Fin.succ i) 0 * L1 0 0 = (L1 * L1ᵀ) (Fin.succ i) 0 := by rw [lowerTri_mul_transpose_succ_0 L1 h1.1 i]
+            _ = (L2 * L2ᵀ) (Fin.succ i) 0 := by rw [h]
+            _ = L2 (Fin.succ i) 0 * L2 0 0 := by rw [lowerTri_mul_transpose_succ_0 L2 h2.1 i]
+        rw [h00] at hc
+        exact mul_right_cancel₀ (h2.2 0).ne' hc
+      have htrail : trailingBlock L1 * (trailingBlock L1)ᵀ = trailingBlock L2 * (trailingBlock L2)ᵀ := by
+        ext i j
+        have hfull : (L1 * L1ᵀ) (Fin.succ i) (Fin.succ j) = (L2 * L2ᵀ) (Fin.succ i) (Fin.succ j) := by
+          simpa using congr_fun (congr_fun h (Fin.succ i)) (Fin.succ j)
+        rw [lowerTri_mul_transpose_succ_succ L1 h1.1 i j] at hfull
+        rw [lowerTri_mul_transpose_succ_succ L2 h2.1 i j] at hfull
+        rw [hcol i, hcol j] at hfull
+        linarith
+      have htrail1 : IsLowerTriangularPosDiag (trailingBlock L1) := by
+        constructor
+        · intro i j hij
+          exact h1.1 (Fin.succ_lt_succ_iff.mpr hij)
+        · intro i
+          exact h1.2 (Fin.succ i)
+      have htrail2 : IsLowerTriangularPosDiag (trailingBlock L2) := by
+        constructor
+        · intro i j hij
+          exact h2.1 (Fin.succ_lt_succ_iff.mpr hij)
+        · intro i
+          exact h2.2 (Fin.succ i)
+      have heq_trail : trailingBlock L1 = trailingBlock L2 :=
+        ih (trailingBlock L1) (trailingBlock L2) htrail1 htrail2 htrail
+      ext i j
+      rcases Fin.eq_zero_or_eq_succ i with rfl | ⟨i', rfl⟩
+      · rcases Fin.eq_zero_or_eq_succ j with rfl | ⟨j', rfl⟩
+        · exact h00
+        · exact (h1.1 (Fin.succ_pos j')).trans (h2.1 (Fin.succ_pos j')).symm
+      · rcases Fin.eq_zero_or_eq_succ j with rfl | ⟨j', rfl⟩
+        · exact hcol i'
+        · exact congr_fun (congr_fun heq_trail i') j'
 
 end Cholesky
 
