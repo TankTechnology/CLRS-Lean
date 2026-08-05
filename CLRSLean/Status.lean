@@ -127,7 +127,7 @@ the detailed maintainer ledger.
   remaining asymptotics are chapter-end Problems.  Pointer/RAM refinements and
   the unrepresented later sections of Chapter 32 are separate tracks.
 
-## Structured But Partial
+## Structured Main-Proof Complete
 
 * **Chapter 27:** the dynamic-multithreading model (computation DAG with an
   honestly computed longest-path span, spawn/sync trees, balanced
@@ -169,6 +169,9 @@ the detailed maintainer ledger.
   recurrence-level power-of-two and all-input analyses.  The executable
   P-MERGE-SORT cost gap is closed; extracting the retained Strassen extension
   is organizational and leaves no represented Chapter 27 core proof gap.
+
+## Structured But Partial
+
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric
