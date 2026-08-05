@@ -15,6 +15,35 @@ from typing import Any
 
 
 SHARED_INDEX_PAGES = {Path("index.html"), Path("search/index.html")}
+COORDINATOR_SHARD_INDEX = 0
+REQUIRED_SHARED_FILES = {
+    Path("index.html"),
+    Path("search/index.html"),
+    Path("xref.json"),
+    Path("popper.js"),
+    Path("tippy.js"),
+    Path("tippy-border.css"),
+    Path("marked.js"),
+    Path("literate.css"),
+    Path("copy-button.js"),
+    Path("clrs-literate.css"),
+    Path("-verso-search/elasticlunr.min.js"),
+    Path("-verso-search/fuzzysort.min.js"),
+    Path("-verso-search/searchIndex.js"),
+    Path("-verso-search/search-config.js"),
+    Path("-verso-search/search-init.js"),
+    Path("-verso-search/search-box.js"),
+    Path("-verso-search/search-box.css"),
+    Path("-verso-search/search-page.js"),
+    Path("-verso-search/search-page.css"),
+    Path("-verso-search/search-highlight.js"),
+    Path("-verso-search/search-highlight.css"),
+    Path("-verso-search/domain-display.css"),
+    Path("-verso-search/domain-mappers.js"),
+    Path("-verso-search/unicode-input.min.js"),
+    Path("-verso-search/unicode-input-component.min.js"),
+}
+SEARCH_BUCKET_COUNT = 256
 
 
 def _load_json(path: Path, errors: list[str], label: str) -> Any:
@@ -47,6 +76,8 @@ def merge_shards(manifest: Path, shard_roots: list[Path], output: Path) -> list[
     }
     if len(expected_shards) != plan.get("shard_count"):
         errors.append("manifest: shard_count does not match shard entries")
+    if COORDINATOR_SHARD_INDEX not in expected_shards:
+        errors.append("manifest: coordinator shard index 0 is missing")
 
     records: dict[int, tuple[Path, dict[str, Any]]] = {}
     all_modules: list[str] = []
@@ -81,6 +112,28 @@ def merge_shards(manifest: Path, shard_roots: list[Path], output: Path) -> list[
             errors.append(f"shard {index}: output directory does not exist: {html_root}")
         else:
             output_files = sorted(path for path in html_root.rglob("*") if path.is_file())
+            output_paths = {source.relative_to(html_root) for source in output_files}
+            if index == COORDINATOR_SHARD_INDEX:
+                for missing in sorted(REQUIRED_SHARED_FILES - output_paths, key=str):
+                    errors.append(
+                        "coordinator shard 0: missing required shared output: "
+                        f"{missing.as_posix()}"
+                    )
+                search_root = html_root / "-verso-search"
+                for bucket in range(SEARCH_BUCKET_COUNT):
+                    matches = [
+                        path
+                        for path in search_root.glob(f"searchIndex_{bucket}.*.js")
+                        if path.is_file()
+                    ]
+                    if not matches:
+                        errors.append(
+                            f"coordinator shard 0: missing required search bucket: {bucket}"
+                        )
+                    elif len(matches) > 1:
+                        errors.append(
+                            f"coordinator shard 0: multiple files for search bucket: {bucket}"
+                        )
             if index in expected_shards:
                 expected_pages = {
                     Path(*module.split("."), "index.html")
