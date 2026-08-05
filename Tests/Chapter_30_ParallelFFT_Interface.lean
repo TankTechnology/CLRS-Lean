@@ -46,6 +46,16 @@ example (omega : ℚ) (a : PowTwoVec ℚ 3) (s : Fin 3) :
     (fftStageCircuit omega s).eval a = fftStage omega a s :=
   fftStageCircuit_eval omega a s
 
+private def zeroTwiddleStoredNetwork : FFTNetwork ℚ 1 :=
+  ⟨fun stage =>
+    { omega := 7
+      stage := stage
+      circuit := .butterfly ⟨fun _ => ⟨0⟩⟩ }⟩
+
+example : zeroTwiddleStoredNetwork.evalLayers
+    (![(3 : ℚ), 5] : PowTwoVec ℚ 1) = ![(3 : ℚ), 3] := by
+  native_decide
+
 example (omega : ℚ) : (fftNetwork (k := 3) omega).butterflyCount = 12 := by
   simpa using fftNetwork_butterflyCount (k := 3) omega
 
