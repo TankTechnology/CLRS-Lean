@@ -305,7 +305,13 @@ CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/GeneralStro
 CLRSLean/Chapter_31.lean
 CLRSLean/Chapter_31/Section_31_1_Elementary_Number_Theory.lean
 CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean
-||||||| c2279d4
+CLRSLean/Chapter_31/Section_31_3_Modular_Arithmetic.lean
+CLRSLean/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean
+CLRSLean/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean
+CLRSLean/Chapter_31/Section_31_6_Powers_Of_An_Element.lean
+CLRSLean/Chapter_31/Section_31_7_RSA.lean
+CLRSLean/Chapter_31/Section_31_8_Primality_Testing.lean
+CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean

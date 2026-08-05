@@ -4198,7 +4198,78 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     including `coprime (a/g) (b/g)` for `g = gcd a b`.
   - `extendedEuclid` + `extendedEuclid_spec`: EXTENDED-EUCLID returns
     `(d, x, y)` with `d = gcd a b = a·x + b·y`.
-||||||| c2279d4
+
+### Section 31.3 - Modular Arithmetic
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_3_Modular_Arithmetic.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `mod_add` / `mod_mul` (CLRS Theorem 31.5): addition and multiplication
+    modulo `n` are well-defined on residues.
+  - `exists_mul_inverse_mod` (CLRS Theorem 31.6): `gcd(a,n)=1` gives `a` a
+    multiplicative inverse modulo `n`, via `ZMod` units.
+  - `mul_left_cancel_mod` (CLRS Theorem 31.9): cancellation in `Z_n` when
+    `gcd(c,n)=1`.
+  - `modular_linear_solvable` (CLRS Theorem 31.11): `a·x ≡ b (mod n)` is
+    solvable iff `gcd(a,n) ∣ b`, via the `ZMod` quotient hom and Bezout.
+
+### Section 31.4 - Solving Modular Linear Equations
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `linear_congruence_shift`: `x + k·(n/gcd(a,n))` preserves solutions.
+  - `linear_congruence_all_solutions`: every solution differs from any given
+    solution by a multiple of `n/gcd(a,n)` — the `d = gcd(a,n)` solutions are
+    `x₀ + k·(n/d)`.
+
+### Section 31.5 - The Chinese Remainder Theorem
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `chinese_remainder_two` / `chinese_remainder_unique` /
+    `chinese_remainder` (CLRS Theorem 31.27, two moduli): for coprime `n m`,
+    the system `x ≡ a (mod n)`, `x ≡ b (mod m)` has a unique solution modulo
+    `n·m`, via `Nat.chineseRemainder`.
+
+### Section 31.6 - Powers of an Element
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_6_Powers_Of_An_Element.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `modularExponentiation` + `modularExponentiation_spec` (CLRS
+    MODULAR-EXPONENTIATION).
+  - `fermat_little_theorem` (CLRS Theorem 31.30): prime `p` gives
+    `a^p ≡ a (mod p)`, via `ZMod.pow_card`.
+  - `euler_theorem`: `gcd(a,n)=1` gives `a^φ(n) ≡ 1 (mod n)`.
+
+### Section 31.7 - The RSA Public-Key Cryptosystem
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_7_RSA.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `totient_mul_prime`: `φ(p·q) = (p−1)(q−1)` for distinct primes.
+  - `rsa_correct` (CLRS Theorem 31.36): `e·d ≡ 1 (mod φ(n))` and
+    `gcd(m,n)=1` imply `m^(e·d) ≡ m (mod n)`.
+
+### Section 31.8 - Primality Testing
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_8_Primality_Testing.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `fermat_test` (CLRS Theorem 31.31): prime `p` and `gcd(a,p)=1` give
+    `a^(p−1) ≡ 1 (mod p)`.
+  - `fermatPseudoprime`, `pseudoprime` + `pseudoprime_correct` (PSEUDOPRIME).
+
+### Section 31.9 - Integer Factorization
+
+- Lean source: `CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean`
+- Status: `selected-section-complete`
+- Proved:
+  - `rhoStep` (Pollard's rho iteration).
+  - `rho_collision_factor`: `x ≡ y (mod p)` and `p ∣ n` imply
+    `p ∣ gcd(x−y, n)` — a collision forces a nontrivial divisor.
 
 ## Chapter 32 - String Matching
 
