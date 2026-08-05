@@ -90,6 +90,13 @@ the detailed maintainer ledger.
   for import compatibility, while parallel-Strassen recurrences live in a
   separately labeled extension.  Mutable arrays, RAM-level costs, exercises,
   and chapter-end problems are optional refinements outside this boundary.
+* **Chapter 28:** Sections 28.1--28.3 are complete at the finite-matrix layer.
+  The chapter includes LUP decomposition (Theorem 28.1), executable forward
+  and backward substitution, LUP-SOLVE correctness, matrix inversion
+  (Theorem 28.2), Cholesky decomposition with uniqueness (Theorem 28.3),
+  least-squares approximation (Theorem 28.4), and the principal quadratic and
+  cubic work bounds.  Executable LUP factorization directly from an input
+  matrix and RAM-level cost semantics remain optional refinements.
 * **Chapter 29:** Sections 29.1--29.5 are complete at the finite real-matrix
   and pure-functional tableau layer.  The chapter includes exact standard/slack
   equivalence; shortest-path, maximum-flow, minimum-cost-flow, and
@@ -147,13 +154,6 @@ the detailed maintainer ledger.
 
 ## Structured But Partial
 
-* **Chapter 28:** Theorem 28.1 proves that every nonsingular square matrix over
-  a field admits an LUP decomposition with a permutation factor, a unit
-  lower-triangular factor, and an upper-triangular factor.  Section 28.2 also
-  has the algebraic inversion bridge {lit}`inv_eq_lup`.  The chapter remains
-  partial pending executable forward/back substitution, LUP-SOLVE correctness
-  (Theorem 28.2 / #124), executable matrix inversion, and the principal cubic
-  work claims required by the Chapter 28 roadmaps.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric
@@ -162,8 +162,8 @@ the detailed maintainer ledger.
 ## Not Represented On Main
 
 Chapters 30--31 and 34--35 do not currently have represented section modules
-on {lit}`main`.  Chapters 28.1--28.2 and Chapter 33.1 are represented but partial;
-Chapter 32.1 is complete for its selected-section scope.  Open pull requests
+on {lit}`main`.  Chapter 33.1 is represented but partial; Chapter 32.1 is
+complete for its selected-section scope.  Open pull requests
 are not counted until their scope is reviewed, merged, and added to the
 progress source.
 

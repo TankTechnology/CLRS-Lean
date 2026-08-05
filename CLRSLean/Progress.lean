@@ -10,9 +10,9 @@ When the CSV changes, regenerate this page with
 
 * CLRS chapters tracked: 35.
 * Chapters represented in Lean: 31.
-* Tracked reader-facing theorem entries: 1724.
-* Proved tracked theorem entries: 1724.
-* Remaining core theorem groups: 6.
+* Tracked reader-facing theorem entries: 1731.
+* Proved tracked theorem entries: 1731.
+* Remaining core theorem groups: 5.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -20,10 +20,10 @@ are not yet represented or not yet complete.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 10 chapters.
+* {lit}`main-proof-complete`: 11 chapters.
 * {lit}`main-proof-complete-for-correctness`: 11 chapters.
 * {lit}`selected-section-complete`: 7 chapters.
-* {lit}`partial`: 2 chapters.
+* {lit}`partial`: 1 chapter.
 * {lit}`not-started`: 4 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -59,7 +59,7 @@ Ch  Chapter                                                     Status          
 25  25. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  25.1;25.2;25.3                     24        0
 26  26. Maximum Flow                                            main-proof-complete                  26.1;26.2;26.3;26.6                18        0
 27  27. Multithreaded Algorithms                                main-proof-complete                  27.1;27.2;27.3                     95        0
-28  28. Matrix Operations                                       partial                              28.1;28.2                           2        1
+28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
 29  29. Linear Programming                                      main-proof-complete                  29.1;29.2;29.3;29.4;29.5           17        0
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
 31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1

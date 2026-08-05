@@ -241,6 +241,7 @@ CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/AllIn
 CLRSLean/Chapter_28.lean
 CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean
 CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean
+CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean
 CLRSLean/Chapter_29.lean
 CLRSLean/Chapter_29/Section_29_1_Standard_And_Slack_Forms.lean
 CLRSLean/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Definitions.lean
