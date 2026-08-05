@@ -4342,6 +4342,29 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   error and numerical stability; NTT specialization; code generation;
   exercises; and Problems 30-1 through 30-6 are outside the reviewed boundary.
 
+### Chapter 30 completion boundary
+
+- Status: `main-proof-complete`.
+- Progress ledger: 46 tracked theorem groups, 46 proved, zero missing core
+  groups.
+- Stable interface and closure tests:
+  - `Tests/Chapter_30_Interface.lean`
+  - `Tests/Chapter_30_DFT_Interface.lean`
+  - `Tests/Chapter_30_RecursiveFFT_Interface.lean`
+  - `Tests/Chapter_30_PolynomialMultiplication_Interface.lean`
+  - `Tests/Chapter_30_Milestone1_Closure.lean`
+  - `Tests/Chapter_30_BitReversal_Interface.lean`
+  - `Tests/Chapter_30_IterativeFFT_Interface.lean`
+  - `Tests/Chapter_30_ParallelFFT_Interface.lean`
+  - `Tests/Chapter_30_Milestone2_Closure.lean`
+- Closure audits:
+  - `docs/proof-audits/chapter-30-milestone-1-2026-08-05.md`
+  - `docs/proof-audits/chapter-30-milestone-2-2026-08-05.md`
+- The exact generic-arithmetic functional boundary is closed. Mutable and
+  in-place arrays, machine-level costs, floating-point analysis, concrete
+  scheduling, NTT specialization, code generation, exercises, and Problems
+  30-1 through 30-6 are optional new layers, not missing Chapter 30 core work.
+
 ## Chapter 31 - Number-Theoretic Algorithms
 
 ### Section 31.1 - Elementary Number-Theoretic Notions
