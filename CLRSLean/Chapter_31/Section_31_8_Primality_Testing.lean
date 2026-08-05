@@ -742,6 +742,182 @@ theorem liar_mem_goodSet {n : ℕ} [NeZero n] (hn_odd : Odd n) (hn1 : 1 < n)
       rw [hk, pow_mul]
       simp
 
+/-! ### Counting `|S(n)|` — cyclic torsion counts
+
+The Rabin-Monier bound needs the cardinality of `S(n)`, which is a product of
+per-prime-power counts of solutions to `x^m ≡ ±1`.  Each such count is a
+`gcd` in a cyclic group; the lemmas below provide that counting primitive for
+a finite cyclic group. -/
+
+/-- The number of multiples of `d` in `[0, N)` is `N/d` when `d | N`. -/
+lemma card_multiples_dvd {N d : ℕ} (hd : d ∣ N) :
+    Nat.card {i : Fin N // d ∣ (i : ℕ)} = N / d := by
+  by_cases hN : N = 0
+  · subst hN
+    simp
+  · have hd0 : d ≠ 0 := by
+      intro hz
+      apply hN
+      exact (zero_dvd_iff.mp (by simpa [hz] using hd))
+    have hdpos : 0 < d := Nat.pos_of_ne_zero hd0
+    have hN_eq : N = d * (N / d) := (Nat.mul_div_cancel' hd).symm
+    let e : {i : Fin N // d ∣ (i : ℕ)} ≃ Fin (N / d) :=
+      { toFun := fun i => ⟨i.val.val / d, by
+          have hx : i.val.val < N := i.val.isLt
+          have hx' : i.val.val < d * (N / d) := lt_of_lt_of_eq hx hN_eq
+          exact (Nat.div_lt_iff_lt_mul (k := d) (x := i.val.val) (y := N / d) hdpos).mpr
+            (by simpa [mul_comm] using hx')⟩
+        invFun := fun k => ⟨⟨k.val * d, by
+          have hk : k.val < N / d := k.isLt
+          have hk' : k.val * d < (N / d) * d := Nat.mul_lt_mul_of_pos_right hk hdpos
+          have : (N / d) * d = N := by simpa [mul_comm] using hN_eq.symm
+          rw [this] at hk'
+          exact hk'⟩, by
+            simpa [mul_comm] using (dvd_mul_right d k.val : d ∣ d * k.val)⟩
+        left_inv := by
+          intro i
+          apply Subtype.ext
+          apply Fin.ext
+          simp only [Fin.val_mk]
+          exact (mul_comm (i.val.val / d) d).trans (Nat.mul_div_cancel' i.property)
+        right_inv := by
+          intro k
+          apply Fin.ext
+          simpa [mul_comm] using (Nat.mul_div_right k.val hdpos) }
+    rw [Nat.card_congr e]
+    simp
+
+/-- The number of `i < N` with `N | i·n` is `gcd(N, n)`. -/
+lemma card_fin_dvd_mul {N n : ℕ} (hN : N ≠ 0) :
+    Nat.card {i : Fin N // N ∣ (i : ℕ) * n} = N.gcd n := by
+  let g := N.gcd n
+  have hgN : g ∣ N := Nat.gcd_dvd_left N n
+  have hgn : g ∣ n := Nat.gcd_dvd_right N n
+  have hg0 : g ≠ 0 := by
+    intro hz
+    apply hN
+    exact (Nat.gcd_eq_zero_iff.mp hz).1
+  have hgpos : 0 < g := Nat.pos_of_ne_zero hg0
+  have hN_eq : N = g * (N / g) := (Nat.mul_div_cancel' hgN).symm
+  have hn_eq : n = g * (n / g) := (Nat.mul_div_cancel' hgn).symm
+  have hcop : Nat.Coprime (N / g) (n / g) := by
+    unfold Nat.Coprime
+    rw [Nat.gcd_div hgN hgn]
+    dsimp [g]
+    nth_rw 1 [← Nat.mul_one (N.gcd n)]
+    exact Nat.mul_div_right 1 (Nat.pos_of_ne_zero hg0)
+  have hiff : ∀ i : Fin N, (N ∣ (i : ℕ) * n) ↔ ((N / g) ∣ (i : ℕ)) := by
+    intro i
+    constructor
+    · intro h
+      have hN : g * (N / g) = N := Nat.mul_div_cancel' hgN
+      have hn' : g * ((i : ℕ) * (n / g)) = (i : ℕ) * n := by
+        calc
+          g * ((i : ℕ) * (n / g)) = (i : ℕ) * (g * (n / g)) := by ring
+          _ = (i : ℕ) * n := by rw [← hn_eq]
+      have h1 : g * (N / g) ∣ g * ((i : ℕ) * (n / g)) := by
+        rwa [hN, hn']
+      have hdiv : N / g ∣ (i : ℕ) * (n / g) :=
+        (Nat.mul_dvd_mul_iff_left hgpos).mp h1
+      exact hcop.dvd_of_dvd_mul_left (by simpa [mul_comm] using hdiv)
+    · intro h
+      rcases h with ⟨c, hc⟩
+      have hNdvd : N ∣ (N / g) * n := by
+        use n / g
+        calc
+          (N / g) * n = (N / g) * (g * (n / g)) := by rw [← hn_eq]
+          _ = ((N / g) * g) * (n / g) := by rw [mul_assoc]
+          _ = N * (n / g) := by
+            have : (N / g) * g = N := by
+              rw [mul_comm]
+              exact Nat.mul_div_cancel' hgN
+            rw [this]
+      have hc' : (i : ℕ) * n = c * ((N / g) * n) := by
+        rw [hc]
+        ring
+      rw [hc']
+      simpa [mul_assoc, mul_comm, mul_left_comm] using (dvd_mul_of_dvd_left hNdvd c)
+  have hcount : Nat.card {i : Fin N // (N / g) ∣ (i : ℕ)} = N / (N / g) :=
+    card_multiples_dvd (d := N / g) (by
+      use g
+      rw [mul_comm]
+      exact (Nat.mul_div_cancel' hgN).symm)
+  have hquot : N / (N / g) = g := by
+    have hNg : (N / g) * g = N := by
+      rw [mul_comm]
+      exact Nat.mul_div_cancel' hgN
+    have hpos : 0 < N / g := by
+      exact Nat.div_pos (Nat.le_of_dvd (Nat.pos_of_ne_zero hN) hgN) hgpos
+    calc
+      N / (N / g) = ((N / g) * g) / (N / g) := by
+        nth_rw 1 [← hNg]
+      _ = g := by exact Nat.mul_div_right g hpos
+  let e : {i : Fin N // N ∣ (i : ℕ) * n} ≃ {i : Fin N // N / g ∣ (i : ℕ)} :=
+    { toFun := fun i => ⟨i.1, (hiff i.1).mp i.2⟩
+      invFun := fun i => ⟨i.1, (hiff i.1).mpr i.2⟩
+      left_inv := by intro i; apply Subtype.ext; rfl
+      right_inv := by intro i; apply Subtype.ext; rfl }
+  rw [Nat.card_congr e]
+  rw [hcount, hquot]
+
+/--
+In a finite cyclic group of order `N`, the number of elements with `x^n = 1`
+is `gcd(n, N)`.  This is the counting primitive for the Rabin-Monier bound:
+the number of solutions to `x^m ≡ 1` modulo a prime power.
+-/
+theorem card_pow_eq_one_cyclic {α : Type*} [Group α] [Fintype α] [DecidableEq α]
+    [IsCyclic α] (n : ℕ) : Nat.card {x : α // x ^ n = 1} = Nat.gcd n (Fintype.card α) := by
+  let N := Nat.card α
+  obtain ⟨g, hg⟩ := IsCyclic.exists_generator (α := α)
+  have horder : orderOf g = N := by
+    dsimp [N]
+    exact orderOf_eq_card_of_forall_mem_zpowers hg
+  let f : Fin N → α := fun i => g ^ (i : ℕ)
+  have hf_inj : Function.Injective f := by
+    intro i j hij
+    apply Fin.ext
+    have hmod : (i : ℕ) ≡ (j : ℕ) [MOD orderOf g] := by
+      exact (pow_eq_pow_iff_modEq).1 hij
+    rw [horder] at hmod
+    have hi : (i : ℕ) < N := i.isLt
+    have hj : (j : ℕ) < N := j.isLt
+    exact Nat.ModEq.eq_of_lt_of_lt hmod hi hj
+  have hf_surj : Function.Surjective f := by
+    intro x
+    have hx : x ∈ (Finset.range N).image (fun i : ℕ => g ^ i) := by
+      dsimp [N]
+      rw [IsCyclic.image_range_card hg]
+      exact Finset.mem_univ x
+    rcases Finset.mem_image.mp hx with ⟨k, hk, rfl⟩
+    exact ⟨⟨k, (Finset.mem_range.mp hk)⟩, rfl⟩
+  let ef := Equiv.ofBijective f ⟨hf_inj, hf_surj⟩
+  have hN : N ≠ 0 := by
+    dsimp [N]
+    exact Nat.card_pos.ne'
+  have h1 : Nat.card {i : Fin N // (f i) ^ n = 1} = Nat.card {x : α // x ^ n = 1} := by
+    exact Nat.card_congr (Equiv.subtypeEquiv ef (by intro i; rfl))
+  have h2 : Nat.card {i : Fin N // (f i) ^ n = 1} = Nat.card {i : Fin N // N ∣ (i : ℕ) * n} := by
+    apply Nat.card_congr
+    apply Equiv.subtypeEquiv (Equiv.refl (Fin N))
+    intro i
+    have hpow : (f i) ^ n = g ^ ((i : ℕ) * n) := by
+      simp [f, ← pow_mul, mul_comm, mul_left_comm]
+    constructor
+    · intro h
+      rw [hpow] at h
+      have hdvd : orderOf g ∣ (i : ℕ) * n := orderOf_dvd_iff_pow_eq_one.mpr h
+      rw [horder] at hdvd
+      exact hdvd
+    · intro h
+      rw [hpow]
+      have hdvd : orderOf g ∣ (i : ℕ) * n := by
+        rw [horder]
+        exact h
+      exact orderOf_dvd_iff_pow_eq_one.mp hdvd
+  rw [← h1, h2]
+  rw [card_fin_dvd_mul hN]
+  simp [N, Nat.gcd_comm]
+
 end Chapter31
 
 end CLRS
