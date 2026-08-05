@@ -27,6 +27,9 @@ jobs:
           test: false
           use-mathlib-cache: true
 
+      - name: Disable inline Verso proof states
+        run: python3 scripts/apply_verso_patch.py
+
       - name: Restore Verso literate cache
         id: restore-verso-cache
         uses: actions/cache/restore@v5
@@ -45,6 +48,9 @@ jobs:
         run: |
           lake build :literateHtml
           echo "path=$(lake query :literateHtml)" >> "$GITHUB_OUTPUT"
+
+      - name: Check raw Verso HTML weight
+        run: python3 scripts/check_literate_html_weight.py "${{ steps.build-site.outputs.path }}"
 
       - name: Save Verso literate cache
         if: steps.restore-verso-cache.outputs.cache-hit != 'true'

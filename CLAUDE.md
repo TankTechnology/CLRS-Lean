@@ -230,10 +230,16 @@ default chapter-proof workflow.
 
 ```
 .lean source + literate.toml
-  └─ lake build :literateHtml   (Verso engine reads doc comments)
-       └─ _site/                 (static HTML, one page per section)
-            └─ GitHub Pages      (automatic deploy on push to main)
+  └─ apply_verso_patch.py       (disable inline proof-state DOM)
+       └─ lake build :literateHtml
+            └─ check_literate_html_weight.py
+                 └─ prepare_literate_site.py
+                      └─ _site/                 (static HTML, one page per section)
+                           └─ GitHub Pages      (manual workflow dispatch)
 ```
+
+Both GitHub workflows are intentionally `workflow_dispatch` only.  Ordinary
+commits and pull requests must not trigger a full Lean or Verso build.
 
 Verso reads:
 - `literate.toml` for module ordering, titles, and landing page

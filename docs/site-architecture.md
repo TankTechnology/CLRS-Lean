@@ -38,8 +38,9 @@ docs/workflows/chapter-workflow.md    maintainer workflow notes
 
 ```text
 Lean literate source
--> lake build
+-> scripts/apply_verso_patch.py
 -> lake build :literateHtml
+-> scripts/check_literate_html_weight.py
 -> scripts/prepare_literate_site.py
 -> _site
 -> GitHub Pages
@@ -50,11 +51,19 @@ Lean literate source
 Build and preview the same optimized site that GitHub Pages publishes:
 
 ```bash
+python3 scripts/apply_verso_patch.py
+lake build :literateHtml
 VERSO_OUT="$(lake query :literateHtml)"
+python3 scripts/check_literate_html_weight.py "$VERSO_OUT"
 python3 scripts/check_literate_html_freshness.py "$VERSO_OUT"
 python3 scripts/prepare_literate_site.py "$VERSO_OUT" _site
 python3 -m http.server --directory _site 8000
 ```
+
+The patch command expects the pinned Verso checkout to exist under
+`.lake/packages/verso`; run it after normal dependency setup or use a
+provisioned worktree.  It is idempotent, so repeated publishing runs report
+`already-applied` without changing the dependency again.
 
 Then open `http://localhost:8000/`.  Do not serve the raw Verso output
 directly: reader-sidebar pruning, large-page optimization, rendering checks,
@@ -77,16 +86,26 @@ them under the main section's module path (for example,
 control generation and search order even though they are not reader-visible
 navigation rows.
 
-Large generated proof pages are post-processed before deployment.  The shared
-site-preparation command invokes the optimizer, rendering checks, stylesheet
-copy, and sitemap generation for both local previews and GitHub Pages.  The
-optimizer keeps anchors, rendered Lean code, search assets, and copy buttons, while
-removing tactic-state DOM and hover metadata that make browser parsing slow on
-long files such as the Huffman proof.  The same post-processing step prunes
-non-reader modules from the static sidebar HTML and turns any visible
-disclosure that loses all visible children into an ordinary leaf row, avoiding
-empty arrows.  On a hidden implementation page, the navigation script marks
-the nearest visible parent as current.
+Verso is patched before rendering so tactic proof states are not serialized
+into raw HTML.  This prevents compact shared proof-state data from expanding
+into hundreds of megabytes of repeated DOM on long proofs.  The raw-output
+guard rejects any residual tactic widgets and any single page above 25 MiB.
+
+Large generated proof pages are still post-processed before deployment.  The
+shared site-preparation command invokes the optimizer, rendering checks,
+stylesheet copy, and sitemap generation for both local previews and GitHub
+Pages.  The optimizer keeps anchors, rendered Lean code, search assets, and
+copy buttons while retaining tactic-state removal as defense in depth and
+removing hover metadata that makes browser parsing slow on large pages.  The
+same post-processing step prunes non-reader modules from the static sidebar
+HTML.  Any visible disclosure that loses all visible children becomes an
+ordinary leaf row, avoiding empty arrows.  On a hidden implementation page,
+the navigation script marks the nearest visible parent as current.
+
+Both repository workflows are `workflow_dispatch` only.  Commits and pull
+requests do not start Lean or Pages builds automatically; a maintainer manually
+dispatches the appropriate workflow for an explicit verification or publishing
+run.
 
 All chapter disclosures still start open.  A small navigation-state script
 persists sidebar scroll and manual chapter collapse/expand choices across page
