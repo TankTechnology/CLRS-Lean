@@ -10,7 +10,7 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen
 
 /-!
-# 27.2–27.4. Multithreaded Algorithms (Compatibility)
+# 27.2–27.3. Multithreaded Algorithms (Historical `2_4` Compatibility)
 
 The historical `2_4` module name is retained for compatibility.  Its main
 text now covers §§27.2–27.3: parallel-recurrence definitions and all-input

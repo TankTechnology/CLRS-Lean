@@ -925,10 +925,10 @@ title = "27.1 S4. Executable Scheduler"
 title = "27.1 S5. Spawn Trees and Parallel Loops"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms"]
-title = "27.2-27.4. Multithreaded Algorithms (Compatibility)"
+title = "27.2-27.3. Multithreaded Algorithms (Historical 2_4 Compatibility)"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S1_CostModel"]
-title = "27.2-27.4 S1. Costed Execution Model"
+title = "27.2-27.3 S1. Costed Execution Model"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.S2_Recurrences"]
 title = "27.2-27.3 S2. Parallel Recurrences"

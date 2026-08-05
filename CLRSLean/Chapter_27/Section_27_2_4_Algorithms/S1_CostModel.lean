@@ -3,7 +3,7 @@ import Mathlib.Tactic
 /-!
 # CLRS Chapter 27 — Execution-Attached Work and Span
 
-This module gives the parallel algorithms in §§27.2–27.4 a small executable
+This module gives the parallel algorithms in §§27.2–27.3 a small executable
 cost layer.  A computation carries its value together with exact natural-number
 work and span.  Sequential composition adds both costs; balanced parallel
 composition adds work across branches, takes the maximum branch span, and

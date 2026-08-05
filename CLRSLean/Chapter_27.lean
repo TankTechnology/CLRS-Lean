@@ -102,7 +102,7 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.parallelLoopDepth_le_log`,
   {lit}`CLRS.Chapter27.parallelLoop_span_le_log`.
 
-* 27.2–27.4 Multithreaded algorithms.
+* 27.2–27.3 Multithreaded algorithms.
   An executable {lit}`Costed` layer attaches values to their work and span, with
   sequential and balanced parallel composition.  The main-text P-ADD and
   P-MATMUL execute quadrant operations through balanced fork/join trees, and
