@@ -40,6 +40,10 @@ import CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate
 import CLRSLean.Chapter_29.Section_29_4_Duality.DictionaryBridge
 import CLRSLean.Chapter_29.Section_29_4_Duality.StrongDuality
 import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlacknessTheorem
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.ArtificialLP
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitialPivot
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseOne
 
 /-!
 # Chapter 29 - Linear Programming
