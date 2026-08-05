@@ -39,6 +39,34 @@ namespace Chapter31
 #check extendedEuclid
 #check extendedEuclid_spec
 
+-- Sections 31.3-31.9: modular arithmetic through factorization
+#check mod_add
+#check mod_mul
+#check modEq_add
+#check modEq_mul
+#check modEq_pow
+#check exists_mul_inverse_mod
+#check mul_left_cancel_mod
+#check modular_linear_solvable
+#check linear_congruence_shift
+#check linear_congruence_all_solutions
+#check chinese_remainder_two
+#check chinese_remainder_unique
+#check chinese_remainder
+#check modularExponentiation
+#check modularExponentiation_spec
+#check fermat_little_theorem
+#check euler_theorem
+#check totient_mul_prime
+#check rsa_correct
+#check fermat_test
+#check fermatPseudoprime
+#check pseudoprime
+#check pseudoprime_correct
+#check rhoStep
+#check rho_collision_factor
+#check nontrivial_factor_of_gcd
+
 -- Sanity checks: EUCLID computes a concrete gcd, and the division theorem
 -- picks out the expected quotient and remainder.
 example : euclid 48 18 = 6 := by native_decide
