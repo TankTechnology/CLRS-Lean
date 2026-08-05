@@ -310,6 +310,80 @@ theorem witness_not_prime {n a : ℕ} (hcop : Nat.Coprime a n) (hw : Witness n a
   intro hn
   exact (not_witness_of_prime hn hcop) hw
 
+/-- `(n−1)² ≡ 1 (mod n)` for `n ≠ 0`: `n` divides `(n−1)² − 1 = n·(n−2)`. -/
+theorem modeq_pow_two_sub_one (hn : n ≠ 0) : (n - 1) ^ 2 ≡ 1 [MOD n] := by
+  rw [Nat.ModEq]
+  by_cases h2 : 2 ≤ n
+  · have hsq2 := Nat.sq_sub_sq (n - 1) 1
+    have hsq2' : (n - 1) ^ 2 - 1 = (n - 1 + 1) * (n - 1 - 1) := by simpa using hsq2
+    have hform : (n - 1) ^ 2 - 1 = n * (n - 2) := by
+      rw [hsq2']
+      have h1 : (n - 1) + 1 = n := by omega
+      have h2' : (n - 1) - 1 = n - 2 := by omega
+      rw [h1, h2', mul_comm]
+    have hdvd : n ∣ (n - 1) ^ 2 - 1 := by
+      rw [hform]
+      exact dvd_mul_right n (n - 2)
+    rcases hdvd with ⟨k, hk⟩
+    have hle : 1 ≤ (n - 1) ^ 2 := by
+      have ht : 1 ≤ n - 1 := by omega
+      nlinarith
+    have hk' : (n - 1) ^ 2 = n * k + 1 := by
+      rw [← hk]
+      omega
+    rw [hk']
+    simp
+  · have hn1 : n = 1 := by omega
+    simp [hn1]
+
+/--
+**A strong probable prime satisfies Fermat's congruence.**  If `n` is a strong
+pseudoprime to base `a`, then `a^(n−1) ≡ 1 (mod n)`.  Indeed `n−1 = 2^s·d`, and
+either `a^d ≡ 1` or `a^(2^i·d) ≡ −1` for some `i < s`; in the second case
+`a^(n−1) = (a^(2^i·d))^(2^(s−i)) ≡ (−1)^even = 1`.  This is the first step of
+the Miller-Rabin error-bound proof: every strong liar lies in the kernel of
+`a ↦ a^(n−1)`.
+-/
+theorem strongPseudoprime_pow {n a : ℕ} (h : strongPseudoprime n a) :
+    a ^ (n - 1) ≡ 1 [MOD n] := by
+  by_cases hn0 : n - 1 = 0
+  · simpa [hn0] using (Nat.ModEq.refl 1)
+  · have hdecomp : n - 1 = 2 ^ (strongTestParams n).1 * (strongTestParams n).2 := by
+      have hd := strongTestParams_spec (n - 1) hn0
+      simpa [strongTestParams] using hd
+    unfold strongPseudoprime at h
+    rw [hdecomp]
+    rcases h with hd1 | ⟨i, hi⟩
+    · have hpow := hd1.pow (2 ^ (strongTestParams n).1)
+      simpa [← pow_mul, mul_comm] using hpow
+    · have hpow := hi.pow (2 ^ ((strongTestParams n).1 - (i : ℕ)))
+      have hsum : (i : ℕ) + ((strongTestParams n).1 - (i : ℕ)) = (strongTestParams n).1 := by
+        exact Nat.add_sub_of_le (Nat.le_of_lt i.isLt)
+      have hpowsum : 2 ^ (i : ℕ) * 2 ^ ((strongTestParams n).1 - (i : ℕ)) = 2 ^ (strongTestParams n).1 := by
+        rw [← pow_add, hsum]
+      have hexp : (2 ^ (i : ℕ) * (strongTestParams n).2) * 2 ^ ((strongTestParams n).1 - (i : ℕ)) =
+          2 ^ (strongTestParams n).1 * (strongTestParams n).2 := by
+        rw [mul_assoc]
+        rw [mul_comm (strongTestParams n).2 (2 ^ ((strongTestParams n).1 - (i : ℕ)))]
+        rw [← mul_assoc, hpowsum]
+      have h1 : a ^ (2 ^ (strongTestParams n).1 * (strongTestParams n).2) =
+          (a ^ (2 ^ (i : ℕ) * (strongTestParams n).2)) ^ (2 ^ ((strongTestParams n).1 - (i : ℕ))) := by
+        rw [← pow_mul]
+        congr 1
+        exact hexp.symm
+      rw [h1]
+      have h2 : (n - 1) ^ (2 ^ ((strongTestParams n).1 - (i : ℕ))) ≡ 1 [MOD n] := by
+        have hsmi_pos : 0 < (strongTestParams n).1 - (i : ℕ) := by
+          exact Nat.sub_pos_of_lt i.isLt
+        have heven : 2 ^ ((strongTestParams n).1 - (i : ℕ)) =
+            2 * 2 ^ (((strongTestParams n).1 - (i : ℕ)) - 1) := by
+          rw [mul_comm, ← pow_succ, Nat.sub_add_cancel hsmi_pos]
+        rw [heven]
+        rw [pow_mul]
+        have hsq := modeq_pow_two_sub_one (n := n) (by omega : n ≠ 0)
+        simpa using (hsq.pow (2 ^ (((strongTestParams n).1 - (i : ℕ)) - 1)))
+      exact hpow.trans h2
+
 end Chapter31
 
 end CLRS
