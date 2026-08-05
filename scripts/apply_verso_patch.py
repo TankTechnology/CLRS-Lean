@@ -11,7 +11,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_VERSO_DIR = ROOT / ".lake" / "packages" / "verso"
-DEFAULT_PATCH = ROOT / "patches" / "verso" / "disable-inline-proof-states.patch"
+DEFAULT_PATCHES = (
+    ROOT / "patches" / "verso" / "disable-inline-proof-states.patch",
+    ROOT / "patches" / "verso" / "sharded-literate-html.patch",
+)
 
 
 class PatchError(RuntimeError):
@@ -57,18 +60,36 @@ def apply_verso_patch(verso_dir: Path, patch: Path) -> str:
         return "already-applied"
 
     raise PatchError(
-        "incompatible Verso source at revision "
+        f"{patch.name}: incompatible Verso source at revision "
         f"{revision(verso_dir)}; review {patch} against the pinned dependency"
     )
+
+
+def apply_verso_patches(verso_dir: Path, patches: list[Path]) -> list[tuple[Path, str]]:
+    """Apply tracked patches in order and identify any patch that drifts."""
+    results: list[tuple[Path, str]] = []
+    for patch in patches:
+        results.append((patch, apply_verso_patch(verso_dir, patch)))
+    return results
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--verso-dir", type=Path, default=DEFAULT_VERSO_DIR)
-    parser.add_argument("--patch", type=Path, default=DEFAULT_PATCH)
+    parser.add_argument(
+        "--patch",
+        action="append",
+        type=Path,
+        help="Patch to apply (repeatable); defaults to all tracked Verso patches in order.",
+    )
     args = parser.parse_args()
     try:
-        print(apply_verso_patch(args.verso_dir.resolve(), args.patch.resolve()))
+        patches = args.patch if args.patch is not None else list(DEFAULT_PATCHES)
+        results = apply_verso_patches(
+            args.verso_dir.resolve(), [patch.resolve() for patch in patches]
+        )
+        for patch, status in results:
+            print(f"{patch.name}: {status}")
     except (PatchError, subprocess.CalledProcessError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
