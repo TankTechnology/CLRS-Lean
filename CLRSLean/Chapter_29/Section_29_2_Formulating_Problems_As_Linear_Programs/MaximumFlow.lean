@@ -3,9 +3,10 @@ import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.
 /-!
 # 29.2: Maximum flow as a linear program
 
-The variables are the gross directed flows `f u v`.  The constraints are
-nonnegativity, capacity, and conservation at every vertex other than `s,t`;
-the objective is total flow leaving `s`, exactly as in CLRS §29.2.
+The variables are the gross directed flows {lit}`f u v`.  The constraints are
+nonnegativity, capacity, and conservation at every vertex other than
+{lit}`s,t`; the objective is total flow leaving {lit}`s`, exactly as in CLRS
+§29.2.
 -/
 
 namespace CLRS

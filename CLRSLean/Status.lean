@@ -90,6 +90,14 @@ the detailed maintainer ledger.
   for import compatibility, while parallel-Strassen recurrences live in a
   separately labeled extension.  Mutable arrays, RAM-level costs, exercises,
   and chapter-end problems are optional refinements outside this boundary.
+* **Chapter 29:** Sections 29.1--29.5 are complete at the finite real-matrix
+  and pure-functional tableau layer.  The chapter includes exact standard/slack
+  equivalence; shortest-path, maximum-flow, minimum-cost-flow, and
+  multicommodity-flow LPs; exact PIVOT semantics; executable Bland SIMPLEX with
+  anti-cycling and finite termination; weak and strong duality; complementary
+  slackness; phase-I initialization; and a certified infeasible/optimal/
+  unbounded solver.  Mutable tableau storage, floating-point analysis, RAM
+  constants, exercises, and chapter-end problems are optional refinements.
 * **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
   search costs, universal hashing, open addressing, and perfect hashing.
 * **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
@@ -146,14 +154,6 @@ the detailed maintainer ledger.
   partial pending executable forward/back substitution, LUP-SOLVE correctness
   (Theorem 28.2 / #124), executable matrix inversion, and the principal cubic
   work claims required by the Chapter 28 roadmaps.
-* **Chapter 29:** Sections 29.1, 29.3, and 29.4 represent standard-form
-  feasibility, the unique nonnegative slack-variable extension, fixed-slot
-  basic/nonbasic dictionaries, initial-dictionary refinement, the exact PIVOT
-  transformation and semantic equivalence, minimum-ratio feasibility and
-  objective progress, executable Bland-rule SIMPLEX, optimal and unbounded
-  exits, the textbook anti-cycling theorem, finite termination, dual
-  feasibility, and weak duality (Theorem 29.8).  The chapter remains partial
-  pending Sections 29.2 and 29.5, strong duality, and complementary slackness.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

@@ -65,14 +65,14 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 26 | Maximum Flow | 🟢 complete | 18 | — |
 | 27 | Multithreaded Algorithms | 🟢 complete | 95 | — |
 | 28 | Matrix Operations | 🟠 partial | 2 | Complete LUP-SOLVE correctness (Theorem 28.2 / #124) and the… |
-| 29 | Linear Programming | 🟠 partial | 7 | Formalize Section 29.5 INITIALIZE-SIMPLEX; prove strong… |
+| 29 | Linear Programming | 🟢 complete | 17 | — |
 | 30 | Polynomials and the FFT | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 31 | Number-Theoretic Algorithms | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 32 | String Matching | 🟡 sections | 19 | — |
 | 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
 | 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1714 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1724 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·

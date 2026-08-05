@@ -9,6 +9,14 @@ import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.
 
 This section contains the four textbook formulations: shortest path, maximum
 flow, minimum-cost flow, and multicommodity flow.
+
+## Implementation details
+
+* [Common finite-network definitions](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/NetworkFlow/)
+* [Shortest-path LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/ShortestPath/)
+* [Maximum-flow LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MaximumFlow/)
+* [Minimum-cost-flow LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MinimumCostFlow/)
+* [Multicommodity-flow LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MulticommodityFlow/)
 -/
 
 namespace CLRS

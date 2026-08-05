@@ -3,9 +3,10 @@ import CLRSLean.Chapter_24.Section_24_4_Difference_Constraints
 /-!
 # 29.2: Shortest paths as a linear program
 
-For a source `s` and target `t`, CLRS maximizes `d t`, subject to `d s = 0`
-and `d v ≤ d u + w u v` on every edge.  Thus every feasible `d t` is a lower
-bound on every `s`-to-`t` walk; an attained bound is optimal.
+For a source {lit}`s` and target {lit}`t`, CLRS maximizes {lit}`d t`, subject to
+{lit}`d s = 0` and {lit}`d v ≤ d u + w u v` on every edge.  Thus every feasible
+{lit}`d t` is a lower bound on every {lit}`s`-to-{lit}`t` walk; an attained
+bound is optimal.
 -/
 
 namespace CLRS
@@ -20,7 +21,7 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 def IsFeasible (G : WeightedGraph V) (s : V) (d : V → ℝ) : Prop :=
   d s = 0 ∧ ∀ u v, (u, v) ∈ G.edges → d v ≤ d u + G.w u v
 
-/-- Optimality for the maximization objective `d t`. -/
+/-- Optimality for the maximization objective {lit}`d t`. -/
 def IsOptimal (G : WeightedGraph V) (s t : V) (d : V → ℝ) : Prop :=
   IsFeasible G s d ∧ ∀ e, IsFeasible G s e → e t ≤ d t
 

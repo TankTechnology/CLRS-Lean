@@ -4,8 +4,8 @@ import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.
 # 29.2: Minimum-cost flow as a linear program
 
 In addition to capacities, a network assigns a unit cost to every directed
-pair.  A demand-`d` flow has net source outflow `d`; minimizing the sum of unit
-cost times flow gives the CLRS minimum-cost-flow formulation.
+pair.  A demand-{lit}`d` flow has net source outflow {lit}`d`; minimizing the
+sum of unit cost times flow gives the CLRS minimum-cost-flow formulation.
 -/
 
 namespace CLRS
@@ -26,7 +26,7 @@ def IsFeasible (f : V → V → ℝ) : Prop :=
   N.toFlowNetwork.IsFlow f ∧
     FlowNetwork.netOutflow f N.source = demand
 
-/-- Total cost `Σ_u Σ_v a_uv f_uv`. -/
+/-- Total cost {lit}`Σ_u Σ_v a_uv f_uv`. -/
 def objective (f : V → V → ℝ) : ℝ :=
   ∑ u, ∑ v, N.cost u v * f u v
 
