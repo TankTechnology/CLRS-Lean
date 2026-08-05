@@ -15,10 +15,10 @@ BST.
 
 This module is a **prototype**: the executable `insert`/`member` and the
 *correctness* half — membership, BST preservation, and max-heap preservation —
-are all kernel-checked.  The headline *expected-height* result is the next
-planned step (it needs the finite-expectation layer).  The module is **not**
-registered in {lit}`literate.toml` and does not appear on the site until it is
-promoted.
+are all kernel-checked.  The probabilistic analysis is developed separately:
+{lit}`TreapRandom` proves the harmonic expected-depth bound, and
+{lit}`TreapHeight` proves the headline {lit}`E[height] ≤ 30 · H_n` result.
+These extension pages remain outside the textbook coverage ledger.
 
 The membership theorems carry an {lit}`IsBST` (binary-search-tree) hypothesis:
 the executable {lit}`member` really is a guided search, and for a non-BST tree
@@ -34,10 +34,12 @@ Main results (all kernel-checked):
   {lit}`IsHeap_insert` (the capstone), with {lit}`prioLE_insert`,
   {lit}`insert_of_mem_keys`, {lit}`IsHeap_rotL`/`IsHeap_rotR`.
 
-Planned (not yet stated — needs the finite-expectation layer):
+Analysis layers:
 
-- Expected height {lit}`O(log n)` under uniformly random distinct priorities,
-  using {lit}`CLRSLean.Probability.FiniteExpectation`.
+- {lit}`TreapRandom`: expected depth {lit}`O(log n)` under uniformly random
+  distinct priorities.
+- {lit}`TreapHeight`: the explicit expected-height bound
+  {lit}`E[height] ≤ 30 · H_n`.
 
 Notation conventions:
 

@@ -9,6 +9,16 @@ and sections into `main proof completed`, `structured but not complete`, and
 `missing core theorem`, so work does not keep cycling back to already completed
 main-proof areas without a specific refinement goal.
 
+## Chapters 1--29 Prefix Milestone
+
+Every chapter from 1 through 29 has zero remaining core theorem groups inside
+its advertised scope.  This is a status-aware prefix milestone: Chapter 1 is
+expository; Chapters 5, 7, 10, 15, 17, and 24 are complete for their represented
+sections; the other Chapters 2--29 have complete advertised main-theorem or
+correctness stacks.  It is not a claim that every textbook section, exercise,
+chapter-end Problem, pointer/RAM refinement, or numerical implementation has
+been formalized.  The generated dashboard owns the live counts and labels.
+
 ## Probability Toolkit
 
 - Lean source: `CLRSLean/Probability/FiniteExpectation.lean`
@@ -4326,13 +4336,13 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 | B-tree executable deletion semantics | `proved` | For `2 ≤ t`, `composedDelete_keyBag` under `NodeWF` and `composedDeleteRoot_keyBag` under `WellFormed` prove `Multiset.erase` semantics: one requested-key occurrence is removed when present, and an absent request leaves the bag unchanged. `composedDelete_mem_iff_of_ne` and `composedDeleteRoot_mem_iff_of_ne` preserve every different key without `UniqueKeys` or a requested-key-present premise. Raw uniqueness preservation needs `NodeWF + UniqueKeys`; under `WellFormedUnique`, `composedDeleteRoot_not_mem`, `composedDeleteRoot_mem_iff`, `composedDeleteRoot_wellFormedUnique`, `composedDeleteRoot_mem_iff_delete`, and `composedDeleteRoot_search_eq_delete` prove absence, full root membership behavior, combined invariant preservation, and compatibility with specification deletion and membership-oracle search. The bridge does not assert `searchExec` or tree-shape equality. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations are specified against an abstract finite-set model; a persistent executable heap forest now proves exact multiset representation, a global validity invariant, minimum-root selection, executable extract-min through equal-degree `CONSOLIDATE`, heap-level direct-child CUT, and the exact CUT potential delta. Cached minimum pointers, stable node identity, handles/arbitrary paths, cascading cuts, executable decrease/delete, actual costs, and circular pointer mutation remain. |
 | Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |
-| Generic augmentation deletion erasure | `future-work` | Section 14.3 already proves the generic executable deletion pipeline and `AugmentedRBTree.wellAugmented_delete`.  The remaining work is the generic `AugmentedRBTree.toRB_delete` erasure/refinement bridge to Chapter 13's `RBTree.delete`. |
+| Generic augmentation deletion erasure | `proved` | Section 14.3 proves the generic executable deletion pipeline, `AugmentedRBTree.wellAugmented_delete`, and the `AugmentedRBTree.toRB_delete` erasure/refinement bridge to Chapter 13's `RBTree.delete`.  Pointer-level mutation and RAM accounting remain optional implementation layers. |
 | Automatic MST exchange-path extraction | `proved` | `canonicalSimplePath_unique` and `exists_crossing_exchangePath_of_spanningTree` extract the crossing replacement edge and residual path connections automatically. |
 | Prim's algorithm | `proved` | `PrimTrace` packages dynamic light-edge choices, and `prim_minimum_spanning_tree` proves the direct finite-graph MST conclusion for a complete certified run. |
 | CLRS exercises | `future-work` | Keep the first pass focused on main textbook claims; add exercises after section interfaces stabilize. |
 | Chapter-end problems | `future-work` | Treat as a second track with explicit priority and difficulty labels. |
 | Full RAM semantics | `future-work` | Requires an imperative machine/cost semantics rather than only mathematical functions and recurrences. |
-| General merge-sort recurrence | `future-work` | Needs floor/ceiling arithmetic and an asymptotic theorem for all input sizes. |
+| General merge-sort recurrence | `proved` | `theta_n_log_n_all_inputs` proves the arbitrary-size floor/ceiling merge-sort recurrence is `Θ(n log n)` through the Chapter 4.6 adjacent-power sandwich bridge. |
 
 ## Publication Value
 

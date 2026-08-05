@@ -152,11 +152,15 @@ class LiterateConfigTest(unittest.TestCase):
     def test_hidden_support_pages_are_linked_from_reader_pages(self) -> None:
         order_children = _parse_order_children(LITERATE_TOML.read_text())
 
-        for chapter in order_children["CLRSLean"]:
-            if not chapter.startswith("CLRSLean.Chapter_"):
-                continue
-            chapter_text = _module_source(chapter).read_text()
-            for module in _ordered_descendants(order_children, chapter):
+        for guide in order_children["CLRSLean"]:
+            guide_text = _module_source(guide).read_text()
+            imported_modules = re.findall(
+                r"^import\s+(CLRSLean\.[^\s]+)", guide_text, re.MULTILINE
+            )
+            support_modules = dict.fromkeys(
+                _ordered_descendants(order_children, guide) + imported_modules
+            )
+            for module in support_modules:
                 if is_reader_sidebar_module(module) or module in LINK_EXEMPT_MODULES:
                     continue
                 parts = module.split(".")
@@ -169,7 +173,8 @@ class LiterateConfigTest(unittest.TestCase):
                 expected_link = f"{module.replace('.', '/')}/"
                 with self.subTest(module=module):
                     self.assertTrue(
-                        expected_link in parent_text or expected_link in chapter_text,
+                        f"]({expected_link})" in parent_text
+                        or f"]({expected_link})" in guide_text,
                         f"missing implementation link for {module}: {expected_link}",
                     )
 
