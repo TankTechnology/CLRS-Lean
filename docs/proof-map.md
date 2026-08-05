@@ -4303,6 +4303,15 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `rhoStep` (Pollard's rho iteration).
   - `rho_collision_factor`: `x ≡ y (mod p)` and `p ∣ n` imply
     `p ∣ gcd(x−y, n)` — a collision forces a nontrivial divisor.
+    `rho_collision_factor_dist` is the `|y−x|` (`Nat.dist`) version.
+  - POLLARD-RHO: `RhoState` (tortoise-and-hare state), `pollardStep`
+    (one step, reporting `gcd (|y−x|, n)`), `pollardRhoLoop` (over a step
+    budget), and `pollardRho` (the full algorithm).  Soundness:
+    `pollardRho_sound` — a returned value ≠ `n` is a nontrivial divisor of
+    `n`; `pollardStep_collision_factor` — a mod-`p` collision at a step makes
+    that step's candidate a multiple of `p`.
+  - Deferred: the birthday-paradox / expected-`O(√p)` running-time analysis
+    (a heuristic in CLRS, left informal).
 
 ## Chapter 32 - String Matching
 
