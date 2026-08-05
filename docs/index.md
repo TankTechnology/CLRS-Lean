@@ -1,9 +1,10 @@
 # CLRS-Lean Documentation Index
 
-This directory contains maintainer-facing documentation for the Lean library
-and the generated Verso book.  Reader-facing chapter prose lives in
-`CLRSLean/Chapter_XX.lean`; this index explains where repository-level facts
-belong.
+This directory contains maintainer-facing documentation for the
+fourth-edition-primary Lean library and generated Verso book.  Canonical
+reader-facing chapter prose lives in `CLRSLean/FourthEdition/Chapter_XX.lean`;
+current theorem-bearing source guides may retain third-edition-numbered paths
+during the compatibility period.
 
 ## Start Here
 
@@ -13,8 +14,9 @@ belong.
 | [`repository-architecture.md`](repository-architecture.md) | Code layers, dependencies, ownership, and sources of truth |
 | [`proof-status-board.md`](proof-status-board.md) | Compact chapter status and next-proof priorities |
 | [`proof-map.md`](proof-map.md) | Detailed theorem and proof-boundary ledger |
+| [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv) | Canonical fourth-edition section/source bridge |
 | [`clrs-proof-progress.csv`](clrs-proof-progress.csv) | Machine-readable chapter progress source |
-| [`proof-audits/chapters-01-29-milestone-2026-08-05.md`](proof-audits/chapters-01-29-milestone-2026-08-05.md) | Audited meaning and evidence for the completed Chapters 1--29 prefix |
+| [`migrations/clrs4.md`](migrations/clrs4.md) | Fourth-edition imports, shifted chapters, and compatibility/removal gates |
 | [`status/blocked-and-deferred.md`](status/blocked-and-deferred.md) | Explicitly blocked, deferred, and future work |
 | [`workflows/chapter-workflow.md`](workflows/chapter-workflow.md) | End-to-end chapter formalization workflow |
 | [`workflows/lean-fast-verification.md`](workflows/lean-fast-verification.md) | Narrow-to-wide Lean verification loop |
@@ -23,7 +25,10 @@ belong.
 
 ## Documentation Roles
 
-- `clrs-proof-progress.csv` owns chapter-level counts and status labels.
+- `clrs-fourth-edition-map.csv` owns canonical chapter/section numbers, titles,
+  facade sources, and migration states.
+- `clrs-proof-progress.csv` owns fourth-edition chapter-level counts and status
+  labels, interpreted through the edition map.
 - `proof-map.md` owns theorem-level detail and formalization boundaries.
 - `proof-status-board.md` owns prioritization; it should not duplicate every
   theorem name.
@@ -36,8 +41,11 @@ belong.
 
 ## Lean Source Catalog
 
-Chapter guides are `CLRSLean/Chapter_XX.lean`.  The represented section modules
-on `main` are:
+Canonical chapter guides are `CLRSLean/FourthEdition/Chapter_XX.lean`.
+`CLRSLean/OnlineMaterial.lean` catalogs retained material outside the primary
+chapter tree.  The represented theorem source modules on `main` currently use
+the following compatibility paths; their numeric suffixes do not override the
+edition map:
 
 ```text
 CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
@@ -347,8 +355,9 @@ Stable consumer-facing checks live under `Tests/`.
 
 ## Update Rules
 
-When a section is added or renamed, update its chapter guide,
-`literate.toml`, this source catalog, and the progress CSV in the same change.
+When a section is added or renamed, consult the edition map, update its
+fourth-edition guide and current source guide, `literate.toml`, this source
+catalog, and the progress CSV in the same change.
 When a theorem boundary changes, update the chapter guide, progress CSV, and
 proof map.  Run:
 
@@ -364,6 +373,14 @@ Dated audits and old implementation plans are retained because they explain
 past design decisions.  They should include a date in their filename or title
 and must not be used as evidence for the current progress snapshot.
 
+Existing `CLRSLean.Chapter_NN` imports are supported through all `1.x` releases
+and for at least six months after the facade release; removal can occur only in
+`2.0` or later, after both gates pass.  See the migration guide before treating
+any legacy chapter number as canonical.
+
+- [`proof-audits/chapters-01-29-milestone-2026-08-05.md`](proof-audits/chapters-01-29-milestone-2026-08-05.md)
+  records the historical third-edition Chapters 1--29 prefix boundary; it is
+  not the current fourth-edition progress ledger.
 - [`proof-audits/chapter-27-closure-2026-08-05.md`](proof-audits/chapter-27-closure-2026-08-05.md)
   records the sealed Chapter 27 pure-functional main-text boundary and its
   verification evidence.
