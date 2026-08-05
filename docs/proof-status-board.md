@@ -7,9 +7,9 @@ priorities, not theorem-by-theorem duplication.
 
 Last repository-wide status reconciliation: 2026-08-05.
 
-Chapters 1--29 form a completed prefix for their advertised proof scopes.  The
-prefix contains 11 `main-proof-complete` chapters, 11
-`main-proof-complete-for-correctness` chapters, 6
+Chapters 1--31 form a completed prefix for their advertised proof scopes.  The
+prefix contains 12 `main-proof-complete` chapters, 11
+`main-proof-complete-for-correctness` chapters, 7
 `selected-section-complete` chapters, and the expository Chapter 1 guide.  The
 generated dashboard owns the counts; the distinctions above prevent the prefix
 milestone from being mistaken for complete coverage of every textbook section.
@@ -46,6 +46,7 @@ milestone from being mistaken for complete coverage of every textbook section.
 | Chapter 27 | Pure-functional main text through Section 27.3: total greedy scheduling, logarithmic parallel loops, executable P-ADD/P-MATMUL, and executable P-MERGE/P-MERGE-SORT with correctness, execution costs, and matching worst-case span witnesses | Mutable-array/RAM realization, exercises, and chapter-end problems; parallel Strassen remains a separate compatibility extension |
 | Chapter 28 | LUP decomposition (Theorem 28.1), LUP-SOLVE correctness, forward/backward substitution (Lemmas 28.1-28.2), matrix inversion (Theorem 28.2), Cholesky decomposition (Theorem 28.3) with uniqueness, and least-squares approximation (Theorem 28.4) | Executable LUP factorization from `A`; RAM cost semantics |
 | Chapter 29 | Sections 29.1--29.5: standard/slack equivalence; four textbook LP formulations; exact PIVOT, Bland anti-cycling, and terminating SIMPLEX; weak/strong duality and complementary slackness; phase-I initialization and the certified three-way solver | Mutable tableau storage, floating-point numerical analysis, RAM constants, exercises, and chapter-end problems |
+| Chapter 30 | Sections 30.1--30.3: polynomial representations, generic DFT algebra, recursive and iterative radix-2 FFT correctness, FFT multiplication, execution-attached `Theta(n log n)` work, and evaluated layered-circuit size/depth | Mutable/in-place arrays, RAM/cache/hardware costs, floating-point error, concrete scheduling, exercises, and Problems 30-1 through 30-6 |
 | Chapter 31 represented sections | Sections 31.1--31.9: elementary number theory, Euclid and extended Euclid, modular arithmetic and congruences, CRT, powers, RSA, primality testing, and factorization | Running-time analysis, general CRT, Miller--Rabin, and full Pollard-rho probability analysis |
 | Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
 
@@ -61,7 +62,7 @@ not missing core theorem groups.
 
 ## Not Represented On Main
 
-- Chapter 30 and Chapters 34--35.
+- Chapters 34--35.
 
 Open branches and pull requests are intentionally excluded until they are
 reviewed, merged, registered in `literate.toml`, and added to the progress CSV.

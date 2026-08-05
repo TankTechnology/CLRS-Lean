@@ -4164,6 +4164,178 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   and pure-functional tableau layer.  Mutable storage, floating-point
   stability, RAM constants, exercises, and chapter-end problems are optional
   refinements.
+
+## Chapter 30 - Polynomials and the FFT
+
+### Section 30.1 - Polynomial Representations
+
+- Lean sources:
+  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials.lean`
+  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S1_CoefficientVectors.lean`
+  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S2_PointValueInterpolation.lean`
+  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S3_RepresentationOperations.lean`
+- Status: `proved` for the milestone's fixed-capacity representation and
+  represented arithmetic-cost boundary.
+- Representation bridge:
+  - `CLRS.Chapter30.vectorToPolynomial_coeff`
+  - `CLRS.Chapter30.coeffVector_vectorToPolynomial`
+  - `CLRS.Chapter30.vectorToPolynomial_coeffVector`
+  - `CLRS.Chapter30.vectorToPolynomial_degree_lt`
+- Evaluation and interpolation:
+  - `CLRS.Chapter30.hornerEval_correct`
+  - `CLRS.Chapter30.hornerEvalWork_exact` (exact work `2 * n`)
+  - `CLRS.Chapter30.pointValues_injective`
+  - `CLRS.Chapter30.interpolate_pointValues`
+  - `CLRS.Chapter30.interpolate_unique`
+  - `CLRS.Chapter30.interpolate_pointValues_roundTrip`
+- Representation operations and attached costs:
+  - `CLRS.Chapter30.pointValues_add` and `CLRS.Chapter30.pointValues_mul`
+  - `CLRS.Chapter30.vectorAddWork_exact` and
+    `CLRS.Chapter30.pointwiseMulWork_exact`
+  - `CLRS.Chapter30.schoolbookMul_correct`
+  - `CLRS.Chapter30.schoolbookMul_degreeBound`
+  - `CLRS.Chapter30.schoolbookMulWork_exact` (exact work `2 * (m * n)`)
+- Execution boundary: `coefficientPairs_toFinset` proves that the executable
+  deterministic pair list enumerates the full Cartesian product; each
+  `schoolbookStep` performs one bucket update and increments both counters.
+
+### Section 30.2 - DFT, Recursive FFT, and Polynomial Multiplication
+
+- Lean sources:
+  - `CLRSLean/Chapter_30.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S1_RootsOfUnity.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S2_DFT.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S3_InversionAndConvolution.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs.lean`
+  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/PolynomialMultiplication.lean`
+- Status: `proved` for the milestone's exact-field DFT, recursive radix-2 FFT,
+  inverse, polynomial multiplication, and declared arithmetic-cost boundary;
+  Section 30.3 below completes the chapter's reviewed main-text boundary.
+- Roots of unity and DFT evaluation:
+  - `CLRS.Chapter30.primitiveRoot_powers_injective`
+  - `CLRS.Chapter30.primitiveRoot_square` and
+    `CLRS.Chapter30.primitiveRoot_half_pow_eq_neg_one`
+  - `CLRS.Chapter30.root_sum_orthogonality` and
+    `CLRS.Chapter30.root_sum_difference_orthogonality`
+  - `CLRS.Chapter30.dft_eq_pointValues`, `CLRS.Chapter30.dft_add`, and
+    `CLRS.Chapter30.dft_smul`
+  - `CLRS.Chapter30.complexDft_mathlib`, with Mathlib's negative-sign
+    convention exposed by explicit output-index negation
+- Fourier inversion and convolution:
+  - `CLRS.Chapter30.idft_dft` and `CLRS.Chapter30.dft_idft`
+  - `CLRS.Chapter30.dft_injective`
+  - `CLRS.Chapter30.dft_cyclicConvolution` and
+    `CLRS.Chapter30.idft_pointwiseMul`
+  - `CLRS.Chapter30.cyclicConvolution_eq_coeffVector_mul`, under the explicit
+    capacity condition that the polynomial product fits
+- Recursive FFT execution and correctness:
+  - `CLRS.Chapter30.recursiveFFTExec` recursively transforms the actual even
+    and odd coefficient vectors, reuses the charged twiddle execution for the
+    squared child root, and combines both children with one butterfly layer
+  - `CLRS.Chapter30.recursiveFFTExec_value` erases the costed execution to
+    `CLRS.Chapter30.recursiveFFT`
+  - `CLRS.Chapter30.polynomial_evenOdd_split` supplies the polynomial identity
+    used by the structural proof `CLRS.Chapter30.recursiveFFT_eq_dft`
+  - `CLRS.Chapter30.recursiveIFFT_eq_idft`,
+    `CLRS.Chapter30.recursiveIFFT_recursiveFFT`, and
+    `CLRS.Chapter30.recursiveFFT_recursiveIFFT` connect the recursive inverse
+    to both Fourier round trips
+- Recursive FFT costs and padding:
+  - `CLRS.Chapter30.recursiveFFTExec_addSubtractions` and
+    `CLRS.Chapter30.recursiveFFTExec_multiplications` each prove the exact
+    execution-field count `k * 2^k`
+  - `CLRS.Chapter30.recursiveFFTWork_exact` proves exact total work
+    `2 * k * 2^k` from those same fields
+  - `CLRS.Chapter30.fftCapacity_ge` and
+    `CLRS.Chapter30.fftCapacity_lt_two_mul` bound least-power-of-two padding
+  - `CLRS.Chapter30.recursiveFFTExec_zeroPad_work` keeps padded work attached
+    to an actual zero-padded recursive execution, while
+    `CLRS.Chapter30.paddedFFTWork_allInput_bigTheta` proves all-input
+    `Theta(n log n)`
+- FFT polynomial multiplication:
+  - `CLRS.Chapter30.fftMultiplyExecAt` composes two forward recursive FFTs,
+    pointwise multiplication, an inverse-root recursive FFT, inverse scaling,
+    and polynomial reconstruction in one execution record
+  - `CLRS.Chapter30.fftMultiplyExecAt_value` erases the costed execution, and
+    `CLRS.Chapter30.fftMultiplyAt_correct` proves equality with `p * q` under
+    the minimal product-fit premise
+  - `CLRS.Chapter30.complexFFTMultiply_correct` is unconditional: the wrapper
+    computes a positive size, least power-of-two capacity, and positive-sign
+    principal complex root internally
+  - `CLRS.Chapter30.fftMultiplyExecution_correct` and
+    `CLRS.Chapter30.fftMultiplyExecution_work_eq` put bounded-input correctness
+    and cost on the same selected execution
+- FFT multiplication costs:
+  - `CLRS.Chapter30.fftMultiplyExecAt_work_exact` reads the actual execution
+    fields and proves `3 * radix2FFTWork k + 2 * 2^k`
+  - `CLRS.Chapter30.fftMultiplyWork_pow` retains the pointwise/scaling term and
+    gives `(12*k + 16) * 2^k` at advertised capacity `2^k`
+  - `CLRS.Chapter30.fftMultiplyWork_allInput_bigTheta` proves all-input
+    `Theta(n log n)` through the Chapter 4 adjacent-power transfer
+
+### Section 30.3 - Efficient FFT Implementations
+
+- Lean sources:
+  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations.lean`
+  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/BitReversal.lean`
+  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT.lean`
+  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions.lean`
+  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness.lean`
+  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs.lean`
+  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean`
+- Status: `proved` for the exact functional iterative-FFT and layered-circuit
+  boundary.  The Milestone 2 closure interface contributes 17 reviewed
+  headline theorem groups, bringing Chapter 30's tracked total to 46.
+- Bit reversal:
+  - `CLRS.Chapter30.bitReverseEquiv_even` and
+    `CLRS.Chapter30.bitReverseEquiv_odd` give the recursive index structure;
+    `CLRS.Chapter30.bitReverseEquiv_testBit` gives fixed-width numeric bit
+    semantics and `CLRS.Chapter30.bitReverseEquiv_involutive` proves the
+    permutation is its own inverse
+  - `CLRS.Chapter30.bitReverseCopy_apply` and
+    `CLRS.Chapter30.bitReverseCopy_involutive` specify the functional copy;
+    `CLRS.Chapter30.bitReverseExec_moves` reads the exact `2^k` moves from its
+    execution record
+- Flat stages and correctness:
+  - `CLRS.Chapter30.fftStage` applies all independent butterflies at one
+    globally indexed stage; `CLRS.Chapter30.runFFTStagePrefix_join` is the
+    half-factorization invariant for every prefix
+  - `CLRS.Chapter30.iterativeRadix2FFT_succ` recovers the recursive butterfly
+    equation, while `CLRS.Chapter30.iterativeRadix2FFT_eq_recursiveFFT` and
+    `CLRS.Chapter30.iterativeRadix2FFT_eq_dft` close the algorithmic and
+    algebraic correctness bridges
+- Execution-attached costs:
+  - stage and prefix counters are proved exact, and the complete execution has
+    `k * 2^k` additions/subtractions and `k * 2^k` multiplications
+  - `CLRS.Chapter30.iterativeRadix2FFTExec_arithmeticWork` proves execution
+    arithmetic `2 * k * 2^k`
+  - `CLRS.Chapter30.iterativeRadix2FFTExec_totalWork` additionally charges the
+    bit-reversal copy, giving `2^k + 2 * k * 2^k`
+  - `CLRS.Chapter30.iterativeRadix2FFTExec_zeroPad_totalWork` attaches padded
+    work to the actual zero-padded execution, and
+    `CLRS.Chapter30.paddedIterativeFFTWork_allInput_bigTheta` proves all-input
+    `Theta(n log n)`
+- Layered circuit:
+  - `CLRS.Chapter30.fftNetwork_eval` proves that the explicit ordered network
+    evaluates to the iterative FFT
+  - `CLRS.Chapter30.fftNetwork_butterflyCount` proves circuit butterflies
+    `k * 2^(k-1)`, and `CLRS.Chapter30.fftNetwork_butterflyDepth` proves
+    butterfly depth `k`
+  - treating twiddle powers as fixed constants and bit reversal as wiring,
+    `CLRS.Chapter30.fftNetwork_primitiveGateCount` proves primitive gates
+    `3 * k * 2^(k-1)`, while
+    `CLRS.Chapter30.fftNetwork_primitiveDepth` proves primitive depth `2 * k`
+- Chapter boundary: Sections 30.1--30.3 are complete for exact generic ring or
+  characteristic-zero field arithmetic over fixed and power-of-two vectors.
+  Mutable arrays, aliasing and in-place loop semantics; RAM, cache, allocator,
+  SIMD, GPU, communication, scheduler and processor costs; floating-point
+  error and numerical stability; NTT specialization; code generation;
+  exercises; and Problems 30-1 through 30-6 are outside the reviewed boundary.
+
 ## Chapter 31 - Number-Theoretic Algorithms
 
 ### Section 31.1 - Elementary Number-Theoretic Notions
