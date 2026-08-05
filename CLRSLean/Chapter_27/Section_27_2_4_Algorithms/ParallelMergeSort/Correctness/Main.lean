@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Spec
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Correctness
 
 /-!
 # CLRS Chapter 27.3 — P-MERGE-SORT Correctness

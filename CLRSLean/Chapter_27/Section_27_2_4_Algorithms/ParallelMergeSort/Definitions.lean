@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions
 
 /-!
 # CLRS Chapter 27.3 — Executable P-MERGE-SORT
