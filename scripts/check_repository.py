@@ -25,6 +25,8 @@ CHECK_COMMANDS = [
     ("scripts/test_optimize_literate_html.py",),
     ("scripts/test_check_literate_rendering.py",),
     ("scripts/test_prepare_literate_site.py",),
+    ("scripts/test_plan_literate_shards.py",),
+    ("scripts/test_merge_literate_shards.py",),
 ]
 
 
