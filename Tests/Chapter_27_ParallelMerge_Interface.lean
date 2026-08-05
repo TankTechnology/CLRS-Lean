@@ -41,7 +41,7 @@ example : (pMergeSort [7]).value = [7] := by native_decide
 example : (pMergeSort [7]).work = 1 := by native_decide
 example : (pMergeSort [7]).span = 1 := by native_decide
 
-example : (pMergeSort [5, 1, 4, 2, 3]).value = [1, 2, 3, 4, 5] := by
+example : (pMergeSort [5, 4, 3, 2, 1]).value = [1, 2, 3, 4, 5] := by
   native_decide
 
 example : (pMergeSort [3, 1, 2, 1, 3, 2, 1]).value = [1, 1, 1, 2, 2, 3, 3] := by
