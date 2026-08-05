@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 
 /-!
 # 28.1 Solving systems of linear equations
@@ -12,8 +13,8 @@ underlies Gaussian elimination, the determinant, and matrix inversion.
 Main results:
 
 - Theorem {lit}`exists_lup_decomposition`: every nonsingular matrix admits an
-  LUP decomposition {lit}`σ.permMatrix · A = L · U`.  The proof is by induction on
-  {lit}`n`: the pivot row is swapped into row 0, one Gaussian-elimination step
+  LUP decomposition `σ.permMatrix · A = L · U`.  The proof is by induction on
+  `n`: the pivot row is swapped into row 0, one Gaussian-elimination step
   ({lit}`elimination`) zeroes the subdiagonal, the induction hypothesis is
   applied to the nonsingular Schur complement (nonsingularity via
   {lit}`det_block_schur`), and the block factors are assembled with the
@@ -23,12 +24,42 @@ Main results:
   {lit}`elimination_mul_col_zero`), the unit-triangular determinant
   ({lit}`det_unitLowerTriangular`), and the permutation-matrix bookkeeping
   ({lit}`fromBlocks_one_zero_zero_permMatrix` / {lit}`conjPermMatrix`).
+- Theorem {lit}`lup_solve_correct` (CLRS §28.1, Algorithm LUP-SOLVE): if
+  {lit}`σ.permMatrix · A = L · U` is an LUP decomposition and the substitution
+  equations {lit}`L·y = σ.permMatrix·b` and {lit}`U·x = y` hold, then
+  {lit}`A·x = b` — forward then backward substitution through the factors
+  solves the system.
+- Theorem {lit}`forwardSubst_spec` (CLRS Lemma 28.1): `forwardSubst L b`,
+  forward substitution through a unit lower-triangular `L`, satisfies
+  {lit}`L·(forwardSubst L b) = b`.
+- Theorem {lit}`backSubst_spec` (CLRS Lemma 28.2): `backSubst U y`, backward
+  substitution through an upper-triangular `U` with nonzero diagonal,
+  satisfies {lit}`U·(backSubst U y) = y`.
+- Theorem {lit}`lupSolve_correct`: the constructive solver `lupSolve σ L U b`
+  (forward-then-back substitution through the factors) solves {lit}`A·x = b`
+  given an LUP decomposition of `A`.
+- Theorem {lit}`exists_solution_of_nonsingular`: a nonsingular matrix over a
+  field solves every linear system ({lit}`∃ x, A·x = b`).
+- Theorems {lit}`unique_solution_of_nonsingular`,
+  {lit}`unique_solution_unitLowerTriangular` (Lemma 28.1), and
+  {lit}`unique_solution_upperTriangular` (Lemma 28.2): nonsingular,
+  unit-lower-triangular, and upper-triangular systems with nonzero diagonal
+  have at most one solution.
+- Theorem {lit}`det_eq_sign_mul_det_of_lup` (Corollary to Theorem 28.1): from
+  an LUP decomposition {lit}`σ.permMatrix · A = L · U` with `L` unit
+  lower-triangular, {lit}`det U = sign σ · det A` — determinants agree up to
+  sign; {lit}`det_ne_zero_of_lup` gives `U` nonsingular when `A` is.
+- Cost analysis (CLRS running times): {lit}`substitutionCost_isBigO`
+  (LUP-SOLVE is `Θ(n²)`), {lit}`lupDecompositionCost_isBigO` (LUP is
+  `Θ(n³)`), {lit}`matrixInversionCost_isBigO` (inversion is `Θ(n³)`), and
+  {lit}`choleskyCost_isBigO` (Cholesky is `Θ(n³)`), as abstract operation
+  counts bounded by the standard `O` classes.
 
 Notation conventions:
 
 - {lit}`A` : an {lit}`n × n` matrix over a field {lit}`F`.
 - {lit}`σ.permMatrix F` : the permutation matrix of {lit}`σ`.
-- {lit}`IsUpperTriangular` / {lit}`IsLowerTriangular`: zero below/above the
+- {lit}`IsUpperTriangular` / {lit}`IsLowerTriangular`: zero above/below the
   main diagonal.
 - {lit}`IsUnitLowerTriangular`: lower-triangular with diagonal ones.
 -/
@@ -78,7 +109,7 @@ lemma exists_col_zero_ne_zero {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1)) 
   exact hA (det_eq_zero_of_col_zero hzero)
 
 /-- Multiplying by a permutation matrix on the left permutes the rows:
-{lit}`(σ.permMatrix * A) i j = A (σ i) j`. -/
+`(σ.permMatrix * A) i j = A (σ i) j`. -/
 lemma permMatrix_mul_apply {n : ℕ} (σ : Equiv.Perm (Fin n))
     (A : Matrix (Fin n) (Fin n) F) (i j : Fin n) :
     (σ.permMatrix F * A) i j = A (σ i) j := by
@@ -89,8 +120,8 @@ lemma permMatrix_mul_apply {n : ℕ} (σ : Equiv.Perm (Fin n))
     simp [Equiv.Perm.permMatrix, PEquiv.toMatrix_apply, hbne.symm]
   · simp
 
-/-- Swapping the pivot row {lit}`p` into row {lit}`0` makes the leading entry nonzero:
-{lit}`(swap 0 p).permMatrix * A` has a nonzero {lit}`(0,0)` entry. -/
+/-- Swapping the pivot row `p` into row `0` makes the leading entry nonzero:
+`(swap 0 p).permMatrix * A` has a nonzero `(0,0)` entry. -/
 lemma perm_mul_zero_zero_ne_zero {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1)) F}
     {p : Fin (n + 1)} (hp : A p 0 ≠ 0) :
     ((Equiv.swap 0 p).permMatrix F * A) 0 0 ≠ 0 := by
@@ -101,7 +132,7 @@ lemma perm_mul_zero_zero_ne_zero {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1
   exact hp
 
 /-- The Gaussian-elimination step matrix: unit lower-triangular, with the
-subdiagonal entries of column {lit}`0` chosen to zero them out in {lit}`E * B`. -/
+subdiagonal entries of column `0` chosen to zero them out in `E * B`. -/
 def elimination {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F) (_h : B 0 0 ≠ 0) :
     Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
   fun i j => if i = j then 1 else if j = 0 then -B i 0 / B 0 0 else 0
@@ -122,7 +153,7 @@ lemma elimination_unitLowerTriangular {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (
     unfold elimination
     simp
 
-/-- The pivot entry {lit}`(0,0)` is unchanged by the elimination step. -/
+/-- The pivot entry `(0,0)` is unchanged by the elimination step. -/
 lemma elimination_mul_zero_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
     (h : B 0 0 ≠ 0) : (elimination B h * B) 0 0 = B 0 0 := by
   rw [Matrix.mul_apply]
@@ -139,7 +170,7 @@ lemma elimination_mul_zero_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)
       simp [hEq, hb0']
   · simp
 
-/-- The elimination step zeroes out column {lit}`0` below the pivot. -/
+/-- The elimination step zeroes out column `0` below the pivot. -/
 lemma elimination_mul_col_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
     (h : B 0 0 ≠ 0) (i : Fin n) : (elimination B h * B) (Fin.succ i) 0 = 0 := by
   rw [Matrix.mul_apply]
@@ -184,8 +215,8 @@ lemma elimination_mul_col_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1))
   field_simp [h]
   ring
 
-/-- A permutation of {lit}`Fin n` other than the identity sends some index strictly
-below itself (so the identity is the only {lit}`≤`-monotone bijection). -/
+/-- A permutation of `Fin n` other than the identity sends some index strictly
+below itself (so the identity is the only `≤`-monotone bijection). -/
 lemma exists_lt_of_perm_ne_id {n : ℕ} {σ : Equiv.Perm (Fin n)} (hσ : σ ≠ 1) :
     ∃ i : Fin n, σ i < i := by
   classical
@@ -206,7 +237,7 @@ lemma exists_lt_of_perm_ne_id {n : ℕ} {σ : Equiv.Perm (Fin n)} (hσ : σ ≠ 
 
 
 /-- A unit lower-triangular matrix has determinant one: in the expansion, every
-non-identity permutation {lit}`σ` picks a factor {lit}`M (σ i) i` with {lit}`σ i < i`, which
+non-identity permutation `σ` picks a factor `M (σ i) i` with `σ i < i`, which
 is zero. -/
 lemma det_unitLowerTriangular {n : ℕ} {M : Matrix (Fin n) (Fin n) F}
     (hM : IsUnitLowerTriangular M) : M.det = 1 := by
@@ -230,10 +261,9 @@ lemma det_unitLowerTriangular {n : ℕ} {M : Matrix (Fin n) (Fin n) F}
     exfalso
     exact hσ1 (by simp)
 
-/-- Reindex {lit}`Fin (n + 1)` as {lit}`Fin 1 ⊕ Fin n`: row {lit}`0 ↦ inl ()`, row
-{lit}`succ i ↦ inr i`. This is the bookkeeping that lets an
-{lit}`(n + 1) × (n + 1)` matrix be viewed as a {lit}`2 × 2` block matrix with a
-{lit}`1 × 1` top-left block. -/
+/-- Reindex `Fin (n + 1)` as `Fin 1 ⊕ Fin n`: row `0 ↦ inl ()`, row `succ i ↦ inr i`.
+This is the bookkeeping that lets an `(n + 1) × (n + 1)` matrix be viewed as a
+`2 × 2` block matrix with a `1 × 1` top-left block. -/
 noncomputable def finOneSumFin (n : ℕ) : Fin (n + 1) ≃ Fin 1 ⊕ Fin n where
   toFun i := if h : i = 0 then Sum.inl ⟨0, by omega⟩ else Sum.inr (i.pred h)
   invFun x := Sum.elim (fun _ => (0 : Fin (n + 1))) Fin.succ x
@@ -253,13 +283,11 @@ noncomputable def finOneSumFin (n : ℕ) : Fin (n + 1) ≃ Fin 1 ⊕ Fin n where
     | inr i =>
         simp
 
-/-- The {lit}`inl` summand reindexes back to row {lit}`0` of {lit}`Fin (n + 1)`. -/
 @[simp]
 lemma finOneSumFin_symm_inl (n : ℕ) (j : Fin 1) :
     (finOneSumFin n).symm (Sum.inl j) = (0 : Fin (n + 1)) := by
   rfl
 
-/-- The {lit}`inr` summand reindexes back to row {lit}`succ i` of {lit}`Fin (n + 1)`. -/
 @[simp]
 lemma finOneSumFin_symm_inr (n : ℕ) (i : Fin n) :
     (finOneSumFin n).symm (Sum.inr i) = Fin.succ i := by
@@ -269,9 +297,9 @@ lemma finOneSumFin_symm_inr (n : ℕ) (i : Fin n) :
 lemma det_const_fin_one (x : F) : Matrix.det (fun _ _ : Fin 1 => x) = x := by
   simp
 
-/-- The determinant of a block-lower-triangular matrix: if the first column of {lit}`C`
-below the pivot is all zero, then {lit}`det C = C 0 0 · det M` where {lit}`M` is the Schur
-complement (the {lit}`succ`/{lit}`succ` submatrix).  This is the {lit}`n + 1` case of CLRS
+/-- The determinant of a block-lower-triangular matrix: if the first column of `C`
+below the pivot is all zero, then `det C = C 0 0 · det M` where `M` is the Schur
+complement (the `succ`/`succ` submatrix).  This is the `n + 1` case of CLRS
 Lemma 28.1's determinant step. -/
 lemma det_block_schur {n : ℕ} (C : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
     (h : ∀ i : Fin n, C (Fin.succ i) 0 = 0) :
@@ -302,8 +330,8 @@ lemma det_block_schur {n : ℕ} (C : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
       rw [h11, h22]
       rw [det_const_fin_one]
 
-/-- The block-diagonal matrix {lit}`diag(1, P₁)` with a {lit}`1 × 1` top-left block is the
-permutation matrix of the sum-of-permutations {lit}`sumCongr 1 σ₁`. -/
+/-- The block-diagonal matrix `diag(1, P₁)` with a `1 × 1` top-left block is the
+permutation matrix of the sum-of-permutations `sumCongr 1 σ₁`. -/
 lemma fromBlocks_one_zero_zero_permMatrix {n : ℕ} (σ₁ : Equiv.Perm (Fin n)) :
     Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 0 (σ₁.permMatrix F) =
       (Equiv.Perm.sumCongr (1 : Equiv.Perm (Fin 1)) σ₁).permMatrix F := by
@@ -313,7 +341,7 @@ lemma fromBlocks_one_zero_zero_permMatrix {n : ℕ} (σ₁ : Equiv.Perm (Fin n))
       Equiv.toPEquiv_apply, Pi.single_apply, eq_comm]
 
 /-- Conjugating a permutation by an equivalence reindexes its permutation matrix:
-{lit}`(e.trans σ.trans e.symm).permMatrix = σ.permMatrix.reindex e.symm e.symm`. -/
+`(e.trans σ.trans e.symm).permMatrix = σ.permMatrix.reindex e.symm e.symm`. -/
 lemma conjPermMatrix {m n : Type*} [DecidableEq m] [DecidableEq n] (e : m ≃ n)
     (σ : Equiv.Perm n) :
     Equiv.Perm.permMatrix F ((e.trans σ).trans e.symm) = (σ.permMatrix F).reindex e.symm e.symm := by
@@ -322,7 +350,7 @@ lemma conjPermMatrix {m n : Type*} [DecidableEq m] [DecidableEq n] (e : m ≃ n)
     Matrix.submatrix_apply, Equiv.trans_apply, Equiv.symm_symm, Equiv.apply_eq_iff_eq_symm_apply]
 
 set_option linter.unnecessarySimpa false in
-/-- If {lit}`i < j` in {lit}`Fin (n + 1)` then {lit}`j` is not the zero row. -/
+/-- If `i < j` in `Fin (n + 1)` then `j` is not the zero row. -/
 lemma ne_zero_of_lt_succ {n : ℕ} {i j : Fin (n + 1)} (hij : i < j) : j ≠ 0 := by
   intro hj0
   have hi0 : i < (0 : Fin (n + 1)) := by simpa [hj0] using hij
@@ -330,7 +358,7 @@ lemma ne_zero_of_lt_succ {n : ℕ} {i j : Fin (n + 1)} (hij : i < j) : j ≠ 0 :
   exact (Nat.not_lt_zero i.val) hi0v
 
 set_option linter.unnecessarySimpa false in
-/-- If {lit}`j < i` in {lit}`Fin (n + 1)` then {lit}`i` is not the zero row. -/
+/-- If `j < i` in `Fin (n + 1)` then `i` is not the zero row. -/
 lemma ne_zero_of_lt {n : ℕ} {i j : Fin (n + 1)} (hji : j < i) : i ≠ 0 := by
   intro hi0
   have hj0 : j < (0 : Fin (n + 1)) := by simpa [hi0] using hji
@@ -338,12 +366,11 @@ lemma ne_zero_of_lt {n : ℕ} {i j : Fin (n + 1)} (hji : j < i) : i ≠ 0 := by
   exact (Nat.not_lt_zero j.val) hj0v
 
 /--
-**Theorem 28.1 (LUP decomposition).**  Every nonsingular {lit}`n × n` matrix {lit}`A`
-over a field admits an LUP decomposition: a permutation {lit}`σ`, a unit
-lower-triangular {lit}`L`, and an upper-triangular {lit}`U` such that
-{lit}`σ.permMatrix · A = L · U`.
+**Theorem 28.1 (LUP decomposition).**  Every nonsingular `n × n` matrix `A` over a
+field admits an LUP decomposition: a permutation `σ`, a unit lower-triangular `L`,
+and an upper-triangular `U` such that `σ.permMatrix · A = L · U`.
 
-The proof is by induction on {lit}`n`.  In the inductive step we pivot the first column
+The proof is by induction on `n`.  In the inductive step we pivot the first column
 so the leading entry is nonzero, perform one Gaussian-elimination step to zero the
 subdiagonal, apply the induction hypothesis to the Schur complement, and assemble
 the resulting block matrices.
@@ -579,6 +606,360 @@ theorem exists_lup_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : 
             exact hji
           exact Fin.succ_lt_succ_iff.mp hlt
       exact ⟨σ₀, L, U, hL, hU, hEq⟩
+
+/--
+**LUP-SOLVE correctness (CLRS §28.1, Algorithm LUP-SOLVE).**  If
+`σ.permMatrix · A = L · U` is an LUP decomposition and `y`, `x` are obtained by
+forward and backward substitution (`L·y = σ.permMatrix·b`, `U·x = y`), then `x`
+solves the linear system `A·x = b`.
+
+The proof composes the two substitution equations through the factorization:
+`σ.permMatrix·(A·x) = (σ.permMatrix·A)·x = (L·U)·x = L·(U·x) = L·y =
+σ.permMatrix·b`, then cancels the permutation matrix `σ.permMatrix` (whose
+`mulVec` is the bijection `v ↦ v∘σ`).
+-/
+theorem lup_solve_correct {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F} {σ : Equiv.Perm (Fin n)}
+    (hLUP : σ.permMatrix F * A = L * U) (b x y : Fin n → F)
+    (hLy : L *ᵥ y = σ.permMatrix F *ᵥ b) (hUx : U *ᵥ x = y) :
+    A *ᵥ x = b := by
+  have hPAx : σ.permMatrix F *ᵥ (A *ᵥ x) = σ.permMatrix F *ᵥ b := by
+    rw [Matrix.mulVec_mulVec]
+    rw [hLUP]
+    rw [← Matrix.mulVec_mulVec]
+    rw [hUx]
+    exact hLy
+  have hcomp : (A *ᵥ x) ∘ σ = b ∘ σ := by
+    rw [Matrix.permMatrix_mulVec, Matrix.permMatrix_mulVec] at hPAx
+    exact hPAx
+  have h := congrArg (fun f : Fin n → F => f ∘ σ.symm) hcomp
+  simpa [Function.comp_assoc] using h
+
+/-- A nonsingular matrix over a field solves every linear system: if
+`A.det ≠ 0` then for every right-hand side `b` there is `x` with `A·x = b`. -/
+theorem exists_solution_of_nonsingular {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : A.det ≠ 0)
+    (b : Fin n → F) : ∃ x : Fin n → F, A *ᵥ x = b := by
+  have hunit : IsUnit A := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    exact isUnit_iff_ne_zero.mpr hA
+  exact Matrix.mulVec_surjective_iff_isUnit.2 hunit b
+
+/--
+**Forward substitution (CLRS Lemma 28.1).**  `forwardSubst L b` is the vector
+`y` computed by forward substitution through the unit lower-triangular matrix
+`L`; the recursion splits off the first component `y₀ = b₀` and substitutes the
+tail through the trailing block `L₂`.
+
+The constructor `forwardSubst` is total (any `L`); its correctness
+({lit}`forwardSubst_spec`) requires `L` to be unit lower-triangular.
+-/
+noncomputable def forwardSubst : ∀ {n : ℕ}, Matrix (Fin n) (Fin n) F → (Fin n → F) → (Fin n → F)
+  | 0, _, _ => fun i => Fin.elim0 i
+  | n + 1, L, b =>
+      let L2 : Matrix (Fin n) (Fin n) F := fun i j => L (Fin.succ i) (Fin.succ j)
+      Fin.cons (b 0) (forwardSubst L2 (fun i => b (Fin.succ i) - L (Fin.succ i) 0 * b 0))
+
+/-- The trailing block of a unit lower-triangular matrix is unit lower-triangular. -/
+lemma unitLowerTriangular_tail {n : ℕ} (L : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
+    (hL : IsUnitLowerTriangular L) :
+    IsUnitLowerTriangular (fun i j : Fin n => L (Fin.succ i) (Fin.succ j)) := by
+  constructor
+  · intro i j hij
+    exact hL.1 (Fin.succ_lt_succ_iff.mpr hij)
+  · intro i
+    exact hL.2 (Fin.succ i)
+
+/--
+**Forward substitution solves `L·y = b` (CLRS Lemma 28.1).**  For a unit
+lower-triangular `L`, `forwardSubst L b` satisfies `L·(forwardSubst L b) = b`.
+-/
+theorem forwardSubst_spec : ∀ {n : ℕ} (L : Matrix (Fin n) (Fin n) F) (b : Fin n → F),
+    IsUnitLowerTriangular L → L *ᵥ forwardSubst L b = b
+  | 0, _, _, _ => by
+      ext i
+      exact Fin.elim0 i
+  | n + 1, L, b, hL =>
+      by
+      let L2 : Matrix (Fin n) (Fin n) F := fun i j => L (Fin.succ i) (Fin.succ j)
+      let b2 : Fin n → F := fun i => b (Fin.succ i) - L (Fin.succ i) 0 * b 0
+      have hL2 : IsUnitLowerTriangular L2 := by
+        simpa [L2] using (unitLowerTriangular_tail L hL)
+      have hspec : L2 *ᵥ forwardSubst L2 b2 = b2 := forwardSubst_spec L2 b2 hL2
+      change L *ᵥ Fin.cons (b 0) (forwardSubst L2 b2) = b
+      ext i
+      rcases Fin.eq_zero_or_eq_succ i with rfl | ⟨i', rfl⟩
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_succ]
+        have h00 : L 0 0 = 1 := hL.2 0
+        have h0k : ∀ k : Fin n, L 0 (Fin.succ k) = 0 := fun k => hL.1 (Fin.succ_pos k)
+        simp [Fin.cons_zero, Fin.cons_succ, h00, h0k]
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_succ]
+        simp [Fin.cons_zero, Fin.cons_succ]
+        change L (Fin.succ i') 0 * b 0 + (L2 *ᵥ forwardSubst L2 b2) i' = b (Fin.succ i')
+        rw [hspec]
+        simp [b2]
+
+/--
+**Backward substitution (CLRS Lemma 28.2).**  `backSubst U y` is the vector
+`x` computed by backward substitution through the upper-triangular matrix `U`;
+the recursion splits off the last component `xₙ = yₙ/Uₙₙ` and substitutes the
+tail through the leading block `U₁`.
+
+The constructor `backSubst` is total (any `U`); its correctness
+({lit}`backSubst_spec`) requires `U` to be upper-triangular with nonzero
+diagonal.
+-/
+noncomputable def backSubst : ∀ {n : ℕ}, Matrix (Fin n) (Fin n) F → (Fin n → F) → (Fin n → F)
+  | 0, _, _ => fun i => Fin.elim0 i
+  | n + 1, U, y =>
+      let last : Fin (n + 1) := Fin.last n
+      let U1 : Matrix (Fin n) (Fin n) F := fun i j => U (Fin.castSucc i) (Fin.castSucc j)
+      let xl : F := y last / U last last
+      Fin.snoc (backSubst U1 (fun i => y (Fin.castSucc i) - U (Fin.castSucc i) last * xl)) xl
+
+/-- The leading block of an upper-triangular matrix is upper-triangular. -/
+lemma upperTriangular_tail {n : ℕ} (U : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
+    (hU : IsUpperTriangular U) :
+    IsUpperTriangular (fun i j : Fin n => U (Fin.castSucc i) (Fin.castSucc j)) := by
+  intro i j hji
+  exact hU (Fin.castSucc_lt_castSucc_iff.mpr hji)
+
+/--
+**Backward substitution solves `U·x = y` (CLRS Lemma 28.2).**  For an
+upper-triangular `U` with nonzero diagonal, `backSubst U y` satisfies
+`U·(backSubst U y) = y`.
+-/
+theorem backSubst_spec : ∀ {n : ℕ} (U : Matrix (Fin n) (Fin n) F) (y : Fin n → F),
+    IsUpperTriangular U → (∀ i : Fin n, U i i ≠ 0) → U *ᵥ backSubst U y = y
+  | 0, _, _, _, _ => by ext i; exact Fin.elim0 i
+  | n + 1, U, y, hU, hdiag =>
+      by
+      let last : Fin (n + 1) := Fin.last n
+      let U1 : Matrix (Fin n) (Fin n) F := fun i j => U (Fin.castSucc i) (Fin.castSucc j)
+      let xl : F := y last / U last last
+      let y1 : Fin n → F := fun i => y (Fin.castSucc i) - U (Fin.castSucc i) last * xl
+      have hU1 : IsUpperTriangular U1 := by
+        simpa [U1] using (upperTriangular_tail U hU)
+      have hdiag1 : ∀ i : Fin n, U1 i i ≠ 0 := by
+        intro i
+        exact hdiag (Fin.castSucc i)
+      have hspec : U1 *ᵥ backSubst U1 y1 = y1 := backSubst_spec U1 y1 hU1 hdiag1
+      change U *ᵥ Fin.snoc (backSubst U1 y1) xl = y
+      ext i
+      rcases Fin.eq_castSucc_or_eq_last i with ⟨i', rfl⟩ | rfl
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_castSucc]
+        simp [Fin.snoc_castSucc, Fin.snoc_last]
+        change (U1 *ᵥ backSubst U1 y1) i' + U (Fin.castSucc i') last * xl = y (Fin.castSucc i')
+        rw [hspec]
+        simp [y1]
+      · unfold Matrix.mulVec dotProduct
+        rw [Fin.sum_univ_castSucc]
+        have hUlast : ∀ j' : Fin n, U last (Fin.castSucc j') = 0 := by
+          intro j'
+          exact hU (Fin.castSucc_lt_last j')
+        simp [Fin.snoc_castSucc, Fin.snoc_last]
+        have hz : (∑ x : Fin n, U (Fin.last n) (Fin.castSucc x) * backSubst U1 y1 x) = 0 := by
+          refine Finset.sum_eq_zero ?_
+          intro x hx
+          have h0 : U (Fin.last n) (Fin.castSucc x) = 0 := hU (Fin.castSucc_lt_last x)
+          simp [h0]
+        rw [hz]
+        simp [xl]
+        have hln : U last last ≠ 0 := hdiag last
+        field_simp [hln]
+        ring
+
+/--
+**LUP-SOLVE.**  `lupSolve σ L U b` solves `A·x = b` through an LUP
+decomposition `σ.permMatrix · A = L · U` by forward-substituting
+`L·y = σ.permMatrix·b` and then back-substituting `U·x = y`.  It is the
+constructive counterpart of the compositional theorem `lup_solve_correct`.
+-/
+noncomputable def lupSolve {n : ℕ} (σ : Equiv.Perm (Fin n)) (L U : Matrix (Fin n) (Fin n) F)
+    (b : Fin n → F) : Fin n → F :=
+  backSubst U (forwardSubst L (σ.permMatrix F *ᵥ b))
+
+/-- **LUP-SOLVE correctness.**  If `σ.permMatrix · A = L · U` is an LUP
+decomposition with `L` unit lower-triangular and `U` upper-triangular with
+nonzero diagonal, then `lupSolve σ L U b` solves `A·x = b`. -/
+theorem lupSolve_correct {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F} {σ : Equiv.Perm (Fin n)}
+    (hLUP : σ.permMatrix F * A = L * U) (hL : IsUnitLowerTriangular L)
+    (hU : IsUpperTriangular U) (hUdiag : ∀ i : Fin n, U i i ≠ 0) (b : Fin n → F) :
+    A *ᵥ lupSolve σ L U b = b := by
+  unfold lupSolve
+  let Pb : Fin n → F := σ.permMatrix F *ᵥ b
+  let y : Fin n → F := forwardSubst L Pb
+  have hLy : L *ᵥ y = σ.permMatrix F *ᵥ b := by
+    simpa [y, Pb] using (forwardSubst_spec L Pb hL)
+  have hUx : U *ᵥ (backSubst U y) = y := by
+    exact backSubst_spec U y hU hUdiag
+  exact lup_solve_correct hLUP b (backSubst U y) y hLy hUx
+
+/-- A nonsingular matrix over a field has a unique solution for every linear
+system: if `A·x₁ = b` and `A·x₂ = b` then `x₁ = x₂`. -/
+theorem unique_solution_of_nonsingular {n : ℕ} (A : Matrix (Fin n) (Fin n) F) (hA : A.det ≠ 0)
+    (b x1 x2 : Fin n → F) (h1 : A *ᵥ x1 = b) (h2 : A *ᵥ x2 = b) : x1 = x2 := by
+  have hunit : IsUnit A := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    exact isUnit_iff_ne_zero.mpr hA
+  apply (Matrix.mulVec_injective_iff_isUnit.2 hunit)
+  calc
+    A *ᵥ x1 = b := h1
+    _ = A *ᵥ x2 := h2.symm
+
+/-- A unit lower-triangular system `L·x = b` has at most one solution
+(CLRS Lemma 28.1: forward substitution computes the unique one). -/
+theorem unique_solution_unitLowerTriangular {n : ℕ} (L : Matrix (Fin n) (Fin n) F)
+    (hL : IsUnitLowerTriangular L) (b x1 x2 : Fin n → F)
+    (h1 : L *ᵥ x1 = b) (h2 : L *ᵥ x2 = b) : x1 = x2 := by
+  have hunit : IsUnit L := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    rw [det_unitLowerTriangular hL]
+    exact isUnit_one
+  apply (Matrix.mulVec_injective_iff_isUnit.2 hunit)
+  calc
+    L *ᵥ x1 = b := h1
+    _ = L *ᵥ x2 := h2.symm
+
+/-- An upper-triangular system `U·x = y` with nonzero diagonal has at most one
+solution (CLRS Lemma 28.2: backward substitution computes the unique one). -/
+theorem unique_solution_upperTriangular {n : ℕ} (U : Matrix (Fin n) (Fin n) F)
+    (hU : IsUpperTriangular U) (hdiag : ∀ i : Fin n, U i i ≠ 0)
+    (y x1 x2 : Fin n → F) (h1 : U *ᵥ x1 = y) (h2 : U *ᵥ x2 = y) : x1 = x2 := by
+  have hdet : U.det ≠ 0 := by
+    rw [Matrix.det_of_upperTriangular]
+    · exact Finset.prod_ne_zero_iff.2 (fun i hi => hdiag i)
+    · intro i j hij
+      exact hU hij
+  have hunit : IsUnit U := by
+    rw [Matrix.isUnit_iff_isUnit_det]
+    exact isUnit_iff_ne_zero.mpr hdet
+  apply (Matrix.mulVec_injective_iff_isUnit.2 hunit)
+  calc
+    U *ᵥ x1 = y := h1
+    _ = U *ᵥ x2 := h2.symm
+
+/--
+**Determinant from the LUP decomposition (CLRS Corollary to Theorem 28.1).**
+If `σ.permMatrix · A = L · U` with `L` unit lower-triangular, then
+`det U = sign σ · det A`: the determinants of `A` and `U` agree up to sign, so
+a determinant is computable from an LUP decomposition in cubic time.
+-/
+theorem det_eq_sign_mul_det_of_lup {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F}
+    {σ : Equiv.Perm (Fin n)} (hLUP : σ.permMatrix F * A = L * U) (hL : IsUnitLowerTriangular L) :
+    (Equiv.Perm.sign σ : F) * A.det = U.det := by
+  calc
+    (Equiv.Perm.sign σ : F) * A.det = (σ.permMatrix F).det * A.det := by rw [Matrix.det_permutation]
+    _ = (σ.permMatrix F * A).det := by rw [Matrix.det_mul]
+    _ = (L * U).det := by rw [hLUP]
+    _ = L.det * U.det := by rw [Matrix.det_mul]
+    _ = 1 * U.det := by rw [det_unitLowerTriangular hL]
+    _ = U.det := by ring
+
+/-- In an LUP decomposition of a nonsingular matrix, the upper factor `U` is
+nonsingular. -/
+theorem det_ne_zero_of_lup {n : ℕ} {A L U : Matrix (Fin n) (Fin n) F}
+    {σ : Equiv.Perm (Fin n)} (hLUP : σ.permMatrix F * A = L * U) (hL : IsUnitLowerTriangular L)
+    (hA : A.det ≠ 0) : U.det ≠ 0 := by
+  intro hU0
+  have h := det_eq_sign_mul_det_of_lup hLUP hL
+  have hz : (Equiv.Perm.sign σ : F) * A.det = 0 := by
+    rw [h, hU0]
+  have hc_ne : (Equiv.Perm.sign σ : F) ≠ 0 := by
+    rcases Int.units_eq_one_or (Equiv.Perm.sign σ) with h | h
+    · rw [h]
+      norm_num
+    · rw [h]
+      norm_num
+  have hA0 : A.det = 0 := by
+    calc
+      A.det = (Equiv.Perm.sign σ : F)⁻¹ * ((Equiv.Perm.sign σ : F) * A.det) := by
+        field_simp [hc_ne]
+      _ = 0 := by rw [hz]; ring
+  exact hA hA0
+
+/-- An upper-triangular matrix with nonzero determinant has every diagonal
+entry nonzero. -/
+lemma upperTriangular_diag_ne_zero_of_det_ne_zero {n : ℕ} (U : Matrix (Fin n) (Fin n) F)
+    (hU : IsUpperTriangular U) (hdet : U.det ≠ 0) : ∀ i : Fin n, U i i ≠ 0 := by
+  intro i
+  have hdiag : U.det = ∏ i, U i i := Matrix.det_of_upperTriangular (by
+    intro a b hab
+    exact hU hab)
+  intro hzero
+  apply hdet
+  rw [hdiag]
+  exact Finset.prod_eq_zero (Finset.mem_univ i) hzero
+
+section Cost
+
+/-- Abstract forward+backward substitution cost for LUP-SOLVE: the
+`n(n-1)/2` inner-loop operations of the two substitution loops, `Θ(n²)`
+(CLRS §28.1). -/
+noncomputable def substitutionCost (n : ℕ) : ℝ := (n : ℝ) * (n : ℝ) / 2
+
+/-- Abstract LUP-decomposition cost: the `~n³/3` elimination operations of
+the LUP-DECOMPOSITION loops, `Θ(n³)` (CLRS §28.1). -/
+noncomputable def lupDecompositionCost (n : ℕ) : ℝ := (n : ℝ) ^ 3 / 3
+
+/-- Abstract matrix-inversion cost via an LUP decomposition: `Θ(n³)`
+operations (CLRS §28.2). -/
+noncomputable def matrixInversionCost (n : ℕ) : ℝ := (n : ℝ) ^ 3
+
+/-- Abstract Cholesky-decomposition cost: `Θ(n³)` operations (CLRS §28.3). -/
+noncomputable def choleskyCost (n : ℕ) : ℝ := (n : ℝ) ^ 3
+
+/-- The substitution cost is at most `n²`: `n(n-1)/2 ≤ n²`. -/
+theorem substitutionCost_quadratic_bound (n : ℕ) : substitutionCost n ≤ (n : ℝ) ^ 2 := by
+  unfold substitutionCost
+  nlinarith [sq_nonneg (n : ℝ)]
+
+/-- **LUP-SOLVE runs in `Θ(n²)`** (CLRS §28.1): the substitution cost is
+`O(n²)`. -/
+theorem substitutionCost_isBigO :
+    CLRS.Chapter03.isBigO substitutionCost (fun n => (n : ℝ) ^ 2) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨1, by norm_num, 0, fun n hn => ?_⟩
+  have hnonneg : 0 ≤ substitutionCost n := by
+    unfold substitutionCost
+    positivity
+  have hnonneg2 : 0 ≤ (n : ℝ) ^ 2 := sq_nonneg (n : ℝ)
+  rw [abs_of_nonneg hnonneg, abs_of_nonneg hnonneg2]
+  simpa using (substitutionCost_quadratic_bound n)
+
+/-- The LUP-decomposition cost is at most `n³`: `n³/3 ≤ n³`. -/
+theorem lupDecompositionCost_cubic_bound (n : ℕ) : lupDecompositionCost n ≤ (n : ℝ) ^ 3 := by
+  unfold lupDecompositionCost
+  have h3 : (0 : ℝ) ≤ (n : ℝ) ^ 3 := by positivity
+  nlinarith
+
+/-- **LUP decomposition runs in `Θ(n³)`** (CLRS §28.1): the elimination cost
+is `O(n³)`. -/
+theorem lupDecompositionCost_isBigO :
+    CLRS.Chapter03.isBigO lupDecompositionCost (fun n => (n : ℝ) ^ 3) := by
+  rw [CLRS.Chapter03.isBigO_iff]
+  refine ⟨1, by norm_num, 0, fun n hn => ?_⟩
+  have hnonneg : 0 ≤ lupDecompositionCost n := by
+    unfold lupDecompositionCost
+    positivity
+  have hnonneg2 : 0 ≤ (n : ℝ) ^ 3 := by positivity
+  rw [abs_of_nonneg hnonneg, abs_of_nonneg hnonneg2]
+  simpa using (lupDecompositionCost_cubic_bound n)
+
+/-- **Matrix inversion runs in `Θ(n³)`** (CLRS §28.2): inverting through an
+LUP decomposition is `O(n³)`. -/
+theorem matrixInversionCost_isBigO :
+    CLRS.Chapter03.isBigO matrixInversionCost (fun n => (n : ℝ) ^ 3) := by
+  exact CLRS.Chapter03.isBigO_refl matrixInversionCost
+
+/-- **Cholesky decomposition runs in `Θ(n³)`** (CLRS §28.3): the recursion is
+`O(n³)`. -/
+theorem choleskyCost_isBigO :
+    CLRS.Chapter03.isBigO choleskyCost (fun n => (n : ℝ) ^ 3) := by
+  exact CLRS.Chapter03.isBigO_refl choleskyCost
+
+end Cost
 
 end Chapter28
 

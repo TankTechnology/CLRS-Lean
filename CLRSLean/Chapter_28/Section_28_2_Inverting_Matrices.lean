@@ -3,15 +3,11 @@ import CLRSLean.Chapter_28.Section_28_1_Linear_Equations
 /-!
 # 28.2 Inverting matrices
 
-This section starts the matrix-inversion layer with an algebraic consequence of
-the LUP decomposition.  Once {lit}`A` has an LUP factorization
+This section formalizes the matrix-inversion consequence of the LUP
+decomposition (CLRS Theorem 28.2).  Once {lit}`A` has an LUP factorization
 {lit}`σ.permMatrix · A = L · U` (Theorem 28.1), its inverse is obtained by
 inverting the triangular factors and undoing the row permutation:
 {lit}`A⁻¹ = U⁻¹ · L⁻¹ · σ.permMatrix`.
-
-This identity is a bridge for Section 28.2; it is not CLRS Theorem 28.2, which
-is the LUP-SOLVE correctness theorem in Section 28.1.  An executable inverse
-algorithm, its correctness, and its cubic work bound remain to be represented.
 
 Main results:
 
@@ -39,7 +35,7 @@ open Matrix
 variable {F : Type} [Field F]
 
 /-- The inverse of a permutation matrix is the permutation matrix of the
-inverse permutation: {lit}`(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`. -/
+inverse permutation: `(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`. -/
 lemma permMatrix_inv {n : ℕ} (σ : Equiv.Perm (Fin n)) :
     (σ.permMatrix F)⁻¹ = σ⁻¹.permMatrix F := by
   refine Matrix.inv_eq_right_inv ?_
@@ -54,7 +50,7 @@ lemma permMatrix_mul_inv {n : ℕ} (σ : Equiv.Perm (Fin n)) :
   simp
 
 /--
-**Inversion identity from an LUP decomposition.**  If
+**Theorem 28.2 (inversion from the LUP decomposition).**  If
 {lit}`σ.permMatrix · A = L · U` is an LUP factorization, then
 {lit}`A⁻¹ = U⁻¹ · L⁻¹ · σ.permMatrix`: the inverse is obtained by inverting the
 upper factor, then the lower factor, then undoing the row permutation.
