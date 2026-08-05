@@ -3729,15 +3729,26 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Spec.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Main.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Step.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/RecurrenceLinks.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/Bounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/WitnessInput.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/MapInvariance.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/LowerBound.lean`
 - Interface tests: `Tests/Chapter_27_Matrix_Interface.lean` and
   `Tests/Chapter_27_ParallelMerge_Interface.lean`
-- Status: `partial` (executable P-ADD and race-free P-MATMUL correctness,
+- Status: `main-proof-complete` (executable P-ADD and race-free P-MATMUL correctness,
   execution-attached cost equalities, and their all-input asymptotics are
   proved; executable P-MERGE value correctness, exact child accounting, its
   actual three-quarter split bound, one-step costs, and global pointwise linear
   work and matching quadratic-logarithmic span bounds are proved; executable
-  P-MERGE-SORT and its value correctness are proved; its execution work/span
-  bounds and recurrence links remain open)
+  P-MERGE-SORT value correctness, exact cost steps, pointwise logarithmic-linear
+  work, universal cubic-log span, and a matching worst-family span witness are
+  proved; the executable cost gap is closed)
 - Model:
   - `CLRS.Chapter27.Costed` attaches a pure value to exact work and span, with
     sequential composition and deterministic balanced `par4`/`par8` trees.
@@ -3751,7 +3762,8 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     log-squared span.
   - `pMergeWork`, `pMergeSpan`, `pMergeSortWork`, `pMergeSortSpan`,
     `strassenWork`, and `strassenSpan` are recurrence-level cost models.  The
-    executable P-MERGE-SORT value layer now exists; only its cost links remain.
+    executable P-MERGE-SORT cost layer is connected to its recurrence model by
+    two-sided constant-factor links.
 - Proved executable matrix boundary:
   - `CLRS.Chapter27.Costed.pure`, `charge`, `map`, `seq`, `par`, `par4`, and
     `par8` form the value/work/span execution layer.
@@ -3825,8 +3837,25 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `List.take_append_drop`.
   - `pMergeSort_value_sorted`, `pMergeSort_value_perm`, and
     `pMergeSort_value_length` expose the three reader-facing projections.
+  - `CLRS.Chapter27.pMergeSort_work_step_eq` and
+    `CLRS.Chapter27.pMergeSort_span_step_eq` expose the exact larger-input
+    costs: parallel child sorts, one fork/join, and the sequential P-MERGE.
+  - The recurrence links sandwich actual work between a fixed fraction and a
+    fixed multiple of `pMergeSortWork`; the upper link uses P-MERGE's stronger
+    logarithmic-potential invariant to absorb every fork charge.
+  - `CLRS.Chapter27.pMergeSort_work_lower` and
+    `CLRS.Chapter27.pMergeSort_work_upper` prove all-input executable work is
+    Θ(n log n), with explicit natural-number constants.
+  - `CLRS.Chapter27.pMergeSort_span_upper` proves every execution has span at
+    most `256 * (log₂(length) + 1)^3`.
+  - `CLRS.Chapter27.worstMergeSortInput` recursively interleaves order-embedded
+    copies of its preceding level and has exact length `2^k`.  Order-preserving
+    map invariance carries the recursive critical path through the embedding;
+    the interleaved P-MERGE witness contributes a quadratic term at each level.
+    Consequently `CLRS.Chapter27.pMergeSort_worstFamily_span_lower` proves
+    `(k+1)^3 ≤ 64 * span`, matching the cubic-log upper bound.
   - Focused executable examples cover empty and singleton costs, an odd
-    reversed list, and duplicate-heavy data.
+    reversed list, duplicate-heavy data, and small witness-family instances.
 - Proved execution-cost equalities:
   - `CLRS.Chapter27.pAdd_work_eq` and `CLRS.Chapter27.pAdd_span_eq` identify
     the work and span carried by P-ADD with `pAddWork (2^k)` and
@@ -3878,9 +3907,10 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Proof pattern: prove each natural-valued recurrence monotone, sandwich an
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
-- Current gap: prove executable P-MERGE-SORT's pointwise work/span bounds and
-  link its carried costs to the proved recurrence-level P-MERGE-SORT models.
-  The executable algorithm and complete value correctness are proved.
+- Completion boundary: the represented Chapter 27 main-text core has no open
+  proof group.  The executable P-MERGE-SORT cost gap is closed.  Extracting the
+  retained parallel-Strassen recurrence extension is an organizational change,
+  not a remaining Chapter 27 theorem obligation.
 
 ## Chapter 32 - String Matching
 
