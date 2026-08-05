@@ -33,8 +33,15 @@ documented as informal in CLRS and intentionally left unformalized).
 ## The error bound — verified roadmap
 
 **Statement to prove** (`CLRS.Chapter31`): for odd composite `n`,
-`#{a ∈ (Z/nZ)ˣ : strongPseudoprime n a} ≤ Nat.totient n / 4`
-(or the CLRS form `≤ (n−1)/4`).
+`#{a ∈ (Z/nZ)ˣ : strongPseudoprime n a} ≤ (n−1)/4`.
+
+> ⚠️ **CORRECTION (verified 2026-08-05): do NOT target `≤ Nat.totient n / 4`.**
+> It is FALSE for `n = 9`: liars(9) = {1, 8}, |L| = 2 > φ(9)/4 = 6/4 = 1.
+> The `(n−1)/4` form holds for all odd composite `n` (n=9 gives equality:
+> 2 ≤ 8/4).  Rationale: φ(n)/4 fails exactly when the "good subgroup"
+> index is 3, which happens only for `n = 3²` (see Milestone 4 notes).
+> Since `φ(n) ≤ n−1`, bounding by `(n−1)/4` is the right, exception-free
+> target and is strictly stronger than CLRS Theorem 31.38 (witnesses ≥ (n−1)/2).
 
 ### ⚠️ Verified negative result (do NOT waste time on this)
 
@@ -99,45 +106,83 @@ page #1770.
 
 **Gaps that remain:**
 
-- `(Z/p^e)ˣ` cyclicity (primitive roots mod odd prime powers, e ≥ 2) is NOT
-  in Mathlib (`ZMod p^e` is not a field, so the finite-field theorem does not
-  apply).  This is needed for the prime-power count
-  `|{x ∈ (Z/p^e)ˣ : x^m = 1}| = gcd(m, φ(p^e)) = gcd(m, p−1)`.
-  Two options: (a) prove primitive roots mod odd prime powers (classical,
-  substantial); or (b) **avoid it via a Hensel-style lifting argument**: for
-  `m` coprime to `p`, the number of solutions to `x^m ≡ 1 (mod p^e)` equals
-  the number mod `p` (unique lift), reducing to `(Z/p)ˣ` which IS cyclic.
 - `Nat.card (ZMod n)ˣ = Nat.totient n` is NOT a named lemma
   (`Nat.card_units_zmod` does not exist), but the pieces exist:
   `Nat.card_units [GroupWithZero α]`, `Nat.totient` is
   `φ n = #{a ∈ range n | n.Coprime a}` (so prove units of `ZMod n` ≃ coprime
   elements of `{0,…,n−1}`).
 
-**Suggested milestone order (revised):**
+> ✅ **UPDATE (verified 2026-08-05) — the two big gaps are CLOSED in Mathlib:**
+>
+> 1. **`(Z/p^e)ˣ` cyclicity for odd prime powers IS in Mathlib.**
+>    `RingTheory/ZMod/UnitsCyclic.lean` (added 2025, after this handoff was
+>    written):
+>    - `ZMod.isCyclic_units_of_prime_pow (p) (hp : p.Prime) (hp2 : p ≠ 2) (e : ℕ) :
+>      IsCyclic (ZMod (p ^ e))ˣ`
+>    - `ZMod.isCyclic_units_prime (p) (hp : p.Prime) : IsCyclic (ZMod p)ˣ`
+>    - `ZMod.orderOf_one_add_mul_prime`, `ZMod.orderOf_five` (for `2^n`)
+>    **No Hensel lifting needed.**  Milestone-3 per-prime-power counts can use
+>    cyclicity of `(Z/p^e)ˣ` directly.
+>
+> 2. **`ZMod.card_units_eq_totient (n) [NeZero n] [Fintype (ZMod n)ˣ] :
+>    Fintype.card (ZMod n)ˣ = φ n`** exists (`Data/Nat/Totient.lean`).  So
+>    `Nat.card (ZMod n)ˣ = φ n` is one `Nat.card_eq_fintype_card` step away.
+>    (Note: `Fintype (ZMod n)ˣ` is NOT an automatic instance — add
+>    `letI := Fintype.ofFinite (ZMod n)ˣ` or prove it; `ZMod n` needs
+>    `[NeZero n]` for `.val` and `Fintype`.)
+>
+> 3. **Verified counting formulas** (re-derived and checked on n = 9, 15, 25,
+>    65, 561):
+>    - `|S(n)| = 2^(k(ν−1)+1) · ∏ gcd(t, d_i)` where `p_i − 1 = 2^(s_i)·d_i`
+>      (d_i odd), `k` = # distinct prime factors.  The handoff's original
+>      formula was correct — a naive re-count that mixed the "≡ 1" and "≡ −1"
+>      CRT components over-counted; the `±1` is a *global* condition mod n, so
+>      S splits into the all-`+1` part and all-`−1` part, each a product over
+>      prime powers of the single-congruence count `#(x^m ≡ ε mod p^e) =
+>      gcd(m, φ(p^e))`.
+>    - Exact liar count `|L| = G · (1 + 2^k + … + 2^(k(ν−1))) =
+>      G · (2^(kν)−1)/(2^k−1)`, `G = ∏ gcd(t, d_i)`; each "≡ −1 at index i"
+>      set has size `G·2^(ki)` for `i < ν`, and 0 for `i ≥ ν`.
+>    - `|S(n)| ≤ (n−1)/4` for ALL odd composite n (the three-case analysis of
+>      Milestone 4; k=1 gives |S| = 2^ν·gcd(t,d) ≤ p−1 ≤ (p^e−1)/4; k=2 uses
+>      the `q′ ∤ t ⟹ q′/gcd(t,q′) ≥ 3` parity step; k≥3 is easy via
+>      `∏(p_i−1) ≤ (n−1)/2`).
 
-0. Cyclicity of `(Z/p)ˣ` — DONE (Mathlib instance).  Set up the generator +
-   order + `Nat.card (ZMod n)ˣ = φ(n)` bridge lemmas in 31.8.
-1. Decide prime-power strategy: (a) prove `(Z/p^e)ˣ` cyclic, or (b) the
-   Hensel-lifting reduction.  Either is a substantial sub-battle.
-2. ν(n), S(n), S is a subgroup, L ⊆ S.
-3. |S| counting via CRT + the p-cyclic counts.
-4. Three-case bound ≤ φ(n)/4.
+**Suggested milestone order (revised, 2026-08-05):**
+
+0. **DONE (Mathlib)** — cyclicity of `(Z/p)ˣ` *and* `(Z/p^e)ˣ` (odd prime
+   powers), plus `ZMod.card_units_eq_totient`.  No Hensel, no primitive-root
+   proof needed.
+1. **Milestone 1 — ν(n) and S(n)**: define `ν(n)` (min over prime factors of
+   `v_2(p−1)`), define `S(n)` in `(ZMod n)ˣ`, prove **S is a subgroup**.
+2. **Milestone 2 — L ⊆ S**: every strong liar lies in `S(n)` (order-of-element
+   argument mod each prime divisor; `strongPseudoprime_pow` already proved).
+3. **Milestone 3 — |S| counting**: `|S(n)| = 2^(k(ν−1)+1) · ∏ gcd(t, d_i)` via
+   CRT + cyclicity of `(Z/p^e)ˣ`.  The single-congruence count
+   `#(x^m ≡ ε mod p^e) = gcd(m, φ(p^e))` in a cyclic group is NOT in Mathlib
+   (`IsCyclic.card_pow_eq_one_le` only gives `≤ n`) — write it
+   (`Nat.card {x : α // x^n = 1} = Nat.gcd n (Fintype.card α)`, via
+   `IsCyclic.image_range_card` + generator parametrization).
+4. **Milestone 4 — three-case bound**: prove `|S| ≤ (n−1)/4` (NOT `≤ φ(n)/4`,
+   which fails at n=9): k≥3 easy; k=2 parity case (`q′ ∤ t ⟹ ≥ 3`); k=1 via
+   `p−1 ≤ (p^e−1)/4`.
 
 ## Concrete attack order (next session)
 
-1. **Milestone 0 — infrastructure**: explore and, if needed, prove
-   cyclicity of `(Z/p)ˣ` (units mod a prime form a cyclic group).  This is
-   the foundation everything else needs.
-2. **Milestone 1 — ν(n) and S(n)**: define `ν(n)` (min over prime factors of
-   `v_2(p−1)`, via `Nat.factorization`), define `S(n)` in `(ZMod n)ˣ`, prove
-   **S is a subgroup**.
-3. **Milestone 2 — L ⊆ S**: prove every strong liar is in `S(n)`, using
-   `strongPseudoprime_pow` (already proved) and the order-of-element argument
-   modulo each prime divisor.
-4. **Milestone 3 — |S| counting**: via CRT and cyclicity, prove
-   `|S| = 2 · 2^((ν−1)k) · ∏ gcd(t, φ(p_i^{e_i}))`.
-5. **Milestone 4 — three-case bound**: prove `|S| ≤ φ(n)/4` (or `≤ (n−1)/4`)
-   in the three cases.
+1. **Milestone 1 — ν(n) and S(n)**: define `ν(n)` (min over prime factors of
+   `v_2(p−1)`), define `S(n)` in `(ZMod n)ˣ`, prove **S is a subgroup**.
+2. **Milestone 2 — L ⊆ S**: prove every strong liar is in `S(n)`, using the
+   order-of-element argument modulo each prime divisor (needs `orderOf_pow`,
+   `orderOf_dvd_iff_pow_eq_one`, and the
+   `e = 2·gcd(e, 2^i·t) ⟹ 2^(i+1) | e` parity lemma).
+3. **Milestone 3 — |S| counting**: via CRT and cyclicity of `(Z/p^e)ˣ`,
+   `|S| = 2^(k(ν−1)+1) · ∏ gcd(t, φ(p_i^{e_i}))`.
+4. **Milestone 4 — three-case bound**: prove `|S| ≤ (n−1)/4` in the three
+   cases (k≥3, k=2, k=1).
+5. **Wrap-up**: update `docs/clrs-proof-progress.csv` (bump tracked count,
+   move `isCarmichael`-era note), `docs/proof-map.md`, chapter guide
+   `CLRSLean/Chapter_31.lean` (remove the deferred item), regenerate
+   `CLRSLean/Progress.lean`, run `check_repository.py`, then the PR.
 6. **Wrap-up**: update `docs/clrs-proof-progress.csv` (bump tracked count,
    move `isCarmichael`-era note), `docs/proof-map.md`, chapter guide
    `CLRSLean/Chapter_31.lean` (remove the deferred item), regenerate
