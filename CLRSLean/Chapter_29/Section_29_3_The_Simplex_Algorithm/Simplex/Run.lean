@@ -3,7 +3,7 @@ import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalenc
 /-!
 # 29.3 Fuelled SIMPLEX runs
 
-The internal runner makes every textbook iteration executable while keeping
+The internal runner defines every textbook iteration while keeping
 fuel exhaustion explicit.  Correctness of optimal and unbounded results is
 proved independently of the later Bland finite-termination bound.
 -/

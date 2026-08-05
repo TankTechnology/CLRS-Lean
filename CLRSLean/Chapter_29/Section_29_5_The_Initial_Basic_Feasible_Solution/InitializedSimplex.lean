@@ -23,7 +23,9 @@ inductive InitializedSimplexResult (P : StandardLP m n) where
 noncomputable def initializedSimplex (P : StandardLP m n) :
     P.InitializedSimplexResult := by
   classical
-  exact if hfeasible : ∃ x, P.IsFeasible x then
+  exact if hphaseOne : P.phaseOneTerminal.v = 0 then
+    let hfeasible : ∃ x, P.IsFeasible x :=
+      P.isFeasible_iff_phaseOneTerminal_v_eq_zero.mpr hphaseOne
     let D := P.phaseTwoStart
     let hD : D.IsBasicFeasible := P.phaseTwoStart_isBasicFeasible hfeasible
     match D.simplex hD with
@@ -47,7 +49,10 @@ noncomputable def initializedSimplex (P : StandardLP m n) :
             P.lockedAuxiliary hlockedDictionary
         .unbounded (P.lockedAuxiliary_unbounded_to_original hlocked)
   else
-    .infeasible hfeasible
+    .infeasible (by
+      intro hfeasible
+      exact hphaseOne
+        (P.isFeasible_iff_phaseOneTerminal_v_eq_zero.mp hfeasible))
 
 /-- The initialized solver always certifies infeasibility, returns an optimal
 assignment, or proves the objective unbounded. -/

@@ -190,4 +190,3 @@ branches, optimality, unboundedness, run correctness, Bland no-cycling, and
 finite termination.  Main results receive `#print axioms` checks.  The focused
 gate is Chapter 29 only, both Chapter 29 interfaces, the Section 29.3 literate
 target, repository checks, marker scan, and `git diff --check`.
-
