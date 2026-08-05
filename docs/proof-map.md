@@ -3693,13 +3693,18 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `CLRS.Chapter27.parallelLoop_span_le_log`
     (all-input span bound `span ≤ w + Nat.log 2 n + 1`)
 
-### Section 27.2-27.4 - Multithreaded Algorithms
+### Sections 27.2-27.3 - Multithreaded Algorithms
 
 - Lean sources:
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S1_CostModel.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Definitions.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Monotonicity.lean`
+  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean`
@@ -3910,9 +3915,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   arbitrary positive input between `2 ^ log₂ n` and the next power of two,
   then reuse Chapter 4's exact-power-to-all-input transfer and scale bridges.
 - Completion boundary: the represented Chapter 27 main-text core has no open
-  proof group.  The executable P-MERGE-SORT cost gap is closed.  Extracting the
-  retained parallel-Strassen recurrence extension is an organizational change,
-  not a remaining Chapter 27 theorem obligation.
+  proof group.  The executable P-MERGE-SORT cost gap is closed.  The retained
+  parallel-Strassen recurrences are already isolated in the explicitly labeled
+  compatibility extension and are not a remaining Chapter 27 obligation.
 
 ## Chapter 32 - String Matching
 

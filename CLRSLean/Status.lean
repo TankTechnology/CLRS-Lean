@@ -165,10 +165,12 @@ the detailed maintainer ledger.
   {lit}`worstMergeSortInput` family and
   {lit}`pMergeSort_worstFamily_span_lower` match the cubic-logarithmic upper
   bound, so executable work is Θ(n log n) and span is Θ(log³ n) in the
-  worst case.  P-MERGE, P-MERGE-SORT, and retained parallel Strassen also have
-  recurrence-level power-of-two and all-input analyses.  The executable
-  P-MERGE-SORT cost gap is closed; extracting the retained Strassen extension
-  is organizational and leaves no represented Chapter 27 core proof gap.
+  worst case.  P-MERGE and P-MERGE-SORT also have recurrence-level
+  power-of-two and all-input analyses.  The retained parallel-Strassen
+  recurrences have been isolated in an explicitly labeled compatibility
+  extension with their legacy public names preserved.  The executable
+  P-MERGE-SORT cost gap is closed, and no represented Chapter 27 core proof
+  gap remains.
 
 ## Structured But Partial
 

@@ -131,8 +131,8 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   bounds give Θ(n log n), the universal span upper bound is cubic-logarithmic,
   and {name}`CLRS.Chapter27.worstMergeSortInput` supplies a matching recursive
   lower-witness family.  Thus the executable P-MERGE-SORT cost gap is closed.
-  The merge-based and parallel-Strassen recurrences also
-  have monotonicity, adjacent-power sandwich, and all-input Θ theorems.
+  The merge-based recurrences also have monotonicity, adjacent-power
+  sandwiches, and all-input Θ theorems.
   Main declarations:
   {lit}`CLRS.Chapter27.Costed`,
   {lit}`CLRS.Chapter27.Costed.seq`, {lit}`CLRS.Chapter27.Costed.par`,
@@ -200,7 +200,12 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.pMergeSortSpan_pow_two`,
   {lit}`CLRS.Chapter27.pMergeSortSpan_monotone`,
   {lit}`CLRS.Chapter27.pMergeSortSpan_power_sandwich`,
-  {lit}`CLRS.Chapter27.pMergeSortSpan_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pMergeSortSpan_allInput_bigTheta`.
+
+* Parallel Strassen compatibility extension.
+  The historical Chapter 27 import surface retains a separate recurrence-only
+  analysis for a parallelized Strassen variant.  It is not presented as a
+  Chapter 27 main-text section.  Main declarations:
   {lit}`CLRS.Chapter27.strassenWork`, {lit}`CLRS.Chapter27.strassenWork_pow_two`,
   {lit}`CLRS.Chapter27.strassenWork_monotone`,
   {lit}`CLRS.Chapter27.strassenWork_power_sandwich`,
@@ -215,8 +220,8 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 The represented Chapter 27 main-text core is complete: algorithms,
 correctness, execution-attached work/span bounds, recurrence analyses, and the
 greedy-scheduler theorem are connected at their reader-facing interfaces.
-Moving the retained parallel-Strassen recurrence extension out of this chapter
-is an organizational extraction, not a remaining Chapter 27 proof obligation.
+The retained parallel-Strassen recurrences are already isolated behind their
+compatibility extension and are not a Chapter 27 proof obligation.
 -/
 
 namespace CLRS
