@@ -3,6 +3,7 @@ import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions
 import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables
 import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot
 import CLRSLean.Chapter_29.Section_29_4_Duality
 import CLRSLean.Chapter_29.Section_29_4_Duality.Definitions
 import CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality

@@ -37,5 +37,36 @@ example {m n : ℕ} (D : Dictionary m n) :
 #check StandardLP.initialDictionary_objectiveRhs
 #check StandardLP.initialDictionary_isBasicFeasible_iff
 
+#check Dictionary.pivotSwap
+#check Dictionary.pivotRowB
+#check Dictionary.pivotRowCoeff
+#check Dictionary.pivot
+#check Dictionary.pivot_basicVar_leaving
+#check Dictionary.pivot_nonbasicVar_entering
+#check Dictionary.pivot_basicVar_of_ne
+#check Dictionary.pivot_nonbasicVar_of_ne
+#check Dictionary.pivot_b_leaving
+#check Dictionary.pivot_b_of_ne
+#check Dictionary.pivot_a_leaving_entering
+#check Dictionary.pivot_a_leaving_of_ne
+#check Dictionary.pivot_a_of_ne_entering
+#check Dictionary.pivot_a_of_ne
+#check Dictionary.pivot_v_apply
+#check Dictionary.pivot_c_entering
+#check Dictionary.pivot_c_of_ne
+
+noncomputable def pivotExample : Dictionary 1 1 where
+  labels := Equiv.refl _
+  b := fun _ => 6
+  a := fun _ _ => 2
+  v := 1
+  c := fun _ => 3
+
+example :
+    let h : pivotExample.a 0 0 ≠ 0 := by norm_num [pivotExample]
+    (pivotExample.pivot 0 0 h).b 0 = 3 ∧
+      (pivotExample.pivot 0 0 h).v = 10 := by
+  norm_num [pivotExample, Dictionary.pivot, Dictionary.pivotRowB]
+
 end Chapter29
 end CLRS
