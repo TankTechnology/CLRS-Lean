@@ -974,6 +974,54 @@ lemma card_pow_le_card_pow_eq_one {α : Type*} [CommGroup α] [Fintype α] [Deci
     rw [this]
     exact Nat.zero_le _
 
+/--
+**CRT decomposition of the `m`-torsion.**  The number of units `x` modulo `n`
+with `x^m = 1` is the product over the prime factors `p` of `n` of the number
+of units modulo `p^(e_p)` (`e_p = v_p(n)`) with `x^m = 1`.
+-/
+lemma card_pow_eq_one_crt {n m : ℕ} (hn : n ≠ 0) :
+    Nat.card {x : (ZMod n)ˣ // x ^ m = 1} =
+      ∏ p : n.primeFactors, Nat.card {x : (ZMod (p ^ (n.factorization p)))ˣ // x ^ m = 1} := by
+  classical
+  let e : (ZMod n)ˣ ≃* Π p : n.primeFactors, (ZMod (p ^ (n.factorization p)))ˣ :=
+    (Units.mapEquiv (ZMod.equivPi n hn : ZMod n ≃* Π p : n.primeFactors, ZMod (p ^ n.factorization p))).trans
+      (MulEquiv.piUnits)
+  have h1 : Nat.card {x : (ZMod n)ˣ // x ^ m = 1} =
+      Nat.card {f : Π p : n.primeFactors, (ZMod (p ^ (n.factorization p)))ˣ // f ^ m = 1} := by
+    apply Nat.card_congr
+    refine (Equiv.subtypeEquiv e ?_)
+    intro x
+    constructor
+    · intro hx
+      calc
+        (e x) ^ m = e (x ^ m) := (map_pow e x m).symm
+        _ = 1 := by simp [hx]
+    · intro hx
+      apply e.injective
+      calc
+        e (x ^ m) = (e x) ^ m := map_pow e x m
+        _ = 1 := hx
+        _ = e 1 := by simp
+  have h2 : Nat.card {f : Π p : n.primeFactors, (ZMod (p ^ (n.factorization p)))ˣ // f ^ m = 1} =
+      ∏ p : n.primeFactors, Nat.card {b : (ZMod (p ^ (n.factorization p)))ˣ // b ^ m = 1} := by
+    have h3 : Nat.card {f : Π p : n.primeFactors, (ZMod (p ^ (n.factorization p)))ˣ // f ^ m = 1} =
+        Nat.card {f : Π p : n.primeFactors, (ZMod (p ^ (n.factorization p)))ˣ //
+          ∀ p, (f p) ^ m = 1} := by
+      apply Nat.card_congr
+      refine (Equiv.subtypeEquiv (Equiv.refl _) ?_)
+      intro f
+      constructor
+      · intro hf p
+        have := congrFun hf p
+        simpa using this
+      · intro hf
+        funext p
+        simpa using hf p
+    rw [h3]
+    rw [Nat.card_congr (Equiv.subtypePiEquivPi (p := fun p y => y ^ m = 1))]
+    exact Nat.card_pi
+  rw [h1, h2]
+
 end Chapter31
 
 end CLRS
