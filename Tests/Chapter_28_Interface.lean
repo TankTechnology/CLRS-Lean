@@ -47,13 +47,22 @@ namespace Chapter28
 
 open Matrix
 
--- Section 28.1: LUP decomposition (Theorem 28.1) and LUP-SOLVE
+-- Section 28.1: LUP decomposition (Theorem 28.1), substitution (Lemmas 28.1-28.2), LUP-SOLVE
 #check IsUpperTriangular
 #check IsLowerTriangular
 #check IsUnitLowerTriangular
 #check exists_lup_decomposition
+#check forwardSubst
+#check forwardSubst_spec
+#check backSubst
+#check backSubst_spec
+#check lupSolve
+#check lupSolve_correct
 #check lup_solve_correct
 #check exists_solution_of_nonsingular
+#check unique_solution_of_nonsingular
+#check unique_solution_unitLowerTriangular
+#check unique_solution_upperTriangular
 
 -- Section 28.2: inversion from LUP (Theorem 28.2)
 #check permMatrix_inv
@@ -78,6 +87,7 @@ open Matrix
 #check IsLowerTriangularPosDiag
 #check choleskyFactor
 #check cholesky_decomposition
+#check cholesky_unique
 
 example {n : ℕ} (A : Matrix (Fin n) (Fin n) ℝ) (hA : IsSymPosDef A) : 0 < A.det :=
   hA.det_pos

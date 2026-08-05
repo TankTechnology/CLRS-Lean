@@ -4029,9 +4029,27 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `U·x = y` hold, then `A·x = b`.  The proof composes the two equations
     through the factorization and cancels the permutation matrix (`mulVec` of a
     permutation matrix is `v ↦ v∘σ`).
+  - `forwardSubst` + `forwardSubst_spec` (CLRS Lemma 28.1): the constructive
+    forward-substitution vector through a unit lower-triangular matrix,
+    recursively `y₀ = b₀` then the tail through the trailing block, with
+    `L·(forwardSubst L b) = b`.
+  - `backSubst` + `backSubst_spec` (CLRS Lemma 28.2): the constructive
+    backward-substitution vector through an upper-triangular matrix with
+    nonzero diagonal, recursively `xₙ = yₙ/Uₙₙ` then the tail through the
+    leading block, with `U·(backSubst U y) = y`.
+  - `lupSolve` + `lupSolve_correct`: `lupSolve σ L U b` (forward-then-back
+    substitution through the factors) solves `A·x = b` given an LUP
+    decomposition, composing `forwardSubst_spec` and `backSubst_spec` through
+    `lup_solve_correct`.
   - `exists_solution_of_nonsingular`: a nonsingular matrix over a field solves
     every linear system (`∃ x, A·x = b`), via `Matrix.isUnit_iff_isUnit_det`
     and `Matrix.mulVec_surjective_iff_isUnit`.
+  - `unique_solution_of_nonsingular`, `unique_solution_unitLowerTriangular`,
+    and `unique_solution_upperTriangular`: nonsingular, unit-lower-triangular,
+    and upper-triangular systems with nonzero diagonal have at most one
+    solution, via `mulVec_injective_iff_isUnit` (for the triangular cases,
+    `det_unitLowerTriangular` and `Matrix.det_of_upperTriangular` give
+    nonsingularity).
 ### Section 28.2 - Inverting Matrices
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`
@@ -4083,6 +4101,12 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `L = choleskyFactor A L₂`, and proves `A = L·Lᵀ` entrywise via the block
     identities `choleskyFactor_mul_00/0_succ/succ_0/succ_succ_eq` (using
     `Real.sq_sqrt` and symmetry of `A`).
+  - `cholesky_unique`: the Cholesky factor is unique — if `L₁` and `L₂` are
+    lower-triangular with positive diagonal and `L₁·L₁ᵀ = L₂·L₂ᵀ`, then
+    `L₁ = L₂`.  The block recursion compares `(0,0)` entries (equal squares,
+    both positive), the first column, and applies the induction hypothesis to
+    the trailing blocks; the entry expansions use
+    `lowerTri_mul_transpose_00/0_succ/succ_succ`.
 
 ## Chapter 32 - String Matching
 
