@@ -60,11 +60,13 @@ CSV instead of copied from the stale branch.
 butterfly.  Its evaluator consumes two ring values and returns the pair
 
 ```text
-(u + twiddle * v, u - twiddle * v).
+let product = twiddle * v
+(u + product, u - product).
 ```
 
-This is the primitive semantic object counted as one butterfly and expanded
-to one multiplication plus two addition/subtraction gates.
+This explicit sharing is the primitive semantic object counted as one
+butterfly and expanded to one multiplication plus two addition/subtraction
+gates.
 
 ### Butterfly-layer circuit
 

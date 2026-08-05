@@ -4320,11 +4320,17 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `CLRS.Chapter30.paddedIterativeFFTWork_allInput_bigTheta` proves all-input
     `Theta(n log n)`
 - Layered circuit:
-  - `CLRS.Chapter30.fftNetwork_eval` proves that the explicit ordered network
-    evaluates to the iterative FFT
-  - `CLRS.Chapter30.fftNetwork_butterflyCount` proves circuit butterflies
-    `k * 2^(k-1)`, and `CLRS.Chapter30.fftNetwork_butterflyDepth` proves
-    butterfly depth `k`
+  - `CLRS.Chapter30.FFTButterflyGate` stores one fixed twiddle and its `eval`
+    operation performs the radix-2 butterfly; `ButterflyLayerCircuit` stores
+    one such gate at every local offset
+  - `CLRS.Chapter30.canonicalButterflyLayerCircuit_eval` bridges a stored gate
+    family to `butterflyLayer`, and `CLRS.Chapter30.fftStageCircuit_eval`
+    recursively bridges the actual stage syntax to `fftStage`
+  - `CLRS.Chapter30.fftNetwork_eval` therefore proves that interpreting the
+    circuits stored by the ordered network evaluates to the iterative FFT
+  - `CLRS.Chapter30.fftNetwork_butterflyCount` and
+    `CLRS.Chapter30.fftNetwork_butterflyDepth` fold the same stored syntax and
+    prove `k * 2^(k-1)` butterflies at depth `k`
   - treating twiddle powers as fixed constants and bit reversal as wiring,
     `CLRS.Chapter30.fftNetwork_primitiveGateCount` proves primitive gates
     `3 * k * 2^(k-1)`, while
