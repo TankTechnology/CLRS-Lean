@@ -1022,6 +1022,56 @@ lemma card_pow_eq_one_crt {n m : ℕ} (hn : n ≠ 0) :
     exact Nat.card_pi
   rw [h1, h2]
 
+/-- An odd divisor of `2·u` divides `u`. -/
+lemma odd_dvd_of_dvd_mul_two {d u : ℕ} (hd2 : d ∣ 2 * u) (hdodd : Odd d) : d ∣ u := by
+  have hcop : d.Coprime 2 := Nat.coprime_two_right.mpr hdodd
+  exact hcop.dvd_of_dvd_mul_right (by simpa [mul_comm] using hd2)
+
+/-- A divisor of an odd number is odd. -/
+lemma odd_of_dvd_odd {d t : ℕ} (ht : Odd t) (hdt : d ∣ t) : Odd d := by
+  by_contra hd
+  have heven : Even d := (Nat.not_odd_iff_even.mp hd)
+  have h2d : 2 ∣ d := even_iff_two_dvd.mp heven
+  exact ht.not_two_dvd_nat (h2d.trans hdt)
+
+/--
+For `m = 2^(ν−1)·t` with `t` odd and `2^ν | p−1`, the greatest common divisor
+of `m` and `p−1` is at most `(p−1)/2`: its 2-adic valuation is at most `ν−1`
+and its odd part divides the odd part `(p−1)/2^ν`.
+-/
+lemma gcd_pow_mul_le_half {p ν t : ℕ} (hp : 0 < p - 1) (hν : 1 ≤ ν) (ht : Odd t)
+    (hdvd : 2 ^ ν ∣ p - 1) :
+    Nat.gcd (2 ^ (ν - 1) * t) (p - 1) ≤ (p - 1) / 2 := by
+  rcases hdvd with ⟨u, hu⟩
+  have hu_pos : 0 < u := by
+    rw [hu] at hp
+    apply Nat.pos_of_ne_zero
+    intro hu0
+    rw [hu0] at hp
+    norm_num at hp
+  have hu2 : 2 ^ ν * u = 2 ^ (ν - 1) * (2 * u) := by
+    rw [← mul_assoc]
+    congr 1
+    rw [← pow_succ, Nat.sub_add_cancel hν]
+  rw [hu, hu2]
+  have hg : (2 ^ (ν - 1) * t).gcd (2 ^ (ν - 1) * (2 * u)) = 2 ^ (ν - 1) * t.gcd (2 * u) := by
+    change gcd (2 ^ (ν - 1) * t) (2 ^ (ν - 1) * (2 * u)) = 2 ^ (ν - 1) * gcd t (2 * u)
+    rw [gcd_mul_left]
+    simp
+  rw [hg]
+  have hgu : Nat.gcd t (2 * u) ≤ u := by
+    have hd2u : Nat.gcd t (2 * u) ∣ 2 * u := Nat.gcd_dvd_right _ _
+    have hdodd : Odd (Nat.gcd t (2 * u)) :=
+      odd_of_dvd_odd (d := Nat.gcd t (2 * u)) ht (Nat.gcd_dvd_left _ _)
+    have hdu : Nat.gcd t (2 * u) ∣ u :=
+      odd_dvd_of_dvd_mul_two (d := Nat.gcd t (2 * u)) hd2u hdodd
+    exact Nat.le_of_dvd hu_pos hdu
+  have hdiv : (2 ^ (ν - 1) * (2 * u)) / 2 = 2 ^ (ν - 1) * u := by
+    rw [show 2 ^ (ν - 1) * (2 * u) = 2 * (2 ^ (ν - 1) * u) by ring]
+    exact Nat.mul_div_right (2 ^ (ν - 1) * u) (by norm_num)
+  rw [hdiv]
+  exact Nat.mul_le_mul_left (2 ^ (ν - 1)) hgu
+
 end Chapter31
 
 end CLRS
