@@ -37,6 +37,11 @@ Main results:
   prime (via {lit}`modeq_neg_one_of_sq_eq_one`, the roots-of-unity fact).
   Consequently {lit}`not_witness_of_prime` (a prime has no witness) and
   {lit}`witness_not_prime` (a witness certifies compositeness) hold.
+- **Error-bound foundation**: {lit}`strongPseudoprime_pow` — every strong
+  probable prime satisfies `a^(n−1) ≡ 1 (mod n)`, so every strong liar lies
+  in the kernel of `a ↦ a^(n−1)` (the first step toward showing the liars
+  form a subgroup of the units); {lit}`modeq_pow_two_sub_one` is the
+  `(n−1)² ≡ 1 (mod n)` fact used there.
 
 Notation:
 
