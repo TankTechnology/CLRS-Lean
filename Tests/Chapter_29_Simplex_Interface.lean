@@ -115,6 +115,17 @@ example :
 #check Dictionary.unbounded_of_entering_column
 #check Dictionary.SimplexStepResult.unboundedEntering
 #check Dictionary.simplexStep_unbounded_correct
+#check Dictionary.Equivalent
+#check Dictionary.Equivalent.refl
+#check Dictionary.Equivalent.symm
+#check Dictionary.Equivalent.trans
+#check Dictionary.pivot_equivalent
+#check Dictionary.basicVariables
+#check Dictionary.eq_basicAssignment_of_satisfies_of_nonbasic_zero
+#check Dictionary.Equivalent.basicAssignment_eq_of_basicVariables_eq
+#check Dictionary.Equivalent.v_eq_of_basicVariables_eq
+#check Dictionary.Equivalent.isOptimalAssignment
+#check Dictionary.Equivalent.isUnbounded
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
@@ -130,6 +141,10 @@ example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
 #print axioms Dictionary.simplexStep_optimal_correct
 #print axioms Dictionary.unbounded_of_entering_column
 #print axioms Dictionary.simplexStep_unbounded_correct
+#print axioms Dictionary.pivot_equivalent
+#print axioms Dictionary.Equivalent.basicAssignment_eq_of_basicVariables_eq
+#print axioms Dictionary.Equivalent.isOptimalAssignment
+#print axioms Dictionary.Equivalent.isUnbounded
 
 end Chapter29
 end CLRS
