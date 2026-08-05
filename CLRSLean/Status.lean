@@ -159,10 +159,16 @@ the detailed maintainer ledger.
   three-quarter shrinks per binary-log level.  Executable P-MERGE-SORT now
   performs the textbook midpoint split, parallel recursive calls, and P-MERGE;
   {lit}`pMergeSort_correct` proves sortedness, permutation, and exact output
-  length for every input.  P-MERGE, P-MERGE-SORT, and retained parallel
-  Strassen have recurrence-level power-of-two and all-input analyses.  The
-  remaining P-MERGE-SORT core is to connect its carried execution costs to
-  pointwise work/span bounds and those recurrence models.
+  length for every input.  Its exact step equations and recurrence links yield
+  the pointwise {lit}`pMergeSort_work_lower`, {lit}`pMergeSort_work_upper`, and
+  {lit}`pMergeSort_span_upper` theorems.  The recursively interleaved
+  {lit}`worstMergeSortInput` family and
+  {lit}`pMergeSort_worstFamily_span_lower` match the cubic-logarithmic upper
+  bound, so executable work is Θ(n log n) and span is Θ(log³ n) in the
+  worst case.  P-MERGE, P-MERGE-SORT, and retained parallel Strassen also have
+  recurrence-level power-of-two and all-input analyses.  The executable
+  P-MERGE-SORT cost gap is closed; extracting the retained Strassen extension
+  is organizational and leaves no represented Chapter 27 core proof gap.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric

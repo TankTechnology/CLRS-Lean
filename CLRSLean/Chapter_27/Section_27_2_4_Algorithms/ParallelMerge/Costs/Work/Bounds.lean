@@ -59,10 +59,11 @@ private theorem lower_of_total [LinearOrder α] (n : ℕ) :
         subst n
         omega
 
-/-- Stronger upper invariant.  The subtracted logarithmic potential is what
-prevents the logarithmic binary-search charge at each node from accumulating
-to an extra logarithmic factor. -/
-private theorem potential_of_total [LinearOrder α] (n : ℕ) :
+/-- Stronger internal-namespace upper invariant.  The subtracted logarithmic
+potential prevents the binary-search charges from adding an extra logarithmic
+factor.  It is visible so later divide-and-conquer algorithms can absorb their
+fork charge; the top-level P-MERGE interface remains the linear bound below. -/
+theorem potential_of_total [LinearOrder α] (n : ℕ) :
     ∀ (xs ys : List α), xs.length + ys.length = n →
       (pMerge xs ys).work + 8 * Nat.log 2 (n + 1) ≤ 64 * n := by
   induction n using Nat.strong_induction_on with

@@ -47,6 +47,16 @@ import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Definitio
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Spec
 import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Main
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Step
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.RecurrenceLinks
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work.Bounds
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.Bounds
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.MapInvariance
+import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound
 
 /-! # Chapter 27 - Multithreaded Algorithms
 
@@ -111,8 +121,12 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {name}`CLRS.Chapter27.pMergeSort` now implements the full midpoint-split,
   parallel-recursive, P-MERGE-based sorting control structure, and
   {name}`CLRS.Chapter27.pMergeSort_correct` proves that every result is a
-  sorted permutation of its input with unchanged length.  The merge-based and
-  parallel-Strassen recurrences also
+  sorted permutation of its input with unchanged length.  Exact one-step cost
+  equations connect this execution to its recurrence: the pointwise work
+  bounds give Θ(n log n), the universal span upper bound is cubic-logarithmic,
+  and {name}`CLRS.Chapter27.worstMergeSortInput` supplies a matching recursive
+  lower-witness family.  Thus the executable P-MERGE-SORT cost gap is closed.
+  The merge-based and parallel-Strassen recurrences also
   have monotonicity, adjacent-power sandwich, and all-input Θ theorems.
   Main declarations:
   {lit}`CLRS.Chapter27.Costed`,
@@ -156,6 +170,14 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.pMergeSort_value_sorted`,
   {lit}`CLRS.Chapter27.pMergeSort_value_perm`,
   {lit}`CLRS.Chapter27.pMergeSort_value_length`,
+  {lit}`CLRS.Chapter27.pMergeSort_work_step_eq`,
+  {lit}`CLRS.Chapter27.pMergeSort_span_step_eq`,
+  {lit}`CLRS.Chapter27.pMergeSort_work_lower`,
+  {lit}`CLRS.Chapter27.pMergeSort_work_upper`,
+  {lit}`CLRS.Chapter27.pMergeSort_span_upper`,
+  {lit}`CLRS.Chapter27.worstMergeSortInput`,
+  {lit}`CLRS.Chapter27.worstMergeSortInput_length`,
+  {lit}`CLRS.Chapter27.pMergeSort_worstFamily_span_lower`,
   {lit}`CLRS.Chapter27.pMergeWork`, {lit}`CLRS.Chapter27.pMergeWork_pow_two`,
   {lit}`CLRS.Chapter27.pMergeWork_monotone`,
   {lit}`CLRS.Chapter27.pMergeWork_power_sandwich`,
@@ -183,11 +205,13 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.strassenSpan_power_sandwich`,
   {lit}`CLRS.Chapter27.strassenSpan_allInput_bigTheta`.
 
-## Deferred work
+## Completion boundary
 
-* P-MERGE-SORT's executable algorithm and value correctness are complete.  Its
-  remaining core is the execution-cost layer: prove pointwise work/span bounds
-  and connect the carried costs to the recurrence-level P-MERGE-SORT analyses.
+The represented Chapter 27 main-text core is complete: algorithms,
+correctness, execution-attached work/span bounds, recurrence analyses, and the
+greedy-scheduler theorem are connected at their reader-facing interfaces.
+Moving the retained parallel-Strassen recurrence extension out of this chapter
+is an organizational extraction, not a remaining Chapter 27 proof obligation.
 -/
 
 namespace CLRS

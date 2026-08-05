@@ -345,10 +345,26 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Definitions",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs",
 ]
 "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness" = [
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Spec",
   "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Main",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Step",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.RecurrenceLinks",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work.Bounds",
+]
+"CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span" = [
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.Bounds",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.MapInvariance",
+  "CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -1027,6 +1043,36 @@ title = "27.3. P-MERGE-SORT Correctness — Specification"
 
 [modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness.Main"]
 title = "27.3. P-MERGE-SORT Correctness — Strong Induction"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs"]
+title = "27.3. P-MERGE-SORT — Costs"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Step"]
+title = "27.3. P-MERGE-SORT Costs — Exact Steps"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.RecurrenceLinks"]
+title = "27.3. P-MERGE-SORT Costs — Recurrence Links"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work"]
+title = "27.3. P-MERGE-SORT — Work"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work.Bounds"]
+title = "27.3. P-MERGE-SORT Work — Pointwise Bounds"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span"]
+title = "27.3. P-MERGE-SORT — Span"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.Bounds"]
+title = "27.3. P-MERGE-SORT Span — Pointwise Upper Bound"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput"]
+title = "27.3. P-MERGE-SORT Span — Recursive Witness Input"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.MapInvariance"]
+title = "27.3. P-MERGE-SORT Span — Order-Map Invariance"
+
+[modules."CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound"]
+title = "27.3. P-MERGE-SORT Span — Matching Lower Witness"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"

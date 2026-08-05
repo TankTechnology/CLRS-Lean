@@ -29,6 +29,14 @@ namespace CLRS.Chapter27
 #check pMergeSort_value_perm
 #check pMergeSort_value_length
 #check pMergeSort_correct
+#check pMergeSort_work_step_eq
+#check pMergeSort_span_step_eq
+#check pMergeSort_work_lower
+#check pMergeSort_work_upper
+#check pMergeSort_span_upper
+#check worstMergeSortInput
+#check worstMergeSortInput_length
+#check pMergeSort_worstFamily_span_lower
 
 /-! Executable P-MERGE-SORT covers both base branches, a reversed odd-length
 input, and duplicate-heavy data. -/
@@ -62,6 +70,36 @@ example : (pMergeSort [3, 1, 2, 1]).value.Perm [3, 1, 2, 1] := by
 
 example : (pMergeSort [5, 1, 4, 2, 3]).value.length = 5 := by
   simpa using pMergeSort_value_length [5, 1, 4, 2, 3]
+
+/-! Execution-attached P-MERGE-SORT costs cover the zero boundary, an odd
+input, and the recursively interleaved exact-power witness family. -/
+
+example : 0 * (Nat.log 2 0 + 1) ≤
+    16 * ((pMergeSort ([] : List ℕ)).work + 0 + 1) :=
+  pMergeSort_work_lower []
+
+example : (pMergeSort [5, 4, 3, 2, 1]).work ≤
+    128 * (5 + 1) * (Nat.log 2 5 + 1) :=
+  pMergeSort_work_upper [5, 4, 3, 2, 1]
+
+example : (pMergeSort [3, 1, 2, 1, 3, 2, 1]).span ≤
+    256 * (Nat.log 2 7 + 1) ^ 3 :=
+  pMergeSort_span_upper [3, 1, 2, 1, 3, 2, 1]
+
+example : worstMergeSortInput 0 = [0] := by native_decide
+example : worstMergeSortInput 2 = [0, 2, 1, 3] := by native_decide
+example (k : ℕ) : (worstMergeSortInput k).length = 2 ^ k :=
+  worstMergeSortInput_length k
+
+example : (0 + 1) ^ 3 ≤
+    64 * (pMergeSort (worstMergeSortInput 0)).span := by native_decide
+
+example : (2 + 1) ^ 3 ≤
+    64 * (pMergeSort (worstMergeSortInput 2)).span := by native_decide
+
+example (k : ℕ) : (k + 1) ^ 3 ≤
+    64 * (pMergeSort (worstMergeSortInput k)).span :=
+  pMergeSort_worstFamily_span_lower k
 
 /-! The executable P-MERGE boundary covers empty inputs, an empty secondary
 input, interleaving inputs, duplicates, and normalization by swapping the
@@ -303,5 +341,10 @@ example : (binaryLowerBound [1, 2, 2, 2, 3] 2).span ≤ Nat.log 2 5 + 1 := by
 #print axioms pMergeSort_value_sorted
 #print axioms pMergeSort_value_perm
 #print axioms pMergeSort_value_length
+#print axioms pMergeSort_work_lower
+#print axioms pMergeSort_work_upper
+#print axioms pMergeSort_span_upper
+#print axioms worstMergeSortInput_length
+#print axioms pMergeSort_worstFamily_span_lower
 
 end CLRS.Chapter27
