@@ -81,6 +81,7 @@ def validate_repository(root: Path) -> list[str]:
 
     by_chapter: dict[int, list[dict[str, str]]] = defaultdict(list)
     online_map_sources: set[str] = set()
+    online_map_by_topic: dict[str, dict[str, str]] = {}
     keys: set[tuple[int, str]] = set()
     for line, row in enumerate(map_rows, start=2):
         try:
@@ -98,6 +99,12 @@ def validate_repository(root: Path) -> list[str]:
                 errors.append(f"map line {line}: chapter 0 is reserved for online-material rows")
             if not section.startswith("online:"):
                 errors.append(f"map line {line}: online section must start with 'online:'")
+            else:
+                topic_id = section.removeprefix("online:").strip()
+                if not topic_id:
+                    errors.append(f"map line {line}: online topic_id is empty")
+                elif topic_id not in online_map_by_topic:
+                    online_map_by_topic[topic_id] = row
         elif 1 <= chapter <= 35:
             by_chapter[chapter].append(row)
             if row["migration_state"].strip() == "online-material":
@@ -138,6 +145,7 @@ def validate_repository(root: Path) -> list[str]:
         online_rows = []
 
     online_ledger_sources: set[str] = set()
+    online_ledger_by_topic: dict[str, dict[str, str]] = {}
     topic_ids: set[str] = set()
     for line, row in enumerate(online_rows, start=2):
         topic_id = row["topic_id"].strip()
@@ -145,6 +153,8 @@ def validate_repository(root: Path) -> list[str]:
             errors.append(f"online ledger line {line}: empty topic_id")
         elif topic_id in topic_ids:
             errors.append(f"duplicate online-material topic: {topic_id}")
+        else:
+            online_ledger_by_topic[topic_id] = row
         topic_ids.add(topic_id)
         for field in ("title", "legacy_location", "coverage_note"):
             if not row[field].strip():
@@ -171,6 +181,29 @@ def validate_repository(root: Path) -> list[str]:
         errors.append(f"online ledger source is absent from edition map: {source}")
     for source in sorted(online_map_sources - online_ledger_sources):
         errors.append(f"edition-map online source is absent from online ledger: {source}")
+
+    for topic_id in sorted(online_map_by_topic.keys() - online_ledger_by_topic.keys()):
+        errors.append(f"edition-map online topic is absent from online ledger: {topic_id}")
+    for topic_id in sorted(online_ledger_by_topic.keys() - online_map_by_topic.keys()):
+        errors.append(f"online ledger topic is absent from edition map: {topic_id}")
+    for topic_id in sorted(online_map_by_topic.keys() & online_ledger_by_topic.keys()):
+        map_row = online_map_by_topic[topic_id]
+        ledger_row = online_ledger_by_topic[topic_id]
+        for map_field, ledger_field, label in (
+            ("section_title", "title", "title"),
+            ("legacy_location", "legacy_location", "legacy_location"),
+            ("coverage_note", "coverage_note", "coverage_note"),
+        ):
+            if map_row[map_field].strip() != ledger_row[ledger_field].strip():
+                errors.append(
+                    f"online topic {topic_id} {label} differs between edition map and online ledger"
+                )
+        if split_source_modules(map_row["source_modules"]) != split_source_modules(
+            ledger_row["source_modules"]
+        ):
+            errors.append(
+                f"online topic {topic_id} source_modules differs between edition map and online ledger"
+            )
 
     online_umbrella = root / "CLRSLean" / "OnlineMaterial.lean"
     if not online_umbrella.is_file():

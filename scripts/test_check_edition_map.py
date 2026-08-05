@@ -191,6 +191,95 @@ class EditionMapTests(unittest.TestCase):
 
         self.assertIn("online ledger source is absent from edition map: CLRSLean.Legacy", errors)
 
+    def test_online_topic_metadata_must_match_ledger_row(self) -> None:
+        cases = (
+            (
+                "section_no",
+                "online:renamed",
+                "edition-map online topic is absent from online ledger: renamed",
+            ),
+            (
+                "section_title",
+                "Wrong title",
+                "online topic legacy title differs between edition map and online ledger",
+            ),
+            (
+                "legacy_location",
+                "Wrong location",
+                "online topic legacy legacy_location differs between edition map and online ledger",
+            ),
+            (
+                "coverage_note",
+                "Wrong note",
+                "online topic legacy coverage_note differs between edition map and online ledger",
+            ),
+        )
+        for field, wrong_value, expected in cases:
+            with self.subTest(field=field):
+                root = self.make_repo()
+                path = root / "docs" / "clrs-fourth-edition-map.csv"
+                rows = self.read_rows(path)
+                rows[-1][field] = wrong_value
+                with path.open("w", newline="", encoding="utf-8") as handle:
+                    writer = csv.DictWriter(handle, fieldnames=MAP_HEADER)
+                    writer.writeheader()
+                    writer.writerows(rows)
+
+                self.assertIn(expected, "\n".join(validate_repository(root)))
+
+    def test_online_source_modules_must_match_their_topic_not_only_global_set(self) -> None:
+        root = self.make_repo()
+        (root / "CLRSLean" / "Extra.lean").write_text(
+            "/-! Extra online material. -/\n", encoding="utf-8"
+        )
+        (root / "CLRSLean" / "OnlineMaterial.lean").write_text(
+            "import CLRSLean.Legacy\nimport CLRSLean.Extra\n", encoding="utf-8"
+        )
+
+        map_path = root / "docs" / "clrs-fourth-edition-map.csv"
+        map_rows = self.read_rows(map_path)
+        extra_map = dict(map_rows[-1])
+        extra_map.update(
+            {
+                "section_no": "online:extra",
+                "section_title": "Extra topic",
+                "source_modules": "CLRSLean.Extra",
+                "legacy_location": "Extra legacy location",
+                "coverage_note": "Extra coverage note.",
+            }
+        )
+        map_rows.append(extra_map)
+        map_rows[-2]["source_modules"] = "CLRSLean.Extra"
+        map_rows[-1]["source_modules"] = "CLRSLean.Legacy"
+        with map_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=MAP_HEADER)
+            writer.writeheader()
+            writer.writerows(map_rows)
+
+        ledger_path = root / "docs" / "clrs-online-material.csv"
+        ledger_rows = self.read_rows(ledger_path)
+        ledger_rows.append(
+            {
+                "topic_id": "extra",
+                "title": "Extra topic",
+                "source_modules": "CLRSLean.Extra",
+                "legacy_location": "Extra legacy location",
+                "tracked_key_theorems": "1",
+                "coverage_note": "Extra coverage note.",
+            }
+        )
+        with ledger_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=ONLINE_HEADER)
+            writer.writeheader()
+            writer.writerows(ledger_rows)
+
+        errors = "\n".join(validate_repository(root))
+
+        self.assertIn(
+            "online topic legacy source_modules differs between edition map and online ledger",
+            errors,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
