@@ -18,6 +18,16 @@ namespace Chapter29
 #check Dictionary.objectiveRhs
 #check Dictionary.Satisfies
 #check Dictionary.IsBasicFeasible
+#check Dictionary.IsNonnegativeAssignment
+#check Dictionary.basicAssignment
+#check Dictionary.basicAssignment_basicVar
+#check Dictionary.basicAssignment_nonbasicVar
+#check Dictionary.basicAssignment_satisfies
+#check Dictionary.basicAssignment_nonnegative_iff
+
+example {m n : ℕ} (D : Dictionary m n) :
+    D.Satisfies D.basicAssignment :=
+  D.basicAssignment_satisfies
 
 end Chapter29
 end CLRS
