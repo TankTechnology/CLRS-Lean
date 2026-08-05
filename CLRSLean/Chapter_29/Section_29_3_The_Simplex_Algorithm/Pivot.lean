@@ -2,6 +2,7 @@ import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Definitions
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Algebra
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SumLemmas
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SemanticEquivalence
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Feasibility
 
 /-!
 # 29.3 PIVOT
