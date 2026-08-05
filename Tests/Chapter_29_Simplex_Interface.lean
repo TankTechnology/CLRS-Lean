@@ -68,5 +68,16 @@ example :
       (pivotExample.pivot 0 0 h).v = 10 := by
   norm_num [pivotExample, Dictionary.pivot, Dictionary.pivotRowB]
 
+#check Dictionary.pivot_satisfies_iff
+#check Dictionary.pivot_objectiveRhs_eq
+
+example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
+    (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
+    D.Satisfies x ↔ (D.pivot l e h).Satisfies x :=
+  D.pivot_satisfies_iff x l e h
+
+#print axioms Dictionary.pivot_satisfies_iff
+#print axioms Dictionary.pivot_objectiveRhs_eq
+
 end Chapter29
 end CLRS
