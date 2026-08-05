@@ -592,9 +592,9 @@ with positive diagonal.
 
 The proof is the block recursion: writing `a = A 0 0`, `v i = A (Fin.succ i) 0`,
 and `S` for the Schur complement `A₂₂ - v·vᵀ/a`, the strict positivity of `A`
-makes `S` SPD ({lit}`cholesky_schur_complement`), so by induction
+makes `S` SPD (`cholesky_schur_complement`), so by induction
 `S = L₂·L₂ᵀ`.  The factor `L = [[√a, 0],[v/√a, L₂]]`
-({lit}`choleskyFactor`) is lower-triangular with positive diagonal and satisfies
+(`choleskyFactor`) is lower-triangular with positive diagonal and satisfies
 `L·Lᵀ = A`.
 -/
 theorem cholesky_decomposition {n : ℕ} (A : Matrix (Fin n) (Fin n) ℝ) (hA : IsSymPosDef A) :
