@@ -12,6 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 CHECK_COMMANDS = [
+    ("scripts/check_edition_map.py",),
+    ("scripts/test_check_edition_map.py",),
     ("scripts/check_progress_csv.py", "--check-dashboard"),
     ("scripts/test_check_progress_csv.py",),
     ("scripts/gen_readme_table.py", "--check"),
