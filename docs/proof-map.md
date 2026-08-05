@@ -4002,8 +4002,27 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   `slackExtension_of_feasible`, `feasible_of_slackExtension`,
   `isFeasible_iff_exists_slackExtension`, `slackExtension_eq_slack`, and
   `existsUnique_slackExtension_iff`.
-- Exact gap: CLRS basic/nonbasic dictionaries and their standard-form semantic
-  refinement are not represented.
+- Refinement bridge: `initialDictionary_satisfies_iff`,
+  `initialDictionary_satisfies_of_slackExtension`, and
+  `initialDictionary_objectiveRhs` connect the Section 29.1 model to the
+  Section 29.3 dictionary layer.
+
+### Section 29.3 - The Simplex Algorithm
+
+- Status: `partial`.
+- Model: `LPVar`, `Dictionary`, a fixed row/column coefficient layout, and a
+  variable-label equivalence that tracks the current basic and nonbasic sets.
+- Basic-solution layer: `basicAssignment_satisfies`,
+  `basicAssignment_nonnegative_iff`, and the initial-dictionary refinement
+  theorems.
+- PIVOT layer: the textbook `pivot` formulas, label-exchange theorems,
+  `pivot_satisfies_iff`, and `pivot_objectiveRhs_eq` prove that PIVOT preserves
+  exactly the represented assignments and objective expression.
+- Progress layer: `IsMinimumRatio`, `pivot_isBasicFeasible`, `pivot_v_mono`,
+  and `pivot_v_strict` prove the minimum-ratio feasibility and objective-value
+  facts used by SIMPLEX.
+- Exact gap: executable entering/leaving selection, the unbounded result,
+  SIMPLEX exit optimality, and finite termination under Bland's rule.
 
 ### Section 29.4 - Duality
 
@@ -4017,7 +4036,6 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Unrepresented main-text sections
 
 - 29.2 graph problems as linear programs.
-- 29.3 PIVOT, SIMPLEX, and Bland-rule termination.
 - 29.5 auxiliary LP and INITIALIZE-SIMPLEX.
 
 ## Chapter 32 - String Matching

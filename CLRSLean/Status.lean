@@ -146,11 +146,14 @@ the detailed maintainer ledger.
   partial pending executable forward/back substitution, LUP-SOLVE correctness
   (Theorem 28.2 / #124), executable matrix inversion, and the principal cubic
   work claims required by the Chapter 28 roadmaps.
-* **Chapter 29:** Sections 29.1 and 29.4 represent standard-form feasibility,
-  the unique nonnegative slack-variable extension, dual feasibility, and weak
-  duality (Theorem 29.8).  The chapter remains partial pending basic/nonbasic
-  dictionaries, PIVOT/SIMPLEX, Sections 29.2 and 29.5, strong duality, and
-  complementary slackness.
+* **Chapter 29:** Sections 29.1, 29.3, and 29.4 represent standard-form
+  feasibility, the unique nonnegative slack-variable extension, fixed-slot
+  basic/nonbasic dictionaries, initial-dictionary refinement, the exact PIVOT
+  transformation and semantic equivalence, minimum-ratio feasibility and
+  objective progress, dual feasibility, and weak duality (Theorem 29.8).  The
+  chapter remains partial pending executable SIMPLEX control flow and Bland
+  termination, Sections 29.2 and 29.5, strong duality, and complementary
+  slackness.
 * **Chapter 33:** Section 33.1 represents point/vector and line-segment
   definitions, cross-product algebra, and the orientation specification.
   Correctness of {lit}`segmentIntersect` against an independent geometric
