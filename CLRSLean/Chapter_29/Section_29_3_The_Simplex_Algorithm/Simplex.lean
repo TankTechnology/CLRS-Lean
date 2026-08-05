@@ -9,6 +9,7 @@ import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Run
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Pivot
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Reachability
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Trace
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Coefficients
 
 /-!
 # 29.3 SIMPLEX
