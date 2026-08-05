@@ -167,8 +167,19 @@ example :
 #check Dictionary.exists_negative_coefficient_product
 #check Dictionary.bland_no_repeated_basis
 #check Dictionary.bland_acyclic
+#check Dictionary.simplexTrace
+#check Dictionary.simplexTrace_isChain
+#check Dictionary.simplexTrace_basis_nodup
+#check Dictionary.basisCount
+#check Dictionary.simplexTrace_length_le_basisCount
+#check Dictionary.simplexRun_basisCount_not_exhausted
+#check Dictionary.SimplexResult
+#check Dictionary.simplex
+#check Dictionary.simplex_optimal_or_unbounded
 
 #print axioms Dictionary.bland_no_repeated_basis
+#print axioms Dictionary.simplexRun_basisCount_not_exhausted
+#print axioms Dictionary.simplex_optimal_or_unbounded
 
 #print axioms Dictionary.simplexRun_equivalent
 #print axioms Dictionary.simplexRun_isBasicFeasible
