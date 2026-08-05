@@ -80,6 +80,10 @@ primality test, and the Pollard's-rho factorization heuristic.
 * {lit}`CLRS.Chapter31.fermat_test` (Theorem 31.31),
   {lit}`CLRS.Chapter31.fermatPseudoprime`, and
   {lit}`CLRS.Chapter31.pseudoprime` + `pseudoprime_correct`.
+* **Carmichael numbers**: {lit}`CLRS.Chapter31.isCarmichael` — a composite `n`
+  passing the Fermat test for every coprime base
+  ({lit}`CLRS.Chapter31.carmichael_fermatPseudoprime`);
+  {lit}`CLRS.Chapter31.isCarmichael_561` exhibits the smallest one.
 
 ### 31.9 Integer Factorization
 
@@ -90,7 +94,7 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 ## Deferred Work
 
-* 31.8 Carmichael numbers and the Miller-Rabin test.
+* 31.8 the Miller-Rabin test.
 * 31.9 the full Pollard's-rho algorithm and its birthday-paradox analysis.
 -/
 

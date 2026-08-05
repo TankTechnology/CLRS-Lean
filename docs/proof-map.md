@@ -4274,6 +4274,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - `fermat_test` (CLRS Theorem 31.31): prime `p` and `gcd(a,p)=1` give
     `a^(p−1) ≡ 1 (mod p)`.
   - `fermatPseudoprime`, `pseudoprime` + `pseudoprime_correct` (PSEUDOPRIME).
+  - `isCarmichael` (**Carmichael numbers**): composite `n` passing the Fermat
+    test `a^(n−1) ≡ 1 (mod n)` for every `a` coprime to `n`;
+    `carmichael_fermatPseudoprime` shows such `n` fool the Fermat test for
+    every coprime base.
+  - `isCarmichael_561`: 561 is a Carmichael number — via `fermat_test` for the
+    prime factors 3, 11, 17 (with `2·280`, `10·56`, `16·35` all equal to 560)
+    and the helper `modeq_of_coprime_mul` combining congruences under coprime
+    moduli.  This shows `PSEUDOPRIME` cannot certify primality.
+  - Deferred: the Miller-Rabin test, its error bound, and the random-witness
+    analysis.
 
 ### Section 31.9 - Integer Factorization
 
