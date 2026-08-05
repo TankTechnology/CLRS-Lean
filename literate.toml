@@ -465,6 +465,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_31" = [
   "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
   "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
+  "CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic",
+  "CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations",
+  "CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem",
+  "CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element",
+  "CLRSLean.Chapter_31.Section_31_7_RSA",
+  "CLRSLean.Chapter_31.Section_31_8_Primality_Testing",
+  "CLRSLean.Chapter_31.Section_31_9_Integer_Factorization",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -1389,6 +1396,27 @@ title = "31.1. Elementary Number-Theoretic Notions"
 
 [modules."CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
 title = "31.2. Greatest Common Divisor"
+
+[modules."CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic"]
+title = "31.3. Modular Arithmetic"
+
+[modules."CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations"]
+title = "31.4. Solving Modular Linear Equations"
+
+[modules."CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem"]
+title = "31.5. The Chinese Remainder Theorem"
+
+[modules."CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element"]
+title = "31.6. Powers of an Element"
+
+[modules."CLRSLean.Chapter_31.Section_31_7_RSA"]
+title = "31.7. The RSA Public-Key Cryptosystem"
+
+[modules."CLRSLean.Chapter_31.Section_31_8_Primality_Testing"]
+title = "31.8. Primality Testing"
+
+[modules."CLRSLean.Chapter_31.Section_31_9_Integer_Factorization"]
+title = "31.9. Integer Factorization"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
