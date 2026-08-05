@@ -90,6 +90,32 @@ theorem leaving_not_mem (p : BlandPivot D E) :
   · exact D.labels_basic_ne_nonbasic l e henter
   · exact hleave rfl
 
+/-- A variable that enters the basis across a pivot is exactly the selected
+entering variable. -/
+theorem eq_entering_of_not_mem_mem {m n : ℕ}
+    {D E : Dictionary m n} (p : BlandPivot D E) {q : LPVar m n}
+    (hbefore : q ∉ D.basicVariables) (hafter : q ∈ E.basicVariables) :
+    q = D.nonbasicVar p.entering := by
+  rcases p with ⟨e, l, he, hl, hnext⟩
+  subst E
+  rcases (D.mem_basicVariables_pivot_iff l e _ q).1 hafter with
+    henter | ⟨hold, _⟩
+  · exact henter
+  · exact False.elim (hbefore hold)
+
+/-- A variable that leaves the basis across a pivot is exactly the selected
+leaving variable. -/
+theorem eq_leaving_of_mem_not_mem {m n : ℕ}
+    {D E : Dictionary m n} (p : BlandPivot D E) {q : LPVar m n}
+    (hbefore : q ∈ D.basicVariables) (hafter : q ∉ E.basicVariables) :
+    q = D.basicVar p.leaving := by
+  rcases p with ⟨e, l, he, hl, hnext⟩
+  subst E
+  by_contra hne
+  apply hafter
+  exact (D.mem_basicVariables_pivot_iff l e _ q).2
+    (Or.inr ⟨hbefore, hne⟩)
+
 /-- Every Bland pivot preserves the represented equations and objective. -/
 theorem equivalent (p : BlandPivot D E) : D.Equivalent E := by
   rcases p with ⟨e, l, he, hl, hnext⟩

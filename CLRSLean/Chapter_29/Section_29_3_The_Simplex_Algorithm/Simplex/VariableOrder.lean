@@ -50,6 +50,12 @@ theorem variableIndex_injective {m n : ℕ} :
           have hik : i = k := Fin.ext (by omega)
           exact congrArg Sum.inr hik
 
+/-- The linear order on stable variable identities induced by their canonical
+CLRS indices. -/
+@[reducible] noncomputable def variableBlandOrder (m n : ℕ) :
+    LinearOrder (LPVar m n) :=
+  LinearOrder.lift' variableIndex variableIndex_injective
+
 namespace Dictionary
 
 /-- Stable canonical index of the variable occupying a basic row. -/

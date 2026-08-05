@@ -143,6 +143,20 @@ example :
 #check Dictionary.BlandPivot.isBasicFeasible
 #check Dictionary.BlandPivot.v_mono
 #check Dictionary.BlandPivot.basicAssignment_eq_of_v_eq
+#check Dictionary.BlandReachable
+#check Dictionary.BlandReachable.equivalent
+#check Dictionary.BlandReachable.isBasicFeasible
+#check Dictionary.BlandReachable.v_mono
+#check Dictionary.BlandReachable.basicAssignment_eq_of_v_eq
+#check Dictionary.BlandReachable.exists_entering_of_not_mem_mem
+#check Dictionary.BlandReachable.exists_leaving_of_mem_not_mem
+#check Dictionary.OnBlandPath
+#check Dictionary.IsFickle
+#check Dictionary.fickleVariables
+#check Dictionary.fickleVariables_nonempty_of_cycle
+#check Dictionary.greatestFickle
+#check Dictionary.greatestFickle_mem
+#check Dictionary.variableIndex_le_greatestFickle
 
 #print axioms Dictionary.simplexRun_equivalent
 #print axioms Dictionary.simplexRun_isBasicFeasible
