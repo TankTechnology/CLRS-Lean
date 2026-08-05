@@ -153,11 +153,11 @@ the detailed maintainer ledger.
 
 ## Not Represented On Main
 
-Chapters 29--31 and 34--35 do not currently have represented section modules
-on {lit}`main`.  Chapters 28.1--28.2 and Chapter 33.1 are represented but partial;
-Chapter 32.1 is complete for its selected-section scope.  Open pull requests
-are not counted until their scope is reviewed, merged, and added to the
-progress source.
+Chapters 29--30 and 34--35 do not currently have represented section modules
+on {lit}`main`.  Chapter 31.1--31.2 and Chapter 33.1 are represented but
+partial; Chapter 28 is complete, and Chapter 32.1 is complete for its
+selected-section scope.  Open pull requests are not counted until their scope
+is reviewed, merged, and added to the progress source.
 
 ## Sealed Chapters 21-23 Boundary
 

@@ -39,6 +39,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_26",
   "CLRSLean.Chapter_27",
   "CLRSLean.Chapter_28",
+  "CLRSLean.Chapter_31",
   "CLRSLean.Chapter_32",
   "CLRSLean.Chapter_33",
   "CLRSLean.Extensions",
@@ -380,6 +381,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_28.Section_28_1_Linear_Equations",
   "CLRSLean.Chapter_28.Section_28_2_Inverting_Matrices",
   "CLRSLean.Chapter_28.Section_28_3_Symmetric_Positive_Definite",
+]
+"CLRSLean.Chapter_31" = [
+  "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
+  "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -1115,6 +1120,15 @@ title = "28.2. Inverting Matrices"
 
 [modules."CLRSLean.Chapter_28.Section_28_3_Symmetric_Positive_Definite"]
 title = "28.3. Symmetric Positive-Definite Matrices and Least Squares"
+
+[modules."CLRSLean.Chapter_31"]
+title = "Chapter 31. Number-Theoretic Algorithms"
+
+[modules."CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory"]
+title = "31.1. Elementary Number-Theoretic Notions"
+
+[modules."CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
+title = "31.2. Greatest Common Divisor"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
