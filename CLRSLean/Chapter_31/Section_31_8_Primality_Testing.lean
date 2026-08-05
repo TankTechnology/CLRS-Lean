@@ -25,14 +25,22 @@ Main results:
   smallest Carmichael number is 561, so `PSEUDOPRIME` cannot certify
   primality.  The helper {lit}`modeq_of_coprime_mul` combines congruences
   under coprime moduli.
+- **Miller-Rabin**: {lit}`strongTestParams` writes `n−1 = 2^s·d` with `d` odd;
+  {lit}`strongPseudoprime` (STRONG-PSEUDOPRIME) is the strong probable-prime
+  condition; {lit}`Witness` is a base that refutes it; and
+  {lit}`millerRabin` is the executable single-base test.  (Evaluating
+  `millerRabin 561 2` returns `false`: although 561 is a Carmichael number,
+  base 2 witnesses that it is composite.)
 
 Notation:
 
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.totient n` : Euler's totient.
 
-Deferred: the Miller-Rabin test and its error bound, and the random-witness
-analysis (§31.8); the executable pseudoprime loop with an operation count.
+Deferred: the Miller-Rabin correctness theorem (primes never have a witness)
+and the error bound (at most a quarter of the bases are strong liars), plus
+the random-witness analysis (§31.8); the executable pseudoprime loop with an
+operation count.
 -/
 
 namespace CLRS
@@ -144,6 +152,43 @@ theorem isCarmichael_561 : isCarmichael 561 := by
       have hfull : a ^ 560 ≡ 1 [MOD 3 * 11 * 17] :=
         modeq_of_coprime_mul (by norm_num) h33 h17
       simpa [show 3 * 11 * 17 = 561 by norm_num] using hfull
+
+/--
+**STRONG-PSEUDOPRIME parameters (CLRS §31.8).**  Write `n−1 = 2^s · d` with
+`d` odd: `s` is the exponent of 2 in the prime factorization of `n−1`, and
+`d` is the odd part.
+-/
+def strongTestParams (n : ℕ) : ℕ × ℕ :=
+  (Nat.factorization (n - 1) 2, (n - 1) / 2 ^ Nat.factorization (n - 1) 2)
+
+/--
+**STRONG-PSEUDOPRIME (CLRS §31.8).**  `n` is a strong probable prime to base
+`a` if, writing `n−1 = 2^s·d` with `d` odd, either `a^d ≡ 1 (mod n)` or
+`a^(2^i·d) ≡ −1 (mod n)` for some `i < s`.
+-/
+def strongPseudoprime (n a : ℕ) : Prop :=
+  let s := (strongTestParams n).1
+  let d := (strongTestParams n).2
+  a ^ d ≡ 1 [MOD n] ∨ ∃ i : Fin s, a ^ (2 ^ (i : ℕ) * d) ≡ n - 1 [MOD n]
+
+/--
+**WITNESS (CLRS §31.8).**  A base `a` witnesses that `n` is composite when
+`n` fails the strong-pseudoprime test to base `a`.  A witness certifies
+`¬ Nat.Prime n`.
+-/
+def Witness (n a : ℕ) : Prop :=
+  ¬ strongPseudoprime n a
+
+instance instDecidableStrongPseudoprime (n a : ℕ) : Decidable (strongPseudoprime n a) := by
+  unfold strongPseudoprime
+  infer_instance
+
+/--
+**MILLER-RABIN (single base, CLRS §31.8).**  The executable decision procedure
+returning whether `n` is a strong probable prime to base `a`.
+-/
+def millerRabin (n a : ℕ) : Bool :=
+  decide (strongPseudoprime n a)
 
 end Chapter31
 

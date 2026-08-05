@@ -4282,8 +4282,13 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     prime factors 3, 11, 17 (with `2·280`, `10·56`, `16·35` all equal to 560)
     and the helper `modeq_of_coprime_mul` combining congruences under coprime
     moduli.  This shows `PSEUDOPRIME` cannot certify primality.
-  - Deferred: the Miller-Rabin test, its error bound, and the random-witness
-    analysis.
+  - `strongTestParams` / `strongPseudoprime` / `Witness` / `millerRabin`
+    (Miller-Rabin): the `2^s·d` decomposition of `n−1` (via `Nat.factorization`),
+    the STRONG-PSEUDOPRIME condition, the witness predicate, and the executable
+    single-base test.  `millerRabin 561 2` evaluates to `false`: although 561 is
+    a Carmichael number, base 2 witnesses that it is composite.
+  - Deferred: the Miller-Rabin correctness theorem (primes never have a
+    witness), its error bound, and the random-witness analysis.
 
 ### Section 31.9 - Integer Factorization
 
