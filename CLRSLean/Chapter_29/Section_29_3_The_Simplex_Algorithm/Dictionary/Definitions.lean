@@ -15,7 +15,7 @@ Main declarations:
 - {lit}`Dictionary.Satisfies`: the represented row equations.
 - {lit}`Dictionary.IsBasicFeasible`: nonnegative basic right-hand sides.
 
-Current gaps:
+Downstream layers:
 
 - Basic solutions, initial dictionaries, and PIVOT are proved in later modules.
 -/

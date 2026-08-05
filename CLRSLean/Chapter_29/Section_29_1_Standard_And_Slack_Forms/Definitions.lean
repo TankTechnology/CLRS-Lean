@@ -14,10 +14,10 @@ Main declarations:
 - {lit}`StandardLP.IsFeasible`: primal standard-form feasibility.
 - {lit}`StandardLP.objective`: the value {lit}`cᵀx`.
 
-Current gaps:
+Downstream layers:
 
 - Slack-variable equivalence is proved in later Section 29.1 modules.
-- Basic/nonbasic dictionaries and SIMPLEX are not represented in this milestone.
+- Basic/nonbasic dictionaries and SIMPLEX are developed in Sections 29.3--29.5.
 -/
 
 namespace CLRS

@@ -14,9 +14,10 @@ Main result:
 
 - {lit}`StandardLP.weak_duality`: CLRS Theorem 29.8.
 
-Current gaps:
+Downstream layers:
 
-- Strong duality (Theorem 29.9) and complementary slackness (Theorem 29.10).
+- Later Section 29.4 modules prove strong duality (Theorem 29.9) and
+  complementary slackness (Theorem 29.10).
 -/
 
 namespace CLRS
