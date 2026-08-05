@@ -1,6 +1,7 @@
 import CLRSLean.ProofPatterns
 import CLRSLean.Probability
 import CLRSLean.FourthEdition
+import CLRSLean.OnlineMaterial
 import CLRSLean.Chapter_01
 import CLRSLean.Chapter_02
 import CLRSLean.Chapter_03
@@ -47,9 +48,10 @@ import CLRSLean.Workflow
 /-!
 # CLRS-Lean
 
-CLRS-Lean is a Lean 4 companion for CLRS-style algorithm proofs.  It is
-organized as an online book: chapter pages explain each formalization boundary,
-and section pages contain the definitions, executable models, theorem
+CLRS-Lean is a fourth-edition-primary Lean 4 companion for CLRS-style algorithm
+proofs.  It is organized as an online book: canonical guides under
+{lit}`CLRSLean.FourthEdition` explain each formalization boundary, and current
+theorem-bearing source modules contain the definitions, executable models,
 interfaces, and proofs.
 
 ## Project Aim
@@ -67,8 +69,8 @@ claiming that every implementation detail or exercise has been formalized.
 
 There are four useful reading routes:
 
-1. **Algorithms:** choose a chapter in the sidebar, read its scope, then open a
-   represented section.
+1. **Algorithms:** choose a fourth-edition chapter guide, read its scope, then
+   follow its current source link to a represented section.
 2. **Progress:** open **Progress Dashboard** for the generated chapter matrix.
 3. **Planning:** open **Proof Status** for completed, partial, and missing proof
    groups.
@@ -78,25 +80,24 @@ There are four useful reading routes:
 The **Reusable CLRS proof patterns** page collects the small cross-chapter APIs
 for boundary shifts, exchange certificates, fibers, and interval geometry.
 
-## Chapters 1--31 Milestone
+## Fourth-Edition Primary View
 
-Every chapter from 1 through 31 has completed its advertised proof scope on
-the current {lit}`main` branch.  This prefix milestone includes:
+The canonical public chapter sequence is CLRS fourth edition, Chapters 1--35.
+{lit}`docs/clrs-fourth-edition-map.csv` owns the section-level bridge from that
+sequence to current theorem-bearing sources.  New Chapters 25, 27, and 33, plus
+currently unrepresented Chapters 34--35, remain visible as honest
+{lit}`not-started` guides.  Third-edition-only Fibonacci heaps, van Emde Boas
+trees, computational geometry, and moved section material live under
+{lit}`CLRSLean.OnlineMaterial`.  Progress counts are currently facade-level
+source inventories; moved subsections inside an otherwise reused source remain
+in that coarse total until declaration-level remapping, so the count is not a
+count of distinct fourth-edition textbook obligations.
 
-* complete main theorem stacks for Chapters 2--4, 6, 9, 16, 21, and 26--30;
-* complete correctness stacks for Chapters 8, 11--14, 18--20, 22--23, and 25;
-* complete represented sections for Chapters 5, 7, 10, 15, 17, 24, and 31;
-* the expository Chapter 1 guide.
-
-The newest closed chapter is Chapter 30's generic DFT/FFT stack, including
-recursive and iterative radix-2 correctness, polynomial multiplication,
-execution-attached work, and an evaluated layered circuit with exact size and
-depth.
-
-This milestone is not a claim that every textbook section, exercise,
-chapter-end Problem, pointer/RAM refinement, or numerical implementation has
-been formalized.  Use the generated dashboard for live counts and status rows;
-use chapter pages and the proof map for exact theorem boundaries.
+Existing {lit}`CLRSLean.Chapter_NN` imports and declarations keep their current
+meanings through all {lit}`1.x` releases and for at least six months after the
+facade release.  They may be removed only in {lit}`2.0` or later, after both
+gates pass.  See {lit}`docs/migrations/clrs4.md` for shifted chapter imports,
+current declaration namespaces, and the cleanup policy.
 
 ## Status Meaning
 
@@ -112,16 +113,19 @@ use chapter pages and the proof map for exact theorem boundaries.
 * {lit}`expository`: the chapter is a guide with no theorem target.
 
 The machine-readable source for chapter rows is
-{lit}`docs/clrs-proof-progress.csv`.  The public **Progress Dashboard** is
-generated from it.  The longer maintainer theorem ledger is
+{lit}`docs/clrs-proof-progress.csv`, interpreted through
+{lit}`docs/clrs-fourth-edition-map.csv`.  The public **Progress Dashboard** is
+generated from the progress CSV.  The longer maintainer theorem ledger is
 {lit}`docs/proof-map.md`.
 
 ## Library Shape
 
 * {lit}`CLRSLean.lean`: library root and landing page.
+* {lit}`CLRSLean/FourthEdition/Chapter_XX.lean`: canonical chapter guide.
+* {lit}`CLRSLean/OnlineMaterial.lean`: online/supplementary compatibility catalog.
 * {lit}`CLRSLean/ProofPatterns.lean`: reusable pattern aggregator.
-* {lit}`CLRSLean/Chapter_XX.lean`: chapter guide and section aggregator.
-* {lit}`CLRSLean/Chapter_XX/Section_XX_Y_Name.lean`: formal section content.
+* {lit}`CLRSLean/Chapter_XX.lean`: current compatibility source aggregator.
+* {lit}`CLRSLean/Chapter_XX/Section_XX_Y_Name.lean`: current formal source.
 * {lit}`CLRSLean/Progress.lean`: generated progress dashboard.
 * {lit}`CLRSLean/Status.lean`: reader-facing status interpretation.
 * {lit}`CLRSLean/Workflow.lean`: contributor workflow.
