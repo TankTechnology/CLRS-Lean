@@ -11,8 +11,12 @@ Sections 30.1--30.2 core.  The completed exact functional boundary contains:
   half-factorization invariant;
 - equality of the iterative transform with the recursive FFT and generic DFT;
 - execution-attached exact arithmetic, total, and padded all-input work;
-- a layered FFT network whose evaluation is the iterative transform; and
-- exact butterfly, primitive-gate, and depth counts.
+- a layered FFT network whose recursive stage syntax stores one actual gate at
+  every butterfly offset;
+- gate-family and stage-circuit evaluation bridges to the verified iterative
+  transform; and
+- exact butterfly, primitive-gate, and depth counts derived from that same
+  stored syntax.
 
 Mutable/in-place arrays and aliasing, RAM/cache/allocator/hardware costs,
 floating-point approximation and numerical stability, concrete scheduling and
@@ -51,7 +55,12 @@ The two cost conventions are intentionally separate:
 - primitive arithmetic-gate depth: `2 * k`.
 
 Execution charges successive twiddle generation and bit-reversal moves.  The
-circuit treats twiddle powers as constants and bit reversal as wiring.
+circuit treats twiddle powers as constants and bit reversal as wiring.  Its
+`FFTButterflyGate`, `ButterflyLayerCircuit`, and `FFTStageCircuit` hierarchy is
+not merely descriptive metadata: `FFTNetwork.eval`, butterfly count, and depth
+all recurse through the circuits stored by the layers.  The bridge theorems
+`canonicalButterflyLayerCircuit_eval` and `fftStageCircuit_eval` connect this
+representation to the previously verified functional stage semantics.
 
 ## Kernel and axiom evidence
 
@@ -60,11 +69,12 @@ surfaces:
 
 - `bitReverseEquiv_testBit`, `bitReverseCopy_involutive`,
   `iterativeRadix2FFT_eq_recursiveFFT`, `iterativeRadix2FFT_eq_dft`,
-  `paddedIterativeFFTWork_allInput_bigTheta`, and
-  `fftNetwork_butterflyCount`: `propext`, `Classical.choice`, `Quot.sound`;
-- `iterativeRadix2FFTExec_totalWork` and `fftNetwork_eval`: `propext`,
-  `Quot.sound`; and
-- `fftNetwork_primitiveDepth`: no axioms.
+  `paddedIterativeFFTWork_allInput_bigTheta`,
+  `canonicalButterflyLayerCircuit_eval`, `fftStageCircuit_eval`,
+  `fftNetwork_eval`, `fftNetwork_butterflyCount`, and
+  `fftNetwork_primitiveDepth`: `propext`, `Classical.choice`, `Quot.sound`;
+  and
+- `iterativeRadix2FFTExec_totalWork`: `propext`, `Quot.sound`.
 
 No `sorryAx` or project-defined axiom appears.  A direct scan of the Section
 30.3 guide and implementation directory found no `sorry`, `admit`, `sorryAx`,
@@ -76,22 +86,23 @@ The following fresh commands ran on 2026-08-05 and exited 0:
 
 | Command | Observed evidence |
 |---|---|
-| `lake env lean Tests/Chapter_30_Interface.lean` | 19.06 s |
-| `lake env lean Tests/Chapter_30_DFT_Interface.lean` | 3.48 s |
-| `lake env lean Tests/Chapter_30_RecursiveFFT_Interface.lean` | 3.32 s; printed accepted Milestone 1 axiom surfaces |
-| `lake env lean Tests/Chapter_30_PolynomialMultiplication_Interface.lean` | 3.51 s |
-| `lake env lean Tests/Chapter_30_Milestone1_Closure.lean` | 3.37 s; no `sorryAx` or project axiom |
-| `lake env lean Tests/Chapter_30_BitReversal_Interface.lean` | 3.29 s |
-| `lake env lean Tests/Chapter_30_IterativeFFT_Interface.lean` | 3.28 s |
-| `lake env lean Tests/Chapter_30_ParallelFFT_Interface.lean` | 3.30 s; two non-blocking `unnecessarySimpa` linter warnings |
-| `lake env lean Tests/Chapter_30_Milestone2_Closure.lean` | 3.29 s; axiom output recorded above |
+| `lake build +CLRSLean.Chapter_30` | 10.25 s; build completed successfully, 8,603 jobs |
+| `lake env lean Tests/Chapter_30_Interface.lean` | 3.60 s |
+| `lake env lean Tests/Chapter_30_DFT_Interface.lean` | 3.72 s |
+| `lake env lean Tests/Chapter_30_RecursiveFFT_Interface.lean` | 3.54 s; printed accepted Milestone 1 axiom surfaces |
+| `lake env lean Tests/Chapter_30_PolynomialMultiplication_Interface.lean` | 3.62 s |
+| `lake env lean Tests/Chapter_30_Milestone1_Closure.lean` | 3.44 s; no `sorryAx` or project axiom |
+| `lake env lean Tests/Chapter_30_BitReversal_Interface.lean` | 3.51 s |
+| `lake env lean Tests/Chapter_30_IterativeFFT_Interface.lean` | 3.36 s |
+| `lake env lean Tests/Chapter_30_ParallelFFT_Interface.lean` | 3.45 s; a noncanonical stored-gate regression passed; two non-blocking `unnecessarySimpa` linter warnings |
+| `lake env lean Tests/Chapter_30_Milestone2_Closure.lean` | 3.30 s; axiom output recorded above |
 | unfinished-proof scan over Section 30.3 | no matches; expected `rg` status 1 normalized to success |
-| `uv run python scripts/check_progress_csv.py` | 0.02 s; 35 chapters, 1,722 tracked, 1,722 proved |
+| `uv run python scripts/check_progress_csv.py` | 0.02 s; 35 chapters, 1,793 tracked, 1,793 proved |
 | `uv run python scripts/gen_readme_table.py --check` | 0.02 s; current |
-| `uv run python scripts/check_repository.py` | 0.97 s; all repository checks passed |
-| `uv run python scripts/check_site_consistency.py` | 0.03 s; 30 chapter guides, 160 section files, 202 literate modules |
+| `uv run python scripts/check_repository.py` | 1.12 s; all repository checks passed |
+| `uv run python scripts/check_site_consistency.py` | 0.04 s; 33 chapter guides, 293 section files, 338 literate modules |
 | `git diff --check` | clean |
-| `lake build CLRSLean` | 7.79 s; build completed successfully, 8,785 jobs |
+| `lake build CLRSLean` | 4.49 s; build completed successfully, 8,921 jobs |
 
 Website generation, rendering inspection, preparation, and deployment are a
 separate publishing task under the project workflow.  They are not proof
