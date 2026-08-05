@@ -3991,6 +3991,35 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Remaining chapter scope: Section 28.3 (symmetric positive-definite matrices,
   Cholesky decomposition, and least-squares approximation) is not represented.
 
+## Chapter 29 - Linear Programming
+
+### Section 29.1 - Standard and Slack Forms
+
+- Status: `partial`.
+- Model: `StandardLP`, `IsNonnegative`, `StandardLP.IsFeasible`, and
+  `StandardLP.objective` over `Fin`-indexed real matrices.
+- Proved: `slack_nonnegative_of_feasible`, `slack_equation`,
+  `slackExtension_of_feasible`, `feasible_of_slackExtension`,
+  `isFeasible_iff_exists_slackExtension`, `slackExtension_eq_slack`, and
+  `existsUnique_slackExtension_iff`.
+- Exact gap: CLRS basic/nonbasic dictionaries and their standard-form semantic
+  refinement are not represented.
+
+### Section 29.4 - Duality
+
+- Status: `partial`.
+- Model: `StandardLP.IsDualFeasible` and `StandardLP.dualObjective`.
+- Proved: dot-product monotonicity, `transpose_mulVec_dotProduct`, and
+  `weak_duality` (CLRS Theorem 29.8).
+- Exact gap: strong duality (Theorem 29.9) and complementary slackness
+  (Theorem 29.10).
+
+### Unrepresented main-text sections
+
+- 29.2 graph problems as linear programs.
+- 29.3 PIVOT, SIMPLEX, and Bland-rule termination.
+- 29.5 auxiliary LP and INITIALIZE-SIMPLEX.
+
 ## Chapter 32 - String Matching
 
 ### Section 32.1 - The Naive String-Matching Algorithm
