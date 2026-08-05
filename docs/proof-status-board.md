@@ -38,6 +38,7 @@ Last repository-wide status reconciliation: 2026-08-05.
 | Chapter 26 | Max-Flow Min-Cut, executable residual BFS and Edmonds-Karp, the `O(VE²)` augmentation bound, and maximum bipartite matching through Theorem 26.12 | Sections 26.4 and 26.5 are deferred outside the current selected milestone |
 | Chapter 27 | Pure-functional main text through Section 27.3: total greedy scheduling, logarithmic parallel loops, executable P-ADD/P-MATMUL, and executable P-MERGE/P-MERGE-SORT with correctness, execution costs, and matching worst-case span witnesses | Mutable-array/RAM realization, exercises, and chapter-end problems; parallel Strassen remains a separate compatibility extension |
 | Chapter 28 | LUP decomposition (Theorem 28.1), LUP-SOLVE correctness, forward/backward substitution (Lemmas 28.1-28.2), matrix inversion (Theorem 28.2), Cholesky decomposition (Theorem 28.3) with uniqueness, and least-squares approximation (Theorem 28.4) | Executable LUP factorization from `A`; RAM cost semantics |
+| Chapter 29 | Sections 29.1--29.5: standard/slack equivalence; four textbook LP formulations; exact PIVOT, Bland anti-cycling, and terminating SIMPLEX; weak/strong duality and complementary slackness; phase-I initialization and the certified three-way solver | Mutable tableau storage, floating-point numerical analysis, RAM constants, exercises, and chapter-end problems |
 | Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
 
 Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
@@ -52,7 +53,7 @@ not missing core theorem groups.
 
 ## Not Represented On Main
 
-- Chapters 29--31 and 34--35.
+- Chapters 30--31 and 34--35.
 
 Open branches and pull requests are intentionally excluded until they are
 reviewed, merged, registered in `literate.toml`, and added to the progress CSV.

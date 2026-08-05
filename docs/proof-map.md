@@ -4062,6 +4062,99 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     the trailing blocks; the entry expansions use
     `lowerTri_mul_transpose_00/0_succ/succ_succ`.
 
+## Chapter 29 - Linear Programming
+
+### Section 29.1 - Standard and Slack Forms
+
+- Status: `main-proof-complete`.
+- Model: `StandardLP`, `IsNonnegative`, `StandardLP.IsFeasible`, and
+  `StandardLP.objective` over `Fin`-indexed real matrices.
+- Proved: `slack_nonnegative_of_feasible`, `slack_equation`,
+  `slackExtension_of_feasible`, `feasible_of_slackExtension`,
+  `isFeasible_iff_exists_slackExtension`, `slackExtension_eq_slack`, and
+  `existsUnique_slackExtension_iff`.
+- Refinement bridge: `initialDictionary_satisfies_iff`,
+  `initialDictionary_satisfies_of_slackExtension`, and
+  `initialDictionary_objectiveRhs` connect the Section 29.1 model to the
+  Section 29.3 dictionary layer.
+
+### Section 29.2 - Formulating Problems as Linear Programs
+
+- Status: `main-proof-complete`.
+- Shortest path: `ShortestPathLP.IsFeasible` is the textbook edge-difference
+  system with `d s = 0`; `feasible_le_walkWeight` proves every feasible target
+  value is below every source-to-target walk, and `optimal_of_attained_walk`
+  proves an attained bound is optimal.
+- Network vocabulary: `FlowNetwork` uses one gross nonnegative flow variable
+  per ordered vertex pair, with zero capacity representing a nonedge.
+- Flow formulations: `MaximumFlowLP`, `MinimumCostFlowLP`, and
+  `MulticommodityFlowLP` expose the textbook capacity, conservation, demand,
+  aggregate-capacity, and cost objectives.  Their `*_iff` theorems expand the
+  displayed LP constraints and optimality specifications exactly.
+
+### Section 29.3 - The Simplex Algorithm
+
+- Status: `main-proof-complete` for basic-feasible input dictionaries.
+- Model: `LPVar`, `Dictionary`, a fixed row/column coefficient layout, and a
+  variable-label equivalence that tracks the current basic and nonbasic sets.
+- Basic-solution layer: `basicAssignment_satisfies`,
+  `basicAssignment_nonnegative_iff`, and the initial-dictionary refinement
+  theorems.
+- PIVOT layer: the textbook `pivot` formulas, label-exchange theorems,
+  `pivot_satisfies_iff`, and `pivot_objectiveRhs_eq` prove that PIVOT preserves
+  exactly the represented assignments and objective expression.
+- Progress layer: `IsMinimumRatio`, `pivot_isBasicFeasible`, `pivot_v_mono`,
+  and `pivot_v_strict` prove the minimum-ratio feasibility and objective-value
+  facts used by SIMPLEX.
+- Control and exit layer: `blandEntering?`, `blandLeaving?`, `simplexStep`,
+  `basicAssignment_optimal_of_reducedCosts_nonpos`, and
+  `unbounded_of_entering_column` implement and justify all three textbook
+  outcomes.
+- Anti-cycling and termination: `bland_no_repeated_basis` formalizes the
+  greatest-fickle-variable proof; `simplexRun_basisCount_not_exhausted` turns
+  it into a finite bound; and `simplex_optimal_or_unbounded` is the public
+  terminal-correctness theorem.
+- Boundary: Section 29.5 supplies a basic-feasible start for arbitrary feasible
+  standard-form inputs; Section 29.3 itself remains the reusable core for an
+  already basic-feasible dictionary.
+
+### Section 29.4 - Duality
+
+- Status: `main-proof-complete`.
+- Model: `StandardLP.IsDualFeasible` and `StandardLP.dualObjective`.
+- Weak duality: dot-product monotonicity, `transpose_mulVec_dotProduct`, and
+  `weak_duality` (CLRS Theorem 29.8).
+- Certificate layer: `Dictionary.dualCertificate_isDualFeasible` and
+  `dualCertificate_objective_eq_v` extract the terminal dual witness;
+  `DictionaryBridge` transfers optimal and unbounded results to `StandardLP`.
+- Strong duality: `strongDuality_or_unbounded_of_feasible`, `strongDuality`,
+  and `strongDuality_of_isOptimal` prove the general textbook result through
+  the finite initialized SIMPLEX construction.
+- Complementary slackness: `dualityGap_eq_slackSums` proves the exact gap
+  identity, and `complementarySlackness_iff_optimal` proves the unconditional
+  feasible primal/dual criterion (CLRS Theorem 29.10).
+
+### Section 29.5 - The Initial Basic Feasible Solution
+
+- Status: `main-proof-complete`.
+- Phase I: `auxiliary`, `auxiliaryPivotedDictionary_isBasicFeasible`, and
+  `phaseOneRun_isOptimal` implement the artificial LP and the mandatory pivot
+  from the most negative row.
+- Feasibility criterion:
+  `isFeasible_iff_phaseOneTerminal_v_eq_zero` proves that phase I ends at
+  objective zero exactly when the original program is feasible.
+- Cleanup and phase II: `lockVariable` is the fixed-dimension equivalent of
+  deleting the zero artificial variable; `withObjective`, `phaseTwoStart`, and
+  their equivalence theorems restore the original objective and produce a
+  basic-feasible phase-II dictionary.
+- Complete solver: `InitializedSimplexResult`, `initializedSimplex`, and
+  `initializedSimplex_complete` certify exactly infeasible, optimal, or
+  unbounded outcomes.
+- Chapter boundary: Sections 29.1--29.5 are complete at the finite real-matrix
+  and pure-functional tableau layer.  Mutable storage, floating-point
+  stability, RAM constants, exercises, and chapter-end problems are optional
+  refinements.
+
 ## Chapter 32 - String Matching
 
 ### Section 32.1 - The Naive String-Matching Algorithm
