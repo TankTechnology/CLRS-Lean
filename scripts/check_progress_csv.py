@@ -9,16 +9,14 @@ from collections import Counter
 from pathlib import Path
 import sys
 
+from online_material import online_tracked_total
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "docs" / "clrs-proof-progress.csv"
 MAP_PATH = ROOT / "docs" / "clrs-fourth-edition-map.csv"
 DASHBOARD_PATH = ROOT / "CLRSLean" / "Progress.lean"
-# Legacy source Chapters 19 (214), 20 (200), and 33 (7) moved out of the
-# canonical chapter ledger and into CLRSLean.OnlineMaterial. This deliberately
-# counts only whole excluded chapters: moved subsections inside otherwise reused
-# chapters are not yet separable in the chapter-granular theorem inventory.
-ONLINE_MATERIAL_TRACKED_THEOREMS = 421
+ONLINE_MATERIAL_TRACKED_THEOREMS = online_tracked_total()
 
 HEADER = [
     "chapter_no",
@@ -67,6 +65,8 @@ def chapter_contracts(
     """Build the chapter-level progress contract from the fourth-edition map."""
     grouped: dict[int, list[dict[str, str]]] = {}
     for map_row in load_map_rows() if map_rows is None else map_rows:
+        if map_row.get("migration_state") == "online-material":
+            continue
         try:
             chapter_no = int(map_row["chapter_no"])
         except (KeyError, ValueError) as exc:
@@ -279,14 +279,13 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
         f"* Chapters represented in Lean: {represented}.",
         f"* Tracked reader-facing theorem entries: {tracked:,}.",
         f"* Proved tracked theorem entries: {proved:,}.",
-        f"* Additional whole-chapter online-material theorem entries: {ONLINE_MATERIAL_TRACKED_THEOREMS:,}.",
+        f"* Online/supplementary theorem entries: {ONLINE_MATERIAL_TRACKED_THEOREMS:,}.",
         f"* Remaining core theorem groups: {missing}.",
         "",
-        "Tracked theorem entries are facade-level inventories reused from the current",
-        "theorem-bearing source chapter.  They are not a count of distinct fourth-edition",
-        "textbook obligations: moved subsections inside an otherwise reused source remain",
-        "in that source total until declaration-level remapping.  The separate online total",
-        "counts only the three wholly excluded legacy chapters, so it remains disjoint.",
+        "Tracked theorem entries are reviewed groups mapped to represented fourth-edition",
+        "sections.  Moved subsections and wholly excluded legacy chapters are counted only",
+        "in the machine-readable online-material ledger.  This produces disjoint canonical and online-material ledgers;",
+        "compatibility imports do not duplicate either count.",
         "Remaining core theorem groups count textbook-facing targets that are not yet",
         "represented or not yet complete.",
         "",

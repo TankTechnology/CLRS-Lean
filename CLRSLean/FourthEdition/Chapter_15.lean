@@ -17,4 +17,3 @@ The third-edition Chapter 16 activity-selection and Huffman developments are reu
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

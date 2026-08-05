@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create the complete Verso module map from already-built literate JSON files."""
+"""Create a current-source Verso module map from built literate JSON files."""
 
 from __future__ import annotations
 
@@ -7,15 +7,43 @@ import argparse
 from pathlib import Path
 
 
-def write_module_map(literate_root: Path, output: Path, source_dir: Path) -> int:
+def _source_path(module: str, source_dir: Path) -> Path:
+    """Return the Lean source path corresponding to one dotted module name."""
+
+    return source_dir.joinpath(*module.split(".")).with_suffix(".lean")
+
+
+def _prune_json_artifacts(json_path: Path) -> None:
+    """Remove one orphan JSON file and only its exact Lake sidecars."""
+
+    for path in (
+        json_path,
+        json_path.with_suffix(".json.hash"),
+        json_path.with_suffix(".json.trace"),
+    ):
+        if path.is_file():
+            path.unlink()
+
+
+def write_module_map(
+    literate_root: Path,
+    output: Path,
+    source_dir: Path,
+    *,
+    prune_orphans: bool = False,
+) -> int:
     literate_root = literate_root.resolve()
     if not literate_root.is_dir():
         raise ValueError(f"literate JSON directory does not exist: {literate_root}")
     project_root = Path.cwd().resolve()
     modules: list[tuple[str, Path]] = []
-    for json_path in literate_root.rglob("*.json"):
+    for json_path in sorted(literate_root.rglob("*.json")):
         relative = json_path.relative_to(literate_root)
         module = ".".join(relative.with_suffix("").parts)
+        if not _source_path(module, source_dir).is_file():
+            if prune_orphans:
+                _prune_json_artifacts(json_path)
+            continue
         modules.append((module, json_path))
     rows: list[str] = []
     for module, json_path in sorted(modules):
@@ -37,9 +65,19 @@ def main() -> int:
     parser.add_argument("literate_root", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--source-dir", type=Path, default=Path("."))
+    parser.add_argument(
+        "--prune-orphans",
+        action="store_true",
+        help="remove JSON and Lake sidecars whose corresponding Lean source no longer exists",
+    )
     args = parser.parse_args()
     try:
-        count = write_module_map(args.literate_root, args.output, args.source_dir)
+        count = write_module_map(
+            args.literate_root,
+            args.output,
+            args.source_dir,
+            prune_orphans=args.prune_orphans,
+        )
     except ValueError as exc:
         parser.error(str(exc))
     print(f"wrote {count} modules to {args.output}")

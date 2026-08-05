@@ -104,6 +104,27 @@ class LiterateRenderingCheckTests(unittest.TestCase):
 
         self.assertEqual([], failures)
 
+    def test_accepts_transitively_linked_implementation_pages(self) -> None:
+        legacy_root = "CLRSLean.Chapter_22"
+        legacy_root_href = "CLRSLean/Chapter_22/"
+        with tempfile.TemporaryDirectory() as tmp:
+            site = Path(tmp)
+            write_module(
+                site,
+                CANONICAL_PARENT,
+                f'<a href="{legacy_root_href}#chapter-22">Implementation</a>',
+            )
+            write_module(
+                site,
+                legacy_root,
+                f'<a href="{CHILD_HREF}#white-path">DFS implementation</a>',
+            )
+            write_module(site, CHILD, "<main>White Path</main>")
+
+            failures = check_site(site)
+
+        self.assertEqual([], failures)
+
     def test_preserves_raw_markdown_table_check(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             site = Path(tmp)

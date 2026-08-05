@@ -16,6 +16,7 @@ during the compatibility period.
 | [`proof-map.md`](proof-map.md) | Detailed theorem and proof-boundary ledger |
 | [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv) | Canonical fourth-edition section/source bridge |
 | [`clrs-proof-progress.csv`](clrs-proof-progress.csv) | Machine-readable chapter progress source |
+| [`clrs-online-material.csv`](clrs-online-material.csv) | Disjoint theorem-count ledger for retained online and supplementary material |
 | [`migrations/clrs4.md`](migrations/clrs4.md) | Fourth-edition imports, shifted chapters, and compatibility/removal gates |
 | [`status/blocked-and-deferred.md`](status/blocked-and-deferred.md) | Explicitly blocked, deferred, and future work |
 | [`workflows/chapter-workflow.md`](workflows/chapter-workflow.md) | End-to-end chapter formalization workflow |
@@ -29,6 +30,9 @@ during the compatibility period.
   facade sources, and migration states.
 - `clrs-proof-progress.csv` owns fourth-edition chapter-level counts and status
   labels, interpreted through the edition map.
+- `clrs-online-material.csv` owns topic-level counts outside the canonical
+  fourth-edition chapter tree; its entries must not be counted in chapter
+  progress.
 - `proof-map.md` owns theorem-level detail and formalization boundaries.
 - `proof-status-board.md` owns prioritization; it should not duplicate every
   theorem name.

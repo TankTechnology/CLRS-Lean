@@ -17,4 +17,3 @@ The existing matrix factorization inversion and least-squares developments are r
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

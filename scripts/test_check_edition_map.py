@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from check_edition_map import MAP_HEADER, validate_repository
+from check_edition_map import MAP_HEADER, ONLINE_HEADER, validate_repository
 
 
 TITLES = {
@@ -28,6 +28,12 @@ class EditionMapTests(unittest.TestCase):
         root = Path(temporary.name)
         (root / "docs").mkdir()
         (root / "CLRSLean" / "FourthEdition").mkdir(parents=True)
+        (root / "CLRSLean" / "Legacy.lean").write_text(
+            "/-! Legacy online material. -/\n", encoding="utf-8"
+        )
+        (root / "CLRSLean" / "OnlineMaterial.lean").write_text(
+            "import CLRSLean.Legacy\n", encoding="utf-8"
+        )
 
         with (root / "docs" / "clrs-fourth-edition-map.csv").open(
             "w", newline="", encoding="utf-8"
@@ -51,6 +57,34 @@ class EditionMapTests(unittest.TestCase):
                 (root / "CLRSLean" / "FourthEdition" / f"Chapter_{chapter:02d}.lean").write_text(
                     f"/-! # Chapter {chapter} — {title}\n-/\n", encoding="utf-8"
                 )
+            writer.writerow(
+                {
+                    "chapter_no": 0,
+                    "section_no": "online:legacy",
+                    "chapter_title": "Online and Supplementary Material",
+                    "section_title": "Legacy topic",
+                    "migration_state": "online-material",
+                    "source_modules": "CLRSLean.Legacy",
+                    "legacy_location": "CLRS third edition online material",
+                    "coverage_note": "Retained outside the fourth-edition main text.",
+                }
+            )
+
+        with (root / "docs" / "clrs-online-material.csv").open(
+            "w", newline="", encoding="utf-8"
+        ) as handle:
+            writer = csv.DictWriter(handle, fieldnames=ONLINE_HEADER)
+            writer.writeheader()
+            writer.writerow(
+                {
+                    "topic_id": "legacy",
+                    "title": "Legacy topic",
+                    "source_modules": "CLRSLean.Legacy",
+                    "legacy_location": "CLRS third edition online material",
+                    "tracked_key_theorems": 1,
+                    "coverage_note": "Retained outside the fourth-edition main text.",
+                }
+            )
 
         progress_header = ["chapter_no", "chapter_title", "tracked_key_theorems"]
         with (root / "docs" / "clrs-proof-progress.csv").open(
@@ -74,7 +108,7 @@ class EditionMapTests(unittest.TestCase):
     def test_requires_all_35_chapters(self) -> None:
         root = self.make_repo()
         path = root / "docs" / "clrs-fourth-edition-map.csv"
-        rows = self.read_rows(path)[:-1]
+        rows = [row for row in self.read_rows(path) if row["chapter_no"] != "35"]
         with path.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.DictWriter(handle, fieldnames=MAP_HEADER)
             writer.writeheader()
@@ -129,6 +163,33 @@ class EditionMapTests(unittest.TestCase):
             writer.writerows(rows)
         errors = "\n".join(validate_repository(root))
         self.assertIn("chapter 1 title differs between map and progress", errors)
+
+    def test_online_material_import_must_be_machine_cataloged(self) -> None:
+        root = self.make_repo()
+        (root / "CLRSLean" / "Extra.lean").write_text(
+            "/-! Extra material. -/\n", encoding="utf-8"
+        )
+        (root / "CLRSLean" / "OnlineMaterial.lean").write_text(
+            "import CLRSLean.Legacy\nimport CLRSLean.Extra\n", encoding="utf-8"
+        )
+
+        errors = "\n".join(validate_repository(root))
+
+        self.assertIn("online-material import is not cataloged: CLRSLean.Extra", errors)
+
+    def test_online_ledger_must_match_online_map_rows(self) -> None:
+        root = self.make_repo()
+        path = root / "docs" / "clrs-fourth-edition-map.csv"
+        rows = self.read_rows(path)
+        rows = [row for row in rows if row["migration_state"] != "online-material"]
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=MAP_HEADER)
+            writer.writeheader()
+            writer.writerows(rows)
+
+        errors = "\n".join(validate_repository(root))
+
+        self.assertIn("online ledger source is absent from edition map: CLRSLean.Legacy", errors)
 
 
 if __name__ == "__main__":

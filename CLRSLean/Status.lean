@@ -77,15 +77,14 @@ source directory with the same number exists.
 
 ## Online And Supplementary Material
 
-The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 421 tracked theorem
-entries from the three wholly excluded third-edition Chapters 19, 20, and 33,
-plus moved section-level developments such as maximum subarray, perfect
-hashing, detailed SIMPLEX, iterative FFT, and integer factorization.  The 421
-figure deliberately excludes those moved subsections: the present progress
-ledger is chapter-granular, so a moved subsection inside an otherwise reused
-source chapter remains in that facade's source-inventory total until
-declaration-level remapping.  Thus neither total should be read as a count of
-distinct fourth-edition textbook obligations.
+The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 467 tracked theorem
+groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
+33, plus 46 from moved section-level developments such as maximum subarray,
+perfect hashing, matroids and task scheduling, detailed SIMPLEX, iterative FFT,
+and integer factorization.  Those 46 groups have been removed from the
+canonical chapter totals, so the 1,326 canonical and 467 online entries are
+disjoint.  {lit}`docs/clrs-online-material.csv` owns the topic-level counts and
+source modules; compatibility imports do not duplicate either ledger.
 
 ## Reader Contract
 

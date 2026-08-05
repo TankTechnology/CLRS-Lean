@@ -46,4 +46,3 @@ section module.
 The {lit}`FourthEdition` prefix is transitional.  At the cleanup major release,
 unqualified {lit}`CLRSLean.Chapter_NN` paths will adopt fourth-edition meanings.
 -/
-

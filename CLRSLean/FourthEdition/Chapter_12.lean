@@ -17,4 +17,3 @@ The existing functional binary-search-tree development is reused across the four
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

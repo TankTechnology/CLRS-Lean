@@ -17,4 +17,3 @@ The third-edition Chapter 24 Bellman–Ford DAG and Dijkstra developments are re
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

@@ -32,6 +32,7 @@ CLRSLean/Workflow.lean                contributor workflow
 CLRSLean/Chapter_xx/Section_xx_y.lean section-level literate proof
 docs/proof-map.md                     longer maintainer ledger
 docs/clrs-proof-progress.csv          chapter-level status source
+docs/clrs-online-material.csv         disjoint supplementary-count source
 docs/workflows/chapter-workflow.md    maintainer workflow notes
 ```
 
@@ -57,7 +58,7 @@ concurrency is capped at four jobs:
 python3 scripts/apply_verso_patch.py
 lake build :literate
 python3 scripts/prepare_literate_module_map.py \
-  .lake/build/literate .lake/build/literate-module-map
+  .lake/build/literate .lake/build/literate-module-map --prune-orphans
 python3 scripts/plan_literate_shards.py \
   .lake/build/literate-module-map .lake/build/literate-shards \
   --shards 4 \
@@ -80,8 +81,14 @@ python3 scripts/merge_literate_shards.py \
 python3 scripts/check_literate_html_weight.py .lake/build/literate-html-merged
 python3 scripts/check_literate_html_freshness.py .lake/build/literate-html-merged
 python3 scripts/prepare_literate_site.py .lake/build/literate-html-merged _site
+python3 scripts/check_literate_rendering.py _site
 python3 -m http.server --directory _site 8000
 ```
+
+The module-map step validates each cached JSON against its current `.lean`
+source and prunes orphan JSON plus its exact Lake sidecars. This prevents a
+prefix cache restored from an older commit from republishing renamed or deleted
+modules, and runs before CI saves the refreshed cache.
 
 The serial renderer remains a diagnostic fallback and is not used by Pages:
 

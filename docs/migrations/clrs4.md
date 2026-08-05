@@ -78,12 +78,18 @@ identifies the source namespace to use until each migration lands.
 | Third-edition Section 16.5, task scheduling | `CLRSLean.Chapter_16.Section_16_5_Task_Scheduling` |
 | Third-edition Section 29.3, the simplex algorithm | `CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm` |
 | Third-edition Section 29.5, the initial basic feasible solution | `CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution` |
-| Third-edition Section 30.3, efficient and iterative FFT implementations | `CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations` |
+| Third-edition Section 30.3, bit reversal | `CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal` |
+| Third-edition Section 30.3, iterative FFT | `CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT` |
 | Third-edition Section 31.9, integer factorization | `CLRSLean.Chapter_31.Section_31_9_Integer_Factorization` |
 
 All entries in this table are also available through
 `import CLRSLean.OnlineMaterial`. The old imports remain supported during the
 compatibility period; the umbrella is the stable discovery point for new code.
+The authoritative topic-level counts are in
+[`docs/clrs-online-material.csv`](../clrs-online-material.csv); they are
+disjoint from the canonical chapter counts in `clrs-proof-progress.csv`.
+Fourth-edition FFT-circuit results remain canonical Chapter 30 content and are
+therefore intentionally absent from the online-material umbrella.
 
 ## Compatibility and deprecation policy
 

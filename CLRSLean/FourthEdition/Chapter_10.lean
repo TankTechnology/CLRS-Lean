@@ -17,4 +17,3 @@ The existing stack queue list and rooted-tree developments are reused; fourth-ed
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

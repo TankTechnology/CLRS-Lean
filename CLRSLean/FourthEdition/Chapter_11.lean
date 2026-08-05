@@ -17,4 +17,3 @@ Sections 11.1–11.4 reuse existing proofs. The fourth-edition practical-conside
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

@@ -129,6 +129,47 @@ class LiterateShardMergeTests(unittest.TestCase):
             self.assertIn("unequal output collision: shared.css", rendered)
             self.assertIn("unequal metadata key collision: same", rendered)
 
+    def test_rejects_missing_rendered_module_page(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = write_manifest(root, [["CLRSLean.A"]])
+            shard = write_shard(root, 0, ["CLRSLean.A"])
+            (shard / "html/CLRSLean/A/index.html").unlink()
+            output = root / "merged"
+            output.mkdir()
+            sentinel = output / "keep"
+            sentinel.write_text("untouched", encoding="utf-8")
+
+            errors = merge_shards(manifest, [shard], output)
+
+            self.assertIn(
+                "shard 0: missing rendered module page: CLRSLean/A/index.html",
+                errors,
+            )
+            self.assertEqual("untouched", sentinel.read_text(encoding="utf-8"))
+
+    def test_rejects_unexpected_module_page_but_allows_shared_pages_and_assets(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = write_manifest(root, [["CLRSLean.A"]])
+            shard = write_shard(root, 0, ["CLRSLean.A"])
+            html = shard / "html"
+            unexpected = html / "CLRSLean/X/index.html"
+            unexpected.parent.mkdir(parents=True)
+            unexpected.write_text("unexpected", encoding="utf-8")
+            (html / "index.html").write_text("landing", encoding="utf-8")
+            search = html / "search/index.html"
+            search.parent.mkdir(parents=True)
+            search.write_text("search", encoding="utf-8")
+            (html / "xref.json").write_text("{}", encoding="utf-8")
+
+            errors = merge_shards(manifest, [shard], root / "merged")
+
+            self.assertEqual(
+                ["shard 0: unexpected rendered module page: CLRSLean/X/index.html"],
+                errors,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

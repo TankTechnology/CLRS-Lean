@@ -14,6 +14,9 @@ from pathlib import Path
 from typing import Any
 
 
+SHARED_INDEX_PAGES = {Path("index.html"), Path("search/index.html")}
+
+
 def _load_json(path: Path, errors: list[str], label: str) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -77,7 +80,27 @@ def merge_shards(manifest: Path, shard_roots: list[Path], output: Path) -> list[
         if not html_root.is_dir():
             errors.append(f"shard {index}: output directory does not exist: {html_root}")
         else:
-            for source in sorted(path for path in html_root.rglob("*") if path.is_file()):
+            output_files = sorted(path for path in html_root.rglob("*") if path.is_file())
+            if index in expected_shards:
+                expected_pages = {
+                    Path(*module.split("."), "index.html")
+                    for module in expected_shards[index]
+                }
+                actual_pages = {
+                    source.relative_to(html_root)
+                    for source in output_files
+                    if source.name == "index.html"
+                    and source.relative_to(html_root) not in SHARED_INDEX_PAGES
+                }
+                for page in sorted(expected_pages - actual_pages, key=str):
+                    errors.append(
+                        f"shard {index}: missing rendered module page: {page.as_posix()}"
+                    )
+                for page in sorted(actual_pages - expected_pages, key=str):
+                    errors.append(
+                        f"shard {index}: unexpected rendered module page: {page.as_posix()}"
+                    )
+            for source in output_files:
                 relative = source.relative_to(html_root)
                 source_digest = _file_digest(source)
                 previous = file_sources.get(relative)

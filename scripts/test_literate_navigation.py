@@ -113,6 +113,27 @@ class ReaderSidebarRewriteTests(unittest.TestCase):
         self.assertEqual(result.html, source)
         self.assertEqual(result.unclassified_hrefs, ("mystery/",))
 
+    def test_routes_hidden_current_module_to_canonical_reader_page(self) -> None:
+        source = """<nav class="module-tree">
+  <details open><summary><a href="CLRSLean/FourthEdition/" title="CLRSLean.FourthEdition">Fourth Edition</a></summary>
+    <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_20/" title="CLRSLean.FourthEdition.Chapter_20">Chapter 20</a></div>
+  </details>
+  <details open><summary><a href="CLRSLean/Chapter_22/" title="CLRSLean.Chapter_22">Chapter 22</a></summary>
+    <div class="leaf current"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/" title="CLRSLean.Chapter_22.Section_22_3_DFS">22.3</a></div>
+  </details>
+</nav>"""
+
+        result = prune_reader_sidebar(
+            source,
+            {"CLRSLean.Chapter_22": "CLRSLean.FourthEdition.Chapter_20"},
+        )
+
+        self.assertNotIn('title="CLRSLean.Chapter_22"', result.html)
+        self.assertIn(
+            '<div class="leaf current"><a href="CLRSLean/FourthEdition/Chapter_20/"',
+            result.html,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,4 +17,3 @@ The represented number-theoretic developments are reused; integer factorization 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-

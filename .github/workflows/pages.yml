@@ -51,7 +51,8 @@ jobs:
         run: |
           python3 scripts/prepare_literate_module_map.py \
             .lake/build/literate \
-            "$MODULE_MAP"
+            "$MODULE_MAP" \
+            --prune-orphans
           python3 scripts/plan_literate_shards.py \
             "$MODULE_MAP" \
             "$SHARD_PLAN" \
@@ -162,7 +163,6 @@ jobs:
         run: |
           python3 scripts/check_literate_html_weight.py .lake/build/literate-html-merged
           python3 scripts/check_literate_html_freshness.py .lake/build/literate-html-merged
-          python3 scripts/check_literate_rendering.py .lake/build/literate-html-merged
 
       - name: Assemble optimized site
         run: |
@@ -170,6 +170,7 @@ jobs:
             .lake/build/literate-html-merged \
             _site \
             --base-url "https://tanktechnology.github.io/CLRS-Lean/"
+          python3 scripts/check_literate_rendering.py _site
 
       - uses: actions/upload-pages-artifact@v3
         with:

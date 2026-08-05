@@ -17,4 +17,3 @@ Status: not-started. Related maximum-flow matching results are cross-references 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/
-
