@@ -11,6 +11,7 @@ import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Reac
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Trace
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Coefficients
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.NoCycle
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Termination
 
 /-!
 # 29.3 SIMPLEX
