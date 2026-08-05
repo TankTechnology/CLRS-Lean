@@ -64,15 +64,15 @@ only on the three standard Lean/Mathlib axioms (`propext`, `Classical.choice`,
 | 25 | All-Pairs Shortest Paths | 🟢 correctness | 24 | — |
 | 26 | Maximum Flow | 🟢 complete | 18 | — |
 | 27 | Multithreaded Algorithms | 🟢 complete | 95 | — |
-| 28 | Matrix Operations | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
+| 28 | Matrix Operations | 🟢 complete | 9 | — |
 | 29 | Linear Programming | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
 | 30 | Polynomials and the FFT | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
-| 31 | Number-Theoretic Algorithms | ⬜ not started | 0 | Whole chapter theorem inventory and formalization pending |
+| 31 | Number-Theoretic Algorithms | 🟡 sections | 12 | — |
 | 32 | String Matching | 🟡 sections | 19 | — |
 | 33 | Computational Geometry | 🟠 partial | 7 | Prove segmentIntersect soundness and completeness against an… |
 | 34–35 | Remaining chapters | ⬜ not started | 0 | whole chapters |
 
-**Total: 1705 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
+**Total: 1726 kernel-checked theorems across Chapters 1–33** (no `sorry`/`admit`/axiom on `main`).
 <!-- END progress-table -->
 
 Status legend: 🟢 `complete` / `correctness` (advertised theorem stack sealed) ·
