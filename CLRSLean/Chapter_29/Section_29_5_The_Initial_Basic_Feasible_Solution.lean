@@ -6,6 +6,8 @@ import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.Rest
 import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoStart
 import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.PhaseTwoBridge
 import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitializedSimplex
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.DualProjection
+import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.GeneralStrongDuality
 
 /-!
 # 29.5 The initial basic feasible solution
