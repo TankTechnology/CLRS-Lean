@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms
+import CLRSLean.Chapter_29.Section_29_4_Duality
 
 /-!
 # Chapter 29 - Linear Programming
@@ -10,11 +11,12 @@ The current milestone represents standard/slack feasibility and weak duality.
 
 * 29.1 Standard and slack forms: standard-form definitions and the
   slack-variable feasibility bridge.
+* 29.4 Duality: dual feasibility and weak duality.
 
 ## Current gaps
 
-Sections 29.2, 29.3, and 29.5 are not represented.  Section 29.4 will initially
-contain weak duality only.  Basic/nonbasic dictionaries, PIVOT, SIMPLEX, strong
+Sections 29.2, 29.3, and 29.5 are not represented.  Section 29.4 initially
+contains weak duality only.  Basic/nonbasic dictionaries, PIVOT, SIMPLEX, strong
 duality, complementary slackness, and INITIALIZE-SIMPLEX remain explicit gaps.
 -/
 
