@@ -3,9 +3,10 @@ import Mathlib.Tactic
 
 /-! # Chapter 30.3: Layered parallel FFT network
 
-The network exposes one typed layer per iterative stage and one typed position
-per independent butterfly.  Twiddle powers are fixed circuit constants;
-bit-reversal is wiring rather than an arithmetic gate.
+The network exposes one typed layer per iterative stage.  Each layer stores a
+recursive stage circuit whose leaves are actual butterfly gates with fixed
+twiddle constants; evaluation, butterfly count, and depth all interpret that
+same syntax.  Bit-reversal is wiring rather than an arithmetic gate.
 -/
 
 namespace CLRS
@@ -18,7 +19,8 @@ structure FFTButterflyGate (K : Type*) where
 /-- Evaluate one logical butterfly on its lower and upper inputs. -/
 def FFTButterflyGate.eval [Ring K] (gate : FFTButterflyGate K)
     (u v : K) : K × K :=
-  (u + gate.twiddle * v, u - gate.twiddle * v)
+  let product := gate.twiddle * v
+  (u + product, u - product)
 
 /-- A complete local butterfly layer, with one actual gate at every offset. -/
 structure ButterflyLayerCircuit (K : Type*) (k : Nat) where
