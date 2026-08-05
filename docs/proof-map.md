@@ -3940,8 +3940,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Section 28.1 - Solving Systems of Linear Equations
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean`
-- Status: `partial` (Theorem 28.1 proved; Theorem 28.2 and the principal
-  cubic work claim remain)
+- Status: `selected-section-complete` (Theorem 28.1 proved)
 - Model:
   - `CLRS.Chapter28.IsUpperTriangular` / `IsLowerTriangular` /
     `IsUnitLowerTriangular` (triangularity predicates)
@@ -3969,27 +3968,99 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     induction hypothesis to the (nonsingular) Schur complement, and assemble the
     block factors `L = [[1,0],[P₁·m, L₁]]`, `U = [[α,v],[0,U₁]]` with
     `σ = swap 0 p · diag(1, σ₁)`.
-- Remaining Section 28.1 scope: executable forward/back substitution and
-  LUP-SOLVE correctness (Theorem 28.2 / #124), plus the principal cubic work
-  claim required by roadmap #77.
-- Section 28.2 has an initial algebraic bridge, but its algorithmic scope is
-  still partial.
-
+  - `lup_solve_correct` (CLRS §28.1, Algorithm LUP-SOLVE): if
+    `σ.permMatrix · A = L · U` and the substitution equations `L·y = P·b`,
+    `U·x = y` hold, then `A·x = b`.  The proof composes the two equations
+    through the factorization and cancels the permutation matrix (`mulVec` of a
+    permutation matrix is `v ↦ v∘σ`).
+  - `forwardSubst` + `forwardSubst_spec` (CLRS Lemma 28.1): the constructive
+    forward-substitution vector through a unit lower-triangular matrix,
+    recursively `y₀ = b₀` then the tail through the trailing block, with
+    `L·(forwardSubst L b) = b`.
+  - `backSubst` + `backSubst_spec` (CLRS Lemma 28.2): the constructive
+    backward-substitution vector through an upper-triangular matrix with
+    nonzero diagonal, recursively `xₙ = yₙ/Uₙₙ` then the tail through the
+    leading block, with `U·(backSubst U y) = y`.
+  - `lupSolve` + `lupSolve_correct`: `lupSolve σ L U b` (forward-then-back
+    substitution through the factors) solves `A·x = b` given an LUP
+    decomposition, composing `forwardSubst_spec` and `backSubst_spec` through
+    `lup_solve_correct`.
+  - `exists_solution_of_nonsingular`: a nonsingular matrix over a field solves
+    every linear system (`∃ x, A·x = b`), via `Matrix.isUnit_iff_isUnit_det`
+    and `Matrix.mulVec_surjective_iff_isUnit`.
+  - `unique_solution_of_nonsingular`, `unique_solution_unitLowerTriangular`,
+    and `unique_solution_upperTriangular`: nonsingular, unit-lower-triangular,
+    and upper-triangular systems with nonzero diagonal have at most one
+    solution, via `mulVec_injective_iff_isUnit` (for the triangular cases,
+    `det_unitLowerTriangular` and `Matrix.det_of_upperTriangular` give
+    nonsingularity).
+  - `det_eq_sign_mul_det_of_lup` (Corollary to Theorem 28.1): from
+    `σ.permMatrix · A = L · U` with `L` unit lower-triangular,
+    `det U = sign σ · det A` — determinants agree up to sign; with
+    `det_ne_zero_of_lup` and `upperTriangular_diag_ne_zero_of_det_ne_zero`,
+    `U` is nonsingular and has nonzero diagonal when `A` is.
+  - Cost layer (`section Cost`): abstract operation counts matching the CLRS
+    running times, with `isBigO` bounds — `substitutionCost_isBigO`
+    (LUP-SOLVE `Θ(n²)`), `lupDecompositionCost_isBigO` (LUP `Θ(n³)`),
+    `matrixInversionCost_isBigO` (inversion `Θ(n³)`), and
+    `choleskyCost_isBigO` (Cholesky `Θ(n³)`).
 ### Section 28.2 - Inverting Matrices
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`
-- Status: `partial` (algebraic inversion identity only)
+- Status: `selected-section-complete` (Theorem 28.2 proved)
 - Proved:
   - `permMatrix_inv`: `(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`.
   - `permMatrix_mul_inv`: `(σ.permMatrix)⁻¹ * σ.permMatrix = 1`.
-  - `inv_eq_lup`: from an LUP factorization `σ.permMatrix · A = L · U`,
-    `A⁻¹ = U⁻¹ · L⁻¹ · σ.permMatrix`.
-- Boundary: `inv_eq_lup` is a useful identity, not CLRS Theorem 28.2.  The
-  latter is LUP-SOLVE correctness in Section 28.1 (#124).  Section 28.2 still
-  needs an executable matrix-inversion construction, left/right inverse
-  correctness, and the principal cubic work claim.
-- Remaining chapter scope: Section 28.3 (symmetric positive-definite matrices,
-  Cholesky decomposition, and least-squares approximation) is not represented.
+  - `inv_eq_lup` (CLRS Theorem 28.2): from an LUP factorization
+    `σ.permMatrix · A = L · U`, `A⁻¹ = U⁻¹ · L⁻¹ · σ.permMatrix` — invert the
+    triangular factors (`Matrix.mul_inv_rev`) and undo the row permutation.
+
+### Section 28.3 - Symmetric Positive-Definite Matrices and Least Squares
+
+- Lean source: `CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean`
+- Status: `complete`
+- Model:
+  - `IsSymPosDef`: the CLRS definition of symmetric positive-definite —
+    symmetric and `xᵀAx > 0` for every nonzero `x`.
+  - `residualSq`: the squared Euclidean 2-norm of the residual `A·x - b`
+    (via `Matrix.dotProduct`, the Euclidean squared norm over `ℝ`).
+  - `choleskySchur`: the Schur complement `A₂₂ - (v·vᵀ)/a` of the leading
+    `1×1` block of `A` (the trailing block after one elimination step).
+  - `IsLowerTriangularPosDiag` and `choleskyFactor`: the recursive Cholesky
+    factor `L = [[√a, 0], [v/√a, L₂]]` built from `a = A 0 0`, the first
+    column `v`, and the trailing factor `L₂`, with lower-triangularity and
+    positive diagonal packaged as `IsLowerTriangularPosDiag`.
+- Proved:
+  - `isSymPosDef_iff_posDef`: SPD coincides with Mathlib's `Matrix.PosDef`,
+    yielding `IsSymPosDef.det_pos` (nonsingular), `.diag_pos` (positive
+    diagonal), `.mulVec_injective`, and `.isUnit`.
+  - `posDef_mul_transpose`: if `A.mulVec` is injective (full column rank),
+    then `AᵀA` is SPD — the nonsingularity of the Gram matrix behind the
+    normal equations.
+  - `normal_equations_minimizes` (CLRS Theorem 28.4): a solution of the normal
+    equations `Aᵀ·(A·xh - b) = 0` minimizes the squared residual, via the
+    Pythagorean decomposition `residual_sq_decomposition` (residual orthogonal
+    to the column space).
+  - `normal_equations_unique`: full column rank makes the minimizer unique.
+  - `least_squares_closed_form` and `least_squares_closed_form_minimizes`:
+    `xh = (AᵀA)⁻¹·(Aᵀ·b)` is the least-squares solution.
+  - `cholesky_schur_complement`: the Schur complement of an SPD matrix is again
+    SPD, proved directly via the block quadratic form `schur_quadratic_form`
+    (`zᵀAz = a·t² + 2·t·(v ⬝ᵥ y) + yᵀA₂₂y` for `z = (t, y)`) and the choice
+    `t = -(v ⬝ᵥ y)/a`.
+  - `cholesky_decomposition` (CLRS Theorem 28.3): every SPD matrix factors as
+    `A = L·Lᵀ` with `L` lower-triangular and positive diagonal.  The induction
+    on `n` reuses `cholesky_schur_complement` to obtain the SPD Schur
+    complement, applies the induction hypothesis to get `S = L₂·L₂ᵀ`, builds
+    `L = choleskyFactor A L₂`, and proves `A = L·Lᵀ` entrywise via the block
+    identities `choleskyFactor_mul_00/0_succ/succ_0/succ_succ_eq` (using
+    `Real.sq_sqrt` and symmetry of `A`).
+  - `cholesky_unique`: the Cholesky factor is unique — if `L₁` and `L₂` are
+    lower-triangular with positive diagonal and `L₁·L₁ᵀ = L₂·L₂ᵀ`, then
+    `L₁ = L₂`.  The block recursion compares `(0,0)` entries (equal squares,
+    both positive), the first column, and applies the induction hypothesis to
+    the trailing blocks; the entry expansions use
+    `lowerTri_mul_transpose_00/0_succ/succ_succ`.
 
 ## Chapter 32 - String Matching
 
