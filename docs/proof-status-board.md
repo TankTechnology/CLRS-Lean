@@ -48,7 +48,7 @@ not missing core theorem groups.
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
 | 28 | Theorem 28.1 proves LUP-decomposition existence; `inv_eq_lup` supplies the Section 28.2 algebraic inversion bridge | Add forward/back substitution, prove LUP-SOLVE correctness (#124), then executable matrix inversion and the principal cubic work claims |
-| 29 | Standard-form/slack feasibility equivalence and CLRS Theorem 29.8 weak duality | Add basic/nonbasic dictionaries, executable PIVOT/SIMPLEX, strong duality, complementary slackness, and INITIALIZE-SIMPLEX |
+| 29 | Standard/slack feasibility, basic/nonbasic dictionary semantics, exact PIVOT equivalence, minimum-ratio feasibility and objective progress, and CLRS Theorem 29.8 weak duality | Complete executable SIMPLEX with unboundedness, exit optimality, and Bland termination; then strong duality, complementary slackness, Section 29.2 formulations, and INITIALIZE-SIMPLEX |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main

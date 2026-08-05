@@ -383,12 +383,31 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_29" = [
   "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm",
   "CLRSLean.Chapter_29.Section_29_4_Duality",
 ]
 "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms" = [
   "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions",
   "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables",
   "CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Definitions",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Semantics",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.BasicSolution",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.InitialDictionary",
+]
+"CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot" = [
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Definitions",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Algebra",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SumLemmas",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SemanticEquivalence",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Feasibility",
+  "CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Objective",
 ]
 "CLRSLean.Chapter_29.Section_29_4_Duality" = [
   "CLRSLean.Chapter_29.Section_29_4_Duality.Definitions",
@@ -1140,6 +1159,45 @@ title = "29.1. Canonical Slack Variables"
 
 [modules."CLRSLean.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence"]
 title = "29.1. Standard/Slack Equivalence"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm"]
+title = "29.3. The Simplex Algorithm"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary"]
+title = "29.3. Simplex Dictionaries"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Definitions"]
+title = "29.3. Dictionary Definitions"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Semantics"]
+title = "29.3. Dictionary Semantics"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.BasicSolution"]
+title = "29.3. Basic Solutions"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.InitialDictionary"]
+title = "29.3. Initial Dictionary"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot"]
+title = "29.3. PIVOT"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Definitions"]
+title = "29.3. PIVOT Definitions"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Algebra"]
+title = "29.3. PIVOT Formulas"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SumLemmas"]
+title = "29.3. PIVOT Finite-Sum Algebra"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.SemanticEquivalence"]
+title = "29.3. PIVOT Semantic Equivalence"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Feasibility"]
+title = "29.3. Minimum-Ratio Feasibility"
+
+[modules."CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Pivot.Objective"]
+title = "29.3. Objective Progress"
 
 [modules."CLRSLean.Chapter_29.Section_29_4_Duality"]
 title = "29.4. Duality"
