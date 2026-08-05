@@ -34,6 +34,7 @@ import CLRSLean.Chapter_26
 import CLRSLean.Chapter_27
 import CLRSLean.Chapter_28
 import CLRSLean.Chapter_29
+import CLRSLean.Chapter_30
 import CLRSLean.Chapter_31
 import CLRSLean.Chapter_32
 import CLRSLean.Chapter_33
@@ -76,20 +77,20 @@ There are four useful reading routes:
 The **Reusable CLRS proof patterns** page collects the small cross-chapter APIs
 for boundary shifts, exchange certificates, fibers, and interval geometry.
 
-## Chapters 1--29 Milestone
+## Chapters 1--31 Milestone
 
-Every chapter from 1 through 29 has completed its advertised proof scope on
+Every chapter from 1 through 31 has completed its advertised proof scope on
 the current {lit}`main` branch.  This prefix milestone includes:
 
-* complete main theorem stacks for Chapters 2--4, 6, 9, 16, 21, and 26--29;
+* complete main theorem stacks for Chapters 2--4, 6, 9, 16, 21, and 26--30;
 * complete correctness stacks for Chapters 8, 11--14, 18--20, 22--23, and 25;
-* complete represented sections for Chapters 5, 7, 10, 15, 17, and 24;
+* complete represented sections for Chapters 5, 7, 10, 15, 17, 24, and 31;
 * the expository Chapter 1 guide.
 
-The newest closed chapters are Chapter 27's pure-functional parallel algorithm
-stack, Chapter 28's matrix operations through Cholesky and least squares, and
-Chapter 29's initialized terminating SIMPLEX, strong duality, and complementary
-slackness.
+The newest closed chapter is Chapter 30's generic DFT/FFT stack, including
+recursive and iterative radix-2 correctness, polynomial multiplication,
+execution-attached work, and an evaluated layered circuit with exact size and
+depth.
 
 This milestone is not a claim that every textbook section, exercise,
 chapter-end Problem, pointer/RAM refinement, or numerical implementation has

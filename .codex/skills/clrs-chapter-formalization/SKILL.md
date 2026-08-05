@@ -125,9 +125,12 @@ For each chapter, run this loop in order:
      `rg -n '\b(sorry|admit|axiom)\b' CLRSLean/Chapter_NN -g '*.lean'`.
    - Run `git diff --check`.
    - Run `lake build`.
-   - For site-visible changes, run `lake build :literateHtml`.
-   - If static HTML size matters, run `scripts/optimize_literate_html.py` on a
-     temporary copy and inspect large pages.
+   - Keep `literate.toml`, module documentation, and source navigation metadata
+     consistent; run the repository and site-configuration checks.
+   - Chapter proof work does not include generating, preparing, optimizing,
+     inspecting, or deploying the website.  Run `lake build :literateHtml` and
+     rendering/live-site checks only when the user explicitly requests a
+     publishing, release, or website task.
    - Record warnings as warnings; do not call a chapter complete because a
      different command passed.
 

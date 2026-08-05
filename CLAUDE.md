@@ -65,11 +65,23 @@ Use the lightest command that answers your question.  Full details in
 | Full check before committing | `lake build CLRSLean` |
 | Lakefile / dependency changes | `lake build --reconfigure CLRSLean` |
 | Suspect stale trace / weird error | `lake build --rehash CLRSLean` |
-| Build Verso website | `lake build :literateHtml` |
+| Build Verso website (publishing tasks only) | `lake build :literateHtml` |
 | Build doc-gen4 API docs | `lake -R -Kenv=dev build CLRSLean:docs` |
 
 **Typical latency** (warm build, single-file edit): `lake lean <file>` ≈ 5 s,
 `lake build --old` ≈ 3 s, full `lake build` ≈ 6 s.
+
+### Proof work versus website publishing
+
+Chapter and theorem implementation does not authorize website generation or
+deployment.  During proof work, keep `literate.toml`, module documentation, and
+the source navigation metadata consistent, and run the repository/site
+configuration checks.  Do not run `lake build :literateHtml`, prepare or
+optimize generated HTML, inspect the live site, or deploy the site unless the
+user explicitly requests a publishing, release, or website task.
+
+`lake build CLRSLean` remains the full proof-build gate.  Generated HTML and a
+live deployment are not prerequisites for declaring a proof milestone complete.
 
 ## Parallel agents & build infrastructure
 
@@ -206,12 +218,15 @@ end CLRS
    If you skip this step, Verso will still render the page, but the site
    navigation will show the parent chapter title instead of the section title,
    and the section will be missing from the left sidebar order.  This is
-   considered a deployment bug.
+   considered a source navigation configuration bug.
 5. Add the section path to `docs/index.md` and update
    `docs/clrs-proof-progress.csv`, the chapter guide, and `docs/proof-map.md`.
 6. Regenerate the dashboard and run `scripts/check_repository.py`.
 
 ## How the Verso build works
+
+This pipeline is for explicit website publishing work; it is not part of the
+default chapter-proof workflow.
 
 ```
 .lean source + literate.toml
