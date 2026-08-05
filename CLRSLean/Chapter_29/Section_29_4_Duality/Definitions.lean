@@ -12,10 +12,11 @@ Main declarations:
 - {lit}`StandardLP.IsDualFeasible`.
 - {lit}`StandardLP.dualObjective`.
 
-Current gaps:
+Downstream layers:
 
 - Weak duality is proved in the next module.
-- Strong duality and complementary slackness remain unrepresented.
+- Strong duality and complementary slackness are proved by the later Section
+  29.4 modules together with the initialized solver from Section 29.5.
 -/
 
 namespace CLRS

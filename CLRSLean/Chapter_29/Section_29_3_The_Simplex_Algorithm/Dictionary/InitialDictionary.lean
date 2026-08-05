@@ -14,10 +14,10 @@ Main results:
 - {lit}`initialDictionary_satisfies_of_slackExtension`.
 - {lit}`initialDictionary_objectiveRhs`.
 
-Current gaps:
+Downstream layer:
 
 - A negative right-hand side can make the initial basic solution infeasible;
-  Section 29.5's auxiliary LP will handle that case.
+  Section 29.5's auxiliary LP handles that case.
 -/
 
 namespace CLRS
