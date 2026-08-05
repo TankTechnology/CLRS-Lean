@@ -187,8 +187,18 @@ Verso build only when the user explicitly requests publishing, release, or
 website work:
 
 ```bash
+python3 scripts/apply_verso_patch.py
 lake build :literateHtml
+VERSO_OUT="$(lake query :literateHtml)"
+python3 scripts/check_literate_html_weight.py "$VERSO_OUT"
+python3 scripts/check_literate_html_freshness.py "$VERSO_OUT"
+python3 scripts/prepare_literate_site.py "$VERSO_OUT" _site
 ```
+
+The patch disables proof-state DOM before Verso serializes module pages.  It is
+idempotent and requires the pinned `.lake/packages/verso` checkout to have been
+prepared first.  The raw-output guard rejects residual tactic widgets and
+pages above 25 MiB before site assembly.
 
 For proof development, use the narrow-to-wide loop documented in
 [`docs/workflows/lean-fast-verification.md`](docs/workflows/lean-fast-verification.md)
@@ -237,6 +247,8 @@ Status labels describe the proved model precisely:
 
 ## Website Deployment
 
-GitHub Actions builds the Verso HTML, checks freshness and rendering, optimizes
-the generated pages, creates the sitemap, and deploys the result to GitHub
-Pages.  Generated HTML is build output and is not committed to the repository.
+The manually dispatched GitHub Pages workflow patches Verso, builds the HTML,
+checks raw size, freshness, and rendering, optimizes the generated pages,
+creates the sitemap, and deploys the result.  Neither workflow runs on every
+commit or pull request.  Generated HTML is build output and is not committed
+to the repository.

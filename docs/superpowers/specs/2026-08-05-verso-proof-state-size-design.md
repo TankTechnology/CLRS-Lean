@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-Status: approved in conversation; written specification pending review
+Status: approved and implemented on `codex/verso-proof-state-size`
 
 ## Problem
 
