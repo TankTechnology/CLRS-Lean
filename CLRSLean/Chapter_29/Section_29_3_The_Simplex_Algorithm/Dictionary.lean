@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Definitions
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.Semantics
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.BasicSolution
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Dictionary.InitialDictionary
 
 /-!
 # 29.3 Dictionary layer
