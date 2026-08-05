@@ -104,6 +104,17 @@ example :
 #check Dictionary.objectiveRhs_le_v_of_reducedCosts_nonpos
 #check Dictionary.basicAssignment_optimal_of_reducedCosts_nonpos
 #check Dictionary.simplexStep_optimal_correct
+#check Dictionary.enteringRay
+#check Dictionary.enteringRay_basicVar
+#check Dictionary.enteringRay_nonbasicVar_same
+#check Dictionary.enteringRay_nonbasicVar_of_ne
+#check Dictionary.enteringRay_satisfies
+#check Dictionary.enteringRay_nonnegative
+#check Dictionary.enteringRay_objectiveRhs
+#check Dictionary.IsUnbounded
+#check Dictionary.unbounded_of_entering_column
+#check Dictionary.SimplexStepResult.unboundedEntering
+#check Dictionary.simplexStep_unbounded_correct
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
@@ -117,6 +128,8 @@ example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
 #print axioms Dictionary.pivot_v_strict
 #print axioms Dictionary.basicAssignment_optimal_of_reducedCosts_nonpos
 #print axioms Dictionary.simplexStep_optimal_correct
+#print axioms Dictionary.unbounded_of_entering_column
+#print axioms Dictionary.simplexStep_unbounded_correct
 
 end Chapter29
 end CLRS
