@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_28.Section_28_1_Linear_Equations
 import CLRSLean.Chapter_28.Section_28_2_Inverting_Matrices
+import CLRSLean.Chapter_28.Section_28_3_Symmetric_Positive_Definite
 
 /-! # Chapter 28 - Matrix Operations
 
@@ -18,4 +19,10 @@ determinants, and matrix inversion.
   and {lit}`CLRS.Chapter28.exists_lup_decomposition`.
 * 28.2 Inverting matrices.
   Main declaration: {lit}`CLRS.Chapter28.inv_eq_lup`.
+* 28.3 Symmetric positive-definite matrices and least-squares approximation
+  (partial).  Main declarations:
+  {lit}`CLRS.Chapter28.IsSymPosDef`,
+  {lit}`CLRS.Chapter28.normal_equations_minimizes`,
+  {lit}`CLRS.Chapter28.cholesky_schur_complement`.  The Cholesky existence proof
+  (Theorem 28.3) remains an open gap.
 -/
