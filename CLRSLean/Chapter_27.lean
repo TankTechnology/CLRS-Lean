@@ -72,14 +72,13 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
 ## Sections
 
 * 27.1 The basics of dynamic multithreading.
-  The computation-DAG model with forward (topologically ordered) edges, an
-  honestly computed longest-path span, and the spawn/sync tree model with
-  unit spawn overhead; the balanced parallel-loop spawn tree comes with exact
-  work and span characterizations and all-input logarithmic depth and span
-  upper bounds.  Complete/incomplete greedy-schedule accounting is connected
-  to an explicit ready-set execution of the weighted computation DAG, proving
-  `Tₚ ≤ T₁ / p + T∞`.
-  Main declarations:
+  The computation-DAG model has forward (topologically ordered) edges and an
+  honestly computed longest-weighted-path span.  Its ready-set semantics feeds
+  the total executable {lit}`CLRS.Chapter27.CompDAG.greedySchedule`: the final
+  residual work is zero and its time satisfies `Tₚ ≤ T₁ / p + T∞`.
+  The spawn/sync-tree model has unit spawn overhead, and the balanced
+  parallel-loop tree has exact work/span formulas together with all-input
+  logarithmic depth and span upper bounds.  Main declarations:
   {lit}`CLRS.Chapter27.Strand`,
   {lit}`CLRS.Chapter27.CompDAG`,
   {lit}`CLRS.Chapter27.CompDAG.work`,
@@ -90,9 +89,9 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.DAGScheduleStep`,
   {lit}`CLRS.Chapter27.DAGSchedule`,
   {lit}`CLRS.Chapter27.DAGSchedule.time_le_work_div_add_span`,
-  {lit}`CLRS.Chapter27.GreedyScheduleAccounting.time_le_work_div_add_span`,
-  {lit}`CLRS.Chapter27.GreedyScheduleTrace.time_le_work_div_add_span`,
-  {lit}`CLRS.Chapter27.GreedyScheduleRun.time_le_work_div_add_span`,
+  {lit}`CLRS.Chapter27.CompDAG.greedySchedule`,
+  {lit}`CLRS.Chapter27.CompDAG.greedySchedule_final_work_eq_zero`,
+  {lit}`CLRS.Chapter27.CompDAG.greedySchedule_time_le_work_div_add_span`,
   {lit}`CLRS.Chapter27.SpawnTree`,
   {lit}`CLRS.Chapter27.SpawnTree.span_le_work`,
   {lit}`CLRS.Chapter27.parallelLoopTree`,
@@ -102,18 +101,39 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.parallelLoopDepth_le_log`,
   {lit}`CLRS.Chapter27.parallelLoop_span_le_log`.
 
-* 27.2–27.3 Multithreaded algorithms.
-  An executable {lit}`Costed` layer attaches values to their work and span, with
-  sequential and balanced parallel composition.  The main-text P-ADD and
-  P-MATMUL execute quadrant operations through balanced fork/join trees, and
-  {name}`CLRS.Chapter27.pAdd_correct` and
-  {name}`CLRS.Chapter27.pMatMul_correct` prove their matrix values correct over
-  any ring.  Their execution-attached work/span recurrences are monotone, have
-  exact power-of-two solutions or constant-factor bounds, and lift to
-  all-input Θ theorems: P-ADD has quadratic work and logarithmic span, while
-  P-MATMUL has cubic work and log-squared span ({lit}`Theta(log^2 n)`).  The earlier
-  idealized P-MATMUL recurrence retains its logarithmic-span upper bound.  The
-  executable binary lower bound used by P-MERGE has a proved strict-left,
+* 27.2 Multithreaded matrix multiplication.
+  An executable {lit}`Costed` layer attaches a pure value to exact work and
+  span, with sequential and balanced parallel composition.  P-ADD and the
+  race-free P-MATMUL execute quadrant operations through deterministic
+  fork/join trees; {name}`CLRS.Chapter27.pAdd_correct` and
+  {name}`CLRS.Chapter27.pMatMul_correct` prove ordinary matrix addition and
+  multiplication over any ring.  Execution equalities connect their carried
+  costs to {lit}`CLRS.Chapter27.pAddWork`,
+  {lit}`CLRS.Chapter27.pAddSpan`,
+  {lit}`CLRS.Chapter27.pMatMulExecWork`, and
+  {lit}`CLRS.Chapter27.pMatMulExecSpan`.  The resulting all-input bounds are
+  Θ(n²) work / Θ(log n) span for P-ADD and Θ(n³) work /
+  Θ(log² n) span for executable P-MATMUL.  The legacy
+  {lit}`CLRS.Chapter27.pMatMulSpan` recurrence instead models a constant-time
+  combine and therefore has Θ(log n) span; it is intentionally not the runtime
+  of the implementation, whose sequential P-ADD combine phase yields the
+  log-squared span.  Main declarations:
+  {lit}`CLRS.Chapter27.Costed`,
+  {lit}`CLRS.Chapter27.Costed.seq`, {lit}`CLRS.Chapter27.Costed.par`,
+  {lit}`CLRS.Chapter27.Costed.par4`, {lit}`CLRS.Chapter27.Costed.par8`,
+  {lit}`CLRS.Chapter27.pAdd`, {lit}`CLRS.Chapter27.pAdd_correct`,
+  {lit}`CLRS.Chapter27.pMatMul`, {lit}`CLRS.Chapter27.pMatMul_correct`,
+  {lit}`CLRS.Chapter27.pAdd_work_eq`, {lit}`CLRS.Chapter27.pAdd_span_eq`,
+  {lit}`CLRS.Chapter27.pMatMul_work_eq`,
+  {lit}`CLRS.Chapter27.pMatMul_span_eq`,
+  {lit}`CLRS.Chapter27.pAddWork_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pAddSpan_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pMatMulExecWork_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pMatMulExecSpan_allInput_bigTheta`,
+  {lit}`CLRS.Chapter27.pMatMulSpan_le`.
+
+* 27.3 Multithreaded merge sort.
+  The executable binary lower bound used by P-MERGE has a proved strict-left,
   nonstrict-right partition and logarithmic work/span.  The
   {name}`CLRS.Chapter27.MergeSplit` and {name}`CLRS.Chapter27.pMerge` layer
   implements the actual midpoint/binary-search P-MERGE control structure;
@@ -132,23 +152,7 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   and {name}`CLRS.Chapter27.worstMergeSortInput` supplies a matching recursive
   lower-witness family.  Thus the executable P-MERGE-SORT cost gap is closed.
   The merge-based recurrences also have monotonicity, adjacent-power
-  sandwiches, and all-input Θ theorems.
-  Main declarations:
-  {lit}`CLRS.Chapter27.Costed`,
-  {lit}`CLRS.Chapter27.Costed.seq`, {lit}`CLRS.Chapter27.Costed.par`,
-  {lit}`CLRS.Chapter27.Costed.par4`, {lit}`CLRS.Chapter27.Costed.par8`,
-  {lit}`CLRS.Chapter27.pAdd`, {lit}`CLRS.Chapter27.pAdd_value`,
-  {lit}`CLRS.Chapter27.pAdd_correct`,
-  {lit}`CLRS.Chapter27.pMatMul`, {lit}`CLRS.Chapter27.pMatMul_value`,
-  {lit}`CLRS.Chapter27.pMatMul_correct`,
-  {lit}`CLRS.Chapter27.pAddWork_allInput_bigTheta`,
-  {lit}`CLRS.Chapter27.pAddSpan_allInput_bigTheta`,
-  {lit}`CLRS.Chapter27.pMatMulExecWork_allInput_bigTheta`,
-  {lit}`CLRS.Chapter27.pMatMulExecSpan_allInput_bigTheta`,
-  {lit}`CLRS.Chapter27.pMatMulWork`, {lit}`CLRS.Chapter27.pMatMulWork_pow_two`,
-  {lit}`CLRS.Chapter27.pMatMulWork_le`,
-  {lit}`CLRS.Chapter27.pMatMulSpan`, {lit}`CLRS.Chapter27.pMatMulSpan_pow_two`,
-  {lit}`CLRS.Chapter27.pMatMulSpan_le`,
+  sandwiches, and all-input Θ theorems.  Main declarations:
   {lit}`CLRS.Chapter27.binaryLowerBound`,
   {lit}`CLRS.Chapter27.binaryLowerBound_partition`,
   {lit}`CLRS.Chapter27.binaryLowerBound_work_le_log`,
@@ -215,6 +219,11 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.strassenSpan_power_sandwich`,
   {lit}`CLRS.Chapter27.strassenSpan_allInput_bigTheta`.
 
+The filesystem name {lit}`Section_27_2_4_Algorithms` is retained solely for
+import compatibility with existing clients.  The represented Chapter 27 main
+text ends at Section 27.3; the Strassen recurrences above are a named extension,
+not a fabricated Section 27.4.
+
 ## Completion boundary
 
 The represented Chapter 27 main-text core is complete: algorithms,
@@ -222,6 +231,9 @@ correctness, execution-attached work/span bounds, recurrence analyses, and the
 greedy-scheduler theorem are connected at their reader-facing interfaces.
 The retained parallel-Strassen recurrences are already isolated behind their
 compatibility extension and are not a Chapter 27 proof obligation.
+Mutable-array implementations, RAM-level operation and allocation costs,
+exercises, and chapter-end problems are outside this sealed pure-functional
+boundary.
 -/
 
 namespace CLRS
