@@ -84,20 +84,44 @@ Sources: Rabin (1980) J. Number Theory 12(1) 128–138; Monier (1980) TCS
 12(1) 97–108.  Expositions: Codeforces blog by randop; Androma theorem
 page #1770.
 
-## ⚠️ Main prerequisite: Mathlib gap
+## Milestone 0 findings (verified this session — de-risks the attack)
 
-**`exists_primitive_root` / cyclicity of `(Z/p^e)ˣ` for odd prime powers is
-NOT in Mathlib** (verified by grep — no `exists_primitive_root` anywhere in
-`.lake/packages/mathlib`).  The `|S|` counting (step 3) needs it.  Options:
+**Cyclicity of `(Z/p)ˣ` for prime `p` IS available in Mathlib — for free.**
 
-- (a) Prove cyclicity of `(Z/p)ˣ` for prime `p` (easier, standard: the group
-  of units of a finite field is cyclic) and extend to prime powers.  This is
-  a substantial independent lemma.
-- (b) Avoid exact counts and use a cruder bound that still gives `≤ 1/4` in
-  each case (possible but still needs the unit-group structure).
-- (c) Check current Mathlib for partial support under other names:
-  `ZMod` unit-group results, `IsCyclic`/`isCyclic`, `Nat.orderOf`,
-  `Fintype.card (ZMod p)ˣ`.
+- `example (p) [Fact (Nat.Prime p)] : IsCyclic (ZMod p)ˣ := by infer_instance`
+  works (compiles).  `ZMod p` is a finite field, and Mathlib's
+  `Mathlib/FieldTheory/Finite/Basic.lean` provides cyclicity of the unit group
+  of a finite field.
+- Generator: `IsCyclic.exists_generator (α := (ZMod p)ˣ)` gives
+  `∃ g, ∀ x, x ∈ Subgroup.zpowers g` (every unit is a power of `g`).
+- `orderOf g = Nat.card (ZMod p)ˣ` via
+  `orderOf_eq_card_of_forall_mem_zpowers hx`.
+
+**Gaps that remain:**
+
+- `(Z/p^e)ˣ` cyclicity (primitive roots mod odd prime powers, e ≥ 2) is NOT
+  in Mathlib (`ZMod p^e` is not a field, so the finite-field theorem does not
+  apply).  This is needed for the prime-power count
+  `|{x ∈ (Z/p^e)ˣ : x^m = 1}| = gcd(m, φ(p^e)) = gcd(m, p−1)`.
+  Two options: (a) prove primitive roots mod odd prime powers (classical,
+  substantial); or (b) **avoid it via a Hensel-style lifting argument**: for
+  `m` coprime to `p`, the number of solutions to `x^m ≡ 1 (mod p^e)` equals
+  the number mod `p` (unique lift), reducing to `(Z/p)ˣ` which IS cyclic.
+- `Nat.card (ZMod n)ˣ = Nat.totient n` is NOT a named lemma
+  (`Nat.card_units_zmod` does not exist), but the pieces exist:
+  `Nat.card_units [GroupWithZero α]`, `Nat.totient` is
+  `φ n = #{a ∈ range n | n.Coprime a}` (so prove units of `ZMod n` ≃ coprime
+  elements of `{0,…,n−1}`).
+
+**Suggested milestone order (revised):**
+
+0. Cyclicity of `(Z/p)ˣ` — DONE (Mathlib instance).  Set up the generator +
+   order + `Nat.card (ZMod n)ˣ = φ(n)` bridge lemmas in 31.8.
+1. Decide prime-power strategy: (a) prove `(Z/p^e)ˣ` cyclic, or (b) the
+   Hensel-lifting reduction.  Either is a substantial sub-battle.
+2. ν(n), S(n), S is a subgroup, L ⊆ S.
+3. |S| counting via CRT + the p-cyclic counts.
+4. Three-case bound ≤ φ(n)/4.
 
 ## Concrete attack order (next session)
 
