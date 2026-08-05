@@ -66,6 +66,8 @@ example {m n : ℕ} {P : StandardLP m n} {x : Fin n → ℝ} :
 #check Dictionary.initialDictionary_unbounded_to_standardLP
 #check StandardLP.strongDuality_or_unbounded_of_initialDictionary_isBasicFeasible
 #check StandardLP.strongDuality_of_initialDictionary_isBasicFeasible
+#check StandardLP.not_isUnbounded_of_isDualFeasible
+#check StandardLP.complementarySlackness_iff_optimal_of_initialDictionary_isBasicFeasible
 
 example {m n : ℕ} {P : StandardLP m n}
     {x : Fin n → ℝ} {y : Fin m → ℝ}
@@ -78,6 +80,7 @@ example {m n : ℕ} {P : StandardLP m n}
 #print axioms Dictionary.dualCertificate_isDualFeasible
 #print axioms Dictionary.initialDictionary_optimal_to_standardLP
 #print axioms StandardLP.strongDuality_or_unbounded_of_initialDictionary_isBasicFeasible
+#print axioms StandardLP.complementarySlackness_iff_optimal_of_initialDictionary_isBasicFeasible
 
 end Chapter29
 end CLRS
