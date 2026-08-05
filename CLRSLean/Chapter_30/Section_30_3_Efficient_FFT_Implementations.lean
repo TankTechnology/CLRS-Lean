@@ -13,7 +13,9 @@ DFT.  The execution records exactly one bit-reversal move per input,
 `k * 2^k` additions/subtractions, and `k * 2^k` multiplications; padding lifts
 the total work to the all-input `Theta(n log n)` scale.
 
-The explicit layered network evaluates to the iterative FFT.  It has
+The explicit layered network stores recursive stage circuits whose leaves are
+actual butterflies with fixed twiddle constants.  Evaluating those stored
+gates is proved equal to the iterative FFT, and the same circuit syntax has
 `k * 2^(k-1)` butterflies and butterfly depth `k`; expanding a butterfly to
 one multiplication and two addition/subtraction gates gives
 `3 * k * 2^(k-1)` primitive gates and primitive depth `2 * k`.  Twiddle powers
