@@ -2,72 +2,74 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import check_progress_csv
 from check_progress_csv import (
     check_dashboard_freshness,
-    completed_prefix,
     load_rows,
     render_dashboard,
-    sections_from_filename,
+    validate,
 )
 
 
-class SectionsFromFilenameTest(unittest.TestCase):
-    def test_expands_section_range_filename(self) -> None:
-        sections = sections_from_filename("Section_05_1_4_Probabilistic_Analysis.lean")
+class FourthEditionContractTest(unittest.TestCase):
+    def test_builds_chapter_contracts_from_fourth_edition_map(self) -> None:
+        self.assertTrue(hasattr(check_progress_csv, "chapter_contracts"))
 
-        self.assertEqual(sections, {"5.1", "5.2", "5.3", "5.4"})
+        contracts = check_progress_csv.chapter_contracts()
 
-    def test_compatibility_aggregator_excludes_unadvertised_section(self) -> None:
-        sections = sections_from_filename("Section_27_2_4_Algorithms.lean")
+        self.assertEqual(len(contracts), 35)
+        self.assertEqual(contracts[1]["title"], "The Role of Algorithms in Computing")
+        self.assertEqual(
+            contracts[14]["represented_sections"],
+            ("14.1", "14.2", "14.3", "14.4", "14.5"),
+        )
+        self.assertEqual(contracts[14]["required_status"], "partial")
+        self.assertEqual(contracts[25]["represented_sections"], ())
+        self.assertEqual(contracts[25]["required_status"], "not-started")
+        self.assertEqual(
+            contracts[25]["guide"],
+            Path("CLRSLean/FourthEdition/Chapter_25.lean"),
+        )
 
-        self.assertEqual(sections, {"27.2", "27.3"})
+    def test_rejects_title_that_disagrees_with_fourth_edition_map(self) -> None:
+        rows = [row.copy() for row in load_rows()]
+        rows[0]["chapter_title"] = "The Role of Algorithms"
+
+        with self.assertRaisesRegex(SystemExit, "fourth-edition title"):
+            validate(rows)
+
+    def test_not_started_chapter_must_have_zero_canonical_theorems(self) -> None:
+        rows = [row.copy() for row in load_rows()]
+        rows[33]["tracked_key_theorems"] = "1"
+        rows[33]["proved_tracked_theorems"] = "1"
+
+        with self.assertRaisesRegex(SystemExit, "zero tracked theorem"):
+            validate(rows)
+
+    def test_partial_chapter_must_name_a_missing_core_group(self) -> None:
+        rows = [row.copy() for row in load_rows()]
+        rows[2]["missing_core_groups"] = "0"
+
+        with self.assertRaisesRegex(SystemExit, "positive missing_core_groups"):
+            validate(rows)
+
+    def test_current_csv_validates_against_fourth_edition_contract(self) -> None:
+        validate(load_rows())
 
 
-class MilestoneDashboardTest(unittest.TestCase):
-    def test_renders_chapters_1_29_milestone_from_csv(self) -> None:
+class FourthEditionDashboardTest(unittest.TestCase):
+    def test_renders_fourth_edition_snapshot_from_csv(self) -> None:
         dashboard = render_dashboard(load_rows())
 
-        self.assertIn("## Chapters 1--29 Milestone", dashboard)
-        self.assertIn("1,705", dashboard)
-        self.assertIn("11 chapters are {lit}`main-proof-complete`", dashboard)
-        self.assertIn("11 are {lit}`main-proof-complete-for-correctness`", dashboard)
-        self.assertIn("6 are {lit}`selected-section-complete`", dashboard)
-        self.assertIn("Chapter 1 is {lit}`expository`", dashboard)
-        self.assertIn("does not mean every textbook section", dashboard)
-
-    def test_rejects_prefix_with_unproved_tracked_entries(self) -> None:
-        rows = [row.copy() for row in load_rows()]
-        rows[28]["proved_tracked_theorems"] = "16"
-
-        with self.assertRaisesRegex(ValueError, "not yet proved"):
-            render_dashboard(rows)
-
-    def test_rejects_prefix_with_missing_core_groups(self) -> None:
-        rows = [row.copy() for row in load_rows()]
-        rows[28]["missing_core_groups"] = "1"
-
-        with self.assertRaisesRegex(ValueError, "missing core"):
-            render_dashboard(rows)
-
-    def test_rejects_prefix_with_non_completion_status(self) -> None:
-        rows = [row.copy() for row in load_rows()]
-        rows[1]["repo_status"] = "partial"
-
-        with self.assertRaisesRegex(ValueError, "non-complete status"):
-            render_dashboard(rows)
-
-    def test_rejects_expository_status_after_chapter_one(self) -> None:
-        rows = [row.copy() for row in load_rows()]
-        rows[1]["repo_status"] = "expository"
-
-        with self.assertRaisesRegex(ValueError, "Chapter 1 alone"):
-            render_dashboard(rows)
-
-    def test_rejects_prefix_with_missing_chapter(self) -> None:
-        rows = [row for row in load_rows() if row["chapter_no"] != "29"]
-
-        with self.assertRaisesRegex(ValueError, "must cover Chapters 1–29"):
-            completed_prefix(rows)
+        self.assertIn("## Fourth-Edition Snapshot", dashboard)
+        self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)
+        self.assertIn("1,372", dashboard)
+        self.assertIn("421", dashboard)
+        self.assertIn("not a count of distinct fourth-edition", dashboard)
+        self.assertIn("three wholly excluded legacy chapters", dashboard)
+        self.assertIn("{lit}`not-started`: 5 chapters", dashboard)
+        self.assertNotIn("Chapters 1--29 Milestone", dashboard)
+        self.assertNotIn("advertised proof scopes of Chapters 1--29 are complete", dashboard)
 
 
 class DashboardFreshnessTest(unittest.TestCase):

@@ -1,7 +1,9 @@
 # CLRS-Lean Proof Map
 
 This ledger records what is proved, what is partial, and what is currently
-deferred.  It is intended to become the website's main navigation table.
+deferred.  The canonical reader and contributor view is CLRS fourth edition.
+Use [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv) to interpret a
+canonical chapter/section and locate its current theorem-bearing source.
 
 For a coarser planning view, see
 [`proof-status-board.md`](proof-status-board.md).  That board groups chapters
@@ -9,15 +11,23 @@ and sections into `main proof completed`, `structured but not complete`, and
 `missing core theorem`, so work does not keep cycling back to already completed
 main-proof areas without a specific refinement goal.
 
-## Chapters 1--29 Prefix Milestone
+## Edition And Compatibility Policy
 
-Every chapter from 1 through 29 has zero remaining core theorem groups inside
-its advertised scope.  This is a status-aware prefix milestone: Chapter 1 is
-expository; Chapters 5, 7, 10, 15, 17, and 24 are complete for their represented
-sections; the other Chapters 2--29 have complete advertised main-theorem or
-correctness stacks.  It is not a claim that every textbook section, exercise,
-chapter-end Problem, pointer/RAM refinement, or numerical implementation has
-been formalized.  The generated dashboard owns the live counts and labels.
+The generated dashboard and `clrs-proof-progress.csv` contain the canonical 35
+fourth-edition chapter rows.  The chapter headings below inventory the current
+theorem-bearing source layout, so shifted third-edition source numbers are
+legacy evidence rather than an alternative public numbering scheme.  In
+particular, source Chapters 19, 20, and 33 are online/supplementary material;
+fourth-edition Chapters 19, 20, and 33 mean disjoint sets, elementary graph
+algorithms, and machine-learning algorithms respectively.
+
+Existing unqualified `CLRSLean.Chapter_NN` imports and declarations are
+supported through all `1.x` releases and for at least six months after the
+facade release.  Removal can occur only in `2.0` or later, after both gates
+pass.  Declaration namespaces migrate chapter by chapter; see
+[`migrations/clrs4.md`](migrations/clrs4.md) for the active import map.  The
+generated progress dashboard owns live counts and status labels; no historical
+completed-prefix claim overrides that ledger.
 
 ## Probability Toolkit
 

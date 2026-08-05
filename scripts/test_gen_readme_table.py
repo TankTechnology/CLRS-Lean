@@ -3,53 +3,66 @@ import unittest
 import gen_readme_table
 
 
-class MilestoneSummaryTest(unittest.TestCase):
-    def test_renders_complete_prefix_without_claiming_full_textbook_coverage(self) -> None:
+class FourthEditionSummaryTest(unittest.TestCase):
+    def test_renders_snapshot_without_requiring_a_completed_prefix(self) -> None:
         rows = [
             {
                 "chapter_no": "1",
                 "repo_status": "expository",
+                "represented_sections": "Chapter_01",
                 "tracked_key_theorems": "0",
                 "proved_tracked_theorems": "0",
                 "missing_core_groups": "0",
             },
             {
                 "chapter_no": "2",
-                "repo_status": "selected-section-complete",
+                "repo_status": "partial",
+                "represented_sections": "2.1",
                 "tracked_key_theorems": "7",
-                "proved_tracked_theorems": "7",
-                "missing_core_groups": "0",
+                "proved_tracked_theorems": "6",
+                "missing_core_groups": "1",
             },
-        ]
-
-        self.assertTrue(hasattr(gen_readme_table, "build_milestone_block"))
-        block = gen_readme_table.build_milestone_block(rows, last_chapter=2)
-
-        self.assertIn("Chapters 1–2", block)
-        self.assertIn("7 tracked theorem entries", block)
-        self.assertIn("zero remaining core theorem groups", block)
-        self.assertIn("does not claim every textbook section", block)
-
-    def test_rejects_prefix_with_unproved_tracked_entries(self) -> None:
-        rows = [
             {
-                "chapter_no": "1",
-                "repo_status": "expository",
+                "chapter_no": "3",
+                "repo_status": "not-started",
+                "represented_sections": "None",
                 "tracked_key_theorems": "0",
                 "proved_tracked_theorems": "0",
-                "missing_core_groups": "0",
+                "missing_core_groups": "1",
             },
-            {
-                "chapter_no": "2",
-                "repo_status": "main-proof-complete",
-                "tracked_key_theorems": "1",
-                "proved_tracked_theorems": "0",
-                "missing_core_groups": "0",
-            }
         ]
 
-        with self.assertRaisesRegex(ValueError, "not yet proved"):
-            gen_readme_table.build_milestone_block(rows, last_chapter=2)
+        self.assertTrue(hasattr(gen_readme_table, "build_snapshot_block"))
+        block = gen_readme_table.build_snapshot_block(
+            rows, online_material_theorems=421
+        )
+
+        self.assertIn("fourth-edition", block)
+        self.assertIn("2 of 3 chapters", block)
+        self.assertIn("6 proved source-inventory entries", block)
+        self.assertIn("421 additional", block)
+        self.assertIn("facade-level counts are not", block)
+        self.assertIn("a count of distinct fourth-edition", block)
+        self.assertNotIn("Milestone", block)
+
+    def test_progress_table_keeps_not_started_rows_visible(self) -> None:
+        rows = [
+            {
+                "chapter_no": "35",
+                "chapter_title": "Approximation Algorithms",
+                "repo_status": "not-started",
+                "represented_sections": "None",
+                "tracked_key_theorems": "0",
+                "proved_tracked_theorems": "0",
+                "missing_core_groups": "1",
+                "remaining_core_groups": "Whole chapter pending",
+            },
+        ]
+
+        self.assertTrue(hasattr(gen_readme_table, "build_block_from_rows"))
+        block = gen_readme_table.build_block_from_rows(rows)
+
+        self.assertIn("| 35 | Approximation Algorithms | ⬜ not started |", block)
 
 
 if __name__ == "__main__":
