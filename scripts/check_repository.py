@@ -19,6 +19,7 @@ CHECK_COMMANDS = [
     ("scripts/gen_readme_table.py", "--check"),
     ("scripts/test_gen_readme_table.py",),
     ("scripts/check_site_consistency.py",),
+    ("scripts/test_check_site_consistency.py",),
     ("scripts/test_check_repository.py",),
     ("scripts/test_literate_config.py",),
     ("scripts/test_literate_navigation.py",),

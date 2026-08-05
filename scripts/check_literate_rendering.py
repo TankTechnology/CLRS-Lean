@@ -36,7 +36,46 @@ def module_name_for_html(site_root: Path, html_file: Path) -> str | None:
     return ".".join(relative.parent.parts)
 
 
-def nearest_visible_parent(module_name: str) -> str | None:
+def load_reader_parent_routes(root: Path = ROOT) -> dict[str, str]:
+    """Map legacy module prefixes to their visible fourth-edition catalog page."""
+    routes: dict[str, str] = {}
+    fourth_edition_dir = root / "CLRSLean" / "FourthEdition"
+    for guide in sorted(fourth_edition_dir.glob("Chapter_[0-9][0-9].lean")):
+        canonical = f"CLRSLean.FourthEdition.{guide.stem}"
+        for source in re.findall(
+            r"^import\s+(CLRSLean\.Chapter_[^\s]+)",
+            guide.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        ):
+            routes[source] = canonical
+
+    online_material = root / "CLRSLean" / "OnlineMaterial.lean"
+    if online_material.is_file():
+        for source in re.findall(
+            r"^import\s+(CLRSLean\.Chapter_[^\s]+)",
+            online_material.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        ):
+            routes[source] = "CLRSLean.OnlineMaterial"
+    return routes
+
+
+def nearest_visible_parent(
+    module_name: str, reader_parent_routes: dict[str, str] | None = None
+) -> str | None:
+    routes = (
+        load_reader_parent_routes()
+        if reader_parent_routes is None
+        else reader_parent_routes
+    )
+    matching_prefixes = [
+        prefix
+        for prefix in routes
+        if module_name == prefix or module_name.startswith(f"{prefix}.")
+    ]
+    if matching_prefixes:
+        return routes[max(matching_prefixes, key=len)]
+
     parts = module_name.split(".")
     while len(parts) > 1:
         parts.pop()
@@ -60,6 +99,7 @@ _IMPLEMENTATION_SUBMODULES = {
 def check_site(site_root: Path) -> list[str]:
     failures: list[str] = []
     module_files: dict[str, Path] = {}
+    reader_parent_routes = load_reader_parent_routes()
 
     for html_file in iter_html_files(site_root):
         module_name = module_name_for_html(site_root, html_file)
@@ -83,7 +123,7 @@ def check_site(site_root: Path) -> list[str]:
     for module_name, html_file in sorted(module_files.items()):
         if is_reader_sidebar_module(module_name) or module_name in _IMPLEMENTATION_SUBMODULES:
             continue
-        parent_module = nearest_visible_parent(module_name)
+        parent_module = nearest_visible_parent(module_name, reader_parent_routes)
         parent_file = module_files.get(parent_module or "")
         if parent_file is None:
             failures.append(
@@ -96,20 +136,10 @@ def check_site(site_root: Path) -> list[str]:
             rf"href=[\"']{re.escape(expected_href)}[\"']", re.IGNORECASE
         )
         if href_pattern.search(parent_text) is None:
-            # Fallback: also check the chapter guide (2-level parent)
-            parts = module_name.split(".")
-            chapter_parent = ".".join(parts[:2]) if len(parts) >= 2 else None
-            chapter_file = module_files.get(chapter_parent) if chapter_parent else None
-            chapter_ok = False
-            if chapter_file is not None:
-                chapter_text = chapter_file.read_text(encoding="utf-8", errors="replace")
-                if href_pattern.search(chapter_text) is not None:
-                    chapter_ok = True
-            if not chapter_ok:
-                failures.append(
-                    f"{parent_file}: missing implementation link for {module_name}: "
-                    f"{expected_href}"
-                )
+            failures.append(
+                f"{parent_file}: missing implementation link for {module_name}: "
+                f"{expected_href}"
+            )
 
     return failures
 

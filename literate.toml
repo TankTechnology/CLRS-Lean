@@ -9,45 +9,51 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 
 [order_children]
 "CLRSLean" = [
+  "CLRSLean.FourthEdition",
+  "CLRSLean.OnlineMaterial",
   "CLRSLean.ProofPatterns",
   "CLRSLean.Probability",
-  "CLRSLean.Chapter_01",
-  "CLRSLean.Chapter_02",
-  "CLRSLean.Chapter_03",
-  "CLRSLean.Chapter_04",
-  "CLRSLean.Chapter_05",
-  "CLRSLean.Chapter_06",
-  "CLRSLean.Chapter_07",
-  "CLRSLean.Chapter_08",
-  "CLRSLean.Chapter_09",
-  "CLRSLean.Chapter_10",
-  "CLRSLean.Chapter_11",
-  "CLRSLean.Chapter_12",
-  "CLRSLean.Chapter_13",
-  "CLRSLean.Chapter_14",
-  "CLRSLean.Chapter_15",
-  "CLRSLean.Chapter_16",
-  "CLRSLean.Chapter_17",
-  "CLRSLean.Chapter_18",
-  "CLRSLean.Chapter_19",
-  "CLRSLean.Chapter_20",
-  "CLRSLean.Chapter_21",
-  "CLRSLean.Chapter_22",
-  "CLRSLean.Chapter_23",
-  "CLRSLean.Chapter_24",
-  "CLRSLean.Chapter_25",
-  "CLRSLean.Chapter_26",
-  "CLRSLean.Chapter_27",
-  "CLRSLean.Chapter_28",
-  "CLRSLean.Chapter_29",
-  "CLRSLean.Chapter_30",
-  "CLRSLean.Chapter_31",
-  "CLRSLean.Chapter_32",
-  "CLRSLean.Chapter_33",
   "CLRSLean.Extensions",
   "CLRSLean.Progress",
   "CLRSLean.Status",
   "CLRSLean.Workflow",
+]
+"CLRSLean.FourthEdition" = [
+  "CLRSLean.FourthEdition.Chapter_01",
+  "CLRSLean.FourthEdition.Chapter_02",
+  "CLRSLean.FourthEdition.Chapter_03",
+  "CLRSLean.FourthEdition.Chapter_04",
+  "CLRSLean.FourthEdition.Chapter_05",
+  "CLRSLean.FourthEdition.Chapter_06",
+  "CLRSLean.FourthEdition.Chapter_07",
+  "CLRSLean.FourthEdition.Chapter_08",
+  "CLRSLean.FourthEdition.Chapter_09",
+  "CLRSLean.FourthEdition.Chapter_10",
+  "CLRSLean.FourthEdition.Chapter_11",
+  "CLRSLean.FourthEdition.Chapter_12",
+  "CLRSLean.FourthEdition.Chapter_13",
+  "CLRSLean.FourthEdition.Chapter_14",
+  "CLRSLean.FourthEdition.Chapter_15",
+  "CLRSLean.FourthEdition.Chapter_16",
+  "CLRSLean.FourthEdition.Chapter_17",
+  "CLRSLean.FourthEdition.Chapter_18",
+  "CLRSLean.FourthEdition.Chapter_19",
+  "CLRSLean.FourthEdition.Chapter_20",
+  "CLRSLean.FourthEdition.Chapter_21",
+  "CLRSLean.FourthEdition.Chapter_22",
+  "CLRSLean.FourthEdition.Chapter_23",
+  "CLRSLean.FourthEdition.Chapter_24",
+  "CLRSLean.FourthEdition.Chapter_25",
+  "CLRSLean.FourthEdition.Chapter_26",
+  "CLRSLean.FourthEdition.Chapter_27",
+  "CLRSLean.FourthEdition.Chapter_28",
+  "CLRSLean.FourthEdition.Chapter_29",
+  "CLRSLean.FourthEdition.Chapter_30",
+  "CLRSLean.FourthEdition.Chapter_31",
+  "CLRSLean.FourthEdition.Chapter_32",
+  "CLRSLean.FourthEdition.Chapter_33",
+  "CLRSLean.FourthEdition.Chapter_34",
+  "CLRSLean.FourthEdition.Chapter_35",
 ]
 "CLRSLean.ProofPatterns" = [
   "CLRSLean.ProofPatterns.Boundary",
@@ -522,6 +528,117 @@ title = "Chapter 2. Getting Started"
 
 [modules."CLRSLean"]
 title = "CLRS-Lean"
+
+[modules."CLRSLean.FourthEdition"]
+title = "CLRS Fourth Edition"
+
+[modules."CLRSLean.FourthEdition.Chapter_01"]
+title = "Chapter 1. The Role of Algorithms in Computing"
+
+[modules."CLRSLean.FourthEdition.Chapter_02"]
+title = "Chapter 2. Getting Started"
+
+[modules."CLRSLean.FourthEdition.Chapter_03"]
+title = "Chapter 3. Characterizing Running Times"
+
+[modules."CLRSLean.FourthEdition.Chapter_04"]
+title = "Chapter 4. Divide-and-Conquer"
+
+[modules."CLRSLean.FourthEdition.Chapter_05"]
+title = "Chapter 5. Probabilistic Analysis and Randomized Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_06"]
+title = "Chapter 6. Heapsort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07"]
+title = "Chapter 7. Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_08"]
+title = "Chapter 8. Sorting in Linear Time"
+
+[modules."CLRSLean.FourthEdition.Chapter_09"]
+title = "Chapter 9. Medians and Order Statistics"
+
+[modules."CLRSLean.FourthEdition.Chapter_10"]
+title = "Chapter 10. Elementary Data Structures"
+
+[modules."CLRSLean.FourthEdition.Chapter_11"]
+title = "Chapter 11. Hash Tables"
+
+[modules."CLRSLean.FourthEdition.Chapter_12"]
+title = "Chapter 12. Binary Search Trees"
+
+[modules."CLRSLean.FourthEdition.Chapter_13"]
+title = "Chapter 13. Red-Black Trees"
+
+[modules."CLRSLean.FourthEdition.Chapter_14"]
+title = "Chapter 14. Dynamic Programming"
+
+[modules."CLRSLean.FourthEdition.Chapter_15"]
+title = "Chapter 15. Greedy Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_16"]
+title = "Chapter 16. Amortized Analysis"
+
+[modules."CLRSLean.FourthEdition.Chapter_17"]
+title = "Chapter 17. Augmenting Data Structures"
+
+[modules."CLRSLean.FourthEdition.Chapter_18"]
+title = "Chapter 18. B-Trees"
+
+[modules."CLRSLean.FourthEdition.Chapter_19"]
+title = "Chapter 19. Data Structures for Disjoint Sets"
+
+[modules."CLRSLean.FourthEdition.Chapter_20"]
+title = "Chapter 20. Elementary Graph Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_21"]
+title = "Chapter 21. Minimum Spanning Trees"
+
+[modules."CLRSLean.FourthEdition.Chapter_22"]
+title = "Chapter 22. Single-Source Shortest Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_23"]
+title = "Chapter 23. All-Pairs Shortest Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_24"]
+title = "Chapter 24. Maximum Flow"
+
+[modules."CLRSLean.FourthEdition.Chapter_25"]
+title = "Chapter 25. Matchings in Bipartite Graphs"
+
+[modules."CLRSLean.FourthEdition.Chapter_26"]
+title = "Chapter 26. Parallel Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_27"]
+title = "Chapter 27. Online Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_28"]
+title = "Chapter 28. Matrix Operations"
+
+[modules."CLRSLean.FourthEdition.Chapter_29"]
+title = "Chapter 29. Linear Programming"
+
+[modules."CLRSLean.FourthEdition.Chapter_30"]
+title = "Chapter 30. Polynomials and the FFT"
+
+[modules."CLRSLean.FourthEdition.Chapter_31"]
+title = "Chapter 31. Number-Theoretic Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_32"]
+title = "Chapter 32. String Matching"
+
+[modules."CLRSLean.FourthEdition.Chapter_33"]
+title = "Chapter 33. Machine-Learning Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_34"]
+title = "Chapter 34. NP-Completeness"
+
+[modules."CLRSLean.FourthEdition.Chapter_35"]
+title = "Chapter 35. Approximation Algorithms"
+
+[modules."CLRSLean.OnlineMaterial"]
+title = "Online Material"
 
 [modules."CLRSLean.ProofPatterns"]
 title = "Reusable CLRS Proof Patterns"

@@ -4,7 +4,9 @@ Check that the CLRS-Lean website structure is consistent.
 
 This script verifies:
 - every represented chapter and section has a module doc;
-- literate.toml lists every chapter/section in [order_children];
+- literate.toml uses the fourth-edition tree as its primary root;
+- legacy chapter guides stay imported and titled but out of the primary root;
+- literate.toml lists every legacy section in its compatibility subtree;
 - every [order_children] relationship matches the Lean module hierarchy;
 - literate.toml has a [modules] title entry for every chapter/section;
 - literate.toml does not list files that do not exist;
@@ -20,6 +22,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.check_literate_config import validate_config
+
 CLRSLEAN = ROOT / "CLRSLean"
 LITERATE = ROOT / "literate.toml"
 LANDING = ROOT / "CLRSLean.lean"
@@ -90,12 +97,42 @@ def ordered_descendants(order_children: dict[str, list[str]], parent: str) -> li
     return descendants
 
 
+def legacy_chapter_navigation_errors(
+    chapter_modules: list[str],
+    root_modules: list[str],
+    titled_modules: set[str] | dict[str, str],
+    landing_text: str,
+) -> list[str]:
+    """Check that compatibility guides render without entering the primary tree."""
+    errors = []
+    for module in chapter_modules:
+        if re.search(rf"^import\s+{re.escape(module)}$", landing_text, re.MULTILINE) is None:
+            errors.append(f"CLRSLean.lean is missing import for {module}")
+        if module in root_modules:
+            errors.append(
+                f"legacy compatibility page {module} must be hidden from the primary root"
+            )
+        if module not in titled_modules:
+            errors.append(f"legacy compatibility page has no module title: {module}")
+    return errors
+
+
 def main() -> int:
     errors = []
     warnings = []
 
     order_children, modules = parse_literate(LITERATE)
     docs_index_text = DOCS_INDEX.read_text(encoding="utf-8")
+    fourth_edition_source = CLRSLEAN / "FourthEdition.lean"
+    if fourth_edition_source.is_file():
+        errors.extend(
+            validate_config(
+                LITERATE.read_text(encoding="utf-8"),
+                fourth_edition_source.read_text(encoding="utf-8"),
+            )
+        )
+    else:
+        errors.append("CLRSLean/FourthEdition.lean is missing")
 
     # ---- discover chapter guides and represented sections ----
     chapter_guides = sorted(CLRSLEAN.glob("Chapter_[0-9][0-9].lean"))
@@ -112,25 +149,22 @@ def main() -> int:
             continue
         represented_chapters.append(ch_dir.name)
 
-    # ---- check landing page imports ----
+    # ---- check legacy compatibility guides ----
     landing_text = LANDING.read_text(encoding="utf-8")
-    for guide in chapter_guides:
-        ch_name = guide.stem
-        import_name = f"import CLRSLean.{ch_name}"
-        if import_name not in landing_text:
-            errors.append(f"CLRSLean.lean is missing import for {ch_name}")
+    errors.extend(
+        legacy_chapter_navigation_errors(
+            [f"CLRSLean.{guide.stem}" for guide in chapter_guides],
+            order_children.get("CLRSLean", []),
+            modules,
+            landing_text,
+        )
+    )
 
     # ---- check chapter guides ----
     for guide in chapter_guides:
         ch_name = guide.stem
         if not module_doc_present(guide):
             errors.append(f"Chapter guide {guide} has no module doc")
-
-        module = f"CLRSLean.{ch_name}"
-        if module not in order_children.get("CLRSLean", []):
-            errors.append(f"literate.toml [order_children] 'CLRSLean' does not list {module}")
-        if module not in modules:
-            errors.append(f"literate.toml has no [modules.\"{module}\"] title entry")
 
     # ---- check section files ----
     for ch_dir in chapter_dirs:
