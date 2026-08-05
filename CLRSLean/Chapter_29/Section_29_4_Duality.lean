@@ -4,6 +4,7 @@ import CLRSLean.Chapter_29.Section_29_4_Duality.Optimality
 import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlackness
 import CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate
 import CLRSLean.Chapter_29.Section_29_4_Duality.DictionaryBridge
+import CLRSLean.Chapter_29.Section_29_4_Duality.StrongDuality
 
 /-!
 # 29.4 Duality
