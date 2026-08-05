@@ -78,7 +78,7 @@ theorem strongDuality_or_unbounded_of_initialDictionary_isBasicFeasible
         (Dictionary.initialDictionary_unbounded_to_standardLP P hunbounded)
   | exhausted terminal =>
       exact False.elim (D₀.simplexRun_basisCount_not_exhausted hP (by
-        simpa [fuel, hrun, Dictionary.SimplexRunResult.IsExhausted]))
+        simp [fuel, hrun, Dictionary.SimplexRunResult.IsExhausted]))
 
 /-- If the primal is not unbounded, finite SIMPLEX yields primal and dual
 optima with equal objective values. -/
