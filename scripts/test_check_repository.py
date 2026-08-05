@@ -27,6 +27,12 @@ class GeneratedDocumentationCheckTest(unittest.TestCase):
             check_repository.CHECK_COMMANDS,
         )
 
+    def test_repository_runs_site_consistency_regressions(self) -> None:
+        self.assertIn(
+            ("scripts/test_check_site_consistency.py",),
+            check_repository.CHECK_COMMANDS,
+        )
+
     def test_ignores_links_in_tilde_fences(self) -> None:
         text = """~~~text\n[example](missing.md)\n~~~~\n[real](real.md)\n"""
 

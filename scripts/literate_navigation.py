@@ -9,6 +9,17 @@ from html.parser import HTMLParser
 
 
 CHAPTER_MODULE_RE = re.compile(r"Chapter_[0-9][0-9]")
+READER_SUPPORT_MODULES = frozenset(
+    {
+        "CLRSLean.OnlineMaterial",
+        "CLRSLean.ProofPatterns",
+        "CLRSLean.Probability",
+        "CLRSLean.Extensions",
+        "CLRSLean.Progress",
+        "CLRSLean.Status",
+        "CLRSLean.Workflow",
+    }
+)
 MODULE_TREE_RE = re.compile(
     r"<nav\b[^>]*\bclass=(?:\"[^\"]*\bmodule-tree\b[^\"]*\"|'[^']*\bmodule-tree\b[^']*')[^>]*>.*?</nav>",
     re.IGNORECASE | re.DOTALL,
@@ -21,13 +32,15 @@ def is_reader_sidebar_module(module_name: str) -> bool:
     parts = module_name.split(".")
     if parts == ["CLRSLean"]:
         return True
-    if len(parts) == 2 and parts[0] == "CLRSLean":
+    if module_name in READER_SUPPORT_MODULES:
         return True
     return (
-        len(parts) == 3
-        and parts[0] == "CLRSLean"
-        and CHAPTER_MODULE_RE.fullmatch(parts[1]) is not None
-        and parts[2].startswith("Section_")
+        parts == ["CLRSLean", "FourthEdition"]
+        or (
+            len(parts) == 3
+            and parts[:2] == ["CLRSLean", "FourthEdition"]
+            and CHAPTER_MODULE_RE.fullmatch(parts[2]) is not None
+        )
     )
 
 
