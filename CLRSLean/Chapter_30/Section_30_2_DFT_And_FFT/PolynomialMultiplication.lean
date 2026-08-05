@@ -141,6 +141,7 @@ zero polynomial. -/
 def polySize [Semiring K] (p : K[X]) : Nat :=
   p.natDegree + 1
 
+/-- The coefficient-capacity convention assigns every polynomial positive size. -/
 theorem polySize_pos [Semiring K] (p : K[X]) : 0 < polySize p := by
   simp [polySize]
 
@@ -148,6 +149,7 @@ theorem polySize_pos [Semiring K] (p : K[X]) : 0 < polySize p := by
 def multiplicationInputSize [Semiring K] (p q : K[X]) : Nat :=
   2 * max (polySize p) (polySize q)
 
+/-- The symmetric advertised size for a multiplication is positive. -/
 theorem multiplicationInputSize_pos [Semiring K] (p q : K[X]) :
     0 < multiplicationInputSize p q := by
   have hmax : 0 < max (polySize p) (polySize q) :=
@@ -190,6 +192,7 @@ def complexFFTExponent (p q : ℂ[X]) : Nat :=
 def complexFFTCapacity (p q : ℂ[X]) : Nat :=
   2 ^ complexFFTExponent p q
 
+/-- The automatically selected complex transform capacity is positive. -/
 theorem complexFFTCapacity_pos (p q : ℂ[X]) :
     0 < complexFFTCapacity p q := by
   simp [complexFFTCapacity]
@@ -207,6 +210,7 @@ noncomputable def complexFFTRoot (p q : ℂ[X]) : ℂ :=
   Complex.exp
     (2 * Real.pi * Complex.I / (complexFFTCapacity p q : ℂ))
 
+/-- The complex wrapper's principal root is primitive at its selected capacity. -/
 theorem complexFFTRoot_isPrimitive (p q : ℂ[X]) :
     IsPrimitiveRoot (complexFFTRoot p q) (complexFFTCapacity p q) := by
   simpa [complexFFTRoot] using
@@ -277,6 +281,7 @@ theorem fftMultiplyExecution_correct [Field K] [CharZero K] {n : Nat}
   exact (by omega : n + n ≤ 2 * max 1 n) |>.trans
     (fftCapacity_ge (2 * max 1 n))
 
+/-- Exact-capacity FFT multiplication work is monotone in the radix exponent. -/
 private theorem radix2FFTMultiplyWork_monotone :
     Monotone radix2FFTMultiplyWork := by
   intro k l hkl
@@ -288,16 +293,19 @@ private theorem radix2FFTMultiplyWork_monotone :
   exact Nat.add_le_add
     (Nat.mul_le_mul_left 3 hfft) (Nat.mul_le_mul_left 2 hpow)
 
+/-- The multiplication transform exponent is monotone in operand capacity. -/
 theorem fftMultiplyExponent_monotone : Monotone fftMultiplyExponent := by
   intro m n hmn
   exact fftExponent_monotone
     (Nat.mul_le_mul_left 2 (max_le_max_left 1 hmn))
 
+/-- The advertised all-input multiplication work is monotone. -/
 theorem fftMultiplyWork_monotone : Monotone fftMultiplyWork := by
   intro m n hmn
   exact radix2FFTMultiplyWork_monotone
     (fftMultiplyExponent_monotone hmn)
 
+/-- Power-of-two operand capacity selects the next radix exponent. -/
 theorem fftMultiplyExponent_pow (k : Nat) :
     fftMultiplyExponent (2 ^ k) = k + 1 := by
   rw [fftMultiplyExponent, max_eq_right Nat.one_le_two_pow]
@@ -314,6 +322,7 @@ theorem fftMultiplyWork_pow (k : Nat) :
   simp [radix2FFTMultiplyWork, radix2FFTWork, pow_succ]
   ring
 
+/-- Exact-power multiplication work has the critical linear-log scale. -/
 private theorem fftMultiplyWork_exactPower_bigTheta :
     Chapter03.isBigTheta
       (fun k : Nat => (fftMultiplyWork (2 ^ k) : ℝ))

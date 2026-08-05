@@ -38,6 +38,7 @@ def canonicalButterflyLayerCircuit [Monoid K] (omega : K) (k : Nat) :
     ButterflyLayerCircuit K k :=
   ⟨fun j => ⟨omega ^ j.1⟩⟩
 
+/-- Joining the two extracted halves reconstructs the original vector. -/
 private theorem joinHalves_lowerHalf_upperHalf {K : Type*} {k : Nat}
     (a : PowTwoVec K (k + 1)) :
     joinHalves (lowerHalf a) (upperHalf a) = a := by
@@ -53,6 +54,7 @@ private theorem joinHalves_lowerHalf_upperHalf {K : Type*} {k : Nat}
       exact joinHalves_upper (lowerHalf a) (upperHalf a) j
   simpa using h (powTwoSuccEquiv k i)
 
+/-- Equality of both contiguous halves determines a successor-size vector. -/
 private theorem powTwoVec_eq_of_halves {K : Type*} {k : Nat}
     {a b : PowTwoVec K (k + 1)}
     (hlower : lowerHalf a = lowerHalf b)
@@ -228,6 +230,7 @@ def FFTNetwork.eval [Ring K] (network : FFTNetwork K k)
     (a : PowTwoVec K k) : PowTwoVec K k :=
   network.evalLayers (bitReverseCopy a)
 
+/-- Every canonical circuit prefix agrees with the functional stage prefix. -/
 private theorem fftNetwork_evalPrefix [Ring K] {k m : Nat} (omega : K)
     (a : PowTwoVec K k) (hm : m ≤ k) :
     (fftNetwork omega).evalPrefix a m hm =
@@ -241,6 +244,7 @@ private theorem fftNetwork_evalPrefix [Ring K] {k m : Nat} (omega : K)
           (runFFTStagePrefix omega a m (by omega)) ⟨m, by omega⟩
       rw [fftStageCircuit_eval, ih]
 
+/-- Evaluating all canonical arithmetic layers agrees with all FFT stages. -/
 theorem fftNetwork_evalLayers [Ring K] {k : Nat} (omega : K)
     (a : PowTwoVec K k) :
     (fftNetwork omega).evalLayers a = runAllFFTStages omega a := by
@@ -261,6 +265,7 @@ def FFTLayer.butterflyCount (layer : FFTLayer K k) : Nat :=
 def FFTNetwork.butterflyCount (network : FFTNetwork K k) : Nat :=
   ∑ s : Fin k, (network.layers s).butterflyCount
 
+/-- Every canonical layer stores the exact per-stage butterfly count. -/
 theorem fftLayer_butterflyCount {K : Type*} [Monoid K] {k : Nat}
     (omega : K) (s : Fin k) :
     (fftLayer omega s).butterflyCount = 2 ^ (k - 1) := by
@@ -291,6 +296,7 @@ addition/subtraction level. -/
 def FFTNetwork.primitiveDepth (network : FFTNetwork K k) : Nat :=
   2 * network.butterflyDepth
 
+/-- A canonical `k`-layer network has butterfly depth exactly `k`. -/
 @[simp] theorem fftNetwork_butterflyDepth {K : Type*} [Monoid K]
     {k : Nat} (omega : K) :
     (fftNetwork (k := k) omega).butterflyDepth = k := by
@@ -298,6 +304,7 @@ def FFTNetwork.primitiveDepth (network : FFTNetwork K k) : Nat :=
   simp [FFTLayer.butterflyDepth, fftLayer,
     fftStageCircuit_butterflyDepth]
 
+/-- Expanding canonical butterflies gives the exact primitive-gate count. -/
 theorem fftNetwork_primitiveGateCount {K : Type*} [Monoid K]
     {k : Nat} (omega : K) :
     (fftNetwork (k := k) omega).primitiveGateCount =
@@ -305,6 +312,7 @@ theorem fftNetwork_primitiveGateCount {K : Type*} [Monoid K]
   rw [FFTNetwork.primitiveGateCount, fftNetwork_butterflyCount]
   simp [Nat.mul_assoc]
 
+/-- Expanding each butterfly to two primitive levels gives depth `2 * k`. -/
 @[simp] theorem fftNetwork_primitiveDepth {K : Type*} [Monoid K]
     {k : Nat} (omega : K) :
     (fftNetwork (k := k) omega).primitiveDepth = 2 * k := by

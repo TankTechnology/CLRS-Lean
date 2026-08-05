@@ -11,17 +11,21 @@ executions.  Data movement is kept separate from field arithmetic.
 namespace CLRS
 namespace Chapter30
 
+/-- Total charged arithmetic work of one iterative stage execution. -/
 def FFTStageExecution.work (r : FFTStageExecution K k) : Nat :=
   r.addSubtractions + r.multiplications
 
+/-- Charged additions/subtractions and multiplications of an iterative FFT. -/
 def IterativeFFTExecution.arithmeticWork
     (r : IterativeFFTExecution K k) : Nat :=
   r.addSubtractions + r.multiplications
 
+/-- Total iterative work including bit-reversal data movement. -/
 def IterativeFFTExecution.totalWork
     (r : IterativeFFTExecution K k) : Nat :=
   r.bitReversalMoves + r.arithmeticWork
 
+/-- Every global stage charges one addition/subtraction per output slot. -/
 @[simp] theorem fftStageExec_addSubtractions [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) (s : Fin k) :
     (fftStageExec omega a s).addSubtractions = 2 ^ k := by
@@ -35,6 +39,7 @@ def IterativeFFTExecution.totalWork
         simp [fftStageExec, h, ih, pow_succ]
         omega
 
+/-- Every global stage charges one multiplication per output slot. -/
 @[simp] theorem fftStageExec_multiplications [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) (s : Fin k) :
     (fftStageExec omega a s).multiplications = 2 ^ k := by
@@ -48,6 +53,7 @@ def IterativeFFTExecution.totalWork
         simp [fftStageExec, h, ih, pow_succ]
         omega
 
+/-- An `m`-stage prefix charges `m * 2^k` additions/subtractions. -/
 @[simp] theorem runFFTStagePrefixExec_addSubtractions [Ring K]
     {k m : Nat} (omega : K) (a : PowTwoVec K k) (hm : m ≤ k) :
     (runFFTStagePrefixExec omega a m hm).addSubtractions = m * 2 ^ k := by
@@ -56,6 +62,7 @@ def IterativeFFTExecution.totalWork
   | succ m ih =>
       simp [runFFTStagePrefixExec, ih, Nat.succ_mul]
 
+/-- An `m`-stage prefix charges `m * 2^k` multiplications. -/
 @[simp] theorem runFFTStagePrefixExec_multiplications [Ring K]
     {k m : Nat} (omega : K) (a : PowTwoVec K k) (hm : m ≤ k) :
     (runFFTStagePrefixExec omega a m hm).multiplications = m * 2 ^ k := by
@@ -64,21 +71,25 @@ def IterativeFFTExecution.totalWork
   | succ m ih =>
       simp [runFFTStagePrefixExec, ih, Nat.succ_mul]
 
+/-- A complete iterative execution charges one bit-reversal move per input. -/
 @[simp] theorem iterativeRadix2FFTExec_bitReversalMoves [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) :
     (iterativeRadix2FFTExec omega a).bitReversalMoves = 2 ^ k := by
   simp [iterativeRadix2FFTExec]
 
+/-- A complete iterative execution charges `k * 2^k` additions/subtractions. -/
 @[simp] theorem iterativeRadix2FFTExec_addSubtractions [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) :
     (iterativeRadix2FFTExec omega a).addSubtractions = k * 2 ^ k := by
   simp [iterativeRadix2FFTExec, runAllFFTStagesExec]
 
+/-- A complete iterative execution charges `k * 2^k` multiplications. -/
 @[simp] theorem iterativeRadix2FFTExec_multiplications [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) :
     (iterativeRadix2FFTExec omega a).multiplications = k * 2 ^ k := by
   simp [iterativeRadix2FFTExec, runAllFFTStagesExec]
 
+/-- Iterative arithmetic work equals the recursive radix-2 cost function. -/
 theorem iterativeRadix2FFTExec_arithmeticWork [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) :
     (iterativeRadix2FFTExec omega a).arithmeticWork = radix2FFTWork k := by
@@ -89,12 +100,15 @@ theorem iterativeRadix2FFTExec_arithmeticWork [Ring K] {k : Nat}
 def iterativeRadix2FFTTotalWork (k : Nat) : Nat :=
   2 ^ k + radix2FFTWork k
 
+/-- The recursive arithmetic cost exposes its exact closed form. -/
 @[simp] theorem radix2FFTWork_closed (k : Nat) :
     radix2FFTWork k = 2 * k * 2 ^ k := rfl
 
+/-- Iterative total work is bit-reversal movement plus exact arithmetic work. -/
 @[simp] theorem iterativeRadix2FFTTotalWork_closed (k : Nat) :
     iterativeRadix2FFTTotalWork k = 2 ^ k + 2 * k * 2 ^ k := rfl
 
+/-- The execution's total-work field equals the public iterative cost. -/
 theorem iterativeRadix2FFTExec_totalWork [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) :
     (iterativeRadix2FFTExec omega a).totalWork =
@@ -126,6 +140,7 @@ theorem iterativeRadix2FFTTotalWork_bigTheta :
 def paddedIterativeFFTWork (n : Nat) : Nat :=
   fftCapacity n + paddedFFTWork n
 
+/-- Padded iterative work is monotone in the advertised input capacity. -/
 theorem paddedIterativeFFTWork_monotone : Monotone paddedIterativeFFTWork := by
   intro m n hmn
   exact Nat.add_le_add (fftCapacity_monotone hmn) (paddedFFTWork_monotone hmn)
@@ -138,11 +153,13 @@ theorem iterativeRadix2FFTExec_zeroPad_totalWork [Ring K] {n : Nat}
   rw [iterativeRadix2FFTExec_totalWork]
   rfl
 
+/-- Input capacity at least two selects a positive FFT exponent. -/
 private theorem fftExponent_pos_of_two_le {n : Nat} (hn : 2 ≤ n) :
     0 < fftExponent n := by
   rw [fftExponent, max_eq_right (by omega)]
   exact Nat.clog_pos (by norm_num) (by omega)
 
+/-- Above singleton inputs, arithmetic work dominates padded capacity. -/
 private theorem fftCapacity_le_paddedFFTWork {n : Nat} (hn : 2 ≤ n) :
     fftCapacity n ≤ paddedFFTWork n := by
   have hexp : 1 ≤ fftExponent n := fftExponent_pos_of_two_le hn
@@ -151,16 +168,19 @@ private theorem fftCapacity_le_paddedFFTWork {n : Nat} (hn : 2 ≤ n) :
   simpa [Nat.mul_assoc] using
     Nat.mul_le_mul_right (2 ^ fftExponent n) hfactor
 
+/-- Padded recursive arithmetic work is bounded by iterative total work. -/
 theorem paddedFFTWork_le_paddedIterativeFFTWork (n : Nat) :
     paddedFFTWork n ≤ paddedIterativeFFTWork n := by
   simp [paddedIterativeFFTWork]
 
+/-- Above singleton inputs, iterative total work is at most twice arithmetic work. -/
 theorem paddedIterativeFFTWork_le_two_mul {n : Nat} (hn : 2 ≤ n) :
     paddedIterativeFFTWork n ≤ 2 * paddedFFTWork n := by
   have hcap := fftCapacity_le_paddedFFTWork hn
   unfold paddedIterativeFFTWork
   omega
 
+/-- Padded iterative total work has the same asymptotic scale as arithmetic work. -/
 private theorem paddedIterativeFFTWork_isBigTheta_paddedFFTWork :
     Chapter03.isBigTheta
       (fun n : Nat => (paddedIterativeFFTWork n : ℝ))
