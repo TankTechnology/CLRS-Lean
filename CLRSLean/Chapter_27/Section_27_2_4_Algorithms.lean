@@ -41,13 +41,20 @@ power-of-two inputs attain the matching bound through
 {name}`CLRS.Chapter27.pMergeSort` executes the textbook midpoint split,
 parallel recursive sorting, and sequential P-MERGE phase;
 {name}`CLRS.Chapter27.pMergeSort_correct` proves sortedness, permutation, and
-exact output length for every input.
+exact output length for every input.  The exact step equations
+{name}`CLRS.Chapter27.pMergeSort_work_step_eq` and
+{name}`CLRS.Chapter27.pMergeSort_span_step_eq` connect its carried costs to the
+recursion.  The pointwise pair {name}`CLRS.Chapter27.pMergeSort_work_lower` and
+{name}`CLRS.Chapter27.pMergeSort_work_upper` proves executable Θ(n log n) work;
+{name}`CLRS.Chapter27.pMergeSort_span_upper` gives the universal cubic-log span
+bound, while {name}`CLRS.Chapter27.pMergeSort_worstFamily_span_lower` gives the
+matching recursive witness family.
 
-## Deferred work
+## Completion boundary
 
-P-MERGE-SORT's executable algorithm and value correctness are complete.  Its
-execution work/span bounds and links to the recurrence-level P-MERGE-SORT
-models remain deferred.
+The executable P-MERGE-SORT cost gap is closed.  After the retained parallel
+Strassen extension is extracted from this compatibility module, no represented
+Chapter 27 main-text core proof obligation remains.
 
 ## Implementation details
 
@@ -88,6 +95,16 @@ models remain deferred.
 * [P-MERGE-SORT correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/)
 * [P-MERGE-SORT specification](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Spec/)
 * [P-MERGE-SORT strong-induction proof](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Main/)
+* [P-MERGE-SORT costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/)
+* [P-MERGE-SORT one-step costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Step/)
+* [P-MERGE-SORT recurrence links](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/RecurrenceLinks/)
+* [P-MERGE-SORT work](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work/)
+* [P-MERGE-SORT work bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work/Bounds/)
+* [P-MERGE-SORT span](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/)
+* [P-MERGE-SORT span upper bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/Bounds/)
+* [P-MERGE-SORT span witness input](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/WitnessInput/)
+* [P-MERGE-SORT map invariance](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/MapInvariance/)
+* [P-MERGE-SORT span lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/LowerBound/)
 * [Binary lower bound](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/)
 * [Binary lower-bound definitions](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions/)
 * [Binary lower-bound correctness](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness/)
