@@ -99,6 +99,11 @@ example :
 #check Dictionary.SimplexStepResult.nextDictionary
 #check Dictionary.simplexStep
 #check Dictionary.simplexStep_optimal_iff
+#check Dictionary.IsOptimalAssignment
+#check Dictionary.objectiveRhs_basicAssignment
+#check Dictionary.objectiveRhs_le_v_of_reducedCosts_nonpos
+#check Dictionary.basicAssignment_optimal_of_reducedCosts_nonpos
+#check Dictionary.simplexStep_optimal_correct
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
@@ -110,6 +115,8 @@ example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
 #print axioms Dictionary.pivot_isBasicFeasible
 #print axioms Dictionary.pivot_v_mono
 #print axioms Dictionary.pivot_v_strict
+#print axioms Dictionary.basicAssignment_optimal_of_reducedCosts_nonpos
+#print axioms Dictionary.simplexStep_optimal_correct
 
 end Chapter29
 end CLRS

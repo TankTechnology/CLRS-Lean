@@ -2,6 +2,7 @@ import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.VariableOr
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Entering
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Leaving
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Step
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality
 
 /-!
 # 29.3 SIMPLEX
