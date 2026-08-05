@@ -4287,8 +4287,13 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     the STRONG-PSEUDOPRIME condition, the witness predicate, and the executable
     single-base test.  `millerRabin 561 2` evaluates to `false`: although 561 is
     a Carmichael number, base 2 witnesses that it is composite.
-  - Deferred: the Miller-Rabin correctness theorem (primes never have a
-    witness), its error bound, and the random-witness analysis.
+  - Miller-Rabin correctness: `strongPseudoprime_of_prime` (a prime is a strong
+    probable prime to every coprime base), proved via Fermat, the minimal-index
+    argument (`Nat.find`), and the roots-of-unity fact
+    `modeq_neg_one_of_sq_eq_one` (`x² ≡ 1`, `x ≢ 1` mod prime ⇒ `x ≡ −1`).
+    `not_witness_of_prime` (a prime has no witness) and `witness_not_prime`
+    (a witness certifies compositeness) follow.
+  - Deferred: the Miller-Rabin error bound, and the random-witness analysis.
 
 ### Section 31.9 - Integer Factorization
 
