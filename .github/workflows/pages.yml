@@ -12,8 +12,13 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  VERSO_EXE: .lake/packages/verso/.lake/build/bin/verso-literate-html
+  MODULE_MAP: .lake/build/literate-module-map
+  SHARD_PLAN: .lake/build/literate-shards
+
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,46 +32,142 @@ jobs:
           test: false
           use-mathlib-cache: true
 
-      - name: Disable inline Verso proof states
+      - name: Apply pinned Verso renderer patches
         run: python3 scripts/apply_verso_patch.py
 
-      - name: Restore Verso literate cache
+      - name: Restore Verso literate JSON cache
         id: restore-verso-cache
         uses: actions/cache/restore@v5
         with:
-          path: |
-            .lake/build/literate
-          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
+          path: .lake/build/literate
+          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml') }}-${{ github.sha }}
           restore-keys: |
-            verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-
+            verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml') }}-
 
-      - name: Clean stale generated HTML
-        run: rm -rf .lake/build/literate-html _site
+      - name: Build immutable literate JSON inputs
+        run: lake build :literate
 
-      - name: Build Verso literate HTML
-        id: build-site
+      - name: Plan four balanced chapter-affine shards
         run: |
-          lake build :literateHtml
-          echo "path=$(lake query :literateHtml)" >> "$GITHUB_OUTPUT"
+          python3 scripts/prepare_literate_module_map.py \
+            .lake/build/literate \
+            "$MODULE_MAP"
+          python3 scripts/plan_literate_shards.py \
+            "$MODULE_MAP" \
+            "$SHARD_PLAN" \
+            --shards 4 \
+            --digest-input lean-toolchain \
+            --digest-input lake-manifest.json \
+            --digest-input lakefile.lean \
+            --digest-input literate.toml
 
-      - name: Check raw Verso HTML weight
-        run: python3 scripts/check_literate_html_weight.py "${{ steps.build-site.outputs.path }}"
-
-      - name: Save Verso literate cache
+      - name: Save Verso literate JSON cache
         if: steps.restore-verso-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
-          path: |
-            .lake/build/literate
-          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
+          path: .lake/build/literate
+          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml') }}-${{ github.sha }}
 
-      - name: Check generated HTML freshness
-        run: python3 scripts/check_literate_html_freshness.py "${{ steps.build-site.outputs.path }}"
+      - name: Pack immutable renderer inputs
+        run: |
+          tar --zstd -cf literate-inputs.tar.zst \
+            .lake/build/literate \
+            "$MODULE_MAP" \
+            "$SHARD_PLAN"
 
-      - name: Assemble optimized _site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: literate-inputs
+          path: literate-inputs.tar.zst
+          if-no-files-found: error
+          retention-days: 1
+
+  render:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+          use-mathlib-cache: true
+
+      - name: Apply and build the sharded renderer
+        run: |
+          python3 scripts/apply_verso_patch.py
+          lake build verso-literate-html
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: literate-inputs
+          path: .
+
+      - name: Restore immutable renderer inputs
+        run: tar --zstd -xf literate-inputs.tar.zst
+
+      - name: Render one full-context shard
+        run: |
+          python3 scripts/render_literate_shard.py \
+            --executable "$VERSO_EXE" \
+            --module-map "$MODULE_MAP" \
+            --config literate.toml \
+            --manifest "$SHARD_PLAN/manifest.json" \
+            --shard-index "${{ matrix.shard }}" \
+            --output "shard-output/shard-${{ matrix.shard }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: literate-shard-${{ matrix.shard }}
+          path: shard-output
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: [prepare, render]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: literate-inputs
+          path: .
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: literate-shard-*
+          path: shard-output
+          merge-multiple: true
+
+      - name: Restore immutable renderer inputs
+        run: tar --zstd -xf literate-inputs.tar.zst
+
+      - name: Validate and atomically merge shards
+        run: |
+          python3 scripts/merge_literate_shards.py \
+            "$SHARD_PLAN/manifest.json" \
+            .lake/build/literate-html-merged \
+            shard-output/shard-0 \
+            shard-output/shard-1 \
+            shard-output/shard-2 \
+            shard-output/shard-3
+
+      - name: Validate merged raw output
+        run: |
+          python3 scripts/check_literate_html_weight.py .lake/build/literate-html-merged
+          python3 scripts/check_literate_html_freshness.py .lake/build/literate-html-merged
+          python3 scripts/check_literate_rendering.py .lake/build/literate-html-merged
+
+      - name: Assemble optimized site
         run: |
           python3 scripts/prepare_literate_site.py \
-            "${{ steps.build-site.outputs.path }}" \
+            .lake/build/literate-html-merged \
             _site \
             --base-url "https://tanktechnology.github.io/CLRS-Lean/"
 
@@ -75,7 +176,7 @@ jobs:
           path: _site
 
   deploy:
-    needs: build
+    needs: merge
     if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages

@@ -1,13 +1,14 @@
 # CLRS-Lean Site Architecture
 
-This document records the Scheme B site design: CLRS-Lean is deployed as a
-book-style Verso site rather than as a collection of unrelated proof pages.
+This document records the fourth-edition-primary site design: CLRS-Lean is
+deployed as a book-style Verso site rather than as unrelated proof pages.
 For the full code, status, test, and tooling layer model, see
 [`repository-architecture.md`](repository-architecture.md).
 
-The public project and repository name is `CLRS-Lean`.  The Lean module root
-remains `CLRSLean`, so source paths and imports continue to use `CLRSLean/...`
-and `CLRSLean.Chapter_...`.
+The Lean module root remains `CLRSLean`. Reader navigation starts at
+`CLRSLean.FourthEdition`; third-edition-numbered `CLRSLean.Chapter_...` imports
+remain available through the compatibility period but are not the primary
+sidebar.
 
 ## Goals
 
@@ -21,10 +22,10 @@ and `CLRSLean.Chapter_...`.
 
 ```text
 CLRSLean.lean                         project landing page
+CLRSLean/FourthEdition.lean           canonical fourth-edition index
+CLRSLean/FourthEdition/Chapter_19.lean fourth-edition Chapter 19 facade
+CLRSLean/OnlineMaterial.lean          moved and third-edition-only material
 CLRSLean/ProofPatterns.lean           reusable proof-pattern guide
-CLRSLean/Chapter_02.lean              Chapter 2 guide
-CLRSLean/Chapter_16.lean              Chapter 16 guide
-CLRSLean/Chapter_23.lean              Chapter 23 guide
 CLRSLean/Progress.lean                generated progress dashboard
 CLRSLean/Status.lean                  web-facing proof status ledger
 CLRSLean/Workflow.lean                contributor workflow
@@ -38,32 +39,68 @@ docs/workflows/chapter-workflow.md    maintainer workflow notes
 
 ```text
 Lean literate source
--> scripts/apply_verso_patch.py
--> lake build :literateHtml
+-> prepare: JSON + immutable digest + balanced four-shard plan
+-> render: four full-context/disjoint-output Verso jobs
+-> merge: digest, inventory, collision, and metadata validation
 -> scripts/check_literate_html_weight.py
 -> scripts/prepare_literate_site.py
--> _site
--> GitHub Pages
+-> one _site artifact
+-> one GitHub Pages deployment
 ```
 
 ## Local Preview
 
-Build and preview the same optimized site that GitHub Pages publishes:
+Build and preview the same optimized site that GitHub Pages publishes. Local
+concurrency is capped at four jobs:
+
+```bash
+python3 scripts/apply_verso_patch.py
+lake build :literate
+python3 scripts/prepare_literate_module_map.py \
+  .lake/build/literate .lake/build/literate-module-map
+python3 scripts/plan_literate_shards.py \
+  .lake/build/literate-module-map .lake/build/literate-shards \
+  --shards 4 \
+  --digest-input lean-toolchain \
+  --digest-input lake-manifest.json \
+  --digest-input lakefile.lean \
+  --digest-input literate.toml
+lake build verso-literate-html
+python3 scripts/render_literate_shards.py \
+  --executable .lake/packages/verso/.lake/build/bin/verso-literate-html \
+  --module-map .lake/build/literate-module-map \
+  --config literate.toml \
+  --manifest .lake/build/literate-shards/manifest.json \
+  --output .lake/build/literate-shard-output \
+  --jobs 4
+python3 scripts/merge_literate_shards.py \
+  .lake/build/literate-shards/manifest.json \
+  .lake/build/literate-html-merged \
+  .lake/build/literate-shard-output/shard-{0,1,2,3}
+python3 scripts/check_literate_html_weight.py .lake/build/literate-html-merged
+python3 scripts/check_literate_html_freshness.py .lake/build/literate-html-merged
+python3 scripts/prepare_literate_site.py .lake/build/literate-html-merged _site
+python3 -m http.server --directory _site 8000
+```
+
+The serial renderer remains a diagnostic fallback and is not used by Pages:
 
 ```bash
 python3 scripts/apply_verso_patch.py
 lake build :literateHtml
-VERSO_OUT="$(lake query :literateHtml)"
-python3 scripts/check_literate_html_weight.py "$VERSO_OUT"
-python3 scripts/check_literate_html_freshness.py "$VERSO_OUT"
-python3 scripts/prepare_literate_site.py "$VERSO_OUT" _site
-python3 -m http.server --directory _site 8000
 ```
+
+Every shard loads the same complete module graph, preserving cross-references
+and navigation, but emits only its assigned modules. Shard 0 alone emits the
+landing, search, xref, and shared assets. Hover-document IDs use disjoint
+one-billion-ID ranges. The merger rejects input-digest drift,
+missing/duplicate/unexpected modules, unequal file collisions, and unequal
+metadata keys before changing the destination directory.
 
 The patch command expects the pinned Verso checkout to exist under
 `.lake/packages/verso`; run it after normal dependency setup or use a
-provisioned worktree.  It is idempotent, so repeated publishing runs report
-`already-applied` without changing the dependency again.
+provisioned worktree. It is idempotent, so repeated publishing runs report each
+tracked patch as `already-applied` without changing the dependency again.
 
 Then open `http://localhost:8000/`.  Do not serve the raw Verso output
 directly: reader-sidebar pruning, large-page optimization, rendering checks,
@@ -73,9 +110,10 @@ preparation command.
 `literate.toml` controls the sidebar order and page titles.  The public website
 should not depend on a hand-written `docs/site/index.html`.
 
-Source-module boundaries do not have to become entries in the reader
-navigation.  The sidebar keeps the existing flat top-level pages and, within a
-chapter, shows only the chapter page plus its direct `Section_*` children.
+Source-module boundaries do not have to become entries in reader navigation.
+The sidebar shows the 35 fourth-edition facades and top-level support pages.
+Legacy theorem-bearing pages stay generated and searchable, but their nearest
+canonical facade or Online Material is used as the visible navigation parent.
 Supporting modules below a section, and children below top-level support pages
 such as `ProofPatterns` and `Probability`, are omitted from the sidebar.  They
 are still generated as complete pages and remain reachable from the nearest
