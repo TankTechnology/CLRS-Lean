@@ -126,6 +126,22 @@ example :
 #check Dictionary.Equivalent.v_eq_of_basicVariables_eq
 #check Dictionary.Equivalent.isOptimalAssignment
 #check Dictionary.Equivalent.isUnbounded
+#check Dictionary.SimplexRunResult
+#check Dictionary.SimplexRunResult.terminalDictionary
+#check Dictionary.SimplexRunResult.IsOptimal
+#check Dictionary.SimplexRunResult.IsUnbounded
+#check Dictionary.SimplexRunResult.IsExhausted
+#check Dictionary.simplexRun
+#check Dictionary.simplexRun_equivalent
+#check Dictionary.simplexRun_isBasicFeasible
+#check Dictionary.simplexRun_v_mono
+#check Dictionary.simplexRun_optimal_correct
+#check Dictionary.simplexRun_unbounded_correct
+
+#print axioms Dictionary.simplexRun_equivalent
+#print axioms Dictionary.simplexRun_isBasicFeasible
+#print axioms Dictionary.simplexRun_optimal_correct
+#print axioms Dictionary.simplexRun_unbounded_correct
 
 example {m n : ℕ} (D : Dictionary m n) (x : LPVar m n → ℝ)
     (l : Fin m) (e : Fin n) (h : D.a l e ≠ 0) :
