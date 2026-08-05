@@ -302,6 +302,10 @@ CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/PhaseTwoBri
 CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/InitializedSimplex.lean
 CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/DualProjection.lean
 CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/GeneralStrongDuality.lean
+CLRSLean/Chapter_31.lean
+CLRSLean/Chapter_31/Section_31_1_Elementary_Number_Theory.lean
+CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean
+||||||| c2279d4
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean

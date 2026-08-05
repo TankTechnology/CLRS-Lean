@@ -40,6 +40,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_27",
   "CLRSLean.Chapter_28",
   "CLRSLean.Chapter_29",
+  "CLRSLean.Chapter_31",
   "CLRSLean.Chapter_32",
   "CLRSLean.Chapter_33",
   "CLRSLean.Extensions",
@@ -460,6 +461,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.InitializedSimplex",
   "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.DualProjection",
   "CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.GeneralStrongDuality",
+]
+"CLRSLean.Chapter_31" = [
+  "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
+  "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
 ]
 "CLRSLean.Chapter_32" = [
   "CLRSLean.Chapter_32.Section_32_1_String_Model",
@@ -1375,6 +1380,15 @@ title = "29.5. Dual Projection"
 
 [modules."CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.GeneralStrongDuality"]
 title = "29.5. General Strong Duality"
+
+[modules."CLRSLean.Chapter_31"]
+title = "Chapter 31. Number-Theoretic Algorithms"
+
+[modules."CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory"]
+title = "31.1. Elementary Number-Theoretic Notions"
+
+[modules."CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
+title = "31.2. Greatest Common Divisor"
 
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"

@@ -9,10 +9,10 @@ When the CSV changes, regenerate this page with
 ## Snapshot
 
 * CLRS chapters tracked: 35.
-* Chapters represented in Lean: 31.
-* Tracked reader-facing theorem entries: 1731.
-* Proved tracked theorem entries: 1731.
-* Remaining core theorem groups: 5.
+* Chapters represented in Lean: 32.
+* Tracked reader-facing theorem entries: 1743.
+* Proved tracked theorem entries: 1743.
+* Remaining core theorem groups: 4.
 
 Tracked theorem entries count the public theorem groups currently represented
 in Lean.  Remaining core theorem groups count textbook-facing targets that
@@ -22,9 +22,9 @@ are not yet represented or not yet complete.
 
 * {lit}`main-proof-complete`: 11 chapters.
 * {lit}`main-proof-complete-for-correctness`: 11 chapters.
-* {lit}`selected-section-complete`: 7 chapters.
+* {lit}`selected-section-complete`: 8 chapters.
 * {lit}`partial`: 1 chapter.
-* {lit}`not-started`: 4 chapters.
+* {lit}`not-started`: 3 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -62,7 +62,7 @@ Ch  Chapter                                                     Status          
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
 29  29. Linear Programming                                      main-proof-complete                  29.1;29.2;29.3;29.4;29.5           17        0
 30  30. Polynomials and the FFT                                 not-started                          not represented                     0        1
-31  31. Number-Theoretic Algorithms                             not-started                          not represented                     0        1
+31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2                          12        0
 32  32. String Matching                                         selected-section-complete            32.1                               19        0
 33  33. Computational Geometry                                  partial                              33.1                                7        1
 34  34. NP-Completeness                                         not-started                          not represented                     0        1
