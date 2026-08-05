@@ -5,7 +5,7 @@ import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.
 
 The variables are the gross directed flows {lit}`f u v`.  The constraints are
 nonnegativity, capacity, and conservation at every vertex other than
-{lit}`s,t`; the objective is total flow leaving {lit}`s`, exactly as in CLRS
+{lit}`s,t`; the objective is the net flow leaving {lit}`s`, exactly as in CLRS
 §29.2.
 -/
 
@@ -23,8 +23,8 @@ def IsFeasible (f : V → V → ℝ) : Prop :=
   (∀ u v, f u v ≤ N.capacity u v) ∧
   ∀ u, u ≠ N.source → u ≠ N.sink → FlowNetwork.ConservesAt f u
 
-/-- The textbook maximum-flow objective. -/
-def objective (f : V → V → ℝ) : ℝ := FlowNetwork.outflow f N.source
+/-- The textbook maximum-flow objective: source outflow minus source inflow. -/
+def objective (f : V → V → ℝ) : ℝ := FlowNetwork.netOutflow f N.source
 
 /-- A feasible flow maximizing the source outflow. -/
 def IsOptimal (f : V → V → ℝ) : Prop :=
@@ -40,7 +40,7 @@ theorem isFeasible_iff (f : V → V → ℝ) : IsFeasible N f ↔ N.IsFlow f := 
 theorem isOptimal_iff (f : V → V → ℝ) :
     IsOptimal N f ↔
       N.IsFlow f ∧ ∀ g, N.IsFlow g →
-        FlowNetwork.outflow g N.source ≤ FlowNetwork.outflow f N.source := by
+        FlowNetwork.netOutflow g N.source ≤ FlowNetwork.netOutflow f N.source := by
   simp only [IsOptimal, objective, isFeasible_iff]
 
 end MaximumFlowLP
