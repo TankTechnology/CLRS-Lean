@@ -3940,7 +3940,8 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Section 28.1 - Solving Systems of Linear Equations
 
 - Lean source: `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean`
-- Status: `selected-section-complete` (Theorem 28.1 proved)
+- Status: `partial` (Theorem 28.1 proved; Theorem 28.2 and the principal
+  cubic work claim remain)
 - Model:
   - `CLRS.Chapter28.IsUpperTriangular` / `IsLowerTriangular` /
     `IsUnitLowerTriangular` (triangularity predicates)
@@ -3968,6 +3969,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     induction hypothesis to the (nonsingular) Schur complement, and assemble the
     block factors `L = [[1,0],[P₁·m, L₁]]`, `U = [[α,v],[0,U₁]]` with
     `σ = swap 0 p · diag(1, σ₁)`.
+- Remaining Section 28.1 scope: executable forward/back substitution and
+  LUP-SOLVE correctness (Theorem 28.2 / #124), plus the principal cubic work
+  claim required by roadmap #77.
 - Remaining chapter scope: Sections 28.2 (matrix inversion) and 28.3
   (symmetric positive-definite / least-squares approximation) are not
   represented.

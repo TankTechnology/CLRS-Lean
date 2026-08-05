@@ -47,11 +47,12 @@ not missing core theorem groups.
 
 | Chapter | Strongest current layer | Central remaining group |
 | --- | --- | --- |
+| 28 | Theorem 28.1 proves LUP-decomposition existence for every nonsingular square matrix over a field | Add forward/back substitution, prove LUP-SOLVE correctness (#124), and represent the principal cubic work claim |
 | 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
 
 ## Not Represented On Main
 
-- Chapters 28--31 and 34--35.
+- Chapters 29--31 and 34--35.
 
 Open branches and pull requests are intentionally excluded until they are
 reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
@@ -60,8 +61,8 @@ reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
 
 | Priority | Target | Concrete deliverable |
 | --- | --- | --- |
-| 1 | Chapter 28 LUP decomposition ([#123](https://github.com/TankTechnology/CLRS-Lean/issues/123)) | Establish the matrix model and prove an executable LUP factorization contract |
-| 2 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Connect triangular solves and LUP factors to linear-system correctness |
+| 1 | Chapter 28 solving linear systems ([#124](https://github.com/TankTechnology/CLRS-Lean/issues/124)) | Add forward/back substitution and prove LUP-SOLVE correctness |
+| 2 | Chapter 28.1 cost boundary ([#77](https://github.com/TankTechnology/CLRS-Lean/issues/77)) | Represent the principal cubic work claim or record its exact cost semantics |
 
 ## High-Difficulty Queue
 

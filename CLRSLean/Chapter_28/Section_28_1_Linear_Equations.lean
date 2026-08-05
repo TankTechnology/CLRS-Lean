@@ -12,8 +12,8 @@ underlies Gaussian elimination, the determinant, and matrix inversion.
 Main results:
 
 - Theorem {lit}`exists_lup_decomposition`: every nonsingular matrix admits an
-  LUP decomposition `σ.permMatrix · A = L · U`.  The proof is by induction on
-  `n`: the pivot row is swapped into row 0, one Gaussian-elimination step
+  LUP decomposition {lit}`σ.permMatrix · A = L · U`.  The proof is by induction on
+  {lit}`n`: the pivot row is swapped into row 0, one Gaussian-elimination step
   ({lit}`elimination`) zeroes the subdiagonal, the induction hypothesis is
   applied to the nonsingular Schur complement (nonsingularity via
   {lit}`det_block_schur`), and the block factors are assembled with the
@@ -28,7 +28,7 @@ Notation conventions:
 
 - {lit}`A` : an {lit}`n × n` matrix over a field {lit}`F`.
 - {lit}`σ.permMatrix F` : the permutation matrix of {lit}`σ`.
-- {lit}`IsUpperTriangular` / {lit}`IsLowerTriangular`: zero above/below the
+- {lit}`IsUpperTriangular` / {lit}`IsLowerTriangular`: zero below/above the
   main diagonal.
 - {lit}`IsUnitLowerTriangular`: lower-triangular with diagonal ones.
 -/
@@ -78,7 +78,7 @@ lemma exists_col_zero_ne_zero {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1)) 
   exact hA (det_eq_zero_of_col_zero hzero)
 
 /-- Multiplying by a permutation matrix on the left permutes the rows:
-`(σ.permMatrix * A) i j = A (σ i) j`. -/
+{lit}`(σ.permMatrix * A) i j = A (σ i) j`. -/
 lemma permMatrix_mul_apply {n : ℕ} (σ : Equiv.Perm (Fin n))
     (A : Matrix (Fin n) (Fin n) F) (i j : Fin n) :
     (σ.permMatrix F * A) i j = A (σ i) j := by
@@ -89,8 +89,8 @@ lemma permMatrix_mul_apply {n : ℕ} (σ : Equiv.Perm (Fin n))
     simp [Equiv.Perm.permMatrix, PEquiv.toMatrix_apply, hbne.symm]
   · simp
 
-/-- Swapping the pivot row `p` into row `0` makes the leading entry nonzero:
-`(swap 0 p).permMatrix * A` has a nonzero `(0,0)` entry. -/
+/-- Swapping the pivot row {lit}`p` into row {lit}`0` makes the leading entry nonzero:
+{lit}`(swap 0 p).permMatrix * A` has a nonzero {lit}`(0,0)` entry. -/
 lemma perm_mul_zero_zero_ne_zero {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1)) F}
     {p : Fin (n + 1)} (hp : A p 0 ≠ 0) :
     ((Equiv.swap 0 p).permMatrix F * A) 0 0 ≠ 0 := by
@@ -101,7 +101,7 @@ lemma perm_mul_zero_zero_ne_zero {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1
   exact hp
 
 /-- The Gaussian-elimination step matrix: unit lower-triangular, with the
-subdiagonal entries of column `0` chosen to zero them out in `E * B`. -/
+subdiagonal entries of column {lit}`0` chosen to zero them out in {lit}`E * B`. -/
 def elimination {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F) (_h : B 0 0 ≠ 0) :
     Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
   fun i j => if i = j then 1 else if j = 0 then -B i 0 / B 0 0 else 0
@@ -122,7 +122,7 @@ lemma elimination_unitLowerTriangular {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (
     unfold elimination
     simp
 
-/-- The pivot entry `(0,0)` is unchanged by the elimination step. -/
+/-- The pivot entry {lit}`(0,0)` is unchanged by the elimination step. -/
 lemma elimination_mul_zero_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
     (h : B 0 0 ≠ 0) : (elimination B h * B) 0 0 = B 0 0 := by
   rw [Matrix.mul_apply]
@@ -139,7 +139,7 @@ lemma elimination_mul_zero_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)
       simp [hEq, hb0']
   · simp
 
-/-- The elimination step zeroes out column `0` below the pivot. -/
+/-- The elimination step zeroes out column {lit}`0` below the pivot. -/
 lemma elimination_mul_col_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
     (h : B 0 0 ≠ 0) (i : Fin n) : (elimination B h * B) (Fin.succ i) 0 = 0 := by
   rw [Matrix.mul_apply]
@@ -184,8 +184,8 @@ lemma elimination_mul_col_zero {n : ℕ} (B : Matrix (Fin (n + 1)) (Fin (n + 1))
   field_simp [h]
   ring
 
-/-- A permutation of `Fin n` other than the identity sends some index strictly
-below itself (so the identity is the only `≤`-monotone bijection). -/
+/-- A permutation of {lit}`Fin n` other than the identity sends some index strictly
+below itself (so the identity is the only {lit}`≤`-monotone bijection). -/
 lemma exists_lt_of_perm_ne_id {n : ℕ} {σ : Equiv.Perm (Fin n)} (hσ : σ ≠ 1) :
     ∃ i : Fin n, σ i < i := by
   classical
@@ -206,7 +206,7 @@ lemma exists_lt_of_perm_ne_id {n : ℕ} {σ : Equiv.Perm (Fin n)} (hσ : σ ≠ 
 
 
 /-- A unit lower-triangular matrix has determinant one: in the expansion, every
-non-identity permutation `σ` picks a factor `M (σ i) i` with `σ i < i`, which
+non-identity permutation {lit}`σ` picks a factor {lit}`M (σ i) i` with {lit}`σ i < i`, which
 is zero. -/
 lemma det_unitLowerTriangular {n : ℕ} {M : Matrix (Fin n) (Fin n) F}
     (hM : IsUnitLowerTriangular M) : M.det = 1 := by
@@ -230,9 +230,10 @@ lemma det_unitLowerTriangular {n : ℕ} {M : Matrix (Fin n) (Fin n) F}
     exfalso
     exact hσ1 (by simp)
 
-/-- Reindex `Fin (n + 1)` as `Fin 1 ⊕ Fin n`: row `0 ↦ inl ()`, row `succ i ↦ inr i`.
-This is the bookkeeping that lets an `(n + 1) × (n + 1)` matrix be viewed as a
-`2 × 2` block matrix with a `1 × 1` top-left block. -/
+/-- Reindex {lit}`Fin (n + 1)` as {lit}`Fin 1 ⊕ Fin n`: row {lit}`0 ↦ inl ()`, row
+{lit}`succ i ↦ inr i`. This is the bookkeeping that lets an
+{lit}`(n + 1) × (n + 1)` matrix be viewed as a {lit}`2 × 2` block matrix with a
+{lit}`1 × 1` top-left block. -/
 noncomputable def finOneSumFin (n : ℕ) : Fin (n + 1) ≃ Fin 1 ⊕ Fin n where
   toFun i := if h : i = 0 then Sum.inl ⟨0, by omega⟩ else Sum.inr (i.pred h)
   invFun x := Sum.elim (fun _ => (0 : Fin (n + 1))) Fin.succ x
@@ -252,13 +253,13 @@ noncomputable def finOneSumFin (n : ℕ) : Fin (n + 1) ≃ Fin 1 ⊕ Fin n where
     | inr i =>
         simp
 
-/-- The `inl` summand reindexes back to row `0` of `Fin (n + 1)`. -/
+/-- The {lit}`inl` summand reindexes back to row {lit}`0` of {lit}`Fin (n + 1)`. -/
 @[simp]
 lemma finOneSumFin_symm_inl (n : ℕ) (j : Fin 1) :
     (finOneSumFin n).symm (Sum.inl j) = (0 : Fin (n + 1)) := by
   rfl
 
-/-- The `inr` summand reindexes back to row `succ i` of `Fin (n + 1)`. -/
+/-- The {lit}`inr` summand reindexes back to row {lit}`succ i` of {lit}`Fin (n + 1)`. -/
 @[simp]
 lemma finOneSumFin_symm_inr (n : ℕ) (i : Fin n) :
     (finOneSumFin n).symm (Sum.inr i) = Fin.succ i := by
@@ -268,9 +269,9 @@ lemma finOneSumFin_symm_inr (n : ℕ) (i : Fin n) :
 lemma det_const_fin_one (x : F) : Matrix.det (fun _ _ : Fin 1 => x) = x := by
   simp
 
-/-- The determinant of a block-lower-triangular matrix: if the first column of `C`
-below the pivot is all zero, then `det C = C 0 0 · det M` where `M` is the Schur
-complement (the `succ`/`succ` submatrix).  This is the `n + 1` case of CLRS
+/-- The determinant of a block-lower-triangular matrix: if the first column of {lit}`C`
+below the pivot is all zero, then {lit}`det C = C 0 0 · det M` where {lit}`M` is the Schur
+complement (the {lit}`succ`/{lit}`succ` submatrix).  This is the {lit}`n + 1` case of CLRS
 Lemma 28.1's determinant step. -/
 lemma det_block_schur {n : ℕ} (C : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
     (h : ∀ i : Fin n, C (Fin.succ i) 0 = 0) :
@@ -301,8 +302,8 @@ lemma det_block_schur {n : ℕ} (C : Matrix (Fin (n + 1)) (Fin (n + 1)) F)
       rw [h11, h22]
       rw [det_const_fin_one]
 
-/-- The block-diagonal matrix `diag(1, P₁)` with a `1 × 1` top-left block is the
-permutation matrix of the sum-of-permutations `sumCongr 1 σ₁`. -/
+/-- The block-diagonal matrix {lit}`diag(1, P₁)` with a {lit}`1 × 1` top-left block is the
+permutation matrix of the sum-of-permutations {lit}`sumCongr 1 σ₁`. -/
 lemma fromBlocks_one_zero_zero_permMatrix {n : ℕ} (σ₁ : Equiv.Perm (Fin n)) :
     Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 0 (σ₁.permMatrix F) =
       (Equiv.Perm.sumCongr (1 : Equiv.Perm (Fin 1)) σ₁).permMatrix F := by
@@ -312,7 +313,7 @@ lemma fromBlocks_one_zero_zero_permMatrix {n : ℕ} (σ₁ : Equiv.Perm (Fin n))
       Equiv.toPEquiv_apply, Pi.single_apply, eq_comm]
 
 /-- Conjugating a permutation by an equivalence reindexes its permutation matrix:
-`(e.trans σ.trans e.symm).permMatrix = σ.permMatrix.reindex e.symm e.symm`. -/
+{lit}`(e.trans σ.trans e.symm).permMatrix = σ.permMatrix.reindex e.symm e.symm`. -/
 lemma conjPermMatrix {m n : Type*} [DecidableEq m] [DecidableEq n] (e : m ≃ n)
     (σ : Equiv.Perm n) :
     Equiv.Perm.permMatrix F ((e.trans σ).trans e.symm) = (σ.permMatrix F).reindex e.symm e.symm := by
@@ -321,7 +322,7 @@ lemma conjPermMatrix {m n : Type*} [DecidableEq m] [DecidableEq n] (e : m ≃ n)
     Matrix.submatrix_apply, Equiv.trans_apply, Equiv.symm_symm, Equiv.apply_eq_iff_eq_symm_apply]
 
 set_option linter.unnecessarySimpa false in
-/-- If `i < j` in `Fin (n + 1)` then `j` is not the zero row. -/
+/-- If {lit}`i < j` in {lit}`Fin (n + 1)` then {lit}`j` is not the zero row. -/
 lemma ne_zero_of_lt_succ {n : ℕ} {i j : Fin (n + 1)} (hij : i < j) : j ≠ 0 := by
   intro hj0
   have hi0 : i < (0 : Fin (n + 1)) := by simpa [hj0] using hij
@@ -329,7 +330,7 @@ lemma ne_zero_of_lt_succ {n : ℕ} {i j : Fin (n + 1)} (hij : i < j) : j ≠ 0 :
   exact (Nat.not_lt_zero i.val) hi0v
 
 set_option linter.unnecessarySimpa false in
-/-- If `j < i` in `Fin (n + 1)` then `i` is not the zero row. -/
+/-- If {lit}`j < i` in {lit}`Fin (n + 1)` then {lit}`i` is not the zero row. -/
 lemma ne_zero_of_lt {n : ℕ} {i j : Fin (n + 1)} (hji : j < i) : i ≠ 0 := by
   intro hi0
   have hj0 : j < (0 : Fin (n + 1)) := by simpa [hi0] using hji
@@ -337,11 +338,12 @@ lemma ne_zero_of_lt {n : ℕ} {i j : Fin (n + 1)} (hji : j < i) : i ≠ 0 := by
   exact (Nat.not_lt_zero j.val) hj0v
 
 /--
-**Theorem 28.1 (LUP decomposition).**  Every nonsingular `n × n` matrix `A` over a
-field admits an LUP decomposition: a permutation `σ`, a unit lower-triangular `L`,
-and an upper-triangular `U` such that `σ.permMatrix · A = L · U`.
+**Theorem 28.1 (LUP decomposition).**  Every nonsingular {lit}`n × n` matrix {lit}`A`
+over a field admits an LUP decomposition: a permutation {lit}`σ`, a unit
+lower-triangular {lit}`L`, and an upper-triangular {lit}`U` such that
+{lit}`σ.permMatrix · A = L · U`.
 
-The proof is by induction on `n`.  In the inductive step we pivot the first column
+The proof is by induction on {lit}`n`.  In the inductive step we pivot the first column
 so the leading entry is nonzero, perform one Gaussian-elimination step to zero the
 subdiagonal, apply the induction hypothesis to the Schur complement, and assemble
 the resulting block matrices.
