@@ -137,6 +137,12 @@ example :
 #check Dictionary.simplexRun_v_mono
 #check Dictionary.simplexRun_optimal_correct
 #check Dictionary.simplexRun_unbounded_correct
+#check Dictionary.IsBlandPivot
+#check Dictionary.mem_basicVariables_pivot_iff
+#check Dictionary.BlandPivot.equivalent
+#check Dictionary.BlandPivot.isBasicFeasible
+#check Dictionary.BlandPivot.v_mono
+#check Dictionary.BlandPivot.basicAssignment_eq_of_v_eq
 
 #print axioms Dictionary.simplexRun_equivalent
 #print axioms Dictionary.simplexRun_isBasicFeasible

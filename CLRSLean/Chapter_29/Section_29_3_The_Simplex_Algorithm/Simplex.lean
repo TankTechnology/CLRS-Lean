@@ -6,6 +6,7 @@ import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Optimality
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Unboundedness
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Equivalence
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Run
+import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm.Simplex.Bland.Pivot
 
 /-!
 # 29.3 SIMPLEX
