@@ -2,6 +2,7 @@ import CLRSLean.Chapter_29.Section_29_4_Duality.Definitions
 import CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality
 import CLRSLean.Chapter_29.Section_29_4_Duality.Optimality
 import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlackness
+import CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate
 
 /-!
 # 29.4 Duality
