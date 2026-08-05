@@ -14,6 +14,7 @@ belong.
 | [`proof-status-board.md`](proof-status-board.md) | Compact chapter status and next-proof priorities |
 | [`proof-map.md`](proof-map.md) | Detailed theorem and proof-boundary ledger |
 | [`clrs-proof-progress.csv`](clrs-proof-progress.csv) | Machine-readable chapter progress source |
+| [`proof-audits/chapters-01-29-milestone-2026-08-05.md`](proof-audits/chapters-01-29-milestone-2026-08-05.md) | Audited meaning and evidence for the completed Chapters 1--29 prefix |
 | [`status/blocked-and-deferred.md`](status/blocked-and-deferred.md) | Explicitly blocked, deferred, and future work |
 | [`workflows/chapter-workflow.md`](workflows/chapter-workflow.md) | End-to-end chapter formalization workflow |
 | [`workflows/lean-fast-verification.md`](workflows/lean-fast-verification.md) | Narrow-to-wide Lean verification loop |

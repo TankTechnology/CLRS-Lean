@@ -19,6 +19,23 @@ the detailed maintainer ledger.
 * {lit}`not-started`: no represented section exists on {lit}`main`.
 * {lit}`expository`: a guide page with no theorem target.
 
+## Chapters 1--29 Milestone
+
+Chapters 1--29 have zero remaining core theorem groups inside their advertised
+proof scopes.  The milestone is intentionally status-aware:
+
+* Chapter 1 is expository.
+* Chapters 5, 7, 10, 15, 17, and 24 are complete for their represented
+  sections; unrepresented textbook sections are not silently claimed.
+* The remaining Chapters 2--29 are complete for their advertised main theorem
+  or correctness stacks, with any optional implementation refinements named
+  below.
+
+The generated **Progress Dashboard** owns the current theorem totals and status
+counts.  Completion here never means that exercises, chapter-end Problems,
+pointer/RAM models, or floating-point implementations are automatically in
+scope.
+
 ## Complete For The Advertised Scope
 
 * **Chapter 2:** insertion sort, merge sort, and the represented cost/recurrence
