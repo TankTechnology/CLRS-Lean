@@ -1,6 +1,10 @@
 import Mathlib.Computability.TuringMachine.Computable
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
 
+noncomputable section
+
+open Computability StateTransition
+
 /-!
 # 34.1 Polynomial Time
 
@@ -42,7 +46,7 @@ def PolyTimeComputable {α β αΓ βΓ : Type} (ea : α → List αΓ) (eb : β
   Nonempty (Turing.TM2ComputableInPolyTime ea eb f)
 
 /-- Encode a Boolean decision result as a one-symbol string over `Bool`. -/
-def boolEncoding : Bool → List Bool := fun b => [b]
+abbrev boolEncoding : Bool → List Bool := Turing.TM2Comp.boolEncoding
 
 /-- Encode a pair of strings over `Γ` as a single string over `Option Γ`,
 using `none` as a separator.  The length is `|x| + |y| + 1`. -/
@@ -80,6 +84,27 @@ theorem PolyTimeComputable.comp {α β γ αΓ βΓ γΓ : Type}
   rcases hf with ⟨M₁⟩
   rcases hg with ⟨M₂⟩
   exact Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch M₁ M₂
+
+/--
+**Closure under complement.**  The complement of a polynomial-time decidable
+language is polynomial-time decidable (CLRS §34.1): negate the decider.
+-/
+theorem PolyTimeDecidable.compl {Γ : Type} (L : Language Γ) (hL : PolyTimeDecidable L) :
+    PolyTimeDecidable (Lᶜ) := by
+  rcases hL with ⟨f, hf, hf_iff⟩
+  refine ⟨fun x => !f x, ?comp, ?iff⟩
+  · exact PolyTimeComputable.comp hf ⟨Turing.TM2Comp.notComputableInPolyTime⟩
+  · intro x
+    simp only [Set.mem_compl_iff]
+    rw [← hf_iff x]
+    by_cases h : f x = true <;> simp [h, Bool.not_eq_true]
+
+/--
+**Closure under complement.**  `P` is closed under complement: `L ∈ P` implies
+`Lᶜ ∈ P`.
+-/
+theorem ClassP_compl {Γ : Type} (L : Language Γ) (hL : L ∈ ClassP Γ) : Lᶜ ∈ ClassP Γ := by
+  exact (mem_ClassP (Lᶜ)).mpr (PolyTimeDecidable.compl L hL)
 
 end Chapter34
 

@@ -1028,6 +1028,40 @@ theorem TM2ComputableInPolyTime.comp_scratch
            time := compTime h1 h2,
            outputsFun := comp_outputsFun h1 h2 }⟩
 
+/-- Encode a Boolean decision result as a one-symbol string over `Bool`. -/
+def boolEncoding : Bool → List Bool := fun b => [b]
+
+/-- A machine flipping a single `Bool` symbol: `[b] ↦ [!b]`. -/
+abbrev notMachine : FinTM2 where
+  K := Unit
+  k₀ := ()
+  k₁ := ()
+  Γ _ := Bool
+  Λ := Unit
+  main := ()
+  σ := Option Bool
+  initialState := none
+  m _ := TM2.Stmt.pop () (fun _ x => x)
+    (TM2.Stmt.push () (fun v => Bool.not (v.getD false))
+      (TM2.Stmt.load (fun _ => none) TM2.Stmt.halt))
+
+def notInputAlphabet : (notMachine).Γ (notMachine).k₀ ≃ Bool := Equiv.refl _
+def notOutputAlphabet : (notMachine).Γ (notMachine).k₁ ≃ Bool := Equiv.refl _
+
+/-- `Bool.not` is polytime-computable. -/
+def notComputableInPolyTime : TM2ComputableInPolyTime boolEncoding boolEncoding Bool.not where
+  tm := notMachine
+  inputAlphabet := notInputAlphabet
+  outputAlphabet := notOutputAlphabet
+  time := 1
+  outputsFun := fun b => by
+    simp [TM2OutputsInTime, notInputAlphabet, notOutputAlphabet, boolEncoding]
+    let e : EvalsTo notMachine.step (initList notMachine [b]) (some (haltList notMachine [!b])) := by
+      refine ⟨1, ?_⟩
+      simp [notMachine, initList, haltList, TM2.step, TM2.stepAux, flip]
+      congr 1
+    exact ⟨e, by simpa [e]⟩
+
 end TM2Comp
 
 end Turing
