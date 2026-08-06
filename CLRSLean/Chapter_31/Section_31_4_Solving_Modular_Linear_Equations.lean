@@ -16,6 +16,11 @@ Main results:
 - {lit}`linear_congruence_all_solutions`: if `x₀` and `x` both solve
   `a·x ≡ b (mod n)`, then `x ≡ x₀ (mod n/d)` — every solution differs from
   `x₀` by a multiple of `n/d`.
+- Theorem {lit}`linear_congruence_solutions` (Theorem 31.10): the solutions
+  are exactly the residue class `x₀ mod (n/d)`.
+- Theorem {lit}`linear_congruence_distinct` (Theorem 31.10): the `d` values
+  `k·(n/d)` for `0 ≤ k < d` are pairwise incongruent, so the congruence has
+  exactly `d` distinct solutions.
 
 Notation:
 
@@ -92,6 +97,63 @@ theorem linear_congruence_all_solutions {a b x x₀ n : ℕ} [NeZero n]
     dsimp [d]
     exact Nat.coprime_div_gcd_div_gcd hd
   exact Nat.ModEq.cancel_left_of_coprime (by simpa [Nat.gcd_comm] using hcop'.gcd_eq_one) hax2
+
+/-- **The solutions of a linear congruence (CLRS Theorem 31.10).**  If `x₀`
+solves `a·x ≡ b (mod n)`, then a value `x` solves the congruence exactly when
+`x ≡ x₀ (mod n/d)` for `d = gcd(a, n)`: the solutions form one residue class
+modulo `n/d`. -/
+theorem linear_congruence_solutions {a b x₀ n : ℕ} [NeZero n] (h : a * x₀ ≡ b [MOD n]) :
+    ∀ x : ℕ, (a * x ≡ b [MOD n]) ↔ x ≡ x₀ [MOD (n / Nat.gcd a n)] := by
+  intro x
+  constructor
+  · intro hx
+    exact linear_congruence_all_solutions hx h
+  · intro hx
+    have h1 : a * x ≡ a * x₀ [MOD a * (n / Nat.gcd a n)] := by
+      rw [Nat.ModEq] at hx ⊢
+      rw [Nat.mul_mod_mul_left, Nat.mul_mod_mul_left]
+      rw [hx]
+    have h2 : a * x ≡ a * x₀ [MOD n] := by
+      rw [mul_nat_div_eq a n] at h1
+      exact Nat.ModEq.of_dvd (dvd_mul_left n (a / Nat.gcd a n)) h1
+    exact h2.trans h
+
+/-- **The `d = gcd(a, n)` solutions are distinct modulo `n` (CLRS Theorem
+31.10).**  The values `k·(n/d)` for `0 ≤ k < d` are pairwise incongruent
+modulo `n`, so together with {lit}`linear_congruence_shift` they give exactly
+`d` distinct solutions. -/
+theorem linear_congruence_distinct {a n : ℕ} [NeZero n] (k₁ k₂ : ℕ)
+    (hk₁ : k₁ < Nat.gcd a n) (hk₂ : k₂ < Nat.gcd a n) (hk : k₁ < k₂) :
+    ¬ k₁ * (n / Nat.gcd a n) ≡ k₂ * (n / Nat.gcd a n) [MOD n] := by
+  intro hc
+  have hd : n ∣ (k₂ - k₁) * (n / Nat.gcd a n) := by
+    have hle : k₁ * (n / Nat.gcd a n) ≤ k₂ * (n / Nat.gcd a n) := by
+      exact Nat.mul_le_mul_right _ (Nat.le_of_lt hk)
+    have hmod : (k₂ * (n / Nat.gcd a n) - k₁ * (n / Nat.gcd a n)) % n = 0 := by
+      have hsub := Nat.ModEq.sub (Nat.le_refl (k₁ * (n / Nat.gcd a n))) hle hc (Nat.ModEq.refl (k₁ * (n / Nat.gcd a n)))
+      have h0 : k₁ * (n / Nat.gcd a n) - k₁ * (n / Nat.gcd a n) = 0 := by omega
+      rw [h0] at hsub
+      simpa [Nat.ModEq, Nat.zero_mod] using hsub.symm
+    have hsub' : (k₂ - k₁) * (n / Nat.gcd a n) = k₂ * (n / Nat.gcd a n) - k₁ * (n / Nat.gcd a n) := by
+      rw [Nat.sub_mul]
+    rw [hsub']
+    exact Nat.dvd_of_mod_eq_zero hmod
+  have hn0 : 0 < n / Nat.gcd a n := by
+    exact Nat.div_pos (Nat.le_of_dvd (Nat.pos_of_neZero (n := n)) (Nat.gcd_dvd_right a n)) (Nat.gcd_pos_of_pos_right a (Nat.pos_of_neZero (n := n)))
+  have hpos : 0 < (k₂ - k₁) * (n / Nat.gcd a n) := by
+    have hk0 : 0 < k₂ - k₁ := by omega
+    exact Nat.mul_pos hk0 hn0
+  have hlt : (k₂ - k₁) * (n / Nat.gcd a n) < n := by
+    have hk2 : k₂ - k₁ < Nat.gcd a n := by omega
+    have hdn : (Nat.gcd a n) * (n / Nat.gcd a n) = n := Nat.mul_div_cancel' (Nat.gcd_dvd_right a n)
+    calc
+      (k₂ - k₁) * (n / Nat.gcd a n) < Nat.gcd a n * (n / Nat.gcd a n) := Nat.mul_lt_mul_of_pos_right hk2 hn0
+      _ = n := hdn
+  have hm0 : (k₂ - k₁) * (n / Nat.gcd a n) = 0 := by
+    have hmod : (k₂ - k₁) * (n / Nat.gcd a n) % n = 0 := Nat.mod_eq_zero_of_dvd hd
+    have hmod' : (k₂ - k₁) * (n / Nat.gcd a n) % n = (k₂ - k₁) * (n / Nat.gcd a n) := Nat.mod_eq_of_lt hlt
+    omega
+  omega
 
 end Chapter31
 

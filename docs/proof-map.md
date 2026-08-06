@@ -4433,7 +4433,8 @@ in a legacy initialization module that is also cataloged as online material.
 - Lean source: `CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
 - Status: `selected-section-complete`
 - Proved:
-  - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Lemma 31.2):
+  - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Theorem 31.9,
+    the GCD recursion theorem):
     the Euclid recursion `gcd(a, b) = gcd(b mod a, a)` and the base cases.
   - `euclid` + `euclid_eq_gcd` + `euclid_terminates`: the EUCLID algorithm is a
     total, well-founded function and returns `Nat.gcd a b` (via
@@ -4450,6 +4451,19 @@ in a legacy initialization module that is also cataloged as online material.
     including `coprime (a/g) (b/g)` for `g = gcd a b`.
   - `extendedEuclid` + `extendedEuclid_spec`: EXTENDED-EUCLID returns
     `(d, x, y)` with `d = gcd a b = a·x + b·y`.
+  - Running time (Lamé / Fibonacci): `euclidDivisions` counts the recursive
+    calls of `EUCLID` (CLRS recursion `EUCLID(a, b) = EUCLID(b, a mod b)`).
+    `fib_le_of_euclidDivisions` (CLRS Lemma 31.10): `k` calls with `a > b ≥ 1`
+    force `b ≥ F_{k+1}` and `a ≥ F_{k+2}`, proved by strong induction on `b`
+    (base case `a ≥ 2b` when `a mod b = 0`; step via `F_{k+3} = F_{k+1} +
+    F_{k+2}` and `a ≥ b + (a mod b)`).
+    `euclidDivisions_lt` (CLRS Theorem 31.11, **Lamé's theorem**): for
+    `k ≥ 1`, `b < F_{k+1}` implies fewer than `k` calls (contrapositive via
+    `Nat.fib_mono`).
+    `euclidDivisions_le_two_log` (CLRS Corollary 31.12): at most
+    `2·log₂ b + 2` calls, i.e. `O(log b)`, via the exponential growth lemmas
+    `fib_two_step_ge_pow_two` and `pow_two_le_fib` (`2^(n/2) ≤ F_{n+2}`) and
+    `Nat.le_log_of_pow_le`.
 
 ### Section 31.3 - Modular Arithmetic
 
@@ -4462,7 +4476,7 @@ in a legacy initialization module that is also cataloged as online material.
     multiplicative inverse modulo `n`, via `ZMod` units.
   - `mul_left_cancel_mod` (CLRS Theorem 31.9): cancellation in `Z_n` when
     `gcd(c,n)=1`.
-  - `modular_linear_solvable` (CLRS Theorem 31.11): `a·x ≡ b (mod n)` is
+  - `modular_linear_solvable` (CLRS Corollary 31.21): `a·x ≡ b (mod n)` is
     solvable iff `gcd(a,n) ∣ b`, via the `ZMod` quotient hom and Bezout.
 
 ### Section 31.4 - Solving Modular Linear Equations
@@ -4492,9 +4506,9 @@ in a legacy initialization module that is also cataloged as online material.
 - Proved:
   - `modularExponentiation` + `modularExponentiation_spec` (CLRS
     MODULAR-EXPONENTIATION).
-  - `fermat_little_theorem` (CLRS Theorem 31.30): prime `p` gives
+  - `fermat_little_theorem` (CLRS Theorem 31.31): prime `p` gives
     `a^p ≡ a (mod p)`, via `ZMod.pow_card`.
-  - `euler_theorem`: `gcd(a,n)=1` gives `a^φ(n) ≡ 1 (mod n)`.
+  - `euler_theorem` (CLRS Theorem 31.30): `gcd(a,n)=1` gives `a^φ(n) ≡ 1 (mod n)`.
 
 ### Section 31.7 - The RSA Public-Key Cryptosystem
 
@@ -4513,6 +4527,36 @@ in a legacy initialization module that is also cataloged as online material.
   - `fermat_test` (CLRS Theorem 31.31): prime `p` and `gcd(a,p)=1` give
     `a^(p−1) ≡ 1 (mod p)`.
   - `fermatPseudoprime`, `pseudoprime` + `pseudoprime_correct` (PSEUDOPRIME).
+  - `isCarmichael` (**Carmichael numbers**): composite `n` passing the Fermat
+    test `a^(n−1) ≡ 1 (mod n)` for every `a` coprime to `n`;
+    `carmichael_fermatPseudoprime` shows such `n` fool the Fermat test for
+    every coprime base.
+  - `isCarmichael_561`: 561 is a Carmichael number — via `fermat_test` for the
+    prime factors 3, 11, 17 (with `2·280`, `10·56`, `16·35` all equal to 560)
+    and the helper `modeq_of_coprime_mul` combining congruences under coprime
+    moduli.  This shows `PSEUDOPRIME` cannot certify primality.
+  - `strongTestParams` / `strongPseudoprime` / `Witness` / `millerRabin`
+    (Miller-Rabin): the `2^s·d` decomposition of `n−1` (via `Nat.factorization`),
+    the STRONG-PSEUDOPRIME condition, the witness predicate, and the executable
+    single-base test.  `millerRabin 561 2` evaluates to `false`: although 561 is
+    a Carmichael number, base 2 witnesses that it is composite.
+  - Miller-Rabin correctness: `strongPseudoprime_of_prime` (a prime is a strong
+    probable prime to every coprime base), proved via Fermat, the minimal-index
+    argument (`Nat.find`), and the roots-of-unity fact
+    `modeq_neg_one_of_sq_eq_one` (`x² ≡ 1`, `x ≢ 1` mod prime ⇒ `x ≡ −1`).
+    `not_witness_of_prime` (a prime has no witness) and `witness_not_prime`
+    (a witness certifies compositeness) follow.
+  - **Miller-Rabin error bound (Rabin–Monier)**: the good subgroup
+    `goodUnits` = `{x : x^(2^(ν(n)−1)·t) ∈ {±1}}`, with `liar_mem_goodSet`
+    showing every strong liar lies in it.  Counting `|S(n)|` via the cyclicity
+    of prime-power unit groups and the CRT (`card_pow_eq_one_crt`,
+    `mTorsion_eq_prod`), `goodUnits_card_le` bounds `|S(n)| ≤ (n−1)/4` by the
+    three-case analysis: prime power (`n = p^e`), semiprime (`n = p·q`, with
+    the `s < r` / `s = r` sub-cases and the key lemma that `d_p | t ∧ d_q | t`
+    forces `p = q`), and `≥ 3` prime factors.  Hence `strongLiars_card_le`:
+    **at most `(n−1)/4` of the bases are strong liars for odd composite `n`**
+    (Theorem 31.39, sharpened to `(n−1)/4` by Rabin–Monier).  Deferred: the
+    random-witness analysis.
 
 ### Section 31.9 - Integer Factorization
 
@@ -4522,6 +4566,15 @@ in a legacy initialization module that is also cataloged as online material.
   - `rhoStep` (Pollard's rho iteration).
   - `rho_collision_factor`: `x ≡ y (mod p)` and `p ∣ n` imply
     `p ∣ gcd(x−y, n)` — a collision forces a nontrivial divisor.
+    `rho_collision_factor_dist` is the `|y−x|` (`Nat.dist`) version.
+  - POLLARD-RHO: `RhoState` (tortoise-and-hare state), `pollardStep`
+    (one step, reporting `gcd (|y−x|, n)`), `pollardRhoLoop` (over a step
+    budget), and `pollardRho` (the full algorithm).  Soundness:
+    `pollardRho_sound` — a returned value ≠ `n` is a nontrivial divisor of
+    `n`; `pollardStep_collision_factor` — a mod-`p` collision at a step makes
+    that step's candidate a multiple of `p`.
+  - Deferred: the birthday-paradox / expected-`O(√p)` running-time analysis
+    (a heuristic in CLRS, left informal).
 
 ## Chapter 32 - String Matching
 
