@@ -70,6 +70,14 @@ def convIn (x : (h1.tm).Γ (h1.tm).k₁) : (h2.tm).Γ (h2.tm).k₀ :=
 /-- The inverse conversion for pushing `h2`'s input elements. -/
 def convOut (y : (h2.tm).Γ (h2.tm).k₀) : (h1.tm).Γ (h1.tm).k₁ :=
   h1.outputAlphabet.invFun (h2.inputAlphabet y)
+@[simp] lemma convIn_convOut (y : (h2.tm).Γ (h2.tm).k₀) :
+    convIn h1 h2 (convOut h1 h2 y) = y := by
+  simp [convIn, convOut, Equiv.apply_symm_apply]
+
+@[simp] lemma convOut_convIn (x : (h1.tm).Γ (h1.tm).k₁) :
+    convOut h1 h2 (convIn h1 h2 x) = x := by
+  simp [convIn, convOut, Equiv.apply_symm_apply]
+
 
 /-- Translate `h1`'s program to the combined machine.  `halt` jumps into
 `h2`'s main. -/
@@ -153,7 +161,7 @@ def compΓk₀Fintype : Fintype (CompΓ h1 h2 (Sum.inl (h1.tm).k₀)) :=
   h1.tm.Γk₀Fin
 
 /-- The combined bundled machine. -/
-def compMachine (h1 : TM2ComputableInPolyTime eα eβ f)
+abbrev compMachine (h1 : TM2ComputableInPolyTime eα eβ f)
     (h2 : TM2ComputableInPolyTime eβ eγ g) : FinTM2 :=
   @FinTM2.mk (CompK h1 h2) (compKDecidableEq h1 h2) (compKFintype h1 h2)
     (compk₀ h1 h2) (compk₁ h1 h2) (CompΓ h1 h2) (CompΛ h1 h2) (Sum.inl (h1.tm).main)
@@ -164,26 +172,68 @@ def compMachine (h1 : TM2ComputableInPolyTime eα eβ f)
 def compInputAlphabet : (compMachine h1 h2).Γ (compMachine h1 h2).k₀ ≃ αΓ :=
   h1.inputAlphabet
 
+@[simp] lemma eq_ndrec_round_trip {α : Type} {a b : α} {M : α → Sort*}
+    (x : M a) (h : a = b) : Eq.ndrec (motive := M) (Eq.ndrec (motive := M) x h) h.symm = x := by
+  cases h
+  simp
+
+@[simp] lemma cast_congrArg_List_map {α β : Type} {e : α = β} (l : List α) :
+    cast (congrArg List e) l = List.map (cast e) l := by
+  cases e
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+      change x :: xs = List.map (fun x : α => x) (x :: xs)
+      simp
+
+@[simp] lemma cast_congrArg_eq_ndrec {α : Type} {a b : α} {M : α → Type}
+    {e : a = b} (x : M a) : cast (congrArg M e) x = Eq.ndrec (motive := M) x e := by
+  cases e
+  simp
+
+@[simp] lemma cast_cast {α β γ : Type} (e₁ : α = β) (e₂ : β = γ) (x : α) :
+    cast e₂ (cast e₁ x) = cast (e₁.trans e₂) x := by
+  cases e₁
+  cases e₂
+  rfl
+
+@[simp] lemma eq_symm_trans_self {α : Type} {a b : α} (h : a = b) : h.symm.trans h = rfl := by
+  cases h
+  rfl
+
+/-- Casting to `β` and back to `α` is the identity (proofs of the type equalities
+are proof-irrelevant). -/
+@[simp] lemma cast_symm_cancel {α β : Type} {p : α = β} (q : β = α) (x : α) :
+    q ▸ (cast p x) = x := by
+  cases p
+  cases q
+  rfl
+
 /-- The combined output alphabet: `h2`'s, or the composite when `h2` reuses
-its input stack as output. -/
-def compOutputAlphabet : (compMachine h1 h2).Γ (compMachine h1 h2).k₁ ≃ γΓ := by
-  change CompΓ h1 h2 (compk₁ h1 h2) ≃ γΓ
-  by_cases h : (h2.tm).k₀ = (h2.tm).k₁
-  · simp [compk₁, h]
-    have hinput' : (h2.tm).Γ (h2.tm).k₁ ≃ βΓ := by
-      rw [← h]
-      exact h2.inputAlphabet
-    exact h1.outputAlphabet.trans (hinput'.symm.trans h2.outputAlphabet)
-  · simp [compk₁, h]
-    exact h2.outputAlphabet
-
-@[simp] lemma convIn_convOut (y : (h2.tm).Γ (h2.tm).k₀) :
-    convIn h1 h2 (convOut h1 h2 y) = y := by
-  simp [convIn, convOut, Equiv.apply_symm_apply]
-
-@[simp] lemma convOut_convIn (x : (h1.tm).Γ (h1.tm).k₁) :
-    convOut h1 h2 (convIn h1 h2 x) = x := by
-  simp [convIn, convOut, Equiv.apply_symm_apply]
+its input stack as output.  The `k₀ = k₁` branch is an explicit `Equiv` whose
+`invFun` is definitionally `convOut ∘ (Eq.ndrec …)`, and the domain recast is
+carried by `Equiv.cast` so that `.symm` reduces via `Equiv.cast_symm`. -/
+def compOutputAlphabet : (compMachine h1 h2).Γ (compMachine h1 h2).k₁ ≃ γΓ :=
+  if h : (h2.tm).k₀ = (h2.tm).k₁ then
+    (Equiv.cast (show CompΓ h1 h2 (compk₁ h1 h2) = (h1.tm).Γ (h1.tm).k₁ by simp [compk₁, h])).trans
+      { toFun := fun x : (h1.tm).Γ (h1.tm).k₁ =>
+          h2.outputAlphabet
+            (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k) (convIn h1 h2 x) h)
+        invFun := fun y : γΓ =>
+          convOut h1 h2
+            (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k) (h2.outputAlphabet.invFun y) h.symm)
+        left_inv := by
+          intro x
+          change convOut h1 h2 (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k)
+            (h2.outputAlphabet.symm (h2.outputAlphabet (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k) (convIn h1 h2 x) h))) h.symm) = x
+          simp [convIn, convOut, Equiv.apply_symm_apply, Equiv.symm_apply_apply, eq_ndrec_round_trip]
+        right_inv := by
+          intro y
+          change h2.outputAlphabet (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k)
+            (convIn h1 h2 (convOut h1 h2 (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k) (h2.outputAlphabet.symm y) h.symm))) h) = y
+          simp [convIn, convOut, Equiv.apply_symm_apply, Equiv.symm_apply_apply, eq_ndrec_round_trip] }
+  else
+    (Equiv.cast (show CompΓ h1 h2 (compk₁ h1 h2) = (h2.tm).Γ (h2.tm).k₁ by simp [compk₁, h])).trans h2.outputAlphabet
 
 lemma list_map_tail {α β : Type} (f : α → β) (l : List α) :
     (List.map f l).tail = List.map f l.tail := by
@@ -682,6 +732,192 @@ lemma evalsTo_out_len_le (a : α) :
 /-- Phase 2's time bound, as a function of phase 1's input length. -/
 def compTime : Polynomial ℕ :=
   h1.time + (h2.time.comp (Polynomial.X + (maxPushCount₁ h1 : Polynomial ℕ) * h1.time))
+
+@[ext] theorem Cfg_ext {K : Type} {Γ : K → Type} {Λ σ : Type}
+    {c d : Turing.TM2.Cfg Γ Λ σ}
+    (h₁ : c.l = d.l) (h₂ : c.var = d.var) (h₃ : c.stk = d.stk) : c = d := by
+  cases c with
+  | mk l₁ v₁ S₁ =>
+      cases d with
+      | mk l₂ v₂ S₂ =>
+          simp_all
+
+/-- `h1`'s output equals `h2`'s input, transported through the alphabet
+equivalence. -/
+lemma out₁_eq (a : α) :
+    List.map h1.outputAlphabet.invFun (eβ (f a)) =
+      List.map (convOut h1 h2) (List.map h2.inputAlphabet.invFun (eβ (f a))) := by
+  rw [List.map_map]
+  congr 1
+  funext z
+  simp [convOut, Equiv.apply_invFun_apply]
+
+@[simp] lemma initList_stk₀ (tm : FinTM2) (s : List (tm.Γ tm.k₀)) :
+    (initList tm s).stk tm.k₀ = s := by
+  simp [initList]
+
+@[simp] lemma initList_stk_of_ne (tm : FinTM2) {k : tm.K} (h : k ≠ tm.k₀)
+    (s : List (tm.Γ tm.k₀)) : (initList tm s).stk k = [] := by
+  simp [initList, h]
+
+@[simp] lemma haltList_stk₁ (tm : FinTM2) (s : List (tm.Γ tm.k₁)) :
+    (haltList tm s).stk tm.k₁ = s := by
+  simp [haltList]
+
+@[simp] lemma haltList_stk_of_ne (tm : FinTM2) {k : tm.K} (h : k ≠ tm.k₁)
+    (s : List (tm.Γ tm.k₁)) : (haltList tm s).stk k = [] := by
+  simp [haltList, h]
+
+@[simp] lemma compk₀_eq : (compMachine h1 h2).k₀ = Sum.inl (h1.tm).k₀ := rfl
+
+@[simp] lemma compk₁_eq (h : (h2.tm).k₀ = (h2.tm).k₁) :
+    (compMachine h1 h2).k₁ = Sum.inl (h1.tm).k₁ := by
+  simp [compk₁, h]
+
+@[simp] lemma compk₁_eq_ne (h : (h2.tm).k₀ ≠ (h2.tm).k₁) :
+    (compMachine h1 h2).k₁ = Sum.inr (h2.tm).k₁ := by
+  simp [compk₁, h]
+
+/-!
+**Status**: the composite-alphabet cast is closed.  `mapCfg₂_halt_eq` is proved
+(axiom-clean).  The blocker was `compMachine` being an opaque `def`: at `rw`'s
+reducible transparency the type `(compMachine h1 h2).Γ (compMachine h1 h2).k₁`
+does not unfold to `CompΓ h1 h2 (compk₁ h1 h2)`, so the outer `⋯ ▸` cast on the
+element-wise goal could not unify.  Making `compMachine` an `abbrev` (reducible)
+lets `rw [compOutputAlphabet]` and the element-wise chain
+`Equiv.invFun_as_coe` → `Equiv.symm_trans` → `Equiv.cast_symm` → `cast_symm_cancel`
+all fire.  The two alphabet cases are isolated as
+`compOutputAlphabet_invFun_reuse` (`k₀₂ = k₁₂`, round-trips to `convOut`) and
+`compOutputAlphabet_invFun_no_reuse` (`k₀₂ ≠ k₁₂`, round-trips to
+`outputAlphabet₂.symm`).
+
+**Next**: assemble `TM2ComputableInPolyTime.comp`'s `outputsFun` from
+`mapCfg₁_init`, `mapCfg₁_halt_eq`, `mapCfg₂_halt_eq` via `evalsTo_lift` and the
+`compTime` bound.
+-/
+
+/-- The phase-1 start configuration. -/
+lemma mapCfg₁_init (a : α) :
+    mapCfg₁ h1 h2 (initList (h1.tm) (List.map h1.inputAlphabet.invFun (eα a))) =
+      initList (compMachine h1 h2) (List.map (compInputAlphabet h1 h2).invFun (eα a)) := by
+  apply Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k with
+    | inl k' =>
+        by_cases h : k' = (h1.tm).k₀
+        · subst k'
+          simp [mapCfg₁, stk₁, compk₀, compInputAlphabet, initList]
+        · have hl : (initList (h1.tm) (List.map h1.inputAlphabet.invFun (eα a))).stk k' = [] :=
+            initList_stk_of_ne (h1.tm) h (List.map h1.inputAlphabet.invFun (eα a))
+          have hr : (initList (compMachine h1 h2) (List.map (compInputAlphabet h1 h2).invFun (eα a))).stk (Sum.inl k') = [] :=
+            initList_stk_of_ne (compMachine h1 h2) (by
+              intro hk
+              exact h (Sum.inl.inj hk)) (List.map (compInputAlphabet h1 h2).invFun (eα a))
+          exact hl.trans hr.symm
+    | inr k' =>
+        simp [mapCfg₁, stk₁, compk₀, compInputAlphabet, initList]
+
+/-- `h1`'s halted configuration is `h2`'s initial configuration. -/
+lemma mapCfg₁_halt_eq (a : α) :
+    mapCfg₁ h1 h2 (haltList (h1.tm) (List.map h1.outputAlphabet.invFun (eβ (f a)))) =
+      mapCfg₂ h1 h2 (initList (h2.tm) (List.map h2.inputAlphabet.invFun (eβ (f a)))) := by
+  apply Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k with
+    | inl k' =>
+        by_cases h : k' = (h1.tm).k₁
+        · subst k'
+          have hl : (mapCfg₁ h1 h2 (haltList (h1.tm) (List.map h1.outputAlphabet.invFun (eβ (f a))))).stk (Sum.inl (h1.tm).k₁)
+              = List.map h1.outputAlphabet.invFun (eβ (f a)) := by
+            simp [mapCfg₁, stk₁]
+          have hr : (mapCfg₂ h1 h2 (initList (h2.tm) (List.map h2.inputAlphabet.invFun (eβ (f a))))).stk (Sum.inl (h1.tm).k₁)
+              = List.map (convOut h1 h2) (List.map h2.inputAlphabet.invFun (eβ (f a))) := by
+            simp [mapCfg₂, stk₂]
+          exact hl.trans ((out₁_eq h1 h2 a).trans hr.symm)
+        · simp [mapCfg₁, mapCfg₂, stk₁, stk₂, h]
+    | inr k' =>
+        by_cases h : k' = (h2.tm).k₀
+        · subst k'
+          simp [mapCfg₁, mapCfg₂, stk₁, stk₂]
+        · simp [mapCfg₁, mapCfg₂, stk₁, stk₂, h]
+
+/-- `compOutputAlphabet`'s inverse on the reuse branch (`k₀ = k₁`), recast to
+`h1`'s output alphabet.  The cast round-trip `⋯ ▸ (cast recast.symm w) = w` is
+the composite-alphabet cast from `e89de6f`, now closed via the reducible
+`compMachine` + `cast_symm_cancel`. -/
+lemma compOutputAlphabet_invFun_reuse (h : (h2.tm).k₀ = (h2.tm).k₁) (z : γΓ) :
+    (show (compMachine h1 h2).Γ (compMachine h1 h2).k₁ = (h1.tm).Γ (h1.tm).k₁ by
+      simp [compk₁, h]) ▸ (compOutputAlphabet h1 h2).invFun z
+    = convOut h1 h2 (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k) (h2.outputAlphabet.invFun z) h.symm) := by
+  rw [compOutputAlphabet]
+  rw [dif_pos h]
+  set w : (h1.tm).Γ (h1.tm).k₁ :=
+    convOut h1 h2 (Eq.ndrec (motive := fun k : (h2.tm).K => (h2.tm).Γ k) (h2.outputAlphabet.invFun z) h.symm)
+  change (show (compMachine h1 h2).Γ (compMachine h1 h2).k₁ = (h1.tm).Γ (h1.tm).k₁ by
+      simp [compk₁, h]) ▸
+      cast (show CompΓ h1 h2 (compk₁ h1 h2) = (h1.tm).Γ (h1.tm).k₁ by simp [compk₁, h]).symm w = w
+  rw [cast_symm_cancel]
+
+/-- `compOutputAlphabet`'s inverse on the non-reuse branch (`k₀ ≠ k₁`), recast
+to `h2`'s output alphabet. -/
+lemma compOutputAlphabet_invFun_no_reuse (h : (h2.tm).k₀ ≠ (h2.tm).k₁) (z : γΓ) :
+    h2.outputAlphabet.invFun z
+      = (show (compMachine h1 h2).Γ (compMachine h1 h2).k₁ = (h2.tm).Γ (h2.tm).k₁ by
+          simp [compk₁, h]) ▸ (compOutputAlphabet h1 h2).invFun z := by
+  rw [compOutputAlphabet]
+  rw [dif_neg h]
+  set w : (h2.tm).Γ (h2.tm).k₁ := h2.outputAlphabet.invFun z
+  change w = (show (compMachine h1 h2).Γ (compMachine h1 h2).k₁ = (h2.tm).Γ (h2.tm).k₁ by
+      simp [compk₁, h]) ▸
+      cast (show CompΓ h1 h2 (compk₁ h1 h2) = (h2.tm).Γ (h2.tm).k₁ by simp [compk₁, h]).symm w
+  rw [cast_symm_cancel]
+
+/-- `h2`'s halted configuration is the combined machine's halted configuration. -/
+lemma mapCfg₂_halt_eq (a : α) :
+    mapCfg₂ h1 h2 (haltList (h2.tm) (List.map h2.outputAlphabet.invFun (eγ (g (f a))))) =
+      haltList (compMachine h1 h2) (List.map (compOutputAlphabet h1 h2).invFun (eγ (g (f a)))) := by
+  apply Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k with
+    | inl k' =>
+        by_cases h : (h2.tm).k₀ = (h2.tm).k₁
+        · by_cases hk : k' = (h1.tm).k₁
+          · subst k'
+            simp [mapCfg₂, stk₂, compk₁, h, haltList]
+            intro a₁ _
+            exact (compOutputAlphabet_invFun_reuse h1 h2 h a₁).symm
+          · simp [mapCfg₂, stk₂, compk₁, h, hk, haltList]
+        · by_cases hk : k' = (h1.tm).k₁
+          · subst k'
+            simp [mapCfg₂, stk₂, compk₁, h, haltList]
+          · simp [mapCfg₂, stk₂, compk₁, h, hk, haltList]
+    | inr k' =>
+        by_cases h : (h2.tm).k₀ = (h2.tm).k₁
+        · by_cases hk : k' = (h2.tm).k₀
+          · subst k'
+            simp [mapCfg₂, stk₂, compk₁, h, haltList]
+          · by_cases hk2 : k' = (h2.tm).k₁
+            · subst k'
+              exfalso
+              exact hk h.symm
+            · simp [mapCfg₂, stk₂, compk₁, h, hk, hk2, haltList]
+        · by_cases hk : k' = (h2.tm).k₁
+          · subst k'
+            have hk0 : ¬(h2.tm).k₁ = (h2.tm).k₀ := by
+              exact fun h₀ => h h₀.symm
+            simp [mapCfg₂, stk₂, compk₁, h, hk0, haltList]
+            intro a₁ _
+            exact (compOutputAlphabet_invFun_no_reuse h1 h2 h a₁)
+          · by_cases hk2 : k' = (h2.tm).k₀
+            · subst k'
+              simp [mapCfg₂, stk₂, compk₁, h, hk, haltList]
+            · simp [mapCfg₂, stk₂, compk₁, h, hk, hk2, haltList]
 
 end ScratchComp
 
