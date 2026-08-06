@@ -30,7 +30,8 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 ### 31.2 Greatest Common Divisor
 
-* {lit}`CLRS.Chapter31.euclid_recursion` (Lemma 31.2),
+* {lit}`CLRS.Chapter31.euclid_recursion` (Theorem 31.9, the GCD recursion
+  theorem),
   {lit}`CLRS.Chapter31.euclid` + {lit}`CLRS.Chapter31.euclid_eq_gcd`,
   {lit}`CLRS.Chapter31.gcd_is_linear_combination` (Lemma 31.3, Bezout),
   {lit}`CLRS.Chapter31.gcd_is_smallest_positive_linear_combination`
@@ -50,7 +51,7 @@ primality test, and the Pollard's-rho factorization heuristic.
 * {lit}`CLRS.Chapter31.mod_add` / `mod_mul` (Theorem 31.5),
   {lit}`CLRS.Chapter31.exists_mul_inverse_mod` (Theorem 31.6),
   {lit}`CLRS.Chapter31.mul_left_cancel_mod` (Theorem 31.9), and
-  {lit}`CLRS.Chapter31.modular_linear_solvable` (Theorem 31.11).
+  {lit}`CLRS.Chapter31.modular_linear_solvable` (Corollary 31.21).
 
 ### 31.4 Solving Modular Linear Equations
 
@@ -67,7 +68,7 @@ primality test, and the Pollard's-rho factorization heuristic.
 ### 31.6 Powers of an Element
 
 * {lit}`CLRS.Chapter31.modularExponentiation` + `modularExponentiation_spec`,
-  {lit}`CLRS.Chapter31.fermat_little_theorem` (Theorem 31.30), and
+  {lit}`CLRS.Chapter31.fermat_little_theorem` (Theorem 31.31), and
   {lit}`CLRS.Chapter31.euler_theorem`.
 
 ### 31.7 The RSA Public-Key Cryptosystem
@@ -100,9 +101,14 @@ primality test, and the Pollard's-rho factorization heuristic.
   {lit}`CLRS.Chapter31.goodUnits_card_le` proves `|S(n)| ≤ (n−1)/4` (three
   cases: prime power, semiprime, and ≥3 prime factors), giving
   {lit}`CLRS.Chapter31.strongLiars_card_le` — **at most `(n−1)/4` of the
-  bases are strong liars** (Theorem 31.38).
+  bases are strong liars** (Theorem 31.39, sharpened to `(n−1)/4` by
+  Rabin–Monier).
 
 ### 31.9 Integer Factorization
+
+> ⚠️ **CLRS 4th edition removed this section** (integer factorization is no
+> longer in the main text of Chapter 31).  The POLLARD-RHO formalization is
+> retained for reference; a repo-wide migration will decide its fate.
 
 * {lit}`CLRS.Chapter31.rhoStep` and
   {lit}`CLRS.Chapter31.rho_collision_factor` (Pollard's rho).

@@ -1,4 +1,4 @@
-# ch31 Error-Bound Handoff — Miller-Rabin (Theorem 31.8)
+# ch31 Error-Bound Handoff — Miller-Rabin (Theorem 31.39)
 
 This document hands off the state and the verified roadmap for the **last
 remaining hard theorem in Chapter 31**: the Miller-Rabin error bound (Rabin-
@@ -41,7 +41,7 @@ documented as informal in CLRS and intentionally left unformalized).
 > 2 ≤ 8/4).  Rationale: φ(n)/4 fails exactly when the "good subgroup"
 > index is 3, which happens only for `n = 3²` (see Milestone 4 notes).
 > Since `φ(n) ≤ n−1`, bounding by `(n−1)/4` is the right, exception-free
-> target and is strictly stronger than CLRS Theorem 31.38 (witnesses ≥ (n−1)/2).
+> target and is strictly stronger than CLRS Theorem 31.39 (witnesses ≥ (n−1)/2).
 
 ### ⚠️ Verified negative result (do NOT waste time on this)
 
