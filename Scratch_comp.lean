@@ -1,5 +1,6 @@
 import Mathlib.Computability.TuringMachine.Computable
 import Mathlib.Algebra.Polynomial.Eval.Defs
+import Mathlib.Tactic
 
 /-!
 # Scratch: prove `Turing.TM2ComputableInPolyTime.comp`
@@ -421,8 +422,266 @@ lemma step₂_sim (c₂ : Turing.TM2.Cfg (h2.tm).Γ (h2.tm).Λ (h2.tm).σ) :
         some (mapCfg₂ h1 h2 (Turing.TM2.stepAux ((h2.tm).m l₂) v S))
       exact congrArg some (stepAux_mapStmt₂ h1 h2 ((h2.tm).m l₂) v S)
 
+/-- `h1`'s step is non-`none` exactly on non-halted configurations. -/
+lemma step₁_ne_iff (c₁ : Turing.TM2.Cfg (h1.tm).Γ (h1.tm).Λ (h1.tm).σ) :
+    (h1.tm).step c₁ ≠ none ↔ c₁.l ≠ none := by
+  constructor
+  · intro h hcl
+    rcases c₁ with ⟨l, v, S⟩
+    cases l
+    · simp [Turing.TM2.step, hcl] at h
+      exact h rfl
+    · cases hcl
+  · intro hcl
+    rcases c₁ with ⟨l, v, S⟩
+    cases l
+    · exact (hcl rfl).elim
+    · simp [Turing.TM2.step]
+
+/-- `h2`'s step is non-`none` exactly on non-halted configurations. -/
+lemma step₂_ne_iff (c₂ : Turing.TM2.Cfg (h2.tm).Γ (h2.tm).Λ (h2.tm).σ) :
+    (h2.tm).step c₂ ≠ none ↔ c₂.l ≠ none := by
+  constructor
+  · intro h hcl
+    rcases c₂ with ⟨l, v, S⟩
+    cases l
+    · simp [Turing.TM2.step, hcl] at h
+      exact h rfl
+    · cases hcl
+  · intro hcl
+    rcases c₂ with ⟨l, v, S⟩
+    cases l
+    · exact (hcl rfl).elim
+    · simp [Turing.TM2.step]
+
+/-- The combined step simulates `h1` on every non-halted configuration. -/
+lemma stepC_sim₁ (c₁ : Turing.TM2.Cfg (h1.tm).Γ (h1.tm).Λ (h1.tm).σ) :
+    (h1.tm).step c₁ ≠ none →
+      (compMachine h1 h2).step (mapCfg₁ h1 h2 c₁) = Option.map (mapCfg₁ h1 h2) ((h1.tm).step c₁) :=
+  fun hc => step₁_sim h1 h2 c₁ ((step₁_ne_iff h1 c₁).1 hc)
+
+/-- The combined step simulates `h2` on every configuration. -/
+lemma stepC_sim₂ (c₂ : Turing.TM2.Cfg (h2.tm).Γ (h2.tm).Λ (h2.tm).σ) :
+    (h2.tm).step c₂ ≠ none →
+      (compMachine h1 h2).step (mapCfg₂ h1 h2 c₂) = Option.map (mapCfg₂ h1 h2) ((h2.tm).step c₂) :=
+  fun _ => step₂_sim h1 h2 c₂
+
+/-- Applying a bind step to `none` stays `none`. -/
+lemma iterate_bind_none {σ : Type} (f : σ → Option σ) :
+    ∀ n : ℕ, (flip bind f)^[n] none = none := by
+  intro n
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [Function.iterate_succ_apply]
+      change (flip bind f)^[n] (bind none f) = none
+      simpa using ih
+
+/-- Transport an iterated evaluation through a step simulation. -/
+lemma iterate_bind_lift {σ₁ σ₂ : Type} {f₁ : σ₁ → Option σ₁} {f₂ : σ₂ → Option σ₂}
+    {a₁ b₁ : σ₁} (tr : σ₁ → σ₂) (hb : f₁ b₁ = none)
+    (H : ∀ c₁, f₁ c₁ ≠ none → f₂ (tr c₁) = Option.map tr (f₁ c₁)) :
+    ∀ n : ℕ, (flip bind f₁)^[n] (some a₁) = some b₁ →
+      (flip bind f₂)^[n] (some (tr a₁)) = some (tr b₁) := by
+  intro n
+  induction n generalizing a₁ with
+  | zero =>
+      intro h
+      injection h with h₀
+      simpa [h₀]
+  | succ n ih =>
+      intro h
+      rw [Function.iterate_succ_apply] at h
+      change (flip bind f₁)^[n] (f₁ a₁) = some b₁ at h
+      cases hca : f₁ a₁ with
+      | none =>
+          rw [hca] at h
+          rw [iterate_bind_none f₁ n] at h
+          cases h
+      | some c₁ =>
+          rw [hca] at h
+          have hH : f₂ (tr a₁) = some (tr c₁) := by
+            rw [H a₁ (by rw [hca]; simp)]
+            rw [hca]
+            simp
+          change (flip bind f₂)^[n] (f₂ (tr a₁)) = some (tr b₁)
+          rw [hH]
+          exact ih (a₁ := c₁) h
+
+/-- Transport an `EvalsTo` through a step simulation. -/
+def evalsTo_lift {σ₁ σ₂ : Type} {f₁ : σ₁ → Option σ₁} {f₂ : σ₂ → Option σ₂}
+    {a₁ b₁ : σ₁} (tr : σ₁ → σ₂) (h : StateTransition.EvalsTo f₁ a₁ (some b₁))
+    (hb : f₁ b₁ = none)
+    (H : ∀ c₁, f₁ c₁ ≠ none → f₂ (tr c₁) = Option.map tr (f₁ c₁)) :
+    StateTransition.EvalsTo f₂ (tr a₁) (some (tr b₁)) :=
+  ⟨h.steps, iterate_bind_lift tr hb H h.steps h.evals_in_steps⟩
+
+/-- Transport an `EvalsToInTime` through a step simulation. -/
+def evalsToInTime_lift {σ₁ σ₂ : Type} {f₁ : σ₁ → Option σ₁} {f₂ : σ₂ → Option σ₂}
+    {a₁ b₁ : σ₁} {m : ℕ} (tr : σ₁ → σ₂)
+    (h : StateTransition.EvalsToInTime f₁ a₁ (some b₁) m)
+    (hb : f₁ b₁ = none)
+    (H : ∀ c₁, f₁ c₁ ≠ none → f₂ (tr c₁) = Option.map tr (f₁ c₁)) :
+    StateTransition.EvalsToInTime f₂ (tr a₁) (some (tr b₁)) m :=
+  { toEvalsTo := evalsTo_lift tr h.toEvalsTo hb H,
+    steps_le_m := by
+      change h.toEvalsTo.steps ≤ m
+      exact h.steps_le_m }
+
+/-- The number of `push` operations a statement can perform. -/
+def pushCount {K : Type} {Γ : K → Type} {Λ : Type} {σ : Type} : Turing.TM2.Stmt Γ Λ σ → ℕ
+  | Turing.TM2.Stmt.push _ _ q => 1 + pushCount q
+  | Turing.TM2.Stmt.peek _ _ q => pushCount q
+  | Turing.TM2.Stmt.pop _ _ q => pushCount q
+  | Turing.TM2.Stmt.load _ q => pushCount q
+  | Turing.TM2.Stmt.branch _ q₁ q₂ => max (pushCount q₁) (pushCount q₂)
+  | Turing.TM2.Stmt.goto _ => 0
+  | Turing.TM2.Stmt.halt => 0
+
+/-- Executing a statement grows any single stack by at most the number of
+pushes in that statement. -/
+lemma stepAux_stk_len_pushCount {K : Type} [DecidableEq K] {Γ : K → Type} {Λ : Type}
+    {σ : Type} (s : Turing.TM2.Stmt Γ Λ σ) :
+    ∀ (v : σ) (S : ∀ k : K, List (Γ k)) (k : K),
+      ((Turing.TM2.stepAux s v S).stk k).length ≤ (S k).length + pushCount s := by
+  induction s with
+  | push k' f q ih =>
+      intro v S k
+      rw [Turing.TM2.stepAux]
+      have h₁ := ih v (Function.update S k' (f v :: S k')) k
+      have h₂ : ((Function.update S k' (f v :: S k')) k).length ≤ (S k).length + 1 := by
+        by_cases hk : k = k'
+        · subst k'
+          simp [Function.update]
+        · simp [Function.update, hk]
+      have hpc : pushCount (Turing.TM2.Stmt.push k' f q) = 1 + pushCount q := by
+        simp [pushCount]
+      nlinarith [h₁, h₂, hpc]
+  | peek k' f q ih =>
+      intro v S k
+      rw [Turing.TM2.stepAux]
+      exact ih (f v (S k').head?) S k
+  | pop k' f q ih =>
+      intro v S k
+      rw [Turing.TM2.stepAux]
+      have h₁ := ih (f v (S k').head?) (Function.update S k' (S k').tail) k
+      have h₂ : ((Function.update S k' (S k').tail) k).length ≤ (S k).length := by
+        by_cases hk : k = k'
+        · subst k'
+          simp [Function.update]
+        · simp [Function.update, hk]
+      have hpc : pushCount (Turing.TM2.Stmt.pop k' f q) = pushCount q := by
+        simp [pushCount]
+      nlinarith [h₁, h₂, hpc]
+  | load f q ih =>
+      intro v S k
+      rw [Turing.TM2.stepAux]
+      exact ih (f v) S k
+  | branch f q₁ q₂ ih₁ ih₂ =>
+      intro v S k
+      rw [Turing.TM2.stepAux]
+      by_cases h : f v
+      · have h₁ := ih₁ v S k
+        have hpc : pushCount (Turing.TM2.Stmt.branch f q₁ q₂) = max (pushCount q₁) (pushCount q₂) := by
+          simp [pushCount]
+        simp [h]
+        nlinarith [h₁, hpc, Nat.le_max_left (pushCount q₁) (pushCount q₂)]
+      · have h₂ := ih₂ v S k
+        have hpc : pushCount (Turing.TM2.Stmt.branch f q₁ q₂) = max (pushCount q₁) (pushCount q₂) := by
+          simp [pushCount]
+        simp [h]
+        nlinarith [h₂, hpc, Nat.le_max_right (pushCount q₁) (pushCount q₂)]
+  | goto f =>
+      intro v S k
+      simp [Turing.TM2.stepAux]
+  | halt =>
+      intro v S k
+      simp [Turing.TM2.stepAux]
+
+/-- The maximum number of pushes in any of `h1`'s statements. -/
+def maxPushCount₁ : ℕ := by
+  letI : Fintype (h1.tm).Λ := h1.tm.ΛFin
+  exact @Finset.sup ℕ (h1.tm).Λ (inferInstance : SemilatticeSup ℕ) (inferInstance : OrderBot ℕ)
+    Finset.univ (fun l : (h1.tm).Λ => pushCount ((h1.tm).m l))
+
+lemma pushCount₁_le (l : (h1.tm).Λ) : pushCount ((h1.tm).m l) ≤ maxPushCount₁ h1 := by
+  letI : Fintype (h1.tm).Λ := h1.tm.ΛFin
+  exact @Finset.le_sup ℕ (h1.tm).Λ (inferInstance : SemilatticeSup ℕ) (inferInstance : OrderBot ℕ)
+    Finset.univ (fun l : (h1.tm).Λ => pushCount ((h1.tm).m l)) l (Finset.mem_univ l)
+
+/-- Along any run, a stack that grows by at most `M` per step is bounded by
+its initial length plus `M` times the number of steps. -/
+lemma evalsTo_stk_len_le {tm : FinTM2} {c₀ : tm.Cfg} (k : tm.K) (M : ℕ)
+    (hstep : ∀ c d : tm.Cfg, tm.step c = some d → (d.stk k).length ≤ (c.stk k).length + M)
+    {b : tm.Cfg} (h : StateTransition.EvalsTo tm.step c₀ (some b)) :
+    (b.stk k).length ≤ (c₀.stk k).length + M * h.steps := by
+  -- Prove by induction on the iterated run.
+  have hmain : ∀ (c₀ : tm.Cfg) (n : ℕ), (flip bind tm.step)^[n] (some c₀) = some b →
+      (b.stk k).length ≤ (c₀.stk k).length + M * n := by
+    intro c₀ n
+    revert c₀
+    induction n with
+    | zero =>
+        intro c₀ hb
+        injection hb with h₀
+        subst b
+        simp
+    | succ n ih =>
+        intro c₀ hb
+        rw [Function.iterate_succ_apply] at hb
+        change (flip bind tm.step)^[n] (tm.step c₀) = some b at hb
+        cases hc : tm.step c₀ with
+        | none =>
+            rw [hc] at hb
+            rw [iterate_bind_none tm.step n] at hb
+            cases hb
+        | some d =>
+            rw [hc] at hb
+            have h₁ := ih d hb
+            have h₂ := hstep c₀ d hc
+            rw [Nat.mul_succ]
+            omega
+  exact hmain c₀ h.steps h.evals_in_steps
+
+/-- Along `h1`'s run, its output stack is bounded by the input length plus a
+constant multiple of the step count. -/
+lemma evalsTo_out_len_le (a : α) :
+    (List.map h1.outputAlphabet.invFun (eβ (f a))).length ≤
+      (eα a).length + maxPushCount₁ h1 * (h1.outputsFun a).toEvalsTo.steps := by
+  have hstep : ∀ c d : (h1.tm).Cfg, (h1.tm).step c = some d →
+      (d.stk (h1.tm).k₁).length ≤ (c.stk (h1.tm).k₁).length + maxPushCount₁ h1 := by
+    intro c d hcd
+    rcases c with ⟨l, v, S⟩
+    cases l with
+    | none =>
+        simp [Turing.TM2.step] at hcd
+    | some l₀ =>
+        change some (Turing.TM2.stepAux ((h1.tm).m l₀) v S) = some d at hcd
+        injection hcd with hd
+        subst d
+        have hlen := stepAux_stk_len_pushCount ((h1.tm).m l₀) v S (h1.tm).k₁
+        have hle := pushCount₁_le h1 l₀
+        simp
+        omega
+  have hrun := evalsTo_stk_len_le (tm := (h1.tm)) (k := (h1.tm).k₁) (M := maxPushCount₁ h1)
+      hstep (h1.outputsFun a).toEvalsTo
+  -- hrun : (haltList tm₁ out₁).stk k₁₁ .length ≤ (initList tm₁ in₁).stk k₁₁ .length + M * steps
+  have hinit : ((initList (h1.tm) (List.map h1.inputAlphabet.invFun (eα a))).stk (h1.tm).k₁).length
+      ≤ (eα a).length := by
+    by_cases h : (h1.tm).k₁ = (h1.tm).k₀
+    · rw [h]
+      simp [initList]
+    · simp [initList, h]
+  -- out₁.length = (haltList out₁).stk k₁₁ .length
+  have hout : (List.map h1.outputAlphabet.invFun (eβ (f a))).length =
+      ((haltList (h1.tm) (List.map h1.outputAlphabet.invFun (eβ (f a)))).stk (h1.tm).k₁).length := by
+    simp [haltList]
+  rw [hout]
+  omega
+
 /-- Phase 2's time bound, as a function of phase 1's input length. -/
-def compTime : Polynomial ℕ := h1.time + (h2.time.comp (Polynomial.X + h1.time))
+def compTime : Polynomial ℕ :=
+  h1.time + (h2.time.comp (Polynomial.X + (maxPushCount₁ h1 : Polynomial ℕ) * h1.time))
 
 end ScratchComp
 
