@@ -125,9 +125,12 @@ For each chapter, run this loop in order:
      `rg -n '\b(sorry|admit|axiom)\b' CLRSLean/Chapter_NN -g '*.lean'`.
    - Run `git diff --check`.
    - Run `lake build`.
-   - For site-visible changes, run `lake build :literateHtml`.
-   - If static HTML size matters, run `scripts/optimize_literate_html.py` on a
-     temporary copy and inspect large pages.
+   - Keep `literate.toml`, module documentation, and source navigation metadata
+     consistent; run the repository and site-configuration checks.
+   - Chapter proof work does not include generating, preparing, optimizing,
+     inspecting, or deploying the website.  Run `lake build :literateHtml` and
+     rendering/live-site checks only when the user explicitly requests a
+     publishing, release, or website task.
    - Record warnings as warnings; do not call a chapter complete because a
      different command passed.
 
@@ -404,6 +407,11 @@ end CLRS
   recurrence theorem is not an algorithm runtime until an executable value is
   connected to that cost, and worst-case `Theta` claims need both a universal
   upper bound and an explicit lower-witness family.
+- Chapter 30 FFT closure pass: an algorithmic cost theorem should read counters
+  from the same execution record whose value is proved correct, rather than a
+  detached closed-form recurrence. Likewise, circuit evaluation, gate count,
+  and depth should recurse over the same stored circuit syntax; descriptive
+  metadata is not a verified circuit bound.
 
 ## Honesty Rules
 

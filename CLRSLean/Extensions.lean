@@ -17,11 +17,14 @@ goes further.  A module is only registered in {lit}`literate.toml` (and
 therefore rendered in the site sidebar) once it is kernel-clean; prototypes
 stay unregistered while their theorem interfaces settle.
 
-Planned extensions:
+Implemented extension:
 
 - **Randomized treap**: an executable randomized binary search tree with
   membership correctness and an expected {lit}`O(log n)` height bound,
   exercising the finite-expectation layer on a new object.
+
+Further candidates:
+
 - **Splay tree**: amortized analysis via the potential method of Chapter 17.
 - **Persistent dynamic sets**: CLRS Problem 13-1, versioned red-black trees
   with path copying.
@@ -29,7 +32,13 @@ Planned extensions:
   longest-common-subsequence dynamic program.
 
 Status: no extension has been promoted to the textbook ledger.  The randomized
-treap prototype has kernel-checked executable correctness and expected-depth
-analysis; {lit}`CLRSLean/Extensions/TreapHeight.lean` contains the next
-expected-height proof layer, whose final bound remains future work.
+treap extension has kernel-checked executable correctness, expected-depth
+analysis, and the final explicit bound {lit}`E[height] ≤ 30 · H_n` in
+{lit}`CLRSLean/Extensions/TreapHeight.lean`.
+
+## Implementation details
+
+- [Randomized treap](CLRSLean/Extensions/RandomizedTreap/)
+- [Expected-height analysis](CLRSLean/Extensions/TreapHeight/)
+- [Finite random-priority model](CLRSLean/Extensions/TreapRandom/)
 -/

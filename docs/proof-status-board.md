@@ -1,72 +1,70 @@
 # Proof Status Board
 
-This board is the compact planning view for CLRS-Lean.  Chapter counts and
-status labels come from [`clrs-proof-progress.csv`](clrs-proof-progress.csv).
-The detailed theorem ledger is [`proof-map.md`](proof-map.md).  This page owns
-priorities, not theorem-by-theorem duplication.
+This board is the compact planning view for CLRS-Lean's fourth-edition
+migration. Chapter status and counts come from
+[`clrs-proof-progress.csv`](clrs-proof-progress.csv); section coverage comes
+from [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv); theorem-level
+evidence lives in [`proof-map.md`](proof-map.md). This page owns priorities,
+not a duplicate completion ledger.
 
-Last repository-wide status reconciliation: 2026-08-05.
+Last evidence reconciliation: 2026-08-06.
 
-## Complete For The Current Scope
+## How To Read The Board
 
-| Scope | Completed boundary | Refinements that do not reopen it |
-| --- | --- | --- |
-| Chapter 2 | Insertion sort, merge sort, and represented cost/recurrence results | Full RAM semantics and arbitrary-size merge-sort recurrence |
-| Chapter 3 | Asymptotic wrappers, the standard-function comparison hierarchy, Fibonacci growth, and the iterated logarithm | Exercises and alternative asymptotic packaging |
-| Chapter 4 | Maximum-subarray correctness and execution-attached abstract runtime `Θ(n log n)`, recursive Strassen correctness/runtime, and textbook-facing Master cases 1–3 | Explicit split-tree construction, integer operations, `List` allocation/copying, and RAM semantics |
-| Chapter 5 represented sections | Hiring, indicators, random permutations, birthday collisions, balls-and-bins occupancy, the longest-streak tail bound, and an executable on-line hiring strategy | Expected-longest-streak and on-line hiring asymptotics remain chapter-end Problems |
-| Chapter 6 | Heap predicate, heapify, build-heap, heapsort, represented priority-queue correctness, and costed executions with connected coarse `O(n)`, `O(n²)`, and `O(n²)` envelopes | Tight textbook bounds and List/RAM accounting |
-| Chapter 7 represented sections | Functional/mutable-array quicksort correctness, comparison recurrences, pairwise comparison probability, `sum_compared_prob_eq_expectedComparisons`, and the `Θ(n log n)` bridge | Lower-level mutable-array execution costs and RAM accounting |
-| Chapter 8 correctness | Represented counting-sort correctness with a mutable output-array (`Array`) refinement and linear `O(n + k)` work bound, radix-sort and bucket-sort correctness, the bucket-sort second moment, and the true linear expected CLRS unit-cost theorem (`expectedTextbookBucketSortCost_isBigO`) | Optional executable bucket-builder and execution-cost refinements |
-| Chapter 9 | Pairwise extrema, rank-correct selection, schedule-driven RANDOMIZED-SELECT with nested conditional-uniform expectation and `E[C] ≤ 4*c*n`, and recursive median-of-medians SELECT with complete comparison cost `≤ 100n` | Random-number generator implementation, List primitives, allocation, and RAM accounting |
-| Chapter 10 represented sections | Functional stacks, queues, linked lists, and the rooted-tree left-child/right-sibling isomorphism | Pointer memory and allocation |
-| Chapter 11 correctness | Direct address, chaining with SUHA true expectations, universal hashing, open addressing, and perfect hashing | Probe-machine/RAM operational semantics |
-| Chapter 12 correctness | Functional BSTs, zipper navigation/transplant, and represented pointer-heap transplant/insert refinements | In-place pointer delete and RAM accounting |
-| Chapter 13 correctness | Executable red-black insertion and deletion with exact membership correctness, red-black shape preservation (`redBlackShape_insert`, `redBlackShape_delete` via the `baldL`/`baldR`/`splitMin`/`join` rebalancing pipeline), and the logarithmic-height theorem (CLRS Lemma 13.1) | Pointer-level mutation and RAM cost semantics |
-| Chapter 14 correctness | Order-statistic tree operations with `wellSized_insert`/`wellSized_delete`, interval-tree search with `maxHighAug`, general augmentation theorem (CLRS Theorem 14.1), and generic `AugmentedRBTree` executable insertion and deletion (`wellAugmented_insert`, `wellAugmented_delete`) for any augmentation | Generic `AugmentedRBTree.toRB_delete` erasure refinement; pointer-level mutation and RAM cost semantics |
-| Chapter 15 represented sections | Rod cutting, matrix chain, LCS, and optimal BST optimality with executable recurrence/reconstruction layers | Additional mutable-array/RAM refinements |
-| Chapter 16 | Activity selection, greedy meta-theorems, Huffman coding, matroid greedy, and task scheduling | Exercises |
-| Chapter 17 selected sections | Aggregate/accounting/potential methods, stack/counter traces, and dynamic-table amortized analysis | General allocator/RAM semantics and broader interleaved operation-trace packaging |
-| Chapter 18 correctness | B-tree search, real top-level insertion with full-root splitting, exact executable deletion, structural minimum-key bounds with an explicit legal-empty-root branch, and the logarithmic-height theorem for `2 ≤ t` | Disk pages, pointer mutation, I/O counts, and RAM costs |
-| Chapter 19 correctness and amortized analysis | Persistent executable Fibonacci heaps with exact duplicate-preserving key bags, `LINK`/`CONSOLIDATE`, extract-min, arbitrary-node cascading cuts, decrease-key/delete, and operation- plus trace-level amortized bounds | Mutable circular-list allocation and RAM/pointer latency |
-| Chapter 20 correctness | All seven operations of the recursive cached-min/max vEB model and control-flow-aware `O(log log u)` bounds | Concrete allocation and hardware-level RAM timing |
-| Chapter 21 | Partition semantics, weighted linked-list analysis, executable Batteries union-find, reachable rank mass, and `O((m+n) alpha(n))` amortization | Lower-level RAM constants and mutable-array refinement |
-| Chapter 22 correctness | BFS shortest paths/predecessor tree, DFS theory, Kahn and DFS topological sorts, Kosaraju SCC partition | Work counts, `O(V + E)`, and imperative/RAM refinement |
-| Chapter 23 correctness and functional implementation | Cut property, unique tree paths, automatic exchange, sorted and stateful Kruskal, concrete indexed-queue Prim, and explicit algorithm-level work bounds | `Batteries.BinaryHeap` array refinement and mutable/RAM write accounting |
-| Chapter 24 selected sections | Bellman-Ford, DAG shortest paths, Dijkstra's greedy theorem, the executable invariant-preserving loop, `dijkstraLoop_correct`, and difference constraints | Per-edge relaxation ordering and mutable/RAM cost refinement |
-| Chapter 25 correctness | FASTER-APSP, Floyd-Warshall shortest distances, predecessor reconstruction with walk and weight guarantees, negative-cycle detection, transitive closure, and Johnson's end-to-end correctness theorem | A tighter explicit repeated-squaring work/RAM refinement |
-| Chapter 26 | Max-Flow Min-Cut, executable residual BFS and Edmonds-Karp, the `O(VE²)` augmentation bound, and maximum bipartite matching through Theorem 26.12 | Sections 26.4 and 26.5 are deferred outside the current selected milestone |
-| Chapter 27 | Pure-functional main text through Section 27.3: total greedy scheduling, logarithmic parallel loops, executable P-ADD/P-MATMUL, and executable P-MERGE/P-MERGE-SORT with correctness, execution costs, and matching worst-case span witnesses | Mutable-array/RAM realization, exercises, and chapter-end problems; parallel Strassen remains a separate compatibility extension |
-| Chapter 28 | LUP decomposition (Theorem 28.1), LUP-SOLVE correctness, forward/backward substitution (Lemmas 28.1-28.2), matrix inversion (Theorem 28.2), Cholesky decomposition (Theorem 28.3) with uniqueness, and least-squares approximation (Theorem 28.4) | Executable LUP factorization from `A`; RAM cost semantics |
-| Chapter 29 | Sections 29.1--29.5: standard/slack equivalence; four textbook LP formulations; exact PIVOT, Bland anti-cycling, and terminating SIMPLEX; weak/strong duality and complementary slackness; phase-I initialization and the certified three-way solver | Mutable tableau storage, floating-point numerical analysis, RAM constants, exercises, and chapter-end problems |
-| Chapter 32.1 | String-model facts plus soundness and completeness of the naive matcher | Sections 32.2--32.4 |
+- `proved / tracked` measures only the selected proof inventory.
+- `partial` means the fourth-edition map names at least one unresolved central
+  section obligation, even when every selected theorem is proved.
+- One edition-gap unit is one unresolved section in a represented chapter. A
+  wholly unrepresented chapter contributes one aggregate whole-chapter unit.
+- Compatibility facades preserve third-edition imports; they are migration
+  evidence, not a second chapter-numbering scheme.
 
-Chapter 9 and Chapters 21-23 are formally sealed by their interface tests and
-dated closure audits.  Their listed implementation refinements are new layers,
-not missing core theorem groups.
+The generated [`CLRSLean/Progress.lean`](../CLRSLean/Progress.lean) dashboard
+owns the live totals and status counts.
 
-## Structured But Partial
+## Highest-Priority Fourth-Edition Work
 
-| Chapter | Strongest current layer | Central remaining group |
-| --- | --- | --- |
-| 33 | Section 33.1 point/vector and line-segment definitions, six cross-product algebra theorems, and `orientation_spec` | Prove `segmentIntersect` soundness and completeness against an independent geometric-intersection specification, including shared-endpoint cases |
+| Priority | Fourth-edition scope | Current boundary | Next acceptance target |
+| --- | --- | --- | --- |
+| P0 | Chapter 25, Matchings in Bipartite Graphs | No canonical theorem-bearing source | Define the chapter inventory and formalize a native matching interface rather than treating max-flow matching as chapter coverage |
+| P0 | Chapter 27, Online Algorithms | No canonical theorem-bearing source | Define the online model and select the first textbook algorithm/theorem boundary |
+| P0 | Chapter 33, Machine-Learning Algorithms | No canonical theorem-bearing source | Define the chapter inventory and a first mathematically auditable learning-algorithm boundary |
+| P0 | Chapters 34–35, NP-Completeness and Approximation Algorithms | Guide-only | Establish theorem inventories and native fourth-edition modules |
+| P1 | Chapter 14, Dynamic Programming | Worked recurrences and optimality results exist, but all five sections remain partial | Add tabulated/memoized algorithm interfaces, reconstruction contracts, and stated costs; include a generic §14.3 interface |
+| P1 | Chapter 13, Red-Black Trees | Functional shape and membership results exist | Combine red-black shape with BST/inorder preservation and textbook update/cost refinements for §§13.2–13.4 |
+| P1 | Chapter 17, Augmenting Data Structures | Order-statistic, generic augmentation, and interval components exist in separate layers | Prove OS-RANK and logarithmic costs, the augmentation update bound, and a dynamic interval-tree bridge |
+| P1 | Chapter 29, Linear Programming | Selected formulation and duality groups are proved | Add general-form normalization, finite `StandardLP` encoding bridges, and canonical declaration ownership |
+| P1 | Chapter 32, String Matching | §32.1 and the naive matcher are represented | Formalize Rabin–Karp, finite automata, KMP, and suffix arrays (§§32.2–32.5) |
+| P2 | Chapter 3, Characterizing Running Times | §§3.1 and 3.3 are represented; §3.2 has most asymptotic infrastructure | Add a shared-threshold two-sided Θ witness and the expected o/ω algebra/duality wrappers |
 
-## Not Represented On Main
+## Other Named Coverage Gaps
 
-- Chapters 30--31 and 34--35.
+| Chapter | Remaining fourth-edition boundary |
+| --- | --- |
+| 4, Divide-and-Conquer | §§4.1 and 4.6 are partial; §4.7 Akra–Bazzi is not started |
+| 7, Quicksort | §7.4 analysis remains partial |
+| 10, Elementary Data Structures | §10.1 remains partial |
+| 11, Hash Tables | §11.5 practical considerations is not started; perfect hashing remains online material |
+| 15, Greedy Algorithms | §15.4 offline caching is not started; moved matroid/task-scheduling material remains online |
 
-Open branches and pull requests are intentionally excluded until they are
-reviewed, merged, registered in `literate.toml`, and added to the progress CSV.
+## Stable Represented Scope
 
-## High-Difficulty Queue
+All other represented chapters retain the more precise
+`main-proof-complete`, `main-proof-complete-for-correctness`,
+`selected-section-complete`, or `expository` status recorded in the progress
+ledger. These labels seal only the advertised Lean model and represented
+fourth-edition sections. Optional pointer mutation, mutable-array refinement,
+RAM/cache accounting, numerical error, exercises, and chapter-end problems do
+not silently become coverage requirements.
 
-| Scope | Why it is difficult | Recommended boundary |
-| --- | --- | --- |
-| Generic augmentation erasure refinement | `wellAugmented_delete` already preserves an arbitrary augmentation through the complete deletion pipeline; the remaining proof must show that erasing cached fields commutes with those deletion steps | Reuse Chapter 14.1's `OSRBTree.toRB_*` deletion lemmas to prove the generic `AugmentedRBTree.toRB_delete` bridge |
-| Imperative/RAM semantics | Introduces a new state and cost layer across many chapters | Treat it as an explicit refinement project, not an implicit condition on mathematical correctness |
+Moved and third-edition-only developments remain available through
+[`clrs-online-material.csv`](clrs-online-material.csv). Canonical and online
+inventories are disjoint; compatibility imports do not duplicate their counts.
 
 ## Scheduling Rule
 
-Prefer a central missing theorem over additional helper lemmas in a sealed or
-already mature chapter.  Any task should state its intended model, theorem
-boundary, and verification target before implementation begins.
+Prefer closing a named edition-map obligation over adding helper lemmas to an
+already sealed model. Every implementation task should state its fourth-edition
+section, abstraction level, public theorem boundary, and focused verification
+target before proof work begins. Update the map and progress ledger in the same
+commit that changes the advertised boundary.

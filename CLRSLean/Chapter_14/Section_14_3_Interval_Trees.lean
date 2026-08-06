@@ -46,18 +46,14 @@ Main results:
   ({lit}`AugmentedRBTree.sizeAug_wellAugmented_insert`,
   {lit}`AugmentedRBTree.maxHighAug_wellAugmented_insert`).
 
-Status: {lit}`proved` for the interval-tree augmentation framework, the general
-augmentation theorem, the red-black rotation bridge, and the general executable
-augmentation interface (an arbitrary augmentation threaded through an executable
-red-black insertion **and** deletion, refining Chapter 13's {lit}`RBTree.insert`
-and {lit}`RBTree.delete`).
-
-Deferred refinements: monoid-based augmentation.  The stored-augmentation-field
-refinement through executable {lit}`RBTree.insert` ({lit}`toRB_insert`), the
-generic deletion pipeline preserving {lit}`WellAugmented`
-({lit}`wellAugmented_delete`), and the deletion refinement erasure
-({lit}`toRB_delete` with the {lit}`baldL`/{lit}`baldR`/{lit}`splitMin`/
-{lit}`join`/{lit}`del` commutations) are now proved.
+Status: the static interval-search specification, generic local augmentation
+invariant, and arbitrary cached-field insertion/deletion pipeline are proved.
+The complete fourth-edition interval-tree and augmentation interfaces remain
+partial.  Missing bridges include the constant-time-combine asymptotic theorem,
+combined BST/red-black/augmentation preservation, and interval-specific update
+semantics connecting {lit}`AugmentedRBTree` to the separate static
+{lit}`IntervalTree` search model.  The current low-endpoint-only comparator also
+needs an equal-low policy before arbitrary intervals can be inserted distinctly.
 -/
 
 namespace CLRS

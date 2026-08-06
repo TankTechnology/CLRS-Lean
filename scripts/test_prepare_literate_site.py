@@ -70,8 +70,8 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             stylesheet = root / "clrs-literate.css"
             stylesheet.write_text("body { color: black; }\n", encoding="utf-8")
 
-            parent = "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select"
-            child = f"{parent}.Randomized_Select"
+            parent = "CLRSLean.FourthEdition.Chapter_09"
+            child = "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select"
             child_href = child.replace(".", "/") + "/"
             write_module(
                 source,
@@ -79,9 +79,7 @@ class PrepareLiterateSiteTests(unittest.TestCase):
                 f"""<!doctype html>
 <html><head><title>9.3</title></head><body>
 <nav class="module-tree">
-  <details><summary><a href="CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/" title="{parent}">9.3</a></summary>
-    <div class="leaf"><a href="{child_href}" title="{child}">Randomized SELECT</a></div>
-  </details>
+  <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_09/" title="{parent}">Chapter 9</a></div>
 </nav>
 <main><a href="{child_href}">Shared support page</a></main>
 </body></html>
@@ -115,8 +113,7 @@ class PrepareLiterateSiteTests(unittest.TestCase):
         self.assertNotIn(f'title="{child}"', parent_html)
         self.assertIn("clrs-nav-state-script", parent_html)
         self.assertIn(
-            "https://example.test/CLRS-Lean/CLRSLean/Chapter_09/"
-            "Section_09_3_Deterministic_Select/",
+            "https://example.test/CLRS-Lean/CLRSLean/FourthEdition/Chapter_09/",
             sitemap,
         )
         self.assertIn("<lastmod>2026-07-15</lastmod>", sitemap)
