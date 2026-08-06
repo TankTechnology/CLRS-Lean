@@ -13,7 +13,9 @@ cases as small reusable certificates.
 
 ## Sections
 
-* 13.1 Red-black trees: insertion complete, deletion membership proved.
+* The single legacy source spans fourth-edition §§13.1--13.4.  The color and
+  black-height layer, logarithmic-height theorem, and functional insertion and
+  deletion key-set/shape layers are proved.
   Main results: {lit}`CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`,
   {lit}`CLRS.Chapter13.RBTree.inTree_rotateRight_iff`,
   {lit}`CLRS.Chapter13.RBTree.inTree_repaintRoot_iff`,
@@ -51,14 +53,17 @@ cases as small reusable certificates.
   {lit}`CLRS.Chapter13.RBTree.inTree_delete_forward`,
   {lit}`CLRS.Chapter13.RBTree.inTree_delete_backward`,
   {lit}`CLRS.Chapter13.RBTree.inTree_del_iff`,
-  and {lit}`CLRS.Chapter13.RBTree.inTree_delete_iff`.
+  {lit}`CLRS.Chapter13.RBTree.inTree_delete_iff`, and
+  {lit}`CLRS.Chapter13.RBTree.redBlackShape_delete`.
 
 ## Current Gaps
 
-Shape (no-red-red and balanced-black-height) preservation through
-{lit}`delete` is not yet proved.  The local
-{lit}`RB-DELETE-FIXUP` case certificates are proved, but the fully-composed
-loop's shape invariant remains future work.
+The composed functional {lit}`delete` now preserves the color/black-height
+{lit}`RedBlackShape`, but that predicate intentionally does not include the
+separate {lit}`BST` ordering invariant.  BST/inorder preservation for rotations,
+insertion, and deletion remains central work, as do refinement bridges from the
+textbook pointer-based fixup loops to the functional algorithms and their
+logarithmic execution-cost theorems.
 -/
 
 namespace CLRS

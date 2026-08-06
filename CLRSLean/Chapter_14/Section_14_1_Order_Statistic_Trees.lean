@@ -91,7 +91,11 @@ size invariant survives deletion (CLRS 14.1 maintained through {lit}`RB-DELETE`)
 
 Current gaps:
 
-* Interval trees and the general augmentation theorem remain future targets.
+* OS-RANK is not yet represented.
+* The current transfer theorems keep size fields, color/black-height shape, and
+  key membership separately; they do not yet prove one combined BST/red-black/
+  size invariant through insertion and deletion.
+* Query and update costs are not yet connected to the logarithmic height bound.
 -/
 
 namespace CLRS

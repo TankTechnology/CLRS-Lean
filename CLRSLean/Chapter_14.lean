@@ -17,7 +17,8 @@ rank selector.
 
 ## Sections
 
-* 14.1 Order-statistic trees: {lit}`partial`.
+* 14.1 Order-statistic trees: {lit}`partial` at the complete fourth-edition
+  dynamic-order-statistics interface.
   Main results: {lit}`CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.recomputeSizes_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.keys_recomputeSizes`, and
@@ -48,8 +49,8 @@ rank selector.
   {lit}`CLRS.Chapter14.OSRBTree.toRB_insert`,
   {lit}`CLRS.Chapter14.OSRBTree.redBlackShape_toRB_insert`, and
   {lit}`CLRS.Chapter14.OSRBTree.mem_keys_insert`.
-* 14.3 Interval trees: {lit}`proved` for the functional well-augmented BST
-  model.
+* 14.3 Interval trees: {lit}`partial` at the complete fourth-edition interface;
+  the static functional well-augmented BST search model is proved.
   Main results: {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`,
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`, and
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_spec`.
@@ -68,21 +69,15 @@ rank selector.
 
 ## Current Gaps
 
-The current model proves the augmentation invariant and rank-selection
-correctness for a functional tree, including size-preserving local rotations,
-and interval-search correctness for well-augmented BSTs.  The size augmentation
-is threaded through an executable red-black insertion via the size-specific
-{lit}`OSRBTree`, and the general augmentation interface now threads an
-*arbitrary* augmentation through an executable red-black insertion **and**
-deletion on the generic {lit}`AugmentedRBTree`:
-{lit}`AugmentedRBTree.wellAugmented_insert` and
-{lit}`AugmentedRBTree.wellAugmented_delete` show the invariant survives both
-balancing and deletion for any augmentation, and
-{lit}`AugmentedRBTree.toRB_insert` / {lit}`AugmentedRBTree.toRB_delete` show
-the augmentation-erasing projection refines the executable Chapter 13
-{lit}`RBTree.insert` / {lit}`RBTree.delete`; the size and interval fields are
-recovered as instances.  The only deferred refinement is the optional
-monoid-based augmentation.
+The current model proves size-field preservation, OS-SELECT's agreement with an
+inorder selector, the local generic augmentation invariant, and static
+interval-search correctness.  It also threads arbitrary cached fields through
+functional red-black insertion and deletion.  The full fourth-edition boundary
+still lacks OS-RANK; combined BST/red-black/augmentation preservation; the
+constant-time-combine-to-logarithmic-operation cost theorem; and a bridge
+connecting interval-specific updates on the dynamic augmented red-black type to
+the static interval-search model.  The interval comparison also needs a policy
+for equal low endpoints before it represents arbitrary interval sets.
 -/
 
 namespace CLRS

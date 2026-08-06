@@ -14,6 +14,12 @@ MODULE_TREE = """<nav class="module-tree">
   <details open><summary><a href="CLRSLean/ProofPatterns/" title="CLRSLean.ProofPatterns">Patterns</a></summary>
     <div class="leaf"><a href="CLRSLean/ProofPatterns/Boundary/" title="CLRSLean.ProofPatterns.Boundary">Boundary</a></div>
   </details>
+  <details open><summary><a href="CLRSLean/FourthEdition/" title="CLRSLean.FourthEdition">Fourth Edition</a></summary>
+    <details open><summary class="current"><a href="CLRSLean/FourthEdition/Chapter_22/" title="CLRSLean.FourthEdition.Chapter_22">Chapter 22</a></summary>
+      <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_22/Helper/" title="CLRSLean.FourthEdition.Chapter_22.Helper">Helper</a></div>
+    </details>
+    <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_23/" title="CLRSLean.FourthEdition.Chapter_23">Chapter 23</a></div>
+  </details>
   <details open><summary><a href="CLRSLean/Chapter_22/" title="CLRSLean.Chapter_22">Chapter 22</a></summary>
     <details open><summary class="current"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/" title="CLRSLean.Chapter_22.Section_22_3_DFS">22.3</a></summary>
       <div class="leaf"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath/" title="CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath">White Path</a></div>
@@ -24,29 +30,32 @@ MODULE_TREE = """<nav class="module-tree">
 
 
 class ReaderSidebarModuleTests(unittest.TestCase):
-    def test_keeps_root_and_top_level_pages(self) -> None:
+    def test_keeps_root_fourth_edition_tree_and_support_pages(self) -> None:
         self.assertTrue(is_reader_sidebar_module("CLRSLean"))
+        self.assertTrue(is_reader_sidebar_module("CLRSLean.FourthEdition"))
+        self.assertTrue(
+            is_reader_sidebar_module("CLRSLean.FourthEdition.Chapter_22")
+        )
+        self.assertTrue(is_reader_sidebar_module("CLRSLean.OnlineMaterial"))
         self.assertTrue(is_reader_sidebar_module("CLRSLean.ProofPatterns"))
-        self.assertTrue(is_reader_sidebar_module("CLRSLean.Chapter_22"))
         self.assertTrue(is_reader_sidebar_module("CLRSLean.Progress"))
 
-    def test_keeps_direct_chapter_sections(self) -> None:
-        self.assertTrue(
-            is_reader_sidebar_module("CLRSLean.Chapter_22.Section_22_3_DFS")
-        )
-
-    def test_hides_nonchapter_children_and_section_descendants(self) -> None:
+    def test_hides_legacy_chapter_tree_and_deep_helpers(self) -> None:
         hidden = [
+            "CLRSLean.Chapter_22",
+            "CLRSLean.Chapter_22.Section_22_3_DFS",
             "CLRSLean.ProofPatterns.Boundary",
             "CLRSLean.Probability.FiniteExpectation",
             "CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath",
             "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim",
+            "CLRSLean.FourthEdition.Chapter_22.Helper",
         ]
         self.assertTrue(all(not is_reader_sidebar_module(name) for name in hidden))
 
     def test_rejects_unrelated_or_malformed_names(self) -> None:
         self.assertFalse(is_reader_sidebar_module("Other.Root"))
         self.assertFalse(is_reader_sidebar_module("CLRSLean.Chapter_22.Helper"))
+        self.assertFalse(is_reader_sidebar_module("CLRSLean.NotAReaderPage"))
 
 
 class ReaderSidebarRewriteTests(unittest.TestCase):
@@ -57,29 +66,34 @@ class ReaderSidebarRewriteTests(unittest.TestCase):
             result.removed_modules,
             (
                 "CLRSLean.ProofPatterns.Boundary",
-                "CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath",
+                "CLRSLean.FourthEdition.Chapter_22.Helper",
+                "CLRSLean.Chapter_22",
             ),
         )
         self.assertEqual(
             result.flattened_modules,
             (
                 "CLRSLean.ProofPatterns",
-                "CLRSLean.Chapter_22.Section_22_3_DFS",
+                "CLRSLean.FourthEdition.Chapter_22",
             ),
         )
         self.assertNotIn("Boundary", result.html)
+        self.assertNotIn("Helper", result.html)
         self.assertNotIn("White Path", result.html)
         self.assertIn(
             '<div class="leaf"><a href="CLRSLean/ProofPatterns/"', result.html
         )
         self.assertIn(
-            '<div class="leaf current"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/"',
+            '<div class="leaf current"><a href="CLRSLean/FourthEdition/Chapter_22/"',
             result.html,
         )
         self.assertIn(
-            '<details open><summary><a href="CLRSLean/Chapter_22/"', result.html
+            '<details open><summary><a href="CLRSLean/FourthEdition/"', result.html
         )
-        self.assertLess(result.html.index(">22.3</a>"), result.html.index(">22.4</a>"))
+        self.assertLess(
+            result.html.index(">Chapter 22</a>"),
+            result.html.index(">Chapter 23</a>"),
+        )
 
     def test_rewrite_is_idempotent(self) -> None:
         first = prune_reader_sidebar(MODULE_TREE)
@@ -98,6 +112,27 @@ class ReaderSidebarRewriteTests(unittest.TestCase):
 
         self.assertEqual(result.html, source)
         self.assertEqual(result.unclassified_hrefs, ("mystery/",))
+
+    def test_routes_hidden_current_module_to_canonical_reader_page(self) -> None:
+        source = """<nav class="module-tree">
+  <details open><summary><a href="CLRSLean/FourthEdition/" title="CLRSLean.FourthEdition">Fourth Edition</a></summary>
+    <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_20/" title="CLRSLean.FourthEdition.Chapter_20">Chapter 20</a></div>
+  </details>
+  <details open><summary><a href="CLRSLean/Chapter_22/" title="CLRSLean.Chapter_22">Chapter 22</a></summary>
+    <div class="leaf current"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/" title="CLRSLean.Chapter_22.Section_22_3_DFS">22.3</a></div>
+  </details>
+</nav>"""
+
+        result = prune_reader_sidebar(
+            source,
+            {"CLRSLean.Chapter_22": "CLRSLean.FourthEdition.Chapter_20"},
+        )
+
+        self.assertNotIn('title="CLRSLean.Chapter_22"', result.html)
+        self.assertIn(
+            '<div class="leaf current"><a href="CLRSLean/FourthEdition/Chapter_20/"',
+            result.html,
+        )
 
 
 if __name__ == "__main__":

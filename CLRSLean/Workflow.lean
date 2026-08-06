@@ -1,10 +1,11 @@
-import CLRSLean.Chapter_02
+import CLRSLean.FourthEdition.Chapter_02
 
 /-!
 # Workflow
 
-CLRS-Lean uses a repeatable section workflow.  The goal is to make future
-chapters easy to audit, easy to deploy, and pleasant to read.
+CLRS-Lean uses a repeatable fourth-edition section workflow.  The goal is to
+make future chapters easy to audit, easy to deploy, and pleasant to read while
+the current theorem sources migrate chapter by chapter.
 
 ## Section Lifecycle
 
@@ -19,9 +20,12 @@ chapters easy to audit, easy to deploy, and pleasant to read.
 
 ## 1. Textbook Map
 
-Record the section number, algorithm, main theorem-like claims, proof method,
-and any exercises or chapter-end problems.  Exercises are normally marked
-{lit}`future-work` until the main theorem interface is stable.
+Start with {lit}`docs/clrs-fourth-edition-map.csv` and the corresponding
+{lit}`CLRSLean.FourthEdition.Chapter_NN` guide.  Record the canonical section
+number, current source module, algorithm, main theorem-like claims, proof
+method, and any exercises or chapter-end problems.  Never infer a
+fourth-edition section number from a legacy filename.  Exercises are normally
+marked {lit}`future-work` until the main theorem interface is stable.
 
 ## 2. Algorithm Model
 
@@ -57,6 +61,10 @@ Example:
 #check CLRS.Chapter02.insertionSort_perm
 ```
 
+During the facade period, the canonical import is fourth-edition-prefixed but
+declarations can remain in their legacy namespace.  The edition map owns that
+bridge until the chapter's source/namespace migration lands.
+
 ## 5. Lean Proof
 
 Keep early proofs local and readable.  Extract shared abstractions only after at
@@ -81,7 +89,8 @@ becomes the final deployment gate.
 
 Every user-facing section change should update the book structure:
 
-* the relevant {lit}`CLRSLean/Chapter_XX.lean` chapter page;
+* the relevant {lit}`CLRSLean/FourthEdition/Chapter_XX.lean` canonical guide;
+* the current theorem-bearing source guide named by the edition map;
 * {lit}`literate.toml` if a new module should appear in the navigation;
 * {lit}`docs/proof-map.md` for the longer maintainer ledger;
 * {lit}`docs/clrs-proof-progress.csv` when chapter coverage changes;
@@ -89,33 +98,42 @@ Every user-facing section change should update the book structure:
 
 ## 8. Progress CSV Update
 
-The proof-progress CSV is the machine-readable ledger for agents and the public
-dashboard.  Any agent that changes reader-facing theorem coverage should update
-{lit}`docs/clrs-proof-progress.csv` in the same commit.
+The proof-progress CSV is the machine-readable fourth-edition chapter ledger
+for agents and the public dashboard.  Any agent that changes reader-facing
+theorem coverage should consult {lit}`docs/clrs-fourth-edition-map.csv` and
+update {lit}`docs/clrs-proof-progress.csv` in the same commit.
 
 Rule of thumb:
 
 * new public theorem group: increment {lit}`tracked_key_theorems` and
   {lit}`proved_tracked_theorems`;
-* closed gap: reduce {lit}`missing_core_groups`, update {lit}`repo_status`, and
-  move the item from {lit}`remaining_core_groups` to
+* closed gap: reduce {lit}`edition_gap_units`, update {lit}`repo_status`, and
+  move the item from {lit}`remaining_edition_gaps` to
   {lit}`proved_key_theorem_groups`;
 * new chapter or section page: update {lit}`represented_sections`,
   {lit}`evidence_source`, {lit}`literate.toml`, and the chapter guide page;
-* deferred or blocked theorem group: record it in {lit}`remaining_core_groups`
+* deferred or blocked theorem group: record it in {lit}`remaining_edition_gaps`
   instead of silently dropping it.
 
 Regenerate the dashboard after changing the CSV:
 
 * {lit}`uv run python scripts/check_progress_csv.py --write-dashboard`
 
-## 8. Repository And Site Verification
+## Compatibility Policy
+
+Existing unqualified {lit}`CLRSLean.Chapter_NN` imports and public declarations
+remain supported through all {lit}`1.x` releases and for at least six months
+after the facade release.  Removal is possible only in {lit}`2.0` or later,
+after both gates pass.  New work should use the fourth-edition guide import;
+see {lit}`docs/migrations/clrs4.md` for source and namespace mappings.
+
+## 9. Repository And Site Verification
 
 Before committing proof-status changes, run:
 
 * {lit}`uv run python scripts/check_repository.py`
 * {lit}`lake build CLRSLean`
 
-When navigation or reader-facing prose changes, also run
-{lit}`lake build :literateHtml` and the generated-site checks.
+Run {lit}`lake build :literateHtml` and generated-site checks only for an
+explicit publishing, release, or website task.
 -/

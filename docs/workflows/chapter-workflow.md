@@ -66,6 +66,11 @@ lake env lean Tests/Chapter_02_Interface.lean
 lake build CLRSLean
 ```
 
+Proof closure stops at source, interface, library, and repository/configuration
+checks.  Keep the website metadata below current, but do not generate, prepare,
+optimize, inspect, or deploy the website unless the user explicitly requests a
+publishing, release, or website task.
+
 ## 7. Update The Map
 
 Update:
@@ -77,8 +82,8 @@ Update:
 - `docs/proof-status-board.md` only when planning priorities change;
 - **`literate.toml` (REQUIRED for new or renamed sections)**:
   add the module to `[order_children]` and add a `[modules."..."]` title
-  entry.  If you skip this, the section will still build but the deployed
-  sidebar will show the parent chapter title instead of the section title.
+  entry.  If you skip this, the section will still build but the configured
+  sidebar title and ordering will be wrong.
 
 Every section should say whether it is `proved`, `partial`, `statement`,
 `blocked-design`, `blocked-mathlib`, `deferred-implementation`,
@@ -92,9 +97,10 @@ uv run python scripts/check_repository.py
 lake build CLRSLean
 ```
 
-## 8. Verify the deployed navigation
+## 8. Optional publishing verification
 
-After pushing to `main`, wait for the `Build and deploy Verso site` action to
-finish, then open the new section on the live site and confirm that the left
-sidebar shows the correct section title (e.g. `15.5. Optimal Binary Search
-Trees`), not the parent chapter title.
+Only for an explicitly requested publishing, release, or website task, build the
+Verso output and verify the deployed navigation.  After pushing to `main`, wait
+for the `Build and deploy Verso site` action to finish, then open the new section
+on the live site and confirm that the left sidebar shows the correct section
+title (e.g. `15.5. Optimal Binary Search Trees`), not the parent chapter title.

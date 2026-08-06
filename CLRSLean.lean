@@ -1,5 +1,7 @@
 import CLRSLean.ProofPatterns
 import CLRSLean.Probability
+import CLRSLean.FourthEdition
+import CLRSLean.OnlineMaterial
 import CLRSLean.Chapter_01
 import CLRSLean.Chapter_02
 import CLRSLean.Chapter_03
@@ -34,6 +36,7 @@ import CLRSLean.Chapter_26
 import CLRSLean.Chapter_27
 import CLRSLean.Chapter_28
 import CLRSLean.Chapter_29
+import CLRSLean.Chapter_30
 import CLRSLean.Chapter_31
 import CLRSLean.Chapter_32
 import CLRSLean.Chapter_33
@@ -45,9 +48,10 @@ import CLRSLean.Workflow
 /-!
 # CLRS-Lean
 
-CLRS-Lean is a Lean 4 companion for CLRS-style algorithm proofs.  It is
-organized as an online book: chapter pages explain each formalization boundary,
-and section pages contain the definitions, executable models, theorem
+CLRS-Lean is a fourth-edition-primary Lean 4 companion for CLRS-style algorithm
+proofs.  It is organized as an online book: canonical guides under
+{lit}`CLRSLean.FourthEdition` explain each formalization boundary, and current
+theorem-bearing source modules contain the definitions, executable models,
 interfaces, and proofs.
 
 ## Project Aim
@@ -65,8 +69,8 @@ claiming that every implementation detail or exercise has been formalized.
 
 There are four useful reading routes:
 
-1. **Algorithms:** choose a chapter in the sidebar, read its scope, then open a
-   represented section.
+1. **Algorithms:** choose a fourth-edition chapter guide, read its scope, then
+   follow its current source link to a represented section.
 2. **Progress:** open **Progress Dashboard** for the generated chapter matrix.
 3. **Planning:** open **Proof Status** for completed, partial, and missing proof
    groups.
@@ -76,34 +80,24 @@ There are four useful reading routes:
 The **Reusable CLRS proof patterns** page collects the small cross-chapter APIs
 for boundary shifts, exchange certificates, fibers, and interval geometry.
 
-## Current Milestones
+## Fourth-Edition Primary View
 
-The strongest completed boundaries on the current main branch are:
+The canonical public chapter sequence is CLRS fourth edition, Chapters 1--35.
+{lit}`docs/clrs-fourth-edition-map.csv` owns the section-level bridge from that
+sequence to current theorem-bearing sources.  New Chapters 25, 27, and 33, plus
+currently unrepresented Chapters 34--35, remain visible as honest
+{lit}`not-started` guides.  Third-edition-only Fibonacci heaps, van Emde Boas
+trees, computational geometry, and moved section material live under
+{lit}`CLRSLean.OnlineMaterial`.  Progress counts are currently facade-level
+source inventories; moved subsections inside an otherwise reused source remain
+in that coarse total until declaration-level remapping, so the count is not a
+count of distinct fourth-edition textbook obligations.
 
-* Chapter 2 sorting correctness and selected cost/recurrence results.
-* Chapter 6 heap, heapify, build-heap, heapsort, and priority-queue correctness
-  for the represented array and functional models.
-* Chapter 8 correctness for the represented counting-sort, radix-sort, and
-  bucket-sort models.
-* Chapter 16 activity-selection and Huffman optimality for the represented
-  finite models.
-* Chapter 19 persistent Fibonacci-heap correctness, including all core
-  operations and the standard potential-based amortized bounds.
-* Chapter 22 main functional correctness, formally sealed for BFS shortest
-  paths and predecessor trees, DFS theory and edge classification, Kahn and DFS
-  topological sorting, and Kosaraju SCC decomposition.
-
-Several other chapters contain substantial theorem stacks while remaining
-honestly partial.  In particular, Chapters 3 and 4 contain the asymptotic and
-Master-theorem infrastructure; Chapters 7, 9, and 11 expose the remaining
-probability-model gap; Chapters 12-15 cover functional tree and dynamic-
-programming interfaces; Chapters 17, 18, and 20 cover advanced data structures
-at mathematical or size-level specifications; Chapter 21 supplies disjoint-set
-semantics, executable union-find correctness, and its Kruskal bridge; and
-Chapter 23 contains the current MST cut/exchange/Kruskal layer.
-
-Use the generated dashboard for counts.  Use chapter pages and the proof map
-for exact theorem boundaries.
+Existing {lit}`CLRSLean.Chapter_NN` imports and declarations keep their current
+meanings through all {lit}`1.x` releases and for at least six months after the
+facade release.  They may be removed only in {lit}`2.0` or later, after both
+gates pass.  See {lit}`docs/migrations/clrs4.md` for shifted chapter imports,
+current declaration namespaces, and the cleanup policy.
 
 ## Status Meaning
 
@@ -119,16 +113,19 @@ for exact theorem boundaries.
 * {lit}`expository`: the chapter is a guide with no theorem target.
 
 The machine-readable source for chapter rows is
-{lit}`docs/clrs-proof-progress.csv`.  The public **Progress Dashboard** is
-generated from it.  The longer maintainer theorem ledger is
+{lit}`docs/clrs-proof-progress.csv`, interpreted through
+{lit}`docs/clrs-fourth-edition-map.csv`.  The public **Progress Dashboard** is
+generated from the progress CSV.  The longer maintainer theorem ledger is
 {lit}`docs/proof-map.md`.
 
 ## Library Shape
 
 * {lit}`CLRSLean.lean`: library root and landing page.
+* {lit}`CLRSLean/FourthEdition/Chapter_XX.lean`: canonical chapter guide.
+* {lit}`CLRSLean/OnlineMaterial.lean`: online/supplementary compatibility catalog.
 * {lit}`CLRSLean/ProofPatterns.lean`: reusable pattern aggregator.
-* {lit}`CLRSLean/Chapter_XX.lean`: chapter guide and section aggregator.
-* {lit}`CLRSLean/Chapter_XX/Section_XX_Y_Name.lean`: formal section content.
+* {lit}`CLRSLean/Chapter_XX.lean`: current compatibility source aggregator.
+* {lit}`CLRSLean/Chapter_XX/Section_XX_Y_Name.lean`: current formal source.
 * {lit}`CLRSLean/Progress.lean`: generated progress dashboard.
 * {lit}`CLRSLean/Status.lean`: reader-facing status interpretation.
 * {lit}`CLRSLean/Workflow.lean`: contributor workflow.

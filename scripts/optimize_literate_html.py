@@ -25,7 +25,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.literate_navigation import prune_reader_sidebar
+from scripts.literate_navigation import load_reader_parent_routes, prune_reader_sidebar
+
+
+READER_PARENT_ROUTES = load_reader_parent_routes()
 
 
 VOID_ELEMENTS = {
@@ -538,7 +541,7 @@ def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
             tmp.write_text(text, encoding="utf-8", newline="")
 
     text = tmp.read_text(encoding="utf-8", errors="replace")
-    sidebar = prune_reader_sidebar(text)
+    sidebar = prune_reader_sidebar(text, READER_PARENT_ROUTES)
     text = sidebar.html
     text, injected_nav_scripts = inject_nav_state_script(text)
     text, injected_verification_meta = inject_google_site_verification(text)

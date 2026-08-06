@@ -1,0 +1,37 @@
+import CLRSLean.Chapter_30
+
+namespace CLRS.Chapter30
+
+#check bitReverseEquiv_testBit
+#check bitReverseEquiv_involutive
+#check bitReverseCopy_apply
+#check bitReverseCopy_involutive
+#check bitReverseExec_moves
+#check runFFTStagePrefix_join
+#check iterativeRadix2FFT_succ
+#check iterativeRadix2FFT_eq_recursiveFFT
+#check iterativeRadix2FFT_eq_dft
+#check iterativeRadix2FFTExec_arithmeticWork
+#check iterativeRadix2FFTExec_totalWork
+#check paddedIterativeFFTWork_allInput_bigTheta
+#check canonicalButterflyLayerCircuit_eval
+#check fftStageCircuit_eval
+#check fftNetwork_eval
+#check fftNetwork_butterflyCount
+#check fftNetwork_butterflyDepth
+#check fftNetwork_primitiveGateCount
+#check fftNetwork_primitiveDepth
+
+#print axioms bitReverseEquiv_testBit
+#print axioms bitReverseCopy_involutive
+#print axioms iterativeRadix2FFT_eq_recursiveFFT
+#print axioms iterativeRadix2FFT_eq_dft
+#print axioms iterativeRadix2FFTExec_totalWork
+#print axioms paddedIterativeFFTWork_allInput_bigTheta
+#print axioms canonicalButterflyLayerCircuit_eval
+#print axioms fftStageCircuit_eval
+#print axioms fftNetwork_eval
+#print axioms fftNetwork_butterflyCount
+#print axioms fftNetwork_primitiveDepth
+
+end CLRS.Chapter30
