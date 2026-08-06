@@ -1,4 +1,4 @@
-import Mathlib
+import CLRSLean.Chapter_34
 
 /-!
 # Chapter 34 — NP-Completeness
@@ -8,11 +8,11 @@ period.
 
 ## Current source
 
-No legacy source is promoted into this chapter.
+The current Chapter 34 guide imports {lit}`CLRSLean.Chapter_34`, which supplies the Section 34.1 framework during the migration period.
 
 ## Coverage boundary
 
-Status: not-started.
+Status: partial (Section 34.1 framework in place; Sections 34.2-34.5 not yet represented).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

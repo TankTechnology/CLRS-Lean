@@ -4609,6 +4609,26 @@ in a legacy initialization module that is also cataloged as online material.
 - Remaining chapter scope: Sections 33.2--33.4 (sweep-line intersection,
   convex hulls, and closest pair) are not represented.
 
+### Section 34.1 - Polynomial Time
+
+- Lean sources:
+  - `CLRSLean/Chapter_34.lean`
+  - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time.lean`
+- Status: `partial` — green-field NP-completeness formalization on Mathlib's
+  `Turing.TM2ComputableInPolyTime` (machine-level polynomial-time
+  computability with `Polynomial ℕ` time bounds).
+- Proved results: the framework — `Language` (a set of strings over an
+  alphabet), `PolyTimeComputable` (polytime-computable function),
+  `PolyTimeDecidable`, `ClassP` (the class of polynomial-time decidable
+  languages), and `mem_ClassP`.
+- Current gap: concrete machine constructions (the empty/universal languages
+  are in `P`), `Turing.TM2ComputableInPolyTime.comp` (polytime-composition
+  closure, left `proof_wanted` by Mathlib), and closure of `ClassP` under
+  complement/union/intersection.
+- Remaining chapter scope: Sections 34.2 (verification / `NP`), 34.3
+  (reducibility / NP-completeness), 34.4--34.5 (specific reductions) are not
+  represented.  Open problems (P vs NP) are intentionally out of scope.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
