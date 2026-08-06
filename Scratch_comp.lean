@@ -1,0 +1,431 @@
+import Mathlib.Computability.TuringMachine.Computable
+import Mathlib.Algebra.Polynomial.Eval.Defs
+
+/-!
+# Scratch: prove `Turing.TM2ComputableInPolyTime.comp`
+
+Composition of polynomial-time TM2 machines is polynomial-time.
+
+Design (shared-stack, two-phase):
+
+- The combined machine has stacks `Sum K₁ K₂`: `inl k` are `h1`'s stacks,
+  `inr k` are `h2`'s stacks.
+- Phase 1 runs `h1`'s program (`mapStmt₁` reindexes stacks `k ↦ inl k` and
+  carries the state in the first projection; `halt` becomes `goto` into `h2`'s
+  main).
+- Phase 2 runs `h2`'s program (`mapStmt₂` maps `h2`'s input stack `k₀₂` onto
+  `h1`'s output stack `inl k₁₁`, converting elements through the alphabet
+  equivalence `Γ₁ k₁₁ ≃ βΓ ≃ Γ₂ k₀₂`; every other `h2` stack is `inr k`).
+  Since both machines halt in the `haltList` configuration (empty non-output
+  stacks, `initialState` variables), the combined machine also halts exactly
+  in `haltList` with the right output on `k₁C := if k₀₂ = k₁₂ then inl k₁₁
+  else inr k₁₂`.
+
+Time bound: phase 1 ≤ `p(n)`, phase 2 ≤ `q(out₁.length)` where
+`out₁.length ≤ n + p(n)` (the output stack starts empty unless it *is* the
+input stack, in which case it starts with `n` elements).  So
+`timeC := h1.time + h2.time.comp (Polynomial.X + h1.time)`.
+-/
+
+noncomputable section
+
+open Computability StateTransition
+
+namespace Turing
+
+namespace ScratchComp
+
+-- Combinator for the combined-machine indices and types.
+variable {α β γ αΓ βΓ γΓ : Type} {eα : α → List αΓ} {eβ : β → List βΓ} {eγ : γ → List γΓ}
+variable {f : α → β} {g : β → γ}
+
+variable (h1 : TM2ComputableInPolyTime eα eβ f) (h2 : TM2ComputableInPolyTime eβ eγ g)
+
+/-- Combined stack index type: `h1`'s stacks on the left, `h2`'s on the right. -/
+abbrev CompK := Sum (h1.tm).K (h2.tm).K
+
+/-- Combined stack types. -/
+abbrev CompΓ : CompK h1 h2 → Type := Sum.elim (h1.tm).Γ (h2.tm).Γ
+
+/-- Combined label type. -/
+abbrev CompΛ := Sum (h1.tm).Λ (h2.tm).Λ
+
+/-- Combined state: `h1`'s state in the first component, `h2`'s in the second. -/
+abbrev Compσ := (h1.tm).σ × (h2.tm).σ
+
+/-- Combined input stack: `h1`'s input stack. -/
+def compk₀ : CompK h1 h2 := Sum.inl (h1.tm).k₀
+
+/-- Combined output stack: `h2`'s output stack, or `h1`'s output stack when
+`h2` reuses its input stack as its output stack. -/
+def compk₁ : CompK h1 h2 :=
+  if (h2.tm).k₀ = (h2.tm).k₁ then Sum.inl (h1.tm).k₁ else Sum.inr (h2.tm).k₁
+
+/-- The `h1` output stack carries `h2`'s input: elements of `Γ₁ k₁₁` are
+converted to `Γ₂ k₀₂` through the alphabet equivalence `βΓ`. -/
+def convIn (x : (h1.tm).Γ (h1.tm).k₁) : (h2.tm).Γ (h2.tm).k₀ :=
+  h2.inputAlphabet.invFun (h1.outputAlphabet x)
+
+/-- The inverse conversion for pushing `h2`'s input elements. -/
+def convOut (y : (h2.tm).Γ (h2.tm).k₀) : (h1.tm).Γ (h1.tm).k₁ :=
+  h1.outputAlphabet.invFun (h2.inputAlphabet y)
+
+/-- Translate `h1`'s program to the combined machine.  `halt` jumps into
+`h2`'s main. -/
+def mapStmt₁ : Turing.TM2.Stmt (h1.tm).Γ (h1.tm).Λ (h1.tm).σ →
+    Turing.TM2.Stmt (CompΓ h1 h2) (CompΛ h1 h2) (Compσ h1 h2)
+  | Turing.TM2.Stmt.push k f q => Turing.TM2.Stmt.push (Sum.inl k) (fun v => f v.1) (mapStmt₁ q)
+  | Turing.TM2.Stmt.peek k f q =>
+      Turing.TM2.Stmt.peek (Sum.inl k) (fun v x => (f v.1 x, v.2)) (mapStmt₁ q)
+  | Turing.TM2.Stmt.pop k f q =>
+      Turing.TM2.Stmt.pop (Sum.inl k) (fun v x => (f v.1 x, v.2)) (mapStmt₁ q)
+  | Turing.TM2.Stmt.load f q => Turing.TM2.Stmt.load (fun v => (f v.1, v.2)) (mapStmt₁ q)
+  | Turing.TM2.Stmt.branch f q₁ q₂ =>
+      Turing.TM2.Stmt.branch (fun v => f v.1) (mapStmt₁ q₁) (mapStmt₁ q₂)
+  | Turing.TM2.Stmt.goto f => Turing.TM2.Stmt.goto (fun v => Sum.inl (f v.1))
+  | Turing.TM2.Stmt.halt => Turing.TM2.Stmt.goto (fun _ => Sum.inr (h2.tm).main)
+
+/-- Translate `h2`'s program to the combined machine.  `halt` is the final halt.
+`h2`'s input stack `k₀` is implemented by `h1`'s output stack `inl k₁`, with
+elements converted through the alphabet equivalence. -/
+def mapStmt₂ : Turing.TM2.Stmt (h2.tm).Γ (h2.tm).Λ (h2.tm).σ →
+    Turing.TM2.Stmt (CompΓ h1 h2) (CompΛ h1 h2) (Compσ h1 h2)
+  | Turing.TM2.Stmt.push k f q =>
+      if h : k = (h2.tm).k₀ then
+        Turing.TM2.Stmt.push (Sum.inl (h1.tm).k₁)
+          (fun v => convOut h1 h2 (Eq.ndrec (motive := fun t => (h2.tm).Γ t) (f v.2) h)) (mapStmt₂ q)
+      else
+        Turing.TM2.Stmt.push (Sum.inr k) (fun v => f v.2) (mapStmt₂ q)
+  | Turing.TM2.Stmt.peek k f q =>
+      if h : k = (h2.tm).k₀ then
+        Turing.TM2.Stmt.peek (Sum.inl (h1.tm).k₁)
+          (fun v x => (v.1, f v.2 (Eq.ndrec (motive := fun t => Option ((h2.tm).Γ t))
+            (x.map (convIn h1 h2)) h.symm))) (mapStmt₂ q)
+      else
+        Turing.TM2.Stmt.peek (Sum.inr k) (fun v x => (v.1, f v.2 x)) (mapStmt₂ q)
+  | Turing.TM2.Stmt.pop k f q =>
+      if h : k = (h2.tm).k₀ then
+        Turing.TM2.Stmt.pop (Sum.inl (h1.tm).k₁)
+          (fun v x => (v.1, f v.2 (Eq.ndrec (motive := fun t => Option ((h2.tm).Γ t))
+            (x.map (convIn h1 h2)) h.symm))) (mapStmt₂ q)
+      else
+        Turing.TM2.Stmt.pop (Sum.inr k) (fun v x => (v.1, f v.2 x)) (mapStmt₂ q)
+  | Turing.TM2.Stmt.load f q => Turing.TM2.Stmt.load (fun v => (v.1, f v.2)) (mapStmt₂ q)
+  | Turing.TM2.Stmt.branch f q₁ q₂ =>
+      Turing.TM2.Stmt.branch (fun v => f v.2) (mapStmt₂ q₁) (mapStmt₂ q₂)
+  | Turing.TM2.Stmt.goto f => Turing.TM2.Stmt.goto (fun v => Sum.inr (f v.2))
+  | Turing.TM2.Stmt.halt => Turing.TM2.Stmt.halt
+
+/-- The combined program. -/
+def compProgram (l : CompΛ h1 h2) : Turing.TM2.Stmt (CompΓ h1 h2) (CompΛ h1 h2) (Compσ h1 h2) :=
+  match l with
+  | Sum.inl l₁ => mapStmt₁ h1 h2 ((h1.tm).m l₁)
+  | Sum.inr l₂ => mapStmt₂ h1 h2 ((h2.tm).m l₂)
+
+/-- The `h1`/`h2` instance fields do not project through `h1.tm`/`h2.tm`, so the
+combined machine's finiteness instances are built explicitly. -/
+def compKDecidableEq : DecidableEq (CompK h1 h2) := by
+  letI : DecidableEq (h1.tm).K := h1.tm.kDecidableEq
+  letI : DecidableEq (h2.tm).K := h2.tm.kDecidableEq
+  infer_instance
+
+/-- The combined index type is finite. -/
+def compKFintype : Fintype (CompK h1 h2) := by
+  letI : Fintype (h1.tm).K := h1.tm.kFin
+  letI : Fintype (h2.tm).K := h2.tm.kFin
+  infer_instance
+
+/-- The combined label type is finite. -/
+def compΛFintype : Fintype (CompΛ h1 h2) := by
+  letI : Fintype (h1.tm).Λ := h1.tm.ΛFin
+  letI : Fintype (h2.tm).Λ := h2.tm.ΛFin
+  infer_instance
+
+/-- The combined state type is finite. -/
+def compσFintype : Fintype (Compσ h1 h2) := by
+  letI : Fintype (h1.tm).σ := h1.tm.σFin
+  letI : Fintype (h2.tm).σ := h2.tm.σFin
+  infer_instance
+
+/-- The combined input alphabet is finite. -/
+def compΓk₀Fintype : Fintype (CompΓ h1 h2 (Sum.inl (h1.tm).k₀)) :=
+  h1.tm.Γk₀Fin
+
+/-- The combined bundled machine. -/
+def compMachine (h1 : TM2ComputableInPolyTime eα eβ f)
+    (h2 : TM2ComputableInPolyTime eβ eγ g) : FinTM2 :=
+  @FinTM2.mk (CompK h1 h2) (compKDecidableEq h1 h2) (compKFintype h1 h2)
+    (compk₀ h1 h2) (compk₁ h1 h2) (CompΓ h1 h2) (CompΛ h1 h2) (Sum.inl (h1.tm).main)
+    (compΛFintype h1 h2) (Compσ h1 h2) ((h1.tm).initialState, (h2.tm).initialState)
+    (compσFintype h1 h2) (compΓk₀Fintype h1 h2) (compProgram h1 h2)
+
+/-- The combined input alphabet: `h1`'s. -/
+def compInputAlphabet : (compMachine h1 h2).Γ (compMachine h1 h2).k₀ ≃ αΓ :=
+  h1.inputAlphabet
+
+/-- The combined output alphabet: `h2`'s, or the composite when `h2` reuses
+its input stack as output. -/
+def compOutputAlphabet : (compMachine h1 h2).Γ (compMachine h1 h2).k₁ ≃ γΓ := by
+  change CompΓ h1 h2 (compk₁ h1 h2) ≃ γΓ
+  by_cases h : (h2.tm).k₀ = (h2.tm).k₁
+  · simp [compk₁, h]
+    have hinput' : (h2.tm).Γ (h2.tm).k₁ ≃ βΓ := by
+      rw [← h]
+      exact h2.inputAlphabet
+    exact h1.outputAlphabet.trans (hinput'.symm.trans h2.outputAlphabet)
+  · simp [compk₁, h]
+    exact h2.outputAlphabet
+
+@[simp] lemma convIn_convOut (y : (h2.tm).Γ (h2.tm).k₀) :
+    convIn h1 h2 (convOut h1 h2 y) = y := by
+  simp [convIn, convOut, Equiv.apply_symm_apply]
+
+@[simp] lemma convOut_convIn (x : (h1.tm).Γ (h1.tm).k₁) :
+    convOut h1 h2 (convIn h1 h2 x) = x := by
+  simp [convIn, convOut, Equiv.apply_symm_apply]
+
+lemma list_map_tail {α β : Type} (f : α → β) (l : List α) :
+    (List.map f l).tail = List.map f l.tail := by
+  cases l <;> simp
+
+@[simp] lemma list_head?_map {α β : Type} (f : α → β) (l : List α) :
+    (List.map f l).head? = l.head?.map f := by
+  cases l <;> simp
+
+@[simp] lemma convIn_comp_convOut : (convIn h1 h2 ∘ convOut h1 h2) = id := by
+  funext y
+  simp
+
+/-- `h1`'s stacks embedded in the combined machine (phase 1). -/
+def stk₁ (S : ∀ k : (h1.tm).K, List ((h1.tm).Γ k)) :
+    ∀ k : CompK h1 h2, List (CompΓ h1 h2 k) :=
+  fun k => match k with | Sum.inl k' => S k' | Sum.inr _ => []
+
+/-- `h2`'s stacks embedded in the combined machine (phase 2). -/
+def stk₂ (S : ∀ k : (h2.tm).K, List ((h2.tm).Γ k)) :
+    ∀ k : CompK h1 h2, List (CompΓ h1 h2 k) := by
+  intro k
+  cases k with
+  | inl k' =>
+      by_cases h : k' = (h1.tm).k₁
+      · subst k'
+        exact List.map (convOut h1 h2) (S (h2.tm).k₀)
+      · exact []
+  | inr k' =>
+      by_cases h : k' = (h2.tm).k₀
+      · subst k'
+        exact []
+      · exact S k'
+
+/-- Updating `h1`'s stack `k` commutes with the phase-1 embedding. -/
+lemma update_stk₁ (S : ∀ k : (h1.tm).K, List ((h1.tm).Γ k)) (k : (h1.tm).K)
+    (L : List ((h1.tm).Γ k)) :
+    Function.update (stk₁ h1 h2 S) (Sum.inl k) L = stk₁ h1 h2 (Function.update S k L) := by
+  funext k'
+  cases k' with
+  | inl k'' =>
+      by_cases h : k'' = k
+      · subst k''
+        simp [stk₁, Function.update]
+      · simp [stk₁, Function.update, h]
+  | inr k'' =>
+      simp [stk₁, Function.update]
+
+/-- `h1`'s configurations embedded in the combined machine.  The halted
+configuration of `h1` maps to the start of phase 2. -/
+def mapCfg₁ (c : Turing.TM2.Cfg (h1.tm).Γ (h1.tm).Λ (h1.tm).σ) :
+    Turing.TM2.Cfg (CompΓ h1 h2) (CompΛ h1 h2) (Compσ h1 h2) :=
+  { l := match c.l with
+      | some l₁ => some (Sum.inl l₁)
+      | none => some (Sum.inr (h2.tm).main)
+    var := (c.var, (h2.tm).initialState)
+    stk := stk₁ h1 h2 c.stk }
+
+/-- `h2`'s configurations embedded in the combined machine (phase 2). -/
+def mapCfg₂ (c : Turing.TM2.Cfg (h2.tm).Γ (h2.tm).Λ (h2.tm).σ) :
+    Turing.TM2.Cfg (CompΓ h1 h2) (CompΛ h1 h2) (Compσ h1 h2) :=
+  { l := Option.map Sum.inr c.l
+    var := ((h1.tm).initialState, c.var)
+    stk := stk₂ h1 h2 c.stk }
+
+/-- Executing `mapStmt₁ s` from the phase-1 state mirrors executing `s` in `h1`. -/
+lemma stepAux_mapStmt₁ (s : Turing.TM2.Stmt (h1.tm).Γ (h1.tm).Λ (h1.tm).σ) :
+    ∀ (v : (h1.tm).σ) (S : ∀ k : (h1.tm).K, List ((h1.tm).Γ k)),
+      Turing.TM2.stepAux (mapStmt₁ h1 h2 s) (v, (h2.tm).initialState) (stk₁ h1 h2 S)
+        = mapCfg₁ h1 h2 (Turing.TM2.stepAux s v S) := by
+  induction s with
+  | push k f q ih =>
+      intro v S
+      simp [mapStmt₁, stk₁, Turing.TM2.stepAux]
+      rw [update_stk₁]
+      exact ih v (Function.update S k (f v :: S k))
+  | peek k f q ih =>
+      intro v S
+      simp [mapStmt₁, stk₁, Turing.TM2.stepAux]
+      exact ih (f v (S k).head?) S
+  | pop k f q ih =>
+      intro v S
+      simp [mapStmt₁, stk₁, Turing.TM2.stepAux]
+      rw [update_stk₁]
+      exact ih (f v (S k).head?) (Function.update S k (S k).tail)
+  | load f q ih =>
+      intro v S
+      simp [mapStmt₁, Turing.TM2.stepAux]
+      exact ih (f v) S
+  | branch f q₁ q₂ ih₁ ih₂ =>
+      intro v S
+      simp [mapStmt₁, Turing.TM2.stepAux]
+      by_cases h : f v
+      · simp [h, ih₁ v S]
+      · simp [h, ih₂ v S]
+  | goto f =>
+      intro v S
+      simp [mapStmt₁, stk₁, Turing.TM2.stepAux, mapCfg₁]
+  | halt =>
+      intro v S
+      simp [mapStmt₁, stk₁, Turing.TM2.stepAux, mapCfg₁]
+
+/-- Phase-1 steps mirror `h1`'s steps, for every non-halted `h1` config. -/
+lemma step₁_sim (c₁ : Turing.TM2.Cfg (h1.tm).Γ (h1.tm).Λ (h1.tm).σ)
+    (hc₁ : c₁.l ≠ none) :
+    (compMachine h1 h2).step (mapCfg₁ h1 h2 c₁) = Option.map (mapCfg₁ h1 h2) ((h1.tm).step c₁) := by
+  rcases c₁ with ⟨l, v, S⟩
+  cases l with
+  | none =>
+      exfalso
+      exact hc₁ rfl
+  | some l₁ =>
+      simp [FinTM2.step, Turing.TM2.step, mapCfg₁]
+      change some (Turing.TM2.stepAux (mapStmt₁ h1 h2 ((h1.tm).m l₁)) (v, (h2.tm).initialState)
+          (stk₁ h1 h2 S)) =
+        some (mapCfg₁ h1 h2 (Turing.TM2.stepAux ((h1.tm).m l₁) v S))
+      exact congrArg some (stepAux_mapStmt₁ h1 h2 ((h1.tm).m l₁) v S)
+
+/-- Updating `h2`'s input stack (embedded as `h1`'s output stack) with the
+converted list `L` commutes with the phase-2 embedding. -/
+lemma update_stk₂_inl (S : ∀ k : (h2.tm).K, List ((h2.tm).Γ k))
+    (L : List ((h2.tm).Γ (h2.tm).k₀)) :
+    Function.update (stk₂ h1 h2 S) (Sum.inl (h1.tm).k₁) (List.map (convOut h1 h2) L) =
+      stk₂ h1 h2 (Function.update S (h2.tm).k₀ L) := by
+  funext k'
+  cases k' with
+  | inl k'' =>
+      by_cases h : k'' = (h1.tm).k₁
+      · subst k''
+        simp [stk₂, Function.update]
+      · simp [stk₂, Function.update, h]
+  | inr k'' =>
+      by_cases h : k'' = (h2.tm).k₀
+      · subst k''
+        simp [stk₂, Function.update]
+      · simp [stk₂, Function.update, h]
+
+/-- Pushing `L` onto a non-input `h2` stack commutes with the phase-2 embedding. -/
+lemma update_stk₂_inr (S : ∀ k : (h2.tm).K, List ((h2.tm).Γ k)) (k : (h2.tm).K)
+    (hk : k ≠ (h2.tm).k₀) (L : List ((h2.tm).Γ k)) :
+    Function.update (stk₂ h1 h2 S) (Sum.inr k) L = stk₂ h1 h2 (Function.update S k L) := by
+  funext k'
+  cases k' with
+  | inl k'' =>
+      by_cases h : k'' = (h1.tm).k₁
+      · subst k''
+        simp [stk₂, Function.update, hk.symm]
+      · simp [stk₂, Function.update, h]
+  | inr k'' =>
+      by_cases h : k'' = k
+      · subst k''
+        simp [stk₂, Function.update, hk]
+      · by_cases h₂ : k'' = (h2.tm).k₀
+        · subst k''
+          simp [stk₂, Function.update, hk.symm]
+        · simp [stk₂, Function.update, h, h₂]
+
+/-- Executing `mapStmt₂ s` from the phase-2 state mirrors executing `s` in `h2`. -/
+lemma stepAux_mapStmt₂ (s : Turing.TM2.Stmt (h2.tm).Γ (h2.tm).Λ (h2.tm).σ) :
+    ∀ (v : (h2.tm).σ) (S : ∀ k : (h2.tm).K, List ((h2.tm).Γ k)),
+      Turing.TM2.stepAux (mapStmt₂ h1 h2 s) ((h1.tm).initialState, v) (stk₂ h1 h2 S)
+        = mapCfg₂ h1 h2 (Turing.TM2.stepAux s v S) := by
+  induction s with
+  | push k f q ih =>
+      intro v S
+      simp [mapStmt₂, Turing.TM2.stepAux]
+      by_cases h : k = (h2.tm).k₀
+      · subst k
+        simp [stk₂]
+        rw [← List.map_cons]
+        exact (congrArg
+          (fun s => Turing.TM2.stepAux (mapStmt₂ h1 h2 q) ((h1.tm).initialState, v) s)
+          (update_stk₂_inl h1 h2 S (f v :: S (h2.tm).k₀))).trans
+          (ih v (Function.update S (h2.tm).k₀ (f v :: S (h2.tm).k₀)))
+      · simp [stk₂, h]
+        rw [update_stk₂_inr h1 h2 S k h (f v :: S k)]
+        exact ih v (Function.update S k (f v :: S k))
+  | peek k f q ih =>
+      intro v S
+      simp [mapStmt₂, Turing.TM2.stepAux]
+      by_cases h : k = (h2.tm).k₀
+      · subst k
+        simp [stk₂, list_head?_map, convIn_convOut]
+        exact ih (f v (S (h2.tm).k₀).head?) S
+      · simp [stk₂, h]
+        exact ih (f v (S k).head?) S
+  | pop k f q ih =>
+      intro v S
+      simp [mapStmt₂, Turing.TM2.stepAux]
+      by_cases h : k = (h2.tm).k₀
+      · subst k
+        simp [stk₂, list_head?_map, convIn_convOut]
+        have htail : (List.map (convOut h1 h2) (S (h2.tm).k₀)).tail =
+            List.map (convOut h1 h2) ((S (h2.tm).k₀).tail) :=
+          list_map_tail (convOut h1 h2) (S (h2.tm).k₀)
+        have hstack : Function.update (stk₂ h1 h2 S) (Sum.inl (h1.tm).k₁)
+              ((List.map (convOut h1 h2) (S (h2.tm).k₀)).tail) =
+            stk₂ h1 h2 (Function.update S (h2.tm).k₀ ((S (h2.tm).k₀).tail)) := by
+          rw [htail]
+          exact update_stk₂_inl h1 h2 S (S (h2.tm).k₀).tail
+        exact (congrArg
+          (fun s => Turing.TM2.stepAux (mapStmt₂ h1 h2 q) ((h1.tm).initialState, f v (S (h2.tm).k₀).head?) s)
+          hstack).trans
+          (ih (f v (S (h2.tm).k₀).head?) (Function.update S (h2.tm).k₀ ((S (h2.tm).k₀).tail)))
+      · simp [stk₂, h]
+        rw [update_stk₂_inr h1 h2 S k h (S k).tail]
+        exact ih (f v (S k).head?) (Function.update S k (S k).tail)
+  | load f q ih =>
+      intro v S
+      simp [mapStmt₂, Turing.TM2.stepAux]
+      exact ih (f v) S
+  | branch f q₁ q₂ ih₁ ih₂ =>
+      intro v S
+      simp [mapStmt₂, Turing.TM2.stepAux]
+      by_cases h : f v
+      · simp [h, ih₁ v S]
+      · simp [h, ih₂ v S]
+  | goto f =>
+      intro v S
+      simp [mapStmt₂, stk₂, Turing.TM2.stepAux, mapCfg₂]
+  | halt =>
+      intro v S
+      simp [mapStmt₂, stk₂, Turing.TM2.stepAux, mapCfg₂]
+
+/-- Phase-2 steps mirror `h2`'s steps. -/
+lemma step₂_sim (c₂ : Turing.TM2.Cfg (h2.tm).Γ (h2.tm).Λ (h2.tm).σ) :
+    (compMachine h1 h2).step (mapCfg₂ h1 h2 c₂) = Option.map (mapCfg₂ h1 h2) ((h2.tm).step c₂) := by
+  rcases c₂ with ⟨l, v, S⟩
+  cases l with
+  | none =>
+      rfl
+  | some l₂ =>
+      simp [FinTM2.step, Turing.TM2.step, mapCfg₂]
+      change some (Turing.TM2.stepAux (mapStmt₂ h1 h2 ((h2.tm).m l₂)) ((h1.tm).initialState, v)
+          (stk₂ h1 h2 S)) =
+        some (mapCfg₂ h1 h2 (Turing.TM2.stepAux ((h2.tm).m l₂) v S))
+      exact congrArg some (stepAux_mapStmt₂ h1 h2 ((h2.tm).m l₂) v S)
+
+/-- Phase 2's time bound, as a function of phase 1's input length. -/
+def compTime : Polynomial ℕ := h1.time + (h2.time.comp (Polynomial.X + h1.time))
+
+end ScratchComp
+
+end Turing
+
+end
