@@ -44,6 +44,11 @@ def PolyTimeComputable {α β αΓ βΓ : Type} (ea : α → List αΓ) (eb : β
 /-- Encode a Boolean decision result as a one-symbol string over `Bool`. -/
 def boolEncoding : Bool → List Bool := fun b => [b]
 
+/-- Encode a pair of strings over `Γ` as a single string over `Option Γ`,
+using `none` as a separator.  The length is `|x| + |y| + 1`. -/
+def pairEncoding {Γ : Type} (x y : List Γ) : List (Option Γ) :=
+  List.map some x ++ [none] ++ List.map some y
+
 /--
 A language `L` over `Γ` is **polynomial-time decidable** (`L ∈ P`) when there
 is a polynomial-time computable decision function `f : List Γ → Bool` such
