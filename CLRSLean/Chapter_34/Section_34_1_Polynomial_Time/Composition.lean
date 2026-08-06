@@ -3,9 +3,18 @@ import Mathlib.Algebra.Polynomial.Eval.Defs
 import Mathlib.Tactic
 
 /-!
-# Scratch: prove `Turing.TM2ComputableInPolyTime.comp`
+# Composition of polynomial-time machines (TM2)
 
-Composition of polynomial-time TM2 machines is polynomial-time.
+Closes Mathlib's `proof_wanted Turing.TM2ComputableInPolyTime.comp`:
+composition of polynomial-time TM2 machines is polynomial-time.
+
+Main results:
+
+- Construction `compMachine`: the combined two-phase machine.
+- Simulations `stepC_sim₁`/`stepC_sim₂` and transports `evalsTo_lift`.
+- Configuration bridges `mapCfg₁_init`, `mapCfg₁_halt_eq`, `mapCfg₂_halt_eq`.
+- Time bound `compTime` + `Polynomial.eval_mono_nat`.
+- Theorem `comp_scratch`: `Nonempty (TM2ComputableInPolyTime eα eγ (g ∘ f))`.
 
 Design (shared-stack, two-phase):
 
@@ -34,7 +43,7 @@ open Computability StateTransition
 
 namespace Turing
 
-namespace ScratchComp
+namespace TM2Comp
 
 -- Combinator for the combined-machine indices and types.
 variable {α β γ αΓ βΓ γΓ : Type} {eα : α → List αΓ} {eβ : β → List βΓ} {eγ : γ → List γΓ}
@@ -1019,7 +1028,7 @@ theorem TM2ComputableInPolyTime.comp_scratch
            time := compTime h1 h2,
            outputsFun := comp_outputsFun h1 h2 }⟩
 
-end ScratchComp
+end TM2Comp
 
 end Turing
 

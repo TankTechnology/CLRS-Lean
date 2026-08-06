@@ -1,4 +1,5 @@
 import Mathlib.Computability.TuringMachine.Computable
+import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
 
 /-!
 # 34.1 Polynomial Time
@@ -60,6 +61,20 @@ def ClassP (Γ : Type) : Set (Language Γ) :=
 /-- A language is in `P` iff it is polynomial-time decidable. -/
 theorem mem_ClassP {Γ : Type} (L : Language Γ) : L ∈ ClassP Γ ↔ PolyTimeDecidable L := by
   rfl
+
+/--
+**Theorem (composition closure).**  The composition of two polynomial-time
+computable functions is polynomial-time computable (CLRS §34.1, closure of `P`
+under function composition).  Backed by `Turing.TM2ComputableInPolyTime.comp`
+(via `Turing.TM2Comp.comp_scratch`).
+-/
+theorem PolyTimeComputable.comp {α β γ αΓ βΓ γΓ : Type}
+    {ea : α → List αΓ} {eb : β → List βΓ} {ec : γ → List γΓ} {f : α → β} {g : β → γ}
+    (hf : PolyTimeComputable ea eb f) (hg : PolyTimeComputable eb ec g) :
+    PolyTimeComputable ea ec (g ∘ f) := by
+  rcases hf with ⟨M₁⟩
+  rcases hg with ⟨M₂⟩
+  exact Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch M₁ M₂
 
 end Chapter34
 

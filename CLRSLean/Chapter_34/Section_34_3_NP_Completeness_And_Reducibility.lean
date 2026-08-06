@@ -12,9 +12,8 @@ Main results:
   reduction maps `L₁` into `L₂`.
 - Definition `NPHard`: every polynomially verifiable language reduces to `L`.
 - Definition `NPComplete`: `L ∈ NP` and `L` is NP-hard.
-
-The transitivity of `PolyTimeReducible` (which needs the composition of
-polynomial-time machines) is a documented follow-up; see the chapter guide.
+- Theorem `PolyTimeReducible.trans`: `≤_P` is transitive (via the composition
+  of polynomial-time machines).
 -/
 
 namespace CLRS
@@ -43,6 +42,22 @@ def NPComplete {Γ : Type} (L : Language Γ) : Prop :=
 /-- Membership in the class of NP-complete languages. -/
 def ClassNPC (Γ : Type) : Set (Language Γ) :=
   { L | NPComplete (Γ := Γ) L }
+
+/--
+**Theorem (transitivity of `≤_P`).**  Polynomial-time reducibility is
+transitive (CLRS §34.3): if `L₁ ≤_P L₂` and `L₂ ≤_P L₃` then `L₁ ≤_P L₃`,
+by composing the two reductions with `PolyTimeComputable.comp`.
+-/
+theorem PolyTimeReducible.trans {Γ₁ Γ₂ Γ₃ : Type} {L₁ : Language Γ₁} {L₂ : Language Γ₂}
+    {L₃ : Language Γ₃} (h₁₂ : PolyTimeReducible L₁ L₂) (h₂₃ : PolyTimeReducible L₂ L₃) :
+    PolyTimeReducible L₁ L₃ := by
+  rcases h₁₂ with ⟨f, hf, hf_iff⟩
+  rcases h₂₃ with ⟨g, hg, hg_iff⟩
+  refine ⟨g ∘ f, ?comp, ?iff⟩
+  · exact PolyTimeComputable.comp hf hg
+  · intro x
+    change x ∈ L₁ ↔ g (f x) ∈ L₃
+    exact (hf_iff x).trans (hg_iff (f x))
 
 end Chapter34
 
