@@ -1,5 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time
+import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
 import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification
+import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection
 import CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility
 
 /-! # Chapter 34 — NP-Completeness

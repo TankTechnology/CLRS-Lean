@@ -527,6 +527,12 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification",
   "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility",
 ]
+"CLRSLean.Chapter_34.Section_34_1_Polynomial_Time" = [
+  "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition",
+]
+"CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification" = [
+  "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection",
+]
 
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
@@ -1653,8 +1659,14 @@ title = "Chapter 34. NP-Completeness"
 [modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time"]
 title = "34.1. Polynomial Time"
 
+[modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition"]
+title = "34.1. Composition of Polynomial-Time Machines"
+
 [modules."CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification"]
 title = "34.2. Polynomial-Time Verification"
+
+[modules."CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection"]
+title = "34.2. Pair Projection Machine"
 
 [modules."CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility"]
 title = "34.3. NP-Completeness and Reducibility"

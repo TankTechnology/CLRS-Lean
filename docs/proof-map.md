@@ -4614,20 +4614,40 @@ in a legacy initialization module that is also cataloged as online material.
 - Lean sources:
   - `CLRSLean/Chapter_34.lean`
   - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time.lean`
+  - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/Composition.lean`
 - Status: `partial` — green-field NP-completeness formalization on Mathlib's
   `Turing.TM2ComputableInPolyTime` (machine-level polynomial-time
   computability with `Polynomial ℕ` time bounds).
 - Proved results: the framework — `Language` (a set of strings over an
   alphabet), `PolyTimeComputable` (polytime-computable function),
   `PolyTimeDecidable`, `ClassP` (the class of polynomial-time decidable
-  languages), and `mem_ClassP`.
-- Current gap: concrete machine constructions (the empty/universal languages
-  are in `P`), `Turing.TM2ComputableInPolyTime.comp` (polytime-composition
-  closure, left `proof_wanted` by Mathlib), and closure of `ClassP` under
-  complement/union/intersection.
-- Remaining chapter scope: Sections 34.2 (verification / `NP`), 34.3
-  (reducibility / NP-completeness), 34.4--34.5 (specific reductions) are not
+  languages), `mem_ClassP`, `PolyTimeComputable.comp` (composition closure,
+  closing Mathlib's `proof_wanted TM2ComputableInPolyTime.comp` via the
+  shared-stack two-phase `Turing.TM2Comp` construction), and `ClassP_compl`
+  (`P` closed under complement via the `Bool.not` machine).
+- Current gap: `ClassP` closure under union/intersection (needs a parallel
+  run of two deciders on duplicated input); the empty/universal languages.
+- Remaining chapter scope: Sections 34.4--34.5 (specific reductions) are not
   represented.  Open problems (P vs NP) are intentionally out of scope.
+
+### Section 34.2 - Polynomial-Time Verification
+
+- Lean sources:
+  - `CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification.lean`
+  - `CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification/PairProjection.lean`
+- Proved results: `PolyTimeVerifiable`, `ClassNP`, `mem_ClassNP`,
+  `PolyTimeVerifiable.of_decidable` and `ClassP_subset_ClassNP`
+  (`P ⊆ NP`, Theorem 34.2) via the pair-projection machine
+  `Turing.Prj.prjComputableInPolyTime` (a decider is a verifier that ignores
+  the certificate).
+
+### Section 34.3 - NP-Completeness and Reducibility
+
+- Lean sources:
+  - `CLRSLean/Chapter_34/Section_34_3_NP_Completeness_And_Reducibility.lean`
+- Proved results: `PolyTimeReducible`, `NPHard`, `NPComplete`, `ClassNPC`,
+  and `PolyTimeReducible.trans` (transitivity of `≤_P` via the composition
+  closure).
 
 ## Deferred And Blocked Items
 
