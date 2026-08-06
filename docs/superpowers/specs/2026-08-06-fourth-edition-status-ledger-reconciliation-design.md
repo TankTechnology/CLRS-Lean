@@ -106,6 +106,11 @@ The table legend and nearby prose must state that `1326 / 1326` is not a claim
 of complete fourth-edition coverage.  Partial rows should expose a short exact
 gap in the existing remaining-work column rather than a generic warning.
 
+The chapter ledger calls its aggregate `edition_gap_units`: each unresolved
+section in a represented chapter contributes one unit, while a wholly
+unrepresented chapter contributes one aggregate whole-chapter unit.  This is a
+coverage metric, not a count of missing theorem declarations.
+
 ## Sources of truth and generated files
 
 Manual evidence and status changes belong in:

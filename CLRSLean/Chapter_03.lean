@@ -11,9 +11,9 @@ textbook definitions to mathlib's filter-based asymptotics library.
 ## 3.1 Asymptotic Notation
 
 Defines O, Ω, Θ, o, ω as CLRS-style wrappers around mathlib's
-{lit}`=O[atTop]` / {lit}`=o[atTop]`.  Proves equivalence between the CLRS discrete
-definition ({lit}`∃ c n₀`) and the filter-based one.  Collects algebraic
-properties: reflexivity, transitivity, sum and product rules.
+{lit}`=O[atTop]` / {lit}`=o[atTop]`.  Proves discrete witness equivalences for
+O, Ω, o, and ω, while Θ is exposed as O-and-Ω.  Collects algebraic
+properties including reflexivity, transitivity, symmetry, and an addition rule.
 
 ## 3.2 Standard Functions
 

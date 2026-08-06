@@ -6,10 +6,8 @@ Use [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv) to interpret a
 canonical chapter/section and locate its current theorem-bearing source.
 
 For a coarser planning view, see
-[`proof-status-board.md`](proof-status-board.md).  That board groups chapters
-and sections into `main proof completed`, `structured but not complete`, and
-`missing core theorem`, so work does not keep cycling back to already completed
-main-proof areas without a specific refinement goal.
+[`proof-status-board.md`](proof-status-board.md). That board prioritizes named
+fourth-edition coverage gaps without duplicating the generated chapter counts.
 
 ## Edition And Compatibility Policy
 
@@ -110,6 +108,12 @@ arbitrary-size floor/ceiling recurrence.
 
 ## Chapter 3 - Growth of Functions
 
+Fourth-edition mapping: legacy §3.1 supplies fourth-edition §§3.1--3.2, while
+legacy §3.2 supplies fourth-edition §3.3.  Fourth-edition §3.1 and §3.3 are
+represented at the current mathematical interface.  Fourth-edition §3.2 remains
+partial because a shared-threshold two-sided Θ witness and the expected
+little-o/little-omega algebra and duality wrappers are not yet exposed.
+
 ### Section 3.1 - Asymptotic notation
 
 - Lean source: `CLRSLean/Chapter_03/Section_03_1_Asymptotic_Notation.lean`
@@ -121,7 +125,9 @@ arbitrary-size floor/ceiling recurrence.
   - `CLRS.Chapter03.isLittleOmega_iff`
   - `CLRS.Chapter03.isBigTheta_trans`
 - Proof pattern: bridge CLRS discrete witnesses to Mathlib filters
-- Current gap: none for the wrapper interface
+- Current gap: none for the represented O/Ω witness core.  At the broader
+  fourth-edition §3.2 interface, the two-sided Θ witness and o/ω wrapper algebra
+  named above remain.
 
 The section gives CLRS-facing names for O, Ω, Θ, o, and ω over functions
 `ℕ → ℝ`, proves the textbook-style witness forms, and collects basic algebraic
@@ -1504,8 +1510,10 @@ before RAM cost semantics.
 ### Section 13.1 - Red-black trees
 
 - Lean source: `CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean`
-- Status: `proved` for executable insertion and deletion with exact membership
-  correctness, red-black shape preservation, and the logarithmic-height theorem
+- Status: fourth-edition §13.1 is represented through the facade: the
+  color/black-height properties and logarithmic-height theorem are proved.  The
+  same legacy source also supplies functional update layers for §§13.2--13.4,
+  which remain partial at the complete ordered-search-tree interface.
 - Main proved theorems:
   - `CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`
   - `CLRS.Chapter13.RBTree.inTree_rotateRight_iff`
@@ -1583,16 +1591,19 @@ before RAM cost semantics.
   the `splitMin_invariant` and `del_invariant` induction certificates.
 
 The section now has the executable deletion algorithm, its key-set semantics,
-and the composed shape certificate; only optional pointer/RAM refinements
-remain.
+and the composed color/black-height shape certificate.  `RedBlackShape` does not
+include the separately defined `BST` predicate, and there are no BST-preservation
+theorems for rotations, insertion, or deletion.  Those ordered-tree theorems,
+bridges from the textbook pointer/fixup loops to the functional algorithms, and
+execution-attached logarithmic costs remain fourth-edition gaps.
 
 ## Chapter 14 - Augmenting Data Structures
 
 ### Section 14.1 - Order-statistic trees
 
 - Lean source: `CLRSLean/Chapter_14/Section_14_1_Order_Statistic_Trees.lean`
-- Status: `proved` for the order-statistic size augmentation threaded through
-  executable red-black insertion and deletion
+- Status: `partial` at fourth-edition §17.1.  Size augmentation and OS-SELECT are
+  threaded through executable red-black insertion and deletion.
 - Main proved theorems:
   - `CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`
   - `CLRS.Chapter14.OSTree.recomputeSizes_wellSized`
@@ -1663,11 +1674,14 @@ the ideal rank-selection semantics and the augmented selector's connection to
 that ideal semantics on well-sized trees.  The recompute-then-rotate wrappers
 also show that an arbitrary functional tree can be locally prepared for a
 rotation and still expose the same ideal rank-selection behavior afterward.
+OS-RANK, a combined BST/red-black/size invariant through updates, and logarithmic
+query/update cost theorems remain.
 
 ### Section 14.3 - Interval trees and the general augmentation theorem
 
 - Lean source: `CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean`
-- Status: `proved` for the functional well-augmented BST model, the general
+- Status: `partial` at fourth-edition §§17.2--17.3; proved for the static
+  functional well-augmented BST search model, the general
   augmentation theorem (CLRS Theorem 14.1), the value-level red-black
   rotation bridge, and the general executable augmentation interface (an
   arbitrary augmentation threaded through executable red-black insertion and
@@ -1738,12 +1752,25 @@ rotation and still expose the same ideal rank-selection behavior afterward.
   `toRB_join`/`toRB_del` commutations) makes `delete` refine Chapter 13's
   `RBTree.delete`.  The `sizeAug` and `maxHighAug` fields are recovered as
   instances of this single interface.
-- Current gap: none for the generic interface.  The generic deletion pipeline
-  preserves the augmentation invariant (`wellAugmented_delete`) and refines
-  Chapter 13's `RBTree.delete` (`toRB_delete`) for any `Augmentation`; only the
-  optional monoid-based augmentation is deferred.
+- Current gaps: the generic deletion pipeline preserves the augmentation
+  invariant (`wellAugmented_delete`) and refines Chapter 13's functional
+  `RBTree.delete` (`toRB_delete`) for any `Augmentation`, but no theorem derives
+  logarithmic update cost from a constant-time `combine`.  For interval trees,
+  static search correctness and dynamic augmented red-black updates live on
+  separate representations with no combined BST/red-black/max-high or
+  search-after-update bridge; equal-low intervals also lack a distinct-key
+  insertion policy.
 
 ## Chapter 15 - Dynamic Programming
+
+Fourth-edition mapping moves this legacy chapter to Chapter 14.  All four
+represented examples have selected mathematical correctness results, but every
+fourth-edition section remains partial at the algorithm-and-cost boundary:
+§14.1 lacks cut reconstruction and top-down memoization; §14.2 lacks the
+tabulated MATRIX-CHAIN-ORDER algorithm; §14.3 lacks a generic DP/memoization
+interface; §14.4 lacks a tabulated Θ(mn) LCS implementation; and §14.5 lacks a
+public executable e/w/root-table interface.  Proved/tracked completion for the
+selected inventory does not close these section obligations.
 
 ### Section 15.1 - Rod cutting
 
@@ -1818,12 +1845,11 @@ reads are proved equal to the pure recurrence value.
   exactly the candidate cost, is globally optimal, has cost no greater than any
   competing parenthesization of the same interval, and has the same cost as any
   other plan reconstructed from the same tight split table.
-- Current gap: mutable-array/memoized implementation and a RAM cost model remain
-  future refinement targets; the bottom-up cost table (`matrixChainOpt`) and
-  executable split reconstruction (`matrixChainReconstruct`, `matrixChain_correct`)
-  are now proved
-- Current gap: the entire development is now fully computable:
-  `matrixChainOpt` computes the cost table by bottom-up DP,
+- Current gap: a tabulated/memoized implementation and its textbook cost model
+  remain.  The pure recurrence evaluator (`matrixChainOpt`) and executable split
+  reconstruction (`matrixChainReconstruct`, `matrixChain_correct`) are proved.
+  The represented pure development is computable:
+  `matrixChainOpt` evaluates the recurrence,
   `matrixChainSplit` selects the minimal split point via finite-set
   minimization, and `matrixChainReconstruct` builds an optimal parenthesization
   from the split table.
@@ -1870,10 +1896,9 @@ reads are proved equal to the pure recurrence value.
   nonmatching-head one-sided bounds, and proves that a reconstructed common
   subsequence whose length equals a certified table entry is optimal and yields
   a certificate with exactly the table length.
-- Current gap: mutable-array/memoized implementation and a RAM cost model remain
-  future refinement targets; the length-table construction (`lcsLength`) and
-  executable reconstruction algorithm (`lcsReconstruct`, `lcs_correct`) are now
-  proved
+- Current gap: a memoized/tabulated Θ(mn) implementation and its cost theorem
+  remain; the pure recurrence evaluator (`lcsLength`) and executable
+  reconstruction (`lcsReconstruct`, `lcs_correct`) are proved.
 
 ### Section 15.5 - Optimal binary search trees
 
@@ -1885,8 +1910,6 @@ reads are proved equal to the pure recurrence value.
   - `CLRS.Chapter15.OBST.obst_reconstructed_cost_eq`
   - `CLRS.Chapter15.OBST.obst_reconstructed_optimal`
   - `CLRS.Chapter15.OBST.bottomUpOBST_obstRecurrence`
-  - `CLRS.Chapter15.OBST.obstBuildPlan`
-  - `CLRS.Chapter15.OBST.obstBuildPlan_reconstructed`
   - `CLRS.Chapter15.OBST.obst_correct`
 - Proof pattern: represent a BST as an inductive plan over intervals, define
   expected search cost recursively, specify a candidate dynamic-programming
@@ -1894,12 +1917,11 @@ reads are proved equal to the pure recurrence value.
   concrete plan costs at least the recurrence value.  A tight-root certificate
   layer records a root choice that attains the recurrence equality and proves
   that any plan reconstructed from it has exactly the optimum cost.  Finally,
-  give a computable bottom-up function that evaluates the recurrence by interval
-  length and prove that it satisfies the recurrence.
-- Current gap: mutable-array/memoized implementation and a RAM cost model remain
-  future refinement targets; the cost/root-table construction (`obstBuildPlan`)
-  and executable reconstruction algorithm (`obstBuildPlan_reconstructed`,
-  `obst_correct`) are now proved
+  give a computable recurrence evaluator indexed by interval length and prove
+  that it satisfies the recurrence.
+- Current gap: a public executable e/w/root-table construction, reconstruction
+  interface, and cost theorem remain.  The internal witness construction is
+  private; the public `obst_correct` theorem proves existence of an optimal plan.
 
 ## Chapter 16 - Greedy Algorithms
 
@@ -2446,7 +2468,7 @@ claimed.  Together these results close Chapter 18's core correctness groups
 for the current functional model.  Disk pages, pointers, I/O counts, and RAM
 costs remain optional lower-level refinements.
 
-## Chapter 19 - Fibonacci Heaps
+## Legacy Source Chapter 19 - Fibonacci Heaps (Online Material)
 
 - Lean source:
   `CLRSLean/Chapter_19.lean` and
@@ -2727,7 +2749,7 @@ operation-trace telescope bounded by the sum of dynamic per-operation budgets.
   logarithmic-degree core, executable extract-min correctness, and the one-step
   direct-child CUT potential delta are sealed.
 
-## Chapter 20 - van Emde Boas Trees
+## Legacy Source Chapter 20 - van Emde Boas Trees (Online Material)
 
 - Lean source:
   `CLRSLean/Chapter_20.lean`,
@@ -4084,6 +4106,14 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ## Chapter 29 - Linear Programming
 
+The legacy third-edition Sections 29.1--29.5 are main-proof-complete at the
+finite real-matrix/pure-functional layer described below.  Fourth-edition
+Chapter 29 remains partial under the canonical ledger: §29.1 lacks general-form
+normalization and a main-text algorithm wrapper separated from online SIMPLEX;
+§29.2's specialized problem predicates lack finite `StandardLP` encoding and
+preservation bridges; and §29.3's strongest duality declarations still reside
+in a legacy initialization module that is also cataloged as online material.
+
 ### Section 29.1 - Standard and Slack Forms
 
 - Status: `main-proof-complete`.
@@ -4355,8 +4385,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Chapter 30 completion boundary
 
 - Status: `main-proof-complete`.
-- Progress ledger: 46 tracked theorem groups, 46 proved, zero missing core
-  groups.
+- Legacy source inventory: 46 proved theorem groups. The canonical
+  fourth-edition Chapter 30 ledger counts 34 groups; 12 bit-reversal and
+  iterative-FFT groups are recorded separately as online material.
 - Stable interface and closure tests:
   - `Tests/Chapter_30_Interface.lean`
   - `Tests/Chapter_30_DFT_Interface.lean`
@@ -4504,17 +4535,17 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,
   `naiveMatcher_complete`, and the three represented boundary theorems.
-- Remaining chapter scope: Sections 32.2--32.4 (Rabin-Karp, finite automata,
-  and Knuth-Morris-Pratt) are not represented.
+- Remaining fourth-edition chapter scope: Sections 32.2--32.5 (Rabin-Karp,
+  finite automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
 
-## Chapter 33 - Computational Geometry
+## Legacy Source Chapter 33 - Computational Geometry (Online Material)
 
 ### Section 33.1 - Line-Segment Properties
 
 - Lean sources:
   - `CLRSLean/Chapter_33.lean`
   - `CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean`
-- Status: `partial`
+- Status: `online-material` with a partial legacy source boundary
 - Proved results: the point/vector and `Segment` models; six cross-product
   antisymmetry, bilinearity, and self-product theorems; and
   `orientation_spec`.
@@ -4543,7 +4574,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 | Pointer-level linked lists and free lists | `future-work` | Requires an imperative memory model. |
 | BST transplant and parent-pointer navigation | `proved` | `Zipper`-based parent-pointer layer: `searchIter_eq_search`, `transplant_preserves_ordered` (CLRS `TRANSPLANT`), `deleteViaTransplant_eq_delete`, and `successorZipper`/`predecessorZipper` equivalences are all proved. Only pointer-level in-place mutation (RAM) remains. |
 | Chapter 12 executable pointer-level BST | `proved` | Imperative pointer-heap model (`Node` records with `left`/`right`/`parent` cells over a `Std.HashMap` `Store`) with `RepresentsW` heap-to-tree abstraction; in-place `TRANSPLANT` (`transplantChild_left_representsW`/`transplantChild_right_representsW`) and leaf `TREE-INSERT` (`insertPointer_right_representsW`) refine functional subtree replacement. Only an explicit RAM cost model remains. |
-| Chapter 15 DP executable tables | `proved` | Ch 15.1: `bottomUpRodRevenue` executable. Ch 15.2: `matrixChainOpt`, `matrixChainSplit`, `matrixChainReconstruct` all fully computable. Ch 15.4: `lcsLength` and `lcsReconstruct` executable with full optimality proof. Ch 15.5: `bottomUpOBST` executable. |
+| Chapter 15 DP executable tables | `partial` | Only rod cutting has a proved mutable-`Array` bottom-up table. Matrix chain and LCS have pure recurrence/reconstruction functions, and OBST has a pure recurrence evaluator plus an existential public optimality theorem; CLRS-style tables and their costs remain. |
 | B-tree executable deletion semantics | `proved` | For `2 ≤ t`, `composedDelete_keyBag` under `NodeWF` and `composedDeleteRoot_keyBag` under `WellFormed` prove `Multiset.erase` semantics: one requested-key occurrence is removed when present, and an absent request leaves the bag unchanged. `composedDelete_mem_iff_of_ne` and `composedDeleteRoot_mem_iff_of_ne` preserve every different key without `UniqueKeys` or a requested-key-present premise. Raw uniqueness preservation needs `NodeWF + UniqueKeys`; under `WellFormedUnique`, `composedDeleteRoot_not_mem`, `composedDeleteRoot_mem_iff`, `composedDeleteRoot_wellFormedUnique`, `composedDeleteRoot_mem_iff_delete`, and `composedDeleteRoot_search_eq_delete` prove absence, full root membership behavior, combined invariant preservation, and compatibility with specification deletion and membership-oracle search. The bridge does not assert `searchExec` or tree-shape equality. Disk pages, pointers, I/O counts, and RAM costs are optional lower-level refinements. |
 | Fibonacci heap pointer-level model | `deferred-implementation` | All Fibonacci heap operations are specified against an abstract finite-set model; a persistent executable heap forest now proves exact multiset representation, a global validity invariant, minimum-root selection, executable extract-min through equal-degree `CONSOLIDATE`, heap-level direct-child CUT, and the exact CUT potential delta. Cached minimum pointers, stable node identity, handles/arbitrary paths, cascading cuts, executable decrease/delete, actual costs, and circular pointer mutation remain. |
 | Red-black deletion shape | `proved` | `redBlackShape_delete` proves `RedBlackShape` preservation through the composed executable `del`/`delete` pipeline, built on the `baldL_shape`/`baldR_shape` deficit certificates, `splitMin_invariant`, and `del_invariant`.  Exact deletion membership (`inTree_delete_iff`) and `height_log_bound` are also proved. |

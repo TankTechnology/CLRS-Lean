@@ -12,7 +12,7 @@ class FourthEditionSummaryTest(unittest.TestCase):
                 "represented_sections": "Chapter_01",
                 "tracked_key_theorems": "0",
                 "proved_tracked_theorems": "0",
-                "missing_core_groups": "0",
+                "edition_gap_units": "0",
             },
             {
                 "chapter_no": "2",
@@ -20,7 +20,7 @@ class FourthEditionSummaryTest(unittest.TestCase):
                 "represented_sections": "2.1",
                 "tracked_key_theorems": "7",
                 "proved_tracked_theorems": "6",
-                "missing_core_groups": "1",
+                "edition_gap_units": "1",
             },
             {
                 "chapter_no": "3",
@@ -28,7 +28,7 @@ class FourthEditionSummaryTest(unittest.TestCase):
                 "represented_sections": "None",
                 "tracked_key_theorems": "0",
                 "proved_tracked_theorems": "0",
-                "missing_core_groups": "1",
+                "edition_gap_units": "1",
             },
         ]
 
@@ -39,7 +39,9 @@ class FourthEditionSummaryTest(unittest.TestCase):
 
         self.assertIn("fourth-edition", block)
         self.assertIn("2 of 3 chapters", block)
-        self.assertIn("6 proved source-inventory entries", block)
+        self.assertIn("6 / 7 selected source-inventory entries are proved", block)
+        self.assertIn("selected inventory", block)
+        self.assertIn("not a claim of complete fourth-edition section coverage", block)
         self.assertIn("467 additional", block)
         self.assertIn("disjoint from the canonical chapter counts", block)
         self.assertNotIn("pending declaration-level remapping", block)
@@ -54,8 +56,8 @@ class FourthEditionSummaryTest(unittest.TestCase):
                 "represented_sections": "None",
                 "tracked_key_theorems": "0",
                 "proved_tracked_theorems": "0",
-                "missing_core_groups": "1",
-                "remaining_core_groups": "Whole chapter pending",
+                "edition_gap_units": "1",
+                "remaining_edition_gaps": "Whole chapter pending",
             },
         ]
 
@@ -63,6 +65,27 @@ class FourthEditionSummaryTest(unittest.TestCase):
         block = gen_readme_table.build_block_from_rows(rows)
 
         self.assertIn("| 35 | Approximation Algorithms | ⬜ not started |", block)
+
+    def test_progress_table_labels_partial_as_edition_coverage(self) -> None:
+        rows = [
+            {
+                "chapter_no": "3",
+                "chapter_title": "Characterizing Running Times",
+                "repo_status": "partial",
+                "represented_sections": "3.1; 3.2; 3.3",
+                "tracked_key_theorems": "47",
+                "proved_tracked_theorems": "46",
+                "edition_gap_units": "1",
+                "remaining_edition_gaps": "One fourth-edition obligation remains",
+            },
+        ]
+
+        block = gen_readme_table.build_block_from_rows(rows)
+
+        self.assertIn("| Proved / tracked |", block)
+        self.assertIn("🟠 partial coverage | 46 / 47 |", block)
+        self.assertIn("46 of 47 selected theorem entries have kernel-checked proofs", block)
+        self.assertIn("does not by itself claim complete fourth-edition coverage", block)
 
 
 if __name__ == "__main__":
