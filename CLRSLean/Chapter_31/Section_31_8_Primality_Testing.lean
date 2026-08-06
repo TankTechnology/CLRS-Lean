@@ -48,7 +48,8 @@ Main results:
   under the power map); and {lit}`liar_mem_goodSet` shows **every strong liar
   lies in `S(n)`** via the order-of-element parity lemma
   {lit}`two_pow_succ_dvd_orderOf` applied modulo each prime divisor.
-- **The Miller-Rabin error bound (Theorem 31.38; Rabin–Monier)**: counting
+- **The Miller-Rabin error bound (Theorem 31.39, sharpened to `(n−1)/4` by
+  Rabin–Monier)**: counting
   `|S(n)|` via the cyclicity of prime-power unit groups and the CRT, then
   bounding `|S(n)| ≤ (n−1)/4` by the three-case Rabin–Monier analysis.
   Theorems {lit}`goodUnits_card_le` (the subgroup bound, split into prime
@@ -402,8 +403,9 @@ theorem strongPseudoprime_pow {n a : ℕ} (h : strongPseudoprime n a) :
 
 /-! ## Error bound: the good subgroup `S(n)` (Rabin–Monier)
 
-The Miller-Rabin error bound (Theorem 31.38; sharpened by Rabin and Monier)
-states that for odd composite `n`, at most `(n−1)/4` of the bases are strong
+The Miller-Rabin error bound (Theorem 31.39; sharpened to `(n−1)/4` by Rabin
+and Monier) states that for odd composite `n`, at most `(n−1)/4` of the bases
+are strong
 liars.  The proof embeds the liars into a subgroup `S(n)` of the units modulo
 `n` and bounds `|S(n)|`.  This section develops the infrastructure: the units
 of `ZMod n`, the cyclicity of prime-power unit groups (from Mathlib), the
@@ -1963,8 +1965,9 @@ theorem goodUnits_card_le {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
   · exact goodUnits_card_le_of_ge_three (n := n) hn1 hn_odd h3
 
 /--
-**The Miller-Rabin error bound (Theorem 31.38; Rabin–Monier).**  For odd
-composite `n`, at most `(n−1)/4` of the bases in `(Z/nZ)ˣ` are strong liars.
+**The Miller-Rabin error bound (Theorem 31.39; sharpened to `(n−1)/4` by
+Rabin–Monier).**  For odd composite `n`, at most `(n−1)/4` of the bases in
+`(Z/nZ)ˣ` are strong liars.
 Every strong liar lies in the good subgroup `S(n)` (`liar_mem_goodSet`), and
 `|S(n)| ≤ (n−1)/4` (`goodUnits_card_le`).
 -/

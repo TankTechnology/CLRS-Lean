@@ -4181,7 +4181,8 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Lean source: `CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
 - Status: `selected-section-complete`
 - Proved:
-  - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Lemma 31.2):
+  - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Theorem 31.9,
+    the GCD recursion theorem):
     the Euclid recursion `gcd(a, b) = gcd(b mod a, a)` and the base cases.
   - `euclid` + `euclid_eq_gcd` + `euclid_terminates`: the EUCLID algorithm is a
     total, well-founded function and returns `Nat.gcd a b` (via
@@ -4223,7 +4224,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     multiplicative inverse modulo `n`, via `ZMod` units.
   - `mul_left_cancel_mod` (CLRS Theorem 31.9): cancellation in `Z_n` when
     `gcd(c,n)=1`.
-  - `modular_linear_solvable` (CLRS Theorem 31.11): `a·x ≡ b (mod n)` is
+  - `modular_linear_solvable` (CLRS Corollary 31.21): `a·x ≡ b (mod n)` is
     solvable iff `gcd(a,n) ∣ b`, via the `ZMod` quotient hom and Bezout.
 
 ### Section 31.4 - Solving Modular Linear Equations
@@ -4253,9 +4254,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 - Proved:
   - `modularExponentiation` + `modularExponentiation_spec` (CLRS
     MODULAR-EXPONENTIATION).
-  - `fermat_little_theorem` (CLRS Theorem 31.30): prime `p` gives
+  - `fermat_little_theorem` (CLRS Theorem 31.31): prime `p` gives
     `a^p ≡ a (mod p)`, via `ZMod.pow_card`.
-  - `euler_theorem`: `gcd(a,n)=1` gives `a^φ(n) ≡ 1 (mod n)`.
+  - `euler_theorem` (CLRS Theorem 31.30): `gcd(a,n)=1` gives `a^φ(n) ≡ 1 (mod n)`.
 
 ### Section 31.7 - The RSA Public-Key Cryptosystem
 
@@ -4302,7 +4303,8 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     the `s < r` / `s = r` sub-cases and the key lemma that `d_p | t ∧ d_q | t`
     forces `p = q`), and `≥ 3` prime factors.  Hence `strongLiars_card_le`:
     **at most `(n−1)/4` of the bases are strong liars for odd composite `n`**
-    (Theorem 31.38).  Deferred: the random-witness analysis.
+    (Theorem 31.39, sharpened to `(n−1)/4` by Rabin–Monier).  Deferred: the
+    random-witness analysis.
 
 ### Section 31.9 - Integer Factorization
 
