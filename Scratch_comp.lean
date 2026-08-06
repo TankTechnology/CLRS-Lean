@@ -791,9 +791,12 @@ all fire.  The two alphabet cases are isolated as
 `compOutputAlphabet_invFun_no_reuse` (`k₀₂ ≠ k₁₂`, round-trips to
 `outputAlphabet₂.symm`).
 
-**Next**: assemble `TM2ComputableInPolyTime.comp`'s `outputsFun` from
-`mapCfg₁_init`, `mapCfg₁_halt_eq`, `mapCfg₂_halt_eq` via `evalsTo_lift` and the
-`compTime` bound.
+**Done**: `comp_outputsFun` assembles the run (phase 1 via `mapCfg₁`, meeting
+`mapCfg₁_halt_eq`, phase 2 via `mapCfg₂`, closing with `mapCfg₂_halt_eq`,
+chained by `EvalsToInTime.trans`) and bounds the total time by `compTime` using
+`Polynomial.eval_mono_nat` (new: `eval` on `Polynomial ℕ` is monotone) plus
+`evalsTo_out_len_le`.  `TM2ComputableInPolyTime.comp_scratch` proves Mathlib's
+`proof_wanted TM2ComputableInPolyTime.comp` (axiom-clean).
 -/
 
 /-- The phase-1 start configuration. -/
@@ -918,6 +921,103 @@ lemma mapCfg₂_halt_eq (a : α) :
             · subst k'
               simp [mapCfg₂, stk₂, compk₁, h, hk, haltList]
             · simp [mapCfg₂, stk₂, compk₁, h, hk, hk2, haltList]
+
+/-- `eval` on `Polynomial ℕ` is monotone: coefficients and arguments are
+nonnegative, so raising the input can only raise the value. -/
+lemma Polynomial.eval_mono_nat {p : Polynomial ℕ} {n m : ℕ} (hnm : n ≤ m) :
+    p.eval n ≤ p.eval m := by
+  rw [Polynomial.eval_eq_sum, Polynomial.eval_eq_sum]
+  apply Finset.sum_le_sum
+  intro e he
+  exact Nat.mul_le_mul_left _ (Nat.pow_le_pow_left hnm e)
+
+/-- The combined machine's `outputsFun`: phase 1 runs `h1` (`mapCfg₁`), phase 2
+runs `h2` (`mapCfg₂`), and the two phases meet at `mapCfg₁_halt_eq`; the total
+time is bounded by `compTime`. -/
+def comp_outputsFun (a : α) :
+    TM2OutputsInTime (compMachine h1 h2)
+      (List.map (compInputAlphabet h1 h2).invFun (eα a))
+      (some (List.map (compOutputAlphabet h1 h2).invFun (eγ (g (f a)))))
+      ((compTime h1 h2).eval (eα a).length) := by
+  let n := (eα a).length
+  let M := maxPushCount₁ h1
+  let m₁ := (h1.time).eval n
+  let m₂ := (h2.time).eval (eβ (f a)).length
+  let init₁ := initList (h1.tm) (List.map h1.inputAlphabet.invFun (eα a))
+  let halt₁ := haltList (h1.tm) (List.map h1.outputAlphabet.invFun (eβ (f a)))
+  let init₂ := initList (h2.tm) (List.map h2.inputAlphabet.invFun (eβ (f a)))
+  let halt₂ := haltList (h2.tm) (List.map h2.outputAlphabet.invFun (eγ (g (f a))))
+  let initC := initList (compMachine h1 h2) (List.map (compInputAlphabet h1 h2).invFun (eα a))
+  let haltC := haltList (compMachine h1 h2) (List.map (compOutputAlphabet h1 h2).invFun (eγ (g (f a))))
+  change EvalsToInTime (compMachine h1 h2).step initC (some haltC) ((compTime h1 h2).eval n)
+
+  -- phase 1
+  have hr₁ : EvalsToInTime (h1.tm).step init₁ (some halt₁) m₁ := by
+    exact h1.outputsFun a
+  have hstop₁ : (h1.tm).step halt₁ = none := by
+    rfl
+  have hlift₁ :
+      EvalsToInTime (compMachine h1 h2).step (mapCfg₁ h1 h2 init₁) (some (mapCfg₁ h1 h2 halt₁)) m₁ :=
+    evalsToInTime_lift (mapCfg₁ h1 h2) hr₁ hstop₁ (stepC_sim₁ h1 h2)
+  have hmid : mapCfg₁ h1 h2 halt₁ = mapCfg₂ h1 h2 init₂ := mapCfg₁_halt_eq h1 h2 a
+  have hlift₁' :
+      EvalsToInTime (compMachine h1 h2).step (mapCfg₁ h1 h2 init₁) (some (mapCfg₂ h1 h2 init₂)) m₁ := by
+    rwa [hmid] at hlift₁
+
+  -- phase 2
+  have hr₂ : EvalsToInTime (h2.tm).step init₂ (some halt₂) m₂ := by
+    exact h2.outputsFun (f a)
+  have hstop₂ : (h2.tm).step halt₂ = none := by
+    rfl
+  have hlift₂ :
+      EvalsToInTime (compMachine h1 h2).step (mapCfg₂ h1 h2 init₂) (some (mapCfg₂ h1 h2 halt₂)) m₂ :=
+    evalsToInTime_lift (mapCfg₂ h1 h2) hr₂ hstop₂ (stepC_sim₂ h1 h2)
+  have hend : mapCfg₂ h1 h2 halt₂ = haltC := mapCfg₂_halt_eq h1 h2 a
+  have hlift₂' : EvalsToInTime (compMachine h1 h2).step (mapCfg₂ h1 h2 init₂) (some haltC) m₂ := by
+    rwa [hend] at hlift₂
+
+  -- chain the phases
+  have hrun :
+      EvalsToInTime (compMachine h1 h2).step (mapCfg₁ h1 h2 init₁) (some haltC) (m₂ + m₁) :=
+    EvalsToInTime.trans (compMachine h1 h2).step m₁ m₂ (mapCfg₁ h1 h2 init₁) (mapCfg₂ h1 h2 init₂)
+      (some haltC) hlift₁' hlift₂'
+  have hinit : initC = mapCfg₁ h1 h2 init₁ := (mapCfg₁_init h1 h2 a).symm
+  have hrun' : EvalsToInTime (compMachine h1 h2).step initC (some haltC) (m₂ + m₁) := by
+    rw [hinit]
+    exact hrun
+
+  -- time bound
+  have hsteps₁ : (h1.outputsFun a).toEvalsTo.steps ≤ m₁ := by
+    simpa [m₁, n] using (h1.outputsFun a).steps_le_m
+  have hlen₁ : (List.map h1.outputAlphabet.invFun (eβ (f a))).length = (eβ (f a)).length := by
+    simp
+  have hle₁ := evalsTo_out_len_le h1 a
+  have hmul₁ : maxPushCount₁ h1 * (h1.outputsFun a).toEvalsTo.steps ≤ maxPushCount₁ h1 * m₁ := by
+    exact Nat.mul_le_mul_left (maxPushCount₁ h1) hsteps₁
+  have hL : (eβ (f a)).length ≤ n + M * m₁ := by
+    dsimp [M, n]
+    rw [hlen₁] at hle₁
+    omega
+  have hm₂ : m₂ ≤ (h2.time).eval (n + M * m₁) := by
+    dsimp [m₂]
+    exact Polynomial.eval_mono_nat hL
+  have hcomp : (compTime h1 h2).eval n = m₁ + (h2.time).eval (n + M * m₁) := by
+    dsimp [m₁, M, compTime]
+    simp [Polynomial.eval_add, Polynomial.eval_comp, Polynomial.eval_X, Polynomial.eval_natCast_mul]
+  have hbound : m₂ + m₁ ≤ (compTime h1 h2).eval n := by
+    omega
+  exact { hrun' with steps_le_m := le_trans hrun'.steps_le_m hbound }
+
+/-- The composition of two polytime TM2 machines is polytime.  This is Mathlib's
+`proof_wanted TM2ComputableInPolyTime.comp`. -/
+theorem TM2ComputableInPolyTime.comp_scratch
+    (h1 : TM2ComputableInPolyTime eα eβ f) (h2 : TM2ComputableInPolyTime eβ eγ g) :
+    Nonempty (TM2ComputableInPolyTime eα eγ (g ∘ f)) := by
+  exact ⟨{ tm := compMachine h1 h2,
+           inputAlphabet := compInputAlphabet h1 h2,
+           outputAlphabet := compOutputAlphabet h1 h2,
+           time := compTime h1 h2,
+           outputsFun := comp_outputsFun h1 h2 }⟩
 
 end ScratchComp
 
