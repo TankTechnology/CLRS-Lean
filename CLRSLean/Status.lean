@@ -30,6 +30,10 @@ chapter; {lit}`docs/migrations/clrs4.md` records the current mapping.
 * {lit}`not-started`: no section is represented in the canonical chapter.
 * {lit}`expository`: a guide page with no theorem target.
 
+The proved/tracked fraction is a selected proof-inventory metric.  Even a
+complete fraction can accompany {lit}`partial` when the fourth-edition map names
+an obligation that has not yet been selected into that inventory.
+
 ## Fourth-Edition Snapshot
 
 The canonical ledger contains 35 chapter rows.  Thirty chapters currently reuse
@@ -39,20 +43,28 @@ counts, so this prose does not freeze a completed-prefix milestone.
 
 The edition map currently records these fourth-edition gaps:
 
-* **Chapter 3, Characterizing Running Times:** Sections 3.1--3.2 are partial.
+* **Chapter 3, Characterizing Running Times:** Section 3.2 remains partial at
+  the formal asymptotic-interface boundary; §§3.1 and 3.3 are represented.
 * **Chapter 4, Divide-and-Conquer:** Sections 4.1 and 4.6 are partial; Section
   4.7 is not started.  Maximum subarray is retained as online material.
 * **Chapter 7, Quicksort:** Section 7.4 remains partial.
 * **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
 * **Chapter 11, Hash Tables:** Section 11.5 is not started in the canonical
   chapter; the old perfect-hashing development is supplementary material.
-* **Chapter 13, Red-Black Trees:** Sections 13.3--13.4 remain partial.
-* **Chapter 14, Dynamic Programming:** Section 14.3 remains partial.
+* **Chapter 13, Red-Black Trees:** Sections 13.2--13.4 remain partial because the
+  color/black-height shape results are not yet combined with BST preservation
+  and textbook update/cost refinements.
+* **Chapter 14, Dynamic Programming:** all five sections remain partial at the
+  tabulated/memoized algorithm and cost boundary; §14.3 additionally lacks a
+  generic dynamic-programming interface.
 * **Chapter 15, Greedy Algorithms:** Section 15.4, offline caching, is not
   started; retained matroid and task-scheduling results are supplementary.
-* **Chapter 17, Augmenting Data Structures:** Section 17.2 remains partial.
-* **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial at the
-  fourth-edition boundary; detailed SIMPLEX material remains available online.
+* **Chapter 17, Augmenting Data Structures:** all three sections remain partial:
+  OS-RANK, the augmentation-cost theorem, and the dynamic/static interval-tree
+  bridge are the principal gaps.
+* **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial for
+  general-form normalization, finite formulation bridges, and canonical
+  declaration ownership; detailed SIMPLEX material remains available online.
 * **Chapter 32, String Matching:** Section 32.1 is represented; Sections
   32.2--32.5 are not started.
 

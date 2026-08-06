@@ -89,8 +89,9 @@ python3 scripts/check_edition_map.py
    remaining-work prose was generic/stale.
 2. Keep `tracked_key_theorems` and `proved_tracked_theorems` unchanged unless
    source-inventory evidence shows a counting error.
-3. Set `missing_core_groups` to zero only when the map contains no `partial` or
-   `not-started` section for that chapter.
+3. Set `edition_gap_units` to zero only when the map contains no `partial` or
+   `not-started` section for that chapter.  One unresolved represented section
+   is one unit; a wholly unrepresented chapter is one aggregate unit.
 4. Regenerate the progress dashboard.
 5. Run focused progress validation and tests.
 

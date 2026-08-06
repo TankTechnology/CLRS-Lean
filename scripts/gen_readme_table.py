@@ -34,7 +34,7 @@ BADGE = {
     "main-proof-complete": "🟢 complete",
     "main-proof-complete-for-correctness": "🟢 correctness",
     "selected-section-complete": "🟡 sections",
-    "partial": "🟠 partial",
+    "partial": "🟠 partial coverage",
     "not-started": "⬜ not started",
     "expository": "⚪ guide",
 }
@@ -57,13 +57,15 @@ def build_snapshot_block(
     represented = sum(
         row["represented_sections"].lower() != "none" for row in rows
     )
+    tracked = sum(int(row["tracked_key_theorems"]) for row in rows)
     proved = sum(int(row["proved_tracked_theorems"]) for row in rows)
     return "\n".join(
         [
             SNAPSHOT_BEGIN,
             "> **Fourth-edition snapshot.**",
             f"> {represented} of {len(rows)} chapters have canonical represented content.",
-            f"> {proved:,} proved source-inventory entries are mapped into the fourth-edition ledger.",
+            f"> {proved:,} / {tracked:,} selected source-inventory entries are proved and mapped into the fourth-edition ledger.",
+            "> This selected inventory is not a claim of complete fourth-edition section coverage.",
             f"> {online_material_theorems:,} additional entries remain available through the",
             "> machine-readable online-material catalog. They are disjoint from the canonical chapter counts;",
             "> compatibility imports do not duplicate either ledger.",
@@ -76,29 +78,32 @@ def build_block_from_rows(rows: list[dict[str, str]]) -> str:
     lines = [
         BEGIN,
         "",
-        "| Ch | Title | Status | Theorems | Core remaining |",
-        "|---:|-------|--------|-------:|----------------|",
+        "| Ch | Title | Status | Proved / tracked | Edition gaps |",
+        "|---:|-------|--------|------------------:|----------------|",
     ]
-    total = 0
+    total_proved = 0
+    total_tracked = 0
     for r in rows:
         ch = int(r["chapter_no"])
-        total += int(r["proved_tracked_theorems"])
+        total_proved += int(r["proved_tracked_theorems"])
+        total_tracked += int(r["tracked_key_theorems"])
         status = BADGE.get(r["repo_status"], r["repo_status"])
         remaining = (
             "—"
-            if int(r["missing_core_groups"]) == 0
-            else short(r["remaining_core_groups"])
+            if int(r["edition_gap_units"]) == 0
+            else short(r["remaining_edition_gaps"])
         )
         lines.append(
             f"| {ch} | {r['chapter_title']} | {status} | "
-            f"{r['proved_tracked_theorems']} | {remaining} |"
+            f"{r['proved_tracked_theorems']} / {r['tracked_key_theorems']} | {remaining} |"
         )
     represented = sum(r["repo_status"] != "not-started" for r in rows)
     lines += [
         "",
-        f"**Total: {total} kernel-checked theorem entries across {represented} "
-        "represented fourth-edition chapters** "
-        "(no `sorry`/`admit`/axiom on `main`).",
+        f"**Total: {total_proved} of {total_tracked} selected theorem entries have "
+        f"kernel-checked proofs across {represented} represented fourth-edition chapters** "
+        "(no `sorry`/`admit`/project axiom on `main`). This does not by itself claim "
+        "complete fourth-edition coverage.",
         END,
     ]
     return "\n".join(lines)

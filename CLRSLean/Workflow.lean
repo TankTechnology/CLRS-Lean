@@ -107,12 +107,12 @@ Rule of thumb:
 
 * new public theorem group: increment {lit}`tracked_key_theorems` and
   {lit}`proved_tracked_theorems`;
-* closed gap: reduce {lit}`missing_core_groups`, update {lit}`repo_status`, and
-  move the item from {lit}`remaining_core_groups` to
+* closed gap: reduce {lit}`edition_gap_units`, update {lit}`repo_status`, and
+  move the item from {lit}`remaining_edition_gaps` to
   {lit}`proved_key_theorem_groups`;
 * new chapter or section page: update {lit}`represented_sections`,
   {lit}`evidence_source`, {lit}`literate.toml`, and the chapter guide page;
-* deferred or blocked theorem group: record it in {lit}`remaining_core_groups`
+* deferred or blocked theorem group: record it in {lit}`remaining_edition_gaps`
   instead of silently dropping it.
 
 Regenerate the dashboard after changing the CSV:

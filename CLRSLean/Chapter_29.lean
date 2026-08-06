@@ -61,10 +61,10 @@ import CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution.Gene
 /-!
 # Chapter 29 - Linear Programming
 
-Chapter 29 develops linear-programming representations, SIMPLEX, and duality.
-The represented main-text stack covers all five sections and connects the
-textbook formulations to a terminating, initialized SIMPLEX procedure and the
-duality theorems.
+This legacy third-edition Chapter 29 develops linear-programming
+representations, SIMPLEX, and duality.  Its represented third-edition main-text
+stack covers all five legacy sections and connects the textbook formulations to
+a terminating, initialized SIMPLEX procedure and the duality theorems.
 
 ## Represented sections
 
@@ -82,12 +82,16 @@ duality theorems.
   feasibility criterion, objective restoration, phase II, and the certified
   three-way initialized solver.
 
-## Completion boundary
+## Legacy third-edition completion boundary
 
-The main text is complete at the finite real-matrix and pure functional
-algorithm layer.  Low-level mutable tableau storage, floating-point numerical
-analysis, RAM constants, exercises, and chapter-end problems are optional
-refinements and do not reopen this proof boundary.
+The legacy third-edition main text is complete at the finite real-matrix and pure
+functional algorithm layer.  Low-level mutable tableau storage, floating-point
+numerical analysis, RAM constants, exercises, and chapter-end problems are
+optional refinements and do not reopen this legacy proof boundary.
+
+The canonical fourth-edition ledger remains partial until the main-text/online declaration
+ownership is separated and the fourth-edition normalization and formulation
+bridges named in {lit}`docs/clrs-fourth-edition-map.csv` are proved.
 -/
 
 namespace CLRS

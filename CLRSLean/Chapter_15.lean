@@ -13,9 +13,9 @@ optimal binary search trees.  For rod cutting and OBST, the chapter records both
 the Bellman recurrence layer and an executable recurrence-valued function.  For
 matrix-chain multiplication and LCS, the chapter records table/reconstruction
 certificates, recurrence wrappers on certified LCS tables, direct recurrence
-consequences for matching and nonmatching LCS heads, and pure executable table
-and reconstruction algorithms.  Concrete mutable-array implementations remain
-future refinements.
+consequences for matching and nonmatching LCS heads, and pure recurrence and
+reconstruction functions.  Except for rod cutting's array refinement, these are
+not yet the tabulated CLRS algorithms or their textbook cost models.
 
 ## Sections
 
@@ -69,12 +69,16 @@ future refinements.
 
 The current files prove mathematical optimality interfaces for rod cutting,
 matrix-chain multiplication, LCS, and optimal binary search trees.  Rod cutting
-and OBST have executable recurrence-valued functions, while matrix chain, LCS,
-and OBST expose proved pure reconstruction procedures.  Rod cutting additionally
+and OBST have executable recurrence-valued functions, while matrix chain and LCS
+expose proved pure reconstruction procedures.  OBST's public result is an
+existential optimal-plan theorem backed by a private witness construction.  Rod
+cutting additionally
 has a mutable-{lit}`Array` bottom-up table ({lit}`CLRS.Chapter15.rodRevenueArray`)
-with a refinement theorem to the pure recurrence value; the sibling DP sections
-follow the same pattern.  Top-down memoized mutation and RAM-cost semantics remain
-future refinements.
+with a refinement theorem to the pure recurrence value.  The other examples use
+pure recurrence evaluators or reconstruction certificates rather than proved
+CLRS-style tabulated implementations.  Missing central layers include generic
+optimal-substructure/memoization interfaces, top-down cache correctness,
+matrix-chain/LCS/OBST table algorithms, and their textbook cost bounds.
 -/
 
 namespace CLRS

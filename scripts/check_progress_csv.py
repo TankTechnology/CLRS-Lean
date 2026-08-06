@@ -25,10 +25,10 @@ HEADER = [
     "represented_sections",
     "tracked_key_theorems",
     "proved_tracked_theorems",
-    "missing_core_groups",
+    "edition_gap_units",
     "completion_read",
     "proved_key_theorem_groups",
-    "remaining_core_groups",
+    "remaining_edition_gaps",
     "evidence_source",
     "notes",
 ]
@@ -41,6 +41,14 @@ STATUS_ORDER = [
     "not-started",
     "expository",
 ]
+
+MIGRATION_STATES = {
+    "native",
+    "facade",
+    "partial",
+    "not-started",
+    "online-material",
+}
 
 def load_rows() -> list[dict[str, str]]:
     with CSV_PATH.open(newline="", encoding="utf-8") as handle:
@@ -65,7 +73,12 @@ def chapter_contracts(
     """Build the chapter-level progress contract from the fourth-edition map."""
     grouped: dict[int, list[dict[str, str]]] = {}
     for map_row in load_map_rows() if map_rows is None else map_rows:
-        if map_row.get("migration_state") == "online-material":
+        state = map_row.get("migration_state", "")
+        require(
+            state in MIGRATION_STATES,
+            f"Fourth-edition map has unknown migration_state {state!r}: {map_row}",
+        )
+        if state == "online-material":
             continue
         try:
             chapter_no = int(map_row["chapter_no"])
@@ -86,6 +99,11 @@ def chapter_contracts(
             f"Chapter {chapter_no}: fourth-edition map titles disagree",
         )
         states = {row["migration_state"] for row in chapter_rows}
+        gap_sections = tuple(
+            row["section_no"]
+            for row in chapter_rows
+            if row["migration_state"] in {"partial", "not-started"}
+        )
         represented_sections = tuple(
             row["section_no"]
             for row in chapter_rows
@@ -104,14 +122,18 @@ def chapter_contracts(
         )
         if not represented_sections:
             required_status = "not-started"
+            required_edition_gap_units = 1
         elif states.intersection({"partial", "not-started"}):
             required_status = "partial"
+            required_edition_gap_units = len(gap_sections)
         else:
             required_status = None
+            required_edition_gap_units = 0
         contracts[chapter_no] = {
             "title": titles.pop(),
             "represented_sections": represented_sections,
             "required_status": required_status,
+            "required_edition_gap_units": required_edition_gap_units,
             "guide": Path(f"CLRSLean/FourthEdition/Chapter_{chapter_no:02d}.lean"),
             "source_modules": source_modules,
         }
@@ -171,7 +193,7 @@ def validate(rows: list[dict[str, str]]) -> None:
 
         tracked = int_field(row, "tracked_key_theorems")
         proved = int_field(row, "proved_tracked_theorems")
-        missing_core_groups = int_field(row, "missing_core_groups")
+        edition_gap_units = int_field(row, "edition_gap_units")
         require(proved <= tracked, f"Chapter {chapter_no}: proved theorem count exceeds tracked count")
 
         for key in ("chapter_title", "repo_status", "completion_read", "evidence_source"):
@@ -198,9 +220,27 @@ def validate(rows: list[dict[str, str]]) -> None:
             )
         if row["repo_status"] in {"partial", "not-started"}:
             require(
-                missing_core_groups > 0,
+                edition_gap_units > 0,
                 f"Chapter {chapter_no}: {row['repo_status']} rows must have "
-                "positive missing_core_groups",
+                "positive edition_gap_units",
+            )
+        require(
+            edition_gap_units == contract["required_edition_gap_units"],
+            f"Chapter {chapter_no}: edition_gap_units must equal the "
+            f"{contract['required_edition_gap_units']} edition-map coverage-gap units, "
+            f"found {edition_gap_units}",
+        )
+        if edition_gap_units == 0:
+            require(
+                row["remaining_edition_gaps"] == "None",
+                f"Chapter {chapter_no}: zero-gap rows must use "
+                "remaining_edition_gaps=None; move optional refinements to notes",
+            )
+        else:
+            require(
+                row["remaining_edition_gaps"].strip() not in {"", "None"},
+                f"Chapter {chapter_no}: positive-gap rows must describe "
+                "remaining_edition_gaps",
             )
 
         if row["repo_status"] == "not-started":
@@ -257,7 +297,7 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
     represented = sum(1 for row in rows if row["represented_sections"].lower() != "none")
     tracked = sum(int(row["tracked_key_theorems"]) for row in rows)
     proved = sum(int(row["proved_tracked_theorems"]) for row in rows)
-    missing = sum(int(row["missing_core_groups"]) for row in rows)
+    gap_units = sum(int(row["edition_gap_units"]) for row in rows)
     lines: list[str] = [
         "/-!",
         "# Progress Dashboard",
@@ -280,14 +320,18 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
         f"* Tracked reader-facing theorem entries: {tracked:,}.",
         f"* Proved tracked theorem entries: {proved:,}.",
         f"* Online/supplementary theorem entries: {ONLINE_MATERIAL_TRACKED_THEOREMS:,}.",
-        f"* Remaining core theorem groups: {missing}.",
+        f"* Remaining edition-coverage units: {gap_units}.",
         "",
-        "Tracked theorem entries are reviewed groups mapped to represented fourth-edition",
-        "sections.  Moved subsections and wholly excluded legacy chapters are counted only",
+        "Tracked theorem entries form a selected proof inventory of reviewed groups mapped",
+        "to represented fourth-edition sections.  A complete proved/tracked count does not",
+        "by itself mean that every fourth-edition section obligation is covered.  Moved",
+        "subsections and wholly excluded legacy chapters are counted only",
         "in the machine-readable online-material ledger.  This produces disjoint canonical and online-material ledgers;",
         "compatibility imports do not duplicate either count.",
-        "Remaining core theorem groups count textbook-facing targets that are not yet",
-        "represented or not yet complete.",
+        "An edition-coverage unit is one unresolved section in a represented chapter,",
+        "or one whole-chapter unit when no section of that chapter is represented.",
+        f"The status {lit('partial')} means partial fourth-edition coverage, even when",
+        "every theorem already selected for that chapter is proved.",
         "",
         "## Status Counts",
         "",
@@ -304,24 +348,28 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
             "## Chapter Matrix",
             "",
             "```",
-            "Ch  Chapter                                                     Status                               Sections                      Tracked  Missing",
-            "--  ----------------------------------------------------------  -----------------------------------  ----------------------------  -------  -------",
+            "Ch  Chapter                                                     Status                               Sections                      Tracked  Gap units",
+            "--  ----------------------------------------------------------  -----------------------------------  ----------------------------  -------  ---------",
         ]
     )
 
     for row in rows:
         chapter = f"{row['chapter_no']}. {row['chapter_title']}"[:58]
-        status = row["repo_status"][:35]
+        status = (
+            "partial (edition coverage)"
+            if row["repo_status"] == "partial"
+            else row["repo_status"]
+        )[:35]
         sections = clean_sections(row["represented_sections"])[:28]
         tracked_count = row["tracked_key_theorems"]
-        missing_count = row["missing_core_groups"]
+        gap_count = row["edition_gap_units"]
         lines.append(
             f"{int(row['chapter_no']):>2}  "
             f"{chapter:<58}  "
             f"{status:<35}  "
             f"{sections:<28}  "
             f"{tracked_count:>7}  "
-            f"{missing_count:>7}"
+            f"{gap_count:>7}"
         )
 
     lines.extend(

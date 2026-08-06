@@ -12,7 +12,12 @@ During the compatibility period this guide imports {lit}`CLRSLean.Chapter_29`. E
 
 ## Coverage boundary
 
-The modeling and duality developments are reused. Detailed simplex material is retained as Online Material rather than fourth-edition main-text coverage.
+The modeling and duality developments are reused, while detailed SIMPLEX remains
+online material.  The chapter is still partial: §29.1 lacks a general-form
+normalization and a canonical main-text algorithm wrapper; §29.2 lacks finite
+{lit}`StandardLP` encoding/refinement bridges for the specialized formulations;
+and §29.3's strongest duality declarations still live in a legacy initialization
+module that is also assigned to the online-material ledger.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

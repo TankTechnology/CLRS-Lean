@@ -12,7 +12,11 @@ During the compatibility period this guide imports {lit}`CLRSLean.Chapter_13`. E
 
 ## Coverage boundary
 
-The existing red-black-tree invariant and transformation development is reused.
+The existing color/black-height invariant, logarithmic-height theorem, and
+functional insertion/deletion developments are reused.  The chapter remains
+partial because {lit}`RedBlackShape` does not contain the separate BST ordering
+invariant: BST/inorder preservation for rotations and updates, textbook
+fixup-loop refinement, and logarithmic execution-cost theorems remain.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
