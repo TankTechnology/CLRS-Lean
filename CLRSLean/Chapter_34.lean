@@ -1,4 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time
+import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification
+import CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -21,17 +23,31 @@ polynomial-time computability with `Polynomial ℕ` time bounds).
   polynomial-time decision function
 * `CLRS.Chapter34.ClassP` — the class of polynomial-time decidable languages
 
-**Status: `partial`** — the framework definitions are in place.  The following
-are documented follow-ups (deliberately deferred, per the session plan):
+### 34.2 Polynomial-Time Verification
 
-- Concrete machine constructions: the empty/universal languages are in `P`
-  (a TM2 machine must clear its input stack before halting).
+* `CLRS.Chapter34.pairEncoding` — encode a certificate/input pair as one string
+* `CLRS.Chapter34.PolyTimeVerifiable` — a language verifiable by a
+  polynomial-time verifier with polynomial-size certificates
+* `CLRS.Chapter34.ClassNP` — the class of polynomially verifiable languages
+
+### 34.3 NP-Completeness and Reducibility
+
+* `CLRS.Chapter34.PolyTimeReducible` — `L₁ ≤_P L₂`, polynomial-time
+  reducibility
+* `CLRS.Chapter34.NPHard` / `NPComplete` — the NP-hard / NP-complete classes
+* `CLRS.Chapter34.ClassNPC` — the class of NP-complete languages
+
+**Status: `partial`** — the complete framework (languages, polytime,
+class `P`, class `NP`, reducibility, NP-hard/NP-complete) is defined.  The
+following theorem layer is the documented next milestone:
+
 - `Turing.TM2ComputableInPolyTime.comp`: composition of polynomial-time
-  machines is polynomial-time (Mathlib leaves this as `proof_wanted`).
+  machines is polynomial-time (Mathlib leaves this as `proof_wanted`; the
+  combined-machine construction is partially developed).  Unlocks `P ⊆ NP`
+  and the transitivity of `PolyTimeReducible`.
+- Concrete machine constructions (the empty/universal languages are in `P`).
 - Closure of `ClassP` under complement, union, and intersection.
-- **34.2** verification / certificates / `NP`, and `P ⊆ NP`.
-- **34.3** polynomial-time reducibility `≤_P`, its transitivity, and the
-  definitions of NP-hard / NP-complete.
+- `P ⊆ NP` and the NP-completeness characterization theorem.
 
 Open problems (whether `P = NP`) and the specific NP-completeness reductions
 (34.4–34.5: CIRCUIT-SAT, SAT, 3-CNF-SAT, CLIQUE, VERTEX-COVER, HAM-CYCLE,

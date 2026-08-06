@@ -16,10 +16,10 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 31.
-* Tracked reader-facing theorem entries: 1,329.
-* Proved tracked theorem entries: 1,329.
+* Tracked reader-facing theorem entries: 1,331.
+* Proved tracked theorem entries: 1,331.
 * Online/supplementary theorem entries: 467.
-* Remaining edition-coverage units: 34.
+* Remaining edition-coverage units: 32.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -79,7 +79,7 @@ Ch  Chapter                                                     Status          
 31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       17        0
 32  32. String Matching                                         partial (edition coverage)           32.1                               19        4
 33  33. Machine-Learning Algorithms                             not-started                          not represented                     0        1
-34  34. NP-Completeness                                         partial (edition coverage)           34.1                                1        4
+34  34. NP-Completeness                                         partial (edition coverage)           34.1;34.2;34.3                      3        2
 35  35. Approximation Algorithms                                not-started                          not represented                     0        1
 ```
 

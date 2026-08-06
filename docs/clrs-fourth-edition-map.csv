@@ -125,8 +125,8 @@ chapter_no,section_no,chapter_title,section_title,migration_state,source_modules
 33,33.2,Machine-Learning Algorithms,Multiplicative-weights algorithms,not-started,none,none,No canonical theorem-bearing source is promoted for this fourth-edition section yet.
 33,33.3,Machine-Learning Algorithms,Gradient descent,not-started,none,none,No canonical theorem-bearing source is promoted for this fourth-edition section yet.
 34,34.1,NP-Completeness,Polynomial time,native,CLRSLean.Chapter_34.Section_34_1_Polynomial_Time,CLRS Lean native (no legacy source),"Section 34.1 framework (languages, polytime, class P) defined; machine-construction theorems and closure properties pending."
-34,34.2,NP-Completeness,Polynomial-time verification,not-started,none,none,No canonical theorem-bearing source is promoted for this fourth-edition section yet.
-34,34.3,NP-Completeness,NP-completeness and reducibility,not-started,none,none,No canonical theorem-bearing source is promoted for this fourth-edition section yet.
+34,34.2,NP-Completeness,Polynomial-time verification,native,CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification,CLRS Lean native (no legacy source),"Definitions in place; theorem layer (P⊆NP, transitivity) pending the polytime-composition theorem."
+34,34.3,NP-Completeness,NP-completeness and reducibility,native,CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility,CLRS Lean native (no legacy source),"Definitions in place; theorem layer (P⊆NP, transitivity) pending the polytime-composition theorem."
 34,34.4,NP-Completeness,NP-completeness proofs,not-started,none,none,No canonical theorem-bearing source is promoted for this fourth-edition section yet.
 34,34.5,NP-Completeness,NP-complete problems,not-started,none,none,No canonical theorem-bearing source is promoted for this fourth-edition section yet.
 35,35.1,Approximation Algorithms,The vertex-cover problem,not-started,none,none,No canonical theorem-bearing source is promoted for this fourth-edition section yet.
