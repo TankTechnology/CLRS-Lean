@@ -1420,13 +1420,22 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter11.perfectSearch_iff_mem`
   - `CLRS.Chapter11.perfectHash_collision_free_prob_ge_half`
   - `CLRS.Chapter11.perfectHash_expected_total_space_lt_2n`
+  - `CLRS.Chapter11.perfectHash_prefix_fail_prob_le`
+  - `CLRS.Chapter11.perfectHash_expected_trials_le_two`
+  - `CLRS.Chapter11.exists_collision_free_secondary`
+  - `CLRS.Chapter11.perfectHash_expected_bucket_cost_le`
+  - `CLRS.Chapter11.perfectHash_expected_construction_time_le_const_n`
 - Proof pattern: two-level perfect hash model (primary universal hash + per-bucket
   collision-free secondary hash).  Theorem 11.9 uses `pairCollisionProb` and
   `sum_upper_triangle` from §11.2 to bound the expected collision count, then
   Markov's inequality to convert to a probability bound.  Theorem 11.10 uses the
   algebraic identity `Σ_j n_j² = Σ_i Σ_k indicator(a i = a k)` and SUHA pairwise
-  collision probability `1/n` to get `E[Σ_j n_j²] = 2n - 1 < 2n`.
-- Current gap: construction/rebuild running time and RAM cost semantics.
+  collision probability `1/n` to get `E[Σ_j n_j²] = 2n - 1 < 2n`.  Construction
+  time chains the geometric trials bound (success probability ≥ 1/2 per
+  secondary hash ⇒ expected trials ≤ 2 per bucket) with Theorem 11.10 to get
+  expected O(n) total construction.
+- Current gap: none for the represented interface; RAM cost semantics remain an
+  optional low-level refinement.
 
 ## Chapter 12 - Binary Search Trees
 
