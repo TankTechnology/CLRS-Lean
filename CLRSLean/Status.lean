@@ -47,8 +47,6 @@ The edition map currently records these fourth-edition gaps:
   4.7 is not started.  Maximum subarray is retained as online material.
 * **Chapter 7, Quicksort:** Section 7.4 remains partial.
 * **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
-* **Chapter 11, Hash Tables:** Section 11.5 is not started in the canonical
-  chapter; the old perfect-hashing development is supplementary material.
 * **Chapter 13, Red-Black Trees:** Sections 13.2--13.4 remain partial because the
   color/black-height shape results are not yet combined with BST preservation
   and textbook update/cost refinements.
