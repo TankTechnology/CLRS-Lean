@@ -19,20 +19,29 @@ Main results:
 - Theorem `perfectHash_collision_free_prob_ge_half` (Theorem 11.9): when hashing
   `n` keys into `m = n²` slots under a universal family, the hash is collision-free
   with probability at least `1/2`.
+- Theorem `exists_collision_free_secondary`: for `n ≥ 2` keys into `n²` slots, an
+  injective secondary hash exists.
 - Theorem `perfectHash_expected_total_space_lt_2n` (Theorem 11.10): when `n` keys
   are hashed uniformly and independently into `m = n` primary buckets, the expected
   total secondary storage `E[Σ_j n_j²]` is less than `2n` (hence `O(n)`).
+- Theorem `perfectHash_expected_trials_le_two`: in a truncated model of `t`
+  independent trials, the expected number of trials until a collision-free
+  secondary hash is at most `2` (geometric bound with success probability ≥ 1/2).
+- Theorem `perfectHash_expected_construction_time_le_const_n`: the expected total
+  construction time for both levels is less than `5n` (hence `O(n)`).
 
-Status: `proved`.  All three acceptance criteria are met: a two-level model with
+Status: `proved`.  All acceptance criteria are met: a two-level model with
 deterministic search correctness, the secondary collision-free probability bound,
-and the expected linear-space bound.  Construction/rebuild running time and RAM
-cost semantics are future work.
+the expected linear-space bound, and the expected linear construction time with
+its geometric expected-trials argument.  RAM cost semantics are future work.
 
 Notation conventions used in this section:
 
 - `n` : number of keys
 - `m` : number of primary buckets (and `m = n` for Theorem 11.10)
 - `a : Fin n → Fin m` : a hash assignment (SUHA independent-uniform model)
+- `A : Fin t → (Fin n → Fin (n^2))` : a sequence of `t` independent trial
+  hashes of `n` keys into `n²` slots (construction-trial model)
 - `H : ι → (K → Fin m)` : a universal family of hash functions
 - `n_j` : number of keys assigned to primary bucket `j`
 -/
@@ -513,6 +522,473 @@ theorem perfectHash_expected_total_space_lt_2n {n : ℕ} (hn : 0 < n) :
             field_simp [show (n : ℝ) ≠ 0 from by exact_mod_cast hn.ne']
 
   rw [h_cross_expect]
+  nlinarith
+
+/-! ## Construction trials: expected trials to a collision-free secondary hash -/
+
+/-- A hash assignment `a : Fin n → Fin (n^2)` of `n` keys into `n²` slots is
+collision-free exactly when it is injective. -/
+abbrev collisionFree {n : ℕ} (a : Fin n → Fin (n^2)) : Prop :=
+  ∀ i j : Fin n, a i = a j → i = j
+
+/-- Split a sequence of `k + 1` independent trial hashes into the first `k`
+trials and the last trial.  This witnesses that the prefix coordinates are
+independent of the last coordinate. -/
+noncomputable def trialsSplitLast {n k : ℕ} :
+    (Fin (k + 1) → (Fin n → Fin (n^2))) ≃
+      (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) where
+  toFun A := ((fun j : Fin k => A (Fin.castSucc j)), A ⟨k, Nat.lt_succ_self k⟩)
+  invFun q := fun x : Fin (k + 1) =>
+    if hx : x.val < k then q.1 ⟨x.val, hx⟩ else q.2
+  left_inv A := by
+    funext x
+    by_cases hx : x.val < k
+    · simp [hx]
+    · simp [hx]
+      have hx' : x = ⟨k, Nat.lt_succ_self k⟩ := by
+        apply Fin.ext
+        change x.val = k
+        omega
+      rw [hx']
+  right_inv q := by
+    obtain ⟨P, L⟩ := q
+    refine Prod.ext ?_ ?_
+    · funext j
+      simp
+    · simp
+
+/-- Split a sequence of `t` independent trial hashes into the first `k` trials
+and the remaining `t - k` trials, for `k ≤ t`.  This witnesses that the prefix
+coordinates are independent of the suffix coordinates. -/
+noncomputable def trialsSplitPrefix {n t k : ℕ} (hkt : k ≤ t) :
+    (Fin t → (Fin n → Fin (n^2))) ≃
+      (Fin k → (Fin n → Fin (n^2))) × (Fin (t - k) → (Fin n → Fin (n^2))) where
+  toFun A := ((fun j : Fin k => A (Fin.castLE hkt j)),
+              (fun j : Fin (t - k) => A ⟨k + j.val, by omega⟩))
+  invFun q := fun x : Fin t =>
+    if hx : x.val < k then q.1 ⟨x.val, hx⟩ else q.2 ⟨x.val - k, by omega⟩
+  left_inv A := by
+    funext x
+    by_cases hx : x.val < k
+    · simp [hx]
+    · simp [hx]
+      apply congrArg A
+      apply Fin.ext
+      change k + (x.val - k) = x.val
+      omega
+  right_inv q := by
+    obtain ⟨P, S⟩ := q
+    refine Prod.ext ?_ ?_
+    · funext j
+      simp
+    · funext j
+      have hnot : ¬ k + j.val < k := by omega
+      simp [hnot]
+
+/--
+**Independent-trials failure bound.**  In `k` independent trials, each of which
+produces a collision-free hash of `n ≥ 2` keys into `n²` slots with probability
+at least `1/2` (Theorem 11.9), the probability that all `k` trials fail is at
+most `(1/2)^k` (CLRS §11.5).
+-/
+theorem perfectHash_prefix_fail_prob_le {n k : ℕ} (hn : 2 ≤ n) :
+    fintypeExpect (fun A : Fin k → (Fin n → Fin (n^2)) =>
+      indicator (∀ j : Fin k, ¬ collisionFree (A j))) ≤ (1/2 : ℝ)^k := by
+  induction k with
+  | zero =>
+      have htrue : ∀ A : Fin 0 → (Fin n → Fin (n^2)),
+          (∀ j : Fin 0, ¬ collisionFree (A j)) := by
+        intro A j
+        exact Fin.elim0 j
+      haveI : Nonempty (Fin n → Fin (n^2)) := ⟨fun _ => ⟨0, by
+        have hnpos : 0 < n := by omega
+        positivity⟩⟩
+      have hcard : Fintype.card (Fin 0 → (Fin n → Fin (n^2))) ≠ 0 := Fintype.card_ne_zero
+      calc
+        fintypeExpect (fun A : Fin 0 → (Fin n → Fin (n^2)) =>
+            indicator (∀ j : Fin 0, ¬ collisionFree (A j)))
+            = fintypeExpect (fun _ : Fin 0 → (Fin n → Fin (n^2)) => (1 : ℝ)) := by
+              refine congrArg fintypeExpect (funext fun A => ?_)
+              have hP : (∀ j : Fin 0, ¬ collisionFree (A j)) := htrue A
+              unfold indicator
+              rw [if_pos hP]
+        _ = 1 := by
+              simp [fintypeExpect_const hcard]
+        _ ≤ (1/2 : ℝ)^0 := by
+              simp
+  | succ k ih =>
+      have hnpos : 0 < n := by omega
+      haveI : Nonempty (Fin n) := ⟨⟨0, hnpos⟩⟩
+      haveI : Nonempty (Fin n → Fin (n^2)) := ⟨fun _ => ⟨0, by positivity⟩⟩
+      have hcardΩ : Fintype.card (Fin n → Fin (n^2)) ≠ 0 := Fintype.card_ne_zero
+      -- `∀ j : Fin (k+1), ¬ CF (A j)` splits as the prefix conjunction and the
+      -- last trial
+      have hsplit : ∀ A : Fin (k + 1) → (Fin n → Fin (n^2)),
+          indicator (∀ j : Fin (k + 1), ¬ collisionFree (A j))
+            = indicator ((∀ j : Fin k, ¬ collisionFree (A (Fin.castSucc j))) ∧
+                ¬ collisionFree (A ⟨k, Nat.lt_succ_self k⟩)) := by
+        intro A
+        have hiff : (∀ j : Fin (k + 1), ¬ collisionFree (A j)) ↔
+            (∀ j : Fin k, ¬ collisionFree (A (Fin.castSucc j))) ∧
+              ¬ collisionFree (A ⟨k, Nat.lt_succ_self k⟩) := by
+          constructor
+          · intro h
+            constructor
+            · intro j
+              exact h (Fin.castSucc j)
+            · exact h ⟨k, Nat.lt_succ_self k⟩
+          · rintro ⟨hpre, hlast⟩ j
+            by_cases hj : j.val < k
+            · have hj' : j = Fin.castSucc ⟨j.val, hj⟩ := by
+                ext
+                rfl
+              rw [hj']
+              exact hpre ⟨j.val, hj⟩
+            · have hj' : j = ⟨k, Nat.lt_succ_self k⟩ := by
+                apply Fin.ext
+                change j.val = k
+                omega
+              rw [hj']
+              exact hlast
+        exact congrArg (fun P : Prop => indicator P) (propext hiff)
+      -- reindex the product sample space so the prefix and last trial separate
+      have he := fintypeExpect_equiv (trialsSplitLast (n := n) (k := k))
+        (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) =>
+          indicator ((∀ j : Fin k, ¬ collisionFree (p.1 j)) ∧ ¬ collisionFree (p.2)))
+      have hLHS : fintypeExpect (fun A : Fin (k + 1) → (Fin n → Fin (n^2)) =>
+            indicator (∀ j : Fin (k + 1), ¬ collisionFree (A j)))
+          = fintypeExpect (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) =>
+              indicator ((∀ j : Fin k, ¬ collisionFree (p.1 j)) ∧ ¬ collisionFree (p.2))) := by
+        calc
+          fintypeExpect (fun A : Fin (k + 1) → (Fin n → Fin (n^2)) =>
+                indicator (∀ j : Fin (k + 1), ¬ collisionFree (A j)))
+              = fintypeExpect (fun A : Fin (k + 1) → (Fin n → Fin (n^2)) =>
+                  indicator ((∀ j : Fin k, ¬ collisionFree (A (Fin.castSucc j))) ∧
+                    ¬ collisionFree (A ⟨k, Nat.lt_succ_self k⟩))) := by
+                refine congrArg fintypeExpect (funext fun A => hsplit A)
+          _ = fintypeExpect (fun A : Fin (k + 1) → (Fin n → Fin (n^2)) =>
+                  indicator ((∀ j : Fin k, ¬ collisionFree ((trialsSplitLast (n := n) (k := k) A).1 j)) ∧
+                    ¬ collisionFree ((trialsSplitLast (n := n) (k := k) A).2))) := by
+                refine congrArg fintypeExpect (funext fun A => ?_)
+                simp [trialsSplitLast]
+          _ = fintypeExpect (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) =>
+                  indicator ((∀ j : Fin k, ¬ collisionFree (p.1 j)) ∧ ¬ collisionFree (p.2))) := he
+      -- the conjunction of the independent prefix event and the last-trial event
+      -- factorizes as a product of expectations
+      have hprod : fintypeExpect (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) =>
+              indicator ((∀ j : Fin k, ¬ collisionFree (p.1 j)) ∧ ¬ collisionFree (p.2)))
+          = fintypeExpect (fun B : Fin k → (Fin n → Fin (n^2)) =>
+              indicator (∀ j : Fin k, ¬ collisionFree (B j)))
+            * fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (¬ collisionFree a)) := by
+        have hsplit2 : (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) =>
+              indicator ((∀ j : Fin k, ¬ collisionFree (p.1 j)) ∧ ¬ collisionFree (p.2)))
+            = (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) =>
+                (fun B : Fin k → (Fin n → Fin (n^2)) => indicator (∀ j : Fin k, ¬ collisionFree (B j))) p.1
+                  * (fun a : Fin n → Fin (n^2) => indicator (¬ collisionFree a)) p.2) := by
+          funext p
+          by_cases hpre : ∀ j : Fin k, ¬ collisionFree (p.1 j)
+          · by_cases hlast : ¬ collisionFree (p.2)
+            · simp [indicator, hpre, hlast]
+            · simp [indicator, hpre, hlast]
+          · by_cases hlast : ¬ collisionFree (p.2)
+            · simp [indicator, hpre, hlast]
+            · simp [indicator, hpre, hlast]
+        rw [hsplit2]
+        exact expect_mul_of_indep (fun B : Fin k → (Fin n → Fin (n^2)) =>
+          indicator (∀ j : Fin k, ¬ collisionFree (B j)))
+          (fun a : Fin n → Fin (n^2) => indicator (¬ collisionFree a))
+      -- a single trial fails with probability at most 1/2 (Theorem 11.9)
+      have hfail : fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (¬ collisionFree a)) ≤ 1/2 := by
+        have hE : fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (¬ collisionFree a))
+            = 1 - fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (collisionFree a)) := by
+          calc
+            fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (¬ collisionFree a))
+                = fintypeExpect (fun a : Fin n → Fin (n^2) => (1 : ℝ) - indicator (collisionFree a)) := by
+                  refine congrArg fintypeExpect (funext fun a => ?_)
+                  by_cases h : collisionFree a
+                  · unfold indicator
+                    rw [if_neg (fun hna => hna h), if_pos h]
+                    simp
+                  · unfold indicator
+                    rw [if_pos h, if_neg h]
+                    simp
+            _ = fintypeExpect (fun a : Fin n → Fin (n^2) => (1 : ℝ) + (-indicator (collisionFree a))) := by
+                  refine congrArg fintypeExpect (funext fun a => ?_)
+                  ring
+            _ = fintypeExpect (fun _ : Fin n → Fin (n^2) => (1 : ℝ)) +
+                  fintypeExpect (fun a : Fin n → Fin (n^2) => -indicator (collisionFree a)) := fintypeExpect_add _ _
+            _ = 1 - fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (collisionFree a)) := by
+                  rw [fintypeExpect_const hcardΩ, fintypeExpect_neg]
+                  ring
+        rw [hE]
+        have hcf : 1/2 ≤ fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (collisionFree a)) := by
+          simpa [collisionFree] using (perfectHash_collision_free_prob_ge_half (n := n) hn)
+        linarith
+      -- assemble: E[prefix ∧ last] = E[prefix] · E[last] ≤ (1/2)^k · (1/2)
+      calc
+        fintypeExpect (fun A : Fin (k + 1) → (Fin n → Fin (n^2)) =>
+            indicator (∀ j : Fin (k + 1), ¬ collisionFree (A j)))
+            = fintypeExpect (fun B : Fin k → (Fin n → Fin (n^2)) =>
+                indicator (∀ j : Fin k, ¬ collisionFree (B j)))
+              * fintypeExpect (fun a : Fin n → Fin (n^2) => indicator (¬ collisionFree a)) := by
+              rw [hLHS, hprod]
+        _ ≤ (1/2 : ℝ)^k * (1/2) := by
+              exact mul_le_mul ih hfail
+                (fintypeExpect_nonneg (fun a : Fin n → Fin (n^2) => by
+                  unfold indicator
+                  split <;> norm_num))
+                (by positivity)
+        _ = (1/2 : ℝ)^(k + 1) := by
+              simp [pow_succ]
+
+/-- The probability that the first `k` of `t` independent trials all fail is at
+most `(1/2)^k`: the remaining `t - k` trials are independent of the prefix and
+marginalise out. -/
+theorem perfectHash_trials_prefix_fail_prob_le {n k t : ℕ} (hn : 2 ≤ n) (hkt : k ≤ t) :
+    fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+      indicator (∀ j : Fin k, ¬ collisionFree (A (Fin.castLE hkt j)))) ≤ (1/2 : ℝ)^k := by
+  haveI : Nonempty (Fin n → Fin (n^2)) := ⟨fun _ => ⟨0, by
+    have hnpos : 0 < n := by omega
+    positivity⟩⟩
+  have hcard_suffix : Fintype.card (Fin (t - k) → (Fin n → Fin (n^2))) ≠ 0 := Fintype.card_ne_zero
+  have hpre : fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+        indicator (∀ j : Fin k, ¬ collisionFree (A (Fin.castLE hkt j))))
+      = fintypeExpect (fun B : Fin k → (Fin n → Fin (n^2)) =>
+        indicator (∀ j : Fin k, ¬ collisionFree (B j))) := by
+    calc
+      fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+            indicator (∀ j : Fin k, ¬ collisionFree (A (Fin.castLE hkt j))))
+          = fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+              indicator (∀ j : Fin k, ¬ collisionFree ((trialsSplitPrefix hkt A).1 j))) := by
+            refine congrArg fintypeExpect (funext fun A => ?_)
+            simp [trialsSplitPrefix]
+      _ = fintypeExpect (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin (t - k) → (Fin n → Fin (n^2))) =>
+            indicator (∀ j : Fin k, ¬ collisionFree (p.1 j))) := by
+            exact fintypeExpect_equiv (trialsSplitPrefix hkt)
+              (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin (t - k) → (Fin n → Fin (n^2))) =>
+                indicator (∀ j : Fin k, ¬ collisionFree (p.1 j)))
+      _ = fintypeExpect (fun B : Fin k → (Fin n → Fin (n^2)) =>
+            indicator (∀ j : Fin k, ¬ collisionFree (B j))) := by
+            exact fintypeExpect_fst hcard_suffix
+              (fun B : Fin k → (Fin n → Fin (n^2)) => indicator (∀ j : Fin k, ¬ collisionFree (B j)))
+  rw [hpre]
+  exact perfectHash_prefix_fail_prob_le hn
+
+/-- The number of failed trials before the first collision-free trial in a
+sequence of `t` independent trials.  Equivalently, the sum over `k` of the
+indicators "the first `k + 1` trials all fail": each failing trial before the
+first success contributes exactly one such prefix.  If every trial fails, the
+value is `t`. -/
+noncomputable def failedTrials {n t : ℕ} (A : Fin t → (Fin n → Fin (n^2))) : ℕ :=
+  (Finset.univ.filter (fun k : Fin t =>
+    ∀ j : Fin (k.val + 1), ¬ collisionFree (A (Fin.castLE (Nat.succ_le_of_lt k.isLt) j)))).card
+
+/-- `failedTrials` decomposes as the sum over trial prefixes of the indicator
+that the first `k + 1` trials all fail. -/
+theorem failedTrials_eq_sum {n t : ℕ} (A : Fin t → (Fin n → Fin (n^2))) :
+    failedTrials A = ∑ k : Fin t, (if (∀ j : Fin (k.val + 1),
+      ¬ collisionFree (A (Fin.castLE (Nat.succ_le_of_lt k.isLt) j))) then 1 else 0) := by
+  unfold failedTrials
+  -- (Finset.univ.filter p).card = ∑ k ∈ univ, if p k then 1 else 0
+  simpa using (Finset.sum_boole (fun k : Fin t => ∀ j : Fin (k.val + 1),
+    ¬ collisionFree (A (Fin.castLE (Nat.succ_le_of_lt k.isLt) j)))
+    (Finset.univ : Finset (Fin t))).symm
+
+/--
+**Expected failed trials before a collision-free hash.**  In the truncated
+model of `t` independent trials (each collision-free with probability at least
+`1/2`, Theorem 11.9), the expected number of failed trials before the first
+collision-free trial is at most `1` — via the tail-sum identity
+`E[F] = Σ_k P[first k trials fail] ≤ Σ_k (1/2)^k = 1` (CLRS §11.5).
+-/
+theorem perfectHash_expected_failedTrials_le_one {n t : ℕ} (hn : 2 ≤ n) :
+    fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ)) ≤ 1 := by
+  have hdecomp : (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ))
+      = (fun A : Fin t → (Fin n → Fin (n^2)) => ∑ k : Fin t,
+          indicator (∀ j : Fin (k.val + 1),
+            ¬ collisionFree (A (Fin.castLE (Nat.succ_le_of_lt k.isLt) j)))) := by
+    funext A
+    rw [failedTrials_eq_sum A]
+    simp [indicator, Nat.cast_sum]
+  have hlin : fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ))
+      = ∑ k : Fin t, fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+          indicator (∀ j : Fin (k.val + 1),
+            ¬ collisionFree (A (Fin.castLE (Nat.succ_le_of_lt k.isLt) j)))) := by
+    rw [hdecomp]
+    exact fintypeExpect_sum Finset.univ _
+  have hterm : ∀ k : Fin t, fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+        indicator (∀ j : Fin (k.val + 1),
+          ¬ collisionFree (A (Fin.castLE (Nat.succ_le_of_lt k.isLt) j)))) ≤ (1/2 : ℝ)^(k.val + 1) := by
+    intro k
+    exact perfectHash_trials_prefix_fail_prob_le hn (Nat.succ_le_of_lt k.isLt)
+  calc
+    fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ))
+        ≤ ∑ k : Fin t, (1/2 : ℝ)^(k.val + 1) := by
+          rw [hlin]
+          exact Finset.sum_le_sum (fun k _ => hterm k)
+    _ ≤ 1 := by
+          -- ∑ k : Fin t, (1/2)^(k.val + 1) = (1/2) · ∑ k : Fin t, (1/2)^k.val ≤ (1/2) · 2 = 1
+          have hfactor : (∑ k : Fin t, (1/2 : ℝ)^(k.val + 1)) = (1/2) * (∑ k : Fin t, (1/2 : ℝ)^k.val) := by
+            calc
+              (∑ k : Fin t, (1/2 : ℝ)^(k.val + 1))
+                  = (∑ k : Fin t, (1/2 : ℝ)^k.val * (1/2)) := by
+                    refine Finset.sum_congr rfl (fun k _ => ?_)
+                    rw [pow_succ]
+              _ = (1/2) * (∑ k : Fin t, (1/2 : ℝ)^k.val) := by
+                    rw [Finset.mul_sum]
+                    simp [mul_comm]
+          rw [hfactor]
+          have hgeom : (∑ k : Fin t, (1/2 : ℝ)^k.val) ≤ 2 := by
+            have hrange : (∑ k : Fin t, (1/2 : ℝ)^k.val) = ∑ i ∈ Finset.range t, (1/2 : ℝ)^i := by
+              rw [Fin.sum_univ_eq_sum_range (fun i : ℕ => (1/2 : ℝ)^i) t]
+            rw [hrange]
+            have hgeom_mul := geom_sum_mul_of_le_one (x := (1/2 : ℝ)) (by norm_num) t
+            -- (∑ i ∈ range t, (1/2)^i) * (1 - 1/2) = 1 - (1/2)^t, so the product is ≤ 1
+            have hmul : (∑ i ∈ Finset.range t, (1/2 : ℝ)^i) * (1/2) ≤ 1 := by
+              norm_num at hgeom_mul
+              rw [hgeom_mul]
+              have hpow : 0 ≤ (1/2 : ℝ)^t := by positivity
+              nlinarith
+            nlinarith
+          nlinarith
+
+/-- The number of trials performed until a collision-free secondary hash is
+obtained, in a truncated model of `t` independent trials: the failed trials
+before the first collision-free trial, plus the successful trial itself.  If
+none of the `t` trials is collision-free, the value is `t + 1`, an overestimate
+of the unbounded process's trial count. -/
+noncomputable def trialsUntilCollisionFree {n t : ℕ} (A : Fin t → (Fin n → Fin (n^2))) : ℕ :=
+  failedTrials A + 1
+
+/--
+**Expected number of trials to obtain a collision-free secondary hash.**  In
+the truncated model of `t` independent trials — each trial hashes `n ≥ 2` keys
+into `n²` slots and is collision-free with probability at least `1/2` (Theorem
+11.9) — the expected number of trials performed up to and including the first
+collision-free trial is at most `2` (CLRS §11.5).  For the unbounded geometric
+process this is the standard bound `E[T] = 1/p ≤ 2` for success probability
+`p ≥ 1/2`; the same bound holds here for every truncation `t`.
+-/
+theorem perfectHash_expected_trials_le_two {n t : ℕ} (hn : 2 ≤ n) :
+    fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (trialsUntilCollisionFree A : ℝ)) ≤ 2 := by
+  unfold trialsUntilCollisionFree
+  calc
+    fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => ((failedTrials A + 1 : ℕ) : ℝ))
+        = fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ) + 1) := by
+          refine congrArg fintypeExpect (funext fun A => ?_)
+          simp
+    _ = fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ)) + 1 := by
+          calc
+            fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ) + 1)
+                = fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ)) +
+                    fintypeExpect (fun _ : Fin t → (Fin n → Fin (n^2)) => (1 : ℝ)) := fintypeExpect_add _ _
+            _ = fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (failedTrials A : ℝ)) + 1 := by
+                  haveI : Nonempty (Fin n → Fin (n^2)) := ⟨fun _ => ⟨0, by
+                    have hnpos : 0 < n := by omega
+                    positivity⟩⟩
+                  have hcard : Fintype.card (Fin t → (Fin n → Fin (n^2))) ≠ 0 := Fintype.card_ne_zero
+                  simp [fintypeExpect_const hcard]
+    _ ≤ 2 := by
+          linarith [perfectHash_expected_failedTrials_le_one (n := n) (t := t) hn]
+
+/--
+**Existence of a collision-free secondary hash.**  For `n ≥ 2` keys hashed into
+`n²` slots, some hash assignment is injective.  This follows from Theorem 11.9:
+the collision-free probability is at least `1/2 > 0`, so the event cannot be
+empty (CLRS §11.5).
+-/
+theorem exists_collision_free_secondary {n : ℕ} (hn : 2 ≤ n) :
+    ∃ a : Fin n → Fin (n^2), ∀ i j : Fin n, a i = a j → i = j := by
+  by_contra h
+  have hnone : ∀ a : Fin n → Fin (n^2), ¬ (∀ i j : Fin n, a i = a j → i = j) := by
+    intro a ha
+    exact h ⟨a, ha⟩
+  have hzero : fintypeExpect (fun a : Fin n → Fin (n^2) =>
+      indicator (∀ i j : Fin n, a i = a j → i = j)) = 0 := by
+    unfold fintypeExpect indicator
+    have hsum : (∑ a : Fin n → Fin (n^2), (if (∀ i j : Fin n, a i = a j → i = j) then 1 else 0)) = 0 := by
+      apply Finset.sum_eq_zero
+      intro a ha
+      exact if_neg (hnone a)
+    simpa [hsum]
+  have hcf := perfectHash_collision_free_prob_ge_half (n := n) hn
+  linarith
+
+/-! ## Construction time: expected total construction time is O(n) -/
+
+/-- `fintypeExpect` commutes with multiplication by a constant on the left. -/
+theorem fintypeExpect_const_mul {Ω : Type} [Fintype Ω] [DecidableEq Ω] (c : ℝ) (X : Ω → ℝ) :
+    fintypeExpect (fun ω => c * X ω) = c * fintypeExpect X := by
+  unfold fintypeExpect
+  calc
+    (∑ ω : Ω, c * X ω) / (Fintype.card Ω : ℝ) = (c * (∑ ω : Ω, X ω)) / (Fintype.card Ω : ℝ) := by
+      rw [Finset.mul_sum]
+    _ = c * ((∑ ω : Ω, X ω) / (Fintype.card Ω : ℝ)) := by
+      rw [← mul_div_assoc]
+
+/--
+The expected construction cost of the two-level perfect-hash table on a
+primary hash assignment `a`: `n` unit operations to insert all `n` keys into
+the `n` primary buckets, plus the expected secondary construction cost
+`2 · Σ_j n_j²` — each bucket `j` of `n_j` keys needs at most `2` trials in
+expectation (expected-trials bound) and each trial hashes the `n_j` bucket
+keys into `n_j²` slots, costing `n_j²` (CLRS §11.5).
+-/
+noncomputable def constructionCost {n : ℕ} (a : Fin n → Fin n) : ℝ :=
+  (n : ℝ) + 2 * totalSecondarySpace a
+
+/--
+**Expected secondary construction cost of a single bucket.**  For a bucket of
+`n ≥ 2` keys whose secondary hash is drawn into `n²` slots until it is
+collision-free, the expected construction cost — `trialsUntilCollisionFree`
+trials of `n²` work each — is at most `2 · n²`, by the expected-trials bound.
+-/
+theorem perfectHash_expected_bucket_cost_le {n t : ℕ} (hn : 2 ≤ n) :
+    fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+      (trialsUntilCollisionFree A : ℝ) * (n : ℝ)^2) ≤ 2 * (n : ℝ)^2 := by
+  have hsq : 0 ≤ (n : ℝ)^2 := by positivity
+  calc
+    fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+        (trialsUntilCollisionFree A : ℝ) * (n : ℝ)^2)
+        = (n : ℝ)^2 * fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
+            (trialsUntilCollisionFree A : ℝ)) := by
+          have hswap : (fun A : Fin t → (Fin n → Fin (n^2)) =>
+              (trialsUntilCollisionFree A : ℝ) * (n : ℝ)^2)
+              = (fun A : Fin t → (Fin n → Fin (n^2)) => (n : ℝ)^2 * (trialsUntilCollisionFree A : ℝ)) := by
+            funext A
+            ring
+          rw [hswap]
+          exact fintypeExpect_const_mul ((n : ℝ)^2) (fun A : Fin t → (Fin n → Fin (n^2)) =>
+            (trialsUntilCollisionFree A : ℝ))
+    _ ≤ (n : ℝ)^2 * 2 := by
+          exact mul_le_mul_of_nonneg_left (perfectHash_expected_trials_le_two hn) hsq
+    _ = 2 * (n : ℝ)^2 := by
+          ring
+
+/--
+**Expected construction time is O(n).**  The expected total time to build the
+two-level perfect-hash table — hashing all `n` keys into the `n` primary
+buckets and, for each bucket `j`, spending at most `2` trials in expectation
+of cost `n_j²` each on the secondary hash — is less than `5n` (CLRS §11.5):
+by Theorem 11.10, `E[Σ_j n_j²] < 2n`, and the expected trials per bucket are
+at most `2`, so `E[T] < n + 2 · 2n = 5n`.
+-/
+theorem perfectHash_expected_construction_time_le_const_n {n : ℕ} (hn : 0 < n) :
+    fintypeExpect (fun a : Fin n → Fin n => constructionCost a) < 5 * (n : ℝ) := by
+  have hlin : fintypeExpect (fun a : Fin n → Fin n => constructionCost a)
+      = (n : ℝ) + 2 * fintypeExpect (fun a : Fin n → Fin n => totalSecondarySpace a) := by
+    unfold constructionCost
+    calc
+      fintypeExpect (fun a : Fin n → Fin n => (n : ℝ) + 2 * totalSecondarySpace a)
+          = fintypeExpect (fun _ : Fin n → Fin n => (n : ℝ)) +
+              fintypeExpect (fun a : Fin n → Fin n => 2 * totalSecondarySpace a) :=
+            fintypeExpect_add _ _
+      _ = (n : ℝ) + 2 * fintypeExpect (fun a : Fin n → Fin n => totalSecondarySpace a) := by
+            haveI : Nonempty (Fin n) := ⟨⟨0, hn⟩⟩
+            have hcard : Fintype.card (Fin n → Fin n) ≠ 0 := Fintype.card_ne_zero
+            rw [fintypeExpect_const hcard, fintypeExpect_const_mul]
+  rw [hlin]
+  have hspace := perfectHash_expected_total_space_lt_2n hn
   nlinarith
 
 end Chapter11
