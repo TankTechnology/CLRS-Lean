@@ -42,3 +42,14 @@ import CLRSLean.FourthEdition.Chapter_25
 #check CLRS.Matchings.augmentingPath_of_hasAugmentingPath
 #check CLRS.Matchings.berge_maximum_iff_no_augmentingPath
 #check CLRS.Matchings.flowMethod_finds_maximum_matching
+
+#check CLRS.Matchings.PreferenceProfile
+#check CLRS.Matchings.Pairing
+#check CLRS.Matchings.Pairing.IsPerfect
+#check CLRS.Matchings.Pairing.BlockingPair
+#check CLRS.Matchings.Pairing.Stable
+#check CLRS.StableMarriage.GSState
+#check CLRS.StableMarriage.gs
+#check CLRS.StableMarriage.gs_terminates_le_n_sq
+#check CLRS.StableMarriage.gs_stable
+#check CLRS.StableMarriage.stable_matching_exists
