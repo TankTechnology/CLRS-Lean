@@ -24,7 +24,7 @@ class FourthEditionContractTest(unittest.TestCase):
             ("14.1", "14.2", "14.3", "14.4", "14.5"),
         )
         self.assertEqual(contracts[14]["required_status"], "partial")
-        self.assertEqual(contracts[25]["represented_sections"], ("25.1",))
+        self.assertEqual(contracts[25]["represented_sections"], ("25.1", "25.2"))
         self.assertEqual(contracts[25]["required_status"], "partial")
         self.assertEqual(
             contracts[25]["guide"],
@@ -104,7 +104,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
 
         self.assertIn("## Fourth-Edition Snapshot", dashboard)
         self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)
-        self.assertIn("1,350", dashboard)
+        self.assertIn("1,354", dashboard)
         self.assertIn("selected proof inventory", normalized)
         self.assertIn("does not by itself mean that every fourth-edition section obligation is covered", normalized)
         self.assertIn("partial (edition coverage)", dashboard)
