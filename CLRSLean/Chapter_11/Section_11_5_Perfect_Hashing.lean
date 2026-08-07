@@ -51,6 +51,7 @@ namespace Chapter11
 
 open CLRS.Probability
 open Finset
+open scoped Classical
 
 /-! ## Two-level perfect hash model -/
 
@@ -650,7 +651,10 @@ theorem perfectHash_prefix_fail_prob_le {n k : ℕ} (hn : 2 ≤ n) :
                 omega
               rw [hj']
               exact hlast
-        exact congrArg (fun P : Prop => indicator P) (propext hiff)
+        unfold indicator
+        by_cases hP1 : ∀ j : Fin (k + 1), ¬collisionFree (A j)
+        · rw [if_pos hP1, if_pos (hiff.mp hP1)]
+        · rw [if_neg hP1, if_neg (fun hP2 => hP1 (hiff.mpr hP2))]
       -- reindex the product sample space so the prefix and last trial separate
       have he := fintypeExpect_equiv (trialsSplitLast (n := n) (k := k))
         (fun p : (Fin k → (Fin n → Fin (n^2))) × (Fin n → Fin (n^2)) =>
@@ -905,26 +909,16 @@ theorem exists_collision_free_secondary {n : ℕ} (hn : 2 ≤ n) :
     exact h ⟨a, ha⟩
   have hzero : fintypeExpect (fun a : Fin n → Fin (n^2) =>
       indicator (∀ i j : Fin n, a i = a j → i = j)) = 0 := by
-    unfold fintypeExpect indicator
-    have hsum : (∑ a : Fin n → Fin (n^2), (if (∀ i j : Fin n, a i = a j → i = j) then 1 else 0)) = 0 := by
+    unfold fintypeExpect
+    rw [show (∑ a : Fin n → Fin (n ^ 2), indicator (∀ i j : Fin n, a i = a j → i = j)) = 0 by
       apply Finset.sum_eq_zero
       intro a ha
-      exact if_neg (hnone a)
-    simpa [hsum]
+      exact if_neg (hnone a)]
+    simp
   have hcf := perfectHash_collision_free_prob_ge_half (n := n) hn
   linarith
 
 /-! ## Construction time: expected total construction time is O(n) -/
-
-/-- `fintypeExpect` commutes with multiplication by a constant on the left. -/
-theorem fintypeExpect_const_mul {Ω : Type} [Fintype Ω] [DecidableEq Ω] (c : ℝ) (X : Ω → ℝ) :
-    fintypeExpect (fun ω => c * X ω) = c * fintypeExpect X := by
-  unfold fintypeExpect
-  calc
-    (∑ ω : Ω, c * X ω) / (Fintype.card Ω : ℝ) = (c * (∑ ω : Ω, X ω)) / (Fintype.card Ω : ℝ) := by
-      rw [Finset.mul_sum]
-    _ = c * ((∑ ω : Ω, X ω) / (Fintype.card Ω : ℝ)) := by
-      rw [← mul_div_assoc]
 
 /--
 The expected construction cost of the two-level perfect-hash table on a
