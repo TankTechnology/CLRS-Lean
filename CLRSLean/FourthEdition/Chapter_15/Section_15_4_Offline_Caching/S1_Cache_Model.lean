@@ -56,7 +56,7 @@ sequence) when making the decision (CLRS §15.4).
 -/
 structure Policy where
   evict : ℕ → Finset Page → Page → Page
-  evict_mem : ∀ i C p, p ∉ C → evict i C p ∈ C
+  evict_mem : ∀ i C p, p ∉ C → C.Nonempty → evict i C p ∈ C
 
 /--
 The cache transition of a policy: a hit keeps the cache unchanged, a fault
@@ -72,13 +72,13 @@ def cacheSeq (π : Policy) (C₀ : Finset Page) (σ : List Page) : ℕ → Finse
   | t + 1 => π.step t (cacheSeq π C₀ σ t) (σ.getD t 0)
 
 /-- The transition preserves the number of resident pages. -/
-lemma step_card (π : Policy) (i : ℕ) (C : Finset Page) (p : Page) :
+lemma step_card (π : Policy) (i : ℕ) (C : Finset Page) (p : Page) (hC : C.Nonempty) :
     (π.step i C p).card = C.card := by
   unfold Policy.step
   by_cases hp : p ∈ C
   · rw [if_pos hp]
   · rw [if_neg hp]
-    have he := π.evict_mem i C p hp
+    have he := π.evict_mem i C p hp hC
     rw [Finset.card_insert_of_notMem (by
       intro hmem
       exact hp (Finset.mem_erase.mp hmem).2)]
@@ -88,14 +88,28 @@ lemma step_card (π : Policy) (i : ℕ) (C : Finset Page) (p : Page) :
 
 /-- Every cache in the run of a policy has the same size as the initial
 cache, so a cache of size `k` stays of size `k` throughout (CLRS §15.4). -/
-lemma cacheSeq_card (π : Policy) (C₀ : Finset Page) (σ : List Page) (t : ℕ) :
+lemma cacheSeq_card (π : Policy) (C₀ : Finset Page) (σ : List Page) (t : ℕ)
+    (hC₀ : C₀.Nonempty) :
     (cacheSeq π C₀ σ t).card = C₀.card := by
   induction t with
   | zero => rfl
   | succ t ih =>
       unfold cacheSeq
       rw [step_card]
-      exact ih
+      · exact ih
+      · have hcard : 0 < (cacheSeq π C₀ σ t).card := by
+          rw [ih]
+          exact Finset.card_pos.mpr hC₀
+        exact Finset.card_pos.mp hcard
+
+/-- Caches in a run starting from a nonempty cache are nonempty. -/
+lemma cacheSeq_nonempty (π : Policy) (C₀ : Finset Page) (σ : List Page) (t : ℕ)
+    (hC₀ : C₀.Nonempty) :
+    (cacheSeq π C₀ σ t).Nonempty := by
+  have hcard : 0 < (cacheSeq π C₀ σ t).card := by
+    rw [cacheSeq_card π C₀ σ t hC₀]
+    exact Finset.card_pos.mpr hC₀
+  exact Finset.card_pos.mp hcard
 
 /-- Whether the request at position `t` is a miss for the run of `π` from
 `C₀` on `σ` (`0` or `1`). -/
