@@ -195,7 +195,9 @@ thresholds.
 theorem isBigTheta_iff_sharedThreshold (f g : ℕ → ℝ) : isBigTheta f g ↔
     ∃ c₁ c₂ : ℝ, 0 < c₁ ∧ 0 < c₂ ∧ ∃ n₀ : ℕ, ∀ n, n₀ ≤ n →
       c₁ * |g n| ≤ |f n| ∧ |f n| ≤ c₂ * |g n| := by
-  rw [isBigTheta_iff, isBigO_iff, isBigOmega_iff]
+  rw [isBigTheta_iff]
+  rw [show isBigO g f ↔ isBigOmega f g by simp [isBigO, isBigOmega]]
+  rw [isBigO_iff, isBigOmega_iff]
   constructor
   · rintro ⟨hO, hΩ⟩
     rcases hO with ⟨c₂, hc₂, n₀₂, h₂⟩
@@ -235,7 +237,8 @@ theorem isBigO_reciprocal (f g : ℕ → ℝ) : isBigO f g ↔ isBigOmega g f :=
 -/
 theorem isLittleO_isBigO {f g : ℕ → ℝ} : isLittleO f g → isBigO f g := by
   intro h
-  unfold isLittleO isBigO at h ⊢
+  unfold isLittleO at h
+  unfold isBigO
   exact h.isBigO
 
 /--
@@ -256,7 +259,8 @@ theorem isLittleO_mul {f₁ g₁ f₂ g₂ : ℕ → ℝ} :
     isLittleO f₁ g₁ → isBigO f₂ g₂ →
       isLittleO (fun n => f₁ n * f₂ n) (fun n => g₁ n * g₂ n) := by
   intro h₁ h₂
-  unfold isLittleO isBigO at h₁ h₂ ⊢
+  unfold isLittleO at h₁ ⊢
+  unfold isBigO at h₂
   exact h₁.mul_isBigO h₂
 
 /--
@@ -302,6 +306,8 @@ theorem isLittleOmega_add_dominated {f g h : ℕ → ℝ} :
   intro n hn
   have hn₁' : n₁ ≤ n := le_trans (le_max_left n₁ n₂) hn
   have hn₂' : n₂ ≤ n := le_trans (le_max_right n₁ n₂) hn
+  have hg : (2 * c) * |g n| ≤ |f n| := hn₁ n hn₁'
+  have hh' : |h n| ≤ (1 / 2) * |f n| := hn₂ n hn₂'
   have htri : |f n| - |h n| ≤ |f n + h n| := by
     have h₁ : |f n| ≤ |f n + h n| + |h n| := by
       calc
