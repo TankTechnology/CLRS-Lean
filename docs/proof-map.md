@@ -1939,6 +1939,24 @@ reads are proved equal to the pure recurrence value.
   interface, and cost theorem remain.  The internal witness construction is
   private; the public `obst_correct` theorem proves existence of an optimal plan.
 
+### Section 15.4 (Fourth Edition) - Offline caching
+
+- Lean source:
+  `CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching.lean`,
+  split into sub-modules `S1_Cache_Model`, `S2_Farthest_In_Future`, and
+  `S3_Optimality` under the same directory
+- Status: `partial` (first native fourth-edition section for Chapter 15)
+- Main theorems:
+  - `CLRS.Caching.Policy` / `Policy.step` / `misses` / `nextUse`
+  - `CLRS.Caching.Farther` / `farthestInFuture`
+  - `CLRS.Caching.fifoPolicy` / `fifo_step_of_mem` / `fifo_step_fault`
+  - `CLRS.Caching.fifo_step_size`
+- Proof pattern: total-function policy model; the farthest-in-future choice
+  as a maximum over next-use positions with `none` (never requested again)
+  as the top element.
+- Current gap: the optimality theorem (`fifo_optimal`, CLRS Theorem 15.5)
+  — the classical exchange argument over request suffixes.
+
 ## Chapter 16 - Greedy Algorithms
 
 ### Section 16.1 - Activity selection
