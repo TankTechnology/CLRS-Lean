@@ -505,6 +505,119 @@ lemma step_partner_improves {σ : GSState P} {w : W} {m₁ m₂ : M}
     rw [hold] at hnew
     exact False.elim (hne (by simpa using hnew))
 
+/-- Forget the proposal bookkeeping: a GS state is a pairing. -/
+def GSState.toPairing (σ : GSState P) : Pairing M W :=
+  { mPartner := σ.mPartner, wPartner := σ.wPartner, h_consistency := σ.h_consistency }
+
+/-- The number of proposals still to be made: the total count of women each
+man has not yet proposed to. -/
+noncomputable def pendingCount (σ : GSState P) : ℕ :=
+  ∑ m : M, (Fintype.card W - (σ.proposed m).card)
+
+/-- The proposed sets of a proposal step: the proposing man gains exactly the
+target woman, everyone else is unchanged. -/
+lemma proposalStep_proposed (σ : GSState P) (m : M) (hfree : σ.mPartner m = none)
+    (hpend : σ.proposed m ≠ Finset.univ) (m' : M) :
+    (proposalStep σ m hfree hpend).proposed m' =
+      if m' = m then insert (nextWoman σ m hpend) (σ.proposed m') else σ.proposed m' := by
+  by_cases hmm' : m' = m
+  · subst m'
+    rw [proposalStep_proposed_self hfree hpend]
+    simp
+  · rw [proposalStep_proposed_other hfree hpend hmm']
+    simp [hmm']
+
+/-- A proposal step strictly decreases the number of pending proposals. -/
+lemma pendingCount_step_lt (σ : GSState P) (h : hasPending σ) :
+    pendingCount (step σ) < pendingCount σ := by
+  let m := Classical.choose h
+  have hspec := Classical.choose_spec h
+  have hstep : step σ = proposalStep σ m hspec.1 hspec.2 := by
+    simp [step, h, m, hspec]
+  rw [hstep]
+  unfold pendingCount
+  have hdecrease : ∀ m' : M,
+      (Fintype.card W - ((proposalStep σ m hspec.1 hspec.2).proposed m').card) ≤
+        (Fintype.card W - (σ.proposed m').card) := by
+    intro m'
+    by_cases hmm' : m' = m
+    · subst m'
+      rw [proposalStep_proposed_self hspec.1 hspec.2]
+      have hcard : (insert (nextWoman σ m hspec.2) (σ.proposed m)).card =
+          (σ.proposed m).card + 1 :=
+        Finset.card_insert_of_notMem (nextWoman_not_proposed σ m hspec.2)
+      rw [hcard]
+      omega
+    · rw [proposalStep_proposed_other hspec.1 hspec.2 hmm']
+  have hstrict : (Fintype.card W - ((proposalStep σ m hspec.1 hspec.2).proposed m).card) <
+      (Fintype.card W - (σ.proposed m).card) := by
+    rw [proposalStep_proposed_self hspec.1 hspec.2]
+    have hcard : (insert (nextWoman σ m hspec.2) (σ.proposed m)).card =
+        (σ.proposed m).card + 1 :=
+      Finset.card_insert_of_notMem (nextWoman_not_proposed σ m hspec.2)
+    rw [hcard]
+    have hlt : (σ.proposed m).card < Fintype.card W := by
+      exact Finset.card_lt_card
+        (Finset.ssubset_iff_subset_ne.mpr ⟨Finset.subset_univ _, hspec.2⟩)
+    omega
+  exact Finset.sum_lt_sum (fun m' hm' => hdecrease m') ⟨m, Finset.mem_univ m, hstrict⟩
+
+/-- Iterating the proposal step `n` times. -/
+noncomputable def gsLoopN : ℕ → GSState P → GSState P
+  | 0, σ => σ
+  | n + 1, σ => gsLoopN n (step σ)
+
+/-- The loop preserves the invariants. -/
+lemma gsLoopN_invariant (σ : GSState P) (hσ : Invariant σ) (n : ℕ) :
+    Invariant (gsLoopN n σ) := by
+  induction n generalizing σ with
+  | zero => simpa [gsLoopN]
+  | succ n ih => simpa [gsLoopN] using ih (step σ) (step_preserves_invariant hσ)
+
+/-- Once no proposal is pending, further steps change nothing. -/
+lemma gsLoopN_eq_self_of_no_pending {σ : GSState P} (h : ¬ hasPending σ) (n : ℕ) :
+    gsLoopN n σ = σ := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      simp [gsLoopN, step_eq_self_of_no_pending h, ih]
+
+/-- **The Gale–Shapley proposal loop** (CLRS §25.2): repeat the proposal step
+until no proposal is pending.  The recursion is well-founded on the pending
+count, which strictly decreases at every pending step, so the loop is
+guaranteed to halt. -/
+noncomputable def gsLoop (σ : GSState P) : GSState P :=
+  if h : hasPending σ then gsLoop (step σ) else σ
+termination_by pendingCount σ
+decreasing_by
+  exact pendingCount_step_lt σ h
+
+/-- The proposal loop halts: its output has no pending proposal. -/
+lemma gsLoop_no_pending (σ : GSState P) : ¬ hasPending (gsLoop σ) := by
+  rw [gsLoop]
+  by_cases h : hasPending σ
+  · simpa [h] using gsLoop_no_pending (step σ)
+  · simp [h]
+termination_by pendingCount σ
+decreasing_by
+  exact pendingCount_step_lt σ h
+
+/-- The proposal loop preserves the invariants. -/
+lemma gsLoop_invariant (σ : GSState P) (hσ : Invariant σ) :
+    Invariant (gsLoop σ) := by
+  rw [gsLoop]
+  by_cases h : hasPending σ
+  · simpa [h] using gsLoop_invariant (step σ) (step_preserves_invariant hσ)
+  · simpa [h]
+termination_by pendingCount σ
+decreasing_by
+  exact pendingCount_step_lt σ h
+
+/-- **The Gale–Shapley output pairing** (CLRS §25.2): run the proposal loop
+from the empty state. -/
+noncomputable def gs (P : PreferenceProfile M W) : Pairing M W :=
+  (gsLoop (init : GSState P)).toPairing
+
 end StableMarriage
 
 end CLRS
