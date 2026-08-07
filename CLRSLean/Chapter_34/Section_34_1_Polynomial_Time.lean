@@ -1,5 +1,6 @@
 import Mathlib.Computability.TuringMachine.Computable
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
+import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.AndOr
 
 noncomputable section
 
@@ -22,11 +23,19 @@ Main results:
   polynomial-time decision function.
 - Definition `ClassP`: the class of polynomial-time decidable
   languages.
+- Theorem `PolyTimeComputable.comp`: `P` is closed under function
+  composition (via `Turing.TM2Comp.comp_scratch`).
+- Theorem `PolyTimeDecidable.compl` / `ClassP_compl`: `P` is closed
+  under complement.
+- Theorem `PolyTimeDecidable.union` / `ClassP_union`: `P` is closed
+  under union (via the AND/OR machine `Turing.TM2AndOr`).
+- Theorem `PolyTimeDecidable.inter` / `ClassP_inter`: `P` is closed
+  under intersection.
 
 The framework is deliberately abstract: the decision machine is existential.
 Concrete machine constructions and the closure properties (composition,
-`P ⊆ NP`) are developed in the sections that follow.  Open problems (whether
-`P = NP`) are intentionally not addressed.
+complement, union, intersection) are developed in the sections that follow.
+Open problems (whether `P = NP`) are intentionally not addressed.
 -/
 
 namespace CLRS
@@ -105,6 +114,58 @@ theorem PolyTimeDecidable.compl {Γ : Type} (L : Language Γ) (hL : PolyTimeDeci
 -/
 theorem ClassP_compl {Γ : Type} (L : Language Γ) (hL : L ∈ ClassP Γ) : Lᶜ ∈ ClassP Γ := by
   exact (mem_ClassP (Lᶜ)).mpr (PolyTimeDecidable.compl L hL)
+
+/--
+**Closure under union.**  The union of two polynomial-time decidable languages
+is polynomial-time decidable (CLRS §34.1): the decider ORs the two decision
+functions, run on the duplicated input by the AND/OR machine.
+-/
+theorem PolyTimeDecidable.union {Γ : Type} [Inhabited Γ] (L₁ L₂ : Language Γ)
+    (h₁ : PolyTimeDecidable L₁) (h₂ : PolyTimeDecidable L₂) :
+    PolyTimeDecidable (L₁ ∪ L₂) := by
+  rcases h₁ with ⟨f₁, hf₁, hf₁_iff⟩
+  rcases h₂ with ⟨f₂, hf₂, hf₂_iff⟩
+  rcases hf₁ with ⟨M₁⟩
+  rcases hf₂ with ⟨M₂⟩
+  letI : Fintype (M₁.tm.Γ M₁.tm.k₀) := M₁.tm.Γk₀Fin
+  letI : Fintype Γ := Fintype.ofEquiv (M₁.tm.Γ M₁.tm.k₀) M₁.inputAlphabet
+  refine ⟨fun x => f₁ x || f₂ x, ?comp, ?iff⟩
+  · exact ⟨Turing.TM2AndOr.andOrComputableInPolyTime (M₁ := M₁) (M₂ := M₂) (op := Bool.or)⟩
+  · intro x
+    simp [hf₁_iff x, hf₂_iff x]
+
+/-- **Closure under union.**  `P` is closed under union: `L₁ ∈ P` and `L₂ ∈ P`
+imply `L₁ ∪ L₂ ∈ P`.
+-/
+theorem ClassP_union {Γ : Type} [Inhabited Γ] (L₁ L₂ : Language Γ)
+    (h₁ : L₁ ∈ ClassP Γ) (h₂ : L₂ ∈ ClassP Γ) : L₁ ∪ L₂ ∈ ClassP Γ := by
+  exact (mem_ClassP (L₁ ∪ L₂)).mpr (PolyTimeDecidable.union L₁ L₂ h₁ h₂)
+
+/--
+**Closure under intersection.**  The intersection of two polynomial-time
+decidable languages is polynomial-time decidable (CLRS §34.1): the decider
+ANDs the two decision functions.
+-/
+theorem PolyTimeDecidable.inter {Γ : Type} [Inhabited Γ] (L₁ L₂ : Language Γ)
+    (h₁ : PolyTimeDecidable L₁) (h₂ : PolyTimeDecidable L₂) :
+    PolyTimeDecidable (L₁ ∩ L₂) := by
+  rcases h₁ with ⟨f₁, hf₁, hf₁_iff⟩
+  rcases h₂ with ⟨f₂, hf₂, hf₂_iff⟩
+  rcases hf₁ with ⟨M₁⟩
+  rcases hf₂ with ⟨M₂⟩
+  letI : Fintype (M₁.tm.Γ M₁.tm.k₀) := M₁.tm.Γk₀Fin
+  letI : Fintype Γ := Fintype.ofEquiv (M₁.tm.Γ M₁.tm.k₀) M₁.inputAlphabet
+  refine ⟨fun x => f₁ x && f₂ x, ?comp, ?iff⟩
+  · exact ⟨Turing.TM2AndOr.andOrComputableInPolyTime (M₁ := M₁) (M₂ := M₂) (op := Bool.and)⟩
+  · intro x
+    simp [hf₁_iff x, hf₂_iff x]
+
+/-- **Closure under intersection.**  `P` is closed under intersection: `L₁ ∈ P`
+and `L₂ ∈ P` imply `L₁ ∩ L₂ ∈ P`.
+-/
+theorem ClassP_inter {Γ : Type} [Inhabited Γ] (L₁ L₂ : Language Γ)
+    (h₁ : L₁ ∈ ClassP Γ) (h₂ : L₂ ∈ ClassP Γ) : L₁ ∩ L₂ ∈ ClassP Γ := by
+  exact (mem_ClassP (L₁ ∩ L₂)).mpr (PolyTimeDecidable.inter L₁ L₂ h₁ h₂)
 
 end Chapter34
 

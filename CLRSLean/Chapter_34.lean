@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
+import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.AndOr
 import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification
 import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection
 import CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility
@@ -40,16 +41,23 @@ polynomial-time computability with `Polynomial ℕ` time bounds).
 * `CLRS.Chapter34.ClassNPC` — the class of NP-complete languages
 
 **Status: `partial`** — the complete framework (languages, polytime,
-class `P`, class `NP`, reducibility, NP-hard/NP-complete) is defined.  The
-following theorem layer is the documented next milestone:
+class `P`, class `NP`, reducibility, NP-hard/NP-complete) is defined, and the
+theorem layer is complete: composition, `P ⊆ NP`, transitivity of `≤_P`, and
+the closure of `ClassP` under complement, union, and intersection.  The
+sections 34.4–34.5 specific reductions remain unrepresented.
 
-- `Turing.TM2ComputableInPolyTime.comp`: composition of polynomial-time
-  machines is polynomial-time (Mathlib leaves this as `proof_wanted`; the
-  combined-machine construction is partially developed).  Unlocks `P ⊆ NP`
-  and the transitivity of `PolyTimeReducible`.
-- Concrete machine constructions (the empty/universal languages are in `P`).
-- Closure of `ClassP` under complement, union, and intersection.
-- `P ⊆ NP` and the NP-completeness characterization theorem.
+Theorem layer:
+
+- `Turing.TM2ComputableInPolyTime.comp` (via `Turing.TM2Comp.comp_scratch`):
+  composition of polynomial-time machines is polynomial-time (Mathlib leaves
+  this as `proof_wanted`; closed here).  Unlocks `P ⊆ NP` and the transitivity
+  of `PolyTimeReducible`.
+- `PolyTimeDecidable.compl` / `ClassP_compl`: `P` is closed under complement.
+- `PolyTimeDecidable.union` / `ClassP_union` and `PolyTimeDecidable.inter` /
+  `ClassP_inter`: `P` is closed under union and intersection, via the AND/OR
+  machine `Turing.TM2AndOr.andOrMachine` (which duplicates the input, runs both
+  deciders, and combines with AND/OR).
+- `ClassP_subset_ClassNP`: `P ⊆ NP` (Theorem 34.2).
 
 Open problems (whether `P = NP`) and the specific NP-completeness reductions
 (34.4–34.5: CIRCUIT-SAT, SAT, 3-CNF-SAT, CLIQUE, VERTEX-COVER, HAM-CYCLE,

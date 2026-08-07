@@ -14,9 +14,10 @@ and 34.3 (reducibility / transitivity of `≤_P`).
 
 ## Coverage boundary
 
-Status: partial (the theorem layer — polytime composition, `P ⊆ NP`, and
-transitivity of `≤_P` — is complete; Sections 34.4-34.5 specific reductions are
-not yet represented).
+Status: partial (the theorem layer — polytime composition, `P ⊆ NP`,
+transitivity of `≤_P`, and the closure of `P` under complement, union, and
+intersection — is complete; Sections 34.4-34.5 specific reductions are not yet
+represented).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

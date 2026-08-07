@@ -4615,6 +4615,7 @@ in a legacy initialization module that is also cataloged as online material.
   - `CLRSLean/Chapter_34.lean`
   - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time.lean`
   - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/Composition.lean`
+  - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/AndOr.lean`
 - Status: `partial` — green-field NP-completeness formalization on Mathlib's
   `Turing.TM2ComputableInPolyTime` (machine-level polynomial-time
   computability with `Polynomial ℕ` time bounds).
@@ -4623,10 +4624,15 @@ in a legacy initialization module that is also cataloged as online material.
   `PolyTimeDecidable`, `ClassP` (the class of polynomial-time decidable
   languages), `mem_ClassP`, `PolyTimeComputable.comp` (composition closure,
   closing Mathlib's `proof_wanted TM2ComputableInPolyTime.comp` via the
-  shared-stack two-phase `Turing.TM2Comp` construction), and `ClassP_compl`
-  (`P` closed under complement via the `Bool.not` machine).
-- Current gap: `ClassP` closure under union/intersection (needs a parallel
-  run of two deciders on duplicated input); the empty/universal languages.
+  shared-stack two-phase `Turing.TM2Comp` construction), `ClassP_compl`
+  (`P` closed under complement via the `Bool.not` machine), and the closure of
+  `P` under union/intersection — `PolyTimeDecidable.union` / `ClassP_union`
+  and `PolyTimeDecidable.inter` / `ClassP_inter` — via the AND/OR machine
+  `Turing.TM2AndOr.andOrMachine` (a four-phase machine that duplicates the
+  input onto both deciders' stacks, runs `M₁` then `M₂`, and combines the two
+  `Bool` results with AND/OR).
+- Current gap: the empty/universal languages (concrete machine constructions
+  for `∅` and `Σ*`).
 - Remaining chapter scope: Sections 34.4--34.5 (specific reductions) are not
   represented.  Open problems (P vs NP) are intentionally out of scope.
 

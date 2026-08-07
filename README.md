@@ -88,7 +88,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 31 | Number-Theoretic Algorithms | 🟡 sections | 17 / 17 | — |
 | 32 | String Matching | 🟠 partial coverage | 19 / 19 | Section 32.2 (The Rabin–Karp algorithm): not-started;… |
 | 33 | Machine-Learning Algorithms | ⬜ not started | 0 / 0 | Whole fourth-edition chapter theorem inventory and… |
-| 34 | NP-Completeness | 🟠 partial coverage | 6 / 6 | Sections 34.4-34.5 (specific reductions) and P closed under… |
+| 34 | NP-Completeness | 🟠 partial coverage | 6 / 6 | Sections 34.4-34.5 (specific reductions) not yet represented |
 | 35 | Approximation Algorithms | ⬜ not started | 0 / 0 | Whole fourth-edition chapter theorem inventory and… |
 
 **Total: 1334 of 1334 selected theorem entries have kernel-checked proofs across 31 represented fourth-edition chapters** (no `sorry`/`admit`/project axiom on `main`). This does not by itself claim complete fourth-edition coverage.
