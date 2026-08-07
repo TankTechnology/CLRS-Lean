@@ -74,7 +74,7 @@ class FourthEditionContractTest(unittest.TestCase):
 
     def test_partial_chapter_must_have_positive_gap_units(self) -> None:
         rows = [row.copy() for row in load_rows()]
-        rows[2]["edition_gap_units"] = "0"
+        rows[3]["edition_gap_units"] = "0"
 
         with self.assertRaisesRegex(SystemExit, "positive edition_gap_units"):
             validate(rows)
@@ -104,7 +104,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
 
         self.assertIn("## Fourth-Edition Snapshot", dashboard)
         self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)
-        self.assertIn("1,330", dashboard)
+        self.assertIn("1,339", dashboard)
         self.assertIn("selected proof inventory", normalized)
         self.assertIn("does not by itself mean that every fourth-edition section obligation is covered", normalized)
         self.assertIn("partial (edition coverage)", dashboard)

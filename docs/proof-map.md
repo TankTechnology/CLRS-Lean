@@ -109,10 +109,10 @@ arbitrary-size floor/ceiling recurrence.
 ## Chapter 3 - Growth of Functions
 
 Fourth-edition mapping: legacy §3.1 supplies fourth-edition §§3.1--3.2, while
-legacy §3.2 supplies fourth-edition §3.3.  Fourth-edition §3.1 and §3.3 are
-represented at the current mathematical interface.  Fourth-edition §3.2 remains
-partial because a shared-threshold two-sided Θ witness and the expected
-little-o/little-omega algebra and duality wrappers are not yet exposed.
+legacy §3.2 supplies fourth-edition §3.3.  Fourth-edition §§3.1--3.3 are
+represented at the current mathematical interface: the shared-threshold
+two-sided Θ witness and the little-o/little-omega algebra and duality wrappers
+are proved in the §3.1 source.
 
 ### Section 3.1 - Asymptotic notation
 
@@ -124,10 +124,17 @@ little-o/little-omega algebra and duality wrappers are not yet exposed.
   - `CLRS.Chapter03.isBigOmega_iff`
   - `CLRS.Chapter03.isLittleOmega_iff`
   - `CLRS.Chapter03.isBigTheta_trans`
+  - `CLRS.Chapter03.isBigTheta_iff_sharedThreshold`
+  - `CLRS.Chapter03.isLittleO_reciprocal`
+  - `CLRS.Chapter03.isBigO_reciprocal`
+  - `CLRS.Chapter03.isLittleO_isBigO`
+  - `CLRS.Chapter03.isLittleO_add`
+  - `CLRS.Chapter03.isLittleO_mul`
+  - `CLRS.Chapter03.isLittleO_comp`
+  - `CLRS.Chapter03.isLittleOmega_scale`
+  - `CLRS.Chapter03.isLittleOmega_add_dominated`
 - Proof pattern: bridge CLRS discrete witnesses to Mathlib filters
-- Current gap: none for the represented O/Ω witness core.  At the broader
-  fourth-edition §3.2 interface, the two-sided Θ witness and o/ω wrapper algebra
-  named above remain.
+- Current gap: none.
 
 The section gives CLRS-facing names for O, Ω, Θ, o, and ω over functions
 `ℕ → ℝ`, proves the textbook-style witness forms, and collects basic algebraic
