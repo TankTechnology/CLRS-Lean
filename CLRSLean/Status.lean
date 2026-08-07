@@ -72,7 +72,8 @@ chapter-end Problems, pointer/RAM models, or floating-point implementations.
 
 ## Not-Started Chapters
 
-* **Chapter 25, Matchings in Bipartite Graphs:** Section 25.1 is native (Berge's lemma and the flow-method certification); Section 25.2 proves Gale-Shapley stability with perfectness and man-optimality remaining; Section 25.3 is not started.* **Chapter 27, Online Algorithms:** no canonical theorem-bearing source yet.
+* **Chapter 25, Matchings in Bipartite Graphs:** Section 25.1 is native (Berge's lemma and the flow-method certification); Section 25.2 proves Gale-Shapley stability with perfectness and man-optimality remaining; Section 25.3 is not started.
+* **Chapter 27, Online Algorithms:** no canonical theorem-bearing source yet.
 * **Chapter 33, Machine-Learning Algorithms:** no canonical theorem-bearing
   source yet.
 * **Chapters 34--35, NP-Completeness and Approximation Algorithms:** guide-only,
