@@ -16,8 +16,8 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 31.
-* Tracked reader-facing theorem entries: 1,354.
-* Proved tracked theorem entries: 1,354.
+* Tracked reader-facing theorem entries: 1,358.
+* Proved tracked theorem entries: 1,358.
 * Online/supplementary theorem entries: 464.
 * Remaining edition-coverage units: 30.
 
@@ -60,7 +60,7 @@ Ch  Chapter                                                     Status          
 12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1;12.2;12.3                     40        0
 13  13. Red-Black Trees                                         partial (edition coverage)           13.1;13.2;13.3;13.4                39        3
 14  14. Dynamic Programming                                     partial (edition coverage)           14.1;14.2;14.3;14.4;14.5           76        5
-15  15. Greedy Algorithms                                       partial (edition coverage)           15.1;15.2;15.3                     23        1
+15  15. Greedy Algorithms                                       partial (edition coverage)           15.1;15.2;15.3;15.4                27        1
 16  16. Amortized Analysis                                      selected-section-complete            16.1;16.2;16.3;16.4                66        0
 17  17. Augmenting Data Structures                              partial (edition coverage)           17.1;17.2;17.3                     77        3
 18  18. B-Trees                                                 main-proof-complete-for-correctness  18.1;18.2;18.3                    134        0

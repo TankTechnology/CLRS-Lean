@@ -270,6 +270,14 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_15" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching",
+]
+"CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -593,6 +601,18 @@ title = "Chapter 14. Dynamic Programming"
 
 [modules."CLRSLean.FourthEdition.Chapter_15"]
 title = "Chapter 15. Greedy Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching"]
+title = "15.4. Offline caching"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model"]
+title = "Cache Model"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future"]
+title = "Farthest-In-Future Eviction"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality"]
+title = "Optimality"
 
 [modules."CLRSLean.FourthEdition.Chapter_16"]
 title = "Chapter 16. Amortized Analysis"

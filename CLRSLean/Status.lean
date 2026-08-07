@@ -53,9 +53,7 @@ The edition map currently records these fourth-edition gaps:
 * **Chapter 14, Dynamic Programming:** all five sections remain partial at the
   tabulated/memoized algorithm and cost boundary; §14.3 additionally lacks a
   generic dynamic-programming interface.
-* **Chapter 15, Greedy Algorithms:** Section 15.4, offline caching, is not
-  started; retained matroid and task-scheduling results are supplementary.
-* **Chapter 17, Augmenting Data Structures:** all three sections remain partial:
+* **Chapter 15, Greedy Algorithms:** Section 15.4 (offline caching) is a native section with the farthest-in-future policy; the optimality theorem remains.* **Chapter 17, Augmenting Data Structures:** all three sections remain partial:
   OS-RANK, the augmentation-cost theorem, and the dynamic/static interval-tree
   bridge are the principal gaps.
 * **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial for
