@@ -263,6 +263,248 @@ noncomputable def step (σ : GSState P) : GSState P :=
 lemma step_eq_self_of_no_pending {σ : GSState P} (h : ¬ hasPending σ) : step σ = σ := by
   simp [step, h]
 
+/--
+The loop invariants of the proposal algorithm: every woman who has been
+proposed to is matched, every matched woman prefers her current partner to
+every man who has proposed to her, every man's proposed set is a rank prefix
+(a woman of smaller rank implies all even more preferred women were proposed
+to), and every man has proposed to his current partner.
+-/
+def Invariant (σ : GSState P) : Prop :=
+  (∀ w m, w ∈ σ.proposed m → σ.wPartner w ≠ none) ∧
+    (∀ w m₀, σ.wPartner w = some m₀ →
+      ∀ m, w ∈ σ.proposed m → P.wRank w m₀ ≤ P.wRank w m) ∧
+    (∀ m w₁ w₂, w₁ ∈ σ.proposed m → P.mRank m w₂ < P.mRank m w₁ → w₂ ∈ σ.proposed m) ∧
+    (∀ m w, σ.mPartner m = some w → w ∈ σ.proposed m)
+
+/-- Every woman who has been proposed to is matched. -/
+lemma Invariant.w_proposed_matched {σ : GSState P} (hσ : Invariant σ) {w : W} {m : M}
+    (h : w ∈ σ.proposed m) : σ.wPartner w ≠ none :=
+  hσ.1 w m h
+
+/-- A matched woman prefers her current partner to every man who has proposed
+to her. -/
+lemma Invariant.best_among_proposers {σ : GSState P} (hσ : Invariant σ) {w : W} {m₀ : M}
+    (hw : σ.wPartner w = some m₀) {m : M} (hm : w ∈ σ.proposed m) :
+    P.wRank w m₀ ≤ P.wRank w m :=
+  hσ.2.1 w m₀ hw m hm
+
+/-- Every man's proposed set is a rank prefix. -/
+lemma Invariant.downward_closed {σ : GSState P} (hσ : Invariant σ) {m : M} {w₁ w₂ : W}
+    (h₁ : w₁ ∈ σ.proposed m) (h₂ : P.mRank m w₂ < P.mRank m w₁) : w₂ ∈ σ.proposed m :=
+  hσ.2.2.1 m w₁ w₂ h₁ h₂
+
+/-- Every man has proposed to his current partner. -/
+lemma Invariant.partner_proposed {σ : GSState P} (hσ : Invariant σ) {m : M} {w : W}
+    (h : σ.mPartner m = some w) : w ∈ σ.proposed m :=
+  hσ.2.2.2 m w h
+
+/-- The initial state: nobody is matched and nobody has proposed. -/
+def init : GSState P :=
+  { mPartner := fun _ => none
+    wPartner := fun _ => none
+    h_consistency := by simp
+    proposed := fun _ => ∅ }
+
+/-- The initial state satisfies the invariants. -/
+lemma init_invariant : Invariant (init : GSState P) := by
+  unfold Invariant init
+  simp
+
+/-- A proposal step preserves the invariants. -/
+lemma step_preserves_invariant {σ : GSState P} (hσ : Invariant σ) : Invariant (step σ) := by
+  by_cases h : hasPending σ
+  · have hstep : step σ = proposalStep σ (Classical.choose h) (Classical.choose_spec h).1
+        (Classical.choose_spec h).2 := by
+      simp [step, h]
+    rw [hstep]
+    let m := Classical.choose h
+    have hspec := Classical.choose_spec h
+    let w := nextWoman σ m hspec.2
+    have hw_not : w ∉ σ.proposed m := nextWoman_not_proposed σ m hspec.2
+    have hw_min : ∀ w' ∈ Finset.univ \ σ.proposed m, P.mRank m w ≤ P.mRank m w' := by
+      intro w'' hw''
+      exact nextWoman_min_rank σ m hspec.2 hw''
+    unfold Invariant
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · intro w' m' hmem
+      by_cases hmm' : m' = m
+      · subst m'
+        have hmem' : w' ∈ insert w (σ.proposed m) := by
+          rwa [proposalStep_proposed_self hspec.1 hspec.2] at hmem
+        rcases Finset.mem_insert.mp hmem' with hw' | hw'
+        · subst w'
+          rw [proposalStep_wPartner_target hspec.1 hspec.2]
+          change (if accepts σ m w then some m else σ.wPartner w) ≠ none
+          by_cases hacc : accepts σ m w
+          · simp [hacc]
+          · simp [hacc]
+            intro hnone
+            exact hacc (Or.inl hnone)
+        · have hwn : σ.wPartner w' ≠ none := hσ.w_proposed_matched hw'
+          by_cases hww' : w' = w
+          · subst w'
+            exact False.elim (hw_not hw')
+          · rw [proposalStep_wPartner_other hspec.1 hspec.2 hww']
+            exact hwn
+      · have hmem' : w' ∈ σ.proposed m' := by
+          rwa [proposalStep_proposed_other hspec.1 hspec.2 hmm'] at hmem
+        have hwn : σ.wPartner w' ≠ none := hσ.w_proposed_matched hmem'
+        by_cases hww' : w' = w
+        · subst w'
+          rw [proposalStep_wPartner_target hspec.1 hspec.2]
+          change (if accepts σ m w then some m else σ.wPartner w) ≠ none
+          by_cases hacc : accepts σ m w
+          · simp [hacc]
+          · simp [hacc]
+            exact hwn
+        · rw [proposalStep_wPartner_other hspec.1 hspec.2 hww']
+          exact hwn
+    · intro w' m₀ hwm₀
+      by_cases hww' : w' = w
+      · subst w'
+        rw [proposalStep_wPartner_target hspec.1 hspec.2] at hwm₀
+        change (if accepts σ m w then some m else σ.wPartner w) = some m₀ at hwm₀
+        by_cases hacc : accepts σ m w
+        · have hm₀ : m = m₀ := by
+            simp [hacc] at hwm₀
+            simpa using hwm₀
+          subst m₀
+          intro m'' hmem''
+          by_cases hmm'' : m'' = m
+          · subst m''
+            rfl
+          · have hmemσ : w ∈ σ.proposed m'' := by
+              rwa [proposalStep_proposed_other hspec.1 hspec.2 hmm''] at hmem''
+            by_cases hwfree : σ.wPartner w = none
+            · exact False.elim ((hσ.w_proposed_matched hmemσ) hwfree)
+            · have hacc' : ∃ m₁, σ.wPartner w = some m₁ ∧ P.wPrefers w m m₁ := by
+                rcases hacc with hnone | hpref
+                · exact False.elim (hwfree hnone)
+                · exact hpref
+              rcases hacc' with ⟨m₁, hwm₁, hpref⟩
+              have hle : P.wRank w m₁ ≤ P.wRank w m'' := hσ.best_among_proposers hwm₁ hmemσ
+              exact le_trans (le_of_lt hpref) hle
+        · have hwm₀' : σ.wPartner w = some m₀ := by
+            simp [hacc] at hwm₀
+            exact hwm₀
+          have hnotpref : ¬ ∃ m₁, σ.wPartner w = some m₁ ∧ P.wPrefers w m m₁ := by
+            intro hpref
+            exact hacc (Or.inr hpref)
+          have hnotw : ¬ P.wPrefers w m m₀ := by
+            intro hpref
+            exact hnotpref ⟨m₀, hwm₀', hpref⟩
+          intro m'' hmem''
+          by_cases hmm'' : m'' = m
+          · subst m''
+            exact le_of_not_gt hnotw
+          · have hmemσ : w ∈ σ.proposed m'' := by
+              rwa [proposalStep_proposed_other hspec.1 hspec.2 hmm''] at hmem''
+            exact hσ.best_among_proposers hwm₀' hmemσ
+      · have hwmσ : σ.wPartner w' = some m₀ := by
+          rwa [proposalStep_wPartner_other hspec.1 hspec.2 hww'] at hwm₀
+        intro m'' hmem''
+        by_cases hmm'' : m'' = m
+        · subst m''
+          have hmem' : w' ∈ insert w (σ.proposed m) := by
+            rwa [proposalStep_proposed_self hspec.1 hspec.2] at hmem''
+          rcases Finset.mem_insert.mp hmem' with hw' | hw'
+          · subst w'
+            exact False.elim (hww' rfl)
+          · exact hσ.best_among_proposers hwmσ hw'
+        · have hmemσ : w' ∈ σ.proposed m'' := by
+            rwa [proposalStep_proposed_other hspec.1 hspec.2 hmm''] at hmem''
+          exact hσ.best_among_proposers hwmσ hmemσ
+    · intro m' w₁ w₂ hmem₁ hlt
+      by_cases hmm' : m' = m
+      · subst m'
+        have hmem₁' : w₁ ∈ insert w (σ.proposed m) := by
+          rwa [proposalStep_proposed_self hspec.1 hspec.2] at hmem₁
+        rcases Finset.mem_insert.mp hmem₁' with hw₁ | hw₁
+        · subst w₁
+          by_cases hw₂ : w₂ = w
+          · subst w₂
+            rw [proposalStep_proposed_self hspec.1 hspec.2]
+            exact Finset.mem_insert_self w (σ.proposed m)
+          · have hw₂' : w₂ ∈ σ.proposed m := by
+              by_contra hnot
+              have hw₂c : w₂ ∈ Finset.univ \ σ.proposed m :=
+                Finset.mem_sdiff.mpr ⟨Finset.mem_univ w₂, hnot⟩
+              exact (lt_irrefl (P.mRank m w)) (lt_of_le_of_lt (hw_min w₂ hw₂c) hlt)
+            rw [proposalStep_proposed_self hspec.1 hspec.2]
+            exact Finset.mem_insert_of_mem hw₂'
+        · have hw₂' : w₂ ∈ σ.proposed m := hσ.downward_closed hw₁ hlt
+          rw [proposalStep_proposed_self hspec.1 hspec.2]
+          exact Finset.mem_insert_of_mem hw₂'
+      · have hmem₁' : w₁ ∈ σ.proposed m' := by
+          rwa [proposalStep_proposed_other hspec.1 hspec.2 hmm'] at hmem₁
+        have hw₂' : w₂ ∈ σ.proposed m' := hσ.downward_closed hmem₁' hlt
+        rwa [proposalStep_proposed_other hspec.1 hspec.2 hmm']
+    · intro m' w' hm
+      by_cases hmm' : m' = m
+      · subst m'
+        rw [proposalStep_mPartner_self hspec.1 hspec.2] at hm
+        change (if accepts σ m w then some w else none) = some w' at hm
+        by_cases hacc : accepts σ m w
+        · simp [hacc] at hm
+          have hEq : w = w' := by
+            simpa using hm
+          rw [← hEq]
+          rw [proposalStep_proposed_self hspec.1 hspec.2]
+          exact Finset.mem_insert_self w (σ.proposed m)
+        · simp [hacc] at hm
+      · by_cases hdump : accepts σ m w ∧ σ.wPartner w = some m'
+        · rcases hdump with ⟨hacc, hwm⟩
+          rw [proposalStep_mPartner_dump hspec.1 hspec.2 hmm' hacc hwm] at hm
+          simp at hm
+        · have hmσ : σ.mPartner m' = some w' := by
+            rwa [proposalStep_mPartner_other hspec.1 hspec.2 hmm' hdump] at hm
+          have hprop : w' ∈ σ.proposed m' := hσ.partner_proposed hmσ
+          rwa [proposalStep_proposed_other hspec.1 hspec.2 hmm']
+  · simp [step, h]
+    exact hσ
+
+/-- **Invariant (women only improve).** When a woman changes partner in a
+proposal step, she strictly prefers the new partner to the old one. -/
+lemma step_partner_improves {σ : GSState P} {w : W} {m₁ m₂ : M}
+    (hold : σ.wPartner w = some m₁) (hnew : (step σ).wPartner w = some m₂)
+    (hne : m₁ ≠ m₂) : P.wPrefers w m₂ m₁ := by
+  by_cases h : hasPending σ
+  · rw [step, dif_pos h] at hnew
+    let m := Classical.choose h
+    have hspec := Classical.choose_spec h
+    by_cases hww : w = nextWoman σ m hspec.2
+    · subst w
+      rw [proposalStep_wPartner_target hspec.1 hspec.2] at hnew
+      change (if accepts σ m (nextWoman σ m hspec.2) then some m
+          else σ.wPartner (nextWoman σ m hspec.2)) = some m₂ at hnew
+      by_cases hacc : accepts σ m (nextWoman σ m hspec.2)
+      · simp [hacc] at hnew
+        have hm₂ : m₂ = m := by
+          exact hnew.symm
+        subst m₂
+        have hacc' : ∃ m₃, σ.wPartner (nextWoman σ m hspec.2) = some m₃ ∧
+            P.wPrefers (nextWoman σ m hspec.2) m m₃ := by
+          rcases hacc with hnone | hpref
+          · exfalso
+            rw [hold] at hnone
+            simp at hnone
+          · exact hpref
+        rcases hacc' with ⟨m₃, hw₃, hpref⟩
+        have hm₃ : m₃ = m₁ := by
+          rw [hold] at hw₃
+          exact Option.some.inj hw₃.symm
+        simpa [hm₃] using hpref
+      · simp [hacc] at hnew
+        rw [hold] at hnew
+        exact False.elim (hne (by simpa using hnew))
+    · rw [proposalStep_wPartner_other hspec.1 hspec.2 hww] at hnew
+      rw [hold] at hnew
+      exact False.elim (hne (by simpa using hnew))
+  · simp [step, h] at hnew
+    rw [hold] at hnew
+    exact False.elim (hne (by simpa using hnew))
+
 end StableMarriage
 
 end CLRS
