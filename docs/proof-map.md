@@ -3454,6 +3454,35 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   `O(n³ log n)` repeated-squaring work theorem and lower-level RAM accounting
   remain optional refinements.
 
+## Chapter 25 (Fourth Edition) - Matchings in Bipartite Graphs
+
+### Section 25.1 - Maximum bipartite matching revisited
+
+- Lean source:
+  `CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching.lean`,
+  split into sub-modules `S1_Matching_API` through `S6_Berge_Flow_Method`
+  under the same directory
+- Interface tests: `Tests/Chapter_25_Matching_Interface.lean`
+- Status: `native` (first native fourth-edition section, built on the §26.3
+  matching-to-flow reduction)
+- Main theorems:
+  - `CLRS.Chapter26.Matching.IsMaximum`
+  - `CLRS.Matchings.IsAugmentingPath`
+  - `CLRS.Matchings.exists_augment` (Berge forward direction)
+  - `CLRS.Matchings.augmentingPath_of_hasAugmentingPath`
+  - `CLRS.Matchings.berge_maximum_iff_no_augmentingPath` (Berge's lemma)
+  - `CLRS.Matchings.flowMethod_finds_maximum_matching`
+- Supporting theorems:
+  - `CLRS.Chapter26.Matching.matchedLeft_card` / `matchedRight_card`
+  - `CLRS.Matchings.exists_augment_single` / `exists_swap`
+  - `CLRS.Matchings.translation_inner`
+  - matching-flow residual lemmas in `S4_Matching_Flow`
+- Proof pattern: alternating-path augmentation via the flow reduction; the
+  reachability-to-path translation extracts a vertex-simple path from a
+  residual walk.
+- Current gap: the O(V · E) execution-cost refinement of the flow method is
+  an optional low-level refinement; sections 25.2--25.3 are not-started.
+
 ## Chapter 26 - Maximum Flow
 
 ### Section 26.1 - Flow Networks

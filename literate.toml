@@ -270,6 +270,17 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_25" = [
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
+]
+"CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching" = [
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S1_Matching_API",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S2_Alternating_Paths",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S3_Simple_Paths",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S4_Matching_Flow",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S5_Residual_Translation",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S6_Berge_Flow_Method",
+]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
   "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp",
@@ -606,6 +617,27 @@ title = "Chapter 24. Maximum Flow"
 
 [modules."CLRSLean.FourthEdition.Chapter_25"]
 title = "Chapter 25. Matchings in Bipartite Graphs"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching"]
+title = "25.1. Maximum bipartite matching revisited"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S1_Matching_API"]
+title = "Matching API Extensions"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S2_Alternating_Paths"]
+title = "Alternating Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S3_Simple_Paths"]
+title = "Simple-Path Extraction"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S4_Matching_Flow"]
+title = "Matching Flow Residuals"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S5_Residual_Translation"]
+title = "Residual Reachability Translation"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S6_Berge_Flow_Method"]
+title = "Berge's Lemma and the Flow Method"
 
 [modules."CLRSLean.FourthEdition.Chapter_26"]
 title = "Chapter 26. Parallel Algorithms"
