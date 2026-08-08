@@ -517,6 +517,69 @@ lemma exchangeSchedule_misses_eq_case_one (d : ℕ → Page) (t : ℕ) (q q' : P
         rw [Finset.mem_sdiff] at hx
         exact hx.2 (heq ▸ hx.1))
 
+
+/-- 处处一致 ⟹ miss 数相同。 -/
+lemma schedMisses_eq_of_agree (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hagree : agreeWithFIF d C₀ σ σ.length) :
+    schedMisses d C₀ σ = schedMisses (fifoSchedule σ C₀) C₀ σ := by
+  unfold schedMisses
+  apply Finset.sum_congr rfl
+  intro s hs
+  have hslt : s < σ.length := Finset.mem_range.mp hs
+  unfold schedFaultAt
+  rw [hagree s (by omega)]
+
+/-- 情形二(`q'` 会再次被请求)的交换步骤,含 slack 更新:
+坏事件未发生时(`d` 在 `J'` 处缺页)省一次 miss。 -/
+lemma exchange_step_slack (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF d C₀ σ t)
+    (hdis : schedCache d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    {j' : ℕ} (hj' : nextUse σ (t + 1) (fifoSchedule σ C₀ t) = some j') :
+    ∃ d' slack', agreeWithFIF d' C₀ σ (t + 1) ∧
+      schedMisses d' C₀ σ + slack' ≤ schedMisses d C₀ σ + slack := by
+  let q : Page := d t
+  let q' : Page := fifoSchedule σ C₀ t
+  let d' : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  by_cases hbad : σ.getD (t + 1 + j') 0 ∈ schedCache d C₀ σ (t + 1 + j')
+  · -- 坏事件发生:slack 不变
+    refine ⟨d', slack, ?_, ?_⟩
+    · simpa [d', q, q'] using (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
+    · simpa [d', q, q'] using (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).1
+  · -- 坏事件未发生:slack + 1
+    refine ⟨d', slack + 1, ?_, ?_⟩
+    · exact (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
+    · have hfd := first_disagree d σ C₀ hC₀ ht hagree hdis
+      have hqq' : q ≠ q' := hfd.2.1
+      have hft : σ.getD t 0 ∉ schedCache d C₀ σ t := hfd.1
+      have hq'res : q' ∈ schedCache d C₀ σ t := hfd.2.2
+      have hqin : q ∈ schedCache d C₀ σ t := hdred t le_rfl hft
+      have hfifo : nextUse σ (t + 1) q' = none ∨
+          ∃ j j', nextUse σ (t + 1) q = some j ∧ nextUse σ (t + 1) q' = some j' ∧ j < j' := by
+        apply fifo_nextUse_order σ (schedCache d C₀ σ t) t q' q
+        · exact fifo_evict_eq_farthest d σ C₀ hagree
+        · exact hqin
+        · exact hqq'
+      rcases hfifo with hnone | ⟨j, j0', hj, hj0', hjlt⟩
+      · exfalso
+        rw [hj'] at hnone
+        contradiction
+      · have hj0eq : j0' = j' := Option.some.inj (hj0'.symm.trans hj')
+        have hslack : (nextUse σ (t + 1) q' = none ∧ ∃ j, nextUse σ (t + 1) q = some j) ∨
+          ∃ j j', nextUse σ (t + 1) q = some j ∧ nextUse σ (t + 1) q' = some j' ∧ j < j' ∧
+            σ.getD (t + 1 + j') 0 ∉ schedCache d C₀ σ (t + 1 + j') := by
+          right
+          refine ⟨j, j', hj, hj', ?_, ?_⟩
+          · omega
+          · simpa [hj0eq] using hbad
+        have hle := exchangeSchedule_misses_le_plus_one d t q q' σ C₀ rfl hqq' hdred hft hq'res hslack
+        have hle' : schedMisses (exchangeSchedule d t q q' σ C₀) C₀ σ + 1 ≤ schedMisses d C₀ σ := by
+          simpa [q, q'] using hle
+        unfold d'
+        omega
+
 end Caching
 
 end CLRS
