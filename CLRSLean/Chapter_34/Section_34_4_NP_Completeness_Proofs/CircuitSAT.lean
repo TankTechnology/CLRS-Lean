@@ -371,7 +371,7 @@ namespace TM2CS
 open CLRS.Chapter34
 
 inductive K : Type
-  | inK | temp | buf | cnt | o | out
+  | inK | temp | buf | cnt | o | tmp | out
 deriving DecidableEq, Fintype, Inhabited
 
 abbrev Γk : K → Type
@@ -380,22 +380,27 @@ abbrev Γk : K → Type
   | K.buf => Gate
   | K.cnt => Unit
   | K.o => FormulaSym
+  | K.tmp => Unit
   | K.out => FormulaSym
 
 inductive St : Type
-  | init | done | cp
-  | sym (s : FormulaSym)
+  | init | done
   | gate (g : Gate)
-  | gf (g : Gate)
+  | mv (g : Option Gate)
+  | rs (g : Option Gate)
   | emit (g : Gate)
+  | sym (s : FormulaSym)
 deriving DecidableEq, Fintype, Inhabited
 
 inductive Label : Type
-  | count | reorder | header | copyHeader | reset
-  | loop | copyGF | emitDispatch
-  | emitInput | copyInput | emitConst | emitNot | copyNot
-  | emitAnd | copyAnd1 | copyAnd2 | emitOr | copyOr1 | copyOr2
-  | dec | emitTrue | copyOut | done
+  | count | reorder | header | reset | loop | emitDispatch
+  | emitInput | emitConst | emitNot | emitAnd | emitOr | dec | emitTrue | copyOut | done
+  | moveHeader | restoreHeader
+  | moveGF | restoreGF
+  | moveInput | restoreInput
+  | moveNot | restoreNot
+  | moveAnd1 | restoreAnd1 | moveAnd2 | restoreAnd2
+  | moveOr1 | restoreOr1 | moveOr2 | restoreOr2
 deriving DecidableEq, Fintype, Inhabited
 
 def prog : Label → Turing.TM2.Stmt Γk Label St
@@ -414,34 +419,54 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
   | Label.header =>
       Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.andMark)
         (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-          (Turing.TM2.Stmt.goto (fun _ => Label.copyHeader)))
-  | Label.copyHeader =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+          (Turing.TM2.Stmt.goto (fun _ => Label.moveHeader)))
+  | Label.moveHeader =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveHeader)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreHeader)))
+  | Label.restoreHeader =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => St.done)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyHeader))))
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreHeader))))
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
             (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
               (Turing.TM2.Stmt.goto (fun _ => Label.reset)))))
   | Label.reset =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with | some () => (St.mv none) | none => St.done)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
           (Turing.TM2.Stmt.goto (fun _ => Label.reset))
           (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.loop))))
   | Label.loop =>
-      Turing.TM2.Stmt.pop K.buf (fun _ x => match x with | some g => St.gf g | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.gf _ => true | _ => false)
+      Turing.TM2.Stmt.pop K.buf (fun _ x => match x with | some g => St.mv (some g) | none => St.done)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv (some _) => true | _ => false)
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.andMark)
             (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.iffMark)
               (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-                (Turing.TM2.Stmt.goto (fun _ => Label.copyGF)))))
+                (Turing.TM2.Stmt.goto (fun _ => Label.moveGF)))))
           (Turing.TM2.Stmt.goto (fun _ => Label.emitTrue)))
-  | Label.copyGF =>
-      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with | some () => St.cp | none => match v with | St.gf g => St.emit g | _ => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+  | Label.moveGF =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveGF)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreGF)))
+  | Label.restoreGF =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => (match v with | St.rs (some g) => St.emit g | _ => St.done))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyGF))))
-          (Turing.TM2.Stmt.goto (fun _ => Label.emitDispatch)))
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreGF))))
+          (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
+            (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
+              (Turing.TM2.Stmt.goto (fun _ => Label.emitDispatch)))))
   | Label.emitDispatch =>
       Turing.TM2.Stmt.branch (fun v => match v with | St.emit Gate.input => true | _ => false)
         (Turing.TM2.Stmt.goto (fun _ => Label.emitInput))
@@ -454,12 +479,21 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
               (Turing.TM2.Stmt.goto (fun _ => Label.emitOr)))))
   | Label.emitInput =>
       Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-        (Turing.TM2.Stmt.goto (fun _ => Label.copyInput))
-  | Label.copyInput =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+        (Turing.TM2.Stmt.goto (fun _ => Label.moveInput))
+  | Label.moveInput =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveInput)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreInput)))
+  | Label.restoreInput =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => (match v with | St.rs (some g) => St.emit g | _ => St.done))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyInput))))
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreInput))))
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
             (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
               (Turing.TM2.Stmt.goto (fun _ => Label.dec)))))
@@ -469,47 +503,94 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
   | Label.emitNot =>
       Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.notMark)
         (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-          (Turing.TM2.Stmt.goto (fun _ => Label.copyNot)))
-  | Label.copyNot =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+          (Turing.TM2.Stmt.goto (fun _ => Label.moveNot)))
+  | Label.moveNot =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveNot)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreNot)))
+  | Label.restoreNot =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => (match v with | St.rs (some g) => St.emit g | _ => St.done))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyNot))))
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreNot))))
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
             (Turing.TM2.Stmt.goto (fun _ => Label.dec))))
   | Label.emitAnd =>
       Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.andMark)
         (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-          (Turing.TM2.Stmt.goto (fun _ => Label.copyAnd1)))
-  | Label.copyAnd1 =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+          (Turing.TM2.Stmt.goto (fun _ => Label.moveAnd1)))
+  | Label.moveAnd1 =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveAnd1)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreAnd1)))
+  | Label.restoreAnd1 =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => (match v with | St.rs (some g) => St.mv (some g) | _ => St.done))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyAnd1))))
-          (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-            (Turing.TM2.Stmt.goto (fun _ => Label.copyAnd2))))
-  | Label.copyAnd2 =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreAnd1))))
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyAnd2))))
+            (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
+              (Turing.TM2.Stmt.goto (fun _ => Label.moveAnd2)))))
+  | Label.moveAnd2 =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveAnd2)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreAnd2)))
+  | Label.restoreAnd2 =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => (match v with | St.rs (some g) => St.emit g | _ => St.done))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreAnd2))))
           (Turing.TM2.Stmt.goto (fun _ => Label.dec)))
   | Label.emitOr =>
       Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.orMark)
         (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-          (Turing.TM2.Stmt.goto (fun _ => Label.copyOr1)))
-  | Label.copyOr1 =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+          (Turing.TM2.Stmt.goto (fun _ => Label.moveOr1)))
+  | Label.moveOr1 =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveOr1)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreOr1)))
+  | Label.restoreOr1 =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => (match v with | St.rs (some g) => St.mv (some g) | _ => St.done))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyOr1))))
-          (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
-            (Turing.TM2.Stmt.goto (fun _ => Label.copyOr2))))
-  | Label.copyOr2 =>
-      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with | some () => St.cp | none => St.done)
-        (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreOr1))))
           (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
-            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.copyOr2))))
+            (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
+              (Turing.TM2.Stmt.goto (fun _ => Label.moveOr2)))))
+  | Label.moveOr2 =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match x with
+          | some () => (match v with | St.mv g => St.mv g | _ => St.mv none)
+          | none => (match v with | St.mv g => St.rs g | _ => St.rs none))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.mv _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.tmp (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.moveOr2)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.restoreOr2)))
+  | Label.restoreOr2 =>
+      Turing.TM2.Stmt.pop K.tmp (fun v x => match x with
+          | some () => (match v with | St.rs g => St.rs g | _ => St.rs none)
+          | none => (match v with | St.rs (some g) => St.emit g | _ => St.done))
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rs _ => true | _ => false)
+          (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.endMark)
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreOr2))))
           (Turing.TM2.Stmt.goto (fun _ => Label.dec)))
   | Label.dec =>
       Turing.TM2.Stmt.pop K.cnt (fun v _ => v) (Turing.TM2.Stmt.goto (fun _ => Label.loop))
@@ -534,7 +615,7 @@ abbrev stk (gates T : List Gate) (c : Nat) (B : List Gate) (O U : List FormulaSy
     ∀ k : K, List (Γk k) :=
   fun k => match k with
   | K.inK => gates | K.temp => T | K.cnt => List.replicate c ()
-  | K.buf => B | K.o => O | K.out => U
+  | K.buf => B | K.o => O | K.tmp => [] | K.out => U
 
 -- one count step on a nonempty `in`
 lemma count_step (g : Gate) (rest : List Gate) (T : List Gate) (c : Nat)
@@ -586,7 +667,7 @@ abbrev stkR (temp B : List Gate) (c : Nat) (O U : List FormulaSym) :
     ∀ k : K, List (Γk k) :=
   fun k => match k with
   | K.inK => [] | K.temp => temp | K.cnt => List.replicate c ()
-  | K.buf => B | K.o => O | K.out => U
+  | K.buf => B | K.o => O | K.tmp => [] | K.out => U
 
 -- one reorder step on a nonempty temp
 lemma reorder_step (g : Gate) (rest : List Gate) (B : List Gate) (c : Nat)
