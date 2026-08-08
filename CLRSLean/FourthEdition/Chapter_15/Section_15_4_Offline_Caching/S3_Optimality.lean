@@ -24,26 +24,49 @@ Main results:
   is additionally `d s`
 - `exchangeSchedule_misses_le`: one exchange step never increases the miss
   count — the good event at the first request of `q` compensates the unique
-  bad event at the first request of `q'` (or `q'` is never requested again)
+  bad event at the first request of `q'` (or `q'` is never requested again).
+  The chain of supporting lemmas is proved under a *weakened* reducedness
+  hypothesis `hweak : ∀ s, t ≤ s → fault of `d` at `s` → `d s` resident`,
+  so the counting lemma applies to schedules that are reduced only from the
+  exchange position on (the iteration's exchange schedules are reduced at
+  every fault after the first `q'` request, by
+  `exchangeSchedule_reduced_after`)
 - `exchangeSchedule_q_mem` / `exchangeSchedule_q'_mem`: from the first `q`
   (resp. `q'`) request on, a page resident in `d`'s cache is also resident in
   the exchange cache, so bad events are confined to the first `q'` request
+- `fifoSchedule`: the eviction schedule of the farthest-in-future policy
+- `first_disagree`: at a first disagreement of a reduced schedule, both
+  schedules fault, the evictions differ, and the policy's eviction is
+  resident
+- `exchange_step`: exchanging the first disagreement of a reduced schedule
+  never increases misses and extends agreement with `fifoSchedule` by one
+  position
+- `exchangeSchedule_reduced_after`: the exchange schedule is reduced at every
+  fault after the first `q'` request, so the reducedness state needed by the
+  iteration is preserved from one exchange to the next
 
 Current gaps:
 
 - The optimality theorem (`fifo_optimal`: no eviction policy — even offline —
   has fewer misses than the farthest-in-future policy, CLRS Theorem 15.5)
-  remains to be formalized.  The exchange step is in place:
-  `exchangeSchedule_misses_le` shows that exchanging the first disagreement
-  (making the schedule evict the farthest-in-future page there) never
-  increases the miss count, and the exchanged schedule agrees with the
-  farthest-in-future policy one position further.  The remaining work is the
-  iteration: repeatedly applying the exchange at the first disagreement
-  produces a schedule agreeing with the policy everywhere with no more
-  misses.  This needs the exchange schedule to be reduced (evict only
-  resident pages) or a relaxation of the counting lemma's `hdreduced`
-  hypothesis, since the exchange schedule can evict an absent page (a
-  no-op) when it already lacks `q'` or when its cache is a subset of `d`'s.
+  remains to be formalized.  The iteration machinery is in place:
+  `exchange_step` shows that exchanging the first disagreement of a schedule
+  reduced from that position on never increases misses and extends agreement
+  with the farthest-in-future policy by one position, and
+  `exchangeSchedule_reduced_after` shows the reducedness state (reduced at
+  every fault after a bound `hnb`) is preserved by the exchange (with the
+  bound growing to `max hnb J'`).  The remaining work is the iteration
+  assembly: repeatedly exchanging at the first disagreement while the
+  schedule is reduced from there on produces a schedule agreeing with the
+  policy everywhere with no more misses.  When the first disagreement falls
+  at or before the reducedness bound (a position where an earlier exchange
+  scheduled a no-op eviction), the iteration needs either a repair step
+  (replacing the no-op eviction by the policy's choice, costing at most one
+  extra miss) together with the compensating slack from exchanges whose bad
+  event did not occur, or an extension of the counting lemma to tolerate the
+  single no-op inside its window; the boundary case where the first
+  disagreement lands exactly on the previous `q'` request needs the most
+  care.
 -/
 
 namespace CLRS
@@ -227,16 +250,17 @@ lemma exchangeSchedule_at_t (d : ℕ → Page) (t : ℕ) (q q' : Page)
 /-- A reduced schedule's cache size is constant (evictions hit resident
 pages and faults load a page that was absent). -/
 lemma schedCache_card_const (d : ℕ → Page) (C₀ : Finset Page) (σ : List Page)
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
-    (s : ℕ) : (schedCache d C₀ σ (s + 1)).card = (schedCache d C₀ σ s).card := by
+    (t : ℕ)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    {s : ℕ} (hts : t ≤ s) : (schedCache d C₀ σ (s + 1)).card = (schedCache d C₀ σ s).card := by
   rw [schedCache]
   by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
   · rw [if_pos hr]
   · rw [if_neg hr]
     rw [Finset.card_insert_of_notMem]
-    · rw [Finset.card_erase_of_mem (hdreduced s hr)]
+    · rw [Finset.card_erase_of_mem (hweak s hts hr)]
       have hc : 0 < (schedCache d C₀ σ s).card :=
-        Finset.card_pos.mpr ⟨d s, hdreduced s hr⟩
+        Finset.card_pos.mpr ⟨d s, hweak s hts hr⟩
       omega
     · intro hm
       exact hr (Finset.mem_erase.mp hm).2
@@ -267,7 +291,7 @@ lemma exchangeScheduleCore_card_step (d : ℕ → Page) (t : ℕ) (q q' : Page)
 onwards it has at least as many pages as `d`'s cache. -/
 lemma exchangeScheduleCore_card (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     {s : ℕ} (hs : t ≤ s) :
     (exchangeScheduleCore d t q q' σ C₀ s).1.card ≥ (schedCache d C₀ σ s).card := by
   have hmono : (exchangeScheduleCore d t q q' σ C₀ s).1.card ≥
@@ -296,7 +320,7 @@ lemma exchangeScheduleCore_card (d : ℕ → Page) (t : ℕ) (q q' : Page)
       | zero => rfl
       | succ n ih =>
           rw [Nat.add_succ]
-          rw [schedCache_card_const d C₀ σ hdreduced (t + n)]
+          rw [schedCache_card_const d C₀ σ t hweak (s := t + n) (by omega)]
           exact ih
     have hs' : s = t + (s - t) := by omega
     rw [hs']
@@ -370,7 +394,7 @@ lemma exchangeDecision_of_hit (d : ℕ → Page) (t : ℕ) (q q' : Page)
 or a page `d`'s cache lacks. -/
 lemma exchangeDecision_of_fault (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ C' : Finset Page)
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     {s : ℕ} (hst : t < s) (hr : σ.getD s 0 ∉ schedCache d C₀ σ s)
     (hcard : (schedCache d C₀ σ s).card ≤ C'.card) :
     exchangeDecision d t q q' σ C₀ C' s = q ∨
@@ -410,7 +434,7 @@ lemma exchangeDecision_of_fault (d : ℕ → Page) (t : ℕ) (q q' : Page)
             Finset.eq_of_subset_of_card_le hsub hcard
           have hds : d s ∈ C' := by
             rw [hEq]
-            exact hdreduced s hr
+            exact hweak s (by omega) hr
           exact h3 hds
 
 
@@ -424,7 +448,7 @@ where `d` hits) can only happen on requests of `q` or `q'`.
 lemma exchangeSchedule_invariant (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s) :
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s) :
     ∀ s ≥ t + 1, ∀ x, x ∉ ({q, q'} : Finset Page) →
       x ∈ schedCache d C₀ σ s →
       x ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
@@ -495,7 +519,7 @@ lemma exchangeSchedule_invariant (d : ℕ → Page) (t : ℕ) (q q' : Page)
             have hcard : (schedCache d C₀ σ s).card ≤
                 (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s).card := by
               rw [schedCache_exchangeScheduleCore]
-              exact exchangeScheduleCore_card d t q q' σ C₀ hdreduced (by omega)
+              exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
             have hdec := exchangeDecision_of_hit d t q q' σ C₀
               (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) hst hr hr' hrqq hcard
             have hxq : x ≠ q := by
@@ -535,9 +559,9 @@ lemma exchangeSchedule_invariant (d : ℕ → Page) (t : ℕ) (q q' : Page)
               have hcard : (schedCache d C₀ σ s).card ≤
                   (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s).card := by
                 rw [schedCache_exchangeScheduleCore]
-                exact exchangeScheduleCore_card d t q q' σ C₀ hdreduced (by omega)
+                exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
               have hdec := exchangeDecision_of_fault d t q q' σ C₀
-                (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) hdreduced hst hr hcard
+                (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) hweak hst hr hcard
               have hxq : x ≠ q := by
                 intro h
                 exact hx (by simp [h])
@@ -584,7 +608,7 @@ lemma fifo_nextUse_order (σ : List Page) (cache : Finset Page) (i : ℕ) (q' q 
 lemma d_cache_ne_q (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
     {s : ℕ} (hs1 : t < s) (hs2 : s ≤ t + 1 + j) :
@@ -599,7 +623,7 @@ lemma d_cache_ne_q (d : ℕ → Page) (t : ℕ) (q q' : Page)
         intro h
         rcases h with hqr | hqin
         · have hqinD : q ∈ schedCache d C₀ σ t := by
-            have hd : d t ∈ schedCache d C₀ σ t := hdreduced t hft
+            have hd : d t ∈ schedCache d C₀ σ t := hweak t le_rfl hft
             rw [hq] at hd
             exact hd
           exact hft (hqr ▸ hqinD)
@@ -622,7 +646,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
     (hqq' : q ≠ q')
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     (hq'res : q' ∈ schedCache d C₀ σ t)
     {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
@@ -648,7 +672,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
         rw [if_neg hft]
         -- 目标:insert r (D(t) − q') = insert q ((insert r (D(t) − q)) − q')
         have hqin : q ∈ schedCache d C₀ σ t := by
-          have hd : d t ∈ schedCache d C₀ σ t := hdreduced t hft
+          have hd : d t ∈ schedCache d C₀ σ t := hweak t le_rfl hft
           rw [hq] at hd
           exact hd
         have hr_ne_q : σ.getD t 0 ≠ q := by
@@ -705,7 +729,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
         have hts : t < s := by omega
         have hsJ : s < t + 1 + j := by omega
         have hqne : q ∉ schedCache d C₀ σ s :=
-          d_cache_ne_q d t q q' σ C₀ hq hdreduced hft hj hts (by omega)
+          d_cache_ne_q d t q q' σ C₀ hq hweak hft hj hts (by omega)
         have hsig_ne_q : σ.getD s 0 ≠ q := getD_ne_nextUse hj (by omega) hsJ
         have hsig_ne_q' : σ.getD s 0 ≠ q' := hq'ne s (by omega) hsJ
         rw [schedCache_exchangeScheduleCore, exchangeScheduleCore]
@@ -777,15 +801,15 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
               -- d s ∈ E(s):由不变式(d s ∈ D(s) 且 d s ∉ {q, q'})
               have hdne : d s ≠ q := by
                 intro hdsq
-                exact hqne (hdsq ▸ hdreduced s hr)
+                exact hqne (hdsq ▸ hweak s (by omega) hr)
               have hdE : d s ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
-                have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hdreduced s (by omega)
+                have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
                 exact hinv (d s) (by
                   rw [Finset.mem_insert]
                   intro hmem
                   rcases hmem with hdsq | hdsqmem
                   · exact hdne hdsq
-                  · exact hdsq' (Finset.mem_singleton.mp hdsqmem)) (hdreduced s hr)
+                  · exact hdsq' (Finset.mem_singleton.mp hdsqmem)) (hweak s (by omega) hr)
               have hdE' : d s ∈ insert q ((schedCache d C₀ σ s).erase q') := by
                 rw [← hw]
                 exact hdE
@@ -805,7 +829,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
 `h0hit`/`h0fault` 结合基数论证排除)。 -/
 lemma exchangeDecision_ne (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     {s : ℕ} (hst : t < s) (C' : Finset Page) (p : Page)
     (hpE : p ∈ C') (hpD : p ∈ schedCache d C₀ σ s) (hdsq' : d s = q' → p ≠ q')
     (hdsC' : d s ∈ C' → p ≠ d s)
@@ -878,7 +902,7 @@ lemma exchangeDecision_ne (d : ℕ → Page) (t : ℕ) (q q' : Page)
           · exact (h0hit hr0) (hEq ▸ hr0)
           · have hdsin : d s ∈ C' := by
               rw [hEq]
-              exact hdreduced s hr0
+              exact hweak s (by omega) hr0
             exact h3 hdsin
 
 /-- 当 `σ[s] ∈ {q,q'}` 且 `d` 命中,而 `p` 同时在两个 cache 中时(branch 4
@@ -886,7 +910,7 @@ lemma exchangeDecision_ne (d : ℕ → Page) (t : ℕ) (q q' : Page)
 lemma exchangeDecision_ne_of_branch4 (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hqq' : q ≠ q')
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     {s : ℕ} (hst : t < s) (C' : Finset Page) (p : Page)
     (hpE : p ∈ C') (hpD : p ∈ schedCache d C₀ σ s) (hpq' : p ≠ q')
     (hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧
@@ -936,7 +960,7 @@ lemma exchangeDecision_ne_of_branch4 (d : ℕ → Page) (t : ℕ) (q q' : Page)
 lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     (hq'res : q' ∈ schedCache d C₀ σ t)
     {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
@@ -953,7 +977,7 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
         subst s
         exfalso
         have hqne : q ∉ schedCache d C₀ σ (t + 1) :=
-          d_cache_ne_q d t q q' σ C₀ hq hdreduced hft hj (by omega) (by omega)
+          d_cache_ne_q d t q q' σ C₀ hq hweak hft hj (by omega) (by omega)
         exact hqne hqin
       · have hts : t < s := by omega
         -- 展开 E(s+1)
@@ -981,7 +1005,7 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
             rw [if_neg hrE]
             have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
               by_contra hnot
-              have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hdreduced s (by omega)
+              have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
               exact hrE (hinv (σ.getD s 0) (by
                 intro hmem
                 apply hnot
@@ -995,10 +1019,10 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
               have hcard : (schedCache d C₀ σ s).card ≤
                   (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s).card := by
                 rw [schedCache_exchangeScheduleCore]
-                exact exchangeScheduleCore_card d t q q' σ C₀ hdreduced (by omega)
+                exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
               have hdec : exchangeDecision d t q q' σ C₀
                   (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) s ≠ q := by
-                apply exchangeDecision_ne_of_branch4 d t q q' σ C₀ hqq' hdreduced hts
+                apply exchangeDecision_ne_of_branch4 d t q q' σ C₀ hqq' hweak hts
                 · exact hqE
                 · exact hqin
                 · exact hqq'
@@ -1026,10 +1050,10 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
             have hcard : (schedCache d C₀ σ s).card ≤
                 (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s).card := by
               rw [schedCache_exchangeScheduleCore]
-              exact exchangeScheduleCore_card d t q q' σ C₀ hdreduced (by omega)
+              exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
             have hdec : exchangeDecision d t q q' σ C₀
                 (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) s ≠ q := by
-              apply exchangeDecision_ne d t q q' σ C₀ hdreduced hts
+              apply exchangeDecision_ne d t q q' σ C₀ hweak hts
               · exact hqE
               · exact hqD
               · intro hds
@@ -1049,7 +1073,7 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
 且 `(t, J')` 内无 `q'` 请求)。 -/
 lemma exchangeSchedule_q'_absent (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     (hq'res : q' ∈ schedCache d C₀ σ t)
     {j' : ℕ} (hj' : nextUse σ (t + 1) q' = some j')
@@ -1100,7 +1124,7 @@ lemma exchangeSchedule_q'_absent (d : ℕ → Page) (t : ℕ) (q q' : Page)
 lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     (hq'res : q' ∈ schedCache d C₀ σ t)
     {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
@@ -1125,7 +1149,7 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
         have hJ'ne : σ.getD (t + 1 + j') 0 ∉
             schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ (t + 1 + j') := by
           rw [hsig]
-          apply exchangeSchedule_q'_absent d t q q' σ C₀ hdreduced hft hq'res hj'
+          apply exchangeSchedule_q'_absent d t q q' σ C₀ hweak hft hq'res hj'
           · omega
           · rfl
         rw [hsig]
@@ -1156,7 +1180,7 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
             rw [if_neg hrE]
             have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
               by_contra hnot
-              have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hdreduced s (by omega)
+              have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
               exact hrE (hinv (σ.getD s 0) (by
                 intro hmem
                 apply hnot
@@ -1168,7 +1192,7 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
               exact hrE (hq'eq ▸ hq'E)
             · exfalso
               have hqE : q ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s :=
-                exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'ne s (by omega) (hqeq ▸ hr)
+                exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne s (by omega) (hqeq ▸ hr)
               exact hrE (hqeq ▸ hqE)
         · -- d 错过
           rw [if_neg hr] at hqin
@@ -1188,10 +1212,10 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
             have hcard : (schedCache d C₀ σ s).card ≤
                 (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s).card := by
               rw [schedCache_exchangeScheduleCore]
-              exact exchangeScheduleCore_card d t q q' σ C₀ hdreduced (by omega)
+              exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
             have hdec : exchangeDecision d t q q' σ C₀
                 (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) s ≠ q' := by
-              apply exchangeDecision_ne d t q q' σ C₀ hdreduced hts
+              apply exchangeDecision_ne d t q q' σ C₀ hweak hts
               · exact hq'E
               · exact hq'D
               · intro hds
@@ -1211,7 +1235,7 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
 lemma exchangeSchedule_good (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     (hq'res : q' ∈ schedCache d C₀ σ t)
     {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
@@ -1221,19 +1245,19 @@ lemma exchangeSchedule_good (d : ℕ → Page) (t : ℕ) (q q' : Page)
   have hsig : σ.getD (t + 1 + j) 0 = q := getD_eq_nextUse hj
   constructor
   · rw [hsig]
-    rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'ne
+    rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne
       (s := t + 1 + j) (by omega) (by rfl)]
     rw [Finset.mem_insert]
     left
     rfl
   · rw [hsig]
-    exact d_cache_ne_q d t q q' σ C₀ hq hdreduced hft hj (by omega) (by omega)
+    exact d_cache_ne_q d t q q' σ C₀ hq hweak hft hj (by omega) (by omega)
 
 /-- 坏事件(交换错过而 `d` 命中)只可能发生在第一个 `q'` 请求处。 -/
 lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     (hq'res : q' ∈ schedCache d C₀ σ t)
     {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
@@ -1246,7 +1270,7 @@ lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
   intro hmem hnot
   have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
     by_contra hnot'
-    have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hdreduced s (by omega)
+    have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
     exact hnot (hinv (σ.getD s 0) (by
       intro hmem2
       apply hnot'
@@ -1262,7 +1286,7 @@ lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
       · exfalso
         have hq'E : q' ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
           have hq'in' : q' ∈ schedCache d C₀ σ s := hq'eq ▸ hmem
-          exact exchangeSchedule_q'_mem d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'ne hj'
+          exact exchangeSchedule_q'_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne hj'
             s hgt hq'in'
         exact hnot (hq'eq ▸ hq'E)
       · omega
@@ -1270,7 +1294,7 @@ lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
     exfalso
     have hqE : q ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
       have hqin' : q ∈ schedCache d C₀ σ s := hqeq ▸ hmem
-      exact exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'ne s hst hqin'
+      exact exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne s hst hqin'
     exact hnot (hqeq ▸ hqE)
 
 /-- 交换调度不比 `d` 多错过:好事件(首个 `q` 请求)补偿唯一的坏事件
@@ -1278,7 +1302,7 @@ lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
 lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
-    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
     (hq'res : q' ∈ schedCache d C₀ σ t)
     (hfifo : nextUse σ (t + 1) q' = none ∨
@@ -1322,7 +1346,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
       have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
         intro s hst hsJ
         unfold eF dF e schedFaultAt
-        rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'neA
+        rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
           (s := s) hst (by omega)]
         have hne1 : σ.getD s 0 ≠ q := getD_ne_nextUse hj (by omega) hsJ
         have hne2 : σ.getD s 0 ≠ q' := hq'neA s (by omega) hsJ
@@ -1354,7 +1378,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
             exfalso
             have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
               by_contra hnot
-              have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hdreduced s (by omega)
+              have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
               exact hrE (hinv (σ.getD s 0) (by
                 intro hmem2
                 apply hnot
@@ -1364,7 +1388,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
             rcases hqqq' with hq'eq | hqeq
             · exact hq'ne_s s (by omega) hlen hq'eq
             · have hqE : q ∈ schedCache e C₀ σ s := by
-                exact exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'neA
+                exact exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
                   s hst (hqeq ▸ hr)
               exact hrE (hqeq ▸ hqE)
         · rw [if_neg hr]
@@ -1373,7 +1397,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
             omega
           · rw [if_neg hrE]
       -- 好事件在 J
-      have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'neA
+      have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
       -- 拆分求和
       have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
           (Finset.Ico (t + 1 + j + 1) σ.length) := by
@@ -1476,7 +1500,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
               exfalso
               have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
                 by_contra hnot
-                have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hdreduced s (by omega)
+                have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
                 exact hrE (hinv (σ.getD s 0) (by
                   intro hmem2
                   apply hnot
@@ -1518,7 +1542,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
     have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
       intro s hst hsJ
       unfold eF dF e schedFaultAt
-      rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'neB
+      rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB
         (s := s) hst (by omega)]
       have hne1 : σ.getD s 0 ≠ q := getD_ne_nextUse hj (by omega) hsJ
       have hne2 : σ.getD s 0 ≠ q' := hq'neB s (by omega) hsJ
@@ -1548,7 +1572,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
         · rw [if_pos hrE, if_pos hr]
         · rw [if_neg hrE, if_pos hr]
           exfalso
-          exact hsne (exchangeSchedule_bad d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'neB hj'
+          exact hsne (exchangeSchedule_bad d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB hj'
             hst hr hrE)
       · rw [if_neg hr]
         by_cases hrE : σ.getD s 0 ∈ schedCache e C₀ σ s
@@ -1556,7 +1580,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
           omega
         · rw [if_neg hrE]
     -- 好事件在 J
-    have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hdreduced hft hq'res hj hq'neB
+    have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB
     -- 拆分求和
     have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
         (Finset.Ico (t + 1 + j + 1) σ.length) := by
@@ -1665,6 +1689,265 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
       have h := add_le_add hpart1 hpart2
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using h
     omega
+
+/-- The farthest-in-future (Belady) eviction schedule for `σ` from `C₀`. -/
+noncomputable def fifoSchedule (σ : List Page) (C₀ : Finset Page) : ℕ → Page :=
+  policySchedule (fifoPolicy σ) C₀ σ
+
+/-- `d` agrees with the farthest-in-future schedule on caches through `n`. -/
+def agreeWithFIF (d : ℕ → Page) (C₀ : Finset Page) (σ : List Page) (n : ℕ) : Prop :=
+  ∀ s ≤ n, schedCache d C₀ σ s = schedCache (fifoSchedule σ C₀) C₀ σ s
+
+/-- The run of the FIF schedule is the run of the FIF policy. -/
+lemma schedCache_fifoSchedule (σ : List Page) (C₀ : Finset Page) (s : ℕ) :
+    schedCache (fifoSchedule σ C₀) C₀ σ s = cacheSeq (fifoPolicy σ) C₀ σ s := by
+  unfold fifoSchedule
+  exact schedCache_policySchedule (fifoPolicy σ) C₀ σ s
+
+/-- When `d` agrees with the FIF schedule through `t`, the FIF eviction at `t`
+is the farthest-in-future page of `d`'s cache. -/
+lemma fifo_evict_eq_farthest (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    {t : ℕ} (hagree : agreeWithFIF d C₀ σ t) :
+    (fifoSchedule σ C₀) t = farthestInFuture (schedCache d C₀ σ t) σ t := by
+  change farthestInFuture (cacheSeq (fifoPolicy σ) C₀ σ t) σ t =
+    farthestInFuture (schedCache d C₀ σ t) σ t
+  rw [← schedCache_fifoSchedule σ C₀ t]
+  rw [← hagree t le_rfl]
+
+/-- The caches in a run of a reduced schedule from a nonempty cache are
+nonempty. -/
+lemma schedCache_nonempty_of_reduced (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hC₀ : C₀.Nonempty) (s : ℕ) : (schedCache d C₀ σ s).Nonempty := by
+  cases s with
+  | zero => exact hC₀
+  | succ s =>
+      rw [schedCache]
+      by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
+      · rw [if_pos hr]
+        exact ⟨σ.getD s 0, hr⟩
+      · rw [if_neg hr]
+        exact ⟨σ.getD s 0, Finset.mem_insert_self _ _⟩
+
+/-- At a first disagreement `t` of a reduced schedule `d` with the FIF
+schedule, both fault at `t`, the evictions differ, and the FIF eviction is
+resident in `d`'s cache. -/
+lemma first_disagree (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF d C₀ σ t)
+    (hdis : schedCache d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1)) :
+    σ.getD t 0 ∉ schedCache d C₀ σ t ∧
+    d t ≠ (fifoSchedule σ C₀) t ∧
+    (fifoSchedule σ C₀) t ∈ schedCache d C₀ σ t := by
+  have hft : σ.getD t 0 ∉ schedCache d C₀ σ t := by
+    intro hft
+    have hFt : σ.getD t 0 ∈ schedCache (fifoSchedule σ C₀) C₀ σ t := by
+      rw [← hagree t le_rfl]
+      exact hft
+    have hD : schedCache d C₀ σ (t + 1) = schedCache d C₀ σ t := by
+      rw [schedCache]
+      rw [if_pos hft]
+    have hF : schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) =
+        schedCache (fifoSchedule σ C₀) C₀ σ t := by
+      rw [schedCache]
+      rw [if_pos hFt]
+    exact hdis ((hD.trans (hagree t le_rfl)).trans hF.symm)
+  constructor
+  · exact hft
+  · constructor
+    · intro hq
+      have hFt : σ.getD t 0 ∉ schedCache (fifoSchedule σ C₀) C₀ σ t := by
+        rw [← hagree t le_rfl]
+        exact hft
+      have hD : schedCache d C₀ σ (t + 1) =
+          insert (σ.getD t 0) ((schedCache d C₀ σ t).erase (d t)) := by
+        rw [schedCache]
+        rw [if_neg hft]
+      have hF : schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) =
+          insert (σ.getD t 0) ((schedCache (fifoSchedule σ C₀) C₀ σ t).erase
+            ((fifoSchedule σ C₀) t)) := by
+        rw [schedCache]
+        rw [if_neg hFt]
+      have hEq : schedCache d C₀ σ t = schedCache (fifoSchedule σ C₀) C₀ σ t :=
+        hagree t le_rfl
+      rw [hD, hF] at hdis
+      rw [hEq] at hdis
+      rw [hq] at hdis
+      exact hdis rfl
+    · rw [fifo_evict_eq_farthest d σ C₀ hagree]
+      apply mem_farthestInFuture
+      exact schedCache_nonempty_of_reduced d σ C₀ hdreduced hC₀ t
+
+/-- Exchanging the first disagreement of a reduced schedule never increases
+misses and extends agreement with the FIF schedule by one position. -/
+lemma exchange_step (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hdreduced : ∀ s, σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF d C₀ σ t)
+    (hdis : schedCache d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1)) :
+    schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ ≤
+      schedMisses d C₀ σ ∧
+    agreeWithFIF (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ (t + 1) := by
+  let q : Page := d t
+  let q' : Page := fifoSchedule σ C₀ t
+  have hfd := first_disagree d σ C₀ hdreduced hC₀ ht hagree hdis
+  have hqq' : q ≠ q' := hfd.2.1
+  have hft : σ.getD t 0 ∉ schedCache d C₀ σ t := hfd.1
+  have hq'res : q' ∈ schedCache d C₀ σ t := hfd.2.2
+  have hfifo : nextUse σ (t + 1) q' = none ∨
+      ∃ j j', nextUse σ (t + 1) q = some j ∧ nextUse σ (t + 1) q' = some j' ∧ j < j' := by
+    apply fifo_nextUse_order σ (schedCache d C₀ σ t) t q' q
+    · exact fifo_evict_eq_farthest d σ C₀ hagree
+    · exact hdreduced t hft
+    · exact hqq'
+  constructor
+  · exact exchangeSchedule_misses_le d t q q' σ C₀ rfl hqq'
+      (fun s hs hr => hdreduced s hr) hft hq'res hfifo
+  · intro s hs
+    by_cases hs' : s ≤ t
+    · rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hs']
+      exact hagree s hs'
+    · have hst : s = t + 1 := by omega
+      subst s
+      have hFt : σ.getD t 0 ∉ schedCache (fifoSchedule σ C₀) C₀ σ t := by
+        rw [← hagree t le_rfl]
+        exact hft
+      have hE : schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ (t + 1) =
+          insert (σ.getD t 0) ((schedCache d C₀ σ t).erase q') := by
+        rw [schedCache_exchangeScheduleCore, exchangeScheduleCore]
+        dsimp
+        rw [show (exchangeScheduleCore d t q q' σ C₀ t).1 = schedCache d C₀ σ t by
+          rw [← schedCache_exchangeScheduleCore]
+          exact schedCache_exchangeSchedule_eq_d d t q q' σ C₀ le_rfl]
+        rw [show (exchangeScheduleCore d t q q' σ C₀ t).2 = q' by
+          exact exchangeSchedule_at_t d t q q' σ C₀]
+        rw [if_neg hft]
+      have hF : schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) =
+          insert (σ.getD t 0) ((schedCache d C₀ σ t).erase q') := by
+        rw [schedCache_fifoSchedule σ C₀ (t + 1)]
+        unfold cacheSeq Policy.step
+        rw [← schedCache_fifoSchedule σ C₀ t]
+        rw [if_neg hFt]
+        congr 2
+        · rw [← hagree t le_rfl]
+        · change farthestInFuture (schedCache (fifoSchedule σ C₀) C₀ σ t) σ t = q'
+          rw [← hagree t le_rfl]
+          rw [← fifo_evict_eq_farthest d σ C₀ hagree]
+      rw [hE, hF]
+
+/-- The exchange schedule is reduced at every fault after the first `q'`
+request: from `J'` on, `q'` is resident whenever `d` evicts it, and the
+multi-set branches always evict resident pages. -/
+lemma exchangeSchedule_reduced_after (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hq : d t = q) (hqq' : q ≠ q')
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    (hq'res : q' ∈ schedCache d C₀ σ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    (hq'ne : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q')
+    {j' : ℕ} (hj' : nextUse σ (t + 1) q' = some j')
+    {s : ℕ} (hsJ' : t + 1 + j' < s)
+    (hFault : σ.getD s 0 ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) :
+    exchangeSchedule d t q q' σ C₀ s ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  let C' : Finset Page := schedCache e C₀ σ s
+  have hC' : C' = (exchangeScheduleCore d t q q' σ C₀ s).1 := by
+    unfold C'
+    rw [schedCache_exchangeScheduleCore]
+  have hFault' : σ.getD s 0 ∉ C' := by
+    simpa [C'] using hFault
+  have hcard : (schedCache d C₀ σ s).card ≤ C'.card := by
+    rw [hC']
+    exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
+  -- a request that `d` serves from the cache is `q` or `q'`
+  have hsig_in : σ.getD s 0 ∈ schedCache d C₀ σ s → σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
+    intro hsigD
+    by_contra hnot
+    have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
+    have hmem : σ.getD s 0 ∈ C' := by
+      simpa [e, C'] using hinv (σ.getD s 0) (by
+        intro hmem
+        apply hnot
+        rcases Finset.mem_insert.mp hmem with hqeq | hq'eq
+        · exact Or.inr hqeq
+        · exact Or.inl (Finset.mem_singleton.mp hq'eq)) hsigD
+    exact hFault' hmem
+  -- resident pages of `d` are resident in the exchange cache
+  have hq_memD : q ∈ schedCache d C₀ σ s → q ∈ C' := by
+    intro hqD
+    have hmem := exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne
+      s (by omega) hqD
+    simpa [e, C'] using hmem
+  have hq'_memD : q' ∈ schedCache d C₀ σ s → q' ∈ C' := by
+    intro hq'D
+    have hmem := exchangeSchedule_q'_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne hj'
+      s hsJ' hq'D
+    simpa [e, C'] using hmem
+  -- `d` cannot hit at `s` (the exchange schedule faults there)
+  have hdFault : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+    intro hdHit
+    rcases hsig_in hdHit with hq'eq | hqeq
+    · exact hFault' (hq'eq ▸ hq'_memD (hq'eq ▸ hdHit))
+    · exact hFault' (hqeq ▸ hq_memD (hqeq ▸ hdHit))
+  -- branch analysis of the exchange decision
+  change (exchangeScheduleCore d t q q' σ C₀ s).2 ∈
+    schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
+  rw [exchangeScheduleCore_second]
+  rw [← hC']
+  change exchangeDecision d t q q' σ C₀ C' s ∈ C'
+  unfold exchangeDecision
+  have hlt : ¬ s < t := by omega
+  have hne : ¬ s = t := by omega
+  rw [if_neg hlt, if_neg hne]
+  by_cases h1 : d s = q'
+  · rw [if_pos h1]
+    -- d faults at s, so q' ∈ D(s), hence q' ∈ E(s)
+    have hq'inD : q' ∈ schedCache d C₀ σ s := by
+      have hd : d s ∈ schedCache d C₀ σ s := hweak s (by omega) hdFault
+      rwa [h1] at hd
+    exact hq'_memD hq'inD
+  · rw [if_neg h1]
+    by_cases hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧
+        σ.getD s 0 ∈ schedCache d C₀ σ s
+    · rw [if_pos hb4]
+      by_cases hf : ((C' \ schedCache d C₀ σ s).filter (fun x => x ≠ q')).Nonempty
+      · rw [dif_pos hf]
+        have hspec := Classical.choose_spec hf
+        exact (Finset.mem_sdiff.mp (Finset.mem_filter.mp hspec).1).1
+      · rw [dif_neg hf]
+        by_cases hm : (C' \ schedCache d C₀ σ s).Nonempty
+        · rw [dif_pos hm]
+          exact (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+        · rw [dif_neg hm]
+          exfalso
+          have hsub : C' ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hEq : C' = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          exact hFault' (hEq ▸ hb4.2)
+    · rw [if_neg hb4]
+      by_cases h5 : d s ∈ C'
+      · rw [if_pos h5]
+        exact h5
+      · rw [if_neg h5]
+        by_cases hm : (C' \ schedCache d C₀ σ s).Nonempty
+        · rw [dif_pos hm]
+          exact (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+        · rw [dif_neg hm]
+          exfalso
+          have hsub : C' ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hEq : C' = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          exact h5 (hEq ▸ hweak s (by omega) hdFault)
 
 end Caching
 

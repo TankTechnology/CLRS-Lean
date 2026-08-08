@@ -1954,15 +1954,32 @@ reads are proved equal to the pure recurrence value.
   - `CLRS.Caching.exchangeSchedule` / `exchangeSchedule_invariant` /
     `exchangeSchedule_misses_le`: one exchange step at the first disagreement
     never increases the miss count (the good event at the first `q` request
-    compensates the unique bad event at the first `q'` request)
+    compensates the unique bad event at the first `q'` request); the chain is
+    proved under the weakened reducedness hypothesis `hweak`
+    (`∀ s, t ≤ s → fault → d s resident`), so the counting lemma applies to
+    schedules that are reduced only from the exchange position on
+  - `CLRS.Caching.fifoSchedule` / `first_disagree` / `exchange_step`: at a
+    first disagreement of a schedule reduced from there on, exchanging the
+    evictions never increases misses and extends agreement with the FIF
+    schedule by one position
+  - `CLRS.Caching.exchangeSchedule_reduced_after`: the exchange schedule is
+    reduced at every fault after the first `q'` request, so the
+    "reduced from a bound on" state needed by the iteration is preserved
+    from one exchange to the next (the bound grows to `max hnb J'`)
 - Proof pattern: total-function policy model; the farthest-in-future choice
   as a maximum over next-use positions with `none` (never requested again)
   as the top element.
 - Current gap: the iterated exchange concluding `fifo_optimal` (CLRS Theorem
-  15.5) — the exchange schedule can evict an absent page (a no-op) when it
-  already lacks `q'` or when its cache is a subset of `d`'s, so the counting
-  lemma's `hdreduced` hypothesis must be relaxed or the schedule repaired
-  before it can serve as the base of the next exchange step.
+  15.5).  The per-step engine is in place (`exchange_step` never increases
+  misses and extends agreement; `exchangeSchedule_reduced_after` preserves
+  the reducedness state), so the remaining work is the iteration assembly:
+  when the first disagreement falls at or before the reducedness bound (a
+  position where an earlier exchange scheduled a no-op eviction of an absent
+  `q'`), the iteration needs a repair step (replacing the no-op eviction by
+  the policy's choice, costing at most one extra miss) together with the
+  compensating slack from exchanges whose bad event did not occur; the
+  boundary case where the first disagreement lands exactly on the previous
+  `q'` request needs the most care.
 
 ## Chapter 16 - Greedy Algorithms
 
