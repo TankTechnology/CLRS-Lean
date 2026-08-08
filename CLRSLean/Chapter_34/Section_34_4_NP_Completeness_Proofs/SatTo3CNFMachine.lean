@@ -594,6 +594,141 @@ lemma constMake_phase (m : Nat) (v : St) (inp T : List FormulaSym) (c : Nat) (V 
                 rw [← List.append_assoc]
                 rw [replicate_append_one]
 
+/-- The `const` phase for a positive literal: emit the clause `[pos m]` onto
+`o`, build the value variable `m` on `val`, restore the counter to `m + 1`,
+and reach `reduce`.  (`m` is the auxiliary index, i.e. the counter at entry.) -/
+lemma const_phase_true (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F : List Frame)
+    (O U : List CNFSym) :
+    (flip bind Sstep)^[2 * m + 3]
+        (some (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+          (false :: List.replicate (m + 1) true ++ V) F []
+          ((encClause [Literal.pos m]).reverse ++ O) U⟩ : (mach).Cfg) := by
+  have hconst := const_true_step rest T m V F [] O U
+  have hem := constEmit_phase m (St.rd (FormulaSym.lit true)) rest T V F []
+      (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O) U
+  have hmk := constMake_phase m (St.done) rest T 0 V F
+      (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U
+  calc
+    (flip bind Sstep)^[2 * m + 3]
+        (some (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
+      = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] (Sstep
+          (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))) := by
+          rw [show 2 * m + 3 = Nat.succ ((m + 1) + (m + 1)) by omega]
+          rw [Function.iterate_succ_apply]
+          rw [Function.iterate_add]
+          change (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] (Sstep
+              (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg)))
+    _ = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1]
+          (some (⟨some Label.constEmit, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F []
+            (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O) U⟩ : (mach).Cfg))) := by
+          rw [hconst]
+    _ = (flip bind Sstep)^[m + 1]
+          (some (⟨some Label.constMake, St.done, stk rest T [] V F
+            (List.replicate m () ++ [])
+            (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
+          rw [hem]
+    _ = (flip bind Sstep)^[m + 1]
+          (some (⟨some Label.constMake, St.done, stk rest T [] V F (List.replicate m ())
+            (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
+          apply congrArg (fun x => (flip bind Sstep)^[m + 1] x)
+          apply congrArg some
+          apply Turing.TM2Comp.Cfg_ext
+          · rfl
+          · rfl
+          · funext kk
+            cases kk <;> simp [stk, List.append_nil]
+    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (0 + m + 1) ())
+          (false :: List.replicate (m + 1) true ++ V) F []
+          (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg) := by
+          rw [hmk]
+    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+          (false :: List.replicate (m + 1) true ++ V) F []
+          ((encClause [Literal.pos m]).reverse ++ O) U⟩ : (mach).Cfg) := by
+          have hrev : (encClause [Literal.pos m]).reverse =
+              List.replicate (m + 1) CNFSym.endMark ++ [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] := by
+            simp [encClause, encLit, litSym, litIndex, List.reverse_replicate]
+          apply congrArg some
+          apply Turing.TM2Comp.Cfg_ext
+          · rfl
+          · rfl
+          · funext kk
+            cases kk <;> try simp [stk]
+            rw [show CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O =
+                [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] ++ O by rfl]
+            rw [List.append_assoc]
+            rw [← hrev]
+
+/-- The `const` phase for a negative literal: emit the clause `[neg m]` onto
+`o`, build the value variable `m` on `val`, restore the counter to `m + 1`,
+and reach `reduce`. -/
+lemma const_phase_false (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F : List Frame)
+    (O U : List CNFSym) :
+    (flip bind Sstep)^[2 * m + 4]
+        (some (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+          (false :: List.replicate (m + 1) true ++ V) F []
+          ((encClause [Literal.neg m]).reverse ++ O) U⟩ : (mach).Cfg) := by
+  have h1 := const_false_step rest T m V F [] O U
+  have h2 := constFalse_step rest T m V F [] O U
+  have hem := constEmit_phase m (St.rd (FormulaSym.lit false)) rest T V F []
+      (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O) U
+  have hmk := constMake_phase m (St.done) rest T 0 V F
+      (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U
+  calc
+    (flip bind Sstep)^[2 * m + 4]
+        (some (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
+      = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] ((flip bind Sstep) (Sstep
+          (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg)))) := by
+          rw [show 2 * m + 4 = Nat.succ (Nat.succ ((m + 1) + (m + 1))) by omega]
+          rw [Function.iterate_succ_apply]
+          rw [Function.iterate_succ_apply]
+          rw [Function.iterate_add]
+          change (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] ((flip bind Sstep) (Sstep
+              (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))))
+    _ = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] ((flip bind Sstep)
+          (some (⟨some Label.constFalse, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg)))) := by
+          rw [h1]
+    _ = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1]
+          (some (⟨some Label.constEmit, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F []
+            (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O) U⟩ : (mach).Cfg))) := by
+          rw [h2]
+    _ = (flip bind Sstep)^[m + 1]
+          (some (⟨some Label.constMake, St.done, stk rest T [] V F
+            (List.replicate m () ++ [])
+            (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
+          rw [hem]
+    _ = (flip bind Sstep)^[m + 1]
+          (some (⟨some Label.constMake, St.done, stk rest T [] V F (List.replicate m ())
+            (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
+          apply congrArg (fun x => (flip bind Sstep)^[m + 1] x)
+          apply congrArg some
+          apply Turing.TM2Comp.Cfg_ext
+          · rfl
+          · rfl
+          · funext kk
+            cases kk <;> simp [stk, List.append_nil]
+    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (0 + m + 1) ())
+          (false :: List.replicate (m + 1) true ++ V) F []
+          (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg) := by
+          rw [hmk]
+    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+          (false :: List.replicate (m + 1) true ++ V) F []
+          ((encClause [Literal.neg m]).reverse ++ O) U⟩ : (mach).Cfg) := by
+          have hrev : (encClause [Literal.neg m]).reverse =
+              List.replicate (m + 1) CNFSym.endMark ++ [CNFSym.varMark, CNFSym.negMark, CNFSym.clauseMark] := by
+            simp [encClause, encLit, litSym, litIndex, List.reverse_replicate]
+          apply congrArg some
+          apply Turing.TM2Comp.Cfg_ext
+          · rfl
+          · rfl
+          · funext kk
+            cases kk <;> try simp [stk]
+            rw [show CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O =
+                [CNFSym.varMark, CNFSym.negMark, CNFSym.clauseMark] ++ O by rfl]
+            rw [List.append_assoc]
+            rw [← hrev]
+
 -- ============================================================
 -- emitTrue: the root unit clause `[[pos y]]`
 -- ============================================================
