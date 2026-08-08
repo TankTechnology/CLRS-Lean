@@ -467,6 +467,56 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
               rw [if_neg (by intro h; exact hfault h.2)]
               rw [if_pos hdsin]
 
+
+/-- 情形一、`q` 也永不再请求:交换调度与 `d` 的 miss 数相同。 -/
+lemma exchangeSchedule_misses_eq_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hq : d t = q)
+    (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    (hq'res : q' ∈ schedCache d C₀ σ t)
+    (hq'ne : ∀ s, σ.getD s 0 ≠ q')
+    (hq_ne : ∀ s, σ.getD s 0 ≠ q)
+    (hq_notin : ∀ s, t < s → q ∉ schedCache d C₀ σ s) :
+    schedMisses (exchangeSchedule d t q q' σ C₀) C₀ σ = schedMisses d C₀ σ := by
+  exact schedMisses_eq_of_cache_diff (exchangeSchedule d t q q' σ C₀) d σ C₀ ({q, q'} : Finset Page)
+    (by
+      intro s hs h
+      rcases Finset.mem_insert.mp h with hqeq | hq'eq
+      · exact hq_ne s hqeq
+      · have hq'eq' : σ.getD s 0 = q' := Finset.mem_singleton.mp hq'eq
+        exact hq'ne s hq'eq')
+    (by
+      intro s
+      by_cases hs : t < s
+      · intro x hx
+        have hcase := exchangeSchedule_case_one d t q q' σ C₀ hq hdred hft hq'res hq'ne hq_ne hq_notin
+        have hmem := (hcase s hs).1 hx
+        rw [Finset.mem_singleton] at hmem
+        rw [Finset.mem_insert]
+        exact Or.inl hmem
+      · intro x hx
+        exfalso
+        have heq : schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s = schedCache d C₀ σ s := by
+          exact schedCache_exchangeSchedule_eq_d d t q q' σ C₀ (by omega)
+        rw [Finset.mem_sdiff] at hx
+        exact hx.2 (heq ▸ hx.1))
+    (by
+      intro s
+      by_cases hs : t < s
+      · intro x hx
+        have hcase := exchangeSchedule_case_one d t q q' σ C₀ hq hdred hft hq'res hq'ne hq_ne hq_notin
+        have hmem := (hcase s hs).2.1 hx
+        rw [Finset.mem_singleton] at hmem
+        rw [Finset.mem_insert]
+        exact Or.inr (Finset.mem_singleton.mpr hmem)
+      · intro x hx
+        exfalso
+        have heq : schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s = schedCache d C₀ σ s := by
+          exact schedCache_exchangeSchedule_eq_d d t q q' σ C₀ (by omega)
+        rw [Finset.mem_sdiff] at hx
+        exact hx.2 (heq ▸ hx.1))
+
 end Caching
 
 end CLRS
