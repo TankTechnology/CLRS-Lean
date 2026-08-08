@@ -81,12 +81,57 @@ Consequences used by the counting lemma (B4):
 Hence pointwise `rF s ≤ eF s + (if s = J' then 1 else 0) − (if s = J then
 1 else 0)`, summing to `schedMisses r ≤ schedMisses e`.
 
+## B5 iteration details (working notes)
+
+State: `(d, t0, hnb, slack)`, invariants: `agreeWithFIF d t0`,
+`∀ s ≥ hnb, fault s → d s resident`, `schedMisses d + slack ≤ M`.
+
+Each step finds the first disagreement `t > t0` (`exists_first_disagree_after`:
+`agree d t0` + not `agree d (σ.length)` ⇒ `∃ t ∈ (t0, σ.length)`, `agree d t`,
+`¬ agree d (t+1)`; search by descending induction from `σ.length`, since
+`agree d 0` always holds).  Then:
+
+- **case A: `t ≥ hnb`** — exchange via `exchange_step'` (hweak from `t`
+  only; `exchange_step` in S3 is the full-reduced special case).  New
+  reducedness bound `max hnb (J' + 1)` by `exchangeSchedule_reduced_after`
+  (needs `j ≤ j'`, from `fifo_nextUse_order`).  Slack `+1` iff the bad event
+  did not occur (`exchangeSchedule_misses_le_plus_one`; `q'` never requested
+  again, or `d` evicts `q'` before its first request).
+- **case B: `t < hnb`** — repair; both `repair_step` (no-op, B1) and
+  `repair_step_swap` (resident, B2) give `misses ≤ e + 1`, so slack `−1`
+  (requires `slack ≥ 1`).  New bound `max hnb (J' + 1)` (B1: repair's cache
+  equals `e`'s after `J'` by `repairSchedule_superset`; B2: contains it by
+  `repairSchedule_superset_swap`).
+
+Slack supply: `t < hnb` puts `t` inside the window of the previous exchange
+(whose `q'`/`J'` set `hnb`).  Inside that window the exchange schedule's
+eviction at a fault is resident, or equals the previous `q'` (decision
+branch 1 — the only no-op branch, since `q' ∉` exchange cache there).  So
+`ex t = q'` (B1) implies the *source* schedule evicted `q'` at `t`, i.e. the
+bad event did not occur — the previous exchange produced the slack.  A B2
+subtraction case (`e` evicts `q` inside `(t, J]`) also traces back to a
+no-op eviction of the window's swap page by the source schedule, again a
+bad-event-did-not-occur exchange.  Each window has at most one *real*
+eviction of `q'` (after it, `q' ∉ E` until `J'`), so the accounting
+(bad-event exchanges supply slack; repairs consume it) is sound; the
+iteration still needs the precise one-to-one bookkeeping in Lean.
+
+Boundary case: the first disagreement landing exactly on the previous `J'`
+request — the exchange faults there (evicting `q'` as a no-op) and reloads
+`q'`, so caches coincide with the source afterwards.
+
+Termination: `t` strictly increases each step, so at most `σ.length + 1`
+steps; induction on `σ.length − t0`.
+
 ## File layout
 
 - `Dev/B2_Dev.lean` (done): `first_disagree_fault`, `after_J_rel1/rel2`,
   `repairSchedule_after_J`.
-- `Dev/B3_AfterJ_Window.lean` (next): generic step + `(J, J']` window.
-- `Dev/B4_Repair_Swap_Count.lean`: `repair_step_swap`.
-- `Dev/B5_Iteration.lean`: state machine + `fifo_optimal`; then verification
-  (axioms, `lake build CLRSLean`, `check_repository.py`, docs, progress CSV)
-  and merge of all `Dev/` lemmas into `S3_Optimality.lean`.
+- `Dev/B3_AfterJ_Window.lean` (done): generic step + `(J, J']` window.
+- `Dev/B4_Repair_Swap_Count.lean` (done): `repairSchedule_superset_swap`,
+  `repair_step_swap`.
+- `Dev/B5_Iteration.lean` (in progress): `exchange_step'` done; next
+  `exists_first_disagree_after`, the step state machine, the iteration
+  induction, then `fifo_optimal`; then verification (axioms,
+  `lake build CLRSLean`, `check_repository.py`, docs, progress CSV) and
+  merge of all `Dev/` lemmas into `S3_Optimality.lean`.
