@@ -4,6 +4,8 @@ import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.AndOr
 import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification
 import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection
 import CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT
 
 /-! # Chapter 34 — NP-Completeness
 
