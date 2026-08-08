@@ -569,9 +569,10 @@ def CIRCUIT_SAT : Language Gate :=
   { gates | CircuitSatisfiable gates }
 
 /-- **SAT**: the language of satisfiable boolean formulas, encoded as
-prefix-polish symbol lists. -/
+prefix-polish symbol lists (decoded via `decode`).  Membership is defined
+through the decoder so that reductions on encoded lists stay total. -/
 def SAT : Language FormulaSym :=
-  { syms | ∃ f : Formula, enc f = syms ∧ Formula.Satisfiable f }
+  { syms | Formula.Satisfiable (decode syms) }
 
 end Chapter34
 
@@ -3098,13 +3099,12 @@ theorem circuitSAT_reducible_to_SAT : PolyTimeReducible CIRCUIT_SAT SAT := by
     constructor
     · intro hc
       have hsat := (circuitSatisfiable_iff_satisfiable_circuitToFormula gates).1 hc
-      exact ⟨circuitToFormula gates, rfl, hsat⟩
+      change Formula.Satisfiable (decode (enc (circuitToFormula gates)))
+      simpa [decode_enc] using hsat
     · intro hs
-      rcases hs with ⟨f, hf, hsat⟩
       have hsat' : Formula.Satisfiable (circuitToFormula gates) := by
-        have hf_eq : f = circuitToFormula gates := by
-          rw [← decode_enc f, ← decode_enc (circuitToFormula gates), hf]
-        rwa [← hf_eq]
+        change Formula.Satisfiable (decode (enc (circuitToFormula gates))) at hs
+        simpa [decode_enc] using hs
       exact (circuitSatisfiable_iff_satisfiable_circuitToFormula gates).2 hsat'
 
 end Chapter34
