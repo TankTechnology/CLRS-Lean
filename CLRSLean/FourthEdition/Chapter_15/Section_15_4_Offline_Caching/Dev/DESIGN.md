@@ -137,6 +137,37 @@ This is the remaining obstacle in the iteration assembly.
 Termination: `t` strictly increases each step, so at most `σ.length + 1`
 steps; induction on `σ.length − t0`.
 
+## B5 current status
+
+Proved in `Dev/B5_Iteration.lean` (all kernel-checked, no sorry):
+
+- `exchange_step'`: exchange with reducedness only from `t` on
+- `exists_first_disagree_after`: first disagreement in `[t0, σ.length)`
+- `exchange_step_full`: case-two exchange step (agreement extends, misses
+  not increased, reduced from `J'+1` on)
+- `schedMisses_eq_of_cache_diff`: caches differing only by never-requested
+  pages ⇒ equal miss counts
+- `exchangeSchedule_case_one`: when `q'` (and `q`) are never requested
+  again, the exchange differs from `d` only on `{q, q'}`, evictions agree
+- `exchangeSchedule_misses_eq_case_one`: case-one exchange has equal misses
+- `schedMisses_eq_of_agree`: agreement everywhere ⇒ equal miss counts
+- `exchange_step_slack`: case-two exchange with slack bookkeeping (bad
+  event did not occur ⇒ slack + 1)
+
+Remaining: the iteration induction itself (`iterate_main`, induction on
+`σ.length − t0`), needing:
+1. case A assembly: `exchange_step_slack` + `exchange_step_full` (reduced
+   bound `J'+1`), case-one via `exchangeSchedule_misses_eq_case_one`;
+2. case B (window-internal disagreement, `t < hnb`): repair consumes slack;
+   the slack ≥ 1 supply argument — a window-internal fault of the exchange
+   schedule evicts either a resident page or the previous `q'` (branch 1),
+   and the branch-1 real eviction is exactly the bad-event-did-not-occur
+   marker that produced the slack;
+3. the boundary case at the previous `J'` (exchange faults there, reloads
+   `q'`, after which the difference from the FIF cache is a never-requested
+   page — the `schedMisses_eq_of_cache_diff` completion argument);
+4. `fifo_optimal` assembly and the verification/merge pass.
+
 ## File layout
 
 - `Dev/B2_Dev.lean` (done): `first_disagree_fault`, `after_J_rel1/rel2`,
@@ -144,8 +175,7 @@ steps; induction on `σ.length − t0`.
 - `Dev/B3_AfterJ_Window.lean` (done): generic step + `(J, J']` window.
 - `Dev/B4_Repair_Swap_Count.lean` (done): `repairSchedule_superset_swap`,
   `repair_step_swap`.
-- `Dev/B5_Iteration.lean` (in progress): `exchange_step'` done; next
-  `exists_first_disagree_after`, the step state machine, the iteration
-  induction, then `fifo_optimal`; then verification (axioms,
+- `Dev/B5_Iteration.lean` (in progress): the eight lemmas above; next the
+  iteration induction, then `fifo_optimal`; then verification (axioms,
   `lake build CLRSLean`, `check_repository.py`, docs, progress CSV) and
   merge of all `Dev/` lemmas into `S3_Optimality.lean`.
