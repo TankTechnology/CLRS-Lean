@@ -90,6 +90,65 @@ lemma schedMisses_policySchedule (π : Policy) (C₀ : Finset Page) (σ : List P
   unfold schedFaultAt
   rw [schedCache_policySchedule]
 
+/--
+The cache and decision of the **exchange schedule** for the first fault
+where `d` and the farthest-in-future policy disagree (position `t`,
+request `p`, `d` evicting `q`, the policy evicting `q'`): it agrees with
+`d` before `t`, evicts `q'` at `t` (so its cache agrees with the
+farthest-in-future run through `t+1`), and afterwards follows `d` except
+that it never evicts a page that `d` keeps while the exchange schedule
+lacks it: when `d` evicts `q'` it evicts `q` instead, and when `d` hits a
+request of `q` or `q'` that the exchange schedule misses, it evicts a
+page that `d` does not have (a multi-set element of its own cache
+relative to `d`'s, preferring pages other than `q'`), so that no bad
+event (a fault where `d` hits) is created.  The pair (cache, decision) is
+computed jointly by structural recursion.
+-/
+noncomputable def exchangeScheduleCore (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page) : ℕ → Finset Page × Page
+  | 0 => (C₀, d 0)
+  | s + 1 =>
+      let prev := exchangeScheduleCore d t q q' σ C₀ s
+      let r : Page := σ.getD s 0
+      let Csucc : Finset Page :=
+        if r ∈ prev.1 then prev.1 else insert r (prev.1.erase prev.2)
+      let Cd : Finset Page := schedCache d C₀ σ (s + 1)
+      let M : Finset Page := Csucc \ Cd
+      let r' : Page := σ.getD (s + 1) 0
+      let decision : Page :=
+        if s + 1 < t then d (s + 1)
+        else if s + 1 = t then q'
+        else if d (s + 1) = q' then (if q' ∈ Csucc then q' else q)
+        else if (r' = q' ∨ r' = q) ∧ r' ∈ Cd then
+          if h : (M.filter (fun x => x ≠ q')).Nonempty then Classical.choose h
+          else if h : M.Nonempty then Classical.choose h
+          else 0
+        else if d (s + 1) ∈ Csucc then d (s + 1)
+        else if h : M.Nonempty then Classical.choose h
+        else 0
+      (Csucc, decision)
+
+/-- The decision function of the exchange schedule. -/
+noncomputable def exchangeSchedule (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page) : ℕ → Page :=
+  fun s => (exchangeScheduleCore d t q q' σ C₀ s).2
+
+/-- The exchange schedule's run is the cache component of the core. -/
+lemma schedCache_exchangeScheduleCore (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page) (s : ℕ) :
+    schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s =
+      (exchangeScheduleCore d t q q' σ C₀ s).1 := by
+  induction s with
+  | zero => rfl
+  | succ s ih =>
+      unfold schedCache
+      rw [ih]
+      cases s with
+      | zero => rfl
+      | succ s' =>
+          unfold exchangeScheduleCore
+          rfl
+
 end Caching
 
 end CLRS
