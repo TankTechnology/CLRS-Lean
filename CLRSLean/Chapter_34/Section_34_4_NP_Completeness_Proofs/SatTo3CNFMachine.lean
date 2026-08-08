@@ -406,45 +406,47 @@ lemma replicate_append_one (k : Nat) (a : CNFSym) :
   induction k with
   | zero => simp
   | succ k ih =>
-      rw [show Nat.succ k = k + 1 by omega]
-      rw [List.replicate_succ]
-      rw [List.replicate_succ]
-      rw [List.cons_append]
-      rw [ih]
+      simpa [List.replicate_succ, List.cons_append] using ih
 
 /-- The `emitTrueRestore` loop: popping `k` `true`s emits `k` `endMark`s and
 finishes at `copyOut`. -/
-lemma emitTrueRestore_loop (k : Nat) (v : St) (inp T : List FormulaSym) (c : Nat)
+lemma emitTrueRestore_loop (k : Nat) (inp T : List FormulaSym) (c : Nat)
     (F : List Frame) (S : List Unit) (O U : List CNFSym) :
     (flip bind Sstep)^[k + 1]
-        (some (⟨some Label.emitTrueRestore, v, stk inp T c (List.replicate k true) F S O U⟩ : (mach).Cfg))
+        (some (⟨some Label.emitTrueRestore, St.emitTrue, stk inp T c (List.replicate k true) F S O U⟩ : (mach).Cfg))
       = some (⟨some Label.copyOut, St.done, stk inp T c [] F S (List.replicate k CNFSym.endMark ++ O) U⟩ : (mach).Cfg) := by
-  induction k with
+  induction k generalizing O with
   | zero =>
-      have h := emitTrueRestore_empty v inp T c F S O U
-      change (flip bind Sstep) (some (⟨some Label.emitTrueRestore, v, stk inp T c [] F S O U⟩ : (mach).Cfg))
+      have h := emitTrueRestore_empty St.emitTrue inp T c F S O U
+      change (flip bind Sstep) (some (⟨some Label.emitTrueRestore, St.emitTrue, stk inp T c [] F S O U⟩ : (mach).Cfg))
         = some (⟨some Label.copyOut, St.done, stk inp T c [] F S O U⟩ : (mach).Cfg)
       simpa [flip] using h
   | succ k ih =>
-      have h := emitTrueRestore_true v inp T c (List.replicate k true) F S O U
+      have h := emitTrueRestore_true St.emitTrue inp T c (List.replicate k true) F S O U
       rw [show Nat.succ k + 1 = k + 1 + 1 by omega]
       rw [Function.iterate_succ_apply]
       change (flip bind Sstep)^[k + 1]
-          (Sstep (⟨some Label.emitTrueRestore, v, stk inp T c (true :: List.replicate k true) F S O U⟩ : (mach).Cfg))
+          (Sstep (⟨some Label.emitTrueRestore, St.emitTrue, stk inp T c (true :: List.replicate k true) F S O U⟩ : (mach).Cfg))
         = some (⟨some Label.copyOut, St.done, stk inp T c [] F S (List.replicate (Nat.succ k) CNFSym.endMark ++ O) U⟩ : (mach).Cfg)
       rw [h]
-      have hih := ih (v := St.emitTrue) (O := CNFSym.endMark :: O)
-      rw [hih]
-      apply congrArg some
-      apply Turing.TM2Comp.Cfg_ext
-      · rfl
-      · rfl
-      · funext kk
-        cases kk <;> try simp [stk]
-        rw [show CNFSym.endMark :: O = [CNFSym.endMark] ++ O by rw [List.cons_append]]
-        rw [← List.append_assoc]
-        rw [replicate_append_one]
-        rw [show Nat.succ k = k + 1 by omega]
+      have hih := ih (O := CNFSym.endMark :: O)
+      calc
+        (flip bind Sstep)^[k + 1]
+            (some (⟨some Label.emitTrueRestore, St.emitTrue, stk inp T c (List.replicate k true) F S
+              (CNFSym.endMark :: O) U⟩ : (mach).Cfg))
+          = some (⟨some Label.copyOut, St.done, stk inp T c [] F S
+              (List.replicate k CNFSym.endMark ++ (CNFSym.endMark :: O)) U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some Label.copyOut, St.done, stk inp T c [] F S
+            (List.replicate (Nat.succ k) CNFSym.endMark ++ O) U⟩ : (mach).Cfg) := by
+            apply congrArg some
+            apply Turing.TM2Comp.Cfg_ext
+            · rfl
+            · rfl
+            · funext kk
+              cases kk <;> try simp [stk]
+              rw [show CNFSym.endMark :: O = [CNFSym.endMark] ++ O by simp [List.cons_append]]
+              rw [← List.append_assoc]
+              rw [replicate_append_one]
 
 /-- `emitTrue` phase: the root value variable `y` (stored as `y + 1` `true`s
 below a `false` separator) is emitted as the unit clause `[[pos y]]`, leaving
@@ -461,23 +463,31 @@ lemma emitTrue_phase (y : Nat) (v : St) (inp T : List FormulaSym) (c : Nat)
       (Sstep (⟨some Label.emitTrue, v, stk inp T c (false :: List.replicate (y + 1) true) F S O U⟩ : (mach).Cfg))
     = some (⟨some Label.copyOut, St.done, stk inp T c [] F S ((encCNF [[Literal.pos y]]).reverse ++ O) U⟩ : (mach).Cfg)
   rw [hpush]
-  have hloop := emitTrueRestore_loop (y + 1) St.emitTrue inp T c F S
+  have hloop := emitTrueRestore_loop (y + 1) inp T c F S
       (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O) U
-  rw [hloop]
-  apply congrArg some
-  apply Turing.TM2Comp.Cfg_ext
-  · rfl
-  · rfl
-  · funext kk
-    cases kk <;> try simp [stk]
-    rw [show CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O =
-        [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] ++ O by rfl]
-    have hrev : (encCNF [[Literal.pos y]]).reverse =
-        List.replicate (y + 1) CNFSym.endMark ++
-          [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] := by
-      simp [encCNF, encClause, encLit, litSym, litIndex, List.reverse_replicate]
-    rw [hrev]
-    rw [List.append_assoc]
+  calc
+    (flip bind Sstep)^[(y + 1) + 1]
+        (some (⟨some Label.emitTrueRestore, St.emitTrue, stk inp T c (List.replicate (y + 1) true) F S
+          (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O) U⟩ : (mach).Cfg))
+      = some (⟨some Label.copyOut, St.done, stk inp T c [] F S
+          (List.replicate (y + 1) CNFSym.endMark ++
+            (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg) := hloop
+    _ = some (⟨some Label.copyOut, St.done, stk inp T c [] F S
+        ((encCNF [[Literal.pos y]]).reverse ++ O) U⟩ : (mach).Cfg) := by
+        apply congrArg some
+        apply Turing.TM2Comp.Cfg_ext
+        · rfl
+        · rfl
+        · funext kk
+          cases kk <;> try simp [stk]
+          rw [show CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O =
+              [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] ++ O by rfl]
+          have hrev : (encCNF [[Literal.pos y]]).reverse =
+              List.replicate (y + 1) CNFSym.endMark ++
+                [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] := by
+            simp [encCNF, encClause, encLit, litSym, litIndex, List.reverse_replicate]
+          rw [hrev]
+          rw [List.append_assoc]
 
 end TM3CNF
 
