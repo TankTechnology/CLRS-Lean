@@ -1949,6 +1949,324 @@ lemma exchangeSchedule_reduced_after (d : ℕ → Page) (t : ℕ) (q q' : Page)
             Finset.eq_of_subset_of_card_le hsub hcard
           exact h5 (hEq ▸ hweak s (by omega) hdFault)
 
+/-- The exchange has a spare miss when the bad event did not occur: either
+`q'` is never requested again and `q` is, or `d` evicts `q'` before its first
+request (so `d` misses there too). -/
+lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hq : d t = q) (hqq' : q ≠ q')
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    (hq'res : q' ∈ schedCache d C₀ σ t)
+    (hslack : (nextUse σ (t + 1) q' = none ∧ ∃ j, nextUse σ (t + 1) q = some j) ∨
+      ∃ j j', nextUse σ (t + 1) q = some j ∧ nextUse σ (t + 1) q' = some j' ∧ j < j' ∧
+        σ.getD (t + 1 + j') 0 ∉ schedCache d C₀ σ (t + 1 + j')) :
+    schedMisses (exchangeSchedule d t q q' σ C₀) C₀ σ + 1 ≤ schedMisses d C₀ σ := by
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  let eF : ℕ → ℕ := schedFaultAt e C₀ σ
+  let dF : ℕ → ℕ := schedFaultAt d C₀ σ
+  rcases hslack with ⟨hnone, hqreq⟩ | ⟨j, j', hj, hj', hjlt, hnoBad⟩
+  · -- CASE A:`q'` 永不再请求
+    have hq'ne_s : ∀ s, t + 1 ≤ s → s < σ.length → σ.getD s 0 ≠ q' := by
+      intro s hs hlen
+      have hnone' := nextUse_eq_none_iff.mp hnone
+      apply hnone' (σ.getD s 0)
+      have hget : (σ.drop (t + 1)).getD (s - (t + 1)) 0 = σ.getD s 0 := by
+        rw [getD_drop]
+        rw [Nat.add_sub_of_le hs]
+      rw [← hget]
+      have hlt' : s - (t + 1) < (σ.drop (t + 1)).length := by
+        rw [List.length_drop]
+        omega
+      rw [List.getD_eq_getElem _ 0 hlt']
+      exact List.getElem_mem hlt'
+    rcases hqreq with ⟨j, hj⟩
+    have hJlen : t + 1 + j < σ.length := by
+      have hjlt' : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
+      rw [List.length_drop] at hjlt'
+      omega
+    have hJle : t + 1 + j + 1 ≤ σ.length := by omega
+    have hq'neA : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
+      intro k hk1 hk2
+      exact hq'ne_s k hk1 (by omega)
+    -- 逐点:s ≤ t 时 fault 相等
+    have hP0 : ∀ s, s ≤ t → eF s = dF s := by
+      intro s hs
+      unfold eF dF e schedFaultAt
+      rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hs]
+    -- 逐点:t < s < J 时 fault 相等(窗口)
+    have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
+      intro s hst hsJ
+      unfold eF dF e schedFaultAt
+      rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
+        (s := s) hst (by omega)]
+      have hne1 : σ.getD s 0 ≠ q := getD_ne_nextUse hj (by omega) hsJ
+      have hne2 : σ.getD s 0 ≠ q' := hq'neA s (by omega) hsJ
+      by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
+      · rw [if_pos hr]
+        have hrE' : σ.getD s 0 ∈ insert q ((schedCache d C₀ σ s).erase q') := by
+          rw [Finset.mem_insert]
+          right
+          rw [Finset.mem_erase]
+          constructor
+          · exact hne2
+          · exact hr
+        rw [if_pos hrE']
+      · rw [if_neg hr]
+        have hrE' : σ.getD s 0 ∉ insert q ((schedCache d C₀ σ s).erase q') := by
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqeq | hmem
+          · exact hne1 hqeq
+          · exact hr (Finset.mem_erase.mp hmem).2
+        rw [if_neg hrE']
+    -- 逐点:J < s 时 eF ≤ dF(无坏事件)
+    have hP3A : ∀ s, t < s → s < σ.length → eF s ≤ dF s := by
+      intro s hst hlen
+      unfold eF dF e schedFaultAt
+      by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
+      · by_cases hrE : σ.getD s 0 ∈ schedCache e C₀ σ s
+        · rw [if_pos hrE, if_pos hr]
+        · rw [if_neg hrE, if_pos hr]
+          exfalso
+          have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
+            by_contra hnot
+            have hinv := exchangeSchedule_invariant d t q q' σ C₀ hq hweak s (by omega)
+            exact hrE (hinv (σ.getD s 0) (by
+              intro hmem2
+              apply hnot
+              rcases Finset.mem_insert.mp hmem2 with hqeq | hq'eq
+              · exact Or.inr hqeq
+              · exact Or.inl (Finset.mem_singleton.mp hq'eq)) hr)
+          rcases hqqq' with hq'eq | hqeq
+          · exact hq'ne_s s (by omega) hlen hq'eq
+          · have hqE : q ∈ schedCache e C₀ σ s := by
+              exact exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
+                s hst (hqeq ▸ hr)
+            exact hrE (hqeq ▸ hqE)
+      · rw [if_neg hr]
+        by_cases hrE : σ.getD s 0 ∈ schedCache e C₀ σ s
+        · rw [if_pos hrE]
+          omega
+        · rw [if_neg hrE]
+    -- 好事件在 J
+    have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
+    -- 拆分求和
+    have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
+        (Finset.Ico (t + 1 + j + 1) σ.length) := by
+      rw [Finset.disjoint_left]
+      intro s hs1 hs2
+      have h1 : s < t + 1 + j + 1 := Finset.mem_range.mp hs1
+      have h2 : t + 1 + j + 1 ≤ s := (Finset.mem_Ico.mp hs2).1
+      omega
+    have hunion : Finset.range (t + 1 + j + 1) ∪ Finset.Ico (t + 1 + j + 1) σ.length =
+        Finset.range σ.length := by
+      ext s
+      simp [Finset.mem_Ico]
+      constructor
+      · intro h
+        rcases h with hs | ⟨h1, h2⟩
+        · omega
+        · exact h2
+      · intro hs
+        by_cases hs' : s < t + 1 + j + 1
+        · exact Or.inl (Nat.lt_succ_iff.mp hs')
+        · right
+          constructor
+          · omega
+          · exact hs
+    have hsum_e : (∑ s ∈ Finset.range σ.length, eF s) =
+        (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) +
+          ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s := by
+      rw [← hunion, Finset.sum_union hdisj]
+    have hsum_d : (∑ s ∈ Finset.range σ.length, dF s) =
+        (∑ s ∈ Finset.range (t + 1 + j + 1), dF s) +
+          ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
+      rw [← hunion, Finset.sum_union hdisj]
+    -- 第一部分:Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
+    have hpart1 : (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) + 1 ≤
+        ∑ s ∈ Finset.range (t + 1 + j + 1), dF s := by
+      rw [Finset.sum_range_succ]
+      rw [Finset.sum_range_succ]
+      have heJ : eF (t + 1 + j) = 0 := by
+        unfold eF schedFaultAt
+        rw [if_pos hgood.1]
+      have hdJ : dF (t + 1 + j) = 1 := by
+        unfold dF schedFaultAt
+        rw [if_neg hgood.2]
+      rw [heJ, hdJ]
+      have hle : (∑ s ∈ Finset.range (t + 1 + j), eF s) ≤
+          ∑ s ∈ Finset.range (t + 1 + j), dF s := by
+        exact Finset.sum_le_sum (fun s hs => by
+          by_cases hst' : s ≤ t
+          · exact le_of_eq (hP0 s hst')
+          · have hts' : t < s := by omega
+            exact le_of_eq (hP1 s hts' (Finset.mem_range.mp hs)))
+      have hle' : (∑ s ∈ Finset.range (t + 1 + j), eF s) + 1 ≤
+          (∑ s ∈ Finset.range (t + 1 + j), dF s) + 1 := Nat.add_le_add_right hle 1
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hle'
+    -- 第二部分:Σ_{[J+1,len)} eF ≤ Σ dF
+    have hpart2 : (∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s) ≤
+        ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
+      apply Finset.sum_le_sum
+      intro s hs
+      have hst' : t < s := by
+        have h1 : t + 1 + j + 1 ≤ s := (Finset.mem_Ico.mp hs).1
+        omega
+      exact hP3A s hst' (Finset.mem_Ico.mp hs).2
+    -- 组装
+    unfold schedMisses
+    change (∑ s ∈ Finset.range σ.length, eF s) + 1 ≤ ∑ s ∈ Finset.range σ.length, dF s
+    rw [hsum_e, hsum_d]
+    have h := add_le_add hpart1 hpart2
+    simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using h
+
+  · -- CASE B:`q` 的首次请求在 `q'` 的首次请求之前
+    have hJlen : t + 1 + j < σ.length := by
+      have hjlt' : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
+      rw [List.length_drop] at hjlt'
+      omega
+    have hJ'len : t + 1 + j' < σ.length := by
+      have hj'lt' : j' < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj').1
+      rw [List.length_drop] at hj'lt'
+      omega
+    have hJle : t + 1 + j + 1 ≤ σ.length := by omega
+    have hJ'le : t + 1 + j' + 1 ≤ σ.length := by omega
+    have hJJ' : t + 1 + j + 1 ≤ t + 1 + j' := by omega
+    have hq'neB : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
+      intro k hk1 hk2
+      exact getD_ne_nextUse hj' hk1 (by omega)
+    -- 逐点:s ≤ t 时 fault 相等
+    have hP0 : ∀ s, s ≤ t → eF s = dF s := by
+      intro s hs
+      unfold eF dF e schedFaultAt
+      rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hs]
+    -- 逐点:t < s < J 时 fault 相等(窗口)
+    have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
+      intro s hst hsJ
+      unfold eF dF e schedFaultAt
+      rw [exchangeSchedule_window d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB
+        (s := s) hst (by omega)]
+      have hne1 : σ.getD s 0 ≠ q := getD_ne_nextUse hj (by omega) hsJ
+      have hne2 : σ.getD s 0 ≠ q' := hq'neB s (by omega) hsJ
+      by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
+      · rw [if_pos hr]
+        have hrE' : σ.getD s 0 ∈ insert q ((schedCache d C₀ σ s).erase q') := by
+          rw [Finset.mem_insert]
+          right
+          rw [Finset.mem_erase]
+          constructor
+          · exact hne2
+          · exact hr
+        rw [if_pos hrE']
+      · rw [if_neg hr]
+        have hrE' : σ.getD s 0 ∉ insert q ((schedCache d C₀ σ s).erase q') := by
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqeq | hmem
+          · exact hne1 hqeq
+          · exact hr (Finset.mem_erase.mp hmem).2
+        rw [if_neg hrE']
+    -- 逐点:s ≠ J' 时 eF ≤ dF(坏事件只在 J')
+    have hP3 : ∀ s, t < s → s < σ.length → s ≠ t + 1 + j' → eF s ≤ dF s := by
+      intro s hst hlen hsne
+      unfold eF dF e schedFaultAt
+      by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
+      · by_cases hrE : σ.getD s 0 ∈ schedCache e C₀ σ s
+        · rw [if_pos hrE, if_pos hr]
+        · rw [if_neg hrE, if_pos hr]
+          exfalso
+          exact hsne (exchangeSchedule_bad d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB hj'
+            hst hr hrE)
+      · rw [if_neg hr]
+        by_cases hrE : σ.getD s 0 ∈ schedCache e C₀ σ s
+        · rw [if_pos hrE]
+          omega
+        · rw [if_neg hrE]
+    -- 好事件在 J
+    have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB
+    -- 拆分求和
+    have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
+        (Finset.Ico (t + 1 + j + 1) σ.length) := by
+      rw [Finset.disjoint_left]
+      intro s hs1 hs2
+      have h1 : s < t + 1 + j + 1 := Finset.mem_range.mp hs1
+      have h2 : t + 1 + j + 1 ≤ s := (Finset.mem_Ico.mp hs2).1
+      omega
+    have hunion : Finset.range (t + 1 + j + 1) ∪ Finset.Ico (t + 1 + j + 1) σ.length =
+        Finset.range σ.length := by
+      ext s
+      simp [Finset.mem_Ico]
+      constructor
+      · intro h
+        rcases h with hs | ⟨h1, h2⟩
+        · omega
+        · exact h2
+      · intro hs
+        by_cases hs' : s < t + 1 + j + 1
+        · exact Or.inl (Nat.lt_succ_iff.mp hs')
+        · right
+          constructor
+          · omega
+          · exact hs
+    have hsum_e : (∑ s ∈ Finset.range σ.length, eF s) =
+        (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) +
+          ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s := by
+      rw [← hunion, Finset.sum_union hdisj]
+    have hsum_d : (∑ s ∈ Finset.range σ.length, dF s) =
+        (∑ s ∈ Finset.range (t + 1 + j + 1), dF s) +
+          ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
+      rw [← hunion, Finset.sum_union hdisj]
+    -- 第一部分:Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
+    have hpart1 : (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) + 1 ≤
+        ∑ s ∈ Finset.range (t + 1 + j + 1), dF s := by
+      rw [Finset.sum_range_succ]
+      rw [Finset.sum_range_succ]
+      have heJ : eF (t + 1 + j) = 0 := by
+        unfold eF schedFaultAt
+        rw [if_pos hgood.1]
+      have hdJ : dF (t + 1 + j) = 1 := by
+        unfold dF schedFaultAt
+        rw [if_neg hgood.2]
+      rw [heJ, hdJ]
+      have hle : (∑ s ∈ Finset.range (t + 1 + j), eF s) ≤
+          ∑ s ∈ Finset.range (t + 1 + j), dF s := by
+        exact Finset.sum_le_sum (fun s hs => by
+          by_cases hst' : s ≤ t
+          · exact le_of_eq (hP0 s hst')
+          · have hts' : t < s := by omega
+            exact le_of_eq (hP1 s hts' (Finset.mem_range.mp hs)))
+      have hle' : (∑ s ∈ Finset.range (t + 1 + j), eF s) + 1 ≤
+          (∑ s ∈ Finset.range (t + 1 + j), dF s) + 1 := Nat.add_le_add_right hle 1
+      simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hle'
+    -- 第二部分:Σ_{[J+1,len)} eF ≤ Σ dF + 1
+    have hpart2 : (∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s) ≤
+        ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
+      have hper : ∀ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s ≤ dF s := by
+        intro s hs
+        have hst' : t < s := by
+          have h1 : t + 1 + j + 1 ≤ s := (Finset.mem_Ico.mp hs).1
+          exact lt_of_lt_of_le (by omega : t < t + 1 + j + 1) h1
+        by_cases hsne : s = t + 1 + j'
+        · subst s
+          unfold eF dF schedFaultAt
+          dsimp [e]
+          have hsig : σ.getD (t + 1 + j') 0 = q' := getD_eq_nextUse hj'
+          have hnotE : σ.getD (t + 1 + j') 0 ∉ schedCache e C₀ σ (t + 1 + j') := by
+            rw [hsig]
+            apply exchangeSchedule_q'_absent d t q q' σ C₀ hweak hft hq'res hj'
+            · omega
+            · rfl
+          rw [if_neg hnotE]
+          rw [if_neg hnoBad]
+        · exact hP3 s hst' (Finset.mem_Ico.mp hs).2 hsne
+      exact Finset.sum_le_sum hper
+    -- 组装
+    unfold schedMisses
+    change (∑ s ∈ Finset.range σ.length, eF s) + 1 ≤ ∑ s ∈ Finset.range σ.length, dF s
+    rw [hsum_e, hsum_d]
+    have h := add_le_add hpart1 hpart2
+    simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using h
+
+
 end Caching
 
 end CLRS
