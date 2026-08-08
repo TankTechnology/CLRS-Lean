@@ -155,17 +155,39 @@ invariant `∀ r ∉ {q,q'}, r ∈ C_s^{d'} ⟺ r ∈ C_s^d` (preserved by evict
 multi-set elements, `q`, `q'`, or `d s` — never a page `d` keeps that `d'`
 lacks).  Hence `misses d' ≤ misses d`.
 
+**Final decision logic for `exchangeSchedule` (verified by worked
+examples, 2026-08-08).**  For `s > t`, with `C' := schedCache d' C₀ σ s`,
+`C := schedCache d C₀ σ s`, `r := σ.getD s 0`, `M := C' \ C`:
+1. `d s = q'` → evict `q`.
+2. `r ∈ {q, q'}` and `r ∈ C` (d hits, d' will fault) → evict a multi-set
+   element of `M` preferring `x ≠ q'` (at `v`: `M = {x}`-type, since
+   `q ∈ C` there and `q' ∉ C'`; in the double-difference: prefer the
+   `x`-type elements so `q'` stays and the `q'`-request good event
+   survives).
+3. otherwise (follow) → evict `d s` if `d s ∈ C'`, else a multi-set
+   element if `M` is nonempty, else `0` (no-op).
+The multi-set is never empty in the "d has q', d' lacks q'" states
+(`|M| = |missing| ≥ 1` by the cache-size argument), so `q` is never
+evicted while `d` keeps it: the bad event `q`-request-with-`d'`-missing
+never occurs.  The only bad event is `q'` at `v` (evicting `q` there,
+paired with the good event at `u`, since `u ≤ v`); all good events
+(`u`, `q'` after each "d evicts q'" event, evicted-`x`-type requests)
+dominate it.  Hence `misses d' ≤ misses d`.
+
 **Open items for the implementation session:**
-1. Recursive/existential definition of `exchangeSchedule` (well-founded on
-   `s` with access to `schedCache d'` prefixes, or a `Classical.choose`
-   per position with a simultaneous invariant proof).
-2. The invariant and fault-status lemmas; the pairing/counting lemmas
-   (bad-events ≤ good-events) with the phase structure (`u` = next request
-   of `q`, `v` = next request of `q'`, `u ≤ v` via `Farther`).
-3. The iteration (agreement-prefix well-founded recursion) and the bridge
-   `schedMisses (policySchedule π) = misses π`.
-4. Estimated 800–1200 lines in `S3_Optimality.lean`; comparable to the
-   man-optimality effort (a full session).
+1. Recursive definition of `exchangeSchedule` (structural recursion on
+   `s` with `schedCache` over its own prefix — verified feasible in Lean;
+   multi-set choice via `Classical.choose` with the nonempty argument).
+2. The invariant `∀ r ∉ {q,q'}, r ∈ C_s^{d'} ⟺ r ∈ C_s^d` (fault statuses
+   equal off {q, q'}), the size argument `|M| ≥ |missing|`, and the
+   bad-events ≤ good-events counting with the phase structure
+   (`u` = next request of `q`, `v` = next request of `q'`, `u ≤ v` via
+   `Farther`).
+3. The iteration (agreement-prefix well-founded recursion) and the final
+   bridge to `misses π`.
+4. Estimated 600–900 remaining lines in `S3_Optimality.lean`; the
+   schedule model (schedCache/policySchedule/bridges) is already
+   implemented and committed (8e38fcd).
 
 ## Open design questions (superseded by the resolved design above; kept for history)
 
