@@ -391,7 +391,7 @@ inductive Label : Type
   | loop | copyGF | emitDispatch
   | emitInput | copyInput | emitConst | emitNot | copyNot
   | emitAnd | copyAnd1 | copyAnd2 | emitOr | copyOr1 | copyOr2
-  | dec | copyOut | done
+  | dec | emitTrue | copyOut | done
 deriving DecidableEq, Fintype, Inhabited
 
 def prog : Label → Turing.TM2.Stmt Γk Label St
@@ -431,7 +431,7 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
             (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.iffMark)
               (Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.varMark)
                 (Turing.TM2.Stmt.goto (fun _ => Label.copyGF)))))
-          (Turing.TM2.Stmt.goto (fun _ => Label.copyOut)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.emitTrue)))
   | Label.copyGF =>
       Turing.TM2.Stmt.pop K.cnt (fun v x => match x with | some () => St.cp | none => match v with | St.gf g => St.emit g | _ => St.done)
         (Turing.TM2.Stmt.branch (fun v => match v with | St.cp => true | _ => false)
@@ -509,6 +509,9 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
           (Turing.TM2.Stmt.goto (fun _ => Label.dec)))
   | Label.dec =>
       Turing.TM2.Stmt.pop K.cnt (fun v _ => v) (Turing.TM2.Stmt.goto (fun _ => Label.loop))
+  | Label.emitTrue =>
+      Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.lit true)
+        (Turing.TM2.Stmt.goto (fun _ => Label.copyOut))
   | Label.copyOut =>
       Turing.TM2.Stmt.pop K.o (fun _ x => match x with | some s => St.sym s | none => St.done)
         (Turing.TM2.Stmt.branch (fun v => match v with | St.sym _ => true | _ => false)
@@ -520,6 +523,112 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
 abbrev mach : FinTM2 :=
   @FinTM2.mk K (by infer_instance) (by infer_instance) K.inK K.out Γk Label Label.count
     (by infer_instance) St St.init (by infer_instance) (by infer_instance) prog
+
+def Sstep : (mach).Cfg → Option (mach).Cfg := mach.step
+
+abbrev stk (gates T : List Gate) (c : Nat) (B : List Gate) (O U : List FormulaSym) :
+    ∀ k : K, List (Γk k) :=
+  fun k => match k with
+  | K.inK => gates | K.temp => T | K.cnt => List.replicate c ()
+  | K.buf => B | K.o => O | K.out => U
+
+-- one count step on a nonempty `in`
+lemma count_step (g : Gate) (rest : List Gate) (T : List Gate) (c : Nat)
+    (B : List Gate) (O U : List FormulaSym) (v : St) :
+    Sstep (⟨some Label.count, v, stk (g :: rest) T c B O U⟩ : (mach).Cfg)
+      = some (⟨some Label.count, St.gate g, stk rest (g :: T) (c + 1) B O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, Nat.add_comm, Nat.add_assoc, prog, Sstep, List.replicate_succ]
+
+-- count phase: move all gates from `in` to `temp` (reversed), counting into `cnt`
+lemma count_phase_aux (v : St) (gates : List Gate) (T : List Gate) (c : Nat)
+    (B : List Gate) (O U : List FormulaSym) :
+    (flip bind Sstep)^[gates.length + 1]
+        (some (⟨some Label.count, v, stk gates T c B O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reorder, St.done, stk [] (gates.reverse ++ T) (c + gates.length) B O U⟩ : (mach).Cfg) := by
+  induction gates generalizing T c v with
+  | nil =>
+      have hhead : (stk [] T c B O U K.inK).head? = none := by simp [stk]
+      have htail : (stk [] T c B O U K.inK).tail = [] := by simp [stk]
+      have hc : (c + 0) = c := by omega
+      have hrev : ([] : List Gate).reverse ++ T = T := by simp
+      simp [Sstep, mach, prog, stk, flip, hhead, htail, hc, hrev]
+  | cons g rest ih =>
+      have hone := count_step g rest T c B O U v
+      rw [show (g :: rest).length + 1 = (rest.length + 1) + 1 by simp [List.length_cons]]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[rest.length + 1]
+          (Sstep (⟨some Label.count, v, stk (g :: rest) T c B O U⟩ : (mach).Cfg))
+        = some (⟨some Label.reorder, St.done, stk [] ((g :: rest).reverse ++ T) (c + (g :: rest).length) B O U⟩ : (mach).Cfg)
+      rw [hone]
+      have hih := ih (v := St.gate g) (T := g :: T) (c := c + 1)
+      calc
+        (flip bind Sstep)^[rest.length + 1]
+            (some (⟨some Label.count, St.gate g, stk rest (g :: T) (c + 1) B O U⟩ : (mach).Cfg))
+          = some (⟨some Label.reorder, St.done, stk [] (rest.reverse ++ (g :: T)) ((c + 1) + rest.length) B O U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some Label.reorder, St.done, stk [] ((g :: rest).reverse ++ T) (c + (g :: rest).length) B O U⟩ : (mach).Cfg) := by
+            apply congrArg some
+            apply Turing.TM2Comp.Cfg_ext
+            · rfl
+            · rfl
+            · funext k
+              cases k <;> simp [stk, List.reverse_cons, List.cons_append, List.append_assoc, List.length_cons, Nat.add_comm, Nat.add_assoc] <;> try omega
+
+abbrev stkR (temp B : List Gate) (c : Nat) (O U : List FormulaSym) :
+    ∀ k : K, List (Γk k) :=
+  fun k => match k with
+  | K.inK => [] | K.temp => temp | K.cnt => List.replicate c ()
+  | K.buf => B | K.o => O | K.out => U
+
+-- one reorder step on a nonempty temp
+lemma reorder_step (g : Gate) (rest : List Gate) (B : List Gate) (c : Nat)
+    (O U : List FormulaSym) (v : St) :
+    Sstep (⟨some Label.reorder, v, stkR (g :: rest) B c O U⟩ : (mach).Cfg)
+      = some (⟨some Label.reorder, St.gate g, stkR rest (g :: B) c O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stkR, Function.update, prog, Sstep, List.replicate_succ]
+
+-- reorder phase: move temp back onto buf (restoring the order)
+lemma reorder_phase_aux (v : St) (temp : List Gate) (B : List Gate) (c : Nat)
+    (O U : List FormulaSym) :
+    (flip bind Sstep)^[temp.length + 1]
+        (some (⟨some Label.reorder, v, stkR temp B c O U⟩ : (mach).Cfg))
+      = some (⟨some Label.header, St.done, stkR [] (temp.reverse ++ B) c O U⟩ : (mach).Cfg) := by
+  induction temp generalizing B v with
+  | nil =>
+      have hhead : (stkR [] B c O U K.temp).head? = none := by simp [stkR]
+      have htail : (stkR [] B c O U K.temp).tail = [] := by simp [stkR]
+      have hrev : ([] : List Gate).reverse ++ B = B := by simp
+      simp [Sstep, mach, prog, stkR, flip, hhead, htail, hrev]
+  | cons g rest ih =>
+      have hone := reorder_step g rest B c O U v
+      rw [show (g :: rest).length + 1 = (rest.length + 1) + 1 by simp [List.length_cons]]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[rest.length + 1]
+          (Sstep (⟨some Label.reorder, v, stkR (g :: rest) B c O U⟩ : (mach).Cfg))
+        = some (⟨some Label.header, St.done, stkR [] ((g :: rest).reverse ++ B) c O U⟩ : (mach).Cfg)
+      rw [hone]
+      have hih := ih (v := St.gate g) (B := g :: B)
+      calc
+        (flip bind Sstep)^[rest.length + 1]
+            (some (⟨some Label.reorder, St.gate g, stkR rest (g :: B) c O U⟩ : (mach).Cfg))
+          = some (⟨some Label.header, St.done, stkR [] (rest.reverse ++ (g :: B)) c O U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some Label.header, St.done, stkR [] ((g :: rest).reverse ++ B) c O U⟩ : (mach).Cfg) := by
+            apply congrArg some
+            apply Turing.TM2Comp.Cfg_ext
+            · rfl
+            · rfl
+            · funext k
+              cases k <;> simp [stkR, List.reverse_cons, List.cons_append, List.append_assoc, List.length_cons, Nat.add_comm, Nat.add_assoc] <;> try omega
+
 
 end TM2CS
 
