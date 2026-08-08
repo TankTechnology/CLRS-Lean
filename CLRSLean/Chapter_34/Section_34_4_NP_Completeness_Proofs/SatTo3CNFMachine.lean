@@ -13,27 +13,25 @@ The semantic reduction `cnfSatisfiable_to3CNF_iff` (and the list encoding
 encoding.
 
 **Status (2026-08-09).**  Count, reorder, parse (`rd`/`pv`/`reduce` dispatch),
-`emitTrue`, the const-clause emission, and the `not` clause emission's step +
-generic move/restore loops are written.  The `not` phase composition, the
-`and`/`or`/`iff` emissions, `copyOut`, `outputsFun`, the time bound, and the
-`PolyTimeReducible` assembly are NOT complete.
+`emitTrue`, the const-clause emission, the `not` clause emission (`not_phase`),
+the generic move/restore loops, and the `parkVal`/`unparkVal` temp-tape
+subroutines are written.  The reversed-encoding key lemmas for the `and`/`or`/
+`iff` templates are in place.  The `and`/`or`/`iff` machine emissions, `copyOut`
+(not yet in `prog`), `outputsFun`, the time bound, and the `PolyTimeReducible`
+assembly are NOT complete.
 
 **Current gaps.**
 
-- **Control flow (being fixed):** `Label.reorder` routes to `done` (halt); it
-  must route to `rd` so the parse/emit phases run in a single pass.
-- **`and`/`or`/`iff` machine emission (documented gap — reduced scope).**  A
-  binary operator's two child value variables are stacked on `val` (the second
-  child's run on top, the first child's below), but the output order requires
-  emitting the first child's run before the second's.  With a single Unit
-  scratch tape the two runs cannot both be parked: `moveVal`-parking emits
-  `endMark`s on `o` (wrong position), the markers are indistinguishable, and
-  `restoreVal` restores everything.  The machine therefore needs a second park
-  tape — the idle `temp` tape (free after count/reorder) — plus `parkVal`/
-  `unparkVal` (declared but unimplemented).  This is the enabling machinery for
-  the two-child cases; `emitAnd`/`emitOr`/`emitIff` currently halt.  The
-  semantic correctness of the `and`/`or`/`iff` templates is fully proved in
-  `SatTo3CNFSat`.
+- **`and`/`or`/`iff` machine emission (reduced scope).**  A binary operator's
+  two child value variables are stacked on `val` (the second child's run on top,
+  the first child's below), but the output order requires emitting the first
+  child's run before the second's.  The `temp` tape (free after count/reorder)
+  parks the second child while the first is emitted, via the `parkVal`/
+  `unparkVal` subroutines (implemented, with phase lemmas).  `emitAnd`/`emitOr`/
+  `emitIff` currently halt; the reversed-encoding key lemmas
+  `encCNF_andClauses_reverse`/`encCNF_orClauses_reverse`/
+  `encCNF_iffClauses_reverse` are written.  The semantic correctness of the
+  templates is fully proved in `SatTo3CNFSat`.
 - **`copyOut`, `outputsFun`, the polynomial time bound, and the assembled
   `PolyTimeReducible SAT ThreeCNFSat`** are not yet written.
 -/
@@ -606,6 +604,44 @@ lemma encCNF_notClauses_reverse (y y₁ : Nat) :
       (encClause [Literal.pos y, Literal.pos y₁]).reverse ++
       (encClause [Literal.neg y, Literal.neg y₁]).reverse := by
   simp [encCNF, notClauses, List.reverse_append]
+
+/-- The reversed encoding of a three-literal clause splits at the `clauseMark`. -/
+lemma encClause_three_reverse (l₁ l₂ l₃ : Literal) :
+    (encClause [l₁, l₂, l₃]).reverse =
+      (encLit l₃).reverse ++ (encLit l₂).reverse ++ (encLit l₁).reverse ++
+        [CNFSym.clauseMark] := by
+  simp [encClause, List.flatMap, List.reverse_cons, List.reverse_append]
+
+/-- The reversed encoding of `andClauses y y₁ y₂` emits the three clauses in
+reverse output order (clause 3 `[¬y₁, ¬y₂, y]` first, then `[¬y, y₂]`, then
+`[¬y, y₁]`). -/
+lemma encCNF_andClauses_reverse (y y₁ y₂ : Nat) :
+    (encCNF (andClauses y y₁ y₂)).reverse =
+      (encClause [Literal.neg y₁, Literal.neg y₂, Literal.pos y]).reverse ++
+      (encClause [Literal.neg y, Literal.pos y₂]).reverse ++
+      (encClause [Literal.neg y, Literal.pos y₁]).reverse := by
+  simp [encCNF, andClauses, List.reverse_append]
+
+/-- The reversed encoding of `orClauses y y₁ y₂` emits the three clauses in
+reverse output order (clause 3 `[y₁, y₂, ¬y]` first, then `[y, ¬y₂]`, then
+`[y, ¬y₁]`). -/
+lemma encCNF_orClauses_reverse (y y₁ y₂ : Nat) :
+    (encCNF (orClauses y y₁ y₂)).reverse =
+      (encClause [Literal.pos y₁, Literal.pos y₂, Literal.neg y]).reverse ++
+      (encClause [Literal.pos y, Literal.neg y₂]).reverse ++
+      (encClause [Literal.pos y, Literal.neg y₁]).reverse := by
+  simp [encCNF, orClauses, List.reverse_append]
+
+/-- The reversed encoding of `iffClauses y y₁ y₂` emits the four clauses in
+reverse output order (clause 4 `[y, ¬y₁, ¬y₂]` first, then `[y, y₁, y₂]`, then
+`[¬y, y₁, ¬y₂]`, then `[¬y, ¬y₁, y₂]`). -/
+lemma encCNF_iffClauses_reverse (y y₁ y₂ : Nat) :
+    (encCNF (iffClauses y y₁ y₂)).reverse =
+      (encClause [Literal.pos y, Literal.neg y₁, Literal.neg y₂]).reverse ++
+      (encClause [Literal.pos y, Literal.pos y₁, Literal.pos y₂]).reverse ++
+      (encClause [Literal.neg y, Literal.pos y₁, Literal.neg y₂]).reverse ++
+      (encClause [Literal.neg y, Literal.neg y₁, Literal.pos y₂]).reverse := by
+  simp [encCNF, iffClauses, List.reverse_append]
 
 -- ============================================================
 -- const clause emit: `Formula.const b` becomes `[pos/neg m]`
