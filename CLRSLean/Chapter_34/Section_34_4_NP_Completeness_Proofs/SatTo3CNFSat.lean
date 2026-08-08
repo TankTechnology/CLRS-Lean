@@ -14,12 +14,13 @@ Main results:
 - Model `Literal`/`Clause`/`CNF` with evaluation and `CnfSatisfiable`.
 - The reduction `to3CNF` and its correctness:
   `cnfSatisfiable_to3CNF_iff`: `CnfSatisfiable (to3CNF φ)` iff
-  `Formula.Satisfiable φ`.
-- The language `ThreeCNFSat`.
+  `Formula.Satisfiable φ`, plus the input-length variant
+  `cnfSatisfiable_to3CNF_len_iff` used by the machine.
 
-**Current status**: semantic model, reduction, and the correctness theorem are
-in place.  The list encoding, the reduction machine, and its `outputsFun`
-(assembling `PolyTimeReducible SAT ThreeCNFSat`) are pending.
+**Current status**: semantic model, reduction, and the satisfiability
+preservation theorem (`cnfSatisfiable_to3CNF_iff`) are in place.  The list
+encoding, the reduction machine, and its `outputsFun` (assembling
+`PolyTimeReducible SAT ThreeCNFSat`) are pending.
 -/
 
 namespace CLRS
@@ -598,6 +599,538 @@ lemma Formula.eval_eq_of_agree (f : Formula) (σ τ : Nat → Bool)
       have hf : ∀ j, j < numVars f → σ j = τ j := fun j hj => h j (by simp [numVars]; omega)
       have hg : ∀ j, j < numVars g → σ j = τ j := fun j hj => h j (by simp [numVars]; omega)
       simp [Formula.eval, ihf σ τ hf, ihg σ τ hg]
+
+-- ============================================================
+-- Satisfiability preservation of the Tseitin encoding
+-- ============================================================
+
+/-- `a = true ↔ (b = true ∧ c = true)` means `a` is the AND of `b`, `c`. -/
+lemma eq_true_iff_and {a b c : Bool} : (a = true ↔ b = true ∧ c = true) ↔ a = (b && c) := by
+  revert a b c
+  decide
+
+/-- `a = true ↔ (b = true ∨ c = true)` means `a` is the OR of `b`, `c`. -/
+lemma eq_true_iff_or {a b c : Bool} : (a = true ↔ b = true ∨ c = true) ↔ a = (b || c) := by
+  revert a b c
+  decide
+
+/-- `a = true ↔ b = false` means `a` is the negation of `b`. -/
+lemma eq_true_iff_not {a b : Bool} : (a = true ↔ b = false) ↔ a = !b := by
+  revert a b
+  decide
+
+/-- `a = true ↔ (b = true ↔ c = true)` means `a` is the equality of `b`, `c`. -/
+lemma eq_true_iff_iff {a b c : Bool} : (a = true ↔ (b = true ↔ c = true)) ↔ a = (b == c) := by
+  revert a b c
+  decide
+
+/-- `extend (not f)` agrees with `extend f` below `f`'s final auxiliary index. -/
+lemma extend_not_agree_lt (f : Formula) (next : Nat) (σ : Nat → Bool) :
+    ∀ j, j < (to3CNF' f next).2.2 →
+      extend (Formula.not f) next σ j = extend f next σ j := by
+  intro j hj
+  by_cases hne : j = (to3CNF' f next).2.2
+  · exfalso
+    omega
+  · simp [extend, hne]
+
+/-- `extend (and f g)` agrees with `extend f` below `f`'s final auxiliary index. -/
+lemma extend_and_agree_f_lt (f g : Formula) (next : Nat) (σ : Nat → Bool) :
+    ∀ j, j < (to3CNF' f next).2.2 →
+      extend (Formula.and f g) next σ j = extend f next σ j := by
+  intro j hj
+  by_cases hne : j = (to3CNF' g (to3CNF' f next).2.2).2.2
+  · exfalso
+    have hg := to3CNF'_next_ge g (to3CNF' f next).2.2
+    omega
+  · simp [extend, hne]
+    exact extend_agree_lt g (to3CNF' f next).2.2 (extend f next σ) j hj
+
+/-- `extend (and f g)` agrees with `extend g (extend f)` below `g`'s final index. -/
+lemma extend_and_agree_g_lt (f g : Formula) (next : Nat) (σ : Nat → Bool) :
+    ∀ j, j < (to3CNF' g (to3CNF' f next).2.2).2.2 →
+      extend (Formula.and f g) next σ j = extend g (to3CNF' f next).2.2 (extend f next σ) j := by
+  intro j hj
+  by_cases hne : j = (to3CNF' g (to3CNF' f next).2.2).2.2
+  · exfalso
+    omega
+  · simp [extend, hne]
+
+/-- `extend (or f g)` agrees with `extend f` below `f`'s final auxiliary index. -/
+lemma extend_or_agree_f_lt (f g : Formula) (next : Nat) (σ : Nat → Bool) :
+    ∀ j, j < (to3CNF' f next).2.2 →
+      extend (Formula.or f g) next σ j = extend f next σ j := by
+  intro j hj
+  by_cases hne : j = (to3CNF' g (to3CNF' f next).2.2).2.2
+  · exfalso
+    have hg := to3CNF'_next_ge g (to3CNF' f next).2.2
+    omega
+  · simp [extend, hne]
+    exact extend_agree_lt g (to3CNF' f next).2.2 (extend f next σ) j hj
+
+/-- `extend (or f g)` agrees with `extend g (extend f)` below `g`'s final index. -/
+lemma extend_or_agree_g_lt (f g : Formula) (next : Nat) (σ : Nat → Bool) :
+    ∀ j, j < (to3CNF' g (to3CNF' f next).2.2).2.2 →
+      extend (Formula.or f g) next σ j = extend g (to3CNF' f next).2.2 (extend f next σ) j := by
+  intro j hj
+  by_cases hne : j = (to3CNF' g (to3CNF' f next).2.2).2.2
+  · exfalso
+    omega
+  · simp [extend, hne]
+
+/-- `extend (iff f g)` agrees with `extend f` below `f`'s final auxiliary index. -/
+lemma extend_iff_agree_f_lt (f g : Formula) (next : Nat) (σ : Nat → Bool) :
+    ∀ j, j < (to3CNF' f next).2.2 →
+      extend (Formula.iff f g) next σ j = extend f next σ j := by
+  intro j hj
+  by_cases hne : j = (to3CNF' g (to3CNF' f next).2.2).2.2
+  · exfalso
+    have hg := to3CNF'_next_ge g (to3CNF' f next).2.2
+    omega
+  · simp [extend, hne]
+    exact extend_agree_lt g (to3CNF' f next).2.2 (extend f next σ) j hj
+
+/-- `extend (iff f g)` agrees with `extend g (extend f)` below `g`'s final index. -/
+lemma extend_iff_agree_g_lt (f g : Formula) (next : Nat) (σ : Nat → Bool) :
+    ∀ j, j < (to3CNF' g (to3CNF' f next).2.2).2.2 →
+      extend (Formula.iff f g) next σ j = extend g (to3CNF' f next).2.2 (extend f next σ) j := by
+  intro j hj
+  by_cases hne : j = (to3CNF' g (to3CNF' f next).2.2).2.2
+  · exfalso
+    omega
+  · simp [extend, hne]
+
+/-- The extension forces each node's value variable to the value of its subformula. -/
+lemma extend_valueVar (f : Formula) (next : Nat) (σ : Nat → Bool) (hnext : next ≥ numVars f) :
+    extend f next σ (to3CNF' f next).2.1 = Formula.eval f σ := by
+  induction f generalizing next σ with
+  | var i => simp [extend, to3CNF', Formula.eval]
+  | const b =>
+      by_cases hb : b <;> simp [extend, to3CNF', Formula.eval, hb]
+  | not f ih =>
+      simp [extend, to3CNF', Formula.eval]
+      rw [ih next σ hnext]
+  | and f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by
+        simp [numVars] at hnext
+        omega
+      have hfnext : next ≥ numVars f := by
+        simp [numVars] at hnext
+        omega
+      have hgnext : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have hg : Formula.eval g (extend f next σ) = Formula.eval g σ := by
+        apply Formula.eval_eq_of_agree
+        intro j hj
+        exact extend_agree_lt f next σ j (by
+          have hng : next ≥ numVars g := by
+            simp [numVars] at hnext
+            omega
+          omega)
+      simp [extend, to3CNF', Formula.eval]
+      rw [ihf next σ hfnext]
+      rw [ihg (to3CNF' f next).2.2 (extend f next σ) hgnext]
+      rw [hg]
+  | or f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by
+        simp [numVars] at hnext
+        omega
+      have hgnext : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have hg : Formula.eval g (extend f next σ) = Formula.eval g σ := by
+        apply Formula.eval_eq_of_agree
+        intro j hj
+        exact extend_agree_lt f next σ j (by
+          have hng : next ≥ numVars g := by
+            simp [numVars] at hnext
+            omega
+          omega)
+      simp [extend, to3CNF', Formula.eval]
+      rw [ihf next σ hfnext]
+      rw [ihg (to3CNF' f next).2.2 (extend f next σ) hgnext]
+      rw [hg]
+  | iff f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by
+        simp [numVars] at hnext
+        omega
+      have hgnext : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have hg : Formula.eval g (extend f next σ) = Formula.eval g σ := by
+        apply Formula.eval_eq_of_agree
+        intro j hj
+        exact extend_agree_lt f next σ j (by
+          have hng : next ≥ numVars g := by
+            simp [numVars] at hnext
+            omega
+          omega)
+      simp [extend, to3CNF', Formula.eval]
+      rw [ihf next σ hfnext]
+      rw [ihg (to3CNF' f next).2.2 (extend f next σ) hgnext]
+      rw [hg]
+
+/-- The clauses of a subformula all hold under the extended assignment. -/
+lemma evalCNF_extend (f : Formula) (next : Nat) (σ : Nat → Bool) (hnext : next ≥ numVars f) :
+    evalCNF (extend f next σ) (to3CNF' f next).1 := by
+  induction f generalizing next σ with
+  | var i => simp [to3CNF', evalCNF]
+  | const b =>
+      by_cases hb : b
+      · have h : extend (Formula.const true) next σ next = true := by simp [extend]
+        simpa [to3CNF', hb] using (evalCNF_forceTrue (extend (Formula.const true) next σ) next).2 h
+      · have h : extend (Formula.const false) next σ next = false := by simp [extend]
+        simpa [to3CNF', hb] using (evalCNF_forceFalse (extend (Formula.const false) next σ) next).2 h
+  | not f ih =>
+      have hfnext : next ≥ numVars f := by simpa [numVars] using hnext
+      have h1 : evalCNF (extend (Formula.not f) next σ) (to3CNF' f next).1 := by
+        have h := evalCNF_of_agree (extend f next σ) (extend (Formula.not f) next σ)
+          (to3CNF' f next).2.2 (to3CNF' f next).1 (to3CNF'_lits_lt f next hfnext)
+          (fun j hj => (extend_not_agree_lt f next σ j hj).symm)
+        exact h.1 (ih next σ hfnext)
+      have h2 : evalCNF (extend (Formula.not f) next σ) (notClauses (to3CNF' f next).2.2 (to3CNF' f next).2.1) := by
+        have hy : extend (Formula.not f) next σ (to3CNF' f next).2.1 = extend f next σ (to3CNF' f next).2.1 :=
+          extend_not_agree_lt f next σ (to3CNF' f next).2.1 (to3CNF'_y_lt_next f next hfnext)
+        rw [evalCNF_notClauses]
+        have hne : extend (Formula.not f) next σ (to3CNF' f next).2.2 = !(extend f next σ (to3CNF' f next).2.1) := by
+          simp [extend]
+        rw [hne, hy]
+        simp
+      simpa [to3CNF'] using (evalCNF_append (extend (Formula.not f) next σ)
+        (to3CNF' f next).1 (notClauses (to3CNF' f next).2.2 (to3CNF' f next).2.1)).2 ⟨h1, h2⟩
+  | and f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by simp [numVars] at hnext; omega
+      have hgnext₁ : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have h1 : evalCNF (extend (Formula.and f g) next σ) (to3CNF' f next).1 := by
+        have h := evalCNF_of_agree (extend f next σ) (extend (Formula.and f g) next σ)
+          (to3CNF' f next).2.2 (to3CNF' f next).1 (to3CNF'_lits_lt f next hfnext)
+          (fun j hj => (extend_and_agree_f_lt f g next σ j hj).symm)
+        exact h.1 (ihf next σ hfnext)
+      have h2 : evalCNF (extend (Formula.and f g) next σ) (to3CNF' g (to3CNF' f next).2.2).1 := by
+        have h := evalCNF_of_agree (extend g (to3CNF' f next).2.2 (extend f next σ))
+          (extend (Formula.and f g) next σ)
+          (to3CNF' g (to3CNF' f next).2.2).2.2 (to3CNF' g (to3CNF' f next).2.2).1
+          (to3CNF'_lits_lt g (to3CNF' f next).2.2 hgnext₁)
+          (fun j hj => (extend_and_agree_g_lt f g next σ j hj).symm)
+        exact h.1 (ihg (to3CNF' f next).2.2 (extend f next σ) hgnext₁)
+      have h3 : evalCNF (extend (Formula.and f g) next σ)
+          (andClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+            (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+        rw [evalCNF_andClauses]
+        have hne : extend (Formula.and f g) next σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+            (extend f next σ (to3CNF' f next).2.1 &&
+              extend g (to3CNF' f next).2.2 (extend f next σ) (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+          simp [extend]
+        have hy₁ : extend (Formula.and f g) next σ (to3CNF' f next).2.1 = extend f next σ (to3CNF' f next).2.1 :=
+          extend_and_agree_f_lt f g next σ (to3CNF' f next).2.1 (to3CNF'_y_lt_next f next hfnext)
+        have hy₂ : extend (Formula.and f g) next σ (to3CNF' g (to3CNF' f next).2.2).2.1 =
+            extend g (to3CNF' f next).2.2 (extend f next σ) (to3CNF' g (to3CNF' f next).2.2).2.1 :=
+          extend_and_agree_g_lt f g next σ (to3CNF' g (to3CNF' f next).2.2).2.1
+            (to3CNF'_y_lt_next g (to3CNF' f next).2.2 hgnext₁)
+        rw [hne, hy₁, hy₂]
+        simpa
+      simpa [to3CNF'] using (evalCNF_append (extend (Formula.and f g) next σ)
+        ((to3CNF' f next).1 ++ (to3CNF' g (to3CNF' f next).2.2).1)
+        (andClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).2
+        ⟨(evalCNF_append (extend (Formula.and f g) next σ)
+          (to3CNF' f next).1 (to3CNF' g (to3CNF' f next).2.2).1).2 ⟨h1, h2⟩, h3⟩
+  | or f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by simp [numVars] at hnext; omega
+      have hgnext₁ : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have h1 : evalCNF (extend (Formula.or f g) next σ) (to3CNF' f next).1 := by
+        have h := evalCNF_of_agree (extend f next σ) (extend (Formula.or f g) next σ)
+          (to3CNF' f next).2.2 (to3CNF' f next).1 (to3CNF'_lits_lt f next hfnext)
+          (fun j hj => (extend_or_agree_f_lt f g next σ j hj).symm)
+        exact h.1 (ihf next σ hfnext)
+      have h2 : evalCNF (extend (Formula.or f g) next σ) (to3CNF' g (to3CNF' f next).2.2).1 := by
+        have h := evalCNF_of_agree (extend g (to3CNF' f next).2.2 (extend f next σ))
+          (extend (Formula.or f g) next σ)
+          (to3CNF' g (to3CNF' f next).2.2).2.2 (to3CNF' g (to3CNF' f next).2.2).1
+          (to3CNF'_lits_lt g (to3CNF' f next).2.2 hgnext₁)
+          (fun j hj => (extend_or_agree_g_lt f g next σ j hj).symm)
+        exact h.1 (ihg (to3CNF' f next).2.2 (extend f next σ) hgnext₁)
+      have h3 : evalCNF (extend (Formula.or f g) next σ)
+          (orClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+            (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+        rw [evalCNF_orClauses]
+        have hne : extend (Formula.or f g) next σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+            (extend f next σ (to3CNF' f next).2.1 ||
+              extend g (to3CNF' f next).2.2 (extend f next σ) (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+          simp [extend]
+        have hy₁ : extend (Formula.or f g) next σ (to3CNF' f next).2.1 = extend f next σ (to3CNF' f next).2.1 :=
+          extend_or_agree_f_lt f g next σ (to3CNF' f next).2.1 (to3CNF'_y_lt_next f next hfnext)
+        have hy₂ : extend (Formula.or f g) next σ (to3CNF' g (to3CNF' f next).2.2).2.1 =
+            extend g (to3CNF' f next).2.2 (extend f next σ) (to3CNF' g (to3CNF' f next).2.2).2.1 :=
+          extend_or_agree_g_lt f g next σ (to3CNF' g (to3CNF' f next).2.2).2.1
+            (to3CNF'_y_lt_next g (to3CNF' f next).2.2 hgnext₁)
+        rw [hne, hy₁, hy₂]
+        simpa
+      simpa [to3CNF'] using (evalCNF_append (extend (Formula.or f g) next σ)
+        ((to3CNF' f next).1 ++ (to3CNF' g (to3CNF' f next).2.2).1)
+        (orClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).2
+        ⟨(evalCNF_append (extend (Formula.or f g) next σ)
+          (to3CNF' f next).1 (to3CNF' g (to3CNF' f next).2.2).1).2 ⟨h1, h2⟩, h3⟩
+  | iff f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by simp [numVars] at hnext; omega
+      have hgnext₁ : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have h1 : evalCNF (extend (Formula.iff f g) next σ) (to3CNF' f next).1 := by
+        have h := evalCNF_of_agree (extend f next σ) (extend (Formula.iff f g) next σ)
+          (to3CNF' f next).2.2 (to3CNF' f next).1 (to3CNF'_lits_lt f next hfnext)
+          (fun j hj => (extend_iff_agree_f_lt f g next σ j hj).symm)
+        exact h.1 (ihf next σ hfnext)
+      have h2 : evalCNF (extend (Formula.iff f g) next σ) (to3CNF' g (to3CNF' f next).2.2).1 := by
+        have h := evalCNF_of_agree (extend g (to3CNF' f next).2.2 (extend f next σ))
+          (extend (Formula.iff f g) next σ)
+          (to3CNF' g (to3CNF' f next).2.2).2.2 (to3CNF' g (to3CNF' f next).2.2).1
+          (to3CNF'_lits_lt g (to3CNF' f next).2.2 hgnext₁)
+          (fun j hj => (extend_iff_agree_g_lt f g next σ j hj).symm)
+        exact h.1 (ihg (to3CNF' f next).2.2 (extend f next σ) hgnext₁)
+      have h3 : evalCNF (extend (Formula.iff f g) next σ)
+          (iffClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+            (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+        rw [evalCNF_iffClauses]
+        have hne : extend (Formula.iff f g) next σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+            (extend f next σ (to3CNF' f next).2.1 ==
+              extend g (to3CNF' f next).2.2 (extend f next σ) (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+          simp [extend]
+        have hy₁ : extend (Formula.iff f g) next σ (to3CNF' f next).2.1 = extend f next σ (to3CNF' f next).2.1 :=
+          extend_iff_agree_f_lt f g next σ (to3CNF' f next).2.1 (to3CNF'_y_lt_next f next hfnext)
+        have hy₂ : extend (Formula.iff f g) next σ (to3CNF' g (to3CNF' f next).2.2).2.1 =
+            extend g (to3CNF' f next).2.2 (extend f next σ) (to3CNF' g (to3CNF' f next).2.2).2.1 :=
+          extend_iff_agree_g_lt f g next σ (to3CNF' g (to3CNF' f next).2.2).2.1
+            (to3CNF'_y_lt_next g (to3CNF' f next).2.2 hgnext₁)
+        rw [hne, hy₁, hy₂]
+        simp
+      simpa [to3CNF'] using (evalCNF_append (extend (Formula.iff f g) next σ)
+        ((to3CNF' f next).1 ++ (to3CNF' g (to3CNF' f next).2.2).1)
+        (iffClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).2
+        ⟨(evalCNF_append (extend (Formula.iff f g) next σ)
+          (to3CNF' f next).1 (to3CNF' g (to3CNF' f next).2.2).1).2 ⟨h1, h2⟩, h3⟩
+
+/-- Evaluating `f` under a restriction to `m ≥ numVars f` agrees with the
+restriction to `numVars f`. -/
+lemma eval_restrict_eq_of_le (f : Formula) {m : Nat} (σ : Nat → Bool) (hm : numVars f ≤ m) :
+    Formula.eval f (fun j => if j < m then σ j else false) =
+    Formula.eval f (fun j => if j < numVars f then σ j else false) := by
+  apply Formula.eval_eq_of_agree
+  intro j hj
+  have hj' : j < m := by omega
+  rw [if_pos hj']
+  rw [if_pos hj]
+
+/-- If the clauses of a subformula hold under `σ`, then `σ` gives the value
+variable the value of the subformula (with the original variables read off `σ`). -/
+lemma valueVar_of_clauses (f : Formula) (next : Nat) (σ : Nat → Bool) (hnext : next ≥ numVars f)
+    (hclauses : evalCNF σ (to3CNF' f next).1) :
+    σ (to3CNF' f next).2.1 = Formula.eval f (fun j => if j < numVars f then σ j else false) := by
+  induction f generalizing next σ with
+  | var i =>
+      simp [to3CNF', Formula.eval, numVars] at hclauses ⊢
+  | const b =>
+      by_cases hb : b
+      · have hc : evalCNF σ (forceTrue next) := by simpa [to3CNF', hb] using hclauses
+        simpa [to3CNF', Formula.eval, hb] using (evalCNF_forceTrue σ next).1 hc
+      · have hc : evalCNF σ (forceFalse next) := by simpa [to3CNF', hb] using hclauses
+        simpa [to3CNF', Formula.eval, hb] using (evalCNF_forceFalse σ next).1 hc
+  | not f ih =>
+      have hfnext : next ≥ numVars f := by simpa [numVars] using hnext
+      have hspl := (evalCNF_append σ (to3CNF' f next).1
+        (notClauses (to3CNF' f next).2.2 (to3CNF' f next).2.1)).1 (by simpa [to3CNF'] using hclauses)
+      rcases hspl with ⟨hcl1, hcl2⟩
+      have hiy : σ (to3CNF' f next).2.1 = Formula.eval f (fun j => if j < numVars f then σ j else false) :=
+        ih next σ hfnext hcl1
+      have hne : σ (to3CNF' f next).2.2 = !(σ (to3CNF' f next).2.1) := by
+        have ht := evalCNF_notClauses σ (to3CNF' f next).2.2 (to3CNF' f next).2.1
+        exact (eq_true_iff_not).1 (ht.1 hcl2)
+      change σ (to3CNF' f next).2.2 =
+        Formula.eval (Formula.not f) (fun j => if j < numVars (Formula.not f) then σ j else false)
+      rw [hne, hiy]
+      simp [Formula.eval, numVars]
+      rfl
+  | and f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by simp [numVars] at hnext; omega
+      have hgnext₁ : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have hspl := (evalCNF_append σ (to3CNF' f next).1
+        ((to3CNF' g (to3CNF' f next).2.2).1 ++
+          andClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+            (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).1
+        (by simpa [to3CNF'] using hclauses)
+      rcases hspl with ⟨hcl1, hrest⟩
+      have hspl2 := (evalCNF_append σ (to3CNF' g (to3CNF' f next).2.2).1
+        (andClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).1 hrest
+      rcases hspl2 with ⟨hcl2, hcl3⟩
+      have hiy₁ : σ (to3CNF' f next).2.1 = Formula.eval f (fun j => if j < numVars f then σ j else false) :=
+        ihf next σ hfnext hcl1
+      have hiy₂ : σ (to3CNF' g (to3CNF' f next).2.2).2.1 =
+          Formula.eval g (fun j => if j < numVars g then σ j else false) :=
+        ihg (to3CNF' f next).2.2 σ hgnext₁ hcl2
+      have hne : σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+          (σ (to3CNF' f next).2.1 && σ (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+        have ht := evalCNF_andClauses σ (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1
+        exact (eq_true_iff_and).1 (ht.1 hcl3)
+      change σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+        Formula.eval (Formula.and f g) (fun j => if j < numVars (Formula.and f g) then σ j else false)
+      rw [hne, hiy₁, hiy₂]
+      have hf : Formula.eval f (fun j => if j < numVars (Formula.and f g) then σ j else false) =
+          Formula.eval f (fun j => if j < numVars f then σ j else false) := by
+        exact eval_restrict_eq_of_le f σ (by
+          change numVars f ≤ max (numVars f) (numVars g)
+          exact Nat.le_max_left _ _)
+      have hg : Formula.eval g (fun j => if j < numVars (Formula.and f g) then σ j else false) =
+          Formula.eval g (fun j => if j < numVars g then σ j else false) := by
+        exact eval_restrict_eq_of_le g σ (by
+          change numVars g ≤ max (numVars f) (numVars g)
+          exact Nat.le_max_right _ _)
+      rw [← hf, ← hg]
+      rfl
+  | or f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by simp [numVars] at hnext; omega
+      have hgnext₁ : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have hspl := (evalCNF_append σ (to3CNF' f next).1
+        ((to3CNF' g (to3CNF' f next).2.2).1 ++
+          orClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+            (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).1
+        (by simpa [to3CNF'] using hclauses)
+      rcases hspl with ⟨hcl1, hrest⟩
+      have hspl2 := (evalCNF_append σ (to3CNF' g (to3CNF' f next).2.2).1
+        (orClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).1 hrest
+      rcases hspl2 with ⟨hcl2, hcl3⟩
+      have hiy₁ : σ (to3CNF' f next).2.1 = Formula.eval f (fun j => if j < numVars f then σ j else false) :=
+        ihf next σ hfnext hcl1
+      have hiy₂ : σ (to3CNF' g (to3CNF' f next).2.2).2.1 =
+          Formula.eval g (fun j => if j < numVars g then σ j else false) :=
+        ihg (to3CNF' f next).2.2 σ hgnext₁ hcl2
+      have hne : σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+          (σ (to3CNF' f next).2.1 || σ (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+        have ht := evalCNF_orClauses σ (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1
+        exact (eq_true_iff_or).1 (ht.1 hcl3)
+      change σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+        Formula.eval (Formula.or f g) (fun j => if j < numVars (Formula.or f g) then σ j else false)
+      rw [hne, hiy₁, hiy₂]
+      have hf : Formula.eval f (fun j => if j < numVars (Formula.or f g) then σ j else false) =
+          Formula.eval f (fun j => if j < numVars f then σ j else false) := by
+        exact eval_restrict_eq_of_le f σ (by
+          change numVars f ≤ max (numVars f) (numVars g)
+          exact Nat.le_max_left _ _)
+      have hg : Formula.eval g (fun j => if j < numVars (Formula.or f g) then σ j else false) =
+          Formula.eval g (fun j => if j < numVars g then σ j else false) := by
+        exact eval_restrict_eq_of_le g σ (by
+          change numVars g ≤ max (numVars f) (numVars g)
+          exact Nat.le_max_right _ _)
+      rw [← hf, ← hg]
+      rfl
+  | iff f g ihf ihg =>
+      have hfnext : next ≥ numVars f := by simp [numVars] at hnext; omega
+      have hgnext₁ : (to3CNF' f next).2.2 ≥ numVars g := by
+        have h1 := to3CNF'_next_ge f next
+        simp [numVars] at hnext
+        omega
+      have hspl := (evalCNF_append σ (to3CNF' f next).1
+        ((to3CNF' g (to3CNF' f next).2.2).1 ++
+          iffClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+            (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).1
+        (by simpa [to3CNF'] using hclauses)
+      rcases hspl with ⟨hcl1, hrest⟩
+      have hspl2 := (evalCNF_append σ (to3CNF' g (to3CNF' f next).2.2).1
+        (iffClauses (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1)).1 hrest
+      rcases hspl2 with ⟨hcl2, hcl3⟩
+      have hiy₁ : σ (to3CNF' f next).2.1 = Formula.eval f (fun j => if j < numVars f then σ j else false) :=
+        ihf next σ hfnext hcl1
+      have hiy₂ : σ (to3CNF' g (to3CNF' f next).2.2).2.1 =
+          Formula.eval g (fun j => if j < numVars g then σ j else false) :=
+        ihg (to3CNF' f next).2.2 σ hgnext₁ hcl2
+      have hne : σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+          (σ (to3CNF' f next).2.1 == σ (to3CNF' g (to3CNF' f next).2.2).2.1) := by
+        have ht := evalCNF_iffClauses σ (to3CNF' g (to3CNF' f next).2.2).2.2
+          (to3CNF' f next).2.1 (to3CNF' g (to3CNF' f next).2.2).2.1
+        exact (eq_true_iff_iff).1 (ht.1 hcl3)
+      change σ (to3CNF' g (to3CNF' f next).2.2).2.2 =
+        Formula.eval (Formula.iff f g) (fun j => if j < numVars (Formula.iff f g) then σ j else false)
+      rw [hne, hiy₁, hiy₂]
+      have hf : Formula.eval f (fun j => if j < numVars (Formula.iff f g) then σ j else false) =
+          Formula.eval f (fun j => if j < numVars f then σ j else false) := by
+        exact eval_restrict_eq_of_le f σ (by
+          change numVars f ≤ max (numVars f) (numVars g)
+          exact Nat.le_max_left _ _)
+      have hg : Formula.eval g (fun j => if j < numVars (Formula.iff f g) then σ j else false) =
+          Formula.eval g (fun j => if j < numVars g then σ j else false) := by
+        exact eval_restrict_eq_of_le g σ (by
+          change numVars g ≤ max (numVars f) (numVars g)
+          exact Nat.le_max_right _ _)
+      rw [← hf, ← hg]
+      rfl
+
+/-- The Tseitin encoding of a formula is satisfiable iff the formula is
+(allocating auxiliaries from `next`, provided it lies beyond the variables). -/
+lemma cnfSatisfiable_to3CNF'_iff (f : Formula) (next : Nat) (hnext : next ≥ numVars f) :
+    CnfSatisfiable ((to3CNF' f next).1 ++ forceTrue (to3CNF' f next).2.1) ↔ Formula.Satisfiable f := by
+  constructor
+  · intro h
+    rcases h with ⟨σ, hσ⟩
+    have hc := (evalCNF_append σ (to3CNF' f next).1 (forceTrue (to3CNF' f next).2.1)).1 hσ
+    have hy : σ (to3CNF' f next).2.1 = true :=
+      (evalCNF_forceTrue σ (to3CNF' f next).2.1).1 hc.2
+    have heval := valueVar_of_clauses f next σ hnext hc.1
+    rw [hy] at heval
+    exact ⟨fun j => if j < numVars f then σ j else false, heval.symm⟩
+  · intro h
+    rcases h with ⟨σ, hσ⟩
+    let τ := extend f next σ
+    refine ⟨τ, ?_⟩
+    have h1 : evalCNF τ (to3CNF' f next).1 := by
+      simpa [τ] using evalCNF_extend f next σ hnext
+    have hy : τ (to3CNF' f next).2.1 = true := by
+      have h := extend_valueVar f next σ hnext
+      simp [τ] at h ⊢
+      rw [h]
+      exact hσ
+    have h2 : evalCNF τ (forceTrue (to3CNF' f next).2.1) :=
+      (evalCNF_forceTrue τ (to3CNF' f next).2.1).2 hy
+    exact (evalCNF_append τ (to3CNF' f next).1 (forceTrue (to3CNF' f next).2.1)).2 ⟨h1, h2⟩
+
+/-- The full Tseitin reduction, allocating auxiliaries from an explicit start
+`n` that lies beyond all variables of `φ`. -/
+def to3CNF_len (φ : Formula) (n : Nat) : CNF :=
+  let (c, y, _) := to3CNF' φ n
+  c ++ forceTrue y
+
+/-- The input-length variant of the satisfiability theorem. -/
+lemma cnfSatisfiable_to3CNF_len_iff (φ : Formula) (n : Nat) (hnext : n ≥ numVars φ) :
+    CnfSatisfiable (to3CNF_len φ n) ↔ Formula.Satisfiable φ := by
+  simpa [to3CNF_len] using cnfSatisfiable_to3CNF'_iff φ n hnext
+
+/-- **Lemma 34.7 (semantic).**  `to3CNF φ` is satisfiable iff `φ` is. -/
+theorem cnfSatisfiable_to3CNF_iff (φ : Formula) :
+    CnfSatisfiable (to3CNF φ) ↔ Formula.Satisfiable φ := by
+  have h := cnfSatisfiable_to3CNF'_iff φ (numVars φ) le_rfl
+  simpa [to3CNF, to3CNF_len] using h
 
 end Chapter34
 
