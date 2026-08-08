@@ -87,6 +87,91 @@ lemma exchange_step' (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
           rw [← fifo_evict_eq_farthest d σ C₀ hagree]
       rw [hE, hF]
 
+/-- 若 `d` 与 FIF 一致到 `t0` 但并非处处一致,则存在一个分歧位置
+`t ∈ [t0, σ.length)`。 -/
+lemma exists_first_disagree_after (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (t0 : ℕ) (ht0 : t0 ≤ σ.length)
+    (hagree : agreeWithFIF d C₀ σ t0)
+    (hnot : ¬ agreeWithFIF d C₀ σ σ.length) :
+    ∃ t, t0 ≤ t ∧ t < σ.length ∧ agreeWithFIF d C₀ σ t ∧
+      ¬ agreeWithFIF d C₀ σ (t + 1) := by
+  have hmain : ∀ n, t0 ≤ n → n ≤ σ.length → ¬ agreeWithFIF d C₀ σ n →
+      ∃ t, t0 ≤ t ∧ t < n ∧ agreeWithFIF d C₀ σ t ∧
+        ¬ agreeWithFIF d C₀ σ (t + 1) := by
+    intro n
+    induction n with
+    | zero =>
+        intro hnt0 hnol hnotn
+        exfalso
+        apply hnotn
+        intro s hs
+        have hs0 : s = 0 := by omega
+        subst s
+        rfl
+    | succ n ih =>
+        intro hnt0 hnol hnotn
+        by_cases hn : agreeWithFIF d C₀ σ n
+        · exact ⟨n, (by
+            by_contra h
+            have hnlt : n < t0 := by omega
+            apply hnotn
+            intro s hs
+            exact hagree s (by omega)), by omega, hn, hnotn⟩
+        · rcases ih (by
+            by_contra h
+            have hnlt : n < t0 := by omega
+            exact hn (by intro s hs; exact hagree s (by omega))) (by omega) hn with
+            ⟨t, ht1, ht2, hat, hnat⟩
+          exact ⟨t, ht1, by omega, hat, hnat⟩
+  rcases hmain σ.length (by omega) le_rfl hnot with ⟨t, ht1, ht2, hat, hnat⟩
+  exact ⟨t, ht1, ht2, hat, hnat⟩
+
+/-- 一次 exchange 步骤(情形二:`q'` 会再次被请求):新调度与 FIF 一致到
+`t + 1`,miss 不增,且从 `J' + 1` 起 reduced。 -/
+lemma exchange_step_full (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF d C₀ σ t)
+    (hdis : schedCache d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    {j' : ℕ} (hj' : nextUse σ (t + 1) (fifoSchedule σ C₀ t) = some j') :
+    ∃ d' : ℕ → Page,
+      agreeWithFIF d' C₀ σ (t + 1) ∧
+      schedMisses d' C₀ σ ≤ schedMisses d C₀ σ ∧
+      (∀ s, t + 1 + j' < s → σ.getD s 0 ∉ schedCache d' C₀ σ s → d' s ∈ schedCache d' C₀ σ s) := by
+  let q : Page := d t
+  let q' : Page := fifoSchedule σ C₀ t
+  let d' : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  have hfd := first_disagree d σ C₀ hC₀ ht hagree hdis
+  have hqq' : q ≠ q' := hfd.2.1
+  have hft : σ.getD t 0 ∉ schedCache d C₀ σ t := hfd.1
+  have hq'res : q' ∈ schedCache d C₀ σ t := hfd.2.2
+  have hfifo : nextUse σ (t + 1) q' = none ∨
+      ∃ j j', nextUse σ (t + 1) q = some j ∧ nextUse σ (t + 1) q' = some j' ∧ j < j' := by
+    apply fifo_nextUse_order σ (schedCache d C₀ σ t) t q' q
+    · exact fifo_evict_eq_farthest d σ C₀ hagree
+    · exact hdred t le_rfl hft
+    · exact hqq'
+  rcases hfifo with hnone | ⟨j, j0', hj, hj0', hjlt⟩
+  · exfalso
+    rw [hj'] at hnone
+    contradiction
+  · have hjj0 : j0' = j' := Option.some.inj (hj0'.symm.trans hj')
+    have hq'ne : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
+      intro k hk1 hk2
+      exact getD_ne_nextUse (k := k) hj' (by omega) (by omega)
+    refine ⟨d', ?_, ?_, ?_⟩
+    · -- agree 到 t+1
+      exact (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
+    · -- misses 不增
+      exact (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).1
+    · -- reduced 从 J'+1
+      intro s hsJ' hFault
+      change exchangeSchedule d t q q' σ C₀ s ∈
+        schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
+      exact exchangeSchedule_reduced_after d t q q' σ C₀ rfl hqq' hdred hft hq'res
+        hj hq'ne (j' := j') hj' hsJ' hFault
+
 
 end Caching
 
