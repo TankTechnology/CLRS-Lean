@@ -69,7 +69,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 12 | Binary Search Trees | 🟢 correctness | 40 / 40 | — |
 | 13 | Red-Black Trees | 🟠 partial coverage | 39 / 39 | Section 13.2: BST/inorder rotation preservation and cost… |
 | 14 | Dynamic Programming | 🟠 partial coverage | 76 / 76 | Section 14.1: cut reconstruction memoization and costs;… |
-| 15 | Greedy Algorithms | 🟠 partial coverage | 27 / 27 | Section 15.4 (Offline caching): optimality theorem remains |
+| 15 | Greedy Algorithms | 🟠 partial coverage | 27 / 27 | Section 15.4 (Offline caching): FIF optimality iteration… |
 | 16 | Amortized Analysis | 🟡 sections | 66 / 66 | — |
 | 17 | Augmenting Data Structures | 🟠 partial coverage | 77 / 77 | Section 17.1: OS-RANK combined invariants and logarithmic… |
 | 18 | B-Trees | 🟢 correctness | 134 / 134 | — |
