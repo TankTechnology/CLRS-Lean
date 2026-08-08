@@ -53,6 +53,7 @@ inductive St : Type
   | count | reorder
   | rd (s : FormulaSym)
   | pv | reduce | alloc
+  | and₁Done | or₁Done | iff₁Done
   | mv (b : Bool) | rs (b : Bool)
   | emitNot | emitAnd | emitOr | emitIff
   | emitTrue | incr
@@ -62,7 +63,7 @@ deriving DecidableEq, Fintype, Inhabited
 /-- The program labels. -/
 inductive Label : Type
   | count | reorder | done
-  | rd | pv | reduce | alloc
+  | rd | pv | reduce | alloc | const
   | emitNot | emitAnd | emitOr | emitIff
   | emitTrue | incr
   | moveVal | restoreVal
@@ -95,6 +96,69 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
             (Turing.TM2.Stmt.goto (fun _ => Label.reorder)))
           (Turing.TM2.Stmt.goto (fun _ => Label.done)))
   | Label.done => Turing.TM2.Stmt.halt
+  | Label.rd =>
+      Turing.TM2.Stmt.pop K.inK (fun _ x => match x with
+          | some s => St.rd s
+          | none => St.done)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rd (FormulaSym.lit _) => true | _ => false)
+          (Turing.TM2.Stmt.goto (fun _ => Label.const))
+          (Turing.TM2.Stmt.branch (fun v => match v with | St.rd FormulaSym.varMark => true | _ => false)
+            (Turing.TM2.Stmt.goto (fun _ => Label.pv))
+            (Turing.TM2.Stmt.branch (fun v => match v with | St.rd FormulaSym.notMark => true | _ => false)
+              (Turing.TM2.Stmt.push K.frm (fun _ => Frame.not)
+                (Turing.TM2.Stmt.goto (fun _ => Label.rd)))
+              (Turing.TM2.Stmt.branch (fun v => match v with | St.rd FormulaSym.andMark => true | _ => false)
+                (Turing.TM2.Stmt.push K.frm (fun _ => Frame.and₁)
+                  (Turing.TM2.Stmt.goto (fun _ => Label.rd)))
+                (Turing.TM2.Stmt.branch (fun v => match v with | St.rd FormulaSym.orMark => true | _ => false)
+                  (Turing.TM2.Stmt.push K.frm (fun _ => Frame.or₁)
+                    (Turing.TM2.Stmt.goto (fun _ => Label.rd)))
+                  (Turing.TM2.Stmt.push K.frm (fun _ => Frame.iff₁)
+                    (Turing.TM2.Stmt.goto (fun _ => Label.rd))))))))
+  | Label.pv =>
+      Turing.TM2.Stmt.pop K.inK (fun _ x => match x with
+          | some s => St.rd s
+          | none => St.reduce)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.rd FormulaSym.endMark => true | _ => false)
+          (Turing.TM2.Stmt.push K.val (fun _ => true) (Turing.TM2.Stmt.goto (fun _ => Label.pv)))
+          (Turing.TM2.Stmt.push K.val (fun _ => false)
+            (Turing.TM2.Stmt.push K.inK (fun v => match v with | St.rd s => s | _ => default)
+              (Turing.TM2.Stmt.goto (fun _ => Label.reduce)))))
+  | Label.reduce =>
+      Turing.TM2.Stmt.pop K.frm (fun v x => match x with
+          | some Frame.top => St.emitTrue
+          | some Frame.not => St.emitNot
+          | some Frame.and₁ => St.and₁Done
+          | some Frame.and₂ => St.emitAnd
+          | some Frame.or₁ => St.or₁Done
+          | some Frame.or₂ => St.emitOr
+          | some Frame.iff₁ => St.iff₁Done
+          | some Frame.iff₂ => St.emitIff
+          | none => St.emitTrue)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.emitTrue => true | _ => false)
+          (Turing.TM2.Stmt.goto (fun _ => Label.emitTrue))
+          (Turing.TM2.Stmt.branch (fun v => match v with | St.emitNot => true | _ => false)
+            (Turing.TM2.Stmt.goto (fun _ => Label.emitNot))
+            (Turing.TM2.Stmt.branch (fun v => match v with | St.emitAnd => true | _ => false)
+              (Turing.TM2.Stmt.goto (fun _ => Label.emitAnd))
+              (Turing.TM2.Stmt.branch (fun v => match v with | St.emitOr => true | _ => false)
+                (Turing.TM2.Stmt.goto (fun _ => Label.emitOr))
+                (Turing.TM2.Stmt.branch (fun v => match v with | St.emitIff => true | _ => false)
+                  (Turing.TM2.Stmt.goto (fun _ => Label.emitIff))
+                  (Turing.TM2.Stmt.branch (fun v => match v with | St.and₁Done => true | _ => false)
+                    (Turing.TM2.Stmt.push K.frm (fun _ => Frame.and₂)
+                      (Turing.TM2.Stmt.goto (fun _ => Label.rd)))
+                    (Turing.TM2.Stmt.branch (fun v => match v with | St.or₁Done => true | _ => false)
+                      (Turing.TM2.Stmt.push K.frm (fun _ => Frame.or₂)
+                        (Turing.TM2.Stmt.goto (fun _ => Label.rd)))
+                      (Turing.TM2.Stmt.push K.frm (fun _ => Frame.iff₂)
+                        (Turing.TM2.Stmt.goto (fun _ => Label.rd))))))))))
+  | Label.const => Turing.TM2.Stmt.halt
+  | Label.emitTrue => Turing.TM2.Stmt.halt
+  | Label.emitNot => Turing.TM2.Stmt.halt
+  | Label.emitAnd => Turing.TM2.Stmt.halt
+  | Label.emitOr => Turing.TM2.Stmt.halt
+  | Label.emitIff => Turing.TM2.Stmt.halt
   | _ => Turing.TM2.Stmt.halt
 
 abbrev mach : FinTM2 :=
@@ -144,6 +208,128 @@ lemma count_phase_aux (inp T : List FormulaSym) (c : Nat) (V : List Bool) (F : L
             · rfl
             · funext k
               cases k <;> simp [stk, List.reverse_cons, List.cons_append, List.append_assoc, List.length_cons, Nat.add_comm, Nat.add_assoc] <;> try omega
+
+/-- reorder phase: move all symbols from `temp` back to `in` (restoring the order) -/
+lemma reorder_phase_aux (inp T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (O U : List CNFSym) :
+    (flip bind Sstep)^[T.length + 1]
+        (some (⟨some Label.reorder, St.rd default, stk inp T c V F S O U⟩ : (mach).Cfg))
+      = some (⟨some Label.done, St.done, stk (T.reverse ++ inp) [] c V F S O U⟩ : (mach).Cfg) := by
+  induction T generalizing inp with
+  | nil =>
+      simp [stk, Sstep, prog, flip]
+  | cons s rest ih =>
+      have hone : Sstep (⟨some Label.reorder, St.rd s, stk inp (s :: rest) c V F S O U⟩ : (mach).Cfg)
+          = some (⟨some Label.reorder, St.rd s, stk (s :: inp) rest c V F S O U⟩ : (mach).Cfg) := by
+        apply congrArg some
+        apply Turing.TM2Comp.Cfg_ext
+        · rfl
+        · rfl
+        · funext k
+          cases k <;> simp [stk, Function.update, prog, Sstep]
+      rw [show (s :: rest).length + 1 = (rest.length + 1) + 1 by simp [List.length_cons]]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[rest.length + 1]
+          (Sstep (⟨some Label.reorder, St.rd s, stk inp (s :: rest) c V F S O U⟩ : (mach).Cfg))
+        = some (⟨some Label.done, St.done, stk ((s :: rest).reverse ++ inp) [] c V F S O U⟩ : (mach).Cfg)
+      rw [hone]
+      have hih := ih (inp := s :: inp)
+      calc
+        (flip bind Sstep)^[rest.length + 1]
+            (some (⟨some Label.reorder, St.rd default, stk (s :: inp) rest c V F S O U⟩ : (mach).Cfg))
+          = some (⟨some Label.done, St.done, stk (rest.reverse ++ (s :: inp)) [] c V F S O U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some Label.done, St.done, stk ((s :: rest).reverse ++ inp) [] c V F S O U⟩ : (mach).Cfg) := by
+            apply congrArg some
+            apply Turing.TM2Comp.Cfg_ext
+            · rfl
+            · rfl
+            · funext k
+              cases k <;> simp [stk, List.reverse_cons, List.cons_append, List.append_assoc, Nat.add_comm, Nat.add_assoc] <;> try omega
+
+/-- Reading a `notMark` pushes a `not` continuation frame. -/
+lemma rd_not_step (rest T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.rd, St.rd FormulaSym.notMark, stk (FormulaSym.notMark :: rest) T c V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.rd, St.rd FormulaSym.notMark, stk rest T c V (Frame.not :: F) S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- Reading an `andMark` pushes an `and₁` continuation frame. -/
+lemma rd_and_step (rest T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.rd, St.rd FormulaSym.andMark, stk (FormulaSym.andMark :: rest) T c V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.rd, St.rd FormulaSym.andMark, stk rest T c V (Frame.and₁ :: F) S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- Reading an `orMark` pushes an `or₁` continuation frame. -/
+lemma rd_or_step (rest T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.rd, St.rd FormulaSym.orMark, stk (FormulaSym.orMark :: rest) T c V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.rd, St.rd FormulaSym.orMark, stk rest T c V (Frame.or₁ :: F) S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- Reading an `iffMark` pushes an `iff₁` continuation frame. -/
+lemma rd_iff_step (rest T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.rd, St.rd FormulaSym.iffMark, stk (FormulaSym.iffMark :: rest) T c V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.rd, St.rd FormulaSym.iffMark, stk rest T c V (Frame.iff₁ :: F) S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- Reading a `varMark` enters the variable-index phase. -/
+lemma rd_var_step (rest T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.rd, St.rd FormulaSym.varMark, stk (FormulaSym.varMark :: rest) T c V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.pv, St.rd FormulaSym.varMark, stk rest T c V F S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- Reading an `endMark` in the variable phase transfers it to `val` as a unit. -/
+lemma pv_end_step (rest T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.pv, St.rd FormulaSym.endMark, stk (FormulaSym.endMark :: rest) T c V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.pv, St.rd FormulaSym.endMark, stk rest T c (true :: V) F S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- A non-`endMark` ends the variable phase: push a `false` separator, restore
+the symbol to the input, and reduce. -/
+lemma pv_done_step (s : FormulaSym) (rest T : List FormulaSym) (c : Nat) (V : List Bool)
+    (F : List Frame) (S : List Unit) (O U : List CNFSym) (hs : s ≠ FormulaSym.endMark) :
+    Sstep (⟨some Label.pv, St.rd s, stk (s :: rest) T c V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.reduce, St.rd s, stk (s :: rest) T c (false :: V) F S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · simp [prog, Sstep, hs]
+  · simp [prog, Sstep, hs]
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep, hs]
 
 end TM3CNF
 
