@@ -47,27 +47,34 @@ abbrev Γk : K → Type
   | K.o => CNFSym
   | K.out => CNFSym
 
-/-- The machine states. -/
-inductive St : Type
-  | init | done
-  | count | reorder
-  | rd (s : FormulaSym)
-  | pv | reduce | alloc
-  | and₁Done | or₁Done | iff₁Done
-  | mv (b : Bool) | rs (b : Bool)
-  | emitNot | emitAnd | emitOr | emitIff
-  | emitTrue | incr
-  | copyOut | copyStep
+/-- A move/restore operation: emit an auxiliary reference, build a value
+variable, or emit/pop a value-variable reference. -/
+inductive Op : Type
+  | auxEmit | makeVal | varEmit | varPop
 deriving DecidableEq, Fintype, Inhabited
 
 /-- The program labels. -/
 inductive Label : Type
   | count | reorder | done
-  | rd | pv | reduce | alloc | const
+  | rd | pv | reduce | const | constEmit | constRestore | constMake | constMakeRestore
   | emitNot | emitAnd | emitOr | emitIff
-  | emitTrue | incr
-  | moveVal | restoreVal
-  | copyOut | copyStep
+  | emitTrue | emitTrueMove | emitTrueRestore
+  | moveCnt | restoreCnt | moveVal | restoreVal
+  | incr | copyOut | copyStep
+deriving DecidableEq, Fintype, Inhabited
+
+/-- The machine states. -/
+inductive St : Type
+  | init | done
+  | count | reorder
+  | rd (s : FormulaSym)
+  | pv | reduce
+  | and₁Done | or₁Done | iff₁Done
+  | mv (go : Label) (k : Op) | rs (go : Label) (k : Op)
+  | const | constPol (b : Bool)
+  | emitNot | emitAnd | emitOr | emitIff
+  | emitTrue | emitTrueVar
+  | incr | copyOut | copyStep
 deriving DecidableEq, Fintype, Inhabited
 
 /-- The full stack contents at the start of a phase. -/
