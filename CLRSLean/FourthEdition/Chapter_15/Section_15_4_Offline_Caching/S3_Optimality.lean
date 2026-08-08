@@ -41,6 +41,55 @@ lemma fifo_step_size (σ : List Page) (i : ℕ) (C : Finset Page) (p : Page)
     ((fifoPolicy σ).step i C p).card = C.card :=
   step_card (fifoPolicy σ) i C p hC
 
+/--
+A **schedule** for the request list `σ` is a decision function
+`d : ℕ → Page` giving, for every position `s`, the page to evict at that
+position.  The schedule's run `schedCache d C₀ σ` starts from `C₀`: a hit
+keeps the cache, a fault evicts `d s` (an eviction of an absent page is a
+no-op, so schedules need not be reduced) and loads the requested page.
+-/
+def schedCache (d : ℕ → Page) (C₀ : Finset Page) (σ : List Page) : ℕ → Finset Page
+  | 0 => C₀
+  | s + 1 => if σ.getD s 0 ∈ schedCache d C₀ σ s then schedCache d C₀ σ s
+             else insert (σ.getD s 0) ((schedCache d C₀ σ s).erase (d s))
+
+/-- Whether position `s` is a miss for the schedule `d` from `C₀` on `σ`
+(`0` or `1`). -/
+def schedFaultAt (d : ℕ → Page) (C₀ : Finset Page) (σ : List Page) (s : ℕ) : ℕ :=
+  if σ.getD s 0 ∈ schedCache d C₀ σ s then 0 else 1
+
+/-- The number of misses of the schedule `d` from `C₀` on `σ`. -/
+def schedMisses (d : ℕ → Page) (C₀ : Finset Page) (σ : List Page) : ℕ :=
+  ∑ s ∈ Finset.range σ.length, schedFaultAt d C₀ σ s
+
+/-- The schedule induced by a policy: at position `s` it evicts exactly the
+page the policy evicts in its own run. -/
+def policySchedule (π : Policy) (C₀ : Finset Page) (σ : List Page) : ℕ → Page :=
+  fun s => π.evict s (cacheSeq π C₀ σ s) (σ.getD s 0)
+
+/-- The run of a policy's schedule is the policy's own run. -/
+lemma schedCache_policySchedule (π : Policy) (C₀ : Finset Page) (σ : List Page) (s : ℕ) :
+    schedCache (policySchedule π C₀ σ) C₀ σ s = cacheSeq π C₀ σ s := by
+  induction s with
+  | zero => rfl
+  | succ s ih =>
+      unfold schedCache
+      rw [ih]
+      cases s with
+      | zero => rfl
+      | succ s' =>
+          unfold cacheSeq
+          rfl
+
+/-- A policy and its schedule incur the same number of misses. -/
+lemma schedMisses_policySchedule (π : Policy) (C₀ : Finset Page) (σ : List Page) :
+    schedMisses (policySchedule π C₀ σ) C₀ σ = misses π C₀ σ := by
+  unfold schedMisses misses faultAt
+  apply Finset.sum_congr rfl
+  intro s hs
+  unfold schedFaultAt
+  rw [schedCache_policySchedule]
+
 end Caching
 
 end CLRS
