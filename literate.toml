@@ -1726,6 +1726,27 @@ title = "32.1. Naive Matcher — Implementation"
 [modules."CLRSLean.Chapter_33"]
 title = "Chapter 33. Computational Geometry"
 
+[modules."CLRSLean.Chapter_34"]
+title = "Chapter 34. NP-Completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time"]
+title = "34.1. Polynomial Time"
+
+[modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition"]
+title = "34.1. Composition of Polynomial-Time Machines"
+
+[modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.AndOr"]
+title = "34.1. Parallel Decision of Two Deciders (AND/OR)"
+
+[modules."CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification"]
+title = "34.2. Polynomial-Time Verification"
+
+[modules."CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection"]
+title = "34.2. Pair Projection Machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility"]
+title = "34.3. NP-Completeness and Reducibility"
+
 [modules."CLRSLean.Extensions"]
 title = "Extensions Beyond the Textbook"
 

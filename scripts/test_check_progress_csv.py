@@ -66,8 +66,8 @@ class FourthEditionContractTest(unittest.TestCase):
 
     def test_not_started_chapter_must_have_zero_canonical_theorems(self) -> None:
         rows = [row.copy() for row in load_rows()]
-        rows[33]["tracked_key_theorems"] = "1"
-        rows[33]["proved_tracked_theorems"] = "1"
+        rows[34]["tracked_key_theorems"] = "1"
+        rows[34]["proved_tracked_theorems"] = "1"
 
         with self.assertRaisesRegex(SystemExit, "zero tracked theorem"):
             validate(rows)
