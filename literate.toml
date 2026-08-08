@@ -526,6 +526,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time",
   "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification",
   "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs",
 ]
 "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time" = [
   "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition",
@@ -533,6 +534,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification" = [
   "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -1674,6 +1678,12 @@ title = "34.2. Pair Projection Machine"
 
 [modules."CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility"]
 title = "34.3. NP-Completeness and Reducibility"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs"]
+title = "34.4. NP-Completeness Proofs"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT"]
+title = "34.4. CIRCUIT-SAT poly-reduces to SAT"
 
 [modules."CLRSLean.Extensions"]
 title = "Extensions Beyond the Textbook"
