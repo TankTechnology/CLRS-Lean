@@ -56,7 +56,7 @@ deriving DecidableEq, Fintype, Inhabited
 /-- The program labels. -/
 inductive Label : Type
   | count | reorder | done
-  | rd | rdVar | pv | reduce | const | constFalse
+  | rd | rdVar | pv | reduce | const | constFalse | constEmit | constMake
   | emitNot | not₂ | not₃ | not₄ | not₅
   | emitAnd | and₂ | and₃ | and₄ | and₅ | and₆ | and₇ | and₈ | and₉ | and₁₀ | and₁₁ | and₁₂
   | emitOr | or₂ | or₃ | or₄ | or₅ | or₆ | or₇ | or₈ | or₉ | or₁₀ | or₁₁ | or₁₂
@@ -78,6 +78,7 @@ inductive St : Type
   | rsDone (go : Label) (k : Op)
   | emitNot | emitAnd | emitOr | emitIff
   | emitTrue
+  | constLoop
   | copySym (s : CNFSym)
 deriving DecidableEq, Fintype, Inhabited
 
@@ -164,7 +165,40 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
                         (Turing.TM2.Stmt.goto (fun _ => Label.rd)))
                       (Turing.TM2.Stmt.push K.frm (fun _ => Frame.iff₂)
                         (Turing.TM2.Stmt.goto (fun _ => Label.rd))))))))))
-  | Label.const => Turing.TM2.Stmt.halt
+  | Label.const =>
+      Turing.TM2.Stmt.branch (fun v => match v with | St.rd (FormulaSym.lit true) => true | _ => false)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.clauseMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
+            (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
+              (Turing.TM2.Stmt.goto (fun _ => Label.constEmit)))))
+        (Turing.TM2.Stmt.goto (fun _ => Label.constFalse))
+  | Label.constFalse =>
+      Turing.TM2.Stmt.push K.o (fun _ => CNFSym.clauseMark)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.negMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
+            (Turing.TM2.Stmt.goto (fun _ => Label.constEmit))))
+  | Label.constEmit =>
+      Turing.TM2.Stmt.pop K.cnt (fun _ x => match x with
+          | some _ => St.constLoop
+          | none => St.done)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.constLoop => true | _ => false)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+            (Turing.TM2.Stmt.push K.scr (fun _ => ())
+              (Turing.TM2.Stmt.goto (fun _ => Label.constEmit))))
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+            (Turing.TM2.Stmt.goto (fun _ => Label.constMake))))
+  | Label.constMake =>
+      Turing.TM2.Stmt.pop K.scr (fun _ x => match x with
+          | some _ => St.constLoop
+          | none => St.done)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.constLoop => true | _ => false)
+          (Turing.TM2.Stmt.push K.val (fun _ => true)
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ())
+              (Turing.TM2.Stmt.goto (fun _ => Label.constMake))))
+          (Turing.TM2.Stmt.push K.val (fun _ => true)
+            (Turing.TM2.Stmt.push K.cnt (fun _ => ())
+              (Turing.TM2.Stmt.push K.val (fun _ => false)
+                (Turing.TM2.Stmt.goto (fun _ => Label.reduce)))))
   | Label.emitTrue =>
       Turing.TM2.Stmt.push K.o (fun _ => CNFSym.clauseMark)
         (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
@@ -401,7 +435,7 @@ lemma emitTrueRestore_empty (v : St) (inp T : List FormulaSym) (c : Nat)
     cases k <;> simp [stk, Function.update, prog, Sstep]
 
 /-- `replicate k a ++ [a]` is the `k + 1`-fold repetition. -/
-lemma replicate_append_one (k : Nat) (a : CNFSym) :
+lemma replicate_append_one {α : Type} (k : Nat) (a : α) :
     List.replicate k a ++ [a] = List.replicate (k + 1) a := by
   induction k with
   | zero => simp
