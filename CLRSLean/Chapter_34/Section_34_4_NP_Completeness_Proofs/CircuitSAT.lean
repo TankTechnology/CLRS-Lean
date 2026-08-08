@@ -593,7 +593,7 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
             (Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.restoreOr2))))
           (Turing.TM2.Stmt.goto (fun _ => Label.dec)))
   | Label.dec =>
-      Turing.TM2.Stmt.pop K.cnt (fun v _ => v) (Turing.TM2.Stmt.goto (fun _ => Label.loop))
+      Turing.TM2.Stmt.push K.cnt (fun _ => ()) (Turing.TM2.Stmt.goto (fun _ => Label.loop))
   | Label.emitTrue =>
       Turing.TM2.Stmt.push K.o (fun _ => FormulaSym.lit true)
         (Turing.TM2.Stmt.goto (fun _ => Label.copyOut))
