@@ -57,7 +57,7 @@ deriving DecidableEq, Fintype, Inhabited
 inductive Label : Type
   | count | reorder | done
   | rd | rdVar | pv | reduce | const | constFalse | constEmit | constMake
-  | emitNot | not₂ | not₃ | not₄ | not₅
+  | emitNot | not₂ | not₃ | not₄ | not₅ | not₆
   | emitAnd | and₂ | and₃ | and₄ | and₅ | and₆ | and₇ | and₈ | and₉ | and₁₀ | and₁₁ | and₁₂
   | emitOr | or₂ | or₃ | or₄ | or₅ | or₆ | or₇ | or₈ | or₉ | or₁₀ | or₁₁ | or₁₂
   | emitIff | iff₂ | iff₃ | iff₄ | iff₅ | iff₆ | iff₇ | iff₈ | iff₉ | iff₁₀
@@ -214,7 +214,101 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
           (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
             (Turing.TM2.Stmt.goto (fun _ => Label.emitTrueRestore)))
           (Turing.TM2.Stmt.goto (fun _ => Label.copyOut)))
-  | Label.emitNot => Turing.TM2.Stmt.halt
+  | Label.emitNot =>
+      Turing.TM2.Stmt.pop K.val (fun _ x => match x with
+          | some _ => St.mv Label.not₂ Op.auxEmit
+          | none => St.mv Label.not₂ Op.auxEmit)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.clauseMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.negMark)
+            (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
+              (Turing.TM2.Stmt.goto (fun _ => Label.moveCnt)))))
+  | Label.not₂ =>
+      Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.negMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
+            (Turing.TM2.Stmt.load (fun _ => St.mv Label.not₃ Op.varEmit)
+              (Turing.TM2.Stmt.goto (fun _ => Label.moveVal)))))
+  | Label.not₃ =>
+      Turing.TM2.Stmt.push K.o (fun _ => CNFSym.clauseMark)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
+            (Turing.TM2.Stmt.load (fun _ => St.rs Label.not₄ Op.varEmit)
+              (Turing.TM2.Stmt.goto (fun _ => Label.restoreVal)))))
+  | Label.not₄ =>
+      Turing.TM2.Stmt.load (fun _ => St.rs Label.not₅ Op.auxEmit)
+        (Turing.TM2.Stmt.goto (fun _ => Label.restoreCnt))
+  | Label.not₅ =>
+      Turing.TM2.Stmt.load (fun _ => St.mv Label.not₆ Op.auxEmit)
+        (Turing.TM2.Stmt.goto (fun _ => Label.moveCnt))
+  | Label.not₆ =>
+      Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
+            (Turing.TM2.Stmt.load (fun _ => St.mv Label.constMake Op.varPop)
+              (Turing.TM2.Stmt.goto (fun _ => Label.moveVal)))))
+  | Label.moveCnt =>
+      Turing.TM2.Stmt.pop K.cnt (fun v x => match v, x with
+          | St.mv go Op.auxEmit, some () => St.mv go Op.auxEmit
+          | St.mv go Op.auxEmit, none => St.rsDone go Op.auxEmit
+          | _, _ => v)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.mv go Op.auxEmit => true
+            | _ => false)
+          (Turing.TM2.Stmt.push K.scr (fun _ => ())
+            (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+              (Turing.TM2.Stmt.goto (fun _ => Label.moveCnt))))
+          (Turing.TM2.Stmt.goto (fun v => match v with
+              | St.rsDone go _ => go
+              | _ => Label.done)))
+  | Label.moveVal =>
+      Turing.TM2.Stmt.peek K.val (fun v x => match v, x with
+          | St.mv go Op.varEmit, some true => St.mv go Op.varEmit
+          | St.mv go Op.varEmit, _ => St.rsDone go Op.varEmit
+          | St.mv go Op.varPop, some true => St.mv go Op.varPop
+          | St.mv go Op.varPop, _ => St.rsDone go Op.varPop
+          | _, _ => v)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.mv go Op.varEmit => true
+            | St.mv go Op.varPop => true
+            | _ => false)
+          (Turing.TM2.Stmt.pop K.val (fun v _ => v)
+            (Turing.TM2.Stmt.branch (fun v => match v with
+                | St.mv go Op.varEmit => true
+                | _ => false)
+              (Turing.TM2.Stmt.push K.scr (fun _ => ())
+                (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+                  (Turing.TM2.Stmt.goto (fun _ => Label.moveVal))))
+              (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+                (Turing.TM2.Stmt.goto (fun _ => Label.moveVal)))))
+          (Turing.TM2.Stmt.goto (fun v => match v with
+              | St.rsDone go _ => go
+              | _ => Label.done)))
+  | Label.restoreVal =>
+      Turing.TM2.Stmt.pop K.scr (fun v x => match v, x with
+          | St.rs go Op.varEmit, some () => St.rs go Op.varEmit
+          | St.rs go Op.varEmit, none => St.rsDone go Op.varEmit
+          | _, _ => v)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.rs go Op.varEmit => true
+            | _ => false)
+          (Turing.TM2.Stmt.push K.val (fun _ => true)
+            (Turing.TM2.Stmt.goto (fun _ => Label.restoreVal)))
+          (Turing.TM2.Stmt.goto (fun v => match v with
+              | St.rsDone go _ => go
+              | _ => Label.done)))
+  | Label.restoreCnt =>
+      Turing.TM2.Stmt.pop K.scr (fun v x => match v, x with
+          | St.rs go Op.auxEmit, some () => St.rs go Op.auxEmit
+          | St.rs go Op.auxEmit, none => St.rsDone go Op.auxEmit
+          | _, _ => v)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.rs go Op.auxEmit => true
+            | _ => false)
+          (Turing.TM2.Stmt.push K.cnt (fun _ => ())
+            (Turing.TM2.Stmt.goto (fun _ => Label.restoreCnt)))
+          (Turing.TM2.Stmt.goto (fun v => match v with
+              | St.rsDone go _ => go
+              | _ => Label.done)))
   | Label.emitAnd => Turing.TM2.Stmt.halt
   | Label.emitOr => Turing.TM2.Stmt.halt
   | Label.emitIff => Turing.TM2.Stmt.halt
@@ -499,8 +593,8 @@ lemma constFalse_step (rest T : List FormulaSym) (c : Nat) (V : List Bool) (F : 
 run) and one scratch marker, looping back to `constEmit`. -/
 lemma constEmit_loop_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
     (F : List Frame) (S : List Unit) (O U : List CNFSym) :
-    Sstep (⟨some Label.constEmit, v, stk inp T (List.replicate (c + 1) ()) V F S O U⟩ : (mach).Cfg)
-      = some (⟨some Label.constEmit, St.constLoop, stk inp T (List.replicate c ()) V F
+    Sstep (⟨some Label.constEmit, v, stk inp T (c + 1) V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.constEmit, St.constLoop, stk inp T c V F
           (() :: S) (CNFSym.endMark :: O) U⟩ : (mach).Cfg) := by
   apply congrArg some
   apply Turing.TM2Comp.Cfg_ext
@@ -513,8 +607,8 @@ lemma constEmit_loop_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List
 `endMark` and moves to `constMake`. -/
 lemma constEmit_final_step (v : St) (inp T : List FormulaSym) (V : List Bool) (F : List Frame)
     (S : List Unit) (O U : List CNFSym) :
-    Sstep (⟨some Label.constEmit, v, stk inp T [] V F S O U⟩ : (mach).Cfg)
-      = some (⟨some Label.constMake, St.done, stk inp T [] V F S (CNFSym.endMark :: O) U⟩ : (mach).Cfg) := by
+    Sstep (⟨some Label.constEmit, v, stk inp T 0 V F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.constMake, St.done, stk inp T 0 V F S (CNFSym.endMark :: O) U⟩ : (mach).Cfg) := by
   apply congrArg some
   apply Turing.TM2Comp.Cfg_ext
   · rfl
@@ -536,14 +630,14 @@ exhausted. -/
 lemma constEmit_phase (m : Nat) (v : St) (inp T : List FormulaSym) (V : List Bool)
     (F : List Frame) (S : List Unit) (O U : List CNFSym) :
     (flip bind Sstep)^[m + 1]
-        (some (⟨some Label.constEmit, v, stk inp T (List.replicate m ()) V F S O U⟩ : (mach).Cfg))
-      = some (⟨some Label.constMake, St.done, stk inp T [] V F (List.replicate m () ++ S)
+        (some (⟨some Label.constEmit, v, stk inp T m V F S O U⟩ : (mach).Cfg))
+      = some (⟨some Label.constMake, St.done, stk inp T 0 V F (List.replicate m () ++ S)
           (List.replicate (m + 1) CNFSym.endMark ++ O) U⟩ : (mach).Cfg) := by
-  induction m generalizing S O with
+  induction m generalizing S O v with
   | zero =>
       have h := constEmit_final_step v inp T V F S O U
-      change (flip bind Sstep) (some (⟨some Label.constEmit, v, stk inp T [] V F S O U⟩ : (mach).Cfg))
-        = some (⟨some Label.constMake, St.done, stk inp T [] V F
+      change (flip bind Sstep) (some (⟨some Label.constEmit, v, stk inp T 0 V F S O U⟩ : (mach).Cfg))
+        = some (⟨some Label.constMake, St.done, stk inp T 0 V F
             (List.replicate 0 () ++ S) (List.replicate 1 CNFSym.endMark ++ O) U⟩ : (mach).Cfg)
       simpa [flip, List.replicate_one] using h
   | succ m ih =>
@@ -551,19 +645,19 @@ lemma constEmit_phase (m : Nat) (v : St) (inp T : List FormulaSym) (V : List Boo
       rw [show Nat.succ m + 1 = m + 1 + 1 by omega]
       rw [Function.iterate_succ_apply]
       change (flip bind Sstep)^[m + 1]
-          (Sstep (⟨some Label.constEmit, v, stk inp T (List.replicate (Nat.succ m) ()) V F S O U⟩ : (mach).Cfg))
-        = some (⟨some Label.constMake, St.done, stk inp T [] V F
+          (Sstep (⟨some Label.constEmit, v, stk inp T (Nat.succ m) V F S O U⟩ : (mach).Cfg))
+        = some (⟨some Label.constMake, St.done, stk inp T 0 V F
             (List.replicate (Nat.succ m) () ++ S) (List.replicate (Nat.succ m + 1) CNFSym.endMark ++ O) U⟩ : (mach).Cfg)
       rw [h]
-      have hih := ih (S := () :: S) (O := CNFSym.endMark :: O)
+      have hih := ih (v := St.constLoop) (S := () :: S) (O := CNFSym.endMark :: O)
       calc
         (flip bind Sstep)^[m + 1]
-            (some (⟨some Label.constMake, St.done, stk inp T (List.replicate m ()) V F (() :: S)
+            (some (⟨some Label.constEmit, St.constLoop, stk inp T m V F (() :: S)
               (CNFSym.endMark :: O) U⟩ : (mach).Cfg))
-          = some (⟨some Label.constMake, St.done, stk inp T [] V F
+          = some (⟨some Label.constMake, St.done, stk inp T 0 V F
               (List.replicate m () ++ (() :: S))
               (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.endMark :: O)) U⟩ : (mach).Cfg) := hih
-        _ = some (⟨some Label.constMake, St.done, stk inp T [] V F
+        _ = some (⟨some Label.constMake, St.done, stk inp T 0 V F
             (List.replicate (Nat.succ m) () ++ S) (List.replicate (Nat.succ m + 1) CNFSym.endMark ++ O) U⟩ : (mach).Cfg) := by
             apply congrArg some
             apply Turing.TM2Comp.Cfg_ext
@@ -582,8 +676,8 @@ lemma constEmit_phase (m : Nat) (v : St) (inp T : List FormulaSym) (V : List Boo
 run and one counter unit, looping back to `constMake`. -/
 lemma constMake_loop_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
     (F : List Frame) (d : Nat) (O U : List CNFSym) :
-    Sstep (⟨some Label.constMake, v, stk inp T (List.replicate c ()) V F (() :: List.replicate d ()) O U⟩ : (mach).Cfg)
-      = some (⟨some Label.constMake, St.constLoop, stk inp T (List.replicate (c + 1) ()) (true :: V) F
+    Sstep (⟨some Label.constMake, v, stk inp T c V F (() :: List.replicate d ()) O U⟩ : (mach).Cfg)
+      = some (⟨some Label.constMake, St.constLoop, stk inp T (c + 1) (true :: V) F
           (List.replicate d ()) O U⟩ : (mach).Cfg) := by
   apply congrArg some
   apply Turing.TM2Comp.Cfg_ext
@@ -596,8 +690,8 @@ lemma constMake_loop_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List
 `true` (and counter unit) and a `false` separator, moving to `reduce`. -/
 lemma constMake_final_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
     (F : List Frame) (O U : List CNFSym) :
-    Sstep (⟨some Label.constMake, v, stk inp T (List.replicate c ()) V F [] O U⟩ : (mach).Cfg)
-      = some (⟨some Label.reduce, St.done, stk inp T (List.replicate (c + 1) ())
+    Sstep (⟨some Label.constMake, v, stk inp T c V F [] O U⟩ : (mach).Cfg)
+      = some (⟨some Label.reduce, St.done, stk inp T (c + 1)
           (false :: true :: V) F [] O U⟩ : (mach).Cfg) := by
   apply congrArg some
   apply Turing.TM2Comp.Cfg_ext
@@ -611,14 +705,14 @@ value variable for index `m`, restore `m + 1` counter units, and reach `reduce`.
 lemma constMake_phase (m : Nat) (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
     (F : List Frame) (O U : List CNFSym) :
     (flip bind Sstep)^[m + 1]
-        (some (⟨some Label.constMake, v, stk inp T (List.replicate c ()) V F (List.replicate m ()) O U⟩ : (mach).Cfg))
-      = some (⟨some Label.reduce, St.done, stk inp T (List.replicate (c + m + 1) ())
+        (some (⟨some Label.constMake, v, stk inp T c V F (List.replicate m ()) O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reduce, St.done, stk inp T (c + m + 1)
           (false :: List.replicate (m + 1) true ++ V) F [] O U⟩ : (mach).Cfg) := by
-  induction m generalizing c V with
+  induction m generalizing c V v with
   | zero =>
       have h := constMake_final_step v inp T c V F O U
-      change (flip bind Sstep) (some (⟨some Label.constMake, v, stk inp T (List.replicate c ()) V F [] O U⟩ : (mach).Cfg))
-        = some (⟨some Label.reduce, St.done, stk inp T (List.replicate (c + 0 + 1) ())
+      change (flip bind Sstep) (some (⟨some Label.constMake, v, stk inp T c V F [] O U⟩ : (mach).Cfg))
+        = some (⟨some Label.reduce, St.done, stk inp T (c + 0 + 1)
             (false :: List.replicate 1 true ++ V) F [] O U⟩ : (mach).Cfg)
       simpa [flip, List.replicate_one] using h
   | succ m ih =>
@@ -626,18 +720,18 @@ lemma constMake_phase (m : Nat) (v : St) (inp T : List FormulaSym) (c : Nat) (V 
       rw [show Nat.succ m + 1 = m + 1 + 1 by omega]
       rw [Function.iterate_succ_apply]
       change (flip bind Sstep)^[m + 1]
-          (Sstep (⟨some Label.constMake, v, stk inp T (List.replicate c ()) V F (List.replicate (Nat.succ m) ()) O U⟩ : (mach).Cfg))
-        = some (⟨some Label.reduce, St.done, stk inp T (List.replicate (c + Nat.succ m + 1) ())
+          (Sstep (⟨some Label.constMake, v, stk inp T c V F (List.replicate (Nat.succ m) ()) O U⟩ : (mach).Cfg))
+        = some (⟨some Label.reduce, St.done, stk inp T (c + Nat.succ m + 1)
             (false :: List.replicate (Nat.succ m + 1) true ++ V) F [] O U⟩ : (mach).Cfg)
       rw [h]
-      have hih := ih (c := c + 1) (V := true :: V)
+      have hih := ih (v := St.constLoop) (c := c + 1) (V := true :: V)
       calc
         (flip bind Sstep)^[m + 1]
-            (some (⟨some Label.constMake, St.constLoop, stk inp T (List.replicate (c + 1) ()) (true :: V) F
+            (some (⟨some Label.constMake, St.constLoop, stk inp T (c + 1) (true :: V) F
               (List.replicate m ()) O U⟩ : (mach).Cfg))
-          = some (⟨some Label.reduce, St.done, stk inp T (List.replicate ((c + 1) + m + 1) ())
+          = some (⟨some Label.reduce, St.done, stk inp T ((c + 1) + m + 1)
               (false :: List.replicate (m + 1) true ++ (true :: V)) F [] O U⟩ : (mach).Cfg) := hih
-        _ = some (⟨some Label.reduce, St.done, stk inp T (List.replicate (c + Nat.succ m + 1) ())
+        _ = some (⟨some Label.reduce, St.done, stk inp T (c + Nat.succ m + 1)
             (false :: List.replicate (Nat.succ m + 1) true ++ V) F [] O U⟩ : (mach).Cfg) := by
             apply congrArg some
             apply Turing.TM2Comp.Cfg_ext
@@ -657,8 +751,8 @@ and reach `reduce`.  (`m` is the auxiliary index, i.e. the counter at entry.) -/
 lemma const_phase_true (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F : List Frame)
     (O U : List CNFSym) :
     (flip bind Sstep)^[2 * m + 3]
-        (some (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
-      = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+        (some (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T m V F [] O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reduce, St.done, stk rest T (m + 1)
           (false :: List.replicate (m + 1) true ++ V) F []
           ((encClause [Literal.pos m]).reverse ++ O) U⟩ : (mach).Cfg) := by
   have hconst := const_true_step rest T m V F [] O U
@@ -668,25 +762,25 @@ lemma const_phase_true (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F :
       (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U
   calc
     (flip bind Sstep)^[2 * m + 3]
-        (some (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
+        (some (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T m V F [] O U⟩ : (mach).Cfg))
       = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] (Sstep
-          (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))) := by
+          (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T m V F [] O U⟩ : (mach).Cfg))) := by
           rw [show 2 * m + 3 = Nat.succ ((m + 1) + (m + 1)) by omega]
           rw [Function.iterate_succ_apply]
           rw [Function.iterate_add]
           change (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] (Sstep
-              (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg)))
+              (⟨some Label.const, St.rd (FormulaSym.lit true), stk rest T m V F [] O U⟩ : (mach).Cfg)))
     _ = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1]
-          (some (⟨some Label.constEmit, St.rd (FormulaSym.lit true), stk rest T (List.replicate m ()) V F []
+          (some (⟨some Label.constEmit, St.rd (FormulaSym.lit true), stk rest T m V F []
             (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O) U⟩ : (mach).Cfg))) := by
           rw [hconst]
     _ = (flip bind Sstep)^[m + 1]
-          (some (⟨some Label.constMake, St.done, stk rest T [] V F
+          (some (⟨some Label.constMake, St.done, stk rest T 0 V F
             (List.replicate m () ++ [])
             (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
           rw [hem]
     _ = (flip bind Sstep)^[m + 1]
-          (some (⟨some Label.constMake, St.done, stk rest T [] V F (List.replicate m ())
+          (some (⟨some Label.constMake, St.done, stk rest T 0 V F (List.replicate m ())
             (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
           apply congrArg (fun x => (flip bind Sstep)^[m + 1] x)
           apply congrArg some
@@ -695,11 +789,11 @@ lemma const_phase_true (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F :
           · rfl
           · funext kk
             cases kk <;> simp [stk, List.append_nil]
-    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (0 + m + 1) ())
+    _ = some (⟨some Label.reduce, St.done, stk rest T (0 + m + 1)
           (false :: List.replicate (m + 1) true ++ V) F []
           (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg) := by
           rw [hmk]
-    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+    _ = some (⟨some Label.reduce, St.done, stk rest T (m + 1)
           (false :: List.replicate (m + 1) true ++ V) F []
           ((encClause [Literal.pos m]).reverse ++ O) U⟩ : (mach).Cfg) := by
           have hrev : (encClause [Literal.pos m]).reverse =
@@ -722,8 +816,8 @@ and reach `reduce`. -/
 lemma const_phase_false (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F : List Frame)
     (O U : List CNFSym) :
     (flip bind Sstep)^[2 * m + 4]
-        (some (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
-      = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+        (some (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T m V F [] O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reduce, St.done, stk rest T (m + 1)
           (false :: List.replicate (m + 1) true ++ V) F []
           ((encClause [Literal.neg m]).reverse ++ O) U⟩ : (mach).Cfg) := by
   have h1 := const_false_step rest T m V F [] O U
@@ -734,29 +828,29 @@ lemma const_phase_false (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F 
       (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U
   calc
     (flip bind Sstep)^[2 * m + 4]
-        (some (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))
+        (some (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T m V F [] O U⟩ : (mach).Cfg))
       = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] ((flip bind Sstep) (Sstep
-          (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg)))) := by
+          (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T m V F [] O U⟩ : (mach).Cfg)))) := by
           rw [show 2 * m + 4 = Nat.succ (Nat.succ ((m + 1) + (m + 1))) by omega]
           rw [Function.iterate_succ_apply]
           rw [Function.iterate_succ_apply]
           rw [Function.iterate_add]
           change (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] ((flip bind Sstep) (Sstep
-              (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg))))
+              (⟨some Label.const, St.rd (FormulaSym.lit false), stk rest T m V F [] O U⟩ : (mach).Cfg))))
     _ = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1] ((flip bind Sstep)
-          (some (⟨some Label.constFalse, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F [] O U⟩ : (mach).Cfg)))) := by
+          (some (⟨some Label.constFalse, St.rd (FormulaSym.lit false), stk rest T m V F [] O U⟩ : (mach).Cfg)))) := by
           rw [h1]
     _ = (flip bind Sstep)^[m + 1] ((flip bind Sstep)^[m + 1]
-          (some (⟨some Label.constEmit, St.rd (FormulaSym.lit false), stk rest T (List.replicate m ()) V F []
+          (some (⟨some Label.constEmit, St.rd (FormulaSym.lit false), stk rest T m V F []
             (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O) U⟩ : (mach).Cfg))) := by
           rw [h2]
     _ = (flip bind Sstep)^[m + 1]
-          (some (⟨some Label.constMake, St.done, stk rest T [] V F
+          (some (⟨some Label.constMake, St.done, stk rest T 0 V F
             (List.replicate m () ++ [])
             (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
           rw [hem]
     _ = (flip bind Sstep)^[m + 1]
-          (some (⟨some Label.constMake, St.done, stk rest T [] V F (List.replicate m ())
+          (some (⟨some Label.constMake, St.done, stk rest T 0 V F (List.replicate m ())
             (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
           apply congrArg (fun x => (flip bind Sstep)^[m + 1] x)
           apply congrArg some
@@ -765,11 +859,11 @@ lemma const_phase_false (m : Nat) (rest T : List FormulaSym) (V : List Bool) (F 
           · rfl
           · funext kk
             cases kk <;> simp [stk, List.append_nil]
-    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (0 + m + 1) ())
+    _ = some (⟨some Label.reduce, St.done, stk rest T (0 + m + 1)
           (false :: List.replicate (m + 1) true ++ V) F []
           (List.replicate (m + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg) := by
           rw [hmk]
-    _ = some (⟨some Label.reduce, St.done, stk rest T (List.replicate (m + 1) ())
+    _ = some (⟨some Label.reduce, St.done, stk rest T (m + 1)
           (false :: List.replicate (m + 1) true ++ V) F []
           ((encClause [Literal.neg m]).reverse ++ O) U⟩ : (mach).Cfg) := by
           have hrev : (encClause [Literal.neg m]).reverse =
