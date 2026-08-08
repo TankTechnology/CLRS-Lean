@@ -715,6 +715,182 @@ lemma reorder_phase_aux (v : St) (temp : List Gate) (B : List Gate) (c : Nat)
               cases k <;> simp [stkR, List.reverse_cons, List.cons_append, List.append_assoc, List.length_cons, Nat.add_comm, Nat.add_assoc] <;> try omega
 
 
+abbrev stkM (cnt Tmp : Nat) (O U : List FormulaSym) :
+    ∀ k : K, List (Γk k) :=
+  fun k => match k with
+  | K.inK => [] | K.temp => [] | K.cnt => List.replicate cnt ()
+  | K.buf => [] | K.o => O | K.tmp => List.replicate Tmp () | K.out => U
+
+-- stk for the header/reset/gate configs: buf holds gates, counter c, output-build O
+abbrev stkH (gates B : List Gate) (c : Nat) (O U : List FormulaSym) :
+    ∀ k : K, List (Γk k) :=
+  fun k => match k with
+  | K.inK => [] | K.temp => [] | K.cnt => List.replicate c ()
+  | K.buf => gates | K.o => O | K.tmp => [] | K.out => U
+
+lemma replicate_cons_append {α : Type} (n : Nat) (a : α) (l : List α) :
+    List.replicate n a ++ (a :: l) = List.replicate (n + 1) a ++ l := by
+  induction n with
+  | zero => simp
+  | succ n ih => simp [List.replicate_succ, ih, List.append_assoc]
+
+lemma replicate_append_one {α : Type} (n : Nat) (a : α) :
+    List.replicate n a ++ [a] = List.replicate (n + 1) a := by
+  induction n with
+  | zero => simp
+  | succ n ih => simp [List.replicate_succ, ih]
+
+-- move: counter (cnt+1 units) → tmp, one step
+lemma moveHeader_step' (cnt Tmp : Nat) (O U : List FormulaSym) :
+    Sstep (⟨some Label.moveHeader, St.mv none, stkM (cnt + 1) Tmp O U⟩ : (mach).Cfg)
+      = some (⟨some Label.moveHeader, St.mv none, stkM cnt (Tmp + 1) O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stkM, Function.update, prog, List.replicate_succ, Nat.add_comm, Nat.add_assoc]
+-- move: counter empty → restore
+lemma moveHeader_done (Tmp : Nat) (O U : List FormulaSym) :
+    Sstep (⟨some Label.moveHeader, St.mv none, stkM 0 Tmp O U⟩ : (mach).Cfg)
+      = some (⟨some Label.restoreHeader, St.rs none, stkM 0 Tmp O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stkM, Function.update, prog]
+
+-- move phase: transfer all `cnt` units from counter to tmp
+lemma moveHeader_phase' (cnt Tmp : Nat) (O U : List FormulaSym) :
+    (flip bind Sstep)^[cnt + 1]
+        (some (⟨some Label.moveHeader, St.mv none, stkM cnt Tmp O U⟩ : (mach).Cfg))
+      = some (⟨some Label.restoreHeader, St.rs none, stkM 0 (Tmp + cnt) O U⟩ : (mach).Cfg) := by
+  induction cnt generalizing Tmp O U with
+  | zero =>
+      have h := moveHeader_done Tmp O U
+      change (flip bind Sstep) (some (⟨some Label.moveHeader, St.mv none, stkM 0 Tmp O U⟩ : (mach).Cfg))
+        = some (⟨some Label.restoreHeader, St.rs none, stkM 0 (Tmp + 0) O U⟩ : (mach).Cfg)
+      simpa [flip] using h
+  | succ cnt ih =>
+      have hone := moveHeader_step' cnt Tmp O U
+      rw [show Nat.succ cnt + 1 = cnt + 1 + 1 by omega]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[cnt + 1]
+          (Sstep (⟨some Label.moveHeader, St.mv none, stkM (cnt + 1) Tmp O U⟩ : (mach).Cfg))
+        = some (⟨some Label.restoreHeader, St.rs none, stkM 0 (Tmp + (cnt + 1)) O U⟩ : (mach).Cfg)
+      rw [hone]
+      have hih := ih (Tmp + 1) O U
+      calc
+        (flip bind Sstep)^[cnt + 1]
+            (some (⟨some Label.moveHeader, St.mv none, stkM cnt (Tmp + 1) O U⟩ : (mach).Cfg))
+          = some (⟨some Label.restoreHeader, St.rs none, stkM 0 ((Tmp + 1) + cnt) O U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some Label.restoreHeader, St.rs none, stkM 0 (Tmp + (cnt + 1)) O U⟩ : (mach).Cfg) := by
+            apply congrArg some
+            apply Turing.TM2Comp.Cfg_ext
+            · rfl
+            · rfl
+            · funext k
+              cases k <;> simp [stkM, Nat.add_comm, Nat.add_assoc] <;> try omega
+
+-- restore: pop tmp, push endMark to o and () to cnt, one step
+lemma restoreHeader_step (cnt Tmp : Nat) (O U : List FormulaSym) :
+    Sstep (⟨some Label.restoreHeader, St.rs none, stkM cnt (Tmp + 1) O U⟩ : (mach).Cfg)
+      = some (⟨some Label.restoreHeader, St.rs none, stkM (cnt + 1) Tmp (FormulaSym.endMark :: O) U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stkM, Function.update, prog, List.replicate_succ, Nat.add_comm, Nat.add_assoc]
+
+-- restore: tmp empty → done, push 2 endMarks, goto reset
+lemma restoreHeader_done (cnt : Nat) (O U : List FormulaSym) :
+    Sstep (⟨some Label.restoreHeader, St.rs none, stkM cnt 0 O U⟩ : (mach).Cfg)
+      = some (⟨some Label.reset, St.done, stkM cnt 0 (FormulaSym.endMark :: FormulaSym.endMark :: O) U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stkM, Function.update, prog]
+
+-- restore phase: transfer all `Tmp` units from tmp to o (as endMarks) and cnt
+lemma restoreHeader_phase' (Tmp cnt : Nat) (O U : List FormulaSym) :
+    (flip bind Sstep)^[Tmp + 1]
+        (some (⟨some Label.restoreHeader, St.rs none, stkM cnt Tmp O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reset, St.done, stkM (cnt + Tmp) 0 (List.replicate 2 FormulaSym.endMark ++ List.replicate Tmp FormulaSym.endMark ++ O) U⟩ : (mach).Cfg) := by
+  induction Tmp generalizing cnt O U with
+  | zero =>
+      have h := restoreHeader_done cnt O U
+      change (flip bind Sstep) (some (⟨some Label.restoreHeader, St.rs none, stkM cnt 0 O U⟩ : (mach).Cfg))
+        = some (⟨some Label.reset, St.done, stkM (cnt + 0) 0 (List.replicate 2 FormulaSym.endMark ++ List.replicate 0 FormulaSym.endMark ++ O) U⟩ : (mach).Cfg)
+      simpa [flip] using h
+  | succ Tmp ih =>
+      have hone := restoreHeader_step cnt Tmp O U
+      rw [show Nat.succ Tmp + 1 = Tmp + 1 + 1 by omega]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[Tmp + 1]
+          (Sstep (⟨some Label.restoreHeader, St.rs none, stkM cnt (Tmp + 1) O U⟩ : (mach).Cfg))
+        = some (⟨some Label.reset, St.done, stkM (cnt + (Tmp + 1)) 0 (List.replicate 2 FormulaSym.endMark ++ List.replicate (Tmp + 1) FormulaSym.endMark ++ O) U⟩ : (mach).Cfg)
+      rw [hone]
+      have hih := ih (cnt + 1) (FormulaSym.endMark :: O) U
+      calc
+        (flip bind Sstep)^[Tmp + 1]
+            (some (⟨some Label.restoreHeader, St.rs none, stkM (cnt + 1) Tmp (FormulaSym.endMark :: O) U⟩ : (mach).Cfg))
+          = some (⟨some Label.reset, St.done, stkM ((cnt + 1) + Tmp) 0 (List.replicate 2 FormulaSym.endMark ++ List.replicate Tmp FormulaSym.endMark ++ (FormulaSym.endMark :: O)) U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some Label.reset, St.done, stkM (cnt + (Tmp + 1)) 0 (List.replicate 2 FormulaSym.endMark ++ List.replicate (Tmp + 1) FormulaSym.endMark ++ O) U⟩ : (mach).Cfg) := by
+            apply congrArg some
+            apply Turing.TM2Comp.Cfg_ext
+            · rfl
+            · rfl
+            · funext k
+              cases k <;> simp [stkM, List.replicate_succ, List.cons_append, List.append_assoc, replicate_append_one, replicate_cons_append, Nat.add_comm, Nat.add_assoc] <;> try omega
+
+-- reset: pop a counter unit, one step
+lemma reset_step (v : St) (c : Nat) (O U : List FormulaSym) :
+    Sstep (⟨some Label.reset, v, stkH [] [] (c + 1) O U⟩ : (mach).Cfg)
+      = some (⟨some Label.reset, St.mv none, stkH [] [] c O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stkH, Function.update, prog, List.replicate_succ, Nat.add_comm, Nat.add_assoc]
+
+-- reset: counter empty → push 1, goto loop
+lemma reset_done (v : St) (O U : List FormulaSym) :
+    Sstep (⟨some Label.reset, v, stkH [] [] 0 O U⟩ : (mach).Cfg)
+      = some (⟨some Label.loop, St.done, stkH [] [] 1 O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stkH, Function.update, prog]
+
+-- reset phase: clear the counter, push 1, goto loop
+lemma reset_phase (v : St) (c : Nat) (O U : List FormulaSym) :
+    (flip bind Sstep)^[c + 1]
+        (some (⟨some Label.reset, v, stkH [] [] c O U⟩ : (mach).Cfg))
+      = some (⟨some Label.loop, St.done, stkH [] [] 1 O U⟩ : (mach).Cfg) := by
+  induction c generalizing v O U with
+  | zero =>
+      have h := reset_done v O U
+      change (flip bind Sstep) (some (⟨some Label.reset, v, stkH [] [] 0 O U⟩ : (mach).Cfg))
+        = some (⟨some Label.loop, St.done, stkH [] [] 1 O U⟩ : (mach).Cfg)
+      simpa [flip] using h
+  | succ c ih =>
+      have hone := reset_step v c O U
+      rw [show Nat.succ c + 1 = c + 1 + 1 by omega]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[c + 1]
+          (Sstep (⟨some Label.reset, v, stkH [] [] (c + 1) O U⟩ : (mach).Cfg))
+        = some (⟨some Label.loop, St.done, stkH [] [] 1 O U⟩ : (mach).Cfg)
+      rw [hone]
+      exact ih (St.mv none) O U
+
+
 end TM2CS
 
 end Turing
