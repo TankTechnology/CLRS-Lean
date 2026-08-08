@@ -120,6 +120,20 @@ Boundary case: the first disagreement landing exactly on the previous `J'`
 request — the exchange faults there (evicting `q'` as a no-op) and reloads
 `q'`, so caches coincide with the source afterwards.
 
+Case one (`nextUse q' = none`, `q'` never requested again): the exchange
+decision then agrees with `d` everywhere except at `t` (branch 4 never
+fires — requests of `q'` never happen and requests of `q` find `d` faulting
+by `swap_q_not_mem`; branch 6 never fires because `d s ∈ E ⊆` exchange
+cache), so the exchange is `d` with the eviction at `t` swapped.  Branch 1
+(`d s = q'`) evicts `q'` as a no-op for the exchange — the exchange is *not*
+reduced there, and `exchangeSchedule_reduced_after` needs `hj'` which does
+not exist.  So case one needs its own argument (the slack from
+`exchangeSchedule_misses_le_plus_one` case A when `q` is requested again;
+the never-requested-`q` sub-case needs separate treatment — there the
+exchange cache differs from the FIF cache by the never-requested `q`, so
+agreement is unattainable and the iteration target must be reconsidered).
+This is the remaining obstacle in the iteration assembly.
+
 Termination: `t` strictly increases each step, so at most `σ.length + 1`
 steps; induction on `σ.length − t0`.
 
