@@ -14,11 +14,12 @@ encoding.
 
 **Status (2026-08-09).**  Count, reorder, parse (`rd`/`pv`/`reduce` dispatch),
 `emitTrue`, the const-clause emission, the `not` clause emission (`not_phase`),
-the generic move/restore loops, and the `parkVal`/`unparkVal` temp-tape
-subroutines are written.  The reversed-encoding key lemmas for the `and`/`or`/
-`iff` templates are in place.  The `and`/`or`/`iff` machine emissions, `copyOut`
-(not yet in `prog`), `outputsFun`, the time bound, and the `PolyTimeReducible`
-assembly are NOT complete.
+the generic move/restore loops, the `parkVal`/`unparkVal` temp-tape
+subroutines, and `copyOut` (`copyOut_phase` + `done_step`, transferring `o` to
+`out` and halting) are written.  The reversed-encoding key lemmas for the
+`and`/`or`/`iff` templates are in place.  The `and`/`or`/`iff` machine
+emissions, `outputsFun`, the time bound, and the `PolyTimeReducible` assembly
+are NOT complete.
 
 **Current gaps.**
 
@@ -32,8 +33,9 @@ assembly are NOT complete.
   `encCNF_andClauses_reverse`/`encCNF_orClauses_reverse`/
   `encCNF_iffClauses_reverse` are written.  The semantic correctness of the
   templates is fully proved in `SatTo3CNFSat`.
-- **`copyOut`, `outputsFun`, the polynomial time bound, and the assembled
-  `PolyTimeReducible SAT ThreeCNFSat`** are not yet written.
+- **`outputsFun`, the full-machine phase composition, the polynomial time
+  bound, and the assembled `PolyTimeReducible SAT ThreeCNFSat`** are not yet
+  written.
 -/
 
 namespace CLRS
@@ -383,6 +385,18 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
   | Label.emitAnd => Turing.TM2.Stmt.halt
   | Label.emitOr => Turing.TM2.Stmt.halt
   | Label.emitIff => Turing.TM2.Stmt.halt
+  | Label.copyOut =>
+      Turing.TM2.Stmt.pop K.o (fun _ x => match x with
+          | some s => St.copySym s
+          | none => St.init)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.copySym _ => true
+            | _ => false)
+          (Turing.TM2.Stmt.push K.out (fun v => match v with
+              | St.copySym s => s
+              | _ => default)
+            (Turing.TM2.Stmt.goto (fun _ => Label.copyOut)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.done)))
   | _ => Turing.TM2.Stmt.halt
 
 abbrev mach : FinTM2 :=
@@ -2014,6 +2028,75 @@ lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool)
             cases kk <;> try simp [stk]
             rw [encCNF_notClauses_reverse, encClause_pos_reverse, encClause_neg_reverse]
             simp [List.append_assoc, List.cons_append, List.replicate_succ]
+
+-- ============================================================
+-- copyOut: transfer `o` to `out` (reversing it back), then halt
+-- ============================================================
+
+/-- `copyOut` pops one symbol from `o` and pushes it onto `out`. -/
+lemma copyOut_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
+    (F : List Frame) (S : List Unit) (s : CNFSym) (O U : List CNFSym) :
+    Sstep (⟨some Label.copyOut, v, stk inp T c V F S (s :: O) U⟩ : (mach).Cfg)
+      = some (⟨some Label.copyOut, St.copySym s, stk inp T c V F S O (s :: U)⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- `copyOut` with `o` empty goes to `done`, resetting the state to `init`. -/
+lemma copyOut_done (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
+    (F : List Frame) (S : List Unit) (U : List CNFSym) :
+    Sstep (⟨some Label.copyOut, v, stk inp T c V F S [] U⟩ : (mach).Cfg)
+      = some (⟨some Label.done, St.init, stk inp T c V F S [] U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- The `copyOut` phase: transfer `o` to `out` (reversing it back), then reach
+`done` with the state reset to `init`. -/
+lemma copyOut_phase (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
+    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    (flip bind Sstep)^[O.length + 1]
+      (some (⟨some Label.copyOut, v, stk inp T c V F S O U⟩ : (mach).Cfg))
+    = some (⟨some Label.done, St.init, stk inp T c V F S [] (O.reverse ++ U)⟩ : (mach).Cfg) := by
+  induction O generalizing v U with
+  | nil =>
+      have h := copyOut_done v inp T c V F S U
+      change (flip bind Sstep) (some (⟨some Label.copyOut, v, stk inp T c V F S [] U⟩ : (mach).Cfg))
+        = some (⟨some Label.done, St.init, stk inp T c V F S [] U⟩ : (mach).Cfg)
+      simpa [flip] using h
+  | cons s rest ih =>
+      have h := copyOut_step v inp T c V F S s rest U
+      rw [show (s :: rest).length + 1 = (rest.length + 1) + 1 by simp [List.length_cons]]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[rest.length + 1]
+          (Sstep (⟨some Label.copyOut, v, stk inp T c V F S (s :: rest) U⟩ : (mach).Cfg))
+        = some (⟨some Label.done, St.init, stk inp T c V F S [] ((s :: rest).reverse ++ U)⟩ : (mach).Cfg)
+      rw [h]
+      have hih := ih (St.copySym s) (s :: U)
+      calc
+        (flip bind Sstep)^[rest.length + 1]
+            (some (⟨some Label.copyOut, St.copySym s, stk inp T c V F S rest (s :: U)⟩ : (mach).Cfg))
+          = some (⟨some Label.done, St.init, stk inp T c V F S [] (rest.reverse ++ (s :: U))⟩ : (mach).Cfg) := hih
+        _ = some (⟨some Label.done, St.init, stk inp T c V F S [] ((s :: rest).reverse ++ U)⟩ : (mach).Cfg) := by
+            apply congrArg some
+            apply Turing.TM2Comp.Cfg_ext
+            · rfl
+            · rfl
+            · funext k
+              cases k <;> simp [stk, List.reverse_cons, List.append_assoc]
+
+/-- The `done` label halts, leaving the state at `init`. -/
+lemma done_step (inp T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
+    (S : List Unit) (U : List CNFSym) :
+    Sstep (⟨some Label.done, St.init, stk inp T c V F S [] U⟩ : (mach).Cfg)
+      = some (⟨none, St.init, stk inp T c V F S [] U⟩ : (mach).Cfg) := by
+  simp [Sstep, prog]
 
 end TM3CNF
 
