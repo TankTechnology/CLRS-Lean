@@ -56,11 +56,15 @@ deriving DecidableEq, Fintype, Inhabited
 /-- The program labels. -/
 inductive Label : Type
   | count | reorder | done
-  | rd | pv | reduce | const | constEmit | constRestore | constMake | constMakeRestore
-  | emitNot | emitAnd | emitOr | emitIff
-  | emitTrue | emitTrueMove | emitTrueRestore
-  | moveCnt | restoreCnt | moveVal | restoreVal
-  | incr | copyOut | copyStep
+  | rd | rdVar | pv | reduce | const | constFalse
+  | emitNot | not₂ | not₃ | not₄ | not₅
+  | emitAnd | and₂ | and₃ | and₄ | and₅ | and₆ | and₇ | and₈ | and₉ | and₁₀ | and₁₁ | and₁₂
+  | emitOr | or₂ | or₃ | or₄ | or₅ | or₆ | or₇ | or₈ | or₉ | or₁₀ | or₁₁ | or₁₂
+  | emitIff | iff₂ | iff₃ | iff₄ | iff₅ | iff₆ | iff₇ | iff₈ | iff₉ | iff₁₀
+    | iff₁₁ | iff₁₂ | iff₁₃ | iff₁₄ | iff₁₅ | iff₁₆ | iff₁₇ | iff₁₈ | iff₁₉ | iff₂₀ | iff₂₁
+  | emitTrue | emitTrueRestore
+  | moveCnt | restoreCnt | moveVal | restoreVal | parkVal | unparkVal
+  | copyOut
 deriving DecidableEq, Fintype, Inhabited
 
 /-- The machine states. -/
@@ -71,10 +75,10 @@ inductive St : Type
   | pv | reduce
   | and₁Done | or₁Done | iff₁Done
   | mv (go : Label) (k : Op) | rs (go : Label) (k : Op)
-  | const | constPol (b : Bool)
+  | rsDone (go : Label) (k : Op)
   | emitNot | emitAnd | emitOr | emitIff
-  | emitTrue | emitTrueVar
-  | incr | copyOut | copyStep
+  | emitTrue
+  | copySym (s : CNFSym)
 deriving DecidableEq, Fintype, Inhabited
 
 /-- The full stack contents at the start of a phase. -/
