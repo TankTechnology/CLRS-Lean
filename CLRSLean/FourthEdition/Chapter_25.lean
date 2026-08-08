@@ -36,7 +36,8 @@ its sub-modules are:
 Status: partial.  Section 25.1 is formalized (Berge's augmenting-path lemma
 and the flow-method certification, built on the §26.3 matching-to-flow
 reduction).  Section 25.2 proves Gale-Shapley stability (Theorem 25.5),
-stable-pairing existence, and perfectness; man-optimality remains.  Section
+stable-pairing existence, perfectness, man-optimality (Theorem 25.6), and
+woman-pessimality.  Section
 25.3 (Hungarian algorithm) is not-started.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
