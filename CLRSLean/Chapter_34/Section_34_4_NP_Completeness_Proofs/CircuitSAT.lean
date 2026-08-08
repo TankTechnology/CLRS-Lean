@@ -19,12 +19,11 @@ Main results:
   `circuitSatisfiable_iff_satisfiable_circuitToFormula` (Lemma 34.6, the
   semantic half).
 
-**Current gap**: the polynomial-time TM2 machine computing
-`circuitToFormulaList` (the list encoding of `circuitToFormula` over the
-`FormulaSym` alphabet) is not yet built, so `PolyTimeReducible CIRCUIT_SAT SAT`
-is not yet assembled.  The semantic equivalence and the list encoding
-(`enc`, `circuitToFormulaList`, and `circuitToFormulaList_eq_enc`) are in
-place; the machine is the next step.
+**Current gap**: the machine `Turing.TM2CS.mach` computing
+`circuitToFormulaList` is built, but its `outputsFun` (the phase simulations,
+time bound, and the `TM2ComputableInPolyTime` instance) is not yet proved, so
+`PolyTimeReducible CIRCUIT_SAT SAT` is not yet assembled.  The semantic
+equivalence, the list encoding, and the machine program are in place.
 
 Design (offset wires so every gate has two predecessors):
 
