@@ -165,7 +165,21 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
                       (Turing.TM2.Stmt.push K.frm (fun _ => Frame.iff₂)
                         (Turing.TM2.Stmt.goto (fun _ => Label.rd))))))))))
   | Label.const => Turing.TM2.Stmt.halt
-  | Label.emitTrue => Turing.TM2.Stmt.halt
+  | Label.emitTrue =>
+      Turing.TM2.Stmt.push K.o (fun _ => CNFSym.clauseMark)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
+            (Turing.TM2.Stmt.pop K.val (fun _ x => match x with | some _ => St.emitTrue | none => St.emitTrue)
+              (Turing.TM2.Stmt.goto (fun _ => Label.emitTrueRestore)))))
+  | Label.emitTrueRestore =>
+      Turing.TM2.Stmt.pop K.val (fun _ x => match x with
+          | some true => St.emitTrue
+          | some false => St.done
+          | none => St.done)
+        (Turing.TM2.Stmt.branch (fun v => match v with | St.emitTrue => true | _ => false)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
+            (Turing.TM2.Stmt.goto (fun _ => Label.emitTrueRestore)))
+          (Turing.TM2.Stmt.goto (fun _ => Label.copyOut)))
   | Label.emitNot => Turing.TM2.Stmt.halt
   | Label.emitAnd => Turing.TM2.Stmt.halt
   | Label.emitOr => Turing.TM2.Stmt.halt
@@ -341,6 +355,129 @@ lemma pv_done_step (s : FormulaSym) (rest T : List FormulaSym) (c : Nat) (V : Li
   · simp [prog, Sstep, hs]
   · funext k
     cases k <;> simp [stk, Function.update, prog, Sstep, hs]
+
+-- ============================================================
+-- emitTrue: the root unit clause `[[pos y]]`
+-- ============================================================
+
+/-- `emitTrue`: push the clause and literal markers, then pop the root
+value-variable's `false` separator, entering the index-emission loop. -/
+lemma emitTrue_push (v : St) (inp T : List FormulaSym) (c : Nat) (b : Bool) (V' : List Bool)
+    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.emitTrue, v, stk inp T c (b :: V') F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.emitTrueRestore, St.emitTrue, stk inp T c V' F S
+          (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O) U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · simp [prog, Sstep]
+  · simp [prog, Sstep]
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- `emitTrueRestore`: a `true` in the root value-variable's run emits one
+`endMark` and continues. -/
+lemma emitTrueRestore_true (v : St) (inp T : List FormulaSym) (c : Nat) (V' : List Bool)
+    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.emitTrueRestore, v, stk inp T c (true :: V') F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.emitTrueRestore, St.emitTrue, stk inp T c V' F S (CNFSym.endMark :: O) U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · simp [prog, Sstep]
+  · simp [prog, Sstep]
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- `emitTrueRestore`: an empty `val` ends the run; the emission moves to
+`copyOut`. -/
+lemma emitTrueRestore_empty (v : St) (inp T : List FormulaSym) (c : Nat)
+    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    Sstep (⟨some Label.emitTrueRestore, v, stk inp T c [] F S O U⟩ : (mach).Cfg)
+      = some (⟨some Label.copyOut, St.done, stk inp T c [] F S O U⟩ : (mach).Cfg) := by
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · simp [prog, Sstep]
+  · simp [prog, Sstep]
+  · funext k
+    cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- `replicate k a ++ [a]` is the `k + 1`-fold repetition. -/
+lemma replicate_append_one (k : Nat) (a : CNFSym) :
+    List.replicate k a ++ [a] = List.replicate (k + 1) a := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+      rw [show Nat.succ k = k + 1 by omega]
+      rw [List.replicate_succ]
+      rw [List.replicate_succ]
+      rw [List.cons_append]
+      rw [ih]
+
+/-- The `emitTrueRestore` loop: popping `k` `true`s emits `k` `endMark`s and
+finishes at `copyOut`. -/
+lemma emitTrueRestore_loop (k : Nat) (v : St) (inp T : List FormulaSym) (c : Nat)
+    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    (flip bind Sstep)^[k + 1]
+        (some (⟨some Label.emitTrueRestore, v, stk inp T c (List.replicate k true) F S O U⟩ : (mach).Cfg))
+      = some (⟨some Label.copyOut, St.done, stk inp T c [] F S (List.replicate k CNFSym.endMark ++ O) U⟩ : (mach).Cfg) := by
+  induction k with
+  | zero =>
+      have h := emitTrueRestore_empty v inp T c F S O U
+      change (flip bind Sstep) (some (⟨some Label.emitTrueRestore, v, stk inp T c [] F S O U⟩ : (mach).Cfg))
+        = some (⟨some Label.copyOut, St.done, stk inp T c [] F S O U⟩ : (mach).Cfg)
+      simpa [flip] using h
+  | succ k ih =>
+      have h := emitTrueRestore_true v inp T c (List.replicate k true) F S O U
+      rw [show Nat.succ k + 1 = k + 1 + 1 by omega]
+      rw [Function.iterate_succ_apply]
+      change (flip bind Sstep)^[k + 1]
+          (Sstep (⟨some Label.emitTrueRestore, v, stk inp T c (true :: List.replicate k true) F S O U⟩ : (mach).Cfg))
+        = some (⟨some Label.copyOut, St.done, stk inp T c [] F S (List.replicate (Nat.succ k) CNFSym.endMark ++ O) U⟩ : (mach).Cfg)
+      rw [h]
+      have hih := ih (v := St.emitTrue) (O := CNFSym.endMark :: O)
+      rw [hih]
+      apply congrArg some
+      apply Turing.TM2Comp.Cfg_ext
+      · rfl
+      · rfl
+      · funext kk
+        cases kk <;> try simp [stk]
+        rw [show CNFSym.endMark :: O = [CNFSym.endMark] ++ O by rw [List.cons_append]]
+        rw [← List.append_assoc]
+        rw [replicate_append_one]
+        rw [show Nat.succ k = k + 1 by omega]
+
+/-- `emitTrue` phase: the root value variable `y` (stored as `y + 1` `true`s
+below a `false` separator) is emitted as the unit clause `[[pos y]]`, leaving
+the encoded clause (reversed) on `o`. -/
+lemma emitTrue_phase (y : Nat) (v : St) (inp T : List FormulaSym) (c : Nat)
+    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    (flip bind Sstep)^[(y + 1) + 2]
+        (some (⟨some Label.emitTrue, v, stk inp T c (false :: List.replicate (y + 1) true) F S O U⟩ : (mach).Cfg))
+      = some (⟨some Label.copyOut, St.done, stk inp T c [] F S ((encCNF [[Literal.pos y]]).reverse ++ O) U⟩ : (mach).Cfg) := by
+  have hpush := emitTrue_push v inp T c false (List.replicate (y + 1) true) F S O U
+  rw [show (y + 1) + 2 = ((y + 1) + 1) + 1 by omega]
+  rw [Function.iterate_succ_apply]
+  change (flip bind Sstep)^[(y + 1) + 1]
+      (Sstep (⟨some Label.emitTrue, v, stk inp T c (false :: List.replicate (y + 1) true) F S O U⟩ : (mach).Cfg))
+    = some (⟨some Label.copyOut, St.done, stk inp T c [] F S ((encCNF [[Literal.pos y]]).reverse ++ O) U⟩ : (mach).Cfg)
+  rw [hpush]
+  have hloop := emitTrueRestore_loop (y + 1) St.emitTrue inp T c F S
+      (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O) U
+  rw [hloop]
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext kk
+    cases kk <;> try simp [stk]
+    rw [show CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: O =
+        [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] ++ O by rfl]
+    have hrev : (encCNF [[Literal.pos y]]).reverse =
+        List.replicate (y + 1) CNFSym.endMark ++
+          [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] := by
+      simp [encCNF, encClause, encLit, litSym, litIndex, List.reverse_replicate]
+    rw [hrev]
+    rw [List.append_assoc]
 
 end TM3CNF
 
