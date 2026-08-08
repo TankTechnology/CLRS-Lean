@@ -3523,19 +3523,27 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   `CLRSLean/FourthEdition/Chapter_25/Section_25_2_Stable_Marriage.lean`,
   split into sub-modules `S1_Preference_Model`, `S2_Gale_Shapley`, and
   `S3_Optimality` under the same directory
-- Status: `partial`
+- Status: `proved`
 - Main theorems:
   - `CLRS.Matchings.PreferenceProfile` / `Pairing` / `Pairing.Stable`
   - `CLRS.StableMarriage.gs` (the Gale-Shapley output pairing)
-  - `CLRS.StableMarriage.gs_terminates_le_n_sq`
   - `CLRS.StableMarriage.gs_stable` (Theorem 25.5)
   - `CLRS.StableMarriage.stable_matching_exists`
   - `CLRS.StableMarriage.gs_perfect`
+  - `CLRS.StableMarriage.gs_man_optimal` (Theorem 25.6)
+  - `CLRS.StableMarriage.gs_man_optimal_perfect`
+  - `CLRS.StableMarriage.gs_woman_pessimal`
 - Proof pattern: a functional proposal loop over rank functions, well-founded
   on the pending-proposal count; stability from the loop invariants (a woman's
   partner only improves; proposed sets are rank prefixes); perfectness from
-  the partner-map cardinality bijection.
-- Current gap: man-optimality remains.
+  the partner-map cardinality bijection.  Man-optimality is time-indexed: the
+  final state is placed on the `gsLoopN` timeline via
+  `CLRS.StableMarriage.gsLoop_eq_gsLoopN`, proposals and rejections are
+  detected from the state difference (`proposesAt` / `rejectedAt`), and
+  `no_rejection_of_valid` proves that no man is ever rejected by a valid
+  partner by descending to strictly earlier rejection steps
+  (`rejected_valid_earlier`), contradicting minimality of the first such
+  rejection.
 
 ## Chapter 26 - Maximum Flow
 
