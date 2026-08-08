@@ -7,6 +7,35 @@ The TM2 machine computing `encCNF (to3CNF_len (decode x) x.length)` for
 `x : List FormulaSym`.  It counts the input length, then does a recursive
 descent over the prefix-polish formula, emitting the Tseitin clause templates
 with auxiliary variables allocated from the input length.
+
+The semantic reduction `cnfSatisfiable_to3CNF_iff` (and the list encoding
+`encCNF`) live in `SatTo3CNFSat`; this file is the machine that computes the
+encoding.
+
+**Status (2026-08-09).**  Count, reorder, parse (`rd`/`pv`/`reduce` dispatch),
+`emitTrue`, the const-clause emission, and the `not` clause emission's step +
+generic move/restore loops are written.  The `not` phase composition, the
+`and`/`or`/`iff` emissions, `copyOut`, `outputsFun`, the time bound, and the
+`PolyTimeReducible` assembly are NOT complete.
+
+**Current gaps.**
+
+- **Control flow (being fixed):** `Label.reorder` routes to `done` (halt); it
+  must route to `rd` so the parse/emit phases run in a single pass.
+- **`and`/`or`/`iff` machine emission (documented gap — reduced scope).**  A
+  binary operator's two child value variables are stacked on `val` (the second
+  child's run on top, the first child's below), but the output order requires
+  emitting the first child's run before the second's.  With a single Unit
+  scratch tape the two runs cannot both be parked: `moveVal`-parking emits
+  `endMark`s on `o` (wrong position), the markers are indistinguishable, and
+  `restoreVal` restores everything.  The machine therefore needs a second park
+  tape — the idle `temp` tape (free after count/reorder) — plus `parkVal`/
+  `unparkVal` (declared but unimplemented).  This is the enabling machinery for
+  the two-child cases; `emitAnd`/`emitOr`/`emitIff` currently halt.  The
+  semantic correctness of the `and`/`or`/`iff` templates is fully proved in
+  `SatTo3CNFSat`.
+- **`copyOut`, `outputsFun`, the polynomial time bound, and the assembled
+  `PolyTimeReducible SAT ThreeCNFSat`** are not yet written.
 -/
 
 namespace CLRS
