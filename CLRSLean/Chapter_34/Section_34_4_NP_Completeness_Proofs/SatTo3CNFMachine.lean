@@ -77,9 +77,10 @@ abbrev Γk : K → Type
   | K.out => CNFSym
 
 /-- A move/restore operation: emit an auxiliary reference, build a value
-variable, or emit/pop a value-variable reference. -/
+variable, or emit/pop a value-variable reference, or park/restore a value
+variable on the `temp` tape. -/
 inductive Op : Type
-  | auxEmit | makeVal | varEmit | varPop
+  | auxEmit | makeVal | varEmit | varPop | park | unpark
 deriving DecidableEq, Fintype, Inhabited
 
 /-- The program labels. -/
@@ -92,7 +93,7 @@ inductive Label : Type
   | emitIff | iff₂ | iff₃ | iff₄ | iff₅ | iff₆ | iff₇ | iff₈ | iff₉ | iff₁₀
     | iff₁₁ | iff₁₂ | iff₁₃ | iff₁₄ | iff₁₅ | iff₁₆ | iff₁₇ | iff₁₈ | iff₁₉ | iff₂₀ | iff₂₁
   | emitTrue | emitTrueRestore
-  | moveCnt | restoreCnt | moveVal | restoreVal | parkVal | unparkVal
+  | moveCnt | restoreCnt | moveVal | restoreVal | parkVal | parkRest | unparkVal
   | copyOut
 deriving DecidableEq, Fintype, Inhabited
 
@@ -338,6 +339,49 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
           (Turing.TM2.Stmt.goto (fun v => match v with
               | St.rsDone go _ => go
               | _ => Label.done)))
+  | Label.parkVal =>
+      Turing.TM2.Stmt.pop K.val (fun v x => match v, x with
+          | St.mv go Op.park, some _ => St.mv go Op.park
+          | St.mv go Op.park, none => St.rsDone go Op.park
+          | _, _ => v)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.mv go Op.park => true
+            | _ => false)
+          (Turing.TM2.Stmt.push K.temp (fun _ => FormulaSym.lit false)
+            (Turing.TM2.Stmt.goto (fun _ => Label.parkRest)))
+          (Turing.TM2.Stmt.goto (fun v => match v with
+              | St.rsDone go _ => go
+              | _ => Label.done)))
+  | Label.parkRest =>
+      Turing.TM2.Stmt.peek K.val (fun v x => match v, x with
+          | St.mv go Op.park, some true => St.mv go Op.park
+          | St.mv go Op.park, _ => St.rsDone go Op.park
+          | _, _ => v)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.mv go Op.park => true
+            | _ => false)
+          (Turing.TM2.Stmt.pop K.val (fun v _ => v)
+            (Turing.TM2.Stmt.push K.temp (fun _ => FormulaSym.lit true)
+              (Turing.TM2.Stmt.goto (fun _ => Label.parkRest))))
+          (Turing.TM2.Stmt.goto (fun v => match v with
+              | St.rsDone go _ => go
+              | _ => Label.done)))
+  | Label.unparkVal =>
+      Turing.TM2.Stmt.peek K.temp (fun v x => match v, x with
+          | St.rs go Op.unpark, some (FormulaSym.lit true) => St.rs go Op.unpark
+          | St.rs go Op.unpark, _ => St.rsDone go Op.unpark
+          | _, _ => v)
+        (Turing.TM2.Stmt.branch (fun v => match v with
+            | St.rs go Op.unpark => true
+            | _ => false)
+          (Turing.TM2.Stmt.pop K.temp (fun v _ => v)
+            (Turing.TM2.Stmt.push K.val (fun _ => true)
+              (Turing.TM2.Stmt.goto (fun _ => Label.unparkVal))))
+          (Turing.TM2.Stmt.pop K.temp (fun v _ => v)
+            (Turing.TM2.Stmt.push K.val (fun _ => false)
+              (Turing.TM2.Stmt.goto (fun v => match v with
+                  | St.rsDone go _ => go
+                  | _ => Label.done)))))
   | Label.emitAnd => Turing.TM2.Stmt.halt
   | Label.emitOr => Turing.TM2.Stmt.halt
   | Label.emitIff => Turing.TM2.Stmt.halt
@@ -1160,40 +1204,42 @@ lemma restoreCnt_final (go : Label) (inp T : List FormulaSym) (c : Nat) (V : Lis
 
 /-- The `restoreCnt` loop: `k` scratch markers restore `k` counter units. -/
 lemma restoreCnt_phase (go : Label) (inp T : List FormulaSym) (c k : Nat) (V : List Bool)
-    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    (F : List Frame) (O U : List CNFSym) :
     (flip bind Sstep)^[k + 1]
-        (some (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T c V F (List.replicate k () ++ S) O U⟩ : (mach).Cfg))
-      = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T (c + k) V F S O U⟩ : (mach).Cfg) := by
-  induction k generalizing c S with
+        (some (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T c V F (List.replicate k ()) O U⟩ : (mach).Cfg))
+      = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T (c + k) V F [] O U⟩ : (mach).Cfg) := by
+  induction k generalizing c with
   | zero =>
       have h := restoreCnt_final go inp T c V F O U
-      change (flip bind Sstep) (some (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T c V F S O U⟩ : (mach).Cfg))
-        = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T c V F S O U⟩ : (mach).Cfg)
+      change (flip bind Sstep) (some (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T c V F [] O U⟩ : (mach).Cfg))
+        = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T c V F [] O U⟩ : (mach).Cfg)
       simpa [flip] using h
   | succ k ih =>
-      have h := restoreCnt_step go inp T c V F (List.replicate k () ++ S) O U
+      have h := restoreCnt_step go inp T c V F (List.replicate k ()) O U
       rw [show Nat.succ k + 1 = k + 1 + 1 by omega]
       rw [Function.iterate_succ_apply]
       change (flip bind Sstep)^[k + 1]
           (Sstep (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T c V F
-            (() :: List.replicate k () ++ S) O U⟩ : (mach).Cfg))
-        = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T (c + Nat.succ k) V F S O U⟩ : (mach).Cfg)
-      rw [h]
-      have hih := ih (c := c + 1) (S := S)
+            (() :: List.replicate k ()) O U⟩ : (mach).Cfg))
+        = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T (c + Nat.succ k) V F [] O U⟩ : (mach).Cfg)
+      have hih := ih (c := c + 1)
       calc
         (flip bind Sstep)^[k + 1]
-            (some (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T (c + 1) V F
-              (List.replicate k () ++ S) O U⟩ : (mach).Cfg))
-          = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T ((c + 1) + k) V F S O U⟩ : (mach).Cfg) := hih
-        _ = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T (c + Nat.succ k) V F S O U⟩ : (mach).Cfg) := by
+            (Sstep (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T c V F
+              (() :: List.replicate k ()) O U⟩ : (mach).Cfg))
+          = (flip bind Sstep)^[k + 1]
+              (some (⟨some Label.restoreCnt, St.rs go Op.auxEmit, stk inp T (c + 1) V F
+                (List.replicate k ()) O U⟩ : (mach).Cfg)) := by
+              exact congrArg (fun x => (flip bind Sstep)^[k + 1] x) h
+        _ = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T ((c + 1) + k) V F [] O U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some go, St.rsDone go Op.auxEmit, stk inp T (c + Nat.succ k) V F [] O U⟩ : (mach).Cfg) := by
             apply congrArg some
             apply Turing.TM2Comp.Cfg_ext
             · rfl
             · rfl
             · funext kk
               cases kk <;> try simp [stk]
-              · congr 1
-                omega
+              · simp [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
 
 /-- `not₃`: push the first clause's second-literal header `[varMark, negMark]`
 and the completing `endMark`, entering the value loop. -/
@@ -1288,14 +1334,16 @@ lemma moveVal_varEmit_phase (go : Label) (k : Nat) (inp T : List FormulaSym) (c 
           (Sstep (⟨some Label.moveVal, St.mv go Op.varEmit, stk inp T c (true :: List.replicate k true ++ V) F S O U⟩ : (mach).Cfg))
         = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c V F
             (List.replicate (Nat.succ k) () ++ S) (List.replicate (Nat.succ k) CNFSym.endMark ++ O) U⟩ : (mach).Cfg)
-      rw [h]
       have hih := ih (S := () :: S) (O := CNFSym.endMark :: O)
       calc
         (flip bind Sstep)^[k + 1]
-            (some (⟨some Label.moveVal, St.mv go Op.varEmit, stk inp T c (List.replicate k true ++ V) F (() :: S)
-              (CNFSym.endMark :: O) U⟩ : (mach).Cfg))
-          = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c V F
-              (List.replicate k () ++ (() :: S)) (List.replicate k CNFSym.endMark ++ (CNFSym.endMark :: O)) U⟩ : (mach).Cfg) := hih
+            (Sstep (⟨some Label.moveVal, St.mv go Op.varEmit, stk inp T c (true :: List.replicate k true ++ V) F S O U⟩ : (mach).Cfg))
+          = (flip bind Sstep)^[k + 1]
+              (some (⟨some Label.moveVal, St.mv go Op.varEmit, stk inp T c (List.replicate k true ++ V) F (() :: S)
+                (CNFSym.endMark :: O) U⟩ : (mach).Cfg)) := by
+              exact congrArg (fun x => (flip bind Sstep)^[k + 1] x) h
+        _ = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c V F
+            (List.replicate k () ++ (() :: S)) (List.replicate k CNFSym.endMark ++ (CNFSym.endMark :: O)) U⟩ : (mach).Cfg) := hih
         _ = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c V F
             (List.replicate (Nat.succ k) () ++ S) (List.replicate (Nat.succ k) CNFSym.endMark ++ O) U⟩ : (mach).Cfg) := by
             apply congrArg some
@@ -1351,32 +1399,35 @@ lemma restoreVal_final (go : Label) (inp T : List FormulaSym) (c : Nat) (V : Lis
 
 /-- The `restoreVal` loop: `k` scratch markers restore `k` `true`s. -/
 lemma restoreVal_phase (go : Label) (k : Nat) (inp T : List FormulaSym) (c : Nat) (V : List Bool)
-    (F : List Frame) (S : List Unit) (O U : List CNFSym) :
+    (F : List Frame) (O U : List CNFSym) :
     (flip bind Sstep)^[k + 1]
-        (some (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c V F (List.replicate k () ++ S) O U⟩ : (mach).Cfg))
-      = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate k true ++ V) F S O U⟩ : (mach).Cfg) := by
-  induction k generalizing V S with
+        (some (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c V F (List.replicate k ()) O U⟩ : (mach).Cfg))
+      = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate k true ++ V) F [] O U⟩ : (mach).Cfg) := by
+  induction k generalizing V with
   | zero =>
       have h := restoreVal_final go inp T c V F O U
-      change (flip bind Sstep) (some (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c V F S O U⟩ : (mach).Cfg))
-        = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c V F S O U⟩ : (mach).Cfg)
+      change (flip bind Sstep) (some (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c V F [] O U⟩ : (mach).Cfg))
+        = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c V F [] O U⟩ : (mach).Cfg)
       simpa [flip] using h
   | succ k ih =>
-      have h := restoreVal_step go inp T c V F (List.replicate k () ++ S) O U
+      have h := restoreVal_step go inp T c V F (List.replicate k ()) O U
       rw [show Nat.succ k + 1 = k + 1 + 1 by omega]
       rw [Function.iterate_succ_apply]
       change (flip bind Sstep)^[k + 1]
           (Sstep (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c V F
-            (() :: List.replicate k () ++ S) O U⟩ : (mach).Cfg))
-        = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate (Nat.succ k) true ++ V) F S O U⟩ : (mach).Cfg)
-      rw [h]
-      have hih := ih (V := true :: V) (S := S)
+            (() :: List.replicate k ()) O U⟩ : (mach).Cfg))
+        = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate (Nat.succ k) true ++ V) F [] O U⟩ : (mach).Cfg)
+      have hih := ih (V := true :: V)
       calc
         (flip bind Sstep)^[k + 1]
-            (some (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c (true :: V) F
-              (List.replicate k () ++ S) O U⟩ : (mach).Cfg))
-          = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate k true ++ (true :: V)) F S O U⟩ : (mach).Cfg) := hih
-        _ = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate (Nat.succ k) true ++ V) F S O U⟩ : (mach).Cfg) := by
+            (Sstep (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c V F
+              (() :: List.replicate k ()) O U⟩ : (mach).Cfg))
+          = (flip bind Sstep)^[k + 1]
+              (some (⟨some Label.restoreVal, St.rs go Op.varEmit, stk inp T c (true :: V) F
+                (List.replicate k ()) O U⟩ : (mach).Cfg)) := by
+              exact congrArg (fun x => (flip bind Sstep)^[k + 1] x) h
+        _ = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate k true ++ (true :: V)) F [] O U⟩ : (mach).Cfg) := hih
+        _ = some (⟨some go, St.rsDone go Op.varEmit, stk inp T c (List.replicate (Nat.succ k) true ++ V) F [] O U⟩ : (mach).Cfg) := by
             apply congrArg some
             apply Turing.TM2Comp.Cfg_ext
             · rfl
@@ -1489,13 +1540,15 @@ lemma moveVal_varPop_phase (go : Label) (k : Nat) (inp T : List FormulaSym) (c :
       change (flip bind Sstep)^[k + 1]
           (Sstep (⟨some Label.moveVal, St.mv go Op.varPop, stk inp T c (true :: List.replicate k true ++ V) F S O U⟩ : (mach).Cfg))
         = some (⟨some go, St.rsDone go Op.varPop, stk inp T c V F S (List.replicate (Nat.succ k) CNFSym.endMark ++ O) U⟩ : (mach).Cfg)
-      rw [h]
       have hih := ih (O := CNFSym.endMark :: O)
       calc
         (flip bind Sstep)^[k + 1]
-            (some (⟨some Label.moveVal, St.mv go Op.varPop, stk inp T c (List.replicate k true ++ V) F S (CNFSym.endMark :: O) U⟩ : (mach).Cfg))
-          = some (⟨some go, St.rsDone go Op.varPop, stk inp T c V F S
-              (List.replicate k CNFSym.endMark ++ (CNFSym.endMark :: O)) U⟩ : (mach).Cfg) := hih
+            (Sstep (⟨some Label.moveVal, St.mv go Op.varPop, stk inp T c (true :: List.replicate k true ++ V) F S O U⟩ : (mach).Cfg))
+          = (flip bind Sstep)^[k + 1]
+              (some (⟨some Label.moveVal, St.mv go Op.varPop, stk inp T c (List.replicate k true ++ V) F S (CNFSym.endMark :: O) U⟩ : (mach).Cfg)) := by
+              exact congrArg (fun x => (flip bind Sstep)^[k + 1] x) h
+        _ = some (⟨some go, St.rsDone go Op.varPop, stk inp T c V F S
+            (List.replicate k CNFSym.endMark ++ (CNFSym.endMark :: O)) U⟩ : (mach).Cfg) := hih
         _ = some (⟨some go, St.rsDone go Op.varPop, stk inp T c V F S
             (List.replicate (Nat.succ k) CNFSym.endMark ++ O) U⟩ : (mach).Cfg) := by
             apply congrArg some
