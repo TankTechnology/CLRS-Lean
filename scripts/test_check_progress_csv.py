@@ -66,8 +66,8 @@ class FourthEditionContractTest(unittest.TestCase):
 
     def test_not_started_chapter_must_have_zero_canonical_theorems(self) -> None:
         rows = [row.copy() for row in load_rows()]
-        rows[33]["tracked_key_theorems"] = "1"
-        rows[33]["proved_tracked_theorems"] = "1"
+        rows[34]["tracked_key_theorems"] = "1"
+        rows[34]["proved_tracked_theorems"] = "1"
 
         with self.assertRaisesRegex(SystemExit, "zero tracked theorem"):
             validate(rows)
@@ -104,7 +104,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
 
         self.assertIn("## Fourth-Edition Snapshot", dashboard)
         self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)
-        self.assertIn("1,326", dashboard)
+        self.assertIn("1,332", dashboard)
         self.assertIn("selected proof inventory", normalized)
         self.assertIn("does not by itself mean that every fourth-edition section obligation is covered", normalized)
         self.assertIn("partial (edition coverage)", dashboard)
@@ -115,7 +115,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertIn("467", dashboard)
         self.assertIn("disjoint canonical and online-material ledgers", dashboard)
         self.assertNotIn("pending declaration-level remapping", dashboard)
-        self.assertIn("{lit}`not-started`: 5 chapters", dashboard)
+        self.assertIn("{lit}`not-started`: 4 chapters", dashboard)
         self.assertNotIn("Chapters 1--29 Milestone", dashboard)
         self.assertNotIn("advertised proof scopes of Chapters 1--29 are complete", dashboard)
 
