@@ -198,7 +198,7 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
           (Turing.TM2.Stmt.push K.val (fun _ => true)
             (Turing.TM2.Stmt.push K.cnt (fun _ => ())
               (Turing.TM2.Stmt.push K.val (fun _ => false)
-                (Turing.TM2.Stmt.goto (fun _ => Label.reduce)))))
+                (Turing.TM2.Stmt.goto (fun _ => Label.reduce))))))
   | Label.emitTrue =>
       Turing.TM2.Stmt.push K.o (fun _ => CNFSym.clauseMark)
         (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
@@ -391,6 +391,55 @@ lemma pv_done_step (s : FormulaSym) (rest T : List FormulaSym) (c : Nat) (V : Li
     cases k <;> simp [stk, Function.update, prog, Sstep, hs]
 
 -- ============================================================
+-- List assembly: reversed encodings of literals/clauses/CNF
+--
+-- The machine pushes output symbols onto `o` so that after emitting a
+-- sequence of clauses the stack holds the *reversed* encoding of the CNF
+-- (`copyOut` then transfers `o` to `out`, reversing it back).  These lemmas
+-- express the assembled stacks in terms of `encLit`/`encClause`/`encCNF`.
+-- ============================================================
+
+/-- The reversed encoding of a literal is its unary index run followed by the
+`varMark` and polarity marks. -/
+lemma encLit_reverse (l : Literal) :
+    (encLit l).reverse = List.replicate (litIndex l + 1) CNFSym.endMark ++
+      [CNFSym.varMark, litSym l] := by
+  cases l <;> simp [encLit, litSym, litIndex, List.reverse_cons, List.reverse_append,
+    List.reverse_replicate]
+
+/-- The reversed encoding of a two-literal clause splits at the `clauseMark`. -/
+lemma encClause_two_reverse (l₁ l₂ : Literal) :
+    (encClause [l₁, l₂]).reverse =
+      (encLit l₂).reverse ++ (encLit l₁).reverse ++ [CNFSym.clauseMark] := by
+  simp [encClause, List.flatMap, List.reverse_cons, List.reverse_append]
+
+/-- The reversed encoding of the negated two-literal clause `[¬y, ¬y₁]`. -/
+lemma encClause_neg_reverse (y y₁ : Nat) :
+    (encClause [Literal.neg y, Literal.neg y₁]).reverse =
+      List.replicate (y₁ + 1) CNFSym.endMark ++ [CNFSym.varMark, CNFSym.negMark] ++
+      List.replicate (y + 1) CNFSym.endMark ++
+        [CNFSym.varMark, CNFSym.negMark, CNFSym.clauseMark] := by
+  rw [encClause_two_reverse]
+  simp [encLit_reverse, encLit, litSym, litIndex]
+
+/-- The reversed encoding of the positive two-literal clause `[y, y₁]`. -/
+lemma encClause_pos_reverse (y y₁ : Nat) :
+    (encClause [Literal.pos y, Literal.pos y₁]).reverse =
+      List.replicate (y₁ + 1) CNFSym.endMark ++ [CNFSym.varMark, CNFSym.posMark] ++
+      List.replicate (y + 1) CNFSym.endMark ++
+        [CNFSym.varMark, CNFSym.posMark, CNFSym.clauseMark] := by
+  rw [encClause_two_reverse]
+  simp [encLit_reverse, encLit, litSym, litIndex]
+
+/-- The reversed encoding of `notClauses y y₁` emits the two clauses in the
+same order the machine pushes them (later clause first on the stack). -/
+lemma encCNF_notClauses_reverse (y y₁ : Nat) :
+    (encCNF (notClauses y y₁)).reverse =
+      (encClause [Literal.pos y, Literal.pos y₁]).reverse ++
+      (encClause [Literal.neg y, Literal.neg y₁]).reverse := by
+  simp [encCNF, notClauses, List.reverse_append]
+
+-- ============================================================
 -- const clause emit: `Formula.const b` becomes `[pos/neg m]`
 -- ============================================================
 
@@ -472,6 +521,14 @@ lemma constEmit_final_step (v : St) (inp T : List FormulaSym) (V : List Bool) (F
   · rfl
   · funext k
     cases k <;> simp [stk, Function.update, prog, Sstep]
+
+/-- `replicate k a ++ [a]` is the `k + 1`-fold repetition. -/
+lemma replicate_append_one {α : Type} (k : Nat) (a : α) :
+    List.replicate k a ++ [a] = List.replicate (k + 1) a := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+      simpa [List.replicate_succ, List.cons_append] using ih
 
 /-- The `constEmit` loop: `m` counter units emit `m` `endMark`s (plus one
 final) and `m` scratch markers, ending at `constMake` with the counter
@@ -772,14 +829,6 @@ lemma emitTrueRestore_empty (v : St) (inp T : List FormulaSym) (c : Nat)
   · simp [prog, Sstep]
   · funext k
     cases k <;> simp [stk, Function.update, prog, Sstep]
-
-/-- `replicate k a ++ [a]` is the `k + 1`-fold repetition. -/
-lemma replicate_append_one {α : Type} (k : Nat) (a : α) :
-    List.replicate k a ++ [a] = List.replicate (k + 1) a := by
-  induction k with
-  | zero => simp
-  | succ k ih =>
-      simpa [List.replicate_succ, List.cons_append] using ih
 
 /-- The `emitTrueRestore` loop: popping `k` `true`s emits `k` `endMark`s and
 finishes at `copyOut`. -/
