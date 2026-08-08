@@ -68,7 +68,106 @@ steps with a policy whose caches equal `F`'s on `[0, σ.length]`, so
 agreement-prefix length, or by strong induction on `σ.length + 1 - t`
 (the `firstDiff` position found via `Nat.find`).
 
-## Open design questions (to settle before writing code)
+## RESOLVED: final design (2026-08-08, second pass)
+
+**The exchange lemma must be proved on a *schedule* model** (a decision
+function `d : ℕ → Page` with its own run `schedCache d C₀ σ`), because no
+policy of the form "apply π's eviction function to a derived cache"
+maintains any useful invariant (verified by hand above).  On schedules the
+"copy π's decision" step is constructive.
+
+**Schedule model.**  `schedCache (d) (C₀) (σ) : ℕ → Finset Page`:
+`0 ↦ C₀`, `s+1 ↦ if p_s ∈ C_s then C_s else insert p_s (C_s.erase (d s))`.
+`schedMisses` likewise.  `policySchedule π C₀ σ s := π.evict s (cacheSeq π C₀ σ s) (σ.getD s 0)`;
+bridge: `schedCache (policySchedule π) = cacheSeq π`, and schedMisses = misses.
+(erase of an absent page is a no-op, so schedules need not be reduced; the
+policies' schedules are reduced by `Policy.evict_mem`.)
+
+**Exchange schedule.**  Given agreement of `d` with `F := fifoPolicy σ` up
+to `t` (caches equal), a fault on `p` at `t` with `d` evicting `q` and `F`
+evicting `q'` (`q ≠ q'`), define:
+```lean
+exchangeSchedule d t q q' σ C₀ s :=
+  if s ≤ t then d s
+  else if q' ∈ schedCache d C₀ σ s then (if d s = q' then q else d s)
+  else d s
+```
+(`s ≤ t`: identical to `d`, so caches agree through `t`; at `t`: evict `q'`
+so the cache becomes `(C - {q'}) ∪ {p} = C_{t+1}^F`, agreeing with `F`
+through `t+1`; after `t`: follow `d`, except when `d` evicts `q'` — then
+evict `q` (which the invariant keeps in `d'`'s cache).)
+
+**Invariant** (holds for all `s ≥ t+1`): `C'_s △ C_s ⊆ {q, q'}`, and
+more precisely the state is one of: adjust `C'_s = (C_s - {q'}) ∪ {q}`
+(when `q' ∈ C_s` and `d` has not evicted `q'`), coincide `C'_s = C_s`
+(after `d` evicted `q'` and before `q'` is re-requested), or `q'`-extra
+`C'_s = C_s ∪ {q'}` (after a no-op eviction).  The `d s = q'` step makes
+the caches coincide; the "d faults on r ∈ {q,q'} while d' hits" step can
+add `d s ∉ {q,q'}` to the symmetric difference — those pages give `-1`
+events when requested.
+
+**Miss comparison** (`misses d' ≤ misses d`), the phase structure with
+`u` = next request of `q` after `t` (∞ if none), `v` = next request of
+`q'` (∞ if none), and `u ≤ v` from the FIF property:
+- Before `u`: requests ∉ {q, q'}, faults equal (invariant).
+- At `u`: `d` faults on `q` (evicted at `t`, never re-requested before);
+  `d'` hits if `q ∈ C_u^{d'}` (adjust state) — a `-1` — or both fault
+  (coincide state) — a `0`.
+- After `u`: `+1` events occur only when `d'` lacks a requested page of
+  `{q, q'}`: `q'` at `v` (once, in adjust state, compensated by `u`'s
+  `-1`), and `q` at the first request after a "`d` evicts `q'`" event
+  (each such event is followed by a `q'` request where `d'` has `q'` —
+  a `-1`; `+1` events ≤ `d`-evicts-`q'` events ≤ `q'`-request events).
+  `-1` events also come from pages `d` evicted while `d'` kept them.
+  Hence the total difference is ≤ 0.
+
+**Iteration.**  `agreePrefix` := the largest `t` with cache agreement on
+`[0, t]`; the exchange increases it by ≥ 1; well-founded recursion on
+`σ.length + 1 - agreePrefix` yields a schedule whose caches agree with
+`F` on `[0, σ.length]`, so `misses F = misses (its policy schedule) ≤
+misses π`.  (Equivalently: strong induction on the number of remaining
+positions.)
+
+## Third pass: counterexamples pin down the correct construction (2026-08-08)
+
+**The "simple modification + follow d" schedule is NOT correct.**  Worked
+counterexample: `σ = [p, x, q, q', q]`, `C₀ = {q, q', x}` (FIF evicts `q'`
+at `t = 0`, `π` evicts `q`).  With `d'` evicting `q'` at 0 and following
+`d` elsewhere (junk at hit positions chosen by `π`), if `d₃ = q` (π's junk
+at the hit on `q'`) then `d'` evicts `q` at position 3 and faults again on
+`q` at position 4, giving `misses d' = 3 > 2 = misses d`.  The junk values
+of `d` at hit positions are arbitrary, so no "follow d" schedule is safe.
+Fixing it by "evict the multi-set element" (`x`, which `d` evicted at
+position 2 and `d'` kept) at position 3 keeps `q` in `d'`'s cache and the
+exchange is cost-free.  Conclusion: the eviction at a "d hits, d' faults on
+r ∈ {q,q'}" position must be an element of the multi-set
+`C_s^{d'} \ C_s^d` (which is nonempty there by the size argument
+`|multi| - |missing| = |C^{d'}| - |C^d| ≥ 0` and `q' ∈ missing`), which
+makes `d'`'s decision depend on its own cache — a recursive (well-founded)
+definition, or an existence-style construction via `Classical.choose`.
+
+**Counterexample analysis also fixes the pairing.**  With the multi-set
+choice: bad events are only `q'` at `v` (evicting `q` there; paired with
+the good event at `u`) and `q` after a "`d` evicts `q'`" event (paired
+with the `q'` request that must follow it, since `q'` was re-requested to
+be evictable).  All other requests have equal fault statuses by the
+invariant `∀ r ∉ {q,q'}, r ∈ C_s^{d'} ⟺ r ∈ C_s^d` (preserved by evicting
+multi-set elements, `q`, `q'`, or `d s` — never a page `d` keeps that `d'`
+lacks).  Hence `misses d' ≤ misses d`.
+
+**Open items for the implementation session:**
+1. Recursive/existential definition of `exchangeSchedule` (well-founded on
+   `s` with access to `schedCache d'` prefixes, or a `Classical.choose`
+   per position with a simultaneous invariant proof).
+2. The invariant and fault-status lemmas; the pairing/counting lemmas
+   (bad-events ≤ good-events) with the phase structure (`u` = next request
+   of `q`, `v` = next request of `q'`, `u ≤ v` via `Farther`).
+3. The iteration (agreement-prefix well-founded recursion) and the bridge
+   `schedMisses (policySchedule π) = misses π`.
+4. Estimated 800–1200 lines in `S3_Optimality.lean`; comparable to the
+   man-optimality effort (a full session).
+
+## Open design questions (superseded by the resolved design above; kept for history)
 
 1. **The conjugate policy does NOT maintain the swap invariant — verified
    by hand (2026-08-08).**  `π'.evict i D r := conj(π.evict i (swap D) r)`
