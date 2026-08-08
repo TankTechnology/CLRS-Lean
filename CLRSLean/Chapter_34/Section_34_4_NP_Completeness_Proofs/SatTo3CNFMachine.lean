@@ -272,8 +272,8 @@ def prog : Label → Turing.TM2.Stmt Γk Label St
         (Turing.TM2.Stmt.goto (fun _ => Label.moveCnt))
   | Label.not₆ =>
       Turing.TM2.Stmt.push K.o (fun _ => CNFSym.endMark)
-        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
-          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
+        (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.posMark)
+          (Turing.TM2.Stmt.push K.o (fun _ => CNFSym.varMark)
             (Turing.TM2.Stmt.load (fun _ => St.mv Label.constMake Op.varPop)
               (Turing.TM2.Stmt.goto (fun _ => Label.moveVal)))))
   | Label.moveCnt =>
@@ -1701,13 +1701,13 @@ lemma not₅_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool) (
   · funext k
     cases k <;> simp [stk, Function.update, prog, Sstep]
 
-/-- `not₆`: push the second clause's second-literal header `[posMark, varMark]`
-and the completing `endMark`, entering the (consuming) value loop. -/
+/-- `not₆`: push the completing `endMark` and the second clause's first-literal
+header `[posMark, varMark]`, entering the (consuming) value loop. -/
 lemma not₆_step (v : St) (inp T : List FormulaSym) (c : Nat) (V : List Bool) (F : List Frame)
     (S : List Unit) (O U : List CNFSym) :
     Sstep (⟨some Label.not₆, v, stk inp T c V F S O U⟩ : (mach).Cfg)
       = some (⟨some Label.moveVal, St.mv Label.constMake Op.varPop, stk inp T c V F S
-          (CNFSym.posMark :: CNFSym.varMark :: CNFSym.endMark :: O) U⟩ : (mach).Cfg) := by
+          (CNFSym.varMark :: CNFSym.posMark :: CNFSym.endMark :: O) U⟩ : (mach).Cfg) := by
   apply congrArg some
   apply Turing.TM2Comp.Cfg_ext
   · simp [prog, Sstep]
@@ -1811,6 +1811,163 @@ lemma moveVal_varPop_phase (go : Label) (k : Nat) (inp T : List FormulaSym) (c :
               rw [show CNFSym.endMark :: O = [CNFSym.endMark] ++ O by simp [List.cons_append]]
               rw [← List.append_assoc]
               rw [replicate_append_one]
+
+/-- The `emitNot` phase for `Formula.not f`: emit the two clauses
+`[¬c, ¬y₁]` and `[c, y₁]` of `notClauses c y₁` onto `o` (reversed), build the
+result value variable `c` on `val`, restore the counter to `c + 1`, and reach
+`reduce`.  (`c` is the result variable's index, equal to the counter at entry;
+`y₁` is the child value variable's index, stored on top of `val`.) -/
+lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool) (F : List Frame)
+    (O U : List CNFSym) (hV : V.head? ≠ some true) :
+    (flip bind Sstep)^[4 * c + 3 * y₁ + 16]
+        (some (⟨some Label.emitNot, St.emitNot, stk inp T c (false :: List.replicate (y₁ + 1) true ++ V) F [] O U⟩ : (mach).Cfg))
+      = some (⟨some Label.reduce, St.done, stk inp T (c + 1)
+          (false :: List.replicate (c + 1) true ++ V) F []
+          ((encCNF (notClauses c y₁)).reverse ++ O) U⟩ : (mach).Cfg) := by
+  have h1 := emitNot_step St.emitNot inp T c false (List.replicate (y₁ + 1) true ++ V) F [] O U
+  have h2 := moveCnt_phase not₂ inp T c (List.replicate (y₁ + 1) true ++ V) F []
+      (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O) U
+  have h3 := not₂_step (St.rsDone not₂ auxEmit) inp T 0 (List.replicate (y₁ + 1) true ++ V) F
+      (List.replicate c ()) (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U
+  have h4 := restoreCnt_phase not₃ inp T 0 c (List.replicate (y₁ + 1) true ++ V) F
+      (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U
+  have h5 := not₃_step (St.rsDone not₃ auxEmit) inp T c (List.replicate (y₁ + 1) true ++ V) F []
+      (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U
+  have h6 := moveVal_varEmit_phase not₄ (y₁ + 1) inp T c V F []
+      (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))) U hV
+  have h7 := not₄_step (St.rsDone not₄ varEmit) inp T c V F
+      (List.replicate (y₁ + 1) ()) (List.replicate (y₁ + 1) endMark ++
+        (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)))) U
+  have h8 := restoreVal_phase not₅ (y₁ + 1) inp T c V F
+      (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+        (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))) U
+  have h9 := not₅_step (St.rsDone not₅ varEmit) inp T c (List.replicate (y₁ + 1) true ++ V) F []
+      (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+        (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))) U
+  have h10 := moveCnt_phase not₆ inp T c (List.replicate (y₁ + 1) true ++ V) F []
+      (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+        (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))) U
+  have h11 := not₆_step (St.rsDone not₆ auxEmit) inp T 0 (List.replicate (y₁ + 1) true ++ V) F
+      (List.replicate c ()) (List.replicate c endMark ++ (varMark :: posMark :: clauseMark ::
+        (List.replicate (y₁ + 1) endMark ++ (varMark :: negMark :: endMark ::
+          (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)))))) U
+  have h12 := moveVal_varPop_phase constMake (y₁ + 1) inp T 0 V F
+      (List.replicate c ()) (varMark :: posMark :: endMark :: (List.replicate c endMark ++
+        (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+          (varMark :: negMark :: endMark :: (List.replicate c endMark ++
+            (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))))) U hV
+  have h13 := constMake_phase c (St.rsDone constMake varPop) inp T 0 V F
+      (List.replicate (y₁ + 1) endMark ++ (varMark :: posMark :: endMark ::
+        (List.replicate c endMark ++ (varMark :: posMark :: clauseMark ::
+          (List.replicate (y₁ + 1) endMark ++ (varMark :: negMark :: endMark ::
+            (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)))))))) U
+  calc
+    (flip bind Sstep)^[4 * c + 3 * y₁ + 16]
+        (some (⟨some Label.emitNot, St.emitNot, stk inp T c (false :: List.replicate (y₁ + 1) true ++ V) F [] O U⟩ : (mach).Cfg))
+      = (flip bind Sstep)^[4 * c + 3 * y₁ + 15]
+          (some (⟨some Label.moveCnt, St.mv not₂ Op.auxEmit, stk inp T c (List.replicate (y₁ + 1) true ++ V) F []
+            (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O) U⟩ : (mach).Cfg)) := by
+          rw [show 4 * c + 3 * y₁ + 16 = (4 * c + 3 * y₁ + 15) + 1 by omega]
+          rw [Function.iterate_add]
+          simpa using h1
+    _ = (flip bind Sstep)^[3 * c + 3 * y₁ + 14]
+          (some (⟨some Label.not₂, St.rsDone not₂ auxEmit, stk inp T 0 (List.replicate (y₁ + 1) true ++ V) F
+            (List.replicate c ()) (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
+          rw [show 4 * c + 3 * y₁ + 15 = (3 * c + 3 * y₁ + 14) + (c + 1) by omega]
+          rw [Function.iterate_add]
+          exact congrArg (fun x => (flip bind Sstep)^[3 * c + 3 * y₁ + 14] x) (by simpa using h2)
+    _ = (flip bind Sstep)^[3 * c + 3 * y₁ + 13]
+          (some (⟨some Label.restoreCnt, St.rs not₃ Op.auxEmit, stk inp T 0 (List.replicate (y₁ + 1) true ++ V) F
+            (List.replicate c ()) (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
+          rw [show 3 * c + 3 * y₁ + 14 = (3 * c + 3 * y₁ + 13) + 1 by omega]
+          rw [Function.iterate_add]
+          simpa using h3
+    _ = (flip bind Sstep)^[2 * c + 3 * y₁ + 12]
+          (some (⟨some Label.not₃, St.rsDone not₃ auxEmit, stk inp T c (List.replicate (y₁ + 1) true ++ V) F []
+            (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
+          rw [show 3 * c + 3 * y₁ + 13 = (2 * c + 3 * y₁ + 12) + (c + 1) by omega]
+          rw [Function.iterate_add]
+          exact congrArg (fun x => (flip bind Sstep)^[2 * c + 3 * y₁ + 12] x) (by simpa using h4)
+    _ = (flip bind Sstep)^[2 * c + 3 * y₁ + 11]
+          (some (⟨some Label.moveVal, St.mv not₄ Op.varEmit, stk inp T c (List.replicate (y₁ + 1) true ++ V) F []
+            (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))) U⟩ : (mach).Cfg)) := by
+          rw [show 2 * c + 3 * y₁ + 12 = (2 * c + 3 * y₁ + 11) + 1 by omega]
+          rw [Function.iterate_add]
+          simpa using h5
+    _ = (flip bind Sstep)^[2 * c + 2 * y₁ + 9]
+          (some (⟨some Label.not₄, St.rsDone not₄ varEmit, stk inp T c V F
+            (List.replicate (y₁ + 1) ()) (List.replicate (y₁ + 1) endMark ++
+              (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)))) U⟩ : (mach).Cfg)) := by
+          rw [show 2 * c + 3 * y₁ + 11 = (2 * c + 2 * y₁ + 9) + (y₁ + 2) by omega]
+          rw [Function.iterate_add]
+          exact congrArg (fun x => (flip bind Sstep)^[2 * c + 2 * y₁ + 9] x) (by simpa using h6)
+    _ = (flip bind Sstep)^[2 * c + 2 * y₁ + 8]
+          (some (⟨some Label.restoreVal, St.rs not₅ Op.varEmit, stk inp T c V F
+            (List.replicate (y₁ + 1) ()) (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+              (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))) U⟩ : (mach).Cfg)) := by
+          rw [show 2 * c + 2 * y₁ + 9 = (2 * c + 2 * y₁ + 8) + 1 by omega]
+          rw [Function.iterate_add]
+          simpa using h7
+    _ = (flip bind Sstep)^[2 * c + y₁ + 6]
+          (some (⟨some Label.not₅, St.rsDone not₅ varEmit, stk inp T c (List.replicate (y₁ + 1) true ++ V) F []
+            (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+              (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))) U⟩ : (mach).Cfg)) := by
+          rw [show 2 * c + 2 * y₁ + 8 = (2 * c + y₁ + 6) + (y₁ + 2) by omega]
+          rw [Function.iterate_add]
+          exact congrArg (fun x => (flip bind Sstep)^[2 * c + y₁ + 6] x) h8
+    _ = (flip bind Sstep)^[2 * c + y₁ + 5]
+          (some (⟨some Label.moveCnt, St.mv not₆ Op.auxEmit, stk inp T c (List.replicate (y₁ + 1) true ++ V) F []
+            (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+              (varMark :: negMark :: endMark :: (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))) U⟩ : (mach).Cfg)) := by
+          rw [show 2 * c + y₁ + 6 = (2 * c + y₁ + 5) + 1 by omega]
+          rw [Function.iterate_add]
+          simpa using h9
+    _ = (flip bind Sstep)^[c + y₁ + 4]
+          (some (⟨some Label.not₆, St.rsDone not₆ auxEmit, stk inp T 0 (List.replicate (y₁ + 1) true ++ V) F
+            (List.replicate c ()) (List.replicate c endMark ++ (varMark :: posMark :: clauseMark ::
+              (List.replicate (y₁ + 1) endMark ++ (varMark :: negMark :: endMark ::
+                (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)))))) U⟩ : (mach).Cfg)) := by
+          rw [show 2 * c + y₁ + 5 = (c + y₁ + 4) + (c + 1) by omega]
+          rw [Function.iterate_add]
+          exact congrArg (fun x => (flip bind Sstep)^[c + y₁ + 4] x) (by simpa using h10)
+    _ = (flip bind Sstep)^[c + y₁ + 3]
+          (some (⟨some Label.moveVal, St.mv constMake Op.varPop, stk inp T 0 (List.replicate (y₁ + 1) true ++ V) F
+            (List.replicate c ()) (varMark :: posMark :: endMark :: (List.replicate c endMark ++
+              (varMark :: posMark :: clauseMark :: (List.replicate (y₁ + 1) endMark ++
+                (varMark :: negMark :: endMark :: (List.replicate c endMark ++
+                  (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O))))))) U⟩ : (mach).Cfg)) := by
+          rw [show c + y₁ + 4 = (c + y₁ + 3) + 1 by omega]
+          rw [Function.iterate_add]
+          simpa using h11
+    _ = (flip bind Sstep)^[c + 1]
+          (some (⟨some Label.constMake, St.rsDone constMake varPop, stk inp T 0 V F
+            (List.replicate c ()) (List.replicate (y₁ + 1) endMark ++ (varMark :: posMark :: endMark ::
+              (List.replicate c endMark ++ (varMark :: posMark :: clauseMark ::
+                (List.replicate (y₁ + 1) endMark ++ (varMark :: negMark :: endMark ::
+                  (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)))))))) U⟩ : (mach).Cfg)) := by
+          rw [show c + y₁ + 3 = (c + 1) + (y₁ + 2) by omega]
+          rw [Function.iterate_add]
+          exact congrArg (fun x => (flip bind Sstep)^[c + 1] x) h12
+    _ = some (⟨some Label.reduce, St.done, stk inp T (c + 1)
+          (false :: List.replicate (c + 1) true ++ V) F []
+          (List.replicate (y₁ + 1) endMark ++ (varMark :: posMark :: endMark ::
+            (List.replicate c endMark ++ (varMark :: posMark :: clauseMark ::
+              (List.replicate (y₁ + 1) endMark ++ (varMark :: negMark :: endMark ::
+                (List.replicate c endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)))))))) U⟩ : (mach).Cfg) := by
+          rw [show c + 1 = 0 + (c + 1) by omega]
+          rw [Function.iterate_add]
+          simpa using h13
+    _ = some (⟨some Label.reduce, St.done, stk inp T (c + 1)
+          (false :: List.replicate (c + 1) true ++ V) F []
+          ((encCNF (notClauses c y₁)).reverse ++ O) U⟩ : (mach).Cfg) := by
+          apply congrArg some
+          apply Turing.TM2Comp.Cfg_ext
+          · rfl
+          · rfl
+          · funext kk
+            cases kk <;> try simp [stk]
+            rw [encCNF_notClauses_reverse, encClause_pos_reverse, encClause_neg_reverse]
+            simp [List.append_assoc, List.cons_append, List.replicate_succ]
 
 end TM3CNF
 
