@@ -1951,11 +1951,18 @@ reads are proved equal to the pure recurrence value.
   - `CLRS.Caching.Farther` / `farthestInFuture`
   - `CLRS.Caching.fifoPolicy` / `fifo_step_of_mem` / `fifo_step_fault`
   - `CLRS.Caching.fifo_step_size`
+  - `CLRS.Caching.exchangeSchedule` / `exchangeSchedule_invariant` /
+    `exchangeSchedule_misses_le`: one exchange step at the first disagreement
+    never increases the miss count (the good event at the first `q` request
+    compensates the unique bad event at the first `q'` request)
 - Proof pattern: total-function policy model; the farthest-in-future choice
   as a maximum over next-use positions with `none` (never requested again)
   as the top element.
-- Current gap: the optimality theorem (`fifo_optimal`, CLRS Theorem 15.5)
-  — the classical exchange argument over request suffixes.
+- Current gap: the iterated exchange concluding `fifo_optimal` (CLRS Theorem
+  15.5) — the exchange schedule can evict an absent page (a no-op) when it
+  already lacks `q'` or when its cache is a subset of `d`'s, so the counting
+  lemma's `hdreduced` hypothesis must be relaxed or the schedule repaired
+  before it can serve as the base of the next exchange step.
 
 ## Chapter 16 - Greedy Algorithms
 
