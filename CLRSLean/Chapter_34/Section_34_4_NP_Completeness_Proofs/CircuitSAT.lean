@@ -19,10 +19,12 @@ Main results:
   `circuitSatisfiable_iff_satisfiable_circuitToFormula` (Lemma 34.6, the
   semantic half).
 
-**Current gap**: the polynomial-time machine computing the reduction (the
-list encoding of `circuitToFormula` over `FormulaSym`) is not yet built, so
-`PolyTimeReducible CIRCUIT_SAT SAT` is not yet assembled.  The semantic
-equivalence above is the mathematical core.
+**Current gap**: the polynomial-time TM2 machine computing
+`circuitToFormulaList` (the list encoding of `circuitToFormula` over the
+`FormulaSym` alphabet) is not yet built, so `PolyTimeReducible CIRCUIT_SAT SAT`
+is not yet assembled.  The semantic equivalence and the list encoding
+(`enc`, `circuitToFormulaList`, and `circuitToFormulaList_eq_enc`) are in
+place; the machine is the next step.
 
 Design (offset wires so every gate has two predecessors):
 
@@ -288,6 +290,72 @@ theorem circuitSatisfiable_iff_satisfiable_circuitToFormula (gates : List Gate) 
     rw [circuitToFormula] at hτ
     simp [Formula.eval, Bool.and_eq_true] at hτ
     exact hτ.1
+
+/-- The output alphabet of the reduction: prefix-polish formula symbols. -/
+inductive FormulaSym : Type
+  | lit (b : Bool)
+  | varMark | endMark
+  | notMark | andMark | orMark | iffMark
+deriving DecidableEq, Repr, Fintype, Inhabited
+
+/-- Encode a variable as `varMark` followed by `i + 1` `endMark`s (unary index). -/
+def varEnc (i : Nat) : List FormulaSym :=
+  FormulaSym.varMark :: List.replicate (i + 1) FormulaSym.endMark
+
+/-- Encode a formula in prefix-polish form. -/
+def enc : Formula → List FormulaSym
+  | Formula.var i => varEnc i
+  | Formula.const b => [FormulaSym.lit b]
+  | Formula.not f => FormulaSym.notMark :: enc f
+  | Formula.and f g => FormulaSym.andMark :: (enc f ++ enc g)
+  | Formula.or f g => FormulaSym.orMark :: (enc f ++ enc g)
+  | Formula.iff f g => FormulaSym.iffMark :: (enc f ++ enc g)
+
+/-- Encode a gate's expression formula (in terms of the wire index) as a list. -/
+def gateExprEnc (i : Nat) (g : Gate) : List FormulaSym :=
+  match g with
+  | Gate.input => varEnc (i + 2)
+  | Gate.const b => [FormulaSym.lit b]
+  | Gate.not => FormulaSym.notMark :: varEnc (i + 1)
+  | Gate.and => FormulaSym.andMark :: (varEnc (i + 1) ++ varEnc i)
+  | Gate.or => FormulaSym.orMark :: (varEnc (i + 1) ++ varEnc i)
+
+/-- Encode the consistency formula of gate `i`. -/
+def gateFormulaEnc (i : Nat) (g : Gate) : List FormulaSym :=
+  FormulaSym.iffMark :: (varEnc (i + 2) ++ gateExprEnc i g)
+
+/-- The list of gate-consistency encodings, each prefixed by `andMark`. -/
+def gateFormulasList : Nat → List Gate → List FormulaSym
+  | _, [] => []
+  | i, g :: rest => (FormulaSym.andMark :: gateFormulaEnc i g) ++ gateFormulasList (i + 1) rest
+
+/-- The reduction `circuitToFormula` at the list-encoding level: the header
+(`andMark`, the output variable), each gate's consistency formula in order, and
+the trailing `lit true`. -/
+def circuitToFormulaList (gates : List Gate) : List FormulaSym :=
+  FormulaSym.andMark :: (varEnc (gates.length + 1) ++ gateFormulasList 0 gates ++ [FormulaSym.lit true])
+
+/-- The gate-consistency encoding agrees with `enc` on `gateFormula`. -/
+lemma gateFormulaEnc_eq_enc (i : Nat) (g : Gate) :
+    gateFormulaEnc i g = enc (gateFormula i g) := by
+  cases g <;> simp [gateFormulaEnc, gateExprEnc, enc, gateFormula, gateExpr, varEnc]
+
+/-- The list of gate-consistency encodings (plus the trailing `lit true`) agrees
+with `enc` on the folded `gateFormulasAux`. -/
+lemma gateFormulasList_eq_enc (i : Nat) (rest : List Gate) :
+    gateFormulasList i rest ++ [FormulaSym.lit true] = enc (gateFormulasAux i rest) := by
+  induction rest generalizing i with
+  | nil => simp [gateFormulasList, gateFormulasAux, enc]
+  | cons g rest' ih =>
+      simp [gateFormulasList]
+      rw [gateFormulaEnc_eq_enc i g]
+      simp [gateFormulasAux, enc]
+      rw [← ih]
+
+/-- The list encoding agrees with `enc` on `circuitToFormula`. -/
+lemma circuitToFormulaList_eq_enc (gates : List Gate) :
+    circuitToFormulaList gates = enc (circuitToFormula gates) := by
+  simp [circuitToFormulaList, circuitToFormula, enc, gateFormulas, gateFormulasList_eq_enc, List.append_assoc]
 
 end Chapter34
 
