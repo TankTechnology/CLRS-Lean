@@ -1966,20 +1966,28 @@ reads are proved equal to the pure recurrence value.
     reduced at every fault after the first `q'` request, so the
     "reduced from a bound on" state needed by the iteration is preserved
     from one exchange to the next (the bound grows to `max hnb J'`)
+  - `CLRS.Caching.exchangeSchedule_misses_le_plus_one`: the exchange saves a
+    spare miss when the bad event did not occur (either `q'` is never
+    requested again and `q` is, or `d` evicts `q'` before its first request)
+  - `CLRS.Caching.repairSchedule` / `repair_step` / `repairSchedule_window` /
+    `repairSchedule_superset`: replacing a no-op eviction at the first
+    disagreement by the policy's choice (evicted again at its first request,
+    so the caches coincide afterwards) costs at most one extra miss and
+    extends agreement by one position
 - Proof pattern: total-function policy model; the farthest-in-future choice
   as a maximum over next-use positions with `none` (never requested again)
   as the top element.
 - Current gap: the iterated exchange concluding `fifo_optimal` (CLRS Theorem
-  15.5).  The per-step engine is in place (`exchange_step` never increases
-  misses and extends agreement; `exchangeSchedule_reduced_after` preserves
-  the reducedness state), so the remaining work is the iteration assembly:
-  when the first disagreement falls at or before the reducedness bound (a
-  position where an earlier exchange scheduled a no-op eviction of an absent
-  `q'`), the iteration needs a repair step (replacing the no-op eviction by
-  the policy's choice, costing at most one extra miss) together with the
-  compensating slack from exchanges whose bad event did not occur; the
-  boundary case where the first disagreement lands exactly on the previous
-  `q'` request needs the most care.
+  15.5).  All the pieces are in place — `exchange_step` (never increases
+  misses, extends agreement), `exchangeSchedule_reduced_after` (preserves the
+  reducedness state), `exchangeSchedule_misses_le_plus_one` (spare miss when
+  the bad event did not occur), and `repair_step` (replacing a no-op
+  eviction by the policy's choice costs at most one extra miss, paid by the
+  slack) — so the remaining work is the iteration state machine: tracking
+  the reducedness bound, the previous `q'`/`J'` and the accumulated slack,
+  choosing between the exchange and the repair at each first disagreement,
+  and the boundary case where the first disagreement lands exactly on the
+  previous `q'` request.
 
 ## Chapter 16 - Greedy Algorithms
 
