@@ -17,10 +17,11 @@ Main results:
   `Formula.Satisfiable φ`, plus the input-length variant
   `cnfSatisfiable_to3CNF_len_iff` used by the machine.
 
-**Current status**: semantic model, reduction, and the satisfiability
-preservation theorem (`cnfSatisfiable_to3CNF_iff`) are in place.  The list
-encoding, the reduction machine, and its `outputsFun` (assembling
-`PolyTimeReducible SAT ThreeCNFSat`) are pending.
+**Current status**: semantic model, reduction, the satisfiability
+preservation theorem (`cnfSatisfiable_to3CNF_iff`), and the list encoding
+(`CNFSym`, `encCNF`, `decodeCNF`, `decodeCNF_encCNF`, and the language
+`ThreeCNFSat`) are in place.  The reduction machine and its `outputsFun`
+(assembling `PolyTimeReducible SAT ThreeCNFSat`) are pending.
 -/
 
 namespace CLRS
@@ -122,11 +123,6 @@ def to3CNF' : Formula → Nat → CNF × Nat × Nat
 def to3CNF (φ : Formula) : CNF :=
   let (c, y, _) := to3CNF' φ (numVars φ)
   c ++ forceTrue y
-
-/-- **3-CNF-SAT**: the language of satisfiable CNF formulas whose clauses have
-at most three literals, encoded as literal lists. -/
-def ThreeCNFSat : Language (List Literal) :=
-  { f | CnfSatisfiable f }
 
 -- ============================================================
 -- Template correctness
@@ -1120,6 +1116,336 @@ lemma cnfSatisfiable_to3CNF'_iff (f : Formula) (next : Nat) (hnext : next ≥ nu
 def to3CNF_len (φ : Formula) (n : Nat) : CNF :=
   let (c, y, _) := to3CNF' φ n
   c ++ forceTrue y
+
+-- ============================================================
+-- List encoding of CNF formulas
+-- ============================================================
+
+/-- The output alphabet of the reduction: clause and literal symbols. -/
+inductive CNFSym : Type
+  | clauseMark
+  | posMark | negMark
+  | varMark | endMark
+deriving DecidableEq, Repr, Fintype, Inhabited
+
+/-- The polarity marker of a literal. -/
+def litSym (l : Literal) : CNFSym :=
+  match l with | Literal.pos _ => CNFSym.posMark | Literal.neg _ => CNFSym.negMark
+
+/-- Encode a literal as `polMark :: varMark :: (i + 1) endMark`s (unary index). -/
+def encLit (l : Literal) : List CNFSym :=
+  litSym l :: CNFSym.varMark :: List.replicate (litIndex l + 1) CNFSym.endMark
+
+/-- Encode a clause as `clauseMark` followed by its literal encodings. -/
+def encClause (c : Clause) : List CNFSym :=
+  CNFSym.clauseMark :: c.flatMap encLit
+
+/-- Encode a CNF formula as the concatenation of its clause encodings. -/
+def encCNF (f : CNF) : List CNFSym :=
+  f.flatMap encClause
+
+/-- A suffix that does not begin with an `endMark`, so a variable's unary index
+run cannot run into it.  Continuations after a literal encoding satisfy this. -/
+def ValidSuffixCNF (syms : List CNFSym) : Prop :=
+  syms.head? ≠ some CNFSym.endMark
+
+lemma validSuffixCNF_nil : ValidSuffixCNF [] := by
+  simp [ValidSuffixCNF]
+
+lemma validSuffixCNF_encLit (l : Literal) (rest : List CNFSym) :
+    ValidSuffixCNF (encLit l ++ rest) := by
+  cases l <;> simp [encLit, litSym, ValidSuffixCNF]
+
+lemma validSuffixCNF_bind_encLit (c : Clause) : ValidSuffixCNF (c.flatMap encLit) := by
+  cases c with
+  | nil => simp [ValidSuffixCNF]
+  | cons l rest => cases l <;> simp [ValidSuffixCNF, encLit, litSym, List.flatMap]
+
+/-- Consume a unary variable index: `endMark`s are counted from `i`. -/
+def decodeCNFVarIdx : Nat → List CNFSym → Nat × List CNFSym
+  | i, CNFSym.endMark :: rest => decodeCNFVarIdx (i + 1) rest
+  | i, rest => (i, rest)
+
+/-- `decodeCNFVarIdx` leaves a suffix no longer than its input. -/
+lemma decodeCNFVarIdx_suffix_le (i : Nat) (syms : List CNFSym) :
+    (decodeCNFVarIdx i syms).2.length ≤ syms.length := by
+  induction syms generalizing i with
+  | nil => simp [decodeCNFVarIdx]
+  | cons s rest ih =>
+      by_cases hs : s = CNFSym.endMark
+      · subst s
+        simp [decodeCNFVarIdx]
+        have h := ih (i + 1)
+        omega
+      · simp [decodeCNFVarIdx, hs]
+
+/-- `decodeCNFVarIdx` on a valid continuation leaves it untouched. -/
+lemma decodeCNFVarIdx_valid (i : Nat) {rest : List CNFSym} (hv : ValidSuffixCNF rest) :
+    decodeCNFVarIdx i rest = (i, rest) := by
+  cases rest with
+  | nil => simp [decodeCNFVarIdx]
+  | cons s rest' =>
+      have hsne : s ≠ CNFSym.endMark := by
+        intro hse
+        apply hv
+        rw [hse]
+        rfl
+      by_cases hse : s = CNFSym.endMark
+      · exfalso
+        exact hsne hse
+      · simp [decodeCNFVarIdx, hse]
+
+/-- `decodeCNFVarIdx` consumes `j` `endMark`s, raising the index by `j`. -/
+lemma decodeCNFVarIdx_replicate (i j : Nat) {rest : List CNFSym} (hv : ValidSuffixCNF rest) :
+    decodeCNFVarIdx i (List.replicate j CNFSym.endMark ++ rest) = (i + j, rest) := by
+  induction j generalizing i with
+  | zero => simpa using decodeCNFVarIdx_valid i hv
+  | succ j ih =>
+      rw [List.replicate_succ, List.cons_append, decodeCNFVarIdx]
+      have h := ih (i + 1)
+      rw [h]
+      simp [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+
+/-- Decode one literal, consuming its polarity mark, `varMark`, and the first
+`endMark` of its unary index.  Malformed input consumes one symbol as junk. -/
+def decodeLit : List CNFSym → Literal × List CNFSym
+  | CNFSym.posMark :: CNFSym.varMark :: CNFSym.endMark :: rest =>
+      let (i, rest') := decodeCNFVarIdx 0 rest
+      (Literal.pos i, rest')
+  | CNFSym.negMark :: CNFSym.varMark :: CNFSym.endMark :: rest =>
+      let (i, rest') := decodeCNFVarIdx 0 rest
+      (Literal.neg i, rest')
+  | _ :: rest => (Literal.pos 0, rest)
+  | [] => (Literal.pos 0, [])
+
+/-- `decodeLit` leaves a suffix strictly shorter than a nonempty input. -/
+lemma decodeLit_suffix_lt (s : CNFSym) (rest : List CNFSym) :
+    (decodeLit (s :: rest)).2.length < (s :: rest).length := by
+  by_cases hs : s = CNFSym.posMark
+  · subst s
+    cases rest with
+    | nil => simp [decodeLit]
+    | cons s' rest' =>
+        by_cases hs' : s' = CNFSym.varMark
+        · subst s'
+          cases rest' with
+          | nil => simp [decodeLit]
+          | cons s'' rest'' =>
+              by_cases hs'' : s'' = CNFSym.endMark
+              · subst s''
+                simp [decodeLit]
+                have h := decodeCNFVarIdx_suffix_le 0 rest''
+                omega
+              · simp [decodeLit, hs'']
+        · simp [decodeLit, hs']
+  · by_cases hneg : s = CNFSym.negMark
+    · subst s
+      cases rest with
+      | nil => simp [decodeLit]
+      | cons s' rest' =>
+          by_cases hs' : s' = CNFSym.varMark
+          · subst s'
+            cases rest' with
+            | nil => simp [decodeLit]
+            | cons s'' rest'' =>
+                by_cases hs'' : s'' = CNFSym.endMark
+                · subst s''
+                  simp [decodeLit]
+                  have h := decodeCNFVarIdx_suffix_le 0 rest''
+                  omega
+                · simp [decodeLit, hs'']
+          · simp [decodeLit, hs']
+    · simp [decodeLit, hs, hneg]
+
+/-- Decode the literals of one clause, stopping at the next `clauseMark` or the
+end of the list. -/
+def decodeLits : List CNFSym → Clause × List CNFSym
+  | [] => ([], [])
+  | CNFSym.clauseMark :: rest => ([], CNFSym.clauseMark :: rest)
+  | l :: rest =>
+      ((decodeLit (l :: rest)).1 :: (decodeLits (decodeLit (l :: rest)).2).1,
+        (decodeLits (decodeLit (l :: rest)).2).2)
+termination_by syms => syms.length
+decreasing_by
+  exact decodeLit_suffix_lt l rest
+
+/-- `decodeLits` leaves a suffix no longer than its input. -/
+lemma decodeLits_suffix_le (syms : List CNFSym) : (decodeLits syms).2.length ≤ syms.length := by
+  let P : List CNFSym → Prop := fun l => (decodeLits l).2.length ≤ l.length
+  have hwf : ∀ n : Nat, ∀ l : List CNFSym, l.length = n → P l := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        intro l hl
+        cases l with
+        | nil => simp [P, decodeLits.eq_1]
+        | cons s rest =>
+            by_cases hs : s = CNFSym.clauseMark
+            · subst s
+              simp [P, decodeLits.eq_2]
+            · rcases hdec : decodeLit (s :: rest) with ⟨lit, rest'⟩
+              have hb : (decodeLit (s :: rest)).2.length < (s :: rest).length :=
+                decodeLit_suffix_lt s rest
+              have hpr : (decodeLit (s :: rest)).2 = rest' := by
+                rw [hdec]
+              have hlt' : rest'.length < (s :: rest).length := by
+                rwa [← hpr]
+              have hih : (decodeLits rest').2.length ≤ rest'.length := by
+                exact ih rest'.length (by omega) rest' rfl
+              change (decodeLits (s :: rest)).2.length ≤ (s :: rest).length
+              rw [decodeLits.eq_3]
+              · simp
+                rw [hpr]
+                exact le_trans hih (Nat.le_of_lt hlt')
+              · exact hs
+  exact hwf syms.length syms rfl
+
+/-- Decode a CNF formula (junk on malformed input). -/
+def decodeCNF : List CNFSym → CNF
+  | [] => []
+  | CNFSym.clauseMark :: rest =>
+      (decodeLits rest).1 :: decodeCNF (decodeLits rest).2
+  | _ :: rest => decodeCNF rest
+termination_by syms => syms.length
+decreasing_by
+  all_goals
+    first
+    | exact Nat.lt_succ_self rest.length
+    | have hle := decodeLits_suffix_le rest
+      have hlt : rest.length < (CNFSym.clauseMark :: rest).length := by simp
+      omega
+
+/-- A list that is empty or begins with `clauseMark`: a clause boundary. -/
+def IsClauseBoundary (syms : List CNFSym) : Prop :=
+  syms = [] ∨ syms.head? = some CNFSym.clauseMark
+
+lemma isClauseBoundary_encCNF (f : CNF) : IsClauseBoundary (encCNF f) := by
+  cases f with
+  | nil => left; rfl
+  | cons c rest => right; simp [encCNF, encClause]
+
+/-- `decodeLits` on a clause boundary returns the empty clause. -/
+lemma decodeLits_boundary (rest : List CNFSym) (hrest : IsClauseBoundary rest) :
+    decodeLits rest = ([], rest) := by
+  rcases hrest with hnil | hclause
+  · subst hnil
+    simp [decodeLits]
+  · cases rest with
+    | nil => contradiction
+    | cons s rest' =>
+        have hs : s = CNFSym.clauseMark := by simpa using hclause
+        subst s
+        simp [decodeLits]
+
+/-- The continuation after a clause's literal encodings, followed by a clause
+boundary, does not begin with an `endMark`. -/
+lemma validSuffixCNF_flatMap_encLit_append (c : Clause) {rest : List CNFSym}
+    (hrest : IsClauseBoundary rest) : ValidSuffixCNF (c.flatMap encLit ++ rest) := by
+  cases c with
+  | nil =>
+      rcases hrest with hnil | hclause
+      · subst hnil
+        simp [ValidSuffixCNF]
+      · cases rest with
+        | nil => contradiction
+        | cons s rest' =>
+            have hs : s = CNFSym.clauseMark := by simpa using hclause
+            subst s
+            simp [ValidSuffixCNF]
+  | cons l rest' =>
+      cases l <;> simp [encLit, litSym, ValidSuffixCNF, List.flatMap]
+
+/-- Decoding a literal's encoding recovers it. -/
+lemma decodeLit_encLit (l : Literal) {rest : List CNFSym} (hv : ValidSuffixCNF rest) :
+    decodeLit (encLit l ++ rest) = (l, rest) := by
+  cases l with
+  | pos i =>
+      have hrep : List.replicate (i + 1) CNFSym.endMark ++ rest =
+          CNFSym.endMark :: (List.replicate i CNFSym.endMark ++ rest) := by
+        rw [show i + 1 = Nat.succ i by omega]
+        simp [List.replicate_succ]
+      have h : decodeCNFVarIdx 0 (List.replicate i CNFSym.endMark ++ rest) = (i, rest) := by
+        simpa using decodeCNFVarIdx_replicate 0 i hv
+      simp [encLit, litSym, litIndex]
+      rw [hrep]
+      simp [decodeLit, h]
+  | neg i =>
+      have hrep : List.replicate (i + 1) CNFSym.endMark ++ rest =
+          CNFSym.endMark :: (List.replicate i CNFSym.endMark ++ rest) := by
+        rw [show i + 1 = Nat.succ i by omega]
+        simp [List.replicate_succ]
+      have h : decodeCNFVarIdx 0 (List.replicate i CNFSym.endMark ++ rest) = (i, rest) := by
+        simpa using decodeCNFVarIdx_replicate 0 i hv
+      simp [encLit, litSym, litIndex]
+      rw [hrep]
+      simp [decodeLit, h]
+
+/-- `decodeLits` consumes one literal's encoding, keeping the rest for later. -/
+lemma decodeLits_encLit_cont (l : Literal) {X : List CNFSym} (hv : ValidSuffixCNF X) :
+    decodeLits (encLit l ++ X) = (l :: (decodeLits X).1, (decodeLits X).2) := by
+  cases l with
+  | pos i =>
+      have hrep : List.replicate (i + 1) CNFSym.endMark ++ X =
+          CNFSym.endMark :: (List.replicate i CNFSym.endMark ++ X) := by
+        rw [show i + 1 = Nat.succ i by omega]
+        simp [List.replicate_succ]
+      have h : decodeCNFVarIdx 0 (List.replicate i CNFSym.endMark ++ X) = (i, X) := by
+        simpa using decodeCNFVarIdx_replicate 0 i hv
+      simp [encLit, litSym, litIndex]
+      rw [hrep]
+      rw [decodeLits.eq_3]
+      · simp [decodeLit]
+        rw [h]
+        simp
+      · intro hcl
+        cases hcl
+  | neg i =>
+      have hrep : List.replicate (i + 1) CNFSym.endMark ++ X =
+          CNFSym.endMark :: (List.replicate i CNFSym.endMark ++ X) := by
+        rw [show i + 1 = Nat.succ i by omega]
+        simp [List.replicate_succ]
+      have h : decodeCNFVarIdx 0 (List.replicate i CNFSym.endMark ++ X) = (i, X) := by
+        simpa using decodeCNFVarIdx_replicate 0 i hv
+      simp [encLit, litSym, litIndex]
+      rw [hrep]
+      rw [decodeLits.eq_3]
+      · simp [decodeLit]
+        rw [h]
+        simp
+      · intro hcl
+        cases hcl
+
+/-- `decodeLits` parses the literal encodings of a clause, leaving a clause
+boundary untouched. -/
+lemma decodeLits_bind_encLit (c : Clause) {rest : List CNFSym}
+    (hrest : IsClauseBoundary rest) :
+    decodeLits (c.flatMap encLit ++ rest) = (c, rest) := by
+  induction c with
+  | nil => simp [decodeLits_boundary, hrest]
+  | cons l rest' ih =>
+      have hv : ValidSuffixCNF (rest'.flatMap encLit ++ rest) :=
+        validSuffixCNF_flatMap_encLit_append rest' hrest
+      have hc := decodeLits_encLit_cont l hv
+      rw [List.flatMap_cons, List.append_assoc]
+      rw [hc, ih]
+
+/-- Decoding an encoded CNF recovers it. -/
+lemma decodeCNF_encCNF (f : CNF) : decodeCNF (encCNF f) = f := by
+  induction f with
+  | nil => simp [encCNF, decodeCNF.eq_1]
+  | cons c rest ih =>
+      have h := decodeLits_bind_encLit c (isClauseBoundary_encCNF rest)
+      rw [encCNF, List.flatMap_cons, encClause, List.cons_append]
+      rw [decodeCNF.eq_2]
+      change (decodeLits (List.flatMap encLit c ++ encCNF rest)).1 ::
+          decodeCNF (decodeLits (List.flatMap encLit c ++ encCNF rest)).2 = c :: rest
+      rw [h]
+      simp [ih]
+
+/-- **3-CNF-SAT**: the language of satisfiable CNF formulas, encoded as symbol
+lists (decoded via `decodeCNF`). -/
+def ThreeCNFSat : Language CNFSym :=
+  { syms | CnfSatisfiable (decodeCNF syms) }
 
 /-- The input-length variant of the satisfiability theorem. -/
 lemma cnfSatisfiable_to3CNF_len_iff (φ : Formula) (n : Nat) (hnext : n ≥ numVars φ) :
