@@ -19,11 +19,15 @@ Main results:
   `circuitSatisfiable_iff_satisfiable_circuitToFormula` (Lemma 34.6, the
   semantic half).
 
-**Current gap**: the machine `Turing.TM2CS.mach` computing
-`circuitToFormulaList` is built, but its `outputsFun` (the phase simulations,
-time bound, and the `TM2ComputableInPolyTime` instance) is not yet proved, so
-`PolyTimeReducible CIRCUIT_SAT SAT` is not yet assembled.  The semantic
-equivalence, the list encoding, and the machine program are in place.
+**Current status**: the semantic equivalence, the list encoding, the machine
+program, and the first two phase lemmas (count, reorder) are in place.  The
+machine's `copyCnt` loops (header/gate-loop variable emission) have a known
+design bug — they pop a counter unit and push it back (restoring the counter,
+so the loop never terminates).  The fix is to add a scratch stack and use a
+move-then-restore copy (counter → scratch → output+counter).  The
+`outputsFun` (phase simulations, time bound, `TM2ComputableInPolyTime`
+instance, and the assembled `PolyTimeReducible CIRCUIT_SAT SAT`) is pending
+that fix.
 
 Design (offset wires so every gate has two predecessors):
 
