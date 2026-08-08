@@ -353,6 +353,8 @@ CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/AndOr.lean
 CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification.lean
 CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification/PairProjection.lean
 CLRSLean/Chapter_34/Section_34_3_NP_Completeness_And_Reducibility.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CircuitSAT.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
