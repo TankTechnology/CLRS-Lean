@@ -2680,6 +2680,271 @@ lemma repair_step (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
         rw [Finset.erase_insert_of_ne hsig_ne]
       rw [hE, hF]
 
+/-- B2 的窗口基础:`q = e t` 为 resident 时,repair 在 `t+1` 的 cache 是
+`insert q ((E(t+1)).erase q')`。 -/
+lemma repairSchedule_base_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF e C₀ σ t)
+    (hdis : schedCache e C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hqin : e t ∈ schedCache e C₀ σ t)
+    (hq' : q' = fifoSchedule σ C₀ t)
+    (hq : q = e t)
+    {j' : ℕ} (hj' : nextUse σ (t + 1) q' = some j') :
+    schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (t + 1) =
+      insert q ((schedCache e C₀ σ (t + 1)).erase q') := by
+  have hft : σ.getD t 0 ∉ schedCache e C₀ σ t := by
+    intro hft
+    have hFt : σ.getD t 0 ∈ schedCache (fifoSchedule σ C₀) C₀ σ t := by
+      rw [← hagree t le_rfl]
+      exact hft
+    have hD : schedCache e C₀ σ (t + 1) = schedCache e C₀ σ t := by
+      rw [schedCache]
+      rw [if_pos hft]
+    have hF : schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) =
+        schedCache (fifoSchedule σ C₀) C₀ σ t := by
+      rw [schedCache]
+      rw [if_pos hFt]
+    exact hdis ((hD.trans (hagree t le_rfl)).trans hF.symm)
+  have hq'res : q' ∈ schedCache e C₀ σ t := by
+    have hfd := first_disagree e σ C₀ hC₀ ht hagree hdis
+    rw [hq']
+    exact hfd.2.2
+  have hqne : q ≠ q' := by
+    have hfd := first_disagree e σ C₀ hC₀ ht hagree hdis
+    intro hqq'
+    exact hfd.2.1 (by rw [← hq, ← hq']; exact hqq')
+  have hsig_ne_q' : σ.getD t 0 ≠ q' := by
+    intro hsig
+    exact hft (hsig ▸ hq'res)
+  have hsig_ne_q : σ.getD t 0 ≠ q := by
+    intro hsig
+    exact hft (hsig ▸ hq ▸ hqin)
+  rw [schedCache]
+  rw [schedCache_repairSchedule_eq_e e t q' (t + 1 + j') (by omega) σ C₀ le_rfl]
+  rw [repairSchedule_at_t]
+  rw [if_neg hft]
+  rw [schedCache]
+  rw [if_neg hft]
+  rw [← hq]
+  rw [Finset.erase_insert_of_ne hsig_ne_q']
+  have hqin' : q ∈ schedCache e C₀ σ t := by
+    rw [hq]
+    exact hqin
+  have hE : (schedCache e C₀ σ t).erase q' =
+      insert q (((schedCache e C₀ σ t).erase q).erase q') := by
+    ext x
+    constructor
+    · intro hx
+      have hxq' : x ≠ q' := (Finset.mem_erase.mp hx).1
+      have hxin : x ∈ schedCache e C₀ σ t := (Finset.mem_erase.mp hx).2
+      rw [Finset.mem_insert]
+      by_cases hxq : x = q
+      · exact Or.inl hxq
+      · exact Or.inr (Finset.mem_erase.mpr ⟨hxq', Finset.mem_erase.mpr ⟨hxq, hxin⟩⟩)
+    · intro hx
+      rw [Finset.mem_insert] at hx
+      rcases hx with hxq | hxin
+      · rw [hxq]
+        exact Finset.mem_erase.mpr ⟨hqne, hqin'⟩
+      · have hx' := Finset.mem_erase.mp (Finset.mem_erase.mp hxin).2
+        exact Finset.mem_erase.mpr ⟨(Finset.mem_erase.mp hxin).1, hx'.2⟩
+  rw [hE]
+  rw [Finset.insert_comm]
+
+/-- 在 `(t, J]` 窗口内,`q` 不在 `e` 的 cache 中(`e` 在 `t` 处逐出 `q`,
+且 `q` 在 `J` 之前未被请求)。 -/
+lemma swap_q_not_mem (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    {t : ℕ} {q : Page} (hq : e t = q) (hqin : q ∈ schedCache e C₀ σ t)
+    (hft : σ.getD t 0 ∉ schedCache e C₀ σ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    {s : ℕ} (hs1 : t < s) (hs2 : s ≤ t + 1 + j) :
+    q ∉ schedCache e C₀ σ s := by
+  induction s with
+  | zero => omega
+  | succ s ih =>
+      by_cases hs_eq : s = t
+      · subst s
+        rw [schedCache]
+        rw [if_neg hft]
+        intro hm
+        rw [Finset.mem_insert] at hm
+        rcases hm with hqr | hqin2
+        · have h : σ.getD t 0 ∈ schedCache e C₀ σ t := by
+            rwa [← hqr]
+          exact hft h
+        · exact (Finset.mem_erase.mp hqin2).1 hq.symm
+      · have hts : t < s := by omega
+        have hsJ' : s < t + 1 + j := by omega
+        have hsig_ne : σ.getD s 0 ≠ q := getD_ne_nextUse (k := s) hj (by omega) hsJ'
+        rw [schedCache]
+        by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+        · rw [if_pos hr]
+          exact ih hts (by omega)
+        · rw [if_neg hr]
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqr | hqin2
+          · exact hsig_ne hqr.symm
+          · exact ih hts (by omega) (Finset.mem_erase.mp hqin2).2
+
+/-- B2 窗口的归纳步(二选一版本):swap 关系 `Ê = insert q (E − q')` 或
+B1 式关系 `Ê = E − q'` 在 `(t, J)` 内保持(前者在 `e` 逐出 `q` 时切换为
+后者)。 -/
+lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF e C₀ σ t)
+    (hdis : schedCache e C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hqin : e t ∈ schedCache e C₀ σ t)
+    (hq' : q' = fifoSchedule σ C₀ t)
+    (hq : q = e t)
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    {j' : ℕ} (hj' : nextUse σ (t + 1) q' = some j')
+    (hjj' : j < j')
+    (s : ℕ) (ih : t < s → s ≤ t + 1 + j →
+      schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ s =
+          insert q ((schedCache e C₀ σ s).erase q')
+        ∨ schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ s =
+          (schedCache e C₀ σ s).erase q')
+    (hts : t < s) (hsJ : s + 1 ≤ t + 1 + j) :
+    schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (s + 1) =
+        insert q ((schedCache e C₀ σ (s + 1)).erase q')
+      ∨ schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (s + 1) =
+        (schedCache e C₀ σ (s + 1)).erase q' := by
+  have hsJ' : s < t + 1 + j := by omega
+  have hsig_ne_q : σ.getD s 0 ≠ q := getD_ne_nextUse (k := s) hj (by omega) hsJ'
+  have hsig_ne_q' : σ.getD s 0 ≠ q' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+  have hds : repairSchedule e t q' (t + 1 + j') s = e s := by
+    unfold repairSchedule
+    simp [show s ≠ t by omega, show s ≠ t + 1 + j' by omega]
+  change (if σ.getD s 0 ∈ schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ s then
+      schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ s
+    else insert (σ.getD s 0) ((schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ s).erase
+      (repairSchedule e t q' (t + 1 + j') s))) =
+        insert q ((if σ.getD s 0 ∈ schedCache e C₀ σ s then schedCache e C₀ σ s
+          else insert (σ.getD s 0) ((schedCache e C₀ σ s).erase (e s))).erase q')
+      ∨ schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (s + 1) =
+        (schedCache e C₀ σ (s + 1)).erase q'
+  rw [hds]
+  rcases ih hts (by omega) with hrel1 | hrel2
+  · -- 关系 1:Ê(s) = insert q (E(s) − q')
+    by_cases hes : e s = q
+    · -- e s = q:hit 时关系 1 保持,fault 时切换为关系 2
+      by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+      · -- σ[s] ∈ E:双方 hit,关系 1 保持
+        have hrE : σ.getD s 0 ∈ insert q ((schedCache e C₀ σ s).erase q') := by
+          rw [Finset.mem_insert]
+          right
+          rw [Finset.mem_erase]
+          constructor
+          · exact hsig_ne_q'
+          · exact hr
+        left
+        rw [hrel1]
+        rw [hes]
+        rw [if_pos hrE]
+        rw [if_pos hr]
+      · -- fault:关系 2
+        have hrE : σ.getD s 0 ∉ insert q ((schedCache e C₀ σ s).erase q') := by
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqeq | hmem
+          · exact hsig_ne_q hqeq
+          · exact hr (Finset.mem_erase.mp hmem).2
+        have hqnotE : q ∉ schedCache e C₀ σ s :=
+          swap_q_not_mem e σ C₀ hq.symm (by rw [hq]; exact hqin) (by
+            intro hft
+            have hFt : σ.getD t 0 ∈ schedCache (fifoSchedule σ C₀) C₀ σ t := by
+              rw [← hagree t le_rfl]
+              exact hft
+            have hD : schedCache e C₀ σ (t + 1) = schedCache e C₀ σ t := by
+              rw [schedCache]
+              rw [if_pos hft]
+            have hF : schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) =
+                schedCache (fifoSchedule σ C₀) C₀ σ t := by
+              rw [schedCache]
+              rw [if_pos hFt]
+            exact hdis ((hD.trans (hagree t le_rfl)).trans hF.symm)) hj
+            (by omega) (by omega)
+        have hqnotE' : q ∉ (schedCache e C₀ σ s).erase q' := by
+          intro hm
+          exact hqnotE (Finset.mem_erase.mp hm).2
+        right
+        rw [schedCache]
+        rw [hrel1]
+        rw [hds]
+        rw [hes]
+        rw [if_neg hrE]
+        rw [Finset.erase_insert hqnotE']
+        rw [show schedCache e C₀ σ (s + 1) =
+            if σ.getD s 0 ∈ schedCache e C₀ σ s then schedCache e C₀ σ s
+            else insert (σ.getD s 0) ((schedCache e C₀ σ s).erase (e s)) by
+          rw [schedCache]]
+        rw [hes]
+        rw [if_neg hr]
+        rw [Finset.erase_eq_of_notMem hqnotE]
+        rw [Finset.erase_insert_of_ne hsig_ne_q']
+    · -- e s ≠ q:关系 1 保持
+      left
+      rw [hrel1]
+      by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+      · -- both hit
+        have hr' : σ.getD s 0 ∈ insert q ((schedCache e C₀ σ s).erase q') := by
+          rw [Finset.mem_insert]
+          right
+          rw [Finset.mem_erase]
+          constructor
+          · exact hsig_ne_q'
+          · exact hr
+        rw [if_pos hr, if_pos hr']
+      · -- both fault
+        rw [if_neg hr]
+        have hr' : σ.getD s 0 ∉ insert q ((schedCache e C₀ σ s).erase q') := by
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqeq | hmem
+          · exact hsig_ne_q hqeq
+          · exact hr (Finset.mem_erase.mp hmem).2
+        rw [if_neg hr']
+        rw [Finset.erase_insert_of_ne hsig_ne_q']
+        have hqne_es : q ≠ e s := Ne.symm hes
+        rw [show (insert q ((schedCache e C₀ σ s).erase q')).erase (e s) =
+            insert q (((schedCache e C₀ σ s).erase q').erase (e s)) from
+          Finset.erase_insert_of_ne hqne_es]
+        rw [Finset.insert_comm]
+        have herase_comm : ((schedCache e C₀ σ s).erase q').erase (e s) =
+            ((schedCache e C₀ σ s).erase (e s)).erase q' := by
+          ext x
+          simp [Finset.mem_erase, and_left_comm, and_assoc]
+        rw [herase_comm]
+  · -- 关系 2:Ê(s) = E(s) − q'(B1 式),保持
+    right
+    rw [schedCache]
+    rw [hrel2]
+    rw [hds]
+    rw [show schedCache e C₀ σ (s + 1) =
+        if σ.getD s 0 ∈ schedCache e C₀ σ s then schedCache e C₀ σ s
+        else insert (σ.getD s 0) ((schedCache e C₀ σ s).erase (e s)) by
+      rw [schedCache]]
+    by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+    · -- both hit
+      have hr' : σ.getD s 0 ∈ (schedCache e C₀ σ s).erase q' := by
+        rw [Finset.mem_erase]
+        constructor
+        · exact hsig_ne_q'
+        · exact hr
+      rw [if_pos hr, if_pos hr']
+    · -- both fault
+      rw [if_neg hr]
+      have hr' : σ.getD s 0 ∉ (schedCache e C₀ σ s).erase q' := by
+        intro hm
+        exact hr (Finset.mem_erase.mp hm).2
+      rw [if_neg hr']
+      rw [Finset.erase_insert_of_ne hsig_ne_q']
+      have herase_comm : ((schedCache e C₀ σ s).erase q').erase (e s) =
+          ((schedCache e C₀ σ s).erase (e s)).erase q' := by
+        ext x
+        simp [Finset.mem_erase, and_left_comm, and_assoc]
+      rw [herase_comm]
+
 end Caching
 
 end CLRS
