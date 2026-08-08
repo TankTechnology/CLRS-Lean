@@ -1874,7 +1874,7 @@ lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool)
           rw [show 4 * c + 3 * y₁ + 16 = (4 * c + 3 * y₁ + 15) + 1 by omega]
           rw [Function.iterate_add]
           rw [Function.iterate_one]
-          exact congrArg (fun x => (flip bind Sstep)^[4 * c + 3 * y₁ + 15] x) (by simpa [flip, mach] using h1)
+          exact congrArg (fun x => (flip bind Sstep)^[4 * c + 3 * y₁ + 15] x) h1
     _ = (flip bind Sstep)^[3 * c + 3 * y₁ + 14]
           (some (⟨some Label.not₂, St.rsDone Label.not₂ Op.auxEmit, stk inp T 0 (List.replicate (y₁ + 1) true ++ V) F
             (List.replicate c ()) (List.replicate c CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
@@ -1887,7 +1887,7 @@ lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool)
           rw [show 3 * c + 3 * y₁ + 14 = (3 * c + 3 * y₁ + 13) + 1 by omega]
           rw [Function.iterate_add]
           rw [Function.iterate_one]
-          exact congrArg (fun x => (flip bind Sstep)^[3 * c + 3 * y₁ + 13] x) (by simpa [flip, mach] using h3)
+          exact congrArg (fun x => (flip bind Sstep)^[3 * c + 3 * y₁ + 13] x) h3
     _ = (flip bind Sstep)^[2 * c + 3 * y₁ + 12]
           (some (⟨some Label.not₃, St.rsDone Label.not₃ Op.auxEmit, stk inp T c (List.replicate (y₁ + 1) true ++ V) F []
             (List.replicate c CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.negMark :: CNFSym.clauseMark :: O)) U⟩ : (mach).Cfg)) := by
@@ -1900,7 +1900,7 @@ lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool)
           rw [show 2 * c + 3 * y₁ + 12 = (2 * c + 3 * y₁ + 11) + 1 by omega]
           rw [Function.iterate_add]
           rw [Function.iterate_one]
-          exact congrArg (fun x => (flip bind Sstep)^[2 * c + 3 * y₁ + 11] x) (by simpa [flip, mach] using h5)
+          exact congrArg (fun x => (flip bind Sstep)^[2 * c + 3 * y₁ + 11] x) h5
     _ = (flip bind Sstep)^[2 * c + 2 * y₁ + 9]
           (some (⟨some Label.not₄, St.rsDone Label.not₄ Op.varEmit, stk inp T c V F
             (List.replicate (y₁ + 1) ()) (List.replicate (y₁ + 1) CNFSym.endMark ++
@@ -1915,7 +1915,7 @@ lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool)
           rw [show 2 * c + 2 * y₁ + 9 = (2 * c + 2 * y₁ + 8) + 1 by omega]
           rw [Function.iterate_add]
           rw [Function.iterate_one]
-          exact congrArg (fun x => (flip bind Sstep)^[2 * c + 2 * y₁ + 8] x) (by simpa [flip, mach] using h7)
+          exact congrArg (fun x => (flip bind Sstep)^[2 * c + 2 * y₁ + 8] x) h7
     _ = (flip bind Sstep)^[2 * c + y₁ + 6]
           (some (⟨some Label.not₅, St.rsDone Label.not₅ Op.varEmit, stk inp T c (List.replicate (y₁ + 1) true ++ V) F []
             (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark :: (List.replicate (y₁ + 1) CNFSym.endMark ++
@@ -1930,7 +1930,7 @@ lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool)
           rw [show 2 * c + y₁ + 6 = (2 * c + y₁ + 5) + 1 by omega]
           rw [Function.iterate_add]
           rw [Function.iterate_one]
-          exact congrArg (fun x => (flip bind Sstep)^[2 * c + y₁ + 5] x) (by simpa [flip, mach] using h9)
+          exact congrArg (fun x => (flip bind Sstep)^[2 * c + y₁ + 5] x) h9
     _ = (flip bind Sstep)^[c + y₁ + 4]
           (some (⟨some Label.not₆, St.rsDone Label.not₆ Op.auxEmit, stk inp T 0 (List.replicate (y₁ + 1) true ++ V) F
             (List.replicate c ()) (List.replicate c CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.clauseMark ::
@@ -1948,7 +1948,7 @@ lemma not_phase (inp T : List FormulaSym) (c : Nat) (y₁ : Nat) (V : List Bool)
           rw [show c + y₁ + 4 = (c + y₁ + 3) + 1 by omega]
           rw [Function.iterate_add]
           rw [Function.iterate_one]
-          exact congrArg (fun x => (flip bind Sstep)^[c + y₁ + 3] x) (by simpa [flip, mach] using h11)
+          exact congrArg (fun x => (flip bind Sstep)^[c + y₁ + 3] x) h11
     _ = (flip bind Sstep)^[c + 1]
           (some (⟨some Label.constMake, St.rsDone Label.constMake Op.varPop, stk inp T 0 V F
             (List.replicate c ()) (List.replicate (y₁ + 1) CNFSym.endMark ++ (CNFSym.varMark :: CNFSym.posMark :: CNFSym.endMark ::
