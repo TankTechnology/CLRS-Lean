@@ -2945,6 +2945,37 @@ lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Fins
         simp [Finset.mem_erase, and_left_comm, and_assoc]
       rw [herase_comm]
 
+
+
+/-- B2 的窗口(二选一):`q = e t` 为 resident 时,repair 的 cache 在
+`(t, J]` 内是 `insert q (E − q')`(swap 关系)或 `E − q'`(B1 式关系,
+在 `e` 逐出 `q` 之后)。 -/
+lemma repairSchedule_window_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF e C₀ σ t)
+    (hdis : schedCache e C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hqin : e t ∈ schedCache e C₀ σ t)
+    (hq' : q' = fifoSchedule σ C₀ t)
+    (hq : q = e t)
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    {j' : ℕ} (hj' : nextUse σ (t + 1) q' = some j')
+    (hjj' : j < j')
+    {s : ℕ} (hs1 : t < s) (hs2 : s ≤ t + 1 + j) :
+    schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ s =
+        insert q ((schedCache e C₀ σ s).erase q')
+      ∨ schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ s =
+        (schedCache e C₀ σ s).erase q' := by
+  induction s with
+  | zero => omega
+  | succ s ih =>
+      by_cases hs_eq : s = t
+      · subst s
+        left
+        exact repairSchedule_base_swap e σ C₀ hC₀ ht hagree hdis hqin hq' hq hj'
+      · exact repairSchedule_step_swap' e σ C₀ hC₀ ht hagree hdis hqin hq' hq hj hj' hjj' s ih
+          (by omega) (by omega)
+
 end Caching
 
 end CLRS
