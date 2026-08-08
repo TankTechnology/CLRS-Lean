@@ -3530,11 +3530,12 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.StableMarriage.gs_terminates_le_n_sq`
   - `CLRS.StableMarriage.gs_stable` (Theorem 25.5)
   - `CLRS.StableMarriage.stable_matching_exists`
+  - `CLRS.StableMarriage.gs_perfect`
 - Proof pattern: a functional proposal loop over rank functions, well-founded
   on the pending-proposal count; stability from the loop invariants (a woman's
-  partner only improves; proposed sets are rank prefixes).
-- Current gap: perfectness (all men matched when |M| = |W|, via the
-  matched-pair cardinality argument) and man-optimality remain.
+  partner only improves; proposed sets are rank prefixes); perfectness from
+  the partner-map cardinality bijection.
+- Current gap: man-optimality remains.
 
 ## Chapter 26 - Maximum Flow
 
