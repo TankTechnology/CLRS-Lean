@@ -946,6 +946,48 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
       rw [if_pos hdsin]
       exact hdsin
 
+
+/-- 若 `q'` 在 `t` 处被 `d` 真逐出(且 `t` 处 `d` 缺页),则到其首次请求
+`J'` 为止 `q'` 不在 `d` 的 cache 中(坏事件未发生)。 -/
+lemma evicted_page_absent_until_request (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (t : ℕ) (q' : Page)
+    (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    (hq'res : q' ∈ schedCache d C₀ σ t)
+    (hevict : d t = q')
+    {j' : ℕ} (hj' : nextUse σ (t + 1) q' = some j') :
+    q' ∉ schedCache d C₀ σ (t + 1 + j') := by
+  have hmain : ∀ s, t + 1 ≤ s → s ≤ t + 1 + j' → q' ∉ schedCache d C₀ σ s := by
+    intro s
+    induction s with
+    | zero => omega
+    | succ s ih =>
+        intro hs1 hs2
+        by_cases hst : s = t
+        · -- base:s+1 = t+1
+          subst s
+          rw [schedCache]
+          rw [if_neg hft]
+          rw [hevict]
+          intro hm
+          rcases Finset.mem_insert.mp hm with hq'r | hq'E
+          · exact hft (hq'r.symm ▸ hq'res)
+          · exact (Finset.mem_erase.mp hq'E).1 rfl
+        · -- step:q' 在 s 处不在(ih),且 s 处请求 ≠ q'
+          have hs1' : t + 1 ≤ s := by omega
+          have hs2' : s ≤ t + 1 + j' := by omega
+          have hq'not : q' ∉ schedCache d C₀ σ s := ih hs1' hs2'
+          have hneq : σ.getD s 0 ≠ q' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+          rw [schedCache]
+          by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
+          · rw [if_pos hr]
+            exact hq'not
+          · rw [if_neg hr]
+            intro hm
+            rcases Finset.mem_insert.mp hm with hq'r | hq'E
+            · exact hneq hq'r.symm
+            · exact hq'not (Finset.mem_erase.mp hq'E).2
+  exact hmain (t + 1 + j') (by omega) le_rfl
+
 end Caching
 
 end CLRS
