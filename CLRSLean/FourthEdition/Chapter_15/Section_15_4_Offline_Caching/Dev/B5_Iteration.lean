@@ -988,6 +988,85 @@ lemma evicted_page_absent_until_request (d : ℕ → Page) (σ : List Page) (C�
             · exact hq'not (Finset.mem_erase.mp hq'E).2
   exact hmain (t + 1 + j') (by omega) le_rfl
 
+
+/-- 窗口内分支 1 不会出现两次:若源 `d` 在 `s₁` 和 `s₂`(都在窗口内、`s₁ < s₂`)
+都逐出 `q'`(两处都缺页),则矛盾:源从 `t` 起 reduced ⟹ `s₂` 处 `q' ∈ cache`;
+而 `s₁` 处真逐出后 `q'` 无法重新进入(首次请求在 `J'`)。
+在迭代中这保证 case B 处的分支 1 是窗口内第一次 ⟹ 真逐出 ⟹ 坏事件未发生。 -/
+lemma window_branch1_once (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hq'res : q' ∈ schedCache d C₀ σ t)
+    {j' : ℕ} (hj' : nextUse σ (t + 1) q' = some j')
+    {s₁ : ℕ} (hs1 : t < s₁) (hs1' : s₁ < t + 1 + j')
+    {s₂ : ℕ} (hs2 : t < s₂) (hs2lt : s₁ < s₂) (hs2' : s₂ < t + 1 + j')
+    (hbranch₁ : d s₁ = q') (hbranch₂ : d s₂ = q')
+    (hFault₁ : σ.getD s₁ 0 ∉ schedCache d C₀ σ s₁)
+    (hFault₂ : σ.getD s₂ 0 ∉ schedCache d C₀ σ s₂) :
+    False := by
+  have hq'in₂ : q' ∈ schedCache d C₀ σ s₂ := by
+    exact hbranch₂ ▸ hdred s₂ (by omega) hFault₂
+  -- q' ∈ cache s₂ 且 (s₁, s₂] 内无 q' 请求 ⟹ q' ∈ cache s₁(从未被真逐出)
+  have hq'in₁ : q' ∈ schedCache d C₀ σ s₁ := by
+    by_contra hnot
+    have hqback : ∀ k, k ≤ s₂ → s₁ ≤ k → q' ∈ schedCache d C₀ σ k → q' ∈ schedCache d C₀ σ s₁ := by
+      intro k
+      induction k using Nat.strong_induction_on with
+      | h k ih =>
+          intro hk2 hk1 hqk
+          by_cases hk_eq : k = s₁
+          · simpa [hk_eq] using hqk
+          · have hk'1 : s₁ ≤ k - 1 := by omega
+            have hk'2 : k - 1 ≤ s₂ := by omega
+            have hqk' : q' ∈ schedCache d C₀ σ (k - 1) := by
+              have hkeq : k = (k - 1) + 1 := by omega
+              have hqk'' : q' ∈ schedCache d C₀ σ ((k - 1) + 1) := hkeq ▸ hqk
+              rw [schedCache] at hqk''
+              by_cases hr : σ.getD (k - 1) 0 ∈ schedCache d C₀ σ (k - 1)
+              · rw [if_pos hr] at hqk''
+                exact hqk''
+              · rw [if_neg hr] at hqk''
+                rcases Finset.mem_insert.mp hqk'' with hq'r | hq'E
+                · exfalso
+                  exact getD_ne_nextUse (k := k - 1) hj' (by omega) (by omega) hq'r.symm
+                · exact (Finset.mem_erase.mp hq'E).2
+            exact ih (k - 1) (by omega) hk'2 hk'1 hqk'
+    exact hnot (hqback s₂ le_rfl (by omega) hq'in₂)
+  -- s₁ 处真逐出(源 reduced ⟹ q' ∈ cache s₁、d s₁ = q')⟹ q' ∉ cache s₁+1
+  have hq'out : q' ∉ schedCache d C₀ σ (s₁ + 1) := by
+    rw [schedCache]
+    rw [if_neg hFault₁]
+    rw [hbranch₁]
+    intro hm
+    rcases Finset.mem_insert.mp hm with hq'r | hq'E
+    · exfalso
+      exact getD_ne_nextUse (k := s₁) hj' (by omega) (by omega) hq'r.symm
+    · exact (Finset.mem_erase.mp hq'E).1 rfl
+  -- q' ∉ cache s₁+1 且 (s₁+1, s₂] 内无 q' 请求 ⟹ q' ∉ cache s₂ — 矛盾
+  have hq'out₂ : q' ∉ schedCache d C₀ σ s₂ := by
+    have hnoenter : ∀ k, s₁ + 1 ≤ k → k ≤ s₂ → q' ∉ schedCache d C₀ σ k := by
+      intro k
+      induction k with
+      | zero => omega
+      | succ k ih =>
+          intro hk1 hk2
+          by_cases hk1' : s₁ + 1 ≤ k
+          · have hqnot : q' ∉ schedCache d C₀ σ k := ih hk1' (by omega)
+            rw [schedCache]
+            by_cases hr : σ.getD k 0 ∈ schedCache d C₀ σ k
+            · rw [if_pos hr]
+              exact hqnot
+            · rw [if_neg hr]
+              intro hm
+              rcases Finset.mem_insert.mp hm with hq'r | hq'E
+              · exfalso
+                exact getD_ne_nextUse (k := k) hj' (by omega) (by omega) hq'r.symm
+              · exact hqnot (Finset.mem_erase.mp hq'E).2
+          · have hk1eq : k + 1 = s₁ + 1 := by omega
+            simpa [hk1eq] using hq'out
+    exact hnoenter s₂ (by omega) le_rfl
+  exact hq'out₂ hq'in₂
+
 end Caching
 
 end CLRS
