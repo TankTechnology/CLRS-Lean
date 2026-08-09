@@ -17,10 +17,13 @@ Main results:
   satisfiable iff its occurrence graph has a clique of size `f.length`).
 - `cnfSatisfiable_iff_hasClique_3CNF`: the same for exactly-3-literal CNF
   (the CLRS 3-CNF-SAT statement).
+- The graph/list encoding `GraphSym`/`relabel`/`undoRelabel` and the language
+  `CLIQUE`: the reduction maps a CNF encoding to the occurrence-graph encoding
+  by inserting a `vertexMark` before each literal.
 
-**Current status**: the semantic core is in place.  The graph/list encoding, the
-reduction machine, and the assembled `PolyTimeReducible ThreeCNFSat CLIQUE`
-are pending.
+**Current status**: the semantic core and the graph/list encoding (with the
+language `CLIQUE`) are in place.  The reduction machine and its `outputsFun`,
+assembling `PolyTimeReducible ThreeCNFSat CLIQUE`, live in `CNFToCliqueMachine`.
 -/
 
 namespace CLRS
@@ -261,6 +264,63 @@ theorem cnfSatisfiable_iff_hasClique_3CNF (f : CNF)
     (h3 : ∀ c ∈ f, c.length = 3) :
     CnfSatisfiable f ↔ HasCliqueOn f f.length := by
   exact cnfSatisfiable_iff_hasClique f
+
+-- ============================================================
+-- Graph/list encoding and the CLIQUE language
+--
+-- The occurrence graph's vertices are the literal occurrences of the CNF, so
+-- the graph encoding is the CNF encoding with a `vertexMark` inserted before
+-- each literal.  Clause indices come from the `clauseMark` grouping and the
+-- clique size is the number of clauses, both recovered by `decodeCNF`.
+-- ============================================================
+
+/-- The alphabet of the occurrence-graph encoding: one `vertexMark` per
+occurrence plus the CNF-derived clause/literal markers. -/
+inductive GraphSym : Type
+  | vertexMark
+  | posMark | negMark
+  | varMark | endMark
+  | clauseMark
+deriving DecidableEq, Repr, Fintype, Inhabited
+
+/-- Map a CNF encoding to the occurrence-graph encoding: insert a `vertexMark`
+before each literal's polarity mark and translate the remaining symbols.  This
+is the CLRS Lemma 34.10 reduction on encodings. -/
+def relabel : List CNFSym → List GraphSym
+  | [] => []
+  | CNFSym.clauseMark :: rest => GraphSym.clauseMark :: relabel rest
+  | CNFSym.posMark :: rest => GraphSym.vertexMark :: GraphSym.posMark :: relabel rest
+  | CNFSym.negMark :: rest => GraphSym.vertexMark :: GraphSym.negMark :: relabel rest
+  | CNFSym.varMark :: rest => GraphSym.varMark :: relabel rest
+  | CNFSym.endMark :: rest => GraphSym.endMark :: relabel rest
+
+/-- Drop the `vertexMark`s of a graph encoding, recovering the underlying CNF
+encoding. -/
+def undoRelabel : List GraphSym → List CNFSym
+  | [] => []
+  | GraphSym.vertexMark :: rest => undoRelabel rest
+  | GraphSym.clauseMark :: rest => CNFSym.clauseMark :: undoRelabel rest
+  | GraphSym.posMark :: rest => CNFSym.posMark :: undoRelabel rest
+  | GraphSym.negMark :: rest => CNFSym.negMark :: undoRelabel rest
+  | GraphSym.varMark :: rest => CNFSym.varMark :: undoRelabel rest
+  | GraphSym.endMark :: rest => CNFSym.endMark :: undoRelabel rest
+
+/-- `undoRelabel` inverts `relabel`: the inserted `vertexMark`s are exactly the
+ones it removes. -/
+lemma undoRelabel_relabel (x : List CNFSym) : undoRelabel (relabel x) = x := by
+  induction x with
+  | nil => simp [relabel, undoRelabel]
+  | cons s rest ih =>
+      cases s <;> simp [relabel, undoRelabel, ih]
+
+/--
+**CLIQUE**: the language of occurrence-graph encodings whose graph has a clique
+of size equal to its number of clauses (CLRS §34.5).  A graph string is decoded
+by dropping the `vertexMark`s and reading the underlying CNF, whose occurrence
+graph is checked by `HasCliqueOn`.
+-/
+def CLIQUE : Language GraphSym :=
+  { syms | HasCliqueOn (decodeCNF (undoRelabel syms)) (decodeCNF (undoRelabel syms)).length }
 
 end Chapter34
 
