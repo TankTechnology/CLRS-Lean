@@ -184,6 +184,42 @@ Remaining: the iteration induction itself (`iterate_main`, induction on
    page — the `schedMisses_eq_of_cache_diff` completion argument);
 5. `fifo_optimal` assembly and the verification/merge pass.
 
+## B2 resident positions: concrete analysis (2026-08-10)
+
+A concrete example was constructed showing the `t₂ < s₁` case-B resident
+(B2) position really occurs:
+
+`σ = [1,2,3,4,5,1]`, `C₀ = {1,2}`, `d₀` evicts 2 at 2, 3 at 3, 1 at 4.
+- FIF at 2 evicts farthest of {1,2} = 1 (requested again at 5): `q' = 1`,
+  `J' = 5`, window `(2, 5]`.
+- Position 3: exchange evicts 3 (branch 5), FIF evicts 2 — disagreement at
+  3, a B2 position with the branch-1 spot `s₁ = 4` still in the future.
+
+So both orderings of B2 positions vs the branch-1 spot are possible, and
+the remaining obstacles are exactly:
+
+1. **B2 before `s₁`**: the exchange is not reduced from `t₂` on (the future
+   branch-1 spot breaks hdred), so `exchange_step'` is unavailable; repair
+   needs slack that is already committed to the branch-1 repair.  Needs
+   either window-parameter tracking (state carries `q'`, `J'`, the branch-1
+   spot) or a "reduced except finitely many points" form.
+2. **B2 with `q` never requested again**: `repair_step_swap` needs
+   `hj` (q's next use), which does not exist — a dead-page analogue of
+   `repair_q'_never` for the swapped page `q` is needed.
+3. **Multi-set `q`**: a branch-4/6 eviction can choose a page `q ∈ C' \ E`
+   (exchange-only page); the swap-keeping premise of the B2 strong version
+   then needs `q ∈ E` until `J₂` (true for branch-5 q's — `q ∈ d₀ cache`
+   from reducedness and no earlier eviction — but not automatic for
+   multi-set choices).
+4. **Branch 5 never re-evicts a branch-5 q**: for `q = d₀ t₂` with a next
+   use, `swap_q_not_mem` gives `q ∉ d₀ cache s` on `(t₂, J₂]`, so
+   `d₀ s = q` is impossible for the reduced source — branch 5 is excluded
+   for requested-again q's.
+
+The clean fix is item 1 (track window parameters in the iteration state);
+items 2-4 then become small lemmas.  This is the remaining work before
+`iterate_main` can be assembled.
+
 ## File layout
 
 - `Dev/B2_Dev.lean` (done): `first_disagree_fault`, `after_J_rel1/rel2`,
