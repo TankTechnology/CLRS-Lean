@@ -165,18 +165,24 @@ Remaining: the iteration induction itself (`iterate_main`, induction on
 `σ.length − t0`), needing:
 1. case A assembly: `exchange_step_slack` + `exchange_step_full` (reduced
    bound `J'+1`), case-one via `exchangeSchedule_misses_eq_case_one`;
-2. case B integration: the `slack ≥ 1` supply chain is now assembled from
-   `exchangeSchedule_window_evict` (eviction is `q'` or resident) +
-   `evicted_page_absent_until_request` (true eviction ⇒ no bad event ⇒ the
-   previous exchange saved a miss).  Open point: the accounting for the
-   *later* branch-1 positions inside the window (after `q'` was already
-   evicted, `d t = q'` is a no-op for `d` itself — d's cache grows, and the
-   growth offsets the repair's extra miss; either formalize that offset or
-   show such positions are not disagreements);
-3. the boundary case at the previous `J'` (exchange faults there, reloads
+2. case B integration — the slack chain is now complete:
+   `window_branch1_once` (branch 1 happens at most once per window) rules
+   out later no-op branch-1 positions entirely, so a case-B branch 1 is
+   always the first one: a true eviction ⇒ `evicted_page_absent_until_request`
+   ⇒ bad event did not occur ⇒ slack ≥ 1;
+3. case-B resident (B2) positions: the analysis showed the exchange is
+   reduced from any position except the unique branch-1 spot `s₁`, so a B2
+   position before `s₁` cannot use `exchange_step'` (the future `s₁` breaks
+   hdred), and `repair_step_swap` would need either slack (none available
+   for the second consumer) or the strong version (misses ≤ e), whose
+   "keep swap" premise still needs the multi-set `q` case analysed.  The
+   clean fix is to track the window parameters (`q'`, `J'`, the branch-1
+   spot) in the iteration state, or to prove a "reduced except finitely
+   many points" form; this is the remaining obstacle;
+4. the boundary case at the previous `J'` (exchange faults there, reloads
    `q'`, after which the difference from the FIF cache is a never-requested
    page — the `schedMisses_eq_of_cache_diff` completion argument);
-4. `fifo_optimal` assembly and the verification/merge pass.
+5. `fifo_optimal` assembly and the verification/merge pass.
 
 ## File layout
 
