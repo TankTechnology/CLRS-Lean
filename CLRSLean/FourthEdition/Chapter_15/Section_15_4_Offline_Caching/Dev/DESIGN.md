@@ -184,41 +184,119 @@ Remaining: the iteration induction itself (`iterate_main`, induction on
    page — the `schedMisses_eq_of_cache_diff` completion argument);
 5. `fifo_optimal` assembly and the verification/merge pass.
 
-## B2 resident positions: concrete analysis (2026-08-10)
+## B2 resident positions: concrete analysis (2026-08-10, corrected)
 
-A concrete example was constructed showing the `t₂ < s₁` case-B resident
-(B2) position really occurs:
+**The example recorded earlier was wrong.**  `σ = [1,2,3,4,5,1]` was claimed
+to make FIF evict page 1 at position 2 (`q' = 1`, `J' = 5`).  Under the real
+`Farther` semantics (`none` = never requested again is the *farthest*),
+`nextUse σ 3 1 = some 5` while `nextUse σ 3 2 = none`, so FIF evicts page 2
+at position 2.  The claimed trace does not occur.  (Verified by
+`Dev/search_b2.py`, which mirrors the Lean semantics exactly.)
 
-`σ = [1,2,3,4,5,1]`, `C₀ = {1,2}`, `d₀` evicts 2 at 2, 3 at 3, 1 at 4.
-- FIF at 2 evicts farthest of {1,2} = 1 (requested again at 5): `q' = 1`,
-  `J' = 5`, window `(2, 5]`.
-- Position 3: exchange evicts 3 (branch 5), FIF evicts 2 — disagreement at
-  3, a B2 position with the branch-1 spot `s₁ = 4` still in the future.
+**A genuine B2-before-s₁ trace does exist** (found by exhaustive search,
+verified by `search_b2.py`):
 
-So both orderings of B2 positions vs the branch-1 spot are possible, and
-the remaining obstacles are exactly:
+`σ = [1,1,3,2,1,2,4,2,3]`, `C₀ = {1,2}`, `d₀` = smallest-resident eviction.
 
-1. **B2 before `s₁`**: the exchange is not reduced from `t₂` on (the future
-   branch-1 spot breaks hdred), so `exchange_step'` is unavailable; repair
-   needs slack that is already committed to the branch-1 repair.  Needs
-   either window-parameter tracking (state carries `q'`, `J'`, the branch-1
-   spot) or a "reduced except finitely many points" form.
-2. **B2 with `q` never requested again**: `repair_step_swap` needs
-   `hj` (q's next use), which does not exist — a dead-page analogue of
-   `repair_q'_never` for the swapped page `q` is needed.
-3. **Multi-set `q`**: a branch-4/6 eviction can choose a page `q ∈ C' \ E`
-   (exchange-only page); the swap-keeping premise of the B2 strong version
-   then needs `q ∈ E` until `J₂` (true for branch-5 q's — `q ∈ d₀ cache`
-   from reducedness and no earlier eviction — but not automatic for
-   multi-set choices).
-4. **Branch 5 never re-evicts a branch-5 q**: for `q = d₀ t₂` with a next
-   use, `swap_q_not_mem` gives `q ∉ d₀ cache s` on `(t₂, J₂]`, so
-   `d₀ s = q` is impossible for the reduced source — branch 5 is excluded
-   for requested-again q's.
+| pos | request | d₁ cache | FIF cache |
+|-----|---------|----------|-----------|
+| 4   | 1       | {2,3}    | {2,3}     |
+| 5   | 2       | {1,2}    | {1,2}     |
+| 6   | 4       | {2,4}    | {2,4}     |
+| 7   | 2       | {1,4}    | {2,4}     |
+| 8   | 3       | {1,2,4}  | {2,4}     |
+| 9   | —       | {1,3,4}  | {3,4}     |
 
-The clean fix is item 1 (track window parameters in the iteration state);
-items 2-4 then become small lemmas.  This is the remaining work before
-`iterate_main` can be assembled.
+- Exchange at `t₀ = 4`: `q₀ = 2` (`d₀ 4 = 2`), `q₀' = 3` (`J₀' = 8`, window
+  `(4,8]`).  `d₀` evicts 3 at 7 (its own fault at 7), so the branch-1 spot
+  is `s₁ = 7` — **in the future**.
+- First disagreement after the exchange: `t₂ = 6 < hnb = 9`, and
+  `d₁ 6 = 2 ∈ cache 6` — a **B2 position before s₁**.  FIF evicts `q'' = 1`
+  at 6, which is **never requested again** (dead).
+- The strong repair `r` (evict `q'' = 1` at 6, keep `q = 2`) hits at
+  `J = 7` where `d₁` faults (the good event): `r` has **3 misses vs 4** for
+  `d₁` — the repair is free and even *saves* one.  The branch-1 no-op at 7
+  evicts `q₀' = 3 ≠ q`, so the swap form survives through `s₁`.
+
+The second search hit `σ = [1,1,3,2,1,4,1,2,3]` exercises the alive-alive
+case: B2 at `t₂ = 5` with `q = 1`, `q'' = 2` (`J'' = 7`), good event at
+`J = 6`, bad event at `J'' = 7` — `rF = eF + 1 − 1 = eF`, free.
+
+### Refined B2 design: the strong repair needs no slack and no s₁
+
+The previous "obstacles" list is revised by the analysis above:
+
+1. **B2 before `s₁` is handled by the strong repair, not the exchange.**
+   The exchange route is indeed blocked (`hdred` fails at the future `s₁`),
+   but the repair route does not need `s₁` at all.  `repair_step_swap_strong`
+   (to be proved in `Dev/B6_Strong_Repair.lean`) replaces the weak bound
+   `rF ≤ eF + 1{J''}` by `rF ≤ eF + 1{J''} − 1{J}`: the good event at
+   `J = t₂+1+j` (repair hits where `e` faults — `swap_q_not_mem`) offsets
+   the bad event at `J'' = t₂+1+j''`.  Its only extra hypothesis is the
+   **keep-swap form at `J`**:
+   `Ŝ_J = insert q (E_J − q'')`.
+2. **Keep-swap holds in the iteration context.**  The form survives iff
+   `e` never evicts `q` on `(t₂, J]`.  Since `q ∉ E_s` on `(t₂, J]`
+   (`swap_q_not_mem`), an eviction `e s = q` would be a no-op, and the only
+   no-op evictions in the current window evict the window page `q₀'` (branch
+   1, `exchangeSchedule_window_evict`) or a past repair's page `q''ₖ` (a
+   repair nop).  Both are `∉ E_{t₂}` (window / nop-range facts), while
+   `q ∈ E_{t₂}` (B2 resident), so none can equal `q`.  **The state needs the
+   current window's page `q₀'` (and the exchange's parameters `t₀`, `q₀`)
+   to instantiate the window lemmas — but not `s₁`.**
+3. **Dead-page sub-cases** (obstacle 2, sharpened).  `nextUse q` and
+   `nextUse q''` need not both exist:
+   - *q dead* ⟹ *q'' dead* (new, verified): `q''` is the farthest page and
+     `none` is the farthest, so `farthestInFuture_max` forces `nextUse q'' =
+     none`.  Hence the q-dead case always has both pages dead: `r` differs
+     from `e` only on `{q, q''}` (a fully general cache-diff induction,
+     `repair_cache_diff` — no keep-swap, no reducedness needed), both dead,
+     so `schedMisses r = schedMisses e` (`repair_step_swap_q_dead`),
+     **free**.
+   - *q alive, q'' dead*: the repair has no `nop`; `r` saves exactly 1 at
+     `J` (good event, no bad event): `rF = eF − 1`, **free** — verified on
+     the search's first trace.  (To be formalized after the strong version.)
+4. **Multi-set q (obstacle 3, resolved — a false alarm)**.  The fear was
+   that a branch-4/6 eviction could choose the B2's `q` from `C' \ E`.  It
+   cannot: `q = e t₂` is the exchange's own eviction at `t₂`, so `q ∉ C'`
+   on `(t₂, J₂]` — and `swap_q_not_mem` gives `q ∉ E_s = C'_s` directly
+   (the exchange's cache *is* `E`).  Every branch of `exchangeDecision` at
+   a fault `s ∈ (t₂, J₂]` evicts either `q₀'` (branch 1 — `q₀' ≠ q` by
+   `exchangeSchedule_q'_absent` + resident `q`), a page of `C'` (branches
+   4-6 — not `q`), or `d s` (branch 5 — `d s = q` would contradict
+   `q ∉ C'`).  So `e s ≠ q` on `(t₂, J₂]` (`exchange_no_evict_q`), and the
+   swap form survives to `J₂` — the keep-swap derivation
+   (`repair_keep_swap`) needs no multi-set analysis.
+5. **Branch 5 never re-evicts a branch-5 q** (obstacle 4): unchanged —
+   `swap_q_not_mem` gives `q ∉ E` on `(t₂, J₂]`, so `e s = q` is impossible;
+   subsumed by `exchange_no_evict_q`.
+
+So the extended iteration state is: `(d, t0, hnb, slack, t₀, q₀, q₀', J₀')`
+— the exchange's parameters of the current window (set by case A, untouched
+by case-B repairs).  `s₁` needs no tracking for the B2 route; it is only
+needed for the B1 slack-supply argument, which is already proven
+(`window_branch1_once` + `evicted_page_absent_until_request`).
+
+### B2 step assembly (2026-08-10, verified by `search_b2.py`)
+
+At a B2 position `t₂` inside the window of the exchange at `t₀`, with
+`q = e t₂`, `q'' = fifoSchedule σ C₀ t₂`, `j`, `j''`:
+
+- **alive-alive** (`hj`, `hj''`): `repair_step_swap_strong` gives
+  `schedMisses r ≤ schedMisses e` with the keep-swap hypothesis
+  `Ŝ_J = insert q (E_J − q'')`; `repair_keep_swap` derives it from the
+  window context (`exchange_no_evict_q` + `repairSchedule_base_swap` +
+  the swap-form induction).  **No slack, no s₁.**
+- **q dead**: `repair_q_dead_qp_dead` + `repair_step_swap_q_dead`:
+  equal misses.  **Free.**
+- **q alive, q'' dead**: `rF = eF − 1`.  **Free.** (TODO: formalize.)
+- The boundary case (the next disagreement landing on `J₀'` itself, the
+  previous window's request) is handled by the existing case-A machinery
+  (`t ≥ hnb` after the window ends).
+
+Remaining work: `repair_step_swap_strong` + the dead-page lemmas
+(`Dev/B6_Strong_Repair.lean`), then `iterate_main` with the extended state
+carrying `(t₀, q₀, q₀', J₀')`.
 
 ## File layout
 
