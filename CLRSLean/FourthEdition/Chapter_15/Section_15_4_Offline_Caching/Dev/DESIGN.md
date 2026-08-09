@@ -139,7 +139,8 @@ steps; induction on `σ.length − t0`.
 
 ## B5 current status
 
-Proved in `Dev/B5_Iteration.lean` (all kernel-checked, no sorry):
+Proved in `Dev/B5_Iteration.lean` (all kernel-checked, no sorry), twelve
+lemmas:
 
 - `exchange_step'`: exchange with reducedness only from `t` on
 - `exists_first_disagree_after`: first disagreement in `[t0, σ.length)`
@@ -153,16 +154,25 @@ Proved in `Dev/B5_Iteration.lean` (all kernel-checked, no sorry):
 - `schedMisses_eq_of_agree`: agreement everywhere ⇒ equal miss counts
 - `exchange_step_slack`: case-two exchange with slack bookkeeping (bad
   event did not occur ⇒ slack + 1)
+- `repair_q'_never`: repair with `q'` never requested again needs no slack
+  (caches differ only by the dead page `q'`)
+- `exchangeSchedule_window_evict`: inside the window, a fault of the
+  exchange evicts `q'` (branch 1) or a resident page (branches 2-6)
+- `evicted_page_absent_until_request`: a true eviction of `q'` keeps it out
+  of the cache until `J'` (bad event did not occur — the slack supply step)
 
 Remaining: the iteration induction itself (`iterate_main`, induction on
 `σ.length − t0`), needing:
 1. case A assembly: `exchange_step_slack` + `exchange_step_full` (reduced
    bound `J'+1`), case-one via `exchangeSchedule_misses_eq_case_one`;
-2. case B (window-internal disagreement, `t < hnb`): repair consumes slack;
-   the slack ≥ 1 supply argument — a window-internal fault of the exchange
-   schedule evicts either a resident page or the previous `q'` (branch 1),
-   and the branch-1 real eviction is exactly the bad-event-did-not-occur
-   marker that produced the slack;
+2. case B integration: the `slack ≥ 1` supply chain is now assembled from
+   `exchangeSchedule_window_evict` (eviction is `q'` or resident) +
+   `evicted_page_absent_until_request` (true eviction ⇒ no bad event ⇒ the
+   previous exchange saved a miss).  Open point: the accounting for the
+   *later* branch-1 positions inside the window (after `q'` was already
+   evicted, `d t = q'` is a no-op for `d` itself — d's cache grows, and the
+   growth offsets the repair's extra miss; either formalize that offset or
+   show such positions are not disagreements);
 3. the boundary case at the previous `J'` (exchange faults there, reloads
    `q'`, after which the difference from the FIF cache is a never-requested
    page — the `schedMisses_eq_of_cache_diff` completion argument);
