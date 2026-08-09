@@ -282,21 +282,29 @@ needed for the B1 slack-supply argument, which is already proven
 At a B2 position `t₂` inside the window of the exchange at `t₀`, with
 `q = e t₂`, `q'' = fifoSchedule σ C₀ t₂`, `j`, `j''`:
 
-- **alive-alive** (`hj`, `hj''`): `repair_step_swap_strong` gives
+- **alive-alive** (`hj`, `hj''`): `repair_step_swap_strong` (B6) gives
   `schedMisses r ≤ schedMisses e` with the keep-swap hypothesis
-  `Ŝ_J = insert q (E_J − q'')`; `repair_keep_swap` derives it from the
+  `Ŝ_J = insert q (E_J − q'')`; `repair_keep_swap` (B6) derives it from the
   window context (`exchange_no_evict_q` + `repairSchedule_base_swap` +
   the swap-form induction).  **No slack, no s₁.**
-- **q dead**: `repair_q_dead_qp_dead` + `repair_step_swap_q_dead`:
+- **q dead**: `repair_q_dead_qp_dead` (q dead ⟹ q'' dead) +
+  `repair_step_swap_q_dead` (diff ⊆ {q,q''}, both dead):
   equal misses.  **Free.**
 - **q alive, q'' dead**: `rF = eF − 1`.  **Free.** (TODO: formalize.)
 - The boundary case (the next disagreement landing on `J₀'` itself, the
   previous window's request) is handled by the existing case-A machinery
   (`t ≥ hnb` after the window ends).
 
-Remaining work: `repair_step_swap_strong` + the dead-page lemmas
-(`Dev/B6_Strong_Repair.lean`), then `iterate_main` with the extended state
-carrying `(t₀, q₀, q₀', J₀')`.
+**Done (2026-08-10, `Dev/B6_Strong_Repair.lean`, all kernel-checked, no
+sorry)**: `getD_ne_of_nextUse_none`, `repair_q_dead_qp_dead`,
+`repair_cache_diff`, `repair_step_swap_q_dead`, `repair_step_swap_strong`,
+`exchange_no_evict_q`, `repair_keep_swap`.
+
+Remaining work: (1) the q-alive-q''-dead variant (`rF = eF − 1`); (2)
+`iterate_main` with the extended state carrying `(t₀, q₀, q₀', J₀')` —
+case A sets the window, case-B B1/B2 repairs consume/produce slack with the
+strong repair needing none, dead-page repairs being free; (3) the
+`fifo_optimal` assembly and the verification/merge pass.
 
 ## File layout
 
