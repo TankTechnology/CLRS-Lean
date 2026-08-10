@@ -102,6 +102,93 @@ its edges is tight. -/
 def IsTightMatching (P : Problem V) (y : V → ℝ) (M : Matching V P.G) : Prop :=
   ∀ e ∈ M.edges, y e.1 + y e.2 = P.w e.1 e.2
 
+/-- The *slack* of an edge with respect to a potential: how far the edge is
+from being tight.  All slacks are nonnegative exactly when the potential is
+feasible. -/
+def slack (P : Problem V) (y : V → ℝ) (l r : V) : ℝ :=
+  P.w l r - (y l + y r)
+
+/-- The Hungarian potential adjustment: raise the potential on `S` by `δ` and
+lower it on `T` by `δ`.  (CLRS §25.3.) -/
+def adjustPotential (P : Problem V) (y : V → ℝ) (δ : ℝ) (S T : Finset V) : V → ℝ :=
+  fun v => if v ∈ S then y v + δ else if v ∈ T then y v - δ else y v
+
+/-- A right vertex cannot lie in `S` when `S` stays inside the left partition. -/
+lemma not_mem_S_of_mem_R (P : Problem V) {S : Finset V} (hS : S ⊆ P.G.L) {r : V}
+    (hr : r ∈ P.G.R) : r ∉ S := by
+  intro hrS
+  have hrL : r ∈ P.G.L := hS hrS
+  have hboth : r ∈ P.G.L ∩ P.G.R := Finset.mem_inter.mpr ⟨hrL, hr⟩
+  simpa [P.G.h_disjoint] using hboth
+
+/-- A left vertex cannot lie in `T` when `T` stays inside the right partition. -/
+lemma not_mem_T_of_mem_L (P : Problem V) {T : Finset V} (hT : T ⊆ P.G.R) {l : V}
+    (hl : l ∈ P.G.L) : l ∉ T := by
+  intro hlT
+  have hrR : l ∈ P.G.R := hT hlT
+  have hboth : l ∈ P.G.L ∩ P.G.R := Finset.mem_inter.mpr ⟨hl, hrR⟩
+  simpa [P.G.h_disjoint] using hboth
+
+/-- Raising potentials on `S` and lowering them on `T` by a nonnegative `δ`
+that is no larger than the slack of every edge from `S` to outside `T`
+preserves feasibility of the potential.  (CLRS §25.3, potential step.) -/
+lemma adjust_preserves_feasible (P : Problem V) {y : V → ℝ} {δ : ℝ} {S T : Finset V}
+    (hy : P.Feasible y) (hδ_nonneg : 0 ≤ δ) (hS : S ⊆ P.G.L) (hT : T ⊆ P.G.R)
+    (hδ : ∀ l ∈ S, ∀ r, r ∈ P.G.R → r ∉ T → δ ≤ P.slack y l r) :
+    P.Feasible (P.adjustPotential y δ S T) := by
+  intro l hl r hr
+  have hrS : r ∉ S := P.not_mem_S_of_mem_R hS hr
+  have hlT : l ∉ T := P.not_mem_T_of_mem_L hT hl
+  by_cases hlS : l ∈ S
+  · by_cases hrT : r ∈ T
+    · simp [adjustPotential, hlS, hrT, hrS]
+      linarith [hy l hl r hr]
+    · have hδ' : δ ≤ P.w l r - (y l + y r) := hδ l hlS r hr hrT
+      simp [adjustPotential, hlS, hrT, hrS]
+      linarith
+  · by_cases hrT : r ∈ T
+    · simp [adjustPotential, hlS, hrT, hlT, hrS]
+      linarith [hy l hl r hr, hδ_nonneg]
+    · simp [adjustPotential, hlS, hrT, hlT, hrS]
+      exact hy l hl r hr
+
+/-- An edge of a matching whose endpoints are adjusted in lockstep (an endpoint
+lies in `S` iff the other lies in `T`) stays tight under the adjusted
+potential, so the matching remains in the equality graph. -/
+lemma adjust_preserves_tight_of_matching (P : Problem V) {y : V → ℝ} {δ : ℝ} {S T : Finset V}
+    {M : Matching V P.G} (hTight : P.IsTightMatching y M)
+    (hS : S ⊆ P.G.L) (hT : T ⊆ P.G.R)
+    (hlock : ∀ e ∈ M.edges, (e.1 ∈ S ↔ e.2 ∈ T)) :
+    P.IsTightMatching (P.adjustPotential y δ S T) M := by
+  intro e he
+  have heq : y e.1 + y e.2 = P.w e.1 e.2 := hTight e he
+  rw [← heq]
+  have hlock' : e.1 ∈ S ↔ e.2 ∈ T := hlock e he
+  have he1_notT : e.1 ∉ T := P.not_mem_T_of_mem_L hT (M.left_mem_L he)
+  have he2_notS : e.2 ∉ S := P.not_mem_S_of_mem_R hS (M.right_mem_R he)
+  by_cases heS : e.1 ∈ S
+  · have heT : e.2 ∈ T := hlock'.mp heS
+    simp [adjustPotential, heS, heT, he2_notS]
+  · have heT' : e.2 ∉ T := by
+      intro hT2
+      exact heS (hlock'.mpr hT2)
+    simp [adjustPotential, heS, heT', he1_notT, he2_notS]
+
+/-- If `δ` is attained as the slack of an edge from `S` to outside `T`, then
+that edge becomes tight under the adjusted potential: the equality graph gains
+an edge. -/
+lemma adjust_creates_tight_edge (P : Problem V) {y : V → ℝ} {δ : ℝ} {S T : Finset V}
+    (hS : S ⊆ P.G.L) (hT : T ⊆ P.G.R)
+    (hδ_att : ∃ l ∈ S, ∃ r, r ∈ P.G.R ∧ r ∉ T ∧ P.slack y l r = δ) :
+    ∃ l ∈ S, ∃ r, r ∈ P.G.R ∧ r ∉ T ∧ P.Tight (P.adjustPotential y δ S T) l r := by
+  rcases hδ_att with ⟨l, hlS, r, hrR, hrT, hslack⟩
+  have hl : l ∈ P.G.L := hS hlS
+  refine ⟨l, hlS, r, hrR, hrT, ⟨hl, hrR, ?_⟩⟩
+  have hrS : r ∉ S := P.not_mem_S_of_mem_R hS hrR
+  simp [adjustPotential, hlS, hrT, hrS]
+  unfold slack at hslack
+  linarith
+
 end Problem
 
 /-- Summing a function over the left endpoints of a matching equals summing it
