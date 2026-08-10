@@ -258,6 +258,7 @@ CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Definitions.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Monotonicity.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds.lean
+CLRSLean/FourthEdition/Chapter_27/Section_27_1_Waiting_For_Elevator.lean
 CLRSLean/Chapter_28.lean
 CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean
 CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean
