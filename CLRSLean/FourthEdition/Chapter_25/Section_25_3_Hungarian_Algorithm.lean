@@ -29,12 +29,30 @@ Main results:
 - `Tight` / `IsTightMatching`: tight edges and matchings in the equality graph
 - `perfect_tight_optimal` (Lemma 25.8): a perfect matching in the equality
   graph of a feasible potential is an optimal assignment
+- `HungarianTree`: the alternating tree of the algorithm (sets `S`, `T`, tree
+  parents and ranks)
+- `pathToLeft` / `augmentingPath`: the alternating path from the root to a tree
+  vertex, and its extension to a free right vertex
+- `potential_step`: raising `S` and lowering `T` by the minimum slack keeps the
+  potential feasible and makes an edge from `S` to `R \ T` tight
+- `exists_augment_of_tight_free`: a tight edge to a free right vertex yields an
+  augmenting path, so the matching can be enlarged
+- `growTree`: a tight edge to a matched right vertex grows the tree
+- `augmentable_or_adjustable` (local progress): from any tree, either the
+  matching augments or the potential can be adjusted so the tree grows, which
+  is the termination engine of the algorithm
 
 Current gaps:
 
-- The constructive existence of an optimal assignment via the full Hungarian
-  algorithm (potential adjustment + augmentation loop) is not yet formalized;
-  it will appear in a follow-up module.
+- The full loop of the Hungarian algorithm is not yet packaged as a single
+  function: the well-founded iteration of `augmentable_or_adjustable` (which
+  alternates potential adjustments and tree growths until an augmentation,
+  then repeats from a fresh tree until the matching is perfect) is not yet
+  written as a terminating recursion, so the constructive existence of an
+  optimal assignment via the algorithm is still open.  Every individual move —
+  potential step, tree growth, and augmentation — is formalized, and
+  `perfect_tight_optimal` gives optimality once a perfect matching in the
+  equality graph is reached.
 
 Notation conventions used in this section:
 
@@ -1131,6 +1149,137 @@ noncomputable def growTree {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
         simp [rank', hrr', hl''w, hl''rn, hr'w]
         exact tree.hrank_match r' hr' l'' hlr'
   }
+
+/-- The trivial alternating tree rooted at a free left vertex `u`: `S = {u}`,
+`T = ∅`. -/
+noncomputable def initialTree {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (u : V) (huL : u ∈ P.G.L) (hu_free : M.IsUnmatchedLeft u) :
+    HungarianTree P y M :=
+  { u := u
+    S := {u}
+    T := ∅
+    hS_subset := by
+      intro v hv
+      rw [Finset.mem_singleton] at hv
+      subst v
+      exact huL
+    hT_subset := by
+      intro v hv
+      simp at hv
+    hu_mem := by simp
+    hu_free := hu_free
+    hT_matched := by
+      intro r hr
+      simp at hr
+    hpartner_in_S := by
+      intro r hr
+      simp at hr
+    hleft_matched := by
+      intro l hl hne
+      rw [Finset.mem_singleton] at hl
+      subst l
+      exact (hne rfl).elim
+    hpartner_in_T := by
+      intro l hl hne r hlr
+      rw [Finset.mem_singleton] at hl
+      subst l
+      exact (hne rfl).elim
+    treeParent := fun _ => u
+    htree_parent_mem := by
+      intro r hr
+      simp at hr
+    htree_tight := by
+      intro r hr
+      simp at hr
+    htree_not_matching := by
+      intro r hr
+      simp at hr
+    rank := fun v => if v = u then 0 else 1
+    hrank_u := by simp
+    hrank_lt := by
+      intro r hr
+      simp at hr
+    hrank_match := by
+      intro r hr
+      simp at hr
+  }
+
+/-- Rebuilding a tree under the adjusted potential: raising `S` and lowering
+`T` by `δ` keeps the tree edges tight, so the same sets, parents and ranks form
+a valid tree for the new potential. -/
+noncomputable def adjustTree {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (δ : ℝ) :
+    HungarianTree P (P.adjustPotential y δ tree.S tree.T) M :=
+  { u := tree.u
+    S := tree.S
+    T := tree.T
+    hS_subset := tree.hS_subset
+    hT_subset := tree.hT_subset
+    hu_mem := tree.hu_mem
+    hu_free := tree.hu_free
+    hT_matched := tree.hT_matched
+    hpartner_in_S := tree.hpartner_in_S
+    hleft_matched := tree.hleft_matched
+    hpartner_in_T := tree.hpartner_in_T
+    treeParent := tree.treeParent
+    htree_parent_mem := tree.htree_parent_mem
+    htree_tight := by
+      intro r hr
+      exact P.adjust_preserves_tight_of_Tree tree.hS_subset tree.hT_subset
+        (tree.htree_parent_mem r hr) hr (tree.htree_tight r hr)
+    htree_not_matching := tree.htree_not_matching
+    rank := tree.rank
+    hrank_u := tree.hrank_u
+    hrank_lt := tree.hrank_lt
+    hrank_match := tree.hrank_match
+  }
+
+/-- **Local progress** (CLRS §25.3): from any alternating tree, either the
+matching can be augmented by one edge, or the potential can be adjusted so that
+the tree strictly grows.  This is the engine of termination: each step either
+enlarges the matching or enlarges `T`, and both are bounded, so the Hungarian
+loop cannot run forever. -/
+theorem augmentable_or_adjustable {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (hy : P.Feasible y) :
+    (∃ M' : Matching V P.G, M'.size = M.size + 1) ∨
+    ∃ y' : V → ℝ, P.Feasible y' ∧ ∃ tree' : HungarianTree P y' M,
+      tree.T.card < tree'.T.card := by
+  by_cases htight : ∃ l ∈ tree.S, ∃ r, r ∈ P.G.R ∧ r ∉ tree.T ∧ P.Tight y l r
+  · rcases htight with ⟨l, hl, r, hrR, hrNotT, ht⟩
+    by_cases hfree : M.IsUnmatchedRight r
+    · exact Or.inl (exists_augment_of_tight_free tree hl hrR hrNotT hfree ht)
+    · have hrMatched : r ∈ M.matchedRight := by
+        have hnot : ¬ M.IsUnmatchedRight r := hfree
+        rw [M.isUnmatchedRight_iff_not_matched] at hnot
+        exact (M.mem_matchedRight_iff r).mpr (of_not_not hnot)
+      let tree' := growTree tree l r hl hrR hrNotT ht hrMatched
+      refine Or.inr ⟨y, hy, ⟨tree', ?_⟩⟩
+      have hTnot : r ∉ tree.T := hrNotT
+      rw [show tree'.T = insert r tree.T by rfl]
+      rw [Finset.card_insert_of_notMem hTnot]
+      exact Nat.lt_succ_self (tree.T.card)
+  · have hps := potential_step P tree hy
+    let y' : V → ℝ := P.adjustPotential y (P.slackMin y tree.S tree.T
+      (tree_S_nonempty tree) (tree_R_diff_T_nonempty tree)) tree.S tree.T
+    have hy' : P.Feasible y' := by
+      simpa [y'] using hps.1
+    let tree' : HungarianTree P y' M := adjustTree tree (P.slackMin y tree.S tree.T
+      (tree_S_nonempty tree) (tree_R_diff_T_nonempty tree))
+    have htight' : ∃ l ∈ tree.S, ∃ r, r ∈ P.G.R ∧ r ∉ tree.T ∧ P.Tight y' l r := by
+      simpa [y'] using hps.2
+    rcases htight' with ⟨l, hl, r, hrR, hrNotT, ht'⟩
+    by_cases hfree : M.IsUnmatchedRight r
+    · exact Or.inl (exists_augment_of_tight_free tree' hl hrR hrNotT hfree ht')
+    · have hrMatched : r ∈ M.matchedRight := by
+        have hnot : ¬ M.IsUnmatchedRight r := hfree
+        rw [M.isUnmatchedRight_iff_not_matched] at hnot
+        exact (M.mem_matchedRight_iff r).mpr (of_not_not hnot)
+      let tree'' := growTree tree' l r hl hrR hrNotT ht' hrMatched
+      refine Or.inr ⟨y', hy', ⟨tree'', ?_⟩⟩
+      have hTnot : r ∉ tree'.T := hrNotT
+      rw [show tree''.T = insert r tree'.T by rfl]
+      rw [Finset.card_insert_of_notMem hTnot]
+      exact Nat.lt_succ_self (tree'.T.card)
 
 end Problem
 
