@@ -1,6 +1,49 @@
 import Mathlib.Data.List.Basic
 import Mathlib.Tactic
 
+/-!
+# 27.2 Maintaining a search list
+
+This section formalizes the **list-update problem** that CLRS §27.2 uses to
+introduce amortized competitive analysis of online algorithms.  A list of
+distinct keys must serve a sequence of requests; servicing a request costs the
+position of the requested key (scanning from the front).  An online list-update
+strategy may rearrange its list after each request, paying for the
+rearrangement, while the offline optimum knows the whole request sequence in
+advance.  **MOVE-TO-FRONT** — after each request, move the requested key to the
+front — is the classic deterministic strategy, and CLRS §27.2 proves it is
+`4`-competitive by the potential method.
+
+Main results:
+
+- Definition `SearchList.before`: strict order (`a` before `b`) in a list.
+- Definition `SearchList.position`: the 0-based position of a key in a list.
+- Definition `SearchList.invDist`: the inversion distance between two lists.
+- Definition `SearchList.moveToFront`: move a key to the front of a list.
+- Definition `SearchList.potential`: the potential function `2 * invDist`.
+- Lemma `SearchList.invDist_moveToFront_add_pos`: the phase-1 potential change.
+- Lemma `SearchList.invDist_triangle`: the triangle inequality for `invDist`.
+- Theorem `SearchList.mtf_step_four_competitive`: the per-request amortized
+  bound that drives the potential argument.
+- Theorem `SearchList.mtf_four_competitive` (Theorem 27.2): MOVE-TO-FRONT is
+  `4`-competitive against any list-update strategy.
+
+The model is a pure functional one: a list is treated as a permutation of a
+fixed set, the requests must all lie in the list, costs are natural numbers,
+and a strategy is a function `List α → α → List α`.  The competing strategy `A`
+is arbitrary except that it must keep its list a permutation of the initial
+set; the initial potential is zero when both strategies start from the same
+list.
+
+Notation conventions used in this section:
+
+- `L` : the list maintained by MOVE-TO-FRONT
+- `M` : the list maintained by the competing strategy
+- `σ` : the request sequence
+- `x` : the current request
+- `A` : a list-update strategy
+-/
+
 namespace CLRS
 
 namespace SearchList
@@ -11,6 +54,7 @@ variable {α : Type} [DecidableEq α]
 def before (a b : α) (L : List α) : Prop :=
   b ∈ L ∧ a ∈ L.takeWhile (fun c => decide (c ≠ b))
 
+/-- Membership in `before` is decidable for `DecidableEq α`. -/
 instance before_decidable (a b : α) (L : List α) : Decidable (before a b L) :=
   inferInstanceAs (Decidable (b ∈ L ∧ a ∈ L.takeWhile (fun c => decide (c ≠ b))))
 
@@ -77,7 +121,7 @@ lemma before_cons (a b x : α) (L : List α) :
     have hxb : x ≠ b := by
       intro hx
       subst x
-      simp [before] at ha
+      simp at ha
     have hbL : b ∈ L := by
       rcases (List.mem_cons.mp hb) with hb' | hb''
       · exact (hxb hb'.symm).elim
@@ -164,7 +208,7 @@ lemma before_or_before {a b : α} {L : List α} (ha : a ∈ L) (hb : b ∈ L) (h
   induction L with
   | nil =>
       intro a b ha hb hab
-      simp [before] at ha
+      simp at ha
   | cons x rest ih =>
       intro a b ha hb hab
       by_cases hxa : x = a
@@ -257,6 +301,7 @@ lemma mem_erase_of_ne {a b : α} {L : List α} (h : a ≠ b) : a ∈ L.erase b �
         simp [h]
       · simp [hyb, ih]
 
+set_option linter.unusedVariables false in
 /-- `before` is invariant under move-to-front of an element distinct from both. -/
 lemma before_moveToFront_iff {a x b : α} {L : List α} (hax : a ≠ x) (hbx : b ≠ x) (hx : x ∈ L) :
     before a b (moveToFront x L) ↔ before a b L := by
@@ -370,6 +415,7 @@ def invFrom (a : α) (L₁ L₂ : List α) : ℕ :=
 lemma invDist_eq_sum_invFrom (L₁ L₂ : List α) :
     invDist L₁ L₂ = ∑ a ∈ L₁.toFinset, invFrom a L₁ L₂ := rfl
 
+set_option linter.unusedVariables false in
 /-- The row of `a` does not change under move-to-front of `x ≠ a`, except that the
     `b = x` entry disappears (as `x` is now at the front). -/
 lemma invFrom_ne_moveToFront {a x : α} {L M : List α} (hax : a ≠ x) (hx : x ∈ L)
@@ -451,6 +497,7 @@ lemma invFrom_x_moveToFront {x : α} {L M : List α} (hperm : L.toFinset = M.toF
     exact ⟨by simpa using mem_moveToFront_of_ne hbx hbL,
       before_x_front hbL hbx, hb3⟩
 
+set_option linter.unusedVariables false in
 /-- The row of `x` before move-to-front misses exactly the `commonBefore` pairs: the
     elements before `x` in `M` are split by trichotomy into those also before `x` in `L`
     (the `commonBefore` pairs) and those that `x` precedes in `L` (the `invFrom` row). -/
@@ -693,12 +740,12 @@ lemma invDist_triangle {L₁ L₂ L₃ : List α} (h12 : L₁.toFinset = L₂.to
     have h1 : (S.filter (fun b => before a b L₁ ∧ before b a L₃ ∧ before b a L₂)).card ≤ r12 a := by
       apply Finset.card_le_card
       intro b hb
-      simp [r12] at hb ⊢
+      simp at hb ⊢
       exact ⟨hb.1, hb.2.1, hb.2.2.2⟩
     have h2 : (S.filter (fun b => before a b L₁ ∧ before b a L₃ ∧ ¬ before b a L₂)).card ≤ r23 a := by
       apply Finset.card_le_card
       intro b hb
-      simp [r23] at hb ⊢
+      simp at hb ⊢
       rcases hb with ⟨hbS, hbal1, hba3, hnb2⟩
       have hb2 : b ∈ L₂ := by
         have : b ∈ L₃ := before_mem_left hba3
@@ -817,13 +864,10 @@ theorem mtf_four_competitive (A : Strategy α) (σ L M : List α)
 /-- Inversion distance between a list and itself is zero. -/
 lemma invDist_self_zero (L : List α) : invDist L L = 0 := by
   unfold invDist
-  simp [before_asymm]
+  simp
   intro i hi x hx hix
   exact before_asymm hix
 
 end SearchList
 
 end CLRS
-
-#print axioms CLRS.SearchList.mtf_four_competitive
-#print axioms CLRS.SearchList.mtf_step_four_competitive
