@@ -324,16 +324,43 @@ with its helpers (`repair_diff_noop_window` in B6, `repair_q''_absent`,
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
-exchange faults (from `exchangeDecision`'s structure: branch 1 evicts
-`q₀'`, branches 4-6 and 5 evict pages of `E`), which gives `q ∈ E_{t₂}`
-at B2 (the `q₀'` disjunct is B1) and "the exchange never evicts a past
-`q''ᵢ`"; (2) the last-repair/no-nop-at-B2 analysis — at a past nop
-position `nᵢ`, `d nᵢ = q''ᵢ ∉ D_{nᵢ}` (a no-op, hence B1 not B2), which
-gives `t₂ ∉ P` and the `Q''`-exclusion at window faults (`hnotE`); (3) the
-dead-page case steps (B2-q-dead, B2-q''-dead via
-`repair_keep_swap_cur_qp_dead`, B1-dead); then the induction
-(`exists_first_disagree_after` + the case steps + the window-state
-threading), then `fifo_optimal`.
+exchange faults — **done** (`exchange_evict_mem_or_q'`, B7, kernel-checked):
+from `exchangeDecision`'s structure (branch 1 evicts `q₀'`, branches 4-6
+and 5 evict pages of `E`; the `else 0` cases excluded by the fault + the
+cardinality argument).  This gives `q ∈ E_{t₂}` at B2 once `t₂ ∉ P`
+(see (2)); (2) the last-repair/no-nop-at-B2 analysis — gives `t₂ ∉ P`
+and the `Q''`-exclusion at window faults (`hnotE`).  **Core done
+(2026-08-11, `no_nop_at_b2`, B7, kernel-checked)**: the naive invariant
+"every alive nop `nᵢ` is a no-op (`d nᵢ ∉ D_{nᵢ}`)" is **not
+maintainable** — counterexample: an old pair with `q''ᵢ = e J` (the new
+repair's good-event eviction) stays in the repair's cache after `J`
+(`e J ∈ D_J − q'' ⊆ Ŝ_J` by the swap form and reducedness).  The
+maintainable formulation is the **value invariant** `hcomp` (every
+`P`-position's value is the page of a pair whose `tᵢ` or nop is there,
+with the paired `∃` — maintainable since the new repair sets `{t₂, n₂}`
+to the new pair's `q''₂`, which satisfies the `∃` even when `n₂`
+overwrites an old nop) plus `hpair` (the past-position facts: `σ[tᵢ]`
+fault, `q''ᵢ` resident, `d tᵢ = q''ᵢ`, preserved by later repairs since
+`tᵢ < t₂` and the caches agree up to `t₂`).  The derivation: `t ∈ P ⟹
+t = tᵢ` (contradicts `hpast`) or `t = nᵢ` — the invariant gives `d t =
+q''`, and `evicted_page_absent_until_request` gives `q'' ∉ D_t`, so
+`d t ∉ D_t`, contradicting B2-resident.  **Remaining**: the
+`hcomp`/`hP`/`hpair`-extension glue in the case steps (the induction's
+state carries them; the case-B2/B1 lemmas' outputs need the extensions),
+and the `hnotE` (`Q''`-exclusion at window faults) — at a fault
+`s ∈ (t₂, J]` with `σ[s] = q''ᵢ`, `q''ᵢ` was requested at `s ≥ nᵢ`; the
+request `σ[s] = q''ᵢ` at a `d`-fault (`σ[s] ∉ D_s`) contradicts `q''ᵢ ∈
+D_s` (requested at `nᵢ ≤ s`, kept — needs "the current schedule never
+evicts `q''ᵢ` after its request", the branch-analysis half 2: `e s' ≠
+q''ᵢ` from `e s' ∈ E_{s'} ∪ {q₀'}` and `q''ᵢ ∉ E_{s'} ∪ {q₀'}` —
+`q''ᵢ ≠ q₀'` by `q₀' ∉ D_{tᵢ}` vs `q''ᵢ ∈ D_{tᵢ}` (FIF-resident),
+`q''ᵢ ∉ E_{s'}` by the chain + the request-avoidance — **still open**);
+(3) the dead-page case
+steps (B2-q-dead, B2-q''-dead via `repair_keep_swap_cur_qp_dead`,
+B1-dead); then the induction (`exists_first_disagree_after` + the case
+steps + the window-state threading — note `hj₀` cannot exist when the
+case-A had `q₀` dead, so the window state must be conditional or the
+unused window hypotheses dropped), then `fifo_optimal`.
 
 ### Iteration simulation (2026-08-10, `search_b2.py` + `search_iter.py`)
 
