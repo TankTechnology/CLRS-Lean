@@ -1734,6 +1734,77 @@ lemma iterate_main_exchange (d : ℕ → Page) (σ : List Page) (C₀ : Finset P
           (j' := j') hj' (s := s) (by omega) hFault
         simpa [e, q, q'] using hred
 
+/-- 当前窗口的交换调度:`win = none`(尚未交换)时取回退调度 `fb`
+(此时链/逐出一致不变式平凡),`win = some (d_pre, t₀, q₀, q₀', j₀, j₀')`
+时为该窗口的交换调度。 -/
+private noncomputable def windowExchange (win : Option ((ℕ → Page) × ℕ × Page × Page × ℕ × ℕ))
+    (fb : ℕ → Page) (σ : List Page) (C₀ : Finset Page) : ℕ → Page :=
+  match win with
+  | none => fb
+  | some w => exchangeSchedule w.1 w.2.1 w.2.2.1 w.2.2.2.1 σ C₀
+
+/-- IterateState: state (d, t0, slack, hnb, Q, P) plus window, invariants per DESIGN. -/
+private structure IterateState (σ : List Page) (C₀ : Finset Page) (M : ℕ) where
+  d : ℕ → Page
+  t0 : ℕ
+  slack : ℕ
+  hnb : ℕ
+  Q : Finset (ℕ × Page)
+  P : Finset ℕ
+  win : Option ((ℕ → Page) × ℕ × Page × Page × ℕ × ℕ)
+  hwin_inv : ∀ (d_pre : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (j₀ j₀' : ℕ),
+    win = some (d_pre, t₀, q₀, q₀', j₀, j₀') →
+    t₀ < t0 ∧ d_pre t₀ = q₀ ∧ q₀ ≠ q₀' ∧
+    (∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s → d_pre s ∈ schedCache d_pre C₀ σ s) ∧
+    σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀ ∧ q₀' ∈ schedCache d_pre C₀ σ t₀ ∧
+    nextUse σ (t₀ + 1) q₀ = some j₀ ∧
+    (∀ k, t₀ + 1 ≤ k → k < t₀ + 1 + j₀ → σ.getD k 0 ≠ q₀') ∧
+    nextUse σ (t₀ + 1) q₀' = some j₀'
+  hagree : agreeWithFIF d C₀ σ t0
+  hbook : schedMisses d C₀ σ + slack ≤ M
+  hchain : ∀ s, s ≤ σ.length → schedCache (windowExchange win d σ C₀) C₀ σ s \
+      schedCache d C₀ σ s ⊆ Q.image Prod.snd
+  hd_eq : ∀ s, s ∉ P → d s = windowExchange win d σ C₀ s
+  hdred : ∀ s, hnb ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s
+  hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t0
+  hQ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
+    nextUse σ (tᵢ + 1) q'' = none ∨
+      ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t0 < tᵢ + 1 + j''
+  hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ) ∨
+    (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+      nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'')
+  hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ ∧ d s = q'') ∨
+    (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+      nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'' ∧ d s = q'')
+  hpair : ∀ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q →
+    nextUse σ (tᵢ + 1) q'' = some j'' →
+    σ.getD tᵢ 0 ∉ schedCache d C₀ σ tᵢ ∧ q'' ∈ schedCache d C₀ σ tᵢ ∧ d tᵢ = q''
+
+/-- iterate_main: induction on sigma.length - t0; case A via iterate_main_exchange (case-one via hAone), case B via hB1/hB2 with t not-in-P from no_nop_at_b2. -/
+private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
+    (M : ℕ) (st : IterateState σ C₀ M)
+    (hB1 : ∀ (st : IterateState σ C₀ M) (t₂ : ℕ) (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb),
+      agreeWithFIF st.d C₀ σ t₂ →
+      schedCache st.d C₀ σ (t₂ + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t₂ + 1) →
+      st.d t₂ ∉ schedCache st.d C₀ σ t₂ →
+      σ.getD t₂ 0 ∉ schedCache st.d C₀ σ t₂ →
+      ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1)
+    (hB2 : ∀ (st : IterateState σ C₀ M) (t₂ : ℕ) (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb),
+      agreeWithFIF st.d C₀ σ t₂ →
+      schedCache st.d C₀ σ (t₂ + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t₂ + 1) →
+      st.d t₂ ∈ schedCache st.d C₀ σ t₂ →
+      σ.getD t₂ 0 ∉ schedCache st.d C₀ σ t₂ →
+      t₂ ∉ st.P →
+      ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1)
+    (hAone : ∀ (st : IterateState σ C₀ M) (t : ℕ) (ht : t < σ.length),
+      st.hnb ≤ t →
+      agreeWithFIF st.d C₀ σ t →
+      schedCache st.d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) →
+      nextUse σ (t + 1) (fifoSchedule σ C₀ t) = none →
+      ∃ st' : IterateState σ C₀ M, st'.t0 = t + 1) :
+    ∃ d' : ℕ → Page, ∃ slack' : ℕ,
+      agreeWithFIF d' C₀ σ σ.length ∧ schedMisses d' C₀ σ + slack' ≤ M := by
+
 end Caching
 
 end CLRS
