@@ -32,6 +32,10 @@ Main results:
   `⊆ {q''}` on `(J, J'']`, and `∅` after `J''`
 - `reverse_diff_chain`: the chain invariant `E − D ⊆ Q` of `iterate_main`
   extends through a repair by only `q''` — `E − Ŝ ⊆ insert q'' Q`
+- `reverse_diff_chain_qp_dead` / `reverse_diff_chain_q_dead`: same for the
+  dead-page repairs — `q''` dead (alive-`q` case, `repair_cache_diff_le` +
+  `repair_cache_diff_after`) and both dead (`repair_cache_diff`), for the
+  `repairSchedule d t q'' t` form
 - `b2_ehit`: the local e-hit step — at a B2 disagreement `t` (d faults,
   chain at `t`), `σ[t] ∈ E_t ⟹ σ[t] ∈ Q`
 - `b2_ehit_ne`: the contradiction side — dead or not-yet-requested past
@@ -536,6 +540,149 @@ lemma reverse_diff_chain (e : ℕ → Page) (d : ℕ → Page) (σ : List Page) 
         · have hsJ'' : t + 1 + j'' < s := by omega
           exfalso
           exact (Finset.notMem_empty x) ((hdiff s hslen).2.2 hsJ'' ▸ hmem)
+    · -- x ∉ D:x ∈ E − D ⊆ Q
+      rw [Finset.mem_insert]
+      exact Or.inr (hchain s hslen (by
+        rw [Finset.mem_sdiff]
+        exact ⟨hx.1, hxD⟩))
+
+/-- 反向差链(q'' 死版):`q''` 永不再请求的 B2 修复
+`r = repairSchedule d t q'' t` 之后,链不变式 `E − D ⊆ Q` 只增加 `q''`。
+与 `reverse_diff_chain` 同构,但差集用死页引理:`s ≤ J` 处
+`repair_cache_diff_le`(`D − Ŝ ⊆ {q, q''}`,`x = q` 与 `hqnotE` 矛盾),
+`J` 后 `repair_cache_diff_after`(`D − Ŝ ⊆ {q''}`,不再需要排除 `q`)。 -/
+lemma reverse_diff_chain_qp_dead (e : ℕ → Page) (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    {t : ℕ} {q q'' : Page} (hq : d t = q) (hq'' : q'' = fifoSchedule σ C₀ t)
+    (hqin : q ∈ schedCache d C₀ σ t)
+    (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    (hqq'' : q ≠ q'')
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    (hq''dead : nextUse σ (t + 1) q'' = none)
+    (hkept : q ∈ schedCache (repairSchedule d t q'' t) C₀ σ (t + 1 + j))
+    (Q : Finset Page)
+    (hqnotE : ∀ s, t < s → s ≤ t + 1 + j → q ∉ schedCache e C₀ σ s)
+    (hchain : ∀ s, s ≤ σ.length → schedCache e C₀ σ s \ schedCache d C₀ σ s ⊆ Q) :
+    ∀ s, s ≤ σ.length →
+      schedCache e C₀ σ s \ schedCache (repairSchedule d t q'' t) C₀ σ s ⊆
+          insert q'' Q := by
+  let r : ℕ → Page := repairSchedule d t q'' t
+  let E : ℕ → Finset Page := schedCache e C₀ σ
+  let D : ℕ → Finset Page := schedCache d C₀ σ
+  let S : ℕ → Finset Page := schedCache r C₀ σ
+  have hdiff_le : ∀ s, s ≤ t + 1 + j →
+      S s \ D s ⊆ ({q, q''} : Finset Page) ∧ D s \ S s ⊆ ({q, q''} : Finset Page) := by
+    intro s hsJ
+    exact repair_cache_diff_le d σ C₀ hq hq'' hft hqq'' hj
+      (repair_requests_avoid_q_qp σ hj hq''dead) s hsJ
+  have hdiff_after : ∀ s, t + 1 + j < s → s ≤ σ.length → D s \ S s ⊆ ({q''} : Finset Page) := by
+    intro s hsJ hslen
+    exact repair_cache_diff_after d σ C₀ hq hq'' hqin hft hqq'' hj
+      hq''dead hkept hdiff_le s hsJ hslen
+  intro s hslen
+  intro x hx
+  rw [Finset.mem_sdiff] at hx
+  by_cases hst : s ≤ t
+  · -- s ≤ t:r 与 d 的 cache 相同(S = D),故 x ∉ S ⟹ x ∉ D ⟹ x ∈ E − D ⊆ Q
+    have hSD : S s = D s := by
+      dsimp [S, D]
+      exact schedCache_repairSchedule_eq_e_qp_dead d t q'' σ C₀ hst
+    rw [Finset.mem_insert]
+    exact Or.inr (hchain s hslen (by
+      rw [Finset.mem_sdiff]
+      exact ⟨hx.1, by
+        intro hxD
+        exact hx.2 (by change x ∈ S s; rw [hSD]; exact hxD)⟩))
+  · -- t < s
+    have hts : t < s := by omega
+    by_cases hsJ : s ≤ t + 1 + j
+    · -- s ≤ J:x ∈ D − Ŝ ⊆ {q, q''},x = q 与 hqnotE 矛盾
+      by_cases hxD : x ∈ D s
+      · have hmem : x ∈ D s \ S s := by
+          rw [Finset.mem_sdiff]
+          exact ⟨hxD, hx.2⟩
+        rw [Finset.mem_insert]
+        have hxqq'' := (hdiff_le s hsJ).2 hmem
+        rcases Finset.mem_insert.mp hxqq'' with hxq | hxq''
+        · exfalso
+          exact hqnotE s hts hsJ (hxq ▸ hx.1)
+        · exact Or.inl (Finset.mem_singleton.mp hxq'')
+      · -- x ∉ D:x ∈ E − D ⊆ Q
+        rw [Finset.mem_insert]
+        exact Or.inr (hchain s hslen (by
+          rw [Finset.mem_sdiff]
+          exact ⟨hx.1, hxD⟩))
+    · -- J < s:D − Ŝ ⊆ {q''}
+      have hsJ' : t + 1 + j < s := by omega
+      by_cases hxD : x ∈ D s
+      · have hmem : x ∈ D s \ S s := by
+          rw [Finset.mem_sdiff]
+          exact ⟨hxD, hx.2⟩
+        rw [Finset.mem_insert]
+        exact Or.inl (Finset.mem_singleton.mp (hdiff_after s hsJ' hslen hmem))
+      · -- x ∉ D:x ∈ E − D ⊆ Q
+        rw [Finset.mem_insert]
+        exact Or.inr (hchain s hslen (by
+          rw [Finset.mem_sdiff]
+          exact ⟨hx.1, hxD⟩))
+
+/-- 反向差链(q 死版):`q`、`q''` 都永不再请求的 B2 修复
+`r = repairSchedule d t q'' t` 之后,链不变式 `E − D ⊆ Q` 只增加 `q''`。
+`D − Ŝ ⊆ {q, q''}` 处处成立(`repair_cache_diff`,无界 `hdead`),`x = q`
+与 `hqnotE`(调用方从 `swap_q_not_mem_dead` 得到)矛盾。 -/
+lemma reverse_diff_chain_q_dead (e : ℕ → Page) (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    {t : ℕ} {q q'' : Page} (hq : d t = q) (hq'' : q'' = fifoSchedule σ C₀ t)
+    (hqin : q ∈ schedCache d C₀ σ t)
+    (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    (hqq'' : q ≠ q'')
+    (hqdead : nextUse σ (t + 1) q = none)
+    (hq''dead : nextUse σ (t + 1) q'' = none)
+    (Q : Finset Page)
+    (hqnotE : ∀ s, t < s → s ≤ σ.length → q ∉ schedCache e C₀ σ s)
+    (hchain : ∀ s, s ≤ σ.length → schedCache e C₀ σ s \ schedCache d C₀ σ s ⊆ Q) :
+    ∀ s, s ≤ σ.length →
+      schedCache e C₀ σ s \ schedCache (repairSchedule d t q'' t) C₀ σ s ⊆
+          insert q'' Q := by
+  let r : ℕ → Page := repairSchedule d t q'' t
+  let E : ℕ → Finset Page := schedCache e C₀ σ
+  let D : ℕ → Finset Page := schedCache d C₀ σ
+  let S : ℕ → Finset Page := schedCache r C₀ σ
+  have hdead : ∀ s, t < s → s < σ.length → σ.getD s 0 ∉ ({q, q''} : Finset Page) := by
+    intro s hst hslen hmem
+    rcases Finset.mem_insert.mp hmem with hqeq | hq'eq
+    · exact getD_ne_of_nextUse_none σ hqdead (by omega) hslen hqeq
+    · exact getD_ne_of_nextUse_none σ hq''dead (by omega) hslen
+        (Finset.mem_singleton.mp hq'eq)
+  have hdiff : ∀ s, s ≤ σ.length →
+      S s \ D s ⊆ ({q, q''} : Finset Page) ∧ D s \ S s ⊆ ({q, q''} : Finset Page) := by
+    intro s hslen
+    exact repair_cache_diff d σ C₀ hq hq'' hft hqq'' hdead s hslen
+  intro s hslen
+  intro x hx
+  rw [Finset.mem_sdiff] at hx
+  by_cases hst : s ≤ t
+  · -- s ≤ t:r 与 d 的 cache 相同(S = D),故 x ∉ S ⟹ x ∉ D ⟹ x ∈ E − D ⊆ Q
+    have hSD : S s = D s := by
+      dsimp [S, D]
+      exact schedCache_repairSchedule_eq_e_qp_dead d t q'' σ C₀ hst
+    rw [Finset.mem_insert]
+    exact Or.inr (hchain s hslen (by
+      rw [Finset.mem_sdiff]
+      exact ⟨hx.1, by
+        intro hxD
+        exact hx.2 (by change x ∈ S s; rw [hSD]; exact hxD)⟩))
+  · -- t < s
+    have hts : t < s := by omega
+    by_cases hxD : x ∈ D s
+    · -- x ∈ D:x ∈ D − Ŝ ⊆ {q, q''},x = q 与 hqnotE 矛盾
+      have hmem : x ∈ D s \ S s := by
+        rw [Finset.mem_sdiff]
+        exact ⟨hxD, hx.2⟩
+      rw [Finset.mem_insert]
+      have hxqq'' := (hdiff s hslen).2 hmem
+      rcases Finset.mem_insert.mp hxqq'' with hxq | hxq''
+      · exfalso
+        exact hqnotE s hts hslen (hxq ▸ hx.1)
+      · exact Or.inl (Finset.mem_singleton.mp hxq'')
     · -- x ∉ D:x ∈ E − D ⊆ Q
       rw [Finset.mem_insert]
       exact Or.inr (hchain s hslen (by
