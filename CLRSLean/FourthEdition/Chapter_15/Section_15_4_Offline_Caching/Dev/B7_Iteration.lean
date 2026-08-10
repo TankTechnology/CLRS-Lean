@@ -1780,6 +1780,160 @@ lemma fifo_evict_absent_until_request (σ : List Page) (C₀ : Finset Page)
           · exact hneq hpeq.symm
           · exact hih (Finset.mem_erase.mp hmem).2
 
+/-- nop 位置 `s`(某对 `(tₗ, qₗ)` 的 nop `s = tₗ + 1 + jₗ`)处,当前调度 `d`
+的逐出是 no-op:`d s ∉ D_s`。`hcomp` 给 `d s = qₗ`,而 `qₗ` 是 FIF 在 `tₗ`
+的逐出页(`hQfifo`),首次请求在 `s`(`fifo_evict_absent_until_request` +
+与 FIF 一致到 `s`)故 `qₗ ∉ D_s`。 -/
+lemma nop_position_noop (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    (d : ℕ → Page)
+    {t₂ : ℕ} (hagree : agreeWithFIF d C₀ σ t₂)
+    (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (t0 : ℕ)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t0)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ ∧ d s = q'') ∨
+      (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+        nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'' ∧ d s = q''))
+    (hpair : ∀ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = some j'' →
+      σ.getD tᵢ 0 ∉ schedCache d C₀ σ tᵢ ∧ q'' ∈ schedCache d C₀ σ tᵢ ∧ d tᵢ = q'')
+    (hQfifo : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → q'' = fifoSchedule σ C₀ tᵢ)
+    {s : ℕ} (ht₀s : t0 < s) (hs : s ≤ t₂) (hsP : s ∈ P) :
+    d s ∉ schedCache d C₀ σ s := by
+  rcases hcomp s hsP with hc1 | hc2
+  · -- s 也是某对的修复位置:与 hpast(tₗ < t0 < s = tₗ)矛盾
+    rcases hc1 with ⟨tₗ, qₗ, htqₗ, hteqₗ, hdtₗ⟩
+    have htₗt0 : tₗ < t0 := hpast tₗ qₗ htqₗ
+    omega
+  · -- nop 位置:d s = qₗ,而 qₗ ∉ D_s(FIF 在 tₗ 逐出,首次请求在 s)
+    rcases hc2 with ⟨tₗ, qₗ, jₗ, htqₗ, hnextₗ, hteqₗ, hdtₗ⟩
+    intro hdsin
+    have hftFₗ : σ.getD tₗ 0 ∉ schedCache (fifoSchedule σ C₀) C₀ σ tₗ := by
+      have hftdₗ := (hpair tₗ qₗ jₗ htqₗ hnextₗ).1
+      rw [← hagree tₗ (by omega)]
+      exact hftdₗ
+    have habsₗ := fifo_evict_absent_until_request σ C₀ hC₀ hftFₗ (hQfifo tₗ qₗ htqₗ) hnextₗ
+    have hqₗnotD : qₗ ∉ schedCache d C₀ σ s := by
+      intro hq
+      have hqF : qₗ ∈ schedCache (fifoSchedule σ C₀) C₀ σ s := by
+        rw [← hagree s hs]
+        exact hq
+      exact habsₗ s (by omega) (by omega) hqF
+    exact hqₗnotD (hdtₗ ▸ hdsin)
+
+/-- hQ 的严格化:首个分歧 `t₂` 处(`t₂` 是 B2 resident,`d t₂ ∈ D_{t₂}`),
+过往修复对 `(tᵢ, q''ᵢ)` 的首次请求 `J''ᵢ = tᵢ + 1 + j''ᵢ` 严格在 `t₂` 之后:
+`J''ᵢ < t₂` 时,`J''ᵢ` 处的请求对 d 是 nop(逐出 `q''ᵢ` 不在 cache),而 FIF
+在 `J''ᵢ` 的逐出页 `f` 属于 `D_{J''ᵢ+1}`(d 的 no-op 只加 `q''ᵢ`)但不属于
+`F_{J''ᵢ+1}`(FIF 换出 `f`)—— 与 `J''ᵢ + 1 ≤ t₂` 处的一致矛盾;`J''ᵢ = t₂`
+时 `σ[t₂] = q''ᵢ` 且 `d t₂ ∉ D_{t₂}`(`nop_position_noop`)—— 与 B2
+resident 矛盾。给出 B2 步骤所需的 `t₂ < J''ᵢ` 严格形式。 -/
+lemma past_pair_first_request_after (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    (d : ℕ → Page)
+    (t0 t₂ : ℕ) (ht₀t₂ : t0 ≤ t₂)
+    (hagree : agreeWithFIF d C₀ σ t₂)
+    (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t0)
+    (hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+        nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j''))
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ ∧ d s = q'') ∨
+      (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+        nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'' ∧ d s = q''))
+    (hpair : ∀ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = some j'' →
+      σ.getD tᵢ 0 ∉ schedCache d C₀ σ tᵢ ∧ q'' ∈ schedCache d C₀ σ tᵢ ∧ d tᵢ = q'')
+    (hQfifo : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → q'' = fifoSchedule σ C₀ tᵢ)
+    (hP_in : ∀ s, (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+        nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'') → s ∈ P)
+    (hQ₀ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t0 < tᵢ + 1 + j'')
+    (ht₂ : t₂ < σ.length)
+    (hqin : d t₂ ∈ schedCache d C₀ σ t₂) :
+    ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t₂ < tᵢ + 1 + j'' := by
+  intro tᵢ q'' htq
+  rcases hQ₀ tᵢ q'' htq with hdead | ⟨j'', hnext, ht₀J⟩
+  · exact Or.inl hdead
+  · right
+    refine ⟨j'', hnext, ?_⟩
+    by_contra hJle
+    have hJ : tᵢ + 1 + j'' ≤ t₂ := by omega
+    have hget : σ.getD (tᵢ + 1 + j'') 0 = q'' := getD_eq_nextUse hnext
+    have htᵢt₂ : tᵢ ≤ t₂ := le_trans (le_of_lt (hpast tᵢ q'' htq)) ht₀t₂
+    have hftF : σ.getD tᵢ 0 ∉ schedCache (fifoSchedule σ C₀) C₀ σ tᵢ := by
+      have hftd := (hpair tᵢ q'' j'' htq hnext).1
+      rw [← hagree tᵢ htᵢt₂]
+      exact hftd
+    have habs := fifo_evict_absent_until_request σ C₀ hC₀ hftF (hQfifo tᵢ q'' htq) hnext
+    by_cases hJlt : tᵢ + 1 + j'' < t₂
+    · -- J''ᵢ < t₂:J''ᵢ + 1 ≤ t₂ 处 cache 分歧
+      let s : ℕ := tᵢ + 1 + j''
+      have hst₂ : s ≤ t₂ := by dsimp [s]; omega
+      have htᵢs : tᵢ < s := by dsimp [s]; omega
+      have ht₀s : t0 < s := by dsimp [s]; omega
+      have hget' : σ.getD s 0 = q'' := by
+        dsimp [s]
+        exact getD_eq_nextUse hnext
+      have hq''notD : q'' ∉ schedCache d C₀ σ s := by
+        intro hq
+        have hqF : q'' ∈ schedCache (fifoSchedule σ C₀) C₀ σ s := by
+          rw [← hagree s hst₂]
+          exact hq
+        exact habs s htᵢs le_rfl hqF
+      have hsigD : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+        intro hmem
+        rw [hget'] at hmem
+        exact hq''notD hmem
+      have hsigF : σ.getD s 0 ∉ schedCache (fifoSchedule σ C₀) C₀ σ s := by
+        intro hmem
+        rw [hget'] at hmem
+        exact habs s htᵢs le_rfl hmem
+      have hnoop : d s ∉ schedCache d C₀ σ s := nop_position_noop σ C₀ hC₀ d (t₂ := t₂) hagree
+        Q P t0 hpast hcomp hpair hQfifo (ht₀s := ht₀s) (hs := hst₂)
+        (hP_in s (Or.inr ⟨tᵢ, q'', j'', htq, hnext, rfl⟩))
+      have hf_memF : fifoSchedule σ C₀ s ∈ schedCache (fifoSchedule σ C₀) C₀ σ s := by
+        rw [schedCache_fifoSchedule]
+        change (fifoPolicy σ).evict s (cacheSeq (fifoPolicy σ) C₀ σ s) (σ.getD s 0) ∈
+          cacheSeq (fifoPolicy σ) C₀ σ s
+        exact (fifoPolicy σ).evict_mem s (cacheSeq (fifoPolicy σ) C₀ σ s) (σ.getD s 0)
+          (by simpa [schedCache_fifoSchedule] using hsigF) (cacheSeq_nonempty (fifoPolicy σ) C₀ σ s hC₀)
+      have hf_memD : fifoSchedule σ C₀ s ∈ schedCache d C₀ σ s := by
+        rw [hagree s hst₂]
+        exact hf_memF
+      have hf_memD1 : fifoSchedule σ C₀ s ∈ schedCache d C₀ σ (s + 1) := by
+        rw [schedCache]
+        rw [if_neg hsigD]
+        rw [Finset.mem_insert]
+        right
+        rw [Finset.mem_erase]
+        constructor
+        · intro hfeq
+          rw [hfeq] at hf_memD
+          exact hnoop hf_memD
+        · exact hf_memD
+      have hs1 : s + 1 ≤ t₂ := by dsimp [s]; omega
+      have hf_notF1 : fifoSchedule σ C₀ s ∉ schedCache (fifoSchedule σ C₀) C₀ σ (s + 1) := by
+        rw [schedCache]
+        rw [if_neg hsigF]
+        intro hmem
+        rcases Finset.mem_insert.mp hmem with hfeq | hmem
+        · rw [hfeq] at hf_memF
+          exact hsigF hf_memF
+        · exact (Finset.mem_erase.mp hmem).1 rfl
+      exact hf_notF1 (by rw [← hagree (s + 1) hs1]; exact hf_memD1)
+    · -- J''ᵢ = t₂:σ[t₂] = q''ᵢ 且 d t₂ ∉ D_{t₂}(nop),与 hqin 矛盾
+      have hs_eq : tᵢ + 1 + j'' = t₂ := by omega
+      have ht₀t₂' : t0 < t₂ := by omega
+      have hnoop : d t₂ ∉ schedCache d C₀ σ t₂ := nop_position_noop σ C₀ hC₀ d (t₂ := t₂) hagree
+        Q P t0 hpast hcomp hpair hQfifo (ht₀s := ht₀t₂') (hs := le_rfl)
+        (hP_in t₂ (Or.inr ⟨tᵢ, q'', j'', htq, hnext, hs_eq.symm⟩))
+      exact hnoop hqin
+
 /-- 当前窗口的交换调度:`win = none`(尚未交换)时取回退调度 `fb`
 (此时链/逐出一致不变式平凡),`win = some (d_pre, t₀, q₀, q₀', j₀, j₀')`
 时为该窗口的交换调度。 -/
@@ -1820,6 +1974,9 @@ private structure IterateState (σ : List Page) (C₀ : Finset Page) (M : ℕ) w
   hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ) ∨
     (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
       nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'')
+  hP_in : ∀ s, (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ) ∨
+    (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+      nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'') → s ∈ P
   hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ ∧ d s = q'') ∨
     (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
       nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'' ∧ d s = q'')
@@ -1999,9 +2156,16 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
                   q'' = fifoSchedule σ C₀ tᵢ := by
                 intro tᵢ q'' h
                 simp at h
+              have hP_in' : ∀ s, (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ) ∨
+                  (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
+                    nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'') → s ∈ (∅ : Finset ℕ) := by
+                intro s h
+                rcases h with ⟨tᵢ, q'', htq, hteq⟩ | ⟨tᵢ, q'', j'', htq, hnext, hteq⟩
+                · simp at htq
+                · simp at htq
               let st' : IterateState σ C₀ M := ⟨e, t + 1, slack', max st.hnb (t + 1 + j' + 1), ∅, ∅,
                 some (st.d, t, q, q', j₀, j'), hwin_inv', hagreeE, hbook', hchain', hd_eq', hred',
-                hpast', hQ', hQfifo', hP', hcomp', hpair'⟩
+                hpast', hQ', hQfifo', hP', hP_in', hcomp', hpair'⟩
               have hmea : σ.length - st'.t0 < n := by
                 dsimp [st']
                 omega
@@ -2084,6 +2248,13 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
         q'' = fifoSchedule σ C₀ tᵢ := by
       intro tᵢ q'' h
       simp at h
+    have hP_in₀ : ∀ s, (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ) ∨
+        (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
+          nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'') → s ∈ (∅ : Finset ℕ) := by
+      intro s h
+      rcases h with ⟨tᵢ, q'', htq, hteq⟩ | ⟨tᵢ, q'', j'', htq, hnext, hteq⟩
+      · simp at htq
+      · simp at htq
     have hP₀ : ∀ s, s ∈ (∅ : Finset ℕ) →
         (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ) ∨
         (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
@@ -2103,7 +2274,7 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
       simp at h
     let st₀ : IterateState σ C₀ M :=
       ⟨d₀, 0, 0, 0, ∅, ∅, none, hwin_inv₀, hagree₀, hbook₀, hchain₀, hd_eq₀, hdred₀,
-        hpast₀, hQ₀, hQfifo₀, hP₀, hcomp₀, hpair₀⟩
+        hpast₀, hQ₀, hQfifo₀, hP₀, hP_in₀, hcomp₀, hpair₀⟩
     rcases iterate_main σ C₀ hC₀ M st₀ (hB1 M) (hB2 M) (hAone M) with ⟨d', slack', hagree', hbook'⟩
     have hmiss_eq : schedMisses d' C₀ σ = schedMisses (fifoSchedule σ C₀) C₀ σ :=
       schedMisses_eq_of_agree d' σ C₀ hagree'
