@@ -56,6 +56,11 @@ Main results:
   in the window, the eviction is `q₀'` or resident (`e s ∈ E_s ∪ {q₀'}`);
   the mechanism behind `hqinE` (at B2 the `q₀'` branch is B1) and "the
   exchange never evicts a past `q''ᵢ`"
+- `no_nop_at_b2`: the last-repair analysis core — at a B2 position `t`
+  (`d t ∈ D_t`), `t ∉ P`: `t = tᵢ` contradicts `hpast`, and `t = nᵢ`
+  gives `d t = q''` (the value invariant `hcomp`) with `q'' ∉ D_t`
+  (`evicted_page_absent_until_request`) — a no-op eviction, hence B1 not
+  B2
 - `iterate_main_case_b2_alive`: the case-B2 step (alive-alive) — the
   repair at a resident disagreement: agreement to `t₂ + 1`, misses not
   increased, chain extended by `q''`, `hd_eq` extended to
@@ -1248,6 +1253,52 @@ lemma exchange_evict_mem_or_q' (d : ℕ → Page) (t : ℕ) (q q' : Page)
             exact hFault (hEq.symm ▸ h)
           have hdsE : d s ∈ schedCache d C₀ σ s := hweak s (by omega) hdFault
           exact hdsin (hEq.symm ▸ hdsE)
+
+/-- no-nop-at-B2 推导(最后修复分析的核心):`P` 是过往修复位置集
+(`tᵢ` 与活对的 nop `tᵢ + 1 + j''ᵢ`),`hcomp` 是值不变式 —— 每个 `P`
+位置的值是某对的页(`s = tᵢ` 或 `s = nᵢ` 且 `d s = q''`),`hpair` 给出
+每对在其 `tᵢ` 处的过往事实(`σ[tᵢ]` 缺页、`q''` resident、`d tᵢ = q''`,
+修复后保持)。B2 位置 `t`(`d t ∈ D_t`)处:若 `t ∈ P`,则 `t = tᵢ`
+(`hpast` 矛盾)或 `t = nᵢ` —— 值不变式给 `d t = q''`,而
+`evicted_page_absent_until_request`(逐出后未请求)给 `q'' ∉ D_t`,
+与 `d t ∈ D_t` 矛盾。 -/
+lemma no_nop_at_b2 (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    {t : ℕ}
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t)
+    (hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+        nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j''))
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ ∧ d s = q'') ∨
+      (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
+        nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'' ∧ d s = q''))
+    (hpair : ∀ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = some j'' →
+      σ.getD tᵢ 0 ∉ schedCache d C₀ σ tᵢ ∧
+      q'' ∈ schedCache d C₀ σ tᵢ ∧
+      d tᵢ = q'')
+    (ht : t < σ.length)
+    (hqin : d t ∈ schedCache d C₀ σ t) :
+    t ∉ P := by
+  intro htP
+  rcases hP t htP with ⟨tᵢ, q'', htq, hteq⟩ | ⟨tᵢ, q'', j'', htq, hnext, hteq⟩
+  · -- t = tᵢ:tᵢ < t 矛盾
+    have hlt : tᵢ < t := hpast tᵢ q'' htq
+    omega
+  · -- t = nᵢ:值不变式给 d t = q''(某对),而 q'' ∉ D_t(逐出后未请求)
+    rcases hcomp t htP with hc1 | hc2
+    · -- t 也是某对的 tᵢ:hpast 矛盾
+      rcases hc1 with ⟨tₗ, qₗ, htqₗ, hteqₗ, hdtₗ⟩
+      have hlt : tₗ < t := hpast tₗ qₗ htqₗ
+      omega
+    · -- t = nₗ 且 d t = qₗ:evicted_page_absent_until_request
+      rcases hc2 with ⟨tₗ, qₗ, jₗ, htqₗ, hnextₗ, hteqₗ, hdtₗ⟩
+      rcases hpair tₗ qₗ jₗ htqₗ hnextₗ with ⟨hftₗ, hqresₗ, hdtₗ'⟩
+      have habs : qₗ ∉ schedCache d C₀ σ (tₗ + 1 + jₗ) :=
+        evicted_page_absent_until_request d σ C₀ tₗ qₗ hftₗ hqresₗ hdtₗ' hnextₗ
+      have : qₗ ∉ schedCache d C₀ σ t := by
+        rwa [hteqₗ]
+      exact this (hdtₗ ▸ hqin)
 
 /-- 迭代的情形 B1(活子情形):窗口内 no-op 分歧 `t₂`(`d t₂ ∉ cache`)处,
 `q''` 会再次被请求(`hj'''`)时,修复 `r = repairSchedule d t₂ q'' (t₂ + 1 + j''')`
