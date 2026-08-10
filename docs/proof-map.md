@@ -3586,7 +3586,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   reachability-to-path translation extracts a vertex-simple path from a
   residual walk.
 - Current gap: the O(V · E) execution-cost refinement of the flow method is
-  an optional low-level refinement; sections 25.2--25.3 are not-started.
+  an optional low-level refinement.
 
 ### Section 25.2 - The stable-marriage problem
 
@@ -3615,6 +3615,38 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   partner by descending to strictly earlier rejection steps
   (`rejected_valid_earlier`), contradicting minimality of the first such
   rejection.
+
+### Section 25.3 - The Hungarian algorithm for the assignment problem
+
+- Lean source:
+  `CLRSLean/FourthEdition/Chapter_25/Section_25_3_Hungarian_Algorithm.lean`
+- Status: `partial`
+- Main theorems:
+  - `CLRS.AssignmentProblem.Problem` / `Problem.Optimal` / `Problem.Feasible` /
+    `Problem.Tight` / `Problem.IsTightMatching` (assignment model)
+  - `CLRS.AssignmentProblem.exists_optimal_assignment`
+  - `CLRS.AssignmentProblem.perfect_tight_optimal` (Lemma 25.8: a perfect
+    matching in the equality graph of a feasible potential is optimal)
+  - `CLRS.AssignmentProblem.HungarianTree` (alternating tree with parents and
+    ranks) and `pathToLeft` / `PathProps` / `pathToLeft_props`
+  - `CLRS.AssignmentProblem.potential_step` (minimum-slack adjustment creates a
+    new tight edge)
+  - `CLRS.AssignmentProblem.augmentingPath` /
+    `augmentingPath_isAugmenting` /
+    `exists_augment_of_tight_free` (augmentation via Berge)
+  - `CLRS.AssignmentProblem.growTree` (tree-growth step)
+  - `CLRS.AssignmentProblem.augmentable_or_adjustable` (local progress:
+    augment or adjust-and-grow)
+- Proof pattern: duality via feasible potentials; the algorithm's three moves
+  (potential adjustment, tree growth, augmentation) are each formalized, and
+  `augmentable_or_adjustable` shows every non-terminal tree either augments the
+  matching or admits a potential adjustment that grows the tree.
+- Current gap: packaging the full adjustment-plus-augmentation loop as one
+  terminating function (the well-founded iteration of
+  `augmentable_or_adjustable` until the matching is perfect) is not yet
+  written; the constructive existence of an optimal assignment via the
+  algorithm is therefore still open, though every individual move and Lemma
+  25.8 are proved.
 
 ## Chapter 26 - Maximum Flow
 
