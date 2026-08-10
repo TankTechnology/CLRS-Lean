@@ -15,11 +15,11 @@ Legacy imports remain supported through all 1.x releases and for at
 least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
-* Chapters represented in Lean: 31.
-* Tracked reader-facing theorem entries: 1,360.
-* Proved tracked theorem entries: 1,360.
+* Chapters represented in Lean: 32.
+* Tracked reader-facing theorem entries: 1,384.
+* Proved tracked theorem entries: 1,384.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 29.
+* Remaining edition-coverage units: 27.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -34,11 +34,11 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 11 chapters.
+* {lit}`main-proof-complete`: 12 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
 * {lit}`partial`: 9 chapters.
-* {lit}`not-started`: 4 chapters.
+* {lit}`not-started`: 3 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -55,7 +55,7 @@ Ch  Chapter                                                     Status          
  7  7. Quicksort                                                partial (edition coverage)           7.1;7.2;7.3;7.4                    30        1
  8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.1;8.2;8.3;8.4                    36        0
  9  9. Medians and Order Statistics                             main-proof-complete                  9.1;9.2;9.3                        72        0
-10  10. Elementary Data Structures                              partial (edition coverage)           10.1;10.2;10.3                     12        1
+10  10. Elementary Data Structures                              main-proof-complete                  10.1;10.2;10.3                     21        0
 11  11. Hash Tables                                             main-proof-complete                  11.1;11.2;11.3;11.4;11.5           59        0
 12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1;12.2;12.3                     40        0
 13  13. Red-Black Trees                                         partial (edition coverage)           13.1;13.2;13.3;13.4                39        3
