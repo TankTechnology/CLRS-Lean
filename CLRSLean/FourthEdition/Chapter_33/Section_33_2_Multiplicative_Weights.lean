@@ -177,18 +177,28 @@ lemma neg_log_one_sub_le_add_sq {x : ℝ} (hx0 : 0 ≤ x) (hx : x ≤ 1 / 2) :
       simpa using (hasDerivAt_pow 2 t)
     have hlog : HasDerivAt (fun u : ℝ => Real.log (1 - u)) (-(1 - t)⁻¹) t := by
       have hsub : HasDerivAt (fun u : ℝ => (1 : ℝ) - u) (-1) t := by
-        simpa using (hasDerivAt_const t (1 : ℝ)).sub hid
+        convert ((hasDerivAt_const t (1 : ℝ)).sub hid) using 1
+        · rfl
+        · rfl
+        · rfl
+        · norm_num
       have hlog1 : HasDerivAt Real.log ((1 - t)⁻¹) (1 - t) := by
         exact Real.hasDerivAt_log (by linarith : (1 - t) ≠ 0)
-      simpa using (hlog1.comp t hsub)
+      convert (hlog1.comp t hsub) using 1
+      · rfl
+      · rfl
+      · rfl
+      · ring
     have hsum : HasDerivAt (fun u : ℝ => u + u ^ 2 + Real.log (1 - u))
         (1 + 2 * t - (1 - t)⁻¹) t := by
       convert ((hid.add hsq).add hlog) using 1
       · rfl
+      · rfl
+      · rfl
       · ring
     simpa [f] using hsum
   have hmono : MonotoneOn f (Set.Icc 0 (1 / 2)) := by
-    refine monotoneOn_of_deriv_nonneg (convex_Icc (a := 0) (b := 1 / 2)) ?_ ?_ ?_
+    refine monotoneOn_of_deriv_nonneg (convex_Icc 0 (1 / 2)) ?_ ?_ ?_
     · have hc_poly : ContinuousOn (fun t : ℝ => t + t ^ 2) (Set.Icc 0 (1 / 2)) := by
         exact continuousOn_id.add (continuousOn_id.pow 2)
       have hc_log : ContinuousOn (fun t : ℝ => Real.log (1 - t)) (Set.Icc 0 (1 / 2)) := by
@@ -326,7 +336,7 @@ lemma potential_weights_le {T n : ℕ} {η : ℝ} {m : Fin T → Fin n → ℝ}
       calc
         potential (weights η m 0) = n := by
           simp [weights, potential_initialWeights]
-        _ ≤ n * Real.exp (-η * (∑ s in Finset.range 0, expectedLoss η m s)) := by
+        _ ≤ n * Real.exp (-η * (∑ s ∈ Finset.range 0, expectedLoss η m s)) := by
           simp [Finset.sum_range_zero]
   | succ t ih =>
       intro hts
@@ -372,19 +382,21 @@ lemma weights_eq_rpow_expertLoss {T n : ℕ} {η : ℝ} {m : Fin T → Fin n →
     (hη1 : η < 1) (i : Fin n) :
     weights η m T i = (1 - η) ^ expertLoss m i := by
   have hbase : 0 < 1 - η := by linarith
+  have aux : ∀ t : ℕ, weights η m t i = ∏ s ∈ Finset.range t, (1 - η) ^ dayLoss m s i := by
+    intro t
+    induction t with
+    | zero => simp [weights, initialWeights]
+    | succ t ih =>
+        rw [weights]
+        rw [updateWeight]
+        rw [ih]
+        rw [Finset.prod_range_succ]
   calc
-    weights η m T i = ∏ s ∈ Finset.range T, (1 - η) ^ dayLoss m s i := by
-      induction T with
-      | zero => simp [weights, initialWeights]
-      | succ T' ih =>
-          rw [Finset.prod_range_succ]
-          rw [ih]
-          simp [weights, updateWeight]
+    weights η m T i = ∏ s ∈ Finset.range T, (1 - η) ^ dayLoss m s i := aux T
     _ = (1 - η) ^ (∑ s ∈ Finset.range T, dayLoss m s i) := by
       rw [← Real.rpow_sum_of_pos hbase]
     _ = (1 - η) ^ expertLoss m i := by
-      congr 1
-      rfl
+      simp [expertLoss]
 
 /--
 The total loss of every expert is nonnegative, since every daily loss lies in
@@ -439,10 +451,7 @@ theorem totalExpectedLoss_le {T n : ℕ} {η : ℝ} {m : Fin T → Fin n → ℝ
   have hLge : 0 ≤ L := expertLoss_nonneg hm i
   have hbound : (Real.log n + L * (-Real.log (1 - η))) / η ≤
       (Real.log n + L * (η + η ^ 2)) / η := by
-    have hml : L * (-Real.log (1 - η)) ≤ L * (η + η ^ 2) :=
-      mul_le_mul_of_nonneg_left hlg hLge
-    rw [div_le_div_iff₀ hη0]
-    exact mul_le_mul_of_nonneg_right (add_le_add (le_refl (Real.log n)) hml) hη0'
+    gcongr
   have hsplit : (Real.log n + L * (η + η ^ 2)) / η = Real.log n / η + L * (1 + η) := by
     field_simp [ne_of_gt hη0]
   have hfinal : E ≤ Real.log n / η + L * (1 + η) := by
