@@ -43,6 +43,9 @@ Main results:
 - `b2_hswap`: the swap form at the good event — `Ŝ_J = insert q (E_J −
   q'')`, the instantiation of `repair_keep_swap` (B6) with the window
   hypotheses
+- `b2_hswap_qp_dead`: same for the `q''`-dead case — `repair_keep_swap_qp_dead`
+  (B6), the dead-page repair `repairSchedule e t q'' t` still has the swap
+  form at `J` (the good event for `repair_step_swap_qp_dead`)
 - `iterate_main_exchange`: the case-A step of `iterate_main` — at the first
   disagreement `t`, the exchange extends agreement to `t + 1`, never
   increases misses (slack `+1` iff the bad event did not occur), and is
@@ -653,6 +656,34 @@ lemma b2_hswap (d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (σ : List Pa
   subst hq''
   simpa [hq] using repair_keep_swap d t₀ q₀ q₀' σ C₀ hC₀ hq₀ hqq₀ hweak hft₀ hq₀'res hj₀ hq₀'ne hj₀'
     ht ht₀t htt' hagree hdis (by simpa [← hq] using hqin) (by simpa [← hq] using hj) hj'' hjj''
+
+/-- B2 的 keep-swap 形式(q'' 死版):`repair_keep_swap_qp_dead`(B6)在迭代
+上下文的实例化 —— `q''` 永不再请求时,死页修复 `r = repairSchedule e t q'' t`
+的好事件 `J = t + 1 + j` 处仍有 swap 形式 `Ŝ_J = insert q (E_J − q'')`
+(给出 `repair_step_swap_qp_dead` 所需的 `q ∈ Ŝ_J`)。仅实例化,无新证明。 -/
+lemma b2_hswap_qp_dead (d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    (hq₀ : d t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d C₀ σ t₀)
+    (hq₀'res : q₀' ∈ schedCache d C₀ σ t₀)
+    {j₀ : ℕ} (hj₀ : nextUse σ (t₀ + 1) q₀ = some j₀)
+    (hq₀'ne : ∀ k, t₀ + 1 ≤ k → k < t₀ + 1 + j₀ → σ.getD k 0 ≠ q₀')
+    {j₀' : ℕ} (hj₀' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t : ℕ} (ht : t < σ.length) (ht₀t : t₀ < t) (htt' : t < t₀ + 1 + j₀')
+    (hagree : agreeWithFIF (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ t)
+    (hdis : schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ (t + 1) ≠
+      schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    {q : Page} (hq : (exchangeSchedule d t₀ q₀ q₀' σ C₀) t = q)
+    (hqin : q ∈ schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    {q'' : Page} (hq'' : q'' = fifoSchedule σ C₀ t)
+    (hq''dead : nextUse σ (t + 1) q'' = none) :
+    schedCache (repairSchedule (exchangeSchedule d t₀ q₀ q₀' σ C₀) t q'' t) C₀ σ (t + 1 + j) =
+      insert q ((schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ (t + 1 + j)).erase q'') := by
+  subst hq''
+  simpa [hq] using repair_keep_swap_qp_dead d t₀ q₀ q₀' σ C₀ hC₀ hq₀ hqq₀ hweak hft₀ hq₀'res hj₀ hq₀'ne hj₀'
+    ht ht₀t htt' hagree hdis (by simpa [← hq] using hqin) (by simpa [← hq] using hj) hq''dead
 
 /-- 迭代的情形 A(交换步骤):在首个分歧 `t` 处,用策略的选择
 `q' = fifoSchedule σ C₀ t` 替换 `d` 的逐出 `q = d t`,得到新调度
