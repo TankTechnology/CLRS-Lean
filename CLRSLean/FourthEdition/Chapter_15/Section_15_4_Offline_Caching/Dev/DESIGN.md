@@ -312,14 +312,28 @@ the B1 dead-page repair (`repair_diff_noop_qp_dead`, `repair_step_qp_dead`
 shared helpers (`repair_requests_avoid_q_qp`,
 `schedCache_repairSchedule_eq_e_qp_dead`, `swap_q_not_mem_dead`).
 
-**Remaining for `iterate_main`**: the keep-swap for the repair of the
-*current* schedule (exchange + past repairs; `b2_hswap`/`repair_keep_swap`
-repair the pure exchange) — needs the bridge hypotheses (`hd_eq`, `hnot`,
-`t₂ ∉ P` from the no-nop-at-B2 argument, `q ∈ E_{t₂}` from the branch
-analysis, and the `Q''`-exclusion at window faults for `exchange_no_evict_q`
-`hFault` — the last-repair analysis of the B5 status notes); the B1 chain
-extension (the alive-B1 window diff `D − Ŝ ⊆ {q''}` on `(t, J''']`); then
-the case-B1/B2 step lemmas, the induction, and `fifo_optimal`.
+**Done (2026-08-10/11, second batch, kernel-checked)**: the keep-swap for
+the repair of the *current* schedule (`repair_keep_swap_cur`, B7), the
+case-B2 alive-alive step (`iterate_main_case_b2_alive` — agreement,
+misses, chain, `hd_eq`, reducedness), the case-B1 alive step
+(`iterate_main_case_b1_alive` — exact miss accounting
+`schedMisses r ≤ schedMisses d + bad` for the `slack − bad` bookkeeping)
+with its helpers (`repair_diff_noop_window` in B6, `repair_q''_absent`,
+`repair_reverse_diff_after_nop` in B7).
+
+**Remaining for `iterate_main`**: the case steps take the bridge hypotheses
+`hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
+per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
+exchange faults (from `exchangeDecision`'s structure: branch 1 evicts
+`q₀'`, branches 4-6 and 5 evict pages of `E`), which gives `q ∈ E_{t₂}`
+at B2 (the `q₀'` disjunct is B1) and "the exchange never evicts a past
+`q''ᵢ`"; (2) the last-repair/no-nop-at-B2 analysis — at a past nop
+position `nᵢ`, `d nᵢ = q''ᵢ ∉ D_{nᵢ}` (a no-op, hence B1 not B2), which
+gives `t₂ ∉ P` and the `Q''`-exclusion at window faults (`hnotE`); (3) the
+dead-page case steps (B2-q-dead, B2-q''-dead via
+`repair_keep_swap_cur_qp_dead`, B1-dead); then the induction
+(`exists_first_disagree_after` + the case steps + the window-state
+threading), then `fifo_optimal`.
 
 ### Iteration simulation (2026-08-10, `search_b2.py` + `search_iter.py`)
 
