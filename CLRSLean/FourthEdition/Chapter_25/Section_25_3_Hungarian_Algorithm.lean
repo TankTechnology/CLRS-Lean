@@ -276,6 +276,111 @@ theorem perfect_tight_optimal (P : Problem V) {y : V → ℝ} (hy : P.Feasible y
       feasible_cost_lower_bound P hy M' hM'
     simpa [hsum] using hlow⟩
 
+namespace Problem
+
+/-- The type of matchings of a finite bipartite graph is finite, because a
+matching is determined by its edge set. -/
+noncomputable instance instFintypeMatching (P : Problem V) : Fintype (Matching V P.G) := by
+  classical
+  exact Fintype.ofInjective Matching.edges (by
+    intro M N h
+    cases M
+    cases N
+    simp [Matching.edges] at h
+    subst h
+    congr)
+
+/-- Since `L` and `R` have equal cardinality, there is a bijection between
+them.  This is the pairing that makes a perfect matching explicit. -/
+noncomputable def L_eq_R (P : Problem V) : {x : V // x ∈ P.G.L} ≃ {x : V // x ∈ P.G.R} := by
+  classical
+  let eL := Fintype.equivFin (α := {x : V // x ∈ P.G.L})
+  let eR := Fintype.equivFin (α := {x : V // x ∈ P.G.R})
+  let hc : Fintype.card {x : V // x ∈ P.G.L} = Fintype.card {x : V // x ∈ P.G.R} := by
+    rw [Fintype.card_subtype, Fintype.card_subtype]
+    rw [show (Finset.univ.filter (fun x : V => x ∈ P.G.L)) = P.G.L by ext x; simp]
+    rw [show (Finset.univ.filter (fun x : V => x ∈ P.G.R)) = P.G.R by ext x; simp]
+    exact P.h_eq_card
+  exact (eL.trans (Equiv.cast (congrArg Fin hc))).trans eR.symm
+
+/-- A perfect matching obtained by pairing the elements of `L` with the
+elements of `R` through the bijection `L_eq_R`.  Existence of a perfect
+matching in a complete balanced bipartite graph. -/
+noncomputable def perfectMatching (P : Problem V) : Matching V P.G where
+  edges := Finset.univ.image (fun l : {x : V // x ∈ P.G.L} => (l.1, (P.L_eq_R l).1))
+  h_subset := by
+    intro e he
+    rcases Finset.mem_image.mp he with ⟨l, hl, rfl⟩
+    exact P.h_complete l.1 l.2 (P.L_eq_R l).1 (P.L_eq_R l).2
+  h_unique_left := by
+    intro l r₁ r₂ h₁ h₂
+    rw [Finset.mem_image] at h₁ h₂
+    rcases h₁ with ⟨a₁, ha₁, hf₁⟩
+    rcases h₂ with ⟨a₂, ha₂, hf₂⟩
+    have ha1 : a₁.1 = l := by simpa using (congrArg Prod.fst hf₁)
+    have ha2 : a₂.1 = l := by simpa using (congrArg Prod.fst hf₂)
+    have heq : a₁ = a₂ := Subtype.ext (ha1.trans ha2.symm)
+    have hs1 : (P.L_eq_R a₁).1 = r₁ := by simpa using (congrArg Prod.snd hf₁)
+    have hs2 : (P.L_eq_R a₂).1 = r₂ := by simpa using (congrArg Prod.snd hf₂)
+    rw [← hs1, ← hs2]
+    rw [heq]
+  h_unique_right := by
+    intro l₁ l₂ r h₁ h₂
+    rw [Finset.mem_image] at h₁ h₂
+    rcases h₁ with ⟨a₁, ha₁, hf₁⟩
+    rcases h₂ with ⟨a₂, ha₂, hf₂⟩
+    have hl1 : a₁.1 = l₁ := by simpa using (congrArg Prod.fst hf₁)
+    have hl2 : a₂.1 = l₂ := by simpa using (congrArg Prod.fst hf₂)
+    have hs1 : (P.L_eq_R a₁).1 = r := by simpa using (congrArg Prod.snd hf₁)
+    have hs2 : (P.L_eq_R a₂).1 = r := by simpa using (congrArg Prod.snd hf₂)
+    have hRval : (P.L_eq_R a₁).1 = (P.L_eq_R a₂).1 := by
+      rw [hs1, hs2]
+    have hRsub : P.L_eq_R a₁ = P.L_eq_R a₂ := Subtype.ext hRval
+    have haeq : a₁ = a₂ := (Equiv.injective (P.L_eq_R)) hRsub
+    rw [← hl1, ← hl2]
+    exact congrArg Subtype.val haeq
+
+/-- The constructed matching is perfect. -/
+theorem perfectMatching_perfect (P : Problem V) : (P.perfectMatching).Perfect := by
+  classical
+  simp [Matching.Perfect, Matching.size, perfectMatching]
+  have hinj : Function.Injective (fun l : {x : V // x ∈ P.G.L} => (l.1, (P.L_eq_R l).1)) := by
+    intro a b h
+    exact Subtype.ext (by simpa using (congrArg Prod.fst h))
+  rw [Finset.card_image_of_injective (s := P.G.L.attach)
+    (f := fun l : {x : V // x ∈ P.G.L} => (l.1, (P.L_eq_R l).1)) hinj]
+  simp
+
+/-- A perfect matching exists in a complete balanced bipartite graph. -/
+theorem exists_perfect_matching (P : Problem V) : ∃ M : Matching V P.G, M.Perfect :=
+  ⟨P.perfectMatching, P.perfectMatching_perfect⟩
+
+/-- An optimal assignment exists.  The finite set of perfect matchings is
+nonempty, and the cost function attains its minimum on it. -/
+theorem exists_optimal_assignment (P : Problem V) : ∃ M : Matching V P.G, P.Optimal M := by
+  classical
+  let ms : Finset (Matching V P.G) := Finset.univ.filter (fun M => M.Perfect)
+  have hne : ms.Nonempty := by
+    refine ⟨P.perfectMatching, ?_⟩
+    exact Finset.mem_filter.mpr ⟨Finset.mem_univ _, P.perfectMatching_perfect⟩
+  let costs : Finset ℝ := ms.image (fun M => P.cost M)
+  have hcosts_ne : costs.Nonempty := Finset.image_nonempty.mpr hne
+  let c : ℝ := costs.min' hcosts_ne
+  have hc_mem : c ∈ costs := Finset.min'_mem costs hcosts_ne
+  rcases Finset.mem_image.mp hc_mem with ⟨M, hM, hcost⟩
+  refine ⟨M, ?_⟩
+  have hMperf : M.Perfect := (Finset.mem_filter.mp hM).2
+  refine ⟨hMperf, ?_⟩
+  intro M' hM'perf
+  have hM'mem : M' ∈ ms := Finset.mem_filter.mpr ⟨Finset.mem_univ _, hM'perf⟩
+  have hM'cost : P.cost M' ∈ costs := Finset.mem_image.mpr ⟨M', hM'mem, rfl⟩
+  have hle : c ≤ P.cost M' := by
+    simpa [c] using (Finset.min'_le costs (P.cost M') hM'cost)
+  rw [← hcost] at hle
+  exact hle
+
+end Problem
+
 end AssignmentProblem
 
 end CLRS
