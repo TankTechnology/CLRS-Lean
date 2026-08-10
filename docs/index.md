@@ -356,6 +356,7 @@ CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 CLRSLean/FourthEdition/Chapter_33/Section_33_1_Clustering.lean
+CLRSLean/FourthEdition/Chapter_33/Section_33_2_Multiplicative_Weights.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
 CLRSLean/Extensions/TreapHeight.lean
