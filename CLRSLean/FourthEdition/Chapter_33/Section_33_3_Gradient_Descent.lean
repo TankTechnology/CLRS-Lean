@@ -218,10 +218,10 @@ lemma gdIterates_potential_le {x₀ xstar : E} {η G : ℝ} {f : E → ℝ}
               nlinarith [ih]
         _ = ‖x₀ - xstar‖ ^ 2 -
               2 * η * (∑ k ∈ Finset.range (K + 1), (f (gdIterates η x₀ f k) - f xstar)) +
-              (K + 1 : ℝ) * η ^ 2 * G ^ 2 := by
+              ((K + 1 : ℕ) : ℝ) * η ^ 2 * G ^ 2 := by
               rw [Finset.sum_range_succ]
-              dsimp [xK]
-              nlinarith
+              simp [xK]
+              ring
 
 /--
 **Total-suboptimality bound.**  The sum of suboptimalities over the first `K`

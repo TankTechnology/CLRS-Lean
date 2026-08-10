@@ -550,6 +550,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_33" = [
   "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -710,6 +711,9 @@ title = "33.1. Clustering"
 
 [modules."CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights"]
 title = "33.2. Multiplicative-Weights Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent"]
+title = "33.3. Gradient Descent"
 
 [modules."CLRSLean.FourthEdition.Chapter_34"]
 title = "Chapter 34. NP-Completeness"
