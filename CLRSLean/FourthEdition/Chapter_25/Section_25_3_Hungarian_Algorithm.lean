@@ -955,6 +955,183 @@ theorem exists_augment_of_tight_free {P : Problem V} {y : V → ℝ} {M : Matchi
     ∃ M' : Matching V P.G, M'.size = M.size + 1 := by
   exact Matchings.exists_augment (augmentingPath_isAugmenting tree hl hrR hrNotT hfree ht)
 
+/-- **Tree-growth step** (CLRS §25.3): a tight edge from `S` to a right vertex
+`r` outside `T` that is matched to `w` grows the alternating tree by adding
+`r` to `T` and `w` to `S`.  The rank of the two new vertices is one more than
+the rank of `l`. -/
+noncomputable def growTree {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (l rn : V) (hl : l ∈ tree.S) (hrR : rn ∈ P.G.R)
+    (hrNotT : rn ∉ tree.T) (ht : P.Tight y l rn) (hrMatched : rn ∈ M.matchedRight) :
+    HungarianTree P y M :=
+  let w : V := matchedPartner M hrMatched
+  have hwS : w ∉ tree.S := by
+    intro hw
+    have hrT : rn ∈ tree.T :=
+      tree.hpartner_in_T w hw (by
+        intro h
+        have hlr : (tree.u, rn) ∈ M.edges := h ▸ matchedPartner_mem M hrMatched
+        exact tree.hu_free rn hlr) rn (matchedPartner_mem M hrMatched)
+    exact hrNotT hrT
+  let parent' : V → V := fun v => if v = rn then l else tree.treeParent v
+  let rank' : V → ℕ := fun v => if v = w ∨ v = rn then tree.rank l + 1 else tree.rank v
+  { u := tree.u
+    S := insert w tree.S
+    T := insert rn tree.T
+    hS_subset := by
+      intro v hv
+      rw [Finset.mem_insert] at hv
+      rcases hv with rfl | hv
+      · exact M.left_mem_L (matchedPartner_mem M hrMatched)
+      · exact tree.hS_subset hv
+    hT_subset := by
+      intro v hv
+      rw [Finset.mem_insert] at hv
+      rcases hv with rfl | hv
+      · exact hrR
+      · exact tree.hT_subset hv
+    hu_mem := by
+      simp [Finset.mem_insert, tree.hu_mem]
+    hu_free := tree.hu_free
+    hT_matched := by
+      intro v hv
+      rw [Finset.mem_insert] at hv
+      rcases hv with rfl | hv
+      · exact hrMatched
+      · exact tree.hT_matched v hv
+    hpartner_in_S := by
+      intro r' hr' l'' hlr'
+      rw [Finset.mem_insert] at hr'
+      rcases hr' with hmem | hr'
+      · subst r'
+        have hl'' : l'' = w := M.h_unique_right l'' w rn hlr' (matchedPartner_mem M hrMatched)
+        constructor
+        · simp [Finset.mem_insert, hl'']
+        · intro hlu
+          have hl'u : w = tree.u := hl'' ▸ hlu
+          have hlr : (tree.u, rn) ∈ M.edges := hl'u ▸ matchedPartner_mem M hrMatched
+          exact tree.hu_free rn hlr
+      · rcases tree.hpartner_in_S r' hr' l'' hlr' with ⟨hS, hne⟩
+        exact ⟨by simp [Finset.mem_insert, hS], hne⟩
+    hleft_matched := by
+      intro l' hl' hne
+      rw [Finset.mem_insert] at hl'
+      rcases hl' with rfl | hl'
+      · exact (M.mem_matchedLeft_iff w).mpr ⟨rn, matchedPartner_mem M hrMatched⟩
+      · exact tree.hleft_matched l' hl' hne
+    hpartner_in_T := by
+      intro l' hl' hne r' hlr'
+      rw [Finset.mem_insert] at hl'
+      rcases hl' with rfl | hl'
+      · have hrr' : r' = rn := (M.h_unique_left w rn r' (matchedPartner_mem M hrMatched) hlr').symm
+        simp [Finset.mem_insert, hrr']
+      · simp [Finset.mem_insert, tree.hpartner_in_T l' hl' hne r' hlr']
+    treeParent := parent'
+    htree_parent_mem := by
+      intro r' hr'
+      rw [Finset.mem_insert] at hr'
+      rcases hr' with hmem | hr'
+      · subst r'
+        simp [parent', hl]
+      · have hrr' : r' ≠ rn := by
+          intro h
+          exact hrNotT (h ▸ hr')
+        have hpar : parent' r' = tree.treeParent r' := by simp [parent', hrr']
+        rw [hpar]
+        simp [Finset.mem_insert, tree.htree_parent_mem r' hr']
+    htree_tight := by
+      intro r' hr'
+      rw [Finset.mem_insert] at hr'
+      rcases hr' with hmem | hr'
+      · subst r'
+        simpa [parent'] using ht
+      · have hrr' : r' ≠ rn := by
+          intro h
+          exact hrNotT (h ▸ hr')
+        have hpar : parent' r' = tree.treeParent r' := by simp [parent', hrr']
+        rw [hpar]
+        exact tree.htree_tight r' hr'
+    htree_not_matching := by
+      intro r' hr'
+      rw [Finset.mem_insert] at hr'
+      rcases hr' with hmem | hr'
+      · subst r'
+        simpa [parent'] using tight_edge_not_matching tree hl hrR hrNotT ht
+      · have hrr' : r' ≠ rn := by
+          intro h
+          exact hrNotT (h ▸ hr')
+        have hpar : parent' r' = tree.treeParent r' := by simp [parent', hrr']
+        rw [hpar]
+        exact tree.htree_not_matching r' hr'
+    rank := rank'
+    hrank_u := by
+      have huw : tree.u ≠ w := by
+        intro h
+        have hlr : (tree.u, rn) ∈ M.edges := h ▸ matchedPartner_mem M hrMatched
+        exact tree.hu_free rn hlr
+      have hur : tree.u ≠ rn := by
+        intro h
+        exact P.G.not_mem_R_of_mem_L (h ▸ tree.hS_subset tree.hu_mem) hrR
+      simp [rank', huw, hur, tree.hrank_u]
+    hrank_lt := by
+      intro r' hr'
+      rw [Finset.mem_insert] at hr'
+      rcases hr' with hmem | hr'
+      · subst r'
+        have hwl : l ≠ w := by
+          intro h
+          exact hwS (h ▸ hl)
+        have hrl : l ≠ rn := by
+          intro h
+          exact P.G.not_mem_R_of_mem_L (tree.hS_subset hl) (h ▸ hrR)
+        simp [rank', parent', hwl, hrl]
+      · have hrp : tree.treeParent r' ≠ w := by
+          intro h
+          exact hwS (h ▸ tree.htree_parent_mem r' hr')
+        have hrr' : r' ≠ rn := by
+          intro h
+          exact hrNotT (h ▸ hr')
+        have hr'w : r' ≠ w := by
+          intro h
+          have hwL : r' ∈ P.G.L := by
+            rw [h]
+            exact M.left_mem_L (matchedPartner_mem M hrMatched)
+          exact P.G.not_mem_L_of_mem_R (tree.hT_subset hr') hwL
+        have hrpr : tree.treeParent r' ≠ rn := by
+          intro h
+          exact P.G.not_mem_R_of_mem_L
+            (tree.hS_subset (tree.htree_parent_mem r' hr')) (h ▸ hrR)
+        have hpar : parent' r' = tree.treeParent r' := by simp [parent', hrr']
+        rw [hpar]
+        simp [rank', hrp, hrr', hr'w, hrpr]
+        exact tree.hrank_lt r' hr'
+    hrank_match := by
+      intro r' hr' l'' hlr'
+      rw [Finset.mem_insert] at hr'
+      rcases hr' with hmem | hr'
+      · subst r'
+        have hl'' : l'' = w := M.h_unique_right l'' w rn hlr' (matchedPartner_mem M hrMatched)
+        simp [rank', hl'']
+      · have hrr' : r' ≠ rn := by
+          intro h
+          exact hrNotT (h ▸ hr')
+        have hl''w : l'' ≠ w := by
+          intro h
+          have hlr : (w, rn) ∈ M.edges := matchedPartner_mem M hrMatched
+          have hrr'' : r' = rn := (M.h_unique_left w rn r' hlr (by rwa [← h])).symm
+          exact hrr' hrr''
+        have hl''rn : l'' ≠ rn := by
+          intro h
+          exact P.G.not_mem_R_of_mem_L (M.left_mem_L hlr') (h ▸ hrR)
+        have hr'w : r' ≠ w := by
+          intro h
+          have hwL : r' ∈ P.G.L := by
+            rw [h]
+            exact M.left_mem_L (matchedPartner_mem M hrMatched)
+          exact P.G.not_mem_L_of_mem_R (tree.hT_subset hr') hwL
+        simp [rank', hrr', hl''w, hl''rn, hr'w]
+        exact tree.hrank_match r' hr' l'' hlr'
+  }
+
 end Problem
 
 end AssignmentProblem
