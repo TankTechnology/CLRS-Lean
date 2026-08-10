@@ -1804,7 +1804,266 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
       ∃ st' : IterateState σ C₀ M, st'.t0 = t + 1) :
     ∃ d' : ℕ → Page, ∃ slack' : ℕ,
       agreeWithFIF d' C₀ σ σ.length ∧ schedMisses d' C₀ σ + slack' ≤ M := by
+  have hmain : ∀ n : ℕ,
+      (∀ m : ℕ, m < n → ∀ (st : IterateState σ C₀ M), σ.length - st.t0 = m →
+        ∃ d' slack', agreeWithFIF d' C₀ σ σ.length ∧ schedMisses d' C₀ σ + slack' ≤ M) →
+      ∀ (st : IterateState σ C₀ M), σ.length - st.t0 = n →
+        ∃ d' slack', agreeWithFIF d' C₀ σ σ.length ∧ schedMisses d' C₀ σ + slack' ≤ M := by
+    intro n ih st hlen
+    by_cases hfull : agreeWithFIF st.d C₀ σ σ.length
+    · refine ⟨st.d, st.slack, hfull, ?_⟩
+      exact st.hbook
+    · have hnot : ¬ agreeWithFIF st.d C₀ σ σ.length := hfull
+      have ht0 : st.t0 ≤ σ.length := by
+        by_contra h
+        apply hnot
+        intro s hs
+        exact st.hagree s (by omega)
+      rcases exists_first_disagree_after st.d σ C₀ st.t0 ht0 st.hagree hnot with ⟨t, ht₀t, htl, hagt, hnat⟩
+      have hdis : schedCache st.d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) := by
+        intro hEq
+        apply hnat
+        intro s hs
+        by_cases hs_le : s ≤ t
+        · exact hagt s hs_le
+        · have hs' : s = t + 1 := by omega
+          subst s
+          exact hEq
+      have hft₂ : σ.getD t 0 ∉ schedCache st.d C₀ σ t := (first_disagree st.d σ C₀ hC₀ htl hagt hdis).1
+      by_cases hB : t < st.hnb
+      · -- case B:t < hnb,按 d t 是否 resident 分 B2/B1
+        by_cases hqin : st.d t ∈ schedCache st.d C₀ σ t
+        · -- B2:no_nop_at_b2 给出 t ∉ P
+          have ht₂notP : t ∉ st.P := by
+            apply no_nop_at_b2 st.d σ C₀ st.Q st.P (t := t)
+            · intro tᵢ q'' htq
+              have h := st.hpast tᵢ q'' htq
+              omega
+            · exact st.hP
+            · exact st.hcomp
+            · exact st.hpair
+            · exact htl
+            · exact hqin
+          rcases hB2 st t htl hB hagt hdis hqin hft₂ ht₂notP with ⟨st', ht0'⟩
+          have hmea : σ.length - st'.t0 < n := by
+            rw [ht0']
+            omega
+          rcases ih (σ.length - st'.t0) hmea st' rfl with ⟨d', slack', hagree', hbook'⟩
+          exact ⟨d', slack', hagree', hbook'⟩
+        · -- B1:no-op 修复
+          rcases hB1 st t htl hB hagt hdis hqin hft₂ with ⟨st', ht0'⟩
+          have hmea : σ.length - st'.t0 < n := by
+            rw [ht0']
+            omega
+          rcases ih (σ.length - st'.t0) hmea st' rfl with ⟨d', slack', hagree', hbook'⟩
+          exact ⟨d', slack', hagree', hbook'⟩
+      · -- case A:hnb ≤ t,交换;q' 活则窗口重置,q' 死由 hAone 供应
+        have hnb_le : st.hnb ≤ t := by omega
+        have hdred_t : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache st.d C₀ σ s → st.d s ∈ schedCache st.d C₀ σ s := by
+          intro s hs hf
+          exact st.hdred s (by omega) hf
+        rcases iterate_main_exchange st.d σ C₀ hC₀ htl hagt hdis hdred_t st.slack with ⟨slack', hagreeE, hbookE, hredE⟩
+        let q : Page := st.d t
+        let q' : Page := fifoSchedule σ C₀ t
+        let e : ℕ → Page := exchangeSchedule st.d t q q' σ C₀
+        cases hnext : nextUse σ (t + 1) q' with
+        | some j' =>
+            have hqin_t : q ∈ schedCache st.d C₀ σ t := by
+              dsimp [q]
+              exact hdred_t t le_rfl hft₂
+            have hqq' : q ≠ q' := by
+              intro hqq
+              exact (first_disagree st.d σ C₀ hC₀ htl hagt hdis).2.1 (by simpa [q, q', hqq])
+            have hfifo2 : nextUse σ (t + 1) q' = none ∨
+                ∃ j j', nextUse σ (t + 1) q = some j ∧ nextUse σ (t + 1) q' = some j' ∧ j < j' := by
+              apply fifo_nextUse_order σ (schedCache st.d C₀ σ t) t q' q
+              · exact fifo_evict_eq_farthest st.d σ C₀ hagt
+              · exact hqin_t
+              · exact hqq'
+            rcases hfifo2 with hnone2 | ⟨j₀, j₀'', hj₀, hj₀'', hjlt⟩
+            · exfalso
+              rw [hnext] at hnone2
+              cases hnone2
+            · have hq₀'ne : ∀ k, t + 1 ≤ k → k < t + 1 + j' → σ.getD k 0 ≠ q' := by
+                intro k hk1 hk2
+                exact getD_ne_nextUse (k := k) hnext (by omega) (by omega)
+              have hred' : ∀ s, max st.hnb (t + 1 + j' + 1) ≤ s →
+                  σ.getD s 0 ∉ schedCache e C₀ σ s → e s ∈ schedCache e C₀ σ s := by
+                intro s hs hFault
+                have hs' : t + 1 + j' < s := by
+                  have hle := le_of_max_le_right hs
+                  omega
+                exact hredE j' hnext (s := s) hs' hFault
+              have hwin_inv' : ∀ (d_pre' : ℕ → Page) (t₀' : ℕ) (q₀'' q₀''' : Page) (j₀'' j₀''' : ℕ),
+                  some (st.d, t, q, q', j₀, j') = some (d_pre', t₀', q₀'', q₀''', j₀'', j₀''') →
+                  t₀' < t + 1 ∧ d_pre' t₀' = q₀'' ∧ q₀'' ≠ q₀''' ∧
+                  (∀ s, t₀' ≤ s → σ.getD s 0 ∉ schedCache d_pre' C₀ σ s → d_pre' s ∈ schedCache d_pre' C₀ σ s) ∧
+                  σ.getD t₀' 0 ∉ schedCache d_pre' C₀ σ t₀' ∧ q₀''' ∈ schedCache d_pre' C₀ σ t₀' ∧
+                  nextUse σ (t₀' + 1) q₀'' = some j₀'' ∧
+                  (∀ k, t₀' + 1 ≤ k → k < t₀' + 1 + j₀'' → σ.getD k 0 ≠ q₀''') ∧
+                  nextUse σ (t₀' + 1) q₀''' = some j₀''' := by
+                intro d_pre' t₀' q₀'' q₀''' j₀'' j₀''' hEq
+                rcases hEq with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+                refine ⟨by omega, rfl, hqq', ?_, hft₂, ?_, hj₀, ?_, hnext⟩
+                · intro s hs hf
+                  exact st.hdred s (by omega) hf
+                · exact (first_disagree st.d σ C₀ hC₀ htl hagt hdis).2.2
+                · intro k hk1 hk2
+                  have hjlt' : j₀ < j' := by
+                    have hj₀''eq : j₀'' = j' := Option.some.inj (hj₀''.symm.trans hnext)
+                    omega
+                  exact getD_ne_nextUse (k := k) hnext (by omega) (by omega)
+              have hbook' : schedMisses e C₀ σ + slack' ≤ M := by
+                dsimp [e, q, q']
+                exact le_trans hbookE st.hbook
+              have hchain' : ∀ s, s ≤ σ.length → schedCache (windowExchange (some (st.d, t, q, q', j₀, j')) e σ C₀) C₀ σ s \
+                  schedCache e C₀ σ s ⊆ (∅ : Finset (ℕ × Page)).image Prod.snd := by
+                intro s hs
+                dsimp [e, windowExchange]
+                simp
+              have hd_eq' : ∀ s, s ∉ (∅ : Finset ℕ) → e s = windowExchange (some (st.d, t, q, q', j₀, j')) e σ C₀ s := by
+                intro s hs
+                rfl
+              have hpast' : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) → tᵢ < t + 1 := by
+                intro tᵢ q'' h
+                simp at h
+              have hQ' : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) →
+                  nextUse σ (tᵢ + 1) q'' = none ∨ ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t + 1 < tᵢ + 1 + j'' := by
+                intro tᵢ q'' h
+                simp at h
+              have hP' : ∀ s, s ∈ (∅ : Finset ℕ) →
+                  (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ) ∨
+                  (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
+                    nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'') := by
+                intro s h
+                simp at h
+              have hcomp' : ∀ s, s ∈ (∅ : Finset ℕ) →
+                  (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ ∧ e s = q'') ∨
+                  (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
+                    nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'' ∧ e s = q'') := by
+                intro s h
+                simp at h
+              have hpair' : ∀ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) →
+                  nextUse σ (tᵢ + 1) q'' = some j'' →
+                  σ.getD tᵢ 0 ∉ schedCache e C₀ σ tᵢ ∧ q'' ∈ schedCache e C₀ σ tᵢ ∧ e tᵢ = q'' := by
+                intro tᵢ q'' j'' h
+                simp at h
+              let st' : IterateState σ C₀ M := ⟨e, t + 1, slack', max st.hnb (t + 1 + j' + 1), ∅, ∅,
+                some (st.d, t, q, q', j₀, j'), hwin_inv', hagreeE, hbook', hchain', hd_eq', hred',
+                hpast', hQ', hP', hcomp', hpair'⟩
+              have hmea : σ.length - st'.t0 < n := by
+                dsimp [st']
+                omega
+              rcases ih (σ.length - st'.t0) hmea st' rfl with ⟨d', slack', hagree', hbook'⟩
+              exact ⟨d', slack', hagree', hbook'⟩
+        | none =>
+            have hnb_le : st.hnb ≤ t := by omega
+            rcases hAone st t htl hnb_le hagt hdis (by simpa [q'] using hnext) with ⟨st', ht0'⟩
+            have hmea : σ.length - st'.t0 < n := by
+              rw [ht0']
+              omega
+            rcases ih (σ.length - st'.t0) hmea st' rfl with ⟨d', slack', hagree', hbook'⟩
+            exact ⟨d', slack', hagree', hbook'⟩
+  exact Nat.strong_induction_on (p := fun n : ℕ => ∀ (st : IterateState σ C₀ M), σ.length - st.t0 = n →
+      ∃ d' slack', agreeWithFIF d' C₀ σ σ.length ∧ schedMisses d' C₀ σ + slack' ≤ M)
+    (σ.length - st.t0) hmain st rfl
 
-end Caching
+  /-- fifo_optimal: CLRS Theorem 15.5 via iterate_main from the initial state (d0, t0=0, slack=0, hnb=0, Q=P=empty, win=none); the hB1/hB2/hAone supplies are hypotheses. -/
+  private lemma fifo_optimal (π : Policy) (C₀ : Finset Page) (σ : List Page)
+      (hC₀ : C₀.Nonempty)
+      (hB1 : ∀ (M : ℕ) (st : IterateState σ C₀ M) (t₂ : ℕ) (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb),
+        agreeWithFIF st.d C₀ σ t₂ →
+        schedCache st.d C₀ σ (t₂ + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t₂ + 1) →
+        st.d t₂ ∉ schedCache st.d C₀ σ t₂ →
+        σ.getD t₂ 0 ∉ schedCache st.d C₀ σ t₂ →
+        ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1)
+      (hB2 : ∀ (M : ℕ) (st : IterateState σ C₀ M) (t₂ : ℕ) (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb),
+        agreeWithFIF st.d C₀ σ t₂ →
+        schedCache st.d C₀ σ (t₂ + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t₂ + 1) →
+        st.d t₂ ∈ schedCache st.d C₀ σ t₂ →
+        σ.getD t₂ 0 ∉ schedCache st.d C₀ σ t₂ →
+        t₂ ∉ st.P →
+        ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1)
+      (hAone : ∀ (M : ℕ) (st : IterateState σ C₀ M) (t : ℕ) (ht : t < σ.length),
+        st.hnb ≤ t →
+        agreeWithFIF st.d C₀ σ t →
+        schedCache st.d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) →
+        nextUse σ (t + 1) (fifoSchedule σ C₀ t) = none →
+        ∃ st' : IterateState σ C₀ M, st'.t0 = t + 1) :
+      misses (fifoPolicy σ) C₀ σ ≤ misses π C₀ σ := by
+    let d₀ : ℕ → Page := policySchedule π C₀ σ
+    let M : ℕ := schedMisses d₀ C₀ σ
+    have hwin_inv₀ : ∀ (d_pre : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (j₀ j₀' : ℕ),
+        none = some (d_pre, t₀, q₀, q₀', j₀, j₀') →
+        t₀ < 0 ∧ d_pre t₀ = q₀ ∧ q₀ ≠ q₀' ∧
+        (∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s → d_pre s ∈ schedCache d_pre C₀ σ s) ∧
+        σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀ ∧ q₀' ∈ schedCache d_pre C₀ σ t₀ ∧
+        nextUse σ (t₀ + 1) q₀ = some j₀ ∧
+        (∀ k, t₀ + 1 ≤ k → k < t₀ + 1 + j₀ → σ.getD k 0 ≠ q₀') ∧
+        nextUse σ (t₀ + 1) q₀' = some j₀' := by
+      intro d_pre t₀ q₀ q₀' j₀ j₀' hEq
+      cases hEq
+    have hagree₀ : agreeWithFIF d₀ C₀ σ 0 := by
+      intro s hs
+      have hs0 : s = 0 := by omega
+      subst s
+      rfl
+    have hbook₀ : schedMisses d₀ C₀ σ + 0 ≤ M := by rfl
+    have hchain₀ : ∀ s, s ≤ σ.length → schedCache (windowExchange none d₀ σ C₀) C₀ σ s \
+        schedCache d₀ C₀ σ s ⊆ (∅ : Finset (ℕ × Page)).image Prod.snd := by
+      intro s hs
+      simp [windowExchange]
+    have hd_eq₀ : ∀ s, s ∉ (∅ : Finset ℕ) → d₀ s = windowExchange none d₀ σ C₀ s := by
+      intro s hs
+      rfl
+    have hdred₀ : ∀ s, 0 ≤ s → σ.getD s 0 ∉ schedCache d₀ C₀ σ s → d₀ s ∈ schedCache d₀ C₀ σ s := by
+      intro s hs hf
+      dsimp [d₀, policySchedule]
+      rw [schedCache_policySchedule]
+      exact π.evict_mem s (cacheSeq π C₀ σ s) (σ.getD s 0)
+        (by simpa [d₀, schedCache_policySchedule] using hf) (cacheSeq_nonempty π C₀ σ s hC₀)
+    have hpast₀ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) → tᵢ < 0 := by
+      intro tᵢ q'' h
+      simp at h
+    have hQ₀ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) →
+        nextUse σ (tᵢ + 1) q'' = none ∨ ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ 0 < tᵢ + 1 + j'' := by
+      intro tᵢ q'' h
+      simp at h
+    have hP₀ : ∀ s, s ∈ (∅ : Finset ℕ) →
+        (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ) ∨
+        (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
+          nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'') := by
+      intro s h
+      simp at h
+    have hcomp₀ : ∀ s, s ∈ (∅ : Finset ℕ) →
+        (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ ∧ d₀ s = q'') ∨
+        (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
+          nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'' ∧ d₀ s = q'') := by
+      intro s h
+      simp at h
+    have hpair₀ : ∀ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) →
+        nextUse σ (tᵢ + 1) q'' = some j'' →
+        σ.getD tᵢ 0 ∉ schedCache d₀ C₀ σ tᵢ ∧ q'' ∈ schedCache d₀ C₀ σ tᵢ ∧ d₀ tᵢ = q'' := by
+      intro tᵢ q'' j'' h
+      simp at h
+    let st₀ : IterateState σ C₀ M :=
+      ⟨d₀, 0, 0, 0, ∅, ∅, none, hwin_inv₀, hagree₀, hbook₀, hchain₀, hd_eq₀, hdred₀,
+        hpast₀, hQ₀, hP₀, hcomp₀, hpair₀⟩
+    rcases iterate_main σ C₀ hC₀ M st₀ (hB1 M) (hB2 M) (hAone M) with ⟨d', slack', hagree', hbook'⟩
+    have hmiss_eq : schedMisses d' C₀ σ = schedMisses (fifoSchedule σ C₀) C₀ σ :=
+      schedMisses_eq_of_agree d' σ C₀ hagree'
+    have hle : schedMisses (fifoSchedule σ C₀) C₀ σ ≤ M := by
+      rw [← hmiss_eq]
+      omega
+    calc
+      misses (fifoPolicy σ) C₀ σ = schedMisses (policySchedule (fifoPolicy σ) C₀ σ) C₀ σ :=
+        (schedMisses_policySchedule (fifoPolicy σ) C₀ σ).symm
+      _ = schedMisses (fifoSchedule σ C₀) C₀ σ := by rfl
+      _ ≤ M := hle
+      _ = schedMisses d₀ C₀ σ := rfl
+      _ = schedMisses (policySchedule π C₀ σ) C₀ σ := rfl
+      _ = misses π C₀ σ := schedMisses_policySchedule π C₀ σ
 
-end CLRS
+  end Caching
+
+  end CLRS
