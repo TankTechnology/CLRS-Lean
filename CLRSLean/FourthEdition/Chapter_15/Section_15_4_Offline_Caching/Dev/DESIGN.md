@@ -348,18 +348,44 @@ repair step extends `Q''` with `q''`).
 
 Supporting lemmas (new, `Dev/B7_Iteration.lean`):
 
-1. `repair_diff_sync`: after `repairSchedule d t q'' (t+1+j'')` with live
-   `q`, `q''`, the repair cache and `d`'s differ by ⊆ `{q, q''}` at every
-   `s ≤ σ.length`, and `q` (resp. `q''`) is a member of both from `J`
-   (resp. `J''`) on — the window part reuses `repair_cache_diff_le` up to
-   `J`; on `(J, J'']` the diff shrinks to `{q''}` (both have `q`); after
-   `J''` the two caches coincide (both load `q''` at `J''`, evictions
-   agree).
+1. `repair_diff_all` (done, 2026-08-10, kernel-checked): with live `q`,
+   `q''` and the keep-swap hypothesis `hkept : q ∈ Ŝ_J` (the good event),
+   the **reverse** diff `E_s − Ŝ_s` of the repair `r = repairSchedule e t
+   q'' (t+1+j'')` against the source `e` is confined by
+   `⊆ {q, q''}` at every `s ≤ σ.length`, `⊆ {q''}` on `(J, J'']`, and
+   `∅` (i.e. `E ⊆ Ŝ`) after `J''`.
+   - up to `J`: `repair_cache_diff_le` (B6), `hdead` from `hj`/`hj''`;
+   - base at `J+1`: `e` faults at `J` (loads `q`), `r` hits (`hkept`), and
+     `E_J − Ŝ_J ⊆ {q, q''}` (`repair_cache_diff_le` at `J`) with `q ∉ E_J`
+     (`swap_q_not_mem`) leaves only `q''` — **no window form needed**;
+   - step on `(J, J'')`: only `r s = e s` (`s ∉ {t, J''}`) and
+     `σ[s] ≠ q''` (`getD_ne_nextUse hj''`);
+   - base at `J''+1`: both sides gain `q''` (r's nop eviction at `J''` is a
+     no-op — `q'' ∉ Ŝ` on `(J, J'']`), and `q'' ∉ E − Ŝ` rules out the
+     `{q''}` residue of `hw` at `J''`;
+   - step after `J''`: `E ⊆ Ŝ` propagates (`r s = e s`).
+   **Corrected from the earlier design**: the two caches do *not* coincide
+   after `J''` — the **forward** diff `Ŝ − E` picks up `e J` (the page `e`
+   evicts at the good event: the window page `q₀'` at a branch-1 spot, or a
+   `C'`-page) and drifts (verified: `σ=[1,1,3,1,2,1,3]`, B2 at 4, `eJ = 2
+   = q₀'` stays in `Ŝ` forever).  Only the reverse diff is confined — the
+   direction the chain uses.
 2. `reverse_diff_chain`: `cache_e − cache_d ⊆ Q''` — repair steps add only
    `q''` (the repair evicts `q''` while `e` keeps it; `q ∉ cache_e` on
-   `(t, J]` since `e` evicts `q` at `t`).
-3. `b2_ehit`: `σ[t] ∉ cache_e_t` at a B2 disagreement — from
-   `σ[t] ∈ Q''` (reverse diff) + `q''ᵢ` dead-or-first-requested.
+   `(t, J]` since `e` evicts `q` at `t`).  Interleaved with `iterate_main`.
+3. `b2_ehit`: `σ[t] ∉ cache_e_t` at a B2 disagreement.  Mechanism
+   (verified over 55188 B2 positions, `search_iter.py`):
+   `σ[t] ∈ cache_e_t ⟹ σ[t] ∈ E_t − D_t ⊆ Q'' ⟹ σ[t] = q''ᵢ` for a past
+   repair `i`.  Then `t ≥ J''ᵢ` (first request of `q''ᵢ` after `tᵢ`).
+   - `t = J''ᵢ`: `D t = q''ᵢ` (the repair's nop eviction — the last repair
+     touching position `t` — and `q''ᵢ ∉ D`-cache on `(tᵢ, J''ᵢ]`) — a
+     no-op eviction, so the position is **B1, not B2** — contradiction.
+   - `t > J''ᵢ` (`q''ᵢ` requested again): empirically never at a B2
+     (32 occurrences at any disagreement, all B1 — in each, a *later*
+     repair's nop lands exactly on `t`); the formal argument needs the
+     "last repair whose nop is at `t`" analysis.
+   Empirical: `σ[t] ∈ {past q''ᵢ}` at a disagreement happens 8976× at
+   `t = J''ᵢ` + 32× after — all B1, 0 at B2.
 4. `b2_no_evict_q`: the keep-swap core for the current schedule: at a fault
    `s ∈ (t, J]`, `d s = e s` (the current position is not a past repair /
    nop spot: past nops have `q''ᵢ ≠ q` since `q`'s next use is `J ≠ J''ᵢ`),
@@ -369,9 +395,10 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
    `q''ᵢ ≠ q₀'` (`q₀' ∉ cache_{tᵢ}` while `q''ᵢ` is FIF-resident), and the
    `q₀'` membership is synchronized —; branches 4-6 evict `C'`-pages,
    branch 5 evicts `d₀ t` which is in `C'` by its own premise).
-5. `b2_hswap`: the swap form at `J` for the current schedule, via
-   `repairSchedule_window_swap'` + `b2_no_evict_q` (the flip `d s = q` is
-   excluded).
+5. `b2_hswap`: the swap form at `J` for the current schedule — already
+   proved in B6 as `repair_keep_swap` (the iteration context: window of
+   the case-A exchange at `t₀`); instantiate its window hypotheses from
+   the state.
 6. `iterate_main`: the induction over `σ.length − t0` with state
    `(d, t0, hnb, slack, t₀, q₀, q₀', j₀', Q'')`; case A sets the window
    and `Q'' = ∅`; case B1 (slack −1 iff its bad event occurs — the exact
@@ -380,7 +407,7 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
    `repair_step_swap_q_dead` (q dead), `repair_step_swap_qp_dead` (q'' dead);
    then `fifo_optimal` and the merge pass.
 
-Estimated 2-3 focused sessions for items 1-6, then one for the
+Estimated 2-3 focused sessions for items 2-6, then one for the
 `fifo_optimal` assembly and the Dev→S3 merge.
 
 ## File layout
@@ -390,7 +417,11 @@ Estimated 2-3 focused sessions for items 1-6, then one for the
 - `Dev/B3_AfterJ_Window.lean` (done): generic step + `(J, J']` window.
 - `Dev/B4_Repair_Swap_Count.lean` (done): `repairSchedule_superset_swap`,
   `repair_step_swap`.
-- `Dev/B5_Iteration.lean` (in progress): the eight lemmas above; next the
+- `Dev/B5_Iteration.lean` (done): the eight lemmas above; next the
   iteration induction, then `fifo_optimal`; then verification (axioms,
   `lake build CLRSLean`, `check_repository.py`, docs, progress CSV) and
   merge of all `Dev/` lemmas into `S3_Optimality.lean`.
+- `Dev/B7_Iteration.lean` (in progress): `repair_reverse_diff_window`,
+  `repair_reverse_diff_after`, `repair_diff_all` (done, kernel-checked);
+  next the chain (`reverse_diff_chain`), `b2_ehit`, and the `iterate_main`
+  assembly.
