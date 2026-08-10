@@ -43,6 +43,10 @@ Main results:
 - `b2_hswap`: the swap form at the good event — `Ŝ_J = insert q (E_J −
   q'')`, the instantiation of `repair_keep_swap` (B6) with the window
   hypotheses
+- `iterate_main_exchange`: the case-A step of `iterate_main` — at the first
+  disagreement `t`, the exchange extends agreement to `t + 1`, never
+  increases misses (slack `+1` iff the bad event did not occur), and is
+  reduced from `J' + 1` when `q'` is requested again
 
 This file is part of the `fifo_optimal` iteration; it will be merged into
 `S3_Optimality.lean` once the proof is complete.
@@ -649,6 +653,109 @@ lemma b2_hswap (d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (σ : List Pa
   subst hq''
   simpa [hq] using repair_keep_swap d t₀ q₀ q₀' σ C₀ hC₀ hq₀ hqq₀ hweak hft₀ hq₀'res hj₀ hq₀'ne hj₀'
     ht ht₀t htt' hagree hdis (by simpa [← hq] using hqin) (by simpa [← hq] using hj) hj'' hjj''
+
+/-- 迭代的情形 A(交换步骤):在首个分歧 `t` 处,用策略的选择
+`q' = fifoSchedule σ C₀ t` 替换 `d` 的逐出 `q = d t`,得到新调度
+`e = exchangeSchedule d t q q' σ C₀`。miss 记账精确:坏事件未发生时
+(`q'` 永不再请求,或 `d` 在 `J' = t + 1 + j'` 处缺页)slack 加一
+(`exchangeSchedule_misses_le_plus_one`),否则 slack 不变
+(`exchangeSchedule_misses_le`);`e` 与 FIF 一致到 `t + 1`
+(`exchange_step'`)。当 `q'` 会再次被请求(`hj'`)时,`e` 从 `J' + 1` 起
+reduced(`exchangeSchedule_reduced_after`);`q'` 永不再请求时 reduced
+结论为空(条件虚真)—— 该情形下交换在至多一个 branch-1 位置
+(`d s = q'` 的缺页处)不是 reduced,其界分析是 B5 记录的遗留障碍,
+留给 `iterate_main` 装配。 -/
+lemma iterate_main_exchange (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF d C₀ σ t)
+    (hdis : schedCache d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (slack : ℕ) :
+    ∃ slack',
+      agreeWithFIF (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ (t + 1) ∧
+      schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ + slack' ≤
+        schedMisses d C₀ σ + slack ∧
+      ∀ j', nextUse σ (t + 1) (fifoSchedule σ C₀ t) = some j' →
+        ∀ s, t + 1 + j' < s →
+          σ.getD s 0 ∉ schedCache (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ s →
+          exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀ s ∈
+            schedCache (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ s := by
+  let q : Page := d t
+  let q' : Page := fifoSchedule σ C₀ t
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  have hfd := first_disagree d σ C₀ hC₀ ht hagree hdis
+  have hqq' : q ≠ q' := hfd.2.1
+  have hft : σ.getD t 0 ∉ schedCache d C₀ σ t := hfd.1
+  have hq'res : q' ∈ schedCache d C₀ σ t := hfd.2.2
+  have hqin : q ∈ schedCache d C₀ σ t := hdred t le_rfl hft
+  have hfifo : nextUse σ (t + 1) q' = none ∨
+      ∃ j j', nextUse σ (t + 1) q = some j ∧ nextUse σ (t + 1) q' = some j' ∧ j < j' := by
+    apply fifo_nextUse_order σ (schedCache d C₀ σ t) t q' q
+    · exact fifo_evict_eq_farthest d σ C₀ hagree
+    · exact hqin
+    · exact hqq'
+  rcases hfifo with hnone | ⟨j, j', hj, hj', hjlt⟩
+  · -- q' 永不再请求:一致到 t+1,slack +1(q 会再次被请求)或不变(q 也死)
+    have hagree' : agreeWithFIF e C₀ σ (t + 1) := by
+      simpa [e, q, q'] using (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
+    by_cases hqnone : nextUse σ (t + 1) q = none
+    · -- q 也永不再请求:miss 不增(exchangeSchedule_misses_le 的 none 枝),slack 不变
+      refine ⟨slack, hagree', ?_, ?_⟩
+      · have hle' : schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ ≤
+            schedMisses d C₀ σ := by
+          simpa [e, q, q'] using exchangeSchedule_misses_le d t q q' σ C₀ rfl hqq' hdred hft hq'res
+            (Or.inl hnone)
+        omega
+      · intro j' hj'
+        exfalso
+        rw [hnone] at hj'
+        cases hj'
+    · -- q 会再次被请求:坏事件不可能(q' 死),slack + 1
+      rcases (Option.ne_none_iff_exists.mp hqnone) with ⟨j, hqopt⟩
+      refine ⟨slack + 1, hagree', ?_, ?_⟩
+      · have hle' : schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ + 1 ≤
+            schedMisses d C₀ σ := by
+          simpa [e, q, q'] using exchangeSchedule_misses_le_plus_one d t q q' σ C₀ rfl hqq' hdred
+            hft hq'res (Or.inl ⟨hnone, ⟨j, hqopt.symm⟩⟩)
+        omega
+      · intro j' hj'
+        exfalso
+        rw [hnone] at hj'
+        cases hj'
+  · -- q、q' 都会再次被请求
+    have hagree' : agreeWithFIF e C₀ σ (t + 1) := by
+      simpa [e, q, q'] using (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
+    have hq'ne : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
+      intro k hk1 hk2
+      exact getD_ne_nextUse (k := k) hj' (by omega) (by omega)
+    by_cases hbad : σ.getD (t + 1 + j') 0 ∈ schedCache d C₀ σ (t + 1 + j')
+    · -- 坏事件发生:slack 不变
+      refine ⟨slack, hagree', ?_, ?_⟩
+      · have hle' : schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ ≤
+            schedMisses d C₀ σ := by
+          simpa [e, q, q'] using exchangeSchedule_misses_le d t q q' σ C₀ rfl hqq' hdred hft hq'res
+            (Or.inr ⟨j, j', hj, hj', hjlt⟩)
+        omega
+      · intro j0 hj0
+        have hj0eq : j0 = j' := Option.some.inj (hj0.symm.trans hj')
+        intro s hs hFault
+        have hred := exchangeSchedule_reduced_after d t q q' σ C₀ rfl hqq' hdred hft hq'res hj hq'ne
+          (j' := j') hj' (s := s) (by omega) hFault
+        simpa [e, q, q'] using hred
+    · -- 坏事件未发生:slack + 1
+      refine ⟨slack + 1, hagree', ?_, ?_⟩
+      · have hle' : schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ + 1 ≤
+            schedMisses d C₀ σ := by
+          simpa [e, q, q'] using exchangeSchedule_misses_le_plus_one d t q q' σ C₀ rfl hqq' hdred
+            hft hq'res (Or.inr ⟨j, j', hj, hj', hjlt, hbad⟩)
+        omega
+      · intro j0 hj0
+        have hj0eq : j0 = j' := Option.some.inj (hj0.symm.trans hj')
+        intro s hs hFault
+        have hred := exchangeSchedule_reduced_after d t q q' σ C₀ rfl hqq' hdred hft hq'res hj hq'ne
+          (j' := j') hj' (s := s) (by omega) hFault
+        simpa [e, q, q'] using hred
 
 end Caching
 
