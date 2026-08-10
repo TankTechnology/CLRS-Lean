@@ -4139,6 +4139,39 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   problems are outside the sealed pure-functional boundary.  The separately
   labeled Strassen extension is not a remaining Chapter 27 obligation.
 
+## Fourth Edition Chapter 27 - Online Algorithms
+
+### Section 27.1 - Waiting for an Elevator
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_27/Section_27_1_Waiting_For_Elevator.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `SkiRental.rentThenBuyCost`: the cost of the deterministic online strategy
+    that rents for the first `a` days and, if the trip outlasts it, buys on day
+    `a+1` — `T * r` when `T ≤ a`, else `a * r + p`.
+  - `SkiRental.optCost`: the optimal offline cost `min (T * r) p`.
+  - `SkiRental.IsCompetitive`: strategy `a` is `c`-competitive when its cost
+    never exceeds `c` times the optimal offline cost on every input.
+  - `Elevator.cost` / `Elevator.optCost`: the elevator instance — waiting `w`
+    seconds then taking the stairs (cost `w + S` when the elevator comes late),
+    versus the offline choice of the cheaper of elevator (wait + ride `t + E`)
+    and stairs (`S`).
+- Proved:
+  - `SkiRental.rentThenBuy_two_competitive` (CLRS Theorem 27.1): any strategy
+    that rents `a` days with `a * r < p ≤ (a + 1) * r` is `2`-competitive —
+    the short-trip case pays exactly the optimum (renting every day), and the
+    long-trip case pays at most twice the optimum (renting `a` days then
+    buying).
+  - `Elevator.elevator_two_competitive`: with `E ≥ 0` and `S > 0`, the
+    wait-`S - E`-then-take-the-stairs strategy is `2`-competitive for every
+    arrival time `t ≥ 0`.
+  - `Elevator.elevator_worst_case_ratio`: when the elevator comes after the
+    wait time, the strategy pays exactly `(2 - E/S) * S`, matching the
+    competitive ratio stated in CLRS §27.1.
+- Current gap: the lower bound that no deterministic strategy beats `2 - r/p`
+  is not yet formalized; Sections 27.2 (Maintaining a search list) and 27.3
+  (Online caching) are not represented.
+
 ## Chapter 28 - Matrix Operations
 
 ### Section 28.1 - Solving Systems of Linear Equations
