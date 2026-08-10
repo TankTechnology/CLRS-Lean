@@ -62,9 +62,9 @@ The edition map currently records these fourth-edition gaps:
   declaration ownership; detailed SIMPLEX material remains available online.
 * **Chapter 32, String Matching:** Section 32.1 is represented; Sections
   32.2--32.5 are not started.
-* **Chapter 27, Online Algorithms:** Section 27.1 (Waiting for an elevator) is
-  represented; Sections 27.2 (Maintaining a search list) and 27.3 (Online
-  caching) are not started.
+* **Chapter 27, Online Algorithms:** Sections 27.1 (Waiting for an elevator) and
+  27.2 (Maintaining a search list) are represented; Section 27.3 (Online
+  caching) is not started.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the

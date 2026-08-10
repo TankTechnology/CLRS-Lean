@@ -4169,8 +4169,43 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     wait time, the strategy pays exactly `(2 - E/S) * S`, matching the
     competitive ratio stated in CLRS §27.1.
 - Current gap: the lower bound that no deterministic strategy beats `2 - r/p`
-  is not yet formalized; Sections 27.2 (Maintaining a search list) and 27.3
-  (Online caching) are not represented.
+  is not yet formalized; Section 27.3 (Online caching) is not represented.
+
+### Section 27.2 - Maintaining a Search List
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_27/Section_27_2_Maintaining_A_Search_List.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `SearchList.before`: strict order (`a` before `b`) in a list — `b` is
+    present and `a` appears before the first occurrence of `b`.
+  - `SearchList.position`: the 0-based position of a key in a list (the number
+    of keys strictly before it).
+  - `SearchList.invDist`: the inversion distance between two lists over the same
+    element set — the number of pairs whose relative order differs.
+  - `SearchList.moveToFront`: after a request, move the requested key to the
+    front (`x :: L.erase x`).
+  - `SearchList.scanCost` / `SearchList.mtfCost`: the per-request costs —
+    scanning to the (1-based) position, and scanning plus the front swap
+    (`2 * position + 1`).
+  - `SearchList.potential`: the potential function `2 * invDist`.
+  - `SearchList.strategyCost` / `SearchList.strategyTotalCost`: the cost of an
+    arbitrary list-update strategy `A` — the scan cost plus the rearrangement
+    `invDist L (A L x)` — per request and over a request sequence.
+- Proved:
+  - `SearchList.mtf_step_four_competitive`: the per-request amortized bound —
+    for a request `x`, after MOVE-TO-FRONT moves `x` to the front and the
+    adversary moves to `M'`, MTF's cost plus the change in the potential
+    `2 * invDist` is at most `4` times the strategy's cost plus the previous
+    potential.
+  - `SearchList.mtf_four_competitive` (CLRS Theorem 27.2): MOVE-TO-FRONT is
+    `4`-competitive against any list-update strategy that keeps its list a
+    permutation of the initial set —
+    `mtfTotalCost σ L ≤ 4 * strategyTotalCost A σ M + 2 * invDist L M`, with the
+    additive term zero when both start from the same list.
+  - Supporting lemmas: `SearchList.invDist_moveToFront_add_pos` (the phase-1
+    potential change) and `SearchList.invDist_triangle` (the triangle inequality
+    bounding the adversary's rearrangement).
+- Current gap: Section 27.3 (Online caching) is not represented.
 
 ## Chapter 28 - Matrix Operations
 
