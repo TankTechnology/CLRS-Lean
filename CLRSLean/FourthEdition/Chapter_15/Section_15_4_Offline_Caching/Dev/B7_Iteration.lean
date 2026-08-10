@@ -40,6 +40,9 @@ Main results:
   exchange schedule, `d s = e s` (off the past repair/nop positions `P`)
   and `e s ≠ q` (`exchange_no_evict_q`, with the e-hit at `t` derived via
   `b2_ehit` + `b2_ehit_ne`)
+- `b2_hswap`: the swap form at the good event — `Ŝ_J = insert q (E_J −
+  q'')`, the instantiation of `repair_keep_swap` (B6) with the window
+  hypotheses
 
 This file is part of the `fifo_optimal` iteration; it will be merged into
 `S3_Optimality.lean` once the proof is complete.
@@ -616,6 +619,36 @@ lemma b2_no_evict_q (d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (σ : Li
   · exact hd_eq s (hnot s hs1 hs2)
   · exact exchange_no_evict_q d t₀ q₀ q₀' σ C₀ hweak hft₀ hq₀'res hj₀'
       ht₀t htt' hq hqin hft hj (s := s) hs1 hs2 hFault
+
+/-- B2 的 keep-swap 形式(当前窗口):B6 `repair_keep_swap` 在迭代上下文的
+实例化 —— 窗口参数 `(t₀, q₀, q₀', j₀')` 与 B2 位置 `t` 的局部事实
+(`hagree`/`hdis` 来自 `first_disagree` 的窗口版,`hqin` 是 B2 常驻,
+`hj`/`hj''`/`hjj''` 是活-活情形)给出好事件 `J = t + 1 + j` 处的 swap 形式:
+`Ŝ_J = insert q (E_J − q'')`。仅实例化,无新证明。 -/
+lemma b2_hswap (d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    (hq₀ : d t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d C₀ σ t₀)
+    (hq₀'res : q₀' ∈ schedCache d C₀ σ t₀)
+    {j₀ : ℕ} (hj₀ : nextUse σ (t₀ + 1) q₀ = some j₀)
+    (hq₀'ne : ∀ k, t₀ + 1 ≤ k → k < t₀ + 1 + j₀ → σ.getD k 0 ≠ q₀')
+    {j₀' : ℕ} (hj₀' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t : ℕ} (ht : t < σ.length) (ht₀t : t₀ < t) (htt' : t < t₀ + 1 + j₀')
+    (hagree : agreeWithFIF (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ t)
+    (hdis : schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ (t + 1) ≠
+      schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    {q : Page} (hq : (exchangeSchedule d t₀ q₀ q₀' σ C₀) t = q)
+    (hqin : q ∈ schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    {q'' : Page} (hq'' : q'' = fifoSchedule σ C₀ t)
+    {j'' : ℕ} (hj'' : nextUse σ (t + 1) q'' = some j'')
+    (hjj'' : j < j'') :
+    schedCache (repairSchedule (exchangeSchedule d t₀ q₀ q₀' σ C₀) t q'' (t + 1 + j'')) C₀ σ (t + 1 + j) =
+      insert q ((schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ (t + 1 + j)).erase q'') := by
+  subst hq''
+  simpa [hq] using repair_keep_swap d t₀ q₀ q₀' σ C₀ hC₀ hq₀ hqq₀ hweak hft₀ hq₀'res hj₀ hq₀'ne hj₀'
+    ht ht₀t htt' hagree hdis (by simpa [← hq] using hqin) (by simpa [← hq] using hj) hj'' hjj''
 
 end Caching
 
