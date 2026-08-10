@@ -298,13 +298,37 @@ At a B2 position `t₂` inside the window of the exchange at `t₀`, with
 **Done (2026-08-10, `Dev/B6_Strong_Repair.lean`, all kernel-checked, no
 sorry)**: `getD_ne_of_nextUse_none`, `repair_q_dead_qp_dead`,
 `repair_cache_diff`, `repair_step_swap_q_dead`, `repair_step_swap_strong`,
-`exchange_no_evict_q`, `repair_keep_swap`.
+`exchange_no_evict_q`, `repair_keep_swap`, and the q-alive-q''-dead
+variant (`repair_cache_diff_le`, `repair_cache_diff_after`,
+`repair_step_swap_qp_dead` — pointwise `rF ≤ eF`: equality before `J`,
+`0 ≤ 1` at the good event, `E_s − Ŝ_s ⊆ {q''}` after `J`).
 
-Remaining work: (1) the q-alive-q''-dead variant (`rF = eF − 1`); (2)
-`iterate_main` with the extended state carrying `(t₀, q₀, q₀', J₀')` —
-case A sets the window, case-B B1/B2 repairs consume/produce slack with the
-strong repair needing none, dead-page repairs being free; (3) the
-`fifo_optimal` assembly and the verification/merge pass.
+### Iteration simulation (2026-08-10, `search_b2.py`)
+
+An exact iteration simulator (directly computing every B2's good event
+`q ∈ Ŝ_J` and every B1/B2 bad event) over σ of length 4-8, alphabet
+{1,2,3,4}, C₀ = {1,2}/{1,2,3}, and both smallest/largest-resident d₀
+policies found:
+
+- **0 slack crashes** with exact accounting (each exchange `+1` iff its bad
+  event did not occur; each B1 `−1` iff *its* bad event occurs; B2 strong
+  and dead-page repairs free);
+- **0 keep-swap failures**: `q ∈ Ŝ_J` held for every alive-alive B2, so
+  the strong repair is genuinely slack-free in the iteration.
+
+Conservative "B1 always costs 1" accounting does crash (3 traces, e.g.
+σ=[1,1,3,2,1,3,2], d₀=max), but every crash trace has the B1's `q'''` a
+**dead page** (the repair is free — same argument as the dead-page B2) or
+the bad event not occurring.  So the slack bookkeeping must be exact:
+B1 costs `1{J'''}` (paid iff `e` hits `q'''` at `J'''`), supplied by the
+exchange's `+1` iff its bad event did not occur — the pairing that
+`window_branch1_once` + `evicted_page_absent_until_request` give.
+
+Remaining work: `iterate_main` with the extended state carrying the
+exchange's window parameters `(t₀, q₀, q₀', J₀')` and the repair history
+pages `W = {q₁, q''₁, …, qₖ, q''ₖ}` (the cache-diff chain needed to
+instantiate `exchange_no_evict_q` at later B2 positions: `q ∈ E_t` from
+`q ∈ E'_t` plus the diff), then `fifo_optimal` and the merge pass.
 
 ## File layout
 
