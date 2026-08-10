@@ -34,10 +34,10 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 10 chapters.
+* {lit}`main-proof-complete`: 11 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 10 chapters.
+* {lit}`partial`: 9 chapters.
 * {lit}`not-started`: 4 chapters.
 * {lit}`expository`: 1 chapter.
 

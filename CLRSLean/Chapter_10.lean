@@ -14,10 +14,13 @@ when reasoning about the operations.
 
 ## Sections
 
-* 10.1 Stacks and queues: {lit}`proved` for the functional-list model.
-  Main results: {lit}`CLRS.Chapter10.pop_push`,
+* 10.1 Stacks and queues: {lit}`proved` for the functional-list and array-backed
+  models.  Main results: {lit}`CLRS.Chapter10.pop_push`,
   {lit}`CLRS.Chapter10.dequeue_enqueue_empty`,
-  {lit}`CLRS.Chapter10.dequeue_enqueue_nonempty`.
+  {lit}`CLRS.Chapter10.dequeue_enqueue_nonempty`, and the array-backed
+  round-trip and overflow/underflow theorems
+  {lit}`CLRS.Chapter10.arrayPop_arrayPush`,
+  {lit}`CLRS.Chapter10.arrayDequeue_arrayEnqueue_empty`.
 * 10.2 Linked lists: {lit}`proved` for the functional-list model.
   Main results: {lit}`CLRS.Chapter10.listSearch_sound`,
   {lit}`CLRS.Chapter10.mem_listDeleteAll_iff`.
@@ -32,7 +35,8 @@ when reasoning about the operations.
 ## Current Gaps
 
 The chapter does not yet formalize pointer-level linked lists or free-list
-allocation.  Those belong to a future imperative-memory layer.  Section 10.3
+allocation, and the array-backed stack/queue interface defers a concrete RAM
+execution layer (real memory bounds and operation costs).  Section 10.3
 ("Implementing pointers and objects") is tracked separately as pure
 imperative-memory / allocator work.
 -/
