@@ -87,7 +87,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 30 | Polynomials and the FFT | 🟢 complete | 34 / 34 | — |
 | 31 | Number-Theoretic Algorithms | 🟡 sections | 15 / 15 | — |
 | 32 | String Matching | 🟠 partial coverage | 19 / 19 | Section 32.2 (The Rabin–Karp algorithm): not-started;… |
-| 33 | Machine-Learning Algorithms | 🟠 partial coverage | 4 / 4 | Section 33.2 (Multiplicative-weights algorithms):… |
+| 33 | Machine-Learning Algorithms | 🟠 partial coverage | 10 / 10 | Section 33.3 (Gradient descent): not-started |
 | 34 | NP-Completeness | ⬜ not started | 0 / 0 | Whole fourth-edition chapter theorem inventory and… |
 | 35 | Approximation Algorithms | ⬜ not started | 0 / 0 | Whole fourth-edition chapter theorem inventory and… |
 

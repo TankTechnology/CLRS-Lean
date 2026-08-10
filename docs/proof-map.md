@@ -4683,8 +4683,34 @@ in a legacy initialization module that is also cataloged as online material.
     cluster, never increase the cost.
   - `lloyd_iteration_cost_le` (CLRS Theorem 33.2): one full Lloyd iteration
     (assignment, then update) never increases the k-means cost.
-- Remaining fourth-edition chapter scope: Sections 33.2 (Multiplicative-weights
-  algorithms) and 33.3 (Gradient descent) are not represented.
+
+### Section 33.2 - Multiplicative-Weights Algorithms
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_2_Multiplicative_Weights.lean`
+- Status: `partial` (native fourth-edition source)
+- Model:
+  - `weights`: the weight of each expert after any number of days, updated
+    multiplicatively by `(1 - η)^(m t i)`.
+  - `potential`: the sum of the expert weights (`Φ`).
+  - `expectedLoss` / `totalExpectedLoss`: the algorithm's daily and total
+    expected loss under the weight-normalized distribution.
+  - `expertLoss`: the total loss of a single expert.
+- Proved:
+  - `one_sub_rpow_le_one_sub_mul` and `neg_log_one_sub_le_add_sq`: the analytic
+    inequalities `(1 - x)^y ≤ 1 - x·y` and `-ln (1 - x) ≤ x + x²` for
+    `0 ≤ x ≤ 1/2` that drive the potential chain and the clean `1 + η` factor.
+  - `potential_update_le_exp`: one MW update shrinks the potential
+    multiplicatively: `Φ(w') ≤ Φ(w) · exp(-η · M)` for the day's expected
+    loss `M`.
+  - `potential_weights_le`: after `t ≤ T` days the potential is at most
+    `n · exp(-η · Σ Mˢ)`, the iterated potential chain.
+  - `weights_eq_rpow_expertLoss`: expert `i`'s weight after `T` days is
+    `(1 - η)` raised to its total loss.
+  - `totalExpectedLoss_le` (CLRS Theorem 33.3): for every expert `i`, the total
+    expected loss is within an additive `ln n / η` and a multiplicative
+    `(1 + η)` factor of expert `i`'s total loss.
+- Remaining fourth-edition chapter scope: Section 33.3 (Gradient descent) is
+  not represented.
 
 ## Legacy Source Chapter 33 - Computational Geometry (Online Material)
 
