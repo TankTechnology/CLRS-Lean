@@ -87,10 +87,11 @@ lemma sum_sub_mean_eq_zero {α : Type*} (P : α → E) (S : Finset α) :
         rw [Finset.sum_sub_distrib]
       _ = (∑ i ∈ S, P i) - S.card • mean P S := by
         rw [Finset.sum_const]
-      _ = (∑ i ∈ S, P i) - (S.card : ℝ) • ((S.card : ℝ)⁻¹ • (∑ i ∈ S, P i)) := by
-        rw [← Nat.cast_smul_eq_nsmul, mean]
       _ = (∑ i ∈ S, P i) - (∑ i ∈ S, P i) := by
-        rw [smul_inv_smul₀ hn]
+        rw [show S.card • mean P S = ∑ i ∈ S, P i by
+          rw [mean]
+          rw [← Nat.cast_smul_eq_nsmul (R := ℝ)]
+          exact smul_inv_smul₀ hn (∑ i ∈ S, P i)]
       _ = 0 := by abel
 
 /--
@@ -113,7 +114,6 @@ theorem sumSqDist_eq_add_card_mul {α : Type*} (P : α → E) (S : Finset α) (c
             intro i hi
             have hpc : P i - c = (P i - mean P S) + (mean P S - c) := by abel
             rw [hpc, norm_add_sq_real]
-            rfl
     _ = (∑ i ∈ S, ‖P i - mean P S‖ ^ 2) +
           2 * (∑ i ∈ S, ⟪P i - mean P S, mean P S - c⟫) +
           (S.card : ℝ) * ‖mean P S - c‖ ^ 2 := by
@@ -207,7 +207,8 @@ theorem kMeansCost_eq_sum_cluster (P : Fin n → E) (C : Clustering n k E) :
   calc
     (∑ i : Fin n, ‖P i - C.centroid (C.assign i)‖ ^ 2)
         = (∑ j : Fin k, ∑ i ∈ cluster C j, ‖P i - C.centroid (C.assign i)‖ ^ 2) := by
-            rw [cluster, hfw]
+            unfold cluster
+            rw [hfw]
     _ = (∑ j : Fin k, ∑ i ∈ cluster C j, ‖P i - C.centroid j‖ ^ 2) := by
             apply Finset.sum_congr rfl
             intro j hj
@@ -223,7 +224,7 @@ lemma exists_nearest (centroids : Fin k → E) (p : E) (hk : 0 < k) :
     ∃ j : Fin k, ∀ j' : Fin k, ‖p - centroids j‖ ^ 2 ≤ ‖p - centroids j'‖ ^ 2 := by
   let vals : Finset ℝ := Finset.univ.image fun j : Fin k => ‖p - centroids j‖ ^ 2
   have hne : vals.Nonempty := by
-    haveI : Nonempty (Fin k) := ⟨⟨0, hk⟩, trivial⟩
+    haveI : Nonempty (Fin k) := ⟨⟨0, hk⟩⟩
     obtain ⟨j⟩ := (Finset.univ_nonempty : (Finset.univ : Finset (Fin k)).Nonempty)
     exact ⟨‖p - centroids j‖ ^ 2, Finset.mem_image.mpr ⟨j, Finset.mem_univ j, rfl⟩⟩
   let m : ℝ := vals.min' hne

@@ -547,6 +547,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_33" = [
   "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
 ]
+"CLRSLean.FourthEdition.Chapter_33" = [
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
+]
 
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
@@ -700,6 +703,9 @@ title = "Chapter 32. String Matching"
 
 [modules."CLRSLean.FourthEdition.Chapter_33"]
 title = "Chapter 33. Machine-Learning Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering"]
+title = "33.1. Clustering"
 
 [modules."CLRSLean.FourthEdition.Chapter_34"]
 title = "Chapter 34. NP-Completeness"
