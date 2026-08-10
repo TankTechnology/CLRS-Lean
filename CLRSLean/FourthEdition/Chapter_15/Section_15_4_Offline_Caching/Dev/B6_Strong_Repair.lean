@@ -1359,6 +1359,69 @@ lemma repair_keep_swap (d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
                 rw [Finset.insert_comm]
   exact hmain (t₂ + 1 + j) (by omega) le_rfl
 
+/-- `q` 的下次请求在 `J = t + 1 + j`、`q''` 永不再请求时,`(t, J)` 内的
+请求避开 `{q, q''}`(`getD_ne_nextUse` + `getD_ne_of_nextUse_none`,长度界
+由 `hj` 给出)。死页修复差集引理的共用构造。 -/
+lemma repair_requests_avoid_q_qp (σ : List Page) {t : ℕ} {q q'' : Page} {j : ℕ}
+    (hj : nextUse σ (t + 1) q = some j) (hq''dead : nextUse σ (t + 1) q'' = none) :
+    ∀ s, t < s → s < t + 1 + j → σ.getD s 0 ∉ ({q, q''} : Finset Page) := by
+  have hJlen : t + 1 + j < σ.length := by
+    have hjlt : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
+    rw [List.length_drop] at hjlt
+    omega
+  intro s hst hsJ hmem
+  rcases Finset.mem_insert.mp hmem with hqeq | hq'eq
+  · exact getD_ne_nextUse (k := s) hj (by omega) (by omega) hqeq
+  · exact getD_ne_of_nextUse_none σ hq''dead (by omega) (by omega)
+      (Finset.mem_singleton.mp hq'eq)
+
+/-- 死页修复(nop 即 `t`)的 cache 在 `t` 前与 `e` 一致
+(`schedCache_repairSchedule_eq_e` 需要 `t < nop`,nop = `t` 时不适用)。 -/
+lemma schedCache_repairSchedule_eq_e_qp_dead (e : ℕ → Page) (t : ℕ) (q' : Page)
+    (σ : List Page) (C₀ : Finset Page) {s : ℕ} (hs : s ≤ t) :
+    schedCache (repairSchedule e t q' t) C₀ σ s = schedCache e C₀ σ s := by
+  induction s with
+  | zero => rfl
+  | succ s ih =>
+      rw [schedCache, schedCache]
+      rw [ih (by omega)]
+      unfold repairSchedule
+      simp [show s ≠ t by omega]
+
+/-- 死页 `q`(`nextUse = none`)在 `t` 处被 `e` 逐出后永不回到 `e` 的 cache
+(`swap_q_not_mem` 的死页版;e 只在缺页时插入 `σ[s]`,而 `σ[s] ≠ q`)。 -/
+lemma swap_q_not_mem_dead (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    {t : ℕ} {q : Page} (hq : e t = q) (hqin : q ∈ schedCache e C₀ σ t)
+    (hft : σ.getD t 0 ∉ schedCache e C₀ σ t)
+    (hqdead : nextUse σ (t + 1) q = none)
+    {s : ℕ} (hs1 : t < s) (hs2 : s < σ.length) :
+    q ∉ schedCache e C₀ σ s := by
+  induction s with
+  | zero => omega
+  | succ s ih =>
+      by_cases hs_eq : s = t
+      · subst s
+        rw [schedCache]
+        rw [if_neg hft]
+        intro hm
+        rw [Finset.mem_insert] at hm
+        rcases hm with hqr | hqin2
+        · have h : σ.getD t 0 ∈ schedCache e C₀ σ t := by
+            rwa [← hqr]
+          exact hft h
+        · exact (Finset.mem_erase.mp hqin2).1 hq.symm
+      · have hts : t < s := by omega
+        have hsig_ne : σ.getD s 0 ≠ q := getD_ne_of_nextUse_none σ hqdead (by omega) (by omega)
+        rw [schedCache]
+        by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+        · rw [if_pos hr]
+          exact ih hts (by omega)
+        · rw [if_neg hr]
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqr | hqin2
+          · exact hsig_ne hqr.symm
+          · exact ih hts (by omega) (Finset.mem_erase.mp hqin2).2
+
 /-- 死页修复(nop 即 `t`)的基例 swap 形式:`Ŝ_{t+1} = insert q (E_{t+1} − q')`。
 `repairSchedule_base_swap` 的 nop = `t + 1 + j'` 版本需要 `t < nop`(经
 `schedCache_repairSchedule_eq_e`),这里给出 nop = `t` 的版本(等 cache 到
