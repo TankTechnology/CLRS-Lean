@@ -321,7 +321,8 @@ def search_keepswap():
 
 if __name__ == '__main__':
     import sys
-    if 'keepswap' in sys.argv:
+    mode = sys.argv[1] if len(sys.argv) > 1 else 'main'
+    if mode == 'keepswap':
         search_keepswap()
     else:
         main()

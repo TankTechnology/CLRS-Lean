@@ -303,12 +303,12 @@ variant (`repair_cache_diff_le`, `repair_cache_diff_after`,
 `repair_step_swap_qp_dead` — pointwise `rF ≤ eF`: equality before `J`,
 `0 ≤ 1` at the good event, `E_s − Ŝ_s ⊆ {q''}` after `J`).
 
-### Iteration simulation (2026-08-10, `search_b2.py`)
+### Iteration simulation (2026-08-10, `search_b2.py` + `search_iter.py`)
 
 An exact iteration simulator (directly computing every B2's good event
-`q ∈ Ŝ_J` and every B1/B2 bad event) over σ of length 4-8, alphabet
-{1,2,3,4}, C₀ = {1,2}/{1,2,3}, and both smallest/largest-resident d₀
-policies found:
+`q ∈ Ŝ_J` and every B1/B2 bad event; `Dev/search_iter.py`, entry points
+`main` / `search2` / `search3`) over σ of length 4-9, alphabet {1,2,3,4},
+C₀ = {1,2}/{1,2,3}, and both smallest/largest-resident d₀ policies found:
 
 - **0 slack crashes** with exact accounting (each exchange `+1` iff its bad
   event did not occur; each B1 `−1` iff *its* bad event occurs; B2 strong
