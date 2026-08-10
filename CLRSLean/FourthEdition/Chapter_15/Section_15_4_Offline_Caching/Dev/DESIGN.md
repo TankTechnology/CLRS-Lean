@@ -370,9 +370,14 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
    `C'`-page) and drifts (verified: `σ=[1,1,3,1,2,1,3]`, B2 at 4, `eJ = 2
    = q₀'` stays in `Ŝ` forever).  Only the reverse diff is confined — the
    direction the chain uses.
-2. `reverse_diff_chain`: `cache_e − cache_d ⊆ Q''` — repair steps add only
-   `q''` (the repair evicts `q''` while `e` keeps it; `q ∉ cache_e` on
-   `(t, J]` since `e` evicts `q` at `t`).  Interleaved with `iterate_main`.
+2. `reverse_diff_chain` (done, 2026-08-10, kernel-checked): `cache_e −
+   cache_d ⊆ Q''` — repair steps add only `q''` (the repair evicts `q''`
+   while `e` keeps it; `q ∉ cache_e` on `(t, J]` since `e` evicts `q` at
+   `t`).  Interleaved with `iterate_main`.  Requires the bridge
+   `schedCache_repairSchedule_nop_agree` (`j < j''` ⟹ the caches of
+   `repairSchedule e t q'' t` and `repairSchedule e t q'' (t + 1 + j'')`
+   agree up to `J`) to connect `repair_cache_diff_le` (dead-page form) to
+   the live-live repair.
 3. `b2_ehit`: `σ[t] ∉ cache_e_t` at a B2 disagreement.  Mechanism
    (verified over 55188 B2 positions, `search_iter.py`):
    `σ[t] ∈ cache_e_t ⟹ σ[t] ∈ E_t − D_t ⊆ Q'' ⟹ σ[t] = q''ᵢ` for a past
@@ -422,6 +427,7 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   `lake build CLRSLean`, `check_repository.py`, docs, progress CSV) and
   merge of all `Dev/` lemmas into `S3_Optimality.lean`.
 - `Dev/B7_Iteration.lean` (in progress): `repair_reverse_diff_window`,
-  `repair_reverse_diff_after`, `repair_diff_all` (done, kernel-checked);
-  next the chain (`reverse_diff_chain`), `b2_ehit`, and the `iterate_main`
+  `repair_reverse_diff_after`, `repair_diff_all` (done, kernel-checked),
+  `schedCache_repairSchedule_nop_agree` (bridge) and `reverse_diff_chain`
+  (done, 2026-08-10, kernel-checked); next `b2_ehit` and the `iterate_main`
   assembly.
