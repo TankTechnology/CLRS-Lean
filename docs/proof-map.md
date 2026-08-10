@@ -4538,6 +4538,31 @@ in a legacy initialization module that is also cataloged as online material.
 - Remaining fourth-edition chapter scope: Sections 32.2--32.5 (Rabin-Karp,
   finite automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
 
+## Fourth Edition Chapter 33 - Machine-Learning Algorithms
+
+### Section 33.1 - Clustering
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_1_Clustering.lean`
+- Status: `partial` (native fourth-edition source)
+- Model:
+  - `sumSqDist`: the within-cluster sum of squared distances to a candidate center.
+  - `mean`: the centroid (average) of a finite point family over an index set.
+  - `Clustering`: an assignment of each point to a cluster together with one
+    centroid per cluster.
+  - `kMeansCost`: the k-means cost of a clustering.
+- Proved:
+  - `sumSqDist_eq_add_card_mul`: the variance (parallel-axis) decomposition
+    `∑ ‖P i - c‖² = ∑ ‖P i - m‖² + |S| · ‖c - m‖²`.
+  - `mean_minimizes_sumSqDist` (CLRS Lemma 33.1): the mean of a cluster
+    minimizes the within-cluster sum of squared distances.
+  - `assignStep_cost_le` and `updateStep_cost_le`: reassigning every point to a
+    *nearest* centroid, and replacing every centroid by the mean of its
+    cluster, never increase the cost.
+  - `lloyd_iteration_cost_le` (CLRS Theorem 33.2): one full Lloyd iteration
+    (assignment, then update) never increases the k-means cost.
+- Remaining fourth-edition chapter scope: Sections 33.2 (Multiplicative-weights
+  algorithms) and 33.3 (Gradient descent) are not represented.
+
 ## Legacy Source Chapter 33 - Computational Geometry (Online Material)
 
 ### Section 33.1 - Line-Segment Properties
