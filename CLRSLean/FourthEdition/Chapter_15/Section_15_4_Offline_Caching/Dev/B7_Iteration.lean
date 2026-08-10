@@ -1734,6 +1734,52 @@ lemma iterate_main_exchange (d : ℕ → Page) (σ : List Page) (C₀ : Finset P
           (j' := j') hj' (s := s) (by omega) hFault
         simpa [e, q, q'] using hred
 
+/-- FIF 在 `t` 处的逐出页 `p`(FIF 在分歧处缺页并逐出)在首次请求
+`J = t + 1 + j` 之前不在 FIF 自己的 cache 中:基步由 `hftF` 缺页 + `p`
+residence 给出,之后 `nextUse` 排除请求、cache 只进请求页。 -/
+lemma fifo_evict_absent_until_request (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (hftF : σ.getD t 0 ∉ schedCache (fifoSchedule σ C₀) C₀ σ t)
+    {p : Page} (hp : p = fifoSchedule σ C₀ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) p = some j) :
+    ∀ s, t < s → s ≤ t + 1 + j → p ∉ schedCache (fifoSchedule σ C₀) C₀ σ s := by
+  let F : ℕ → Finset Page := schedCache (fifoSchedule σ C₀) C₀ σ
+  have hp_mem : p ∈ F t := by
+    dsimp [F]
+    rw [hp]
+    rw [schedCache_fifoSchedule]
+    change (fifoPolicy σ).evict t (cacheSeq (fifoPolicy σ) C₀ σ t) (σ.getD t 0) ∈
+      cacheSeq (fifoPolicy σ) C₀ σ t
+    exact (fifoPolicy σ).evict_mem t (cacheSeq (fifoPolicy σ) C₀ σ t) (σ.getD t 0)
+      (by simpa [schedCache_fifoSchedule] using hftF) (cacheSeq_nonempty (fifoPolicy σ) C₀ σ t hC₀)
+  intro s
+  induction s with
+  | zero => omega
+  | succ s ih =>
+      intro hs1 hs2
+      by_cases hs_eq : s = t
+      · -- 基步:s+1 = t+1,cache 逐出 p 且请求 σ[t] ≠ p
+        subst s
+        rw [schedCache]
+        rw [if_neg hftF]
+        intro hmem
+        rcases Finset.mem_insert.mp hmem with hpeq | hmem
+        · exact hftF (hpeq ▸ hp_mem)
+        · exact (Finset.mem_erase.mp hmem).1 hp
+      · -- 步:请求 σ[s] ≠ p,且 p ∉ F_s(归纳),故 p ∉ F_{s+1}
+        have hst : t < s := by omega
+        have hih : p ∉ F s := ih (by omega) (by omega)
+        have hneq : σ.getD s 0 ≠ p := getD_ne_nextUse (k := s) hj (by omega) (by omega)
+        rw [schedCache]
+        by_cases hhit : σ.getD s 0 ∈ F s
+        · rw [if_pos hhit]
+          exact hih
+        · rw [if_neg hhit]
+          intro hmem
+          rcases Finset.mem_insert.mp hmem with hpeq | hmem
+          · exact hneq hpeq.symm
+          · exact hih (Finset.mem_erase.mp hmem).2
+
 /-- 当前窗口的交换调度:`win = none`(尚未交换)时取回退调度 `fb`
 (此时链/逐出一致不变式平凡),`win = some (d_pre, t₀, q₀, q₀', j₀, j₀')`
 时为该窗口的交换调度。 -/
