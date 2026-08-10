@@ -52,6 +52,10 @@ Main results:
   bridge: `hd_eq`/`hnot`/`ht₂notP` (off `P`, `d = e`), `hqinE` (the branch
   analysis), `hnotE` (e-faults on the window), the e-hit at `t₂` via
   `b2_ehit` + `b2_ehit_ne`
+- `exchange_evict_mem_or_q'`: the branch analysis — at an exchange fault
+  in the window, the eviction is `q₀'` or resident (`e s ∈ E_s ∪ {q₀'}`);
+  the mechanism behind `hqinE` (at B2 the `q₀'` branch is B1) and "the
+  exchange never evicts a past `q''ᵢ`"
 - `iterate_main_case_b2_alive`: the case-B2 step (alive-alive) — the
   repair at a resident disagreement: agreement to `t₂ + 1`, misses not
   increased, chain extended by `q''`, `hd_eq` extended to
@@ -1167,6 +1171,83 @@ lemma repair_reverse_diff_after_nop (e : ℕ → Page) (σ : List Page) (C₀ : 
                       exact hxeq hxp
                     · exact hx.2 (Finset.mem_insert.mpr
                         (Or.inr (Finset.mem_erase.mpr ⟨(Finset.mem_erase.mp hxE2').1, hxS⟩)))⟩))
+
+/-- 分支分析:交换在 `t` 之后(窗口内)的缺页处,逐出 `e s` 是 `q'` 或
+resident(`e s ∈ E_s ∪ {q'}`)。`exchangeDecision` 的结构:分支 1 逐出
+`q'`;分支 4-6 逐出 `E − D` 中的页或 `d s ∈ E_s`;`M` 空时的 `else 0`
+由缺页 + 基数论证(`exchangeScheduleCore_card`)排除。这是 `hqinE`(B2 处
+`q ∈ E_{t₂}` —— `q'` 枝是 B1)与 "交换从不逐出过往 `q''ᵢ`" 的机制。 -/
+lemma exchange_evict_mem_or_q' (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    {s : ℕ} (hs1 : t < s)
+    (hFault : σ.getD s 0 ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s) :
+    (exchangeSchedule d t q q' σ C₀) s = q' ∨
+      (exchangeSchedule d t q q' σ C₀) s ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  change (exchangeScheduleCore d t q q' σ C₀ s).2 = q' ∨
+    (exchangeScheduleCore d t q q' σ C₀ s).2 ∈ schedCache e C₀ σ s
+  rw [exchangeScheduleCore_second]
+  rw [← schedCache_exchangeScheduleCore]
+  change exchangeDecision d t q q' σ C₀ (schedCache e C₀ σ s) s = q' ∨
+    exchangeDecision d t q q' σ C₀ (schedCache e C₀ σ s) s ∈ schedCache e C₀ σ s
+  unfold exchangeDecision
+  rw [if_neg (by omega)]
+  rw [if_neg (by omega)]
+  by_cases h1 : d s = q'
+  · rw [if_pos h1]
+    exact Or.inl rfl
+  · rw [if_neg h1]
+    by_cases hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧ σ.getD s 0 ∈ schedCache d C₀ σ s
+    · rw [if_pos hb4]
+      let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+      by_cases hf : (M.filter (fun x => x ≠ q')).Nonempty
+      · rw [dif_pos hf]
+        exact Or.inr ((Finset.mem_sdiff.mp (Finset.mem_filter.mp (Classical.choose_spec hf)).1).1)
+      · by_cases hm : M.Nonempty
+        · rw [dif_neg hf]
+          rw [dif_pos hm]
+          exact Or.inr ((Finset.mem_sdiff.mp (Classical.choose_spec hm)).1)
+        · rw [dif_neg hf]
+          rw [dif_neg hm]
+          exfalso
+          have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+            rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+              rw [← schedCache_exchangeScheduleCore]]
+            exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
+          have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          exact hFault (hEq.symm ▸ hb4.2)
+    · rw [if_neg hb4]
+      by_cases hdsin : d s ∈ schedCache e C₀ σ s
+      · rw [if_pos hdsin]
+        exact Or.inr hdsin
+      · rw [if_neg hdsin]
+        let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+        by_cases hm : M.Nonempty
+        · rw [dif_pos hm]
+          exact Or.inr ((Finset.mem_sdiff.mp (Classical.choose_spec hm)).1)
+        · rw [dif_neg hm]
+          exfalso
+          have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+            rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+              rw [← schedCache_exchangeScheduleCore]]
+            exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
+          have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          have hdFault : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+            intro h
+            exact hFault (hEq.symm ▸ h)
+          have hdsE : d s ∈ schedCache d C₀ σ s := hweak s (by omega) hdFault
+          exact hdsin (hEq.symm ▸ hdsE)
 
 /-- 迭代的情形 B1(活子情形):窗口内 no-op 分歧 `t₂`(`d t₂ ∉ cache`)处,
 `q''` 会再次被请求(`hj'''`)时,修复 `r = repairSchedule d t₂ q'' (t₂ + 1 + j''')`
