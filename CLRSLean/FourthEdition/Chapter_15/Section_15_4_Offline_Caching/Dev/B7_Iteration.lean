@@ -1816,6 +1816,7 @@ private structure IterateState (σ : List Page) (C₀ : Finset Page) (M : ℕ) w
   hQ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
     nextUse σ (tᵢ + 1) q'' = none ∨
       ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t0 < tᵢ + 1 + j''
+  hQfifo : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → q'' = fifoSchedule σ C₀ tᵢ
   hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q ∧ s = tᵢ) ∨
     (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ Q ∧
       nextUse σ (tᵢ + 1) q'' = some j'' ∧ s = tᵢ + 1 + j'')
@@ -1994,9 +1995,13 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
                   σ.getD tᵢ 0 ∉ schedCache e C₀ σ tᵢ ∧ q'' ∈ schedCache e C₀ σ tᵢ ∧ e tᵢ = q'' := by
                 intro tᵢ q'' j'' h
                 simp at h
+              have hQfifo' : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) →
+                  q'' = fifoSchedule σ C₀ tᵢ := by
+                intro tᵢ q'' h
+                simp at h
               let st' : IterateState σ C₀ M := ⟨e, t + 1, slack', max st.hnb (t + 1 + j' + 1), ∅, ∅,
                 some (st.d, t, q, q', j₀, j'), hwin_inv', hagreeE, hbook', hchain', hd_eq', hred',
-                hpast', hQ', hP', hcomp', hpair'⟩
+                hpast', hQ', hQfifo', hP', hcomp', hpair'⟩
               have hmea : σ.length - st'.t0 < n := by
                 dsimp [st']
                 omega
@@ -2075,6 +2080,10 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
         nextUse σ (tᵢ + 1) q'' = none ∨ ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ 0 < tᵢ + 1 + j'' := by
       intro tᵢ q'' h
       simp at h
+    have hQfifo₀ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) →
+        q'' = fifoSchedule σ C₀ tᵢ := by
+      intro tᵢ q'' h
+      simp at h
     have hP₀ : ∀ s, s ∈ (∅ : Finset ℕ) →
         (∃ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧ s = tᵢ) ∨
         (∃ (tᵢ : ℕ) (q'' : Page) (j'' : ℕ), (tᵢ, q'') ∈ (∅ : Finset (ℕ × Page)) ∧
@@ -2094,7 +2103,7 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
       simp at h
     let st₀ : IterateState σ C₀ M :=
       ⟨d₀, 0, 0, 0, ∅, ∅, none, hwin_inv₀, hagree₀, hbook₀, hchain₀, hd_eq₀, hdred₀,
-        hpast₀, hQ₀, hP₀, hcomp₀, hpair₀⟩
+        hpast₀, hQ₀, hQfifo₀, hP₀, hcomp₀, hpair₀⟩
     rcases iterate_main σ C₀ hC₀ M st₀ (hB1 M) (hB2 M) (hAone M) with ⟨d', slack', hagree', hbook'⟩
     have hmiss_eq : schedMisses d' C₀ σ = schedMisses (fifoSchedule σ C₀) C₀ σ :=
       schedMisses_eq_of_agree d' σ C₀ hagree'
