@@ -160,28 +160,46 @@ lemma before_mem_right {a b : α} {L : List α} (h : before a b L) : b ∈ L := 
     the one that is `before` the other. -/
 lemma before_or_before {a b : α} {L : List α} (ha : a ∈ L) (hb : b ∈ L) (hab : a ≠ b) :
     before a b L ∨ before b a L := by
+  revert a b ha hb hab
   induction L with
-  | nil => simp [before] at ha
+  | nil =>
+      intro a b ha hb hab
+      simp [before] at ha
   | cons x rest ih =>
+      intro a b ha hb hab
       by_cases hxa : x = a
       · subst a
         left
-        simp [before, hb, hab]
+        rw [before_cons]
+        have hbrest : b ∈ rest := by
+          rcases (List.mem_cons.mp hb) with hb1 | hb2
+          · exact (hab hb1.symm).elim
+          · exact hb2
+        exact ⟨hab, hbrest, Or.inl rfl⟩
       · by_cases hxb : x = b
         · subst b
           right
-          simp [before, ha, hab]
+          rw [before_cons]
+          have harest : a ∈ rest := by
+            rcases (List.mem_cons.mp ha) with ha1 | ha2
+            · exact (hxa ha1.symm).elim
+            · exact ha2
+          exact ⟨hxa, harest, Or.inl rfl⟩
         · have ha' : a ∈ rest := by
-            simp [hxa, hxb, ha]
+            rcases (List.mem_cons.mp ha) with ha1 | ha2
+            · exact (hxa ha1.symm).elim
+            · exact ha2
           have hb' : b ∈ rest := by
-            simp [hxa, hxb, hb]
+            rcases (List.mem_cons.mp hb) with hb1 | hb2
+            · exact (hxb hb1.symm).elim
+            · exact hb2
           rcases ih ha' hb' hab with hab' | hba'
           · left
-            simp [before, hxa, hxb] at hab' ⊢
-            exact hab'
+            rw [before_cons]
+            exact ⟨hxb, hb', Or.inr hab'⟩
           · right
-            simp [before, hxa, hxb] at hba' ⊢
-            exact hba'
+            rw [before_cons]
+            exact ⟨hxa, ha', Or.inr hba'⟩
 
 /-- Consequence of trichotomy: if `b` is not before `a`, then `a` is before `b`. -/
 lemma before_of_not_before {a b : α} {L : List α} (ha : a ∈ L) (hb : b ∈ L) (hab : a ≠ b)
@@ -199,40 +217,94 @@ lemma mem_takeWhile_ne_erase (b x : α) (L : List α) {a : α} (hax : a ≠ x) (
   | nil => simp
   | cons y rest ih =>
       by_cases hya : a = y
-      · subst a
-        -- a is the head; both sides are true unless y == b, in which case both false.
+      · -- `a` is the head: it survives on both sides unless `y = b` (takeWhile stops
+        -- before the first `b`), and erasing `x` removes it only when `y = x`.
+        subst a
         by_cases hyb : y = b
         · subst b
-          simp [hyb, hbx]  -- hbx gives x ≠ y; takeWhile = [] on both sides
-        · simp [hyb]  -- y :: rest, a = y ∈ it on both sides
-      · by_cases hyx : y = x
-        · subst x
-          -- (y :: rest).erase y = rest
-          simp [hyx, hya, hbx]
-        · by_cases hyb : y = b
-          · subst b
-            simp [hyb]
-          · simp [hya, hyx, hyb, ih]
+          by_cases hyx : y = x
+          · subst x
+            exfalso
+            exact hbx rfl
+          · simp [hyx]
+        · by_cases hyx : y = x
+          · subst x
+            exfalso
+            exact hax rfl
+          · simp [hyb, hyx]
+      · -- `a` is not the head: it lives in the tail, where erasing `x` (a ≠ x) and the
+        -- `takeWhile` prefix (b ≠ x) are both unchanged.
+        by_cases hyb : y = b
+        · subst b
+          by_cases hyx : y = x
+          · subst x
+            exfalso
+            exact hbx rfl
+          · simp [hyx]
+        · by_cases hyx : y = x
+          · subst x
+            simp [hya, hyb]
+          · simpa [hya, hyb, hyx] using ih
+
+/-- Erasing an element `b` does not change the membership of an element `a ≠ b`
+    (it removes only the first occurrence of `b`). -/
+lemma mem_erase_of_ne {a b : α} {L : List α} (h : a ≠ b) : a ∈ L.erase b ↔ a ∈ L := by
+  induction L with
+  | nil => simp
+  | cons y rest ih =>
+      by_cases hyb : y = b
+      · subst b
+        simp [h]
+      · simp [hyb, ih]
 
 /-- `before` is invariant under move-to-front of an element distinct from both. -/
 lemma before_moveToFront_iff {a x b : α} {L : List α} (hax : a ≠ x) (hbx : b ≠ x) (hx : x ∈ L) :
     before a b (moveToFront x L) ↔ before a b L := by
   unfold moveToFront
-  -- before a b (x :: L.erase x) ↔ before a b L
-  have hb' : b ∈ x :: L.erase x ↔ b ∈ L.erase x := by simp [hbx]
-  have htw : a ∈ (x :: L.erase x).takeWhile (fun c => decide (c ≠ b)) ↔
-      a ∈ (L.erase x).takeWhile (fun c => decide (c ≠ b)) := by
-    simp [hbx, hax]
+  -- `before a b (x :: L.erase x)` vs `before a b L`: `x ≠ b` keeps the head of the
+  -- takeWhile prefix, `a ≠ x` drops it from the front, and the erase is invisible
+  -- to `b` (b ≠ x) and to the prefix (mem_takeWhile_ne_erase).
   rw [before]
-  rw [hb', htw]
-  rw [mem_takeWhile_ne_erase b x L hax hbx]
-  rfl
+  rw [before]
+  constructor
+  · intro h
+    rcases h with ⟨hbcons, htw⟩
+    have hbL : b ∈ L := by
+      rcases (List.mem_cons.mp hbcons) with hbx' | hbEr
+      · exact (hbx hbx').elim
+      · exact (mem_erase_of_ne hbx).mp hbEr
+    have htwL : a ∈ L.takeWhile (fun c => decide (c ≠ b)) := by
+      have hhead : a ∈ (x :: L.erase x).takeWhile (fun c => decide (c ≠ b)) ↔
+          a ∈ (L.erase x).takeWhile (fun c => decide (c ≠ b)) := by
+        have hxnotb : x ≠ b := hbx.symm
+        simp [hxnotb, hax]
+      have hEr : a ∈ (L.erase x).takeWhile (fun c => decide (c ≠ b)) := (hhead.mp htw)
+      exact (mem_takeWhile_ne_erase b x L hax hbx).mp hEr
+    exact ⟨hbL, htwL⟩
+  · intro h
+    rcases h with ⟨hbL, htwL⟩
+    have hbEr : b ∈ L.erase x := (mem_erase_of_ne hbx).mpr hbL
+    have hbcons : b ∈ x :: L.erase x := by
+      simp [hbEr]
+    have htw : a ∈ (x :: L.erase x).takeWhile (fun c => decide (c ≠ b)) := by
+      have hhead : a ∈ (x :: L.erase x).takeWhile (fun c => decide (c ≠ b)) ↔
+          a ∈ (L.erase x).takeWhile (fun c => decide (c ≠ b)) := by
+        have hxnotb : x ≠ b := hbx.symm
+        simp [hxnotb, hax]
+      have hEr : a ∈ (L.erase x).takeWhile (fun c => decide (c ≠ b)) :=
+        (mem_takeWhile_ne_erase b x L hax hbx).mpr htwL
+      exact (hhead.mpr hEr)
+    exact ⟨hbcons, htw⟩
 
 /-- After moving `x` to the front, `x` is before every other element of the list. -/
 lemma before_x_front {x b : α} {L : List α} (hb : b ∈ L) (hxb : x ≠ b) :
     before x b (moveToFront x L) := by
   unfold moveToFront
-  simp [before, hb, hxb]
+  rw [before]
+  constructor
+  · have hbEr : b ∈ L.erase x := (mem_erase_of_ne hxb.symm).mpr hb
+    simp [hbEr]
+  · simp [hxb]
 
 /-- Nothing is before the element moved to the front. -/
 lemma not_before_x_front {x b : α} (L : List α) : ¬ before b x (moveToFront x L) := by
@@ -244,8 +316,11 @@ lemma not_before_x_front {x b : α} (L : List α) : ¬ before b x (moveToFront x
 lemma toFinset_moveToFront {x : α} {L : List α} (hx : x ∈ L) :
     (moveToFront x L).toFinset = L.toFinset := by
   unfold moveToFront
-  rw [List.toFinset_cons]
-  simp [hx]
+  ext y
+  by_cases hyx : y = x
+  · subst y
+    simp [hx]
+  · simp [hyx, mem_erase_of_ne hyx]
 
 /-- The moved element is at the front after move-to-front. -/
 lemma mem_moveToFront (x : α) (L : List α) : x ∈ moveToFront x L := by
@@ -257,7 +332,9 @@ lemma mem_moveToFront (x : α) (L : List α) : x ∈ moveToFront x L := by
 lemma mem_moveToFront_of_ne {x y : α} {L : List α} (hxy : x ≠ y) (hy : y ∈ L) :
     y ∈ moveToFront x L := by
   unfold moveToFront
-  simp [hxy, hy]
+  have hyx : y ≠ x := hxy.symm
+  have hyEr : y ∈ L.erase x := (mem_erase_of_ne hyx).mpr hy
+  simp [hyx, hyEr]
 
 /-- The position of the moved element after move-to-front is zero. -/
 lemma position_moveToFront (x : α) (L : List α) : position x (moveToFront x L) = 0 := by
@@ -282,7 +359,7 @@ lemma commonBefore_le_position {x : α} {L M : List α} (hperm : L.toFinset = M.
   apply Finset.card_le_card
   intro y hy
   simp at hy ⊢
-  exact hy.1.2
+  exact ⟨hy.1, hy.2.2⟩
 
 /-- Number of pairs `(a, b)` from `L₁` (with `b ≠ a`) such that `a` is before `b` in
     `L₁` and `b` before `a` in `L₂`: the row of `a` in the inversion matrix. -/
