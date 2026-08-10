@@ -52,6 +52,10 @@ Main results:
   bridge: `hd_eq`/`hnot`/`ht₂notP` (off `P`, `d = e`), `hqinE` (the branch
   analysis), `hnotE` (e-faults on the window), the e-hit at `t₂` via
   `b2_ehit` + `b2_ehit_ne`
+- `iterate_main_case_b2_alive`: the case-B2 step (alive-alive) — the
+  repair at a resident disagreement: agreement to `t₂ + 1`, misses not
+  increased, chain extended by `q''`, `hd_eq` extended to
+  `P ∪ {t₂, J''}`, reducedness bound `max hnb (J'' + 1)`
 - `b2_hswap_qp_dead`: same for the `q''`-dead case — `repair_keep_swap_qp_dead`
   (B6), the dead-page repair `repairSchedule e t q'' t` still has the swap
   form at `J` (the good event for `repair_step_swap_qp_dead`)
@@ -983,6 +987,122 @@ lemma repair_keep_swap_cur (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : P
                 rw [herase_comm]
                 rw [Finset.insert_comm]
   exact hmain (t₂ + 1 + j) (by omega) le_rfl
+
+/-- 迭代的情形 B2(活-活子情形):窗口内 resident 分歧 `t₂`(`d t₂` 在
+`d` 的 cache 中,`q`、`q''` 都会再次被请求,`j < j''`)处,修复
+`r = repairSchedule d t₂ q'' (t₂ + 1 + j'')` 满足:
+- 一致到 `t₂ + 1`、miss 不增(`repair_step_swap_strong`,swap 形式由
+  `repair_keep_swap_cur` 给出);
+- 反向差链扩展到 `insert q'' (Q.image Prod.snd)`(`reverse_diff_chain`);
+- 组成不变式 `hd_eq` 扩展到 `P ∪ {t₂, t₂ + 1 + j''}`(`r` 只改这两处);
+- reduced 界升到 `max hnb (t₂ + 1 + j'' + 1)`(`repairSchedule_superset_swap`:
+  `J''` 后 `D ⊆ Ŝ`,故 `r` 的缺页处 `d` 也缺页,`r s = d s ∈ D ⊆ Ŝ`)。
+`hqinE`、`hnotE`、`hnot`、`ht₂notP` 由归纳调用方提供(branch 分析、
+Q'' 排除与 no-nop-at-B2 论证,见 DESIGN)。 -/
+lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    (hq₀ : d_pre t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s →
+      d_pre s ∈ schedCache d_pre C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀)
+    (hq₀'res : q₀' ∈ schedCache d_pre C₀ σ t₀)
+    {j₀ : ℕ} (hj₀ : nextUse σ (t₀ + 1) q₀ = some j₀)
+    (hq₀'ne : ∀ k, t₀ + 1 ≤ k → k < t₀ + 1 + j₀ → σ.getD k 0 ≠ q₀')
+    {j₀' : ℕ} (hj₀' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t₂ : ℕ} (ht₂ : t₂ < σ.length) (ht₂₀ : t₀ < t₂) (ht₂₁ : t₂ < t₀ + 1 + j₀')
+    (hnb : ℕ) (ht₂hnb : t₂ < hnb)
+    (hagree : agreeWithFIF d C₀ σ t₂)
+    (hdis : schedCache d C₀ σ (t₂ + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t₂ + 1))
+    (hqin : d t₂ ∈ schedCache d C₀ σ t₂)
+    (hftd : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
+    {j : ℕ} (hj : nextUse σ (t₂ + 1) (d t₂) = some j)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = some j'')
+    (hjj'' : j < j'')
+    (Q : Finset (ℕ × Page))
+    (hchain : ∀ s, s ≤ σ.length → schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ s \
+        schedCache d C₀ σ s ⊆ Q.image Prod.snd)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hQ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t₂ < tᵢ + 1 + j'')
+    (hqinE : d t₂ ∈ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂)
+    (hnotE : ∀ s, t₂ < s → s ≤ t₂ + 1 + j →
+      σ.getD s 0 ∉ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ s)
+    (P : Finset ℕ)
+    (ht₂notP : t₂ ∉ P)
+    (hnot : ∀ s, t₂ < s → s ≤ t₂ + 1 + j → s ∉ P)
+    (hd_eq : ∀ s, s ∉ P → d s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s)
+    (hdred : ∀ s, hnb ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s →
+      d s ∈ schedCache d C₀ σ s) :
+    ∃ r : ℕ → Page,
+      agreeWithFIF r C₀ σ (t₂ + 1) ∧
+      schedMisses r C₀ σ ≤ schedMisses d C₀ σ ∧
+      (∀ s, s ≤ σ.length → schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ s \
+          schedCache r C₀ σ s ⊆ insert (fifoSchedule σ C₀ t₂) (Q.image Prod.snd)) ∧
+      (∀ s, s ∉ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+        r s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) ∧
+      (∀ s, max hnb (t₂ + 1 + j'' + 1) ≤ s →
+        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) := by
+  let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
+  let q : Page := d t₂
+  let q'' : Page := fifoSchedule σ C₀ t₂
+  let r : ℕ → Page := repairSchedule d t₂ q'' (t₂ + 1 + j'')
+  have hft : σ.getD t₂ 0 ∉ schedCache e C₀ σ t₂ := by
+    intro he
+    exact (b2_ehit_ne σ ht₂ Q hpast hQ) (b2_ehit e d σ C₀ hftd (Q.image Prod.snd) (hchain t₂ (by omega)) he)
+  have hqq'' : q ≠ q'' := by
+    intro hqq
+    exact (first_disagree d σ C₀ hC₀ ht₂ hagree hdis).2.1 (by simpa [q, q'', hqq])
+  have hswap := repair_keep_swap_cur d_pre d t₀ q₀ q₀' σ C₀ hC₀ hq₀ hqq₀ hweak hft₀ hq₀'res hj₀ hq₀'ne hj₀'
+    ht₂ ht₂₀ ht₂₁ hagree hdis hqin hftd hj hj'' hjj'' Q (hchain t₂ (by omega)) hpast hQ hqinE hnotE P
+    ht₂notP hnot hd_eq
+  have hkept : q ∈ schedCache r C₀ σ (t₂ + 1 + j) := by
+    rw [hswap]
+    exact Finset.mem_insert_self _ _
+  have hqnotE : ∀ s, t₂ < s → s ≤ t₂ + 1 + j → q ∉ schedCache e C₀ σ s := by
+    intro s hs1 hs2
+    exact swap_q_not_mem e σ C₀ (show e t₂ = q from by
+      change exchangeSchedule d_pre t₀ q₀ q₀' σ C₀ t₂ = q
+      rw [← hd_eq t₂ ht₂notP]) hqinE hft hj hs1 hs2
+  refine ⟨r, ?_, ?_, ?_, ?_, ?_⟩
+  · -- agree 到 t₂+1
+    exact (repair_step_swap_strong d σ C₀ hC₀ ht₂ hagree hdis hqin hj hj'' hjj'' hswap).2
+  · -- miss 不增
+    exact (repair_step_swap_strong d σ C₀ hC₀ ht₂ hagree hdis hqin hj hj'' hjj'' hswap).1
+  · -- 链扩展到 insert q'' (Q.image Prod.snd)
+    exact reverse_diff_chain e d σ C₀ (show d t₂ = q from rfl) rfl hqin hftd hqq'' hj hj'' hjj''
+      hkept (Q.image Prod.snd) hqnotE hchain
+  · -- hd_eq 扩展到 P ∪ {t₂, J''}
+    intro s hs
+    have hsP : s ∉ P := by
+      intro hsP
+      exact hs (Finset.mem_union.mpr (Or.inl hsP))
+    rw [show r s = d s by
+      unfold r repairSchedule
+      simp [show s ≠ t₂ by
+        intro hst
+        exact hs (Finset.mem_union.mpr (Or.inr (by simp [hst]))),
+        show s ≠ t₂ + 1 + j'' by
+        intro hst
+        exact hs (Finset.mem_union.mpr (Or.inr (by simp [hst])))]]
+    exact hd_eq s hsP
+  · -- reduced 界:max hnb (J''+1)
+    have hsup : ∀ s, t₂ + 1 + j'' < s → schedCache d C₀ σ s ⊆ schedCache r C₀ σ s := by
+      intro s hs
+      exact repairSchedule_superset_swap d σ C₀ hC₀ ht₂ hagree hdis hqin rfl (show q = d t₂ from rfl)
+        hj hj'' hjj'' (s := s) hs
+    intro s hs hfault
+    have hnb_le : hnb ≤ s := by omega
+    have hJ''lt : t₂ + 1 + j'' < s := by omega
+    have hsd : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+      intro h
+      exact hfault (hsup s hJ''lt h)
+    have hdsin : d s ∈ schedCache d C₀ σ s := hdred s hnb_le hsd
+    rw [show r s = d s by
+      unfold r repairSchedule
+      simp [show s ≠ t₂ by omega, show s ≠ t₂ + 1 + j'' by omega]]
+    exact hsup s hJ''lt hdsin
 
 /-- 迭代的情形 A(交换步骤):在首个分歧 `t` 处,用策略的选择
 `q' = fifoSchedule σ C₀ t` 替换 `d` 的逐出 `q = d t`,得到新调度
