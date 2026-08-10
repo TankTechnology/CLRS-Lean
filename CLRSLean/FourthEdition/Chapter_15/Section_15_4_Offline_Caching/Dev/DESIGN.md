@@ -290,18 +290,36 @@ At a B2 position `t₂` inside the window of the exchange at `t₀`, with
 - **q dead**: `repair_q_dead_qp_dead` (q dead ⟹ q'' dead) +
   `repair_step_swap_q_dead` (diff ⊆ {q,q''}, both dead):
   equal misses.  **Free.**
-- **q alive, q'' dead**: `rF = eF − 1`.  **Free.** (TODO: formalize.)
+- **q alive, q'' dead**: `repair_step_swap_qp_dead` (B6) — pointwise
+  `rF ≤ eF` (equality before `J`, `0 ≤ 1` at the good event, superset
+  argument after `J`).  **Free.**
 - The boundary case (the next disagreement landing on `J₀'` itself, the
   previous window's request) is handled by the existing case-A machinery
   (`t ≥ hnb` after the window ends).
 
-**Done (2026-08-10, `Dev/B6_Strong_Repair.lean`, all kernel-checked, no
-sorry)**: `getD_ne_of_nextUse_none`, `repair_q_dead_qp_dead`,
-`repair_cache_diff`, `repair_step_swap_q_dead`, `repair_step_swap_strong`,
-`exchange_no_evict_q`, `repair_keep_swap`, and the q-alive-q''-dead
-variant (`repair_cache_diff_le`, `repair_cache_diff_after`,
-`repair_step_swap_qp_dead` — pointwise `rF ≤ eF`: equality before `J`,
-`0 ≤ 1` at the good event, `E_s − Ŝ_s ⊆ {q''}` after `J`).
+**Done (2026-08-10/11, `Dev/B6_Strong_Repair.lean` +
+`Dev/B7_Iteration.lean`, all kernel-checked, no sorry)**:
+`getD_ne_of_nextUse_none`, `repair_q_dead_qp_dead`, `repair_cache_diff`,
+`repair_step_swap_q_dead`, `repair_step_swap_strong`, `exchange_no_evict_q`,
+`repair_keep_swap`; the q-alive-q''-dead variant (`repair_cache_diff_le`,
+`repair_cache_diff_after`, `repair_step_swap_qp_dead`); the keep-swap for
+the dead-page repair (`repairSchedule_base_swap_qp_dead`,
+`repair_keep_swap_qp_dead`, `b2_hswap_qp_dead` — the swap form at `J` for
+nop = `t₂`, giving the good event without `hj''`); the reverse-diff chain
+extensions (`reverse_diff_chain_qp_dead`, `reverse_diff_chain_q_dead`);
+the B1 dead-page repair (`repair_diff_noop_qp_dead`, `repair_step_qp_dead`
+— no-op eviction with `q''` dead is free, bad event impossible); and the
+shared helpers (`repair_requests_avoid_q_qp`,
+`schedCache_repairSchedule_eq_e_qp_dead`, `swap_q_not_mem_dead`).
+
+**Remaining for `iterate_main`**: the keep-swap for the repair of the
+*current* schedule (exchange + past repairs; `b2_hswap`/`repair_keep_swap`
+repair the pure exchange) — needs the bridge hypotheses (`hd_eq`, `hnot`,
+`t₂ ∉ P` from the no-nop-at-B2 argument, `q ∈ E_{t₂}` from the branch
+analysis, and the `Q''`-exclusion at window faults for `exchange_no_evict_q`
+`hFault` — the last-repair analysis of the B5 status notes); the B1 chain
+extension (the alive-B1 window diff `D − Ŝ ⊆ {q''}` on `(t, J''']`); then
+the case-B1/B2 step lemmas, the induction, and `fifo_optimal`.
 
 ### Iteration simulation (2026-08-10, `search_b2.py` + `search_iter.py`)
 
@@ -437,7 +455,13 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   `lake build CLRSLean`, `check_repository.py`, docs, progress CSV) and
   merge of all `Dev/` lemmas into `S3_Optimality.lean`.
 - `Dev/B7_Iteration.lean` (in progress): `repair_reverse_diff_window`,
-  `repair_reverse_diff_after`, `repair_diff_all` (done, kernel-checked),
-  `schedCache_repairSchedule_nop_agree` (bridge), `reverse_diff_chain`,
-  `b2_ehit`, `b2_ehit_ne` and `b2_no_evict_q` (done, 2026-08-10,
-  kernel-checked); next `b2_hswap` and the `iterate_main` assembly.
+  `repair_reverse_diff_after`, `repair_diff_all`,
+  `schedCache_repairSchedule_nop_agree`, `reverse_diff_chain`, `b2_ehit`,
+  `b2_ehit_ne`, `b2_no_evict_q`, `b2_hswap`, `b2_hswap_qp_dead`,
+  `reverse_diff_chain_qp_dead`, `reverse_diff_chain_q_dead` (done,
+  kernel-checked) and `iterate_main_exchange` (the case-A step, done);
+  next the current-schedule keep-swap (see the B2 step assembly section),
+  the case-B1/B2 step lemmas, then the `iterate_main` induction and
+  `fifo_optimal`; then verification (axioms, `lake build CLRSLean`,
+  `check_repository.py`, docs, progress CSV) and merge of all `Dev/`
+  lemmas into `S3_Optimality.lean`.
