@@ -36,6 +36,10 @@ Main results:
   chain at `t`), `σ[t] ∈ E_t ⟹ σ[t] ∈ Q`
 - `b2_ehit_ne`: the contradiction side — dead or not-yet-requested past
   repair pages exclude `σ[t]` from `Q.image Prod.snd`
+- `b2_no_evict_q`: the keep-swap core — at faults `s ∈ (t, J]` of the
+  exchange schedule, `d s = e s` (off the past repair/nop positions `P`)
+  and `e s ≠ q` (`exchange_no_evict_q`, with the e-hit at `t` derived via
+  `b2_ehit` + `b2_ehit_ne`)
 
 This file is part of the `fifo_optimal` iteration; it will be merged into
 `S3_Optimality.lean` once the proof is complete.
@@ -568,6 +572,50 @@ lemma b2_ehit_ne (σ : List Page) {t : ℕ} (ht : t < σ.length)
     exact getD_ne_of_nextUse_none σ hdead (by omega) ht hsigq.symm
   · -- 未请求:t < J''ᵢ 处请求 σ[t] = q'' 与首次请求在 J''ᵢ 矛盾
     exact getD_ne_nextUse (k := t) hnext (by omega) htltJ hsigq.symm
+
+/-- keep-swap 核心(当前调度的 `b2_no_evict_q`):在 B2 位置 `t` 的窗口
+`(t, J]` 内,对 `e` 的每个缺页位置 `s`:
+- `d s = e s` —— 位置 `s` 不是过往修复/nop 位置(`hnot`,由 `P` 记录;
+  组成不变式 `hd_eq` 给出 `P` 之外的逐出一致),经验上 136 个窗口在
+  `(t, J]` 内有过往修复/nop 位置、其中 12 个是 `e` 的缺页且 `d s ≠ e s`,
+  故 `hnot` 必不可少;
+- `e s ≠ q` —— `exchange_no_evict_q` 的实例化,其 `hft₂`(e 于 `t` 缺页)
+  由 `b2_ehit`(链 `hchain` 于 `t` 的实例压 `σ[t] ∈ E_t` 进 `Q.image
+  Prod.snd`)+ `b2_ehit_ne`(死页或未请求的矛盾)推出;`hqin`(`q ∈ E_t`)
+  来自 `e t = q` 的分支分析(调用方提供)。 -/
+lemma b2_no_evict_q (d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (σ : List Page) (C₀ : Finset Page)
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d C₀ σ t₀)
+    (hq₀'res : q₀' ∈ schedCache d C₀ σ t₀)
+    {j₀' : ℕ} (hj₀' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t : ℕ} (ht : t < σ.length) (ht₀t : t₀ < t) (htt' : t < t₀ + 1 + j₀')
+    {q : Page} (hq : (exchangeSchedule d t₀ q₀ q₀' σ C₀) t = q)
+    (hqin : q ∈ schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ t)
+    (hftd : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) q = some j)
+    (Q : Finset (ℕ × Page))
+    (hchain : schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ t \
+        schedCache d C₀ σ t ⊆ Q.image Prod.snd)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t)
+    (hQ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t < tᵢ + 1 + j'')
+    (P : Finset ℕ)
+    (hnot : ∀ s, t < s → s ≤ t + 1 + j → s ∉ P)
+    (hd_eq : ∀ s, s ∉ P → d s = (exchangeSchedule d t₀ q₀ q₀' σ C₀) s) :
+    ∀ s, t < s → s ≤ t + 1 + j →
+      σ.getD s 0 ∉ schedCache (exchangeSchedule d t₀ q₀ q₀' σ C₀) C₀ σ s →
+        d s = (exchangeSchedule d t₀ q₀ q₀' σ C₀) s ∧
+          (exchangeSchedule d t₀ q₀ q₀' σ C₀) s ≠ q := by
+  let e : ℕ → Page := exchangeSchedule d t₀ q₀ q₀' σ C₀
+  have hft : σ.getD t 0 ∉ schedCache e C₀ σ t := by
+    intro he
+    exact (b2_ehit_ne σ ht Q hpast hQ) (b2_ehit e d σ C₀ hftd (Q.image Prod.snd) hchain he)
+  intro s hs1 hs2 hFault
+  constructor
+  · exact hd_eq s (hnot s hs1 hs2)
+  · exact exchange_no_evict_q d t₀ q₀ q₀' σ C₀ hweak hft₀ hq₀'res hj₀'
+      ht₀t htt' hq hqin hft hj (s := s) hs1 hs2 hFault
 
 end Caching
 

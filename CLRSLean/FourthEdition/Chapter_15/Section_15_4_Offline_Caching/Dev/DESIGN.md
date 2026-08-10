@@ -395,15 +395,21 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
      "last repair whose nop is at `t`" analysis.
    Empirical: `σ[t] ∈ {past q''ᵢ}` at a disagreement happens 8976×, all at
    `t = J''ᵢ` — all B1, 0 at B2.
-4. `b2_no_evict_q`: the keep-swap core for the current schedule: at a fault
-   `s ∈ (t, J]`, `d s = e s` (the current position is not a past repair /
-   nop spot: past nops have `q''ᵢ ≠ q` since `q`'s next use is `J ≠ J''ᵢ`),
-   and `e s ≠ q` by `exchange_no_evict_q` (needs `q ∈ cache_e_t`, from the
-   branch analysis of `e t = q`: branch 1 evicts `q₀'` which is `∉
-   cache_d_t` — `q₀' ∉ cache_e` on the window, `q₀' ∉ Q''` since
-   `q''ᵢ ≠ q₀'` (`q₀' ∉ cache_{tᵢ}` while `q''ᵢ` is FIF-resident), and the
-   `q₀'` membership is synchronized —; branches 4-6 evict `C'`-pages,
-   branch 5 evicts `d₀ t` which is in `C'` by its own premise).
+4. `b2_no_evict_q` (done, 2026-08-10, kernel-checked): the keep-swap core
+   for the current schedule: at a fault `s ∈ (t, J]` of the exchange
+   schedule, `d s = e s` (off the past repair/nop positions `P`, via the
+   composition invariant `hd_eq` — `hnot` excludes the modified positions;
+   empirical: 136 windows contain a past modified position in `(t, J]` and
+   12 of those are faults with `d s ≠ e s`, so `hnot` is essential), and
+   `e s ≠ q` by `exchange_no_evict_q` (its `hft₂` — the e-hit at `t` —
+   derived inside via `b2_ehit` + `b2_ehit_ne` from the chain instance at
+   `t`; `hqin : q ∈ cache_e_t` comes from the branch analysis of
+   `e t = q`: branch 1 evicts `q₀'` which is `∉ cache_d_t` — `q₀' ∉
+   cache_e` on the window, `q₀' ∉ Q''` since `q''ᵢ ≠ q₀'` (`q₀' ∉
+   cache_{tᵢ}` while `q''ᵢ` is FIF-resident), and the `q₀'` membership is
+   synchronized —; branches 4-6 evict `C'`-pages, branch 5 evicts `d₀ t`
+   which is in `C'` by its own premise; empirically `q ∈ E_t` and
+   `e t = d t` hold at all 55188 B2 positions).
 5. `b2_hswap`: the swap form at `J` for the current schedule — already
    proved in B6 as `repair_keep_swap` (the iteration context: window of
    the case-A exchange at `t₀`); instantiate its window hypotheses from
@@ -433,5 +439,5 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
 - `Dev/B7_Iteration.lean` (in progress): `repair_reverse_diff_window`,
   `repair_reverse_diff_after`, `repair_diff_all` (done, kernel-checked),
   `schedCache_repairSchedule_nop_agree` (bridge), `reverse_diff_chain`,
-  `b2_ehit` and `b2_ehit_ne` (done, 2026-08-10, kernel-checked); next
-  `b2_no_evict_q`, `b2_hswap` and the `iterate_main` assembly.
+  `b2_ehit`, `b2_ehit_ne` and `b2_no_evict_q` (done, 2026-08-10,
+  kernel-checked); next `b2_hswap` and the `iterate_main` assembly.
