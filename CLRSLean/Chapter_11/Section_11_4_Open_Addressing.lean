@@ -40,6 +40,9 @@ Main results:
   - Theorem {lit}`expectedSuccessfulProbes_le`: expected successful-search probes
     `≤ (1/α) * ∑_{j<n} 1/(m-j) = (1/α)(H_m - H_{m-n})`, the harmonic form of
     CLRS Theorem 11.8.
+  - Theorem {lit}`expectedSuccessfulProbes_le_ln`: expected successful-search probes
+    `≤ (1/α) * ln(1/(1-α))`, the logarithmic (closed-form) version of
+    CLRS Theorem 11.8.
 
 Status: `proved` for the functional model, the probe schemes, and the
 uniform-hashing expected-probe bounds.
@@ -56,9 +59,8 @@ Notation conventions used in this section:
 Current gaps: the expected-probe values are the tail-sum
 `E[X] = ∑_{i≥0} P[X > i]`, with the tail probabilities `probeTail` the standard
 uniform-hashing without-replacement products.  Deriving those tails from an
-explicit permutation sample space (via `Fintype` counting), and the closed-form
-`ln(1/(1-α))` integral bound refining the harmonic sum, are deferred refinements;
-RAM / cache-cost semantics remain out of scope (epic #28).
+explicit permutation sample space (via `Fintype` counting) is a deferred
+refinement; RAM / cache-cost semantics remain out of scope (epic #28).
 -/
 
 namespace CLRS
@@ -400,8 +402,8 @@ noncomputable def expectedSuccessfulProbes (m n : ℕ) : ℝ :=
 /-- **Theorem 11.8 (successful search), harmonic form.**  Under uniform hashing
 the expected number of probes in a successful search is at most
 `(1/α) * ∑_{j<n} 1/(m-j) = (1/α)(H_m - H_{m-n})` (`α = n/m`).  The stated
-harmonic-sum bound is proved; the classical `(1/α) ln(1/(1-α))` follows from
-`H_m - H_{m-n} ≤ ln(m/(m-n))` and is not formalised here. -/
+harmonic-sum bound is proved; the classical `(1/α) ln(1/(1-α))` follows via
+{lit}`sum_inv_shift_le_log` and is proved as {lit}`expectedSuccessfulProbes_le_ln`. -/
 theorem expectedSuccessfulProbes_le (m n : ℕ) (hn : n ≤ m) (hnpos : 0 < n) :
     expectedSuccessfulProbes m n
       ≤ (1 / openLoadFactor m n) * ∑ j ∈ Finset.range n, 1 / ((m : ℝ) - (j : ℝ)) := by
@@ -429,6 +431,103 @@ theorem expectedSuccessfulProbes_le (m n : ℕ) (hn : n ≤ m) (hnpos : 0 < n) :
     rw [openLoadFactor, one_div_div]; ring
   rw [hfin] at step1
   exact step1
+
+/-- The **free-capacity identity** `1/(1 - n/m) = m/(m-n)` for a non-full table
+(`n < m`): the reciprocal of the free capacity equals the ratio of the table size
+to the remaining slots.  This is the `ln(1/(1-α)) = ln(m/(m-n))` identity used to
+pass from the harmonic sum bound to the logarithmic form of Theorem 11.8. -/
+lemma openLoadFactor_inv_eq (m n : ℕ) (hn : n < m) :
+    (1 : ℝ) / (1 - (n : ℝ) / (m : ℝ)) = (m : ℝ) / ((m - n : ℕ) : ℝ) := by
+  have hmpos : (0 : ℝ) < (m : ℝ) := by exact_mod_cast (lt_of_le_of_lt (Nat.zero_le n) hn)
+  have hmne : (m : ℝ) ≠ 0 := ne_of_gt hmpos
+  have hmncast : ((m - n : ℕ) : ℝ) = (m : ℝ) - (n : ℝ) := by
+    rw [Nat.cast_sub (le_of_lt hn)]
+  rw [hmncast]
+  have hsub : (m : ℝ) - (n : ℝ) ≠ 0 := by
+    have : (n : ℝ) < (m : ℝ) := by exact_mod_cast hn
+    linarith
+  have hαne : 1 - (n : ℝ) / (m : ℝ) ≠ 0 := by
+    have hα : (n : ℝ) / (m : ℝ) < 1 := (div_lt_one hmpos).2 (by exact_mod_cast hn)
+    linarith
+  field_simp [hmne, hsub, hαne]
+
+/-- **Harmonic-sum bound.**  For `n < m`, `∑_{j<n} 1/(m-j) ≤ ln(m/(m-n))`: each
+term `1/(m-j)` is at most `ln((m-j)/(m-j-1))` (from the bound
+`ln(1+x) ≥ x/(1+x)` with `x = 1/(m-j-1)`), and the resulting sum telescopes to
+`ln(m/(m-n))`.  This is the integral bound used to obtain the logarithmic form of
+Theorem 11.8 from its harmonic form. -/
+lemma sum_inv_shift_le_log (m n : ℕ) (hn : n < m) :
+    (∑ j ∈ Finset.range n, (1 : ℝ) / ((m : ℝ) - (j : ℝ)))
+      ≤ Real.log ((m : ℝ) / ((m - n : ℕ) : ℝ)) := by
+  classical
+  have hterm (j : ℕ) (hj : j < n) : (1 : ℝ) / ((m : ℝ) - (j : ℝ))
+      ≤ Real.log (((m : ℝ) - (j : ℝ)) / (((m : ℝ) - (j : ℝ)) - 1)) := by
+    have hsucc : j + 1 < m := by omega
+    have hjm1 : (j : ℝ) + 1 < (m : ℝ) := by exact_mod_cast hsucc
+    have hden : 0 < ((m : ℝ) - (j : ℝ)) - 1 := by linarith
+    have hnum : 0 < (m : ℝ) - (j : ℝ) := by linarith
+    have hx : 0 < ((m : ℝ) - (j : ℝ)) / (((m : ℝ) - (j : ℝ)) - 1) := div_pos hnum hden
+    have h := Real.one_sub_inv_le_log_of_pos hx
+    have hlin : (1 : ℝ) - (((m : ℝ) - (j : ℝ)) / (((m : ℝ) - (j : ℝ)) - 1))⁻¹
+        = (1 : ℝ) / ((m : ℝ) - (j : ℝ)) := by
+      field_simp [hnum.ne', hden.ne']
+      ring
+    rwa [hlin] at h
+  calc
+    (∑ j ∈ Finset.range n, (1 : ℝ) / ((m : ℝ) - (j : ℝ)))
+        ≤ ∑ j ∈ Finset.range n,
+            Real.log (((m : ℝ) - (j : ℝ)) / (((m : ℝ) - (j : ℝ)) - 1)) := by
+            apply Finset.sum_le_sum
+            intro j hj
+            exact hterm j (Finset.mem_range.mp hj)
+    _ = Real.log ((m : ℝ) / ((m - n : ℕ) : ℝ)) := by
+          have hsplit : ∀ j ∈ Finset.range n,
+              Real.log (((m : ℝ) - (j : ℝ)) / (((m : ℝ) - (j : ℝ)) - 1))
+                = Real.log ((m : ℝ) - (j : ℝ)) - Real.log (((m : ℝ) - (j : ℝ)) - 1) := by
+            intro j hj
+            have hjn : j < n := Finset.mem_range.mp hj
+            have hsucc : j + 1 < m := by omega
+            have hjm1 : (j : ℝ) + 1 < (m : ℝ) := by exact_mod_cast hsucc
+            have hden : 0 < ((m : ℝ) - (j : ℝ)) - 1 := by linarith
+            have hnum : 0 < (m : ℝ) - (j : ℝ) := by linarith
+            exact Real.log_div hnum.ne' hden.ne'
+          rw [Finset.sum_congr rfl hsplit]
+          have htel : (∑ j ∈ Finset.range n,
+                (Real.log ((m : ℝ) - (j : ℝ)) - Real.log (((m : ℝ) - (j : ℝ)) - 1)))
+              = Real.log ((m : ℝ) - (0 : ℝ)) - Real.log ((m : ℝ) - (n : ℝ)) := by
+            simpa [Nat.cast_add, Nat.cast_one, sub_add_eq_sub_sub] using
+              (Finset.sum_range_sub' (f := fun i : ℕ => Real.log ((m : ℝ) - (i : ℝ))) n)
+          rw [htel, sub_zero, ← Nat.cast_sub (le_of_lt hn)]
+          have hm : (m : ℝ) ≠ 0 := by exact_mod_cast (ne_of_gt (lt_of_le_of_lt (Nat.zero_le n) hn))
+          have hmn : ((m - n : ℕ) : ℝ) ≠ 0 := by exact_mod_cast (ne_of_gt (Nat.sub_pos_of_lt hn))
+          rw [← Real.log_div hm hmn]
+
+/-- **Theorem 11.8 (successful search), logarithmic form.**  Under uniform
+hashing the expected number of probes in a successful search is at most
+`(1/α) * ln(1/(1-α))` (`α = n/m < 1`), obtained from the harmonic form
+{lit}`expectedSuccessfulProbes_le` via the integral bound
+`∑_{j<n} 1/(m-j) ≤ ln(m/(m-n)) = ln(1/(1-α))`. -/
+theorem expectedSuccessfulProbes_le_ln (m n : ℕ) (hn : n < m) (hnpos : 0 < n) :
+    expectedSuccessfulProbes m n
+      ≤ (1 / openLoadFactor m n) * Real.log (1 / (1 - openLoadFactor m n)) := by
+  have hharm := expectedSuccessfulProbes_le m n (le_of_lt hn) hnpos
+  have hlog : (∑ j ∈ Finset.range n, (1 : ℝ) / ((m : ℝ) - (j : ℝ)))
+      ≤ Real.log ((m : ℝ) / ((m - n : ℕ) : ℝ)) := sum_inv_shift_le_log m n hn
+  have hαpos : 0 < openLoadFactor m n := by
+    rw [openLoadFactor]
+    exact div_pos (by exact_mod_cast hnpos) (by exact_mod_cast (lt_of_le_of_lt (Nat.zero_le n) hn))
+  have hαnonneg : 0 ≤ 1 / openLoadFactor m n := by
+    exact one_div_nonneg.mpr (le_of_lt hαpos)
+  have hconv : Real.log (1 / (1 - openLoadFactor m n)) = Real.log ((m : ℝ) / ((m - n : ℕ) : ℝ)) := by
+    congr 1
+    rw [openLoadFactor]
+    exact openLoadFactor_inv_eq m n hn
+  have hmult := mul_le_mul_of_nonneg_left hlog hαnonneg
+  calc
+    expectedSuccessfulProbes m n
+        ≤ (1 / openLoadFactor m n) * ∑ j ∈ Finset.range n, 1 / ((m : ℝ) - (j : ℝ)) := hharm
+    _ ≤ (1 / openLoadFactor m n) * Real.log ((m : ℝ) / ((m - n : ℕ) : ℝ)) := hmult
+    _ = (1 / openLoadFactor m n) * Real.log (1 / (1 - openLoadFactor m n)) := by rw [hconv]
 
 end Chapter11
 end CLRS
