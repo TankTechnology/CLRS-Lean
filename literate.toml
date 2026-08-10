@@ -638,6 +638,9 @@ title = "Chapter 33. Machine-Learning Algorithms"
 [modules."CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering"]
 title = "33.1. Clustering"
 
+[modules."CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights"]
+title = "33.2. Multiplicative-Weights Algorithms"
+
 [modules."CLRSLean.FourthEdition.Chapter_34"]
 title = "Chapter 34. NP-Completeness"
 
