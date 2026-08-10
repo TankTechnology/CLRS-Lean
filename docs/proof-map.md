@@ -1422,6 +1422,34 @@ underflow reported as `none`.
   (CLRS Theorem 11.3) from the universality hypothesis alone.
 - Current gap: RAM/probe-count operational semantics.
 
+### Section 11.3 - Hash functions
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_3_Hash_Functions.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.divisionHash_lt`, `CLRS.Chapter11.multiplicationHash_lt`: range bounds for the division and multiplication methods (CLRS §11.3, equations (11.1)-(11.3))
+  - `CLRS.Chapter11.affineHash_isUniversal`: the exact `m = p` affine family over `ZMod p` is universal (CLRS Theorem 11.5, special case)
+  - `CLRS.Chapter11.affineHash_expected_collisions`, `CLRS.Chapter11.affineHash_expected_search_cost`: expected collision and search-cost bounds for the affine family
+  - `CLRS.Chapter11.affineHashMod_isUniversal`: the general mod-`m` affine family `h_{a,b}(k) = ((a·k + b) mod p) mod m` (`a ≠ 0`) is universal for any table size `m ≤ p` (CLRS Theorem 11.5, full form)
+  - `CLRS.Chapter11.count_congruent_gt_le`, `CLRS.Chapter11.count_congruent_lt_le`, `CLRS.Chapter11.congruentPair_count_le`: residue-pair counting lemmas bounding the number of distinct residue pairs colliding modulo `m`
+- Proof pattern: `affineHashMod_isUniversal` injectively maps colliding index pairs `(a,b)` into residue pairs `(r,s)` with `r ≠ s` and `r ≡ s (mod m)`, bounded by `p(p-1)/m`; the exact `m = p` case needs only the injectivity argument.
+- Current gap: none for the represented interface; concrete bit-level hash-cost semantics remain an optional low-level refinement.
+
+### Section 11.4 - Open addressing
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_4_Open_Addressing.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.openSearch_eq_false_of_absent`, `CLRS.Chapter11.openSearch_openInsert`: functional-model correctness (absent key not found, inserted key found)
+  - `CLRS.Chapter11.linearProbe_bijective`, `CLRS.Chapter11.doubleHashProbe_bijective`, `CLRS.Chapter11.quadraticProbe_zero`: the probe schemes of CLRS §11.4, equations (11.5)-(11.7)
+  - `CLRS.Chapter11.probeTail_le_pow`: the per-factor uniform-hashing tail bound `(n-j)/(m-j) ≤ n/m`
+  - `CLRS.Chapter11.expectedUnsuccessfulProbes_le` (Theorem 11.6): expected unsuccessful-search probes `≤ 1/(1-α)`
+  - `CLRS.Chapter11.expectedInsertionProbes_le` (Corollary 11.7)
+  - `CLRS.Chapter11.expectedSuccessfulProbes_le` (Theorem 11.8, harmonic form): `≤ (1/α) * ∑_{j<n} 1/(m-j) = (1/α)(H_m - H_{m-n})`
+  - `CLRS.Chapter11.expectedSuccessfulProbes_le_ln` (Theorem 11.8, logarithmic form): `≤ (1/α) * ln(1/(1-α))`, obtained from the harmonic form via `CLRS.Chapter11.sum_inv_shift_le_log` (`∑_{j<n} 1/(m-j) ≤ ln(m/(m-n))`)
+- Proof pattern: tail-sum expectation `E[X] = ∑_i P[X > i]` with the without-replacement tail products `probeTail`, bounded by the geometric series; the successful-search bound averages the unsuccessful-search costs over the `n` insertion times; the logarithmic form telescopes `∑_{j<n} ln((m-j)/(m-j-1))` from the bound `ln(1+x) ≥ x/(1+x)`.
+- Current gap: deriving the tail probabilities from an explicit permutation sample space (via `Fintype` counting); RAM / probe-count cost semantics remain optional low-level refinements.
+
 ### Section 11.5 - Perfect Hashing
 
 - Lean source: `CLRSLean/Chapter_11/Section_11_5_Perfect_Hashing.lean`
