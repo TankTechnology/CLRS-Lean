@@ -12,7 +12,10 @@ During the compatibility period this guide imports {lit}`CLRSLean.Chapter_10`. E
 
 ## Coverage boundary
 
-The existing stack queue list and rooted-tree developments are reused; fourth-edition arrays and matrices remain a named gap.
+The legacy stack, queue, list, and rooted-tree developments are reused, together
+with the fourth-edition §10.1 array-backed stack and queue interface
+(top/head/tail pointers with overflow, underflow, and circular wrap-around).
+Concrete RAM execution and pointer memory remain deferred.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
