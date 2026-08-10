@@ -64,12 +64,12 @@ lemma not_evalLit_complement (σ : Nat → Bool) (l : Literal) :
 /-- `clauseAt f i` is the actual clause when `i` is in bounds. -/
 lemma clauseAt_eq_getElem (f : CNF) {i : Nat} (hi : i < f.length) :
     clauseAt f i = f[i] := by
-  rw [clauseAt, List.getD_eq_getElem, dif_pos hi]
+  simp [clauseAt, hi]
 
 /-- `clauseAt f i` is empty out of bounds. -/
 lemma clauseAt_eq_nil_of_ge (f : CNF) {i : Nat} (h : f.length ≤ i) :
     clauseAt f i = [] := by
-  rw [clauseAt, List.getD_eq_default h]
+  simp [clauseAt, h]
 
 /-- A valid occurrence is in bounds. -/
 lemma occurrence_clauseIndex_lt {f : CNF} {v : Occurrence}
@@ -81,7 +81,7 @@ lemma occurrence_clauseIndex_lt {f : CNF} {v : Occurrence}
 /-- The first literal of a clause that `σ` makes true (junk `pos 0` when none). -/
 def firstTrueLit (σ : Nat → Bool) : Clause → Literal
   | [] => Literal.pos 0
-  | l :: rest => if evalLit σ l then l else firstTrueLit σ rest
+  | l :: rest => if evalLitBool σ l then l else firstTrueLit σ rest
 
 /-- If `σ` satisfies a clause, the literal `firstTrueLit σ c` is in `c`. -/
 lemma firstTrueLit_mem {σ : Nat → Bool} {c : Clause} (hc : evalClause σ c) :
@@ -90,13 +90,15 @@ lemma firstTrueLit_mem {σ : Nat → Bool} {c : Clause} (hc : evalClause σ c) :
   | nil => simp [evalClause] at hc
   | cons l rest ih =>
       by_cases h : evalLit σ l
-      · simp [firstTrueLit, h]
-      · have hrest : evalClause σ rest := by
+      · have hb : evalLitBool σ l = true := (evalLitBool_eq_true σ l).2 h
+        simp [firstTrueLit, hb]
+      · have hb : evalLitBool σ l = false := (evalLitBool_eq_false σ l).2 h
+        have hrest : evalClause σ rest := by
           simp [evalClause] at hc ⊢
-          rcases hc with ⟨l', hl', he⟩ | ⟨l', hl', he⟩
-          · simp [h, he] at hl'
+          rcases hc with heval | ⟨l', hl', he⟩
+          · exact False.elim (h heval)
           · exact ⟨l', hl', he⟩
-        simp [firstTrueLit, h, ih hrest]
+        simp [firstTrueLit, hb, ih hrest]
 
 /-- If `σ` satisfies a clause, `firstTrueLit σ c` is true under `σ`. -/
 lemma firstTrueLit_eval {σ : Nat → Bool} {c : Clause} (hc : evalClause σ c) :
@@ -105,13 +107,15 @@ lemma firstTrueLit_eval {σ : Nat → Bool} {c : Clause} (hc : evalClause σ c) 
   | nil => simp [evalClause] at hc
   | cons l rest ih =>
       by_cases h : evalLit σ l
-      · simp [firstTrueLit, h]
-      · have hrest : evalClause σ rest := by
+      · have hb : evalLitBool σ l = true := (evalLitBool_eq_true σ l).2 h
+        simpa [firstTrueLit, hb] using h
+      · have hb : evalLitBool σ l = false := (evalLitBool_eq_false σ l).2 h
+        have hrest : evalClause σ rest := by
           simp [evalClause] at hc ⊢
-          rcases hc with ⟨l', hl', he⟩ | ⟨l', hl', he⟩
-          · simp [h, he] at hl'
+          rcases hc with heval | ⟨l', hl', he⟩
+          · exact False.elim (h heval)
           · exact ⟨l', hl', he⟩
-        simp [firstTrueLit, h, ih hrest]
+        simpa [firstTrueLit, hb] using ih hrest
 
 /-- The occurrence chosen for clause `i`: the first literal of that clause that
 `σ` makes true. -/
@@ -125,8 +129,8 @@ def chosenOccs (σ : Nat → Bool) (f : CNF) : List Occurrence :=
 /-- The chosen occurrences are all distinct (they have distinct clause indices). -/
 lemma chosenOccs_nodup (σ : Nat → Bool) (f : CNF) : (chosenOccs σ f).Nodup := by
   rw [chosenOccs]
-  refine List.Nodup.map ?_ (List.nodup_finRange)
-  intro a b ha hb h
+  refine List.Nodup.map ?_ (List.nodup_finRange f.length)
+  intro a b h
   apply Fin.ext
   exact congrArg Prod.fst h
 
@@ -139,7 +143,7 @@ lemma chosenOccs_length (σ : Nat → Bool) (f : CNF) :
 lemma chosenOcc_valid (σ : Nat → Bool) {f : CNF} (hσ : evalCNF σ f) {i : Nat}
     (hi : i < f.length) :
     (chosenOcc σ f i).2 ∈ clauseAt f i ∧ evalLit σ (chosenOcc σ f i).2 := by
-  have hc := hσ (clauseAt f i) (by rw [clauseAt_eq_getElem f hi]; exact List.getElem_mem f i hi)
+  have hc := hσ (clauseAt f i) (by rw [clauseAt_eq_getElem f hi]; exact List.getElem_mem hi)
   constructor
   · exact firstTrueLit_mem hc
   · exact firstTrueLit_eval hc
@@ -154,7 +158,7 @@ lemma chosenOccs_adjacent (σ : Nat → Bool) {f : CNF} (hσ : evalCNF σ f)
   have htrue_i : evalLit σ (chosenOcc σ f i).2 := (chosenOcc_valid σ hσ hi).2
   have htrue_j : evalLit σ (chosenOcc σ f j).2 := (chosenOcc_valid σ hσ hj).2
   rw [heq] at htrue_i
-  exact not_evalLit_complement σ (chosenOcc σ f j).2 ⟨htrue_i, htrue_j⟩
+  exact not_evalLit_complement σ (chosenOcc σ f j).2 ⟨htrue_j, htrue_i⟩
 
 /-- **⇒**: a satisfying assignment gives a clique of size `f.length`, one chosen
 occurrence per clause. -/
@@ -199,8 +203,10 @@ lemma clique_covers_clauses {f : CNF} {S : Finset Occurrence}
   have heq : S.image Prod.fst = Finset.range f.length := by
     apply Finset.eq_of_subset_of_card_le hsubset
     rw [hcard', Finset.card_range]
-  rw [← heq]
-  exact Finset.mem_range.mpr hi
+  have hi' : i ∈ Finset.range f.length := Finset.mem_range.mpr hi
+  rw [← heq] at hi'
+  rcases Finset.mem_image.mp hi' with ⟨v, hv, hvi⟩
+  exact ⟨v, hv, hvi⟩
 
 /-- The assignment induced by a clique: a variable is true when its positive
 occurrence is in the clique. -/
@@ -219,14 +225,14 @@ lemma evalClause_of_clique {f : CNF} {S : Finset Occurrence}
   · cases hvlit : v.2 with
     | pos x =>
         have hx : assignmentFromClique S x = true := by
-          simp [assignmentFromClique]
-          exact ⟨v, hv, by simpa [hvlit]⟩
+          rw [assignmentFromClique, if_pos ⟨v, hv, by simp [hvlit]⟩]
         simp [evalLit, hx]
     | neg x =>
         have hx : assignmentFromClique S x = false := by
-          simp [assignmentFromClique]
-          by_contra hx
-          rcases hx with ⟨w, hw, hwpos⟩
+          rw [assignmentFromClique]
+          apply if_neg
+          intro hx'
+          rcases hx' with ⟨w, hw, hwpos⟩
           have hne : w ≠ v := by
             intro hwv
             subst w
