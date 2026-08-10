@@ -524,6 +524,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.FourthEdition.Chapter_33" = [
   "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
 ]
 
 [modules."CLRSLean.Chapter_02"]
