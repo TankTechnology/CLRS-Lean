@@ -410,10 +410,10 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
    synchronized —; branches 4-6 evict `C'`-pages, branch 5 evicts `d₀ t`
    which is in `C'` by its own premise; empirically `q ∈ E_t` and
    `e t = d t` hold at all 55188 B2 positions).
-5. `b2_hswap`: the swap form at `J` for the current schedule — already
-   proved in B6 as `repair_keep_swap` (the iteration context: window of
-   the case-A exchange at `t₀`); instantiate its window hypotheses from
-   the state.
+5. `b2_hswap` (done, 2026-08-10, kernel-checked): the swap form at `J` for
+   the current schedule — already proved in B6 as `repair_keep_swap` (the
+   iteration context: window of the case-A exchange at `t₀`); instantiated
+   with the window hypotheses (no new proof).
 6. `iterate_main`: the induction over `σ.length − t0` with state
    `(d, t0, hnb, slack, t₀, q₀, q₀', j₀', Q'')`; case A sets the window
    and `Q'' = ∅`; case B1 (slack −1 iff its bad event occurs — the exact
