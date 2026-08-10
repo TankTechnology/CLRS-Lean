@@ -45,6 +45,20 @@ def evalLit (σ : Nat → Bool) : Literal → Prop
   | Literal.pos i => σ i = true
   | Literal.neg i => σ i = false
 
+/-- The boolean version of `evalLit`, used where a decision (e.g. an `if`)
+is needed.  `evalLitBool σ l = true` iff `evalLit σ l`. -/
+def evalLitBool (σ : Nat → Bool) : Literal → Bool
+  | Literal.pos i => σ i
+  | Literal.neg i => !(σ i)
+
+@[simp] lemma evalLitBool_eq_true (σ : Nat → Bool) (l : Literal) :
+    evalLitBool σ l = true ↔ evalLit σ l := by
+  cases l <;> simp [evalLitBool, evalLit]
+
+@[simp] lemma evalLitBool_eq_false (σ : Nat → Bool) (l : Literal) :
+    evalLitBool σ l = false ↔ ¬ evalLit σ l := by
+  cases l <;> simp [evalLitBool, evalLit]
+
 /-- A clause is true when at least one literal is. -/
 def evalClause (σ : Nat → Bool) (c : Clause) : Prop :=
   ∃ l ∈ c, evalLit σ l
