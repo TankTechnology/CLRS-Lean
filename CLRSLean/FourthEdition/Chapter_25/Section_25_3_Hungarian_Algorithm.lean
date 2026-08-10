@@ -861,6 +861,100 @@ lemma pathToLeft_props (P : Problem V) {y : V → ℝ} {M : Matching V P.G}
               simpa [r] using leftPartner_mem M (tree.hleft_matched l hl hlu)
   exact hmain (tree.rank l) l hl rfl
 
+/-- The **augmenting path** of the Hungarian algorithm: extend the alternating
+path from the root `u` to `l` with the tight edge `(l, r)`, where `r` is a free
+right vertex.  (CLRS §25.3.) -/
+noncomputable def augmentingPath {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) {l : V} (hl : l ∈ tree.S) {r : V} : List V :=
+  pathToLeft tree l hl ++ [r]
+
+/-- A tight edge lies in the graph: feasibility of the potential forces the
+edge to be present, because the graph is complete on `L × R`. -/
+lemma tight_edge_mem_E (P : Problem V) {y : V → ℝ} {l r : V} (ht : P.Tight y l r) :
+    (l, r) ∈ P.G.E := by
+  rcases ht with ⟨hlL, hrR, _⟩
+  exact P.h_complete l hlL r hrR
+
+/-- The augmenting path is a genuine alternating path: it is vertex-simple,
+alternates tight tree edges (and the final tight edge) with matching edges,
+starts at the free root `u`, and ends at the free right vertex `r`. -/
+lemma augmentingPath_isAugmenting {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) {l r : V} (hl : l ∈ tree.S) (hrR : r ∈ P.G.R)
+    (hrNotT : r ∉ tree.T) (hfree : M.IsUnmatchedRight r) (ht : P.Tight y l r) :
+    Matchings.IsAugmentingPath P.G M (augmentingPath tree hl (r := r)) := by
+  let p := augmentingPath tree hl (r := r)
+  let q := pathToLeft tree l hl
+  have hp_ne : q ≠ [] := (pathToLeft_props P tree l hl).1
+  have hp_odd : Odd q.length := (pathToLeft_props P tree l hl).2.2.2.1
+  have hr_notin_q : r ∉ q := by
+    intro hmem
+    rcases (pathToLeft_props P tree l hl).2.2.2.2.2.1 r hmem with hS | hT
+    · exact P.not_mem_S_of_mem_R tree.hS_subset hrR hS
+    · have hmat : M.IsMatchedRight r := (M.mem_matchedRight_iff r).mp (tree.hT_matched r hT)
+      rcases hmat with ⟨l', hlr⟩
+      exact hfree l' hlr
+  have hlast : q.getLast hp_ne = l := (pathToLeft_props P tree l hl).2.2.1 hp_ne
+  have hhead : q.head hp_ne = tree.u := (pathToLeft_props P tree l hl).2.1 hp_ne
+  change Matchings.IsAugmentingPath P.G M (q ++ [r])
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [List.nodup_append]
+    refine ⟨(pathToLeft_props P tree l hl).2.2.2.2.1, by simp, ?_⟩
+    · intro v hv b hb
+      simp at hb
+      subst b
+      intro hvr
+      exact hr_notin_q (by simpa [q, hvr] using hv)
+  · rw [List.length_append]
+    simp
+    rcases hp_odd with ⟨k, hk⟩
+    refine ⟨k + 1, ?_⟩
+    rw [hk]
+    ring
+  · rw [List.length_append]
+    simp
+    rcases hp_odd with ⟨k, hk⟩
+    omega
+  · intro h
+    rw [List.head_append_of_ne_nil (w₁ := h) hp_ne, hhead]
+    exact tree.hS_subset tree.hu_mem
+  · intro h r' hmem
+    rw [List.head_append_of_ne_nil (w₁ := h) hp_ne, hhead] at hmem
+    exact tree.hu_free r' hmem
+  · intro h
+    rw [List.getLast_append_of_right_ne_nil q [r] (by simp)]
+    exact hrR
+  · intro h l' hmem
+    rw [List.getLast_append_of_right_ne_nil q [r] (by simp)] at hmem
+    exact hfree l' hmem
+  · intro e he
+    have happend := Matchings.altEdges_append_single q hp_odd hp_ne (r := r)
+    rw [happend.1] at he
+    simp at he
+    rcases he with he | he
+    · rcases (pathToLeft_props P tree l hl).2.2.2.2.2.2.2.2.1 e he with ⟨hT2, hpar, hnotM⟩
+      have he1S : e.1 ∈ tree.S := by simpa [hpar] using (tree.htree_parent_mem e.2 hT2)
+      exact ⟨P.h_complete e.1 (tree.hS_subset he1S) e.2 (tree.hT_subset hT2), hnotM⟩
+    · subst e
+      have hlast' : (q.getLast hp_ne, r) = (l, r) := by
+        rw [hlast]
+      rw [hlast']
+      have heE : (l, r) ∈ P.G.E := P.h_complete l (tree.hS_subset hl) r hrR
+      have hnotM : (l, r) ∉ M.edges := tight_edge_not_matching tree hl hrR hrNotT ht
+      exact ⟨heE, hnotM⟩
+  · intro e he
+    have happend := Matchings.altEdges_append_single q hp_odd hp_ne (r := r)
+    rw [happend.2] at he
+    exact (pathToLeft_props P tree l hl).2.2.2.2.2.2.2.2.2 e he
+
+/-- **Augmentation step** (CLRS §25.3): a tight edge from the tree `S` to a
+free right vertex outside `T` yields an augmenting path, so the matching can be
+enlarged by one edge. -/
+theorem exists_augment_of_tight_free {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) {l r : V} (hl : l ∈ tree.S) (hrR : r ∈ P.G.R)
+    (hrNotT : r ∉ tree.T) (hfree : M.IsUnmatchedRight r) (ht : P.Tight y l r) :
+    ∃ M' : Matching V P.G, M'.size = M.size + 1 := by
+  exact Matchings.exists_augment (augmentingPath_isAugmenting tree hl hrR hrNotT hfree ht)
+
 end Problem
 
 end AssignmentProblem
