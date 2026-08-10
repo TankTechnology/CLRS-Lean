@@ -15,11 +15,11 @@ Legacy imports remain supported through all 1.x releases and for at
 least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
-* Chapters represented in Lean: 30.
-* Tracked reader-facing theorem entries: 1,326.
-* Proved tracked theorem entries: 1,326.
+* Chapters represented in Lean: 31.
+* Tracked reader-facing theorem entries: 1,330.
+* Proved tracked theorem entries: 1,330.
 * Online/supplementary theorem entries: 467.
-* Remaining edition-coverage units: 31.
+* Remaining edition-coverage units: 32.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -37,8 +37,8 @@ every theorem already selected for that chapter is proved.
 * {lit}`main-proof-complete`: 8 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 11 chapters.
-* {lit}`not-started`: 5 chapters.
+* {lit}`partial`: 12 chapters.
+* {lit}`not-started`: 4 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -78,7 +78,7 @@ Ch  Chapter                                                     Status          
 30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     34        0
 31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       15        0
 32  32. String Matching                                         partial (edition coverage)           32.1                               19        4
-33  33. Machine-Learning Algorithms                             not-started                          not represented                     0        1
+33  33. Machine-Learning Algorithms                             partial (edition coverage)           33.1                                4        2
 34  34. NP-Completeness                                         not-started                          not represented                     0        1
 35  35. Approximation Algorithms                                not-started                          not represented                     0        1
 ```

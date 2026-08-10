@@ -121,7 +121,7 @@ chapter_no,section_no,chapter_title,section_title,migration_state,source_modules
 "32","32.3","String Matching","String matching with finite automata","not-started","none","none","No canonical theorem-bearing source is promoted for this fourth-edition section yet."
 "32","32.4","String Matching","The Knuth–Morris–Pratt algorithm","not-started","none","none","No canonical theorem-bearing source is promoted for this fourth-edition section yet."
 "32","32.5","String Matching","Suffix arrays","not-started","none","none","No canonical theorem-bearing source is promoted for this fourth-edition section yet."
-"33","33.1","Machine-Learning Algorithms","Clustering","not-started","none","none","No canonical theorem-bearing source is promoted for this fourth-edition section yet."
+"33","33.1","Machine-Learning Algorithms","Clustering","native","CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering","CLRS fourth edition Section 33.1","Native fourth-edition §33.1 Clustering: the k-means cost, variance decomposition, Lemma 33.1 (mean minimizes within-cluster squared distance), and Theorem 33.2 (a Lloyd iteration never increases the cost)."
 "33","33.2","Machine-Learning Algorithms","Multiplicative-weights algorithms","not-started","none","none","No canonical theorem-bearing source is promoted for this fourth-edition section yet."
 "33","33.3","Machine-Learning Algorithms","Gradient descent","not-started","none","none","No canonical theorem-bearing source is promoted for this fourth-edition section yet."
 "34","34.1","NP-Completeness","Polynomial time","not-started","none","none","No canonical theorem-bearing source is promoted for this fourth-edition section yet."
