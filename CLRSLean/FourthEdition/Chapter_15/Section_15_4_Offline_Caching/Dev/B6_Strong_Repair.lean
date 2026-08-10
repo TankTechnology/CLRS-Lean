@@ -26,6 +26,8 @@ Main results:
   (requests avoid `{q, q''}` — no keep-swap, no reducedness)
 - `repair_step_swap_q_dead`: both pages dead ⟹ `schedMisses r ≤ schedMisses e`
   and agreement extends (free)
+- `repair_step_swap_qp_dead`: `q''` dead (`q` alive) ⟹ `schedMisses r ≤
+  schedMisses e` and agreement extends (free)
 - `repair_step_swap_strong`: keep-swap form at `J` ⟹ `schedMisses r ≤
   schedMisses e` and agreement extends (no slack)
 - `exchange_no_evict_q`: in the exchange window, the exchange never evicts
@@ -679,6 +681,160 @@ lemma repair_cache_diff_after (e : ℕ → Page) (σ : List Page) (C₀ : Finset
                   · exact hx.2 (Finset.mem_insert.mpr
                       (Or.inr (Finset.mem_erase.mpr ⟨hxne, hxS⟩)))⟩
               exact Finset.mem_singleton.mp (hih hmem)
+
+/-- B2 且 `q = e t` 仍会再次请求(下次在 `J = t + 1 + j`)、`q''` 永不再
+请求:修复 `r = repairSchedule e t q'' t` 与 `e` 在 `J` 前只差 `{q, q''}`
+(请求避开 `{q, q''}`),`J` 处 `r` 命中而 `e` 缺页(`hqkept`,好事件),
+`J` 后 `E_s − Ŝ_s ⊆ {q''}`(死页 `q''` 永不请求),故逐点 `rF ≤ eF`,
+miss 数不增,一致性扩展到 `t + 1`。无需 slack。 -/
+lemma repair_step_swap_qp_dead (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF e C₀ σ t)
+    (hdis : schedCache e C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hqin : e t ∈ schedCache e C₀ σ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) (e t) = some j)
+    (hq''dead : nextUse σ (t + 1) (fifoSchedule σ C₀ t) = none)
+    (hqkept : e t ∈ schedCache (repairSchedule e t (fifoSchedule σ C₀ t) t) C₀ σ
+      (t + 1 + j)) :
+    schedMisses (repairSchedule e t (fifoSchedule σ C₀ t) t) C₀ σ ≤ schedMisses e C₀ σ ∧
+    agreeWithFIF (repairSchedule e t (fifoSchedule σ C₀ t) t) C₀ σ (t + 1) := by
+  let q : Page := e t
+  let q'' : Page := fifoSchedule σ C₀ t
+  let r : ℕ → Page := repairSchedule e t q'' t
+  have hqq'' : q ≠ q'' := by
+    have hfd := first_disagree e σ C₀ hC₀ ht hagree hdis
+    intro hqq
+    exact hfd.2.1 (by simpa [q, q'', hqq])
+  have hft : σ.getD t 0 ∉ schedCache e C₀ σ t := by
+    have hfd := first_disagree e σ C₀ hC₀ ht hagree hdis
+    exact hfd.1
+  have hJlen : t + 1 + j < σ.length := by
+    have hjlt : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
+    rw [List.length_drop] at hjlt
+    omega
+  have hdead : ∀ s, t < s → s < t + 1 + j → σ.getD s 0 ∉ ({q, q''} : Finset Page) := by
+    intro s hst hsJ hmem
+    rcases Finset.mem_insert.mp hmem with hqeq | hq'eq
+    · exact getD_ne_nextUse (k := s) hj (by omega) (by omega) hqeq
+    · exact getD_ne_of_nextUse_none σ (by simpa [q''] using hq''dead) (by omega) (by omega)
+        (Finset.mem_singleton.mp hq'eq)
+  have hdiff := repair_cache_diff_le e σ C₀ (show e t = q from rfl) rfl hft hqq'' hj hdead
+  have hq''ne : ∀ s, t + 1 ≤ s → s < σ.length → σ.getD s 0 ≠ q'' := by
+    intro s hs1 hs2
+    exact getD_ne_of_nextUse_none σ (by simpa [q''] using hq''dead) hs1 hs2
+  have hdiff_after := repair_cache_diff_after e σ C₀ (show e t = q from rfl) rfl hqin hft
+    hqq'' hj (by simpa [q''] using hq''dead) (by simpa [q] using hqkept) hdiff
+  have hc : ∀ s, s ≤ t → schedCache r C₀ σ s = schedCache e C₀ σ s := by
+    intro s hs
+    induction s with
+    | zero => rfl
+    | succ s ih2 =>
+        have hst : s ≤ t := by omega
+        have hst' : s ≠ t := by omega
+        rw [schedCache, schedCache]
+        rw [ih2 hst]
+        rw [show r s = e s by
+          unfold r repairSchedule
+          simp [hst']]
+  constructor
+  · -- misses:rF ≤ eF pointwise
+    have hpoint : ∀ s, s < σ.length → schedFaultAt r C₀ σ s ≤ schedFaultAt e C₀ σ s := by
+      intro s hs
+      unfold schedFaultAt
+      by_cases hs_le_t : s ≤ t
+      · -- s ≤ t:caches equal
+        rw [hc s hs_le_t]
+      · by_cases hsJ : s ≤ t + 1 + j
+        · -- (t, J] 内:J 处 r 命中、e 缺页;t < s < J 请求避开 {q,q''}
+          by_cases hs_eqJ : s = t + 1 + j
+          · -- s = J:r 命中(q ∈ Ŝ_J),e 缺页(swap_q_not_mem)
+            subst s
+            have hsig : σ.getD (t + 1 + j) 0 = q := getD_eq_nextUse hj
+            have hqnotE : q ∉ schedCache e C₀ σ (t + 1 + j) := by
+              exact swap_q_not_mem e σ C₀ (show e t = q from rfl) hqin hft hj (by omega) le_rfl
+            rw [hsig]
+            rw [if_pos (by simpa [q, r, q''] using hqkept)]
+            rw [if_neg hqnotE]
+            omega
+          · -- t < s < J:hdead 适用,hit/fault 对齐
+            have hneq_q : σ.getD s 0 ≠ q := getD_ne_nextUse (k := s) hj (by omega) (by omega)
+            have hneq_q'' : σ.getD s 0 ≠ q'' := hq''ne s (by omega) (by omega)
+            by_cases he : σ.getD s 0 ∈ schedCache e C₀ σ s
+            · rw [if_pos he]
+              rw [if_pos (by
+                by_contra hr
+                have hmem : σ.getD s 0 ∈ schedCache e C₀ σ s \ schedCache r C₀ σ s := by
+                  rw [Finset.mem_sdiff]
+                  exact ⟨he, hr⟩
+                have hq' := (hdiff s (by omega)).2 hmem
+                rcases Finset.mem_insert.mp hq' with hqeq | hq'eq
+                · exact hneq_q hqeq
+                · exact hneq_q'' (Finset.mem_singleton.mp hq'eq))]
+            · rw [if_neg he]
+              rw [if_neg (by
+                intro hr
+                have hmem : σ.getD s 0 ∈ schedCache r C₀ σ s \ schedCache e C₀ σ s := by
+                  rw [Finset.mem_sdiff]
+                  exact ⟨hr, he⟩
+                have hq' := (hdiff s (by omega)).1 hmem
+                rcases Finset.mem_insert.mp hq' with hqeq | hq'eq
+                · exact hneq_q hqeq
+                · exact hneq_q'' (Finset.mem_singleton.mp hq'eq))]
+        · -- s > J:E_s − Ŝ_s ⊆ {q''}(hdiff_after),e 命中 ⟹ r 命中
+          have hsJ'' : t + 1 + j < s := by omega
+          have hsig_ne : σ.getD s 0 ≠ q'' := hq''ne s (by omega) (by omega)
+          by_cases he : σ.getD s 0 ∈ schedCache e C₀ σ s
+          · rw [if_pos he]
+            rw [if_pos (by
+              by_contra hr
+              have hmem : σ.getD s 0 ∈ schedCache e C₀ σ s \ schedCache r C₀ σ s := by
+                rw [Finset.mem_sdiff]
+                exact ⟨he, hr⟩
+              exact hsig_ne (Finset.mem_singleton.mp ((hdiff_after s hsJ'' (by omega)) hmem)))]
+          · rw [if_neg he]
+            by_cases hr : σ.getD s 0 ∈ schedCache r C₀ σ s
+            · -- r 命中:rF = 0 ≤ eF = 1
+              rw [if_pos hr]
+              omega
+            · -- 双方缺页
+              rw [if_neg hr]
+    unfold schedMisses
+    exact Finset.sum_le_sum (fun s hs => hpoint s (Finset.mem_range.mp hs))
+  · -- agree 到 t+1
+    intro s hs
+    by_cases hs' : s ≤ t
+    · -- s ≤ t:caches equal
+      rw [hc s hs']
+      exact hagree s hs'
+    · have hst : s = t + 1 := by omega
+      subst s
+      have hq''res : q'' ∈ schedCache e C₀ σ t := by
+        have hfd := first_disagree e σ C₀ hC₀ ht hagree hdis
+        exact hfd.2.2
+      have hsig_ne : σ.getD t 0 ≠ q'' := by
+        intro hsig
+        exact hft (hsig ▸ hq''res)
+      have hE : schedCache r C₀ σ (t + 1) = insert (σ.getD t 0) ((schedCache e C₀ σ t).erase q'') := by
+        rw [schedCache]
+        rw [show schedCache r C₀ σ t = schedCache e C₀ σ t by
+          exact hc t le_rfl]
+        rw [if_neg hft]
+        unfold r repairSchedule
+        simp
+      have hF : schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) =
+          insert (σ.getD t 0) ((schedCache e C₀ σ t).erase q'') := by
+        rw [schedCache_fifoSchedule σ C₀ (t + 1)]
+        unfold cacheSeq Policy.step
+        rw [← schedCache_fifoSchedule σ C₀ t]
+        rw [if_neg (by rw [← hagree t le_rfl]; exact hft)]
+        congr 2
+        · rw [hagree t le_rfl]
+        · change farthestInFuture (schedCache (fifoSchedule σ C₀) C₀ σ t) σ t = q''
+          rw [← hagree t le_rfl]
+          rw [← fifo_evict_eq_farthest e σ C₀ hagree]
+      rw [hE, hF]
+
 /-- B2 修复的强版本:`q = e t` 与 `q'' = fifoSchedule σ C₀ t` 都会再次被
 请求,且 swap 形式在 `J = t + 1 + j` 处保持(`hswap`,即 keep-swap)时,
 miss 数**不增**(好事件在 `J` 抵消坏事件在 `J''`),一致性扩展到 `t + 1`。
