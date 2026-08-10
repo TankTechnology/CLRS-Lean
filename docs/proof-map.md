@@ -1304,18 +1304,29 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
 ### Section 10.1 - Stacks and queues
 
 - Lean source: `CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean`
-- Status: `proved` for the functional-list model
+- Status: `proved` for the functional-list and array-backed models
 - Main theorems:
   - `CLRS.Chapter10.pop_push`
   - `CLRS.Chapter10.dequeue_enqueue_empty`
   - `CLRS.Chapter10.dequeue_enqueue_nonempty`
   - `CLRS.Chapter10.length_enqueue`
-- Proof pattern: definitional equations over list-backed stacks and queues
-- Current gap: array overflow/underflow, circular buffers, and RAM costs are
-  deferred to a future execution model
+  - `CLRS.Chapter10.arrayRead_arrayWrite_same` / `arrayRead_arrayWrite_other`
+  - `CLRS.Chapter10.arrayPop_arrayPush`
+  - `CLRS.Chapter10.arrayPop_empty` / `arrayPush_overflow`
+  - `CLRS.Chapter10.arrayDequeue_arrayEnqueue_empty`
+  - `CLRS.Chapter10.arrayDequeue_empty` / `arrayEnqueue_overflow`
+  - `CLRS.Chapter10.arrayEnqueue_tail_wraps`
+- Proof pattern: definitional equations over list-backed stacks and queues, and
+  pointer-index equations over array-backed stores with overflow/underflow via
+  `Option` and circular wrap-around via `Nat.mod`
+- Current gap: none for the represented interface.  Concrete RAM execution,
+  pointer mutation, and memory costs are deferred to a future execution model.
 
-The section proves the algebraic behavior of stacks and queues using lists:
-stack top is list head, and queue front is list head with enqueue at the back.
+The section proves the algebraic behavior of stacks and queues using lists —
+stack top is list head, and queue front is list head with enqueue at the back —
+and, matching fourth-edition §10.1, the array-backed stack (top pointer) and
+circular queue (head/tail pointers with wrap-around), with overflow and
+underflow reported as `none`.
 
 ### Section 10.2 - Linked lists
 
