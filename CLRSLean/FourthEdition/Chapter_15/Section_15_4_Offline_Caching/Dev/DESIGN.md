@@ -378,19 +378,23 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
    `repairSchedule e t q'' t` and `repairSchedule e t q'' (t + 1 + j'')`
    agree up to `J`) to connect `repair_cache_diff_le` (dead-page form) to
    the live-live repair.
-3. `b2_ehit`: `σ[t] ∉ cache_e_t` at a B2 disagreement.  Mechanism
-   (verified over 55188 B2 positions, `search_iter.py`):
+3. `b2_ehit` (done, 2026-08-10, kernel-checked): the single-step local
+   invariant — at a B2 disagreement `t` (d faults, chain at `t`),
+   `σ[t] ∈ cache_e_t ⟹ σ[t] ∈ Q`.  The contradiction half is `b2_ehit_ne`
+   (dead or not-yet-requested past repair pairs exclude `σ[t]` from
+   `Q.image Prod.snd`).  Mechanism (verified over 55188 B2 positions,
+   `search_iter.py`):
    `σ[t] ∈ cache_e_t ⟹ σ[t] ∈ E_t − D_t ⊆ Q'' ⟹ σ[t] = q''ᵢ` for a past
    repair `i`.  Then `t ≥ J''ᵢ` (first request of `q''ᵢ` after `tᵢ`).
    - `t = J''ᵢ`: `D t = q''ᵢ` (the repair's nop eviction — the last repair
      touching position `t` — and `q''ᵢ ∉ D`-cache on `(tᵢ, J''ᵢ]`) — a
      no-op eviction, so the position is **B1, not B2** — contradiction.
    - `t > J''ᵢ` (`q''ᵢ` requested again): empirically never at a B2
-     (32 occurrences at any disagreement, all B1 — in each, a *later*
-     repair's nop lands exactly on `t`); the formal argument needs the
+     (re-analysis: 0 occurrences at any disagreement; all 8976 Q-membership
+     cases are `t = J''ᵢ` and B1); the formal argument needs the
      "last repair whose nop is at `t`" analysis.
-   Empirical: `σ[t] ∈ {past q''ᵢ}` at a disagreement happens 8976× at
-   `t = J''ᵢ` + 32× after — all B1, 0 at B2.
+   Empirical: `σ[t] ∈ {past q''ᵢ}` at a disagreement happens 8976×, all at
+   `t = J''ᵢ` — all B1, 0 at B2.
 4. `b2_no_evict_q`: the keep-swap core for the current schedule: at a fault
    `s ∈ (t, J]`, `d s = e s` (the current position is not a past repair /
    nop spot: past nops have `q''ᵢ ≠ q` since `q`'s next use is `J ≠ J''ᵢ`),
@@ -428,6 +432,6 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   merge of all `Dev/` lemmas into `S3_Optimality.lean`.
 - `Dev/B7_Iteration.lean` (in progress): `repair_reverse_diff_window`,
   `repair_reverse_diff_after`, `repair_diff_all` (done, kernel-checked),
-  `schedCache_repairSchedule_nop_agree` (bridge) and `reverse_diff_chain`
-  (done, 2026-08-10, kernel-checked); next `b2_ehit` and the `iterate_main`
-  assembly.
+  `schedCache_repairSchedule_nop_agree` (bridge), `reverse_diff_chain`,
+  `b2_ehit` and `b2_ehit_ne` (done, 2026-08-10, kernel-checked); next
+  `b2_no_evict_q`, `b2_hswap` and the `iterate_main` assembly.

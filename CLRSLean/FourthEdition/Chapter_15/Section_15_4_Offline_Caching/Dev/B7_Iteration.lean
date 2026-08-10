@@ -32,6 +32,10 @@ Main results:
   `⊆ {q''}` on `(J, J'']`, and `∅` after `J''`
 - `reverse_diff_chain`: the chain invariant `E − D ⊆ Q` of `iterate_main`
   extends through a repair by only `q''` — `E − Ŝ ⊆ insert q'' Q`
+- `b2_ehit`: the local e-hit step — at a B2 disagreement `t` (d faults,
+  chain at `t`), `σ[t] ∈ E_t ⟹ σ[t] ∈ Q`
+- `b2_ehit_ne`: the contradiction side — dead or not-yet-requested past
+  repair pages exclude `σ[t]` from `Q.image Prod.snd`
 
 This file is part of the `fifo_optimal` iteration; it will be merged into
 `S3_Optimality.lean` once the proof is complete.
@@ -523,6 +527,47 @@ lemma reverse_diff_chain (e : ℕ → Page) (d : ℕ → Page) (σ : List Page) 
       exact Or.inr (hchain s hslen (by
         rw [Finset.mem_sdiff]
         exact ⟨hx.1, hxD⟩))
+
+/-- B2 e-hit 引理(单步局部形式,Huffman 交换论证风格):在分歧位置 `t` 处,
+`d` 缺页(`hft`),且反向差链在 `t` 的实例
+`E_t − D_t ⊆ Q`(`hchain`,由 `reverse_diff_chain` 逐点给出)成立时,请求
+`σ[t]` 命中参考调度 `e` 的 cache 会把它压进 `Q`:`σ[t] ∈ E_t ⟹ σ[t] ∈ Q`。
+这是 DESIGN 中 b2_ehit 机制的第一步 —— 只做位置 `t` 的局部一步,不做全局
+的 `Q''` 追踪(链不变式封装了全局部分)。`σ[t] ∈ Q` 与 "死页或未请求"
+的矛盾由 `b2_ehit_ne` 处理。经验验证:search_iter.py 的 search3 在 55188 个
+B2 位置上 e-hit = 0。 -/
+lemma b2_ehit (e d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    {t : ℕ} (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
+    (Q : Finset Page)
+    (hchain : schedCache e C₀ σ t \ schedCache d C₀ σ t ⊆ Q) :
+    σ.getD t 0 ∈ schedCache e C₀ σ t → σ.getD t 0 ∈ Q := by
+  intro he
+  exact hchain (by
+    rw [Finset.mem_sdiff]
+    exact ⟨he, hft⟩)
+
+/-- B2 e-hit 引理的矛盾半边:过往修复对集合 `Q ⊆ ℕ × Page`(元素为
+`(tᵢ, q''ᵢ)`,修复位置与修复页)中每个 `q''ᵢ` 都是死页(`nextUse σ (tᵢ+1)
+q''ᵢ = none`)或在 `t` 处尚未请求(`t < tᵢ + 1 + j''ᵢ`)时,请求 `σ[t]`
+不属于 `Q` 的页集:`σ[t] ∉ Q.image Prod.snd`。死页用 `getD_ne_of_nextUse_none`
+(B6),未请求用 `getD_ne_nextUse`。经验验证:分歧位置上请求属于过往修复页
+共 8976 次、全部发生在 `t = J''ᵢ`(B1 nop 位置),B2 上为 0 次 —— 本引理
+覆盖死页与 `t < J''ᵢ` 两枝,`t = J''ᵢ` 枝(B1 而非 B2)留给 `iterate_main`。 -/
+lemma b2_ehit_ne (σ : List Page) {t : ℕ} (ht : t < σ.length)
+    (Q : Finset (ℕ × Page))
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t)
+    (hQ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t < tᵢ + 1 + j'') :
+    σ.getD t 0 ∉ Q.image Prod.snd := by
+  intro hsigQ
+  rcases Finset.mem_image.mp hsigQ with ⟨⟨tᵢ, q''⟩, htq, hsigq⟩
+  have htlt : tᵢ < t := hpast tᵢ q'' htq
+  rcases hQ tᵢ q'' htq with hdead | ⟨j'', hnext, htltJ⟩
+  · -- 死页:σ[t] = q'' 与 `q''` 在 tᵢ 之后永不请求矛盾
+    exact getD_ne_of_nextUse_none σ hdead (by omega) ht hsigq.symm
+  · -- 未请求:t < J''ᵢ 处请求 σ[t] = q'' 与首次请求在 J''ᵢ 矛盾
+    exact getD_ne_nextUse (k := t) hnext (by omega) htltJ hsigq.symm
 
 end Caching
 
