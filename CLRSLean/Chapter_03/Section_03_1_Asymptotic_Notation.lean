@@ -178,5 +178,83 @@ theorem isBigO_add {f₁ f₂ g : ℕ → ℝ} (h₁ : isBigO f₁ g) (h₂ : is
 theorem isBigTheta_iff (f g : ℕ → ℝ) : isBigTheta f g ↔ isBigO f g ∧ isBigO g f := by
   simp [isBigTheta, isBigOmega, isBigO]
 
+/-! ## Shared-threshold two-sided Θ witness and o/ω duality and algebra -/
+
+/--
+**CLRS Definition 3.1 (shared-threshold two-sided Θ witness).**  `f = Θ(g)`
+iff there exist positive constants `c₁`, `c₂` and a single threshold `n₀` such
+that for every `n ≥ n₀`, both `c₁ * |g n| ≤ |f n|` and `|f n| ≤ c₂ * |g n|`
+hold.  This is the textbook two-sided bound with one common threshold, as
+opposed to the two independent thresholds hidden in `isBigO`/`isBigOmega`.
+-/
+theorem isBigTheta_iff_two_sided (f g : ℕ → ℝ) : isBigTheta f g ↔
+    ∃ (c₁ c₂ : ℝ), c₁ > 0 ∧ c₂ > 0 ∧ ∃ (n₀ : ℕ),
+      ∀ n, n ≥ n₀ → c₁ * |g n| ≤ |f n| ∧ |f n| ≤ c₂ * |g n| := by
+  rw [isBigTheta_iff, isBigO_iff f g]
+  constructor
+  · rintro ⟨hO, hΩ⟩
+    rcases hO with ⟨c₂, hc₂_pos, n₀₂, hO⟩
+    rcases (isBigOmega_iff f g).mp hΩ with ⟨c₁, hc₁_pos, n₀₁, hΩ⟩
+    exact ⟨c₁, c₂, hc₁_pos, hc₂_pos, max n₀₁ n₀₂, by
+      intro n hn
+      have hn₁ : n ≥ n₀₁ := le_trans (Nat.le_max_left n₀₁ n₀₂) hn
+      have hn₂ : n ≥ n₀₂ := le_trans (Nat.le_max_right n₀₁ n₀₂) hn
+      exact ⟨hΩ n hn₁, hO n hn₂⟩⟩
+  · rintro ⟨c₁, c₂, hc₁_pos, hc₂_pos, n₀, h⟩
+    constructor
+    · exact ⟨c₂, hc₂_pos, n₀, fun n hn => (h n hn).2⟩
+    · exact (isBigOmega_iff f g).mpr ⟨c₁, hc₁_pos, n₀, fun n hn => (h n hn).1⟩
+
+/-- **Transpose symmetry (duality).**  `f = O(g)` iff `g = Ω(f)`. -/
+theorem isBigO_iff_isBigOmega {f g : ℕ → ℝ} : isBigO f g ↔ isBigOmega g f := by
+  rfl
+
+/-- **Transpose symmetry (duality).**  `f = Ω(g)` iff `g = O(f)`. -/
+theorem isBigOmega_iff_isBigO {f g : ℕ → ℝ} : isBigOmega f g ↔ isBigO g f := by
+  rfl
+
+/-- **Transpose symmetry (duality).**  `f = o(g)` iff `g = ω(f)`. -/
+theorem isLittleO_iff_isLittleOmega {f g : ℕ → ℝ} : isLittleO f g ↔ isLittleOmega g f := by
+  rfl
+
+/-- **Transpose symmetry (duality).**  `f = ω(g)` iff `g = o(f)`. -/
+theorem isLittleOmega_iff_isLittleO {f g : ℕ → ℝ} : isLittleOmega f g ↔ isLittleO g f := by
+  rfl
+
+/-- **Transitivity (CLRS Lemma 3.1).**  `f = o(g)` and `g = o(h)` imply
+`f = o(h)`. -/
+theorem isLittleO_trans {f g h : ℕ → ℝ} (hfg : isLittleO f g) (hgh : isLittleO g h) :
+    isLittleO f h := by
+  unfold isLittleO at hfg hgh ⊢
+  exact IsLittleO.trans hfg hgh
+
+/-- **Transitivity (CLRS Lemma 3.1).**  `f = ω(g)` and `g = ω(h)` imply
+`f = ω(h)`. -/
+theorem isLittleOmega_trans {f g h : ℕ → ℝ}
+    (hfg : isLittleOmega f g) (hgh : isLittleOmega g h) : isLittleOmega f h := by
+  unfold isLittleOmega at hfg hgh ⊢
+  exact IsLittleO.trans hgh hfg
+
+/-- **Additivity.**  A sum of two little-o terms is still `o(g)`. -/
+theorem isLittleO_add {f₁ f₂ g : ℕ → ℝ} (h₁ : isLittleO f₁ g) (h₂ : isLittleO f₂ g) :
+    isLittleO (fun n => f₁ n + f₂ n) g := by
+  unfold isLittleO at h₁ h₂ ⊢
+  exact IsLittleO.add h₁ h₂
+
+/-- **Multiplicativity.**  `f₁ = o(g₁)` and `f₂ = o(g₂)` imply
+`f₁ · f₂ = o(g₁ · g₂)`. -/
+theorem isLittleO_mul {f₁ g₁ f₂ g₂ : ℕ → ℝ} (h₁ : isLittleO f₁ g₁) (h₂ : isLittleO f₂ g₂) :
+    isLittleO (fun n => f₁ n * f₂ n) (fun n => g₁ n * g₂ n) := by
+  unfold isLittleO at h₁ h₂ ⊢
+  exact IsLittleO.mul h₁ h₂
+
+/-- **Multiplicativity.**  `f₁ = ω(g₁)` and `f₂ = ω(g₂)` imply
+`f₁ · f₂ = ω(g₁ · g₂)`. -/
+theorem isLittleOmega_mul {f₁ g₁ f₂ g₂ : ℕ → ℝ}
+    (h₁ : isLittleOmega f₁ g₁) (h₂ : isLittleOmega f₂ g₂) :
+    isLittleOmega (fun n => f₁ n * f₂ n) (fun n => g₁ n * g₂ n) := by
+  unfold isLittleOmega at h₁ h₂ ⊢
+  exact IsLittleO.mul h₁ h₂
+
 end Chapter03
 end CLRS
