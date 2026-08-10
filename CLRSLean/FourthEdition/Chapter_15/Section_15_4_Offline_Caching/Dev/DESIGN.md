@@ -333,6 +333,16 @@ a B2 disagreement: `J''ᵢ < t₂` gives a cache disagreement at `J''ᵢ + 1`
 B1-nop against B2-resident).  This unblocks `b2_ehit_ne` at `t₂` for both
 the alive and dead B2 paths.
 
+**Progress (2026-08-11, third batch, kernel-checked)**: `iterate_main_case_b1_dead`
+— the B1 dead-page step (free: `repair_step_qp_dead` generic in the schedule,
+chain via `repair_diff_noop_qp_dead`, reducedness from `hnb` range-restricted
+to `s < σ.length` with the new half-2 premise `hdnoevict` (∀ s ≥ hnb,
+`d s ≠ q''`) excluding the `d s = q''` no-op-eviction spots) and the dead-page
+absent helpers `repair_q''_absent_dead` / `repair_q''_absent_dead_long`
+(`q''` stays out of the dead repair's cache).  The `hdnoevict` premise is
+derivable from the state by the branch-analysis half 2 (the exchange never
+evicts a dead page: `e s ∈ E_s ∪ {q₀'}`, `q'' ∉ E_s ∪ {q₀'}`).
+
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
