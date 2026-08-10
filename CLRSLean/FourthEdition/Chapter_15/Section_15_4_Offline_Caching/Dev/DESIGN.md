@@ -321,6 +321,18 @@ misses, chain, `hd_eq`, reducedness), the case-B1 alive step
 with its helpers (`repair_diff_noop_window` in B6, `repair_q''_absent`,
 `repair_reverse_diff_after_nop` in B7).
 
+**Progress (2026-08-11, second batch, kernel-checked)**: the hQ-strictness
+extension chain — `fifo_evict_absent_until_request` (FIF's own eviction stays
+out of its cache until the first request), the state fields `hQfifo` (pair
+`q''ᵢ` = the FIF eviction at `tᵢ`) and `hP_in` (the producer direction of
+`hP`: pair structure -> `s ∈ P`), `nop_position_noop` (at a nop position
+`s = tₗ + 1 + jₗ`, `d s ∉ D_s` via `hcomp`'s value + the FIF-absent fact +
+agreement), and `past_pair_first_request_after` (the strict `t₂ < J''ᵢ` at
+a B2 disagreement: `J''ᵢ < t₂` gives a cache disagreement at `J''ᵢ + 1`
+(FIF's eviction `f` leaves `F` but stays in `D`), `J''ᵢ = t₂` gives the
+B1-nop against B2-resident).  This unblocks `b2_ehit_ne` at `t₂` for both
+the alive and dead B2 paths.
+
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
