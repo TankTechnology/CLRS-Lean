@@ -13,11 +13,11 @@ During the compatibility period this guide imports {lit}`CLRSLean.Chapter_03`. E
 ## Coverage boundary
 
 The legacy asymptotic-notation file supplies fourth-edition §§3.1--3.2, and the
-legacy standard-functions file supplies §3.3.  Sections 3.1 and 3.3 cover their
-represented mathematical interfaces.  Section 3.2 remains partial: the five
-asymptotic relations are defined; discrete witness forms exist for O, Ω, o, and
-ω, while Θ is exposed as O-and-Ω.  The shared-threshold two-sided Θ witness and
-the expected {lit}`o`/{lit}`ω` algebra and duality wrappers remain to be exposed.
+legacy standard-functions file supplies §3.3.  All three sections cover their
+represented mathematical interfaces: the five asymptotic relations are defined
+with discrete witness forms for O, Ω, o, and ω, the shared-threshold two-sided
+Θ witness (CLRS Definition 3.1), and the transpose-symmetry duality together
+with the transitivity, additivity, and multiplicativity algebra for o/ω.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

@@ -109,10 +109,9 @@ arbitrary-size floor/ceiling recurrence.
 ## Chapter 3 - Growth of Functions
 
 Fourth-edition mapping: legacy §3.1 supplies fourth-edition §§3.1--3.2, while
-legacy §3.2 supplies fourth-edition §3.3.  Fourth-edition §3.1 and §3.3 are
-represented at the current mathematical interface.  Fourth-edition §3.2 remains
-partial because a shared-threshold two-sided Θ witness and the expected
-little-o/little-omega algebra and duality wrappers are not yet exposed.
+legacy §3.2 supplies fourth-edition §3.3.  All three fourth-edition sections are
+represented at the current mathematical interface, including the shared-threshold
+two-sided Θ witness and the little-o/little-omega algebra and duality wrappers.
 
 ### Section 3.1 - Asymptotic notation
 
@@ -124,10 +123,16 @@ little-o/little-omega algebra and duality wrappers are not yet exposed.
   - `CLRS.Chapter03.isBigOmega_iff`
   - `CLRS.Chapter03.isLittleOmega_iff`
   - `CLRS.Chapter03.isBigTheta_trans`
+  - `CLRS.Chapter03.isBigTheta_iff_two_sided` (shared-threshold two-sided Θ witness)
+  - `CLRS.Chapter03.isBigO_iff_isBigOmega` / `isBigOmega_iff_isBigO` (O/Ω duality)
+  - `CLRS.Chapter03.isLittleO_iff_isLittleOmega` / `isLittleOmega_iff_isLittleO` (o/ω duality)
+  - `CLRS.Chapter03.isLittleO_trans` / `isLittleOmega_trans` (transitivity)
+  - `CLRS.Chapter03.isLittleO_add`
+  - `CLRS.Chapter03.isLittleO_mul` / `isLittleOmega_mul` (multiplicativity)
 - Proof pattern: bridge CLRS discrete witnesses to Mathlib filters
-- Current gap: none for the represented O/Ω witness core.  At the broader
-  fourth-edition §3.2 interface, the two-sided Θ witness and o/ω wrapper algebra
-  named above remain.
+- Current gap: none.  The section exposes the discrete O/Ω/o/ω witnesses, the
+  shared-threshold two-sided Θ witness, the transpose-symmetry duality wrappers,
+  and the o/ω transitivity/additivity/multiplicativity algebra.
 
 The section gives CLRS-facing names for O, Ω, Θ, o, and ω over functions
 `ℕ → ℝ`, proves the textbook-style witness forms, and collects basic algebraic
