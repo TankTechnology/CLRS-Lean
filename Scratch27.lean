@@ -412,9 +412,8 @@ lemma invFrom_ne_moveToFront {a x : α} {L M : List α} (hax : a ≠ x) (hx : x 
       rw [Finset.card_insert_of_notMem]
       · simp [hP]
       · intro hmem
-        rw [Finset.mem_filter] at hmem
-        simp at hmem
-        exact hmem.1 rfl
+        rw [Finset.mem_filter, Finset.mem_erase] at hmem
+        exact hmem.1.1 rfl
     · have hsplit' :
           L.toFinset.filter (fun b => before a b L ∧ before b a M) =
             (L.toFinset.erase x).filter (fun b => before a b L ∧ before b a M) := by
@@ -446,8 +445,9 @@ lemma invFrom_x_moveToFront {x : α} {L M : List α} (hperm : L.toFinset = M.toF
       subst b
       exact before_irrefl x M hb3
     have hbL : b ∈ L := by
-      have : b ∈ M.toFinset := by simpa using (before_mem_left hb3 : b ∈ M)
-      simpa [hperm] using this
+      have hbMto : b ∈ M.toFinset := by simpa using (before_mem_left hb3 : b ∈ M)
+      have hbLto : b ∈ L.toFinset := by simpa [hperm] using hbMto
+      simpa using hbLto
     exact ⟨by simpa using mem_moveToFront_of_ne hbx hbL,
       before_x_front hbL hbx, hb3⟩
 
@@ -469,7 +469,7 @@ lemma invFrom_x_eq {x : α} {L M : List α} (hperm : L.toFinset = M.toFinset)
       rw [Finset.disjoint_left]
       intro b hb1 hb2
       simp at hb1 hb2
-      exact hb1.1 hb2.1
+      exact hb2.2.1 hb1.2.1
     have hunion : (L.toFinset.filter (fun b => before b x L ∧ before b x M)) ∪
         (L.toFinset.filter (fun b => ¬ before b x L ∧ before b x M)) =
         L.toFinset.filter (fun b => before b x M) := by
@@ -492,15 +492,10 @@ lemma invFrom_x_eq {x : α} {L M : List α} (hperm : L.toFinset = M.toFinset)
           intro hb
           subst b
           exact before_irrefl x M hbM
-        have hxM' : x ∈ M := by
-          have : x ∈ L.toFinset := by simpa using hxL
-          simpa [hperm] using this
-        have haM : b ∈ M := by
-          have : b ∈ L.toFinset := by simpa using hb
-          simpa [hperm] using this
-        rcases before_or_before haM hxM' hbne with hm | hxm
-        · simp [hm, before_asymm hm]
-        · simp [hxm, before_asymm hxm]
+        -- Trichotomy in `L` (both `b` and `x` are in `L`) decides `¬ before b x L ↔ before x b L`.
+        rcases before_or_before hb hxL hbne with hl | hxl
+        · simp [hl, before_asymm hl]
+        · simp [hxl, before_asymm hxl]
       · simp [hbM]
     · simp [hbL]
   rw [hsplit, hnot]
@@ -523,7 +518,7 @@ lemma position_eq_common_add_removed {x : α} {L M : List α} (hxL : x ∈ L)
       rw [Finset.disjoint_left]
       intro a ha1 ha2
       simp at ha1 ha2
-      exact ha1.2 ha2.2
+      exact ha2.2.2 ha1.2.2
     have hunion : (L.toFinset.filter (fun a => before a x L ∧ before a x M)) ∪
         (L.toFinset.filter (fun a => before a x L ∧ ¬ before a x M)) =
         L.toFinset.filter (fun a => before a x L) := by
@@ -583,7 +578,8 @@ lemma invDist_moveToFront_add_pos {x : α} {L M : List α} (hxL : x ∈ L) (hxM 
     intro a ha
     have h := invFrom_ne_moveToFront (a := a) ha hxL hperm
     dsimp [ind, L', S] at h ⊢
-    rw [hL'toS] at h ⊢
+    unfold invFrom at h
+    rw [toFinset_moveToFront hxL] at h
     exact h
   have hrow_x :
       (S.filter (fun b => before x b L' ∧ before b x M)).card =
@@ -592,7 +588,8 @@ lemma invDist_moveToFront_add_pos {x : α} {L M : List α} (hxL : x ∈ L) (hxM 
     have h2 := invFrom_x_eq hperm hxL hxM
     have h1' : (S.filter (fun b => before x b L' ∧ before b x M)).card = position x M := by
       dsimp [L', S] at h1 ⊢
-      rw [hL'toS] at h1 ⊢
+      unfold invFrom at h1
+      rw [toFinset_moveToFront hxL] at h1
       exact h1
     have h2' : (S.filter (fun b => before x b L ∧ before b x M)).card + commonBefore x L M =
         position x M := by
@@ -607,12 +604,11 @@ lemma invDist_moveToFront_add_pos {x : α} {L M : List α} (hxL : x ∈ L) (hxM 
       simp [before_irrefl x L]
     calc
       removed = S.sum ind := by
-        dsimp [removed, ind]
-        rw [Finset.sum_boole]
+        simp [removed, ind, Finset.sum_boole]
       _ = (S.erase x).sum ind + ind x := by
         rw [← Finset.sum_erase_add S ind hxS]
       _ = (S.erase x).sum ind := by
-        rw [hindx]
+        rw [hindx, Nat.add_zero]
   -- `position x L` splits into the destroyed inversions and the common-before pairs.
   have hpos : pos = commonBefore x L M + removed := by
     have h := position_eq_common_add_removed hxL hperm
@@ -628,8 +624,6 @@ lemma invDist_moveToFront_add_pos {x : α} {L M : List α} (hxL : x ∈ L) (hxM 
         congr 1
         unfold invDist
         rw [hL'toS]
-        dsimp [row']
-        rfl
       _ = ((S.erase x).sum row' + row' x) + (S.erase x).sum ind := by
         rw [Finset.sum_erase_add S row' hxS]
         rw [hrem]
@@ -647,19 +641,19 @@ lemma invDist_moveToFront_add_pos {x : α} {L M : List α} (hxL : x ∈ L) (hxM 
             subst a
             exact (Finset.mem_erase.mp ha').1 rfl
           exact hrow_ne a hane
-        rw [hcong, hrow_x]
+        rw [hcong]
+        dsimp [row', row]
+        rw [hrow_x]
       _ = (S.sum row) + commonBefore x L M := by
         rw [← Finset.sum_erase_add S row hxS]
-        omega
+        ac_rfl
       _ = invDist L M + commonBefore x L M := by
         congr 1
-        unfold invDist
-        dsimp [row, S]
   -- Put the pieces together.
   have htarget : invDist L' M + pos = invDist L M + 2 * commonBefore x L M := by
     omega
   dsimp [pos, S] at htarget
-  unfold position at htarget ⊢
+  unfold position at ⊢
   exact htarget
 
 /--
@@ -686,7 +680,7 @@ lemma invDist_triangle {L₁ L₂ L₃ : List α} (h12 : L₁.toFinset = L₂.to
         rw [Finset.disjoint_left]
         intro b hb1 hb2
         simp at hb1 hb2
-        exact hb1.2.2 hb2.2.2
+        exact hb2.2.2.2 hb1.2.2.2
       have hunion : (S.filter (fun b => before a b L₁ ∧ before b a L₃ ∧ before b a L₂)) ∪
           (S.filter (fun b => before a b L₁ ∧ before b a L₃ ∧ ¬ before b a L₂)) =
           S.filter (fun b => before a b L₁ ∧ before b a L₃) := by
@@ -712,8 +706,8 @@ lemma invDist_triangle {L₁ L₂ L₃ : List α} (h12 : L₁.toFinset = L₂.to
         have : b ∈ L₂.toFinset := by simpa [h23] using this
         simpa using this
       have ha2 : a ∈ L₂ := by
-        have : a ∈ L₁ := before_mem_right hbal1
-        have : a ∈ L₁.toFinset := by simpa using this
+        have ha1 : a ∈ L₁ := before_mem_left hbal1
+        have : a ∈ L₁.toFinset := by simpa using ha1
         have : a ∈ L₂.toFinset := by simpa [h12] using this
         simpa using this
       have hbne : b ≠ a := by
@@ -737,11 +731,9 @@ lemma invDist_triangle {L₁ L₂ L₃ : List α} (h12 : L₁.toFinset = L₂.to
       rw [Finset.sum_add_distrib]
     _ = invDist L₁ L₂ + invDist L₂ L₃ := by
       congr 1
-      · unfold invDist
-        dsimp [r12, S]
-      · unfold invDist
-        dsimp [r23, S]
-        rw [h12]
+      unfold invDist
+      dsimp [r23, S]
+      rw [h12]
 
 /--
 **MOVE-TO-FRONT is 4-competitive, per request (amortized).**  For a request `x`, with
@@ -756,8 +748,9 @@ theorem mtf_step_four_competitive (x : α) (L M M' : List α)
     mtfCost x L + 2 * invDist (moveToFront x L) M' ≤
       4 * strategyCost x M M' + 2 * invDist L M := by
   have hL' : (moveToFront x L).toFinset = L.toFinset := toFinset_moveToFront hxL
+  have hMM' : M.toFinset = M'.toFinset := (hL'.trans hperm).symm.trans hperm'
   have htri := invDist_triangle (L₁ := moveToFront x L) (L₂ := M) (L₃ := M')
-    (hL'.trans hperm) hperm'
+    (hL'.trans hperm) hMM'
   calc
     mtfCost x L + 2 * invDist (moveToFront x L) M' ≤
         2 * position x L + 1 + 2 * invDist (moveToFront x L) M + 2 * invDist M M' := by
@@ -795,10 +788,8 @@ theorem mtf_four_competitive (A : Strategy α) (σ L M : List α)
     mtfTotalCost σ L ≤ 4 * strategyTotalCost A σ M + 2 * invDist L M := by
   induction σ generalizing L M with
   | nil =>
-      intro hperm hreq hA
       simp [mtfTotalCost, strategyTotalCost]
   | cons x σ' ih =>
-      intro hperm hreq hA
       have hxL : x ∈ L := hreq x (by simp)
       have hxM : x ∈ M := by
         have : x ∈ L.toFinset := by simpa using hxL
@@ -813,20 +804,22 @@ theorem mtf_four_competitive (A : Strategy α) (σ L M : List α)
       have hreq' : ∀ y ∈ σ', y ∈ L' := by
         intro y hy
         have hyL : y ∈ L := hreq y (by simp [hy])
-        simpa [L'] using mem_moveToFront_all hyL
+        simpa [L'] using mem_moveToFront_all y hyL
       have hstep := mtf_step_four_competitive x L M M' hxL hxM hperm (by simpa [L'] using hperm')
-      have hrec := ih L' M' hperm' hreq' hA
+      have hrec := ih L' M' hperm' hreq'
       have hcombo : mtfCost x L + mtfTotalCost σ' L' ≤
           4 * strategyCost x M M' + 4 * strategyTotalCost A σ' M' + 2 * invDist L M := by
         nlinarith [hstep, hrec]
       unfold mtfTotalCost strategyTotalCost
-      dsimp [L', M']
+      simp [L', M'] at hcombo ⊢
       nlinarith [hcombo]
 
 /-- Inversion distance between a list and itself is zero. -/
 lemma invDist_self_zero (L : List α) : invDist L L = 0 := by
   unfold invDist
-  simp [before_irrefl]
+  simp [before_asymm]
+  intro i hi x hx hix
+  exact before_asymm hix
 
 end SearchList
 
