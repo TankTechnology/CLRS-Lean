@@ -4661,6 +4661,81 @@ in a legacy initialization module that is also cataloged as online material.
 - Remaining fourth-edition chapter scope: Sections 32.2--32.5 (Rabin-Karp,
   finite automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
 
+## Fourth Edition Chapter 33 - Machine-Learning Algorithms
+
+### Section 33.1 - Clustering
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_1_Clustering.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `sumSqDist`: the within-cluster sum of squared distances to a candidate center.
+  - `mean`: the centroid (average) of a finite point family over an index set.
+  - `Clustering`: an assignment of each point to a cluster together with one
+    centroid per cluster.
+  - `kMeansCost`: the k-means cost of a clustering.
+- Proved:
+  - `sumSqDist_eq_add_card_mul`: the variance (parallel-axis) decomposition
+    `∑ ‖P i - c‖² = ∑ ‖P i - m‖² + |S| · ‖c - m‖²`.
+  - `mean_minimizes_sumSqDist` (CLRS Lemma 33.1): the mean of a cluster
+    minimizes the within-cluster sum of squared distances.
+  - `assignStep_cost_le` and `updateStep_cost_le`: reassigning every point to a
+    *nearest* centroid, and replacing every centroid by the mean of its
+    cluster, never increase the cost.
+  - `lloyd_iteration_cost_le` (CLRS Theorem 33.2): one full Lloyd iteration
+    (assignment, then update) never increases the k-means cost.
+
+### Section 33.2 - Multiplicative-Weights Algorithms
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_2_Multiplicative_Weights.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `weights`: the weight of each expert after any number of days, updated
+    multiplicatively by `(1 - η)^(m t i)`.
+  - `potential`: the sum of the expert weights (`Φ`).
+  - `expectedLoss` / `totalExpectedLoss`: the algorithm's daily and total
+    expected loss under the weight-normalized distribution.
+  - `expertLoss`: the total loss of a single expert.
+- Proved:
+  - `one_sub_rpow_le_one_sub_mul` and `neg_log_one_sub_le_add_sq`: the analytic
+    inequalities `(1 - x)^y ≤ 1 - x·y` and `-ln (1 - x) ≤ x + x²` for
+    `0 ≤ x ≤ 1/2` that drive the potential chain and the clean `1 + η` factor.
+  - `potential_update_le_exp`: one MW update shrinks the potential
+    multiplicatively: `Φ(w') ≤ Φ(w) · exp(-η · M)` for the day's expected
+    loss `M`.
+  - `potential_weights_le`: after `t ≤ T` days the potential is at most
+    `n · exp(-η · Σ Mˢ)`, the iterated potential chain.
+  - `weights_eq_rpow_expertLoss`: expert `i`'s weight after `T` days is
+    `(1 - η)` raised to its total loss.
+  - `totalExpectedLoss_le` (CLRS Theorem 33.3): for every expert `i`, the total
+    expected loss is within an additive `ln n / η` and a multiplicative
+    `(1 + η)` factor of expert `i`'s total loss.
+
+### Section 33.3 - Gradient Descent
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_3_Gradient_Descent.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `gradientStep`: one gradient-descent update `x ↦ x - η·∇f(x)`.
+  - `gdIterates`: the sequence of iterates generated from `x₀`.
+  - `avgIterate`: the arithmetic mean `x̄` of the first `K` iterates (with the
+    junk value `0` for `K = 0`).
+- Proved:
+  - `gradient_inner_le_sub`: the gradient-descent lemma — the first-order
+    characterization of convexity `⟪∇f(x), y - x⟫ ≤ f(y) - f(x)`, proved by
+    restricting `f` to the segment `[x, y]` and taking the convexity-chord
+    limit `t → 0⁺`.
+  - `gdStep_potential_le`: one step shrinks the squared distance to `x*` by at
+    least `2η·(f x - f x*)`, up to the additive `η²·G²` term from the gradient
+    bound `‖∇f‖ ≤ G`.
+  - `gdIterates_potential_le` and `sum_suboptimality_le`: the telescoping
+    potential chain over `K` steps and the resulting total-suboptimality bound.
+  - `avgIterate_suboptimality_le` (CLRS Theorem 33.8): if `x*` minimizes `f`,
+    the average iterate `x̄` of the first `K` iterates satisfies
+    `f(x̄) - f(x*) ≤ ‖x₀ - x*‖²/(2ηK) + ηG²/2`, combining Jensen's inequality
+    with the total-suboptimality bound.
+- The chapter's fourth-edition sections 33.1--33.3 are all represented with no
+  remaining edition-map coverage gap.
+
 ## Legacy Source Chapter 33 - Computational Geometry (Online Material)
 
 ### Section 33.1 - Line-Segment Properties

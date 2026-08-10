@@ -78,7 +78,7 @@ Ch  Chapter                                                     Status          
 30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     34        0
 31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       15        0
 32  32. String Matching                                         partial (edition coverage)           32.1                               19        4
-33  33. Machine-Learning Algorithms                             not-started                          not represented                     0        1
+33  33. Machine-Learning Algorithms                             main-proof-complete                  33.1; 33.2; 33.3                   15        0
 34  34. NP-Completeness                                         not-started                          not represented                     0        1
 35  35. Approximation Algorithms                                not-started                          not represented                     0        1
 ```
