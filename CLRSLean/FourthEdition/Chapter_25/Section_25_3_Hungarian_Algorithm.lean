@@ -668,6 +668,199 @@ lemma potential_step (P : Problem V) {y : V → ℝ} {M : Matching V P.G}
   exact ⟨hfeas, P.adjust_creates_tight_edge tree.hS_subset tree.hT_subset
     ⟨e.1, heS, e.2, heR, heNotT, hslack⟩⟩
 
+/-- The matched partner (on the right) of a matched left vertex. -/
+noncomputable def leftPartner {P : Problem V} (M : Matching V P.G) {l : V}
+    (hl : l ∈ M.matchedLeft) : V :=
+  Classical.choose ((M.mem_matchedLeft_iff l).mp hl)
+
+/-- The left partner is indeed matched to the left vertex. -/
+lemma leftPartner_mem {P : Problem V} (M : Matching V P.G) {l : V}
+    (hl : l ∈ M.matchedLeft) : (l, leftPartner M hl) ∈ M.edges :=
+  Classical.choose_spec ((M.mem_matchedLeft_iff l).mp hl)
+
+/-- The alternating path in `tree` from the free root `u` to the left vertex
+`l ∈ S`: alternating tree edges `(treeParent r, r)` and matching edges
+`(l, r)`.  The recursion is well-founded on `rank`, which strictly decreases
+toward the root along tree edges. -/
+noncomputable def pathToLeft {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (l : V) (hl : l ∈ tree.S) : List V :=
+  if hlu : l = tree.u then [tree.u]
+  else
+    let r := leftPartner M (tree.hleft_matched l hl hlu)
+    let hrT : r ∈ tree.T :=
+      tree.hpartner_in_T l hl hlu r (leftPartner_mem M (tree.hleft_matched l hl hlu))
+    pathToLeft tree (tree.treeParent r) (tree.htree_parent_mem r hrT) ++ [r, l]
+termination_by tree.rank l
+decreasing_by
+  have hlt : tree.rank (tree.treeParent r) < tree.rank r := tree.hrank_lt r hrT
+  have heq : tree.rank r = tree.rank l :=
+    (tree.hrank_match r hrT l (leftPartner_mem M (tree.hleft_matched l hl hlu))).symm
+  rw [heq] at hlt
+  exact hlt
+
+/-- The full correctness invariant of `pathToLeft`: the alternating path from
+the root `u` to `l` is nonempty, odd-length, vertex-simple, starts at `u`, ends
+at `l`, stays inside `S ∪ T`, has rank bounded by the endpoint's rank, and its
+forward edges are tight tree edges `(treeParent r, r)` while its backward edges
+are matching edges. -/
+def PathProps (P : Problem V) {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (l : V) (hl : l ∈ tree.S) : Prop :=
+  let p := pathToLeft tree l hl
+  p ≠ [] ∧
+  (∀ h : p ≠ [], p.head h = tree.u) ∧
+  (∀ h : p ≠ [], p.getLast h = l) ∧
+  Odd p.length ∧
+  p.Nodup ∧
+  (∀ v ∈ p, v ∈ tree.S ∨ v ∈ tree.T) ∧
+  (∀ v ∈ p, v ∈ tree.S → tree.rank v ≤ tree.rank l) ∧
+  (∀ v ∈ p, v ∈ tree.T → tree.rank v ≤ tree.rank l) ∧
+  (∀ e ∈ (Matchings.altEdges p).1, e.2 ∈ tree.T ∧ tree.treeParent e.2 = e.1 ∧ e ∉ M.edges) ∧
+  (∀ e ∈ (Matchings.altEdges p).2, e ∈ M.edges)
+
+/-- The recursive-step equation of `pathToLeft` for a non-root vertex. -/
+lemma pathToLeft_eq {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) {l : V} (hl : l ∈ tree.S) (hlu : l ≠ tree.u) :
+    pathToLeft tree l hl =
+      pathToLeft tree (tree.treeParent (leftPartner M (tree.hleft_matched l hl hlu)))
+        (tree.htree_parent_mem (leftPartner M (tree.hleft_matched l hl hlu))
+          (tree.hpartner_in_T l hl hlu (leftPartner M (tree.hleft_matched l hl hlu))
+            (leftPartner_mem M (tree.hleft_matched l hl hlu)))) ++
+        [leftPartner M (tree.hleft_matched l hl hlu), l] := by
+  rw [pathToLeft]
+  simp [hlu]
+
+/-- Every `pathToLeft` path satisfies `PathProps`. -/
+lemma pathToLeft_props (P : Problem V) {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (l : V) (hl : l ∈ tree.S) :
+    PathProps P tree l hl := by
+  have hmain : ∀ n : ℕ, ∀ (l : V) (hl : l ∈ tree.S), tree.rank l = n → PathProps P tree l hl := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        intro l hl hrank
+        by_cases hlu : l = tree.u
+        · subst l
+          have hu_notT : tree.u ∉ tree.T :=
+            P.not_mem_T_of_mem_L tree.hT_subset (tree.hS_subset tree.hu_mem)
+          have hp : pathToLeft tree tree.u hl = [tree.u] := by simp [pathToLeft]
+          simp [PathProps, hp]
+          refine ⟨Or.inl hl, ?_, ?_⟩
+          · intro a b hab
+            simp [Matchings.altEdges] at hab
+          · intro a b hab
+            simp [Matchings.altEdges] at hab
+        · let r : V := leftPartner M (tree.hleft_matched l hl hlu)
+          let hrT : r ∈ tree.T :=
+            tree.hpartner_in_T l hl hlu r (leftPartner_mem M (tree.hleft_matched l hl hlu))
+          have heq_r_l : tree.rank l = tree.rank r :=
+            tree.hrank_match r hrT l (leftPartner_mem M (tree.hleft_matched l hl hlu))
+          have hrank_tp : tree.rank (tree.treeParent r) < tree.rank l := by
+            rw [heq_r_l]
+            exact tree.hrank_lt r hrT
+          have hp_eq : pathToLeft tree l hl =
+              pathToLeft tree (tree.treeParent r) (tree.htree_parent_mem r hrT) ++ [r, l] := by
+            dsimp [r]
+            exact pathToLeft_eq tree hl hlu
+          have hrank_tp_lt_n : tree.rank (tree.treeParent r) < n := by
+            rw [← hrank]
+            exact hrank_tp
+          have hprops_tp : PathProps P tree (tree.treeParent r) (tree.htree_parent_mem r hrT) := by
+            exact ih (tree.rank (tree.treeParent r)) hrank_tp_lt_n (tree.treeParent r)
+              (tree.htree_parent_mem r hrT) rfl
+          rcases hprops_tp with
+            ⟨a_ne, a_head, a_last, a_odd, a_nodup, a_mem, a_rankS, a_rankT, a_fwd, a_bwd⟩
+          have hr_ne_l : r ≠ l := by
+            intro h
+            have hrS : r ∈ tree.S := h ▸ hl
+            exact P.not_mem_S_of_mem_R tree.hS_subset (tree.hT_subset hrT) hrS
+          have hr_notT_l : l ∉ tree.T :=
+            P.not_mem_T_of_mem_L tree.hT_subset (tree.hS_subset hl)
+          have hrS_contra : r ∉ tree.S :=
+            P.not_mem_S_of_mem_R tree.hS_subset (tree.hT_subset hrT)
+          unfold PathProps
+          dsimp
+          rw [hp_eq]
+          refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+          · simp
+          · intro h
+            rw [List.head_append_of_ne_nil (w₁ := h) a_ne]
+            exact a_head a_ne
+          · intro h
+            rw [List.getLast_append_of_right_ne_nil (pathToLeft tree (tree.treeParent r) (tree.htree_parent_mem r hrT)) [r, l] (by simp)]
+            simp
+          · rw [List.length_append]
+            simp
+            rcases a_odd with ⟨k, hk⟩
+            rw [hk]
+            refine ⟨k + 1, ?_⟩
+            ring
+          · rw [List.nodup_append]
+            refine ⟨a_nodup, ?_, ?_⟩
+            · simp [hr_ne_l]
+            · intro v hv b hb
+              simp at hb
+              rcases hb with hb | hb
+              · subst b
+                intro hvr
+                have hle := a_rankT r (by simpa [hvr] using hv) hrT
+                have hlt := tree.hrank_lt r hrT
+                omega
+              · subst b
+                intro hvl
+                have hle := a_rankS l (by simpa [hvl] using hv) hl
+                have hlt := hrank_tp
+                omega
+          · intro v hv
+            simp at hv
+            rcases hv with hv | hvrl
+            · exact a_mem v hv
+            · rcases hvrl with hvr | hvl
+              · subst v
+                exact Or.inr hrT
+              · subst v
+                exact Or.inl hl
+          · intro v hv hvs
+            simp at hv
+            rcases hv with hv | hvrl
+            · have hle := a_rankS v hv hvs
+              omega
+            · rcases hvrl with hvr | hvl
+              · subst v
+                exact False.elim (hrS_contra hvs)
+              · subst v
+                rfl
+          · intro v hv hvt
+            simp at hv
+            rcases hv with hv | hvrl
+            · have hle := a_rankT v hv hvt
+              omega
+            · rcases hvrl with hvr | hvl
+              · subst v
+                rw [heq_r_l]
+              · subst v
+                exact False.elim (hr_notT_l hvt)
+          · intro e he
+            have happend := Matchings.altEdges_append_pair (pathToLeft tree (tree.treeParent r) (tree.htree_parent_mem r hrT)) a_odd a_ne (a := r) (b := l)
+            rw [happend.1] at he
+            simp at he
+            rcases he with he | he
+            · exact a_fwd e he
+            · subst e
+              have hlast : (pathToLeft tree (tree.treeParent r) (tree.htree_parent_mem r hrT)).getLast a_ne = tree.treeParent r := a_last a_ne
+              refine ⟨hrT, ?_, ?_⟩
+              · rw [hlast]
+              · rw [hlast]
+                exact tree.htree_not_matching r hrT
+          · intro e he
+            have happend := Matchings.altEdges_append_pair (pathToLeft tree (tree.treeParent r) (tree.htree_parent_mem r hrT)) a_odd a_ne (a := r) (b := l)
+            rw [happend.2] at he
+            simp at he
+            rcases he with he | he
+            · exact a_bwd e he
+            · subst e
+              simpa [r] using leftPartner_mem M (tree.hleft_matched l hl hlu)
+  exact hmain (tree.rank l) l hl rfl
+
 end Problem
 
 end AssignmentProblem
