@@ -324,11 +324,64 @@ B1 costs `1{J'''}` (paid iff `e` hits `q'''` at `J'''`), supplied by the
 exchange's `+1` iff its bad event did not occur — the pairing that
 `window_branch1_once` + `evicted_page_absent_until_request` give.
 
-Remaining work: `iterate_main` with the extended state carrying the
-exchange's window parameters `(t₀, q₀, q₀', J₀')` and the repair history
-pages `W = {q₁, q''₁, …, qₖ, q''ₖ}` (the cache-diff chain needed to
-instantiate `exchange_no_evict_q` at later B2 positions: `q ∈ E_t` from
-`q ∈ E'_t` plus the diff), then `fifo_optimal` and the merge pass.
+### `iterate_main` design (2026-08-10, second pass — diff invariant refined)
+
+The first design assumed a full cache-diff invariant `cache_d − cache_e ⊆
+W = {q₁, q''₁, …}`.  Simulation showed it **fails**: a request that *is* a
+repair page (e.g. `σ[s] = q₀`) makes the two schedules' hit/fault status
+diverge and the diff "drifts" (page 1 entered the diff in the trace of
+σ=[1,1,3,4,2,1,2,3]).  What does hold (verified over 55188 B2 positions,
+σ of length 4-9, alphabet {1,2,3,4}, min/max d₀):
+
+- **`e` never hits at a B2 disagreement** (`σ[t] ∉ cache_e_t`, 0 hits);
+- **every B2 good event holds** (`q ∈ Ŝ_J`, 0 keep-fails);
+- the **reverse diff** `cache_e − cache_d` stays confined to the repair
+  pages `Q'' = {q''₁, …, q''ₖ}` (the drift only goes forward: `cache_d −
+  cache_e` may grow, `cache_e − cache_d` never).
+
+The refined invariant is therefore **reverse-diff ⊆ Q''**, and it is
+*interleaved with the iteration induction* (it is proved at each position
+`t` before the step, used to prove `e` misses at `t` (the e-hit lemma:
+`σ[t] ∈ cache_e_t` would force `σ[t] ∈ Q''`, but `q''ᵢ` is dead or first
+requested at `J''ᵢ`), then to instantiate `exchange_no_evict_q`, then the
+repair step extends `Q''` with `q''`).
+
+Supporting lemmas (new, `Dev/B7_Iteration.lean`):
+
+1. `repair_diff_sync`: after `repairSchedule d t q'' (t+1+j'')` with live
+   `q`, `q''`, the repair cache and `d`'s differ by ⊆ `{q, q''}` at every
+   `s ≤ σ.length`, and `q` (resp. `q''`) is a member of both from `J`
+   (resp. `J''`) on — the window part reuses `repair_cache_diff_le` up to
+   `J`; on `(J, J'']` the diff shrinks to `{q''}` (both have `q`); after
+   `J''` the two caches coincide (both load `q''` at `J''`, evictions
+   agree).
+2. `reverse_diff_chain`: `cache_e − cache_d ⊆ Q''` — repair steps add only
+   `q''` (the repair evicts `q''` while `e` keeps it; `q ∉ cache_e` on
+   `(t, J]` since `e` evicts `q` at `t`).
+3. `b2_ehit`: `σ[t] ∉ cache_e_t` at a B2 disagreement — from
+   `σ[t] ∈ Q''` (reverse diff) + `q''ᵢ` dead-or-first-requested.
+4. `b2_no_evict_q`: the keep-swap core for the current schedule: at a fault
+   `s ∈ (t, J]`, `d s = e s` (the current position is not a past repair /
+   nop spot: past nops have `q''ᵢ ≠ q` since `q`'s next use is `J ≠ J''ᵢ`),
+   and `e s ≠ q` by `exchange_no_evict_q` (needs `q ∈ cache_e_t`, from the
+   branch analysis of `e t = q`: branch 1 evicts `q₀'` which is `∉
+   cache_d_t` — `q₀' ∉ cache_e` on the window, `q₀' ∉ Q''` since
+   `q''ᵢ ≠ q₀'` (`q₀' ∉ cache_{tᵢ}` while `q''ᵢ` is FIF-resident), and the
+   `q₀'` membership is synchronized —; branches 4-6 evict `C'`-pages,
+   branch 5 evicts `d₀ t` which is in `C'` by its own premise).
+5. `b2_hswap`: the swap form at `J` for the current schedule, via
+   `repairSchedule_window_swap'` + `b2_no_evict_q` (the flip `d s = q` is
+   excluded).
+6. `iterate_main`: the induction over `σ.length − t0` with state
+   `(d, t0, hnb, slack, t₀, q₀, q₀', j₀', Q'')`; case A sets the window
+   and `Q'' = ∅`; case B1 (slack −1 iff its bad event occurs — the exact
+   accounting validated by simulation), case B2 via
+   `repair_step_swap_strong` + `b2_hswap` (alive-alive),
+   `repair_step_swap_q_dead` (q dead), `repair_step_swap_qp_dead` (q'' dead);
+   then `fifo_optimal` and the merge pass.
+
+Estimated 2-3 focused sessions for items 1-6, then one for the
+`fifo_optimal` assembly and the Dev→S3 merge.
 
 ## File layout
 
