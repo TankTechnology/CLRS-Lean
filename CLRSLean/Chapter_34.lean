@@ -6,16 +6,23 @@ import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProject
 import CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine
 
 /-! # Chapter 34 — NP-Completeness
 
 Chapter 34 of CLRS covers NP-completeness: the complexity classes **P** and
 **NP**, polynomial-time reducibility, and NP-completeness.
 
-This chapter currently formalizes Section 34.1: the **framework** — languages,
+This chapter formalizes the framework of Section 34.1 — languages,
 polynomial-time computability, polynomial-time decision, and the class **P** —
 built on Mathlib's `Turing.TM2ComputableInPolyTime` (machine-level
-polynomial-time computability with `Polynomial ℕ` time bounds).
+polynomial-time computability with `Polynomial ℕ` time bounds), along with the
+polynomial-time verification model of §34.2, the reducibility and NP-completeness
+classes of §34.3, and the concrete NP-completeness reductions of §34.4
+(CIRCUIT-SAT, SAT, 3-CNF-SAT, and CLIQUE).
 
 ## Sections
 
@@ -42,11 +49,26 @@ polynomial-time computability with `Polynomial ℕ` time bounds).
 * `CLRS.Chapter34.NPHard` / `NPComplete` — the NP-hard / NP-complete classes
 * `CLRS.Chapter34.ClassNPC` — the class of NP-complete languages
 
+### 34.4 NP-Completeness Proofs
+
+* `CLRS.Chapter34.circuitSatisfiable_iff_satisfiable_circuitToFormula` — a
+  circuit is satisfiable iff the equivalent formula is (Lemma 34.6)
+* `CLRS.Chapter34.cnfSatisfiable_to3CNF_iff` — a formula is satisfiable iff
+  its Tseitin 3-CNF transformation is (Lemma 34.7)
+* `CLRS.Chapter34.cnfSatisfiable_iff_hasClique` / `cnfSatisfiable_iff_hasClique_3CNF` —
+  a 3-CNF formula is satisfiable iff its literal-occurrence graph has a clique
+  of the clause-count size (Lemma 34.10)
+* `CLRS.Chapter34.Turing.TMClique.threeCNFSat_reducible_to_CLIQUE` — the
+  3-CNF-SAT → CLIQUE reduction is polynomial-time computable
+* The TM2 machines in `SatTo3CNFMachine` and `CNFToCliqueMachine` implement the
+  §34.4 reduction functions as linear-time TMs
+
 **Status: `partial`** — the complete framework (languages, polytime,
 class `P`, class `NP`, reducibility, NP-hard/NP-complete) is defined, and the
-theorem layer is complete: composition, `P ⊆ NP`, transitivity of `≤_P`, and
-the closure of `ClassP` under complement, union, and intersection.  The
-sections 34.4–34.5 specific reductions remain unrepresented.
+theorem layer is complete: composition, `P ⊆ NP`, transitivity of `≤_P`,
+closure of `ClassP` under complement, union, and intersection, and the §34.4
+reduction chain CIRCUIT-SAT → SAT → 3-CNF-SAT → CLIQUE.  The §34.5 reductions
+(VERTEX-COVER, HAM-CYCLE, SUBSET-SUM) remain unrepresented.
 
 Theorem layer:
 
@@ -60,10 +82,17 @@ Theorem layer:
   machine `Turing.TM2AndOr.andOrMachine` (which duplicates the input, runs both
   deciders, and combines with AND/OR).
 - `ClassP_subset_ClassNP`: `P ⊆ NP` (Theorem 34.2).
+- `circuitSatisfiable_iff_satisfiable_circuitToFormula` (Lemma 34.6):
+  CIRCUIT-SAT poly-reduces to SAT.
+- `cnfSatisfiable_to3CNF_iff` (Lemma 34.7): SAT poly-reduces to 3-CNF-SAT.
+- `cnfSatisfiable_iff_hasClique` / `cnfSatisfiable_iff_hasClique_3CNF`
+  (Lemma 34.10): 3-CNF-SAT poly-reduces to CLIQUE, with the reduction computed
+  by the linear-time TM of `CNFToCliqueMachine`
+  (`CLRS.Chapter34.Turing.TMClique.threeCNFSat_reducible_to_CLIQUE`).
 
-Open problems (whether `P = NP`) and the specific NP-completeness reductions
-(34.4–34.5: CIRCUIT-SAT, SAT, 3-CNF-SAT, CLIQUE, VERTEX-COVER, HAM-CYCLE,
-SUBSET-SUM) are intentionally out of scope for now.
+Open problems (whether `P = NP`) and the remaining NP-completeness reductions
+(§34.5: VERTEX-COVER, HAM-CYCLE, SUBSET-SUM) are intentionally out of scope for
+now.
 -/
 
 namespace CLRS

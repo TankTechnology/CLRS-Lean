@@ -6537,93 +6537,90 @@ lemma to3CNF'_bounds (f : Formula) (c : Nat) :
       constructor
       · simp [to3CNF', enc, List.length_cons]
         have h := (ih c).2
-        omega
+        nlinarith
       · simp [to3CNF', enc, List.length_cons]
         have h := (ih c).2
-        omega
+        nlinarith
   | and f' g' ihf ihg =>
       constructor
       · simp [to3CNF', enc, List.length_cons]
         have hf := (ihf c).2
         have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith
       · simp [to3CNF', enc, List.length_cons]
         have hf := (ihf c).2
         have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith
   | or f' g' ihf ihg =>
       constructor
       · simp [to3CNF', enc, List.length_cons]
         have hf := (ihf c).2
         have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith
       · simp [to3CNF', enc, List.length_cons]
         have hf := (ihf c).2
         have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith
   | iff f' g' ihf ihg =>
       constructor
       · simp [to3CNF', enc, List.length_cons]
         have hf := (ihf c).2
         have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith
       · simp [to3CNF', enc, List.length_cons]
         have hf := (ihf c).2
         have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith
 
-/-- The number of clauses in the Tseitin encoding is bounded by the number of
-nodes (the encoding length). -/
+/-- The number of clauses in the Tseitin encoding is bounded by four times the
+encoding length: each `not` adds two clauses and one symbol, each `and`/`or`
+adds three clauses and one symbol (beyond the children), and each `iff` adds
+four clauses and one symbol. -/
 lemma to3CNF'_clauses_num_le (f : Formula) (c : Nat) :
-    (to3CNF' f c).1.length ≤ (enc f).length + 1 := by
-  induction f with
+    (to3CNF' f c).1.length ≤ 4 * (enc f).length := by
+  induction f generalizing c with
   | var i => simp [to3CNF', enc, varEnc]
-  | const b => by_cases hb : b <;> simp [to3CNF', hb, enc]
+  | const b => by_cases hb : b <;> simp [to3CNF', hb, enc, forceTrue, forceFalse]
   | not f' ih =>
-      rcases to3CNF' f' c with ⟨cl, y1, c1⟩
-      have hc : cl.length ≤ (enc f').length + 1 := by simpa using ih
+      have hc : (to3CNF' f' c).1.length ≤ 4 * (enc f').length := ih c
       simp [to3CNF', enc, notClauses, List.length_cons]
-      omega
+      nlinarith
   | and f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : cl1.length ≤ (enc f').length + 1 := by simpa using ihf
-      have hc2 : cl2.length ≤ (enc g').length + 1 := by simpa using ihg
+      have hc1 : (to3CNF' f' c).1.length ≤ 4 * (enc f').length := ihf c
+      have hc2 : (to3CNF' g' (to3CNF' f' c).2.2).1.length ≤ 4 * (enc g').length :=
+        ihg (to3CNF' f' c).2.2
       simp [to3CNF', enc, andClauses, List.length_cons]
-      omega
+      nlinarith
   | or f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : cl1.length ≤ (enc f').length + 1 := by simpa using ihf
-      have hc2 : cl2.length ≤ (enc g').length + 1 := by simpa using ihg
+      have hc1 : (to3CNF' f' c).1.length ≤ 4 * (enc f').length := ihf c
+      have hc2 : (to3CNF' g' (to3CNF' f' c).2.2).1.length ≤ 4 * (enc g').length :=
+        ihg (to3CNF' f' c).2.2
       simp [to3CNF', enc, orClauses, List.length_cons]
-      omega
+      nlinarith
   | iff f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : cl1.length ≤ (enc f').length + 1 := by simpa using ihf
-      have hc2 : cl2.length ≤ (enc g').length + 1 := by simpa using ihg
+      have hc1 : (to3CNF' f' c).1.length ≤ 4 * (enc f').length := ihf c
+      have hc2 : (to3CNF' g' (to3CNF' f' c).2.2).1.length ≤ 4 * (enc g').length :=
+        ihg (to3CNF' f' c).2.2
       simp [to3CNF', enc, iffClauses, List.length_cons]
-      omega
+      nlinarith
 
 /-- The parse step count is bounded by a quadratic in the encoding length. -/
 lemma parseSteps_le (f : Formula) (c : Nat) :
     parseSteps f c ≤ 40 * (enc f).length * (c + (enc f).length + 1) := by
-  induction f with
+  induction f generalizing c with
   | var i =>
       simp [parseSteps, enc, varEnc]
       nlinarith
   | const b =>
-      simp [parseSteps]
-      omega
+      by_cases hb : b <;> simp [parseSteps, enc, hb] <;> omega
   | not f' ih =>
       have hn : (enc f').length ≥ 1 := by
         cases f' <;> simp [enc, varEnc]
       have hb := to3CNF'_bounds f' c
       rcases to3CNF' f' c with ⟨cl, y1, c1⟩
       rcases hb with ⟨hy, hc1⟩
-      have hsteps : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ih
-      simp [parseSteps]
+      have hsteps : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ih c
+      simp [parseSteps, enc]
       nlinarith
   | and f' g' ihf ihg =>
       have hn : (enc f').length ≥ 1 := by
@@ -6631,14 +6628,14 @@ lemma parseSteps_le (f : Formula) (c : Nat) :
       have hn2 : (enc g').length ≥ 1 := by
         cases g' <;> simp [enc, varEnc]
       have hb1 := to3CNF'_bounds f' c
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
       rcases hb1 with ⟨hy1, hc1⟩
-      have hb2 := to3CNF'_bounds g' c1
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
+      have hb2 := to3CNF'_bounds g' (to3CNF' f' c).2.2
       rcases hb2 with ⟨hy2, hc2⟩
-      have hf : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ihf
-      have hg : parseSteps g' c1 ≤ 40 * (enc g').length * (c1 + (enc g').length + 1) := ihg
-      simp [parseSteps]
+      have hf : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ihf c
+      have hg : parseSteps g' (to3CNF' f' c).2.2 ≤
+          40 * (enc g').length * ((to3CNF' f' c).2.2 + (enc g').length + 1) :=
+        ihg (to3CNF' f' c).2.2
+      simp [parseSteps, enc]
       nlinarith
   | or f' g' ihf ihg =>
       have hn : (enc f').length ≥ 1 := by
@@ -6646,14 +6643,14 @@ lemma parseSteps_le (f : Formula) (c : Nat) :
       have hn2 : (enc g').length ≥ 1 := by
         cases g' <;> simp [enc, varEnc]
       have hb1 := to3CNF'_bounds f' c
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
       rcases hb1 with ⟨hy1, hc1⟩
-      have hb2 := to3CNF'_bounds g' c1
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
+      have hb2 := to3CNF'_bounds g' (to3CNF' f' c).2.2
       rcases hb2 with ⟨hy2, hc2⟩
-      have hf : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ihf
-      have hg : parseSteps g' c1 ≤ 40 * (enc g').length * (c1 + (enc g').length + 1) := ihg
-      simp [parseSteps]
+      have hf : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ihf c
+      have hg : parseSteps g' (to3CNF' f' c).2.2 ≤
+          40 * (enc g').length * ((to3CNF' f' c).2.2 + (enc g').length + 1) :=
+        ihg (to3CNF' f' c).2.2
+      simp [parseSteps, enc]
       nlinarith
   | iff f' g' ihf ihg =>
       have hn : (enc f').length ≥ 1 := by
@@ -6661,62 +6658,82 @@ lemma parseSteps_le (f : Formula) (c : Nat) :
       have hn2 : (enc g').length ≥ 1 := by
         cases g' <;> simp [enc, varEnc]
       have hb1 := to3CNF'_bounds f' c
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
       rcases hb1 with ⟨hy1, hc1⟩
-      have hb2 := to3CNF'_bounds g' c1
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
+      have hb2 := to3CNF'_bounds g' (to3CNF' f' c).2.2
       rcases hb2 with ⟨hy2, hc2⟩
-      have hf : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ihf
-      have hg : parseSteps g' c1 ≤ 40 * (enc g').length * (c1 + (enc g').length + 1) := ihg
-      simp [parseSteps]
+      have hf : parseSteps f' c ≤ 40 * (enc f').length * (c + (enc f').length + 1) := ihf c
+      have hg : parseSteps g' (to3CNF' f' c).2.2 ≤
+          40 * (enc g').length * ((to3CNF' f' c).2.2 + (enc g').length + 1) :=
+        ihg (to3CNF' f' c).2.2
+      simp [parseSteps, enc]
       nlinarith
 
 /-- `decodeAux` decodes a formula whose encoding is bounded by twice the number
-of consumed symbols plus three. -/
+of consumed symbols plus one.  The constant is forced to `1`: composing the
+`2·consumed + 1` bounds of two subformulas under a binary node gives
+`2·(consumed₁ + consumed₂ + 1) + 1`, exactly the bound for the combined
+consumption. -/
 lemma decodeAux_enc_consumed_le (n : Nat) (l : List FormulaSym) :
-    (enc (decodeAux n l).1).length ≤ 2 * (l.length - (decodeAux n l).2.length) + 3 := by
-  induction l generalizing n with
-  | nil => simp [decodeAux]
-  | cons s rest ih =>
+    (enc (decodeAux n l).1).length ≤ 2 * (l.length - (decodeAux n l).2.length) + 1 := by
+  revert n
+  refine WellFounded.induction (measure List.length).wf l
+    (C := fun l' => ∀ (n : Nat),
+      (enc (decodeAux n l').1).length ≤ 2 * (l'.length - (decodeAux n l').2.length) + 1) ?_
+  intro l ih n
+  cases l with
+  | nil => cases n <;> simp [decodeAux, enc]
+  | cons s rest =>
+      have hlt_rest : rest.length < (s :: rest).length := by
+        simp [List.length_cons]
       cases n with
-      | zero => simp [decodeAux]
+      | zero => simp [decodeAux, enc]
       | succ n' =>
           cases s with
-          | lit _ => simp [decodeAux]
+          | lit _ => simp [decodeAux, enc]
           | varMark =>
               by_cases h : rest.head? = some FormulaSym.endMark
-              · rcases endMarkRun rest with ⟨k, suf⟩
+              · rcases hrun : endMarkRun rest with ⟨k, suf⟩
+                have hspec := endMarkRun_spec rest
+                rw [hrun] at hspec
+                have hrep : rest = List.replicate k FormulaSym.endMark ++ suf := hspec.1
                 have hk : 1 ≤ k := by
-                  have hs := endMarkRun_spec rest
-                  rw [h] at hs
-                  have hrep : rest = List.replicate k FormulaSym.endMark ++ suf := hs.1
                   by_contra hk0
                   have hk0' : k = 0 := by omega
-                  rw [hk0'] at hrep
-                  have : rest = suf := by simpa using hrep
-                  rw [this] at hs
-                  exact hs.2 h
-                have hdec := decodeVar_endMarkRun rest k suf hk (by rfl)
-                have hk1 : k ≤ rest.length := by
-                  have hs := endMarkRun_spec rest
-                  rw [h] at hs
-                  omega
+                  have : rest = suf := by
+                    rw [hk0'] at hrep
+                    simpa using hrep
+                  rw [this] at h
+                  exact hspec.2 h
+                have hdec := decodeVar_endMarkRun rest k suf hk hrun
+                have hlen : rest.length = k + suf.length := by
+                  rw [hrep]
+                  simp [List.length_replicate, List.length_append]
+                have hk1 : k ≤ rest.length := by omega
                 simp [decodeAux, hdec, enc, varEnc]
                 omega
-              · simp [decodeAux, decodeVar, enc]
-                omega
+              · cases rest with
+                | nil => simp [decodeAux, decodeVar, enc]
+                | cons s0 t =>
+                    have hsne : s0 ≠ FormulaSym.endMark := by
+                      intro hse
+                      simp [hse] at h
+                    simp [decodeAux, decodeVar, enc, hsne]
           | endMark => simp [decodeAux, enc]
           | notMark =>
               have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
+                  2 * (rest.length - (decodeAux n' rest).2.length) + 1 :=
+                ih rest hlt_rest n'
+              have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
               simp [decodeAux, enc, List.length_cons]
               omega
           | andMark =>
               have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
+                  2 * (rest.length - (decodeAux n' rest).2.length) + 1 :=
+                ih rest hlt_rest n'
               have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
-                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
-                exact ih n' (l := (decodeAux n' rest).2)
+                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 1 :=
+                ih (decodeAux n' rest).2
+                  (Nat.lt_of_le_of_lt (decodeAux_suffix_le n' rest) hlt_rest) n'
               have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
               have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
                 decodeAux_suffix_le n' (decodeAux n' rest).2
@@ -6724,10 +6741,12 @@ lemma decodeAux_enc_consumed_le (n : Nat) (l : List FormulaSym) :
               omega
           | orMark =>
               have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
+                  2 * (rest.length - (decodeAux n' rest).2.length) + 1 :=
+                ih rest hlt_rest n'
               have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
-                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
-                exact ih n' (l := (decodeAux n' rest).2)
+                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 1 :=
+                ih (decodeAux n' rest).2
+                  (Nat.lt_of_le_of_lt (decodeAux_suffix_le n' rest) hlt_rest) n'
               have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
               have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
                 decodeAux_suffix_le n' (decodeAux n' rest).2
@@ -6735,10 +6754,12 @@ lemma decodeAux_enc_consumed_le (n : Nat) (l : List FormulaSym) :
               omega
           | iffMark =>
               have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
+                  2 * (rest.length - (decodeAux n' rest).2.length) + 1 :=
+                ih rest hlt_rest n'
               have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
-                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
-                exact ih n' (l := (decodeAux n' rest).2)
+                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 1 :=
+                ih (decodeAux n' rest).2
+                  (Nat.lt_of_le_of_lt (decodeAux_suffix_le n' rest) hlt_rest) n'
               have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
               have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
                 decodeAux_suffix_le n' (decodeAux n' rest).2
@@ -6756,169 +6777,200 @@ lemma enc_decode_le (x : List FormulaSym) :
 length. -/
 lemma numVars_decode_le (x : List FormulaSym) : numVars (decode x) ≤ x.length := by
   let P : List FormulaSym → Prop := fun l => ∀ n, numVars (decodeAux n l).1 ≤ l.length
-  change P x
-  refine WellFounded.induction (measure (fun l : List FormulaSym => l.length)).wf x ?_
-  intro l ih
-  dsimp [P] at ih ⊢
-  intro n
-  cases l with
-  | nil => simp [decodeAux]
-  | cons s rest =>
-      cases n with
-      | zero => simp [decodeAux]
-      | succ n' =>
-          cases s with
-          | lit _ => simp [decodeAux]
-          | varMark =>
-              by_cases h : rest.head? = some FormulaSym.endMark
-              · rcases endMarkRun rest with ⟨k, suf⟩
-                have hk : 1 ≤ k := by
-                  have hs := endMarkRun_spec rest
-                  rw [h] at hs
-                  have hrep : rest = List.replicate k FormulaSym.endMark ++ suf := hs.1
-                  by_contra hk0
-                  have hk0' : k = 0 := by omega
-                  rw [hk0'] at hrep
-                  have : rest = suf := by simpa using hrep
-                  rw [this] at hs
-                  exact hs.2 h
-                have hdec := decodeVar_endMarkRun rest k suf hk (by rfl)
-                have hk1 : k ≤ rest.length := by
-                  have hs := endMarkRun_spec rest
-                  rw [h] at hs
+  have hP : P x := by
+    dsimp [P]
+    refine WellFounded.induction (measure (fun l : List FormulaSym => l.length)).wf x
+        (C := fun l => ∀ n, numVars (decodeAux n l).1 ≤ l.length) ?_
+    intro l ih
+    intro n
+    cases l with
+    | nil => cases n <;> simp [decodeAux, numVars]
+    | cons s rest =>
+        cases n with
+        | zero => simp [decodeAux, numVars]
+        | succ n' =>
+            cases s with
+            | lit _ => simp [decodeAux, numVars]
+            | varMark =>
+                by_cases h : rest.head? = some FormulaSym.endMark
+                · rcases hrun : endMarkRun rest with ⟨k, suf⟩
+                  have hspec := endMarkRun_spec rest
+                  rw [hrun] at hspec
+                  have hrep : rest = List.replicate k FormulaSym.endMark ++ suf := hspec.1
+                  have hk : 1 ≤ k := by
+                    by_contra hk0
+                    have hk0' : k = 0 := by omega
+                    have : rest = suf := by
+                      rw [hk0'] at hrep
+                      simpa using hrep
+                    rw [this] at h
+                    exact hspec.2 h
+                  have hdec := decodeVar_endMarkRun rest k suf hk hrun
+                  have hlen : rest.length = k + suf.length := by
+                    rw [hrep]
+                    simp [List.length_replicate, List.length_append]
+                  simp [decodeAux, hdec, numVars]
                   omega
-                simp [decodeAux, hdec]
+                · cases rest with
+                  | nil => simp [decodeAux, decodeVar, numVars]
+                  | cons s0 t =>
+                      have hsne : s0 ≠ FormulaSym.endMark := by
+                        intro hse
+                        simp [hse] at h
+                      simp [decodeAux, decodeVar, numVars, hsne]
+            | endMark => simp [decodeAux, numVars]
+            | notMark =>
+                have h1 : numVars (decodeAux n' rest).1 ≤ rest.length :=
+                  ih rest (by
+                    change rest.length < (FormulaSym.notMark :: rest).length
+                    simpa [List.length_cons] using Nat.lt_succ_self rest.length) n'
+                simp [decodeAux, numVars]
                 omega
-              · simp [decodeAux, decodeVar]
+            | andMark =>
+                have h1 : numVars (decodeAux n' rest).1 ≤ rest.length :=
+                  ih rest (by
+                    change rest.length < (FormulaSym.andMark :: rest).length
+                    simpa [List.length_cons] using Nat.lt_succ_self rest.length) n'
+                have h2 : numVars (decodeAux n' (decodeAux n' rest).2).1 ≤
+                    (decodeAux n' rest).2.length := by
+                  refine ih (decodeAux n' rest).2 ?_ n'
+                  change (decodeAux n' rest).2.length < (FormulaSym.andMark :: rest).length
+                  simpa [List.length_cons] using
+                    Nat.lt_of_le_of_lt (decodeAux_suffix_le n' rest) (Nat.lt_succ_self rest.length)
+                have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
+                simp [decodeAux, numVars]
                 omega
-          | endMark => simp [decodeAux]
-          | notMark =>
-              have h1 : numVars (decodeAux n' rest).1 ≤ rest.length := by
-                simpa using ih rest (by simp [List.length_cons]) n'
-              simp [decodeAux]
-              omega
-          | andMark =>
-              have h1 : numVars (decodeAux n' rest).1 ≤ rest.length := by
-                simpa using ih rest (by simp [List.length_cons]) n'
-              have h2 : numVars (decodeAux n' (decodeAux n' rest).2).1 ≤
-                  (decodeAux n' rest).2.length := by
-                simpa using ih (decodeAux n' rest).2 (by
-                  have hsuf := decodeAux_suffix_le n' rest
-                  simp [List.length_cons]
-                  omega) n'
-              have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
-              simp [decodeAux]
-              omega
-          | orMark =>
-              have h1 : numVars (decodeAux n' rest).1 ≤ rest.length := by
-                simpa using ih rest (by simp [List.length_cons]) n'
-              have h2 : numVars (decodeAux n' (decodeAux n' rest).2).1 ≤
-                  (decodeAux n' rest).2.length := by
-                simpa using ih (decodeAux n' rest).2 (by
-                  have hsuf := decodeAux_suffix_le n' rest
-                  simp [List.length_cons]
-                  omega) n'
-              have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
-              simp [decodeAux]
-              omega
-          | iffMark =>
-              have h1 : numVars (decodeAux n' rest).1 ≤ rest.length := by
-                simpa using ih rest (by simp [List.length_cons]) n'
-              have h2 : numVars (decodeAux n' (decodeAux n' rest).2).1 ≤
-                  (decodeAux n' rest).2.length := by
-                simpa using ih (decodeAux n' rest).2 (by
-                  have hsuf := decodeAux_suffix_le n' rest
-                  simp [List.length_cons]
-                  omega) n'
-              have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
-              simp [decodeAux]
-              omega
-
+            | orMark =>
+                have h1 : numVars (decodeAux n' rest).1 ≤ rest.length :=
+                  ih rest (by
+                    change rest.length < (FormulaSym.orMark :: rest).length
+                    simpa [List.length_cons] using Nat.lt_succ_self rest.length) n'
+                have h2 : numVars (decodeAux n' (decodeAux n' rest).2).1 ≤
+                    (decodeAux n' rest).2.length := by
+                  refine ih (decodeAux n' rest).2 ?_ n'
+                  change (decodeAux n' rest).2.length < (FormulaSym.orMark :: rest).length
+                  simpa [List.length_cons] using
+                    Nat.lt_of_le_of_lt (decodeAux_suffix_le n' rest) (Nat.lt_succ_self rest.length)
+                have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
+                simp [decodeAux, numVars]
+                omega
+            | iffMark =>
+                have h1 : numVars (decodeAux n' rest).1 ≤ rest.length :=
+                  ih rest (by
+                    change rest.length < (FormulaSym.iffMark :: rest).length
+                    simpa [List.length_cons] using Nat.lt_succ_self rest.length) n'
+                have h2 : numVars (decodeAux n' (decodeAux n' rest).2).1 ≤
+                    (decodeAux n' rest).2.length := by
+                  refine ih (decodeAux n' rest).2 ?_ n'
+                  change (decodeAux n' rest).2.length < (FormulaSym.iffMark :: rest).length
+                  simpa [List.length_cons] using
+                    Nat.lt_of_le_of_lt (decodeAux_suffix_le n' rest) (Nat.lt_succ_self rest.length)
+                have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
+                simp [decodeAux, numVars]
+                omega
+  simpa [decode, P] using hP x.length
 /-- The encoded Tseitin clauses are bounded by a quadratic in the encoding
 length. -/
 lemma encCNF_to3CNF'_le (f : Formula) (c : Nat) :
     (encCNF (to3CNF' f c).1).length ≤
       12 * (enc f).length * (c + (enc f).length + 1) + 6 * (enc f).length := by
-  induction f with
+  induction f generalizing c with
   | var i => simp [to3CNF', enc, varEnc, encCNF]
-  | const b => by_cases hb : b <;> simp [to3CNF', hb, enc, encCNF, forceTrue, forceFalse, encClause, encLit, litSym, litIndex]
+  | const b => by_cases hb : b <;> simp [to3CNF', hb, enc, encCNF, forceTrue, forceFalse, encClause, encLit, litSym, litIndex] <;> omega
   | not f' ih =>
-      rcases to3CNF' f' c with ⟨cl, y1, c1⟩
-      have hc : (encCNF cl).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa using ih
-      have hb := to3CNF'_bounds f' c
-      rcases hb with ⟨hy1, hc1⟩
-      have hcl : cl.length ≤ (enc f').length + 1 := by
-        have hcnum := to3CNF'_clauses_num_le f' c
-        simpa using hcnum
-      simp [to3CNF', enc, notClauses, encCNF, List.length_cons]
-      nlinarith
+      rcases h : to3CNF' f' c with ⟨cl, y1, c1⟩
+      have hc : (encCNF cl).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa [h] using ih c
+      have hn : (enc f').length ≥ 1 := by cases f' <;> simp [enc, varEnc]
+      have hy1 : y1 ≤ c + (enc f').length := by simpa [h] using (to3CNF'_bounds f' c).1
+      have hc1 : c1 ≤ c + (enc f').length := by simpa [h] using (to3CNF'_bounds f' c).2
+      have hnext : c ≤ c1 := by
+        have hg := to3CNF'_next_ge f' c
+        rw [h] at hg
+        exact hg
+      have hcl : cl.length ≤ 4 * (enc f').length := by simpa [h] using to3CNF'_clauses_num_le f' c
+      have hnotc : (encCNF (notClauses c1 y1)).length ≤ 12 * (c + (enc f').length + 1) + 30 := by
+        simp [encCNF, notClauses, encClause, encLit, litSym, litIndex]
+        nlinarith
+      have hsplit : (encCNF (cl ++ notClauses c1 y1)).length =
+          (encCNF cl).length + (encCNF (notClauses c1 y1)).length := by
+        simp [encCNF, List.length_append, List.flatMap_append]
+      simp [to3CNF', enc, h]
+      nlinarith [hsplit]
   | and f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : (encCNF cl1).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa using ihf
-      have hc2 : (encCNF cl2).length ≤ 12 * (enc g').length * (c1 + (enc g').length + 1) + 6 * (enc g').length := by simpa using ihg
-      have hb1 := to3CNF'_bounds f' c
-      rcases hb1 with ⟨hy1, hc1'⟩
-      have hb2 := to3CNF'_bounds g' c1
-      rcases hb2 with ⟨hy2, hc2'⟩
-      have hcl1 : cl1.length ≤ (enc f').length + 1 := by
-        have hcnum := to3CNF'_clauses_num_le f' c
-        simpa using hcnum
-      have hcl2 : cl2.length ≤ (enc g').length + 1 := by
-        have hcnum := to3CNF'_clauses_num_le g' c1
-        simpa using hcnum
+      rcases h1 : to3CNF' f' c with ⟨cl1, y1, c1⟩
+      rcases h2 : to3CNF' g' c1 with ⟨cl2, y2, c2⟩
+      have hc1 : (encCNF cl1).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa [h1] using ihf c
+      have hc2 : (encCNF cl2).length ≤ 12 * (enc g').length * (c1 + (enc g').length + 1) + 6 * (enc g').length := by simpa [h2] using ihg c1
+      have hn : (enc f').length ≥ 1 := by cases f' <;> simp [enc, varEnc]
+      have hn2 : (enc g').length ≥ 1 := by cases g' <;> simp [enc, varEnc]
+      have hy1 : y1 ≤ c + (enc f').length := by simpa [h1] using (to3CNF'_bounds f' c).1
+      have hc1' : c1 ≤ c + (enc f').length := by simpa [h1] using (to3CNF'_bounds f' c).2
+      have hy2 : y2 ≤ c1 + (enc g').length := by simpa [h2] using (to3CNF'_bounds g' c1).1
+      have hc2' : c2 ≤ c1 + (enc g').length := by simpa [h2] using (to3CNF'_bounds g' c1).2
+      have hnext : c ≤ c1 := by
+        have hg := to3CNF'_next_ge f' c
+        rw [h1] at hg
+        exact hg
+      have hcl1 : cl1.length ≤ 4 * (enc f').length := by simpa [h1] using to3CNF'_clauses_num_le f' c
+      have hcl2 : cl2.length ≤ 4 * (enc g').length := by simpa [h2] using to3CNF'_clauses_num_le g' c1
       have hclc : (encCNF (andClauses c2 y1 y2)).length ≤ 12 * (c1 + (enc f').length + (enc g').length + 1) + 30 := by
-        have hlen : (encCNF (andClauses c2 y1 y2)).length = 3 * (c2 + y1 + y2 + 3) + 6 := by
-          simp [encCNF, andClauses, encClause, encLit, litSym, litIndex]
-        rw [hlen]
+        simp [encCNF, andClauses, encClause, encLit, litSym, litIndex]
         nlinarith
-      simp [to3CNF', enc, encCNF]
-      nlinarith
+      have hsplit : (encCNF (cl1 ++ (cl2 ++ andClauses c2 y1 y2))).length =
+          (encCNF cl1).length + (encCNF cl2).length + (encCNF (andClauses c2 y1 y2)).length := by
+        simp [encCNF, List.length_append, List.flatMap_append, Nat.add_assoc]
+      simp [to3CNF', enc, h1, h2]
+      nlinarith [hsplit]
   | or f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : (encCNF cl1).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa using ihf
-      have hc2 : (encCNF cl2).length ≤ 12 * (enc g').length * (c1 + (enc g').length + 1) + 6 * (enc g').length := by simpa using ihg
-      have hb1 := to3CNF'_bounds f' c
-      rcases hb1 with ⟨hy1, hc1'⟩
-      have hb2 := to3CNF'_bounds g' c1
-      rcases hb2 with ⟨hy2, hc2'⟩
-      have hcl1 : cl1.length ≤ (enc f').length + 1 := by
-        have hcnum := to3CNF'_clauses_num_le f' c
-        simpa using hcnum
-      have hcl2 : cl2.length ≤ (enc g').length + 1 := by
-        have hcnum := to3CNF'_clauses_num_le g' c1
-        simpa using hcnum
+      rcases h1 : to3CNF' f' c with ⟨cl1, y1, c1⟩
+      rcases h2 : to3CNF' g' c1 with ⟨cl2, y2, c2⟩
+      have hc1 : (encCNF cl1).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa [h1] using ihf c
+      have hc2 : (encCNF cl2).length ≤ 12 * (enc g').length * (c1 + (enc g').length + 1) + 6 * (enc g').length := by simpa [h2] using ihg c1
+      have hn : (enc f').length ≥ 1 := by cases f' <;> simp [enc, varEnc]
+      have hn2 : (enc g').length ≥ 1 := by cases g' <;> simp [enc, varEnc]
+      have hy1 : y1 ≤ c + (enc f').length := by simpa [h1] using (to3CNF'_bounds f' c).1
+      have hc1' : c1 ≤ c + (enc f').length := by simpa [h1] using (to3CNF'_bounds f' c).2
+      have hy2 : y2 ≤ c1 + (enc g').length := by simpa [h2] using (to3CNF'_bounds g' c1).1
+      have hc2' : c2 ≤ c1 + (enc g').length := by simpa [h2] using (to3CNF'_bounds g' c1).2
+      have hnext : c ≤ c1 := by
+        have hg := to3CNF'_next_ge f' c
+        rw [h1] at hg
+        exact hg
+      have hcl1 : cl1.length ≤ 4 * (enc f').length := by simpa [h1] using to3CNF'_clauses_num_le f' c
+      have hcl2 : cl2.length ≤ 4 * (enc g').length := by simpa [h2] using to3CNF'_clauses_num_le g' c1
       have hclc : (encCNF (orClauses c2 y1 y2)).length ≤ 12 * (c1 + (enc f').length + (enc g').length + 1) + 30 := by
-        have hlen : (encCNF (orClauses c2 y1 y2)).length = 3 * (c2 + y1 + y2 + 3) + 6 := by
-          simp [encCNF, orClauses, encClause, encLit, litSym, litIndex]
-        rw [hlen]
+        simp [encCNF, orClauses, encClause, encLit, litSym, litIndex]
         nlinarith
-      simp [to3CNF', enc, encCNF]
-      nlinarith
+      have hsplit : (encCNF (cl1 ++ (cl2 ++ orClauses c2 y1 y2))).length =
+          (encCNF cl1).length + (encCNF cl2).length + (encCNF (orClauses c2 y1 y2)).length := by
+        simp [encCNF, List.length_append, List.flatMap_append, Nat.add_assoc]
+      simp [to3CNF', enc, h1, h2]
+      nlinarith [hsplit]
   | iff f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : (encCNF cl1).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa using ihf
-      have hc2 : (encCNF cl2).length ≤ 12 * (enc g').length * (c1 + (enc g').length + 1) + 6 * (enc g').length := by simpa using ihg
-      have hb1 := to3CNF'_bounds f' c
-      rcases hb1 with ⟨hy1, hc1'⟩
-      have hb2 := to3CNF'_bounds g' c1
-      rcases hb2 with ⟨hy2, hc2'⟩
-      have hcl1 : cl1.length ≤ (enc f').length + 1 := by
-        have hcnum := to3CNF'_clauses_num_le f' c
-        simpa using hcnum
-      have hcl2 : cl2.length ≤ (enc g').length + 1 := by
-        have hcnum := to3CNF'_clauses_num_le g' c1
-        simpa using hcnum
-      have hclc : (encCNF (iffClauses c2 y1 y2)).length ≤ 16 * (c1 + (enc f').length + (enc g').length + 1) + 40 := by
-        have hlen : (encCNF (iffClauses c2 y1 y2)).length = 4 * (c2 + y1 + y2 + 3) + 8 := by
-          simp [encCNF, iffClauses, encClause, encLit, litSym, litIndex]
-        rw [hlen]
+      rcases h1 : to3CNF' f' c with ⟨cl1, y1, c1⟩
+      rcases h2 : to3CNF' g' c1 with ⟨cl2, y2, c2⟩
+      have hc1 : (encCNF cl1).length ≤ 12 * (enc f').length * (c + (enc f').length + 1) + 6 * (enc f').length := by simpa [h1] using ihf c
+      have hc2 : (encCNF cl2).length ≤ 12 * (enc g').length * (c1 + (enc g').length + 1) + 6 * (enc g').length := by simpa [h2] using ihg c1
+      have hn : (enc f').length ≥ 1 := by cases f' <;> simp [enc, varEnc]
+      have hn2 : (enc g').length ≥ 1 := by cases g' <;> simp [enc, varEnc]
+      have hy1 : y1 ≤ c + (enc f').length := by simpa [h1] using (to3CNF'_bounds f' c).1
+      have hc1' : c1 ≤ c + (enc f').length := by simpa [h1] using (to3CNF'_bounds f' c).2
+      have hy2 : y2 ≤ c1 + (enc g').length := by simpa [h2] using (to3CNF'_bounds g' c1).1
+      have hc2' : c2 ≤ c1 + (enc g').length := by simpa [h2] using (to3CNF'_bounds g' c1).2
+      have hnext : c ≤ c1 := by
+        have hg := to3CNF'_next_ge f' c
+        rw [h1] at hg
+        exact hg
+      have hcl1 : cl1.length ≤ 4 * (enc f').length := by simpa [h1] using to3CNF'_clauses_num_le f' c
+      have hcl2 : cl2.length ≤ 4 * (enc g').length := by simpa [h2] using to3CNF'_clauses_num_le g' c1
+      have hclc : (encCNF (iffClauses c2 y1 y2)).length ≤ 12 * (c1 + (enc f').length + (enc g').length + 1) + 40 := by
+        simp [encCNF, iffClauses, encClause, encLit, litSym, litIndex]
         nlinarith
-      simp [to3CNF', enc, encCNF]
-      nlinarith
-
+      have hsplit : (encCNF (cl1 ++ (cl2 ++ iffClauses c2 y1 y2))).length =
+          (encCNF cl1).length + (encCNF cl2).length + (encCNF (iffClauses c2 y1 y2)).length := by
+        simp [encCNF, List.length_append, List.flatMap_append, Nat.add_assoc]
+      simp [to3CNF', enc, h1, h2]
+      nlinarith [hsplit]
 /-- The input alphabet of the machine is `FormulaSym`. -/
 def satInputAlphabet : (mach).Γ (mach).k₀ ≃ FormulaSym := Equiv.refl _
 
@@ -6926,7 +6978,7 @@ def satInputAlphabet : (mach).Γ (mach).k₀ ≃ FormulaSym := Equiv.refl _
 def satOutputAlphabet : (mach).Γ (mach).k₁ ≃ CNFSym := Equiv.refl _
 
 /-- The polynomial time bound. -/
-def satTo3CNFTime : Polynomial ℕ :=
+noncomputable def satTo3CNFTime : Polynomial ℕ :=
   800 * Polynomial.X ^ 2 + 3000 * Polynomial.X + 2000
 
 /-- `count` from any pre-state: the count step pops from `in` and overwrites the
@@ -7027,7 +7079,19 @@ noncomputable def satTo3CNFOutputsFun (inp : List FormulaSym) :
             ((encCNF cls).reverse) []⟩ : (mach).Cfg) := by
     intro v₀
     simpa using parse_phase f0 n inp rest n [] [] [] [] [] hV le_rfl hdec v₀
-  rcases hparse0 St.done with ⟨v₁, hparse⟩
+  have hparse_done : ∃ v₁ : St,
+      (flip bind Sstep)^[parseSteps f0 n]
+        (some (⟨some Label.rd, St.done, stk inp [] n [] [] [] [] []⟩ : (mach).Cfg))
+        = some (⟨some Label.reduce, v₁, stk rest [] next
+            (false :: List.replicate (y + 1) true) [] []
+            ((encCNF cls).reverse) []⟩ : (mach).Cfg) := hparse0 St.done
+  let v₁ : St := Classical.choose hparse_done
+  have hparse : (flip bind Sstep)^[parseSteps f0 n]
+      (some (⟨some Label.rd, St.done, stk inp [] n [] [] [] [] []⟩ : (mach).Cfg))
+      = some (⟨some Label.reduce, v₁, stk rest [] next
+          (false :: List.replicate (y + 1) true) [] []
+          ((encCNF cls).reverse) []⟩ : (mach).Cfg) := by
+    simpa [v₁] using Classical.choose_spec hparse_done
   let C3 : (mach).Cfg := ⟨some Label.reduce, v₁, stk rest [] next
       (false :: List.replicate (y + 1) true) [] [] ((encCNF cls).reverse) []⟩
   let C4 : (mach).Cfg := ⟨some Label.emitTrue, St.emitTrue, stk rest [] next
@@ -7062,23 +7126,33 @@ noncomputable def satTo3CNFOutputsFun (inp : List FormulaSym) :
   have hreduce : EvalsToInTime Sstep C3 (some C4) 1 := by
     refine ⟨⟨1, ?_⟩, le_rfl⟩
     change (flip bind Sstep) (some C3) = some C4
-    exact reduce_top_step v₁ rest [] next (false :: List.replicate (y + 1) true) [] [] ((encCNF cls).reverse) []
+    exact reduce_top_step v₁ rest [] next (false :: List.replicate (y + 1) true) [] ((encCNF cls).reverse) []
   have hemTrue : EvalsToInTime Sstep C4 (some C5) ((y + 1) + 2) := by
     refine ⟨⟨(y + 1) + 2, ?_⟩, le_rfl⟩
     change (flip bind Sstep)^[(y + 1) + 2] (some C4) = some C5
-    exact emitTrue_phase y St.emitTrue rest [] next [] [] [] ((encCNF cls).reverse) []
+    exact emitTrue_phase y St.emitTrue rest [] next [] [] ((encCNF cls).reverse) []
   have hcopyOut : EvalsToInTime Sstep C5 (some C6) ((C5.stk K.o).length + 1) := by
     refine ⟨⟨(C5.stk K.o).length + 1, ?_⟩, le_rfl⟩
-    change (flip bind Sstep)^[(C5.stk K.o).length + 1] (some C5) = some C6
-    simpa using copyOut_phase St.done rest [] next [] [] [] (C5.stk K.o) []
+    change (flip bind Sstep)^[((encCNF [[Literal.pos y]]).reverse ++ (encCNF cls).reverse).length + 1]
+        (some (⟨some Label.copyOut, St.done, stk rest [] next [] [] []
+            ((encCNF [[Literal.pos y]]).reverse ++ (encCNF cls).reverse) []⟩ : (mach).Cfg))
+        = some (⟨some Label.clearIn, St.init, stk rest [] next [] [] [] []
+            ((encCNF [[Literal.pos y]]).reverse ++ (encCNF cls).reverse).reverse⟩ : (mach).Cfg)
+    rw [copyOut_phase St.done rest [] next [] [] []
+        ((encCNF [[Literal.pos y]]).reverse ++ (encCNF cls).reverse) []]
+    simp [List.append_nil]
   have hclearIn : EvalsToInTime Sstep C6 (some C7) (rest.length + 1) := by
     refine ⟨⟨rest.length + 1, ?_⟩, le_rfl⟩
-    change (flip bind Sstep)^[rest.length + 1] (some C6) = some C7
-    simpa using clearIn_phase St.init rest [] next [] [] [] [] (C5.stk K.o).reverse
+    change (flip bind Sstep)^[rest.length + 1]
+        (some (⟨some Label.clearIn, St.init, stk rest [] next [] [] [] [] (C5.stk K.o).reverse⟩ : (mach).Cfg))
+        = some (⟨some Label.clearCnt, St.done, stk [] [] next [] [] [] [] (C5.stk K.o).reverse⟩ : (mach).Cfg)
+    rw [clearIn_phase St.init rest [] next [] [] [] [] (C5.stk K.o).reverse]
   have hclearCnt : EvalsToInTime Sstep C7 (some C8) (next + 1) := by
     refine ⟨⟨next + 1, ?_⟩, le_rfl⟩
-    change (flip bind Sstep)^[next + 1] (some C7) = some C8
-    simpa using clearCnt_phase St.done [] [] next [] [] [] [] (C5.stk K.o).reverse
+    change (flip bind Sstep)^[next + 1]
+        (some (⟨some Label.clearCnt, St.done, stk [] [] next [] [] [] [] (C5.stk K.o).reverse⟩ : (mach).Cfg))
+        = some (⟨some Label.done, St.init, stk [] [] 0 [] [] [] [] (C5.stk K.o).reverse⟩ : (mach).Cfg)
+    rw [clearCnt_phase St.done [] [] next [] [] [] [] (C5.stk K.o).reverse]
   have hdone : EvalsToInTime Sstep C8 (some C9) 1 := by
     refine ⟨⟨1, ?_⟩, le_rfl⟩
     change (flip bind Sstep) (some C8) = some C9
@@ -7104,7 +7178,7 @@ noncomputable def satTo3CNFOutputsFun (inp : List FormulaSym) :
       simp [C5, List.reverse_append, List.reverse_reverse]
     have htl : to3CNF_len f0 n = cls ++ [[Literal.pos y]] := by
       simp [to3CNF_len, cls, y, forceTrue]
-    rw [hrev, ← htl]
+    rw [hrev, htl]
     simp [encCNF]
   have hfinalCfg : C9 = haltList mach outList := by
     apply Turing.TM2Comp.Cfg_ext
