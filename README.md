@@ -79,7 +79,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 22 | Single-Source Shortest Paths | 🟡 sections | 27 / 27 | — |
 | 23 | All-Pairs Shortest Paths | 🟢 correctness | 24 / 24 | — |
 | 24 | Maximum Flow | 🟢 complete | 18 / 18 | — |
-| 25 | Matchings in Bipartite Graphs | 🟠 partial coverage | 18 / 18 | Packaging the full Hungarian adjustment-plus-augmentation… |
+| 25 | Matchings in Bipartite Graphs | 🟢 complete | 18 / 18 | — |
 | 26 | Parallel Algorithms | 🟢 complete | 95 / 95 | — |
 | 27 | Online Algorithms | ⬜ not started | 0 / 0 | Whole fourth-edition chapter theorem inventory and… |
 | 28 | Matrix Operations | 🟢 complete | 9 / 9 | — |

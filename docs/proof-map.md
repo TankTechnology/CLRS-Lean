@@ -3620,7 +3620,7 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 - Lean source:
   `CLRSLean/FourthEdition/Chapter_25/Section_25_3_Hungarian_Algorithm.lean`
-- Status: `partial`
+- Status: `complete`
 - Main theorems:
   - `CLRS.AssignmentProblem.Problem` / `Problem.Optimal` / `Problem.Feasible` /
     `Problem.Tight` / `Problem.IsTightMatching` (assignment model)
@@ -3637,16 +3637,24 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.AssignmentProblem.growTree` (tree-growth step)
   - `CLRS.AssignmentProblem.augmentable_or_adjustable` (local progress:
     augment or adjust-and-grow)
+  - `CLRS.AssignmentProblem.exists_augment_tight` (augmentation preserves
+    tightness: the enlarged matching stays in the equality graph)
+  - `CLRS.AssignmentProblem.innerLoop` (tree-phase termination: iterating
+    local progress, the tree grows, so an augmentation is forced)
+  - `CLRS.AssignmentProblem.exists_perfect_tight` (outer-loop termination:
+    repeating the inner loop reaches a perfect matching in the equality graph)
+  - `CLRS.AssignmentProblem.exists_optimal_via_algorithm` /
+    `hungarian_constructs_optimal` (termination + optimality: the algorithm,
+    started from any feasible tight matching or from the initial potential,
+    produces an optimal assignment)
 - Proof pattern: duality via feasible potentials; the algorithm's three moves
   (potential adjustment, tree growth, augmentation) are each formalized, and
   `augmentable_or_adjustable` shows every non-terminal tree either augments the
-  matching or admits a potential adjustment that grows the tree.
-- Current gap: packaging the full adjustment-plus-augmentation loop as one
-  terminating function (the well-founded iteration of
-  `augmentable_or_adjustable` until the matching is perfect) is not yet
-  written; the constructive existence of an optimal assignment via the
-  algorithm is therefore still open, though every individual move and Lemma
-  25.8 are proved.
+  matching or admits a potential adjustment that grows the tree.  The full
+  loop is packaged as a terminating recursion: the tree phase
+  (`innerLoop`) grows `T`, bounded by `R`, so it must terminate in an
+  augmentation; the outer phase (`exists_perfect_tight`) repeats it, growing
+  the matching until it is perfect, which by Lemma 25.8 is optimal.
 
 ## Chapter 26 - Maximum Flow
 

@@ -27,7 +27,7 @@ class FourthEditionContractTest(unittest.TestCase):
         self.assertEqual(
             contracts[25]["represented_sections"], ("25.1", "25.2", "25.3")
         )
-        self.assertEqual(contracts[25]["required_status"], "partial")
+        self.assertIsNone(contracts[25]["required_status"])
         self.assertEqual(
             contracts[25]["guide"],
             Path("CLRSLean/FourthEdition/Chapter_25.lean"),
