@@ -2032,7 +2032,9 @@ reads are proved equal to the pure recurrence value.
 
 ### Section 16.1 - Activity selection
 
-- Lean source: `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_15/Section_15_1_Activity_Selection.lean`
+  (canonical fourth-edition Section 15.1; the legacy
+  `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean` forwards to it)
 - Status: `proved` for the finite sorted-list model
 - Main proved theorems:
   - `CLRS.ActivitySelection.earliest_finish_minFinish`
@@ -2085,7 +2087,9 @@ for the nonempty recursive step.
 
 ### Section 16.2 - Greedy-choice property and optimal substructure (meta-theorems)
 
-- Lean source: `CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_15/Section_15_2_Greedy_Meta.lean`
+  (canonical fourth-edition Section 15.2; the legacy
+  `CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean` forwards to it)
 - Status: `proved` for the abstract structural lemmas
 - Main results:
   - `CLRS.GreedyMeta.GreedyProblem` — abstract structure bundling the
@@ -2111,7 +2115,9 @@ strong induction on the problem size.
 
 ### Section 16.3 - Huffman codes
 
-- Lean source: `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes.lean`
+  (canonical fourth-edition Section 15.3; the legacy
+  `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean` forwards to it)
 - Status: `proved`
 - Main proved theorems:
   - `CLRS.HuffmanV2.optimum_huffman_freqs`

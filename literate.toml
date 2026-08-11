@@ -271,6 +271,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
 "CLRSLean.FourthEdition.Chapter_15" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching",
 ]
 "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching" = [
@@ -617,6 +620,15 @@ title = "Chapter 14. Dynamic Programming"
 
 [modules."CLRSLean.FourthEdition.Chapter_15"]
 title = "Chapter 15. Greedy Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection"]
+title = "15.1. Activity Selection"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta"]
+title = "15.2. Greedy-Choice Property and Optimal Substructure (Meta-Theorems)"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes"]
+title = "15.3. Huffman Codes"
 
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching"]
 title = "15.4. Offline caching"
