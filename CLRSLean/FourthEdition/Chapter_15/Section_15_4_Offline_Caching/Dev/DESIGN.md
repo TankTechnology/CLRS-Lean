@@ -343,6 +343,16 @@ absent helpers `repair_q''_absent_dead` / `repair_q''_absent_dead_long`
 derivable from the state by the branch-analysis half 2 (the exchange never
 evicts a dead page: `e s ∈ E_s ∪ {q₀'}`, `q'' ∉ E_s ∪ {q₀'}`).
 
+**Progress (2026-08-11, fourth batch, kernel-checked)**:
+`repair_keep_swap_cur_qp_dead` — the current-schedule q''-dead keep-swap
+(the dead-page analogue of `repair_keep_swap_cur`: nop = `t₂`, `hq''dead`
+replaces `hj''`/`hjj''` via `getD_ne_of_nextUse_none` + `hJlen`, base case
+`repairSchedule_base_swap_qp_dead`; same `hd_eq`/`hnot`/
+`exchange_no_evict_q`/`hnotE`/`b2_ehit` structure).  It supplies
+`reverse_diff_chain_qp_dead`'s `hkept` for the B2-q''-dead step.  The
+q-dead B2 step needs **no** keep-swap: `repair_step_swap_q_dead` and
+`reverse_diff_chain_q_dead` are already generic in the schedule.
+
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
@@ -523,8 +533,10 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   `b2_ehit_ne`, `b2_no_evict_q`, `b2_hswap`, `b2_hswap_qp_dead`,
   `reverse_diff_chain_qp_dead`, `reverse_diff_chain_q_dead` (done,
   kernel-checked) and `iterate_main_exchange` (the case-A step, done);
-  next the current-schedule keep-swap (see the B2 step assembly section),
-  the case-B1/B2 step lemmas, then the `iterate_main` induction and
+  the current-schedule keep-swap (done: `repair_keep_swap_cur` alive-alive,
+  `repair_keep_swap_cur_qp_dead` q''-dead; the q-dead step needs none);
+  next the case-B1/B2 step lemmas (B1-alive, B1-dead, B2-alive done),
+  then the `iterate_main` induction and
   `fifo_optimal`; then verification (axioms, `lake build CLRSLean`,
   `check_repository.py`, docs, progress CSV) and merge of all `Dev/`
   lemmas into `S3_Optimality.lean`.
