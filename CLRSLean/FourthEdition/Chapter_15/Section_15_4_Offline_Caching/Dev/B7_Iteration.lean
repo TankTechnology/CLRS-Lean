@@ -65,6 +65,15 @@ Main results:
   gives `d t = q''` (the value invariant `hcomp`) with `q'' ∉ D_t`
   (`evicted_page_absent_until_request`) — a no-op eviction, hence B1 not
   B2
+- the case-step extension glue: `extend_hpast`, `extend_hQfifo`,
+  `extend_hP`, `extend_hP_in`, `extend_hcomp`, `extend_hpair` (alive
+  variants, `P' = P ∪ {t₂, t₂+1+j''}`) and `extend_hP_dead`,
+  `extend_hP_in_dead`, `extend_hcomp_dead` (dead-page variants,
+  `P' = P ∪ {t₂}`) — the composition invariants of the new state
+  `Q' = insert (t₂, q'') Q`, `P'`, `r` from the old state's invariants
+  plus the step's facts (`r t₂ = q''`, `r nop = q''`, `r s = d s` off
+  `{t₂, nop}`, caches agree up to `t₂`, `σ[t₂]` fault, `q''` resident);
+  hQ's extension is the open design question (see `Dev/DESIGN.md`)
 - `iterate_main_case_b2_alive`: the case-B2 step (alive-alive) — the
   repair at a resident disagreement: agreement to `t₂ + 1`, misses not
   increased, chain extended by `q''`, `hd_eq` extended to
@@ -1449,6 +1458,354 @@ lemma no_nop_at_b2 (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
       have : qₗ ∉ schedCache d C₀ σ t := by
         rwa [hteqₗ]
       exact this (hdtₗ ▸ hqin)
+
+/- ### 情形步的扩展胶水(hpast/hQfifo/hP/hP_in/hcomp/hpair)
+
+情形 B1/B2 步的新状态带 `Q' = insert (t₂, q'') Q` 与
+`P' = P ∪ {t₂, nop}`(活对 nop = `t₂ + 1 + j''`;死页修复 nop = `t₂`,即
+`P' = P ∪ {t₂}`)。以下扩展引理把旧状态的组成不变式族(见 `IterateState`)
+传到新状态:旧位置由旧不变式(`r` 与 `d` 在 `{t₂, nop}` 之外一致、cache 在
+`tᵢ ≤ t₂` 处一致),新位置/新对由情形步本身的事实(`r t₂ = q''`、
+`r nop = q''`、`σ[t₂]` 缺页、`q''` resident)见证。hQ 的扩展是遗留障碍
+(见 DESIGN:`t₂ + 1 < J''ᵢ` 的严格界对旧对在全历史 Q 上不成立)。 -/
+
+/-- hpast 扩展:新对 `(t₂, q'')` 加入 Q 后,所有对的修复位置 `tᵢ` 严格在新
+界 `t₂ + 1` 之前(旧对由 `hpast`,新对 `t₂ < t₂ + 1`)。 -/
+lemma extend_hpast (Q : Finset (ℕ × Page)) {t₂ : ℕ} {q'' : Page}
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂) :
+    ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q → tᵢ < t₂ + 1 := by
+  intro tᵢ q''₀ htq
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    omega
+  · have hlt : tᵢ < t₂ := hpast tᵢ q''₀ htq
+    omega
+
+/-- hQfifo 扩展:新对 `(t₂, q'')` 的页正是 FIF 在 `t₂` 的逐出页(`hq''`),
+旧对由 `hQfifo`。 -/
+lemma extend_hQfifo (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Page))
+    {t₂ : ℕ} {q'' : Page} (hq'' : q'' = fifoSchedule σ C₀ t₂)
+    (hQfifo : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → q'' = fifoSchedule σ C₀ tᵢ) :
+    ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q → q''₀ = fifoSchedule σ C₀ tᵢ := by
+  intro tᵢ q''₀ htq
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    exact hq''
+  · exact hQfifo tᵢ q''₀ htq
+
+/-- hP 扩展(活对版):`P' = P ∪ {t₂, t₂+1+j''}`。旧位置沿用旧 `hP`(见证对
+仍在 `Q'` 中),新位置 `t₂` 与新 nop `J'' = t₂+1+j''` 由新对 `(t₂, q'')`
+见证(`s = tᵢ` 与 `s = tᵢ+1+j''`)。 -/
+lemma extend_hP (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · rcases hP s hsP with h1 | h2
+    · rcases h1 with ⟨tᵢ, q''₀, htq, hteq⟩
+      left
+      refine ⟨tᵢ, q''₀, ?_, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+    · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+      right
+      refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+  · rw [Finset.mem_insert] at hsNew
+    rcases hsNew with hEq | hsNew
+    · left
+      exact ⟨t₂, q'', Finset.mem_insert_self _ _, hEq⟩
+    · right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', ?_⟩
+      exact Finset.mem_singleton.mp hsNew
+
+/-- hP 的反向(活对版):新/旧对见证的位置都在 `P ∪ {t₂, J''}` 中。新对
+`(t₂, q'')` 的 nop 见证的 `j''₀` 由 nextUse 唯一性等于 `j''`;`hpast` 排除
+`(t₂, q''₀) ∈ Q`(旧对位置 `tᵢ ≠ t₂`)。 -/
+lemma extend_hP_in (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hP_in : ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P) :
+    ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) := by
+  intro s hw
+  rcases hw with ⟨tᵢ, q''₀, htq, hteq⟩ | ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+  · by_cases ht₂ : tᵢ = t₂
+    · rw [ht₂] at hteq
+      rw [Finset.mem_union]
+      right
+      rw [Finset.mem_insert]
+      exact Or.inl hteq
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inl ⟨tᵢ, q''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hteq⟩)
+  · by_cases ht₂ : tᵢ = t₂
+    · have hqeq : q''₀ = q'' := by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          rfl
+        · exfalso
+          rw [ht₂] at htq'
+          exact (Nat.lt_irrefl t₂) (hpast t₂ q''₀ htq')
+      have hnext₀' : nextUse σ (t₂ + 1) q''₀ = some j''₀ := by
+        rwa [ht₂] at hnext₀
+      have hj''₀ : j''₀ = j'' := Option.some.inj (hnext₀'.symm.trans (by simpa [hqeq.symm] using hj''))
+      rw [Finset.mem_union]
+      right
+      rw [Finset.mem_insert]
+      right
+      rw [Finset.mem_singleton]
+      omega
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inr ⟨tᵢ, q''₀, j''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hnext₀, hteq⟩)
+
+/-- hcomp 扩展(活对版):新调度 `r` 在 `P' = P ∪ {t₂, J''}` 上的值不变式。
+旧位置(≠ 新 nop)沿用旧 `hcomp`(`r s = d s`);`t₂` 与新 nop 由新对
+`(t₂, q'')` 见证(`r` 于 `t₂`、`J''` 逐出 `q''` —— 新 nop 覆盖旧位置时新见证
+依然成立)。 -/
+lemma extend_hcomp (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hrt : r t₂ = q'') (hrN : r (t₂ + 1 + j'') = q'')
+    (hre : ∀ s, s ∉ ({t₂, t₂ + 1 + j''} : Finset ℕ) → r s = d s)
+    (ht₂notP : t₂ ∉ P)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ ∧ d s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ d s = q''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · by_cases hsN : s = t₂ + 1 + j''
+    · subst s
+      right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+    · rcases hcomp s hsP with h1 | h2
+      · rcases h1 with ⟨tᵢ, q''₀, htq, hteq, hds⟩
+        left
+        refine ⟨tᵢ, q''₀, ?_, hteq, ?_⟩
+        · exact Finset.mem_insert.mpr (Or.inr htq)
+        · have hsne : s ≠ t₂ := by
+            intro hst
+            exact ht₂notP (hst ▸ hsP)
+          rw [hre s (by
+            intro hmem
+            rw [Finset.mem_insert] at hmem
+            rcases hmem with hEq | hmem
+            · exact hsne hEq
+            · exact hsN (Finset.mem_singleton.mp hmem))]
+          exact hds
+      · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq, hds⟩
+        right
+        refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq, ?_⟩
+        · exact Finset.mem_insert.mpr (Or.inr htq)
+        · have hsne : s ≠ t₂ := by
+            intro hst
+            exact ht₂notP (hst ▸ hsP)
+          rw [hre s (by
+            intro hmem
+            rw [Finset.mem_insert] at hmem
+            rcases hmem with hEq | hmem
+            · exact hsne hEq
+            · exact hsN (Finset.mem_singleton.mp hmem))]
+          exact hds
+  · rw [Finset.mem_insert] at hsNew
+    rcases hsNew with hEq | hsNew
+    · subst s
+      left
+      refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+    · rw [Finset.mem_singleton] at hsNew
+      subst s
+      right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+
+/-- hpair 扩展:新对 `(t₂, q'')` 的过往事实(`σ[t₂]` 缺页、`q''` resident、
+`r t₂ = q''`)与旧对的(`r` 的 cache 在 `tᵢ ≤ t₂` 与 `d` 一致、`r tᵢ = d tᵢ`,
+由 `hpair` 传递)。 -/
+lemma extend_hpair (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Page))
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    (hft : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
+    (hq''in : q'' ∈ schedCache d C₀ σ t₂)
+    (hrt : r t₂ = q'')
+    (hre : ∀ s, s ≠ t₂ → r s = d s)
+    (hce : ∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hpair : ∀ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q →
+      nextUse σ (tᵢ + 1) q''₀ = some j''₀ →
+      σ.getD tᵢ 0 ∉ schedCache d C₀ σ tᵢ ∧ q''₀ ∈ schedCache d C₀ σ tᵢ ∧ d tᵢ = q''₀) :
+    ∀ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q →
+      nextUse σ (tᵢ + 1) q''₀ = some j''₀ →
+      σ.getD tᵢ 0 ∉ schedCache r C₀ σ tᵢ ∧ q''₀ ∈ schedCache r C₀ σ tᵢ ∧ r tᵢ = q''₀ := by
+  intro tᵢ q''₀ j''₀ htq hnext
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    constructor
+    · rw [hce t₂ le_rfl]
+      exact hft
+    constructor
+    · rw [hce t₂ le_rfl]
+      exact hq''in
+    · exact hrt
+  · have htᵢlt : tᵢ < t₂ := hpast tᵢ q''₀ htq
+    rcases hpair tᵢ q''₀ j''₀ htq hnext with ⟨hftᵢ, hqinᵢ, hdtᵢ⟩
+    constructor
+    · rw [hce tᵢ (by omega)]
+      exact hftᵢ
+    constructor
+    · rw [hce tᵢ (by omega)]
+      exact hqinᵢ
+    · rw [hre tᵢ (by omega)]
+      exact hdtᵢ
+
+/-- hP 扩展(死页版):`P' = P ∪ {t₂}`(死页修复没有 nop 位置)。 -/
+lemma extend_hP_dead (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    {t₂ : ℕ} {q'' : Page}
+    (hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · rcases hP s hsP with h1 | h2
+    · rcases h1 with ⟨tᵢ, q''₀, htq, hteq⟩
+      left
+      refine ⟨tᵢ, q''₀, ?_, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+    · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+      right
+      refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+  · rw [Finset.mem_singleton] at hsNew
+    subst s
+    left
+    exact ⟨t₂, q'', Finset.mem_insert_self _ _, rfl⟩
+
+/-- hP 反向(死页版):新对 `(t₂, q'')` 死页(`nextUse = none`),其 nop 见证
+不可能,只有 `s = t₂` 见证。 -/
+lemma extend_hP_in_dead (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    {t₂ : ℕ} {q'' : Page}
+    (hq''dead : nextUse σ (t₂ + 1) q'' = none)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hP_in : ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P) :
+    ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P ∪ ({t₂} : Finset ℕ) := by
+  intro s hw
+  rcases hw with ⟨tᵢ, q''₀, htq, hteq⟩ | ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+  · by_cases ht₂ : tᵢ = t₂
+    · rw [ht₂] at hteq
+      rw [Finset.mem_union]
+      right
+      rw [Finset.mem_singleton]
+      exact hteq
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inl ⟨tᵢ, q''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hteq⟩)
+  · by_cases ht₂ : tᵢ = t₂
+    · have hqeq : q''₀ = q'' := by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          rfl
+        · exfalso
+          rw [ht₂] at htq'
+          exact (Nat.lt_irrefl t₂) (hpast t₂ q''₀ htq')
+      exfalso
+      rw [ht₂] at hnext₀
+      rw [hqeq] at hnext₀
+      rw [hq''dead] at hnext₀
+      cases hnext₀
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inr ⟨tᵢ, q''₀, j''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hnext₀, hteq⟩)
+
+/-- hcomp 扩展(死页版):`P' = P ∪ {t₂}`;`t₂` 由新对见证(`r t₂ = q''`),
+旧位置 `r s = d s` 沿用旧 `hcomp`。 -/
+lemma extend_hcomp_dead (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    (hrt : r t₂ = q'')
+    (hre : ∀ s, s ≠ t₂ → r s = d s)
+    (ht₂notP : t₂ ∉ P)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ ∧ d s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ d s = q''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · rcases hcomp s hsP with h1 | h2
+    · rcases h1 with ⟨tᵢ, q''₀, htq, hteq, hds⟩
+      left
+      refine ⟨tᵢ, q''₀, ?_, hteq, ?_⟩
+      · exact Finset.mem_insert.mpr (Or.inr htq)
+      · have hsne : s ≠ t₂ := by
+          intro hst
+          exact ht₂notP (hst ▸ hsP)
+        rw [hre s hsne]
+        exact hds
+    · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq, hds⟩
+      right
+      refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq, ?_⟩
+      · exact Finset.mem_insert.mpr (Or.inr htq)
+      · have hsne : s ≠ t₂ := by
+          intro hst
+          exact ht₂notP (hst ▸ hsP)
+        rw [hre s hsne]
+        exact hds
+  · rw [Finset.mem_singleton] at hsNew
+    subst s
+    left
+    refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
 
 /-- 迭代的情形 B1(活子情形):窗口内 no-op 分歧 `t₂`(`d t₂ ∉ cache`)处,
 `q''` 会再次被请求(`hj'''`)时,修复 `r = repairSchedule d t₂ q'' (t₂ + 1 + j''')`

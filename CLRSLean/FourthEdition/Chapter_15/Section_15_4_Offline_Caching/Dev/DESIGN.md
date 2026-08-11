@@ -379,6 +379,54 @@ The induction uses `Nat.strong_induction_on` with the `s−1` step (the
 plain `induction s with` succ-intro mis-elaborates the nested ∀ when
 ∀-typed hypothesis binders are in scope — see B8's commit note).
 
+**Progress (2026-08-11, sixth batch, kernel-checked)**: the case-step
+extension glue for the composition invariants — `extend_hpast`,
+`extend_hQfifo`, `extend_hP`, `extend_hP_in`, `extend_hcomp`,
+`extend_hpair` (alive variants, `P' = P ∪ {t₂, t₂+1+j''}`) and
+`extend_hP_dead`, `extend_hP_in_dead`, `extend_hcomp_dead` (dead-page
+variants, `P' = P ∪ {t₂}`), all in B7.  Each takes the old state's
+invariant over `Q`/`P`/`d` plus the step's facts (`r t₂ = q''`,
+`r nop = q''`, `r s = d s` off `{t₂, nop}`, `schedCache r = schedCache d`
+up to `t₂`, `σ[t₂]` fault, `q''` resident, `hpast`, `hj''` or
+`hq''dead`) and produces the invariant over `Q' = insert (t₂, q'') Q`,
+`P'`, and `r`.  The new pair's positions are witnessed by the new pair
+itself (the nop witness's `j''₀` is pinned to `j''` by nextUse
+uniqueness); a new nop overwriting an old `P`-position is covered by the
+new witness.  `extend_hpair` covers both the alive and dead cases (the
+dead pair never satisfies the `nextUse = some` premise).  **hQ's
+extension is a separate open design problem** (see the next block).
+
+**hQ-extension blocker (2026-08-11, verified by exhaustive search)**:
+the state field `hQ` (`∀ (tᵢ, q'') ∈ Q, nextUse = none ∨ ∃ j'', some j''
+∧ t0 < tᵢ+1+j''`) **does not hold over the full-history Q** — a pair
+whose nop has passed (`nᵢ ≤ t₂+1` at a case-B step) can never satisfy
+`t₂+1 < nᵢ` in the new state.  Over σ of length 4-9, alphabet {1..4},
+both d₀ policies: 10236 B1 + 688 B2 steps have an old pair with
+`nᵢ ≤ t₂`, 212 B1 + 312 B2 steps have `nᵢ = t₂+1`, and **988 B2 steps
+are reached from a state whose hQ is already broken** (e.g.
+σ=[1,1,4,3,4,2,1], C₀={1,2}, max: B1 at 5 is the pair (3,2)'s nop, then
+B2 at 6 with the pair still in Q).  Pruning broken pairs from Q does
+**not** work either: the reverse-diff chain `E − D ⊆ Q.image` needs the
+full page history — the pruned chain fails 37956× at all positions and
+4588× at future positions (e.g. σ=[1,1,3,4,1,2,3,1], C₀={1,2}, min: at
+position 6 = the pruned pair's nop, `3 ∈ E_6 − D_6`).  What does hold
+(0 violations): at B2 disagreements σ[t₂] is **never** a broken pair's
+page, and the e-hit at B2 is 0 — the consumers (`b2_ehit_ne`,
+`b2_hnotE`) only ever consult the pair whose page equals the request, and
+that pair is never broken.  So the resolution is a design change, not a
+proof: either (a) the state carries the full pair history for the chain
+**and** a separate "live" set (pairs with `nᵢ > t0`, dead pairs) for
+`hQ`, with `b2_ehit_ne`/`b2_hnotE`/`past_pair_first_request_after`
+restated over the live set; or (b) the consumers are restated to take the
+state's hQ at bound `st.t0` and derive the strict `t₃ < nᵢ` only for the
+consulted pair (whose page is the request — never broken empirically, but
+the "requested-again at a B2 disagreement" exclusion needs the
+last-repair/nop analysis).  Also open: the new pair's own hQ clause needs
+`0 < j''` (the new nop `t₂+1+j''` strictly after `t₂+1`); `j'' = 0`
+never occurs empirically but is consistent with the step's local
+hypotheses (d hits at `t₂+1` on `q''`, FIF faults) — so the assembly
+will need either a global argument or a separate boundary case.
+
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
@@ -402,18 +450,12 @@ fault, `q''ᵢ` resident, `d tᵢ = q''ᵢ`, preserved by later repairs since
 `tᵢ < t₂` and the caches agree up to `t₂`).  The derivation: `t ∈ P ⟹
 t = tᵢ` (contradicts `hpast`) or `t = nᵢ` — the invariant gives `d t =
 q''`, and `evicted_page_absent_until_request` gives `q'' ∉ D_t`, so
-`d t ∉ D_t`, contradicting B2-resident.  **Remaining**: the
-`hcomp`/`hP`/`hpair`-extension glue in the case steps (the induction's
-state carries them; the case-B2/B1 lemmas' outputs need the extensions),
-and the `hnotE` (`Q''`-exclusion at window faults) — at a fault
-`s ∈ (t₂, J]` with `σ[s] = q''ᵢ`, `q''ᵢ` was requested at `s ≥ nᵢ`; the
-request `σ[s] = q''ᵢ` at a `d`-fault (`σ[s] ∉ D_s`) contradicts `q''ᵢ ∈
-D_s` (requested at `nᵢ ≤ s`, kept — needs "the current schedule never
-evicts `q''ᵢ` after its request", the branch-analysis half 2: `e s' ≠
-q''ᵢ` from `e s' ∈ E_{s'} ∪ {q₀'}` and `q''ᵢ ∉ E_{s'} ∪ {q₀'}` —
-`q''ᵢ ≠ q₀'` by `q₀' ∉ D_{tᵢ}` vs `q''ᵢ ∈ D_{tᵢ}` (FIF-resident),
-`q''ᵢ ∉ E_{s'}` by the chain + the request-avoidance — **still open**);
-(3) the dead-page case
+`d t ∉ D_t`, contradicting B2-resident.  **Done (sixth batch, B7,
+kernel-checked)**: the `hcomp`/`hP`/`hP_in`/`hpair`/`hpast`/`hQfifo`
+extension glue (the `extend_*` lemmas above); the `hnotE` derivation
+(`pair_q''_absent_d`/`pair_page_in_D_of_in_E`/`b2_hnotE`, B8 —
+kernel-checked, fifth batch).  **Open**: the hQ extension (see the
+hQ-extension blocker above).  Then (3) the dead-page case
 steps (B2-q-dead, B2-q''-dead via `repair_keep_swap_cur_qp_dead`,
 B1-dead); then the induction (`exists_first_disagree_after` + the case
 steps + the window-state threading — note `hj₀` cannot exist when the
@@ -561,8 +603,13 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   kernel-checked) and `iterate_main_exchange` (the case-A step, done);
   the current-schedule keep-swap (done: `repair_keep_swap_cur` alive-alive,
   `repair_keep_swap_cur_qp_dead` q''-dead; the q-dead step needs none);
-  next the case-B1/B2 step lemmas (B1-alive, B1-dead, B2-alive done),
-  then the `iterate_main` induction and
+  the case-B1/B2 step lemmas (B1-alive, B1-dead, B2-alive done);
+  the case-step extension glue (done, sixth batch: `extend_hpast`,
+  `extend_hQfifo`, `extend_hP`, `extend_hP_in`, `extend_hcomp`,
+  `extend_hpair`, `extend_hP_dead`, `extend_hP_in_dead`,
+  `extend_hcomp_dead`); next the hQ-extension design (see the
+  hQ-extension blocker above), the wiring of the `extend_*` lemmas into
+  the case-step outputs, then the `iterate_main` induction and
   `fifo_optimal`; then verification (axioms, `lake build CLRSLean`,
   `check_repository.py`, docs, progress CSV) and merge of all `Dev/`
   lemmas into `S3_Optimality.lean`.
