@@ -427,6 +427,30 @@ never occurs empirically but is consistent with the step's local
 hypotheses (d hits at `t₂+1` on `q''`, FIF faults) — so the assembly
 will need either a global argument or a separate boundary case.
 
+**hQ supply core done (2026-08-12, kernel-checked)** — the supply
+lemmas that the two options share:
+
+- `extend_hQ` (B7): the glue — `Q' = insert (t₂, q'') Q` at the new
+  bound `t₂+1`; the old pairs pass through (premise at the new bound),
+  the new pair's clause needs `0 < j''`;
+- `b2_hQ_j''_pos` (B7): the `0 < j''` global argument — `j'' = 0`
+  would give `σ[t₂+1] = q''` (getD_eq_nextUse), contradicting the
+  exchange's fault at `t₂+1` (`hnotE`) against `q''`'s residence in the
+  exchange cache (resident + the reverse-diff chain);
+- `b2_hQ_supply_old` (B9): the consumers' strengthened bound at the B2
+  disagreement — `∀ pairs ∈ st.Q, dead ∨ t₂ < nᵢ` — the exact
+  instantiation of `past_pair_first_request_after` on the state fields
+  (`hqin` = the B2-resident).  This is the "consulted pair is never
+  broken" form the consumers (`b2_ehit_ne`, `b2_hnotE`,
+  `repair_keep_swap_cur`) take.
+
+**Open (the assembly's live-set/boundary choice)**: the new state's hQ
+at `t₂+1` still excludes the pairs with `nᵢ = t₂+1` (their nop at the
+new t0 — 312 B2 steps empirically); those need option (a)'s live set or
+the per-page credit (the pair's page `σ[t₂+1]` is requested at the new
+t0, so it is never the B2 request `σ[t₃]` of a later disagreement — the
+exclusion the DESIGN's "requested-again" analysis would formalize).
+
 **Slack-accounting blocker (2026-08-11, verified by exhaustive search,
 `Dev/search_slack.py`)**: the B1 step's slack invariant `bad ≤ slack`
 (`bad = 1{σ[J'''] ∈ D_{J'''}}`, the `slack − bad` bookkeeping) is
