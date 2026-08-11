@@ -8,11 +8,9 @@ CLRS §31.5: the **Chinese remainder theorem** (Theorem 31.27) — if the moduli
 `n₁, …, nₖ` are pairwise relatively prime, then the system of congruences
 `x ≡ aᵢ (mod nᵢ)` has a unique solution modulo `n₁·…·nₖ`.
 
-This section formalizes the two-modulus form (the building block of the full
-theorem): for coprime `n` and `m`, the system `x ≡ a (mod n)`, `x ≡ b (mod m)`
-has a solution, and any two solutions agree modulo `n·m`.  Mathlib's
-`Nat.chineseRemainder` supplies existence; uniqueness uses
-`Nat.modEq_and_modEq_iff_modEq_mul`.
+This section formalizes both the two-modulus form and the general list form
+of the theorem.  Mathlib's `Nat.chineseRemainder` supplies existence for two
+moduli; `Nat.chineseRemainderOfList` handles the general case.
 
 Main results:
 
@@ -20,14 +18,17 @@ Main results:
   `x ≡ a (mod n)`, `x ≡ b (mod m)` has a solution.
 - Theorem {lit}`chinese_remainder_unique`: any two solutions agree modulo
   `n·m`.
+- Theorem {lit}`chinese_remainder_general` (Theorem 31.27, general form): for
+  a list of pairwise-coprime moduli, a solution exists, unique modulo the
+  product.
 
 Notation:
 
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.Coprime n m` : `gcd n m = 1`.
 
-Deferred: the general `k`-modulus form via `Nat.chineseRemainderOfList` /
-`ZMod.chineseRemainder`, and the CRT-based RSA proofs (§31.7).
+Deferred: the `ZMod.chineseRemainder` ring-isomorphism packaging, and the
+CRT-based RSA proofs (§31.7).
 -/
 
 namespace CLRS
@@ -66,6 +67,22 @@ theorem chinese_remainder {n m a b : ℕ} (hcop : Nat.Coprime n m) :
   refine ⟨x, hx₁, hx₂, ?_⟩
   intro y hy₁ hy₂
   exact chinese_remainder_unique hcop ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
+
+/--
+**Chinese remainder theorem, general form (CLRS Theorem 31.27).**  For a list
+of pairwise-coprime moduli `s i` and residues `a i`, the system of congruences
+`x ≡ a i (mod s i)` has a solution, unique modulo the product of the moduli.
+-/
+theorem chinese_remainder_general {ι : Type} (a s : ι → ℕ) (l : List ι)
+    (co : List.Pairwise (Function.onFun Nat.Coprime s) l) :
+    ∃ x : ℕ, (∀ i ∈ l, x ≡ a i [MOD s i]) ∧
+      ∀ y : ℕ, (∀ i ∈ l, y ≡ a i [MOD s i]) → x ≡ y [MOD (List.map s l).prod] := by
+  let crt := Nat.chineseRemainderOfList a s l co
+  refine ⟨crt.1, ?_⟩
+  constructor
+  · exact crt.2
+  · intro y hy
+    exact (Nat.chineseRemainderOfList_modEq_unique a s l co hy).symm
 
 end Chapter31
 
