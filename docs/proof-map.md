@@ -2190,12 +2190,13 @@ weight domination.
 
 ## Chapter 17 - Amortized Analysis
 
-- Lean source:
-  `CLRSLean/Chapter_17.lean`,
-  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`,
-  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`,
-  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`, and
-  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables.lean`
+- Lean source (canonical fourth-edition Sections 16.1-16.4; the legacy
+  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework*` and
+  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables*` files forward to them):
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework.lean`,
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter.lean`,
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables.lean`, and
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables/Section_16_4_Mutable_Array_Tables.lean`
 - Status: `selected-section-complete`
 - Main proved theorems:
   - `CLRS.Chapter17.aggregate_bound_of_prefix_bound`

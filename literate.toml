@@ -281,6 +281,16 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality",
 ]
+"CLRSLean.FourthEdition.Chapter_16" = [
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework",
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables",
+]
+"CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework" = [
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter",
+]
+"CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables" = [
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -644,6 +654,18 @@ title = "Optimality"
 
 [modules."CLRSLean.FourthEdition.Chapter_16"]
 title = "Chapter 16. Amortized Analysis"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework"]
+title = "16.1-16.3. Amortized Analysis Methods"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter"]
+title = "Stack and Counter Examples"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables"]
+title = "16.4. Dynamic Tables"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables"]
+title = "Mutable-Array Tables and Sharper Potential"
 
 [modules."CLRSLean.FourthEdition.Chapter_17"]
 title = "Chapter 17. Augmenting Data Structures"
