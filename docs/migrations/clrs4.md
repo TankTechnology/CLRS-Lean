@@ -48,7 +48,7 @@ import CLRSLean.OnlineMaterial
 | Chapter 17, Augmenting Data Structures | `CLRSLean.Chapter_14` | Shifted facade. |
 | Chapter 18, B-Trees | `CLRSLean.Chapter_18` | Same chapter number. |
 | Chapter 19, Data Structures for Disjoint Sets | `CLRSLean.FourthEdition.Chapter_19` (native §19.1--19.4) | Sections 19.1--19.4 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_21.Section_21_*` forward to them. Declarations retain the `CLRS.Chapter21` namespace pending the chapter-by-chapter namespace migration. |
-| Chapter 20, Elementary Graph Algorithms | `CLRSLean.Chapter_22` | Shifted facade. |
+| Chapter 20, Elementary Graph Algorithms | `CLRSLean.FourthEdition.Chapter_20` (native §20.1--20.5) | Sections 20.1--20.5 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_22.Section_22_*` forward to them. Declarations retain the `CLRS.Chapter22` namespace pending the chapter-by-chapter namespace migration. |
 | Chapter 21, Minimum Spanning Trees | `CLRSLean.Chapter_23` | Shifted facade. |
 | Chapter 22, Single-Source Shortest Paths | `CLRSLean.Chapter_24` | Shifted facade. |
 | Chapter 23, All-Pairs Shortest Paths | `CLRSLean.Chapter_25` | Shifted facade. |

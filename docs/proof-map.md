@@ -3167,7 +3167,9 @@ track.
 ### Section 22.1 - Representing graphs
 
 - Lean source:
-  `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean`
+  `CLRSLean/FourthEdition/Chapter_20/Section_20_1_Representing_Graphs.lean`
+  (canonical fourth-edition Section 20.1; the legacy
+  `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` forwards to it)
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter22.Graph`
@@ -3183,7 +3185,9 @@ track.
 
 ### Section 22.2 - Breadth-first search
 
-- Lean source: `CLRSLean/Chapter_22/Section_22_2_BFS.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_20/Section_20_2_BFS.lean`
+  (canonical fourth-edition Section 20.2; the legacy
+  `CLRSLean/Chapter_22/Section_22_2_BFS.lean` forwards to it)
 - Status: `proved`
 - Reachability layer:
   - `CLRS.Chapter22.Graph.bfs_sound`
@@ -3212,13 +3216,14 @@ track.
 
 ### Section 22.3 - Depth-first search
 
-- Lean sources:
-  - `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S2_Intervals.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S3_Bridge.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S4_SCC.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S5_EdgeClassification.lean`
+- Lean sources (canonical fourth-edition Section 20.3; the legacy
+  `CLRSLean/Chapter_22/Section_22_3_DFS*` files forward to them):
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S1_WhitePath.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S2_Intervals.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S3_Bridge.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S4_SCC.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S5_EdgeClassification.lean`
 - Status: `proved`
 - DFS and white-path layer:
   - `CLRS.Chapter22.Graph.DFSState`
@@ -3247,7 +3252,9 @@ track.
 
 ### Section 22.4 - Topological sort
 
-- Lean source: `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_20/Section_20_4_Topological_Sort.lean`
+  (canonical fourth-edition Section 20.4; the legacy
+  `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` forwards to it)
 - Status: `proved`
 - Kahn layer:
   - `CLRS.Chapter22.Graph.IsDAG`
@@ -3265,8 +3272,11 @@ track.
 ### Section 22.5 - Strongly connected components
 
 - Lean sources:
-  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean`
-  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components/MergeSortCongr.lean`
+  (canonical fourth-edition Section 20.5; the legacy
+  `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components*` files
+  forward to them)
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter22.Graph.transpose`

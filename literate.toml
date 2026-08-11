@@ -301,6 +301,23 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.CostedExecution",
   "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.InverseAckermann",
 ]
+"CLRSLean.FourthEdition.Chapter_20" = [
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_1_Representing_Graphs",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_2_BFS",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_4_Topological_Sort",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components",
+]
+"CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS" = [
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S1_WhitePath",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S2_Intervals",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S3_Bridge",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S4_SCC",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S5_EdgeClassification",
+]
+"CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components" = [
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components.MergeSortCongr",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -706,6 +723,39 @@ title = "Inverse-Ackermann Amortization"
 
 [modules."CLRSLean.FourthEdition.Chapter_20"]
 title = "Chapter 20. Elementary Graph Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_1_Representing_Graphs"]
+title = "20.1. Representing Graphs"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_2_BFS"]
+title = "20.2. Breadth-First Search"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS"]
+title = "20.3. Depth-First Search"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S1_WhitePath"]
+title = "White-Path Theorem"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S2_Intervals"]
+title = "Intervals and Timestamps"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S3_Bridge"]
+title = "Discovery-State Bridge"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S4_SCC"]
+title = "SCC Preliminaries"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S5_EdgeClassification"]
+title = "Edge Classification"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_4_Topological_Sort"]
+title = "20.4. Topological Sort"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components"]
+title = "20.5. Strongly Connected Components"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components.MergeSortCongr"]
+title = "Merge-Sort Congruence"
 
 [modules."CLRSLean.FourthEdition.Chapter_21"]
 title = "Chapter 21. Minimum Spanning Trees"
