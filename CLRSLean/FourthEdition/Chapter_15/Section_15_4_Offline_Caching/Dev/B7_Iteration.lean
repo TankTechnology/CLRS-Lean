@@ -2210,7 +2210,11 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       (∀ s, s ∉ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
         r s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) ∧
       (∀ s, max hnb (t₂ + 1 + j'' + 1) ≤ s →
-        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) := by
+        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) ∧
+      r t₂ = fifoSchedule σ C₀ t₂ ∧
+      r (t₂ + 1 + j'') = fifoSchedule σ C₀ t₂ ∧
+      (∀ s, s ∉ ({t₂, t₂ + 1 + j''} : Finset ℕ) → r s = d s) ∧
+      (∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s) := by
   let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
   let q : Page := d t₂
   let q'' : Page := fifoSchedule σ C₀ t₂
@@ -2232,7 +2236,7 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
     exact swap_q_not_mem e σ C₀ (show e t₂ = q from by
       change exchangeSchedule d_pre t₀ q₀ q₀' σ C₀ t₂ = q
       rw [← hd_eq t₂ ht₂notP]) hqinE hft hj hs1 hs2
-  refine ⟨r, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨r, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- agree 到 t₂+1
     exact (repair_step_swap_strong d σ C₀ hC₀ ht₂ hagree hdis hqin hj hj'' hjj'' hswap).2
   · -- miss 不增
@@ -2270,6 +2274,19 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       unfold r repairSchedule
       simp [show s ≠ t₂ by omega, show s ≠ t₂ + 1 + j'' by omega]]
     exact hsup s hJ''lt hdsin
+  · -- r t₂ = q''
+    simpa [q''] using repairSchedule_at_t d t₂ q'' (t₂ + 1 + j'')
+  · -- r J'' = q''
+    unfold r repairSchedule
+    simp [q'']
+  · -- r s = d s off {t₂, J''}
+    intro s hs
+    unfold r repairSchedule
+    simp [show s ≠ t₂ by (intro h; exact hs (by simp [h])),
+      show s ≠ t₂ + 1 + j'' by (intro h; exact hs (by simp [h]))]
+  · -- cache 一致到 t₂
+    intro s hs
+    exact schedCache_repairSchedule_eq_e d t₂ q'' (t₂ + 1 + j'') (by omega) σ C₀ hs
 
 /-- 迭代的情形 A(交换步骤):在首个分歧 `t` 处,用策略的选择
 `q' = fifoSchedule σ C₀ t` 替换 `d` 的逐出 `q = d t`,得到新调度
