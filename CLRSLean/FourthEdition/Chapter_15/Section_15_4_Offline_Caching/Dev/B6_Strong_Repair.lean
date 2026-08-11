@@ -1138,6 +1138,224 @@ lemma repair_step_swap_strong (e : ℕ → Page) (σ : List Page) (C₀ : Finset
           exact Finset.insert_erase (Finset.mem_erase.mpr ⟨hqne, hqin⟩)
         rw [hE, hF]
 
+/-- The alive-alive B2's exact net (DESIGN.md's non-q₀' pairing proposal,
+credit 2): the strong repair's pointwise balance is
+`rF = eF − 1{J} + 1{bad at J''}` — the good at `J` (the repair hits where
+the source faults — keep-swap) can occur without the bad at `J''` (the
+source hits `q''` there), in which case the repair saves exactly 1.
+Formal: `schedMisses r + 1 ≤ schedMisses e + bad` — the slack credit
+`+1 − bad` that covers a later B1's bad on the kept page. -/
+lemma repair_step_swap_exact_net (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF e C₀ σ t)
+    (hdis : schedCache e C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hqin : e t ∈ schedCache e C₀ σ t)
+    {j : ℕ} (hj : nextUse σ (t + 1) (e t) = some j)
+    {j' : ℕ} (hj' : nextUse σ (t + 1) (fifoSchedule σ C₀ t) = some j')
+    (hjj' : j < j')
+    (hswap : schedCache (repairSchedule e t (fifoSchedule σ C₀ t) (t + 1 + j')) C₀ σ (t + 1 + j) =
+      insert (e t) ((schedCache e C₀ σ (t + 1 + j)).erase (fifoSchedule σ C₀ t))) :
+    schedMisses (repairSchedule e t (fifoSchedule σ C₀ t) (t + 1 + j')) C₀ σ + 1 ≤
+      schedMisses e C₀ σ +
+        if σ.getD (t + 1 + j') 0 ∈ schedCache e C₀ σ (t + 1 + j') then 1 else 0 := by
+  let q : Page := e t
+  let q' : Page := fifoSchedule σ C₀ t
+  let r : ℕ → Page := repairSchedule e t q' (t + 1 + j')
+  let eF : ℕ → ℕ := schedFaultAt e C₀ σ
+  let rF : ℕ → ℕ := schedFaultAt r C₀ σ
+  let bad : ℕ := if σ.getD (t + 1 + j') 0 ∈ schedCache e C₀ σ (t + 1 + j') then 1 else 0
+  have hft : σ.getD t 0 ∉ schedCache e C₀ σ t := by
+    intro hft
+    have hFt : σ.getD t 0 ∈ schedCache (fifoSchedule σ C₀) C₀ σ t := by
+      rw [← hagree t le_rfl]
+      exact hft
+    have hD : schedCache e C₀ σ (t + 1) = schedCache e C₀ σ t := by
+      rw [schedCache]
+      rw [if_pos hft]
+    have hF : schedCache (fifoSchedule σ C₀) C₀ σ (t + 1) =
+        schedCache (fifoSchedule σ C₀) C₀ σ t := by
+      rw [schedCache]
+      rw [if_pos hFt]
+    exact hdis ((hD.trans (hagree t le_rfl)).trans hF.symm)
+  have hq'res : q' ∈ schedCache e C₀ σ t := by
+    have hfd := first_disagree e σ C₀ hC₀ ht hagree hdis
+    exact hfd.2.2
+  have hq : q = e t := rfl
+  have hqne : q ≠ q' := by
+    have hfd := first_disagree e σ C₀ hC₀ ht hagree hdis
+    intro hqq'
+    exact hfd.2.1 (by rw [← hq, hqq'])
+  have hJlen : t + 1 + j < σ.length := by
+    have hjlt' : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
+    rw [List.length_drop] at hjlt'
+    omega
+  have hJ'len : t + 1 + j' < σ.length := by
+    have hj'lt' : j' < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj').1
+    rw [List.length_drop] at hj'lt'
+    omega
+  -- pointwise over the range without J': rF + 1{J} ≤ eF
+  have hper' : ∀ s, s < σ.length → s ≠ t + 1 + j' →
+      rF s + (if s = t + 1 + j then 1 else 0) ≤ eF s := by
+    intro s hlen hsneq
+    by_cases hst : s ≤ t
+    · unfold rF eF r schedFaultAt
+      rw [schedCache_repairSchedule_eq_e e t q' (t + 1 + j') (by omega) σ C₀ hst]
+      rw [show (if s = t + 1 + j then 1 else 0) = 0 by
+        simp [show s ≠ t + 1 + j by omega]]
+      omega
+    · have hts' : t < s := by omega
+      by_cases hsJ : s ≤ t + 1 + j
+      · -- (t, J] 内
+        by_cases hs_eqJ : s = t + 1 + j
+        · -- s = J:请求 q,`e` 缺页,`r` 命中(keep-swap)——修复节省 1
+          subst s
+          unfold rF eF r schedFaultAt
+          have hsig : σ.getD (t + 1 + j) 0 = q := getD_eq_nextUse hj
+          have hqnotE : q ∉ schedCache e C₀ σ (t + 1 + j) := by
+            exact swap_q_not_mem e σ C₀ hq hqin hft hj (by omega) le_rfl
+          rw [hsig]
+          rw [show (if t + 1 + j = t + 1 + j then 1 else 0) = 1 by simp]
+          have hqinS : q ∈ schedCache r C₀ σ (t + 1 + j) := by
+            rw [hswap]
+            rw [hq]
+            exact Finset.mem_insert_self _ _
+          rw [if_pos hqinS]
+          rw [if_neg hqnotE]
+        · -- t < s < J:窗口内,请求既不是 q 也不是 q'
+          have hwin := repairSchedule_window_swap' e σ C₀ hC₀ ht hagree hdis hqin rfl hq hj hj' hjj'
+            (s := s) (by omega) (by omega)
+          unfold rF eF r schedFaultAt
+          rw [show (if s = t + 1 + j then 1 else 0) = 0 by
+            simp [show s ≠ t + 1 + j by omega]]
+          rcases hwin with hswap' | hsub
+          · rw [hswap']
+            have hneq_q : σ.getD s 0 ≠ q := getD_ne_nextUse (k := s) hj (by omega) (by omega)
+            have hneq_q' : σ.getD s 0 ≠ q' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+            by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+            · rw [if_pos hr]
+              rw [if_pos (by
+                rw [Finset.mem_insert]
+                exact Or.inr (Finset.mem_erase.mpr ⟨hneq_q', hr⟩))]
+            · rw [if_neg hr]
+              have hr' : σ.getD s 0 ∉ insert q ((schedCache e C₀ σ s).erase q') := by
+                intro hm
+                rcases Finset.mem_insert.mp hm with hqq | hm
+                · exact hneq_q hqq
+                · exact hr (Finset.mem_erase.mp hm).2
+              rw [if_neg hr']
+          · rw [hsub]
+            have hneq_q' : σ.getD s 0 ≠ q' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+            by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+            · rw [if_pos hr]
+              rw [if_pos (Finset.mem_erase.mpr ⟨hneq_q', hr⟩)]
+            · rw [if_neg hr]
+              have hr' : σ.getD s 0 ∉ (schedCache e C₀ σ s).erase q' := by
+                intro hm
+                exact hr (Finset.mem_erase.mp hm).2
+              rw [if_neg hr']
+      · -- s > J
+        by_cases hsJ' : s < t + 1 + j'
+        · -- (J, J') 内
+          have hwin := repairSchedule_after_J_window e σ C₀ hC₀ ht hagree hdis hqin rfl hq hj hj' hjj'
+            (s := s) (by omega) (by omega)
+          unfold rF eF r schedFaultAt
+          rw [show (if s = t + 1 + j then 1 else 0) = 0 by
+            simp [show s ≠ t + 1 + j by omega]]
+          rcases hwin with hsub | ⟨x, hswap''⟩
+          · rw [hsub]
+            have hneq_q' : σ.getD s 0 ≠ q' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+            by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+            · rw [if_pos hr]
+              rw [if_pos (Finset.mem_erase.mpr ⟨hneq_q', hr⟩)]
+            · rw [if_neg hr]
+              have hr' : σ.getD s 0 ∉ (schedCache e C₀ σ s).erase q' := by
+                intro hm
+                exact hr (Finset.mem_erase.mp hm).2
+              rw [if_neg hr']
+          · rw [hswap'']
+            have hneq_q' : σ.getD s 0 ≠ q' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+            by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+            · rw [if_pos hr]
+              rw [if_pos (by
+                rw [Finset.mem_insert]
+                exact Or.inr (Finset.mem_erase.mpr ⟨hneq_q', hr⟩))]
+            · rw [if_neg hr]
+              by_cases hrS : σ.getD s 0 ∈ insert x ((schedCache e C₀ σ s).erase q')
+              · rw [if_pos hrS]
+                omega
+              · rw [if_neg hrS]
+        · -- s > J':E ⊆ Ŝ
+          have hsJ'' : t + 1 + j' < s := by omega
+          have hsup : schedCache e C₀ σ s ⊆ schedCache r C₀ σ s := by
+            exact repairSchedule_superset_swap e σ C₀ hC₀ ht hagree hdis hqin rfl hq hj hj' hjj' hsJ''
+          unfold rF eF r schedFaultAt
+          rw [show (if s = t + 1 + j then 1 else 0) = 0 by
+            simp [show s ≠ t + 1 + j by omega]]
+          by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
+          · rw [if_pos hr]
+            rw [if_pos (hsup hr)]
+          · rw [if_neg hr]
+            by_cases hr' : σ.getD s 0 ∈ schedCache r C₀ σ s
+            · rw [if_pos hr']
+              omega
+            · rw [if_neg hr']
+  -- 求和:Σ rF + 1 ≤ Σ eF + bad(J 处 +1,J' 处 eF + bad = 1 且 rF ≤ 1)
+  unfold schedMisses
+  change (∑ s ∈ Finset.range σ.length, rF s) + 1 ≤
+    (∑ s ∈ Finset.range σ.length, eF s) + bad
+  have hJin : t + 1 + j ∈ Finset.range σ.length := by
+    rw [Finset.mem_range]
+    exact hJlen
+  have hJ'in : t + 1 + j' ∈ Finset.range σ.length := by
+    rw [Finset.mem_range]
+    exact hJ'len
+  have hJneJ' : t + 1 + j ≠ t + 1 + j' := by omega
+  have hsum_erase_le : (Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) rF) + 1 ≤
+      Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) eF := by
+    have hper_sum : Finset.sum ((Finset.range σ.length).erase (t + 1 + j'))
+          (fun s => rF s + (if s = t + 1 + j then 1 else 0)) ≤
+        Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) eF := by
+      exact Finset.sum_le_sum (fun s hs => hper' s
+        (Finset.mem_range.mp (Finset.mem_erase.mp hs).2) (Finset.mem_erase.mp hs).1)
+    rw [Finset.sum_add_distrib] at hper_sum
+    have hsum_good : Finset.sum ((Finset.range σ.length).erase (t + 1 + j'))
+        (fun s => (if s = t + 1 + j then 1 else 0)) = 1 := by
+      rw [Finset.sum_eq_single (t + 1 + j)]
+      · simp
+      · intro b hb hbne
+        simp [hbne]
+      · intro hnot
+        exfalso
+        exact hnot (Finset.mem_erase.mpr ⟨hJneJ', hJin⟩)
+    rw [hsum_good] at hper_sum
+    omega
+  have heFJ'add : eF (t + 1 + j') + bad = 1 := by
+    by_cases hbad : σ.getD (t + 1 + j') 0 ∈ schedCache e C₀ σ (t + 1 + j')
+    · unfold bad eF schedFaultAt
+      rw [if_pos hbad, if_pos hbad]
+    · unfold bad eF schedFaultAt
+      rw [if_neg hbad, if_neg hbad]
+  have hrFJ'le : rF (t + 1 + j') ≤ 1 := by
+    unfold rF schedFaultAt
+    split <;> omega
+  have hsum_erase_r : (Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) rF) +
+      rF (t + 1 + j') = Finset.sum (Finset.range σ.length) rF := by
+    exact Finset.sum_erase_add (s := Finset.range σ.length) (a := t + 1 + j')
+      (f := rF) hJ'in
+  have hsum_erase_e : (Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) eF) +
+      eF (t + 1 + j') = Finset.sum (Finset.range σ.length) eF := by
+    exact Finset.sum_erase_add (s := Finset.range σ.length) (a := t + 1 + j')
+      (f := eF) hJ'in
+  rw [← hsum_erase_r, ← hsum_erase_e]
+  have hA : (Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) rF + rF (t + 1 + j')) + 1 ≤
+      Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) eF + 1 := by
+    omega
+  have hB : Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) eF + 1 ≤
+      Finset.sum ((Finset.range σ.length).erase (t + 1 + j')) eF + eF (t + 1 + j') + bad := by
+    omega
+  exact le_trans hA hB
+
 /-- In the exchange window of `t₀`, at a B2 position `t₂`, the exchange
 schedule never evicts `q = e t₂` at a fault in `(t₂, J]`: branch 1 evicts
 the window page `q₀'` (absent from the cache while `q` is resident),
