@@ -427,6 +427,33 @@ never occurs empirically but is consistent with the step's local
 hypotheses (d hits at `t₂+1` on `q''`, FIF faults) — so the assembly
 will need either a global argument or a separate boundary case.
 
+**Slack-accounting blocker (2026-08-11, verified by exhaustive search,
+`Dev/search_slack.py`)**: the B1 step's slack invariant `bad ≤ slack`
+(`bad = 1{σ[J'''] ∈ D_{J'''}}`, the `slack − bad` bookkeeping) is
+**empirically false**: with the exact accounting (each exchange `+1`
+iff its bad event did not occur; each B1 `−bad`; B2 repairs free) the
+slack goes negative in **492 traces** over σ of length 4-9, alphabet
+{1..4}, both d₀ policies.  Minimal counterexample: σ=[1,1,3,2,4,1,2,4],
+C₀={1,2}, max — A at 2 (bad, slack 0), B2 at 4 (q''=3 dead, free), B1
+at 5 with `bad` (σ[7]=4 ∈ D_7) at slack 0 → −1.  The B1 is legal
+(`σ[5]=1 ∉ {2,4}`, `d 5 = 3 ∉ cache`; the bad is real — the B2 at 4
+re-kept 4).  The supply pairing (the exchange's `+1` iff `¬bad`,
+`window_branch1_once` + `evicted_page_absent_until_request`) covers
+**exactly** the B1-bads with `d t₂ = q₀'` (the window page): of the
+3836 B1-bads, 2796 have `d t₂ = q₀'` — all with the exchange's bad
+NOT occurring and `slack ≥ 1` (0 slack-0); the other 1040 have
+`d t₂ ≠ q₀'` — `d t₂` is a past pair's page (`exchange_evict_mem_or_q'`
+gives `e t₂ ∈ E_{t₂} ∪ {q₀'}`, `d t₂ ∉ D_{t₂}` pushes it into
+`E_{t₂} − D_{t₂} ⊆ Q.image`) — and 492 of these have `slack = 0` (172
+at old nop positions `t₂ ∈ P`).  So `bad ≤ slack` is provable for the
+q₀'-B1s but false in general; the non-q₀' B1s need a new supply
+argument (e.g. the past pair whose page `d t₂` is, or a per-page
+pairing of good/bad events).  Also tried: crediting the B2-q''-dead's
+exact saving (`schedMisses r + 1 ≤ schedMisses d` — the repair keeps
+`q`, so it hits where `d` faults at the good event `J = t₂+1+j`; the
+pointwise difference is exactly 1) — reduces the crashes to 228 but
+does not close the gap.
+
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
@@ -469,11 +496,15 @@ An exact iteration simulator (directly computing every B2's good event
 `main` / `search2` / `search3`) over σ of length 4-9, alphabet {1,2,3,4},
 C₀ = {1,2}/{1,2,3}, and both smallest/largest-resident d₀ policies found:
 
-- **0 slack crashes** with exact accounting (each exchange `+1` iff its bad
-  event did not occur; each B1 `−1` iff *its* bad event occurs; B2 strong
-  and dead-page repairs free);
 - **0 keep-swap failures**: `q ∈ Ŝ_J` held for every alive-alive B2, so
   the strong repair is genuinely slack-free in the iteration.
+- The "**0 slack crashes** with exact accounting" claim is **stale and
+  false** (2026-08-11, `Dev/search_slack.py`): `search_iter.search2`
+  stops after its first 3 *conservative*-accounting crashes and never
+  reaches the exact-accounting ones.  A full run of the exact accounting
+  (each exchange `+1` iff its bad event did not occur; each B1 `−1` iff
+  its bad event occurs; B2 repairs free) **crashes 492 times** — see the
+  slack-accounting blocker below.
 
 Conservative "B1 always costs 1" accounting does crash (3 traces, e.g.
 σ=[1,1,3,2,1,3,2], d₀=max), but every crash trace has the B1's `q'''` a
@@ -481,7 +512,8 @@ Conservative "B1 always costs 1" accounting does crash (3 traces, e.g.
 the bad event not occurring.  So the slack bookkeeping must be exact:
 B1 costs `1{J'''}` (paid iff `e` hits `q'''` at `J'''`), supplied by the
 exchange's `+1` iff its bad event did not occur — the pairing that
-`window_branch1_once` + `evicted_page_absent_until_request` give.
+`window_branch1_once` + `evicted_page_absent_until_request` give — but
+this supply covers **only** the `d t₂ = q₀'` B1s (see the blocker).
 
 ### `iterate_main` design (2026-08-10, second pass — diff invariant refined)
 
@@ -609,7 +641,13 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   `extend_hpair`, `extend_hP_dead`, `extend_hP_in_dead`,
   `extend_hcomp_dead`); next the hQ-extension design (see the
   hQ-extension blocker above), the wiring of the `extend_*` lemmas into
-  the case-step outputs, then the `iterate_main` induction and
-  `fifo_optimal`; then verification (axioms, `lake build CLRSLean`,
-  `check_repository.py`, docs, progress CSV) and merge of all `Dev/`
-  lemmas into `S3_Optimality.lean`.
+  the case-step outputs, the slack accounting (blocked — see the
+  slack-accounting blocker above: `bad ≤ slack` is empirically false,
+  the supply covers only the `d t₂ = q₀'` B1s), then the `iterate_main`
+  induction and `fifo_optimal`; then verification (axioms,
+  `lake build CLRSLean`, `check_repository.py`, docs, progress CSV) and
+  merge of all `Dev/` lemmas into `S3_Optimality.lean`.
+- `Dev/search_slack.py` (done, 2026-08-11): the exact-accounting crash
+  scan — 492 counterexamples to `bad ≤ slack` at B1, the cross-tab of
+  the 3836 B1-bads (2796 q₀'-covered / 1040 other, 492 slack-0), and
+  the minimal counterexample σ=[1,1,3,2,4,1,2,4].
