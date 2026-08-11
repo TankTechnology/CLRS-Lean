@@ -1251,6 +1251,9 @@ title = "26.2 S4. Executable BFS"
 [modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
 title = "26.3. Maximum Bipartite Matching (partial)"
 
+[modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
+title = "26.3. Maximum Bipartite Matching"
+
 [modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
 title = "Theorem 26.6. Max-Flow Min-Cut (partial)"
 
