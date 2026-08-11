@@ -1088,6 +1088,88 @@ lemma dfsTour_mem (hT : TreeOn p r) (x : V) : x ∈ dfsTour hT := by
     exact ⟨Finset.mem_univ x, hT.reaches_root x⟩
   exact (preorder_mem_subtree hT r x).2 hx
 
+/-- The preorders of two distinct children of `u` are disjoint lists. -/
+lemma preorder_disjoint_of_ne (hT : TreeOn p r) {u c1 c2 : V}
+    (hc1 : c1 ∈ children p r u) (hc2 : c2 ∈ children p r u) (hne : c1 ≠ c2) :
+    List.Disjoint (preorder hT c1) (preorder hT c2) := by
+  classical
+  rw [List.disjoint_left]
+  intro x hx1 hx2
+  have hxsub1 : x ∈ subtree p r c1 := (preorder_mem_subtree hT c1 x).1 hx1
+  have hxsub2 : x ∈ subtree p r c2 := (preorder_mem_subtree hT c2 x).1 hx2
+  have hdisj := children_subtree_disjoint hT u hc1 hc2 hne
+  change Disjoint (subtree p r c1) (subtree p r c2) at hdisj
+  rw [Finset.disjoint_left] at hdisj
+  exact hdisj hxsub1 hxsub2
+
+/-- A duplicate-free list of children with pairwise-disjoint preorders gives a
+`Pairwise (Disjoint on preorder)` relation. -/
+lemma pairwise_disjoint_of_nodup (hT : TreeOn p r) (u : V) :
+    ∀ cs : List {c : V // c ∈ children p r u},
+      List.Nodup cs →
+      (∀ xc1 ∈ cs, ∀ xc2 ∈ cs, xc1 ≠ xc2 →
+        List.Disjoint (preorder hT xc1.1) (preorder hT xc2.1)) →
+      List.Pairwise (fun xc1 xc2 : {c : V // c ∈ children p r u} =>
+        List.Disjoint (preorder hT xc1.1) (preorder hT xc2.1)) cs := by
+  intro cs
+  induction cs with
+  | nil => simp
+  | cons xc rest ih =>
+      intro hnd hdisj
+      rw [List.pairwise_cons]
+      constructor
+      · intro a' ha'
+        apply hdisj xc (by simp) a' (List.mem_cons.mpr (Or.inr ha'))
+        intro hxc
+        have hxc_rest : xc ∈ rest := by simpa [hxc] using ha'
+        exact (List.nodup_cons.mp hnd).1 hxc_rest
+      · apply ih (List.nodup_cons.mp hnd).2
+        intro xc1 h1 xc2 h2 hne
+        exact hdisj xc1 (by simp [h1]) xc2 (by simp [h2]) hne
+
+/-- The preorder of any subtree has no duplicate vertices. -/
+lemma preorder_nodup (hT : TreeOn p r) (v : V) : List.Nodup (preorder hT v) := by
+  classical
+  let R : V → V → Prop := fun a b => Fintype.card V - depth p r a < Fintype.card V - depth p r b
+  have hwf : WellFounded R := (measure (fun a : V => Fintype.card V - depth p r a)).wf
+  refine hwf.induction (C := fun u : V => List.Nodup (preorder hT u)) v ?_
+  intro u hrec
+  rw [preorder_fix hT u]
+  rw [List.nodup_cons]
+  constructor
+  · intro hu
+    rw [List.mem_flatMap] at hu
+    rcases hu with ⟨yc, hyc, hupre⟩
+    have husub : u ∈ subtree p r yc.1 := (preorder_mem_subtree hT yc.1 u).1 hupre
+    exact v_not_mem_child_subtree hT yc.2 husub
+  · rw [List.nodup_flatMap]
+    constructor
+    · intro xc hxc
+      exact hrec xc.1 (children_depth_lt hT xc.2)
+    · have hndlist : List.Nodup ((children p r u).attach.toList) := by
+        exact Finset.nodup_toList (children p r u).attach
+      have hdisj : ∀ xc1 ∈ (children p r u).attach.toList, ∀ xc2 ∈ (children p r u).attach.toList,
+          xc1 ≠ xc2 → List.Disjoint (preorder hT xc1.1) (preorder hT xc2.1) := by
+        intro xc1 h1 xc2 h2 hne
+        have hne' : xc1.1 ≠ xc2.1 := by
+          intro hval
+          exact hne (Subtype.ext hval)
+        exact preorder_disjoint_of_ne hT xc1.2 xc2.2 hne'
+      exact pairwise_disjoint_of_nodup hT u ((children p r u).attach.toList) hndlist hdisj
+
+/-- The preorder tour has no repeated vertices. -/
+lemma dfsTour_nodup (hT : TreeOn p r) : List.Nodup (dfsTour hT) := by
+  change List.Nodup (preorder hT r)
+  exact preorder_nodup hT r
+
+/--
+**Lemma (isTour).**  The preorder tour visits every vertex exactly once: it has
+no duplicates and every vertex appears in it.
+-/
+lemma dfsTour_isTour (hT : TreeOn p r) :
+    List.Nodup (dfsTour hT) ∧ ∀ x : V, x ∈ dfsTour hT := by
+  exact ⟨dfsTour_nodup hT, dfsTour_mem hT⟩
+
 end TreeOn
 
 end TSP
