@@ -281,6 +281,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_3_Hungarian_Algorithm",
 ]
 "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S1_Preference_Model",
@@ -664,6 +665,8 @@ title = "25.1. Maximum bipartite matching revisited"
 
 [modules."CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage"]
 title = "25.2. The stable-marriage problem"
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_3_Hungarian_Algorithm"]
+title = "25.3. The Hungarian algorithm for the assignment problem"
 
 [modules."CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S1_Preference_Model"]
 title = "Preference Model"
