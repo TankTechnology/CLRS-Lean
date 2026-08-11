@@ -53,7 +53,7 @@ import CLRSLean.OnlineMaterial
 | Chapter 22, Single-Source Shortest Paths | `CLRSLean.Chapter_24` | Shifted facade. |
 | Chapter 23, All-Pairs Shortest Paths | `CLRSLean.Chapter_25` | Shifted facade. |
 | Chapter 24, Maximum Flow | `CLRSLean.Chapter_26` | Shifted facade. |
-| Chapter 25, Matchings in Bipartite Graphs | none | New fourth-edition chapter; not started. |
+| Chapter 25, Matchings in Bipartite Graphs | `CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching` (native §25.1) | Native section: maximum bipartite matching revisited; sections 25.2--25.3 not-started. |
 | Chapter 26, Parallel Algorithms | `CLRSLean.Chapter_27` | Shifted facade. |
 | Chapter 27, Online Algorithms | none | New fourth-edition chapter; not started. |
 | Chapters 28--32 | `CLRSLean.Chapter_28`--`CLRSLean.Chapter_32` | Same chapter number, with explicit section-level differences. |

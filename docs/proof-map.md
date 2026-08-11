@@ -109,10 +109,10 @@ arbitrary-size floor/ceiling recurrence.
 ## Chapter 3 - Growth of Functions
 
 Fourth-edition mapping: legacy §3.1 supplies fourth-edition §§3.1--3.2, while
-legacy §3.2 supplies fourth-edition §3.3.  Fourth-edition §3.1 and §3.3 are
-represented at the current mathematical interface.  Fourth-edition §3.2 remains
-partial because a shared-threshold two-sided Θ witness and the expected
-little-o/little-omega algebra and duality wrappers are not yet exposed.
+legacy §3.2 supplies fourth-edition §3.3.  Fourth-edition §§3.1--3.3 are
+represented at the current mathematical interface: the shared-threshold
+two-sided Θ witness and the little-o/little-omega algebra and duality wrappers
+are proved in the §3.1 source.
 
 ### Section 3.1 - Asymptotic notation
 
@@ -124,10 +124,17 @@ little-o/little-omega algebra and duality wrappers are not yet exposed.
   - `CLRS.Chapter03.isBigOmega_iff`
   - `CLRS.Chapter03.isLittleOmega_iff`
   - `CLRS.Chapter03.isBigTheta_trans`
+  - `CLRS.Chapter03.isBigTheta_iff_sharedThreshold`
+  - `CLRS.Chapter03.isLittleO_reciprocal`
+  - `CLRS.Chapter03.isBigO_reciprocal`
+  - `CLRS.Chapter03.isLittleO_isBigO`
+  - `CLRS.Chapter03.isLittleO_add`
+  - `CLRS.Chapter03.isLittleO_mul`
+  - `CLRS.Chapter03.isLittleO_comp`
+  - `CLRS.Chapter03.isLittleOmega_scale`
+  - `CLRS.Chapter03.isLittleOmega_add_dominated`
 - Proof pattern: bridge CLRS discrete witnesses to Mathlib filters
-- Current gap: none for the represented O/Ω witness core.  At the broader
-  fourth-edition §3.2 interface, the two-sided Θ witness and o/ω wrapper algebra
-  named above remain.
+- Current gap: none.
 
 The section gives CLRS-facing names for O, Ω, Θ, o, and ω over functions
 `ℕ → ℝ`, proves the textbook-style witness forms, and collects basic algebraic
@@ -1297,18 +1304,29 @@ The rank certificate handles duplicates directly.  If `selectByRank? k xs` or
 ### Section 10.1 - Stacks and queues
 
 - Lean source: `CLRSLean/Chapter_10/Section_10_1_Stacks_And_Queues.lean`
-- Status: `proved` for the functional-list model
+- Status: `proved` for the functional-list and array-backed models
 - Main theorems:
   - `CLRS.Chapter10.pop_push`
   - `CLRS.Chapter10.dequeue_enqueue_empty`
   - `CLRS.Chapter10.dequeue_enqueue_nonempty`
   - `CLRS.Chapter10.length_enqueue`
-- Proof pattern: definitional equations over list-backed stacks and queues
-- Current gap: array overflow/underflow, circular buffers, and RAM costs are
-  deferred to a future execution model
+  - `CLRS.Chapter10.arrayRead_arrayWrite_same` / `arrayRead_arrayWrite_other`
+  - `CLRS.Chapter10.arrayPop_arrayPush`
+  - `CLRS.Chapter10.arrayPop_empty` / `arrayPush_overflow`
+  - `CLRS.Chapter10.arrayDequeue_arrayEnqueue_empty`
+  - `CLRS.Chapter10.arrayDequeue_empty` / `arrayEnqueue_overflow`
+  - `CLRS.Chapter10.arrayEnqueue_tail_wraps`
+- Proof pattern: definitional equations over list-backed stacks and queues, and
+  pointer-index equations over array-backed stores with overflow/underflow via
+  `Option` and circular wrap-around via `Nat.mod`
+- Current gap: none for the represented interface.  Concrete RAM execution,
+  pointer mutation, and memory costs are deferred to a future execution model.
 
-The section proves the algebraic behavior of stacks and queues using lists:
-stack top is list head, and queue front is list head with enqueue at the back.
+The section proves the algebraic behavior of stacks and queues using lists —
+stack top is list head, and queue front is list head with enqueue at the back —
+and, matching fourth-edition §10.1, the array-backed stack (top pointer) and
+circular queue (head/tail pointers with wrap-around), with overflow and
+underflow reported as `none`.
 
 ### Section 10.2 - Linked lists
 
@@ -1404,6 +1422,34 @@ stack top is list head, and queue front is list head with enqueue at the back.
   (CLRS Theorem 11.3) from the universality hypothesis alone.
 - Current gap: RAM/probe-count operational semantics.
 
+### Section 11.3 - Hash functions
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_3_Hash_Functions.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.divisionHash_lt`, `CLRS.Chapter11.multiplicationHash_lt`: range bounds for the division and multiplication methods (CLRS §11.3, equations (11.1)-(11.3))
+  - `CLRS.Chapter11.affineHash_isUniversal`: the exact `m = p` affine family over `ZMod p` is universal (CLRS Theorem 11.5, special case)
+  - `CLRS.Chapter11.affineHash_expected_collisions`, `CLRS.Chapter11.affineHash_expected_search_cost`: expected collision and search-cost bounds for the affine family
+  - `CLRS.Chapter11.affineHashMod_isUniversal`: the general mod-`m` affine family `h_{a,b}(k) = ((a·k + b) mod p) mod m` (`a ≠ 0`) is universal for any table size `m ≤ p` (CLRS Theorem 11.5, full form)
+  - `CLRS.Chapter11.count_congruent_gt_le`, `CLRS.Chapter11.count_congruent_lt_le`, `CLRS.Chapter11.congruentPair_count_le`: residue-pair counting lemmas bounding the number of distinct residue pairs colliding modulo `m`
+- Proof pattern: `affineHashMod_isUniversal` injectively maps colliding index pairs `(a,b)` into residue pairs `(r,s)` with `r ≠ s` and `r ≡ s (mod m)`, bounded by `p(p-1)/m`; the exact `m = p` case needs only the injectivity argument.
+- Current gap: none for the represented interface; concrete bit-level hash-cost semantics remain an optional low-level refinement.
+
+### Section 11.4 - Open addressing
+
+- Lean source: `CLRSLean/Chapter_11/Section_11_4_Open_Addressing.lean`
+- Status: `proved`
+- Main proved theorems:
+  - `CLRS.Chapter11.openSearch_eq_false_of_absent`, `CLRS.Chapter11.openSearch_openInsert`: functional-model correctness (absent key not found, inserted key found)
+  - `CLRS.Chapter11.linearProbe_bijective`, `CLRS.Chapter11.doubleHashProbe_bijective`, `CLRS.Chapter11.quadraticProbe_zero`: the probe schemes of CLRS §11.4, equations (11.5)-(11.7)
+  - `CLRS.Chapter11.probeTail_le_pow`: the per-factor uniform-hashing tail bound `(n-j)/(m-j) ≤ n/m`
+  - `CLRS.Chapter11.expectedUnsuccessfulProbes_le` (Theorem 11.6): expected unsuccessful-search probes `≤ 1/(1-α)`
+  - `CLRS.Chapter11.expectedInsertionProbes_le` (Corollary 11.7)
+  - `CLRS.Chapter11.expectedSuccessfulProbes_le` (Theorem 11.8, harmonic form): `≤ (1/α) * ∑_{j<n} 1/(m-j) = (1/α)(H_m - H_{m-n})`
+  - `CLRS.Chapter11.expectedSuccessfulProbes_le_ln` (Theorem 11.8, logarithmic form): `≤ (1/α) * ln(1/(1-α))`, obtained from the harmonic form via `CLRS.Chapter11.sum_inv_shift_le_log` (`∑_{j<n} 1/(m-j) ≤ ln(m/(m-n))`)
+- Proof pattern: tail-sum expectation `E[X] = ∑_i P[X > i]` with the without-replacement tail products `probeTail`, bounded by the geometric series; the successful-search bound averages the unsuccessful-search costs over the `n` insertion times; the logarithmic form telescopes `∑_{j<n} ln((m-j)/(m-j-1))` from the bound `ln(1+x) ≥ x/(1+x)`.
+- Current gap: deriving the tail probabilities from an explicit permutation sample space (via `Fintype` counting); RAM / probe-count cost semantics remain optional low-level refinements.
+
 ### Section 11.5 - Perfect Hashing
 
 - Lean source: `CLRSLean/Chapter_11/Section_11_5_Perfect_Hashing.lean`
@@ -1413,13 +1459,22 @@ stack top is list head, and queue front is list head with enqueue at the back.
   - `CLRS.Chapter11.perfectSearch_iff_mem`
   - `CLRS.Chapter11.perfectHash_collision_free_prob_ge_half`
   - `CLRS.Chapter11.perfectHash_expected_total_space_lt_2n`
+  - `CLRS.Chapter11.perfectHash_prefix_fail_prob_le`
+  - `CLRS.Chapter11.perfectHash_expected_trials_le_two`
+  - `CLRS.Chapter11.exists_collision_free_secondary`
+  - `CLRS.Chapter11.perfectHash_expected_bucket_cost_le`
+  - `CLRS.Chapter11.perfectHash_expected_construction_time_le_const_n`
 - Proof pattern: two-level perfect hash model (primary universal hash + per-bucket
   collision-free secondary hash).  Theorem 11.9 uses `pairCollisionProb` and
   `sum_upper_triangle` from §11.2 to bound the expected collision count, then
   Markov's inequality to convert to a probability bound.  Theorem 11.10 uses the
   algebraic identity `Σ_j n_j² = Σ_i Σ_k indicator(a i = a k)` and SUHA pairwise
-  collision probability `1/n` to get `E[Σ_j n_j²] = 2n - 1 < 2n`.
-- Current gap: construction/rebuild running time and RAM cost semantics.
+  collision probability `1/n` to get `E[Σ_j n_j²] = 2n - 1 < 2n`.  Construction
+  time chains the geometric trials bound (success probability ≥ 1/2 per
+  secondary hash ⇒ expected trials ≤ 2 per bucket) with Theorem 11.10 to get
+  expected O(n) total construction.
+- Current gap: none for the represented interface; RAM cost semantics remain an
+  optional low-level refinement.
 
 ## Chapter 12 - Binary Search Trees
 
@@ -1922,6 +1977,56 @@ reads are proved equal to the pure recurrence value.
 - Current gap: a public executable e/w/root-table construction, reconstruction
   interface, and cost theorem remain.  The internal witness construction is
   private; the public `obst_correct` theorem proves existence of an optimal plan.
+
+### Section 15.4 (Fourth Edition) - Offline caching
+
+- Lean source:
+  `CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching.lean`,
+  split into sub-modules `S1_Cache_Model`, `S2_Farthest_In_Future`, and
+  `S3_Optimality` under the same directory
+- Status: `partial` (first native fourth-edition section for Chapter 15)
+- Main theorems:
+  - `CLRS.Caching.Policy` / `Policy.step` / `misses` / `nextUse`
+  - `CLRS.Caching.Farther` / `farthestInFuture`
+  - `CLRS.Caching.fifoPolicy` / `fifo_step_of_mem` / `fifo_step_fault`
+  - `CLRS.Caching.fifo_step_size`
+  - `CLRS.Caching.exchangeSchedule` / `exchangeSchedule_invariant` /
+    `exchangeSchedule_misses_le`: one exchange step at the first disagreement
+    never increases the miss count (the good event at the first `q` request
+    compensates the unique bad event at the first `q'` request); the chain is
+    proved under the weakened reducedness hypothesis `hweak`
+    (`∀ s, t ≤ s → fault → d s resident`), so the counting lemma applies to
+    schedules that are reduced only from the exchange position on
+  - `CLRS.Caching.fifoSchedule` / `first_disagree` / `exchange_step`: at a
+    first disagreement of a schedule reduced from there on, exchanging the
+    evictions never increases misses and extends agreement with the FIF
+    schedule by one position
+  - `CLRS.Caching.exchangeSchedule_reduced_after`: the exchange schedule is
+    reduced at every fault after the first `q'` request, so the
+    "reduced from a bound on" state needed by the iteration is preserved
+    from one exchange to the next (the bound grows to `max hnb J'`)
+  - `CLRS.Caching.exchangeSchedule_misses_le_plus_one`: the exchange saves a
+    spare miss when the bad event did not occur (either `q'` is never
+    requested again and `q` is, or `d` evicts `q'` before its first request)
+  - `CLRS.Caching.repairSchedule` / `repair_step` / `repairSchedule_window` /
+    `repairSchedule_superset`: replacing a no-op eviction at the first
+    disagreement by the policy's choice (evicted again at its first request,
+    so the caches coincide afterwards) costs at most one extra miss and
+    extends agreement by one position
+- Proof pattern: total-function policy model; the farthest-in-future choice
+  as a maximum over next-use positions with `none` (never requested again)
+  as the top element.
+- Current gap: the iterated exchange concluding `fifo_optimal` (CLRS Theorem
+  15.5).  All the pieces are in place — `exchange_step` (never increases
+  misses, extends agreement), `exchangeSchedule_reduced_after` (preserves the
+  reducedness state), `exchangeSchedule_misses_le_plus_one` (spare miss when
+  the bad event did not occur), and `repair_step` (replacing a no-op
+  eviction by the policy's choice costs at most one extra miss, paid by the
+  slack) — so the remaining work is the iteration state machine: tracking
+  the reducedness bound, the previous `q'`/`J'` and the accumulated slack,
+  choosing between the exchange and the repair at each first disagreement,
+  and the boundary case where the first disagreement lands exactly on the
+  previous `q'` request.
 
 ## Chapter 16 - Greedy Algorithms
 
@@ -3454,6 +3559,103 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   `O(n³ log n)` repeated-squaring work theorem and lower-level RAM accounting
   remain optional refinements.
 
+## Chapter 25 (Fourth Edition) - Matchings in Bipartite Graphs
+
+### Section 25.1 - Maximum bipartite matching revisited
+
+- Lean source:
+  `CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching.lean`,
+  split into sub-modules `S1_Matching_API` through `S6_Berge_Flow_Method`
+  under the same directory
+- Interface tests: `Tests/Chapter_25_Matching_Interface.lean`
+- Status: `native` (first native fourth-edition section, built on the §26.3
+  matching-to-flow reduction)
+- Main theorems:
+  - `CLRS.Chapter26.Matching.IsMaximum`
+  - `CLRS.Matchings.IsAugmentingPath`
+  - `CLRS.Matchings.exists_augment` (Berge forward direction)
+  - `CLRS.Matchings.augmentingPath_of_hasAugmentingPath`
+  - `CLRS.Matchings.berge_maximum_iff_no_augmentingPath` (Berge's lemma)
+  - `CLRS.Matchings.flowMethod_finds_maximum_matching`
+- Supporting theorems:
+  - `CLRS.Chapter26.Matching.matchedLeft_card` / `matchedRight_card`
+  - `CLRS.Matchings.exists_augment_single` / `exists_swap`
+  - `CLRS.Matchings.translation_inner`
+  - matching-flow residual lemmas in `S4_Matching_Flow`
+- Proof pattern: alternating-path augmentation via the flow reduction; the
+  reachability-to-path translation extracts a vertex-simple path from a
+  residual walk.
+- Current gap: the O(V · E) execution-cost refinement of the flow method is
+  an optional low-level refinement.
+
+### Section 25.2 - The stable-marriage problem
+
+- Lean source:
+  `CLRSLean/FourthEdition/Chapter_25/Section_25_2_Stable_Marriage.lean`,
+  split into sub-modules `S1_Preference_Model`, `S2_Gale_Shapley`, and
+  `S3_Optimality` under the same directory
+- Status: `proved`
+- Main theorems:
+  - `CLRS.Matchings.PreferenceProfile` / `Pairing` / `Pairing.Stable`
+  - `CLRS.StableMarriage.gs` (the Gale-Shapley output pairing)
+  - `CLRS.StableMarriage.gs_stable` (Theorem 25.5)
+  - `CLRS.StableMarriage.stable_matching_exists`
+  - `CLRS.StableMarriage.gs_perfect`
+  - `CLRS.StableMarriage.gs_man_optimal` (Theorem 25.6)
+  - `CLRS.StableMarriage.gs_man_optimal_perfect`
+  - `CLRS.StableMarriage.gs_woman_pessimal`
+- Proof pattern: a functional proposal loop over rank functions, well-founded
+  on the pending-proposal count; stability from the loop invariants (a woman's
+  partner only improves; proposed sets are rank prefixes); perfectness from
+  the partner-map cardinality bijection.  Man-optimality is time-indexed: the
+  final state is placed on the `gsLoopN` timeline via
+  `CLRS.StableMarriage.gsLoop_eq_gsLoopN`, proposals and rejections are
+  detected from the state difference (`proposesAt` / `rejectedAt`), and
+  `no_rejection_of_valid` proves that no man is ever rejected by a valid
+  partner by descending to strictly earlier rejection steps
+  (`rejected_valid_earlier`), contradicting minimality of the first such
+  rejection.
+
+### Section 25.3 - The Hungarian algorithm for the assignment problem
+
+- Lean source:
+  `CLRSLean/FourthEdition/Chapter_25/Section_25_3_Hungarian_Algorithm.lean`
+- Status: `complete`
+- Main theorems:
+  - `CLRS.AssignmentProblem.Problem` / `Problem.Optimal` / `Problem.Feasible` /
+    `Problem.Tight` / `Problem.IsTightMatching` (assignment model)
+  - `CLRS.AssignmentProblem.exists_optimal_assignment`
+  - `CLRS.AssignmentProblem.perfect_tight_optimal` (Lemma 25.8: a perfect
+    matching in the equality graph of a feasible potential is optimal)
+  - `CLRS.AssignmentProblem.HungarianTree` (alternating tree with parents and
+    ranks) and `pathToLeft` / `PathProps` / `pathToLeft_props`
+  - `CLRS.AssignmentProblem.potential_step` (minimum-slack adjustment creates a
+    new tight edge)
+  - `CLRS.AssignmentProblem.augmentingPath` /
+    `augmentingPath_isAugmenting` /
+    `exists_augment_of_tight_free` (augmentation via Berge)
+  - `CLRS.AssignmentProblem.growTree` (tree-growth step)
+  - `CLRS.AssignmentProblem.augmentable_or_adjustable` (local progress:
+    augment or adjust-and-grow)
+  - `CLRS.AssignmentProblem.exists_augment_tight` (augmentation preserves
+    tightness: the enlarged matching stays in the equality graph)
+  - `CLRS.AssignmentProblem.innerLoop` (tree-phase termination: iterating
+    local progress, the tree grows, so an augmentation is forced)
+  - `CLRS.AssignmentProblem.exists_perfect_tight` (outer-loop termination:
+    repeating the inner loop reaches a perfect matching in the equality graph)
+  - `CLRS.AssignmentProblem.exists_optimal_via_algorithm` /
+    `hungarian_constructs_optimal` (termination + optimality: the algorithm,
+    started from any feasible tight matching or from the initial potential,
+    produces an optimal assignment)
+- Proof pattern: duality via feasible potentials; the algorithm's three moves
+  (potential adjustment, tree growth, augmentation) are each formalized, and
+  `augmentable_or_adjustable` shows every non-terminal tree either augments the
+  matching or admits a potential adjustment that grows the tree.  The full
+  loop is packaged as a terminating recursion: the tree phase
+  (`innerLoop`) grows `T`, bounded by `R`, so it must terminate in an
+  augmentation; the outer phase (`exists_perfect_tight`) repeats it, growing
+  the matching until it is perfect, which by Lemma 25.8 is optimal.
+
 ## Chapter 26 - Maximum Flow
 
 ### Section 26.1 - Flow Networks
@@ -3976,6 +4178,74 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   arrays, RAM-level implementation/allocation costs, exercises, and chapter-end
   problems are outside the sealed pure-functional boundary.  The separately
   labeled Strassen extension is not a remaining Chapter 27 obligation.
+
+## Fourth Edition Chapter 27 - Online Algorithms
+
+### Section 27.1 - Waiting for an Elevator
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_27/Section_27_1_Waiting_For_Elevator.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `SkiRental.rentThenBuyCost`: the cost of the deterministic online strategy
+    that rents for the first `a` days and, if the trip outlasts it, buys on day
+    `a+1` — `T * r` when `T ≤ a`, else `a * r + p`.
+  - `SkiRental.optCost`: the optimal offline cost `min (T * r) p`.
+  - `SkiRental.IsCompetitive`: strategy `a` is `c`-competitive when its cost
+    never exceeds `c` times the optimal offline cost on every input.
+  - `Elevator.cost` / `Elevator.optCost`: the elevator instance — waiting `w`
+    seconds then taking the stairs (cost `w + S` when the elevator comes late),
+    versus the offline choice of the cheaper of elevator (wait + ride `t + E`)
+    and stairs (`S`).
+- Proved:
+  - `SkiRental.rentThenBuy_two_competitive` (CLRS Theorem 27.1): any strategy
+    that rents `a` days with `a * r < p ≤ (a + 1) * r` is `2`-competitive —
+    the short-trip case pays exactly the optimum (renting every day), and the
+    long-trip case pays at most twice the optimum (renting `a` days then
+    buying).
+  - `Elevator.elevator_two_competitive`: with `E ≥ 0` and `S > 0`, the
+    wait-`S - E`-then-take-the-stairs strategy is `2`-competitive for every
+    arrival time `t ≥ 0`.
+  - `Elevator.elevator_worst_case_ratio`: when the elevator comes after the
+    wait time, the strategy pays exactly `(2 - E/S) * S`, matching the
+    competitive ratio stated in CLRS §27.1.
+- Current gap: the lower bound that no deterministic strategy beats `2 - r/p`
+  is not yet formalized; Section 27.3 (Online caching) is not represented.
+
+### Section 27.2 - Maintaining a Search List
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_27/Section_27_2_Maintaining_A_Search_List.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `SearchList.before`: strict order (`a` before `b`) in a list — `b` is
+    present and `a` appears before the first occurrence of `b`.
+  - `SearchList.position`: the 0-based position of a key in a list (the number
+    of keys strictly before it).
+  - `SearchList.invDist`: the inversion distance between two lists over the same
+    element set — the number of pairs whose relative order differs.
+  - `SearchList.moveToFront`: after a request, move the requested key to the
+    front (`x :: L.erase x`).
+  - `SearchList.scanCost` / `SearchList.mtfCost`: the per-request costs —
+    scanning to the (1-based) position, and scanning plus the front swap
+    (`2 * position + 1`).
+  - `SearchList.potential`: the potential function `2 * invDist`.
+  - `SearchList.strategyCost` / `SearchList.strategyTotalCost`: the cost of an
+    arbitrary list-update strategy `A` — the scan cost plus the rearrangement
+    `invDist L (A L x)` — per request and over a request sequence.
+- Proved:
+  - `SearchList.mtf_step_four_competitive`: the per-request amortized bound —
+    for a request `x`, after MOVE-TO-FRONT moves `x` to the front and the
+    adversary moves to `M'`, MTF's cost plus the change in the potential
+    `2 * invDist` is at most `4` times the strategy's cost plus the previous
+    potential.
+  - `SearchList.mtf_four_competitive` (CLRS Theorem 27.2): MOVE-TO-FRONT is
+    `4`-competitive against any list-update strategy that keeps its list a
+    permutation of the initial set —
+    `mtfTotalCost σ L ≤ 4 * strategyTotalCost A σ M + 2 * invDist L M`, with the
+    additive term zero when both start from the same list.
+  - Supporting lemmas: `SearchList.invDist_moveToFront_add_pos` (the phase-1
+    potential change) and `SearchList.invDist_triangle` (the triangle inequality
+    bounding the adversary's rearrangement).
+- Current gap: Section 27.3 (Online caching) is not represented.
 
 ## Chapter 28 - Matrix Operations
 
@@ -4591,6 +4861,81 @@ in a legacy initialization module that is also cataloged as online material.
 - Remaining fourth-edition chapter scope: Sections 32.2--32.5 (Rabin-Karp,
   finite automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
 
+## Fourth Edition Chapter 33 - Machine-Learning Algorithms
+
+### Section 33.1 - Clustering
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_1_Clustering.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `sumSqDist`: the within-cluster sum of squared distances to a candidate center.
+  - `mean`: the centroid (average) of a finite point family over an index set.
+  - `Clustering`: an assignment of each point to a cluster together with one
+    centroid per cluster.
+  - `kMeansCost`: the k-means cost of a clustering.
+- Proved:
+  - `sumSqDist_eq_add_card_mul`: the variance (parallel-axis) decomposition
+    `∑ ‖P i - c‖² = ∑ ‖P i - m‖² + |S| · ‖c - m‖²`.
+  - `mean_minimizes_sumSqDist` (CLRS Lemma 33.1): the mean of a cluster
+    minimizes the within-cluster sum of squared distances.
+  - `assignStep_cost_le` and `updateStep_cost_le`: reassigning every point to a
+    *nearest* centroid, and replacing every centroid by the mean of its
+    cluster, never increase the cost.
+  - `lloyd_iteration_cost_le` (CLRS Theorem 33.2): one full Lloyd iteration
+    (assignment, then update) never increases the k-means cost.
+
+### Section 33.2 - Multiplicative-Weights Algorithms
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_2_Multiplicative_Weights.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `weights`: the weight of each expert after any number of days, updated
+    multiplicatively by `(1 - η)^(m t i)`.
+  - `potential`: the sum of the expert weights (`Φ`).
+  - `expectedLoss` / `totalExpectedLoss`: the algorithm's daily and total
+    expected loss under the weight-normalized distribution.
+  - `expertLoss`: the total loss of a single expert.
+- Proved:
+  - `one_sub_rpow_le_one_sub_mul` and `neg_log_one_sub_le_add_sq`: the analytic
+    inequalities `(1 - x)^y ≤ 1 - x·y` and `-ln (1 - x) ≤ x + x²` for
+    `0 ≤ x ≤ 1/2` that drive the potential chain and the clean `1 + η` factor.
+  - `potential_update_le_exp`: one MW update shrinks the potential
+    multiplicatively: `Φ(w') ≤ Φ(w) · exp(-η · M)` for the day's expected
+    loss `M`.
+  - `potential_weights_le`: after `t ≤ T` days the potential is at most
+    `n · exp(-η · Σ Mˢ)`, the iterated potential chain.
+  - `weights_eq_rpow_expertLoss`: expert `i`'s weight after `T` days is
+    `(1 - η)` raised to its total loss.
+  - `totalExpectedLoss_le` (CLRS Theorem 33.3): for every expert `i`, the total
+    expected loss is within an additive `ln n / η` and a multiplicative
+    `(1 + η)` factor of expert `i`'s total loss.
+
+### Section 33.3 - Gradient Descent
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_33/Section_33_3_Gradient_Descent.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `gradientStep`: one gradient-descent update `x ↦ x - η·∇f(x)`.
+  - `gdIterates`: the sequence of iterates generated from `x₀`.
+  - `avgIterate`: the arithmetic mean `x̄` of the first `K` iterates (with the
+    junk value `0` for `K = 0`).
+- Proved:
+  - `gradient_inner_le_sub`: the gradient-descent lemma — the first-order
+    characterization of convexity `⟪∇f(x), y - x⟫ ≤ f(y) - f(x)`, proved by
+    restricting `f` to the segment `[x, y]` and taking the convexity-chord
+    limit `t → 0⁺`.
+  - `gdStep_potential_le`: one step shrinks the squared distance to `x*` by at
+    least `2η·(f x - f x*)`, up to the additive `η²·G²` term from the gradient
+    bound `‖∇f‖ ≤ G`.
+  - `gdIterates_potential_le` and `sum_suboptimality_le`: the telescoping
+    potential chain over `K` steps and the resulting total-suboptimality bound.
+  - `avgIterate_suboptimality_le` (CLRS Theorem 33.8): if `x*` minimizes `f`,
+    the average iterate `x̄` of the first `K` iterates satisfies
+    `f(x̄) - f(x*) ≤ ‖x₀ - x*‖²/(2ηK) + ηG²/2`, combining Jensen's inequality
+    with the total-suboptimality bound.
+- The chapter's fourth-edition sections 33.1--33.3 are all represented with no
+  remaining edition-map coverage gap.
+
 ## Legacy Source Chapter 33 - Computational Geometry (Online Material)
 
 ### Section 33.1 - Line-Segment Properties
@@ -4608,6 +4953,52 @@ in a legacy initialization module that is also cataloged as online material.
   shared-endpoint cases.
 - Remaining chapter scope: Sections 33.2--33.4 (sweep-line intersection,
   convex hulls, and closest pair) are not represented.
+
+### Section 34.1 - Polynomial Time
+
+- Lean sources:
+  - `CLRSLean/Chapter_34.lean`
+  - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time.lean`
+  - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/Composition.lean`
+  - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/AndOr.lean`
+- Status: `partial` — green-field NP-completeness formalization on Mathlib's
+  `Turing.TM2ComputableInPolyTime` (machine-level polynomial-time
+  computability with `Polynomial ℕ` time bounds).
+- Proved results: the framework — `Language` (a set of strings over an
+  alphabet), `PolyTimeComputable` (polytime-computable function),
+  `PolyTimeDecidable`, `ClassP` (the class of polynomial-time decidable
+  languages), `mem_ClassP`, `PolyTimeComputable.comp` (composition closure,
+  closing Mathlib's `proof_wanted TM2ComputableInPolyTime.comp` via the
+  shared-stack two-phase `Turing.TM2Comp` construction), `ClassP_compl`
+  (`P` closed under complement via the `Bool.not` machine), and the closure of
+  `P` under union/intersection — `PolyTimeDecidable.union` / `ClassP_union`
+  and `PolyTimeDecidable.inter` / `ClassP_inter` — via the AND/OR machine
+  `Turing.TM2AndOr.andOrMachine` (a four-phase machine that duplicates the
+  input onto both deciders' stacks, runs `M₁` then `M₂`, and combines the two
+  `Bool` results with AND/OR).
+- Current gap: the empty/universal languages (concrete machine constructions
+  for `∅` and `Σ*`).
+- Remaining chapter scope: Sections 34.4--34.5 (specific reductions) are not
+  represented.  Open problems (P vs NP) are intentionally out of scope.
+
+### Section 34.2 - Polynomial-Time Verification
+
+- Lean sources:
+  - `CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification.lean`
+  - `CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification/PairProjection.lean`
+- Proved results: `PolyTimeVerifiable`, `ClassNP`, `mem_ClassNP`,
+  `PolyTimeVerifiable.of_decidable` and `ClassP_subset_ClassNP`
+  (`P ⊆ NP`, Theorem 34.2) via the pair-projection machine
+  `Turing.Prj.prjComputableInPolyTime` (a decider is a verifier that ignores
+  the certificate).
+
+### Section 34.3 - NP-Completeness and Reducibility
+
+- Lean sources:
+  - `CLRSLean/Chapter_34/Section_34_3_NP_Completeness_And_Reducibility.lean`
+- Proved results: `PolyTimeReducible`, `NPHard`, `NPComplete`, `ClassNPC`,
+  and `PolyTimeReducible.trans` (transitivity of `≤_P` via the composition
+  closure).
 
 ## Deferred And Blocked Items
 

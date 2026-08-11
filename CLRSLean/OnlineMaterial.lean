@@ -2,7 +2,6 @@ import CLRSLean.Chapter_19
 import CLRSLean.Chapter_20
 import CLRSLean.Chapter_33
 import CLRSLean.Chapter_04.Section_04_1_Maximum_Subarray
-import CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing
 import CLRSLean.Chapter_16.Section_16_4_Matroids
 import CLRSLean.Chapter_16.Section_16_5_Task_Scheduling
 import CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm
@@ -29,7 +28,7 @@ material.
 ## Moved and project-supplement catalog
 
 CLRS-Lean also retains theorem-bearing developments for maximum subarray,
-perfect hashing, matroids, unit-time task scheduling, the detailed simplex
+matroids, unit-time task scheduling, the detailed simplex
 algorithm and its initial basic feasible solution, iterative FFT
 implementations, and integer factorization. They are collected here because
 they moved out of the corresponding fourth-edition main-text section or remain
@@ -40,7 +39,6 @@ that every project supplement is part of the official online bundle.
 The moved section imports are:
 
 * {lit}`CLRSLean.Chapter_04.Section_04_1_Maximum_Subarray`;
-* {lit}`CLRSLean.Chapter_11.Section_11_5_Perfect_Hashing`;
 * {lit}`CLRSLean.Chapter_16.Section_16_4_Matroids`;
 * {lit}`CLRSLean.Chapter_16.Section_16_5_Task_Scheduling`;
 * {lit}`CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm`;

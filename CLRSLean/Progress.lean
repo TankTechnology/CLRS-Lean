@@ -15,11 +15,11 @@ Legacy imports remain supported through all 1.x releases and for at
 least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
-* Chapters represented in Lean: 30.
-* Tracked reader-facing theorem entries: 1,328.
-* Proved tracked theorem entries: 1,328.
-* Online/supplementary theorem entries: 467.
-* Remaining edition-coverage units: 31.
+* Chapters represented in Lean: 33.
+* Tracked reader-facing theorem entries: 1,399.
+* Proved tracked theorem entries: 1,399.
+* Online/supplementary theorem entries: 464.
+* Remaining edition-coverage units: 26.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -34,11 +34,11 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 8 chapters.
+* {lit}`main-proof-complete`: 13 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 11 chapters.
-* {lit}`not-started`: 5 chapters.
+* {lit}`partial`: 9 chapters.
+* {lit}`not-started`: 2 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -48,19 +48,19 @@ Ch  Chapter                                                     Status          
 --  ----------------------------------------------------------  -----------------------------------  ----------------------------  -------  ---------
  1  1. The Role of Algorithms in Computing                      expository                           Chapter_01                          0        0
  2  2. Getting Started                                          main-proof-complete                  2.1;2.2;2.3                         7        0
- 3  3. Characterizing Running Times                             partial (edition coverage)           3.1;3.2;3.3                        47        1
+ 3  3. Characterizing Running Times                             main-proof-complete                  3.1;3.2;3.3                        56        0
  4  4. Divide-and-Conquer                                       partial (edition coverage)           4.1;4.2;4.3;4.4;4.5;4.6            82        3
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1;5.2;5.3;5.4                    25        0
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                78        0
  7  7. Quicksort                                                partial (edition coverage)           7.1;7.2;7.3;7.4                    30        1
  8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.1;8.2;8.3;8.4                    36        0
  9  9. Medians and Order Statistics                             main-proof-complete                  9.1;9.2;9.3                        72        0
-10  10. Elementary Data Structures                              partial (edition coverage)           10.1;10.2;10.3                     12        1
-11  11. Hash Tables                                             partial (edition coverage)           11.1;11.2;11.3;11.4                48        1
+10  10. Elementary Data Structures                              main-proof-complete                  10.1;10.2;10.3                     21        0
+11  11. Hash Tables                                             main-proof-complete                  11.1;11.2;11.3;11.4;11.5           59        0
 12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1;12.2;12.3                     40        0
 13  13. Red-Black Trees                                         partial (edition coverage)           13.1;13.2;13.3;13.4                39        3
 14  14. Dynamic Programming                                     partial (edition coverage)           14.1;14.2;14.3;14.4;14.5           76        5
-15  15. Greedy Algorithms                                       partial (edition coverage)           15.1;15.2;15.3                     23        1
+15  15. Greedy Algorithms                                       partial (edition coverage)           15.1;15.2;15.3;15.4                27        1
 16  16. Amortized Analysis                                      selected-section-complete            16.1;16.2;16.3;16.4                66        0
 17  17. Augmenting Data Structures                              partial (edition coverage)           17.1;17.2;17.3                     77        3
 18  18. B-Trees                                                 main-proof-complete-for-correctness  18.1;18.2;18.3                    134        0
@@ -70,15 +70,15 @@ Ch  Chapter                                                     Status          
 22  22. Single-Source Shortest Paths                            selected-section-complete            22.1;22.2;22.3;22.4;22.5           27        0
 23  23. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  23.1;23.2;23.3                     24        0
 24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3                     18        0
-25  25. Matchings in Bipartite Graphs                           not-started                          not represented                     0        1
+25  25. Matchings in Bipartite Graphs                           main-proof-complete                  25.1;25.2;25.3                     18        0
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
-27  27. Online Algorithms                                       not-started                          not represented                     0        1
+27  27. Online Algorithms                                       partial (edition coverage)           27.1;27.2                           5        1
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
 29  29. Linear Programming                                      partial (edition coverage)           29.1;29.2;29.3                     10        3
 30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     34        0
 31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       17        0
 32  32. String Matching                                         partial (edition coverage)           32.1                               19        4
-33  33. Machine-Learning Algorithms                             not-started                          not represented                     0        1
+33  33. Machine-Learning Algorithms                             main-proof-complete                  33.1; 33.2; 33.3                   15        0
 34  34. NP-Completeness                                         not-started                          not represented                     0        1
 35  35. Approximation Algorithms                                not-started                          not represented                     0        1
 ```

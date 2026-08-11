@@ -12,7 +12,7 @@ During the compatibility period this guide imports {lit}`CLRSLean.Chapter_11`. E
 
 ## Coverage boundary
 
-Sections 11.1–11.4 reuse existing proofs. The fourth-edition practical-considerations section remains a gap; perfect hashing is cataloged as Online Material.
+Sections 11.1–11.5 reuse existing proofs; two-level perfect hashing covers §11.5 with O(1) worst-case search, expected linear space (Theorem 11.10), and expected linear construction time.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
