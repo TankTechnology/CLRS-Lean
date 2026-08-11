@@ -508,13 +508,16 @@ earlier credit, and a window can contain **two** B1-bads (e.g.
 6 = the pair (3,3)'s nop (bad) — the plain accounting crashes).  The
 credits identified:
 1. the exchange's `+1` iff `¬bad` (the q₀'-B1 half — done);
-2. the **alive-alive B2's exact net**: the strong repair's pointwise
-   balance is `rF = dF − 1{J} + 1{bad at J''}` — the good at `J` can
-   occur without the bad at `J''` (the repair saves exactly 1, e.g.
-   σ=[1,1,3,2,1,3,2,1,3]: the B2 at 4 keeps 3 — good at 5, its bad at
-   6 does not occur — the −1 covers the later B1's bad on 3 at 8).
-   Formal: `schedMisses r + 1{J} ≤ schedMisses d + 1{bad at J''}`
-   (pointwise), slack `+1{J} − 1{bad}`;
+2. the **alive-alive B2's exact net** — **done (2026-08-12,
+   `repair_step_swap_exact_net`, B6, kernel-checked)**: the strong
+   repair's pointwise balance is `rF = dF − 1{J} + 1{bad at J''}` — the
+   good at `J` can occur without the bad at `J''` (the repair saves
+   exactly 1, e.g. σ=[1,1,3,2,1,3,2,1,3]: the B2 at 4 keeps 3 — good at
+   5, its bad at 6 does not occur — the −1 covers the later B1's bad on
+   3 at 8).  Formal: `schedMisses r + 1 ≤ schedMisses d + bad` (the
+   slack credit `+1 − bad`), proved via the pointwise `rF + 1{J} ≤ eF`
+   off `J''` and the J'' identity `eF J'' + bad = 1` with `rF J'' ≤ 1`;
+
 3. the B2-q''-dead's exact saving (`rF + 1 ≤ dF`, slack +1).
 Counting: plain 492 crashes → +B2-q''-dead credit 228 → +alive-alive
 net credit (candidate C) 164.  The residual 164 all have a window with
