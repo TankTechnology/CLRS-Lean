@@ -557,6 +557,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
 ]
+"CLRSLean.FourthEdition.Chapter_35" = [
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem",
+]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat",
@@ -739,6 +742,9 @@ title = "Chapter 34. NP-Completeness"
 
 [modules."CLRSLean.FourthEdition.Chapter_35"]
 title = "Chapter 35. Approximation Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem"]
+title = "35.1. The Vertex-Cover Problem"
 
 [modules."CLRSLean.OnlineMaterial"]
 title = "Online Material"

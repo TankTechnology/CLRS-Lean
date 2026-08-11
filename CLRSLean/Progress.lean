@@ -15,11 +15,11 @@ Legacy imports remain supported through all 1.x releases and for at
 least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
-* Chapters represented in Lean: 33.
-* Tracked reader-facing theorem entries: 1,399.
-* Proved tracked theorem entries: 1,399.
+* Chapters represented in Lean: 34.
+* Tracked reader-facing theorem entries: 1,405.
+* Proved tracked theorem entries: 1,405.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 26.
+* Remaining edition-coverage units: 29.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -37,8 +37,8 @@ every theorem already selected for that chapter is proved.
 * {lit}`main-proof-complete`: 13 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 9 chapters.
-* {lit}`not-started`: 2 chapters.
+* {lit}`partial`: 10 chapters.
+* {lit}`not-started`: 1 chapter.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -80,7 +80,7 @@ Ch  Chapter                                                     Status          
 32  32. String Matching                                         partial (edition coverage)           32.1                               19        4
 33  33. Machine-Learning Algorithms                             main-proof-complete                  33.1; 33.2; 33.3                   15        0
 34  34. NP-Completeness                                         not-started                          not represented                     0        1
-35  35. Approximation Algorithms                                not-started                          not represented                     0        1
+35  35. Approximation Algorithms                                partial (edition coverage)           35.1                                6        4
 ```
 
 ## Agent Update Rule

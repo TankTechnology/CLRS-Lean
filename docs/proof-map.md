@@ -5000,6 +5000,23 @@ in a legacy initialization module that is also cataloged as online material.
   and `PolyTimeReducible.trans` (transitivity of `≤_P` via the composition
   closure).
 
+### Section 35.1 - The Vertex-Cover Problem
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35.lean`
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_1_The_Vertex_Cover_Problem.lean`
+- Status: native fourth-edition section — green-field approximation-algorithms
+  formalization on an edge-based graph model.
+- Proved results: the `Graph` edge model, `IsVertexCoverOn`, `IsMatching`,
+  `IsMaximalMatchingOn`, `approxVertexCoverEdges` (the terminating greedy
+  edge-selection loop of APPROX-VERTEX-COVER), and `approxVertexCover`.
+  Lemma 35.1 is `matching_le_cover` (any cover has size at least any matching);
+  Theorem 35.1 is `approxVertexCover_isVertexCover` (correctness) and
+  `approxVertexCover_two_approx` (the factor-two bound `≤ 2 * Cstar.card` on a
+  loop-free graph).
+- Remaining chapter scope: Sections 35.2--35.5 (TSP, set cover, randomized
+  rounding, and the subset-sum FPTAS) are not represented.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |
