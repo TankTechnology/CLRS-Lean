@@ -651,6 +651,33 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_28.Section_28_2_Inverting_Matrices",
   "CLRSLean.FourthEdition.Chapter_28.Section_28_3_Symmetric_Positive_Definite",
 ]
+"CLRSLean.FourthEdition.Chapter_29" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality",
+]
+"CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence",
+]
+"CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow",
+]
+"CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Definitions",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.WeakDuality",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Optimality",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlackness",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.TerminalCertificate",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.DictionaryBridge",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.StrongDuality",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlacknessTheorem",
+]
 "CLRSLean.FourthEdition.Chapter_33" = [
   "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
@@ -1086,6 +1113,44 @@ title = "28.3. Symmetric Positive-Definite Matrices and Least Squares"
 
 [modules."CLRSLean.FourthEdition.Chapter_29"]
 title = "Chapter 29. Linear Programming"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms"]
+title = "29.1. Standard and Slack Forms"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions"]
+title = "29.1. Standard-Form Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables"]
+title = "29.1. Canonical Slack Variables"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence"]
+title = "29.1. Standard/Slack Equivalence"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs"]
+title = "29.2. Formulating Problems as Linear Programs"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow"]
+title = "29.2. Finite Network Model"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath"]
+title = "29.2. Shortest Paths as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow"]
+title = "29.2. Maximum Flow as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow"]
+title = "29.2. Minimum-Cost Flow as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow"]
+title = "29.2. Multicommodity Flow as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality"]
+title = "29.4. Duality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Definitions"]
+title = "29.4. Dual Feasibility"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.WeakDuality"]
+title = "29.4. Weak Duality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Optimality"]
+title = "29.4. Primal and Dual Optimality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlackness"]
+title = "29.4. Complementary-Slackness Gap Identity"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.TerminalCertificate"]
+title = "29.4. Terminal Dual Certificates"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.DictionaryBridge"]
+title = "29.4. Dictionary/Primal Bridge"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.StrongDuality"]
+title = "29.4. Strong Duality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlacknessTheorem"]
+title = "29.4. Complementary-Slackness Theorem"
 
 [modules."CLRSLean.FourthEdition.Chapter_30"]
 title = "Chapter 30. Polynomials and the FFT"

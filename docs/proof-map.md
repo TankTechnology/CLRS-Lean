@@ -4435,13 +4435,21 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ## Chapter 29 - Linear Programming
 
-The legacy third-edition Sections 29.1--29.5 are main-proof-complete at the
+Canonical fourth-edition sources:
+`CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms.lean`,
+`CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs.lean`,
+and `CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality.lean` (fourth-edition
+Sections 29.1--29.3; the legacy `CLRSLean/Chapter_29/Section_29_1`,
+`Section_29_2`, and `Section_29_4` files forward to them).  The legacy
+Sections 29.1--29.5 are main-proof-complete at the
 finite real-matrix/pure-functional layer described below.  Fourth-edition
 Chapter 29 remains partial under the canonical ledger: §29.1 lacks general-form
 normalization and a main-text algorithm wrapper separated from online SIMPLEX;
 §29.2's specialized problem predicates lack finite `StandardLP` encoding and
 preservation bridges; and §29.3's strongest duality declarations still reside
 in a legacy initialization module that is also cataloged as online material.
+The detailed SIMPLEX algorithm (legacy Section 29.3) and the initial basic
+feasible solution (legacy Section 29.5) are online material.
 
 ### Section 29.1 - Standard and Slack Forms
 
