@@ -12,7 +12,10 @@ During the compatibility period this guide imports {lit}`CLRSLean.Chapter_32`. E
 
 ## Coverage boundary
 
-The naive matcher development is reused. Rabin–Karp automata KMP and suffix arrays remain named gaps.
+The naive matcher development is reused.  Section 32.2 (the Rabin–Karp
+algorithm) is proved: the base-`d` modular hash, the O(1) incremental update,
+and the soundness, completeness, and agreement-with-`naiveMatcher` theorems.
+Finite automata, KMP, and suffix arrays remain named gaps.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

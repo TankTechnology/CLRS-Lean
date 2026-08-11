@@ -4858,8 +4858,28 @@ in a legacy initialization module that is also cataloged as online material.
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,
   `naiveMatcher_complete`, and the three represented boundary theorems.
-- Remaining fourth-edition chapter scope: Sections 32.2--32.5 (Rabin-Karp,
-  finite automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
+- Remaining fourth-edition chapter scope: Sections 32.3--32.5 (finite
+  automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
+
+### Section 32.2 - The Rabin-Karp Algorithm
+
+- Lean sources:
+  - `CLRSLean/Chapter_32/Section_32_2_Rabin_Karp.lean`
+- Status: `selected-section-complete`
+- Model:
+  - `hash d q val w`: the base-`d` modular hash of `w` over the numeric values
+    `val c`, computed by Horner's rule modulo `q`.
+  - `rabinKarpShift`: the per-shift hash-match-and-compare acceptance test.
+  - `rabinKarpMatcher`: the Rabin-Karp matcher returning all matching shifts.
+- Proved:
+  - `hash_snoc`: the O(1) incremental update
+    `hash (w ++ [c]) = (hash w · d + val c) mod q`.
+  - `hash_eq_of_text_eq`: equal strings have equal hashes; a real match is
+    never discarded as a spurious hit.
+  - `rabinKarp_sound` and `rabinKarp_complete`: the matcher reports exactly the
+    shifts where the pattern occurs.
+  - `rabinKarp_correct`: `rabinKarpMatcher` agrees with `naiveMatcher` on every
+    shift.
 
 ## Fourth Edition Chapter 33 - Machine-Learning Algorithms
 

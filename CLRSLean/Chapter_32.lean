@@ -1,14 +1,15 @@
 import CLRSLean.Chapter_32.Section_32_1_String_Model
 import CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher
+import CLRSLean.Chapter_32.Section_32_2_Rabin_Karp
 
 /-! # Chapter 32 — String Matching
 
 Chapter 32 of CLRS covers string-matching algorithms: finding all occurrences
 of a pattern `P` in a text `T`.
 
-This chapter currently formalizes Section 32.1 with fully proved correctness
-theorems.  Sections 32.2–32.4 (Rabin-Karp, finite automata, Knuth-Morris-Pratt)
-are deferred.
+This chapter formalizes Sections 32.1 and 32.2 with fully proved correctness
+theorems.  Sections 32.3–32.4 (finite automata, Knuth-Morris-Pratt) are
+deferred.
 
 ## Sections
 
@@ -20,13 +21,22 @@ are deferred.
   (`Section_32_1_String_Model/Naive_Matcher`): pattern-occurrence predicate and
   slide-and-check matcher — soundness and completeness (5 theorems, all proved).
 
-**Status: `selected-section-complete`** — Section 32.1 is fully proved (19 theorems, 0 sorries).
+### 32.2 The Rabin-Karp Algorithm
+
+* `CLRS.Chapter32.hash`, `CLRS.Chapter32.rabinKarpMatcher`
+  (`Section_32_2_Rabin_Karp`): base-`d` modular hash by Horner's rule and the
+  hash-then-compare matcher — soundness, completeness, and agreement with
+  `naiveMatcher` (`rabinKarp_correct`), plus the O(1) incremental update
+  `hash_snoc`.
+
+**Status: `selected-section-complete`** — Sections 32.1–32.2 are fully proved
+(25 theorems, 0 sorries).
 
 ## Deferred Work
 
-* 32.2 Rabin-Karp (hash-based rolling matcher)
 * 32.3 Finite automata (suffix-function DFA construction)
 * 32.4 Knuth-Morris-Pratt (prefix-function linear-time algorithm)
+* 32.5 Suffix arrays
 -/
 
 namespace CLRS
