@@ -5029,8 +5029,23 @@ in a legacy initialization module that is also cataloged as online material.
   costs no more than the walk); and Theorem 35.2 is `tsp_two_approx`, the
   factor-two approximation bound against any tour (in particular an optimal
   one), requiring symmetry, the triangle inequality, and zero loop weights.
-- Remaining chapter scope: Sections 35.3--35.5 (set cover, randomized rounding,
-  and the subset-sum FPTAS) are not represented.
+### Section 35.3 - The Set-Covering Problem
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem.lean`
+- Status: native fourth-edition section — GREEDY-SET-COVER on a finite universe
+  `X` with a covering family `F`.
+- Proved results: `Covers`, `pickSet` (the greedy pick maximizing uncovered
+  coverage), the terminating `greedyCost`/`greedySetCover` recursions, and
+  `greedySetCover_subset`/`greedySetCover_covers` (the returned family is drawn
+  from `F` and covers `X`).  Theorem 35.3 is `greedySetCover_approx`, the
+  `H(d)`-approximation bound `greedyCost ≤ H(d) · |C|` for any cover `C`, proved
+  by the CLRS charging argument: `chargeSum` accumulates the per-step charges,
+  `greedyCost_eq_chargeSum` identifies the cost with the total charge,
+  `chargeSum_le_harmonic` bounds the charge of any set by `H(|S|)`, and
+  `chargeSum_U_le_sum_cover` bounds the total charge by the sum over a cover.
+- Remaining chapter scope: Sections 35.4--35.5 (randomized rounding and the
+  subset-sum FPTAS) are not represented.
 
 ## Deferred And Blocked Items
 

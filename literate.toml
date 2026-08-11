@@ -560,6 +560,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_35" = [
   "CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem",
   "CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
@@ -749,6 +750,9 @@ title = "35.1. The Vertex-Cover Problem"
 
 [modules."CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem"]
 title = "35.2. The Traveling-Salesperson Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem"]
+title = "35.3. The Set-Covering Problem"
 
 [modules."CLRSLean.OnlineMaterial"]
 title = "Online Material"
