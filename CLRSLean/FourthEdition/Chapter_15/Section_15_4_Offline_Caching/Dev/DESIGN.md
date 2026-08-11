@@ -697,6 +697,33 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
 Estimated 2-3 focused sessions for items 2-6, then one for the
 `fifo_optimal` assembly and the Dev→S3 merge.
 
+**Case-one branch-1 verified (2026-08-12, `Dev/search_caseone.py`)** —
+exact-iteration search over σ of length 4-9, alphabet {1..4}, C₀ =
+{1,2}/{1,2,3}, d₀ ∈ {min-junk0, min-junkC, max-junk0, adversarial
+(hit-evictions prefer dead pages — a legitimate policy)}:
+
+1. branch-1 spots (exchange-fault ∧ `d s = q'`): **at most one** per
+   case-one exchange (7384 total, 0 multi) — the at-most-once holds
+   even under adversarial hit-junk;
+2. every branch-1 spot is a **d-fault** (0 spot-dHit) — a real
+   eviction of `q'`, so the `window_branch1_once` mechanism (q' leaves
+   D forever) applies without the window bound;
+3. `D_s − E_s ⊆ {q'}` throughout case one (0 D-E-bad) and **no
+   exchange-fault at a d-hit** (0 exFault-dHit) — the exchange-fault ⟹
+   d-fault mechanism;
+4. **the next disagreement after a case-one exchange lands exactly on
+   the branch-1 spot when one exists** (7384 next<hnb', t₂ = s₁ — e.g.
+   σ=[1,1,3,4,1], C₀={1,2}: t=2, q=1, q'=2, spot=3, next disagreement
+   t₂=3; the exchange's no-op eviction grows its cache, so agreement
+   at s₁+1 is impossible) — the plain "hnb' = s₁+1" plan does **not**
+   make the next step case A; the assembly must instead handle the
+   branch-1 spot as a B1-like step (with `win = none` the window
+   machinery is vacuous: `windowExchange none e = e`), or the case-one
+   step must absorb it.  Never below the old hnb (0 next<hnb).
+
+**Paused (2026-08-12)** — 4th-edition migration (feat/migration branch)
+took priority; `CaseOneHdredHyp` + the at-most-once lemma remain open.
+
 ## File layout
 
 - `Dev/B2_Dev.lean` (done): `first_disagree_fault`, `after_J_rel1/rel2`,
