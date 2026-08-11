@@ -74,8 +74,10 @@ abbrev Graph (V : Type) := V → V → Nat
 The cost of the *path* through the vertex list `π`: the sum of the weights of
 consecutive pairs.
 -/
-def pathCost (w : Graph V) (π : List V) : Nat :=
-  ((π.zip π.tail).map (fun e : V × V => w e.1 e.2)).sum
+def pathCost (w : Graph V) : List V → Nat
+  | [] => 0
+  | [_] => 0
+  | a :: b :: rest => w a b + pathCost w (b :: rest)
 
 /-- The cost of the walk given by the vertex list `π`.  Synonymous with
 `pathCost`; kept as a separate name because the depth-first walk is the primary
@@ -91,6 +93,147 @@ corresponding Hamiltonian cycle.
 -/
 def tourCostTo (w : Graph V) (target : V) (π : List V) : Nat :=
   pathCost w π + (if h : π = [] then 0 else w (π.getLast h) target)
+
+/-- `getLast` is proof-irrelevant: the last element of a nonempty list does not
+depend on the nonemptiness proof. -/
+lemma getLast_irrel {l : List V} (h1 : l ≠ []) (h2 : l ≠ []) : l.getLast h1 = l.getLast h2 := by
+  cases l with
+  | nil => simp at h1
+  | cons a t =>
+      cases t with
+      | nil => rfl
+      | cons b t' => rfl
+
+/-- The last element of `a :: l` is the last element of `l` (any proof works). -/
+lemma getLast_cons_any {a : V} {l : List V} (h : l ≠ []) (h' : a :: l ≠ []) :
+    (a :: l).getLast h' = l.getLast h := by
+  cases l with
+  | nil => simp at h
+  | cons b t =>
+      cases t with
+      | nil => rfl
+      | cons c t' => rfl
+
+/-- The last element of `l₁ ++ l₂` (both nonempty) is the last element of `l₂`. -/
+lemma getLast_append_of_right_ne_nil' (l1 l2 : List V) (hne : l1 ++ l2 ≠ []) (h2 : l2 ≠ []) :
+    (l1 ++ l2).getLast hne = l2.getLast h2 := by
+  induction l1 with
+  | nil => rfl
+  | cons a t ih =>
+      by_cases htl : t ++ l2 = []
+      · have ht : t = [] := by simpa using (List.append_eq_nil_iff.mp htl).1
+        have hl2 : l2 = [] := by simpa using (List.append_eq_nil_iff.mp htl).2
+        subst ht
+        subst hl2
+        simp at h2
+      · change (a :: (t ++ l2)).getLast hne = l2.getLast h2
+        have hcons : (a :: (t ++ l2)).getLast hne = (t ++ l2).getLast htl :=
+          getLast_cons_any htl hne
+        rw [hcons]
+        exact ih htl
+
+/-- The last element of `l ++ [a]` is `a`. -/
+lemma getLast_append_singleton' {a : V} (l : List V) (h : l ++ [a] ≠ []) :
+    (l ++ [a]).getLast h = a := by
+  induction l with
+  | nil => rfl
+  | cons b t ih =>
+      by_cases htl : t ++ [a] = []
+      · simp at htl
+      · change (b :: (t ++ [a])).getLast h = a
+        have hcons : (b :: (t ++ [a])).getLast h = (t ++ [a]).getLast htl :=
+          getLast_cons_any htl h
+        rw [hcons]
+        exact ih htl
+
+/-- `head` through an equality of the lists (proof args differ). -/
+lemma head_eq_of_eq {l l' : List V} (hl : l = l') (hne : l ≠ []) (hne' : l' ≠ []) :
+    l.head hne = l'.head hne' := by
+  cases l' with
+  | nil => simp at hne'
+  | cons b t =>
+      subst l
+      rfl
+
+/-- `getLast` through an equality of the lists (proof args differ). -/
+lemma getLast_eq_of_eq {l l' : List V} (hl : l = l') (hne : l ≠ []) (hne' : l' ≠ []) :
+    l.getLast hne = l'.getLast hne' := by
+  cases l' with
+  | nil => simp at hne'
+  | cons b t =>
+      subst l
+      cases t with
+      | nil => rfl
+      | cons c t' => rfl
+
+/-- The head of `l ++ l₂` with `l` nonempty is the head of `l`. -/
+lemma head_append_of_left_ne_nil' {l l2 : List V} (h : l ≠ []) (h' : l ++ l2 ≠ []) :
+    (l ++ l2).head h' = l.head h := by
+  cases l with
+  | nil => simp at h
+  | cons b t => rfl
+
+/-- The cost of the empty path is zero. -/
+lemma pathCost_nil (w : Graph V) : pathCost w [] = 0 := by
+  rfl
+
+/-- The cost of a path starting with `v` decomposes as the first edge plus the
+rest of the path. -/
+lemma pathCost_cons_nonempty (w : Graph V) (v : V) {cs : List V} (h : cs ≠ []) :
+    pathCost w (v :: cs) = w v (cs.head h) + pathCost w cs := by
+  cases cs with
+  | nil => simp at h
+  | cons a rest => rfl
+
+/-- The cost of a concatenation of two nonempty paths: the sum of the parts plus
+the edge joining them. -/
+lemma pathCost_append_nonempty (w : Graph V) {l1 l2 : List V} (h1 : l1 ≠ []) (h2 : l2 ≠ []) :
+    pathCost w (l1 ++ l2) = pathCost w l1 + pathCost w l2 + w (l1.getLast h1) (l2.head h2) := by
+  induction l1 with
+  | nil => simp at h1
+  | cons v t ih =>
+      cases t with
+      | nil =>
+          change pathCost w (v :: l2) = pathCost w [v] + pathCost w l2 + w ([v].getLast h1) (l2.head h2)
+          rw [pathCost_cons_nonempty w v h2]
+          simp
+          ac_rfl
+      | cons a t' =>
+          have ht : a :: t' ≠ [] := by simp
+          have hrest : (a :: t') ++ l2 ≠ [] := by simp [ht]
+          rw [List.cons_append]
+          rw [pathCost_cons_nonempty w v hrest]
+          rw [pathCost_cons_nonempty w v ht]
+          rw [ih ht]
+          have hhead : ((a :: t') ++ l2).head hrest = (a :: t').head ht := by
+            simp
+          rw [hhead]
+          rw [getLast_cons_any ht h1]
+          omega
+
+/-- A Finset sum equals the sum over its `toList`. -/
+lemma finset_sum_toList {α : Type} (s : Finset α) (f : α → Nat) :
+    (s.toList.map f).sum = s.sum f := by
+  simp
+
+/-- A Finset sum equals the sum over the list of its attached elements. -/
+lemma finset_sum_attach_toList {α : Type} [DecidableEq α] (s : Finset α) (f : α → Nat) :
+    (s.attach.toList.map (fun x : {a : α // a ∈ s} => f x.1)).sum = s.sum f := by
+  calc
+    (s.attach.toList.map (fun x : {a : α // a ∈ s} => f x.1)).sum
+      = s.attach.sum (fun x : {a : α // a ∈ s} => f x.1) := by
+        exact finset_sum_toList s.attach (fun x : {a : α // a ∈ s} => f x.1)
+    _ = s.sum f := by rw [Finset.sum_attach]
+
+/-- Congruence for list sums of `Nat`-valued functions. -/
+lemma sum_map_congr {α : Type} {f g : α → Nat} {l : List α} (h : ∀ a ∈ l, f a = g a) :
+    (l.map f).sum = (l.map g).sum := by
+  induction l with
+  | nil => rfl
+  | cons a t ih =>
+      have hda : f a = g a := h a (by simp)
+      have ih' : (t.map f).sum = (t.map g).sum := ih (fun b hb => h b (by simp [hb]))
+      simp [List.sum_cons, hda, ih']
 
 /--
 A **rooted tree** on the vertex type: a parent map `p : V → V` together with a
@@ -424,6 +567,473 @@ noncomputable def preorder (hT : TreeOn p r) : (v : V) → List V := by
 depth-first preorder, interpreted as a Hamiltonian cycle in `dfsTour_isTour`. -/
 noncomputable def dfsTour (hT : TreeOn p r) : List V :=
   preorder hT r
+
+-- Walk and cost machinery for Lemma 35.2 ---------------------------------
+
+/-- The recursion equation for `dfsWalkFrom`: the walk from `v` visits `v`, then
+walks each child's subtree and returns to `v`. -/
+lemma dfsWalkFrom_fix (hT : TreeOn p r) (v : V) :
+    dfsWalkFrom hT v =
+      [v] ++ ((children p r v).attach.toList.flatMap
+        (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])) := by
+  classical
+  unfold dfsWalkFrom
+  dsimp only
+  rw [WellFounded.fix_eq]
+
+/-- The walk from any vertex is nonempty. -/
+lemma dfsWalkFrom_ne_nil (hT : TreeOn p r) (v : V) : dfsWalkFrom hT v ≠ [] := by
+  rw [dfsWalkFrom_fix hT v]
+  simp
+
+/-- The walk from `v` starts at `v`. -/
+lemma dfsWalkFrom_head (hT : TreeOn p r) (v : V) :
+    (dfsWalkFrom hT v).head (dfsWalkFrom_ne_nil hT v) = v := by
+  calc
+    (dfsWalkFrom hT v).head (dfsWalkFrom_ne_nil hT v)
+      = ([v] ++ (children p r v).attach.toList.flatMap
+          (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).head (by simp) := by
+        exact head_eq_of_eq (dfsWalkFrom_fix hT v) (dfsWalkFrom_ne_nil hT v) (by simp)
+    _ = v := by simp
+
+/-- If every `g a` is nonempty, then `l.flatMap g` is nonempty whenever `l` is. -/
+lemma flatMap_append_ne_nil {α β : Type} {g : α → List β} (hg : ∀ a, g a ≠ []) :
+    ∀ l : List α, l ≠ [] → l.flatMap g ≠ [] := by
+  intro l
+  cases l with
+  | nil => simp
+  | cons a t =>
+      rw [List.flatMap_cons]
+      intro _
+      intro h
+      exact hg a (List.append_eq_nil_iff.mp h).1
+
+/-- Every segment of the walk (`dfsWalkFrom c ++ [v]`) ends in `v`, so the
+concatenated children list ends in `v`. -/
+lemma flatMap_last_v (hT : TreeOn p r) {v : V} :
+    ∀ cs : List {c : V // c ∈ children p r v},
+      (hne : cs.flatMap (fun xc => dfsWalkFrom hT xc.1 ++ [v]) ≠ []) →
+        (cs.flatMap (fun xc => dfsWalkFrom hT xc.1 ++ [v])).getLast hne = v := by
+  intro cs
+  induction cs with
+  | nil => intro hne; simp at hne
+  | cons xc rest ih =>
+      intro hne
+      by_cases hre : rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) = []
+      · have hrest_nil : rest = [] := by
+          by_contra hrn
+          have hne' : rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) ≠ [] :=
+            flatMap_append_ne_nil (fun xc => by simp [dfsWalkFrom_ne_nil hT xc.1]) rest hrn
+          exact hne' hre
+        subst hrest_nil
+        have hflat : (xc :: []).flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) = dfsWalkFrom hT xc.1 ++ [v] := by
+          simp
+        have hne1 : dfsWalkFrom hT xc.1 ++ [v] ≠ [] := by simp [dfsWalkFrom_ne_nil hT xc.1]
+        calc
+          ((xc :: []).flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hne
+            = (dfsWalkFrom hT xc.1 ++ [v]).getLast hne1 := getLast_eq_of_eq hflat hne hne1
+          _ = v := getLast_append_singleton' (dfsWalkFrom hT xc.1) hne1
+      · have hflat : (xc :: rest).flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])
+          = (dfsWalkFrom hT xc.1 ++ [v]) ++ rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) := by
+          rw [List.flatMap_cons]
+        have hne1 : (dfsWalkFrom hT xc.1 ++ [v]) ++ rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) ≠ [] := by
+          simp [hre]
+        calc
+          ((xc :: rest).flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hne
+            = ((dfsWalkFrom hT xc.1 ++ [v]) ++ rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hne1 := getLast_eq_of_eq hflat hne hne1
+          _ = (rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hre :=
+            getLast_append_of_right_ne_nil' (dfsWalkFrom hT xc.1 ++ [v])
+              (rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])) hne1 hre
+          _ = v := ih hre
+
+/-- The walk from `v` returns to `v`. -/
+lemma dfsWalkFrom_last (hT : TreeOn p r) (v : V) :
+    (dfsWalkFrom hT v).getLast (dfsWalkFrom_ne_nil hT v) = v := by
+  let cs := (children p r v).attach.toList
+  have hfix : dfsWalkFrom hT v = [v] ++ cs.flatMap
+      (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) := dfsWalkFrom_fix hT v
+  have hneFix : [v] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) ≠ [] := by simp
+  have hlast : ([v] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hneFix = v := by
+    by_cases hre : cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) = []
+    · have hlist : [v] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) = [v] := by
+        rw [hre]
+        simp
+      calc
+        ([v] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hneFix
+          = [v].getLast (by simp) := getLast_eq_of_eq hlist hneFix (by simp)
+        _ = v := rfl
+    · have htail : (cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hre = v :=
+        flatMap_last_v hT cs hre
+      exact (getLast_append_of_right_ne_nil' [v]
+        (cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])) hneFix hre) ▸ htail
+  calc
+    (dfsWalkFrom hT v).getLast (dfsWalkFrom_ne_nil hT v)
+      = ([v] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).getLast hneFix :=
+        getLast_eq_of_eq hfix (dfsWalkFrom_ne_nil hT v) hneFix
+    _ = v := hlast
+
+/-- The cost of a child's walk plus the return edge to `v` telescopes to the
+walk cost plus the child edge. -/
+lemma pathCost_dfsWalkFrom_append_singleton (hT : TreeOn p r) (w : Graph V) (v : V) (c : V) :
+    pathCost w (dfsWalkFrom hT c ++ [v]) = walkCost w (dfsWalkFrom hT c) + w c v := by
+  rw [pathCost_append_nonempty w (dfsWalkFrom_ne_nil hT c) (by simp)]
+  rw [dfsWalkFrom_last hT c]
+  simp [walkCost, pathCost]
+
+/-- The walk `[v] ++ flatMap (fun c => dfsWalkFrom c ++ [v])` decomposes into a
+sum over the children: for each child `c`, the edge `v → c` plus the child's
+segment. -/
+lemma pathCost_walk_segments (w : Graph V) (hT : TreeOn p r) {v : V}
+    (cs : List {c : V // c ∈ children p r v}) :
+    pathCost w ([v] ++ (cs.flatMap (fun xc => dfsWalkFrom hT xc.1 ++ [v])))
+      = (cs.map (fun xc : {c : V // c ∈ children p r v} => w v xc.1 + pathCost w (dfsWalkFrom hT xc.1 ++ [v]))).sum := by
+  induction cs with
+  | nil => simp [pathCost]
+  | cons xc rest ih =>
+      rw [List.flatMap_cons]
+      have hg : dfsWalkFrom hT xc.1 ++ [v] ≠ [] := by simp [dfsWalkFrom_ne_nil hT xc.1]
+      have hlead : [v] ≠ [] := by simp
+      have hSeg : pathCost w ([v] ++ (dfsWalkFrom hT xc.1 ++ [v])) =
+          pathCost w (dfsWalkFrom hT xc.1 ++ [v]) + w v xc.1 := by
+        rw [pathCost_append_nonempty w hlead hg]
+        simp [List.getLast_singleton]
+        have hhead : (dfsWalkFrom hT xc.1 ++ [v]).head hg = xc.1 := by
+          rw [head_append_of_left_ne_nil' (dfsWalkFrom_ne_nil hT xc.1) hg]
+          exact dfsWalkFrom_head hT xc.1
+        rw [hhead]
+        ac_rfl
+      by_cases hre : rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) = []
+      · have hrest_nil : rest = [] := by
+          by_contra hrn
+          have hne' : rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]) ≠ [] :=
+            flatMap_append_ne_nil (fun xc => by simp [dfsWalkFrom_ne_nil hT xc.1]) rest hrn
+          exact hne' hre
+        subst hrest_nil
+        simp
+        rw [pathCost_cons_nonempty w v hg]
+        have hhead : (dfsWalkFrom hT xc.1 ++ [v]).head hg = xc.1 := by
+          rw [head_append_of_left_ne_nil' (dfsWalkFrom_ne_nil hT xc.1) hg]
+          exact dfsWalkFrom_head hT xc.1
+        rw [hhead]
+      · rw [← List.append_assoc]
+        have hApp : pathCost w (([v] ++ (dfsWalkFrom hT xc.1 ++ [v])) ++ rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])) =
+            pathCost w ([v] ++ (dfsWalkFrom hT xc.1 ++ [v]))
+              + pathCost w (rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]))
+              + w v ((rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).head hre) := by
+          have hne1 : [v] ++ (dfsWalkFrom hT xc.1 ++ [v]) ≠ [] := by simp
+          rw [pathCost_append_nonempty w hne1 hre]
+          have hlast : ([v] ++ (dfsWalkFrom hT xc.1 ++ [v])).getLast hne1 = v := by
+            rw [getLast_append_of_right_ne_nil' [v] (dfsWalkFrom hT xc.1 ++ [v]) hne1 hg]
+            exact getLast_append_singleton' (dfsWalkFrom hT xc.1) hg
+          rw [hlast]
+        rw [hApp]
+        rw [hSeg]
+        have hRest : pathCost w (rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]))
+              + w v ((rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).head hre)
+            = pathCost w ([v] ++ rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])) := by
+          rw [pathCost_append_nonempty w hlead hre]
+          simp [List.getLast_singleton]
+          ac_rfl
+        have hcomb : pathCost w (dfsWalkFrom hT xc.1 ++ [v]) + w v xc.1 +
+            (pathCost w (rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]))
+              + w v ((rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).head hre))
+            = (pathCost w (dfsWalkFrom hT xc.1 ++ [v]) + w v xc.1) + pathCost w (rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]))
+              + w v ((rest.flatMap (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v])).head hre) := by
+          ac_rfl
+        rw [← hcomb]
+        rw [hRest]
+        rw [ih]
+        simp
+        ac_rfl
+
+/-- The walk cost from `v` is the sum over the children of (child walk cost plus
+the two edges joining them). -/
+lemma dfsWalkFrom_cost_rec (hT : TreeOn p r) (w : Graph V) (v : V) :
+    walkCost w (dfsWalkFrom hT v)
+      = ((children p r v).attach.toList.map
+          (fun xc : {c : V // c ∈ children p r v} =>
+            walkCost w (dfsWalkFrom hT xc.1) + w xc.1 v + w v xc.1)).sum := by
+  rw [dfsWalkFrom_fix hT v]
+  change pathCost w ([v] ++ (children p r v).attach.toList.flatMap
+      (fun xc : {c : V // c ∈ children p r v} => dfsWalkFrom hT xc.1 ++ [v]))
+    = ((children p r v).attach.toList.map
+        (fun xc : {c : V // c ∈ children p r v} => walkCost w (dfsWalkFrom hT xc.1) + w xc.1 v + w v xc.1)).sum
+  rw [pathCost_walk_segments w hT (children p r v).attach.toList]
+  apply sum_map_congr
+  intro xc hxc
+  rw [pathCost_dfsWalkFrom_append_singleton hT w v xc.1]
+  ac_rfl
+
+/-- Same as `dfsWalkFrom_cost_rec`, with the sum over the children Finset. -/
+lemma dfsWalkFrom_cost_rec_finset (hT : TreeOn p r) (w : Graph V) (v : V) :
+    walkCost w (dfsWalkFrom hT v)
+      = (children p r v).sum (fun c => walkCost w (dfsWalkFrom hT c) + w c v + w v c) := by
+  rw [dfsWalkFrom_cost_rec hT w v]
+  exact finset_sum_attach_toList (children p r v) (fun c => walkCost w (dfsWalkFrom hT c) + w c v + w v c)
+
+-- Subtree decomposition -------------------------------------------------
+
+/-- Membership in a subtree: `x` lies in `subtree v` iff `x = v` or `x` lies in
+the subtree of a child of `v`. -/
+lemma subtree_mem_iff (hT : TreeOn p r) (x v : V) :
+    x ∈ subtree p r v ↔ x = v ∨ ∃ c : V, c ∈ children p r v ∧ x ∈ subtree p r c := by
+  classical
+  rw [subtree]
+  simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+  constructor
+  · intro h
+    rcases h with ⟨k, hk⟩
+    by_cases hxv : x = v
+    · exact Or.inl hxv
+    · right
+      have hexists : ∃ n : Nat, p^[n] x = v := ⟨k, hk⟩
+      let k0 := Nat.find hexists
+      have hk0 : p^[k0] x = v := Nat.find_spec hexists
+      have hk0min : ∀ n : Nat, n < k0 → p^[n] x ≠ v := fun n hn => Nat.find_min hexists hn
+      have hk0pos : 0 < k0 := by
+        by_contra hz
+        have hk0zero : k0 = 0 := by omega
+        have : x = v := by simpa [hk0zero] using hk0
+        exact hxv this
+      refine ⟨p^[k0 - 1] x, ?memc, ?subc⟩
+      · rw [children]
+        rw [Finset.mem_filter]
+        constructor
+        · exact Finset.mem_univ (p^[k0 - 1] x)
+        · constructor
+          · intro hcr
+            have hpr : p^[k0] x = r := by
+              calc
+                p^[k0] x = p (p^[k0 - 1] x) := by
+                  conv_lhs =>
+                    rw [show k0 = (k0 - 1) + 1 by omega]
+                  rw [Function.iterate_succ_apply']
+                _ = r := by
+                  rw [hcr]
+                  exact hT.root_fixed
+            have hv : v = r := hk0.symm.trans hpr
+            apply hk0min (k0 - 1) (by omega)
+            calc
+              p^[k0 - 1] x = r := hcr
+              _ = v := hv.symm
+          · change p (p^[k0 - 1] x) = v
+            calc
+              p (p^[k0 - 1] x) = p^[k0] x := by
+                conv_rhs =>
+                  rw [show k0 = (k0 - 1) + 1 by omega]
+                rw [Function.iterate_succ_apply']
+              _ = v := hk0
+      · rw [subtree]
+        rw [Finset.mem_filter]
+        exact ⟨Finset.mem_univ x, ⟨k0 - 1, rfl⟩⟩
+  · intro h
+    rcases h with hxv | ⟨c, hc, hsub⟩
+    · subst x
+      exact ⟨0, rfl⟩
+    · rw [subtree] at hsub
+      simp at hsub
+      have hpc : p c = v := (Finset.mem_filter.mp hc).2.2
+      rcases hsub with ⟨k, hk⟩
+      exact ⟨k + 1, by
+        calc
+          p^[k + 1] x = p (p^[k] x) := by
+            rw [Function.iterate_succ_apply']
+          _ = p c := by rw [hk]
+          _ = v := hpc⟩
+
+/-- Two children of `v` whose iterates of `x` reach them must coincide. -/
+lemma child_subtree_depth (hT : TreeOn p r) (v : V) {c1 c2 : V} {i j : Nat}
+    (hc1 : c1 ∈ children p r v) (hc2 : c2 ∈ children p r v) (hij : i ≤ j)
+    {x : V} (hi : p^[i] x = c1) (hj : p^[j] x = c2) : c1 = c2 := by
+  classical
+  have hstep : p^[j - i] c1 = c2 := by
+    calc
+      p^[j - i] c1 = p^[j - i] (p^[i] x) := by rw [hi]
+      _ = p^[j] x := by
+        rw [show j = (j - i) + i by omega]
+        simp [Function.iterate_add]
+      _ = c2 := hj
+  by_cases hji0 : j - i = 0
+  · simpa [hji0] using hstep
+  · have hji_pos : 0 < j - i := Nat.pos_of_ne_zero hji0
+    rcases Finset.mem_filter.mp hc1 with ⟨_, hc1p⟩
+    rcases Finset.mem_filter.mp hc2 with ⟨_, hc2p⟩
+    rcases hc1p with ⟨hc1ne, hpc1⟩
+    rcases hc2p with ⟨hc2ne, hpc2⟩
+    have hd1 : depth p r c1 = depth p r v + 1 := hT.depth_child_succ hpc1 hc1ne
+    have hd2 : depth p r c2 = depth p r v + 1 := hT.depth_child_succ hpc2 hc2ne
+    have hle : j - i ≤ depth p r c1 :=
+      iterate_le_depth_of_ne_root hT (u := c1) (i := j - i) (x := c2) hstep hc2ne
+    have hiter := hT.depth_iterate c1 (j - i) hle
+    have hdep : depth p r c2 = depth p r c1 - (j - i) := by
+      rw [hstep] at hiter
+      exact hiter
+    have hlt : (depth p r v + 1) - (j - i) < depth p r v + 1 := by omega
+    have hfalse : depth p r v + 1 < depth p r v + 1 := by
+      calc
+        depth p r v + 1 = depth p r c2 := hd2.symm
+        _ = depth p r c1 - (j - i) := hdep
+        _ = (depth p r v + 1) - (j - i) := by rw [hd1]
+        _ < depth p r v + 1 := hlt
+    omega
+
+/-- The subtrees of distinct children of `v` are pairwise disjoint. -/
+lemma children_subtree_disjoint (hT : TreeOn p r) (v : V) :
+    (children p r v : Set V).PairwiseDisjoint (fun c => subtree p r c) := by
+  classical
+  intro c1 hc1 c2 hc2 hne
+  change Disjoint (subtree p r c1) (subtree p r c2)
+  rw [Finset.disjoint_left]
+  intro x hx1 hx2
+  rw [subtree] at hx1 hx2
+  rcases Finset.mem_filter.mp hx1 with ⟨_, ⟨i, hi⟩⟩
+  rcases Finset.mem_filter.mp hx2 with ⟨_, ⟨j, hj⟩⟩
+  by_cases hij : i ≤ j
+  · exact hne (child_subtree_depth hT v hc1 hc2 hij hi hj)
+  · have hji : j ≤ i := by omega
+    have : c2 = c1 := child_subtree_depth hT v hc2 hc1 hji hj hi
+    exact hne this.symm
+
+/-- A vertex does not lie in the subtree of its own child. -/
+lemma v_not_mem_child_subtree (hT : TreeOn p r) {c v : V} (hc : c ∈ children p r v) :
+    v ∉ subtree p r c := by
+  classical
+  rw [subtree]
+  intro hv
+  rcases Finset.mem_filter.mp hv with ⟨_, ⟨k, hk⟩⟩
+  rcases Finset.mem_filter.mp hc with ⟨_, hcp⟩
+  rcases hcp with ⟨hcne, hpc⟩
+  have hd : depth p r c = depth p r v + 1 := hT.depth_child_succ hpc hcne
+  have hle : k ≤ depth p r v := iterate_le_depth_of_ne_root hT (u := v) (i := k) (x := c) hk hcne
+  have hiter := hT.depth_iterate v k hle
+  have hdep : depth p r c = depth p r v - k := by
+    rw [hk] at hiter
+    exact hiter
+  have hlt : depth p r v - k < depth p r v + 1 := by omega
+  have hfalse : depth p r v + 1 < depth p r v + 1 := by
+    calc
+      depth p r v + 1 = depth p r c := hd.symm
+      _ = depth p r v - k := hdep
+      _ < depth p r v + 1 := hlt
+  omega
+
+/-- The subtree of `v` is `v` together with the disjoint union of its children's
+subtrees. -/
+lemma subtree_eq_insert_disjiUnion (hT : TreeOn p r) (v : V) :
+    subtree p r v = insert v (Finset.disjiUnion (children p r v) (fun c => subtree p r c) (children_subtree_disjoint hT v)) := by
+  classical
+  ext x
+  rw [Finset.mem_insert, Finset.mem_disjiUnion]
+  exact subtree_mem_iff hT x v
+
+/-- The subtree cost decomposes as the vertex's own edge plus the sum of its
+children's subtree costs (as a list sum over the attached children). -/
+lemma subtreeCost_rec (hT : TreeOn p r) (w : Graph V) (v : V) :
+    subtreeCost w p r v = w v (p v) + ((children p r v).attach.toList.map (fun xc : {c : V // c ∈ children p r v} => subtreeCost w p r xc.1)).sum := by
+  classical
+  unfold subtreeCost
+  rw [subtree_eq_insert_disjiUnion hT v]
+  have hvnotin : v ∉ Finset.disjiUnion (children p r v) (fun c => subtree p r c) (children_subtree_disjoint hT v) := by
+    rw [Finset.mem_disjiUnion]
+    intro h
+    rcases h with ⟨c, hc, hvc⟩
+    exact v_not_mem_child_subtree hT hc hvc
+  rw [Finset.sum_insert hvnotin]
+  congr 1
+  rw [Finset.sum_disjiUnion]
+  exact (finset_sum_attach_toList (children p r v) (fun c => subtreeCost w p r c)).symm
+
+/-- Same as `subtreeCost_rec`, with the sum over the children Finset. -/
+lemma subtreeCost_rec_finset (hT : TreeOn p r) (w : Graph V) (v : V) :
+    subtreeCost w p r v = w v (p v) + (children p r v).sum (fun c => subtreeCost w p r c) := by
+  rw [subtreeCost_rec hT w v]
+  congr 1
+  exact finset_sum_attach_toList (children p r v) (fun c => subtreeCost w p r c)
+
+-- Lemma 35.2 ------------------------------------------------------------
+
+/--
+**Lemma (walk cost).**  The depth-first walk from `v` over its subtree costs
+twice the subtree cost, excluding `v`'s own parent edge.  This is the recursive
+statement used to prove Lemma 35.2 at the root.
+-/
+lemma dfsWalkFrom_cost (hT : TreeOn p r) (w : Graph V) (hSymm : ∀ x y : V, w x y = w y x) (v : V) :
+    walkCost w (dfsWalkFrom hT v) = 2 * (subtreeCost w p r v - w v (p v)) := by
+  classical
+  let R : V → V → Prop := fun a b => Fintype.card V - depth p r a < Fintype.card V - depth p r b
+  have hwf : WellFounded R := (measure (fun a : V => Fintype.card V - depth p r a)).wf
+  refine hwf.induction (C := fun u : V =>
+    walkCost w (dfsWalkFrom hT u) = 2 * (subtreeCost w p r u - w u (p u))) v ?_
+  intro u hrec
+  have hchild : ∀ c ∈ children p r u,
+      walkCost w (dfsWalkFrom hT c) + w c u + w u c = 2 * subtreeCost w p r c := by
+    intro c hc
+    have hrec' := hrec c (children_depth_lt hT hc)
+    rw [hrec']
+    rcases Finset.mem_filter.mp hc with ⟨_, hcprops⟩
+    rcases hcprops with ⟨hcne, hpc⟩
+    have hw1 : w c (p c) = w c u := by rw [hpc]
+    have hw2 : w u c = w c u := hSymm u c
+    have hcsub : c ∈ subtree p r c := by
+      rw [subtree]
+      rw [Finset.mem_filter]
+      exact ⟨Finset.mem_univ c, ⟨0, rfl⟩⟩
+    have hle : w c (p c) ≤ subtreeCost w p r c := by
+      unfold subtreeCost
+      exact Finset.single_le_sum (fun x _ => Nat.zero_le (w x (p x))) hcsub
+    have hle' : w c u ≤ subtreeCost w p r c := by simpa [hw1] using hle
+    rw [hw1, hw2]
+    omega
+  rw [dfsWalkFrom_cost_rec_finset hT w u]
+  rw [subtreeCost_rec_finset hT w u]
+  have hsum : (children p r u).sum (fun c => walkCost w (dfsWalkFrom hT c) + w c u + w u c)
+      = (children p r u).sum (fun c => 2 * subtreeCost w p r c) := by
+    apply Finset.sum_congr
+    · rfl
+    · intro c hc
+      exact hchild c hc
+  rw [hsum]
+  have hcancel : w u (p u) + (children p r u).sum (fun c => subtreeCost w p r c) - w u (p u)
+      = (children p r u).sum (fun c => subtreeCost w p r c) := by
+    omega
+  rw [hcancel]
+  rw [Nat.mul_comm]
+  rw [Finset.sum_mul]
+  apply Finset.sum_congr
+  · rfl
+  · intro c hc
+    rw [Nat.mul_comm]
+
+/--
+**Lemma 35.2.**  The depth-first walk of a rooted tree traverses every tree edge
+exactly twice, so its cost is exactly twice the tree's cost.
+
+Under a symmetric weight function `w`, the full walk `dfsWalk hT` (from and back
+to the root) costs `2 * treeCost w p r`.
+-/
+lemma dfsWalk_cost (hT : TreeOn p r) (w : Graph V) (hSymm : ∀ x y : V, w x y = w y x) :
+    walkCost w (dfsWalk hT) = 2 * treeCost w p r := by
+  change walkCost w (dfsWalkFrom hT r) = 2 * treeCost w p r
+  rw [dfsWalkFrom_cost hT w hSymm r]
+  have hroot : subtreeCost w p r r - w r (p r) = treeCost w p r := by
+    have hsub : subtreeCost w p r r = treeCost w p r + w r (p r) := by
+      unfold subtreeCost treeCost
+      have huniv : subtree p r r = Finset.univ := by
+        ext x
+        simp [subtree, hT.reaches_root x]
+      rw [huniv]
+      have hsplit : Finset.univ.sum (fun x => w x (p x)) = w r (p r) + (Finset.univ.erase r).sum (fun x => w x (p x)) := by
+        calc
+          Finset.univ.sum (fun x => w x (p x)) = (insert r (Finset.univ.erase r)).sum (fun x => w x (p x)) := by
+            conv_lhs =>
+              rw [← Finset.insert_erase (Finset.mem_univ r)]
+          _ = w r (p r) + (Finset.univ.erase r).sum (fun x => w x (p x)) := by
+            rw [Finset.sum_insert (by simp)]
+      rw [hsplit]
+      omega
+    rw [hsub]
+    exact Nat.add_sub_cancel (treeCost w p r) (w r (p r))
+  rw [hroot]
 
 end TreeOn
 
