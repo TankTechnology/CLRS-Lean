@@ -93,6 +93,14 @@ Main results:
   disagreement `t`, the exchange extends agreement to `t + 1`, never
   increases misses (slack `+1` iff the bad event did not occur), and is
   reduced from `J' + 1` when `q'` is requested again
+- `iterate_main_case_one`: the case-one (hAone) step — `q'` never
+  requested again — the exchange extends agreement to `t + 1`, slack
+  `+1` iff `q` is requested again (`exchangeSchedule_misses_le_plus_one`;
+  `q` dead: misses equal by `exchangeSchedule_misses_eq_case_one`), and
+  is reduced from `t + 1` on except the branch-1 positions (`d s = q'`
+  — the exchange evicts `q'` as a no-op, not resident; at most one such
+  fault); the q-dead sub-case's final agreement is attainable (the
+  DESIGN's "unattainable" claim is stale — see `Dev/DESIGN.md`)
 - the q₀'-B1 slack supply: `exchangeSchedule_eq_q'_imp_d_eq_q'` (the
   branch-1 reverse — the exchange evicts `q₀'` at `s > t₀` iff the source
   does), `b1_exchange_no_bad_q0` (at a B1 with `d t₂ = q₀'`, `t₂ ∉ P`,
@@ -2251,6 +2259,107 @@ lemma iterate_main_exchange (d : ℕ → Page) (σ : List Page) (C₀ : Finset P
         have hred := exchangeSchedule_reduced_after d t q q' σ C₀ rfl hqq' hdred hft hq'res hj hq'ne
           (j' := j') hj' (s := s) (by omega) hFault
         simpa [e, q, q'] using hred
+
+/-- 情形一(`q'` 永不再请求)的交换步骤:一次 exchange 后,新调度与 FIF 一致
+到 `t + 1`;slack:`q` 会再次被请求时 +1(`exchangeSchedule_misses_le_plus_one`),
+`q` 也死时不变;reduced 性:交换在 `t + 1` 起的缺页处逐出 resident 页或
+`d s = q'`(分支 1 —— 交换以 no-op 逐出 `q'`,非 resident;该位置至多一次)。
+`iterate_main_exchange` 的 hnone 枝给出 slack 与一致;`exchangeDecision`
+的分支结构(分支 1 除外:分支 3/5/6 逐出 `E` 中的页,`else 0` 由缺页 +
+基数论证排除)给出 reduced 性。 -/
+lemma iterate_main_case_one (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF d C₀ σ t)
+    (hdis : schedCache d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hnone : nextUse σ (t + 1) (fifoSchedule σ C₀ t) = none)
+    (slack : ℕ) :
+    ∃ slack',
+      agreeWithFIF (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ (t + 1) ∧
+      schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ + slack' ≤
+        schedMisses d C₀ σ + slack ∧
+      ∀ s, t + 1 ≤ s → σ.getD s 0 ∉ schedCache (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ s →
+        (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) s ∈
+          schedCache (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ s ∨
+        d s = fifoSchedule σ C₀ t := by
+  let q : Page := d t
+  let q' : Page := fifoSchedule σ C₀ t
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  rcases iterate_main_exchange d σ C₀ hC₀ ht hagree hdis hdred slack with ⟨slack', hagreeE, hbookE, hredE⟩
+  refine ⟨slack', ?_, ?_, ?_⟩
+  · -- agree 到 t+1
+    simpa [e, q, q'] using hagreeE
+  · -- slack 记账
+    simpa [e, q, q'] using hbookE
+  · -- reduced 性(分支 1 除外)
+    intro s hs hFault
+    by_cases hd1 : d s = q'
+    · right
+      simpa [q'] using hd1
+    · left
+      have hFault' : σ.getD s 0 ∉ schedCache e C₀ σ s := by
+        simpa [e, q, q'] using hFault
+      have hmain : (exchangeScheduleCore d t q q' σ C₀ s).2 ∈ schedCache e C₀ σ s := by
+        rw [exchangeScheduleCore_second]
+        rw [← schedCache_exchangeScheduleCore]
+        change exchangeDecision d t q q' σ C₀ (schedCache e C₀ σ s) s ∈ schedCache e C₀ σ s
+        unfold exchangeDecision
+        rw [if_neg (by omega)]
+        rw [if_neg (by omega)]
+        rw [if_neg hd1]
+        by_cases hb3 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧ σ.getD s 0 ∈ schedCache d C₀ σ s
+        · rw [if_pos hb3]
+          let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+          by_cases hf : (M.filter (fun x => x ≠ q')).Nonempty
+          · rw [dif_pos hf]
+            exact (Finset.mem_sdiff.mp (Finset.mem_filter.mp (Classical.choose_spec hf)).1).1
+          · by_cases hm : M.Nonempty
+            · rw [dif_neg hf]
+              rw [dif_pos hm]
+              exact (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            · rw [dif_neg hf]
+              rw [dif_neg hm]
+              exfalso
+              have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+                intro y hy
+                by_contra hyn
+                exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+              have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+                rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+                  rw [← schedCache_exchangeScheduleCore]]
+                exact exchangeScheduleCore_card d t q q' σ C₀ hdred (by omega)
+              have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+                Finset.eq_of_subset_of_card_le hsub hcard
+              exact hFault' (hEq ▸ hb3.2)
+        · rw [if_neg hb3]
+          by_cases hdsin : d s ∈ schedCache e C₀ σ s
+          · rw [if_pos hdsin]
+            exact hdsin
+          · rw [if_neg hdsin]
+            let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+            by_cases hm : M.Nonempty
+            · rw [dif_pos hm]
+              exact (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            · rw [dif_neg hm]
+              exfalso
+              have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+                intro y hy
+                by_contra hyn
+                exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+              have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+                rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+                  rw [← schedCache_exchangeScheduleCore]]
+                exact exchangeScheduleCore_card d t q q' σ C₀ hdred (by omega)
+              have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+                Finset.eq_of_subset_of_card_le hsub hcard
+              have hdFault : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+                intro h
+                exact hFault' (hEq ▸ h)
+              have hdsE : d s ∈ schedCache d C₀ σ s := hdred s (by omega) hdFault
+              exact hdsin (hEq.symm ▸ hdsE)
+      change (exchangeScheduleCore d t q q' σ C₀ s).2 ∈ schedCache e C₀ σ s
+      exact hmain
 
 /-- FIF 在 `t` 处的逐出页 `p`(FIF 在分歧处缺页并逐出)在首次请求
 `J = t + 1 + j` 之前不在 FIF 自己的 cache 中:基步由 `hftF` 缺页 + `p`
