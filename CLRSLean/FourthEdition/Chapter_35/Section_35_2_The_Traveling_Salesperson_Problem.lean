@@ -1035,6 +1035,59 @@ lemma dfsWalk_cost (hT : TreeOn p r) (w : Graph V) (hSymm : ∀ x y : V, w x y =
     exact Nat.add_sub_cancel (treeCost w p r) (w r (p r))
   rw [hroot]
 
+-- Preorder: dfsTour visits every vertex ---------------------------------
+
+/-- The recursion equation for `preorder`: the preorder from `v` visits `v`,
+then the preorders of each child's subtree. -/
+lemma preorder_fix (hT : TreeOn p r) (v : V) :
+    preorder hT v = v :: ((children p r v).attach.toList.flatMap
+      (fun xc : {c : V // c ∈ children p r v} => preorder hT xc.1)) := by
+  classical
+  unfold preorder
+  dsimp only
+  rw [WellFounded.fix_eq]
+
+/-- A vertex is in the preorder of `v` iff it lies in the subtree of `v`. -/
+lemma preorder_mem_subtree (hT : TreeOn p r) (v : V) :
+    ∀ x : V, x ∈ preorder hT v ↔ x ∈ subtree p r v := by
+  classical
+  let R : V → V → Prop := fun a b => Fintype.card V - depth p r a < Fintype.card V - depth p r b
+  have hwf : WellFounded R := (measure (fun a : V => Fintype.card V - depth p r a)).wf
+  refine hwf.induction (C := fun u : V => ∀ x : V, x ∈ preorder hT u ↔ x ∈ subtree p r u) v ?_
+  intro u hrec
+  intro x
+  constructor
+  · intro hx
+    rw [preorder_fix hT u] at hx
+    rcases List.mem_cons.mp hx with hxv | hxmem
+    · subst x
+      exact (subtree_mem_iff hT u u).2 (Or.inl rfl)
+    · rw [List.mem_flatMap] at hxmem
+      rcases hxmem with ⟨yc, hyc_mem, hxpre⟩
+      have hxsub : x ∈ subtree p r yc.1 := (hrec yc.1 (children_depth_lt hT yc.2) x).1 hxpre
+      exact (subtree_mem_iff hT x u).2 (Or.inr ⟨yc.1, yc.2, hxsub⟩)
+  · intro hx
+    rw [preorder_fix hT u]
+    rcases (subtree_mem_iff hT x u).1 hx with hxv | ⟨c, hc, hxsub⟩
+    · subst x
+      exact List.mem_cons_self
+    · have hxpre : x ∈ preorder hT c := (hrec c (children_depth_lt hT hc) x).2 hxsub
+      have hc_mem : (⟨c, hc⟩ : {c : V // c ∈ children p r u}) ∈ (children p r u).attach.toList := by
+        rw [Finset.mem_toList]
+        exact (Finset.mem_attach (s := children p r u) ⟨c, hc⟩)
+      exact List.mem_cons_of_mem u (List.mem_flatMap_of_mem hc_mem hxpre)
+
+/-- The preorder tour visits every vertex exactly once in the sense that every
+vertex appears in it (the absence of duplicates is `dfsTour_nodup` below). -/
+lemma dfsTour_mem (hT : TreeOn p r) (x : V) : x ∈ dfsTour hT := by
+  classical
+  change x ∈ preorder hT r
+  have hx : x ∈ subtree p r r := by
+    rw [subtree]
+    rw [Finset.mem_filter]
+    exact ⟨Finset.mem_univ x, hT.reaches_root x⟩
+  exact (preorder_mem_subtree hT r x).2 hx
+
 end TreeOn
 
 end TSP
