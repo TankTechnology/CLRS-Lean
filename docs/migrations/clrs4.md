@@ -56,7 +56,7 @@ import CLRSLean.OnlineMaterial
 | Chapter 25, Matchings in Bipartite Graphs | `CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching` (native §25.1) | Native section: maximum bipartite matching revisited; sections 25.2--25.3 not-started. |
 | Chapter 26, Parallel Algorithms | `CLRSLean.FourthEdition.Chapter_26` (native §26.1--26.3) | Sections 26.1--26.3 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_27.Section_27_*` forward to them. Declarations retain the `CLRS.Chapter27` namespace. |
 | Chapter 27, Online Algorithms | none | New fourth-edition chapter; not started. |
-| Chapters 28--32 | `CLRSLean.Chapter_28`--`CLRSLean.Chapter_32` | Same chapter number, with explicit section-level differences. |
+| Chapters 28--32 | `CLRSLean.FourthEdition.Chapter_28`--`CLRSLean.FourthEdition.Chapter_32` (native, same section numbers) | Same chapter number with explicit section-level differences; the legacy `CLRSLean.Chapter_NN.Section_*` files forward to the fourth-edition sources during the compatibility period. |
 | Chapter 33, Machine-Learning Algorithms | none | New fourth-edition chapter; not started. |
 | Chapters 34--35 | none | Not started. |
 

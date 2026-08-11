@@ -646,6 +646,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator",
   "CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List",
 ]
+"CLRSLean.FourthEdition.Chapter_28" = [
+  "CLRSLean.FourthEdition.Chapter_28.Section_28_1_Linear_Equations",
+  "CLRSLean.FourthEdition.Chapter_28.Section_28_2_Inverting_Matrices",
+  "CLRSLean.FourthEdition.Chapter_28.Section_28_3_Symmetric_Positive_Definite",
+]
 "CLRSLean.FourthEdition.Chapter_33" = [
   "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
@@ -1069,6 +1074,15 @@ title = "27.2. Maintaining a Search List"
 
 [modules."CLRSLean.FourthEdition.Chapter_28"]
 title = "Chapter 28. Matrix Operations"
+
+[modules."CLRSLean.FourthEdition.Chapter_28.Section_28_1_Linear_Equations"]
+title = "28.1. Solving Systems of Linear Equations"
+
+[modules."CLRSLean.FourthEdition.Chapter_28.Section_28_2_Inverting_Matrices"]
+title = "28.2. Inverting Matrices"
+
+[modules."CLRSLean.FourthEdition.Chapter_28.Section_28_3_Symmetric_Positive_Definite"]
+title = "28.3. Symmetric Positive-Definite Matrices and Least Squares"
 
 [modules."CLRSLean.FourthEdition.Chapter_29"]
 title = "Chapter 29. Linear Programming"

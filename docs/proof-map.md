@@ -4304,7 +4304,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 28.1 - Solving Systems of Linear Equations
 
-- Lean source: `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_1_Linear_Equations.lean`
+  (canonical fourth-edition Section 28.1; the legacy
+  `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean` forwards to it)
 - Status: `selected-section-complete` (Theorem 28.1 proved)
 - Model:
   - `CLRS.Chapter28.IsUpperTriangular` / `IsLowerTriangular` /
@@ -4371,7 +4373,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `choleskyCost_isBigO` (Cholesky `Θ(n³)`).
 ### Section 28.2 - Inverting Matrices
 
-- Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_2_Inverting_Matrices.lean`
+  (canonical fourth-edition Section 28.2; the legacy
+  `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean` forwards to it)
 - Status: `selected-section-complete` (Theorem 28.2 proved)
 - Proved:
   - `permMatrix_inv`: `(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`.
@@ -4382,7 +4386,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 28.3 - Symmetric Positive-Definite Matrices and Least Squares
 
-- Lean source: `CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean`
+  (canonical fourth-edition Section 28.3; the legacy
+  `CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean` forwards to it)
 - Status: `complete`
 - Model:
   - `IsSymPosDef`: the CLRS definition of symmetric positive-definite —
