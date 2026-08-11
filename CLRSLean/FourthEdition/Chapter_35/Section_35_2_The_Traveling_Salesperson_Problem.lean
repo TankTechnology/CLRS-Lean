@@ -281,6 +281,152 @@ lemma iterate_le_depth_of_ne_root (hT : TreeOn p r) {u : V} {i : Nat} {x : V}
 
 end TreeOn
 
+/-- The **children** of `v` in the rooted tree: the non-root vertices whose
+parent is `v`. -/
+def children (p : V → V) (r : V) (v : V) : Finset V :=
+  Finset.univ.filter (fun c => c ≠ r ∧ p c = v)
+
+/-- The **subtree** rooted at `v`: every vertex whose parent chain passes through
+`v` (equivalently, that reaches `v` by iterating `p`). -/
+def subtree (p : V → V) (r : V) (v : V) : Finset V := by
+  classical
+  exact Finset.univ.filter (fun x => ∃ k : Nat, p^[k] x = v)
+
+/-- The cost of the subtree rooted at `v`: the sum of the weights of the tree
+edges with both endpoints in the subtree (each non-root vertex's edge to its
+parent). -/
+def subtreeCost (w : Graph V) (p : V → V) (r : V) (v : V) : Nat :=
+  (subtree p r v).sum (fun x => w x (p x))
+
+/--
+The spanning tree obtained by deleting the edge `(r, σ r)` from a tour `σ`: the
+root `r` is fixed, and every other vertex points to its tour successor.  Because
+`σ` is a single cycle through all of `V`, iterating this parent map from any
+vertex reaches `r`.
+-/
+def deleteTourEdge (σ : V → V) (r : V) (v : V) : V :=
+  if v = r then r else σ v
+
+/-- Deleting one edge from a tour leaves a spanning tree: `deleteTourEdge σ r`
+is a rooted tree on `V`. -/
+theorem deleteTourEdge_tree {σ : V → V} {r : V} (hT : Tour σ) :
+    TreeOn (deleteTourEdge σ r) r := by
+  refine ⟨?root_fixed, ?reaches_root⟩
+  · simp [deleteTourEdge]
+  · intro x
+    by_cases hxr : x = r
+    · subst hxr
+      exact ⟨0, rfl⟩
+    · let m := Nat.find (hT.reachable x r)
+      have hmspec : σ^[m] x = r := Nat.find_spec (hT.reachable x r)
+      have hmin : ∀ k : Nat, k < m → σ^[k] x ≠ r :=
+        fun k hk => Nat.find_min (hT.reachable x r) hk
+      have hiter : ∀ k : Nat, k ≤ m → (deleteTourEdge σ r)^[k] x = σ^[k] x := by
+        intro k
+        induction k with
+        | zero => intro hk; simp
+        | succ k ih =>
+            intro hks
+            have hk_lt : k < m := by omega
+            have hne : σ^[k] x ≠ r := hmin k hk_lt
+            have ih' : (deleteTourEdge σ r)^[k] x = σ^[k] x := ih (by omega)
+            calc
+              (deleteTourEdge σ r)^[k + 1] x = deleteTourEdge σ r ((deleteTourEdge σ r)^[k] x) := by
+                rw [Function.iterate_succ_apply']
+              _ = deleteTourEdge σ r (σ^[k] x) := by rw [ih']
+              _ = σ (σ^[k] x) := by
+                simp [deleteTourEdge, hne]
+              _ = σ^[k + 1] x := by
+                rw [Function.iterate_succ_apply']
+      exact ⟨m, by rw [hiter m (le_rfl)]; exact hmspec⟩
+
+/--
+**Lemma 35.3.**  A minimum spanning tree costs no more than any tour.
+
+Indeed, deleting one edge from a tour leaves a spanning tree whose cost is at
+most the tour's (the deleted edge contributes a nonnegative amount), and the
+MST is minimal among all spanning trees.
+-/
+theorem mst_le_tour {w : Graph V} {p : V → V} {r : V}
+    (hMST : IsMinimumSpanningTreeOn w p r) {σ : V → V} (hT : Tour σ) :
+    treeCost w p r ≤ TourCost w σ := by
+  let d : V → V := deleteTourEdge σ r
+  have hTree : TreeOn d r := deleteTourEdge_tree hT
+  have hle : treeCost w d r ≤ TourCost w σ := by
+    unfold treeCost TourCost
+    rw [show (Finset.univ.erase r).sum (fun x : V => w x (d x)) =
+        (Finset.univ.erase r).sum (fun x : V => w x (σ x)) by
+      apply Finset.sum_congr
+      · simp
+      · intro x hx
+        have hxne : x ≠ r := (Finset.mem_erase.mp hx).1
+        simp [d, deleteTourEdge, hxne]]
+    exact Finset.sum_le_sum_of_subset_of_nonneg
+      (by intro x hx; exact Finset.mem_univ x)
+      (by intro x hx1 hx2; exact Nat.zero_le _)
+  exact le_trans (hMST.2 d r hTree) hle
+
+namespace TreeOn
+
+variable {p : V → V} {r : V}
+
+/-- A child lies strictly deeper than its parent, so the "remaining budget"
+`card V - depth` strictly decreases when recursing from a parent to a child.
+This is the termination measure for the depth-first walk and preorder
+definitions. -/
+lemma children_depth_lt (hT : TreeOn p r) {c v : V} (hc : c ∈ children p r v) :
+    Fintype.card V - depth p r c < Fintype.card V - depth p r v := by
+  classical
+  rcases Finset.mem_filter.mp hc with ⟨_, hcpc⟩
+  rcases hcpc with ⟨hcne, hpc⟩
+  have hdepth : depth p r c = depth p r v + 1 := hT.depth_child_succ hpc hcne
+  have hlt_card : depth p r v < Fintype.card V := by
+    by_contra h
+    have hge : Fintype.card V ≤ depth p r v := Nat.le_of_not_gt h
+    have heq : depth p r v = Fintype.card V := le_antisymm (hT.depth_le_card v) hge
+    have hc_card : depth p r c ≤ Fintype.card V := hT.depth_le_card c
+    omega
+  omega
+
+/--
+The **depth-first walk** of the tree starting and ending at `v`, covering the
+subtree rooted at `v`: `v`, then for each child `c` the walk of `c`'s subtree
+followed by the return edge to `v`.  Every tree edge in the subtree is
+traversed exactly twice (once down, once up).
+
+The recursion is carried out with `WellFounded.fix` on the measure
+`card V - depth`, threading each child's membership proof through the
+`attach`ed children so the well-founded induction hypothesis is applicable.
+-/
+noncomputable def dfsWalkFrom (hT : TreeOn p r) : (v : V) → List V := by
+  classical
+  let R : V → V → Prop := fun a b => Fintype.card V - depth p r a < Fintype.card V - depth p r b
+  have hwf : WellFounded R := (measure (fun a : V => Fintype.card V - depth p r a)).wf
+  exact hwf.fix (C := fun _ => List V) (fun v ih =>
+    [v] ++ ((children p r v).attach.toList.flatMap (fun xc => ih xc.1 (children_depth_lt hT xc.2) ++ [v])))
+
+/-- The depth-first walk of the whole tree, starting and ending at the root. -/
+noncomputable def dfsWalk (hT : TreeOn p r) : List V :=
+  dfsWalkFrom hT r
+
+/--
+The **preorder** list of the subtree rooted at `v`: each vertex visited before
+its children's vertices, in the order of the children.
+-/
+noncomputable def preorder (hT : TreeOn p r) : (v : V) → List V := by
+  classical
+  let R : V → V → Prop := fun a b => Fintype.card V - depth p r a < Fintype.card V - depth p r b
+  have hwf : WellFounded R := (measure (fun a : V => Fintype.card V - depth p r a)).wf
+  exact hwf.fix (C := fun _ => List V) (fun v ih =>
+    v :: ((children p r v).attach.toList.flatMap (fun xc => ih xc.1 (children_depth_lt hT xc.2))))
+
+/-- The **tour** returned by APPROX-TSP-TOUR: the vertices of the whole tree in
+depth-first preorder, interpreted as a Hamiltonian cycle in `dfsTour_isTour`. -/
+noncomputable def dfsTour (hT : TreeOn p r) : List V :=
+  preorder hT r
+
+end TreeOn
+
 end TSP
 
 end CLRS
