@@ -721,6 +721,38 @@ exact-iteration search over σ of length 4-9, alphabet {1..4}, C₀ =
    machinery is vacuous: `windowExchange none e = e`), or the case-one
    step must absorb it.  Never below the old hnb (0 next<hnb).
 
+**Case-one hdred supply done (2026-08-12, `Dev/B10_CaseOne_Hdred.lean`,
+kernel-checked, no sorry)** — the at-most-once machinery and the `hnb'`
+construction:
+
+1. `case_one_hq'ne_bounded`: `hnone` gives the bounded no-`q'`-requests
+   fact on `[t+1, σ.length)`;
+2. `case_one_D_minus_E_subset_q'`: `D_s − E_s ⊆ {q'}` over
+   `[t+1, σ.length]` — the d-hit case forces the exchange hit; at double
+   faults the exchange evicts `q'` (branch 1) or `d s` (branch 5) —
+   `case_one_exchange_decision_at_d_fault`;
+3. `case_one_exchange_fault_imp_d_fault`: exchange faults are d-faults;
+4. `case_one_branch1_once`: the `window_branch1_once` at-most-once with
+   `hnone` in place of the window bound.
+
+**Junk-position obstruction (verified by construction + search with page
+0)**: the `hdred` field is unbounded, but at `s ≥ σ.length` the request is
+the junk page 0.  The at-most-once fails there: a policy whose junk
+eviction is `q'` (reachable when `q' = 0`, e.g. σ=[1,1,0,1,3], C₀={1,2},
+t=4 — the search finds 3 junk spots in its frozen-cache model; in Lean's
+evolving junk the spots are ≤ 1) breaks the plain reducedness.  So the
+plain field from a finite `hnb'` is NOT attainable: `case_one_hdred_supply`
+sets `hnb' = σ.length + 2` (`case_one_junk_hit`: 0 is in the exchange's
+cache from then on, so it never faults — the field is vacuous at junk),
+instantiating `CaseOneHdredHyp`.
+
+**Assembly consequence (still open)**: with `hnb' = σ.length + 2` the
+next disagreement (which the verified search shows lands exactly on the
+branch-1 spot `s₁`) satisfies `t₂ = s₁ < hnb'` — case B with `win = none`.
+The case-one step must absorb the branch-1 repair (the repair evicts
+FIF's page at `s₁` and restores agreement at `s₁+1`), or a no-window
+B-step construction is needed.
+
 **Paused (2026-08-12)** — 4th-edition migration (feat/migration branch)
 took priority; `CaseOneHdredHyp` + the at-most-once lemma remain open.
 
