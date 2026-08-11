@@ -41,18 +41,17 @@ Main results:
 - `augmentable_or_adjustable` (local progress): from any tree, either the
   matching augments or the potential can be adjusted so the tree grows, which
   is the termination engine of the algorithm
-
-Current gaps:
-
-- The full loop of the Hungarian algorithm is not yet packaged as a single
-  function: the well-founded iteration of `augmentable_or_adjustable` (which
-  alternates potential adjustments and tree growths until an augmentation,
-  then repeats from a fresh tree until the matching is perfect) is not yet
-  written as a terminating recursion, so the constructive existence of an
-  optimal assignment via the algorithm is still open.  Every individual move —
-  potential step, tree growth, and augmentation — is formalized, and
-  `perfect_tight_optimal` gives optimality once a perfect matching in the
-  equality graph is reached.
+- `exists_augment_tight`: augmenting along a tight augmenting path keeps the
+  enlarged matching in the equality graph, so the algorithm's matching stays
+  tight across augmentations
+- `innerLoop`: iterating local progress, the tree phase terminates with an
+  augmentation (the tree grows, `T` is bounded by `R`)
+- `exists_perfect_tight`: repeating the inner loop, the matching grows to a
+  perfect matching still lying in the equality graph of a feasible potential
+- `exists_optimal_via_algorithm`: a perfect matching in the equality graph is
+  optimal (Lemma 25.8), so the terminating loop finds an optimal assignment
+- `hungarian_constructs_optimal`: started from the empty matching and the
+  initial feasible potential, the algorithm solves the assignment problem
 
 Notation conventions used in this section:
 
@@ -1280,6 +1279,450 @@ theorem augmentable_or_adjustable {P : Problem V} {y : V → ℝ} {M : Matching 
       rw [show tree''.T = insert r tree'.T by rfl]
       rw [Finset.card_insert_of_notMem hTnot]
       exact Nat.lt_succ_self (tree'.T.card)
+
+/-- Edges of the matching are in lockstep with the tree: an edge has its left
+endpoint in `S` iff its right endpoint is in `T`.  This keeps the matching in
+the equality graph across potential adjustments. -/
+lemma tree_lockstep {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) : ∀ e ∈ M.edges, (e.1 ∈ tree.S ↔ e.2 ∈ tree.T) := by
+  intro e he
+  constructor
+  · intro heS
+    by_cases heu : e.1 = tree.u
+    · exact False.elim (tree.hu_free e.2 (heu ▸ he))
+    · exact tree.hpartner_in_T e.1 heS heu e.2 he
+  · intro heT
+    exact (tree.hpartner_in_S e.2 heT e.1 he).1
+
+/-- Single-edge augmentation that preserves tightness: inserting a tight
+non-matching edge whose endpoints are both unmatched enlarges the matching by
+one, and the enlarged matching still lies in the equality graph. -/
+lemma exists_augment_single_tight (P : Problem V) {y : V → ℝ} {M : Matching V P.G}
+    (htight : P.IsTightMatching y M) {l r : V}
+    (hE : (l, r) ∈ P.G.E) (hM : (l, r) ∉ M.edges)
+    (hl : M.IsUnmatchedLeft l) (hr : M.IsUnmatchedRight r)
+    (ht : P.Tight y l r) :
+    ∃ M' : Matching V P.G, M'.size = M.size + 1 ∧ P.IsTightMatching y M' := by
+  refine ⟨{ edges := insert (l, r) M.edges
+            h_subset := Finset.insert_subset hE M.h_subset
+            h_unique_left := ?_
+            h_unique_right := ?_ }, ?hsize, ?htight'⟩
+  · intro l₂ r₁ r₂ h₁ h₂
+    simp only [Finset.mem_insert, Prod.mk.injEq] at h₁ h₂
+    rcases h₁ with ⟨e1a, e1b⟩ | h₁ <;> rcases h₂ with ⟨e2a, e2b⟩ | h₂
+    · exact e1b.trans e2b.symm
+    · exact (hl r₂ (e1a ▸ h₂)).elim
+    · exact (hl r₁ (e2a ▸ h₁)).elim
+    · exact M.h_unique_left l₂ r₁ r₂ h₁ h₂
+  · intro l₁ l₂ r₃ h₁ h₂
+    simp only [Finset.mem_insert, Prod.mk.injEq] at h₁ h₂
+    rcases h₁ with ⟨e1a, e1b⟩ | h₁ <;> rcases h₂ with ⟨e2a, e2b⟩ | h₂
+    · exact e1a.trans e2a.symm
+    · exact (hr l₂ (e1b ▸ h₂)).elim
+    · exact (hr l₁ (e2b ▸ h₁)).elim
+    · exact M.h_unique_right l₁ l₂ r₃ h₁ h₂
+  · show (insert (l, r) M.edges).card = M.size + 1
+    rw [Finset.card_insert_of_notMem hM]
+    rfl
+  · intro e he
+    simp at he
+    rcases he with he | he
+    · subst e
+      simpa using ht.2.2
+    · exact htight e he
+
+/-- Swap step that preserves tightness: replacing a matching edge `(l', r)` by
+a tight non-matching edge `(l, r)` keeps the matching in the equality graph. -/
+lemma exists_swap_tight (P : Problem V) {y : V → ℝ} {M : Matching V P.G}
+    (htight : P.IsTightMatching y M) {l r l' : V}
+    (hE : (l, r) ∈ P.G.E) (hM : (l, r) ∉ M.edges) (hM' : (l', r) ∈ M.edges)
+    (hl : M.IsUnmatchedLeft l) (hne : l ≠ l') (ht : P.Tight y l r) :
+    ∃ M₁ : Matching V P.G, M₁.size = M.size ∧ M₁.IsUnmatchedLeft l' ∧
+      (∀ e, e ∈ M₁.edges ↔ e = (l, r) ∨ (e ∈ M.edges ∧ e ≠ (l', r))) ∧
+      P.IsTightMatching y M₁ := by
+  refine ⟨{ edges := insert (l, r) (M.edges.erase (l', r))
+            h_subset := Finset.insert_subset hE
+              ((Finset.erase_subset _ _).trans M.h_subset)
+            h_unique_left := ?_
+            h_unique_right := ?_ }, ?hsize, ?hun, ?hmem, ?htight'⟩
+  · intro l₂ r₁ r₂ h₁ h₂
+    simp only [Finset.mem_insert, Finset.mem_erase, Prod.mk.injEq] at h₁ h₂
+    rcases h₁ with ⟨e1a, e1b⟩ | ⟨-, h₁⟩ <;> rcases h₂ with ⟨e2a, e2b⟩ | ⟨-, h₂⟩
+    · exact e1b.trans e2b.symm
+    · exact (hl r₂ (e1a ▸ h₂)).elim
+    · exact (hl r₁ (e2a ▸ h₁)).elim
+    · exact M.h_unique_left l₂ r₁ r₂ h₁ h₂
+  · intro l₁ l₂ r₃ h₁ h₂
+    simp only [Finset.mem_insert, Finset.mem_erase, Prod.mk.injEq] at h₁ h₂
+    rcases h₁ with ⟨e1a, e1b⟩ | ⟨hne₁, h₁⟩ <;> rcases h₂ with ⟨e2a, e2b⟩ | ⟨hne₂, h₂⟩
+    · exact e1a.trans e2a.symm
+    · exact (hne₂ (Prod.ext (M.h_unique_right l₂ l' r (e1b ▸ h₂) hM') e1b)).elim
+    · exact (hne₁ (Prod.ext (M.h_unique_right l₁ l' r (e2b ▸ h₁) hM') e2b)).elim
+    · exact M.h_unique_right l₁ l₂ r₃ h₁ h₂
+  · show (insert (l, r) (M.edges.erase (l', r))).card = M.size
+    have hnotin : (l, r) ∉ M.edges.erase (l', r) := fun h =>
+      hM (Finset.mem_of_mem_erase h)
+    rw [Finset.card_insert_of_notMem hnotin, Finset.card_erase_of_mem hM',
+      Nat.sub_add_cancel (Finset.card_pos.mpr ⟨(l', r), hM'⟩)]
+    rfl
+  · intro r₂ h
+    simp only [Finset.mem_insert, Finset.mem_erase, Prod.mk.injEq] at h
+    rcases h with ⟨e1, -⟩ | ⟨hne2, hmem⟩
+    · exact hne e1.symm
+    · exact hne2 (Prod.ext rfl (M.h_unique_left l' r r₂ hM' hmem).symm)
+  · intro e
+    simp only [Finset.mem_insert, Finset.mem_erase]
+    constructor
+    · rintro (h | ⟨h1, h2⟩)
+      · exact Or.inl h
+      · exact Or.inr ⟨h2, h1⟩
+    · rintro (h | ⟨h1, h2⟩)
+      · exact Or.inl h
+      · exact Or.inr ⟨h2, h1⟩
+  · intro e he
+    simp at he
+    rcases he with he | he
+    · subst e
+      simpa using ht.2.2
+    · exact htight e he.2
+
+/-- **Augmentation preserves tightness** (CLRS §25.3): if `M` lies in the
+equality graph of a potential `y` and every forward edge of an augmenting path
+is tight, then the enlarged matching `M'` also lies in the equality graph.
+This is the invariant that keeps the algorithm's matching inside the equality
+graph across augmentations. -/
+theorem exists_augment_tight {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (htight : P.IsTightMatching y M) {p : List V}
+    (hp : Matchings.IsAugmentingPath P.G M p)
+    (htightF : ∀ e ∈ (Matchings.altEdges p).1, P.Tight y e.1 e.2) :
+    ∃ M' : Matching V P.G, M'.size = M.size + 1 ∧ P.IsTightMatching y M' := by
+  classical
+  suffices aux : ∀ (n : ℕ) (M : Matching V P.G) (p : List V), p.length ≤ n →
+      P.IsTightMatching y M → Matchings.IsAugmentingPath P.G M p →
+      (∀ e ∈ (Matchings.altEdges p).1, P.Tight y e.1 e.2) →
+      ∃ M' : Matching V P.G, M'.size = M.size + 1 ∧ P.IsTightMatching y M' from
+    aux p.length M p le_rfl htight hp htightF
+  intro n
+  induction n with
+  | zero =>
+      intro M p hlen htight hp htightF
+      have h2 := hp.length_ge
+      omega
+  | succ n ih =>
+      intro M p hlen htight hp htightF
+      cases p with
+      | nil =>
+        have h2 := hp.length_ge
+        simp at h2
+      | cons l t =>
+        cases t with
+        | nil =>
+          have h2 := hp.length_ge
+          simp at h2
+        | cons r rest =>
+          cases rest with
+          | nil =>
+            have hfw := hp.forward (l, r) List.mem_cons_self
+            exact exists_augment_single_tight P htight hfw.1 hfw.2
+              (hp.head_unmatched (by simp)) (hp.getLast_unmatched (by simp))
+              (htightF (l, r) List.mem_cons_self)
+          | cons l' rest' =>
+            have hne_p : l :: r :: l' :: rest' ≠ [] := by simp
+            have hnd := hp.nodup
+            rw [List.nodup_cons] at hnd
+            obtain ⟨hl_notin, hnd⟩ := hnd
+            rw [List.nodup_cons] at hnd
+            obtain ⟨hr_notin, hnd⟩ := hnd
+            have hfw := hp.forward (l, r) List.mem_cons_self
+            have hbw := hp.backward (l', r) List.mem_cons_self
+            have hhu : ∀ r₂, (l, r₂) ∉ M.edges := hp.head_unmatched hne_p
+            have hll : l ≠ l' := fun h =>
+              hl_notin (h ▸ List.mem_cons_of_mem _ List.mem_cons_self)
+            obtain ⟨M₁, hM₁size, hM₁un, hM₁mem, htight₁⟩ :=
+              exists_swap_tight P htight hfw.1 hfw.2 hbw hhu hll
+                (htightF (l, r) List.mem_cons_self)
+            have hgl : (l :: r :: l' :: rest').getLast hne_p =
+                (l' :: rest').getLast (by simp) := by
+              simp [List.getLast_cons]
+            have htail : Matchings.IsAugmentingPath P.G M₁ (l' :: rest') := by
+              refine ⟨hnd, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+              · have h2 := hp.length_even
+                have h4 := hp.length_ge
+                simp only [List.length_cons] at h2 h4 ⊢
+                obtain ⟨k, hk⟩ := h2
+                exact ⟨k - 1, by omega⟩
+              · have h2 := hp.length_even
+                have h4 := hp.length_ge
+                simp only [List.length_cons] at h2 h4 ⊢
+                obtain ⟨k, hk⟩ := h2
+                omega
+              · intro _
+                exact (P.G.hE_subset _ (M.h_subset hbw)).1
+              · intro _ r₂ h
+                exact hM₁un r₂ h
+              · intro _
+                have := hp.getLast_mem_R hne_p
+                rwa [hgl] at this
+              · intro _ l₂ h
+                rw [hM₁mem] at h
+                rcases h with h | ⟨hmem, -⟩
+                · obtain ⟨-, e2⟩ := Prod.mk.inj h
+                  have hrmem : r ∈ l' :: rest' := by
+                    have hglmem := List.getLast_mem (l := l' :: rest') (by simp)
+                    rwa [e2] at hglmem
+                  exact absurd hrmem hr_notin
+                · exact hp.getLast_unmatched hne_p l₂ (hgl ▸ hmem)
+              · intro e he
+                have hf := hp.forward e (List.mem_cons_of_mem _ he)
+                refine ⟨hf.1, fun hmem => ?_⟩
+                rw [hM₁mem] at hmem
+                rcases hmem with h | ⟨hmem, -⟩
+                · obtain ⟨e1, -⟩ := Prod.mk.inj h
+                  have hm2 := Matchings.fst_mem_of_mem_altEdges_left he
+                  rw [e1] at hm2
+                  exact hl_notin (List.mem_cons_of_mem _ hm2)
+                · exact hf.2 hmem
+              · intro e he
+                have hb := hp.backward e (List.mem_cons_of_mem _ he)
+                have hne : e ≠ (l', r) := by
+                  intro hcontra
+                  have hm2 := Matchings.snd_mem_of_mem_altEdges_right he
+                  rw [hcontra] at hm2
+                  exact hr_notin hm2
+                exact (hM₁mem e).mpr (Or.inr ⟨hb, hne⟩)
+            have htightF' : ∀ e ∈ (Matchings.altEdges (l' :: rest')).1, P.Tight y e.1 e.2 := by
+              intro e he
+              have hmem' : e ∈ (Matchings.altEdges (l :: r :: l' :: rest')).1 := by
+                change e ∈ (l, r) :: (Matchings.altEdges (l' :: rest')).1
+                exact List.mem_cons_of_mem _ he
+              exact htightF e hmem'
+            obtain ⟨M₂, hM₂, htight₂⟩ := ih M₁ (l' :: rest') (by
+              have := hp.length_ge
+              simp only [List.length_cons] at hlen this ⊢
+              omega) htight₁ htail htightF'
+            exact ⟨M₂, by omega, htight₂⟩
+
+/-- The augmenting path of a Hungarian tree augments the matching and the
+enlarged matching stays in the equality graph: the path's forward edges are
+tight tree edges plus the final tight edge, and its backward edges are
+matching edges. -/
+theorem exists_augment_of_tight_free_tight {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (htight : P.IsTightMatching y M) {l r : V}
+    (hl : l ∈ tree.S) (hrR : r ∈ P.G.R) (hrNotT : r ∉ tree.T)
+    (hfree : M.IsUnmatchedRight r) (ht : P.Tight y l r) :
+    ∃ M' : Matching V P.G, M'.size = M.size + 1 ∧ P.IsTightMatching y M' := by
+  let q := pathToLeft tree l hl
+  have hp_ne : q ≠ [] := (pathToLeft_props P tree l hl).1
+  have hp_odd : Odd q.length := (pathToLeft_props P tree l hl).2.2.2.1
+  have htightF : ∀ e ∈ (Matchings.altEdges (augmentingPath tree hl (r := r))).1,
+      P.Tight y e.1 e.2 := by
+    intro e he
+    change e ∈ (Matchings.altEdges (q ++ [r])).1 at he
+    have happend := Matchings.altEdges_append_single q hp_odd hp_ne (r := r)
+    rw [happend.1] at he
+    simp at he
+    rcases he with he | he
+    · rcases (pathToLeft_props P tree l hl).2.2.2.2.2.2.2.2.1 e he with ⟨hT2, hpar, hnotM⟩
+      rw [← hpar]
+      exact tree.htree_tight e.2 hT2
+    · have hlast : q.getLast hp_ne = l := (pathToLeft_props P tree l hl).2.2.1 hp_ne
+      rw [hlast] at he
+      simpa [he] using ht
+  exact exists_augment_tight htight (augmentingPath_isAugmenting tree hl hrR hrNotT hfree ht)
+    htightF
+
+/-- **Local progress with tightness**: from any alternating tree, either the
+matching augments by one edge (staying in the equality graph of whatever
+potential is current at the augmentation), or the potential can be adjusted so
+that the matching stays tight and the tree strictly grows.  This is the form
+of progress the terminating loop iterates. -/
+theorem augmentable_or_adjustable_tight {P : Problem V} {y : V → ℝ} {M : Matching V P.G}
+    (tree : HungarianTree P y M) (hy : P.Feasible y) (htight : P.IsTightMatching y M) :
+    (∃ (M' : Matching V P.G) (y' : V → ℝ),
+      P.Feasible y' ∧ P.IsTightMatching y' M' ∧ M'.size = M.size + 1) ∨
+    ∃ y' : V → ℝ, P.Feasible y' ∧ P.IsTightMatching y' M ∧
+      ∃ tree' : HungarianTree P y' M, tree.T.card < tree'.T.card := by
+  by_cases htight_edge : ∃ l ∈ tree.S, ∃ r, r ∈ P.G.R ∧ r ∉ tree.T ∧ P.Tight y l r
+  · rcases htight_edge with ⟨l, hl, r, hrR, hrNotT, ht⟩
+    by_cases hfree : M.IsUnmatchedRight r
+    · rcases exists_augment_of_tight_free_tight tree htight hl hrR hrNotT hfree ht with ⟨M', hsize, ht'⟩
+      exact Or.inl ⟨M', y, hy, ht', hsize⟩
+    · have hrMatched : r ∈ M.matchedRight := by
+        have hnot : ¬ M.IsUnmatchedRight r := hfree
+        rw [M.isUnmatchedRight_iff_not_matched] at hnot
+        exact (M.mem_matchedRight_iff r).mpr (of_not_not hnot)
+      let tree' := growTree tree l r hl hrR hrNotT ht hrMatched
+      refine Or.inr ⟨y, hy, htight, ⟨tree', ?_⟩⟩
+      have hTnot : r ∉ tree.T := hrNotT
+      rw [show tree'.T = insert r tree.T by rfl]
+      rw [Finset.card_insert_of_notMem hTnot]
+      exact Nat.lt_succ_self (tree.T.card)
+  · have hps := potential_step P tree hy
+    let y' : V → ℝ := P.adjustPotential y (P.slackMin y tree.S tree.T
+      (tree_S_nonempty tree) (tree_R_diff_T_nonempty tree)) tree.S tree.T
+    have hy' : P.Feasible y' := by
+      simpa [y'] using hps.1
+    have htight' : P.IsTightMatching y' M := by
+      unfold y'
+      exact P.adjust_preserves_tight_of_matching htight tree.hS_subset tree.hT_subset
+        (tree_lockstep tree)
+    let tree' : HungarianTree P y' M := adjustTree tree (P.slackMin y tree.S tree.T
+      (tree_S_nonempty tree) (tree_R_diff_T_nonempty tree))
+    have htight_edge' : ∃ l ∈ tree.S, ∃ r, r ∈ P.G.R ∧ r ∉ tree.T ∧ P.Tight y' l r := by
+      simpa [y'] using hps.2
+    rcases htight_edge' with ⟨l, hl, r, hrR, hrNotT, ht'⟩
+    by_cases hfree : M.IsUnmatchedRight r
+    · rcases exists_augment_of_tight_free_tight tree' htight' hl hrR hrNotT hfree ht' with ⟨M', hsize, ht''⟩
+      exact Or.inl ⟨M', y', hy', ht'', hsize⟩
+    · have hrMatched : r ∈ M.matchedRight := by
+        have hnot : ¬ M.IsUnmatchedRight r := hfree
+        rw [M.isUnmatchedRight_iff_not_matched] at hnot
+        exact (M.mem_matchedRight_iff r).mpr (of_not_not hnot)
+      let tree'' := growTree tree' l r hl hrR hrNotT ht' hrMatched
+      refine Or.inr ⟨y', hy', htight', ⟨tree'', ?_⟩⟩
+      have hTnot : r ∉ tree'.T := hrNotT
+      rw [show tree''.T = insert r tree'.T by rfl]
+      rw [Finset.card_insert_of_notMem hTnot]
+      exact Nat.lt_succ_self (tree'.T.card)
+
+/-- **Inner loop** (CLRS §25.3, termination of the tree phase): iterating
+`augmentable_or_adjustable_tight` from any alternating tree, the tree grows
+strictly (`T` is bounded by `R`), so finitely many potential-adjustment steps
+force an augmentation.  From any tree the matching can be enlarged by one edge,
+with the enlarged matching still in the equality graph of a feasible potential. -/
+theorem innerLoop (P : Problem V) (M : Matching V P.G) (y : V → ℝ)
+    (tree : HungarianTree P y M) (hy : P.Feasible y) (htight : P.IsTightMatching y M) :
+    ∃ (M' : Matching V P.G) (y' : V → ℝ),
+      P.Feasible y' ∧ P.IsTightMatching y' M' ∧ M'.size = M.size + 1 := by
+  classical
+  have hmain : ∀ n : ℕ, ∀ (y : V → ℝ) (tree : HungarianTree P y M),
+      P.G.R.card - tree.T.card ≤ n → P.Feasible y → P.IsTightMatching y M →
+      ∃ (M' : Matching V P.G) (y' : V → ℝ),
+        P.Feasible y' ∧ P.IsTightMatching y' M' ∧ M'.size = M.size + 1 := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        intro y tree hle hy ht
+        rcases augmentable_or_adjustable_tight tree hy ht with hcase | hcase
+        · rcases hcase with ⟨M', y', hy', ht', hsize⟩
+          exact ⟨M', y', hy', ht', hsize⟩
+        · rcases hcase with ⟨y', hy', htM', tree', hT⟩
+          have hless_n : P.G.R.card - tree'.T.card < n := by
+            have hTsub : tree'.T.card ≤ P.G.R.card := Finset.card_le_card tree'.hT_subset
+            omega
+          exact ih (P.G.R.card - tree'.T.card) hless_n y' tree' le_rfl hy' htM'
+  exact hmain (P.G.R.card - tree.T.card) y tree le_rfl hy htight
+
+/-- A non-perfect matching leaves some left vertex unmatched. -/
+lemma free_left_vertex_of_not_perfect (P : Problem V) (M : Matching V P.G)
+    (hperf : ¬ M.Perfect) : ∃ u : V, u ∈ P.G.L ∧ M.IsUnmatchedLeft u := by
+  classical
+  have hML : M.matchedLeft ⊆ P.G.L := by
+    intro v hv
+    rw [M.mem_matchedLeft_iff v] at hv
+    exact M.mem_L_of_isMatchedLeft hv
+  have hcard : M.matchedLeft.card ≤ P.G.L.card := Finset.card_le_card hML
+  have hne : M.matchedLeft.card ≠ P.G.L.card := by
+    intro h
+    apply hperf
+    rw [M.matchedLeft_card] at h
+    exact h
+  have hlt : M.matchedLeft.card < P.G.L.card := lt_of_le_of_ne hcard hne
+  have hne' : (P.G.L \ M.matchedLeft).Nonempty := by
+    apply Finset.card_pos.mp
+    rw [Finset.card_sdiff_of_subset hML]
+    omega
+  rcases hne' with ⟨u, hmem⟩
+  refine ⟨u, (Finset.mem_sdiff.mp hmem).1, ?_⟩
+  rw [M.isUnmatchedLeft_iff_not_matched]
+  rw [← M.mem_matchedLeft_iff u]
+  exact (Finset.mem_sdiff.mp hmem).2
+
+/-- **Outer loop** (CLRS §25.3, termination): repeating the inner loop, the
+matching grows by one edge each time and is bounded by a perfect matching, so
+the Hungarian algorithm reaches a perfect matching that still lies in the
+equality graph of a feasible potential. -/
+theorem exists_perfect_tight (P : Problem V) (M : Matching V P.G) (y : V → ℝ)
+    (hy : P.Feasible y) (htight : P.IsTightMatching y M) :
+    ∃ (M' : Matching V P.G) (y' : V → ℝ),
+      P.Feasible y' ∧ P.IsTightMatching y' M' ∧ M'.Perfect := by
+  classical
+  have hmain : ∀ n : ℕ, ∀ (M : Matching V P.G) (y : V → ℝ),
+      P.G.L.card - M.size ≤ n → P.Feasible y → P.IsTightMatching y M →
+      ∃ (M' : Matching V P.G) (y' : V → ℝ),
+        P.Feasible y' ∧ P.IsTightMatching y' M' ∧ M'.Perfect := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        intro M y hle hy ht
+        by_cases hperf : M.Perfect
+        · exact ⟨M, y, hy, ht, hperf⟩
+        · rcases free_left_vertex_of_not_perfect P M hperf with ⟨u, huL, hu_free⟩
+          let tree := initialTree (P := P) (y := y) (M := M) u huL hu_free
+          rcases innerLoop P M y tree hy ht with ⟨M₁, y₁, hy₁, ht₁, hsize₁⟩
+          have hMs : M.size < P.G.L.card := by
+            have hne : M.size ≠ P.G.L.card := hperf
+            have hle : M.size ≤ P.G.L.card := by
+              calc
+                M.size = M.matchedLeft.card := M.matchedLeft_card.symm
+                _ ≤ P.G.L.card := Finset.card_le_card (by
+                  intro v hv
+                  rw [M.mem_matchedLeft_iff v] at hv
+                  exact M.mem_L_of_isMatchedLeft hv)
+            exact lt_of_le_of_ne hle hne
+          have hless_n : P.G.L.card - M₁.size < n := by
+            have hMs' : M.size + 1 ≤ P.G.L.card := Nat.succ_le_of_lt hMs
+            rw [hsize₁]
+            omega
+          exact ih (P.G.L.card - M₁.size) hless_n M₁ y₁ le_rfl hy₁ ht₁
+  exact hmain (P.G.L.card - M.size) M y le_rfl hy htight
+
+/-- **Termination and optimality** (CLRS §25.3): the Hungarian loop, started
+from any feasible potential and a matching in its equality graph, terminates
+with a perfect matching in the equality graph, which by Lemma 25.8 is an
+optimal assignment. -/
+theorem exists_optimal_via_algorithm (P : Problem V) (M : Matching V P.G) (y : V → ℝ)
+    (hy : P.Feasible y) (htight : P.IsTightMatching y M) :
+    ∃ M' : Matching V P.G, P.Optimal M' := by
+  rcases exists_perfect_tight P M y hy htight with ⟨M', y', hy', ht', hperf'⟩
+  exact ⟨M', perfect_tight_optimal P hy' M' hperf' ht'⟩
+
+/-- The initial label of a left vertex in the starting potential: the minimum
+weight over the edges incident to `l`.  (CLRS §25.3, initialization.) -/
+noncomputable def initialLabel (P : Problem V) (l : V) (hl : l ∈ P.G.L) : ℝ :=
+  (P.G.R.image (fun r => P.w l r)).min' (by
+    have hLpos : 0 < P.G.L.card := Finset.card_pos.mpr ⟨l, hl⟩
+    rw [P.h_eq_card] at hLpos
+    exact Finset.image_nonempty.mpr (Finset.card_pos.mp hLpos))
+
+/-- A left vertex's initial label is at most every incident edge weight. -/
+lemma initialLabel_le (P : Problem V) (l : V) (hl : l ∈ P.G.L) (r : V) (hr : r ∈ P.G.R) :
+    P.initialLabel l hl ≤ P.w l r := by
+  unfold initialLabel
+  exact Finset.min'_le _ _ (Finset.mem_image.mpr ⟨r, hr, rfl⟩)
+
+/-- The starting potential of the Hungarian algorithm: each left vertex `l`
+carries the minimum incident edge weight, and right vertices carry `0`.  This
+potential is feasible. -/
+noncomputable def initialPotential (P : Problem V) : V → ℝ :=
+  fun l => if hl : l ∈ P.G.L then P.initialLabel l hl else 0
+
+/-- The initial potential is feasible. -/
+lemma initialPotential_feasible (P : Problem V) : P.Feasible P.initialPotential := by
+  intro l hl r hr
+  have hr_notL : r ∉ P.G.L := P.G.not_mem_L_of_mem_R hr
+  have hle : P.initialLabel l hl ≤ P.w l r := P.initialLabel_le l hl r hr
+  simpa [initialPotential, hl, hr_notL] using hle
+
+/-- **The Hungarian algorithm solves the assignment problem** (CLRS §25.3):
+started from the empty matching and the initial feasible potential, the loop
+terminates with an optimal assignment. -/
+theorem hungarian_constructs_optimal (P : Problem V) : ∃ M : Matching V P.G, P.Optimal M := by
+  classical
+  have hfeas : P.Feasible P.initialPotential := P.initialPotential_feasible
+  have ht : P.IsTightMatching P.initialPotential (Matching.empty P.G) := by
+    simp [Matching.empty, IsTightMatching]
+  exact exists_optimal_via_algorithm P (Matching.empty P.G) P.initialPotential hfeas ht
 
 end Problem
 

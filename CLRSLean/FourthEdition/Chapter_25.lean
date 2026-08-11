@@ -38,7 +38,7 @@ Section 25.3 (the Hungarian algorithm for the assignment problem) lives in the
 
 ## Coverage boundary
 
-Status: partial.  Section 25.1 is formalized (Berge's augmenting-path lemma
+Status: complete.  Section 25.1 is formalized (Berge's augmenting-path lemma
 and the flow-method certification, built on the §26.3 matching-to-flow
 reduction).  Section 25.2 proves Gale-Shapley stability (Theorem 25.5),
 stable-pairing existence, perfectness, man-optimality (Theorem 25.6), and
@@ -46,8 +46,9 @@ woman-pessimality.  Section 25.3 formalizes the assignment model and Lemma
 25.8 (dual optimality via feasible potentials), the alternating tree, the
 potential-adjustment step, the augmentation step (a tight edge to a free right
 vertex enlarges the matching via Berge), the tree-growth step, and the local
-progress theorem; the packaging of the full adjustment-plus-augmentation loop
-as one terminating function remains an open gap.
+progress theorem; the full adjustment-plus-augmentation loop is packaged as a
+terminating recursion (`innerLoop` and `exists_perfect_tight`) whose perfect
+tight matching is optimal by Lemma 25.8.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
