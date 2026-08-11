@@ -4749,9 +4749,11 @@ compatibility period.
 
 ## Chapter 31 - Number-Theoretic Algorithms
 
+The sources below are the canonical fourth-edition Sections 31.1--31.8; the legacy `CLRSLean/FourthEdition/Chapter_31/Section_*` files forward to them during the compatibility period.
+
 ### Section 31.1 - Elementary Number-Theoretic Notions
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_1_Elementary_Number_Theory.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_1_Elementary_Number_Theory.lean`
 - Status: `selected-section-complete`
 - Model:
   - `IsGCD`: the greatest-common-divisor property predicate (divides both, and
@@ -4771,7 +4773,7 @@ compatibility period.
 
 ### Section 31.2 - Greatest Common Divisor
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Theorem 31.9,
@@ -4808,7 +4810,7 @@ compatibility period.
 
 ### Section 31.3 - Modular Arithmetic
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_3_Modular_Arithmetic.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_3_Modular_Arithmetic.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `mod_add` / `mod_mul` (CLRS Theorem 31.5): addition and multiplication
@@ -4822,7 +4824,7 @@ compatibility period.
 
 ### Section 31.4 - Solving Modular Linear Equations
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `linear_congruence_shift`: `x + k·(n/gcd(a,n))` preserves solutions.
@@ -4832,7 +4834,7 @@ compatibility period.
 
 ### Section 31.5 - The Chinese Remainder Theorem
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `chinese_remainder_two` / `chinese_remainder_unique` /
@@ -4842,7 +4844,7 @@ compatibility period.
 
 ### Section 31.6 - Powers of an Element
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_6_Powers_Of_An_Element.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_6_Powers_Of_An_Element.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `modularExponentiation` + `modularExponentiation_spec` (CLRS
@@ -4853,7 +4855,7 @@ compatibility period.
 
 ### Section 31.7 - The RSA Public-Key Cryptosystem
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_7_RSA.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_7_RSA.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `totient_mul_prime`: `φ(p·q) = (p−1)(q−1)` for distinct primes.
@@ -4862,7 +4864,7 @@ compatibility period.
 
 ### Section 31.8 - Primality Testing
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_8_Primality_Testing.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_8_Primality_Testing.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `fermat_test` (CLRS Theorem 31.31): prime `p` and `gcd(a,p)=1` give
@@ -4901,7 +4903,7 @@ compatibility period.
 
 ### Section 31.9 - Integer Factorization
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_9_Integer_Factorization.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `rhoStep` (Pollard's rho iteration).
@@ -4919,12 +4921,14 @@ compatibility period.
 
 ## Chapter 32 - String Matching
 
+The sources below are the canonical fourth-edition Sections 32.1; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
+
 ### Section 32.1 - The Naive String-Matching Algorithm
 
 - Lean sources:
   - `CLRSLean/Chapter_32.lean`
-  - `CLRSLean/Chapter_32/Section_32_1_String_Model.lean`
-  - `CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean`
+  - `CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model.lean`
+  - `CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean`
 - Status: `selected-section-complete`
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,

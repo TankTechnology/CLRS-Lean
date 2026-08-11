@@ -621,22 +621,21 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Correctness",
   "CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Costs",
 ]
-"CLRSLean.Chapter_31" = [
-  "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
-  "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
-  "CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic",
-  "CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations",
-  "CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem",
-  "CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element",
-  "CLRSLean.Chapter_31.Section_31_7_RSA",
-  "CLRSLean.Chapter_31.Section_31_8_Primality_Testing",
-  "CLRSLean.Chapter_31.Section_31_9_Integer_Factorization",
+"CLRSLean.FourthEdition.Chapter_31" = [
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_3_Modular_Arithmetic",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_5_Chinese_Remainder_Theorem",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_6_Powers_Of_An_Element",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_7_RSA",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_8_Primality_Testing",
 ]
-"CLRSLean.Chapter_32" = [
-  "CLRSLean.Chapter_32.Section_32_1_String_Model",
+"CLRSLean.FourthEdition.Chapter_32" = [
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model",
 ]
-"CLRSLean.Chapter_32.Section_32_1_String_Model" = [
-  "CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
+"CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model" = [
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
 ]
 
 "CLRSLean.Chapter_33" = [
@@ -712,6 +711,23 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique",
 ]
 
+"CLRSLean.Chapter_31" = [
+  "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
+  "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
+  "CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic",
+  "CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations",
+  "CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem",
+  "CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element",
+  "CLRSLean.Chapter_31.Section_31_7_RSA",
+  "CLRSLean.Chapter_31.Section_31_8_Primality_Testing",
+  "CLRSLean.Chapter_31.Section_31_9_Integer_Factorization",
+]
+"CLRSLean.Chapter_32" = [
+  "CLRSLean.Chapter_32.Section_32_1_String_Model",
+]
+"CLRSLean.Chapter_32.Section_32_1_String_Model" = [
+  "CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
+]
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
 
@@ -1217,9 +1233,35 @@ title = "30.3 FFT 4. Exact Iterative Costs"
 [modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT"]
 title = "30.3 FFT 5. Parallel Network Size and Depth"
 
+[modules."CLRSLean.Chapter_31"]
+title = "Chapter 31. Number-Theoretic Algorithms"
+[modules."CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory"]
+title = "31.1. Elementary Number-Theoretic Notions"
+[modules."CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
+title = "31.2. Greatest Common Divisor"
+[modules."CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic"]
+title = "31.3. Modular Arithmetic"
+[modules."CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations"]
+title = "31.4. Solving Modular Linear Equations"
+[modules."CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem"]
+title = "31.5. The Chinese Remainder Theorem"
+[modules."CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element"]
+title = "31.6. Powers of an Element"
+[modules."CLRSLean.Chapter_31.Section_31_7_RSA"]
+title = "31.7. The RSA Public-Key Cryptosystem"
+[modules."CLRSLean.Chapter_31.Section_31_8_Primality_Testing"]
+title = "31.8. Primality Testing"
+[modules."CLRSLean.Chapter_31.Section_31_9_Integer_Factorization"]
+title = "31.9. Integer Factorization"
 [modules."CLRSLean.FourthEdition.Chapter_31"]
 title = "Chapter 31. Number-Theoretic Algorithms"
 
+[modules."CLRSLean.Chapter_32"]
+title = "Chapter 32. String Matching"
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
+title = "32.1. The Naive String-Matching Algorithm"
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
+title = "32.1. Naive Matcher — Implementation"
 [modules."CLRSLean.FourthEdition.Chapter_32"]
 title = "Chapter 32. String Matching"
 
@@ -2207,43 +2249,41 @@ title = "30.3 FFT 4. Exact Iterative Costs"
 
 [modules."CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT"]
 title = "30.3 FFT 5. Parallel Network Size and Depth"
-[modules."CLRSLean.Chapter_31"]
+[modules."CLRSLean.FourthEdition.Chapter_31"]
 title = "Chapter 31. Number-Theoretic Algorithms"
 
-[modules."CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory"]
 title = "31.1. Elementary Number-Theoretic Notions"
 
-[modules."CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
 title = "31.2. Greatest Common Divisor"
 
-[modules."CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_3_Modular_Arithmetic"]
 title = "31.3. Modular Arithmetic"
 
-[modules."CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations"]
 title = "31.4. Solving Modular Linear Equations"
 
-[modules."CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_5_Chinese_Remainder_Theorem"]
 title = "31.5. The Chinese Remainder Theorem"
 
-[modules."CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_6_Powers_Of_An_Element"]
 title = "31.6. Powers of an Element"
 
-[modules."CLRSLean.Chapter_31.Section_31_7_RSA"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_7_RSA"]
 title = "31.7. The RSA Public-Key Cryptosystem"
 
-[modules."CLRSLean.Chapter_31.Section_31_8_Primality_Testing"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_8_Primality_Testing"]
 title = "31.8. Primality Testing"
 
-[modules."CLRSLean.Chapter_31.Section_31_9_Integer_Factorization"]
-title = "31.9. Integer Factorization"
 
-[modules."CLRSLean.Chapter_32"]
+[modules."CLRSLean.FourthEdition.Chapter_32"]
 title = "Chapter 32. String Matching"
 
-[modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model"]
 title = "32.1. The Naive String-Matching Algorithm"
 
-[modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
 title = "32.1. Naive Matcher — Implementation"
 
 [modules."CLRSLean.Chapter_33"]
