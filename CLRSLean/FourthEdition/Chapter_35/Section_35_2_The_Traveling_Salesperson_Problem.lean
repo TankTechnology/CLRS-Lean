@@ -1170,6 +1170,286 @@ lemma dfsTour_isTour (hT : TreeOn p r) :
     List.Nodup (dfsTour hT) ∧ ∀ x : V, x ∈ dfsTour hT := by
   exact ⟨dfsTour_nodup hT, dfsTour_mem hT⟩
 
+/-- The preorder of any subtree is nonempty. -/
+lemma preorder_ne_nil (hT : TreeOn p r) (v : V) : preorder hT v ≠ [] := by
+  rw [preorder_fix hT v]
+  simp
+
+/-- The last vertex of the preorder of `v`. -/
+noncomputable def preorderLast (hT : TreeOn p r) (v : V) : V :=
+  (preorder hT v).getLast (preorder_ne_nil hT v)
+
+/-- The preorder of `v` starts at `v`. -/
+lemma preorder_head (hT : TreeOn p r) (v : V) :
+    (preorder hT v).head (preorder_ne_nil hT v) = v := by
+  let L := (children p r v).attach.toList.flatMap (fun xc : {c : V // c ∈ children p r v} => preorder hT xc.1)
+  have hfix : preorder hT v = v :: L := preorder_fix hT v
+  have hneL : v :: L ≠ [] := by simp
+  calc
+    (preorder hT v).head (preorder_ne_nil hT v) = (v :: L).head hneL := head_eq_of_eq hfix (preorder_ne_nil hT v) hneL
+    _ = v := rfl
+
+/-- The last vertex of the concatenation of the children preorders, or `u` if
+there are no children (equivalently: the last vertex of `[u]` followed by the
+children preorders). -/
+noncomputable def tailLast (hT : TreeOn p r) (u : V)
+    (cs : List {c : V // c ∈ children p r u}) : V :=
+  if h : cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) = [] then u
+  else (cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).getLast h
+
+/-- The last vertex of the children preorders is unchanged when prepending a child (a nonempty tail still determines the last vertex). -/
+lemma tailLast_cons (hT : TreeOn p r) {u : V} (xc : {c : V // c ∈ children p r u})
+    (rest : List {c : V // c ∈ children p r u}) (hrest : rest ≠ []) :
+    tailLast hT u (xc :: rest) = tailLast hT u rest := by
+  unfold tailLast
+  have hne : (xc :: rest).flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) ≠ [] := by
+    intro h
+    exact (preorder_ne_nil hT xc.1) (by simpa using (List.append_eq_nil_iff.mp h).1)
+  have hneRest : rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) ≠ [] :=
+    flatMap_append_ne_nil (fun xc => preorder_ne_nil hT xc.1) rest hrest
+  rw [dif_neg hne, dif_neg hneRest]
+  have heq : (xc :: rest).flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)
+      = preorder hT xc.1 ++ rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) := by
+    rfl
+  have hne' : preorder hT xc.1 ++ rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) ≠ [] := by
+    intro h
+    exact (preorder_ne_nil hT xc.1) (by simpa using (List.append_eq_nil_iff.mp h).1)
+  calc
+    ((xc :: rest).flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).getLast hne
+        = (preorder hT xc.1 ++ rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).getLast hne' :=
+          getLast_eq_of_eq heq hne hne'
+    _ = (rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).getLast hneRest :=
+          getLast_append_of_right_ne_nil' (preorder hT xc.1)
+              (rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)) hne' hneRest
+
+/-- The cost of a path starting with `u` decomposes into the cost of the tail plus the first edge. -/
+lemma pathCost_singleton_append (w : Graph V) (u : V) {l : List V} (h : l ≠ []) :
+    pathCost w ([u] ++ l) = pathCost w l + w u (l.head h) := by
+  rw [pathCost_append_nonempty w (by simp) h]
+  simp [pathCost]
+
+
+/--
+**Shortcut (children list).**  The preorder path through a list of children
+closed to a target `t` costs no more than the sum over the children of their
+preorder costs plus the edges to and from `u`, plus the closing edge `u → t`.
+Each inter-child edge is charged to a two-hop path through `u` by the triangle
+inequality.
+-/
+lemma preorder_cycle_aux (hT : TreeOn p r) (w : Graph V)
+    (hTri : ∀ a b c : V, w a c ≤ w a b + w b c) {u : V} (t : V)
+    (cs : List {c : V // c ∈ children p r u}) :
+    pathCost w ([u] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)) + w (tailLast hT u cs) t
+      ≤ (cs.map (fun xc : {c : V // c ∈ children p r u} =>
+          pathCost w (preorder hT xc.1) + w (preorderLast hT xc.1) u + w u xc.1)).sum + w u t := by
+  induction cs with
+  | nil =>
+      simp [tailLast, pathCost]
+  | cons xc rest ih =>
+      by_cases hre : rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) = []
+      · have hrest_nil : rest = [] := by
+          by_contra hrn
+          have hne' : rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) ≠ [] :=
+            flatMap_append_ne_nil (fun xc => preorder_ne_nil hT xc.1) rest hrn
+          exact hne' hre
+        subst hrest_nil
+        have hc : pathCost w ([u] ++ preorder hT xc.1) = pathCost w (preorder hT xc.1) + w u xc.1 := by
+          rw [pathCost_append_nonempty w (by simp) (preorder_ne_nil hT xc.1)]
+          simp [pathCost, preorder_head hT xc.1]
+        have hflat : [xc].flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) = preorder hT xc.1 := by
+          simp
+        have htl1 : tailLast hT u [xc] = preorderLast hT xc.1 := by
+          unfold tailLast
+          rw [hflat]
+          rw [dif_neg (preorder_ne_nil hT xc.1)]
+          rfl
+        rw [hflat]
+        rw [hc]
+        rw [htl1]
+        simp
+        have htri := hTri (preorderLast hT xc.1) u t
+        omega
+      · have hRne : rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) ≠ [] := hre
+        have hrest_ne : rest ≠ [] := by
+          intro hr
+          subst hr
+          simp at hre
+        have htl : tailLast hT u (xc :: rest) = tailLast hT u rest := tailLast_cons hT xc rest hrest_ne
+        rw [List.flatMap_cons]
+        rw [htl]
+        rw [← List.append_assoc]
+        have hne1 : [u] ++ preorder hT xc.1 ≠ [] := by simp
+        have hgl : ([u] ++ preorder hT xc.1).getLast hne1 = preorderLast hT xc.1 := by
+          unfold preorderLast
+          rw [getLast_append_of_right_ne_nil' [u] (preorder hT xc.1) hne1 (preorder_ne_nil hT xc.1)]
+        have h1 : pathCost w (([u] ++ preorder hT xc.1) ++ rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1))
+            = pathCost w (preorder hT xc.1) + w u xc.1 + pathCost w (rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1))
+              + w (preorderLast hT xc.1) ((rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).head hRne) := by
+          rw [pathCost_append_nonempty w hne1 hRne]
+          rw [pathCost_singleton_append w u (preorder_ne_nil hT xc.1)]
+          rw [preorder_head hT xc.1]
+          rw [hgl]
+        rw [h1]
+        rw [List.map_cons, List.sum_cons]
+        have htri := hTri (preorderLast hT xc.1) u ((rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).head hRne)
+        have h2 : pathCost w (rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1))
+            + w u ((rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).head hRne)
+            = pathCost w ([u] ++ rest.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)) :=
+          (pathCost_singleton_append w u hRne).symm
+        nlinarith
+
+-- Instantiate preorder_cycle_aux at the full children list: the last vertex of
+-- `[u]` followed by all children preorders is `preorderLast u`.
+/-- **Shortcut (per vertex).**  The preorder path of `u` closed to `t` costs
+no more than the sum over the children of their preorder costs plus the edges
+to and from `u`, plus the closing edge `u → t`. -/
+lemma preorder_cycle_le_sum (hT : TreeOn p r) (w : Graph V)
+    (hTri : ∀ a b c : V, w a c ≤ w a b + w b c) (u : V) (t : V) :
+    pathCost w (preorder hT u) + w (preorderLast hT u) t
+      ≤ ((children p r u).attach.toList.map (fun xc : {c : V // c ∈ children p r u} =>
+          pathCost w (preorder hT xc.1) + w (preorderLast hT xc.1) u + w u xc.1)).sum + w u t := by
+  let cs := (children p r u).attach.toList
+  have haux := preorder_cycle_aux hT w hTri t cs
+  have hfix' : preorder hT u = u :: cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) := by
+    simpa [cs] using preorder_fix hT u
+  have hpath : pathCost w ([u] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)) = pathCost w (preorder hT u) := by
+    rw [hfix']
+    rfl
+  have htl : tailLast hT u cs = preorderLast hT u := by
+    unfold tailLast preorderLast
+    by_cases hcs : cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) = []
+    · rw [dif_pos hcs]
+      have hsingle : preorder hT u = [u] := by
+        rw [hfix', hcs]
+      have hne1 : [u] ≠ [] := by simp
+      symm
+      calc
+        (preorder hT u).getLast (preorder_ne_nil hT u) = [u].getLast hne1 := getLast_eq_of_eq hsingle (preorder_ne_nil hT u) hne1
+        _ = u := rfl
+    · rw [dif_neg hcs]
+      have heq : preorder hT u = [u] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) := by
+        rw [hfix']
+        rfl
+      have hneApp : [u] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1) ≠ [] := by simp
+      symm
+      calc
+        (preorder hT u).getLast (preorder_ne_nil hT u)
+            = ([u] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).getLast hneApp :=
+              getLast_eq_of_eq heq (preorder_ne_nil hT u) hneApp
+        _ = (cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)).getLast hcs :=
+              getLast_append_of_right_ne_nil' [u] (cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)) hneApp hcs
+  -- assemble
+  calc
+    pathCost w (preorder hT u) + w (preorderLast hT u) t
+        = pathCost w ([u] ++ cs.flatMap (fun xc : {c : V // c ∈ children p r u} => preorder hT xc.1)) + w (tailLast hT u cs) t := by
+          rw [hpath, htl]
+    _ ≤ (cs.map (fun xc : {c : V // c ∈ children p r u} =>
+          pathCost w (preorder hT xc.1) + w (preorderLast hT xc.1) u + w u xc.1)).sum + w u t := haux
+    _ = ((children p r u).attach.toList.map (fun xc : {c : V // c ∈ children p r u} =>
+          pathCost w (preorder hT xc.1) + w (preorderLast hT xc.1) u + w u xc.1)).sum + w u t := by simp [cs]
+
+/--
+**Shortcut bound (per subtree).**  For every subtree `v` and any target `t`,
+the preorder path of `v` closed to `t` costs no more than the walk of `v` plus
+the edge `v → t`.  Proved by well-founded induction on the subtree, with the
+target universally quantified so that inter-child charging can re-target.
+-/
+lemma preorder_bound (hT : TreeOn p r) (w : Graph V)
+    (hTri : ∀ a b c : V, w a c ≤ w a b + w b c) (t : V) (v : V) :
+    pathCost w (preorder hT v) + w (preorderLast hT v) t ≤ pathCost w (dfsWalkFrom hT v) + w v t := by
+  classical
+  let R : V → V → Prop := fun a b => Fintype.card V - depth p r a < Fintype.card V - depth p r b
+  have hwf : WellFounded R := (measure (fun a : V => Fintype.card V - depth p r a)).wf
+  have hall : ∀ u : V, ∀ t : V,
+      pathCost w (preorder hT u) + w (preorderLast hT u) t ≤ pathCost w (dfsWalkFrom hT u) + w u t := by
+    intro u
+    refine hwf.induction (C := fun u : V => ∀ t : V,
+      pathCost w (preorder hT u) + w (preorderLast hT u) t ≤ pathCost w (dfsWalkFrom hT u) + w u t) u ?_
+    intro u hrec t
+    have h1 := preorder_cycle_le_sum hT w hTri u t
+    have h2 : ((children p r u).attach.toList.map (fun xc : {c : V // c ∈ children p r u} =>
+          pathCost w (preorder hT xc.1) + w (preorderLast hT xc.1) u + w u xc.1)).sum
+        ≤ ((children p r u).attach.toList.map (fun xc : {c : V // c ∈ children p r u} =>
+          pathCost w (dfsWalkFrom hT xc.1) + w xc.1 u + w u xc.1)).sum := by
+      apply List.sum_le_sum
+      intro xc hxc
+      have hrec' := hrec xc.1 (children_depth_lt hT xc.2) u
+      exact Nat.add_le_add_right hrec' (w u xc.1)
+    have h3 : ((children p r u).attach.toList.map (fun xc : {c : V // c ∈ children p r u} =>
+          pathCost w (dfsWalkFrom hT xc.1) + w xc.1 u + w u xc.1)).sum = pathCost w (dfsWalkFrom hT u) := by
+      simpa [walkCost] using (dfsWalkFrom_cost_rec hT w u).symm
+    calc
+      pathCost w (preorder hT u) + w (preorderLast hT u) t
+          ≤ ((children p r u).attach.toList.map (fun xc : {c : V // c ∈ children p r u} =>
+              pathCost w (preorder hT xc.1) + w (preorderLast hT xc.1) u + w u xc.1)).sum + w u t := h1
+      _ ≤ ((children p r u).attach.toList.map (fun xc : {c : V // c ∈ children p r u} =>
+              pathCost w (dfsWalkFrom hT xc.1) + w xc.1 u + w u xc.1)).sum + w u t := Nat.add_le_add_right h2 (w u t)
+      _ = pathCost w (dfsWalkFrom hT u) + w u t := by rw [h3]
+  exact hall v t
+
+/-- The preorder tour is nonempty. -/
+lemma dfsTour_ne_nil (hT : TreeOn p r) : dfsTour hT ≠ [] := by
+  change preorder hT r ≠ []
+  exact preorder_ne_nil hT r
+
+/-- The preorder tour starts at the root. -/
+lemma dfsTour_head (hT : TreeOn p r) : (dfsTour hT).head (dfsTour_ne_nil hT) = r := by
+  change (preorder hT r).head (preorder_ne_nil hT r) = r
+  exact preorder_head hT r
+
+/-- The last vertex of the preorder tour. -/
+lemma dfsTour_last (hT : TreeOn p r) : (dfsTour hT).getLast (dfsTour_ne_nil hT) = preorderLast hT r := by
+  change (preorder hT r).getLast (preorder_ne_nil hT r) = preorderLast hT r
+  rfl
+
+/--
+**Lemma (shortcut).**  The tour obtained by shortcutting the depth-first walk —
+the preorder list read as a cycle — costs no more than the walk itself.  This is
+the triangle-inequality step of APPROX-TSP-TOUR: every skipped return is charged
+to a two-hop path through the tree, and `w v v = 0` closes the leaf-root case.
+-/
+lemma dfsTour_bound (hT : TreeOn p r) (w : Graph V)
+    (hTri : ∀ a b c : V, w a c ≤ w a b + w b c)
+    (hLoop : ∀ v : V, w v v = 0) :
+    tourCostTo w ((dfsTour hT).head (dfsTour_ne_nil hT)) (dfsTour hT) ≤ walkCost w (dfsWalk hT) := by
+  have hG := preorder_bound hT w hTri r r
+  unfold tourCostTo
+  rw [dfsTour_head hT]
+  have hne : dfsTour hT ≠ [] := dfsTour_ne_nil hT
+  simp [hne]
+  rw [dfsTour_last hT]
+  have hG' : pathCost w (dfsTour hT) + w (preorderLast hT r) r ≤ walkCost w (dfsWalk hT) + w r r := by
+    simpa [dfsTour, dfsWalk, walkCost] using hG
+  have hloop := hLoop r
+  calc
+    pathCost w (dfsTour hT) + w (preorderLast hT r) r ≤ walkCost w (dfsWalk hT) + w r r := hG'
+    _ = walkCost w (dfsWalk hT) := by simp [hloop]
+
+/--
+**Theorem 35.2.**  APPROX-TSP-TOUR returns a tour whose cost is at most twice the
+cost of any tour — in particular, of an optimal one.
+
+Indeed, the preorder tour costs no more than the depth-first walk (Lemma
+`dfsTour_bound`), the walk costs exactly twice the tree (Lemma 35.2,
+`dfsWalk_cost`), and a minimum spanning tree costs no more than any tour (Lemma
+35.3, `mst_le_tour`).
+-/
+theorem tsp_two_approx {w : Graph V} {p : V → V} {r : V}
+    (hMST : IsMinimumSpanningTreeOn w p r)
+    (hSymm : ∀ x y : V, w x y = w y x)
+    (hTri : ∀ a b c : V, w a c ≤ w a b + w b c)
+    (hLoop : ∀ v : V, w v v = 0)
+    {σ : V → V} (hT : Tour σ) :
+    tourCostTo w ((dfsTour hMST.1).head (dfsTour_ne_nil hMST.1)) (dfsTour hMST.1) ≤ 2 * TourCost w σ := by
+  have h1 := dfsTour_bound hMST.1 w hTri hLoop
+  have h2 := dfsWalk_cost hMST.1 w hSymm
+  have h3 := mst_le_tour hMST hT
+  calc
+    tourCostTo w ((dfsTour hMST.1).head (dfsTour_ne_nil hMST.1)) (dfsTour hMST.1) ≤ walkCost w (dfsWalk hMST.1) := h1
+    _ = 2 * treeCost w p r := h2
+    _ ≤ 2 * TourCost w σ := by exact Nat.mul_le_mul_left 2 h3
+
+
 end TreeOn
 
 end TSP
