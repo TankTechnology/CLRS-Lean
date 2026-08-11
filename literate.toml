@@ -291,6 +291,16 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables" = [
   "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables",
 ]
+"CLRSLean.FourthEdition.Chapter_19" = [
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_3_Disjoint_Set_Forests",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis",
+]
+"CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis" = [
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.CostedExecution",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.InverseAckermann",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -675,6 +685,24 @@ title = "Chapter 18. B-Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_19"]
 title = "Chapter 19. Data Structures for Disjoint Sets"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations"]
+title = "19.1. Disjoint-Set Operations"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation"]
+title = "19.2. Linked-List Representation of Disjoint Sets"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_3_Disjoint_Set_Forests"]
+title = "19.3. Disjoint-Set Forests"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis"]
+title = "19.4. Analysis of Union by Rank with Path Compression"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.CostedExecution"]
+title = "Costed Union-Find Execution"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.InverseAckermann"]
+title = "Inverse-Ackermann Amortization"
 
 [modules."CLRSLean.FourthEdition.Chapter_20"]
 title = "Chapter 20. Elementary Graph Algorithms"
