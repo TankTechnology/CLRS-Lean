@@ -49,8 +49,8 @@ import CLRSLean.OnlineMaterial
 | Chapter 18, B-Trees | `CLRSLean.Chapter_18` | Same chapter number. |
 | Chapter 19, Data Structures for Disjoint Sets | `CLRSLean.FourthEdition.Chapter_19` (native §19.1--19.4) | Sections 19.1--19.4 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_21.Section_21_*` forward to them. Declarations retain the `CLRS.Chapter21` namespace pending the chapter-by-chapter namespace migration. |
 | Chapter 20, Elementary Graph Algorithms | `CLRSLean.FourthEdition.Chapter_20` (native §20.1--20.5) | Sections 20.1--20.5 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_22.Section_22_*` forward to them. Declarations retain the `CLRS.Chapter22` namespace pending the chapter-by-chapter namespace migration. |
-| Chapter 21, Minimum Spanning Trees | `CLRSLean.Chapter_23` | Shifted facade. |
-| Chapter 22, Single-Source Shortest Paths | `CLRSLean.Chapter_24` | Shifted facade. |
+| Chapter 21, Minimum Spanning Trees | `CLRSLean.FourthEdition.Chapter_21` (native §21.1--21.2) | Sections 21.1--21.2 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_23.Section_23_*` forward to them. Declarations retain the `CLRS.MST` namespace. |
+| Chapter 22, Single-Source Shortest Paths | `CLRSLean.FourthEdition.Chapter_22` (native §22.1--22.5) | Sections 22.1--22.5 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_24.Section_24_*` forward to them. Declarations retain the `CLRS.Chapter24` namespace pending the chapter-by-chapter namespace migration. |
 | Chapter 23, All-Pairs Shortest Paths | `CLRSLean.Chapter_25` | Shifted facade. |
 | Chapter 24, Maximum Flow | `CLRSLean.Chapter_26` | Shifted facade. |
 | Chapter 25, Matchings in Bipartite Graphs | `CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching` (native §25.1) | Native section: maximum bipartite matching revisited; sections 25.2--25.3 not-started. |

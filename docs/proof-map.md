@@ -3304,7 +3304,10 @@ track.
 ### Section 23.1 - Growing a minimum spanning tree
 
 - Lean source:
+  `CLRSLean/FourthEdition/Chapter_21/Section_21_1_Growing_Minimum_Spanning_Trees.lean`
+  (canonical fourth-edition Section 21.1; the legacy
   `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
+  forwards to it)
 - Status: `main-proof-complete-for-correctness`
 - Main proved theorem: `CLRS.MST.safe_edge_of_lightest_crossing`
 - Supporting theorems:
@@ -3327,7 +3330,12 @@ automatically.
 
 ### Section 23.2 - Kruskal and Prim
 
-- Lean source: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim.lean`
+  (canonical fourth-edition Section 21.2, with the nested
+  `Section_21_2_Kruskal_And_Prim/S1_UnionFindBridge.lean`,
+  `Section_21_2_Kruskal_And_Prim/S2_StatefulKruskal.lean`, and
+  `Section_21_2_Kruskal_And_Prim/S3_ExecutablePrim.lean`; the legacy
+  `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim*` files forward to them)
 - Interface tests: `Tests/Chapter_23_Interface.lean`,
   `Tests/Chapter_23_Closure.lean`
 - Status: `main-proof-complete-for-correctness`
@@ -3375,7 +3383,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.1 - The Bellman-Ford algorithm
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_1_Bellman_Ford.lean`
+  (canonical fourth-edition Section 22.1; the legacy
+  `CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean` forwards to it)
 - Status: `proved`
 - Model layer:
   - `CLRS.Chapter24.WeightedGraph`
@@ -3404,7 +3414,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.2 - Single-source shortest paths in DAGs
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_2_SSSP_In_DAGs.lean`
+  (canonical fourth-edition Section 22.2; the legacy
+  `CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean` forwards to it)
 - Status: `proved`
 - Topological order and acyclicity (over `WeightedGraph.Adj`):
   - `CLRS.Chapter24.WeightedGraph.IsTopoOrder`
@@ -3434,7 +3446,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.3 - Dijkstra's algorithm
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_3_Dijkstra.lean`
+  (canonical fourth-edition Section 22.3; the legacy
+  `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean` forwards to it)
 - Status: `proved` (greedy theorem, executable loop, and end-to-end correctness)
 - Nonnegative-weight layer:
   - `CLRS.Chapter24.WeightedGraph.Nonneg`
@@ -3471,7 +3485,10 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.5 - Proofs of shortest paths
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_5_Shortest_Path_Properties.lean`
+  (canonical fourth-edition Section 22.5; the legacy
+  `CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean` forwards
+  to it)
 - Status: `proved` for the shortest-path distance function and the no-path,
   upper-bound, and triangle-inequality properties (CLRS Lemmas 24.11-24.13)
 - Main proved theorems:

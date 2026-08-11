@@ -318,6 +318,22 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components" = [
   "CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components.MergeSortCongr",
 ]
+"CLRSLean.FourthEdition.Chapter_21" = [
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_1_Growing_Minimum_Spanning_Trees",
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim",
+]
+"CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim" = [
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S1_UnionFindBridge",
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S2_StatefulKruskal",
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S3_ExecutablePrim",
+]
+"CLRSLean.FourthEdition.Chapter_22" = [
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_1_Bellman_Ford",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_2_SSSP_In_DAGs",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_3_Dijkstra",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_4_Difference_Constraints",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_5_Shortest_Path_Properties",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -760,8 +776,38 @@ title = "Merge-Sort Congruence"
 [modules."CLRSLean.FourthEdition.Chapter_21"]
 title = "Chapter 21. Minimum Spanning Trees"
 
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_1_Growing_Minimum_Spanning_Trees"]
+title = "21.1. Growing a Minimum Spanning Tree"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim"]
+title = "21.2. Kruskal and Prim"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S1_UnionFindBridge"]
+title = "Union-Find Refinement"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S2_StatefulKruskal"]
+title = "Stateful Kruskal"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S3_ExecutablePrim"]
+title = "Executable Prim"
+
 [modules."CLRSLean.FourthEdition.Chapter_22"]
 title = "Chapter 22. Single-Source Shortest Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_1_Bellman_Ford"]
+title = "22.1. The Bellman-Ford Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_2_SSSP_In_DAGs"]
+title = "22.2. Single-Source Shortest Paths in DAGs"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_3_Dijkstra"]
+title = "22.3. Dijkstra's Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_4_Difference_Constraints"]
+title = "22.4. Difference Constraints and Shortest Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_5_Shortest_Path_Properties"]
+title = "22.5. Proofs of Shortest Paths"
 
 [modules."CLRSLean.FourthEdition.Chapter_23"]
 title = "Chapter 23. All-Pairs Shortest Paths"
