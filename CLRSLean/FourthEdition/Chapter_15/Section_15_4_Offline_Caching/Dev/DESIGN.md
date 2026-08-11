@@ -353,6 +353,32 @@ replaces `hj''`/`hjj''` via `getD_ne_of_nextUse_none` + `hJlen`, base case
 q-dead B2 step needs **no** keep-swap: `repair_step_swap_q_dead` and
 `reverse_diff_chain_q_dead` are already generic in the schedule.
 
+**Progress (2026-08-11, fifth batch, kernel-checked)**: the `hnotE`
+derivation (`Dev/B8_HnotE.lean` + `Dev/search_hnot.py`).  The DESIGN's
+"`q''ᵢ` requested at `nᵢ ≤ s`, kept" mechanism is **empirically false**
+(172 of 180 later requests of a pair page have `q''ᵢ ∉ D_s` — the current
+schedule re-evicts it, e.g. `σ=[1,1,3,4,1,3,2,3]`, B2 at 6).  The correct
+mechanism (0 violations in the same search): at window positions off `P`,
+the exchange never hits where the current schedule faults.  Three lemmas:
+
+- `pair_q''_absent_d`: after the repair at `tᵢ` evicts `q''ᵢ`, the page
+  stays out of the current cache until its first request `nᵢ` (clean
+  induction, request-avoidance only) — the nop no-op-ness and the
+  `q''ₖ ≠ q''ᵢ` distinctness at other nops;
+- `pair_page_in_D_of_in_E`: the joint E⟹D induction — for every alive past
+  pair with `nᵢ < s`, `q''ᵢ ∈ E_s ⟹ q''ᵢ ∈ D_s`.  The step's only obstacle
+  is the e-hit-at-d-fault (`σ[s] ∈ E_s − D_s`): the chain pushes `σ[s]`
+  into `Q.image`, and the pair analysis (dead / before-`nₗ` / at-`nₗ`-in-P /
+  after-`nₗ`-via-the-IH) contradicts it; at an e-fault with `q'' = σ[s]`
+  (the request) both caches gain `σ[s]` directly;
+- `b2_hnotE`: the assembly — `σ[s] ∈ E_s` ⟹ `σ[s] ∈ Q.image` (chain) ⟹
+  dead / `s < nᵢ` / `s = nᵢ` (`hP_in`) / `s > nᵢ` (`pair_page_in_D_of_in_E`
+  gives `q''ᵢ ∈ D_s`, contradicting the d-fault).
+
+The induction uses `Nat.strong_induction_on` with the `s−1` step (the
+plain `induction s with` succ-intro mis-elaborates the nested ∀ when
+∀-typed hypothesis binders are in scope — see B8's commit note).
+
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
