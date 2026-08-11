@@ -15,9 +15,9 @@ Legacy imports remain supported through all 1.x releases and for at
 least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
-* Chapters represented in Lean: 32.
-* Tracked reader-facing theorem entries: 1,392.
-* Proved tracked theorem entries: 1,392.
+* Chapters represented in Lean: 33.
+* Tracked reader-facing theorem entries: 1,397.
+* Proved tracked theorem entries: 1,397.
 * Online/supplementary theorem entries: 464.
 * Remaining edition-coverage units: 26.
 
@@ -37,8 +37,8 @@ every theorem already selected for that chapter is proved.
 * {lit}`main-proof-complete`: 13 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 8 chapters.
-* {lit}`not-started`: 3 chapters.
+* {lit}`partial`: 9 chapters.
+* {lit}`not-started`: 2 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -72,7 +72,7 @@ Ch  Chapter                                                     Status          
 24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3                     18        0
 25  25. Matchings in Bipartite Graphs                           main-proof-complete                  25.1;25.2;25.3                     18        0
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
-27  27. Online Algorithms                                       not-started                          not represented                     0        1
+27  27. Online Algorithms                                       partial (edition coverage)           27.1;27.2                           5        1
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
 29  29. Linear Programming                                      partial (edition coverage)           29.1;29.2;29.3                     10        3
 30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     34        0

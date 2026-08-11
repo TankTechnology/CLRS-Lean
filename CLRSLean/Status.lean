@@ -36,10 +36,10 @@ an obligation that has not yet been selected into that inventory.
 
 ## Fourth-Edition Snapshot
 
-The canonical ledger contains 35 chapter rows.  Thirty chapters currently reuse
-represented theorem content; Chapters 25, 27, and 33--35 are honestly
-{lit}`not-started`.  The generated dashboard owns live theorem totals and status
-counts, so this prose does not freeze a completed-prefix milestone.
+The canonical ledger contains 35 chapter rows.  Thirty-three chapters now carry
+represented theorem content; only Chapters 34--35 remain {lit}`not-started`.
+The generated dashboard owns live theorem totals and status counts, so this
+prose does not freeze a completed-prefix milestone.
 
 The edition map currently records these fourth-edition gaps:
 
@@ -62,6 +62,9 @@ The edition map currently records these fourth-edition gaps:
   declaration ownership; detailed SIMPLEX material remains available online.
 * **Chapter 32, String Matching:** Section 32.1 is represented; Sections
   32.2--32.5 are not started.
+* **Chapter 27, Online Algorithms:** Sections 27.1 (Waiting for an elevator) and
+  27.2 (Maintaining a search list) are represented; Section 27.3 (Online
+  caching) is not started.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the
@@ -71,10 +74,6 @@ chapter-end Problems, pointer/RAM models, or floating-point implementations.
 
 ## Not-Started Chapters
 
-* **Chapter 25, Matchings in Bipartite Graphs:** Section 25.1 is native (Berge's lemma and the flow-method certification); Section 25.2 proves Gale-Shapley stability with perfectness and man-optimality remaining; Section 25.3 is not started.
-* **Chapter 27, Online Algorithms:** no canonical theorem-bearing source yet.
-* **Chapter 33, Machine-Learning Algorithms:** no canonical theorem-bearing
-  source yet.
 * **Chapters 34--35, NP-Completeness and Approximation Algorithms:** guide-only,
   with whole-chapter inventories pending.
 
