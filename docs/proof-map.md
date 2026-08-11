@@ -3940,13 +3940,14 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 27.1 - The Basics of Dynamic Multithreading
 
-- Lean sources:
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S1_ComputationDAG.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S2_ReadyExecution.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S3_GreedyAccounting.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S4_ExecutableScheduler.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean`
+- Lean sources (canonical fourth-edition Section 26.1; the legacy
+  `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model*` files forward to them):
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S1_ComputationDAG.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S2_ReadyExecution.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S3_GreedyAccounting.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S4_ExecutableScheduler.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean`
 - Interface test: `Tests/Chapter_27_Interface.lean`
 - Status: `proved` (for the represented model)
 - Model:
@@ -4002,14 +4003,15 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 27.2 - Multithreaded Matrix Multiplication
 
-- Lean sources:
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S1_CostModel.lean`
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean`
-    (shared legacy recurrence file containing the idealized P-MATMUL model)
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean`
-    (shared legacy all-input-bound file)
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean`
+- Lean sources (canonical fourth-edition Sections 26.2--26.3; the legacy
+  `CLRSLean/Chapter_27/Section_27_2_4_Algorithms*` files forward to them):
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S1_CostModel.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S2_Recurrences.lean`
+    (shared recurrence file containing the idealized P-MATMUL model)
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S3_AllInputBounds.lean`
+    (shared all-input-bound file)
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs.lean`

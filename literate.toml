@@ -352,6 +352,26 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S3_WorkAnalysis",
   "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S4_ExecutableBFS",
 ]
+"CLRSLean.FourthEdition.Chapter_26" = [
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms",
+]
+"CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model" = [
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S1_ComputationDAG",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S2_ReadyExecution",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S3_GreedyAccounting",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S4_ExecutableScheduler",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S5_SpawnTreeAndLoops",
+]
+"CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms" = [
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S1_CostModel",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S2_Recurrences",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S3_AllInputBounds",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -909,6 +929,134 @@ title = "Berge's Lemma and the Flow Method"
 
 [modules."CLRSLean.FourthEdition.Chapter_26"]
 title = "Chapter 26. Parallel Algorithms"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model"]
+title = "26.1. The Basics of Dynamic Multithreading"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S1_ComputationDAG"]
+title = "26.1 S1. Computation DAGs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S2_ReadyExecution"]
+title = "26.1 S2. Ready Execution"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S3_GreedyAccounting"]
+title = "26.1 S3. Greedy Accounting"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S4_ExecutableScheduler"]
+title = "26.1 S4. Executable Scheduler"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S5_SpawnTreeAndLoops"]
+title = "26.1 S5. Spawn Trees and Parallel Loops"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms"]
+title = "26.2-26.3. Multithreaded Algorithms (Historical 2_4 Compatibility)"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S1_CostModel"]
+title = "26.2-26.3 S1. Costed Execution Model"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S2_Recurrences"]
+title = "26.2-26.3 S2. Parallel Recurrences"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S3_AllInputBounds"]
+title = "26.2-26.3 S3. All-Input Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix"]
+title = "26.2. Parallel Matrix Algorithms"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Definitions"]
+title = "26.2. Parallel Matrix Algorithms — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Correctness"]
+title = "26.2. Parallel Matrix Algorithms — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs"]
+title = "26.2. Parallel Matrix Algorithms — Cost Analysis"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.Definitions"]
+title = "26.2. Exact Matrix Costs — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.ExecutionEqualities"]
+title = "26.2. Exact Matrix Costs — Execution Equalities"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.Monotonicity"]
+title = "26.2. Matrix Costs — Monotonicity"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.PowerBounds"]
+title = "26.2. Matrix Costs — Power-of-Two Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.AllInputBounds"]
+title = "26.2. Matrix Costs — All-Input Asymptotics"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge"]
+title = "26.3. Parallel Merge"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Definitions"]
+title = "26.3. Parallel Merge — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.MergeSplit"]
+title = "26.3. P-MERGE — Normalized Split Data"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge"]
+title = "26.3. P-MERGE"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Definitions"]
+title = "26.3. P-MERGE — Executable Definition"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness"]
+title = "26.3. P-MERGE — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Boundaries"]
+title = "26.3. P-MERGE Correctness — Order Boundaries"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Permutation"]
+title = "26.3. P-MERGE Correctness — Permutation"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Main"]
+title = "26.3. P-MERGE Correctness — Strong Induction"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound"]
+title = "26.3. Binary Lower Bound"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound.Definitions"]
+title = "26.3. Binary Lower Bound — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound.Correctness"]
+title = "26.3. Binary Lower Bound — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound.Costs"]
+title = "26.3. Binary Lower Bound — Costs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Correctness"]
+title = "26.3. Parallel Merge — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs"]
+title = "26.3. P-MERGE — Costs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Structure"]
+title = "26.3. P-MERGE Costs — Structural Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Step"]
+title = "26.3. P-MERGE Costs — One Step"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work"]
+title = "26.3. P-MERGE Costs — Linear Work"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work.LogPotential"]
+title = "26.3. P-MERGE Work — Logarithmic Potential"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work.Bounds"]
+title = "26.3. P-MERGE Work — Pointwise Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span"]
+title = "26.3. P-MERGE Costs — Quadratic-Log Span"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.Envelope"]
+title = "26.3. P-MERGE Span — Three-Quarter Envelope"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.Bounds"]
+title = "26.3. P-MERGE Span — Pointwise Upper Bound"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.WitnessLists"]
+title = "26.3. P-MERGE Span — Interleaved Witness Lists"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.LowerBound"]
+title = "26.3. P-MERGE Span — Matching Lower Witness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort"]
+title = "26.3. P-MERGE-SORT"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Definitions"]
+title = "26.3. P-MERGE-SORT — Executable Definition"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Correctness"]
+title = "26.3. P-MERGE-SORT — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Correctness.Spec"]
+title = "26.3. P-MERGE-SORT Correctness — Specification"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Correctness.Main"]
+title = "26.3. P-MERGE-SORT Correctness — Strong Induction"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs"]
+title = "26.3. P-MERGE-SORT — Costs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Step"]
+title = "26.3. P-MERGE-SORT Costs — Exact Steps"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.RecurrenceLinks"]
+title = "26.3. P-MERGE-SORT Costs — Recurrence Links"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Work"]
+title = "26.3. P-MERGE-SORT — Work"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Work.Bounds"]
+title = "26.3. P-MERGE-SORT Work — Pointwise Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span"]
+title = "26.3. P-MERGE-SORT — Span"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.Bounds"]
+title = "26.3. P-MERGE-SORT Span — Pointwise Upper Bound"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput"]
+title = "26.3. P-MERGE-SORT Span — Recursive Witness Input"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.MapInvariance"]
+title = "26.3. P-MERGE-SORT Span — Order-Map Invariance"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound"]
+title = "26.3. P-MERGE-SORT Span — Matching Lower Witness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrences"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrences"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences.Definitions"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrence Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences.Monotonicity"]
+title = "Chapter 27 Extension — Parallel Strassen Monotonicity"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds"]
+title = "Chapter 27 Extension — Parallel Strassen All-Input Bounds"
 
 [modules."CLRSLean.FourthEdition.Chapter_27"]
 title = "Chapter 27. Online Algorithms"
