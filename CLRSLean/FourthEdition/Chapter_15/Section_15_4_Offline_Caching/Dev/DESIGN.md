@@ -472,6 +472,29 @@ intermediate steps in all 2796 cases), so the slack there is the
 exchange's `slack' = slack + 1` (the `¬bad` branch of
 `iterate_main_exchange`).
 
+**Case one done (2026-08-11, `iterate_main_case_one`, B7, kernel-checked)**:
+the q'-dead exchange step — agreement to `t + 1`, slack `+1` iff `q` is
+requested again (`exchangeSchedule_misses_le_plus_one`'s `Or.inl`
+branch via `iterate_main_exchange`; `q` dead: misses equal by
+`exchangeSchedule_misses_eq_case_one`), and reduced from `t + 1` on
+except the branch-1 positions (`d s = q'` — the exchange evicts `q'`
+as a no-op, not resident; the lemma states the disjunct
+`e s ∈ E_s ∨ d s = q'`; the branch-1 fault is at most one, by the
+`window_branch1_once` argument).  **The flagged iteration-target
+reconsideration is not needed**: the q-dead sub-case's final agreement
+*is* attainable — over σ of length 4-9, alphabet {1..4}, both d₀
+policies, the 69326 q-dead case-one steps' traces end with
+`agreeWithFIF d σ σ.length` in **all** cases (0 disagreements) — the
+exchange's cache coincides with FIF's from `t+1` on (the exchange
+evicts `q'` — the same page FIF evicts — and the later steps handle
+any drift), and the q-dead exchange's reducedness has **0 violations**
+(empirically; the branch-1 faults occur only in the q-alive case,
+7384 of 152364).  Open: the state's `hdred` field for the case-one
+needs the branch-1 at-most-once handling (the assembly's question —
+the OR-form's branch-1 disjunct must be excluded from the reducedness
+range, e.g. `hnb'` past the branch-1 position, or the exchange's
+reducedness stated per-fault with the `d s = q'` exception).
+
 **Non-q₀' B1 pairing proposal (2026-08-11, data by `Dev/search_slack.py`
 variants)**: the 1040 non-q₀' B1-bads have `d t₂` = an alive pair's
 page (248), a dead pair's page (376), or something outside `Q.image`
@@ -691,6 +714,8 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   `b2_ehit_ne`, `b2_no_evict_q`, `b2_hswap`, `b2_hswap_qp_dead`,
   `reverse_diff_chain_qp_dead`, `reverse_diff_chain_q_dead` (done,
   kernel-checked) and `iterate_main_exchange` (the case-A step, done);
+  `iterate_main_case_one` (the case-one step, done — see the case-one
+  block above);
   the current-schedule keep-swap (done: `repair_keep_swap_cur` alive-alive,
   `repair_keep_swap_cur_qp_dead` q''-dead; the q-dead step needs none);
   the case-B1/B2 step lemmas (B1-alive, B1-dead, B2-alive done);
