@@ -30,19 +30,28 @@ primality test, and the Pollard's-rho factorization heuristic.
 
 ### 31.2 Greatest Common Divisor
 
-* {lit}`CLRS.Chapter31.euclid_recursion` (Lemma 31.2),
+* {lit}`CLRS.Chapter31.euclid_recursion` (Theorem 31.9, the GCD recursion
+  theorem),
   {lit}`CLRS.Chapter31.euclid` + {lit}`CLRS.Chapter31.euclid_eq_gcd`,
   {lit}`CLRS.Chapter31.gcd_is_linear_combination` (Lemma 31.3, Bezout),
   {lit}`CLRS.Chapter31.gcd_is_smallest_positive_linear_combination`
   (Theorem 31.2), the Corollary 31.3/31.4 facts, and
   {lit}`CLRS.Chapter31.extendedEuclid` + `extendedEuclid_spec`.
+* **Running time (Lamé / Fibonacci)**: {lit}`CLRS.Chapter31.euclidDivisions`
+  counts the recursive calls of `EUCLID`;
+  {lit}`CLRS.Chapter31.fib_le_of_euclidDivisions` (Lemma 31.10) gives
+  `a ≥ F_{k+2}`, `b ≥ F_{k+1}` for `k` calls;
+  {lit}`CLRS.Chapter31.euclidDivisions_lt` (Theorem 31.11, Lamé) bounds the
+  call count by `b < F_{k+1}`; and
+  {lit}`CLRS.Chapter31.euclidDivisions_le_two_log` (Corollary 31.12) is the
+  `O(log b)` bound.
 
 ### 31.3 Modular Arithmetic
 
 * {lit}`CLRS.Chapter31.mod_add` / `mod_mul` (Theorem 31.5),
   {lit}`CLRS.Chapter31.exists_mul_inverse_mod` (Theorem 31.6),
   {lit}`CLRS.Chapter31.mul_left_cancel_mod` (Theorem 31.9), and
-  {lit}`CLRS.Chapter31.modular_linear_solvable` (Theorem 31.11).
+  {lit}`CLRS.Chapter31.modular_linear_solvable` (Corollary 31.21).
 
 ### 31.4 Solving Modular Linear Equations
 
@@ -59,7 +68,7 @@ primality test, and the Pollard's-rho factorization heuristic.
 ### 31.6 Powers of an Element
 
 * {lit}`CLRS.Chapter31.modularExponentiation` + `modularExponentiation_spec`,
-  {lit}`CLRS.Chapter31.fermat_little_theorem` (Theorem 31.30), and
+  {lit}`CLRS.Chapter31.fermat_little_theorem` (Theorem 31.31), and
   {lit}`CLRS.Chapter31.euler_theorem`.
 
 ### 31.7 The RSA Public-Key Cryptosystem
@@ -72,22 +81,51 @@ primality test, and the Pollard's-rho factorization heuristic.
 * {lit}`CLRS.Chapter31.fermat_test` (Theorem 31.31),
   {lit}`CLRS.Chapter31.fermatPseudoprime`, and
   {lit}`CLRS.Chapter31.pseudoprime` + `pseudoprime_correct`.
+* **Carmichael numbers**: {lit}`CLRS.Chapter31.isCarmichael` — a composite `n`
+  passing the Fermat test for every coprime base
+  ({lit}`CLRS.Chapter31.carmichael_fermatPseudoprime`);
+  {lit}`CLRS.Chapter31.isCarmichael_561` exhibits the smallest one.
+* **Miller-Rabin**: {lit}`CLRS.Chapter31.strongTestParams` (the `2^s·d`
+  decomposition), {lit}`CLRS.Chapter31.strongPseudoprime` (STRONG-PSEUDOPRIME),
+  {lit}`CLRS.Chapter31.Witness`, and the executable
+  {lit}`CLRS.Chapter31.millerRabin` test.  Correctness:
+  {lit}`CLRS.Chapter31.strongPseudoprime_of_prime` (a prime passes every
+  base), {lit}`CLRS.Chapter31.not_witness_of_prime`, and
+  {lit}`CLRS.Chapter31.witness_not_prime` (a witness certifies
+  compositeness).
+* **Miller-Rabin error bound (Rabin–Monier)**: {lit}`CLRS.Chapter31.goodUnits`
+  (`S(n)`, the good subgroup), {lit}`CLRS.Chapter31.liar_mem_goodSet` (every
+  strong liar lies in `S(n)`), and the counting machinery
+  ({lit}`CLRS.Chapter31.card_pow_eq_one_crt`,
+  {lit}`CLRS.Chapter31.mTorsion_le_prod_half`).  The bound
+  {lit}`CLRS.Chapter31.goodUnits_card_le` proves `|S(n)| ≤ (n−1)/4` (three
+  cases: prime power, semiprime, and ≥3 prime factors), giving
+  {lit}`CLRS.Chapter31.strongLiars_card_le` — **at most `(n−1)/4` of the
+  bases are strong liars** (Theorem 31.39, sharpened to `(n−1)/4` by
+  Rabin–Monier).
 
 ### 31.9 Integer Factorization
 
+> ⚠️ **CLRS 4th edition removed this section** (integer factorization is no
+> longer in the main text of Chapter 31).  The POLLARD-RHO formalization is
+> retained for reference; a repo-wide migration will decide its fate.
+
 * {lit}`CLRS.Chapter31.rhoStep` and
   {lit}`CLRS.Chapter31.rho_collision_factor` (Pollard's rho).
+* **POLLARD-RHO**: {lit}`CLRS.Chapter31.RhoState` (tortoise-and-hare state),
+  {lit}`CLRS.Chapter31.pollardStep`, the loop {lit}`CLRS.Chapter31.pollardRhoLoop`,
+  and the full {lit}`CLRS.Chapter31.pollardRho` algorithm, with soundness
+  {lit}`CLRS.Chapter31.pollardRho_sound` (a returned factor is a nontrivial
+  divisor of `n`) and collision detection
+  {lit}`CLRS.Chapter31.pollardStep_collision_factor`.
 
-**Status: `selected-section-complete`** — Sections 31.1–31.9 fully proved.
+**Status: `selected-section-complete`** — Sections 31.1–31.9 fully proved,
+including the Miller-Rabin error bound.
 
 ## Deferred Work
 
-* 31.2 running-time (Lamé / Fibonacci) analysis of EUCLID.
-* 31.5 the general `k`-modulus CRT via `Nat.chineseRemainderOfList` /
-  `ZMod.chineseRemainder`.
-* 31.7 the RSA proof for messages sharing a factor with the modulus.
-* 31.8 Carmichael numbers and the Miller-Rabin test.
-* 31.9 the full Pollard's-rho algorithm and its birthday-paradox analysis.
+* 31.9 the birthday-paradox / expected-`O(√p)` running-time analysis of
+  POLLARD-RHO (a heuristic in CLRS, left informal).
 -/
 
 namespace CLRS
