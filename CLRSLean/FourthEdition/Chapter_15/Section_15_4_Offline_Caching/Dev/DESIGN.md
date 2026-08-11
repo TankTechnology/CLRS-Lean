@@ -470,8 +470,47 @@ for the q₀'-B1 given `1 ≤ slack`).  The `1 ≤ slack` derivation is the
 assembly's: the q₀'-B1 is the first step after the exchange (0
 intermediate steps in all 2796 cases), so the slack there is the
 exchange's `slack' = slack + 1` (the `¬bad` branch of
-`iterate_main_exchange`).  **Open**: the 1040 non-q₀' B1-bads (see the
-pairing proposal below).
+`iterate_main_exchange`).
+
+**Non-q₀' B1 pairing proposal (2026-08-11, data by `Dev/search_slack.py`
+variants)**: the 1040 non-q₀' B1-bads have `d t₂` = an alive pair's
+page (248), a dead pair's page (376), or something outside `Q.image`
+(416 — the branch analysis needed: `d t₂ = e t₂ ∈ E_{t₂} − D_{t₂} ⊆
+Q.image` for `t₂ ∉ P`; the 416 suggest `d t₂ = q₀` or the analysis
+needs the exchange's eviction path); 188 are at the pair's nop
+position.  The mechanism (traces): the B1's bad on `q''` is a real +1
+at `J'''` (the repair faults where `d` hits) covered **only** by an
+earlier credit, and a window can contain **two** B1-bads (e.g.
+σ=[1,1,3,4,1,2,3,2,4], min — A at 2 (¬bad, +1), B1 at 3 (bad), B1 at
+6 = the pair (3,3)'s nop (bad) — the plain accounting crashes).  The
+credits identified:
+1. the exchange's `+1` iff `¬bad` (the q₀'-B1 half — done);
+2. the **alive-alive B2's exact net**: the strong repair's pointwise
+   balance is `rF = dF − 1{J} + 1{bad at J''}` — the good at `J` can
+   occur without the bad at `J''` (the repair saves exactly 1, e.g.
+   σ=[1,1,3,2,1,3,2,1,3]: the B2 at 4 keeps 3 — good at 5, its bad at
+   6 does not occur — the −1 covers the later B1's bad on 3 at 8).
+   Formal: `schedMisses r + 1{J} ≤ schedMisses d + 1{bad at J''}`
+   (pointwise), slack `+1{J} − 1{bad}`;
+3. the B2-q''-dead's exact saving (`rF + 1 ≤ dF`, slack +1).
+Counting: plain 492 crashes → +B2-q''-dead credit 228 → +alive-alive
+net credit (candidate C) 164.  The residual 164 all have a window with
+**two** B1-bads (the first consumes the exchange's +1; the second's
+`q''` has no pending good on its page).  The pairing direction: the
+B1's bad on `q''` is covered iff the page `q''` has a **pending good**
+(an earlier good event on `q''` not yet consumed by a bad on `q''` —
+the "keeper" step that kept `q''` in its cache); the past pair whose
+page `d t₂` is (the user's suggested pairing) identifies the window's
+page history at the B1 (the 188 nop-cases are the pair's own nop
+positions).  **Open**: (a) the exact invariant form for the pending
+goods (the per-page balance can go negative — the exchange's bad on
+`q₀'` has no good on its page — so the pending-good accounting needs
+the window-global form); (b) the Nat-slack algebra for
+`slack + good − bad` (the credits precede the debits within a step,
+`j < j''`, but the hbook derivation `(dF + bad − good) + (good − bad) ≤
+dF` needs the case analysis); (c) the 416 d-not-in-Q cases; (d) the
+simulator does not check the step lemmas' hypotheses (some simulated
+states may be unreachable — the crash counts are upper bounds).
 
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
@@ -669,4 +708,7 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
 - `Dev/search_slack.py` (done, 2026-08-11): the exact-accounting crash
   scan — 492 counterexamples to `bad ≤ slack` at B1, the cross-tab of
   the 3836 B1-bads (2796 q₀'-covered / 1040 other, 492 slack-0), and
-  the minimal counterexample σ=[1,1,3,2,4,1,2,4].
+  the minimal counterexample σ=[1,1,3,2,4,1,2,4].  The credit
+  candidates (B2-q''-dead +1, alive-alive net +1{J}−1{bad}) are
+  evaluated in the DESIGN's non-q₀' pairing proposal (228 / 164
+  residual crashes).
