@@ -445,14 +445,33 @@ NOT occurring and `slack ≥ 1` (0 slack-0); the other 1040 have
 `d t₂ ≠ q₀'` — `d t₂` is a past pair's page (`exchange_evict_mem_or_q'`
 gives `e t₂ ∈ E_{t₂} ∪ {q₀'}`, `d t₂ ∉ D_{t₂}` pushes it into
 `E_{t₂} − D_{t₂} ⊆ Q.image`) — and 492 of these have `slack = 0` (172
-at old nop positions `t₂ ∈ P`).  So `bad ≤ slack` is provable for the
-q₀'-B1s but false in general; the non-q₀' B1s need a new supply
-argument (e.g. the past pair whose page `d t₂` is, or a per-page
-pairing of good/bad events).  Also tried: crediting the B2-q''-dead's
+at old nop positions `t₂ ∈ P`).  Also tried: crediting the B2-q''-dead's
 exact saving (`schedMisses r + 1 ≤ schedMisses d` — the repair keeps
 `q`, so it hits where `d` faults at the good event `J = t₂+1+j`; the
 pointwise difference is exactly 1) — reduces the crashes to 228 but
 does not close the gap.
+
+**q₀'-half done (2026-08-11, B7, kernel-checked)**: the q₀'-B1 slack
+supply — `exchangeSchedule_eq_q'_imp_d_eq_q'` (the branch-1 reverse:
+the exchange's decision at `s > t₀` equals `q₀'` iff the source's
+value does — branch 1 fires on `d_pre s = q₀'`, branches 4-6 evict
+`E − D` pages (`q₀' ∉ E` via `exchangeSchedule_q'_absent`), and the
+`else 0` is excluded by the fault + the cardinality argument),
+`b1_exchange_no_bad_q0` (the supply: `d t₂ = q₀'`, `t₂ ∉ P`, the
+source and the exchange both faulting at `t₂` — all verified over the
+2796 cases — give `q₀' ∉ D₀_{J'₀}`: the branch-1 reverse gives
+`d_pre t₂ = q₀'`; `window_branch1_once` gives `t₂` is the window's
+first branch-1; the forward induction (`q₀'` kept from `t₀+1`: no
+branch-1 eviction, requests `≠ q₀'` by `getD_ne_nextUse`) gives the
+real eviction `q₀' ∈ D₀_{t₂}`; the `evicted_page_absent_until_request`
+induction in its t₂ form (using `hj'₀`'s bounds directly, no nextUse
+shift) gives `q₀' ∉ D₀_{J'₀}`) and `b1_bad_le_slack_q0` (`bad ≤ slack`
+for the q₀'-B1 given `1 ≤ slack`).  The `1 ≤ slack` derivation is the
+assembly's: the q₀'-B1 is the first step after the exchange (0
+intermediate steps in all 2796 cases), so the slack there is the
+exchange's `slack' = slack + 1` (the `¬bad` branch of
+`iterate_main_exchange`).  **Open**: the 1040 non-q₀' B1-bads (see the
+pairing proposal below).
 
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them

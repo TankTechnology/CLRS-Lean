@@ -93,6 +93,17 @@ Main results:
   disagreement `t`, the exchange extends agreement to `t + 1`, never
   increases misses (slack `+1` iff the bad event did not occur), and is
   reduced from `J' + 1` when `q'` is requested again
+- the q₀'-B1 slack supply: `exchangeSchedule_eq_q'_imp_d_eq_q'` (the
+  branch-1 reverse — the exchange evicts `q₀'` at `s > t₀` iff the source
+  does), `b1_exchange_no_bad_q0` (at a B1 with `d t₂ = q₀'`, `t₂ ∉ P`,
+  the source and the exchange both faulting at `t₂`: `t₂` is the first
+  branch-1 of the window by `window_branch1_once`, the source's eviction
+  of `q₀'` at `t₂` is real (`q₀' ∈ D₀_{t₂}` by the forward induction),
+  and the `evicted_page_absent_until_request` induction (t₂ version)
+  gives `q₀' ∉ D₀_{J'₀}` — the exchange's bad event did not occur) and
+  `b1_bad_le_slack_q0` (`bad ≤ slack` for the q₀'-B1 given `1 ≤ slack`)
+  — the q₀' half of the slack accounting; the non-q₀' B1s are the open
+  design question (see `Dev/DESIGN.md`)
 
 This file is part of the `fifo_optimal` iteration; it will be merged into
 `S3_Optimality.lean` once the proof is complete.
@@ -2440,6 +2451,243 @@ lemma past_pair_first_request_after (σ : List Page) (C₀ : Finset Page)
         Q P t0 hpast hcomp hpair hQfifo (ht₀s := ht₀t₂') (hs := le_rfl)
         (hP_in t₂ (Or.inr ⟨tᵢ, q'', j'', htq, hnext, hs_eq.symm⟩))
       exact hnoop hqin
+
+/- ### q₀'-B1 的 slack 供应(bad ≤ slack 的 q₀' 半边)
+
+分支 1 反向:交换在 `s > t` 处逐出 `q'` 当且仅当源 `d` 于 `s` 逐出 `q'`
+(`exchangeDecision` 的分支 1;其它分支逐出 `E` 中的页或 `d s`,由
+`q' ∉ E` 与缺页 + 基数论证排除 `else 0`)。由
+`b1_exchange_no_bad_q0`:窗口内 `d t₂ = q₀'` 的 B1 位置(`t₂ ∉ P`,源与
+交换都在 `t₂` 缺页)是窗口内首个分支 1(`window_branch1_once`),故源对
+`q₀'` 的逐出是真逐出(`q₀' ∈ D₀_{t₂}` —— 从 `t₀+1` 起的正向归纳:无分支 1
+即无逐出、请求 `≠ q₀'`),由 `evicted_page_absent_until_request` 的归纳
+(t₂ 版本,直接用 `hj'₀` 的界)得 `q₀' ∉ D₀_{J'₀}` —— 交换的坏事件未发生。
+`b1_bad_le_slack_q0` 由此给出 `bad ≤ slack`(坏事件发生时 `slack ≥ 1`)。 -/
+
+/-- 分支 1 反向:交换在 `s > t` 处逐出 `q'` ⟹ 源 `d` 于 `s` 逐出 `q'`。
+`exchangeDecision` 的结构:分支 1 逐出 `q'`;分支 4-6 逐出 `E − D` 中的页
+(`q' ∉ E` 矛盾);`else 0` 由缺页 + 基数论证排除。 -/
+lemma exchangeSchedule_eq_q'_imp_d_eq_q' (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    {s : ℕ} (hs1 : t < s)
+    (hq'notE : q' ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s)
+    (hFault : σ.getD s 0 ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s)
+    (heq : (exchangeSchedule d t q q' σ C₀) s = q') :
+    d s = q' := by
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  have heqCore : (exchangeScheduleCore d t q q' σ C₀ s).2 = q' := by
+    change (exchangeSchedule d t q q' σ C₀) s = q'
+    exact heq
+  rw [exchangeScheduleCore_second] at heqCore
+  rw [← schedCache_exchangeScheduleCore] at heqCore
+  change exchangeDecision d t q q' σ C₀ (schedCache e C₀ σ s) s = q' at heqCore
+  unfold exchangeDecision at heqCore
+  rw [if_neg (by omega)] at heqCore
+  rw [if_neg (by omega)] at heqCore
+  by_cases h1 : d s = q'
+  · exact h1
+  · rw [if_neg h1] at heqCore
+    by_cases hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧ σ.getD s 0 ∈ schedCache d C₀ σ s
+    · rw [if_pos hb4] at heqCore
+      let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+      by_cases hf : (M.filter (fun x => x ≠ q')).Nonempty
+      · rw [dif_pos hf] at heqCore
+        exfalso
+        exact (Finset.mem_filter.mp (Classical.choose_spec hf)).2 heqCore
+      · by_cases hm : M.Nonempty
+        · rw [dif_neg hf] at heqCore
+          rw [dif_pos hm] at heqCore
+          exfalso
+          have hq'C : q' ∈ schedCache e C₀ σ s := by
+            have hmem : Classical.choose hm ∈ schedCache e C₀ σ s :=
+              (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            rwa [heqCore] at hmem
+          exact hq'notE hq'C
+        · rw [dif_neg hf] at heqCore
+          rw [dif_neg hm] at heqCore
+          exfalso
+          have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+            rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+              rw [← schedCache_exchangeScheduleCore]]
+            exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
+          have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          exact hFault (hEq.symm ▸ hb4.2)
+    · rw [if_neg hb4] at heqCore
+      by_cases hdsin : d s ∈ schedCache e C₀ σ s
+      · rw [if_pos hdsin] at heqCore
+        exact heqCore
+      · rw [if_neg hdsin] at heqCore
+        let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+        by_cases hm : M.Nonempty
+        · rw [dif_pos hm] at heqCore
+          exfalso
+          have hq'C : q' ∈ schedCache e C₀ σ s := by
+            have hmem : Classical.choose hm ∈ schedCache e C₀ σ s :=
+              (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            rwa [heqCore] at hmem
+          exact hq'notE hq'C
+        · rw [dif_neg hm] at heqCore
+          exfalso
+          have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+            rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+              rw [← schedCache_exchangeScheduleCore]]
+            exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
+          have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          have hdFault : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+            intro h
+            exact hFault (hEq.symm ▸ h)
+          have hdsE : d s ∈ schedCache d C₀ σ s := hweak s (by omega) hdFault
+          exact hdsin (hEq.symm ▸ hdsE)
+
+/-- q₀'-B1 的 slack 供应:窗口内 `d t₂ = q₀'` 的 B1 位置(`t₂ ∉ P`,源与交换
+都在 `t₂` 缺页)使交换的坏事件不发生:`q₀' ∉ D₀_{J'₀}`。`d t₂ = q₀'` 经
+分支 1 反向给出源的 `d_pre t₂ = q₀'`;`window_branch1_once` 给出 `t₂` 是
+窗口内首个分支 1,故源对 `q₀'` 的逐出是真逐出(正向归纳:从 `t₀+1` 起无
+`q₀'` 逐出、请求 `≠ q₀'`),再由 `evicted_page_absent_until_request` 的
+t₂ 版本(直接用 `hj'₀` 的界)得 `q₀'` 在 `(t₂, J'₀]` 缺席。 -/
+lemma b1_exchange_no_bad_q0 (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hq₀ : d_pre t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s →
+      d_pre s ∈ schedCache d_pre C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀)
+    (hq'res : q₀' ∈ schedCache d_pre C₀ σ t₀)
+    {j₀' : ℕ} (hj' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t₂ : ℕ} (ht₀t₂ : t₀ < t₂) (ht₂J : t₂ < t₀ + 1 + j₀')
+    (hd : d t₂ = q₀')
+    (P : Finset ℕ) (ht₂notP : t₂ ∉ P)
+    (hd_eq : ∀ s, s ∉ P → d s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s)
+    (hFault : σ.getD t₂ 0 ∉ schedCache d_pre C₀ σ t₂)
+    (hFaultE : σ.getD t₂ 0 ∉ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂) :
+    σ.getD (t₀ + 1 + j₀') 0 ∉ schedCache d_pre C₀ σ (t₀ + 1 + j₀') := by
+  let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
+  -- 1. 分支 1 反向:d_pre t₂ = q₀'
+  have hq'notE : q₀' ∉ schedCache e C₀ σ t₂ := by
+    dsimp [e]
+    exact exchangeSchedule_q'_absent d_pre t₀ q₀ q₀' σ C₀ hweak hft₀ hq'res hj' ht₀t₂ (le_of_lt ht₂J)
+  have hdpre : d_pre t₂ = q₀' := by
+    exact exchangeSchedule_eq_q'_imp_d_eq_q' d_pre t₀ q₀ q₀' σ C₀ hweak ht₀t₂ hq'notE hFaultE
+      ((hd_eq t₂ ht₂notP).symm.trans hd)
+  -- 2. t₂ 是窗口内首个分支 1:∀ s ∈ (t₀, t₂),缺页 ⟹ d_pre s ≠ q₀'
+  have hfirst : ∀ s, t₀ < s → s < t₂ → σ.getD s 0 ∉ schedCache d_pre C₀ σ s → d_pre s ≠ q₀' := by
+    intro s hs1 hs2 hFaults
+    intro hbs
+    exact window_branch1_once d_pre t₀ q₀ q₀' σ C₀ hweak hq'res hj'
+      hs1 (by omega) ht₀t₂ (by omega) (by omega) hbs hdpre hFaults hFault
+  -- 3. 真逐出:q₀' ∈ D₀_{t₂}(从 t₀+1 起无 q₀' 逐出、请求 ≠ q₀')
+  have hq'keep : q₀' ∈ schedCache d_pre C₀ σ t₂ := by
+    have hmain : ∀ s, t₀ + 1 ≤ s → s ≤ t₂ → q₀' ∈ schedCache d_pre C₀ σ s := by
+      intro s
+      induction s with
+      | zero => omega
+      | succ s ih =>
+          intro hs1 hs2
+          by_cases hst : s = t₀
+          · -- 基步:s+1 = t₀+1,源逐出 q₀(≠ q₀'),q₀' 保留
+            subst s
+            rw [schedCache]
+            rw [if_neg hft₀]
+            rw [Finset.mem_insert]
+            right
+            rw [Finset.mem_erase]
+            constructor
+            · intro hqeq
+              exact hqq₀ ((hqeq.trans hq₀).symm)
+            · exact hq'res
+          · -- 步:请求 σ[s] ≠ q₀',且 s 处无 q₀' 逐出(分支 1 排除)
+            have hs1' : t₀ + 1 ≤ s := by omega
+            have hs2' : s ≤ t₂ := by omega
+            have hqin : q₀' ∈ schedCache d_pre C₀ σ s := ih hs1' hs2'
+            have hneq : σ.getD s 0 ≠ q₀' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+            by_cases hf : σ.getD s 0 ∈ schedCache d_pre C₀ σ s
+            · -- 命中:cache 不变
+              rw [schedCache]
+              rw [if_pos hf]
+              exact hqin
+            · -- 缺页:d_pre s ≠ q₀'(hfirst),故 q₀' 保留
+              rw [schedCache]
+              rw [if_neg hf]
+              rw [Finset.mem_insert]
+              right
+              rw [Finset.mem_erase]
+              constructor
+              · intro hqeq
+                exact hfirst s (by omega) (by omega) hf hqeq.symm
+              · exact hqin
+    exact hmain t₂ (by omega) le_rfl
+  -- 4. evicted_page_absent_until_request 的 t₂ 版本:q₀' ∉ D₀_s on (t₂, J'₀]
+  have habs : ∀ s, t₂ < s → s ≤ t₀ + 1 + j₀' → q₀' ∉ schedCache d_pre C₀ σ s := by
+    intro s
+    induction s with
+    | zero => omega
+    | succ s ih =>
+        intro hs1 hs2
+        by_cases hst : s = t₂
+        · -- 基步:s+1 = t₂+1,cache 逐出 q₀' 且请求 σ[t₂] ≠ q₀'
+          subst s
+          rw [schedCache]
+          rw [if_neg hFault]
+          rw [hdpre]
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqeq | hm
+          · exact hFault (show σ.getD t₂ 0 ∈ schedCache d_pre C₀ σ t₂ from by rwa [← hqeq])
+          · exact (Finset.mem_erase.mp hm).1 rfl
+        · -- 步:q₀' ∉ D_s(归纳),且请求 σ[s] ≠ q₀'
+          have hs1' : t₂ < s := by omega
+          have hs2' : s ≤ t₀ + 1 + j₀' := by omega
+          have hqnot : q₀' ∉ schedCache d_pre C₀ σ s := ih (by omega) (by omega)
+          have hneq : σ.getD s 0 ≠ q₀' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+          rw [schedCache]
+          by_cases hr : σ.getD s 0 ∈ schedCache d_pre C₀ σ s
+          · rw [if_pos hr]
+            exact hqnot
+          · rw [if_neg hr]
+            intro hm
+            rcases Finset.mem_insert.mp hm with hqeq | hm
+            · exact hneq hqeq.symm
+            · exact hqnot (Finset.mem_erase.mp hm).2
+  -- 5. σ[J'₀] = q₀',故坏事件(σ[J'₀] ∈ D₀_{J'₀})不发生
+  intro hbad
+  have hsig : σ.getD (t₀ + 1 + j₀') 0 = q₀' := getD_eq_nextUse hj'
+  exact habs (t₀ + 1 + j₀') (by omega) le_rfl (hsig ▸ hbad)
+
+/-- q₀'-B1 的 slack 不变式:`bad ≤ slack`。坏事件(`σ[J'''] ∈ D_{J'''}`)
+发生时 `bad = 1`,由 `hslack`(`1 ≤ slack` —— 交换的坏事件未发生时
+`exchange_step_slack` 给出 `slack' = slack + 1`,且 q₀'-B1 是窗口内第一步,
+无中间消耗)得 `bad ≤ slack`。 -/
+lemma b1_bad_le_slack_q0 (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hq₀ : d_pre t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s →
+      d_pre s ∈ schedCache d_pre C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀)
+    (hq'res : q₀' ∈ schedCache d_pre C₀ σ t₀)
+    {j₀' : ℕ} (hj' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t₂ : ℕ} (ht₀t₂ : t₀ < t₂) (ht₂J : t₂ < t₀ + 1 + j₀')
+    (hd : d t₂ = q₀')
+    (P : Finset ℕ) (ht₂notP : t₂ ∉ P)
+    (hd_eq : ∀ s, s ∉ P → d s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s)
+    (hFault : σ.getD t₂ 0 ∉ schedCache d_pre C₀ σ t₂)
+    (hFaultE : σ.getD t₂ 0 ∉ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂)
+    {j''' : ℕ} (hj''' : nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = some j''')
+    (slack : ℕ) (hslack : 1 ≤ slack) :
+    (if σ.getD (t₂ + 1 + j''') 0 ∈ schedCache d C₀ σ (t₂ + 1 + j''') then 1 else 0) ≤ slack := by
+  by_cases hbad : σ.getD (t₂ + 1 + j''') 0 ∈ schedCache d C₀ σ (t₂ + 1 + j''')
+  · rw [if_pos hbad]
+    exact hslack
+  · rw [if_neg hbad]
+    omega
 
 /-- 死页修复 `r = repairSchedule e t q'' t` 的 `q''` 缺席:`q''` 于 `t` 被逐出,
 永不再请求,故 `q'' ∉ Ŝ_s` 对 `t < s < σ.length` 恒成立。 -/
