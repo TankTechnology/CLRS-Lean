@@ -36,29 +36,24 @@ an obligation that has not yet been selected into that inventory.
 
 ## Fourth-Edition Snapshot
 
-The canonical ledger contains 35 chapter rows.  Thirty chapters currently reuse
-represented theorem content; Chapters 25, 27, and 33--35 are honestly
-{lit}`not-started`.  The generated dashboard owns live theorem totals and status
-counts, so this prose does not freeze a completed-prefix milestone.
+The canonical ledger contains 35 chapter rows.  Thirty-three chapters now carry
+represented theorem content; only Chapters 34--35 remain {lit}`not-started`.
+The generated dashboard owns live theorem totals and status counts, so this
+prose does not freeze a completed-prefix milestone.
 
 The edition map currently records these fourth-edition gaps:
 
-* **Chapter 3, Characterizing Running Times:** Section 3.2 remains partial at
-  the formal asymptotic-interface boundary; §§3.1 and 3.3 are represented.
 * **Chapter 4, Divide-and-Conquer:** Sections 4.1 and 4.6 are partial; Section
   4.7 is not started.  Maximum subarray is retained as online material.
 * **Chapter 7, Quicksort:** Section 7.4 remains partial.
 * **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
-* **Chapter 11, Hash Tables:** Section 11.5 is not started in the canonical
-  chapter; the old perfect-hashing development is supplementary material.
 * **Chapter 13, Red-Black Trees:** Sections 13.2--13.4 remain partial because the
   color/black-height shape results are not yet combined with BST preservation
   and textbook update/cost refinements.
 * **Chapter 14, Dynamic Programming:** all five sections remain partial at the
   tabulated/memoized algorithm and cost boundary; §14.3 additionally lacks a
   generic dynamic-programming interface.
-* **Chapter 15, Greedy Algorithms:** Section 15.4, offline caching, is not
-  started; retained matroid and task-scheduling results are supplementary.
+* **Chapter 15, Greedy Algorithms:** Section 15.4 (offline caching) is a native section with the farthest-in-future policy; the optimality theorem remains.
 * **Chapter 17, Augmenting Data Structures:** all three sections remain partial:
   OS-RANK, the augmentation-cost theorem, and the dynamic/static interval-tree
   bridge are the principal gaps.
@@ -67,6 +62,9 @@ The edition map currently records these fourth-edition gaps:
   declaration ownership; detailed SIMPLEX material remains available online.
 * **Chapter 32, String Matching:** Section 32.1 is represented; Sections
   32.2--32.5 are not started.
+* **Chapter 27, Online Algorithms:** Sections 27.1 (Waiting for an elevator) and
+  27.2 (Maintaining a search list) are represented; Section 27.3 (Online
+  caching) is not started.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the
@@ -76,11 +74,6 @@ chapter-end Problems, pointer/RAM models, or floating-point implementations.
 
 ## Not-Started Chapters
 
-* **Chapter 25, Matchings in Bipartite Graphs:** no legacy source is promoted;
-  maximum-flow matching results are cross-references only.
-* **Chapter 27, Online Algorithms:** no canonical theorem-bearing source yet.
-* **Chapter 33, Machine-Learning Algorithms:** no canonical theorem-bearing
-  source yet.
 * **Chapters 34--35, NP-Completeness and Approximation Algorithms:** guide-only,
   with whole-chapter inventories pending.
 

@@ -270,6 +270,32 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_15" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching",
+]
+"CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality",
+]
+"CLRSLean.FourthEdition.Chapter_25" = [
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_3_Hungarian_Algorithm",
+]
+"CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage" = [
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S1_Preference_Model",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S2_Gale_Shapley",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S3_Optimality",
+]
+"CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching" = [
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S1_Matching_API",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S2_Alternating_Paths",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S3_Simple_Paths",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S4_Matching_Flow",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S5_Residual_Translation",
+  "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S6_Berge_Flow_Method",
+]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
   "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp",
@@ -522,6 +548,21 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_33" = [
   "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
 ]
+"CLRSLean.FourthEdition.Chapter_27" = [
+  "CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator",
+  "CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List",
+]
+"CLRSLean.FourthEdition.Chapter_33" = [
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique",
+]
 
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
@@ -577,6 +618,18 @@ title = "Chapter 14. Dynamic Programming"
 [modules."CLRSLean.FourthEdition.Chapter_15"]
 title = "Chapter 15. Greedy Algorithms"
 
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching"]
+title = "15.4. Offline caching"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model"]
+title = "Cache Model"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future"]
+title = "Farthest-In-Future Eviction"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality"]
+title = "Optimality"
+
 [modules."CLRSLean.FourthEdition.Chapter_16"]
 title = "Chapter 16. Amortized Analysis"
 
@@ -607,11 +660,52 @@ title = "Chapter 24. Maximum Flow"
 [modules."CLRSLean.FourthEdition.Chapter_25"]
 title = "Chapter 25. Matchings in Bipartite Graphs"
 
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching"]
+title = "25.1. Maximum bipartite matching revisited"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage"]
+title = "25.2. The stable-marriage problem"
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_3_Hungarian_Algorithm"]
+title = "25.3. The Hungarian algorithm for the assignment problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S1_Preference_Model"]
+title = "Preference Model"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S2_Gale_Shapley"]
+title = "Gale-Shapley Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage.S3_Optimality"]
+title = "Optimality"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S1_Matching_API"]
+title = "Matching API Extensions"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S2_Alternating_Paths"]
+title = "Alternating Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S3_Simple_Paths"]
+title = "Simple-Path Extraction"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S4_Matching_Flow"]
+title = "Matching Flow Residuals"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S5_Residual_Translation"]
+title = "Residual Reachability Translation"
+
+[modules."CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S6_Berge_Flow_Method"]
+title = "Berge's Lemma and the Flow Method"
+
 [modules."CLRSLean.FourthEdition.Chapter_26"]
 title = "Chapter 26. Parallel Algorithms"
 
 [modules."CLRSLean.FourthEdition.Chapter_27"]
 title = "Chapter 27. Online Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator"]
+title = "27.1. Waiting for an Elevator"
+
+[modules."CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List"]
+title = "27.2. Maintaining a Search List"
 
 [modules."CLRSLean.FourthEdition.Chapter_28"]
 title = "Chapter 28. Matrix Operations"
@@ -630,6 +724,15 @@ title = "Chapter 32. String Matching"
 
 [modules."CLRSLean.FourthEdition.Chapter_33"]
 title = "Chapter 33. Machine-Learning Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering"]
+title = "33.1. Clustering"
+
+[modules."CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights"]
+title = "33.2. Multiplicative-Weights Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent"]
+title = "33.3. Gradient Descent"
 
 [modules."CLRSLean.FourthEdition.Chapter_34"]
 title = "Chapter 34. NP-Completeness"
@@ -1641,6 +1744,42 @@ title = "32.1. Naive Matcher — Implementation"
 
 [modules."CLRSLean.Chapter_33"]
 title = "Chapter 33. Computational Geometry"
+
+[modules."CLRSLean.Chapter_34"]
+title = "Chapter 34. NP-Completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time"]
+title = "34.1. Polynomial Time"
+
+[modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition"]
+title = "34.1. Composition of Polynomial-Time Machines"
+
+[modules."CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.AndOr"]
+title = "34.1. Parallel Decision of Two Deciders (AND/OR)"
+
+[modules."CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification"]
+title = "34.2. Polynomial-Time Verification"
+
+[modules."CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection"]
+title = "34.2. Pair Projection Machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility"]
+title = "34.3. NP-Completeness and Reducibility"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs"]
+title = "34.4. NP-Completeness Proofs"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT"]
+title = "34.4. CIRCUIT-SAT poly-reduces to SAT"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat"]
+title = "34.4. SAT poly-reduces to 3-CNF-SAT"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine"]
+title = "34.4. SAT → 3-CNF-SAT reduction machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique"]
+title = "34.4. 3-CNF-SAT poly-reduces to CLIQUE"
 
 [modules."CLRSLean.Extensions"]
 title = "Extensions Beyond the Textbook"

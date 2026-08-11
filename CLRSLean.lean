@@ -40,6 +40,7 @@ import CLRSLean.Chapter_30
 import CLRSLean.Chapter_31
 import CLRSLean.Chapter_32
 import CLRSLean.Chapter_33
+import CLRSLean.Chapter_34
 import CLRSLean.Extensions
 import CLRSLean.Progress
 import CLRSLean.Status
