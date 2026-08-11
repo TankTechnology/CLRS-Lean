@@ -4978,8 +4978,9 @@ in a legacy initialization module that is also cataloged as online material.
   `Bool` results with AND/OR).
 - Current gap: the empty/universal languages (concrete machine constructions
   for `∅` and `Σ*`).
-- Remaining chapter scope: Sections 34.4--34.5 (specific reductions) are not
-  represented.  Open problems (P vs NP) are intentionally out of scope.
+- Remaining chapter scope: Section 34.5 (NP-complete problems) is not
+  represented; the assembled SAT ≤_P 3-CNF-SAT machine reduction is pending
+  (see Section 34.4).  Open problems (P vs NP) are intentionally out of scope.
 
 ### Section 34.2 - Polynomial-Time Verification
 
@@ -4999,6 +5000,31 @@ in a legacy initialization module that is also cataloged as online material.
 - Proved results: `PolyTimeReducible`, `NPHard`, `NPComplete`, `ClassNPC`,
   and `PolyTimeReducible.trans` (transitivity of `≤_P` via the composition
   closure).
+
+### Section 34.4 - NP-Completeness Proofs
+
+- Lean sources:
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CircuitSAT.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CNFToClique.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/SatTo3CNFSat.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/SatTo3CNFMachine.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CNFToCliqueMachine.lean`
+- Status: `partial` — the reduction theorem layer is complete except the
+  assembled SAT → 3-CNF-SAT machine reduction.
+- Proved results: `circuitSAT_reducible_to_SAT` (`CIRCUIT-SAT ≤_P SAT`,
+  Lemma 34.6, via `circuitSatisfiable_iff_satisfiable_circuitToFormula` and the
+  `Turing.TM2CS` machine), `cnfSatisfiable_iff_hasClique` (Lemma 34.10 semantic
+  core for `3-CNF-SAT ≤_P CLIQUE`), `threeCNFSat_reducible_to_CLIQUE` (the
+  assembled `3-CNF-SAT ≤_P CLIQUE` reduction via `Turing.TMClique`), and
+  `cnfSatisfiable_to3CNF_iff` (Lemma 34.7 semantic core for
+  `SAT ≤_P 3-CNF-SAT`).
+- Current gaps: the assembled `PolyTimeReducible SAT ThreeCNFSat` theorem
+  (`SatTo3CNFMachine` has the machine, time bound, and `outputsFun` written but
+  not the final assembly).  The `SatTo3CNFMachine` and `CNFToCliqueMachine`
+  modules are site-nav registered but not yet wired into the §34.4 aggregator.
+- Remaining chapter scope: Section 34.5 (NP-complete problems) is not
+  represented.
 
 ## Deferred And Blocked Items
 

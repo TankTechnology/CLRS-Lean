@@ -557,11 +557,25 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
 ]
+"CLRSLean.Chapter_34" = [
+  "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time",
+  "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification",
+  "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs",
+]
+"CLRSLean.Chapter_34.Section_34_1_Polynomial_Time" = [
+  "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition",
+  "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.AndOr",
+]
+"CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification" = [
+  "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection",
+]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -1780,6 +1794,9 @@ title = "34.4. SAT → 3-CNF-SAT reduction machine"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique"]
 title = "34.4. 3-CNF-SAT poly-reduces to CLIQUE"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine"]
+title = "34.4. 3-CNF-SAT → CLIQUE reduction machine"
 
 [modules."CLRSLean.Extensions"]
 title = "Extensions Beyond the Textbook"
