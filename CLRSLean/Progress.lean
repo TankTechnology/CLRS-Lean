@@ -69,7 +69,7 @@ Ch  Chapter                                                     Status          
 21  21. Minimum Spanning Trees                                  main-proof-complete-for-correctness  21.1;21.2                          52        0
 22  22. Single-Source Shortest Paths                            selected-section-complete            22.1;22.2;22.3;22.4;22.5           27        0
 23  23. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  23.1;23.2;23.3                     24        0
-24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3                     18        0
+24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3;24.6                18        0
 25  25. Matchings in Bipartite Graphs                           main-proof-complete                  25.1;25.2;25.3                     18        0
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
 27  27. Online Algorithms                                       partial (edition coverage)           27.1;27.2                           5        1

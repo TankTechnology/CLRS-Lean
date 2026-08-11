@@ -339,6 +339,19 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall",
   "CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_24" = [
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_1_Flow_Networks",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut",
+]
+"CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp" = [
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.Ford_Fulkerson_Augmentation",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S1_ShortestAugmentingPath",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S2_EK_Loop",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S3_WorkAnalysis",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S4_ExecutableBFS",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -828,6 +841,33 @@ title = "23.3. Johnson's Algorithm for Sparse Graphs"
 
 [modules."CLRSLean.FourthEdition.Chapter_24"]
 title = "Chapter 24. Maximum Flow"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_1_Flow_Networks"]
+title = "24.1. Flow Networks"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp"]
+title = "24.2. The Edmonds-Karp Algorithm (partial)"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.Ford_Fulkerson_Augmentation"]
+title = "Ford-Fulkerson Augmentation Foundation (partial)"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S1_ShortestAugmentingPath"]
+title = "Shortest Augmenting Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S2_EK_Loop"]
+title = "The Edmonds-Karp Loop"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S3_WorkAnalysis"]
+title = "The O(VE²) Work Analysis"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S4_ExecutableBFS"]
+title = "Executable BFS"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching"]
+title = "24.3. Maximum Bipartite Matching (partial)"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut"]
+title = "Theorem 24.6. Max-Flow Min-Cut (partial)"
 
 [modules."CLRSLean.FourthEdition.Chapter_25"]
 title = "Chapter 25. Matchings in Bipartite Graphs"

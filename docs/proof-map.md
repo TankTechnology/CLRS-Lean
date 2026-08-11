@@ -3700,7 +3700,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.1 - Flow Networks
 
-- Lean source: `CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_1_Flow_Networks.lean`
+  (canonical fourth-edition Section 24.1; the legacy
+  `CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean` forwards to it)
 - Status: `proved`
 - Model:
   - `CLRS.Chapter26.FlowNetwork` (capacity `c : V → V → ℝ`, source `s`, sink `t`,
@@ -3740,7 +3742,10 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 26.2 - Ford--Fulkerson Augmentation
 
 - Lean source:
+  `CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
+  (canonical fourth-edition Section 24.2; the legacy
   `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
+  forwards to it)
 - Status: `proved` for the concrete mathematical augmentation layer
 - Path and augmentation model:
   - `CLRS.Chapter26.Flow.ResidualPath`
@@ -3771,9 +3776,11 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
-- Lean sources: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
+- Lean sources: `CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp.lean`
   plus the submodules `Ford_Fulkerson_Augmentation`, `S1_ShortestAugmentingPath`,
-  `S2_EK_Loop`, `S3_WorkAnalysis`, and `S4_ExecutableBFS`.
+  `S2_EK_Loop`, `S3_WorkAnalysis`, and `S4_ExecutableBFS` (canonical
+  fourth-edition Section 24.2; the legacy
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp*` files forward to them).
 - Status: `proved` (Lemma 26.7, the loop, the `O(VE²)` counting, and the
   executable BFS)
 - Current declarations:
@@ -3859,7 +3866,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.3 - Maximum Bipartite Matching
 
-- Lean source: `CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_3_Bipartite_Matching.lean`
+  (canonical fourth-edition Section 24.3; the legacy
+  `CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean` forwards to it)
 - Status: `proved`
 - Represented model:
   - `CLRS.Chapter26.BipartiteGraph`
@@ -3906,7 +3915,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Theorem 26.6 - The Max-Flow Min-Cut Theorem
 
-- Lean source: `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_6_MaxFlow_MinCut.lean`
+  (canonical fourth-edition Section 24.6; the legacy
+  `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean` forwards to it)
 - Status: `proved`
 - Proved theorems:
   - `CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`
