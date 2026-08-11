@@ -16,10 +16,10 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 33.
-* Tracked reader-facing theorem entries: 1,389.
-* Proved tracked theorem entries: 1,389.
+* Tracked reader-facing theorem entries: 1,397.
+* Proved tracked theorem entries: 1,397.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 27.
+* Remaining edition-coverage units: 26.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -34,10 +34,10 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 12 chapters.
+* {lit}`main-proof-complete`: 13 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 10 chapters.
+* {lit}`partial`: 9 chapters.
 * {lit}`not-started`: 2 chapters.
 * {lit}`expository`: 1 chapter.
 
@@ -70,7 +70,7 @@ Ch  Chapter                                                     Status          
 22  22. Single-Source Shortest Paths                            selected-section-complete            22.1;22.2;22.3;22.4;22.5           27        0
 23  23. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  23.1;23.2;23.3                     24        0
 24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3                     18        0
-25  25. Matchings in Bipartite Graphs                           partial (edition coverage)           25.1;25.2                          10        1
+25  25. Matchings in Bipartite Graphs                           main-proof-complete                  25.1;25.2;25.3                     18        0
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
 27  27. Online Algorithms                                       partial (edition coverage)           27.1;27.2                           5        1
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0

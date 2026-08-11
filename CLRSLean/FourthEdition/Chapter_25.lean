@@ -1,5 +1,6 @@
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching
 import CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage
+import CLRSLean.FourthEdition.Chapter_25.Section_25_3_Hungarian_Algorithm
 
 /-!
 # Chapter 25 — Matchings in Bipartite Graphs
@@ -9,7 +10,7 @@ period.
 
 ## Current source
 
-Sections 25.1 and 25.2 are native fourth-edition sections.  Section 25.1
+Sections 25.1, 25.2 and 25.3 are native fourth-edition sections.  Section 25.1
 (maximum bipartite matching revisited) lives in the `CLRS.Chapter26.Matching`
 and `CLRS.Matchings` namespaces, imported through
 [Section 25.1](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/);
@@ -31,14 +32,23 @@ its sub-modules are:
 * [Gale-Shapley Algorithm](CLRSLean/FourthEdition/Chapter_25/Section_25_2_Stable_Marriage/S2_Gale_Shapley/)
 * [Optimality](CLRSLean/FourthEdition/Chapter_25/Section_25_2_Stable_Marriage/S3_Optimality/)
 
+Section 25.3 (the Hungarian algorithm for the assignment problem) lives in the
+`CLRS.AssignmentProblem` namespace:
+[Section 25.3](CLRSLean/FourthEdition/Chapter_25/Section_25_3_Hungarian_Algorithm/).
+
 ## Coverage boundary
 
-Status: partial.  Section 25.1 is formalized (Berge's augmenting-path lemma
+Status: complete.  Section 25.1 is formalized (Berge's augmenting-path lemma
 and the flow-method certification, built on the §26.3 matching-to-flow
 reduction).  Section 25.2 proves Gale-Shapley stability (Theorem 25.5),
 stable-pairing existence, perfectness, man-optimality (Theorem 25.6), and
-woman-pessimality.  Section
-25.3 (Hungarian algorithm) is not-started.
+woman-pessimality.  Section 25.3 formalizes the assignment model and Lemma
+25.8 (dual optimality via feasible potentials), the alternating tree, the
+potential-adjustment step, the augmentation step (a tight edge to a free right
+vertex enlarges the matching via Berge), the tree-growth step, and the local
+progress theorem; the full adjustment-plus-augmentation loop is packaged as a
+terminating recursion (`innerLoop` and `exists_perfect_tight`) whose perfect
+tight matching is optimal by Lemma 25.8.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
