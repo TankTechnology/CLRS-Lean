@@ -1666,6 +1666,66 @@ lemma extend_hcomp (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
       right
       refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
 
+/-- hcomp 扩展(B1 版,无 `ht₂notP` 前提):`t₂ ∈ P` 时(B1 位置可以是过往
+nop 位置)由 `by_cases s = t₂` 把 `s = t₂` 路由到新对见证。 -/
+lemma extend_hcomp' (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hrt : r t₂ = q'') (hrN : r (t₂ + 1 + j'') = q'')
+    (hre : ∀ s, s ∉ ({t₂, t₂ + 1 + j''} : Finset ℕ) → r s = d s)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ ∧ d s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ d s = q''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · by_cases hs₂ : s = t₂
+    · -- s = t₂ ∈ P:新对见证
+      subst s
+      left
+      refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+    · by_cases hsN : s = t₂ + 1 + j''
+      · -- s = J'' ∈ P:新对见证
+        subst s
+        right
+        refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+      · rcases hcomp s hsP with h1 | h2
+        · rcases h1 with ⟨tᵢ, q''₀, htq, hteq, hds⟩
+          left
+          refine ⟨tᵢ, q''₀, ?_, hteq, ?_⟩
+          · exact Finset.mem_insert.mpr (Or.inr htq)
+          · rw [hre s (by
+              intro hmem
+              rw [Finset.mem_insert] at hmem
+              rcases hmem with hEq | hmem
+              · exact hs₂ hEq
+              · exact hsN (Finset.mem_singleton.mp hmem))]
+            exact hds
+        · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq, hds⟩
+          right
+          refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq, ?_⟩
+          · exact Finset.mem_insert.mpr (Or.inr htq)
+          · rw [hre s (by
+              intro hmem
+              rw [Finset.mem_insert] at hmem
+              rcases hmem with hEq | hmem
+              · exact hs₂ hEq
+              · exact hsN (Finset.mem_singleton.mp hmem))]
+            exact hds
+  · rw [Finset.mem_insert] at hsNew
+    rcases hsNew with hEq | hsNew
+    · subst s
+      left
+      refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+    · rw [Finset.mem_singleton] at hsNew
+      subst s
+      right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+
 /-- hpair 扩展:新对 `(t₂, q'')` 的过往事实(`σ[t₂]` 缺页、`q''` resident、
 `r t₂ = q''`)与旧对的(`r` 的 cache 在 `tᵢ ≤ t₂` 与 `d` 一致、`r tᵢ = d tᵢ`,
 由 `hpair` 传递)。 -/
@@ -1674,7 +1734,7 @@ lemma extend_hpair (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Pag
     (hft : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
     (hq''in : q'' ∈ schedCache d C₀ σ t₂)
     (hrt : r t₂ = q'')
-    (hre : ∀ s, s ≠ t₂ → r s = d s)
+    (hre : ∀ s, s < t₂ → r s = d s)
     (hce : ∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s)
     (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
     (hpair : ∀ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q →
@@ -1702,7 +1762,7 @@ lemma extend_hpair (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Pag
     constructor
     · rw [hce tᵢ (by omega)]
       exact hqinᵢ
-    · rw [hre tᵢ (by omega)]
+    · rw [hre tᵢ htᵢlt]
       exact hdtᵢ
 
 /-- hP 扩展(死页版):`P' = P ∪ {t₂}`(死页修复没有 nop 位置)。 -/
@@ -1861,7 +1921,11 @@ lemma iterate_main_case_b1_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       (∀ s, s ∉ P ∪ ({t₂, t₂ + 1 + j'''} : Finset ℕ) →
         r s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) ∧
       (∀ s, max hnb (t₂ + 1 + j''' + 1) ≤ s →
-        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) := by
+        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) ∧
+      r t₂ = fifoSchedule σ C₀ t₂ ∧
+      r (t₂ + 1 + j''') = fifoSchedule σ C₀ t₂ ∧
+      (∀ s, s ∉ ({t₂, t₂ + 1 + j'''} : Finset ℕ) → r s = d s) ∧
+      (∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s) := by
   let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
   let q'' : Page := fifoSchedule σ C₀ t₂
   let r : ℕ → Page := repairSchedule d t₂ q'' (t₂ + 1 + j''')
@@ -1880,7 +1944,7 @@ lemma iterate_main_case_b1_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
   have hce : ∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s := by
     intro s hs
     exact schedCache_repairSchedule_eq_e d t₂ q'' (t₂ + 1 + j''') (by omega) σ C₀ hs
-  refine ⟨r, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨r, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- agree 到 t₂+1
     exact (repair_step d σ C₀ hC₀ ht₂ hagree hdis hnoop hj''').2
   · -- miss 记账:schedMisses r ≤ schedMisses d + bad
@@ -2040,6 +2104,18 @@ lemma iterate_main_case_b1_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       unfold r repairSchedule
       simp [show s ≠ t₂ by omega, show s ≠ t₂ + 1 + j''' by omega]]
     exact hsup s hJ'''lt hdsin
+  · -- r t₂ = q''
+    simpa [q''] using repairSchedule_at_t d t₂ q'' (t₂ + 1 + j''')
+  · -- r J''' = q''
+    unfold r repairSchedule
+    simp [q'']
+  · -- r s = d s off {t₂, J'''}
+    intro s hs
+    unfold r repairSchedule
+    simp [show s ≠ t₂ by (intro h; exact hs (by simp [h])),
+      show s ≠ t₂ + 1 + j''' by (intro h; exact hs (by simp [h]))]
+  · -- cache 一致到 t₂
+    exact hce
 
 /-- 迭代的情形 B2(活-活子情形):窗口内 resident 分歧 `t₂`(`d t₂` 在
 `d` 的 cache 中,`q`、`q''` 都会再次被请求,`j < j''`)处,修复
@@ -2997,14 +3073,14 @@ lemma iterate_main_case_b1_dead (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀
 /-- 当前窗口的交换调度:`win = none`(尚未交换)时取回退调度 `fb`
 (此时链/逐出一致不变式平凡),`win = some (d_pre, t₀, q₀, q₀', j₀, j₀')`
 时为该窗口的交换调度。 -/
-private noncomputable def windowExchange (win : Option ((ℕ → Page) × ℕ × Page × Page × ℕ × ℕ))
+noncomputable def windowExchange (win : Option ((ℕ → Page) × ℕ × Page × Page × ℕ × ℕ))
     (fb : ℕ → Page) (σ : List Page) (C₀ : Finset Page) : ℕ → Page :=
   match win with
   | none => fb
   | some w => exchangeSchedule w.1 w.2.1 w.2.2.1 w.2.2.2.1 σ C₀
 
 /-- IterateState: state (d, t0, slack, hnb, Q, P) plus window, invariants per DESIGN. -/
-private structure IterateState (σ : List Page) (C₀ : Finset Page) (M : ℕ) where
+structure IterateState (σ : List Page) (C₀ : Finset Page) (M : ℕ) where
   d : ℕ → Page
   t0 : ℕ
   slack : ℕ
