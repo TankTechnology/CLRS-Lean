@@ -651,6 +651,28 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_28.Section_28_2_Inverting_Matrices",
   "CLRSLean.FourthEdition.Chapter_28.Section_28_3_Symmetric_Positive_Definite",
 ]
+"CLRSLean.FourthEdition.Chapter_30" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations",
+]
+"CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S1_CoefficientVectors",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S2_PointValueInterpolation",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S3_RepresentationOperations",
+]
+"CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S1_RootsOfUnity",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S2_DFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S3_InversionAndConvolution",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.PolynomialMultiplication",
+]
+"CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT",
+]
 "CLRSLean.FourthEdition.Chapter_29" = [
   "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms",
   "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs",
@@ -1154,6 +1176,46 @@ title = "29.4. Complementary-Slackness Theorem"
 
 [modules."CLRSLean.FourthEdition.Chapter_30"]
 title = "Chapter 30. Polynomials and the FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials"]
+title = "30.1. Representing Polynomials"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S1_CoefficientVectors"]
+title = "30.1 S1. Fixed-Capacity Coefficient Vectors"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S2_PointValueInterpolation"]
+title = "30.1 S2. Point-Value Interpolation"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S3_RepresentationOperations"]
+title = "30.1 S3. Representation Operations"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT"]
+title = "30.2. The DFT and FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S1_RootsOfUnity"]
+title = "30.2 S1. Roots of Unity"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S2_DFT"]
+title = "30.2 S2. The Generic DFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S3_InversionAndConvolution"]
+title = "30.2 S3. Inversion and Convolution"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT"]
+title = "30.2. Recursive Radix-2 FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Definitions"]
+title = "30.2 FFT 1. Recursive Execution"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Correctness"]
+title = "30.2 FFT 2. Recursive Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Costs"]
+title = "30.2 FFT 3. Exact and Padded Costs"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.PolynomialMultiplication"]
+title = "30.2. FFT Polynomial Multiplication"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations"]
+title = "30.3. Efficient FFT Implementations"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal"]
+title = "30.3 FFT 1. Bit-Reversal Permutation"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT"]
+title = "30.3. Iterative Radix-2 FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Definitions"]
+title = "30.3 FFT 2. Iterative Stage Execution"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Correctness"]
+title = "30.3 FFT 3. Iterative Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Costs"]
+title = "30.3 FFT 4. Exact Iterative Costs"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT"]
+title = "30.3 FFT 5. Parallel Network Size and Depth"
 
 [modules."CLRSLean.FourthEdition.Chapter_31"]
 title = "Chapter 31. Number-Theoretic Algorithms"

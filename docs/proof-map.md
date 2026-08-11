@@ -4544,13 +4544,17 @@ feasible solution (legacy Section 29.5) are online material.
 
 ## Chapter 30 - Polynomials and the FFT
 
+The sources below are the canonical fourth-edition Sections 30.1--30.3; the
+legacy `CLRSLean/Chapter_30/Section_30_*` files forward to them during the
+compatibility period.
+
 ### Section 30.1 - Polynomial Representations
 
 - Lean sources:
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials.lean`
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S1_CoefficientVectors.lean`
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S2_PointValueInterpolation.lean`
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S3_RepresentationOperations.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S1_CoefficientVectors.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S2_PointValueInterpolation.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S3_RepresentationOperations.lean`
 - Status: `proved` for the milestone's fixed-capacity representation and
   represented arithmetic-cost boundary.
 - Representation bridge:
@@ -4580,15 +4584,15 @@ feasible solution (legacy Section 29.5) are online material.
 
 - Lean sources:
   - `CLRSLean/Chapter_30.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S1_RootsOfUnity.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S2_DFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S3_InversionAndConvolution.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/PolynomialMultiplication.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S1_RootsOfUnity.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S2_DFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S3_InversionAndConvolution.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/PolynomialMultiplication.lean`
 - Status: `proved` for the milestone's exact-field DFT, recursive radix-2 FFT,
   inverse, polynomial multiplication, and declared arithmetic-cost boundary;
   Section 30.3 below completes the chapter's reviewed main-text boundary.
@@ -4657,13 +4661,13 @@ feasible solution (legacy Section 29.5) are online material.
 ### Section 30.3 - Efficient FFT Implementations
 
 - Lean sources:
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/BitReversal.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/BitReversal.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean`
 - Status: `proved` for the exact functional iterative-FFT and layered-circuit
   boundary.  The Milestone 2 closure interface contributes 17 reviewed
   headline theorem groups, bringing Chapter 30's tracked total to 46.
