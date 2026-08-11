@@ -3515,7 +3515,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 25.1 - All-Pairs Shortest Paths Model
 
-- Lean source: `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_23/Section_23_1_All_Pairs_Model.lean`
+  (canonical fourth-edition Section 23.1; the legacy
+  `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean` forwards to it)
 - Status: `proved` (under no negative-weight cycles)
 - Main theorems:
   - `CLRS.Chapter24.WeightedGraph.weightMatrix` (edge-weight matrix W)
@@ -3538,7 +3540,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 25.2 - Floyd-Warshall Algorithm
 
-- Lean source: `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_23/Section_23_2_Floyd_Warshall.lean`
+  (canonical fourth-edition Section 23.2; the legacy
+  `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean` forwards to it)
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter24.WeightedGraph.fwStep` (one Floyd-Warshall iteration)
@@ -3563,7 +3567,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 25.3 - Johnson's Algorithm
 
-- Lean source: `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_23/Section_23_3_Johnsons_Algorithm.lean`
+  (canonical fourth-edition Section 23.3; the legacy
+  `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean` forwards to it)
 - Status: `proved`
 - Main declarations and theorems:
   - `CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`

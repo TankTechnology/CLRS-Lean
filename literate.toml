@@ -334,6 +334,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_22.Section_22_4_Difference_Constraints",
   "CLRSLean.FourthEdition.Chapter_22.Section_22_5_Shortest_Path_Properties",
 ]
+"CLRSLean.FourthEdition.Chapter_23" = [
+  "CLRSLean.FourthEdition.Chapter_23.Section_23_1_All_Pairs_Model",
+  "CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall",
+  "CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm",
+]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_2_Stable_Marriage",
@@ -811,6 +816,15 @@ title = "22.5. Proofs of Shortest Paths"
 
 [modules."CLRSLean.FourthEdition.Chapter_23"]
 title = "Chapter 23. All-Pairs Shortest Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_23.Section_23_1_All_Pairs_Model"]
+title = "23.1. All-Pairs Shortest Paths Model"
+
+[modules."CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall"]
+title = "23.2. The Floyd-Warshall Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm"]
+title = "23.3. Johnson's Algorithm for Sparse Graphs"
 
 [modules."CLRSLean.FourthEdition.Chapter_24"]
 title = "Chapter 24. Maximum Flow"
