@@ -35,6 +35,12 @@ lemma ne (h : OnePageDiff A B a b) : a ≠ b := by
   subst b
   exact h.right_not_mem_left h.left_mem
 
+/-- Exact one-page-different caches are not equal. -/
+lemma cache_ne (h : OnePageDiff A B a b) : A ≠ B := by
+  intro hAB
+  subst B
+  exact h.left_not_mem_right h.left_mem
+
 /-- Reversing the caches reverses the two distinguished pages. -/
 lemma symm (h : OnePageDiff A B a b) : OnePageDiff B A b a := by
   exact ⟨h.right_mem, h.right_not_mem_left, h.left_not_mem_right,
@@ -65,6 +71,41 @@ lemma card_eq (h : OnePageDiff A B a b) : A.card = B.card := by
 lemma merge (h : OnePageDiff A B a b) (r : Page) :
     insert r (A.erase a) = insert r (B.erase b) := by
   rw [h.erase_eq]
+
+/-- Loading A's unique page after removing B's unique page recovers A. -/
+lemma insert_left_erase_right (h : OnePageDiff A B a b) :
+    insert a (B.erase b) = A := by
+  rw [← h.erase_eq, Finset.insert_erase h.left_mem]
+
+/-- Loading B's unique page after removing A's unique page recovers B. -/
+lemma insert_right_erase_left (h : OnePageDiff A B a b) :
+    insert b (A.erase a) = B := by
+  rw [h.erase_eq, Finset.insert_erase h.right_mem]
+
+/--
+If A hits its unique page while B faults and evicts a common page `y`, the
+new exact difference is `y` on A's side and the old `b` on B's side.
+-/
+lemma hit_left_fault (h : OnePageDiff A B a b) (y : Page)
+    (hyB : y ∈ B) (hyb : y ≠ b) :
+    OnePageDiff A (insert a (B.erase y)) y b := by
+  have hya : y ≠ a := by
+    intro hya
+    subst y
+    exact h.left_not_mem_right hyB
+  have hyA : y ∈ A := (h.mem_iff hya hyb).2 hyB
+  refine ⟨hyA, ?_, h.right_not_mem_left, ?_, ?_⟩
+  · simp [hya]
+  · exact Finset.mem_insert_of_mem (Finset.mem_erase.mpr ⟨hyb.symm, h.right_mem⟩)
+  · calc
+      A.erase y = (insert a (A.erase a)).erase y := by
+        rw [Finset.insert_erase h.left_mem]
+      _ = insert a ((A.erase a).erase y) := by
+        rw [Finset.erase_insert_of_ne hya.symm]
+      _ = insert a ((B.erase b).erase y) := by rw [h.erase_eq]
+      _ = insert a ((B.erase y).erase b) := by rw [Finset.erase_right_comm]
+      _ = (insert a (B.erase y)).erase b := by
+        rw [Finset.erase_insert_of_ne h.ne]
 
 /-- Erasing the same non-distinguished page preserves the exact difference. -/
 lemma erase_common (h : OnePageDiff A B a b) (x : Page)
