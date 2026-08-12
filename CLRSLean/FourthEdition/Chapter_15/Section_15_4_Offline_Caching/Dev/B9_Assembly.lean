@@ -56,24 +56,28 @@ open Finset
 
 set_option maxHeartbeats 400000
 
-/- ### 开放前提(对应 DESIGN.md 的 blockers)
+/- ### Open hypotheses (the DESIGN.md blockers)
 
-- `hQ_open`:`Q` 中活对在 B2 分歧处的严格界 `t₂ < tᵢ + 1 + j''`
-  (hQ 扩展/严格化,见 DESIGN "hQ-extension blocker");
-- `hslack_open`:B1 步骤的 `bad ≤ slack`(q₀' 半边已证到
-  `1 ≤ slack` 的推导;非 q₀' 半边见 DESIGN "Non-q₀' B1 pairing
-  proposal");
-- `hcaseone_open`:情形一交换的 reduced 性 —— 分支 1 位置
-  (`d s = q'`)处交换以 no-op 逐出 `q'`,非 resident;`hnb'` 需越过
-  至多一次的分支 1 缺页(见 DESIGN "Case one");
-- `hB2dead_open`:B2 死页步骤的构造(步骤引理尚不存在,keep-swap
-  与链已证,见 DESIGN "Remaining" item (3))。 -/
+- `hQ_open`: the strict bound `t₂ < tᵢ + 1 + j''` on live pairs in `Q`
+  at the B2 disagreement (hQ extension/strictness; see DESIGN
+  "hQ-extension blocker");
+- `hslack_open`: `bad ≤ slack` for the B1 step (the q₀' half is proved
+  up to the `1 ≤ slack` derivation; for the non-q₀' half see DESIGN
+  "Non-q₀' B1 pairing proposal");
+- `hcaseone_open`: the reducedness of the case-one exchange — at the
+  branch-1 position (`d s = q'`) the exchange evicts `q'` via a no-op,
+  non-resident; `hnb'` must cross at most one branch-1 fault (see
+  DESIGN "Case one");
+- `hB2dead_open`: the construction of the B2 dead-page steps (the step
+  lemmas do not exist yet; the keep-swap and the chain are proved, see
+  DESIGN "Remaining" item (3)). -/
 
-/-- B1 步骤的 slack 前提:坏事件(`σ[J'''] ∈ D_{J'''}`)发生时
-`bad ≤ slack`。q₀'-B1 半边由 `b1_exchange_no_bad_q0` +
-`b1_bad_le_slack_q0` 给出(尚需 `1 ≤ slack` 的推导 —— q₀'-B1 是窗口内
-第一步,slack 即交换的 `slack + 1`);非 q₀' 半边是开放的配对设计
-(见 DESIGN.md "Non-q₀' B1 pairing proposal")。 -/
+/-- The slack hypothesis for the B1 step: when the bad event
+(`σ[J'''] ∈ D_{J'''}`) occurs we have `bad ≤ slack`.  The q₀'-B1 half
+is given by `b1_exchange_no_bad_q0` + `b1_bad_le_slack_q0` (still
+needs the `1 ≤ slack` derivation — q₀'-B1 is the first step in the
+window, and slack is the exchange's `slack + 1`); the non-q₀' half is
+the open pairing design (see DESIGN.md "Non-q₀' B1 pairing proposal"). -/
 def B1SlackHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
   ∀ (st : IterateState σ C₀ M) (t₂ : ℕ) (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb),
     agreeWithFIF st.d C₀ σ t₂ →
@@ -83,10 +87,11 @@ def B1SlackHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
     ∀ {j''' : ℕ}, nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = some j''' →
       (if σ.getD (t₂ + 1 + j''') 0 ∈ schedCache st.d C₀ σ (t₂ + 1 + j''') then 1 else 0) ≤ st.slack
 
-/-- hQ 的严格化前提:B2 分歧 `t₂` 处,`Q` 中活对的首次请求严格在
-`t₂` 之后(`b2_ehit_ne`/`b2_hnotE`/`past_pair_first_request_after`
-所需;全历史 Q 上该字段经验性不成立,见 DESIGN "hQ-extension
-blocker")。 -/
+/-- The strictness hypothesis for hQ: at the B2 disagreement `t₂`, the
+first request of a live pair in `Q` is strictly after `t₂`
+(required by `b2_ehit_ne`/`b2_hnotE`/`past_pair_first_request_after`;
+this field is empirically false on the full-history `Q`, see DESIGN
+"hQ-extension blocker"). -/
 def HQsupplyHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
   ∀ (st : IterateState σ C₀ M) (t₂ : ℕ),
     (∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ st.Q →
@@ -96,10 +101,11 @@ def HQsupplyHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
       nextUse σ (tᵢ + 1) q'' = none ∨
         ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t₂ + 1 < tᵢ + 1 + j'')
 
-/-- 情形一交换的 reduced 性前提:存在 reduced 界 `hnb'`(在 `t+1` 之后,
-越过至多一次的分支 1 缺页)使交换在 `hnb'` 起的缺页处逐出 resident
-页。`iterate_main_case_one` 给出 OR 形式 `e s ∈ E_s ∨ d s = q'`
-(见 DESIGN "Case one")。 -/
+/-- The reducedness hypothesis for the case-one exchange: there exists
+a reduced bound `hnb'` (after `t+1`, crossing at most one branch-1
+fault) such that the exchange evicts a resident page at the fault from
+`hnb'` on.  `iterate_main_case_one` gives the OR-form
+`e s ∈ E_s ∨ d s = q'` (see DESIGN "Case one"). -/
 def CaseOneHdredHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
   ∀ (st : IterateState σ C₀ M) (t : ℕ) (ht : t < σ.length),
     st.hnb ≤ t →
@@ -112,8 +118,9 @@ def CaseOneHdredHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
         (exchangeSchedule st.d t (st.d t) (fifoSchedule σ C₀ t) σ C₀) s ∈
           schedCache (exchangeSchedule st.d t (st.d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ s
 
-/-- B2 死页步骤的构造前提:q-dead 与 q''-dead 的 B2 步骤引理尚不存在
-(keep-swap 与链已证:见 DESIGN "Remaining" item (3))。 -/
+/-- The construction hypothesis for the B2 dead-page steps: the B2
+step lemmas for q-dead and q''-dead do not exist yet (the keep-swap
+and the chain are proved: see DESIGN "Remaining" item (3)). -/
 def B2DeadStepHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
   ∀ (st : IterateState σ C₀ M) (t₂ : ℕ) (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb),
     agreeWithFIF st.d C₀ σ t₂ →
@@ -124,12 +131,14 @@ def B2DeadStepHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
     nextUse σ (t₂ + 1) (st.d t₂) = none ∨ nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = none →
     ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1
 
-/-- B2 步的 hQ 供应(部分 1):旧界 `t₂` 的 strengthened clause 由
-`past_pair_first_request_after` 从状态旧 `hQ`(旧界 `st.t0`)给出 —— 这是
-hQ-extension blocker 的消费者所需形式("consumers only consult the pair
-whose page equals the request, and that pair is never broken" 的形式化;
-`past_pair` 的 B2-resident 前提 `hqin` 与状态字段 `hP`/`hcomp`/`hpair`/
-`hP_in`/`hQfifo`/`hpast` 均由状态给出)。 -/
+/-- The hQ supply for the B2 step (part 1): the strengthened clause
+for the old bound `t₂` is given by `past_pair_first_request_after`
+from the state's old `hQ` (old bound `st.t0`) — this is the form
+needed by the consumer of the hQ-extension blocker (a formalization
+of "consumers only consult the pair whose page equals the request,
+and that pair is never broken"; the B2-resident hypothesis `hqin` of
+`past_pair` and the state fields `hP`/`hcomp`/`hpair`/`hP_in`/
+`hQfifo`/`hpast` are all supplied by the state). -/
 lemma b2_hQ_supply_old (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
     (M : ℕ) (st : IterateState σ C₀ M)
     {t₂ : ℕ} (ht₂ : t₂ < σ.length) (ht₀t₂ : st.t0 ≤ t₂)
@@ -141,15 +150,17 @@ lemma b2_hQ_supply_old (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonem
   exact past_pair_first_request_after σ C₀ hC₀ st.d st.t0 t₂ ht₀t₂ hagree st.Q st.P
     st.hpast st.hP st.hcomp st.hpair st.hQfifo st.hP_in st.hQ ht₂ hqin
 
-/- ### 情形一步的构造(hAone 的实例化)
+/- ### The case-one step construction (instantiation of hAone)
 
-`iterate_main_case_one` 给出一致、slack 与 OR 形式 reduced 性;
-`hcaseone_open` 提供状态字段 `hdred` 的界。Q/P 保持 ∅(无过往对),
-窗口 `win = none`(q' 死,无窗口)。 -/
+`iterate_main_case_one` gives agreement, slack, and OR-form
+reducedness; `hcaseone_open` supplies the bound for the state field
+`hdred`.  Q/P stay ∅ (no past pairs), and the window `win = none`
+(q' is dead, no window). -/
 
-/-- 情形一的完整状态构造:一次 exchange 后,`d' = e`,`t0 = t+1`,
-slack 由 `iterate_main_exchange` 的 hnone 枝(q 活 +1,q 死不变),
-`hdred` 由 `hcaseone_open` 的界。Q/P 保持 ∅,`win = none`。 -/
+/-- The full state construction for case one: after one exchange,
+`d' = e`, `t0 = t+1`, slack comes from the hnone branch of
+`iterate_main_exchange` (q alive: +1, q dead: unchanged), and `hdred`
+comes from the bound of `hcaseone_open`.  Q/P stay ∅, `win = none`. -/
 lemma step_case_one (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
     (M : ℕ) (st : IterateState σ C₀ M)
     (hcaseone : CaseOneHdredHyp σ C₀ M)
@@ -225,9 +236,10 @@ lemma step_case_one (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty
   refine ⟨⟨e, t + 1, slack', hnb', ∅, ∅, none, hwin_inv', hagreeE, hbook', hchain', hd_eq', hred',
     hpast', hQ', hQfifo', hP', hP_in', hcomp', hpair'⟩, rfl⟩
 
-/-- B1(活)的完整状态构造:修复 `r` 后 `t0 = t₂+1`,slack 记账
-`slack − bad`(`hslack` 前提给出 `bad ≤ slack`),Q/P 扩展
-(`extend_h*` 胶水),reduced 界 `max hnb (J'''+1)`。 -/
+/-- The full state construction for B1 (alive): after the repair `r`,
+`t0 = t₂+1`, slack accounting `slack − bad` (the `hslack` hypothesis
+gives `bad ≤ slack`), Q/P extension (`extend_h*` glue), reduced bound
+`max hnb (J'''+1)`. -/
 lemma step_b1_alive (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
     (M : ℕ) (st : IterateState σ C₀ M)
     (hslack : B1SlackHyp σ C₀ M)
@@ -331,11 +343,12 @@ lemma step_b1_alive (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty
     hwin_inv', hagree', hbook', hchain', hd_eq', hdred', hpast', (by simpa [q''] using hQ_ext),
     hQfifo', hP', hP_in', hcomp', hpair'⟩, rfl⟩
 
-/-- B2(活-活)的完整状态构造:修复 `r` 后 `t0 = t₂+1`,slack 不变
-(强修复免费),Q/P 扩展(`extend_h*` 胶水),reduced 界
-`max hnb (J''+1)`。桥接 `hqinE`/`hnotE`/`hnot` 由调用方提供
-(分支分析、`b2_hnotE` + hQ 前提、窗口 off-P;`hnot` 经验上在 136
-个窗口失效 —— 见 DESIGN "Remaining" item (2))。 -/
+/-- The full state construction for B2 (alive-alive): after the repair
+`r`, `t0 = t₂+1`, slack unchanged (a strong repair is free), Q/P
+extension (`extend_h*` glue), reduced bound `max hnb (J''+1)`.  The
+bridges `hqinE`/`hnotE`/`hnot` are supplied by the caller (branch
+analysis, `b2_hnotE` + hQ hypothesis, window off-P; `hnot` empirically
+fails on 136 windows — see DESIGN "Remaining" item (2)). -/
 lemma step_b2_alive (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
     (M : ℕ) (st : IterateState σ C₀ M)
     (hQ : HQsupplyHyp σ C₀ M)
