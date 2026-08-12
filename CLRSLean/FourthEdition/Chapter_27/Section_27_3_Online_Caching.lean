@@ -878,6 +878,86 @@ lemma lru_miss_le_phases (k : ℕ) (L : List Page) (σ : List Page) (hk : 0 < k)
               simp [List.length_cons, Nat.mul_add, Nat.add_comm]
   exact go σ.length L σ rfl hNodup
 
+/-- The miss count over a concatenation splits additively for an algorithm. -/
+lemma missesGo_append (A : Algorithm Page k) (C : Finset Page) (σ τ : List Page) :
+    missesGo A C (σ ++ τ) = missesGo A C σ + missesGo A (runGo A C σ) τ := by
+  induction σ generalizing C with
+  | nil => simp [missesGo, runGo]
+  | cons p σ' ih =>
+      simp [missesGo, runGo, ih]
+      omega
+
+/-- A run with no misses leaves the cache unchanged. -/
+lemma runGo_eq_self_of_misses_eq_zero (A : Algorithm Page k) (C : Finset Page) (ρ : List Page)
+    (h : missesGo A C ρ = 0) : runGo A C ρ = C := by
+  induction ρ generalizing C with
+  | nil => simp [runGo]
+  | cons p τ ih =>
+      have hp : p ∈ C := by
+        have h' : (if p ∈ C then 0 else 1) + missesGo A (A.step C p) τ = 0 := by
+          simpa [missesGo] using h
+        by_contra hnot
+        simp [hnot] at h'
+      have hτ : missesGo A (A.step C p) τ = 0 := by
+        have h' : (if p ∈ C then 0 else 1) + missesGo A (A.step C p) τ = 0 := by
+          simpa [missesGo] using h
+        simpa [hp] using h'
+      rw [runGo]
+      simpa [A.step_hit C p hp] using ih (A.step C p) hτ
+
+/-- When a `phaseGo` prefix ends because the next request would exceed `k`, the
+accumulated pages have cardinality exactly `k` and the next request is fresh. -/
+lemma phaseGo_maximal (k : ℕ) (seen : Finset Page) (σ : List Page) (hseen : seen.card ≤ k)
+    (h : (phaseGo k seen σ).2 ≠ []) :
+    ((phaseGo k seen σ).1.toFinset ∪ seen).card = k ∧
+    List.head (phaseGo k seen σ).2 h ∉ (phaseGo k seen σ).1.toFinset ∪ seen := by
+  induction σ generalizing seen with
+  | nil => simp [phaseGo] at h
+  | cons q τ ih =>
+      by_cases hq : (insert q seen).card ≤ k
+      · have hrem : (phaseGo k (insert q seen) τ).2 ≠ [] := by
+          simpa [phaseGo, hq] using h
+        have hi := ih (insert q seen) (by simpa using hq) hrem
+        simpa [phaseGo, hq, Finset.insert_union, Finset.union_insert, Finset.union_assoc,
+          Finset.union_comm, Finset.union_left_comm] using hi
+      · have hcard : seen.card = k := by
+          have hqnotin : q ∉ seen := by
+            intro hqin
+            have : (insert q seen).card ≤ k := by simpa [hqin] using hseen
+            exact hq this
+          have hinsert : (insert q seen).card = seen.card + 1 :=
+            Finset.card_insert_of_notMem hqnotin
+          have hgt : k < (insert q seen).card := by omega
+          rw [hinsert] at hgt
+          omega
+        constructor
+        · simp [phaseGo, hq, hcard]
+        · simp [phaseGo, hq]
+          intro hqin
+          have : (insert q seen).card ≤ k := by simpa [hqin] using hseen
+          exact hq this
+
+/-- A nonempty first phase is maximal: if its suffix is nonempty, the phase has
+exactly `k` distinct pages and the first page of the suffix is fresh. -/
+lemma firstPhase_maximal (k : ℕ) (σ : List Page) (hk : 0 < k) (h : (firstPhase k σ).2 ≠ []) :
+    (firstPhase k σ).1.toFinset.card = k ∧
+    List.head (firstPhase k σ).2 h ∉ (firstPhase k σ).1.toFinset := by
+  cases σ with
+  | nil => simp [firstPhase] at h
+  | cons p rest =>
+      have hseen : ({p} : Finset Page).card ≤ k := by
+        simpa using (Nat.succ_le_of_lt hk)
+      have hrem : (phaseGo k {p} rest).2 ≠ [] := by
+        simpa [firstPhase] using h
+      have hmax := phaseGo_maximal k {p} rest hseen hrem
+      constructor
+      · simp [firstPhase]
+        rw [Finset.insert_eq, Finset.union_comm]
+        exact hmax.1
+      · simp [firstPhase]
+        rw [Finset.insert_eq, Finset.union_comm]
+        exact hmax.2
+
 end OnlineCaching
 
 end CLRS
