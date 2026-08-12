@@ -100,6 +100,7 @@ structure Algorithm (Page : Type) [DecidableEq Page] (k : ℕ) where
   step_loads : ∀ C p, p ∈ step C p
   step_subset : ∀ C p, step C p ⊆ insert p C
   step_size : ∀ C p, (step C p).card ≤ k
+  step_hit : ∀ C p, p ∈ C → step C p = C
 
 /-- The algorithm's cache after processing `σ`. -/
 def runGo (A : Algorithm Page k) : Finset Page → List Page → Finset Page
@@ -699,6 +700,135 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
               rw [Nat.add_comm]
               exact Nat.add_le_add_right hrec 1
   exact go ρ.length k L ρ rfl hNodup hcard
+
+-- ---------------------------------------------------------------------------
+-- The phase partition.
+
+/-- Auxiliary: with `seen` the pages already accumulated in the current phase,
+extend it by the longest prefix of `σ` whose distinct pages (together with
+`seen`) stay within `k`.  Returns the extension (forward order) and the leftover
+suffix. -/
+def phaseGo (k : ℕ) (seen : Finset Page) : List Page → List Page × List Page
+  | [] => ([], [])
+  | q :: τ =>
+      let seen' := insert q seen
+      if seen'.card ≤ k then
+        let (pre, rem) := phaseGo k seen' τ
+        (q :: pre, rem)
+      else
+        ([], q :: τ)
+
+/-- The first phase of a nonempty request list: the longest prefix with at most
+`k` distinct pages, paired with the remaining suffix. -/
+def firstPhase (k : ℕ) : List Page → List Page × List Page
+  | [] => ([], [])
+  | p :: rest =>
+      let (pre, rem) := phaseGo k {p} rest
+      (p :: pre, rem)
+
+/-- The phase partition of `σ`: maximal segments, each (except possibly the
+last) containing exactly `k` distinct pages. -/
+def phases (k : ℕ) : List Page → List (List Page)
+  | [] => []
+  | p :: rest =>
+      let (pre, rem) := firstPhase k (p :: rest)
+      pre :: phases k rem
+
+/-- `phaseGo` splits its input: the phase prefix and the suffix concatenate back
+to the original list. -/
+lemma phaseGo_split (k : ℕ) (seen : Finset Page) (σ : List Page) :
+    (phaseGo k seen σ).1 ++ (phaseGo k seen σ).2 = σ := by
+  induction σ generalizing seen with
+  | nil => simp [phaseGo]
+  | cons q τ ih =>
+      by_cases h : (insert q seen).card ≤ k
+      · have hi := ih (insert q seen)
+        simp [phaseGo, h, hi]
+      · simp [phaseGo, h]
+
+/-- The pages of a `phaseGo` prefix, together with the already-seen pages, stay
+within the cache size `k`. -/
+lemma phaseGo_distinct_le (k : ℕ) (seen : Finset Page) (σ : List Page) (hseen : seen.card ≤ k) :
+    ((phaseGo k seen σ).1.toFinset ∪ seen).card ≤ k := by
+  induction σ generalizing seen with
+  | nil => simpa [phaseGo] using hseen
+  | cons q τ ih =>
+      by_cases h : (insert q seen).card ≤ k
+      · have hi := ih (insert q seen) (by simpa using h)
+        simp [phaseGo, h] at hi ⊢
+        have hrewrite : insert q (phaseGo k (insert q seen) τ).1.toFinset ∪ seen =
+            (phaseGo k (insert q seen) τ).1.toFinset ∪ insert q seen := by
+          ext x
+          simp [Finset.mem_insert, Finset.mem_union]
+          tauto
+        rw [hrewrite]
+        exact hi
+      · simp [phaseGo, h, hseen]
+
+/-- The first phase of a nonempty list is nonempty. -/
+lemma firstPhase_nonempty (k : ℕ) (σ : List Page) (h : σ ≠ []) :
+    (firstPhase k σ).1 ≠ [] := by
+  cases σ with
+  | nil => contradiction
+  | cons p rest => simp [firstPhase]
+
+/-- The first phase and its suffix split the list. -/
+lemma firstPhase_split (k : ℕ) (σ : List Page) :
+    (firstPhase k σ).1 ++ (firstPhase k σ).2 = σ := by
+  cases σ with
+  | nil => simp [firstPhase]
+  | cons p rest =>
+      have hs := phaseGo_split k {p} rest
+      simp [firstPhase]
+      rw [hs]
+
+/-- A phase has at most `k` distinct pages (requires `0 < k`). -/
+lemma firstPhase_distinct_le (k : ℕ) (σ : List Page) (hk : 0 < k) :
+    (firstPhase k σ).1.toFinset.card ≤ k := by
+  cases σ with
+  | nil => simp [firstPhase]
+  | cons p rest =>
+      have hd := phaseGo_distinct_le k {p} rest (by simpa using hk)
+      simp [firstPhase]
+      rw [List.toFinset_cons]
+      rw [show insert p (phaseGo k {p} rest).1.toFinset =
+          (phaseGo k {p} rest).1.toFinset ∪ {p} by
+        ext x; simp [Finset.mem_insert, Finset.mem_union]; tauto]
+      exact hd
+
+/-- The phase partition recurses: for a nonempty list, the phases are the first
+phase followed by the phases of the suffix. -/
+lemma phases_cons_eq (k : ℕ) (σ : List Page) (h : σ ≠ []) :
+    phases k σ = (firstPhase k σ).1 :: phases k (firstPhase k σ).2 := by
+  cases σ with
+  | nil => contradiction
+  | cons p rest => rfl
+
+/-- The phase partition concatenates back to the original list. -/
+lemma phases_join (k : ℕ) (σ : List Page) : (phases k σ).flatten = σ := by
+  classical
+  have hmain : ∀ (n : ℕ) (σ : List Page), σ.length = n → (phases k σ).flatten = σ := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro σ hn
+      cases σ with
+      | nil => simp [phases]
+      | cons p rest =>
+          let fp := firstPhase k (p :: rest)
+          have hsplit := firstPhase_split k (p :: rest)
+          have hnonempty : fp.1 ≠ [] := by
+            dsimp [fp]
+            exact firstPhase_nonempty k (p :: rest) (by simp)
+          have hremlen : fp.2.length < (p :: rest).length := by
+            have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
+              rw [← hsplit, List.length_append]
+            have hpos : 0 < fp.1.length := List.length_pos.mpr hnonempty
+            omega
+          have hi := ih fp.2.length hremlen fp.2 rfl
+          rw [phases_cons_eq k (p :: rest) (by simp)]
+          simp [List.flatten, hi, hsplit]
+  exact hmain σ.length σ rfl
 
 end OnlineCaching
 
