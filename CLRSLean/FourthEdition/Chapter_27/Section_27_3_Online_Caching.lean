@@ -19,19 +19,27 @@ Main results:
   most-recent-first list) and its miss count.
 - Structure `Algorithm`: an arbitrary eviction algorithm over a `Finset` cache,
   bundled with its validity laws (it loads the request, only adds the request,
-  and keeps the cache at size ≤ `k`), and `misses`.
+  keeps the cache at size ≤ `k`, and leaves a hit's cache unchanged), and `misses`.
 - Lemma `distinct_fault`: a segment requesting `k + 1` distinct pages forces a
   miss for any size-`k` algorithm.
 - Lemma `resident_fault`: a page resident at the start of a segment that then
   requests `k` other distinct pages forces a miss.
+- Lemma `lru_head_evict` / `lru_miss_le_distinct`: LRU makes at most one fault
+  per distinct page within a segment of at most `k` distinct pages.
+- Definitions `phaseGo` / `firstPhase` / `phases`: the phase partition of a
+  request sequence into maximal segments of at most `k` distinct pages.
+- Lemma `lru_miss_le_phases`: LRU makes at most `k` misses per phase, so its
+  total miss count is bounded by `k` times the number of phases.
 
 Current gaps:
 
 - Theorem 27.3 (`lru_k_competitive`, the `k`-competitive upper bound for LRU) is
-  **not yet formalized**.  The two fault lemmas above and the `Algorithm` model
-  are the phase-partition machinery for the Sleator–Tarjan proof; the
-  `lru_head_evict` lemma connecting LRU's fault position to the distinct-page
-  count, and the final summation, remain to be added.
+  **not yet formalized**.  The phase partition, the LRU upper bound
+  (`lru_miss_le_phases`), and the algorithm-side helpers (`missesGo_append`,
+  `runGo_eq_self_of_misses_eq_zero`, `phaseGo_maximal`, `firstPhase_maximal`) are
+  in place; the remaining steps are the lower bound (`phases_le_misses`: the
+  number of phases is at most one more than the miss count, proved by a
+  full-cache cascade) and the final summation into `lruMissesGo ≤ k * missesGo + k`.
 - The matching lower bound — no deterministic online algorithm is better than
   `k`-competitive — is recorded but not formalized here (the framework is set up
   so the adversary argument can be added directly).
@@ -956,37 +964,6 @@ lemma firstPhase_maximal (k : ℕ) (σ : List Page) (hk : 0 < k) (h : (firstPhas
         exact hmax.1
       · simp [firstPhase]
         simpa [Finset.mem_union, Finset.mem_singleton, and_comm] using hmax.2
-
-/-- When the cache is full and the first request of a phase is a fault, the cache
-after the phase is exactly the phase's distinct pages. -/
-lemma runGo_eq_phase_of_single_fault (k : ℕ) (A : Algorithm Page k) (C : Finset Page) (ρ : List Page)
-    (hC : C.card = k) (hρ : ρ ≠ []) (hp : List.head ρ hρ ∉ C) (hcard : ρ.toFinset.card = k)
-    (h : missesGo A C ρ = 1) :
-    runGo A C ρ = ρ.toFinset := by
-  cases ρ with
-  | nil => exact (hρ rfl).elim
-  | cons p τ₀ =>
-      have hp' : p ∉ C := by simpa using hp
-      have hcard' : (insert p τ₀.toFinset).card = k := by simpa using hcard
-      have hτ₀ : missesGo A (A.step C p) τ₀ = 0 := by
-        have h' : (if p ∈ C then 0 else 1) + missesGo A (A.step C p) τ₀ = 1 := by
-          simpa [missesGo] using h
-        simp [hp'] at h'
-        omega
-      have hsubset : τ₀.toFinset ⊆ A.step C p := missesGo_eq_zero_subset A (A.step C p) τ₀ hτ₀
-      have hstep_subset : insert p τ₀.toFinset ⊆ A.step C p := by
-        intro x hx
-        rw [Finset.mem_insert] at hx
-        rcases hx with rfl | hx
-        · exact A.step_loads C p
-        · exact hsubset hx
-      have hstep_card : (A.step C p).card ≤ k := A.step_size C p
-      have hstep_eq : A.step C p = insert p τ₀.toFinset :=
-        (Finset.eq_of_subset_of_card_le hstep_subset (by rw [hcard']; exact hstep_card)).symm
-      calc
-        runGo A C (p :: τ₀) = runGo A (A.step C p) τ₀ := by simp [runGo]
-        _ = A.step C p := runGo_eq_self_of_misses_eq_zero A (A.step C p) τ₀ hτ₀
-        _ = insert p τ₀.toFinset := hstep_eq
 
 
 end OnlineCaching
