@@ -175,7 +175,13 @@ def main() -> int:
         chapter_module = f"CLRSLean.{ch_dir.name}"
         expected_sections = ordered_descendants(order_children, chapter_module)
 
-        section_files = sorted(ch_dir.rglob("*.lean"))
+        # Development scaffold (`Dev/` subdirectories) is not rendered as site
+        # sections; it mirrors the FourthEdition tree where Dev files are not
+        # registered in literate.toml or docs/index.md.
+        section_files = sorted(
+            f for f in ch_dir.rglob("*.lean")
+            if "Dev" not in f.relative_to(ch_dir).parts
+        )
 
         for sec_file in section_files:
             sec_rel = sec_file.relative_to(ch_dir).with_suffix("")
