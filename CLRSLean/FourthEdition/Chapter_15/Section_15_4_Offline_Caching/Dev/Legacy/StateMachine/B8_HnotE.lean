@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B7_Iteration
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Legacy.StateMachine.B7_Iteration
 
 /-!
 # Dev B8: the hnotE derivation (Q''-exclusion at window faults)

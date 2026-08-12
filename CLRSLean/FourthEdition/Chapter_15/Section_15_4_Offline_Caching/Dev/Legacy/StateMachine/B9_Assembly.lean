@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B8_HnotE
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Legacy.StateMachine.B8_HnotE
 
 /-
 # Dev B9: the iterate_main assembly (checkpoint)
