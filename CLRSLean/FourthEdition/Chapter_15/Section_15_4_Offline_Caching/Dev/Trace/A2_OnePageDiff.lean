@@ -149,6 +149,29 @@ lemma fault_common (h : OnePageDiff A B a b) (x r : Page)
   · intro hr
     exact hrB (Finset.mem_erase.mp hr).2
 
+/--
+Loading the same absent request after evicting distinct residents produces an
+exact one-page difference: the first cache keeps `q`, the second keeps `p`.
+-/
+lemma of_common_fault {C : Finset Page} {request p q : Page}
+    (hrequest : request ∉ C) (hp : p ∈ C) (hq : q ∈ C) (hqp : q ≠ p) :
+    OnePageDiff (insert request (C.erase p)) (insert request (C.erase q)) q p := by
+  have hqr : q ≠ request := by
+    intro h
+    subst q
+    exact hrequest hq
+  have hpr : p ≠ request := by
+    intro h
+    subst p
+    exact hrequest hp
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · exact Finset.mem_insert_of_mem (Finset.mem_erase.mpr ⟨hqp, hq⟩)
+  · simp [hqr]
+  · simp [hpr]
+  · exact Finset.mem_insert_of_mem (Finset.mem_erase.mpr ⟨hqp.symm, hp⟩)
+  · rw [Finset.erase_insert_of_ne hqr.symm, Finset.erase_insert_of_ne hpr.symm]
+    rw [Finset.erase_right_comm]
+
 end OnePageDiff
 
 end Caching
