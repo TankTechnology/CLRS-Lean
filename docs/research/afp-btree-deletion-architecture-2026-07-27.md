@@ -1,91 +1,110 @@
-# AFP B 树删除证明架构调研（Niels Mündler）——2026-07-27 历史快照
+# AFP B-tree Deletion Proof Architecture Investigation (Niels Mündler) — 2026-07-27 Historical Snapshot
 
-> **时间定位。** 本文记录的是 2026-07-27 当日的调查。文中的旧 blocker
-> 数量和“攻坚顺序”只描述当时状态；Chapter 18 现已达到 **134/134**。保留这份
-> AFP 对照是为了说明架构来源与证明工程脉络，而不是列出当前 backlog。
+> **Timeline.** This document records the investigation as of 2026-07-27. The old
+> blocker counts and the "attack order" in the text describe only the state at
+> that time; Chapter 18 has since reached **134/134**. This AFP comparison is
+> kept to explain the origin of the architecture and the proof-engineering
+> context, not to list the current backlog.
 
-调研对象：Isabelle/HOL 的 AFP 条目 **A Verified Imperative Implementation of
-B-Trees**。AFP 官方条目元数据列出的作者是 **Niels Mündler**，entry date 是
-**2021-02-24**。
+Subject of investigation: the AFP entry **A Verified Imperative Implementation of
+B-Trees** for Isabelle/HOL. The author listed in the AFP entry's official metadata
+is **Niels Mündler**, and the entry date is **2021-02-24**.
 
-- 条目页：https://isa-afp.org/entries/BTree.html
-- 函数式核心理论：
+- Entry page: https://isa-afp.org/entries/BTree.html
+- Functional core theories:
   - https://isa-afp.org/browser_info/current/AFP/BTree/BTree.html
   - https://isa-afp.org/browser_info/current/AFP/BTree/BTree_Set.html
   - https://isa-afp.org/browser_info/current/AFP/BTree/BTree_Height.html
 
-调研动机：在 2026-07-27 的快照中，Ch18.3 `composedDelete` 良构性已是全项目
-持续时间最长的攻坚之一（约 30 天；相关历史案例见
-[`stuck-points-retrospective-2026-07-24.md`](../proof-patterns/stuck-points-retrospective-2026-07-24.md)），
-当时剩余约 11 个 `sorry`，集中在 `mergeNodes_childBounded`、key-bound transfer
-和非根叶子 Occupancy。本文档保留 AFP 侧的证明架构、关键技巧，以及到
-CLRS-Lean 的历史映射；最终实现结果回填在 §5。
+Motivation: in the 2026-07-27 snapshot, well-formedness of Ch18.3 `composedDelete`
+was one of the longest-running efforts in the whole project (about 30 days; for
+related historical cases see
+[`stuck-points-retrospective-2026-07-24.md`](../proof-patterns/stuck-points-retrospective-2026-07-24.md)).
+At that time roughly 11 `sorry`s remained, concentrated in `mergeNodes_childBounded`,
+key-bound transfer, and non-root leaf Occupancy. This document preserves the
+AFP-side proof architecture, the key techniques, and the historical mapping to
+CLRS-Lean; the final implementation results are filled in in §5.
 
 ---
 
-## 1. 架构总览
+## 1. Architecture Overview
 
-### 1.1 Datatype 与表示差异
+### 1.1 Datatype and Representation Differences
 
 ```isabelle
 datatype 'a btree = Leaf | Node "('a btree * 'a) list" "'a btree"
 ```
 
-键和子树**交错存储**：`Node ts t` 中 `ts` 是 `(子树, 分隔键)` 对的列表，`t` 是最右子树；
-`Leaf` 是空树。CLRS-Lean 的表示是 `node (keys : List Nat) (children : List BTree)`
-（keys/children 平行列表，空 children 即叶子）。结构不同；下表比较的是相近的
-证明责任，不把两边的谓词视为同一个逻辑断言：
+Keys and subtrees are **stored interleaved**: in `Node ts t`, `ts` is a list of
+`(subtree, separator key)` pairs and `t` is the rightmost subtree; `Leaf` is the
+empty tree. CLRS-Lean's representation is
+`node (keys : List Nat) (children : List BTree)` (parallel lists of
+keys/children, where empty children means a leaf). The structures differ; the
+table below compares analogous proof obligations and does not treat the
+predicates on the two sides as the same logical assertion:
 
-| AFP | CLRS-Lean | 差异 |
+| AFP | CLRS-Lean | Difference |
 |---|---|---|
-| `bal t`（所有子树同高 + 递归 bal） | `SameDepth` + `heightOf` | 都承担等叶深与高度相关责任，编码接口不同 |
-| `order k t`（非根 `k ≤ len ts ≤ 2k`）/ `root_order k` | `Occupancy t isRoot` | 占用率区间近似；pair 数对应 key 数，但根接口和递归组织不同 |
-| `sorted_less (inorder t)`（全局 inorder 有序） | `Sorted + ChildBounded` | 共同承担节点内排序与跨子树顺序责任；AFP 的 `del_inorder` 另给出精确 inorder 等式 |
+| `bal t` (all subtrees same height + recursive bal) | `SameDepth` + `heightOf` | Both carry equal-leaf-depth and height-related obligations; the encoding interfaces differ |
+| `order k t` (non-root `k ≤ len ts ≤ 2k`) / `root_order k` | `Occupancy t isRoot` | Occupancy interval is analogous; the number of pairs corresponds to the number of keys, but the root interface and recursive organization differ |
+| `sorted_less (inorder t)` (global inorder sorted) | `Sorted + ChildBounded` | Both share the intra-node sorting and cross-subtree order obligations; AFP's `del_inorder` additionally gives an exact inorder equality |
 
-### 1.2 删除函数分解（后修复式，非 CLRS 预修复式）
+### 1.2 Deletion Function Decomposition (post-fix style, not CLRS pre-fix style)
 
 ```
 delete k x t = reduce_root (del k x t)
 ```
 
-- `del k x`：递归下降；命中分隔键时若左子是 `Leaf` 直接摘掉该 pair，否则用
-  `split_max`（取左子树最大键替换分隔键，而非 CLRS 的前驱/合并子树）；返回后用
-  `rebalance_middle_tree` / `rebalance_last_tree` 重组装。
-- `rebalance_middle_tree k ls sub sep rs t`：**统一构造函数**，吸收"sub 可能欠满"
-  的情况——sub 与兄弟都 ≥ k 个 pair 则直接装回；否则整体合并后交给 `nodeᵢ`。
-- `nodeᵢ`：**与插入共用的规范化构造器**，`len ≤ 2k` 则直接构造，否则对半劈开返回
-  `Upᵢ l a r`。删除侧复用插入的 split 逻辑与全套已证引理——全架构最省力的设计。
-- `split_max k`：沿最右 spine 摘下最大键，返回（修复后的树, 最大键）。
-- `reduce_root`：根若 0 个 pair 则塌缩为唯一子树——**高度降一只发生在这里**，
-  `del` 本身高度不变（`del_height: height (del k x t) = height t`）。
-- 中间态不变量 `almost_order k`：**只保留上界 `len ≤ 2k` + 子树 `order`，放弃下界**。
-  欠满只在 `rebalance_*` 处被合并修复。
+- `del k x`: recursive descent; when a separator key is hit, if the left child is
+  `Leaf` it directly removes that pair, otherwise it uses `split_max` (taking the
+  largest key of the left subtree to replace the separator key, rather than
+  CLRS's predecessor/merge-subtree); after returning, reassembly is done with
+  `rebalance_middle_tree` / `rebalance_last_tree`.
+- `rebalance_middle_tree k ls sub sep rs t`: a **uniform constructor** that
+  absorbs the case where `sub` may be underfull — if both `sub` and its sibling
+  have ≥ k pairs it directly puts it back; otherwise it merges wholesale and
+  hands the result to `nodeᵢ`.
+- `nodeᵢ`: a **normalized constructor shared with insertion**; if `len ≤ 2k` it
+  constructs directly, otherwise it splits in half and returns `Upᵢ l a r`. The
+  deletion side reuses insertion's split logic and the full set of proven lemmas —
+  the most effort-saving design in the whole architecture.
+- `split_max k`: walks down the rightmost spine to remove the largest key,
+  returning (repaired tree, largest key).
+- `reduce_root`: if the root has 0 pairs it collapses to the single subtree —
+  **height decreases by one only here**, and `del` itself preserves height
+  (`del_height: height (del k x t) = height t`).
+- Intermediate-state invariant `almost_order k`: **keeps only the upper bound
+  `len ≤ 2k` + subtree `order`, dropping the lower bound**. Underfullness is only
+  repaired by merging at the `rebalance_*` sites.
 
-终止性：Isabelle `fun` 自动终止，靠一条 `[termination_simp]`：
-`split ts y = (ls,(sub,sep)#rs) ⟹ size sub < size (Node ts …)`。
-CLRS-Lean 则使用 `termination_by heightOf` + `heightOf_mem_lt`。两边共享
-“递归参数严格下降”的证明形态，但使用的度量与生成机制并不相同。
+Termination: Isabelle's `fun` terminates automatically, relying on a single
+`[termination_simp]` rule:
+`split ts y = (ls,(sub,sep)#rs) ⟹ size sub < size (Node ts …)`.
+CLRS-Lean instead uses `termination_by heightOf` + `heightOf_mem_lt`. Both sides
+share the proof shape of "recursive argument strictly decreases", but the measure
+and generation mechanism used are not the same.
 
-### 1.3 定理分解
+### 1.3 Theorem Decomposition
 
-每个函数 × 每个不变量各一条引理，归纳全部用**函数自身的归纳原理**
-`induction k x t rule: del.induct`：
+One lemma per function × per invariant, with all inductions using **the function's
+own induction principle** `induction k x t rule: del.induct`:
 
-- `nodeᵢ`：`_height`（高度不变）、`_bal`、`_order`（前提 `len ≤ 4k+1`）、
-  `_inorder`（**inorder 精确相等**）
-- `rebalance_middle_tree`：`_height` / `_bal` / `_order`（+ `_last_order`）/ `_inorder`
-- `split_max`：`_height` / `_bal` / `_order` / `_inorder`，都需辅助谓词
-  `nonempty_lasttreebal`（spine 上每层 ts 非空且末子树同高），由
-  `order_bal_nonempty_lasttreebal` 从 order+bal 推出
-- `del`：`del_height` / `del_bal` / `del_order`（结论 `almost_order`）/ `del_inorder`
-- `delete`：`delete_order` / `delete_bal` / `delete_inorder`，经
-  `reduce_root_order/bal/inorder` 三条一行小引理封口
+- `nodeᵢ`: `_height` (height unchanged), `_bal`, `_order` (premise `len ≤ 4k+1`),
+  `_inorder` (**exact inorder equality**)
+- `rebalance_middle_tree`: `_height` / `_bal` / `_order` (+ `_last_order`) / `_inorder`
+- `split_max`: `_height` / `_bal` / `_order` / `_inorder`, all needing the helper
+  predicate `nonempty_lasttreebal` (at every level on the spine `ts` is nonempty
+  and the last subtree has the same height), derived from order+bal by
+  `order_bal_nonempty_lasttreebal`
+- `del`: `del_height` / `del_bal` / `del_order` (conclusion `almost_order`) / `del_inorder`
+- `delete`: `delete_order` / `delete_bal` / `delete_inorder`, closed off via the
+  three one-line lemmas `reduce_root_order/bal/inorder`
 
 ---
 
-## 2. 四个核心技巧
+## 2. Four Core Techniques
 
-### 技巧 A：欠满用"弱化不变量"建模，下界在合并处恢复
+### Technique A: modeling underfullness with a "weakened invariant", recovering the lower bound at merges
 
 ```isabelle
 fun almost_order where
@@ -94,13 +113,16 @@ fun almost_order where
     (length ts ≤ 2*k ∧ (∀s ∈ set (subtrees ts). order k s) ∧ order k t)"
 ```
 
-`del_order` 的结论就是 `almost_order`——归纳过程中**从不需要在中间节点证下界**。
-下界只在 `rebalance_middle_tree_order` 里恢复：不合并分支前提 `length mts ≥ k`，
-合并分支交给 `nodeᵢ_order`。
-这与 CLRS-Lean 红黑树删除的 Okasaki 模式（S8，NoRedRed2 + baldL/baldR）
-共享“中间态弱化、修复点恢复”的局部证明形态；具体谓词和算法分支并非同构。
+The conclusion of `del_order` is exactly `almost_order` — during the induction
+there is **never a need to prove the lower bound at intermediate nodes**. The
+lower bound is only restored in `rebalance_middle_tree_order`: the non-merge
+branch has premise `length mts ≥ k`, and the merge branch is handed to
+`nodeᵢ_order`. This shares the local proof shape of "weaken at intermediate
+states, restore at repair points" with the Okasaki pattern of CLRS-Lean's
+red-black tree deletion (S8, NoRedRed2 + baldL/baldR); the concrete predicates
+and algorithm branches are not isomorphic.
 
-### 技巧 B：merge 后键数界 = 纯长度算术 + 构造器吸收溢出
+### Technique B: post-merge key-count bound = pure length arithmetic + constructor absorbing overflow
 
 ```isabelle
 lemma nodeᵢ_order:
@@ -109,11 +131,13 @@ lemma nodeᵢ_order:
   shows "order_upᵢ k (nodeᵢ k ts t)"
 ```
 
-证明就是 cases `length ts ≤ 2*k`：是则直接 `order`；否则 `split_half` 后两边各
-`≥ k ∧ ≤ 2k`（由 `4k+1` 上界做算术）。**键的内容完全不参与**——order 只数长度。
-CLRS-Lean 的 merge 情形更简单：合并两个 `t-1` 键节点得 `2t-1`，根本不溢出。
+The proof is just cases on `length ts ≤ 2*k`: if so, directly `order`; otherwise,
+after `split_half` both sides are `≥ k ∧ ≤ 2k` (arithmetic from the `4k+1` upper
+bound). **The contents of the keys play no role at all** — order only counts
+length. CLRS-Lean's merge case is simpler: merging two `t-1`-key nodes gives
+`2t-1`, which never overflows.
 
-### 技巧 C：内容正确性靠 inorder 等式而非子集推理
+### Technique C: content correctness via inorder equalities rather than subset reasoning
 
 ```isabelle
 lemma nodeᵢ_inorder: "inorder_upᵢ (nodeᵢ k ts t) = inorder (Node ts t)"
@@ -123,135 +147,166 @@ lemma rebalance_middle_tree_inorder:
        = inorder (Node (ls@(sub,sep)#rs) t)"
 ```
 
-重平衡**逐字保持 inorder**（证明 `cases sub; cases t` 后基本自动）。于是
-`del_inorder` 只需对列表层的 `del_list_split` 等引理做重写，
-**全程没有"结果键 ⊆ 原键"式的子集引理**。
+Rebalancing **preserves inorder verbatim** (the proof is essentially automatic
+after `cases sub; cases t`). Consequently `del_inorder` only needs to rewrite
+against list-level lemmas such as `del_list_split`, with **no
+"result keys ⊆ original keys"-style subset lemmas anywhere**.
 
-### 技巧 D：bal 的替换引理族
+### Technique D: the family of bal substitution lemmas
 
 `bal_substitute` / `bal_substitute_subtree` / `bal_substitute_separator` /
-`bal_split_last/left/right`——"换一个同高 bal 子树/换一个分隔键，bal 保持"，
-各自是 2–5 行小引理，`del_bal` 靠它们组装。
-CLRS-Lean 当时已有相近基础引理（`sameDepth_keys_irrel` /
-`sameDepth_of_uniform`），但在 2026-07-27 的快照中尚缺“换 child 保持
-SameDepth”的直接替换接口。
+`bal_split_last/left/right` — "swapping in a same-height bal subtree / swapping a
+separator key preserves bal", each a 2–5-line little lemma, and `del_bal` is
+assembled from them. CLRS-Lean already had similar basic lemmas at the time
+(`sameDepth_keys_irrel` / `sameDepth_of_uniform`), but as of the 2026-07-27
+snapshot it lacked a direct substitution interface for "swapping a child while
+preserving SameDepth".
 
 ---
 
-## 3. 到 CLRS-Lean 的映射
+## 3. Mapping to CLRS-Lean
 
-### 3.1 排序责任的逻辑边界：全局 inorder 与局部分解
+### 3.1 The logical boundary of the sorting obligation: global inorder vs. local decomposition
 
-AFP 的全局 `sorted_less (inorder tree)` 与本项目 `Sorted + ChildBounded`
-共同承担的排序责任相对应。AFP 没有单独命名的逐子树 `ChildBounded` 谓词，
-但这不表示 AFP 省略了跨子树顺序义务，也不支持“CLRS-Lean 的不变量严格更强”
-这一结论。
+AFP's global `sorted_less (inorder tree)` corresponds to the combined sorting
+obligation carried by this project's `Sorted + ChildBounded`. AFP has no
+separately named per-subtree `ChildBounded` predicate, but that does not mean AFP
+omits the cross-subtree order obligation, nor does it support the conclusion that
+"CLRS-Lean's invariant is strictly stronger".
 
-区别在于证明接口：CLRS-Lean 把节点内 `Sorted` 与逐 child 区间界
-`ChildBounded` 分开保持，AFP 则在全局 inorder 序列上表达有序性，并用
-`del_inorder` 的精确等式贯穿删除证明。2026-07-27 当时列出的两个实现选项是：
+The difference lies in the proof interface: CLRS-Lean maintains the intra-node
+`Sorted` and the per-child interval bound `ChildBounded` separately, whereas AFP
+expresses ordering on a global inorder sequence and threads the deletion proof
+through the exact equality of `del_inorder`. The two implementation options
+listed at the time (2026-07-27) were:
 
-- **选项 1（推荐，改动小）**：保留 `ChildBounded`，但按技巧 C 的思路先证成员资格刻画引理：
+- **Option 1 (recommended, small change)**: keep `ChildBounded`, but following the
+  idea of Technique C, first prove a membership-characterization lemma:
 
   ```lean
   k ∈ keysOf (mergeNodes l sep r) ↔ k ∈ keysOf l ∨ k = sep ∨ k ∈ keysOf r
   ```
 
-  纯 List 成员性展开（`keysOf` 是 `keys ++ flatMap keysOf`，merge 后
-  `lKeys ++ sep :: rKeys ++ (lCh ++ rCh).flatMap keysOf`，用 `List.mem_append`、
-  `List.mem_flatMap` 即可，预计 < 30 行）。有了它，`mergeNodes_childBounded` 的每个
-  child 界直接由前提和两边的 `ChildBounded` 析取拼出；证明分解与已证的
-  `mergeNodes_sorted` 相近。
-- **选项 2（大改，对齐 AFP）**：把 `Sorted` + `ChildBounded` 换成单一全局不变量
-  `SortedInorder t := List.Sorted (· ≤ ·) (keysOf 的 inorder 版本)`，删除正确性直接证
-  `keysOf (composedDelete …) = del_list 风格的等式`。消灭所有 key-bound transfer，
-  但要重写 Ch18 全部已有引理，不建议在收口阶段做。
+  Pure List membership unfolding (`keysOf` is `keys ++ flatMap keysOf`; after a
+  merge it is `lKeys ++ sep :: rKeys ++ (lCh ++ rCh).flatMap keysOf`, using
+  `List.mem_append` and `List.mem_flatMap`; expected < 30 lines). With it, each
+  child bound of `mergeNodes_childBounded` is assembled directly by a disjunction
+  of the premises and the two sides' `ChildBounded`; the proof decomposition is
+  similar to the already-proven `mergeNodes_sorted`.
+- **Option 2 (large change, aligning with AFP)**: replace `Sorted` + `ChildBounded`
+  with a single global invariant `SortedInorder t := List.Sorted (· ≤ ·) (the
+  inorder version of keysOf)`, and prove deletion correctness directly as a
+  `del_list`-style equality `keysOf (composedDelete …) = ...`. This eliminates
+  all key-bound transfer, but it requires rewriting all of Ch18's existing lemmas,
+  so it is not recommended during the closing phase.
 
-### 3.2 2026-07-27 当时的逐条映射表
+### 3.2 The item-by-item mapping table as of 2026-07-27
 
-| CLRS-Lean 当时的 `sorry` / 卡壳 | AFP 对应 | 当时拟借鉴的技巧 |
+| CLRS-Lean `sorry`s / stuck points at the time | AFP counterpart | Technique planned to borrow at the time |
 |---|---|---|
-| `mergeNodes_childBounded` | `nodeᵢ_order` + `bal_list_merge` | 键数部分用长度算术（技巧 B）；child 区间界用 §3.1 的局部成员分解 |
-| `keysOf_composedDelete_subset` | AFP 以更强的 `del_inorder` 等式提供相关内容语义 | 复用递归骨架 + merge 成员刻画引理 |
-| `composedDelete_key_bound_lo` / `_hi` | `del_inorder` 的全局序列语义承担对应顺序责任 | 从 key subset 推导局部上下界 |
-| 四个 merge 分支中的证明洞 | `del` 的命中分支（AFP 用 `split_max` + rebalance） | 用 `mergeNodes_*` 保持引理 + IH |
-| 非根叶子 `Occupancy t false` | `del_order` 的 Leaf 基例 + `almost_order` | 见 §3.4；当时判断需要补预修复守卫 |
+| `mergeNodes_childBounded` | `nodeᵢ_order` + `bal_list_merge` | key-count part via length arithmetic (Technique B); child interval bounds via the local membership decomposition of §3.1 |
+| `keysOf_composedDelete_subset` | AFP provides the relevant content semantics via the stronger `del_inorder` equality | reuse the recursion skeleton + merge membership-characterization lemma |
+| `composedDelete_key_bound_lo` / `_hi` | the global sequence semantics of `del_inorder` carries the corresponding order obligation | derive local upper/lower bounds from the key subset |
+| proof holes in the four merge branches | `del`'s hit branch (AFP uses `split_max` + rebalance) | use the `mergeNodes_*` preservation lemmas + IH |
+| non-root leaf `Occupancy t false` | `del_order`'s Leaf base case + `almost_order` | see §3.4; judged at the time that a pre-fix guard was needed |
 
-### 3.3 当时规划的 key subset 与局部边界证明
+### 3.3 The key-subset and local-bound proofs planned at the time
 
-- `keysOf_composedDelete_subset`：当时计划让强归纳复用
-  `composedDelete_childBounded`
-  的骨架，三处新东西：(1) merge 分支用 §3.1 的成员刻画引理 + IH；(2) 直接递归分支用
-  `List.mem_or_eq_of_mem_set`；(3) 叶子分支用 `mem_of_sortedRemove`。
-- `composedDelete_key_bound_lo`（及对称的 hi 版）：当时规划为 subset 的短推论
-  （`intro k' hk'; exact hlo k' (keysOf_composedDelete_subset … hk')`）。
-  目标是让多处局部上下界证明统一从内容包含关系导出。
+- `keysOf_composedDelete_subset`: the plan at the time was for the strong
+  induction to reuse the skeleton of `composedDelete_childBounded`, with three
+  new pieces: (1) the merge branch uses the membership-characterization lemma of
+  §3.1 + IH; (2) the direct-recursion branch uses `List.mem_or_eq_of_mem_set`;
+  (3) the leaf branch uses `mem_of_sortedRemove`.
+- `composedDelete_key_bound_lo` (and the symmetric hi version): planned at the
+  time as a short corollary of the subset
+  (`intro k' hk'; exact hlo k' (keysOf_composedDelete_subset … hk')`). The goal
+  was to have the various local upper/lower-bound proofs all derive uniformly
+  from the content-containment relation.
 
-### 3.4 当时判断的非根叶子 Occupancy 障碍
+### 3.4 The non-root leaf Occupancy obstacle as judged at the time
 
-2026-07-27 当时，删除后叶子可能只剩 `t-2` 个键，而当时版本的
-`composedDelete` 尚无对应修复逻辑；因此该版本下的目标不可由既有前提推出。
-当时从 AFP 架构对照中整理出两条路：
+As of 2026-07-27, after deletion a leaf could be left with only `t-2` keys, and
+the `composedDelete` version at the time had no corresponding repair logic; the
+goal under that version therefore could not be derived from the existing
+premises. Two paths were extracted at the time from comparing with the AFP
+architecture:
 
-- **路 A（AFP 路线，后修复式）**：引入 `AlmostOccupancy`（去掉下界，只留 `≤ 2t-1`
-  上界 + 递归），归纳证 `composedDelete` 保持 `AlmostOccupancy`，再另写 `rebalance`
-  恢复下界——即把算法改成后修复式，改动大。
-- **路 B（CLRS 预修复路线，推荐）**：递归进 child 前加守卫：若目标 child 只有 `t-1`
-  键，先 `rotateRight`（当时已有 `rotateRight_preserves`）或补 `rotateLeft` + merge
-  使其 ≥ t 键再递归。这样 IH 直接在满足下界的 child 上用，叶子基例 `t-2` 的情况被
-  守卫排除。当时文件头注释已规划这一方向，缺口是 `rotateLeft` 及其保持引理。
+- **Path A (AFP route, post-fix style)**: introduce `AlmostOccupancy` (dropping
+  the lower bound, keeping only the `≤ 2t-1` upper bound + recursion), prove by
+  induction that `composedDelete` preserves `AlmostOccupancy`, and then write a
+  separate `rebalance` to restore the lower bound — i.e., change the algorithm to
+  post-fix style; a large change.
+- **Path B (CLRS pre-fix route, recommended)**: add a guard before recursing into
+  a child: if the target child has only `t-1` keys, first `rotateRight` (there was
+  already `rotateRight_preserves` at the time) or add `rotateLeft` + merge to
+  bring it to ≥ t keys, then recurse. This way the IH is used directly on a child
+  satisfying the lower bound, and the `t-2` leaf base case is excluded by the
+  guard. The file-header comment at the time already planned this direction; the
+  gap was `rotateLeft` and its preservation lemmas.
 
-最终实现采用了 CLRS 预修复路线；§5 记录已完成的 rotation repair 和重组结果。
+The final implementation took the CLRS pre-fix route; §5 records the completed
+rotation repair and reassembly results.
 
-### 3.5 工程性建议：切换到函数自身的归纳原理
+### 3.5 Engineering suggestion: switch to the function's own induction principle
 
-AFP 所有 del 定理都用 `induction k x t rule: del.induct`——函数自身的归纳原理，
-case 自动对齐函数分支。在 2026-07-27 的 CLRS-Lean 快照中，四个
-`composedDelete_*` 组件引理曾手工搭了四遍 `Nat.strongRecOn` + motive，
-同一份分支展开样板抄了 4 遍，当时每一遍都留有 merge 证明洞。
-Lean 4 对 `termination_by` 定义的函数自动生成 `composedDelete.induct`，
-`induction tr using composedDelete.induct` 可得到按分支组织的 IH（包括 merge 分支
-对 merged 节点的 IH）。这一建议后来落实为围绕 `NodeWF` 的 bundled induction，
-见 §5。
+All of AFP's del theorems use `induction k x t rule: del.induct` — the function's
+own induction principle, with cases automatically aligned to the function
+branches. In the 2026-07-27 CLRS-Lean snapshot, the four `composedDelete_*`
+component lemmas had been manually built four times with `Nat.strongRecOn` +
+motive, with the same branch-unfolding boilerplate copied four times, and each
+copy still left merge proof holes. Lean 4 automatically generates
+`composedDelete.induct` for functions defined with `termination_by`, and
+`induction tr using composedDelete.induct` yields IHs organized by branch
+(including an IH for the merged node in the merge branch). This suggestion was
+later realized as bundled induction around `NodeWF`; see §5.
 
-### 3.6 2026-07-27 当时建议的攻坚顺序
+### 3.6 The attack order suggested at the time (2026-07-27)
 
-当时拟按以下依赖顺序推进：
+The plan at the time was to proceed in the following dependency order:
 
-1. `mem_keysOf_mergeNodes`（成员刻画，纯 List）→
-2. `mergeNodes_childBounded`（参照 `mergeNodes_sorted` 的分解）→
-3. `keysOf_composedDelete_subset`（既有骨架 + 成员刻画）→
-4. `composedDelete_key_bound_lo` / `_hi`（subset 推论）→
-5. 四个 merge 分支（用前述 merge 保持引理 + IH）→
-6. `rotateLeft` + 预修复守卫 → 非根叶子 Occupancy。
+1. `mem_keysOf_mergeNodes` (membership characterization, pure List) →
+2. `mergeNodes_childBounded` (following the decomposition of `mergeNodes_sorted`) →
+3. `keysOf_composedDelete_subset` (existing skeleton + membership characterization) →
+4. `composedDelete_key_bound_lo` / `_hi` (subset corollaries) →
+5. the four merge branches (using the aforementioned merge preservation lemmas + IH) →
+6. `rotateLeft` + the pre-fix guard → non-root leaf Occupancy.
 
-当时估计前四步无需算法改动、第五步依赖前两步、第六步需要修改
-`composedDelete`。这份顺序现在只是历史执行记录，不是未完成事项列表。
+At the time it was estimated that the first four steps needed no algorithm
+changes, step five depended on the first two, and step six required modifying
+`composedDelete`. This order is now merely a historical execution record, not a
+list of outstanding items.
 
 ---
 
-## 4. 备注与诚实声明
+## 4. Remarks and honest disclosure
 
-- 本文档的 AFP 技巧描述基于 2026-07-27 对理论源码的远程阅读；CLRS-Lean
-  一侧现以模块名和定理名定位，不再保留易失效的源码行号。
-- AFP 的删除是**后修复式 + split_max**，CLRS-Lean 刻意走 CLRS 教科书的预修复
-  （下降前借/合并）路线以保持 textbook-faithful，因此不能整体照搬其算法结构；
-  可迁移的是**证明组织方式**（技巧 A–D、归纳原理、inorder 等式思想），而非函数定义。
-- 文中的工作量估算和“缺口”判断都属于 2026-07-27 快照；判断其后续是否落实，
-  应以 §5 的实现结果和当前 Chapter 18 章节说明为准。
+- The AFP technique descriptions in this document are based on a remote reading
+  of the theory sources on 2026-07-27; on the CLRS-Lean side, things are now
+  located by module and theorem names, with fragile source line numbers no longer
+  kept.
+- AFP's deletion is **post-fix + split_max**, while CLRS-Lean deliberately takes
+  the CLRS textbook's pre-fix (borrow/merge before descent) route to stay
+  textbook-faithful, so its algorithm structure cannot be adopted wholesale; what
+  is transferable is the **proof organization** (Techniques A–D, the induction
+  principle, the inorder-equality idea), not the function definitions.
+- The effort estimates and "gap" judgments in the text all belong to the
+  2026-07-27 snapshot; whether they were subsequently realized should be judged
+  against the implementation results in §5 and the current Chapter 18 section
+  notes.
 
 ---
 
-## 5. 后续实现结果（截至 2026-07-31）
+## 5. Subsequent implementation results (as of 2026-07-31)
 
-| 2026-07-27 的问题面 | 后续落地结果 |
+| Problem area as of 2026-07-27 | Subsequent outcome |
 |---|---|
-| merge 内容与边界 | `mem_keysOf_mergeNodes` 给出精确成员分解；`mergeNodes_childBounded`、`mergeNodes_nodeWF` 与 `spliceMerged_packet` 等 merge child-bounded / parent reassembly 引理完成局部保持和父节点重组。 |
-| rotation 排序修复 | `rotateLeft` / `rotateRight` 的 `Sorted`、`ChildBounded`、`NodeWF` 与 repaired-`DeleteReady` 结果均已建立，并由 `rotateLeft_reassembly_packet` / `rotateRight_reassembly_packet` 完成递归结果重组。 |
-| bundled 递归不变量 | `NodeWF` 打包 `Sorted`、`ChildBounded`、`Occupancy`、`SameDepth`；`composedDelete_packet` 在一次递归证明中同时交付 key subset、结构结果与原始高度保持。 |
-| 归纳与函数分支对齐 | 核心递归证明使用 Lean 为函数生成的 `composedDelete.induct`，IH 与 predecessor、successor、merge、rotation 和直接下降分支对齐。 |
-| 精确删除 | `composedDelete_keyBag` 证明 `keyBag (composedDelete t x tr) = (keyBag tr).erase x`，即恰好删除请求键的一个出现，而不只是证明结果键是输入键的子集。 |
-| 高度 | `composedDelete_sameDepth_height` 给出 same-depth 与 raw height 保持；`composedDeleteRoot_height` 证明根规范化后的高度不变或恰好减少一层。 |
+| merge content and bounds | `mem_keysOf_mergeNodes` gives an exact membership decomposition; `mergeNodes_childBounded`, `mergeNodes_nodeWF`, `spliceMerged_packet`, and other merge child-bounded / parent reassembly lemmas complete the local preservation and parent-node reassembly. |
+| rotation sorting repair | the `Sorted`, `ChildBounded`, `NodeWF`, and repaired-`DeleteReady` results for `rotateLeft` / `rotateRight` are all established, with `rotateLeft_reassembly_packet` / `rotateRight_reassembly_packet` completing the reassembly of the recursive results. |
+| bundled recursive invariant | `NodeWF` bundles `Sorted`, `ChildBounded`, `Occupancy`, `SameDepth`; `composedDelete_packet` delivers key subset, structural results, and original-height preservation in a single recursive proof. |
+| induction aligned with function branches | the core recursive proof uses Lean's function-generated `composedDelete.induct`, with IHs aligned to the predecessor, successor, merge, rotation, and direct-descent branches. |
+| exact deletion | `composedDelete_keyBag` proves `keyBag (composedDelete t x tr) = (keyBag tr).erase x`, i.e., exactly one occurrence of the requested key is deleted, rather than merely proving that the result keys are a subset of the input keys. |
+| height | `composedDelete_sameDepth_height` gives same-depth and raw-height preservation; `composedDeleteRoot_height` proves that after root normalization the height is unchanged or decreases by exactly one. |
 
-这些结果随后与搜索、插入以及最小键数/对数高度界一起把 Chapter 18 推进到
-**134/134**。当前功能式 B 树模型中，**没有剩余的 Chapter 18 核心证明项**。
+Together with search, insertion, and the minimum-key-count/log-height bounds,
+these results subsequently pushed Chapter 18 to **134/134**. In the current
+functional B-tree model, there are **no remaining Chapter 18 core proof items**.
