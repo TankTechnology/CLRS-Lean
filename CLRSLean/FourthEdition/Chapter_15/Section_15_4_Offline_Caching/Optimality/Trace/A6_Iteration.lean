@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Trace.A5_Exchange
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A5_Exchange
 
 /-!
 # Chapter 15.4 development: finite exchange iteration

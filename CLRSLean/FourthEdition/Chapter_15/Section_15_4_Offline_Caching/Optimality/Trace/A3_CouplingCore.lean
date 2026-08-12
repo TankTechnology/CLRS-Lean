@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Trace.A2_OnePageDiff
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A2_OnePageDiff
 
 /-!
 # Chapter 15.4 development: recursive coupling core
