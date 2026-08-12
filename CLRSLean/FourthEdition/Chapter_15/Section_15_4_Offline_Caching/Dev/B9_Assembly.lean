@@ -124,6 +124,23 @@ def B2DeadStepHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
     nextUse σ (t₂ + 1) (st.d t₂) = none ∨ nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = none →
     ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1
 
+/-- B2 步的 hQ 供应(部分 1):旧界 `t₂` 的 strengthened clause 由
+`past_pair_first_request_after` 从状态旧 `hQ`(旧界 `st.t0`)给出 —— 这是
+hQ-extension blocker 的消费者所需形式("consumers only consult the pair
+whose page equals the request, and that pair is never broken" 的形式化;
+`past_pair` 的 B2-resident 前提 `hqin` 与状态字段 `hP`/`hcomp`/`hpair`/
+`hP_in`/`hQfifo`/`hpast` 均由状态给出)。 -/
+lemma b2_hQ_supply_old (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
+    (M : ℕ) (st : IterateState σ C₀ M)
+    {t₂ : ℕ} (ht₂ : t₂ < σ.length) (ht₀t₂ : st.t0 ≤ t₂)
+    (hagree : agreeWithFIF st.d C₀ σ t₂)
+    (hqin : st.d t₂ ∈ schedCache st.d C₀ σ t₂) :
+    ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ st.Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t₂ < tᵢ + 1 + j'' := by
+  exact past_pair_first_request_after σ C₀ hC₀ st.d st.t0 t₂ ht₀t₂ hagree st.Q st.P
+    st.hpast st.hP st.hcomp st.hpair st.hQfifo st.hP_in st.hQ ht₂ hqin
+
 /- ### 情形一步的构造(hAone 的实例化)
 
 `iterate_main_case_one` 给出一致、slack 与 OR 形式 reduced 性;
@@ -311,6 +328,135 @@ lemma step_b1_alive (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty
     simpa [q''] using extend_hpair σ C₀ st.Q r st.d hftd hq''res hrt hre hce hpast₂ st.hpair
   refine ⟨⟨r, t₂ + 1, st.slack - bad, max st.hnb (t₂ + 1 + j''' + 1),
     insert (t₂, q'') st.Q, st.P ∪ ({t₂, t₂ + 1 + j'''} : Finset ℕ), st.win,
+    hwin_inv', hagree', hbook', hchain', hd_eq', hdred', hpast', (by simpa [q''] using hQ_ext),
+    hQfifo', hP', hP_in', hcomp', hpair'⟩, rfl⟩
+
+/-- B2(活-活)的完整状态构造:修复 `r` 后 `t0 = t₂+1`,slack 不变
+(强修复免费),Q/P 扩展(`extend_h*` 胶水),reduced 界
+`max hnb (J''+1)`。桥接 `hqinE`/`hnotE`/`hnot` 由调用方提供
+(分支分析、`b2_hnotE` + hQ 前提、窗口 off-P;`hnot` 经验上在 136
+个窗口失效 —— 见 DESIGN "Remaining" item (2))。 -/
+lemma step_b2_alive (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
+    (M : ℕ) (st : IterateState σ C₀ M)
+    (hQ : HQsupplyHyp σ C₀ M)
+    (d_pre : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page) (j₀ j₀' : ℕ)
+    (hwin : st.win = some (d_pre, t₀, q₀, q₀', j₀, j₀'))
+    {t₂ : ℕ} (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb)
+    (ht₂₀ : t₀ < t₂) (ht₂₁ : t₂ < t₀ + 1 + j₀')
+    (hagree : agreeWithFIF st.d C₀ σ t₂)
+    (hdis : schedCache st.d C₀ σ (t₂ + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t₂ + 1))
+    (hqin : st.d t₂ ∈ schedCache st.d C₀ σ t₂)
+    (hftd : σ.getD t₂ 0 ∉ schedCache st.d C₀ σ t₂)
+    (ht₀t₂ : st.t0 ≤ t₂)
+    {j : ℕ} (hj : nextUse σ (t₂ + 1) (st.d t₂) = some j)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = some j'')
+    (hjj'' : j < j'')
+    (hqinE : st.d t₂ ∈ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂)
+    (hnotE : ∀ s, t₂ < s → s ≤ t₂ + 1 + j →
+      σ.getD s 0 ∉ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ s)
+    (hnot : ∀ s, t₂ < s → s ≤ t₂ + 1 + j → s ∉ st.P) :
+    ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1 := by
+  let q : Page := st.d t₂
+  let q'' : Page := fifoSchedule σ C₀ t₂
+  have hQ_up : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ st.Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q''₀ = some j'' ∧ t₂ < tᵢ + 1 + j'' := (hQ st t₂).1
+  have hQ_ext : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, fifoSchedule σ C₀ t₂) st.Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q''₀ = some j'' ∧ t₂ + 1 < tᵢ + 1 + j'' := (hQ st t₂).2
+  have hwin_facts : d_pre t₀ = q₀ ∧ q₀ ≠ q₀' ∧
+      (∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s → d_pre s ∈ schedCache d_pre C₀ σ s) ∧
+      σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀ ∧ q₀' ∈ schedCache d_pre C₀ σ t₀ ∧
+      nextUse σ (t₀ + 1) q₀ = some j₀ ∧
+      (∀ k, t₀ + 1 ≤ k → k < t₀ + 1 + j₀ → σ.getD k 0 ≠ q₀') ∧
+      nextUse σ (t₀ + 1) q₀' = some j₀' := by
+    rcases st.hwin_inv d_pre t₀ q₀ q₀' j₀ j₀' hwin with ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩
+    exact ⟨h2, h3, h4, h5, h6, h7, h8, h9⟩
+  have ht₂notP : t₂ ∉ st.P := by
+    apply no_nop_at_b2 st.d σ C₀ st.Q st.P (t := t₂)
+    · intro tᵢ q''₀ htq
+      have h := st.hpast tᵢ q''₀ htq
+      omega
+    · exact st.hP
+    · exact st.hcomp
+    · exact st.hpair
+    · exact ht₂
+    · exact hqin
+  rcases iterate_main_case_b2_alive d_pre st.d t₀ q₀ q₀' σ C₀ hC₀ hwin_facts.1 hwin_facts.2.1
+    hwin_facts.2.2.1 hwin_facts.2.2.2.1 hwin_facts.2.2.2.2.1
+    hwin_facts.2.2.2.2.2.1 hwin_facts.2.2.2.2.2.2.1 hwin_facts.2.2.2.2.2.2.2
+    ht₂ ht₂₀ ht₂₁ st.hnb ht₂hnb hagree hdis hqin hftd hj hj'' hjj''
+    st.Q (by
+      intro s hs
+      simpa [windowExchange, hwin] using st.hchain s hs) (by
+      intro tᵢ q''₀ htq
+      have h := st.hpast tᵢ q''₀ htq
+      omega) hQ_up hqinE hnotE st.P ht₂notP hnot (by
+      intro s hs
+      simpa [windowExchange, hwin] using st.hd_eq s hs) st.hdred with
+    ⟨r, hagree', hmiss', hchain', hd_eq', hdred', hrt, hrN, hre2, hce⟩
+  have hbook' : schedMisses r C₀ σ + st.slack ≤ M := by
+    exact le_trans (Nat.add_le_add_right hmiss' st.slack) st.hbook
+  have hpast₂ : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ st.Q → tᵢ < t₂ := by
+    intro tᵢ q''₀ htq
+    have h := st.hpast tᵢ q''₀ htq
+    omega
+  have hq''res : q'' ∈ schedCache st.d C₀ σ t₂ := by
+    have hfd := first_disagree st.d σ C₀ hC₀ ht₂ hagree hdis
+    simpa [q''] using hfd.2.2
+  have hre : ∀ s, s < t₂ → r s = st.d s := by
+    intro s hs
+    exact hre2 s (by
+      intro hmem
+      rw [Finset.mem_insert] at hmem
+      rcases hmem with hEq | hmem
+      · exact (ne_of_lt hs) hEq
+      · exact (by omega : s ≠ t₂ + 1 + j'') (Finset.mem_singleton.mp hmem))
+  have hwin_inv' : ∀ (d_pre' : ℕ → Page) (t₀' : ℕ) (q₀'' q₀''' : Page) (j₀'' j₀''' : ℕ),
+      st.win = some (d_pre', t₀', q₀'', q₀''', j₀'', j₀''') →
+      t₀' < t₂ + 1 ∧ d_pre' t₀' = q₀'' ∧ q₀'' ≠ q₀''' ∧
+      (∀ s, t₀' ≤ s → σ.getD s 0 ∉ schedCache d_pre' C₀ σ s → d_pre' s ∈ schedCache d_pre' C₀ σ s) ∧
+      σ.getD t₀' 0 ∉ schedCache d_pre' C₀ σ t₀' ∧ q₀''' ∈ schedCache d_pre' C₀ σ t₀' ∧
+      nextUse σ (t₀' + 1) q₀'' = some j₀'' ∧
+      (∀ k, t₀' + 1 ≤ k → k < t₀' + 1 + j₀'' → σ.getD k 0 ≠ q₀''') ∧
+      nextUse σ (t₀' + 1) q₀''' = some j₀''' := by
+    intro d_pre' t₀' q₀'' q₀''' j₀'' j₀''' hEq
+    rcases st.hwin_inv d_pre' t₀' q₀'' q₀''' j₀'' j₀''' hEq with ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩
+    exact ⟨by omega, h2, h3, h4, h5, h6, h7, h8, h9⟩
+  have hchain' : ∀ s, s ≤ σ.length → schedCache (windowExchange st.win r σ C₀) C₀ σ s \
+      schedCache r C₀ σ s ⊆ (insert (t₂, q'') st.Q).image Prod.snd := by
+    intro s hs
+    simpa [Finset.image_insert, windowExchange, hwin, q''] using hchain' s hs
+  have hd_eq' : ∀ s, s ∉ st.P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      r s = windowExchange st.win r σ C₀ s := by
+    intro s hs
+    simpa [windowExchange, hwin] using hd_eq' s hs
+  have hpast' : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q → tᵢ < t₂ + 1 :=
+    extend_hpast st.Q hpast₂
+  have hQfifo' : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q →
+      q''₀ = fifoSchedule σ C₀ tᵢ := by
+    simpa [q''] using extend_hQfifo σ C₀ st.Q (rfl : q'' = fifoSchedule σ C₀ t₂) st.hQfifo
+  have hP' : ∀ s, s ∈ st.P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) := by
+    simpa [q''] using extend_hP σ st.Q st.P hj'' st.hP
+  have hP_in' : ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) →
+      s ∈ st.P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) := by
+    simpa [q''] using extend_hP_in σ st.Q st.P hj'' hpast₂ st.hP_in
+  have hcomp' : ∀ s, s ∈ st.P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+    simpa [q''] using extend_hcomp' σ st.Q st.P r st.d hj'' hrt hrN hre2 st.hcomp
+  have hpair' : ∀ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') st.Q →
+      nextUse σ (tᵢ + 1) q''₀ = some j''₀ →
+      σ.getD tᵢ 0 ∉ schedCache r C₀ σ tᵢ ∧ q''₀ ∈ schedCache r C₀ σ tᵢ ∧ r tᵢ = q''₀ := by
+    simpa [q''] using extend_hpair σ C₀ st.Q r st.d hftd hq''res hrt hre hce hpast₂ st.hpair
+  refine ⟨⟨r, t₂ + 1, st.slack, max st.hnb (t₂ + 1 + j'' + 1),
+    insert (t₂, q'') st.Q, st.P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ), st.win,
     hwin_inv', hagree', hbook', hchain', hd_eq', hdred', hpast', (by simpa [q''] using hQ_ext),
     hQfifo', hP', hP_in', hcomp', hpair'⟩, rfl⟩
 
