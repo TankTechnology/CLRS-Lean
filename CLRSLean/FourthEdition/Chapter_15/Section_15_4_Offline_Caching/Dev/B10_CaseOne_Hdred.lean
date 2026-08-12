@@ -303,7 +303,7 @@ lemma case_one_branch1_once (d : ℕ → Page) (t : ℕ) (q' : Page)
     False := by
   have hq'in₂ : q' ∈ schedCache d C₀ σ s₂ := by
     exact hbranch₂ ▸ hdred s₂ (by omega) hFault₂
-  -- q' ∈ cache s₂ 且 (s₁, s₂] 内无 q' 请求 ⟹ q' ∈ cache s₁(从未被真逐出)
+  -- q' ∈ cache s₂ and no q' request in (s₁, s₂] ⟹ q' ∈ cache s₁ (never genuinely evicted)
   have hq'in₁ : q' ∈ schedCache d C₀ σ s₁ := by
     by_contra hnot
     have hqback : ∀ k, k ≤ s₂ → s₁ ≤ k → q' ∈ schedCache d C₀ σ k → q' ∈ schedCache d C₀ σ s₁ := by
@@ -329,7 +329,7 @@ lemma case_one_branch1_once (d : ℕ → Page) (t : ℕ) (q' : Page)
                 · exact (Finset.mem_erase.mp hq'E).2
             exact ih (k - 1) (by omega) hk'2 hk'1 hqk'
     exact hnot (hqback s₂ le_rfl (by omega) hq'in₂)
-  -- s₁ 处真逐出(源 reduced ⟹ q' ∈ cache s₁、d s₁ = q')⟹ q' ∉ cache s₁+1
+  -- genuine eviction at s₁ (source reduced ⟹ q' ∈ cache s₁, d s₁ = q') ⟹ q' ∉ cache s₁+1
   have hq'out : q' ∉ schedCache d C₀ σ (s₁ + 1) := by
     rw [schedCache]
     rw [if_neg hFault₁]
@@ -339,7 +339,7 @@ lemma case_one_branch1_once (d : ℕ → Page) (t : ℕ) (q' : Page)
     · exfalso
       exact hq'ne s₁ hs1 hs1len hq'r.symm
     · exact (Finset.mem_erase.mp hq'E).1 rfl
-  -- q' ∉ cache s₁+1 且 (s₁+1, s₂] 内无 q' 请求 ⟹ q' ∉ cache s₂ — 矛盾
+  -- q' ∉ cache s₁+1 and no q' request in (s₁+1, s₂] ⟹ q' ∉ cache s₂ — contradiction
   have hq'out₂ : q' ∉ schedCache d C₀ σ s₂ := by
     have hnoenter : ∀ k, s₁ + 1 ≤ k → k ≤ s₂ → q' ∉ schedCache d C₀ σ k := by
       intro k
