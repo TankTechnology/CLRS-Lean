@@ -1,10 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Definitions
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Correctness
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort
 
 /-!
-# CLRS Chapter 27.3 — Parallel Merge Sort
+# 27.3. P-MERGE-SORT (legacy compatibility path)
 
-This navigation module collects the executable P-MERGE-SORT implementation,
-correctness proof, and work/span analysis.
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/

@@ -1514,6 +1514,50 @@ lemma extend_hQfifo (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Pa
     exact hq''
   · exact hQfifo tᵢ q''₀ htq
 
+/-- hQ 扩展:`Q' = insert (t₂, q'') Q` 在新界 `t₂+1` 的逐对 clause。旧对沿用
+`hQ`(调用方以 strengthened 界 `t₂+1 < nᵢ` 供应 —— B2 步由
+`past_pair_first_request_after` + 边界情形,见 DESIGN "hQ-extension
+blocker");新对 `(t₂, q'')` 的 clause 需要 `0 < j''`(nop `t₂+1+j''` 严格在
+新界 `t₂+1` 之后)。 -/
+lemma extend_hQ (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Page))
+    {t₂ : ℕ} {q'' : Page}
+    (hQ : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j''₀, nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ t₂ + 1 < tᵢ + 1 + j''₀)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'') (hj''0 : 0 < j'') :
+    ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j''₀, nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ t₂ + 1 < tᵢ + 1 + j''₀ := by
+  intro tᵢ q''₀ htq
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    right
+    refine ⟨j'', hj'', ?_⟩
+    omega
+  · exact hQ tᵢ q''₀ htq
+
+/-- 逐页 credit(B2 步的 hQ 供应):在 B2 分歧 `t₂` 处,旧对的 strengthened
+界 `t₂ < nᵢ` 由 `past_pair_first_request_after` 从旧 `hQ₀`(旧界 `t0`)
+给出;`0 < j''` 由 `getD_eq_nextUse` 与 `hnotE`(交换于 `t₂+1` 缺页)与
+`q'' ∈ E_{t₂+1}`(resident + 反向差链)给出 —— 全局论证,见 DESIGN
+"hQ-extension blocker" 的 `0 < j''` 边界情形。 -/
+lemma b2_hQ_j''_pos (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
+    (d : ℕ → Page) (t₂ : ℕ) (ht₂ : t₂ < σ.length)
+    (hftd : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
+    {q'' : Page} (hq'' : q'' = fifoSchedule σ C₀ t₂)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hq''res : q'' ∈ schedCache (exchangeSchedule d (t₂ - 1) (d (t₂ - 1)) q'' σ C₀) C₀ σ (t₂ + 1))
+    (hnotE : σ.getD (t₂ + 1) 0 ∉ schedCache (exchangeSchedule d (t₂ - 1) (d (t₂ - 1)) q'' σ C₀) C₀ σ (t₂ + 1)) :
+    0 < j'' := by
+  by_contra h0
+  have hj''0 : j'' = 0 := by omega
+  have hsig : σ.getD (t₂ + 1) 0 = q'' := by
+    have hge := getD_eq_nextUse hj''
+    rw [hj''0] at hge
+    simpa using hge
+  exact hnotE (hsig ▸ hq''res)
+
 /-- hP 扩展(活对版):`P' = P ∪ {t₂, t₂+1+j''}`。旧位置沿用旧 `hP`(见证对
 仍在 `Q'` 中),新位置 `t₂` 与新 nop `J'' = t₂+1+j''` 由新对 `(t₂, q'')`
 见证(`s = tᵢ` 与 `s = tᵢ+1+j''`)。 -/
@@ -2210,7 +2254,11 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       (∀ s, s ∉ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
         r s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) ∧
       (∀ s, max hnb (t₂ + 1 + j'' + 1) ≤ s →
-        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) := by
+        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) ∧
+      r t₂ = fifoSchedule σ C₀ t₂ ∧
+      r (t₂ + 1 + j'') = fifoSchedule σ C₀ t₂ ∧
+      (∀ s, s ∉ ({t₂, t₂ + 1 + j''} : Finset ℕ) → r s = d s) ∧
+      (∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s) := by
   let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
   let q : Page := d t₂
   let q'' : Page := fifoSchedule σ C₀ t₂
@@ -2232,7 +2280,7 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
     exact swap_q_not_mem e σ C₀ (show e t₂ = q from by
       change exchangeSchedule d_pre t₀ q₀ q₀' σ C₀ t₂ = q
       rw [← hd_eq t₂ ht₂notP]) hqinE hft hj hs1 hs2
-  refine ⟨r, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨r, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- agree 到 t₂+1
     exact (repair_step_swap_strong d σ C₀ hC₀ ht₂ hagree hdis hqin hj hj'' hjj'' hswap).2
   · -- miss 不增
@@ -2270,6 +2318,19 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       unfold r repairSchedule
       simp [show s ≠ t₂ by omega, show s ≠ t₂ + 1 + j'' by omega]]
     exact hsup s hJ''lt hdsin
+  · -- r t₂ = q''
+    simpa [q''] using repairSchedule_at_t d t₂ q'' (t₂ + 1 + j'')
+  · -- r J'' = q''
+    unfold r repairSchedule
+    simp [q'']
+  · -- r s = d s off {t₂, J''}
+    intro s hs
+    unfold r repairSchedule
+    simp [show s ≠ t₂ by (intro h; exact hs (by simp [h])),
+      show s ≠ t₂ + 1 + j'' by (intro h; exact hs (by simp [h]))]
+  · -- cache 一致到 t₂
+    intro s hs
+    exact schedCache_repairSchedule_eq_e d t₂ q'' (t₂ + 1 + j'') (by omega) σ C₀ hs
 
 /-- 迭代的情形 A(交换步骤):在首个分歧 `t` 处,用策略的选择
 `q' = fifoSchedule σ C₀ t` 替换 `d` 的逐出 `q = d t`,得到新调度

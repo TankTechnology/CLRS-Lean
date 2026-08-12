@@ -1,34 +1,11 @@
-import CLRSLean.Chapter_29.Section_29_4_Duality.Definitions
-import CLRSLean.Chapter_29.Section_29_4_Duality.WeakDuality
-import CLRSLean.Chapter_29.Section_29_4_Duality.Optimality
-import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlackness
-import CLRSLean.Chapter_29.Section_29_4_Duality.TerminalCertificate
-import CLRSLean.Chapter_29.Section_29_4_Duality.DictionaryBridge
-import CLRSLean.Chapter_29.Section_29_4_Duality.StrongDuality
-import CLRSLean.Chapter_29.Section_29_4_Duality.ComplementarySlacknessTheorem
+import CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality
 
 /-!
-# 29.4 Duality
+# Section 29.4 - Duality (legacy compatibility path)
 
-The represented layer proves weak duality, extracts a dual certificate from a
-terminal SIMPLEX dictionary, derives strong duality, and proves both directions
-of complementary slackness.
-
-## Implementation details
-
-The split proof layers remain available outside the main sidebar:
-
-* [Dual Feasibility](CLRSLean/Chapter_29/Section_29_4_Duality/Definitions/)
-* [Weak Duality](CLRSLean/Chapter_29/Section_29_4_Duality/WeakDuality/)
-* [Optimality Specifications](CLRSLean/Chapter_29/Section_29_4_Duality/Optimality/)
-* [Complementary-Slackness Gap Identity](CLRSLean/Chapter_29/Section_29_4_Duality/ComplementarySlackness/)
-* [Terminal Dual Certificate](CLRSLean/Chapter_29/Section_29_4_Duality/TerminalCertificate/)
-* [Dictionary/Primal Bridge](CLRSLean/Chapter_29/Section_29_4_Duality/DictionaryBridge/)
-* [Strong Duality](CLRSLean/Chapter_29/Section_29_4_Duality/StrongDuality/)
-* [Complementary-Slackness Theorem](CLRSLean/Chapter_29/Section_29_4_Duality/ComplementarySlacknessTheorem/)
+Third-edition-numbered compatibility path for the duality development
+(fourth-edition Section 29.3).  The canonical fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
-
-namespace CLRS
-namespace Chapter29
-end Chapter29
-end CLRS
