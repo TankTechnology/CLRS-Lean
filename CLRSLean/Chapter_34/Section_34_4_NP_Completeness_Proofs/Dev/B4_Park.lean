@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B3_ConstEmit
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B3_ConstPhase
 
 /-!
 # Dev B4: parking and unparking value variables
