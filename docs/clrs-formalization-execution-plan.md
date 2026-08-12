@@ -1,32 +1,32 @@
-# CLRS 与 TCS 形式化执行方案
+# CLRS and TCS Formalization Execution Plan
 
-本文档整理一个分阶段执行方案。核心目标是先用人类研究者和现成大模型 agent
-推进 CLRS 经典算法证明，再逐步扩展到 CLRS proof map 和 TCS 论文形式化。
+This document lays out a phased execution plan. The core goal is to first use human researchers and off-the-shelf large-model agents
+to advance proofs of the classic CLRS algorithms, and then gradually extend to the CLRS proof map and formalization of TCS papers.
 
-当前阶段：Synthesis。
+Current phase: Synthesis.
 
-也就是说，我们已经有 Huffman V2 和 MST cut-property 起点，但还没有到“形式化
-整本 CLRS”或“训练专用 Lean 模型”的阶段。当前最重要的是形成稳定的执行节奏、
-证明资产和可审计的失败记录。
+In other words, we already have the Huffman V2 and MST cut-property starting points, but we are not yet at the stage of “formalizing
+the whole of CLRS” or “training a dedicated Lean model”. The most important thing right now is to establish a steady execution cadence,
+proof assets, and an auditable record of failures.
 
-## 1. 总体原则
+## 1. Overall principles
 
-主线不是训练模型，而是建设形式化证明资产。
+The main line is not model training, but building formalized proof assets.
 
-短中期优先顺序：
+Short- and medium-term priorities:
 
-1. 用人类 + 现成大模型 agent 完成 CLRS 经典算法证明；
-2. 建立 CLRS proof map，逐步覆盖主要章节的重要定理；
-3. 在 CLRS 资产稳定后，挑选适合的 TCS 论文做形式化试点；
-4. 模型训练暂不作为早期目标，只保留数据记录和未来可选接口。
+1. Use humans + off-the-shelf large-model agents to complete proofs of the classic CLRS algorithms;
+2. Build the CLRS proof map, gradually covering the important theorems of the major chapters;
+3. Once the CLRS assets are stable, pick suitable TCS papers for formalization pilots;
+4. Model training is not an early goal for now; only keep data recording and an optional future interface.
 
-这意味着，早期不自训 Qwen-7B，不把 RL 作为推进 CLRS 的必要条件。我们尽量使用
-已经训好的大模型，通过更好的 theorem interface、proof-pattern catalog、任务拆解
-和验证工作流来提高证明效率。
+This means we will not self-train Qwen-7B early on, and will not treat RL as a prerequisite for advancing CLRS. We will try to use
+already-trained large models as much as possible, improving proof efficiency through better theorem interfaces, a proof-pattern catalog, task
+decomposition, and a verification workflow.
 
-## 2. 当前资产
+## 2. Current assets
 
-已经完成或开始的核心资产：
+Core assets already completed or started:
 
 ```text
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
@@ -38,7 +38,7 @@ docs/huffman-optimality-v2.md
 docs/proof-patterns-catalog.md
 ```
 
-当前代表性定理：
+Current representative theorems:
 
 ```lean
 HuffmanV2.optimum_huffman_freqs
@@ -46,144 +46,144 @@ CLRS.MST.safe_edge_of_lightest_crossing
 CLRS.MST.mst_exchange_step
 ```
 
-它们分别代表两类重要证明模式：
+They represent two important proof patterns respectively:
 
-- Huffman：exchange argument / local tree transformation；
-- MST：cut property / safe edge / exchange step。
+- Huffman: exchange argument / local tree transformation;
+- MST: cut property / safe edge / exchange step.
 
-这已经足够作为 CLRS 形式化路线的起点，但还不足以支撑“全书证明”或“TCS 论文
-形式化”的强叙事。下一步需要扩大算法样本，并同步整理证明模式。
+This is already enough as a starting point for the CLRS formalization roadmap, but not enough to support a strong narrative of “whole-book proofs” or “TCS paper
+formalization”. The next step is to expand the sample of algorithms and, in parallel, organize the proof patterns.
 
-## 3. 阶段一：经典算法核心证明
+## 3. Phase one: core proofs of classic algorithms
 
-目标：先完成一批 CLRS 中最能代表不同证明模式的算法。
+Goal: first complete a batch of CLRS algorithms that best represent different proof patterns.
 
-建议优先队列：
+Suggested priority list:
 
-1. Huffman coding；
-2. MST/Kruskal；
-3. Dijkstra；
-4. LCS 或 edit distance；
-5. Bellman-Ford 或 BFS shortest path；
-6. Matrix-chain multiplication 或 amortized analysis 样本。
+1. Huffman coding;
+2. MST/Kruskal;
+3. Dijkstra;
+4. LCS or edit distance;
+5. Bellman-Ford or BFS shortest path;
+6. Matrix-chain multiplication or amortized analysis samples.
 
-每个算法都应产出四件东西：
+Each algorithm should produce four things:
 
-- 数学 specification；
-- 算法定义或抽象算法接口；
-- correctness / optimality theorem；
-- proof-pattern note。
+- a mathematical specification;
+- an algorithm definition or abstract algorithm interface;
+- a correctness / optimality theorem;
+- a proof-pattern note.
 
 ### 3.1 Huffman
 
-状态：已有 V2 单文件完整证明。
+Status: a complete V2 proof in a single file already exists.
 
-短期策略：
+Short-term strategy:
 
-- 冻结主证明结构；
-- 不为了极限压行数破坏可读性；
-- 整理 theorem chain、关键 lemma 和证明模式；
-- 把 Huffman 作为 greedy exchange 的旗舰 case study。
+- Freeze the main proof structure;
+- Do not sacrifice readability to minimize line counts;
+- Organize the theorem chain, key lemmas, and proof patterns;
+- Make Huffman the flagship case study for greedy exchange.
 
 ### 3.2 MST/Kruskal
 
-状态：已有 cut property / safe edge 证明核。
+Status: the cut property / safe edge proof core already exists.
 
-当前文件：
+Current files:
 
 ```text
 CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
 ```
 
-下一步：
+Next steps:
 
-1. 定义有限图、边权、生成树、连通性或等价的 spanning-tree spec；
-2. 将 `CutCertificate` 落到具体有限图；
-3. 证明 cut property 的图论证书；
-4. 推进 Kruskal 数学版最优性；
-5. 暂缓 union-find 性能实现。
+1. Define finite graphs, edge weights, spanning trees, connectivity, or an equivalent spanning-tree spec;
+2. Instantiate `CutCertificate` on concrete finite graphs;
+3. Prove the graph-theoretic certificate for the cut property;
+4. Advance the mathematical-version optimality of Kruskal;
+5. Defer the union-find performance implementation for now.
 
-验收标准：
+Acceptance criteria:
 
 ```lean
 theorem kruskal_optimal :
   IsMST (kruskal G)
 ```
 
-早期可以先证明数学版 Kruskal，不要求证明高性能并查集实现。
+Early on we can prove the mathematical-version Kruskal without requiring a proof of the high-performance disjoint-set-union implementation.
 
 ### 3.3 Dijkstra
 
-证明模式：loop invariant / settled set / relaxation。
+Proof pattern: loop invariant / settled set / relaxation.
 
-建议先做数学状态版，而不是 priority queue 实现版。
+It is suggested to first do the mathematical state version, rather than a priority-queue implementation version.
 
-核心对象：
+Core objects:
 
-- 非负权图；
-- source；
-- distance map；
-- settled set；
-- relaxation invariant；
-- shortest-path specification。
+- nonnegative-weight graph;
+- source;
+- distance map;
+- settled set;
+- relaxation invariant;
+- shortest-path specification.
 
-验收标准：
+Acceptance criteria:
 
 ```lean
 theorem dijkstra_correct :
   ShortestPathDistances G source (dijkstra G source)
 ```
 
-降级方案：
+Fallback plan:
 
-- 如果 Dijkstra 状态机过重，先做 Bellman-Ford；
-- 如果 weighted graph 过重，先做 BFS shortest path；
-- 保留 Dijkstra theorem interface 和 invariant 草案。
+- If the Dijkstra state machine is too heavy, do Bellman-Ford first;
+- If the weighted graph is too heavy, do BFS shortest path first;
+- Keep the Dijkstra theorem interface and the invariant drafts.
 
-### 3.4 DP 样本
+### 3.4 DP samples
 
-证明模式：optimal substructure / recurrence correctness。
+Proof pattern: optimal substructure / recurrence correctness.
 
-建议优先 LCS 或 edit distance。
+LCS or edit distance is suggested as a priority.
 
-原因：
+Reasons:
 
-- specification 清晰；
-- 和教材连接强；
-- 能补足 greedy / graph 之外的证明模式。
+- the specification is clear;
+- strong connection to the textbook;
+- fills in proof patterns beyond greedy / graph.
 
-验收标准：
+Acceptance criteria:
 
 ```lean
 theorem lcs_correct :
   IsLongestCommonSubsequence xs ys (lcs xs ys)
 ```
 
-如果时间不足，可以先用已有 DP 小题作为 proof-pattern 证据，但最终最好完成一个
-教材级 DP 样本。
+If time is short, existing small DP exercises can serve as proof-pattern evidence first, but ideally we eventually complete a
+textbook-level DP sample.
 
-## 4. 阶段二：CLRS proof map
+## 4. Phase two: CLRS proof map
 
-目标：从“几个经典算法证明”扩展到“CLRS 主要证明地图”。
+Goal: expand from “a few classic algorithm proofs” to “the main CLRS proof map”.
 
-这里不要求证明全书，也不承诺全部定理都解决。关键是把全书主要证明分成状态清楚
-的 buckets。
+This does not require proving the whole book, nor does it promise that every theorem will be solved. The key is to divide the book's main proofs into buckets
+with clear statuses.
 
-建议状态分类：
+Suggested status classification:
 
-| 状态 | 含义 |
+| Status | Meaning |
 |------|------|
-| `proved` | 主库中已有 sorry-free Lean theorem |
-| `statement` | theorem interface 已写出，但证明未完成 |
-| `partial` | 有关键 lemma 或局部证明，但主定理未完成 |
-| `blocked-mathlib` | 卡在 Mathlib 缺口或基础库缺失 |
-| `blocked-design` | 卡在表示层设计，例如图、路径、数组、概率模型 |
-| `out-of-scope` | 当前阶段不做，例如复杂实现细节或低收益章节 |
+| `proved` | a sorry-free Lean theorem already exists in the main library |
+| `statement` | the theorem interface is written, but the proof is not complete |
+| `partial` | key lemmas or partial proofs exist, but the main theorem is not complete |
+| `blocked-mathlib` | stuck on a Mathlib gap or missing foundational library |
+| `blocked-design` | stuck on the representation-layer design, e.g. graphs, paths, arrays, probability models |
+| `out-of-scope` | not done in the current phase, e.g. complex implementation details or low-yield chapters |
 
-主构建路径必须保持 `sorry-free`。未完成的 theorem 不应作为 `axiom` 混进主库。
+The main build path must remain `sorry-free`. Unfinished theorems should not be mixed into the main library as `axiom`s.
 
-推荐组织方式：
+Recommended organization:
 
 ```text
 docs/proof-map.md
@@ -195,226 +195,226 @@ CLRSLean/
   Blueprint/
 ```
 
-其中：
+Where:
 
-- `CLRSLean/Chapter_*/*` 只放可构建、可维护的正式证明；
-- `CLRSLean/Blueprint/` 可后续放 theorem statement 或探索性接口，但默认不进入完成状态；
-- 未解决问题优先记录在 docs，而不是用不可靠公理伪装成完成。
+- `CLRSLean/Chapter_*/*` holds only buildable, maintainable formal proofs;
+- `CLRSLean/Blueprint/` can later hold theorem statements or exploratory interfaces, but by default does not count as complete;
+- Unresolved problems are recorded in docs first, rather than being disguised as complete via unreliable axioms.
 
-阶段二的成功标准不是“全书都证明”，而是：
+The success criterion for phase two is not “prove the whole book”, but rather:
 
-- 主要章节有 proof map；
-- 每个重要 theorem 有状态；
-- 未解决项有清楚原因；
-- 已完成 theorem 能通过 `lake build`；
-- proof-pattern catalog 能解释重复出现的证明套路。
+- the major chapters have proof maps;
+- every important theorem has a status;
+- unresolved items have clear reasons;
+- completed theorems pass `lake build`;
+- the proof-pattern catalog can explain recurring proof routines.
 
-## 5. 阶段三：TCS 论文形式化试点
+## 5. Phase three: TCS paper formalization pilot
 
-TCS 论文形式化不宜过早全面展开。
+TCS paper formalization should not be fully expanded too early.
 
-启动条件：
+Prerequisites for starting:
 
-- Huffman、MST、Dijkstra、DP 至少三个 case study 稳定；
-- 有基本的图、路径、权重、最优性、递推等 proof infrastructure；
-- proof map 能展示我们不是在做孤立例子；
-- agent 工作流已经能稳定辅助 Lean 证明。
+- at least three case studies among Huffman, MST, Dijkstra, DP are stable;
+- basic proof infrastructure for graphs, paths, weights, optimality, recurrences, etc., exists;
+- the proof map shows we are not working on isolated examples;
+- the agent workflow can already reliably assist with Lean proofs.
 
-优先选择的论文类型：
+Paper types to prioritize:
 
-- 和 CLRS 资产相邻的图算法论文；
-- 贪心、交换论证、cut property 相关论文；
-- 动态规划或近似算法；
-- 摊还分析；
-- 随机算法的基础部分。
+- graph algorithm papers adjacent to the CLRS assets;
+- papers related to greedy, exchange arguments, cut property;
+- dynamic programming or approximation algorithms;
+- amortized analysis;
+- foundational parts of randomized algorithms.
 
-暂不建议一开始选：
+Not recommended to pick at the start:
 
-- 依赖大型概率论背景的论文；
-- 需要复杂代数、范畴或测度基础的论文；
-- 定义体系过重但和 CLRS 资产无明显复用关系的现代 TCS 论文；
-- 需要证明大规模工程系统实现正确性的论文。
+- papers depending on heavy background in probability theory;
+- papers requiring complex algebra, category, or measure-theoretic foundations;
+- modern TCS papers whose definitional apparatus is heavy but which have no obvious reuse of CLRS assets;
+- papers requiring proofs of correctness for large-scale engineering-system implementations.
 
-阶段三的第一个目标不是“形式化一篇完整 TCS 论文”，而是做一个 narrow pilot：
+The first goal of phase three is not “formalizing a complete TCS paper”, but doing a narrow pilot:
 
-- 选择一篇论文中的一个核心 theorem；
-- 写出 Lean statement；
-- 证明核心 lemma 或给出 blocked reason；
-- 记录它复用了哪些 CLRS proof infrastructure；
-- 评估是否值得扩展为完整论文形式化项目。
+- pick one core theorem from a paper;
+- write out the Lean statement;
+- prove the core lemma or give a blocked reason;
+- record which CLRS proof infrastructure it reuses;
+- assess whether it is worth extending into a full paper formalization project.
 
-## 6. 模型与 Agent 策略
+## 6. Model and agent strategy
 
-早期不自训模型。
+We will not self-train models early on.
 
-原因：
+Reasons:
 
-- 训练 Qwen-7B 或做 RL 和当前 CLRS 证明主线耦合较弱；
-- 数据集、reward、环境、算力和评估都需要单独工程投入；
-- 在证明资产不足时训练，容易得到只能做局部 tactic 的模型；
-- 使用现成强模型可以更快推进算法证明本身。
+- training Qwen-7B or doing RL is only weakly coupled to the current main line of CLRS proofs;
+- datasets, reward, environments, compute, and evaluation each require separate engineering investment;
+- training when proof assets are insufficient tends to yield models that can only do local tactics;
+- using existing strong models can advance the algorithm proofs themselves more quickly.
 
-当前策略：
+Current strategy:
 
-1. 使用现成大模型 agent 完成人类可审阅的证明任务；
-2. 把任务拆成 theorem statement、lemma、proof pattern、verification command；
-3. 每次失败记录 blocked reason，而不是只保留成功证明；
-4. 把 proof attempts 转化为未来可用的 benchmark 数据。
+1. Use off-the-shelf large-model agents to complete proof tasks that humans can review;
+2. Break tasks into theorem statements, lemmas, proof patterns, and verification commands;
+3. Record a blocked reason for every failure, rather than keeping only successful proofs;
+4. Turn proof attempts into benchmark data usable in the future.
 
-可记录的数据：
+Data that can be recorded:
 
-- theorem statement；
-- imports；
-- proof state；
-- 失败尝试；
-- 最终证明；
-- 构建命令；
-- 人类介入点；
-- proof-pattern 标签。
+- theorem statement;
+- imports;
+- proof state;
+- failed attempts;
+- final proofs;
+- build commands;
+- human intervention points;
+- proof-pattern labels.
 
-未来如果要训练模型，建议顺序是：
+If we train models in the future, the suggested order is:
 
-1. 先做 eval benchmark；
-2. 再做 supervised fine-tuning；
-3. 最后才考虑 RL；
-4. reward 先用 Lean 编译通过与否，不先设计复杂过程奖励。
+1. First build an eval benchmark;
+2. Then do supervised fine-tuning;
+3. Consider RL only at the very end;
+4. Use whether the Lean compilation passes as the reward initially, and do not design complex process rewards first.
 
-也就是说，模型训练是远期增强，不是早期依赖。
+In other words, model training is a long-term enhancement, not an early dependency.
 
-## 7. 人类与 Agent 分工
+## 7. Division of labor between humans and agents
 
-人类主要负责：
+Humans are mainly responsible for:
 
-- 选择证明目标；
-- 判断 theorem statement 是否有数学意义；
-- 决定表示层设计；
-- 审查证明是否匹配教材叙事；
-- 判断 blocked reason 是否真实。
+- choosing proof targets;
+- judging whether a theorem statement has mathematical meaning;
+- deciding the representation-layer design;
+- reviewing whether a proof matches the textbook narrative;
+- judging whether a blocked reason is genuine.
 
-Agent 主要负责：
+Agents are mainly responsible for:
 
-- 搜索现有 lemma；
-- 起草 Lean definitions；
-- 分解 proof obligations；
-- 完成局部证明；
-- 跑 `lake env lean` 和 `lake build`；
-- 维护 proof-pattern notes 和 proof map。
+- searching for existing lemmas;
+- drafting Lean definitions;
+- decomposing proof obligations;
+- completing partial proofs;
+- running `lake env lean` and `lake build`;
+- maintaining proof-pattern notes and the proof map.
 
-对复杂算法，推荐工作循环：
+For complex algorithms, a recommended working loop:
 
-1. 人类和 agent 先定 theorem interface；
-2. agent 写最小定义和接口检查；
-3. 人类确认 statement 没有偷换目标；
-4. agent 证明局部 lemma；
-5. 每完成一层就跑构建；
-6. 同步更新 proof-pattern catalog；
-7. 卡住时记录 blocked reason，而不是硬塞公理。
+1. Human and agent first agree on the theorem interface;
+2. The agent writes minimal definitions and interface checks;
+3. The human confirms the statement does not change the goal;
+4. The agent proves local lemmas;
+5. Run a build after each layer is completed;
+6. Update the proof-pattern catalog in sync;
+7. When stuck, record a blocked reason rather than forcing in axioms.
 
-## 8. 近期里程碑
+## 8. Near-term milestones
 
-### 里程碑 A：MST 核心闭环
+### Milestone A: MST core closed loop
 
-目标：
+Goal:
 
-- 从当前 `safe_edge_of_lightest_crossing` 推进到 Kruskal 数学版最优性。
+- Advance from the current `safe_edge_of_lightest_crossing` to mathematical-version Kruskal optimality.
 
-交付物：
+Deliverables:
 
-- finite graph specification；
-- spanning tree specification；
-- cut exchange certificate；
-- Kruskal theorem statement；
-- Kruskal optimality proof 或明确 blocked reason。
+- finite graph specification;
+- spanning tree specification;
+- cut exchange certificate;
+- Kruskal theorem statement;
+- Kruskal optimality proof or an explicit blocked reason.
 
-### 里程碑 B：Dijkstra theorem interface
+### Milestone B: Dijkstra theorem interface
 
-目标：
+Goal:
 
-- 先不急着证明完整实现，先冻结 statement 和 invariant。
+- Do not rush to prove the full implementation; first freeze the statement and invariants.
 
-交付物：
+Deliverables:
 
-- nonnegative weighted graph；
-- path weight；
-- shortest distance；
-- Dijkstra state；
-- settled-set invariant；
-- `dijkstra_correct` statement。
+- nonnegative weighted graph;
+- path weight;
+- shortest distance;
+- Dijkstra state;
+- settled-set invariant;
+- `dijkstra_correct` statement.
 
-### 里程碑 C：CLRS proof map 初版
+### Milestone C: first version of the CLRS proof map
 
-目标：
+Goal:
 
-- 把 CLRS 主要章节的重要证明列出来并分类。
+- List and classify the important proofs of the major CLRS chapters.
 
-交付物：
+Deliverables:
 
-- `docs/proof-map.md`；
-- 状态分类表；
-- 每个章节 3-10 个候选 theorem；
-- 每个 theorem 的 status / priority / blocked reason。
+- `docs/proof-map.md`;
+- a status classification table;
+- 3-10 candidate theorems per chapter;
+- status / priority / blocked reason for each theorem.
 
-### 里程碑 D：Proof-pattern catalog 升级
+### Milestone D: proof-pattern catalog upgrade
 
-目标：
+Goal:
 
-- 从 Codeforces proof patterns 升级到 CLRS proof patterns。
+- Upgrade from Codeforces proof patterns to CLRS proof patterns.
 
-新增模式：
+New patterns:
 
-- exchange argument；
-- cut property；
-- loop invariant；
-- relaxation invariant；
-- optimal substructure；
-- recurrence completeness；
-- amortized potential。
+- exchange argument;
+- cut property;
+- loop invariant;
+- relaxation invariant;
+- optimal substructure;
+- recurrence completeness;
+- amortized potential.
 
-## 9. 投稿和产出路径
+## 9. Publication and output paths
 
-短期产出：
+Short-term outputs:
 
-- Huffman V2 技术说明；
-- MST/Kruskal proof note；
-- CLRS proof map；
-- proof-pattern catalog；
-- technical blog 或 workshop note。
+- Huffman V2 technical note;
+- MST/Kruskal proof note;
+- CLRS proof map;
+- proof-pattern catalog;
+- technical blog or workshop note.
 
-中期产出：
+Medium-term outputs:
 
-- 形式化 CLRS 经典算法证明 artifact；
-- proof-pattern methodology paper；
-- Lean proof-agent benchmark；
-- ITP/CPP 风格论文或 artifact paper。
+- formalized CLRS classic algorithm proof artifacts;
+- proof-pattern methodology paper;
+- Lean proof-agent benchmark;
+- ITP/CPP-style paper or artifact paper.
 
-长期产出：
+Long-term outputs:
 
-- CLRS 主要证明的持续扩展；
-- TCS 论文形式化试点；
-- 证明 agent 数据集和评测；
-- 可选的模型微调或 RL 实验。
+- continued expansion of the main CLRS proofs;
+- TCS paper formalization pilots;
+- proof-agent datasets and evaluation;
+- optional model fine-tuning or RL experiments.
 
-不建议短期承诺：
+Short-term commitments not recommended:
 
-- 完整形式化 CLRS 全书；
-- 自训模型超过现成大模型；
-- 形式化高难 TCS 论文全集；
-- 用 agent 全自动完成复杂算法证明。
+- fully formalizing the entire CLRS book;
+- self-trained models surpassing existing large models;
+- formalizing the full set of difficult TCS papers;
+- using agents to fully automatically complete complex algorithm proofs.
 
-## 10. 下一步
+## 10. Next steps
 
-最直接的下一步是继续 MST。
+The most direct next step is to continue with MST.
 
-建议执行顺序：
+Suggested execution order:
 
-1. 在 `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
-   中继续补 cut exchange 的具体有限图证明；
-2. 证明当前 `CutCertificate` 可以从具体 cut exchange 构造出来；
-3. 在 `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean` 中继续强化
-   `kruskal_optimal`，已经去掉 sorted-order 外部假设并证明 complete-scan
-   spanning；下一步去掉 forest-preservation 外部假设；
-4. 若完整 Kruskal 太重，先完成数学版 safe-edge induction；
-5. 同步维护 `docs/proof-map.md`，记录 MST、Dijkstra、DP 的状态。
+1. In `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`,
+   continue filling in the concrete finite-graph proof of cut exchange;
+2. Prove that the current `CutCertificate` can be constructed from a concrete cut exchange;
+3. In `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`, continue strengthening
+   `kruskal_optimal`: the sorted-order external assumption has already been removed and complete-scan
+   spanning has been proved; next, remove the forest-preservation external assumption;
+4. If the full Kruskal is too heavy, first complete the mathematical-version safe-edge induction;
+5. Keep `docs/proof-map.md` maintained in sync, recording the status of MST, Dijkstra, and DP.
 
-这条路线能保持早期工作聚焦：不用先训练模型，也不用立刻形式化全书，而是一步步
-把 CLRS 的关键证明变成可构建、可复用、可投稿的 Lean artifact。
+This roadmap keeps early work focused: no need to train a model first, no need to formalize the whole book immediately, but rather step by step
+turn CLRS's key proofs into buildable, reusable, publishable Lean artifacts.
