@@ -43,12 +43,22 @@ Main results:
 - Theorem `approxSubsetSum_approx_lt` (Theorem 35.7): with `0 < ε ≤ 1`, the
   explicit factor is absorbed into `(1 + ε)` via
   `(1 + ε/(2n))^n ≤ e^{ε/2} ≤ 1 + ε`, giving `y* ≤ (1 + ε) · z*`.
+- Definition `Separated`: a list is `(1 + δ)`-separated when every `a` before
+  `b` satisfies `(1 + δ) · a < b`.
+- Lemma `trim_separated`: TRIM returns a `(1 + δ)`-separated list (the premise
+  of Exercise 35.5-1).
+- Lemma `sep_length_bound` (Exercise 35.5-1): a `(1 + δ)`-separated list of
+  naturals in `[1, t]` has at most `log t / log(1 + δ) + 1` elements.
+- Lemma `approxLists_length_bound`: every trimmed list of APPROX-SUBSET-SUM has
+  at most `log t / log(1 + δ) + 2` elements (including the least element `0`).
+- Theorem `approxSubsetSum_fptas` (Theorem 35.8): with `δ = ε/(2n)`, every
+  trimmed list has at most `4n · lg t / ε + 2` elements, so APPROX-SUBSET-SUM
+  runs in time polynomial in the input size and in `1/ε` — a fully
+  polynomial-time approximation scheme.
 
-**Current gaps:** Theorem 35.8 — that APPROX-SUBSET-SUM runs in time polynomial
-in the input size and `1/ε` (the FPTAS running-time analysis, bounding each
-trimmed list by `O(n · lg t / ε)` elements via the `1 + ε/(2n)` separation of
-consecutive kept values) — is not yet formalized.  As with the other sections
-of this chapter, the running-time analysis is left to future work.
+**Current gaps:** none.  The running-time analysis of Theorem 35.8 is
+formalized at the mathematical level (list-size bounds); a machine-level cost
+model assigning running times to MERGE-LISTS and TRIM steps is not modeled.
 
 Notation conventions used in this section:
 
@@ -670,6 +680,338 @@ theorem approxSubsetSum_approx_lt (xs : List ℕ) (t : ℕ) (ε : ℝ)
       (optimalSum xs t : ℝ) ≤ (1 + ε / (2 * (xs.length : ℝ))) ^ xs.length * (approxSum xs t ε : ℝ) := hmain
       _ ≤ (1 + ε) * (approxSum xs t ε : ℝ) := by
         exact mul_le_mul_of_nonneg_right hpow hz0
+
+/-! ## The running-time analysis (Theorem 35.8, FPTAS)
+
+The approximation guarantee of Theorem 35.7 shows APPROX-SUBSET-SUM is a
+`(1 + ε)`-approximation; to see that it is a *fully polynomial-time* scheme the
+size of the trimmed lists must be bounded.  TRIM keeps consecutive kept values
+more than a multiplicative factor `1 + δ` apart, so a `(1 + δ)`-separated list
+with every value in `[1, t]` has at most `log t / log(1 + δ) + 1` elements
+(Exercise 35.5-1).  With `δ = ε/(2n)` and the chord bound `log(1 + δ) ≥ δ/2`,
+each list has `O(n · lg t / ε)` elements; since MERGE-LISTS and TRIM each cost
+linear time in the list length, the whole algorithm runs in time
+`O(n² · lg t / ε)`, polynomial in the input size and in `1/ε`.  This is
+Theorem 35.8: APPROX-SUBSET-SUM is a fully polynomial-time approximation
+scheme. -/
+
+/-- A list is `(1 + δ)`-*separated* when every `a` occurring before `b`
+satisfies `(1 + δ) · a < b`: the kept values of TRIM stay more than a
+multiplicative factor `1 + δ` apart. -/
+def Separated (δ : ℝ) (L : List ℕ) : Prop :=
+  L.Pairwise (fun a b => (1 + δ) * (a : ℝ) < (b : ℝ))
+
+/-- TRIM's tail scan keeps the previously kept element `last` followed by the
+kept tail; every kept value is more than a factor `(1 + δ)` above every earlier
+kept value. -/
+lemma trimAux_separated {δ : ℝ} (hδ : 0 ≤ δ) :
+    ∀ last ys, Separated δ (last :: trimAux δ last ys) := by
+  intro last ys
+  induction ys generalizing last with
+  | nil => simp [Separated, trimAux]
+  | cons y ys ih =>
+      by_cases hkeep : (1 + δ) * (last : ℝ) < (y : ℝ)
+      · have htail : Separated δ (y :: trimAux δ y ys) := ih y
+        rw [trimAux, if_pos hkeep]
+        apply List.pairwise_cons.mpr
+        constructor
+        · intro z hz
+          rcases List.mem_cons.mp hz with hz | hz
+          · subst z
+            exact hkeep
+          · have hsep : (1 + δ) * (y : ℝ) < (z : ℝ) := (List.pairwise_cons.mp htail).1 z hz
+            have hy0 : (0 : ℝ) ≤ (y : ℝ) := by exact_mod_cast Nat.zero_le y
+            have hδy : (0 : ℝ) ≤ δ * (y : ℝ) := mul_nonneg hδ hy0
+            have hle : (y : ℝ) ≤ (1 + δ) * (y : ℝ) := by nlinarith
+            exact lt_trans hkeep (lt_of_le_of_lt hle hsep)
+        · exact htail
+      · simpa [trimAux, hkeep] using ih last
+
+/-- TRIM produces a `(1 + δ)`-separated list: every kept value exceeds every
+earlier kept value by more than a factor `1 + δ`. -/
+lemma trim_separated {δ : ℝ} (hδ : 0 ≤ δ) : ∀ L : List ℕ, Separated δ (trim δ L) := by
+  intro L
+  cases L with
+  | nil => simp [Separated, trim]
+  | cons y ys => simpa [trim] using (trimAux_separated hδ y ys)
+
+/-- Filtering a separated list keeps it separated (a sublist of a separated
+list is separated). -/
+lemma separated_filter {δ : ℝ} {L : List ℕ} (p : ℕ → Prop) [DecidablePred p]
+    (h : Separated δ L) : Separated δ (L.filter p) := by
+  exact List.Pairwise.sublist (@List.filter_sublist ℕ (fun x => decide (p x)) L) h
+
+/-- The trimmed lists of APPROX-SUBSET-SUM are `(1 + δ)`-separated. -/
+lemma approxLists_separated {δ : ℝ} (hδ : 0 ≤ δ) (t : ℕ) :
+    ∀ xs, Separated δ (approxLists δ t xs) := by
+  intro xs
+  induction xs with
+  | nil => simp [approxLists, Separated]
+  | cons x xs ih =>
+      dsimp [approxLists]
+      exact separated_filter (fun s => s ≤ t)
+        (trim_separated hδ (merge (approxLists δ t xs) ((approxLists δ t xs).map (fun s => s + x))))
+
+/-- The counting core of Exercise 35.5-1: a `(1 + δ)`-separated list of naturals
+whose elements lie in the real interval `[c, t]` has at most
+`log(t / c) / log(1 + δ) + 1` elements. -/
+lemma sep_length_aux {δ t : ℝ} (hδ : 0 < δ) (c : ℝ) (hc : 1 ≤ c) (hct : c ≤ t) :
+    ∀ L : List ℕ, Separated δ L →
+      (∀ a ∈ L, c ≤ (a : ℝ)) →
+      (∀ a ∈ L, (a : ℝ) ≤ t) →
+      (L.length : ℝ) ≤ Real.log (t / c) / Real.log (1 + δ) + 1 := by
+  intro L
+  induction L generalizing c hc hct with
+  | nil =>
+      intro hsep hlo hle
+      have hc0 : 0 < c := lt_of_lt_of_le zero_lt_one hc
+      have h1 : (1 : ℝ) ≤ t / c := by
+        rw [le_div_iff₀ hc0]
+        simpa using hct
+      have hlg : 0 < Real.log (1 + δ) := Real.log_pos (by linarith)
+      have hlg0 : (0 : ℝ) ≤ Real.log (t / c) / Real.log (1 + δ) :=
+        div_nonneg (Real.log_nonneg h1) (le_of_lt hlg)
+      have hz : (0 : ℝ) ≤ Real.log (t / c) / Real.log (1 + δ) + 1 := by linarith [hlg0]
+      simpa using hz
+  | cons a rest ih =>
+      intro hsep hlo hle
+      have hsepR : Separated δ rest := (List.pairwise_cons.mp hsep).2
+      have hleR : ∀ b ∈ rest, (b : ℝ) ≤ t := by
+        intro b hb
+        exact hle b (by simp [hb])
+      have ha_c : c ≤ (a : ℝ) := hlo a (by simp)
+      have hla : (1 : ℝ) ≤ (a : ℝ) := le_trans hc ha_c
+      have ha0 : (0 : ℝ) < (a : ℝ) := lt_of_lt_of_le zero_lt_one hla
+      have hc0 : 0 < c := lt_of_lt_of_le zero_lt_one hc
+      have ht0 : 0 < t := lt_of_lt_of_le hc0 hct
+      have hlg : 0 < Real.log (1 + δ) := Real.log_pos (by linarith)
+      cases rest with
+      | nil =>
+          have h1 : (1 : ℝ) ≤ t / c := by
+            rw [le_div_iff₀ hc0]
+            simpa using hct
+          have hlg0 : (0 : ℝ) ≤ Real.log (t / c) / Real.log (1 + δ) :=
+            div_nonneg (Real.log_nonneg h1) (le_of_lt hlg)
+          have : (1 : ℝ) ≤ Real.log (t / c) / Real.log (1 + δ) + 1 := by linarith [hlg0]
+          simpa using this
+      | cons b rest' =>
+          let c' : ℝ := (1 + δ) * (a : ℝ)
+          have hδ0 : 0 ≤ δ := le_of_lt hδ
+          have hc'1 : (1 : ℝ) ≤ c' := by
+            dsimp [c']
+            have hδa : (0 : ℝ) ≤ δ * (a : ℝ) := mul_nonneg hδ0 (by exact_mod_cast Nat.zero_le a)
+            nlinarith
+          have hc't : c' ≤ t := by
+            have hsep_b : (1 + δ) * (a : ℝ) < (b : ℝ) :=
+              (List.pairwise_cons.mp hsep).1 b (by simp)
+            have hb_t : (b : ℝ) ≤ t := hle b (by simp)
+            dsimp [c']
+            nlinarith
+          have hbc' : ∀ y ∈ b :: rest', c' ≤ (y : ℝ) := by
+            intro y hy
+            have hsep_y : (1 + δ) * (a : ℝ) < (y : ℝ) :=
+              (List.pairwise_cons.mp hsep).1 y hy
+            dsimp [c']
+            exact le_of_lt hsep_y
+          have hc'0 : 0 < c' := lt_of_lt_of_le zero_lt_one hc'1
+          have hloga : Real.log c ≤ Real.log (a : ℝ) := by
+            apply Real.log_le_log
+            · exact hc0
+            · exact ha_c
+          have hlogc' : Real.log c' = Real.log (1 + δ) + Real.log (a : ℝ) := by
+            dsimp [c']
+            rw [Real.log_mul]
+            · ring
+            · exact ne_of_gt (by linarith : (0 : ℝ) < 1 + δ)
+            · exact ne_of_gt ha0
+          have hlt : Real.log (1 + δ) ≤ Real.log c' - Real.log c := by
+            nlinarith [hloga, hlogc']
+          have hlogtc' : Real.log (t / c') = Real.log t - Real.log c' := by
+            rw [Real.log_div]
+            · ring
+            · exact ne_of_gt ht0
+            · exact ne_of_gt hc'0
+          have hlogtc : Real.log (t / c) = Real.log t - Real.log c := by
+            rw [Real.log_div]
+            · ring
+            · exact ne_of_gt ht0
+            · exact ne_of_gt hc0
+          have hmain : Real.log (1 + δ) + Real.log (t / c') ≤ Real.log (t / c) := by
+            rw [hlogtc', hlogtc]
+            nlinarith [hlt]
+          have hgoal : (1 : ℝ) + Real.log (t / c') / Real.log (1 + δ) ≤
+              Real.log (t / c) / Real.log (1 + δ) := by
+            have hmul : (1 + Real.log (t / c') / Real.log (1 + δ)) * Real.log (1 + δ) ≤
+                Real.log (t / c) := by
+              field_simp [ne_of_gt hlg]
+              exact hmain
+            exact (le_div_iff₀ hlg).mp hmul
+          have hm : (((b :: rest').length : ℝ) ≤ Real.log (t / c') / Real.log (1 + δ) + 1) :=
+            ih c' hc'1 hc't (b :: rest') hsepR hbc' hleR
+          have hres : ((a :: b :: rest').length : ℝ) ≤
+              Real.log (t / c) / Real.log (1 + δ) + 1 := by
+            simp
+            nlinarith [hm, hgoal]
+          simpa using hres
+
+/--
+**Exercise 35.5-1 (list size).**  A `(1 + δ)`-separated list of naturals with
+every element in `[1, t]` has at most `⌊log_{1+δ} t⌋ + 1` elements; here the
+real-valued bound `log t / log(1 + δ) + 1` (CLRS §35.5, Exercise 35.5-1).
+-/
+lemma sep_length_bound {δ : ℝ} (hδ : 0 < δ) (t : ℕ) (ht : 1 ≤ t) {L : List ℕ}
+    (hsep : Separated δ L)
+    (hpos : ∀ a ∈ L, (1 : ℝ) ≤ (a : ℝ))
+    (hle : ∀ a ∈ L, (a : ℝ) ≤ (t : ℝ)) :
+    (L.length : ℝ) ≤ Real.log (t : ℝ) / Real.log (1 + δ) + 1 := by
+  have h := sep_length_aux hδ 1 (by norm_num) (by exact_mod_cast ht) L hsep hpos hle
+  simpa using h
+
+/-- In a sorted list containing `0`, the head is `0`. -/
+lemma sorted_zero_head {L : List ℕ} (hsorted : L.Pairwise (· ≤ ·)) (h0 : 0 ∈ L) :
+    L = 0 :: L.tail := by
+  cases L with
+  | nil => simp at h0
+  | cons a rest =>
+      have ha : a = 0 := by
+        by_contra hna
+        have h0rest : 0 ∈ rest := by
+          simp at h0
+          rcases h0 with h0 | h0
+          · exact False.elim (hna h0.symm)
+          · exact h0
+        have ha0 : a ≤ 0 := (List.pairwise_cons.mp hsorted).1 0 h0rest
+        omega
+      subst a
+      rfl
+
+/-- In a `(1 + δ)`-separated list starting with `0`, the tail is exactly the
+filter of the non-zero elements. -/
+lemma cons_zero_filter {δ : ℝ} {rest : List ℕ} (hsep : Separated δ (0 :: rest)) :
+    (0 :: rest).filter (fun a => a ≠ 0) = rest := by
+  have hne : ∀ z ∈ rest, z ≠ 0 := by
+    intro z hz
+    have hzsep : (1 + δ) * (0 : ℝ) < (z : ℝ) := by
+      simpa [Separated] using (List.pairwise_cons.mp (δ := δ) hsep).1 z hz
+    intro hz0
+    rw [hz0] at hzsep
+    norm_num at hzsep
+  rw [List.filter_cons_of_neg]
+  · rw [List.filter_eq_self]
+    intro z hz
+    exact by simp [hne z hz]
+  · simp
+
+/-- The positive elements of each trimmed list of APPROX-SUBSET-SUM number at
+most `log t / log(1 + δ) + 1` (Exercise 35.5-1). -/
+lemma approxLists_pos_length_bound {δ : ℝ} (hδ : 0 < δ) (t : ℕ) (ht : 1 ≤ t) :
+    ∀ xs, (((approxLists δ t xs).filter (fun a => a ≠ 0)).length : ℝ) ≤
+      Real.log (t : ℝ) / Real.log (1 + δ) + 1 := by
+  intro xs
+  refine sep_length_bound hδ t ht ?_ ?_ ?_
+  · exact separated_filter (fun a => a ≠ 0) (approxLists_separated (le_of_lt hδ) t xs)
+  · intro a ha
+    exact_mod_cast (Nat.succ_le_of_lt (Nat.pos_of_ne_zero (of_decide_eq_true (List.mem_filter.mp ha).2)))
+  · intro a ha
+    exact_mod_cast (mem_approxLists_le_t δ t xs a (List.mem_filter.mp ha).1)
+
+/-- Each trimmed list of APPROX-SUBSET-SUM has at most
+`log t / log(1 + δ) + 2` elements: the `(1 + δ)`-separated positive values
+number at most `log t / log(1 + δ) + 1`, and `0` contributes one more. -/
+lemma approxLists_length_bound {δ : ℝ} (hδ : 0 < δ) (t : ℕ) (ht : 1 ≤ t) :
+    ∀ xs, ((approxLists δ t xs).length : ℝ) ≤ Real.log (t : ℝ) / Real.log (1 + δ) + 2 := by
+  intro xs
+  have hsep : Separated δ (approxLists δ t xs) := approxLists_separated (le_of_lt hδ) t xs
+  have hhead : approxLists δ t xs = 0 :: (approxLists δ t xs).tail :=
+    sorted_zero_head (approxLists_sorted δ t xs) (zero_mem_approxLists δ t xs)
+  have htail : (approxLists δ t xs).filter (fun a => a ≠ 0) = (approxLists δ t xs).tail := by
+    rw [hhead]
+    exact cons_zero_filter (by simpa [hhead] using hsep)
+  have hpos : (((approxLists δ t xs).filter (fun a => a ≠ 0)).length : ℝ) ≤
+      Real.log (t : ℝ) / Real.log (1 + δ) + 1 :=
+    approxLists_pos_length_bound hδ t ht xs
+  rw [htail] at hpos
+  rw [hhead]
+  rw [List.length_cons]
+  norm_num
+  linarith
+
+/-- For `0 ≤ δ ≤ 1`, `δ / 2 ≤ log(1 + δ)`: the chord bound that turns the
+`log t / log(1 + δ)` list size into `O(lg t / δ)`. -/
+lemma log_one_add_ge_half {δ : ℝ} (hδ0 : 0 ≤ δ) (hδ1 : δ ≤ 1) : δ / 2 ≤ Real.log (1 + δ) := by
+  have hx0 : 0 < 1 + δ := by linarith
+  have hx2 : 0 < 1 - δ / 2 := by linarith
+  have hle : Real.log (1 / (1 + δ)) ≤ Real.log (1 - δ / 2) := by
+    apply Real.log_le_log
+    · positivity
+    · rw [div_le_iff₀ hx0]
+      nlinarith
+  have hsub : Real.log (1 - δ / 2) ≤ -(δ / 2) := by
+    have h := Real.log_le_sub_one_of_pos hx2
+    nlinarith
+  have hloginv : Real.log (1 + δ) = -Real.log (1 / (1 + δ)) := by
+    have h : Real.log (1 + δ)⁻¹ = -Real.log (1 + δ) := Real.log_inv (1 + δ)
+    have hdiv : 1 / (1 + δ) = (1 + δ)⁻¹ := by ring
+    rw [← hdiv] at h
+    linarith
+  nlinarith [hle, hsub, hloginv]
+
+/--
+**Theorem 35.8 (FPTAS running time).**  APPROX-SUBSET-SUM(S, t, ε) is a fully
+polynomial-time approximation scheme: with `δ = ε/(2n)` (`n = |S|`), every
+trimmed list has at most `4n · lg t / ε + 2` elements — `O(n · lg t / ε)` —
+and since MERGE-LISTS and TRIM each cost linear time in the list length, the
+whole algorithm runs in time `O(n² · lg t / ε)`, polynomial in the input size
+and in `1/ε` (CLRS §35.5, Theorem 35.8; the list-size bound is Exercise
+35.5-1).
+-/
+theorem approxSubsetSum_fptas {xs : List ℕ} {t : ℕ} {ε : ℝ}
+    (hε0 : 0 < ε) (hε1 : ε ≤ 1) (ht : 1 ≤ t) :
+    ((approxLists (ε / (2 * (xs.length : ℝ))) t xs).length : ℝ) ≤
+      (4 * (xs.length : ℝ) * Real.log (t : ℝ)) / ε + 2 := by
+  let δ : ℝ := ε / (2 * (xs.length : ℝ))
+  by_cases hn0 : xs.length = 0
+  · have hxs : xs = [] := List.eq_nil_of_length_eq_zero hn0
+    subst xs
+    simp [approxLists, δ]
+  · have hnpos : 0 < (xs.length : ℝ) := by exact_mod_cast (Nat.pos_of_ne_zero hn0)
+    have hn1 : (1 : ℝ) ≤ (xs.length : ℝ) := by exact_mod_cast (Nat.succ_le_of_lt (Nat.pos_of_ne_zero hn0))
+    have hδ0 : 0 < δ := by
+      dsimp [δ]
+      exact div_pos hε0 (by positivity)
+    have hδle : δ ≤ 1 := by
+      dsimp [δ]
+      have h2n : (1 : ℝ) ≤ 2 * (xs.length : ℝ) := by nlinarith [hn1]
+      have hεlen : ε ≤ 2 * (xs.length : ℝ) := le_trans hε1 h2n
+      exact (div_le_iff₀ (by positivity : (0 : ℝ) < 2 * (xs.length : ℝ))).mpr (by simpa using hεlen)
+    have hlogpos : 0 < Real.log (1 + δ) := Real.log_pos (by linarith)
+    have hlogt : 0 ≤ Real.log (t : ℝ) := Real.log_nonneg (by exact_mod_cast ht)
+    have hlogd : δ / 2 ≤ Real.log (1 + δ) := log_one_add_ge_half (le_of_lt hδ0) hδle
+    have hscaled : Real.log (t : ℝ) / Real.log (1 + δ) ≤
+        4 * (xs.length : ℝ) * Real.log (t : ℝ) / ε := by
+      have hδ2 : 0 < δ / 2 := by positivity
+      have hinv : (Real.log (1 + δ))⁻¹ ≤ (δ / 2)⁻¹ := (inv_le_inv₀ hlogpos hδ2).2 hlogd
+      have hδ2inv : (δ / 2)⁻¹ = 4 * (xs.length : ℝ) / ε := by
+        have h2d : (2 : ℝ) / δ = 4 * (xs.length : ℝ) / ε := by
+          dsimp [δ]
+          field_simp [hε0.ne', ne_of_gt hnpos]
+          ring
+        calc
+          (δ / 2)⁻¹ = 2 / δ := by field_simp [ne_of_gt hδ0]
+          _ = 4 * (xs.length : ℝ) / ε := h2d
+      calc
+        Real.log (t : ℝ) / Real.log (1 + δ) = Real.log (t : ℝ) * (Real.log (1 + δ))⁻¹ := by ring
+        _ ≤ Real.log (t : ℝ) * (δ / 2)⁻¹ := mul_le_mul_of_nonneg_left hinv hlogt
+        _ = Real.log (t : ℝ) * (4 * (xs.length : ℝ) / ε) := by rw [hδ2inv]
+        _ = 4 * (xs.length : ℝ) * Real.log (t : ℝ) / ε := by ring
+    have hlen := approxLists_length_bound (δ := δ) hδ0 t ht xs
+    have hfinal : Real.log (t : ℝ) / Real.log (1 + δ) + 2 ≤
+        4 * (xs.length : ℝ) * Real.log (t : ℝ) / ε + 2 := by
+      nlinarith [hscaled]
+    have hgoal' : ((approxLists δ t xs).length : ℝ) ≤
+        4 * (xs.length : ℝ) * Real.log (t : ℝ) / ε + 2 := by
+      exact le_trans hlen hfinal
+    simpa [δ] using hgoal'
 
 end ApproxSubsetSum
 
