@@ -348,6 +348,12 @@ CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
+CLRSLean/Chapter_34.lean
+CLRSLean/Chapter_34/Section_34_1_3_NP_Foundations.lean
+CLRSLean/Chapter_34/Section_34_4_5_NP_Completeness.lean
+CLRSLean/Chapter_35.lean
+CLRSLean/Chapter_35/Section_35_1_3_Approximation_Algorithms.lean
+CLRSLean/Chapter_35/Section_35_4_5_Randomized_Approximation.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
 CLRSLean/Extensions/TreapHeight.lean
