@@ -807,7 +807,7 @@ lemma phases_cons_eq (k : ℕ) (σ : List Page) (h : σ ≠ []) :
     phases k σ = (firstPhase k σ).1 :: phases k (firstPhase k σ).2 := by
   cases σ with
   | nil => contradiction
-  | cons p rest => simp [phases, WellFounded.fix_eq]
+  | cons p rest => simp [phases]; rw [WellFounded.fix_eq]
 
 /-- The phase partition concatenates back to the original list. -/
 lemma phases_join (k : ℕ) (σ : List Page) : (phases k σ).flatten = σ := by
@@ -818,7 +818,7 @@ lemma phases_join (k : ℕ) (σ : List Page) : (phases k σ).flatten = σ := by
     | h n ih =>
       intro σ hn
       cases σ with
-      | nil => simp [phases]
+      | nil => simp [phases, WellFounded.fix_eq]
       | cons p rest =>
           let fp := firstPhase k (p :: rest)
           have hsplit := firstPhase_split k (p :: rest)
@@ -830,10 +830,53 @@ lemma phases_join (k : ℕ) (σ : List Page) : (phases k σ).flatten = σ := by
               rw [← hsplit, List.length_append]
             have hpos : 0 < fp.1.length := List.length_pos_of_ne_nil hnonempty
             omega
-          have hi := ih fp.2.length hremlen fp.2 rfl
+          have hremlen' : fp.2.length < n := by omega
+          have hi := ih fp.2.length hremlen' fp.2 rfl
           rw [phases_cons_eq k (p :: rest) (by simp)]
-          simp [List.flatten, hi, hsplit]
+          simp [fp, List.flatten, hi, hsplit]
   exact hmain σ.length σ rfl
+
+/-- LRU makes at most `k` misses per phase: its total misses are bounded by `k`
+times the number of phases. -/
+lemma lru_miss_le_phases (k : ℕ) (L : List Page) (σ : List Page) (hk : 0 < k) (hNodup : L.Nodup) :
+    lruMissesGo k L σ ≤ k * (phases k σ).length := by
+  classical
+  have go : ∀ (n : ℕ) (L : List Page) (σ : List Page), σ.length = n → L.Nodup →
+      lruMissesGo k L σ ≤ k * (phases k σ).length := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro L σ hlen hNodup
+      cases σ with
+      | nil => simp [lruMissesGo, phases]
+      | cons p rest =>
+          let fp := firstPhase k (p :: rest)
+          have hsplit := firstPhase_split k (p :: rest)
+          have hcard : (firstPhase k (p :: rest)).1.toFinset.card ≤ k :=
+            firstPhase_distinct_le k (p :: rest) hk
+          have hnonempty : fp.1 ≠ [] := by
+            dsimp [fp]
+            exact firstPhase_nonempty k (p :: rest) (by simp)
+          have hremlen : fp.2.length < (p :: rest).length := by
+            have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
+              rw [← hsplit, List.length_append]
+            have hpos : 0 < fp.1.length := List.length_pos_of_ne_nil hnonempty
+            omega
+          have hremlen' : fp.2.length < n := by omega
+          have hphase : lruMissesGo k L fp.1 ≤ fp.1.toFinset.card :=
+            lru_miss_le_distinct k L fp.1 hNodup (by simpa [fp] using hcard)
+          have hrec : lruMissesGo k (lruRun k L fp.1) fp.2 ≤ k * (phases k fp.2).length :=
+            ih fp.2.length hremlen' (lruRun k L fp.1) fp.2 rfl (lruRun_nodup k L fp.1 hNodup)
+          rw [phases_cons_eq k (p :: rest) (by simp)]
+          conv_lhs => rw [← hsplit, lruMissesGo_append]
+          calc
+            lruMissesGo k L fp.1 + lruMissesGo k (lruRun k L fp.1) fp.2
+                ≤ fp.1.toFinset.card + k * (phases k fp.2).length := Nat.add_le_add hphase hrec
+            _ ≤ k + k * (phases k fp.2).length := by
+              exact Nat.add_le_add_right (by simpa [fp] using hcard) _
+            _ = k * (fp.1 :: phases k fp.2).length := by
+              simp [List.length_cons, Nat.mul_add, Nat.add_comm]
+  exact go σ.length L σ rfl hNodup
 
 end OnlineCaching
 
