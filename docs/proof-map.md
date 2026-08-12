@@ -5104,8 +5104,70 @@ The sources below are the canonical fourth-edition Sections 32.1; the legacy `CL
   costs no more than the walk); and Theorem 35.2 is `tsp_two_approx`, the
   factor-two approximation bound against any tour (in particular an optimal
   one), requiring symmetry, the triangle inequality, and zero loop weights.
-- Remaining chapter scope: Sections 35.3--35.5 (set cover, randomized rounding,
-  and the subset-sum FPTAS) are not represented.
+### Section 35.3 - The Set-Covering Problem
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem.lean`
+- Status: native fourth-edition section — GREEDY-SET-COVER on a finite universe
+  `X` with a covering family `F`.
+- Proved results: `Covers`, `pickSet` (the greedy pick maximizing uncovered
+  coverage), the terminating `greedyCost`/`greedySetCover` recursions, and
+  `greedySetCover_subset`/`greedySetCover_covers` (the returned family is drawn
+  from `F` and covers `X`).  Theorem 35.3 is `greedySetCover_approx`, the
+  `H(d)`-approximation bound `greedyCost ≤ H(d) · |C|` for any cover `C`, proved
+  by the CLRS charging argument: `chargeSum` accumulates the per-step charges,
+  `greedyCost_eq_chargeSum` identifies the cost with the total charge,
+  `chargeSum_le_harmonic` bounds the charge of any set by `H(|S|)`, and
+  `chargeSum_U_le_sum_cover` bounds the total charge by the sum over a cover.
+  Theorem 35.4 is `greedySetCover_ln_approx`, the `O(lg |X|)`-approximation
+  bound `greedyCost ≤ |C| · (⌈ln |X|⌉ + 1)`, proved by the iterated
+  multiplicative shrink: `exists_cover_set_ge_fraction` and
+  `pickSet_cover_fraction` (the greedy pick covers ≥ `|U|/|C|` uncovered
+  elements), `pickSet_sdiff_shrink` (one step shrinks `U` by `(1 - 1/|C|)`),
+  `greedyCost_le_fuel` (the fuel bound `|U| · (1 - 1/|C|)^N < 1` implies
+  `greedyCost ≤ N`), and the exponential comparison `1 - 1/k ≤ e^{-1/k}` with
+  `L = ⌈ln |X|⌉ + 1` chosen so that `|X| · e^{-L} < 1`.
+
+### Section 35.4 - Randomization and Linear Programming
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming.lean`
+- Status: native fourth-edition section — randomization (MAX-3-CNF) and linear
+  programming (weighted vertex cover).
+- Proved results: the `Literal`/`Assignment`/`Is3CNFClause` model,
+  `card_assignments_fixing_three` (assignments fixing three distinct variables
+  number `2^(n-3)`), and `unsatisfied_prob` (a valid 3-CNF clause is
+  unsatisfied with probability `1/8` under a uniformly random assignment).
+  Theorem 35.5 is the randomized `8/7`-approximation of MAX-3-CNF:
+  `max3cnf_clause_satisfied_prob` (per-clause satisfaction probability `7/8`),
+  `max3cnf_expect_satisfied` (linearity of expectation gives the expected
+  `7/8 · |F|` satisfied clauses), and `max3cnf_approx` (every assignment is
+  matched in expectation to at least `7/8` of the clauses it satisfies).  For
+  the LP part, `IsFractionalCover` is the vertex-cover LP relaxation,
+  `roundCover` is the `1/2`-threshold rounding of APPROX-MIN-WEIGHT-VC, and
+  Theorem 35.6 is `roundCover_isVertexCover` (correctness) with
+  `approxMinWeightVC_two_approx` (the rounded cover weighs at most twice the LP
+  objective, hence at most twice an optimal cover).
+### Section 35.5 - The Subset-Sum Problem
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem.lean`
+- Status: native fourth-edition section — the subset-sum problem and its
+  fully polynomial-time approximation scheme APPROX-SUBSET-SUM.
+- Proved results: `subsetSums` (the EXACT-SUBSET-SUM recurrence of achievable
+  sums), `exactLists`/`optimalSum` (the pruned list and the optimum `y*`),
+  `trim`/`trimAux` (the greedy TRIM of a sorted list), and `approxLists`
+  (the trimmed lists of APPROX-SUBSET-SUM).  Lemma 35.5 is `trim_rep` (every
+  element of a sorted list is represented in the trim within a factor
+  `(1 + δ)`), `approxLists_prefix_rep` is the per-prefix compounding
+  representation (Exercise 35.5-2), and Theorem 35.7 is
+  `approxSum_mem_subsetSums`/`approxSum_le_t` (the returned `z*` is an
+  achievable subset sum at most `t`) with `approxSubsetSum_approx`
+  (the explicit `y* ≤ (1 + ε/(2n))^n · z*` bound) and
+  `approxSubsetSum_approx_lt` (the `(1 + ε)`-approximation
+  `y* ≤ (1 + ε) · z*` via `(1 + ε/(2n))^n ≤ e^{ε/2} ≤ 1 + ε`).
+- Remaining chapter scope: Theorem 35.8 (the FPTAS running-time analysis of
+  APPROX-SUBSET-SUM) is not yet formalized.
 
 ## Deferred And Blocked Items
 
