@@ -427,6 +427,30 @@ never occurs empirically but is consistent with the step's local
 hypotheses (d hits at `t₂+1` on `q''`, FIF faults) — so the assembly
 will need either a global argument or a separate boundary case.
 
+**hQ supply core done (2026-08-12, kernel-checked)** — the supply
+lemmas that the two options share:
+
+- `extend_hQ` (B7): the glue — `Q' = insert (t₂, q'') Q` at the new
+  bound `t₂+1`; the old pairs pass through (premise at the new bound),
+  the new pair's clause needs `0 < j''`;
+- `b2_hQ_j''_pos` (B7): the `0 < j''` global argument — `j'' = 0`
+  would give `σ[t₂+1] = q''` (getD_eq_nextUse), contradicting the
+  exchange's fault at `t₂+1` (`hnotE`) against `q''`'s residence in the
+  exchange cache (resident + the reverse-diff chain);
+- `b2_hQ_supply_old` (B9): the consumers' strengthened bound at the B2
+  disagreement — `∀ pairs ∈ st.Q, dead ∨ t₂ < nᵢ` — the exact
+  instantiation of `past_pair_first_request_after` on the state fields
+  (`hqin` = the B2-resident).  This is the "consulted pair is never
+  broken" form the consumers (`b2_ehit_ne`, `b2_hnotE`,
+  `repair_keep_swap_cur`) take.
+
+**Open (the assembly's live-set/boundary choice)**: the new state's hQ
+at `t₂+1` still excludes the pairs with `nᵢ = t₂+1` (their nop at the
+new t0 — 312 B2 steps empirically); those need option (a)'s live set or
+the per-page credit (the pair's page `σ[t₂+1]` is requested at the new
+t0, so it is never the B2 request `σ[t₃]` of a later disagreement — the
+exclusion the DESIGN's "requested-again" analysis would formalize).
+
 **Slack-accounting blocker (2026-08-11, verified by exhaustive search,
 `Dev/search_slack.py`)**: the B1 step's slack invariant `bad ≤ slack`
 (`bad = 1{σ[J'''] ∈ D_{J'''}}`, the `slack − bad` bookkeeping) is
@@ -508,13 +532,16 @@ earlier credit, and a window can contain **two** B1-bads (e.g.
 6 = the pair (3,3)'s nop (bad) — the plain accounting crashes).  The
 credits identified:
 1. the exchange's `+1` iff `¬bad` (the q₀'-B1 half — done);
-2. the **alive-alive B2's exact net**: the strong repair's pointwise
-   balance is `rF = dF − 1{J} + 1{bad at J''}` — the good at `J` can
-   occur without the bad at `J''` (the repair saves exactly 1, e.g.
-   σ=[1,1,3,2,1,3,2,1,3]: the B2 at 4 keeps 3 — good at 5, its bad at
-   6 does not occur — the −1 covers the later B1's bad on 3 at 8).
-   Formal: `schedMisses r + 1{J} ≤ schedMisses d + 1{bad at J''}`
-   (pointwise), slack `+1{J} − 1{bad}`;
+2. the **alive-alive B2's exact net** — **done (2026-08-12,
+   `repair_step_swap_exact_net`, B6, kernel-checked)**: the strong
+   repair's pointwise balance is `rF = dF − 1{J} + 1{bad at J''}` — the
+   good at `J` can occur without the bad at `J''` (the repair saves
+   exactly 1, e.g. σ=[1,1,3,2,1,3,2,1,3]: the B2 at 4 keeps 3 — good at
+   5, its bad at 6 does not occur — the −1 covers the later B1's bad on
+   3 at 8).  Formal: `schedMisses r + 1 ≤ schedMisses d + bad` (the
+   slack credit `+1 − bad`), proved via the pointwise `rF + 1{J} ≤ eF`
+   off `J''` and the J'' identity `eF J'' + bad = 1` with `rF J'' ≤ 1`;
+
 3. the B2-q''-dead's exact saving (`rF + 1 ≤ dF`, slack +1).
 Counting: plain 492 crashes → +B2-q''-dead credit 228 → +alive-alive
 net credit (candidate C) 164.  The residual 164 all have a window with
@@ -696,6 +723,65 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
 
 Estimated 2-3 focused sessions for items 2-6, then one for the
 `fifo_optimal` assembly and the Dev→S3 merge.
+
+**Case-one branch-1 verified (2026-08-12, `Dev/search_caseone.py`)** —
+exact-iteration search over σ of length 4-9, alphabet {1..4}, C₀ =
+{1,2}/{1,2,3}, d₀ ∈ {min-junk0, min-junkC, max-junk0, adversarial
+(hit-evictions prefer dead pages — a legitimate policy)}:
+
+1. branch-1 spots (exchange-fault ∧ `d s = q'`): **at most one** per
+   case-one exchange (7384 total, 0 multi) — the at-most-once holds
+   even under adversarial hit-junk;
+2. every branch-1 spot is a **d-fault** (0 spot-dHit) — a real
+   eviction of `q'`, so the `window_branch1_once` mechanism (q' leaves
+   D forever) applies without the window bound;
+3. `D_s − E_s ⊆ {q'}` throughout case one (0 D-E-bad) and **no
+   exchange-fault at a d-hit** (0 exFault-dHit) — the exchange-fault ⟹
+   d-fault mechanism;
+4. **the next disagreement after a case-one exchange lands exactly on
+   the branch-1 spot when one exists** (7384 next<hnb', t₂ = s₁ — e.g.
+   σ=[1,1,3,4,1], C₀={1,2}: t=2, q=1, q'=2, spot=3, next disagreement
+   t₂=3; the exchange's no-op eviction grows its cache, so agreement
+   at s₁+1 is impossible) — the plain "hnb' = s₁+1" plan does **not**
+   make the next step case A; the assembly must instead handle the
+   branch-1 spot as a B1-like step (with `win = none` the window
+   machinery is vacuous: `windowExchange none e = e`), or the case-one
+   step must absorb it.  Never below the old hnb (0 next<hnb).
+
+**Case-one hdred supply done (2026-08-12, `Dev/B10_CaseOne_Hdred.lean`,
+kernel-checked, no sorry)** — the at-most-once machinery and the `hnb'`
+construction:
+
+1. `case_one_hq'ne_bounded`: `hnone` gives the bounded no-`q'`-requests
+   fact on `[t+1, σ.length)`;
+2. `case_one_D_minus_E_subset_q'`: `D_s − E_s ⊆ {q'}` over
+   `[t+1, σ.length]` — the d-hit case forces the exchange hit; at double
+   faults the exchange evicts `q'` (branch 1) or `d s` (branch 5) —
+   `case_one_exchange_decision_at_d_fault`;
+3. `case_one_exchange_fault_imp_d_fault`: exchange faults are d-faults;
+4. `case_one_branch1_once`: the `window_branch1_once` at-most-once with
+   `hnone` in place of the window bound.
+
+**Junk-position obstruction (verified by construction + search with page
+0)**: the `hdred` field is unbounded, but at `s ≥ σ.length` the request is
+the junk page 0.  The at-most-once fails there: a policy whose junk
+eviction is `q'` (reachable when `q' = 0`, e.g. σ=[1,1,0,1,3], C₀={1,2},
+t=4 — the search finds 3 junk spots in its frozen-cache model; in Lean's
+evolving junk the spots are ≤ 1) breaks the plain reducedness.  So the
+plain field from a finite `hnb'` is NOT attainable: `case_one_hdred_supply`
+sets `hnb' = σ.length + 2` (`case_one_junk_hit`: 0 is in the exchange's
+cache from then on, so it never faults — the field is vacuous at junk),
+instantiating `CaseOneHdredHyp`.
+
+**Assembly consequence (still open)**: with `hnb' = σ.length + 2` the
+next disagreement (which the verified search shows lands exactly on the
+branch-1 spot `s₁`) satisfies `t₂ = s₁ < hnb'` — case B with `win = none`.
+The case-one step must absorb the branch-1 repair (the repair evicts
+FIF's page at `s₁` and restores agreement at `s₁+1`), or a no-window
+B-step construction is needed.
+
+**Paused (2026-08-12)** — 4th-edition migration (feat/migration branch)
+took priority; `CaseOneHdredHyp` + the at-most-once lemma remain open.
 
 ## File layout
 
