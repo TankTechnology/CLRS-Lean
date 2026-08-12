@@ -3567,134 +3567,30 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 25.3 - Johnson's Algorithm
 
-- Lean source: `CLRSLean/FourthEdition/Chapter_23/Section_23_3_Johnsons_Algorithm.lean`
-  (canonical fourth-edition Section 23.3; the legacy
-  `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean` forwards to it)
-- Status: `proved`
+- Lean source: `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean`
+- Status: `proved` (reweighting algebra, potential construction, and end-to-end correctness)
 - Main declarations and theorems:
   - `CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`
   - `CLRS.Chapter24.WeightedGraph.no_incoming_to_none_johnsonAugmentedGraph`
+  - `CLRS.Chapter24.WeightedGraph.isShortestDist_edge_ineq` — general triangle inequality
+  - `CLRS.Chapter24.WeightedGraph.walk_johnsonAugmented_some_projection`
+  - `CLRS.Chapter24.WeightedGraph.noNegCycle_johnsonAugmentedGraph` — negative-cycle preservation
   - `CLRS.Chapter24.WeightedGraph.reweightedWeight`
   - `CLRS.Chapter24.WeightedGraph.reweightedGraph`
-  - `CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq`
+  - `CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq` — telescoping property
   - `CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`
-  - `CLRS.Chapter24.WeightedGraph.noNegCycle_johnsonAugmentedGraph`
-  - `CLRS.Chapter24.WeightedGraph.johnsonPotential`
-  - `CLRS.Chapter24.WeightedGraph.johnsonPotential_triangle`
+  - `CLRS.Chapter24.WeightedGraph.reweighted_isShortestDist` — shift formula
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential` — Bellman-Ford potential
   - `CLRS.Chapter24.WeightedGraph.johnsonPotential_finite`
-  - `CLRS.Chapter24.WeightedGraph.johnsonDist_isShortestDist`
-    (CLRS Theorem 25.5, end-to-end Johnson correctness)
-  - `CLRS.Chapter24.WeightedGraph.isShortestDist_edge_ineq`
-    (general triangle inequality for shortest-path distances)
-  - `CLRS.Chapter24.WeightedGraph.walk_johnsonAugmented_some_projection`
+  - `CLRS.Chapter24.WeightedGraph.johnsonPotential_triangle` — Lemma 25.3
   - `CLRS.Chapter24.WeightedGraph.johnsonReweightedNonneg`
-  - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist_correct`
-    (CLRS Theorem 25.6, Johnson's algorithm computes all-pairs shortest
-    distances via Dijkstra; merged from the closed duplicate PR #113)
-- Current gap: none within Section 25.3.
+  - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist` — Johnson distance function
+  - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist_correct` — Theorem 25.6
 
 ### Chapter 25 remaining work
 
-- No remaining core correctness group.  A tighter explicit
-  `O(n³ log n)` repeated-squaring work theorem and lower-level RAM accounting
-  remain optional refinements.
-
-## Chapter 25 (Fourth Edition) - Matchings in Bipartite Graphs
-
-### Section 25.1 - Maximum bipartite matching revisited
-
-- Lean source:
-  `CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching.lean`,
-  split into sub-modules `S1_Matching_API` through `S6_Berge_Flow_Method`
-  under the same directory
-- Interface tests: `Tests/Chapter_25_Matching_Interface.lean`
-- Status: `native` (first native fourth-edition section, built on the §26.3
-  matching-to-flow reduction)
-- Main theorems:
-  - `CLRS.Chapter26.Matching.IsMaximum`
-  - `CLRS.Matchings.IsAugmentingPath`
-  - `CLRS.Matchings.exists_augment` (Berge forward direction)
-  - `CLRS.Matchings.augmentingPath_of_hasAugmentingPath`
-  - `CLRS.Matchings.berge_maximum_iff_no_augmentingPath` (Berge's lemma)
-  - `CLRS.Matchings.flowMethod_finds_maximum_matching`
-- Supporting theorems:
-  - `CLRS.Chapter26.Matching.matchedLeft_card` / `matchedRight_card`
-  - `CLRS.Matchings.exists_augment_single` / `exists_swap`
-  - `CLRS.Matchings.translation_inner`
-  - matching-flow residual lemmas in `S4_Matching_Flow`
-- Proof pattern: alternating-path augmentation via the flow reduction; the
-  reachability-to-path translation extracts a vertex-simple path from a
-  residual walk.
-- Current gap: the O(V · E) execution-cost refinement of the flow method is
-  an optional low-level refinement.
-
-### Section 25.2 - The stable-marriage problem
-
-- Lean source:
-  `CLRSLean/FourthEdition/Chapter_25/Section_25_2_Stable_Marriage.lean`,
-  split into sub-modules `S1_Preference_Model`, `S2_Gale_Shapley`, and
-  `S3_Optimality` under the same directory
-- Status: `proved`
-- Main theorems:
-  - `CLRS.Matchings.PreferenceProfile` / `Pairing` / `Pairing.Stable`
-  - `CLRS.StableMarriage.gs` (the Gale-Shapley output pairing)
-  - `CLRS.StableMarriage.gs_stable` (Theorem 25.5)
-  - `CLRS.StableMarriage.stable_matching_exists`
-  - `CLRS.StableMarriage.gs_perfect`
-  - `CLRS.StableMarriage.gs_man_optimal` (Theorem 25.6)
-  - `CLRS.StableMarriage.gs_man_optimal_perfect`
-  - `CLRS.StableMarriage.gs_woman_pessimal`
-- Proof pattern: a functional proposal loop over rank functions, well-founded
-  on the pending-proposal count; stability from the loop invariants (a woman's
-  partner only improves; proposed sets are rank prefixes); perfectness from
-  the partner-map cardinality bijection.  Man-optimality is time-indexed: the
-  final state is placed on the `gsLoopN` timeline via
-  `CLRS.StableMarriage.gsLoop_eq_gsLoopN`, proposals and rejections are
-  detected from the state difference (`proposesAt` / `rejectedAt`), and
-  `no_rejection_of_valid` proves that no man is ever rejected by a valid
-  partner by descending to strictly earlier rejection steps
-  (`rejected_valid_earlier`), contradicting minimality of the first such
-  rejection.
-
-### Section 25.3 - The Hungarian algorithm for the assignment problem
-
-- Lean source:
-  `CLRSLean/FourthEdition/Chapter_25/Section_25_3_Hungarian_Algorithm.lean`
-- Status: `complete`
-- Main theorems:
-  - `CLRS.AssignmentProblem.Problem` / `Problem.Optimal` / `Problem.Feasible` /
-    `Problem.Tight` / `Problem.IsTightMatching` (assignment model)
-  - `CLRS.AssignmentProblem.exists_optimal_assignment`
-  - `CLRS.AssignmentProblem.perfect_tight_optimal` (Lemma 25.8: a perfect
-    matching in the equality graph of a feasible potential is optimal)
-  - `CLRS.AssignmentProblem.HungarianTree` (alternating tree with parents and
-    ranks) and `pathToLeft` / `PathProps` / `pathToLeft_props`
-  - `CLRS.AssignmentProblem.potential_step` (minimum-slack adjustment creates a
-    new tight edge)
-  - `CLRS.AssignmentProblem.augmentingPath` /
-    `augmentingPath_isAugmenting` /
-    `exists_augment_of_tight_free` (augmentation via Berge)
-  - `CLRS.AssignmentProblem.growTree` (tree-growth step)
-  - `CLRS.AssignmentProblem.augmentable_or_adjustable` (local progress:
-    augment or adjust-and-grow)
-  - `CLRS.AssignmentProblem.exists_augment_tight` (augmentation preserves
-    tightness: the enlarged matching stays in the equality graph)
-  - `CLRS.AssignmentProblem.innerLoop` (tree-phase termination: iterating
-    local progress, the tree grows, so an augmentation is forced)
-  - `CLRS.AssignmentProblem.exists_perfect_tight` (outer-loop termination:
-    repeating the inner loop reaches a perfect matching in the equality graph)
-  - `CLRS.AssignmentProblem.exists_optimal_via_algorithm` /
-    `hungarian_constructs_optimal` (termination + optimality: the algorithm,
-    started from any feasible tight matching or from the initial potential,
-    produces an optimal assignment)
-- Proof pattern: duality via feasible potentials; the algorithm's three moves
-  (potential adjustment, tree growth, augmentation) are each formalized, and
-  `augmentable_or_adjustable` shows every non-terminal tree either augments the
-  matching or admits a potential adjustment that grows the tree.  The full
-  loop is packaged as a terminating recursion: the tree phase
-  (`innerLoop`) grows `T`, bounded by `R`, so it must terminate in an
-  augmentation; the outer phase (`exists_perfect_tight`) repeats it, growing
-  the matching until it is perfect, which by Lemma 25.8 is optimal.
+- Predecessor-matrix path-reconstruction weight equality
+  (walk validity from `Pi_adj` is proved; `walkWeight = floydWarshall` deferred).
 
 ## Chapter 26 - Maximum Flow
 
