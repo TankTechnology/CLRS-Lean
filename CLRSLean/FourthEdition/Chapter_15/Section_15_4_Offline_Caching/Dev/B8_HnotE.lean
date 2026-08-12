@@ -51,11 +51,13 @@ open Finset
 
 set_option maxHeartbeats 400000
 
-/-- 修复在 `tᵢ` 逐出 `q''` 后,`q''` 在首次请求 `nᵢ = tᵢ + 1 + j''` 之前
-不再回到当前调度 `d` 的 cache:`d tᵢ = q''`(真逐出,`q'' ∈ D_{tᵢ}`),此后
-请求避开 `q''`(首次请求在 `nᵢ`),cache 只进请求页。这给出 nop 位置的
-no-op 性(`q'' ∉ D_{nᵢ}`)与不同对之间的页不同(`q''ₖ ≠ q''ᵢ`,在其它对的
-nop 处由本引理 + E⟹D 的成员资格给出)。 -/
+/-- After the repair at `tᵢ` evicts `q''`, the page `q''` does not return to the
+cache of the current schedule `d` before the first request `nᵢ = tᵢ + 1 + j''`:
+`d tᵢ = q''` (a genuine eviction, `q'' ∈ D_{tᵢ}`), and thereafter requests
+avoid `q''` (the first request is at `nᵢ`), so the cache only admits requested
+pages. This yields the no-op property at the nop positions (`q'' ∉ D_{nᵢ}`) and
+page distinctness across pairs (`q''ₖ ≠ q''ᵢ`, given at other pairs' nops by
+this lemma plus the E⟹D membership). -/
 lemma pair_q''_absent_d (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     {tᵢ : ℕ} {q'' : Page} (hftᵢ : σ.getD tᵢ 0 ∉ schedCache d C₀ σ tᵢ)
     (hq''in : q'' ∈ schedCache d C₀ σ tᵢ) (hd : d tᵢ = q'')
@@ -67,7 +69,7 @@ lemma pair_q''_absent_d (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
   | succ s ih =>
       intro hs1 hs2
       by_cases hs_eq : s = tᵢ
-      · -- 基步:s+1 = tᵢ+1,cache 逐出 q'' 且请求 σ[tᵢ] ≠ q''
+      · -- base step: s+1 = tᵢ+1, the cache evicts q'' and the request σ[tᵢ] ≠ q''
         subst s
         rw [schedCache]
         rw [if_neg hftᵢ]
@@ -75,7 +77,7 @@ lemma pair_q''_absent_d (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
         rcases Finset.mem_insert.mp hmem with hpeq | hmem
         · exact hftᵢ (hpeq ▸ hq''in)
         · exact (Finset.mem_erase.mp hmem).1 hd.symm
-      · -- 步:请求 σ[s] ≠ q'',且 q'' ∉ D_s(归纳),故 q'' ∉ D_{s+1}
+      · -- step: the request σ[s] ≠ q'', and q'' ∉ D_s (induction), so q'' ∉ D_{s+1}
         have hst : tᵢ < s := by omega
         have hih : q'' ∉ schedCache d C₀ σ s := ih (by omega) (by omega)
         have hneq : σ.getD s 0 ≠ q'' := getD_ne_nextUse (k := s) hj'' (by omega) (by omega)
@@ -89,15 +91,17 @@ lemma pair_q''_absent_d (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
           · exact hneq hpeq.symm
           · exact hih (Finset.mem_erase.mp hmem).2
 
-/-- 活对页的 E⟹D(联合归纳):在 B2 窗口 `(t₂, J]` 内,位置 `s` 处,任何
-`nᵢ < s` 的活对 `(tᵢ, q'')` 满足 `q'' ∈ E_s ⟹ q'' ∈ D_s`。归纳步
-(位置 `s` 的更新):
-- e 命中时,`q'' ∈ E_s`(缓存不变);d 缺页情形(`σ[s] ∈ E_s − D_s`)由
-  链 + 该对自身的归纳假设排除(e-hit-at-d-fault 的矛盾);
-- e 缺页时,`q'' ∈ E(s+1)` 由 `q'' = σ[s]`(请求,两侧都得到 `q''`)或
-  `q'' ∈ E_s ∧ e s ≠ q''` 给出;后者在 `s ∉ P` 用 `hd_eq`
-  (`d s = e s ≠ q''`)。
-- 新对(`nᵢ = s`,首次请求)的基例:请求 `σ[s] = q''` 使 `q''` 进入 `D(s+1)`。 -/
+/-- E⟹D for alive pair pages (joint induction): within the B2 window `(t₂, J]`,
+at a position `s`, any alive pair `(tᵢ, q'')` with `nᵢ < s` satisfies
+`q'' ∈ E_s ⟹ q'' ∈ D_s`.  The inductive step (the update at position `s`):
+- at an e hit, `q'' ∈ E_s` (the cache is unchanged); the d-fault case
+  (`σ[s] ∈ E_s − D_s`) is excluded by the chain plus the pair's own induction
+  hypothesis (the e-hit-at-d-fault contradiction);
+- at an e fault, `q'' ∈ E(s+1)` is obtained from `q'' = σ[s]` (a request, both
+  sides gain `q''`) or from `q'' ∈ E_s ∧ e s ≠ q''`; the latter uses `hd_eq`
+  at `s ∉ P` (`d s = e s ≠ q''`).
+- the base case of a new pair (`nᵢ = s`, first request): the request
+  `σ[s] = q''` makes `q''` enter `D(s+1)`. -/
 lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
@@ -153,7 +157,7 @@ lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' :
           · have hj : j₀ = j' := Option.some.inj (hnext₀.symm.trans hnext')
             omega
         by_cases hne : t' + 1 + j' = s - 1
-        · -- 新对:nᵢ = s−1,首次请求 σ[s−1] = q',q' 进入 D s
+        · -- new pair: nᵢ = s−1, the first request σ[s−1] = q', so q' enters D s
           have hsig : σ.getD (s - 1) 0 = q' := by
             rw [← hne]
             exact getD_eq_nextUse hnext'
@@ -166,11 +170,11 @@ lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' :
           · rw [if_neg hhit]
             rw [hsig]
             exact Finset.mem_insert_self _ _
-        · -- 旧对:nᵢ < s−1,归纳步
+        · -- old pair: nᵢ < s−1, inductive step
           have hsnlt : t' + 1 + j' < s - 1 := by omega
           intro hE'
           by_cases he : σ.getD (s - 1) 0 ∈ E (s - 1)
-          · -- e 于 s−1 命中:E s = E (s−1),故 q' ∈ E (s−1)
+          · -- e hits at s−1: E s = E (s−1), hence q' ∈ E (s−1)
             have hEsucc : E s = E (s - 1) := by
               dsimp [E]
               conv => lhs; rw [show s = (s - 1) + 1 by omega]
@@ -181,12 +185,12 @@ lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' :
             have hqD : q' ∈ D (s - 1) :=
               ih (s - 1) (by omega) (by omega) (by omega) t' q' j' htq' hnext' hsnlt hqE
             by_cases hd' : σ.getD (s - 1) 0 ∈ D (s - 1)
-            · -- d 命中:D s = D (s−1)
+            · -- d hits: D s = D (s−1)
               dsimp [D]
               rw [show s = (s - 1) + 1 by omega, schedCache]
               rw [if_pos hd']
               exact hqD
-            · -- d 缺页而 e 命中:e-hit-at-d-fault,链 + 归纳矛盾
+            · -- d faults while e hits: e-hit-at-d-fault, the chain plus induction contradiction
               exfalso
               have hq : σ.getD (s - 1) 0 ∈ Q.image Prod.snd :=
                 b2_ehit e d σ C₀ hd' (Q.image Prod.snd) (hchain (s - 1) (by omega)) he
@@ -210,7 +214,7 @@ lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' :
                       ih (s - 1) (by omega) (by omega) (by omega) tₗ q''ₗ jₗ htqₗ hnextₗ
                         hsgt hqEₗ
                     exact hd' (hsigq.symm ▸ hqDₗ)
-          · -- e 于 s−1 缺页:E s = insert σ[s−1] (E (s−1) − e (s−1))
+          · -- e faults at s−1: E s = insert σ[s−1] (E (s−1) − e (s−1))
             have hEsucc : E s = insert (σ.getD (s - 1) 0) ((E (s - 1)).erase (e (s - 1))) := by
               dsimp [E]
               rw [show s = (s - 1) + 1 by omega, schedCache]
@@ -219,7 +223,7 @@ lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' :
             have hmem : q' ∈ insert (σ.getD (s - 1) 0) ((E (s - 1)).erase (e (s - 1))) := by
               rwa [← hEsucc]
             rcases Finset.mem_insert.mp hmem with hqeq | hqin
-            · -- q' = σ[s−1]:请求,两侧都得到 q'
+            · -- q' = σ[s−1]: a request, both sides gain q'
               dsimp [D]
               rw [show s = (s - 1) + 1 by omega, schedCache]
               by_cases hd' : σ.getD (s - 1) 0 ∈ D (s - 1)
@@ -238,12 +242,12 @@ lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' :
                 intro h
                 exact (Finset.mem_erase.mp hqin).1 h.symm
               by_cases hd' : σ.getD (s - 1) 0 ∈ D (s - 1)
-              · -- d 命中:D s = D (s−1)
+              · -- d hits: D s = D (s−1)
                 dsimp [D]
                 rw [show s = (s - 1) + 1 by omega, schedCache]
                 rw [if_pos hd']
                 exact hqD
-              · -- d 缺页(e 也缺页):D s = insert σ[s−1] (D (s−1) − d (s−1)),d (s−1) ≠ q'
+              · -- d faults (e also faults): D s = insert σ[s−1] (D (s−1) − d (s−1)), d (s−1) ≠ q'
                 dsimp [D]
                 rw [show s = (s - 1) + 1 by omega, schedCache]
                 rw [if_neg hd']
@@ -256,12 +260,13 @@ lemma pair_page_in_D_of_in_E (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' :
                 · exact hqD
   exact hmain s ht₂s hsJ tᵢ q'' j'' htq hnext hsn
 
-/-- `hnotE` 前提(Q'' 排除):B2 位置 `t₂` 的窗口 `(t₂, J]` 内,`s ∉ P` 且
-`d` 于 `s` 缺页时,交换调度 `e` 也于 `s` 缺页:`σ[s] ∉ E_s`。推导:
-`σ[s] ∈ E_s` 经链压入 `Q.image`,得到 `σ[s] = q''ᵢ`(某过往修复对);
-死页与 `s < nᵢ`(首次请求前)矛盾,`s = nᵢ` 是 nop 位置(在 `P` 中,
-与 `s ∉ P` 矛盾),`s > nᵢ` 时 `pair_page_in_D_of_in_E` 给出
-`q''ᵢ ∈ D_s`,与 `d` 缺页矛盾。 -/
+/-- The `hnotE` premise (Q'' exclusion): within the window `(t₂, J]` of the B2
+position `t₂`, if `s ∉ P` and `d` faults at `s`, then the exchange schedule `e`
+also faults at `s`: `σ[s] ∉ E_s`.  Derivation: `σ[s] ∈ E_s` pushes `σ[s]` into
+`Q.image` via the chain, yielding `σ[s] = q''ᵢ` (some past repair pair);
+a dead page and `s < nᵢ` (before the first request) contradict, `s = nᵢ` is a
+nop position (in `P`, contradicting `s ∉ P`), and for `s > nᵢ`
+`pair_page_in_D_of_in_E` gives `q''ᵢ ∈ D_s`, contradicting the d-fault. -/
 lemma b2_hnotE (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
