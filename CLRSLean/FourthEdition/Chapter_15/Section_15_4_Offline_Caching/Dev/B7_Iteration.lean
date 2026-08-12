@@ -1514,6 +1514,50 @@ lemma extend_hQfifo (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Pa
     exact hq''
   · exact hQfifo tᵢ q''₀ htq
 
+/-- hQ 扩展:`Q' = insert (t₂, q'') Q` 在新界 `t₂+1` 的逐对 clause。旧对沿用
+`hQ`(调用方以 strengthened 界 `t₂+1 < nᵢ` 供应 —— B2 步由
+`past_pair_first_request_after` + 边界情形,见 DESIGN "hQ-extension
+blocker");新对 `(t₂, q'')` 的 clause 需要 `0 < j''`(nop `t₂+1+j''` 严格在
+新界 `t₂+1` 之后)。 -/
+lemma extend_hQ (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Page))
+    {t₂ : ℕ} {q'' : Page}
+    (hQ : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j''₀, nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ t₂ + 1 < tᵢ + 1 + j''₀)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'') (hj''0 : 0 < j'') :
+    ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j''₀, nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ t₂ + 1 < tᵢ + 1 + j''₀ := by
+  intro tᵢ q''₀ htq
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    right
+    refine ⟨j'', hj'', ?_⟩
+    omega
+  · exact hQ tᵢ q''₀ htq
+
+/-- 逐页 credit(B2 步的 hQ 供应):在 B2 分歧 `t₂` 处,旧对的 strengthened
+界 `t₂ < nᵢ` 由 `past_pair_first_request_after` 从旧 `hQ₀`(旧界 `t0`)
+给出;`0 < j''` 由 `getD_eq_nextUse` 与 `hnotE`(交换于 `t₂+1` 缺页)与
+`q'' ∈ E_{t₂+1}`(resident + 反向差链)给出 —— 全局论证,见 DESIGN
+"hQ-extension blocker" 的 `0 < j''` 边界情形。 -/
+lemma b2_hQ_j''_pos (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
+    (d : ℕ → Page) (t₂ : ℕ) (ht₂ : t₂ < σ.length)
+    (hftd : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
+    {q'' : Page} (hq'' : q'' = fifoSchedule σ C₀ t₂)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hq''res : q'' ∈ schedCache (exchangeSchedule d (t₂ - 1) (d (t₂ - 1)) q'' σ C₀) C₀ σ (t₂ + 1))
+    (hnotE : σ.getD (t₂ + 1) 0 ∉ schedCache (exchangeSchedule d (t₂ - 1) (d (t₂ - 1)) q'' σ C₀) C₀ σ (t₂ + 1)) :
+    0 < j'' := by
+  by_contra h0
+  have hj''0 : j'' = 0 := by omega
+  have hsig : σ.getD (t₂ + 1) 0 = q'' := by
+    have hge := getD_eq_nextUse hj''
+    rw [hj''0] at hge
+    simpa using hge
+  exact hnotE (hsig ▸ hq''res)
+
 /-- hP 扩展(活对版):`P' = P ∪ {t₂, t₂+1+j''}`。旧位置沿用旧 `hP`(见证对
 仍在 `Q'` 中),新位置 `t₂` 与新 nop `J'' = t₂+1+j''` 由新对 `(t₂, q'')`
 见证(`s = tᵢ` 与 `s = tᵢ+1+j''`)。 -/
