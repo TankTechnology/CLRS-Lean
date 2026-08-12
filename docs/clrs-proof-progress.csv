@@ -31,6 +31,6 @@ chapter_no,chapter_title,repo_status,represented_sections,tracked_key_theorems,p
 30,Polynomials and the FFT,main-proof-complete,None,0,0,0,Complete,No tracked theorem names yet,FFT algorithms and costs proved,CLRSLean file tree,No Chapter_30 module exists.
 31,Number-Theoretic Algorithms,selected-section-complete,None,0,0,0,Complete,No tracked theorem names yet,Number theory + Miller-Rabin proved,CLRSLean file tree,No Chapter_31 module exists.
 32,String Matching,selected-section-complete,None,0,0,0,Complete,No tracked theorem names yet,Naive + Rabin-Karp string matching proved,CLRSLean file tree,No Chapter_32 module exists.
-33,Computational Geometry,selected-section-complete,None,0,0,0,Complete,No tracked theorem names yet,Line-segment properties + clustering proved,CLRSLean file tree,No Chapter_33 module exists.
+33,Computational Geometry,selected-section-complete,None,0,0,0,Complete,No tracked theorem names yet,Line-segment properties + clustering + MWU + gradient descent proved,CLRSLean file tree,0 sorry — §33.1-33.3 complete
 34,NP-Completeness,main-proof-complete,None,0,0,0,Complete,No tracked theorem names yet,NP-Completeness framework + reductions proved,CLRSLean file tree,No Chapter_34 module exists.
 35,Approximation Algorithms,complete,"35.1,35.2,35.3,35.4,35.5",10,10,0,Complete,Theorems 35.1-35.7,Formalized all five sections,CLRSLean/FourthEdition/Chapter_35/,"vertex cover, TSP, set-cover, MAX-3-CNF, SUBSET-SUM"
