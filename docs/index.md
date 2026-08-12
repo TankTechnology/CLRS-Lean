@@ -346,8 +346,11 @@ CLRSLean/Chapter_31/Section_31_7_RSA.lean
 CLRSLean/Chapter_31/Section_31_8_Primality_Testing.lean
 CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
-CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
+CLRSLean/Chapter_32/Section_32_2_Rabin_Karp.lean
+CLRSLean/Chapter_32/Section_32_3_Finite_Automata.lean
+CLRSLean/Chapter_32/Section_32_4_KMP.lean
+CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
 CLRSLean/Extensions/TreapHeight.lean
