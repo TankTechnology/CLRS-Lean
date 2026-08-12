@@ -6536,75 +6536,49 @@ lemma to3CNF'_bounds (f : Formula) (c : Nat) :
   | not f' ih =>
       constructor
       · simp [to3CNF', enc, List.length_cons]
-        have h := (ih c).2
-        omega
+        nlinarith [(ih c).2]
       · simp [to3CNF', enc, List.length_cons]
-        have h := (ih c).2
-        omega
+        nlinarith [(ih c).2]
   | and f' g' ihf ihg =>
       constructor
       · simp [to3CNF', enc, List.length_cons]
-        have hf := (ihf c).2
-        have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith [(ihf c).2, (ihg (to3CNF' f' c).2.2).2]
       · simp [to3CNF', enc, List.length_cons]
-        have hf := (ihf c).2
-        have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith [(ihf c).2, (ihg (to3CNF' f' c).2.2).2]
   | or f' g' ihf ihg =>
       constructor
       · simp [to3CNF', enc, List.length_cons]
-        have hf := (ihf c).2
-        have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith [(ihf c).2, (ihg (to3CNF' f' c).2.2).2]
       · simp [to3CNF', enc, List.length_cons]
-        have hf := (ihf c).2
-        have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith [(ihf c).2, (ihg (to3CNF' f' c).2.2).2]
   | iff f' g' ihf ihg =>
       constructor
       · simp [to3CNF', enc, List.length_cons]
-        have hf := (ihf c).2
-        have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith [(ihf c).2, (ihg (to3CNF' f' c).2.2).2]
       · simp [to3CNF', enc, List.length_cons]
-        have hf := (ihf c).2
-        have hg := (ihg (to3CNF' f' c).2.2).2
-        omega
+        nlinarith [(ihf c).2, (ihg (to3CNF' f' c).2.2).2]
 
-/-- The number of clauses in the Tseitin encoding is bounded by the number of
-nodes (the encoding length). -/
+/-- The number of clauses in the Tseitin encoding is at most four per node of
+the formula.  Each node contributes at most four clauses (`iff` contributes
+four, `and`/`or` three, `not` two, `const` one) and at least one symbol to the
+encoding. -/
 lemma to3CNF'_clauses_num_le (f : Formula) (c : Nat) :
-    (to3CNF' f c).1.length ≤ (enc f).length + 1 := by
-  induction f with
+    (to3CNF' f c).1.length ≤ 4 * (enc f).length := by
+  induction f generalizing c with
   | var i => simp [to3CNF', enc, varEnc]
-  | const b => by_cases hb : b <;> simp [to3CNF', hb, enc]
+  | const b => by_cases hb : b <;> simp [to3CNF', hb, forceTrue, forceFalse, enc]
   | not f' ih =>
-      rcases to3CNF' f' c with ⟨cl, y1, c1⟩
-      have hc : cl.length ≤ (enc f').length + 1 := by simpa using ih
       simp [to3CNF', enc, notClauses, List.length_cons]
-      omega
+      nlinarith [ih c]
   | and f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : cl1.length ≤ (enc f').length + 1 := by simpa using ihf
-      have hc2 : cl2.length ≤ (enc g').length + 1 := by simpa using ihg
       simp [to3CNF', enc, andClauses, List.length_cons]
-      omega
+      nlinarith [ihf c, ihg (to3CNF' f' c).2.2]
   | or f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : cl1.length ≤ (enc f').length + 1 := by simpa using ihf
-      have hc2 : cl2.length ≤ (enc g').length + 1 := by simpa using ihg
       simp [to3CNF', enc, orClauses, List.length_cons]
-      omega
+      nlinarith [ihf c, ihg (to3CNF' f' c).2.2]
   | iff f' g' ihf ihg =>
-      rcases to3CNF' f' c with ⟨cl1, y1, c1⟩
-      rcases to3CNF' g' c1 with ⟨cl2, y2, c2⟩
-      have hc1 : cl1.length ≤ (enc f').length + 1 := by simpa using ihf
-      have hc2 : cl2.length ≤ (enc g').length + 1 := by simpa using ihg
       simp [to3CNF', enc, iffClauses, List.length_cons]
-      omega
+      nlinarith [ihf c, ihg (to3CNF' f' c).2.2]
 
 /-- The parse step count is bounded by a quadratic in the encoding length. -/
 lemma parseSteps_le (f : Formula) (c : Nat) :

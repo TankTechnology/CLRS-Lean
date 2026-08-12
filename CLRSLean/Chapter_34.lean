@@ -6,6 +6,10 @@ import CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProject
 import CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine
 
 /-! # Chapter 34 — NP-Completeness
 

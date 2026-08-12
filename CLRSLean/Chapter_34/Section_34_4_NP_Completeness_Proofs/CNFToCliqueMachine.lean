@@ -1,5 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique
 
+set_option linter.tacticCheckInstances false
+
 /-!
 # 3-CNF-SAT → CLIQUE reduction machine
 
@@ -115,7 +117,12 @@ def Sstep : (mach).Cfg → Option (mach).Cfg := mach.step
 lemma scan_step (s : CNFSym) (v : St) (rest : List CNFSym) (O U : List GraphSym) :
     Sstep (⟨some Label.scan, v, stk (s :: rest) O U⟩ : (mach).Cfg)
       = some (⟨some Label.scan, St.rd s, stk rest ((transSym s).reverse ++ O) U⟩ : (mach).Cfg) := by
-  cases s <;> simp [stk, transSym, Function.update, prog, Sstep]
+  apply congrArg some
+  apply Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext k
+    cases k <;> cases s <;> simp [stk, transSym, Function.update, prog, Sstep]
 
 /-- `scan` with an empty input goes to `copyOut`. -/
 lemma scan_empty (v : St) (O U : List GraphSym) :
@@ -264,13 +271,25 @@ noncomputable def cliqueOutputsFun (x : List CNFSym) :
     change (flip bind Sstep)^[x.length + 1]
         (some (⟨some Label.scan, St.init, stk x [] []⟩ : (mach).Cfg)) = some C1
     rw [scan_phase St.init x [] []]
-    simpa [C1, List.append_nil]
+    apply congrArg some
+    apply Turing.TM2Comp.Cfg_ext
+    · rfl
+    · rfl
+    · funext k
+      cases k <;> simp [C1, stk, List.append_nil]
   have hcopy : EvalsToInTime Sstep C1 (some C2) ((relabel x).length + 1) := by
-    refine ⟨⟨(relabel x).length + 1, ?_⟩, le_rfl⟩
-    change (flip bind Sstep)^[(relabel x).length + 1]
+    refine ⟨⟨(relabel x).reverse.length + 1, ?_⟩, ?_⟩
+    change (flip bind Sstep)^[(relabel x).reverse.length + 1]
         (some (⟨some Label.copyOut, St.init, stk [] (relabel x).reverse []⟩ : (mach).Cfg)) = some C2
     rw [copyOut_phase St.init [] (relabel x).reverse []]
-    simpa [C2, List.reverse_reverse, List.append_nil]
+    apply congrArg some
+    apply Turing.TM2Comp.Cfg_ext
+    · rfl
+    · rfl
+    · funext k
+      cases k <;> simp [C2, stk, List.reverse_reverse, List.append_nil]
+    · rw [List.length_reverse]
+      omega
   have hdone : EvalsToInTime Sstep C2 (some C3) 1 := by
     refine ⟨⟨1, ?_⟩, le_rfl⟩
     change (flip bind Sstep) (some (⟨some Label.done, St.init, stk [] [] (relabel x)⟩ : (mach).Cfg))
@@ -301,7 +320,6 @@ noncomputable def cliqueOutputsFun (x : List CNFSym) :
   have hct : cliqueTime.eval x.length = 3 * x.length + 3 := by
     simp [cliqueTime, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_pow,
       Polynomial.eval_X, Polynomial.eval_natCast]
-    ring
   have hsteps_le : 1 + ((relabel x).length + 1 + (x.length + 1)) ≤ cliqueTime.eval x.length := by
     rw [hct]
     nlinarith [relabel_length_le x]
