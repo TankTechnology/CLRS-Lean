@@ -64,7 +64,9 @@ The edition map currently records these fourth-edition gaps:
   32.2--32.5 are not started.
 * **Chapter 27, Online Algorithms:** Sections 27.1 (Waiting for an elevator) and
   27.2 (Maintaining a search list) are represented; Section 27.3 (Online
-  caching) is not started.
+  caching) is represented in part with the LRU paging model and phase-partition
+  fault lemmas, with the `k`-competitive upper bound (Theorem 27.3) and matching
+  lower bound remaining as gaps.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the

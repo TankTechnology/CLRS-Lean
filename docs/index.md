@@ -385,6 +385,7 @@ CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen/Rec
 CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds.lean
 CLRSLean/FourthEdition/Chapter_27/Section_27_1_Waiting_For_Elevator.lean
 CLRSLean/FourthEdition/Chapter_27/Section_27_2_Maintaining_A_Search_List.lean
+CLRSLean/FourthEdition/Chapter_27/Section_27_3_Online_Caching.lean
 CLRSLean/Chapter_28.lean
 CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean
 CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean
