@@ -961,6 +961,43 @@ lemma firstPhase_maximal (k : ℕ) (σ : List Page) (hk : 0 < k) (h : (firstPhas
       · simp [firstPhase]
         simpa [Finset.mem_union, Finset.mem_singleton, and_comm] using hmax.2
 
+/-- If `phaseGo` stops at `q` (its leftover suffix begins with `q`), then `q` is
+fresh with respect to the accumulated `seen` and the returned prefix. -/
+lemma phaseGo_fresh (k : ℕ) (seen : Finset Page) (σ : List Page) (hseen : seen.card ≤ k)
+    (q : Page) (rest' : List Page) (h : (phaseGo k seen σ).2 = q :: rest') :
+    q ∉ (phaseGo k seen σ).1.toFinset ∪ seen := by
+  induction σ generalizing seen with
+  | nil => simp [phaseGo] at h
+  | cons x τ ih =>
+      by_cases hx : (insert x seen).card ≤ k
+      · have h' : (phaseGo k (insert x seen) τ).2 = q :: rest' := by
+          simpa [phaseGo, hx] using h
+        have hi := ih (insert x seen) (by simpa using hx) h'
+        simpa [phaseGo, hx, Finset.insert_union, Finset.union_insert, Finset.union_assoc,
+          Finset.union_comm, Finset.union_left_comm] using hi
+      · have hxτ : x :: τ = q :: rest' := by simpa [phaseGo, hx] using h
+        have hxq : x = q := (List.cons.inj hxτ).1
+        subst x
+        simp [phaseGo, hx]
+        intro hqin
+        have hcard : (insert q seen).card ≤ k := by simpa [hqin] using hseen
+        exact hx hcard
+
+/-- The first page of the suffix after a maximal first phase is fresh with
+respect to the pages of the phase. -/
+lemma firstPhase_fresh (k : ℕ) (σ : List Page) (hk : 0 < k) (q : Page) (rest' : List Page)
+    (h : (firstPhase k σ).2 = q :: rest') :
+    q ∉ (firstPhase k σ).1.toFinset := by
+  cases σ with
+  | nil => simp [firstPhase] at h
+  | cons p rest =>
+      have h' : (phaseGo k ({p} : Finset Page) rest).2 = q :: rest' := by
+        simpa [firstPhase] using h
+      have hseen : ({p} : Finset Page).card ≤ k := by
+        simpa using (Nat.succ_le_of_lt hk)
+      have hfresh := phaseGo_fresh k {p} rest hseen q rest' h'
+      simpa [firstPhase, Finset.insert_eq, Finset.union_comm] using hfresh
+
 /-- The number of phases is at most one more than the miss count of any size-`k`
 algorithm: `(phases k σ).length ≤ missesGo A C σ + 1`.  This is the lower-bound
 half of the competitive analysis: the transition between consecutive phases
@@ -989,12 +1026,12 @@ lemma phases_le_misses (k : ℕ) (σ : List Page) (hk : 0 < k)
               rw [phases_cons_eq k (p :: rest) (by simp)]
               rw [hrem]
               simp [phases, WellFounded.fix_eq]
-              omega
           | cons q rest' =>
               have hrem_ne : fp.2 ≠ [] := by simp [hrem]
               have hmax := firstPhase_maximal k (p :: rest) hk hrem_ne
               have hcard : fp.1.toFinset.card = k := by simpa [fp] using hmax.1
-              have hqfresh : q ∉ fp.1.toFinset := by simpa [hrem] using hmax.2
+              have hqfresh : q ∉ fp.1.toFinset := by
+                exact firstPhase_fresh k (p :: rest) hk q rest' (by simpa [fp] using hrem)
               have hremlen : fp.2.length < (p :: rest).length := by
                 have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
                   rw [← hsplit, List.length_append]
