@@ -1,55 +1,11 @@
-import Mathlib
+import CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions
 
 /-!
-# 29.1 Standard-form linear programs
+# 29.1. Standard-Form Definitions (legacy compatibility path)
 
-This module defines the finite real matrix model used by Chapter 29.  A
-standard-form program maximizes {lit}`cᵀx` subject to {lit}`Ax ≤ b` and
-{lit}`0 ≤ x`.
-
-Main declarations:
-
-- {lit}`IsNonnegative`: pointwise nonnegativity of a finite vector.
-- {lit}`StandardLP`: coefficients, bounds, and objective coefficients.
-- {lit}`StandardLP.IsFeasible`: primal standard-form feasibility.
-- {lit}`StandardLP.objective`: the value {lit}`cᵀx`.
-
-Downstream layers:
-
-- Slack-variable equivalence is proved in later Section 29.1 modules.
-- Basic/nonbasic dictionaries and SIMPLEX are developed in Sections 29.3--29.5.
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
-
-namespace CLRS
-namespace Chapter29
-
-open Matrix
-
-/-- A finite real vector is nonnegative when every coordinate is nonnegative. -/
-def IsNonnegative {n : ℕ} (x : Fin n → ℝ) : Prop :=
-  ∀ j, 0 ≤ x j
-
-/-- A maximization linear program in CLRS standard form:
-maximize {lit}`cᵀx` subject to {lit}`Ax ≤ b` and {lit}`0 ≤ x`. -/
-structure StandardLP (m n : ℕ) where
-  /-- The constraint coefficient matrix. -/
-  A : Matrix (Fin m) (Fin n) ℝ
-  /-- The constraint right-hand side. -/
-  b : Fin m → ℝ
-  /-- The objective coefficient vector. -/
-  c : Fin n → ℝ
-
-namespace StandardLP
-
-/-- A vector is primal feasible when it is nonnegative and satisfies every
-row inequality of the standard-form program. -/
-def IsFeasible {m n : ℕ} (P : StandardLP m n) (x : Fin n → ℝ) : Prop :=
-  IsNonnegative x ∧ ∀ i, (P.A *ᵥ x) i ≤ P.b i
-
-/-- The objective value {lit}`cᵀx` of a standard-form assignment. -/
-def objective {m n : ℕ} (P : StandardLP m n) (x : Fin n → ℝ) : ℝ :=
-  P.c ⬝ᵥ x
-
-end StandardLP
-end Chapter29
-end CLRS

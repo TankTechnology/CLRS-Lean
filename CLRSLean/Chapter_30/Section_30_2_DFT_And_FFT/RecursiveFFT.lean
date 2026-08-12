@@ -1,22 +1,11 @@
-import CLRSLean.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Definitions
-import CLRSLean.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Correctness
-import CLRSLean.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Costs
+import CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT
 
-/-! # Section 30.2 - Recursive radix-2 FFT
+/-!
+# 30.2. Recursive Radix-2 FFT (legacy compatibility path)
 
-The recursive FFT surface is split into the value-producing execution, its
-equality with the generic DFT and inverse, and execution-derived exact and
-padded all-input costs.
-
-Implementation pages:
-
-- [Definitions and execution](CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions/)
-- [Correctness and inverse](CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness/)
-- [Exact and padded costs](CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs/)
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
-
-namespace CLRS
-namespace Chapter30
-
-end Chapter30
-end CLRS

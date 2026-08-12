@@ -1,9 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Definitions
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.PMerge.Definitions
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Definitions
 
 /-!
-# CLRS Chapter 27.3 — Parallel Merge Definitions
+# 27.3. Parallel Merge — Definitions (legacy compatibility path)
 
-This thin navigation module collects the executable lower-bound and P-MERGE
-definitions.  Their invariants and proofs remain in focused submodules.
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Definitions`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/

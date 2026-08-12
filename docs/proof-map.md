@@ -2032,7 +2032,9 @@ reads are proved equal to the pure recurrence value.
 
 ### Section 16.1 - Activity selection
 
-- Lean source: `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_15/Section_15_1_Activity_Selection.lean`
+  (canonical fourth-edition Section 15.1; the legacy
+  `CLRSLean/Chapter_16/Section_16_1_Activity_Selection.lean` forwards to it)
 - Status: `proved` for the finite sorted-list model
 - Main proved theorems:
   - `CLRS.ActivitySelection.earliest_finish_minFinish`
@@ -2085,7 +2087,9 @@ for the nonempty recursive step.
 
 ### Section 16.2 - Greedy-choice property and optimal substructure (meta-theorems)
 
-- Lean source: `CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_15/Section_15_2_Greedy_Meta.lean`
+  (canonical fourth-edition Section 15.2; the legacy
+  `CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean` forwards to it)
 - Status: `proved` for the abstract structural lemmas
 - Main results:
   - `CLRS.GreedyMeta.GreedyProblem` — abstract structure bundling the
@@ -2111,7 +2115,9 @@ strong induction on the problem size.
 
 ### Section 16.3 - Huffman codes
 
-- Lean source: `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes.lean`
+  (canonical fourth-edition Section 15.3; the legacy
+  `CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean` forwards to it)
 - Status: `proved`
 - Main proved theorems:
   - `CLRS.HuffmanV2.optimum_huffman_freqs`
@@ -2184,12 +2190,13 @@ weight domination.
 
 ## Chapter 17 - Amortized Analysis
 
-- Lean source:
-  `CLRSLean/Chapter_17.lean`,
-  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean`,
-  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean`,
-  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean`, and
-  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables.lean`
+- Lean source (canonical fourth-edition Sections 16.1-16.4; the legacy
+  `CLRSLean/Chapter_17/Section_17_1_Amortized_Framework*` and
+  `CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables*` files forward to them):
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework.lean`,
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter.lean`,
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables.lean`, and
+  `CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables/Section_16_4_Mutable_Array_Tables.lean`
 - Status: `selected-section-complete`
 - Main proved theorems:
   - `CLRS.Chapter17.aggregate_bound_of_prefix_bound`
@@ -3160,7 +3167,9 @@ track.
 ### Section 22.1 - Representing graphs
 
 - Lean source:
-  `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean`
+  `CLRSLean/FourthEdition/Chapter_20/Section_20_1_Representing_Graphs.lean`
+  (canonical fourth-edition Section 20.1; the legacy
+  `CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean` forwards to it)
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter22.Graph`
@@ -3176,7 +3185,9 @@ track.
 
 ### Section 22.2 - Breadth-first search
 
-- Lean source: `CLRSLean/Chapter_22/Section_22_2_BFS.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_20/Section_20_2_BFS.lean`
+  (canonical fourth-edition Section 20.2; the legacy
+  `CLRSLean/Chapter_22/Section_22_2_BFS.lean` forwards to it)
 - Status: `proved`
 - Reachability layer:
   - `CLRS.Chapter22.Graph.bfs_sound`
@@ -3205,13 +3216,14 @@ track.
 
 ### Section 22.3 - Depth-first search
 
-- Lean sources:
-  - `CLRSLean/Chapter_22/Section_22_3_DFS.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S2_Intervals.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S3_Bridge.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S4_SCC.lean`
-  - `CLRSLean/Chapter_22/Section_22_3_DFS/S5_EdgeClassification.lean`
+- Lean sources (canonical fourth-edition Section 20.3; the legacy
+  `CLRSLean/Chapter_22/Section_22_3_DFS*` files forward to them):
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S1_WhitePath.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S2_Intervals.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S3_Bridge.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S4_SCC.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S5_EdgeClassification.lean`
 - Status: `proved`
 - DFS and white-path layer:
   - `CLRS.Chapter22.Graph.DFSState`
@@ -3240,7 +3252,9 @@ track.
 
 ### Section 22.4 - Topological sort
 
-- Lean source: `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_20/Section_20_4_Topological_Sort.lean`
+  (canonical fourth-edition Section 20.4; the legacy
+  `CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean` forwards to it)
 - Status: `proved`
 - Kahn layer:
   - `CLRS.Chapter22.Graph.IsDAG`
@@ -3258,8 +3272,11 @@ track.
 ### Section 22.5 - Strongly connected components
 
 - Lean sources:
-  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean`
-  - `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components.lean`
+  - `CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components/MergeSortCongr.lean`
+  (canonical fourth-edition Section 20.5; the legacy
+  `CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components*` files
+  forward to them)
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter22.Graph.transpose`
@@ -3287,7 +3304,10 @@ track.
 ### Section 23.1 - Growing a minimum spanning tree
 
 - Lean source:
+  `CLRSLean/FourthEdition/Chapter_21/Section_21_1_Growing_Minimum_Spanning_Trees.lean`
+  (canonical fourth-edition Section 21.1; the legacy
   `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
+  forwards to it)
 - Status: `main-proof-complete-for-correctness`
 - Main proved theorem: `CLRS.MST.safe_edge_of_lightest_crossing`
 - Supporting theorems:
@@ -3310,7 +3330,12 @@ automatically.
 
 ### Section 23.2 - Kruskal and Prim
 
-- Lean source: `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim.lean`
+  (canonical fourth-edition Section 21.2, with the nested
+  `Section_21_2_Kruskal_And_Prim/S1_UnionFindBridge.lean`,
+  `Section_21_2_Kruskal_And_Prim/S2_StatefulKruskal.lean`, and
+  `Section_21_2_Kruskal_And_Prim/S3_ExecutablePrim.lean`; the legacy
+  `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim*` files forward to them)
 - Interface tests: `Tests/Chapter_23_Interface.lean`,
   `Tests/Chapter_23_Closure.lean`
 - Status: `main-proof-complete-for-correctness`
@@ -3358,7 +3383,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.1 - The Bellman-Ford algorithm
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_1_Bellman_Ford.lean`
+  (canonical fourth-edition Section 22.1; the legacy
+  `CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean` forwards to it)
 - Status: `proved`
 - Model layer:
   - `CLRS.Chapter24.WeightedGraph`
@@ -3387,7 +3414,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.2 - Single-source shortest paths in DAGs
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_2_SSSP_In_DAGs.lean`
+  (canonical fourth-edition Section 22.2; the legacy
+  `CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean` forwards to it)
 - Status: `proved`
 - Topological order and acyclicity (over `WeightedGraph.Adj`):
   - `CLRS.Chapter24.WeightedGraph.IsTopoOrder`
@@ -3417,7 +3446,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.3 - Dijkstra's algorithm
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_3_Dijkstra.lean`
+  (canonical fourth-edition Section 22.3; the legacy
+  `CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean` forwards to it)
 - Status: `proved` (greedy theorem, executable loop, and end-to-end correctness)
 - Nonnegative-weight layer:
   - `CLRS.Chapter24.WeightedGraph.Nonneg`
@@ -3454,7 +3485,10 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 24.5 - Proofs of shortest paths
 
-- Lean source: `CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_22/Section_22_5_Shortest_Path_Properties.lean`
+  (canonical fourth-edition Section 22.5; the legacy
+  `CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean` forwards
+  to it)
 - Status: `proved` for the shortest-path distance function and the no-path,
   upper-bound, and triangle-inequality properties (CLRS Lemmas 24.11-24.13)
 - Main proved theorems:
@@ -3481,7 +3515,9 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ### Section 25.1 - All-Pairs Shortest Paths Model
 
-- Lean source: `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_23/Section_23_1_All_Pairs_Model.lean`
+  (canonical fourth-edition Section 23.1; the legacy
+  `CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean` forwards to it)
 - Status: `proved` (under no negative-weight cycles)
 - Main theorems:
   - `CLRS.Chapter24.WeightedGraph.weightMatrix` (edge-weight matrix W)
@@ -3504,7 +3540,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 25.2 - Floyd-Warshall Algorithm
 
-- Lean source: `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_23/Section_23_2_Floyd_Warshall.lean`
+  (canonical fourth-edition Section 23.2; the legacy
+  `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean` forwards to it)
 - Status: `proved`
 - Main declarations:
   - `CLRS.Chapter24.WeightedGraph.fwStep` (one Floyd-Warshall iteration)
@@ -3529,7 +3567,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 25.3 - Johnson's Algorithm
 
-- Lean source: `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_23/Section_23_3_Johnsons_Algorithm.lean`
+  (canonical fourth-edition Section 23.3; the legacy
+  `CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean` forwards to it)
 - Status: `proved`
 - Main declarations and theorems:
   - `CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`
@@ -3660,7 +3700,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.1 - Flow Networks
 
-- Lean source: `CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_1_Flow_Networks.lean`
+  (canonical fourth-edition Section 24.1; the legacy
+  `CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean` forwards to it)
 - Status: `proved`
 - Model:
   - `CLRS.Chapter26.FlowNetwork` (capacity `c : V → V → ℝ`, source `s`, sink `t`,
@@ -3700,7 +3742,10 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 ### Section 26.2 - Ford--Fulkerson Augmentation
 
 - Lean source:
+  `CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
+  (canonical fourth-edition Section 24.2; the legacy
   `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean`
+  forwards to it)
 - Status: `proved` for the concrete mathematical augmentation layer
 - Path and augmentation model:
   - `CLRS.Chapter26.Flow.ResidualPath`
@@ -3731,9 +3776,11 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.2 - The Edmonds-Karp Algorithm
 
-- Lean sources: `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean`
+- Lean sources: `CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp.lean`
   plus the submodules `Ford_Fulkerson_Augmentation`, `S1_ShortestAugmentingPath`,
-  `S2_EK_Loop`, `S3_WorkAnalysis`, and `S4_ExecutableBFS`.
+  `S2_EK_Loop`, `S3_WorkAnalysis`, and `S4_ExecutableBFS` (canonical
+  fourth-edition Section 24.2; the legacy
+  `CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp*` files forward to them).
 - Status: `proved` (Lemma 26.7, the loop, the `O(VE²)` counting, and the
   executable BFS)
 - Current declarations:
@@ -3819,7 +3866,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Section 26.3 - Maximum Bipartite Matching
 
-- Lean source: `CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_3_Bipartite_Matching.lean`
+  (canonical fourth-edition Section 24.3; the legacy
+  `CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean` forwards to it)
 - Status: `proved`
 - Represented model:
   - `CLRS.Chapter26.BipartiteGraph`
@@ -3866,7 +3915,9 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 
 ### Theorem 26.6 - The Max-Flow Min-Cut Theorem
 
-- Lean source: `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_6_MaxFlow_MinCut.lean`
+  (canonical fourth-edition Section 24.6; the legacy
+  `CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean` forwards to it)
 - Status: `proved`
 - Proved theorems:
   - `CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`
@@ -3889,13 +3940,14 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 27.1 - The Basics of Dynamic Multithreading
 
-- Lean sources:
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S1_ComputationDAG.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S2_ReadyExecution.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S3_GreedyAccounting.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S4_ExecutableScheduler.lean`
-  - `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean`
+- Lean sources (canonical fourth-edition Section 26.1; the legacy
+  `CLRSLean/Chapter_27/Section_27_1_Multithreading_Model*` files forward to them):
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S1_ComputationDAG.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S2_ReadyExecution.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S3_GreedyAccounting.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S4_ExecutableScheduler.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean`
 - Interface test: `Tests/Chapter_27_Interface.lean`
 - Status: `proved` (for the represented model)
 - Model:
@@ -3951,14 +4003,15 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 27.2 - Multithreaded Matrix Multiplication
 
-- Lean sources:
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean`
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S1_CostModel.lean`
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean`
-    (shared legacy recurrence file containing the idealized P-MATMUL model)
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean`
-    (shared legacy all-input-bound file)
-  - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean`
+- Lean sources (canonical fourth-edition Sections 26.2--26.3; the legacy
+  `CLRSLean/Chapter_27/Section_27_2_4_Algorithms*` files forward to them):
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S1_CostModel.lean`
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S2_Recurrences.lean`
+    (shared recurrence file containing the idealized P-MATMUL model)
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S3_AllInputBounds.lean`
+    (shared all-input-bound file)
+  - `CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean`
   - `CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs.lean`
@@ -4251,7 +4304,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 28.1 - Solving Systems of Linear Equations
 
-- Lean source: `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_1_Linear_Equations.lean`
+  (canonical fourth-edition Section 28.1; the legacy
+  `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean` forwards to it)
 - Status: `selected-section-complete` (Theorem 28.1 proved)
 - Model:
   - `CLRS.Chapter28.IsUpperTriangular` / `IsLowerTriangular` /
@@ -4318,7 +4373,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     `choleskyCost_isBigO` (Cholesky `Θ(n³)`).
 ### Section 28.2 - Inverting Matrices
 
-- Lean source: `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_2_Inverting_Matrices.lean`
+  (canonical fourth-edition Section 28.2; the legacy
+  `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean` forwards to it)
 - Status: `selected-section-complete` (Theorem 28.2 proved)
 - Proved:
   - `permMatrix_inv`: `(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`.
@@ -4329,7 +4386,9 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ### Section 28.3 - Symmetric Positive-Definite Matrices and Least Squares
 
-- Lean source: `CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean`
+  (canonical fourth-edition Section 28.3; the legacy
+  `CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean` forwards to it)
 - Status: `complete`
 - Model:
   - `IsSymPosDef`: the CLRS definition of symmetric positive-definite —
@@ -4376,13 +4435,21 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 
 ## Chapter 29 - Linear Programming
 
-The legacy third-edition Sections 29.1--29.5 are main-proof-complete at the
+Canonical fourth-edition sources:
+`CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms.lean`,
+`CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs.lean`,
+and `CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality.lean` (fourth-edition
+Sections 29.1--29.3; the legacy `CLRSLean/Chapter_29/Section_29_1`,
+`Section_29_2`, and `Section_29_4` files forward to them).  The legacy
+Sections 29.1--29.5 are main-proof-complete at the
 finite real-matrix/pure-functional layer described below.  Fourth-edition
 Chapter 29 remains partial under the canonical ledger: §29.1 lacks general-form
 normalization and a main-text algorithm wrapper separated from online SIMPLEX;
 §29.2's specialized problem predicates lack finite `StandardLP` encoding and
 preservation bridges; and §29.3's strongest duality declarations still reside
 in a legacy initialization module that is also cataloged as online material.
+The detailed SIMPLEX algorithm (legacy Section 29.3) and the initial basic
+feasible solution (legacy Section 29.5) are online material.
 
 ### Section 29.1 - Standard and Slack Forms
 
@@ -4477,13 +4544,17 @@ in a legacy initialization module that is also cataloged as online material.
 
 ## Chapter 30 - Polynomials and the FFT
 
+The sources below are the canonical fourth-edition Sections 30.1--30.3; the
+legacy `CLRSLean/Chapter_30/Section_30_*` files forward to them during the
+compatibility period.
+
 ### Section 30.1 - Polynomial Representations
 
 - Lean sources:
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials.lean`
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S1_CoefficientVectors.lean`
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S2_PointValueInterpolation.lean`
-  - `CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S3_RepresentationOperations.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S1_CoefficientVectors.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S2_PointValueInterpolation.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S3_RepresentationOperations.lean`
 - Status: `proved` for the milestone's fixed-capacity representation and
   represented arithmetic-cost boundary.
 - Representation bridge:
@@ -4513,15 +4584,15 @@ in a legacy initialization module that is also cataloged as online material.
 
 - Lean sources:
   - `CLRSLean/Chapter_30.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S1_RootsOfUnity.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S2_DFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S3_InversionAndConvolution.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs.lean`
-  - `CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/PolynomialMultiplication.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S1_RootsOfUnity.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S2_DFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S3_InversionAndConvolution.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/PolynomialMultiplication.lean`
 - Status: `proved` for the milestone's exact-field DFT, recursive radix-2 FFT,
   inverse, polynomial multiplication, and declared arithmetic-cost boundary;
   Section 30.3 below completes the chapter's reviewed main-text boundary.
@@ -4590,13 +4661,13 @@ in a legacy initialization module that is also cataloged as online material.
 ### Section 30.3 - Efficient FFT Implementations
 
 - Lean sources:
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/BitReversal.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs.lean`
-  - `CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/BitReversal.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs.lean`
+  - `CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean`
 - Status: `proved` for the exact functional iterative-FFT and layered-circuit
   boundary.  The Milestone 2 closure interface contributes 17 reviewed
   headline theorem groups, bringing Chapter 30's tracked total to 46.
@@ -4678,9 +4749,11 @@ in a legacy initialization module that is also cataloged as online material.
 
 ## Chapter 31 - Number-Theoretic Algorithms
 
+The sources below are the canonical fourth-edition Sections 31.1--31.8; the legacy `CLRSLean/FourthEdition/Chapter_31/Section_*` files forward to them during the compatibility period.
+
 ### Section 31.1 - Elementary Number-Theoretic Notions
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_1_Elementary_Number_Theory.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_1_Elementary_Number_Theory.lean`
 - Status: `selected-section-complete`
 - Model:
   - `IsGCD`: the greatest-common-divisor property predicate (divides both, and
@@ -4700,7 +4773,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.2 - Greatest Common Divisor
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Theorem 31.9,
@@ -4737,7 +4810,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.3 - Modular Arithmetic
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_3_Modular_Arithmetic.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_3_Modular_Arithmetic.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `mod_add` / `mod_mul` (CLRS Theorem 31.5): addition and multiplication
@@ -4751,7 +4824,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.4 - Solving Modular Linear Equations
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `linear_congruence_shift`: `x + k·(n/gcd(a,n))` preserves solutions.
@@ -4761,7 +4834,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.5 - The Chinese Remainder Theorem
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `chinese_remainder_two` / `chinese_remainder_unique` /
@@ -4771,7 +4844,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.6 - Powers of an Element
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_6_Powers_Of_An_Element.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_6_Powers_Of_An_Element.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `modularExponentiation` + `modularExponentiation_spec` (CLRS
@@ -4782,7 +4855,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.7 - The RSA Public-Key Cryptosystem
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_7_RSA.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_7_RSA.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `totient_mul_prime`: `φ(p·q) = (p−1)(q−1)` for distinct primes.
@@ -4791,7 +4864,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.8 - Primality Testing
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_8_Primality_Testing.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_8_Primality_Testing.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `fermat_test` (CLRS Theorem 31.31): prime `p` and `gcd(a,p)=1` give
@@ -4830,7 +4903,7 @@ in a legacy initialization module that is also cataloged as online material.
 
 ### Section 31.9 - Integer Factorization
 
-- Lean source: `CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean`
+- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_9_Integer_Factorization.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `rhoStep` (Pollard's rho iteration).
@@ -4848,12 +4921,14 @@ in a legacy initialization module that is also cataloged as online material.
 
 ## Chapter 32 - String Matching
 
+The sources below are the canonical fourth-edition Sections 32.1; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
+
 ### Section 32.1 - The Naive String-Matching Algorithm
 
 - Lean sources:
   - `CLRSLean/Chapter_32.lean`
-  - `CLRSLean/Chapter_32/Section_32_1_String_Model.lean`
-  - `CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean`
+  - `CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model.lean`
+  - `CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean`
 - Status: `selected-section-complete`
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,

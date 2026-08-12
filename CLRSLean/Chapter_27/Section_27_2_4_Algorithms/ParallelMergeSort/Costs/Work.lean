@@ -1,6 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work.Bounds
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Work
 
-/-! # CLRS Chapter 27.3 — P-MERGE-SORT Work
+/-!
+# 27.3. P-MERGE-SORT — Work (legacy compatibility path)
 
-Navigation module for executable P-MERGE-SORT work bounds.
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Work`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/

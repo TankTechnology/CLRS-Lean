@@ -1,4 +1,6 @@
-import CLRSLean.Chapter_29
+import CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms
+import CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs
+import CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality
 
 /-!
 # Chapter 29 — Linear Programming
@@ -8,16 +10,28 @@ period.
 
 ## Current source
 
-During the compatibility period this guide imports {lit}`CLRSLean.Chapter_29`. Existing declarations retain their current namespaces until the chapter-by-chapter source migration.
+Sections 29.1--29.3 are native fourth-edition sections (standard and slack
+forms, formulating problems as linear programs, and duality), imported
+directly from
+[Section 29.1](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/),
+[Section 29.2](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/),
+and
+[Section 29.3](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/).
+The duality development builds on the online simplex machinery (legacy
+Section 29.3), and the difference-constraints bridge imports the
+fourth-edition single-source-shortest-paths sources (Chapter 22).
+Declarations keep their current namespaces; the third-edition-numbered
+imports {lit}`CLRSLean.Chapter_29` and
+{lit}`CLRSLean.Chapter_29.Section_29_*` forward to these sources.
 
 ## Coverage boundary
 
-The modeling and duality developments are reused, while detailed SIMPLEX remains
-online material.  The chapter is still partial: §29.1 lacks a general-form
-normalization and a canonical main-text algorithm wrapper; §29.2 lacks finite
-{lit}`StandardLP` encoding/refinement bridges for the specialized formulations;
-and §29.3's strongest duality declarations still live in a legacy initialization
-module that is also assigned to the online-material ledger.
+The native sections supply the represented fourth-edition linear-programming
+sections (§29.1 formulations and algorithms, §29.2 formulating problems,
+§29.3 duality with Theorems 29.8--29.10).  The detailed simplex algorithm
+(legacy Section 29.3) and the initial basic feasible solution (legacy
+Section 29.5) are retained as supplementary online material (reachable
+through {lit}`CLRSLean.OnlineMaterial`).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

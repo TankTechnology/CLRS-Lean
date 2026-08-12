@@ -1,14 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work.LogPotential
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work.Bounds
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work
 
 /-!
-# CLRS Chapter 27.3 — P-MERGE Work
+# 27.3. P-MERGE Costs — Linear Work (legacy compatibility path)
 
-This navigation module collects the arithmetic potential and the pointwise
-linear work theorems for the executable P-MERGE algorithm.
-
-## Implementation details
-
-* [Logarithmic potential](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/LogPotential/)
-* [Linear bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds/)
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/

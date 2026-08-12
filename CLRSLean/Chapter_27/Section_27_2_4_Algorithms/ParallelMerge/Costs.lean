@@ -1,18 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Structure
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Step
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Work
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.Costs.Span
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs
 
 /-!
-# CLRS Chapter 27.3 — P-MERGE Costs
+# 27.3. P-MERGE — Costs (legacy compatibility path)
 
-This navigation module collects the actual P-MERGE split-size bounds, exact
-one-step execution cost equations, and pointwise linear work bounds.
-
-## Implementation details
-
-* [Structural bounds](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure/)
-* [One-step costs](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step/)
-* [Linear work](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/)
-* [Quadratic-log span](CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/)
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
