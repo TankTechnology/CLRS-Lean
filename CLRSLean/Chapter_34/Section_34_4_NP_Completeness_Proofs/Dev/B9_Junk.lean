@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B8_IffEmit
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B8_IffPhase
 
 /-!
 # Dev B9: the junk `const false` phases
