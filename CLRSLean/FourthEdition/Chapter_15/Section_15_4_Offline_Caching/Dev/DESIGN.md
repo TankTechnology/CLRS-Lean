@@ -444,12 +444,39 @@ lemmas that the two options share:
   broken" form the consumers (`b2_ehit_ne`, `b2_hnotE`,
   `repair_keep_swap_cur`) take.
 
+**Per-page hQ formalized (2026-08-12, `Dev/B14_PerPageHQ.lean`,
+kernel-checked)** — option (b) in the per-page form: the consumers take
+the per-page hQ (`dead ∨ t₂ < nᵢ ∨ credited q''`) instead of the
+full-history field.  The empirical structure (verified in the same
+search): at every B2 disagreement `σ[t]` is never the page of any past
+pair (0 of 55188), and an alive pair whose nop has passed keeps its
+page in the current cache (the "page-stays" mechanism — 684/688; the 4
+exceptions have a later dead pair with the same page, so the page's
+LAST pair is dead and the hQ's dead disjunct applies).  The file
+supplies:
+
+- `b2_ehit_ne_per_page`: the per-page consumer — `σ[t] ∉ Q.image` given
+  the per-page hQ and the exclusion (credited pages stay in the cache
+  at `t`, via the B2 fault);
+- `last_pair_page_stays`: the page-stays mechanism — the last pair with
+  page `p` keeps `p` in the cache after its nop (the induction: P
+  positions evict pair pages (`hcomp`), `tᵢ` positions exclude `p` by
+  `hlast`, nop positions are insert-erase no-ops, off-P positions by
+  the `hexcl` premise — the exchange's eviction analysis);
+- `creditedPage` / `HQPerPageHyp`: the per-page credit predicate and
+  the assembly's per-page hQ hypothesis form (the boundary pair
+  `nᵢ = t₂+1` is credited).
+
 **Open (the assembly's live-set/boundary choice)**: the new state's hQ
 at `t₂+1` still excludes the pairs with `nᵢ = t₂+1` (their nop at the
 new t0 — 312 B2 steps empirically); those need option (a)'s live set or
 the per-page credit (the pair's page `σ[t₂+1]` is requested at the new
 t0, so it is never the B2 request `σ[t₃]` of a later disagreement — the
 exclusion the DESIGN's "requested-again" analysis would formalize).
+The remaining open piece is the `hexcl` supply — the exchange's
+eviction analysis (the exchangeDecision's branches never evict a
+pair's page — empirically 0) — and the wiring of the per-page
+consumers into the B2 steps.
 
 **Slack-accounting blocker (2026-08-11, verified by exhaustive search,
 `Dev/search_slack.py`)**: the B1 step's slack invariant `bad ≤ slack`
@@ -552,10 +579,24 @@ B1's bad on `q''` is covered iff the page `q''` has a **pending good**
 the "keeper" step that kept `q''` in its cache); the past pair whose
 page `d t₂` is (the user's suggested pairing) identifies the window's
 page history at the B1 (the 188 nop-cases are the pair's own nop
-positions).  **Open**: (a) the exact invariant form for the pending
-goods (the per-page balance can go negative — the exchange's bad on
-`q₀'` has no good on its page — so the pending-good accounting needs
-the window-global form); (b) the Nat-slack algebra for
+positions).  **Per-page accounting formalized (2026-08-12,
+`Dev/B13_PerPageCredit.lean`, kernel-checked)**: the per-page B1 supply
+`bad ≤ slack + c q''` (`b1_bad_le_slack_credit`), the credit-first draw
+(`b1_draw_credit`), the slack draw (`b1_draw_slack`), and the B2
+keeper's accrual on its kept page (`b2_good_accrues`), plus the
+per-page hypothesis form `B1SlackCreditHyp`.  Empirical evaluation
+(`search_slack.py` `main_pp`, exact-iteration search as before): the
+per-page accounting (q₀'-B1s drawn from the slack, non-q₀' B1s drawn
+from `c q''` first) reduces the plain 492 crashes to **308**; the
+candidate-C global accounting reaches 164.  The residual 308 include
+the 164 two-consecutive-B1-bad windows (the crasher at the first
+pair's nop: `d t₂` = the pair's page, `q''` = FIF's farthest — a page
+with no pending good under any identified credit).  **Open**: (a) the
+exact invariant form for the pending goods (the per-page balance can
+go negative — the exchange's bad on `q₀'` has no good on its page —
+so the pending-good accounting needs the window-global form, and the
+residual's `q''` needs a credit the identified sources do not
+produce); (b) the Nat-slack algebra for
 `slack + good − bad` (the credits precede the debits within a step,
 `j < j''`, but the hbook derivation `(dF + bad − good) + (good − bad) ≤
 dF` needs the case analysis); (c) the 416 d-not-in-Q cases; (d) the
@@ -773,15 +814,18 @@ sets `hnb' = σ.length + 2` (`case_one_junk_hit`: 0 is in the exchange's
 cache from then on, so it never faults — the field is vacuous at junk),
 instantiating `CaseOneHdredHyp`.
 
-**Assembly consequence (still open)**: with `hnb' = σ.length + 2` the
-next disagreement (which the verified search shows lands exactly on the
-branch-1 spot `s₁`) satisfies `t₂ = s₁ < hnb'` — case B with `win = none`.
-The case-one step must absorb the branch-1 repair (the repair evicts
-FIF's page at `s₁` and restores agreement at `s₁+1`), or a no-window
-B-step construction is needed.
-
-**Paused (2026-08-12)** — 4th-edition migration (feat/migration branch)
-took priority; `CaseOneHdredHyp` + the at-most-once lemma remain open.
+**Assembly consequence (the no-window B1 step is supplied)**: with
+`hnb' = σ.length + 2` the next disagreement (which the verified search
+shows lands exactly on the branch-1 spot `s₁`) satisfies `t₂ = s₁ <
+hnb'` — case B with `win = none`.  The no-window B1 step is now
+kernel-checked: `Dev/B11_CaseOne_B1.lean` (`caseone_b1_reverse_diff` +
+`caseone_b1_misses_le`, 2026-08-12) and `Dev/B12_CaseOne_NoWindowB1.lean`
+(`step_b1_nowindow` — the full state construction mirroring
+`step_b1_alive` with the window machinery vacuous).  The repair evicts
+FIF's page at `s₁` and restores agreement at `s₁+1`; the branch-1
+at-most-once (`case_one_branch1_once`, B10) is the design justification
+that this step fires at most once per case-one exchange.  Remaining open:
+the no-window B2 step and the `iterate_main_assembled` wiring.
 
 ## File layout
 
