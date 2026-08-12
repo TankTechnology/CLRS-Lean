@@ -124,6 +124,23 @@ def B2DeadStepHyp (σ : List Page) (C₀ : Finset Page) (M : ℕ) : Prop :=
     nextUse σ (t₂ + 1) (st.d t₂) = none ∨ nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = none →
     ∃ st' : IterateState σ C₀ M, st'.t0 = t₂ + 1
 
+/-- B2 步的 hQ 供应(部分 1):旧界 `t₂` 的 strengthened clause 由
+`past_pair_first_request_after` 从状态旧 `hQ`(旧界 `st.t0`)给出 —— 这是
+hQ-extension blocker 的消费者所需形式("consumers only consult the pair
+whose page equals the request, and that pair is never broken" 的形式化;
+`past_pair` 的 B2-resident 前提 `hqin` 与状态字段 `hP`/`hcomp`/`hpair`/
+`hP_in`/`hQfifo`/`hpast` 均由状态给出)。 -/
+lemma b2_hQ_supply_old (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
+    (M : ℕ) (st : IterateState σ C₀ M)
+    {t₂ : ℕ} (ht₂ : t₂ < σ.length) (ht₀t₂ : st.t0 ≤ t₂)
+    (hagree : agreeWithFIF st.d C₀ σ t₂)
+    (hqin : st.d t₂ ∈ schedCache st.d C₀ σ t₂) :
+    ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ st.Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t₂ < tᵢ + 1 + j'' := by
+  exact past_pair_first_request_after σ C₀ hC₀ st.d st.t0 t₂ ht₀t₂ hagree st.Q st.P
+    st.hpast st.hP st.hcomp st.hpair st.hQfifo st.hP_in st.hQ ht₂ hqin
+
 /- ### 情形一步的构造(hAone 的实例化)
 
 `iterate_main_case_one` 给出一致、slack 与 OR 形式 reduced 性;
