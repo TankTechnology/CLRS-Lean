@@ -56,40 +56,40 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | Ch | Title | Status | Proved / tracked | Edition gaps |
 |---:|-------|--------|------------------:|----------------|
 | 1 | The Role of Algorithms in Computing | ⚪ guide | 0 / 0 | — |
-| 2 | Getting Started | 🟢 complete | 7 / 7 | — |
-| 3 | Characterizing Running Times | 🟢 complete | 56 / 56 | — |
-| 4 | Divide-and-Conquer | 🟠 partial coverage | 82 / 82 | Section 4.1 (Multiplying square matrices): partial; Section… |
-| 5 | Probabilistic Analysis and Randomized Algorithms | 🟡 sections | 25 / 25 | — |
-| 6 | Heapsort | 🟢 complete | 78 / 78 | — |
-| 7 | Quicksort | 🟠 partial coverage | 30 / 30 | Section 7.4 (Analysis of quicksort): partial |
-| 8 | Sorting in Linear Time | 🟢 correctness | 36 / 36 | — |
-| 9 | Medians and Order Statistics | 🟢 complete | 72 / 72 | — |
-| 10 | Elementary Data Structures | 🟢 complete | 21 / 21 | — |
-| 11 | Hash Tables | 🟢 complete | 59 / 59 | — |
-| 12 | Binary Search Trees | 🟢 correctness | 40 / 40 | — |
-| 13 | Red-Black Trees | 🟠 partial coverage | 39 / 39 | Section 13.2: BST/inorder rotation preservation and cost… |
-| 14 | Dynamic Programming | 🟠 partial coverage | 76 / 76 | Section 14.1: cut reconstruction memoization and costs;… |
-| 15 | Greedy Algorithms | 🟢 complete | 27 / 27 | Section 15.4 (Offline caching): the exchange step the slack… |
-| 16 | Amortized Analysis | 🟡 sections | 66 / 66 | — |
-| 17 | Augmenting Data Structures | 🟠 partial coverage | 77 / 77 | Section 17.1: OS-RANK combined invariants and logarithmic… |
-| 18 | B-Trees | 🟢 correctness | 134 / 134 | — |
-| 19 | Data Structures for Disjoint Sets | 🟢 complete | 84 / 84 | — |
-| 20 | Elementary Graph Algorithms | 🟢 correctness | 47 / 47 | — |
-| 21 | Minimum Spanning Trees | 🟢 correctness | 52 / 52 | — |
-| 22 | Single-Source Shortest Paths | 🟡 sections | 27 / 27 | — |
-| 23 | All-Pairs Shortest Paths | 🟢 correctness | 24 / 24 | — |
-| 24 | Maximum Flow | 🟢 complete | 18 / 18 | — |
-| 25 | Matchings in Bipartite Graphs | 🟢 complete | 18 / 18 | — |
-| 26 | Parallel Algorithms | 🟢 complete | 95 / 95 | — |
-| 27 | Online Algorithms | 🟠 partial coverage | 5 / 5 | Section 27.3 (Online caching) is not represented |
-| 28 | Matrix Operations | 🟢 complete | 9 / 9 | — |
-| 29 | Linear Programming | 🟠 partial coverage | 10 / 10 | Section 29.1: general-form normalization and canonical… |
-| 30 | Polynomials and the FFT | 🟢 complete | 34 / 34 | — |
-| 31 | Number-Theoretic Algorithms | 🟡 sections | 17 / 17 | — |
-| 32 | String Matching | 🟠 partial coverage | 19 / 19 | Section 32.2 (The Rabin–Karp algorithm): not-started;… |
-| 33 | Machine-Learning Algorithms | 🟢 complete | 15 / 15 | — |
-| 34 | NP-Completeness | 🟠 partial coverage | 12 / 12 | The assembled SAT ≤_P 3-CNF-SAT machine reduction… |
-| 35 | Approximation Algorithms | 🟢 complete | 10 / 10 | — |
+| 2 | 🟢 complete | 🟢 complete | 7 / 7 | — |
+| 3 | 🟢 complete | 🟢 complete | 56 / 56 | — |
+| 4 | 🟢 complete | 🟠 partial coverage | 82 / 82 | Section 4.1 (Multiplying square matrices): partial; Section… |
+| 5 | 🟡 sections | 🟡 sections | 25 / 25 | — |
+| 6 | 🟢 complete | 🟢 complete | 78 / 78 | — |
+| 7 | 🟡 sections | 🟠 partial coverage | 30 / 30 | Section 7.4 (Analysis of quicksort): partial |
+| 8 | 🟢 correctness | 🟢 correctness | 36 / 36 | — |
+| 9 | 🟢 complete | 🟢 complete | 72 / 72 | — |
+| 10 | 🟡 sections | 🟢 complete | 21 / 21 | — |
+| 11 | 🟢 correctness | 🟢 complete | 59 / 59 | — |
+| 12 | 🟢 correctness | 🟢 correctness | 40 / 40 | — |
+| 13 | 🟢 correctness | 🟠 partial coverage | 39 / 39 | Section 13.2: BST/inorder rotation preservation and cost… |
+| 14 | 🟢 correctness | 🟠 partial coverage | 76 / 76 | Section 14.1: cut reconstruction memoization and costs;… |
+| 15 | 🟢 complete | 🟢 complete | 27 / 27 | Section 15.4 (Offline caching): the exchange step the slack… |
+| 16 | 🟢 complete | 🟡 sections | 66 / 66 | — |
+| 17 | 🟡 sections | 🟠 partial coverage | 77 / 77 | Section 17.1: OS-RANK combined invariants and logarithmic… |
+| 18 | 🟢 complete | 🟢 correctness | 134 / 134 | — |
+| 19 | 🟡 sections | 🟢 complete | 84 / 84 | — |
+| 20 | 🟢 correctness | 🟢 correctness | 47 / 47 | — |
+| 21 | 🟢 complete | 🟢 correctness | 52 / 52 | — |
+| 22 | 🟢 correctness | 🟡 sections | 27 / 27 | — |
+| 23 | 🟢 correctness | 🟢 correctness | 24 / 24 | — |
+| 24 | 🟡 sections | 🟢 complete | 18 / 18 | — |
+| 25 | 🟢 complete | 🟢 complete | 18 / 18 | — |
+| 26 | 🟠 partial coverage | 🟢 complete | 95 / 95 | — |
+| 27 | 🟠 partial coverage | 🟠 partial coverage | 5 / 5 | Section 27.3 (Online caching) is not represented |
+| 28 | 🟢 complete | 🟢 complete | 9 / 9 | — |
+| 29 | 🟡 sections | 🟠 partial coverage | 10 / 10 | Section 29.1: general-form normalization and canonical… |
+| 30 | 🟢 complete | 🟢 complete | 34 / 34 | — |
+| 31 | 🟡 sections | 🟡 sections | 17 / 17 | — |
+| 32 | 🟡 sections | 🟠 partial coverage | 19 / 19 | Section 32.2 (The Rabin–Karp algorithm): not-started;… |
+| 33 | 🟡 sections | 🟢 complete | 15 / 15 | — |
+| 34 | 🟢 complete | 🟠 partial coverage | 12 / 12 | The assembled SAT ≤_P 3-CNF-SAT machine reduction… |
+| 35 | 🟢 complete | 🟢 complete | 10 / 10 | — |
 
 **Total: 1411 of 1411 selected theorem entries have kernel-checked proofs across 34 represented fourth-edition chapters** (no `sorry`/`admit`/project axiom on `main`). This does not by itself claim complete fourth-edition coverage.
 <!-- END progress-table -->
