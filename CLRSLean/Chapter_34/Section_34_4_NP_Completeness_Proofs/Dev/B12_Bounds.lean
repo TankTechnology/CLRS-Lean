@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B11_CopyOut
+import Mathlib.Computability.TuringMachine.Computable
 
 /-!
 # Dev B12: polynomial-time bounds
@@ -156,75 +157,93 @@ lemma parseSteps_le (f : Formula) (c : Nat) :
 of consumed symbols plus three. -/
 lemma decodeAux_enc_consumed_le (n : Nat) (l : List FormulaSym) :
     (enc (decodeAux n l).1).length ≤ 2 * (l.length - (decodeAux n l).2.length) + 3 := by
-  induction l generalizing n with
-  | nil => simp [decodeAux]
-  | cons s rest ih =>
-      cases n with
-      | zero => simp [decodeAux]
-      | succ n' =>
-          cases s with
-          | lit _ => simp [decodeAux]
-          | varMark =>
-              by_cases h : rest.head? = some FormulaSym.endMark
-              · rcases endMarkRun rest with ⟨k, suf⟩
-                have hk : 1 ≤ k := by
-                  have hs := endMarkRun_spec rest
-                  rw [h] at hs
-                  have hrep : rest = List.replicate k FormulaSym.endMark ++ suf := hs.1
-                  by_contra hk0
-                  have hk0' : k = 0 := by omega
-                  rw [hk0'] at hrep
-                  have : rest = suf := by simpa using hrep
-                  rw [this] at hs
-                  exact hs.2 h
-                have hdec := decodeVar_endMarkRun rest k suf hk (by rfl)
-                have hk1 : k ≤ rest.length := by
-                  have hs := endMarkRun_spec rest
-                  rw [h] at hs
+  -- Strong induction on the input length so the hypothesis applies to the
+  -- suffixes consumed by the binary connectives.
+  let P : List FormulaSym → Prop := fun l => ∀ n,
+      (enc (decodeAux n l).1).length ≤ 2 * (l.length - (decodeAux n l).2.length) + 3
+  have hP : P l := by
+    refine WellFounded.induction (measure (fun l : List FormulaSym => l.length)).wf l ?_
+    intro l ih
+    dsimp [P] at ih ⊢
+    intro n
+    cases l with
+    | nil => cases n <;> simp [decodeAux, enc]
+    | cons s rest =>
+        cases n with
+        | zero => simp [decodeAux, enc]
+        | succ n' =>
+            cases s with
+            | lit b => simp [decodeAux, enc]
+            | varMark =>
+                by_cases h : rest.head? = some FormulaSym.endMark
+                · rcases hend : endMarkRun rest with ⟨k, suf⟩
+                  have hrep : rest = List.replicate k FormulaSym.endMark ++ suf := by
+                    have hs := endMarkRun_spec rest
+                    rw [hend] at hs
+                    exact hs.1
+                  have hsuf_ne : suf.head? ≠ some FormulaSym.endMark := by
+                    have hs := endMarkRun_spec rest
+                    rw [hend] at hs
+                    exact hs.2
+                  have hk : 1 ≤ k := by
+                    by_contra hk0
+                    have hk0' : k = 0 := by omega
+                    rw [hk0'] at hrep
+                    have : rest = suf := by simpa using hrep
+                    rw [← this] at hsuf_ne
+                    exact hsuf_ne h
+                  have hdec := decodeVar_endMarkRun rest k suf hk hend
+                  have hlen : rest.length = k + suf.length := by
+                    rw [hrep]
+                    simp [List.length_append, List.length_replicate]
+                  simp [decodeAux, hdec, enc, varEnc]
                   omega
-                simp [decodeAux, hdec, enc, varEnc]
+                · have hdec : decodeVar rest = (Formula.const false, rest) := by
+                    cases rest with
+                    | nil => simp [decodeVar]
+                    | cons s rest' => cases s <;> simp [decodeVar] at h ⊢
+                  simp [decodeAux, hdec, enc]
+                  omega
+            | endMark => simp [decodeAux, enc]
+            | notMark =>
+                have h1 : (enc (decodeAux n' rest).1).length ≤
+                    2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih rest (by omega) n'
+                simp [decodeAux, enc, List.length_cons]
                 omega
-              · simp [decodeAux, decodeVar, enc]
+            | andMark =>
+                have h1 : (enc (decodeAux n' rest).1).length ≤
+                    2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih rest (by omega) n'
+                have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
+                have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
+                    2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
+                  exact ih (decodeAux n' rest).2 (by omega) n'
+                have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
+                  decodeAux_suffix_le n' (decodeAux n' rest).2
+                simp [decodeAux, enc, List.length_cons]
                 omega
-          | endMark => simp [decodeAux, enc]
-          | notMark =>
-              have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
-              simp [decodeAux, enc, List.length_cons]
-              omega
-          | andMark =>
-              have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
-              have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
-                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
-                exact ih n' (l := (decodeAux n' rest).2)
-              have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
-              have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
-                decodeAux_suffix_le n' (decodeAux n' rest).2
-              simp [decodeAux, enc, List.length_cons]
-              omega
-          | orMark =>
-              have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
-              have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
-                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
-                exact ih n' (l := (decodeAux n' rest).2)
-              have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
-              have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
-                decodeAux_suffix_le n' (decodeAux n' rest).2
-              simp [decodeAux, enc, List.length_cons]
-              omega
-          | iffMark =>
-              have h1 : (enc (decodeAux n' rest).1).length ≤
-                  2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih n'
-              have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
-                  2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
-                exact ih n' (l := (decodeAux n' rest).2)
-              have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
-              have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
-                decodeAux_suffix_le n' (decodeAux n' rest).2
-              simp [decodeAux, enc, List.length_cons]
-              omega
+            | orMark =>
+                have h1 : (enc (decodeAux n' rest).1).length ≤
+                    2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih rest (by omega) n'
+                have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
+                have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
+                    2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
+                  exact ih (decodeAux n' rest).2 (by omega) n'
+                have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
+                  decodeAux_suffix_le n' (decodeAux n' rest).2
+                simp [decodeAux, enc, List.length_cons]
+                omega
+            | iffMark =>
+                have h1 : (enc (decodeAux n' rest).1).length ≤
+                    2 * (rest.length - (decodeAux n' rest).2.length) + 3 := ih rest (by omega) n'
+                have hsuf : (decodeAux n' rest).2.length ≤ rest.length := decodeAux_suffix_le n' rest
+                have h2 : (enc (decodeAux n' (decodeAux n' rest).2).1).length ≤
+                    2 * ((decodeAux n' rest).2.length - (decodeAux n' (decodeAux n' rest).2).2.length) + 3 := by
+                  exact ih (decodeAux n' rest).2 (by omega) n'
+                have hsuf2 : (decodeAux n' (decodeAux n' rest).2).2.length ≤ (decodeAux n' rest).2.length :=
+                  decodeAux_suffix_le n' (decodeAux n' rest).2
+                simp [decodeAux, enc, List.length_cons]
+                omega
+  simpa using hP n
 
 /-- The encoding of the decoded formula is at most double the input plus three. -/
 lemma enc_decode_le (x : List FormulaSym) :
@@ -236,11 +255,9 @@ lemma enc_decode_le (x : List FormulaSym) :
 /-- The number of original variables of a decoded formula is at most the input
 length. -/
 lemma numVars_decode_le (x : List FormulaSym) : numVars (decode x) ≤ x.length := by
-  let P : List FormulaSym → Prop := fun l => ∀ n, numVars (decodeAux n l).1 ≤ l.length
-  change P x
+  refine (show ∀ n, numVars (decodeAux n x).1 ≤ x.length from ?_) x.length
   refine WellFounded.induction (measure (fun l : List FormulaSym => l.length)).wf x ?_
   intro l ih
-  dsimp [P] at ih ⊢
   intro n
   cases l with
   | nil => simp [decodeAux]
