@@ -26,8 +26,8 @@ namespace Caching
 
 open Finset
 
-/-- B2 版 superset:`q = e t` 为 resident 时,在 `q'` 的首次请求之后,
-`e` 的 cache 包含在 repair 的 cache 中。 -/
+/-- B2 analogue of superset: when `q = e t` is resident, after the first
+request for `q'`, `e`'s cache is contained in the repair's cache. -/
 lemma repairSchedule_superset_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -46,7 +46,7 @@ lemma repairSchedule_superset_swap (e : ℕ → Page) (σ : List Page) (C₀ : F
   | succ s ih =>
       by_cases hs_eq : s = t + 1 + j'
       · subst s
-        -- base:`J'` 处窗口关系 + repair 逐出 `q'`(no-op)再载入
+        -- base: window relation at `J'` + repair evicts `q'` (no-op) then loads it again
         have hwin : schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (t + 1 + j') =
               (schedCache e C₀ σ (t + 1 + j')).erase q'
             ∨ ∃ x : Page, schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (t + 1 + j') =
@@ -94,17 +94,17 @@ lemma repairSchedule_superset_swap (e : ℕ → Page) (σ : List Page) (C₀ : F
           simp
           intro y hy
           by_cases hr : q' ∈ schedCache e C₀ σ (t + 1 + j')
-          · -- `e` 命中:`y ∈ E_J'`
+          · -- `e` hits: `y ∈ E_J'`
             rw [if_pos hr] at hy
             by_cases hqx : q' = x
-            · -- swap 页就是 `q'`
+            · -- the swap page is `q'`
               rw [if_pos hqx]
               rw [← hqx]
               rw [Finset.mem_insert]
               by_cases hyq' : y = q'
               · exact Or.inl hyq'
               · exact Or.inr (Finset.mem_erase.mpr ⟨hyq', hy⟩)
-            · -- swap 页不是 `q'`
+            · -- the swap page is not `q'`
               rw [if_neg hqx]
               have hq'not : q' ∉ insert x ((schedCache e C₀ σ (t + 1 + j')).erase q') := by
                 intro hq'in
@@ -116,7 +116,7 @@ lemma repairSchedule_superset_swap (e : ℕ → Page) (σ : List Page) (C₀ : F
               by_cases hyq' : y = q'
               · exact Or.inl hyq'
               · exact Or.inr (Finset.mem_insert.mpr (Or.inr (Finset.mem_erase.mpr ⟨hyq', hy⟩)))
-          · -- `e` 缺页
+          · -- `e` faults
             rw [if_neg hr] at hy
             rcases Finset.mem_insert.mp hy with hyq' | hyin
             · -- `y = q'`
@@ -197,8 +197,9 @@ lemma repairSchedule_superset_swap (e : ℕ → Page) (σ : List Page) (C₀ : F
               constructor
               · exact hxne
               · exact hxE
-/-- B2 版 repair 步骤:`q = e t` 为 resident 时,在首次分歧处用策略的选择
-替换 `e` 的逐出,miss 数最多多一次,且一致性扩展到 `t + 1`。 -/
+/-- B2 analogue of the repair step: when `q = e t` is resident, at the first
+disagreement replace `e`'s eviction with the policy's choice; the number of
+misses increases by at most one, and agreement extends to `t + 1`. -/
 lemma repair_step_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -275,9 +276,9 @@ lemma repair_step_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
         omega
       · have hts' : t < s := by omega
         by_cases hsJ : s ≤ t + 1 + j
-        · -- (t, J] 内
+        · -- inside (t, J]
           by_cases hs_eqJ : s = t + 1 + j
-          · -- s = J:请求 q,`e` 缺页
+          · -- s = J: request q, `e` faults
             subst s
             unfold rF eF r schedFaultAt
             have hsig : σ.getD (t + 1 + j) 0 = q := getD_eq_nextUse hj
@@ -292,7 +293,7 @@ lemma repair_step_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
               omega
             · rw [if_neg hr]
               rw [if_neg hqnotE]
-          · -- t < s < J:窗口内,请求既不是 q 也不是 q'
+          · -- t < s < J: inside the window, the request is neither q nor q'
             have hwin := repairSchedule_window_swap' e σ C₀ hC₀ ht hagree hdis hqin rfl hq hj hj' hjj'
               (s := s) (by omega) (by omega)
             unfold rF eF r schedFaultAt
@@ -334,7 +335,7 @@ lemma repair_step_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
                   simp [show s ≠ t + 1 + j' by omega]]
         · -- s > J
           by_cases hsJ' : s < t + 1 + j'
-          · -- (J, J') 内
+          · -- inside (J, J')
             have hwin := repairSchedule_after_J_window e σ C₀ hC₀ ht hagree hdis hqin rfl hq hj hj' hjj'
               (s := s) (by omega) (by omega)
             unfold rF eF r schedFaultAt
@@ -375,7 +376,7 @@ lemma repair_step_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
                     simp [show s ≠ t + 1 + j' by omega]]
           · -- s ≥ J'
             by_cases hs_eqJ' : s = t + 1 + j'
-            · -- s = J':rF ≤ eF + 1 恒真
+            · -- s = J': rF ≤ eF + 1 is always true
               subst s
               unfold rF eF r schedFaultAt
               rw [show (if t + 1 + j' = t + 1 + j' then 1 else 0) = 1 by simp]
