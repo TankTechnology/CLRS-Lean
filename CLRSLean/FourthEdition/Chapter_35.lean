@@ -16,7 +16,7 @@ No legacy source is promoted into this chapter.
 
 ## Coverage boundary
 
-Status: partial.
+Status: main-proof-complete.
 
 Section 35.1 (the vertex-cover problem) is a native fourth-edition section: it
 formalizes the vertex-cover problem, the greedy APPROX-VERTEX-COVER algorithm,
@@ -59,8 +59,10 @@ list (Lemma 35.5, TRIM), and the trimmed lists of APPROX-SUBSET-SUM.  Theorem
 35.7 proves the `(1 + ε)`-approximation: the value `z*` returned by
 APPROX-SUBSET-SUM is an achievable subset sum at most `t` and the optimum `y*`
 satisfies `y* ≤ (1 + ε) · z*` (via the compounded `(1 + ε/(2n))^n ≤ e^{ε/2} ≤
-1 + ε` bound).  Theorem 35.8 (the polynomial running time / FPTAS analysis) is
-not yet formalized.  It is imported through
+1 + ε` bound).  Theorem 35.8 (the FPTAS running-time analysis) shows that, with
+`δ = ε/(2n)` and `n = |S|`, every trimmed list has size `O(n/ε)` and the whole
+algorithm runs in time `O(n² · lg t / ε)`, polynomial in the input size and in
+`1/ε` — a fully polynomial-time approximation scheme.  It is imported through
 [Section 35.5](CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
