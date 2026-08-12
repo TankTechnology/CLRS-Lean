@@ -15,9 +15,9 @@ Legacy imports remain supported through all 1.x releases and for at
 least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
-* Chapters represented in Lean: 34.
-* Tracked reader-facing theorem entries: 1,411.
-* Proved tracked theorem entries: 1,411.
+* Chapters represented in Lean: 35.
+* Tracked reader-facing theorem entries: 1,421.
+* Proved tracked theorem entries: 1,421.
 * Online/supplementary theorem entries: 464.
 * Remaining edition-coverage units: 25.
 
@@ -38,7 +38,6 @@ every theorem already selected for that chapter is proved.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
 * {lit}`partial`: 10 chapters.
-* {lit}`not-started`: 1 chapter.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -69,7 +68,7 @@ Ch  Chapter                                                     Status          
 21  21. Minimum Spanning Trees                                  main-proof-complete-for-correctness  21.1;21.2                          52        0
 22  22. Single-Source Shortest Paths                            selected-section-complete            22.1;22.2;22.3;22.4;22.5           27        0
 23  23. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  23.1;23.2;23.3                     24        0
-24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3;24.6                18        0
+24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3                     18        0
 25  25. Matchings in Bipartite Graphs                           main-proof-complete                  25.1;25.2;25.3                     18        0
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
 27  27. Online Algorithms                                       partial (edition coverage)           27.1;27.2                           5        1
@@ -80,7 +79,7 @@ Ch  Chapter                                                     Status          
 32  32. String Matching                                         partial (edition coverage)           32.1                               19        4
 33  33. Machine-Learning Algorithms                             main-proof-complete                  33.1; 33.2; 33.3                   15        0
 34  34. NP-Completeness                                         partial (edition coverage)           34.1;34.2;34.3;34.4                12        1
-35  35. Approximation Algorithms                                not-started                          not represented                     0        1
+35  35. Approximation Algorithms                                main-proof-complete                  35.1;35.2;35.3;35.4;35.5           10        0
 ```
 
 ## Agent Update Rule

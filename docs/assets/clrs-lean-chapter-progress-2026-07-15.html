@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CLRS-Lean 前 26 章证明进展</title>
+  <title>CLRS-Lean proof progress: first 26 chapters</title>
   <style>
     :root {
       --ink: #17212b;
@@ -277,77 +277,77 @@
   <main>
     <header>
       <div>
-        <h1>CLRS-Lean 前 26 章证明进展</h1>
-        <p class="subtitle">覆盖不等于整章逐题完成；状态按当前数学、算法与实现证明边界统计。</p>
+        <h1>CLRS-Lean proof progress: first 26 chapters</h1>
+        <p class="subtitle">Coverage is not completion of every exercise; status is measured by the current mathematical, algorithmic, and implementation proof boundaries.</p>
       </div>
-      <div class="date">截至 2026-07-15</div>
+      <div class="date">As of 2026-07-15</div>
     </header>
 
-    <section class="metrics" aria-label="项目指标">
-      <div class="metric"><strong>26</strong><span>已覆盖章节</span></div>
-      <div class="metric"><strong>1,302</strong><span>关键证明条目</span></div>
-      <div class="metric"><strong>2,728</strong><span>定理 / 引理声明</span></div>
-      <div class="metric"><strong>69,374</strong><span>Lean 文件行数</span></div>
+    <section class="metrics" aria-label="Project metrics">
+      <div class="metric"><strong>26</strong><span>chapters covered</span></div>
+      <div class="metric"><strong>1,302</strong><span>key proof entries</span></div>
+      <div class="metric"><strong>2,728</strong><span>theorem / lemma declarations</span></div>
+      <div class="metric"><strong>69,374</strong><span>Lean file lines</span></div>
       <div class="metric"><strong>0</strong><span>sorry / admit</span></div>
     </section>
 
-    <section class="legend" aria-label="状态图例">
-      <span class="legend-title">状态：</span>
-      <span class="chip sealed">封板 / 主干完成</span>
-      <span class="chip scoped">当前范围完成</span>
-      <span class="chip deep">深度推进</span>
-      <span class="chip frontier">核心攻坚</span>
-      <span class="chip intro">导读</span>
+    <section class="legend" aria-label="Status legend">
+      <span class="legend-title">Status:</span>
+      <span class="chip sealed">Sealed / core complete</span>
+      <span class="chip scoped">Current scope complete</span>
+      <span class="chip deep">Deep progress</span>
+      <span class="chip frontier">Core frontier</span>
+      <span class="chip intro">Guide</span>
     </section>
 
     <section class="tables">
-      <table aria-label="第1章至第13章">
+      <table aria-label="Chapters 1 through 13">
         <colgroup><col class="number"><col class="chapter"><col class="status"><col></colgroup>
-        <thead><tr><th>章</th><th>主题</th><th>状态</th><th>代表进展与主要缺口</th></tr></thead>
+        <thead><tr><th>Ch</th><th>Topic</th><th>Status</th><th>Representative progress and main gaps</th></tr></thead>
         <tbody>
-          <tr><td class="num">01</td><td class="chapter-name">导论</td><td><span class="status intro">导读</span></td><td class="detail">项目约定、证明边界与读者指南</td></tr>
-          <tr><td class="num">02</td><td class="chapter-name">排序入门</td><td><span class="status sealed">主干完成</span></td><td class="detail">插入排序、归并排序及主要成本递推</td></tr>
-          <tr><td class="num">03</td><td class="chapter-name">函数增长</td><td><span class="status scoped">核心完成</span></td><td class="detail">渐近记号、函数层级、Fibonacci 与迭代对数</td></tr>
-          <tr><td class="num">04</td><td class="chapter-name">分治</td><td><span class="status deep">深度推进</span></td><td class="detail">Master 三情形、递归 Strassen；最大子数组成本待补</td></tr>
-          <tr><td class="num">05</td><td class="chapter-name">概率分析</td><td><span class="status scoped">选定完成</span></td><td class="detail">雇用、随机排列、生日悖论与球箱模型</td></tr>
-          <tr><td class="num">06</td><td class="chapter-name">堆排序</td><td><span class="status sealed">正确性封板</span></td><td class="detail">堆、堆排序和优先队列；精细 RAM 成本待补</td></tr>
-          <tr><td class="num">07</td><td class="chapter-name">快速排序</td><td><span class="status deep">深度推进</span></td><td class="detail">快排、比较概率、Θ(n log n)；总期望桥接待补</td></tr>
-          <tr><td class="num">08</td><td class="chapter-name">线性时间排序</td><td><span class="status scoped">正确性完成</span></td><td class="detail">计数、基数、桶排序；可执行成本模型待补</td></tr>
-          <tr><td class="num">09</td><td class="chapter-name">顺序统计</td><td><span class="status sealed">正式封板</span></td><td class="detail">Quickselect、随机 SELECT、确定性线性 SELECT</td></tr>
-          <tr><td class="num">10</td><td class="chapter-name">基本数据结构</td><td><span class="status scoped">选定完成</span></td><td class="detail">栈、队列、链表与有根树编码</td></tr>
-          <tr><td class="num">11</td><td class="chapter-name">哈希表</td><td><span class="status deep">深度推进</span></td><td class="detail">链地址、通用哈希、开放寻址与完美哈希</td></tr>
-          <tr><td class="num">12</td><td class="chapter-name">二叉搜索树</td><td><span class="status deep">深度推进</span></td><td class="detail">BST、zipper、TRANSPLANT 与指针堆精化</td></tr>
-          <tr><td class="num">13</td><td class="chapter-name">红黑树</td><td><span class="status frontier">核心攻坚</span></td><td class="detail">删除已可执行；全局红黑形状保持待证</td></tr>
+          <tr><td class="num">01</td><td class="chapter-name">The Role of Algorithms</td><td><span class="status intro">Guide</span></td><td class="detail">Project conventions, proof boundaries, and reader guide</td></tr>
+          <tr><td class="num">02</td><td class="chapter-name">Getting Started</td><td><span class="status sealed">Core complete</span></td><td class="detail">Insertion sort, merge sort, and main cost recurrences</td></tr>
+          <tr><td class="num">03</td><td class="chapter-name">Growth of Functions</td><td><span class="status scoped">Core complete</span></td><td class="detail">Asymptotic notation, function hierarchy, Fibonacci, and iterated logarithm</td></tr>
+          <tr><td class="num">04</td><td class="chapter-name">Divide-and-Conquer</td><td><span class="status deep">Deep progress</span></td><td class="detail">Master cases 1–3, recursive Strassen; maximum-subarray cost still pending</td></tr>
+          <tr><td class="num">05</td><td class="chapter-name">Probabilistic Analysis</td><td><span class="status scoped">Selected complete</span></td><td class="detail">Hiring, random permutation, birthday paradox, and balls-and-bins</td></tr>
+          <tr><td class="num">06</td><td class="chapter-name">Heapsort</td><td><span class="status sealed">Correctness sealed</span></td><td class="detail">Heaps, heapsort, and priority queues; fine-grained RAM cost still pending</td></tr>
+          <tr><td class="num">07</td><td class="chapter-name">Quicksort</td><td><span class="status deep">Deep progress</span></td><td class="detail">Quicksort, comparison probability, Θ(n log n); total expectation bridge still pending</td></tr>
+          <tr><td class="num">08</td><td class="chapter-name">Sorting in Linear Time</td><td><span class="status scoped">Correctness complete</span></td><td class="detail">Counting, radix, and bucket sort; executable cost model still pending</td></tr>
+          <tr><td class="num">09</td><td class="chapter-name">Order Statistics</td><td><span class="status sealed">Formally sealed</span></td><td class="detail">Quickselect, randomized SELECT, deterministic linear-time SELECT</td></tr>
+          <tr><td class="num">10</td><td class="chapter-name">Elementary Data Structures</td><td><span class="status scoped">Selected complete</span></td><td class="detail">Stacks, queues, linked lists, and rooted-tree encodings</td></tr>
+          <tr><td class="num">11</td><td class="chapter-name">Hash Tables</td><td><span class="status deep">Deep progress</span></td><td class="detail">Chaining, universal hashing, open addressing, and perfect hashing</td></tr>
+          <tr><td class="num">12</td><td class="chapter-name">Binary Search Trees</td><td><span class="status deep">Deep progress</span></td><td class="detail">BST, zipper, TRANSPLANT, and pointer-heap refinement</td></tr>
+          <tr><td class="num">13</td><td class="chapter-name">Red-Black Trees</td><td><span class="status frontier">Core frontier</span></td><td class="detail">Deletion executable; global red-black shape preservation still to prove</td></tr>
         </tbody>
       </table>
 
-      <table aria-label="第14章至第26章">
+      <table aria-label="Chapters 14 through 26">
         <colgroup><col class="number"><col class="chapter"><col class="status"><col></colgroup>
-        <thead><tr><th>章</th><th>主题</th><th>状态</th><th>代表进展与主要缺口</th></tr></thead>
+        <thead><tr><th>Ch</th><th>Topic</th><th>Status</th><th>Representative progress and main gaps</th></tr></thead>
         <tbody>
-          <tr><td class="num">14</td><td class="chapter-name">数据结构增强</td><td><span class="status deep">深度推进</span></td><td class="detail">顺序统计树、区间树与通用增强定理</td></tr>
-          <tr><td class="num">15</td><td class="chapter-name">动态规划</td><td><span class="status scoped">主体完成</span></td><td class="detail">钢条切割、矩阵链、LCS 与最优 BST</td></tr>
-          <tr><td class="num">16</td><td class="chapter-name">贪心算法</td><td><span class="status scoped">选定完成</span></td><td class="detail">活动选择、Huffman、拟阵与任务调度</td></tr>
-          <tr><td class="num">17</td><td class="chapter-name">摊还分析</td><td><span class="status deep">深度推进</span></td><td class="detail">聚合、记账、势能方法与动态表</td></tr>
-          <tr><td class="num">18</td><td class="chapter-name">B 树</td><td><span class="status frontier">核心攻坚</span></td><td class="detail">局部修复；组合删除与磁盘页模型待补</td></tr>
-          <tr><td class="num">19</td><td class="chapter-name">Fibonacci 堆</td><td><span class="status deep">深度推进</span></td><td class="detail">抽象语义、势能框架与紧致度数界</td></tr>
-          <tr><td class="num">20</td><td class="chapter-name">vEB 树</td><td><span class="status sealed">数学模型封板</span></td><td class="detail">七种递归操作及 O(log log u) 控制流成本界</td></tr>
-          <tr><td class="num">21</td><td class="chapter-name">并查集</td><td><span class="status sealed">正式封板</span></td><td class="detail">路径压缩、按秩合并及 O((m+n) α(n)) 摊还界</td></tr>
-          <tr><td class="num">22</td><td class="chapter-name">图算法</td><td><span class="status sealed">正确性封板</span></td><td class="detail">BFS、DFS、拓扑排序与 Kosaraju SCC</td></tr>
-          <tr><td class="num">23</td><td class="chapter-name">最小生成树</td><td><span class="status sealed">正确性封板</span></td><td class="detail">割性质、Kruskal、Prim 与并查集成本组合</td></tr>
-          <tr><td class="num">24</td><td class="chapter-name">单源最短路</td><td><span class="status scoped">选定完成</span></td><td class="detail">Bellman-Ford、DAG 最短路、Dijkstra、差分约束</td></tr>
-          <tr><td class="num">25</td><td class="chapter-name">全源最短路</td><td><span class="status frontier">部分完成</span></td><td class="detail">FASTER-APSP；Floyd-Warshall 与 Johnson 待补</td></tr>
-          <tr><td class="num">26</td><td class="chapter-name">最大流</td><td><span class="status frontier">部分完成</span></td><td class="detail">流网络；MFMC 逆向和 Edmonds-Karp 待补</td></tr>
+          <tr><td class="num">14</td><td class="chapter-name">Augmenting Data Structures</td><td><span class="status deep">Deep progress</span></td><td class="detail">Order-statistic trees, interval trees, and the generic augmentation theorem</td></tr>
+          <tr><td class="num">15</td><td class="chapter-name">Dynamic Programming</td><td><span class="status scoped">Main body complete</span></td><td class="detail">Rod cutting, matrix-chain, LCS, and optimal BST</td></tr>
+          <tr><td class="num">16</td><td class="chapter-name">Greedy Algorithms</td><td><span class="status scoped">Selected complete</span></td><td class="detail">Activity selection, Huffman, matroids, and task scheduling</td></tr>
+          <tr><td class="num">17</td><td class="chapter-name">Amortized Analysis</td><td><span class="status deep">Deep progress</span></td><td class="detail">Aggregate, accounting, and potential methods; dynamic tables</td></tr>
+          <tr><td class="num">18</td><td class="chapter-name">B-Trees</td><td><span class="status frontier">Core frontier</span></td><td class="detail">Local repair; composed deletion and disk-page model still pending</td></tr>
+          <tr><td class="num">19</td><td class="chapter-name">Fibonacci Heaps</td><td><span class="status deep">Deep progress</span></td><td class="detail">Abstract semantics, potential framework, and tight degree bound</td></tr>
+          <tr><td class="num">20</td><td class="chapter-name">van Emde Boas Trees</td><td><span class="status sealed">Mathematical model sealed</span></td><td class="detail">Seven recursive operations and O(log log u) control-flow cost bounds</td></tr>
+          <tr><td class="num">21</td><td class="chapter-name">Data Structures for Disjoint Sets</td><td><span class="status sealed">Formally sealed</span></td><td class="detail">Path compression, union by rank, and the O((m+n) α(n)) amortized bound</td></tr>
+          <tr><td class="num">22</td><td class="chapter-name">Graph Algorithms</td><td><span class="status sealed">Correctness sealed</span></td><td class="detail">BFS, DFS, topological sort, and Kosaraju SCC</td></tr>
+          <tr><td class="num">23</td><td class="chapter-name">Minimum Spanning Trees</td><td><span class="status sealed">Correctness sealed</span></td><td class="detail">Cut property, Kruskal, Prim, and union-find cost composition</td></tr>
+          <tr><td class="num">24</td><td class="chapter-name">Single-Source Shortest Paths</td><td><span class="status scoped">Selected complete</span></td><td class="detail">Bellman-Ford, DAG shortest paths, Dijkstra, difference constraints</td></tr>
+          <tr><td class="num">25</td><td class="chapter-name">All-Pairs Shortest Paths</td><td><span class="status frontier">Partial</span></td><td class="detail">FASTER-APSP; Floyd-Warshall and Johnson still pending</td></tr>
+          <tr><td class="num">26</td><td class="chapter-name">Maximum Flow</td><td><span class="status frontier">Partial</span></td><td class="detail">Flow networks; MFMC converse and Edmonds-Karp still pending</td></tr>
         </tbody>
       </table>
     </section>
 
-    <section class="summary" aria-label="状态汇总">
-      <div class="summary-item sealed"><strong>7</strong><span>封板 / 主干完成</span></div>
-      <div class="summary-item scoped"><strong>7</strong><span>当前范围完成</span></div>
-      <div class="summary-item deep"><strong>7</strong><span>深度推进</span></div>
-      <div class="summary-item frontier"><strong>4</strong><span>核心攻坚</span></div>
-      <div class="summary-item intro"><strong>1</strong><span>导读</span></div>
+    <section class="summary" aria-label="Status summary">
+      <div class="summary-item sealed"><strong>7</strong><span>Sealed / core complete</span></div>
+      <div class="summary-item scoped"><strong>7</strong><span>Current scope complete</span></div>
+      <div class="summary-item deep"><strong>7</strong><span>Deep progress</span></div>
+      <div class="summary-item frontier"><strong>4</strong><span>Core frontier</span></div>
+      <div class="summary-item intro"><strong>1</strong><span>Guide</span></div>
     </section>
 
     <footer>

@@ -66,16 +66,14 @@ class FourthEditionContractTest(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "fourth-edition title"):
             validate(rows)
 
-    def test_not_started_chapter_must_have_zero_canonical_theorems(self) -> None:
-        rows = [row.copy() for row in load_rows()]
-        not_started = next(
-            i for i, r in enumerate(rows) if r["repo_status"] == "not-started"
+    def test_no_chapter_is_currently_not_started(self) -> None:
+        # Every fourth-edition chapter 1-35 is represented on main, so the
+        # validator's whole-chapter not-started branch is not exercised by the
+        # live CSV (it remains defensive for future section additions).
+        rows = load_rows()
+        self.assertTrue(
+            all(row["repo_status"] != "not-started" for row in rows)
         )
-        rows[not_started]["tracked_key_theorems"] = "1"
-        rows[not_started]["proved_tracked_theorems"] = "1"
-
-        with self.assertRaisesRegex(SystemExit, "zero tracked theorem"):
-            validate(rows)
 
     def test_partial_chapter_must_have_positive_gap_units(self) -> None:
         rows = [row.copy() for row in load_rows()]
@@ -111,7 +109,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
 
         self.assertIn("## Fourth-Edition Snapshot", dashboard)
         self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)
-        self.assertIn("1,411", dashboard)
+        self.assertIn(total_tracked, dashboard)
         self.assertIn("selected proof inventory", normalized)
         self.assertIn("does not by itself mean that every fourth-edition section obligation is covered", normalized)
         self.assertIn("partial (edition coverage)", dashboard)
@@ -122,7 +120,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertIn("464", dashboard)
         self.assertIn("disjoint canonical and online-material ledgers", dashboard)
         self.assertNotIn("pending declaration-level remapping", dashboard)
-        self.assertIn("{lit}`not-started`: 1 chapter", dashboard)
+        self.assertNotIn("{lit}`not-started`", dashboard)
         self.assertNotIn("Chapters 1--29 Milestone", dashboard)
         self.assertNotIn("advertised proof scopes of Chapters 1--29 are complete", dashboard)
 
