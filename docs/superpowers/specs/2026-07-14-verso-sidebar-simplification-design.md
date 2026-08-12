@@ -1,48 +1,48 @@
-# Verso 全站侧栏简化设计
+# Verso site-wide sidebar simplification design
 
-日期：2026-07-14
+Date: 2026-07-14
 
-状态：设计已在对话中批准，等待书面规格复核
+Status: Design approved in conversation, awaiting written spec review
 
-## 背景
+## Background
 
-CLRS-Lean 的 Verso 站点会把 Lean 模块层级直接呈现在侧栏中。随着证明被拆成更小的模块，读者目录开始暴露实现结构。例如 Chapter 22 的 `22.3. Depth-First Search` 下出现五个证明辅助页，`22.5. Strongly Connected Components` 下出现 `Merge-Sort Congruence`。其他章节、`Proof Patterns` 和 `Probability` 也有相同问题。
+The CLRS-Lean Verso site renders the Lean module hierarchy directly in the sidebar. As proofs are split into smaller modules, the reader's table of contents begins to expose implementation structure. For example, Chapter 22's `22.3. Depth-First Search` shows five proof-helper pages underneath it, and `22.5. Strongly Connected Components` shows `Merge-Sort Congruence`. Other chapters, `Proof Patterns`, and `Probability` have the same problem.
 
-这些页面本身有审计价值，不应删除；问题只在于它们占用了主阅读目录，使 CLRS 的章、节结构难以辨认。
+These pages have audit value on their own and should not be deleted; the problem is only that they occupy the main reading table of contents, making the CLRS chapter and section structure hard to recognize.
 
-## 目标
+## Goals
 
-1. 保留当前一级入口及其顺序，不增加新的导航分组。
-2. 所有 Chapter 继续默认展开。
-3. 每章侧栏只展示章页面和直属的 CLRS `Section_*` 页面。
-4. `Proof Patterns`、`Probability` 保留一级入口，但隐藏它们的子模块。
-5. 隐藏页继续生成并保留搜索、sitemap、直接 URL、源码和父页入口。
-6. 访问隐藏页时，侧栏高亮最近的可见父页面。
-7. 规则自动覆盖以后新增的辅助模块，避免维护逐页黑名单。
+1. Keep the current top-level entries and their order, without adding new navigation groups.
+2. All Chapters continue to expand by default.
+3. Each chapter's sidebar shows only the chapter page and its direct CLRS `Section_*` pages.
+4. `Proof Patterns` and `Probability` keep their top-level entries, but hide their submodules.
+5. Hidden pages continue to be generated and retain search, sitemap, direct URLs, source, and parent-page entries.
+6. When visiting a hidden page, the sidebar highlights the nearest visible parent page.
+7. The rule automatically covers helper modules added later, avoiding a per-page blacklist to maintain.
 
-## 非目标
+## Non-goals
 
-- 不移动或重命名 Lean 文件和模块。
-- 不修改 import 结构或定理接口。
-- 不使用 Verso `exclude`；它会删除页面本身。
-- 不改变一级入口顺序、章节默认展开策略、正文样式或搜索排序。
-- 不把站点迁移为独立前端应用。
+- Do not move or rename Lean files or modules.
+- Do not modify import structure or theorem interfaces.
+- Do not use Verso `exclude`; it would delete the page itself.
+- Do not change top-level entry order, chapter default-expansion policy, body styles, or search ordering.
+- Do not migrate the site into a standalone frontend application.
 
-## 导航可见性规则
+## Navigation visibility rules
 
-导航链接以 `title` 属性中的完整 Lean 模块名为准。一个模块仅在满足以下任一条件时出现在侧栏：
+Navigation links are keyed by the full Lean module name in the `title` attribute. A module appears in the sidebar only if it satisfies any of the following conditions:
 
-1. 模块是站点根 `CLRSLean`；
-2. 模块是 `CLRSLean` 的直属子模块，例如 `CLRSLean.Chapter_22`、`CLRSLean.ProofPatterns`、`CLRSLean.Progress`；
-3. 模块是某个 `CLRSLean.Chapter_NN` 的直属 `Section_*` 子模块，例如 `CLRSLean.Chapter_22.Section_22_3_DFS`。
+1. The module is the site root, `CLRSLean`;
+2. The module is a direct submodule of `CLRSLean`, e.g. `CLRSLean.Chapter_22`, `CLRSLean.ProofPatterns`, `CLRSLean.Progress`;
+3. The module is a direct `Section_*` submodule of some `CLRSLean.Chapter_NN`, e.g. `CLRSLean.Chapter_22.Section_22_3_DFS`.
 
-其他更深层模块全部从侧栏裁剪。若导航节点没有可识别的完整模块名，优化器采用“保留”策略避免误删，渲染检查则把该节点作为未分类错误并阻止部署。
+All other, deeper modules are pruned from the sidebar. If a navigation node has no recognizable full module name, the optimizer adopts a "keep" policy to avoid accidental deletion, while the rendering check treats the node as an unclassified error and blocks deployment.
 
-裁剪子节点后不保留空的展开控件。原本因存在辅助模块而渲染为 `<details>` 的 Section、`Proof Patterns` 或 `Probability`，若不再有可见子节点，将转换为普通 `.leaf` 链接。
+Empty expand controls are not kept after children are pruned. Sections, `Proof Patterns`, or `Probability` that were rendered as `<details>` because of helper modules are converted to plain `.leaf` links once they no longer have visible children.
 
-### 当前会隐藏的模块
+### Modules hidden under the current rules
 
-该规则目前会隐藏 22 个模块：
+The current rules hide 22 modules:
 
 - `CLRSLean.ProofPatterns.{Boundary,Exchange,Fiber,Interval}`
 - `CLRSLean.Probability.FiniteExpectation`
@@ -56,87 +56,87 @@ CLRS-Lean 的 Verso 站点会把 Lean 模块层级直接呈现在侧栏中。随
 - `CLRSLean.Chapter_22.Section_22_5_Strongly_Connected_Components.MergeSortCongr`
 - `CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.{S1_UnionFindBridge,S2_StatefulKruskal,S3_ExecutablePrim}`
 
-这个清单用于审阅当前影响面，不作为运行时黑名单。
+This list is for reviewing the current impact; it is not a runtime blacklist.
 
-## 构建架构
+## Build architecture
 
-部署链路保持为：
+The deployment pipeline stays as:
 
 ```text
 Lean source
   -> Verso literate HTML
   -> optimize_literate_html.py
-       1. 原有长页面优化
-       2. 侧栏导航树裁剪
-       3. 导航状态和父级高亮脚本注入
+       1. existing long-page optimizations
+       2. sidebar navigation tree pruning
+       3. navigation-state and parent-highlight script injection
   -> rendered HTML checks
   -> sitemap
   -> GitHub Pages
 ```
 
-新增一个可复用的导航可见性判定函数，供优化器、渲染检查和测试共同调用，避免多个脚本复制规则。
+Add a reusable navigation-visibility decision function that the optimizer, rendering checks, and tests all call, avoiding multiple scripts duplicating the rules.
 
-侧栏裁剪只解析 `.module-tree` 子树。它按完整模块名移除不可见节点、保留原顺序，并把没有可见子节点的 `<details>` 降级为 `.leaf`。正文、代码块、资源引用和其他导航结构不参与裁剪。
+Sidebar pruning only parses the `.module-tree` subtree. It removes invisible nodes by full module name, preserves the original order, and downgrades `<details>` elements with no visible children to `.leaf`. Body content, code blocks, asset references, and other navigation structures are not part of the pruning.
 
-导航状态存储键升级一个版本，使改版后的首次访问不会继承与旧树结构不一致的状态。新版本仍以“所有 Chapter 展开”为默认值，继续保存用户手动展开、折叠和侧栏滚动位置。
+The navigation state storage key is bumped by one version so that the first visit after the change does not inherit state inconsistent with the old tree structure. The new version still defaults to "all Chapters expanded" and continues to persist the user's manual expand and collapse actions and the sidebar scroll position.
 
-## 隐藏页的父级定位
+## Parent locating for hidden pages
 
-Verso 在当前页对应的导航节点上添加 `.current`。如果该节点因策略被隐藏，运行时导航脚本比较当前 URL 与所有可见导航链接的规范化路径，选择最长的目录前缀作为最近可见父级，并把 `.current` 应用到该父级的 `.leaf` 或 `<summary>`。
+Verso adds `.current` to the navigation node corresponding to the current page. If that node is hidden by the policy, the runtime navigation script compares the current URL with the normalized paths of all visible navigation links, chooses the longest directory prefix as the nearest visible parent, and applies `.current` to that parent's `.leaf` or `<summary>`.
 
-该逻辑只在裁剪后没有可见 `.current` 时运行，不覆盖 Verso 对普通章、节页面的原生高亮。
+This logic runs only when no visible `.current` exists after pruning; it does not override Verso's native highlighting for ordinary chapter and section pages.
 
-## Implementation details 入口
+## Implementation details entries
 
-包含隐藏子页的父模块在模块级文档中增加统一的 `## Implementation details` 小节，使用相对链接指向各隐藏页面。当前涉及：
+Parent modules that contain hidden subpages get a uniform `## Implementation details` section in their module-level documentation, using relative links that point to each hidden page. Currently affected:
 
 - `CLRSLean/ProofPatterns.lean`
 - `CLRSLean/Probability.lean`
-- Chapter 7 的 7.3 页面
-- Chapter 8 的 8.2 页面
-- Chapter 9 的 9.3 页面
-- Chapter 17 的 17.1–17.3 与 17.4 页面
-- Chapter 21 的 21.4 页面
-- Chapter 22 的 22.3 与 22.5 页面
-- Chapter 23 的 23.2 页面
+- Chapter 7's 7.3 page
+- Chapter 8's 8.2 page
+- Chapter 9's 9.3 page
+- Chapter 17's 17.1–17.3 and 17.4 pages
+- Chapter 21's 21.4 page
+- Chapter 22's 22.3 and 22.5 pages
+- Chapter 23's 23.2 page
 
-已有的纯代码模块名说明会转换为可点击的页面链接。隐藏页仍可通过搜索、sitemap、直接 URL 和这些父页链接进入。前后页导航保持 Verso 当前行为。
+Existing plain-text module-name descriptions will be converted to clickable page links. Hidden pages remain reachable through search, sitemap, direct URLs, and these parent-page links. Previous/next page navigation keeps Verso's current behavior.
 
-## 容错
+## Fault tolerance
 
-- 缺少或无法解析 `title` 模块名：优化器保留节点，渲染检查报告未分类错误并失败。
-- 裁剪后仍有可见子节点：保留 `<details>` 及原有展开状态。
-- 裁剪后没有可见子节点：转换为 `.leaf`，不显示无效的折叠箭头。
-- 隐藏页不存在：父页链接和站点完整性检查失败，阻止部署。
-- 优化脚本重复运行：输出必须保持不变。
+- Missing or unparseable `title` module name: the optimizer keeps the node, and the rendering check reports an unclassified error and fails.
+- Visible children remain after pruning: keep the `<details>` and its original expansion state.
+- No visible children after pruning: convert to `.leaf`, and do not show an invalid collapse arrow.
+- The hidden page does not exist: the parent-page link and site-integrity check fail, blocking deployment.
+- The optimizer script is run repeatedly: the output must remain unchanged.
 
-## 验证与验收标准
+## Verification and acceptance criteria
 
-### 单元测试
+### Unit tests
 
-- 可见性判定覆盖根、一级入口、直属 Section、Section 后代和非 Chapter 子模块。
-- 导航裁剪保留原顺序并删除所有不可见节点。
-- 空 `<details>` 正确降级为 `.leaf`。
-- 无模块名节点不会被误删。
-- 普通 Section 保留原生 `.current`；隐藏页使用最近可见父级。
-- 优化器重复运行保持幂等。
+- Visibility decision covers root, top-level entries, direct Sections, Section descendants, and non-Chapter submodules.
+- Navigation pruning preserves the original order and deletes all invisible nodes.
+- Empty `<details>` correctly degrades to `.leaf`.
+- Nodes without a module name are not accidentally deleted.
+- Ordinary Sections keep their native `.current`; hidden pages use the nearest visible parent.
+- Running the optimizer repeatedly stays idempotent.
 
-### 生成站点检查
+### Generated-site checks
 
-- 每个生成页面的 `.module-tree` 中只允许符合可见性规则的模块链接。
-- Chapter 22 侧栏只包含 22.1–22.5，不包含六个辅助证明页。
-- 当前 22 个隐藏模块的 HTML 文件仍存在并进入 sitemap。
-- 11 个父页面的 `Implementation details` 链接全部可解析到现存页面。
-- 搜索资产仍覆盖隐藏页。
+- Each generated page's `.module-tree` contains only module links that satisfy the visibility rules.
+- The Chapter 22 sidebar contains only 22.1–22.5, not the six proof-helper pages.
+- The HTML files for the current 22 hidden modules still exist and are included in the sitemap.
+- All 11 parent pages' `Implementation details` links resolve to existing pages.
+- Search assets still cover hidden pages.
 
-### 浏览器检查
+### Browser checks
 
-- 桌面端和移动端均无空折叠箭头或残留空白层级。
-- 所有 Chapter 默认展开，手动状态和滚动位置继续持久化。
-- 普通 Section 与隐藏页的父级高亮均正确。
-- 父页链接可进入隐藏页，并可通过面包屑返回章、节阅读路径。
+- No empty collapse arrows or leftover blank hierarchy on either desktop or mobile.
+- All Chapters expand by default, and manual state and scroll position continue to persist.
+- Parent highlighting is correct for both ordinary Sections and hidden pages.
+- Parent-page links reach hidden pages, and breadcrumbs allow returning to the chapter and section reading path.
 
-### 验证命令
+### Verification commands
 
 ```bash
 python3 -m unittest scripts.test_optimize_literate_html scripts.test_literate_config
@@ -147,13 +147,13 @@ python3 scripts/check_literate_rendering.py <generated-site>
 python3 scripts/generate_sitemap.py <generated-site> --base-url "https://tanktechnology.github.io/CLRS-Lean/"
 ```
 
-## 预期改动面
+## Expected changes
 
-- 导航可见性辅助模块或等价的共享函数
+- A navigation-visibility helper module or an equivalent shared function
 - `scripts/optimize_literate_html.py`
 - `scripts/test_optimize_literate_html.py`
-- `scripts/check_literate_rendering.py` 及相关测试
-- 上述 11 个父级 `.lean` 页面中的文档链接
-- `docs/site-architecture.md` 中的读者导航说明
+- `scripts/check_literate_rendering.py` and related tests
+- Documentation links in the above 11 parent `.lean` pages
+- Reader-navigation notes in `docs/site-architecture.md`
 
-不会修改证明声明、证明项、模块路径或部署触发条件。
+No proof declarations, proof terms, module paths, or deployment triggers will be modified.
