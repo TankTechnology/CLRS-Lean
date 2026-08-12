@@ -579,12 +579,12 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
     (hNodup : L.Nodup) (hcard : ρ.toFinset.card ≤ k) :
     lruMissesGo k L ρ ≤ ρ.toFinset.card := by
   classical
-  have go : ∀ (n : ℕ) (L : List Page) (ρ : List Page), ρ.length = n → L.Nodup →
+  have go : ∀ (n : ℕ) (k : ℕ) (L : List Page) (ρ : List Page), ρ.length = n → L.Nodup →
       ρ.toFinset.card ≤ k → lruMissesGo k L ρ ≤ ρ.toFinset.card := by
     intro n
     induction n using Nat.strong_induction_on with
     | h n ih =>
-      intro L ρ hlen hNodup hcard
+      intro k L ρ hlen hNodup hcard
       cases ρ with
       | nil => simp [lruMissesGo]
       | cons p ρ' =>
@@ -596,7 +596,7 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
           rw [lruMissesGo, List.toFinset_cons]
           by_cases hpL : p ∈ L
           · have hrec : lruMissesGo k L' ρ' ≤ ρ'.toFinset.card := by
-              apply ih ρ'.length hlt L' ρ' rfl hNodup'
+              apply ih ρ'.length hlt k L' ρ' rfl hNodup'
               have : ρ'.toFinset.card ≤ k := by
                 have hins : (insert p ρ'.toFinset).card ≤ k := by
                   simpa [List.toFinset_cons] using hcard
@@ -608,6 +608,15 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
             exact le_trans hrec (Finset.card_le_card (Finset.subset_insert _ _))
           · by_cases hpρ : p ∈ ρ'.toFinset
             · -- p is re-requested: it is pinned, so shrink to a size-(k-1) cache
+              have hk : 0 < k := by
+                have hpos : 0 < ρ'.toFinset.card := Finset.card_pos.mpr ⟨p, hpρ⟩
+                have hle : ρ'.toFinset.card ≤ k := by
+                  have hins : (insert p ρ'.toFinset).card ≤ k := by
+                    simpa [List.toFinset_cons] using hcard
+                  have hle2 : ρ'.toFinset.card ≤ (insert p ρ'.toFinset).card :=
+                    Finset.card_le_card (Finset.subset_insert _ _)
+                  omega
+                omega
               have hcard' : (ρ'.toFinset.erase p).card ≤ k - 1 := by
                 have hρ : ρ'.toFinset.card ≤ k := by
                   have hins : (insert p ρ'.toFinset).card ≤ k := by
@@ -641,7 +650,7 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
                   exact le_trans (Finset.card_le_card hsub) hcard'
                 by_contra hnot
                 have hge := lru_head_evict k p t τ hNodup_t hnot
-                exact hnot hge
+                omega
               have hshrink := lru_miss_shrink k (p :: t) ρ' p hNodup_t (by simp) hkeep
               have hrec : lruMissesGo (k - 1) t (ρ'.filter (fun x => x ≠ p)) ≤
                   (ρ'.filter (fun x => x ≠ p)).toFinset.card := by
@@ -649,7 +658,7 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
                   have hle : (ρ'.filter (fun x => x ≠ p)).length ≤ ρ'.length :=
                     List.length_filter_le _ _
                   omega
-                apply ih (ρ'.filter (fun x => x ≠ p)).length hlenF t
+                apply ih (ρ'.filter (fun x => x ≠ p)).length hlenF (k - 1) t
                   (ρ'.filter (fun x => x ≠ p)) rfl
                 · exact (List.sublist_cons_self p t).nodup hNodup_t
                 · have hto : (ρ'.filter (fun x => x ≠ p)).toFinset = ρ'.toFinset.erase p := by
@@ -662,7 +671,7 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
               calc
                 1 + lruMissesGo k L' ρ' =
                     1 + lruMissesGo (k - 1) t (ρ'.filter (fun x => x ≠ p)) := by
-                  rw [hEq, hshrink]
+                  simpa [hEq, hshrink]
                 _ ≤ 1 + (ρ'.toFinset.erase p).card := by
                   have hto : (ρ'.filter (fun x => x ≠ p)).toFinset = ρ'.toFinset.erase p := by
                     ext x
@@ -675,7 +684,7 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
                 _ ≤ (insert p ρ'.toFinset).card := by
                   rw [Finset.card_insert_of_mem hpρ]
             · have hrec : lruMissesGo k L' ρ' ≤ ρ'.toFinset.card := by
-                apply ih ρ'.length hlt L' ρ' rfl hNodup'
+                apply ih ρ'.length hlt k L' ρ' rfl hNodup'
                 have : ρ'.toFinset.card ≤ k := by
                   have hins : (insert p ρ'.toFinset).card ≤ k := by
                     simpa [List.toFinset_cons] using hcard
@@ -687,8 +696,9 @@ lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
               have hins : (insert p ρ'.toFinset).card = ρ'.toFinset.card + 1 := by
                 rw [Finset.card_insert_of_notMem hpρ]
               rw [hins]
-              omega
-  exact go ρ.length L ρ rfl hNodup hcard
+              rw [Nat.add_comm]
+              exact Nat.add_le_add_right hrec 1
+  exact go ρ.length k L ρ rfl hNodup hcard
 
 end OnlineCaching
 
