@@ -119,8 +119,8 @@ lemma scan_step (s : CNFSym) (v : St) (rest : List CNFSym) (O U : List GraphSym)
       = some (⟨some Label.scan, St.rd s, stk rest ((transSym s).reverse ++ O) U⟩ : (mach).Cfg) := by
   apply congrArg some
   apply Turing.TM2Comp.Cfg_ext
-  · rfl
-  · rfl
+  · cases s <;> simp [Sstep, mach, prog, stk, transSym, Function.update]
+  · cases s <;> simp [Sstep, mach, prog, stk, transSym, Function.update]
   · funext k
     cases k <;> cases s <;> simp [stk, transSym, Function.update, prog, Sstep]
 
@@ -288,8 +288,7 @@ noncomputable def cliqueOutputsFun (x : List CNFSym) :
     · rfl
     · funext k
       cases k <;> simp [C2, stk, List.reverse_reverse, List.append_nil]
-    · rw [List.length_reverse]
-      omega
+    · simp
   have hdone : EvalsToInTime Sstep C2 (some C3) 1 := by
     refine ⟨⟨1, ?_⟩, le_rfl⟩
     change (flip bind Sstep) (some (⟨some Label.done, St.init, stk [] [] (relabel x)⟩ : (mach).Cfg))

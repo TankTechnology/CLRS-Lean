@@ -699,7 +699,7 @@ scheme. -/
 satisfies `(1 + δ) · a < b`: the kept values of TRIM stay more than a
 multiplicative factor `1 + δ` apart. -/
 def Separated (δ : ℝ) (L : List ℕ) : Prop :=
-  L.Pairwise (fun a b => (1 + δ) * (a : ℝ) < (b : ℝ))
+  L.Pairwise (fun a b : ℕ => (1 + δ) * (a : ℝ) < (b : ℝ))
 
 /-- TRIM's tail scan keeps the previously kept element `last` followed by the
 kept tail; every kept value is more than a factor `(1 + δ)` above every earlier
@@ -739,7 +739,8 @@ lemma trim_separated {δ : ℝ} (hδ : 0 ≤ δ) : ∀ L : List ℕ, Separated �
 list is separated). -/
 lemma separated_filter {δ : ℝ} {L : List ℕ} (p : ℕ → Prop) [DecidablePred p]
     (h : Separated δ L) : Separated δ (L.filter p) := by
-  exact List.Pairwise.sublist (@List.filter_sublist ℕ (fun x => decide (p x)) L) h
+  unfold Separated at *
+  exact List.Pairwise.sublist List.filter_sublist h
 
 /-- The trimmed lists of APPROX-SUBSET-SUM are `(1 + δ)`-separated. -/
 lemma approxLists_separated {δ : ℝ} (hδ : 0 ≤ δ) (t : ℕ) :
@@ -803,14 +804,14 @@ lemma sep_length_aux {δ t : ℝ} (hδ : 0 < δ) (c : ℝ) (hc : 1 ≤ c) (hct :
             nlinarith
           have hc't : c' ≤ t := by
             have hsep_b : (1 + δ) * (a : ℝ) < (b : ℝ) :=
-              (List.pairwise_cons.mp hsep).1 b (by simp)
+              List.rel_of_pairwise_cons hsep (by simp)
             have hb_t : (b : ℝ) ≤ t := hle b (by simp)
             dsimp [c']
             nlinarith
           have hbc' : ∀ y ∈ b :: rest', c' ≤ (y : ℝ) := by
             intro y hy
             have hsep_y : (1 + δ) * (a : ℝ) < (y : ℝ) :=
-              (List.pairwise_cons.mp hsep).1 y hy
+              List.rel_of_pairwise_cons hsep (by simpa using hy)
             dsimp [c']
             exact le_of_lt hsep_y
           have hc'0 : 0 < c' := lt_of_lt_of_le zero_lt_one hc'1
@@ -820,22 +821,13 @@ lemma sep_length_aux {δ t : ℝ} (hδ : 0 < δ) (c : ℝ) (hc : 1 ≤ c) (hct :
             · exact ha_c
           have hlogc' : Real.log c' = Real.log (1 + δ) + Real.log (a : ℝ) := by
             dsimp [c']
-            rw [Real.log_mul]
-            · ring
-            · exact ne_of_gt (by linarith : (0 : ℝ) < 1 + δ)
-            · exact ne_of_gt ha0
+            rw [Real.log_mul (ne_of_gt (by linarith : (0 : ℝ) < 1 + δ)) (ne_of_gt ha0)]
           have hlt : Real.log (1 + δ) ≤ Real.log c' - Real.log c := by
             nlinarith [hloga, hlogc']
           have hlogtc' : Real.log (t / c') = Real.log t - Real.log c' := by
-            rw [Real.log_div]
-            · ring
-            · exact ne_of_gt ht0
-            · exact ne_of_gt hc'0
+            rw [Real.log_div (ne_of_gt ht0) (ne_of_gt hc'0)]
           have hlogtc : Real.log (t / c) = Real.log t - Real.log c := by
-            rw [Real.log_div]
-            · ring
-            · exact ne_of_gt ht0
-            · exact ne_of_gt hc0
+            rw [Real.log_div (ne_of_gt ht0) (ne_of_gt hc0)]
           have hmain : Real.log (1 + δ) + Real.log (t / c') ≤ Real.log (t / c) := by
             rw [hlogtc', hlogtc]
             nlinarith [hlt]
@@ -845,12 +837,15 @@ lemma sep_length_aux {δ t : ℝ} (hδ : 0 < δ) (c : ℝ) (hc : 1 ≤ c) (hct :
                 Real.log (t / c) := by
               field_simp [ne_of_gt hlg]
               exact hmain
-            exact (le_div_iff₀ hlg).mp hmul
+            exact (le_div_iff₀ hlg).mpr hmul
           have hm : (((b :: rest').length : ℝ) ≤ Real.log (t / c') / Real.log (1 + δ) + 1) :=
-            ih c' hc'1 hc't (b :: rest') hsepR hbc' hleR
+            ih c' hc'1 hc't hsepR hbc' hleR
           have hres : ((a :: b :: rest').length : ℝ) ≤
               Real.log (t / c) / Real.log (1 + δ) + 1 := by
-            simp
+            have htail' : ((a :: b :: rest').length : ℝ) =
+                ((b :: rest').length : ℝ) + 1 := by
+              simp
+            rw [htail']
             nlinarith [hm, hgoal]
           simpa using hres
 
@@ -892,7 +887,7 @@ lemma cons_zero_filter {δ : ℝ} {rest : List ℕ} (hsep : Separated δ (0 :: r
   have hne : ∀ z ∈ rest, z ≠ 0 := by
     intro z hz
     have hzsep : (1 + δ) * (0 : ℝ) < (z : ℝ) := by
-      simpa [Separated] using (List.pairwise_cons.mp (δ := δ) hsep).1 z hz
+      simpa [Separated] using List.rel_of_pairwise_cons hsep (by simpa using hz)
     intro hz0
     rw [hz0] at hzsep
     norm_num at hzsep
@@ -926,14 +921,19 @@ lemma approxLists_length_bound {δ : ℝ} (hδ : 0 < δ) (t : ℕ) (ht : 1 ≤ t
     sorted_zero_head (approxLists_sorted δ t xs) (zero_mem_approxLists δ t xs)
   have htail : (approxLists δ t xs).filter (fun a => a ≠ 0) = (approxLists δ t xs).tail := by
     rw [hhead]
-    exact cons_zero_filter (by simpa [hhead] using hsep)
+    have hsep0 : Separated δ (0 :: (approxLists δ t xs).tail) := by
+      rw [← hhead]
+      exact hsep
+    exact cons_zero_filter hsep0
   have hpos : (((approxLists δ t xs).filter (fun a => a ≠ 0)).length : ℝ) ≤
       Real.log (t : ℝ) / Real.log (1 + δ) + 1 :=
     approxLists_pos_length_bound hδ t ht xs
   rw [htail] at hpos
   rw [hhead]
-  rw [List.length_cons]
-  norm_num
+  have hlen : ((0 :: (approxLists δ t xs).tail).length : ℝ) =
+      ((approxLists δ t xs).tail.length : ℝ) + 1 := by
+    simp
+  rw [hlen]
   linarith
 
 /-- For `0 ≤ δ ≤ 1`, `δ / 2 ≤ log(1 + δ)`: the chord bound that turns the
