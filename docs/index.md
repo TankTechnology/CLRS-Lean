@@ -347,6 +347,8 @@ CLRSLean/Chapter_31/Section_31_8_Primality_Testing.lean
 CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
+CLRSLean/Chapter_33/Section_33_2_3_Segment_Intersection_Convex_Hull.lean
+CLRSLean/Chapter_33/Section_33_4_Closest_Pair.lean
 CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
