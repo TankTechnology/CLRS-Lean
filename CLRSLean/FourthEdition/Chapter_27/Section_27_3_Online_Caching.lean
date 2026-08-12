@@ -987,14 +987,14 @@ lemma phases_le_misses (k : ℕ) (σ : List Page) (hk : 0 < k)
           cases hrem : fp.2 with
           | nil =>
               rw [phases_cons_eq k (p :: rest) (by simp)]
-              simp [hrem, phases, WellFounded.fix_eq]
+              rw [hrem]
+              simp [phases, WellFounded.fix_eq]
               omega
           | cons q rest' =>
               have hrem_ne : fp.2 ≠ [] := by simp [hrem]
               have hmax := firstPhase_maximal k (p :: rest) hk hrem_ne
               have hcard : fp.1.toFinset.card = k := by simpa [fp] using hmax.1
-              have hhead : List.head fp.2 hrem_ne = q := by rw [hrem]
-              have hqfresh : q ∉ fp.1.toFinset := by simpa [hhead] using hmax.2
+              have hqfresh : q ∉ fp.1.toFinset := by simpa [hrem] using hmax.2
               have hremlen : fp.2.length < (p :: rest).length := by
                 have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
                   rw [← hsplit, List.length_append]
@@ -1022,14 +1022,18 @@ lemma phases_le_misses (k : ℕ) (σ : List Page) (hk : 0 < k)
                 A.step_hit (A.step (runGo A C fp.1) q) q hqstep
               have hih' : (phases k fp.2).length ≤
                   missesGo A (A.step (runGo A C fp.1) q) rest' + 1 := by
-                rw [hrem] at hih
-                simp [missesGo, hqstep, hhit] at hih
+                have hmiss : missesGo A (A.step (runGo A C fp.1) q) fp.2 =
+                    missesGo A (A.step (runGo A C fp.1) q) rest' := by
+                  rw [hrem]
+                  simp [missesGo, hqstep, hhit]
+                rw [hmiss] at hih
                 exact hih
               have hmisses : missesGo A C (p :: rest) =
                   missesGo A C fp.1 + (if q ∈ runGo A C fp.1 then 0 else 1) +
                     missesGo A (A.step (runGo A C fp.1) q) rest' := by
-                rw [← hsplit, missesGo_append, hrem, missesGo]
-                omega
+                rw [← hsplit, missesGo_append A C fp.1 fp.2, hrem]
+                simp only [missesGo]
+                ac_rfl
               rw [phases_cons_eq k (p :: rest) (by simp), hmisses]
               simp only [List.length_cons]
               omega
