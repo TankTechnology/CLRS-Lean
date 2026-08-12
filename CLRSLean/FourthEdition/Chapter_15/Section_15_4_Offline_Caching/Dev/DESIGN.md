@@ -773,15 +773,18 @@ sets `hnb' = σ.length + 2` (`case_one_junk_hit`: 0 is in the exchange's
 cache from then on, so it never faults — the field is vacuous at junk),
 instantiating `CaseOneHdredHyp`.
 
-**Assembly consequence (still open)**: with `hnb' = σ.length + 2` the
-next disagreement (which the verified search shows lands exactly on the
-branch-1 spot `s₁`) satisfies `t₂ = s₁ < hnb'` — case B with `win = none`.
-The case-one step must absorb the branch-1 repair (the repair evicts
-FIF's page at `s₁` and restores agreement at `s₁+1`), or a no-window
-B-step construction is needed.
-
-**Paused (2026-08-12)** — 4th-edition migration (feat/migration branch)
-took priority; `CaseOneHdredHyp` + the at-most-once lemma remain open.
+**Assembly consequence (the no-window B1 step is supplied)**: with
+`hnb' = σ.length + 2` the next disagreement (which the verified search
+shows lands exactly on the branch-1 spot `s₁`) satisfies `t₂ = s₁ <
+hnb'` — case B with `win = none`.  The no-window B1 step is now
+kernel-checked: `Dev/B11_CaseOne_B1.lean` (`caseone_b1_reverse_diff` +
+`caseone_b1_misses_le`, 2026-08-12) and `Dev/B12_CaseOne_NoWindowB1.lean`
+(`step_b1_nowindow` — the full state construction mirroring
+`step_b1_alive` with the window machinery vacuous).  The repair evicts
+FIF's page at `s₁` and restores agreement at `s₁+1`; the branch-1
+at-most-once (`case_one_branch1_once`, B10) is the design justification
+that this step fires at most once per case-one exchange.  Remaining open:
+the no-window B2 step and the `iterate_main_assembled` wiring.
 
 ## File layout
 
