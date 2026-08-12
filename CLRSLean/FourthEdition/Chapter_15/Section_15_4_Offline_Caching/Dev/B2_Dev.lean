@@ -6,7 +6,7 @@ namespace Caching
 
 open Finset
 
-/-- 在首次分歧 `t` 处双方 fault。 -/
+/-- Both sides fault at the first disagreement `t`. -/
 lemma first_disagree_fault (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     {t : ℕ} (ht : t < σ.length)
     (hagree : agreeWithFIF e C₀ σ t)
@@ -25,7 +25,7 @@ lemma first_disagree_fault (e : ℕ → Page) (σ : List Page) (C₀ : Finset Pa
     rw [if_pos hFt]
   exact hdis ((hD.trans (hagree t le_rfl)).trans hF.symm)
 
-/-- B2 好事件后的关系(swap 情形):`q` 的首次请求处 `d̂` 命中。 -/
+/-- B2 relation after a good event (swap case): at `q`'s first request, `d̂` hits. -/
 lemma repairSchedule_after_J_rel1 (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -59,7 +59,7 @@ lemma repairSchedule_after_J_rel1 (e : ℕ → Page) (σ : List Page) (C₀ : Fi
     left
     rfl
   by_cases hej : e (t + 1 + j) ∈ (schedCache e C₀ σ (t + 1 + j)).erase q'
-  · -- e J ∈ E − q':swap 对 (e J, q')
+  · -- e J ∈ E − q': swap pair (e J, q')
     right
     refine ⟨e (t + 1 + j), ?_⟩
     change (if σ.getD (t + 1 + j) 0 ∈ schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (t + 1 + j) then
@@ -76,7 +76,7 @@ lemma repairSchedule_after_J_rel1 (e : ℕ → Page) (σ : List Page) (C₀ : Fi
     rw [if_pos hrE]
     rw [if_neg (by intro h; exact hqnotJ (hsig ▸ h))]
     rw [hsig]
-    -- 目标:insert q (E − q') = insert (e J) ((insert q (E − e J)) − q')
+    -- Goal: insert q (E − q') = insert (e J) ((insert q (E − e J)) − q')
     have hej1 : e (t + 1 + j) ≠ q' := (Finset.mem_erase.mp hej).1
     have hejE : e (t + 1 + j) ∈ schedCache e C₀ σ (t + 1 + j) := (Finset.mem_erase.mp hej).2
     have hEj : q ≠ e (t + 1 + j) := by
@@ -103,7 +103,7 @@ lemma repairSchedule_after_J_rel1 (e : ℕ → Page) (σ : List Page) (C₀ : Fi
         · have hx' := Finset.mem_erase.mp (Finset.mem_erase.mp hxin).2
           exact Finset.mem_erase.mpr ⟨(Finset.mem_erase.mp hxin).1, hx'.2⟩
     rw [hEq]
-  · -- e J ∉ E − q':减式
+  · -- e J ∉ E − q': subtraction case
     left
     change (if σ.getD (t + 1 + j) 0 ∈ schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (t + 1 + j) then
         schedCache (repairSchedule e t q' (t + 1 + j')) C₀ σ (t + 1 + j)
@@ -133,7 +133,7 @@ lemma repairSchedule_after_J_rel1 (e : ℕ → Page) (σ : List Page) (C₀ : Fi
       rw [Finset.erase_eq_of_notMem hejnotE]
       rw [Finset.erase_insert_of_ne hqne]
 
-/-- B2 好事件后的关系(减式情形):`q` 的首次请求处双方 fault。 -/
+/-- B2 relation after a good event (subtraction case): at `q`'s first request, both sides fault. -/
 lemma repairSchedule_after_J_rel2 (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -183,7 +183,7 @@ lemma repairSchedule_after_J_rel2 (e : ℕ → Page) (σ : List Page) (C₀ : Fi
   rw [if_neg hrE']
   rw [if_neg (by intro h; exact hqnotJ (hsig ▸ h))]
   rw [hsig]
-  -- 目标:insert q ((E − q') − e J) = (insert q (E − e J)) − q'
+  -- Goal: insert q ((E − q') − e J) = (insert q (E − e J)) − q'
   rw [Finset.erase_insert_of_ne hqne]
   have herase_comm : ((schedCache e C₀ σ (t + 1 + j)).erase q').erase (e (t + 1 + j)) =
       ((schedCache e C₀ σ (t + 1 + j)).erase (e (t + 1 + j))).erase q' := by
@@ -192,8 +192,8 @@ lemma repairSchedule_after_J_rel2 (e : ℕ → Page) (σ : List Page) (C₀ : Fi
   rw [herase_comm]
 
 
-/-- B2 中,在 `q` 的首次请求之后,repair 的 cache 是 `E − q'`(减式)或
-`insert x (E − q')`(swap 对,`x` 是 `d̂` 保留而 `e` 逐出的页面)。 -/
+/-- In B2, after `q`'s first request, the repaired cache is `E − q'` (subtraction case) or
+`insert x (E − q')` (swap pair, where `x` is the page that `d̂` keeps while `e` evicts). -/
 lemma repairSchedule_after_J (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
