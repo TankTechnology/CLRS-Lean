@@ -1,328 +1,372 @@
-# CLRS 算法证明 Lean 化研究计划
+# Research Plan for Formalizing CLRS Algorithm Proofs in Lean
 
-本文档给出一个 3 个月左右的研究推进计划。目标不是把 CLRS 全书形式化，
-而是围绕一组有代表性的算法证明，建立可复用的 Lean 证明模式，并形成可投稿
-的 artifact 和方法论叙事。
+This document lays out a research plan spanning roughly three months. The goal is
+not to formalize all of CLRS, but rather, around a representative set of algorithm
+proofs, to establish reusable Lean proof patterns and produce a publishable
+artifact and a methodological narrative.
 
-当前阶段：Synthesis。
+Current phase: Synthesis.
 
-也就是说，我们已经有一些可用材料，尤其是 Huffman V2 最优性证明，但还不能
-直接进入投稿包装阶段。接下来最重要的是把研究问题、算法样本、验收标准和失败
-降级路径固定下来。
+That is, we already have some usable material, especially the Huffman V2
+optimality proof, but we cannot yet move directly into the submission-packaging
+phase. The most important next step is to pin down the research questions, the
+algorithm samples, the acceptance criteria, and the failure/downgrade paths.
 
-## 1. 核心判断
+## 1. Core assessment
 
-只证明一批基础贪心小题，不足以支撑强投稿。
+Proving only a batch of basic greedy toy problems is not enough to support a
+strong submission.
 
-更合理的目标是：
+A more reasonable goal is:
 
-> 证明一组 CLRS 风格的非平凡算法正确性，并从中提炼可复用的 Lean 证明模式。
+> Prove the correctness of a set of nontrivial CLRS-style algorithms, and distill
+> from them reusable Lean proof patterns.
 
-这个方向的价值不在于“Lean 里又有几个算法定理”，而在于回答：
+The value of this direction lies not in "a few more algorithm theorems in Lean,"
+but in answering:
 
-- 经典算法教材里的证明套路，能否被组织成稳定的形式化模式；
-- 哪些证明模式可以复用，哪些地方会被 Lean 的数据结构和不变量逼出新设计；
-- 对后续大规模形式化算法教材，有哪些可迁移的工程与证明经验。
+- Whether the proof recipes in classical algorithm textbooks can be organized
+  into stable formalization patterns;
+- Which proof patterns are reusable, and where Lean's data structures and
+  invariants force new design;
+- What transferable engineering and proof experience there is for the future
+  large-scale formalization of algorithm textbooks.
 
-## 2. 当前基线
+## 2. Current baseline
 
-已经具备的旗舰样本：
+Flagship sample already in hand:
 
 ```text
 CfProofs/Greedy/HuffmanV2/Optimality.lean
 ```
 
-当前 Huffman V2 的特点：
+Current features of Huffman V2:
 
-- 与旧版 `CfProofs.Greedy.Huffman.*` 路径隔离；
-- 一个文件内包含完整 Huffman 最优性证明；
-- 证明主线是 split-leaf / exchange；
-- 当前规模约 2971 行；
-- 对外暴露频率表级别最终定理：
+- Isolated from the legacy `CfProofs.Greedy.Huffman.*` paths;
+- Contains the complete Huffman optimality proof in one file;
+- The main proof line is split-leaf / exchange;
+- Currently about 2971 lines;
+- Exposes a final theorem at the frequency-table level:
 
 ```lean
 HuffmanV2.optimum_huffman_freqs
 ```
 
-Huffman V2 可以作为论文里的第一个核心 case study，因为它包含真正的最优性
-交换论证，而不是只验证一个程序返回值。
+Huffman V2 can serve as the first core case study in the paper, because it
+contains a genuine optimality exchange argument, rather than merely verifying the
+return value of a program.
 
-## 3. 候选研究问题
+## 3. Candidate research questions
 
-下面的问题按高度分层。最终不建议同时主打全部问题，而是选一个 headline
-question，再配 1-2 个支撑问题。
+The questions below are stratified by altitude. In the end, we recommend not
+leading with all of them at once; instead, choose one headline question and pair
+it with 1-2 supporting questions.
 
-### Q1. 能否把 CLRS 风格算法证明组织成 Lean 中可复用的证明模式？
+### Q1. Can CLRS-style algorithm proofs be organized into reusable proof patterns in Lean?
 
-高度：结构性问题。
+Altitude: structural question.
 
-这个问题适合作为主问题。它高于单个算法，又可以用 3-5 个算法样本来回答。
+This question is suitable as the main question. It sits above any single
+algorithm, yet can be answered with 3-5 algorithm samples.
 
-主要风险是：如果每个算法都只是一次性证明，缺少共享接口和模式总结，这个问题会
-退化成 case-study collection。
+The main risk is: if every algorithm is a one-off proof, lacking shared interfaces
+and pattern summaries, this question degenerates into a case-study collection.
 
-### Q2. 贪心算法的 exchange / cut / local transformation 证明能否统一？
+### Q2. Can the exchange / cut / local transformation proofs of greedy algorithms be unified?
 
-高度：机制问题。
+Altitude: mechanism question.
 
-这个问题适合作为支撑问题。Huffman 使用 split-leaf / exchange，MST 使用 cut
-property，活动选择或区间类问题使用 exchange argument。它们有共同的局部替换
-味道，但 Lean 中是否能共享同一套抽象，需要通过实际形式化检验。
+This question is suitable as a supporting question. Huffman uses split-leaf /
+exchange, MST uses the cut property, and activity selection or interval problems
+use an exchange argument. They share a common local-replacement flavor, but
+whether they can share the same abstraction in Lean must be tested by actually
+formalizing them.
 
-### Q3. 循环不变量类算法在 Lean 中应该用执行程序证明，还是数学状态关系证明？
+### Q3. In Lean, should loop-invariant algorithms be proved by program execution, or by mathematical state relations?
 
-高度：机制问题。
+Altitude: mechanism question.
 
-这个问题适合覆盖 Dijkstra、BFS、Bellman-Ford 这类算法。关键不是代码执行本身，
-而是 settled set、distance map、relaxation invariant 这些状态不变量怎样表达。
+This question is suitable for covering algorithms such as Dijkstra, BFS, and
+Bellman-Ford. The key is not code execution itself, but how state invariants such
+as the settled set, the distance map, and the relaxation invariant are expressed.
 
-### Q4. DP 最优子结构证明能否形成稳定模板？
+### Q4. Can DP optimal-substructure proofs form a stable template?
 
-高度：机制问题。
+Altitude: mechanism question.
 
-这个问题适合用 LCS、edit distance、matrix-chain multiplication 或已有
-CutRibbon/Boredom 经验扩展。DP 的难点通常是 recurrence、可达性、最优下界和
-数组/列表实现之间的桥接。
+This question is suitable for extension via LCS, edit distance, matrix-chain
+multiplication, or the existing CutRibbon/Boredom experience. The difficulty in DP
+is usually bridging the recurrence, reachability, and optimal lower bound with the
+array/list implementation.
 
-### Q5. 单文件证明和模块化证明各自适合什么阶段？
+### Q5. Which stages suit single-file proofs and modular proofs respectively?
 
-高度：工程问题。
+Altitude: engineering question.
 
-Huffman V2 展示了单文件证明更利于阅读和投稿 artifact 展示；但多算法推进时，
-完全单文件会降低复用性。这个问题适合放在经验总结中，不适合作为主问题。
+Huffman V2 shows that single-file proofs are easier to read and better for
+showcasing a submission artifact; but when advancing on multiple algorithms, fully
+single-file proofs reduce reusability. This question fits in the lessons-learned
+summary, not as a main question.
 
-### Q6. 形式化教材算法时，真正的瓶颈是数学证明，还是表示层设计？
+### Q6. When formalizing textbook algorithms, is the real bottleneck the mathematical proof, or the representation-layer design?
 
-高度：结构性问题。
+Altitude: structural question.
 
-这个问题很有价值，但容易过宽。可以作为讨论章节中的横向发现：很多困难不是算法
-思想本身，而是频率表、图、路径、森林、不变量这些对象的 Lean 表示选择。
+This question is valuable but easily becomes too broad. It can serve as a
+cross-cutting finding in the discussion section: much of the difficulty lies not
+in the algorithmic idea itself, but in the choice of Lean representations for
+objects such as frequency tables, graphs, paths, forests, and invariants.
 
-### Q7. 能否用小型 proof-pattern catalog 降低后续算法证明成本？
+### Q7. Can a small proof-pattern catalog lower the cost of subsequent algorithm proofs?
 
-高度：方法问题。
+Altitude: methodology question.
 
-这个问题可以变成 artifact 贡献：每个 case study 都输出 theorem interface、
-proof skeleton、关键 lemma 类型和复用记录。
+This question can become an artifact contribution: each case study outputs a
+theorem interface, a proof skeleton, the key lemma types, and reuse records.
 
-### Q8. 现有 Mathlib 对算法教材证明的支撑缺口在哪里？
+### Q8. Where are the gaps in current Mathlib support for textbook algorithm proofs?
 
-高度：生态问题。
+Altitude: ecosystem question.
 
-这个问题适合做补充贡献。不要把它作为主问题，因为 3 个月内很难系统评价整个
-Mathlib，只能从样本中归纳局部缺口。
+This question is suitable as a supplementary contribution. Do not make it the main
+question, because within three months it is hard to systematically evaluate all of
+Mathlib; we can only infer local gaps from samples.
 
-## 4. 审稿式自查结论
+## 4. Self-review conclusions
 
-最适合的主问题：
+The most suitable main question:
 
-> CLRS 风格的非平凡算法正确性证明，能否在 Lean 中被组织成可复用的证明模式，
-> 而不是彼此孤立的一次性形式化？
+> Can CLRS-style correctness proofs of nontrivial algorithms be organized in Lean
+> into reusable proof patterns, rather than one-off formalizations isolated from
+> one another?
 
-支撑问题：
+Supporting questions:
 
-1. Greedy optimality 中的 exchange / cut / local transformation 如何形式化？
-2. Loop invariant 和 DP optimal substructure 如何转化成稳定的 theorem interface？
+1. How should exchange / cut / local transformation in greedy optimality be
+   formalized?
+2. How should loop invariants and DP optimal substructure be turned into a stable
+   theorem interface?
 
-不建议主打的问题：
+Questions we do not recommend leading with:
 
-- “形式化整个 CLRS”：3 个月不现实，容易显得承诺过大；
-- “突破数学难题”：与当前 repo 资产不连续，短期风险过高；
-- “证明很多基础算法”：数量多但深度不够，投稿时容易被看成教学练习；
-- “只做 Huffman”：深度不错，但样本单一，很难支撑方法论贡献。
+- "Formalize all of CLRS": unrealistic in three months and easy to appear
+  over-committed;
+- "Break through hard mathematical problems": disconnected from the current repo
+  assets, too risky in the short term;
+- "Prove many basic algorithms": high in quantity but shallow in depth, easily
+  viewed as teaching exercises at submission time;
+- "Do only Huffman": good depth, but a single sample, hard to support a
+  methodological contribution.
 
-## 5. 目标算法组合
+## 5. Target algorithm portfolio
 
-建议 3 个月内完成或接近完成下面四类核心样本。
+We recommend completing, or nearly completing, the following four kinds of core
+samples within three months.
 
 ### A. Huffman coding
 
-证明模式：exchange argument / local tree transformation。
+Proof pattern: exchange argument / local tree transformation.
 
-当前状态：V2 已是核心基线。
+Current status: V2 is already the core baseline.
 
-目标：
+Goals:
 
-- 保持单文件证明可读；
-- 继续压缩局部冗余，但不牺牲主线结构；
-- 为论文写出证明路线图和 LOC / lemma 分布记录。
+- Keep the single-file proof readable;
+- Continue to compress local redundancy without sacrificing the main-line
+  structure;
+- Write a proof roadmap and a LOC / lemma distribution record for the paper.
 
-### B. MST: Kruskal 或 Prim
+### B. MST: Kruskal or Prim
 
-证明模式：cut property / safe edge。
+Proof pattern: cut property / safe edge.
 
-建议优先 Kruskal。
+Recommend prioritizing Kruskal.
 
-理由：
+Rationale:
 
-- CLRS 代表性强；
-- cut property 和 Huffman 的 exchange 可以形成对照；
-- 并查集实现可以先抽象成 relation / component spec，不必一开始证明高性能
-  union-find。
+- Strong CLRS representativeness;
+- The cut property and Huffman's exchange can form a contrast;
+- The union-find implementation can first be abstracted into a relation /
+  component spec, without having to prove a high-performance union-find from the
+  start.
 
-最低验收：
+Minimum acceptance:
 
 ```lean
 theorem kruskal_optimal :
   IsMST (kruskal G)
 ```
 
-可以先证明数学版 Kruskal，再逐步连接到可执行实现。
+One can first prove a mathematical version of Kruskal, then gradually connect it
+to an executable implementation.
 
 ### C. Dijkstra shortest paths
 
-证明模式：loop invariant / settled set / relaxation。
+Proof pattern: loop invariant / settled set / relaxation.
 
-理由：
+Rationale:
 
-- 比基础贪心题更有含金量；
-- 与 MST 同属图算法，但证明结构不同；
-- 能展示 Lean 中状态不变量的表达能力。
+- More substantial than the basic greedy toy problems;
+- Like MST, it is a graph algorithm, but with a different proof structure;
+- Can showcase the expressive power of state invariants in Lean.
 
-最低验收：
+Minimum acceptance:
 
 ```lean
 theorem dijkstra_correct :
   ShortestPathDistances G source (dijkstra G source)
 ```
 
-可以先限制非负权重、有限节点、简单 map 表示，避免一开始陷入堆实现。
+One can start with nonnegative weights, finitely many nodes, and a simple map
+representation, avoiding getting stuck in a heap implementation from the start.
 
-### D. 一个 DP 算法
+### D. One DP algorithm
 
-证明模式：optimal substructure / recurrence completeness。
+Proof pattern: optimal substructure / recurrence completeness.
 
-候选：
+Candidates:
 
-- LCS；
-- edit distance；
-- matrix-chain multiplication。
+- LCS;
+- edit distance;
+- matrix-chain multiplication.
 
-建议优先 LCS 或 edit distance，因为 specification 更直观，适合和教材叙事连接。
+Recommend prioritizing LCS or edit distance, because the specification is more
+intuitive and connects well with the textbook narrative.
 
-最低验收：
+Minimum acceptance:
 
 ```lean
 theorem lcs_correct :
   IsLongestCommonSubsequence xs ys (lcs xs ys)
 ```
 
-如果时间不足，可以用已有 CutRibbon/Boredom 作为预实验，再完成一个更教材化的
-DP 样本。
+If time is short, the existing CutRibbon/Boredom can be used as a pilot
+experiment, and then a more textbook-like DP sample can be completed.
 
-## 6. 不做什么
+## 6. What we will not do
 
-为了保持论文目标清晰，建议明确以下 non-goals：
+To keep the paper's goals clear, we recommend explicitly stating the following
+non-goals:
 
-- 不试图在 3 个月内形式化 CLRS 全书；
-- 不把高性能数据结构实现作为第一目标；
-- 不以 Codeforces 小题数量作为主要贡献；
-- 不追求所有算法都 executable-first；
-- 不承诺证明复杂度界，除非主正确性证明已经稳定。
+- Do not attempt to formalize all of CLRS within three months;
+- Do not make high-performance data-structure implementation the first goal;
+- Do not treat the number of Codeforces toy problems as a primary contribution;
+- Do not pursue executable-first for every algorithm;
+- Do not commit to proving complexity bounds unless the main correctness proofs
+  are already stable.
 
-复杂度证明可以作为加分项，但不应阻塞主线。
+Complexity proofs can be a bonus, but should not block the main line.
 
-## 7. 3 个月里程碑
+## 7. Three-month milestones
 
-### 第 1-2 周：研究问题与接口冻结
+### Weeks 1-2: Research questions and interface freeze
 
-交付物：
+Deliverables:
 
-- 固定本文档中的 headline question；
-- 建立 `docs/clrs-proof-patterns/` 或同等目录；
-- 为 Huffman、MST、Dijkstra、DP 各写一页 theorem interface 草案；
-- 记录 Huffman V2 的 theorem chain、LOC、核心 lemma 分类。
+- Pin down the headline question in this document;
+- Set up a `docs/clrs-proof-patterns/` or equivalent directory;
+- Write a one-page theorem interface draft for each of Huffman, MST, Dijkstra, and
+  DP;
+- Record Huffman V2's theorem chain, LOC, and core lemma classification.
 
-验收标准：
+Acceptance criteria:
 
-- 每个目标算法都有明确 spec；
-- 每个 spec 都能说清楚“证明什么”和“不证明什么”；
-- 不再用“证明很多算法”作为目标描述。
+- Every target algorithm has an explicit spec;
+- Every spec can clearly state what is proved and what is not proved;
+- "Prove many algorithms" is no longer used as a goal description.
 
-### 第 3-5 周：MST/Kruskal
+### Weeks 3-5: MST/Kruskal
 
-交付物：
+Deliverables:
 
-- 图、边权、生成树、cut、safe edge 的数学定义；
-- cut property；
-- Kruskal 数学版最优性证明；
-- 记录哪些 lemma 可复用到其他 greedy proofs。
+- Mathematical definitions of graphs, edge weights, spanning trees, cuts, and safe
+  edges;
+- The cut property;
+- An optimality proof for the mathematical version of Kruskal;
+- Record which lemmas can be reused in other greedy proofs.
 
-验收标准：
+Acceptance criteria:
 
-- `lake build` 通过；
-- 有一个公开 theorem 表达 MST 最优性；
-- 文档中能解释 Kruskal 和 Huffman 交换证明的共同点与差异。
+- `lake build` passes;
+- There is a public theorem expressing MST optimality;
+- The documentation can explain the commonalities and differences between the
+  Kruskal and Huffman exchange proofs.
 
-### 第 6-8 周：Dijkstra
+### Weeks 6-8: Dijkstra
 
-交付物：
+Deliverables:
 
-- 非负权图和距离 specification；
-- relaxation invariant；
-- settled nodes invariant；
-- Dijkstra 正确性主定理。
+- A specification for nonnegatively weighted graphs and distances;
+- The relaxation invariant;
+- The settled-nodes invariant;
+- The main Dijkstra correctness theorem.
 
-验收标准：
+Acceptance criteria:
 
-- 可以清楚区分算法状态、数学最短路定义、循环不变量；
-- 不依赖具体 priority queue 性能实现；
-- 文档中记录 invariant 证明模式。
+- The algorithm state, the mathematical shortest-path definition, and the loop
+  invariants can be clearly distinguished;
+- No dependence on a specific high-performance priority-queue implementation;
+- The invariant proof pattern is documented.
 
-### 第 9-10 周：DP 样本
+### Weeks 9-10: DP sample
 
-交付物：
+Deliverables:
 
-- LCS 或 edit distance 的 specification；
-- recurrence 正确性；
-- 算法返回值的 optimality theorem；
-- 与已有 DP 小题证明做对照。
+- A specification for LCS or edit distance;
+- Recurrence correctness;
+- An optimality theorem for the algorithm's return value;
+- A comparison against the existing DP toy-problem proofs.
 
-验收标准：
+Acceptance criteria:
 
-- 有一个教材级 DP theorem；
-- proof pattern catalog 中新增 DP optimal-substructure 模式。
+- There is a textbook-level DP theorem;
+- A DP optimal-substructure pattern is added to the proof pattern catalog.
 
-### 第 11 周：横向整理
+### Week 11: Cross-cutting consolidation
 
-交付物：
+Deliverables:
 
-- 证明模式 taxonomy；
-- 每个算法的 theorem interface 表；
-- LOC、lemma 数量、复用点、失败尝试记录；
-- Mathlib / Lean 表示层缺口记录。
+- A proof-pattern taxonomy;
+- A theorem interface table for each algorithm;
+- Records of LOC, lemma counts, reuse points, and failed attempts;
+- A record of Mathlib / Lean representation-layer gaps.
 
-验收标准：
+Acceptance criteria:
 
-- 可以回答“这不是四个孤立证明，而是一套方法”的审稿问题；
-- 可以回答“为什么这些算法足够代表 CLRS 证明模式”的审稿问题。
+- Can answer the reviewer question "these are not four isolated proofs but one
+  methodology";
+- Can answer the reviewer question "why are these algorithms representative enough
+  of CLRS proof patterns".
 
-### 第 12 周：投稿材料初稿
+### Week 12: First draft of submission materials
 
-交付物：
+Deliverables:
 
-- 论文 outline；
-- artifact README；
-- case study 表格；
-- reproducibility commands；
-- intro 的问题陈述和贡献列表。
+- Paper outline;
+- Artifact README;
+- Case study table;
+- Reproducibility commands;
+- The intro's problem statement and contribution list.
 
-验收标准：
+Acceptance criteria:
 
-- 形成 ITP/CPP 风格 submission skeleton；
-- 如果结果更强，再考虑 CAV 风格 framing；
-- 如果算法数不足，降级为 workshop / artifact / technical report 也仍然成立。
+- Form an ITP/CPP-style submission skeleton;
+- If the results are stronger, also consider CAV-style framing;
+- If the number of algorithms is insufficient, downgrading to a workshop / artifact
+  / technical report still holds.
 
-## 8. 文件结构建议
+## 8. File structure suggestions
 
-短期已经将 CLRS 方向从 `CfProofs` 拆到独立的 `CLRS-Lean` repository。Huffman V2
-成为第 16.3 节的正式章节文件：
+In the short term, the CLRS direction has already been split from `CfProofs` into
+the standalone `CLRS-Lean` repository. Huffman V2 has become the formal chapter
+file for Section 16.3:
 
 ```text
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
 ```
 
-新增 CLRS 方向时，按 CLRS 章节和小节组织，而不是按算法主题组织：
+When adding new CLRS directions, organize them by CLRS chapter and section rather
+than by algorithmic topic:
 
 ```text
 CLRSLean/
@@ -334,91 +378,96 @@ CLRSLean/
   Blueprint/
 ```
 
-注意：`Patterns/` 不要一开始过度抽象。更稳妥的做法是先完成两个 case study，
-再把重复出现的结构抽出来。
+Note: do not over-abstract `Patterns/` from the start. The safer approach is to
+first complete two case studies, then extract the recurring structures.
 
-## 9. 论文贡献形态
+## 9. Shape of the paper's contribution
 
-推荐贡献列表：
+Recommended contribution list:
 
-1. 一个 Lean 4 artifact，覆盖 Huffman、MST、Dijkstra 和一个 DP 算法；
-2. 一套 CLRS proof-pattern taxonomy；
-3. 每类证明模式的 theorem interface 和 proof skeleton；
-4. 对 Lean/Mathlib 表示层选择的经验总结；
-5. 一个可复现实验表：每个算法的 LOC、关键 lemma、复用点、构建命令。
+1. A Lean 4 artifact covering Huffman, MST, Dijkstra, and one DP algorithm;
+2. A CLRS proof-pattern taxonomy;
+3. Theorem interfaces and proof skeletons for each kind of proof pattern;
+4. Lessons learned on Lean/Mathlib representation-layer choices;
+5. A reproducible experiment table: LOC, key lemmas, reuse points, and build
+   commands for each algorithm.
 
-不要把贡献写成：
+Do not frame the contribution as:
 
-- “我们证明了很多算法”；
-- “Lean 可以证明算法正确性”；
-- “形式化 CLRS 是可行的”。
+- "We proved many algorithms";
+- "Lean can prove algorithm correctness";
+- "Formalizing CLRS is feasible".
 
-这些说法太宽或太弱。更好的表述是：
+These claims are too broad or too weak. A better statement is:
 
 > We identify and mechanize reusable proof patterns for textbook algorithm
 > correctness in Lean, using representative CLRS algorithms as case studies.
 
-## 10. 风险与降级路径
+## 10. Risks and downgrade paths
 
-### 风险 1：Dijkstra 证明拖太久
+### Risk 1: The Dijkstra proof drags on too long
 
-降级：
+Downgrade:
 
-- 保留 Dijkstra 的 specification 和 invariant 草案；
-- 用 BFS shortest path 或 Bellman-Ford 的数学版替代；
-- 论文中把 Dijkstra 作为 ongoing extension，而不是核心结果。
+- Keep the specification and invariant drafts for Dijkstra;
+- Replace it with a mathematical version of BFS shortest path or Bellman-Ford;
+- In the paper, present Dijkstra as an ongoing extension rather than a core result.
 
-### 风险 2：MST 陷入图表示和 union-find 实现
+### Risk 2: MST gets bogged down in the graph representation and union-find implementation
 
-降级：
+Downgrade:
 
-- 先证明数学版 Kruskal；
-- union-find 只作为 future executable refinement；
-- 主贡献聚焦 cut property 和 safe edge。
+- First prove the mathematical version of Kruskal;
+- Treat union-find only as a future executable refinement;
+- Focus the main contribution on the cut property and safe edges.
 
-### 风险 3：DP 样本无法在时间内完成
+### Risk 3: The DP sample cannot be completed in time
 
-降级：
+Downgrade:
 
-- 用已有 CutRibbon/Boredom 作为 DP pattern 证据；
-- 同时保留 LCS 的 spec 和部分 lemma；
-- 不把 DP 放在核心贡献第一位。
+- Use the existing CutRibbon/Boredom as evidence for a DP pattern;
+- Keep the LCS spec and partial lemmas;
+- Do not put DP first among the core contributions.
 
-### 风险 4：证明模式抽象不够统一
+### Risk 4: The proof-pattern abstraction is not unified enough
 
-降级：
+Downgrade:
 
-- 不强行做通用 framework；
-- 把贡献改成 “design study + reusable interfaces”；
-- 用表格展示哪些部分可复用、哪些部分不可复用。
+- Do not force a generic framework;
+- Reframe the contribution as "design study + reusable interfaces";
+- Use tables to show which parts are reusable and which are not.
 
-## 11. 验收标准
+## 11. Acceptance criteria
 
-3 个月后，一个强版本应该满足：
+After three months, a strong version should satisfy:
 
-- Huffman V2 保持完整、可构建、可解释；
-- MST 和 Dijkstra 至少各有一个主正确性 theorem；
-- DP 至少有一个教材级样本或清楚的替代证据；
-- 每个算法都有文档化的 theorem interface；
-- 有 proof-pattern catalog，而不是只堆 Lean 文件；
-- `lake build` 是 artifact 的基本复现入口。
+- Huffman V2 stays complete, buildable, and explainable;
+- MST and Dijkstra each have at least one main correctness theorem;
+- DP has at least one textbook-level sample or clear substitute evidence;
+- Every algorithm has a documented theorem interface;
+- There is a proof-pattern catalog rather than just a pile of Lean files;
+- `lake build` is the basic reproducibility entry point for the artifact.
 
-一个可接受的降级版本应该满足：
+An acceptable downgraded version should satisfy:
 
-- Huffman V2 + MST 完整；
-- Dijkstra 或 DP 至少一个完整；
-- 另一个有 spec、partial proof 和明确风险记录；
-- 论文目标降为 ITP/CPP workshop、artifact paper 或 technical report。
+- Huffman V2 + MST complete;
+- At least one of Dijkstra or DP complete;
+- The other has a spec, a partial proof, and clear risk records;
+- The paper's goal is downgraded to an ITP/CPP workshop, artifact paper, or
+  technical report.
 
-## 12. 下一步
+## 12. Next steps
 
-立即建议做三件事：
+Three things are recommended immediately:
 
-1. 冻结 Huffman V2，不再为了极限压行数破坏主线可读性；
-2. 新建 CLRS 隔离目录，先写 MST/Kruskal 的 specification 和 theorem statement；
-3. 同步维护一个 `proof-patterns` 表格，每完成一个 lemma 就记录它属于 exchange、
-   cut、loop invariant 还是 optimal substructure。
+1. Freeze Huffman V2, and stop breaking the readability of the main line for the
+   sake of extreme line-count compression;
+2. Create a new isolated CLRS directory, and first write the MST/Kruskal
+   specification and theorem statements;
+3. Maintain a `proof-patterns` table in sync, recording for each completed lemma
+   whether it belongs to exchange, cut, loop invariant, or optimal substructure.
 
-第一段真正的新增证明，建议从 Kruskal 的 cut property 开始。它和 Huffman 一样有
-贪心最优性味道，但证明形态不同，能最快把项目从“一个强 Huffman 证明”推进到
-“一组 CLRS 证明模式”的方向。
+For the first genuinely new proof, we recommend starting with Kruskal's cut
+property. Like Huffman, it has the flavor of greedy optimality, but with a
+different proof shape, and it can most quickly move the project from "one strong
+Huffman proof" toward "a set of CLRS proof patterns".
