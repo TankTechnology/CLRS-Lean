@@ -89,8 +89,8 @@ lemma exchange_step' (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
           rw [← fifo_evict_eq_farthest d σ C₀ hagree]
       rw [hE, hF]
 
-/-- 若 `d` 与 FIF 一致到 `t0` 但并非处处一致,则存在一个分歧位置
-`t ∈ [t0, σ.length)`。 -/
+/-- If `d` agrees with FIF up to `t0` but not everywhere, then there is a
+disagreement position `t ∈ [t0, σ.length)`. -/
 lemma exists_first_disagree_after (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (t0 : ℕ) (ht0 : t0 ≤ σ.length)
     (hagree : agreeWithFIF d C₀ σ t0)
@@ -128,8 +128,9 @@ lemma exists_first_disagree_after (d : ℕ → Page) (σ : List Page) (C₀ : Fi
   rcases hmain σ.length (by omega) le_rfl hnot with ⟨t, ht1, ht2, hat, hnat⟩
   exact ⟨t, ht1, ht2, hat, hnat⟩
 
-/-- 一次 exchange 步骤(情形二:`q'` 会再次被请求):新调度与 FIF 一致到
-`t + 1`,miss 不增,且从 `J' + 1` 起 reduced。 -/
+/-- One exchange step (case two: `q'` will be requested again): the new
+schedule agrees with FIF up to `t + 1`, misses do not increase, and it is
+reduced from `J' + 1` on. -/
 lemma exchange_step_full (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -163,18 +164,19 @@ lemma exchange_step_full (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page
       intro k hk1 hk2
       exact getD_ne_nextUse (k := k) hj' (by omega) (by omega)
     refine ⟨d', ?_, ?_, ?_⟩
-    · -- agree 到 t+1
+    · -- agree up to t+1
       exact (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
-    · -- misses 不增
+    · -- misses do not increase
       exact (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).1
-    · -- reduced 从 J'+1
+    · -- reduced from J'+1 on
       intro s hsJ' hFault
       change exchangeSchedule d t q q' σ C₀ s ∈
         schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
       exact exchangeSchedule_reduced_after d t q q' σ C₀ rfl hqq' hdred hft hq'res
         hj hq'ne (j' := j') hj' hsJ' hFault
 
-/-- 若两个调度的 cache 处处只差永不请求的页面 `P`,则 miss 数相同。 -/
+/-- If the caches of two schedules differ everywhere only by pages `P` that
+are never requested, then the miss counts are equal. -/
 lemma schedMisses_eq_of_cache_diff (d₁ d₂ : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (P : Finset Page)
     (hP : ∀ s, s < σ.length → σ.getD s 0 ∉ P)
@@ -201,8 +203,9 @@ lemma schedMisses_eq_of_cache_diff (d₁ d₂ : ℕ → Page) (σ : List Page) (
         exact ⟨h₂, hr⟩)))]
 
 
-/-- 情形一(`q'` 永不再请求,且 `q` 也不再有请求):交换调度与 `d` 的
-cache 处处只差 `q` 与 `q'`,且 fault 处逐出相同。 -/
+/-- Case one (`q'` is never requested again, and `q` also has no further
+requests): the exchange schedule's cache differs from `d`'s everywhere only
+by `q` and `q'`, and the eviction at a fault is the same. -/
 lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
@@ -287,7 +290,7 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
             exact hxq
         · constructor
           · exact hdsub
-          · -- 逐出相同(t+1 处 fault)
+          · -- same eviction (fault at t+1)
             intro hfault
             unfold exchangeSchedule
             rw [exchangeScheduleCore_second]
@@ -322,13 +325,13 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
       · -- step
         have hsgt : t < s := by omega
         have hih := ih hsgt
-        -- 差不变式 1:ex \ d ⊆ {q}(step)
+        -- difference invariant 1: ex \ d ⊆ {q} (step)
         have hd1 : (schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ (s + 1) \
             schedCache d C₀ σ (s + 1)) ⊆ ({q} : Finset Page) := by
           intro x hx
           rw [Finset.mem_sdiff] at hx
           by_cases hfault : σ.getD s 0 ∉ schedCache d C₀ σ s
-          · -- 双 fault
+          · -- both fault
             have hfaultEx : σ.getD s 0 ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
               intro h
               have hmem : σ.getD s 0 ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s \
@@ -357,7 +360,7 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
                 exact Finset.mem_singleton.mp hmem
               rw [Finset.mem_singleton]
               exact hxq
-          · -- d hit ⟹ ex hit(差页不请求)⟹ 差不变
+          · -- d hit ⟹ ex hit (difference page not requested) ⟹ difference invariant
             have hin : σ.getD s 0 ∈ schedCache d C₀ σ s := by
               by_contra h
               exact hfault h
@@ -376,13 +379,13 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
               exact Finset.mem_singleton.mp hmem
             rw [Finset.mem_singleton]
             exact hxq
-        -- 差不变式 2:d \ ex ⊆ {q'}(step)
+        -- difference invariant 2: d \ ex ⊆ {q'} (step)
         have hd2 : (schedCache d C₀ σ (s + 1) \
             schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ (s + 1)) ⊆ ({q'} : Finset Page) := by
           intro x hx
           rw [Finset.mem_sdiff] at hx
           by_cases hfault : σ.getD s 0 ∉ schedCache d C₀ σ s
-          · -- 双 fault
+          · -- both fault
             have hfaultEx : σ.getD s 0 ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
               intro h
               have hmem : σ.getD s 0 ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s \
@@ -411,7 +414,7 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
                 exact Finset.mem_singleton.mp hmem
               rw [Finset.mem_singleton]
               exact hxq'
-          · -- 双 hit:差不变
+          · -- both hit: difference invariant
             have hin : σ.getD s 0 ∈ schedCache d C₀ σ s := by
               by_contra h
               exact hfault h
@@ -434,7 +437,7 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
         · exact hd1
         · constructor
           · exact hd2
-          · -- 逐出相同(step)
+          · -- same eviction (step)
             intro hfault
             unfold exchangeSchedule
             rw [exchangeScheduleCore_second]
@@ -468,7 +471,8 @@ lemma exchangeSchedule_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
               rw [if_pos hdsin]
 
 
-/-- 情形一、`q` 也永不再请求:交换调度与 `d` 的 miss 数相同。 -/
+/-- Case one, `q` is also never requested again: the exchange schedule and
+`d` have the same number of misses. -/
 lemma exchangeSchedule_misses_eq_case_one (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
@@ -518,7 +522,7 @@ lemma exchangeSchedule_misses_eq_case_one (d : ℕ → Page) (t : ℕ) (q q' : P
         exact hx.2 (heq ▸ hx.1))
 
 
-/-- 处处一致 ⟹ miss 数相同。 -/
+/-- Agreeing everywhere ⟹ the miss counts are equal. -/
 lemma schedMisses_eq_of_agree (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hagree : agreeWithFIF d C₀ σ σ.length) :
     schedMisses d C₀ σ = schedMisses (fifoSchedule σ C₀) C₀ σ := by
@@ -529,8 +533,9 @@ lemma schedMisses_eq_of_agree (d : ℕ → Page) (σ : List Page) (C₀ : Finset
   unfold schedFaultAt
   rw [hagree s (by omega)]
 
-/-- 情形二(`q'` 会再次被请求)的交换步骤,含 slack 更新:
-坏事件未发生时(`d` 在 `J'` 处缺页)省一次 miss。 -/
+/-- The exchange step for case two (`q'` will be requested again), with the
+slack update: when the bad event does not occur (`d` faults at `J'`), one miss
+is saved. -/
 lemma exchange_step_slack (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -544,11 +549,11 @@ lemma exchange_step_slack (d : ℕ → Page) (σ : List Page) (C₀ : Finset Pag
   let q' : Page := fifoSchedule σ C₀ t
   let d' : ℕ → Page := exchangeSchedule d t q q' σ C₀
   by_cases hbad : σ.getD (t + 1 + j') 0 ∈ schedCache d C₀ σ (t + 1 + j')
-  · -- 坏事件发生:slack 不变
+  · -- bad event occurs: slack unchanged
     refine ⟨d', slack, ?_, ?_⟩
     · simpa [d', q, q'] using (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
     · simpa [d', q, q'] using (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).1
-  · -- 坏事件未发生:slack + 1
+  · -- bad event does not occur: slack + 1
     refine ⟨d', slack + 1, ?_, ?_⟩
     · exact (exchange_step' d σ C₀ hdred hC₀ ht hagree hdis).2
     · have hfd := first_disagree d σ C₀ hC₀ ht hagree hdis
@@ -581,8 +586,9 @@ lemma exchange_step_slack (d : ℕ → Page) (σ : List Page) (C₀ : Finset Pag
         omega
 
 
-/-- `q'` 永不再请求时,在首个分歧处用策略的选择替换 `e` 的 no-op 逐出,
-miss 不增,一致性扩展到 `t + 1`。 -/
+/-- When `q'` is never requested again, replacing `e`'s no-op eviction at the
+first disagreement with the policy's choice does not increase the miss count
+and extends agreement to `t + 1`. -/
 lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -717,12 +723,12 @@ lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
               (σ.getD s 0 ∈ schedCache e C₀ σ s) := by
             exact hmem_eq (σ.getD s 0) (hq'ne s)
           constructor
-          · -- r \ e ⊆ {q'} 保持
+          · -- r \ e ⊆ {q'} preserved
             intro x hx
             rw [Finset.mem_sdiff] at hx
             rw [Finset.mem_singleton]
             by_cases hfault : σ.getD s 0 ∉ schedCache e C₀ σ s
-            · -- 双 fault
+            · -- both fault
               have hfaultR : σ.getD s 0 ∉ schedCache r C₀ σ s := by
                 intro h
                 exact hfault (hfault_eq.mp h)
@@ -744,7 +750,7 @@ lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
                     exact ⟨hxin, hxEe⟩)
                   exact Finset.mem_singleton.mp hmem
                 exact hxq
-            · -- 双 hit(差页 `q'` 不请求 ⟹ 同 hit)
+            · -- both hit (difference page `q'` not requested ⟹ same hit)
               have hin : σ.getD s 0 ∈ schedCache e C₀ σ s := by
                 by_contra h
                 exact hfault h
@@ -755,12 +761,12 @@ lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
                 have hmem := ih.1 (Finset.mem_sdiff.mpr hx)
                 exact Finset.mem_singleton.mp hmem
               exact hxq
-          · -- e \ r ⊆ {q'} 保持
+          · -- e \ r ⊆ {q'} preserved
             intro x hx
             rw [Finset.mem_sdiff] at hx
             rw [Finset.mem_singleton]
             by_cases hfault : σ.getD s 0 ∉ schedCache e C₀ σ s
-            · -- 双 fault
+            · -- both fault
               have hfaultR : σ.getD s 0 ∉ schedCache r C₀ σ s := by
                 intro h
                 exact hfault (hfault_eq.mp h)
@@ -782,7 +788,7 @@ lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
                     exact ⟨hxin, hxEr⟩)
                   exact Finset.mem_singleton.mp hmem
                 exact hxq
-            · -- 双 hit
+            · -- both hit
               have hin : σ.getD s 0 ∈ schedCache e C₀ σ s := by
                 by_contra h
                 exact hfault h
@@ -794,7 +800,7 @@ lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
                 exact Finset.mem_singleton.mp hmem
               exact hxq
   constructor
-  · -- misses:r ≤ e(差页 `q'` 不请求)
+  · -- misses: r ≤ e (difference page `q'` not requested)
     have hmiss : schedMisses r C₀ σ = schedMisses e C₀ σ := by
       exact schedMisses_eq_of_cache_diff r e σ C₀ ({q'} : Finset Page)
         (by
@@ -803,10 +809,10 @@ lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
         (fun s => (hdiff s).1)
         (fun s => (hdiff s).2)
     rw [hmiss]
-  · -- agree 到 t+1
+  · -- agree up to t+1
     intro s hs
     by_cases hs' : s ≤ t
-    · -- s ≤ t:通过 `hc`(repair 与 e 相同)和 `hagree`
+    · -- s ≤ t: via `hc` (repair agrees with e) and `hagree`
       rw [hc s hs']
       exact hagree s hs'
     · -- s = t+1
@@ -834,8 +840,9 @@ lemma repair_q'_never (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
       rw [hE, hF]
 
 
-/-- 窗口内(`t ≤ s < J'`)的交换调度在 `s` 处 fault 时,逐出要么是 resident
-(分支 2-6),要么等于窗口页 `q'`(分支 1)。 -/
+/-- When the exchange schedule faults at `s` inside the window
+(`t ≤ s < J'`), the eviction is either a resident (branches 2-6) or equals
+the window page `q'` (branch 1). -/
 lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
@@ -852,7 +859,7 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
     exchangeSchedule d t q q' σ C₀ s ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
   let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
   by_cases hdsq' : d s = q'
-  · -- 分支 1:逐出 `q'`
+  · -- branch 1: evict `q'`
     left
     unfold exchangeSchedule
     rw [exchangeScheduleCore_second]
@@ -863,7 +870,7 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
     rw [if_neg (by omega)]
     rw [if_neg (by omega)]
     rw [if_pos hdsq']
-  · -- 分支 5/6:逐出 resident
+  · -- branches 5/6: evict resident
     right
     change (exchangeScheduleCore d t q q' σ C₀ s).2 ∈
       schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
@@ -878,7 +885,7 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
     rw [if_neg hdsq']
     by_cases hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧
         σ.getD s 0 ∈ schedCache d C₀ σ s
-    · -- 分支 4:多集元素 ∈ C' \ E ⊆ C'
+    · -- branch 4: multiset element ∈ C' \ E ⊆ C'
       rw [if_pos hb4]
       let M : Finset Page := schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s \
         schedCache d C₀ σ s
@@ -891,7 +898,7 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
           exact (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
         · rw [dif_neg hm]
           exfalso
-          -- M 空 ⟹ C' ⊆ E;card 论证 ⟹ C' = E ⟹ 请求 ∈ C'(矛盾 — hFault)
+          -- M empty ⟹ C' ⊆ E; cardinality argument ⟹ C' = E ⟹ request ∈ C' (contradicts hFault)
           have hsub : schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s ⊆
               schedCache d C₀ σ s := by
             intro y hy
@@ -905,7 +912,7 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
               schedCache d C₀ σ s :=
             Finset.eq_of_subset_of_card_le hsub hcard
           exact hFault (hEq.symm ▸ hb4.2)
-    · -- 分支 5:d s ∈ C'
+    · -- branch 5: d s ∈ C'
       rw [if_neg hb4]
       have hq'ne : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
         intro k hk1 hk2
@@ -931,11 +938,11 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
       have hdsin : d s ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
         have hdsD : d s ∈ schedCache d C₀ σ s := hdred s (by omega) hdFault
         by_cases hdsq : d s = q
-        · -- d s = q:q ∈ cache d s ⟹ q ∈ ex cache(`exchangeSchedule_q_mem`)
+        · -- d s = q: q ∈ cache d s ⟹ q ∈ ex cache (`exchangeSchedule_q_mem`)
           rw [hdsq]
           exact exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hdred hft hq'res hj hq'ne
             s (by omega) (hdsq ▸ hdsD)
-        · -- d s ∉ {q, q'}:`exchangeSchedule_invariant`
+        · -- d s ∉ {q, q'}: `exchangeSchedule_invariant`
           exact exchangeSchedule_invariant d t q q' σ C₀ hq hdred s (by omega) (d s)
             (by
               intro h
@@ -947,8 +954,9 @@ lemma exchangeSchedule_window_evict (d : ℕ → Page) (t : ℕ) (q q' : Page)
       exact hdsin
 
 
-/-- 若 `q'` 在 `t` 处被 `d` 真逐出(且 `t` 处 `d` 缺页),则到其首次请求
-`J'` 为止 `q'` 不在 `d` 的 cache 中(坏事件未发生)。 -/
+/-- If `q'` is genuinely evicted by `d` at `t` (and `d` faults at `t`), then
+up to its first request `J'`, `q'` is not in `d`'s cache (the bad event does
+not occur). -/
 lemma evicted_page_absent_until_request (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (t : ℕ) (q' : Page)
     (hft : σ.getD t 0 ∉ schedCache d C₀ σ t)
@@ -972,7 +980,7 @@ lemma evicted_page_absent_until_request (d : ℕ → Page) (σ : List Page) (C�
           rcases Finset.mem_insert.mp hm with hq'r | hq'E
           · exact hft (hq'r.symm ▸ hq'res)
           · exact (Finset.mem_erase.mp hq'E).1 rfl
-        · -- step:q' 在 s 处不在(ih),且 s 处请求 ≠ q'
+        · -- step: q' is absent at s (ih), and the request at s ≠ q'
           have hs1' : t + 1 ≤ s := by omega
           have hs2' : s ≤ t + 1 + j' := by omega
           have hq'not : q' ∉ schedCache d C₀ σ s := ih hs1' hs2'
@@ -989,10 +997,13 @@ lemma evicted_page_absent_until_request (d : ℕ → Page) (σ : List Page) (C�
   exact hmain (t + 1 + j') (by omega) le_rfl
 
 
-/-- 窗口内分支 1 不会出现两次:若源 `d` 在 `s₁` 和 `s₂`(都在窗口内、`s₁ < s₂`)
-都逐出 `q'`(两处都缺页),则矛盾:源从 `t` 起 reduced ⟹ `s₂` 处 `q' ∈ cache`;
-而 `s₁` 处真逐出后 `q'` 无法重新进入(首次请求在 `J'`)。
-在迭代中这保证 case B 处的分支 1 是窗口内第一次 ⟹ 真逐出 ⟹ 坏事件未发生。 -/
+/-- Branch 1 cannot occur twice inside the window: if the source `d` evicts
+`q'` at both `s₁` and `s₂` (both inside the window, `s₁ < s₂`), then we get a
+contradiction: since the source is reduced from `t` on, `q' ∈ cache` at `s₂`;
+but after the genuine eviction at `s₁`, `q'` cannot re-enter (its first
+request is at `J'`).
+In the iteration this ensures that branch 1 at case B is the first occurrence
+inside the window ⟹ genuine eviction ⟹ the bad event does not occur. -/
 lemma window_branch1_once (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
@@ -1006,7 +1017,7 @@ lemma window_branch1_once (d : ℕ → Page) (t : ℕ) (q q' : Page)
     False := by
   have hq'in₂ : q' ∈ schedCache d C₀ σ s₂ := by
     exact hbranch₂ ▸ hdred s₂ (by omega) hFault₂
-  -- q' ∈ cache s₂ 且 (s₁, s₂] 内无 q' 请求 ⟹ q' ∈ cache s₁(从未被真逐出)
+  -- q' ∈ cache s₂ and no request for q' in (s₁, s₂] ⟹ q' ∈ cache s₁ (never genuinely evicted)
   have hq'in₁ : q' ∈ schedCache d C₀ σ s₁ := by
     by_contra hnot
     have hqback : ∀ k, k ≤ s₂ → s₁ ≤ k → q' ∈ schedCache d C₀ σ k → q' ∈ schedCache d C₀ σ s₁ := by
@@ -1032,7 +1043,7 @@ lemma window_branch1_once (d : ℕ → Page) (t : ℕ) (q q' : Page)
                 · exact (Finset.mem_erase.mp hq'E).2
             exact ih (k - 1) (by omega) hk'2 hk'1 hqk'
     exact hnot (hqback s₂ le_rfl (by omega) hq'in₂)
-  -- s₁ 处真逐出(源 reduced ⟹ q' ∈ cache s₁、d s₁ = q')⟹ q' ∉ cache s₁+1
+  -- genuine eviction at s₁ (source reduced ⟹ q' ∈ cache s₁, d s₁ = q') ⟹ q' ∉ cache s₁+1
   have hq'out : q' ∉ schedCache d C₀ σ (s₁ + 1) := by
     rw [schedCache]
     rw [if_neg hFault₁]
@@ -1042,7 +1053,7 @@ lemma window_branch1_once (d : ℕ → Page) (t : ℕ) (q q' : Page)
     · exfalso
       exact getD_ne_nextUse (k := s₁) hj' (by omega) (by omega) hq'r.symm
     · exact (Finset.mem_erase.mp hq'E).1 rfl
-  -- q' ∉ cache s₁+1 且 (s₁+1, s₂] 内无 q' 请求 ⟹ q' ∉ cache s₂ — 矛盾
+  -- q' ∉ cache s₁+1 and no request for q' in (s₁+1, s₂] ⟹ q' ∉ cache s₂ — contradiction
   have hq'out₂ : q' ∉ schedCache d C₀ σ s₂ := by
     have hnoenter : ∀ k, s₁ + 1 ≤ k → k ≤ s₂ → q' ∉ schedCache d C₀ σ k := by
       intro k
