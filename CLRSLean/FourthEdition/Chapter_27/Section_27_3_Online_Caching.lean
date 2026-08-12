@@ -30,16 +30,12 @@ Main results:
   request sequence into maximal segments of at most `k` distinct pages.
 - Lemma `lru_miss_le_phases`: LRU makes at most `k` misses per phase, so its
   total miss count is bounded by `k` times the number of phases.
+- Lemma `phases_le_misses`: the number of phases is at most one more than the
+  miss count of any size-`k` algorithm.
+- Theorem `lru_k_competitive`: LRU is `k`-competitive.
 
 Current gaps:
 
-- Theorem 27.3 (`lru_k_competitive`, the `k`-competitive upper bound for LRU) is
-  **not yet formalized**.  The phase partition, the LRU upper bound
-  (`lru_miss_le_phases`), and the algorithm-side helpers (`missesGo_append`,
-  `runGo_eq_self_of_misses_eq_zero`, `phaseGo_maximal`, `firstPhase_maximal`) are
-  in place; the remaining steps are the lower bound (`phases_le_misses`: the
-  number of phases is at most one more than the miss count, proved by a
-  full-cache cascade) and the final summation into `lruMissesGo ≤ k * missesGo + k`.
 - The matching lower bound — no deterministic online algorithm is better than
   `k`-competitive — is recorded but not formalized here (the framework is set up
   so the adversary argument can be added directly).
@@ -964,6 +960,97 @@ lemma firstPhase_maximal (k : ℕ) (σ : List Page) (hk : 0 < k) (h : (firstPhas
         exact hmax.1
       · simp [firstPhase]
         simpa [Finset.mem_union, Finset.mem_singleton, and_comm] using hmax.2
+
+/-- The number of phases is at most one more than the miss count of any size-`k`
+algorithm: `(phases k σ).length ≤ missesGo A C σ + 1`.  This is the lower-bound
+half of the competitive analysis: the transition between consecutive phases
+requests `k + 1` distinct pages (the `k` pages of one phase plus the first fresh
+page of the next), forcing at least one miss (CLRS §27.3). -/
+lemma phases_le_misses (k : ℕ) (σ : List Page) (hk : 0 < k)
+    (A : Algorithm Page k) (C : Finset Page) (hC : C.card ≤ k) :
+    (phases k σ).length ≤ missesGo A C σ + 1 := by
+  classical
+  have go : ∀ (n : ℕ) (σ : List Page), σ.length = n → ∀ (A : Algorithm Page k)
+      (C : Finset Page), C.card ≤ k → (phases k σ).length ≤ missesGo A C σ + 1 := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro σ hlen A C hC
+      cases σ with
+      | nil => simp [phases, missesGo, WellFounded.fix_eq]
+      | cons p rest =>
+          let fp := firstPhase k (p :: rest)
+          have hsplit := firstPhase_split k (p :: rest)
+          have hnonempty : fp.1 ≠ [] := by
+            dsimp [fp]
+            exact firstPhase_nonempty k (p :: rest) (by simp)
+          cases hrem : fp.2 with
+          | nil =>
+              rw [phases_cons_eq k (p :: rest) (by simp)]
+              simp [hrem, phases, WellFounded.fix_eq]
+              omega
+          | cons q rest' =>
+              have hrem_ne : fp.2 ≠ [] := by simp [hrem]
+              have hmax := firstPhase_maximal k (p :: rest) hk hrem_ne
+              have hcard : fp.1.toFinset.card = k := by simpa [fp] using hmax.1
+              have hhead : List.head fp.2 hrem_ne = q := by rw [hrem]
+              have hqfresh : q ∉ fp.1.toFinset := by simpa [hhead] using hmax.2
+              have hremlen : fp.2.length < (p :: rest).length := by
+                have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
+                  rw [← hsplit, List.length_append]
+                have hpos : 0 < fp.1.length := List.length_pos_of_ne_nil hnonempty
+                omega
+              have hremlen' : fp.2.length < n := by omega
+              -- The transition segment fp.1 ++ [q] requests k + 1 distinct pages.
+              have htrans : k < (fp.1 ++ [q]).toFinset.card := by
+                have hto : (fp.1 ++ [q]).toFinset = insert q fp.1.toFinset := by
+                  ext x
+                  simp [List.toFinset_append]
+                rw [hto, Finset.card_insert_of_notMem hqfresh, hcard]
+                omega
+              have hforce : 1 ≤ missesGo A C (fp.1 ++ [q]) :=
+                distinct_fault A C (fp.1 ++ [q]) hC htrans
+              have hforce' : 1 ≤ missesGo A C fp.1 + (if q ∈ runGo A C fp.1 then 0 else 1) := by
+                have h := missesGo_append A C fp.1 [q]
+                rw [h] at hforce
+                simp [missesGo] at hforce ⊢
+                exact hforce
+              have hih := ih fp.2.length hremlen' fp.2 rfl A (A.step (runGo A C fp.1) q)
+                (A.step_size (runGo A C fp.1) q)
+              have hqstep : q ∈ A.step (runGo A C fp.1) q := A.step_loads (runGo A C fp.1) q
+              have hhit : A.step (A.step (runGo A C fp.1) q) q = A.step (runGo A C fp.1) q :=
+                A.step_hit (A.step (runGo A C fp.1) q) q hqstep
+              have hih' : (phases k fp.2).length ≤
+                  missesGo A (A.step (runGo A C fp.1) q) rest' + 1 := by
+                rw [hrem] at hih
+                simp [missesGo, hqstep, hhit] at hih
+                exact hih
+              have hmisses : missesGo A C (p :: rest) =
+                  missesGo A C fp.1 + (if q ∈ runGo A C fp.1 then 0 else 1) +
+                    missesGo A (A.step (runGo A C fp.1) q) rest' := by
+                rw [← hsplit, missesGo_append, hrem, missesGo]
+                omega
+              rw [phases_cons_eq k (p :: rest) (by simp), hmisses]
+              simp only [List.length_cons]
+              omega
+  exact go σ.length σ rfl A C hC
+
+/--
+**Theorem 27.3 (LRU is `k`-competitive).**  For any deterministic paging
+algorithm `A` with cache size `k`, LRU's miss count over a request sequence `σ`
+is at most `k` times `A`'s miss count plus `k`, both starting from an empty
+cache.  This is the classical competitive-analysis bound of CLRS §27.3.
+-/
+theorem lru_k_competitive (k : ℕ) (σ : List Page) (hk : 0 < k) (A : Algorithm Page k) :
+    lruMissesGo k [] σ ≤ k * missesGo A ∅ σ + k := by
+  have hub := lru_miss_le_phases k [] σ hk (by simp)
+  have hlb := phases_le_misses k σ hk A ∅ (by simp)
+  have hmul : k * (phases k σ).length ≤ k * (missesGo A ∅ σ + 1) :=
+    Nat.mul_le_mul_left k hlb
+  calc
+    lruMissesGo k [] σ ≤ k * (phases k σ).length := hub
+    _ ≤ k * (missesGo A ∅ σ + 1) := hmul
+    _ = k * missesGo A ∅ σ + k := by rw [Nat.mul_add, Nat.mul_one]
 
 
 end OnlineCaching
