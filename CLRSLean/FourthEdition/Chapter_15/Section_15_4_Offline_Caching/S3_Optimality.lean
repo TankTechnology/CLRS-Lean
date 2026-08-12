@@ -8,11 +8,20 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality
 The exchange-schedule machinery for the optimality proof of the
 farthest-in-future (Belady) eviction policy of CLRS §15.4, plus basic sanity
 lemmas for the policy itself: it always evicts a resident page and preserves
-the cache size.
+the cache size.  The unconditional theorem is closed through a separate
+policy-independent legal-trace argument: one-page cache differences are
+coupled across the suffix, the first disagreement is exchanged without adding
+misses, and finite iteration yields a trace that agrees with FIF everywhere.
 
 Main results:
 
 - `fifo_optimal`: no offline eviction policy incurs fewer misses than FIF
+- `LegalTrace` / `traceOfPolicy`: policy-independent legal cache executions and
+  the trace induced by any policy
+- `exchange_trace`: one local exchange extends agreement with FIF by one cache
+  boundary without increasing total misses
+- `exists_fully_agreeing_trace` / `fifo_optimal_trace`: finite iteration of the
+  exchange and its trace-level optimality consequence
 - `fifo_evicts_resident`: the FIF policy evicts a resident page
 - `fifo_step_size`: a FIF step preserves the cache size
 - `schedCache` / `schedMisses`: the run and miss count of an arbitrary
