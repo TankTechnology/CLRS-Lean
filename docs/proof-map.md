@@ -4158,7 +4158,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     wait time, the strategy pays exactly `(2 - E/S) * S`, matching the
     competitive ratio stated in CLRS §27.1.
 - Current gap: the lower bound that no deterministic strategy beats `2 - r/p`
-  is not yet formalized; Section 27.3 (Online caching) is not represented.
+  is not yet formalized.
 
 ### Section 27.2 - Maintaining a Search List
 
@@ -4194,7 +4194,28 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - Supporting lemmas: `SearchList.invDist_moveToFront_add_pos` (the phase-1
     potential change) and `SearchList.invDist_triangle` (the triangle inequality
     bounding the adversary's rearrangement).
-- Current gap: Section 27.3 (Online caching) is not represented.
+### Section 27.3 - Online Caching
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_27/Section_27_3_Online_Caching.lean`
+- Status: `partial` (native fourth-edition source; headline theorem pending)
+- Model:
+  - `OnlineCaching.lruStep` / `OnlineCaching.lruRun` / `OnlineCaching.lruMisses`:
+    the LRU policy with the cache as a most-recent-first list — a hit moves the
+    page to the front, a miss prepends it, evicting the least-recently-used tail
+    when the cache is full — and its miss count over a request sequence.
+  - `OnlineCaching.Algorithm`: a bundled deterministic eviction algorithm over a
+    `Finset` cache with laws that it loads the request, only ever adds the
+    request, and keeps the cache at size at most `k`.
+- Proved:
+  - `OnlineCaching.distinct_fault`: a segment requesting `k + 1` distinct pages
+    forces a miss for any size-`k` algorithm.
+  - `OnlineCaching.resident_fault`: a page resident at the start of a segment
+    that then requests `k` other distinct pages forces a miss.
+  - Supporting lemmas: `runGo_subset`, `runGo_size`, and
+    `missesGo_eq_zero_subset` (a run with no misses has all requested pages
+    resident).
+- Current gap: the `k`-competitive upper bound for LRU (CLRS Theorem 27.3) and
+  its matching lower bound are not yet formalized.
 
 ## Chapter 28 - Matrix Operations
 

@@ -71,7 +71,7 @@ Ch  Chapter                                                     Status          
 24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3                     18        0
 25  25. Matchings in Bipartite Graphs                           main-proof-complete                  25.1;25.2;25.3                     18        0
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
-27  27. Online Algorithms                                       partial (edition coverage)           27.1;27.2                           5        1
+27  27. Online Algorithms                                       partial (edition coverage)           27.1;27.2;27.3                      5        1
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
 29  29. Linear Programming                                      partial (edition coverage)           29.1;29.2;29.3                     10        3
 30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     34        0

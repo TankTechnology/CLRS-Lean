@@ -81,7 +81,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 24 | Maximum Flow | 🟢 complete | 18 / 18 | — |
 | 25 | Matchings in Bipartite Graphs | 🟢 complete | 18 / 18 | — |
 | 26 | Parallel Algorithms | 🟢 complete | 95 / 95 | — |
-| 27 | Online Algorithms | 🟠 partial coverage | 5 / 5 | Section 27.3 (Online caching) is not represented |
+| 27 | Online Algorithms | 🟠 partial coverage | 5 / 5 | Section 27.3 (Online caching): partial - the k-competitive… |
 | 28 | Matrix Operations | 🟢 complete | 9 / 9 | — |
 | 29 | Linear Programming | 🟠 partial coverage | 10 / 10 | Section 29.1: general-form normalization and canonical… |
 | 30 | Polynomials and the FFT | 🟢 complete | 34 / 34 | — |

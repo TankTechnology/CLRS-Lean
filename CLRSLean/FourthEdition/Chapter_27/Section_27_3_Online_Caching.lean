@@ -24,15 +24,14 @@ Main results:
   miss for any size-`k` algorithm.
 - Lemma `resident_fault`: a page resident at the start of a segment that then
   requests `k` other distinct pages forces a miss.
-- Lemma `lru_head_evict`: if LRU faults on a page that is most-recently-used at
-  the start of a segment, the segment requests at least `k` distinct other pages.
-- Theorem `lru_k_competitive` (Theorem 27.3): LRU is `k`-competitive — for any
-  request sequence `σ` and any size-`k` algorithm `A`, LRU misses at most
-  `k * misses A + k` times.  The proof is the Sleator–Tarjan phase partition:
-  each block of `k` LRU faults (after the first) forces one fault of `A`.
 
 Current gaps:
 
+- Theorem 27.3 (`lru_k_competitive`, the `k`-competitive upper bound for LRU) is
+  **not yet formalized**.  The two fault lemmas above and the `Algorithm` model
+  are the phase-partition machinery for the Sleator–Tarjan proof; the
+  `lru_head_evict` lemma connecting LRU's fault position to the distinct-page
+  count, and the final summation, remain to be added.
 - The matching lower bound — no deterministic online algorithm is better than
   `k`-competitive — is recorded but not formalized here (the framework is set up
   so the adversary argument can be added directly).
@@ -96,24 +95,24 @@ cache after serving request `p` from cache `C`; the bundled laws say it loads
 `p`, only ever adds `p`, and keeps at most `k` resident pages.  This is the
 standing model of an online or offline adversary algorithm (CLRS §27.3).
 -/
-structure Algorithm (k : ℕ) where
+structure Algorithm (Page : Type) [DecidableEq Page] (k : ℕ) where
   step : Finset Page → Page → Finset Page
   step_loads : ∀ C p, p ∈ step C p
   step_subset : ∀ C p, step C p ⊆ insert p C
   step_size : ∀ C p, (step C p).card ≤ k
 
 /-- The algorithm's cache after processing `σ`. -/
-def runGo (A : Algorithm k) : Finset Page → List Page → Finset Page
+def runGo (A : Algorithm Page k) : Finset Page → List Page → Finset Page
   | C, [] => C
   | C, p :: σ => runGo A (A.step C p) σ
 
 /-- The number of misses of `A` over `σ`, threading the cache. -/
-def missesGo (A : Algorithm k) : Finset Page → List Page → ℕ
+def missesGo (A : Algorithm Page k) : Finset Page → List Page → ℕ
   | _, [] => 0
   | C, p :: σ => (if p ∈ C then 0 else 1) + missesGo A (A.step C p) σ
 
 /-- The number of misses of `A` over `σ` from the initial cache `C₀`. -/
-def misses (A : Algorithm k) (C₀ : Finset Page) (σ : List Page) : ℕ :=
+def misses (A : Algorithm Page k) (C₀ : Finset Page) (σ : List Page) : ℕ :=
   missesGo A C₀ σ
 
 -- ---------------------------------------------------------------------------
@@ -121,42 +120,40 @@ def misses (A : Algorithm k) (C₀ : Finset Page) (σ : List Page) : ℕ :=
 
 /-- The algorithm's cache never shrinks the set of requested pages beyond the
 initial cache: `runGo A C σ ⊆ C ∪ σ.toFinset`. -/
-lemma runGo_subset (A : Algorithm k) (C : Finset Page) (σ : List Page) :
+lemma runGo_subset (A : Algorithm Page k) (C : Finset Page) (σ : List Page) :
     runGo A C σ ⊆ C ∪ σ.toFinset := by
   induction σ generalizing C with
   | nil => simp [runGo]
   | cons p τ ih =>
       rw [runGo]
-      exact subset_trans (ih (A.step C p)) (by
-        intro x hx
-        rcases hx with hx | hx
-        · right
-          rw [List.toFinset_cons]
-          exact Finset.mem_insert_of_mem hx
-        · rcases Finset.mem_union.mp hx with hC | hτ
-          · left
-            exact (A.step_subset C p hC).elim <| by
-              intro h
-              cases h
-              · exact (by simp at h)
-              · exact (by simp at h)
-          · right
-            rw [List.toFinset_cons]
-            exact Finset.mem_insert_of_mem hτ)
+      refine subset_trans (ih (A.step C p)) ?_
+      rw [List.toFinset_cons]
+      intro x hx
+      rw [Finset.mem_union] at hx ⊢
+      rcases hx with hx | hx
+      · rw [Finset.mem_insert]
+        have hx' := A.step_subset C p hx
+        rw [Finset.mem_insert] at hx'
+        rcases hx' with rfl | hx'
+        · right; simp
+        · left; exact hx'
+      · right
+        rw [Finset.mem_insert]
+        exact Or.inr hx
 
 /-- The algorithm's cache has at most `k` pages throughout (given it starts
 within the bound). -/
-lemma runGo_size (A : Algorithm k) (C : Finset Page) (σ : List Page)
+lemma runGo_size (A : Algorithm Page k) (C : Finset Page) (σ : List Page)
     (hC : C.card ≤ k) : (runGo A C σ).card ≤ k := by
   induction σ generalizing C with
   | nil => simpa [runGo] using hC
   | cons p τ ih =>
       rw [runGo]
-      exact ih (A.step_size C p)
+      exact ih (A.step C p) (A.step_size C p)
 
 /-- If a run has no misses, every requested page was already resident: the
 requested pages are a subset of the initial cache. -/
-lemma missesGo_eq_zero_subset (A : Algorithm k) (C : Finset Page) (σ : List Page)
+lemma missesGo_eq_zero_subset (A : Algorithm Page k) (C : Finset Page) (σ : List Page)
     (h : missesGo A C σ = 0) : σ.toFinset ⊆ C := by
   induction σ generalizing C with
   | nil => simp
@@ -172,15 +169,19 @@ lemma missesGo_eq_zero_subset (A : Algorithm k) (C : Finset Page) (σ : List Pag
         · simp [hp'] at h
       rw [List.toFinset_cons]
       intro x hx
+      rw [Finset.mem_insert] at hx
       rcases hx with rfl | hx
       · exact hp
-      · have hsub := ih (A.step C p) τ hτ
-        exact (A.step_subset C p) (hsub hx) |>.elim (by
-          intro h; exact h.elim (fun e => (by simpa [e] using hp)) (fun _ => False.elim (by simp)))
+      · have hx' := ih (A.step C p) hτ hx
+        have hx'' := A.step_subset C p hx'
+        rw [Finset.mem_insert] at hx''
+        rcases hx'' with rfl | hxC
+        · exact hp
+        · exact hxC
 
 /-- A segment that requests `k + 1` distinct pages forces a miss for any
 size-`k` algorithm. -/
-lemma distinct_fault (A : Algorithm k) (C : Finset Page) (ρ : List Page)
+lemma distinct_fault (A : Algorithm Page k) (C : Finset Page) (ρ : List Page)
     (hC : C.card ≤ k) (hk : k < ρ.toFinset.card) : 1 ≤ missesGo A C ρ := by
   by_contra hzero
   have h0 : missesGo A C ρ = 0 := by omega
@@ -190,34 +191,22 @@ lemma distinct_fault (A : Algorithm k) (C : Finset Page) (ρ : List Page)
 
 /-- A page resident at the start of a segment that then requests `k` other
 distinct pages forces a miss for any size-`k` algorithm. -/
-lemma resident_fault (A : Algorithm k) (C : Finset Page) (p : Page) (ρ : List Page)
+lemma resident_fault (A : Algorithm Page k) (C : Finset Page) (p : Page) (ρ : List Page)
     (hC : C.card ≤ k) (hp : p ∈ C) (hk : k ≤ (ρ.toFinset.erase p).card) :
     1 ≤ missesGo A C ρ := by
   by_contra hzero
   have h0 : missesGo A C ρ = 0 := by omega
   have hsub := missesGo_eq_zero_subset A C ρ h0
-  -- every distinct page of ρ is in C, and p is in C \ ρ (p ∉ ρ since we erased it
-  -- to size ≥ k, so p contributes an extra resident page, pushing C over k)
-  have hρp : p ∉ ρ.toFinset := by
-    intro hpρ
-    have : (ρ.toFinset.erase p).card < ρ.toFinset.card := by
-      rw [Finset.card_erase_of_mem hpρ]
-      omega
-    have hlt : (ρ.toFinset.erase p).card ≤ C.card := by
-      calc
-        (ρ.toFinset.erase p).card ≤ ρ.toFinset.card := Finset.card_le_card (Finset.erase_subset _ _)
-        _ ≤ C.card := Finset.card_le_card hsub
-    have : (ρ.toFinset.erase p).card + 1 ≤ C.card := by
-      rw [Finset.card_erase_of_mem hpρ] at hlt
-      omega
-    omega
+  -- Every distinct page of ρ lies in C; since ρ also requests k pages other than
+  -- p, those k pages live in C.erase p, but C has at most k pages and p already
+  -- occupies one of them -- a contradiction.
   have hle : (ρ.toFinset.erase p).card ≤ (C.erase p).card := by
     apply Finset.card_le_card
     intro x hx
     rw [Finset.mem_erase] at hx ⊢
-    exact ⟨hx.1, hsub (Finset.mem_erase.mp hx).2⟩
-  have hCardErase : (C.erase p).card = C.card - 1 := by
-    rw [Finset.card_erase_of_mem hp]
+    exact ⟨hx.1, hsub hx.2⟩
+  have hCardErase : (C.erase p).card = C.card - 1 := Finset.card_erase_of_mem hp
+  have hCp : 0 < C.card := Finset.card_pos.mpr ⟨p, hp⟩
   omega
 
 end OnlineCaching
