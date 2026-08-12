@@ -2,6 +2,7 @@ import CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem
 import CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem
 import CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem
 import CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming
+import CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem
 
 /-!
 # Chapter 35 — Approximation Algorithms
@@ -51,7 +52,16 @@ fractional cover `x` up at the `1/2` threshold costs at most twice the LP
 objective.  It is imported through
 [Section 35.4](CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming/).
 
-The remaining section — 35.5 (the subset-sum FPTAS) — is not yet represented.
+Section 35.5 (the subset-sum problem) is a native fourth-edition section: it
+models the subset-sum problem and EXACT-SUBSET-SUM through the set `subsetSums`
+of achievable sums and the optimum `optimalSum`, the greedy `trim` of a sorted
+list (Lemma 35.5, TRIM), and the trimmed lists of APPROX-SUBSET-SUM.  Theorem
+35.7 proves the `(1 + ε)`-approximation: the value `z*` returned by
+APPROX-SUBSET-SUM is an achievable subset sum at most `t` and the optimum `y*`
+satisfies `y* ≤ (1 + ε) · z*` (via the compounded `(1 + ε/(2n))^n ≤ e^{ε/2} ≤
+1 + ε` bound).  Theorem 35.8 (the polynomial running time / FPTAS analysis) is
+not yet formalized.  It is imported through
+[Section 35.5](CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

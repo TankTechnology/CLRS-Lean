@@ -5073,8 +5073,26 @@ in a legacy initialization module that is also cataloged as online material.
   Theorem 35.6 is `roundCover_isVertexCover` (correctness) with
   `approxMinWeightVC_two_approx` (the rounded cover weighs at most twice the LP
   objective, hence at most twice an optimal cover).
-- Remaining chapter scope: Section 35.5 (the subset-sum FPTAS) is not
-  represented.
+### Section 35.5 - The Subset-Sum Problem
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem.lean`
+- Status: native fourth-edition section — the subset-sum problem and its
+  fully polynomial-time approximation scheme APPROX-SUBSET-SUM.
+- Proved results: `subsetSums` (the EXACT-SUBSET-SUM recurrence of achievable
+  sums), `exactLists`/`optimalSum` (the pruned list and the optimum `y*`),
+  `trim`/`trimAux` (the greedy TRIM of a sorted list), and `approxLists`
+  (the trimmed lists of APPROX-SUBSET-SUM).  Lemma 35.5 is `trim_rep` (every
+  element of a sorted list is represented in the trim within a factor
+  `(1 + δ)`), `approxLists_prefix_rep` is the per-prefix compounding
+  representation (Exercise 35.5-2), and Theorem 35.7 is
+  `approxSum_mem_subsetSums`/`approxSum_le_t` (the returned `z*` is an
+  achievable subset sum at most `t`) with `approxSubsetSum_approx`
+  (the explicit `y* ≤ (1 + ε/(2n))^n · z*` bound) and
+  `approxSubsetSum_approx_lt` (the `(1 + ε)`-approximation
+  `y* ≤ (1 + ε) · z*` via `(1 + ε/(2n))^n ≤ e^{ε/2} ≤ 1 + ε`).
+- Remaining chapter scope: Theorem 35.8 (the FPTAS running-time analysis of
+  APPROX-SUBSET-SUM) is not yet formalized.
 
 ## Deferred And Blocked Items
 
