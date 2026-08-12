@@ -68,8 +68,11 @@ class FourthEditionContractTest(unittest.TestCase):
 
     def test_not_started_chapter_must_have_zero_canonical_theorems(self) -> None:
         rows = [row.copy() for row in load_rows()]
-        rows[34]["tracked_key_theorems"] = "1"
-        rows[34]["proved_tracked_theorems"] = "1"
+        not_started = next(
+            i for i, r in enumerate(rows) if r["repo_status"] == "not-started"
+        )
+        rows[not_started]["tracked_key_theorems"] = "1"
+        rows[not_started]["proved_tracked_theorems"] = "1"
 
         with self.assertRaisesRegex(SystemExit, "zero tracked theorem"):
             validate(rows)
@@ -101,8 +104,10 @@ class FourthEditionContractTest(unittest.TestCase):
 
 class FourthEditionDashboardTest(unittest.TestCase):
     def test_renders_fourth_edition_snapshot_from_csv(self) -> None:
-        dashboard = render_dashboard(load_rows())
+        rows = load_rows()
+        dashboard = render_dashboard(rows)
         normalized = " ".join(dashboard.split())
+        total_tracked = f"{sum(int(r['tracked_key_theorems']) for r in rows):,}"
 
         self.assertIn("## Fourth-Edition Snapshot", dashboard)
         self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)

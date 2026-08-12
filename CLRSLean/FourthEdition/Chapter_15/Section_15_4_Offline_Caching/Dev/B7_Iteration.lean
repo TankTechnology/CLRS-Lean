@@ -52,6 +52,10 @@ Main results:
   bridge: `hd_eq`/`hnot`/`ht₂notP` (off `P`, `d = e`), `hqinE` (the branch
   analysis), `hnotE` (e-faults on the window), the e-hit at `t₂` via
   `b2_ehit` + `b2_ehit_ne`
+- `repair_keep_swap_cur_qp_dead`: the same for the `q''`-dead case — the
+  dead-page repair `repairSchedule d t₂ q'' t₂` (nop = `t₂`) still has the
+  swap form at `J` (the good event), giving `reverse_diff_chain_qp_dead`'s
+  `hkept` for the B2-q''-dead step
 - `exchange_evict_mem_or_q'`: the branch analysis — at an exchange fault
   in the window, the eviction is `q₀'` or resident (`e s ∈ E_s ∪ {q₀'}`);
   the mechanism behind `hqinE` (at B2 the `q₀'` branch is B1) and "the
@@ -61,6 +65,15 @@ Main results:
   gives `d t = q''` (the value invariant `hcomp`) with `q'' ∉ D_t`
   (`evicted_page_absent_until_request`) — a no-op eviction, hence B1 not
   B2
+- the case-step extension glue: `extend_hpast`, `extend_hQfifo`,
+  `extend_hP`, `extend_hP_in`, `extend_hcomp`, `extend_hpair` (alive
+  variants, `P' = P ∪ {t₂, t₂+1+j''}`) and `extend_hP_dead`,
+  `extend_hP_in_dead`, `extend_hcomp_dead` (dead-page variants,
+  `P' = P ∪ {t₂}`) — the composition invariants of the new state
+  `Q' = insert (t₂, q'') Q`, `P'`, `r` from the old state's invariants
+  plus the step's facts (`r t₂ = q''`, `r nop = q''`, `r s = d s` off
+  `{t₂, nop}`, caches agree up to `t₂`, `σ[t₂]` fault, `q''` resident);
+  hQ's extension is the open design question (see `Dev/DESIGN.md`)
 - `iterate_main_case_b2_alive`: the case-B2 step (alive-alive) — the
   repair at a resident disagreement: agreement to `t₂ + 1`, misses not
   increased, chain extended by `q''`, `hd_eq` extended to
@@ -80,6 +93,25 @@ Main results:
   disagreement `t`, the exchange extends agreement to `t + 1`, never
   increases misses (slack `+1` iff the bad event did not occur), and is
   reduced from `J' + 1` when `q'` is requested again
+- `iterate_main_case_one`: the case-one (hAone) step — `q'` never
+  requested again — the exchange extends agreement to `t + 1`, slack
+  `+1` iff `q` is requested again (`exchangeSchedule_misses_le_plus_one`;
+  `q` dead: misses equal by `exchangeSchedule_misses_eq_case_one`), and
+  is reduced from `t + 1` on except the branch-1 positions (`d s = q'`
+  — the exchange evicts `q'` as a no-op, not resident; at most one such
+  fault); the q-dead sub-case's final agreement is attainable (the
+  DESIGN's "unattainable" claim is stale — see `Dev/DESIGN.md`)
+- the q₀'-B1 slack supply: `exchangeSchedule_eq_q'_imp_d_eq_q'` (the
+  branch-1 reverse — the exchange evicts `q₀'` at `s > t₀` iff the source
+  does), `b1_exchange_no_bad_q0` (at a B1 with `d t₂ = q₀'`, `t₂ ∉ P`,
+  the source and the exchange both faulting at `t₂`: `t₂` is the first
+  branch-1 of the window by `window_branch1_once`, the source's eviction
+  of `q₀'` at `t₂` is real (`q₀' ∈ D₀_{t₂}` by the forward induction),
+  and the `evicted_page_absent_until_request` induction (t₂ version)
+  gives `q₀' ∉ D₀_{J'₀}` — the exchange's bad event did not occur) and
+  `b1_bad_le_slack_q0` (`bad ≤ slack` for the q₀'-B1 given `1 ≤ slack`)
+  — the q₀' half of the slack accounting; the non-q₀' B1s are the open
+  design question (see `Dev/DESIGN.md`)
 
 This file is part of the `fifo_optimal` iteration; it will be merged into
 `S3_Optimality.lean` once the proof is complete.
@@ -1005,6 +1037,152 @@ lemma repair_keep_swap_cur (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : P
                 rw [Finset.insert_comm]
   exact hmain (t₂ + 1 + j) (by omega) le_rfl
 
+/-- keep-swap 推导(当前调度 q'' 死版):`q''` 永不再请求的 B2 位置 `t₂` 处,
+死页修复 `r = repairSchedule d t₂ q'' t₂` 的 swap 形式 `Ŝ = insert q (D − q'')`
+在 `(t₂, J]` 上保持(尤其到 `J` —— 好事件,给出 `reverse_diff_chain_qp_dead`
+的 `hkept`)。与 `repair_keep_swap_cur` 同构:`d s ≠ q` 由 `hd_eq`(off `P` 处
+`d = e`)+ `hnot`(窗口内无过往修改位置)+ `exchange_no_evict_q` 给出;
+`e` 于 `t₂` 缺页由 `b2_ehit` + `b2_ehit_ne` 从链 `hchain` 推出;
+窗口内 `e` 缺页(`σ[s] ∉ E_s`)由 `hnotE` 给出。请求避开 `q''` 由 `hq''dead`
+(`getD_ne_of_nextUse_none`,需要 `hJlen`)而非 `hj''` 给出,nop 由
+`t₂ + 1 + j''` 换为 `t₂`(基例 `repairSchedule_base_swap_qp_dead`)。 -/
+lemma repair_keep_swap_cur_qp_dead (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    (hq₀ : d_pre t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s →
+      d_pre s ∈ schedCache d_pre C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀)
+    (hq₀'res : q₀' ∈ schedCache d_pre C₀ σ t₀)
+    {j₀ : ℕ} (hj₀ : nextUse σ (t₀ + 1) q₀ = some j₀)
+    (hq₀'ne : ∀ k, t₀ + 1 ≤ k → k < t₀ + 1 + j₀ → σ.getD k 0 ≠ q₀')
+    {j₀' : ℕ} (hj₀' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t₂ : ℕ} (ht₂ : t₂ < σ.length) (ht₂₀ : t₀ < t₂) (ht₂₁ : t₂ < t₀ + 1 + j₀')
+    (hagree : agreeWithFIF d C₀ σ t₂)
+    (hdis : schedCache d C₀ σ (t₂ + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t₂ + 1))
+    (hqin : d t₂ ∈ schedCache d C₀ σ t₂)
+    (hftd : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
+    {j : ℕ} (hj : nextUse σ (t₂ + 1) (d t₂) = some j)
+    (hq''dead : nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = none)
+    (Q : Finset (ℕ × Page))
+    (hchain : schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂ \
+        schedCache d C₀ σ t₂ ⊆ Q.image Prod.snd)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hQ : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q →
+      nextUse σ (tᵢ + 1) q'' = none ∨
+        ∃ j'', nextUse σ (tᵢ + 1) q'' = some j'' ∧ t₂ < tᵢ + 1 + j'')
+    (hqinE : d t₂ ∈ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂)
+    (hnotE : ∀ s, t₂ < s → s ≤ t₂ + 1 + j →
+      σ.getD s 0 ∉ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ s)
+    (P : Finset ℕ)
+    (ht₂notP : t₂ ∉ P)
+    (hnot : ∀ s, t₂ < s → s ≤ t₂ + 1 + j → s ∉ P)
+    (hd_eq : ∀ s, s ∉ P → d s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) :
+    schedCache (repairSchedule d t₂ (fifoSchedule σ C₀ t₂) t₂) C₀ σ (t₂ + 1 + j) =
+      insert (d t₂) ((schedCache d C₀ σ (t₂ + 1 + j)).erase (fifoSchedule σ C₀ t₂)) := by
+  let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
+  let q : Page := d t₂
+  let q'' : Page := fifoSchedule σ C₀ t₂
+  let r : ℕ → Page := repairSchedule d t₂ q'' t₂
+  have hft : σ.getD t₂ 0 ∉ schedCache e C₀ σ t₂ := by
+    intro he
+    exact (b2_ehit_ne σ ht₂ Q hpast hQ) (b2_ehit e d σ C₀ hftd (Q.image Prod.snd) hchain he)
+  have hqq'' : q ≠ q'' := by
+    intro hqq
+    exact (first_disagree d σ C₀ hC₀ ht₂ hagree hdis).2.1 (by simpa [q, q'', hqq])
+  have hJlen : t₂ + 1 + j < σ.length := by
+    have hjlt : j < (σ.drop (t₂ + 1)).length := (nextUse_eq_some_iff.mp hj).1
+    rw [List.length_drop] at hjlt
+    omega
+  have hmain : ∀ s, t₂ + 1 ≤ s → s ≤ t₂ + 1 + j →
+      schedCache r C₀ σ s = insert q ((schedCache d C₀ σ s).erase q'') := by
+    intro s
+    induction s with
+    | zero => omega
+    | succ s ih =>
+        intro hs1 hs2
+        by_cases hs_eq : s = t₂
+        · -- base:s+1 = t₂+1
+          subst s
+          exact repairSchedule_base_swap_qp_dead d σ C₀ hC₀ ht₂ hagree hdis hqin rfl
+            (show q = d t₂ from rfl)
+        · -- step:t₂ < s
+          have hst : t₂ < s := by omega
+          have hs1' : t₂ + 1 ≤ s := by omega
+          have hs2' : s ≤ t₂ + 1 + j := by omega
+          have hih := ih hs1' hs2'
+          have hneq_q : σ.getD s 0 ≠ q := getD_ne_nextUse (k := s) hj (by omega) (by omega)
+          have hneq_q'' : σ.getD s 0 ≠ q'' := getD_ne_of_nextUse_none σ
+            (by simpa [q''] using hq''dead) (by omega) (by omega)
+          have hds : r s = d s := by
+            unfold r repairSchedule
+            simp [show s ≠ t₂ by omega]
+          rw [schedCache, schedCache]
+          rw [hds]
+          by_cases hr : σ.getD s 0 ∈ schedCache r C₀ σ s
+          · -- r hits ⟹ d hits,双方 cache 不变,形式保持
+            rw [if_pos hr]
+            have hsigD : σ.getD s 0 ∈ schedCache d C₀ σ s := by
+              rw [hih] at hr
+              rcases Finset.mem_insert.mp hr with hqeq | hm
+              · exfalso
+                exact hneq_q hqeq
+              · exact (Finset.mem_erase.mp hm).2
+            rw [if_pos hsigD]
+            rw [hih]
+          · -- both fault
+            have hsigD' : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+              intro h
+              have hm : σ.getD s 0 ∈ insert q ((schedCache d C₀ σ s).erase q'') := by
+                rw [Finset.mem_insert]
+                exact Or.inr (Finset.mem_erase.mpr ⟨hneq_q'', h⟩)
+              exact hr (hih ▸ hm)
+            rw [if_neg hr]
+            rw [if_neg hsigD']
+            rw [hih]
+            -- d s 的三种情形
+            by_cases hds_q : d s = q
+            · exfalso
+              have hes_q : e s = q := by
+                change exchangeSchedule d_pre t₀ q₀ q₀' σ C₀ s = q
+                rw [← hd_eq s (hnot s (by omega) (by omega))]
+                exact hds_q
+              exact exchange_no_evict_q d_pre t₀ q₀ q₀' σ C₀ hweak hft₀ hq₀'res hj₀'
+                ht₂₀ ht₂₁ (show e t₂ = q from by
+                  change exchangeSchedule d_pre t₀ q₀ q₀' σ C₀ t₂ = q
+                  rw [← hd_eq t₂ ht₂notP]) hqinE hft hj (s := s) (by omega) (by omega)
+                (hnotE s (by omega) (by omega)) hes_q
+            · by_cases hds_q'' : d s = q''
+              · -- d s = q'':双方的 erase 都是 no-op
+                rw [hds_q'']
+                rw [show (insert q ((schedCache d C₀ σ s).erase q'')).erase q'' =
+                    insert q ((schedCache d C₀ σ s).erase q'') by
+                  exact Finset.erase_eq_of_notMem (by
+                    intro hm
+                    rcases Finset.mem_insert.mp hm with hqeq | hmem
+                    · exact hqq'' hqeq.symm
+                    · exact (Finset.mem_erase.mp hmem).1 rfl)]
+                rw [show (insert (σ.getD s 0) ((schedCache d C₀ σ s).erase q'')).erase q'' =
+                    insert (σ.getD s 0) ((schedCache d C₀ σ s).erase q'') by
+                  exact Finset.erase_eq_of_notMem (by
+                    intro hm
+                    rcases Finset.mem_insert.mp hm with hqeq | hmem
+                    · exact hneq_q'' hqeq.symm
+                    · exact (Finset.mem_erase.mp hmem).1 rfl)]
+                rw [Finset.insert_comm]
+              · -- d s ∉ {q, q''}:erase 交换,形式保持
+                have hne_q : d s ≠ q := hds_q
+                have hne_q'' : d s ≠ q'' := hds_q''
+                rw [Finset.erase_insert_of_ne (a := q) (b := d s) (Ne.symm hne_q)]
+                rw [Finset.erase_insert_of_ne (a := σ.getD s 0) (b := q'') hneq_q'']
+                have herase_comm : ((schedCache d C₀ σ s).erase (d s)).erase q'' =
+                    ((schedCache d C₀ σ s).erase q'').erase (d s) := by
+                  ext x
+                  simp [Finset.mem_erase, and_left_comm, and_assoc]
+                rw [herase_comm]
+                rw [Finset.insert_comm]
+  exact hmain (t₂ + 1 + j) (by omega) le_rfl
+
 /-- B1 修复的 `q''` 缺席:`q''` 于 `t` 被修复逐出,在 `J''' = t + 1 + j'''`
 之前不再回到修复的 cache(请求避开 `q''`,修复只插入 `σ[s]`)。
 `swap_q_not_mem` 的修复版。 -/
@@ -1300,6 +1478,496 @@ lemma no_nop_at_b2 (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
         rwa [hteqₗ]
       exact this (hdtₗ ▸ hqin)
 
+/- ### 情形步的扩展胶水(hpast/hQfifo/hP/hP_in/hcomp/hpair)
+
+情形 B1/B2 步的新状态带 `Q' = insert (t₂, q'') Q` 与
+`P' = P ∪ {t₂, nop}`(活对 nop = `t₂ + 1 + j''`;死页修复 nop = `t₂`,即
+`P' = P ∪ {t₂}`)。以下扩展引理把旧状态的组成不变式族(见 `IterateState`)
+传到新状态:旧位置由旧不变式(`r` 与 `d` 在 `{t₂, nop}` 之外一致、cache 在
+`tᵢ ≤ t₂` 处一致),新位置/新对由情形步本身的事实(`r t₂ = q''`、
+`r nop = q''`、`σ[t₂]` 缺页、`q''` resident)见证。hQ 的扩展是遗留障碍
+(见 DESIGN:`t₂ + 1 < J''ᵢ` 的严格界对旧对在全历史 Q 上不成立)。 -/
+
+/-- hpast 扩展:新对 `(t₂, q'')` 加入 Q 后,所有对的修复位置 `tᵢ` 严格在新
+界 `t₂ + 1` 之前(旧对由 `hpast`,新对 `t₂ < t₂ + 1`)。 -/
+lemma extend_hpast (Q : Finset (ℕ × Page)) {t₂ : ℕ} {q'' : Page}
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂) :
+    ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q → tᵢ < t₂ + 1 := by
+  intro tᵢ q''₀ htq
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    omega
+  · have hlt : tᵢ < t₂ := hpast tᵢ q''₀ htq
+    omega
+
+/-- hQfifo 扩展:新对 `(t₂, q'')` 的页正是 FIF 在 `t₂` 的逐出页(`hq''`),
+旧对由 `hQfifo`。 -/
+lemma extend_hQfifo (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Page))
+    {t₂ : ℕ} {q'' : Page} (hq'' : q'' = fifoSchedule σ C₀ t₂)
+    (hQfifo : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → q'' = fifoSchedule σ C₀ tᵢ) :
+    ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q → q''₀ = fifoSchedule σ C₀ tᵢ := by
+  intro tᵢ q''₀ htq
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    exact hq''
+  · exact hQfifo tᵢ q''₀ htq
+
+/-- hQ 扩展:`Q' = insert (t₂, q'') Q` 在新界 `t₂+1` 的逐对 clause。旧对沿用
+`hQ`(调用方以 strengthened 界 `t₂+1 < nᵢ` 供应 —— B2 步由
+`past_pair_first_request_after` + 边界情形,见 DESIGN "hQ-extension
+blocker");新对 `(t₂, q'')` 的 clause 需要 `0 < j''`(nop `t₂+1+j''` 严格在
+新界 `t₂+1` 之后)。 -/
+lemma extend_hQ (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Page))
+    {t₂ : ℕ} {q'' : Page}
+    (hQ : ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j''₀, nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ t₂ + 1 < tᵢ + 1 + j''₀)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'') (hj''0 : 0 < j'') :
+    ∀ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q →
+      nextUse σ (tᵢ + 1) q''₀ = none ∨
+        ∃ j''₀, nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ t₂ + 1 < tᵢ + 1 + j''₀ := by
+  intro tᵢ q''₀ htq
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    right
+    refine ⟨j'', hj'', ?_⟩
+    omega
+  · exact hQ tᵢ q''₀ htq
+
+/-- 逐页 credit(B2 步的 hQ 供应):在 B2 分歧 `t₂` 处,旧对的 strengthened
+界 `t₂ < nᵢ` 由 `past_pair_first_request_after` 从旧 `hQ₀`(旧界 `t0`)
+给出;`0 < j''` 由 `getD_eq_nextUse` 与 `hnotE`(交换于 `t₂+1` 缺页)与
+`q'' ∈ E_{t₂+1}`(resident + 反向差链)给出 —— 全局论证,见 DESIGN
+"hQ-extension blocker" 的 `0 < j''` 边界情形。 -/
+lemma b2_hQ_j''_pos (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.Nonempty)
+    (d : ℕ → Page) (t₂ : ℕ) (ht₂ : t₂ < σ.length)
+    (hftd : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
+    {q'' : Page} (hq'' : q'' = fifoSchedule σ C₀ t₂)
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hq''res : q'' ∈ schedCache (exchangeSchedule d (t₂ - 1) (d (t₂ - 1)) q'' σ C₀) C₀ σ (t₂ + 1))
+    (hnotE : σ.getD (t₂ + 1) 0 ∉ schedCache (exchangeSchedule d (t₂ - 1) (d (t₂ - 1)) q'' σ C₀) C₀ σ (t₂ + 1)) :
+    0 < j'' := by
+  by_contra h0
+  have hj''0 : j'' = 0 := by omega
+  have hsig : σ.getD (t₂ + 1) 0 = q'' := by
+    have hge := getD_eq_nextUse hj''
+    rw [hj''0] at hge
+    simpa using hge
+  exact hnotE (hsig ▸ hq''res)
+
+/-- hP 扩展(活对版):`P' = P ∪ {t₂, t₂+1+j''}`。旧位置沿用旧 `hP`(见证对
+仍在 `Q'` 中),新位置 `t₂` 与新 nop `J'' = t₂+1+j''` 由新对 `(t₂, q'')`
+见证(`s = tᵢ` 与 `s = tᵢ+1+j''`)。 -/
+lemma extend_hP (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · rcases hP s hsP with h1 | h2
+    · rcases h1 with ⟨tᵢ, q''₀, htq, hteq⟩
+      left
+      refine ⟨tᵢ, q''₀, ?_, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+    · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+      right
+      refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+  · rw [Finset.mem_insert] at hsNew
+    rcases hsNew with hEq | hsNew
+    · left
+      exact ⟨t₂, q'', Finset.mem_insert_self _ _, hEq⟩
+    · right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', ?_⟩
+      exact Finset.mem_singleton.mp hsNew
+
+/-- hP 的反向(活对版):新/旧对见证的位置都在 `P ∪ {t₂, J''}` 中。新对
+`(t₂, q'')` 的 nop 见证的 `j''₀` 由 nextUse 唯一性等于 `j''`;`hpast` 排除
+`(t₂, q''₀) ∈ Q`(旧对位置 `tᵢ ≠ t₂`)。 -/
+lemma extend_hP_in (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hP_in : ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P) :
+    ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) := by
+  intro s hw
+  rcases hw with ⟨tᵢ, q''₀, htq, hteq⟩ | ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+  · by_cases ht₂ : tᵢ = t₂
+    · rw [ht₂] at hteq
+      rw [Finset.mem_union]
+      right
+      rw [Finset.mem_insert]
+      exact Or.inl hteq
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inl ⟨tᵢ, q''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hteq⟩)
+  · by_cases ht₂ : tᵢ = t₂
+    · have hqeq : q''₀ = q'' := by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          rfl
+        · exfalso
+          rw [ht₂] at htq'
+          exact (Nat.lt_irrefl t₂) (hpast t₂ q''₀ htq')
+      have hnext₀' : nextUse σ (t₂ + 1) q''₀ = some j''₀ := by
+        rwa [ht₂] at hnext₀
+      have hj''₀ : j''₀ = j'' := Option.some.inj (hnext₀'.symm.trans (by simpa [hqeq.symm] using hj''))
+      rw [Finset.mem_union]
+      right
+      rw [Finset.mem_insert]
+      right
+      rw [Finset.mem_singleton]
+      omega
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inr ⟨tᵢ, q''₀, j''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hnext₀, hteq⟩)
+
+/-- hcomp 扩展(活对版):新调度 `r` 在 `P' = P ∪ {t₂, J''}` 上的值不变式。
+旧位置(≠ 新 nop)沿用旧 `hcomp`(`r s = d s`);`t₂` 与新 nop 由新对
+`(t₂, q'')` 见证(`r` 于 `t₂`、`J''` 逐出 `q''` —— 新 nop 覆盖旧位置时新见证
+依然成立)。 -/
+lemma extend_hcomp (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hrt : r t₂ = q'') (hrN : r (t₂ + 1 + j'') = q'')
+    (hre : ∀ s, s ∉ ({t₂, t₂ + 1 + j''} : Finset ℕ) → r s = d s)
+    (ht₂notP : t₂ ∉ P)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ ∧ d s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ d s = q''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · by_cases hsN : s = t₂ + 1 + j''
+    · subst s
+      right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+    · rcases hcomp s hsP with h1 | h2
+      · rcases h1 with ⟨tᵢ, q''₀, htq, hteq, hds⟩
+        left
+        refine ⟨tᵢ, q''₀, ?_, hteq, ?_⟩
+        · exact Finset.mem_insert.mpr (Or.inr htq)
+        · have hsne : s ≠ t₂ := by
+            intro hst
+            exact ht₂notP (hst ▸ hsP)
+          rw [hre s (by
+            intro hmem
+            rw [Finset.mem_insert] at hmem
+            rcases hmem with hEq | hmem
+            · exact hsne hEq
+            · exact hsN (Finset.mem_singleton.mp hmem))]
+          exact hds
+      · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq, hds⟩
+        right
+        refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq, ?_⟩
+        · exact Finset.mem_insert.mpr (Or.inr htq)
+        · have hsne : s ≠ t₂ := by
+            intro hst
+            exact ht₂notP (hst ▸ hsP)
+          rw [hre s (by
+            intro hmem
+            rw [Finset.mem_insert] at hmem
+            rcases hmem with hEq | hmem
+            · exact hsne hEq
+            · exact hsN (Finset.mem_singleton.mp hmem))]
+          exact hds
+  · rw [Finset.mem_insert] at hsNew
+    rcases hsNew with hEq | hsNew
+    · subst s
+      left
+      refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+    · rw [Finset.mem_singleton] at hsNew
+      subst s
+      right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+
+/-- hcomp 扩展(死页 B1 版,无 `ht₂notP` 前提):同 `extend_hcomp'`,死页
+修复 `P' = P ∪ {t₂}`。 -/
+lemma extend_hcomp_dead' (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    (hrt : r t₂ = q'')
+    (hre : ∀ s, s ≠ t₂ → r s = d s)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ ∧ d s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ d s = q''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · by_cases hs₂ : s = t₂
+    · subst s
+      left
+      refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+    · rcases hcomp s hsP with h1 | h2
+      · rcases h1 with ⟨tᵢ, q''₀, htq, hteq, hds⟩
+        left
+        refine ⟨tᵢ, q''₀, ?_, hteq, ?_⟩
+        · exact Finset.mem_insert.mpr (Or.inr htq)
+        · rw [hre s hs₂]
+          exact hds
+      · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq, hds⟩
+        right
+        refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq, ?_⟩
+        · exact Finset.mem_insert.mpr (Or.inr htq)
+        · rw [hre s hs₂]
+          exact hds
+  · rw [Finset.mem_singleton] at hsNew
+    subst s
+    left
+    refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+
+/-- hcomp 扩展(B1 版,无 `ht₂notP` 前提):`t₂ ∈ P` 时(B1 位置可以是过往
+nop 位置)由 `by_cases s = t₂` 把 `s = t₂` 路由到新对见证。 -/
+lemma extend_hcomp' (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    {j'' : ℕ} (hj'' : nextUse σ (t₂ + 1) q'' = some j'')
+    (hrt : r t₂ = q'') (hrN : r (t₂ + 1 + j'') = q'')
+    (hre : ∀ s, s ∉ ({t₂, t₂ + 1 + j''} : Finset ℕ) → r s = d s)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ ∧ d s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ d s = q''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · by_cases hs₂ : s = t₂
+    · -- s = t₂ ∈ P:新对见证
+      subst s
+      left
+      refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+    · by_cases hsN : s = t₂ + 1 + j''
+      · -- s = J'' ∈ P:新对见证
+        subst s
+        right
+        refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+      · rcases hcomp s hsP with h1 | h2
+        · rcases h1 with ⟨tᵢ, q''₀, htq, hteq, hds⟩
+          left
+          refine ⟨tᵢ, q''₀, ?_, hteq, ?_⟩
+          · exact Finset.mem_insert.mpr (Or.inr htq)
+          · rw [hre s (by
+              intro hmem
+              rw [Finset.mem_insert] at hmem
+              rcases hmem with hEq | hmem
+              · exact hs₂ hEq
+              · exact hsN (Finset.mem_singleton.mp hmem))]
+            exact hds
+        · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq, hds⟩
+          right
+          refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq, ?_⟩
+          · exact Finset.mem_insert.mpr (Or.inr htq)
+          · rw [hre s (by
+              intro hmem
+              rw [Finset.mem_insert] at hmem
+              rcases hmem with hEq | hmem
+              · exact hs₂ hEq
+              · exact hsN (Finset.mem_singleton.mp hmem))]
+            exact hds
+  · rw [Finset.mem_insert] at hsNew
+    rcases hsNew with hEq | hsNew
+    · subst s
+      left
+      refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+    · rw [Finset.mem_singleton] at hsNew
+      subst s
+      right
+      refine ⟨t₂, q'', j'', Finset.mem_insert_self _ _, hj'', rfl, hrN⟩
+
+/-- hpair 扩展:新对 `(t₂, q'')` 的过往事实(`σ[t₂]` 缺页、`q''` resident、
+`r t₂ = q''`)与旧对的(`r` 的 cache 在 `tᵢ ≤ t₂` 与 `d` 一致、`r tᵢ = d tᵢ`,
+由 `hpair` 传递)。 -/
+lemma extend_hpair (σ : List Page) (C₀ : Finset Page) (Q : Finset (ℕ × Page))
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    (hft : σ.getD t₂ 0 ∉ schedCache d C₀ σ t₂)
+    (hq''in : q'' ∈ schedCache d C₀ σ t₂)
+    (hrt : r t₂ = q'')
+    (hre : ∀ s, s < t₂ → r s = d s)
+    (hce : ∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hpair : ∀ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q →
+      nextUse σ (tᵢ + 1) q''₀ = some j''₀ →
+      σ.getD tᵢ 0 ∉ schedCache d C₀ σ tᵢ ∧ q''₀ ∈ schedCache d C₀ σ tᵢ ∧ d tᵢ = q''₀) :
+    ∀ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q →
+      nextUse σ (tᵢ + 1) q''₀ = some j''₀ →
+      σ.getD tᵢ 0 ∉ schedCache r C₀ σ tᵢ ∧ q''₀ ∈ schedCache r C₀ σ tᵢ ∧ r tᵢ = q''₀ := by
+  intro tᵢ q''₀ j''₀ htq hnext
+  rw [Finset.mem_insert] at htq
+  rcases htq with hEq | htq
+  · rcases hEq with ⟨rfl, rfl⟩
+    constructor
+    · rw [hce t₂ le_rfl]
+      exact hft
+    constructor
+    · rw [hce t₂ le_rfl]
+      exact hq''in
+    · exact hrt
+  · have htᵢlt : tᵢ < t₂ := hpast tᵢ q''₀ htq
+    rcases hpair tᵢ q''₀ j''₀ htq hnext with ⟨hftᵢ, hqinᵢ, hdtᵢ⟩
+    constructor
+    · rw [hce tᵢ (by omega)]
+      exact hftᵢ
+    constructor
+    · rw [hce tᵢ (by omega)]
+      exact hqinᵢ
+    · rw [hre tᵢ htᵢlt]
+      exact hdtᵢ
+
+/-- hP 扩展(死页版):`P' = P ∪ {t₂}`(死页修复没有 nop 位置)。 -/
+lemma extend_hP_dead (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    {t₂ : ℕ} {q'' : Page}
+    (hP : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · rcases hP s hsP with h1 | h2
+    · rcases h1 with ⟨tᵢ, q''₀, htq, hteq⟩
+      left
+      refine ⟨tᵢ, q''₀, ?_, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+    · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+      right
+      refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq⟩
+      exact Finset.mem_insert.mpr (Or.inr htq)
+  · rw [Finset.mem_singleton] at hsNew
+    subst s
+    left
+    exact ⟨t₂, q'', Finset.mem_insert_self _ _, rfl⟩
+
+/-- hP 反向(死页版):新对 `(t₂, q'')` 死页(`nextUse = none`),其 nop 见证
+不可能,只有 `s = t₂` 见证。 -/
+lemma extend_hP_in_dead (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    {t₂ : ℕ} {q'' : Page}
+    (hq''dead : nextUse σ (t₂ + 1) q'' = none)
+    (hpast : ∀ (tᵢ : ℕ) (q'' : Page), (tᵢ, q'') ∈ Q → tᵢ < t₂)
+    (hP_in : ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P) :
+    ∀ s, (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀) → s ∈ P ∪ ({t₂} : Finset ℕ) := by
+  intro s hw
+  rcases hw with ⟨tᵢ, q''₀, htq, hteq⟩ | ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq⟩
+  · by_cases ht₂ : tᵢ = t₂
+    · rw [ht₂] at hteq
+      rw [Finset.mem_union]
+      right
+      rw [Finset.mem_singleton]
+      exact hteq
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inl ⟨tᵢ, q''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hteq⟩)
+  · by_cases ht₂ : tᵢ = t₂
+    · have hqeq : q''₀ = q'' := by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          rfl
+        · exfalso
+          rw [ht₂] at htq'
+          exact (Nat.lt_irrefl t₂) (hpast t₂ q''₀ htq')
+      exfalso
+      rw [ht₂] at hnext₀
+      rw [hqeq] at hnext₀
+      rw [hq''dead] at hnext₀
+      cases hnext₀
+    · rw [Finset.mem_union]
+      left
+      exact hP_in s (Or.inr ⟨tᵢ, q''₀, j''₀, by
+        rw [Finset.mem_insert] at htq
+        rcases htq with hEq | htq'
+        · rcases hEq with ⟨rfl, rfl⟩
+          exfalso
+          exact ht₂ rfl
+        · exact htq', hnext₀, hteq⟩)
+
+/-- hcomp 扩展(死页版):`P' = P ∪ {t₂}`;`t₂` 由新对见证(`r t₂ = q''`),
+旧位置 `r s = d s` 沿用旧 `hcomp`。 -/
+lemma extend_hcomp_dead (σ : List Page) (Q : Finset (ℕ × Page)) (P : Finset ℕ)
+    (r d : ℕ → Page) {t₂ : ℕ} {q'' : Page}
+    (hrt : r t₂ = q'')
+    (hre : ∀ s, s ≠ t₂ → r s = d s)
+    (ht₂notP : t₂ ∉ P)
+    (hcomp : ∀ s, s ∈ P → (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ Q ∧ s = tᵢ ∧ d s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ d s = q''₀)) :
+    ∀ s, s ∈ P ∪ ({t₂} : Finset ℕ) →
+      (∃ (tᵢ : ℕ) (q''₀ : Page), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧ s = tᵢ ∧ r s = q''₀) ∨
+      (∃ (tᵢ : ℕ) (q''₀ : Page) (j''₀ : ℕ), (tᵢ, q''₀) ∈ insert (t₂, q'') Q ∧
+        nextUse σ (tᵢ + 1) q''₀ = some j''₀ ∧ s = tᵢ + 1 + j''₀ ∧ r s = q''₀) := by
+  intro s hs
+  rw [Finset.mem_union] at hs
+  rcases hs with hsP | hsNew
+  · rcases hcomp s hsP with h1 | h2
+    · rcases h1 with ⟨tᵢ, q''₀, htq, hteq, hds⟩
+      left
+      refine ⟨tᵢ, q''₀, ?_, hteq, ?_⟩
+      · exact Finset.mem_insert.mpr (Or.inr htq)
+      · have hsne : s ≠ t₂ := by
+          intro hst
+          exact ht₂notP (hst ▸ hsP)
+        rw [hre s hsne]
+        exact hds
+    · rcases h2 with ⟨tᵢ, q''₀, j''₀, htq, hnext₀, hteq, hds⟩
+      right
+      refine ⟨tᵢ, q''₀, j''₀, ?_, hnext₀, hteq, ?_⟩
+      · exact Finset.mem_insert.mpr (Or.inr htq)
+      · have hsne : s ≠ t₂ := by
+          intro hst
+          exact ht₂notP (hst ▸ hsP)
+        rw [hre s hsne]
+        exact hds
+  · rw [Finset.mem_singleton] at hsNew
+    subst s
+    left
+    refine ⟨t₂, q'', Finset.mem_insert_self _ _, rfl, hrt⟩
+
 /-- 迭代的情形 B1(活子情形):窗口内 no-op 分歧 `t₂`(`d t₂ ∉ cache`)处,
 `q''` 会再次被请求(`hj'''`)时,修复 `r = repairSchedule d t₂ q'' (t₂ + 1 + j''')`
 满足:一致到 `t₂ + 1`(`repair_step`);miss 记账精确 —— `rF ≤ eF` 处处,
@@ -1335,7 +2003,11 @@ lemma iterate_main_case_b1_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       (∀ s, s ∉ P ∪ ({t₂, t₂ + 1 + j'''} : Finset ℕ) →
         r s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) ∧
       (∀ s, max hnb (t₂ + 1 + j''' + 1) ≤ s →
-        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) := by
+        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) ∧
+      r t₂ = fifoSchedule σ C₀ t₂ ∧
+      r (t₂ + 1 + j''') = fifoSchedule σ C₀ t₂ ∧
+      (∀ s, s ∉ ({t₂, t₂ + 1 + j'''} : Finset ℕ) → r s = d s) ∧
+      (∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s) := by
   let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
   let q'' : Page := fifoSchedule σ C₀ t₂
   let r : ℕ → Page := repairSchedule d t₂ q'' (t₂ + 1 + j''')
@@ -1354,7 +2026,7 @@ lemma iterate_main_case_b1_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
   have hce : ∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s := by
     intro s hs
     exact schedCache_repairSchedule_eq_e d t₂ q'' (t₂ + 1 + j''') (by omega) σ C₀ hs
-  refine ⟨r, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨r, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- agree 到 t₂+1
     exact (repair_step d σ C₀ hC₀ ht₂ hagree hdis hnoop hj''').2
   · -- miss 记账:schedMisses r ≤ schedMisses d + bad
@@ -1514,6 +2186,18 @@ lemma iterate_main_case_b1_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       unfold r repairSchedule
       simp [show s ≠ t₂ by omega, show s ≠ t₂ + 1 + j''' by omega]]
     exact hsup s hJ'''lt hdsin
+  · -- r t₂ = q''
+    simpa [q''] using repairSchedule_at_t d t₂ q'' (t₂ + 1 + j''')
+  · -- r J''' = q''
+    unfold r repairSchedule
+    simp [q'']
+  · -- r s = d s off {t₂, J'''}
+    intro s hs
+    unfold r repairSchedule
+    simp [show s ≠ t₂ by (intro h; exact hs (by simp [h])),
+      show s ≠ t₂ + 1 + j''' by (intro h; exact hs (by simp [h]))]
+  · -- cache 一致到 t₂
+    exact hce
 
 /-- 迭代的情形 B2(活-活子情形):窗口内 resident 分歧 `t₂`(`d t₂` 在
 `d` 的 cache 中,`q`、`q''` 都会再次被请求,`j < j''`)处,修复
@@ -1570,7 +2254,11 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       (∀ s, s ∉ P ∪ ({t₂, t₂ + 1 + j''} : Finset ℕ) →
         r s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) ∧
       (∀ s, max hnb (t₂ + 1 + j'' + 1) ≤ s →
-        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) := by
+        σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) ∧
+      r t₂ = fifoSchedule σ C₀ t₂ ∧
+      r (t₂ + 1 + j'') = fifoSchedule σ C₀ t₂ ∧
+      (∀ s, s ∉ ({t₂, t₂ + 1 + j''} : Finset ℕ) → r s = d s) ∧
+      (∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s) := by
   let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
   let q : Page := d t₂
   let q'' : Page := fifoSchedule σ C₀ t₂
@@ -1592,7 +2280,7 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
     exact swap_q_not_mem e σ C₀ (show e t₂ = q from by
       change exchangeSchedule d_pre t₀ q₀ q₀' σ C₀ t₂ = q
       rw [← hd_eq t₂ ht₂notP]) hqinE hft hj hs1 hs2
-  refine ⟨r, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨r, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- agree 到 t₂+1
     exact (repair_step_swap_strong d σ C₀ hC₀ ht₂ hagree hdis hqin hj hj'' hjj'' hswap).2
   · -- miss 不增
@@ -1630,6 +2318,19 @@ lemma iterate_main_case_b2_alive (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q�
       unfold r repairSchedule
       simp [show s ≠ t₂ by omega, show s ≠ t₂ + 1 + j'' by omega]]
     exact hsup s hJ''lt hdsin
+  · -- r t₂ = q''
+    simpa [q''] using repairSchedule_at_t d t₂ q'' (t₂ + 1 + j'')
+  · -- r J'' = q''
+    unfold r repairSchedule
+    simp [q'']
+  · -- r s = d s off {t₂, J''}
+    intro s hs
+    unfold r repairSchedule
+    simp [show s ≠ t₂ by (intro h; exact hs (by simp [h])),
+      show s ≠ t₂ + 1 + j'' by (intro h; exact hs (by simp [h]))]
+  · -- cache 一致到 t₂
+    intro s hs
+    exact schedCache_repairSchedule_eq_e d t₂ q'' (t₂ + 1 + j'') (by omega) σ C₀ hs
 
 /-- 迭代的情形 A(交换步骤):在首个分歧 `t` 处,用策略的选择
 `q' = fifoSchedule σ C₀ t` 替换 `d` 的逐出 `q = d t`,得到新调度
@@ -1733,6 +2434,107 @@ lemma iterate_main_exchange (d : ℕ → Page) (σ : List Page) (C₀ : Finset P
         have hred := exchangeSchedule_reduced_after d t q q' σ C₀ rfl hqq' hdred hft hq'res hj hq'ne
           (j' := j') hj' (s := s) (by omega) hFault
         simpa [e, q, q'] using hred
+
+/-- 情形一(`q'` 永不再请求)的交换步骤:一次 exchange 后,新调度与 FIF 一致
+到 `t + 1`;slack:`q` 会再次被请求时 +1(`exchangeSchedule_misses_le_plus_one`),
+`q` 也死时不变;reduced 性:交换在 `t + 1` 起的缺页处逐出 resident 页或
+`d s = q'`(分支 1 —— 交换以 no-op 逐出 `q'`,非 resident;该位置至多一次)。
+`iterate_main_exchange` 的 hnone 枝给出 slack 与一致;`exchangeDecision`
+的分支结构(分支 1 除外:分支 3/5/6 逐出 `E` 中的页,`else 0` 由缺页 +
+基数论证排除)给出 reduced 性。 -/
+lemma iterate_main_case_one (d : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
+    (hC₀ : C₀.Nonempty)
+    {t : ℕ} (ht : t < σ.length)
+    (hagree : agreeWithFIF d C₀ σ t)
+    (hdis : schedCache d C₀ σ (t + 1) ≠ schedCache (fifoSchedule σ C₀) C₀ σ (t + 1))
+    (hdred : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    (hnone : nextUse σ (t + 1) (fifoSchedule σ C₀ t) = none)
+    (slack : ℕ) :
+    ∃ slack',
+      agreeWithFIF (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ (t + 1) ∧
+      schedMisses (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ + slack' ≤
+        schedMisses d C₀ σ + slack ∧
+      ∀ s, t + 1 ≤ s → σ.getD s 0 ∉ schedCache (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ s →
+        (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) s ∈
+          schedCache (exchangeSchedule d t (d t) (fifoSchedule σ C₀ t) σ C₀) C₀ σ s ∨
+        d s = fifoSchedule σ C₀ t := by
+  let q : Page := d t
+  let q' : Page := fifoSchedule σ C₀ t
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  rcases iterate_main_exchange d σ C₀ hC₀ ht hagree hdis hdred slack with ⟨slack', hagreeE, hbookE, hredE⟩
+  refine ⟨slack', ?_, ?_, ?_⟩
+  · -- agree 到 t+1
+    simpa [e, q, q'] using hagreeE
+  · -- slack 记账
+    simpa [e, q, q'] using hbookE
+  · -- reduced 性(分支 1 除外)
+    intro s hs hFault
+    by_cases hd1 : d s = q'
+    · right
+      simpa [q'] using hd1
+    · left
+      have hFault' : σ.getD s 0 ∉ schedCache e C₀ σ s := by
+        simpa [e, q, q'] using hFault
+      have hmain : (exchangeScheduleCore d t q q' σ C₀ s).2 ∈ schedCache e C₀ σ s := by
+        rw [exchangeScheduleCore_second]
+        rw [← schedCache_exchangeScheduleCore]
+        change exchangeDecision d t q q' σ C₀ (schedCache e C₀ σ s) s ∈ schedCache e C₀ σ s
+        unfold exchangeDecision
+        rw [if_neg (by omega)]
+        rw [if_neg (by omega)]
+        rw [if_neg hd1]
+        by_cases hb3 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧ σ.getD s 0 ∈ schedCache d C₀ σ s
+        · rw [if_pos hb3]
+          let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+          by_cases hf : (M.filter (fun x => x ≠ q')).Nonempty
+          · rw [dif_pos hf]
+            exact (Finset.mem_sdiff.mp (Finset.mem_filter.mp (Classical.choose_spec hf)).1).1
+          · by_cases hm : M.Nonempty
+            · rw [dif_neg hf]
+              rw [dif_pos hm]
+              exact (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            · rw [dif_neg hf]
+              rw [dif_neg hm]
+              exfalso
+              have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+                intro y hy
+                by_contra hyn
+                exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+              have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+                rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+                  rw [← schedCache_exchangeScheduleCore]]
+                exact exchangeScheduleCore_card d t q q' σ C₀ hdred (by omega)
+              have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+                Finset.eq_of_subset_of_card_le hsub hcard
+              exact hFault' (hEq ▸ hb3.2)
+        · rw [if_neg hb3]
+          by_cases hdsin : d s ∈ schedCache e C₀ σ s
+          · rw [if_pos hdsin]
+            exact hdsin
+          · rw [if_neg hdsin]
+            let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+            by_cases hm : M.Nonempty
+            · rw [dif_pos hm]
+              exact (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            · rw [dif_neg hm]
+              exfalso
+              have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+                intro y hy
+                by_contra hyn
+                exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+              have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+                rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+                  rw [← schedCache_exchangeScheduleCore]]
+                exact exchangeScheduleCore_card d t q q' σ C₀ hdred (by omega)
+              have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+                Finset.eq_of_subset_of_card_le hsub hcard
+              have hdFault : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+                intro h
+                exact hFault' (hEq ▸ h)
+              have hdsE : d s ∈ schedCache d C₀ σ s := hdred s (by omega) hdFault
+              exact hdsin (hEq.symm ▸ hdsE)
+      change (exchangeScheduleCore d t q q' σ C₀ s).2 ∈ schedCache e C₀ σ s
+      exact hmain
 
 /-- FIF 在 `t` 处的逐出页 `p`(FIF 在分歧处缺页并逐出)在首次请求
 `J = t + 1 + j` 之前不在 FIF 自己的 cache 中:基步由 `hftF` 缺页 + `p`
@@ -1934,6 +2736,243 @@ lemma past_pair_first_request_after (σ : List Page) (C₀ : Finset Page)
         (hP_in t₂ (Or.inr ⟨tᵢ, q'', j'', htq, hnext, hs_eq.symm⟩))
       exact hnoop hqin
 
+/- ### q₀'-B1 的 slack 供应(bad ≤ slack 的 q₀' 半边)
+
+分支 1 反向:交换在 `s > t` 处逐出 `q'` 当且仅当源 `d` 于 `s` 逐出 `q'`
+(`exchangeDecision` 的分支 1;其它分支逐出 `E` 中的页或 `d s`,由
+`q' ∉ E` 与缺页 + 基数论证排除 `else 0`)。由
+`b1_exchange_no_bad_q0`:窗口内 `d t₂ = q₀'` 的 B1 位置(`t₂ ∉ P`,源与
+交换都在 `t₂` 缺页)是窗口内首个分支 1(`window_branch1_once`),故源对
+`q₀'` 的逐出是真逐出(`q₀' ∈ D₀_{t₂}` —— 从 `t₀+1` 起的正向归纳:无分支 1
+即无逐出、请求 `≠ q₀'`),由 `evicted_page_absent_until_request` 的归纳
+(t₂ 版本,直接用 `hj'₀` 的界)得 `q₀' ∉ D₀_{J'₀}` —— 交换的坏事件未发生。
+`b1_bad_le_slack_q0` 由此给出 `bad ≤ slack`(坏事件发生时 `slack ≥ 1`)。 -/
+
+/-- 分支 1 反向:交换在 `s > t` 处逐出 `q'` ⟹ 源 `d` 于 `s` 逐出 `q'`。
+`exchangeDecision` 的结构:分支 1 逐出 `q'`;分支 4-6 逐出 `E − D` 中的页
+(`q' ∉ E` 矛盾);`else 0` 由缺页 + 基数论证排除。 -/
+lemma exchangeSchedule_eq_q'_imp_d_eq_q' (d : ℕ → Page) (t : ℕ) (q q' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
+    {s : ℕ} (hs1 : t < s)
+    (hq'notE : q' ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s)
+    (hFault : σ.getD s 0 ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s)
+    (heq : (exchangeSchedule d t q q' σ C₀) s = q') :
+    d s = q' := by
+  let e : ℕ → Page := exchangeSchedule d t q q' σ C₀
+  have heqCore : (exchangeScheduleCore d t q q' σ C₀ s).2 = q' := by
+    change (exchangeSchedule d t q q' σ C₀) s = q'
+    exact heq
+  rw [exchangeScheduleCore_second] at heqCore
+  rw [← schedCache_exchangeScheduleCore] at heqCore
+  change exchangeDecision d t q q' σ C₀ (schedCache e C₀ σ s) s = q' at heqCore
+  unfold exchangeDecision at heqCore
+  rw [if_neg (by omega)] at heqCore
+  rw [if_neg (by omega)] at heqCore
+  by_cases h1 : d s = q'
+  · exact h1
+  · rw [if_neg h1] at heqCore
+    by_cases hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧ σ.getD s 0 ∈ schedCache d C₀ σ s
+    · rw [if_pos hb4] at heqCore
+      let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+      by_cases hf : (M.filter (fun x => x ≠ q')).Nonempty
+      · rw [dif_pos hf] at heqCore
+        exfalso
+        exact (Finset.mem_filter.mp (Classical.choose_spec hf)).2 heqCore
+      · by_cases hm : M.Nonempty
+        · rw [dif_neg hf] at heqCore
+          rw [dif_pos hm] at heqCore
+          exfalso
+          have hq'C : q' ∈ schedCache e C₀ σ s := by
+            have hmem : Classical.choose hm ∈ schedCache e C₀ σ s :=
+              (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            rwa [heqCore] at hmem
+          exact hq'notE hq'C
+        · rw [dif_neg hf] at heqCore
+          rw [dif_neg hm] at heqCore
+          exfalso
+          have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+            rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+              rw [← schedCache_exchangeScheduleCore]]
+            exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
+          have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          exact hFault (hEq.symm ▸ hb4.2)
+    · rw [if_neg hb4] at heqCore
+      by_cases hdsin : d s ∈ schedCache e C₀ σ s
+      · rw [if_pos hdsin] at heqCore
+        exact heqCore
+      · rw [if_neg hdsin] at heqCore
+        let M : Finset Page := schedCache e C₀ σ s \ schedCache d C₀ σ s
+        by_cases hm : M.Nonempty
+        · rw [dif_pos hm] at heqCore
+          exfalso
+          have hq'C : q' ∈ schedCache e C₀ σ s := by
+            have hmem : Classical.choose hm ∈ schedCache e C₀ σ s :=
+              (Finset.mem_sdiff.mp (Classical.choose_spec hm)).1
+            rwa [heqCore] at hmem
+          exact hq'notE hq'C
+        · rw [dif_neg hm] at heqCore
+          exfalso
+          have hsub : schedCache e C₀ σ s ⊆ schedCache d C₀ σ s := by
+            intro y hy
+            by_contra hyn
+            exact hm ⟨y, Finset.mem_sdiff.mpr ⟨hy, hyn⟩⟩
+          have hcard : (schedCache d C₀ σ s).card ≤ (schedCache e C₀ σ s).card := by
+            rw [show schedCache e C₀ σ s = (exchangeScheduleCore d t q q' σ C₀ s).1 by
+              rw [← schedCache_exchangeScheduleCore]]
+            exact exchangeScheduleCore_card d t q q' σ C₀ hweak (by omega)
+          have hEq : schedCache e C₀ σ s = schedCache d C₀ σ s :=
+            Finset.eq_of_subset_of_card_le hsub hcard
+          have hdFault : σ.getD s 0 ∉ schedCache d C₀ σ s := by
+            intro h
+            exact hFault (hEq.symm ▸ h)
+          have hdsE : d s ∈ schedCache d C₀ σ s := hweak s (by omega) hdFault
+          exact hdsin (hEq.symm ▸ hdsE)
+
+/-- q₀'-B1 的 slack 供应:窗口内 `d t₂ = q₀'` 的 B1 位置(`t₂ ∉ P`,源与交换
+都在 `t₂` 缺页)使交换的坏事件不发生:`q₀' ∉ D₀_{J'₀}`。`d t₂ = q₀'` 经
+分支 1 反向给出源的 `d_pre t₂ = q₀'`;`window_branch1_once` 给出 `t₂` 是
+窗口内首个分支 1,故源对 `q₀'` 的逐出是真逐出(正向归纳:从 `t₀+1` 起无
+`q₀'` 逐出、请求 `≠ q₀'`),再由 `evicted_page_absent_until_request` 的
+t₂ 版本(直接用 `hj'₀` 的界)得 `q₀'` 在 `(t₂, J'₀]` 缺席。 -/
+lemma b1_exchange_no_bad_q0 (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hq₀ : d_pre t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s →
+      d_pre s ∈ schedCache d_pre C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀)
+    (hq'res : q₀' ∈ schedCache d_pre C₀ σ t₀)
+    {j₀' : ℕ} (hj' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t₂ : ℕ} (ht₀t₂ : t₀ < t₂) (ht₂J : t₂ < t₀ + 1 + j₀')
+    (hd : d t₂ = q₀')
+    (P : Finset ℕ) (ht₂notP : t₂ ∉ P)
+    (hd_eq : ∀ s, s ∉ P → d s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s)
+    (hFault : σ.getD t₂ 0 ∉ schedCache d_pre C₀ σ t₂)
+    (hFaultE : σ.getD t₂ 0 ∉ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂) :
+    σ.getD (t₀ + 1 + j₀') 0 ∉ schedCache d_pre C₀ σ (t₀ + 1 + j₀') := by
+  let e : ℕ → Page := exchangeSchedule d_pre t₀ q₀ q₀' σ C₀
+  -- 1. 分支 1 反向:d_pre t₂ = q₀'
+  have hq'notE : q₀' ∉ schedCache e C₀ σ t₂ := by
+    dsimp [e]
+    exact exchangeSchedule_q'_absent d_pre t₀ q₀ q₀' σ C₀ hweak hft₀ hq'res hj' ht₀t₂ (le_of_lt ht₂J)
+  have hdpre : d_pre t₂ = q₀' := by
+    exact exchangeSchedule_eq_q'_imp_d_eq_q' d_pre t₀ q₀ q₀' σ C₀ hweak ht₀t₂ hq'notE hFaultE
+      ((hd_eq t₂ ht₂notP).symm.trans hd)
+  -- 2. t₂ 是窗口内首个分支 1:∀ s ∈ (t₀, t₂),缺页 ⟹ d_pre s ≠ q₀'
+  have hfirst : ∀ s, t₀ < s → s < t₂ → σ.getD s 0 ∉ schedCache d_pre C₀ σ s → d_pre s ≠ q₀' := by
+    intro s hs1 hs2 hFaults
+    intro hbs
+    exact window_branch1_once d_pre t₀ q₀ q₀' σ C₀ hweak hq'res hj'
+      hs1 (by omega) ht₀t₂ (by omega) (by omega) hbs hdpre hFaults hFault
+  -- 3. 真逐出:q₀' ∈ D₀_{t₂}(从 t₀+1 起无 q₀' 逐出、请求 ≠ q₀')
+  have hq'keep : q₀' ∈ schedCache d_pre C₀ σ t₂ := by
+    have hmain : ∀ s, t₀ + 1 ≤ s → s ≤ t₂ → q₀' ∈ schedCache d_pre C₀ σ s := by
+      intro s
+      induction s with
+      | zero => omega
+      | succ s ih =>
+          intro hs1 hs2
+          by_cases hst : s = t₀
+          · -- 基步:s+1 = t₀+1,源逐出 q₀(≠ q₀'),q₀' 保留
+            subst s
+            rw [schedCache]
+            rw [if_neg hft₀]
+            rw [Finset.mem_insert]
+            right
+            rw [Finset.mem_erase]
+            constructor
+            · intro hqeq
+              exact hqq₀ ((hqeq.trans hq₀).symm)
+            · exact hq'res
+          · -- 步:请求 σ[s] ≠ q₀',且 s 处无 q₀' 逐出(分支 1 排除)
+            have hs1' : t₀ + 1 ≤ s := by omega
+            have hs2' : s ≤ t₂ := by omega
+            have hqin : q₀' ∈ schedCache d_pre C₀ σ s := ih hs1' hs2'
+            have hneq : σ.getD s 0 ≠ q₀' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+            by_cases hf : σ.getD s 0 ∈ schedCache d_pre C₀ σ s
+            · -- 命中:cache 不变
+              rw [schedCache]
+              rw [if_pos hf]
+              exact hqin
+            · -- 缺页:d_pre s ≠ q₀'(hfirst),故 q₀' 保留
+              rw [schedCache]
+              rw [if_neg hf]
+              rw [Finset.mem_insert]
+              right
+              rw [Finset.mem_erase]
+              constructor
+              · intro hqeq
+                exact hfirst s (by omega) (by omega) hf hqeq.symm
+              · exact hqin
+    exact hmain t₂ (by omega) le_rfl
+  -- 4. evicted_page_absent_until_request 的 t₂ 版本:q₀' ∉ D₀_s on (t₂, J'₀]
+  have habs : ∀ s, t₂ < s → s ≤ t₀ + 1 + j₀' → q₀' ∉ schedCache d_pre C₀ σ s := by
+    intro s
+    induction s with
+    | zero => omega
+    | succ s ih =>
+        intro hs1 hs2
+        by_cases hst : s = t₂
+        · -- 基步:s+1 = t₂+1,cache 逐出 q₀' 且请求 σ[t₂] ≠ q₀'
+          subst s
+          rw [schedCache]
+          rw [if_neg hFault]
+          rw [hdpre]
+          intro hm
+          rcases Finset.mem_insert.mp hm with hqeq | hm
+          · exact hFault (show σ.getD t₂ 0 ∈ schedCache d_pre C₀ σ t₂ from by rwa [← hqeq])
+          · exact (Finset.mem_erase.mp hm).1 rfl
+        · -- 步:q₀' ∉ D_s(归纳),且请求 σ[s] ≠ q₀'
+          have hs1' : t₂ < s := by omega
+          have hs2' : s ≤ t₀ + 1 + j₀' := by omega
+          have hqnot : q₀' ∉ schedCache d_pre C₀ σ s := ih (by omega) (by omega)
+          have hneq : σ.getD s 0 ≠ q₀' := getD_ne_nextUse (k := s) hj' (by omega) (by omega)
+          rw [schedCache]
+          by_cases hr : σ.getD s 0 ∈ schedCache d_pre C₀ σ s
+          · rw [if_pos hr]
+            exact hqnot
+          · rw [if_neg hr]
+            intro hm
+            rcases Finset.mem_insert.mp hm with hqeq | hm
+            · exact hneq hqeq.symm
+            · exact hqnot (Finset.mem_erase.mp hm).2
+  -- 5. σ[J'₀] = q₀',故坏事件(σ[J'₀] ∈ D₀_{J'₀})不发生
+  intro hbad
+  have hsig : σ.getD (t₀ + 1 + j₀') 0 = q₀' := getD_eq_nextUse hj'
+  exact habs (t₀ + 1 + j₀') (by omega) le_rfl (hsig ▸ hbad)
+
+/-- q₀'-B1 的 slack 不变式:`bad ≤ slack`。坏事件(`σ[J'''] ∈ D_{J'''}`)
+发生时 `bad = 1`,由 `hslack`(`1 ≤ slack` —— 交换的坏事件未发生时
+`exchange_step_slack` 给出 `slack' = slack + 1`,且 q₀'-B1 是窗口内第一步,
+无中间消耗)得 `bad ≤ slack`。 -/
+lemma b1_bad_le_slack_q0 (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀' : Page)
+    (σ : List Page) (C₀ : Finset Page)
+    (hq₀ : d_pre t₀ = q₀) (hqq₀ : q₀ ≠ q₀')
+    (hweak : ∀ s, t₀ ≤ s → σ.getD s 0 ∉ schedCache d_pre C₀ σ s →
+      d_pre s ∈ schedCache d_pre C₀ σ s)
+    (hft₀ : σ.getD t₀ 0 ∉ schedCache d_pre C₀ σ t₀)
+    (hq'res : q₀' ∈ schedCache d_pre C₀ σ t₀)
+    {j₀' : ℕ} (hj' : nextUse σ (t₀ + 1) q₀' = some j₀')
+    {t₂ : ℕ} (ht₀t₂ : t₀ < t₂) (ht₂J : t₂ < t₀ + 1 + j₀')
+    (hd : d t₂ = q₀')
+    (P : Finset ℕ) (ht₂notP : t₂ ∉ P)
+    (hd_eq : ∀ s, s ∉ P → d s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s)
+    (hFault : σ.getD t₂ 0 ∉ schedCache d_pre C₀ σ t₂)
+    (hFaultE : σ.getD t₂ 0 ∉ schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ t₂)
+    {j''' : ℕ} (hj''' : nextUse σ (t₂ + 1) (fifoSchedule σ C₀ t₂) = some j''')
+    (slack : ℕ) (hslack : 1 ≤ slack) :
+    (if σ.getD (t₂ + 1 + j''') 0 ∈ schedCache d C₀ σ (t₂ + 1 + j''') then 1 else 0) ≤ slack := by
+  by_cases hbad : σ.getD (t₂ + 1 + j''') 0 ∈ schedCache d C₀ σ (t₂ + 1 + j''')
+  · rw [if_pos hbad]
+    exact hslack
+  · rw [if_neg hbad]
+    omega
+
 /-- 死页修复 `r = repairSchedule e t q'' t` 的 `q''` 缺席:`q''` 于 `t` 被逐出,
 永不再请求,故 `q'' ∉ Ŝ_s` 对 `t < s < σ.length` 恒成立。 -/
 lemma repair_q''_absent_dead (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
@@ -2055,11 +3094,14 @@ lemma iterate_main_case_b1_dead (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀
       (∀ s, s ≤ σ.length → schedCache (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) C₀ σ s \
           schedCache r C₀ σ s ⊆ insert (fifoSchedule σ C₀ t₂) (Q.image Prod.snd)) ∧
       (∀ s, s ∉ P ∪ ({t₂} : Finset ℕ) → r s = (exchangeSchedule d_pre t₀ q₀ q₀' σ C₀) s) ∧
-      (∀ s, hnb ≤ s → s < σ.length → σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) := by
+      (∀ s, hnb ≤ s → s < σ.length → σ.getD s 0 ∉ schedCache r C₀ σ s → r s ∈ schedCache r C₀ σ s) ∧
+      r t₂ = fifoSchedule σ C₀ t₂ ∧
+      (∀ s, s ∉ ({t₂} : Finset ℕ) → r s = d s) ∧
+      (∀ s, s ≤ t₂ → schedCache r C₀ σ s = schedCache d C₀ σ s) := by
   let q'' : Page := fifoSchedule σ C₀ t₂
   let r : ℕ → Page := repairSchedule d t₂ q'' t₂
   have hstep := repair_step_qp_dead d σ C₀ hC₀ ht₂ hagree hdis hnoop hq''dead
-  refine ⟨r, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨r, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- agree 到 t₂+1
     exact hstep.2
   · -- miss 不增(免费)
@@ -2130,17 +3172,26 @@ lemma iterate_main_case_b1_dead (d_pre d : ℕ → Page) (t₀ : ℕ) (q₀ q₀
           rw [Finset.mem_sdiff]
           exact ⟨hred, hnotS⟩
         exact hdsq (Finset.mem_singleton.mp (hdiff.1 hmem))
+  · -- r t₂ = q''
+    simpa [q''] using repairSchedule_at_t d t₂ q'' t₂
+  · -- r s = d s off {t₂}
+    intro s hs
+    unfold r repairSchedule
+    simp [show s ≠ t₂ by (intro h; exact hs (by simp [h]))]
+  · -- cache 一致到 t₂
+    intro s hs
+    exact schedCache_repairSchedule_eq_e_qp_dead d t₂ q'' σ C₀ hs
 /-- 当前窗口的交换调度:`win = none`(尚未交换)时取回退调度 `fb`
 (此时链/逐出一致不变式平凡),`win = some (d_pre, t₀, q₀, q₀', j₀, j₀')`
 时为该窗口的交换调度。 -/
-private noncomputable def windowExchange (win : Option ((ℕ → Page) × ℕ × Page × Page × ℕ × ℕ))
+noncomputable def windowExchange (win : Option ((ℕ → Page) × ℕ × Page × Page × ℕ × ℕ))
     (fb : ℕ → Page) (σ : List Page) (C₀ : Finset Page) : ℕ → Page :=
   match win with
   | none => fb
   | some w => exchangeSchedule w.1 w.2.1 w.2.2.1 w.2.2.2.1 σ C₀
 
 /-- IterateState: state (d, t0, slack, hnb, Q, P) plus window, invariants per DESIGN. -/
-private structure IterateState (σ : List Page) (C₀ : Finset Page) (M : ℕ) where
+structure IterateState (σ : List Page) (C₀ : Finset Page) (M : ℕ) where
   d : ℕ → Page
   t0 : ℕ
   slack : ℕ
