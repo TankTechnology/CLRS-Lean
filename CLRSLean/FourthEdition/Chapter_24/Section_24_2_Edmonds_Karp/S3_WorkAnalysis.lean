@@ -291,7 +291,7 @@ lemma exists_recovery_step {V : Type*} [Fintype V] [DecidableEq V]
     have hres : (ekSeq (G := G) j).residualEdge u v :=
       Flow.ResidualPath.residualEdge_of_mem_edges (φ := ekSeq (G := G) j) p_j hp_edges_j
     exact hres
-  -- ekSeq (i+1) = (ekSeq (G := G) i).augment p_i——残量 (u,v) = 0
+  -- ekSeq (i+1) = (ekSeq (G := G) i).augment p_i — residual capacity of (u,v) becomes 0
   have hcf_i : (ekSeq (G := G) (i + 1)).residualCapacity u v = 0 := by
     by_cases h_i : Nonempty (ShortestAugmentingPath (ekSeq (G := G) i))
     · have hpath : (Classical.choice h_i).path = p_i := by
