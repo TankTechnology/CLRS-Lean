@@ -5044,6 +5044,14 @@ in a legacy initialization module that is also cataloged as online material.
   `greedyCost_eq_chargeSum` identifies the cost with the total charge,
   `chargeSum_le_harmonic` bounds the charge of any set by `H(|S|)`, and
   `chargeSum_U_le_sum_cover` bounds the total charge by the sum over a cover.
+  Theorem 35.4 is `greedySetCover_ln_approx`, the `O(lg |X|)`-approximation
+  bound `greedyCost ≤ |C| · (⌈ln |X|⌉ + 1)`, proved by the iterated
+  multiplicative shrink: `exists_cover_set_ge_fraction` and
+  `pickSet_cover_fraction` (the greedy pick covers ≥ `|U|/|C|` uncovered
+  elements), `pickSet_sdiff_shrink` (one step shrinks `U` by `(1 - 1/|C|)`),
+  `greedyCost_le_fuel` (the fuel bound `|U| · (1 - 1/|C|)^N < 1` implies
+  `greedyCost ≤ N`), and the exponential comparison `1 - 1/k ≤ e^{-1/k}` with
+  `L = ⌈ln |X|⌉ + 1` chosen so that `|X| · e^{-L} < 1`.
 - Remaining chapter scope: Sections 35.4--35.5 (randomized rounding and the
   subset-sum FPTAS) are not represented.
 

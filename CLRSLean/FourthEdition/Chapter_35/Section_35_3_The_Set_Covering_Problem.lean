@@ -25,6 +25,9 @@ Main results:
 - Theorem `greedySetCover_subset`: the returned family is drawn from `F`.
 - Theorem `greedySetCover_approx` (Theorem 35.3): for every cover `C` of `X`,
   `greedyCost ≤ H(d) · |C|` — in particular, `C` may be an optimal cover.
+- Theorem `greedySetCover_ln_approx` (Theorem 35.4): for every cover `C` of
+  `X`, `greedyCost ≤ |C| · (⌈ln |X|⌉ + 1)` — GREEDY-SET-COVER is an
+  `O(lg |X|)`-approximation algorithm.
 
 The approximation proof is the CLRS charging argument.  Each greedy step charges
 `1 / |new|` to every element covered at that step, where `new` is the set of
@@ -32,7 +35,14 @@ elements the greedy pick covers (`chargeSum`).  The total charge is exactly the
 cost, and — because the greedy pick covers at least as many uncovered elements
 as any set of `F` — the charge accrued by the elements of any fixed set `S` is
 at most `H(|S|)` (Lemma `chargeSum_le_harmonic`).  Summing these bounds over a
-cover `C` and using `|S| ≤ d` gives the `H(d)`-approximation.
+cover `C` and using `|S| ≤ d` gives the `H(d)`-approximation (Theorem 35.3).
+
+Theorem 35.4's logarithmic bound uses a different argument: a size-`k` cover of
+the current uncovered set `U` forces the greedy pick to cover at least `|U| / k`
+elements, so the uncovered set shrinks by the factor `(1 - 1/k)` each step
+(`pickSet_sdiff_shrink`).  Iterating, after `k · ⌈ln |X|⌉` steps the uncovered
+set has size below `1` (`greedyCost_le_fuel` with `1 - 1/k ≤ e^{-1/k}`), giving
+`greedyCost ≤ |C| · (⌈ln |X|⌉ + 1)`.
 
 Notation conventions used in this section:
 
@@ -544,6 +554,249 @@ theorem greedySetCover_approx (X : Finset α) (F : Finset (Finset α))
     _ = harmonic d * (C.card : ℚ) := by
       rw [h5]
       ring
+
+/-- If the family `C` covers the nonempty set `U`, then some set of `C` covers
+at least `|U| / |C|` elements of `U`.  This is the averaging step of Theorem
+35.4: a size-`k` cover distributes `|U|` elements among its `k` sets. -/
+lemma exists_cover_set_ge_fraction {U : Finset α} {C : Finset (Finset α)}
+    (hC : Covers U C) (hU : U.Nonempty) :
+    ∃ S ∈ C, (U.card : ℚ) / (C.card : ℚ) ≤ ((S ∩ U).card : ℚ) := by
+  classical
+  have hCne : C.Nonempty := cover_nonempty C hC hU
+  have hsum : (U.card : ℚ) ≤ ∑ S ∈ C, ((S ∩ U).card : ℚ) := by
+    exact_mod_cast card_le_sum_card_of_cover hC
+  by_contra hnone
+  have hall : ∀ S ∈ C, ((S ∩ U).card : ℚ) < (U.card : ℚ) / (C.card : ℚ) := by
+    intro S hS
+    exact lt_of_not_ge (fun hge => hnone ⟨S, hS, hge⟩)
+  have hle : ∀ S ∈ C, ((S ∩ U).card : ℚ) ≤ (U.card : ℚ) / (C.card : ℚ) := by
+    intro S hS
+    exact le_of_lt (hall S hS)
+  have hstrict : (∑ S ∈ C, ((S ∩ U).card : ℚ)) < ∑ S ∈ C, ((U.card : ℚ) / (C.card : ℚ)) := by
+    refine Finset.sum_lt_sum hle ?_
+    rcases hCne with ⟨S0, hS0⟩
+    exact ⟨S0, hS0, hall S0 hS0⟩
+  have hsumlt : (∑ S ∈ C, ((S ∩ U).card : ℚ)) < (C.card : ℚ) * ((U.card : ℚ) / (C.card : ℚ)) := by
+    rwa [Finset.sum_const, nsmul_eq_mul] at hstrict
+  have hcancel : (C.card : ℚ) * ((U.card : ℚ) / (C.card : ℚ)) = (U.card : ℚ) := by
+    have hc : (C.card : ℚ) ≠ 0 := by exact_mod_cast (Finset.card_ne_zero.mpr hCne)
+    field_simp [hc]
+  linarith
+
+/-- The greedy pick covers at least `|U| / |C|` elements of the uncovered set
+`U`, because some set of the cover `C` — which is a subfamily of `F` — covers
+that many, and the greedy pick covers at least as many as any set of `F`. -/
+lemma pickSet_cover_fraction (F : Finset (Finset α)) {U : Finset α}
+    (hcov : ∀ x ∈ U, ∃ S ∈ F, x ∈ S) {C : Finset (Finset α)}
+    (hCsub : C ⊆ F) (hCcov : Covers U C) (hU : U.Nonempty) :
+    (U.card : ℚ) / (C.card : ℚ) ≤ ((pickSet F U (cover_nonempty F hcov hU) ∩ U).card : ℚ) := by
+  classical
+  rcases exists_cover_set_ge_fraction hCcov hU with ⟨S, hS, hSfrac⟩
+  have hle : (S ∩ U).card ≤ (pickSet F U (cover_nonempty F hcov hU) ∩ U).card :=
+    pickSet_coverage_le F U (cover_nonempty F hcov hU) (hCsub hS)
+  exact le_trans hSfrac (by exact_mod_cast hle)
+
+/-- One greedy step shrinks the uncovered set by the factor `(1 - 1/|C|)`: since
+the greedy pick covers at least `|U| / |C|` elements, the remainder `U \ S` has
+at most `|U| · (1 - 1/|C|)` elements.  This is the multiplicative decrease of
+Theorem 35.4's proof. -/
+lemma pickSet_sdiff_shrink (F : Finset (Finset α)) {U : Finset α}
+    (hcov : ∀ x ∈ U, ∃ S ∈ F, x ∈ S) {C : Finset (Finset α)}
+    (hCsub : C ⊆ F) (hCcov : Covers U C) (hU : U.Nonempty) :
+    ((U \ pickSet F U (cover_nonempty F hcov hU)).card : ℚ) ≤
+      (U.card : ℚ) * (1 - (C.card : ℚ)⁻¹) := by
+  classical
+  let S := pickSet F U (cover_nonempty F hcov hU)
+  have hf := pickSet_cover_fraction F hcov hCsub hCcov hU
+  have hsplit : ((U \ S).card : ℚ) = (U.card : ℚ) - ((U ∩ S).card : ℚ) := by
+    have hc : (U ∩ S).card + (U \ S).card = U.card := Finset.card_inter_add_card_sdiff U S
+    linarith [show ((U ∩ S).card : ℚ) + ((U \ S).card : ℚ) = (U.card : ℚ) from by exact_mod_cast hc]
+  calc
+    ((U \ S).card : ℚ) = (U.card : ℚ) - ((U ∩ S).card : ℚ) := hsplit
+    _ ≤ (U.card : ℚ) - (U.card : ℚ) / (C.card : ℚ) := by
+      have hle : (U.card : ℚ) / (C.card : ℚ) ≤ ((U ∩ S).card : ℚ) := by
+        simpa [S, Finset.inter_comm] using hf
+      linarith
+    _ = (U.card : ℚ) * (1 - (C.card : ℚ)⁻¹) := by ring
+
+/--
+**Fuel bound.**  If after `N` greedy steps the uncovered size is bounded by the
+`N`-th power of the shrink factor `(1 - 1/|C|)`, then the greedy loop has
+terminated: `greedyCost ≤ N`.  More precisely, if `|U| · (1 - 1/|C|)^N < 1`
+then the cost is at most `N`.  This is the iteration step of Theorem 35.4.
+-/
+lemma greedyCost_le_fuel (F : Finset (Finset α)) {U : Finset α}
+    (hcov : ∀ x ∈ U, ∃ S ∈ F, x ∈ S) {C : Finset (Finset α)}
+    (hCsub : C ⊆ F) (hCcov : Covers U C) (N : ℕ)
+    (hN : (U.card : ℚ) * ((1 - (C.card : ℚ)⁻¹) ^ N) < 1) :
+    greedyCost F U hcov ≤ N := by
+  classical
+  let R : Finset α → Finset α → Prop := fun a b => a.card < b.card
+  have hwf : WellFounded R := (measure (fun s : Finset α => s.card)).wf
+  let P : Finset α → Prop := fun U' =>
+    ∀ hcov' : ∀ x ∈ U', ∃ S ∈ F, x ∈ S, ∀ hCsub' : C ⊆ F,
+      ∀ hCcov' : Covers U' C, ∀ N' : ℕ,
+        (U'.card : ℚ) * ((1 - (C.card : ℚ)⁻¹) ^ N') < 1 → greedyCost F U' hcov' ≤ N'
+  have hmain : ∀ U' : Finset α, P U' := by
+    refine hwf.fix (C := P) ?_
+    intro U' ih hcov' hCsub' hCcov' N' hN'
+    by_cases hU : U' = ∅
+    · subst U'
+      rw [greedyCost.eq_1]
+      simp
+    · let hF : F.Nonempty := cover_nonempty F hcov' (Finset.nonempty_iff_ne_empty.mpr hU)
+      let S := pickSet F U' hF
+      have hlt : (U' \ S).card < U'.card :=
+        pickSet_sdiff_card_lt F hcov' (Finset.nonempty_iff_ne_empty.mpr hU)
+      have hcov'' : ∀ x ∈ U' \ S, ∃ T ∈ F, x ∈ T :=
+        cover_sub F hcov' (Finset.sdiff_subset (s := U') (t := S))
+      have hCcov'' : Covers (U' \ S) C := by
+        intro x hx
+        exact hCcov' x (Finset.mem_sdiff.mp hx).1
+      by_cases hN0 : N' = 0
+      · subst N'
+        have hcard1 : (1 : ℕ) ≤ U'.card := by
+          have hpos : 0 < U'.card := Finset.card_pos.mpr (Finset.nonempty_iff_ne_empty.mpr hU)
+          omega
+        have hone : (1 : ℚ) ≤ (U'.card : ℚ) := by exact_mod_cast hcard1
+        have hlt1 : (U'.card : ℚ) < 1 := by simpa using hN'
+        linarith
+      · obtain ⟨N'', rfl⟩ := Nat.exists_eq_succ_of_ne_zero hN0
+        let c : ℚ := 1 - (C.card : ℚ)⁻¹
+        have hinv_le : (C.card : ℚ)⁻¹ ≤ 1 := by
+          by_cases hk0 : C.card = 0
+          · simp [hk0]
+          · have hk1 : 1 ≤ C.card := Nat.succ_le_of_lt (Nat.pos_of_ne_zero hk0)
+            have hkq : (1 : ℚ) ≤ (C.card : ℚ) := by exact_mod_cast hk1
+            exact inv_le_one_of_one_le₀ hkq
+        have hcnonneg : 0 ≤ c := by
+          dsimp [c]
+          linarith
+        have hshrink := pickSet_sdiff_shrink F hcov' hCsub' hCcov' (Finset.nonempty_iff_ne_empty.mpr hU)
+        have hfuel' : ((U' \ S).card : ℚ) * (c ^ N'') < 1 := by
+          have hcpow : 0 ≤ c ^ N'' := pow_nonneg hcnonneg N''
+          have hmul : ((U' \ S).card : ℚ) * (c ^ N'') ≤ (U'.card : ℚ) * (c ^ (N'' + 1)) := by
+            calc
+              ((U' \ S).card : ℚ) * (c ^ N'') ≤ (U'.card : ℚ) * c * (c ^ N'') := by
+                exact mul_le_mul_of_nonneg_right hshrink hcpow
+              _ = (U'.card : ℚ) * (c * (c ^ N'')) := by ring
+              _ = (U'.card : ℚ) * (c ^ (N'' + 1)) := by rw [pow_succ]; ring
+          exact lt_of_le_of_lt hmul (by simpa [c] using hN')
+        have hfuel'' : ((U' \ S).card : ℚ) * ((1 - (C.card : ℚ)⁻¹) ^ N'') < 1 := by
+          simpa [c] using hfuel'
+        have ih' : greedyCost F (U' \ S) hcov'' ≤ N'' :=
+          ih (U' \ S) hlt hcov'' hCsub' hCcov'' N'' hfuel''
+        rw [greedyCost.eq_1, dif_neg hU]
+        have hsum : (1 : ℚ) + greedyCost F (U' \ S) hcov'' ≤ (1 : ℚ) + (N'' : ℚ) := by
+          nlinarith [ih']
+        have hcast : ((N'' + 1 : ℕ) : ℚ) = (1 : ℚ) + (N'' : ℚ) := by
+          norm_num [Nat.cast_add, add_comm]
+        nlinarith
+  exact hmain U hcov hCsub hCcov N hN
+
+/--
+**Theorem 35.4.**  GREEDY-SET-COVER is an `O(lg |X|)`-approximation algorithm:
+for every cover `C` of `X`, the greedy cost is at most `|C| · (⌈ln |X|⌉ + 1)`
+(CLRS §35.3, Theorem 35.4).
+
+The proof iterates the multiplicative shrink `|U_{i+1}| ≤ |U_i| · (1 - 1/|C|)`:
+after `|C| · ⌈ln |X|⌉` steps the uncovered set has size below `1`, so the loop
+has terminated.  The comparison `1 - 1/k ≤ e^{-1/k}` turns the iterated shrink
+into the exponential bound `|X| · (1 - 1/k)^{k·L} ≤ |X| · e^{-L} < 1`, where
+`L = ⌈ln |X|⌉ + 1`.
+-/
+theorem greedySetCover_ln_approx (X : Finset α) (F : Finset (Finset α))
+    (hcov : ∀ x ∈ X, ∃ S ∈ F, x ∈ S)
+    (C : Finset (Finset α)) (hCsub : C ⊆ F) (hCcov : Covers X C) :
+    greedyCost F X hcov ≤ (C.card : ℚ) * (((⌈Real.log (X.card : ℝ)⌉ : ℤ).toNat + 1 : ℕ) : ℚ) := by
+  classical
+  let L : ℕ := (⌈Real.log (X.card : ℝ)⌉ : ℤ).toNat + 1
+  let k : ℕ := C.card
+  let cQ : ℚ := 1 - (k : ℚ)⁻¹
+  let cR : ℝ := 1 - (k : ℝ)⁻¹
+  have hfuel : (X.card : ℚ) * (cQ ^ (k * L)) < 1 := by
+    by_cases hX0 : X = ∅
+    · subst X
+      simp [cQ]
+    · by_cases hk0 : k = 0
+      · have hCempty : C = ∅ := Finset.card_eq_zero.mp (by simpa [k] using hk0)
+        have hXempty : X = ∅ := by
+          by_contra hne
+          rcases Finset.nonempty_iff_ne_empty.mpr hne with ⟨x, hx⟩
+          rcases hCcov x hx with ⟨S, hS, _⟩
+          simpa [hCempty] using hS
+        contradiction
+      · have hk1 : 1 ≤ k := Nat.succ_le_of_lt (Nat.pos_of_ne_zero hk0)
+        have hXposn : 0 < X.card := Finset.card_pos.mpr (Finset.nonempty_iff_ne_empty.mpr hX0)
+        have hX1n : 1 ≤ X.card := Nat.succ_le_of_lt hXposn
+        have hkℝ : (k : ℝ) ≠ 0 := by exact_mod_cast hk0
+        have hcRnonneg : 0 ≤ cR := by
+          dsimp [cR]
+          have hinv : (k : ℝ)⁻¹ ≤ 1 := by
+            have hkq : (1 : ℝ) ≤ (k : ℝ) := by exact_mod_cast hk1
+            exact inv_le_one_of_one_le₀ hkq
+          linarith
+        have hpow1 : cR ^ k ≤ Real.exp (-1) := by
+          have hbase : cR ≤ Real.exp (-(k : ℝ)⁻¹) := by
+            dsimp [cR]
+            have h := Real.add_one_le_exp (-(k : ℝ)⁻¹)
+            linarith
+          calc
+            cR ^ k ≤ (Real.exp (-(k : ℝ)⁻¹)) ^ k := pow_le_pow_left₀ hcRnonneg hbase k
+            _ = Real.exp (k * (-(k : ℝ)⁻¹)) := by rw [Real.exp_nat_mul]
+            _ = Real.exp (-1) := by
+              have hmul : k * (-(k : ℝ)⁻¹) = -1 := by
+                rw [mul_neg, mul_inv_cancel₀ hkℝ]
+              rw [hmul]
+        have hpow2 : (cR ^ k) ^ L ≤ Real.exp (-(L : ℝ)) := by
+          have hb : 0 ≤ cR ^ k := pow_nonneg hcRnonneg k
+          calc
+            (cR ^ k) ^ L ≤ (Real.exp (-1)) ^ L := pow_le_pow_left₀ hb hpow1 L
+            _ = Real.exp (L * (-1)) := by rw [Real.exp_nat_mul]
+            _ = Real.exp (-(L : ℝ)) := by ring_nf
+        have hleR : (X.card : ℝ) * (cR ^ (k * L)) ≤ (X.card : ℝ) * Real.exp (-(L : ℝ)) := by
+          have h1 : cR ^ (k * L) ≤ Real.exp (-(L : ℝ)) := by
+            rw [pow_mul]
+            exact hpow2
+          exact mul_le_mul_of_nonneg_left h1 (by exact_mod_cast (Nat.zero_le X.card))
+        have hltR : (X.card : ℝ) * Real.exp (-(L : ℝ)) < 1 := by
+          have hXpos : 0 < (X.card : ℝ) := by exact_mod_cast hXposn
+          have hlog : Real.exp (Real.log (X.card : ℝ)) = (X.card : ℝ) := Real.exp_log hXpos
+          have hlogn : 0 ≤ Real.log (X.card : ℝ) := Real.log_nonneg (by exact_mod_cast hX1n)
+          have hceil0 : 0 ≤ (⌈Real.log (X.card : ℝ)⌉ : ℤ) := Int.ceil_nonneg hlogn
+          have hL : (L : ℝ) = ((⌈Real.log (X.card : ℝ)⌉ : ℤ) : ℝ) + 1 := by
+            dsimp [L]
+            have htoNat : ((⌈Real.log (X.card : ℝ)⌉ : ℤ).toNat : ℤ) = ⌈Real.log (X.card : ℝ)⌉ :=
+              Int.toNat_of_nonneg hceil0
+            have htoNatℝ : ((⌈Real.log (X.card : ℝ)⌉ : ℤ).toNat : ℝ) = ((⌈Real.log (X.card : ℝ)⌉ : ℤ) : ℝ) := by
+              exact_mod_cast htoNat
+            norm_num
+            rw [htoNatℝ]
+          have hltln : Real.log (X.card : ℝ) < (L : ℝ) := by
+            have h1 : Real.log (X.card : ℝ) < ((⌈Real.log (X.card : ℝ)⌉ : ℤ) : ℝ) + 1 := by
+              have hle : Real.log (X.card : ℝ) ≤ ((⌈Real.log (X.card : ℝ)⌉ : ℤ) : ℝ) := Int.le_ceil _
+              have hlt : ((⌈Real.log (X.card : ℝ)⌉ : ℤ) : ℝ) < Real.log (X.card : ℝ) + 1 := Int.ceil_lt_add_one _
+              nlinarith
+            rwa [hL]
+          have hsub : Real.log (X.card : ℝ) - (L : ℝ) < 0 := by linarith
+          calc
+            (X.card : ℝ) * Real.exp (-(L : ℝ)) = Real.exp (Real.log (X.card : ℝ)) * Real.exp (-(L : ℝ)) := by rw [hlog]
+            _ = Real.exp (Real.log (X.card : ℝ) + (-(L : ℝ))) := by rw [← Real.exp_add]
+            _ = Real.exp (Real.log (X.card : ℝ) - (L : ℝ)) := rfl
+            _ < Real.exp 0 := Real.exp_lt_exp.mpr hsub
+            _ = 1 := by norm_num
+        have hltQ : (X.card : ℚ) * (cQ ^ (k * L)) < 1 := by
+          have hltR' : (X.card : ℝ) * (cR ^ (k * L)) < 1 := lt_of_le_of_lt hleR hltR
+          have hcast : (cQ : ℝ) = cR := by
+            dsimp [cQ, cR]
+            norm_num
+          have hltR'' : (X.card : ℝ) * ((cQ : ℝ) ^ (k * L)) < 1 := by
+            simpa [hcast] using hltR'
+          exact_mod_cast hltR''
+        simpa [cQ, k] using hltQ
+  have hcost := greedyCost_le_fuel F hcov hCsub hCcov (k * L) (by simpa [cQ, k] using hfuel)
+  have hN : ((k * L : ℕ) : ℚ) = (k : ℚ) * (L : ℚ) := by norm_num [Nat.cast_mul]
+  simpa [hN, k, L] using hcost
 
 end SetCover
 

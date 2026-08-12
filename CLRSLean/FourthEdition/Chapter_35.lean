@@ -35,7 +35,9 @@ Section 35.3 (the set-covering problem) is a native fourth-edition section: it
 models the universe and family of GREEDY-SET-COVER, the greedy pick, the
 returned family, and — via the harmonic charging argument — proves that the
 number of sets picked is at most `H(d)` times the size of any cover, where `d`
-bounds the set sizes (Theorem 35.3).  It is imported through
+bounds the set sizes (Theorem 35.3), and — via the iterated multiplicative
+shrink of the uncovered set — that GREEDY-SET-COVER is an `O(lg |X|)`-
+approximation algorithm (Theorem 35.4).  It is imported through
 [Section 35.3](CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem/).
 
 The remaining sections — 35.4-35.5 (randomized rounding and the subset-sum
