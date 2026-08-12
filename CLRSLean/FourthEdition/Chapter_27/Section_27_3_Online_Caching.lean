@@ -219,15 +219,15 @@ def front (p : Page) (L : List Page) : Finset Page :=
 
 /-- The `Finset` of a no-duplicate list has its length as cardinality. -/
 lemma toFinset_card_of_nodup {L : List Page} (h : L.Nodup) : L.toFinset.card = L.length := by
-  unfold List.toFinset
-  rw [List.dedup_eq_self.mpr h]
+  rw [List.toFinset, Multiset.card_toFinset, Multiset.coe_dedup, List.dedup_eq_self.mpr h]
+  rfl
 
 /-- `lruStep` preserves the no-duplicate invariant of the cache list. -/
 lemma lruStep_nodup (k : ℕ) (L : List Page) (p : Page) (h : L.Nodup) :
     (lruStep k L p).Nodup := by
   unfold lruStep
   split_ifs with hp hl
-  · exact List.nodup_cons.mpr ⟨by simp, h.erase p⟩
+  · exact (List.perm_cons_erase hp).nodup_iff.mp h
   · exact List.nodup_cons.mpr ⟨hp, h⟩
   · refine List.nodup_cons.mpr ⟨?_, (List.dropLast_sublist L).nodup h⟩
     intro hpd
@@ -253,8 +253,8 @@ lemma lruMissesGo_append (k : ℕ) (L : List Page) (σ τ : List Page) :
   induction σ generalizing L with
   | nil => simp [lruMissesGo, lruRun]
   | cons p σ' ih =>
-      simp only [lruMissesGo]
-      rw [ih]
+      simp [lruMissesGo, lruRun]
+      rw [ih (lruStep k L p)]
       omega
 
 /-- Membership after a single `lruStep`, unfolded into the hit / not-full miss /
@@ -282,79 +282,65 @@ lemma mem_lruStep (k : ℕ) (L : List Page) (p q : Page) :
   · -- miss, full: q ∈ p :: L.dropLast ↔ q = p ∨ q ∈ L.dropLast
     rw [List.mem_cons]
 
-/-- Removing `q ≠ p` cannot enlarge the `takeWhile (· ≠ p)` prefix. -/
-lemma takeWhile_erase_subset {p q : Page} {L : List Page} (hqp : q ≠ p) :
-    (L.erase q).takeWhile (fun x => x ≠ p) ⊆ L.takeWhile (fun x => x ≠ p) := by
+/-- Erasing an element that satisfies `f` cannot enlarge the `takeWhile f` prefix. -/
+lemma takeWhile_erase_subset {f : Page → Bool} {q : Page} {L : List Page} (hfq : f q = true) :
+    (L.erase q).takeWhile f ⊆ L.takeWhile f := by
   induction L with
   | nil => simp
   | cons x rest ih =>
       by_cases hxq : x = q
-      · subst q
-        by_cases hxp : x = p
-        · exact (hqp hxp).elim
-        · simp [hxp, List.erase_cons_head]
+      · subst x; simp [hfq]
+      · by_cases hx : f x = true
+        · simp [hxq, hx]
           intro a ha
-          exact List.mem_cons_of_mem x (by simpa using ha)
-      · by_cases hxp : x = p
-        · subst p
-          simp [hxq]
-        · simp [hxq, hxp]
-          intro a ha
-          rw [List.mem_cons] at ha ⊢
-          rcases ha with ha | ha
-          · exact Or.inl ha
-          · exact Or.inr (ih ha)
+          exact List.Mem.tail x (ih ha)
+        · simp [hxq, hx]
 
-/-- Dropping the last element cannot enlarge the `takeWhile (· ≠ p)` prefix. -/
-lemma takeWhile_dropLast_subset {p : Page} {L : List Page} :
-    L.dropLast.takeWhile (fun x => x ≠ p) ⊆ L.takeWhile (fun x => x ≠ p) := by
+/-- Dropping the last element cannot enlarge the `takeWhile f` prefix. -/
+lemma takeWhile_dropLast_subset {f : Page → Bool} {L : List Page} :
+    L.dropLast.takeWhile f ⊆ L.takeWhile f := by
   induction L with
   | nil => simp
   | cons x rest ih =>
       cases rest with
       | nil => simp
       | cons y ys =>
-          have hrest : rest ≠ [] := by simp
-          rw [List.dropLast_cons_of_ne_nil hrest]
-          by_cases hxp : x = p
-          · subst p; simp
-          · simp [hxp]
+          rw [List.dropLast_cons_of_ne_nil (show y :: ys ≠ [] by simp)]
+          by_cases hx : f x = true
+          · simp [hx]
             intro a ha
-            rw [List.mem_cons] at ha ⊢
-            rcases ha with ha | ha
-            · exact Or.inl ha
-            · exact Or.inr (ih ha)
+            exact List.Mem.tail x (ih ha)
+          · simp [hx]
 
 /-- One step grows the front of a page by at most the requested page. -/
 lemma lruStep_front_subset (k : ℕ) (L : List Page) (p q : Page) :
     front p (lruStep k L q) ⊆ {q} ∪ front p L := by
   by_cases hqp : q = p
   · subst q
-    simp [front, lruStep]
+    unfold front lruStep
+    split_ifs <;> simp [front]
   · unfold front lruStep
     by_cases hq : q ∈ L
     · simp [hq, hqp]
       intro x hx
-      rw [List.mem_toFinset] at hx
-      simp [hqp] at hx
-      rcases hx with hx | hx
-      · left; simp [hx]
-      · right; rw [List.mem_toFinset]; exact takeWhile_erase_subset hqp hx
+      rw [Finset.mem_insert] at hx
+      rw [Finset.mem_insert]
+      rcases hx with hxq | hx
+      · exact Or.inl hxq
+      · exact Or.inr (List.mem_toFinset.mpr
+          (takeWhile_erase_subset (f := fun y => !decide (y = p)) (q := q) (by simp [hqp])
+            (List.mem_toFinset.mp hx)))
     · by_cases hl : L.length < k
-      · simp [hq, hl]
+      · simp [hq, hl, hqp]
+      · simp [hq, hl, hqp]
         intro x hx
-        rw [List.mem_toFinset] at hx
-        simp [hqp] at hx
-        rcases hx with hx | hx
-        · left; simp [hx]
-        · right; rw [List.mem_toFinset]; exact hx
-      · simp [hq, hl]
-        intro x hx
-        rw [List.mem_toFinset] at hx
-        simp [hqp] at hx
-        rcases hx with hx | hx
-        · left; simp [hx]
-        · right; rw [List.mem_toFinset]; exact takeWhile_dropLast_subset hx
+        rw [Finset.mem_insert] at hx
+        rw [Finset.mem_insert]
+        rcases hx with hxq | hx
+        · exact Or.inl hxq
+        · exact Or.inr (List.mem_toFinset.mpr
+            (takeWhile_dropLast_subset (f := fun y => !decide (y = p))
+              (List.mem_toFinset.mp hx)))
 
 /-- The front of `p` after a run is a subset of the requested pages together with
 the pages that were already in front of `p` initially. -/
@@ -433,7 +419,9 @@ lemma lruStep_evict_card (k : ℕ) (L : List Page) (h q : Page)
     rw [hfront] at hq'
     exact hqL (List.mem_of_mem_dropLast (by simpa using hq'))
   have hcard : (front h L ∪ {q}).card = (front h L).card + 1 := by
-    rw [Finset.card_insert_of_notMem hq_front]
+    rw [Finset.card_union_of_disjoint]
+    · simp
+    · exact Finset.disjoint_singleton_right.mpr hq_front
   omega
 
 /-- If a page `h ∈ L` is not in the cache after a run, then the distinct pages of
@@ -444,7 +432,7 @@ lemma lru_evict_ge (k : ℕ) (L : List Page) (h : Page) (ρ : List Page)
     (hNodup : L.Nodup) (hL : h ∈ L) (hev : h ∉ lruRun k L ρ) :
     k ≤ (front h L ∪ ρ.toFinset.erase h).card := by
   induction ρ generalizing L with
-  | nil => simp [lruRun] at hev
+  | nil => simp [lruRun] at hev; exact (hev hL).elim
   | cons q ρ' ih =>
       let L' := lruStep k L q
       by_cases hL' : h ∈ L'
@@ -463,10 +451,11 @@ lemma lru_evict_ge (k : ℕ) (L : List Page) (h : Page) (ρ : List Page)
               refine ⟨?_, Or.inl hxq⟩
               intro hqh
               subst q
-              have : x ∉ front h (lruStep k L h) := by simp [front, lruStep]
+              subst h
+              have : x ∉ front x (lruStep k L x) := by simp [front, lruStep, hL]
               exact this hx
             · left; exact hxf
-          · left
+          · right
             rw [List.toFinset_cons, Finset.mem_erase, Finset.mem_insert]
             exact ⟨(Finset.mem_erase.mp hx).1, Or.inr (Finset.mem_erase.mp hx).2⟩
         omega
@@ -474,7 +463,7 @@ lemma lru_evict_ge (k : ℕ) (L : List Page) (h : Page) (ρ : List Page)
         have hqh : q ≠ h := by
           intro hqh
           subst q
-          exact hL' (by simp [lruStep, hL])
+          exact hL' (by change h ∈ lruStep k L h; simp [lruStep, hL])
         have hle : (front h L ∪ {q}).card ≤ (front h L ∪ (q :: ρ').toFinset.erase h).card := by
           apply Finset.card_le_card
           intro x hx
@@ -493,12 +482,10 @@ the start of a segment, and `h` is evicted during the segment, then the segment
 requests at least `k` other distinct pages.  This is the key fact that a single
 page can only be faulted once within any segment of at most `k` distinct pages.
 -/
-lemma lru_head_evict (k : ℕ) (h : Page) (rest ρ : List Page) :
+lemma lru_head_evict (k : ℕ) (h : Page) (rest ρ : List Page) (hNodup : (h :: rest).Nodup) :
     h ∉ lruRun k (h :: rest) ρ → k ≤ (ρ.toFinset.erase h).card := by
   intro hev
-  have hge := lru_evict_ge k (h :: rest) h ρ (by
-    rw [List.nodup_cons]
-    exact ⟨by simp, by simp⟩) (by simp) hev
+  have hge := lru_evict_ge k (h :: rest) h ρ hNodup (by simp) hev
   simpa [front] using hge
 
 /-- Erasing `p` before or after dropping the last element commutes, when `p` is
@@ -506,15 +493,14 @@ not the last element. -/
 lemma erase_dropLast {p : Page} {L : List Page} (hp : p ∈ L.dropLast) :
     (L.dropLast).erase p = (L.erase p).dropLast := by
   have hnil : L ≠ [] := by intro h0; subst h0; simp at hp
-  have hL : L = L.dropLast ++ [L.getLast hnil] := (List.dropLast_append_getLast hnil).symm
-  have herase : L.erase p = (L.dropLast).erase p ++ [L.getLast hnil] := by
-    rw [hL]
-    exact List.erase_append_left [L.getLast hnil] hp
-  rw [herase]
-  rw [List.dropLast_append_of_ne_nil]
-  · rfl
-  · intro h
-    exact List.noConfusion h
+  calc
+    (L.dropLast).erase p = ((L.dropLast).erase p ++ [L.getLast hnil]).dropLast := by
+        rw [List.dropLast_append_of_ne_nil (show [L.getLast hnil] ≠ [] by simp)]
+        simp
+    _ = ((L.dropLast ++ [L.getLast hnil]).erase p).dropLast := by
+        rw [List.erase_append_left [L.getLast hnil] hp]
+    _ = (L.erase p).dropLast := by
+        rw [List.dropLast_append_getLast hnil]
 
 /-- When `p` survives a step `q ≠ p`, erasing `p` from the resulting cache equals
 running the step on the size-`(k - 1)` cache with `p` already erased. -/
@@ -526,12 +512,12 @@ lemma lruStep_erase (k : ℕ) (L : List Page) (q p : Page)
   · have hq_erase : q ∈ L.erase p := (List.mem_erase_of_ne hqp).mpr hq
     simp [hq, hqp, hq_erase]
     rw [List.erase_comm q p]
-    rfl
   · by_cases hl : L.length < k
     · have hq_erase : q ∉ L.erase p := by
         intro h; exact hq (List.mem_of_mem_erase h)
       have hlen : (L.erase p).length < k - 1 := by
         rw [List.length_erase_of_mem hp]
+        have hpos : 0 < L.length := List.length_pos_of_mem hp
         omega
       simp [hq, hl, hqp, hq_erase, hlen]
     · have hq_erase : q ∉ L.erase p := by
@@ -540,7 +526,7 @@ lemma lruStep_erase (k : ℕ) (L : List Page) (q p : Page)
         rw [List.length_erase_of_mem hp]
         omega
       have hp_dropLast : p ∈ L.dropLast := by
-        have : p ∈ q :: L.dropLast := by simpa [hq, hl] using hkeep
+        have : p ∈ q :: L.dropLast := by simpa [lruStep, hq, hl] using hkeep
         rw [List.mem_cons] at this
         rcases this with this | this
         · exact (hqp this.symm).elim
@@ -550,12 +536,12 @@ lemma lruStep_erase (k : ℕ) (L : List Page) (q p : Page)
 
 /-- The miss count commutes with erasing a page that is never evicted: with the
 page `p` pinned in the cache, LRU over a size-`k` cache from `L` has the same
-misses as a size-`(k - 1)` cache from `L.erase p` over `ρ.erase p`. -/
+misses as a size-`(k - 1)` cache from `L.erase p` over `ρ.filter (· ≠ p)`. -/
 lemma lru_miss_shrink (k : ℕ) (L : List Page) (ρ : List Page) (p : Page)
     (hNodup : L.Nodup) (hp : p ∈ L) (hkeep : ∀ τ, List.IsPrefix τ ρ → p ∈ lruRun k L τ) :
-    lruMissesGo k L ρ = lruMissesGo (k - 1) (L.erase p) (ρ.erase p) := by
+    lruMissesGo k L ρ = lruMissesGo (k - 1) (L.erase p) (ρ.filter (fun x => x ≠ p)) := by
   induction ρ generalizing L with
-  | nil => simp
+  | nil => simp [lruMissesGo]
   | cons q rest ih =>
       have hq : p ∈ lruStep k L q := by
         have h := hkeep [q] (⟨rest, by simp⟩ : List.IsPrefix [q] (q :: rest))
@@ -571,103 +557,138 @@ lemma lru_miss_shrink (k : ℕ) (L : List Page) (ρ : List Page) (p : Page)
       · subst q
         rw [lruMissesGo]
         simp [hp]
-        rw [hih]
+        have hstep : (lruStep k L p).erase p = L.erase p := by
+          unfold lruStep
+          simp [hp]
+        rw [hih, hstep]
         simp
       · have hq_in : q ∈ L ↔ q ∈ L.erase p := (List.mem_erase_of_ne hqp).symm
         have hstep_erase := lruStep_erase k L q p hNodup hp hqp hq
         rw [lruMissesGo]
         rw [hih]
         rw [hstep_erase]
-        have herase : (q :: rest).erase p = q :: rest.erase p := by simp [hqp]
-        rw [herase]
+        have hfilter : (q :: rest).filter (fun x => x ≠ p) = q :: rest.filter (fun x => x ≠ p) := by
+          simp [hqp]
+        rw [hfilter]
         rw [lruMissesGo]
-        rw [hq_in]
+        simp [hq_in]
 
 /-- LRU makes at most one fault per distinct requested page, whenever at most
 `k` distinct pages are requested. -/
 lemma lru_miss_le_distinct (k : ℕ) (L : List Page) (ρ : List Page)
     (hNodup : L.Nodup) (hcard : ρ.toFinset.card ≤ k) :
     lruMissesGo k L ρ ≤ ρ.toFinset.card := by
-  induction ρ generalizing k L with
-  | nil => simp
-  | cons p ρ' ih =>
-      let L' : List Page := lruStep k L p
-      have hNodup' : L'.Nodup := lruStep_nodup k L p hNodup
-      rw [lruMissesGo, List.toFinset_cons]
-      by_cases hpL : p ∈ L
-      · have hrec := ih (k := k) (L := L') hNodup' (by
-          have : ρ'.toFinset.card ≤ (p :: ρ').toFinset.card := by
-            rw [List.toFinset_cons]
-            exact Finset.card_le_card (Finset.subset_insert _ _)
-          omega)
-        simp [hpL]
-        calc
-          lruMissesGo k L' ρ' ≤ ρ'.toFinset.card := hrec
-          _ ≤ (insert p ρ'.toFinset).card := Finset.card_le_card (Finset.subset_insert _ _)
-      · by_cases hpρ : p ∈ ρ'.toFinset
-        · -- p is re-requested: it is pinned, so shrink to a size-(k-1) cache
-          have hcard' : (ρ'.toFinset.erase p).card ≤ k - 1 := by
-            have hρ : ρ'.toFinset.card ≤ k := by
-              have hins : (insert p ρ'.toFinset).card ≤ k := by simpa [List.toFinset_cons] using hcard
-              have : (insert p ρ'.toFinset).card = ρ'.toFinset.card := Finset.card_insert_of_mem hpρ
+  classical
+  have go : ∀ (n : ℕ) (L : List Page) (ρ : List Page), ρ.length = n → L.Nodup →
+      ρ.toFinset.card ≤ k → lruMissesGo k L ρ ≤ ρ.toFinset.card := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro L ρ hlen hNodup hcard
+      cases ρ with
+      | nil => simp [lruMissesGo]
+      | cons p ρ' =>
+          let L' : List Page := lruStep k L p
+          have hNodup' : L'.Nodup := lruStep_nodup k L p hNodup
+          have hlt : ρ'.length < n := by
+            rw [← hlen]
+            exact Nat.lt_succ_self ρ'.length
+          rw [lruMissesGo, List.toFinset_cons]
+          by_cases hpL : p ∈ L
+          · have hrec : lruMissesGo k L' ρ' ≤ ρ'.toFinset.card := by
+              apply ih ρ'.length hlt L' ρ' rfl hNodup'
+              have : ρ'.toFinset.card ≤ k := by
+                have hins : (insert p ρ'.toFinset).card ≤ k := by
+                  simpa [List.toFinset_cons] using hcard
+                have hle : ρ'.toFinset.card ≤ (insert p ρ'.toFinset).card :=
+                  Finset.card_le_card (Finset.subset_insert _ _)
+                omega
+              exact this
+            simp [hpL]
+            exact le_trans hrec (Finset.card_le_card (Finset.subset_insert _ _))
+          · by_cases hpρ : p ∈ ρ'.toFinset
+            · -- p is re-requested: it is pinned, so shrink to a size-(k-1) cache
+              have hcard' : (ρ'.toFinset.erase p).card ≤ k - 1 := by
+                have hρ : ρ'.toFinset.card ≤ k := by
+                  have hins : (insert p ρ'.toFinset).card ≤ k := by
+                    simpa [List.toFinset_cons] using hcard
+                  have : (insert p ρ'.toFinset).card = ρ'.toFinset.card :=
+                    Finset.card_insert_of_mem hpρ
+                  omega
+                rw [Finset.card_erase_of_mem hpρ]
+                have hpos : 0 < ρ'.toFinset.card := Finset.card_pos.mpr ⟨p, hpρ⟩
+                omega
+              have hL'head : ∃ t, L' = p :: t := by
+                change ∃ t, lruStep k L p = p :: t
+                unfold lruStep
+                by_cases hl : L.length < k
+                · exact ⟨L, by simp [hpL, hl]⟩
+                · exact ⟨L.dropLast, by simp [hpL, hl]⟩
+              rcases hL'head with ⟨t, hEq⟩
+              have hNodup_t : (p :: t).Nodup := by simpa [hEq] using hNodup'
+              have hkeep : ∀ τ, List.IsPrefix τ ρ' → p ∈ lruRun k (p :: t) τ := by
+                intro τ hτ
+                have hcardτ : (τ.toFinset.erase p).card ≤ k - 1 := by
+                  have hsub : τ.toFinset.erase p ⊆ ρ'.toFinset.erase p := by
+                    intro x hx
+                    rw [Finset.mem_erase] at hx ⊢
+                    refine ⟨hx.1, ?_⟩
+                    rcases hτ with ⟨t', ht'⟩
+                    have hsub' : τ.toFinset ⊆ ρ'.toFinset := by
+                      rw [← ht', List.toFinset_append]
+                      exact Finset.subset_union_left
+                    exact hsub' hx.2
+                  exact le_trans (Finset.card_le_card hsub) hcard'
+                by_contra hnot
+                have hge := lru_head_evict k p t τ hNodup_t hnot
+                exact hnot hge
+              have hshrink := lru_miss_shrink k (p :: t) ρ' p hNodup_t (by simp) hkeep
+              have hrec : lruMissesGo (k - 1) t (ρ'.filter (fun x => x ≠ p)) ≤
+                  (ρ'.filter (fun x => x ≠ p)).toFinset.card := by
+                have hlenF : (ρ'.filter (fun x => x ≠ p)).length < n := by
+                  have hle : (ρ'.filter (fun x => x ≠ p)).length ≤ ρ'.length :=
+                    List.length_filter_le _ _
+                  omega
+                apply ih (ρ'.filter (fun x => x ≠ p)).length hlenF t
+                  (ρ'.filter (fun x => x ≠ p)) rfl
+                · exact (List.sublist_cons_self p t).nodup hNodup_t
+                · have hto : (ρ'.filter (fun x => x ≠ p)).toFinset = ρ'.toFinset.erase p := by
+                    ext x
+                    by_cases hxp : x = p <;> simp [List.mem_filter, List.mem_toFinset, hxp]
+                  rw [hto]
+                  exact hcard'
+              have hpos : 0 < ρ'.toFinset.card := Finset.card_pos.mpr ⟨p, hpρ⟩
+              simp [hpL]
+              calc
+                1 + lruMissesGo k L' ρ' =
+                    1 + lruMissesGo (k - 1) t (ρ'.filter (fun x => x ≠ p)) := by
+                  rw [hEq, hshrink]
+                _ ≤ 1 + (ρ'.toFinset.erase p).card := by
+                  have hto : (ρ'.filter (fun x => x ≠ p)).toFinset = ρ'.toFinset.erase p := by
+                    ext x
+                    by_cases hxp : x = p <;> simp [List.mem_filter, List.mem_toFinset, hxp]
+                  rw [hto] at hrec
+                  exact Nat.add_le_add_left hrec 1
+                _ = ρ'.toFinset.card := by
+                  rw [Finset.card_erase_of_mem hpρ]
+                  omega
+                _ ≤ (insert p ρ'.toFinset).card := by
+                  rw [Finset.card_insert_of_mem hpρ]
+            · have hrec : lruMissesGo k L' ρ' ≤ ρ'.toFinset.card := by
+                apply ih ρ'.length hlt L' ρ' rfl hNodup'
+                have : ρ'.toFinset.card ≤ k := by
+                  have hins : (insert p ρ'.toFinset).card ≤ k := by
+                    simpa [List.toFinset_cons] using hcard
+                  have hle : ρ'.toFinset.card ≤ (insert p ρ'.toFinset).card :=
+                    Finset.card_le_card (Finset.subset_insert _ _)
+                  omega
+                exact this
+              simp [hpL]
+              have hins : (insert p ρ'.toFinset).card = ρ'.toFinset.card + 1 := by
+                rw [Finset.card_insert_of_notMem hpρ]
+              rw [hins]
               omega
-            rw [Finset.card_erase_of_mem hpρ]
-            omega
-          have hL'head : ∃ t, L' = p :: t := by
-            unfold L' lruStep
-            by_cases hl : L.length < k
-            · simp [hpL, hl]; exact ⟨L, rfl⟩
-            · simp [hpL, hl]; exact ⟨L.dropLast, rfl⟩
-          rcases hL'head with ⟨t, rfl⟩
-          have hkeep : ∀ τ, List.IsPrefix τ ρ' → p ∈ lruRun k (p :: t) τ := by
-            intro τ hτ
-            have hcardτ : (τ.toFinset.erase p).card ≤ k - 1 := by
-              have hsub : τ.toFinset.erase p ⊆ ρ'.toFinset.erase p := by
-                intro x hx
-                rw [Finset.mem_erase] at hx ⊢
-                refine ⟨hx.1, ?_⟩
-                rcases hτ with ⟨t', ht'⟩
-                have hsub' : τ.toFinset ⊆ ρ'.toFinset := by
-                  rw [ht', List.toFinset_append]
-                  exact Finset.subset_union_left
-                exact hsub' hx.2
-              exact le_trans (Finset.card_le_card hsub) hcard'
-            by_contra hnot
-            have hge := lru_head_evict k p t τ hnot
-            omega
-          have hshrink := lru_miss_shrink k (p :: t) ρ' p (by simpa using hNodup') (by simp) hkeep
-          have hrec := ih (k := k - 1) (L := t) (by
-            have : (p :: t).Nodup := hNodup'
-            exact (List.sublist_cons_self p t).nodup this) (by
-              have : (ρ'.erase p).toFinset.card ≤ k - 1 := by
-                have hto : (ρ'.erase p).toFinset = ρ'.toFinset.erase p := by
-                  ext x
-                  by_cases hxp : x = p <;> simp [hxp]
-                rw [hto]
-                exact hcard'
-              exact this)
-          simp [hpL]
-          calc
-            lruMissesGo k (p :: t) ρ' = lruMissesGo (k - 1) t (ρ'.erase p) := by
-              simpa using hshrink
-            _ ≤ (ρ'.erase p).toFinset.card := hrec
-            _ = (ρ'.toFinset.erase p).card := by
-              ext x
-              by_cases hxp : x = p <;> simp [hxp]
-            _ = ρ'.toFinset.card - 1 := Finset.card_erase_of_mem hpρ
-            _ ≤ (insert p ρ'.toFinset).card := by
-              rw [Finset.card_insert_of_mem hpρ]
-              exact Nat.sub_le _ _
-        · have hrec := ih (k := k) (L := L') hNodup' (by
-            have : ρ'.toFinset.card ≤ (p :: ρ').toFinset.card := by
-              rw [List.toFinset_cons]
-              exact Finset.card_le_card (Finset.subset_insert _ _)
-            omega)
-          simp [hpL]
-          have hins : (insert p ρ'.toFinset).card = ρ'.toFinset.card + 1 := by
-            rw [Finset.card_insert_of_notMem hpρ]
-          rw [hins]
-          omega
+  exact go ρ.length L ρ rfl hNodup hcard
 
 end OnlineCaching
 
