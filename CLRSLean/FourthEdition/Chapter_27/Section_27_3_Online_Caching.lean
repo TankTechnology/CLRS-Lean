@@ -996,7 +996,8 @@ lemma firstPhase_fresh (k : ℕ) (σ : List Page) (hk : 0 < k) (q : Page) (rest'
       have hseen : ({p} : Finset Page).card ≤ k := by
         simpa using (Nat.succ_le_of_lt hk)
       have hfresh := phaseGo_fresh k {p} rest hseen q rest' h'
-      simpa [firstPhase, Finset.insert_eq, Finset.union_comm] using hfresh
+      simp [firstPhase]
+      simpa [Finset.mem_union, Finset.mem_singleton, and_comm] using hfresh
 
 /-- The number of phases is at most one more than the miss count of any size-`k`
 algorithm: `(phases k σ).length ≤ missesGo A C σ + 1`.  This is the lower-bound
@@ -1071,8 +1072,9 @@ lemma phases_le_misses (k : ℕ) (σ : List Page) (hk : 0 < k)
                 rw [← hsplit, missesGo_append A C fp.1 fp.2, hrem]
                 simp only [missesGo]
                 ac_rfl
-              rw [phases_cons_eq k (p :: rest) (by simp), hmisses]
-              simp only [List.length_cons]
+              rw [phases_cons_eq k (p :: rest) (by simp)]
+              change (phases k fp.2).length + 1 ≤ missesGo A C (p :: rest) + 1
+              rw [hmisses]
               omega
   exact go σ.length σ rfl A C hC
 
