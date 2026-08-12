@@ -4197,7 +4197,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
 ### Section 27.3 - Online Caching
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_27/Section_27_3_Online_Caching.lean`
-- Status: `partial` (native fourth-edition source; headline theorem pending)
+- Status: `main-proof-complete` (native fourth-edition source)
 - Model:
   - `OnlineCaching.lruStep` / `OnlineCaching.lruRun` / `OnlineCaching.lruMisses`:
     the LRU policy with the cache as a most-recent-first list — a hit moves the
@@ -4211,11 +4211,16 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     forces a miss for any size-`k` algorithm.
   - `OnlineCaching.resident_fault`: a page resident at the start of a segment
     that then requests `k` other distinct pages forces a miss.
-  - Supporting lemmas: `runGo_subset`, `runGo_size`, and
+  - `OnlineCaching.lru_miss_le_phases`: LRU makes at most `k` misses per phase,
+    so its total miss count is bounded by `k` times the number of phases.
+  - `OnlineCaching.phases_le_misses`: the number of phases is at most one more
+    than the miss count of any size-`k` algorithm.
+  - `OnlineCaching.lru_k_competitive` (Theorem 27.3): LRU is `k`-competitive.
+  - Supporting lemmas: `runGo_subset`, `runGo_size`,
     `missesGo_eq_zero_subset` (a run with no misses has all requested pages
-    resident).
-- Current gap: the `k`-competitive upper bound for LRU (CLRS Theorem 27.3) and
-  its matching lower bound are not yet formalized.
+    resident), `lru_head_evict`, and `lru_miss_le_distinct`.
+- Current gap: the matching lower bound — no deterministic online algorithm is
+  better than `k`-competitive — is recorded but not yet formalized.
 
 ## Chapter 28 - Matrix Operations
 

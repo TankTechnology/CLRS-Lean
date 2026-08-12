@@ -29,9 +29,11 @@ Section 27.3 (Online caching) is formalized natively in
 `CLRSLean.FourthEdition.Chapter_27.Section_27_3_Online_Caching`: the paging
 model with the least-recently-used (LRU) policy as a most-recent-first list,
 the bundled deterministic `Algorithm` eviction model with its cache-size law,
-and the two phase-partition fault lemmas (`distinct_fault`, `resident_fault`).
-The `k`-competitive upper bound (Theorem 27.3) and its matching lower bound are
-recorded as gaps.
+the phase-partition fault lemmas (`distinct_fault`, `resident_fault`), the
+phase-count lower bound (`phases_le_misses`), and the `k`-competitive upper
+bound (Theorem 27.3, `lru_k_competitive`).  The matching lower bound — that no
+deterministic online algorithm is better than `k`-competitive — is recorded as
+a gap.
 
 No legacy source is promoted into this chapter.
 
@@ -41,15 +43,16 @@ No legacy source is promoted into this chapter.
 
 ## Coverage boundary
 
-Status: `partial`.  Represented sections 27.1 (Waiting for an elevator),
-27.2 (Maintaining a search list), and 27.3 (Online caching) — the rent-or-buy
-cost and the offline optimum `min (T*r) p`, Theorem 27.1 (the `2`-competitive
-upper bound), the elevator corollary with its worst-case competitive ratio, the
-MOVE-TO-FRONT list-update analysis with Theorem 27.2 (the `4`-competitive
-bound), and the LRU paging model with its phase-partition fault lemmas.  The
-lower bound that no deterministic strategy beats `2 - r/p` is recorded as a gap
-in Section 27.1; the `k`-competitive upper bound (Theorem 27.3) and its
-matching lower bound are recorded as gaps in Section 27.3.
+Status: `main-proof-complete`.  Represented sections 27.1 (Waiting for an
+elevator), 27.2 (Maintaining a search list), and 27.3 (Online caching) — the
+rent-or-buy cost and the offline optimum `min (T*r) p`, Theorem 27.1 (the
+`2`-competitive upper bound), the elevator corollary with its worst-case
+competitive ratio, the MOVE-TO-FRONT list-update analysis with Theorem 27.2
+(the `4`-competitive bound), and the LRU paging model with the phase-partition
+fault lemmas and Theorem 27.3 (the `k`-competitive upper bound).  The matching
+lower bounds — no deterministic strategy beats `2 - r/p` (Section 27.1), and no
+deterministic online algorithm is better than `k`-competitive (Section 27.3) —
+are recorded as gaps.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
