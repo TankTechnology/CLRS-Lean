@@ -955,8 +955,39 @@ lemma firstPhase_maximal (k : ℕ) (σ : List Page) (hk : 0 < k) (h : (firstPhas
         rw [Finset.insert_eq, Finset.union_comm]
         exact hmax.1
       · simp [firstPhase]
-        rw [Finset.insert_eq, Finset.union_comm]
-        exact hmax.2
+        simpa [Finset.mem_union, Finset.mem_singleton, and_comm] using hmax.2
+
+/-- When the cache is full and the first request of a phase is a fault, the cache
+after the phase is exactly the phase's distinct pages. -/
+lemma runGo_eq_phase_of_single_fault (k : ℕ) (A : Algorithm Page k) (C : Finset Page) (ρ : List Page)
+    (hC : C.card = k) (hρ : ρ ≠ []) (hp : List.head ρ hρ ∉ C) (hcard : ρ.toFinset.card = k)
+    (h : missesGo A C ρ = 1) :
+    runGo A C ρ = ρ.toFinset := by
+  cases ρ with
+  | nil => exact (hρ rfl).elim
+  | cons p τ₀ =>
+      have hp' : p ∉ C := by simpa using hp
+      have hcard' : (insert p τ₀.toFinset).card = k := by simpa using hcard
+      have hτ₀ : missesGo A (A.step C p) τ₀ = 0 := by
+        have h' : (if p ∈ C then 0 else 1) + missesGo A (A.step C p) τ₀ = 1 := by
+          simpa [missesGo] using h
+        simp [hp'] at h'
+        omega
+      have hsubset : τ₀.toFinset ⊆ A.step C p := missesGo_eq_zero_subset A (A.step C p) τ₀ hτ₀
+      have hstep_subset : insert p τ₀.toFinset ⊆ A.step C p := by
+        intro x hx
+        rw [Finset.mem_insert] at hx
+        rcases hx with rfl | hx
+        · exact A.step_loads C p
+        · exact hsubset hx
+      have hstep_card : (A.step C p).card ≤ k := A.step_size C p
+      have hstep_eq : A.step C p = insert p τ₀.toFinset :=
+        (Finset.eq_of_subset_of_card_le hstep_subset (by rw [hcard']; exact hstep_card)).symm
+      calc
+        runGo A C (p :: τ₀) = runGo A (A.step C p) τ₀ := by simp [runGo]
+        _ = A.step C p := runGo_eq_self_of_misses_eq_zero A (A.step C p) τ₀ hτ₀
+        _ = insert p τ₀.toFinset := hstep_eq
+
 
 end OnlineCaching
 
