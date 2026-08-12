@@ -16,10 +16,10 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,421.
-* Proved tracked theorem entries: 1,421.
+* Tracked reader-facing theorem entries: 1,425.
+* Proved tracked theorem entries: 1,425.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 25.
+* Remaining edition-coverage units: 24.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -34,10 +34,10 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 14 chapters.
+* {lit}`main-proof-complete`: 15 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 10 chapters.
+* {lit}`partial`: 9 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -51,7 +51,7 @@ Ch  Chapter                                                     Status          
  4  4. Divide-and-Conquer                                       partial (edition coverage)           4.1;4.2;4.3;4.4;4.5;4.6            82        3
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1;5.2;5.3;5.4                    25        0
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                78        0
- 7  7. Quicksort                                                partial (edition coverage)           7.1;7.2;7.3;7.4                    30        1
+ 7  7. Quicksort                                                main-proof-complete                  7.1;7.2;7.3;7.4                    34        0
  8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.1;8.2;8.3;8.4                    36        0
  9  9. Medians and Order Statistics                             main-proof-complete                  9.1;9.2;9.3                        72        0
 10  10. Elementary Data Structures                              main-proof-complete                  10.1;10.2;10.3                     21        0

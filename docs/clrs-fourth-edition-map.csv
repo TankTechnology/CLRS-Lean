@@ -26,7 +26,7 @@ chapter_no,section_no,chapter_title,section_title,migration_state,source_modules
 7,7.1,Quicksort,Description of quicksort,facade,CLRSLean.Chapter_07,CLRS third edition Chapter 7,The current Chapter 7 guide supplies the represented proof interface during the compatibility period.
 7,7.2,Quicksort,Performance of quicksort,facade,CLRSLean.Chapter_07,CLRS third edition Chapter 7,The current Chapter 7 guide supplies the represented proof interface during the compatibility period.
 7,7.3,Quicksort,A randomized version of quicksort,facade,CLRSLean.Chapter_07,CLRS third edition Chapter 7,The current Chapter 7 guide supplies the represented proof interface during the compatibility period.
-7,7.4,Quicksort,Analysis of quicksort,partial,CLRSLean.Chapter_07,CLRS third edition Chapter 7,The current Chapter 7 development supplies related results but does not yet seal every fourth-edition obligation for this section.
+7,7.4,Quicksort,Analysis of quicksort,facade,CLRSLean.Chapter_07,CLRS third edition Chapter 7,"The expected running time of randomized quicksort is proved: E[X] = Σ_{i<j} 2/(j-i+1) (indicator decomposition) and the Θ(n log n) bound (Theorem 7.1)."
 8,8.1,Sorting in Linear Time,Lower bounds for sorting,facade,CLRSLean.Chapter_08,CLRS third edition Chapter 8,The current Chapter 8 guide supplies the represented proof interface during the compatibility period.
 8,8.2,Sorting in Linear Time,Counting sort,facade,CLRSLean.Chapter_08,CLRS third edition Chapter 8,The current Chapter 8 guide supplies the represented proof interface during the compatibility period.
 8,8.3,Sorting in Linear Time,Radix sort,facade,CLRSLean.Chapter_08,CLRS third edition Chapter 8,The current Chapter 8 guide supplies the represented proof interface during the compatibility period.

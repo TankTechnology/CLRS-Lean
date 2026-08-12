@@ -903,6 +903,28 @@ completing the direct proof spine for Chapter 7.
 - Current gap: none for the selected mathematical scope.  A lower-level
   mutable-array execution-cost/RAM refinement is optional.
 
+### Section 7.4 - Analysis of quicksort
+
+- Lean source: `CLRSLean/Chapter_07/Section_07_4_Analysis_Of_Quicksort.lean`
+- Status: `proved` for the expected running time of randomized quicksort
+- Main proved theorems:
+  - `CLRS.Chapter07.expectedRunningTime` — the expected running time,
+    identified with the expected number of comparisons `E[X]` (each comparison
+    performs O(1) work and dominates all other operations)
+  - `CLRS.Chapter07.expectedRunningTime_eq_sum_compared_prob` — the indicator
+    decomposition `E[X] = Σ_{i<j} P[z_i and z_j are compared] = Σ_{i<j} 2/(j-i+1)`
+    (CLRS §7.4.2, connecting the §7.3 probability model to the closed form)
+  - `CLRS.Chapter07.expectedRunningTime_le_two_mul` — `E[X] ≤ 2n·H_n`, an
+    explicit O(n log n) upper bound
+  - `CLRS.Chapter07.expectedRunningTime_isBigTheta_nlogn` — CLRS Theorem 7.1:
+    the expected running time is `Θ(n log n)`
+- Proof pattern: reuse the §7.3 expected-comparison closed form and the
+  pairwise comparison-probability sum; the §7.4 layer frames these as the
+  expected running time and restates the asymptotic bound as the expected-time
+  theorem.
+- Current gap: lower-level mutable-array execution-cost/RAM refinement and
+  sharp tail bounds remain optional.
+
 ## Chapter 8 - Sorting in Linear Time
 
 ### Section 8.1 - Lower bounds for sorting
