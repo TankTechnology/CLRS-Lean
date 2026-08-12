@@ -5052,8 +5052,29 @@ in a legacy initialization module that is also cataloged as online material.
   `greedyCost_le_fuel` (the fuel bound `|U| · (1 - 1/|C|)^N < 1` implies
   `greedyCost ≤ N`), and the exponential comparison `1 - 1/k ≤ e^{-1/k}` with
   `L = ⌈ln |X|⌉ + 1` chosen so that `|X| · e^{-L} < 1`.
-- Remaining chapter scope: Sections 35.4--35.5 (randomized rounding and the
-  subset-sum FPTAS) are not represented.
+
+### Section 35.4 - Randomization and Linear Programming
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming.lean`
+- Status: native fourth-edition section — randomization (MAX-3-CNF) and linear
+  programming (weighted vertex cover).
+- Proved results: the `Literal`/`Assignment`/`Is3CNFClause` model,
+  `card_assignments_fixing_three` (assignments fixing three distinct variables
+  number `2^(n-3)`), and `unsatisfied_prob` (a valid 3-CNF clause is
+  unsatisfied with probability `1/8` under a uniformly random assignment).
+  Theorem 35.5 is the randomized `8/7`-approximation of MAX-3-CNF:
+  `max3cnf_clause_satisfied_prob` (per-clause satisfaction probability `7/8`),
+  `max3cnf_expect_satisfied` (linearity of expectation gives the expected
+  `7/8 · |F|` satisfied clauses), and `max3cnf_approx` (every assignment is
+  matched in expectation to at least `7/8` of the clauses it satisfies).  For
+  the LP part, `IsFractionalCover` is the vertex-cover LP relaxation,
+  `roundCover` is the `1/2`-threshold rounding of APPROX-MIN-WEIGHT-VC, and
+  Theorem 35.6 is `roundCover_isVertexCover` (correctness) with
+  `approxMinWeightVC_two_approx` (the rounded cover weighs at most twice the LP
+  objective, hence at most twice an optimal cover).
+- Remaining chapter scope: Section 35.5 (the subset-sum FPTAS) is not
+  represented.
 
 ## Deferred And Blocked Items
 

@@ -1,6 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem
 import CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem
 import CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem
+import CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming
 
 /-!
 # Chapter 35 — Approximation Algorithms
@@ -40,8 +41,17 @@ shrink of the uncovered set — that GREEDY-SET-COVER is an `O(lg |X|)`-
 approximation algorithm (Theorem 35.4).  It is imported through
 [Section 35.3](CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem/).
 
-The remaining sections — 35.4-35.5 (randomized rounding and the subset-sum
-FPTAS) — are not yet represented.
+Section 35.4 (randomization and linear programming) is a native fourth-edition
+section: it proves the randomized `8/7`-approximation of MAX-3-CNF (Theorem
+35.5), where a clause with three literals over distinct variables is satisfied
+with probability `7/8` under a uniformly random assignment and linearity of
+expectation gives the `7/8 · |F|` bound, and the factor-two LP-rounding
+approximation of minimum-weight vertex cover (Theorem 35.6), where rounding the
+fractional cover `x` up at the `1/2` threshold costs at most twice the LP
+objective.  It is imported through
+[Section 35.4](CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming/).
+
+The remaining section — 35.5 (the subset-sum FPTAS) — is not yet represented.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

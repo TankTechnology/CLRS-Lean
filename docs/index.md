@@ -375,6 +375,7 @@ CLRSLean/FourthEdition/Chapter_33/Section_33_3_Gradient_Descent.lean
 CLRSLean/FourthEdition/Chapter_35/Section_35_1_The_Vertex_Cover_Problem.lean
 CLRSLean/FourthEdition/Chapter_35/Section_35_2_The_Traveling_Salesperson_Problem.lean
 CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem.lean
+CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
 CLRSLean/Extensions/TreapHeight.lean
