@@ -1,25 +1,11 @@
-import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow
-import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath
-import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow
-import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow
-import CLRSLean.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow
+import CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs
 
 /-!
-# 29.2 Formulating problems as linear programs
+# 29.2. Formulating Problems as Linear Programs (legacy compatibility path)
 
-This section contains the four textbook formulations: shortest path, maximum
-flow, minimum-cost flow, and multicommodity flow.
-
-## Implementation details
-
-* [Common finite-network definitions](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/NetworkFlow/)
-* [Shortest-path LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/ShortestPath/)
-* [Maximum-flow LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MaximumFlow/)
-* [Minimum-cost-flow LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MinimumCostFlow/)
-* [Multicommodity-flow LP](CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MulticommodityFlow/)
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
-
-namespace CLRS
-namespace Chapter29
-end Chapter29
-end CLRS

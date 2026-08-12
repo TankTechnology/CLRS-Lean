@@ -43,20 +43,20 @@ import CLRSLean.OnlineMaterial
 | --- | --- | --- |
 | Chapters 1--13 | `CLRSLean.Chapter_01`--`CLRSLean.Chapter_13` | Same chapter number; section differences are recorded in the edition map. |
 | Chapter 14, Dynamic Programming | `CLRSLean.Chapter_15` | Shifted facade. |
-| Chapter 15, Greedy Algorithms | `CLRSLean.Chapter_16` | Shifted facade; matroid and task-scheduling material is supplementary. |
-| Chapter 16, Amortized Analysis | `CLRSLean.Chapter_17` | Shifted facade. |
+| Chapter 15, Greedy Algorithms | `CLRSLean.FourthEdition.Chapter_15` (native §15.1--15.3) | Sections 15.1--15.3 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_16.Section_16_1..3_*` forward to them. Matroid and task-scheduling material is supplementary online material. |
+| Chapter 16, Amortized Analysis | `CLRSLean.FourthEdition.Chapter_16` (native §16.1--16.4) | Sections 16.1--16.4 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_17.Section_17_*` forward to them. Declarations retain the `CLRS.Chapter17` namespace pending the chapter-by-chapter namespace migration. |
 | Chapter 17, Augmenting Data Structures | `CLRSLean.Chapter_14` | Shifted facade. |
 | Chapter 18, B-Trees | `CLRSLean.Chapter_18` | Same chapter number. |
-| Chapter 19, Data Structures for Disjoint Sets | `CLRSLean.Chapter_21` | Shifted facade. |
-| Chapter 20, Elementary Graph Algorithms | `CLRSLean.Chapter_22` | Shifted facade. |
-| Chapter 21, Minimum Spanning Trees | `CLRSLean.Chapter_23` | Shifted facade. |
-| Chapter 22, Single-Source Shortest Paths | `CLRSLean.Chapter_24` | Shifted facade. |
-| Chapter 23, All-Pairs Shortest Paths | `CLRSLean.Chapter_25` | Shifted facade. |
-| Chapter 24, Maximum Flow | `CLRSLean.Chapter_26` | Shifted facade. |
+| Chapter 19, Data Structures for Disjoint Sets | `CLRSLean.FourthEdition.Chapter_19` (native §19.1--19.4) | Sections 19.1--19.4 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_21.Section_21_*` forward to them. Declarations retain the `CLRS.Chapter21` namespace pending the chapter-by-chapter namespace migration. |
+| Chapter 20, Elementary Graph Algorithms | `CLRSLean.FourthEdition.Chapter_20` (native §20.1--20.5) | Sections 20.1--20.5 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_22.Section_22_*` forward to them. Declarations retain the `CLRS.Chapter22` namespace pending the chapter-by-chapter namespace migration. |
+| Chapter 21, Minimum Spanning Trees | `CLRSLean.FourthEdition.Chapter_21` (native §21.1--21.2) | Sections 21.1--21.2 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_23.Section_23_*` forward to them. Declarations retain the `CLRS.MST` namespace. |
+| Chapter 22, Single-Source Shortest Paths | `CLRSLean.FourthEdition.Chapter_22` (native §22.1--22.5) | Sections 22.1--22.5 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_24.Section_24_*` forward to them. Declarations retain the `CLRS.Chapter24` namespace pending the chapter-by-chapter namespace migration. |
+| Chapter 23, All-Pairs Shortest Paths | `CLRSLean.FourthEdition.Chapter_23` (native §23.1--23.3) | Sections 23.1--23.3 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_25.Section_25_*` forward to them. Declarations retain the `CLRS.Chapter24.WeightedGraph` namespace. |
+| Chapter 24, Maximum Flow | `CLRSLean.FourthEdition.Chapter_24` (native §24.1--24.3, 24.6) | Sections 24.1--24.3 and 24.6 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_26.Section_26_*` forward to them. Declarations retain the `CLRS.Chapter26` namespace. |
 | Chapter 25, Matchings in Bipartite Graphs | `CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching` (native §25.1) | Native section: maximum bipartite matching revisited; sections 25.2--25.3 not-started. |
-| Chapter 26, Parallel Algorithms | `CLRSLean.Chapter_27` | Shifted facade. |
+| Chapter 26, Parallel Algorithms | `CLRSLean.FourthEdition.Chapter_26` (native §26.1--26.3) | Sections 26.1--26.3 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_27.Section_27_*` forward to them. Declarations retain the `CLRS.Chapter27` namespace. |
 | Chapter 27, Online Algorithms | none | New fourth-edition chapter; not started. |
-| Chapters 28--32 | `CLRSLean.Chapter_28`--`CLRSLean.Chapter_32` | Same chapter number, with explicit section-level differences. |
+| Chapters 28--32 | `CLRSLean.FourthEdition.Chapter_28`--`CLRSLean.FourthEdition.Chapter_32` (native, same section numbers) | Same chapter number with explicit section-level differences; the legacy `CLRSLean.Chapter_NN.Section_*` files forward to the fourth-edition sources during the compatibility period. |
 | Chapter 33, Machine-Learning Algorithms | none | New fourth-edition chapter; not started. |
 | Chapters 34--35 | none | Not started. |
 

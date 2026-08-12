@@ -1,21 +1,11 @@
-import CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Definitions
-import CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Correctness
-import CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Costs
+import CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT
 
-/-! # Section 30.3: Iterative radix-2 FFT
+/-!
+# 30.3. Iterative Radix-2 FFT (legacy compatibility path)
 
-The iterative development separates the ordered stage execution, its recursive
-half-factorization proof, and the execution-attached exact cost analysis.
-
-Implementation pages:
-
-- [Definitions](CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions/)
-- [Correctness](CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness/)
-- [Costs](CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs/)
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
-
-namespace CLRS
-namespace Chapter30
-
-end Chapter30
-end CLRS

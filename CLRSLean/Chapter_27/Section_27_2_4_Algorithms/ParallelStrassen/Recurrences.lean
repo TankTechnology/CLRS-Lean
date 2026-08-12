@@ -1,12 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Definitions
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.Monotonicity
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences
 
 /-!
-# Chapter 27 extension — parallel Strassen recurrences
+# Chapter 27 Extension — Parallel Strassen Recurrences (legacy compatibility path)
 
-Compatibility aggregator for the parallel-Strassen recurrence definitions,
-exact power-of-two solutions, monotonicity, adjacent-power sandwiches, and
-all-input asymptotic bounds.  This extension is not a Chapter 27 main-text
-section.
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
