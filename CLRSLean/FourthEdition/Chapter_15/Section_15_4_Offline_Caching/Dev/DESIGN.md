@@ -343,6 +343,225 @@ absent helpers `repair_q''_absent_dead` / `repair_q''_absent_dead_long`
 derivable from the state by the branch-analysis half 2 (the exchange never
 evicts a dead page: `e s ∈ E_s ∪ {q₀'}`, `q'' ∉ E_s ∪ {q₀'}`).
 
+**Progress (2026-08-11, fourth batch, kernel-checked)**:
+`repair_keep_swap_cur_qp_dead` — the current-schedule q''-dead keep-swap
+(the dead-page analogue of `repair_keep_swap_cur`: nop = `t₂`, `hq''dead`
+replaces `hj''`/`hjj''` via `getD_ne_of_nextUse_none` + `hJlen`, base case
+`repairSchedule_base_swap_qp_dead`; same `hd_eq`/`hnot`/
+`exchange_no_evict_q`/`hnotE`/`b2_ehit` structure).  It supplies
+`reverse_diff_chain_qp_dead`'s `hkept` for the B2-q''-dead step.  The
+q-dead B2 step needs **no** keep-swap: `repair_step_swap_q_dead` and
+`reverse_diff_chain_q_dead` are already generic in the schedule.
+
+**Progress (2026-08-11, fifth batch, kernel-checked)**: the `hnotE`
+derivation (`Dev/B8_HnotE.lean` + `Dev/search_hnot.py`).  The DESIGN's
+"`q''ᵢ` requested at `nᵢ ≤ s`, kept" mechanism is **empirically false**
+(172 of 180 later requests of a pair page have `q''ᵢ ∉ D_s` — the current
+schedule re-evicts it, e.g. `σ=[1,1,3,4,1,3,2,3]`, B2 at 6).  The correct
+mechanism (0 violations in the same search): at window positions off `P`,
+the exchange never hits where the current schedule faults.  Three lemmas:
+
+- `pair_q''_absent_d`: after the repair at `tᵢ` evicts `q''ᵢ`, the page
+  stays out of the current cache until its first request `nᵢ` (clean
+  induction, request-avoidance only) — the nop no-op-ness and the
+  `q''ₖ ≠ q''ᵢ` distinctness at other nops;
+- `pair_page_in_D_of_in_E`: the joint E⟹D induction — for every alive past
+  pair with `nᵢ < s`, `q''ᵢ ∈ E_s ⟹ q''ᵢ ∈ D_s`.  The step's only obstacle
+  is the e-hit-at-d-fault (`σ[s] ∈ E_s − D_s`): the chain pushes `σ[s]`
+  into `Q.image`, and the pair analysis (dead / before-`nₗ` / at-`nₗ`-in-P /
+  after-`nₗ`-via-the-IH) contradicts it; at an e-fault with `q'' = σ[s]`
+  (the request) both caches gain `σ[s]` directly;
+- `b2_hnotE`: the assembly — `σ[s] ∈ E_s` ⟹ `σ[s] ∈ Q.image` (chain) ⟹
+  dead / `s < nᵢ` / `s = nᵢ` (`hP_in`) / `s > nᵢ` (`pair_page_in_D_of_in_E`
+  gives `q''ᵢ ∈ D_s`, contradicting the d-fault).
+
+The induction uses `Nat.strong_induction_on` with the `s−1` step (the
+plain `induction s with` succ-intro mis-elaborates the nested ∀ when
+∀-typed hypothesis binders are in scope — see B8's commit note).
+
+**Progress (2026-08-11, sixth batch, kernel-checked)**: the case-step
+extension glue for the composition invariants — `extend_hpast`,
+`extend_hQfifo`, `extend_hP`, `extend_hP_in`, `extend_hcomp`,
+`extend_hpair` (alive variants, `P' = P ∪ {t₂, t₂+1+j''}`) and
+`extend_hP_dead`, `extend_hP_in_dead`, `extend_hcomp_dead` (dead-page
+variants, `P' = P ∪ {t₂}`), all in B7.  Each takes the old state's
+invariant over `Q`/`P`/`d` plus the step's facts (`r t₂ = q''`,
+`r nop = q''`, `r s = d s` off `{t₂, nop}`, `schedCache r = schedCache d`
+up to `t₂`, `σ[t₂]` fault, `q''` resident, `hpast`, `hj''` or
+`hq''dead`) and produces the invariant over `Q' = insert (t₂, q'') Q`,
+`P'`, and `r`.  The new pair's positions are witnessed by the new pair
+itself (the nop witness's `j''₀` is pinned to `j''` by nextUse
+uniqueness); a new nop overwriting an old `P`-position is covered by the
+new witness.  `extend_hpair` covers both the alive and dead cases (the
+dead pair never satisfies the `nextUse = some` premise).  **hQ's
+extension is a separate open design problem** (see the next block).
+
+**hQ-extension blocker (2026-08-11, verified by exhaustive search)**:
+the state field `hQ` (`∀ (tᵢ, q'') ∈ Q, nextUse = none ∨ ∃ j'', some j''
+∧ t0 < tᵢ+1+j''`) **does not hold over the full-history Q** — a pair
+whose nop has passed (`nᵢ ≤ t₂+1` at a case-B step) can never satisfy
+`t₂+1 < nᵢ` in the new state.  Over σ of length 4-9, alphabet {1..4},
+both d₀ policies: 10236 B1 + 688 B2 steps have an old pair with
+`nᵢ ≤ t₂`, 212 B1 + 312 B2 steps have `nᵢ = t₂+1`, and **988 B2 steps
+are reached from a state whose hQ is already broken** (e.g.
+σ=[1,1,4,3,4,2,1], C₀={1,2}, max: B1 at 5 is the pair (3,2)'s nop, then
+B2 at 6 with the pair still in Q).  Pruning broken pairs from Q does
+**not** work either: the reverse-diff chain `E − D ⊆ Q.image` needs the
+full page history — the pruned chain fails 37956× at all positions and
+4588× at future positions (e.g. σ=[1,1,3,4,1,2,3,1], C₀={1,2}, min: at
+position 6 = the pruned pair's nop, `3 ∈ E_6 − D_6`).  What does hold
+(0 violations): at B2 disagreements σ[t₂] is **never** a broken pair's
+page, and the e-hit at B2 is 0 — the consumers (`b2_ehit_ne`,
+`b2_hnotE`) only ever consult the pair whose page equals the request, and
+that pair is never broken.  So the resolution is a design change, not a
+proof: either (a) the state carries the full pair history for the chain
+**and** a separate "live" set (pairs with `nᵢ > t0`, dead pairs) for
+`hQ`, with `b2_ehit_ne`/`b2_hnotE`/`past_pair_first_request_after`
+restated over the live set; or (b) the consumers are restated to take the
+state's hQ at bound `st.t0` and derive the strict `t₃ < nᵢ` only for the
+consulted pair (whose page is the request — never broken empirically, but
+the "requested-again at a B2 disagreement" exclusion needs the
+last-repair/nop analysis).  Also open: the new pair's own hQ clause needs
+`0 < j''` (the new nop `t₂+1+j''` strictly after `t₂+1`); `j'' = 0`
+never occurs empirically but is consistent with the step's local
+hypotheses (d hits at `t₂+1` on `q''`, FIF faults) — so the assembly
+will need either a global argument or a separate boundary case.
+
+**hQ supply core done (2026-08-12, kernel-checked)** — the supply
+lemmas that the two options share:
+
+- `extend_hQ` (B7): the glue — `Q' = insert (t₂, q'') Q` at the new
+  bound `t₂+1`; the old pairs pass through (premise at the new bound),
+  the new pair's clause needs `0 < j''`;
+- `b2_hQ_j''_pos` (B7): the `0 < j''` global argument — `j'' = 0`
+  would give `σ[t₂+1] = q''` (getD_eq_nextUse), contradicting the
+  exchange's fault at `t₂+1` (`hnotE`) against `q''`'s residence in the
+  exchange cache (resident + the reverse-diff chain);
+- `b2_hQ_supply_old` (B9): the consumers' strengthened bound at the B2
+  disagreement — `∀ pairs ∈ st.Q, dead ∨ t₂ < nᵢ` — the exact
+  instantiation of `past_pair_first_request_after` on the state fields
+  (`hqin` = the B2-resident).  This is the "consulted pair is never
+  broken" form the consumers (`b2_ehit_ne`, `b2_hnotE`,
+  `repair_keep_swap_cur`) take.
+
+**Open (the assembly's live-set/boundary choice)**: the new state's hQ
+at `t₂+1` still excludes the pairs with `nᵢ = t₂+1` (their nop at the
+new t0 — 312 B2 steps empirically); those need option (a)'s live set or
+the per-page credit (the pair's page `σ[t₂+1]` is requested at the new
+t0, so it is never the B2 request `σ[t₃]` of a later disagreement — the
+exclusion the DESIGN's "requested-again" analysis would formalize).
+
+**Slack-accounting blocker (2026-08-11, verified by exhaustive search,
+`Dev/search_slack.py`)**: the B1 step's slack invariant `bad ≤ slack`
+(`bad = 1{σ[J'''] ∈ D_{J'''}}`, the `slack − bad` bookkeeping) is
+**empirically false**: with the exact accounting (each exchange `+1`
+iff its bad event did not occur; each B1 `−bad`; B2 repairs free) the
+slack goes negative in **492 traces** over σ of length 4-9, alphabet
+{1..4}, both d₀ policies.  Minimal counterexample: σ=[1,1,3,2,4,1,2,4],
+C₀={1,2}, max — A at 2 (bad, slack 0), B2 at 4 (q''=3 dead, free), B1
+at 5 with `bad` (σ[7]=4 ∈ D_7) at slack 0 → −1.  The B1 is legal
+(`σ[5]=1 ∉ {2,4}`, `d 5 = 3 ∉ cache`; the bad is real — the B2 at 4
+re-kept 4).  The supply pairing (the exchange's `+1` iff `¬bad`,
+`window_branch1_once` + `evicted_page_absent_until_request`) covers
+**exactly** the B1-bads with `d t₂ = q₀'` (the window page): of the
+3836 B1-bads, 2796 have `d t₂ = q₀'` — all with the exchange's bad
+NOT occurring and `slack ≥ 1` (0 slack-0); the other 1040 have
+`d t₂ ≠ q₀'` — `d t₂` is a past pair's page (`exchange_evict_mem_or_q'`
+gives `e t₂ ∈ E_{t₂} ∪ {q₀'}`, `d t₂ ∉ D_{t₂}` pushes it into
+`E_{t₂} − D_{t₂} ⊆ Q.image`) — and 492 of these have `slack = 0` (172
+at old nop positions `t₂ ∈ P`).  Also tried: crediting the B2-q''-dead's
+exact saving (`schedMisses r + 1 ≤ schedMisses d` — the repair keeps
+`q`, so it hits where `d` faults at the good event `J = t₂+1+j`; the
+pointwise difference is exactly 1) — reduces the crashes to 228 but
+does not close the gap.
+
+**q₀'-half done (2026-08-11, B7, kernel-checked)**: the q₀'-B1 slack
+supply — `exchangeSchedule_eq_q'_imp_d_eq_q'` (the branch-1 reverse:
+the exchange's decision at `s > t₀` equals `q₀'` iff the source's
+value does — branch 1 fires on `d_pre s = q₀'`, branches 4-6 evict
+`E − D` pages (`q₀' ∉ E` via `exchangeSchedule_q'_absent`), and the
+`else 0` is excluded by the fault + the cardinality argument),
+`b1_exchange_no_bad_q0` (the supply: `d t₂ = q₀'`, `t₂ ∉ P`, the
+source and the exchange both faulting at `t₂` — all verified over the
+2796 cases — give `q₀' ∉ D₀_{J'₀}`: the branch-1 reverse gives
+`d_pre t₂ = q₀'`; `window_branch1_once` gives `t₂` is the window's
+first branch-1; the forward induction (`q₀'` kept from `t₀+1`: no
+branch-1 eviction, requests `≠ q₀'` by `getD_ne_nextUse`) gives the
+real eviction `q₀' ∈ D₀_{t₂}`; the `evicted_page_absent_until_request`
+induction in its t₂ form (using `hj'₀`'s bounds directly, no nextUse
+shift) gives `q₀' ∉ D₀_{J'₀}`) and `b1_bad_le_slack_q0` (`bad ≤ slack`
+for the q₀'-B1 given `1 ≤ slack`).  The `1 ≤ slack` derivation is the
+assembly's: the q₀'-B1 is the first step after the exchange (0
+intermediate steps in all 2796 cases), so the slack there is the
+exchange's `slack' = slack + 1` (the `¬bad` branch of
+`iterate_main_exchange`).
+
+**Case one done (2026-08-11, `iterate_main_case_one`, B7, kernel-checked)**:
+the q'-dead exchange step — agreement to `t + 1`, slack `+1` iff `q` is
+requested again (`exchangeSchedule_misses_le_plus_one`'s `Or.inl`
+branch via `iterate_main_exchange`; `q` dead: misses equal by
+`exchangeSchedule_misses_eq_case_one`), and reduced from `t + 1` on
+except the branch-1 positions (`d s = q'` — the exchange evicts `q'`
+as a no-op, not resident; the lemma states the disjunct
+`e s ∈ E_s ∨ d s = q'`; the branch-1 fault is at most one, by the
+`window_branch1_once` argument).  **The flagged iteration-target
+reconsideration is not needed**: the q-dead sub-case's final agreement
+*is* attainable — over σ of length 4-9, alphabet {1..4}, both d₀
+policies, the 69326 q-dead case-one steps' traces end with
+`agreeWithFIF d σ σ.length` in **all** cases (0 disagreements) — the
+exchange's cache coincides with FIF's from `t+1` on (the exchange
+evicts `q'` — the same page FIF evicts — and the later steps handle
+any drift), and the q-dead exchange's reducedness has **0 violations**
+(empirically; the branch-1 faults occur only in the q-alive case,
+7384 of 152364).  Open: the state's `hdred` field for the case-one
+needs the branch-1 at-most-once handling (the assembly's question —
+the OR-form's branch-1 disjunct must be excluded from the reducedness
+range, e.g. `hnb'` past the branch-1 position, or the exchange's
+reducedness stated per-fault with the `d s = q'` exception).
+
+**Non-q₀' B1 pairing proposal (2026-08-11, data by `Dev/search_slack.py`
+variants)**: the 1040 non-q₀' B1-bads have `d t₂` = an alive pair's
+page (248), a dead pair's page (376), or something outside `Q.image`
+(416 — the branch analysis needed: `d t₂ = e t₂ ∈ E_{t₂} − D_{t₂} ⊆
+Q.image` for `t₂ ∉ P`; the 416 suggest `d t₂ = q₀` or the analysis
+needs the exchange's eviction path); 188 are at the pair's nop
+position.  The mechanism (traces): the B1's bad on `q''` is a real +1
+at `J'''` (the repair faults where `d` hits) covered **only** by an
+earlier credit, and a window can contain **two** B1-bads (e.g.
+σ=[1,1,3,4,1,2,3,2,4], min — A at 2 (¬bad, +1), B1 at 3 (bad), B1 at
+6 = the pair (3,3)'s nop (bad) — the plain accounting crashes).  The
+credits identified:
+1. the exchange's `+1` iff `¬bad` (the q₀'-B1 half — done);
+2. the **alive-alive B2's exact net** — **done (2026-08-12,
+   `repair_step_swap_exact_net`, B6, kernel-checked)**: the strong
+   repair's pointwise balance is `rF = dF − 1{J} + 1{bad at J''}` — the
+   good at `J` can occur without the bad at `J''` (the repair saves
+   exactly 1, e.g. σ=[1,1,3,2,1,3,2,1,3]: the B2 at 4 keeps 3 — good at
+   5, its bad at 6 does not occur — the −1 covers the later B1's bad on
+   3 at 8).  Formal: `schedMisses r + 1 ≤ schedMisses d + bad` (the
+   slack credit `+1 − bad`), proved via the pointwise `rF + 1{J} ≤ eF`
+   off `J''` and the J'' identity `eF J'' + bad = 1` with `rF J'' ≤ 1`;
+
+3. the B2-q''-dead's exact saving (`rF + 1 ≤ dF`, slack +1).
+Counting: plain 492 crashes → +B2-q''-dead credit 228 → +alive-alive
+net credit (candidate C) 164.  The residual 164 all have a window with
+**two** B1-bads (the first consumes the exchange's +1; the second's
+`q''` has no pending good on its page).  The pairing direction: the
+B1's bad on `q''` is covered iff the page `q''` has a **pending good**
+(an earlier good event on `q''` not yet consumed by a bad on `q''` —
+the "keeper" step that kept `q''` in its cache); the past pair whose
+page `d t₂` is (the user's suggested pairing) identifies the window's
+page history at the B1 (the 188 nop-cases are the pair's own nop
+positions).  **Open**: (a) the exact invariant form for the pending
+goods (the per-page balance can go negative — the exchange's bad on
+`q₀'` has no good on its page — so the pending-good accounting needs
+the window-global form); (b) the Nat-slack algebra for
+`slack + good − bad` (the credits precede the debits within a step,
+`j < j''`, but the hbook derivation `(dF + bad − good) + (good − bad) ≤
+dF` needs the case analysis); (c) the 416 d-not-in-Q cases; (d) the
+simulator does not check the step lemmas' hypotheses (some simulated
+states may be unreachable — the crash counts are upper bounds).
+
 **Remaining for `iterate_main`**: the case steps take the bridge hypotheses
 `hnot`/`hnotE`/`hqinE`/`ht₂notP` as inputs; the induction must supply them
 per step, which needs: (1) the branch analysis — `e s ∈ E_s ∪ {q₀'}` at
@@ -366,18 +585,12 @@ fault, `q''ᵢ` resident, `d tᵢ = q''ᵢ`, preserved by later repairs since
 `tᵢ < t₂` and the caches agree up to `t₂`).  The derivation: `t ∈ P ⟹
 t = tᵢ` (contradicts `hpast`) or `t = nᵢ` — the invariant gives `d t =
 q''`, and `evicted_page_absent_until_request` gives `q'' ∉ D_t`, so
-`d t ∉ D_t`, contradicting B2-resident.  **Remaining**: the
-`hcomp`/`hP`/`hpair`-extension glue in the case steps (the induction's
-state carries them; the case-B2/B1 lemmas' outputs need the extensions),
-and the `hnotE` (`Q''`-exclusion at window faults) — at a fault
-`s ∈ (t₂, J]` with `σ[s] = q''ᵢ`, `q''ᵢ` was requested at `s ≥ nᵢ`; the
-request `σ[s] = q''ᵢ` at a `d`-fault (`σ[s] ∉ D_s`) contradicts `q''ᵢ ∈
-D_s` (requested at `nᵢ ≤ s`, kept — needs "the current schedule never
-evicts `q''ᵢ` after its request", the branch-analysis half 2: `e s' ≠
-q''ᵢ` from `e s' ∈ E_{s'} ∪ {q₀'}` and `q''ᵢ ∉ E_{s'} ∪ {q₀'}` —
-`q''ᵢ ≠ q₀'` by `q₀' ∉ D_{tᵢ}` vs `q''ᵢ ∈ D_{tᵢ}` (FIF-resident),
-`q''ᵢ ∉ E_{s'}` by the chain + the request-avoidance — **still open**);
-(3) the dead-page case
+`d t ∉ D_t`, contradicting B2-resident.  **Done (sixth batch, B7,
+kernel-checked)**: the `hcomp`/`hP`/`hP_in`/`hpair`/`hpast`/`hQfifo`
+extension glue (the `extend_*` lemmas above); the `hnotE` derivation
+(`pair_q''_absent_d`/`pair_page_in_D_of_in_E`/`b2_hnotE`, B8 —
+kernel-checked, fifth batch).  **Open**: the hQ extension (see the
+hQ-extension blocker above).  Then (3) the dead-page case
 steps (B2-q-dead, B2-q''-dead via `repair_keep_swap_cur_qp_dead`,
 B1-dead); then the induction (`exists_first_disagree_after` + the case
 steps + the window-state threading — note `hj₀` cannot exist when the
@@ -391,11 +604,15 @@ An exact iteration simulator (directly computing every B2's good event
 `main` / `search2` / `search3`) over σ of length 4-9, alphabet {1,2,3,4},
 C₀ = {1,2}/{1,2,3}, and both smallest/largest-resident d₀ policies found:
 
-- **0 slack crashes** with exact accounting (each exchange `+1` iff its bad
-  event did not occur; each B1 `−1` iff *its* bad event occurs; B2 strong
-  and dead-page repairs free);
 - **0 keep-swap failures**: `q ∈ Ŝ_J` held for every alive-alive B2, so
   the strong repair is genuinely slack-free in the iteration.
+- The "**0 slack crashes** with exact accounting" claim is **stale and
+  false** (2026-08-11, `Dev/search_slack.py`): `search_iter.search2`
+  stops after its first 3 *conservative*-accounting crashes and never
+  reaches the exact-accounting ones.  A full run of the exact accounting
+  (each exchange `+1` iff its bad event did not occur; each B1 `−1` iff
+  its bad event occurs; B2 repairs free) **crashes 492 times** — see the
+  slack-accounting blocker below.
 
 Conservative "B1 always costs 1" accounting does crash (3 traces, e.g.
 σ=[1,1,3,2,1,3,2], d₀=max), but every crash trace has the B1's `q'''` a
@@ -403,7 +620,8 @@ Conservative "B1 always costs 1" accounting does crash (3 traces, e.g.
 the bad event not occurring.  So the slack bookkeeping must be exact:
 B1 costs `1{J'''}` (paid iff `e` hits `q'''` at `J'''`), supplied by the
 exchange's `+1` iff its bad event did not occur — the pairing that
-`window_branch1_once` + `evicted_page_absent_until_request` give.
+`window_branch1_once` + `evicted_page_absent_until_request` give — but
+this supply covers **only** the `d t₂ = q₀'` B1s (see the blocker).
 
 ### `iterate_main` design (2026-08-10, second pass — diff invariant refined)
 
@@ -506,6 +724,65 @@ Supporting lemmas (new, `Dev/B7_Iteration.lean`):
 Estimated 2-3 focused sessions for items 2-6, then one for the
 `fifo_optimal` assembly and the Dev→S3 merge.
 
+**Case-one branch-1 verified (2026-08-12, `Dev/search_caseone.py`)** —
+exact-iteration search over σ of length 4-9, alphabet {1..4}, C₀ =
+{1,2}/{1,2,3}, d₀ ∈ {min-junk0, min-junkC, max-junk0, adversarial
+(hit-evictions prefer dead pages — a legitimate policy)}:
+
+1. branch-1 spots (exchange-fault ∧ `d s = q'`): **at most one** per
+   case-one exchange (7384 total, 0 multi) — the at-most-once holds
+   even under adversarial hit-junk;
+2. every branch-1 spot is a **d-fault** (0 spot-dHit) — a real
+   eviction of `q'`, so the `window_branch1_once` mechanism (q' leaves
+   D forever) applies without the window bound;
+3. `D_s − E_s ⊆ {q'}` throughout case one (0 D-E-bad) and **no
+   exchange-fault at a d-hit** (0 exFault-dHit) — the exchange-fault ⟹
+   d-fault mechanism;
+4. **the next disagreement after a case-one exchange lands exactly on
+   the branch-1 spot when one exists** (7384 next<hnb', t₂ = s₁ — e.g.
+   σ=[1,1,3,4,1], C₀={1,2}: t=2, q=1, q'=2, spot=3, next disagreement
+   t₂=3; the exchange's no-op eviction grows its cache, so agreement
+   at s₁+1 is impossible) — the plain "hnb' = s₁+1" plan does **not**
+   make the next step case A; the assembly must instead handle the
+   branch-1 spot as a B1-like step (with `win = none` the window
+   machinery is vacuous: `windowExchange none e = e`), or the case-one
+   step must absorb it.  Never below the old hnb (0 next<hnb).
+
+**Case-one hdred supply done (2026-08-12, `Dev/B10_CaseOne_Hdred.lean`,
+kernel-checked, no sorry)** — the at-most-once machinery and the `hnb'`
+construction:
+
+1. `case_one_hq'ne_bounded`: `hnone` gives the bounded no-`q'`-requests
+   fact on `[t+1, σ.length)`;
+2. `case_one_D_minus_E_subset_q'`: `D_s − E_s ⊆ {q'}` over
+   `[t+1, σ.length]` — the d-hit case forces the exchange hit; at double
+   faults the exchange evicts `q'` (branch 1) or `d s` (branch 5) —
+   `case_one_exchange_decision_at_d_fault`;
+3. `case_one_exchange_fault_imp_d_fault`: exchange faults are d-faults;
+4. `case_one_branch1_once`: the `window_branch1_once` at-most-once with
+   `hnone` in place of the window bound.
+
+**Junk-position obstruction (verified by construction + search with page
+0)**: the `hdred` field is unbounded, but at `s ≥ σ.length` the request is
+the junk page 0.  The at-most-once fails there: a policy whose junk
+eviction is `q'` (reachable when `q' = 0`, e.g. σ=[1,1,0,1,3], C₀={1,2},
+t=4 — the search finds 3 junk spots in its frozen-cache model; in Lean's
+evolving junk the spots are ≤ 1) breaks the plain reducedness.  So the
+plain field from a finite `hnb'` is NOT attainable: `case_one_hdred_supply`
+sets `hnb' = σ.length + 2` (`case_one_junk_hit`: 0 is in the exchange's
+cache from then on, so it never faults — the field is vacuous at junk),
+instantiating `CaseOneHdredHyp`.
+
+**Assembly consequence (still open)**: with `hnb' = σ.length + 2` the
+next disagreement (which the verified search shows lands exactly on the
+branch-1 spot `s₁`) satisfies `t₂ = s₁ < hnb'` — case B with `win = none`.
+The case-one step must absorb the branch-1 repair (the repair evicts
+FIF's page at `s₁` and restores agreement at `s₁+1`), or a no-window
+B-step construction is needed.
+
+**Paused (2026-08-12)** — 4th-edition migration (feat/migration branch)
+took priority; `CaseOneHdredHyp` + the at-most-once lemma remain open.
+
 ## File layout
 
 - `Dev/B2_Dev.lean` (done): `first_disagree_fault`, `after_J_rel1/rel2`,
@@ -523,8 +800,26 @@ Estimated 2-3 focused sessions for items 2-6, then one for the
   `b2_ehit_ne`, `b2_no_evict_q`, `b2_hswap`, `b2_hswap_qp_dead`,
   `reverse_diff_chain_qp_dead`, `reverse_diff_chain_q_dead` (done,
   kernel-checked) and `iterate_main_exchange` (the case-A step, done);
-  next the current-schedule keep-swap (see the B2 step assembly section),
-  the case-B1/B2 step lemmas, then the `iterate_main` induction and
-  `fifo_optimal`; then verification (axioms, `lake build CLRSLean`,
-  `check_repository.py`, docs, progress CSV) and merge of all `Dev/`
-  lemmas into `S3_Optimality.lean`.
+  `iterate_main_case_one` (the case-one step, done — see the case-one
+  block above);
+  the current-schedule keep-swap (done: `repair_keep_swap_cur` alive-alive,
+  `repair_keep_swap_cur_qp_dead` q''-dead; the q-dead step needs none);
+  the case-B1/B2 step lemmas (B1-alive, B1-dead, B2-alive done);
+  the case-step extension glue (done, sixth batch: `extend_hpast`,
+  `extend_hQfifo`, `extend_hP`, `extend_hP_in`, `extend_hcomp`,
+  `extend_hpair`, `extend_hP_dead`, `extend_hP_in_dead`,
+  `extend_hcomp_dead`); next the hQ-extension design (see the
+  hQ-extension blocker above), the wiring of the `extend_*` lemmas into
+  the case-step outputs, the slack accounting (blocked — see the
+  slack-accounting blocker above: `bad ≤ slack` is empirically false,
+  the supply covers only the `d t₂ = q₀'` B1s), then the `iterate_main`
+  induction and `fifo_optimal`; then verification (axioms,
+  `lake build CLRSLean`, `check_repository.py`, docs, progress CSV) and
+  merge of all `Dev/` lemmas into `S3_Optimality.lean`.
+- `Dev/search_slack.py` (done, 2026-08-11): the exact-accounting crash
+  scan — 492 counterexamples to `bad ≤ slack` at B1, the cross-tab of
+  the 3836 B1-bads (2796 q₀'-covered / 1040 other, 492 slack-0), and
+  the minimal counterexample σ=[1,1,3,2,4,1,2,4].  The credit
+  candidates (B2-q''-dead +1, alive-alive net +1{J}−1{bad}) are
+  evaluated in the DESIGN's non-q₀' pairing proposal (228 / 164
+  residual crashes).

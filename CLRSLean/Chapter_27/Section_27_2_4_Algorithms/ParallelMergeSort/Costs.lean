@@ -1,10 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Step
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.RecurrenceLinks
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Work
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMergeSort.Costs.Span
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs
 
-/-! # CLRS Chapter 27.3 — P-MERGE-SORT Execution Costs
+/-!
+# 27.3. P-MERGE-SORT — Costs (legacy compatibility path)
 
-This navigation module collects exact step costs, recurrence links, pointwise
-work/span bounds, and the matching worst-family span witness.
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/

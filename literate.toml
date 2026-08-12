@@ -271,12 +271,106 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
 "CLRSLean.FourthEdition.Chapter_15" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching",
 ]
 "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching" = [
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality",
+]
+"CLRSLean.FourthEdition.Chapter_16" = [
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework",
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables",
+]
+"CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework" = [
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter",
+]
+"CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables" = [
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables",
+]
+"CLRSLean.FourthEdition.Chapter_19" = [
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_3_Disjoint_Set_Forests",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis",
+]
+"CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis" = [
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.CostedExecution",
+  "CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.InverseAckermann",
+]
+"CLRSLean.FourthEdition.Chapter_20" = [
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_1_Representing_Graphs",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_2_BFS",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_4_Topological_Sort",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components",
+]
+"CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS" = [
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S1_WhitePath",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S2_Intervals",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S3_Bridge",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S4_SCC",
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S5_EdgeClassification",
+]
+"CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components" = [
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components.MergeSortCongr",
+]
+"CLRSLean.FourthEdition.Chapter_21" = [
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_1_Growing_Minimum_Spanning_Trees",
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim",
+]
+"CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim" = [
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S1_UnionFindBridge",
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S2_StatefulKruskal",
+  "CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S3_ExecutablePrim",
+]
+"CLRSLean.FourthEdition.Chapter_22" = [
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_1_Bellman_Ford",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_2_SSSP_In_DAGs",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_3_Dijkstra",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_4_Difference_Constraints",
+  "CLRSLean.FourthEdition.Chapter_22.Section_22_5_Shortest_Path_Properties",
+]
+"CLRSLean.FourthEdition.Chapter_23" = [
+  "CLRSLean.FourthEdition.Chapter_23.Section_23_1_All_Pairs_Model",
+  "CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall",
+  "CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm",
+]
+"CLRSLean.FourthEdition.Chapter_24" = [
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_1_Flow_Networks",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut",
+]
+"CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp" = [
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.Ford_Fulkerson_Augmentation",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S1_ShortestAugmentingPath",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S2_EK_Loop",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S3_WorkAnalysis",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S4_ExecutableBFS",
+]
+"CLRSLean.FourthEdition.Chapter_26" = [
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms",
+]
+"CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model" = [
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S1_ComputationDAG",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S2_ReadyExecution",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S3_GreedyAccounting",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S4_ExecutableScheduler",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S5_SpawnTreeAndLoops",
+]
+"CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms" = [
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S1_CostModel",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S2_Recurrences",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S3_AllInputBounds",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen",
 ]
 "CLRSLean.FourthEdition.Chapter_25" = [
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching",
@@ -527,6 +621,96 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Correctness",
   "CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Costs",
 ]
+"CLRSLean.FourthEdition.Chapter_31" = [
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_3_Modular_Arithmetic",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_5_Chinese_Remainder_Theorem",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_6_Powers_Of_An_Element",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_7_RSA",
+  "CLRSLean.FourthEdition.Chapter_31.Section_31_8_Primality_Testing",
+]
+"CLRSLean.FourthEdition.Chapter_32" = [
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model",
+]
+"CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model" = [
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
+]
+
+"CLRSLean.Chapter_33" = [
+  "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
+]
+"CLRSLean.FourthEdition.Chapter_27" = [
+  "CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator",
+  "CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List",
+]
+"CLRSLean.FourthEdition.Chapter_28" = [
+  "CLRSLean.FourthEdition.Chapter_28.Section_28_1_Linear_Equations",
+  "CLRSLean.FourthEdition.Chapter_28.Section_28_2_Inverting_Matrices",
+  "CLRSLean.FourthEdition.Chapter_28.Section_28_3_Symmetric_Positive_Definite",
+]
+"CLRSLean.FourthEdition.Chapter_30" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations",
+]
+"CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S1_CoefficientVectors",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S2_PointValueInterpolation",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S3_RepresentationOperations",
+]
+"CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S1_RootsOfUnity",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S2_DFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S3_InversionAndConvolution",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.PolynomialMultiplication",
+]
+"CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations" = [
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT",
+  "CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT",
+]
+"CLRSLean.FourthEdition.Chapter_29" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality",
+]
+"CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence",
+]
+"CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow",
+]
+"CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality" = [
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Definitions",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.WeakDuality",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Optimality",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlackness",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.TerminalCertificate",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.DictionaryBridge",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.StrongDuality",
+  "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlacknessTheorem",
+]
+"CLRSLean.FourthEdition.Chapter_33" = [
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
+  "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique",
+]
+
 "CLRSLean.Chapter_31" = [
   "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
   "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
@@ -557,6 +741,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
+]
+"CLRSLean.FourthEdition.Chapter_35" = [
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
@@ -619,6 +810,15 @@ title = "Chapter 14. Dynamic Programming"
 [modules."CLRSLean.FourthEdition.Chapter_15"]
 title = "Chapter 15. Greedy Algorithms"
 
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection"]
+title = "15.1. Activity Selection"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta"]
+title = "15.2. Greedy-Choice Property and Optimal Substructure (Meta-Theorems)"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes"]
+title = "15.3. Huffman Codes"
+
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching"]
 title = "15.4. Offline caching"
 
@@ -634,6 +834,18 @@ title = "Optimality"
 [modules."CLRSLean.FourthEdition.Chapter_16"]
 title = "Chapter 16. Amortized Analysis"
 
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework"]
+title = "16.1-16.3. Amortized Analysis Methods"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter"]
+title = "Stack and Counter Examples"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables"]
+title = "16.4. Dynamic Tables"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables"]
+title = "Mutable-Array Tables and Sharper Potential"
+
 [modules."CLRSLean.FourthEdition.Chapter_17"]
 title = "Chapter 17. Augmenting Data Structures"
 
@@ -643,20 +855,137 @@ title = "Chapter 18. B-Trees"
 [modules."CLRSLean.FourthEdition.Chapter_19"]
 title = "Chapter 19. Data Structures for Disjoint Sets"
 
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations"]
+title = "19.1. Disjoint-Set Operations"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation"]
+title = "19.2. Linked-List Representation of Disjoint Sets"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_3_Disjoint_Set_Forests"]
+title = "19.3. Disjoint-Set Forests"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis"]
+title = "19.4. Analysis of Union by Rank with Path Compression"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.CostedExecution"]
+title = "Costed Union-Find Execution"
+
+[modules."CLRSLean.FourthEdition.Chapter_19.Section_19_4_Analysis.InverseAckermann"]
+title = "Inverse-Ackermann Amortization"
+
 [modules."CLRSLean.FourthEdition.Chapter_20"]
 title = "Chapter 20. Elementary Graph Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_1_Representing_Graphs"]
+title = "20.1. Representing Graphs"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_2_BFS"]
+title = "20.2. Breadth-First Search"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS"]
+title = "20.3. Depth-First Search"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S1_WhitePath"]
+title = "White-Path Theorem"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S2_Intervals"]
+title = "Intervals and Timestamps"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S3_Bridge"]
+title = "Discovery-State Bridge"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S4_SCC"]
+title = "SCC Preliminaries"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S5_EdgeClassification"]
+title = "Edge Classification"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_4_Topological_Sort"]
+title = "20.4. Topological Sort"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components"]
+title = "20.5. Strongly Connected Components"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components.MergeSortCongr"]
+title = "Merge-Sort Congruence"
 
 [modules."CLRSLean.FourthEdition.Chapter_21"]
 title = "Chapter 21. Minimum Spanning Trees"
 
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_1_Growing_Minimum_Spanning_Trees"]
+title = "21.1. Growing a Minimum Spanning Tree"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim"]
+title = "21.2. Kruskal and Prim"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S1_UnionFindBridge"]
+title = "Union-Find Refinement"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S2_StatefulKruskal"]
+title = "Stateful Kruskal"
+
+[modules."CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S3_ExecutablePrim"]
+title = "Executable Prim"
+
 [modules."CLRSLean.FourthEdition.Chapter_22"]
 title = "Chapter 22. Single-Source Shortest Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_1_Bellman_Ford"]
+title = "22.1. The Bellman-Ford Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_2_SSSP_In_DAGs"]
+title = "22.2. Single-Source Shortest Paths in DAGs"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_3_Dijkstra"]
+title = "22.3. Dijkstra's Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_4_Difference_Constraints"]
+title = "22.4. Difference Constraints and Shortest Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_22.Section_22_5_Shortest_Path_Properties"]
+title = "22.5. Proofs of Shortest Paths"
 
 [modules."CLRSLean.FourthEdition.Chapter_23"]
 title = "Chapter 23. All-Pairs Shortest Paths"
 
+[modules."CLRSLean.FourthEdition.Chapter_23.Section_23_1_All_Pairs_Model"]
+title = "23.1. All-Pairs Shortest Paths Model"
+
+[modules."CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall"]
+title = "23.2. The Floyd-Warshall Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm"]
+title = "23.3. Johnson's Algorithm for Sparse Graphs"
+
 [modules."CLRSLean.FourthEdition.Chapter_24"]
 title = "Chapter 24. Maximum Flow"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_1_Flow_Networks"]
+title = "24.1. Flow Networks"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp"]
+title = "24.2. The Edmonds-Karp Algorithm (partial)"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.Ford_Fulkerson_Augmentation"]
+title = "Ford-Fulkerson Augmentation Foundation (partial)"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S1_ShortestAugmentingPath"]
+title = "Shortest Augmenting Paths"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S2_EK_Loop"]
+title = "The Edmonds-Karp Loop"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S3_WorkAnalysis"]
+title = "The O(VE²) Work Analysis"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S4_ExecutableBFS"]
+title = "Executable BFS"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching"]
+title = "24.3. Maximum Bipartite Matching (partial)"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut"]
+title = "Theorem 24.6. Max-Flow Min-Cut (partial)"
 
 [modules."CLRSLean.FourthEdition.Chapter_25"]
 title = "Chapter 25. Matchings in Bipartite Graphs"
@@ -698,6 +1027,134 @@ title = "Berge's Lemma and the Flow Method"
 
 [modules."CLRSLean.FourthEdition.Chapter_26"]
 title = "Chapter 26. Parallel Algorithms"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model"]
+title = "26.1. The Basics of Dynamic Multithreading"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S1_ComputationDAG"]
+title = "26.1 S1. Computation DAGs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S2_ReadyExecution"]
+title = "26.1 S2. Ready Execution"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S3_GreedyAccounting"]
+title = "26.1 S3. Greedy Accounting"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S4_ExecutableScheduler"]
+title = "26.1 S4. Executable Scheduler"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S5_SpawnTreeAndLoops"]
+title = "26.1 S5. Spawn Trees and Parallel Loops"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms"]
+title = "26.2-26.3. Multithreaded Algorithms (Historical 2_4 Compatibility)"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S1_CostModel"]
+title = "26.2-26.3 S1. Costed Execution Model"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S2_Recurrences"]
+title = "26.2-26.3 S2. Parallel Recurrences"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S3_AllInputBounds"]
+title = "26.2-26.3 S3. All-Input Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix"]
+title = "26.2. Parallel Matrix Algorithms"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Definitions"]
+title = "26.2. Parallel Matrix Algorithms — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Correctness"]
+title = "26.2. Parallel Matrix Algorithms — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs"]
+title = "26.2. Parallel Matrix Algorithms — Cost Analysis"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.Definitions"]
+title = "26.2. Exact Matrix Costs — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.ExecutionEqualities"]
+title = "26.2. Exact Matrix Costs — Execution Equalities"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.Monotonicity"]
+title = "26.2. Matrix Costs — Monotonicity"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.PowerBounds"]
+title = "26.2. Matrix Costs — Power-of-Two Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatrix.Costs.AllInputBounds"]
+title = "26.2. Matrix Costs — All-Input Asymptotics"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge"]
+title = "26.3. Parallel Merge"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Definitions"]
+title = "26.3. Parallel Merge — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.MergeSplit"]
+title = "26.3. P-MERGE — Normalized Split Data"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge"]
+title = "26.3. P-MERGE"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Definitions"]
+title = "26.3. P-MERGE — Executable Definition"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness"]
+title = "26.3. P-MERGE — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Boundaries"]
+title = "26.3. P-MERGE Correctness — Order Boundaries"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Permutation"]
+title = "26.3. P-MERGE Correctness — Permutation"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.PMerge.Correctness.Main"]
+title = "26.3. P-MERGE Correctness — Strong Induction"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound"]
+title = "26.3. Binary Lower Bound"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound.Definitions"]
+title = "26.3. Binary Lower Bound — Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound.Correctness"]
+title = "26.3. Binary Lower Bound — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound.Costs"]
+title = "26.3. Binary Lower Bound — Costs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Correctness"]
+title = "26.3. Parallel Merge — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs"]
+title = "26.3. P-MERGE — Costs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Structure"]
+title = "26.3. P-MERGE Costs — Structural Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Step"]
+title = "26.3. P-MERGE Costs — One Step"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work"]
+title = "26.3. P-MERGE Costs — Linear Work"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work.LogPotential"]
+title = "26.3. P-MERGE Work — Logarithmic Potential"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Work.Bounds"]
+title = "26.3. P-MERGE Work — Pointwise Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span"]
+title = "26.3. P-MERGE Costs — Quadratic-Log Span"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.Envelope"]
+title = "26.3. P-MERGE Span — Three-Quarter Envelope"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.Bounds"]
+title = "26.3. P-MERGE Span — Pointwise Upper Bound"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.WitnessLists"]
+title = "26.3. P-MERGE Span — Interleaved Witness Lists"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.Costs.Span.LowerBound"]
+title = "26.3. P-MERGE Span — Matching Lower Witness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort"]
+title = "26.3. P-MERGE-SORT"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Definitions"]
+title = "26.3. P-MERGE-SORT — Executable Definition"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Correctness"]
+title = "26.3. P-MERGE-SORT — Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Correctness.Spec"]
+title = "26.3. P-MERGE-SORT Correctness — Specification"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Correctness.Main"]
+title = "26.3. P-MERGE-SORT Correctness — Strong Induction"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs"]
+title = "26.3. P-MERGE-SORT — Costs"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Step"]
+title = "26.3. P-MERGE-SORT Costs — Exact Steps"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.RecurrenceLinks"]
+title = "26.3. P-MERGE-SORT Costs — Recurrence Links"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Work"]
+title = "26.3. P-MERGE-SORT — Work"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Work.Bounds"]
+title = "26.3. P-MERGE-SORT Work — Pointwise Bounds"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span"]
+title = "26.3. P-MERGE-SORT — Span"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.Bounds"]
+title = "26.3. P-MERGE-SORT Span — Pointwise Upper Bound"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.WitnessInput"]
+title = "26.3. P-MERGE-SORT Span — Recursive Witness Input"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.MapInvariance"]
+title = "26.3. P-MERGE-SORT Span — Order-Map Invariance"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMergeSort.Costs.Span.LowerBound"]
+title = "26.3. P-MERGE-SORT Span — Matching Lower Witness"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrences"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrences"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences.Definitions"]
+title = "Chapter 27 Extension — Parallel Strassen Recurrence Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences.Monotonicity"]
+title = "Chapter 27 Extension — Parallel Strassen Monotonicity"
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen.Recurrences.AllInputBounds"]
+title = "Chapter 27 Extension — Parallel Strassen All-Input Bounds"
 
 [modules."CLRSLean.FourthEdition.Chapter_27"]
 title = "Chapter 27. Online Algorithms"
@@ -711,15 +1168,128 @@ title = "27.2. Maintaining a Search List"
 [modules."CLRSLean.FourthEdition.Chapter_28"]
 title = "Chapter 28. Matrix Operations"
 
+[modules."CLRSLean.FourthEdition.Chapter_28.Section_28_1_Linear_Equations"]
+title = "28.1. Solving Systems of Linear Equations"
+
+[modules."CLRSLean.FourthEdition.Chapter_28.Section_28_2_Inverting_Matrices"]
+title = "28.2. Inverting Matrices"
+
+[modules."CLRSLean.FourthEdition.Chapter_28.Section_28_3_Symmetric_Positive_Definite"]
+title = "28.3. Symmetric Positive-Definite Matrices and Least Squares"
+
 [modules."CLRSLean.FourthEdition.Chapter_29"]
 title = "Chapter 29. Linear Programming"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms"]
+title = "29.1. Standard and Slack Forms"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Definitions"]
+title = "29.1. Standard-Form Definitions"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SlackVariables"]
+title = "29.1. Canonical Slack Variables"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.Equivalence"]
+title = "29.1. Standard/Slack Equivalence"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs"]
+title = "29.2. Formulating Problems as Linear Programs"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.NetworkFlow"]
+title = "29.2. Finite Network Model"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.ShortestPath"]
+title = "29.2. Shortest Paths as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MaximumFlow"]
+title = "29.2. Maximum Flow as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MinimumCostFlow"]
+title = "29.2. Minimum-Cost Flow as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow"]
+title = "29.2. Multicommodity Flow as an LP"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality"]
+title = "29.4. Duality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Definitions"]
+title = "29.4. Dual Feasibility"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.WeakDuality"]
+title = "29.4. Weak Duality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Optimality"]
+title = "29.4. Primal and Dual Optimality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlackness"]
+title = "29.4. Complementary-Slackness Gap Identity"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.TerminalCertificate"]
+title = "29.4. Terminal Dual Certificates"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.DictionaryBridge"]
+title = "29.4. Dictionary/Primal Bridge"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.StrongDuality"]
+title = "29.4. Strong Duality"
+[modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlacknessTheorem"]
+title = "29.4. Complementary-Slackness Theorem"
 
 [modules."CLRSLean.FourthEdition.Chapter_30"]
 title = "Chapter 30. Polynomials and the FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials"]
+title = "30.1. Representing Polynomials"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S1_CoefficientVectors"]
+title = "30.1 S1. Fixed-Capacity Coefficient Vectors"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S2_PointValueInterpolation"]
+title = "30.1 S2. Point-Value Interpolation"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_1_Representing_Polynomials.S3_RepresentationOperations"]
+title = "30.1 S3. Representation Operations"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT"]
+title = "30.2. The DFT and FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S1_RootsOfUnity"]
+title = "30.2 S1. Roots of Unity"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S2_DFT"]
+title = "30.2 S2. The Generic DFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.S3_InversionAndConvolution"]
+title = "30.2 S3. Inversion and Convolution"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT"]
+title = "30.2. Recursive Radix-2 FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Definitions"]
+title = "30.2 FFT 1. Recursive Execution"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Correctness"]
+title = "30.2 FFT 2. Recursive Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT.Costs"]
+title = "30.2 FFT 3. Exact and Padded Costs"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.PolynomialMultiplication"]
+title = "30.2. FFT Polynomial Multiplication"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations"]
+title = "30.3. Efficient FFT Implementations"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal"]
+title = "30.3 FFT 1. Bit-Reversal Permutation"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT"]
+title = "30.3. Iterative Radix-2 FFT"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Definitions"]
+title = "30.3 FFT 2. Iterative Stage Execution"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Correctness"]
+title = "30.3 FFT 3. Iterative Correctness"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT.Costs"]
+title = "30.3 FFT 4. Exact Iterative Costs"
+[modules."CLRSLean.FourthEdition.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT"]
+title = "30.3 FFT 5. Parallel Network Size and Depth"
 
+[modules."CLRSLean.Chapter_31"]
+title = "Chapter 31. Number-Theoretic Algorithms"
+[modules."CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory"]
+title = "31.1. Elementary Number-Theoretic Notions"
+[modules."CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
+title = "31.2. Greatest Common Divisor"
+[modules."CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic"]
+title = "31.3. Modular Arithmetic"
+[modules."CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations"]
+title = "31.4. Solving Modular Linear Equations"
+[modules."CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem"]
+title = "31.5. The Chinese Remainder Theorem"
+[modules."CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element"]
+title = "31.6. Powers of an Element"
+[modules."CLRSLean.Chapter_31.Section_31_7_RSA"]
+title = "31.7. The RSA Public-Key Cryptosystem"
+[modules."CLRSLean.Chapter_31.Section_31_8_Primality_Testing"]
+title = "31.8. Primality Testing"
+[modules."CLRSLean.Chapter_31.Section_31_9_Integer_Factorization"]
+title = "31.9. Integer Factorization"
 [modules."CLRSLean.FourthEdition.Chapter_31"]
 title = "Chapter 31. Number-Theoretic Algorithms"
 
+[modules."CLRSLean.Chapter_32"]
+title = "Chapter 32. String Matching"
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
+title = "32.1. The Naive String-Matching Algorithm"
+[modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
+title = "32.1. Naive Matcher — Implementation"
 [modules."CLRSLean.FourthEdition.Chapter_32"]
 title = "Chapter 32. String Matching"
 
@@ -740,6 +1310,21 @@ title = "Chapter 34. NP-Completeness"
 
 [modules."CLRSLean.FourthEdition.Chapter_35"]
 title = "Chapter 35. Approximation Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem"]
+title = "35.1. The Vertex-Cover Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem"]
+title = "35.2. The Traveling-Salesperson Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem"]
+title = "35.3. The Set-Covering Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming"]
+title = "35.4. Randomization and Linear Programming"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem"]
+title = "35.5. The Subset-Sum Problem"
 
 [modules."CLRSLean.OnlineMaterial"]
 title = "Online Material"
@@ -1707,43 +2292,41 @@ title = "30.3 FFT 4. Exact Iterative Costs"
 
 [modules."CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.ParallelFFT"]
 title = "30.3 FFT 5. Parallel Network Size and Depth"
-[modules."CLRSLean.Chapter_31"]
+[modules."CLRSLean.FourthEdition.Chapter_31"]
 title = "Chapter 31. Number-Theoretic Algorithms"
 
-[modules."CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory"]
 title = "31.1. Elementary Number-Theoretic Notions"
 
-[modules."CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor"]
 title = "31.2. Greatest Common Divisor"
 
-[modules."CLRSLean.Chapter_31.Section_31_3_Modular_Arithmetic"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_3_Modular_Arithmetic"]
 title = "31.3. Modular Arithmetic"
 
-[modules."CLRSLean.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_4_Solving_Modular_Linear_Equations"]
 title = "31.4. Solving Modular Linear Equations"
 
-[modules."CLRSLean.Chapter_31.Section_31_5_Chinese_Remainder_Theorem"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_5_Chinese_Remainder_Theorem"]
 title = "31.5. The Chinese Remainder Theorem"
 
-[modules."CLRSLean.Chapter_31.Section_31_6_Powers_Of_An_Element"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_6_Powers_Of_An_Element"]
 title = "31.6. Powers of an Element"
 
-[modules."CLRSLean.Chapter_31.Section_31_7_RSA"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_7_RSA"]
 title = "31.7. The RSA Public-Key Cryptosystem"
 
-[modules."CLRSLean.Chapter_31.Section_31_8_Primality_Testing"]
+[modules."CLRSLean.FourthEdition.Chapter_31.Section_31_8_Primality_Testing"]
 title = "31.8. Primality Testing"
 
-[modules."CLRSLean.Chapter_31.Section_31_9_Integer_Factorization"]
-title = "31.9. Integer Factorization"
 
-[modules."CLRSLean.Chapter_32"]
+[modules."CLRSLean.FourthEdition.Chapter_32"]
 title = "Chapter 32. String Matching"
 
-[modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model"]
 title = "32.1. The Naive String-Matching Algorithm"
 
-[modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
 title = "32.1. Naive Matcher — Implementation"
 
 [modules."CLRSLean.Chapter_32.Section_32_2_Rabin_Karp"]

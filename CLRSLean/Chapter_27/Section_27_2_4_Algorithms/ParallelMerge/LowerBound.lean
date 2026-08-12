@@ -1,10 +1,11 @@
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Definitions
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Correctness
-import CLRSLean.Chapter_27.Section_27_2_4_Algorithms.ParallelMerge.LowerBound.Costs
+import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound
 
 /-!
-# CLRS Chapter 27.3 — Binary Lower Bound
+# 27.3. Binary Lower Bound (legacy compatibility path)
 
-This navigation module collects the lower-bound helper's semantic and cost
-proofs.
+Third-edition-numbered compatibility path for this module.  The canonical
+fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge.LowerBound`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/

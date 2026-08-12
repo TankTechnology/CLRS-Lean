@@ -68,8 +68,11 @@ class FourthEditionContractTest(unittest.TestCase):
 
     def test_not_started_chapter_must_have_zero_canonical_theorems(self) -> None:
         rows = [row.copy() for row in load_rows()]
-        rows[34]["tracked_key_theorems"] = "1"
-        rows[34]["proved_tracked_theorems"] = "1"
+        not_started = next(
+            i for i, r in enumerate(rows) if r["repo_status"] == "not-started"
+        )
+        rows[not_started]["tracked_key_theorems"] = "1"
+        rows[not_started]["proved_tracked_theorems"] = "1"
 
         with self.assertRaisesRegex(SystemExit, "zero tracked theorem"):
             validate(rows)
@@ -101,8 +104,10 @@ class FourthEditionContractTest(unittest.TestCase):
 
 class FourthEditionDashboardTest(unittest.TestCase):
     def test_renders_fourth_edition_snapshot_from_csv(self) -> None:
-        dashboard = render_dashboard(load_rows())
+        rows = load_rows()
+        dashboard = render_dashboard(rows)
         normalized = " ".join(dashboard.split())
+        total_tracked = f"{sum(int(r['tracked_key_theorems']) for r in rows):,}"
 
         self.assertIn("## Fourth-Edition Snapshot", dashboard)
         self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)
@@ -117,7 +122,14 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertIn("464", dashboard)
         self.assertIn("disjoint canonical and online-material ledgers", dashboard)
         self.assertNotIn("pending declaration-level remapping", dashboard)
-        self.assertIn("{lit}`not-started`: 2 chapters", dashboard)
+        not_started_count = sum(
+            1 for r in rows if r["repo_status"] == "not-started"
+        )
+        not_started_word = "chapter" if not_started_count == 1 else "chapters"
+        self.assertIn(
+            f"{{lit}}`not-started`: {not_started_count} {not_started_word}",
+            dashboard,
+        )
         self.assertNotIn("Chapters 1--29 Milestone", dashboard)
         self.assertNotIn("advertised proof scopes of Chapters 1--29 are complete", dashboard)
 

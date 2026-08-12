@@ -1,4 +1,5 @@
-import CLRSLean.Chapter_32
+import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model
+import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher
 
 /-!
 # Chapter 32 — String Matching
@@ -8,7 +9,12 @@ period.
 
 ## Current source
 
-During the compatibility period this guide imports {lit}`CLRSLean.Chapter_32`. Existing declarations retain their current namespaces until the chapter-by-chapter source migration.
+Section 32.1 is a native fourth-edition section (the string model with the
+naive matcher), imported directly from
+[Section 32.1](CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/).
+Declarations keep their current namespaces; the third-edition-numbered
+imports {lit}`CLRSLean.Chapter_32` and
+{lit}`CLRSLean.Chapter_32.Section_32_*` forward to these sources.
 
 ## Coverage boundary
 
