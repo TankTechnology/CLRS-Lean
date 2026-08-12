@@ -444,12 +444,39 @@ lemmas that the two options share:
   broken" form the consumers (`b2_ehit_ne`, `b2_hnotE`,
   `repair_keep_swap_cur`) take.
 
+**Per-page hQ formalized (2026-08-12, `Dev/B14_PerPageHQ.lean`,
+kernel-checked)** — option (b) in the per-page form: the consumers take
+the per-page hQ (`dead ∨ t₂ < nᵢ ∨ credited q''`) instead of the
+full-history field.  The empirical structure (verified in the same
+search): at every B2 disagreement `σ[t]` is never the page of any past
+pair (0 of 55188), and an alive pair whose nop has passed keeps its
+page in the current cache (the "page-stays" mechanism — 684/688; the 4
+exceptions have a later dead pair with the same page, so the page's
+LAST pair is dead and the hQ's dead disjunct applies).  The file
+supplies:
+
+- `b2_ehit_ne_per_page`: the per-page consumer — `σ[t] ∉ Q.image` given
+  the per-page hQ and the exclusion (credited pages stay in the cache
+  at `t`, via the B2 fault);
+- `last_pair_page_stays`: the page-stays mechanism — the last pair with
+  page `p` keeps `p` in the cache after its nop (the induction: P
+  positions evict pair pages (`hcomp`), `tᵢ` positions exclude `p` by
+  `hlast`, nop positions are insert-erase no-ops, off-P positions by
+  the `hexcl` premise — the exchange's eviction analysis);
+- `creditedPage` / `HQPerPageHyp`: the per-page credit predicate and
+  the assembly's per-page hQ hypothesis form (the boundary pair
+  `nᵢ = t₂+1` is credited).
+
 **Open (the assembly's live-set/boundary choice)**: the new state's hQ
 at `t₂+1` still excludes the pairs with `nᵢ = t₂+1` (their nop at the
 new t0 — 312 B2 steps empirically); those need option (a)'s live set or
 the per-page credit (the pair's page `σ[t₂+1]` is requested at the new
 t0, so it is never the B2 request `σ[t₃]` of a later disagreement — the
 exclusion the DESIGN's "requested-again" analysis would formalize).
+The remaining open piece is the `hexcl` supply — the exchange's
+eviction analysis (the exchangeDecision's branches never evict a
+pair's page — empirically 0) — and the wiring of the per-page
+consumers into the B2 steps.
 
 **Slack-accounting blocker (2026-08-11, verified by exhaustive search,
 `Dev/search_slack.py`)**: the B1 step's slack invariant `bad ≤ slack`
