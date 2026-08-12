@@ -614,8 +614,8 @@ lemma fifo_nextUse_order (σ : List Page) (cache : Finset Page) (i : ℕ) (q' q 
       exact hqq' (hget.symm.trans hget')
     omega
 
-/-- 在第一个 q 请求之前(含),`d` 的 cache 不含 `q`(`d` 在 `t` 逐出 `q`,且
-`q` 在 `(t, J)` 内未被请求)。 -/
+/-- Before the first request of `q` (inclusive), `d`'s cache does not contain `q`
+(`d` evicts `q` at `t`, and `q` is not requested within `(t, J)`). -/
 lemma d_cache_ne_q (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
@@ -652,7 +652,7 @@ lemma d_cache_ne_q (d : ℕ → Page) (t : ℕ) (q q' : Page)
             exact hneq hqr.symm
           · exact ih hts (by omega) (Finset.mem_erase.mp hqin).2
 
-/-- 在第一个 q 请求之前,交换的 cache 与 d 的 cache 只差 q' 与 q 的交换。 -/
+/-- Before the first request of `q`, the exchange cache differs from `d`'s cache only by the swap of `q'` and `q`. -/
 lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q)
@@ -681,7 +681,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
         rw [schedCache]
         rw [hq]
         rw [if_neg hft]
-        -- 目标:insert r (D(t) − q') = insert q ((insert r (D(t) − q)) − q')
+        -- goal: insert r (D(t) − q') = insert q ((insert r (D(t) − q)) − q')
         have hqin : q ∈ schedCache d C₀ σ t := by
           have hd : d t ∈ schedCache d C₀ σ t := hweak t le_rfl hft
           rw [hq] at hd
@@ -736,7 +736,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
               constructor
               · exact hxne_q'
               · exact (Finset.mem_erase.mp hxin2).2
-      · -- 步进:t < s,处理位置 s
+      · -- step: t < s, process position s
         have hts : t < s := by omega
         have hsJ : s < t + 1 + j := by omega
         have hqne : q ∉ schedCache d C₀ σ s :=
@@ -755,7 +755,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
           rw [← schedCache_exchangeScheduleCore]]
         rw [schedCache]
         by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
-        · -- 双 hit
+        · -- both hit
           rw [if_pos hr]
           have hrE : σ.getD s 0 ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
             rw [ih hts (by omega)]
@@ -767,7 +767,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
             · exact hr
           rw [if_pos hrE]
           rw [ih hts (by omega)]
-        · -- 双 fault
+        · -- both fault
           rw [if_neg hr]
           have hrE : σ.getD s 0 ∉ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
             rw [ih hts (by omega)]
@@ -785,7 +785,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
           by_cases hdsq' : d s = q'
           · rw [if_pos hdsq']
             rw [hdsq']
-            -- 两侧的 erase q' 都无效果
+            -- the erase q' on both sides has no effect
             have hq'notE : q' ∉ insert q ((schedCache d C₀ σ s).erase q') := by
               rw [Finset.mem_insert]
               intro hmem
@@ -800,16 +800,16 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
               · exact (Finset.mem_erase.mp hq'mem).1 rfl
             rw [Finset.erase_eq_of_notMem hq'notE]
             rw [Finset.erase_eq_of_notMem hq'notE2]
-            -- 两侧都等于 insert q (insert r (D(s) − q'))
+            -- both sides equal insert q (insert r (D(s) − q'))
             rw [Finset.insert_comm]
           · rw [if_neg hdsq']
-            -- d s ≠ q':branch 4 不触发(σ[s] ∉ {q, q'})
+            -- d s ≠ q': branch 4 does not trigger (σ[s] ∉ {q, q'})
             by_cases hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧
                 σ.getD s 0 ∈ schedCache d C₀ σ s
             · exfalso
               exact hb4.1.elim (fun h => hsig_ne_q' h) (fun h => hsig_ne_q h)
             · rw [if_neg hb4]
-              -- d s ∈ E(s):由不变式(d s ∈ D(s) 且 d s ∉ {q, q'})
+              -- d s ∈ E(s): by the invariant (d s ∈ D(s) and d s ∉ {q, q'})
               have hdne : d s ≠ q := by
                 intro hdsq
                 exact hqne (hdsq ▸ hweak s (by omega) hr)
@@ -825,7 +825,7 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
                 rw [← hw]
                 exact hdE
               rw [if_pos hdE']
-              -- dec = d s :两侧都是 insert q (insert r (D(s) − {q', d s}))
+              -- dec = d s: both sides are insert q (insert r (D(s) − {q', d s}))
               rw [Finset.erase_insert_of_ne hdne.symm]
               rw [Finset.erase_insert_of_ne hsig_ne_q']
               have herase_comm : ((schedCache d C₀ σ s).erase q').erase (d s) =
@@ -835,9 +835,10 @@ lemma exchangeSchedule_window (d : ℕ → Page) (t : ℕ) (q q' : Page)
               rw [herase_comm]
               rw [Finset.insert_comm]
 
-/-- 当 `p` 同时在 `d` 的 cache 和交换 cache 中时,交换在 `s` 的逐出不是
-`p`(除非 `p` 是 `q'` 且 `d` 正好逐出 `q'`,这由 `hpq'` 排除;0 回退分支由
-`h0hit`/`h0fault` 结合基数论证排除)。 -/
+/-- When `p` is in both `d`'s cache and the exchange cache, the exchange's eviction
+at `s` is not `p` (unless `p` is `q'` and `d` happens to evict `q'`, which is
+excluded by `hpq'`; the 0-fallback branch is excluded by `h0hit`/`h0fault`
+together with a cardinality argument). -/
 lemma exchangeDecision_ne (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
@@ -916,8 +917,8 @@ lemma exchangeDecision_ne (d : ℕ → Page) (t : ℕ) (q q' : Page)
               exact hweak s (by omega) hr0
             exact h3 hdsin
 
-/-- 当 `σ[s] ∈ {q,q'}` 且 `d` 命中,而 `p` 同时在两个 cache 中时(branch 4
-触发),交换在 `s` 的逐出不是 `p`。 -/
+/-- When `σ[s] ∈ {q,q'}` and `d` hits, while `p` is in both caches (branch 4
+triggers), the exchange's eviction at `s` is not `p`. -/
 lemma exchangeDecision_ne_of_branch4 (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hqq' : q ≠ q')
@@ -966,8 +967,9 @@ lemma exchangeDecision_ne_of_branch4 (d : ℕ → Page) (t : ℕ) (q q' : Page)
         intro hpeq
         exact (h0hit hb4.2) (hEq ▸ hb4.2)
 
-/-- `q` 在 `d` 的 cache 中 ⟹ `q` 也在交换 cache 中(从 `t` 之后任意位置):
-`q` 只会在 `d` 逐出它时离开交换 cache,而那时 `d` 也逐出它。 -/
+/-- If `q` is in `d`'s cache then `q` is also in the exchange cache (at any position
+after `t`): `q` leaves the exchange cache only when `d` evicts it, and at that
+point `d` evicts it too. -/
 lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
@@ -984,14 +986,14 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
   | succ s ih =>
       intro hs hqin
       by_cases hs_eq : s = t
-      · -- q ∉ D(t+1):d 在 t 逐出 q,且 t 之前无 q 请求
+      · -- q ∉ D(t+1): d evicts q at t, and there is no q request before t
         subst s
         exfalso
         have hqne : q ∉ schedCache d C₀ σ (t + 1) :=
           d_cache_ne_q d t q q' σ C₀ hq hweak hft hj (by omega) (by omega)
         exact hqne hqin
       · have hts : t < s := by omega
-        -- 展开 E(s+1)
+        -- unfold E(s+1)
         rw [schedCache_exchangeScheduleCore, exchangeScheduleCore]
         dsimp
         rw [show (exchangeScheduleCore d t q q' σ C₀ s).1 =
@@ -1002,17 +1004,17 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
           rw [exchangeScheduleCore_second]
           congr 1
           rw [← schedCache_exchangeScheduleCore]]
-        -- 展开 D(s+1) 于 hqin
+        -- unfold D(s+1) in hqin
         rw [schedCache] at hqin
         by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
-        · -- d 命中:D(s+1) = D(s)
+        · -- d hits: D(s+1) = D(s)
           rw [if_pos hr] at hqin
           have hqE : q ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s :=
             ih hts hqin
           by_cases hrE : σ.getD s 0 ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
           · rw [if_pos hrE]
             exact hqE
-          · -- 坏事件:σ[s] ∈ D(s) − E(s) ⊆ {q, q'}
+          · -- bad event: σ[s] ∈ D(s) − E(s) ⊆ {q, q'}
             rw [if_neg hrE]
             have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
               by_contra hnot
@@ -1024,7 +1026,7 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
                 · exact Or.inr hqeq
                 · exact Or.inl (Finset.mem_singleton.mp hq'eq)) hr)
             rcases hqqq' with hq'eq | hqeq
-            · -- σ[s] = q':branch 4 触发,dec ≠ q
+            · -- σ[s] = q': branch 4 triggers, dec ≠ q
               have hb4 : (σ.getD s 0 = q' ∨ σ.getD s 0 = q) ∧
                   σ.getD s 0 ∈ schedCache d C₀ σ s := ⟨Or.inl hq'eq, hr⟩
               have hcard : (schedCache d C₀ σ s).card ≤
@@ -1041,19 +1043,19 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
                 · exact hcard
                 · exact fun _ => hrE
               exact Finset.mem_insert_of_mem (b := σ.getD s 0) (Finset.mem_erase.mpr ⟨hdec.symm, hqE⟩)
-            · -- σ[s] = q:与 q ∈ E(s) 矛盾
+            · -- σ[s] = q: contradicts q ∈ E(s)
               exfalso
               exact hrE (hqeq ▸ hqE)
-        · -- d 错过
+        · -- d faults
           rw [if_neg hr] at hqin
           rcases Finset.mem_insert.mp hqin with hqeq | hqin'
-          · -- q = σ[s]:交换加载 q
+          · -- q = σ[s]: the exchange loads q
             by_cases hrE : σ.getD s 0 ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
             · rw [if_pos hrE]
               exact hqeq.symm ▸ hrE
             · rw [if_neg hrE]
               exact hqeq.symm ▸ Finset.mem_insert_self (σ.getD s 0) _
-          · -- q ∈ D(s) 且 q ≠ d s
+          · -- q ∈ D(s) and q ≠ d s
             have hqD : q ∈ schedCache d C₀ σ s := (Finset.mem_erase.mp hqin').2
             have hqds : q ≠ d s := (Finset.mem_erase.mp hqin').1
             have hqE : q ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s :=
@@ -1080,8 +1082,8 @@ lemma exchangeSchedule_q_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
             · rw [if_neg hrE]
               exact Finset.mem_insert_of_mem (b := σ.getD s 0) (Finset.mem_erase.mpr ⟨hdec.symm, hqE⟩)
 
-/-- 在第一个 `q'` 请求之前(含),交换 cache 不含 `q'`(`q'` 在 `t` 被逐出,
-且 `(t, J')` 内无 `q'` 请求)。 -/
+/-- Up to and including the first `q'` request, the exchange cache does not contain
+`q'` (`q'` is evicted at `t`, and there is no `q'` request within `(t, J')`). -/
 lemma exchangeSchedule_q'_absent (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hweak : ∀ s, t ≤ s → σ.getD s 0 ∉ schedCache d C₀ σ s → d s ∈ schedCache d C₀ σ s)
@@ -1130,8 +1132,9 @@ lemma exchangeSchedule_q'_absent (d : ℕ → Page) (t : ℕ) (q q' : Page)
           · exact hsig_ne_q' hq'eq.symm
           · exact ih hts (by omega) (Finset.mem_erase.mp hq'in).2
 
-/-- 从第一个 `q'` 请求之后,`q'` 在 `d` 的 cache 中 ⟹ `q'` 也在交换 cache
-中(`q'` 在 `J'` 处被两个调度重新加载,之后只会随 `d` 一起逐出)。 -/
+/-- After the first `q'` request, if `q'` is in `d`'s cache then `q'` is also in the
+exchange cache (`q'` is reloaded by both schedules at `J'`, and afterwards only
+evicted together with `d`). -/
 lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
@@ -1149,7 +1152,7 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
   | succ s ih =>
       intro hs hqin
       by_cases hs_eq : s = t + 1 + j'
-      · -- 基础:位置 J' 处交换加载 q'
+      · -- base: at position J' the exchange loads q'
         subst s
         rw [schedCache_exchangeScheduleCore, exchangeScheduleCore]
         dsimp
@@ -1180,14 +1183,14 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
           rw [← schedCache_exchangeScheduleCore]]
         rw [schedCache] at hqin
         by_cases hr : σ.getD s 0 ∈ schedCache d C₀ σ s
-        · -- d 命中
+        · -- d hits
           rw [if_pos hr] at hqin
           have hq'E : q' ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s :=
             ih hsJ' hqin
           by_cases hrE : σ.getD s 0 ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
           · rw [if_pos hrE]
             exact hq'E
-          · -- 坏事件:σ[s] ∈ D(s) − E(s) ⊆ {q, q'},两子情况都被成员引理排除
+          · -- bad event: σ[s] ∈ D(s) − E(s) ⊆ {q, q'}, both subcases excluded by the membership lemmas
             rw [if_neg hrE]
             have hqqq' : σ.getD s 0 = q' ∨ σ.getD s 0 = q := by
               by_contra hnot
@@ -1205,16 +1208,16 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
               have hqE : q ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s :=
                 exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne s (by omega) (hqeq ▸ hr)
               exact hrE (hqeq ▸ hqE)
-        · -- d 错过
+        · -- d faults
           rw [if_neg hr] at hqin
           rcases Finset.mem_insert.mp hqin with hq'eq | hq'in
-          · -- q' = σ[s]:交换加载 q'
+          · -- q' = σ[s]: the exchange loads q'
             by_cases hrE : σ.getD s 0 ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s
             · rw [if_pos hrE]
               exact hq'eq.symm ▸ hrE
             · rw [if_neg hrE]
               exact hq'eq.symm ▸ Finset.mem_insert_self (σ.getD s 0) _
-          · -- q' ∈ D(s) 且 q' ≠ d s
+          · -- q' ∈ D(s) and q' ≠ d s
             have hts : t < s := by omega
             have hq'D : q' ∈ schedCache d C₀ σ s := (Finset.mem_erase.mp hq'in).2
             have hq'ds : q' ≠ d s := (Finset.mem_erase.mp hq'in).1
@@ -1242,7 +1245,7 @@ lemma exchangeSchedule_q'_mem (d : ℕ → Page) (t : ℕ) (q q' : Page)
             · rw [if_neg hrE]
               exact Finset.mem_insert_of_mem (b := σ.getD s 0) (Finset.mem_erase.mpr ⟨hdec.symm, hq'E⟩)
 
-/-- 好事件:在第一个 `q` 请求处,交换命中而 `d` 错过。 -/
+/-- Good event: at the first request of `q`, the exchange hits while `d` faults. -/
 lemma exchangeSchedule_good (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
@@ -1264,7 +1267,8 @@ lemma exchangeSchedule_good (d : ℕ → Page) (t : ℕ) (q q' : Page)
   · rw [hsig]
     exact d_cache_ne_q d t q q' σ C₀ hq hweak hft hj (by omega) (by omega)
 
-/-- 坏事件(交换错过而 `d` 命中)只可能发生在第一个 `q'` 请求处。 -/
+/-- The bad event (the exchange faults while `d` hits) can only occur at the first
+`q'` request. -/
 lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
@@ -1289,7 +1293,7 @@ lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
       · exact Or.inr hqeq
       · exact Or.inl (Finset.mem_singleton.mp hq'eq)) hmem)
   rcases hqqq' with hq'eq | hqeq
-  · -- σ[s] = q':排除 s < J' 和 s > J'
+  · -- σ[s] = q': exclude s < J' and s > J'
     by_cases hlt : s < t + 1 + j'
     · exfalso
       exact (getD_ne_nextUse hj' (by omega) hlt) hq'eq
@@ -1301,15 +1305,15 @@ lemma exchangeSchedule_bad (d : ℕ → Page) (t : ℕ) (q q' : Page)
             s hgt hq'in'
         exact hnot (hq'eq ▸ hq'E)
       · omega
-  · -- σ[s] = q:与 L-q 矛盾
+  · -- σ[s] = q: contradicts L-q
     exfalso
     have hqE : q ∈ schedCache (exchangeSchedule d t q q' σ C₀) C₀ σ s := by
       have hqin' : q ∈ schedCache d C₀ σ s := hqeq ▸ hmem
       exact exchangeSchedule_q_mem d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'ne s hst hqin'
     exact hnot (hqeq ▸ hqE)
 
-/-- 交换调度不比 `d` 多错过:好事件(首个 `q` 请求)补偿唯一的坏事件
-(首个 `q'` 请求)。 -/
+/-- The exchange schedule has no more misses than `d`: the good event (first `q`
+request) compensates for the unique bad event (first `q'` request). -/
 lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
     (σ : List Page) (C₀ : Finset Page)
     (hq : d t = q) (hqq' : q ≠ q')
@@ -1323,7 +1327,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
   let eF : ℕ → ℕ := schedFaultAt e C₀ σ
   let dF : ℕ → ℕ := schedFaultAt d C₀ σ
   rcases hfifo with hnone | ⟨j, j', hj, hj', hjlt⟩
-  · -- CASE A:`q'` 永不再请求
+  · -- CASE A: `q'` is never requested again
     have hq'ne_s : ∀ s, t + 1 ≤ s → s < σ.length → σ.getD s 0 ≠ q' := by
       intro s hs hlen
       have hnone' := nextUse_eq_none_iff.mp hnone
@@ -1338,7 +1342,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
       rw [List.getD_eq_getElem _ 0 hlt']
       exact List.getElem_mem hlt'
     by_cases hqreq : ∃ j, nextUse σ (t + 1) q = some j
-    · -- q 会被请求:好事件在 J 补偿一切
+    · -- q will be requested: the good event at J compensates for everything
       rcases hqreq with ⟨j, hj⟩
       have hJlen : t + 1 + j < σ.length := by
         have hjlt' : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
@@ -1348,12 +1352,12 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
       have hq'neA : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
         intro k hk1 hk2
         exact hq'ne_s k hk1 (by omega)
-      -- 逐点:s ≤ t 时 fault 相等
+      -- pointwise: fault equal for s ≤ t
       have hP0 : ∀ s, s ≤ t → eF s = dF s := by
         intro s hs
         unfold eF dF e schedFaultAt
         rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hs]
-      -- 逐点:t < s < J 时 fault 相等(窗口)
+      -- pointwise: fault equal for t < s < J (window)
       have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
         intro s hst hsJ
         unfold eF dF e schedFaultAt
@@ -1378,7 +1382,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
             · exact hne1 hqeq
             · exact hr (Finset.mem_erase.mp hmem).2
           rw [if_neg hrE']
-      -- 逐点:J < s 时 eF ≤ dF(无坏事件)
+      -- pointwise: eF ≤ dF for J < s (no bad event)
       have hP3A : ∀ s, t < s → s < σ.length → eF s ≤ dF s := by
         intro s hst hlen
         unfold eF dF e schedFaultAt
@@ -1407,9 +1411,9 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
           · rw [if_pos hrE]
             omega
           · rw [if_neg hrE]
-      -- 好事件在 J
+      -- good event at J
       have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
-      -- 拆分求和
+      -- split the sum
       have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
           (Finset.Ico (t + 1 + j + 1) σ.length) := by
         rw [Finset.disjoint_left]
@@ -1441,7 +1445,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
           (∑ s ∈ Finset.range (t + 1 + j + 1), dF s) +
             ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
         rw [← hunion, Finset.sum_union hdisj]
-      -- 第一部分:Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
+      -- first part: Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
       have hpart1 : (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) + 1 ≤
           ∑ s ∈ Finset.range (t + 1 + j + 1), dF s := by
         rw [Finset.sum_range_succ]
@@ -1463,7 +1467,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
         have hle' : (∑ s ∈ Finset.range (t + 1 + j), eF s) + 1 ≤
             (∑ s ∈ Finset.range (t + 1 + j), dF s) + 1 := Nat.add_le_add_right hle 1
         simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hle'
-      -- 第二部分:Σ_{[J+1,len)} eF ≤ Σ dF
+      -- second part: Σ_{[J+1,len)} eF ≤ Σ dF
       have hpart2 : (∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s) ≤
           ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
         apply Finset.sum_le_sum
@@ -1472,12 +1476,12 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
           have h1 : t + 1 + j + 1 ≤ s := (Finset.mem_Ico.mp hs).1
           omega
         exact hP3A s hst' (Finset.mem_Ico.mp hs).2
-      -- 组装
+      -- assemble
       unfold schedMisses
       change (∑ s ∈ Finset.range σ.length, eF s) ≤ ∑ s ∈ Finset.range σ.length, dF s
       rw [hsum_e, hsum_d]
       omega
-    · -- q 也不会被请求:无 q 请求、无 q' 请求,逐点比较即可
+    · -- q is never requested either: no q request, no q' request, pointwise comparison suffices
       have hqne_s : ∀ s, t + 1 ≤ s → s < σ.length → σ.getD s 0 ≠ q := by
         intro s hs hlen
         have hnoneq : nextUse σ (t + 1) q = none := by
@@ -1495,11 +1499,11 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
           omega
         rw [List.getD_eq_getElem _ 0 hlt']
         exact List.getElem_mem hlt'
-      -- 逐点 eF ≤ dF
+      -- pointwise eF ≤ dF
       have hP : ∀ s, s < σ.length → eF s ≤ dF s := by
         intro s hlen
         by_cases hst : s ≤ t
-        · -- cache 相等
+        · -- caches equal
           unfold eF dF e schedFaultAt
           rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hst]
         · have hts' : t < s := by omega
@@ -1529,7 +1533,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
       unfold schedMisses
       change (∑ s ∈ Finset.range σ.length, eF s) ≤ ∑ s ∈ Finset.range σ.length, dF s
       exact Finset.sum_le_sum (fun s hs => hP s (Finset.mem_range.mp hs))
-  · -- CASE B:`q` 的首次请求在 `q'` 的首次请求之前
+  · -- CASE B: the first request of `q` comes before the first request of `q'`
     have hJlen : t + 1 + j < σ.length := by
       have hjlt' : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
       rw [List.length_drop] at hjlt'
@@ -1544,12 +1548,12 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
     have hq'neB : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
       intro k hk1 hk2
       exact getD_ne_nextUse hj' hk1 (by omega)
-    -- 逐点:s ≤ t 时 fault 相等
+    -- pointwise: fault equal for s ≤ t
     have hP0 : ∀ s, s ≤ t → eF s = dF s := by
       intro s hs
       unfold eF dF e schedFaultAt
       rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hs]
-    -- 逐点:t < s < J 时 fault 相等(窗口)
+    -- pointwise: fault equal for t < s < J (window)
     have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
       intro s hst hsJ
       unfold eF dF e schedFaultAt
@@ -1574,7 +1578,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
           · exact hne1 hqeq
           · exact hr (Finset.mem_erase.mp hmem).2
         rw [if_neg hrE']
-    -- 逐点:s ≠ J' 时 eF ≤ dF(坏事件只在 J')
+    -- pointwise: eF ≤ dF for s ≠ J' (the bad event only at J')
     have hP3 : ∀ s, t < s → s < σ.length → s ≠ t + 1 + j' → eF s ≤ dF s := by
       intro s hst hlen hsne
       unfold eF dF e schedFaultAt
@@ -1590,9 +1594,9 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
         · rw [if_pos hrE]
           omega
         · rw [if_neg hrE]
-    -- 好事件在 J
+    -- good event at J
     have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB
-    -- 拆分求和
+    -- split the sum
     have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
         (Finset.Ico (t + 1 + j + 1) σ.length) := by
       rw [Finset.disjoint_left]
@@ -1624,7 +1628,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
         (∑ s ∈ Finset.range (t + 1 + j + 1), dF s) +
           ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
       rw [← hunion, Finset.sum_union hdisj]
-    -- 第一部分:Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
+    -- first part: Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
     have hpart1 : (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) + 1 ≤
         ∑ s ∈ Finset.range (t + 1 + j + 1), dF s := by
       rw [Finset.sum_range_succ]
@@ -1646,7 +1650,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
       have hle' : (∑ s ∈ Finset.range (t + 1 + j), eF s) + 1 ≤
           (∑ s ∈ Finset.range (t + 1 + j), dF s) + 1 := Nat.add_le_add_right hle 1
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hle'
-    -- 第二部分:Σ_{[J+1,len)} eF ≤ Σ dF + 1
+    -- second part: Σ_{[J+1,len)} eF ≤ Σ dF + 1
     have hpart2 : (∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s) ≤
         (∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s) + 1 := by
       have hper : ∀ s ∈ Finset.Ico (t + 1 + j + 1) σ.length,
@@ -1690,7 +1694,7 @@ lemma exchangeSchedule_misses_le (d : ℕ → Page) (t : ℕ) (q q' : Page)
         · simp [hJ'in]
       rw [hsum2] at hsum1
       exact le_trans hsum1 (Nat.add_le_add_left hsum3 _)
-    -- 组装
+    -- assemble
     unfold schedMisses
     change (∑ s ∈ Finset.range σ.length, eF s) ≤ ∑ s ∈ Finset.range σ.length, dF s
     rw [hsum_e, hsum_d]
@@ -1975,7 +1979,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
   let eF : ℕ → ℕ := schedFaultAt e C₀ σ
   let dF : ℕ → ℕ := schedFaultAt d C₀ σ
   rcases hslack with ⟨hnone, hqreq⟩ | ⟨j, j', hj, hj', hjlt, hnoBad⟩
-  · -- CASE A:`q'` 永不再请求
+  · -- CASE A: `q'` is never requested again
     have hq'ne_s : ∀ s, t + 1 ≤ s → s < σ.length → σ.getD s 0 ≠ q' := by
       intro s hs hlen
       have hnone' := nextUse_eq_none_iff.mp hnone
@@ -1998,12 +2002,12 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
     have hq'neA : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
       intro k hk1 hk2
       exact hq'ne_s k hk1 (by omega)
-    -- 逐点:s ≤ t 时 fault 相等
+    -- pointwise: fault equal for s ≤ t
     have hP0 : ∀ s, s ≤ t → eF s = dF s := by
       intro s hs
       unfold eF dF e schedFaultAt
       rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hs]
-    -- 逐点:t < s < J 时 fault 相等(窗口)
+    -- pointwise: fault equal for t < s < J (window)
     have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
       intro s hst hsJ
       unfold eF dF e schedFaultAt
@@ -2028,7 +2032,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
           · exact hne1 hqeq
           · exact hr (Finset.mem_erase.mp hmem).2
         rw [if_neg hrE']
-    -- 逐点:J < s 时 eF ≤ dF(无坏事件)
+    -- pointwise: eF ≤ dF for J < s (no bad event)
     have hP3A : ∀ s, t < s → s < σ.length → eF s ≤ dF s := by
       intro s hst hlen
       unfold eF dF e schedFaultAt
@@ -2057,9 +2061,9 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
         · rw [if_pos hrE]
           omega
         · rw [if_neg hrE]
-    -- 好事件在 J
+    -- good event at J
     have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neA
-    -- 拆分求和
+    -- split the sum
     have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
         (Finset.Ico (t + 1 + j + 1) σ.length) := by
       rw [Finset.disjoint_left]
@@ -2091,7 +2095,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
         (∑ s ∈ Finset.range (t + 1 + j + 1), dF s) +
           ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
       rw [← hunion, Finset.sum_union hdisj]
-    -- 第一部分:Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
+    -- first part: Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
     have hpart1 : (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) + 1 ≤
         ∑ s ∈ Finset.range (t + 1 + j + 1), dF s := by
       rw [Finset.sum_range_succ]
@@ -2113,7 +2117,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
       have hle' : (∑ s ∈ Finset.range (t + 1 + j), eF s) + 1 ≤
           (∑ s ∈ Finset.range (t + 1 + j), dF s) + 1 := Nat.add_le_add_right hle 1
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hle'
-    -- 第二部分:Σ_{[J+1,len)} eF ≤ Σ dF
+    -- second part: Σ_{[J+1,len)} eF ≤ Σ dF
     have hpart2 : (∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s) ≤
         ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
       apply Finset.sum_le_sum
@@ -2122,14 +2126,14 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
         have h1 : t + 1 + j + 1 ≤ s := (Finset.mem_Ico.mp hs).1
         omega
       exact hP3A s hst' (Finset.mem_Ico.mp hs).2
-    -- 组装
+    -- assemble
     unfold schedMisses
     change (∑ s ∈ Finset.range σ.length, eF s) + 1 ≤ ∑ s ∈ Finset.range σ.length, dF s
     rw [hsum_e, hsum_d]
     have h := add_le_add hpart1 hpart2
     simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using h
 
-  · -- CASE B:`q` 的首次请求在 `q'` 的首次请求之前
+  · -- CASE B: the first request of `q` comes before the first request of `q'`
     have hJlen : t + 1 + j < σ.length := by
       have hjlt' : j < (σ.drop (t + 1)).length := (nextUse_eq_some_iff.mp hj).1
       rw [List.length_drop] at hjlt'
@@ -2144,12 +2148,12 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
     have hq'neB : ∀ k, t + 1 ≤ k → k < t + 1 + j → σ.getD k 0 ≠ q' := by
       intro k hk1 hk2
       exact getD_ne_nextUse hj' hk1 (by omega)
-    -- 逐点:s ≤ t 时 fault 相等
+    -- pointwise: fault equal for s ≤ t
     have hP0 : ∀ s, s ≤ t → eF s = dF s := by
       intro s hs
       unfold eF dF e schedFaultAt
       rw [schedCache_exchangeSchedule_eq_d d t q q' σ C₀ hs]
-    -- 逐点:t < s < J 时 fault 相等(窗口)
+    -- pointwise: fault equal for t < s < J (window)
     have hP1 : ∀ s, t < s → s < t + 1 + j → eF s = dF s := by
       intro s hst hsJ
       unfold eF dF e schedFaultAt
@@ -2174,7 +2178,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
           · exact hne1 hqeq
           · exact hr (Finset.mem_erase.mp hmem).2
         rw [if_neg hrE']
-    -- 逐点:s ≠ J' 时 eF ≤ dF(坏事件只在 J')
+    -- pointwise: eF ≤ dF for s ≠ J' (the bad event only at J')
     have hP3 : ∀ s, t < s → s < σ.length → s ≠ t + 1 + j' → eF s ≤ dF s := by
       intro s hst hlen hsne
       unfold eF dF e schedFaultAt
@@ -2190,9 +2194,9 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
         · rw [if_pos hrE]
           omega
         · rw [if_neg hrE]
-    -- 好事件在 J
+    -- good event at J
     have hgood := exchangeSchedule_good d t q q' σ C₀ hq hqq' hweak hft hq'res hj hq'neB
-    -- 拆分求和
+    -- split the sum
     have hdisj : Disjoint (Finset.range (t + 1 + j + 1))
         (Finset.Ico (t + 1 + j + 1) σ.length) := by
       rw [Finset.disjoint_left]
@@ -2224,7 +2228,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
         (∑ s ∈ Finset.range (t + 1 + j + 1), dF s) +
           ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
       rw [← hunion, Finset.sum_union hdisj]
-    -- 第一部分:Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
+    -- first part: Σ_{<J+1} eF + 1 ≤ Σ_{<J+1} dF
     have hpart1 : (∑ s ∈ Finset.range (t + 1 + j + 1), eF s) + 1 ≤
         ∑ s ∈ Finset.range (t + 1 + j + 1), dF s := by
       rw [Finset.sum_range_succ]
@@ -2246,7 +2250,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
       have hle' : (∑ s ∈ Finset.range (t + 1 + j), eF s) + 1 ≤
           (∑ s ∈ Finset.range (t + 1 + j), dF s) + 1 := Nat.add_le_add_right hle 1
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hle'
-    -- 第二部分:Σ_{[J+1,len)} eF ≤ Σ dF + 1
+    -- second part: Σ_{[J+1,len)} eF ≤ Σ dF + 1
     have hpart2 : (∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s) ≤
         ∑ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, dF s := by
       have hper : ∀ s ∈ Finset.Ico (t + 1 + j + 1) σ.length, eF s ≤ dF s := by
@@ -2268,7 +2272,7 @@ lemma exchangeSchedule_misses_le_plus_one (d : ℕ → Page) (t : ℕ) (q q' : P
           rw [if_neg hnoBad]
         · exact hP3 s hst' (Finset.mem_Ico.mp hs).2 hsne
       exact Finset.sum_le_sum hper
-    -- 组装
+    -- assemble
     unfold schedMisses
     change (∑ s ∈ Finset.range σ.length, eF s) + 1 ≤ ∑ s ∈ Finset.range σ.length, dF s
     rw [hsum_e, hsum_d]
@@ -2680,8 +2684,8 @@ lemma repair_step (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
         rw [Finset.erase_insert_of_ne hsig_ne]
       rw [hE, hF]
 
-/-- B2 的窗口基础:`q = e t` 为 resident 时,repair 在 `t+1` 的 cache 是
-`insert q ((E(t+1)).erase q')`。 -/
+/-- The B2 window base: when `q = e t` is resident, repair's cache at `t+1` is
+`insert q ((E(t+1)).erase q')`. -/
 lemma repairSchedule_base_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -2752,8 +2756,8 @@ lemma repairSchedule_base_swap (e : ℕ → Page) (σ : List Page) (C₀ : Finse
   rw [hE]
   rw [Finset.insert_comm]
 
-/-- 在 `(t, J]` 窗口内,`q` 不在 `e` 的 cache 中(`e` 在 `t` 处逐出 `q`,
-且 `q` 在 `J` 之前未被请求)。 -/
+/-- Within the `(t, J]` window, `q` is not in `e`'s cache (`e` evicts `q` at `t`,
+and `q` is not requested before `J`). -/
 lemma swap_q_not_mem (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     {t : ℕ} {q : Page} (hq : e t = q) (hqin : q ∈ schedCache e C₀ σ t)
     (hft : σ.getD t 0 ∉ schedCache e C₀ σ t)
@@ -2787,9 +2791,9 @@ lemma swap_q_not_mem (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
           · exact hsig_ne hqr.symm
           · exact ih hts (by omega) (Finset.mem_erase.mp hqin2).2
 
-/-- B2 窗口的归纳步(二选一版本):swap 关系 `Ê = insert q (E − q')` 或
-B1 式关系 `Ê = E − q'` 在 `(t, J)` 内保持(前者在 `e` 逐出 `q` 时切换为
-后者)。 -/
+/-- The B2 window step (disjunctive version): the swap relation `Ê = insert q (E − q')`
+or the B1-style relation `Ê = E − q'` is preserved within `(t, J)` (the former
+switches to the latter when `e` evicts `q`). -/
 lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -2827,11 +2831,11 @@ lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Fins
         (schedCache e C₀ σ (s + 1)).erase q'
   rw [hds]
   rcases ih hts (by omega) with hrel1 | hrel2
-  · -- 关系 1:Ê(s) = insert q (E(s) − q')
+  · -- relation 1: Ê(s) = insert q (E(s) − q')
     by_cases hes : e s = q
-    · -- e s = q:hit 时关系 1 保持,fault 时切换为关系 2
+    · -- e s = q: on a hit relation 1 is preserved, on a fault it switches to relation 2
       by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
-      · -- σ[s] ∈ E:双方 hit,关系 1 保持
+      · -- σ[s] ∈ E: both hit, relation 1 preserved
         have hrE : σ.getD s 0 ∈ insert q ((schedCache e C₀ σ s).erase q') := by
           rw [Finset.mem_insert]
           right
@@ -2844,7 +2848,7 @@ lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Fins
         rw [hes]
         rw [if_pos hrE]
         rw [if_pos hr]
-      · -- fault:关系 2
+      · -- fault: relation 2
         have hrE : σ.getD s 0 ∉ insert q ((schedCache e C₀ σ s).erase q') := by
           intro hm
           rcases Finset.mem_insert.mp hm with hqeq | hmem
@@ -2883,7 +2887,7 @@ lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Fins
         rw [if_neg hr]
         rw [Finset.erase_eq_of_notMem hqnotE]
         rw [Finset.erase_insert_of_ne hsig_ne_q']
-    · -- e s ≠ q:关系 1 保持
+    · -- e s ≠ q: relation 1 preserved
       left
       rw [hrel1]
       by_cases hr : σ.getD s 0 ∈ schedCache e C₀ σ s
@@ -2915,7 +2919,7 @@ lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Fins
           ext x
           simp [Finset.mem_erase, and_left_comm, and_assoc]
         rw [herase_comm]
-  · -- 关系 2:Ê(s) = E(s) − q'(B1 式),保持
+  · -- relation 2: Ê(s) = E(s) − q' (B1-style), preserved
     right
     rw [schedCache]
     rw [hrel2]
@@ -2947,9 +2951,9 @@ lemma repairSchedule_step_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Fins
 
 
 
-/-- B2 的窗口(二选一):`q = e t` 为 resident 时,repair 的 cache 在
-`(t, J]` 内是 `insert q (E − q')`(swap 关系)或 `E − q'`(B1 式关系,
-在 `e` 逐出 `q` 之后)。 -/
+/-- The B2 window (disjunctive): when `q = e t` is resident, repair's cache within
+`(t, J]` is either `insert q (E − q')` (swap relation) or `E − q'` (B1-style
+relation, after `e` evicts `q`). -/
 lemma repairSchedule_window_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
