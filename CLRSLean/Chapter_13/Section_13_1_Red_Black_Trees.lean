@@ -1136,6 +1136,7 @@ theorem blackHeight_insert {x : Nat} {t : RBTree} (h : RedBlackShape t) :
     blackHeight (insert x t) = blackHeight t ∨ blackHeight (insert x t) = blackHeight t + 1 := by
   have hInv := @insertFixup_invariant x t (redBlackShape_redRootedRB h)
   have hHeight : blackHeight (insertFixup x t) = blackHeight t := hInv.2.1
+  classical
   by_cases hRoot : RootBlack (insertFixup x t)
   · left
     rw [insert]
@@ -2015,8 +2016,8 @@ theorem baldR_shape {l : RBTree} {k : Nat} {r : RBTree}
 
 The BST property (all keys in the left subtree are less than the root, all keys
 in the right subtree are greater) is needed for the \"key not present after delete\"
-direction of the membership theorem.  Every red-black tree is a BST, so this is
-a valid assumption for all inputs. -/
+direction of the membership theorem.  It is independent of {lit}`RedBlackShape`
+in this model and therefore appears as an explicit assumption where needed. -/
 
 /-- A binary-search-tree ordering predicate: all keys in the left subtree are less
 than the node's key, all keys in the right subtree are greater. -/

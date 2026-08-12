@@ -12,6 +12,38 @@ namespace Chapter27
 #check CompDAG.span_le_work
 #check CompDAG.speedup
 #check CompDAG.parallelism
+#check CompDAG.remainingWork
+#check CompDAG.ready
+#check CompDAG.execute
+#check CompDAG.remainingWork_execute_add_card
+#check CompDAG.longestTo_mono_work
+#check CompDAG.remainingSpan_mono
+#check CompDAG.remainingSpan_execute_le
+#check CompDAG.remainingSpan_execute_ready_add_one_le
+#check DAGScheduleStep
+#check DAGScheduleStep.after
+#check DAGScheduleStep.kind
+#check DAGScheduleStep.metricStep
+#check DAGScheduleStep.remainingWork_after_add_card
+#check DAGScheduleStep.incomplete_run_eq_ready
+#check DAGScheduleStep.incomplete_progress
+#check DAGSchedule
+#check DAGSchedule.metricSteps
+#check DAGSchedule.final_work_eq_zero
+#check DAGSchedule.toRun
+#check DAGSchedule.time_le_work_div_add_span
+#check GreedyScheduleAccounting
+#check GreedyScheduleAccounting.time
+#check GreedyScheduleAccounting.time_le_work_div_add_span
+#check GreedyStepKind
+#check GreedyScheduleTrace
+#check GreedyScheduleTrace.accounting
+#check GreedyScheduleTrace.time_le_work_div_add_span
+#check GreedyScheduleStep
+#check GreedyScheduleRun
+#check GreedyScheduleRun.trace
+#check GreedyScheduleRun.accounting
+#check GreedyScheduleRun.time_le_work_div_add_span
 #check SpawnTree
 #check SpawnTree.work
 #check SpawnTree.span
@@ -22,6 +54,8 @@ namespace Chapter27
 #check parallelLoopDepth
 #check parallelLoop_span
 #check parallelLoopDepth_pow
+#check CLRS.Chapter27.parallelLoopDepth_le_log
+#check CLRS.Chapter27.parallelLoop_span_le_log
 #check pMatMulWork
 #check pMatMulWork_unfold
 #check pMatMulWork_pow_two
@@ -42,6 +76,37 @@ namespace Chapter27
 #check strassenWork_pow_two
 #check strassenSpan
 #check strassenSpan_pow_two
+#check pMergeWork_monotone
+#check pMergeSpan_monotone
+#check pMergeSortWork_monotone
+#check pMergeSortSpan_monotone
+#check strassenWork_monotone
+#check strassenSpan_monotone
+#check pMergeWork_power_sandwich
+#check pMergeSpan_power_sandwich
+#check pMergeSortWork_power_sandwich
+#check pMergeSortSpan_power_sandwich
+#check strassenWork_power_sandwich
+#check strassenSpan_power_sandwich
+#check pMergeWork_allInput_bigTheta
+#check pMergeSpan_allInput_bigTheta
+#check pMergeSortWork_allInput_bigTheta
+#check pMergeSortSpan_allInput_bigTheta
+#check strassenWork_allInput_bigTheta
+#check strassenSpan_allInput_bigTheta
+
+example : pMergeWork 3 ≤ pMergeWork 4 :=
+  pMergeWork_monotone (by omega)
+
+example : pMergeSortSpan (2 ^ Nat.log 2 5) ≤ pMergeSortSpan 5 :=
+  (pMergeSortSpan_power_sandwich 5 (by omega)).1
+
+example : pMergeWork (2 ^ Nat.log 2 5) ≤ pMergeWork 5 ∧
+    pMergeWork 5 ≤ pMergeWork (2 ^ (Nat.log 2 5 + 1)) :=
+  Chapter04.monotone_power_sandwich pMergeWork_monotone 2 5 (by omega) (by omega)
+
+example : strassenWork 5 ≤ strassenWork (2 ^ (Nat.log 2 5 + 1)) :=
+  (strassenWork_power_sandwich 5 (by omega)).2
 
 /-- A three-node chain with unit-weight edges forward: work and span both 6. -/
 def chainDAG : CompDAG where
@@ -63,6 +128,27 @@ def forkJoinDAG : CompDAG where
   h_edges_in_bounds := by decide
   h_edges_forward := by decide
 
+/-- A one-node unit-work DAG used to exercise the completed schedule
+constructor rather than only checking declaration names. -/
+def unitDAG : CompDAG where
+  n := 1
+  node_work := fun i => if i = 0 then 1 else 0
+  edges := []
+  h_edges_in_bounds := by decide
+  h_edges_forward := by decide
+
+def unitDAGStep : DAGScheduleStep unitDAG 1 where
+  remaining := unitDAG.node_work
+  run := {0}
+  run_subset_ready := by native_decide
+  run_card_eq_min := by native_decide
+
+/-- The unit DAG has one active step and then a genuinely zero-work final
+state. -/
+def unitDAGSchedule : DAGSchedule unitDAG 1 unitDAG.node_work :=
+  .step unitDAGStep (by native_decide)
+    (.done unitDAGStep.after (by native_decide))
+
 example : chainDAG.work = 6 := by native_decide
 
 example : chainDAG.span = 6 := by native_decide
@@ -70,6 +156,14 @@ example : chainDAG.span = 6 := by native_decide
 example : forkJoinDAG.work = 7 := by native_decide
 
 example : forkJoinDAG.span = 6 := by native_decide
+
+example : unitDAGSchedule.time = 1 := by native_decide
+
+example : unitDAG.remainingWork unitDAGSchedule.finalState = 0 :=
+  unitDAGSchedule.final_work_eq_zero
+
+example : unitDAGSchedule.time ≤ unitDAG.work / 1 + unitDAG.span :=
+  unitDAGSchedule.time_le_work_div_add_span (by decide)
 
 example (G : CompDAG) : G.span ≤ G.work := G.span_le_work
 

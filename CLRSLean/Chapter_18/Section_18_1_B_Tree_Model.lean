@@ -9,6 +9,11 @@ Defines the B-tree data type, key membership, and the full structural invariants
 `splitChild_preserves_sorted`, `splitChild_preserves_childBounded`,
 `splitChild_preserves_occupancy`, and `splitChild_preserves_sameDepth`, combined
 into `splitChild_preserves_wellFormed` (all with 0 `sorry`).
+
+## Implementation details
+
+* [B-tree search](CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search/)
+* [Key count and height bound](CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/HeightBound/)
 -/
 
 namespace CLRS
@@ -28,6 +33,10 @@ def keysOf : BTree -> List Nat
   | node keys children => keys ++ children.flatMap keysOf
 
 def mem (x : Nat) (t : BTree) : Prop := x ∈ keysOf t
+
+/-- No represented key occurs more than once anywhere in the tree. -/
+def UniqueKeys (tr : BTree) : Prop :=
+  (keysOf tr).Nodup
 
 instance decidableMem (x : Nat) (t : BTree) : Decidable (mem x t) :=
   inferInstanceAs (Decidable (x ∈ keysOf t))
@@ -108,14 +117,20 @@ def ChildBounded : BTree → Prop
         | none => True)) ∧
     ∀ child ∈ children, ChildBounded child
 
+/--
+The B-tree occupancy bounds.  A non-empty root has at least one key and an
+internal root has at least two children; non-root nodes use the ordinary
+`minDegree - 1` key and `minDegree` child lower bounds.
+-/
 def Occupancy (minDegree : Nat) (isRoot : Bool) : BTree → Prop
   | node keys children =>
     let lower := if isRoot then
       (if keys.length = 0 ∧ children.isEmpty then 0 else 1) else minDegree - 1
     let upper := 2 * minDegree - 1
+    let childLower := if isRoot then 2 else minDegree
     lower ≤ keys.length ∧ keys.length ≤ upper ∧
     (children.isEmpty ∨
-      (minDegree ≤ children.length ∧ children.length ≤ 2 * minDegree)) ∧
+      (childLower ≤ children.length ∧ children.length ≤ 2 * minDegree)) ∧
     ∀ child ∈ children, Occupancy minDegree false child
 
 def heightOf : BTree → Nat
@@ -130,6 +145,10 @@ inductive SameDepth : BTree → Prop
 
 def WellFormed (minDegree : Nat) (t : BTree) : Prop :=
   Sorted t ∧ ChildBounded t ∧ Occupancy minDegree true t ∧ SameDepth t
+
+/-- Structural B-tree well-formedness plus global key uniqueness. -/
+def WellFormedUnique (t : Nat) (tr : BTree) : Prop :=
+  WellFormed t tr ∧ UniqueKeys tr
 
 theorem WellFormed.valid {minDegree : Nat} {t : BTree}
     (hmin : 2 ≤ minDegree) (_h : WellFormed minDegree t) : Valid minDegree t := by
@@ -655,7 +674,6 @@ theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
             [BTree.node leftKeys leftCh, BTree.node rightKeys rightCh] ++
             drop (i + 1) children).length = children.length + 1 := by
           simp; omega
-        have h_occ_copy : Occupancy t true (node keys children) := h_occ
         refine ⟨?_, ?_, ?_, ?_⟩
         · -- lower bound: the newKeys list is non-empty (contains medianKey)
           have h_ne_nil : take i keys ++ medianKey :: drop i keys ≠ [] := by simp
@@ -672,12 +690,8 @@ theorem splitChild_preserves_occupancy (t : Nat) (ht : 2 ≤ t)
           rw [h_newKeys_len]; omega
         · -- children count: newChildren non-empty, length = children.length + 1
           rw [h_newChildren_len]; right
-          have h_low : t ≤ children.length + 1 := by
-            unfold Occupancy at h_occ_copy; rcases h_occ_copy with ⟨_, _, h_pocc_ch, _⟩
-            rcases h_pocc_ch with (h_empty | ⟨h_low', _⟩)
-            · have h_len0 : children.length = 0 := by simpa using h_empty
-              rw [h_len0]; omega
-            · omega
+          have h_low : 2 ≤ children.length + 1 := by
+            omega
           have h_high : children.length + 1 ≤ 2 * t := by
             unfold ChildBounded at h_cb; rcases h_cb with ⟨h_cb_rel, _, _⟩
             rcases h_cb_rel with (h_cb_empty | h_cb_eq)

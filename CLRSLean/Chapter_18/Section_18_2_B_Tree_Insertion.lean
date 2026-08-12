@@ -1,12 +1,12 @@
-import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model
+import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search
 
 /-!
 # CLRS Section 18.2 - B-tree insertion
 
-This first-pass section gives specification-level split and insertion wrappers
-over the mathematical B-tree model from Section 18.1.  The goal is a stable
-public theorem surface before introducing full node occupancy and separator
-repair proofs.
+This section retains the first-pass specification-level split and insertion
+wrappers over the mathematical B-tree model from Section 18.1, and proves the
+real functional `B-TREE-INSERT-NONFULL` and top-level `B-TREE-INSERT`
+algorithms against the full structural invariant.
 
 Main results:
 
@@ -59,16 +59,159 @@ Main results:
 - Theorems {lit}`BTree.insert_search_of_mem` and
   {lit}`BTree.insert_search_false_of_not_mem_ne`: old membership and absent
   noninserted keys give direct post-insertion search results.
+- Definitions {lit}`BTree.splitRoot` and {lit}`BTree.insertRoot`: the top-level
+  CLRS operation splits a full root and then descends with
+  {lit}`BTree.insertNonFull`.
+- Theorems {lit}`BTree.splitRoot_keys_perm`,
+  {lit}`BTree.splitRoot_wellFormed`, {lit}`BTree.splitRoot_height`,
+  {lit}`BTree.splitRoot_rootKeyCount`, and {lit}`BTree.splitRoot_nonFull`:
+  splitting a full root preserves its keys, produces a well-formed one-key
+  non-full root, and adds exactly one level.
+- Theorems {lit}`BTree.insertRoot_keys_perm`,
+  {lit}`BTree.insertRoot_wellFormed`, and {lit}`BTree.insertRoot_height`:
+  top-level insertion adds exactly one key, preserves {lit}`BTree.WellFormed`,
+  and has the exact full-root conditional height equation.
+- Theorems {lit}`BTree.insertRoot_mem_iff`,
+  {lit}`BTree.insertRoot_mem_iff_insert`,
+  {lit}`BTree.insertRoot_search_eq_insert`, and
+  {lit}`BTree.insertRoot_searchExec_true_iff`: executable insertion has exact
+  membership semantics, agrees extensionally with specification insertion, and
+  supports correct executable search.
+- Theorem {lit}`BTree.insertRoot_wellFormedUnique`: uniqueness is preserved
+  when the inserted key was absent.
+- Theorem {lit}`BTree.insertRoot_correct`: exact add-one key semantics,
+  well-formedness, and same-or-one-higher height are bundled together.
 
-**Note:** the `insert` stub above is the early specification layer (membership /
-search behaviour); the real CLRS `B-TREE-INSERT-NONFULL` and its `WellFormed`
-preservation are proved by `insertNonFull` and its six companion theorems below
-(all 0 `sorry`).
+**Model boundary:** the flat {lit}`BTree.insert` remains the specification
+layer.  {lit}`BTree.splitRoot` installs the old full root under a transient
+empty parent and applies the full-child split; that transient parent itself is
+not claimed to be {lit}`BTree.WellFormed`.  The proved compatibility between
+{lit}`BTree.insertRoot` and {lit}`BTree.insert` is membership/search
+compatibility, not executable/specification tree-shape equality.
+
+Section 18.2 is proved for the current functional correctness model.  Disk
+pages, pointer mutation, I/O counts, and RAM costs are optional refinements.
 -/
 
 namespace CLRS
 namespace Chapter18
 namespace BTree
+
+/-! ## Compatibility wrappers for `B-TREE-SPLIT-CHILD` -/
+
+/-- Internal bridge from the degree-only `Valid` predicate to `splitChild`'s
+key-multiset preservation theorem. -/
+theorem splitChild_keys_perm_valid {minDegree : Nat} {tr : BTree} {i : Nat}
+    (hvalid : Valid minDegree tr) :
+    (keysOf (splitChild minDegree tr i)).Perm (keysOf tr) := by
+  cases tr with
+  | node keys children =>
+      change 2 ≤ minDegree at hvalid
+      by_cases h_lt : i < children.length
+      · cases hchild_eq : children.get ⟨i, h_lt⟩ with
+        | node cKeys cChildren =>
+            by_cases hfull : cKeys.length = 2 * minDegree - 1
+            · exact splitChild_keys_perm minDegree hvalid keys children cKeys cChildren i
+                h_lt hchild_eq hfull
+            · dsimp [splitChild]
+              rw [dif_pos h_lt]
+              have h_get : children[i] = node cKeys cChildren := by
+                simpa using hchild_eq
+              rw [h_get]
+              simp [hfull]
+      · simp [splitChild, h_lt]
+
+/-- Splitting a child preserves degree-only `Valid` and every key membership fact.
+Structural preservation is stated separately by `splitChild_preserves_wellFormed`. -/
+theorem splitChild_preserves_model {minDegree : Nat} {tr : BTree} {i : Nat}
+    (hvalid : Valid minDegree tr) :
+    Valid minDegree (splitChild minDegree tr i) ∧
+      ∀ x, mem x (splitChild minDegree tr i) ↔ mem x tr := by
+  refine ⟨hvalid, ?_⟩
+  intro x
+  exact (splitChild_keys_perm_valid
+    (minDegree := minDegree) (tr := tr) (i := i) hvalid).mem_iff
+
+/-- Splitting a child preserves degree-only `Valid`; this is not a structural invariant. -/
+theorem splitChild_valid {minDegree : Nat} {tr : BTree} {i : Nat}
+    (hvalid : Valid minDegree tr) :
+    Valid minDegree (splitChild minDegree tr i) :=
+  (splitChild_preserves_model
+    (minDegree := minDegree) (tr := tr) (i := i) hvalid).1
+
+/-- Membership is unchanged by splitting a child. -/
+theorem splitChild_mem_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    mem x (splitChild minDegree tr i) ↔ mem x tr :=
+  (splitChild_preserves_model
+    (minDegree := minDegree) (tr := tr) (i := i) hvalid).2 x
+
+/-- Every old member remains a member after splitting a child. -/
+theorem splitChild_mem_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : mem x tr) :
+    mem x (splitChild minDegree tr i) :=
+  (splitChild_mem_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Non-membership is unchanged by splitting a child. -/
+theorem splitChild_not_mem_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    (¬ mem x (splitChild minDegree tr i)) ↔ ¬ mem x tr :=
+  not_congr (splitChild_mem_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid)
+
+/-- Every old non-member remains absent after splitting a child. -/
+theorem splitChild_not_mem_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : ¬ mem x tr) :
+    ¬ mem x (splitChild minDegree tr i) :=
+  (splitChild_not_mem_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Successful search is unchanged by splitting a child. -/
+theorem splitChild_search_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    search x (splitChild minDegree tr i) = true ↔ search x tr = true := by
+  simpa only [search_true_iff] using
+    (splitChild_mem_iff
+      (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid)
+
+/-- Every old successful search remains successful after splitting a child. -/
+theorem splitChild_search_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : search x tr = true) :
+    search x (splitChild minDegree tr i) = true :=
+  (splitChild_search_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Every old member is searchable after splitting a child. -/
+theorem splitChild_search_of_mem {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : mem x tr) :
+    search x (splitChild minDegree tr i) = true :=
+  splitChild_search_old
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr)
+    hvalid (search_true_of_mem x tr hx)
+
+/-- Failed search is unchanged by splitting a child. -/
+theorem splitChild_search_false_iff {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) :
+    search x (splitChild minDegree tr i) = false ↔ search x tr = false := by
+  simpa only [search_false_iff] using
+    (splitChild_not_mem_iff
+      (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid)
+
+/-- Every old failed search remains failed after splitting a child. -/
+theorem splitChild_search_false_old {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : search x tr = false) :
+    search x (splitChild minDegree tr i) = false :=
+  (splitChild_search_false_iff
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr) hvalid).2 hx
+
+/-- Every old non-member remains an unsuccessful search after splitting a child. -/
+theorem splitChild_search_false_of_not_mem {minDegree x i : Nat} {tr : BTree}
+    (hvalid : Valid minDegree tr) (hx : ¬ mem x tr) :
+    search x (splitChild minDegree tr i) = false :=
+  splitChild_search_false_old
+    (minDegree := minDegree) (x := x) (i := i) (tr := tr)
+    hvalid (search_false_of_not_mem x tr hx)
 
 /-- Specification-level B-tree insertion: add the key at a fresh root. -/
 def insert (x : Nat) (t : BTree) : BTree :=
@@ -230,77 +373,6 @@ def sortedInsert (x : Nat) : List Nat → List Nat
   | [] => [x]
   | k :: ks => if x ≤ k then x :: k :: ks else k :: sortedInsert x ks
 
-/-- Index of the child that key `x` descends into: the number of leading keys
-`≤ x` (correct for a sorted key list). -/
-def findChild : List Nat → Nat → Nat
-  | [], _ => 0
-  | k :: ks, x => if k ≤ x then findChild ks x + 1 else 0
-
-/-! ### Height lemmas for the termination measure -/
-
-/-- `foldl max` never drops below its accumulator. -/
-lemma foldl_max_ge (b : Nat) (l : List Nat) : b ≤ l.foldl max b := by
-  induction l generalizing b with
-  | nil => simp
-  | cons y ys ih =>
-    simp only [List.foldl_cons]
-    exact le_trans (le_max_left b y) (ih (max b y))
-
-/-- Every element of `l` is `≤ l.foldl max b`. -/
-lemma mem_le_foldl_max : ∀ {l : List Nat} {a b : Nat}, a ∈ l → a ≤ l.foldl max b := by
-  intro l
-  induction l with
-  | nil => intro a b h; simp at h
-  | cons y ys ih =>
-    intro a b h
-    simp only [List.foldl_cons]
-    rcases List.mem_cons.mp h with rfl | h
-    · exact le_trans (le_max_right b a) (foldl_max_ge (max b a) ys)
-    · exact ih h
-
-/-- If every element of `l` is `≤ M` and `b ≤ M`, then `l.foldl max b ≤ M`. -/
-lemma foldl_max_le' : ∀ {l : List Nat} {M b : Nat}, b ≤ M → (∀ a ∈ l, a ≤ M) → l.foldl max b ≤ M := by
-  intro l
-  induction l with
-  | nil => intro M b hb _; simpa using hb
-  | cons y ys ih =>
-    intro M b hb h
-    simp only [List.foldl_cons]
-    exact ih (max_le hb (h y (by simp))) (fun a ha => h a (by simp [ha]))
-
-/-- Folding `max` over the heights of a sub-multiset of children is `≤` folding
-over the full children list. -/
-lemma foldl_max_heightOf_subset {cs' cs : List BTree} (h : cs' ⊆ cs) :
-    (cs'.map heightOf).foldl max 0 ≤ (cs.map heightOf).foldl max 0 := by
-  apply foldl_max_le' (foldl_max_ge 0 _)
-  intro a ha
-  rw [List.mem_map] at ha
-  obtain ⟨c, hc, rfl⟩ := ha
-  exact mem_le_foldl_max (List.mem_map_of_mem (h hc))
-
-/-- A child is strictly shorter than its parent. -/
-lemma heightOf_mem_lt {ks : List Nat} {children : List BTree} {c : BTree}
-    (hc : c ∈ children) : heightOf c < heightOf (node ks children) := by
-  cases children with
-  | nil => simp at hc
-  | cons d ds =>
-    have hle := mem_le_foldl_max (a := heightOf c) (b := 0) (List.mem_map_of_mem hc)
-    simp only [heightOf]
-    omega
-
-/-- Replacing the children of a node by a sub-multiset cannot increase the height. -/
-lemma heightOf_le_of_children_subset {a b : List Nat} {cs' cs : List BTree}
-    (h : cs' ⊆ cs) : heightOf (node a cs') ≤ heightOf (node b cs) := by
-  cases cs' with
-  | nil => simp [heightOf]
-  | cons d ds =>
-    cases cs with
-    | nil => exact absurd (h List.mem_cons_self) (by simp)
-    | cons e es =>
-      have hsub := foldl_max_heightOf_subset (cs' := d :: ds) (cs := e :: es) h
-      simp only [heightOf]
-      omega
-
 /-! ### `insertNonFull` -/
 
 /--
@@ -317,10 +389,10 @@ def insertNonFull (t x : Nat) : BTree → BTree
       node (sortedInsert x ks) []
     else
       let i := findChild ks x
-      match hc : cs[i]? with
+      match _hc : cs[i]? with
       | none => node ks cs
       | some c =>
-        match hcc : c with
+        match _hcc : c with
         | node cKeys cChildren =>
           if cKeys.length = 2 * t - 1 then
             let median := cKeys.getD (t - 1) 0
@@ -339,10 +411,10 @@ def insertNonFull (t x : Nat) : BTree → BTree
 termination_by tr => heightOf tr
 decreasing_by
   all_goals
-    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨i, hc⟩
+    have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨i, _hc⟩
     refine lt_of_le_of_lt ?_ (heightOf_mem_lt hmem)
     first
-      | exact le_of_eq (congrArg heightOf hcc)
+      | exact le_of_eq (congrArg heightOf _hcc)
       | exact heightOf_le_of_children_subset (List.take_subset _ _)
       | exact heightOf_le_of_children_subset (List.drop_subset _ _)
 
@@ -391,18 +463,7 @@ lemma sortedInsert_sorted (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤
       · exact hkx
       · exact hk y hy
 
-/-! ### `findChild` bound and `insertNonFull` key multiset -/
-
-/-- `findChild` never exceeds the number of keys, so on a node with
-`children.length = keys.length + 1` it always indexes a real child. -/
-lemma findChild_le (ks : List Nat) (x : Nat) : findChild ks x ≤ ks.length := by
-  induction ks with
-  | nil => simp [findChild]
-  | cons k ks ih =>
-    unfold findChild
-    split
-    · simp only [List.length_cons]; omega
-    · omega
+/-! ### `insertNonFull` key multiset -/
 
 /-- `insertNonFull` adds exactly the key `x` to the key multiset (needs
 `ChildBounded` to rule out the out-of-range junk branch). -/
@@ -481,7 +542,7 @@ theorem insertNonFull_keys_perm (t x : Nat) (ht : 2 ≤ t) :
     conv_lhs => rw [keysOf]
     conv_rhs => rw [keysOf, hcs]
     simp only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil, keysOf,
-      hck, hcc, ← Multiset.coe_add, ← Multiset.coe_nil, ← Multiset.cons_coe,
+      hck, hcc, ← Multiset.coe_add, ← Multiset.cons_coe,
       ← Multiset.singleton_add, hihc]
     rw [show (↑ks : Multiset Nat) = ↑(ks.take (findChild ks x)) + ↑(ks.drop (findChild ks x)) from by
       rw [Multiset.coe_add, List.take_append_drop]]
@@ -539,7 +600,7 @@ theorem insertNonFull_keys_perm (t x : Nat) (ht : 2 ≤ t) :
     conv_lhs => rw [keysOf]
     conv_rhs => rw [keysOf, hcs]
     simp only [List.flatMap_append, List.flatMap_cons, List.flatMap_nil, List.append_nil, keysOf,
-      hck, hcc, ← Multiset.coe_add, ← Multiset.coe_nil, ← Multiset.cons_coe,
+      hck, hcc, ← Multiset.coe_add, ← Multiset.cons_coe,
       ← Multiset.singleton_add, hihc]
     rw [show (↑ks : Multiset Nat) = ↑(ks.take (findChild ks x)) + ↑(ks.drop (findChild ks x)) from by
       rw [Multiset.coe_add, List.take_append_drop]]
@@ -579,46 +640,6 @@ theorem insertNonFull_keys_perm (t x : Nat) (ht : 2 ≤ t) :
     conv_rhs => rw [keysOf, hcs]
     simp only [List.flatMap_append, List.flatMap_cons, ← Multiset.coe_add, hihc]
     abel
-
-/-! ### `findChild` range correctness -/
-
-/-- Every key before the chosen child index is `≤ x`. -/
-lemma findChild_take_le (x : Nat) : ∀ (ks : List Nat), ∀ k ∈ ks.take (findChild ks x), k ≤ x := by
-  intro ks
-  induction ks with
-  | nil => intro k hk; simp at hk
-  | cons a as ih =>
-    intro k hk
-    rw [findChild] at hk
-    split at hk
-    · rename_i hax
-      rw [List.take_succ_cons] at hk
-      rcases List.mem_cons.mp hk with rfl | hk
-      · exact hax
-      · exact ih k hk
-    · simp at hk
-
-/-- On a sorted key list, every key from the chosen child index onward is `> x`. -/
-lemma findChild_drop_gt (x : Nat) : ∀ {ks : List Nat}, List.Pairwise (· ≤ ·) ks →
-    ∀ k ∈ ks.drop (findChild ks x), x < k := by
-  intro ks
-  induction ks with
-  | nil => intro _ k hk; simp at hk
-  | cons a as ih =>
-    intro hs k hk
-    have hsa : ∀ b ∈ as, a ≤ b := (List.pairwise_cons.mp hs).1
-    have hs' : List.Pairwise (· ≤ ·) as := (List.pairwise_cons.mp hs).2
-    rw [findChild] at hk
-    split at hk
-    · rename_i hax
-      rw [List.drop_succ_cons] at hk
-      exact ih hs' k hk
-    · rename_i hax
-      have hxa : x < a := not_le.mp hax
-      simp only [List.drop_zero, List.mem_cons] at hk
-      rcases hk with rfl | hk
-      · exact hxa
-      · exact lt_of_lt_of_le hxa (hsa k hk)
 
 /-! ### `SameDepth` and height preservation -/
 
@@ -1185,27 +1206,6 @@ lemma childBounded_set_insertNonFull (t x : Nat) (ht : 2 ≤ t)
       · exact hx_hi hi hks
       · have hb2 := hbounds.2; rw [hks] at hb2; exact hb2 k hk
 
-/-- The right separator at the chosen child bounds `x` from above (sorted keys). -/
-lemma findChild_x_hi {ks : List Nat} (hs : List.Pairwise (· ≤ ·) ks) (x : Nat) :
-    ∀ hi, ks[findChild ks x]? = some hi → x ≤ hi := by
-  intro hi hhi
-  have hmem : hi ∈ ks.drop (findChild ks x) := by
-    rw [List.mem_iff_getElem?]
-    exact ⟨0, by rw [List.getElem?_drop, Nat.add_zero]; exact hhi⟩
-  exact le_of_lt (findChild_drop_gt x hs hi hmem)
-
-/-- The left separator at the chosen child bounds `x` from below. -/
-lemma findChild_x_lo (ks : List Nat) (x : Nat) :
-    findChild ks x = 0 ∨ ∀ lo, ks[findChild ks x - 1]? = some lo → lo ≤ x := by
-  rcases Nat.eq_zero_or_pos (findChild ks x) with h0 | hpos
-  · exact Or.inl h0
-  · right
-    intro lo hlo
-    have hmem : lo ∈ ks.take (findChild ks x) := by
-      rw [List.mem_iff_getElem?]
-      exact ⟨findChild ks x - 1, by rw [List.getElem?_take_of_lt (by omega)]; exact hlo⟩
-    exact findChild_take_le x ks lo hmem
-
 /-- `insertNonFull` preserves `ChildBounded` (given `ChildBounded` + `Sorted`). -/
 lemma insertNonFull_childBounded (t x : Nat) (ht : 2 ≤ t) :
     ∀ tr, ChildBounded tr → Sorted tr → ChildBounded (insertNonFull t x tr) := by
@@ -1430,6 +1430,7 @@ lemma occupancy_left_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildren
   have hlen := child_children_len_of_full_cb ht hcb hfull
   have hkl : (cKeys.take (t - 1)).length = t - 1 := by rw [List.length_take, hfull]; omega
   unfold Occupancy at hocc ⊢
+  simp only [Bool.false_eq_true, if_false] at hocc ⊢
   refine ⟨?_, ?_, ?_, ?_⟩
   · show t - 1 ≤ (cKeys.take (t - 1)).length; omega
   · show (cKeys.take (t - 1)).length ≤ 2 * t - 1; omega
@@ -1449,6 +1450,7 @@ lemma occupancy_right_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildre
   have hlen := child_children_len_of_full_cb ht hcb hfull
   have hkl : (cKeys.drop t).length = t - 1 := by rw [List.length_drop, hfull]; omega
   unfold Occupancy at hocc ⊢
+  simp only [Bool.false_eq_true, if_false] at hocc ⊢
   refine ⟨?_, ?_, ?_, ?_⟩
   · show t - 1 ≤ (cKeys.drop t).length; omega
   · show (cKeys.drop t).length ≤ 2 * t - 1; omega
@@ -1463,6 +1465,242 @@ lemma occupancy_right_half (t : Nat) (ht : 2 ≤ t) {cKeys : List Nat} {cChildre
 /-- The number of keys at the root node (used for the non-full precondition). -/
 def rootKeyCount : BTree → Nat
   | node ks _ => ks.length
+
+/-! ### Top-level `B-TREE-INSERT` operations -/
+
+/-- CLRS `B-TREE-INSERT` splits a full root by first installing it as the sole
+child of a fresh empty root, then applying `B-TREE-SPLIT-CHILD` at index `0`. -/
+def splitRoot (t : Nat) (tr : BTree) : BTree :=
+  splitChild t (node [] [tr]) 0
+
+/-- The executable top-level CLRS insertion step: split a full root before
+descending with `B-TREE-INSERT-NONFULL`; otherwise descend directly. -/
+def insertRoot (t x : Nat) (tr : BTree) : BTree :=
+  if rootKeyCount tr = 2 * t - 1 then
+    insertNonFull t x (splitRoot t tr)
+  else
+    insertNonFull t x tr
+
+/-- Expanding `splitRoot` on a full root exposes the promoted median and the
+two CLRS split halves. -/
+lemma splitRoot_full_eq
+    (t : Nat) (ht : 2 ≤ t) (ks : List Nat) (cs : List BTree)
+    (hfull : ks.length = 2 * t - 1) :
+    splitRoot t (node ks cs) =
+      node [ks[t - 1]'(by omega)]
+        [node (ks.take (t - 1)) (cs.take t),
+         node (ks.drop t) (cs.drop t)] := by
+  have h_lt : 0 < ([node ks cs] : List BTree).length := by simp
+  have hchild_eq :
+      ([node ks cs] : List BTree).get ⟨0, h_lt⟩ = node ks cs := by
+    simp
+  unfold splitRoot
+  simpa using
+    (splitChild_full_eq t ht [] [node ks cs] 0 ks cs h_lt hchild_eq hfull)
+
+/-- Splitting a full root only redistributes its keys: the flattened key list
+is a permutation of the original tree's flattened key list. -/
+theorem splitRoot_keys_perm
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    (keysOf (splitRoot t tr)).Perm (keysOf tr) := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have h_lt : 0 < ([node ks cs] : List BTree).length := by simp
+      have hchild_eq :
+          ([node ks cs] : List BTree).get ⟨0, h_lt⟩ = node ks cs := by
+        simp
+      unfold splitRoot
+      have hperm :=
+        splitChild_keys_perm t ht [] [node ks cs] ks cs 0 h_lt hchild_eq hfull
+      simpa only [keysOf, List.nil_append, List.flatMap_cons, List.flatMap_nil,
+        List.append_nil] using hperm
+
+/-- Splitting a full CLRS root creates a fresh root containing exactly the
+promoted median key. -/
+lemma splitRoot_rootKeyCount
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    rootKeyCount (splitRoot t tr) = 1 := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      rw [splitRoot_full_eq t ht ks cs hfull]
+      rfl
+
+/-- The fresh one-key root produced by splitting a full root satisfies the
+non-full precondition required by `B-TREE-INSERT-NONFULL`. -/
+lemma splitRoot_nonFull
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    rootKeyCount (splitRoot t tr) < 2 * t - 1 := by
+  rw [splitRoot_rootKeyCount t ht hfull]
+  omega
+
+/-- A full old root satisfies the ordinary non-root occupancy bounds when it
+becomes the sole child of the transient empty root. -/
+lemma occupancy_false_of_full_root
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hcb : ChildBounded tr)
+    (hocc : Occupancy t true tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    Occupancy t false tr := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have hlen := child_children_len_of_full_cb ht hcb hfull
+      unfold Occupancy at hocc ⊢
+      simp only [if_true] at hocc
+      simp only [Bool.false_eq_true, if_false]
+      refine ⟨?_, hocc.2.1, ?_, hocc.2.2.2⟩
+      · omega
+      · rcases hlen with h0 | h2t
+        · left
+          cases cs with
+          | nil => simp
+          | cons c cs => simp at h0
+        · right
+          constructor <;> omega
+
+/-- `Sorted` component for the transient empty root used by `splitRoot`. -/
+private lemma sorted_transient_root {tr : BTree} (hs : Sorted tr) :
+    Sorted (node [] [tr]) := by
+  unfold Sorted
+  refine ⟨by simp, ?_⟩
+  intro child hchild
+  simp only [List.mem_singleton] at hchild
+  subst child
+  exact hs
+
+/-- `ChildBounded` component for the transient empty root used by `splitRoot`. -/
+private lemma childBounded_transient_root {tr : BTree} (hcb : ChildBounded tr) :
+    ChildBounded (node [] [tr]) := by
+  unfold ChildBounded
+  refine ⟨?_, ?_, ?_⟩
+  · right
+    simp
+  · intro i hi
+    have hi0 : i = 0 := by
+      simp at hi
+      omega
+    subst i
+    simp
+  · intro child hchild
+    simp only [List.mem_singleton] at hchild
+    subst child
+    exact hcb
+
+/-- `SameDepth` component for the transient empty root used by `splitRoot`. -/
+private lemma sameDepth_transient_root {tr : BTree} (hsd : SameDepth tr) :
+    SameDepth (node [] [tr]) := by
+  exact SameDepth.internal [] tr [] (by simp) hsd (by simp)
+
+/-- Splitting a full root establishes root occupancy directly, without
+requiring the transient empty wrapper itself to satisfy root occupancy. -/
+lemma splitRoot_occupancy
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hcb : ChildBounded tr)
+    (hocc : Occupancy t true tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    Occupancy t true (splitRoot t tr) := by
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have hocc_child : Occupancy t false (node ks cs) :=
+        occupancy_false_of_full_root t ht hcb hocc hfull
+      have hocc_left :=
+        occupancy_left_half t ht hocc_child hcb hfull
+      have hocc_right :=
+        occupancy_right_half t ht hocc_child hcb hfull
+      rw [splitRoot_full_eq t ht ks cs hfull]
+      unfold Occupancy
+      simp only [if_true, List.length_cons, List.length_nil, Nat.zero_add,
+        List.isEmpty_cons, Bool.false_eq_true, and_false, if_false, false_or]
+      refine ⟨?_, ?_, ?_, ?_⟩
+      · omega
+      · omega
+      · constructor <;> omega
+      · intro child hchild
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hchild
+        rcases hchild with rfl | rfl
+        · exact hocc_left
+        · exact hocc_right
+
+/-- Splitting a full well-formed root preserves every structural B-tree
+invariant. -/
+theorem splitRoot_wellFormed
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    WellFormed t (splitRoot t tr) := by
+  obtain ⟨hs, hcb, hocc, hsd⟩ := hwf
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have h_lt : 0 < ([node ks cs] : List BTree).length := by simp
+      have hchild_eq :
+          ([node ks cs] : List BTree).get ⟨0, h_lt⟩ = node ks cs := by
+        simp
+      have hchildren : cs = [] ∨ t < cs.length := by
+        rcases child_children_len_of_full_cb ht hcb hfull with h0 | h2t
+        · left
+          exact List.eq_nil_of_length_eq_zero h0
+        · right
+          omega
+      have hs_wrapper := sorted_transient_root hs
+      have hcb_wrapper := childBounded_transient_root hcb
+      have hsd_wrapper := sameDepth_transient_root hsd
+      have hs_split :=
+        splitChild_preserves_sorted t ht [] [node ks cs] ks cs 0
+          h_lt hchild_eq hfull hs_wrapper hcb_wrapper
+      have hcb_split :=
+        splitChild_preserves_childBounded t ht [] [node ks cs] ks cs 0
+          h_lt hchild_eq hfull hcb_wrapper hs_wrapper
+      have hsd_split :=
+        splitChild_preserves_sameDepth t ht [] [node ks cs] ks cs 0
+          h_lt hchild_eq hfull hchildren hsd_wrapper
+      exact ⟨by simpa only [splitRoot] using hs_split,
+        by simpa only [splitRoot] using hcb_split,
+        splitRoot_occupancy t ht hcb hocc hfull,
+        by simpa only [splitRoot] using hsd_split⟩
+
+/-- Splitting a full root adds exactly one level to the tree. -/
+theorem splitRoot_height
+    (t : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr)
+    (hfull : rootKeyCount tr = 2 * t - 1) :
+    heightOf (splitRoot t tr) = heightOf tr + 1 := by
+  obtain ⟨_, hcb, _, hsd⟩ := hwf
+  cases tr with
+  | node ks cs =>
+      change ks.length = 2 * t - 1 at hfull
+      have hchildren : cs = [] ∨ t < cs.length := by
+        rcases child_children_len_of_full_cb ht hcb hfull with h0 | h2t
+        · left
+          exact List.eq_nil_of_length_eq_zero h0
+        · right
+          omega
+      have hparts :=
+        heightOf_split_parts_eq ks cs t hsd (by omega) hchildren
+      have hleft :
+          heightOf (node (ks.take (t - 1)) (cs.take t)) =
+            heightOf (node ks cs) := by
+        simpa using hparts.1
+      have hright :
+          heightOf (node (ks.drop t) (cs.drop t)) =
+            heightOf (node ks cs) := by
+        simpa [List.drop_drop, show (t - 1) + 1 = t from by omega] using hparts.2
+      rw [splitRoot_full_eq t ht ks cs hfull]
+      have huniform :
+          ∀ c ∈ [node (ks.drop t) (cs.drop t)],
+            heightOf c = heightOf (node (ks.take (t - 1)) (cs.take t)) := by
+        intro c hc
+        simp only [List.mem_singleton] at hc
+        subst c
+        exact hright.trans hleft.symm
+      rw [heightOf_uniform_children huniform, hleft]
+      omega
 
 /-- Replacing child `j` with an `Occupancy`-valid (non-root) subtree preserves `Occupancy`. -/
 lemma occupancy_set {t : Nat} {b : Bool} {ks : List Nat} {cs : List BTree} {j : Nat} {c' : BTree}
@@ -1687,6 +1925,155 @@ theorem insertNonFull_wellFormed (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
          insertNonFull_childBounded t x ht tr hcb hs,
          insertNonFull_occupancy t x ht tr true hcb hocc hnf,
          insertNonFull_sameDepth t x ht hcb hsd⟩
+
+/--
+Top-level CLRS insertion adds exactly one occurrence of the requested key,
+including when the old root must first be split.
+-/
+theorem insertRoot_keys_perm
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    (keysOf (insertRoot t x tr)).Perm (keysOf tr ++ [x]) := by
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · rw [insertRoot, if_pos hfull]
+    have hsplitWf := splitRoot_wellFormed t ht hwf hfull
+    exact
+      (insertNonFull_keys_perm t x ht (splitRoot t tr) hsplitWf.2.1).trans
+        ((splitRoot_keys_perm t ht hfull).append_right [x])
+  · rw [insertRoot, if_neg hfull]
+    exact insertNonFull_keys_perm t x ht tr hwf.2.1
+
+/--
+Top-level CLRS insertion preserves every structural B-tree invariant.
+-/
+theorem insertRoot_wellFormed
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    WellFormed t (insertRoot t x tr) := by
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · rw [insertRoot, if_pos hfull]
+    exact
+      insertNonFull_wellFormed t x ht
+        (splitRoot_wellFormed t ht hwf hfull)
+        (splitRoot_nonFull t ht hfull)
+  · have hle : rootKeyCount tr ≤ 2 * t - 1 := by
+      cases tr with
+      | node ks cs =>
+          have hocc := hwf.2.2.1
+          unfold Occupancy at hocc
+          exact hocc.2.1
+    have hnf : rootKeyCount tr < 2 * t - 1 := by
+      omega
+    rw [insertRoot, if_neg hfull]
+    exact insertNonFull_wellFormed t x ht hwf hnf
+
+/--
+Top-level CLRS insertion preserves height unless it splits a full root, in
+which case it adds exactly one level.
+-/
+theorem insertRoot_height
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    heightOf (insertRoot t x tr) =
+      if rootKeyCount tr = 2 * t - 1 then heightOf tr + 1
+      else heightOf tr := by
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · rw [insertRoot, if_pos hfull, if_pos hfull]
+    have hsplitWf := splitRoot_wellFormed t ht hwf hfull
+    exact
+      (insertNonFull_height t x ht hsplitWf.2.1 hsplitWf.2.2.2).trans
+        (splitRoot_height t ht hwf hfull)
+  · rw [insertRoot, if_neg hfull, if_neg hfull]
+    exact insertNonFull_height t x ht hwf.2.1 hwf.2.2.2
+
+/--
+Membership after top-level CLRS insertion is old membership or equality with
+the inserted key.
+-/
+theorem insertRoot_mem_iff
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    mem y (insertRoot t x tr) ↔ y = x ∨ mem y tr := by
+  unfold mem
+  rw [(insertRoot_keys_perm t x ht hwf).mem_iff, List.mem_append,
+    List.mem_singleton]
+  exact or_comm
+
+/--
+Top-level CLRS insertion preserves global key uniqueness when the inserted key
+was absent from the input tree.
+-/
+theorem insertRoot_wellFormedUnique
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormedUnique t tr)
+    (hnot : ¬ mem x tr) :
+    WellFormedUnique t (insertRoot t x tr) := by
+  refine ⟨insertRoot_wellFormed t x ht hwf.1, ?_⟩
+  have hkeys : (keysOf tr ++ [x]).Nodup := by
+    rw [List.nodup_append]
+    refine ⟨hwf.2, by simp, ?_⟩
+    intro a ha b hb
+    simp only [List.mem_singleton] at hb
+    subst b
+    intro hax
+    subst a
+    exact hnot ha
+  exact (insertRoot_keys_perm t x ht hwf.1).nodup_iff.mpr hkeys
+
+/--
+Executable top-level insertion and specification insertion have identical
+membership semantics.
+-/
+theorem insertRoot_mem_iff_insert
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    mem y (insertRoot t x tr) ↔ mem y (insert x tr) :=
+  (insertRoot_mem_iff t x y ht hwf).trans (insert_mem_iff x y tr).symm
+
+/--
+Membership-oracle search agrees after executable and specification insertion.
+-/
+theorem insertRoot_search_eq_insert
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    search y (insertRoot t x tr) = search y (insert x tr) := by
+  apply Bool.eq_iff_iff.mpr
+  simpa only [search_true_iff] using
+    insertRoot_mem_iff_insert t x y ht hwf
+
+/--
+Executable search after top-level insertion succeeds exactly for the inserted
+key or an old member.
+-/
+theorem insertRoot_searchExec_true_iff
+    (t x y : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    searchExec y (insertRoot t x tr) = true ↔ y = x ∨ mem y tr := by
+  have hout := insertRoot_wellFormed t x ht hwf
+  exact
+    (searchExec_true_iff hout.1 hout.2.1).trans
+      (insertRoot_mem_iff t x y ht hwf)
+
+/--
+Top-level CLRS insertion simultaneously has exact add-one semantics, preserves
+well-formedness, and preserves or increases height by one level.
+-/
+theorem insertRoot_correct
+    (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
+    (hwf : WellFormed t tr) :
+    (keysOf (insertRoot t x tr)).Perm (keysOf tr ++ [x]) ∧
+    WellFormed t (insertRoot t x tr) ∧
+    (heightOf (insertRoot t x tr) = heightOf tr ∨
+      heightOf (insertRoot t x tr) = heightOf tr + 1) := by
+  refine
+    ⟨insertRoot_keys_perm t x ht hwf,
+      insertRoot_wellFormed t x ht hwf, ?_⟩
+  have hheight := insertRoot_height t x ht hwf
+  by_cases hfull : rootKeyCount tr = 2 * t - 1
+  · right
+    simpa [hfull] using hheight
+  · left
+    simpa [hfull] using hheight
 
 end BTree
 end Chapter18

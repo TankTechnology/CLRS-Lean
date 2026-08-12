@@ -6,9 +6,24 @@ import html
 import re
 from dataclasses import dataclass
 from html.parser import HTMLParser
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 CHAPTER_MODULE_RE = re.compile(r"Chapter_[0-9][0-9]")
+READER_SUPPORT_MODULES = frozenset(
+    {
+        "CLRSLean.OnlineMaterial",
+        "CLRSLean.ProofPatterns",
+        "CLRSLean.Probability",
+        "CLRSLean.Extensions",
+        "CLRSLean.Progress",
+        "CLRSLean.Status",
+        "CLRSLean.Workflow",
+    }
+)
 MODULE_TREE_RE = re.compile(
     r"<nav\b[^>]*\bclass=(?:\"[^\"]*\bmodule-tree\b[^\"]*\"|'[^']*\bmodule-tree\b[^']*')[^>]*>.*?</nav>",
     re.IGNORECASE | re.DOTALL,
@@ -21,14 +36,54 @@ def is_reader_sidebar_module(module_name: str) -> bool:
     parts = module_name.split(".")
     if parts == ["CLRSLean"]:
         return True
-    if len(parts) == 2 and parts[0] == "CLRSLean":
+    if module_name in READER_SUPPORT_MODULES:
         return True
     return (
-        len(parts) == 3
-        and parts[0] == "CLRSLean"
-        and CHAPTER_MODULE_RE.fullmatch(parts[1]) is not None
-        and parts[2].startswith("Section_")
+        parts == ["CLRSLean", "FourthEdition"]
+        or (
+            len(parts) == 3
+            and parts[:2] == ["CLRSLean", "FourthEdition"]
+            and CHAPTER_MODULE_RE.fullmatch(parts[2]) is not None
+        )
     )
+
+
+def load_reader_parent_routes(root: Path = ROOT) -> dict[str, str]:
+    """Map hidden legacy module prefixes to their visible reader page."""
+    routes: dict[str, str] = {}
+    fourth_edition_dir = root / "CLRSLean" / "FourthEdition"
+    for guide in sorted(fourth_edition_dir.glob("Chapter_[0-9][0-9].lean")):
+        canonical = f"CLRSLean.FourthEdition.{guide.stem}"
+        for source in re.findall(
+            r"^import\s+(CLRSLean\.Chapter_[^\s]+)",
+            guide.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        ):
+            routes[source] = canonical
+
+    online_material = root / "CLRSLean" / "OnlineMaterial.lean"
+    if online_material.is_file():
+        for source in re.findall(
+            r"^import\s+(CLRSLean\.Chapter_[^\s]+)",
+            online_material.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        ):
+            routes[source] = "CLRSLean.OnlineMaterial"
+    return routes
+
+
+def reader_parent_for_module(
+    module_name: str, reader_parent_routes: dict[str, str]
+) -> str | None:
+    """Return the most-specific configured reader route for a hidden module."""
+    matching_prefixes = [
+        prefix
+        for prefix in reader_parent_routes
+        if module_name == prefix or module_name.startswith(f"{prefix}.")
+    ]
+    if not matching_prefixes:
+        return None
+    return reader_parent_routes[max(matching_prefixes, key=len)]
 
 
 @dataclass(frozen=True)
@@ -107,6 +162,18 @@ def _classes(element: _Element) -> list[str]:
     return value.split() if value else []
 
 
+def _add_class(element: _Element, class_name: str) -> None:
+    classes = _classes(element)
+    if class_name in classes:
+        return
+    classes.append(class_name)
+    for index, (name, _value) in enumerate(element.attrs):
+        if name.lower() == "class":
+            element.attrs[index] = (name, " ".join(classes))
+            return
+    element.attrs.append(("class", class_name))
+
+
 def _is_nav_owner(element: _Element) -> bool:
     return element.tag.lower() == "details" or (
         element.tag.lower() == "div" and "leaf" in _classes(element)
@@ -146,10 +213,12 @@ def _render(node: _Element | _Text) -> str:
 
 
 class _SidebarPruner:
-    def __init__(self) -> None:
+    def __init__(self, reader_parent_routes: dict[str, str]) -> None:
         self.removed_modules: list[str] = []
         self.flattened_modules: list[str] = []
         self.unclassified_hrefs: list[str] = []
+        self.reader_parent_routes = reader_parent_routes
+        self.hidden_current_target: str | None = None
 
     def rewrite_container(self, element: _Element) -> None:
         rewritten: list[_Element | _Text] = []
@@ -176,6 +245,11 @@ class _SidebarPruner:
             self.rewrite_container(element)
             return element
         if not is_reader_sidebar_module(module_name):
+            current_module = self.current_module(element)
+            if current_module is not None:
+                self.hidden_current_target = reader_parent_for_module(
+                    current_module, self.reader_parent_routes
+                )
             self.removed_modules.append(module_name)
             return None
 
@@ -195,8 +269,48 @@ class _SidebarPruner:
         self.flattened_modules.append(module_name)
         return _Element("div", [("class", " ".join(leaf_classes))], [anchor])
 
+    def current_module(self, element: _Element) -> str | None:
+        if _is_nav_owner(element):
+            summary, anchor = _owner_anchor(element)
+            current_owner = summary if summary is not None else element
+            if "current" in _classes(current_owner) and anchor is not None:
+                return _attr(anchor, "title")
+        for child in element.children:
+            if isinstance(child, _Element):
+                if current := self.current_module(child):
+                    return current
+        return None
 
-def prune_reader_sidebar(document: str) -> SidebarRewrite:
+    def has_current(self, element: _Element) -> bool:
+        for child in element.children:
+            if not isinstance(child, _Element):
+                continue
+            if _is_nav_owner(child):
+                summary, _anchor = _owner_anchor(child)
+                current_owner = summary if summary is not None else child
+                if "current" in _classes(current_owner):
+                    return True
+            if self.has_current(child):
+                return True
+        return False
+
+    def mark_current(self, element: _Element, module_name: str) -> bool:
+        for child in element.children:
+            if not isinstance(child, _Element):
+                continue
+            if _is_nav_owner(child):
+                summary, anchor = _owner_anchor(child)
+                if anchor is not None and _attr(anchor, "title") == module_name:
+                    _add_class(summary if summary is not None else child, "current")
+                    return True
+            if self.mark_current(child, module_name):
+                return True
+        return False
+
+
+def prune_reader_sidebar(
+    document: str, reader_parent_routes: dict[str, str] | None = None
+) -> SidebarRewrite:
     """Prune one generated `.module-tree` without changing other page markup."""
     match = MODULE_TREE_RE.search(document)
     if match is None:
@@ -216,8 +330,10 @@ def prune_reader_sidebar(document: str) -> SidebarRewrite:
     if nav is None:
         return SidebarRewrite(document, (), (), ())
 
-    pruner = _SidebarPruner()
+    pruner = _SidebarPruner(reader_parent_routes or {})
     pruner.rewrite_container(nav)
+    if pruner.hidden_current_target and not pruner.has_current(nav):
+        pruner.mark_current(nav, pruner.hidden_current_target)
     changed = bool(pruner.removed_modules or pruner.flattened_modules)
     if changed:
         fragment = _render(nav)

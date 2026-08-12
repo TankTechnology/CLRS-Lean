@@ -1,10 +1,14 @@
 # Chapter 19 - Fibonacci Heaps
 
-- Status: `partial`
+- Status: `main-proof-complete-for-correctness`
 - Lean entry: `CLRSLean/Chapter_19.lean`
 - Interface test: `Tests/Chapter_19_Interface.lean`
+- Canonical sections: `Section_19_1_Fibonacci_Heap_Model`,
+  `Section_19_2_Mergeable_Heap_Operations`,
+  `Section_19_3_Decreasing_A_Key_And_Deleting_A_Node`, and
+  `Section_19_4_Bounding_Maximum_Degree`
 
-## Proved First-Pass Surface
+## Section 19.1 Abstract Contract Surface
 
 - `CLRS.Chapter19.FibHeap.makeHeap_correct`
 - `CLRS.Chapter19.FibHeap.makeHeap_valid`
@@ -104,25 +108,41 @@
 - `CLRS.Chapter19.FibHeap.degreeIndex_le_twice_log_card_add_one`
 - `CLRS.Chapter19.FibHeap.degree_bound_log`
 
-## Remaining Work
+## Section 19.4 Structural Degree Surface
 
-The current chapter is an abstract finite-key-set specification with the
-standard heap potential's zero-initial, nonnegative, and telescoping facts.  It
-exposes direct operation-key membership corollaries for insert, extract-min,
-decrease-key, and delete, plus old-key preservation corollaries for the
-set-updating operations and exact failed membership specifications after heap
-operations, direct failed-membership preservation wrappers, direct
-operation-result validity wrappers for normalized counters, direct minimum
-membership/lower-bound wrappers,
-insert/union/extract-min-remaining/decrease-key/delete minimum direct
-membership/lower-bound wrappers, direct minimum/extract-min empty-result
-wrappers, nonempty-result query wrappers, and positive/empty minimum-after-update
-specifications.  It
-also includes the first power-of-two lower-bound bridge for the Fibonacci-style
-degree sequence, including the half-index form used by later logarithmic-degree
-arguments and a conditional natural binary-log bridge from a Fibonacci-style
-subtree-size lower bound to a degree budget.  The chapter still defers pointer
-handles, heap-ordered
-forests, cascading cuts, consolidation
-arrays, duplicate keys, and the subtree-size induction leading to the true
-Fibonacci logarithmic degree theorem.
+- `CLRS.Chapter19.FTree.Wellformed`
+- `CLRS.Chapter19.FTree.wellformed_size_ge_fibLowerBound`
+- `CLRS.Chapter19.FTree.goldenRatio_pow_le_fibLowerBound`
+- `CLRS.Chapter19.FTree.wellformed_goldenRatio_pow_le_size`
+- `CLRS.Chapter19.FTree.wellformed_degree_le_logb`
+- `CLRS.Chapter19.FTree.wellformed_degree_le_floor_logb`
+- `CLRS.Chapter19.FTree.wellformed_degree_le_twice_log_two`
+- `CLRS.Chapter19.FTree.wellformed_append_child`
+- `CLRS.Chapter19.FTree.link_wellformed`
+- `CLRS.Chapter19.FTree.minTree`
+- `CLRS.Chapter19.FTree.minTree_size`
+- `CLRS.Chapter19.FTree.minTree_wellformed`
+- `CLRS.Chapter19.FTree.exists_wellformed_size_eq_fibLowerBound`
+
+## Sections 19.2 and 19.3 Executable Core and Amortized Analysis
+
+The persistent `FHNode`/`FH` layer now completes the represented Chapter 19
+algorithm stack: exact duplicate-preserving key bags, a cached minimum,
+degree-bucket `LINK`/`CONSOLIDATE`, executable extract-min, duplicate-safe
+occurrence paths and zippers, arbitrary-node CUT and CASCADING-CUT, executable
+decrease-key and delete, and preservation of `FH.Valid` throughout.  Its
+standard `t(H) + 2m(H)` potential proves:
+
+- constant amortized cost for handle-directed decrease-key;
+- logarithmic amortized cost for extract-min and delete;
+- exact erasure from costed operations to the structural algorithms; and
+- an exact operation-trace telescope bounded by the sum of the certified
+  per-operation budgets.
+
+Mutable circular doubly linked lists, allocation, and a concrete RAM/pointer
+latency refinement remain optional implementation layers; they are not missing
+core correctness groups for the persistent executable model.
+
+The former `S1_ExecutableFibHeap`, `S2_CascadingCuts`, and
+`S3_AmortizedCosts` modules remain available as compatibility imports only;
+new code and the website use the canonical textbook-section modules above.

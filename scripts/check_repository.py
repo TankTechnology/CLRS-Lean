@@ -11,21 +11,33 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-CHECK_SCRIPTS = [
-    "scripts/check_progress_csv.py",
-    "scripts/check_site_consistency.py",
-    "scripts/test_check_repository.py",
-    "scripts/test_literate_config.py",
-    "scripts/test_literate_navigation.py",
-    "scripts/test_optimize_literate_html.py",
-    "scripts/test_check_literate_rendering.py",
-    "scripts/test_prepare_literate_site.py",
+CHECK_COMMANDS = [
+    ("scripts/check_edition_map.py",),
+    ("scripts/test_check_edition_map.py",),
+    ("scripts/check_progress_csv.py", "--check-dashboard"),
+    ("scripts/test_check_progress_csv.py",),
+    ("scripts/gen_readme_table.py", "--check"),
+    ("scripts/test_gen_readme_table.py",),
+    ("scripts/check_site_consistency.py",),
+    ("scripts/test_check_site_consistency.py",),
+    ("scripts/test_check_repository.py",),
+    ("scripts/test_literate_config.py",),
+    ("scripts/test_literate_navigation.py",),
+    ("scripts/test_optimize_literate_html.py",),
+    ("scripts/test_check_literate_rendering.py",),
+    ("scripts/test_prepare_literate_site.py",),
+    ("scripts/test_plan_literate_shards.py",),
+    ("scripts/test_merge_literate_shards.py",),
+    ("scripts/test_prepare_literate_module_map.py",),
+    ("scripts/test_render_literate_shard.py",),
+    ("scripts/test_workflow_policy.py",),
 ]
 
 
-def run_script(path: str) -> None:
-    print(f"==> {path}", flush=True)
-    subprocess.run([sys.executable, path], cwd=ROOT, check=True)
+def run_script(path: str, *args: str) -> None:
+    command = (path, *args)
+    print(f"==> {' '.join(command)}", flush=True)
+    subprocess.run([sys.executable, *command], cwd=ROOT, check=True)
 
 
 def strip_lean_comments_and_strings(text: str) -> str:
@@ -167,8 +179,8 @@ def check_markdown_links() -> None:
 
 
 def main() -> int:
-    for script in CHECK_SCRIPTS:
-        run_script(script)
+    for command in CHECK_COMMANDS:
+        run_script(*command)
     check_lean_placeholders()
     check_markdown_links()
     print("Repository checks passed.")

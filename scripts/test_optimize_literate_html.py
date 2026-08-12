@@ -180,8 +180,8 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
 <html>
   <body>
     <nav class="module-tree">
-      <details open><summary class="current"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/" title="CLRSLean.Chapter_22.Section_22_3_DFS">22.3</a></summary>
-        <div class="leaf"><a href="CLRSLean/Chapter_22/Section_22_3_DFS/S1_WhitePath/" title="CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath">White Path</a></div>
+      <details open><summary class="current"><a href="CLRSLean/FourthEdition/Chapter_20/" title="CLRSLean.FourthEdition.Chapter_20">Chapter 20</a></summary>
+        <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_20/Helper/" title="CLRSLean.FourthEdition.Chapter_20.Helper">Helper</a></div>
       </details>
     </nav>
   </body>
@@ -193,8 +193,8 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
             stats = optimizer.optimize_file(page, strip_attrs_min_bytes=1_000_000)
             text = page.read_text(encoding="utf-8")
 
-        self.assertNotIn("S1_WhitePath", text)
-        self.assertIn('title="CLRSLean.Chapter_22.Section_22_3_DFS"', text)
+        self.assertNotIn("Chapter_20.Helper", text)
+        self.assertIn('title="CLRSLean.FourthEdition.Chapter_20"', text)
         self.assertIn('<div class="leaf current">', text)
         self.assertEqual(stats.removed_nav_modules, 1)
         self.assertEqual(stats.flattened_nav_details, 1)

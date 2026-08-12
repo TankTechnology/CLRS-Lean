@@ -1,10 +1,21 @@
 /-!
 # Proof Status
 
-This page gives a concise reader-facing interpretation of CLRS-Lean's current
-proof state.  The generated **Progress Dashboard** owns chapter counts and
-status rows; section modules own formal truth; {lit}`docs/proof-map.md` records
-the detailed maintainer ledger.
+This page gives a concise reader-facing interpretation of CLRS-Lean's canonical
+fourth-edition proof state.  The generated **Progress Dashboard** owns chapter
+counts and status rows; {lit}`docs/clrs-fourth-edition-map.csv` owns the bridge
+to current theorem-bearing sources; section modules own formal truth; and
+{lit}`docs/proof-map.md` records theorem-level legacy-source detail.
+
+## Edition And Compatibility Contract
+
+Chapter numbers on this page mean CLRS fourth edition.  New work should import
+{lit}`CLRSLean.FourthEdition.Chapter_NN`.  Existing unqualified
+{lit}`CLRSLean.Chapter_NN` imports and their public declarations keep their
+third-edition meanings through all {lit}`1.x` releases and for at least six
+months after the facade release.  Removal is possible only in {lit}`2.0` or
+later, after both gates pass.  Declaration namespaces migrate chapter by
+chapter; {lit}`docs/migrations/clrs4.md` records the current mapping.
 
 ## Status Labels
 
@@ -14,154 +25,77 @@ the detailed maintainer ledger.
   explicit work, RAM, or imperative refinement remains.
 * {lit}`selected-section-complete`: represented sections are complete without a
   claim about the unrepresented remainder of the chapter.
-* {lit}`partial`: meaningful theorem infrastructure exists, but a central
-  textbook theorem or refinement remains.
-* {lit}`not-started`: no represented section exists on {lit}`main`.
+* {lit}`partial`: meaningful theorem infrastructure exists, but the edition map
+  names a central textbook theorem, section, or refinement gap.
+* {lit}`not-started`: no section is represented in the canonical chapter.
 * {lit}`expository`: a guide page with no theorem target.
 
-## Complete For The Advertised Scope
+The proved/tracked fraction is a selected proof-inventory metric.  Even a
+complete fraction can accompany {lit}`partial` when the fourth-edition map names
+an obligation that has not yet been selected into that inventory.
 
-* **Chapter 2:** insertion sort, merge sort, and the represented cost/recurrence
-  wrappers.
-* **Chapter 3:** asymptotic wrappers, the standard-function comparison table,
-  Fibonacci growth, and the iterated logarithm.
-* **Chapter 4:** maximum-subarray correctness, the costed executable midpoint
-  selector with execution-attached scan counts and an all-input
-  {lit}`Theta(n log n)` bound, recursive Strassen correctness/runtime, and
-  the textbook-facing Master cases are proved.  Explicit split-tree
-  construction, integer operations, {lit}`List` allocation/copying, and RAM
-  semantics remain optional lower-level refinements.
-* **Chapter 6:** the current heap predicate, recursive {lit}`MAX-HEAPIFY`,
-  bottom-up {lit}`BUILD-MAX-HEAP`, heapsort, and represented priority-queue
-  operation specifications.  A costed execution mirrors heapify, build-heap,
-  and heapsort, erases to those algorithms, and proves coarse connected
-  {lit}`O(n)`, {lit}`O(n²)`, and {lit}`O(n²)` unit control-step envelopes.
-  This metric counts visited heapify frames and nontrivial extraction
-  transitions, but not build-loop orchestration, guards, list-operation costs,
-  or RAM semantics; tight textbook bounds remain refinements.
-* **Chapter 8 correctness:** represented counting-sort, radix-sort, and
-  bucket-sort correctness.  The CLRS unit-cost bucket-sort random variable is
-  {lit}`CLRS.Chapter08.textbookBucketSortCost`; its expectation identity is
-  {lit}`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`,
-  and {lit}`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO` proves linear
-  expectation.  The remaining bucket-sort layer is a single-pass executable
-  bucket builder, a costed per-bucket sorter, and a refinement theorem
-  connecting their execution cost to the abstract model.
-* **Chapter 9:** pairwise simultaneous extrema, order-statistic correctness,
-  a schedule-driven RANDOMIZED-SELECT path cost with erasure/rank correctness,
-  the nested fresh-choice expectation and its bridge to the CLRS larger-side
-  majorizer ({lit}`≤ 4 * c * n`), and end-to-end recursive median-of-medians
-  worst-case comparisons.  The randomized metric charges
-  {lit}`c * currentLength` partition work only; concrete RNG, internal
-  {lit}`selectByRank?` sorting cost, list primitives, and RAM accounting remain
-  lower-level refinements.
-* **Chapter 21:** abstract and executable disjoint-set correctness, weighted
-  linked-list analysis, reachable rank mass, concrete Batteries traversal
-  costs, and the {lit}`O((m+n) alpha(n))` potential analysis.
-* **Chapter 22 correctness:** BFS shortest distances and predecessor tree, DFS
-  white-path/timestamp/ancestor/edge-classification theory, Kahn and DFS
-  topological sorting, and Kosaraju SCC partition correctness.
-* **Chapter 23 correctness and functional implementation:** canonical exchange,
-  stateful Kruskal, executable indexed-queue Prim, and their algorithm-level
-  work bounds.
-* **Chapter 11 correctness:** deterministic tables, SUHA true-expectation
-  search costs, universal hashing, open addressing, and perfect hashing.
-* **Chapter 12 correctness:** functional BSTs, zipper navigation/transplant,
-  and the represented pointer-heap transplant/insert refinement.
-* **Chapter 13 correctness:** executable red-black insertion and deletion with
-  exact membership correctness, red-black shape preservation through both
-  operations ({lit}`redBlackShape_insert`, {lit}`redBlackShape_delete` via the
-  {lit}`baldL`/{lit}`baldR`/{lit}`splitMin`/{lit}`join` doubly-black
-  rebalancing pipeline), and the logarithmic-height theorem (CLRS Lemma 13.1).
-* **Chapter 15 represented sections:** rod cutting, matrix chain, LCS, and
-  optimal BST optimality with executable recurrence/reconstruction layers.
-* **Chapter 16:** activity selection, the greedy meta-theorem, Huffman coding,
-  matroid greedy, and task scheduling.
-* **Chapter 17 represented sections:** aggregate, accounting, and potential
-  methods plus stack/counter and dynamic-table amortized analyses.
-* **Chapter 20 correctness:** all seven operations of the recursive cached-
-  extrema vEB model and their control-flow-aware {lit}`O(log log u)` bounds.
-* **Selected complete sections:** Chapter 5.1--5.4 core models and Chapter
-  10.1, 10.2, and 10.4 functional structures.  Chapter 5 also represents the
-  longest-streak tail bound and an executable on-line hiring strategy; their
-  remaining asymptotics are chapter-end Problems.  Pointer/RAM refinements are
-  separate tracks.
+## Fourth-Edition Snapshot
 
-## Structured But Partial
+The canonical ledger contains 35 chapter rows.  Thirty-three chapters now carry
+represented theorem content; only Chapters 34--35 remain {lit}`not-started`.
+The generated dashboard owns live theorem totals and status counts, so this
+prose does not freeze a completed-prefix milestone.
 
-* **Chapter 7:** functional and mutable-array correctness, comparison
-  recurrences, random-permutation symmetry, and pairwise comparison probability
-  are proved.  The total-comparison random variable and expectation-sum bridge
-  remain.
-* **Chapter 14:** order-statistic augmentation (including the size invariant
-  threaded through executable red-black insertion and deletion via
-  {lit}`OSRBTree.wellSized_insert` and {lit}`OSRBTree.wellSized_delete`),
-  generic local augmentation facts, and interval-search correctness exist.  The
-  remaining core group is threading the generic Section 14.3 augmentation
-  interface ({lit}`AugmentedRBTree`) through executable red-black deletion.
-* **Chapters 18-19:** B-trees and Fibonacci heaps have substantial mathematical
-  or size-level specifications.  B-tree structural invariants and the
-  executable Fibonacci-heap forest operations/cost analysis remain central
-  theorem groups.
-* **Chapter 24:** Bellman-Ford, DAG SSSP, Dijkstra's greedy theorem, a concrete
-  state/step/loop skeleton, and difference constraints are represented.  The
-  loop still needs an initialization-to-invariant bridge and final distance-correctness
-  theorem.
-* **Chapter 25:** FASTER-APSP is correct; Floyd-Warshall currently has its
-  recurrence/work wrapper; Johnson currently has reweighting algebra.  Their
-  remaining correctness interfaces are tracked explicitly.
-* **Chapter 26:** the flow model, generic no-augmenting-path maximality,
-  Edmonds-Karp monotonic distance, and one MFMC direction are proved.  The MFMC
-  converse, executable Edmonds-Karp complexity theorem, and Section 26.3 remain.
-* **Chapter 27:** the dynamic-multithreading model (computation DAG with an
-  honestly computed longest-path span, spawn/sync trees, balanced
-  parallel-loop trees) is proved, with `T∞ ≤ T₁` on both models.  The
-  work/span recurrences of P-MATMUL, P-MERGE, P-MERGE-SORT, and parallel
-  Strassen are executable cost functions with exact power-of-two closed forms
-  (work `Θ(n³)`, `Θ(n)`, `Θ(n log n)`, `Θ(n^(log₂ 7))`; spans `Θ(log n)`,
-  `Θ(log² n)`, `Θ(log³ n)`), plus all-input upper bounds for P-MATMUL.  The
-  greedy-scheduler bound (Theorem 27.1/27.2), all-input Θ-bounds for the
-  merge-based costs, and executable algorithm refinements remain.
+The edition map currently records these fourth-edition gaps:
 
-## Not Represented On Main
+* **Chapter 4, Divide-and-Conquer:** Sections 4.1 and 4.6 are partial; Section
+  4.7 is not started.  Maximum subarray is retained as online material.
+* **Chapter 7, Quicksort:** Section 7.4 remains partial.
+* **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
+* **Chapter 13, Red-Black Trees:** Sections 13.2--13.4 remain partial because the
+  color/black-height shape results are not yet combined with BST preservation
+  and textbook update/cost refinements.
+* **Chapter 14, Dynamic Programming:** all five sections remain partial at the
+  tabulated/memoized algorithm and cost boundary; §14.3 additionally lacks a
+  generic dynamic-programming interface.
+* **Chapter 15, Greedy Algorithms:** Section 15.4 (offline caching) is a native section with the farthest-in-future policy; the optimality theorem remains.
+* **Chapter 17, Augmenting Data Structures:** all three sections remain partial:
+  OS-RANK, the augmentation-cost theorem, and the dynamic/static interval-tree
+  bridge are the principal gaps.
+* **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial for
+  general-form normalization, finite formulation bridges, and canonical
+  declaration ownership; detailed SIMPLEX material remains available online.
+* **Chapter 32, String Matching:** Section 32.1 is represented; Sections
+  32.2--32.5 are not started.
+* **Chapter 27, Online Algorithms:** Sections 27.1 (Waiting for an elevator) and
+  27.2 (Maintaining a search list) are represented; Section 27.3 (Online
+  caching) is not started.
 
-Chapters 28-35 do not currently have represented section modules on
-{lit}`main`.  Chapters 24-27 are represented but remain partial as described
-above.  Open pull requests are not counted until their scope is reviewed,
-merged, and added to the progress source.
+All other represented chapters retain their more specific complete,
+correctness-complete, selected-section-complete, or expository labels from the
+progress ledger.  Such a label applies only to the advertised Lean model and
+represented fourth-edition sections, never automatically to exercises,
+chapter-end Problems, pointer/RAM models, or floating-point implementations.
 
-## Sealed Chapters 21-23 Boundary
+## Not-Started Chapters
 
-Chapters 21--23 are complete for their advertised boundaries.  Their
-closure boundaries are protected by focused interface and closure tests plus
-dated audits under {lit}`docs/proof-audits/`.
+* **Chapters 34--35, NP-Completeness and Approximation Algorithms:** guide-only,
+  with whole-chapter inventories pending.
 
-The following are refinements and do not reopen the completed correctness
-milestone:
+These rows have zero canonical tracked theorem entries even when a legacy
+source directory with the same number exists.
 
-* exact work counts and {lit}`O(V + E)` packaging;
-* imperative adjacency-list or RAM refinement;
-* mutable-array refinement of the Chapter 23 union-find and Prim queue models;
-* exercises and chapter-end problems.
+## Online And Supplementary Material
 
-## Highest-Value Open Proof Groups
-
-1. Close Chapter 24 by aligning Dijkstra initialization with its invariant and
-   proving final loop distance correctness.
-2. Prove Floyd-Warshall correctness, then Johnson's end-to-end correctness and
-   the remaining path-reconstruction/negative-cycle interfaces in Chapter 25.
-3. Complete the MFMC converse, Edmonds-Karp counting theorem, and bipartite-
-   matching reduction in Chapter 26.
-4. Thread the generic Chapter 14 augmentation interface
-   ({lit}`AugmentedRBTree`) through executable red-black deletion, mirroring
-   the Chapter 13 {lit}`del` pipeline.
-5. Close Chapter 7's total-comparison expectation bridge.
+The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 467 tracked theorem
+groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
+33, plus 46 from moved section-level developments such as maximum subarray,
+perfect hashing, matroids and task scheduling, detailed SIMPLEX, iterative FFT,
+and integer factorization.  Those 46 groups have been removed from the
+canonical chapter totals, so the 1,326 canonical and 467 online entries are
+disjoint.  {lit}`docs/clrs-online-material.csv` owns the topic-level counts and
+source modules; compatibility imports do not duplicate either ledger.
 
 ## Reader Contract
 
 A {lit}`proved` or complete label always refers to a named Lean theorem for an
-explicit model.  It never silently means that every exercise, cost model, or
-imperative implementation has been completed.  A {lit}`partial` label should
-name the remaining mathematical or representation layer, and dated audits
-should be treated as historical evidence rather than a live status source.
+explicit model.  A {lit}`partial` label names the remaining mathematical or
+representation layer.  Compatibility facades preserve theorem availability;
+they do not by themselves prove every obligation in the new edition.  Dated
+audits are historical evidence rather than live status sources.
 -/

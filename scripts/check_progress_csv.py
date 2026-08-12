@@ -7,14 +7,16 @@ import argparse
 import csv
 from collections import Counter
 from pathlib import Path
-import re
 import sys
+
+from online_material import online_tracked_total
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "docs" / "clrs-proof-progress.csv"
+MAP_PATH = ROOT / "docs" / "clrs-fourth-edition-map.csv"
 DASHBOARD_PATH = ROOT / "CLRSLean" / "Progress.lean"
-CLRSLEAN_PATH = ROOT / "CLRSLean"
+ONLINE_MATERIAL_TRACKED_THEOREMS = online_tracked_total()
 
 HEADER = [
     "chapter_no",
@@ -23,10 +25,10 @@ HEADER = [
     "represented_sections",
     "tracked_key_theorems",
     "proved_tracked_theorems",
-    "missing_core_groups",
+    "edition_gap_units",
     "completion_read",
     "proved_key_theorem_groups",
-    "remaining_core_groups",
+    "remaining_edition_gaps",
     "evidence_source",
     "notes",
 ]
@@ -40,6 +42,13 @@ STATUS_ORDER = [
     "expository",
 ]
 
+MIGRATION_STATES = {
+    "native",
+    "facade",
+    "partial",
+    "not-started",
+    "online-material",
+}
 
 def load_rows() -> list[dict[str, str]]:
     with CSV_PATH.open(newline="", encoding="utf-8") as handle:
@@ -51,6 +60,84 @@ def load_rows() -> list[dict[str, str]]:
                 f"actual:   {reader.fieldnames}"
             )
         return list(reader)
+
+
+def load_map_rows() -> list[dict[str, str]]:
+    with MAP_PATH.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def chapter_contracts(
+    map_rows: list[dict[str, str]] | None = None,
+) -> dict[int, dict[str, object]]:
+    """Build the chapter-level progress contract from the fourth-edition map."""
+    grouped: dict[int, list[dict[str, str]]] = {}
+    for map_row in load_map_rows() if map_rows is None else map_rows:
+        state = map_row.get("migration_state", "")
+        require(
+            state in MIGRATION_STATES,
+            f"Fourth-edition map has unknown migration_state {state!r}: {map_row}",
+        )
+        if state == "online-material":
+            continue
+        try:
+            chapter_no = int(map_row["chapter_no"])
+        except (KeyError, ValueError) as exc:
+            raise SystemExit(f"Invalid fourth-edition map chapter: {map_row}") from exc
+        grouped.setdefault(chapter_no, []).append(map_row)
+
+    require(
+        sorted(grouped) == list(range(1, 36)),
+        "Fourth-edition map must define Chapters 1--35 exactly",
+    )
+
+    contracts: dict[int, dict[str, object]] = {}
+    for chapter_no, chapter_rows in grouped.items():
+        titles = {row["chapter_title"].strip() for row in chapter_rows}
+        require(
+            len(titles) == 1 and "" not in titles,
+            f"Chapter {chapter_no}: fourth-edition map titles disagree",
+        )
+        states = {row["migration_state"] for row in chapter_rows}
+        gap_sections = tuple(
+            row["section_no"]
+            for row in chapter_rows
+            if row["migration_state"] in {"partial", "not-started"}
+        )
+        represented_sections = tuple(
+            row["section_no"]
+            for row in chapter_rows
+            if row["migration_state"] not in {"not-started", "online-material"}
+            and row["source_modules"].strip().lower() != "none"
+        )
+        source_modules = tuple(
+            sorted(
+                {
+                    source.strip()
+                    for row in chapter_rows
+                    for source in row["source_modules"].split(";")
+                    if source.strip().lower() != "none"
+                }
+            )
+        )
+        if not represented_sections:
+            required_status = "not-started"
+            required_edition_gap_units = 1
+        elif states.intersection({"partial", "not-started"}):
+            required_status = "partial"
+            required_edition_gap_units = len(gap_sections)
+        else:
+            required_status = None
+            required_edition_gap_units = 0
+        contracts[chapter_no] = {
+            "title": titles.pop(),
+            "represented_sections": represented_sections,
+            "required_status": required_status,
+            "required_edition_gap_units": required_edition_gap_units,
+            "guide": Path(f"CLRSLean/FourthEdition/Chapter_{chapter_no:02d}.lean"),
+            "source_modules": source_modules,
+        }
+    return contracts
 
 
 def require(condition: bool, message: str) -> None:
@@ -69,7 +156,11 @@ def int_field(row: dict[str, str], name: str) -> int:
 
 
 def validate(rows: list[dict[str, str]]) -> None:
-    require(len(rows) == 35, f"Expected 35 CLRS chapter rows, found {len(rows)}")
+    contracts = chapter_contracts()
+    require(
+        len(rows) == len(contracts),
+        f"Expected {len(contracts)} CLRS fourth-edition chapter rows, found {len(rows)}",
+    )
     seen: set[int] = set()
 
     for expected, row in enumerate(rows, start=1):
@@ -77,10 +168,32 @@ def validate(rows: list[dict[str, str]]) -> None:
         require(chapter_no == expected, f"Expected chapter {expected}, found {chapter_no}")
         require(chapter_no not in seen, f"Duplicate chapter row: {chapter_no}")
         seen.add(chapter_no)
+        contract = contracts[chapter_no]
+
+        require(
+            row["chapter_title"] == contract["title"],
+            f"Chapter {chapter_no}: fourth-edition title must be "
+            f"{contract['title']!r}, found {row['chapter_title']!r}",
+        )
+
+        guide = ROOT / contract["guide"]
+        require(
+            guide.is_file(),
+            f"Chapter {chapter_no}: missing fourth-edition guide "
+            f"{guide.relative_to(ROOT)}",
+        )
+
+        for source_module in contract["source_modules"]:
+            source_path = ROOT / (str(source_module).replace(".", "/") + ".lean")
+            require(
+                source_path.is_file(),
+                f"Chapter {chapter_no}: mapped source module does not exist: "
+                f"{source_module}",
+            )
 
         tracked = int_field(row, "tracked_key_theorems")
         proved = int_field(row, "proved_tracked_theorems")
-        int_field(row, "missing_core_groups")
+        edition_gap_units = int_field(row, "edition_gap_units")
         require(proved <= tracked, f"Chapter {chapter_no}: proved theorem count exceeds tracked count")
 
         for key in ("chapter_title", "repo_status", "completion_read", "evidence_source"):
@@ -98,22 +211,48 @@ def validate(rows: list[dict[str, str]]) -> None:
             row["repo_status"] in STATUS_ORDER,
             f"Chapter {chapter_no}: unknown repo_status {row['repo_status']}",
         )
+        required_status = contract["required_status"]
+        if required_status is not None:
+            require(
+                row["repo_status"] == required_status,
+                f"Chapter {chapter_no}: fourth-edition map requires status "
+                f"{required_status}, found {row['repo_status']}",
+            )
+        if row["repo_status"] in {"partial", "not-started"}:
+            require(
+                edition_gap_units > 0,
+                f"Chapter {chapter_no}: {row['repo_status']} rows must have "
+                "positive edition_gap_units",
+            )
+        require(
+            edition_gap_units == contract["required_edition_gap_units"],
+            f"Chapter {chapter_no}: edition_gap_units must equal the "
+            f"{contract['required_edition_gap_units']} edition-map coverage-gap units, "
+            f"found {edition_gap_units}",
+        )
+        if edition_gap_units == 0:
+            require(
+                row["remaining_edition_gaps"] == "None",
+                f"Chapter {chapter_no}: zero-gap rows must use "
+                "remaining_edition_gaps=None; move optional refinements to notes",
+            )
+        else:
+            require(
+                row["remaining_edition_gaps"].strip() not in {"", "None"},
+                f"Chapter {chapter_no}: positive-gap rows must describe "
+                "remaining_edition_gaps",
+            )
 
         if row["repo_status"] == "not-started":
             require(
                 row["represented_sections"].lower() == "none",
                 f"Chapter {chapter_no}: not-started rows should use represented_sections=None",
             )
-            chapter_dir = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}"
-            section_files = list(chapter_dir.rglob("Section_*.lean")) if chapter_dir.is_dir() else []
             require(
-                not section_files,
-                f"Chapter {chapter_no}: marked not-started but section files exist",
+                tracked == 0 and proved == 0,
+                f"Chapter {chapter_no}: not-started rows must have zero tracked theorem entries",
             )
             continue
-
-        guide = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}.lean"
-        require(guide.is_file(), f"Chapter {chapter_no}: missing guide {guide.relative_to(ROOT)}")
 
         if row["repo_status"] == "expository":
             require(
@@ -122,24 +261,22 @@ def validate(rows: list[dict[str, str]]) -> None:
             )
             continue
 
-        expected_sections = {part.strip() for part in row["represented_sections"].split(";")}
+        expected_sections = tuple(
+            part.strip() for part in row["represented_sections"].split(";")
+        )
         require(
-            all(re.fullmatch(rf"{chapter_no}\.\d+", part) for part in expected_sections),
+            all(
+                part.startswith(f"{chapter_no}.")
+                and part.removeprefix(f"{chapter_no}.").isdigit()
+                for part in expected_sections
+            ),
             f"Chapter {chapter_no}: represented_sections must be semicolon-separated section numbers",
         )
-
-        chapter_dir = CLRSLEAN_PATH / f"Chapter_{chapter_no:02d}"
-        require(chapter_dir.is_dir(), f"Chapter {chapter_no}: missing section directory")
-        actual_sections: set[str] = set()
-        for section_file in chapter_dir.rglob("Section_*.lean"):
-            match = re.match(r"Section_(\d+)_(\d+)_", section_file.name)
-            require(match is not None, f"Unexpected section filename: {section_file.name}")
-            actual_sections.add(f"{int(match.group(1))}.{int(match.group(2))}")
-
         require(
-            expected_sections == actual_sections,
-            f"Chapter {chapter_no}: CSV sections {sorted(expected_sections)} "
-            f"do not match source sections {sorted(actual_sections)}",
+            expected_sections == contract["represented_sections"],
+            f"Chapter {chapter_no}: CSV sections {list(expected_sections)} "
+            "do not match represented sections in docs/clrs-fourth-edition-map.csv "
+            f"{list(contract['represented_sections'])}",
         )
 
 
@@ -160,8 +297,7 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
     represented = sum(1 for row in rows if row["represented_sections"].lower() != "none")
     tracked = sum(int(row["tracked_key_theorems"]) for row in rows)
     proved = sum(int(row["proved_tracked_theorems"]) for row in rows)
-    missing = sum(int(row["missing_core_groups"]) for row in rows)
-
+    gap_units = sum(int(row["edition_gap_units"]) for row in rows)
     lines: list[str] = [
         "/-!",
         "# Progress Dashboard",
@@ -171,17 +307,31 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
         "When the CSV changes, regenerate this page with",
         f"{lit('uv run python scripts/check_progress_csv.py --write-dashboard')}.",
         "",
-        "## Snapshot",
+        "## Fourth-Edition Snapshot",
         "",
-        f"* CLRS chapters tracked: {len(rows)}.",
+        "This is the canonical CLRS fourth-edition chapter ledger.  Reused",
+        "third-edition theorem sources remain compatibility evidence, not an",
+        "alternative chapter-numbering scheme.",
+        "Legacy imports remain supported through all 1.x releases and for at",
+        "least six months; removal is possible only in 2.0 or later.",
+        "",
+        f"* Fourth-edition chapters tracked: {len(rows)}.",
         f"* Chapters represented in Lean: {represented}.",
-        f"* Tracked reader-facing theorem entries: {tracked}.",
-        f"* Proved tracked theorem entries: {proved}.",
-        f"* Remaining core theorem groups: {missing}.",
+        f"* Tracked reader-facing theorem entries: {tracked:,}.",
+        f"* Proved tracked theorem entries: {proved:,}.",
+        f"* Online/supplementary theorem entries: {ONLINE_MATERIAL_TRACKED_THEOREMS:,}.",
+        f"* Remaining edition-coverage units: {gap_units}.",
         "",
-        "Tracked theorem entries count the public theorem groups currently represented",
-        "in Lean.  Remaining core theorem groups count textbook-facing targets that",
-        "are not yet represented or not yet complete.",
+        "Tracked theorem entries form a selected proof inventory of reviewed groups mapped",
+        "to represented fourth-edition sections.  A complete proved/tracked count does not",
+        "by itself mean that every fourth-edition section obligation is covered.  Moved",
+        "subsections and wholly excluded legacy chapters are counted only",
+        "in the machine-readable online-material ledger.  This produces disjoint canonical and online-material ledgers;",
+        "compatibility imports do not duplicate either count.",
+        "An edition-coverage unit is one unresolved section in a represented chapter,",
+        "or one whole-chapter unit when no section of that chapter is represented.",
+        f"The status {lit('partial')} means partial fourth-edition coverage, even when",
+        "every theorem already selected for that chapter is proved.",
         "",
         "## Status Counts",
         "",
@@ -198,24 +348,28 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
             "## Chapter Matrix",
             "",
             "```",
-            "Ch  Chapter                                                     Status                               Sections                      Tracked  Missing",
-            "--  ----------------------------------------------------------  -----------------------------------  ----------------------------  -------  -------",
+            "Ch  Chapter                                                     Status                               Sections                      Tracked  Gap units",
+            "--  ----------------------------------------------------------  -----------------------------------  ----------------------------  -------  ---------",
         ]
     )
 
     for row in rows:
         chapter = f"{row['chapter_no']}. {row['chapter_title']}"[:58]
-        status = row["repo_status"][:35]
+        status = (
+            "partial (edition coverage)"
+            if row["repo_status"] == "partial"
+            else row["repo_status"]
+        )[:35]
         sections = clean_sections(row["represented_sections"])[:28]
         tracked_count = row["tracked_key_theorems"]
-        missing_count = row["missing_core_groups"]
+        gap_count = row["edition_gap_units"]
         lines.append(
             f"{int(row['chapter_no']):>2}  "
             f"{chapter:<58}  "
             f"{status:<35}  "
             f"{sections:<28}  "
             f"{tracked_count:>7}  "
-            f"{missing_count:>7}"
+            f"{gap_count:>7}"
         )
 
     lines.extend(
@@ -233,9 +387,9 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
             "",
             "Minimum maintenance loop:",
             "",
-            f"1. Update the relevant chapter/section Lean files and {lit('docs/clrs-proof-progress.csv')}.",
+            f"1. Consult {lit('docs/clrs-fourth-edition-map.csv')}, then update the relevant Lean files and {lit('docs/clrs-proof-progress.csv')}.",
             f"2. Run {lit('uv run python scripts/check_progress_csv.py --write-dashboard')}.",
-            f"3. Run {lit('lake build CLRSLean')} and, for website changes, {lit('lake build :literateHtml')}.",
+            f"3. Run {lit('lake build CLRSLean')}; for explicit website publishing, use the four-shard runbook in {lit('docs/site-architecture.md')}.  The serial {lit('lake build :literateHtml')} target is a diagnostic fallback.",
             "-/",
             "",
         ]
@@ -243,12 +397,35 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
+def check_dashboard_freshness(
+    rows: list[dict[str, str]], dashboard_path: Path = DASHBOARD_PATH
+) -> None:
+    """Reject a generated dashboard that no longer matches the CSV."""
+    expected = render_dashboard(rows)
+    actual = (
+        dashboard_path.read_text(encoding="utf-8")
+        if dashboard_path.is_file()
+        else ""
+    )
+    if actual != expected:
+        raise ValueError(
+            f"{dashboard_path} is out of date; run "
+            "`uv run python scripts/check_progress_csv.py --write-dashboard`"
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+    output_mode = parser.add_mutually_exclusive_group()
+    output_mode.add_argument(
         "--write-dashboard",
         action="store_true",
         help="regenerate CLRSLean/Progress.lean from the CSV after validation",
+    )
+    output_mode.add_argument(
+        "--check-dashboard",
+        action="store_true",
+        help="exit nonzero when CLRSLean/Progress.lean is stale",
     )
     args = parser.parse_args()
 
@@ -257,12 +434,16 @@ def main() -> int:
 
     if args.write_dashboard:
         DASHBOARD_PATH.write_text(render_dashboard(rows), encoding="utf-8")
+    elif args.check_dashboard:
+        check_dashboard_freshness(rows)
 
     tracked = sum(int(row["tracked_key_theorems"]) for row in rows)
     proved = sum(int(row["proved_tracked_theorems"]) for row in rows)
     print(f"progress CSV OK: {len(rows)} chapters, {tracked} tracked theorem entries, {proved} proved")
     if args.write_dashboard:
         print(f"wrote {DASHBOARD_PATH.relative_to(ROOT)}")
+    elif args.check_dashboard:
+        print(f"{DASHBOARD_PATH.relative_to(ROOT)} is up to date")
     return 0
 
 

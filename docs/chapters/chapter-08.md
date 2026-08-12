@@ -1,11 +1,41 @@
 # Chapter 8 - Sorting in Linear Time
 
-Chapter 8 now has compiler-clean correctness spines for counting sort, radix
-sort, and deterministic bucket sort.  The radix-sort layer includes an explicit
+Chapter 8 now has a compiler-clean decision-tree lower bound for comparison
+sorts (Section 8.1) plus correctness spines for counting sort, radix sort, and
+deterministic bucket sort.  The radix-sort layer includes an explicit
 complete-signature stability theorem, and the bucket-sort layer includes the
 finite-uniform collision and second-moment core plus the CLRS textbook
 unit-cost random variable.  Its linear expectation is proved only at that
 abstract layer.
+
+## Section 8.1 - Lower bounds for sorting
+
+- Lean source: `CLRSLean/Chapter_08/Section_08_1_Lower_Bound_For_Sorting.lean`
+- Status: `proved` for the decision-tree model over `Fin n` distinct elements
+- Main theorem: `CLRS.Chapter08.comparisonSort_worstCase_lowerBound`
+
+A comparison sort on `n` distinct elements is modelled as a binary decision
+tree `SortTree n` whose internal nodes compare two positions and whose leaves
+are labelled with output permutations.  A tree is `CorrectSort` if the run on
+every input arrangement `π` reaches the leaf labelled with the sorted
+arrangement `π⁻¹`.
+
+The theorem layer proves:
+
+- `CLRS.Chapter08.leafCount_le_two_pow_height`: a binary tree of height `h`
+  has at most `2^h` leaves.
+- `CLRS.Chapter08.run_injective_of_correctSort`: a correct sorter maps
+  distinct inputs to distinct leaves.
+- `CLRS.Chapter08.factorial_le_leafCount_of_correctSort`: a correct sorter has
+  at least `n!` leaves.
+- `CLRS.Chapter08.height_le_logb_factorial`: the height is at least
+  `log₂(n!)`.
+- `CLRS.Chapter08.factorial_sq_ge_pow_self`: the pairing bound `(n!)² ≥ nⁿ`.
+- `CLRS.Chapter08.logb_factorial_ge_half_mul_logb`:
+  `log₂(n!) ≥ (n/2)·log₂ n`.
+- `CLRS.Chapter08.comparisonSort_worstCase_lowerBound`: any correct
+  comparison sort needs at least `(n/2)·(log₂ n - 1)` comparisons in the worst
+  case, which is `Ω(n log n)`.
 
 ## Section 8.2 - Counting sort
 

@@ -1,0 +1,11 @@
+topic_id,title,source_modules,legacy_location,tracked_key_theorems,coverage_note
+fibonacci-heaps,Fibonacci heaps,CLRSLean.Chapter_19,CLRS third edition Chapter 19,214,Official fourth-edition online material; excluded from canonical Chapter 19 counts.
+van-emde-boas-trees,van Emde Boas trees,CLRSLean.Chapter_20,CLRS third edition Chapter 20,200,Official fourth-edition online material; excluded from canonical Chapter 20 counts.
+computational-geometry,Computational geometry,CLRSLean.Chapter_33,CLRS third edition Chapter 33,7,Official fourth-edition online material; excluded from canonical Chapter 33 counts.
+maximum-subarray,Maximum subarray,CLRSLean.Chapter_04.Section_04_1_Maximum_Subarray,CLRS third edition Section 4.1,14,Moved out of the fourth-edition main chapter; removed from canonical Chapter 4 counts.
+matroids,Matroids and weighted greedy,CLRSLean.Chapter_16.Section_16_4_Matroids,CLRS third edition Section 16.4,5,Supplementary to the fourth-edition greedy chapter; removed from canonical Chapter 15 counts.
+task-scheduling,Unit-time task scheduling,CLRSLean.Chapter_16.Section_16_5_Task_Scheduling,CLRS third edition Section 16.5,4,Supplementary to the fourth-edition greedy chapter; removed from canonical Chapter 15 counts.
+simplex,The detailed simplex algorithm,CLRSLean.Chapter_29.Section_29_3_The_Simplex_Algorithm,CLRS third edition Section 29.3,5,Moved to online material in the fourth edition; removed from canonical Chapter 29 counts.
+initial-simplex,The initial basic feasible solution,CLRSLean.Chapter_29.Section_29_5_The_Initial_Basic_Feasible_Solution,CLRS third edition Section 29.5,2,Moved to online material in the fourth edition; removed from canonical Chapter 29 counts.
+iterative-fft,Bit reversal and iterative FFT,CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.BitReversal; CLRSLean.Chapter_30.Section_30_3_Efficient_FFT_Implementations.IterativeFFT,CLRS third edition Section 30.3,12,Iterative implementation material retained online; FFT-circuit results remain counted in canonical Chapter 30.
+integer-factorization,Integer factorization,CLRSLean.Chapter_31.Section_31_9_Integer_Factorization,CLRS third edition Section 31.9,1,Moved out of the fourth-edition main chapter; removed from canonical Chapter 31 counts.

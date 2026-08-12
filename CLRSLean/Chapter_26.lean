@@ -1,13 +1,19 @@
 import CLRSLean.Chapter_26.Section_26_1_Flow_Networks
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp
+import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
+import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S1_ShortestAugmentingPath
+import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S2_EK_Loop
+import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S3_WorkAnalysis
+import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S4_ExecutableBFS
+import CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching
 import CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut
 
 /-! # Chapter 26 - Maximum Flow
 
-Chapter 26 opens the maximum-flow part of the CLRS graph track.  It builds a
-flow-network model on top of the Chapter 22-style finite directed graph
-vocabulary (using a capacity function approach) and formalizes the Ford-Fulkerson
-method.
+Chapter 26 opens the maximum-flow part of the CLRS graph track.  The current
+partial development builds a finite capacity-function model, proves concrete
+Ford--Fulkerson augmentation and the full Max-Flow Min-Cut equivalence, and
+exposes infrastructure for the later algorithms.
 
 ## Sections
 
@@ -20,22 +26,52 @@ method.
   {lit}`CLRS.Chapter26.Flow.residualCapacity`,
   {lit}`CLRS.Chapter26.Flow.residualEdge`,
   {lit}`CLRS.Chapter26.Flow.augmentingPathReachable`,
-  {lit}`CLRS.Chapter26.Flow.maximal_of_noAugmentingPath`.
+  {lit}`CLRS.Chapter26.Flow.maximal_of_noAugmentingPath`, and
+  {lit}`CLRS.Chapter26.Flow.exists_cut_value_eq_of_noAugmentingPath`.
 
-* 26.2 Edmonds-Karp algorithm.
+* 26.2 Ford-Fulkerson augmentation.
+  Main declarations:
+  {lit}`CLRS.Chapter26.Flow.ResidualPath`,
+  {lit}`CLRS.Chapter26.Flow.AugmentingPath`,
+  {lit}`CLRS.Chapter26.Flow.AugmentingPath.bottleneck`,
+  {lit}`CLRS.Chapter26.Flow.augmentBy`,
+  {lit}`CLRS.Chapter26.Flow.augment`,
+  {lit}`CLRS.Chapter26.Flow.augmentBy_value`,
+  {lit}`CLRS.Chapter26.Flow.augment_value`,
+  {lit}`CLRS.Chapter26.Flow.value_lt_augment`,
+  {lit}`CLRS.Chapter26.Flow.hasAugmentingPath_iff_nonempty_augmentingPath`, and
+  {lit}`CLRS.Chapter26.Flow.not_maximal_of_hasAugmentingPath`.
+
+* 26.2 Edmonds-Karp analysis.
   Main declarations:
   {lit}`CLRS.Chapter26.ResidualPathLength`,
   {lit}`CLRS.Chapter26.IsShortestDist`,
+  {lit}`CLRS.Chapter26.isShortestDist_self`,
+  {lit}`CLRS.Chapter26.IsShortestDist.unique`,
+  {lit}`CLRS.Chapter26.isShortestDist_triangle`,
+  {lit}`CLRS.Chapter26.IsShortestDist.exists_predecessor`,
   {lit}`CLRS.Chapter26.ShortestAugmentingPath`,
-  {lit}`CLRS.Chapter26.shortest_path_nondec`.
+  {lit}`CLRS.Chapter26.ShortestAugmentingPath.shortest_prefix`,
+  {lit}`CLRS.Chapter26.ShortestAugmentingPath.exists_shortestDist_le_augment`,
+  and {lit}`CLRS.Chapter26.shortest_path_nondec` (Lemma 26.7).
 
 * 26.3 Maximum bipartite matching.
-  No section module is present on {lit}`main`; the flow reduction and its
-  correctness remain a tracked core gap.
-
-* 26.6 Max-Flow Min-Cut Theorem.
   Main declarations:
-  {lit}`CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`.
+  {lit}`CLRS.Chapter26.BipartiteGraph`,
+  {lit}`CLRS.Chapter26.Matching`,
+  {lit}`CLRS.Chapter26.toFlowNetwork`,
+  {lit}`CLRS.Chapter26.matchingToFlow`,
+  {lit}`CLRS.Chapter26.matchingToFlow_value`,
+  {lit}`CLRS.Chapter26.matchingOfIntegralFlow`,
+  {lit}`CLRS.Chapter26.matchingOfIntegralFlow_size`, and
+  {lit}`CLRS.Chapter26.maxMatching_eq_maxFlow_value`
+  (Theorem 26.12).
+
+* Theorem 26.6, Max-Flow Min-Cut.
+  Main declarations:
+  {lit}`CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`,
+  {lit}`CLRS.Chapter26.Flow.maximal_iff_noAugmentingPath`, and
+  {lit}`CLRS.Chapter26.Flow.maximal_iff_exists_cut_value_eq`.
 
 ## Current Shape
 
@@ -46,24 +82,41 @@ conservation.  The section proves Lemma 26.5 (net flow across any cut equals
 flow value) and the generic Ford-Fulkerson correctness theorem: if there is no
 augmenting path in the residual network, the flow is maximal.
 
-Section 26.2 defines the residual path-length predicate {lit}`ResidualPathLength`
-and the shortest-path distance {lit}`IsShortestDist`.  It proves the
-Edmonds-Karp monotonic distance lemma (Lemma 26.7): after augmenting along a
-shortest augmenting path, the distances {lit}`δ_f(s,v)` in the residual network
-are nondecreasing.  This is the key lemma for the `O(VE²)` running-time bound.
+The Ford-Fulkerson augmentation module packages a concrete simple residual
+source-to-sink path, proves that its bottleneck is positive, constructs the
+resulting feasible augmented flow, and proves both its exact and strict value
+increase.  It also converts residual source-to-sink reachability to this
+concrete simple-path representation and uses augmentation to prove that any
+flow with an augmenting path is not maximal.
 
-The companion file `Section_26_6_MaxFlow_MinCut` proves the easy direction of the
-Max-Flow Min-Cut Theorem: if `|f| = c(S,T)` for some cut, then `f` is maximal.
-The converse direction (maximal `f` implies existence of such a cut) and the
-full three-condition equivalence are deferred.
+The Edmonds-Karp module defines residual path lengths and shortest residual
+distances.  It proves predecessor and shortest-prefix facts, characterizes the
+new residual edges introduced by augmentation, and combines those bridges into
+the monotonic residual-distance theorem of Lemma 26.7.  The companion
+submodules assemble the explicit shortest augmenting path from residual
+reachability, run the Edmonds-Karp loop to an integral maximal flow
+({lit}`edmondsKarp_maximal`), prove the critical-edge counting argument that
+bounds the number of augmentations by `O(VE²)`
+({lit}`critical_count_bound`, {lit}`augmentation_count_bound`), and supply an
+executable breadth-first search ({lit}`residualBFS`) whose parent chain yields
+the shortest augmenting path ({lit}`bfs_shortestAugmenting`).
+
+Section 26.3 defines bipartite graphs, matchings, and the unit-capacity
+reduction.  It constructs the feasible flow induced by every matching
+({lit}`matchingToFlow`) with value equal to its size, recovers a matching of
+size `v` from every integral flow of value `v` ({lit}`matchingOfIntegralFlow`),
+and iterates shortest-free augmentation from the zero flow to obtain an
+integral maximum flow.  These pieces combine into CLRS Theorem 26.12
+({lit}`maxMatching_eq_maxFlow_value`): the maximum matching size equals the
+maximum flow value.
+
+The companion file `Section_26_6_MaxFlow_MinCut` proves the full Max-Flow
+Min-Cut Theorem: maximality is equivalent both to the absence of a residual
+source-to-sink path and to equality with the capacity of some cut.
 
 ## Deferred Work
 
-* The converse (and constructive) direction of the Max-Flow Min-Cut Theorem.
-* The executable BFS procedure, concrete Edmonds-Karp augmenting loop, and the
-  augmentation-count/{lit}`O(VE²)` theorem built from Lemma 26.7.
-* Section 26.3's bipartite-matching reduction, integrality bridge, and final
-  matching/flow equivalence.
+Sections 26.4 and 26.5 are deferred outside the current selected milestone.
 -/
 
 namespace CLRS

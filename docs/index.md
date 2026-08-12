@@ -1,9 +1,10 @@
 # CLRS-Lean Documentation Index
 
-This directory contains maintainer-facing documentation for the Lean library
-and the generated Verso book.  Reader-facing chapter prose lives in
-`CLRSLean/Chapter_XX.lean`; this index explains where repository-level facts
-belong.
+This directory contains maintainer-facing documentation for the
+fourth-edition-primary Lean library and generated Verso book.  Canonical
+reader-facing chapter prose lives in `CLRSLean/FourthEdition/Chapter_XX.lean`;
+current theorem-bearing source guides may retain third-edition-numbered paths
+during the compatibility period.
 
 ## Start Here
 
@@ -13,15 +14,25 @@ belong.
 | [`repository-architecture.md`](repository-architecture.md) | Code layers, dependencies, ownership, and sources of truth |
 | [`proof-status-board.md`](proof-status-board.md) | Compact chapter status and next-proof priorities |
 | [`proof-map.md`](proof-map.md) | Detailed theorem and proof-boundary ledger |
+| [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv) | Canonical fourth-edition section/source bridge |
 | [`clrs-proof-progress.csv`](clrs-proof-progress.csv) | Machine-readable chapter progress source |
+| [`clrs-online-material.csv`](clrs-online-material.csv) | Disjoint theorem-count ledger for retained online and supplementary material |
+| [`migrations/clrs4.md`](migrations/clrs4.md) | Fourth-edition imports, shifted chapters, and compatibility/removal gates |
 | [`status/blocked-and-deferred.md`](status/blocked-and-deferred.md) | Explicitly blocked, deferred, and future work |
 | [`workflows/chapter-workflow.md`](workflows/chapter-workflow.md) | End-to-end chapter formalization workflow |
 | [`workflows/lean-fast-verification.md`](workflows/lean-fast-verification.md) | Narrow-to-wide Lean verification loop |
 | [`site-architecture.md`](site-architecture.md) | Verso navigation, rendering, and deployment design |
+| [`randomized-treap-height.md`](randomized-treap-height.md) | Expected-height bound for the randomized treap: `E[height] ≤ 30 · H_n` |
 
 ## Documentation Roles
 
-- `clrs-proof-progress.csv` owns chapter-level counts and status labels.
+- `clrs-fourth-edition-map.csv` owns canonical chapter/section numbers, titles,
+  facade sources, and migration states.
+- `clrs-proof-progress.csv` owns fourth-edition chapter-level counts and status
+  labels, interpreted through the edition map.
+- `clrs-online-material.csv` owns topic-level counts outside the canonical
+  fourth-edition chapter tree; its entries must not be counted in chapter
+  progress.
 - `proof-map.md` owns theorem-level detail and formalization boundaries.
 - `proof-status-board.md` owns prioritization; it should not duplicate every
   theorem name.
@@ -34,13 +45,17 @@ belong.
 
 ## Lean Source Catalog
 
-Chapter guides are `CLRSLean/Chapter_XX.lean`.  The represented section modules
-on `main` are:
+Canonical chapter guides are `CLRSLean/FourthEdition/Chapter_XX.lean`.
+`CLRSLean/OnlineMaterial.lean` catalogs retained material outside the primary
+chapter tree.  The represented theorem source modules on `main` currently use
+the following compatibility paths; their numeric suffixes do not override the
+edition map:
 
 ```text
 CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
 CLRSLean/Chapter_02/Section_02_2_Analyzing_Algorithms.lean
 CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms.lean
+CLRSLean/Chapter_02/Section_02_3_Designing_Algorithms/Merge_Sort_Recurrence.lean
 CLRSLean/Chapter_03/Section_03_1_Asymptotic_Notation.lean
 CLRSLean/Chapter_03/Section_03_2_Standard_Functions.lean
 CLRSLean/Chapter_04/Section_04_1_Maximum_Subarray.lean
@@ -64,6 +79,7 @@ CLRSLean/Chapter_07/Section_07_1_Description_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_2_Performance_Of_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort.lean
 CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort/Comparison_Probability.lean
+CLRSLean/Chapter_08/Section_08_1_Lower_Bound_For_Sorting.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort/CountTables.lean
 CLRSLean/Chapter_08/Section_08_2_Counting_Sort/MutableOutputArray.lean
@@ -94,15 +110,52 @@ CLRSLean/Chapter_16/Section_16_2_Greedy_Meta.lean
 CLRSLean/Chapter_16/Section_16_3_Huffman_Codes.lean
 CLRSLean/Chapter_16/Section_16_4_Matroids.lean
 CLRSLean/Chapter_16/Section_16_5_Task_Scheduling.lean
+CLRSLean/FourthEdition/Chapter_15/Section_15_1_Activity_Selection.lean
+CLRSLean/FourthEdition/Chapter_15/Section_15_2_Greedy_Meta.lean
+CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes.lean
+CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching.lean
+CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S1_Cache_Model.lean
+CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S2_Farthest_In_Future.lean
+CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S3_Optimality.lean
 CLRSLean/Chapter_17/Section_17_1_Amortized_Framework.lean
 CLRSLean/Chapter_17/Section_17_1_Amortized_Framework/Section_17_2_Stack_And_Counter.lean
 CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables.lean
 CLRSLean/Chapter_17/Section_17_4_Dynamic_Tables/Section_17_4_Mutable_Array_Tables.lean
+CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework.lean
+CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter.lean
+CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables.lean
+CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables/Section_16_4_Mutable_Array_Tables.lean
 CLRSLean/Chapter_18/Section_18_1_B_Tree_Model.lean
+CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/Search.lean
+CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/HeightBound.lean
 CLRSLean/Chapter_18/Section_18_2_B_Tree_Insertion.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Invariant.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Rotation.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Repair.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Preservation.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Reassembly.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/MergeReassembly.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/RotationBounds.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/RotationReassembly.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ComposedPreservation.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/KeyMultiset.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ExactReassembly.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Exact.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Subset.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/SameDepthHeight.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Sorted.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ChildBounded.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Occupancy.lean
+CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/WellFormed.lean
 CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean
+CLRSLean/Chapter_19/Section_19_2_Mergeable_Heap_Operations.lean
+CLRSLean/Chapter_19/Section_19_3_Decreasing_A_Key_And_Deleting_A_Node.lean
 CLRSLean/Chapter_19/Section_19_4_Bounding_Maximum_Degree.lean
+CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S1_ExecutableFibHeap.lean
+CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S2_CascadingCuts.lean
+CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model/S3_AmortizedCosts.lean
+CLRSLean/Chapter_19/Section_19_3_Decreasing_A_Key_And_Deleting_A_Node/Amortized_Costs.lean
 CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean
 CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean
 CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean
@@ -112,6 +165,12 @@ CLRSLean/Chapter_21/Section_21_3_Disjoint_Set_Forests.lean
 CLRSLean/Chapter_21/Section_21_4_Analysis.lean
 CLRSLean/Chapter_21/Section_21_4_Analysis/CostedExecution.lean
 CLRSLean/Chapter_21/Section_21_4_Analysis/InverseAckermann.lean
+CLRSLean/FourthEdition/Chapter_19/Section_19_1_Disjoint_Set_Operations.lean
+CLRSLean/FourthEdition/Chapter_19/Section_19_2_Linked_List_Representation.lean
+CLRSLean/FourthEdition/Chapter_19/Section_19_3_Disjoint_Set_Forests.lean
+CLRSLean/FourthEdition/Chapter_19/Section_19_4_Analysis.lean
+CLRSLean/FourthEdition/Chapter_19/Section_19_4_Analysis/CostedExecution.lean
+CLRSLean/FourthEdition/Chapter_19/Section_19_4_Analysis/InverseAckermann.lean
 CLRSLean/Chapter_22/Section_22_1_Representing_Graphs.lean
 CLRSLean/Chapter_22/Section_22_2_BFS.lean
 CLRSLean/Chapter_22/Section_22_3_DFS.lean
@@ -123,6 +182,17 @@ CLRSLean/Chapter_22/Section_22_3_DFS/S5_EdgeClassification.lean
 CLRSLean/Chapter_22/Section_22_4_Topological_Sort.lean
 CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components.lean
 CLRSLean/Chapter_22/Section_22_5_Strongly_Connected_Components/MergeSortCongr.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_1_Representing_Graphs.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_2_BFS.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S1_WhitePath.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S2_Intervals.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S3_Bridge.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S4_SCC.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S5_EdgeClassification.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_4_Topological_Sort.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components.lean
+CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components/MergeSortCongr.lean
 CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim.lean
 CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim/S1_UnionFindBridge.lean
@@ -132,14 +202,362 @@ CLRSLean/Chapter_24/Section_24_1_Bellman_Ford.lean
 CLRSLean/Chapter_24/Section_24_2_SSSP_In_DAGs.lean
 CLRSLean/Chapter_24/Section_24_3_Dijkstra.lean
 CLRSLean/Chapter_24/Section_24_4_Difference_Constraints.lean
+CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean
+CLRSLean/FourthEdition/Chapter_21/Section_21_1_Growing_Minimum_Spanning_Trees.lean
+CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim.lean
+CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim/S1_UnionFindBridge.lean
+CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim/S2_StatefulKruskal.lean
+CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim/S3_ExecutablePrim.lean
+CLRSLean/FourthEdition/Chapter_22/Section_22_1_Bellman_Ford.lean
+CLRSLean/FourthEdition/Chapter_22/Section_22_2_SSSP_In_DAGs.lean
+CLRSLean/FourthEdition/Chapter_22/Section_22_3_Dijkstra.lean
+CLRSLean/FourthEdition/Chapter_22/Section_22_4_Difference_Constraints.lean
+CLRSLean/FourthEdition/Chapter_22/Section_22_5_Shortest_Path_Properties.lean
 CLRSLean/Chapter_25/Section_25_1_All_Pairs_Model.lean
 CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean
 CLRSLean/Chapter_25/Section_25_3_Johnsons_Algorithm.lean
+CLRSLean/FourthEdition/Chapter_23/Section_23_1_All_Pairs_Model.lean
+CLRSLean/FourthEdition/Chapter_23/Section_23_2_Floyd_Warshall.lean
+CLRSLean/FourthEdition/Chapter_23/Section_23_3_Johnsons_Algorithm.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S1_Matching_API.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S2_Alternating_Paths.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S3_Simple_Paths.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S4_Matching_Flow.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S5_Residual_Translation.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S6_Berge_Flow_Method.lean
+CLRSLean/FourthEdition/Chapter_25/Section_25_3_Hungarian_Algorithm.lean
 CLRSLean/Chapter_26/Section_26_1_Flow_Networks.lean
 CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp.lean
+CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean
+CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S1_ShortestAugmentingPath.lean
+CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S2_EK_Loop.lean
+CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S3_WorkAnalysis.lean
+CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S4_ExecutableBFS.lean
+CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean
 CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_1_Flow_Networks.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/Ford_Fulkerson_Augmentation.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S1_ShortestAugmentingPath.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S2_EK_Loop.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S3_WorkAnalysis.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S4_ExecutableBFS.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_3_Bipartite_Matching.lean
+CLRSLean/FourthEdition/Chapter_24/Section_24_6_MaxFlow_MinCut.lean
 CLRSLean/Chapter_27/Section_27_1_Multithreading_Model.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S1_ComputationDAG.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S2_ReadyExecution.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S3_GreedyAccounting.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S4_ExecutableScheduler.lean
+CLRSLean/Chapter_27/Section_27_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean
 CLRSLean/Chapter_27/Section_27_2_4_Algorithms.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S1_CostModel.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S2_Recurrences.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/S3_AllInputBounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S1_ComputationDAG.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S2_ReadyExecution.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S3_GreedyAccounting.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S4_ExecutableScheduler.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S1_CostModel.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S2_Recurrences.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S3_AllInputBounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/ExecutionEqualities.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/MergeSplit.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Boundaries.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/LowerBound/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Structure.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Step.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/LogPotential.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Envelope.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Spec.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Correctness/Main.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Step.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/RecurrenceLinks.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Work/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/Bounds.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/WitnessInput.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/MapInvariance.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelMergeSort/Costs/Span/LowerBound.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Definitions.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/Monotonicity.lean
+CLRSLean/Chapter_27/Section_27_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S1_ComputationDAG.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S2_ReadyExecution.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S3_GreedyAccounting.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S4_ExecutableScheduler.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S5_SpawnTreeAndLoops.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S1_CostModel.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S2_Recurrences.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S3_AllInputBounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Definitions.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Correctness.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Costs.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Costs/Definitions.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Costs/ExecutionEqualities.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Costs/Monotonicity.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Costs/PowerBounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/Costs/AllInputBounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Definitions.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/MergeSplit.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/PMerge.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/PMerge/Definitions.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/PMerge/Correctness.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Boundaries.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Permutation.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/PMerge/Correctness/Main.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/LowerBound.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/LowerBound/Definitions.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/LowerBound/Correctness.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/LowerBound/Costs.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Correctness.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Structure.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Step.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Work.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Work/LogPotential.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Work/Bounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Span.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Span/Envelope.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Span/Bounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Span/WitnessLists.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/Costs/Span/LowerBound.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Definitions.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Correctness.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Correctness/Spec.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Correctness/Main.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Step.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/RecurrenceLinks.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Work.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Work/Bounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Span.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Span/Bounds.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Span/WitnessInput.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Span/MapInvariance.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/Costs/Span/LowerBound.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen/Recurrences.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen/Recurrences/Definitions.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen/Recurrences/Monotonicity.lean
+CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen/Recurrences/AllInputBounds.lean
+CLRSLean/FourthEdition/Chapter_27/Section_27_1_Waiting_For_Elevator.lean
+CLRSLean/FourthEdition/Chapter_27/Section_27_2_Maintaining_A_Search_List.lean
+CLRSLean/Chapter_28.lean
+CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean
+CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean
+CLRSLean/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean
+CLRSLean/FourthEdition/Chapter_28/Section_28_1_Linear_Equations.lean
+CLRSLean/FourthEdition/Chapter_28/Section_28_2_Inverting_Matrices.lean
+CLRSLean/FourthEdition/Chapter_28/Section_28_3_Symmetric_Positive_Definite.lean
+CLRSLean/Chapter_29.lean
+CLRSLean/Chapter_29/Section_29_1_Standard_And_Slack_Forms.lean
+CLRSLean/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Definitions.lean
+CLRSLean/Chapter_29/Section_29_1_Standard_And_Slack_Forms/SlackVariables.lean
+CLRSLean/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Equivalence.lean
+CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs.lean
+CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/NetworkFlow.lean
+CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/ShortestPath.lean
+CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MaximumFlow.lean
+CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MinimumCostFlow.lean
+CLRSLean/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MulticommodityFlow.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Dictionary.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Dictionary/Definitions.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Dictionary/Semantics.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Dictionary/BasicSolution.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Dictionary/InitialDictionary.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Pivot.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Pivot/Definitions.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Pivot/Algebra.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Pivot/SumLemmas.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Pivot/SemanticEquivalence.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Pivot/Feasibility.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Pivot/Objective.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/VariableOrder.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Entering.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Leaving.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Step.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Optimality.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Unboundedness.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Equivalence.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Run.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Bland.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Bland/Pivot.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Bland/Reachability.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Bland/Trace.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Bland/Coefficients.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Bland/NoCycle.lean
+CLRSLean/Chapter_29/Section_29_3_The_Simplex_Algorithm/Simplex/Termination.lean
+CLRSLean/Chapter_29/Section_29_4_Duality.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/Definitions.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/WeakDuality.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Definitions.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/SlackVariables.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Equivalence.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MaximumFlow.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MinimumCostFlow.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MulticommodityFlow.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/NetworkFlow.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/ShortestPath.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/Definitions.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/WeakDuality.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/StrongDuality.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/ComplementarySlackness.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/ComplementarySlacknessTheorem.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/DictionaryBridge.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/Optimality.lean
+CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/TerminalCertificate.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/Optimality.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/ComplementarySlackness.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/TerminalCertificate.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/DictionaryBridge.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/StrongDuality.lean
+CLRSLean/Chapter_29/Section_29_4_Duality/ComplementarySlacknessTheorem.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/ArtificialLP.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/InitialPivot.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/PhaseOne.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/LockVariable.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/RestoreObjective.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/PhaseTwoStart.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/PhaseTwoBridge.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/InitializedSimplex.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/DualProjection.lean
+CLRSLean/Chapter_29/Section_29_5_The_Initial_Basic_Feasible_Solution/GeneralStrongDuality.lean
+CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials.lean
+CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S1_CoefficientVectors.lean
+CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S2_PointValueInterpolation.lean
+CLRSLean/Chapter_30/Section_30_1_Representing_Polynomials/S3_RepresentationOperations.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S1_RootsOfUnity.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S2_DFT.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/S3_InversionAndConvolution.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs.lean
+CLRSLean/Chapter_30/Section_30_2_DFT_And_FFT/PolynomialMultiplication.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/BitReversal.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs.lean
+CLRSLean/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S1_CoefficientVectors.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S2_PointValueInterpolation.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_1_Representing_Polynomials/S3_RepresentationOperations.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S1_RootsOfUnity.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S2_DFT.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/S3_InversionAndConvolution.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Definitions.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Correctness.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/RecursiveFFT/Costs.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_2_DFT_And_FFT/PolynomialMultiplication.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/BitReversal.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Definitions.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Correctness.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/IterativeFFT/Costs.lean
+CLRSLean/FourthEdition/Chapter_30/Section_30_3_Efficient_FFT_Implementations/ParallelFFT.lean
+CLRSLean/Chapter_31.lean
+CLRSLean/Chapter_31/Section_31_1_Elementary_Number_Theory.lean
+CLRSLean/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean
+CLRSLean/Chapter_31/Section_31_3_Modular_Arithmetic.lean
+CLRSLean/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean
+CLRSLean/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean
+CLRSLean/Chapter_31/Section_31_6_Powers_Of_An_Element.lean
+CLRSLean/Chapter_31/Section_31_7_RSA.lean
+CLRSLean/Chapter_31/Section_31_8_Primality_Testing.lean
+CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_1_Elementary_Number_Theory.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_3_Modular_Arithmetic.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_6_Powers_Of_An_Element.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_7_RSA.lean
+CLRSLean/FourthEdition/Chapter_31/Section_31_8_Primality_Testing.lean
+CLRSLean/Chapter_32/Section_32_1_String_Model.lean
+CLRSLean/Chapter_33/Section_33_1_Line_Segment_Properties.lean
+CLRSLean/Chapter_34/Section_34_1_Polynomial_Time.lean
+CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/Composition.lean
+CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/AndOr.lean
+CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification.lean
+CLRSLean/Chapter_34/Section_34_2_Polynomial_Time_Verification/PairProjection.lean
+CLRSLean/Chapter_34/Section_34_3_NP_Completeness_And_Reducibility.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CircuitSAT.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/SatTo3CNFSat.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/SatTo3CNFMachine.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CNFToClique.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CNFToCliqueMachine.lean
+CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
+CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model.lean
+CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
+CLRSLean/FourthEdition/Chapter_33/Section_33_1_Clustering.lean
+CLRSLean/FourthEdition/Chapter_33/Section_33_2_Multiplicative_Weights.lean
+CLRSLean/FourthEdition/Chapter_33/Section_33_3_Gradient_Descent.lean
+CLRSLean/FourthEdition/Chapter_35/Section_35_1_The_Vertex_Cover_Problem.lean
+CLRSLean/FourthEdition/Chapter_35/Section_35_2_The_Traveling_Salesperson_Problem.lean
+CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem.lean
+CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming.lean
+CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem.lean
+CLRSLean/Extensions.lean
+CLRSLean/Extensions/RandomizedTreap.lean
+CLRSLean/Extensions/TreapHeight.lean
+CLRSLean/Extensions/TreapRandom.lean
 ```
 
 Reusable cross-chapter proof APIs live under `CLRSLean/ProofPatterns/`.
@@ -147,8 +565,9 @@ Stable consumer-facing checks live under `Tests/`.
 
 ## Update Rules
 
-When a section is added or renamed, update its chapter guide,
-`literate.toml`, this source catalog, and the progress CSV in the same change.
+When a section is added or renamed, consult the edition map, update its
+fourth-edition guide and current source guide, `literate.toml`, this source
+catalog, and the progress CSV in the same change.
 When a theorem boundary changes, update the chapter guide, progress CSV, and
 proof map.  Run:
 
@@ -163,3 +582,15 @@ lake build CLRSLean
 Dated audits and old implementation plans are retained because they explain
 past design decisions.  They should include a date in their filename or title
 and must not be used as evidence for the current progress snapshot.
+
+Existing `CLRSLean.Chapter_NN` imports are supported through all `1.x` releases
+and for at least six months after the facade release; removal can occur only in
+`2.0` or later, after both gates pass.  See the migration guide before treating
+any legacy chapter number as canonical.
+
+- [`proof-audits/chapters-01-29-milestone-2026-08-05.md`](proof-audits/chapters-01-29-milestone-2026-08-05.md)
+  records the historical third-edition Chapters 1--29 prefix boundary; it is
+  not the current fourth-edition progress ledger.
+- [`proof-audits/chapter-27-closure-2026-08-05.md`](proof-audits/chapter-27-closure-2026-08-05.md)
+  records the sealed Chapter 27 pure-functional main-text boundary and its
+  verification evidence.

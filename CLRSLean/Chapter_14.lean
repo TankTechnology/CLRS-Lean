@@ -17,7 +17,8 @@ rank selector.
 
 ## Sections
 
-* 14.1 Order-statistic trees: {lit}`partial`.
+* 14.1 Order-statistic trees: {lit}`partial` at the complete fourth-edition
+  dynamic-order-statistics interface.
   Main results: {lit}`CLRS.Chapter14.OSTree.storedSize_eq_realSize_of_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.recomputeSizes_wellSized`,
   {lit}`CLRS.Chapter14.OSTree.keys_recomputeSizes`, and
@@ -48,8 +49,8 @@ rank selector.
   {lit}`CLRS.Chapter14.OSRBTree.toRB_insert`,
   {lit}`CLRS.Chapter14.OSRBTree.redBlackShape_toRB_insert`, and
   {lit}`CLRS.Chapter14.OSRBTree.mem_keys_insert`.
-* 14.3 Interval trees: {lit}`proved` for the functional well-augmented BST
-  model.
+* 14.3 Interval trees: {lit}`partial` at the complete fourth-edition interface;
+  the static functional well-augmented BST search model is proved.
   Main results: {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_some_overlap`,
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_none_noOverlap`, and
   {lit}`CLRS.Chapter14.IntervalTree.intervalSearch?_spec`.
@@ -59,25 +60,24 @@ rank selector.
   {lit}`CLRS.Chapter14.AugmentedRBTree.wellAugmented_insert`,
   {lit}`CLRS.Chapter14.AugmentedRBTree.toRB_insert`,
   {lit}`CLRS.Chapter14.AugmentedRBTree.redBlackShape_toRB_insert`,
-  {lit}`CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`, and the size and
+  {lit}`CLRS.Chapter14.AugmentedRBTree.mem_keys_insert`,
+  {lit}`CLRS.Chapter14.AugmentedRBTree.wellAugmented_delete`, and
+  {lit}`CLRS.Chapter14.AugmentedRBTree.toRB_delete`, and the size and
   interval instances
   {lit}`CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert` and
   {lit}`CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`.
 
 ## Current Gaps
 
-The current model proves the augmentation invariant and rank-selection
-correctness for a functional tree, including size-preserving local rotations,
-and interval-search correctness for well-augmented BSTs.  The size augmentation
-is threaded through an executable red-black insertion via the size-specific
-{lit}`OSRBTree`, and the general augmentation interface now threads an
-*arbitrary* augmentation through an executable red-black insertion on the generic
-{lit}`AugmentedRBTree`: {lit}`AugmentedRBTree.wellAugmented_insert` shows the
-invariant survives balancing for any augmentation, and
-{lit}`AugmentedRBTree.toRB_insert` shows the augmentation-erasing projection
-refines the executable Chapter 13 {lit}`RBTree.insert`; the size and interval
-fields are recovered as instances.  The remaining gap is augmentation through
-*deletion* (blocked on the Chapter 13 executable red-black deletion loop).
+The current model proves size-field preservation, OS-SELECT's agreement with an
+inorder selector, the local generic augmentation invariant, and static
+interval-search correctness.  It also threads arbitrary cached fields through
+functional red-black insertion and deletion.  The full fourth-edition boundary
+still lacks OS-RANK; combined BST/red-black/augmentation preservation; the
+constant-time-combine-to-logarithmic-operation cost theorem; and a bridge
+connecting interval-specific updates on the dynamic augmented red-black type to
+the static interval-search model.  The interval comparison also needs a policy
+for equal low endpoints before it represents arbitrary interval sets.
 -/
 
 namespace CLRS

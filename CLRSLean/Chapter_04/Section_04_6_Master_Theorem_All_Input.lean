@@ -24,6 +24,15 @@ namespace Chapter04
 def MonotoneAbs (T : ℕ → ℝ) : Prop :=
   ∀ {m n : ℕ}, m ≤ n → |T m| ≤ |T n|
 
+/-- A monotone natural-valued cost remains monotone after casting to real
+absolute values. -/
+theorem monotoneAbs_natCast {T : ℕ → ℕ} (hT : Monotone T) :
+    MonotoneAbs (fun n => (T n : ℝ)) := by
+  intro m n hmn
+  rw [abs_of_nonneg (Nat.cast_nonneg _), abs_of_nonneg (Nat.cast_nonneg _)]
+  change (T m : ℝ) ≤ (T n : ℝ)
+  exact_mod_cast hT hmn
+
 /--
 Eventual one-step control for a comparison scale across one multiplication by
 the Master-theorem base.  This is the local regularity assumption that turns
@@ -54,6 +63,92 @@ Discrete case-2 Master scale.  On exact powers this is
 -/
 def criticalPowerLogScale (a b : ℕ) (n : ℕ) : ℝ :=
   ((Nat.log b n : ℝ) + 1) * criticalPowerScale a b n
+
+/--
+Discrete case-2 Master scale with a polylog factor.  On exact powers this is
+{lit}`(i+1)^(k+1) a^i`; between exact powers it is the step function determined
+by {lit}`Nat.log b n`.  This is the {lit}`f(n) = Θ(n^(log_b a)·log^k n)`
+extension of {name}`criticalPowerLogScale`.
+-/
+def criticalPowerLogPolylogScale (a b k : ℕ) (n : ℕ) : ℝ :=
+  ((Nat.log b n : ℝ) + 1) ^ (k + 1) * criticalPowerScale a b n
+
+/-- The discrete polylog case-2 scale is nonnegative. -/
+theorem criticalPowerLogPolylogScale_nonneg (a b k n : ℕ) :
+    0 ≤ criticalPowerLogPolylogScale a b k n := by
+  unfold criticalPowerLogPolylogScale criticalPowerScale
+  positivity
+
+/-- On an exact power the discrete polylog case-2 scale collapses to
+{lit}`(i+1)^(k+1)·a^i`. -/
+theorem criticalPowerLogPolylogScale_exactPower (a b k i : ℕ) (hb : 1 < b) :
+    criticalPowerLogPolylogScale a b k (b ^ i) =
+      ((i : ℝ) + 1) ^ (k + 1) * ((a : ℝ) ^ i) := by
+  simp [criticalPowerLogPolylogScale, criticalPowerScale, Nat.log_pow hb]
+
+/-- The discrete polylog case-2 scale is monotone in absolute value. -/
+theorem criticalPowerLogPolylogScale_monotoneAbs
+    (a b k : ℕ) (ha : 1 ≤ a) :
+    MonotoneAbs (criticalPowerLogPolylogScale a b k) := by
+  intro m n hmn
+  have ha_nonneg : 0 ≤ (a : ℝ) := by positivity
+  have ha_one : 1 ≤ (a : ℝ) := by exact_mod_cast ha
+  have hlog : Nat.log b m ≤ Nat.log b n := Nat.log_mono_right hmn
+  have hlog_real : (Nat.log b m : ℝ) + 1 ≤ (Nat.log b n : ℝ) + 1 := by
+    have hcast : (Nat.log b m : ℝ) ≤ Nat.log b n := by exact_mod_cast hlog
+    linarith
+  have hpow_factor : ((Nat.log b m : ℝ) + 1) ^ (k + 1) ≤
+      ((Nat.log b n : ℝ) + 1) ^ (k + 1) := by
+    exact pow_le_pow_left₀ (by positivity : 0 ≤ (Nat.log b m : ℝ) + 1) hlog_real (k + 1)
+  have hpow : (a : ℝ) ^ Nat.log b m ≤ (a : ℝ) ^ Nat.log b n :=
+    pow_le_pow_right₀ ha_one hlog
+  rw [abs_of_nonneg (criticalPowerLogPolylogScale_nonneg a b k m),
+    abs_of_nonneg (criticalPowerLogPolylogScale_nonneg a b k n)]
+  unfold criticalPowerLogPolylogScale criticalPowerScale
+  exact mul_le_mul hpow_factor hpow (pow_nonneg ha_nonneg _) (by positivity)
+
+/-- The discrete polylog case-2 scale has eventual one-step control across one
+multiplication by {lit}`b`. -/
+theorem criticalPowerLogPolylogScale_powerStepBound
+    (a b k : ℕ) (ha : 1 ≤ a) (hb : 1 < b) :
+    EventuallyPowerStepBound b (criticalPowerLogPolylogScale a b k) := by
+  refine ⟨(2 ^ (k + 1) : ℝ) * (a : ℝ), ?_, 1, ?_⟩
+  · have ha_pos : 0 < (a : ℝ) := by exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one ha
+    positivity
+  · intro n hn
+    have ha_nonneg : 0 ≤ (a : ℝ) := by positivity
+    have hn_ne_zero : n ≠ 0 := by omega
+    have hlog : Nat.log b (b * n) = Nat.log b n + 1 := by
+      rw [Nat.mul_comm]
+      exact Nat.log_mul_base hb hn_ne_zero
+    have hratio : ((Nat.log b n : ℝ) + 2) ^ (k + 1) ≤
+        (2 ^ (k + 1) : ℝ) * ((Nat.log b n : ℝ) + 1) ^ (k + 1) := by
+      have hlog_nonneg : 0 ≤ (Nat.log b n : ℝ) := by positivity
+      have h2 : (Nat.log b n : ℝ) + 2 ≤ 2 * ((Nat.log b n : ℝ) + 1) := by linarith
+      calc
+        ((Nat.log b n : ℝ) + 2) ^ (k + 1) ≤ (2 * ((Nat.log b n : ℝ) + 1)) ^ (k + 1) := by
+          exact pow_le_pow_left₀ (by positivity) h2 (k + 1)
+        _ = (2 ^ (k + 1) : ℝ) * ((Nat.log b n : ℝ) + 1) ^ (k + 1) := by
+          rw [mul_pow]
+    calc
+      |criticalPowerLogPolylogScale a b k (b * n)|
+          = ((Nat.log b n : ℝ) + 2) ^ (k + 1) * ((a : ℝ) ^ (Nat.log b n + 1)) := by
+            rw [abs_of_nonneg (criticalPowerLogPolylogScale_nonneg a b k (b * n))]
+            unfold criticalPowerLogPolylogScale criticalPowerScale
+            rw [hlog]
+            norm_cast
+      _ = (a : ℝ) * (((Nat.log b n : ℝ) + 2) ^ (k + 1) * (a : ℝ) ^ Nat.log b n) := by
+        rw [pow_succ]
+        ring
+      _ ≤ (a : ℝ) *
+          ((2 ^ (k + 1) : ℝ) * ((Nat.log b n : ℝ) + 1) ^ (k + 1) * (a : ℝ) ^ Nat.log b n) := by
+            exact mul_le_mul_of_nonneg_left
+              (mul_le_mul_of_nonneg_right hratio (by positivity : 0 ≤ (a : ℝ) ^ Nat.log b n))
+              ha_nonneg
+      _ = ((2 ^ (k + 1) : ℝ) * (a : ℝ)) * |criticalPowerLogPolylogScale a b k n| := by
+        rw [abs_of_nonneg (criticalPowerLogPolylogScale_nonneg a b k n)]
+        simp [criticalPowerLogPolylogScale, criticalPowerScale]
+        ring
 
 /--
 Discrete case-3 Master scale.  On exact powers this is the scale from
@@ -770,6 +865,15 @@ theorem powerInterval_of_pos (b n : ℕ) (hb : 1 < b) (hn : n ≠ 0) :
   ⟨Nat.pow_log_le_self b hn, by
     simpa [Nat.succ_eq_add_one] using Nat.lt_pow_succ_log_self hb n⟩
 
+/-- Mapping the adjacent-power interval through a monotone natural-valued
+cost gives the corresponding cost sandwich. -/
+theorem monotone_power_sandwich {T : ℕ → ℕ} (hT : Monotone T)
+    (b n : ℕ) (hb : 1 < b) (hn : n ≠ 0) :
+    T (b ^ Nat.log b n) ≤ T n ∧
+      T n ≤ T (b ^ (Nat.log b n + 1)) := by
+  rcases powerInterval_of_pos b n hb hn with ⟨hlo, hhi⟩
+  exact ⟨hT hlo, hT (Nat.le_of_lt hhi)⟩
+
 private theorem power_log_ge_step_threshold
     {b step n j₀ : ℕ} (hb : 1 < b)
     (hj₀_step : Nat.log b step + 1 ≤ j₀)
@@ -1268,6 +1372,38 @@ theorem exactPower_allInput_masterCase2_criticalPowerLogScale
   exact allInput_bigTheta_of_criticalPowerLogScale a b T ha hb hT_mono
     (master_case2_constant_forcing a b f T h_rec ha_pos h_base_nonneg
       hc_pos hC_pos h_term_lower h_term_upper)
+
+/--
+All-input wrapper for Master case 2 with a polylog factor: if the normalized
+forcing grows polynomially, {lit}`c·j^k ≤ normalizedForcing ≤ C·j^k`, then
+{lit}`T` is Θ of the discrete polylog scale
+{lit}`(⌊log_b n⌋+1)^(k+1)·a^(⌊log_b n⌋)`.  For
+{lit}`f(n) = Θ(n^(log_b a)·log^k n)` this is the standard textbook extension
+{lit}`T(n) = Θ(n^(log_b a)·log^(k+1) n)`; the {lit}`k = 0` case recovers
+{name}`exactPower_allInput_masterCase2_criticalPowerLogScale`.
+-/
+theorem master_case2_polylog_forcing_all_input (a b k : ℕ) (f T : ℕ → ℝ)
+    (h_rec : ExactPowerRecurrence a b f T)
+    (ha : 1 ≤ a) (hb : 1 < b)
+    (hT_mono : MonotoneAbs T)
+    (h_base_nonneg : 0 ≤ normalizedValue a b T 0)
+    {c C : ℝ} (hc_pos : 0 < c) (hC_pos : 0 < C)
+    (h_term_lower : ∀ j : ℕ, c * (j : ℝ) ^ k ≤ normalizedForcing a b f j)
+    (h_term_upper : ∀ j : ℕ, normalizedForcing a b f j ≤ C * (j : ℝ) ^ k) :
+    Chapter03.isBigTheta T (criticalPowerLogPolylogScale a b k) := by
+  have ha_pos : 0 < (a : ℝ) := by
+    exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one ha
+  have h_power : Chapter03.isBigTheta
+      (fun i : ℕ => T (b ^ i))
+      (fun i : ℕ => criticalPowerLogPolylogScale a b k (b ^ i)) := by
+    have h_exact := master_case2_polylog_forcing a b k f T h_rec ha_pos h_base_nonneg
+      hc_pos hC_pos h_term_lower h_term_upper
+    convert h_exact using 1
+    funext i
+    exact criticalPowerLogPolylogScale_exactPower a b k i hb
+  exact allInput_bigTheta_of_powerStep b T (criticalPowerLogPolylogScale a b k) hb
+    hT_mono (criticalPowerLogPolylogScale_monotoneAbs a b k ha)
+    (criticalPowerLogPolylogScale_powerStepBound a b k ha hb) h_power
 
 /--
 Floor-division all-input Master case 2 wrapper.  It extracts the exact-power

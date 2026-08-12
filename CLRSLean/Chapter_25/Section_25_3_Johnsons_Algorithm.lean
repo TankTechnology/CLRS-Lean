@@ -4,7 +4,7 @@ import CLRSLean.Chapter_24.Section_24_1_Bellman_Ford
 import CLRSLean.Chapter_24.Section_24_3_Dijkstra
 
 /-!
-# 25.3. Johnson's algorithm for sparse graphs
+# Section 25.3 - Johnson's algorithm for sparse graphs (legacy compatibility path)
 
 Johnson's algorithm computes all-pairs shortest paths in a weighted directed
 graph with no negative-weight cycles.  It works in three stages:
