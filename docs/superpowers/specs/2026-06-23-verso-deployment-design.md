@@ -1,32 +1,32 @@
-# CLRS-Lean Verso 部署设计
+# CLRS-Lean Verso Deployment Design
 
-日期: 2026-06-23
-状态: 已批准
-参考: https://github.com/teorth/analysis
+Date: 2026-06-23
+Status: Approved
+Reference: https://github.com/teorth/analysis
 
-## 目标
+## Goals
 
-将 CLRS-Lean 的网站从手写静态 HTML 迁移到 Verso 文学编程引擎，
-实现与 `teorth/analysis` 同等的书本式阅读体验。
+Migrate the CLRS-Lean website from hand-written static HTML to the Verso literate programming engine,
+delivering a book-like reading experience on par with `teorth/analysis`.
 
-## 架构
+## Architecture
 
 ```
-.lean 源文件 (含 /-! 文学注释)
-  → lakefile.lean (启用 doc.verso, 依赖 verso 包)
-    → literate.toml (模块排序、章节标题)
-      → lake build (编译 Lean)
-        → lake build :literateHtml (Verso 生成 HTML)
-          → _site/ (完整网站)
+.lean source files (with /-! literate comments)
+  → lakefile.lean (enables doc.verso, depends on the verso package)
+    → literate.toml (module ordering, chapter titles)
+      → lake build (compiles Lean)
+        → lake build :literateHtml (Verso generates HTML)
+          → _site/ (complete site)
             → GitHub Actions → GitHub Pages
 ```
 
-## 文件结构
+## File structure
 
 ```
 CLRSLean/
-├── CLAUDE.md                  ← Agent 写作指南
-├── CLRSLean.lean              ← 顶层入口 + Verso 着陆页
+├── CLAUDE.md                  ← Agent authoring guide
+├── CLRSLean.lean              ← top-level entry + Verso landing page
 ├── CLRSLean/
 │   ├── Chapter_02/
 │   │   └── Section_02_1_Insertion_Sort.lean
@@ -35,13 +35,13 @@ CLRSLean/
 │   └── Chapter_23/
 │       ├── Section_23_1_Growing_Minimum_Spanning_Trees.lean
 │       └── Section_23_2_Kruskal_And_Prim.lean
-├── lakefile.lean              ← 从 .toml 改为 .lean DSL
-├── literate.toml              ← Verso 配置
-├── lean-toolchain             ← 不变 (v4.29.1)
-├── docs/proof-map.md          ← 人工维护的状态账本
+├── lakefile.lean              ← changed from .toml to .lean DSL
+├── literate.toml              ← Verso configuration
+├── lean-toolchain             ← unchanged (v4.29.1)
+├── docs/proof-map.md          ← manually maintained status ledger
 └── .github/workflows/
-    ├── lean_action_ci.yml     ← CI 不变
-    └── pages.yml              ← 加 literate 构建步骤
+    ├── lean_action_ci.yml     ← CI unchanged
+    └── pages.yml              ← adds literate build step
 ```
 
 ## lakefile.lean
@@ -87,10 +87,10 @@ landing_page = "CLRSLean"
 ]
 
 [modules."CLRSLean.Chapter_02.Section_02_1_Insertion_Sort"]
-title = "2.1. Insertion Sort / 插入排序"
+title = "2.1. Insertion Sort"
 
 [modules."CLRSLean.Chapter_16.Section_16_3_Huffman_Codes"]
-title = "16.3. Huffman Codes / 哈夫曼编码"
+title = "16.3. Huffman Codes"
 
 [modules."CLRSLean.Chapter_23.Section_23_1_Growing_Minimum_Spanning_Trees"]
 title = "23.1. Growing a Minimum Spanning Tree"
@@ -99,36 +99,36 @@ title = "23.1. Growing a Minimum Spanning Tree"
 title = "23.2. Kruskal and Prim"
 ```
 
-## .lean 文件改写规范
+## .lean file rewriting guidelines
 
-参见 `CLAUDE.md`。核心要求：
+See `CLAUDE.md`. Core requirements:
 
-1. 每个文件顶部必须有 `/-! ... -/` 模块文档块（页面标题 + 简介 + 主要结果）
-2. 每个定义/定理前必须有 `/-- ... -/` 文档注释
-3. 统一使用 `namespace CLRS`
-4. 未完成证明用注释说明的 `sorry`
+1. Every file must have a `/-! ... -/` module doc block at the top (page title + introduction + main results)
+2. Every definition/theorem must be preceded by a `/-- ... -/` doc comment
+3. Use `namespace CLRS` consistently
+4. Unfinished proofs use a `sorry` explained in a comment
 
 ## CI/CD
 
-### pages.yml (更新)
+### pages.yml (update)
 
-两个 job: `build` (构建 site) → `deploy` (部署到 Pages)
+Two jobs: `build` (builds the site) → `deploy` (deploys to Pages)
 
-build 步骤: checkout → lean-action → lake build → doc-gen4 → lake build :literateHtml → 收集到 _site/ → upload artifact
+build steps: checkout → lean-action → lake build → doc-gen4 → lake build :literateHtml → collect into _site/ → upload artifact
 
-deploy: 仅在 main 分支，deploy-pages
+deploy: deploy-pages, only on the main branch
 
-### lean_action_ci.yml (不变)
+### lean_action_ci.yml (unchanged)
 
-标准 lean-action CI，只验证编译。
+Standard lean-action CI, only verifies compilation.
 
-## 实施步骤
+## Implementation steps
 
-1. 将 lakefile.toml 替换为 lakefile.lean
-2. 创建 literate.toml
-3. 重写 CLRSLean.lean（着陆页）
-4. 给每个 .lean 文件加 /-! 模块文档块
-5. 更新 pages.yml
-6. 本地验证 lake build 通过
-7. 本地验证 lake build :literateHtml 生成正确
-8. 推送，观察 CI + Pages 部署
+1. Replace lakefile.toml with lakefile.lean
+2. Create literate.toml
+3. Rewrite CLRSLean.lean (landing page)
+4. Add a /-! module doc block to each .lean file
+5. Update pages.yml
+6. Verify locally that lake build passes
+7. Verify locally that lake build :literateHtml generates correctly
+8. Push, and observe CI + Pages deployment
