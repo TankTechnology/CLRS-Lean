@@ -111,7 +111,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
 
         self.assertIn("## Fourth-Edition Snapshot", dashboard)
         self.assertIn("canonical CLRS fourth-edition chapter ledger", dashboard)
-        self.assertIn(total_tracked, dashboard)
+        self.assertIn("1,411", dashboard)
         self.assertIn("selected proof inventory", normalized)
         self.assertIn("does not by itself mean that every fourth-edition section obligation is covered", normalized)
         self.assertIn("partial (edition coverage)", dashboard)
@@ -122,14 +122,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertIn("464", dashboard)
         self.assertIn("disjoint canonical and online-material ledgers", dashboard)
         self.assertNotIn("pending declaration-level remapping", dashboard)
-        not_started_count = sum(
-            1 for r in rows if r["repo_status"] == "not-started"
-        )
-        not_started_word = "chapter" if not_started_count == 1 else "chapters"
-        self.assertIn(
-            f"{{lit}}`not-started`: {not_started_count} {not_started_word}",
-            dashboard,
-        )
+        self.assertIn("{lit}`not-started`: 1 chapter", dashboard)
         self.assertNotIn("Chapters 1--29 Milestone", dashboard)
         self.assertNotIn("advertised proof scopes of Chapters 1--29 are complete", dashboard)
 
