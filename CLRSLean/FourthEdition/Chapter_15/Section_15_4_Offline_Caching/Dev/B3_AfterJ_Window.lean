@@ -26,8 +26,8 @@ namespace Caching
 
 open Finset
 
-/-- 窗口 `(J, J')` 内的通用单步:若 `s` 处 repair 的 cache 是减式
-(`E − q'`)或 swap(`insert x (E − q')`),则 `s+1` 处亦然。 -/
+/-- Generic single step in the `(J, J')` window: if the repair cache at `s` is
+subtractive (`E − q'`) or a swap (`insert x (E − q')`), then the same holds at `s + 1`. -/
 lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
@@ -62,7 +62,7 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
     unfold repairSchedule
     simp [show s ≠ t by omega, show s ≠ t + 1 + j' by omega]
   rcases hrel with hsub | ⟨x, hswap⟩
-  · -- 减式输入:输出仍是减式
+  · -- subtractive input: the output is still subtractive
     rw [schedCache, schedCache]
     rw [hsub, hdsJ]
     left
@@ -81,15 +81,15 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
       congr 1
       ext x
       simp [Finset.mem_erase, and_left_comm, and_assoc]
-  · -- swap 输入(swap 页 `x`)
+  · -- swap input (swap page `x`)
     rw [schedCache, schedCache]
     rw [hswap, hdsJ]
     by_cases hxr : x = r
-    · -- 请求的就是 swap 页 `r`:repair 命中
+    · -- the requested page is exactly the swap page `r`: repair hits
       subst x
       rw [if_pos (by simp [Finset.mem_insert, r])]
       by_cases hrE : r ∈ schedCache e C₀ σ s
-      · -- `e` 也命中:swap 保持
+      · -- `e` also hits: swap is preserved
         rw [if_pos hrE]
         right
         refine ⟨r, ?_⟩
@@ -97,10 +97,10 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
           rw [Finset.mem_erase]
           exact ⟨hneq, hrE⟩
         simp [hrE', r]
-      · -- `e` 缺页:分 `e s` 的情形
+      · -- `e` faults: split on the case of `e s`
         rw [if_neg hrE]
         by_cases heq' : e s = q'
-        · -- `e` 逐出 `q'`:减式
+        · -- `e` evicts `q'`: subtractive
           left
           rw [heq']
           rw [Finset.erase_insert_of_ne hneq]
@@ -108,13 +108,13 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
           ext x
           simp [Finset.mem_erase]
         · by_cases her : e s = r
-          · -- `e` 逐出 `r`(`e` 的 cache 无 `r`):减式
+          · -- `e` evicts `r` (`e`'s cache has no `r`): subtractive
             left
             rw [her]
             rw [Finset.erase_eq_of_notMem hrE]
             rw [Finset.erase_insert_of_ne hneq]
           · by_cases heE : e s ∈ (schedCache e C₀ σ s).erase q'
-            · -- `e` 逐出 `E − q'` 中的页面:swap 保持(swap 页换为 `e s`)
+            · -- `e` evicts a page in `E − q'`: swap is preserved (the swap page becomes `e s`)
               right
               refine ⟨e s, ?_⟩
               rw [Finset.erase_insert_of_ne hneq]
@@ -126,16 +126,16 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
                 simp [Finset.mem_erase, and_left_comm, and_assoc]
               rw [herase]
               exact (Finset.insert_erase heE).symm
-            · -- `e` 逐出 cache 外的页面:减式
+            · -- `e` evicts a page outside the cache: subtractive
               left
               have heE' : e s ∉ schedCache e C₀ σ s := by
                 intro hmem
                 exact heE (Finset.mem_erase.mpr ⟨heq', hmem⟩)
               rw [Finset.erase_eq_of_notMem heE']
               rw [Finset.erase_insert_of_ne hneq]
-    · -- 请求的不是 swap 页
+    · -- the requested page is not the swap page
       by_cases hrE : r ∈ schedCache e C₀ σ s
-      · -- 双命中:swap 保持
+      · -- double hit: swap is preserved
         have hr' : r ∈ insert x ((schedCache e C₀ σ s).erase q') := by
           rw [Finset.mem_insert]
           exact Or.inr (Finset.mem_erase.mpr ⟨hneq, hrE⟩)
@@ -144,7 +144,7 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
         right
         refine ⟨x, ?_⟩
         rfl
-      · -- 双缺页:分 `e s` 的情形
+      · -- double fault: split on the case of `e s`
         have hr' : r ∉ insert x ((schedCache e C₀ σ s).erase q') := by
           intro hm
           rcases Finset.mem_insert.mp hm with hxr' | hm
@@ -153,7 +153,7 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
         rw [if_neg hr']
         rw [if_neg hrE]
         by_cases heq' : e s = q'
-        · -- `e` 逐出 `q'`:`x ∈ E − q'` 时减式,否则 swap
+        · -- `e` evicts `q'`: subtractive when `x ∈ E − q'`, otherwise swap
           rw [heq']
           by_cases hxE : x ∈ (schedCache e C₀ σ s).erase q'
           · left
@@ -163,21 +163,21 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
             simp [Finset.mem_erase, Finset.mem_insert, and_left_comm, and_assoc,
               hneq, hxE, r]
           · by_cases hxq' : x = q'
-            · -- `x = q'`:`e` 逐出 `q'` 且 swap 页也是 `q'` — 减式
+            · -- `x = q'`: `e` evicts `q'` and the swap page is also `q'` — subtractive
               subst x
               left
               rw [Finset.erase_insert_of_ne hneq]
               congr 1
               ext x
               simp [Finset.mem_erase, Finset.mem_insert]
-            · -- `x ≠ q'`:swap 保持
+            · -- `x ≠ q'`: swap is preserved
               right
               refine ⟨x, ?_⟩
               rw [Finset.erase_insert_of_ne hxq']
               rw [Finset.erase_insert_of_ne hneq]
               rw [Finset.insert_comm]
         · by_cases hxe : e s = x
-          · -- `e` 逐出 `x`:减式
+          · -- `e` evicts `x`: subtractive
             rw [hxe]
             by_cases hxE : x ∈ (schedCache e C₀ σ s).erase q'
             · left
@@ -203,7 +203,7 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
                 rw [Finset.erase_insert hxE]
                 rw [Finset.erase_insert_of_ne hneq]
                 rw [Finset.erase_eq_of_notMem hxE']
-          · -- `e` 逐出其它页面:swap 保持
+          · -- `e` evicts some other page: swap is preserved
             right
             refine ⟨x, ?_⟩
             rw [Finset.erase_insert_of_ne hneq]
@@ -217,8 +217,8 @@ lemma repairSchedule_after_J_step' (e : ℕ → Page) (σ : List Page) (C₀ : F
             ext x
             simp [Finset.mem_erase, and_left_comm, and_assoc]
 
-/-- `(J, J']` 窗口:在 `q` 的首次请求之后到 `q'` 的首次请求之间,repair 的
-cache 是 `E − q'`(减式)或 `insert x (E − q')`(swap)。 -/
+/-- The `(J, J']` window: between `q`'s first request and `q'`'s first request, the repair
+cache is `E − q'` (subtractive) or `insert x (E − q')` (swap). -/
 lemma repairSchedule_after_J_window (e : ℕ → Page) (σ : List Page) (C₀ : Finset Page)
     (hC₀ : C₀.Nonempty)
     {t : ℕ} (ht : t < σ.length)
