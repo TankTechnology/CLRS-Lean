@@ -3464,8 +3464,12 @@ private lemma iterate_main (σ : List Page) (C₀ : Finset Page) (hC₀ : C₀.N
       ∃ d' slack', agreeWithFIF d' C₀ σ σ.length ∧ schedMisses d' C₀ σ + slack' ≤ M)
     (σ.length - st.t0) hmain st rfl
 
-  /-- fifo_optimal: CLRS Theorem 15.5 via iterate_main from the initial state (d0, t0=0, slack=0, hnb=0, Q=P=empty, win=none); the hB1/hB2/hAone supplies are hypotheses. -/
-  private lemma fifo_optimal (π : Policy) (C₀ : Finset Page) (σ : List Page)
+  /-- Legacy conditional candidate for CLRS Theorem 15.5 via `iterate_main` from
+  the initial state.  This is deliberately not named `fifo_optimal`: the public
+  theorem is unconditional, while this archived route still assumes the
+  `hB1`/`hB2`/`hAone` supplies. -/
+  private lemma fifo_optimal_conditional_legacy
+      (π : Policy) (C₀ : Finset Page) (σ : List Page)
       (hC₀ : C₀.Nonempty)
       (hB1 : ∀ (M : ℕ) (st : IterateState σ C₀ M) (t₂ : ℕ) (ht₂ : t₂ < σ.length) (ht₂hnb : t₂ < st.hnb),
         agreeWithFIF st.d C₀ σ t₂ →

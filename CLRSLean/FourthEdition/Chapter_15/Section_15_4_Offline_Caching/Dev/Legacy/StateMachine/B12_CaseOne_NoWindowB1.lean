@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B11_CaseOne_B1
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Legacy.StateMachine.B11_CaseOne_B1
 
 /-
 # Dev B12: the no-window B1 step (case-one assembly)
