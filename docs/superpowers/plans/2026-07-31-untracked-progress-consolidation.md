@@ -68,14 +68,16 @@ checks below are the complete gate for this pass.
 Add a status block immediately below the title with this meaning:
 
 ```markdown
-> **状态：已完成。** 本文记录 2026-07-27 至 2026-07-30 的结构保持
-> 设计。结构保持与删除高度闭环由提交 `f3f61b4` 完成；精确删除语义
-> 随后完成，2026-07-31 又完成全章最小键数与对数高度界，当前进度为
-> `134/134`。
+> **Status: Completed.** This document records the structural preservation
+> design of 2026-07-27 through 2026-07-30. The structural preservation and
+> deletion-height closure was completed by commit `f3f61b4`; exact deletion
+> semantics was completed afterwards, and on 2026-07-31 the chapter-wide
+> minimum-key and logarithmic-height bounds were also completed, with current
+> progress at `134/134`.
 ```
 
-Rename present-tense headings such as `目标` to explicitly historical wording
-such as `设计目标（历史）`. Any mention of `19` remaining `sorry`s, missing
+Rename present-tense headings such as `Goals` to explicitly historical wording
+such as `Design goals (historical)`. Any mention of `19` remaining `sorry`s, missing
 wrappers, or unproved exact semantics must say that it described the design
 starting point rather than the current repository.
 
@@ -91,18 +93,18 @@ old source line numbers.
 
 - [ ] **Step 3: Add an implementation outcome section**
 
-Add a section named `实施结果与设计偏差` containing a compact table with at
+Add a section named `Implementation results and design deviations` containing a compact table with at
 least these rows:
 
-| 设计问题 | 最终实现 |
+| Design issue | Final implementation |
 | --- | --- |
-| 主递归归纳 | 使用 Lean 为函数生成的 `composedDelete.induct`，而非设计稿提出的 `Nat.strongRecOn` |
-| bundled core | `ComposedPreservation.lean` 中的 `composedDelete_packet` 一次性给出结构保持组件 |
-| root normalization | `RootDeleteResult` 与公共根删除接口处理 raw root contraction |
-| `splitChild` API | 设计时缺失的独立 wrappers 已恢复并由接口测试固定 |
-| 精确语义 | 后续以 `keyBag` / `Multiset.erase` 完成，不属于当时结构里程碑，但已不再是剩余项 |
-| 删除高度 | `f3f61b4` 同时完成同深保持与根删除高度不变或减一 |
-| 全章高度界 | 2026-07-31 后续里程碑完成最小键数与对数高度界 |
+| main recursion induction | Uses the `composedDelete.induct` that Lean generates for the function, rather than the `Nat.strongRecOn` proposed in the design draft |
+| bundled core | The `composedDelete_packet` in `ComposedPreservation.lean` provides the structural-preservation components in one package |
+| root normalization | `RootDeleteResult` and the public root-deletion interface handle raw root contraction |
+| `splitChild` API | The standalone wrappers missing at design time were restored and fixed by interface tests |
+| exact semantics | Later completed with `keyBag` / `Multiset.erase`; not part of the structural milestone at the time, but no longer a remaining item |
+| deletion height | `f3f61b4` also completed same-depth preservation and the root-deletion height unchanged-or-minus-one |
+| chapter-wide height bound | The later 2026-07-31 milestone completed the minimum-key and logarithmic-height bounds |
 
 Link exact semantics to
 `../plans/2026-07-30-ch18-exact-deletion-semantics.md` and current status to
@@ -124,7 +126,7 @@ git add \
   docs/superpowers/specs/2026-07-27-ch18-btree-delete-guard-design.md
 git diff --cached --check -- \
   docs/superpowers/specs/2026-07-27-ch18-btree-delete-guard-design.md
-rg -n '状态|134/134|f3f61b4|composedDelete\.induct|精确删除' \
+rg -n 'status|134/134|f3f61b4|composedDelete\.induct|exact deletion' \
   docs/superpowers/specs/2026-07-27-ch18-btree-delete-guard-design.md
 git diff --cached -- \
   docs/superpowers/specs/2026-07-27-ch18-btree-delete-guard-design.md
@@ -258,10 +260,11 @@ Rename the section currently claiming that `ChildBounded` is an invariant AFP
 does not have. Use wording with this exact logical boundary:
 
 ```markdown
-AFP 的全局 `sorted_less (inorder tree)` 与本项目 `Sorted + ChildBounded`
-共同承担的排序责任相对应。AFP 没有单独命名的逐子树
-`ChildBounded` 谓词，但这不表示 AFP 省略了跨子树顺序义务，也不支持
-“CLRS-Lean 的不变量严格更强”这一结论。
+AFP's global `sorted_less (inorder tree)` corresponds to the ordering
+responsibility jointly carried by `Sorted + ChildBounded` in this project.
+AFP has no separately named per-subtree `ChildBounded` predicate, but this
+does not mean that AFP omits cross-subtree ordering obligations, nor does it
+support the conclusion that "CLRS-Lean's invariants are strictly stronger".
 ```
 
 Replace phrases such as "equivalent" or "completely isomorphic" with
@@ -276,7 +279,7 @@ to historical wording.
 
 - [ ] **Step 4: Add the recommendation-to-outcome table**
 
-Add a section `5. 后续实现结果（截至 2026-07-31）` with at least these
+Add a section `5. Follow-up implementation results (as of 2026-07-31)` with at least these
 rows:
 
 | 2026-07-27 recommendation/blocker | Current CLRS-Lean outcome |
@@ -299,7 +302,7 @@ Run:
 git add docs/research/afp-btree-deletion-architecture-2026-07-27.md
 git diff --cached --check -- \
   docs/research/afp-btree-deletion-architecture-2026-07-27.md
-rg -n '134/134|sorted_less|Sorted \+ ChildBounded|composedDelete\.induct|keyBag|高度' \
+rg -n '134/134|sorted_less|Sorted \+ ChildBounded|composedDelete\.induct|keyBag|height' \
   docs/research/afp-btree-deletion-architecture-2026-07-27.md
 if rg -n ':[0-9]+' \
   docs/research/afp-btree-deletion-architecture-2026-07-27.md; then
@@ -337,14 +340,15 @@ stuck-point taxonomy, and the commit-timeline rhythm signals into
 `stuck-points-retrospective-2026-07-24.md`. Start it with:
 
 ```markdown
-# 卡壳案例复盘（截至 2026-07-24）
+# Stuck-point cases retrospective (as of 2026-07-24)
 
-> 本文是提交历史与证明攻坚路径的时间点复盘，不是当前待办清单。
-> “后续结果”按 2026-07-31 的仓库状态补记。
+> This document is a point-in-time retrospective of the commit history and the
+> proof-attack path, not a current TODO list.
+> "Subsequent results" are recorded as of the repository state of 2026-07-31.
 ```
 
 For each case, preserve verifiable commit-history observations but add a short
-`后续结果` paragraph where later work changed the state.
+`follow-up results` paragraph where later work changed the state.
 
 Required corrections:
 
@@ -415,7 +419,7 @@ git add \
 git diff --cached --check -- \
   docs/proof-patterns/stuck-points-retrospective-2026-07-24.md \
   docs/proof-patterns/proof-engineering-patterns.md
-rg -n '134/134|Chapter 7|19、26、27、33|RedBlackShape|BST|后续结果' \
+rg -n '134/134|Chapter 7|19, 26, 27, 33|RedBlackShape|BST|follow-up results' \
   docs/proof-patterns/stuck-points-retrospective-2026-07-24.md \
   docs/proof-patterns/proof-engineering-patterns.md
 if rg -n ':[0-9]+|\.lean:L[0-9]|L[0-9]+-[0-9]+' \
@@ -483,7 +487,7 @@ Expected: all four checks exit successfully.
 Run:
 
 ```bash
-rg -n '11.*sorry|19.*sorry|111/111|未完全收口|唯一.*sorry|尚未证明.*精确|partial' \
+rg -n '11.*sorry|19.*sorry|111/111|not fully wrapped up|only.*sorry|exact semantics not yet proved|partial' \
   docs/superpowers/specs/2026-07-27-ch18-btree-delete-guard-design.md \
   docs/superpowers/plans/2026-07-30-ch18-btree-delete-proof-completion.md \
   docs/research/afp-btree-deletion-architecture-2026-07-27.md \
