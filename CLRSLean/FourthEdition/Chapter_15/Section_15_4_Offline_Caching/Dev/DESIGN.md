@@ -552,10 +552,24 @@ B1's bad on `q''` is covered iff the page `q''` has a **pending good**
 the "keeper" step that kept `q''` in its cache); the past pair whose
 page `d t₂` is (the user's suggested pairing) identifies the window's
 page history at the B1 (the 188 nop-cases are the pair's own nop
-positions).  **Open**: (a) the exact invariant form for the pending
-goods (the per-page balance can go negative — the exchange's bad on
-`q₀'` has no good on its page — so the pending-good accounting needs
-the window-global form); (b) the Nat-slack algebra for
+positions).  **Per-page accounting formalized (2026-08-12,
+`Dev/B13_PerPageCredit.lean`, kernel-checked)**: the per-page B1 supply
+`bad ≤ slack + c q''` (`b1_bad_le_slack_credit`), the credit-first draw
+(`b1_draw_credit`), the slack draw (`b1_draw_slack`), and the B2
+keeper's accrual on its kept page (`b2_good_accrues`), plus the
+per-page hypothesis form `B1SlackCreditHyp`.  Empirical evaluation
+(`search_slack.py` `main_pp`, exact-iteration search as before): the
+per-page accounting (q₀'-B1s drawn from the slack, non-q₀' B1s drawn
+from `c q''` first) reduces the plain 492 crashes to **308**; the
+candidate-C global accounting reaches 164.  The residual 308 include
+the 164 two-consecutive-B1-bad windows (the crasher at the first
+pair's nop: `d t₂` = the pair's page, `q''` = FIF's farthest — a page
+with no pending good under any identified credit).  **Open**: (a) the
+exact invariant form for the pending goods (the per-page balance can
+go negative — the exchange's bad on `q₀'` has no good on its page —
+so the pending-good accounting needs the window-global form, and the
+residual's `q''` needs a credit the identified sources do not
+produce); (b) the Nat-slack algebra for
 `slack + good − bad` (the credits precede the debits within a step,
 `j < j''`, but the hbook derivation `(dF + bad − good) + (good − bad) ≤
 dF` needs the case analysis); (c) the 416 d-not-in-Q cases; (d) the
