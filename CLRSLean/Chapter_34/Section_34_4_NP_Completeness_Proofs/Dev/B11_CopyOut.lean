@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B10_Parse
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B10_ParsePhase
 
 /-!
 # Dev B11: `copyOut`, transfer `o` to `out` and halt
