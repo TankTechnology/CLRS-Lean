@@ -5075,6 +5075,38 @@ The sources below are the canonical fourth-edition Sections 32.1; the legacy `CL
   and `PolyTimeReducible.trans` (transitivity of `≤_P` via the composition
   closure).
 
+### Section 35.1 - The Vertex-Cover Problem
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35.lean`
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_1_The_Vertex_Cover_Problem.lean`
+- Status: native fourth-edition section — green-field approximation-algorithms
+  formalization on an edge-based graph model.
+- Proved results: the `Graph` edge model, `IsVertexCoverOn`, `IsMatching`,
+  `IsMaximalMatchingOn`, `approxVertexCoverEdges` (the terminating greedy
+  edge-selection loop of APPROX-VERTEX-COVER), and `approxVertexCover`.
+  Lemma 35.1 is `matching_le_cover` (any cover has size at least any matching);
+  Theorem 35.1 is `approxVertexCover_isVertexCover` (correctness) and
+  `approxVertexCover_two_approx` (the factor-two bound `≤ 2 * Cstar.card` on a
+  loop-free graph).
+### Section 35.2 - The Traveling-Salesperson Problem
+
+- Lean sources:
+  - `CLRSLean/FourthEdition/Chapter_35/Section_35_2_The_Traveling_Salesperson_Problem.lean`
+- Status: native fourth-edition section — APPROX-TSP-TOUR on a complete graph
+  with a symmetric weight function satisfying the triangle inequality.
+- Proved results: the `Graph`/`pathCost`/`walkCost` machinery, the `TreeOn`
+  rooted-tree model of an MST, `dfsWalk`/`dfsTour` (preorder), and
+  `dfsTour_isTour` (the preorder visits every vertex exactly once).  Lemma 35.2
+  is `dfsWalk_cost` (the depth-first walk costs exactly twice the tree);
+  Lemma 35.3 is `mst_le_tour` (an MST costs no more than any tour);
+  `dfsTour_bound` is the triangle-inequality shortcut bound (the preorder cycle
+  costs no more than the walk); and Theorem 35.2 is `tsp_two_approx`, the
+  factor-two approximation bound against any tour (in particular an optimal
+  one), requiring symmetry, the triangle inequality, and zero loop weights.
+- Remaining chapter scope: Sections 35.3--35.5 (set cover, randomized rounding,
+  and the subset-sum FPTAS) are not represented.
+
 ## Deferred And Blocked Items
 
 | Item | Status | Reason |

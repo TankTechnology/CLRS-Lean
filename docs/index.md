@@ -548,6 +548,7 @@ CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 CLRSLean/FourthEdition/Chapter_33/Section_33_1_Clustering.lean
 CLRSLean/FourthEdition/Chapter_33/Section_33_2_Multiplicative_Weights.lean
 CLRSLean/FourthEdition/Chapter_33/Section_33_3_Gradient_Descent.lean
+CLRSLean/FourthEdition/Chapter_35/Section_35_1_The_Vertex_Cover_Problem.lean
 CLRSLean/Extensions.lean
 CLRSLean/Extensions/RandomizedTreap.lean
 CLRSLean/Extensions/TreapHeight.lean
