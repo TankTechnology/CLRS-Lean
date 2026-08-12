@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B1_Machine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B1_Steps
 
 /-!
 # Dev B2: the `reduce` dispatch and list assembly
