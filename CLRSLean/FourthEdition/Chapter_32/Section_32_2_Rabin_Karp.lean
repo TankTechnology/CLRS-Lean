@@ -256,8 +256,8 @@ theorem hash_eq_hashNoMod_mod (d q : ℕ) (val : α → ℕ) (w : Text α) :
   · have hqpos : 0 < q := Nat.pos_of_ne_zero hq
     have hcong := foldl_mod_congr d q val w 0
     have hl : (w.foldl (fun a c => (a * d + val c) % q) 0) < q := by
-      simpa using hash_lt d q val w hqpos
-    simpa [Nat.mod_eq_of_lt hl] using hcong
+      simpa [hash] using hash_lt d q val w hqpos
+    simpa [Nat.ModEq, Nat.mod_eq_of_lt hl] using hcong
 
 /-- A Horner fold with initial accumulator `acc` equals `acc · d^|as|` plus the
 fold starting from `0`. -/
@@ -269,7 +269,7 @@ lemma foldl_horner_acc (d : ℕ) (val : α → ℕ) (as : Text α) (acc : ℕ) :
   | cons b bs ih =>
       rw [List.foldl_cons, ih (acc * d + val b)]
       rw [List.foldl_cons, ih (0 * d + val b)]
-      rw [pow_succ]
+      rw [List.length_cons, pow_succ]
       ring
 
 /-- The leading character contributes `val a · d^|as|` to the Horner hash. -/
@@ -277,7 +277,7 @@ lemma hashNoMod_cons (d : ℕ) (val : α → ℕ) (a : α) (as : Text α) :
     hashNoMod d val (a :: as) = val a * (d ^ as.length) + hashNoMod d val as := by
   unfold hashNoMod
   rw [List.foldl_cons]
-  exact foldl_horner_acc d val as (val a)
+  simpa using foldl_horner_acc d val as (val a)
 
 /-- `(x + y) % q` is unchanged when `y` is reduced modulo `q`. -/
 lemma add_mod_add_mod (q x y : ℕ) : (x + y) % q = (x + y % q) % q :=
@@ -304,6 +304,38 @@ window `w` and the incoming character `c`, the hash of `w.drop 1 ++ [c]` is
 def slideHash (d q : ℕ) (val : α → ℕ) (h : ℕ) (w : Text α) (c : α) : ℕ :=
   (d * h + val c + q - (val (w.headD default) * d ^ w.length) % q) % q
 
+/-- The `ZMod q` value of a slide: the `+ q − x` normalization collapses to the
+true modular subtraction. -/
+lemma slideHash_zmod (d q : ℕ) (hq : 0 < q) (val : α → ℕ) (w : Text α) (h : ℕ) (c : α) :
+    ((slideHash d q val h w c : ℕ) : ZMod q)
+      = (d : ZMod q) * (h : ZMod q) + (val c : ZMod q)
+          - (val (w.headD default) : ZMod q) * (d : ZMod q) ^ w.length := by
+  unfold slideHash
+  rw [zmod_natCast_mod q (d * h + val c + q - (val (w.headD default) * d ^ w.length) % q)]
+  have hge : (val (w.headD default) * d ^ w.length) % q ≤ d * h + val c + q := by
+    exact Nat.le_trans (Nat.le_of_lt (Nat.mod_lt _ hq)) (Nat.le_add_left _ _)
+  rw [Nat.cast_sub hge]
+  rw [zmod_natCast_mod q (val (w.headD default) * d ^ w.length)]
+  push_cast
+  rw [ZMod.natCast_self]
+  ring
+
+/-- The Horner hash of a cons in `ZMod q`. -/
+lemma hash_cons_zmod (d q : ℕ) (val : α → ℕ) (a : α) (as : Text α) :
+    (hash d q val (a :: as) : ZMod q)
+      = (val a : ZMod q) * (d : ZMod q) ^ as.length + (hash d q val as : ZMod q) := by
+  rw [hash_cons, zmod_natCast_mod]
+  push_cast
+  rfl
+
+/-- The Horner hash of a snoc in `ZMod q`. -/
+lemma hash_snoc_zmod (d q : ℕ) (val : α → ℕ) (w : Text α) (c : α) :
+    (hash d q val (w ++ [c]) : ZMod q)
+      = (hash d q val w : ZMod q) * d + (val c : ZMod q) := by
+  rw [hash_snoc, zmod_natCast_mod]
+  push_cast
+  rfl
+
 /--
 **Rabin–Karp rolling recurrence (CLRS eq. (32.3)).**  Sliding a nonempty window
 by one position — dropping the leading character and appending a new one —
@@ -315,28 +347,177 @@ theorem hash_slide (d q : ℕ) (val : α → ℕ) (w : Text α) (c : α) (hq : 0
     hash d q val (w.drop 1 ++ [c]) = slideHash d q val (hash d q val w) w c := by
   rcases w with _ | ⟨a, as⟩
   · contradiction
-  simp [slideHash]
+  change hash d q val (as ++ [c]) = slideHash d q val (hash d q val (a :: as)) (a :: as) c
   have hl : hash d q val (as ++ [c]) < q := hash_lt d q val (as ++ [c]) hq
-  have hr : (d * hash d q val (a :: as) + val c + q
-        - (val a * d ^ (a :: as).length) % q) % q < q := Nat.mod_lt _ hq
-  have hcong : ((hash d q val (as ++ [c]) : ZMod q) =
-        (d * hash d q val (a :: as) + val c + q - (val a * d ^ (a :: as).length) % q : ZMod q)) := by
-    calc
-      (hash d q val (as ++ [c]) : ZMod q)
-          = (hash d q val as * d + val c : ZMod q) := by
-              rw [hash_snoc]
-              exact zmod_natCast_mod q (hash d q val as * d + val c)
-      _ = (d * hash d q val (a :: as) + val c + q - (val a * d ^ (a :: as).length) % q : ZMod q) := by
-              rw [hash_cons]
-              rw [zmod_natCast_mod q (val a * d ^ as.length + hash d q val as)]
-              rw [zmod_natCast_mod q (val a * d ^ (a :: as).length)]
-              push_cast
-              ring
-  have hmod : hash d q val (as ++ [c]) % q =
-      (d * hash d q val (a :: as) + val c + q - (val a * d ^ (a :: as).length) % q) % q :=
+  have hr : slideHash d q val (hash d q val (a :: as)) (a :: as) c < q := by
+    unfold slideHash; exact Nat.mod_lt _ hq
+  have hcong : ((hash d q val (as ++ [c]) : ZMod q)
+        = (slideHash d q val (hash d q val (a :: as)) (a :: as) c : ZMod q)) := by
+    rw [hash_snoc_zmod]
+    rw [slideHash_zmod d q hq val (a :: as) (hash d q val (a :: as)) c]
+    rw [hash_cons_zmod]
+    rw [List.length_cons, pow_succ]
+    simp only [List.headD]
+    ring
+  have hmod : hash d q val (as ++ [c]) % q = slideHash d q val (hash d q val (a :: as)) (a :: as) c % q :=
     (ZMod.natCast_eq_natCast_iff _ _ q).1 hcong
   rw [Nat.mod_eq_of_lt hl, Nat.mod_eq_of_lt hr] at hmod
-  exact hmod.symm
+  exact hmod
+
+/-- `range (n+1)` mapped by `f` is `f 0` followed by the shifted tail. -/
+lemma range_succ_map (n : ℕ) (f : ℕ → β) :
+    (List.range (n + 1)).map f = f 0 :: (List.range n).map (fun i => f (i + 1)) := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [List.range_succ, List.map_append, List.map_cons, ih]
+      rw [List.range_succ, List.map_append, List.map_cons]
+
+/-- The number of true entries of `f` over `range (k+1)` splits at the head. -/
+lemma length_filter_range_succ (k : ℕ) (f : ℕ → Bool) :
+    (List.range (k + 1)).filter f |>.length
+      = (if f 0 then 1 else 0) + (List.range k).filter (fun i => f (i + 1)) |>.length := by
+  rw [show List.range (k + 1) = 0 :: (List.range k).map (fun i => i + 1) from by
+    simpa using (range_succ_map k (fun i : ℕ => i))]
+  rw [List.filter_cons, List.filter_map, List.length_map]
+  by_cases h : f 0
+  · simp [h]
+  · simp [h]
+
+/-- The acceptance test of the rolling scan agrees with the plain match test. -/
+lemma rollingTest_eq_matchesAt (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ)
+    (w : Text α) (h : ℕ) (hp : p = hash d q val P) (hm : m = P.length)
+    (hw : w = (T.drop s).take m) (hh : h = hash d q val w) :
+    (h == p && matchesAt T P s) = matchesAt T P s := by
+  by_cases hmt : matchesAt T P s = true
+  · have hbeq : (h == p) = true := by
+      have hb := hash_beq_of_matchesAt T P d q val s hmt
+      simpa [hh, hp, hm, hw] using hb
+    simp [hmt, hbeq]
+  · have hf : matchesAt T P s = false := by
+      cases hb : matchesAt T P s <;> simp [hb] at hmt ⊢
+    simp [hf]
+
+/-- The hash-hit test of the rolling scan is exactly the window hash equality. -/
+lemma rollingHashHit_eq (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ)
+    (w : Text α) (h : ℕ) (hp : p = hash d q val P) (hm : m = P.length)
+    (hw : w = (T.drop s).take m) (hh : h = hash d q val w) :
+    (h == p) = (hash d q val ((T.drop s).take P.length) == hash d q val P) := by
+  simp [hh, hp, hm, hw]
+
+/-- The number of hash hits among `k+1` consecutive windows starting at shift `s`. -/
+def hashHitsIn (T P : Text α) (d q : ℕ) (val : α → ℕ) (s k : ℕ) : ℕ :=
+  (List.range (k + 1)).filter
+    (fun i => hash d q val ((T.drop (s + i)).take P.length) == hash d q val P) |>.length
+
+/-- `hashHitsIn` over a single window. -/
+lemma hashHitsIn_zero (T P : Text α) (d q : ℕ) (val : α → ℕ) (s : ℕ) :
+    hashHitsIn T P d q val s 0
+      = (if hash d q val ((T.drop s).take P.length) == hash d q val P then 1 else 0) := by
+  simp [hashHitsIn]
+
+/-- `hashHitsIn` splits across the first window. -/
+lemma hashHitsIn_succ (T P : Text α) (d q : ℕ) (val : α → ℕ) (s k : ℕ) :
+    hashHitsIn T P d q val s (k + 1) = hashHitsIn T P d q val s 0 + hashHitsIn T P d q val (s + 1) k := by
+  unfold hashHitsIn
+  rw [length_filter_range_succ k (fun i => hash d q val ((T.drop (s + i)).take P.length) == hash d q val P)]
+  congr 1
+  · rfl
+  · apply List.length_congr
+    intro i hi
+    rw [show s + (i + 1) = (s + 1) + i by omega]
+
+/-- Sliding the window: dropping one leading character and appending `c` yields
+the next length-`m` window of `T`. -/
+lemma window_slide {T : Text α} {s m : ℕ} {w : Text α} {c : α} {rest' : Text α}
+    (hw : w = (T.drop s).take m) (hwlen : w.length = m) (hm0 : 0 < m)
+    (hr : c :: rest' = T.drop (s + m)) :
+    w.drop 1 ++ [c] = (T.drop (s + 1)).take m := by
+  have hwrest : w ++ (c :: rest') = T.drop s := by
+    calc
+      w ++ (c :: rest') = (T.drop s).take m ++ T.drop (s + m) := by rw [hw, ← hr]
+      _ = (T.drop s).take m ++ (T.drop s).drop m := by rw [List.drop_drop]
+      _ = T.drop s := List.take_append_drop m (T.drop s)
+  have hlen_wdrop : (w.drop 1).length = m - 1 := by
+    rw [List.length_drop, hwlen]
+  calc
+    (T.drop (s + 1)).take m = (T.drop s).drop 1 |>.take m := by rw [List.drop_drop]
+    _ = (w ++ (c :: rest')).drop 1 |>.take m := by rw [hwrest]
+    _ = (w.drop 1 ++ (c :: rest')).take m := by
+          rw [List.drop_append_of_le_length]
+          omega
+    _ = w.drop 1 ++ [c] := by
+          rw [List.take_append]
+          simp [hlen_wdrop, hm0]
+
+/-- One rolling scan step, returning the matches found and the accumulated work. -/
+def rollingGo (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
+    (rest : Text α) : List ℕ × ℕ :=
+  match rest with
+  | [] => (if h == p && matchesAt T P s then [s] else [], 1 + (if h == p then m else 0))
+  | c :: rest' =>
+      let (tail, costTail) := rollingGo T P d q val p m (s + 1) (w.drop 1 ++ [c])
+        (slideHash d q val h w c) rest'
+      let conf := if h == p then m else 0
+      if h == p && matchesAt T P s then (s :: tail, conf + 1 + costTail)
+      else (tail, conf + 1 + costTail)
+
+/--
+The rolling scan's specification: `rollingGo` returns exactly the shifts in
+`[s, s + rest.length]` where `P` matches, and a cost of one rolling update per
+shift plus an `m`-step character confirmation at every hash hit.
+-/
+lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
+    (rest : Text α) (hq : 0 < q) (hm0 : 0 < m) (hp : p = hash d q val P) (hm : m = P.length)
+    (hw : w = (T.drop s).take m) (hwlen : w.length = m) (hh : h = hash d q val w)
+    (hr : rest = T.drop (s + m)) :
+    rollingGo T P d q val p m s w h rest =
+      ( (List.range (rest.length + 1)).map (fun i => s + i) |>.filter (fun s' => matchesAt T P s'),
+        rest.length + 1 + hashHitsIn T P d q val s rest.length * m ) := by
+  induction rest generalizing s w h with
+  | nil =>
+      rw [rollingGo]
+      rw [rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh]
+      congr
+      · rw [List.range_succ, List.map_append, List.map_cons, List.map_nil, List.filter_cons]
+        rw [show (List.range 0).map (fun i => s + (i + 1)) |>.filter (fun s' => matchesAt T P s') = []
+            by simp]
+        by_cases h : matchesAt T P s <;> simp [h]
+      · rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh, hashHitsIn_zero]
+        congr 1
+        by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [h]
+  | cons c rest' ih =>
+      rw [rollingGo]
+      -- set up the recursive invariants
+      have hw' : w.drop 1 ++ [c] = (T.drop (s + 1)).take m := window_slide hw hwlen hm0 (by rwa [hr])
+      have hwlen' : (w.drop 1 ++ [c]).length = m := by
+        rw [List.length_append, List.length_cons, List.length_nil, hwlen]
+        simp; omega
+      have hh' : slideHash d q val h w c = hash d q val (w.drop 1 ++ [c]) := by
+        have hwne : w ≠ [] := by
+          intro he; subst he; simp at hwlen; omega
+        rw [hh]
+        exact (hash_slide d q val w c hq hwne).symm
+      have hr' : rest' = T.drop ((s + 1) + m) := by
+        have : c :: rest' = T.drop (s + m) := by rwa [hr]
+        rw [← List.drop_drop, this]
+        simp
+      rw [ih c rest' (s + 1) (w.drop 1 ++ [c]) (slideHash d q val h w c) hq hm0 hp hm hw' hwlen' hh' hr']
+      rw [rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh]
+      rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
+      -- split the range and the hash-hit count
+      rw [range_succ_map rest'.length (fun i => s + i)]
+      rw [hashHitsIn_succ T P d q val s rest'.length]
+      simp only [List.filter_cons]
+      by_cases hmatch : matchesAt T P s
+      · have hhit : hash d q val ((T.drop s).take P.length) == hash d q val P = true := by
+          have hb := hash_beq_of_matchesAt T P d q val s hmatch
+          simpa using hb
+        simp [hmatch, hhit, List.map_cons, List.map_append]
+        ring
+      · have hhit' : hash d q val ((T.drop s).take P.length) == hash d q val P = false := by
+          cases hb : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [hb] at hmatch ⊢
+        simp [hmatch, hhit', List.map_cons, List.map_append]
 
 end Rolling
 
