@@ -83,7 +83,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 26 | Parallel Algorithms | 🟢 complete | 95 / 95 | — |
 | 27 | Online Algorithms | 🟢 complete | 6 / 6 | — |
 | 28 | Matrix Operations | 🟢 complete | 9 / 9 | — |
-| 29 | Linear Programming | 🟠 partial coverage | 10 / 10 | Section 29.1: general-form normalization and canonical… |
+| 29 | Linear Programming | 🟢 complete | 10 / 10 | — |
 | 30 | Polynomials and the FFT | 🟢 complete | 34 / 34 | — |
 | 31 | Number-Theoretic Algorithms | 🟡 sections | 17 / 17 | — |
 | 32 | String Matching | 🟢 complete | 55 / 55 | — |

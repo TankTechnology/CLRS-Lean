@@ -2,6 +2,8 @@ import CLRSLean.Chapter_29
 import CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms
 import CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs
 import CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality
+import CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.GeneralStrongDuality
+import CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms.SolverWrapper
 
 /-!
 # Chapter 29 — Linear Programming
@@ -32,6 +34,8 @@ The supporting implementation pages remain available outside the main sidebar:
 * [Standard-Form Definitions](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Definitions/)
 * [Canonical Slack Variables](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/SlackVariables/)
 * [Standard/Slack Equivalence](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Equivalence/)
+* [General-Form Normalization](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Normalization/)
+* [Canonical Solver Wrapper](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/SolverWrapper/)
 * [Finite Network Model](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/NetworkFlow/)
 * [Shortest Paths as an LP](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/ShortestPath/)
 * [Maximum Flow as an LP](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MaximumFlow/)
@@ -45,6 +49,7 @@ The supporting implementation pages remain available outside the main sidebar:
 * [Dictionary/Primal Bridge](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/DictionaryBridge/)
 * [Strong Duality](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/StrongDuality/)
 * [Complementary-Slackness Theorem](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/ComplementarySlacknessTheorem/)
+* [General Strong Duality](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/GeneralStrongDuality/)
 
 ## Coverage boundary
 
