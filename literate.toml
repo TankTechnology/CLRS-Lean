@@ -270,6 +270,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_04" = [
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi",
+]
 "CLRSLean.FourthEdition.Chapter_15" = [
   "CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta",
@@ -767,6 +772,15 @@ title = "Chapter 3. Characterizing Running Times"
 
 [modules."CLRSLean.FourthEdition.Chapter_04"]
 title = "Chapter 4. Divide-and-Conquer"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices"]
+title = "4.1. Multiplying Square Matrices"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem"]
+title = "4.6. Proof of the Continuous Master Theorem"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi"]
+title = "4.7. Akra–Bazzi Recurrences"
 
 [modules."CLRSLean.FourthEdition.Chapter_05"]
 title = "Chapter 5. Probabilistic Analysis and Randomized Algorithms"

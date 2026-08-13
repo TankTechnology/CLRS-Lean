@@ -43,8 +43,6 @@ prose does not freeze a completed-prefix milestone.
 
 The edition map currently records these fourth-edition gaps:
 
-* **Chapter 4, Divide-and-Conquer:** Sections 4.1 and 4.6 are partial; Section
-  4.7 is not started.  Maximum subarray is retained as online material.
 * **Chapter 7, Quicksort:** Section 7.4 remains partial.
 * **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
 * **Chapter 13, Red-Black Trees:** Sections 13.2--13.4 remain partial because the
