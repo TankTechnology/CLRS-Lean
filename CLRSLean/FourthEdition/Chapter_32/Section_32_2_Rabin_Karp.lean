@@ -505,15 +505,128 @@ lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
         congr; funext i; omega
       have hcost : (if hash d q val ((T.drop s).take P.length) == hash d q val P then m else 0)
           = hashHitsIn T P d q val s 0 * m := by
-        by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;>
-          simp only [h, hashHitsIn, List.filter_cons, List.length_cons, List.length_nil]
+        simp only [hashHitsIn]
+        cases hb : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp
       rw [hmap, hcost]
       apply Prod.ext
       · simp only [List.filter_cons, List.map_cons, List.map_append]
         by_cases h : matchesAt T P s <;> simp [h]
-      · ring
+      · by_cases h : matchesAt T P s <;> simp [h] <;> ring
 
-end Rolling
+/-- The rolling Rabin-Karp matcher (CLRS §32.2), returning the list of matches
+and the deterministic work performed. -/
+def rabinKarpRolling (T P : Text α) (d q : ℕ) (val : α → ℕ) : List ℕ × ℕ :=
+  let m := P.length
+  let p := hash d q val P
+  if m = 0 then (List.range (T.length + 1), T.length + 1)
+  else
+    let (matches, cost) := rollingGo T P d q val p m 0 (T.take m) (hash d q val (T.take m)) (T.drop m)
+    (matches, m + cost)
+
+/-- The matches returned by the rolling matcher. -/
+def rabinKarpRollingMatches (T P : Text α) (d q : ℕ) (val : α → ℕ) : List ℕ :=
+  (rabinKarpRolling T P d q val).1
+
+/-- The deterministic work of the rolling matcher: `m` operations to seed the
+first hash, one O(1) rolling update per shift, and an `m`-step character
+confirmation at every hash hit (real or spurious). -/
+def rabinKarpRollingCost (T P : Text α) (d q : ℕ) (val : α → ℕ) : ℕ :=
+  (rabinKarpRolling T P d q val).2
+
+/-- The top-level rolling scan applied to the whole text. -/
+lemma rollingGo_top (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) (hm0 : 0 < P.length)
+    (hmle : P.length ≤ T.length) :
+    rollingGo T P d q val (hash d q val P) P.length 0 (T.take P.length)
+        (hash d q val (T.take P.length)) (T.drop P.length) =
+      (((List.range (T.length - P.length + 1)).filter (fun s' => matchesAt T P s')),
+        T.length - P.length + 1 + hashHitsIn T P d q val 0 (T.length - P.length) * P.length) := by
+  have hwlen : (T.take P.length).length = P.length := by rw [List.length_take]; omega
+  have hspec := rollingGo_spec T P d q val (hash d q val P) P.length 0 (T.take P.length)
+    (hash d q val (T.take P.length)) (T.drop P.length) hq hm0 rfl rfl rfl hwlen rfl rfl
+  rw [hspec]
+  simp [List.length_drop]
+
+/--
+**Correctness of the rolling Rabin-Karp matcher.**  The rolling matcher returns
+exactly the shifts returned by `naiveMatcher` (and hence by the hash-and-confirm
+`rabinKarpMatcher`): it refines the hash-and-confirm matcher to a genuine O(1)
+window update without changing the set of matches.
+-/
+theorem rabinKarpRollingMatches_correct (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) :
+    rabinKarpRollingMatches T P d q val = naiveMatcher T P := by
+  unfold rabinKarpRollingMatches rabinKarpRolling
+  by_cases hzero : P.length = 0
+  · simp [hzero, naiveMatcher]
+  · have hm0 : 0 < P.length := Nat.pos_of_ne_zero hzero
+    by_cases hlong : T.length < P.length
+    · -- pattern longer than text: no matches
+      simp [hzero, hlong, naiveMatcher_pattern_too_long T P hlong]
+      have hdrop : T.drop P.length = [] := by rw [List.drop_eq_nil_iff_le]; omega
+      have hmt : matchesAt T P 0 = false := by
+        unfold matchesAt; simp [hlong]
+      simp [hdrop, hmt]
+    · -- 0 < m ≤ n
+      have hmle : P.length ≤ T.length := Nat.le_of_not_gt hlong
+      rw [rollingGo_top T P d q val hq hm0 hmle]
+      simp [hzero, naiveMatcher]
+
+/--
+The refined work bound: the rolling matcher performs exactly `m` operations to
+seed the first hash, one rolling update per shift, and an `m`-step character
+confirmation at every hash hit — the term that is `O(n + m·(#hits))`.  A
+spurious hit is a hash hit that is not a real match; both cost the same `m`
+confirmations.
+-/
+theorem rabinKarpRollingCost_eq (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) :
+    rabinKarpRollingCost T P d q val
+      = P.length + (T.length - P.length + 1) + hashHitsIn T P d q val 0 (T.length - P.length) * P.length := by
+  unfold rabinKarpRollingCost rabinKarpRolling
+  by_cases hzero : P.length = 0
+  · simp [hzero]
+  · have hm0 : 0 < P.length := Nat.pos_of_ne_zero hzero
+    by_cases hlong : T.length < P.length
+    · have hdrop : T.drop P.length = [] := by rw [List.drop_eq_nil_iff_le]; omega
+      simp [hzero, hlong, hdrop, hashHitsIn]
+    · have hmle : P.length ≤ T.length := Nat.le_of_not_gt hlong
+      rw [rollingGo_top T P d q val hq hm0 hmle]
+      simp
+
+/--
+The worst-case deterministic work bound: the rolling matcher never performs
+more than `m + (n − m + 1)·(m + 1)` operations — `O(n·m)` in the worst case,
+matching the textbook statement (CLRS §32.2).  When hits are sparse, the
+refined `rabinKarpRollingCost_eq` gives the expected `O(n + m·(#hits))` form.
+-/
+theorem rabinKarpRollingCost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) :
+    rabinKarpRollingCost T P d q val ≤ P.length + (T.length - P.length + 1) * (P.length + 1) := by
+  unfold rabinKarpRollingCost rabinKarpRolling
+  by_cases hzero : P.length = 0
+  · simp [hzero]
+  · have hm0 : 0 < P.length := Nat.pos_of_ne_zero hzero
+    by_cases hlong : T.length < P.length
+    · have hdrop : T.drop P.length = [] := by rw [List.drop_eq_nil_iff_le]; omega
+      simp [hzero, hlong, hdrop]
+      omega
+    · have hmle : P.length ≤ T.length := Nat.le_of_not_gt hlong
+      have hbound : (rollingGo T P d q val (hash d q val P) P.length 0 (T.take P.length)
+          (hash d q val (T.take P.length)) (T.drop P.length)).2
+          ≤ (T.length - P.length + 1) * (P.length + 1) := by
+        simpa [List.length_drop] using
+          (rollingGo_cost_le T P d q val (hash d q val P) P.length 0 (T.take P.length)
+            (hash d q val (T.take P.length)) (T.drop P.length))
+      omega
+
+/-- Each step of the rolling scan costs at most `m + 1` operations: one rolling
+update plus at most `m` confirmation comparisons. -/
+lemma rollingGo_cost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
+    (rest : Text α) :
+    (rollingGo T P d q val p m s w h rest).2 ≤ (rest.length + 1) * (m + 1) := by
+  induction rest generalizing s w h with
+  | nil => simp [rollingGo]; omega
+  | cons c rest' ih =>
+      simp only [rollingGo]
+      have hih := ih (s + 1) (w.tail ++ [c]) (slideHash d q val h w c)
+      omega
 
 end Chapter32
 end CLRS
