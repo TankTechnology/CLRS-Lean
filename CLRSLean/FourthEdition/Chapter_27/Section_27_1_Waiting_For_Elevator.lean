@@ -24,17 +24,25 @@ Main results:
   any strategy that rents `a` days with `a*r < p ≤ (a+1)*r` — rent strictly less
   than the break-even point, buy no later than the day renting overtakes buying
   — is `2`-competitive.
+- Definition `SkiRental.Strategy` and `SkiRental.onlineCost`: the general causal
+  model of a deterministic online strategy (its first buy day, or never).
+- Theorem `SkiRental.rentThenBuy_lower_bound` / `SkiRental.skiRental_lower_bound`
+  (Theorem 27.1, lower bound): no deterministic strategy beats `2 - r/p`.
 - Definition `Elevator.cost` and `Elevator.optCost`: the elevator instance.
 - Theorem `Elevator.elevator_two_competitive`: the "wait `S - E` then take the
   stairs" strategy is `2`-competitive.
+- Theorem `Elevator.elevator_lower_bound`: no deterministic wait beats `2 - E/S`.
 - Lemma `Elevator.elevator_worst_case_ratio`: when the elevator comes late the
   cost is exactly `(2 - E/S) * S`, the competitive ratio stated in CLRS §27.1.
 
 The model is deliberately thin: costs are real numbers, the input is the total
-number of days `T : ℕ`, and a deterministic online strategy is a "rent `a` days
-then buy" threshold.  The lower bound that no deterministic strategy beats
-`2 - r/p` is **not yet formalized** and is recorded as a gap; the framework
-(`IsCompetitive`) is set up so that bound can be added as a direct statement.
+number of days `T : ℕ`, and a deterministic online strategy is its first buy day
+(a "rent `a` days then buy" threshold, or `none` for "never buy"), which is the
+general causal model — an online strategy decides rent-or-buy day by day without
+seeing the future, and buying is irreversible.  The deterministic lower bound
+`2 - r/p` (and its elevator form `2 - E/S`) is formalized as an adversarial
+construction: for every strategy there is a finite input on which it pays at
+least `2 - r/p` times the offline optimum.
 
 Notation conventions used in this section:
 
@@ -144,6 +152,95 @@ theorem rentThenBuy_two_competitive (r p : ℝ) {a : ℕ} (hr : 0 < r) (hp : 0 <
     have hle : (a : ℝ) * r ≤ p := le_of_lt hlt
     nlinarith
 
+/-! ## Deterministic lower bound -/
+
+/--
+A **deterministic online strategy** for ski rental is its first buy day: it
+rents days `0 .. a-1` and buys on day `a` if the trip lasts that long, or
+`none` if it never buys.  This is the general causal model — an online strategy
+must decide rent-or-buy day by day without seeing the future, and buying is
+irreversible, so the whole strategy is determined by this one threshold.
+-/
+abbrev Strategy := Option ℕ
+
+/--
+The **cost** of running a deterministic strategy `s` on a trip of `T` days: the
+threshold strategy rents then buys, and the never-buy strategy rents every day.
+-/
+def onlineCost (r p : ℝ) (s : Strategy) (T : ℕ) : ℝ :=
+  match s with
+  | none => (T : ℝ) * r
+  | some a => rentThenBuyCost r p a T
+
+/--
+**Theorem 27.1 (deterministic lower bound), threshold form.**  For `r > 0` and
+`p > 0`, no rent-`a`-then-buy threshold strategy beats competitive ratio
+`2 - r/p`: for every `a` there is an input `T` on which it pays at least
+`(2 - r/p)` times the optimal offline cost.
+-/
+theorem rentThenBuy_lower_bound (r p : ℝ) (hr : 0 < r) (hp : 0 < p) (a : ℕ) :
+    ∃ T : ℕ, (2 - r / p) * optCost r p T ≤ rentThenBuyCost r p a T := by
+  refine ⟨a + 1, ?_⟩
+  have ha0 : 0 ≤ (a : ℝ) := Nat.cast_nonneg a
+  have hcost : rentThenBuyCost r p a (a + 1) = (a : ℝ) * r + p := by
+    apply rentThenBuyCost_long
+    intro h
+    omega
+  rw [hcost]
+  have hcast : ((a + 1 : ℕ) : ℝ) = (a : ℝ) + 1 := by norm_num
+  by_cases hle : ((a + 1 : ℕ) : ℝ) * r ≤ p
+  · -- Buy early: the optimum is to rent every day; the strategy buys too soon.
+    have hopt : optCost r p (a + 1) = ((a + 1 : ℕ) : ℝ) * r := optCost_eq_rent r p (a + 1 : ℕ) hle
+    rw [hopt]
+    rw [hcast]
+    have hrp : r ≤ p := by
+      have h1 : r ≤ ((a : ℝ) + 1) * r := by nlinarith [ha0]
+      exact le_trans h1 (by rw [← hcast]; exact hle)
+    have hprod : 0 ≤ (p - r) * (p - ((a : ℝ) + 1) * r) := by
+      exact mul_nonneg (sub_nonneg.mpr hrp) (sub_nonneg.mpr (by rw [← hcast]; exact hle))
+    have hid : p * ((a : ℝ) * r + p - (2 - r / p) * ((a : ℝ) + 1) * r) =
+        (p - r) * (p - ((a : ℝ) + 1) * r) := by
+      field_simp [ne_of_gt hp]
+      ring
+    have hnn : 0 ≤ p * ((a : ℝ) * r + p - (2 - r / p) * ((a : ℝ) + 1) * r) := by
+      rw [hid]
+      exact hprod
+    nlinarith
+  · -- Buy at or after break-even: the optimum is to buy; the strategy rents first.
+    have hopt : optCost r p (a + 1) = p := optCost_eq_buy r p (a + 1 : ℕ) (le_of_not_ge hle)
+    rw [hopt]
+    have hge : p ≤ ((a : ℝ) + 1) * r := by rw [← hcast]; exact le_of_not_ge hle
+    field_simp [ne_of_gt hp]
+    nlinarith [hr, hp, hge, ha0]
+
+/--
+**Theorem 27.1 (deterministic lower bound).**  For `r > 0` and `p > 0`, no
+deterministic online strategy beats competitive ratio `2 - r/p`: for every
+strategy there is an input `T` on which it pays at least `(2 - r/p)` times the
+optimal offline cost.
+-/
+theorem skiRental_lower_bound (r p : ℝ) (hr : 0 < r) (hp : 0 < p) (s : Strategy) :
+    ∃ T : ℕ, (2 - r / p) * optCost r p T ≤ onlineCost r p s T := by
+  cases s with
+  | none =>
+      -- The strategy never buys, so on a long trip it pays `T * r` while the
+      -- optimum is `p`; pick `T` large enough that `2 * p - r ≤ T * r`.
+      obtain ⟨T, hT⟩ := exists_nat_gt (2 * p / r : ℝ)
+      refine ⟨T, ?_⟩
+      simp [onlineCost]
+      have hmul : (2 * p / r) * r < (T : ℝ) * r := mul_lt_mul_of_pos_right hT hr
+      have h2p : (2 * p / r) * r = 2 * p := by field_simp [ne_of_gt hr]
+      have hTr : 2 * p - r ≤ (T : ℝ) * r := by nlinarith
+      have hp_opt : p ≤ (T : ℝ) * r := by nlinarith
+      have hopt : optCost r p T = p := optCost_eq_buy r p T hp_opt
+      rw [hopt]
+      have hgoal : (2 - r / p) * p = 2 * p - r := by field_simp [ne_of_gt hp]
+      rw [hgoal]
+      exact hTr
+  | some a =>
+      simp [onlineCost]
+      exact rentThenBuy_lower_bound r p hr hp a
+
 end SkiRental
 
 namespace Elevator
@@ -214,6 +311,66 @@ lemma elevator_worst_case_ratio (E S : ℝ) (hE : 0 < E) (hS : 0 < S) :
     ring
   · have hpos : 0 < E / S := div_pos hE hS
     linarith
+
+/--
+**Elevator lower bound (corollary of the deterministic bound).**  For
+`0 < E < S`, no deterministic wait threshold `w` beats competitive ratio
+`2 - E/S`: for every `w ≥ 0` there is an arrival time `t ≥ 0` on which the
+strategy pays at least `(2 - E/S)` times the optimal offline cost.  Combined
+with `elevator_two_competitive`, the "wait `S - E` then stairs" strategy is
+exactly optimal.
+-/
+theorem elevator_lower_bound (E S : ℝ) (hE : 0 < E) (hS : 0 < S) (hES : E < S)
+    (w : ℝ) (hw0 : 0 ≤ w) :
+    ∃ t : ℝ, 0 ≤ t ∧ (2 - E / S) * optCost E S t ≤ cost E S w t := by
+  have hdiv : E / S < 1 := (div_lt_one hS).mpr hES
+  have hden : 0 < 2 - E / S := by nlinarith
+  have hden2 : 2 - E / S ≠ 0 := ne_of_gt hden
+  have hpos : 0 < S * 2 - E := by nlinarith [hES, hS]
+  have hpos2 : S * 2 - E ≠ 0 := ne_of_gt hpos
+  by_cases hw : w < S - E
+  · -- Too eager: the elevator arrives exactly at the adversarial boundary.
+    let t : ℝ := (w + S) / (2 - E / S) - E
+    refine ⟨t, ?_, ?_⟩
+    · dsimp [t]
+      field_simp [hden2, hpos2, ne_of_gt hS]
+      nlinarith [hE, hS, hw0, sq_nonneg (S - E)]
+    · have hgt : w < t := by
+        dsimp [t]
+        field_simp [hden2, hpos2, ne_of_gt hS]
+        nlinarith [hw, hES, hS]
+      have hcost : cost E S w t = w + S := by
+        rw [cost, if_neg (show ¬ t ≤ w by intro htle; nlinarith [hgt])]
+      rw [hcost]
+      have hleS : t + E ≤ S := by
+        dsimp [t]
+        field_simp [hden2, hpos2, ne_of_gt hS]
+        nlinarith [hw, hES, hS]
+      have hopt : optCost E S t = t + E := by
+        rw [optCost]
+        exact min_eq_left hleS
+      rw [hopt]
+      have hmain : (2 - E / S) * (t + E) = w + S := by
+        dsimp [t]
+        rw [sub_add_cancel]
+        exact mul_div_cancel₀ (w + S) hden2
+      rw [hmain]
+  · -- Patient enough: the elevator arrives after the wait is abandoned.
+    refine ⟨w + 1, ?_, ?_⟩
+    · nlinarith [hw0]
+    · have hle : S - E ≤ w := le_of_not_gt hw
+      have hcost : cost E S w (w + 1) = w + S := by
+        rw [cost, if_neg (show ¬ w + 1 ≤ w by nlinarith)]
+      rw [hcost]
+      have hopt : optCost E S (w + 1) = S := by
+        rw [optCost]
+        apply min_eq_right
+        nlinarith [hle]
+      rw [hopt]
+      have hmain : (2 - E / S) * S = 2 * S - E := by
+        field_simp [ne_of_gt hS]
+      rw [hmain]
+      exact (by nlinarith [hle] : 2 * S - E ≤ w + S)
 
 end Elevator
 
