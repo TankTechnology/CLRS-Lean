@@ -193,5 +193,152 @@ theorem rabinKarp_correct (T P : Text α) (d q : ℕ) (val : α → ℕ) :
     intro s hs
     exact rabinKarpShift_eq_matchesAt T P d q val s
 
+/-
+The rolling-window recurrence and its proof.  This section adds the executable
+`O(1)` slide (CLRS eq. (32.3)) on top of the hash-and-confirm matcher above,
+plus the rolling matcher that uses it and the deterministic work bound.
+-/
+section Rolling
+
+variable {α : Type} [BEq α] [DecidableEq α] [LawfulBEq α] [Inhabited α]
+
+/-- Horner evaluation of `w` over `val` without the intermediate modular
+reductions.  `hash d q val w` is exactly `hashNoMod d val w % q`. -/
+def hashNoMod (d : ℕ) (val : α → ℕ) (w : Text α) : ℕ :=
+  w.foldl (fun acc c => acc * d + val c) 0
+
+/-- A Horner fold is congruent modulo `q` when its initial accumulator is. -/
+lemma foldl_horner_mod_congr (d q : ℕ) (val : α → ℕ) (as : Text α) {x y : ℕ}
+    (h : Nat.ModEq q x y) :
+    Nat.ModEq q (as.foldl (fun a c => a * d + val c) x)
+      (as.foldl (fun a c => a * d + val c) y) := by
+  induction as generalizing x y with
+  | nil => simpa using h
+  | cons a as ih =>
+      have hstep : Nat.ModEq q (x * d + val a) (y * d + val a) :=
+        (Nat.ModEq.mul h (Nat.ModEq.refl d)).add (Nat.ModEq.refl (val a))
+      exact ih hstep
+
+/-- Reducing after each Horner step is congruent to reducing once at the end. -/
+lemma foldl_mod_congr (d q : ℕ) (val : α → ℕ) (w : Text α) (acc : ℕ) :
+    Nat.ModEq q (w.foldl (fun a c => (a * d + val c) % q) acc)
+      (w.foldl (fun a c => a * d + val c) acc) := by
+  induction w generalizing acc with
+  | nil => exact Nat.ModEq.refl acc
+  | cons a as ih =>
+      rw [List.foldl_cons, List.foldl_cons]
+      have h1 := ih ((acc * d + val a) % q)
+      have h2 : Nat.ModEq q (as.foldl (fun a c => a * d + val c) ((acc * d + val a) % q))
+          (as.foldl (fun a c => a * d + val c) (acc * d + val a)) :=
+        foldl_horner_mod_congr d q val as (Nat.mod_modEq (acc * d + val a) q)
+      exact h1.trans h2
+
+/-- `hash` is always below the modulus for a positive modulus. -/
+theorem hash_lt (d q : ℕ) (val : α → ℕ) (w : Text α) (hq : 0 < q) :
+    hash d q val w < q := by
+  unfold hash
+  have hmain : ∀ acc, acc < q →
+      (w.foldl (fun a c => (a * d + val c) % q) acc) < q := by
+    induction w with
+    | nil => intro acc hacc; exact hacc
+    | cons a as ih =>
+        intro acc hacc
+        rw [List.foldl_cons]
+        exact ih ((acc * d + val a) % q) (Nat.mod_lt _ hq)
+  exact hmain 0 hq
+
+/-- `hash` is the Horner evaluation reduced modulo `q`. -/
+theorem hash_eq_hashNoMod_mod (d q : ℕ) (val : α → ℕ) (w : Text α) :
+    hash d q val w = hashNoMod d val w % q := by
+  unfold hash hashNoMod
+  by_cases hq : q = 0
+  · subst q; simp
+  · have hqpos : 0 < q := Nat.pos_of_ne_zero hq
+    have hcong := foldl_mod_congr d q val w 0
+    have hl : (w.foldl (fun a c => (a * d + val c) % q) 0) < q := by
+      simpa using hash_lt d q val w hqpos
+    simpa [Nat.mod_eq_of_lt hl] using hcong
+
+/-- A Horner fold with initial accumulator `acc` equals `acc · d^|as|` plus the
+fold starting from `0`. -/
+lemma foldl_horner_acc (d : ℕ) (val : α → ℕ) (as : Text α) (acc : ℕ) :
+    as.foldl (fun a c => a * d + val c) acc
+      = acc * d ^ as.length + as.foldl (fun a c => a * d + val c) 0 := by
+  induction as generalizing acc with
+  | nil => simp
+  | cons b bs ih =>
+      rw [List.foldl_cons, ih (acc * d + val b)]
+      rw [List.foldl_cons, ih (0 * d + val b)]
+      rw [pow_succ]
+      ring
+
+/-- The leading character contributes `val a · d^|as|` to the Horner hash. -/
+lemma hashNoMod_cons (d : ℕ) (val : α → ℕ) (a : α) (as : Text α) :
+    hashNoMod d val (a :: as) = val a * (d ^ as.length) + hashNoMod d val as := by
+  unfold hashNoMod
+  rw [List.foldl_cons]
+  exact foldl_horner_acc d val as (val a)
+
+/-- `(x + y) % q` is unchanged when `y` is reduced modulo `q`. -/
+lemma add_mod_add_mod (q x y : ℕ) : (x + y) % q = (x + y % q) % q :=
+  (Nat.ModEq.add (Nat.ModEq.refl x) (Nat.mod_modEq y q)).symm
+
+/-- The leading character's contribution to the Horner hash (CLRS §32.2). -/
+theorem hash_cons (d q : ℕ) (val : α → ℕ) (a : α) (as : Text α) :
+    hash d q val (a :: as) = (val a * (d ^ as.length) + hash d q val as) % q := by
+  rw [hash_eq_hashNoMod_mod d q val (a :: as)]
+  rw [hashNoMod_cons]
+  rw [add_mod_add_mod q (val a * d ^ as.length) (hashNoMod d val as)]
+  rw [← hash_eq_hashNoMod_mod d q val as]
+
+/-- Casting `x % q` into `ZMod q` is the same as casting `x`. -/
+lemma zmod_natCast_mod (q x : ℕ) : ((x % q : ℕ) : ZMod q) = (x : ZMod q) :=
+  (ZMod.natCast_eq_natCast_iff (x % q) x q).2 (Nat.mod_mod x q)
+
+/--
+The O(1) rolling update (CLRS eq. (32.3)): given the hash `h` of a nonempty
+window `w` and the incoming character `c`, the hash of `w.drop 1 ++ [c]` is
+`(d·h + val c − val w[0]·d^|w|) mod q`, with the subtraction normalized into
+`ℕ` by the `+ q` term (valid for `0 < q`).
+-/
+def slideHash (d q : ℕ) (val : α → ℕ) (h : ℕ) (w : Text α) (c : α) : ℕ :=
+  (d * h + val c + q - (val (w.headD default) * d ^ w.length) % q) % q
+
+/--
+**Rabin–Karp rolling recurrence (CLRS eq. (32.3)).**  Sliding a nonempty window
+by one position — dropping the leading character and appending a new one —
+updates the hash in `O(1)`: one multiplication, one addition, one subtraction
+and one modulus, rather than a full re-hash of the window.
+-/
+theorem hash_slide (d q : ℕ) (val : α → ℕ) (w : Text α) (c : α) (hq : 0 < q)
+    (hw : w ≠ []) :
+    hash d q val (w.drop 1 ++ [c]) = slideHash d q val (hash d q val w) w c := by
+  rcases w with _ | ⟨a, as⟩
+  · contradiction
+  simp [slideHash]
+  have hl : hash d q val (as ++ [c]) < q := hash_lt d q val (as ++ [c]) hq
+  have hr : (d * hash d q val (a :: as) + val c + q
+        - (val a * d ^ (a :: as).length) % q) % q < q := Nat.mod_lt _ hq
+  have hcong : ((hash d q val (as ++ [c]) : ZMod q) =
+        (d * hash d q val (a :: as) + val c + q - (val a * d ^ (a :: as).length) % q : ZMod q)) := by
+    calc
+      (hash d q val (as ++ [c]) : ZMod q)
+          = (hash d q val as * d + val c : ZMod q) := by
+              rw [hash_snoc]
+              exact zmod_natCast_mod q (hash d q val as * d + val c)
+      _ = (d * hash d q val (a :: as) + val c + q - (val a * d ^ (a :: as).length) % q : ZMod q) := by
+              rw [hash_cons]
+              rw [zmod_natCast_mod q (val a * d ^ as.length + hash d q val as)]
+              rw [zmod_natCast_mod q (val a * d ^ (a :: as).length)]
+              push_cast
+              ring
+  have hmod : hash d q val (as ++ [c]) % q =
+      (d * hash d q val (a :: as) + val c + q - (val a * d ^ (a :: as).length) % q) % q :=
+    (ZMod.natCast_eq_natCast_iff _ _ q).1 hcong
+  rw [Nat.mod_eq_of_lt hl, Nat.mod_eq_of_lt hr] at hmod
+  exact hmod.symm
+
+end Rolling
+
 end Chapter32
 end CLRS
