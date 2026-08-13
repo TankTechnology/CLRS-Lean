@@ -375,18 +375,6 @@ lemma range_succ_map (n : ℕ) (f : ℕ → β) :
       rw [List.range_succ, List.map_append, List.map_cons]
       simp
 
-/-- The number of true entries of `f` over `range (k+1)` splits at the head. -/
-lemma length_filter_range_succ (k : ℕ) (f : ℕ → Bool) :
-    ((List.range (k + 1)).filter f).length
-      = (if f 0 then 1 else 0) + ((List.range k).filter (fun i => f (i + 1))).length := by
-  have hrange : List.range (k + 1) = 0 :: (List.range k).map (fun i => i + 1) := by
-    simpa using (range_succ_map k (fun i : ℕ => i))
-  rw [hrange]
-  rw [List.filter_cons, List.filter_map, List.length_map]
-  by_cases h : f 0
-  · simp [h]
-  · simp [h]
-
 /-- The acceptance test of the rolling scan agrees with the plain match test. -/
 lemma rollingTest_eq_matchesAt (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ)
     (w : Text α) (h : ℕ) (hp : p = hash d q val P) (hm : m = P.length)
@@ -408,30 +396,23 @@ lemma rollingHashHit_eq (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : 
     (h == p) = (hash d q val ((T.drop s).take P.length) == hash d q val P) := by
   simp [hh, hp, hm, hw]
 
-/-- The number of hash hits among `k+1` consecutive windows starting at shift `s`. -/
+/-- The number of hash hits among the `k+1` consecutive windows starting at
+shift `s`, defined recursively so the head-split is definitional. -/
 def hashHitsIn (T P : Text α) (d q : ℕ) (val : α → ℕ) (s k : ℕ) : ℕ :=
-  ((List.range (k + 1)).filter
-    (fun i => hash d q val ((T.drop (s + i)).take P.length) == hash d q val P)).length
+  match k with
+  | 0 => if hash d q val ((T.drop s).take P.length) == hash d q val P then 1 else 0
+  | k + 1 => (if hash d q val ((T.drop s).take P.length) == hash d q val P then 1 else 0)
+      + hashHitsIn T P d q val (s + 1) k
 
 /-- `hashHitsIn` over a single window. -/
 lemma hashHitsIn_zero (T P : Text α) (d q : ℕ) (val : α → ℕ) (s : ℕ) :
     hashHitsIn T P d q val s 0
-      = (if hash d q val ((T.drop s).take P.length) == hash d q val P then 1 else 0) := by
-  simp [hashHitsIn]
-  by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P
-  · simp [h]
-  · simp [h]
+      = (if hash d q val ((T.drop s).take P.length) == hash d q val P then 1 else 0) := rfl
 
 /-- `hashHitsIn` splits across the first window. -/
 lemma hashHitsIn_succ (T P : Text α) (d q : ℕ) (val : α → ℕ) (s k : ℕ) :
     hashHitsIn T P d q val s (k + 1) = hashHitsIn T P d q val s 0 + hashHitsIn T P d q val (s + 1) k := by
-  unfold hashHitsIn
-  rw [length_filter_range_succ k (fun i => hash d q val ((T.drop (s + i)).take P.length) == hash d q val P)]
-  congr 1
-  · rfl
-  · apply List.length_congr
-    intro i hi
-    rw [show s + (i + 1) = (s + 1) + i by omega]
+  rfl
 
 /-- Sliding the window: dropping one leading character and appending `c` yields
 the next length-`m` window of `T`. -/
@@ -447,17 +428,18 @@ lemma window_slide {T : Text α} {s m : ℕ} {w : Text α} {c : α} {rest' : Tex
   have hlen_wdrop : (w.drop 1).length = m - 1 := by
     rw [List.length_drop, hwlen]
   calc
-    (T.drop (s + 1)).take m = ((T.drop s).drop 1).take m := by
-      congr 1
+    w.drop 1 ++ [c] = (w.drop 1 ++ (c :: rest')).take m := by
+      rw [List.take_append]
+      rw [show List.take m (w.drop 1) = w.drop 1 from
+        List.take_of_length_le (by rw [hlen_wdrop]; omega)]
+      rw [show List.take (m - (w.drop 1).length) (c :: rest') = [c] by
+        have : m - (w.drop 1).length = 1 := by rw [hlen_wdrop]; omega
+        simp [this]]
+    _ = ((w ++ (c :: rest')).drop 1).take m := by
+      rw [List.drop_append_of_le_length (show 1 ≤ w.length by omega)]
+    _ = ((T.drop s).drop 1).take m := by rw [hwrest]
+    _ = (T.drop (s + 1)).take m := by
       rw [List.drop_drop]
-      omega
-    _ = ((w ++ (c :: rest')).drop 1).take m := by rw [hwrest]
-    _ = (w.drop 1 ++ (c :: rest')).take m := by
-          rw [List.drop_append_of_le_length]
-          omega
-    _ = w.drop 1 ++ [c] := by
-          rw [List.take_append]
-          simp [hlen_wdrop, hm0]
 
 /-- One rolling scan step, returning the matches found and the accumulated work. -/
 def rollingGo (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
@@ -487,14 +469,11 @@ lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
   | nil =>
       rw [rollingGo]
       rw [rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh]
+      rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
+      rw [hashHitsIn_zero T P d q val s]
       congr
-      · rw [List.range_succ, List.map_append, List.map_cons, List.map_nil, List.filter_cons]
-        rw [show ((List.range 0).map (fun i => s + (i + 1))).filter (fun s' => matchesAt T P s') = []
-            by simp]
-        by_cases h : matchesAt T P s <;> simp [h]
-      · rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh, hashHitsIn_zero]
-        congr 1
-        by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [h]
+      · by_cases h : matchesAt T P s <;> simp [h, List.range_succ]
+      · by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [h]
   | cons c rest' ih =>
       rw [rollingGo]
       -- set up the recursive invariants
