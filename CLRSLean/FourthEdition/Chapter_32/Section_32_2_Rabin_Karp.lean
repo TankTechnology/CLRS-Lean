@@ -475,7 +475,7 @@ lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
       · by_cases h : matchesAt T P s <;> simp [h]
       · by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [h]
   | cons c rest' ih =>
-      rw [rollingGo]
+      simp only [rollingGo]
       -- set up the recursive invariants
       have hw' : w.drop 1 ++ [c] = (T.drop (s + 1)).take m := window_slide hw hwlen hm0 hr
       have hwlen' : (w.drop 1 ++ [c]).length = m := by
@@ -492,23 +492,23 @@ lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
           rest' = (c :: rest').drop 1 := by rfl
           _ = (T.drop (s + m)).drop 1 := by rw [hr]
           _ = T.drop ((s + 1) + m) := by rw [List.drop_drop]; congr 1; omega
-      rw [ih (s + 1) (w.drop 1 ++ [c]) (slideHash d q val h w c) hw' hwlen' hh' hr']
-      rw [rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh]
-      rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
+      simp [ih (s + 1) (w.drop 1 ++ [c]) (slideHash d q val h w c) hw' hwlen' hh' hr',
+        rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh,
+        rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
       -- split the range and the hash-hit count
-      simp only [List.length_cons]
       rw [range_succ_map (rest'.length + 1) (fun i => s + i)]
       rw [hashHitsIn_succ T P d q val s rest'.length]
-      simp only [List.filter_cons, List.map_cons, List.map_append]
-      by_cases hmatch : matchesAt T P s
-      · have hhit : (hash d q val ((T.drop s).take P.length) == hash d q val P) = true := by
-          have hb := hash_beq_of_matchesAt T P d q val s hmatch
-          simpa using hb
-        simp [hmatch, hhit]
-        congr 1 <;> omega
-      · have hhit' : (hash d q val ((T.drop s).take P.length) == hash d q val P) = false := by
-          cases hb : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [hb] at hmatch ⊢
-        simp [hmatch, hhit']
+      have hmap : ((List.range (rest'.length + 1)).map (fun i => s + 1 + i)) =
+                  ((List.range (rest'.length + 1)).map (fun i => s + (i + 1))) := by
+        congr; funext i; omega
+      have hcost : (if hash d q val ((T.drop s).take P.length) == hash d q val P then m else 0)
+          = hashHitsIn T P d q val s 0 * m := by
+        by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [h, hashHitsIn]
+      rw [hmap, hcost]
+      apply Prod.ext
+      · simp only [List.filter_cons, List.map_cons, List.map_append]
+        by_cases h : matchesAt T P s <;> simp [h]
+      · ring
 
 end Rolling
 
