@@ -35,7 +35,7 @@ Notation conventions used in this section:
 namespace CLRS
 namespace Chapter32
 
-variable {α : Type} [BEq α] [DecidableEq α] [LawfulBEq α]
+variable {α : Type} [BEq α] [DecidableEq α] [LawfulBEq α] [Inhabited α]
 
 /-- Search for the largest `k ≤ n` such that `P.take k` is a suffix of `x`. -/
 def prefixLenAux (P x : Text α) : ℕ → ℕ
@@ -105,6 +105,69 @@ theorem prefixLen_maximal (P : Text α) (q k : ℕ) (hk : k < q)
           simpa [prefixLenAux, hts] using this
   have hle : k ≤ q - 1 := by omega
   exact hgo (q - 1) hle
+
+/-- Follow failure links from `k`: repeatedly replace `k` by `π[k-1]` while
+`k > 0` and `P[k] ≠ c`, returning the first `k` (along the chain) with
+`P[k] = c`, or `0`.  `hinv` guarantees every `π[i] < i + 1`, so the chain
+strictly decreases. -/
+def failureFollow (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) : ℕ :=
+  if hk : k = 0 then 0
+  else if (P.getD k default) == c then k
+  else failureFollow P π c (π.getD (k - 1) 0) hinv
+termination_by k
+decreasing_by
+  simp_wf
+  have hpos : 0 < k := Nat.pos_of_ne_zero hk
+  have h := hinv (k - 1)
+  omega
+
+/-- `failureFollow` never increases its argument. -/
+lemma failureFollow_le (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) : failureFollow P π c k hinv ≤ k := by
+  by_cases hk : k = 0
+  · simp [failureFollow, hk]
+  · by_cases hc : (P.getD k default) == c
+    · simp [failureFollow, hk, hc]
+    · simp [failureFollow, hk, hc]
+      have ih := failureFollow_le P π c (π.getD (k - 1) 0) hinv
+      have h := hinv (k - 1)
+      omega
+
+/-- The executable `COMPUTE-PREFIX-FUNCTION` (CLRS §32.4).  `π` is the prefix
+array computed so far (length `q`), `k = π[q-1]`, and `hinv` records that every
+`π[i] < i + 1`; `hk_lt` records `k < π.length`. -/
+def computePrefixGo (P : Text α) (π : List ℕ) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (hk_lt : k < π.length) : Text α → List ℕ
+  | [] => π
+  | c :: rest =>
+      let k' := failureFollow P π c k hinv
+      let k'' := if (P.getD k' default) == c then k' + 1 else 0
+      have hk'le : k' ≤ k := failureFollow_le P π c k hinv
+      have hk'lt : k' < π.length := lt_of_le_of_lt hk'le hk_lt
+      have hk''le : k'' ≤ π.length := by
+        unfold k''
+        split <;> omega
+      have hinv' : ∀ i, (π ++ [k'']).getD i 0 < i + 1 := by
+        intro i
+        by_cases hi : i < π.length
+        · rw [List.getD_append π [k''] 0 i hi]
+          exact hinv i
+        · have hge : π.length ≤ i := by omega
+          rw [List.getD_append_right π [k''] 0 i hge]
+          have hle : [k''].getD (i - π.length) 0 ≤ k'' := by
+            by_cases h : i - π.length = 0 <;> simp [List.getD, h]
+          omega
+      have hk''lt : k'' < (π ++ [k'']).length := by
+        simp [hk''le]
+      computePrefixGo P (π ++ [k'']) k'' hinv' hk''lt rest
+
+/-- The executable prefix-function array: `(computePrefixFunction P)[q]` is the
+prefix function `π(q)` (CLRS §32.4). -/
+def computePrefixFunction (P : Text α) : List ℕ :=
+  match P with
+  | [] => []
+  | a :: as => computePrefixGo P [0] 0 (by intro i; simp) (by simp) as
 
 end Chapter32
 end CLRS
