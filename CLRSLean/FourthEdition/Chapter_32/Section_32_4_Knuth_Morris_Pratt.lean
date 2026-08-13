@@ -250,6 +250,7 @@ lemma prefixMatchAux_maximal (P : Text α) (q : ℕ) (c : α) (n k : ℕ) (hk : 
             apply hnot
             subst k
             rw [hsuf, hchar]
+            rfl
           have hklt : k ≤ n := by omega
           exact ih hklt
 
@@ -332,7 +333,6 @@ lemma prefixMatch_eq (P : Text α) (q : ℕ) (c : α) :
   unfold prefixMatch
   dsimp
   rw [prefixMatchAux_satisfies P q c (q - 1)]
-  rfl
 
 /-- The recurrence (CLRS Lemma 32.6): `π(q + 1)` extends the longest proper
 prefix-suffix of `P.take q` whose next character matches `P[q]`. -/
@@ -349,6 +349,10 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
   have hksuf : suffixTest (P.take k) (P.take q) = true := by
     dsimp [k]
     exact prefixMatchAux_satisfies P q c (q - 1)
+  have hklt : k < q := by
+    have hkle := prefixMatchAux_le P q c (q - 1)
+    dsimp [k] at hkle
+    omega
   -- direction ≤ : π(q+1) ≤ prefixMatch P q c
   have hle : prefixLen P (q + 1) ≤ prefixMatch P q c := by
     by_cases h0 : prefixLen P (q + 1) = 0
@@ -357,6 +361,10 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
     · let r := prefixLen P (q + 1)
       have hrpos : 0 < r := Nat.pos_of_ne_zero h0
       have hrle : r ≤ P.length := le_trans (prefixLen_le P (q + 1)) hqlen
+      have hrle' : r ≤ q := by
+        have hlt := prefixLen_lt_of_pos P (q + 1) (by omega)
+        dsimp [r] at hlt
+        omega
       have hsat := prefixLen_satisfies P (q + 1)
       rw [htake] at hsat
       have hpre : isSuffix (P.take (r - 1)) (P.take q) :=
@@ -368,20 +376,22 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
       have hchar' : (P.getD (r - 1) default == c) = true := beq_iff_eq.mpr hlastchar
       have hcand : (suffixTest (P.take (r - 1)) (P.take q) && (P.getD (r - 1) default == c)) = true := by
         rw [hsuf', hchar']
+        rfl
       have hmax : r - 1 ≤ k :=
         prefixMatchAux_maximal P q c (q - 1) (r - 1) (by omega) hsuf' hchar'
       have hchar_k : (P.getD k default == c) = true :=
         prefixMatchAux_found P q c (q - 1) ⟨r - 1, by omega, hcand⟩
-      rw [prefixMatch_eq]
-      dsimp [k] at hchar_k
-      rw [if_pos hchar_k]
+      have hpm : prefixMatch P q c = k + 1 := by
+        rw [prefixMatch_eq]
+        dsimp [k] at hchar_k
+        rw [hchar_k]
+        rfl
+      rw [hpm]
       omega
   -- direction ≥ : prefixMatch P q c ≤ π(q+1)
   have hge : prefixMatch P q c ≤ prefixLen P (q + 1) := by
-    rw [prefixMatch_eq]
     by_cases hck : (P.getD k default == c) = true
-    · rw [if_pos hck]
-      have hchar : P.getD k default = c := beq_iff_eq.mp hck
+    · have hchar : P.getD k default = c := beq_iff_eq.mp hck
       have hksuf' : isSuffix (P.take k) (P.take q) := (suffixTest_eq_isSuffix _ _).mp hksuf
       have htakek : P.take (k + 1) = P.take k ++ [P.getD k default] := by
         rw [List.take_succ]
@@ -392,10 +402,28 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
         rw [htakek, htake]
         have hsuf0 : isSuffix (P.take k ++ [P.getD k default]) (P.take q ++ [P.getD k default]) :=
           suffix_append_right hksuf'
-        simpa [hchar] using hsuf0
+        simpa [hchar, c] using hsuf0
       have hklt1 : k + 1 < q + 1 := by omega
-      exact prefixLen_maximal P (q + 1) (k + 1) hklt1 hsufk1
-    · rw [if_neg hck]
+      have hk1 : k + 1 ≤ prefixLen P (q + 1) :=
+        prefixLen_maximal P (q + 1) (k + 1) hklt1 hsufk1
+      have hpm : prefixMatch P q c = k + 1 := by
+        rw [prefixMatch_eq]
+        dsimp [k] at hck
+        rw [hck]
+        rfl
+      rw [hpm]
+      exact hk1
+    · have hpm : prefixMatch P q c = 0 := by
+        rw [prefixMatch_eq]
+        have hf : (P.getD (prefixMatchAux P q c (q - 1)) default == c) = false := by
+          dsimp [k] at hck
+          cases hh : (P.getD (prefixMatchAux P q c (q - 1)) default == c)
+          · rfl
+          · exact (hck hh).elim
+        rw [hf]
+        rfl
+      rw [hpm]
+      exact Nat.zero_le _
   exact le_antisymm hle hge
 
 /-- When `P.take (n+1)` is not a suffix of `P.take q`, `prefixMatchAux` at `n+1`
@@ -422,7 +450,7 @@ lemma prefixMatchAux_drop (P : Text α) (q : ℕ) (c : α) (n n' : ℕ) (hle : n
         have hsuf : suffixTest (P.take (n + 1)) (P.take q) = false :=
           h (n + 1) (by omega) (by omega)
         rw [prefixMatchAux_succ_of_not_suffix P q c n hsuf]
-        exact ih hn'le (fun j hj1 hj2 => h j hj1 (by omega))
+        exact ih n' hn'le (fun j hj1 hj2 => h j hj1 (by omega))
 
 /-- `prefixMatchAux` is insensitive to the suffix target `q`, provided the
 suffix tests agree on every position up to the bound. -/
@@ -434,19 +462,11 @@ lemma prefixMatchAux_congr (P : Text α) (q q' : ℕ) (c : α) (n : ℕ)
   | succ n ih =>
       have hsuf : suffixTest (P.take (n + 1)) (P.take q) = suffixTest (P.take (n + 1)) (P.take q') := by
         have hiff := h (n + 1) (by omega)
-        cases hq : suffixTest (P.take (n + 1)) (P.take q) with
-        | false =>
-            have hq' : suffixTest (P.take (n + 1)) (P.take q') = false := by
-              cases hh : suffixTest (P.take (n + 1)) (P.take q') with
-              | false => rfl
-              | true =>
-                  have hqtrue : suffixTest (P.take (n + 1)) (P.take q) = true := hiff.mpr hh
-                  rw [hq] at hqtrue
-                  cases hqtrue
-            rw [hq, hq']
-        | true =>
-            have hq' : suffixTest (P.take (n + 1)) (P.take q') = true := hiff.mp hq
-            rw [hq, hq']
+        revert hiff
+        generalize hq : suffixTest (P.take (n + 1)) (P.take q) = b1
+        generalize hq' : suffixTest (P.take (n + 1)) (P.take q') = b2
+        intro hiff
+        cases b1 <;> cases b2 <;> simp_all
       simp [prefixMatchAux, hsuf, ih]
 
 end Chapter32
