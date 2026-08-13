@@ -1711,6 +1711,39 @@ theorems for rotations, insertion, or deletion.  Those ordered-tree theorems,
 bridges from the textbook pointer/fixup loops to the functional algorithms, and
 execution-attached logarithmic costs remain fourth-edition gaps.
 
+### Section 13.2 (Fourth Edition) - Rotations
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_13/Section_13_2_Rotations.lean`
+- Status: fourth-edition §13.2 `native`.  The pointer/sentinel red-black store
+  (`RBNode`/`RBStore`), representation predicate (`StoreRepr`), and constant-cost
+  pointer rotation/recolor primitives are defined, and rotations are proved to
+  preserve both the inorder key list and the BST ordering invariant.
+- Main proved theorems:
+  - `CLRS.Chapter13.RBTree.keys_rotateLeft` / `keys_rotateRight`
+  - `CLRS.Chapter13.RBTree.bst_rotateLeft` / `bst_rotateRight` / `bst_repaintRoot`
+  - `CLRS.Chapter13.RBStore.get_set_eq` / `RBStore.get_set_ne` (frame)
+  - `CLRS.Chapter13.rotateLeftP_cost` / `rotateRightP_cost` / `recolorP_spec`
+
+### Section 13.3 (Fourth Edition) - Insertion
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_13/Section_13_3_Insertion.lean`
+- Status: fourth-edition §13.3 `native`.  The RB-INSERT-FIXUP inorder bridge,
+  BST output preservation, and the logarithmic execution-cost theorem are proved.
+- Main proved theorems:
+  - `CLRS.Chapter13.RBTree.keys_balanceLeft` / `keys_balanceRight`
+  - `CLRS.Chapter13.RBTree.bst_balanceLeft` / `bst_balanceRight`
+  - `CLRS.Chapter13.RBTree.bst_insert`
+  - `CLRS.Chapter13.RBTree.insertCost_log_bound`
+
+### Section 13.4 (Fourth Edition) - Deletion
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_13/Section_13_4_Deletion.lean`
+- Status: fourth-edition §13.4 `partial`.  The logarithmic execution-cost
+  theorem is proved; BST preservation of the composed delete (`bst_delete`)
+  remains.
+- Main proved theorems:
+  - `CLRS.Chapter13.RBTree.deleteCost_log_bound`
+
 ## Chapter 14 - Augmenting Data Structures
 
 ### Section 14.1 - Order-statistic trees
@@ -1874,6 +1907,36 @@ query/update cost theorems remain.
   separate representations with no combined BST/red-black/max-high or
   search-after-update bridge; equal-low intervals also lack a distinct-key
   insertion policy.
+
+### Section 17.1 (Fourth Edition) - Dynamic order statistics
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_17/Section_17_1_Dynamic_Order_Statistics.lean`
+- Status: fourth-edition §17.1 `native`.  OS-RANK and its logarithmic query
+  bound are proved.
+- Main proved theorems:
+  - `CLRS.Chapter14.OSRBTree.osRank` / `rankOf`
+  - `CLRS.Chapter14.OSRBTree.osRank_eq_rankOf_of_wellSized`
+  - `CLRS.Chapter14.OSRBTree.osRankCost_log_bound`
+
+### Section 17.2 (Fourth Edition) - How to augment a data structure
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_17/Section_17_2_Augmenting_Data_Structures.lean`
+- Status: fourth-edition §17.2 `native`.  The constant-time `combine` premise
+  and the asymptotic augmentation update bound are proved.
+- Main proved theorems:
+  - `CLRS.Chapter14.augmentationUpdateCost`
+  - `CLRS.Chapter14.augmentation_update_bound`
+
+### Section 17.3 (Fourth Edition) - Interval trees
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_17/Section_17_3_Interval_Trees.lean`
+- Status: fourth-edition §17.3 `partial`.  The dynamic/static bridge,
+  search-after-update, and search-cost foundation are proved; the
+  Interval-keyed `O(log n)` search bound remains.
+- Main proved theorems:
+  - `CLRS.Chapter14.IntervalTree.intervalSearchCost_le_height`
+  - `CLRS.Chapter14.AugmentedRBTree.toIntervalTree` / `wellAugmented_toIntervalTree`
+  - `CLRS.Chapter14.intervalSearch_after_update`
 
 ## Chapter 15 - Dynamic Programming
 

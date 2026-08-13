@@ -275,6 +275,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi",
 ]
+"CLRSLean.FourthEdition.Chapter_13" = [
+  "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
+  "CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion",
+  "CLRSLean.FourthEdition.Chapter_13.Section_13_4_Deletion",
+]
 "CLRSLean.FourthEdition.Chapter_14" = [
   "CLRSLean.FourthEdition.Chapter_14.Section_14_1_Rod_Cutting",
   "CLRSLean.FourthEdition.Chapter_14.Section_14_2_Matrix_Chain_Multiplication",
@@ -302,6 +307,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables" = [
   "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables",
+]
+"CLRSLean.FourthEdition.Chapter_17" = [
+  "CLRSLean.FourthEdition.Chapter_17.Section_17_1_Dynamic_Order_Statistics",
+  "CLRSLean.FourthEdition.Chapter_17.Section_17_2_Augmenting_Data_Structures",
+  "CLRSLean.FourthEdition.Chapter_17.Section_17_3_Interval_Trees",
 ]
 "CLRSLean.FourthEdition.Chapter_19" = [
   "CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations",
@@ -816,6 +826,15 @@ title = "Chapter 12. Binary Search Trees"
 [modules."CLRSLean.FourthEdition.Chapter_13"]
 title = "Chapter 13. Red-Black Trees"
 
+[modules."CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations"]
+title = "13.2. Rotations"
+
+[modules."CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion"]
+title = "13.3. Insertion"
+
+[modules."CLRSLean.FourthEdition.Chapter_13.Section_13_4_Deletion"]
+title = "13.4. Deletion"
+
 [modules."CLRSLean.FourthEdition.Chapter_14"]
 title = "Chapter 14. Dynamic Programming"
 
@@ -875,6 +894,15 @@ title = "Mutable-Array Tables and Sharper Potential"
 
 [modules."CLRSLean.FourthEdition.Chapter_17"]
 title = "Chapter 17. Augmenting Data Structures"
+
+[modules."CLRSLean.FourthEdition.Chapter_17.Section_17_1_Dynamic_Order_Statistics"]
+title = "17.1. Dynamic Order Statistics"
+
+[modules."CLRSLean.FourthEdition.Chapter_17.Section_17_2_Augmenting_Data_Structures"]
+title = "17.2. How to Augment a Data Structure"
+
+[modules."CLRSLean.FourthEdition.Chapter_17.Section_17_3_Interval_Trees"]
+title = "17.3. Interval Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_18"]
 title = "Chapter 18. B-Trees"

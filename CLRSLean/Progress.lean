@@ -19,7 +19,7 @@ least six months; removal is possible only in 2.0 or later.
 * Tracked reader-facing theorem entries: 1,482.
 * Proved tracked theorem entries: 1,482.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 13.
+* Remaining edition-coverage units: 9.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -57,11 +57,11 @@ Ch  Chapter                                                     Status          
 10  10. Elementary Data Structures                              main-proof-complete                  10.1;10.2;10.3                     21        0
 11  11. Hash Tables                                             main-proof-complete                  11.1;11.2;11.3;11.4;11.5           59        0
 12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1;12.2;12.3                     40        0
-13  13. Red-Black Trees                                         partial (edition coverage)           13.1;13.2;13.3;13.4                39        3
+13  13. Red-Black Trees                                         partial (edition coverage)           13.1;13.2;13.3;13.4                39        1
 14  14. Dynamic Programming                                     main-proof-complete                  14.1;14.2;14.3;14.4;14.5           90        0
 15  15. Greedy Algorithms                                       partial (edition coverage)           15.1;15.2;15.3;15.4                27        1
 16  16. Amortized Analysis                                      selected-section-complete            16.1;16.2;16.3;16.4                66        0
-17  17. Augmenting Data Structures                              partial (edition coverage)           17.1;17.2;17.3                     77        3
+17  17. Augmenting Data Structures                              partial (edition coverage)           17.1;17.2;17.3                     77        1
 18  18. B-Trees                                                 main-proof-complete-for-correctness  18.1;18.2;18.3                    134        0
 19  19. Data Structures for Disjoint Sets                       main-proof-complete                  19.1;19.2;19.3;19.4                84        0
 20  20. Elementary Graph Algorithms                             main-proof-complete-for-correctness  20.1;20.2;20.3;20.4;20.5           47        0
