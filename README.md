@@ -67,11 +67,11 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 10 | Elementary Data Structures | 🟢 complete | 21 / 21 | — |
 | 11 | Hash Tables | 🟢 complete | 59 / 59 | — |
 | 12 | Binary Search Trees | 🟢 correctness | 40 / 40 | — |
-| 13 | Red-Black Trees | 🟠 partial coverage | 39 / 39 | Section 13.2: BST/inorder rotation preservation and cost… |
+| 13 | Red-Black Trees | 🟠 partial coverage | 39 / 39 | Section 13.4: BST-preserving deletion (bst_delete) and the… |
 | 14 | Dynamic Programming | 🟢 complete | 90 / 90 | — |
 | 15 | Greedy Algorithms | 🟠 partial coverage | 27 / 27 | Section 15.4 (Offline caching): the exchange step the slack… |
 | 16 | Amortized Analysis | 🟡 sections | 66 / 66 | — |
-| 17 | Augmenting Data Structures | 🟠 partial coverage | 77 / 77 | Section 17.1: OS-RANK combined invariants and logarithmic… |
+| 17 | Augmenting Data Structures | 🟠 partial coverage | 77 / 77 | Section 17.3: Interval-keyed O(log n) search bound |
 | 18 | B-Trees | 🟢 correctness | 134 / 134 | — |
 | 19 | Data Structures for Disjoint Sets | 🟢 complete | 84 / 84 | — |
 | 20 | Elementary Graph Algorithms | 🟢 correctness | 47 / 47 | — |
