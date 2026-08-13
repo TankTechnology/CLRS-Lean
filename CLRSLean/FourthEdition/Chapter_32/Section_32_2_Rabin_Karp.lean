@@ -584,8 +584,9 @@ theorem rabinKarpRollingCost_eq (T P : Text α) (d q : ℕ) (val : α → ℕ) (
     by_cases hlong : T.length < P.length
     · have hdrop : T.drop P.length = [] := by
         apply List.eq_nil_of_length_eq_zero; rw [List.length_drop]; omega
-      simp [rabinKarpRollingCost, rabinKarpRolling, hzero, hlong, rollingGo, hdrop, hashHitsIn]
-      by_cases hhit : hash d q val (T.take P.length) = hash d q val P <;> simp [hhit]
+      have hsub : T.length - P.length = 0 := by omega
+      simp [rabinKarpRollingCost, rabinKarpRolling, hzero, hlong, rollingGo, hdrop, hashHitsIn, hsub]
+      by_cases hhit : hash d q val (T.take P.length) = hash d q val P <;> simp [hhit] <;> omega
     · have hmle : P.length ≤ T.length := Nat.le_of_not_gt hlong
       have htop := rollingGo_top T P d q val hq hm0 hmle
       simp [rabinKarpRollingCost, rabinKarpRolling, hzero, hlong, htop]
@@ -605,7 +606,8 @@ theorem rabinKarpRollingCost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) :
     by_cases hlong : T.length < P.length
     · have hdrop : T.drop P.length = [] := by
         apply List.eq_nil_of_length_eq_zero; rw [List.length_drop]; omega
-      simp [rabinKarpRollingCost, rabinKarpRolling, hzero, hlong, rollingGo, hdrop]
+      have hsub : T.length - P.length = 0 := by omega
+      simp [rabinKarpRollingCost, rabinKarpRolling, hzero, hlong, rollingGo, hdrop, hsub]
       by_cases hhit : hash d q val (T.take P.length) = hash d q val P <;> simp [hhit] <;> omega
     · have hmle : P.length ≤ T.length := Nat.le_of_not_gt hlong
       have hbound : (rollingGo T P d q val (hash d q val P) P.length 0 (T.take P.length)
@@ -617,19 +619,46 @@ theorem rabinKarpRollingCost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) :
       simp [rabinKarpRollingCost, rabinKarpRolling, hzero, hlong]
       omega
 
+/-- The cost-only trace of the rolling scan, mirroring `rollingGo`'s second
+component without the match-list bookkeeping. -/
+def rollingCost (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
+    (rest : Text α) : ℕ :=
+  match rest with
+  | [] => 1 + (if h == p then m else 0)
+  | c :: rest' => (if h == p then m else 0) + 1 + rollingCost T P d q val p m (s + 1) (w.tail ++ [c])
+      (slideHash d q val h w c) rest'
+
+/-- `rollingGo`'s cost component is exactly `rollingCost`. -/
+lemma rollingGo_snd_eq_rollingCost (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α)
+    (h : ℕ) (rest : Text α) :
+    (rollingGo T P d q val p m s w h rest).2 = rollingCost T P d q val p m s w h rest := by
+  induction rest generalizing s w h with
+  | nil => rfl
+  | cons c rest' ih => simp [rollingGo, rollingCost, ih]
+
 /-- Each step of the rolling scan costs at most `m + 1` operations: one rolling
 update plus at most `m` confirmation comparisons. -/
+lemma rollingCost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
+    (rest : Text α) :
+    rollingCost T P d q val p m s w h rest ≤ (rest.length + 1) * (m + 1) := by
+  induction rest generalizing s w h with
+  | nil =>
+      simp [rollingCost]
+      have hif : (if h = p then m else 0) ≤ m := by by_cases hh : h = p <;> simp [hh] <;> omega
+      omega
+  | cons c rest' ih =>
+      simp [rollingCost]
+      have hih := ih (s + 1) (w.tail ++ [c]) (slideHash d q val h w c)
+      have hif : (if h = p then m else 0) ≤ m := by by_cases hh : h = p <;> simp [hh] <;> omega
+      ring_nf
+      omega
+
+/-- `rollingGo`'s cost component is bounded by `(rest.length + 1) * (m + 1)`. -/
 lemma rollingGo_cost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
     (rest : Text α) :
     (rollingGo T P d q val p m s w h rest).2 ≤ (rest.length + 1) * (m + 1) := by
-  induction rest generalizing s w h with
-  | nil =>
-      simp [rollingGo]
-      by_cases hh : h = p <;> simp [hh] <;> omega
-  | cons c rest' ih =>
-      simp [rollingGo]
-      have hih := ih (s + 1) (w.tail ++ [c]) (slideHash d q val h w c)
-      by_cases hh : h = p <;> simp [hh] <;> nlinarith [hih]
+  rw [rollingGo_snd_eq_rollingCost T P d q val p m s w h rest]
+  exact rollingCost_le T P d q val p m s w h rest
 
 end Rolling
 
