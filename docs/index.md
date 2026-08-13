@@ -548,6 +548,7 @@ CLRSLean/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model.lean
 CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean
 CLRSLean/FourthEdition/Chapter_32/Section_32_2_Rabin_Karp.lean
+CLRSLean/FourthEdition/Chapter_32/Section_32_4_Knuth_Morris_Pratt.lean
 CLRSLean/FourthEdition/Chapter_33/Section_33_1_Clustering.lean
 CLRSLean/FourthEdition/Chapter_33/Section_33_2_Multiplicative_Weights.lean
 CLRSLean/FourthEdition/Chapter_33/Section_33_3_Gradient_Descent.lean
