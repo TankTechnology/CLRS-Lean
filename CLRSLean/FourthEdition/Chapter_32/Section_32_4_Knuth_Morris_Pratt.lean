@@ -670,6 +670,11 @@ lemma computePrefixGo_correct (P : Text α) (π : List ℕ) (k : ℕ)
       have hqpos : 0 < π.length := by omega
       let k' := failureFollow P π c k hinv
       let k'' := if (P.getD k' default) = c then k' + 1 else 0
+      have hk'le : k' ≤ k := failureFollow_le P π c k hinv
+      have hk''le : k'' ≤ π.length := by
+        dsimp [k'']
+        have hk'lt : k' < π.length := lt_of_le_of_lt hk'le hk_lt
+        split <;> omega
       have hstep : k'' = prefixLen P (π.length + 1) := by
         dsimp [k'', k']
         exact computePrefixGo_step P π k c hinv hπ hk hc hqpos hqlt
@@ -680,7 +685,9 @@ lemma computePrefixGo_correct (P : Text α) (π : List ℕ) (k : ℕ)
           exact hπ j hjπ
         · have hge : π.length ≤ j := by omega
           rw [List.getD_append_right π [k''] 0 j hge]
-          have hj_eq : j = π.length := by omega
+          have hj_eq : j = π.length := by
+            have hj' : j < π.length + 1 := by simpa [List.length_append] using hj
+            omega
           subst j
           simpa using hstep
       have hk' : k'' = prefixLen P (π ++ [k'']).length := by
@@ -696,10 +703,9 @@ lemma computePrefixGo_correct (P : Text α) (π : List ℕ) (k : ℕ)
             by_cases h : j - π.length = 0 <;> simp [List.getD, h]
           omega
       have hk''lt : k'' < (π ++ [k'']).length := by
-        have hle : k'' ≤ π.length := by dsimp [k'']; split <;> omega
-        simp [hle]
+        simp [hk''le]
       rw [computePrefixGo]
-      dsimp [k', k'']
+      trace_state
       have hbridge := computePrefixGo_irrelevant P (π ++ [k'']) k'' rest' _ hinv'' _ hk''lt
       rw [hbridge] at hi ⊢
       exact (ih (π ++ [k'']) k'' hinv'' hk''lt hπ' hk' (by simpa [List.length_append] using hrest')) i hi
