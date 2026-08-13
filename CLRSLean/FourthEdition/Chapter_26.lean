@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_27
 import CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model
 import CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S1_ComputationDAG
 import CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S2_ReadyExecution
@@ -33,6 +34,23 @@ artifact).  Declarations retain the legacy `CLRS.Chapter27` namespace
 during the compatibility period; the third-edition-numbered imports
 {lit}`CLRSLean.Chapter_27` and {lit}`CLRSLean.Chapter_27.Section_27_*`
 forward to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [Computation DAGs](CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S1_ComputationDAG/)
+* [Ready Execution](CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S2_ReadyExecution/)
+* [Greedy Accounting](CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S3_GreedyAccounting/)
+* [Executable Scheduler](CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S4_ExecutableScheduler/)
+* [Spawn Trees and Parallel Loops](CLRSLean/FourthEdition/Chapter_26/Section_26_1_Multithreading_Model/S5_SpawnTreeAndLoops/)
+* [Costed Execution Model](CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S1_CostModel/)
+* [Parallel Recurrences](CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S2_Recurrences/)
+* [All-Input Bounds](CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/S3_AllInputBounds/)
+* [Parallel Matrix Algorithms](CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMatrix/)
+* [Parallel Merge](CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMerge/)
+* [P-MERGE-SORT](CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelMergeSort/)
+* [Parallel Strassen Recurrences](CLRSLean/FourthEdition/Chapter_26/Section_26_2_4_Algorithms/ParallelStrassen/)
 
 ## Coverage boundary
 

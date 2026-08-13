@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_31
 import CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory
 import CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor
 import CLRSLean.FourthEdition.Chapter_31.Section_31_3_Modular_Arithmetic
@@ -26,6 +27,19 @@ supplementary online material (reachable through
 Declarations keep their current namespaces; the third-edition-numbered
 imports {lit}`CLRSLean.Chapter_31` and
 {lit}`CLRSLean.Chapter_31.Section_31_*` forward to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [Elementary Number-Theoretic Notions](CLRSLean/FourthEdition/Chapter_31/Section_31_1_Elementary_Number_Theory/)
+* [Greatest Common Divisor](CLRSLean/FourthEdition/Chapter_31/Section_31_2_Greatest_Common_Divisor/)
+* [Modular Arithmetic](CLRSLean/FourthEdition/Chapter_31/Section_31_3_Modular_Arithmetic/)
+* [Solving Modular Linear Equations](CLRSLean/FourthEdition/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations/)
+* [The Chinese Remainder Theorem](CLRSLean/FourthEdition/Chapter_31/Section_31_5_Chinese_Remainder_Theorem/)
+* [Powers of an Element](CLRSLean/FourthEdition/Chapter_31/Section_31_6_Powers_Of_An_Element/)
+* [The RSA Public-Key Cryptosystem](CLRSLean/FourthEdition/Chapter_31/Section_31_7_RSA/)
+* [Primality Testing](CLRSLean/FourthEdition/Chapter_31/Section_31_8_Primality_Testing/)
 
 ## Coverage boundary
 

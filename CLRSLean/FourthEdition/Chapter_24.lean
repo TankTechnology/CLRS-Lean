@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_26
 import CLRSLean.FourthEdition.Chapter_24.Section_24_1_Flow_Networks
 import CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp
 import CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.Ford_Fulkerson_Augmentation
@@ -29,6 +30,16 @@ Section 24.6 is named after the theorem it proves (Theorem 24.6).  Declarations
 retain the legacy `CLRS.Chapter26` namespace during the compatibility period;
 the third-edition-numbered imports {lit}`CLRSLean.Chapter_26` and
 {lit}`CLRSLean.Chapter_26.Section_26_*` forward to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [Ford-Fulkerson Augmentation Foundation](CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/Ford_Fulkerson_Augmentation/)
+* [Shortest Augmenting Paths](CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S1_ShortestAugmentingPath/)
+* [The Edmonds-Karp Loop](CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S2_EK_Loop/)
+* [The O(VE^2) Work Analysis](CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S3_WorkAnalysis/)
+* [Executable BFS](CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/S4_ExecutableBFS/)
 
 ## Coverage boundary
 

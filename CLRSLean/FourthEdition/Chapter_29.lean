@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_29
 import CLRSLean.FourthEdition.Chapter_29.Section_29_1_Standard_And_Slack_Forms
 import CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs
 import CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality
@@ -23,6 +24,27 @@ fourth-edition single-source-shortest-paths sources (Chapter 22).
 Declarations keep their current namespaces; the third-edition-numbered
 imports {lit}`CLRSLean.Chapter_29` and
 {lit}`CLRSLean.Chapter_29.Section_29_*` forward to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [Standard-Form Definitions](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Definitions/)
+* [Canonical Slack Variables](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/SlackVariables/)
+* [Standard/Slack Equivalence](CLRSLean/FourthEdition/Chapter_29/Section_29_1_Standard_And_Slack_Forms/Equivalence/)
+* [Finite Network Model](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/NetworkFlow/)
+* [Shortest Paths as an LP](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/ShortestPath/)
+* [Maximum Flow as an LP](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MaximumFlow/)
+* [Minimum-Cost Flow as an LP](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MinimumCostFlow/)
+* [Multicommodity Flow as an LP](CLRSLean/FourthEdition/Chapter_29/Section_29_2_Formulating_Problems_As_Linear_Programs/MulticommodityFlow/)
+* [Dual Feasibility](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/Definitions/)
+* [Weak Duality](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/WeakDuality/)
+* [Primal and Dual Optimality](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/Optimality/)
+* [Complementary-Slackness Gap Identity](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/ComplementarySlackness/)
+* [Terminal Dual Certificates](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/TerminalCertificate/)
+* [Dictionary/Primal Bridge](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/DictionaryBridge/)
+* [Strong Duality](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/StrongDuality/)
+* [Complementary-Slackness Theorem](CLRSLean/FourthEdition/Chapter_29/Section_29_3_Duality/ComplementarySlacknessTheorem/)
 
 ## Coverage boundary
 

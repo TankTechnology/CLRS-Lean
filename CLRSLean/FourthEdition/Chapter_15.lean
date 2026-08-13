@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_16
 import CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection
 import CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta
 import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes

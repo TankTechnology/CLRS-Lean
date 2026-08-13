@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_32
 import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model
 import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher
 import CLRSLean.FourthEdition.Chapter_32.Section_32_2_Rabin_Karp
@@ -26,6 +27,12 @@ section in
 Declarations keep their current namespaces; the third-edition-numbered
 imports {lit}`CLRSLean.Chapter_32` and
 {lit}`CLRSLean.Chapter_32.Section_32_*` forward to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [Naive Matcher Implementation](CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/Naive_Matcher/)
 
 ## Coverage boundary
 

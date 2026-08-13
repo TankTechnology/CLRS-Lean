@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_22
 import CLRSLean.FourthEdition.Chapter_20.Section_20_1_Representing_Graphs
 import CLRSLean.FourthEdition.Chapter_20.Section_20_2_BFS
 import CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS
@@ -33,6 +34,17 @@ Declarations retain the legacy `CLRS.Chapter22` namespace during the
 compatibility period; the third-edition-numbered imports
 {lit}`CLRSLean.Chapter_22` and {lit}`CLRSLean.Chapter_22.Section_22_*` forward
 to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [White-Path Theorem](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S1_WhitePath/)
+* [Intervals and Timestamps](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S2_Intervals/)
+* [Discovery-State Bridge](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S3_Bridge/)
+* [SCC Preliminaries](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S4_SCC/)
+* [Edge Classification](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S5_EdgeClassification/)
+* [Merge-Sort Congruence](CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components/MergeSortCongr/)
 
 ## Coverage boundary
 
