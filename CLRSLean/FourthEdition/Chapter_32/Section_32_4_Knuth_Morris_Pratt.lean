@@ -337,7 +337,7 @@ lemma prefixMatch_eq (P : Text α) (q : ℕ) (c : α) :
 
 /-- The recurrence (CLRS Lemma 32.6): `π(q + 1)` extends the longest proper
 prefix-suffix of `P.take q` whose next character matches `P[q]`. -/
-theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
+theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hqpos : 0 < q) (hq : q < P.length) :
     prefixLen P (q + 1) = prefixMatch P q (P.getD q default) := by
   have hqlen : q + 1 ≤ P.length := Nat.succ_le_of_lt hq
   have htake : P.take (q + 1) = P.take q ++ [P.getD q default] := by
@@ -350,10 +350,11 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
   have hksuf : suffixTest (P.take k) (P.take q) = true := by
     dsimp [k]
     exact prefixMatchAux_satisfies P q c (q - 1)
-  have hklt : k < q := by
-    have hkle := prefixMatchAux_le P q c (q - 1)
+  have hkle : k ≤ q - 1 := by
     dsimp [k]
-    omega
+    exact prefixMatchAux_le P q c (q - 1)
+  have hklt : k < q := by omega
+  have hkltP : k < P.length := by omega
   -- direction ≤ : π(q+1) ≤ prefixMatch P q c
   have hle : prefixLen P (q + 1) ≤ prefixMatch P q c := by
     by_cases h0 : prefixLen P (q + 1) = 0
@@ -406,7 +407,8 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
           exact hchar
         have hsuf0 : isSuffix (P.take k ++ [P.getD k default]) (P.take q ++ [P.getD k default]) :=
           suffix_append_right hksuf'
-        simpa [hchar'] using hsuf0
+        rw [← hchar']
+        exact hsuf0
       have hklt1 : k + 1 < q + 1 := by omega
       have hk1 : k + 1 ≤ prefixLen P (q + 1) :=
         prefixLen_maximal P (q + 1) (k + 1) hklt1 hsufk1
@@ -471,7 +473,11 @@ lemma prefixMatchAux_congr (P : Text α) (q q' : ℕ) (c : α) (n : ℕ)
         generalize hq' : suffixTest (P.take (n + 1)) (P.take q') = b2
         intro hiff
         cases b1 <;> cases b2 <;> simp_all
-      simp [prefixMatchAux, hsuf, ih]
+      have ih' : prefixMatchAux P q c n = prefixMatchAux P q' c n :=
+        ih (fun j hj => h j (by omega))
+      rw [prefixMatchAux, prefixMatchAux]
+      rw [hsuf]
+      rw [ih']
 
 end Chapter32
 end CLRS
