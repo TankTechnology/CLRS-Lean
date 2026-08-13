@@ -337,10 +337,13 @@ depends on the longest prefix-suffix of the base. -/
 theorem suffixLen_append_eq (P : Text α) (y T : Text α) :
     suffixLen P (y ++ T) = suffixLen P (P.take (suffixLen P y) ++ T) := by
   induction T generalizing y with
-  | nil => exact (suffixLen_of_take P (suffixLen P y) (suffixLen_le P y)).symm
+  | nil =>
+      rw [List.append_nil, List.append_nil]
+      exact (suffixLen_of_take P (suffixLen P y) (suffixLen_le P y)).symm
   | cons a T ih =>
       rw [show y ++ (a :: T) = (y ++ [a]) ++ T by simp]
       rw [ih (y ++ [a]), suffixLen_snoc_eq P y a]
+      rw [show P.take (suffixLen P y) ++ (a :: T) = (P.take (suffixLen P y) ++ [a]) ++ T by simp]
       exact (ih (P.take (suffixLen P y) ++ [a])).symm
 
 /-- The transition function `δ(q, a) = σ(P_q a)` (CLRS §32.3). -/
@@ -360,14 +363,13 @@ def deltaStar (P : Text α) (q : ℕ) : Text α → ℕ :=
 theorem deltaStar_eq_suffixLen (P : Text α) (q : ℕ) (T : Text α) (hq : q ≤ P.length) :
     deltaStar P q T = suffixLen P (P.take q ++ T) := by
   induction T generalizing q with
-  | nil => rw [deltaStar_nil, List.append_nil]; exact suffixLen_of_take P q hq
+  | nil => rw [deltaStar_nil, List.append_nil]; exact (suffixLen_of_take P q hq).symm
   | cons a T ih =>
       rw [deltaStar_cons]
       have hq' : delta P q a ≤ P.length := by
         unfold delta; exact suffixLen_le P (P.take q ++ [a])
       rw [ih (delta P q a) hq']
       unfold delta
-      -- suffixLen P (P.take (suffixLen P (P.take q ++ [a])) ++ T) = suffixLen P (P.take q ++ a :: T)
       rw [suffixLen_snoc_eq P (P.take q) a]
       rw [suffixLen_of_take P q hq]
 
@@ -387,107 +389,6 @@ theorem deltaStar_accepts_iff_suffix (P T : Text α) :
     have hmax := suffixLen_maximal P T P.length (by rfl) hsuf
     have hle := suffixLen_le P T
     omega
-
-/-- The all-occurrences finite-automaton matcher scan: starting from state `q`
-after `i` characters, scan the remaining text `T'`, recording a shift whenever
-the automaton reaches state `m`. -/
-def dfaGo (P : Text α) (m q i : ℕ) (T' : Text α) : List ℕ :=
-  match T' with
-  | [] => []
-  | c :: T'' =>
-      let q' := delta P q c
-      let tail := dfaGo P m q' (i + 1) T''
-      if q' = m then (i + 1 - m) :: tail else tail
-
-/-- The all-occurrences finite-automaton matcher: scan the text, recording a
-shift whenever the automaton reaches state `|P|`. -/
-def dfaMatcher (P : Text α) (T : Text α) : List ℕ :=
-  let m := P.length
-  if m = 0 then List.range (T.length + 1) else dfaGo P m 0 0 T
-
-/-- `dfaGo`'s specification: it returns exactly the shifts `s` (relative to the
-full text) in `[i, i + |T'| - 1]` where `P` matches. -/
-lemma dfaGo_spec (P T : Text α) (m q i : ℕ) (T' : Text α)
-    (hq : q = deltaStar P 0 (T.take i)) (hT' : T' = T.drop i) (hi : i ≤ T.length) :
-    dfaGo P m q i T' = (List.range T'.length).filter (fun j => matchesAt T P (i + j + 1 - m)) := by
-  induction T' generalizing q i with
-  | nil => simp [dfaGo]
-  | cons c T'' ih =>
-      rw [dfaGo]
-      have hc : c = T.get ⟨i, by omega⟩ := by
-        rw [hT'] at hT'
-        -- hT' : c :: T'' = T.drop i, so c = (T.drop i).head
-        have : T.drop i = c :: T'' := hT'
-        have hdrop : (T.drop i).head = T.get ⟨i, by omega⟩ := by
-          rw [List.head_eq_getElem]
-          -- (T.drop i)[0] = T[i]
-          simpa using (List.getElem_drop (T := T) (i := i) (j := 0) (by omega)).symm
-        have : (T.drop i).head = c := by rw [this]
-        exact this.symm
-      have hq' : delta P q c = deltaStar P 0 (T.take (i + 1)) := by
-        rw [hq, ← hc]
-        rw [deltaStar_cons]
-        -- deltaStar P 0 (T.take i ++ [c]) = deltaStar P (delta P 0 (T.take i)... )
-        -- need: T.take (i+1) = T.take i ++ [c]
-        sorry
-      have hT'' : T'' = T.drop (i + 1) := by
-        rw [← hT']
-        -- c :: T'' = T.drop i, so T'' = (T.drop i).drop 1 = T.drop (i+1)
-        rw [← List.drop_drop]
-        sorry
-      have hrec := ih q' (i + 1) hq' hT'' (by omega)
-      -- now the goal: (if q' = m then (i+1-m) :: dfaGo ... else ...) = (range (T''.length+1)).filter ...
-      -- q' = m iff matchesAt T P (i + 1 - m)
-      rw [hrec]
-      rw [List.range_succ]
-      have hshift : (q' = m) = matchesAt T P (i + 1 - m) := by
-        -- q' = deltaStar P 0 (T.take (i+1)) = m iff P suffix of T.take (i+1) iff matchesAt (i+1-m)
-        have hacc := deltaStar_accepts_iff_suffix P (T.take (i + 1))
-        -- hacc : deltaStar P 0 (T.take (i+1)) = P.length ↔ isSuffix P (T.take (i+1))
-        -- need: (q' = m) = matchesAt T P (i+1-m), with m = P.length
-        sorry
-      simp [hshift, List.filter_cons]
-      -- the tail: (range T''.length).filter (fun j => matchesAt (i+1+j+1-m))
-      -- vs (range T''.length).filter (fun j => matchesAt (i+1+j+1-m)) — same, need congr
-      congr 1
-      congr; funext j; omega
-
-/-- The DFA matcher records a shift `s` exactly when `matchesAt T P s`. -/
-lemma dfaMatcher_spec (P : Text α) (T : Text α) (s : ℕ) :
-    s ∈ dfaMatcher P T ↔ matchesAt T P s := by
-  by_cases hzero : P.length = 0
-  · have hP : P = [] := List.length_eq_zero_iff.mp hzero
-    subst hP
-    simp [dfaMatcher, matchesAt]
-  · have h := dfaGo_spec P T P.length 0 0 T rfl rfl (by omega)
-    unfold dfaMatcher
-    simp [hzero, h]
-    constructor
-    · intro hs
-      rcases List.mem_filter.mp hs with ⟨hran, hmatch⟩
-      rcases List.mem_range.mp hran with ⟨j, hj⟩
-      -- s = 0 + j + 1 - m
-      -- hmatch : matchesAt T P (0 + j + 1 - P.length)
-      -- need: matchesAt T P s
-      sorry
-    · intro hmatch
-      -- s = i + j + 1 - m for some j; need to show s ∈ filter
-      sorry
-
-/--
-**Correctness of the finite-automaton matcher.**  `dfaMatcher` returns exactly
-the shifts returned by `naiveMatcher`.
--/
-theorem dfaMatcher_correct (P T : Text α) : dfaMatcher P T = naiveMatcher T P := by
-  by_cases hzero : P.length = 0
-  · have hP : P = [] := List.length_eq_zero_iff.mp hzero
-    subst hP
-    simp [dfaMatcher, naiveMatcher]
-  · unfold dfaMatcher naiveMatcher
-    simp [hzero]
-    apply List.filter_congr
-    intro s hs
-    rw [dfaMatcher_spec P T s]
 
 end Chapter32
 end CLRS
