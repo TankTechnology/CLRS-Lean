@@ -611,5 +611,24 @@ lemma computePrefixGo_step (P : Text α) (π : List ℕ) (k : ℕ) (c : α)
       exact hc' (beq_iff_eq.mp hh)
     rw [if_neg hc', if_neg hneg]
 
+/-- `failureFollow`'s result is independent of its `hinv` proof argument. -/
+lemma failureFollow_irrelevant (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
+    (hinv hinv' : ∀ i, π.getD i 0 < i + 1) :
+    failureFollow P π c k hinv = failureFollow P π c k hinv' := by
+  refine Nat.strong_induction_on k ?_
+  intro k ih
+  unfold failureFollow
+  by_cases hk : k = 0
+  · simp [hk]
+  · simp [hk]
+    by_cases hc : P.getD k default = c
+    · simp [hc]
+    · simp [hc]
+      have hlt : π.getD (k - 1) 0 < k := by
+        have hpos : 0 < k := Nat.pos_of_ne_zero hk
+        have hk' : (k - 1) + 1 = k := by omega
+        simpa [hk'] using hinv (k - 1)
+      exact ih (π.getD (k - 1) 0) hlt
+
 end Chapter32
 end CLRS
