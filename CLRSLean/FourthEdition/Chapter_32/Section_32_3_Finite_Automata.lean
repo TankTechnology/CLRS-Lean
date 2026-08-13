@@ -512,7 +512,7 @@ lemma matchesAt_iff_isSuffix_take (P T : Text α) (s : ℕ) (hs : s + P.length �
   constructor
   · intro h
     refine ⟨T.take s, ?_⟩
-    rw [← h, List.take_add (i := s) (j := P.length) (l := T)]
+    rw [List.take_add (i := s) (j := P.length) (l := T), h]
   · intro h
     rcases h with ⟨u, hu⟩
     have hulen : u.length = s := by
@@ -549,10 +549,12 @@ lemma deltaStar_take_eq_matchesAt (P T : Text α) (s : ℕ) (hs : s + P.length �
         have htrue : matchesAt T P s = true := hacc.mp hd'
         rw [h] at htrue
         cases htrue
-      by_cases hb : deltaStar P 0 (T.take (s + P.length)) == P.length
-      · have heq : deltaStar P 0 (T.take (s + P.length)) = P.length := beq_iff_eq.mp hb
-        exact (hd heq).elim
-      · exact hb
+      cases hb : deltaStar P 0 (T.take (s + P.length)) == P.length with
+      | true =>
+          have heq : deltaStar P 0 (T.take (s + P.length)) = P.length := beq_iff_eq.mp hb
+          exact (hd heq).elim
+      | false =>
+          rfl
 
 /-- The end-position filter-map of the automaton matcher equals the shift-domain
 `naiveMatcher` result. -/
