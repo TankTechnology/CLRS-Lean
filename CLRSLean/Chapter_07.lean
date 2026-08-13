@@ -2,6 +2,7 @@ import CLRSLean.Chapter_07.Section_07_1_Description_Of_Quicksort
 import CLRSLean.Chapter_07.Section_07_2_Performance_Of_Quicksort
 import CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort
 import CLRSLean.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability
+import CLRSLean.Chapter_07.Section_07_4_Analysis_Of_Quicksort
 
 /-!
 # Chapter 7 - Quicksort
@@ -52,6 +53,17 @@ probability space for random pivot choices.
   {lit}`CLRS.Chapter07.expectedComparisons_isBigTheta_nlogn`,
   {lit}`CLRS.Chapter07.expectedComparisons_succ_add_two`, and
   {lit}`CLRS.Chapter07.sum_compared_prob_eq_expectedComparisons`.
+
+* 7.4 Analysis of quicksort: {lit}`proved` for the expected running time.
+  The section identifies the expected running time with the expected number of
+  comparisons `E[X]` (each comparison performs `O(1)` work and dominates all
+  other operations), proves the indicator decomposition
+  `E[X] = Σ_{i<j} P[z_i and z_j are compared] = Σ_{i<j} 2/(j-i+1)` through
+  {lit}`CLRS.Chapter07.expectedRunningTime_eq_sum_compared_prob`, and closes
+  with CLRS Theorem 7.1: the expected running time is `Θ(n log n)`
+  ({lit}`CLRS.Chapter07.expectedRunningTime_isBigTheta_nlogn`), with the
+  explicit harmonic upper bound
+  {lit}`CLRS.Chapter07.expectedRunningTime_le_two_mul`.
 
 ## Current Gaps
 
