@@ -5005,7 +5005,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 
 ## Chapter 32 - String Matching
 
-The sources below are the canonical fourth-edition Sections 32.1–32.4; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
+The sources below are the canonical fourth-edition Sections 32.1–32.5; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
 
 ### Section 32.1 - The Naive String-Matching Algorithm
 
@@ -5017,8 +5017,6 @@ The sources below are the canonical fourth-edition Sections 32.1–32.4; the leg
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,
   `naiveMatcher_complete`, and the three represented boundary theorems.
-- Remaining fourth-edition chapter scope: Section 32.5 (suffix arrays) is not
-  represented.
 
 ### Section 32.2 - The Rabin-Karp Algorithm
 
@@ -5088,6 +5086,25 @@ The sources below are the canonical fourth-edition Sections 32.1–32.4; the leg
     agrees with the from-scratch search.
   - `computePrefixFunction_correct`: each entry of the executable array equals
     `prefixLen`.
+
+### Section 32.5 - Suffix Arrays
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_5_Suffix_Arrays.lean`
+- Status: `complete` (native fourth-edition source; the executable construction
+  is insertion-sort based and `O(n³)`, honestly stated, with the textbook
+  `O(n log n)` construction and `O(|p| log n)` binary-search range query
+  recorded as remaining optimization)
+- Model:
+  - `suffixAt t i`: the suffix of `t` starting at position `i` (`t.drop i`).
+  - `suffixLe t i j`: lexicographic order on suffixes with ties broken by
+    starting position (decidable, total, transitive).
+  - `SuffixArrayValid t sa`: `sa` is a permutation of `range t.length` sorted
+    by `suffixLe`.
+- Proved:
+  - `suffixArray_valid`: the executable `suffixArray` construction returns a
+    valid suffix array (permutation + sortedness via `insertionSort`).
+  - `suffixArraySearch_mem_iff`: suffix-array pattern search is sound and
+    complete — `i` is returned exactly when `p` is a prefix of `suffixAt t i`.
 
 ## Fourth Edition Chapter 33 - Machine-Learning Algorithms
 

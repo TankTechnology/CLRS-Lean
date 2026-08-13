@@ -4,6 +4,7 @@ import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher
 import CLRSLean.FourthEdition.Chapter_32.Section_32_2_Rabin_Karp
 import CLRSLean.FourthEdition.Chapter_32.Section_32_3_Finite_Automata
 import CLRSLean.FourthEdition.Chapter_32.Section_32_4_Knuth_Morris_Pratt
+import CLRSLean.FourthEdition.Chapter_32.Section_32_5_Suffix_Arrays
 
 /-!
 # Chapter 32 — String Matching
@@ -24,6 +25,8 @@ section in
 Section 32.4 (the Knuth-Morris-Pratt algorithm) is a native fourth-edition
 section in
 [Section 32.4](CLRSLean/FourthEdition/Chapter_32/Section_32_4_Knuth_Morris_Pratt/).
+Section 32.5 (suffix arrays) is a native fourth-edition section in
+[Section 32.5](CLRSLean/FourthEdition/Chapter_32/Section_32_5_Suffix_Arrays/).
 Declarations keep their current namespaces; the third-edition-numbered
 imports {lit}`CLRSLean.Chapter_32` and
 {lit}`CLRSLean.Chapter_32.Section_32_*` forward to these sources.
@@ -37,8 +40,7 @@ The supporting implementation pages remain available outside the main sidebar:
 ## Coverage boundary
 
 The native sections supply the represented fourth-edition string-matching
-sections (§32.1, §32.2, §32.3, and §32.4).  The remaining fourth-edition
-section (§32.5: suffix arrays) is not started.
+sections (§32.1, §32.2, §32.3, §32.4, and §32.5).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

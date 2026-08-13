@@ -659,6 +659,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_32.Section_32_2_Rabin_Karp",
   "CLRSLean.FourthEdition.Chapter_32.Section_32_3_Finite_Automata",
   "CLRSLean.FourthEdition.Chapter_32.Section_32_4_Knuth_Morris_Pratt",
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_5_Suffix_Arrays",
 ]
 "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model" = [
   "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
@@ -2390,6 +2391,9 @@ title = "32.3. String Matching with Finite Automata"
 
 [modules."CLRSLean.FourthEdition.Chapter_32.Section_32_4_Knuth_Morris_Pratt"]
 title = "32.4. The Knuth–Morris–Pratt Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_5_Suffix_Arrays"]
+title = "32.5. Suffix Arrays"
 
 [modules."CLRSLean.Chapter_33"]
 title = "Chapter 33. Computational Geometry"
