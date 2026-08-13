@@ -2179,16 +2179,18 @@ reads are proved equal to the pure recurrence value.
   as a maximum over next-use positions with `none` (never requested again)
   as the top element.
 - Current gap: the iterated exchange concluding `fifo_optimal` (CLRS Theorem
-  15.5).  All the pieces are in place — `exchange_step` (never increases
-  misses, extends agreement), `exchangeSchedule_reduced_after` (preserves the
-  reducedness state), `exchangeSchedule_misses_le_plus_one` (spare miss when
-  the bad event did not occur), and `repair_step` (replacing a no-op
-  eviction by the policy's choice costs at most one extra miss, paid by the
-  slack) — so the remaining work is the iteration state machine: tracking
-  the reducedness bound, the previous `q'`/`J'` and the accumulated slack,
-  choosing between the exchange and the repair at each first disagreement,
-  and the boundary case where the first disagreement lands exactly on the
-  previous `q'` request.
+  15.5) is **blocked**, not a mechanical wrap-up.  The one-step pieces are in
+  place — `exchange_step` (never increases misses, extends agreement),
+  `exchangeSchedule_reduced_after` (preserves the reducedness state),
+  `exchangeSchedule_misses_le_plus_one` (spare miss when the bad event did
+  not occur), and `repair_step` (replacing a no-op eviction by the policy's
+  choice costs at most one extra miss, paid by the slack) — but the iteration
+  state machine cannot be assembled without resolving two documented design
+  blockers (see `Dev/DESIGN.md`): the slack-accounting invariant
+  `bad ≤ slack` is empirically false (492 counterexample traces over short
+  inputs), and the `hQ` state field does not hold over the full-history pair
+  set (988 B2 steps reach broken states).  Completing this needs original
+  research on a correct accounting/state scheme, not a final proof pass.
 
 ## Chapter 16 - Greedy Algorithms
 
