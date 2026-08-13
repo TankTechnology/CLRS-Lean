@@ -270,6 +270,18 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_04" = [
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi",
+]
+"CLRSLean.FourthEdition.Chapter_14" = [
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_1_Rod_Cutting",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_2_Matrix_Chain_Multiplication",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_3_Elements_Of_Dynamic_Programming",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_4_Longest_Common_Subsequence",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_5_Optimal_Binary_Search_Trees",
+]
 "CLRSLean.FourthEdition.Chapter_15" = [
   "CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta",
@@ -768,6 +780,15 @@ title = "Chapter 3. Characterizing Running Times"
 [modules."CLRSLean.FourthEdition.Chapter_04"]
 title = "Chapter 4. Divide-and-Conquer"
 
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices"]
+title = "4.1. Multiplying Square Matrices"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem"]
+title = "4.6. Proof of the Continuous Master Theorem"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi"]
+title = "4.7. Akra–Bazzi Recurrences"
+
 [modules."CLRSLean.FourthEdition.Chapter_05"]
 title = "Chapter 5. Probabilistic Analysis and Randomized Algorithms"
 
@@ -797,6 +818,21 @@ title = "Chapter 13. Red-Black Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_14"]
 title = "Chapter 14. Dynamic Programming"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_1_Rod_Cutting"]
+title = "14.1. Rod Cutting"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_2_Matrix_Chain_Multiplication"]
+title = "14.2. Matrix-Chain Multiplication"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_3_Elements_Of_Dynamic_Programming"]
+title = "14.3. Elements of Dynamic Programming"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_4_Longest_Common_Subsequence"]
+title = "14.4. Longest Common Subsequence"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_5_Optimal_Binary_Search_Trees"]
+title = "14.5. Optimal Binary Search Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_15"]
 title = "Chapter 15. Greedy Algorithms"

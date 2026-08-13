@@ -232,6 +232,65 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   maximum-subarray and Strassen runtimes are connected to their executions;
   remaining Chapter 4 work is lower-level representation and RAM refinement.
 
+### Section 4.1 - Multiplying square matrices (fourth edition, native)
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_04/Section_04_1_Multiplying_Square_Matrices.lean`
+- Status: `proved` for the recursive eight-product multiplication and its
+  `Θ(n³)` runtime
+- Main proved theorems:
+  - `CLRS.Chapter04.mul2_eq_mul`
+  - `CLRS.Chapter04.mulRec_correct`
+  - `CLRS.Chapter04.mulRec_padOne_corner`
+  - `CLRS.Chapter04.mul_runtime_bigTheta`
+  - `CLRS.Chapter04.realLogScale_eight_two`
+- Proof pattern: define the naive `2 × 2` block product and the recursive
+  eight-product `mulRec` on the shared depth-indexed `SqMat` squares; prove
+  correctness by induction on depth reducing to the `2 × 2` identity; discharge
+  the `T(n) = 8 T(⌊n/2⌋) + n²` work recurrence through the Master-theorem
+  case-1 wrapper, and identify the comparison scale at `a = 8, b = 2` with `n³`
+- Current gap: a lower-level RAM/pseudocode cost model
+
+### Section 4.6 - Proof of the continuous master theorem (fourth edition, native)
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_04/Section_04_6_Continuous_Master_Theorem.lean`
+- Status: `proved` for the real geometric-series core and the three continuous
+  cases, bridged to the discrete comparison scales
+- Main proved theorems:
+  - `CLRS.Chapter04.geomSum_le_of_lt_one`
+  - `CLRS.Chapter04.geomSum_eq_of_one`
+  - `CLRS.Chapter04.geomSum_bigTheta_of_gt_one`
+  - `CLRS.Chapter04.continuousWork_eq_geomSum`
+  - `CLRS.Chapter04.continuous_master_case1`
+  - `CLRS.Chapter04.continuous_master_case2`
+  - `CLRS.Chapter04.continuous_master_case3`
+  - `CLRS.Chapter04.continuous_case1_scale_eq_criticalPowerScale`
+  - `CLRS.Chapter04.continuous_case2_criticalPowerLogScale_eq`
+- Proof pattern: unroll the exact-division recurrence into a real geometric
+  sum whose three cases are governed by the ratio `a / b^p`; factor the
+  recursion-tree work as `b^(p·k)` times the geometric series; bridge the
+  continuous `a^k` and `k·a^k` scales to the discrete `criticalPowerScale` and
+  `criticalPowerLogScale`
+- Current gap: floors, ceilings, and non-polynomial forcing remain in the
+  legacy all-input file
+
+### Section 4.7 - Akra-Bazzi recurrences (fourth edition, native)
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_04/Section_04_7_Akra_Bazzi.lean`
+- Status: `proved` for the root equation, the single-branch corollary, and the
+  two-branch root instance
+- Main proved theorems:
+  - `CLRS.Chapter04.rpow_realLogExponent`
+  - `CLRS.Chapter04.akraBazziRoot_single`
+  - `CLRS.Chapter04.akraBazziRoot_single_unique`
+  - `CLRS.Chapter04.akraBazziRoot_two_thirds_one`
+  - `CLRS.Chapter04.akraBazzi_single_branch_corollary`
+- Proof pattern: characterize the root `Σ aᵢ/bᵢ^p = 1`; for one branch the root
+  is `p = log_b a` via the real base-power identity; uniqueness follows from
+  log-injectivity of the real power; the two-branch instance
+  `T(n) = T(n/3) + T(2n/3)` has root `p = 1`
+- Current gap: the full multi-branch `Θ(n^p(1 + ∫ g/u^(p+1)))` bound and the
+  polynomial-smoothness hypothesis
+
 ### Section 4.1 - The maximum-subarray problem
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_1_Maximum_Subarray.lean`
@@ -1818,14 +1877,25 @@ query/update cost theorems remain.
 
 ## Chapter 15 - Dynamic Programming
 
-Fourth-edition mapping moves this legacy chapter to Chapter 14.  All four
-represented examples have selected mathematical correctness results, but every
-fourth-edition section remains partial at the algorithm-and-cost boundary:
-§14.1 lacks cut reconstruction and top-down memoization; §14.2 lacks the
-tabulated MATRIX-CHAIN-ORDER algorithm; §14.3 lacks a generic DP/memoization
-interface; §14.4 lacks a tabulated Θ(mn) LCS implementation; and §14.5 lacks a
-public executable e/w/root-table interface.  Proved/tracked completion for the
-selected inventory does not close these section obligations.
+Fourth-edition mapping moves this legacy chapter to Chapter 14.  The four
+represented examples carry their mathematical correctness results in the legacy
+sources below; the native fourth-edition sections (§14.1–14.5) complete the
+algorithm-and-cost boundary:
+
+* §14.1 `CLRSLean/FourthEdition/Chapter_14/Section_14_1_Rod_Cutting.lean`:
+  optimal-cut reconstruction (`rodCutFirstCut`, `rodCutPlan`), top-down
+  memoization (`memoizedRodCut`), and the `O(n²)` step count (`rodCutStepCount`).
+* §14.2 `CLRSLean/FourthEdition/Chapter_14/Section_14_2_Matrix_Chain_Multiplication.lean`:
+  the tabulated `MATRIX-CHAIN-ORDER` time/space bounds (`matrixChainTime`,
+  `matrixChainSpace`).
+* §14.3 `CLRSLean/FourthEdition/Chapter_14/Section_14_3_Elements_Of_Dynamic_Programming.lean`:
+  the reusable memo-cache invariant (`MemoCacheConsistent`) and the
+  distinct-state cost bridge (`distinctCacheStates`).
+* §14.4 `CLRSLean/FourthEdition/Chapter_14/Section_14_4_Longest_Common_Subsequence.lean`:
+  the tabulated `Θ(mn)` bound (`lcsTableCells`).
+* §14.5 `CLRSLean/FourthEdition/Chapter_14/Section_14_5_Optimal_Binary_Search_Trees.lean`:
+  the public e/w/root tables (`obstRoot`), reconstruction (`obstReconstruct`),
+  and cost bounds.
 
 ### Section 15.1 - Rod cutting
 
