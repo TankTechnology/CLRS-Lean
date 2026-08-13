@@ -36,5 +36,40 @@ namespace Chapter32
 #print axioms rabinKarpRollingCost_le
 #print axioms hash_slide
 
+-- §32.3 Finite automata: suffix function and δ/δ*
+#check suffixLen
+#check delta
+#check deltaStar
+#check suffixLen_snoc_le
+#check suffixLen_snoc_eq
+#check deltaStar_accepts_iff_suffix
+
+-- §32.3 Finite automata: all-occurrences matcher and correctness
+#check dfaMatcher
+#check dfaMatcher_sound
+#check dfaMatcher_complete
+#check dfaMatcher_correct
+
+-- §32.3 Finite automata: transition table and lookup
+#check transitionTable
+#check transitionLookup
+#check transitionLookup_eq_delta
+#check dfaMatcherTable
+#check dfaMatcherTable_correct
+#check dfaMatcherTable_eq_naive
+
+-- §32.3 Finite automata: costed preprocessing and scan
+#check transitionTableBuildCost
+#check transitionTableBuildCost_eq
+#check dfaMatcherCost
+#check dfaMatcherCost_eq
+#check dfaTotalCost_eq
+
+-- §32.3 Finite automata: axioms clean on the headline theorems
+#print axioms dfaMatcher_correct
+#print axioms transitionLookup_eq_delta
+#print axioms dfaMatcherTable_correct
+#print axioms transitionTableBuildCost_eq
+
 end Chapter32
 end CLRS

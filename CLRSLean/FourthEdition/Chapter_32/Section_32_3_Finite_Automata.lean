@@ -26,20 +26,22 @@ shift is recorded whenever the state reaches `|P|`.
 - Lemma 32.4 — `σ(xa) = σ(P_{σ(x)} a)` (`suffixLen_snoc_eq`).
 - Theorem `deltaStar_eq_suffixLen` — `δ*(q, T) = σ(P_q T)`.
 - Theorem `deltaStar_accepts_iff_suffix` — `δ*(0, T) = |P| ↔ P` is a suffix of `T`.
-
-## Current gaps
-
-This module currently supplies the automaton *acceptance core* (the executable
-suffix function, the δ/δ\* transition semantics, and the two CLRS lemmas plus the
-accepts-iff-suffix characterization).  The all-occurrences matcher over the text,
-the finite-alphabet transition-table construction, and the costed execution are
-not yet formalized here.
+- `dfaMatcher` — the all-occurrences automaton matcher, with
+  `dfaMatcher_sound`, `dfaMatcher_complete`, and `dfaMatcher_correct`
+  (equivalence to `naiveMatcher`).
+- `transitionTable`/`transitionLookup` — the finite-alphabet transition table,
+  with `transitionLookup_eq_delta` (lookup is exactly `δ`).
+- `dfaMatcherTable` — the table-driven matcher, refining `dfaMatcher`
+  (`dfaMatcherTable_correct`).
+- `transitionTableBuildCost_eq`/`dfaMatcherCost_eq` — preprocessing is
+  `(|P| + 1)·|Σ|` and matching is `Θ(|T|)`.
 
 Notation conventions used in this section:
 
 - `P` : the pattern
 - `T` : the text
 - `σ` : the suffix function (written `suffixLen P`)
+- `alphabet` : a finite list of the alphabet symbols used to build the table
 -/
 namespace CLRS
 namespace Chapter32
@@ -761,14 +763,10 @@ one cell per state-symbol pair, matching the textbook `O(m·|Σ|)` construction.
 theorem transitionTableBuildCost_eq (alphabet : List α) (P : Text α) :
     transitionTableBuildCost alphabet P = (P.length + 1) * alphabet.length := by
   unfold transitionTableBuildCost transitionTable
-  have hmap : List.map (List.length ∘ (fun q => alphabet.map (fun a => delta P q a))) (List.range (P.length + 1))
-      = List.map (fun _ => alphabet.length) (List.range (P.length + 1)) :=
-    List.map_congr_left (l := List.range (P.length + 1))
-      (f := List.length ∘ (fun q => alphabet.map (fun a => delta P q a)))
-      (g := fun _ => alphabet.length) (fun q hq => by simp [List.length_map])
-  rw [hmap]
-  rw [List.map_const, List.length_range]
-  simpa [Nat.nsmul_eq_mul] using List.sum_replicate (P.length + 1) alphabet.length
+  rw [List.map_map]
+  change ((List.range (P.length + 1)).map (fun q => List.length (alphabet.map (fun a => delta P q a)))).sum
+      = (P.length + 1) * alphabet.length
+  simp [List.length_map, List.length_range, List.sum_replicate]
 
 /-- The total deterministic work: preprocessing plus the Θ(|T|) scan. -/
 theorem dfaTotalCost_eq (alphabet : List α) (P T : Text α) :
