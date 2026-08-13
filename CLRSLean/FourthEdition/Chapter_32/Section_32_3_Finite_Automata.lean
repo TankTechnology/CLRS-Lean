@@ -98,13 +98,15 @@ lemma suffix_append_right {p t u : Text α} (h : isSuffix p t) : isSuffix (p ++ 
 is a suffix of `y`. -/
 lemma isSuffix_of_suffix_of_suffix {x y z : Text α} (hy : isSuffix y x) (hz : isSuffix z x)
     (hlen : z.length ≤ y.length) : isSuffix z y := by
+  have hylen : y.length ≤ x.length := isSuffix_length_le hy
+  have hzlen : z.length ≤ x.length := isSuffix_length_le hz
   rw [isSuffix_eq_drop hy, isSuffix_eq_drop hz]
   refine ⟨(x.drop (x.length - y.length)).take (y.length - z.length), ?_⟩
-  rw [List.take_append_drop]
-  congr 1
-  rw [List.drop_drop]
-  congr 1
-  omega
+  rw [show List.drop (x.length - z.length) x = List.drop (y.length - z.length) (List.drop (x.length - y.length) x) by
+    rw [List.drop_drop]
+    congr 1
+    omega]
+  exact List.take_append_drop (y.length - z.length) (List.drop (x.length - y.length) x)
 
 /-- The suffix function search: largest `k ≤ n` with `P.take k` a suffix of `x`. -/
 def suffixLenAux (P x : Text α) : ℕ → ℕ
@@ -158,6 +160,7 @@ theorem suffixLen_maximal (P x : Text α) (k : ℕ) (hk : k ≤ P.length)
     | succ n ih =>
         by_cases hts : suffixTest (P.take (n + 1)) x
         · simp [suffixLenAux, hts]
+          omega
         · have hklt : k < n + 1 := by
             by_cases hk_eq : k = n + 1
             · subst k; simpa [hts] using ht
@@ -166,40 +169,54 @@ theorem suffixLen_maximal (P x : Text α) (k : ℕ) (hk : k ≤ P.length)
           simpa [suffixLenAux, hts] using this
   exact hgo P.length hk
 
+/-- `σ(x) ≤ |x|`. -/
+theorem suffixLen_le_length (P x : Text α) : suffixLen P x ≤ x.length := by
+  have hle := isSuffix_length_le (suffixLen_satisfies P x)
+  have hlen : (P.take (suffixLen P x)).length = suffixLen P x := by
+    rw [List.length_take]
+    have : suffixLen P x ≤ P.length := suffixLen_le P x
+    omega
+  rwa [hlen] at hle
+
 /-- The suffix function at a prefix of `P` returns that prefix's length. -/
 theorem suffixLen_of_take (P : Text α) (q : ℕ) (hq : q ≤ P.length) :
     suffixLen P (P.take q) = q := by
   have hle : q ≤ suffixLen P (P.take q) :=
     suffixLen_maximal P (P.take q) q hq (isSuffix_self (P.take q))
-  have hge : suffixLen P (P.take q) ≤ q :=
-    isSuffix_length_le (suffixLen_satisfies P (P.take q))
+  have hge : suffixLen P (P.take q) ≤ q := by
+    have hle' := suffixLen_le_length P (P.take q)
+    rw [List.length_take] at hle'
+    omega
   omega
-
-/-- `σ(x) ≤ |x|`. -/
-theorem suffixLen_le_length (P x : Text α) : suffixLen P x ≤ x.length :=
-  isSuffix_length_le (suffixLen_satisfies P x)
 
 /-- If `P.take r` is a suffix of `x ++ [a]` with `0 < r`, then `P.take (r-1)`
 is a suffix of `x`. -/
-lemma suffix_dropLast_of_snoc (P x : Text α) (r : ℕ) (a : α) (hr : 0 < r)
+lemma suffix_dropLast_of_snoc (P x : Text α) (r : ℕ) (a : α) (hr : 0 < r) (hk : r ≤ P.length)
     (hsuf : isSuffix (P.take r) (x ++ [a])) : isSuffix (P.take (r - 1)) x := by
   rcases hsuf with ⟨s, hs⟩
-  have htake : P.take r = P.take (r - 1) ++ [P.get ⟨r - 1, by omega⟩] := by
-    have : r - 1 + 1 = r := by omega
-    rw [← this, List.take_succ]
-    simp
+  have hdropLast : (P.take r).dropLast = P.take (r - 1) := by
+    rw [List.dropLast_eq_take]
+    have hlen : (P.take r).length = r := by rw [List.length_take]; omega
+    rw [hlen, List.take_take]
+    simp [hr]
   refine ⟨s, ?_⟩
-  rw [htake] at hs
-  have hd : (s ++ P.take (r - 1) ++ [P.get ⟨r - 1, by omega⟩]).dropLast = (x ++ [a]).dropLast := by
-    rw [hs]
+  have hd : (s ++ P.take r).dropLast = (x ++ [a]).dropLast := by rw [hs]
   rw [List.dropLast_concat] at hd
+  rw [List.dropLast_append] at hd
+  have hne : (P.take r).isEmpty = false := by
+    rw [List.isEmpty_iff]
+    intro he
+    have hlenr : (P.take r).length = 0 := by rw [he]
+    rw [List.length_take] at hlenr
+    omega
+  rw [if_neg hne] at hd
+  rw [hdropLast] at hd
   simp at hd
   exact hd.symm
 
-/-- If `P.take r` is a suffix of `x ++ [a]` and `r > σ(x)`, then `r = σ(x) + 1`
-and `P[r-1] = a`. -/
+/-- If `P.take r` is a suffix of `x ++ [a]` and `0 < r ≤ |P|`, then `P[r-1] = a`. -/
 lemma suffix_last_char_of_snoc (P x : Text α) (r : ℕ) (a : α)
-    (hsuf : isSuffix (P.take r) (x ++ [a])) (hrpos : 0 < r) :
+    (hsuf : isSuffix (P.take r) (x ++ [a])) (hrpos : 0 < r) (hk : r ≤ P.length) :
     P.get ⟨r - 1, by omega⟩ = a := by
   rcases hsuf with ⟨s, hs⟩
   have hlen : s.length + r = x.length + 1 := by
@@ -224,7 +241,7 @@ theorem suffixLen_snoc_le (P x : Text α) (a : α) :
   · omega
   · have hsuf : isSuffix (P.take k) (x ++ [a]) := suffixLen_satisfies P (x ++ [a])
     have hk : k ≤ P.length := suffixLen_le P (x ++ [a])
-    have hpre : isSuffix (P.take (k - 1)) x := suffix_dropLast_of_snoc P x k a (Nat.pos_of_ne_zero h0) hsuf
+    have hpre : isSuffix (P.take (k - 1)) x := suffix_dropLast_of_snoc P x k a (Nat.pos_of_ne_zero h0) hk hsuf
     have hle : k - 1 ≤ suffixLen P x := suffixLen_maximal P x (k - 1) (by omega) hpre
     omega
 
@@ -254,12 +271,12 @@ theorem suffixLen_snoc_eq (P x : Text α) (a : α) :
         by_cases h0 : r = 0
         · rw [h0]; exact isSuffix_empty _
         · have hpre : isSuffix (P.take (r - 1)) x :=
-            suffix_dropLast_of_snoc P x r a (Nat.pos_of_ne_zero h0) hsuf
+            suffix_dropLast_of_snoc P x r a (Nat.pos_of_ne_zero h0) hk hsuf
           have hq : isSuffix (P.take q) x := suffixLen_satisfies P x
           have hpreq : isSuffix (P.take (r - 1)) (P.take q) :=
             isSuffix_of_suffix_of_suffix hq hpre (by omega)
           have hchar : P.get ⟨r - 1, by omega⟩ = a :=
-            suffix_last_char_of_snoc P x r a hsuf (Nat.pos_of_ne_zero h0)
+            suffix_last_char_of_snoc P x r a hsuf (Nat.pos_of_ne_zero h0) hk
           have htake : P.take r = P.take (r - 1) ++ [a] := by
             have : r - 1 + 1 = r := by omega
             rw [← this, List.take_succ]
@@ -270,7 +287,8 @@ theorem suffixLen_snoc_eq (P x : Text α) (a : α) :
         have hreq : r = q + 1 := by omega
         have hchar : P.get ⟨q, by omega⟩ = a := by
           have hsuf' : isSuffix (P.take (q + 1)) (x ++ [a]) := by simpa [hreq] using hsuf
-          exact suffix_last_char_of_snoc P x (q + 1) a hsuf' (by omega)
+          have hk' : q + 1 ≤ P.length := by omega
+          exact suffix_last_char_of_snoc P x (q + 1) a hsuf' (by omega) hk'
         have htake : P.take r = P.take q ++ [a] := by
           rw [hreq, List.take_succ]
           simp [hchar]
