@@ -689,14 +689,12 @@ theorem transitionLookup_eq_delta (alphabet : List α) (P : Text α) (q : ℕ) (
     · rw [List.length_map, List.length_range]
       omega
   rw [hrow]
-  rw [List.getD_eq_getElem]
-  · rw [List.getElem_map]
-    rw [List.getElem_idxOf]
-    · rw [List.idxOf_lt_length_iff]
-      exact ha
-  · rw [List.length_map]
-    rw [List.idxOf_lt_length_iff]
-    exact ha
+  have hlt : alphabet.idxOf a < alphabet.length := (List.idxOf_lt_length_iff).mpr ha
+  have hlen : alphabet.idxOf a < (alphabet.map (fun a => delta P q a)).length := by
+    simpa using hlt
+  rw [List.getD_eq_getElem (l := alphabet.map (fun a => delta P q a)) (d := 0) (n := alphabet.idxOf a) hlen]
+  rw [List.getElem_map]
+  rw [List.getElem_idxOf hlt]
 
 /--
 The table-driven scan: the same left-to-right scan as `dfaScan`, but each
@@ -763,12 +761,11 @@ one cell per state-symbol pair, matching the textbook `O(m·|Σ|)` construction.
 theorem transitionTableBuildCost_eq (alphabet : List α) (P : Text α) :
     transitionTableBuildCost alphabet P = (P.length + 1) * alphabet.length := by
   unfold transitionTableBuildCost transitionTable
-  rw [List.map_map]
-  have hmap : (List.range (P.length + 1)).map (fun q => (alphabet.map (fun a => delta P q a)).length)
-      = (List.range (P.length + 1)).map (fun _ => alphabet.length) :=
+  have hmap : List.map (List.length ∘ (fun q => alphabet.map (fun a => delta P q a))) (List.range (P.length + 1))
+      = List.map (fun _ => alphabet.length) (List.range (P.length + 1)) :=
     List.map_congr_left (l := List.range (P.length + 1))
-      (f := fun q => (alphabet.map (fun a => delta P q a)).length)
-      (g := fun _ => alphabet.length) (fun q hq => by rw [List.length_map])
+      (f := List.length ∘ (fun q => alphabet.map (fun a => delta P q a)))
+      (g := fun _ => alphabet.length) (fun q hq => by simp [List.length_map])
   rw [hmap]
   rw [List.map_const, List.length_range]
   simpa [Nat.nsmul_eq_mul] using List.sum_replicate (P.length + 1) alphabet.length
