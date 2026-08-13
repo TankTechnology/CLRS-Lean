@@ -594,6 +594,7 @@ lemma computePrefixGo_step (P : Text α) (π : List ℕ) (k : ℕ) (c : α)
       = prefixLen P (π.length + 1) := by
   have hk' : failureFollow P π c k hinv = prefixMatchAux P π.length c (π.length - 1) := by
     rw [failureFollow_eq_prefixMatchAux P π c π.length k hinv hπ hk]
+    rw [hk]
     exact prefixMatchAux_top_drop P π.length c hqpos
   have hsnoc : prefixLen P (π.length + 1) = prefixMatch P π.length c := by
     simpa [hc] using (prefixLen_snoc_eq P π.length hqpos hqlt)
@@ -601,7 +602,7 @@ lemma computePrefixGo_step (P : Text α) (π : List ℕ) (k : ℕ) (c : α)
       (if (P.getD (prefixMatchAux P π.length c (π.length - 1)) default == c)
         then prefixMatchAux P π.length c (π.length - 1) + 1 else 0) :=
     prefixMatch_eq P π.length c
-  rw [← hsnoc]
+  rw [hsnoc]
   rw [hpm, hk']
   by_cases hc' : P.getD (prefixMatchAux P π.length c (π.length - 1)) default = c
   · rw [if_pos hc', if_pos (beq_iff_eq.mpr hc')]
