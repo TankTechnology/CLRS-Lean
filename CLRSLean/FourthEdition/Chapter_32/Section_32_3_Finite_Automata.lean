@@ -651,7 +651,7 @@ def dfaMatcherCost (P T : Text α) : ℕ := T.length
 /-- The automaton matcher scans each character once. -/
 theorem dfaMatcherCost_eq (P T : Text α) : dfaMatcherCost P T = T.length := rfl
 
-section TransitionTable
+noncomputable section TransitionTable
 
 variable [Fintype α]
 
@@ -700,7 +700,6 @@ theorem transitionLookup_eq_delta (P : Text α) (q : ℕ) (hq : q ≤ P.length) 
   rw [List.getD_eq_getElem]
   · rw [List.getElem_map]
     rw [List.getElem_idxOf]
-    · rfl
     · rw [List.idxOf_lt_length_iff]
       exact Finset.mem_toList.mpr (Finset.mem_univ a)
   · rw [List.length_map]
@@ -739,7 +738,7 @@ lemma dfaScanTable_eq_dfaScan (P : Text α) (scanned : Text α) (T : Text α) (q
   | cons c T ih =>
       rw [dfaScanTable_cons, dfaScan_cons]
       have hlookup : transitionLookup (transitionTable P) q c = delta P q c :=
-        transitionLookup_eq_delta P q c hq
+        transitionLookup_eq_delta P q hq c
       have hq' : delta P q c ≤ P.length := by unfold delta; exact suffixLen_le P (P.take q ++ [c])
       rw [hlookup, ih (scanned ++ [c]) (delta P q c) hq']
 
