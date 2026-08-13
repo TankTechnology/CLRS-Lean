@@ -19,7 +19,7 @@ least six months; removal is possible only in 2.0 or later.
 * Tracked reader-facing theorem entries: 1,496.
 * Proved tracked theorem entries: 1,496.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 5.
+* Remaining edition-coverage units: 2.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -34,10 +34,10 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 21 chapters.
+* {lit}`main-proof-complete`: 22 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 3 chapters.
+* {lit}`partial`: 2 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -73,7 +73,7 @@ Ch  Chapter                                                     Status          
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
 27  27. Online Algorithms                                       main-proof-complete                  27.1;27.2;27.3                      6        0
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
-29  29. Linear Programming                                      partial (edition coverage)           29.1;29.2;29.3                     10        3
+29  29. Linear Programming                                      main-proof-complete                  29.1;29.2;29.3                     10        0
 30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     34        0
 31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       17        0
 32  32. String Matching                                         main-proof-complete                  32.1;32.2;32.3;32.4;32.5           55        0
