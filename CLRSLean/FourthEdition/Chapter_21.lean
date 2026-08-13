@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_23
 import CLRSLean.FourthEdition.Chapter_21.Section_21_1_Growing_Minimum_Spanning_Trees
 import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim
 import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S1_UnionFindBridge
@@ -24,6 +25,14 @@ The Kruskal bridge imports the fourth-edition disjoint-set sources
 the compatibility period; the third-edition-numbered imports
 {lit}`CLRSLean.Chapter_23` and {lit}`CLRSLean.Chapter_23.Section_23_*` forward
 to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [Union-Find Refinement](CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim/S1_UnionFindBridge/)
+* [Stateful Kruskal](CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim/S2_StatefulKruskal/)
+* [Executable Prim](CLRSLean/FourthEdition/Chapter_21/Section_21_2_Kruskal_And_Prim/S3_ExecutablePrim/)
 
 ## Coverage boundary
 
