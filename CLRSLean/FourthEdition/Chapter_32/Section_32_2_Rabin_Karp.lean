@@ -520,8 +520,8 @@ def rabinKarpRolling (T P : Text α) (d q : ℕ) (val : α → ℕ) : List ℕ �
   let p := hash d q val P
   if m = 0 then (List.range (T.length + 1), T.length + 1)
   else
-    let (matches, cost) := rollingGo T P d q val p m 0 (T.take m) (hash d q val (T.take m)) (T.drop m)
-    (matches, m + cost)
+    let r := rollingGo T P d q val p m 0 (T.take m) (hash d q val (T.take m)) (T.drop m)
+    (r.1, m + r.2)
 
 /-- The matches returned by the rolling matcher. -/
 def rabinKarpRollingMatches (T P : Text α) (d q : ℕ) (val : α → ℕ) : List ℕ :=
@@ -542,7 +542,7 @@ lemma rollingGo_top (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) 
         T.length - P.length + 1 + hashHitsIn T P d q val 0 (T.length - P.length) * P.length) := by
   have hwlen : (T.take P.length).length = P.length := by rw [List.length_take]; omega
   have hspec := rollingGo_spec T P d q val (hash d q val P) P.length 0 (T.take P.length)
-    (hash d q val (T.take P.length)) (T.drop P.length) hq hm0 rfl rfl rfl hwlen rfl rfl
+    (hash d q val (T.take P.length)) (T.drop P.length) hq hm0 rfl rfl rfl hwlen rfl (by simp)
   rw [hspec]
   simp [List.length_drop]
 
@@ -554,14 +554,14 @@ window update without changing the set of matches.
 -/
 theorem rabinKarpRollingMatches_correct (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) :
     rabinKarpRollingMatches T P d q val = naiveMatcher T P := by
-  unfold rabinKarpRollingMatches rabinKarpRolling
+  simp only [rabinKarpRollingMatches, rabinKarpRolling]
   by_cases hzero : P.length = 0
   · simp [hzero, naiveMatcher]
   · have hm0 : 0 < P.length := Nat.pos_of_ne_zero hzero
     by_cases hlong : T.length < P.length
     · -- pattern longer than text: no matches
       simp [hzero, hlong, naiveMatcher_pattern_too_long T P hlong]
-      have hdrop : T.drop P.length = [] := by rw [List.drop_eq_nil_iff_le]; omega
+      have hdrop : T.drop P.length = [] := by apply List.eq_nil_of_length_eq_zero; rw [List.length_drop]; omega
       have hmt : matchesAt T P 0 = false := by
         unfold matchesAt; simp [hlong]
       simp [hdrop, hmt]
@@ -580,12 +580,12 @@ confirmations.
 theorem rabinKarpRollingCost_eq (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) :
     rabinKarpRollingCost T P d q val
       = P.length + (T.length - P.length + 1) + hashHitsIn T P d q val 0 (T.length - P.length) * P.length := by
-  unfold rabinKarpRollingCost rabinKarpRolling
+  simp only [rabinKarpRollingCost, rabinKarpRolling]
   by_cases hzero : P.length = 0
   · simp [hzero]
   · have hm0 : 0 < P.length := Nat.pos_of_ne_zero hzero
     by_cases hlong : T.length < P.length
-    · have hdrop : T.drop P.length = [] := by rw [List.drop_eq_nil_iff_le]; omega
+    · have hdrop : T.drop P.length = [] := by apply List.eq_nil_of_length_eq_zero; rw [List.length_drop]; omega
       simp [hzero, hlong, hdrop, hashHitsIn]
     · have hmle : P.length ≤ T.length := Nat.le_of_not_gt hlong
       rw [rollingGo_top T P d q val hq hm0 hmle]
@@ -599,12 +599,12 @@ refined `rabinKarpRollingCost_eq` gives the expected `O(n + m·(#hits))` form.
 -/
 theorem rabinKarpRollingCost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) :
     rabinKarpRollingCost T P d q val ≤ P.length + (T.length - P.length + 1) * (P.length + 1) := by
-  unfold rabinKarpRollingCost rabinKarpRolling
+  simp only [rabinKarpRollingCost, rabinKarpRolling]
   by_cases hzero : P.length = 0
   · simp [hzero]
   · have hm0 : 0 < P.length := Nat.pos_of_ne_zero hzero
     by_cases hlong : T.length < P.length
-    · have hdrop : T.drop P.length = [] := by rw [List.drop_eq_nil_iff_le]; omega
+    · have hdrop : T.drop P.length = [] := by apply List.eq_nil_of_length_eq_zero; rw [List.length_drop]; omega
       simp [hzero, hlong, hdrop]
       omega
     · have hmle : P.length ≤ T.length := Nat.le_of_not_gt hlong
@@ -627,6 +627,8 @@ lemma rollingGo_cost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : 
       simp only [rollingGo]
       have hih := ih (s + 1) (w.tail ++ [c]) (slideHash d q val h w c)
       omega
+
+end Rolling
 
 end Chapter32
 end CLRS
