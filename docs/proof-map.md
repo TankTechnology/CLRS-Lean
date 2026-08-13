@@ -4855,8 +4855,31 @@ The sources below are the canonical fourth-edition Sections 32.1; the legacy `CL
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,
   `naiveMatcher_complete`, and the three represented boundary theorems.
-- Remaining fourth-edition chapter scope: Sections 32.2--32.5 (Rabin-Karp,
-  finite automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
+- Remaining fourth-edition chapter scope: Section 32.5 (suffix arrays) is not
+  represented.
+
+### Section 32.4 - The Knuth-Morris-Pratt Algorithm
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_4_Knuth_Morris_Pratt.lean`
+- Status: `complete` (native fourth-edition source; the all-occurrences KMP
+  scan and its `O(m + n)` cost are still open, tracked in issue #198)
+- Model:
+  - `prefixLen P q`: the prefix function `π(q)` — the longest proper prefix of
+    `P` that is a suffix of `P.take q`.
+  - `computePrefixFunction P`: the executable `COMPUTE-PREFIX-FUNCTION`
+    (failure-link recurrence).
+  - `failureFollow`: follows failure links `π[k-1]` while `P[k] ≠ c`.
+- Proved:
+  - `prefixLen_satisfies` / `prefixLen_maximal`: `P.take (π q)` is the longest
+    proper prefix of `P` that is a suffix of `P.take q`.
+  - `prefixLen_chain_step` (CLRS Lemma 32.5): a shorter prefix-suffix of
+    `P.take q` is a prefix-suffix of `P.take (π q)`.
+  - `prefixLen_snoc_eq` (CLRS Lemma 32.6): `π(q+1)` extends the longest
+    prefix-suffix of `P.take q` whose next character matches `P[q]`.
+  - `failureFollow_eq_prefixMatchAux`: following failure links from `π(q)`
+    agrees with the from-scratch search.
+  - `computePrefixFunction_correct`: each entry of the executable array equals
+    `prefixLen`.
 
 ## Fourth Edition Chapter 33 - Machine-Learning Algorithms
 
