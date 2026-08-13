@@ -16,7 +16,6 @@ function* `π` on the pattern, then scanning the text once, falling back along
   of `P` that is a suffix of `P.take q`.
 - {lit}`computePrefixFunction P` — the executable `COMPUTE-PREFIX-FUNCTION`
   (failure-link recurrence), returning the prefix array.
-- {lit}`kmpMatcher T P` — the all-occurrences KMP scan.
 
 ## Main results
 
@@ -24,16 +23,20 @@ function* `π` on the pattern, then scanning the text once, falling back along
   proper prefix of `P` that is a suffix of `P.take q`.
 - `prefixLen_chain_step` — the CLRS Lemma 32.5 induction step: a shorter
   prefix-suffix of `P.take q` is a prefix-suffix of `P.take (π q)`.
-- `computePrefixFunction` — the executable failure-link `COMPUTE-PREFIX-FUNCTION`.
+- `prefixLen_snoc_eq` — the CLRS Lemma 32.6 recurrence: `π(q + 1)` extends the
+  longest prefix-suffix of `P.take q` whose next character matches `P[q]`.
+- `failureFollow_eq_prefixMatchAux` — following failure links from `π(q)` agrees
+  with the from-scratch search.
+- `computePrefixFunction_correct` — each entry of the executable array equals
+  `prefixLen` (CLRS Lemma 32.6).
 
 ## Current gaps
 
-The executable prefix function and its spec are in place, but the following are
-not yet formalized here (tracked in issue #198):
+The prefix function and its executable implementation are fully specified and
+proved correct.  The following are not yet formalized here (tracked in issue
+#198):
 
-- `computePrefixFunction_correct` — each entry of the executable array equals
-  `prefixLen` (CLRS Lemma 32.6 recurrence).
-- The all-occurrences KMP scan and its `naiveMatcher` refinement.
+- The all-occurrences KMP scan (`kmpMatcher`) and its `naiveMatcher` refinement.
 - The `O(m + n)` costed construction and scan.
 
 Notation conventions used in this section:

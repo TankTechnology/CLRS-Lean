@@ -2,6 +2,7 @@ import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model
 import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher
 import CLRSLean.FourthEdition.Chapter_32.Section_32_2_Rabin_Karp
 import CLRSLean.FourthEdition.Chapter_32.Section_32_3_Finite_Automata
+import CLRSLean.FourthEdition.Chapter_32.Section_32_4_Knuth_Morris_Pratt
 
 /-!
 # Chapter 32 — String Matching
@@ -19,6 +20,9 @@ Section 32.2 (the Rabin-Karp algorithm) is a native fourth-edition section in
 Section 32.3 (string matching with finite automata) is a native fourth-edition
 section in
 [Section 32.3](CLRSLean/FourthEdition/Chapter_32/Section_32_3_Finite_Automata/).
+Section 32.4 (the Knuth-Morris-Pratt algorithm) is a native fourth-edition
+section in
+[Section 32.4](CLRSLean/FourthEdition/Chapter_32/Section_32_4_Knuth_Morris_Pratt/).
 Declarations keep their current namespaces; the third-edition-numbered
 imports {lit}`CLRSLean.Chapter_32` and
 {lit}`CLRSLean.Chapter_32.Section_32_*` forward to these sources.
@@ -26,9 +30,8 @@ imports {lit}`CLRSLean.Chapter_32` and
 ## Coverage boundary
 
 The native sections supply the represented fourth-edition string-matching
-sections (§32.1, §32.2, and §32.3).  The remaining fourth-edition sections
-(§32.4--32.5: the Knuth-Morris-Pratt algorithm and suffix arrays) are not
-started.
+sections (§32.1, §32.2, §32.3, and §32.4).  The remaining fourth-edition
+section (§32.5: suffix arrays) is not started.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
