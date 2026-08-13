@@ -317,7 +317,7 @@ lemma suffix_snoc_char_eq (P : Text α) (q r : ℕ) (a : α) (hrpos : 0 < r) (hr
     have hlen : (P.take (r - 1)).length = r - 1 := by
       rw [List.length_take]
       exact Nat.min_eq_left (by omega)
-    rw [List.getD_append_right (P.take (r - 1)) [a] default (r - 1) (by rw [hlen]; omega)]
+    rw [List.getD_append_right (P.take (r - 1)) [a] default (r - 1) (by omega)]
     simp [hlen]
   calc
     P.getD (r - 1) default = (P.take r).getD (r - 1) default := h1.symm
@@ -333,6 +333,7 @@ lemma prefixMatch_eq (P : Text α) (q : ℕ) (c : α) :
   unfold prefixMatch
   dsimp
   rw [prefixMatchAux_satisfies P q c (q - 1)]
+  rfl
 
 /-- The recurrence (CLRS Lemma 32.6): `π(q + 1)` extends the longest proper
 prefix-suffix of `P.take q` whose next character matches `P[q]`. -/
@@ -351,7 +352,7 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
     exact prefixMatchAux_satisfies P q c (q - 1)
   have hklt : k < q := by
     have hkle := prefixMatchAux_le P q c (q - 1)
-    dsimp [k] at hkle
+    dsimp [k]
     omega
   -- direction ≤ : π(q+1) ≤ prefixMatch P q c
   have hle : prefixLen P (q + 1) ≤ prefixMatch P q c := by
@@ -363,7 +364,7 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
       have hrle : r ≤ P.length := le_trans (prefixLen_le P (q + 1)) hqlen
       have hrle' : r ≤ q := by
         have hlt := prefixLen_lt_of_pos P (q + 1) (by omega)
-        dsimp [r] at hlt
+        dsimp [r]
         omega
       have hsat := prefixLen_satisfies P (q + 1)
       rw [htake] at hsat
@@ -400,9 +401,12 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
         simp
       have hsufk1 : isSuffix (P.take (k + 1)) (P.take (q + 1)) := by
         rw [htakek, htake]
+        have hchar' : P.getD k default = P.getD q default := by
+          dsimp [c] at hchar
+          exact hchar
         have hsuf0 : isSuffix (P.take k ++ [P.getD k default]) (P.take q ++ [P.getD k default]) :=
           suffix_append_right hksuf'
-        simpa [hchar, c] using hsuf0
+        simpa [hchar'] using hsuf0
       have hklt1 : k + 1 < q + 1 := by omega
       have hk1 : k + 1 ≤ prefixLen P (q + 1) :=
         prefixLen_maximal P (q + 1) (k + 1) hklt1 hsufk1
