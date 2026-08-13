@@ -16,10 +16,10 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,468.
-* Proved tracked theorem entries: 1,468.
+* Tracked reader-facing theorem entries: 1,482.
+* Proved tracked theorem entries: 1,482.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 18.
+* Remaining edition-coverage units: 13.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -34,10 +34,10 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 16 chapters.
+* {lit}`main-proof-complete`: 17 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 8 chapters.
+* {lit}`partial`: 7 chapters.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -58,7 +58,7 @@ Ch  Chapter                                                     Status          
 11  11. Hash Tables                                             main-proof-complete                  11.1;11.2;11.3;11.4;11.5           59        0
 12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1;12.2;12.3                     40        0
 13  13. Red-Black Trees                                         partial (edition coverage)           13.1;13.2;13.3;13.4                39        3
-14  14. Dynamic Programming                                     partial (edition coverage)           14.1;14.2;14.3;14.4;14.5           76        5
+14  14. Dynamic Programming                                     main-proof-complete                  14.1;14.2;14.3;14.4;14.5           90        0
 15  15. Greedy Algorithms                                       partial (edition coverage)           15.1;15.2;15.3;15.4                27        1
 16  16. Amortized Analysis                                      selected-section-complete            16.1;16.2;16.3;16.4                66        0
 17  17. Augmenting Data Structures                              partial (edition coverage)           17.1;17.2;17.3                     77        3

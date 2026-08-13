@@ -1877,14 +1877,25 @@ query/update cost theorems remain.
 
 ## Chapter 15 - Dynamic Programming
 
-Fourth-edition mapping moves this legacy chapter to Chapter 14.  All four
-represented examples have selected mathematical correctness results, but every
-fourth-edition section remains partial at the algorithm-and-cost boundary:
-§14.1 lacks cut reconstruction and top-down memoization; §14.2 lacks the
-tabulated MATRIX-CHAIN-ORDER algorithm; §14.3 lacks a generic DP/memoization
-interface; §14.4 lacks a tabulated Θ(mn) LCS implementation; and §14.5 lacks a
-public executable e/w/root-table interface.  Proved/tracked completion for the
-selected inventory does not close these section obligations.
+Fourth-edition mapping moves this legacy chapter to Chapter 14.  The four
+represented examples carry their mathematical correctness results in the legacy
+sources below; the native fourth-edition sections (§14.1–14.5) complete the
+algorithm-and-cost boundary:
+
+* §14.1 `CLRSLean/FourthEdition/Chapter_14/Section_14_1_Rod_Cutting.lean`:
+  optimal-cut reconstruction (`rodCutFirstCut`, `rodCutPlan`), top-down
+  memoization (`memoizedRodCut`), and the `O(n²)` step count (`rodCutStepCount`).
+* §14.2 `CLRSLean/FourthEdition/Chapter_14/Section_14_2_Matrix_Chain_Multiplication.lean`:
+  the tabulated `MATRIX-CHAIN-ORDER` time/space bounds (`matrixChainTime`,
+  `matrixChainSpace`).
+* §14.3 `CLRSLean/FourthEdition/Chapter_14/Section_14_3_Elements_Of_Dynamic_Programming.lean`:
+  the reusable memo-cache invariant (`MemoCacheConsistent`) and the
+  distinct-state cost bridge (`distinctCacheStates`).
+* §14.4 `CLRSLean/FourthEdition/Chapter_14/Section_14_4_Longest_Common_Subsequence.lean`:
+  the tabulated `Θ(mn)` bound (`lcsTableCells`).
+* §14.5 `CLRSLean/FourthEdition/Chapter_14/Section_14_5_Optimal_Binary_Search_Trees.lean`:
+  the public e/w/root tables (`obstRoot`), reconstruction (`obstReconstruct`),
+  and cost bounds.
 
 ### Section 15.1 - Rod cutting
 

@@ -23,7 +23,7 @@ class FourthEditionContractTest(unittest.TestCase):
             contracts[14]["represented_sections"],
             ("14.1", "14.2", "14.3", "14.4", "14.5"),
         )
-        self.assertEqual(contracts[14]["required_status"], "partial")
+        self.assertIsNone(contracts[14]["required_status"])
         self.assertEqual(
             contracts[25]["represented_sections"], ("25.1", "25.2", "25.3")
         )
