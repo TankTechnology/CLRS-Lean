@@ -113,25 +113,29 @@ strictly decreases. -/
 def failureFollow (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
     (hinv : ∀ i, π.getD i 0 < i + 1) : ℕ :=
   if hk : k = 0 then 0
-  else if (P.getD k default) == c then k
+  else if (P.getD k default) = c then k
   else failureFollow P π c (π.getD (k - 1) 0) hinv
 termination_by k
 decreasing_by
   simp_wf
   have hpos : 0 < k := Nat.pos_of_ne_zero hk
-  have h := hinv (k - 1)
-  omega
+  have hk' : (k - 1) + 1 = k := by omega
+  simpa [hk'] using hinv (k - 1)
 
 /-- `failureFollow` never increases its argument. -/
 lemma failureFollow_le (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
     (hinv : ∀ i, π.getD i 0 < i + 1) : failureFollow P π c k hinv ≤ k := by
+  rw [failureFollow.eq_1]
   by_cases hk : k = 0
-  · simp [failureFollow, hk]
-  · by_cases hc : (P.getD k default) == c
-    · simp [failureFollow, hk, hc]
-    · simp [failureFollow, hk, hc]
+  · simp [hk]
+  · by_cases hc : (P.getD k default) = c
+    · simp [hk, hc]
+    · simp [hk, hc]
       have ih := failureFollow_le P π c (π.getD (k - 1) 0) hinv
-      have h := hinv (k - 1)
+      have hlt : π.getD (k - 1) 0 < k := by
+        have hpos : 0 < k := Nat.pos_of_ne_zero hk
+        have h := hinv (k - 1)
+        omega
       omega
 
 /-- The executable `COMPUTE-PREFIX-FUNCTION` (CLRS §32.4).  `π` is the prefix
@@ -142,7 +146,7 @@ def computePrefixGo (P : Text α) (π : List ℕ) (k : ℕ)
   | [] => π
   | c :: rest =>
       let k' := failureFollow P π c k hinv
-      let k'' := if (P.getD k' default) == c then k' + 1 else 0
+      let k'' := if (P.getD k' default) = c then k' + 1 else 0
       have hk'le : k' ≤ k := failureFollow_le P π c k hinv
       have hk'lt : k' < π.length := lt_of_le_of_lt hk'le hk_lt
       have hk''le : k'' ≤ π.length := by
