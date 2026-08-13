@@ -341,5 +341,67 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
     · simp [hb]
   exact le_antisymm hle hge
 
+/-- The empty prefix `P.take 0 = []` is always a suffix of `P.take q`. -/
+lemma suffixTest_take_zero (P : Text α) (q : ℕ) :
+    suffixTest (P.take 0) (P.take q) = true := by
+  exact (suffixTest_eq_isSuffix (P.take 0) (P.take q)).mpr (isSuffix_empty _)
+
+/-- `prefixMatchAux` always returns a value whose prefix is a suffix of `P.take q`. -/
+lemma prefixMatchAux_satisfies (P : Text α) (q : ℕ) (c : α) (n : ℕ) :
+    suffixTest (P.take (prefixMatchAux P q c n)) (P.take q) = true := by
+  induction n with
+  | zero => simp [prefixMatchAux]; exact suffixTest_take_zero P q
+  | succ n ih =>
+      by_cases h : suffixTest (P.take (n + 1)) (P.take q) && (P.getD (n + 1) default == c)
+      · simp [prefixMatchAux, h]
+        exact (Bool.and_eq_true_iff.mp h).1
+      · simp [prefixMatchAux, h]
+        exact ih
+
+/-- When `P.take (n+1)` is not a suffix of `P.take q`, `prefixMatchAux` at `n+1`
+falls through to `n`. -/
+lemma prefixMatchAux_succ_of_not_suffix (P : Text α) (q : ℕ) (c : α) (n : ℕ)
+    (h : suffixTest (P.take (n + 1)) (P.take q) = false) :
+    prefixMatchAux P q c (n + 1) = prefixMatchAux P q c n := by
+  simp [prefixMatchAux, h]
+
+/-- If no value in `(n', n]` is a suffix of `P.take q`, the search from `n`
+agrees with the search from `n'`. -/
+lemma prefixMatchAux_drop (P : Text α) (q : ℕ) (c : α) (n n' : ℕ) (hle : n' ≤ n)
+    (h : ∀ j, n' < j → j ≤ n → suffixTest (P.take j) (P.take q) = false) :
+    prefixMatchAux P q c n = prefixMatchAux P q c n' := by
+  induction n generalizing n' with
+  | zero =>
+      have hn' : n' = 0 := by omega
+      subst n'
+      rfl
+  | succ n ih =>
+      by_cases hn' : n' = n + 1
+      · subst n'; rfl
+      · have hn'le : n' ≤ n := by omega
+        have hsuf : suffixTest (P.take (n + 1)) (P.take q) = false :=
+          h (n + 1) (by omega) (by omega)
+        rw [prefixMatchAux_succ_of_not_suffix P q c n hsuf]
+        exact ih hn'le (fun j hj1 hj2 => h j hj1 (by omega))
+
+/-- `prefixMatchAux` is insensitive to the suffix target `q`, provided the
+suffix tests agree on every position up to the bound. -/
+lemma prefixMatchAux_congr (P : Text α) (q q' : ℕ) (c : α) (n : ℕ)
+    (h : ∀ j, j ≤ n → (suffixTest (P.take j) (P.take q) = true ↔ suffixTest (P.take j) (P.take q') = true)) :
+    prefixMatchAux P q c n = prefixMatchAux P q' c n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      have hsuf : suffixTest (P.take (n + 1)) (P.take q) = suffixTest (P.take (n + 1)) (P.take q') := by
+        have hiff := h (n + 1) (by omega)
+        by_cases hq : suffixTest (P.take (n + 1)) (P.take q) = true
+        · rw [hq]; exact hiff.mp hq
+        · have hq' : suffixTest (P.take (n + 1)) (P.take q') = false := by
+            cases hh : suffixTest (P.take (n + 1)) (P.take q')
+            · rfl
+            · exact (hq (hiff.mpr hh)).elim
+          rw [hq, hq']
+      simp [prefixMatchAux, hsuf, ih]
+
 end Chapter32
 end CLRS
