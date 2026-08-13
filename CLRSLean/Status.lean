@@ -43,15 +43,8 @@ prose does not freeze a completed-prefix milestone.
 
 The edition map currently records these fourth-edition gaps:
 
-* **Chapter 7, Quicksort:** Section 7.4 remains partial.
 * **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
-* **Chapter 13, Red-Black Trees:** Sections 13.2--13.4 remain partial because the
-  color/black-height shape results are not yet combined with BST preservation
-  and textbook update/cost refinements.
 * **Chapter 15, Greedy Algorithms:** Section 15.4 (offline caching) is a native section with the farthest-in-future policy; the optimality theorem remains.
-* **Chapter 17, Augmenting Data Structures:** all three sections remain partial:
-  OS-RANK, the augmentation-cost theorem, and the dynamic/static interval-tree
-  bridge are the principal gaps.
 * **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial for
   general-form normalization, finite formulation bridges, and canonical
   declaration ownership; detailed SIMPLEX material remains available online.

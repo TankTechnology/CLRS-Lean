@@ -28,7 +28,8 @@ section layers complete the remaining §13.2–§13.4 boundaries:
   {lit}`bst_insert`, and the logarithmic execution-cost theorem
   {lit}`insertCost_log_bound`.
 - §13.4 ({lit}`Section_13_4_Deletion`): the logarithmic execution-cost theorem
-  {lit}`deleteCost_log_bound`.
+  {lit}`deleteCost_log_bound` and BST ordering preservation of the composed
+  delete {lit}`bst_delete`.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

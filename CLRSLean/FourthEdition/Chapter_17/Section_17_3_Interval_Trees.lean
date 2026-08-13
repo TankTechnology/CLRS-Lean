@@ -26,11 +26,13 @@ Main results:
   erasure of a max-high-augmented dynamic tree is well-augmented, so the static
   search specification {lit}`IntervalTree.intervalSearch?_spec` remains
   applicable after an update.
-
-The full {lit}`O(log n)` search bound is obtained by composing
-{lit}`intervalSearchCost_le_height` with the red-black height bound
-({lit}`RBTree.height_log_bound`); the {lit}`Interval`-keyed height-bound
-instance is noted as remaining work.
+- Definition {lit}`AugmentedRBTree.toRB_low`: erasure of the dynamic
+  {lit}`Interval`-keyed augmented red-black tree to the Chapter 13 red-black
+  tree, projecting each interval key to its low endpoint.
+- Theorem {lit}`intervalSearchCost_log_bound`: **interval search runs in
+  {lit}`O(log n)`** — composing {lit}`intervalSearchCost_le_height` with the
+  red-black height bound ({lit}`RBTree.height_log_bound`) through the
+  height-erasure equality {lit}`AugmentedRBTree.intervalHeight_eq_toRB_height`.
 -/
 
 namespace CLRS
@@ -120,6 +122,45 @@ theorem intervalSearch_after_update (q : Interval) {t : AugmentedRBTree Interval
         (AugmentedRBTree.insert IntervalTree.maxHighAug AugmentedRBTree.intervalLt q t)) := by
   exact AugmentedRBTree.wellAugmented_toIntervalTree
     (AugmentedRBTree.maxHighAug_wellAugmented_insert q h)
+
+/-! ## The Interval-keyed O(log n) search bound -/
+
+open CLRS.Chapter13 (RBTree)
+
+namespace AugmentedRBTree
+
+/-- Erase the interval keys (keeping their low endpoint) and the cached
+augmentation, projecting an {lit}`Interval`-keyed augmented red-black tree onto
+the Chapter 13 {lit}`RBTree`. -/
+def toRB_low : AugmentedRBTree Interval Nat → RBTree
+  | empty => RBTree.empty
+  | node c l k _ r => RBTree.node c (toRB_low l) k.low (toRB_low r)
+
+/-- The height of the static interval erasure equals the height of the low-keyed
+red-black erasure: heights depend on neither keys, colors, nor the cached
+augmentation. -/
+theorem intervalHeight_eq_toRB_height (t : AugmentedRBTree Interval Nat) :
+    IntervalTree.intervalHeight (toIntervalTree t) = RBTree.height (toRB_low t) := by
+  induction t with
+  | empty => rfl
+  | node c l k a r ihl ihr =>
+    simp [toIntervalTree, toRB_low, IntervalTree.intervalHeight, RBTree.height, ihl, ihr]
+
+end AugmentedRBTree
+
+/-- **Interval search runs in {lit}`O(log n)`.**  On an {lit}`Interval`-keyed
+augmented red-black tree with {lit}`n` nodes, interval search performs at most
+{lit}`2 log₂(n+1) + 1` pointer operations, composing
+{lit}`intervalSearchCost_le_height` with the red-black height bound
+({lit}`RBTree.height_log_bound`) via {lit}`AugmentedRBTree.intervalHeight_eq_toRB_height`. -/
+theorem intervalSearchCost_log_bound (t : AugmentedRBTree Interval Nat) (q : Interval)
+    (hShape : RBTree.RedBlackShape (AugmentedRBTree.toRB_low t)) :
+    IntervalTree.intervalSearchCost (AugmentedRBTree.toIntervalTree t) q ≤
+      2 * Nat.log 2 (RBTree.size (AugmentedRBTree.toRB_low t) + 1) + 1 := by
+  have hh := RBTree.height_log_bound (AugmentedRBTree.toRB_low t) hShape
+  have hc := IntervalTree.intervalSearchCost_le_height (AugmentedRBTree.toIntervalTree t) q
+  rw [AugmentedRBTree.intervalHeight_eq_toRB_height t] at hc
+  omega
 
 end Chapter14
 end CLRS
