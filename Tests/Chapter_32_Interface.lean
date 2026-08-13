@@ -71,5 +71,20 @@ namespace Chapter32
 #print axioms dfaMatcherTable_correct
 #print axioms transitionTableBuildCost_eq
 
+-- §32.5 Suffix arrays: suffix order and validity
+#check suffixAt
+#check suffixLe
+#check suffixArray
+#check SuffixArrayValid
+#check suffixArray_valid
+
+-- §32.5 Suffix arrays: pattern search
+#check suffixArraySearch
+#check suffixArraySearch_mem_iff
+
+-- §32.5 Suffix arrays: axioms clean on the headline theorems
+#print axioms suffixArray_valid
+#print axioms suffixArraySearch_mem_iff
+
 end Chapter32
 end CLRS
