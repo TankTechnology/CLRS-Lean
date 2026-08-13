@@ -220,9 +220,68 @@ lemma prefixMatchAux_le (P : Text α) (q : ℕ) (c : α) (n : ℕ) : prefixMatch
   induction n with
   | zero => simp [prefixMatchAux]
   | succ n ih =>
-      by_cases h : suffixTest (P.take (n + 1)) (P.take q) && (P.getD (n + 1) default == c)
-      · simp [prefixMatchAux, h]
-      · simp [prefixMatchAux, h]; omega
+      unfold prefixMatchAux
+      split <;> omega
+
+/-- If `prefixMatchAux` returns a nonzero value, that value's character matches `c`. -/
+lemma prefixMatchAux_char (P : Text α) (q : ℕ) (c : α) (n : ℕ) :
+    prefixMatchAux P q c n = 0 ∨ (P.getD (prefixMatchAux P q c n) default == c) = true := by
+  induction n with
+  | zero => simp [prefixMatchAux]
+  | succ n ih =>
+      unfold prefixMatchAux
+      split
+      · next h => right; exact (Bool.and_eq_true_iff.mp h).2
+      · next _ => exact ih
+
+/-- `prefixMatchAux` is maximal: any candidate below the bound is at most its result. -/
+lemma prefixMatchAux_maximal (P : Text α) (q : ℕ) (c : α) (n k : ℕ) (hk : k ≤ n)
+    (hsuf : suffixTest (P.take k) (P.take q) = true) (hchar : (P.getD k default == c) = true) :
+    k ≤ prefixMatchAux P q c n := by
+  induction n with
+  | zero => omega
+  | succ n ih =>
+      unfold prefixMatchAux
+      split
+      · next _ => omega
+      · next hnot =>
+          have hkne : k ≠ n + 1 := by
+            intro hkk
+            apply hnot
+            subst k
+            rw [hsuf, hchar]
+          have hklt : k ≤ n := by omega
+          exact ih hklt
+
+/-- If a candidate exists below the bound, the result of `prefixMatchAux` is itself a
+candidate (its character matches `c`). -/
+lemma prefixMatchAux_found (P : Text α) (q : ℕ) (c : α) (n : ℕ)
+    (hex : ∃ j, j ≤ n ∧ (suffixTest (P.take j) (P.take q) && (P.getD j default == c)) = true) :
+    (P.getD (prefixMatchAux P q c n) default == c) = true := by
+  induction n with
+  | zero =>
+      rcases hex with ⟨j, hj, hjprop⟩
+      have hj0 : j = 0 := by omega
+      change (P.getD 0 default == c) = true
+      rw [hj0] at hjprop
+      exact (Bool.and_eq_true_iff.mp hjprop).2
+  | succ n ih =>
+      unfold prefixMatchAux
+      by_cases ht : (suffixTest (P.take (n+1)) (P.take q) && (P.getD (n+1) default == c)) = true
+      · rw [ht]
+        exact (Bool.and_eq_true_iff.mp ht).2
+      · have htf : (suffixTest (P.take (n+1)) (P.take q) && (P.getD (n+1) default == c)) = false := by
+          cases hh : (suffixTest (P.take (n+1)) (P.take q) && (P.getD (n+1) default == c))
+          · rfl
+          · exact (ht hh).elim
+        rw [htf]
+        rcases hex with ⟨j, hj, hjprop⟩
+        have hjne : j ≠ n + 1 := by
+          intro hjj
+          rw [hjj] at hjprop
+          exact (ht hjprop).elim
+        have hjle : j ≤ n := by omega
+        exact ih ⟨j, hjle, hjprop⟩
 
 /-- If `P.take r` is a suffix of `P.take q ++ [a]` with `0 < r ≤ P.length`, then
 the character `P[r-1]` equals `a`. -/
@@ -238,8 +297,11 @@ lemma suffix_snoc_char_eq (P : Text α) (q r : ℕ) (a : α) (hrpos : 0 < r) (hr
     rw [List.getElem_take]
     rw [← List.getD_eq_getElem P default hltP]
   have h2 : (P.take (r - 1) ++ [a]).getD (r - 1) default = a := by
-    rw [List.getD_append_right (P.take (r - 1)) [a] default (r - 1) (by simp)]
-    simp
+    have hlen : (P.take (r - 1)).length = r - 1 := by
+      rw [List.length_take]
+      exact Nat.min_eq_left (by omega)
+    rw [List.getD_append_right (P.take (r - 1)) [a] default (r - 1) (by rw [hlen]; omega)]
+    simp [hlen]
   calc
     P.getD (r - 1) default = (P.take r).getD (r - 1) default := h1.symm
     _ = (P.take (r - 1) ++ [a]).getD (r - 1) default := by rw [htake]
