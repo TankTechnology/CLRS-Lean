@@ -419,23 +419,24 @@ the next length-`m` window of `T`. -/
 lemma window_slide {T : Text α} {s m : ℕ} {w : Text α} {c : α} {rest' : Text α}
     (hw : w = (T.drop s).take m) (hwlen : w.length = m) (hm0 : 0 < m)
     (hr : c :: rest' = T.drop (s + m)) :
-    w.drop 1 ++ [c] = (T.drop (s + 1)).take m := by
+    w.tail ++ [c] = (T.drop (s + 1)).take m := by
   have hwrest : w ++ (c :: rest') = T.drop s := by
     calc
       w ++ (c :: rest') = (T.drop s).take m ++ T.drop (s + m) := by rw [hw, ← hr]
       _ = (T.drop s).take m ++ (T.drop s).drop m := by rw [List.drop_drop]
       _ = T.drop s := List.take_append_drop m (T.drop s)
-  have hlen_wdrop : (w.drop 1).length = m - 1 := by
-    rw [List.length_drop, hwlen]
+  have hlen_tail : w.tail.length = m - 1 := by
+    rw [List.length_tail, hwlen]
   calc
-    w.drop 1 ++ [c] = (w.drop 1 ++ (c :: rest')).take m := by
+    w.tail ++ [c] = (w.tail ++ (c :: rest')).take m := by
       rw [List.take_append]
-      have hle : (w.drop 1).length ≤ m := by omega
-      have hone : m - (w.drop 1).length = 1 := by omega
+      have hle : w.tail.length ≤ m := by omega
+      have hone : m - w.tail.length = 1 := by omega
       rw [List.take_of_length_le hle, hone]
       simp
     _ = ((w ++ (c :: rest')).drop 1).take m := by
       rw [List.drop_append_of_le_length (show 1 ≤ w.length by omega)]
+      rw [List.drop_one]
     _ = ((T.drop s).drop 1).take m := by rw [hwrest]
     _ = (T.drop (s + 1)).take m := by
       rw [List.drop_drop]
@@ -446,7 +447,7 @@ def rollingGo (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : 
   match rest with
   | [] => (if h == p && matchesAt T P s then [s] else [], 1 + (if h == p then m else 0))
   | c :: rest' =>
-      let (tail, costTail) := rollingGo T P d q val p m (s + 1) (w.drop 1 ++ [c])
+      let (tail, costTail) := rollingGo T P d q val p m (s + 1) (w.tail ++ [c])
         (slideHash d q val h w c) rest'
       let conf := if h == p then m else 0
       if h == p && matchesAt T P s then (s :: tail, conf + 1 + costTail)
@@ -477,25 +478,26 @@ lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
   | cons c rest' ih =>
       simp only [rollingGo]
       -- set up the recursive invariants
-      have hw' : w.drop 1 ++ [c] = (T.drop (s + 1)).take m := window_slide hw hwlen hm0 hr
-      have hwlen' : (w.drop 1 ++ [c]).length = m := by
+      have hw' : w.tail ++ [c] = (T.drop (s + 1)).take m := window_slide hw hwlen hm0 hr
+      have hwlen' : (w.tail ++ [c]).length = m := by
         rw [List.length_append, List.length_cons, List.length_nil]
-        rw [List.length_drop, hwlen]
+        rw [List.length_tail, hwlen]
         omega
-      have hh' : slideHash d q val h w c = hash d q val (w.drop 1 ++ [c]) := by
+      have hh' : slideHash d q val h w c = hash d q val (w.tail ++ [c]) := by
         have hwne : w ≠ [] := by
           intro he; subst he; simp at hwlen; omega
         rw [hh]
-        exact (hash_slide d q val w c hq hwne).symm
+        simpa [List.drop_one] using (hash_slide d q val w c hq hwne).symm
       have hr' : rest' = T.drop ((s + 1) + m) := by
         calc
           rest' = (c :: rest').drop 1 := by rfl
           _ = (T.drop (s + m)).drop 1 := by rw [hr]
           _ = T.drop ((s + 1) + m) := by rw [List.drop_drop]; congr 1; omega
-      simp [ih (s + 1) (w.drop 1 ++ [c]) (slideHash d q val h w c) hw' hwlen' hh' hr',
-        rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh,
-        rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
+      simp only [ih (s + 1) (w.tail ++ [c]) (slideHash d q val h w c) hw' hwlen' hh' hr']
+      rw [rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh]
+      rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
       -- split the range and the hash-hit count
+      simp only [List.length_cons]
       rw [range_succ_map (rest'.length + 1) (fun i => s + i)]
       rw [hashHitsIn_succ T P d q val s rest'.length]
       have hmap : ((List.range (rest'.length + 1)).map (fun i => s + 1 + i)) =
@@ -503,7 +505,8 @@ lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
         congr; funext i; omega
       have hcost : (if hash d q val ((T.drop s).take P.length) == hash d q val P then m else 0)
           = hashHitsIn T P d q val s 0 * m := by
-        by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [h, hashHitsIn]
+        by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;>
+          simp only [h, hashHitsIn, List.filter_cons, List.length_cons, List.length_nil]
       rw [hmap, hcost]
       apply Prod.ext
       · simp only [List.filter_cons, List.map_cons, List.map_append]
