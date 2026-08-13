@@ -40,6 +40,18 @@ class ReaderSidebarModuleTests(unittest.TestCase):
         self.assertTrue(is_reader_sidebar_module("CLRSLean.ProofPatterns"))
         self.assertTrue(is_reader_sidebar_module("CLRSLean.Progress"))
 
+    def test_keeps_fourth_edition_sections(self) -> None:
+        self.assertTrue(
+            is_reader_sidebar_module(
+                "CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory"
+            )
+        )
+        self.assertTrue(
+            is_reader_sidebar_module(
+                "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT"
+            )
+        )
+
     def test_hides_legacy_chapter_tree_and_deep_helpers(self) -> None:
         hidden = [
             "CLRSLean.Chapter_22",
@@ -49,6 +61,7 @@ class ReaderSidebarModuleTests(unittest.TestCase):
             "CLRSLean.Chapter_22.Section_22_3_DFS.S1_WhitePath",
             "CLRSLean.Chapter_23.Section_23_2_Kruskal_And_Prim.S3_ExecutablePrim",
             "CLRSLean.FourthEdition.Chapter_22.Helper",
+            "CLRSLean.FourthEdition.Chapter_30.Section_30_2_DFT_And_FFT.RecursiveFFT",
         ]
         self.assertTrue(all(not is_reader_sidebar_module(name) for name in hidden))
 
@@ -93,6 +106,40 @@ class ReaderSidebarRewriteTests(unittest.TestCase):
         self.assertLess(
             result.html.index(">Chapter 22</a>"),
             result.html.index(">Chapter 23</a>"),
+        )
+
+    def test_keeps_fourth_edition_section_rows_and_prunes_helpers(self) -> None:
+        source = """<nav class="module-tree">
+  <details open><summary><a href="CLRSLean/FourthEdition/Chapter_31/" title="CLRSLean.FourthEdition.Chapter_31">Chapter 31</a></summary>
+    <details open><summary><a href="CLRSLean/FourthEdition/Chapter_31/Section_31_2_Greatest_Common_Divisor/" title="CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor">31.2</a></summary>
+      <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_31/Section_31_2_Greatest_Common_Divisor/Helper/" title="CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor.Helper">Helper</a></div>
+    </details>
+    <div class="leaf"><a href="CLRSLean/FourthEdition/Chapter_31/Section_31_1_Elementary_Number_Theory/" title="CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory">31.1</a></div>
+  </details>
+</nav>"""
+
+        result = prune_reader_sidebar(source)
+
+        self.assertEqual(
+            result.removed_modules,
+            (
+                "CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor.Helper",
+            ),
+        )
+        self.assertEqual(
+            result.flattened_modules,
+            (
+                "CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor",
+            ),
+        )
+        self.assertNotIn("Helper", result.html)
+        self.assertIn(
+            'title="CLRSLean.FourthEdition.Chapter_31.Section_31_1_Elementary_Number_Theory"',
+            result.html,
+        )
+        self.assertIn(
+            'title="CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor"',
+            result.html,
         )
 
     def test_rewrite_is_idempotent(self) -> None:

@@ -232,6 +232,65 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   maximum-subarray and Strassen runtimes are connected to their executions;
   remaining Chapter 4 work is lower-level representation and RAM refinement.
 
+### Section 4.1 - Multiplying square matrices (fourth edition, native)
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_04/Section_04_1_Multiplying_Square_Matrices.lean`
+- Status: `proved` for the recursive eight-product multiplication and its
+  `Θ(n³)` runtime
+- Main proved theorems:
+  - `CLRS.Chapter04.mul2_eq_mul`
+  - `CLRS.Chapter04.mulRec_correct`
+  - `CLRS.Chapter04.mulRec_padOne_corner`
+  - `CLRS.Chapter04.mul_runtime_bigTheta`
+  - `CLRS.Chapter04.realLogScale_eight_two`
+- Proof pattern: define the naive `2 × 2` block product and the recursive
+  eight-product `mulRec` on the shared depth-indexed `SqMat` squares; prove
+  correctness by induction on depth reducing to the `2 × 2` identity; discharge
+  the `T(n) = 8 T(⌊n/2⌋) + n²` work recurrence through the Master-theorem
+  case-1 wrapper, and identify the comparison scale at `a = 8, b = 2` with `n³`
+- Current gap: a lower-level RAM/pseudocode cost model
+
+### Section 4.6 - Proof of the continuous master theorem (fourth edition, native)
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_04/Section_04_6_Continuous_Master_Theorem.lean`
+- Status: `proved` for the real geometric-series core and the three continuous
+  cases, bridged to the discrete comparison scales
+- Main proved theorems:
+  - `CLRS.Chapter04.geomSum_le_of_lt_one`
+  - `CLRS.Chapter04.geomSum_eq_of_one`
+  - `CLRS.Chapter04.geomSum_bigTheta_of_gt_one`
+  - `CLRS.Chapter04.continuousWork_eq_geomSum`
+  - `CLRS.Chapter04.continuous_master_case1`
+  - `CLRS.Chapter04.continuous_master_case2`
+  - `CLRS.Chapter04.continuous_master_case3`
+  - `CLRS.Chapter04.continuous_case1_scale_eq_criticalPowerScale`
+  - `CLRS.Chapter04.continuous_case2_criticalPowerLogScale_eq`
+- Proof pattern: unroll the exact-division recurrence into a real geometric
+  sum whose three cases are governed by the ratio `a / b^p`; factor the
+  recursion-tree work as `b^(p·k)` times the geometric series; bridge the
+  continuous `a^k` and `k·a^k` scales to the discrete `criticalPowerScale` and
+  `criticalPowerLogScale`
+- Current gap: floors, ceilings, and non-polynomial forcing remain in the
+  legacy all-input file
+
+### Section 4.7 - Akra-Bazzi recurrences (fourth edition, native)
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_04/Section_04_7_Akra_Bazzi.lean`
+- Status: `proved` for the root equation, the single-branch corollary, and the
+  two-branch root instance
+- Main proved theorems:
+  - `CLRS.Chapter04.rpow_realLogExponent`
+  - `CLRS.Chapter04.akraBazziRoot_single`
+  - `CLRS.Chapter04.akraBazziRoot_single_unique`
+  - `CLRS.Chapter04.akraBazziRoot_two_thirds_one`
+  - `CLRS.Chapter04.akraBazzi_single_branch_corollary`
+- Proof pattern: characterize the root `Σ aᵢ/bᵢ^p = 1`; for one branch the root
+  is `p = log_b a` via the real base-power identity; uniqueness follows from
+  log-injectivity of the real power; the two-branch instance
+  `T(n) = T(n/3) + T(2n/3)` has root `p = 1`
+- Current gap: the full multi-branch `Θ(n^p(1 + ∫ g/u^(p+1)))` bound and the
+  polynomial-smoothness hypothesis
+
 ### Section 4.1 - The maximum-subarray problem
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_1_Maximum_Subarray.lean`
@@ -1674,6 +1733,39 @@ theorems for rotations, insertion, or deletion.  Those ordered-tree theorems,
 bridges from the textbook pointer/fixup loops to the functional algorithms, and
 execution-attached logarithmic costs remain fourth-edition gaps.
 
+### Section 13.2 (Fourth Edition) - Rotations
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_13/Section_13_2_Rotations.lean`
+- Status: fourth-edition §13.2 `native`.  The pointer/sentinel red-black store
+  (`RBNode`/`RBStore`), representation predicate (`StoreRepr`), and constant-cost
+  pointer rotation/recolor primitives are defined, and rotations are proved to
+  preserve both the inorder key list and the BST ordering invariant.
+- Main proved theorems:
+  - `CLRS.Chapter13.RBTree.keys_rotateLeft` / `keys_rotateRight`
+  - `CLRS.Chapter13.RBTree.bst_rotateLeft` / `bst_rotateRight` / `bst_repaintRoot`
+  - `CLRS.Chapter13.RBStore.get_set_eq` / `RBStore.get_set_ne` (frame)
+  - `CLRS.Chapter13.rotateLeftP_cost` / `rotateRightP_cost` / `recolorP_spec`
+
+### Section 13.3 (Fourth Edition) - Insertion
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_13/Section_13_3_Insertion.lean`
+- Status: fourth-edition §13.3 `native`.  The RB-INSERT-FIXUP inorder bridge,
+  BST output preservation, and the logarithmic execution-cost theorem are proved.
+- Main proved theorems:
+  - `CLRS.Chapter13.RBTree.keys_balanceLeft` / `keys_balanceRight`
+  - `CLRS.Chapter13.RBTree.bst_balanceLeft` / `bst_balanceRight`
+  - `CLRS.Chapter13.RBTree.bst_insert`
+  - `CLRS.Chapter13.RBTree.insertCost_log_bound`
+
+### Section 13.4 (Fourth Edition) - Deletion
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_13/Section_13_4_Deletion.lean`
+- Status: fourth-edition §13.4 `partial`.  The logarithmic execution-cost
+  theorem is proved; BST preservation of the composed delete (`bst_delete`)
+  remains.
+- Main proved theorems:
+  - `CLRS.Chapter13.RBTree.deleteCost_log_bound`
+
 ## Chapter 14 - Augmenting Data Structures
 
 ### Section 14.1 - Order-statistic trees
@@ -1838,16 +1930,57 @@ query/update cost theorems remain.
   search-after-update bridge; equal-low intervals also lack a distinct-key
   insertion policy.
 
+### Section 17.1 (Fourth Edition) - Dynamic order statistics
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_17/Section_17_1_Dynamic_Order_Statistics.lean`
+- Status: fourth-edition §17.1 `native`.  OS-RANK and its logarithmic query
+  bound are proved.
+- Main proved theorems:
+  - `CLRS.Chapter14.OSRBTree.osRank` / `rankOf`
+  - `CLRS.Chapter14.OSRBTree.osRank_eq_rankOf_of_wellSized`
+  - `CLRS.Chapter14.OSRBTree.osRankCost_log_bound`
+
+### Section 17.2 (Fourth Edition) - How to augment a data structure
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_17/Section_17_2_Augmenting_Data_Structures.lean`
+- Status: fourth-edition §17.2 `native`.  The constant-time `combine` premise
+  and the asymptotic augmentation update bound are proved.
+- Main proved theorems:
+  - `CLRS.Chapter14.augmentationUpdateCost`
+  - `CLRS.Chapter14.augmentation_update_bound`
+
+### Section 17.3 (Fourth Edition) - Interval trees
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_17/Section_17_3_Interval_Trees.lean`
+- Status: fourth-edition §17.3 `partial`.  The dynamic/static bridge,
+  search-after-update, and search-cost foundation are proved; the
+  Interval-keyed `O(log n)` search bound remains.
+- Main proved theorems:
+  - `CLRS.Chapter14.IntervalTree.intervalSearchCost_le_height`
+  - `CLRS.Chapter14.AugmentedRBTree.toIntervalTree` / `wellAugmented_toIntervalTree`
+  - `CLRS.Chapter14.intervalSearch_after_update`
+
 ## Chapter 15 - Dynamic Programming
 
-Fourth-edition mapping moves this legacy chapter to Chapter 14.  All four
-represented examples have selected mathematical correctness results, but every
-fourth-edition section remains partial at the algorithm-and-cost boundary:
-§14.1 lacks cut reconstruction and top-down memoization; §14.2 lacks the
-tabulated MATRIX-CHAIN-ORDER algorithm; §14.3 lacks a generic DP/memoization
-interface; §14.4 lacks a tabulated Θ(mn) LCS implementation; and §14.5 lacks a
-public executable e/w/root-table interface.  Proved/tracked completion for the
-selected inventory does not close these section obligations.
+Fourth-edition mapping moves this legacy chapter to Chapter 14.  The four
+represented examples carry their mathematical correctness results in the legacy
+sources below; the native fourth-edition sections (§14.1–14.5) complete the
+algorithm-and-cost boundary:
+
+* §14.1 `CLRSLean/FourthEdition/Chapter_14/Section_14_1_Rod_Cutting.lean`:
+  optimal-cut reconstruction (`rodCutFirstCut`, `rodCutPlan`), top-down
+  memoization (`memoizedRodCut`), and the `O(n²)` step count (`rodCutStepCount`).
+* §14.2 `CLRSLean/FourthEdition/Chapter_14/Section_14_2_Matrix_Chain_Multiplication.lean`:
+  the tabulated `MATRIX-CHAIN-ORDER` time/space bounds (`matrixChainTime`,
+  `matrixChainSpace`).
+* §14.3 `CLRSLean/FourthEdition/Chapter_14/Section_14_3_Elements_Of_Dynamic_Programming.lean`:
+  the reusable memo-cache invariant (`MemoCacheConsistent`) and the
+  distinct-state cost bridge (`distinctCacheStates`).
+* §14.4 `CLRSLean/FourthEdition/Chapter_14/Section_14_4_Longest_Common_Subsequence.lean`:
+  the tabulated `Θ(mn)` bound (`lcsTableCells`).
+* §14.5 `CLRSLean/FourthEdition/Chapter_14/Section_14_5_Optimal_Binary_Search_Trees.lean`:
+  the public e/w/root tables (`obstRoot`), reconstruction (`obstReconstruct`),
+  and cost bounds.
 
 ### Section 15.1 - Rod cutting
 
@@ -4180,7 +4313,7 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
     wait time, the strategy pays exactly `(2 - E/S) * S`, matching the
     competitive ratio stated in CLRS §27.1.
 - Current gap: the lower bound that no deterministic strategy beats `2 - r/p`
-  is not yet formalized; Section 27.3 (Online caching) is not represented.
+  is not yet formalized.
 
 ### Section 27.2 - Maintaining a Search List
 
@@ -4216,7 +4349,33 @@ No core proof group remains within the selected milestone.  Sections 26.4 and
   - Supporting lemmas: `SearchList.invDist_moveToFront_add_pos` (the phase-1
     potential change) and `SearchList.invDist_triangle` (the triangle inequality
     bounding the adversary's rearrangement).
-- Current gap: Section 27.3 (Online caching) is not represented.
+### Section 27.3 - Online Caching
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_27/Section_27_3_Online_Caching.lean`
+- Status: `main-proof-complete` (native fourth-edition source)
+- Model:
+  - `OnlineCaching.lruStep` / `OnlineCaching.lruRun` / `OnlineCaching.lruMisses`:
+    the LRU policy with the cache as a most-recent-first list — a hit moves the
+    page to the front, a miss prepends it, evicting the least-recently-used tail
+    when the cache is full — and its miss count over a request sequence.
+  - `OnlineCaching.Algorithm`: a bundled deterministic eviction algorithm over a
+    `Finset` cache with laws that it loads the request, only ever adds the
+    request, and keeps the cache at size at most `k`.
+- Proved:
+  - `OnlineCaching.distinct_fault`: a segment requesting `k + 1` distinct pages
+    forces a miss for any size-`k` algorithm.
+  - `OnlineCaching.resident_fault`: a page resident at the start of a segment
+    that then requests `k` other distinct pages forces a miss.
+  - `OnlineCaching.lru_miss_le_phases`: LRU makes at most `k` misses per phase,
+    so its total miss count is bounded by `k` times the number of phases.
+  - `OnlineCaching.phases_le_misses`: the number of phases is at most one more
+    than the miss count of any size-`k` algorithm.
+  - `OnlineCaching.lru_k_competitive` (Theorem 27.3): LRU is `k`-competitive.
+  - Supporting lemmas: `runGo_subset`, `runGo_size`,
+    `missesGo_eq_zero_subset` (a run with no misses has all requested pages
+    resident), `lru_head_evict`, and `lru_miss_le_distinct`.
+- Current gap: the matching lower bound — no deterministic online algorithm is
+  better than `k`-competitive — is recorded but not yet formalized.
 
 ## Chapter 28 - Matrix Operations
 
@@ -4839,7 +4998,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 
 ## Chapter 32 - String Matching
 
-The sources below are the canonical fourth-edition Sections 32.1; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
+The sources below are the canonical fourth-edition Sections 32.1–32.4; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
 
 ### Section 32.1 - The Naive String-Matching Algorithm
 
@@ -4851,8 +5010,77 @@ The sources below are the canonical fourth-edition Sections 32.1; the legacy `CL
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,
   `naiveMatcher_complete`, and the three represented boundary theorems.
-- Remaining fourth-edition chapter scope: Sections 32.2--32.5 (Rabin-Karp,
-  finite automata, Knuth-Morris-Pratt, and suffix arrays) are not represented.
+- Remaining fourth-edition chapter scope: Section 32.5 (suffix arrays) is not
+  represented.
+
+### Section 32.2 - The Rabin-Karp Algorithm
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_2_Rabin_Karp.lean`
+- Status: `complete` (native fourth-edition source; the full CLRS window-slide
+  recurrence, eq. (32.3), is left as a named gap)
+- Model:
+  - `hash d q val w`: the base-`d` modular hash of `w` over the numeric values
+    `val c`, computed by Horner's rule modulo `q`.
+  - `rabinKarpMatcher T P d q val`: the hash-and-confirm matcher returning every
+    shift where `P` occurs in `T` (hash match plus explicit comparison),
+    mirroring `naiveMatcher`.
+- Proved:
+  - `hash_snoc`: the `O(1)` incremental update
+    `hash (w ++ [c]) = (hash w · d + val c) mod q`.
+  - `hash_eq_of_text_eq`: equal strings hash equal, so a real match is never
+    discarded as a spurious hit.
+  - `rabinKarp_sound` / `rabinKarp_complete` / `rabinKarp_correct`: the matcher
+    returns exactly the valid shifts, and agrees with `naiveMatcher` on every
+    shift.
+
+### Section 32.3 - String Matching with Finite Automata
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_3_Finite_Automata.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `suffixTest p t` / `suffixLen P x`: "`p` is a suffix of `t`" and the suffix
+    function `σ(x)`.
+  - `delta P q a` / `deltaStar P q t`: the transition `δ(q, a) = σ(P_q a)` and
+    its extension to a string.
+  - `transitionTable` / `transitionLookup`: the finite-alphabet transition
+    table; `dfaMatcher` / `dfaMatcherTable`: the automaton matcher and its
+    table-driven refinement.
+- Proved:
+  - `suffixLen_snoc_le` (CLRS Lemma 32.3): `σ(xa) ≤ σ(x) + 1`.
+  - `suffixLen_snoc_eq` (CLRS Lemma 32.4): `σ(xa) = σ(P_{σ(x)} a)`.
+  - `deltaStar_eq_suffixLen` / `deltaStar_accepts_iff_suffix`:
+    `δ*(q, T) = σ(P_q T)`, and `δ*(0, T) = |P| ↔ P` is a suffix of `T`.
+  - `dfaMatcher_sound` / `dfaMatcher_complete` / `dfaMatcher_correct`: the
+    all-occurrences automaton matcher is sound, complete, and equivalent to
+    `naiveMatcher`.
+  - `transitionLookup_eq_delta` / `dfaMatcherTable_correct`: the table lookup is
+    exactly `δ`, and the table-driven matcher refines `dfaMatcher`.
+  - `transitionTableBuildCost_eq` / `dfaMatcherCost_eq`: preprocessing costs
+    `(|P| + 1)·|Σ|` and matching is `Θ(|T|)`.
+
+### Section 32.4 - The Knuth-Morris-Pratt Algorithm
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_4_Knuth_Morris_Pratt.lean`
+- Status: `complete` (native fourth-edition source; the all-occurrences KMP
+  scan and its `O(m + n)` cost remain open — issue #198 was closed by PR #205
+  with the scan still pending)
+- Model:
+  - `prefixLen P q`: the prefix function `π(q)` — the longest proper prefix of
+    `P` that is a suffix of `P.take q`.
+  - `computePrefixFunction P`: the executable `COMPUTE-PREFIX-FUNCTION`
+    (failure-link recurrence).
+  - `failureFollow`: follows failure links `π[k-1]` while `P[k] ≠ c`.
+- Proved:
+  - `prefixLen_satisfies` / `prefixLen_maximal`: `P.take (π q)` is the longest
+    proper prefix of `P` that is a suffix of `P.take q`.
+  - `prefixLen_chain_step` (CLRS Lemma 32.5): a shorter prefix-suffix of
+    `P.take q` is a prefix-suffix of `P.take (π q)`.
+  - `prefixLen_snoc_eq` (CLRS Lemma 32.6): `π(q+1)` extends the longest
+    prefix-suffix of `P.take q` whose next character matches `P[q]`.
+  - `failureFollow_eq_prefixMatchAux`: following failure links from `π(q)`
+    agrees with the from-scratch search.
+  - `computePrefixFunction_correct`: each entry of the executable array equals
+    `prefixLen`.
 
 ## Fourth Edition Chapter 33 - Machine-Learning Algorithms
 

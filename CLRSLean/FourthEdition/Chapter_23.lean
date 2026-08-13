@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_25
 import CLRSLean.FourthEdition.Chapter_23.Section_23_1_All_Pairs_Model
 import CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall
 import CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm

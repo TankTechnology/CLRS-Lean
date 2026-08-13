@@ -1,3 +1,4 @@
+import CLRSLean.Chapter_21
 import CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations
 import CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation
 import CLRSLean.FourthEdition.Chapter_19.Section_19_3_Disjoint_Set_Forests
@@ -26,6 +27,13 @@ amortization developments.  Declarations retain the legacy `CLRS.Chapter21`
 namespace during the compatibility period; the third-edition-numbered
 imports {lit}`CLRSLean.Chapter_21` and {lit}`CLRSLean.Chapter_21.Section_21_*`
 forward to these sources.
+
+## Implementation details
+
+The supporting implementation pages remain available outside the main sidebar:
+
+* [Costed Union-Find Execution](CLRSLean/FourthEdition/Chapter_19/Section_19_4_Analysis/CostedExecution/)
+* [Inverse-Ackermann Amortization](CLRSLean/FourthEdition/Chapter_19/Section_19_4_Analysis/InverseAckermann/)
 
 ## Coverage boundary
 

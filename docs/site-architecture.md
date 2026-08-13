@@ -118,15 +118,16 @@ preparation command.
 should not depend on a hand-written `docs/site/index.html`.
 
 Source-module boundaries do not have to become entries in reader navigation.
-The sidebar shows the 35 fourth-edition facades and top-level support pages.
-Legacy theorem-bearing pages stay generated and searchable, but their nearest
-canonical facade or Online Material is used as the visible navigation parent.
-Supporting modules below a section, and children below top-level support pages
-such as `ProofPatterns` and `Probability`, are omitted from the sidebar.  They
-are still generated as complete pages and remain reachable from the nearest
-visible parent's **Implementation details** section, site search, the sitemap,
-and their direct URLs.  Keep these files independently importable and place
-them under the main section's module path (for example,
+The sidebar shows the 35 fourth-edition chapter facades, their section pages
+as child rows (in the order given by `[order_children]`), and the top-level
+support pages.  Legacy theorem-bearing pages stay generated and searchable, but
+their nearest canonical facade or Online Material is used as the visible
+navigation parent.  Supporting modules below a section, and children below
+top-level support pages such as `ProofPatterns` and `Probability`, are omitted
+from the sidebar.  They are still generated as complete pages and remain
+reachable from the nearest visible parent's **Implementation details** section,
+site search, the sitemap, and their direct URLs.  Keep these files independently
+importable and place them under the main section's module path (for example,
 `Section_xx_y/Helper.lean`).  Their `[order_children]` entries continue to
 control generation and search order even though they are not reader-visible
 navigation rows.

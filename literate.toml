@@ -271,6 +271,23 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_04" = [
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi",
+]
+"CLRSLean.FourthEdition.Chapter_13" = [
+  "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
+  "CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion",
+  "CLRSLean.FourthEdition.Chapter_13.Section_13_4_Deletion",
+]
+"CLRSLean.FourthEdition.Chapter_14" = [
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_1_Rod_Cutting",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_2_Matrix_Chain_Multiplication",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_3_Elements_Of_Dynamic_Programming",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_4_Longest_Common_Subsequence",
+  "CLRSLean.FourthEdition.Chapter_14.Section_14_5_Optimal_Binary_Search_Trees",
+]
 "CLRSLean.FourthEdition.Chapter_15" = [
   "CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta",
@@ -291,6 +308,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables" = [
   "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables",
+]
+"CLRSLean.FourthEdition.Chapter_17" = [
+  "CLRSLean.FourthEdition.Chapter_17.Section_17_1_Dynamic_Order_Statistics",
+  "CLRSLean.FourthEdition.Chapter_17.Section_17_2_Augmenting_Data_Structures",
+  "CLRSLean.FourthEdition.Chapter_17.Section_17_3_Interval_Trees",
 ]
 "CLRSLean.FourthEdition.Chapter_19" = [
   "CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations",
@@ -634,6 +656,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.FourthEdition.Chapter_32" = [
   "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model",
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_2_Rabin_Karp",
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_3_Finite_Automata",
+  "CLRSLean.FourthEdition.Chapter_32.Section_32_4_Knuth_Morris_Pratt",
 ]
 "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model" = [
   "CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
@@ -645,6 +670,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_27" = [
   "CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator",
   "CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List",
+  "CLRSLean.FourthEdition.Chapter_27.Section_27_3_Online_Caching",
 ]
 "CLRSLean.FourthEdition.Chapter_28" = [
   "CLRSLean.FourthEdition.Chapter_28.Section_28_1_Linear_Equations",
@@ -705,13 +731,6 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
 ]
-"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
-  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
-  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat",
-  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine",
-  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique",
-]
-
 "CLRSLean.Chapter_31" = [
   "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
   "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
@@ -730,18 +749,6 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher",
 ]
 
-"CLRSLean.Chapter_33" = [
-  "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
-]
-"CLRSLean.FourthEdition.Chapter_27" = [
-  "CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator",
-  "CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List",
-]
-"CLRSLean.FourthEdition.Chapter_33" = [
-  "CLRSLean.FourthEdition.Chapter_33.Section_33_1_Clustering",
-  "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
-  "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
-]
 "CLRSLean.Chapter_34" = [
   "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time",
   "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification",
@@ -784,6 +791,15 @@ title = "Chapter 3. Characterizing Running Times"
 [modules."CLRSLean.FourthEdition.Chapter_04"]
 title = "Chapter 4. Divide-and-Conquer"
 
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices"]
+title = "4.1. Multiplying Square Matrices"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem"]
+title = "4.6. Proof of the Continuous Master Theorem"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi"]
+title = "4.7. Akra–Bazzi Recurrences"
+
 [modules."CLRSLean.FourthEdition.Chapter_05"]
 title = "Chapter 5. Probabilistic Analysis and Randomized Algorithms"
 
@@ -811,8 +827,32 @@ title = "Chapter 12. Binary Search Trees"
 [modules."CLRSLean.FourthEdition.Chapter_13"]
 title = "Chapter 13. Red-Black Trees"
 
+[modules."CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations"]
+title = "13.2. Rotations"
+
+[modules."CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion"]
+title = "13.3. Insertion"
+
+[modules."CLRSLean.FourthEdition.Chapter_13.Section_13_4_Deletion"]
+title = "13.4. Deletion"
+
 [modules."CLRSLean.FourthEdition.Chapter_14"]
 title = "Chapter 14. Dynamic Programming"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_1_Rod_Cutting"]
+title = "14.1. Rod Cutting"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_2_Matrix_Chain_Multiplication"]
+title = "14.2. Matrix-Chain Multiplication"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_3_Elements_Of_Dynamic_Programming"]
+title = "14.3. Elements of Dynamic Programming"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_4_Longest_Common_Subsequence"]
+title = "14.4. Longest Common Subsequence"
+
+[modules."CLRSLean.FourthEdition.Chapter_14.Section_14_5_Optimal_Binary_Search_Trees"]
+title = "14.5. Optimal Binary Search Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_15"]
 title = "Chapter 15. Greedy Algorithms"
@@ -855,6 +895,15 @@ title = "Mutable-Array Tables and Sharper Potential"
 
 [modules."CLRSLean.FourthEdition.Chapter_17"]
 title = "Chapter 17. Augmenting Data Structures"
+
+[modules."CLRSLean.FourthEdition.Chapter_17.Section_17_1_Dynamic_Order_Statistics"]
+title = "17.1. Dynamic Order Statistics"
+
+[modules."CLRSLean.FourthEdition.Chapter_17.Section_17_2_Augmenting_Data_Structures"]
+title = "17.2. How to Augment a Data Structure"
+
+[modules."CLRSLean.FourthEdition.Chapter_17.Section_17_3_Interval_Trees"]
+title = "17.3. Interval Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_18"]
 title = "Chapter 18. B-Trees"
@@ -1172,6 +1221,9 @@ title = "27.1. Waiting for an Elevator"
 [modules."CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List"]
 title = "27.2. Maintaining a Search List"
 
+[modules."CLRSLean.FourthEdition.Chapter_27.Section_27_3_Online_Caching"]
+title = "27.3. Online Caching"
+
 [modules."CLRSLean.FourthEdition.Chapter_28"]
 title = "Chapter 28. Matrix Operations"
 
@@ -1288,18 +1340,12 @@ title = "31.7. The RSA Public-Key Cryptosystem"
 title = "31.8. Primality Testing"
 [modules."CLRSLean.Chapter_31.Section_31_9_Integer_Factorization"]
 title = "31.9. Integer Factorization"
-[modules."CLRSLean.FourthEdition.Chapter_31"]
-title = "Chapter 31. Number-Theoretic Algorithms"
-
 [modules."CLRSLean.Chapter_32"]
 title = "Chapter 32. String Matching"
 [modules."CLRSLean.Chapter_32.Section_32_1_String_Model"]
 title = "32.1. The Naive String-Matching Algorithm"
 [modules."CLRSLean.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
 title = "32.1. Naive Matcher — Implementation"
-[modules."CLRSLean.FourthEdition.Chapter_32"]
-title = "Chapter 32. String Matching"
-
 [modules."CLRSLean.FourthEdition.Chapter_33"]
 title = "Chapter 33. Machine-Learning Algorithms"
 
@@ -1845,9 +1891,6 @@ title = "26.2 S3. The O(VE²) Work Analysis"
 title = "26.2 S4. Executable BFS"
 
 [modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
-title = "26.3. Maximum Bipartite Matching (partial)"
-
-[modules."CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching"]
 title = "26.3. Maximum Bipartite Matching"
 
 [modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
@@ -2338,6 +2381,15 @@ title = "32.1. The Naive String-Matching Algorithm"
 
 [modules."CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher"]
 title = "32.1. Naive Matcher — Implementation"
+
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_2_Rabin_Karp"]
+title = "32.2. The Rabin–Karp Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_3_Finite_Automata"]
+title = "32.3. String Matching with Finite Automata"
+
+[modules."CLRSLean.FourthEdition.Chapter_32.Section_32_4_Knuth_Morris_Pratt"]
+title = "32.4. The Knuth–Morris–Pratt Algorithm"
 
 [modules."CLRSLean.Chapter_33"]
 title = "Chapter 33. Computational Geometry"

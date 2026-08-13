@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 CHAPTER_MODULE_RE = re.compile(r"Chapter_[0-9][0-9]")
+SECTION_MODULE_RE = re.compile(r"Section_.*")
 READER_SUPPORT_MODULES = frozenset(
     {
         "CLRSLean.OnlineMaterial",
@@ -44,6 +45,12 @@ def is_reader_sidebar_module(module_name: str) -> bool:
             len(parts) == 3
             and parts[:2] == ["CLRSLean", "FourthEdition"]
             and CHAPTER_MODULE_RE.fullmatch(parts[2]) is not None
+        )
+        or (
+            len(parts) == 4
+            and parts[:2] == ["CLRSLean", "FourthEdition"]
+            and CHAPTER_MODULE_RE.fullmatch(parts[2]) is not None
+            and SECTION_MODULE_RE.fullmatch(parts[3]) is not None
         )
     )
 
