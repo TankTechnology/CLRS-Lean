@@ -32,7 +32,7 @@ theorems.
 
 The supporting merge-sort congruence proof remains available outside the main sidebar:
 
-* [Merge-Sort Congruence](CLRSLean/Chapter_20/Section_20_5_Strongly_Connected_Components/MergeSortCongr/)
+* [Merge-Sort Congruence](CLRSLean/FourthEdition/Chapter_20/Section_20_5_Strongly_Connected_Components/MergeSortCongr/)
 
 Current status:
 

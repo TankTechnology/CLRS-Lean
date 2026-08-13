@@ -20,11 +20,11 @@ modules.
 
 The detailed DFS proof layers remain available outside the main sidebar:
 
-* [White-Path Theorem](CLRSLean/Chapter_20/Section_20_3_DFS/S1_WhitePath/)
-* [Intervals and Timestamps](CLRSLean/Chapter_20/Section_20_3_DFS/S2_Intervals/)
-* [Discovery-State Bridge](CLRSLean/Chapter_20/Section_20_3_DFS/S3_Bridge/)
-* [SCC Preliminaries](CLRSLean/Chapter_20/Section_20_3_DFS/S4_SCC/)
-* [Edge Classification](CLRSLean/Chapter_20/Section_20_3_DFS/S5_EdgeClassification/)
+* [White-Path Theorem](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S1_WhitePath/)
+* [Intervals and Timestamps](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S2_Intervals/)
+* [Discovery-State Bridge](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S3_Bridge/)
+* [SCC Preliminaries](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S4_SCC/)
+* [Edge Classification](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S5_EdgeClassification/)
 -/
 
 namespace CLRS
