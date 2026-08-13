@@ -48,8 +48,6 @@ The edition map currently records these fourth-edition gaps:
 * **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial for
   general-form normalization, finite formulation bridges, and canonical
   declaration ownership; detailed SIMPLEX material remains available online.
-* **Chapter 32, String Matching:** Section 32.1 is represented; Sections
-  32.2--32.5 are not started.
 * **Chapter 27, Online Algorithms:** Sections 27.1 (Waiting for an elevator) and
   27.2 (Maintaining a search list) are represented; Section 27.3 (Online
   caching) is represented in part with the LRU paging model and phase-partition
