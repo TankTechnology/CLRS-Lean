@@ -479,5 +479,89 @@ lemma prefixMatchAux_congr (P : Text α) (q q' : ℕ) (c : α) (n : ℕ)
       rw [hsuf]
       rw [ih']
 
+/-- The from-scratch search from `k - 1` over `P.take q` agrees with the search from
+`prefixLen P k` over `P.take k`, when `k = prefixLen P q` (the failure-link jump). -/
+lemma prefixMatchAux_chain_jump (P : Text α) (q k : ℕ) (c : α) (hk : k = prefixLen P q) (hkpos : 0 < k) :
+    prefixMatchAux P q c (k - 1) = prefixMatchAux P k c (prefixLen P k) := by
+  have hplt : prefixLen P k < k := prefixLen_lt_of_pos P k hkpos
+  have hdrop : prefixMatchAux P q c (k - 1) = prefixMatchAux P q c (prefixLen P k) := by
+    refine prefixMatchAux_drop P q c (k - 1) (prefixLen P k) (by omega) ?_
+    intro j hj1 hj2
+    by_contra hsj
+    have hsjt : suffixTest (P.take j) (P.take q) = true := by
+      cases h : suffixTest (P.take j) (P.take q) with
+      | false => exact (hsj h).elim
+      | true => rfl
+    have hjsuf : isSuffix (P.take j) (P.take q) := (suffixTest_eq_isSuffix _ _).mp hsjt
+    have hjltpl : j < prefixLen P q := by rw [← hk]; omega
+    have hchain : isSuffix (P.take j) (P.take k) := by
+      simpa [hk] using (prefixLen_chain_step P q j hjsuf hjltpl)
+    have hjltk : j < k := by omega
+    have hmax : j ≤ prefixLen P k := prefixLen_maximal P k j hjltk hchain
+    omega
+  have hcongr : prefixMatchAux P q c (prefixLen P k) = prefixMatchAux P k c (prefixLen P k) := by
+    refine prefixMatchAux_congr P q k c (prefixLen P k) ?_
+    intro j hj
+    constructor
+    · intro hsjt
+      have hjsuf : isSuffix (P.take j) (P.take q) := (suffixTest_eq_isSuffix _ _).mp hsjt
+      have hjltpl : j < prefixLen P q := by
+        rw [← hk]
+        omega
+      have hchain : isSuffix (P.take j) (P.take k) := by
+        simpa [hk] using (prefixLen_chain_step P q j hjsuf hjltpl)
+      exact (suffixTest_eq_isSuffix _ _).mpr hchain
+    · intro hsjt
+      have hjsuf : isSuffix (P.take j) (P.take k) := (suffixTest_eq_isSuffix _ _).mp hsjt
+      have hksuf : isSuffix (P.take k) (P.take q) := by
+        simpa [hk] using prefixLen_satisfies P q
+      have hjsuf' : isSuffix (P.take j) (P.take q) := suffix_trans hjsuf hksuf
+      exact (suffixTest_eq_isSuffix _ _).mpr hjsuf'
+  exact hdrop.trans hcongr
+
+/-- Following failure links from `k = π(q)` agrees with the from-scratch search
+`prefixMatchAux P q c k`, when `π` is the correct prefix-function array. -/
+lemma failureFollow_eq_prefixMatchAux (P : Text α) (π : List ℕ) (c : α) (q k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1)
+    (hπ : ∀ i, i < q → π.getD i 0 = prefixLen P (i + 1))
+    (hk : k = prefixLen P q) :
+    failureFollow P π c k hinv = prefixMatchAux P q c k := by
+  revert q
+  refine Nat.strong_induction_on k ?_
+  intro k ih q hπ hk
+  by_cases hk0 : k = 0
+  · subst k
+    simp [failureFollow, prefixMatchAux]
+  · have hkpos : 0 < k := Nat.pos_of_ne_zero hk0
+    have hsuf : suffixTest (P.take k) (P.take q) = true := by
+      simpa [hk] using (suffixTest_eq_isSuffix _ _).mpr (prefixLen_satisfies P q)
+    obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hk0
+    have hqpos : 0 < q := by
+      have hle := prefixLen_le P q
+      rw [← hk] at hle
+      omega
+    have hnltq : n < q := by
+      have hlt := prefixLen_lt_of_pos P q hqpos
+      rw [← hk] at hlt
+      omega
+    rw [failureFollow.eq_1]
+    simp only [Nat.succ_ne_zero, ↓reduceIte]
+    rw [prefixMatchAux]
+    rw [hsuf]
+    by_cases hc : P.getD (n + 1) default = c
+    · rw [if_pos hc]
+      rw [if_pos (beq_iff_eq.mpr hc)]
+    · have hcneg : ¬ (P.getD (n + 1) default == c) = true := by
+        intro hh
+        exact hc (beq_iff_eq.mp hh)
+      rw [if_neg hc]
+      rw [if_neg hcneg]
+      have hπn : π.getD n 0 = prefixLen P (n + 1) := hπ n hnltq
+      rw [hπn]
+      have hih := ih (prefixLen P (n + 1)) (prefixLen_lt_of_pos P (n + 1) (by omega))
+        (n + 1) (fun i hi => hπ i (by omega)) rfl
+      rw [hih]
+      exact (prefixMatchAux_chain_jump P q (n + 1) c (by simpa [hk]) (by omega)).symm
+
 end Chapter32
 end CLRS
