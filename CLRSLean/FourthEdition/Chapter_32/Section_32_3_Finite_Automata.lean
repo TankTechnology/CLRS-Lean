@@ -2,6 +2,8 @@ import Mathlib
 import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model
 import CLRSLean.FourthEdition.Chapter_32.Section_32_1_String_Model.Naive_Matcher
 
+set_option maxHeartbeats 1000000
+
 /-! # Section 32.3 — String Matching with Finite Automata
 
 The finite-automaton string matcher (CLRS §32.3) builds a deterministic finite
@@ -55,8 +57,7 @@ theorem suffixTest_eq_isSuffix (p t : Text α) :
     · next hlen =>
         have hdrop : t.drop (t.length - p.length) = p := beq_iff_eq.mp h
         refine ⟨t.take (t.length - p.length), ?_⟩
-        rw [← hdrop]
-        exact (List.take_append_drop (t.length - p.length) t).symm
+        simpa [hdrop] using (List.take_append_drop (t.length - p.length) t)
     · simp at h
   · intro h
     unfold suffixTest
@@ -106,46 +107,40 @@ lemma isSuffix_of_suffix_of_suffix {x y z : Text α} (hy : isSuffix y x) (hz : i
   omega
 
 /-- The suffix function search: largest `k ≤ n` with `P.take k` a suffix of `x`. -/
-def suffixLenAux (P x : Text α) (n : ℕ) : ℕ :=
-  if n = 0 then 0
-  else if suffixTest (P.take n) x then n else suffixLenAux P x (n - 1)
+def suffixLenAux (P x : Text α) : ℕ → ℕ
+  | 0 => 0
+  | n + 1 => if suffixTest (P.take (n + 1)) x then n + 1 else suffixLenAux P x n
 
 /-- The suffix function `σ(x)`: the largest `k ≤ |P|` with `P.take k` a suffix
 of `x` (CLRS §32.3). -/
 def suffixLen (P x : Text α) : ℕ :=
   suffixLenAux P x P.length
 
+/-- `suffixLenAux` never exceeds its bound. -/
+lemma suffixLenAux_le (P x : Text α) (n : ℕ) : suffixLenAux P x n ≤ n := by
+  induction n with
+  | zero => simp [suffixLenAux]
+  | succ n ih =>
+      by_cases ht : suffixTest (P.take (n + 1)) x
+      · simp [suffixLenAux, ht]
+      · simp [suffixLenAux, ht]; omega
+
 /-- `σ(x) ≤ |P|`. -/
 theorem suffixLen_le (P x : Text α) : suffixLen P x ≤ P.length := by
   unfold suffixLen
-  have hgo : ∀ n, n ≤ P.length → suffixLenAux P x n ≤ P.length := by
-    intro n hn
-    induction n using Nat.strong_induction_on with
-    | h n ih =>
-        by_cases h0 : n = 0
-        · simp [suffixLenAux, h0]
-        · by_cases ht : suffixTest (P.take n) x
-          · simp [suffixLenAux, h0, ht]
-          · have hle : n - 1 ≤ P.length := by omega
-            have := ih (n - 1) (by omega) hle
-            simpa [suffixLenAux, h0, ht] using this
-  exact hgo P.length (by rfl)
+  exact suffixLenAux_le P x P.length
 
 /-- `P.take (σ x)` is a suffix of `x`. -/
 theorem suffixLen_satisfies (P x : Text α) : isSuffix (P.take (suffixLen P x)) x := by
   unfold suffixLen
   have hgo : ∀ n, suffixLenAux P x n = 0 ∨ suffixTest (P.take (suffixLenAux P x n)) x = true := by
     intro n
-    induction n using Nat.strong_induction_on with
-    | h n ih =>
-        by_cases h0 : n = 0
-        · left; simp [suffixLenAux, h0]
-        · by_cases ht : suffixTest (P.take n) x
-          · right; simpa [suffixLenAux, h0, ht] using ht
-          · have := ih (n - 1) (by omega)
-            rcases this with hzero | hsuf
-            · left; simpa [suffixLenAux, h0, ht] using hzero
-            · right; simpa [suffixLenAux, h0, ht] using hsuf
+    induction n with
+    | zero => left; simp [suffixLenAux]
+    | succ n ih =>
+        by_cases ht : suffixTest (P.take (n + 1)) x
+        · right; simpa [suffixLenAux, ht] using ht
+        · simpa [suffixLenAux, ht] using ih
   rcases hgo P.length with hzero | hsuf
   · rw [hzero]; exact isSuffix_empty x
   · exact (suffixTest_eq_isSuffix _ _).mp hsuf
@@ -156,21 +151,20 @@ theorem suffixLen_maximal (P x : Text α) (k : ℕ) (hk : k ≤ P.length)
     (hsuf : isSuffix (P.take k) x) : k ≤ suffixLen P x := by
   unfold suffixLen
   have ht : suffixTest (P.take k) x = true := (suffixTest_eq_isSuffix _ _).mpr hsuf
-  have hgo : ∀ n, k ≤ n → n ≤ P.length → k ≤ suffixLenAux P x n := by
-    intro n hkn hn
-    induction n using Nat.strong_induction_on with
-    | h n ih =>
-        by_cases h0 : n = 0
-        · subst n; omega
-        · by_cases hts : suffixTest (P.take n) x
-          · simp [suffixLenAux, h0, hts]
-          · have hne : k ≠ n := by
-              intro hkn'; subst k
-              simpa [hts] using ht
-            have hkn' : k ≤ n - 1 := by omega
-            have := ih (n - 1) (by omega) hkn' (by omega)
-            simpa [suffixLenAux, h0, hts] using this
-  exact hgo P.length (by rfl) (by rfl)
+  have hgo : ∀ n, k ≤ n → k ≤ suffixLenAux P x n := by
+    intro n hkn
+    induction n with
+    | zero => omega
+    | succ n ih =>
+        by_cases hts : suffixTest (P.take (n + 1)) x
+        · simp [suffixLenAux, hts]
+        · have hklt : k < n + 1 := by
+            by_cases hk_eq : k = n + 1
+            · subst k; simpa [hts] using ht
+            · omega
+          have := ih (by omega)
+          simpa [suffixLenAux, hts] using this
+  exact hgo P.length hk
 
 /-- The suffix function at a prefix of `P` returns that prefix's length. -/
 theorem suffixLen_of_take (P : Text α) (q : ℕ) (hq : q ≤ P.length) :
