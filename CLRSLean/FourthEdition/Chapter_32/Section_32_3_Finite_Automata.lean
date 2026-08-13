@@ -458,7 +458,7 @@ lemma dfaScan_spec_cons (P : Text α) (m : ℕ) (scanned : Text α) (c : α) (T 
               (fun j => (scanned ++ [c]).length + j - m)
   rw [range_succ_cons T.length]
   simp only [List.filter_cons, List.map_cons, List.map_append, List.filter_nil, List.map_nil]
-  rw [List.filter_map, List.map_map]
+  simp only [List.filter_map, List.map_map]
   simp only [take_cons_zero, take_cons_succ]
   -- align the composed filter/map functions with the RHS
   congr
@@ -482,7 +482,7 @@ lemma dfaScan_spec (P : Text α) (m : ℕ) (scanned T : Text α) :
           (fun j => scanned.length + j - m) := by
   induction T generalizing scanned with
   | nil =>
-      simp [dfaScan, List.append_nil, List.take_zero, List.range_one]
+      simp [dfaScan, List.append_nil, List.take_zero, List.range_one, List.filter_cons, List.map_cons]
   | cons c T ih =>
       rw [dfaScan_cons, ← deltaStar_append_one P scanned c]
       rw [ih (scanned ++ [c])]
@@ -512,8 +512,7 @@ lemma matchesAt_iff_isSuffix_take (P T : Text α) (s : ℕ) (hs : s + P.length �
   constructor
   · intro h
     refine ⟨T.take s, ?_⟩
-    rw [← h]
-    exact (List.take_add (l := T) (i := s) (j := P.length)).symm
+    rw [← h, List.take_add (i := s) (j := P.length) (l := T)]
   · intro h
     rcases h with ⟨u, hu⟩
     have hulen : u.length = s := by
@@ -547,8 +546,9 @@ lemma deltaStar_take_eq_matchesAt (P T : Text α) (s : ℕ) (hs : s + P.length �
   | false =>
       have hd : deltaStar P 0 (T.take (s + P.length)) ≠ P.length := by
         intro hd'
-        have : matchesAt T P s = true := hacc.mp hd'
-        rw [h] at this
+        have htrue : matchesAt T P s = true := hacc.mp hd'
+        rw [h] at htrue
+        cases htrue
       by_cases hb : deltaStar P 0 (T.take (s + P.length)) == P.length
       · have heq : deltaStar P 0 (T.take (s + P.length)) = P.length := beq_iff_eq.mp hb
         exact (hd heq).elim
@@ -567,7 +567,7 @@ lemma filter_map_delta_eq_naive (P T : Text α) :
     by_cases hle : P.length ≤ T.length
     · have hrange : List.range (T.length + 1)
           = List.range P.length ++ List.map (fun x => P.length + x) (List.range (T.length - P.length + 1)) := by
-        have h := List.range_add P.length (T.length - P.length + 1)
+        have h := List.range_add (n := P.length) (m := T.length - P.length + 1)
         rw [show P.length + (T.length - P.length + 1) = T.length + 1 by omega] at h
         exact h
       rw [hrange, List.filter_append, List.map_append]
@@ -586,7 +586,10 @@ lemma filter_map_delta_eq_naive (P T : Text α) :
       rw [List.filter_map, List.map_map]
       have hsub : (fun x => (P.length + x) - P.length) = (fun x => x) := by
         funext x; rw [Nat.add_sub_cancel_left]
-      rw [hsub, List.map_id]
+      change List.map (fun x => (P.length + x) - P.length)
+          ((List.range (T.length - P.length + 1)).filter (fun x => deltaStar P 0 (T.take (P.length + x)) == P.length))
+        = naiveMatcher T P
+      simp [hsub]
       rw [naiveMatcher, if_neg hzero]
       apply List.filter_congr
       intro s hs
