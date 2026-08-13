@@ -704,11 +704,30 @@ lemma computePrefixGo_correct (P : Text α) (π : List ℕ) (k : ℕ)
           omega
       have hk''lt : k'' < (π ++ [k'']).length := by
         simp [hk''le]
-      rw [computePrefixGo]
-      trace_state
-      have hbridge := computePrefixGo_irrelevant P (π ++ [k'']) k'' rest' _ hinv'' _ hk''lt
-      rw [hbridge] at hi ⊢
+      have heq : computePrefixGo P π k hinv hk_lt (c :: rest') =
+          computePrefixGo P (π ++ [k'']) k'' hinv'' hk''lt rest' := by
+        rw [computePrefixGo]
+      rw [heq] at hi ⊢
       exact (ih (π ++ [k'']) k'' hinv'' hk''lt hπ' hk' (by simpa [List.length_append] using hrest')) i hi
+
+/-- The executable `COMPUTE-PREFIX-FUNCTION` array equals the prefix function
+`prefixLen` (CLRS Lemma 32.6). -/
+theorem computePrefixFunction_correct (P : Text α) (i : ℕ) (hi : i < P.length) :
+    (computePrefixFunction P).getD i 0 = prefixLen P (i + 1) := by
+  cases P with
+  | nil => omega
+  | cons a as =>
+      have hπ : ∀ j, j < [0].length → [0].getD j 0 = prefixLen (a :: as) (j + 1) := by
+        intro j hj
+        have hj0 : j = 0 := by omega
+        subst j
+        simp [prefixLen, prefixLenAux]
+      have hk : 0 = prefixLen (a :: as) [0].length := by
+        simp [prefixLen, prefixLenAux]
+      have hres := computePrefixGo_correct (a :: as) [0] 0
+        (by intro j; simp) (by simp) hπ hk
+        as (by simp)
+      simpa [computePrefixFunction] using (hres i (by simpa using hi))
 
 end Chapter32
 end CLRS
