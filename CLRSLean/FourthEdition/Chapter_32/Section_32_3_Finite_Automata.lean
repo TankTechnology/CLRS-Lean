@@ -206,21 +206,23 @@ lemma suffix_dropLast_of_snoc (P x : Text α) (r : ℕ) (a : α) (hr : 0 < r) (h
     have hlen : (P.take r).length = r := by rw [List.length_take]; exact Nat.min_eq_left hk
     rw [hlen, List.take_take, Nat.min_eq_left (by omega)]
   refine ⟨s, ?_⟩
-  have hd : (s ++ P.take r).dropLast = (x ++ [a]).dropLast := by rw [hs]
-  rw [List.dropLast_concat] at hd
-  rw [List.dropLast_append] at hd
   have hne : (P.take r) ≠ [] := by
     have hlenr : (P.take r).length = r := by rw [List.length_take]; exact Nat.min_eq_left hk
     intro he
     have h0 : (P.take r).length = 0 := by simp [he]
     omega
-  cases hpt : P.take r with
-  | nil => exact (hne hpt).elim
-  | cons b l =>
-      simp [hpt] at hd
-      rw [hdropLast] at hd
-      simp at hd
-      exact hd.symm
+  have hd : s ++ P.take (r - 1) = x := by
+    have h1 : (s ++ P.take r).dropLast = (x ++ [a]).dropLast := by rw [hs]
+    rw [List.dropLast_concat] at h1
+    have h2 : (s ++ P.take r).dropLast = s ++ P.take (r - 1) := by
+      rw [List.dropLast_append]
+      by_cases h : (P.take r).isEmpty = true
+      · have : P.take r = [] := (List.isEmpty_iff.mp h)
+        exact (hne this).elim
+      · simp [h, hdropLast]
+    rw [h2] at h1
+    exact h1
+  exact hd
 
 /-- If `P.take r` is a suffix of `x ++ [a]` and `0 < r ≤ |P|`, then the last
 character of `P.take r` is `a`. -/
@@ -302,8 +304,14 @@ theorem suffixLen_snoc_eq (P x : Text α) (a : α) :
         · have hpre : isSuffix (P.take (r - 1)) x :=
             suffix_dropLast_of_snoc P x r a (Nat.pos_of_ne_zero h0) hk hsuf
           have hq : isSuffix (P.take q) x := suffixLen_satisfies P x
+          have hlen : (P.take (r - 1)).length ≤ (P.take q).length := by
+            have h1 : (P.take (r - 1)).length = r - 1 := by
+              rw [List.length_take]; exact Nat.min_eq_left (by omega)
+            have h2 : (P.take q).length = q := by
+              rw [List.length_take]; exact Nat.min_eq_left (suffixLen_le P x)
+            rw [h1, h2]; omega
           have hpreq : isSuffix (P.take (r - 1)) (P.take q) :=
-            isSuffix_of_suffix_of_suffix hq hpre (by omega)
+            isSuffix_of_suffix_of_suffix hq hpre hlen
           have hchar : (P.take r).getLast? = some a :=
             suffix_last_char_of_snoc P x r a hsuf (Nat.pos_of_ne_zero h0) hk
           have htake : P.take r = P.take (r - 1) ++ [a] :=
@@ -322,7 +330,164 @@ theorem suffixLen_snoc_eq (P x : Text α) (a : α) :
         rw [htake]
         exact isSuffix_self _
     exact suffixLen_maximal P (P.take q ++ [a]) r hk hsufP
-  omega
+  exact le_antisymm hle₂ hle₁
+
+/-- `σ(y T) = σ(P_{σ(y)} T)`: the suffix function of an extended string only
+depends on the longest prefix-suffix of the base. -/
+theorem suffixLen_append_eq (P : Text α) (y T : Text α) :
+    suffixLen P (y ++ T) = suffixLen P (P.take (suffixLen P y) ++ T) := by
+  induction T generalizing y with
+  | nil => exact (suffixLen_of_take P (suffixLen P y) (suffixLen_le P y)).symm
+  | cons a T ih =>
+      rw [show y ++ (a :: T) = (y ++ [a]) ++ T by simp]
+      rw [ih (y ++ [a]), suffixLen_snoc_eq P y a]
+      exact (ih (P.take (suffixLen P y) ++ [a])).symm
+
+/-- The transition function `δ(q, a) = σ(P_q a)` (CLRS §32.3). -/
+def delta (P : Text α) (q : ℕ) (a : α) : ℕ :=
+  suffixLen P (P.take q ++ [a])
+
+/-- `δ` extended to a string: `δ*(q, T) = foldl δ q T`. -/
+def deltaStar (P : Text α) (q : ℕ) : Text α → ℕ :=
+  List.foldl (delta P) q
+
+@[simp] theorem deltaStar_nil (P : Text α) (q : ℕ) : deltaStar P q [] = q := rfl
+
+@[simp] theorem deltaStar_cons (P : Text α) (q : ℕ) (a : α) (T : Text α) :
+    deltaStar P q (a :: T) = deltaStar P (delta P q a) T := rfl
+
+/-- `δ*(q, T) = σ(P_q T)`. -/
+theorem deltaStar_eq_suffixLen (P : Text α) (q : ℕ) (T : Text α) (hq : q ≤ P.length) :
+    deltaStar P q T = suffixLen P (P.take q ++ T) := by
+  induction T generalizing q with
+  | nil => rw [deltaStar_nil, List.append_nil]; exact suffixLen_of_take P q hq
+  | cons a T ih =>
+      rw [deltaStar_cons]
+      have hq' : delta P q a ≤ P.length := by
+        unfold delta; exact suffixLen_le P (P.take q ++ [a])
+      rw [ih (delta P q a) hq']
+      unfold delta
+      -- suffixLen P (P.take (suffixLen P (P.take q ++ [a])) ++ T) = suffixLen P (P.take q ++ a :: T)
+      rw [suffixLen_snoc_eq P (P.take q) a]
+      rw [suffixLen_of_take P q hq]
+
+/-- The automaton (from state 0) reaches state `|P|` exactly when `P` is a
+suffix of the input. -/
+theorem deltaStar_accepts_iff_suffix (P T : Text α) :
+    deltaStar P 0 T = P.length ↔ isSuffix P T := by
+  have h := deltaStar_eq_suffixLen P 0 T (by omega)
+  rw [h]
+  change suffixLen P T = P.length ↔ isSuffix P T
+  constructor
+  · intro hlen
+    have hsuf := suffixLen_satisfies P T
+    rw [hlen, List.take_length] at hsuf
+    simpa using hsuf
+  · intro hsuf
+    have hmax := suffixLen_maximal P T P.length (by rfl) hsuf
+    have hle := suffixLen_le P T
+    omega
+
+/-- The all-occurrences finite-automaton matcher scan: starting from state `q`
+after `i` characters, scan the remaining text `T'`, recording a shift whenever
+the automaton reaches state `m`. -/
+def dfaGo (P : Text α) (m q i : ℕ) (T' : Text α) : List ℕ :=
+  match T' with
+  | [] => []
+  | c :: T'' =>
+      let q' := delta P q c
+      let tail := dfaGo P m q' (i + 1) T''
+      if q' = m then (i + 1 - m) :: tail else tail
+
+/-- The all-occurrences finite-automaton matcher: scan the text, recording a
+shift whenever the automaton reaches state `|P|`. -/
+def dfaMatcher (P : Text α) (T : Text α) : List ℕ :=
+  let m := P.length
+  if m = 0 then List.range (T.length + 1) else dfaGo P m 0 0 T
+
+/-- `dfaGo`'s specification: it returns exactly the shifts `s` (relative to the
+full text) in `[i, i + |T'| - 1]` where `P` matches. -/
+lemma dfaGo_spec (P T : Text α) (m q i : ℕ) (T' : Text α)
+    (hq : q = deltaStar P 0 (T.take i)) (hT' : T' = T.drop i) (hi : i ≤ T.length) :
+    dfaGo P m q i T' = (List.range T'.length).filter (fun j => matchesAt T P (i + j + 1 - m)) := by
+  induction T' generalizing q i with
+  | nil => simp [dfaGo]
+  | cons c T'' ih =>
+      rw [dfaGo]
+      have hc : c = T.get ⟨i, by omega⟩ := by
+        rw [hT'] at hT'
+        -- hT' : c :: T'' = T.drop i, so c = (T.drop i).head
+        have : T.drop i = c :: T'' := hT'
+        have hdrop : (T.drop i).head = T.get ⟨i, by omega⟩ := by
+          rw [List.head_eq_getElem]
+          -- (T.drop i)[0] = T[i]
+          simpa using (List.getElem_drop (T := T) (i := i) (j := 0) (by omega)).symm
+        have : (T.drop i).head = c := by rw [this]
+        exact this.symm
+      have hq' : delta P q c = deltaStar P 0 (T.take (i + 1)) := by
+        rw [hq, ← hc]
+        rw [deltaStar_cons]
+        -- deltaStar P 0 (T.take i ++ [c]) = deltaStar P (delta P 0 (T.take i)... )
+        -- need: T.take (i+1) = T.take i ++ [c]
+        sorry
+      have hT'' : T'' = T.drop (i + 1) := by
+        rw [← hT']
+        -- c :: T'' = T.drop i, so T'' = (T.drop i).drop 1 = T.drop (i+1)
+        rw [← List.drop_drop]
+        sorry
+      have hrec := ih q' (i + 1) hq' hT'' (by omega)
+      -- now the goal: (if q' = m then (i+1-m) :: dfaGo ... else ...) = (range (T''.length+1)).filter ...
+      -- q' = m iff matchesAt T P (i + 1 - m)
+      rw [hrec]
+      rw [List.range_succ]
+      have hshift : (q' = m) = matchesAt T P (i + 1 - m) := by
+        -- q' = deltaStar P 0 (T.take (i+1)) = m iff P suffix of T.take (i+1) iff matchesAt (i+1-m)
+        have hacc := deltaStar_accepts_iff_suffix P (T.take (i + 1))
+        -- hacc : deltaStar P 0 (T.take (i+1)) = P.length ↔ isSuffix P (T.take (i+1))
+        -- need: (q' = m) = matchesAt T P (i+1-m), with m = P.length
+        sorry
+      simp [hshift, List.filter_cons]
+      -- the tail: (range T''.length).filter (fun j => matchesAt (i+1+j+1-m))
+      -- vs (range T''.length).filter (fun j => matchesAt (i+1+j+1-m)) — same, need congr
+      congr 1
+      congr; funext j; omega
+
+/-- The DFA matcher records a shift `s` exactly when `matchesAt T P s`. -/
+lemma dfaMatcher_spec (P : Text α) (T : Text α) (s : ℕ) :
+    s ∈ dfaMatcher P T ↔ matchesAt T P s := by
+  by_cases hzero : P.length = 0
+  · have hP : P = [] := List.length_eq_zero_iff.mp hzero
+    subst hP
+    simp [dfaMatcher, matchesAt]
+  · have h := dfaGo_spec P T P.length 0 0 T rfl rfl (by omega)
+    unfold dfaMatcher
+    simp [hzero, h]
+    constructor
+    · intro hs
+      rcases List.mem_filter.mp hs with ⟨hran, hmatch⟩
+      rcases List.mem_range.mp hran with ⟨j, hj⟩
+      -- s = 0 + j + 1 - m
+      -- hmatch : matchesAt T P (0 + j + 1 - P.length)
+      -- need: matchesAt T P s
+      sorry
+    · intro hmatch
+      -- s = i + j + 1 - m for some j; need to show s ∈ filter
+      sorry
+
+/--
+**Correctness of the finite-automaton matcher.**  `dfaMatcher` returns exactly
+the shifts returned by `naiveMatcher`.
+-/
+theorem dfaMatcher_correct (P T : Text α) : dfaMatcher P T = naiveMatcher T P := by
+  by_cases hzero : P.length = 0
+  · have hP : P = [] := List.length_eq_zero_iff.mp hzero
+    subst hP
+    simp [dfaMatcher, naiveMatcher]
+  · unfold dfaMatcher naiveMatcher
+    simp [hzero]
+    apply List.filter_congr
+    intro s hs
+    rw [dfaMatcher_spec P T s]
 
 end Chapter32
 end CLRS
