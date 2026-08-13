@@ -250,6 +250,7 @@ CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S2_EK_Loop.lean
 CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S3_WorkAnalysis.lean
 CLRSLean/Chapter_26/Section_26_2_Edmonds_Karp/S4_ExecutableBFS.lean
 CLRSLean/Chapter_26/Section_26_3_Bipartite_Matching.lean
+CLRSLean/Chapter_26/Section_26_4_Push_Relabel.lean
 CLRSLean/Chapter_26/Section_26_6_MaxFlow_MinCut.lean
 CLRSLean/FourthEdition/Chapter_24/Section_24_1_Flow_Networks.lean
 CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp.lean

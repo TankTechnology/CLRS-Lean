@@ -3991,10 +3991,49 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   no augmenting path exists; cut equality supplies the reverse implication.
 - Current gap: none for the mathematical Max-Flow Min-Cut equivalence.
 
+### Section 26.4 - Push-Relabel Algorithms
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_4_Push_Relabel.lean`
+  (canonical fourth-edition Section 24.4; the legacy
+  `CLRSLean/Chapter_26/Section_26_4_Push_Relabel.lean` forwards to it)
+- Status: `proved` for the preflow-push model, operations, and correctness
+- Represented model:
+  - `CLRS.Chapter26.Preflow` (capacity, skew symmetry, nonnegative excess off
+    the source), `Preflow.excess` and `Preflow.isOverflowing`
+  - `CLRS.Chapter26.IsValidHeight` and `admissibleEdge`
+  - `CLRS.Chapter26.relabel` (raise a vertex to one plus the minimum height of
+    its residual neighbors)
+- Operations and invariant preservation:
+  - `CLRS.Chapter26.Preflow.pushBy` / `Preflow.push`: push `δ` units along a
+    residual edge, preserving the preflow (`pushBy`'s three axioms) and, under
+    admissibility, the valid height function (`pushBy_validHeight`)
+  - `CLRS.Chapter26.relabel_validHeight`: relabeling a non-source non-sink
+    vertex under the relabel precondition preserves the valid height function
+  - `CLRS.Chapter26.relabel_height_increase`: relabeling strictly increases
+    the vertex's height
+- Height bound:
+  - `CLRS.Chapter26.exists_residualEdge_of_overflowing`: an overflowing vertex
+    has a residual edge leaving it
+  - `CLRS.Chapter26.exists_residualPath_to_source_of_overflowing` (**Lemma
+    26.14**): an overflowing vertex reaches the source in the residual network
+  - `CLRS.Chapter26.height_le_of_overflowing` (**Lemma 26.15**): every height
+    is bounded by `2|V| - 1`
+- Main theorem:
+  - `CLRS.Chapter26.maximal_of_no_overflow`: a preflow with a valid height
+    function and no overflowing internal vertex induces a maximum flow, via
+    `Flow.maximal_of_noAugmentingPath` (the max-flow min-cut theorem)
+- Proof pattern: the no-augmenting-path step bounds the height drop along a
+  simple residual path by `|V| - 1`; the source-path lemma cuts at the residual
+  reachable set and cancels the internal double sum by skew symmetry.
+- Current gap: the fine-grained saturating/nonsaturating push count
+  (`O(V²E)`) and the relabel-to-front discharge ordering (`O(V³)`, Section 26.5)
+  are deferred.
+
 ### Chapter 26 current boundary
 
-No core proof group remains within the selected milestone.  Sections 26.4 and
-26.5 are deferred outside that milestone.
+The §26.4 push-relabel model, operations, invariants, height bound, and
+correctness are proved.  The `O(V²E)`/`O(V³)` termination counting and Section
+26.5 (relabel-to-front) are deferred outside the current selected milestone.
 
 ## Chapter 27 - Multithreaded Algorithms
 

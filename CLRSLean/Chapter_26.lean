@@ -6,6 +6,7 @@ import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S2_EK_Loop
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S3_WorkAnalysis
 import CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp.S4_ExecutableBFS
 import CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching
+import CLRSLean.Chapter_26.Section_26_4_Push_Relabel
 import CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut
 
 /-! # Chapter 26 - Maximum Flow
@@ -67,6 +68,19 @@ exposes infrastructure for the later algorithms.
   {lit}`CLRS.Chapter26.maxMatching_eq_maxFlow_value`
   (Theorem 26.12).
 
+* 26.4 Push-relabel algorithms.
+  Main declarations:
+  {lit}`CLRS.Chapter26.Preflow`,
+  {lit}`CLRS.Chapter26.Preflow.excess`,
+  {lit}`CLRS.Chapter26.Preflow.isOverflowing`,
+  {lit}`CLRS.Chapter26.IsValidHeight`,
+  {lit}`CLRS.Chapter26.admissibleEdge`,
+  {lit}`CLRS.Chapter26.Preflow.pushBy`,
+  {lit}`CLRS.Chapter26.Preflow.push`,
+  {lit}`CLRS.Chapter26.relabel`,
+  {lit}`CLRS.Chapter26.height_le_of_overflowing` (Lemma 26.15), and
+  {lit}`CLRS.Chapter26.maximal_of_no_overflow`.
+
 * Theorem 26.6, Max-Flow Min-Cut.
   Main declarations:
   {lit}`CLRS.Chapter26.Flow.eq_cutCapacity_implies_maximal`,
@@ -114,9 +128,21 @@ The companion file `Section_26_6_MaxFlow_MinCut` proves the full Max-Flow
 Min-Cut Theorem: maximality is equivalent both to the absence of a residual
 source-to-sink path and to equality with the capacity of some cut.
 
+Section 26.4 (push-relabel) formalizes the preflow-push model: a
+{lit}`Preflow` relaxes conservation to nonnegative excess off the source, a
+valid height function ({lit}`IsValidHeight`) bounds residual-edge height drops
+by one, and the {lit}`Preflow.pushBy` and {lit}`relabel` operations preserve
+both invariants.  The overflowing-vertex source-reachability lemma and the
+`2|V| - 1` height bound ({lit}`height_le_of_overflowing`, Lemma 26.15) supply
+the termination foundation, and {lit}`maximal_of_no_overflow` combines a valid
+height function with zero internal excess to certify maximality via the
+max-flow min-cut theorem.
+
 ## Deferred Work
 
-Sections 26.4 and 26.5 are deferred outside the current selected milestone.
+Section 26.5 (relabel-to-front) and the fine-grained saturating/nonsaturating
+push count (`O(V²E)`/`O(V³)`) are deferred outside the current selected
+milestone.
 -/
 
 namespace CLRS
