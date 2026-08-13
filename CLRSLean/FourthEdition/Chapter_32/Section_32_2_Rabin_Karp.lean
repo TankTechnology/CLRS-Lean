@@ -634,7 +634,9 @@ lemma rollingGo_snd_eq_rollingCost (T P : Text α) (d q : ℕ) (val : α → ℕ
     (rollingGo T P d q val p m s w h rest).2 = rollingCost T P d q val p m s w h rest := by
   induction rest generalizing s w h with
   | nil => rfl
-  | cons c rest' ih => simp [rollingGo, rollingCost, ih]
+  | cons c rest' ih =>
+      simp only [rollingGo, rollingCost]
+      cases hb : (h == p && matchesAt T P s) <;> simp [hb, ih]
 
 /-- Each step of the rolling scan costs at most `m + 1` operations: one rolling
 update plus at most `m` confirmation comparisons. -/
@@ -650,8 +652,7 @@ lemma rollingCost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
       simp [rollingCost]
       have hih := ih (s + 1) (w.tail ++ [c]) (slideHash d q val h w c)
       have hif : (if h = p then m else 0) ≤ m := by by_cases hh : h = p <;> simp [hh] <;> omega
-      ring_nf
-      omega
+      nlinarith [hif, hih]
 
 /-- `rollingGo`'s cost component is bounded by `(rest.length + 1) * (m + 1)`. -/
 lemma rollingGo_cost_le (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ) (w : Text α) (h : ℕ)
