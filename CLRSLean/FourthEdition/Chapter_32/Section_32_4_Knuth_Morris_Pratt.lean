@@ -187,9 +187,7 @@ lemma prefixLen_chain_step (P : Text α) (q k : ℕ)
     isSuffix (P.take k) (P.take (prefixLen P q)) := by
   have hpfx : isSuffix (P.take (prefixLen P q)) (P.take q) := prefixLen_satisfies P q
   have hlen : (P.take k).length ≤ (P.take (prefixLen P q)).length := by
-    have h1 : prefixLen P q ≤ P.length := prefixLen_le P q
-    have h2 : k ≤ P.length := by omega
-    simp [List.length_take, h1, h2]
+    simp [List.length_take]
     omega
   exact isSuffix_of_suffix_of_suffix hpfx hk hlen
 
@@ -255,7 +253,7 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
     by_cases hr : r = 0
     · simp [hr]
     · have hrpos : 0 < r := Nat.pos_of_ne_zero hr
-      have hrle : r ≤ P.length := prefixLen_le P (q + 1)
+      have hrle : r ≤ P.length := le_trans (prefixLen_le P (q + 1)) hqlen
       have hpre : isSuffix (P.take (r - 1)) (P.take q) :=
         suffix_dropLast_of_snoc P (P.take q) r (P.getD q default) hrpos hrle hsat
       have hlastchar : P.getD (r - 1) default = P.getD q default :=
