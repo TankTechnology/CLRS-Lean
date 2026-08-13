@@ -19,7 +19,6 @@ shift is recorded whenever the state reaches `|P|`.
 - {lit}`suffixLen P x` — the suffix function `σ(x)`.
 - {lit}`delta P q a` — the transition `δ(q, a)`.
 - {lit}`deltaStar P q t` — `δ` extended to a string.
-- {lit}`dfaMatcher T P` — the all-occurrences automaton matcher.
 
 ## Main results
 
@@ -27,9 +26,14 @@ shift is recorded whenever the state reaches `|P|`.
 - Lemma 32.4 — `σ(xa) = σ(P_{σ(x)} a)` (`suffixLen_snoc_eq`).
 - Theorem `deltaStar_eq_suffixLen` — `δ*(q, T) = σ(P_q T)`.
 - Theorem `deltaStar_accepts_iff_suffix` — `δ*(0, T) = |P| ↔ P` is a suffix of `T`.
-- Theorem `dfaMatcher_correct` — `dfaMatcher` agrees with `naiveMatcher`.
-- Theorem `transitionTable_lookup_eq_delta` — the finite-alphabet table lookup
-  is exactly `δ`.
+
+## Current gaps
+
+This module currently supplies the automaton *acceptance core* (the executable
+suffix function, the δ/δ\* transition semantics, and the two CLRS lemmas plus the
+accepts-iff-suffix characterization).  The all-occurrences matcher over the text,
+the finite-alphabet transition-table construction, and the costed execution are
+not yet formalized here.
 
 Notation conventions used in this section:
 
@@ -370,8 +374,8 @@ theorem deltaStar_eq_suffixLen (P : Text α) (q : ℕ) (T : Text α) (hq : q ≤
         unfold delta; exact suffixLen_le P (P.take q ++ [a])
       rw [ih (delta P q a) hq']
       unfold delta
-      rw [suffixLen_snoc_eq P (P.take q) a]
-      rw [suffixLen_of_take P q hq]
+      rw [show P.take q ++ (a :: T) = (P.take q ++ [a]) ++ T by simp]
+      exact (suffixLen_append_eq P (P.take q ++ [a]) T).symm
 
 /-- The automaton (from state 0) reaches state `|P|` exactly when `P` is a
 suffix of the input. -/
@@ -386,7 +390,7 @@ theorem deltaStar_accepts_iff_suffix (P T : Text α) :
     rw [hlen, List.take_length] at hsuf
     simpa using hsuf
   · intro hsuf
-    have hmax := suffixLen_maximal P T P.length (by rfl) hsuf
+    have hmax := suffixLen_maximal P T P.length (by rfl) (by simpa using hsuf)
     have hle := suffixLen_le P T
     omega
 
