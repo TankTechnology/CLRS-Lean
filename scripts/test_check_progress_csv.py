@@ -23,7 +23,7 @@ class FourthEditionContractTest(unittest.TestCase):
             contracts[14]["represented_sections"],
             ("14.1", "14.2", "14.3", "14.4", "14.5"),
         )
-        self.assertEqual(contracts[14]["required_status"], "partial")
+        self.assertIsNone(contracts[14]["required_status"])
         self.assertEqual(
             contracts[25]["represented_sections"], ("25.1", "25.2", "25.3")
         )
@@ -77,7 +77,7 @@ class FourthEditionContractTest(unittest.TestCase):
 
     def test_partial_chapter_must_have_positive_gap_units(self) -> None:
         rows = [row.copy() for row in load_rows()]
-        rows[3]["edition_gap_units"] = "0"
+        rows[6]["edition_gap_units"] = "0"
 
         with self.assertRaisesRegex(SystemExit, "positive edition_gap_units"):
             validate(rows)
