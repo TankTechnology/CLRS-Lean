@@ -4843,7 +4843,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 
 ## Chapter 32 - String Matching
 
-The sources below are the canonical fourth-edition Sections 32.1; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
+The sources below are the canonical fourth-edition Sections 32.1–32.4; the legacy `CLRSLean/FourthEdition/Chapter_32/Section_*` files forward to them during the compatibility period.
 
 ### Section 32.1 - The Naive String-Matching Algorithm
 
@@ -4858,11 +4858,57 @@ The sources below are the canonical fourth-edition Sections 32.1; the legacy `CL
 - Remaining fourth-edition chapter scope: Section 32.5 (suffix arrays) is not
   represented.
 
+### Section 32.2 - The Rabin-Karp Algorithm
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_2_Rabin_Karp.lean`
+- Status: `complete` (native fourth-edition source; the full CLRS window-slide
+  recurrence, eq. (32.3), is left as a named gap)
+- Model:
+  - `hash d q val w`: the base-`d` modular hash of `w` over the numeric values
+    `val c`, computed by Horner's rule modulo `q`.
+  - `rabinKarpMatcher T P d q val`: the hash-and-confirm matcher returning every
+    shift where `P` occurs in `T` (hash match plus explicit comparison),
+    mirroring `naiveMatcher`.
+- Proved:
+  - `hash_snoc`: the `O(1)` incremental update
+    `hash (w ++ [c]) = (hash w · d + val c) mod q`.
+  - `hash_eq_of_text_eq`: equal strings hash equal, so a real match is never
+    discarded as a spurious hit.
+  - `rabinKarp_sound` / `rabinKarp_complete` / `rabinKarp_correct`: the matcher
+    returns exactly the valid shifts, and agrees with `naiveMatcher` on every
+    shift.
+
+### Section 32.3 - String Matching with Finite Automata
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_3_Finite_Automata.lean`
+- Status: `complete` (native fourth-edition source)
+- Model:
+  - `suffixTest p t` / `suffixLen P x`: "`p` is a suffix of `t`" and the suffix
+    function `σ(x)`.
+  - `delta P q a` / `deltaStar P q t`: the transition `δ(q, a) = σ(P_q a)` and
+    its extension to a string.
+  - `transitionTable` / `transitionLookup`: the finite-alphabet transition
+    table; `dfaMatcher` / `dfaMatcherTable`: the automaton matcher and its
+    table-driven refinement.
+- Proved:
+  - `suffixLen_snoc_le` (CLRS Lemma 32.3): `σ(xa) ≤ σ(x) + 1`.
+  - `suffixLen_snoc_eq` (CLRS Lemma 32.4): `σ(xa) = σ(P_{σ(x)} a)`.
+  - `deltaStar_eq_suffixLen` / `deltaStar_accepts_iff_suffix`:
+    `δ*(q, T) = σ(P_q T)`, and `δ*(0, T) = |P| ↔ P` is a suffix of `T`.
+  - `dfaMatcher_sound` / `dfaMatcher_complete` / `dfaMatcher_correct`: the
+    all-occurrences automaton matcher is sound, complete, and equivalent to
+    `naiveMatcher`.
+  - `transitionLookup_eq_delta` / `dfaMatcherTable_correct`: the table lookup is
+    exactly `δ`, and the table-driven matcher refines `dfaMatcher`.
+  - `transitionTableBuildCost_eq` / `dfaMatcherCost_eq`: preprocessing costs
+    `(|P| + 1)·|Σ|` and matching is `Θ(|T|)`.
+
 ### Section 32.4 - The Knuth-Morris-Pratt Algorithm
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_4_Knuth_Morris_Pratt.lean`
 - Status: `complete` (native fourth-edition source; the all-occurrences KMP
-  scan and its `O(m + n)` cost are still open, tracked in issue #198)
+  scan and its `O(m + n)` cost remain open — issue #198 was closed by PR #205
+  with the scan still pending)
 - Model:
   - `prefixLen P q`: the prefix function `π(q)` — the longest proper prefix of
     `P` that is a suffix of `P.take q`.
