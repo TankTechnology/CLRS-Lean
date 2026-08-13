@@ -128,15 +128,22 @@ lemma failureFollow_le (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
   rw [failureFollow.eq_1]
   by_cases hk : k = 0
   · simp [hk]
-  · by_cases hc : (P.getD k default) = c
-    · simp [hk, hc]
-    · simp [hk, hc]
+  · simp [hk]
+    by_cases hc : P[k]?.getD default = c
+    · simp [hc]
+    · simp [hc]
       have ih := failureFollow_le P π c (π.getD (k - 1) 0) hinv
       have hlt : π.getD (k - 1) 0 < k := by
         have hpos : 0 < k := Nat.pos_of_ne_zero hk
         have h := hinv (k - 1)
         omega
-      omega
+      exact le_of_lt (lt_of_le_of_lt ih hlt)
+termination_by k
+decreasing_by
+  simp_wf
+  have hpos : 0 < k := Nat.pos_of_ne_zero hk
+  have hk' : (k - 1) + 1 = k := by omega
+  simpa [hk'] using hinv (k - 1)
 
 /-- The executable `COMPUTE-PREFIX-FUNCTION` (CLRS §32.4).  `π` is the prefix
 array computed so far (length `q`), `k = π[q-1]`, and `hinv` records that every
