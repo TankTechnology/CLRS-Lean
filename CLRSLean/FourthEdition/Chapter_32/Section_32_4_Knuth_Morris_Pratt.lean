@@ -243,7 +243,9 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
   -- `P.take (q + 1) = P.take q ++ [P[q]]`
   have htake : P.take (q + 1) = P.take q ++ [P.getD q default] := by
     rw [List.take_succ]
-    simp [List.getD_eq_getElem, hq]
+    congr 1
+    rw [List.getD_eq_getElem P default (by omega : q < P.length)]
+    simp
   -- direction ≤ : π(q+1) ≤ prefixMatch
   have hle : prefixLen P (q + 1) ≤ prefixMatch P q (P.getD q default) := by
     unfold prefixMatch
@@ -258,12 +260,11 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
         suffix_dropLast_of_snoc P (P.take q) r (P.getD q default) hrpos hrle hsat
       have hlastchar : P.getD (r - 1) default = P.getD q default :=
         suffix_snoc_char_eq P q r (P.getD q default) hrpos hrle hsat
-      have hklt : r - 1 < q := by omega
+      have hprop : suffixTest (P.take (r - 1)) (P.take q) && (P.getD (r - 1) default == P.getD q default) = true := by
+        have hsuf : suffixTest (P.take (r - 1)) (P.take q) = true := (suffixTest_eq_isSuffix _ _).mpr hpre
+        have hch : (P.getD (r - 1) default == P.getD q default) = true := beq_iff_eq.mpr hlastchar
+        simp [hsuf, hch]
       have hmax : r - 1 ≤ prefixMatchAux P q (P.getD q default) (q - 1) := by
-        -- prefixMatchAux finds the largest; r-1 has the property, so r-1 ≤ aux
-        have hprop : suffixTest (P.take (r - 1)) (P.take q) && (P.getD (r - 1) default == P.getD q default) = true := by
-          rw [Bool.and_eq_true]
-          exact ⟨(suffixTest_eq_isSuffix _ _).mpr hpre, beq_iff_eq.mpr hlastchar⟩
         have hgo : ∀ n, r - 1 ≤ n → r - 1 ≤ prefixMatchAux P q (P.getD q default) n := by
           intro n hrn
           induction n with
@@ -273,36 +274,37 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
               · simp [prefixMatchAux, ht]; omega
               · have hrlt : r - 1 < n + 1 := by
                   by_cases heq : r - 1 = n + 1
-                  · subst heq; simpa [ht] using hprop
+                  · have hcontra : suffixTest (P.take (n + 1)) (P.take q) && (P.getD (n + 1) default == P.getD q default) = true := by
+                      simpa [heq] using hprop
+                    exact (ht hcontra).elim
                   · omega
                 have := ih (by omega)
                 simpa [prefixMatchAux, ht] using this
         exact hgo (q - 1) (by omega)
       have hbase : suffixTest (P.take (prefixMatchAux P q (P.getD q default) (q - 1))) (P.take q)
           && (P.getD (prefixMatchAux P q (P.getD q default) (q - 1)) default == P.getD q default) = true := by
-        -- the aux result r' has the property, and r-1 ≤ r'
-        have hgo : ∀ n, prefixMatchAux P q (P.getD q default) n = 0 ∨
+        have hgo : ∀ n, (∃ k, k ≤ n ∧ suffixTest (P.take k) (P.take q) && (P.getD k default == P.getD q default) = true) →
             (suffixTest (P.take (prefixMatchAux P q (P.getD q default) n)) (P.take q)
               && (P.getD (prefixMatchAux P q (P.getD q default) n) default == P.getD q default)) = true := by
-          intro n
+          intro n hex
           induction n with
-          | zero => left; simp [prefixMatchAux]
+          | zero =>
+              rcases hex with ⟨k, hk, hkprop⟩
+              have hk0 : k = 0 := by omega
+              simpa [prefixMatchAux, hk0] using hkprop
           | succ n ih =>
               by_cases ht : suffixTest (P.take (n + 1)) (P.take q) && (P.getD (n + 1) default == P.getD q default)
-              · right; simpa [prefixMatchAux, ht] using ht
-              · simpa [prefixMatchAux, ht] using ih
-        rcases hgo (q - 1) with hz | hs
-        · have hnonzero : prefixMatchAux P q (P.getD q default) (q - 1) ≠ 0 := by
-            omega
-          exact (hz hnonzero).elim
-        · exact hs
+              · simpa [prefixMatchAux, ht] using ht
+              · rcases hex with ⟨k, hk, hkprop⟩
+                have hkne : k ≠ n + 1 := by intro hkk; rw [hkk] at hkprop; exact (ht hkprop).elim
+                have hklt : k ≤ n := by omega
+                simpa [prefixMatchAux, ht] using ih ⟨k, hklt, hkprop⟩
+        exact hgo (q - 1) ⟨r - 1, by omega, hprop⟩
       simp [prefixMatch, hbase]
       omega
   -- direction ≥ : prefixMatch ≤ π(q+1)
   have hge : prefixMatch P q (P.getD q default) ≤ prefixLen P (q + 1) := by
     unfold prefixMatch
-    have hsat := prefixLen_satisfies P (q + 1)
-    rw [htake] at hsat
     by_cases hb : suffixTest (P.take (prefixMatchAux P q (P.getD q default) (q - 1))) (P.take q)
         && (P.getD (prefixMatchAux P q (P.getD q default) (q - 1)) default == P.getD q default)
     · simp [hb]
@@ -312,13 +314,19 @@ theorem prefixLen_snoc_eq (P : Text α) (q : ℕ) (hq : q < P.length) :
       have hklt : k < q := by
         have hle := prefixMatchAux_le P q (P.getD q default) (q - 1)
         omega
-      have hsufk1 : isSuffix (P.take k ++ [P.getD q default]) (P.take q ++ [P.getD q default]) :=
-        suffix_append_right hksuf
-      have hcharEq : P.getD k default = P.getD q default := hkchar
-      rw [hcharEq] at hsufk1
+      have htakek : P.take (k + 1) = P.take k ++ [P.getD k default] := by
+        rw [List.take_succ]
+        congr 1
+        rw [List.getD_eq_getElem P default (by omega : k < P.length)]
+        simp
+      have hsufk1 : isSuffix (P.take k ++ [P.getD k default]) (P.take q ++ [P.getD q default]) := by
+        have hsuf0 : isSuffix (P.take k ++ [P.getD k default]) (P.take q ++ [P.getD k default]) :=
+          suffix_append_right hksuf
+        simpa [hkchar] using hsuf0
+      have hsufk1' : isSuffix (P.take (k + 1)) (P.take (q + 1)) := by
+        simpa [htakek, htake] using hsufk1
       have hk1 : k + 1 ≤ prefixLen P (q + 1) :=
-        prefixLen_maximal P (q + 1) (k + 1) (by omega)
-          (by simpa [List.take_succ, hq, List.getD_eq_getElem] using hsufk1)
+        prefixLen_maximal P (q + 1) (k + 1) (by omega) hsufk1'
       omega
     · simp [hb]
   exact le_antisymm hle hge
