@@ -394,5 +394,243 @@ theorem deltaStar_accepts_iff_suffix (P T : Text α) :
     have hle := suffixLen_le P T
     omega
 
+/-- `δ*(0, x) = σ(x)` never exceeds the length of its input. -/
+lemma deltaStar_le_length (P x : Text α) : deltaStar P 0 x ≤ x.length := by
+  rw [deltaStar_eq_suffixLen P 0 x (by omega)]
+  simpa using (suffixLen_le_length P x)
+
+/-- The empty pattern is never a proper suffix: `δ*` from `0` stays at `0`. -/
+lemma deltaStar_empty (x : Text α) : deltaStar ([] : Text α) 0 x = 0 := by
+  rw [deltaStar_eq_suffixLen ([] : Text α) 0 x (by omega)]
+  simp [suffixLen]
+
+/-- Appending one character to the scanned text advances `δ*` by one transition. -/
+lemma deltaStar_append_one (P : Text α) (scanned : Text α) (c : α) :
+    deltaStar P 0 (scanned ++ [c]) = delta P (deltaStar P 0 scanned) c := by
+  change List.foldl (delta P) 0 (scanned ++ [c]) = delta P (List.foldl (delta P) 0 scanned) c
+  rw [List.foldl_append]
+  rfl
+
+/-- `range (n + 2)` is `0` followed by `range (n + 1)` shifted by one. -/
+lemma range_succ_cons (n : ℕ) :
+    List.range (n + 2) = 0 :: (List.range (n + 1)).map (fun k => 1 + k) := by
+  conv_lhs => rw [show n + 2 = 1 + (n + 1) by omega]
+  rw [List.range_add]
+  simp only [List.range_one, List.singleton_append]
+
+@[simp] lemma take_cons_zero (c : α) (T : Text α) : (c :: T).take 0 = [] := rfl
+
+@[simp] lemma take_cons_succ (c : α) (T : Text α) (k : ℕ) : (c :: T).take (k + 1) = c :: T.take k := rfl
+
+/--
+The finite-automaton scan (CLRS `FINITE-AUTOMATON-MATCHER`).  `scanned` is the
+text already scanned, `q = δ*(0, scanned)` the current state, and `m = |P|`.
+It returns, in increasing order, every shift `scanned.length - m` at which the
+state has reached `m`, i.e. every shift where `P` matches the text.
+-/
+def dfaScan (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) : Text α → List ℕ
+  | [] => if q == m then [scanned.length - m] else []
+  | c :: rest =>
+      let q' := delta P q c
+      let tail := dfaScan P m (scanned ++ [c]) q' rest
+      if q == m then (scanned.length - m) :: tail else tail
+
+@[simp] lemma dfaScan_nil (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) :
+    dfaScan P m scanned q [] = (if q == m then [scanned.length - m] else []) := rfl
+
+lemma dfaScan_cons (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) (c : α) (T : Text α) :
+    dfaScan P m scanned q (c :: T)
+      = (if q == m then [scanned.length - m] else [])
+          ++ dfaScan P m (scanned ++ [c]) (delta P q c) T := by
+  unfold dfaScan
+  by_cases h : q == m <;> simp [h]
+
+/-- The RHS of the scan specification, decomposed across one consumed character. -/
+lemma dfaScan_spec_cons (P : Text α) (m : ℕ) (scanned : Text α) (c : α) (T : Text α) :
+    ((List.range ((c :: T).length + 1)).filter (fun j => deltaStar P 0 (scanned ++ (c :: T).take j) == m)).map
+        (fun j => scanned.length + j - m)
+      = (if deltaStar P 0 scanned == m then [scanned.length - m] else [])
+          ++ ((List.range (T.length + 1)).filter (fun j => deltaStar P 0 ((scanned ++ [c]) ++ T.take j) == m)).map
+              (fun j => (scanned ++ [c]).length + j - m) := by
+  rw [show (c :: T).length + 1 = T.length + 2 by rfl]
+  rw [range_succ_cons T.length]
+  simp only [List.filter_cons, List.map_cons, List.map_append, List.filter_nil, List.map_nil]
+  rw [List.filter_map, List.map_map]
+  simp only [take_cons_zero, take_cons_succ]
+  -- align the composed filter/map functions with the RHS
+  congr
+  · simp [List.append_nil]
+  · congr 1
+    · apply List.filter_congr
+      intro j hj
+      simp [List.append_assoc]
+    · apply List.map_congr_left
+      intro j hj
+      simp [List.length_append]
+
+/--
+The automaton scan from a scanned whose state is `δ*(0, scanned)` returns exactly
+the shifts `scanned.length + j - m` for end positions `scanned.length + j` whose
+scanned text `scanned ++ T.take j` reaches state `m`.
+-/
+lemma dfaScan_spec (P : Text α) (m : ℕ) (scanned T : Text α) :
+    dfaScan P m scanned (deltaStar P 0 scanned) T
+      = ((List.range (T.length + 1)).filter (fun j => deltaStar P 0 (scanned ++ T.take j) == m)).map
+          (fun j => scanned.length + j - m) := by
+  induction T generalizing scanned with
+  | nil =>
+      simp [dfaScan, List.append_nil]
+  | cons c T ih =>
+      rw [dfaScan_cons, deltaStar_append_one]
+      rw [ih (scanned ++ [c])]
+      exact (dfaScan_spec_cons P m scanned c T).symm
+
+/--
+The finite-automaton matcher: scan `T` left-to-right maintaining the automaton
+state, recording every shift where the state reaches `|P|`.  This is the
+all-occurrences DFA matcher of CLRS §32.3.
+-/
+def dfaMatcher (P T : Text α) : List ℕ :=
+  dfaScan P P.length [] 0 T
+
+/-- The automaton matcher, expressed as an end-position filter-map. -/
+theorem dfaMatcher_spec (P T : Text α) :
+    dfaMatcher P T
+      = ((List.range (T.length + 1)).filter (fun j => deltaStar P 0 (T.take j) == P.length)).map
+          (fun j => j - P.length) := by
+  unfold dfaMatcher
+  simpa using (dfaScan_spec P P.length [] T)
+
+/-- A real match at shift `s` is exactly a suffix of the `(s + |P|)`-scanned. -/
+lemma matchesAt_iff_isSuffix_take (P T : Text α) (s : ℕ) (hs : s + P.length ≤ T.length) :
+    matchesAt T P s = true ↔ isSuffix P (T.take (s + P.length)) := by
+  unfold matchesAt
+  rw [if_pos hs, beq_iff_eq]
+  constructor
+  · intro h
+    refine ⟨T.take s, ?_⟩
+    rw [← h]
+    exact (List.take_add).symm
+  · intro h
+    rcases h with ⟨u, hu⟩
+    have hulen : u.length = s := by
+      have hlen := congrArg List.length hu
+      rw [List.length_append, List.length_take] at hlen
+      have hmin : min (s + P.length) T.length = s + P.length := Nat.min_eq_left hs
+      rw [hmin] at hlen
+      omega
+    calc
+      (T.drop s).take P.length = (T.take (s + P.length)).drop s := by
+        rw [List.drop_take]; simp
+      _ = (u ++ P).drop s := by rw [← hu]
+      _ = (u ++ P).drop u.length := by rw [hulen]
+      _ = P := List.drop_left
+
+/-- `δ*(0, T.take (s + |P|))` accepting agrees with `matchesAt T P s`. -/
+lemma deltaStar_take_eq_matchesAt (P T : Text α) (s : ℕ) (hs : s + P.length ≤ T.length) :
+    (deltaStar P 0 (T.take (s + P.length)) == P.length) = matchesAt T P s := by
+  have hacc : (deltaStar P 0 (T.take (s + P.length)) = P.length) ↔ (matchesAt T P s = true) := by
+    constructor
+    · intro hd
+      have hsuf := (deltaStar_accepts_iff_suffix P (T.take (s + P.length))).mp hd
+      exact (matchesAt_iff_isSuffix_take P T s hs).mpr hsuf
+    · intro hm
+      have hsuf := (matchesAt_iff_isSuffix_take P T s hs).mp hm
+      exact (deltaStar_accepts_iff_suffix P (T.take (s + P.length))).mpr hsuf
+  cases h : matchesAt T P s with
+  | true =>
+      have hd : deltaStar P 0 (T.take (s + P.length)) = P.length := hacc.mpr h
+      rw [beq_iff_eq.mpr hd, h]
+  | false =>
+      rw [h]
+      have hd : deltaStar P 0 (T.take (s + P.length)) ≠ P.length := by
+        intro hd'
+        have : matchesAt T P s = true := hacc.mp hd'
+        rw [h] at this
+      by_cases hb : deltaStar P 0 (T.take (s + P.length)) == P.length
+      · have heq : deltaStar P 0 (T.take (s + P.length)) = P.length := beq_iff_eq.mp hb
+        exact (hd heq).elim
+      · rfl
+
+/-- The end-position filter-map of the automaton matcher equals the shift-domain
+`naiveMatcher` result. -/
+lemma filter_map_delta_eq_naive (P T : Text α) :
+    ((List.range (T.length + 1)).filter (fun j => deltaStar P 0 (T.take j) == P.length)).map
+        (fun j => j - P.length) = naiveMatcher T P := by
+  by_cases hzero : P.length = 0
+  · have hnil : P = [] := List.eq_nil_of_length_eq_zero hzero
+    subst P
+    rw [naiveMatcher_empty]
+    have hfilter : (List.range (T.length + 1)).filter (fun j => deltaStar ([] : Text α) 0 (T.take j) == 0)
+        = List.range (T.length + 1) := by
+      rw [List.filter_eq_self]
+      intro j hj
+      simp [deltaStar_empty]
+    rw [hfilter]
+    rw [List.map_congr_left (fun j _ => by simp)]
+    simp
+  · have hm0 : 0 < P.length := Nat.pos_of_ne_zero hzero
+    by_cases hle : P.length ≤ T.length
+    · have hrange : List.range (T.length + 1)
+          = List.range P.length ++ List.map (fun x => P.length + x) (List.range (T.length - P.length + 1)) := by
+        have harg : P.length + (T.length - P.length + 1) = T.length + 1 := by omega
+        simpa [harg] using (List.range_add P.length (T.length - P.length + 1))
+      rw [hrange, List.filter_append, List.map_append]
+      have hfilt1 : (List.range P.length).filter (fun j => deltaStar P 0 (T.take j) == P.length) = [] := by
+        rw [List.eq_nil_iff_forall_not_mem]
+        intro j hj
+        rw [List.mem_filter] at hj
+        rcases hj with ⟨hjr, hjp⟩
+        have hjm : j < P.length := List.mem_range.mp hjr
+        have hd : deltaStar P 0 (T.take j) ≤ j := by
+          exact le_trans (deltaStar_le_length P (T.take j)) (by rw [List.length_take]; exact Nat.min_le_right _ _)
+        have hbad : deltaStar P 0 (T.take j) = P.length := beq_iff_eq.mp hjp
+        have hle' : P.length ≤ j := by simpa [hbad] using hd
+        omega
+      rw [hfilt1, List.map_nil, List.nil_append]
+      rw [List.filter_map, List.map_map]
+      rw [List.map_congr_left (fun s _ => by omega)]
+      simp only [List.map_id]
+      rw [List.filter_congr]
+      · rw [naiveMatcher, if_neg hzero]
+        rfl
+      · intro s hs
+        have hsle : s + P.length ≤ T.length := by
+          have := List.mem_range.mp hs
+          omega
+        rw [show P.length + s = s + P.length by omega]
+        exact deltaStar_take_eq_matchesAt P T s hsle
+    · have hlong : T.length < P.length := Nat.lt_of_not_ge hle
+      have hfilt : (List.range (T.length + 1)).filter (fun j => deltaStar P 0 (T.take j) == P.length) = [] := by
+        rw [List.eq_nil_iff_forall_not_mem]
+        intro j hj
+        rw [List.mem_filter] at hj
+        rcases hj with ⟨hjr, hjp⟩
+        have hjn : j < T.length + 1 := List.mem_range.mp hjr
+        have hd : deltaStar P 0 (T.take j) ≤ j := by
+          exact le_trans (deltaStar_le_length P (T.take j)) (by rw [List.length_take]; exact Nat.min_le_right _ _)
+        have hbad : deltaStar P 0 (T.take j) = P.length := beq_iff_eq.mp hjp
+        have hle' : P.length ≤ j := by simpa [hbad] using hd
+        omega
+      rw [hfilt, List.map_nil]
+      simpa [noMatch] using (naiveMatcher_pattern_too_long T P hlong).symm
+
+/--
+**Correctness of the finite-automaton matcher.**  `dfaMatcher P T` returns
+exactly the shifts that `naiveMatcher T P` returns, for every pattern and text.
+-/
+theorem dfaMatcher_correct (P T : Text α) : dfaMatcher P T = naiveMatcher T P := by
+  rw [dfaMatcher_spec, filter_map_delta_eq_naive]
+
+/-- Every shift returned by the automaton matcher is a valid match. -/
+theorem dfaMatcher_sound (P T : Text α) (s : ℕ) (h : s ∈ dfaMatcher P T) : matchesAt T P s := by
+  rw [dfaMatcher_correct] at h
+  exact naiveMatcher_sound T P s h
+
+/-- Every valid match is returned by the automaton matcher. -/
+theorem dfaMatcher_complete (P T : Text α) (s : ℕ) (h : matchesAt T P s) : s ∈ dfaMatcher P T := by
+  rw [dfaMatcher_correct]
+  exact naiveMatcher_complete T P s h
+
 end Chapter32
 end CLRS
