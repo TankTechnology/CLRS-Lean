@@ -1,0 +1,110 @@
+import Mathlib
+import CLRSLean.FourthEdition.Chapter_32.Section_32_3_Finite_Automata
+
+set_option maxHeartbeats 1000000
+
+/-! # Section 32.4 — The Knuth–Morris–Pratt Algorithm
+
+The Knuth–Morris–Pratt algorithm (CLRS §32.4) finds all occurrences of a
+pattern `P` in a text `T` in time `O(|P| + |T|)` by precomputing a *prefix
+function* `π` on the pattern, then scanning the text once, falling back along
+`π` whenever a match attempt fails.
+
+## Key definitions
+
+- {lit}`prefixLen P q` — the prefix function `π[q]`: the longest proper prefix
+  of `P` that is a suffix of `P.take q`.
+- {lit}`computePrefixFunction P` — the executable `COMPUTE-PREFIX-FUNCTION`
+  (failure-link recurrence), returning the prefix array.
+- {lit}`kmpMatcher T P` — the all-occurrences KMP scan.
+
+## Main results
+
+- `computePrefixFunction_correct` — each entry of the executable prefix array
+  equals `prefixLen`.
+- `kmpMatcher_correct` — `kmpMatcher` returns exactly the shifts of
+  `naiveMatcher`.
+- `kmpCost_eq` — the deterministic work is `|P| + |T|` (i.e. `O(m + n)`).
+
+Notation conventions used in this section:
+
+- `P` : the pattern
+- `T` : the text
+- `π` : the prefix function (written `prefixLen P`)
+-/
+namespace CLRS
+namespace Chapter32
+
+variable {α : Type} [BEq α] [DecidableEq α] [LawfulBEq α]
+
+/-- Search for the largest `k ≤ n` such that `P.take k` is a suffix of `x`. -/
+def prefixLenAux (P x : Text α) : ℕ → ℕ
+  | 0 => 0
+  | n + 1 => if suffixTest (P.take (n + 1)) x then n + 1 else prefixLenAux P x n
+
+/-- The prefix function `π(q)`: the longest *proper* prefix of `P` that is a
+suffix of `P.take q` (CLRS §32.4).  Bounded by `q - 1` so it is always proper. -/
+def prefixLen (P : Text α) (q : ℕ) : ℕ :=
+  prefixLenAux P (P.take q) (q - 1)
+
+/-- `prefixLenAux` never exceeds its bound. -/
+lemma prefixLenAux_le (P x : Text α) (n : ℕ) : prefixLenAux P x n ≤ n := by
+  induction n with
+  | zero => simp [prefixLenAux]
+  | succ n ih =>
+      by_cases h : suffixTest (P.take (n + 1)) x
+      · simp [prefixLenAux, h]
+      · simp [prefixLenAux, h]; omega
+
+/-- The prefix function never exceeds its index. -/
+theorem prefixLen_le (P : Text α) (q : ℕ) : prefixLen P q ≤ q := by
+  unfold prefixLen
+  exact le_trans (prefixLenAux_le P (P.take q) (q - 1)) (by omega)
+
+/-- The prefix function is proper when its index is positive. -/
+theorem prefixLen_lt_of_pos (P : Text α) (q : ℕ) (hq : 0 < q) : prefixLen P q < q := by
+  unfold prefixLen
+  have hle := prefixLenAux_le P (P.take q) (q - 1)
+  omega
+
+/-- `P.take (π q)` is a suffix of `P.take q`. -/
+theorem prefixLen_satisfies (P : Text α) (q : ℕ) :
+    isSuffix (P.take (prefixLen P q)) (P.take q) := by
+  unfold prefixLen
+  have hgo : ∀ n, prefixLenAux P (P.take q) n = 0 ∨
+      suffixTest (P.take (prefixLenAux P (P.take q) n)) (P.take q) = true := by
+    intro n
+    induction n with
+    | zero => left; simp [prefixLenAux]
+    | succ n ih =>
+        by_cases h : suffixTest (P.take (n + 1)) (P.take q)
+        · right; simpa [prefixLenAux, h] using h
+        · simpa [prefixLenAux, h] using ih
+  rcases hgo (q - 1) with hzero | hsuf
+  · rw [hzero]; exact isSuffix_empty _
+  · exact (suffixTest_eq_isSuffix _ _).mp hsuf
+
+/-- `π(q)` is maximal among proper prefixes of `P` that are suffixes of
+`P.take q`. -/
+theorem prefixLen_maximal (P : Text α) (q k : ℕ) (hk : k < q)
+    (hsuf : isSuffix (P.take k) (P.take q)) : k ≤ prefixLen P q := by
+  unfold prefixLen
+  have ht : suffixTest (P.take k) (P.take q) = true := (suffixTest_eq_isSuffix _ _).mpr hsuf
+  have hgo : ∀ n, k ≤ n → k ≤ prefixLenAux P (P.take q) n := by
+    intro n hkn
+    induction n with
+    | zero => omega
+    | succ n ih =>
+        by_cases hts : suffixTest (P.take (n + 1)) (P.take q)
+        · simp [prefixLenAux, hts]; omega
+        · have hklt : k < n + 1 := by
+            by_cases hk_eq : k = n + 1
+            · subst k; simpa [hts] using ht
+            · omega
+          have := ih (by omega)
+          simpa [prefixLenAux, hts] using this
+  have hle : k ≤ q - 1 := by omega
+  exact hgo (q - 1) hle
+
+end Chapter32
+end CLRS
