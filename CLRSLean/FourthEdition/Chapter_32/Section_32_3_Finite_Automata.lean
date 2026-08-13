@@ -651,47 +651,39 @@ def dfaMatcherCost (P T : Text α) : ℕ := T.length
 /-- The automaton matcher scans each character once. -/
 theorem dfaMatcherCost_eq (P T : Text α) : dfaMatcherCost P T = T.length := rfl
 
-noncomputable section TransitionTable
+section TransitionTable
 
-variable [Fintype α]
+/--
+The transition table for pattern `P` over a finite alphabet `alphabet` (CLRS
+§32.3 `COMPUTE-TRANSITION-FUNCTION`): one row per state `q ∈ [0, |P|]`, each row
+listing the precomputed next-state `δ(q, a)` for every `a ∈ alphabet`, in
+row-major order.
+-/
+def transitionTable (alphabet : List α) (P : Text α) : List (List ℕ) :=
+  (List.range (P.length + 1)).map (fun q => alphabet.map (fun a => delta P q a))
 
-/-- The finite alphabet as a list, in the canonical `Fintype` order. -/
-def alphabetList : List α := (Finset.univ : Finset α).toList
-
-/-- The alphabet list has one entry per symbol. -/
-lemma alphabetList_length : alphabetList.length = Fintype.card α := by
-  unfold alphabetList
-  rw [Finset.length_toList, Finset.card_univ]
-
-/-- The transition table for pattern `P`: one row per state `q ∈ [0, |P|]`, each
-row a list of `|Σ|` precomputed next-states `δ(q, a)` (CLRS §32.3
-`COMPUTE-TRANSITION-FUNCTION`). -/
-def transitionTable (P : Text α) : List (List ℕ) :=
-  (List.range (P.length + 1)).map (fun q => alphabetList.map (fun a => delta P q a))
-
-/-- The index of a symbol `a` in the canonical alphabet list. -/
-def symbolIndex (a : α) : ℕ := alphabetList.idxOf a
-
-/-- Look up the next state for state `q` and symbol `a` in a transition table,
-returning `0` for an out-of-range state or symbol. -/
-def transitionLookup (table : List (List ℕ)) (q : ℕ) (a : α) : ℕ :=
-  (table.getD q []).getD (symbolIndex a) 0
+/-- Look up the next state for state `q` and symbol `a` in a transition table
+indexed by `alphabet`, returning `0` for an out-of-range state or symbol. -/
+def transitionLookup (alphabet : List α) (table : List (List ℕ)) (q : ℕ) (a : α) : ℕ :=
+  (table.getD q []).getD (alphabet.idxOf a) 0
 
 /-- The transition table has one row per state. -/
-theorem transitionTable_length (P : Text α) : (transitionTable P).length = P.length + 1 := by
+theorem transitionTable_length (alphabet : List α) (P : Text α) :
+    (transitionTable alphabet P).length = P.length + 1 := by
   unfold transitionTable
   simp
 
 /--
 The table lookup agrees with the semantic transition `δ`: for every state
-`q ≤ |P|` and symbol `a`, the entry stored in `transitionTable P` at `(q, a)` is
-exactly `δ(q, a)`.
+`q ≤ |P|` and every symbol `a` in the alphabet, the entry stored in
+`transitionTable alphabet P` at `(q, a)` is exactly `δ(q, a)`.
 -/
-theorem transitionLookup_eq_delta (P : Text α) (q : ℕ) (hq : q ≤ P.length) (a : α) :
-    transitionLookup (transitionTable P) q a = delta P q a := by
-  unfold transitionLookup transitionTable symbolIndex
-  have hrow : ((List.range (P.length + 1)).map (fun q => alphabetList.map (fun a => delta P q a))).getD q []
-      = alphabetList.map (fun a => delta P q a) := by
+theorem transitionLookup_eq_delta (alphabet : List α) (P : Text α) (q : ℕ) (hq : q ≤ P.length) (a : α)
+    (ha : a ∈ alphabet) :
+    transitionLookup alphabet (transitionTable alphabet P) q a = delta P q a := by
+  unfold transitionLookup transitionTable
+  have hrow : ((List.range (P.length + 1)).map (fun q => alphabet.map (fun a => delta P q a))).getD q []
+      = alphabet.map (fun a => delta P q a) := by
     rw [List.getD_eq_getElem]
     · rw [List.getElem_map, List.getElem_range]
     · rw [List.length_map, List.length_range]
@@ -701,84 +693,89 @@ theorem transitionLookup_eq_delta (P : Text α) (q : ℕ) (hq : q ≤ P.length) 
   · rw [List.getElem_map]
     rw [List.getElem_idxOf]
     · rw [List.idxOf_lt_length_iff]
-      exact Finset.mem_toList.mpr (Finset.mem_univ a)
+      exact ha
   · rw [List.length_map]
     rw [List.idxOf_lt_length_iff]
-    exact Finset.mem_toList.mpr (Finset.mem_univ a)
+    exact ha
 
 /--
 The table-driven scan: the same left-to-right scan as `dfaScan`, but each
 transition is read from the precomputed table rather than recomputed as `δ`.
 -/
-def dfaScanTable (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) : Text α → List ℕ
+def dfaScanTable (alphabet : List α) (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) : Text α → List ℕ
   | [] => if q == m then [scanned.length - m] else []
   | c :: rest =>
-      let q' := transitionLookup (transitionTable P) q c
-      let tail := dfaScanTable P m (scanned ++ [c]) q' rest
+      let q' := transitionLookup alphabet (transitionTable alphabet P) q c
+      let tail := dfaScanTable alphabet P m (scanned ++ [c]) q' rest
       if q == m then (scanned.length - m) :: tail else tail
 
-lemma dfaScanTable_cons (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) (c : α) (T : Text α) :
-    dfaScanTable P m scanned q (c :: T)
+lemma dfaScanTable_cons (alphabet : List α) (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) (c : α) (T : Text α) :
+    dfaScanTable alphabet P m scanned q (c :: T)
       = (if q == m then [scanned.length - m] else [])
-          ++ dfaScanTable P m (scanned ++ [c]) (transitionLookup (transitionTable P) q c) T := by
+          ++ dfaScanTable alphabet P m (scanned ++ [c]) (transitionLookup alphabet (transitionTable alphabet P) q c) T := by
   by_cases h : q == m <;> simp [dfaScanTable, h]
 
 /-- The table-driven matcher (CLRS `FINITE-AUTOMATON-MATCHER` with precomputed
-`δ`): scan `T` using `transitionTable P` for O(1) transitions. -/
-def dfaMatcherTable (P T : Text α) : List ℕ :=
-  dfaScanTable P P.length [] 0 T
+`δ`): scan `T` using the transition table for `alphabet`, in O(1) per character. -/
+def dfaMatcherTable (alphabet : List α) (P T : Text α) : List ℕ :=
+  dfaScanTable alphabet P P.length [] 0 T
 
-/-- The table-driven scan agrees with the semantic scan wherever the state is in
-range, because the table lookup is exactly `δ`. -/
-lemma dfaScanTable_eq_dfaScan (P : Text α) (scanned : Text α) (T : Text α) (q : ℕ)
-    (hq : q ≤ P.length) :
-    dfaScanTable P P.length scanned q T = dfaScan P P.length scanned q T := by
+/-- The table-driven scan agrees with the semantic scan when every state is in
+range and every scanned character is in the alphabet. -/
+lemma dfaScanTable_eq_dfaScan (alphabet : List α) (P : Text α) (scanned T : Text α) (q : ℕ)
+    (hq : q ≤ P.length) (hT : ∀ c ∈ T, c ∈ alphabet) :
+    dfaScanTable alphabet P P.length scanned q T = dfaScan P P.length scanned q T := by
   induction T generalizing scanned q with
   | nil => rfl
   | cons c T ih =>
       rw [dfaScanTable_cons, dfaScan_cons]
-      have hlookup : transitionLookup (transitionTable P) q c = delta P q c :=
-        transitionLookup_eq_delta P q hq c
+      have hlookup : transitionLookup alphabet (transitionTable alphabet P) q c = delta P q c :=
+        transitionLookup_eq_delta alphabet P q hq c (hT c (by simp))
       have hq' : delta P q c ≤ P.length := by unfold delta; exact suffixLen_le P (P.take q ++ [c])
-      rw [hlookup, ih (scanned ++ [c]) (delta P q c) hq']
+      have hT' : ∀ c ∈ T, c ∈ alphabet := by intro c hc; exact hT c (by simp [hc])
+      rw [hlookup, ih (scanned ++ [c]) (delta P q c) hq' hT']
 
 /--
-The table-driven matcher refines the semantic automaton matcher: it returns
-exactly the same shifts, reading every transition from the precomputed table.
+The table-driven matcher refines the semantic automaton matcher over a finite
+alphabet: when every character of `T` lies in `alphabet`, the two return exactly
+the same shifts.
 -/
-theorem dfaMatcherTable_correct (P T : Text α) : dfaMatcherTable P T = dfaMatcher P T := by
+theorem dfaMatcherTable_correct (alphabet : List α) (P T : Text α) (hT : ∀ c ∈ T, c ∈ alphabet) :
+    dfaMatcherTable alphabet P T = dfaMatcher P T := by
   unfold dfaMatcherTable dfaMatcher
-  exact dfaScanTable_eq_dfaScan P [] T 0 (by omega)
+  exact dfaScanTable_eq_dfaScan alphabet P [] T 0 (by omega) hT
 
-/-- The table-driven matcher returns exactly the shifts of `naiveMatcher`. -/
-theorem dfaMatcherTable_eq_naive (P T : Text α) : dfaMatcherTable P T = naiveMatcher T P := by
-  rw [dfaMatcherTable_correct, dfaMatcher_correct]
+/-- The table-driven matcher returns exactly the shifts of `naiveMatcher` when the
+text stays within the alphabet. -/
+theorem dfaMatcherTable_eq_naive (alphabet : List α) (P T : Text α) (hT : ∀ c ∈ T, c ∈ alphabet) :
+    dfaMatcherTable alphabet P T = naiveMatcher T P := by
+  rw [dfaMatcherTable_correct alphabet P T hT, dfaMatcher_correct]
 
 /-- The deterministic preprocessing work: the total number of table cells, one
 unit per precomputed transition. -/
-def transitionTableBuildCost (P : Text α) : ℕ :=
-  ((transitionTable P).map List.length).sum
+def transitionTableBuildCost (alphabet : List α) (P : Text α) : ℕ :=
+  ((transitionTable alphabet P).map List.length).sum
 
 /--
-The preprocessing cost equals `(|P| + 1) · |Σ|`: the transition table has one
-cell per state-symbol pair, matching the textbook `O(m·|Σ|)` construction.
+The preprocessing cost equals `(|P| + 1) · |alphabet|`: the transition table has
+one cell per state-symbol pair, matching the textbook `O(m·|Σ|)` construction.
 -/
-theorem transitionTableBuildCost_eq (P : Text α) :
-    transitionTableBuildCost P = (P.length + 1) * Fintype.card α := by
+theorem transitionTableBuildCost_eq (alphabet : List α) (P : Text α) :
+    transitionTableBuildCost alphabet P = (P.length + 1) * alphabet.length := by
   unfold transitionTableBuildCost transitionTable
   rw [List.map_map]
-  have hmap : (List.range (P.length + 1)).map (fun q => (alphabetList.map (fun a => delta P q a)).length)
-      = (List.range (P.length + 1)).map (fun _ => Fintype.card α) :=
+  have hmap : (List.range (P.length + 1)).map (fun q => (alphabet.map (fun a => delta P q a)).length)
+      = (List.range (P.length + 1)).map (fun _ => alphabet.length) :=
     List.map_congr_left (l := List.range (P.length + 1))
-      (f := fun q => (alphabetList.map (fun a => delta P q a)).length)
-      (g := fun _ => Fintype.card α) (fun q hq => by rw [List.length_map, alphabetList_length])
+      (f := fun q => (alphabet.map (fun a => delta P q a)).length)
+      (g := fun _ => alphabet.length) (fun q hq => by rw [List.length_map])
   rw [hmap]
   rw [List.map_const, List.length_range]
-  simpa [Nat.nsmul_eq_mul] using List.sum_replicate (P.length + 1) (Fintype.card α)
+  simpa [Nat.nsmul_eq_mul] using List.sum_replicate (P.length + 1) alphabet.length
 
 /-- The total deterministic work: preprocessing plus the Θ(|T|) scan. -/
-theorem dfaTotalCost_eq (P T : Text α) :
-    transitionTableBuildCost P + dfaMatcherCost P T = (P.length + 1) * Fintype.card α + T.length := by
+theorem dfaTotalCost_eq (alphabet : List α) (P T : Text α) :
+    transitionTableBuildCost alphabet P + dfaMatcherCost P T = (P.length + 1) * alphabet.length + T.length := by
   rw [transitionTableBuildCost_eq, dfaMatcherCost_eq]
 
 end TransitionTable
