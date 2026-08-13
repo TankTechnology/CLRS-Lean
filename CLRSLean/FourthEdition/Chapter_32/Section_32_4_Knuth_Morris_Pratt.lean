@@ -530,8 +530,8 @@ lemma failureFollow_eq_prefixMatchAux (P : Text α) (π : List ℕ) (c : α) (q 
   refine Nat.strong_induction_on k ?_
   intro k ih q hπ hk
   by_cases hk0 : k = 0
-  · subst k
-    simp [failureFollow, prefixMatchAux]
+  · subst hk0
+    rfl
   · have hkpos : 0 < k := Nat.pos_of_ne_zero hk0
     have hsuf : suffixTest (P.take k) (P.take q) = true := by
       simpa [hk] using (suffixTest_eq_isSuffix _ _).mpr (prefixLen_satisfies P q)
@@ -545,17 +545,17 @@ lemma failureFollow_eq_prefixMatchAux (P : Text α) (π : List ℕ) (c : α) (q 
       rw [← hk] at hlt
       omega
     rw [failureFollow.eq_1]
-    simp only [Nat.succ_ne_zero, ↓reduceIte]
+    simp only [Nat.succ_ne_zero, if_false]
     rw [prefixMatchAux]
     rw [hsuf]
+    change (if P.getD (n + 1) default = c then n + 1 else failureFollow P π c (π.getD n 0) hinv)
+      = (if (P.getD (n + 1) default == c) = true then n + 1 else prefixMatchAux P q c n)
     by_cases hc : P.getD (n + 1) default = c
-    · rw [if_pos hc]
-      rw [if_pos (beq_iff_eq.mpr hc)]
+    · rw [if_pos hc, if_pos (beq_iff_eq.mpr hc)]
     · have hcneg : ¬ (P.getD (n + 1) default == c) = true := by
         intro hh
         exact hc (beq_iff_eq.mp hh)
-      rw [if_neg hc]
-      rw [if_neg hcneg]
+      rw [if_neg hc, if_neg hcneg]
       have hπn : π.getD n 0 = prefixLen P (n + 1) := hπ n hnltq
       rw [hπn]
       have hih := ih (prefixLen P (n + 1)) (prefixLen_lt_of_pos P (n + 1) (by omega))
