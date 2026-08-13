@@ -420,7 +420,9 @@ lemma range_succ_cons (n : ℕ) :
 
 @[simp] lemma take_cons_zero (c : α) (T : Text α) : (c :: T).take 0 = [] := rfl
 
-@[simp] lemma take_cons_succ (c : α) (T : Text α) (k : ℕ) : (c :: T).take (k + 1) = c :: T.take k := rfl
+lemma take_cons_succ_one (c : α) (T : Text α) (k : ℕ) : (c :: T).take (1 + k) = c :: T.take k := by
+  rw [List.take_cons (by omega : 0 < 1 + k)]
+  rw [show (1 + k) - 1 = k by omega]
 
 /--
 The finite-automaton scan (CLRS `FINITE-AUTOMATON-MATCHER`).  `scanned` is the
@@ -444,6 +446,24 @@ lemma dfaScan_cons (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) (c : α
           ++ dfaScan P m (scanned ++ [c]) (delta P q c) T := by
   by_cases h : q == m <;> simp [dfaScan, h]
 
+/-- The tail of the scan specification: the composed shift/state functions
+rewrite to the RHS functions. -/
+lemma dfaScan_spec_tail (P : Text α) (m : ℕ) (scanned : Text α) (c : α) (T : Text α) :
+    List.map ((fun j => scanned.length + j - m) ∘ (fun k => 1 + k))
+        (List.filter ((fun j => deltaStar P 0 (scanned ++ (c :: T).take j) == m) ∘ (fun k => 1 + k)) (List.range (T.length + 1)))
+      = List.map (fun j => (scanned ++ [c]).length + j - m)
+          (List.filter (fun j => deltaStar P 0 ((scanned ++ [c]) ++ T.take j) == m) (List.range (T.length + 1))) := by
+  have hp : ((fun j => deltaStar P 0 (scanned ++ (c :: T).take j) == m) ∘ (fun k => 1 + k))
+      = (fun j => deltaStar P 0 ((scanned ++ [c]) ++ T.take j) == m) := by
+    funext j
+    simp [take_cons_succ_one, List.append_assoc]
+  have hf : ((fun j => scanned.length + j - m) ∘ (fun k => 1 + k))
+      = (fun j => (scanned ++ [c]).length + j - m) := by
+    funext j
+    simp [List.length_append]
+    omega
+  rw [hp, hf]
+
 /-- The RHS of the scan specification, decomposed across one consumed character. -/
 lemma dfaScan_spec_cons (P : Text α) (m : ℕ) (scanned : Text α) (c : α) (T : Text α) :
     ((List.range ((c :: T).length + 1)).filter (fun j => deltaStar P 0 (scanned ++ (c :: T).take j) == m)).map
@@ -457,19 +477,12 @@ lemma dfaScan_spec_cons (P : Text α) (m : ℕ) (scanned : Text α) (c : α) (T 
           ++ ((List.range (T.length + 1)).filter (fun j => deltaStar P 0 ((scanned ++ [c]) ++ T.take j) == m)).map
               (fun j => (scanned ++ [c]).length + j - m)
   rw [range_succ_cons T.length]
-  simp only [List.filter_cons, List.map_cons, List.map_append, List.filter_nil, List.map_nil]
-  simp only [List.filter_map, List.map_map]
-  simp only [take_cons_zero, take_cons_succ]
-  -- align the composed filter/map functions with the RHS
-  congr
-  · simp [List.append_nil]
+  simp only [List.filter_cons, List.map_cons, List.filter_nil, List.map_nil, List.map_append]
+  simp only [List.filter_map]
+  by_cases h : deltaStar P 0 scanned = m <;> simp [h, List.map_map, List.append_nil]
   · congr 1
-    · apply List.filter_congr
-      intro j hj
-      simp [List.append_assoc]
-    · apply List.map_congr_left
-      intro j hj
-      simp [List.length_append]
+    rw [dfaScan_spec_tail P m scanned c T]
+  · rw [dfaScan_spec_tail P m scanned c T]
 
 /--
 The automaton scan from a scanned whose state is `δ*(0, scanned)` returns exactly
@@ -483,6 +496,7 @@ lemma dfaScan_spec (P : Text α) (m : ℕ) (scanned T : Text α) :
   induction T generalizing scanned with
   | nil =>
       simp [dfaScan, List.append_nil, List.take_zero, List.range_one, List.filter_cons, List.map_cons]
+      by_cases h : deltaStar P 0 scanned = m <;> simp [h]
   | cons c T ih =>
       rw [dfaScan_cons, ← deltaStar_append_one P scanned c]
       rw [ih (scanned ++ [c])]
