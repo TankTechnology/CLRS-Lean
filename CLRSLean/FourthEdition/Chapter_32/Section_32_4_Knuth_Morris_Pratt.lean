@@ -615,20 +615,94 @@ lemma computePrefixGo_step (P : Text α) (π : List ℕ) (k : ℕ) (c : α)
 lemma failureFollow_irrelevant (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
     (hinv hinv' : ∀ i, π.getD i 0 < i + 1) :
     failureFollow P π c k hinv = failureFollow P π c k hinv' := by
-  refine Nat.strong_induction_on k ?_
-  intro k ih
   unfold failureFollow
-  by_cases hk : k = 0
-  · simp [hk]
-  · simp [hk]
-    by_cases hc : P.getD k default = c
-    · simp [hc]
-    · simp [hc]
-      have hlt : π.getD (k - 1) 0 < k := by
-        have hpos : 0 < k := Nat.pos_of_ne_zero hk
-        have hk' : (k - 1) + 1 = k := by omega
-        simpa [hk'] using hinv (k - 1)
-      exact ih (π.getD (k - 1) 0) hlt
+  by_cases hk : k = 0 <;> simp [hk]
+
+/-- `computePrefixGo`'s result is independent of its `hinv`/`hk_lt` proof arguments. -/
+lemma computePrefixGo_irrelevant (P : Text α) (π : List ℕ) (k : ℕ) (rest : Text α)
+    (hinv hinv' : ∀ i, π.getD i 0 < i + 1) (hk_lt hk_lt' : k < π.length) :
+    computePrefixGo P π k hinv hk_lt rest = computePrefixGo P π k hinv' hk_lt' rest := by
+  induction rest generalizing π k hinv hinv' hk_lt hk_lt' with
+  | nil => rfl
+  | cons c rest' ih =>
+      unfold computePrefixGo
+      simp [failureFollow_irrelevant, ih]
+
+/-- Extract the head/tail of `P.drop n = c :: rest`. -/
+lemma drop_cons (P : Text α) (n : ℕ) (c : α) (rest : Text α) (h : P.drop n = c :: rest) :
+    n < P.length ∧ c = P.getD n default ∧ rest = P.drop (n + 1) := by
+  have hlen : n < P.length := by
+    by_contra hge
+    have hnil : P.drop n = [] := List.drop_eq_nil_of_le (by omega)
+    rw [h] at hnil
+    cases hnil
+  refine ⟨hlen, ?_, ?_⟩
+  · have hhead : (P.drop n).head? = (c :: rest).head? := by rw [h]
+    simp at hhead
+    have : P.getD n default = c := by
+      change P[n]?.getD default = c
+      rw [hhead]
+      rfl
+    exact this.symm
+  · have htail : (P.drop n).drop 1 = (c :: rest).drop 1 := by rw [h]
+    simp at htail
+    exact htail.symm
+
+/-- The invariant of `computePrefixGo`: it extends a correct prefix array. -/
+lemma computePrefixGo_correct (P : Text α) (π : List ℕ) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (hk_lt : k < π.length)
+    (hπ : ∀ i, i < π.length → π.getD i 0 = prefixLen P (i + 1))
+    (hk : k = prefixLen P π.length) :
+    ∀ rest, rest = P.drop π.length →
+      ∀ i, i < (computePrefixGo P π k hinv hk_lt rest).length →
+        (computePrefixGo P π k hinv hk_lt rest).getD i 0 = prefixLen P (i + 1) := by
+  intro rest hrest
+  induction rest generalizing π k hinv hk_lt hπ hk with
+  | nil =>
+      intro i hi
+      simpa [computePrefixGo] using hπ i (by simpa [computePrefixGo] using hi)
+  | cons c rest' ih =>
+      intro i hi
+      have hd := drop_cons P π.length c rest' hrest.symm
+      have hqlt : π.length < P.length := hd.1
+      have hc : c = P.getD π.length default := hd.2.1
+      have hrest' : rest' = P.drop (π.length + 1) := hd.2.2
+      have hqpos : 0 < π.length := by omega
+      let k' := failureFollow P π c k hinv
+      let k'' := if (P.getD k' default) = c then k' + 1 else 0
+      have hstep : k'' = prefixLen P (π.length + 1) := by
+        dsimp [k'', k']
+        exact computePrefixGo_step P π k c hinv hπ hk hc hqpos hqlt
+      have hπ' : ∀ j, j < (π ++ [k'']).length → (π ++ [k'']).getD j 0 = prefixLen P (j + 1) := by
+        intro j hj
+        by_cases hjπ : j < π.length
+        · rw [List.getD_append π [k''] 0 j hjπ]
+          exact hπ j hjπ
+        · have hge : π.length ≤ j := by omega
+          rw [List.getD_append_right π [k''] 0 j hge]
+          have hj_eq : j = π.length := by omega
+          subst j
+          simpa using hstep
+      have hk' : k'' = prefixLen P (π ++ [k'']).length := by
+        simpa [List.length_append] using hstep
+      have hinv'' : ∀ j, (π ++ [k'']).getD j 0 < j + 1 := by
+        intro j
+        by_cases hjπ : j < π.length
+        · rw [List.getD_append π [k''] 0 j hjπ]
+          exact hinv j
+        · have hge : π.length ≤ j := by omega
+          rw [List.getD_append_right π [k''] 0 j hge]
+          have hle : [k''].getD (j - π.length) 0 ≤ k'' := by
+            by_cases h : j - π.length = 0 <;> simp [List.getD, h]
+          omega
+      have hk''lt : k'' < (π ++ [k'']).length := by
+        have hle : k'' ≤ π.length := by dsimp [k'']; split <;> omega
+        simp [hle]
+      rw [computePrefixGo]
+      dsimp [k', k'']
+      have hbridge := computePrefixGo_irrelevant P (π ++ [k'']) k'' rest' _ hinv'' _ hk''lt
+      rw [hbridge] at hi ⊢
+      exact (ih (π ++ [k'']) k'' hinv'' hk''lt hπ' hk' (by simpa [List.length_append] using hrest')) i hi
 
 end Chapter32
 end CLRS
