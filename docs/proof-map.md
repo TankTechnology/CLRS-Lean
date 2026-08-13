@@ -1760,11 +1760,14 @@ execution-attached logarithmic costs remain fourth-edition gaps.
 ### Section 13.4 (Fourth Edition) - Deletion
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_13/Section_13_4_Deletion.lean`
-- Status: fourth-edition §13.4 `partial`.  The logarithmic execution-cost
-  theorem is proved; BST preservation of the composed delete (`bst_delete`)
-  remains.
+- Status: fourth-edition §13.4 complete.  The logarithmic execution-cost
+  theorem and the BST ordering preservation of the composed delete are both
+  proved.
 - Main proved theorems:
   - `CLRS.Chapter13.RBTree.deleteCost_log_bound`
+  - `CLRS.Chapter13.RBTree.bst_delete` — RB-DELETE preserves the BST ordering
+    invariant (via `bst_iff_sorted` and the `keys` sublist pipeline
+    `keys_baldL`/`keys_baldR`/`keys_splitMin_cons`/`keys_join`/`keys_del_sublist`)
 
 ## Chapter 14 - Augmenting Data Structures
 
@@ -1952,13 +1955,17 @@ query/update cost theorems remain.
 ### Section 17.3 (Fourth Edition) - Interval trees
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_17/Section_17_3_Interval_Trees.lean`
-- Status: fourth-edition §17.3 `partial`.  The dynamic/static bridge,
-  search-after-update, and search-cost foundation are proved; the
-  Interval-keyed `O(log n)` search bound remains.
+- Status: fourth-edition §17.3 complete.  The dynamic/static bridge,
+  search-after-update, and the Interval-keyed `O(log n)` search bound are all
+  proved.
 - Main proved theorems:
   - `CLRS.Chapter14.IntervalTree.intervalSearchCost_le_height`
   - `CLRS.Chapter14.AugmentedRBTree.toIntervalTree` / `wellAugmented_toIntervalTree`
   - `CLRS.Chapter14.intervalSearch_after_update`
+  - `CLRS.Chapter14.AugmentedRBTree.toRB_low` / `intervalHeight_eq_toRB_height`
+  - `CLRS.Chapter14.intervalSearchCost_log_bound` — interval search runs in
+    `O(log n)` (composing `intervalSearchCost_le_height` with
+    `RBTree.height_log_bound` via the low-keyed height erasure)
 
 ## Chapter 15 - Dynamic Programming
 

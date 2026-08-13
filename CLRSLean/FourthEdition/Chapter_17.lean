@@ -26,9 +26,9 @@ boundaries:
   `combine` premise and the asymptotic augmentation update bound
   {lit}`augmentation_update_bound`.
 - §17.3 ({lit}`Section_17_3_Interval_Trees`): the dynamic/static interval-tree
-  bridge {lit}`toIntervalTree`/{lit}`wellAugmented_toIntervalTree` and
-  search-after-update {lit}`intervalSearch_after_update`, with the search-cost
-  foundation {lit}`intervalSearchCost_le_height`.
+  bridge {lit}`toIntervalTree`/{lit}`wellAugmented_toIntervalTree`,
+  search-after-update {lit}`intervalSearch_after_update`, and the Interval-keyed
+  {lit}`O(log n)` search bound {lit}`intervalSearchCost_log_bound`.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
