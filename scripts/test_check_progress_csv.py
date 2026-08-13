@@ -76,8 +76,11 @@ class FourthEditionContractTest(unittest.TestCase):
         )
 
     def test_partial_chapter_must_have_positive_gap_units(self) -> None:
+        # Pick a chapter that is currently partial rather than a hardcoded row
+        # index, since chapters graduate to `main-proof-complete` over time.
         rows = [row.copy() for row in load_rows()]
-        rows[6]["edition_gap_units"] = "0"
+        partial = next(row for row in rows if row["repo_status"] == "partial")
+        partial["edition_gap_units"] = "0"
 
         with self.assertRaisesRegex(SystemExit, "positive edition_gap_units"):
             validate(rows)
