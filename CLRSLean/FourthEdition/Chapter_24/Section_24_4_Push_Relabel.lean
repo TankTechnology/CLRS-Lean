@@ -151,25 +151,15 @@ def toFlow {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
       φ.excess_eq_neg_sum u
     linarith
 
-/-- The residual edge relation is unchanged under the flow conversion. -/
-lemma toFlow_residualEdge {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
-    (φ : Preflow V G) (hnoExcess : ∀ u, u ≠ G.s → u ≠ G.t → φ.excess u = 0)
-    (u v : V) : (φ.toFlow hnoExcess).residualEdge u v ↔ φ.residualEdge u v := by
-  change Flow.residualCapacity (φ.toFlow hnoExcess) u v > 0 ↔ φ.residualCapacity u v > 0
-  simp [Flow.residualCapacity, Preflow.residualCapacity, Preflow.toFlow]
-
 /-- The augmenting-path predicate is unchanged under the flow conversion. -/
 lemma toFlow_hasAugmentingPath {V : Type*} [Fintype V] [DecidableEq V]
     {G : FlowNetwork V} (φ : Preflow V G)
     (hnoExcess : ∀ u, u ≠ G.s → u ≠ G.t → φ.excess u = 0) :
     (φ.toFlow hnoExcess).hasAugmentingPath ↔ φ.hasAugmentingPath := by
-  unfold Flow.hasAugmentingPath Flow.augmentingPathReachable
-    Preflow.hasAugmentingPath Preflow.augmentingPathReachable
-  have hrel : (fun u v => (φ.toFlow hnoExcess).residualEdge u v) =
-      (fun u v => φ.residualEdge u v) := by
-    funext u v
-    exact propext (φ.toFlow_residualEdge hnoExcess u v)
-  rw [hrel]
+  simpa [Flow.hasAugmentingPath, Flow.augmentingPathReachable,
+    Preflow.hasAugmentingPath, Preflow.augmentingPathReachable,
+    Flow.residualEdge, Flow.residualCapacity,
+    Preflow.residualEdge, Preflow.residualCapacity, Preflow.toFlow]
 
 end Preflow
 
@@ -190,23 +180,31 @@ def admissibleEdge {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
 
 /-! ## The relabel operation -/
 
+/-- The set of heights of residual neighbors of `u`. -/
+private noncomputable def relabelSet {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (φ : Preflow V G) (h : V → ℕ) (u : V) : Finset ℕ :=
+  ((Finset.univ : Finset V).filter (fun v => φ.residualEdge u v)).image h
+
+/-- The residual-neighbor height set is nonempty when `u` has a residual edge. -/
+private lemma relabelSet_nonempty {V : Type*} [Fintype V] [DecidableEq V]
+    {G : FlowNetwork V} (φ : Preflow V G) (h : V → ℕ) (u : V)
+    (hres : ∃ v : V, φ.residualEdge u v) : (relabelSet φ h u).Nonempty := by
+  rcases hres with ⟨v, hv⟩
+  exact Finset.image_nonempty.mpr ⟨v, Finset.mem_filter.mpr ⟨Finset.mem_univ v, hv⟩⟩
+
 /-- The minimum height among the residual neighbors of `u` (used by `relabel`). -/
 private noncomputable def relabelMin {V : Type*} [Fintype V] [DecidableEq V]
     {G : FlowNetwork V} (φ : Preflow V G) (h : V → ℕ) (u : V)
     (hres : ∃ v : V, φ.residualEdge u v) : ℕ :=
-  (((Finset.univ : Finset V).filter (fun v => φ.residualEdge u v)).image h).min'
-    (by
-      rcases hres with ⟨v, hv⟩
-      exact Finset.image_nonempty.mpr
-        ⟨v, Finset.mem_filter.mpr ⟨Finset.mem_univ v, hv⟩, rfl⟩)
+  (relabelSet φ h u).min' (relabelSet_nonempty φ h u hres)
 
 /-- `relabelMin` is at most the height of any residual neighbor. -/
 private lemma relabelMin_le {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
     (φ : Preflow V G) (h : V → ℕ) (u : V) (hres : ∃ v : V, φ.residualEdge u v)
     {b : V} (hb : φ.residualEdge u b) : relabelMin φ h u hres ≤ h b := by
   unfold relabelMin
-  exact Finset.min'_le _ _ (Finset.mem_image.mpr
-    ⟨b, Finset.mem_filter.mpr ⟨Finset.mem_univ b, hb⟩, rfl⟩)
+  exact (Finset.isLeast_min' (relabelSet φ h u) (relabelSet_nonempty φ h u hres)).2 (h b)
+    (Finset.mem_image.mpr ⟨b, Finset.mem_filter.mpr ⟨Finset.mem_univ b, hb⟩, rfl⟩)
 
 /-- Under the relabel precondition (`h u ≤ h v` for every residual neighbor),
 `h u` is at most `relabelMin`. -/
@@ -214,15 +212,14 @@ private lemma le_relabelMin {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNet
     (φ : Preflow V G) (h : V → ℕ) (u : V) (hres : ∃ v : V, φ.residualEdge u v)
     (hpre : ∀ v, φ.residualEdge u v → h u ≤ h v) : h u ≤ relabelMin φ h u hres := by
   unfold relabelMin
-  refine Finset.le_min'_iff.mpr ?_
-  intro y hy
-  rcases Finset.mem_image.mp hy with ⟨v, hvmem, rfl⟩
-  exact hpre v (Finset.mem_filter.mp hvmem).2
+  exact Finset.le_min' (relabelSet φ h u) (relabelSet_nonempty φ h u hres)
+    (by
+      intro y hy
+      rcases Finset.mem_image.mp hy with ⟨v, hvmem, rfl⟩
+      exact hpre v (Finset.mem_filter.mp hvmem).2)
 
 /-- Relabel vertex `u`: raise its height to one plus the minimum height among
-its residual neighbors.  The precondition supplies the existence of a residual
-edge out of `u` (always true for an overflowing vertex, see
-`exists_residualEdge_of_overflowing`). -/
+its residual neighbors. -/
 noncomputable def relabel {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
     (φ : Preflow V G) (h : V → ℕ) (u : V) (hres : ∃ v : V, φ.residualEdge u v) :
     V → ℕ :=
@@ -261,36 +258,36 @@ theorem relabel_validHeight {V : Type*} [Fintype V] [DecidableEq V]
     IsValidHeight φ (relabel φ h u hres) := by
   constructor
   · exact (relabel_eq_of_ne φ h u hres (Ne.symm hu_ne_s)).trans hvalid.1
-  · exact (relabel_eq_of_ne φ h u hres (Ne.symm hu_ne_t)).trans hvalid.2.1
-  · intro a b hres_ab
-    by_cases hau : a = u
-    · subst a
-      -- edge (u, b): h'(u) ≤ h'(b) + 1
-      have hb_ne_u : b ≠ u := by
-        intro hb
-        subst b
-        have hself0 : φ.residualCapacity u u = 0 := by
-          unfold Preflow.residualCapacity
-          rw [G.hc_self u]
-          have hskew : φ.f u u = 0 := by
-            have h := φ.hskew_symm u u
-            linarith
-          simp [hskew]
-        linarith [hres_ab, hself0]
-      rw [relabel_eq_self]
-      have hmin_le : relabelMin φ h u hres ≤ h b := relabelMin_le φ h u hres hres_ab
-      have hb_eq : relabel φ h u hres b = h b := relabel_eq_of_ne φ h u hres hb_ne_u
-      omega
-    · by_cases hbu : b = u
-      · subst b
-        -- edge (a, u) with a ≠ u: h'(a) ≤ h'(u) + 1 = relabelMin + 2
-        have hvalid_edge : h a ≤ h u + 1 := hvalid.2.2 a u hres_ab
-        rw [relabel_eq_of_ne φ h u hres hau, relabel_eq_self]
-        have hle_min : h u ≤ relabelMin φ h u hres := le_relabelMin φ h u hres hpre
+  · constructor
+    · exact (relabel_eq_of_ne φ h u hres (Ne.symm hu_ne_t)).trans hvalid.2.1
+    · intro a b hres_ab
+      by_cases hau : a = u
+      · subst a
+        have hb_ne_u : b ≠ u := by
+          intro hb
+          subst b
+          have hself0 : φ.residualCapacity u u = 0 := by
+            unfold Preflow.residualCapacity
+            rw [G.hc_self u]
+            have hf : φ.f u u = 0 := by
+              have h := φ.hskew_symm u u
+              linarith
+            simp [hf]
+          have hres0 : φ.residualCapacity u u > 0 := by
+            simpa [Preflow.residualEdge] using hres_ab
+          linarith
+        rw [relabel_eq_self]
+        have hmin_le : relabelMin φ h u hres ≤ h b := relabelMin_le φ h u hres hres_ab
+        have hb_eq : relabel φ h u hres b = h b := relabel_eq_of_ne φ h u hres hb_ne_u
         omega
-      · -- edge (a, b) with a ≠ u, b ≠ u: unchanged
-        rw [relabel_eq_of_ne φ h u hres hau, relabel_eq_of_ne φ h u hres hbu]
-        exact hvalid.2.2 a b hres_ab
+      · by_cases hbu : b = u
+        · subst b
+          have hvalid_edge : h a ≤ h u + 1 := hvalid.2.2 a u hres_ab
+          rw [relabel_eq_of_ne φ h u hres hau, relabel_eq_self]
+          have hle_min : h u ≤ relabelMin φ h u hres := le_relabelMin φ h u hres hpre
+          omega
+        · rw [relabel_eq_of_ne φ h u hres hau, relabel_eq_of_ne φ h u hres hbu]
+          exact hvalid.2.2 a b hres_ab
 
 /-! ## The push operation -/
 
@@ -315,11 +312,31 @@ private lemma edgeDelta_sum_first {V : Type*} [Fintype V] [DecidableEq V]
     · simp [hau]
   rw [hf, hg]
 
-/-- Push `δ` units of flow from `u` to `v`.  The hypotheses assert that `δ` is
-nonnegative, bounded by the excess of `u`, and bounded by the residual capacity
-of `(u,v)`. -/
+/-- The residual capacity on a self-loop is always zero. -/
+lemma residualCapacity_self {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
+    (φ : Preflow V G) (u : V) : φ.residualCapacity u u = 0 := by
+  unfold Preflow.residualCapacity
+  rw [G.hc_self u]
+  have hf : φ.f u u = 0 := by
+    have h := φ.hskew_symm u u
+    linarith
+  simp [hf]
+
+/-- A residual edge never joins a vertex to itself. -/
+lemma residualEdge_ne {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
+    (φ : Preflow V G) {u v : V} (hres : φ.residualEdge u v) : u ≠ v := by
+  intro huv
+  subst v
+  have h0 : φ.residualCapacity u u = 0 := φ.residualCapacity_self u
+  have hpos : φ.residualCapacity u u > 0 := by
+    simpa [Preflow.residualEdge] using hres
+  linarith
+
+/-- Push `δ` units of flow from `u` to `v` (with `u ≠ v`).  The hypotheses
+assert that `δ` is nonnegative, bounded by the excess of `u`, and bounded by the
+residual capacity of `(u,v)`. -/
 noncomputable def pushBy {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
-    (φ : Preflow V G) (u v : V) (δ : ℝ) (hδ_nonneg : 0 ≤ δ)
+    (φ : Preflow V G) (u v : V) (huv : u ≠ v) (δ : ℝ) (hδ_nonneg : 0 ≤ δ)
     (hδ_le_excess : δ ≤ φ.excess u) (hδ_le_residual : δ ≤ φ.residualCapacity u v) :
     Preflow V G where
   f a b := φ.f a b + Flow.edgeDelta δ u v a b
@@ -332,12 +349,12 @@ noncomputable def pushBy {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwor
       have hδ : δ ≤ G.c u v - φ.f u v := by
         unfold Preflow.residualCapacity at hδ_le_residual
         exact hδ_le_residual
-      simp
+      simp [huv]
       linarith
     · by_cases h2 : a = v ∧ b = u
       · rcases h2 with ⟨hav, hbu⟩
         subst a; subst b
-        simp
+        simp [huv]
         linarith [φ.hcapacity v u, hδ_nonneg]
       · have h1' : ¬(a = u ∧ b = v) := h1
         have h2' : ¬(a = v ∧ b = u) := h2
@@ -357,45 +374,43 @@ noncomputable def pushBy {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwor
       φ.hexcess_nonneg a ha_ne_s
     by_cases hau : a = u
     · subst a
-      -- excess'(u) = excess(u) - δ ≥ 0 since δ ≤ excess u
       have hle : δ ≤ (Finset.univ : Finset V).sum (fun x => φ.f x u) := by
         unfold Preflow.excess netInflow at hδ_le_excess
         exact hδ_le_excess
-      simp [hau]
+      simp [huv]
       linarith
     · by_cases hav : a = v
       · subst a
-        -- excess'(v) = excess(v) + δ ≥ excess(v) ≥ 0
         have hnonneg : 0 ≤ (Finset.univ : Finset V).sum (fun x => φ.f x v) :=
           φ.hexcess_nonneg v ha_ne_s
-        simp [hau, hav]
+        simp [huv]
         linarith
-      · -- unchanged
-        simp [hau, hav]
+      · simp [hau, hav]
         exact hexcess_a
 
 /-- Pushing can only create one new residual edge: the reverse `(v,u)`. -/
 lemma pushBy_new_residualEdge {V : Type*} [Fintype V] [DecidableEq V]
-    {G : FlowNetwork V} (φ : Preflow V G) (u v : V) (δ : ℝ) (hδ_nonneg : 0 ≤ δ)
-    (hδ_le_excess : δ ≤ φ.excess u) (hδ_le_residual : δ ≤ φ.residualCapacity u v)
-    {a b : V} (hnew : (φ.pushBy u v δ hδ_nonneg hδ_le_excess hδ_le_residual).residualEdge a b)
+    {G : FlowNetwork V} (φ : Preflow V G) (u v : V) (huv : u ≠ v) (δ : ℝ)
+    (hδ_nonneg : 0 ≤ δ) (hδ_le_excess : δ ≤ φ.excess u)
+    (hδ_le_residual : δ ≤ φ.residualCapacity u v)
+    {a b : V} (hnew : (φ.pushBy u v huv δ hδ_nonneg hδ_le_excess hδ_le_residual).residualEdge a b)
     (hold : ¬ φ.residualEdge a b) : a = v ∧ b = u := by
-  have hcap : (φ.pushBy u v δ hδ_nonneg hδ_le_excess hδ_le_residual).residualCapacity a b > 0 := hnew
+  have hcap : (φ.pushBy u v huv δ hδ_nonneg hδ_le_excess hδ_le_residual).residualCapacity a b > 0 := hnew
   have hcap0 : φ.residualCapacity a b ≤ 0 := le_of_not_gt hold
-  unfold Preflow.pushBy Preflow.residualCapacity Flow.edgeDelta at hcap
-  have hformula : (φ.pushBy u v δ hδ_nonneg hδ_le_excess hδ_le_residual).residualCapacity a b =
+  have hformula : (φ.pushBy u v huv δ hδ_nonneg hδ_le_excess hδ_le_residual).residualCapacity a b =
       φ.residualCapacity a b - (if a = u ∧ b = v then δ else 0) +
         (if a = v ∧ b = u then δ else 0) := by
     unfold Preflow.pushBy Preflow.residualCapacity Flow.edgeDelta
     ring
   rw [hformula] at hcap
   by_contra hnot
-  have hnot_uv : ¬(a = v ∧ b = u) := hnot
-  have hnot_rev : ¬(a = u ∧ b = v) := by
+  have hnot_rev : ¬(a = v ∧ b = u) := hnot
+  have hnot_uv : ¬(a = u ∧ b = v) := by
     intro h
-    rw [h.1, h.2] at hnot_uv
-    exact hnot_uv ⟨rfl, rfl⟩
-  rw [if_neg hnot_rev, if_neg hnot_uv] at hcap
+    have hv : a = v ∧ b = u := by
+      exact ⟨h.1 ▸ rfl, h.2 ▸ rfl⟩
+    exact hnot_rev hv
+  rw [if_neg hnot_uv, if_neg hnot_rev] at hcap
   linarith
 
 /-- A push on an admissible edge preserves the valid height function (heights
@@ -403,20 +418,22 @@ are unchanged; the only new residual edge is the reverse edge, whose height
 condition follows from admissibility). -/
 lemma pushBy_validHeight {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork V}
     (φ : Preflow V G) (h : V → ℕ) (hvalid : IsValidHeight φ h)
-    (u v : V) (δ : ℝ) (hδ_nonneg : 0 ≤ δ) (hδ_le_excess : δ ≤ φ.excess u)
-    (hδ_le_residual : δ ≤ φ.residualCapacity u v) (hadm : h u = h v + 1) :
-    IsValidHeight (φ.pushBy u v δ hδ_nonneg hδ_le_excess hδ_le_residual) h := by
+    (u v : V) (huv : u ≠ v) (δ : ℝ) (hδ_nonneg : 0 ≤ δ)
+    (hδ_le_excess : δ ≤ φ.excess u) (hδ_le_residual : δ ≤ φ.residualCapacity u v)
+    (hadm : h u = h v + 1) :
+    IsValidHeight (φ.pushBy u v huv δ hδ_nonneg hδ_le_excess hδ_le_residual) h := by
   constructor
   · exact hvalid.1
-  · exact hvalid.2.1
-  · intro a b hres
-    by_cases hold : φ.residualEdge a b
-    · exact hvalid.2.2 a b hold
-    · have hab := φ.pushBy_new_residualEdge u v δ hδ_nonneg hδ_le_excess hδ_le_residual hres hold
-      rcases hab with ⟨rfl, rfl⟩
-      -- need h v ≤ h u + 1, from h u = h v + 1
-      rw [hadm]
-      omega
+  · constructor
+    · exact hvalid.2.1
+    · intro a b hres
+      by_cases hold : φ.residualEdge a b
+      · exact hvalid.2.2 a b hold
+      · have hab := φ.pushBy_new_residualEdge u v huv δ hδ_nonneg hδ_le_excess hδ_le_residual
+          hres hold
+        rcases hab with ⟨rfl, rfl⟩
+        rw [hadm]
+        omega
 
 /-- The admissible push: push `δ = min(e(u), cf(u,v))` from an overflowing `u`
 along a residual edge `(u,v)`. -/
@@ -424,7 +441,8 @@ noncomputable def push {V : Type*} [Fintype V] [DecidableEq V] {G : FlowNetwork 
     (φ : Preflow V G) (u v : V) (hu_ne_s : u ≠ G.s) (hres : φ.residualEdge u v) :
     Preflow V G :=
   let δ := min (φ.excess u) (φ.residualCapacity u v)
-  φ.pushBy u v δ (le_min (φ.hexcess_nonneg u hu_ne_s) (le_of_lt hres))
+  φ.pushBy u v (φ.residualEdge_ne hres) δ
+    (le_min (φ.hexcess_nonneg u hu_ne_s) (le_of_lt hres))
     (min_le_left _ _) (min_le_right _ _)
 
 /-! ## Height bound via reachability to the source -/
@@ -434,9 +452,7 @@ theorem exists_residualEdge_of_overflowing {V : Type*} [Fintype V] [DecidableEq 
     {G : FlowNetwork V} (φ : Preflow V G) (u : V) (hu_ne_s : u ≠ G.s)
     (hu_overflow : 0 < φ.excess u) : ∃ v : V, φ.residualEdge u v := by
   by_contra hnone
-  have hnone : ∀ v, ¬φ.residualEdge u v := fun v => by
-    intro hres
-    exact hnone ⟨v, hres⟩
+  have hnone : ∀ v, ¬φ.residualEdge u v := fun v hres => hnone ⟨v, hres⟩
   have hall_nonpos : ∀ v, φ.residualCapacity u v ≤ 0 := fun v => le_of_not_gt (hnone v)
   have hf_ge_cap : ∀ v, G.c u v ≤ φ.f u v := by
     intro v
@@ -451,7 +467,7 @@ theorem exists_residualEdge_of_overflowing {V : Type*} [Fintype V] [DecidableEq 
     linarith
   have hexcess_nonpos : φ.excess u ≤ 0 := by
     unfold Preflow.excess netInflow
-    refine Finset.sum_le_sum fun v hv => hfin_nonpos v
+    exact Finset.sum_le_sum (fun v hv => hfin_nonpos v)
   linarith
 
 /-- Every list with repeated vertices decomposes into a duplicated segment. -/
@@ -524,10 +540,6 @@ private lemma exists_nodup_chain_same_ends {α : Type*} [DecidableEq α]
         have hshorter_ne : shorter ≠ [] := by
           dsimp [shorter]
           simp
-        have hlen_xs : xs.length = left.length + middle.length + right.length + 2 := by
-          rw [hxs]
-          simp only [List.length_append, List.length_cons]
-          omega
         have hlen_shorter : shorter.length = left.length + right.length + 1 := by
           dsimp [shorter]
           simp only [List.length_append, List.length_cons]
@@ -553,7 +565,8 @@ lemma height_le_of_residual_chain {V : Type*} [Fintype V] [DecidableEq V]
       have htail : (b :: xs).IsChain φ.residualEdge := hchain.tail
       have hb := ih htail
       have hle : h a ≤ h b + 1 := hedge a b hrel
-      simp only [List.getLast_cons, List.length_cons] at hb ⊢
+      change h a ≤ h ((b :: xs).getLast (by simp)) + (b :: xs).length
+      simp only [List.length_cons]
       omega
 
 /-- Same statement for an arbitrary nonempty chain. -/
@@ -593,11 +606,9 @@ lemma height_le_of_reachability {V : Type*} [Fintype V] [DecidableEq V]
   have hle := height_le_of_residual_chain_nonempty φ h hedge hychain hyne
   rw [hhead_a, hlast_b] at hle
   have hlen_le : ys.length ≤ Fintype.card V := by
-    have hcard : (ys.toFinset : Finset V).card = ys.length := by
-      exact List.toFinset_card_of_nodup ys hynodup
-    have hle2 : (ys.toFinset : Finset V).card ≤ (Finset.univ : Finset V).card := by
-      exact Finset.card_le_card (by intro x hx; simp)
-    simpa [hcard] using hle2
+    have hcard : ys.length = ys.toFinset.card := (List.toFinset_card_of_nodup hynodup).symm
+    rw [hcard]
+    exact Finset.card_le_card (by intro x hx; simp)
   have hlen_sub : ys.length - 1 ≤ Fintype.card V - 1 := by omega
   omega
 
@@ -624,41 +635,37 @@ theorem exists_residualPath_to_source_of_overflowing {V : Type*} [Fintype V]
     unfold Preflow.residualCapacity at hcf_nonpos
     linarith
   have hsum_le_zero : (∑ a ∈ X, φ.excess a) ≤ 0 := by
-    calc
-      (∑ a ∈ X, φ.excess a)
-          = ∑ a ∈ X, ∑ b : V, φ.f b a := by
-            refine Finset.sum_congr rfl fun a ha => ?_
-            rfl
-      _ = ∑ a ∈ X, (∑ b ∈ X, φ.f b a + ∑ b ∈ Xᶜ, φ.f b a) := by
-            refine Finset.sum_congr rfl fun a ha => ?_
-            exact (Finset.sum_add_sum_compl X (fun b => φ.f b a)).symm
-      _ = (∑ a ∈ X, ∑ b ∈ X, φ.f b a) + (∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a) := by
-            rw [Finset.sum_add_distrib]
-      _ = 0 + (∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a) := by
-            congr 1
-            rw [Finset.sum_comm]
-            exact Preflow.skew_symm_cancel φ X
-      _ = ∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a := by simp
-      _ = -∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f a b := by
-            rw [Finset.sum_neg_distrib]
-            refine Finset.sum_congr rfl fun a ha => ?_
-            rw [Finset.sum_neg_distrib]
-            refine Finset.sum_congr rfl fun b hb => ?_
-            exact φ.hskew_symm b a
-      _ = -∑ a ∈ X, ∑ b ∈ Xᶜ, G.c a b := by
-            congr 1
-            refine Finset.sum_congr rfl fun a ha => ?_
-            refine Finset.sum_congr rfl fun b hb => ?_
-            exact hf_eq_cap a ha b hb
-      _ ≤ 0 := by
-            have hnonneg : 0 ≤ ∑ a ∈ X, ∑ b ∈ Xᶜ, G.c a b := by
-              refine Finset.sum_nonneg fun a ha => Finset.sum_nonneg fun b hb => ?_
-              exact G.hc_nonneg a b
-            linarith
+    have hsplit : (∑ a ∈ X, φ.excess a) = ∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a := by
+      calc
+        (∑ a ∈ X, φ.excess a) = ∑ a ∈ X, ∑ b : V, φ.f b a := by
+          refine Finset.sum_congr rfl fun a ha => ?_
+          rfl
+        _ = ∑ a ∈ X, (∑ b ∈ X, φ.f b a + ∑ b ∈ Xᶜ, φ.f b a) := by
+          refine Finset.sum_congr rfl fun a ha => ?_
+          exact (Finset.sum_add_sum_compl X (fun b => φ.f b a)).symm
+        _ = (∑ a ∈ X, ∑ b ∈ X, φ.f b a) + (∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a) := by
+          rw [Finset.sum_add_distrib]
+        _ = 0 + (∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a) := by
+          congr 1
+          rw [Finset.sum_comm]
+          exact Preflow.skew_symm_cancel φ X
+        _ = ∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a := by simp
+    have heq : (∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a) = -∑ a ∈ X, ∑ b ∈ Xᶜ, G.c a b := by
+      have h1 : (∑ a ∈ X, ∑ b ∈ Xᶜ, φ.f b a) = ∑ a ∈ X, ∑ b ∈ Xᶜ, -G.c a b := by
+        refine Finset.sum_congr rfl fun a ha => Finset.sum_congr rfl fun b hb => ?_
+        have hf_eq : φ.f a b = G.c a b := hf_eq_cap a ha b hb
+        rw [φ.hskew_symm b a, hf_eq]
+      rw [h1]
+      simp only [Finset.sum_neg_distrib]
+    have hnonneg : 0 ≤ ∑ a ∈ X, ∑ b ∈ Xᶜ, G.c a b := by
+      refine Finset.sum_nonneg fun a ha => Finset.sum_nonneg fun b hb => ?_
+      exact G.hc_nonneg a b
+    rw [hsplit, heq]
+    linarith
   have hu_mem : u ∈ X := Finset.mem_filter.mpr ⟨Finset.mem_univ u, Relation.ReflTransGen.refl⟩
   have hsum_pos : 0 < ∑ a ∈ X, φ.excess a := by
     have hsplit : (∑ a ∈ X, φ.excess a) = (∑ a ∈ X.erase u, φ.excess a) + φ.excess u := by
-      exact Finset.sum_erase_add hu_mem
+      exact X.sum_erase_add (fun a => φ.excess a) hu_mem
     rw [hsplit]
     have hrest_nonneg : 0 ≤ ∑ a ∈ X.erase u, φ.excess a := by
       refine Finset.sum_nonneg fun a ha => ?_
@@ -666,7 +673,7 @@ theorem exists_residualPath_to_source_of_overflowing {V : Type*} [Fintype V]
       have ha_ne_s : a ≠ G.s := by
         intro ha_eq_s
         apply hs_not_mem
-        rwa [ha_eq_s]
+        simpa [← ha_eq_s] using ha_X
       exact φ.hexcess_nonneg a ha_ne_s
     linarith
   linarith
@@ -679,9 +686,8 @@ theorem height_le_of_overflowing {V : Type*} [Fintype V] [DecidableEq V]
     h u ≤ 2 * Fintype.card V - 1 := by
   have hpath := exists_residualPath_to_source_of_overflowing φ u hu_ne_s hu_overflow
   have hle := height_le_of_reachability φ h hvalid.2.2 hpath
-  have hs_card : h G.s = Fintype.card V := hvalid.1
-  rw [hs_card] at hle
-  have hcard_pos : 0 < Fintype.card V := Fintype.card_pos
+  rw [hvalid.1] at hle
+  have hcard_pos : 0 < Fintype.card V := Fintype.card_pos_iff.mpr ⟨G.s⟩
   omega
 
 /-! ## Correctness: a terminated preflow is a maximum flow -/
@@ -693,7 +699,7 @@ theorem noAugmentingPath_of_validHeight {V : Type*} [Fintype V] [DecidableEq V]
   intro hpath
   have hle := height_le_of_reachability φ h hvalid.2.2 hpath
   rw [hvalid.1, hvalid.2.1] at hle
-  have hcard_pos : 0 < Fintype.card V := Fintype.card_pos
+  have hcard_pos : 0 < Fintype.card V := Fintype.card_pos_iff.mpr ⟨G.s⟩
   omega
 
 /-- **Theorem (push-relabel correctness).** If a preflow has a valid height
