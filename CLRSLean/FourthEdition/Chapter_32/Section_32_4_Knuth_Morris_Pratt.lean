@@ -394,13 +394,19 @@ lemma prefixMatchAux_congr (P : Text α) (q q' : ℕ) (c : α) (n : ℕ)
   | succ n ih =>
       have hsuf : suffixTest (P.take (n + 1)) (P.take q) = suffixTest (P.take (n + 1)) (P.take q') := by
         have hiff := h (n + 1) (by omega)
-        by_cases hq : suffixTest (P.take (n + 1)) (P.take q) = true
-        · rw [hq]; exact hiff.mp hq
-        · have hq' : suffixTest (P.take (n + 1)) (P.take q') = false := by
-            cases hh : suffixTest (P.take (n + 1)) (P.take q')
-            · rfl
-            · exact (hq (hiff.mpr hh)).elim
-          rw [hq, hq']
+        cases hq : suffixTest (P.take (n + 1)) (P.take q) with
+        | false =>
+            have hq' : suffixTest (P.take (n + 1)) (P.take q') = false := by
+              cases hh : suffixTest (P.take (n + 1)) (P.take q') with
+              | false => rfl
+              | true =>
+                  have hqtrue : suffixTest (P.take (n + 1)) (P.take q) = true := hiff.mpr hh
+                  rw [hq] at hqtrue
+                  cases hqtrue
+            rw [hq, hq']
+        | true =>
+            have hq' : suffixTest (P.take (n + 1)) (P.take q') = true := hiff.mp hq
+            rw [hq, hq']
       simp [prefixMatchAux, hsuf, ih]
 
 end Chapter32
