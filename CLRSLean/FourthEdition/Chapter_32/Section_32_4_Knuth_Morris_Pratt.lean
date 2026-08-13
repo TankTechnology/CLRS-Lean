@@ -531,6 +531,7 @@ lemma failureFollow_eq_prefixMatchAux (P : Text α) (π : List ℕ) (c : α) (q 
   intro k ih q hπ hk
   by_cases hk0 : k = 0
   · subst hk0
+    rw [failureFollow.eq_1, prefixMatchAux]
     rfl
   · have hkpos : 0 < k := Nat.pos_of_ne_zero hk0
     have hsuf : suffixTest (P.take k) (P.take q) = true := by
@@ -562,6 +563,52 @@ lemma failureFollow_eq_prefixMatchAux (P : Text α) (π : List ℕ) (c : α) (q 
         (n + 1) (fun i hi => hπ i (by omega)) rfl
       rw [hih]
       exact (prefixMatchAux_chain_jump P q (n + 1) c (by simpa [hk]) (by omega)).symm
+
+/-- `prefixMatchAux` from `prefixLen P q` agrees with the full search from `q - 1`. -/
+lemma prefixMatchAux_top_drop (P : Text α) (q : ℕ) (c : α) (hqpos : 0 < q) :
+    prefixMatchAux P q c (prefixLen P q) = prefixMatchAux P q c (q - 1) := by
+  have hle : prefixLen P q ≤ q - 1 := by
+    have hlt := prefixLen_lt_of_pos P q hqpos
+    omega
+  refine (prefixMatchAux_drop P q c (q - 1) (prefixLen P q) hle ?_).symm
+  intro j hj1 hj2
+  by_contra hsj
+  have hsjt : suffixTest (P.take j) (P.take q) = true := by
+    cases h : suffixTest (P.take j) (P.take q) with
+    | false => exact (hsj h).elim
+    | true => rfl
+  have hjsuf : isSuffix (P.take j) (P.take q) := (suffixTest_eq_isSuffix _ _).mp hsjt
+  have hjltq : j < q := by omega
+  have hmax : j ≤ prefixLen P q := prefixLen_maximal P q j hjltq hjsuf
+  omega
+
+/-- One step of `computePrefixGo` computes `prefixLen P (π.length + 1)` (the
+failure-link recurrence, CLRS Lemma 32.6). -/
+lemma computePrefixGo_step (P : Text α) (π : List ℕ) (k : ℕ) (c : α)
+    (hinv : ∀ i, π.getD i 0 < i + 1)
+    (hπ : ∀ i, i < π.length → π.getD i 0 = prefixLen P (i + 1))
+    (hk : k = prefixLen P π.length)
+    (hc : c = P.getD π.length default)
+    (hqpos : 0 < π.length) (hqlt : π.length < P.length) :
+    (if (P.getD (failureFollow P π c k hinv) default) = c then failureFollow P π c k hinv + 1 else 0)
+      = prefixLen P (π.length + 1) := by
+  have hk' : failureFollow P π c k hinv = prefixMatchAux P π.length c (π.length - 1) := by
+    rw [failureFollow_eq_prefixMatchAux P π c π.length k hinv hπ hk]
+    exact prefixMatchAux_top_drop P π.length c hqpos
+  have hsnoc : prefixLen P (π.length + 1) = prefixMatch P π.length c := by
+    simpa [hc] using (prefixLen_snoc_eq P π.length hqpos hqlt)
+  have hpm : prefixMatch P π.length c =
+      (if (P.getD (prefixMatchAux P π.length c (π.length - 1)) default == c)
+        then prefixMatchAux P π.length c (π.length - 1) + 1 else 0) :=
+    prefixMatch_eq P π.length c
+  rw [← hsnoc]
+  rw [hpm, hk']
+  by_cases hc' : P.getD (prefixMatchAux P π.length c (π.length - 1)) default = c
+  · rw [if_pos hc', if_pos (beq_iff_eq.mpr hc')]
+  · have hneg : ¬ (P.getD (prefixMatchAux P π.length c (π.length - 1)) default == c) = true := by
+      intro hh
+      exact hc' (beq_iff_eq.mp hh)
+    rw [if_neg hc', if_neg hneg]
 
 end Chapter32
 end CLRS
