@@ -430,11 +430,10 @@ lemma window_slide {T : Text α} {s m : ℕ} {w : Text α} {c : α} {rest' : Tex
   calc
     w.drop 1 ++ [c] = (w.drop 1 ++ (c :: rest')).take m := by
       rw [List.take_append]
-      rw [show List.take m (w.drop 1) = w.drop 1 from
-        List.take_of_length_le (by rw [hlen_wdrop]; omega)]
-      rw [show List.take (m - (w.drop 1).length) (c :: rest') = [c] by
-        have : m - (w.drop 1).length = 1 := by rw [hlen_wdrop]; omega
-        simp [this]]
+      have hle : (w.drop 1).length ≤ m := by omega
+      have hone : m - (w.drop 1).length = 1 := by omega
+      rw [List.take_of_length_le hle, hone]
+      simp
     _ = ((w ++ (c :: rest')).drop 1).take m := by
       rw [List.drop_append_of_le_length (show 1 ≤ w.length by omega)]
     _ = ((T.drop s).drop 1).take m := by rw [hwrest]
@@ -470,42 +469,46 @@ lemma rollingGo_spec (T P : Text α) (d q : ℕ) (val : α → ℕ) (p m s : ℕ
       rw [rollingGo]
       rw [rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh]
       rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
+      simp only [List.length_nil]
       rw [hashHitsIn_zero T P d q val s]
       congr
-      · by_cases h : matchesAt T P s <;> simp [h, List.range_succ]
+      · by_cases h : matchesAt T P s <;> simp [h]
       · by_cases h : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [h]
   | cons c rest' ih =>
       rw [rollingGo]
       -- set up the recursive invariants
-      have hw' : w.drop 1 ++ [c] = (T.drop (s + 1)).take m := window_slide hw hwlen hm0 (by rwa [hr])
+      have hw' : w.drop 1 ++ [c] = (T.drop (s + 1)).take m := window_slide hw hwlen hm0 hr
       have hwlen' : (w.drop 1 ++ [c]).length = m := by
-        rw [List.length_append, List.length_cons, List.length_nil, hwlen]
-        simp; omega
+        rw [List.length_append, List.length_cons, List.length_nil]
+        rw [List.length_drop, hwlen]
+        omega
       have hh' : slideHash d q val h w c = hash d q val (w.drop 1 ++ [c]) := by
         have hwne : w ≠ [] := by
           intro he; subst he; simp at hwlen; omega
         rw [hh]
         exact (hash_slide d q val w c hq hwne).symm
       have hr' : rest' = T.drop ((s + 1) + m) := by
-        have : c :: rest' = T.drop (s + m) := by rwa [hr]
-        rw [← List.drop_drop, this]
-        simp
+        calc
+          rest' = (c :: rest').drop 1 := by rfl
+          _ = (T.drop (s + m)).drop 1 := by rw [hr]
+          _ = T.drop ((s + 1) + m) := by rw [List.drop_drop]; congr 1; omega
       rw [ih (s + 1) (w.drop 1 ++ [c]) (slideHash d q val h w c) hw' hwlen' hh' hr']
       rw [rollingTest_eq_matchesAt T P d q val p m s w h hp hm hw hh]
       rw [rollingHashHit_eq T P d q val p m s w h hp hm hw hh]
       -- split the range and the hash-hit count
-      rw [range_succ_map rest'.length (fun i => s + i)]
+      simp only [List.length_cons]
+      rw [range_succ_map (rest'.length + 1) (fun i => s + i)]
       rw [hashHitsIn_succ T P d q val s rest'.length]
-      simp only [List.filter_cons]
+      simp only [List.filter_cons, List.map_cons, List.map_append]
       by_cases hmatch : matchesAt T P s
-      · have hhit : hash d q val ((T.drop s).take P.length) == hash d q val P = true := by
+      · have hhit : (hash d q val ((T.drop s).take P.length) == hash d q val P) = true := by
           have hb := hash_beq_of_matchesAt T P d q val s hmatch
           simpa using hb
-        simp [hmatch, hhit, List.map_cons, List.map_append]
-        ring
-      · have hhit' : hash d q val ((T.drop s).take P.length) == hash d q val P = false := by
+        simp [hmatch, hhit]
+        congr 1 <;> omega
+      · have hhit' : (hash d q val ((T.drop s).take P.length) == hash d q val P) = false := by
           cases hb : hash d q val ((T.drop s).take P.length) == hash d q val P <;> simp [hb] at hmatch ⊢
-        simp [hmatch, hhit', List.map_cons, List.map_append]
+        simp [hmatch, hhit']
 
 end Rolling
 
