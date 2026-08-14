@@ -773,6 +773,18 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter06.maxHeapifyControlBound_isBigO_n`
   - `CLRS.Chapter06.buildMaxHeapControlBound_isBigO_nsq`
   - `CLRS.Chapter06.heapSortControlBound_isBigO_nsq`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_height`
+  - `CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_log`
+  - `CLRS.Chapter06.sum_heapHeight_le`
+  - `CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le_height_sum`
+  - `CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le_linear`
+  - `CLRS.Chapter06.arrayHeapSortStepWithCost_cost_le_log`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_cost_le_log`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_cost_le_log`
+  - `CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_log_cost`
+  - `CLRS.Chapter06.maxHeapifyLogBound_isBigO_log`
+  - `CLRS.Chapter06.buildMaxHeapLinearBound_isBigO_n`
+  - `CLRS.Chapter06.heapSortNLogNBound_isBigO_nlogn`
 - Proof pattern: the in-place loop repeatedly swaps the root with the last
   heap-prefix cell, shrinks the prefix, and heapifies the root.  The
   sorted-suffix invariant is represented by `SortedSuffix`, `PrefixLeSuffix`,
@@ -801,10 +813,14 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   rather than reproved.  The metric counts visited `MAX-HEAPIFY` frames and one
   extraction/swap transition for each nontrivial heapsort step.  Build-loop
   orchestration, guards, list operations, allocation, and calls are free in
-  this model.  The named connected envelopes establish `O(n)` heapify,
-  `O(n^2)` build-heap, and `O(n^2)` heapsort upper bounds.
-- Current gap: tight textbook `O(log n)`, `O(n)`, and `O(n log n)` costs and a
-  lower-level imperative array/RAM semantics remain separate refinements.
+  this model.  The tight bounds charge the same metric: a heapify run costs at
+  most `floor(log2 heapSize) + 1` (each swap at least doubles `i + 1`), the
+  bottom-up build costs at most `3 * heapSize` (double-counting node heights,
+  `sum_heapHeight_le`), and the full heapsort costs at most
+  `n * log2 n + 5 * n`.  The coarse `O(n)`, `O(n^2)`, `O(n^2)` envelopes remain
+  as regression bounds.
+- Current gap: the costs of guards and list operations, and a lower-level
+  imperative array/RAM semantics, remain separate refinements.
 
 ### Section 6.5 - Priority queues
 
