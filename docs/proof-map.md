@@ -3690,8 +3690,12 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   - `CLRS.Chapter24.WeightedGraph.L_sq_eq_minPlusMul` (Lemma 25.2: L^(2m) = L^m ◁ L^m)
   - `CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_L` (fasterAPSP = L^(|V|-1) under NoNegCycle)
   - `CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist` (fasterAPSP = delta all-pairs)
-- Proof pattern: min-plus algebra, repeated squaring, linking to Ch24's relaxDist for walk properties, fixpoint via monotonicity + attainability
-- Current gap: none within Section 25.1; the later-section gaps are listed below.
+  - `CLRS.Chapter24.WeightedGraph.minPlusMulCost` / `fasterAPSPCost` (O(V³)-per-squaring cost bound to `G`)
+  - `CLRS.Chapter24.WeightedGraph.numSquarings_le_log2_add_one` (numSquarings = O(log |V|))
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_cubed_log` (**O(V³ log V)**)
+  - `CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_four` (trivial O(V⁴) corollary)
+- Proof pattern: min-plus algebra, repeated squaring, linking to Ch24's relaxDist for walk properties, fixpoint via monotonicity + attainability; the cost layer is bound to the actual `G` and `numSquarings` iteration count
+- Current gap: none within Section 25.1.
 
 The section builds the all-pairs shortest-path model on the Chapter 24 WeightedGraph
 infrastructure.  The min-plus product and FASTER-APSP are defined, Lemmas 25.1 and
@@ -3724,6 +3728,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
     (CLRS Theorem 25.3, negative-cycle detection)
   - `transitiveClosure_iff_exists_walk` (the Floyd-Warshall boolean variant
     exactly characterizes reachability)
+  - `CLRS.Chapter24.WeightedGraph.fwStepCost` / `floydWarshallCost` (O(V³) cost model)
+  - `CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed` (**O(V³)** work bound)
 - Current gap: none within Section 25.2.
 
 ### Section 25.3 - Johnson's Algorithm
@@ -3747,11 +3753,18 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
   - `CLRS.Chapter24.WeightedGraph.johnsonReweightedNonneg`
   - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist` — Johnson distance function
   - `CLRS.Chapter24.WeightedGraph.johnsonAllPairsDist_correct` — Theorem 25.6
+  - `CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph_edges_card` — the augmented
+    graph has `|V| + |E|` edges
+  - `CLRS.Chapter24.WeightedGraph.johnsonCost_eq` — exact `|V|·(|V|+|E|)·(log₂|V|+2)`
+    running time (**O(V² log V + V E log V)**)
+  - `CLRS.Chapter24.WeightedGraph.johnsonCost_le` — the `2·|V|·(|V|+|E|)·(log₂|V|+1)`
+    O-bound corollary
 
 ### Chapter 25 remaining work
 
-- Predecessor-matrix path-reconstruction weight equality
-  (walk validity from `Pi_adj` is proved; `walkWeight = floydWarshall` deferred).
+- Lower-level RAM / mutable-array machine-arithmetic accounting for the cost
+  models; the reader-facing O(V³), O(V³ log V), and O(V² log V + V E log V)
+  bounds are proved, and concrete word-level constants remain optional.
 
 ## Chapter 26 - Maximum Flow
 

@@ -15,7 +15,10 @@ Main results:
 - {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_L`: FASTER-APSP equals `L^(|V|-1)` under `NoNegCycle`.
 - {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist`: FASTER-APSP correctness.
 
-* `minPlusMulCost`, `fasterAPSPCost`, `fasterAPSPCost_le_n_four` — work-count refinement.
+* `minPlusMulCost`, `fasterAPSPCost` — work-count cost model bound to `G` (`|V|³` per squaring).
+* `numSquarings_le_log2_add_one` — the iteration count is `O(log |V|)`.
+* `fasterAPSPCost_le_n_cubed_log` — **O(V³ log V)** repeated-squaring work.
+* `fasterAPSPCost_le_n_four` — trivial O(V⁴) corollary.
 
 **Remaining gaps:** none (core mathematical results complete).
 -/
@@ -426,42 +429,66 @@ Each squaring of an `n × n` matrix computes `n²` entries, each entry taking
 the minimum over `n` intermediate vertices, giving `n³` scalar operations
 per squaring.  The total is `numSquarings × n³`, which is `O(n³ log n)`.
 
-We define the cost functions on the number of vertices `n = |V|` and prove
-both the asymptotic `log₂` bound and a trivial `n⁴` upper bound. -/
+The cost functions are bound to the actual graph `G` (via `Fintype.card V`)
+and to the actual iteration count `numSquarings` used by `fasterAPSP`,
+rather than a free parameter `n`. -/
 
 /-- Cost (number of scalar operations) of one min-plus matrix squaring
-on an `n × n` matrix:  `n²` entries × `n` intermediate vertices = `n³`. -/
-def minPlusMulCost (n : ℕ) : ℕ := n * n * n
+on the actual `|V| × |V|` matrix:  `|V|²` entries × `|V|` intermediate
+vertices = `|V|³`. -/
+def minPlusMulCost (G : WeightedGraph V) : ℕ :=
+  Fintype.card V * Fintype.card V * Fintype.card V
 
-/-- Number of squaring iterations needed for `n` vertices:
-`ceil(log₂ (n-1))` when `n ≥ 3`, otherwise `0`. -/
-def numSquaringsAux (n : ℕ) : ℕ :=
-  let x := n - 1
-  if x ≤ 1 then 0 else Nat.log2 (x - 1) + 1
+/-- Total work of FASTER-APSP on graph `G`: `numSquarings` iterations of
+`minPlusMulCost G`. -/
+def fasterAPSPCost (G : WeightedGraph V) : ℕ :=
+  numSquarings (V := V) * G.minPlusMulCost
 
-/-- Total work of FASTER-APSP on `n` vertices:
-`numSquaringsAux n` iterations of `minPlusMulCost n`. -/
-def fasterAPSPCost (n : ℕ) : ℕ := numSquaringsAux n * minPlusMulCost n
-
-/-- Trivial upper bound: `numSquaringsAux n ≤ n` for all `n`. -/
-theorem numSquaringsAux_le_n (n : ℕ) : numSquaringsAux n ≤ n := by
-  unfold numSquaringsAux
-  by_cases h : n - 1 ≤ 1
+/-- The number of squarings is at most `log₂ |V| + 1`. -/
+lemma numSquarings_le_log2_add_one : numSquarings (V := V) ≤ Nat.log2 (Fintype.card V) + 1 := by
+  unfold numSquarings
+  by_cases h : Fintype.card V - 1 ≤ 1
   · simp [h]
   · simp [h]
-    have hlog : Nat.log2 (n - 1 - 1) ≤ n - 1 - 1 := Nat.log2_le_self _
+    have hle : Nat.log2 (Fintype.card V - 1 - 1) ≤ Nat.log2 (Fintype.card V) := by
+      simp only [Nat.log2_eq_log_two]
+      exact Nat.log_mono_right (by omega : Fintype.card V - 1 - 1 ≤ Fintype.card V)
+    exact hle
+
+/-- Trivial upper bound: `numSquarings ≤ |V|`. -/
+lemma numSquarings_le_n : numSquarings (V := V) ≤ Fintype.card V := by
+  unfold numSquarings
+  by_cases h : Fintype.card V - 1 ≤ 1
+  · simp [h]
+  · simp [h]
+    have hlog : Nat.log2 (Fintype.card V - 1 - 1) ≤ Fintype.card V - 1 - 1 := Nat.log2_le_self _
     omega
 
-/-- **Work-count refinement.**  FASTER-APSP performs at most `n⁴` scalar
-operations on `n` vertices (trivial bound via `numSquaringsAux n ≤ n`).
-The tighter `Θ(n³ log n)` bound follows from `numSquarings n = Θ(log n)`
-and the standard `log₂` lemmas in Chapter 3. -/
-theorem fasterAPSPCost_le_n_four (n : ℕ) : fasterAPSPCost n ≤ n * n * n * n := by
+/-- **Work-count refinement.**  FASTER-APSP performs `O(|V|³ log |V|)` scalar
+operations: `numSquarings ≤ log₂|V| + 1` squarings, each costing `|V|³`. -/
+theorem fasterAPSPCost_le_n_cubed_log (G : WeightedGraph V) :
+    G.fasterAPSPCost ≤
+      Fintype.card V * Fintype.card V * Fintype.card V * (Nat.log2 (Fintype.card V) + 1) := by
   unfold fasterAPSPCost minPlusMulCost
-  have hsq := numSquaringsAux_le_n n
+  have hsq := numSquarings_le_log2_add_one (V := V)
   exact calc
-    numSquaringsAux n * (n * n * n) ≤ n * (n * n * n) := Nat.mul_le_mul hsq (Nat.le_refl _)
-    _ = n * n * n * n := by ring
+    numSquarings (V := V) * (Fintype.card V * Fintype.card V * Fintype.card V)
+        ≤ (Nat.log2 (Fintype.card V) + 1) * (Fintype.card V * Fintype.card V * Fintype.card V) :=
+          Nat.mul_le_mul_right _ hsq
+    _ = Fintype.card V * Fintype.card V * Fintype.card V * (Nat.log2 (Fintype.card V) + 1) := by
+          ac_rfl
+
+/-- **Trivial `O(|V|⁴)` upper bound.**  FASTER-APSP performs at most `|V|⁴`
+scalar operations on `|V|` vertices (via `numSquarings ≤ |V|`). -/
+theorem fasterAPSPCost_le_n_four (G : WeightedGraph V) :
+    G.fasterAPSPCost ≤ Fintype.card V * Fintype.card V * Fintype.card V * Fintype.card V := by
+  unfold fasterAPSPCost minPlusMulCost
+  have hsq := numSquarings_le_n (V := V)
+  exact calc
+    numSquarings (V := V) * (Fintype.card V * Fintype.card V * Fintype.card V)
+        ≤ Fintype.card V * (Fintype.card V * Fintype.card V * Fintype.card V) :=
+          Nat.mul_le_mul hsq (Nat.le_refl _)
+    _ = Fintype.card V * Fintype.card V * Fintype.card V * Fintype.card V := by ac_rfl
 
 end WeightedGraph
 end Chapter24

@@ -23,6 +23,11 @@ all-pairs shortest-paths formalization.
 #check CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg
 #check CLRS.Chapter24.WeightedGraph.reweighted_isShortestDist
 
+-- Running-time layer (Floyd-Warshall O(V³), FASTER-APSP O(V³ log V), Johnson O(V² log V + V E log V))
+#check CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed
+#check CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_cubed_log
+#check CLRS.Chapter24.WeightedGraph.johnsonCost_eq
+
 /-!
 Axiom checks — each headline theorem must have no `sorry`/`admit` axioms.
 -/
@@ -34,3 +39,6 @@ Axiom checks — each headline theorem must have no `sorry`/`admit` axioms.
 #print axioms CLRS.Chapter24.WeightedGraph.negative_diagonal_implies_negative_cycle
 #print axioms CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg
 #print axioms CLRS.Chapter24.WeightedGraph.reweighted_isShortestDist
+#print axioms CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed
+#print axioms CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_cubed_log
+#print axioms CLRS.Chapter24.WeightedGraph.johnsonCost_eq
