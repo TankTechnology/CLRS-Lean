@@ -177,6 +177,10 @@ orientation, and gate-index layers:
   any such semantic group, while
   `arithmeticRawOneHotGateStream_eq_affineFamily` proves their canonical raw
   row trace is exactly the ordered concatenation of affine streams.
+- `validityRowGateStreamAt_eq_rawOneHot_append_post` freezes the exact
+  acceptance boundary after that completed phase: the remaining row suffix is
+  now explicitly limited to halted/label equality, stack canonicality, and the
+  final conjunction.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
