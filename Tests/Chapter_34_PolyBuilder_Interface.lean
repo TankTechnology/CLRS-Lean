@@ -67,6 +67,16 @@ example :
       (baseCfg (.pushOutput true true))).map
         (fun c => (c.label, c.output)) = some (some true, [true]) := rfl
 
+example :
+    (step (oneOp (.pushWork₁ true true))
+      (baseCfg (.pushWork₁ true true))).map
+        (fun c => (c.label, c.work₁)) = some (some true, [true]) := rfl
+
+example :
+    (step (oneOp (.pushWork₂ false true))
+      (baseCfg (.pushWork₂ false true))).map
+        (fun c => (c.label, c.work₂)) = some (some true, [false]) := rfl
+
 -- Every move takes its empty continuation without changing its target.
 example :
     (step (oneOp (.moveInputWork₁ false id))
@@ -311,6 +321,20 @@ example :
         (encodeCfg (baseCfg (.pushOutput true true))) =
       (step (oneOp (.pushOutput true true))
         (baseCfg (.pushOutput true true))).map encodeCfg :=
+  compile_step _ _
+
+example :
+    (compile (oneOp (.pushWork₁ true true))).step
+        (encodeCfg (baseCfg (.pushWork₁ true true))) =
+      (step (oneOp (.pushWork₁ true true))
+        (baseCfg (.pushWork₁ true true))).map encodeCfg :=
+  compile_step _ _
+
+example :
+    (compile (oneOp (.pushWork₂ false true))).step
+        (encodeCfg (baseCfg (.pushWork₂ false true))) =
+      (step (oneOp (.pushWork₂ false true))
+        (baseCfg (.pushWork₂ false true))).map encodeCfg :=
   compile_step _ _
 
 example :
