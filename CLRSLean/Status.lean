@@ -50,8 +50,10 @@ repository row whose status remains {lit}`partial`.
   proves the represented concrete reductions, the semantic Cook--Levin
   whole-tableau circuit, its polynomial gate/input/encoding bounds, the exact
   function-level map, and finite-certificate semantics for
-  `GeneralCircuitSAT`.  Concrete polynomial-time TM2 implementations of the
-  generator and certificate checker, the final `GeneralCircuitSAT`
+  `GeneralCircuitSAT`.  A concrete TM2 now computes the exact certificate-
+  checker Boolean on every input, and its successful canonical runs have a
+  quadratic bound.  A uniform polynomial bound for all rejecting routes, the
+  concrete polynomial-time generator TM2, the final `GeneralCircuitSAT`
   NP-completeness wrappers, general graph-plus-{lit}`k` CLIQUE, and Section
   34.5 remain open.
 

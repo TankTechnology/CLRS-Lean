@@ -58,12 +58,15 @@ cases as small reusable certificates.
 
 ## Current Gaps
 
-The composed functional {lit}`delete` now preserves the color/black-height
-{lit}`RedBlackShape`, but that predicate intentionally does not include the
-separate {lit}`BST` ordering invariant.  BST/inorder preservation for rotations,
-insertion, and deletion remains central work, as do refinement bridges from the
-textbook pointer-based fixup loops to the functional algorithms and their
-logarithmic execution-cost theorems.
+The native fourth-edition modules prove BST/inorder preservation for rotations,
+insertion, and deletion, as well as logarithmic functional execution-cost
+bounds.  {lit}`CLRS.Chapter13.RBTree.WellFormed` now bundles the separate
+{lit}`RedBlackShape` and {lit}`BST` predicates, and
+{lit}`wellFormed_insert`/{lit}`wellFormed_delete` prove that both functional
+updates preserve the complete invariant.  The remaining implementation gap is
+an end-to-end refinement from the textbook pointer-based insertion/deletion
+fixup loops to these functional algorithms, including a low-level RAM cost
+model; it is not a missing functional correctness theorem.
 -/
 
 namespace CLRS
