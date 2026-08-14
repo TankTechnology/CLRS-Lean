@@ -16,8 +16,8 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,510.
-* Proved tracked theorem entries: 1,510.
+* Tracked reader-facing theorem entries: 1,515.
+* Proved tracked theorem entries: 1,515.
 * Online/supplementary theorem entries: 464.
 * Remaining edition-coverage units: 1.
 
@@ -68,7 +68,7 @@ Ch  Chapter                                                     Status          
 21  21. Minimum Spanning Trees                                  main-proof-complete-for-correctness  21.1;21.2                          52        0
 22  22. Single-Source Shortest Paths                            selected-section-complete            22.1;22.2;22.3;22.4;22.5           27        0
 23  23. All-Pairs Shortest Paths                                main-proof-complete-for-correctness  23.1;23.2;23.3                     24        0
-24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3;24.4                30        0
+24  24. Maximum Flow                                            main-proof-complete                  24.1;24.2;24.3;24.4;24.5           35        0
 25  25. Matchings in Bipartite Graphs                           main-proof-complete                  25.1;25.2;25.3                     18        0
 26  26. Parallel Algorithms                                     main-proof-complete                  26.1;26.2;26.3                     95        0
 27  27. Online Algorithms                                       main-proof-complete                  27.1;27.2;27.3                      8        0
