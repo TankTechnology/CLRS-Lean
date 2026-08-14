@@ -16,6 +16,8 @@ CHECK_COMMANDS = [
     ("scripts/test_check_edition_map.py",),
     ("scripts/check_progress_csv.py", "--check-dashboard"),
     ("scripts/test_check_progress_csv.py",),
+    ("scripts/check_status_claims.py",),
+    ("scripts/test_check_status_claims.py",),
     ("scripts/gen_readme_table.py", "--check"),
     ("scripts/test_gen_readme_table.py",),
     ("scripts/check_site_consistency.py",),

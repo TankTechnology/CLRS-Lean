@@ -94,6 +94,13 @@ The status documents have deliberately different jobs:
 `scripts/check_progress_csv.py --write-dashboard`.  The generated file must not
 be edited independently.
 
+The full set of generated versus hand-written status claims, and the single
+update path for a proved theorem or closed gap, is in
+[`docs/status-claims.md`](status-claims.md).  `scripts/check_status_claims.py`
+enforces that the hand-written views (`docs/migrations/clrs4.md`,
+`docs/proof-status-board.md`, `docs/status/blocked-and-deferred.md`) do not
+drift from the ledgers.
+
 ## Website Layer
 
 `literate.toml` owns navigation order and page titles.  The Verso build starts
