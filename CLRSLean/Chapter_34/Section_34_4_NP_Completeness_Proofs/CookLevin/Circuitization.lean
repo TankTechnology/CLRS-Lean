@@ -19,6 +19,7 @@ The generator-clock layer supplies concrete exact unary clocks for every
 primary verifier-circuit dimension without adding a source-alphabet finiteness
 premise to the universal construction.
 The generator-header layer derives the exact tableau arity polynomial, emits
-the canonical circuit header and initial input-gate family, and proves that
-the latter is byte-for-byte the semantic tableau allocator's gate encoding.
+the canonical circuit header and initial input-gate family, combines them in
+one concrete input-preserving run, and proves that the result is a literal
+prefix of the complete semantic verifier-circuit encoding.
 -/

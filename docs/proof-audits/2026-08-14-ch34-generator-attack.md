@@ -82,6 +82,12 @@ orientation, and gate-index layers:
   exact semantic gate order of the proof-carrying allocators;
 - `verifierInputGateStream_eq` proves that the concrete input-gate streamer is
   byte-for-byte the encoding of `(verifierRows W x).builder.gates`.
+- `circuitInputPrefix_computableInPolyTime` parks and restores its unit clock
+  while producing `encNat n ++ inputGateStream n` in one concrete quadratic
+  run;
+- `verifierCircuitInputPrefix_isPrefix` proves that the instantiated stream is
+  a literal list prefix of `encodeCircuit (verifierCircuit W x)`, while
+  `verifierCircuitInputPrefix_computableInPolyTime` supplies its concrete TM2.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -107,13 +113,12 @@ bounded stack data. The implementation phases are:
 6. package the polynomial runtime, universal reduction, NP-hardness, and
    NP-completeness wrappers.
 
-The exact polynomial-value clock, circuit header, and initial tableau
-input-gate family are now closed independently.  The next structural blocker
-is a verified prefix combiner that parks the public input and emits the header
-followed by the initial gate family in one concrete run.  After that, the next
-semantic phase is the two-gate shared Boolean pool.  Output orientation,
-natural-number serialization, and exact agreement with the semantic allocator
-are already closed independently.
+The exact polynomial-value clock, circuit header, initial tableau input-gate
+family, and their combined serialization prefix are now closed.  The next
+semantic phase is the two-gate shared Boolean pool, followed by the validity
+constraint stream.  Output orientation, natural-number serialization, input
+parking/restoration, and exact agreement with the semantic allocator are
+already closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -152,6 +157,13 @@ are already closed independently.
     though every allocated input gate still fits.  The accepted route uses
     `verifierTableauInputPolynomial`, whose evaluation is proved exactly equal
     to `tableauInputCount`.
+11. **Concatenating independently generated streams after consuming the
+    input.** Ordinary TM composition gives the second phase only the first
+    phase's output, not the original clock.  It therefore cannot justify
+    `header ++ gates` by simply composing the already separate machines.  The
+    accepted route scans the clock into a work stack, emits the header, restores
+    the clock exactly, and then enters a relabeled copy of the verified gate
+    streamer.
 
 ## Focused Acceptance Mechanism
 
@@ -163,6 +175,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
@@ -170,6 +183,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
 lake env lean Tests/Chapter_34_PolyBuilder_UnaryIndex.lean
 lake env lean Tests/Chapter_34_PolyBuilder_NatEncoding.lean
 lake env lean Tests/Chapter_34_PolyBuilder_InputGate.lean
+lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
