@@ -1190,8 +1190,11 @@ lemma akraBazzi_integral_le_poly {p q : ℝ} {g : ℕ → ℝ}
                   div_le_div_of_nonneg_right hg (Real.rpow_nonneg (by positivity) (p + 1))
             _ = Cg * ((u + 1 : ℕ) : ℝ) ^ (q - p - 1) := by
               rw [show q - p - 1 = q - (p + 1) by ring]
-              rw [Real.rpow_sub (by exact_mod_cast (Nat.succ_pos u) : 0 < ((u + 1 : ℕ) : ℝ)) q (p + 1)]
-              ring
+              rw [show Cg * ((u + 1 : ℕ) : ℝ) ^ q / ((u + 1 : ℕ) : ℝ) ^ (p + 1)
+                  = Cg * (((u + 1 : ℕ) : ℝ) ^ q / ((u + 1 : ℕ) : ℝ) ^ (p + 1)) by ring]
+              rw [show ((u + 1 : ℕ) : ℝ) ^ q / ((u + 1 : ℕ) : ℝ) ^ (p + 1)
+                  = ((u + 1 : ℕ) : ℝ) ^ (q - (p + 1)) by
+                exact (Real.rpow_sub (by exact_mod_cast (Nat.succ_pos u) : 0 < ((u+1:ℕ):ℝ)) q (p + 1)).symm]
     _ ≤ ∑ u ∈ Finset.range n, Cg * (n : ℝ) ^ (q - p - 1) := by
           apply Finset.sum_le_sum
           intro u _hu
@@ -1204,15 +1207,17 @@ lemma akraBazzi_integral_le_poly {p q : ℝ} {g : ℕ → ℝ}
           rw [Finset.sum_const, nsmul_eq_mul, Finset.card_range]
           ring
     _ = Cg * (n : ℝ) ^ (q - p) := by
-          by_cases hn0 : n = 0
-          · subst n
-            simp
-          · have hn_pos : 0 < (n : ℝ) := by exact_mod_cast (Nat.pos_of_ne_zero hn0)
-            rw [show Cg * (n : ℝ) ^ (q - p - 1) * (n : ℕ) = Cg * ((n : ℝ) ^ (q - p - 1) * (n : ℝ)) by ring]
-            rw [show (n : ℝ) ^ (q - p - 1) * (n : ℝ) = (n : ℝ) ^ (q - p) by
-              rw [show (n : ℝ) = (n : ℝ) ^ 1 by rw [Real.rpow_one]]
-              rw [← Real.rpow_add hn_pos (q - p - 1) 1]
-              congr 1; ring]
+          have hpow : (n : ℝ) ^ (q - p - 1) * (n : ℝ) = (n : ℝ) ^ (q - p) := by
+            by_cases hn0 : n = 0
+            · subst n
+              rw [Real.zero_rpow (ne_of_gt (by linarith [hpq] : 0 < q - p))]
+              simp
+            · have hn_pos : 0 < (n : ℝ) := by exact_mod_cast (Nat.pos_of_ne_zero hn0)
+              rw [show (q - p) = (q - p - 1) + 1 by ring]
+              rw [Real.rpow_add hn_pos (q - p - 1) 1]
+              rw [Real.rpow_one]
+          rw [show Cg * (n : ℝ) ^ (q - p - 1) * (n : ℕ) = Cg * ((n : ℝ) ^ (q - p - 1) * (n : ℝ)) by ring]
+          rw [hpow]
 
 /--
 **Akra–Bazzi lower bound (forcing-dominated regime).**  When the driving exponent
@@ -1225,7 +1230,8 @@ theorem akraBazzi_lower_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ}
     (hroot : IsAkraBazziRoot branches p) (hp : 0 < p) (hpq : p + 1 ≤ q)
     (hsmooth : PolynomialGrowth g q) (hsat : SatisfiesAkraBazzi branches g T n₀) :
     Chapter03.isBigOmega T (akraBazziScale p g) := by
-  rcases hsmooth with ⟨hgnonneg, _hgmono, c₀, _C, hc₀pos, _hCpos, hglower, _hgupper⟩
+  have hgnonneg : ∀ n, 0 ≤ g n := hsmooth.1
+  rcases hsmooth.2.2 with ⟨c₀, _C, hc₀pos, _hCpos, hglower, _hgupper⟩
   rcases akraBazzi_integral_le_poly hsmooth hpq with ⟨Ci, _hCipos, hCi⟩
   have hT_nonneg : ∀ n, 0 ≤ T n := akraBazzi_T_nonneg hvalid hgnonneg hsat
   have hT_ge_g : ∀ n, n₀ < n → g n ≤ T n := akraBazzi_T_ge_g hvalid hgnonneg hsat
@@ -1262,7 +1268,7 @@ theorem akraBazzi_lower_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ}
       mul_le_mul_of_nonneg_left hF_le hc_pos.le
     _ = c₀ * (n : ℝ) ^ q := by
           dsimp [c]
-          field_simp [by positivity : 0 < 1 + Ci]
+          field_simp [ne_of_gt (by positivity : 0 < 1 + Ci)]
     _ ≤ g n := hg_lower
     _ ≤ T n := hT_ge_g n hn₀n
 
