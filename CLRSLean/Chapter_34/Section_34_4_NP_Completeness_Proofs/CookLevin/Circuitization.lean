@@ -33,5 +33,7 @@ now covers every raw one-hot group, the following halted/none-label equality,
 every stack's suffix-OR active mask, and every fixed stack-cell XNOR block with
 exact contextual runs and closed wire indices.  The leading blank-bit
 negations now close each complete semantic six-gate cell block.  Finite-family
-iteration and the final conjunction remain the row-local machine phases.
+decomposition also identifies the exact ordered `6H` cell suffix and complete
+mask-plus-cells stream of each fixed stack.  A uniform executable family
+iterator and the final conjunction remain the row-local machine phases.
 -/

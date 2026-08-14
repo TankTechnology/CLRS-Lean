@@ -81,4 +81,30 @@ theorem stackValidityFamilyGateTrace_output_eq
         rw [hjeq]
         ring
 
+/-! ## Exact ordered cell blocks -/
+
+/-- The literal six-gate block contributed by cell `i`: one negation of its
+blank bit followed by active/nonblank Boolean equality. -/
+def cellValidityGateBlock (start n : Nat)
+    (active blank : Fin n → CircuitBuilder.Wire) (i : Fin n) :
+    List CircuitGate :=
+  [.not (blank i)] ++
+    (CircuitBuilder.boolEqGateTrace (start + 6 * i.val + 1)
+      (active i) (start + 6 * i.val)).gates
+
+/-- The semantic `6n` cell-validity trace is exactly the ordered flattening of
+its per-cell blocks. -/
+theorem cellValidityGateTrace_gates_eq_blocks (start n : Nat)
+    (active blank : Fin n → CircuitBuilder.Wire) :
+    (cellValidityGateTrace start n active blank).gates =
+      (List.ofFn fun i : Fin n =>
+        cellValidityGateBlock start n active blank i).flatten := by
+  induction n with
+  | zero => simp [cellValidityGateTrace]
+  | succ n ih =>
+      simp only [cellValidityGateTrace]
+      rw [List.ofFn_succ', List.concat_eq_append, List.flatten_concat,
+        cellValidityGateTrace_length, ih]
+      simp [cellValidityGateBlock]
+
 end CLRS.Chapter34.Turing.CookLevin
