@@ -827,6 +827,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.ReachableAlphabet",
@@ -2725,6 +2726,9 @@ title = "34.4. Verified list reversal for bounded builders"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex"]
 title = "34.4. Streaming unary circuit indices"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding"]
+title = "34.4. Natural-number serializers for circuit builders"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin"]
 title = "34.4. Cook--Levin infrastructure"
