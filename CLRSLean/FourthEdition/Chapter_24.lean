@@ -8,6 +8,7 @@ import CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S3_WorkAnalys
 import CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S4_ExecutableBFS
 import CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching
 import CLRSLean.FourthEdition.Chapter_24.Section_24_4_Push_Relabel
+import CLRSLean.FourthEdition.Chapter_24.Section_24_5_Relabel_To_Front
 import CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut
 
 /-!
@@ -18,14 +19,16 @@ period.
 
 ## Current source
 
-Sections 24.1--24.4 and 24.6 are native fourth-edition sections (flow
-networks, the Ford–Fulkerson method with the Edmonds-Karp correctness and
-work-analysis development, maximum bipartite matching, the push-relabel
-preflow model, and the max-flow min-cut theorem), imported directly from
+Sections 24.1--24.6 are native fourth-edition sections (flow networks, the
+Ford–Fulkerson method with the Edmonds-Karp correctness and work-analysis
+development, maximum bipartite matching, the push-relabel preflow model and its
+operation count, the relabel-to-front ordering, and the max-flow min-cut
+theorem), imported directly from
 [Section 24.1](CLRSLean/FourthEdition/Chapter_24/Section_24_1_Flow_Networks/),
 [Section 24.2](CLRSLean/FourthEdition/Chapter_24/Section_24_2_Edmonds_Karp/),
 [Section 24.3](CLRSLean/FourthEdition/Chapter_24/Section_24_3_Bipartite_Matching/),
 [Section 24.4](CLRSLean/FourthEdition/Chapter_24/Section_24_4_Push_Relabel/),
+[Section 24.5](CLRSLean/FourthEdition/Chapter_24/Section_24_5_Relabel_To_Front/),
 and
 [Section 24.6](CLRSLean/FourthEdition/Chapter_24/Section_24_6_MaxFlow_MinCut/).
 Section 24.6 is named after the theorem it proves (Theorem 24.6).  Declarations
@@ -48,7 +51,8 @@ The supporting implementation pages remain available outside the main sidebar:
 The native sections supply the represented fourth-edition maximum-flow
 sections (Lemma 24.5 net-flow/cut value, Lemmas 24.7--24.8 Edmonds-Karp
 distance growth, the §24.4 preflow-push model with its height-bound and
-correctness theorems, and Theorem 24.6 max-flow min-cut).
+correctness theorems, the §24.5 relabel-to-front ordering with the `O(V²E)`
+operation-count bound, and Theorem 24.6 max-flow min-cut).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
