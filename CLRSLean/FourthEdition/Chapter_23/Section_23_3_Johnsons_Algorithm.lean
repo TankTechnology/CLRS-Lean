@@ -33,10 +33,14 @@ Main results:
 - Theorem `johnsonDist_isShortestDist`: **CLRS Theorem 23.5** —
   end-to-end correctness of Johnson's algorithm: `johnsonDist` computes
   the exact all-pairs shortest-path distances.
+- Lemma `johnsonAugmentedGraph_edges_card`: the augmented graph has `|V| + |E|` edges.
+- Theorem `johnsonCost_eq`: Johnson runs in `|V|·(|V| + |E|)·(log₂|V| + 2)`,
+  i.e. **O(V² log V + V E log V)**.
+- Theorem `johnsonCost_le`: the `2·|V|·(|V| + |E|)·(log₂|V| + 1)` O-bound corollary.
 
 The section is **complete**: the augmented-graph potential construction,
-triangle inequality, reweighting nonnegativity, and end-to-end Johnson
-correctness are all proved.
+triangle inequality, reweighting nonnegativity, end-to-end Johnson
+correctness, and the running-time bound are all proved.
 -/
 
 namespace CLRS
@@ -895,6 +899,71 @@ theorem johnsonAllPairsDist_correct (hNC : G.NoNegCycle) (u v : V) :
   have h_sd_d : G_hat.IsShortestDist u v (d + (h u : WithTop ℝ) - (h v : WithTop ℝ)) := by
     rw [h_eq]; exact hδ_hat v
   exact (G.reweighted_isShortestDist h u v d).mp h_sd_d
+
+/-! ## Work bound: O(V² log V + V E log V)
+
+Johnson's algorithm runs one Bellman-Ford pass on the augmented graph (to build
+the potential `h`) and then `|V|` Dijkstra passes on the reweighted graph (which
+shares `G`'s `|E|` edges).  In the binary-heap cost model of Section 22.3 this is
+`(|V| - 1)·(|V| + |E|)` edge relaxations plus `|V|·(|V| + |E|)·(log₂|V| + 1)` heap
+operations, i.e. `O(V² log V + V E log V)`. -/
+
+/-- The two image components of `johnsonAugmentedGraph.edges` are disjoint:
+edges out of `none` never collide with lifted original edges. -/
+lemma johnsonAugmentedGraph_edges_disjoint (G : WeightedGraph V) :
+    Disjoint (Finset.image (fun (v : V) => (none, some v)) (Finset.univ : Finset V))
+      (Finset.image (fun ((u, v) : V × V) => (some u, some v)) G.edges) := by
+  rw [Finset.disjoint_left]
+  intro e heA heB
+  rcases Finset.mem_image.mp heA with ⟨v, _, rfl⟩
+  rcases Finset.mem_image.mp heB with ⟨p, _, h⟩
+  have hnone : some p.1 = none := congrArg Prod.fst h
+  simp at hnone
+
+/-- The augmented graph has `|V| + |E|` edges: `|V|` zero-weight edges out of
+`none` plus the `|E|` original edges. -/
+lemma johnsonAugmentedGraph_edges_card (G : WeightedGraph V) :
+    G.johnsonAugmentedGraph.edges.card = Fintype.card V + G.edges.card := by
+  have hA_inj : Function.Injective (fun v : V => ((none : Option V), some v)) := by
+    intro a b h; exact Option.some.inj (congrArg Prod.snd h)
+  have hB_inj : Function.Injective (fun ((u, v) : V × V) => (some u, some v)) := by
+    intro a b h
+    exact Prod.ext (Option.some.inj (congrArg Prod.fst h)) (Option.some.inj (congrArg Prod.snd h))
+  have hA : ((Finset.univ : Finset V).image (fun v : V => ((none : Option V), some v))).card = Fintype.card V :=
+    (Finset.card_image_of_injective (Finset.univ : Finset V) hA_inj).trans Finset.card_univ
+  have hB : (G.edges.image (fun ((u, v) : V × V) => (some u, some v))).card = G.edges.card :=
+    Finset.card_image_of_injective G.edges hB_inj
+  unfold johnsonAugmentedGraph
+  rw [Finset.card_union_of_disjoint (johnsonAugmentedGraph_edges_disjoint G), hA, hB]
+
+/-- Total Johnson work: one Bellman-Ford pass on the augmented graph (potential)
+plus `|V|` Dijkstra passes on the reweighted graph.  Noncomputable only because
+`johnsonAugmentedGraph` is. -/
+noncomputable def johnsonCost (G : WeightedGraph V) : ℕ :=
+  G.johnsonAugmentedGraph.bellmanFordWork +
+    Fintype.card V * dijkstraWork (Fintype.card V) G.edges.card
+
+/-- **Johnson work bound.**  In the binary-heap cost model, Johnson's algorithm
+runs in `|V|·(|V| + |E|)·(log₂|V| + 2)`, i.e. `O(V² log V + V E log V)`. -/
+theorem johnsonCost_eq (G : WeightedGraph V) :
+    G.johnsonCost = Fintype.card V * (Fintype.card V + G.edges.card) * (Nat.log2 (Fintype.card V) + 2) := by
+  unfold johnsonCost bellmanFordWork dijkstraWork
+  rw [johnsonAugmentedGraph_edges_card]
+  have hcard : Fintype.card (Option V) - 1 = Fintype.card V := by
+    rw [Fintype.card_option]; simp
+  rw [hcard]
+  ring_nf
+
+/-- **O(V² log V + V E log V) work.**  Since `log₂|V| + 2 ≤ 2·(log₂|V| + 1)`,
+Johnson's work is at most `2·|V|·(|V| + |E|)·(log₂|V| + 1)`. -/
+theorem johnsonCost_le (G : WeightedGraph V) :
+    G.johnsonCost ≤ 2 * Fintype.card V * (Fintype.card V + G.edges.card) * (Nat.log2 (Fintype.card V) + 1) := by
+  rw [johnsonCost_eq]
+  calc
+    Fintype.card V * (Fintype.card V + G.edges.card) * (Nat.log2 (Fintype.card V) + 2)
+        ≤ Fintype.card V * (Fintype.card V + G.edges.card) * (2 * (Nat.log2 (Fintype.card V) + 1)) := by
+          exact Nat.mul_le_mul_left _ (by omega)
+    _ = 2 * Fintype.card V * (Fintype.card V + G.edges.card) * (Nat.log2 (Fintype.card V) + 1) := by ac_rfl
 
 
 end WeightedGraph

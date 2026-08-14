@@ -15,6 +15,11 @@ downstream users.
 #check CLRS.Chapter24.WeightedGraph.fasterAPSP
 #check CLRS.Chapter24.WeightedGraph.lemma_25_1
 #check CLRS.Chapter24.WeightedGraph.L_sq_eq_minPlusMul
+#check CLRS.Chapter24.WeightedGraph.minPlusMulCost
+#check CLRS.Chapter24.WeightedGraph.fasterAPSPCost
+#check CLRS.Chapter24.WeightedGraph.numSquarings_le_log2_add_one
+#check CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_cubed_log
+#check CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_four
 
 -- Section 25.2: Floyd-Warshall Algorithm
 #check CLRS.Chapter24.WeightedGraph.fwStep
@@ -35,6 +40,9 @@ downstream users.
 -- Negative-cycle detection (CLRS Theorem 25.3, issue #95)
 #check CLRS.Chapter24.WeightedGraph.floydWarshall_nonneg_diag
 #check CLRS.Chapter24.WeightedGraph.negative_diagonal_implies_negative_cycle
+#check CLRS.Chapter24.WeightedGraph.fwStepCost
+#check CLRS.Chapter24.WeightedGraph.floydWarshallCost
+#check CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed
 
 -- Section 25.3: Johnson's Algorithm
 #check CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph
@@ -43,3 +51,7 @@ downstream users.
 #check CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq
 #check CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg
 #check CLRS.Chapter24.WeightedGraph.reweighted_isShortestDist
+#check CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph_edges_card
+#check CLRS.Chapter24.WeightedGraph.johnsonCost
+#check CLRS.Chapter24.WeightedGraph.johnsonCost_eq
+#check CLRS.Chapter24.WeightedGraph.johnsonCost_le
