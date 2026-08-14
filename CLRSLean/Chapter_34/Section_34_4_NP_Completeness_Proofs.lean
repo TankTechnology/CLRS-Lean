@@ -38,6 +38,7 @@ transition circuits are complete, as are well-formed finished-circuit wrappers.
 Whole-tableau assembly now closes a well-formed circuit with exact language
 semantics and polynomial gate/input/encoding bounds.  The function-level
 Cook--Levin map and the exact finite-certificate semantics of
-{lit}`GeneralCircuitSAT` are also complete.  Concrete polynomial-time TM2
-implementations of that map and certificate checker remain downstream.
+{lit}`GeneralCircuitSAT` are also complete.  The certificate checker now has a
+concrete polynomial-time TM2 and yields `GeneralCircuitSAT ∈ NP`; the concrete
+polynomial-time TM2 implementation of the Cook--Levin map remains downstream.
 -/

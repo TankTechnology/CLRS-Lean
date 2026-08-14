@@ -208,10 +208,11 @@ by explicit fixed-verifier polynomials.  The exported function-level
 `cookLevinMap` preserves language membership exactly and has a proved output-
 length bound.  `GeneralCircuitSAT` also has an executable finite Boolean-
 certificate checker whose bounded-certificate semantics is exact.  A concrete
-TM2 computes that checker Boolean on every input; its canonical successful
-route has a proved quadratic step bound.  A uniform polynomial step bound for
-all rejecting routes, the concrete polynomial-time generator TM2, and the
-final `GeneralCircuitSAT` NP-completeness wrappers remain downstream.  A
+TM2 computes that checker Boolean on every input; every successful, rejecting,
+and malformed route is covered by one explicit quartic step polynomial.
+Consequently `GeneralCircuitSAT` is now proved polynomially verifiable and a
+member of `ClassNP`.  The concrete polynomial-time Cook--Levin generator TM2
+and the resulting hardness/NP-completeness wrappers remain downstream.  A
 general graph-plus-{lit}`k` CLIQUE target and Section 34.5 remain unrepresented.
 
 Theorem layer:

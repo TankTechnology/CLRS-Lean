@@ -1,0 +1,41 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.NP
+
+/-!
+# Chapter 34 general-circuit verifier runtime interface
+
+This focused interface locks the quantitative rejection relation and the
+polynomial-time machine witness used by the Cook--Levin NP-membership bridge.
+-/
+
+namespace CLRS.Chapter34
+
+#check Turing.GeneralCircuitVerifier.RejectsIn
+#check Turing.GeneralCircuitVerifier.cleanup_rejectsIn
+#check Turing.GeneralCircuitVerifier.input_count_rejectsIn
+#check Turing.GeneralCircuitVerifier.input_count_rejectsIn_of_decNat_none
+#check Turing.GeneralCircuitVerifier.parse_nat_rejectsIn_of_decNat_none
+#check Turing.GeneralCircuitVerifier.certificate_lookup_rejectsIn
+#check Turing.GeneralCircuitVerifier.gate_lookup_rejectsIn
+#check Turing.GeneralCircuitVerifier.gate_rejectsIn_of_not_valid
+#check Turing.GeneralCircuitVerifier.gate_list_rejectsIn_of_not_valid
+#check Turing.GeneralCircuitVerifier.output_rejectsIn_of_not_valid
+#check Turing.GeneralCircuitVerifier.circuit_body_rejectsIn_of_not_wellFormed
+#check Turing.GeneralCircuitVerifier.gate_decode_rejectsIn
+#check Turing.GeneralCircuitVerifier.gate_stream_rejectsIn_of_decode_none
+#check Turing.GeneralCircuitVerifier.gate_stream_rejectsIn_of_trailing
+#check Turing.GeneralCircuitVerifier.verifierStepBound
+#check Turing.GeneralCircuitVerifier.malformed_circuit_rejectsIn
+#check Turing.GeneralCircuitVerifier.verifierTime
+#check Turing.GeneralCircuitVerifier.verifier_outputs_in_time
+#check Turing.GeneralCircuitVerifier.generalCircuitVerifierComputableInPolyTime
+#check generalCircuitSAT_polyTimeVerifiable
+#check generalCircuitSAT_verifiable
+#check generalCircuitSAT_mem_ClassNP
+
+#print axioms Turing.GeneralCircuitVerifier.verifier_outputs_in_time
+#print axioms Turing.GeneralCircuitVerifier.generalCircuitVerifierComputableInPolyTime
+#print axioms generalCircuitSAT_verifiable
+#print axioms generalCircuitSAT_mem_ClassNP
+
+end CLRS.Chapter34
