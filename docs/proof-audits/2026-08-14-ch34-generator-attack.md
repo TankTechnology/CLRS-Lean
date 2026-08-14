@@ -306,9 +306,12 @@ The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
 output, and five-gate XNOR start for every fixed stack/cell coordinate.
 `arithmeticStackCellBoolEqRev_runFrom` executes that exact XNOR stream with a
-quadratic counter bound.  This deliberately does not claim that the suffix-OR
-or leading-not streams are generated yet; those two iterators remain explicit
-acceptance gaps before the whole stack family can be called executable.
+quadratic counter bound.  `affineSuffixOrRev_runFrom` now also executes the
+right-to-left false-seeded OR scan, and its arithmetic-row instantiation is
+definitionally equal to the semantic stack mask.  This deliberately does not
+claim that the leading-not streams or their finite-family interleaving are
+generated yet; those remain explicit acceptance gaps before the whole stack
+family can be called executable.
 
 ## Focused Acceptance Mechanism
 
@@ -325,6 +328,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -338,6 +342,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
+lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean

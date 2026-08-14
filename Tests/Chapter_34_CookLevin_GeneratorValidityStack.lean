@@ -6,9 +6,15 @@ open CLRS.Chapter34.Turing.CookLevin
 
 #check arithmeticStackValidityStart
 #check arithmeticStackBlockStart
+#check arithmeticStackMaskWireBase
 #check arithmeticStackMaskOutputWire
 #check arithmeticStackBlankWire
 #check arithmeticStackMaskOutputWire_eq_trace
+#check arithmeticStackMaskWires_eq_range'
+#check arithmeticStackMaskGateStream
+#check arithmeticStackMaskGateStream_eq_semantic
+#check arithmeticStackMaskRev_runFrom
+#check arithmeticStackMaskRev_steps_le
 #check arithmeticStackBlankWire_eq_row
 #check arithmeticStackCellBoolEqGateStream
 #check arithmeticStackCellBoolEqGateStream_eq_semantic
@@ -16,6 +22,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticStackCellBoolEqRev_steps_le
 
 #print axioms arithmeticStackMaskOutputWire_eq_trace
+#print axioms arithmeticStackMaskWires_eq_range'
+#print axioms arithmeticStackMaskGateStream_eq_semantic
+#print axioms arithmeticStackMaskRev_runFrom
+#print axioms arithmeticStackMaskRev_steps_le
 #print axioms arithmeticStackBlankWire_eq_row
 #print axioms arithmeticStackCellBoolEqGateStream_eq_semantic
 #print axioms arithmeticStackCellBoolEqRev_runFrom

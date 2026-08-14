@@ -77,6 +77,7 @@ bound. The validity layer builds canonical row
 validation with exact semantics and gate cost; its stack-validity index layer
 also gives closed affine wire formulas for every active-mask, cell, and
 ordered-stack output, and the circuitization layer now executes the five-gate
-XNOR subtrace at every fixed stack/cell coordinate.  The workspace layer gives
+XNOR subtrace at every fixed stack/cell coordinate together with the complete
+suffix-OR active mask of every fixed stack.  The workspace layer gives
 verified constant-cost widen/narrow bridges for one bundled transition.
 -/
