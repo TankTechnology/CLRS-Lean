@@ -4473,6 +4473,9 @@ and the relabel-to-front `O(V³)` discharge-order bound.
   - `SkiRental.optCost`: the optimal offline cost `min (T * r) p`.
   - `SkiRental.IsCompetitive`: strategy `a` is `c`-competitive when its cost
     never exceeds `c` times the optimal offline cost on every input.
+  - `SkiRental.Strategy` / `SkiRental.onlineCost`: the general causal model of a
+    deterministic online strategy — its first buy day (a rent-`a`-days-then-buy
+    threshold, or `none` for "never buy") and its cost on an input `T`.
   - `Elevator.cost` / `Elevator.optCost`: the elevator instance — waiting `w`
     seconds then taking the stairs (cost `w + S` when the elevator comes late),
     versus the offline choice of the cheaper of elevator (wait + ride `t + E`)
@@ -4489,8 +4492,12 @@ and the relabel-to-front `O(V³)` discharge-order bound.
   - `Elevator.elevator_worst_case_ratio`: when the elevator comes after the
     wait time, the strategy pays exactly `(2 - E/S) * S`, matching the
     competitive ratio stated in CLRS §27.1.
-- Current gap: the lower bound that no deterministic strategy beats `2 - r/p`
-  is not yet formalized.
+  - `SkiRental.rentThenBuy_lower_bound` / `SkiRental.skiRental_lower_bound`
+    (Theorem 27.1, lower bound): no deterministic online strategy beats
+    `2 - r/p` — for every strategy there is a finite input on which it pays at
+    least `(2 - r/p)` times the offline optimum.
+  - `Elevator.elevator_lower_bound`: for `0 < E < S`, no deterministic wait
+    threshold `w ≥ 0` beats `2 - E/S`, matching the upper bound.
 
 ### Section 27.2 - Maintaining a Search List
 
