@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityBoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -32,6 +33,12 @@ noncomputable def arithmeticStackBlockStart
     (tm : _root_.Turing.FinTM2) (H start : Nat) (k : tm.K) : Nat :=
   arithmeticStackValidityStart tm H start +
     (H + 1 + 6 * H) * arithmeticStackOrdinal tm k
+
+/-- First stack-height source wire scanned by one active-mask suffix OR. -/
+def arithmeticStackMaskWireBase
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) (k : tm.K) : Nat :=
+  rowBase + (1 + (labelCount tm + 1) + stateCount tm +
+    cfgStackBitOffset tm H k + 1)
 
 /-- Closed output wire of the suffix-OR active mask at one cell. -/
 noncomputable def arithmeticStackMaskOutputWire
@@ -72,6 +79,25 @@ def arithmeticStackMaskWires
   List.ofFn fun i : Fin H =>
     (arithmeticCfgWires tm H rowBase).stackHeight k i.succ
 
+/-- The semantic stack-height sources form one literal affine interval. -/
+theorem arithmeticStackMaskWires_eq_range'
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) (k : tm.K) :
+    arithmeticStackMaskWires tm H rowBase k =
+      List.range' (arithmeticStackMaskWireBase tm H rowBase k) H := by
+  have hwires : ∀ i : Fin H,
+      (arithmeticCfgWires tm H rowBase).stackHeight k i.succ =
+        arithmeticStackMaskWireBase tm H rowBase k + i.val := by
+    intro i
+    rw [arithmeticCfgWires_stackHeight]
+    simp only [arithmeticStackMaskWireBase, Fin.val_succ]
+    ring
+  apply List.ext_getElem
+  · simp [arithmeticStackMaskWires]
+  · intro i hleft hright
+    have hi : i < H := by
+      simpa [arithmeticStackMaskWires] using hleft
+    simpa [arithmeticStackMaskWires] using hwires ⟨i, hi⟩
+
 /-- Semantic suffix-OR trace whose outputs are the active masks of a fixed
 stack. -/
 def arithmeticStackMaskTrace
@@ -90,6 +116,47 @@ theorem arithmeticStackMaskOutputWire_eq_trace
   unfold arithmeticStackMaskOutputWire arithmeticStackMaskTrace
   rw [suffixOrGateTrace_output_eq]
   simp [arithmeticStackMaskWires]
+
+/-- Explicit encoded stream of one arithmetic stack's complete active mask. -/
+noncomputable def arithmeticStackMaskGateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    List CircuitSym :=
+  affineSuffixOrGateStream (arithmeticStackBlockStart tm H start k)
+    (arithmeticStackMaskWireBase tm H rowBase k) H
+
+/-- The affine active-mask stream is exactly the semantic suffix-OR trace. -/
+theorem arithmeticStackMaskGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    arithmeticStackMaskGateStream tm H start rowBase k =
+      (arithmeticStackMaskTrace tm H start rowBase k).gates.flatMap
+        encodeCircuitGate := by
+  unfold arithmeticStackMaskGateStream arithmeticStackMaskTrace
+  rw [affineSuffixOrGateStream_eq_trace,
+    ← arithmeticStackMaskWires_eq_range']
+
+/-- Concrete contextual run for one arithmetic stack's active mask. -/
+def arithmeticStackMaskRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineSuffixOrBodyCfg (arithmeticStackBlockStart tm H start k)
+        (arithmeticStackMaskWireBase tm H rowBase k) H output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((arithmeticStackMaskGateStream tm H start rowBase k).reverse ++
+          output)))
+      (affineSuffixOrRevSteps (arithmeticStackBlockStart tm H start k)
+        (arithmeticStackMaskWireBase tm H rowBase k) H) :=
+  affineSuffixOrRev_runFrom _ _ _ output
+
+/-- The arithmetic active-mask invocation inherits the affine quadratic
+running-time bound. -/
+theorem arithmeticStackMaskRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineSuffixOrRevSteps (arithmeticStackBlockStart tm H start k)
+        (arithmeticStackMaskWireBase tm H rowBase k) H ≤
+      25 * (arithmeticStackBlockStart tm H start k +
+        arithmeticStackMaskWireBase tm H rowBase k + H + 1) ^ 2 :=
+  affineSuffixOrRev_steps_le _ _ _
 
 /-- The closed blank wire is exactly the last alphabet coordinate in the
 arithmetic row bundle. -/
