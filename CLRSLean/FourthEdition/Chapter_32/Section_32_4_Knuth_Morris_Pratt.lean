@@ -16,6 +16,7 @@ function* `π` on the pattern, then scanning the text once, falling back along
   of `P` that is a suffix of `P.take q`.
 - {lit}`computePrefixFunction P` — the executable `COMPUTE-PREFIX-FUNCTION`
   (failure-link recurrence), returning the prefix array.
+- {lit}`kmpMatcher P T` — the executable all-occurrences `KMP-MATCHER` scan.
 
 ## Main results
 
@@ -29,15 +30,12 @@ function* `π` on the pattern, then scanning the text once, falling back along
   with the from-scratch search.
 - `computePrefixFunction_correct` — each entry of the executable array equals
   `prefixLen` (CLRS Lemma 32.6).
-
-## Current gaps
-
-The prefix function and its executable implementation are fully specified and
-proved correct.  The following are not yet formalized here (tracked in issue
-#198):
-
-- The all-occurrences KMP scan (`kmpMatcher`) and its `naiveMatcher` refinement.
-- The `O(m + n)` costed construction and scan.
+- `kmpStep_eq_delta` — one executable scan step computes the automaton
+  transition `δ(q, a)`.
+- `kmpMatcher_correct` — `kmpMatcher P T` agrees with `naiveMatcher T P`
+  (all and only matches), with `kmpMatcher_sound`/`kmpMatcher_complete`.
+- `kmpTotalCost_le` — the costed prefix construction plus costed scan runs in
+  linear time `O(|P| + |T|)`.
 
 Notation conventions used in this section:
 
@@ -749,6 +747,673 @@ theorem computePrefixFunction_correct (P : Text α) (i : ℕ) (hi : i < P.length
         omega
       simpa [computePrefixFunction] using
         (hres i (by simpa [hlen] using hi))
+
+/-- The executable prefix array has exactly `|P|` entries. -/
+lemma computePrefixFunction_length (P : Text α) : (computePrefixFunction P).length = P.length := by
+  cases P with
+  | nil => simp [computePrefixFunction]
+  | cons a as =>
+      simp [computePrefixFunction]
+      rw [computePrefixGo_length]
+      simp [Nat.add_comm]
+
+/-- Every entry of the executable prefix array is strictly below its successor
+index, so it can serve as the `hinv` termination argument of `failureFollow`. -/
+lemma computePrefixFunction_inv (P : Text α) :
+    ∀ i, (computePrefixFunction P).getD i 0 < i + 1 := by
+  intro i
+  by_cases hi : i < P.length
+  · rw [computePrefixFunction_correct P i hi]
+    exact prefixLen_lt_of_pos P (i + 1) (by omega)
+  · rw [List.getD_eq_default (hn := by rw [computePrefixFunction_length P]; omega)]
+    omega
+
+/-! ## The KMP scan -/
+
+/-- The advance step of the KMP scan: if the current fallback position's
+character matches `a`, extend the match by one; otherwise restart at `0`.
+`failureFollow` guarantees its result is `0` whenever its character does not
+match `a`, so the `else 0` branch is exactly the textbook `q ← q` state. -/
+def kmpAdvance (P : Text α) (q' : ℕ) (a : α) : ℕ :=
+  if P.getD q' default = a then q' + 1 else 0
+
+/-- One KMP scan step (CLRS `KMP-MATCHER` lines 6-9): given the current state
+`q` (the number of matched characters, `q ≤ |P|`) and the next text character
+`a`, follow failure links until the next character matches, then advance.  When
+`q = |P|` the step first falls back to `π[|P|-1]`, which is the textbook reset
+`q ← π[q]` performed before the next character is read. -/
+def kmpStep (P : Text α) (π : List ℕ) (q : ℕ) (a : α)
+    (hinv : ∀ i, π.getD i 0 < i + 1) : ℕ :=
+  if q = P.length then
+    kmpAdvance P (failureFollow P π a (π.getD (P.length - 1) 0) hinv) a
+  else
+    kmpAdvance P (failureFollow P π a q hinv) a
+
+/-- The Knuth–Morris–Pratt scan: scan `T` left-to-right maintaining the
+automaton state `q = δ*(0, scanned)`, recording every shift where the state
+reaches `|P|`.  `scanned` is the text already scanned and `m = |P|`. -/
+def kmpScan (P : Text α) (π : List ℕ) (m : ℕ) (scanned : Text α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) : Text α → List ℕ
+  | [] => if q == m then [scanned.length - m] else []
+  | c :: rest =>
+      let q' := kmpStep P π q c hinv
+      let tail := kmpScan P π m (scanned ++ [c]) q' hinv rest
+      if q == m then (scanned.length - m) :: tail else tail
+
+/-- The Knuth–Morris–Pratt matcher: the list of all shifts where `P` occurs in
+`T`, computed by the prefix function plus a single left-to-right scan
+(CLRS §32.4). -/
+def kmpMatcher (P T : Text α) : List ℕ :=
+  if P.length = 0 then List.range (T.length + 1)
+  else kmpScan P (computePrefixFunction P) P.length [] 0 (computePrefixFunction_inv P) T
+
+/-- The specification transition: `δ(q, a)` written as "extend by one if the
+character matches `P[q]`, otherwise the longest proper prefix-suffix extension
+`prefixMatch`".  This is the semantic content of one KMP scan step. -/
+def kmpNextSpec (P : Text α) (q : ℕ) (a : α) : ℕ :=
+  if q < P.length ∧ P.getD q default = a then q + 1 else prefixMatch P q a
+
+/-- `kmpAdvance` over the from-scratch search result is exactly `prefixMatch`. -/
+lemma kmpAdvance_eq_prefixMatch (P : Text α) (q : ℕ) (a : α) :
+    kmpAdvance P (prefixMatchAux P q a (q - 1)) a = prefixMatch P q a := by
+  unfold kmpAdvance
+  rw [prefixMatch_eq P q a]
+  change (if P.getD (prefixMatchAux P q a (q - 1)) default = a then prefixMatchAux P q a (q - 1) + 1 else 0)
+    = (if (P.getD (prefixMatchAux P q a (q - 1)) default == a) = true then prefixMatchAux P q a (q - 1) + 1 else 0)
+  by_cases h : P.getD (prefixMatchAux P q a (q - 1)) default = a
+  · rw [if_pos h, if_pos (beq_iff_eq.mpr h)]
+  · rw [if_neg h]
+    have hneg : ¬ (P.getD (prefixMatchAux P q a (q - 1)) default == a) = true := by
+      intro hh
+      exact h (beq_iff_eq.mp hh)
+    rw [if_neg hneg]
+
+/-- If `P[q] = a`, the failure-link search starting at `q` stays at `q`. -/
+lemma failureFollow_eq_self_of_char (P : Text α) (π : List ℕ) (a : α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (hchar : P.getD q default = a) :
+    failureFollow P π a q hinv = q := by
+  rw [failureFollow.eq_1]
+  by_cases hq0 : q = 0
+  · simp [hq0]
+  · simp only [hq0, if_false]
+    by_cases hc : P[q]?.getD default = a
+    · simp [hc]
+    · have hc' : P[q]?.getD default = a := by simpa using hchar
+      exact (hc hc').elim
+
+/-- One fallback step: when `P[q] ≠ a` and `q > 0`, the search moves to
+`π[q-1]`. -/
+lemma failureFollow_step_eq (P : Text α) (π : List ℕ) (a : α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (hqpos : 0 < q) (hne : P.getD q default ≠ a) :
+    failureFollow P π a q hinv = failureFollow P π a (π.getD (q - 1) 0) hinv := by
+  rw [failureFollow.eq_1]
+  by_cases hq0 : q = 0
+  · omega
+  · simp only [hq0, if_false]
+    by_cases hc : P[q]?.getD default = a
+    · have hc' : P[q]?.getD default = a := by simpa using hc
+      have hne' : P[q]?.getD default ≠ a := by simpa using hne
+      exact (hne' hc').elim
+    · simp [hc]
+
+/-- The failure-link search from `prefixLen P q` agrees with the from-scratch
+search `prefixMatchAux P q a (q - 1)`. -/
+lemma failureFollow_from_prefixLen_eq (P : Text α) (π : List ℕ) (a : α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1)
+    (hπ : ∀ i, i < q → π.getD i 0 = prefixLen P (i + 1))
+    (hqpos : 0 < q) :
+    failureFollow P π a (prefixLen P q) hinv = prefixMatchAux P q a (q - 1) := by
+  rw [failureFollow_eq_prefixMatchAux P π a q (prefixLen P q) hinv hπ rfl]
+  exact prefixMatchAux_top_drop P q a hqpos
+
+/-- When `P[q] ≠ a`, the failure-link search from `q` agrees with the
+from-scratch search `prefixMatchAux P q a (q - 1)` (for `q = 0` both are `0`). -/
+lemma failureFollow_eq_prefixMatchAux_top_of_ne (P : Text α) (π : List ℕ) (a : α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1)
+    (hπ : ∀ i, i < q → π.getD i 0 = prefixLen P (i + 1))
+    (hne : P.getD q default ≠ a) :
+    failureFollow P π a q hinv = prefixMatchAux P q a (q - 1) := by
+  by_cases hq0 : q = 0
+  · subst q
+    simp [failureFollow, prefixMatchAux]
+  · have hqpos : 0 < q := by omega
+    rw [failureFollow_step_eq P π a q hinv hqpos hne]
+    have hπq1 : π.getD (q - 1) 0 = prefixLen P q := by
+      have h := hπ (q - 1) (by omega)
+      rwa [Nat.sub_add_cancel hqpos] at h
+    rw [hπq1]
+    exact failureFollow_from_prefixLen_eq P π a q hinv hπ hqpos
+
+/-- `suffixLen P (P.take q ++ [a]) ≤ kmpNextSpec P q a`: the suffix function of
+a one-step extension never exceeds the specification transition. -/
+lemma suffixLen_snoc_le_spec (P : Text α) (q : ℕ) (a : α) (hq : q ≤ P.length) :
+    suffixLen P (P.take q ++ [a]) ≤ kmpNextSpec P q a := by
+  unfold kmpNextSpec
+  by_cases hcond : q < P.length ∧ P.getD q default = a
+  · rw [if_pos hcond]
+    have hle := suffixLen_le_length P (P.take q ++ [a])
+    have hlen : (P.take q ++ [a]).length ≤ q + 1 := by
+      rw [List.length_append, List.length_singleton, List.length_take]
+      exact Nat.add_le_add_right (Nat.min_le_left q P.length) 1
+    omega
+  · rw [if_neg hcond]
+    have hr : suffixLen P (P.take q ++ [a]) ≤ P.length := suffixLen_le P (P.take q ++ [a])
+    have hrle : suffixLen P (P.take q ++ [a]) ≤ q + 1 := by
+      have hle := suffixLen_le_length P (P.take q ++ [a])
+      have hlen : (P.take q ++ [a]).length ≤ q + 1 := by
+        rw [List.length_append, List.length_singleton, List.length_take]
+        exact Nat.add_le_add_right (Nat.min_le_left q P.length) 1
+      omega
+    have hsuf : isSuffix (P.take (suffixLen P (P.take q ++ [a]))) (P.take q ++ [a]) :=
+      suffixLen_satisfies P (P.take q ++ [a])
+    set r := suffixLen P (P.take q ++ [a]) with hr_def
+    have hr' : r ≤ P.length := by simpa [hr_def] using hr
+    have hrle' : r ≤ q + 1 := by simpa [hr_def] using hrle
+    have hsuf' : isSuffix (P.take r) (P.take q ++ [a]) := by simpa [hr_def] using hsuf
+    by_cases hrq : r = q + 1
+    · exfalso
+      have hqlt : q < P.length := by
+        have : q + 1 ≤ P.length := by simpa [hrq] using hr'
+        omega
+      have hchar : P.getD q default = a := by
+        have hsuf'' : isSuffix (P.take (q + 1)) (P.take q ++ [a]) := by simpa [hrq] using hsuf'
+        have hk' : q + 1 ≤ P.length := by omega
+        have hlast : (P.take (q + 1)).getLast? = some a :=
+          suffix_last_char_of_snoc P (P.take q) (q + 1) a hsuf'' (by omega) hk'
+        have htake1 : P.take (q + 1) = P.take q ++ [a] :=
+          take_eq_take_pred_append P (q + 1) a (by omega) hk' hlast
+        have htake2 : P.take (q + 1) = P.take q ++ [P.getD q default] := by
+          rw [List.take_succ]
+          congr 1
+          rw [List.getD_eq_getElem P default (by omega : q < P.length)]
+          simp
+        have hconcat : P.take q ++ [a] = P.take q ++ [P.getD q default] := by
+          rw [← htake1, ← htake2]
+        have hsing : [a] = [P.getD q default] := by
+          simpa [List.drop_left] using (congrArg (fun t => t.drop (P.take q).length) hconcat)
+        exact (List.cons.inj hsing).1.symm
+      exact hcond ⟨hqlt, hchar⟩
+    · have hrq' : r ≤ q := by omega
+      by_cases hr0 : r = 0
+      · rw [hr0]
+        exact Nat.zero_le _
+      · have hrpos : 0 < r := Nat.pos_of_ne_zero hr0
+        have hpre : isSuffix (P.take (r - 1)) (P.take q) :=
+          suffix_dropLast_of_snoc P (P.take q) r a hrpos hr' hsuf'
+        have hchar : P.getD (r - 1) default = a :=
+          suffix_snoc_char_eq P q r a hrpos hr' hsuf'
+        have hsuf_t : suffixTest (P.take (r - 1)) (P.take q) = true :=
+          (suffixTest_eq_isSuffix _ _).mpr hpre
+        have hchar_t : (P.getD (r - 1) default == a) = true := beq_iff_eq.mpr hchar
+        have hcand : (suffixTest (P.take (r - 1)) (P.take q) && (P.getD (r - 1) default == a)) = true := by
+          rw [hsuf_t, hchar_t]
+          rfl
+        have hmax : r - 1 ≤ prefixMatchAux P q a (q - 1) :=
+          prefixMatchAux_maximal P q a (q - 1) (r - 1) (by omega) hsuf_t hchar_t
+        have hchar_k : (P.getD (prefixMatchAux P q a (q - 1)) default == a) = true :=
+          prefixMatchAux_found P q a (q - 1) ⟨r - 1, by omega, hcand⟩
+        have hpm : prefixMatch P q a = prefixMatchAux P q a (q - 1) + 1 := by
+          rw [prefixMatch_eq]
+          rw [hchar_k]
+          rfl
+        rw [hpm]
+        omega
+
+/-- `kmpNextSpec P q a ≤ suffixLen P (P.take q ++ [a])`: the specification
+transition never exceeds the suffix function. -/
+lemma spec_le_suffixLen_snoc (P : Text α) (q : ℕ) (a : α) (hP : 0 < P.length) (hq : q ≤ P.length) :
+    kmpNextSpec P q a ≤ suffixLen P (P.take q ++ [a]) := by
+  unfold kmpNextSpec
+  by_cases hcond : q < P.length ∧ P.getD q default = a
+  · rw [if_pos hcond]
+    rcases hcond with ⟨hqlt, hchar⟩
+    have htake0 : P.take (q + 1) = P.take q ++ [P.getD q default] := by
+      rw [List.take_succ]
+      congr 1
+      rw [List.getD_eq_getElem P default (by omega : q < P.length)]
+      simp
+    have htake : P.take (q + 1) = P.take q ++ [a] := by
+      rw [htake0, hchar]
+    have hsuf : isSuffix (P.take (q + 1)) (P.take q ++ [a]) := by
+      rw [htake]
+      exact isSuffix_self _
+    have hk : q + 1 ≤ P.length := by omega
+    exact suffixLen_maximal P (P.take q ++ [a]) (q + 1) hk hsuf
+  · rw [if_neg hcond]
+    by_cases h0 : prefixMatch P q a = 0
+    · rw [h0]
+      exact Nat.zero_le _
+    · have hkchar : (P.getD (prefixMatchAux P q a (q - 1)) default == a) = true := by
+        by_contra hneg
+        have hf : (P.getD (prefixMatchAux P q a (q - 1)) default == a) = false := by
+          cases hh : (P.getD (prefixMatchAux P q a (q - 1)) default == a)
+          · rfl
+          · exact (hneg hh).elim
+        have : prefixMatch P q a = 0 := by
+          rw [prefixMatch_eq]
+          rw [hf]
+          rfl
+        exact h0 this
+      have hkchar' : P.getD (prefixMatchAux P q a (q - 1)) default = a := beq_iff_eq.mp hkchar
+      have hksuf : isSuffix (P.take (prefixMatchAux P q a (q - 1))) (P.take q) :=
+        (suffixTest_eq_isSuffix _ _).mp (prefixMatchAux_satisfies P q a (q - 1))
+      have hkle : prefixMatchAux P q a (q - 1) ≤ q - 1 := prefixMatchAux_le P q a (q - 1)
+      have hkltP : prefixMatchAux P q a (q - 1) < P.length := by omega
+      have htake0 : P.take (prefixMatchAux P q a (q - 1) + 1) = P.take (prefixMatchAux P q a (q - 1)) ++ [P.getD (prefixMatchAux P q a (q - 1)) default] := by
+        rw [List.take_succ]
+        congr 1
+        rw [List.getD_eq_getElem P default (by omega : prefixMatchAux P q a (q - 1) < P.length)]
+        simp
+      have htake : P.take (prefixMatchAux P q a (q - 1) + 1) = P.take (prefixMatchAux P q a (q - 1)) ++ [a] := by
+        rw [htake0, hkchar']
+      have hsuf1 : isSuffix (P.take (prefixMatchAux P q a (q - 1) + 1)) (P.take q ++ [a]) := by
+        rw [htake]
+        exact suffix_append_right hksuf
+      have hk1 : prefixMatchAux P q a (q - 1) + 1 ≤ P.length := by omega
+      have hle : prefixMatchAux P q a (q - 1) + 1 ≤ suffixLen P (P.take q ++ [a]) :=
+        suffixLen_maximal P (P.take q ++ [a]) (prefixMatchAux P q a (q - 1) + 1) hk1 hsuf1
+      have hpm : prefixMatch P q a = prefixMatchAux P q a (q - 1) + 1 := by
+        rw [prefixMatch_eq]
+        rw [hkchar]
+        rfl
+      rw [hpm]
+      exact hle
+
+/-- The transition `δ(q, a)` equals the specification transition: `q + 1` when
+`q < |P|` and `P[q] = a`, and `prefixMatch P q a` otherwise. -/
+lemma delta_spec (P : Text α) (q : ℕ) (a : α) (hP : 0 < P.length) (hq : q ≤ P.length) :
+    delta P q a = kmpNextSpec P q a := by
+  unfold delta
+  exact le_antisymm (suffixLen_snoc_le_spec P q a hq) (spec_le_suffixLen_snoc P q a hP hq)
+
+/-- The executable KMP step computes exactly the automaton transition `δ`. -/
+lemma kmpStep_eq_delta (P : Text α) (π : List ℕ) (q : ℕ) (a : α)
+    (hP : 0 < P.length)
+    (hinv : ∀ i, π.getD i 0 < i + 1)
+    (hπ : ∀ i, i < P.length → π.getD i 0 = prefixLen P (i + 1))
+    (hq : q ≤ P.length) :
+    kmpStep P π q a hinv = delta P q a := by
+  rw [delta_spec P q a hP hq]
+  by_cases hqlt : q < P.length
+  · have hqne : q ≠ P.length := by omega
+    unfold kmpStep kmpNextSpec
+    rw [if_neg hqne]
+    by_cases hchar : P.getD q default = a
+    · rw [if_pos ⟨hqlt, hchar⟩]
+      have hff : failureFollow P π a q hinv = q := failureFollow_eq_self_of_char P π a q hinv hchar
+      rw [hff]
+      unfold kmpAdvance
+      rw [if_pos hchar]
+    · rw [if_neg (by intro h; exact hchar h.2)]
+      have hπq : ∀ i, i < q → π.getD i 0 = prefixLen P (i + 1) := by
+        intro i hi
+        exact hπ i (by omega)
+      have hff : failureFollow P π a q hinv = prefixMatchAux P q a (q - 1) :=
+        failureFollow_eq_prefixMatchAux_top_of_ne P π a q hinv hπq hchar
+      rw [hff]
+      exact kmpAdvance_eq_prefixMatch P q a
+  · have hqe : q = P.length := by omega
+    subst q
+    unfold kmpStep kmpNextSpec
+    rw [if_pos rfl]
+    rw [if_neg (by intro h; omega)]
+    have hπm : π.getD (P.length - 1) 0 = prefixLen P P.length := by
+      have h := hπ (P.length - 1) (by omega)
+      rwa [Nat.sub_add_cancel hP] at h
+    have hff : failureFollow P π a (prefixLen P P.length) hinv = prefixMatchAux P P.length a (P.length - 1) :=
+      failureFollow_from_prefixLen_eq P π a P.length hinv hπ hP
+    rw [hπm, hff]
+    exact kmpAdvance_eq_prefixMatch P P.length a
+
+/-- The KMP scan equation across one consumed character. -/
+lemma kmpScan_cons (P : Text α) (π : List ℕ) (m : ℕ) (scanned : Text α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (c : α) (T : Text α) :
+    kmpScan P π m scanned q hinv (c :: T)
+      = (if q == m then [scanned.length - m] else [])
+          ++ kmpScan P π m (scanned ++ [c]) (kmpStep P π q c hinv) hinv T := by
+  by_cases h : q == m <;> simp [kmpScan, h]
+
+/-- The KMP scan agrees with the finite-automaton scan when `π` is the correct
+prefix-function array. -/
+lemma kmpScan_eq_dfaScan (P : Text α) (π : List ℕ) (hP : 0 < P.length)
+    (hπ : ∀ i, i < P.length → π.getD i 0 = prefixLen P (i + 1))
+    (hinv : ∀ i, π.getD i 0 < i + 1) :
+    ∀ (T scanned : Text α) (q : ℕ), q ≤ P.length →
+      kmpScan P π P.length scanned q hinv T = dfaScan P P.length scanned q T := by
+  intro T scanned q hq
+  induction T generalizing scanned q with
+  | nil =>
+      rfl
+  | cons c T ih =>
+      have hstep : kmpStep P π q c hinv = delta P q c := kmpStep_eq_delta P π q c hP hinv hπ hq
+      have hq' : kmpStep P π q c hinv ≤ P.length := by
+        rw [hstep]
+        unfold delta
+        exact suffixLen_le P (P.take q ++ [c])
+      rw [kmpScan_cons P π P.length scanned q hinv c T]
+      rw [dfaScan_cons P P.length scanned q c T]
+      rw [ih (scanned ++ [c]) (kmpStep P π q c hinv) hq']
+      rw [hstep]
+
+/--
+**Correctness of the Knuth–Morris–Pratt matcher.**  `kmpMatcher P T` returns
+exactly the shifts that `naiveMatcher T P` returns, for every pattern and text
+(CLRS §32.4).
+-/
+theorem kmpMatcher_correct (P T : Text α) : kmpMatcher P T = naiveMatcher T P := by
+  unfold kmpMatcher
+  by_cases hP0 : P.length = 0
+  · have hnil : P = [] := List.eq_nil_of_length_eq_zero hP0
+    subst P
+    simp [naiveMatcher_empty]
+  · have hP : 0 < P.length := Nat.pos_of_ne_zero hP0
+    have hscan := kmpScan_eq_dfaScan P (computePrefixFunction P) hP
+      (by intro i hi; exact computePrefixFunction_correct P i hi)
+      (computePrefixFunction_inv P)
+    have hsc : kmpScan P (computePrefixFunction P) P.length [] 0 (computePrefixFunction_inv P) T
+        = dfaScan P P.length [] 0 T := hscan T [] 0 (by omega)
+    rw [hsc]
+    simp [hP0]
+    simpa [dfaMatcher] using dfaMatcher_correct P T
+
+/-- Every shift returned by the KMP matcher is a valid match. -/
+theorem kmpMatcher_sound (P T : Text α) (s : ℕ) (h : s ∈ kmpMatcher P T) : matchesAt T P s := by
+  rw [kmpMatcher_correct] at h
+  exact naiveMatcher_sound T P s h
+
+/-- Every valid match is returned by the KMP matcher. -/
+theorem kmpMatcher_complete (P T : Text α) (s : ℕ) (h : matchesAt T P s) : s ∈ kmpMatcher P T := by
+  rw [kmpMatcher_correct]
+  exact naiveMatcher_complete T P s h
+
+/-! ## Costed KMP
+
+The functions below instrument the executable KMP operations with an abstract
+unit control-step count: one unit per failure-link traversal plus one unit per
+character processed.  The metric charges the potentially super-constant part of
+the algorithm — the `while q > 0 ∧ P[q] ≠ c` fallback loop — so that a linear
+bound on this metric is a real statement about the executable scan.  Erasure
+theorems (`*_result`) show the costed functions project to the plain
+executables above.
+-/
+
+/-- `failureFollow` paired with the number of failure-link traversals. -/
+def failureFollowWithCost (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) : ℕ × ℕ :=
+  if hk : k = 0 then (0, 0)
+  else if (P.getD k default) = c then (k, 0)
+  else
+    let r := failureFollowWithCost P π c (π.getD (k - 1) 0) hinv
+    (r.1, r.2 + 1)
+termination_by k
+decreasing_by
+  simp_wf
+  have hpos : 0 < k := Nat.pos_of_ne_zero hk
+  have hk' : (k - 1) + 1 = k := by omega
+  simpa [hk'] using hinv (k - 1)
+
+/-- Erasing the cost recovers `failureFollow`. -/
+lemma failureFollowWithCost_result (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) :
+    (failureFollowWithCost P π c k hinv).1 = failureFollow P π c k hinv := by
+  refine Nat.strong_induction_on k ?_
+  intro k ih
+  rw [failureFollowWithCost, failureFollow.eq_1]
+  by_cases hk : k = 0
+  · simp [hk]
+  · simp only [hk, if_false]
+    by_cases hc : P[k]?.getD default = c
+    · simp [hc]
+    · simp [hc]
+      exact ih (π[k - 1]?.getD 0) (by
+        have hpos : 0 < k := Nat.pos_of_ne_zero hk
+        have h := hinv (k - 1)
+        have hk' : (k - 1) + 1 = k := by omega
+        simpa [hk'] using h)
+
+/-- The fallback cost plus the final state never exceeds the initial state. -/
+lemma failureFollowWithCost_cost_add_le (P : Text α) (π : List ℕ) (c : α) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) :
+    (failureFollowWithCost P π c k hinv).2 + (failureFollowWithCost P π c k hinv).1 ≤ k := by
+  refine Nat.strong_induction_on k ?_
+  intro k ih
+  rw [failureFollowWithCost]
+  by_cases hk : k = 0
+  · simp [hk]
+  · simp only [hk, if_false]
+    by_cases hc : P[k]?.getD default = c
+    · simp [hc]
+    · simp [hc]
+      have hlt : π[k - 1]?.getD 0 < k := by
+        have hpos : 0 < k := Nat.pos_of_ne_zero hk
+        have h := hinv (k - 1)
+        have hk' : (k - 1) + 1 = k := by omega
+        simpa [hk'] using h
+      have hih := ih (π[k - 1]?.getD 0) hlt
+      omega
+
+/-- `computePrefixGo` paired with its unit cost and the final failure state. -/
+def computePrefixGoWithCost (P : Text α) (π : List ℕ) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (hk_lt : k < π.length) : Text α → List ℕ × ℕ × ℕ
+  | [] => (π, 0, k)
+  | c :: rest =>
+      let k' := (failureFollowWithCost P π c k hinv).1
+      let cf := (failureFollowWithCost P π c k hinv).2
+      let k'' := if (P.getD k' default) = c then k' + 1 else 0
+      have hk'le : k' ≤ k := by
+        have hcost := failureFollowWithCost_cost_add_le P π c k hinv
+        omega
+      have hk'lt : k' < π.length := lt_of_le_of_lt hk'le hk_lt
+      have hk''le : k'' ≤ π.length := by
+        unfold k''
+        split <;> omega
+      have hinv' : ∀ i, (π ++ [k'']).getD i 0 < i + 1 := by
+        intro i
+        by_cases hi : i < π.length
+        · rw [List.getD_append π [k''] 0 i hi]
+          exact hinv i
+        · have hge : π.length ≤ i := by omega
+          rw [List.getD_append_right π [k''] 0 i hge]
+          have hle : [k''].getD (i - π.length) 0 ≤ k'' := by
+            by_cases h : i - π.length = 0 <;> simp [List.getD, h]
+          omega
+      have hk''lt : k'' < (π ++ [k'']).length := by
+        simp [hk''le]
+      let r := computePrefixGoWithCost P (π ++ [k'']) k'' hinv' hk''lt rest
+      (r.1, cf + 1 + r.2.1, r.2.2)
+
+/-- Erasing the cost recovers `computePrefixGo`. -/
+lemma computePrefixGoWithCost_result (P : Text α) (π : List ℕ) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (hk_lt : k < π.length) (rest : Text α) :
+    (computePrefixGoWithCost P π k hinv hk_lt rest).1 = computePrefixGo P π k hinv hk_lt rest := by
+  induction rest generalizing π k hinv hk_lt with
+  | nil => simp [computePrefixGoWithCost, computePrefixGo]
+  | cons c rest ih =>
+      simp [computePrefixGoWithCost, computePrefixGo, failureFollowWithCost_result, ih]
+
+/-- The amortized potential invariant: `cost + final_k ≤ 2 · rest.length + k`. -/
+lemma computePrefixGoWithCost_potential (P : Text α) (π : List ℕ) (k : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (hk_lt : k < π.length) (rest : Text α) :
+    (computePrefixGoWithCost P π k hinv hk_lt rest).2.1
+        + (computePrefixGoWithCost P π k hinv hk_lt rest).2.2 ≤ 2 * rest.length + k := by
+  induction rest generalizing π k hinv hk_lt with
+  | nil => simp [computePrefixGoWithCost]
+  | cons c rest ih =>
+      rw [computePrefixGoWithCost]
+      let k' := (failureFollowWithCost P π c k hinv).1
+      let cf := (failureFollowWithCost P π c k hinv).2
+      let k'' := if (P.getD k' default) = c then k' + 1 else 0
+      have hk'le : k' ≤ k := by
+        have hcost := failureFollowWithCost_cost_add_le P π c k hinv
+        omega
+      have hk'lt : k' < π.length := lt_of_le_of_lt hk'le hk_lt
+      have hk''le : k'' ≤ π.length := by
+        unfold k''
+        split <;> omega
+      have hinv' : ∀ i, (π ++ [k'']).getD i 0 < i + 1 := by
+        intro i
+        by_cases hi : i < π.length
+        · rw [List.getD_append π [k''] 0 i hi]
+          exact hinv i
+        · have hge : π.length ≤ i := by omega
+          rw [List.getD_append_right π [k''] 0 i hge]
+          have hle : [k''].getD (i - π.length) 0 ≤ k'' := by
+            by_cases h : i - π.length = 0 <;> simp [List.getD, h]
+          omega
+      have hk''lt : k'' < (π ++ [k'']).length := by
+        simp [hk''le]
+      have hcost := failureFollowWithCost_cost_add_le P π c k hinv
+      have hih := ih (π ++ [k'']) k'' hinv' hk''lt
+      have hk''le' : k'' ≤ k' + 1 := by
+        unfold k''
+        split <;> omega
+      change cf + 1 + (computePrefixGoWithCost P (π ++ [k'']) k'' hinv' hk''lt rest).2.1
+          + (computePrefixGoWithCost P (π ++ [k'']) k'' hinv' hk''lt rest).2.2 ≤ 2 * (rest.length + 1) + k
+      omega
+
+/-- `computePrefixFunction` paired with its preprocessing cost. -/
+def computePrefixFunctionWithCost (P : Text α) : List ℕ × ℕ :=
+  match P with
+  | [] => ([], 0)
+  | a :: as =>
+      let r := computePrefixGoWithCost P [0] 0 (by intro i; simp) (by simp) as
+      (r.1, r.2.1)
+
+/-- Erasing the cost recovers `computePrefixFunction`. -/
+lemma computePrefixFunctionWithCost_result (P : Text α) :
+    (computePrefixFunctionWithCost P).1 = computePrefixFunction P := by
+  cases P with
+  | nil => simp [computePrefixFunctionWithCost, computePrefixFunction]
+  | cons a as =>
+      simp [computePrefixFunctionWithCost, computePrefixFunction]
+      exact computePrefixGoWithCost_result (a :: as) [0] 0 (by intro i; simp) (by simp) as
+
+/-- The prefix-function construction costs at most `2 · |P|` steps. -/
+theorem computePrefixFunctionWithCost_cost_le (P : Text α) :
+    (computePrefixFunctionWithCost P).2 ≤ 2 * P.length := by
+  cases P with
+  | nil => simp [computePrefixFunctionWithCost]
+  | cons a as =>
+      simp [computePrefixFunctionWithCost]
+      have h := computePrefixGoWithCost_potential (a :: as) [0] 0 (by intro i; simp) (by simp) as
+      omega
+
+/-- One KMP scan step paired with its unit cost (one fallback traversal plus
+one character). -/
+def kmpStepWithCost (P : Text α) (π : List ℕ) (q : ℕ) (a : α)
+    (hinv : ∀ i, π.getD i 0 < i + 1) : ℕ × ℕ :=
+  if q = P.length then
+    let r := failureFollowWithCost P π a (π.getD (P.length - 1) 0) hinv
+    (if P.getD r.1 default = a then r.1 + 1 else 0, r.2 + 1)
+  else
+    let r := failureFollowWithCost P π a q hinv
+    (if P.getD r.1 default = a then r.1 + 1 else 0, r.2 + 1)
+
+/-- Erasing the cost recovers `kmpStep`. -/
+lemma kmpStepWithCost_result (P : Text α) (π : List ℕ) (q : ℕ) (a : α)
+    (hinv : ∀ i, π.getD i 0 < i + 1) :
+    (kmpStepWithCost P π q a hinv).1 = kmpStep P π q a hinv := by
+  unfold kmpStepWithCost kmpStep kmpAdvance
+  by_cases hq : q = P.length <;> simp [hq, failureFollowWithCost_result]
+
+/-- The scan-step cost plus the next state never exceeds `q + 2`. -/
+lemma kmpStepWithCost_cost_add_le (P : Text α) (π : List ℕ) (q : ℕ) (a : α)
+    (hinv : ∀ i, π.getD i 0 < i + 1) :
+    (kmpStepWithCost P π q a hinv).2 + (kmpStepWithCost P π q a hinv).1 ≤ q + 2 := by
+  unfold kmpStepWithCost
+  by_cases hq : q = P.length
+  · simp only [hq, if_true]
+    have hcost := failureFollowWithCost_cost_add_le P π a (π.getD (P.length - 1) 0) hinv
+    have hle : π.getD (P.length - 1) 0 ≤ q := by
+      subst q
+      have h := hinv (P.length - 1)
+      omega
+    split <;> omega
+  · simp only [hq, if_false]
+    have hcost := failureFollowWithCost_cost_add_le P π a q hinv
+    split <;> omega
+
+/-- The KMP scan paired with its unit cost and the final failure state. -/
+def kmpScanWithCost (P : Text α) (π : List ℕ) (m : ℕ) (scanned : Text α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) : Text α → List ℕ × ℕ × ℕ
+  | [] => (if q == m then [scanned.length - m] else [], 0, q)
+  | c :: rest =>
+      let q' := (kmpStepWithCost P π q c hinv).1
+      let cstep := (kmpStepWithCost P π q c hinv).2
+      let r := kmpScanWithCost P π m (scanned ++ [c]) q' hinv rest
+      (if q == m then (scanned.length - m) :: r.1 else r.1, cstep + r.2.1, r.2.2)
+
+/-- Erasing the cost recovers `kmpScan`. -/
+lemma kmpScanWithCost_result (P : Text α) (π : List ℕ) (m : ℕ) (scanned : Text α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (T : Text α) :
+    (kmpScanWithCost P π m scanned q hinv T).1 = kmpScan P π m scanned q hinv T := by
+  induction T generalizing scanned q with
+  | nil => simp [kmpScanWithCost, kmpScan]
+  | cons c T ih =>
+      simp only [kmpScanWithCost, kmpScan]
+      rw [kmpStepWithCost_result]
+      simp [ih]
+
+/-- The amortized potential invariant of the scan: `cost + final_q ≤ 2 · |T| + q`. -/
+lemma kmpScanWithCost_potential (P : Text α) (π : List ℕ) (m : ℕ) (scanned : Text α) (q : ℕ)
+    (hinv : ∀ i, π.getD i 0 < i + 1) (T : Text α) :
+    (kmpScanWithCost P π m scanned q hinv T).2.1
+        + (kmpScanWithCost P π m scanned q hinv T).2.2 ≤ 2 * T.length + q := by
+  induction T generalizing scanned q with
+  | nil => simp [kmpScanWithCost]
+  | cons c T ih =>
+      rw [kmpScanWithCost]
+      let q' := (kmpStepWithCost P π q c hinv).1
+      let cstep := (kmpStepWithCost P π q c hinv).2
+      have hstep := kmpStepWithCost_cost_add_le P π q c hinv
+      have hih := ih (scanned ++ [c]) q'
+      change cstep + (kmpScanWithCost P π m (scanned ++ [c]) q' hinv T).2.1
+          + (kmpScanWithCost P π m (scanned ++ [c]) q' hinv T).2.2 ≤ 2 * (T.length + 1) + q
+      omega
+
+/-- `kmpMatcher` paired with its matching-phase cost (the prefix construction
+cost is tracked separately by `computePrefixFunctionWithCost`). -/
+def kmpMatcherWithCost (P T : Text α) : List ℕ × ℕ :=
+  if P.length = 0 then (List.range (T.length + 1), T.length + 1)
+  else
+    let r := kmpScanWithCost P (computePrefixFunction P) P.length [] 0 (computePrefixFunction_inv P) T
+    (r.1, r.2.1)
+
+/-- Erasing the cost recovers `kmpMatcher`. -/
+lemma kmpMatcherWithCost_result (P T : Text α) :
+    (kmpMatcherWithCost P T).1 = kmpMatcher P T := by
+  unfold kmpMatcherWithCost kmpMatcher
+  by_cases hP0 : P.length = 0
+  · simp [hP0]
+  · simp [hP0]
+    exact kmpScanWithCost_result P (computePrefixFunction P) P.length [] 0 (computePrefixFunction_inv P) T
+
+/-- The matching phase costs at most `2 · |T| + 1` steps. -/
+theorem kmpMatcherWithCost_cost_le (P T : Text α) :
+    (kmpMatcherWithCost P T).2 ≤ 2 * T.length + 1 := by
+  unfold kmpMatcherWithCost
+  by_cases hP0 : P.length = 0
+  · simp [hP0]
+    omega
+  · simp [hP0]
+    have h := kmpScanWithCost_potential P (computePrefixFunction P) P.length [] 0 (computePrefixFunction_inv P) T
+    omega
+
+/-- The total deterministic KMP work: prefix construction plus scan. -/
+def kmpTotalCost (P T : Text α) : ℕ :=
+  (computePrefixFunctionWithCost P).2 + (kmpMatcherWithCost P T).2
+
+/--
+**KMP total cost.**  The instrumented prefix construction plus the instrumented
+all-occurrences scan costs at most `2·|P| + 2·|T| + 1` control steps, i.e. the
+KMP algorithm runs in linear time `O(|P| + |T|)` (CLRS §32.4).
+-/
+theorem kmpTotalCost_le (P T : Text α) :
+    kmpTotalCost P T ≤ 2 * P.length + 2 * T.length + 1 := by
+  unfold kmpTotalCost
+  have hpre := computePrefixFunctionWithCost_cost_le P
+  have hscan := kmpMatcherWithCost_cost_le P T
+  omega
 
 end Chapter32
 end CLRS
