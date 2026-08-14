@@ -54,6 +54,15 @@ successor/predecessor equivalent to the established functional operations.
   {lit}`CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant`, and
   {lit}`CLRS.Chapter12.BSTree.insertPointer_right_representsW`.
 
+The running-time / cost layer adds the tree {lit}`height` and branch-faithful
+cost functions with their {lit}`O(h)` bounds ({lit}`searchCost_le_height`,
+{lit}`minimumCost_le_height`, {lit}`maximumCost_le_height`,
+{lit}`successorCost_le_height`, {lit}`predecessorCost_le_height`,
+{lit}`insertCost_le_height`, {lit}`minKeyCost_le_height`,
+{lit}`deleteMinCost_le_height`, {lit}`deleteRootCost_le`, {lit}`deleteCost_le`),
+and the randomly-built-BST ancestor characterization
+{lit}`CLRS.Chapter12.BSTree.isAncestorOf_iff_firstInInterval` (CLRS Lemma 12.3).
+
 ## Current Gaps
 
 The zipper layer formalizes parent-oriented navigation and subtree replacement
@@ -62,8 +71,10 @@ imperative pointer-heap layer models nodes as records with mutable
 {lit}`left`/{lit}`right`/{lit}`parent` cells over a {lit}`Std.HashMap` store, and
 proves that in-place {lit}`TRANSPLANT` and leaf {lit}`TREE-INSERT` refine the
 functional subtree-replacement specification through the {lit}`RepresentsW`
-heap-to-tree abstraction.  What remains is an explicit RAM-cost model connecting
-these pointer operations to concrete running times.
+heap-to-tree abstraction.  An explicit RAM-cost model connecting these pointer
+operations to concrete running times remains future work, as does the
+probability {lit}`P(i is an ancestor of j) = 1/(|i-j|+1)` and the
+{lit}`O(log n)` expected-depth bound of a randomly built BST.
 -/
 
 namespace CLRS

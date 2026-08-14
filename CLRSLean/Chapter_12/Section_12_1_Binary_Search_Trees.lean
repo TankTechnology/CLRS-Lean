@@ -88,6 +88,26 @@ Main results:
 - Theorem {lit}`insertPointer_right_representsW`: pointer TREE-INSERT leaf
   attachment refines the functional subtree replacement.
 
+## Running-time / cost layer (O(h))
+
+- Theorem {lit}`searchCost_le_height`, {lit}`minimumCost_le_height`,
+  {lit}`maximumCost_le_height`, {lit}`successorCost_le_height`,
+  {lit}`predecessorCost_le_height`, {lit}`insertCost_le_height`,
+  {lit}`minKeyCost_le_height`, {lit}`deleteMinCost_le_height`: each descent
+  operation costs at most {lit}`height + 1` steps.
+- Theorem {lit}`deleteRootCost_le` / {lit}`deleteCost_le`: deletion costs at most
+  {lit}`2·height + 3` steps (a root deletion plus a min-extraction and a
+  delete-min on the successor subtree).  Together these are the CLRS "each BST
+  operation runs in {lit}`O(h)` time" bounds made concrete.
+
+## Randomly built BST (Section 12.4)
+
+- Theorem {lit}`isAncestorOf_iff_firstInInterval`: key {lit}`x` is an ancestor of
+  key {lit}`y` in the BST built from a list of distinct keys exactly when
+  {lit}`x` is the first key of the list lying in the closed interval between
+  them (CLRS Lemma 12.3).  This is the combinatorial workhorse for the
+  expected-depth analysis.
+
 Current gaps:
 
 - The zipper-based parent-pointer layer (iterative search, TRANSPLANT,
@@ -95,6 +115,9 @@ Current gaps:
   pointer-heap layer now proves in-place TRANSPLANT and leaf TREE-INSERT refine
   the functional specification.
 - An explicit RAM cost model over the pointer operations remains future work.
+- The probability {lit}`P(i is an ancestor of j) = 1/(|i-j|+1)` and the resulting
+  expected-depth bound {lit}`O(log n)` for a randomly built BST are not yet
+  formalized; the ancestor characterization above is the needed foundation.
 -/
 
 namespace CLRS
@@ -2139,6 +2162,525 @@ theorem insertPointer_right_representsW
   have hdisj : Disjoint SL ({z} : Finset Nat) := by
     simp [Finset.disjoint_singleton_right, hzL]
   exact transplantChild_right_representsW hpid' hL' hV hpidL hpidz hdisj
+
+/-! ## Height and O(h) cost model
+
+Every BST operation descends at most one root-to-leaf path.  This section gives
+the tree {lit}`height` and branch-faithful cost functions that count the descent
+steps each operation actually performs, then proves the CLRS "each BST operation
+runs in {lit}`O(h)` time" bound concretely: each descent operation costs at most
+{lit}`height + 1`, and deletion — which additionally extracts and deletes the
+successor subtree's minimum — costs at most {lit}`2·height + 3`. -/
+
+/-- Height of a binary tree: 0 for the empty tree, and 1 plus the taller
+child's height for a node. -/
+def height : BSTree → Nat
+  | empty => 0
+  | node left _key right => 1 + max (height left) (height right)
+
+/-- Number of descent steps taken by {lit}`search` for key {lit}`x`. -/
+def searchCost (x : Nat) : BSTree → Nat
+  | empty => 1
+  | node left key right =>
+      if x = key then 1
+      else if x < key then 1 + searchCost x left
+      else 1 + searchCost x right
+
+/-- Number of descent steps taken by {lit}`minimum?`. -/
+def minimumCost : BSTree → Nat
+  | empty => 1
+  | node empty _key _right => 1
+  | node left@(node _ _ _) _key _right => 1 + minimumCost left
+
+/-- Number of descent steps taken by {lit}`maximum?`. -/
+def maximumCost : BSTree → Nat
+  | empty => 1
+  | node _left _key empty => 1
+  | node _left _key right@(node _ _ _) => 1 + maximumCost right
+
+/-- Number of descent steps taken by {lit}`successor?` for key {lit}`x`. -/
+def successorCost (x : Nat) : BSTree → Nat
+  | empty => 1
+  | node left key right =>
+      if x < key then 1 + successorCost x left
+      else 1 + successorCost x right
+
+/-- Number of descent steps taken by {lit}`predecessor?` for key {lit}`x`. -/
+def predecessorCost (x : Nat) : BSTree → Nat
+  | empty => 1
+  | node left key right =>
+      if key < x then 1 + predecessorCost x right
+      else 1 + predecessorCost x left
+
+/-- Number of descent steps taken by {lit}`insert` for key {lit}`x`. -/
+def insertCost (x : Nat) : BSTree → Nat
+  | empty => 1
+  | node left key right =>
+      if x < key then 1 + insertCost x left
+      else if key < x then 1 + insertCost x right
+      else 1
+
+/-- Number of descent steps taken by {lit}`minKey`. -/
+def minKeyCost : BSTree → Nat
+  | empty => 1
+  | node empty _key _right => 1
+  | node left@(node _ _ _) _key _right => 1 + minKeyCost left
+
+/-- Number of descent steps taken by {lit}`deleteMin`. -/
+def deleteMinCost : BSTree → Nat
+  | empty => 1
+  | node empty _key _right => 1
+  | node left@(node _ _ _) _key _right => 1 + deleteMinCost left
+
+/-- Number of descent steps taken by {lit}`deleteRoot`, counting the minimum
+extraction and the delete-min on the successor subtree when the right child is
+nonempty. -/
+def deleteRootCost : BSTree → Nat
+  | empty => 1
+  | node _left _key empty => 1
+  | node _left _key right@(node _ _ _) => 1 + minKeyCost right + deleteMinCost right
+
+/-- Number of descent steps taken by {lit}`delete` for key {lit}`x`. -/
+def deleteCost (x : Nat) : BSTree → Nat
+  | empty => 1
+  | node left key right =>
+      if x < key then 1 + deleteCost x left
+      else if key < x then 1 + deleteCost x right
+      else deleteRootCost (node left key right)
+
+/-- **O(h) search.**  {lit}`search` descends at most one path, so its cost is
+bounded by the tree height plus one. -/
+theorem searchCost_le_height (x : Nat) (t : BSTree) :
+    searchCost x t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [searchCost, height]
+  | node left key right ihL ihR =>
+      by_cases hxkey : x = key
+      · simp [searchCost, height, hxkey]
+      · by_cases hxlt : x < key
+        · simp [searchCost, height, hxkey, hxlt]
+          omega
+        · simp [searchCost, height, hxkey, hxlt]
+          omega
+
+/-- **O(h) minimum.**  {lit}`minimum?` follows left children, so its cost is
+bounded by the tree height plus one. -/
+theorem minimumCost_le_height (t : BSTree) :
+    minimumCost t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [minimumCost, height]
+  | node left key right ihL ihR =>
+      cases left with
+      | empty => simp [minimumCost, height]
+      | node _ _ _ =>
+          simp [minimumCost, height] at *
+          omega
+
+/-- **O(h) maximum.**  {lit}`maximum?` follows right children, so its cost is
+bounded by the tree height plus one. -/
+theorem maximumCost_le_height (t : BSTree) :
+    maximumCost t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [maximumCost, height]
+  | node left key right ihL ihR =>
+      cases right with
+      | empty => simp [maximumCost, height]
+      | node _ _ _ =>
+          simp [maximumCost, height] at *
+          omega
+
+/-- **O(h) successor.**  {lit}`successor?` descends at most one path, so its
+cost is bounded by the tree height plus one. -/
+theorem successorCost_le_height (x : Nat) (t : BSTree) :
+    successorCost x t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [successorCost, height]
+  | node left key right ihL ihR =>
+      by_cases hxlt : x < key
+      · simp [successorCost, height, hxlt]
+        omega
+      · simp [successorCost, height, hxlt]
+        omega
+
+/-- **O(h) predecessor.**  {lit}`predecessor?` descends at most one path, so its
+cost is bounded by the tree height plus one. -/
+theorem predecessorCost_le_height (x : Nat) (t : BSTree) :
+    predecessorCost x t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [predecessorCost, height]
+  | node left key right ihL ihR =>
+      by_cases hxgt : key < x
+      · simp [predecessorCost, height, hxgt]
+        omega
+      · simp [predecessorCost, height, hxgt]
+        omega
+
+/-- **O(h) insertion.**  {lit}`insert` descends at most one path, so its cost is
+bounded by the tree height plus one. -/
+theorem insertCost_le_height (x : Nat) (t : BSTree) :
+    insertCost x t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [insertCost, height]
+  | node left key right ihL ihR =>
+      by_cases hxlt : x < key
+      · simp [insertCost, height, hxlt]
+        omega
+      · by_cases hxgt : key < x
+        · simp [insertCost, height, hxlt, hxgt]
+          omega
+        · simp [insertCost, height, hxlt, hxgt]
+
+/-- **O(h) minimum extraction.**  {lit}`minKey` follows left children, so its
+cost is bounded by the tree height plus one. -/
+theorem minKeyCost_le_height (t : BSTree) :
+    minKeyCost t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [minKeyCost, height]
+  | node left key right ihL ihR =>
+      cases left with
+      | empty => simp [minKeyCost, height]
+      | node _ _ _ =>
+          simp [minKeyCost, height] at *
+          omega
+
+/-- **O(h) delete-min.**  {lit}`deleteMin` follows left children, so its cost is
+bounded by the tree height plus one. -/
+theorem deleteMinCost_le_height (t : BSTree) :
+    deleteMinCost t ≤ height t + 1 := by
+  induction t with
+  | empty => simp [deleteMinCost, height]
+  | node left key right ihL ihR =>
+      cases left with
+      | empty => simp [deleteMinCost, height]
+      | node _ _ _ =>
+          simp [deleteMinCost, height] at *
+          omega
+
+/-- **O(h) root deletion.**  {lit}`deleteRoot` either detaches the left child
+(constant work) or runs a minimum extraction plus a delete-min on the right
+subtree, so its cost is linear in the tree height. -/
+theorem deleteRootCost_le : ∀ t : BSTree, deleteRootCost t ≤ 2 * height t + 3
+  | empty => by simp [deleteRootCost, height]
+  | node left key empty => by simp [deleteRootCost, height]
+  | node left key (node rl rk rr) => by
+      have h1 := minKeyCost_le_height (node rl rk rr)
+      have h2 := deleteMinCost_le_height (node rl rk rr)
+      simp [deleteRootCost, height] at *
+      omega
+
+/-- **O(h) deletion.**  {lit}`delete` descends at most one path and then
+performs a root deletion, so its cost is linear in the tree height. -/
+theorem deleteCost_le (x : Nat) (t : BSTree) :
+    deleteCost x t ≤ 2 * height t + 3 := by
+  induction t with
+  | empty => simp [deleteCost, height]
+  | node left key right ihL ihR =>
+      by_cases hxlt : x < key
+      · simp [deleteCost, hxlt]
+        change 1 + deleteCost x left ≤ 2 * (1 + max (height left) (height right)) + 3
+        omega
+      · by_cases hxgt : key < x
+        · simp [deleteCost, hxlt, hxgt]
+          change 1 + deleteCost x right ≤ 2 * (1 + max (height left) (height right)) + 3
+          omega
+        · simp [deleteCost, hxlt, hxgt]
+          exact deleteRootCost_le (node left key right)
+
+/-! ## Randomly built binary search trees (Section 12.4)
+
+A randomly built BST inserts a uniform random permutation of `Fin n` into the
+empty tree.  This section proves the classic combinatorial characterization
+(Lemma 12.3): key `x` is an ancestor of key `y` in the tree built from a list of
+distinct keys exactly when `x` is the first key of the list that lies in the
+closed interval between them.  This is the workhorse behind the `O(log n)`
+expected-depth analysis of a randomly built BST.
+
+**Remaining gap.**  The probability `P(i is an ancestor of j) = 1/(|i-j|+1)` and
+the resulting expected-depth bound `O(log n)` are not yet formalized; the
+combinatorial characterization below is the needed foundation.
+-/
+
+/-- Depth of key `y` (0 at root, 0 when absent). -/
+def depth (y : Nat) : BSTree → Nat
+  | empty => 0
+  | node left key right =>
+      if y = key then 0
+      else if y < key then 1 + depth y left
+      else 1 + depth y right
+
+/-- `x` lies on the root-to-`y` search path (including `x = y`). -/
+def isAncestorOf (x y : Nat) : BSTree → Prop
+  | empty => False
+  | node left key right =>
+      if y = key then x = key
+      else if y < key then x = key ∨ isAncestorOf x y left
+      else x = key ∨ isAncestorOf x y right
+
+/-- Insert a list of keys in order (head first = root). -/
+def insertAll : List Nat → BSTree → BSTree
+  | [], t => t
+  | x :: xs, t => insertAll xs (insert x t)
+
+/-- BST built by inserting `xs` in order. -/
+def buildFromList (xs : List Nat) : BSTree := insertAll xs empty
+
+/-- `x` is the first element of the list lying in `[a, b]`. -/
+def IsFirstInInterval (x a b : Nat) : List Nat → Prop
+  | [] => False
+  | z :: zs => if a ≤ z ∧ z ≤ b then z = x else IsFirstInInterval x a b zs
+
+/-- If `x` is on the path to `y`, then `x` occurs in the tree. -/
+theorem isAncestorOf_implies_inTree {x y : Nat} {t : BSTree} :
+    isAncestorOf x y t → InTree x t := by
+  induction t with
+  | empty => simp [isAncestorOf]
+  | node left key right ihL ihR =>
+      intro h
+      by_cases hykey : y = key
+      · simp [isAncestorOf, hykey] at h
+        subst x; simp [InTree]
+      · by_cases hylt : y < key
+        · simp [isAncestorOf, hykey, hylt] at h
+          rcases h with h | h
+          · subst x; simp [InTree]
+          · exact Or.inr (Or.inl (ihL h))
+        · simp [isAncestorOf, hykey, hylt] at h
+          rcases h with h | h
+          · subst x; simp [InTree]
+          · exact Or.inr (Or.inr (ihR h))
+
+/-- Membership after inserting a whole list. -/
+theorem InTree_insertAll_iff (k : Nat) (zs : List Nat) (t : BSTree) :
+    InTree k (insertAll zs t) ↔ InTree k t ∨ k ∈ zs := by
+  induction zs generalizing t with
+  | nil => simp [insertAll]
+  | cons z zs ih =>
+      rw [insertAll, ih, inTree_insert_iff]
+      simp [List.mem_cons]
+      tauto
+
+/-- A key occurs in `buildFromList xs` iff it belongs to `xs`. -/
+theorem InTree_buildFromList_iff (k : Nat) (xs : List Nat) :
+    InTree k (buildFromList xs) ↔ k ∈ xs := by
+  unfold buildFromList
+  rw [InTree_insertAll_iff]
+  simp [InTree]
+
+/-- Inserting a list of keys into a node splits them by comparison with the
+node key. -/
+theorem insertAll_split (z : Nat) (L R : BSTree) (zs : List Nat) :
+    insertAll zs (node L z R) =
+      node (insertAll (zs.filter (fun k => k < z)) L) z
+        (insertAll (zs.filter (fun k => z < k)) R) := by
+  induction zs generalizing L R with
+  | nil => simp [insertAll]
+  | cons k ks ih =>
+      by_cases hkz : k < z
+      · have hzk : ¬ z < k := by omega
+        simp only [insertAll, insert, hkz]
+        rw [show (k :: ks).filter (fun k => k < z) = k :: ks.filter (fun k => k < z) from
+              List.filter_cons_of_pos (by simp [hkz])]
+        rw [show (k :: ks).filter (fun k => z < k) = ks.filter (fun k => z < k) from
+              List.filter_cons_of_neg (by simp [hzk])]
+        exact ih (insert k L) R
+      · by_cases hzk : z < k
+        · simp only [insertAll, insert, hkz, hzk]
+          rw [show (k :: ks).filter (fun k => k < z) = ks.filter (fun k => k < z) from
+                List.filter_cons_of_neg (by simp [hkz])]
+          rw [show (k :: ks).filter (fun k => z < k) = k :: ks.filter (fun k => z < k) from
+                List.filter_cons_of_pos (by simp [hzk])]
+          exact ih L (insert k R)
+        · simp only [insertAll, insert, hkz, hzk]
+          rw [show (k :: ks).filter (fun k => k < z) = ks.filter (fun k => k < z) from
+                List.filter_cons_of_neg (by simp [hkz])]
+          rw [show (k :: ks).filter (fun k => z < k) = ks.filter (fun k => z < k) from
+                List.filter_cons_of_neg (by simp [hzk])]
+          exact ih L R
+
+/-- The head of the list becomes the root, splitting the rest by comparison. -/
+theorem buildFromList_cons (z : Nat) (zs : List Nat) :
+    buildFromList (z :: zs) =
+      node (buildFromList (zs.filter (fun k => k < z))) z
+        (buildFromList (zs.filter (fun k => z < k))) := by
+  simp [buildFromList, insertAll, insert]
+  exact insertAll_split z empty empty zs
+
+/-- Filtering out keys `≥ r` (all above `b`) does not change the first element
+of the list in `[a, b]`. -/
+theorem IsFirstInInterval_filter_lt {zs : List Nat} {x a b r : Nat}
+    (hbr : b < r) :
+    IsFirstInInterval x a b (zs.filter (fun k => k < r)) = IsFirstInInterval x a b zs := by
+  induction zs with
+  | nil => simp [IsFirstInInterval]
+  | cons z zs ih =>
+      by_cases hzr : z < r
+      · simp [List.filter, hzr, IsFirstInInterval, ih]
+      · have hrz : r ≤ z := Nat.le_of_not_gt hzr
+        have hz_out : ¬ (a ≤ z ∧ z ≤ b) := by intro hz; omega
+        simp [List.filter, hzr, IsFirstInInterval, hz_out, ih]
+
+/-- Filtering out keys `≤ r` (all below `a`) does not change the first element
+of the list in `[a, b]`. -/
+theorem IsFirstInInterval_filter_gt {zs : List Nat} {x a b r : Nat}
+    (hra : r < a) :
+    IsFirstInInterval x a b (zs.filter (fun k => r < k)) = IsFirstInInterval x a b zs := by
+  induction zs with
+  | nil => simp [IsFirstInInterval]
+  | cons z zs ih =>
+      by_cases hzr : r < z
+      · simp [List.filter, hzr, IsFirstInInterval, ih]
+      · have hzr' : z ≤ r := Nat.le_of_not_gt hzr
+        have hz_out : ¬ (a ≤ z ∧ z ≤ b) := by intro hz; omega
+        simp [List.filter, hzr, IsFirstInInterval, hz_out, ih]
+
+/-- **Randomly-built-BST characterization.**  In a BST built by inserting keys
+in list order, `x` is an ancestor of `y` exactly when `x` is the first key of
+the list that lies in the closed interval between them. -/
+theorem isAncestorOf_iff_firstInInterval (xs : List Nat) (x y : Nat) :
+    isAncestorOf x y (buildFromList xs) ↔ IsFirstInInterval x (min x y) (max x y) xs := by
+  have hmain : ∀ n : Nat, ∀ xs : List Nat, xs.length = n → ∀ x y : Nat,
+      isAncestorOf x y (buildFromList xs) ↔ IsFirstInInterval x (min x y) (max x y) xs := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        intro xs hlen x y
+        cases xs with
+        | nil => simp [buildFromList, insertAll, isAncestorOf, IsFirstInInterval]
+        | cons z zs =>
+            rw [buildFromList_cons]
+            by_cases hyz : y = z
+            · simp [isAncestorOf, IsFirstInInterval, hyz]
+              exact ⟨Eq.symm, Eq.symm⟩
+            · by_cases hylt : y < z
+              · simp only [isAncestorOf, IsFirstInInterval, hyz, hylt]
+                by_cases hzIn : min x y ≤ z ∧ z ≤ max x y
+                · have hz_le_x : z ≤ x := by
+                    have hz_le_max : z ≤ max x y := hzIn.2
+                    by_cases hxy : x ≤ y
+                    · have : max x y = y := max_eq_right hxy
+                      rw [this] at hz_le_max
+                      omega
+                    · have : max x y = x := max_eq_left (le_of_lt (Nat.lt_of_not_ge hxy))
+                      rw [this] at hz_le_max
+                      exact hz_le_max
+                  simp only [hzIn]
+                  constructor
+                  · intro h
+                    rcases h with h | h
+                    · exact h.symm
+                    · have hin := isAncestorOf_implies_inTree h
+                      rw [InTree_buildFromList_iff] at hin
+                      have hxz_lt : x < z := of_decide_eq_true (List.mem_filter.mp hin).2
+                      omega
+                  · intro hzx
+                    exact Or.inl hzx.symm
+                · have hmax_lt_z : max x y < z := by
+                    by_cases hxy : x ≤ y
+                    · have hmax : max x y = y := max_eq_right hxy
+                      rw [hmax]; exact hylt
+                    · have hxy' : y < x := Nat.lt_of_not_ge hxy
+                      have hmax : max x y = x := max_eq_left (le_of_lt hxy')
+                      have hmin : min x y = y := min_eq_right (le_of_lt hxy')
+                      rw [hmax]
+                      apply Nat.lt_of_not_ge
+                      intro hzle
+                      have hzIn' : min x y ≤ z ∧ z ≤ max x y := by
+                        rw [hmin, hmax]; exact ⟨le_of_lt hylt, hzle⟩
+                      exact hzIn hzIn'
+                  have hx_ne_z : x ≠ z := by
+                    have : x ≤ max x y := le_max_left x y
+                    omega
+                  simp only [hzIn, hx_ne_z]
+                  have hih' := ih (zs.filter (fun k => k < z)).length
+                    (by
+                      have hlen' : zs.length + 1 = n := by simpa using hlen
+                      have : (zs.filter (fun k => k < z)).length ≤ zs.length := List.length_filter_le _ _
+                      omega)
+                    (zs.filter (fun k => k < z)) rfl x y
+                  rw [hih', IsFirstInInterval_filter_lt hmax_lt_z]
+                  simp
+              · have hzlt : z < y := by omega
+                simp only [isAncestorOf, IsFirstInInterval, hyz, hylt]
+                by_cases hzIn : min x y ≤ z ∧ z ≤ max x y
+                · have hx_le_z : x ≤ z := by
+                    have hmin_le_z : min x y ≤ z := hzIn.1
+                    by_cases hxy : x ≤ y
+                    · have : min x y = x := min_eq_left hxy
+                      rw [this] at hmin_le_z; exact hmin_le_z
+                    · have : min x y = y := min_eq_right (le_of_lt (Nat.lt_of_not_ge hxy))
+                      rw [this] at hmin_le_z
+                      omega
+                  simp only [hzIn]
+                  constructor
+                  · intro h
+                    rcases h with h | h
+                    · exact h.symm
+                    · have hin := isAncestorOf_implies_inTree h
+                      rw [InTree_buildFromList_iff] at hin
+                      have hzx_lt : z < x := of_decide_eq_true (List.mem_filter.mp hin).2
+                      omega
+                  · intro hzx
+                    exact Or.inl hzx.symm
+                · have hmin_gt_z : z < min x y := by
+                    by_cases hxy : x ≤ y
+                    · have hmin : min x y = x := min_eq_left hxy
+                      have hmax : max x y = y := max_eq_right hxy
+                      rw [hmin]
+                      apply Nat.lt_of_not_ge
+                      intro hx_le_z
+                      apply hzIn
+                      rw [hmin, hmax]
+                      exact ⟨hx_le_z, le_of_lt hzlt⟩
+                    · have hmin : min x y = y := min_eq_right (le_of_lt (Nat.lt_of_not_ge hxy))
+                      rw [hmin]
+                      exact hzlt
+                  have hx_ne_z : x ≠ z := by
+                    have : min x y ≤ x := min_le_left x y
+                    omega
+                  simp only [hzIn, hx_ne_z]
+                  have hih' := ih (zs.filter (fun k => z < k)).length
+                    (by
+                      have hlen' : zs.length + 1 = n := by simpa using hlen
+                      have : (zs.filter (fun k => z < k)).length ≤ zs.length := List.length_filter_le _ _
+                      omega)
+                    (zs.filter (fun k => z < k)) rfl x y
+                  rw [hih', IsFirstInInterval_filter_gt hmin_gt_z]
+                  simp
+  exact hmain xs.length xs rfl x y
+
+/-! ## §12.4 Randomly-built BST: probability and expected depth -/
+
+/-- The keys `π 0, …, π (n-1)` in insertion order, as naturals. -/
+def permKeys {n : Nat} (π : Equiv.Perm (Fin n)) : List Nat :=
+  (List.finRange n).map (fun i => (π i : Nat))
+
+/-- Build the BST by inserting a uniform random permutation of `Fin n`. -/
+def buildFromPerm {n : Nat} (π : Equiv.Perm (Fin n)) : BSTree :=
+  buildFromList (permKeys π)
+
+/-- `i` has minimum insertion position among the keys of the closed interval
+between `i` and `j`. -/
+def firstInInterval {n : Nat} (π : Equiv.Perm (Fin n)) (i j : Fin n) : Prop :=
+  ∀ k : Fin n, (min (i : Nat) (j : Nat) ≤ (k : Nat)) → ((k : Nat) ≤ max (i : Nat) (j : Nat)) →
+    (π.symm i : Nat) ≤ (π.symm k : Nat)
+
+/-- `i` has minimum position among the keys of the set `S`. -/
+def isFirstOf {n : Nat} (π : Equiv.Perm (Fin n)) (S : Finset (Fin n)) (i : Fin n) : Prop :=
+  i ∈ S ∧ ∀ k ∈ S, (π.symm i : Nat) ≤ (π.symm k : Nat)
+
+theorem firstInInterval_iff_isFirstOf {n : Nat} (π : Equiv.Perm (Fin n)) (i j : Fin n) :
+    firstInInterval π i j ↔
+      isFirstOf π (Finset.Icc (min i j) (max i j)) i := by
+  unfold firstInInterval isFirstOf
+  constructor
+  · intro h
+    constructor
+    · exact Finset.mem_Icc.mpr ⟨min_le_left _ _, le_max_left _ _⟩
+    · intro k hk
+      exact h k (Finset.mem_Icc.mp hk).1 (Finset.mem_Icc.mp hk).2
+  · intro h
+    intro k hklo hkhi
+    exact h.2 k (Finset.mem_Icc.mpr ⟨hklo, hkhi⟩)
 
 end BSTree
 

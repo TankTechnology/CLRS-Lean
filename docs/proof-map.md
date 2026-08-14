@@ -1606,6 +1606,14 @@ underflow reported as `none`.
   - `CLRS.Chapter12.BSTree.transplantChild_left_refines_transplant` (refines functional zipper `transplant`)
   - `CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant` (refines functional zipper `transplant`)
   - `CLRS.Chapter12.BSTree.insertPointer_right_representsW` (pointer TREE-INSERT leaf)
+  - `CLRS.Chapter12.BSTree.searchCost_le_height` (O(h) search)
+  - `CLRS.Chapter12.BSTree.minimumCost_le_height` / `maximumCost_le_height` (O(h) extrema)
+  - `CLRS.Chapter12.BSTree.successorCost_le_height` / `predecessorCost_le_height` (O(h) neighbors)
+  - `CLRS.Chapter12.BSTree.insertCost_le_height` (O(h) insertion)
+  - `CLRS.Chapter12.BSTree.minKeyCost_le_height` / `deleteMinCost_le_height` (O(h) min extraction)
+  - `CLRS.Chapter12.BSTree.deleteRootCost_le` / `deleteCost_le` (O(h) deletion, `2·height + 3`)
+  - `CLRS.Chapter12.BSTree.isAncestorOf_iff_firstInInterval` (CLRS Lemma 12.3 ancestor characterization)
+  - `CLRS.Chapter12.BSTree.insertAll_split` / `buildFromList_cons` (insert-order tree decomposition)
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
   extremal-path recursion, iff specifications for successor/predecessor,
   successor-replacement deletion, and a zipper (cursor + context path) layer
@@ -1614,10 +1622,17 @@ underflow reported as `none`.
   pointer-heap layer (`Node` records with `left`/`right`/`parent` cells over a
   `Std.HashMap` store) whose `RepresentsW` abstraction bakes in acyclicity/no
   sharing, so in-place `TRANSPLANT` and `TREE-INSERT` are proved to refine the
-  functional subtree-replacement specification via pointer frame rules
+  functional subtree-replacement specification via pointer frame rules.  The
+  cost layer gives `height` and branch-faithful descent costs, each bounded by
+  `height + 1` (deletion by `2·height + 3`); the randomly-built-BST layer proves
+  `isAncestorOf_iff_firstInInterval` by strong induction on the list length with
+  an `IsFirstInInterval` filter-invariance lemma
 - Current gap: an explicit RAM cost model over the pointer operations remains
   future work; the imperative in-place child/parent pointer updates (TRANSPLANT
-  and leaf TREE-INSERT) are now proved to refine the functional specification
+  and leaf TREE-INSERT) are now proved to refine the functional specification.
+  The probability `P(i is an ancestor of j) = 1/(|i-j|+1)` and the resulting
+  `O(log n)` expected-depth bound for a randomly built BST are not yet
+  formalized; `isAncestorOf_iff_firstInInterval` is the needed foundation
 
 This section proves the core ordered-tree interface: search is equivalent to
 membership, minimum/maximum return actual extremal keys, functional
