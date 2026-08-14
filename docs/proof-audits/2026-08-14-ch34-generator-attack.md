@@ -302,6 +302,14 @@ already closed independently.
     phase type; this changes only the representation of finite control, not
     the program's runtime data or transition semantics.
 
+The row-validity attack has now also closed the arithmetic stack ordinal,
+per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
+output, and five-gate XNOR start for every fixed stack/cell coordinate.
+`arithmeticStackCellBoolEqRev_runFrom` executes that exact XNOR stream with a
+quadratic counter bound.  This deliberately does not claim that the suffix-OR
+or leading-not streams are generated yet; those two iterators remain explicit
+acceptance gaps before the whole stack family can be called executable.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -333,6 +341,7 @@ lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
