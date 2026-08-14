@@ -436,6 +436,62 @@ theorem arithmeticStackFamilyGateStream_eq_semantic
         (arithmeticCfgWires tm H rowBase)
         (fun q => (arithmeticStackEquiv tm).symm q) j)
 
+/-- The complete arithmetic stack-family stream is a literal prefix of the
+remaining row-validity stream after halted/none-label agreement. -/
+theorem arithmeticStackFamilyGateStream_prefix_postHalted
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticStackFamilyGateStream tm H start rowBase <+:
+      arithmeticValidityPostHaltedMatchGateStream tm H start rowBase := by
+  letI : Fintype tm.K := tm.kFin
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  let halted := CircuitBuilder.boolEqGateTrace
+    (start + raw.gates.length) wires.halted
+    (wires.label (Fin.last (labelCount tm)))
+  let stack := stackValidityFamilyGateTrace
+    (start + raw.gates.length + halted.gates.length) wires
+    (Fintype.card tm.K) (fun j => (Fintype.equivFin tm.K).symm j)
+  let full := canonicalValidityGateTrace start wires
+  have hprefix : raw.gates ++ halted.gates ++ stack.gates <+: full.gates := by
+    unfold full stack halted raw wires canonicalValidityGateTrace
+    simp
+  rcases hprefix with ⟨tail, htail⟩
+  have hfamily := arithmeticStackFamilyGateStream_eq_semantic
+    tm H start rowBase
+  have hstackStart : arithmeticStackValidityStart tm H start =
+      start + raw.gates.length + halted.gates.length := by
+    simp [arithmeticStackValidityStart, arithmeticHaltedMatchStart,
+      arithmeticRawOneHotGateCount, raw, halted, wires]
+  rw [hstackStart] at hfamily
+  change arithmeticStackFamilyGateStream tm H start rowBase =
+    stack.gates.flatMap encodeCircuitGate at hfamily
+  unfold arithmeticValidityPostHaltedMatchGateStream
+  change arithmeticStackFamilyGateStream tm H start rowBase <+:
+    (full.gates.drop (raw.gates.length + 5)).flatMap encodeCircuitGate
+  rw [hfamily, ← htail]
+  rw [show 5 = halted.gates.length by simp [halted]]
+  simp [List.flatMap_append]
+
+/-- Exact serialized tail after all stack-validity blocks; semantically this
+is the row-validity final conjunction and nothing else. -/
+noncomputable def arithmeticValidityFinalConjunctionGateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) : List CircuitSym :=
+  (arithmeticValidityPostHaltedMatchGateStream tm H start rowBase).drop
+    (arithmeticStackFamilyGateStream tm H start rowBase).length
+
+/-- Advance the exact row-validity boundary through the entire stack family,
+leaving only the final conjunction tail. -/
+theorem arithmeticValidityPostHaltedMatch_eq_stack_append_final
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticValidityPostHaltedMatchGateStream tm H start rowBase =
+      arithmeticStackFamilyGateStream tm H start rowBase ++
+        arithmeticValidityFinalConjunctionGateStream tm H start rowBase := by
+  rcases arithmeticStackFamilyGateStream_prefix_postHalted
+    tm H start rowBase with ⟨tail, htail⟩
+  unfold arithmeticValidityFinalConjunctionGateStream
+  rw [← htail]
+  simp
+
 end
 
 end CLRS.Chapter34.Turing.CookLevin

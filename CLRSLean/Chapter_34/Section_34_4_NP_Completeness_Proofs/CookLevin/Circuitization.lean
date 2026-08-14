@@ -36,5 +36,6 @@ negations now close each complete semantic six-gate cell block.  Finite-family
 decomposition also identifies the exact ordered `6H` cell suffix and complete
 mask-plus-cells stream of each fixed stack.  The fixed stack enumeration then
 closes the complete semantic stack-family byte stream.  A uniform executable
-family iterator and the final conjunction remain the row-local machine phases.
+family iterator remains an execution gap; the exact post-stack boundary is now
+fixed, so the final conjunction is the only remaining semantic tail.
 -/
