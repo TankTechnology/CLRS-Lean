@@ -193,6 +193,10 @@ orientation, and gate-index layers:
 - `arithmeticValidityPostOneHot_eq_haltedMatch_append_post` advances the exact
   completed boundary by five gates, leaving only stack canonicality and the
   final conjunction in the row-local suffix.
+- `suffixOrGateTrace_output_eq`, `cellValidityGateTrace_output_eq`, and
+  `stackValidityFamilyGateTrace_output_eq` remove the remaining recursive
+  output lookups from stack canonicality: every active mask and cell
+  constraint now has a closed affine wire index.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -328,6 +332,7 @@ lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
+lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
