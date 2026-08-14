@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A4_CouplingCorrect
 
 /-!
-# Chapter 15.4 development: one-step FIF exchange
+# Section 15.4 optimality: one-step FIF exchange
 
 At the first transition where a legal trace differs from farthest-in-future,
 replace that eviction and couple the remaining suffix without increasing

@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A5_Exchange
 
 /-!
-# Chapter 15.4 development: finite exchange iteration
+# Section 15.4 optimality: finite exchange iteration
 
 Repeatedly extend agreement by one request boundary.  The remaining number of
 boundaries is the sole termination measure.

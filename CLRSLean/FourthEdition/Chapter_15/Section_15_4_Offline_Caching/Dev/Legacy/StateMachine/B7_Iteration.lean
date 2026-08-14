@@ -4,7 +4,7 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B6_Str
 # Dev B7: the iteration assembly (repair diff invariants)
 
 Development file for the iteration assembly of the `fifo_optimal` proof (see
-`Dev/DESIGN.md`): the reverse-diff invariants of a B2 repair.  At a B2
+`Dev/Legacy/StateMachine/DESIGN.md`): the reverse-diff invariants of a B2 repair.  At a B2
 position `t` (inside the window of the last case-A exchange), with
 `q = e t` resident and `q'' = fifoSchedule σ C₀ t` both alive (`j < j''`),
 the repair `r = repairSchedule e t q'' (t + 1 + j'')` evicts `q''` at `t`
@@ -73,7 +73,7 @@ Main results:
   `Q' = insert (t₂, q'') Q`, `P'`, `r` from the old state's invariants
   plus the step's facts (`r t₂ = q''`, `r nop = q''`, `r s = d s` off
   `{t₂, nop}`, caches agree up to `t₂`, `σ[t₂]` fault, `q''` resident);
-  hQ's extension is the open design question (see `Dev/DESIGN.md`)
+  hQ's extension is the open design question (see `Dev/Legacy/StateMachine/DESIGN.md`)
 - `iterate_main_case_b2_alive`: the case-B2 step (alive-alive) — the
   repair at a resident disagreement: agreement to `t₂ + 1`, misses not
   increased, chain extended by `q''`, `hd_eq` extended to
@@ -100,7 +100,7 @@ Main results:
   is reduced from `t + 1` on except the branch-1 positions (`d s = q'`
   — the exchange evicts `q'` as a no-op, not resident; at most one such
   fault); the q-dead sub-case's final agreement is attainable (the
-  DESIGN's "unattainable" claim is stale — see `Dev/DESIGN.md`)
+  DESIGN's "unattainable" claim is stale — see `Dev/Legacy/StateMachine/DESIGN.md`)
 - the q₀'-B1 slack supply: `exchangeSchedule_eq_q'_imp_d_eq_q'` (the
   branch-1 reverse — the exchange evicts `q₀'` at `s > t₀` iff the source
   does), `b1_exchange_no_bad_q0` (at a B1 with `d t₂ = q₀'`, `t₂ ∉ P`,
@@ -111,7 +111,7 @@ Main results:
   gives `q₀' ∉ D₀_{J'₀}` — the exchange's bad event did not occur) and
   `b1_bad_le_slack_q0` (`bad ≤ slack` for the q₀'-B1 given `1 ≤ slack`)
   — the q₀' half of the slack accounting; the non-q₀' B1s are the open
-  design question (see `Dev/DESIGN.md`)
+  design question (see `Dev/Legacy/StateMachine/DESIGN.md`)
 
 This file is part of the `fifo_optimal` iteration; it will be merged into
 `S3_Optimality.lean` once the proof is complete.
