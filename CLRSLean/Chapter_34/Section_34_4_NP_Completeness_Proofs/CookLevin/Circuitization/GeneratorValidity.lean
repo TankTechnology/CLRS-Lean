@@ -15,6 +15,9 @@ Main results:
   exact executable loop bounds for one row and the complete validity phase.
 - {lit}`verifierRowWire_eq` and its field-specialized corollaries give closed
   arithmetic wire numbers for every verifier-row coordinate.
+- {lit}`validityGateStreamAt_rows_eq` removes proof-carrying allocation data
+  from the serializer target, leaving only height, horizon, row/gate bases,
+  and explicit arithmetic row wires.
 - {lit}`verifierValidityGateStream_rows_eq` exposes the complete validity
   phase as an exact row-major flattening with an explicit start index per row.
 - {lit}`verifierValidityGateStream_eq_byLength` isolates the source-independent
@@ -28,8 +31,9 @@ Main results:
 
 Current gap:
 
-- A concrete TM2 must compute {lit}`verifierValidityGateStream`; polynomial
-  output length alone is deliberately not used as a computability argument.
+- A concrete TM2 must compute the dimension-only arithmetic stream exposed by
+  {lit}`validityGateStreamAt_rows_eq`; polynomial output length and exact clocks
+  alone are deliberately not used as a computability argument.
 -/
 
 noncomputable section
@@ -149,6 +153,54 @@ noncomputable def verifierValidityGateCountClock_computableInPolyTime
 
 /-! ## Closed verifier-row wire formulas -/
 
+/-- Pure arithmetic row-wire bundle at an arbitrary global wire base.  The
+runtime height affects only the explicit local slot numbering. -/
+def arithmeticCfgWires (tm : _root_.Turing.FinTM2) (H rowBase : Nat) :
+    CfgWires tm H :=
+  fun slot => rowBase + (cfgSlotEquivFin tm H slot).val
+
+/-- The halted wire is the arithmetic row base. -/
+@[simp] theorem arithmeticCfgWires_halted
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) :
+    (arithmeticCfgWires tm H rowBase).halted = rowBase := by
+  simp [arithmeticCfgWires, CfgBundle.halted]
+
+/-- Arithmetic label-wire formula. -/
+@[simp] theorem arithmeticCfgWires_label
+    {tm : _root_.Turing.FinTM2} {H rowBase : Nat}
+    (i : Fin (labelCount tm + 1)) :
+    (arithmeticCfgWires tm H rowBase).label i =
+      rowBase + (1 + i.val) := by
+  simp [arithmeticCfgWires, CfgBundle.label]
+
+/-- Arithmetic state-wire formula. -/
+@[simp] theorem arithmeticCfgWires_state
+    {tm : _root_.Turing.FinTM2} {H rowBase : Nat}
+    (i : Fin (stateCount tm)) :
+    (arithmeticCfgWires tm H rowBase).state i =
+      rowBase + (1 + (labelCount tm + 1) + i.val) := by
+  simp [arithmeticCfgWires, CfgBundle.state]
+
+/-- Arithmetic stack-height wire formula. -/
+@[simp] theorem arithmeticCfgWires_stackHeight
+    {tm : _root_.Turing.FinTM2} {H rowBase : Nat}
+    (k : tm.K) (i : Fin (H + 1)) :
+    (arithmeticCfgWires tm H rowBase).stackHeight k i =
+      rowBase + (1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k + i.val) := by
+  simp [arithmeticCfgWires, CfgBundle.stackHeight]
+
+/-- Arithmetic stack-cell wire formula. -/
+@[simp] theorem arithmeticCfgWires_stackCell
+    {tm : _root_.Turing.FinTM2} {H rowBase : Nat}
+    (k : tm.K) (i : Fin H)
+    (a : Fin ((reachableAlphabet tm k).card + 1)) :
+    (arithmeticCfgWires tm H rowBase).stackCell k i a =
+      rowBase + (1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k + (H + 1) +
+          (a.val + ((reachableAlphabet tm k).card + 1) * i.val)) := by
+  simp [arithmeticCfgWires, CfgBundle.stackCell, Nat.add_assoc]
+
 /-- Every verifier-row coordinate has the closed global wire number obtained
 by adding its explicit in-row coordinate to the row's fixed-width base. -/
 theorem verifierRowWire_eq {Γ : Type} {L : Language Γ}
@@ -162,6 +214,31 @@ theorem verifierRowWire_eq {Γ : Type} {L : Language Γ}
           ((verifierHeight W).eval input.length) slot).val := by
   simpa [verifierRows, tableauStart, CircuitBuilder.empty] using
     (verifierRows W input).wire_eq row slot
+
+/-- Canonical whole-tableau allocation is exactly the pure arithmetic bundle
+at each fixed-width row base. -/
+theorem allocateTableauRows_rows_eq_arithmetic
+    (tm : _root_.Turing.FinTM2) (H T : Nat)
+    (row : Fin (tableauRowCount T)) :
+    (allocateTableauRows tm H T).rows row =
+      arithmeticCfgWires tm H (row.val * cfgBitCount tm H) := by
+  funext slot
+  rw [(allocateTableauRows tm H T).wire_eq]
+  simp [arithmeticCfgWires, tableauStart, CircuitBuilder.empty]
+
+/-- The proof-carrying verifier allocation is pointwise identical to the pure
+arithmetic bundle at the corresponding row base. -/
+theorem verifierRowWires_eq_arithmetic {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length))) :
+    (verifierRows W input).rows row =
+      arithmeticCfgWires W.machine.tm
+        ((verifierHeight W).eval input.length)
+        (row.val * cfgBitCount W.machine.tm
+          ((verifierHeight W).eval input.length)) := by
+  funext slot
+  rw [verifierRowWire_eq]
+  rfl
 
 /-- The halted bit is the first wire of its verifier tableau row. -/
 theorem verifierRowHaltedWire_eq {Γ : Type} {L : Language Γ}
@@ -262,6 +339,27 @@ def verifierRowValidityGateStream {Γ : Type} {L : Language Γ}
   (canonicalValidityGateTrace (verifierValidityRowStart W input row)
     ((verifierRows W input).rows row)).gates.flatMap encodeCircuitGate
 
+/-- Exact one-row validity serialization from arithmetic dimensions only. -/
+def validityRowGateStreamAt (tm : _root_.Turing.FinTM2)
+    (H start rowBase : Nat) : List CircuitSym :=
+  (canonicalValidityGateTrace start
+    (arithmeticCfgWires tm H rowBase)).gates.flatMap encodeCircuitGate
+
+/-- A verifier row's semantic stream is exactly the pure arithmetic row
+serializer at its closed gate and wire bases. -/
+theorem verifierRowValidityGateStream_eq_at
+    {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length))) :
+    verifierRowValidityGateStream W input row =
+      validityRowGateStreamAt W.machine.tm
+        ((verifierHeight W).eval input.length)
+        (verifierValidityRowStart W input row)
+        (row.val * cfgBitCount W.machine.tm
+          ((verifierHeight W).eval input.length)) := by
+  simp only [verifierRowValidityGateStream, validityRowGateStreamAt]
+  rw [verifierRowWires_eq_arithmetic]
+
 private theorem flatMap_flatten_encodeCircuitGate
     (gateLists : List (List CircuitGate)) :
     gateLists.flatten.flatMap encodeCircuitGate =
@@ -281,6 +379,28 @@ def validityGateStreamAt (tm : _root_.Turing.FinTM2) (H T : Nat) :
   let trace := validCfgCircuitFamilyGateTrace pool.builder.gates.length
     (tableauRowCount T) rows.rows
   trace.gates.flatMap encodeCircuitGate
+
+/-- The dimension-only validity stream is the row-major flattening of pure
+arithmetic row serializers. -/
+theorem validityGateStreamAt_rows_eq
+    (tm : _root_.Turing.FinTM2) (H T : Nat) :
+    validityGateStreamAt tm H T =
+      (List.ofFn fun row : Fin (tableauRowCount T) =>
+        validityRowGateStreamAt tm H
+          (tableauInputCount tm H T + 2 +
+            row.val * validCfgGateCost tm H)
+          (row.val * cfgBitCount tm H)).flatten := by
+  rw [validityGateStreamAt]
+  rw [validCfgCircuitFamilyGateTrace_gates_eq_flatMap]
+  rw [flatMap_flatten_encodeCircuitGate]
+  rw [List.map_ofFn]
+  apply congrArg List.flatten
+  apply List.ofFn_inj.mpr
+  funext row
+  simp only [validityRowGateStreamAt, Function.comp_apply]
+  rw [CircuitBuilder.allocateBoolWirePool_gate_delta]
+  rw [allocateTableauRows_gate_delta]
+  rw [allocateTableauRows_rows_eq_arithmetic]
 
 /-- The verifier validity stream as a function of source-input length only. -/
 def verifierValidityGateStreamByLength {Γ : Type} {L : Language Γ}

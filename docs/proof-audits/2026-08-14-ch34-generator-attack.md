@@ -148,6 +148,10 @@ orientation, and gate-index layers:
 - `validityGateStreamAt` and `verifierValidityGateStream_eq_byLength` prove
   that this entire phase is source-symbol independent and factors through the
   input length, leaving the future concrete serializer with unary input only;
+- `arithmeticCfgWires`, `allocateTableauRows_rows_eq_arithmetic`, and
+  `validityGateStreamAt_rows_eq` erase the proof-carrying allocator from that
+  unary serializer contract: every row is now expressed solely by its closed
+  gate start, wire base, and explicit local coordinate arithmetic;
 - `verifierCircuitValidityPrefix_eq` and
   `verifierCircuitValidityPrefix_isPrefix` advance the verified serialized
   circuit prefix through the complete canonical row-validity phase.

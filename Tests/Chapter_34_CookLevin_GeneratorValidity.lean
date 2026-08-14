@@ -31,6 +31,17 @@ open CLRS.Chapter34.Turing.CookLevin
 #check validityGateStreamAt
 #check verifierValidityGateStreamByLength
 #check verifierValidityGateStream_eq_byLength
+#check arithmeticCfgWires
+#check arithmeticCfgWires_halted
+#check arithmeticCfgWires_label
+#check arithmeticCfgWires_state
+#check arithmeticCfgWires_stackHeight
+#check arithmeticCfgWires_stackCell
+#check verifierRowWires_eq_arithmetic
+#check allocateTableauRows_rows_eq_arithmetic
+#check validityRowGateStreamAt
+#check validityGateStreamAt_rows_eq
+#check verifierRowValidityGateStream_eq_at
 #check verifierCircuitValidityPrefix
 #check verifierCircuitValidityPrefix_eq
 #check verifierCircuitValidityPrefix_isPrefix
@@ -50,5 +61,9 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms verifierValidityGateCountPolynomial_eval
 #print axioms verifierValidityGateCountClock_computableInPolyTime
 #print axioms verifierValidityGateStream_eq_byLength
+#print axioms verifierRowWires_eq_arithmetic
+#print axioms allocateTableauRows_rows_eq_arithmetic
+#print axioms validityGateStreamAt_rows_eq
+#print axioms verifierRowValidityGateStream_eq_at
 #print axioms verifierCircuitValidityPrefix_eq
 #print axioms verifierCircuitValidityPrefix_isPrefix
