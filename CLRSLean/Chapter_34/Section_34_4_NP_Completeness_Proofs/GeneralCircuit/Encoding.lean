@@ -64,7 +64,7 @@ lemma decNat_encNat (n : Nat) (rest : List CircuitSym) :
       simp [decNat, ih]
 
 /-- Every successful unary decode reconstructs the exact consumed prefix. -/
-private lemma eq_encNat_append_of_decNat_eq_some
+lemma eq_encNat_append_of_decNat_eq_some
     {xs rest : List CircuitSym} {n : Nat}
     (h : decNat xs = some (n, rest)) :
     xs = encNat n ++ rest := by
@@ -127,7 +127,7 @@ def decodeCircuitGate : List CircuitSym → Option (CircuitGate × List CircuitS
   | _ => none
 
 /-- Every successful gate decode reconstructs the exact tagged gate prefix. -/
-private lemma eq_encodeCircuitGate_append_of_decodeCircuitGate_eq_some
+lemma eq_encodeCircuitGate_append_of_decodeCircuitGate_eq_some
     {xs rest : List CircuitSym} {gate : CircuitGate}
     (h : decodeCircuitGate xs = some (gate, rest)) :
     xs = encodeCircuitGate gate ++ rest := by
@@ -199,7 +199,7 @@ private lemma eq_encodeCircuitGate_append_of_decodeCircuitGate_eq_some
 
 /-- Decode gates structurally on a gate-count fuel.  Only `outputMark` ends the
 gate stream; every ordinary gate consumes one unit of fuel. -/
-private def decodeCircuitGates : Nat → List CircuitSym →
+def decodeCircuitGates : Nat → List CircuitSym →
     Option (List CircuitGate × Nat × List CircuitSym)
   | _, [] => none
   | _, .outputMark :: xs => do
@@ -224,7 +224,7 @@ private lemma decodeCircuitGates_succ_of_ne_output
 
 /-- Every successful gate-stream decode reconstructs the exact consumed gate
 prefix, output marker, output number, and unused trailing suffix. -/
-private lemma eq_encodeCircuitGates_append_of_decodeCircuitGates_eq_some
+lemma eq_encodeCircuitGates_append_of_decodeCircuitGates_eq_some
     {fuel : Nat} {xs trailing : List CircuitSym}
     {gates : List CircuitGate} {output : Nat}
     (h : decodeCircuitGates fuel xs = some (gates, output, trailing)) :

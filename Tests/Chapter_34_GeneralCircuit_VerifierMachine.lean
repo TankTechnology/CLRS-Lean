@@ -64,10 +64,13 @@ example :
     cleanResult (runInput 200 [some .argMark, none, some .outputMark])
       false = true := by native_decide
 
+-- Stable checkpoint interface: total semantics and the currently proved
+-- successful-path runtime envelope.
 #check verifier_run
 #check successfulSteps_le
 #check generalCircuitVerifierComputable
 
+-- These declarations may use ordinary classical axioms, but never `sorryAx`.
 #print axioms verifier_run
 #print axioms successfulSteps_le
 #print axioms generalCircuitVerifierComputable

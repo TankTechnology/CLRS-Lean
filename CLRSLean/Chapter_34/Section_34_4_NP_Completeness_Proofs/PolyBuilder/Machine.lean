@@ -199,6 +199,12 @@ def compileOp {Γ Δ Λ : Type} [Fintype Γ] (op : Op Γ Δ Λ) :
   | .pushOutput symbol next =>
       _root_.Turing.TM2.Stmt.push .output (fun _ => symbol) <|
         _root_.Turing.TM2.Stmt.goto (fun _ => next)
+  | .pushWork₁ symbol next =>
+      _root_.Turing.TM2.Stmt.push .work₁ (fun _ => symbol) <|
+        _root_.Turing.TM2.Stmt.goto (fun _ => next)
+  | .pushWork₂ symbol next =>
+      _root_.Turing.TM2.Stmt.push .work₂ (fun _ => symbol) <|
+        _root_.Turing.TM2.Stmt.goto (fun _ => next)
   | .moveInputWork₁ nextEmpty nextMoved =>
       if h : Nonempty Γ then
         compileMove₁ (Classical.choice h) .input .work₁ nextEmpty nextMoved
@@ -340,6 +346,16 @@ theorem compile_step {Γ Δ : Type} [Fintype Γ] (P : Program Γ Δ)
         simp only [compile, encodeCfg, step, hop, stepOp,
           _root_.Turing.FinTM2.step, _root_.Turing.TM2.step]
       case pushOutput =>
+        simp [compileOp, encodeCfg]
+        congr 3
+        funext stack
+        cases stack <;> simp [Function.update]
+      case pushWork₁ =>
+        simp [compileOp, encodeCfg]
+        congr 3
+        funext stack
+        cases stack <;> simp [Function.update]
+      case pushWork₂ =>
         simp [compileOp, encodeCfg]
         congr 3
         funext stack

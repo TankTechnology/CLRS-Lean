@@ -52,6 +52,8 @@ its {lit}`pushOutput` instructions in reverse chunk order.
 -/
 inductive Op (Γ Δ Λ : Type)
   | pushOutput (symbol : Δ) (next : Λ)
+  | pushWork₁ (symbol : Γ) (next : Λ)
+  | pushWork₂ (symbol : Γ) (next : Λ)
   | moveInputWork₁ (nextEmpty : Λ) (nextMoved : Γ → Λ)
   | moveWork₁Input (nextEmpty : Λ) (nextMoved : Γ → Λ)
   | moveInputWork₂ (nextEmpty : Λ) (nextMoved : Γ → Λ)
@@ -96,6 +98,10 @@ def stepOp {Γ Δ : Type} {P : Program Γ Δ} :
     Op Γ Δ P.Label → BuilderCfg P → BuilderCfg P
   | .pushOutput symbol next, c =>
       { c with label := some next, output := symbol :: c.output }
+  | .pushWork₁ symbol next, c =>
+      { c with label := some next, work₁ := symbol :: c.work₁ }
+  | .pushWork₂ symbol next, c =>
+      { c with label := some next, work₂ := symbol :: c.work₂ }
   | .moveInputWork₁ nextEmpty nextMoved, c =>
       match c.input with
       | [] => { c with label := some nextEmpty, buffer₁ := none }
