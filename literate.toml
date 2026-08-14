@@ -799,6 +799,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Encoding",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Verification",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.NP",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Basic",
@@ -810,15 +811,20 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CircuitRun",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.RejectSteps",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.RejectPhases",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.RejectBounds",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CircuitReject",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.BoundedReject",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CanonicalRun",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.MalformedRun",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.MalformedBounds",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Runtime",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.PolynomialRuntime",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Syntax",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Machine",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Macros",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.ReachableAlphabet",
@@ -2658,8 +2664,14 @@ title = "34.4. Verifier Rejecting Step Contracts"
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.RejectPhases"]
 title = "34.4. Verifier Rejecting Phases"
 
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.RejectBounds"]
+title = "34.4. Verifier Rejection Bounds"
+
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CircuitReject"]
 title = "34.4. Verifier Invalid-Circuit Rejection"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.BoundedReject"]
+title = "34.4. Bounded Verifier Rejection"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CanonicalRun"]
 title = "34.4. Verifier Canonical Complete Runs"
@@ -2667,8 +2679,17 @@ title = "34.4. Verifier Canonical Complete Runs"
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.MalformedRun"]
 title = "34.4. Verifier Malformed-Input Runs"
 
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.MalformedBounds"]
+title = "34.4. Malformed-Input Runtime Bounds"
+
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Runtime"]
 title = "34.4. Verifier Runtime Bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.PolynomialRuntime"]
+title = "34.4. Verifier Polynomial Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.NP"]
+title = "34.4. General Circuit Satisfiability in NP"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat"]
 title = "34.4. SAT poly-reduces to 3-CNF-SAT"
@@ -2693,6 +2714,9 @@ title = "34.4. Bounded-builder TM2 compiler"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Macros"]
 title = "34.4. Verified bounded-builder macros"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock"]
+title = "34.4. Polynomial clocks for bounded builders"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin"]
 title = "34.4. Cook--Levin infrastructure"
