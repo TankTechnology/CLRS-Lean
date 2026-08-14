@@ -49,6 +49,35 @@ def validCfgCircuitFamilyGateTrace
         canonicalValidityGateTrace_length, ih]
       ring
 
+/-- The recursive family trace is exactly the row-major flattening in which
+row `r` starts after `r` copies of the fixed single-row validity cost. -/
+theorem validCfgCircuitFamilyGateTrace_gates_eq_flatMap
+    {tm : _root_.Turing.FinTM2} {H : Nat} (start n : Nat)
+    (rows : Fin n → CfgWires tm H) :
+    (validCfgCircuitFamilyGateTrace start n rows).gates =
+      (List.ofFn fun row : Fin n =>
+        (canonicalValidityGateTrace
+          (start + row.val * validCfgGateCost tm H) (rows row)).gates).flatten := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      let prefixRows : Fin n → CfgWires tm H := fun row => rows row.castSucc
+      have hprefix := ih prefixRows
+      have hprefixLength :
+          (List.ofFn fun row : Fin n =>
+            (canonicalValidityGateTrace
+              (start + row.val * validCfgGateCost tm H)
+              (prefixRows row)).gates).flatten.length =
+            n * validCfgGateCost tm H := by
+        rw [← hprefix]
+        exact validCfgCircuitFamilyGateTrace_length start n prefixRows
+      simp only [validCfgCircuitFamilyGateTrace]
+      rw [hprefix]
+      rw [hprefixLength]
+      rw [List.ofFn_succ']
+      simp only [List.concat_eq_append, List.flatten_append,
+        List.flatten_singleton, Fin.val_last, Fin.val_castSucc, prefixRows]
+
 /-- Proof-carrying result of serializing the canonical-validity circuit across
 an already allocated finite row family. -/
 structure ValidCfgCircuitFamilyResult (tm : _root_.Turing.FinTM2) (H : Nat)

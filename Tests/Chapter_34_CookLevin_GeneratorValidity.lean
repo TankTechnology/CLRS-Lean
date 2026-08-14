@@ -6,10 +6,28 @@ open CLRS.Chapter34.Turing.CookLevin
 
 #check verifierValidityGateStream
 #check verifierValidityGateStream_eq
+#check verifierRowWire_eq
+#check verifierRowHaltedWire_eq
+#check verifierRowLabelWire_eq
+#check verifierRowStateWire_eq
+#check verifierRowStackHeightWire_eq
+#check verifierRowStackCellWire_eq
+#check verifierPoolGateCount_eq
+#check verifierValidityRowStart
+#check verifierRowValidityGateStream
+#check verifierValidityGateStream_rows_eq
 #check verifierCircuitValidityPrefix
 #check verifierCircuitValidityPrefix_eq
 #check verifierCircuitValidityPrefix_isPrefix
 
 #print axioms verifierValidityGateStream_eq
+#print axioms verifierRowWire_eq
+#print axioms verifierRowHaltedWire_eq
+#print axioms verifierRowLabelWire_eq
+#print axioms verifierRowStateWire_eq
+#print axioms verifierRowStackHeightWire_eq
+#print axioms verifierRowStackCellWire_eq
+#print axioms verifierPoolGateCount_eq
+#print axioms verifierValidityGateStream_rows_eq
 #print axioms verifierCircuitValidityPrefix_eq
 #print axioms verifierCircuitValidityPrefix_isPrefix

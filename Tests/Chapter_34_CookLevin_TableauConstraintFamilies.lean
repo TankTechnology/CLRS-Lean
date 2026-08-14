@@ -19,6 +19,7 @@ noncomputable section
 #check ValidCfgCircuitFamilyGateTrace
 #check validCfgCircuitFamilyGateTrace
 #check validCfgCircuitFamilyGateTrace_length
+#check validCfgCircuitFamilyGateTrace_gates_eq_flatMap
 #check validCfgCircuitFamily
 #check validCfgCircuitFamily_gates_eq
 #check validCfgCircuitFamily_output_eq_trace
@@ -141,6 +142,7 @@ example (inputs : Nat → Bool)
 
 #print axioms validCfgCircuitFamily_gates_eq
 #print axioms validCfgCircuitFamily_output_eq_trace
+#print axioms validCfgCircuitFamilyGateTrace_gates_eq_flatMap
 
 end
 

@@ -136,6 +136,12 @@ orientation, and gate-index layers:
 - `verifierValidityGateStream_eq` flattens that literal trace into the public
   circuit wire format and proves exact equality with the semantic validity
   builder suffix;
+- `verifierRowWire_eq` and its halted/label/state/stack specializations give
+  closed global wire indices of the form `row * rowWidth + localOffset`;
+- `validCfgCircuitFamilyGateTrace_gates_eq_flatMap`,
+  `verifierPoolGateCount_eq`, and `verifierValidityGateStream_rows_eq` replace
+  the recursive all-row trace by an exact row-major flattening whose row `r`
+  begins at `tableauInputCount + 2 + r * validCfgGateCost`;
 - `verifierCircuitValidityPrefix_eq` and
   `verifierCircuitValidityPrefix_isPrefix` advance the verified serialized
   circuit prefix through the complete canonical row-validity phase.
