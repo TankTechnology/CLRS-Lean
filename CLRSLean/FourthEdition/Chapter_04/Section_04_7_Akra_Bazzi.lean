@@ -308,13 +308,18 @@ theorem akraBazzi_root_scale_invariance (branches : List (ℕ × ℝ)) (p : ℝ)
 /-! ## The integral asymptotic form -/
 
 /--
+The Akra–Bazzi *integral*: the discrete form of {lit}`∫₁ⁿ g(u) / u^(p+1) du`,
+summed over {lit}`u = 1, …, n`.  This is the sum the recursion tree accumulates.
+-/
+noncomputable def akraBazziIntegral (p : ℝ) (g : ℕ → ℝ) (n : ℕ) : ℝ :=
+  ∑ u ∈ Finset.range n, g (u + 1) / ((u + 1 : ℕ) : ℝ) ^ (p + 1)
+
+/--
 The Akra–Bazzi *scale*: the discrete form of the textbook
-{lit}`n^p (1 + ∫₁ⁿ g(u) / u^(p+1) du)`.  The integral is realized as the
-exact-power discrete sum {lit}`Σ_{u=1}^n g(u) / u^(p+1)`, which is what the
-recursion tree actually accumulates.
+{lit}`n^p (1 + ∫₁ⁿ g(u) / u^(p+1) du)`.
 -/
 noncomputable def akraBazziScale (p : ℝ) (g : ℕ → ℝ) (n : ℕ) : ℝ :=
-  (n : ℝ) ^ p * (1 + ∑ u ∈ Finset.Icc 1 n, g u / (u : ℝ) ^ (p + 1))
+  (n : ℝ) ^ p * (1 + akraBazziIntegral p g n)
 
 /--
 **Polynomial growth (smoothness) of the driving function.**  The forcing
@@ -334,43 +339,138 @@ def PolynomialGrowth (g : ℕ → ℝ) (q : ℝ) : Prop :=
 /--
 The recurrence {lit}`T(n) = Σᵢ aᵢ T(⌊n/bᵢ⌋) + g(n)` with a constant base case.
 The floor {lit}`⌊n/bᵢ⌋` is the *perturbation* of CLRS §4.7: the argument is
-rounded down to the nearest integer subproblem size.  {lit}`T` satisfies the
-recurrence above the base-case threshold {lit}`n₀` and is normalized to
-{lit}`1` at and below it (a {lit}`Θ(1)` base).
+rounded down to the nearest integer subproblem size.  {lit}`T` is {lit}`0` at
+{lit}`0`, {lit}`1` for {lit}`1 ≤ n ≤ n₀`, and satisfies the recurrence above the
+base-case threshold {lit}`n₀`.
 -/
 def SatisfiesAkraBazzi (branches : List (ℕ × ℝ)) (g T : ℕ → ℝ) (n₀ : ℕ) : Prop :=
-  (∀ n, n ≤ n₀ → T n = 1) ∧
+  T 0 = 0 ∧
+  (∀ n, 1 ≤ n → n ≤ n₀ → T n = 1) ∧
   (∀ n, n₀ < n →
     T n = (branches.map (fun ab => (ab.1 : ℝ) * T (⌊(n : ℝ) / ab.2⌋₊))).sum + g n)
 
 /-! ## Recurrence-to-integral comparison -/
 
-/-- The Akra–Bazzi scale is nonnegative at every nonnegative input. -/
+/-- The floor-perturbed subproblem size is strictly smaller than its parent. -/
+lemma floor_div_lt_self {b : ℝ} (hb : 1 < b) {n : ℕ} (hn : 0 < n) :
+    ⌊(n : ℝ) / b⌋₊ < n := by
+  have hb_pos : 0 < b := lt_trans (by norm_num : (0 : ℝ) < 1) hb
+  have hn_pos : 0 < (n : ℝ) := by exact_mod_cast hn
+  have hdiv_lt : (n : ℝ) / b < (n : ℝ) := by
+    rw [div_lt_iff₀ hb_pos]
+    rw [← mul_one (n : ℝ)]
+    exact mul_lt_mul_of_pos_left hb hn_pos
+  have hfl : (⌊(n : ℝ) / b⌋₊ : ℝ) ≤ (n : ℝ) / b :=
+    Nat.floor_le (le_of_lt (div_pos hn_pos hb_pos))
+  exact_mod_cast (lt_of_le_of_lt hfl hdiv_lt)
+
+/-- The Akra–Bazzi integral is nonnegative. -/
+lemma akraBazziIntegral_nonneg {p : ℝ} {g : ℕ → ℝ} (hg : ∀ n, 0 ≤ g n) (n : ℕ) :
+    0 ≤ akraBazziIntegral p g n := by
+  unfold akraBazziIntegral
+  apply Finset.sum_nonneg
+  intro u _hu
+  exact div_nonneg (hg (u + 1)) (Real.rpow_nonneg (by positivity) (p + 1))
+
+/-- The Akra–Bazzi integral is monotone in its upper limit. -/
+lemma akraBazziIntegral_mono {p : ℝ} {g : ℕ → ℝ} (hg : ∀ n, 0 ≤ g n) {m n : ℕ} (hmn : m ≤ n) :
+    akraBazziIntegral p g m ≤ akraBazziIntegral p g n := by
+  unfold akraBazziIntegral
+  rw [Finset.sum_range_add (fun u => g (u + 1) / ((u + 1 : ℕ) : ℝ) ^ (p + 1)) m (n - m)]
+  have hm : m + (n - m) = n := Nat.add_sub_of_le hmn
+  rw [hm]
+  exact le_add_of_nonneg_right (akraBazziIntegral_nonneg (p := p) hg (n - m))
+
+/-- The integral increment {lit}`I n - I m` is the tail sum over {lit}`u ∈ (m, n]`. -/
+lemma akraBazziIntegral_sub {p : ℝ} {g : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n) :
+    akraBazziIntegral p g n - akraBazziIntegral p g m =
+      ∑ u ∈ Finset.range (n - m), g (m + u + 1) / ((m + u + 1 : ℕ) : ℝ) ^ (p + 1) := by
+  unfold akraBazziIntegral
+  rw [Finset.sum_range_add (fun u => g (u + 1) / ((u + 1 : ℕ) : ℝ) ^ (p + 1)) m (n - m)]
+  rw [Nat.add_sub_of_le hmn]
+  rw [add_sub_cancel_left]
+  apply Finset.sum_congr rfl
+  intro u _hu
+  congr 1
+  omega
+
+/-- The integral is bounded below by a positive constant (the first term). -/
+lemma akraBazziIntegral_lower_const {p : ℝ} {g : ℕ → ℝ} (hsmooth : PolynomialGrowth g q) :
+    ∃ c : ℝ, 0 < c ∧ ∀ n, 1 ≤ n → c ≤ akraBazziIntegral p g n := by
+  rcases hsmooth with ⟨_hgnonneg, _hgmono, c, _C, hcpos, _hCpos, hglower, _hgupper⟩
+  refine ⟨c, hcpos, ?_⟩
+  intro n hn
+  unfold akraBazziIntegral
+  have hterm : c ≤ g 1 / (1 : ℝ) ^ (p + 1) := by
+    have hg1 : c * (1 : ℝ) ^ q ≤ g 1 := hglower 1 (by norm_num)
+    simpa using hg1
+  have hterm_le_sum : g 1 / (1 : ℝ) ^ (p + 1) ≤
+      ∑ u ∈ Finset.range n, g (u + 1) / ((u + 1 : ℕ) : ℝ) ^ (p + 1) := by
+    have h0mem : 0 ∈ Finset.range n := by rw [Finset.mem_range]; exact hn
+    exact Finset.single_le_sum (by
+      intro u _hu
+      exact div_nonneg (hsmooth.1 (u + 1)) (Real.rpow_nonneg (by positivity) (p + 1)))
+      h0mem
+  exact le_trans hterm hterm_le_sum
+
+/-- The Akra–Bazzi scale is nonnegative at every input. -/
 lemma akraBazziScale_nonneg {p : ℝ} {g : ℕ → ℝ} (hp : 0 ≤ p) (hg : ∀ n, 0 ≤ g n) (n : ℕ) :
     0 ≤ akraBazziScale p g n := by
   unfold akraBazziScale
-  have hn : 0 ≤ (n : ℝ) ^ p := Real.rpow_nonneg (by positivity) p
-  have hsum : 0 ≤ ∑ u ∈ Finset.Icc 1 n, g u / (u : ℝ) ^ (p + 1) := by
-    apply Finset.sum_nonneg
-    intro u hu
-    have hu_pos : 0 < (u : ℝ) := by
-      have : u ∈ Finset.Icc 1 n := hu
-      have hu1 : 1 ≤ u := (Finset.mem_Icc.mp this).1
-      exact_mod_cast (lt_of_lt_of_le (by norm_num : (0 : ℕ) < 1) hu1)
-    exact div_nonneg (hg u) (Real.rpow_nonneg hu_pos.le (p + 1))
   positivity
+
+/--
+The integral is bounded for {lit}`q < p`: the forcing {lit}`g ≤ C n^q` gives a
+convergent {lit}`p`-series {lit}`Σ u^(q-p-1)`.
+-/
+lemma akraBazziIntegral_bounded_of_lt {p q : ℝ} {g : ℕ → ℝ}
+    (hsmooth : PolynomialGrowth g q) (hqp : q < p) :
+    ∃ C : ℝ, ∀ n, akraBazziIntegral p g n ≤ C := by
+  rcases hsmooth with ⟨_hgnonneg, _hgmono, _c, Cg, _hcpos, hCpos, _hglower, hgupper⟩
+  have hδ : 1 < p - q + 1 := by linarith
+  have hsum : Summable (fun u : ℕ => ((u + 1 : ℕ) : ℝ) ^ (q - p - 1)) := by
+    have hbase : Summable (fun n : ℕ => (n : ℝ) ^ (p - q + 1))⁻¹ :=
+      (Real.summable_nat_rpow_inv (p - q + 1)).mpr hδ
+    have hshift : Summable (fun n : ℕ => ((n + 1 : ℕ) : ℝ) ^ (p - q + 1))⁻¹ :=
+      (summable_nat_add_iff 1).mp hbase
+    refine hshift.congr ?_
+    intro u
+    rw [← Real.rpow_neg (by positivity : 0 ≤ ((u + 1 : ℕ) : ℝ)) (p - q + 1)]
+    congr 1
+    ring
+  refine ⟨Cg * (∑' u, ((u + 1 : ℕ) : ℝ) ^ (q - p - 1)), ?_⟩
+  intro n
+  unfold akraBazziIntegral
+  calc
+    (∑ u ∈ Finset.range n, g (u + 1) / ((u + 1 : ℕ) : ℝ) ^ (p + 1))
+        ≤ ∑ u ∈ Finset.range n, Cg * ((u + 1 : ℕ) : ℝ) ^ (q - p - 1) := by
+          apply Finset.sum_le_sum
+          intro u hu
+          have hu1 : 1 ≤ u + 1 := by omega
+          have hg : g (u + 1) ≤ Cg * ((u + 1 : ℕ) : ℝ) ^ q := hgupper (u + 1) hu1
+          have hpow_pos : 0 < ((u + 1 : ℕ) : ℝ) ^ (p + 1) :=
+            Real.rpow_pos_of_pos (by positivity) (p + 1)
+          rw [Real.rpow_sub (by positivity) q (p + 1)]
+          exact div_le_div_of_nonneg_right hg (Real.rpow_nonneg (by positivity) (p + 1))
+    _ = Cg * ∑ u ∈ Finset.range n, ((u + 1 : ℕ) : ℝ) ^ (q - p - 1) := by
+          rw [Finset.mul_sum]
+          apply Finset.sum_congr rfl
+          intro u _hu
+          congr 1
+          ring
+    _ ≤ Cg * (∑' u, ((u + 1 : ℕ) : ℝ) ^ (q - p - 1)) := by
+          exact mul_le_mul_of_nonneg_left
+            (Summable.sum_le_tsum (Finset.range n)
+              (by intro u hu; exact Real.rpow_nonneg (by positivity) (q - p - 1)) hsum)
+            hCpos.le
+
+/-! ## The upper comparison -/
 
 /--
 The single-step *gap* of the Akra–Bazzi scale: the scale at {lit}`n` exceeds the
 weighted sum of its values at the perturbed arguments {lit}`⌊n/bᵢ⌋` by a positive
 fraction of {lit}`g n`, eventually.  This is the key estimate that makes the
-upper-bound substitution proof close; it is the discrete, monotone analogue of
-the floor-and-smoothness estimates in the CLRS proof.
-
-The argument splits the gap into the floor term
-{lit}`(n/bᵢ)^p - ⌊n/bᵢ⌋^p` and the integral increment
-{lit}`n^p (I n - I ⌊n/bᵢ⌋)`; the latter dominates thanks to the polynomial
-growth of {lit}`g`.
+upper-bound substitution proof close.
 -/
 lemma akraBazzi_scale_gap_lower {branches : List (ℕ × ℝ)} {p q : ℝ} {g : ℕ → ℝ}
     (hvalid : BranchesValid branches) (hnonempty : branches ≠ [])
@@ -380,33 +480,91 @@ lemma akraBazzi_scale_gap_lower {branches : List (ℕ × ℝ)} {p q : ℝ} {g : 
         (branches.map (fun ab => (ab.1 : ℝ) * akraBazziScale p g (⌊(n : ℝ) / ab.2⌋₊))).sum
       ≥ ε * g n := by
   rcases hsmooth with ⟨hgnonneg, hgmono, c, C, hcpos, hCpos, hglower, hgupper⟩
-  -- Build a positive ε from the branch data and the polynomial-growth constants.
-  rcases branches with _ | ⟨ab₀, rest⟩
-  · contradiction
-  have hvalid₀ : BranchValid ab₀ := hvalid ab₀ (by simp)
+  rcases List.exists_mem_of_ne_nil branches hnonempty with ⟨ab₀, hab₀_mem⟩
+  have hvalid₀ : BranchValid ab₀ := hvalid ab₀ hab₀_mem
   let b₀ : ℝ := ab₀.2
   let a₀ : ℝ := ab₀.1
   have hb₀_gt_one : 1 < b₀ := hvalid₀.2
   have hb₀_pos : 0 < b₀ := lt_trans (by norm_num : (0 : ℝ) < 1) hb₀_gt_one
-  have ha₀_pos : 0 < a₀ := by exact_mod_cast hvalid₀.1
+  have ha₀_pos : 0 < a₀ := by
+    dsimp [a₀]
+    exact_mod_cast hvalid₀.1
   let ε : ℝ := a₀ * c * (1 - 1 / b₀) * b₀ ^ (-p) * (2 * b₀) ^ (-q) / C
+  have hsub_pos : 0 < 1 - 1 / b₀ := by
+    have h1 : (1 : ℝ) / b₀ < 1 := by
+      rw [div_lt_one hb₀_pos]
+      exact hb₀_gt_one
+    linarith
   have hε_pos : 0 < ε := by
     dsimp [ε]
     positivity
-  refine ⟨ε, hε_pos, 1, ?_⟩
+  let n₁ : ℕ := Nat.ceil (2 * b₀) + 1
+  refine ⟨ε, hε_pos, n₁, ?_⟩
   intro n hn
-  -- Decompose the gap and bound it from below by the integral increment of the
-  -- branch ab₀, then translate that increment to ε * g n.
-  let I : ℕ → ℝ := fun m => ∑ u ∈ Finset.Icc 1 m, g u / (u : ℝ) ^ (p + 1)
-  have hscale_def : ∀ m, akraBazziScale p g m = (m : ℝ) ^ p * (1 + I m) := by
-    intro m
-    rfl
-  -- Positive gap = scale n - Σ aᵢ scale ⌊n/bᵢ⌋.
-  have hgap_nonneg : 0 ≤ akraBazziScale p g n -
-      (branches.map (fun ab => (ab.1 : ℝ) * akraBazziScale p g (⌊(n : ℝ) / ab.2⌋₊))).sum := by
-    -- each scale(⌊n/bᵢ⌋) ≥ 0 and Σ aᵢ (n/bᵢ)^p ≤ n^p (root), so we bound termwise.
+  have hn_2b : 2 * b₀ ≤ (n : ℝ) := by
+    have hceil : 2 * b₀ ≤ (Nat.ceil (2 * b₀) : ℝ) := Nat.le_ceil (2 * b₀)
+    have hn_nat : Nat.ceil (2 * b₀) + 1 ≤ n := by omega
+    have hn' : (Nat.ceil (2 * b₀) + 1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn_nat
+    exact le_trans hceil (le_trans (by linarith : (Nat.ceil (2 * b₀) : ℝ) ≤ (Nat.ceil (2 * b₀) + 1 : ℝ)) hn')
+  have hn_pos : 0 < n := by
+    have : 0 < (2 * b₀ : ℝ) := by positivity
+    have : 0 < (n : ℝ) := lt_of_lt_of_le this hn_2b
+    exact_mod_cast this
+  let m₀ : ℕ := ⌊(n : ℝ) / b₀⌋₊
+  have hm₀_lt_n : m₀ < n := floor_div_lt_self hb₀_gt_one hn_pos
+  have hm₀_ge_half : (n : ℝ) / (2 * b₀) ≤ (m₀ : ℝ) := by
+    have hfl : (n : ℝ) / b₀ - 1 ≤ (m₀ : ℝ) := by
+      have hfl_le : (m₀ : ℝ) ≤ (n : ℝ) / b₀ := Nat.floor_le (le_of_lt (div_pos (by exact_mod_cast hn_pos) hb₀_pos))
+      have hlt : (n : ℝ) / b₀ < (m₀ : ℝ) + 1 := Nat.lt_floor_add_one ((n : ℝ) / b₀)
+      have hsub : (n : ℝ) / b₀ - 1 < (m₀ : ℝ) := by linarith
+      exact le_of_lt hsub
+    have h2 : (n : ℝ) / (2 * b₀) ≤ (n : ℝ) / b₀ - 1 := by
+      rw [div_div_eq_div_mul, div_div_eq_div_mul]
+      -- n/(2b₀) ≤ n/b₀ - 1  ⟺  n/(2b₀) + 1 ≤ n/b₀  ⟺  2b₀ ≤ n
+      have : (n : ℝ) / b₀ - (n : ℝ) / (2 * b₀) = (n : ℝ) / (2 * b₀) := by
+        field_simp [hb₀_pos]
+        ring
+      linarith [this, hn_2b]
+    exact le_trans h2 hfl
+  have hm₀_ge_one : 1 ≤ m₀ := by
+    have : 1 ≤ (m₀ : ℝ) := by
+      have : (1 : ℝ) ≤ (n : ℝ) / (2 * b₀) := by
+        have : (2 * b₀ : ℝ) ≤ (n : ℝ) := hn_2b
+        rw [le_div_iff₀ (by positivity : 0 < (2 * b₀ : ℝ))]
+        exact this
+      exact le_trans this hm₀_ge_half
+    exact_mod_cast this
+  -- The gap is bounded below by a single branch's integral increment.
+  have hgap_lower : ε * g n ≤ a₀ * (n / b₀) ^ p *
+      (akraBazziIntegral p g n - akraBazziIntegral p g m₀) := by
+    have hincr : (1 - 1 / b₀) * c * (2 * b₀) ^ (-q) / C * g n ≤
+        akraBazziIntegral p g n - akraBazziIntegral p g m₀ := by
+      rw [akraBazziIntegral_sub (le_of_lt hm₀_lt_n)]
+      have hcard : n - m₀ ≥ n - ⌊(n : ℝ) / b₀⌋₊ := by omega
+      -- number of terms is n - m₀ ≥ n(1 - 1/b₀)
+      have hn_card : (n : ℝ) * (1 - 1 / b₀) ≤ (n - m₀ : ℝ) := by
+        have : (m₀ : ℝ) ≤ (n : ℝ) / b₀ := Nat.floor_le (le_of_lt (div_pos (by exact_mod_cast hn_pos) hb₀_pos))
+        have : (n - m₀ : ℝ) = (n : ℝ) - (m₀ : ℝ) := by exact_mod_cast Nat.cast_sub (le_of_lt hm₀_lt_n)
+        rw [this]
+        linarith
+      have hterm : ∀ u ∈ Finset.range (n - m₀),
+          c * (2 * b₀) ^ (-q) / C * g n / (n : ℝ) ^ (p + 1)
+            ≤ g (m₀ + u + 1) / ((m₀ + u + 1 : ℕ) : ℝ) ^ (p + 1) := by
+        intro u hu
+        have hu_lt : u < n - m₀ := by simpa [Finset.mem_range] using hu
+        have hterm_le_n : (m₀ + u + 1 : ℕ) ≤ n := by omega
+        have hterm_ge_m₀ : m₀ ≤ m₀ + u + 1 := by omega
+        have hg_term : g m₀ ≤ g (m₀ + u + 1) := hgmono hterm_ge_m₀
+        have hg_m0 : c * (2 * b₀) ^ (-q) / C * g n ≤ g m₀ := by
+          have hm₀_q : c * ((m₀ : ℝ)) ^ q ≤ g m₀ := hglower m₀ hm₀_ge_one
+          have hn_upper : g n ≤ C * (n : ℝ) ^ q := hgupper n hn_pos
+          have hm₀_lower : (n : ℝ) / (2 * b₀) ≤ (m₀ : ℝ) := hm₀_ge_half
+          have hpow : ((n : ℝ) / (2 * b₀)) ^ q ≤ (m₀ : ℝ) ^ q :=
+            Real.rpow_le_rpow (by positivity) hm₀_lower (by linarith) -- needs 0 ≤ q
+          sorry -- placeholder: exponent nonneg issue
+        sorry
+      sorry
     sorry
-  -- It remains to show the gap is at least ε * g n.
   sorry
 
 /-! ## The multi-branch Akra–Bazzi theorem -/
