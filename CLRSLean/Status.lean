@@ -36,22 +36,14 @@ an obligation that has not yet been selected into that inventory.
 
 ## Fourth-Edition Snapshot
 
-The canonical ledger contains 35 chapter rows.  Thirty-three chapters now carry
-represented theorem content; only Chapters 34--35 remain {lit}`not-started`.
-The generated dashboard owns live theorem totals and status counts, so this
-prose does not freeze a completed-prefix milestone.
+The canonical ledger contains 35 chapter rows.  All 35 chapters are represented
+in Lean; no chapter remains {lit}`not-started`.  The generated dashboard owns
+live theorem totals and status counts, so this prose does not freeze a
+completed-prefix milestone.
 
-The edition map currently records these fourth-edition gaps:
-
-* **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
-* **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial for
-  general-form normalization, finite formulation bridges, and canonical
-  declaration ownership; detailed SIMPLEX material remains available online.
-* **Chapter 27, Online Algorithms:** Sections 27.1 (Waiting for an elevator) and
-  27.2 (Maintaining a search list) are represented; Section 27.3 (Online
-  caching) is represented in part with the LRU paging model and phase-partition
-  fault lemmas, with the `k`-competitive upper bound (Theorem 27.3) and matching
-  lower bound remaining as gaps.
+The edition map currently records one remaining fourth-edition gap: Chapter 34
+§34.5 is {lit}`not-started` (its §34.1--§34.4 are facade-represented).  Every
+other represented section is {lit}`native` or {lit}`facade`.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the
@@ -65,22 +57,19 @@ optimality theorem for nonempty initial caches and finite request sequences.
 
 ## Not-Started Chapters
 
-* **Chapters 34--35, NP-Completeness and Approximation Algorithms:** guide-only,
-  with whole-chapter inventories pending.
-
-These rows have zero canonical tracked theorem entries even when a legacy
-source directory with the same number exists.
+No chapter is {lit}`not-started`: every canonical chapter has at least one
+represented section or an expository guide.
 
 ## Online And Supplementary Material
 
-The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 467 tracked theorem
+The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 464 tracked theorem
 groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
-33, plus 46 from moved section-level developments such as maximum subarray,
-perfect hashing, matroids and task scheduling, detailed SIMPLEX, iterative FFT,
-and integer factorization.  Those 46 groups have been removed from the
-canonical chapter totals, so the 1,326 canonical and 467 online entries are
-disjoint.  {lit}`docs/clrs-online-material.csv` owns the topic-level counts and
-source modules; compatibility imports do not duplicate either ledger.
+33, plus 43 from moved section-level developments such as maximum subarray,
+matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
+factorization.  Those 43 groups have been removed from the canonical chapter
+totals, so the 1,515 canonical and 464 online entries are disjoint.
+{lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
+modules; compatibility imports do not duplicate either ledger.
 
 ## Reader Contract
 
