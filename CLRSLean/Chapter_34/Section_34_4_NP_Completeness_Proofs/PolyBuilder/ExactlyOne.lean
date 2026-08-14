@@ -55,6 +55,7 @@ inductive SequentialExactlyOneCont
   | boolEqAndStart | boolEqAndNext
   | boolEqOrStart | boolEqOrNext
   | suffixOrCarry | suffixOrWire
+  | affineNotWire
 deriving DecidableEq, Fintype
 
 /-- Fixed finite-control phases of contextual Boolean equality. -/
@@ -70,6 +71,11 @@ deriving DecidableEq, Fintype
 /-- Fixed finite-control phases of the affine suffix-OR scan. -/
 inductive SequentialSuffixOrLabel
   | next | decWire | push | incCarry
+deriving DecidableEq, Fintype
+
+/-- Fixed finite-control phase of one contextual NOT gate. -/
+inductive SequentialNotLabel
+  | push
 deriving DecidableEq, Fintype
 
 /-- Finite control for the reversed sequential exactly-one serializer. -/
@@ -100,6 +106,7 @@ inductive SequentialExactlyOneLabel
   | restoreFinalSomeDuplicate | pushFinalAnd
   | boolEq (phase : SequentialBoolEqLabel)
   | suffixOr (phase : SequentialSuffixOrLabel)
+  | singleNot (phase : SequentialNotLabel)
   | clear₁ | clear₂ | clear₃ | halt | invalid
 deriving DecidableEq, Fintype
 
@@ -177,6 +184,7 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
     | .resume .boolEqOrNext => .jump .clear₁
     | .resume .suffixOrCarry => .jump (.encode .wire .suffixOrWire)
     | .resume .suffixOrWire => .jump (.suffixOr .incCarry)
+    | .resume .affineNotWire => .jump .clear₁
     | .incFirstDuplicate => .inc₁ (.encode .seen .firstBDuplicate)
     | .restoreFirstDuplicate => .jump .invalid
     | .decLaterDuplicate =>
@@ -236,6 +244,8 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
         .pushOutput .orMark (.encode .seen .suffixOrCarry)
     | .suffixOr .incCarry =>
         .inc₁ (.suffixOr .next)
+    | .singleNot .push =>
+        .pushOutput .notMark (.encode .wire .affineNotWire)
     | .clear₁ => .dec₁ .clear₂ .clear₁
     | .clear₂ => .dec₂ .clear₃ .clear₂
     | .clear₃ => .dec₃ .halt .clear₃

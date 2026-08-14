@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityBoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -169,6 +170,46 @@ theorem arithmeticStackBlankWire_eq_row
   rw [arithmeticCfgWires_stackCell]
   simp [arithmeticStackBlankWire]
 
+/-- Encoded leading negation of the blank bit for one fixed stack cell. -/
+def arithmeticStackCellNotGateStream
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) (k : tm.K)
+    (i : Fin H) : List CircuitSym :=
+  affineNotGateStream (arithmeticStackBlankWire tm H rowBase k i)
+
+/-- The closed source index makes the single-NOT stream exactly the semantic
+leading gate of this cell-validity block. -/
+theorem arithmeticStackCellNotGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) (k : tm.K)
+    (i : Fin H) :
+    arithmeticStackCellNotGateStream tm H rowBase k i =
+      ([CircuitGate.not
+        ((arithmeticCfgWires tm H rowBase).stackCell k i
+          (Fin.last (reachableAlphabet tm k).card))]).flatMap
+        encodeCircuitGate := by
+  unfold arithmeticStackCellNotGateStream
+  rw [arithmeticStackBlankWire_eq_row,
+    affineNotGateStream_eq_trace]
+
+/-- Concrete contextual run for the leading blank-bit negation. -/
+def arithmeticStackCellNotRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) (k : tm.K)
+    (i : Fin H) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineNotBodyCfg (arithmeticStackBlankWire tm H rowBase k i) output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((arithmeticStackCellNotGateStream tm H rowBase k i).reverse ++
+          output)))
+      (affineNotRevSteps (arithmeticStackBlankWire tm H rowBase k i)) :=
+  affineNotRev_runFrom _ output
+
+/-- The arithmetic cell-NOT invocation inherits the generic quadratic bound. -/
+theorem arithmeticStackCellNotRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) (k : tm.K)
+    (i : Fin H) :
+    affineNotRevSteps (arithmeticStackBlankWire tm H rowBase k i) ≤
+      10 * (arithmeticStackBlankWire tm H rowBase k i + 1) ^ 2 :=
+  affineNotRev_steps_le _
+
 /-- Encoded five-gate equality stream for one fixed stack cell.  Its left
 operand is the semantic active-mask output, and its right operand is the
 fresh result of the immediately preceding blank-bit negation. -/
@@ -222,6 +263,35 @@ theorem arithmeticStackCellBoolEqRev_steps_le
         arithmeticStackMaskOutputWire tm H start k i +
         arithmeticStackCellNotWire tm H start k i + 1) ^ 2 :=
   affineBoolEqRev_steps_le _ _ _
+
+/-- Complete encoded six-gate canonicality block of one arithmetic stack
+cell: one blank-bit negation followed by active/nonblank equality. -/
+noncomputable def arithmeticStackCellGateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) : List CircuitSym :=
+  arithmeticStackCellNotGateStream tm H rowBase k i ++
+    arithmeticStackCellBoolEqGateStream tm H start k i
+
+/-- The closed arithmetic stream is exactly the semantic six-gate cell block. -/
+theorem arithmeticStackCellGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) :
+    arithmeticStackCellGateStream tm H start rowBase k i =
+      let mask := arithmeticStackMaskTrace tm H start rowBase k
+      let blank := (arithmeticCfgWires tm H rowBase).stackCell k i
+        (Fin.last (reachableAlphabet tm k).card)
+      ([CircuitGate.not blank] ++
+        (CircuitBuilder.boolEqGateTrace
+          (arithmeticStackCellBoolEqStart tm H start k i)
+          (mask.outputs (Fin.cast
+            (by simp [arithmeticStackMaskWires]) i))
+          (arithmeticStackCellNotWire tm H start k i)).gates).flatMap
+            encodeCircuitGate := by
+  unfold arithmeticStackCellGateStream
+  rw [arithmeticStackCellNotGateStream_eq_semantic tm H rowBase k i,
+    arithmeticStackCellBoolEqGateStream_eq_semantic
+      tm H start rowBase k i]
+  simp
 
 end
 

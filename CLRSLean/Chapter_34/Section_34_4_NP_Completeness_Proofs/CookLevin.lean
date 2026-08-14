@@ -78,6 +78,7 @@ validation with exact semantics and gate cost; its stack-validity index layer
 also gives closed affine wire formulas for every active-mask, cell, and
 ordered-stack output, and the circuitization layer now executes the five-gate
 XNOR subtrace at every fixed stack/cell coordinate together with the complete
-suffix-OR active mask of every fixed stack.  The workspace layer gives
+suffix-OR active mask of every fixed stack; the leading blank negation closes
+each semantic six-gate cell block.  The workspace layer gives
 verified constant-cost widen/narrow bridges for one bundled transition.
 -/

@@ -16,10 +16,16 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticStackMaskRev_runFrom
 #check arithmeticStackMaskRev_steps_le
 #check arithmeticStackBlankWire_eq_row
+#check arithmeticStackCellNotGateStream
+#check arithmeticStackCellNotGateStream_eq_semantic
+#check arithmeticStackCellNotRev_runFrom
+#check arithmeticStackCellNotRev_steps_le
 #check arithmeticStackCellBoolEqGateStream
 #check arithmeticStackCellBoolEqGateStream_eq_semantic
 #check arithmeticStackCellBoolEqRev_runFrom
 #check arithmeticStackCellBoolEqRev_steps_le
+#check arithmeticStackCellGateStream
+#check arithmeticStackCellGateStream_eq_semantic
 
 #print axioms arithmeticStackMaskOutputWire_eq_trace
 #print axioms arithmeticStackMaskWires_eq_range'
@@ -27,6 +33,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms arithmeticStackMaskRev_runFrom
 #print axioms arithmeticStackMaskRev_steps_le
 #print axioms arithmeticStackBlankWire_eq_row
+#print axioms arithmeticStackCellNotGateStream_eq_semantic
+#print axioms arithmeticStackCellNotRev_runFrom
+#print axioms arithmeticStackCellNotRev_steps_le
 #print axioms arithmeticStackCellBoolEqGateStream_eq_semantic
 #print axioms arithmeticStackCellBoolEqRev_runFrom
 #print axioms arithmeticStackCellBoolEqRev_steps_le
+#print axioms arithmeticStackCellGateStream_eq_semantic

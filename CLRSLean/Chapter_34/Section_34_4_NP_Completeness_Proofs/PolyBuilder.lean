@@ -11,6 +11,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Circu
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
 
 /-!
 # Verified bounded TM2 builders
@@ -39,5 +40,6 @@ the Boolean-equality layer reuses the same three-counter kernels to emit an
 arbitrary five-gate XNOR trace with an exact linear runtime and cleared scratch.
 The affine suffix-OR layer uses a separate nested control phase to generate the
 right-to-left active-cell mask with an exact contextual run and quadratic
-counter bound.
+counter bound.  The single-NOT layer closes the remaining primitive used at
+the head of every six-gate stack-cell block.
 -/
