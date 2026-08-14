@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierValidityGateStream
+#check verifierValidityGateStream_eq
+#check verifierCircuitValidityPrefix
+#check verifierCircuitValidityPrefix_eq
+#check verifierCircuitValidityPrefix_isPrefix
+
+#print axioms verifierValidityGateStream_eq
+#print axioms verifierCircuitValidityPrefix_eq
+#print axioms verifierCircuitValidityPrefix_isPrefix

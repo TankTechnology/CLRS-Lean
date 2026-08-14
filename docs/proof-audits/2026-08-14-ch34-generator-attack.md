@@ -126,7 +126,13 @@ orientation, and gate-index layers:
 - `validCfgCircuitFamilyGateTrace`, `validCfgCircuitFamily_gates_eq`, and
   `validCfgCircuitFamily_output_eq_trace` lift that exact suffix across every
   public tableau row in finite-index order, with total length equal to the row
-  count times `validCfgGateCost`.
+  count times `validCfgGateCost`;
+- `verifierValidityGateStream_eq` flattens that literal trace into the public
+  circuit wire format and proves exact equality with the semantic validity
+  builder suffix;
+- `verifierCircuitValidityPrefix_eq` and
+  `verifierCircuitValidityPrefix_isPrefix` advance the verified serialized
+  circuit prefix through the complete canonical row-validity phase.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -154,17 +160,14 @@ bounded stack data. The implementation phases are:
 
 The exact polynomial-value clock, circuit header, initial tableau input-gate
 family, their combined serialization prefix, and the two-gate shared Boolean
-pool are now closed.  The validity phase now has exact gate traces for its
-three repeated primitives: equality, exactly-one, and suffix-OR active masks.
-The six-gate per-cell family and the complete raw one-hot family are now also
-closed, as is the ordered family that combines every stack's active mask and
-cell constraints.  The complete row-validity suffix is now closed as well.
-Its finite family across all tableau rows is now closed too.  The next cut
-connects this literal family to a polynomial-time validity-stream serializer,
-advancing the already verified input-and-pool prefix through the complete
-validity phase. Output orientation, natural-number serialization, input
-parking/restoration, fixed-suffix appending, and exact agreement with the
-semantic allocators are already closed independently.
+pool are now closed.  The validity phase now has exact gate traces for every
+primitive, cell, stack, row, and finite row family.  Its flattened wire-format
+stream is proved to agree exactly with the semantic builder, and the resulting
+list is a literal prefix of the final verifier encoding through the complete
+validity phase.  The next cut is the concrete polynomial-time TM2 serializer
+for that already fixed stream.  Output orientation, natural-number
+serialization, input parking/restoration, fixed-suffix appending, and exact
+agreement with the semantic allocators are already closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -224,6 +227,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
@@ -234,6 +238,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneGateTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityGateTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
