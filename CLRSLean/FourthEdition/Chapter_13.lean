@@ -35,6 +35,11 @@ section layers complete the remaining §13.2–§13.4 boundaries:
   {lit}`BST`; {lit}`insert_correct` and {lit}`delete_correct` preserve that
   invariant together with exact membership semantics.
 
+## Implementation details
+
+The bundled client interface is available at
+[Shape and BST correctness](CLRSLean/FourthEdition/Chapter_13/WellFormed/).
+
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/

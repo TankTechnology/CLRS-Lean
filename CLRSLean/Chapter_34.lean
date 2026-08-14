@@ -12,6 +12,20 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Encoding
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Verification
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Basic
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Steps
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CertificatePhases
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.LookupPhases
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Cleanup
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CircuitPhases
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CircuitRun
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.RejectSteps
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.RejectPhases
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CircuitReject
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.CanonicalRun
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.MalformedRun
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Runtime
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique
@@ -193,9 +207,11 @@ its gate count, input count, and complete unary encoding length are controlled
 by explicit fixed-verifier polynomials.  The exported function-level
 `cookLevinMap` preserves language membership exactly and has a proved output-
 length bound.  `GeneralCircuitSAT` also has an executable finite Boolean-
-certificate checker whose bounded-certificate semantics is exact.  Concrete
-polynomial-time TM2 implementations of the generator and checker, and the
-final `GeneralCircuitSAT` NP-completeness wrappers, remain downstream.  A
+certificate checker whose bounded-certificate semantics is exact.  A concrete
+TM2 computes that checker Boolean on every input; its canonical successful
+route has a proved quadratic step bound.  A uniform polynomial step bound for
+all rejecting routes, the concrete polynomial-time generator TM2, and the
+final `GeneralCircuitSAT` NP-completeness wrappers remain downstream.  A
 general graph-plus-{lit}`k` CLIQUE target and Section 34.5 remain unrepresented.
 
 Theorem layer:

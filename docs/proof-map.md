@@ -1646,10 +1646,13 @@ before RAM cost semantics.
 ### Section 13.1 - Red-black trees
 
 - Lean source: `CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean`
+- Bundled interface:
+  `CLRSLean/FourthEdition/Chapter_13/WellFormed.lean`
 - Status: fourth-edition §13.1 is represented through the facade: the
   color/black-height properties and logarithmic-height theorem are proved.  The
-  same legacy source also supplies functional update layers for §§13.2--13.4,
-  which remain partial at the complete ordered-search-tree interface.
+  functional update layers for §§13.2--13.4 preserve both red-black shape and
+  BST ordering; the bundled interface exposes those facts as one client-facing
+  invariant.
 - Main proved theorems:
   - `CLRS.Chapter13.RBTree.inTree_rotateLeft_iff`
   - `CLRS.Chapter13.RBTree.inTree_rotateRight_iff`
@@ -1706,6 +1709,12 @@ before RAM cost semantics.
   - `CLRS.Chapter13.RBTree.del_invariant` (inductive deletion certificate)
   - `CLRS.Chapter13.RBTree.redBlackShape_delete` (**deletion preserves
     red-black shape**)
+  - `CLRS.Chapter13.RBTree.WellFormed` (red-black shape plus BST ordering)
+  - `CLRS.Chapter13.RBTree.wellFormed_insert` /
+    `CLRS.Chapter13.RBTree.wellFormed_delete`
+  - `CLRS.Chapter13.RBTree.insert_correct` /
+    `CLRS.Chapter13.RBTree.delete_correct` (bundled invariant and exact
+    membership semantics)
 - Proof pattern: local colored-tree invariants, rotations, root recoloring,
   red-red rotation repair certificates, and four insertion-fixup local
   rotation/recoloring certificates.  Each insertion-fixup case separately
@@ -1726,12 +1735,12 @@ before RAM cost semantics.
   is proved from the `baldL_shape`/`baldR_shape` deficit certificates through
   the `splitMin_invariant` and `del_invariant` induction certificates.
 
-The section now has the executable deletion algorithm, its key-set semantics,
-and the composed color/black-height shape certificate.  `RedBlackShape` does not
-include the separately defined `BST` predicate, and there are no BST-preservation
-theorems for rotations, insertion, or deletion.  Those ordered-tree theorems,
-bridges from the textbook pointer/fixup loops to the functional algorithms, and
-execution-attached logarithmic costs remain fourth-edition gaps.
+The chapter now has executable insertion and deletion, exact key-set semantics,
+the color/black-height certificate, BST preservation for rotations and both
+updates, and logarithmic functional cost bounds.  `WellFormed` deliberately
+bundles the otherwise separate `RedBlackShape` and `BST` predicates so clients
+cannot accidentally report only half of correctness.  What remains is the
+end-to-end pointer/fixup-loop refinement and a low-level RAM cost model.
 
 ### Section 13.2 (Fourth Edition) - Rotations
 
@@ -5368,10 +5377,12 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/Assembly/Bounds.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/Assembly/EncodingBounds.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/ReductionMap.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/VerifierMachine.lean`
 - Status: `partial` — general-circuit semantics and an honest canonical wire
   format and exact finite-certificate semantics are available.  The
-  function-level Cook--Levin map is complete, while its concrete TM2
-  implementation, the certificate-checker TM2, and the final
+  function-level Cook--Levin map is complete.  The certificate checker now has
+  a total concrete TM2 implementation, but its all-input polynomial runtime
+  wrapper, the map's concrete TM2 implementation, and the final
   `GeneralCircuitSAT` NP wrappers remain open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
@@ -5387,7 +5398,13 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `generalCircuitVerifier` accepts exactly well-formed decoded circuits with
   exact-length Boolean-symbol assignments, and
   `mem_generalCircuitSAT_iff_exists_certificate` characterizes membership by
-  an accepted certificate no longer than the instance.  Separately,
+  an accepted certificate no longer than the instance.  The phased
+  `GeneralCircuitVerifier.machine` computes this exact Boolean on every input:
+  `verifier_run` covers canonical and malformed encodings, and
+  `generalCircuitVerifierComputable` packages total TM2 computability.
+  `successfulSteps_le` gives a uniform quadratic bound for the successful
+  canonical route; it intentionally does not claim a bound for every rejecting
+  route.  Separately,
   `circuitSAT_reducible_to_SAT` proves `CIRCUIT-SAT ≤_P SAT` (Lemma 34.6, via
   `circuitSatisfiable_iff_satisfiable_circuitToFormula` and the `Turing.TM2CS`
   machine), `cnfSatisfiable_iff_hasClique` gives the represented Lemma 34.10
@@ -5535,10 +5552,12 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `cookLevinMap` serializes the verifier circuit;
   `cookLevinMap_mem_generalCircuitSAT_iff` proves its exact reduction
   semantics and `cookLevinMap_length_le` proves its polynomial output bound.
-- Current gaps: concrete polynomial-time TM2 implementations of the circuit
-  generator and certificate checker required by `PolyTimeReducible` and
-  `PolyTimeVerifiable`, and consequently NP membership, NP-hardness, and
-  NP-completeness wrappers for `GeneralCircuitSAT`.
+- Current gaps: the certificate-checker machine still needs one uniform
+  polynomial runtime theorem covering every malformed and rejecting route
+  before it can be packaged as `TM2ComputableInPolyTime`; the circuit generator
+  still needs its concrete polynomial-time TM2 implementation.  Consequently
+  NP membership, NP-hardness, and NP-completeness wrappers for
+  `GeneralCircuitSAT` remain open.
   `SatTo3CNFMachine` imports the complete compiling B1--B13 chain;
   `Dev.B12_Bounds` proves the polynomial bounds and `Dev.B13_OutputsFun`
   packages the complete run as `TM2ComputableInPolyTime`.
