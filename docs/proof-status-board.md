@@ -9,6 +9,10 @@ not a duplicate completion ledger.
 
 Last evidence reconciliation: 2026-08-14.
 
+The six-phase maintenance cleanup is complete: the ledger audit is reconciled,
+branch hygiene is done, and the final Pages deployment (`Build and deploy Verso
+site` run #215) succeeded.
+
 ## How To Read The Board
 
 - `proved / tracked` measures only the selected proof inventory.
