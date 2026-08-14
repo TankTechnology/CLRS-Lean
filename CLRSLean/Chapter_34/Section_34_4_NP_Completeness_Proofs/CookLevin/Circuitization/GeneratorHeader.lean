@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorClock
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 
 /-!
 # Exact Cook--Levin circuit header
@@ -221,6 +222,75 @@ noncomputable def verifierCircuitInputPrefix_computableInPolyTime
   change TM2ComputableInPolyTime id id
     ((fun clock : List Unit => circuitInputPrefix clock.length) ∘
       verifierTableauInputClock W)
+  exact Classical.choice composed
+
+/-! ## Shared Boolean-pool extension -/
+
+/-- Extend the exact input prefix by the unique shared false/true gates. -/
+def verifierCircuitPoolPrefix {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) : List CircuitSym :=
+  appendBoolPool (verifierCircuitInputPrefix W input)
+
+/-- The extended stream agrees exactly with the semantic builder immediately
+after allocating its shared Boolean pool. -/
+theorem verifierCircuitPoolPrefix_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    verifierCircuitPoolPrefix W input =
+      encNat (verifierCircuit W input).inputCount ++
+        (verifierPool W input).builder.gates.flatMap encodeCircuitGate := by
+  rw [verifierCircuitPoolPrefix, appendBoolPool,
+    verifierCircuitInputPrefix_eq]
+  rw [verifierPool, CircuitBuilder.allocateBoolWirePool_gates_eq,
+    List.flatMap_append]
+  simp [boolPoolGateStream, encodeCircuitGate, List.append_assoc]
+
+/-- The pool builder remains an append-only prefix of the final conjunction
+builder. -/
+private theorem verifierPool_extends_conjunction {Γ : Type}
+    {L : Language Γ} (W : VerifierWitness L) (input : List Γ) :
+    (verifierPool W input).builder.Extends (verifierConjunction W input).1 := by
+  let validityExtension := (verifierValidity W input).extension
+  let transitionExtension := (verifierTransitions W input).extension
+  let initialExtension := (verifierInitialBoundary W input).extension
+  let inputExtension := (verifierInputBoundary W input).extension
+  let acceptingExtension := (verifierAcceptingBoundary W input).extension
+  let conjunctionExtension := CircuitBuilder.conjunction_extends
+    (verifierAcceptingBoundary W input).builder
+    (verifierConstraintWires W input) (verifierConstraintWires_valid W input)
+  exact validityExtension.trans (transitionExtension.trans
+    (initialExtension.trans (inputExtension.trans
+      (acceptingExtension.trans conjunctionExtension))))
+
+/-- The header, tableau inputs, and Boolean pool form a literal prefix of the
+complete verifier-circuit encoding. -/
+theorem verifierCircuitPoolPrefix_isPrefix {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    verifierCircuitPoolPrefix W input <+:
+      encodeCircuit (verifierCircuit W input) := by
+  rcases (verifierPool_extends_conjunction W input) with
+    ⟨_, suffix, hgates⟩
+  refine ⟨suffix.flatMap encodeCircuitGate ++
+      .outputMark :: encNat (verifierCircuit W input).output, ?_⟩
+  rw [verifierCircuitPoolPrefix_eq]
+  change _ = encNat (verifierCircuit W input).inputCount ++
+    (verifierCircuit W input).gates.flatMap encodeCircuitGate ++
+      .outputMark :: encNat (verifierCircuit W input).output
+  change (verifierCircuit W input).gates =
+      (verifierPool W input).builder.gates ++ suffix at hgates
+  rw [hgates, List.flatMap_append]
+  simp only [List.append_assoc]
+
+/-- Concrete polynomial-time machine for the exact prefix through shared
+constant allocation. -/
+noncomputable def verifierCircuitPoolPrefix_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    TM2ComputableInPolyTime id id (verifierCircuitPoolPrefix W) := by
+  letI : Fintype Γ := W.alphabetFintype
+  let composed := TM2Comp.TM2ComputableInPolyTime.comp_scratch
+    (verifierCircuitInputPrefix_computableInPolyTime W)
+    appendBoolPool_computableInPolyTime
+  change TM2ComputableInPolyTime id id
+    (appendBoolPool ∘ verifierCircuitInputPrefix W)
   exact Classical.choice composed
 
 end CLRS.Chapter34.Turing.CookLevin

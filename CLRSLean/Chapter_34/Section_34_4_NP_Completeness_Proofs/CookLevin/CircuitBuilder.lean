@@ -212,6 +212,12 @@ theorem input_eval (b : CircuitBuilder) (inputIndex : Nat)
 def const (b : CircuitBuilder) (value : Bool) : CircuitBuilder × Wire :=
   (appendGate b (.const value) trivial, b.gates.length)
 
+/-- Appending a constant records its exact gate tag at the end of the gate
+stream. -/
+@[simp] theorem const_gates (b : CircuitBuilder) (value : Bool) :
+    (b.const value).1.gates = b.gates ++ [.const value] := by
+  rfl
+
 /-- Appending a constant gate extends the original prefix. -/
 theorem const_extends (b : CircuitBuilder) (value : Bool) :
     b.Extends (b.const value).1 := appendGate_extends b (.const value) trivial

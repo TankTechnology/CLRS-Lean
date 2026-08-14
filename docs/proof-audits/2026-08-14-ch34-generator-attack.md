@@ -88,6 +88,11 @@ orientation, and gate-index layers:
 - `verifierCircuitInputPrefix_isPrefix` proves that the instantiated stream is
   a literal list prefix of `encodeCircuit (verifierCircuit W x)`, while
   `verifierCircuitInputPrefix_computableInPolyTime` supplies its concrete TM2.
+- `appendBoolPool_computableInPolyTime` appends the canonical false/true tags
+  to any existing circuit prefix with a concrete linear-time machine;
+- `allocateBoolWirePool_gates_eq` fixes the semantic gate order, and
+  `verifierCircuitPoolPrefix_isPrefix` advances the verified literal encoding
+  prefix through the shared constant-pool allocation.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -114,11 +119,11 @@ bounded stack data. The implementation phases are:
    NP-completeness wrappers.
 
 The exact polynomial-value clock, circuit header, initial tableau input-gate
-family, and their combined serialization prefix are now closed.  The next
-semantic phase is the two-gate shared Boolean pool, followed by the validity
-constraint stream.  Output orientation, natural-number serialization, input
-parking/restoration, and exact agreement with the semantic allocator are
-already closed independently.
+family, their combined serialization prefix, and the two-gate shared Boolean
+pool are now closed.  The next semantic phase is the validity constraint
+stream.  Output orientation, natural-number serialization, input
+parking/restoration, fixed-suffix appending, and exact agreement with the
+semantic allocators are already closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -176,6 +181,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
@@ -184,6 +190,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_UnaryIndex.lean
 lake env lean Tests/Chapter_34_PolyBuilder_NatEncoding.lean
 lake env lean Tests/Chapter_34_PolyBuilder_InputGate.lean
 lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
+lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
