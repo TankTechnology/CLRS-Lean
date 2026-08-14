@@ -188,6 +188,11 @@ orientation, and gate-index layers:
 - `affineBoolEqRevSteps` gives its exact cost
   `27 * start + 11 * left + 11 * right + 85`, while
   `affineBoolEqRev_steps_le` supplies a uniform quadratic envelope.
+- `arithmeticHaltedMatchGateStream_eq_semantic` instantiates that serializer
+  at the real arithmetic row wires after a closed raw-one-hot gate count;
+- `arithmeticValidityPostOneHot_eq_haltedMatch_append_post` advances the exact
+  completed boundary by five gates, leaving only stack canonicality and the
+  final conjunction in the row-local suffix.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -322,6 +327,7 @@ lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean

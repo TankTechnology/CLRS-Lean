@@ -1,0 +1,19 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityBoolEq
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticRawOneHotGateCount
+#check arithmeticHaltedMatchStart
+#check arithmeticHaltedMatchGateStream
+#check arithmeticHaltedMatchGateStream_eq_semantic
+#check arithmeticValidityPostOneHot_eq_haltedMatch_append_post
+#check arithmeticHaltedMatchRev_runFrom
+#check arithmeticHaltedMatchRev_steps_le
+
+#print axioms rawOneHotGateTrace_length_eq_arithmetic
+#print axioms arithmeticHaltedMatchGateStream_eq_semantic
+#print axioms arithmeticValidityPostOneHot_eq_haltedMatch_append_post
+#print axioms arithmeticHaltedMatchRev_runFrom
+#print axioms arithmeticHaltedMatchRev_steps_le
