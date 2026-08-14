@@ -36,12 +36,19 @@ Main results:
 
 The baseline construction sorts `n` positions by insertion sort (`O(n³)`
 worst-case work) and the scan search costs `O(n · |p|)`.  This section also
-adds the textbook-complexity construction layer: {lit}`suffixArrayFast` (merge
-sort under a comparison model) with an explicit `O(n log n)` work theorem
-({lit}`suffixArrayFast_work_isBigO_nlogn`), proved valid by
-{lit}`suffixArrayFast_valid` against the same {lit}`SuffixArrayValid`
-specification.  The `O(|p| log n)` binary-search range query remains recorded
-as remaining work.
+adds the textbook-complexity layers:
+
+- {lit}`suffixArrayFast` (merge sort under a comparison model) with an explicit
+  `O(n log n)` work theorem ({lit}`suffixArrayFast_work_isBigO_nlogn`), proved
+  valid by {lit}`suffixArrayFast_valid` against the same {lit}`SuffixArrayValid`
+  specification.
+- {lit}`suffixArrayRange`, the binary-search range query: two binary searches
+  over the sorted suffix array find the lower/upper bounds of the pattern's
+  interval.  {lit}`suffixArrayRange_mem_iff` proves the returned range is sound
+  and complete, and {lit}`suffixArrayQueryWork_le` bounds the query work by
+  `2 · (|p| + 1) · (⌊log₂ n⌋ + 2)` character comparisons under the stated
+  string-comparison model (jointly `O(|p| log n)`, via
+  {lit}`suffixArrayQueryWork_isBigO_logn`).
 
 Notation conventions used in this section:
 
@@ -503,10 +510,621 @@ theorem suffixArrayFast_work_isBigO_nlogn :
 
 /-! ## Textbook-complexity range query
 
-The binary-search range query (`O(|p| log n)`) is recorded as remaining work in
-the chapter ledger; the scan-based {lit}`suffixArraySearch` above already
-provides a complete, proved correctness baseline.
+The `O(n log n)` construction above gives a sorted suffix array.  This section
+adds the other half of CLRS §32.5: a pattern search that finds every occurrence
+of `p` by *two* binary searches over that array.  Each probe compares `p`
+against one suffix; in the stated string-comparison model a probe costs at most
+`|p| + 1` character comparisons, so the whole query runs in `O(|p| log n)`.
+
+A suffix begins with `p` exactly when it lies between the two bounds
+
+- {lit}`patternLE p s`: `p ≤ s` lexicographically (the lower-bound predicate),
+  and
+- {lit}`patternGT p s`: `p < s` and `p` is not a prefix of `s` (the
+  upper-bound predicate).
+
+Because the suffix array is sorted by {lit}`suffixLe`, both predicates are
+monotone along it, so each bound is found by binary search.
 -/
+
+/-- `p` is at-or-before suffix `s` in lexicographic order: the lower-bound
+predicate of the range query. -/
+def patternLE (p s : Text α) : Prop := p ≤ s
+
+/-- `s` is strictly after every suffix that begins with `p`: the upper-bound
+predicate of the range query. -/
+def patternGT (p s : Text α) : Prop := p < s ∧ s.take p.length ≠ p
+
+/-- `patternLE` is decidable. -/
+instance patternLE_decidable (p s : Text α) : Decidable (patternLE p s) := by
+  unfold patternLE; infer_instance
+
+/-- `patternGT` is decidable. -/
+instance patternGT_decidable (p s : Text α) : Decidable (patternGT p s) := by
+  unfold patternGT; infer_instance
+
+/-- The empty list is at-or-before every list in lexicographic order. -/
+theorem nil_le (l : Text α) : [] ≤ l := by
+  rcases l with _ | ⟨b, l⟩
+  · exact le_rfl
+  · exact le_of_lt ((List.lt_iff_lex_lt [] (b :: l)).mp List.Lex.nil)
+
+/-- Taking a prefix is monotone with respect to lexicographic order. -/
+theorem take_lex_le {s₁ s₂ : Text α} (hlex : List.Lex (· < ·) s₁ s₂) :
+    ∀ k, s₁.take k ≤ s₂.take k := by
+  induction hlex with
+  | nil =>
+      rename_i b l
+      intro k
+      simpa using (nil_le ((b :: l).take k))
+  | rel hlt => intro k; cases k with
+      | zero => simp
+      | succ k => exact le_of_lt ((List.lt_iff_lex_lt _ _).mp (List.Lex.rel hlt))
+  | cons h ih => intro k; cases k with
+      | zero => simp
+      | succ k => exact List.cons_le_cons _ (ih k)
+
+/-- Taking a prefix is monotone with respect to lexicographic order. -/
+theorem take_le_take {s₁ s₂ : Text α} (h : s₁ ≤ s₂) : ∀ k, s₁.take k ≤ s₂.take k := by
+  rcases lt_or_eq_of_le h with hlt | rfl
+  · exact take_lex_le ((List.lt_iff_lex_lt s₁ s₂).mp hlt)
+  · intro k; rfl
+
+/-- A prefix is at-or-before its extension in lexicographic order. -/
+theorem le_of_isPrefix {p s : Text α} (h : isPrefix p s) : p ≤ s := by
+  rcases h with ⟨r, rfl⟩
+  exact le_iff_lt_or_eq.mpr <| match r with
+    | [] => Or.inr (by simp)
+    | b :: r' =>
+        Or.inl ((List.lt_iff_lex_lt p (p ++ b :: r')).mp
+          (by simpa using (List.Lex.append_left (· < ·)
+            (List.Lex.nil : List.Lex (· < ·) [] (b :: r')) p)))
+
+/-- If `p ≤ s₁ ≤ s₂` and `p` is a prefix of `s₂`, then `p` is a prefix of `s₁`. -/
+theorem isPrefix_of_le_of_isPrefix {p s₁ s₂ : Text α}
+    (hps : p ≤ s₁) (hss : s₁ ≤ s₂) (hp₂ : isPrefix p s₂) : isPrefix p s₁ := by
+  have ht : s₂.take p.length = p := (isPrefix_iff_take_eq p s₂).mp hp₂
+  have h₁ : s₁.take p.length ≤ s₂.take p.length := take_le_take hss p.length
+  have h₂ : p ≤ s₁.take p.length := by simpa using (take_le_take hps p.length)
+  have : s₁.take p.length = p := le_antisymm (by simpa [ht] using h₁) h₂
+  exact (isPrefix_iff_take_eq p s₁).mpr this
+
+/-- `patternLE` is monotone in the suffix argument. -/
+theorem patternLE_mono {p s₁ s₂ : Text α} (h₁ : patternLE p s₁) (hss : s₁ ≤ s₂) :
+    patternLE p s₂ := le_trans h₁ hss
+
+/-- `patternGT` is monotone in the suffix argument. -/
+theorem patternGT_mono {p s₁ s₂ : Text α} (h₁ : patternGT p s₁) (hss : s₁ ≤ s₂) :
+    patternGT p s₂ := by
+  rcases h₁ with ⟨hlt, hne⟩
+  constructor
+  · exact lt_of_lt_of_le hlt hss
+  · intro htake
+    have hpfx : isPrefix p s₂ := (isPrefix_iff_take_eq p s₂).mpr htake
+    have hpfx₁ : isPrefix p s₁ := isPrefix_of_le_of_isPrefix (le_of_lt hlt) hss hpfx
+    exact hne ((isPrefix_iff_take_eq p s₁).mp hpfx₁)
+
+/-- A pattern is a prefix of `s` exactly when it lies between the lower and
+upper bounds. -/
+theorem isPrefix_iff_patternLE_and_not_patternGT (p s : Text α) :
+    isPrefix p s ↔ patternLE p s ∧ ¬ patternGT p s := by
+  constructor
+  · intro hpfx
+    constructor
+    · exact le_of_isPrefix hpfx
+    · intro hgt
+      exact hgt.2 ((isPrefix_iff_take_eq p s).mp hpfx)
+  · intro h
+    rcases h with ⟨hle, hngt⟩
+    rcases lt_or_eq_of_le hle with hlt | heq
+    · by_cases hpfx : s.take p.length = p
+      · exact (isPrefix_iff_take_eq p s).mpr hpfx
+      · exact False.elim (hngt ⟨hlt, hpfx⟩)
+    · subst s; exact ⟨[], by simp⟩
+
+/-- `suffixLe` orders suffixes by their lexicographic order. -/
+theorem suffixAt_le_of_suffixLe {t : Text α} {i j : ℕ} (h : suffixLe t i j) :
+    suffixAt t i ≤ suffixAt t j := by
+  rcases h with hlt | ⟨heq, _⟩
+  · exact le_of_lt hlt
+  · exact le_of_eq heq
+
+/-- In a suffix-array-sorted list, suffixes at smaller positions are at-or-before
+suffixes at larger positions. -/
+theorem sorted_suffixAt_le {t : Text α} {sa : List ℕ}
+    (hsorted : List.Pairwise (suffixLe t) sa) {i j : ℕ}
+    (hi : i < sa.length) (hj : j < sa.length) (hij : i < j) :
+    suffixAt t sa[i] ≤ suffixAt t sa[j] := by
+  exact suffixAt_le_of_suffixLe
+    (List.Pairwise.rel_get_of_lt hsorted (a := ⟨i, hi⟩) (b := ⟨j, hj⟩) hij)
+
+/-! ### Binary search
+
+A single reusable costed binary search finds the first index in a list where a
+monotone boolean predicate turns true.
+-/
+
+/-- Costed binary search for the first index `k` in `[lo, hi)` with
+`P (sa.getD k 0)` true, charging one probe per comparison. -/
+def binarySearchFirstCostAux (P : ℕ → Bool) (sa : List ℕ) (lo hi : ℕ) : ℕ × Nat :=
+  if lo < hi then
+    let mid := (lo + hi) / 2
+    if P (sa.getD mid 0) then
+      let r := binarySearchFirstCostAux P sa lo mid
+      (r.1, r.2 + 1)
+    else
+      let r := binarySearchFirstCostAux P sa (mid + 1) hi
+      (r.1, r.2 + 1)
+  else
+    (lo, 0)
+termination_by hi - lo
+
+/-- The pure binary search, erasing the probe count. -/
+def binarySearchFirstAux (P : ℕ → Bool) (sa : List ℕ) (lo hi : ℕ) : ℕ :=
+  if lo < hi then
+    let mid := (lo + hi) / 2
+    if P (sa.getD mid 0) then
+      binarySearchFirstAux P sa lo mid
+    else
+      binarySearchFirstAux P sa (mid + 1) hi
+  else
+    lo
+termination_by hi - lo
+
+/-- Erasing the cost recovers the pure binary search. -/
+theorem binarySearchFirstCostAux_fst (P : ℕ → Bool) (sa : List ℕ) (lo hi : ℕ) :
+    (binarySearchFirstCostAux P sa lo hi).1 = binarySearchFirstAux P sa lo hi := by
+  induction h : hi - lo using Nat.strong_induction_on generalizing lo hi with
+  | h d ih =>
+    unfold binarySearchFirstCostAux binarySearchFirstAux
+    by_cases hlt : lo < hi
+    · simp only [hlt, ↓reduceIte]
+      by_cases hP : P (sa.getD ((lo + hi) / 2) 0)
+      · simp only [hP, ↓reduceIte]
+        exact ih (((lo + hi) / 2) - lo) (by omega) lo ((lo + hi) / 2) rfl
+      · simp only [hP, ↓reduceIte]
+        exact ih (hi - ((lo + hi) / 2 + 1)) (by omega) ((lo + hi) / 2 + 1) hi rfl
+    · simp only [hlt, ↓reduceIte]
+
+/-- `r` is the first index in `[lo, hi]` where `P` holds along `sa`. -/
+def BinarySearchSpec (P : ℕ → Bool) (sa : List ℕ) (lo hi r : ℕ) : Prop :=
+  lo ≤ r ∧ r ≤ hi ∧
+    (∀ k, lo ≤ k → k < r → P (sa.getD k 0) = false) ∧
+    (r < hi → P (sa.getD r 0) = true)
+
+/-- The binary search returns the first index with `P` true (or `hi` if none). -/
+theorem binarySearchFirstAux_spec (P : ℕ → Bool) (sa : List ℕ)
+    (hmono : ∀ ⦃i j⦄, i < j → j < sa.length →
+      P (sa.getD i 0) = true → P (sa.getD j 0) = true) :
+    ∀ lo hi, lo ≤ hi → hi ≤ sa.length →
+      (∀ k, k < lo → P (sa.getD k 0) = false) →
+      (∀ k, hi ≤ k → k < sa.length → P (sa.getD k 0) = true) →
+      BinarySearchSpec P sa lo hi (binarySearchFirstAux P sa lo hi) := by
+  intro lo hi
+  induction h : hi - lo using Nat.strong_induction_on generalizing lo hi with
+  | h d ih =>
+    intro hle hhi hL hR
+    unfold binarySearchFirstAux
+    by_cases hlt : lo < hi
+    · have hmid_lo : lo ≤ (lo + hi) / 2 := by
+        exact (Nat.le_div_iff_mul_le (by decide : 0 < 2)).mpr (by omega)
+      have hmid_hi : (lo + hi) / 2 < hi := by
+        exact (Nat.div_lt_iff_lt_mul (by decide : 0 < 2)).mpr (by omega)
+      have hmid_len : (lo + hi) / 2 < sa.length := lt_of_lt_of_le hmid_hi hhi
+      simp only [hlt, ↓reduceIte]
+      by_cases hP : P (sa.getD ((lo + hi) / 2) 0) = true
+      · rw [if_pos hP]
+        have hR' : ∀ k, (lo + hi) / 2 ≤ k → k < sa.length → P (sa.getD k 0) = true := by
+          intro k hkmid hkl
+          by_cases hk : k = (lo + hi) / 2
+          · subst k; exact hP
+          · have hmid_lt_k : (lo + hi) / 2 < k := lt_of_le_of_ne hkmid (Ne.symm hk)
+            exact hmono hmid_lt_k hkl hP
+        have hspec := ih ((lo + hi) / 2 - lo) (by omega) lo ((lo + hi) / 2) rfl
+          hmid_lo (le_of_lt hmid_len) hL hR'
+        rcases hspec with ⟨hrlo, hrhi, hfalse, htrue⟩
+        constructor
+        · exact hrlo
+        constructor
+        · exact le_trans hrhi (le_of_lt hmid_hi)
+        constructor
+        · exact hfalse
+        · intro hrhi'
+          by_cases hrm : binarySearchFirstAux P sa lo ((lo + hi) / 2) < (lo + hi) / 2
+          · exact htrue hrm
+          · have hreq : binarySearchFirstAux P sa lo ((lo + hi) / 2) = (lo + hi) / 2 :=
+              le_antisymm hrhi (le_of_not_gt hrm)
+            simpa [hreq] using hP
+      · rw [if_neg hP]
+        have hPfalse : P (sa.getD ((lo + hi) / 2) 0) = false := by
+          simpa [Bool.not_eq_true] using hP
+        have hmid1_hi : (lo + hi) / 2 + 1 ≤ hi := by omega
+        have hL' : ∀ k, k < (lo + hi) / 2 + 1 → P (sa.getD k 0) = false := by
+          intro k hklt
+          by_cases hklo : k < lo
+          · exact hL k hklo
+          · have hk_le_mid : k ≤ (lo + hi) / 2 := by omega
+            by_cases hkm : k = (lo + hi) / 2
+            · subst k; exact hPfalse
+            · have hk_lt_mid : k < (lo + hi) / 2 := lt_of_le_of_ne hk_le_mid hkm
+              have hkmid_true : P (sa.getD k 0) = true → False := by
+                intro hkP
+                exact hP (hmono hk_lt_mid hmid_len hkP)
+              by_cases hc : P (sa.getD k 0) = true
+              · exact (hkmid_true hc).elim
+              · exact (Bool.not_eq_true _).mp hc
+        have hspec := ih (hi - ((lo + hi) / 2 + 1)) (by omega) ((lo + hi) / 2 + 1) hi rfl
+          hmid1_hi hhi hL' hR
+        rcases hspec with ⟨hrlo, hrhi, hfalse, htrue⟩
+        constructor
+        · exact le_trans hmid_lo (le_trans (by omega) hrlo)
+        constructor
+        · exact hrhi
+        constructor
+        · intro k hklo hkr
+          by_cases hk_mid : k ≤ (lo + hi) / 2
+          · exact hL' k (by omega)
+          · have hmid1_k : (lo + hi) / 2 + 1 ≤ k := by omega
+            exact hfalse k hmid1_k hkr
+        · exact htrue
+    · simp only [hlt, ↓reduceIte]
+      constructor
+      · omega
+      constructor
+      · omega
+      constructor
+      · intro k hklo hkr; omega
+      · intro hrhi; omega
+
+/-- Halving a ceiling-log: `clog 2 (n/2 + 1) ≤ clog 2 (n+1) - 1` for `n ≥ 1`. -/
+theorem clog_two_half_add_one_le_pred (n : ℕ) (hn : 1 ≤ n) :
+    Nat.clog 2 (n / 2 + 1) ≤ Nat.clog 2 (n + 1) - 1 := by
+  have hh := clog_two_ceil_half_le_pred (n + 1) (by omega : 2 ≤ n + 1)
+  have hhalf : (n + 1 + 1) / 2 = n / 2 + 1 := by omega
+  simpa [hhalf] using hh
+
+/-- The costed binary search performs at most `⌈log₂ (hi - lo + 1)⌉` probes. -/
+theorem binarySearchFirstCostAux_cost_le (P : ℕ → Bool) (sa : List ℕ) (lo hi : ℕ) :
+    (binarySearchFirstCostAux P sa lo hi).2 ≤ Nat.clog 2 (hi - lo + 1) := by
+  induction h : hi - lo using Nat.strong_induction_on generalizing lo hi with
+  | h d ih =>
+    unfold binarySearchFirstCostAux
+    by_cases hlt : lo < hi
+    · have hmid_lo : lo ≤ (lo + hi) / 2 := by
+        exact (Nat.le_div_iff_mul_le (by decide : 0 < 2)).mpr (by omega)
+      have hmid_hi : (lo + hi) / 2 < hi := by
+        exact (Nat.div_lt_iff_lt_mul (by decide : 0 < 2)).mpr (by omega)
+      simp only [hlt, ↓reduceIte]
+      by_cases hP : P (sa.getD ((lo + hi) / 2) 0) = true
+      · rw [if_pos hP, ← h]
+        have hrec := ih (((lo + hi) / 2) - lo) (by omega) lo ((lo + hi) / 2) rfl
+        have hmid_eq : (lo + hi) / 2 - lo = (hi - lo) / 2 := by omega
+        rw [hmid_eq] at hrec
+        have hclogpos : 1 ≤ Nat.clog 2 (hi - lo + 1) := by
+          exact Nat.succ_le_of_lt (Nat.clog_pos (by decide : 1 < 2) (by omega : 2 ≤ hi - lo + 1))
+        have hclog : Nat.clog 2 ((hi - lo) / 2 + 1) ≤ Nat.clog 2 (hi - lo + 1) - 1 := by
+          exact clog_two_half_add_one_le_pred (hi - lo) (by omega)
+        have hstep : Nat.clog 2 ((hi - lo) / 2 + 1) + 1 ≤ Nat.clog 2 (hi - lo + 1) :=
+          Nat.add_le_of_le_sub hclogpos hclog
+        calc
+          (binarySearchFirstCostAux P sa lo ((lo + hi) / 2)).2 + 1
+              ≤ Nat.clog 2 ((hi - lo) / 2 + 1) + 1 := Nat.add_le_add_right hrec 1
+          _ ≤ Nat.clog 2 (hi - lo + 1) := hstep
+      · rw [if_neg hP, ← h]
+        have hrec := ih (hi - ((lo + hi) / 2 + 1)) (by omega) ((lo + hi) / 2 + 1) hi rfl
+        have hsub_le : hi - ((lo + hi) / 2 + 1) ≤ (hi - lo) / 2 := by omega
+        have hclogpos : 1 ≤ Nat.clog 2 (hi - lo + 1) := by
+          exact Nat.succ_le_of_lt (Nat.clog_pos (by decide : 1 < 2) (by omega : 2 ≤ hi - lo + 1))
+        have hclog' : Nat.clog 2 (hi - ((lo + hi) / 2 + 1) + 1) ≤ Nat.clog 2 ((hi - lo) / 2 + 1) := by
+          exact Nat.clog_mono_right 2 (by omega)
+        have hclog : Nat.clog 2 ((hi - lo) / 2 + 1) ≤ Nat.clog 2 (hi - lo + 1) - 1 := by
+          exact clog_two_half_add_one_le_pred (hi - lo) (by omega)
+        have hstep : Nat.clog 2 ((hi - lo) / 2 + 1) + 1 ≤ Nat.clog 2 (hi - lo + 1) :=
+          Nat.add_le_of_le_sub hclogpos hclog
+        calc
+          (binarySearchFirstCostAux P sa ((lo + hi) / 2 + 1) hi).2 + 1
+              ≤ Nat.clog 2 (hi - ((lo + hi) / 2 + 1) + 1) + 1 := Nat.add_le_add_right hrec 1
+          _ ≤ Nat.clog 2 ((hi - lo) / 2 + 1) + 1 := Nat.add_le_add_right hclog' 1
+          _ ≤ Nat.clog 2 (hi - lo + 1) := hstep
+    · simp only [hlt, ↓reduceIte]
+      exact Nat.zero_le _
+
+/-- Binary search for the first index in a whole list with `P` true. -/
+def binarySearchFirst (P : ℕ → Bool) (sa : List ℕ) : ℕ :=
+  binarySearchFirstAux P sa 0 sa.length
+
+/-- The costed binary search over a whole list. -/
+def binarySearchFirstCost (P : ℕ → Bool) (sa : List ℕ) : ℕ × Nat :=
+  binarySearchFirstCostAux P sa 0 sa.length
+
+/-- The whole-list binary search returns the first index with `P` true. -/
+theorem binarySearchFirst_spec (P : ℕ → Bool) (sa : List ℕ)
+    (hmono : ∀ ⦃i j⦄, i < j → j < sa.length →
+      P (sa.getD i 0) = true → P (sa.getD j 0) = true) :
+    (binarySearchFirst P sa) ≤ sa.length ∧
+      (∀ k, k < binarySearchFirst P sa → P (sa.getD k 0) = false) ∧
+      (binarySearchFirst P sa < sa.length → P (sa.getD (binarySearchFirst P sa) 0) = true) := by
+  have hspec := binarySearchFirstAux_spec P sa hmono 0 sa.length
+    (Nat.zero_le _) le_rfl (by intro k hk; omega) (by intro k hk hkl; omega)
+  rcases hspec with ⟨hrlo, hrhi, hfalse, htrue⟩
+  constructor
+  · exact hrhi
+  constructor
+  · intro k hkr
+    exact hfalse k (Nat.zero_le _) hkr
+  · exact htrue
+
+/-- The whole-list costed binary search performs at most `⌈log₂ (n+1)⌉` probes. -/
+theorem binarySearchFirstCost_cost_le (P : ℕ → Bool) (sa : List ℕ) :
+    (binarySearchFirstCost P sa).2 ≤ Nat.clog 2 (sa.length + 1) := by
+  unfold binarySearchFirstCost
+  exact binarySearchFirstCostAux_cost_le P sa 0 sa.length
+
+/-! ### The range query -/
+
+/-- The decidable lower-bound probe: does the suffix at position `x` reach the
+pattern? -/
+def lowerDecide (t : Text α) (p : Text α) (x : ℕ) : Bool :=
+  decide (patternLE p (suffixAt t x))
+
+/-- The decidable upper-bound probe: is the suffix at position `x` strictly past
+every suffix beginning with `p`? -/
+def upperDecide (t : Text α) (p : Text α) (x : ℕ) : Bool :=
+  decide (patternGT p (suffixAt t x))
+
+/-- `lowerDecide` is monotone along a sorted suffix array. -/
+theorem lowerDecide_mono {t : Text α} {p : Text α} {sa : List ℕ}
+    (hsorted : List.Pairwise (suffixLe t) sa) (i j : ℕ)
+    (hij : i < j) (hj : j < sa.length) :
+    lowerDecide t p (sa.getD i 0) = true → lowerDecide t p (sa.getD j 0) = true := by
+  intro hi
+  have hi_lt : i < sa.length := lt_trans hij hj
+  have hle : suffixAt t (sa.getD i 0) ≤ suffixAt t (sa.getD j 0) := by
+    have hg : suffixAt t sa[i] ≤ suffixAt t sa[j] :=
+      sorted_suffixAt_le hsorted hi_lt hj hij
+    have hiD : sa.getD i 0 = sa[i] := List.getD_eq_getElem sa 0 hi_lt
+    have hjD : sa.getD j 0 = sa[j] := List.getD_eq_getElem sa 0 hj
+    simpa only [hiD, hjD] using hg
+  have hle' : patternLE p (suffixAt t (sa.getD i 0)) := of_decide_eq_true hi
+  have hle'' : patternLE p (suffixAt t (sa.getD j 0)) := patternLE_mono hle' hle
+  exact decide_eq_true hle''
+
+/-- `upperDecide` is monotone along a sorted suffix array. -/
+theorem upperDecide_mono {t : Text α} {p : Text α} {sa : List ℕ}
+    (hsorted : List.Pairwise (suffixLe t) sa) (i j : ℕ)
+    (hij : i < j) (hj : j < sa.length) :
+    upperDecide t p (sa.getD i 0) = true → upperDecide t p (sa.getD j 0) = true := by
+  intro hi
+  have hi_lt : i < sa.length := lt_trans hij hj
+  have hle : suffixAt t (sa.getD i 0) ≤ suffixAt t (sa.getD j 0) := by
+    have hg : suffixAt t sa[i] ≤ suffixAt t sa[j] :=
+      sorted_suffixAt_le hsorted hi_lt hj hij
+    have hiD : sa.getD i 0 = sa[i] := List.getD_eq_getElem sa 0 hi_lt
+    have hjD : sa.getD j 0 = sa[j] := List.getD_eq_getElem sa 0 hj
+    simpa only [hiD, hjD] using hg
+  have hle' : patternGT p (suffixAt t (sa.getD i 0)) := of_decide_eq_true hi
+  have hle'' : patternGT p (suffixAt t (sa.getD j 0)) := patternGT_mono hle' hle
+  exact decide_eq_true hle''
+
+/-- The lower bound of the pattern's interval in the fast suffix array. -/
+def suffixArrayLower (t : Text α) (p : Text α) : ℕ :=
+  binarySearchFirst (lowerDecide t p) (suffixArrayFast t)
+
+/-- The upper bound of the pattern's interval in the fast suffix array. -/
+def suffixArrayUpper (t : Text α) (p : Text α) : ℕ :=
+  binarySearchFirst (upperDecide t p) (suffixArrayFast t)
+
+/-- The lower bound is at most the upper bound. -/
+theorem suffixArrayLower_le_upper (t : Text α) (p : Text α) :
+    suffixArrayLower t p ≤ suffixArrayUpper t p := by
+  let sa := suffixArrayFast t
+  have hsorted : List.Pairwise (suffixLe t) sa := (suffixArrayFast_valid t).2
+  have hlower := binarySearchFirst_spec (lowerDecide t p) sa
+    (lowerDecide_mono (t := t) (p := p) hsorted)
+  have hupper := binarySearchFirst_spec (upperDecide t p) sa
+    (upperDecide_mono (t := t) (p := p) hsorted)
+  have hlo_len : suffixArrayLower t p ≤ sa.length := hlower.1
+  by_contra hgt
+  have hupper_lt_lo : suffixArrayUpper t p < suffixArrayLower t p := lt_of_not_ge hgt
+  have hupper_len : suffixArrayUpper t p < sa.length := lt_of_lt_of_le hupper_lt_lo hlo_len
+  have hupper_true : upperDecide t p (sa.getD (suffixArrayUpper t p) 0) = true := hupper.2.2 hupper_len
+  have hlower_false : lowerDecide t p (sa.getD (suffixArrayUpper t p) 0) = false :=
+    hlower.2.1 (suffixArrayUpper t p) hupper_lt_lo
+  have hgt_p : patternGT p (suffixAt t (sa.getD (suffixArrayUpper t p) 0)) :=
+    of_decide_eq_true hupper_true
+  have hle_p : patternLE p (suffixAt t (sa.getD (suffixArrayUpper t p) 0)) :=
+    le_of_lt hgt_p.1
+  have hlower_true : lowerDecide t p (sa.getD (suffixArrayUpper t p) 0) = true :=
+    decide_eq_true hle_p
+  exact Bool.noConfusion (hlower_false.symm.trans hlower_true)
+
+/-- The fast range query: the slice of the fast suffix array whose suffixes
+begin with `p`. -/
+def suffixArrayRange (t : Text α) (p : Text α) : List ℕ :=
+  let sa := suffixArrayFast t
+  (sa.drop (suffixArrayLower t p)).take (suffixArrayUpper t p - suffixArrayLower t p)
+
+/-- The character-comparison work of the fast range query: two binary searches,
+each probe charged `|p| + 1` character comparisons. -/
+def suffixArrayQueryWork (t : Text α) (p : Text α) : Nat :=
+  let sa := suffixArrayFast t
+  let lo := binarySearchFirstCost (lowerDecide t p) sa
+  let hi := binarySearchFirstCost (upperDecide t p) sa
+  (lo.2 + hi.2) * (p.length + 1)
+
+/-- The lower bound of the interval is where suffixes first reach `p`. -/
+theorem suffixArrayLower_spec (t : Text α) (p : Text α) :
+    (suffixArrayLower t p ≤ (suffixArrayFast t).length ∧
+      (∀ k, k < suffixArrayLower t p → lowerDecide t p ((suffixArrayFast t).getD k 0) = false) ∧
+      (suffixArrayLower t p < (suffixArrayFast t).length →
+        lowerDecide t p ((suffixArrayFast t).getD (suffixArrayLower t p) 0) = true)) := by
+  exact binarySearchFirst_spec (lowerDecide t p) (suffixArrayFast t)
+    (lowerDecide_mono (t := t) (p := p) ((suffixArrayFast_valid t).2))
+
+/-- The upper bound of the interval is where suffixes first move past `p`. -/
+theorem suffixArrayUpper_spec (t : Text α) (p : Text α) :
+    (suffixArrayUpper t p ≤ (suffixArrayFast t).length ∧
+      (∀ k, k < suffixArrayUpper t p → upperDecide t p ((suffixArrayFast t).getD k 0) = false) ∧
+      (suffixArrayUpper t p < (suffixArrayFast t).length →
+        upperDecide t p ((suffixArrayFast t).getD (suffixArrayUpper t p) 0) = true)) := by
+  exact binarySearchFirst_spec (upperDecide t p) (suffixArrayFast t)
+    (upperDecide_mono (t := t) (p := p) ((suffixArrayFast_valid t).2))
+
+/-- Membership in the slice `(l.drop lo).take (hi - lo)`. -/
+theorem mem_drop_take_iff (l : List ℕ) (lo hi x : ℕ) (hlo : lo ≤ hi) :
+    x ∈ (l.drop lo).take (hi - lo) ↔ ∃ j, lo ≤ j ∧ j < hi ∧ l[j]? = some x := by
+  rw [List.mem_iff_getElem?]
+  constructor
+  · rintro ⟨k, hk⟩
+    rw [List.getElem?_take, List.getElem?_drop] at hk
+    have hklt : k < hi - lo := by
+      by_cases h : k < hi - lo
+      · exact h
+      · simp [h] at hk
+    have hsome : l[lo + k]? = some x := by
+      simpa [hklt] using hk
+    refine ⟨lo + k, by omega, by omega, hsome⟩
+  · rintro ⟨j, hjlo, hjhi, hsome⟩
+    refine ⟨j - lo, ?_⟩
+    have hjlt : j - lo < hi - lo := by omega
+    rw [List.getElem?_take, List.getElem?_drop]
+    simp [hjlt]
+    have : lo + (j - lo) = j := by omega
+    simpa [this] using hsome
+
+/-- **Soundness and completeness of the fast range query.**  An index `i` is
+returned by `suffixArrayRange` exactly when `p` is a prefix of the suffix at
+`i` (equivalently, `p` occurs at position `i`). -/
+theorem suffixArrayRange_mem_iff (t : Text α) (p : Text α) (i : ℕ) :
+    i ∈ suffixArrayRange t p ↔ i < t.length ∧ isPrefix p (suffixAt t i) := by
+  let sa := suffixArrayFast t
+  have hperm : sa.Perm (List.range t.length) := (suffixArrayFast_valid t).1
+  have hlo_hi : suffixArrayLower t p ≤ suffixArrayUpper t p := suffixArrayLower_le_upper t p
+  have hlower := suffixArrayLower_spec t p
+  have hupper := suffixArrayUpper_spec t p
+  unfold suffixArrayRange
+  rw [mem_drop_take_iff sa (suffixArrayLower t p) (suffixArrayUpper t p) i hlo_hi]
+  constructor
+  · rintro ⟨j, hjlo, hjhi, hsome⟩
+    have hj : j < sa.length := lt_of_lt_of_le hjhi hupper.1
+    have hsai : sa[j] = i := by
+      rw [List.getElem?_eq_some_iff] at hsome
+      exact hsome.2
+    have hlower_true_j : lowerDecide t p (sa.getD j 0) = true := by
+      by_cases hlo_eq : suffixArrayLower t p = j
+      · have hgoal : lowerDecide t p (sa.getD (suffixArrayLower t p) 0) = true :=
+          hlower.2.2 (by simpa [hlo_eq] using hj)
+        simpa only [hlo_eq] using hgoal
+      · have hlo_lt : suffixArrayLower t p < sa.length := lt_of_le_of_lt hjlo hj
+        have hlo_true : lowerDecide t p (sa.getD (suffixArrayLower t p) 0) = true :=
+          hlower.2.2 hlo_lt
+        have hlo_lt_j : suffixArrayLower t p < j := lt_of_le_of_ne hjlo hlo_eq
+        have hmono := lowerDecide_mono (t := t) (p := p) ((suffixArrayFast_valid t).2)
+        exact hmono (suffixArrayLower t p) j hlo_lt_j hj hlo_true
+    have hupper_false_j : upperDecide t p (sa.getD j 0) = false := hupper.2.1 j hjhi
+    have hle : patternLE p (suffixAt t (sa.getD j 0)) := of_decide_eq_true hlower_true_j
+    have hngt : ¬ patternGT p (suffixAt t (sa.getD j 0)) := of_decide_eq_false hupper_false_j
+    have hpfx : isPrefix p (suffixAt t (sa.getD j 0)) :=
+      (isPrefix_iff_patternLE_and_not_patternGT p (suffixAt t (sa.getD j 0))).mpr ⟨hle, hngt⟩
+    have hget : sa.getD j 0 = i := by
+      rw [List.getD_eq_getElem sa 0 hj]
+      exact hsai
+    constructor
+    · have hmem : i ∈ List.range t.length := by
+        rw [← hperm.mem_iff]
+        exact List.mem_iff_getElem?.mpr ⟨j, by simpa only [hget] using hsome⟩
+      simpa using hmem
+    · simpa only [hget] using hpfx
+  · rintro ⟨hi_len, hpfx⟩
+    have himem : i ∈ sa := by
+      rw [hperm.mem_iff]
+      simpa using (List.mem_range.mpr hi_len)
+    rcases List.mem_iff_getElem?.mp himem with ⟨j, hsome⟩
+    rw [List.getElem?_eq_some_iff] at hsome
+    have hj : j < sa.length := hsome.1
+    have hji : sa[j] = i := hsome.2
+    have hgetD : sa.getD j 0 = i := by
+      rw [List.getD_eq_getElem sa 0 hj]
+      exact hji
+    have hpfx_j : isPrefix p (suffixAt t (sa.getD j 0)) := by
+      simpa only [hgetD] using hpfx
+    have hboth := (isPrefix_iff_patternLE_and_not_patternGT p (suffixAt t (sa.getD j 0))).mp hpfx_j
+    have hlower_true : lowerDecide t p (sa.getD j 0) = true := decide_eq_true hboth.1
+    have hupper_false : upperDecide t p (sa.getD j 0) = false :=
+      decide_eq_false hboth.2
+    have hlo_le_j : suffixArrayLower t p ≤ j := by
+      by_contra hneg
+      have hj_lt_lo : j < suffixArrayLower t p := lt_of_not_ge hneg
+      have hlo_false : lowerDecide t p (sa.getD j 0) = false := hlower.2.1 j hj_lt_lo
+      exact Bool.noConfusion (hlo_false.symm.trans hlower_true)
+    have hj_lt_hi : j < suffixArrayUpper t p := by
+      by_contra hneg
+      have hhi_le_j : suffixArrayUpper t p ≤ j := le_of_not_gt hneg
+      have hmono := upperDecide_mono (t := t) (p := p) ((suffixArrayFast_valid t).2)
+      have hhi_true : upperDecide t p (sa.getD j 0) = true := by
+        by_cases hhj : suffixArrayUpper t p = j
+        · subst hhj
+          exact hupper.2.2 hj
+        · have hhi_lt_j : suffixArrayUpper t p < j := lt_of_le_of_ne hhi_le_j hhj
+          have hhi_len : suffixArrayUpper t p < sa.length := lt_of_lt_of_le hhi_lt_j (Nat.le_of_lt hj)
+          exact hmono (suffixArrayUpper t p) j hhi_lt_j hj (hupper.2.2 hhi_len)
+      exact Bool.noConfusion (hupper_false.symm.trans hhi_true)
+    refine ⟨j, hlo_le_j, hj_lt_hi, ?_⟩
+    rw [List.getElem?_eq_some_iff]
+    exact ⟨hj, hji⟩
+
+/-- `Nat.log 2 (n+1) ≤ Nat.log 2 n + 1`. -/
+theorem log_succ_le_log_add_one (n : ℕ) : Nat.log 2 (n + 1) ≤ Nat.log 2 n + 1 := by
+  by_cases h : n = 0
+  · subst n; norm_num [Nat.log]
+  · have h1 : 1 ≤ n := Nat.succ_le_of_lt (Nat.pos_of_ne_zero h)
+    have hle : n + 1 ≤ n * 2 := by omega
+    have hlog : Nat.log 2 (n + 1) ≤ Nat.log 2 (n * 2) := Nat.log_monotone (b := 2) hle
+    have hlog2 : Nat.log 2 (n * 2) = Nat.log 2 n + 1 := Nat.log_mul_base (by norm_num : 1 < 2) h
+    rw [hlog2] at hlog
+    exact hlog
+
+/-- `Nat.clog 2 (n+1) ≤ Nat.log 2 n + 2`. -/
+theorem clog_succ_le_log_add_two (n : ℕ) : Nat.clog 2 (n + 1) ≤ Nat.log 2 n + 2 := by
+  have h := clog_two_le_log_two_add_one (n + 1)
+  have h' := Nat.add_le_add_right (log_succ_le_log_add_one n) 1
+  omega
+
+/-- The fast range query performs at most `2 · (|p| + 1) · (⌊log₂ n⌋ + 2)`
+character comparisons. -/
+theorem suffixArrayQueryWork_le (t : Text α) (p : Text α) :
+    suffixArrayQueryWork t p ≤ 2 * (p.length + 1) * (Nat.log 2 t.length + 2) := by
+  let sa := suffixArrayFast t
+  have hlen : sa.length = t.length := by
+    exact ((suffixArrayFast_valid t).1).length_eq.trans (List.length_range (n := t.length))
+  unfold suffixArrayQueryWork
+  have hlo := binarySearchFirstCost_cost_le (lowerDecide t p) sa
+  have hhi := binarySearchFirstCost_cost_le (upperDecide t p) sa
+  have hclog : Nat.clog 2 (sa.length + 1) ≤ Nat.log 2 t.length + 2 := by
+    rw [hlen]
+    exact clog_succ_le_log_add_two t.length
+  calc
+    ((binarySearchFirstCost (lowerDecide t p) sa).2 +
+        (binarySearchFirstCost (upperDecide t p) sa).2) * (p.length + 1)
+        ≤ (Nat.clog 2 (sa.length + 1) + Nat.clog 2 (sa.length + 1)) * (p.length + 1) :=
+          Nat.mul_le_mul_right (p.length + 1) (Nat.add_le_add hlo hhi)
+    _ = 2 * (p.length + 1) * Nat.clog 2 (sa.length + 1) := by ring
+    _ ≤ 2 * (p.length + 1) * (Nat.log 2 t.length + 2) :=
+          Nat.mul_le_mul_left (2 * (p.length + 1)) hclog
+
+/-- For a fixed pattern length `m`, the query work is `O(log n)` in the text
+length under the comparison model, with the `|p|` factor carried in the
+constant — jointly `O(|p| log n)`. -/
+theorem suffixArrayQueryWork_isBigO_logn (m : ℕ) :
+    isBigO (fun n : ℕ => (2 * ((m : ℝ) + 1) * (((Nat.log 2 n : ℕ) : ℝ) + 2)))
+      (fun n : ℕ => ((m : ℝ) + 1) * ((Nat.log 2 n : ℕ) : ℝ)) := by
+  rw [isBigO_iff]
+  refine ⟨8, by norm_num, 2, fun n hn => ?_⟩
+  have hlog : (1 : ℝ) ≤ (Nat.log 2 n : ℝ) := by
+    exact_mod_cast (Nat.log_pos (by norm_num : 1 < 2) (by omega : 2 ≤ n))
+  rw [abs_of_nonneg (by positivity), abs_of_nonneg (by positivity)]
+  have hm : (0 : ℝ) ≤ (m : ℝ) + 1 := by positivity
+  nlinarith
 
 end Chapter32
 end CLRS
