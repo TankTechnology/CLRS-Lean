@@ -1,0 +1,24 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityOneHot
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check arithmeticCfgOneHotGroupWireBase
+#check arithmeticCfgOneHotGroupWireCount
+#check arithmeticCfgOneHotGroupWires_eq_affine
+#check arithmeticCfgOneHotGroupGateStream_eq_affine
+#check affineExactlyOneFamilyGateStream
+#check exactlyOneFamilyGateStream_eq_affine
+#check arithmeticRawOneHotAffineGateStream
+#check arithmeticRawOneHotGateStream_eq_affineFamily
+#check arithmeticCfgOneHotGroupRev_runFrom
+#check arithmeticCfgOneHotGroupRev_steps_le
+
+#print axioms arithmeticCfgOneHotGroupWires_eq_affine
+#print axioms arithmeticCfgOneHotGroupGateStream_eq_affine
+#print axioms exactlyOneFamilyGateStream_eq_affine
+#print axioms arithmeticRawOneHotGateStream_eq_affineFamily
+#print axioms arithmeticCfgOneHotGroupRev_runFrom
+#print axioms arithmeticCfgOneHotGroupRev_steps_le
