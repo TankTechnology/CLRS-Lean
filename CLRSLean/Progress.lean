@@ -18,7 +18,7 @@ least six months; removal is possible only in 2.0 or later.
 * Chapters represented in Lean: 35.
 * Tracked reader-facing theorem entries: 1,528.
 * Proved tracked theorem entries: 1,528.
-* Online/supplementary theorem entries: 464.
+* Online/supplementary theorem entries: 465.
 * Remaining edition-coverage units: 2.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped

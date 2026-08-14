@@ -67,6 +67,19 @@ namespace Chapter31
 #check rho_collision_factor
 #check nontrivial_factor_of_gcd
 
+-- Section 31.9 probabilistic analysis (birthday bound + expected O(sqrt p))
+#check noCollision
+#check noCollision_prob_eq
+#check birthday_noCollision_le
+#check birthday_collision_ge
+#check birthday_collision_prob_ge_half
+#check rho_expected_rounds_le_two
+#check rho_expected_draws_le
+#check RhoState_valid
+#check pollardStep_valid
+#check pollardStep_detects
+#check pollardRhoLoop_terminates_on_collision
+
 -- Sanity checks: EUCLID computes a concrete gcd, and the division theorem
 -- picks out the expected quotient and remainder.
 example : euclid 48 18 = 6 := by native_decide
@@ -76,7 +89,7 @@ example : Nat.gcd 48 18 = 6 := by native_decide
 example (a : ℕ) : a ∣ a * 2 := divides_mul_right (divides_refl a)
 
 example {a b : ℕ} (h : Nat.Coprime a b) : ∃ x y : ℤ, 1 = x * (a : ℤ) + y * (b : ℤ) :=
-  coprime_iff_one_linear_combination.mp h
+  (coprime_iff_one_linear_combination a b).mp h
 
 end Chapter31
 end CLRS

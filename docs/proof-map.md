@@ -5094,7 +5094,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 
 ### Section 31.9 - Integer Factorization
 
-- Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_9_Integer_Factorization.lean`
+- Lean source: `CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean`
 - Status: `selected-section-complete`
 - Proved:
   - `rhoStep` (Pollard's rho iteration).
@@ -5107,8 +5107,19 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
     `pollardRho_sound` — a returned value ≠ `n` is a nontrivial divisor of
     `n`; `pollardStep_collision_factor` — a mod-`p` collision at a step makes
     that step's candidate a multiple of `p`.
-  - Deferred: the birthday-paradox / expected-`O(√p)` running-time analysis
-    (a heuristic in CLRS, left informal).
+  - Probabilistic analysis (CLRS Theorem 31.40), inside the explicit
+    i.i.d.-uniform model `Fin k → Fin p` (the CLRS "rho heuristic" made
+    precise): `noCollision_prob_eq` (`P[no collision] = descFactorial p k /
+    p^k`), `birthday_noCollision_le` (`≤ exp(−k(k−1)/(2p))`),
+    `birthday_collision_ge`, and `birthday_collision_prob_ge_half`
+    (collision with probability ≥ 1/2 once `2p ≤ k(k−1)`).
+  - Expected `O(√p)` running time: the independent-rounds model with the
+    geometric tail-sum gives `rho_expected_rounds_le_two` and
+    `rho_expected_draws_le` (expected draws ≤ 2k for `2p ≤ k(k−1)`).
+  - Detection, bound to the real construction (unconditional):
+    `RhoState_valid` / `pollardStep_valid` (the `x < n ∧ y < n` invariant),
+    `pollardStep_detects` / `pollardRhoLoop_terminates_on_collision` (a mod-`p`
+    collision of a fresh value with the snapshot forces a nontrivial divisor).
 
 ## Chapter 32 - String Matching
 
