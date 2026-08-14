@@ -80,6 +80,12 @@ orientation, and gate-index layers:
   `.input 0, ..., .input (n - 1)` with a concrete quadratic-time TM2;
 - `allocateCfgInputs_gates_eq` and `allocateTableauRows_gates_eq` expose the
   exact semantic gate order of the proof-carrying allocators;
+- `cfgSlotEquivFin_halted_val` through `cfgSlotEquivFin_stackCell_val` replace
+  the runtime-height-dependent choice of row-coordinate order with explicit
+  halted/label/state/stack offsets;
+- `cfgOneHotGroupEquivFin_label_val` through
+  `cfgOneHotGroupEquivFin_stackCell_val` similarly fix the exact one-hot group
+  order used by both the pure trace and proof-carrying validity builder;
 - `verifierInputGateStream_eq` proves that the concrete input-gate streamer is
   byte-for-byte the encoding of `(verifierRows W x).builder.gates`.
 - `circuitInputPrefix_computableInPolyTime` parks and restores its unit clock
@@ -213,6 +219,12 @@ agreement with the semantic allocators are already closed independently.
     accepted route scans the clock into a work stack, emits the header, restores
     the clock exactly, and then enters a relabeled copy of the verified gate
     streamer.
+12. **Using `Fintype.equivFin` on a runtime-height-dependent type.** A fresh
+    classical enumeration of `CfgSlot tm H` or `CfgOneHotGroup tm H` for each
+    runtime `H` is a semantic numbering, not a uniform algorithm available to
+    one fixed TM2.  The accepted replacement uses explicit sum/product
+    coordinates and keeps only the fixed verifier's finite stack enumeration
+    in finite control.
 
 ## Focused Acceptance Mechanism
 
@@ -239,6 +251,8 @@ lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
+lake env lean Tests/Chapter_34_CookLevin_ExplicitCfgSlotEncoding.lean
+lake env lean Tests/Chapter_34_CookLevin_ExplicitOneHotGroupEncoding.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneGateTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityGateTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
