@@ -33,12 +33,17 @@ Main results:
 - Lemma `phases_le_misses`: the number of phases is at most one more than the
   miss count of any size-`k` algorithm.
 - Theorem `lru_k_competitive`: LRU is `k`-competitive.
-
-Current gaps:
-
-- The matching lower bound — no deterministic online algorithm is better than
-  `k`-competitive — is recorded but not formalized here (the framework is set up
-  so the adversary argument can be added directly).
+- Lemma `advSeq_misses`: the Sleator-Tarjan adversary (always request the page
+  absent from the online algorithm's cache, over the `k + 1`-page universe
+  `Fin (k + 1)`) faults the online algorithm on every request.
+- Lemma `offMisses_bound` / `offMisses_bound_from_full`: the phase-based offline
+  schedule faults at most `(phases k σ).length + k` times from an empty cache,
+  and at most once per phase from a full cache.
+- Theorem `caching_lower_bound` (Theorem 27.4): for any deterministic online
+  algorithm and any request count `N` there is a request sequence of length `N`
+  on which the algorithm faults every request while some offline schedule faults
+  at most `N / k + k + 1` times — so no deterministic online algorithm is
+  `c`-competitive for any `c < k` (`caching_no_c_competitive`).
 
 Notation conventions used in this section:
 
