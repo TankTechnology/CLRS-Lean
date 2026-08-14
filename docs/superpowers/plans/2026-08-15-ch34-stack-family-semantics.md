@@ -10,4 +10,5 @@ iterator.
 - [x] Prove `cellValidityGateTrace` is the ordered flattening of all six-gate blocks.
 - [x] Instantiate the decomposition at arithmetic row wires.
 - [x] Close one stack's mask-plus-cell semantic gate stream.
+- [x] Lift the exact blocks through the fixed machine-stack enumeration.
 - [x] Audit, regress, document, and commit.

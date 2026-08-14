@@ -8,8 +8,11 @@ open CLRS.Chapter34.Turing.CookLevin
 #check stackValidityFamilyGateTrace_output_eq
 #check cellValidityGateBlock
 #check cellValidityGateTrace_gates_eq_blocks
+#check stackValidityGateBlock
+#check stackValidityFamilyGateTrace_gates_eq_blocks
 
 #print axioms suffixOrGateTrace_output_eq
 #print axioms cellValidityGateTrace_output_eq
 #print axioms stackValidityFamilyGateTrace_output_eq
 #print axioms cellValidityGateTrace_gates_eq_blocks
+#print axioms stackValidityFamilyGateTrace_gates_eq_blocks

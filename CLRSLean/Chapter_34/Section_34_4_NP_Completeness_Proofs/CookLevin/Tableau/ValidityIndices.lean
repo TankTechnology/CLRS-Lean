@@ -107,4 +107,38 @@ theorem cellValidityGateTrace_gates_eq_blocks (start n : Nat)
         cellValidityGateTrace_length, ih]
       simp [cellValidityGateBlock]
 
+/-- The literal mask-plus-cells block contributed by ordered stack `j`. -/
+noncomputable def stackValidityGateBlock
+    {tm : _root_.Turing.FinTM2} {H n : Nat}
+    (start : Nat) (wires : CfgWires tm H) (keys : Fin n → tm.K)
+    (j : Fin n) : List CircuitGate :=
+  let blockStart := start + (H + 1 + 6 * H) * j.val
+  let k := keys j
+  let mask := suffixOrGateTrace blockStart
+    (List.ofFn fun i : Fin H => wires.stackHeight k i.succ)
+  let active : Fin H → CircuitBuilder.Wire := fun i =>
+    mask.outputs (Fin.cast (by simp) i)
+  let blank : Fin H → CircuitBuilder.Wire := fun i =>
+    wires.stackCell k i (Fin.last (reachableAlphabet tm k).card)
+  let cells := cellValidityGateTrace (blockStart + (H + 1)) H active blank
+  mask.gates ++ cells.gates
+
+/-- The semantic ordered-stack family is exactly the flattening of its
+mask-plus-cells blocks. -/
+theorem stackValidityFamilyGateTrace_gates_eq_blocks
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (start : Nat) (wires : CfgWires tm H)
+    (n : Nat) (keys : Fin n → tm.K) :
+    (stackValidityFamilyGateTrace start wires n keys).gates =
+      (List.ofFn fun j : Fin n =>
+        stackValidityGateBlock start wires keys j).flatten := by
+  induction n with
+  | zero => simp [stackValidityFamilyGateTrace]
+  | succ n ih =>
+      simp only [stackValidityFamilyGateTrace]
+      rw [List.ofFn_succ', List.concat_eq_append, List.flatten_concat,
+        stackValidityFamilyGateTrace_length, ih]
+      simp [stackValidityGateBlock, suffixOrGateTrace_length]
+      congr 2 <;> ring
+
 end CLRS.Chapter34.Turing.CookLevin
