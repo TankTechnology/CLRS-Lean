@@ -60,13 +60,34 @@ Main results:
   terms times its smallest term, and the single-branch increment
   {lit}`a (n/b)^p (I n - I ⌊n/b⌋)` dominates {lit}`g n` by a positive factor —
   the analytic core of the upper-bound substitution proof.
+- Definition {lit}`akraBazziIncrement`: the per-branch increment
+  {lit}`a (n/b)^p (I n - I ⌊n/b⌋)`.
+- Theorems {lit}`akraBazziIntegral_tail_upper`,
+  {lit}`akraBazzi_increment_upper_single`, {lit}`akraBazzi_increment_upper`, and
+  {lit}`akraBazzi_increment_lower_multi`: the multi-branch increment is bounded
+  above and below by a positive constant times {lit}`g n`.
+- Theorem {lit}`akraBazzi_scale_decomp`: the children's scales sum to the scale
+  minus the total increment.
+- Theorem {lit}`akraBazzi_T_nonneg`: a solution is nonnegative.
+- Theorem {lit}`akraBazzi_T_ge_g`: above the base threshold, {lit}`g n ≤ T n`.
+- Theorem {lit}`akraBazzi_upper_bound`: the solution is
+  {lit}`O(n^p (1 + I n))`, the upper recurrence-to-integral comparison.
+- Theorem {lit}`akraBazzi_lower_bound`: the solution is
+  {lit}`Ω(n^p (1 + I n))` when {lit}`p + 1 ≤ q`, the lower comparison in the
+  forcing-dominated regime.
+- Theorem {lit}`akraBazzi_bigTheta`: the full {lit}`Θ(n^p (1 + I n))` bound when
+  {lit}`p + 1 ≤ q`.
 
 Status: `proved` for the root equation, the single-branch corollary (which
 recovers the master theorem), the multi-branch root uniqueness/nonnegativity,
-the scale-invariance bridge, the integral machinery, and the single-branch
-increment lower bound above.  The full multi-branch
-{lit}`Θ(n^p(1 + Σ g/u^(p+1)))` substitution bound (the upper and lower
-recurrence-to-integral comparison) is a recorded gap.
+the scale-invariance bridge, the integral machinery, the two-sided increment
+bounds, and the recurrence-to-integral comparison in both directions — the
+upper bound {lit}`T(n) = O(n^p(1+I n))` for arbitrary {lit}`p > 0`,
+{lit}`q ≥ 0`, and the matching lower bound {lit}`T(n) = Ω(n^p(1+I n))` (hence
+{lit}`T(n) = Θ(n^p(1+I n))`) in the forcing-dominated regime {lit}`p + 1 ≤ q`.
+The lower recurrence-to-integral comparison in the leaf-dominated and critical
+regimes {lit}`q ≤ p` (which requires the sub-leading floor-loss analysis of the
+deep recursion tree) is a recorded gap.
 
 Notation conventions used in this section:
 
@@ -1208,14 +1229,10 @@ lemma akraBazzi_integral_le_poly {p q : ℝ} {g : ℕ → ℝ}
           ring
     _ = Cg * (n : ℝ) ^ (q - p) := by
           have hpow : (n : ℝ) ^ (q - p - 1) * (n : ℝ) = (n : ℝ) ^ (q - p) := by
-            by_cases hn0 : n = 0
-            · subst n
-              rw [Real.zero_rpow (ne_of_gt (by linarith [hpq] : 0 < q - p))]
-              simp
-            · have hn_pos : 0 < (n : ℝ) := by exact_mod_cast (Nat.pos_of_ne_zero hn0)
-              rw [show (q - p) = (q - p - 1) + 1 by ring]
-              rw [Real.rpow_add hn_pos (q - p - 1) 1]
-              rw [Real.rpow_one]
+            rw [show (n : ℝ) ^ (q - p) = (n : ℝ) ^ ((q - p - 1) + 1) by
+              congr 1; ring]
+            rw [Real.rpow_add' (Nat.cast_nonneg n) (by linarith [hpq] : (q - p - 1) + 1 ≠ 0)]
+            rw [Real.rpow_one]
           rw [show Cg * (n : ℝ) ^ (q - p - 1) * (n : ℕ) = Cg * ((n : ℝ) ^ (q - p - 1) * (n : ℝ)) by ring]
           rw [hpow]
 
@@ -1227,7 +1244,7 @@ scale {lit}`n^p (1 + I n) = O(n^q)`, giving {lit}`T(n) = Ω(n^p (1 + I n))`.
 -/
 theorem akraBazzi_lower_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ} {n₀ : ℕ} {p q : ℝ}
     (hvalid : BranchesValid branches) (hnonempty : branches ≠ [])
-    (hroot : IsAkraBazziRoot branches p) (hp : 0 < p) (hpq : p + 1 ≤ q)
+    (_hroot : IsAkraBazziRoot branches p) (hp : 0 < p) (hpq : p + 1 ≤ q)
     (hsmooth : PolynomialGrowth g q) (hsat : SatisfiesAkraBazzi branches g T n₀) :
     Chapter03.isBigOmega T (akraBazziScale p g) := by
   have hgnonneg : ∀ n, 0 ≤ g n := hsmooth.1

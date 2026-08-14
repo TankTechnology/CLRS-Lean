@@ -68,6 +68,19 @@ namespace Chapter04
 #check akraBazziIntegral_bounded_of_lt
 #check akraBazziIntegral_tail_lower
 #check akraBazzi_increment_lower
+#check akraBazziIncrement
+#check akraBazziIntegral_tail_upper
+#check akraBazzi_increment_upper_single
+#check akraBazzi_increment_upper
+#check akraBazzi_increment_lower_multi
+#check akraBazzi_scale_ge_one
+#check akraBazzi_scale_decomp
+#check akraBazzi_T_nonneg
+#check akraBazzi_T_ge_g
+#check akraBazzi_integral_le_poly
+#check akraBazzi_upper_bound
+#check akraBazzi_lower_bound
+#check akraBazzi_bigTheta
 
 /-! The headline theorems must not carry `sorryAx` or any project axiom. -/
 #print axioms mul_runtime_bigTheta
@@ -81,6 +94,11 @@ namespace Chapter04
 #print axioms akraBazzi_root_scale_invariance
 #print axioms akraBazziIntegral_bounded_of_lt
 #print axioms akraBazzi_increment_lower
+#print axioms akraBazzi_increment_upper
+#print axioms akraBazzi_increment_lower_multi
+#print axioms akraBazzi_upper_bound
+#print axioms akraBazzi_lower_bound
+#print axioms akraBazzi_bigTheta
 
 end Chapter04
 end CLRS
