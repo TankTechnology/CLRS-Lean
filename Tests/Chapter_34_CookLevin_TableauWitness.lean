@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauWitness
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTableauCfg
+#check verifierTableauCfg_initial
+#check verifierTableauCfg_step
+#check VerifierWitness.verifierTableauCfg_alphabetBounded
+#check VerifierWitness.verifierTableauCfg_height
+#check verifierTableauBits
+#check verifierTableauAssignment
+#check VerifierWitness.allocateTableauRows_eval_verifierTableau
+#check verifierTableauCfg_last_of_accepts
+
+end CLRS.Chapter34.Turing.CookLevin

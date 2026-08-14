@@ -41,9 +41,19 @@ in Lean; no chapter remains {lit}`not-started`.  The generated dashboard owns
 live theorem totals and status counts, so this prose does not freeze a
 completed-prefix milestone.
 
-The edition map currently records one remaining fourth-edition gap: Chapter 34
-§34.5 is {lit}`not-started` (its §34.1--§34.4 are facade-represented).  Every
-other represented section is {lit}`native` or {lit}`facade`.
+The edition map records two remaining coverage units, both in Chapter 34:
+§34.4 is {lit}`partial` and §34.5 is {lit}`not-started`.  Chapter 34 is the sole
+repository row whose status remains {lit}`partial`.
+
+* **Chapter 34, NP-Completeness:** Sections 34.1--34.3 provide the complexity
+  framework, `P ⊆ NP`, and polynomial-reduction infrastructure.  Section 34.4
+  proves the represented concrete reductions, the semantic Cook--Levin
+  whole-tableau circuit, its polynomial gate/input/encoding bounds, the exact
+  function-level map, and finite-certificate semantics for
+  `GeneralCircuitSAT`.  Concrete polynomial-time TM2 implementations of the
+  generator and certificate checker, the final `GeneralCircuitSAT`
+  NP-completeness wrappers, general graph-plus-{lit}`k` CLIQUE, and Section
+  34.5 remain open.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the
@@ -66,8 +76,8 @@ The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 464 tracked theorem
 groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
 33, plus 43 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
-factorization.  Those 43 groups have been removed from the canonical chapter
-totals, so the 1,515 canonical and 464 online entries are disjoint.
+factorization.  Those 43 groups are disjoint from the 1,523 canonical tracked
+theorem entries.
 {lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
 modules; compatibility imports do not duplicate either ledger.
 

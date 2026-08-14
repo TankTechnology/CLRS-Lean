@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Evaluation
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check verifierConjunction_validity_true
+#check verifierConjunction_transitions_true
+#check verifierConjunction_initial_true
+#check verifierConjunction_input_true
+#check verifierConjunction_accepting_true
+#check verifierConjunction_true_of_components
+
+end CLRS.Chapter34.Turing.CookLevin
