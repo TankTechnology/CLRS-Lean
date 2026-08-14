@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Horizon
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorClock
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
 /-!
@@ -17,4 +18,7 @@ map with exact membership semantics and a polynomial output-length bound.
 The generator-clock layer supplies concrete exact unary clocks for every
 primary verifier-circuit dimension without adding a source-alphabet finiteness
 premise to the universal construction.
+The generator-header layer derives the exact tableau arity polynomial, emits
+the canonical circuit header and initial input-gate family, and proves that
+the latter is byte-for-byte the semantic tableau allocator's gate encoding.
 -/

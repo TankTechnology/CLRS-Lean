@@ -93,6 +93,33 @@ def allocateTableauRowsAt (tm : _root_.Turing.FinTM2) (H : Nat)
               rw [current.eval_slot]
               simp [layout, hlast] }
 
+/-- Serial tableau allocation appends exactly one increasing input-gate block
+covering its complete external-input interval. -/
+theorem allocateTableauRowsAt_gates_eq
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (start : CircuitBuilder) (base n : Nat)
+    (hfit : base + n * cfgBitCount tm H ≤ start.inputCount) :
+    (allocateTableauRowsAt tm H start base n hfit).builder.gates =
+      start.gates ++
+        (List.range' base (n * cfgBitCount tm H)).map CircuitGate.input := by
+  induction n with
+  | zero => simp [allocateTableauRowsAt]
+  | succ n ih =>
+      have hprefix : base + n * cfgBitCount tm H ≤ start.inputCount := by
+        apply le_trans ?_ hfit
+        exact Nat.add_le_add_left
+          (Nat.mul_le_mul_right _ (Nat.le_succ n)) base
+      simp only [allocateTableauRowsAt]
+      rw [allocateCfgInputs_gates_eq]
+      rw [show
+        (allocateTableauRowsAt tm H start base n hprefix).builder.gates =
+          start.gates ++
+            (List.range' base (n * cfgBitCount tm H)).map CircuitGate.input by
+        exact ih hprefix]
+      simp only [tableauRowLayoutAt_base]
+      rw [List.append_assoc, ← List.map_append, List.range'_append_1,
+        Nat.succ_mul]
+
 /-- Allocation is independent of the proof term establishing interval fit. -/
 theorem allocateTableauRowsAt_proof_irrel
     (tm : _root_.Turing.FinTM2) (H : Nat)
@@ -126,6 +153,21 @@ theorem allocateTableauRows_gate_delta (tm : _root_.Turing.FinTM2)
       tableauInputCount tm H T := by
   simpa [tableauStart, tableauInputCount, CircuitBuilder.empty] using
     (allocateTableauRows tm H T).gate_delta
+
+/-- Canonical whole-tableau allocation emits input gates numbered
+`0, ..., tableauInputCount - 1` in that exact order. -/
+theorem allocateTableauRows_gates_eq (tm : _root_.Turing.FinTM2)
+    (H T : Nat) :
+    (allocateTableauRows tm H T).builder.gates =
+      (List.range (tableauInputCount tm H T)).map CircuitGate.input := by
+  rw [show allocateTableauRows tm H T =
+      allocateTableauRowsAt tm H (tableauStart tm H T) 0
+        (tableauRowCount T) (by
+          simp [tableauStart, tableauInputCount, CircuitBuilder.empty]) by
+    rfl]
+  rw [allocateTableauRowsAt_gates_eq]
+  simp [tableauStart, tableauInputCount, List.range_eq_range',
+    CircuitBuilder.empty]
 
 /-- Every allocated row is valid in the common final builder. -/
 theorem allocateTableauRows_row_valid (tm : _root_.Turing.FinTM2)

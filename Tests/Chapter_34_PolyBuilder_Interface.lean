@@ -30,6 +30,11 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 #check exactMonomialClock_computableInPolyTime
 #check exactPolynomialClock_length
 #check exactPolynomialClock_computableInPolyTime
+#check inputGateStream
+#check inputGateStream_eq
+#check inputGateRev_outputs
+#check inputGateRev_polyBound
+#check inputGateStream_computableInPolyTime
 
 example {σ : Type} (f : σ → Option σ) {m₁ m₂ : Nat} {a b : σ}
     {c : Option σ}
