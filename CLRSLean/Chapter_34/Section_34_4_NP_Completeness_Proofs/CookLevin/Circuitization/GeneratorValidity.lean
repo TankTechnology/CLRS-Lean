@@ -11,6 +11,10 @@ validity phase.
 
 Main results:
 
+- {lit}`verifierRowWire_eq` and its field-specialized corollaries give closed
+  arithmetic wire numbers for every verifier-row coordinate.
+- {lit}`verifierValidityGateStream_rows_eq` exposes the complete validity
+  phase as an exact row-major flattening with an explicit start index per row.
 - {lit}`verifierValidityGateStream_eq` identifies the literal validity stream
   with the suffix appended by the semantic builder.
 - {lit}`verifierCircuitValidityPrefix_eq` identifies the complete serialized
@@ -28,6 +32,129 @@ noncomputable section
 
 namespace CLRS.Chapter34.Turing.CookLevin
 
+/-! ## Closed verifier-row wire formulas -/
+
+/-- Every verifier-row coordinate has the closed global wire number obtained
+by adding its explicit in-row coordinate to the row's fixed-width base. -/
+theorem verifierRowWire_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length)))
+    (slot : CfgSlot W.machine.tm ((verifierHeight W).eval input.length)) :
+    (verifierRows W input).rows row slot =
+      row.val * cfgBitCount W.machine.tm
+          ((verifierHeight W).eval input.length) +
+        (cfgSlotEquivFin W.machine.tm
+          ((verifierHeight W).eval input.length) slot).val := by
+  simpa [verifierRows, tableauStart, CircuitBuilder.empty] using
+    (verifierRows W input).wire_eq row slot
+
+/-- The halted bit is the first wire of its verifier tableau row. -/
+theorem verifierRowHaltedWire_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length))) :
+    (verifierRows W input).rows row
+        (CfgSlot.halted W.machine.tm ((verifierHeight W).eval input.length)) =
+      row.val * cfgBitCount W.machine.tm
+        ((verifierHeight W).eval input.length) := by
+  rw [verifierRowWire_eq, cfgSlotEquivFin_halted_val, Nat.add_zero]
+
+/-- Label wires immediately follow the halted bit in every verifier row. -/
+theorem verifierRowLabelWire_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length)))
+    (i : Fin (labelCount W.machine.tm + 1)) :
+    (verifierRows W input).rows row (CfgSlot.label i) =
+      row.val * cfgBitCount W.machine.tm
+          ((verifierHeight W).eval input.length) + (1 + i.val) := by
+  rw [verifierRowWire_eq, cfgSlotEquivFin_label_val]
+
+/-- State wires follow the halted and label blocks in every verifier row. -/
+theorem verifierRowStateWire_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length)))
+    (i : Fin (stateCount W.machine.tm)) :
+    (verifierRows W input).rows row (CfgSlot.state i) =
+      row.val * cfgBitCount W.machine.tm
+          ((verifierHeight W).eval input.length) +
+        (1 + (labelCount W.machine.tm + 1) + i.val) := by
+  rw [verifierRowWire_eq, cfgSlotEquivFin_state_val]
+
+/-- Stack-height wires have a fixed outer offset, the explicit stack prefix,
+and their local height coordinate. -/
+theorem verifierRowStackHeightWire_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length)))
+    (k : W.machine.tm.K)
+    (i : Fin ((verifierHeight W).eval input.length + 1)) :
+    (verifierRows W input).rows row (CfgSlot.stackHeight k i) =
+      row.val * cfgBitCount W.machine.tm
+          ((verifierHeight W).eval input.length) +
+        (1 + (labelCount W.machine.tm + 1) + stateCount W.machine.tm +
+          cfgStackBitOffset W.machine.tm
+            ((verifierHeight W).eval input.length) k + i.val) := by
+  rw [verifierRowWire_eq, cfgSlotEquivFin_stackHeight_val]
+
+/-- Stack-cell wires additionally include the height block and their
+row-major cell/symbol coordinate. -/
+theorem verifierRowStackCellWire_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length)))
+    (k : W.machine.tm.K)
+    (i : Fin ((verifierHeight W).eval input.length))
+    (a : Fin ((reachableAlphabet W.machine.tm k).card + 1)) :
+    (verifierRows W input).rows row (CfgSlot.stackCell k i a) =
+      row.val * cfgBitCount W.machine.tm
+          ((verifierHeight W).eval input.length) +
+        (1 + (labelCount W.machine.tm + 1) + stateCount W.machine.tm +
+          cfgStackBitOffset W.machine.tm
+            ((verifierHeight W).eval input.length) k +
+          (((verifierHeight W).eval input.length + 1) +
+            (a.val + ((reachableAlphabet W.machine.tm k).card + 1) *
+              i.val))) := by
+  rw [verifierRowWire_eq, cfgSlotEquivFin_stackCell_val]
+  simp only [Nat.add_assoc]
+
+/-! ## Row-major validity layout -/
+
+/-- The shared-pool builder has the exact tableau-input length plus its two
+constant gates. -/
+theorem verifierPoolGateCount_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    (verifierPool W input).builder.gates.length =
+      tableauInputCount W.machine.tm
+          ((verifierHeight W).eval input.length)
+          ((verifierHorizon W).eval input.length) + 2 := by
+  rw [verifierPool, CircuitBuilder.allocateBoolWirePool_gate_delta]
+  unfold verifierRows
+  rw [allocateTableauRows_gate_delta]
+
+/-- First fresh gate index assigned to one verifier row's canonical-validity
+trace. -/
+def verifierValidityRowStart {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length))) : Nat :=
+  tableauInputCount W.machine.tm
+      ((verifierHeight W).eval input.length)
+      ((verifierHorizon W).eval input.length) + 2 +
+    row.val * validCfgGateCost W.machine.tm
+      ((verifierHeight W).eval input.length)
+
+/-- Exact encoded validity-gate stream contributed by one verifier row. -/
+def verifierRowValidityGateStream {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ)
+    (row : Fin (tableauRowCount ((verifierHorizon W).eval input.length))) :
+    List CircuitSym :=
+  (canonicalValidityGateTrace (verifierValidityRowStart W input row)
+    ((verifierRows W input).rows row)).gates.flatMap encodeCircuitGate
+
+private theorem flatMap_flatten_encodeCircuitGate
+    (gateLists : List (List CircuitGate)) :
+    gateLists.flatten.flatMap encodeCircuitGate =
+      (gateLists.map (List.flatMap encodeCircuitGate)).flatten := by
+  induction gateLists with
+  | nil => rfl
+  | cons gates rest ih => simp [ih]
+
 /-! ## Literal validity gate stream -/
 
 /-- Serialized exact gate trace for canonical validity across all verifier
@@ -39,6 +166,25 @@ def verifierValidityGateStream {Γ : Type} {L : Language Γ}
   let trace := validCfgCircuitFamilyGateTrace pool.builder.gates.length
     (tableauRowCount ((verifierHorizon W).eval input.length)) rows.rows
   trace.gates.flatMap encodeCircuitGate
+
+/-- The complete validity stream is a literal row-major flattening.  Row `r`
+starts at the pool endpoint plus `r` exact single-row costs. -/
+theorem verifierValidityGateStream_rows_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    verifierValidityGateStream W input =
+      (List.ofFn fun row :
+          Fin (tableauRowCount ((verifierHorizon W).eval input.length)) =>
+        verifierRowValidityGateStream W input row).flatten := by
+  rw [verifierValidityGateStream]
+  rw [validCfgCircuitFamilyGateTrace_gates_eq_flatMap]
+  rw [flatMap_flatten_encodeCircuitGate]
+  rw [List.map_ofFn]
+  apply congrArg List.flatten
+  apply List.ofFn_inj.mpr
+  funext row
+  simp only [verifierRowValidityGateStream, verifierValidityRowStart]
+  rw [verifierPoolGateCount_eq]
+  rfl
 
 /-- The literal stream is exactly the encoded suffix appended by the semantic
 validity family. -/
