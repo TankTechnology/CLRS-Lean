@@ -313,10 +313,12 @@ executes the blank-bit negation, so the arithmetic not-plus-XNOR stream is now
 the complete semantic six-gate cell block.  The ordered block decomposition
 then proves that their flattening is the exact semantic `6H` cell trace, and
 `arithmeticStackGateStream_eq_semantic` closes the complete mask-plus-cells
-stream for one fixed stack.  This deliberately does not claim that those
-per-cell streams are already emitted by one finite-family loop; that iterator
-remains an explicit acceptance gap before the whole stack family can be called
-executable.
+stream for one fixed stack.  `arithmeticStackOrdinal_equiv_symm` then aligns
+the bundled fixed-machine enumeration with the arithmetic block offsets, and
+`arithmeticStackFamilyGateStream_eq_semantic` closes the target byte stream for
+all stacks.  This deliberately does not claim that those blocks are already
+emitted by one finite-family loop; that iterator remains an explicit execution
+gap.
 
 ## Focused Acceptance Mechanism
 

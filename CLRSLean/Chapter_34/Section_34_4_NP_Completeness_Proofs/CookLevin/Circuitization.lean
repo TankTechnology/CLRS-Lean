@@ -34,6 +34,7 @@ every stack's suffix-OR active mask, and every fixed stack-cell XNOR block with
 exact contextual runs and closed wire indices.  The leading blank-bit
 negations now close each complete semantic six-gate cell block.  Finite-family
 decomposition also identifies the exact ordered `6H` cell suffix and complete
-mask-plus-cells stream of each fixed stack.  A uniform executable family
-iterator and the final conjunction remain the row-local machine phases.
+mask-plus-cells stream of each fixed stack.  The fixed stack enumeration then
+closes the complete semantic stack-family byte stream.  A uniform executable
+family iterator and the final conjunction remain the row-local machine phases.
 -/

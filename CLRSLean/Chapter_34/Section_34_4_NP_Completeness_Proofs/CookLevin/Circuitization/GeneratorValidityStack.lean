@@ -24,6 +24,25 @@ noncomputable def arithmeticStackOrdinal
   letI : Fintype tm.K := tm.kFin
   exact (Fintype.equivFin tm.K k).val
 
+/-- Number of stacks of the fixed machine, using its bundled finite instance. -/
+def arithmeticStackCount (tm : _root_.Turing.FinTM2) : Nat :=
+  @Fintype.card tm.K tm.kFin
+
+/-- Canonical fixed-machine stack enumeration used by validity traces. -/
+noncomputable def arithmeticStackEquiv (tm : _root_.Turing.FinTM2) :
+    tm.K ≃ Fin (arithmeticStackCount tm) :=
+  @Fintype.equivFin tm.K tm.kFin
+
+/-- Enumerating a stack and then taking its arithmetic ordinal returns the
+original finite index. -/
+@[simp] theorem arithmeticStackOrdinal_equiv_symm
+    (tm : _root_.Turing.FinTM2) (j : Fin (arithmeticStackCount tm)) :
+    arithmeticStackOrdinal tm ((arithmeticStackEquiv tm).symm j) = j.val := by
+  change ((@Fintype.equivFin tm.K tm.kFin)
+    ((@Fintype.equivFin tm.K tm.kFin).symm j)).val = j.val
+  exact congrArg Fin.val
+    ((@Fintype.equivFin tm.K tm.kFin).apply_symm_apply j)
+
 /-- First fresh gate index of the complete stack-validity family. -/
 noncomputable def arithmeticStackValidityStart
     (tm : _root_.Turing.FinTM2) (H start : Nat) : Nat :=
@@ -374,6 +393,48 @@ theorem arithmeticStackGateStream_eq_semantic
   rw [arithmeticStackMaskGateStream_eq_semantic,
     arithmeticStackCellFamilyGateStream_eq_semantic]
   simp
+
+/-- A fixed arithmetic stack stream is the corresponding literal block in the
+canonical finite stack order. -/
+theorem arithmeticStackGateStream_eq_block
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (j : Fin (arithmeticStackCount tm)) :
+    arithmeticStackGateStream tm H start rowBase
+        ((arithmeticStackEquiv tm).symm j) =
+      (stackValidityGateBlock (arithmeticStackValidityStart tm H start)
+        (arithmeticCfgWires tm H rowBase)
+        (fun q => (arithmeticStackEquiv tm).symm q) j).flatMap
+          encodeCircuitGate := by
+  rw [arithmeticStackGateStream_eq_semantic]
+  unfold stackValidityGateBlock arithmeticStackMaskTrace
+    arithmeticStackMaskWires arithmeticStackCellTraceStart
+    arithmeticStackBlockStart
+  rw [arithmeticStackOrdinal_equiv_symm]
+
+/-- Complete encoded stack-validity family in the fixed machine-stack order. -/
+noncomputable def arithmeticStackFamilyGateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) : List CircuitSym :=
+  (List.ofFn fun j : Fin (arithmeticStackCount tm) =>
+    arithmeticStackGateStream tm H start rowBase
+      ((arithmeticStackEquiv tm).symm j)).flatten
+
+/-- The arithmetic family stream is exactly the semantic ordered-stack trace. -/
+theorem arithmeticStackFamilyGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticStackFamilyGateStream tm H start rowBase =
+      (stackValidityFamilyGateTrace
+        (arithmeticStackValidityStart tm H start)
+        (arithmeticCfgWires tm H rowBase) (arithmeticStackCount tm)
+        (fun j => (arithmeticStackEquiv tm).symm j)).gates.flatMap
+          encodeCircuitGate := by
+  unfold arithmeticStackFamilyGateStream
+  simp_rw [arithmeticStackGateStream_eq_block]
+  rw [stackValidityFamilyGateTrace_gates_eq_blocks]
+  simpa [Function.comp_def] using flatten_encoded_blocks
+    (List.ofFn fun j : Fin (arithmeticStackCount tm) =>
+      stackValidityGateBlock (arithmeticStackValidityStart tm H start)
+        (arithmeticCfgWires tm H rowBase)
+        (fun q => (arithmeticStackEquiv tm).symm q) j)
 
 end
 
