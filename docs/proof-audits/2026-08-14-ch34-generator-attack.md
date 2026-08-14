@@ -310,10 +310,13 @@ quadratic counter bound.  `affineSuffixOrRev_runFrom` now also executes the
 right-to-left false-seeded OR scan, and its arithmetic-row instantiation is
 definitionally equal to the semantic stack mask.  `affineNotRev_runFrom` also
 executes the blank-bit negation, so the arithmetic not-plus-XNOR stream is now
-the complete semantic six-gate cell block.  This deliberately does not claim
-that those per-cell streams are already interleaved by one finite-family loop;
-that iterator remains an explicit acceptance gap before the whole stack
-family can be called executable.
+the complete semantic six-gate cell block.  The ordered block decomposition
+then proves that their flattening is the exact semantic `6H` cell trace, and
+`arithmeticStackGateStream_eq_semantic` closes the complete mask-plus-cells
+stream for one fixed stack.  This deliberately does not claim that those
+per-cell streams are already emitted by one finite-family loop; that iterator
+remains an explicit acceptance gap before the whole stack family can be called
+executable.
 
 ## Focused Acceptance Mechanism
 

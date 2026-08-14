@@ -293,6 +293,88 @@ theorem arithmeticStackCellGateStream_eq_semantic
       tm H start rowBase k i]
   simp
 
+/-- The arithmetic six-gate stream is one literal `cellValidityGateBlock`. -/
+theorem arithmeticStackCellGateStream_eq_block
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) :
+    arithmeticStackCellGateStream tm H start rowBase k i =
+      (cellValidityGateBlock
+        (arithmeticStackCellTraceStart tm H start k) H
+        (fun j => (arithmeticStackMaskTrace tm H start rowBase k).outputs
+          (Fin.cast (by simp [arithmeticStackMaskWires]) j))
+        (fun j => (arithmeticCfgWires tm H rowBase).stackCell k j
+          (Fin.last (reachableAlphabet tm k).card)) i).flatMap
+            encodeCircuitGate := by
+  rw [arithmeticStackCellGateStream_eq_semantic]
+  simp [cellValidityGateBlock, arithmeticStackCellBoolEqStart,
+    arithmeticStackCellNotWire]
+
+/-- Encoded ordered family of every six-gate cell block of one stack. -/
+noncomputable def arithmeticStackCellFamilyGateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    List CircuitSym :=
+  (List.ofFn fun i : Fin H =>
+    arithmeticStackCellGateStream tm H start rowBase k i).flatten
+
+private theorem flatten_encoded_blocks (blocks : List (List CircuitGate)) :
+    (blocks.map fun block => block.flatMap encodeCircuitGate).flatten =
+      blocks.flatten.flatMap encodeCircuitGate := by
+  induction blocks with
+  | nil => rfl
+  | cons block blocks ih => simp [ih]
+
+/-- The ordered arithmetic family is exactly the semantic `6H` cell-validity
+trace after the active mask. -/
+theorem arithmeticStackCellFamilyGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    arithmeticStackCellFamilyGateStream tm H start rowBase k =
+      let mask := arithmeticStackMaskTrace tm H start rowBase k
+      let active : Fin H → CircuitBuilder.Wire := fun i =>
+        mask.outputs (Fin.cast (by simp [arithmeticStackMaskWires]) i)
+      let blank : Fin H → CircuitBuilder.Wire := fun i =>
+        (arithmeticCfgWires tm H rowBase).stackCell k i
+          (Fin.last (reachableAlphabet tm k).card)
+      (cellValidityGateTrace
+        (arithmeticStackCellTraceStart tm H start k) H active blank).gates.flatMap
+          encodeCircuitGate := by
+  unfold arithmeticStackCellFamilyGateStream
+  simp_rw [arithmeticStackCellGateStream_eq_block]
+  rw [cellValidityGateTrace_gates_eq_blocks]
+  simpa [Function.comp_def] using flatten_encoded_blocks
+    (List.ofFn fun i : Fin H =>
+      cellValidityGateBlock (arithmeticStackCellTraceStart tm H start k) H
+        (fun j => (arithmeticStackMaskTrace tm H start rowBase k).outputs
+          (Fin.cast (by simp [arithmeticStackMaskWires]) j))
+        (fun j => (arithmeticCfgWires tm H rowBase).stackCell k j
+          (Fin.last (reachableAlphabet tm k).card)) i)
+
+/-- Complete encoded canonicality stream of one fixed stack: its active mask
+followed by every ordered six-gate cell block. -/
+noncomputable def arithmeticStackGateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    List CircuitSym :=
+  arithmeticStackMaskGateStream tm H start rowBase k ++
+    arithmeticStackCellFamilyGateStream tm H start rowBase k
+
+/-- The arithmetic one-stack stream is exactly the semantic mask-plus-cells
+trace of length `H + 1 + 6H`. -/
+theorem arithmeticStackGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    arithmeticStackGateStream tm H start rowBase k =
+      let mask := arithmeticStackMaskTrace tm H start rowBase k
+      let active : Fin H → CircuitBuilder.Wire := fun i =>
+        mask.outputs (Fin.cast (by simp [arithmeticStackMaskWires]) i)
+      let blank : Fin H → CircuitBuilder.Wire := fun i =>
+        (arithmeticCfgWires tm H rowBase).stackCell k i
+          (Fin.last (reachableAlphabet tm k).card)
+      let cells := cellValidityGateTrace
+        (arithmeticStackCellTraceStart tm H start k) H active blank
+      (mask.gates ++ cells.gates).flatMap encodeCircuitGate := by
+  unfold arithmeticStackGateStream
+  rw [arithmeticStackMaskGateStream_eq_semantic,
+    arithmeticStackCellFamilyGateStream_eq_semantic]
+  simp
+
 end
 
 end CLRS.Chapter34.Turing.CookLevin

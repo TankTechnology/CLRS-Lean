@@ -6,7 +6,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check suffixOrGateTrace_output_eq
 #check cellValidityGateTrace_output_eq
 #check stackValidityFamilyGateTrace_output_eq
+#check cellValidityGateBlock
+#check cellValidityGateTrace_gates_eq_blocks
 
 #print axioms suffixOrGateTrace_output_eq
 #print axioms cellValidityGateTrace_output_eq
 #print axioms stackValidityFamilyGateTrace_output_eq
+#print axioms cellValidityGateTrace_gates_eq_blocks
