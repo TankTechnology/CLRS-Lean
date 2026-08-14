@@ -1236,6 +1236,212 @@ lemma akraBazzi_integral_le_poly {p q : ℝ} {g : ℕ → ℝ}
           rw [show Cg * (n : ℝ) ^ (q - p - 1) * (n : ℕ) = Cg * ((n : ℝ) ^ (q - p - 1) * (n : ℝ)) by ring]
           rw [hpow]
 
+/-- For {lit}`2 ≤ x` and {lit}`0 < p`, the power drop from {lit}`x` to {lit}`⌊x⌋₊` is
+{lit}`O(x^(p-1))`: a one-step mean-value bound on the monotone power map. -/
+lemma rpow_sub_floor_le_of_two_le {p : ℝ} (hp : 0 < p) {x : ℝ} (hx2 : 2 ≤ x) :
+    x ^ p - (⌊x⌋₊ : ℝ) ^ p ≤ 2 * (1 + p) * x ^ (p - 1) := by
+  have hx0 : 0 < x := lt_of_lt_of_le (by norm_num) hx2
+  by_cases hx_int : (⌊x⌋₊ : ℝ) = x
+  · rw [hx_int]
+    have hnonneg : 0 ≤ 2 * (1 + p) * x ^ (p - 1) := by positivity
+    linarith
+  · have hfloor_le : (⌊x⌋₊ : ℝ) ≤ x := Nat.floor_le hx0.le
+    have hfloor_ge : x - 1 ≤ (⌊x⌋₊ : ℝ) := by
+      have h := Nat.lt_floor_add_one x
+      linarith
+    have hfloor_ge_half : x / 2 ≤ (⌊x⌋₊ : ℝ) := by
+      have h1 : x / 2 ≤ x - 1 := by linarith
+      exact le_trans h1 hfloor_ge
+    have hfloor_ge_one : 1 ≤ (⌊x⌋₊ : ℝ) := by
+      have h1 : (1 : ℝ) ≤ x / 2 := by linarith
+      exact le_trans h1 hfloor_ge_half
+    have hlt : (⌊x⌋₊ : ℝ) < x := lt_of_le_of_ne hfloor_le hx_int
+    have hmvt : ∃ c ∈ Set.Ioo (⌊x⌋₊ : ℝ) x,
+        deriv (fun z : ℝ => z ^ p) c = (x ^ p - (⌊x⌋₊ : ℝ) ^ p) / (x - (⌊x⌋₊ : ℝ)) := by
+      refine exists_deriv_eq_slope (fun z : ℝ => z ^ p) hlt ?_ ?_
+      · exact (Real.continuous_rpow_const hp.le).continuousOn.mono (Set.subset_univ _)
+      · intro z hz
+        rw [Set.mem_Ioo] at hz
+        have hz_pos : 0 < z := lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1)
+          (le_trans hfloor_ge_one (le_of_lt hz.1))
+        exact (Real.differentiableAt_rpow_const_of_ne p (ne_of_gt hz_pos)).differentiableWithinAt
+    rcases hmvt with ⟨c, hcIoo, hc⟩
+    have hc_pos : 0 < c := by
+      rw [Set.mem_Ioo] at hcIoo
+      exact lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) (le_trans hfloor_ge_one (le_of_lt hcIoo.1))
+    have hc_le_x : c ≤ x := by
+      rw [Set.mem_Ioo] at hcIoo
+      exact le_of_lt hcIoo.2
+    have hc_ge_half : x / 2 ≤ c := by
+      rw [Set.mem_Ioo] at hcIoo
+      exact le_trans hfloor_ge_half (le_of_lt hcIoo.1)
+    have hden_pos : 0 < x - (⌊x⌋₊ : ℝ) := sub_pos.mpr hlt
+    have hden_le_one : x - (⌊x⌋₊ : ℝ) ≤ 1 := by
+      have h := Nat.lt_floor_add_one x
+      linarith
+    have hmain : x ^ p - (⌊x⌋₊ : ℝ) ^ p = p * c ^ (p - 1) * (x - (⌊x⌋₊ : ℝ)) := by
+      rw [Real.deriv_rpow_const] at hc
+      rw [eq_div_iff (ne_of_gt hden_pos)] at hc
+      exact hc.symm
+    have hcp : c ^ (p - 1) ≤ 2 * x ^ (p - 1) := by
+      by_cases hp1 : 1 ≤ p
+      · have h : 0 ≤ p - 1 := sub_nonneg.mpr hp1
+        calc c ^ (p - 1) ≤ x ^ (p - 1) := Real.rpow_le_rpow hc_pos.le hc_le_x h
+          _ ≤ 2 * x ^ (p - 1) := by
+            have hx_p1_nonneg : 0 ≤ x ^ (p - 1) := Real.rpow_nonneg hx0.le (p - 1)
+            nlinarith
+      · have hp_lt_one : p < 1 := lt_of_not_ge hp1
+        have hneg : p - 1 < 0 := sub_neg.mpr hp_lt_one
+        have hx_half_pos : 0 < x / 2 := by positivity
+        have hhalf : (x / 2) ^ (p - 1) = (2 : ℝ) ^ (1 - p) * x ^ (p - 1) := by
+          rw [Real.div_rpow hx0.le (by norm_num : 0 ≤ (2 : ℝ))]
+          rw [div_eq_mul_inv]
+          rw [← Real.rpow_neg (by norm_num : 0 ≤ (2 : ℝ)) (p - 1)]
+          rw [show -(p - 1) = 1 - p by ring]
+          ring
+        calc c ^ (p - 1) ≤ (x / 2) ^ (p - 1) := Real.rpow_le_rpow_of_nonpos hx_half_pos hc_ge_half (le_of_lt hneg)
+          _ = (2 : ℝ) ^ (1 - p) * x ^ (p - 1) := hhalf
+          _ ≤ 2 * x ^ (p - 1) := by
+            have h2 : (2 : ℝ) ^ (1 - p) ≤ 2 := by
+              have hsub : 1 - p ≤ 1 := by nlinarith
+              have hle : (2 : ℝ) ^ (1 - p) ≤ (2 : ℝ) ^ (1 : ℝ) :=
+                Real.rpow_le_rpow_of_exponent_le (by norm_num : (1 : ℝ) ≤ 2) hsub
+              rw [Real.rpow_one] at hle
+              exact hle
+            exact mul_le_mul_of_nonneg_right h2 (Real.rpow_nonneg hx0.le (p - 1))
+    calc
+      x ^ p - (⌊x⌋₊ : ℝ) ^ p = p * c ^ (p - 1) * (x - (⌊x⌋₊ : ℝ)) := hmain
+      _ ≤ p * c ^ (p - 1) * 1 := by
+        have hnonneg : 0 ≤ p * c ^ (p - 1) := mul_nonneg hp.le (Real.rpow_nonneg hc_pos.le (p - 1))
+        exact mul_le_mul_of_nonneg_left hden_le_one hnonneg
+      _ = p * c ^ (p - 1) := by ring
+      _ ≤ p * (2 * x ^ (p - 1)) := mul_le_mul_of_nonneg_left hcp hp.le
+      _ = 2 * p * x ^ (p - 1) := by ring
+      _ ≤ 2 * (1 + p) * x ^ (p - 1) := by
+        have hx_p1_nonneg : 0 ≤ x ^ (p - 1) := Real.rpow_nonneg hx0.le (p - 1)
+        nlinarith
+
+/--
+The summed power floor loss {lit}`Σᵢ aᵢ ((n/bᵢ)^p - ⌊n/bᵢ⌋^p)` is at most a
+constant multiple of {lit}`n^(p-1)`.  This is the sub-leading loss of rounding the
+subproblem size down; it is what the driving term absorbs in the critical regime.
+-/
+lemma akraBazzi_power_floor_loss {branches : List (ℕ × ℝ)} {p : ℝ}
+    (hvalid : BranchesValid branches) (hp : 0 < p) :
+    ∃ C : ℝ, 0 < C ∧ ∃ n₀ : ℕ, ∀ n, n₀ ≤ n →
+      (branches.map (fun ab => (ab.1 : ℝ) *
+        (((n : ℝ) / ab.2) ^ p - (⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p))).sum
+        ≤ C * (n : ℝ) ^ (p - 1) := by
+  let C : ℝ := (branches.map (fun ab => (ab.1 : ℝ) * (2 * (1 + p) * ab.2 ^ (1 - p)))).sum + 1
+  have hC_pos : 0 < C := by
+    dsimp [C]
+    have hsum_nonneg : 0 ≤ (branches.map (fun ab => (ab.1 : ℝ) * (2 * (1 + p) * ab.2 ^ (1 - p)))).sum := by
+      apply List.sum_nonneg
+      intro x hx
+      rw [List.mem_map] at hx
+      rcases hx with ⟨ab, hab, rfl⟩
+      have hvalid_ab : BranchValid ab := hvalid ab hab
+      have hb_pos : 0 < ab.2 := lt_trans (by norm_num : (0 : ℝ) < 1) hvalid_ab.2
+      exact mul_nonneg (Nat.cast_nonneg ab.1) (by positivity)
+    linarith
+  let n₀ : ℕ := (branches.map (fun ab => Nat.ceil (2 * ab.2) + 1)).foldr max 0
+  refine ⟨C, hC_pos, n₀, ?_⟩
+  intro n hn
+  have hsum_le : (branches.map (fun ab => (ab.1 : ℝ) *
+        (((n : ℝ) / ab.2) ^ p - (⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p))).sum
+      ≤ (branches.map (fun ab => (ab.1 : ℝ) *
+        (2 * (1 + p) * ab.2 ^ (1 - p) * (n : ℝ) ^ (p - 1)))).sum := by
+    apply List.sum_le_sum
+    intro ab hab
+    have hvalid_ab : BranchValid ab := hvalid ab hab
+    have hb_pos : 0 < ab.2 := lt_trans (by norm_num : (0 : ℝ) < 1) hvalid_ab.2
+    have hx_threshold : Nat.ceil (2 * ab.2) + 1 ≤ n := by
+      have hx_in_fold : Nat.ceil (2 * ab.2) + 1 ≤ n₀ := by
+        dsimp [n₀]
+        exact List_foldr_max_ge_mem (by
+          rw [List.mem_map]
+          exact ⟨ab, hab, rfl⟩)
+      exact le_trans hx_in_fold hn
+    have hn_2b : 2 * ab.2 ≤ (n : ℝ) := by
+      have hceil : 2 * ab.2 ≤ (Nat.ceil (2 * ab.2) : ℝ) := Nat.le_ceil (2 * ab.2)
+      have hn' : (Nat.ceil (2 * ab.2) + 1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hx_threshold
+      have hceil1 : (Nat.ceil (2 * ab.2) : ℝ) ≤ (Nat.ceil (2 * ab.2) + 1 : ℝ) := by norm_num
+      linarith
+    have hn_b : 2 ≤ (n : ℝ) / ab.2 := by
+      rw [le_div_iff₀ hb_pos]
+      simpa [mul_comm] using hn_2b
+    have hfloor := rpow_sub_floor_le_of_two_le hp hn_b
+    have hpow : ((n : ℝ) / ab.2) ^ (p - 1) = ab.2 ^ (1 - p) * (n : ℝ) ^ (p - 1) := by
+      rw [Real.div_rpow (Nat.cast_nonneg n) hb_pos.le]
+      rw [div_eq_mul_inv]
+      rw [← Real.rpow_neg hb_pos.le (p - 1)]
+      rw [show -(p - 1) = 1 - p by ring]
+      ring
+    have hnonneg_a : 0 ≤ (ab.1 : ℝ) := Nat.cast_nonneg ab.1
+    calc
+      (ab.1 : ℝ) * (((n : ℝ) / ab.2) ^ p - (⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p)
+          ≤ (ab.1 : ℝ) * (2 * (1 + p) * ((n : ℝ) / ab.2) ^ (p - 1)) :=
+            mul_le_mul_of_nonneg_left hfloor hnonneg_a
+      _ = (ab.1 : ℝ) * (2 * (1 + p) * (ab.2 ^ (1 - p) * (n : ℝ) ^ (p - 1))) := by rw [hpow]
+      _ = (ab.1 : ℝ) * (2 * (1 + p) * ab.2 ^ (1 - p) * (n : ℝ) ^ (p - 1)) := by ring
+  calc
+    (branches.map (fun ab => (ab.1 : ℝ) *
+        (((n : ℝ) / ab.2) ^ p - (⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p))).sum
+        ≤ (branches.map (fun ab => (ab.1 : ℝ) *
+            (2 * (1 + p) * ab.2 ^ (1 - p) * (n : ℝ) ^ (p - 1)))).sum := hsum_le
+    _ = (branches.map (fun ab => (ab.1 : ℝ) * (2 * (1 + p) * ab.2 ^ (1 - p)))).sum * (n : ℝ) ^ (p - 1) := by
+          rw [show (branches.map (fun ab => (ab.1 : ℝ) *
+              (2 * (1 + p) * ab.2 ^ (1 - p) * (n : ℝ) ^ (p - 1)))).sum
+              = (branches.map (fun ab => ((ab.1 : ℝ) * (2 * (1 + p) * ab.2 ^ (1 - p))) *
+                  (n : ℝ) ^ (p - 1))).sum by
+            exact congrArg List.sum (List.map_congr_left (by intro ab _hab; ring))]
+          rw [List.sum_map_mul_right branches (fun ab => (ab.1 : ℝ) * (2 * (1 + p) * ab.2 ^ (1 - p))) ((n : ℝ) ^ (p - 1))]
+    _ ≤ C * (n : ℝ) ^ (p - 1) := by
+          have hpow_nonneg : 0 ≤ (n : ℝ) ^ (p - 1) := Real.rpow_nonneg (Nat.cast_nonneg n) (p - 1)
+          dsimp [C]
+          nlinarith
+
+/--
+The Akra–Bazzi scale factor {lit}`1 + I n` is at most a constant multiple of
+{lit}`n` when the driving function has polynomial growth of exponent {lit}`p > 0`.
+-/
+lemma akraBazzi_scale_factor_le_linear {p : ℝ} {g : ℕ → ℝ} (hp : 0 < p)
+    (C : ℝ) (hC : 0 < C) (hgupper : ∀ n, 1 ≤ n → g n ≤ C * (n : ℝ) ^ p) :
+    ∃ C' : ℝ, 0 < C' ∧ ∀ n, 1 ≤ n → 1 + akraBazziIntegral p g n ≤ C' * (n : ℝ) := by
+  refine ⟨C + 1, by positivity, ?_⟩
+  intro n hn
+  have hI : akraBazziIntegral p g n ≤ C * (n : ℝ) := by
+    unfold akraBazziIntegral
+    calc
+      (∑ u ∈ Finset.range n, g (u + 1) / ((u + 1 : ℕ) : ℝ) ^ (p + 1))
+          ≤ ∑ u ∈ Finset.range n, C := by
+            apply Finset.sum_le_sum
+            intro u _hu
+            have hu1 : 1 ≤ u + 1 := by omega
+            have hg : g (u + 1) ≤ C * ((u + 1 : ℕ) : ℝ) ^ p := hgupper (u + 1) hu1
+            calc
+              g (u + 1) / ((u + 1 : ℕ) : ℝ) ^ (p + 1)
+                  ≤ C * ((u + 1 : ℕ) : ℝ) ^ p / ((u + 1 : ℕ) : ℝ) ^ (p + 1) :=
+                    div_le_div_of_nonneg_right hg (Real.rpow_nonneg (by positivity) (p + 1))
+              _ ≤ C := by
+                have hu1' : 1 ≤ ((u + 1 : ℕ) : ℝ) := by exact_mod_cast hu1
+                have hratio : ((u + 1 : ℕ) : ℝ) ^ p / ((u + 1 : ℕ) : ℝ) ^ (p + 1) ≤ 1 := by
+                  rw [← Real.rpow_sub (by positivity : 0 < ((u + 1 : ℕ) : ℝ)) p (p + 1)]
+                  rw [show p - (p + 1) = -1 by ring]
+                  exact Real.rpow_le_one_of_one_le_of_nonpos hu1' (by norm_num : (-1 : ℝ) ≤ 0)
+                calc
+                  C * ((u + 1 : ℕ) : ℝ) ^ p / ((u + 1 : ℕ) : ℝ) ^ (p + 1)
+                      = C * (((u + 1 : ℕ) : ℝ) ^ p / ((u + 1 : ℕ) : ℝ) ^ (p + 1)) := by ring
+                  _ ≤ C * 1 := mul_le_mul_of_nonneg_left hratio hC.le
+                  _ = C := by ring
+      _ = C * (n : ℝ) := by
+            rw [Finset.sum_const, nsmul_eq_mul, Finset.card_range]
+            ring
+  have h1I : 1 + akraBazziIntegral p g n ≤ (C + 1) * (n : ℝ) := by
+    have hn' : 1 ≤ (n : ℝ) := by exact_mod_cast hn
+    nlinarith [hI, hn']
+  exact h1I
+
 /--
 **Akra–Bazzi lower bound (forcing-dominated regime).**  When the driving exponent
 {lit}`q` strictly exceeds the root {lit}`p` by at least one (so {lit}`p + 1 ≤ q`),
