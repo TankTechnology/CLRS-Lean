@@ -19,7 +19,13 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierInputGateStream
 #check verifierInputGateStream_eq
 #check verifierInputGateStream_computableInPolyTime
+#check verifierCircuitInputPrefix
+#check verifierCircuitInputPrefix_eq
+#check verifierCircuitInputPrefix_isPrefix
+#check verifierCircuitInputPrefix_computableInPolyTime
 
 #print axioms verifierCircuitHeader_computableInPolyTime
 #print axioms verifierInputGateStream_eq
 #print axioms verifierInputGateStream_computableInPolyTime
+#print axioms verifierCircuitInputPrefix_isPrefix
+#print axioms verifierCircuitInputPrefix_computableInPolyTime

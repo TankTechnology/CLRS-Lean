@@ -343,22 +343,23 @@ private def inputGate_finish (count : Nat) (buffer : Option Unit)
   exact full
 
 /-- Complete exact builder run for the reversed input-gate stream. -/
-def inputGateRev_run (input : List Unit) :
+def inputGateRev_runWithSuffix (input : List Unit)
+    (suffix : List CircuitSym) :
     EvalsToInTime (step inputGateRevProgram)
-      (initialCfg inputGateRevProgram input)
+      { initialCfg inputGateRevProgram input with output := suffix }
       (some (haltCfg inputGateRevProgram
-        (inputGateStream input.length).reverse))
+        ((inputGateStream input.length).reverse ++ suffix)))
       (inputGateRevSteps input) := by
-  rcases inputGate_inputPhases 0 none input [] with
+  rcases inputGate_inputPhases 0 none input suffix with
     ⟨finalBuffer, phases⟩
   let finish := inputGate_finish input.length finalBuffer
-    (inputGateStream input.length).reverse
+    ((inputGateStream input.length).reverse ++ suffix)
   have hstream := inputGateStreamFrom_zero input.length
   let full := EvalsToInTime.trans (step inputGateRevProgram)
     (inputGatePhaseSteps 0 input.length) (input.length + 3)
-    (initialCfg inputGateRevProgram input)
+    { initialCfg inputGateRevProgram input with output := suffix }
     (inputGateCfg .next finalBuffer false []
-      (inputGateStream input.length).reverse
+      ((inputGateStream input.length).reverse ++ suffix)
       (List.replicate input.length ()) [])
     _ (by
       simpa [initialCfg, inputGateCfg, inputGateRevProgram, hstream] using
@@ -369,6 +370,16 @@ def inputGateRev_run (input : List Unit) :
     omega
   rw [← hbound]
   exact full
+
+/-- Complete exact builder run for the reversed input-gate stream. -/
+def inputGateRev_run (input : List Unit) :
+    EvalsToInTime (step inputGateRevProgram)
+      (initialCfg inputGateRevProgram input)
+      (some (haltCfg inputGateRevProgram
+        (inputGateStream input.length).reverse))
+      (inputGateRevSteps input) := by
+  convert inputGateRev_runWithSuffix input [] using 1 <;>
+    simp [initialCfg]
 
 /-- Exact reversed-stream builder output contract. -/
 theorem inputGateRev_builderOutputs :

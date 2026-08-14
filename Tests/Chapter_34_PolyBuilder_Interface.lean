@@ -35,6 +35,10 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 #check inputGateRev_outputs
 #check inputGateRev_polyBound
 #check inputGateStream_computableInPolyTime
+#check circuitInputPrefix
+#check circuitInputPrefixRev_outputs
+#check circuitInputPrefixRev_polyBound
+#check circuitInputPrefix_computableInPolyTime
 
 example {σ : Type} (f : σ → Option σ) {m₁ m₂ : Nat} {a b : σ}
     {c : Option σ}

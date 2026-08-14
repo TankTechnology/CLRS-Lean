@@ -830,6 +830,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.ReachableAlphabet",
@@ -2739,6 +2740,9 @@ title = "34.4. Natural-number serializers for circuit builders"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate"]
 title = "34.4. Streaming serialized input gates"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix"]
+title = "34.4. Streaming the exact circuit input prefix"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin"]
 title = "34.4. Cook--Levin infrastructure"

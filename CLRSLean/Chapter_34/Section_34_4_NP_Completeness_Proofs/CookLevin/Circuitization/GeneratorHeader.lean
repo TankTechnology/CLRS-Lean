@@ -1,6 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorClock
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
 
 /-!
 # Exact Cook--Levin circuit header
@@ -151,6 +151,75 @@ noncomputable def verifierInputGateStream_computableInPolyTime
     inputGateStream_computableInPolyTime
   change TM2ComputableInPolyTime id id
     ((fun clock : List Unit => inputGateStream clock.length) ∘
+      verifierTableauInputClock W)
+  exact Classical.choice composed
+
+/-! ## Combined exact serialization prefix -/
+
+/-- Exact serialized input-arity header followed by every canonical tableau
+input gate. -/
+def verifierCircuitInputPrefix {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) : List CircuitSym :=
+  circuitInputPrefix (verifierTableauInputClock W input).length
+
+/-- The combined stream agrees exactly with the corresponding semantic
+prefix of the assembled verifier circuit. -/
+theorem verifierCircuitInputPrefix_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    verifierCircuitInputPrefix W input =
+      encNat (verifierCircuit W input).inputCount ++
+        (verifierRows W input).builder.gates.flatMap encodeCircuitGate := by
+  change verifierCircuitHeader W input ++ verifierInputGateStream W input = _
+  rw [verifierCircuitHeader_eq, verifierInputGateStream_eq]
+
+/-- The initial row allocator is an actual append-only prefix of the final
+conjunction builder. -/
+private theorem verifierRows_extends_conjunction {Γ : Type}
+    {L : Language Γ} (W : VerifierWitness L) (input : List Γ) :
+    (verifierRows W input).builder.Extends (verifierConjunction W input).1 := by
+  let poolExtension := (verifierPool W input).extension
+  let validityExtension := (verifierValidity W input).extension
+  let transitionExtension := (verifierTransitions W input).extension
+  let initialExtension := (verifierInitialBoundary W input).extension
+  let inputExtension := (verifierInputBoundary W input).extension
+  let acceptingExtension := (verifierAcceptingBoundary W input).extension
+  let conjunctionExtension := CircuitBuilder.conjunction_extends
+    (verifierAcceptingBoundary W input).builder
+    (verifierConstraintWires W input) (verifierConstraintWires_valid W input)
+  exact poolExtension.trans (validityExtension.trans
+    (transitionExtension.trans (initialExtension.trans
+      (inputExtension.trans (acceptingExtension.trans conjunctionExtension)))))
+
+/-- The generated arity-and-input-gate stream is a literal list prefix of the
+complete verifier-circuit encoding. -/
+theorem verifierCircuitInputPrefix_isPrefix {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    verifierCircuitInputPrefix W input <+:
+      encodeCircuit (verifierCircuit W input) := by
+  rcases (verifierRows_extends_conjunction W input) with
+    ⟨_, suffix, hgates⟩
+  refine ⟨suffix.flatMap encodeCircuitGate ++
+      .outputMark :: encNat (verifierCircuit W input).output, ?_⟩
+  rw [verifierCircuitInputPrefix_eq]
+  change _ = encNat (verifierCircuit W input).inputCount ++
+    (verifierCircuit W input).gates.flatMap encodeCircuitGate ++
+      .outputMark :: encNat (verifierCircuit W input).output
+  change (verifierCircuit W input).gates =
+      (verifierRows W input).builder.gates ++ suffix at hgates
+  rw [hgates, List.flatMap_append]
+  simp only [List.append_assoc]
+
+/-- Concrete polynomial-time machine for the exact combined serialization
+prefix. -/
+noncomputable def verifierCircuitInputPrefix_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    TM2ComputableInPolyTime id id (verifierCircuitInputPrefix W) := by
+  letI : Fintype Γ := W.alphabetFintype
+  let composed := TM2Comp.TM2ComputableInPolyTime.comp_scratch
+    (verifierTableauInputClock_computableInPolyTime W)
+    circuitInputPrefix_computableInPolyTime
+  change TM2ComputableInPolyTime id id
+    ((fun clock : List Unit => circuitInputPrefix clock.length) ∘
       verifierTableauInputClock W)
   exact Classical.choice composed
 

@@ -7,6 +7,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Rever
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
 
 /-!
 # Verified bounded TM2 builders
@@ -26,5 +27,7 @@ the unary-index layer generates the complete wire-reference stream in
 quadratic time.  The natural-number serializer connects those counters to the
 actual finite `CircuitSym` encoding alphabet.  The input-gate streamer emits
 the exact serialized family `.input 0, ..., .input (n - 1)` with a concrete
-quadratic-time machine.
+quadratic-time machine.  The circuit-prefix layer parks and restores the clock
+while combining its exact arity header with that input-gate stream in one
+concrete quadratic-time run.
 -/
