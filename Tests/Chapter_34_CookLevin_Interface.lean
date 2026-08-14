@@ -314,6 +314,9 @@ example : (encodeCircuit interfaceFanOutCircuit).length ≤
 -- Exact finite-certificate semantics for the target language.
 #check generalCircuitVerifier_accepts_iff
 #check mem_generalCircuitSAT_iff_exists_certificate
+#check Turing.GeneralCircuitVerifier.generalCircuitVerifierComputableInPolyTime
+#check generalCircuitSAT_verifiable
+#check generalCircuitSAT_mem_ClassNP
 
 -- Headline axiom audit for the newly sealed bridge layer.
 #print axioms Turing.CookLevin.verifierCircuit_input_count_le
