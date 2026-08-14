@@ -28,7 +28,13 @@ forward to these sources.
 
 The native sections supply the represented fourth-edition all-pairs
 shortest-path sections (Lemmas 23.1--23.2 and 23.7, Theorems 23.3, 23.5 and
-23.8).
+23.8), together with the running-time layer bound to the real executable
+constructions: repeated squaring `O(V³ log V)`
+({lit}`CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_cubed_log`),
+Floyd--Warshall `O(V³)`
+({lit}`CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed`), and Johnson
+`O(V² log V + V E log V)`
+({lit}`CLRS.Chapter24.WeightedGraph.johnsonCost_eq`).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

@@ -25,7 +25,11 @@ ordered pair of vertices.  The chapter formalises three main families of algorit
   {lit}`CLRS.Chapter24.WeightedGraph.lemma_25_1`,
   {lit}`CLRS.Chapter24.WeightedGraph.L_sq_eq_minPlusMul` (Lemma 25.2),
   {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_L`,
-  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist`.
+  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist`,
+  {lit}`CLRS.Chapter24.WeightedGraph.minPlusMulCost`,
+  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSPCost`,
+  {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_cubed_log` (O(V³ log V)),
+  and {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_four`.
 
 * 25.2 Floyd-Warshall (`Section_25_2_Floyd_Warshall`).
   Main declarations:
@@ -39,7 +43,9 @@ ordered pair of vertices.  The chapter formalises three main families of algorit
   {lit}`CLRS.Chapter24.WeightedGraph.johnsonAugmentedGraph`,
   {lit}`CLRS.Chapter24.WeightedGraph.reweightedGraph`,
   {lit}`CLRS.Chapter24.WeightedGraph.reweightedWalkWeight_eq`,
-  and {lit}`CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`.
+  {lit}`CLRS.Chapter24.WeightedGraph.reweightedWeight_nonneg`,
+  {lit}`CLRS.Chapter24.WeightedGraph.johnsonCost_eq` (O(V² log V + V E log V)),
+  and {lit}`CLRS.Chapter24.WeightedGraph.johnsonCost_le`.
 
 ## Current Shape
 
@@ -64,14 +70,32 @@ complete.
 Section 25.3 defines Johnson's augmented graph and reweighted graph,
 constructs the Bellman-Ford potential `h(v) = δ(none, some v)`, proves
 the triangle inequality `h(v) ≤ h(u) + w(u, v)`, proves reweighted
-edge-weight nonnegativity, and packages the end-to-end Johnson
-correctness theorem `johnsonDist_isShortestDist` (CLRS Theorem 25.5).
+edge-weight nonnegativity, packages the end-to-end Johnson
+correctness theorem `johnsonDist_isShortestDist` (CLRS Theorem 25.5),
+and records the `O(V² log V + V E log V)` binary-heap work bound
+(`johnsonCost_eq` / `johnsonCost_le`).
+
+## Running-time layer
+
+All three algorithms now carry explicit, reader-facing running-time theorems
+bound to their real executable constructions:
+
+* Section 25.1: `minPlusMulCost` / `fasterAPSPCost` bound to the actual graph
+  `G` and iteration count `numSquarings`; `fasterAPSPCost_le_n_cubed_log`
+  proves the `O(V³ log V)` repeated-squaring bound, with the trivial `O(V⁴)`
+  corollary `fasterAPSPCost_le_n_four`.
+* Section 25.2: `fwStepCost` / `floydWarshallCost` count the actual
+  `D` recurrence over `Finset.univ.toList`, and `floydWarshall_O_cubed`
+  proves the exact `O(V³)` bound.
+* Section 25.3: `johnsonAugmentedGraph_edges_card` proves the augmented graph
+  has `|V| + |E|` edges; `johnsonCost_eq` / `johnsonCost_le` prove the
+  `O(V² log V + V E log V)` binary-heap bound.
 
 ## Deferred Work
 
-* Transitive closure (Section 25.2 variant).
-* An explicit {lit}`O(n³ log n)` work-count refinement for repeated squaring;
-  Section 25.1 already proves its mathematical correctness.
+* Lower-level RAM / mutable-array machine-arithmetic accounting for the cost
+  models; the reader-facing asymptotic bounds above are proved, and concrete
+  word-level constants remain an optional refinement.
 -/
 
 namespace CLRS

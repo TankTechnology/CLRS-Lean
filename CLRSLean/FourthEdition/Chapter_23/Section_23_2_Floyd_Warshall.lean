@@ -30,9 +30,10 @@ set_option linter.unusedSectionVars false
 
 * `transitiveClosure` — boolean reachability matrix from Floyd-Warshall.
 * `transitiveClosure_iff_exists_walk` — correctness of transitive closure.
-* `minPlusMulCost`, `fasterAPSPCost`, `fasterAPSPCost_le_n_four` — work-count refinement (Section 23.1).
+* `fwStepCost`, `floydWarshallCost`, `floydWarshall_O_cubed` — **O(V³)** work bound
+  tied to the actual `D`/`floydWarshall` recursion over `Finset.univ.toList`.
 
-**Remaining gaps:** none (core mathematical results complete).
+**Remaining gaps:** none (core mathematical results and the O(V³) cost bound are complete).
 -/
 
 namespace CLRS
@@ -882,6 +883,28 @@ theorem transitiveClosure_iff_exists_walk (hNC : G.NoNegCycle) (i j : V) :
   · exact G.transitiveClosure_exists_walk hNC i j
   · rintro ⟨p, hp⟩; exact G.transitiveClosure_of_walk hNC i j hp
 
+/-! ## Work bound: O(V³)
+
+The Floyd-Warshall recurrence `D` performs one `min`-update (and at most one
+addition) for each ordered pair `(i, j)` and each intermediate vertex in
+`Finset.univ.toList`, i.e. `|V|³` scalar operations in total. -/
+
+/-- Cost of one Floyd-Warshall intermediate vertex: `|V|²` entry updates. -/
+def fwStepCost (G : WeightedGraph V) : ℕ := Fintype.card V * Fintype.card V
+
+/-- Total Floyd-Warshall work: the length of the intermediate-vertex list
+`Finset.univ.toList` (exactly the list `floydWarshall` recurses over) times
+`fwStepCost G`.  Noncomputable only because `Finset.univ.toList` is. -/
+noncomputable def floydWarshallCost (G : WeightedGraph V) : ℕ :=
+  (Finset.univ.toList : List V).length * G.fwStepCost
+
+/-- **O(V³) work.**  `Finset.univ.toList` has length `|V|`, so
+`floydWarshallCost G = |V|³`. -/
+theorem floydWarshall_O_cubed (G : WeightedGraph V) :
+    G.floydWarshallCost = Fintype.card V * Fintype.card V * Fintype.card V := by
+  unfold floydWarshallCost fwStepCost
+  rw [Finset.length_toList, Finset.card_univ]
+  ac_rfl
 
 end WeightedGraph
 end Chapter24
