@@ -8,6 +8,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Unary
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 
 /-!
 # Verified bounded TM2 builders
@@ -29,5 +30,6 @@ actual finite `CircuitSym` encoding alphabet.  The input-gate streamer emits
 the exact serialized family `.input 0, ..., .input (n - 1)` with a concrete
 quadratic-time machine.  The circuit-prefix layer parks and restores the clock
 while combining its exact arity header with that input-gate stream in one
-concrete quadratic-time run.
+concrete quadratic-time run.  The Boolean-pool suffix layer then appends the
+canonical false/true constant gates in linear time.
 -/

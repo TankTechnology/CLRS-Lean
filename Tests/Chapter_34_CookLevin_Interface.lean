@@ -327,6 +327,10 @@ example : (encodeCircuit interfaceFanOutCircuit).length ≤
 #check Turing.CookLevin.verifierCircuitInputPrefix_eq
 #check Turing.CookLevin.verifierCircuitInputPrefix_isPrefix
 #check Turing.CookLevin.verifierCircuitInputPrefix_computableInPolyTime
+#check Turing.CookLevin.CircuitBuilder.allocateBoolWirePool_gates_eq
+#check Turing.CookLevin.verifierCircuitPoolPrefix_eq
+#check Turing.CookLevin.verifierCircuitPoolPrefix_isPrefix
+#check Turing.CookLevin.verifierCircuitPoolPrefix_computableInPolyTime
 
 -- Exact finite-certificate semantics for the target language.
 #check generalCircuitVerifier_accepts_iff

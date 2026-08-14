@@ -23,9 +23,16 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierCircuitInputPrefix_eq
 #check verifierCircuitInputPrefix_isPrefix
 #check verifierCircuitInputPrefix_computableInPolyTime
+#check CircuitBuilder.allocateBoolWirePool_gates_eq
+#check verifierCircuitPoolPrefix
+#check verifierCircuitPoolPrefix_eq
+#check verifierCircuitPoolPrefix_isPrefix
+#check verifierCircuitPoolPrefix_computableInPolyTime
 
 #print axioms verifierCircuitHeader_computableInPolyTime
 #print axioms verifierInputGateStream_eq
 #print axioms verifierInputGateStream_computableInPolyTime
 #print axioms verifierCircuitInputPrefix_isPrefix
 #print axioms verifierCircuitInputPrefix_computableInPolyTime
+#print axioms verifierCircuitPoolPrefix_isPrefix
+#print axioms verifierCircuitPoolPrefix_computableInPolyTime
