@@ -93,11 +93,31 @@ namespace Chapter32
 #check suffixArrayFast_work_le
 #check suffixArrayFast_work_isBigO_nlogn
 
+-- §32.5 Suffix arrays: textbook-complexity range query
+#check patternLE
+#check patternGT
+#check lowerDecide
+#check upperDecide
+#check binarySearchFirst
+#check binarySearchFirstCost
+#check binarySearchFirst_spec
+#check binarySearchFirstCost_cost_le
+#check suffixArrayLower
+#check suffixArrayUpper
+#check suffixArrayLower_le_upper
+#check suffixArrayRange
+#check suffixArrayRange_mem_iff
+#check suffixArrayQueryWork
+#check suffixArrayQueryWork_le
+#check suffixArrayQueryWork_isBigO_logn
+
 -- §32.5 Suffix arrays: axioms clean on the headline theorems
 #print axioms suffixArray_valid
 #print axioms suffixArraySearch_mem_iff
 #print axioms suffixArrayFast_valid
 #print axioms suffixArrayFast_work_le
+#print axioms suffixArrayRange_mem_iff
+#print axioms suffixArrayQueryWork_le
 
 end Chapter32
 end CLRS

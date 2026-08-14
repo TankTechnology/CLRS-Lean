@@ -5224,11 +5224,10 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 ### Section 32.5 - Suffix Arrays
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_5_Suffix_Arrays.lean`
-- Status: `complete` for the suffix-array model and the `O(n log n)`
-  comparison-model construction (native fourth-edition source); the
-  `O(|p| log n)` binary-search range query is recorded as remaining work, with
-  the scan-based `suffixArraySearch` giving a complete, proved correctness
-  baseline.
+- Status: `complete` for the suffix-array model, the `O(n log n)`
+  comparison-model construction, and the `O(|p| log n)` binary-search range
+  query (native fourth-edition source); the scan-based `suffixArraySearch`
+  remains the proved correctness baseline.
 - Model:
   - `suffixAt t i`: the suffix of `t` starting at position `i` (`t.drop i`).
   - `suffixLe t i j`: lexicographic order on suffixes with ties broken by
@@ -5237,6 +5236,8 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
     by `suffixLe`.
   - Comparison model for the fast construction: one unit of work per
     lexicographic suffix comparison (`suffixCompare`).
+  - String-comparison model for the range query: a pattern–suffix probe
+    (`patternLE` / `patternGT`) is charged `|p| + 1` character comparisons.
 - Proved:
   - `suffixArray_valid`: the executable `suffixArray` construction returns a
     valid suffix array (permutation + sortedness via `insertionSort`).
@@ -5248,6 +5249,14 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
     `SuffixArrayValid`.
   - `suffixArrayFast_work_le` / `suffixArrayFast_work_isBigO_nlogn`: the fast
     construction is `O(n log n)` under the comparison model.
+  - `binarySearchFirst_spec` / `binarySearchFirstCost_cost_le`: the reusable
+    costed binary search returns the first true index under a monotone
+    predicate, in at most `⌈log₂(n+1)⌉` probes.
+  - `suffixArrayRange_mem_iff`: the binary-search range query is sound and
+    complete — it returns exactly the positions at which `p` occurs.
+  - `suffixArrayQueryWork_le` / `suffixArrayQueryWork_isBigO_logn`: the range
+    query costs at most `2 · (|p| + 1) · (⌊log₂ n⌋ + 2)` character comparisons,
+    i.e. `O(|p| log n)`.
 
 ## Fourth Edition Chapter 33 - Machine-Learning Algorithms
 
