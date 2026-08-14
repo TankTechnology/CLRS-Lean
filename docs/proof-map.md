@@ -276,20 +276,36 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 ### Section 4.7 - Akra-Bazzi recurrences (fourth edition, native)
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_04/Section_04_7_Akra_Bazzi.lean`
-- Status: `proved` for the root equation, the single-branch corollary, and the
-  two-branch root instance
+- Status: `proved` for the root equation, the single-branch corollary, the
+  two-branch root instance, the multi-branch root uniqueness and nonnegativity,
+  the scale-invariance bridge, and the integral machinery
 - Main proved theorems:
   - `CLRS.Chapter04.rpow_realLogExponent`
   - `CLRS.Chapter04.akraBazziRoot_single`
   - `CLRS.Chapter04.akraBazziRoot_single_unique`
   - `CLRS.Chapter04.akraBazziRoot_two_thirds_one`
   - `CLRS.Chapter04.akraBazzi_single_branch_corollary`
+  - `CLRS.Chapter04.akraBazziRoot_unique`
+  - `CLRS.Chapter04.akraBazziRoot_nonneg`
+  - `CLRS.Chapter04.akraBazzi_root_scale_invariance`
+  - `CLRS.Chapter04.akraBazziIntegral_mono`
+  - `CLRS.Chapter04.akraBazziIntegral_sub`
+  - `CLRS.Chapter04.akraBazziIntegral_lower_const`
+  - `CLRS.Chapter04.akraBazziIntegral_bounded_of_lt`
+  - `CLRS.Chapter04.akraBazziIntegral_tail_lower`
+  - `CLRS.Chapter04.akraBazzi_increment_lower`
+- Definitions: `akraBazziIntegral` / `akraBazziScale` (the discrete integral and
+  scale `n^p(1 + Σ g/u^(p+1))`), `PolynomialGrowth` (the explicit
+  polynomial-smoothness predicate `c n^q ≤ g n ≤ C n^q`), and
+  `SatisfiesAkraBazzi` (the recurrence `T(n) = Σ aᵢ T(⌊n/bᵢ⌋) + g(n)` with floor
+  perturbation and constant base case)
 - Proof pattern: characterize the root `Σ aᵢ/bᵢ^p = 1`; for one branch the root
   is `p = log_b a` via the real base-power identity; uniqueness follows from
-  log-injectivity of the real power; the two-branch instance
-  `T(n) = T(n/3) + T(2n/3)` has root `p = 1`
-- Current gap: the full multi-branch `Θ(n^p(1 + ∫ g/u^(p+1)))` bound and the
-  polynomial-smoothness hypothesis
+  strict monotonicity of the characteristic function; nonnegativity from
+  `charFun 0 = Σ aᵢ ≥ 1`; scale invariance `Σ aᵢ (n/bᵢ)^p = n^p` is the
+  fundamental bridge from the root equation to the scale `n^p`
+- Current gap: the full multi-branch `Θ(n^p(1 + Σ g/u^(p+1)))` substitution
+  bound (the upper and lower recurrence-to-integral comparison)
 
 ### Section 4.1 - The maximum-subarray problem
 

@@ -45,11 +45,29 @@ namespace Chapter04
 #check charTerm
 #check charFun
 #check IsAkraBazziRoot
+#check BranchValid
+#check BranchesValid
 #check rpow_realLogExponent
 #check akraBazziRoot_single
 #check akraBazziRoot_single_unique
 #check akraBazziRoot_two_thirds_one
 #check akraBazzi_single_branch_corollary
+#check akraBazziRoot_unique
+#check akraBazziRoot_nonneg
+#check akraBazzi_root_scale_invariance
+#check akraBazziIntegral
+#check akraBazziScale
+#check PolynomialGrowth
+#check SatisfiesAkraBazzi
+#check floor_div_lt_self
+#check akraBazziIntegral_nonneg
+#check akraBazziIntegral_mono
+#check akraBazziIntegral_sub
+#check akraBazziIntegral_lower_const
+#check akraBazziScale_nonneg
+#check akraBazziIntegral_bounded_of_lt
+#check akraBazziIntegral_tail_lower
+#check akraBazzi_increment_lower
 
 /-! The headline theorems must not carry `sorryAx` or any project axiom. -/
 #print axioms mul_runtime_bigTheta
@@ -58,6 +76,11 @@ namespace Chapter04
 #print axioms continuous_master_case3
 #print axioms akraBazziRoot_single
 #print axioms akraBazziRoot_two_thirds_one
+#print axioms akraBazziRoot_unique
+#print axioms akraBazziRoot_nonneg
+#print axioms akraBazzi_root_scale_invariance
+#print axioms akraBazziIntegral_bounded_of_lt
+#print axioms akraBazzi_increment_lower
 
 end Chapter04
 end CLRS
