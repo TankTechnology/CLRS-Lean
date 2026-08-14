@@ -82,9 +82,22 @@ namespace Chapter32
 #check suffixArraySearch
 #check suffixArraySearch_mem_iff
 
+-- §32.5 Suffix arrays: textbook-complexity construction
+#check suffixCompare
+#check mergeSortWithCost
+#check mergeSortWithCost_cost_le_clog
+#check mergeSortWithCost_cost_le_log
+#check suffixArrayFast
+#check suffixArrayBuildWork
+#check suffixArrayFast_valid
+#check suffixArrayFast_work_le
+#check suffixArrayFast_work_isBigO_nlogn
+
 -- §32.5 Suffix arrays: axioms clean on the headline theorems
 #print axioms suffixArray_valid
 #print axioms suffixArraySearch_mem_iff
+#print axioms suffixArrayFast_valid
+#print axioms suffixArrayFast_work_le
 
 end Chapter32
 end CLRS

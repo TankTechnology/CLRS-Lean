@@ -5224,21 +5224,30 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 ### Section 32.5 - Suffix Arrays
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_5_Suffix_Arrays.lean`
-- Status: `complete` (native fourth-edition source; the executable construction
-  is insertion-sort based and `O(n³)`, honestly stated, with the textbook
-  `O(n log n)` construction and `O(|p| log n)` binary-search range query
-  recorded as remaining optimization)
+- Status: `complete` for the suffix-array model and the `O(n log n)`
+  comparison-model construction (native fourth-edition source); the
+  `O(|p| log n)` binary-search range query is recorded as remaining work, with
+  the scan-based `suffixArraySearch` giving a complete, proved correctness
+  baseline.
 - Model:
   - `suffixAt t i`: the suffix of `t` starting at position `i` (`t.drop i`).
   - `suffixLe t i j`: lexicographic order on suffixes with ties broken by
     starting position (decidable, total, transitive).
   - `SuffixArrayValid t sa`: `sa` is a permutation of `range t.length` sorted
     by `suffixLe`.
+  - Comparison model for the fast construction: one unit of work per
+    lexicographic suffix comparison (`suffixCompare`).
 - Proved:
   - `suffixArray_valid`: the executable `suffixArray` construction returns a
     valid suffix array (permutation + sortedness via `insertionSort`).
   - `suffixArraySearch_mem_iff`: suffix-array pattern search is sound and
     complete — `i` is returned exactly when `p` is a prefix of `suffixAt t i`.
+  - `mergeSortWithCost_cost_le_clog` / `_cost_le_log`: the costed merge sort
+    makes at most `n · ⌈log₂ n⌉` / `n · (⌊log₂ n⌋ + 1)` comparisons.
+  - `suffixArrayFast_valid`: the fast construction satisfies
+    `SuffixArrayValid`.
+  - `suffixArrayFast_work_le` / `suffixArrayFast_work_isBigO_nlogn`: the fast
+    construction is `O(n log n)` under the comparison model.
 
 ## Fourth Edition Chapter 33 - Machine-Learning Algorithms
 
