@@ -11,4 +11,5 @@ iterator.
 - [x] Instantiate the decomposition at arithmetic row wires.
 - [x] Close one stack's mask-plus-cell semantic gate stream.
 - [x] Lift the exact blocks through the fixed machine-stack enumeration.
+- [x] Advance the post-halted row-validity boundary through all stack blocks.
 - [x] Audit, regress, document, and commit.

@@ -318,7 +318,10 @@ the bundled fixed-machine enumeration with the arithmetic block offsets, and
 `arithmeticStackFamilyGateStream_eq_semantic` closes the target byte stream for
 all stacks.  This deliberately does not claim that those blocks are already
 emitted by one finite-family loop; that iterator remains an explicit execution
-gap.
+gap.  Independently, `arithmeticStackFamilyGateStream_prefix_postHalted` and
+`arithmeticValidityPostHaltedMatch_eq_stack_append_final` prove that this exact
+family is the entire prefix after halted agreement and leave one uniquely
+defined final-conjunction tail.
 
 ## Focused Acceptance Mechanism
 
