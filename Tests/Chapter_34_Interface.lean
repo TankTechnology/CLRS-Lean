@@ -21,9 +21,20 @@ namespace CLRS.Chapter34
 #check NPComplete
 #check ClassNPC
 
+-- 34.4 concrete reduction boundary
+#check IsThreeCNF
+#check isThreeCNF_to3CNF_len
+#check Turing.TM3CNF.sat_reducible_to_threeCNFSat
+example : PolyTimeReducible SAT ThreeCNFSat :=
+  Turing.TM3CNF.sat_reducible_to_threeCNFSat
+example (x : List CNFSym) (hx : x ∈ ThreeCNFSat) :
+    IsThreeCNF (decodeCNF x) := hx.1
+#check ThreeCNFOccurrenceCLIQUE
+#check Turing.TMClique.threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE
+
 -- basic sanity checks
-example (Γ : Type) : ClassP Γ ⊆ Set (Language Γ) := by intro L hL; exact hL
-example (Γ : Type) : ClassNP Γ ⊆ Set (Language Γ) := by intro L hL; exact hL
-example (Γ : Type) : ClassNPC Γ ⊆ Set (Language Γ) := by intro L hL; exact hL
+example (Γ : Type) : ClassP Γ ⊆ (Set.univ : Set (Language Γ)) := by simp
+example (Γ : Type) : ClassNP Γ ⊆ (Set.univ : Set (Language Γ)) := by simp
+example (Γ : Type) : ClassNPC Γ ⊆ (Set.univ : Set (Language Γ)) := by simp
 
 end CLRS.Chapter34

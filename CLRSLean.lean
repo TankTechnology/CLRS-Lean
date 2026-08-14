@@ -85,14 +85,13 @@ for boundary shifts, exchange certificates, fibers, and interval geometry.
 
 The canonical public chapter sequence is CLRS fourth edition, Chapters 1--35.
 {lit}`docs/clrs-fourth-edition-map.csv` owns the section-level bridge from that
-sequence to current theorem-bearing sources.  New Chapters 25, 27, and 33, plus
-currently unrepresented Chapters 34--35, remain visible as honest
-{lit}`not-started` guides.  Third-edition-only Fibonacci heaps, van Emde Boas
-trees, computational geometry, and moved section material live under
-{lit}`CLRSLean.OnlineMaterial`.  Progress counts are currently facade-level
-source inventories; moved subsections inside an otherwise reused source remain
-in that coarse total until declaration-level remapping, so the count is not a
-count of distinct fourth-edition textbook obligations.
+sequence to current theorem-bearing sources.  All 35 chapter guides now point
+to represented source; the generated dashboard and proof-status page preserve
+the exact remaining partial boundary for Chapter 34.  Third-edition-only
+Fibonacci heaps, van Emde Boas trees, computational geometry, and moved section
+material live under {lit}`CLRSLean.OnlineMaterial`.  Progress counts are
+selected theorem inventories rather than counts of every fourth-edition
+textbook obligation.
 
 Existing {lit}`CLRSLean.Chapter_NN` imports and declarations keep their current
 meanings through all {lit}`1.x` releases and for at least six months after the
