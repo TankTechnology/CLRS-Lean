@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B12_CaseOne_NoWindowB1
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Legacy.StateMachine.B12_CaseOne_NoWindowB1
 
 /-
 # Dev B13: the per-page credit invariant (non-q₀' B1 slack)

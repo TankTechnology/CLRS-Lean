@@ -16,7 +16,8 @@ Main results:
 - `repairSchedule_after_J_window`: the `(J, J']` window relation, by
   induction from `repairSchedule_after_J`
 
-This file is part of the `fifo_optimal` iteration (see `Dev/DESIGN.md`); it
+This file is part of the archived `fifo_optimal` iteration (see
+`Dev/Legacy/StateMachine/DESIGN.md`); it
 will be merged into `S3_Optimality.lean` once the proof is complete.
 -/
 

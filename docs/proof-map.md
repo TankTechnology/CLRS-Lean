@@ -2145,52 +2145,40 @@ reads are proved equal to the pure recurrence value.
 - Lean source:
   `CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching.lean`,
   split into sub-modules `S1_Cache_Model`, `S2_Farthest_In_Future`, and
-  `S3_Optimality` under the same directory
-- Status: `partial` (first native fourth-edition section for Chapter 15)
+  `S3_Optimality` under the same directory.  The final exchange proof is
+  organized under `Optimality/Trace/A1_LegalTrace` through `A6_Iteration`.
+- Status: `proved` for the mathematical finite-cache policy model.  The public
+  theorem covers every finite request list and every nonempty finite initial
+  cache; pointer/RAM implementations and hardware caching costs are outside
+  this advertised boundary.
 - Main theorems:
   - `CLRS.Caching.Policy` / `Policy.step` / `misses` / `nextUse`
   - `CLRS.Caching.Farther` / `farthestInFuture`
   - `CLRS.Caching.fifoPolicy` / `fifo_step_of_mem` / `fifo_step_fault`
   - `CLRS.Caching.fifo_step_size`
-  - `CLRS.Caching.exchangeSchedule` / `exchangeSchedule_invariant` /
-    `exchangeSchedule_misses_le`: one exchange step at the first disagreement
-    never increases the miss count (the good event at the first `q` request
-    compensates the unique bad event at the first `q'` request); the chain is
-    proved under the weakened reducedness hypothesis `hweak`
-    (`∀ s, t ≤ s → fault → d s resident`), so the counting lemma applies to
-    schedules that are reduced only from the exchange position on
-  - `CLRS.Caching.fifoSchedule` / `first_disagree` / `exchange_step`: at a
-    first disagreement of a schedule reduced from there on, exchanging the
-    evictions never increases misses and extends agreement with the FIF
-    schedule by one position
-  - `CLRS.Caching.exchangeSchedule_reduced_after`: the exchange schedule is
-    reduced at every fault after the first `q'` request, so the
-    "reduced from a bound on" state needed by the iteration is preserved
-    from one exchange to the next (the bound grows to `max hnb J'`)
-  - `CLRS.Caching.exchangeSchedule_misses_le_plus_one`: the exchange saves a
-    spare miss when the bad event did not occur (either `q'` is never
-    requested again and `q` is, or `d` evicts `q'` before its first request)
-  - `CLRS.Caching.repairSchedule` / `repair_step` / `repairSchedule_window` /
-    `repairSchedule_superset`: replacing a no-op eviction at the first
-    disagreement by the policy's choice (evicted again at its first request,
-    so the caches coincide afterwards) costs at most one extra miss and
-    extends agreement by one position
-- Proof pattern: total-function policy model; the farthest-in-future choice
-  as a maximum over next-use positions with `none` (never requested again)
-  as the top element.
-- Current gap: the iterated exchange concluding `fifo_optimal` (CLRS Theorem
-  15.5) is **blocked**, not a mechanical wrap-up.  The one-step pieces are in
-  place — `exchange_step` (never increases misses, extends agreement),
-  `exchangeSchedule_reduced_after` (preserves the reducedness state),
-  `exchangeSchedule_misses_le_plus_one` (spare miss when the bad event did
-  not occur), and `repair_step` (replacing a no-op eviction by the policy's
-  choice costs at most one extra miss, paid by the slack) — but the iteration
-  state machine cannot be assembled without resolving two documented design
-  blockers (see `Dev/DESIGN.md`): the slack-accounting invariant
-  `bad ≤ slack` is empirically false (492 counterexample traces over short
-  inputs), and the `hQ` state field does not hold over the full-history pair
-  set (988 B2 steps reach broken states).  Completing this needs original
-  research on a correct accounting/state scheme, not a final proof pass.
+  - `CLRS.Caching.LegalTrace` / `policyTrace` /
+    `traceMisses_policyTrace`: policy-independent legal executions and the
+    bridge back to the original policy semantics
+  - `CLRS.Caching.OnePageDiff`: exact one-page cache difference used by the
+    local suffix coupling
+  - `CLRS.Caching.exchange_trace`: replaces the first trace transition that
+    disagrees with FIF, extends agreement by one boundary, and never increases
+    total misses
+  - `CLRS.Caching.exists_fully_agreeing_trace` / `fifo_optimal_trace`: finite
+    iteration of the local exchange
+  - `CLRS.Caching.fifo_optimal` (CLRS Theorem 15.5):
+    `misses (fifoPolicy σ) C₀ σ ≤ misses π C₀ σ` for every policy `π` when
+    `C₀.Nonempty`
+- Proof pattern: turn policy runs into legal cache traces, couple two suffixes
+  whose caches differ by exactly one page, use FIF's next-use maximality in an
+  ordered phase, pay a later transformed-only miss with a local one-miss credit,
+  then iterate the first-disagreement exchange over the finite request length.
+- Historical note: the earlier global schedule state machine is retained only
+  under `Dev/Legacy/StateMachine`.  Its known false invariants and search
+  evidence are recorded in `Dev/Legacy/FAILED_APPROACHES.md`; no public module
+  imports that route.  It is failure documentation, not a remaining section
+  blocker.
+- Current gap: none for the advertised mathematical cache-policy theorem.
 
 ## Chapter 16 - Greedy Algorithms
 

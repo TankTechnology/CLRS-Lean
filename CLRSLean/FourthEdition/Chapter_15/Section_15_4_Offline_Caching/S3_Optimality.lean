@@ -1,5 +1,6 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality
 
 /-!
 # S3. Optimality of the farthest-in-future policy
@@ -7,10 +8,20 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthes
 The exchange-schedule machinery for the optimality proof of the
 farthest-in-future (Belady) eviction policy of CLRS §15.4, plus basic sanity
 lemmas for the policy itself: it always evicts a resident page and preserves
-the cache size.
+the cache size.  The unconditional theorem is closed through a separate
+policy-independent legal-trace argument: one-page cache differences are
+coupled across the suffix, the first disagreement is exchanged without adding
+misses, and finite iteration yields a trace that agrees with FIF everywhere.
 
 Main results:
 
+- `fifo_optimal`: no offline eviction policy incurs fewer misses than FIF
+- `LegalTrace` / `policyTrace`: policy-independent legal cache executions and
+  the trace induced by any policy
+- `exchange_trace`: one local exchange extends agreement with FIF by one cache
+  boundary without increasing total misses
+- `exists_fully_agreeing_trace` / `fifo_optimal_trace`: finite iteration of the
+  exchange and its trace-level optimality consequence
 - `fifo_evicts_resident`: the FIF policy evicts a resident page
 - `fifo_step_size`: a FIF step preserves the cache size
 - `schedCache` / `schedMisses`: the run and miss count of an arbitrary
@@ -57,27 +68,8 @@ Main results:
 
 Current gaps:
 
-- The optimality theorem (`fifo_optimal`: no eviction policy — even offline —
-  has fewer misses than the farthest-in-future policy, CLRS Theorem 15.5)
-  remains to be formalized.  The iteration machinery is in place:
-  `exchange_step` shows that exchanging the first disagreement of a schedule
-  reduced from that position on never increases misses and extends agreement
-  with the farthest-in-future policy by one position, and
-  `exchangeSchedule_reduced_after` shows the reducedness state (reduced at
-  every fault after a bound `hnb`) is preserved by the exchange (with the
-  bound growing to `max hnb J'`).  The remaining work is the iteration
-  assembly: repeatedly exchanging at the first disagreement while the
-  schedule is reduced from there on produces a schedule agreeing with the
-  policy everywhere with no more misses.  The pieces are in place —
-  `exchange_step` (never increases misses, extends agreement), the slack
-  lemma `exchangeSchedule_misses_le_plus_one` (spare miss when the bad event
-  did not occur), and the repair step `repair_step` (replacing a no-op
-  eviction at or before the reducedness bound by the policy's choice costs
-  at most one extra miss, paid by the slack) — so the remaining work is the
-  iteration state machine: tracking the reducedness bound, the previous
-  `q'`/`J'` and the accumulated slack, choosing between the exchange and the
-  repair at each first disagreement, and the boundary case where the first
-  disagreement lands exactly on the previous `q'` request.
+- None for optimality in the mathematical cache model.  Low-level RAM/cache
+  implementation refinement is outside this section's current model.
 -/
 
 namespace CLRS
@@ -2979,6 +2971,16 @@ lemma repairSchedule_window_swap' (e : ℕ → Page) (σ : List Page) (C₀ : Fi
         exact repairSchedule_base_swap e σ C₀ hC₀ ht hagree hdis hqin hq' hq hj'
       · exact repairSchedule_step_swap' e σ C₀ hC₀ ht hagree hdis hqin hq' hq hj hj' hjj' s ih
           (by omega) (by omega)
+
+/--
+The farthest-in-future policy is optimal among all offline eviction policies
+for a nonempty initial cache (CLRS Theorem 15.5).
+-/
+theorem fifo_optimal
+    (π : Policy) (C₀ : Finset Page) (σ : List Page)
+    (hC₀ : C₀.Nonempty) :
+    misses (fifoPolicy σ) C₀ σ ≤ misses π C₀ σ := by
+  exact fifo_optimal_trace π C₀ σ hC₀
 
 end Caching
 
