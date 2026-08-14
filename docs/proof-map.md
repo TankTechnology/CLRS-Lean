@@ -4025,15 +4025,46 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Proof pattern: the no-augmenting-path step bounds the height drop along a
   simple residual path by `|V| - 1`; the source-path lemma cuts at the residual
   reachable set and cancels the internal double sum by skew symmetry.
-- Current gap: the fine-grained saturating/nonsaturating push count
-  (`O(V²E)`) and the relabel-to-front discharge ordering (`O(V³)`, Section 26.5)
-  are deferred.
+- Current gap: none for the preflow-push model; the operation count lives in
+  Section 26.5.
+
+### Section 26.5 - Relabel-to-Front
+
+- Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_5_Relabel_To_Front.lean`
+  (canonical fourth-edition Section 24.5; the legacy
+  `CLRSLean/Chapter_26/Section_26_5_Relabel_To_Front.lean` forwards to it)
+- Status: `proved` for the generic push-relabel `O(V²E)` operation count
+- Represented model:
+  - `CLRS.Chapter26.BasicOp`: a single basic operation (a relabel of an
+    overflowing vertex, or a push from an overflowing vertex along an admissible
+    edge), storing the before-state preflow and height function
+  - `CLRS.Chapter26.Run`: a length-`n` run of the generic algorithm, with the
+    state sequence and the before/after consistency equations
+  - `CLRS.Chapter26.numEdges`: the number of directed positive-capacity edges
+- Counting bounds (over *any* run):
+  - `CLRS.Chapter26.Run.height_mono`: heights are nondecreasing across a run
+  - `CLRS.Chapter26.Run.relabel_count_bound`: at most `2|V|²` relabel operations
+  - `CLRS.Chapter26.Run.saturating_push_count_bound`: at most `O(|V|·|E|)`
+    saturating pushes (between two saturating pushes on `(u,v)` the height of
+    `u` grows by at least two, via the reverse-push recovery argument)
+  - `CLRS.Chapter26.Run.nonsaturating_push_count_bound`: at most
+    `O(|V|²(|V|+|E|))` nonsaturating pushes, via the potential
+    `Φ = Σ_{overflowing u} h(u)`
+  - `CLRS.Chapter26.Run.generic_step_count_bound`: the combined `O(V²E)` bound
+    on the number of basic operations
+- Proof pattern: the relabel and saturating-push counts are proved by height
+  injection into `V × [0, 2|V|)` and `edge × [0, 2|V|)`; the nonsaturating count
+  is an amortized potential argument over the telescoping sum
+  `Φ(n) = Φ(0) + Σ (Φ(i+1) - Φ(i))`.
+- Current gap: the sharper relabel-to-front `O(V³)` discharge-order bound (the
+  per-vertex list discipline of CLRS §26.5's DISCHARGE) is not yet a separate
+  theorem; the generic `O(V²E)` bound is complete.
 
 ### Chapter 26 current boundary
 
 The §26.4 push-relabel model, operations, invariants, height bound, and
-correctness are proved.  The `O(V²E)`/`O(V³)` termination counting and Section
-26.5 (relabel-to-front) are deferred outside the current selected milestone.
+correctness are proved, and §26.5 supplies the generic `O(V²E)` operation-count
+bound (relabel, saturating-push, and nonsaturating-push counts) over any run.
 
 ## Chapter 27 - Multithreaded Algorithms
 

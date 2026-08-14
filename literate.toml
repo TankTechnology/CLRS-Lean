@@ -367,6 +367,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp",
   "CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching",
   "CLRSLean.FourthEdition.Chapter_24.Section_24_4_Push_Relabel",
+  "CLRSLean.FourthEdition.Chapter_24.Section_24_5_Relabel_To_Front",
   "CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut",
 ]
 "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp" = [
@@ -419,6 +420,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp",
   "CLRSLean.Chapter_26.Section_26_3_Bipartite_Matching",
   "CLRSLean.Chapter_26.Section_26_4_Push_Relabel",
+  "CLRSLean.Chapter_26.Section_26_5_Relabel_To_Front",
   "CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut",
 ]
 "CLRSLean.Chapter_26.Section_26_2_Edmonds_Karp" = [
@@ -1045,6 +1047,9 @@ title = "24.3. Maximum Bipartite Matching (partial)"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_4_Push_Relabel"]
 title = "24.4. Push-Relabel Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_24.Section_24_5_Relabel_To_Front"]
+title = "24.5. Relabel-to-Front"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut"]
 title = "Theorem 24.6. Max-Flow Min-Cut (partial)"
@@ -1901,6 +1906,9 @@ title = "26.3. Maximum Bipartite Matching"
 
 [modules."CLRSLean.Chapter_26.Section_26_4_Push_Relabel"]
 title = "26.4. Push-Relabel Algorithms"
+
+[modules."CLRSLean.Chapter_26.Section_26_5_Relabel_To_Front"]
+title = "26.5. Relabel-to-Front"
 
 [modules."CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut"]
 title = "Theorem 26.6. Max-Flow Min-Cut (partial)"
