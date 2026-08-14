@@ -93,6 +93,16 @@ orientation, and gate-index layers:
 - `allocateBoolWirePool_gates_eq` fixes the semantic gate order, and
   `verifierCircuitPoolPrefix_isPrefix` advances the verified literal encoding
   prefix through the shared constant-pool allocation.
+- `CircuitBuilder.input_gates`, `not_gates`, `and_gates`, and `or_gates`
+  expose the exact primitive gate appended by each proof-carrying constructor;
+- `boolEqGateTrace`, `eq_gates_eq`, and `eq_wire_eq_trace` fix all five XNOR
+  gates and their predecessor indices;
+- `exactlyOneGateTrace`, `exactlyOne_gates_eq`, and
+  `exactlyOne_wire_eq_trace` fix the complete tail-first `3n+4` gate sequence
+  used by every one-hot validity constraint;
+- `suffixOrGateTrace`, `activeMask_gates_eq`, and
+  `activeMask_output_eq_trace` fix the active-stack-cell mask gate order and
+  every position-aligned output wire.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -120,10 +130,13 @@ bounded stack data. The implementation phases are:
 
 The exact polynomial-value clock, circuit header, initial tableau input-gate
 family, their combined serialization prefix, and the two-gate shared Boolean
-pool are now closed.  The next semantic phase is the validity constraint
-stream.  Output orientation, natural-number serialization, input
-parking/restoration, fixed-suffix appending, and exact agreement with the
-semantic allocators are already closed independently.
+pool are now closed.  The validity phase now has exact gate traces for its
+three repeated primitives: equality, exactly-one, and suffix-OR active masks.
+The next cut is the six-gate per-cell validity trace, followed by composition
+of those traces into one exact row-validity suffix.  Output orientation,
+natural-number serialization, input parking/restoration, fixed-suffix
+appending, and exact agreement with the semantic allocators are already
+closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -193,6 +206,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
+lake env lean Tests/Chapter_34_CookLevin_ExactlyOneGateTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
 python3 scripts/check_repository.py
 git diff --check
