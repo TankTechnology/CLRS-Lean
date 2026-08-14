@@ -16,7 +16,12 @@ open _root_.Turing
 noncomputable section
 
 #check ValidCfgCircuitFamilyResult
+#check ValidCfgCircuitFamilyGateTrace
+#check validCfgCircuitFamilyGateTrace
+#check validCfgCircuitFamilyGateTrace_length
 #check validCfgCircuitFamily
+#check validCfgCircuitFamily_gates_eq
+#check validCfgCircuitFamily_output_eq_trace
 #check validCfgCircuitFamily_extends
 #check validCfgCircuitFamily_outputs_valid
 #check validCfgCircuitFamily_gate_delta
@@ -72,6 +77,19 @@ example : threeRowValidityFamily.builder.gates.length =
   validCfgCircuitFamily_gate_delta threeRows.builder threeRows.rows
     threeRows.rowValid
 
+example : threeRowValidityFamily.builder.gates =
+    threeRows.builder.gates ++
+      (validCfgCircuitFamilyGateTrace threeRows.builder.gates.length
+        3 threeRows.rows).gates :=
+  validCfgCircuitFamily_gates_eq threeRows.builder threeRows.rows
+    threeRows.rowValid
+
+example (row : Fin 3) : threeRowValidityFamily.outputs row =
+    (validCfgCircuitFamilyGateTrace threeRows.builder.gates.length
+      3 threeRows.rows).outputs row :=
+  validCfgCircuitFamily_output_eq_trace threeRows.builder threeRows.rows
+    threeRows.rowValid row
+
 example (row : Fin 3) : threeRowValidityFamily.builder.WireValid
     (threeRowValidityFamily.outputs row) :=
   validCfgCircuitFamily_outputs_valid threeRows.builder threeRows.rows
@@ -120,6 +138,9 @@ example (inputs : Nat → Bool)
       configs step.succ = stutterStep FamilyMachine (configs step.castSucc) := by
   exact transitionCircuitFamily_eval_iff FamilyMachine 0 threeRows.builder
     threeRows.rows threeRows.rowValid inputs configs hdecoded step
+
+#print axioms validCfgCircuitFamily_gates_eq
+#print axioms validCfgCircuitFamily_output_eq_trace
 
 end
 
