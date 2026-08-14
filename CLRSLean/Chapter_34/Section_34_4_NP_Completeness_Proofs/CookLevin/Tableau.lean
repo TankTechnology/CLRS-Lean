@@ -13,6 +13,9 @@ Main results:
 
 - Theorem {lit}`card_cfgSlot`: the unified dependent slot type has exactly the
   advertised linear row width.
+- Theorems {lit}`cfgSlotEquivFin_halted_val` through
+  {lit}`cfgSlotEquivFin_stackCell_val`: every row-coordinate family has a
+  literal runtime-uniform arithmetic wire offset.
 - Theorems {lit}`decodeRawCfg_encode` and {lit}`encodeRawCfg_decode`: raw rows and their
   one-hot bit encodings round-trip exactly.
 - Theorem `CfgInputLayout.writeCfgBits_index_of_disjoint`: writing one fresh
@@ -95,10 +98,175 @@ theorem card_cfgSlot (tm : _root_.Turing.FinTM2) (H : Nat) :
   letI := tm.kFin
   simp [CfgSlot, cfgBitCount, Nat.add_assoc]
 
-/-- Canonical finite numbering of all row coordinates. -/
+/-- Number of Boolean coordinates occupied by one bounded machine stack. -/
+def cfgStackBitWidth (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K) : Nat :=
+  (H + 1) + H * ((reachableAlphabet tm k).card + 1)
+
+/-- Prefix occupied by stacks preceding `k` in the fixed machine-stack
+numbering.  Only the fixed verifier contributes the stack ordering; the
+runtime height enters through the explicit affine stack widths. -/
+noncomputable def cfgStackBitOffset (tm : _root_.Turing.FinTM2)
+    (H : Nat) (k : tm.K) : Nat := by
+  letI : Fintype tm.K := tm.kFin
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  exact ∑ j : Fin (keyEquiv k),
+    cfgStackBitWidth tm H
+      (keyEquiv.symm (Fin.castLE (keyEquiv k).isLt.le j))
+
+/-- Explicit local numbering of height bits followed by cell-symbol bits for
+one stack. -/
+private noncomputable def cfgStackLocalEquivFin
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K) :
+    (Fin (H + 1) ⊕
+      (Fin H × Fin ((reachableAlphabet tm k).card + 1))) ≃
+        Fin (cfgStackBitWidth tm H k) :=
+  ((Equiv.refl (Fin (H + 1))).sumCongr finProdFinEquiv).trans
+    finSumFinEquiv
+
+/-- Reindex dependent stack blocks by the fixed machine-stack enumeration.
+The explicit casts preserve the local numeric coordinate. -/
+private noncomputable def cfgKeySigmaEquiv
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (Σ k : tm.K, Fin (cfgStackBitWidth tm H k)) ≃
+      (Σ j : Fin (Fintype.card tm.K),
+        Fin (cfgStackBitWidth tm H ((Fintype.equivFin tm.K).symm j))) := by
+  letI : Fintype tm.K := tm.kFin
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  exact
+    { toFun := fun x =>
+        ⟨keyEquiv x.1,
+          Fin.cast (by rw [keyEquiv.symm_apply_apply]) x.2⟩
+      invFun := fun x => ⟨keyEquiv.symm x.1, x.2⟩
+      left_inv := by
+        rintro ⟨k, i⟩
+        dsimp
+        let hkey := keyEquiv.symm_apply_apply k
+        apply Sigma.ext hkey
+        exact (Fin.heq_ext_iff
+          (congrArg (cfgStackBitWidth tm H) hkey)).2 rfl
+      right_inv := by
+        rintro ⟨j, i⟩
+        dsimp
+        let hkey := keyEquiv.apply_symm_apply j
+        apply Sigma.ext hkey
+        exact (Fin.heq_ext_iff
+          (congrArg (fun q => cfgStackBitWidth tm H (keyEquiv.symm q))
+            hkey)).2 rfl }
+
+@[simp] private theorem cfgKeySigmaEquiv_apply_fst
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (cfgStackBitWidth tm H k)) :
+    (cfgKeySigmaEquiv tm H ⟨k, i⟩).1 = Fintype.equivFin tm.K k := rfl
+
+@[simp] private theorem cfgKeySigmaEquiv_apply_snd_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (cfgStackBitWidth tm H k)) :
+    (cfgKeySigmaEquiv tm H ⟨k, i⟩).2.val = i.val := by
+  rfl
+
+@[simp] private theorem cfgStackLocalEquivFin_height_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (H + 1)) :
+    (cfgStackLocalEquivFin tm H k (.inl i)).val = i.val := rfl
+
+@[simp] private theorem cfgStackLocalEquivFin_cell_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin H) (a : Fin ((reachableAlphabet tm k).card + 1)) :
+    (cfgStackLocalEquivFin tm H k (.inr (i, a))).val =
+      (H + 1) + (a.val + ((reachableAlphabet tm k).card + 1) * i.val) := rfl
+
+/-- Explicit numbering of all stack coordinates, using the fixed verifier's
+finite stack numbering and runtime-computable affine block widths. -/
+private noncomputable def cfgStacksEquivFin
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (Σ k : tm.K, Fin (H + 1) ⊕
+      (Fin H × Fin ((reachableAlphabet tm k).card + 1))) ≃
+        Fin (∑ k : tm.K, cfgStackBitWidth tm H k) := by
+  letI : Fintype tm.K := tm.kFin
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  exact
+    (Equiv.sigmaCongrRight (fun k => cfgStackLocalEquivFin tm H k)).trans <|
+      (cfgKeySigmaEquiv tm H).trans <|
+        finSigmaFinEquiv.trans <|
+          finCongr (keyEquiv.symm.sum_comp
+            (fun k => cfgStackBitWidth tm H k))
+
+@[simp] private theorem cfgStacksEquivFin_apply_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (H + 1) ⊕
+      (Fin H × Fin ((reachableAlphabet tm k).card + 1))) :
+    (cfgStacksEquivFin tm H ⟨k, i⟩).val =
+      cfgStackBitOffset tm H k + (cfgStackLocalEquivFin tm H k i).val := by
+  simp [cfgStacksEquivFin, cfgStackBitOffset, finSigmaFinEquiv_apply]
+  congr
+
+/-- Canonical finite numbering of all row coordinates.
+
+Unlike an unconstrained `Fintype.equivFin`, this numbering is uniform in the
+runtime height: halted, label, state, stack-height, and stack-cell blocks have
+literal arithmetic offsets.  The only chosen enumeration belongs to the fixed
+machine's finite stack type and can therefore live in TM2 finite control. -/
 noncomputable def cfgSlotEquivFin (tm : _root_.Turing.FinTM2) (H : Nat) :
-    CfgSlot tm H ≃ Fin (cfgBitCount tm H) :=
-  (Fintype.equivFin (CfgSlot tm H)).trans (finCongr (card_cfgSlot tm H))
+    CfgSlot tm H ≃ Fin (cfgBitCount tm H) := by
+  let stackEquiv := cfgStacksEquivFin tm H
+  let stateAndStacks :=
+    ((Equiv.refl (Fin (stateCount tm))).sumCongr stackEquiv).trans
+      finSumFinEquiv
+  let labelStateStacks :=
+    ((Equiv.refl (Fin (labelCount tm + 1))).sumCongr stateAndStacks).trans
+      finSumFinEquiv
+  let allSlots :=
+    (((finOneEquiv : Fin 1 ≃ Unit).symm).sumCongr labelStateStacks).trans
+      finSumFinEquiv
+  exact allSlots.trans (finCongr (by
+    simp only [cfgBitCount, cfgStackBitWidth]
+    omega))
+
+/-- The halted bit is the first coordinate of every explicit row encoding. -/
+@[simp] theorem cfgSlotEquivFin_halted_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (cfgSlotEquivFin tm H (CfgSlot.halted tm H)).val = 0 := by
+  simp [cfgSlotEquivFin, CfgSlot.halted]
+
+/-- Label coordinates immediately follow the halted bit. -/
+@[simp] theorem cfgSlotEquivFin_label_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (i : Fin (labelCount tm + 1)) :
+    (cfgSlotEquivFin tm H (CfgSlot.label i)).val = 1 + i.val := by
+  simp [cfgSlotEquivFin, CfgSlot.label]
+
+/-- State coordinates immediately follow the halted and label blocks. -/
+@[simp] theorem cfgSlotEquivFin_state_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (i : Fin (stateCount tm)) :
+    (cfgSlotEquivFin tm H (CfgSlot.state i)).val =
+      1 + (labelCount tm + 1) + i.val := by
+  simp [cfgSlotEquivFin, CfgSlot.state]
+  omega
+
+/-- A stack-height coordinate has its literal outer block offset, its fixed
+stack-prefix offset, and then its height index. -/
+@[simp] theorem cfgSlotEquivFin_stackHeight_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (k : tm.K) (i : Fin (H + 1)) :
+    (cfgSlotEquivFin tm H (CfgSlot.stackHeight k i)).val =
+      1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k + i.val := by
+  simp [cfgSlotEquivFin, CfgSlot.stackHeight]
+  omega
+
+/-- Cell-symbol coordinates follow the height block and use row-major
+cell/symbol numbering inside their fixed stack block. -/
+@[simp] theorem cfgSlotEquivFin_stackCell_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (k : tm.K) (i : Fin H)
+    (a : Fin ((reachableAlphabet tm k).card + 1)) :
+    (cfgSlotEquivFin tm H (CfgSlot.stackCell k i a)).val =
+      1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k + (H + 1) +
+          (a.val + ((reachableAlphabet tm k).card + 1) * i.val) := by
+  simp [cfgSlotEquivFin, CfgSlot.stackCell]
+  omega
 
 /-! ## Bit and wire bundles -/
 

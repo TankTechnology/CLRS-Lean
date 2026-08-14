@@ -1,0 +1,18 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Validity
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check cfgOneHotGroupCount
+#check cfgOneHotStackOffset
+#check cfgOneHotGroupEquivFin
+#check cfgOneHotGroupEquivFin_label_val
+#check cfgOneHotGroupEquivFin_state_val
+#check cfgOneHotGroupEquivFin_stackHeight_val
+#check cfgOneHotGroupEquivFin_stackCell_val
+
+#print axioms cfgOneHotGroupEquivFin_label_val
+#print axioms cfgOneHotGroupEquivFin_state_val
+#print axioms cfgOneHotGroupEquivFin_stackHeight_val
+#print axioms cfgOneHotGroupEquivFin_stackCell_val

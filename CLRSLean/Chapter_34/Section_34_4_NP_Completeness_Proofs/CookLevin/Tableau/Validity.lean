@@ -16,6 +16,8 @@ Main results:
   evaluated row decoding succeeds.
 - Theorem {lit}`validCfgCircuit_gate_delta`: the construction has the exact
   affine cost {lit}`validCfgGateCost`.
+- Definition {lit}`cfgOneHotGroupEquivFin`: the one-hot family order is
+  explicit and uniform in the runtime stack height.
 
 Current gaps:
 
@@ -394,6 +396,79 @@ private noncomputable instance cfgOneHotGroupFintype
   letI := tm.kFin
   infer_instance
 
+/-- Exact number of one-hot groups in one bounded row: label, state, and one
+height plus `H` cell-symbol groups for each fixed machine stack. -/
+def cfgOneHotGroupCount (tm : _root_.Turing.FinTM2) (H : Nat) : Nat :=
+  2 + Fintype.card tm.K * (H + 1)
+
+/-- Numeric offset of one stack's height group inside the stack-group block. -/
+noncomputable def cfgOneHotStackOffset (tm : _root_.Turing.FinTM2)
+    (H : Nat) (k : tm.K) : Nat :=
+  (H + 1) * (Fintype.equivFin tm.K k).val
+
+/-- Explicit local order consisting of the stack-height group followed by its
+`H` cell-symbol groups. -/
+private def cfgOneHotLocalEquivFin (H : Nat) :
+    Unit ⊕ Fin H ≃ Fin (H + 1) :=
+  ((((finOneEquiv : Fin 1 ≃ Unit).symm).sumCongr
+      (Equiv.refl (Fin H))).trans finSumFinEquiv).trans
+    (finCongr (by omega))
+
+/-- Explicit row one-hot-group numbering.  Its only noncomputable enumeration
+is the fixed machine-stack order; all `H`-dependent positions use literal
+product and sum coordinates. -/
+noncomputable def cfgOneHotGroupEquivFin
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    CfgOneHotGroup tm H ≃ Fin (cfgOneHotGroupCount tm H) := by
+  letI : Fintype tm.K := tm.kFin
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  let stackGroups : (Σ _k : tm.K, Unit ⊕ Fin H) ≃
+      Fin (Fintype.card tm.K * (H + 1)) :=
+    (Equiv.sigmaCongrRight (fun _ => cfgOneHotLocalEquivFin H)).trans <|
+      (Equiv.sigmaEquivProd tm.K (Fin (H + 1))).trans <|
+        (keyEquiv.prodCongr (Equiv.refl (Fin (H + 1)))).trans
+          finProdFinEquiv
+  let stateAndStacks :=
+    (((finOneEquiv : Fin 1 ≃ Unit).symm).sumCongr stackGroups).trans
+      finSumFinEquiv
+  let allGroups :=
+    (((finOneEquiv : Fin 1 ≃ Unit).symm).sumCongr stateAndStacks).trans
+      finSumFinEquiv
+  exact allGroups.trans (finCongr (by
+    simp only [cfgOneHotGroupCount]
+    omega))
+
+/-- The row-label one-hot group is first. -/
+@[simp] theorem cfgOneHotGroupEquivFin_label_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (cfgOneHotGroupEquivFin tm H (.inl ())).val = 0 := by
+  simp [cfgOneHotGroupEquivFin]
+
+/-- The row-state one-hot group follows the label group. -/
+@[simp] theorem cfgOneHotGroupEquivFin_state_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (cfgOneHotGroupEquivFin tm H (.inr (.inl ()))).val = 1 := by
+  simp [cfgOneHotGroupEquivFin]
+
+/-- Each stack-height group begins at its explicit fixed-stack block offset. -/
+@[simp] theorem cfgOneHotGroupEquivFin_stackHeight_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K) :
+    (cfgOneHotGroupEquivFin tm H (.inr (.inr ⟨k, .inl ()⟩))).val =
+      2 + cfgOneHotStackOffset tm H k := by
+  simp [cfgOneHotGroupEquivFin, cfgOneHotLocalEquivFin,
+    cfgOneHotStackOffset, finProdFinEquiv]
+  omega
+
+/-- Cell-symbol groups follow their stack-height group in increasing cell
+order. -/
+@[simp] theorem cfgOneHotGroupEquivFin_stackCell_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K) (i : Fin H) :
+    (cfgOneHotGroupEquivFin tm H (.inr (.inr ⟨k, .inr i⟩))).val =
+      2 + cfgOneHotStackOffset tm H k + 1 + i.val := by
+  simp [cfgOneHotGroupEquivFin, cfgOneHotLocalEquivFin,
+    cfgOneHotStackOffset, finProdFinEquiv]
+  omega
+
 def cfgOneHotGroupWires {tm : _root_.Turing.FinTM2} {H : Nat}
     (wires : CfgWires tm H) : CfgOneHotGroup tm H → List CircuitBuilder.Wire
   | .inl _ => List.ofFn wires.label
@@ -431,8 +506,8 @@ structure RawOneHotGateTrace (tm : _root_.Turing.FinTM2) (H : Nat) where
 one-hot groups. -/
 noncomputable def rawOneHotGateTrace {tm : _root_.Turing.FinTM2} {H : Nat}
     (start : Nat) (wires : CfgWires tm H) : RawOneHotGateTrace tm H := by
-  let equiv := Fintype.equivFin (CfgOneHotGroup tm H)
-  let groups : Fin (Fintype.card (CfgOneHotGroup tm H)) →
+  let equiv := cfgOneHotGroupEquivFin tm H
+  let groups : Fin (cfgOneHotGroupCount tm H) →
       List CircuitBuilder.Wire := fun i =>
     cfgOneHotGroupWires wires (equiv.symm i)
   let family := exactlyOneFamilyGateTrace start _ groups
@@ -451,7 +526,7 @@ noncomputable def rawOneHotGateTrace {tm : _root_.Turing.FinTM2} {H : Nat}
   unfold rawOneHotGateTrace
   dsimp only
   rw [exactlyOneFamilyGateTrace_length]
-  let equiv := Fintype.equivFin (CfgOneHotGroup tm H)
+  let equiv := cfgOneHotGroupEquivFin tm H
   have hequiv := equiv.symm.sum_comp
     (fun group => 3 * (cfgOneHotGroupWires wires group).length + 4)
   rw [hequiv]
@@ -488,8 +563,8 @@ structure RawOneHotResult {tm : _root_.Turing.FinTM2} {H : Nat}
 def buildRawOneHot {tm : _root_.Turing.FinTM2} {H : Nat}
     (base : CircuitBuilder) (wires : CfgWires tm H)
     (hvalid : wires.ValidIn base) : RawOneHotResult base wires := by
-  let equiv := Fintype.equivFin (CfgOneHotGroup tm H)
-  let groups : Fin (Fintype.card (CfgOneHotGroup tm H)) →
+  let equiv := cfgOneHotGroupEquivFin tm H
+  let groups : Fin (cfgOneHotGroupCount tm H) →
       List CircuitBuilder.Wire := fun i =>
     cfgOneHotGroupWires wires (equiv.symm i)
   let family := exactlyOneFamily base _ groups (by
@@ -1000,9 +1075,9 @@ def canonicalValidityGateTrace {tm : _root_.Turing.FinTM2} {H : Nat}
   let stackTrace := stackValidityFamilyGateTrace
     (start + raw.gates.length + haltedMatch.gates.length) wires
     (Fintype.card tm.K) (fun j => keyEquiv.symm j)
-  let groupEquiv := Fintype.equivFin (CfgOneHotGroup tm H)
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
   let rawConstraints : List CircuitBuilder.Wire :=
-    List.ofFn fun j : Fin (Fintype.card (CfgOneHotGroup tm H)) =>
+    List.ofFn fun j : Fin (cfgOneHotGroupCount tm H) =>
       raw.outputs (groupEquiv.symm j)
   let stackConstraints : List CircuitBuilder.Wire :=
     List.ofFn fun p : Fin (Fintype.card tm.K * H) =>
@@ -1046,9 +1121,9 @@ private def buildCanonicalValidity {tm : _root_.Turing.FinTM2} {H : Nat}
     haltedMatch.1 wires
     (hvalid.mono (raw.extension.trans hextHalt)) (Fintype.card tm.K)
     (fun j => keyEquiv.symm j)
-  let groupEquiv := Fintype.equivFin (CfgOneHotGroup tm H)
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
   let rawConstraints : List CircuitBuilder.Wire :=
-    List.ofFn fun j : Fin (Fintype.card (CfgOneHotGroup tm H)) =>
+    List.ofFn fun j : Fin (cfgOneHotGroupCount tm H) =>
       raw.outputs (groupEquiv.symm j)
   let stackConstraints : List CircuitBuilder.Wire :=
     List.ofFn fun p : Fin (Fintype.card tm.K * H) =>
@@ -1090,7 +1165,7 @@ private def buildCanonicalValidity {tm : _root_.Turing.FinTM2} {H : Nat}
     unfold validCfgGateCostRaw
     simp only [constraints, rawConstraints, stackConstraints,
       List.length_append, List.length_cons, List.length_ofFn]
-    simp [CfgOneHotGroup]
+    simp [cfgOneHotGroupCount]
     have hsum :
         (∑ k : tm.K,
           (8 + H * 17 + H * (reachableAlphabet tm k).card * 3)) =
@@ -1317,7 +1392,7 @@ proof-carrying builder. -/
     stackValidityFamilyGateTrace_length,
     CircuitBuilder.conjunctionGateTrace_length, List.length_ofFn,
     List.length_cons]
-  simp [CfgOneHotGroup]
+  simp [cfgOneHotGroupCount]
   have hsum :
       (∑ k : tm.K,
         (8 + H * 17 + H * (reachableAlphabet tm k).card * 3)) =
