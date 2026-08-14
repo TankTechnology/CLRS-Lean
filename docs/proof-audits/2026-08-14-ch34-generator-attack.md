@@ -30,7 +30,8 @@ Cook--Levin semantics and `GeneralCircuitSAT ∈ NP` declarations remained green
 
 ## Foundation Closed in This Attack
 
-`PolyBuilder.Clock` supplies the missing arbitrary-degree clock layer:
+The bounded-builder foundation now supplies the missing clock, output
+orientation, and gate-index layers:
 
 - `unitClock_computableInPolyTime` implements the linear clock;
 - `squareUnitClock_computableInPolyTime` implements one concrete quadratic
@@ -41,6 +42,13 @@ Cook--Levin semantics and `GeneralCircuitSAT ∈ NP` declarations remained green
   from any fixed `Polynomial Nat` dominates its value on nonempty inputs;
 - `polynomialClock_computableInPolyTime` packages that dominating clock as a
   concrete polynomial-time TM2.
+- `reverse_computableInPolyTime` gives a verified linear-time finalization
+  pass for the builder language's prepend-only output stack;
+- `unaryIndexRev_outputs` proves the exact reversed stream contract for all
+  unary indices `0, ..., n - 1`;
+- `unaryIndexRev_polyBound` bounds that concrete streamer quadratically;
+- `unaryIndexStream_computableInPolyTime` composes it with reversal and thus
+  computes the forward wire-reference stream required by `encodeCircuit`.
 
 The empty input is deliberately not hidden in the domination lemma. The final
 generator must handle it by a separate finite-control branch, where its output
@@ -66,9 +74,10 @@ bounded stack data. The implementation phases are:
    NP-completeness wrappers.
 
 The next smallest missing reusable primitive is an input-preserving phase
-runner with a unary index emitter. The polynomial clock alone is not treated
-as a generator: it supplies the required iteration budget but does not know
-the circuit-symbol template at each position.
+runner that combines a polynomial clock with a fixed circuit-symbol template.
+Unary index emission and output orientation are now closed independently; the
+remaining runner must preserve the public input while choosing
+input-dependent boundary symbols and emitting the correct gate family.
 
 ## Known Failed or Rejected Routes
 
@@ -101,7 +110,10 @@ During generator development, use only dependency-scoped checks:
 
 ```text
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
+lake env lean Tests/Chapter_34_PolyBuilder_UnaryIndex.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
 python3 scripts/check_repository.py
 git diff --check
