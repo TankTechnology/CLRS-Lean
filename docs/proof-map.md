@@ -4021,7 +4021,8 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
 - Lean source: `CLRSLean/FourthEdition/Chapter_24/Section_24_5_Relabel_To_Front.lean`
   (canonical fourth-edition Section 24.5; the legacy
   `CLRSLean/Chapter_26/Section_26_5_Relabel_To_Front.lean` forwards to it)
-- Status: `proved` for the generic push-relabel `O(V²E)` operation count
+- Status: `proved` for the generic push-relabel `O(V²E)` operation count and the
+  relabel-to-front `O(V³)` discharge-order bound
 - Represented model:
   - `CLRS.Chapter26.BasicOp`: a single basic operation (a relabel of an
     overflowing vertex, or a push from an overflowing vertex along an admissible
@@ -4040,19 +4041,28 @@ Chapter 24 Bellman-Ford relaxation and proving L stabilises at |V|-1.
     `Φ = Σ_{overflowing u} h(u)`
   - `CLRS.Chapter26.Run.generic_step_count_bound`: the combined `O(V²E)` bound
     on the number of basic operations
+- Relabel-to-front discharge order (over a `RelabelToFrontRun`):
+  - `CLRS.Chapter26.BasicOp.opVertex`: the active vertex of a basic operation
+  - `CLRS.Chapter26.RelabelToFrontRun`: a run respecting the §26.5 DISCHARGE
+    discipline (between two relabels, no vertex is the source of more than one
+    nonsaturating push)
+  - `CLRS.Chapter26.RelabelToFrontRun.nonsaturating_push_count_bound`: at most
+    `|V|·(relabels + 1)` nonsaturating pushes, i.e. `O(V³)`
+  - `CLRS.Chapter26.RelabelToFrontRun.step_count_bound_V3`: at most `9|V|³`
+    basic operations
 - Proof pattern: the relabel and saturating-push counts are proved by height
   injection into `V × [0, 2|V|)` and `edge × [0, 2|V|)`; the nonsaturating count
   is an amortized potential argument over the telescoping sum
-  `Φ(n) = Φ(0) + Σ (Φ(i+1) - Φ(i))`.
-- Current gap: the sharper relabel-to-front `O(V³)` discharge-order bound (the
-  per-vertex list discipline of CLRS §26.5's DISCHARGE) is not yet a separate
-  theorem; the generic `O(V²E)` bound is complete.
+  `Φ(n) = Φ(0) + Σ (Φ(i+1) - Φ(i))`.  The discharge-order bound counts
+  nonsaturating pushes by their preceding relabel count, injecting them into
+  `[0, relabels] × V` via `opVertex`.
 
 ### Chapter 26 current boundary
 
 The §26.4 push-relabel model, operations, invariants, height bound, and
-correctness are proved, and §26.5 supplies the generic `O(V²E)` operation-count
-bound (relabel, saturating-push, and nonsaturating-push counts) over any run.
+correctness are proved; §26.5 supplies the generic `O(V²E)` operation-count
+bound (relabel, saturating-push, and nonsaturating-push counts) over any run,
+and the relabel-to-front `O(V³)` discharge-order bound.
 
 ## Chapter 27 - Multithreaded Algorithms
 
