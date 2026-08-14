@@ -97,6 +97,9 @@ orientation, and gate-index layers:
   expose the exact primitive gate appended by each proof-carrying constructor;
 - `boolEqGateTrace`, `eq_gates_eq`, and `eq_wire_eq_trace` fix all five XNOR
   gates and their predecessor indices;
+- `conjunctionGateTrace`, `conjunction_gates_eq`, and
+  `conjunction_wire_eq_trace` fix the true seed and tail-first conjunction
+  gates used to collect constraint outputs;
 - `exactlyOneGateTrace`, `exactlyOne_gates_eq`, and
   `exactlyOne_wire_eq_trace` fix the complete tail-first `3n+4` gate sequence
   used by every one-hot validity constraint;
@@ -110,7 +113,11 @@ orientation, and gate-index layers:
   ordered finite family, and `rawOneHotGateTrace` identifies that family with
   every label, state, height, and cell-symbol one-hot group in a row;
 - `buildRawOneHot_gates_eq` and `buildRawOneHot_output_eq_trace` close the
-  complete raw-decodability gate suffix and its group outputs.
+  complete raw-decodability gate suffix and its group outputs;
+- `stackValidityFamilyGateTrace`, `buildStackValidityFamily_gates_eq`, and
+  `buildStackValidityFamily_output_eq_trace` compose each ordered stack's
+  suffix-OR active mask with all `6H` cell-validity gates, fixing the complete
+  stack-validity family suffix and every cell constraint output.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -141,11 +148,13 @@ family, their combined serialization prefix, and the two-gate shared Boolean
 pool are now closed.  The validity phase now has exact gate traces for its
 three repeated primitives: equality, exactly-one, and suffix-OR active masks.
 The six-gate per-cell family and the complete raw one-hot family are now also
-closed.  The next cut composes each stack's active mask and cell family, then
-combines those stack traces into one exact row-validity suffix. Output orientation,
-natural-number serialization, input parking/restoration, fixed-suffix
-appending, and exact agreement with the semantic allocators are already
-closed independently.
+closed, as is the ordered family that combines every stack's active mask and
+cell constraints.  The next cut composes raw one-hot, halted-label equality,
+the complete stack family, and the final conjunction into one exact
+row-validity suffix; it can then be lifted across all tableau rows. Output
+orientation, natural-number serialization, input parking/restoration,
+fixed-suffix appending, and exact agreement with the semantic allocators are
+already closed independently.
 
 ## Known Failed or Rejected Routes
 

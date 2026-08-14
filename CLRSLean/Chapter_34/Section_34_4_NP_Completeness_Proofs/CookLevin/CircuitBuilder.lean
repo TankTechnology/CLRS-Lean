@@ -392,6 +392,31 @@ theorem or_eval (b : CircuitBuilder) (left right : Wire)
 
 /-! ## Boolean folds -/
 
+/-- Pure gate-order trace of the tail-first conjunction fold. -/
+structure ConjunctionGateTrace where
+  gates : List CircuitGate
+  wire : Wire
+deriving DecidableEq, Repr
+
+/-- The empty conjunction emits a true seed; every source wire then appends
+one conjunction gate in tail-first order. -/
+def conjunctionGateTrace (start : Nat) : List Wire → ConjunctionGateTrace
+  | [] =>
+      { gates := [.const true]
+        wire := start }
+  | wire :: rest =>
+      let tail := conjunctionGateTrace start rest
+      let next := start + tail.gates.length
+      { gates := tail.gates ++ [.and wire tail.wire]
+        wire := next }
+
+/-- A conjunction trace contains its true seed and one gate per source. -/
+@[simp] theorem conjunctionGateTrace_length (start : Nat) (wires : List Wire) :
+    (conjunctionGateTrace start wires).gates.length = wires.length + 1 := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih => simp [conjunctionGateTrace, ih]
+
 /-- Internal result package used to compose builders while retaining the
 extension and fresh-wire invariants. -/
 private structure BuiltWire (base : CircuitBuilder) where
@@ -420,11 +445,47 @@ private def conjunctionResult (b : CircuitBuilder) (wires : List Wire)
         valid := and_wireValid tail.builder wire tail.wire hwire tail.valid }
 termination_by wires.length
 
+private theorem conjunctionResult_trace_eq (b : CircuitBuilder)
+    (wires : List Wire) (hvalid : ∀ wire ∈ wires, b.WireValid wire) :
+    (conjunctionResult b wires hvalid).builder.gates =
+        b.gates ++ (conjunctionGateTrace b.gates.length wires).gates ∧
+      (conjunctionResult b wires hvalid).wire =
+        (conjunctionGateTrace b.gates.length wires).wire := by
+  induction wires with
+  | nil =>
+      simp [conjunctionResult, conjunctionGateTrace, const_wire_eq]
+  | cons wire rest ih =>
+      let hrest : ∀ old ∈ rest, b.WireValid old :=
+        fun old hold => hvalid old (by simp [hold])
+      rcases ih hrest with ⟨hgates, hwire⟩
+      simp only [conjunctionResult]
+      rw [and_gates, hgates]
+      simp only [and_wire_eq, conjunctionGateTrace]
+      constructor
+      · rw [hwire]
+        simp [List.append_assoc]
+      · rw [hgates]
+        simp
+
 /-- Conjoin a list of old valid wires.  The empty conjunction is true. -/
 def conjunction (b : CircuitBuilder) (wires : List Wire)
     (hvalid : ∀ wire ∈ wires, b.WireValid wire) : CircuitBuilder × Wire :=
   let result := conjunctionResult b wires hvalid
   (result.builder, result.wire)
+
+/-- The conjunction builder appends exactly its pure tail-first trace. -/
+theorem conjunction_gates_eq (b : CircuitBuilder) (wires : List Wire)
+    (hvalid : ∀ wire ∈ wires, b.WireValid wire) :
+    (b.conjunction wires hvalid).1.gates =
+      b.gates ++ (conjunctionGateTrace b.gates.length wires).gates :=
+  (conjunctionResult_trace_eq b wires hvalid).1
+
+/-- The conjunction output wire agrees with the pure trace. -/
+theorem conjunction_wire_eq_trace (b : CircuitBuilder) (wires : List Wire)
+    (hvalid : ∀ wire ∈ wires, b.WireValid wire) :
+    (b.conjunction wires hvalid).2 =
+      (conjunctionGateTrace b.gates.length wires).wire :=
+  (conjunctionResult_trace_eq b wires hvalid).2
 
 /-- A conjunction fold extends its starting builder. -/
 theorem conjunction_extends (b : CircuitBuilder) (wires : List Wire)

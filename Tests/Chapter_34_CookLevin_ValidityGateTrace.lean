@@ -26,6 +26,13 @@ open CLRS.Chapter34.Turing.CookLevin
 #check buildRawOneHot
 #check buildRawOneHot_gates_eq
 #check buildRawOneHot_output_eq_trace
+#check StackValidityFamilyGateTrace
+#check stackValidityFamilyGateTrace
+#check stackValidityFamilyGateTrace_length
+#check StackValidityFamilyResult
+#check buildStackValidityFamily
+#check buildStackValidityFamily_gates_eq
+#check buildStackValidityFamily_output_eq_trace
 
 def twoActive : Fin 2 → CircuitBuilder.Wire
   | ⟨0, _⟩ => 2
@@ -59,3 +66,5 @@ example :
 #print axioms exactlyOneFamily_output_eq_trace
 #print axioms buildRawOneHot_gates_eq
 #print axioms buildRawOneHot_output_eq_trace
+#print axioms buildStackValidityFamily_gates_eq
+#print axioms buildStackValidityFamily_output_eq_trace

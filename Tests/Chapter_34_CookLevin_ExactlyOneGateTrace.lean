@@ -13,6 +13,11 @@ open CLRS.Chapter34.Turing.CookLevin
 #check CircuitBuilder.boolEqGateTrace_length
 #check CircuitBuilder.eq_gates_eq
 #check CircuitBuilder.eq_wire_eq_trace
+#check CircuitBuilder.ConjunctionGateTrace
+#check CircuitBuilder.conjunctionGateTrace
+#check CircuitBuilder.conjunctionGateTrace_length
+#check CircuitBuilder.conjunction_gates_eq
+#check CircuitBuilder.conjunction_wire_eq_trace
 #check ExactlyOneGateTrace
 #check exactlyOneGateTrace
 #check exactlyOneGateTrace_length
@@ -28,6 +33,12 @@ open CLRS.Chapter34.Turing.CookLevin
 example :
     (exactlyOneGateTrace 7 []).gates =
       [.const false, .const false, .not 8, .and 7 9] := by
+  native_decide
+
+example :
+    CircuitBuilder.conjunctionGateTrace 7 [2, 3] =
+      { gates := [.const true, .and 3 7, .and 2 8]
+        wire := 9 } := by
   native_decide
 
 example :
@@ -54,5 +65,6 @@ example :
 #print axioms exactlyOne_gates_eq
 #print axioms exactlyOne_wire_eq_trace
 #print axioms CircuitBuilder.eq_gates_eq
+#print axioms CircuitBuilder.conjunction_gates_eq
 #print axioms activeMask_gates_eq
 #print axioms activeMask_output_eq_trace
