@@ -75,13 +75,26 @@ counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions.
   {lit}`CLRS.Chapter06.arrayHeapSort_state_correct`,
   {lit}`CLRS.Chapter06.arrayHeapSort_exact_state_correct`, and
   {lit}`CLRS.Chapter06.arrayHeapSort_correct`.
-  Costed-execution results:
+  Costed-execution results (erasure):
   {lit}`CLRS.Chapter06.maxHeapifyFuelWithCost_result`,
   {lit}`CLRS.Chapter06.arrayBuildMaxHeapWithCost_correct`,
   {lit}`CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_cost`,
   {lit}`CLRS.Chapter06.maxHeapifyControlBound_isBigO_n`,
   {lit}`CLRS.Chapter06.buildMaxHeapControlBound_isBigO_nsq`, and
   {lit}`CLRS.Chapter06.heapSortControlBound_isBigO_nsq`.
+  Tight algorithm-level bounds:
+  {lit}`CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_height`,
+  {lit}`CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_log`,
+  {lit}`CLRS.Chapter06.sum_heapHeight_le`,
+  {lit}`CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le_linear`,
+  {lit}`CLRS.Chapter06.arrayHeapSortStepWithCost_cost_le_log`,
+  {lit}`CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_cost_le_log`,
+  {lit}`CLRS.Chapter06.arrayHeapSortInPlaceWithCost_cost_le_log`, and
+  {lit}`CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_log_cost`;
+  asymptotic wrappers
+  {lit}`CLRS.Chapter06.maxHeapifyLogBound_isBigO_log`,
+  {lit}`CLRS.Chapter06.buildMaxHeapLinearBound_isBigO_n`, and
+  {lit}`CLRS.Chapter06.heapSortNLogNBound_isBigO_nlogn`.
 * 6.5 Priority queues: {lit}`proved` for the functional heap interface, with
   array-level {lit}`HEAP-MAXIMUM`, full fuelled
   {lit}`HEAP-INCREASE-KEY`, {lit}`HEAP-EXTRACT-MAX`, and
@@ -103,10 +116,11 @@ counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions.
 ## Current Gaps
 
 The proved metric is deliberately coarse: build orchestration is free, while
-visited heapify frames and nontrivial extraction transitions are charged.
-Tight textbook {lit}`O(log n)`, {lit}`O(n)`, and {lit}`O(n log n)` bounds,
-the costs of guards and list operations, and an imperative RAM refinement
-remain open.
+visited heapify frames and nontrivial extraction transitions are charged.  The
+tight textbook {lit}`O(log n)` {lit}`MAX-HEAPIFY`, {lit}`O(n)`
+{lit}`BUILD-MAX-HEAP`, and {lit}`O(n log n)` {lit}`HEAPSORT` bounds are now
+proved against this metric.  The costs of guards and list operations, and an
+imperative RAM refinement, remain open.
 -/
 
 namespace CLRS

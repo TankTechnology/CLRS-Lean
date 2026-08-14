@@ -28,6 +28,25 @@ import CLRSLean.Chapter_06
 #check CLRS.Chapter06.buildMaxHeapControlBound_isBigO_nsq
 #check CLRS.Chapter06.heapSortControlBound_isBigO_nsq
 
+#check CLRS.Chapter06.heapHeight
+#check CLRS.Chapter06.heapHeight_le_log
+#check CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_height
+#check CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_log
+#check CLRS.Chapter06.sum_heapHeight_le
+#check CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le_height_sum
+#check CLRS.Chapter06.buildMaxHeapLoopWithCost_cost_le_linear
+#check CLRS.Chapter06.buildMaxHeapLinearBound
+#check CLRS.Chapter06.arrayBuildMaxHeapWithCost_cost_le_linear
+#check CLRS.Chapter06.arrayHeapSortStepWithCost_cost_le_log
+#check CLRS.Chapter06.arrayHeapSortInPlaceLoopWithCost_cost_le_log
+#check CLRS.Chapter06.heapSortNLogNBound
+#check CLRS.Chapter06.arrayHeapSortInPlaceWithCost_cost_le_log
+#check CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_log_cost
+#check CLRS.Chapter06.maxHeapifyLogBound
+#check CLRS.Chapter06.maxHeapifyLogBound_isBigO_log
+#check CLRS.Chapter06.buildMaxHeapLinearBound_isBigO_n
+#check CLRS.Chapter06.heapSortNLogNBound_isBigO_nlogn
+
 example (fuel : Nat) (a : List Nat) (heapSize i : Nat) :
     (CLRS.Chapter06.maxHeapifyFuelWithCost fuel a heapSize i).1 =
       CLRS.Chapter06.maxHeapifyFuel fuel a heapSize i :=
@@ -45,3 +64,13 @@ example :
 example :
     0 < (CLRS.Chapter06.arrayHeapSortInPlaceWithCost [2, 1]).2 := by
   native_decide
+
+example (a : List Nat) (heapSize i : Nat) (hi : i < heapSize) :
+    (CLRS.Chapter06.maxHeapifyFuelWithCost heapSize a heapSize i).2 ≤
+      CLRS.Chapter06.Nat.log 2 heapSize + 1 :=
+  CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_log heapSize a heapSize i hi
+
+example (xs : List Nat) :
+    (CLRS.Chapter06.arrayHeapSortInPlaceWithCost xs).2 ≤
+      CLRS.Chapter06.heapSortNLogNBound xs.length :=
+  CLRS.Chapter06.arrayHeapSortInPlaceWithCost_cost_le_log xs
