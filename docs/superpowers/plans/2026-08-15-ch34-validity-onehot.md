@@ -36,3 +36,12 @@ parameters without runtime-dependent data in finite control.
 - [x] Check theorem axioms and the four constructor-complete group proof.
 - [x] Run the new interface test plus existing affine and validity tests.
 - [x] Run repository policy and `git diff --check`, then commit the slice.
+
+## Task 4: Freeze the remaining row-validity boundary
+
+- [x] Prove the raw one-hot gates are a prefix of the full canonical row
+  validity trace.
+- [x] Define the exact post-one-hot stream and prove a lossless decomposition
+  of `validityRowGateStreamAt`.
+- [x] Publish the resulting encoded-stream prefix theorem so subsequent
+  primitive serializers have an explicit acceptance boundary.

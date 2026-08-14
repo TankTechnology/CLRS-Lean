@@ -214,6 +214,65 @@ theorem arithmeticRawOneHotGateStream_eq_affineFamily
   intro i
   exact arithmeticCfgOneHotGroupWires_eq_affine tm H rowBase _
 
+/-! ## Exact boundary after the raw one-hot family -/
+
+/-- The raw one-hot gates are the first gates of the complete canonical row
+validity trace. -/
+theorem arithmeticRawOneHotGates_isPrefix
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    (rawOneHotGateTrace start
+        (arithmeticCfgWires tm H rowBase)).gates <+:
+      (canonicalValidityGateTrace start
+        (arithmeticCfgWires tm H rowBase)).gates := by
+  unfold canonicalValidityGateTrace
+  simp
+
+/-- Exact encoded suffix of canonical row validity after all raw one-hot
+groups.  It contains halted/label agreement, stack canonicality, and the final
+conjunction. -/
+noncomputable def arithmeticValidityPostOneHotGateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List CircuitSym :=
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  ((canonicalValidityGateTrace start wires).gates.drop raw.gates.length).flatMap
+    encodeCircuitGate
+
+/-- Lossless decomposition of one arithmetic row's canonical validity stream
+at the end of the completed raw one-hot phase. -/
+theorem validityRowGateStreamAt_eq_rawOneHot_append_post
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    validityRowGateStreamAt tm H start rowBase =
+      arithmeticRawOneHotAffineGateStream tm H start rowBase ++
+        arithmeticValidityPostOneHotGateStream tm H start rowBase := by
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  let full := canonicalValidityGateTrace start wires
+  have hprefix : raw.gates <+: full.gates := by
+    simpa [wires, raw, full] using
+      arithmeticRawOneHotGates_isPrefix tm H start rowBase
+  rcases hprefix with ⟨tail, htail⟩
+  have hraw := arithmeticRawOneHotGateStream_eq_affineFamily
+    tm H start rowBase
+  unfold validityRowGateStreamAt
+  change full.gates.flatMap encodeCircuitGate = _
+  rw [← hraw]
+  unfold arithmeticValidityPostOneHotGateStream
+  change full.gates.flatMap encodeCircuitGate =
+    raw.gates.flatMap encodeCircuitGate ++
+      (full.gates.drop raw.gates.length).flatMap encodeCircuitGate
+  rw [← htail]
+  simp
+
+/-- The completed affine raw one-hot stream is an encoded prefix of the full
+canonical validity stream for one arithmetic row. -/
+theorem arithmeticRawOneHotAffineGateStream_isPrefix
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticRawOneHotAffineGateStream tm H start rowBase <+:
+      validityRowGateStreamAt tm H start rowBase := by
+  rw [validityRowGateStreamAt_eq_rawOneHot_append_post]
+  exact List.prefix_append _ _
+
 end
 
 end CLRS.Chapter34.Turing.CookLevin

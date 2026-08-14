@@ -15,6 +15,10 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check arithmeticRawOneHotGateStream_eq_affineFamily
 #check arithmeticCfgOneHotGroupRev_runFrom
 #check arithmeticCfgOneHotGroupRev_steps_le
+#check arithmeticRawOneHotGates_isPrefix
+#check arithmeticValidityPostOneHotGateStream
+#check validityRowGateStreamAt_eq_rawOneHot_append_post
+#check arithmeticRawOneHotAffineGateStream_isPrefix
 
 #print axioms arithmeticCfgOneHotGroupWires_eq_affine
 #print axioms arithmeticCfgOneHotGroupGateStream_eq_affine
@@ -22,3 +26,5 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms arithmeticRawOneHotGateStream_eq_affineFamily
 #print axioms arithmeticCfgOneHotGroupRev_runFrom
 #print axioms arithmeticCfgOneHotGroupRev_steps_le
+#print axioms validityRowGateStreamAt_eq_rawOneHot_append_post
+#print axioms arithmeticRawOneHotAffineGateStream_isPrefix
