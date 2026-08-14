@@ -1095,6 +1095,589 @@ theorem lru_k_competitive (k : ℕ) (σ : List Page) (hk : 0 < k) (A : Algorithm
     _ ≤ k * (missesGo A ∅ σ + 1) := hmul
     _ = k * missesGo A ∅ σ + k := by rw [Nat.mul_add, Nat.mul_one]
 
+-- ---------------------------------------------------------------------------
+-- The deterministic lower bound (Sleator-Tarjan).
+
+/-! ## Deterministic lower bound
+
+The matching lower bound of CLRS §27.3: no deterministic online paging
+algorithm is better than `k`-competitive.  The adversary works over the
+`k + 1`-page universe `Fin (k + 1)` and always requests a page absent from the
+algorithm's cache, so the algorithm faults on every request.  An offline
+schedule that sees the whole sequence serves the same requests with at most
+`N / k + k + 1` faults, which is the comparison cost of the lower bound.
+-/
+
+/-- A cache of at most `k` pages omits some page of the `k + 1`-page universe. -/
+lemma exists_page_not_mem (C : Finset (Fin (k + 1))) (hC : C.card ≤ k) :
+    ∃ p : Fin (k + 1), p ∉ C := by
+  classical
+  have huniv : (Finset.univ : Finset (Fin (k + 1))).card = k + 1 := by
+    rw [Finset.card_univ, Fintype.card_fin]
+  have hsub : ¬ (Finset.univ : Finset (Fin (k + 1))) ⊆ C := by
+    intro h
+    have hle : (Finset.univ : Finset (Fin (k + 1))).card ≤ C.card := Finset.card_le_card h
+    omega
+  rw [← Finset.sdiff_nonempty] at hsub
+  rcases hsub with ⟨p, hp⟩
+  exact ⟨p, (Finset.mem_sdiff.mp hp).2⟩
+
+/--
+The **adversary's fresh page**: a page outside the cache `C` (junk when `C` is
+already the whole universe).  The lower-bound adversary always requests this
+absent page, forcing a fault.
+-/
+noncomputable def freshPage (C : Finset (Fin (k + 1))) : Fin (k + 1) :=
+  if h : ∃ p : Fin (k + 1), p ∉ C then Classical.choose h else 0
+
+/-- `freshPage C` lies outside `C` whenever some page does. -/
+lemma freshPage_spec (C : Finset (Fin (k + 1))) (h : ∃ p : Fin (k + 1), p ∉ C) :
+    freshPage C ∉ C := by
+  unfold freshPage
+  rw [dif_pos h]
+  exact Classical.choose_spec h
+
+/-- The cache of `A` after `n` adversarial requests. -/
+noncomputable def advCache (A : Algorithm (Fin (k + 1)) k) : ℕ → Finset (Fin (k + 1))
+  | 0 => ∅
+  | n + 1 => A.step (advCache A n) (freshPage (advCache A n))
+
+/-- The adversary's cache always respects the size bound. -/
+lemma advCache_card_le (A : Algorithm (Fin (k + 1)) k) (n : ℕ) :
+    (advCache A n).card ≤ k := by
+  induction n with
+  | zero => simp [advCache]
+  | succ n ih =>
+      simp [advCache]
+      exact A.step_size (advCache A n) (freshPage (advCache A n))
+
+/-- The adversarial request sequence of length `n`: always request the page
+absent from the algorithm's current cache. -/
+noncomputable def advSeq (A : Algorithm (Fin (k + 1)) k) (n : ℕ) : List (Fin (k + 1)) :=
+  (List.range n).map (fun i => freshPage (advCache A i))
+
+/-- The adversarial sequence of length `n + 1` extends the length-`n` one by the
+next fresh page. -/
+lemma advSeq_snoc (A : Algorithm (Fin (k + 1)) k) (n : ℕ) :
+    advSeq A (n + 1) = advSeq A n ++ [freshPage (advCache A n)] := by
+  unfold advSeq
+  rw [List.range_succ, List.map_append]
+  simp
+
+/-- The length of the adversarial sequence is `n`. -/
+lemma advSeq_length (A : Algorithm (Fin (k + 1)) k) (n : ℕ) :
+    (advSeq A n).length = n := by
+  unfold advSeq
+  simp
+
+/-- `runGo` distributes over list concatenation. -/
+lemma runGo_append (A : Algorithm Page k) (C : Finset Page) (σ τ : List Page) :
+    runGo A C (σ ++ τ) = runGo A (runGo A C σ) τ := by
+  induction σ generalizing C with
+  | nil => simp [runGo]
+  | cons p σ' ih => simp [runGo, ih]
+
+/-- The cache of `A` after running the adversarial sequence of length `n` is
+exactly the adversary's tracked cache. -/
+lemma runGo_advSeq (A : Algorithm (Fin (k + 1)) k) (n : ℕ) :
+    runGo A ∅ (advSeq A n) = advCache A n := by
+  induction n with
+  | zero => simp [advSeq, advCache, runGo]
+  | succ n ih =>
+      rw [advSeq_snoc, runGo_append]
+      simp [runGo, ih, advCache]
+
+/-- The next adversarial request is always absent from the algorithm's cache. -/
+lemma freshPage_not_mem (A : Algorithm (Fin (k + 1)) k) (n : ℕ) :
+    freshPage (advCache A n) ∉ advCache A n := by
+  exact freshPage_spec (advCache A n) (exists_page_not_mem (advCache A n) (advCache_card_le A n))
+
+/-- The algorithm faults on every adversarial request: over `n` requests it
+misses exactly `n` times. -/
+lemma advSeq_misses (A : Algorithm (Fin (k + 1)) k) (n : ℕ) :
+    misses A ∅ (advSeq A n) = n := by
+  induction n with
+  | zero => simp [advSeq, misses, missesGo]
+  | succ n ih =>
+      rw [advSeq_snoc]
+      change missesGo A ∅ (advSeq A n ++ [freshPage (advCache A n)]) = n + 1
+      rw [missesGo_append, runGo_advSeq]
+      simp only [missesGo]
+      rw [show missesGo A ∅ (advSeq A n) = n from ih]
+      simp [freshPage_not_mem A n]
+
+-- ---------------------------------------------------------------------------
+-- The offline schedule: a phase-aware policy that realizes the comparison cost.
+
+/--
+The **offline eviction step**: on a fault for `p` from cache `C`, evict a page
+not belonging to the current phase `phase` (a "stale" page) if one exists, and
+otherwise just load `p`.  The offline schedule knows the whole sequence, so it
+knows the phase.
+-/
+noncomputable def offlineStep (phase : Finset Page) (C : Finset Page) (p : Page) :
+    Finset Page :=
+  if p ∈ C then C
+  else if h : ∃ q ∈ C, q ∉ phase then insert p (C.erase (Classical.choose h))
+  else insert p C
+
+/-- The offline step loads the request. -/
+lemma offlineStep_loads (phase C : Finset Page) (p : Page) :
+    p ∈ offlineStep phase C p := by
+  unfold offlineStep
+  split_ifs with hpC hq
+  · exact hpC
+  · simp
+  · simp
+
+/-- The offline step only ever adds the request. -/
+lemma offlineStep_subset (phase C : Finset Page) (p : Page) :
+    offlineStep phase C p ⊆ insert p C := by
+  unfold offlineStep
+  split_ifs with hp hq <;> intro x hx
+  · exact Finset.mem_insert.mpr (Or.inr hx)
+  · rw [Finset.mem_insert] at hx ⊢
+    rcases hx with hx | hx
+    · exact Or.inl hx
+    · rw [Finset.mem_erase] at hx
+      exact Or.inr hx.2
+  · exact hx
+
+/-- The offline step keeps the cache within the size bound when the request is
+in the phase and the phase has at most `k` pages. -/
+lemma offlineStep_size (phase C : Finset Page) (p : Page) (hC : C.card ≤ k)
+    (hp : p ∈ phase) (hphase : phase.card ≤ k) : (offlineStep phase C p).card ≤ k := by
+  unfold offlineStep
+  split_ifs with hpC hq
+  · exact hC
+  · have hqmem : (Classical.choose hq) ∈ C := (Classical.choose_spec hq).1
+    have hpos : 0 < C.card := Finset.card_pos.mpr ⟨Classical.choose hq, hqmem⟩
+    rw [Finset.card_insert_of_notMem]
+    · rw [Finset.card_erase_of_mem hqmem]
+      omega
+    · intro hp'
+      exact hpC (Finset.mem_of_mem_erase hp')
+  · have hsub : C ⊆ phase := by
+      intro x hx
+      by_contra hnot
+      exact hq ⟨x, hx, hnot⟩
+    have hins : insert p C ⊆ phase := by
+      rw [Finset.insert_subset_iff]
+      exact ⟨hp, hsub⟩
+    exact le_trans (Finset.card_le_card hins) hphase
+
+/-- A hit leaves the offline cache unchanged. -/
+lemma offlineStep_hit (phase C : Finset Page) (p : Page) (hp : p ∈ C) :
+    offlineStep phase C p = C := by
+  unfold offlineStep
+  simp [hp]
+
+/-- The offline step preserves an exactly-full cache. -/
+lemma offlineStep_card_eq (phase C : Finset Page) (p : Page) (hC : C.card = k)
+    (hp : p ∈ phase) (hphase : phase.card ≤ k) : (offlineStep phase C p).card = k := by
+  unfold offlineStep
+  split_ifs with hpC hq
+  · exact hC
+  · have hqmem : (Classical.choose hq) ∈ C := (Classical.choose_spec hq).1
+    have hpos : 0 < C.card := Finset.card_pos.mpr ⟨Classical.choose hq, hqmem⟩
+    rw [Finset.card_insert_of_notMem]
+    · rw [Finset.card_erase_of_mem hqmem]
+      omega
+    · intro hp'
+      exact hpC (Finset.mem_of_mem_erase hp')
+  · exfalso
+    have hsub : C ⊆ phase := by
+      intro x hx
+      by_contra hnot
+      exact hq ⟨x, hx, hnot⟩
+    have hle : C.card ≤ phase.card := Finset.card_le_card hsub
+    have hk_le : k ≤ phase.card := by omega
+    have hfull : C = phase := Finset.eq_of_subset_of_card_le hsub (by omega)
+    exact hpC (by rw [hfull]; exact hp)
+
+/-- Serve one phase `ρ` (all requests lie in the phase `phase`) from cache `C`,
+evicting stale pages. -/
+noncomputable def servePhase (phase : Finset Page) (C : Finset Page) : List Page → Finset Page
+  | [] => C
+  | p :: ρ => servePhase phase (offlineStep phase C p) ρ
+
+/-- The number of misses when serving one phase `ρ` from cache `C`. -/
+noncomputable def servePhaseMisses (phase : Finset Page) (C : Finset Page) : List Page → ℕ
+  | [] => 0
+  | p :: ρ => (if p ∈ C then 0 else 1) + servePhaseMisses phase (offlineStep phase C p) ρ
+
+/-- The offline cache after serving a list of phases from cache `C`. -/
+noncomputable def offCache (C : Finset Page) : List (List Page) → Finset Page
+  | [] => C
+  | ρ :: ps => offCache (servePhase ρ.toFinset C ρ) ps
+
+/-- The offline miss count over a list of phases from cache `C`. -/
+noncomputable def offMisses (C : Finset Page) : List (List Page) → ℕ
+  | [] => 0
+  | ρ :: ps => servePhaseMisses ρ.toFinset C ρ + offMisses (servePhase ρ.toFinset C ρ) ps
+
+/-- A single offline step removes `p` from the phase pages `S` (and nothing
+else): `S \ offlineStep phase C p = (S \ C) \ {p}`. -/
+lemma offlineStep_sdiff (phase C : Finset Page) (p : Page) (S : Finset Page) (hS : S ⊆ phase) :
+    S \ offlineStep phase C p = (S \ C) \ {p} := by
+  unfold offlineStep
+  split_ifs with hpC hq
+  · ext x
+    simp only [Finset.mem_sdiff, Finset.mem_erase, Finset.mem_singleton]
+    have hnp : x ∉ C → x ≠ p := by intro hx hxp; subst x; exact hx hpC
+    tauto
+  · have hqmem : (Classical.choose hq) ∈ C ∧ (Classical.choose hq) ∉ phase := Classical.choose_spec hq
+    have hqS : Classical.choose hq ∉ S := by intro h; exact hqmem.2 (hS h)
+    ext x
+    simp only [Finset.mem_sdiff, Finset.mem_insert, Finset.mem_erase, Finset.mem_singleton]
+    have hxq : x ∈ S → x ≠ Classical.choose hq := by intro hx hxq; exact hqS (hxq ▸ hx)
+    tauto
+  · ext x
+    simp only [Finset.mem_sdiff, Finset.mem_insert, Finset.mem_erase, Finset.mem_singleton]
+    tauto
+
+/-- The key one-step cardinal inequality driving the phase miss bound. -/
+lemma card_step_ineq (S C : Finset Page) (p : Page) :
+    (if p ∈ C then 0 else 1) + ((S \ C) \ {p}).card ≤ (insert p S \ C).card := by
+  by_cases hpC : p ∈ C
+  · simp [hpC]
+    rw [Finset.insert_sdiff_of_mem S hpC]
+    exact Finset.card_le_card (by intro x hx; exact (Finset.mem_sdiff.mp hx).1)
+  · simp [hpC]
+    by_cases hpS : p ∈ S
+    · have hmem : p ∈ S \ C := Finset.mem_sdiff.mpr ⟨hpS, hpC⟩
+      have hcard : ((S \ C) \ {p}).card + 1 = (S \ C).card := by
+        rw [show (S \ C) \ {p} = (S \ C).erase p by ext x; simp only [Finset.mem_sdiff, Finset.mem_erase, Finset.mem_singleton]; tauto]
+        exact Finset.card_erase_add_one hmem
+      have hinsert : insert p S \ C = S \ C := by simp [hpS]
+      rw [hinsert]
+      omega
+    · have hnot : p ∉ S \ C := by intro h; exact hpS (Finset.mem_sdiff.mp h).1
+      have hins : insert p S \ C = insert p (S \ C) := by
+        ext x
+        by_cases hxp : x = p <;> simp [Finset.mem_sdiff, Finset.mem_insert, hxp, hpC, hpS]
+      rw [hins, Finset.card_insert_of_notMem hnot]
+      have heq : (S \ C) \ {p} = S \ C := by
+        ext x
+        simp only [Finset.mem_sdiff, Finset.mem_erase, Finset.mem_singleton]
+        have hnp : x ∈ S → x ≠ p := by intro hx hxp; exact hpS (hxp ▸ hx)
+        tauto
+      rw [heq]
+      omega
+
+/-- Serving one phase faults at most once per distinct requested page not
+already cached: `servePhaseMisses phase C ρ ≤ (ρ.toFinset \ C).card`. -/
+lemma servePhaseMisses_le (phase C : Finset Page) (ρ : List Page) (hρ : ρ.toFinset ⊆ phase) :
+    servePhaseMisses phase C ρ ≤ (ρ.toFinset \ C).card := by
+  induction ρ generalizing C with
+  | nil => simp [servePhaseMisses]
+  | cons p ρ' ih =>
+      have hρ' : ρ'.toFinset ⊆ phase := by
+        intro x hx
+        exact hρ (by rw [List.toFinset_cons]; exact Finset.mem_insert.mpr (Or.inr hx))
+      have hsd := offlineStep_sdiff phase C p ρ'.toFinset hρ'
+      have hih := ih (offlineStep phase C p) hρ'
+      change (if p ∈ C then 0 else 1) + servePhaseMisses phase (offlineStep phase C p) ρ'
+          ≤ ((p :: ρ').toFinset \ C).card
+      rw [List.toFinset_cons]
+      calc
+        (if p ∈ C then 0 else 1) + servePhaseMisses phase (offlineStep phase C p) ρ'
+            ≤ (if p ∈ C then 0 else 1) + (ρ'.toFinset \ offlineStep phase C p).card :=
+              Nat.add_le_add_left hih _
+        _ = (if p ∈ C then 0 else 1) + ((ρ'.toFinset \ C) \ {p}).card := by rw [hsd]
+        _ ≤ (insert p ρ'.toFinset \ C).card := card_step_ineq ρ'.toFinset C p
+
+/-- Serving a phase whose requests all lie in `phase` from a cache within the
+size bound stays within the size bound. -/
+lemma servePhase_card_le (phase C : Finset Page) (ρ : List Page) (hC : C.card ≤ k)
+    (hρ : ρ.toFinset ⊆ phase) (hphase : phase.card ≤ k) :
+    (servePhase phase C ρ).card ≤ k := by
+  induction ρ generalizing C with
+  | nil => simpa [servePhase] using hC
+  | cons p ρ' ih =>
+      have hp_phase : p ∈ phase := hρ (by simp)
+      have hρ' : ρ'.toFinset ⊆ phase := by
+        intro x hx
+        exact hρ (by rw [List.toFinset_cons]; exact Finset.mem_insert.mpr (Or.inr hx))
+      simp [servePhase]
+      exact ih (offlineStep phase C p) (offlineStep_size phase C p hC hp_phase hphase) hρ'
+
+/-- Serving a phase preserves an exactly-full cache. -/
+lemma servePhase_card_eq (phase C : Finset Page) (ρ : List Page) (hC : C.card = k)
+    (hρ : ρ.toFinset ⊆ phase) (hphase : phase.card ≤ k) :
+    (servePhase phase C ρ).card = k := by
+  induction ρ generalizing C with
+  | nil => simpa [servePhase] using hC
+  | cons p ρ' ih =>
+      have hp_phase : p ∈ phase := hρ (by simp)
+      have hρ' : ρ'.toFinset ⊆ phase := by
+        intro x hx
+        exact hρ (by rw [List.toFinset_cons]; exact Finset.mem_insert.mpr (Or.inr hx))
+      simp [servePhase]
+      exact ih (offlineStep phase C p) (offlineStep_card_eq phase C p hC hp_phase hphase) hρ'
+
+/-- Serving one phase from a full cache over the `k + 1`-page universe faults at
+most once. -/
+lemma servePhaseMisses_le_one (C : Finset (Fin (k + 1))) (ρ : List (Fin (k + 1)))
+    (hC : C.card = k) (hρ : ρ.toFinset.card ≤ k) :
+    servePhaseMisses ρ.toFinset C ρ ≤ 1 := by
+  have hle := servePhaseMisses_le ρ.toFinset C ρ (by intro x hx; exact hx)
+  have hcard : (ρ.toFinset \ C).card ≤ 1 := by
+    have huniv : (Finset.univ : Finset (Fin (k + 1))).card = k + 1 := by
+      rw [Finset.card_univ, Fintype.card_fin]
+    have hcup : (C ∪ ρ.toFinset).card ≤ (Finset.univ : Finset (Fin (k + 1))).card :=
+      Finset.card_le_card (Finset.subset_univ _)
+    have hsd : (ρ.toFinset \ C).card = (C ∪ ρ.toFinset).card - C.card := by
+      rw [Finset.card_sdiff]
+      have hunion := Finset.card_union_add_card_inter C ρ.toFinset
+      omega
+    rw [hsd, hC]
+    omega
+  exact le_trans hle hcard
+
+/-- The number of phases is at most one more than `σ.length / k`. -/
+lemma phases_length_le (k : ℕ) (σ : List Page) (hk : 0 < k) :
+    (phases k σ).length ≤ σ.length / k + 1 := by
+  classical
+  have go : ∀ (n : ℕ) (σ : List Page), σ.length = n →
+      (phases k σ).length ≤ σ.length / k + 1 := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro σ hlen
+      cases σ with
+      | nil => simp [phases, WellFounded.fix_eq]
+      | cons p rest =>
+          let fp := firstPhase k (p :: rest)
+          have hsplit := firstPhase_split k (p :: rest)
+          have hnonempty : fp.1 ≠ [] := by
+            dsimp [fp]
+            exact firstPhase_nonempty k (p :: rest) (by simp)
+          by_cases hrem : fp.2 = []
+          · rw [phases_cons_eq k (p :: rest) (by simp)]
+            rw [hrem]
+            simp [phases, WellFounded.fix_eq]
+          · have hremlen : fp.2.length < (p :: rest).length := by
+              have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
+                rw [← hsplit, List.length_append]
+              have hpos : 0 < fp.1.length := List.length_pos_of_ne_nil hnonempty
+              omega
+            have hremlen' : fp.2.length < n := by omega
+            have hih := ih fp.2.length hremlen' fp.2 rfl
+            have hcard : fp.1.toFinset.card = k := by
+              have hmax := firstPhase_maximal k (p :: rest) hk (by intro h; exact hrem (by simpa [fp, h] using h))
+              simpa [fp] using hmax.1
+            have hlen1 : k ≤ fp.1.length := by
+              have hle : fp.1.toFinset.card ≤ fp.1.length := by
+                rw [List.toFinset, Multiset.card_toFinset]
+                exact Multiset.card_le_card (Multiset.dedup_le _)
+              omega
+            have hdiv : 1 + fp.2.length / k ≤ (k + fp.2.length) / k := by
+              rw [Nat.le_div_iff_mul_le hk]
+              rw [Nat.add_mul]
+              simp only [one_mul]
+              have hle : fp.2.length / k * k ≤ fp.2.length := Nat.div_mul_le_self fp.2.length k
+              omega
+            have hlenσ : k + fp.2.length ≤ (p :: rest).length := by
+              rw [← hsplit, List.length_append]
+              exact Nat.add_le_add_right hlen1 fp.2.length
+            rw [phases_cons_eq k (p :: rest) (by simp)]
+            calc
+              (fp.1 :: phases k fp.2).length = 1 + (phases k fp.2).length := by simp only [List.length_cons]; omega
+              _ ≤ 1 + (fp.2.length / k + 1) := Nat.add_le_add_left hih 1
+              _ = 1 + fp.2.length / k + 1 := by omega
+              _ ≤ (k + fp.2.length) / k + 1 := Nat.add_le_add_right hdiv 1
+              _ ≤ (p :: rest).length / k + 1 := by
+                exact Nat.add_le_add_right (Nat.div_le_div_right hlenσ) 1
+  exact go σ.length σ rfl
+
+/-- From a full cache (exactly `k` pages) over the `k + 1`-page universe, the
+offline schedule faults at most once per phase. -/
+theorem offMisses_bound_from_full (k : ℕ) (σ : List (Fin (k + 1))) (hk : 0 < k)
+    (C : Finset (Fin (k + 1))) (hC : C.card = k) :
+    offMisses C (phases k σ) ≤ (phases k σ).length := by
+  classical
+  have go : ∀ (n : ℕ) (σ : List (Fin (k + 1))), σ.length = n →
+      ∀ (C : Finset (Fin (k + 1))), C.card = k → offMisses C (phases k σ) ≤ (phases k σ).length := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro σ hlen C hC
+      cases σ with
+      | nil => simp [offMisses, phases, WellFounded.fix_eq]
+      | cons p rest =>
+          let fp := firstPhase k (p :: rest)
+          have hsplit := firstPhase_split k (p :: rest)
+          have hnonempty : fp.1 ≠ [] := by
+            dsimp [fp]
+            exact firstPhase_nonempty k (p :: rest) (by simp)
+          have hcard_fp : fp.1.toFinset.card ≤ k := by
+            exact firstPhase_distinct_le k (p :: rest) hk
+          have hmisses : servePhaseMisses fp.1.toFinset C fp.1 ≤ 1 := by
+            exact servePhaseMisses_le_one C fp.1 hC (by simpa [fp] using hcard_fp)
+          have hcache : (servePhase fp.1.toFinset C fp.1).card = k := by
+            exact servePhase_card_eq fp.1.toFinset C fp.1 hC (by intro x hx; exact hx) (by simpa [fp] using hcard_fp)
+          have hremlen : fp.2.length < (p :: rest).length := by
+            have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
+              rw [← hsplit, List.length_append]
+            have hpos : 0 < fp.1.length := List.length_pos_of_ne_nil hnonempty
+            omega
+          have hremlen' : fp.2.length < n := by omega
+          have hih := ih fp.2.length hremlen' fp.2 rfl (servePhase fp.1.toFinset C fp.1) hcache
+          rw [phases_cons_eq k (p :: rest) (by simp)]
+          simp [offMisses]
+          calc
+            servePhaseMisses fp.1.toFinset C fp.1 + offMisses (servePhase fp.1.toFinset C fp.1) (phases k fp.2)
+                ≤ 1 + offMisses (servePhase fp.1.toFinset C fp.1) (phases k fp.2) := Nat.add_le_add_right hmisses _
+            _ ≤ 1 + (phases k fp.2).length := Nat.add_le_add_left hih 1
+            _ = (fp.1 :: phases k fp.2).length := by simp only [List.length_cons]; omega
+  exact go σ.length σ rfl C hC
+
+/-- Serving one phase from an empty cache yields exactly the phase's distinct
+pages as the new cache. -/
+lemma servePhase_eq_union (phase C : Finset Page) (ρ : List Page) (hC : C ⊆ phase)
+    (hρ : ρ.toFinset ⊆ phase) : servePhase phase C ρ = C ∪ ρ.toFinset := by
+  induction ρ generalizing C with
+  | nil => simp [servePhase]
+  | cons p ρ' ih =>
+      have hp_phase : p ∈ phase := hρ (by simp)
+      have hρ' : ρ'.toFinset ⊆ phase := by
+        intro x hx
+        exact hρ (by rw [List.toFinset_cons]; exact Finset.mem_insert.mpr (Or.inr hx))
+      have hstep : offlineStep phase C p = insert p C := by
+        unfold offlineStep
+        by_cases hpC : p ∈ C
+        · simp [hpC]
+        · have hnone : ¬ ∃ q ∈ C, q ∉ phase := by
+            rintro ⟨q, hqC, hqnot⟩
+            exact hqnot (hC hqC)
+          simp [hpC, hnone]
+      simp [servePhase, hstep]
+      have hC' : insert p C ⊆ phase := by
+        rw [Finset.insert_subset_iff]
+        exact ⟨hp_phase, hC⟩
+      rw [ih (insert p C) hC' hρ']
+      ext x
+      simp only [Finset.mem_insert, Finset.mem_union]
+      tauto
+
+/-- **Offline upper bound.**  The offline schedule faults at most
+`(phases k σ).length + k` times over any request sequence on the `k + 1`-page
+universe, starting from an empty cache. -/
+theorem offMisses_bound (k : ℕ) (σ : List (Fin (k + 1))) (hk : 0 < k) :
+    offMisses ∅ (phases k σ) ≤ (phases k σ).length + k := by
+  classical
+  have go : ∀ (n : ℕ) (σ : List (Fin (k + 1))), σ.length = n →
+      offMisses ∅ (phases k σ) ≤ (phases k σ).length + k := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro σ hlen
+      cases σ with
+      | nil => simp [offMisses, phases, WellFounded.fix_eq]
+      | cons p rest =>
+          let fp := firstPhase k (p :: rest)
+          have hsplit := firstPhase_split k (p :: rest)
+          have hnonempty : fp.1 ≠ [] := by
+            dsimp [fp]
+            exact firstPhase_nonempty k (p :: rest) (by simp)
+          have hcard_fp : fp.1.toFinset.card ≤ k := by
+            exact firstPhase_distinct_le k (p :: rest) hk
+          have hmisses : servePhaseMisses fp.1.toFinset ∅ fp.1 ≤ fp.1.toFinset.card := by
+            exact servePhaseMisses_le fp.1.toFinset ∅ fp.1 (by intro x hx; exact hx)
+          have hremlen : fp.2.length < (p :: rest).length := by
+            have hlen : fp.1.length + fp.2.length = (p :: rest).length := by
+              rw [← hsplit, List.length_append]
+            have hpos : 0 < fp.1.length := List.length_pos_of_ne_nil hnonempty
+            omega
+          have hremlen' : fp.2.length < n := by omega
+          by_cases hrem : fp.2 = []
+          · rw [phases_cons_eq k (p :: rest) (by simp), hrem]
+            simp [offMisses, phases, WellFounded.fix_eq]
+            exact le_trans (le_trans hmisses hcard_fp) (by omega)
+          · have hcard_fp_eq : fp.1.toFinset.card = k := by
+              have hmax := firstPhase_maximal k (p :: rest) hk (by intro h; exact hrem (by simpa [fp, h] using h))
+              simpa [fp] using hmax.1
+            have hcache_eq : servePhase fp.1.toFinset ∅ fp.1 = fp.1.toFinset := by
+              exact servePhase_eq_union fp.1.toFinset ∅ fp.1 (by simp) (by intro x hx; exact hx)
+            have hcache : (servePhase fp.1.toFinset ∅ fp.1).card = k := by
+              rw [hcache_eq, hcard_fp_eq]
+            have hih := offMisses_bound_from_full k fp.2 hk (servePhase fp.1.toFinset ∅ fp.1) hcache
+            rw [phases_cons_eq k (p :: rest) (by simp)]
+            simp [offMisses]
+            calc
+              servePhaseMisses fp.1.toFinset ∅ fp.1 + offMisses (servePhase fp.1.toFinset ∅ fp.1) (phases k fp.2)
+                  ≤ fp.1.toFinset.card + offMisses (servePhase fp.1.toFinset ∅ fp.1) (phases k fp.2) :=
+                    Nat.add_le_add_right hmisses _
+              _ ≤ k + (phases k fp.2).length := by
+                rw [hcard_fp_eq]
+                exact Nat.add_le_add_left hih k
+              _ ≤ (fp.1 :: phases k fp.2).length + k := by
+                simp only [List.length_cons]
+                omega
+  exact go σ.length σ rfl
+
+/--
+**Theorem 27.4 (Sleator-Tarjan lower bound).**  For any deterministic online
+paging algorithm `A` with cache size `k ≥ 1`, and any request count `N`, there
+is a request sequence `σ` of length `N` (over `k + 1` pages) on which `A` faults
+on every request while some offline schedule faults at most `N / k + k + 1`
+times.  Hence no deterministic online algorithm is `c`-competitive for any
+`c < k`.
+-/
+theorem caching_lower_bound (k N : ℕ) (hk : 0 < k) (A : Algorithm (Fin (k + 1)) k) :
+    ∃ σ : List (Fin (k + 1)),
+      σ.length = N ∧
+      misses A ∅ σ = N ∧
+      offMisses ∅ (phases k σ) ≤ N / k + k + 1 := by
+  refine ⟨advSeq A N, ?_, advSeq_misses A N, ?_⟩
+  · exact advSeq_length A N
+  · calc
+      offMisses ∅ (phases k (advSeq A N)) ≤ (phases k (advSeq A N)).length + k :=
+        offMisses_bound k (advSeq A N) hk
+      _ ≤ (advSeq A N).length / k + 1 + k := by
+        exact Nat.add_le_add_right (phases_length_le k (advSeq A N) hk) k
+      _ = N / k + k + 1 := by
+        rw [advSeq_length A]
+        omega
+
+/--
+**No `c`-competitive ratio below `k`.**  For any `c < k`, the adversarial
+sequence of length `k^3` witnesses that `A`'s miss count strictly exceeds `c`
+times the offline cost.
+-/
+theorem caching_no_c_competitive (k : ℕ) (hk : 0 < k) (A : Algorithm (Fin (k + 1)) k) :
+    ∀ c : ℕ, c < k → c * offMisses ∅ (phases k (advSeq A (k * k * k))) < misses A ∅ (advSeq A (k * k * k)) := by
+  intro c hc
+  have hbound : offMisses ∅ (phases k (advSeq A (k * k * k))) ≤ (k * k * k) / k + k + 1 := by
+    calc
+      offMisses ∅ (phases k (advSeq A (k * k * k))) ≤ (phases k (advSeq A (k * k * k))).length + k :=
+        offMisses_bound k (advSeq A (k * k * k)) hk
+      _ ≤ (advSeq A (k * k * k)).length / k + 1 + k := by
+        exact Nat.add_le_add_right (phases_length_le k (advSeq A (k * k * k)) hk) k
+      _ = (k * k * k) / k + k + 1 := by
+        rw [advSeq_length A]
+        omega
+  have hmiss : misses A ∅ (advSeq A (k * k * k)) = k * k * k := advSeq_misses A (k * k * k)
+  have hdiv : (k * k * k) / k = k * k := by
+    rw [Nat.mul_assoc]
+    exact Nat.mul_div_right (k * k) hk
+  calc
+    c * offMisses ∅ (phases k (advSeq A (k * k * k)))
+        ≤ c * ((k * k * k) / k + k + 1) := Nat.mul_le_mul_left c hbound
+    _ ≤ (k - 1) * ((k * k * k) / k + k + 1) := by
+      exact Nat.mul_le_mul_right _ (by omega : c ≤ k - 1)
+    _ = (k - 1) * (k * k + k + 1) := by rw [hdiv]
+    _ < k * k * k := by
+      obtain ⟨d, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (by omega : k ≠ 0)
+      simp only [Nat.succ_eq_add_one]
+      have hd : d + 1 - 1 = d := by omega
+      rw [hd]
+      have h : d * ((d + 1) * (d + 1) + (d + 1) + 1) + 1 = (d + 1) * (d + 1) * (d + 1) := by ring
+      rw [← h]
+      exact Nat.lt_succ_self _
+    _ = misses A ∅ (advSeq A (k * k * k)) := by rw [hmiss]
+
 
 end OnlineCaching
 
