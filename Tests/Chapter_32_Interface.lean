@@ -71,6 +71,39 @@ namespace Chapter32
 #print axioms dfaMatcherTable_correct
 #print axioms transitionTableBuildCost_eq
 
+-- §32.4 Knuth-Morris-Pratt: prefix function
+#check prefixLen
+#check prefixLen_satisfies
+#check prefixLen_maximal
+#check prefixLen_chain_step
+#check prefixLen_snoc_eq
+#check computePrefixFunction
+#check computePrefixFunction_correct
+
+-- §32.4 Knuth-Morris-Pratt: all-occurrences scan and refinement
+#check kmpMatcher
+#check kmpStep
+#check kmpStep_eq_delta
+#check kmpMatcher_correct
+#check kmpMatcher_sound
+#check kmpMatcher_complete
+
+-- §32.4 Knuth-Morris-Pratt: costed construction + scan, linear total bound
+#check computePrefixFunctionWithCost
+#check computePrefixFunctionWithCost_result
+#check computePrefixFunctionWithCost_cost_le
+#check kmpMatcherWithCost
+#check kmpMatcherWithCost_result
+#check kmpMatcherWithCost_cost_le
+#check kmpTotalCost
+#check kmpTotalCost_le
+
+-- §32.4 Knuth-Morris-Pratt: axioms clean on the headline theorems
+#print axioms computePrefixFunction_correct
+#print axioms kmpMatcher_correct
+#print axioms computePrefixFunctionWithCost_cost_le
+#print axioms kmpTotalCost_le
+
 -- §32.5 Suffix arrays: suffix order and validity
 #check suffixAt
 #check suffixLe
