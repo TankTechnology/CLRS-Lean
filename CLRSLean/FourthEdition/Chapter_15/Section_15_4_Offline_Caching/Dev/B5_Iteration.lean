@@ -4,7 +4,7 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B4_Rep
 # Dev B5: the iteration to `fifo_optimal`
 
 Development file for the final assembly of the optimality proof (see
-`Dev/DESIGN.md`): starting from an arbitrary reduced schedule, repeatedly
+`Dev/Legacy/StateMachine/DESIGN.md`): starting from an arbitrary reduced schedule, repeatedly
 repair or exchange at the first disagreement with the FIF schedule, tracking
 the reducedness bound and the accumulated slack, until the schedule agrees
 with the policy everywhere; the miss count never increases overall.

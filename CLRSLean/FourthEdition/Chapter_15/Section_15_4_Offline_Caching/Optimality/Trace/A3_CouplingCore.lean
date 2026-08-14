@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A2_OnePageDiff
 
 /-!
-# Chapter 15.4 development: recursive coupling core
+# Section 15.4 optimality: recursive coupling core
 
 This file defines the transformed execution used by the local exchange.  The
 definitions are total; their legality and miss accounting are proved in A4.

@@ -298,6 +298,18 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality",
+]
+"CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace",
+]
+"CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A1_LegalTrace",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A2_OnePageDiff",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A3_CouplingCore",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A4_CouplingCorrect",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A5_Exchange",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A6_Iteration",
 ]
 "CLRSLean.FourthEdition.Chapter_16" = [
   "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework",
@@ -880,6 +892,30 @@ title = "Farthest-In-Future Eviction"
 
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality"]
 title = "Optimality"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality"]
+title = "Optimality Proof"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace"]
+title = "Optimality — Trace Coupling"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A1_LegalTrace"]
+title = "Optimality — Legal Cache Traces"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A2_OnePageDiff"]
+title = "Optimality — Exact One-Page Cache Difference"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A3_CouplingCore"]
+title = "Optimality — Recursive Coupling Core"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A4_CouplingCorrect"]
+title = "Optimality — Coupling Correctness"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A5_Exchange"]
+title = "Optimality — One-Step FIF Exchange"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A6_Iteration"]
+title = "Optimality — Finite Exchange Iteration"
 
 [modules."CLRSLean.FourthEdition.Chapter_16"]
 title = "Chapter 16. Amortized Analysis"

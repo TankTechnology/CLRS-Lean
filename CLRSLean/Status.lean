@@ -44,7 +44,6 @@ prose does not freeze a completed-prefix milestone.
 The edition map currently records these fourth-edition gaps:
 
 * **Chapter 10, Elementary Data Structures:** Section 10.1 remains partial.
-* **Chapter 15, Greedy Algorithms:** Section 15.4 (offline caching) is a native section with the farthest-in-future policy; the optimality theorem remains.
 * **Chapter 29, Linear Programming:** Sections 29.1--29.3 remain partial for
   general-form normalization, finite formulation bridges, and canonical
   declaration ownership; detailed SIMPLEX material remains available online.
@@ -59,6 +58,10 @@ correctness-complete, selected-section-complete, or expository labels from the
 progress ledger.  Such a label applies only to the advertised Lean model and
 represented fourth-edition sections, never automatically to exercises,
 chapter-end Problems, pointer/RAM models, or floating-point implementations.
+
+Chapter 15 is no longer an edition-map gap: the native §15.4 finite-cache model
+now exposes `CLRS.Caching.fifo_optimal`, the unconditional farthest-in-future
+optimality theorem for nonempty initial caches and finite request sequences.
 
 ## Not-Started Chapters
 

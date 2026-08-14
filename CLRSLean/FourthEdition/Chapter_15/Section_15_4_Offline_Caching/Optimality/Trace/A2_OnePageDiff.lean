@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A1_LegalTrace
 
 /-!
-# Chapter 15.4 development: exact one-page cache difference
+# Section 15.4 optimality: exact one-page cache difference
 
 The exchange proof needs a precise relation for two equal-size caches that
 differ in exactly one resident page on each side.

@@ -1,6 +1,6 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A6_Iteration
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality
 
 /-!
 # S3. Optimality of the farthest-in-future policy
@@ -16,7 +16,7 @@ misses, and finite iteration yields a trace that agrees with FIF everywhere.
 Main results:
 
 - `fifo_optimal`: no offline eviction policy incurs fewer misses than FIF
-- `LegalTrace` / `traceOfPolicy`: policy-independent legal cache executions and
+- `LegalTrace` / `policyTrace`: policy-independent legal cache executions and
   the trace induced by any policy
 - `exchange_trace`: one local exchange extends agreement with FIF by one cache
   boundary without increasing total misses

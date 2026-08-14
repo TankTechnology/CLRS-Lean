@@ -4,7 +4,7 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B5_Ite
 # Dev B6: the strong B2 repair (no slack needed)
 
 Development file for the resident (B2) repair step of the `fifo_optimal`
-iteration (see `Dev/DESIGN.md`): when `q = e t` is resident at a case-B
+iteration (see `Dev/Legacy/StateMachine/DESIGN.md`): when `q = e t` is resident at a case-B
 position, the repair `r = repairSchedule e t q'' (t+1+j'')` costs **no
 slack** — the good event at `J = t+1+j` (the repair hits where `e` faults)
 offsets the bad event at `J'' = t+1+j''`.  This is the "strong version" of

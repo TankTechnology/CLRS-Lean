@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future
 
 /-!
-# Chapter 15.4 development: legal cache traces
+# Section 15.4 optimality: legal cache traces
 
 This file separates the semantic notion of a legal cache execution from the
 `Policy` representation.  It is the first layer of the trace-coupling proof of

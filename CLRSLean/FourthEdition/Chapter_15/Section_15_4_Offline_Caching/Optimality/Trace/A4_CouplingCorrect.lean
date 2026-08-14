@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality.Trace.A3_CouplingCore
 
 /-!
-# Chapter 15.4 development: coupling correctness
+# Section 15.4 optimality: coupling correctness
 
 This file proves that the recursive coupling is legal, preserves the exact
 cache relation, and never spends more misses than the local credit permits.
