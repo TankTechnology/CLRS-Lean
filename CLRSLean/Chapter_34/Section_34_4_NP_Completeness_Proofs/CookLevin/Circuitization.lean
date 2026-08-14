@@ -3,6 +3,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorClock
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
 /-!
@@ -22,4 +23,8 @@ The generator-header layer derives the exact tableau arity polynomial, emits
 the canonical circuit header and initial input-gate family, combines them in
 one concrete input-preserving run, and proves that the result is a literal
 prefix of the complete semantic verifier-circuit encoding.
+The generator-validity layer identifies the literal serialized suffix for all
+canonical row-validity gates and proves that the resulting stream advances
+that prefix through the complete validity phase.  Its concrete TM2 serializer
+remains the next machine-level construction.
 -/
