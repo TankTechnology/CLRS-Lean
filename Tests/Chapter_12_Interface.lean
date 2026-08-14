@@ -28,3 +28,41 @@ import CLRSLean.Chapter_12
 #check CLRS.Chapter12.BSTree.transplantChild_right_refines_transplant
 #check CLRS.Chapter12.BSTree.insertPointer_right_representsW
 
+
+-- Running-time / cost layer (O(h))
+#check CLRS.Chapter12.BSTree.height
+#check CLRS.Chapter12.BSTree.searchCost
+#check CLRS.Chapter12.BSTree.minimumCost
+#check CLRS.Chapter12.BSTree.maximumCost
+#check CLRS.Chapter12.BSTree.successorCost
+#check CLRS.Chapter12.BSTree.predecessorCost
+#check CLRS.Chapter12.BSTree.insertCost
+#check CLRS.Chapter12.BSTree.minKeyCost
+#check CLRS.Chapter12.BSTree.deleteMinCost
+#check CLRS.Chapter12.BSTree.deleteRootCost
+#check CLRS.Chapter12.BSTree.deleteCost
+#check CLRS.Chapter12.BSTree.searchCost_le_height
+#check CLRS.Chapter12.BSTree.minimumCost_le_height
+#check CLRS.Chapter12.BSTree.maximumCost_le_height
+#check CLRS.Chapter12.BSTree.successorCost_le_height
+#check CLRS.Chapter12.BSTree.predecessorCost_le_height
+#check CLRS.Chapter12.BSTree.insertCost_le_height
+#check CLRS.Chapter12.BSTree.minKeyCost_le_height
+#check CLRS.Chapter12.BSTree.deleteMinCost_le_height
+#check CLRS.Chapter12.BSTree.deleteRootCost_le
+#check CLRS.Chapter12.BSTree.deleteCost_le
+
+-- Randomly built BST (Section 12.4) ancestor characterization
+#check CLRS.Chapter12.BSTree.depth
+#check CLRS.Chapter12.BSTree.isAncestorOf
+#check CLRS.Chapter12.BSTree.insertAll
+#check CLRS.Chapter12.BSTree.buildFromList
+#check CLRS.Chapter12.BSTree.buildFromPerm
+#check CLRS.Chapter12.BSTree.IsFirstInInterval
+#check CLRS.Chapter12.BSTree.firstInInterval
+#check CLRS.Chapter12.BSTree.isAncestorOf_iff_firstInInterval
+#check CLRS.Chapter12.BSTree.isAncestorOf_implies_inTree
+#check CLRS.Chapter12.BSTree.InTree_buildFromList_iff
+#check CLRS.Chapter12.BSTree.insertAll_split
+#check CLRS.Chapter12.BSTree.buildFromList_cons
+#check CLRS.Chapter12.BSTree.firstInInterval_iff_isFirstOf
