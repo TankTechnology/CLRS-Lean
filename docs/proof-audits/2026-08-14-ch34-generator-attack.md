@@ -171,6 +171,12 @@ orientation, and gate-index layers:
   unary register, and emit exactly the canonical affine semantic trace;
 - `affineSequentialExactlyOneRev_steps_le` bounds that contextual run by
   `200 * (start + rowBase + count + 1)^2`.
+- `arithmeticCfgOneHotGroupWires_eq_affine` gives closed consecutive source
+  intervals for all label, state, stack-height, and stack-cell groups;
+- `arithmeticCfgOneHotGroupRev_runFrom` instantiates the concrete runner for
+  any such semantic group, while
+  `arithmeticRawOneHotGateStream_eq_affineFamily` proves their canonical raw
+  row trace is exactly the ordered concatenation of affine streams.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -296,6 +302,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
