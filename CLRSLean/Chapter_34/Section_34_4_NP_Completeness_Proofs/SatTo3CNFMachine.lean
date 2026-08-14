@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B11_CopyOut
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.Dev.B13_OutputsFun
 
 /-!
 # SAT → 3-CNF-SAT reduction machine
@@ -15,23 +15,55 @@ encoding.
 This file is a facade that re-exports the machine split across the
 `Dev/` sub-modules (see each module for its part of the construction).
 
-**Status (2026-08-12).**  The machine definition, the `count`/`reorder`/`rd`/
+**Focused implementation status (2026-08-13).**  The machine definition, the `count`/`reorder`/`rd`/
 `pv` step lemmas, the `reduce` dispatch, the `const`/`not`/`and`/`or`/`iff`
 clause emissions (`emitAnd_phase`/`emitOr_phase`/`emitIff_phase`), the
 generic move/restore loops, the `parkVal`/`unparkVal` temp-tape subroutines,
 the junk `const false` phases, the recursive descent `parse_phase`, and the
 `copyOut` phase (`copyOut_phase` + `done_step`, transferring `o` to `out` and
-halting) are split and compiling in `Dev.B1`–`Dev.B11`.
+halting) are split and compiling in `Dev.B1`–`Dev.B11`.  `Dev.B12_Bounds`
+proves the decoder, encoder-size, and polynomial-time bounds;
+`Dev.B13_OutputsFun` composes the complete run and packages it as
+`TM2ComputableInPolyTime`.  The theorem below exposes the resulting
+`PolyTimeReducible SAT ThreeCNFSat`.
 
-**Current gaps.**
-
-- The polynomial-time bounds (`Dev.B12_Bounds`: `to3CNF'_bounds`,
-  `decodeAux_enc_consumed_le`, `encCNF_to3CNF'_le`, `satTo3CNFTime`, …) and
-  the full-machine run `satTo3CNFOutputsFun` + `TM2ComputableInPolyTime`
-  (`Dev.B13_OutputsFun`) are **deferred**: they were broken in the committed
-  single-file version of this module and are not part of the `Dev.B1`–`Dev.B11`
-  split committed here.  The complete `outputsFun` construction is preserved in
-  the git history of this file (lines 6977–7154 of the pre-split file).
-- Consequently the assembled `PolyTimeReducible SAT ThreeCNFSat` is not yet
-  written.
+The focused source and interface gates pass.  The deliberately deferred
+repository-wide build remains the final acceptance gate before the project
+ledger is promoted from partial to complete.
 -/
+
+namespace CLRS
+
+namespace Chapter34
+
+namespace Turing
+
+namespace TM3CNF
+
+/-- **Lemma 34.7 (computational form).**  SAT polynomial-time reduces to
+3-CNF-SAT through the concrete, length-indexed Tseitin encoder. -/
+theorem sat_reducible_to_threeCNFSat :
+    PolyTimeReducible SAT ThreeCNFSat := by
+  refine ⟨fun x => encCNF (to3CNF_len (decode x) x.length), ?_, ?_⟩
+  · exact ⟨satTo3CNFComputableInPolyTime⟩
+  · intro x
+    change Formula.Satisfiable (decode x) ↔
+      IsThreeCNF (decodeCNF (encCNF (to3CNF_len (decode x) x.length))) ∧
+        CnfSatisfiable (decodeCNF (encCNF (to3CNF_len (decode x) x.length)))
+    rw [decodeCNF_encCNF]
+    constructor
+    · intro hsat
+      exact ⟨isThreeCNF_to3CNF_len (decode x) x.length,
+        (cnfSatisfiable_to3CNF_len_iff (decode x) x.length
+          (numVars_decode_le x)).2 hsat⟩
+    · intro h
+      exact (cnfSatisfiable_to3CNF_len_iff (decode x) x.length
+        (numVars_decode_le x)).1 h.2
+
+end TM3CNF
+
+end Turing
+
+end Chapter34
+
+end CLRS

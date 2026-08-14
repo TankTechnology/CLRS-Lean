@@ -5294,8 +5294,8 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 - Current gap: the empty/universal languages (concrete machine constructions
   for `∅` and `Σ*`).
 - Remaining chapter scope: Section 34.5 (NP-complete problems) is not
-  represented; the assembled SAT ≤_P 3-CNF-SAT machine reduction is pending
-  (see Section 34.4).  Open problems (P vs NP) are intentionally out of scope.
+  represented.  The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in
+  Section 34.4.  Open problems (P vs NP) are intentionally out of scope.
 
 ### Section 34.2 - Polynomial-Time Verification
 
@@ -5321,25 +5321,233 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 - Lean sources:
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CircuitSAT.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/Basic.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/Encoding.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/Verification.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CNFToClique.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/SatTo3CNFSat.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/SatTo3CNFMachine.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CNFToCliqueMachine.lean`
-- Status: `partial` — the reduction theorem layer is complete except the
-  assembled SAT → 3-CNF-SAT machine reduction.
-- Proved results: `circuitSAT_reducible_to_SAT` (`CIRCUIT-SAT ≤_P SAT`,
-  Lemma 34.6, via `circuitSatisfiable_iff_satisfiable_circuitToFormula` and the
-  `Turing.TM2CS` machine), `cnfSatisfiable_iff_hasClique` (Lemma 34.10 semantic
-  core for `3-CNF-SAT ≤_P CLIQUE`), `threeCNFSat_reducible_to_CLIQUE` (the
-  assembled `3-CNF-SAT ≤_P CLIQUE` reduction via `Turing.TMClique`), and
-  `cnfSatisfiable_to3CNF_iff` (Lemma 34.7 semantic core for
-  `SAT ≤_P 3-CNF-SAT`).
-- Current gaps: the assembled `PolyTimeReducible SAT ThreeCNFSat` theorem
-  (`SatTo3CNFMachine` has the machine, time bound, and `outputsFun` written but
-  not the final assembly).  The `SatTo3CNFMachine` and `CNFToCliqueMachine`
-  modules are site-nav registered but not yet wired into the §34.4 aggregator.
-- Remaining chapter scope: Section 34.5 (NP-complete problems) is not
-  represented.
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/Syntax.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/Machine.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/Macros.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/ReachableAlphabet.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Configuration.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/CircuitBuilder.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/CircuitBuilder/ConstantPool.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/CircuitBuilder/FiniteFamily.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/BundleCombinators.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/StackPrimitives.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/StackSemantics.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/FiniteLookup.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/StackCircuits.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/ControlCircuits.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/PrimitiveRowSemantics.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/Validity.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/Workspace.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/StatementCircuits.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/StatementCircuits/Core.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/StatementCircuits/Semantics.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/StatementCircuits/Bounds.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Dispatch.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Dispatch/Core.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Dispatch/Semantics.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Core.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Semantics.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Fresh.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Fresh/At.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Fresh/Core.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Fresh/Semantics.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Tableau/TransitionCircuits/Fresh/Witness.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/Assembly/Semantics.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/Assembly/Bounds.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/Assembly/EncodingBounds.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/ReductionMap.lean`
+- Status: `partial` — general-circuit semantics and an honest canonical wire
+  format and exact finite-certificate semantics are available.  The
+  function-level Cook--Levin map is complete, while its concrete TM2
+  implementation, the certificate-checker TM2, and the final
+  `GeneralCircuitSAT` NP wrappers remain open.
+- Proved results: the general acyclic circuit layer defines ordered Boolean
+  gates with fan-out, well-formedness, evaluation, and local gate equations;
+  `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
+  equations.  The finite-symbol codec proves both
+  `decodeCircuit_encodeCircuit` and
+  `encodeCircuit_of_decodeCircuit_eq_some`, so a successful decode has exactly
+  one canonical representation and no trailing data; it also proves the
+  accepted-input lower bound
+  `inputCount_lt_length_of_decodeCircuit_eq_some`, the well-formed encoding
+  bound `encodeCircuit_length_le`, and the honest-language characterization
+  `encodeCircuit_mem_generalCircuitSAT_iff`.  The executable
+  `generalCircuitVerifier` accepts exactly well-formed decoded circuits with
+  exact-length Boolean-symbol assignments, and
+  `mem_generalCircuitSAT_iff_exists_certificate` characterizes membership by
+  an accepted certificate no longer than the instance.  Separately,
+  `circuitSAT_reducible_to_SAT` proves `CIRCUIT-SAT ≤_P SAT` (Lemma 34.6, via
+  `circuitSatisfiable_iff_satisfiable_circuitToFormula` and the `Turing.TM2CS`
+  machine), `cnfSatisfiable_iff_hasClique` gives the represented Lemma 34.10
+  semantic core for the specialized 3-CNF occurrence graph, and
+  `threeCNFSat_reducible_to_CLIQUE` assembles the machine reduction to that
+  specialized target via `Turing.TMClique`, while
+  `cnfSatisfiable_to3CNF_iff` gives the Lemma 34.7 semantic core and
+  `Turing.TM3CNF.sat_reducible_to_threeCNFSat` assembles the concrete
+  `SAT ≤_P 3-CNF-SAT` machine reduction.  The typed
+  bounded-builder core compiles exact independent-semantics runs to TM2 runs;
+  its `scanCopy` macro performs two stack reversals to preserve input order,
+  clears all scratch stacks, and has exact cost `3n + 3`.  Its `boundedLoop`
+  macro applies a symbol-local body in forward `List.flatMap` order, clears all
+  scratch stacks, and has exact cost `2n + L + 3`, where `L` is the emitted
+  output length.  Its `nestedLoop` macro emits all ordered input pairs in
+  row-major order, restores the inner copy after every outer row, clears all
+  scratch stacks, and has exact cost `2n² + 5n + L + 4`.  All three exact runs are
+  transported unchanged to their compiled TM2s.  The Cook--Levin foundation
+  defines a finite reachable alphabet for every stack of a fixed bundled TM2
+  and proves its preservation by finite runs.  It gives strict canonical
+  bounded stack/configuration codes with proof-indexed and optional decoding,
+  both codec round trips, the exact-horizon stuttering characterization of
+  bounded halting, and a linear tableau-height bound whose per-step constant
+  counts all pushes along a complete recursive statement path.  The canonical
+  row-validity circuit enforces every one-hot field, halted/none-label
+  agreement, and active-nonblank/inactive-blank stack cells via a linear
+  suffix-OR mask; its public theorem identifies acceptance exactly with
+  successful row decoding and gives an exact affine gate cost.  The
+  Boolean constant allocation is now bundled as a reusable `BoolWirePool`:
+  false and true wires are allocated once in exactly two gates, retain exact
+  evaluation contracts under arbitrary builder extension, and are exposed by
+  `widenCfg` for downstream transition construction.  The finite-family
+  circuit kernel multiplexes `Fin n` wire families with one
+  shared selector negation in exactly `3n + 1` gates and aggregates pointwise
+  equality in exactly `6n + 1` gates.  Both operations carry extension,
+  validity, exact evaluation, uniform empty-family, and proof-irrelevance
+  contracts.  The structured tableau-bundle layer adds dependently typed
+  height/cell views for each machine stack and a pure zero-gate stack
+  replacement whose same-stack, different-stack, halted, label, and state
+  frame laws require no unchecked casts.  A single canonical
+  `cfgSlotEquivFin` flattening lifts the generic kernels to complete bounded
+  rows: `cfgMux` selects all `cfgBitCount tm H` coordinates in exactly
+  `3 * cfgBitCount tm H + 1` gates, while `cfgEq` recognizes equality of the
+  two evaluated `CfgBits` functions in exactly
+  `6 * cfgBitCount tm H + 1` gates.  Both row combinators preserve the builder
+  prefix, return valid outputs, and are proof irrelevant.  The one-step
+  workspace bridge widens height `H` to `H + maxPushesPerStep tm` with exactly
+  two shared constant gates, and narrows without copying prefix wires while a
+  `|K| * maxPushesPerStep tm + 2`-gate fit circuit rejects selected overflow
+  heights.  Both bridges preserve successful canonical decoding under their
+  explicit premises; narrowing requires both a successfully decoded workspace
+  row and a true fit output because fit alone does not validate discarded
+  physical cells.  At the raw Boolean-bundle level, fixed-width stack
+  push/peek/pop primitives now have exact coordinate laws, supported-symbol
+  and optional-head codec round trips, and raw one-hot preservation under the
+  exact capacity premise.  Full-stack push is proved to destroy raw height
+  decodability independently of symbol one-hotness, including empty reachable
+  alphabets.  The public `pushStackBits_cell_zero_encodeSymbol` theorem bridges
+  a supported-symbol encoding directly to the corresponding optional-head
+  encoding in the new cell zero.  Canonical bounded-stack encodings now carry
+  a proof-carrying list representation whose exact capacity theorem includes
+  width zero and whose push/peek/pop laws are list cons, head, and tail plus
+  the old head.  `evalBundle_stack_represents` additionally turns any
+  successful canonical whole-row evaluation into the corresponding semantic
+  representation for each machine stack.  The wire-level stack layer
+  reuses one Boolean constant pool, gives zero-gate push/peek rearrangements,
+  a zero/one-gate width-sensitive pop, and a one-NOT capacity query.  Its
+  complete-row wrappers publish halted/label/state/other-stack frame laws and
+  semantic contracts derived from successful `evalBundle` decoding.
+  The finite one-hot lookup layer compiles static maps, pair maps, and Boolean
+  predicates with exact gate counts and canonical one-hot evaluation laws,
+  including empty-domain and noninjective cases.  The finite-control row layer
+  reuses the shared Boolean pool to encode states, optional labels (including
+  the reserved `none` coordinate), and the explicit halted bit without new
+  gates.  Successful `evalBundle` decoding now yields an existential exact
+  canonical-row equality without exposing a choice-selected code; its
+  projections recover exact state, label, and halted bits.  Complete-row
+  `replaceState` and synchronized halted/label `replaceStatus` operations
+  preserve all other fields and decode exactly to the corresponding updated
+  TM2 configuration.  The complete-row primitive bridge upgrades the existing
+  selected-stack push/pop semantics to exact `evalBundle` equations for the
+  whole dependent configuration: push is list cons under an explicit free-cell
+  premise, pop is list tail without a capacity premise, and every nonselected
+  field remains canonical.  Pop additionally returns an existential supported
+  head whose evaluated bits equal `encodeHeadBits` exactly, so recursive
+  statement lookup need not recover a choice-selected decoder witness.
+  Peek now exposes the same exact supported-head/`encodeHeadBits` bridge,
+  including height zero.  The recursive statement compiler covers all seven
+  `TM2.Stmt` constructors without enumerating configurations: state, label,
+  symbol, pair, and predicate functions are fixed finite truth-table data;
+  branches compile both arms from the same original row and select a complete
+  row with `cfgMux`.  `compileStmt_evalBundle` proves exact `TM2.stepAux`
+  semantics under the explicit per-stack prefix-capacity premise, while
+  `compileStmt_gate_delta` and `compileStmt_gate_count_le` give exact and
+  fixed-`tm/q` affine emitted-gate bounds.
+  The finite-label dispatcher serially compiles every program statement from
+  the same source row, muxes each result under that row's exact label
+  coordinate, and reserves `none` for whole-row stuttering.  Its semantics
+  theorem identifies the complete evaluated workspace row exactly with
+  `stutterStep tm c`, not merely selected projections.  The local
+  `transitionCircuit` composes the two-gate widen pool, dispatch, final-fit
+  narrowing, complete-row equality, and a final conjunction.  Its exact gate
+  delta is `transitionCircuitGateCost tm H`, and
+  `transitionCircuit_eval_iff` proves acceptance exactly when the independently
+  decoded next row equals `stutterStep tm c`, without a public target-fit
+  premise.
+  The fresh-layout construction allocates two consecutive nonaliasing rows at
+  an arbitrary external-input offset and records both row-validity proofs plus
+  final transition-wire validity.  Its reusable Nat-assignment completeness
+  theorem preserves a caller's bits outside the two intervals; the canonical
+  `freshTransitionCircuit_complete` packages the result as
+  `Fin final.inputCount → Bool`, matching `GeneralCircuitSatisfiable`.
+  The exact boundary layer maps each fixed complete row through one shared
+  true/false wire pool, so fixed target coordinates emit no gates and are not
+  SAT-free variables.  `initialCfgCircuit_eval_iff` and
+  `acceptingOutputCircuit_eval_iff` characterize successful complete-row
+  decoding exactly; oversized concrete inputs and unsupported/oversized
+  outputs produce a constant-false constraint.  The separate
+  `symbolicInitialCfgCircuit_eval_iff` constrains main/nonhalted/initial-state,
+  all empty non-input stacks, and a caller-supplied represented symbolic input
+  stack, providing the certificate-linked first-row interface for assembly.
+  The 8H size layer separates exact structural costs from reusable polynomial
+  bounds.  `validCfgGateCost_le`, `dispatchGateCost_le`, and
+  `transitionCircuitGateCost_le` use height-independent fixed-machine
+  coefficients times explicit affine height/row-width expressions; their
+  corresponding builder theorems bound emitted gates beyond an arbitrary
+  prefix.  `validCfgCircuitFinished` and `transitionCircuitFinished` close the
+  two principal predicate builders with proved `Circuit.WellFormed` and exact
+  `finish_eval` bridges.
+  The verifier-circuitization layer packages each
+  `PolyTimeVerifiable` proof as a concrete `VerifierWitness`, proves the exact
+  separator-pair input length, and derives polynomial input, execution-horizon,
+  and uniform stack-height envelopes.  Its widened `outputsInHorizon` retains
+  the machine run's actual step witness and changes only the upper-bound proof;
+  `stutter_horizon_eq_haltList` supplies the separate exact-horizon execution
+  equality used by tableau assembly.  The completed whole-tableau core
+  allocates all rows, serializes validity and transition families, constrains
+  the bounded certificate/input shape and both endpoint rows, and closes their
+  conjunction.  `verifierCircuit_wellFormed`,
+  `verifierCircuit_satisfiable_iff`, and `verifierCircuit_gate_count_le`
+  provide the structural, semantic, and polynomial gate-size contracts.
+  `verifierCircuit_input_count_le` and
+  `verifierCircuit_encoding_length_le` extend the accounting to the declared
+  inputs and complete unary circuit encoding.  The explicit
+  `cookLevinMap` serializes the verifier circuit;
+  `cookLevinMap_mem_generalCircuitSAT_iff` proves its exact reduction
+  semantics and `cookLevinMap_length_le` proves its polynomial output bound.
+- Current gaps: concrete polynomial-time TM2 implementations of the circuit
+  generator and certificate checker required by `PolyTimeReducible` and
+  `PolyTimeVerifiable`, and consequently NP membership, NP-hardness, and
+  NP-completeness wrappers for `GeneralCircuitSAT`.
+  `SatTo3CNFMachine` imports the complete compiling B1--B13 chain;
+  `Dev.B12_Bounds` proves the polynomial bounds and `Dev.B13_OutputsFun`
+  packages the complete run as `TM2ComputableInPolyTime`.
+  `CNFToCliqueMachine` also compiles and exposes
+  the assembled `threeCNFSat_reducible_to_CLIQUE` reduction to occurrence-
+  CLIQUE.  The scan/copy, bounded-loop, and nested-loop macro layer over the
+  bounded-builder core is complete.
+- Remaining chapter scope: general graph-plus-`k` CLIQUE and Section 34.5
+  (NP-complete problems) are not represented.
 
 ## Deferred And Blocked Items
 

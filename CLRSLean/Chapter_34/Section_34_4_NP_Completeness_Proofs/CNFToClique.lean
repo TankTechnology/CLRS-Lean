@@ -1,7 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat
 
 /-!
-# 3-CNF-SAT poly-reduces to CLIQUE
+# 3-CNF-SAT and its occurrence-graph clique intermediate
 
 The reduction of CLRS Lemma 34.10: a 3-CNF formula is satisfiable iff the graph
 with one vertex per literal occurrence — two vertices adjacent when they are in
@@ -15,15 +15,18 @@ Main results:
 - The occurrence graph `occurrenceAdj` and the clique notion `HasCliqueOn`.
 - `cnfSatisfiable_iff_hasClique`: the reduction correctness (a CNF is
   satisfiable iff its occurrence graph has a clique of size `f.length`).
-- `cnfSatisfiable_iff_hasClique_3CNF`: the same for exactly-3-literal CNF
-  (the CLRS 3-CNF-SAT statement).
-- The graph/list encoding `GraphSym`/`relabel`/`undoRelabel` and the language
-  `CLIQUE`: the reduction maps a CNF encoding to the occurrence-graph encoding
-  by inserting a `vertexMark` before each literal.
+- `cnfSatisfiable_iff_hasClique_3CNF`: the same for the project's
+  at-most-3-literal CNF convention.
+- The graph/list encoding `GraphSym`/`relabel`/`undoRelabel` and the specialized
+  language `ThreeCNFOccurrenceCLIQUE`: the reduction maps a 3-CNF encoding to
+  its occurrence-graph encoding by inserting a `vertexMark` before each
+  literal.  The legacy name `CLIQUE` is a compatibility alias for this
+  intermediate language, not yet a general graph-plus-`k` CLIQUE encoding.
 
-**Current status**: the semantic core and the graph/list encoding (with the
-language `CLIQUE`) are in place.  The reduction machine and its `outputsFun`,
-assembling `PolyTimeReducible ThreeCNFSat CLIQUE`, live in `CNFToCliqueMachine`.
+**Current status**: the semantic core and specialized graph/list encoding are
+in place.  The reduction machine and its `outputsFun`, assembling the
+reduction to `ThreeCNFOccurrenceCLIQUE`, live in `CNFToCliqueMachine`.  A
+general graph-plus-`k` CLIQUE language is not claimed here.
 -/
 
 namespace CLRS
@@ -257,17 +260,16 @@ lemma hasClique_implies_cnfSatisfiable {f : CNF} (h : HasCliqueOn f f.length) :
   exact evalClause_of_clique hvalid hadj hcard i hi
 
 /--
-**Theorem (3-CNF-SAT poly-reduces to CLIQUE, CLRS Lemma 34.10).**  A CNF `f`
-is satisfiable iff its occurrence graph has a clique of size `f.length`.
+**Occurrence-graph semantic equivalence underlying CLRS Lemma 34.10.**  A CNF
+`f` is satisfiable iff its occurrence graph has a clique of size `f.length`.
 -/
 theorem cnfSatisfiable_iff_hasClique (f : CNF) :
     CnfSatisfiable f ↔ HasCliqueOn f f.length :=
   ⟨cnfSatisfiable_implies_hasClique, hasClique_implies_cnfSatisfiable⟩
 
-/-- The exactly-3-literal version used by 3-CNF-SAT: each clause has exactly
-three literals, so the graph has `3 * f.length` vertices. -/
+/-- The at-most-3-literal version used by this project's 3-CNF-SAT convention. -/
 theorem cnfSatisfiable_iff_hasClique_3CNF (f : CNF)
-    (h3 : ∀ c ∈ f, c.length = 3) :
+    (_h3 : IsThreeCNF f) :
     CnfSatisfiable f ↔ HasCliqueOn f f.length := by
   exact cnfSatisfiable_iff_hasClique f
 
@@ -319,14 +321,24 @@ lemma undoRelabel_relabel (x : List CNFSym) : undoRelabel (relabel x) = x := by
   | cons s rest ih =>
       cases s <;> simp [relabel, undoRelabel, ih]
 
-/--
-**CLIQUE**: the language of occurrence-graph encodings whose graph has a clique
-of size equal to its number of clauses (CLRS §34.5).  A graph string is decoded
-by dropping the `vertexMark`s and reading the underlying CNF, whose occurrence
-graph is checked by `HasCliqueOn`.
--/
-def CLIQUE : Language GraphSym :=
+/-- The unrestricted occurrence-graph language induced by decoded CNF syntax.
+This is a semantic helper, not the general textbook graph-plus-`k` language. -/
+def OccurrenceCLIQUE : Language GraphSym :=
   { syms | HasCliqueOn (decodeCNF (undoRelabel syms)) (decodeCNF (undoRelabel syms)).length }
+
+/-- The well-shaped intermediate target of the current 3-CNF occurrence-graph
+reduction.  Requiring `IsThreeCNF` makes malformed source encodings map to
+target no-instances while preserving the concrete `relabel` transducer. -/
+def ThreeCNFOccurrenceCLIQUE : Language GraphSym :=
+  { syms |
+      IsThreeCNF (decodeCNF (undoRelabel syms)) ∧
+        HasCliqueOn (decodeCNF (undoRelabel syms))
+          (decodeCNF (undoRelabel syms)).length }
+
+/-- Compatibility name for the currently represented, specialized occurrence-
+graph target.  A genuine general graph-plus-`k` CLIQUE encoding remains a
+separate Chapter 34 gap. -/
+abbrev CLIQUE : Language GraphSym := ThreeCNFOccurrenceCLIQUE
 
 end Chapter34
 

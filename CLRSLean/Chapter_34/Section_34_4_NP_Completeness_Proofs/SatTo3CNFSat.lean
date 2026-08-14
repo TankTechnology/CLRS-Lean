@@ -6,22 +6,27 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT
 The reduction of CLRS Lemma 34.7: every boolean formula is satisfiable iff the
 3-CNF formula obtained by the Tseitin transformation is satisfiable.  The
 construction introduces one auxiliary variable per internal node, and asserts
-(by 3-literal clauses) that each auxiliary equals its subformula's value; the
-output forces the root's auxiliary to be true.
+(by clauses of width at most three) that each auxiliary equals its
+subformula's value; the output forces the root's auxiliary to be true.
 
 Main results:
 
 - Model `Literal`/`Clause`/`CNF` with evaluation and `CnfSatisfiable`.
+- Define `IsThreeCNF` using the at-most-three convention and prove
+  `isThreeCNF_to3CNF_len` for the concrete transformation.
 - The reduction `to3CNF` and its correctness:
   `cnfSatisfiable_to3CNF_iff`: `CnfSatisfiable (to3CNF φ)` iff
   `Formula.Satisfiable φ`, plus the input-length variant
   `cnfSatisfiable_to3CNF_len_iff` used by the machine.
 
-**Current status**: semantic model, reduction, the satisfiability
+**Focused implementation status (2026-08-13)**: semantic model, reduction, the satisfiability
 preservation theorem (`cnfSatisfiable_to3CNF_iff`), and the list encoding
 (`CNFSym`, `encCNF`, `decodeCNF`, `decodeCNF_encCNF`, and the language
-`ThreeCNFSat`) are in place.  The reduction machine and its `outputsFun`
-(assembling `PolyTimeReducible SAT ThreeCNFSat`) are pending.
+`ThreeCNFSat`) are in place.  `SatTo3CNFMachine` contains the reduction machine,
+its complete `outputsFun`, and the assembled theorem
+`Turing.TM3CNF.sat_reducible_to_threeCNFSat`.  Focused source and interface
+checks pass; the repository-wide acceptance build and status-ledger promotion
+are deliberately deferred.
 -/
 
 namespace CLRS
@@ -70,6 +75,12 @@ def evalCNF (σ : Nat → Bool) (f : CNF) : Prop :=
 /-- A CNF formula is **satisfiable** when some assignment makes it true. -/
 def CnfSatisfiable (f : CNF) : Prop :=
   ∃ σ, evalCNF σ f
+
+/-- A CNF is in the project's 3-CNF normal form when every clause contains at
+most three literals.  The at-most-three convention includes the unit and
+binary clauses emitted by the concrete Tseitin machine. -/
+def IsThreeCNF (f : CNF) : Prop :=
+  ∀ c ∈ f, c.length ≤ 3
 
 /-- The number of original variables of a formula (the maximum index plus one). -/
 def numVars : Formula → Nat
@@ -1131,6 +1142,82 @@ def to3CNF_len (φ : Formula) (n : Nat) : CNF :=
   let (c, y, _) := to3CNF' φ n
   c ++ forceTrue y
 
+/-- Every clause emitted by the recursive Tseitin construction contains at
+most three literals. -/
+lemma isThreeCNF_to3CNF' (φ : Formula) (n : Nat) :
+    IsThreeCNF (to3CNF' φ n).1 := by
+  induction φ generalizing n with
+  | var i => simp [to3CNF', IsThreeCNF]
+  | const b =>
+      by_cases hb : b <;>
+        simp [to3CNF', hb, forceTrue, forceFalse, IsThreeCNF]
+  | not φ ih =>
+      rcases h : to3CNF' φ n with ⟨cs, y, next⟩
+      have hcs : IsThreeCNF cs := by simpa [h] using ih n
+      simp only [to3CNF', h]
+      change IsThreeCNF (cs ++ notClauses next y)
+      intro c hc
+      rcases List.mem_append.mp hc with hc | hc
+      · exact hcs c hc
+      · simp [notClauses] at hc
+        rcases hc with rfl | rfl <;> simp
+  | and φ ψ ihφ ihψ =>
+      rcases hφ : to3CNF' φ n with ⟨csφ, yφ, nextφ⟩
+      rcases hψ : to3CNF' ψ nextφ with ⟨csψ, yψ, nextψ⟩
+      have hcsφ : IsThreeCNF csφ := by simpa [hφ] using ihφ n
+      have hcsψ : IsThreeCNF csψ := by simpa [hψ] using ihψ nextφ
+      simp only [to3CNF', hφ, hψ]
+      change IsThreeCNF (csφ ++ csψ ++ andClauses nextψ yφ yψ)
+      intro c hc
+      rcases List.mem_append.mp hc with hc | hc
+      · rcases List.mem_append.mp hc with hc | hc
+        · exact hcsφ c hc
+        · exact hcsψ c hc
+      · simp [andClauses] at hc
+        rcases hc with rfl | rfl | rfl <;> simp
+  | or φ ψ ihφ ihψ =>
+      rcases hφ : to3CNF' φ n with ⟨csφ, yφ, nextφ⟩
+      rcases hψ : to3CNF' ψ nextφ with ⟨csψ, yψ, nextψ⟩
+      have hcsφ : IsThreeCNF csφ := by simpa [hφ] using ihφ n
+      have hcsψ : IsThreeCNF csψ := by simpa [hψ] using ihψ nextφ
+      simp only [to3CNF', hφ, hψ]
+      change IsThreeCNF (csφ ++ csψ ++ orClauses nextψ yφ yψ)
+      intro c hc
+      rcases List.mem_append.mp hc with hc | hc
+      · rcases List.mem_append.mp hc with hc | hc
+        · exact hcsφ c hc
+        · exact hcsψ c hc
+      · simp [orClauses] at hc
+        rcases hc with rfl | rfl | rfl <;> simp
+  | iff φ ψ ihφ ihψ =>
+      rcases hφ : to3CNF' φ n with ⟨csφ, yφ, nextφ⟩
+      rcases hψ : to3CNF' ψ nextφ with ⟨csψ, yψ, nextψ⟩
+      have hcsφ : IsThreeCNF csφ := by simpa [hφ] using ihφ n
+      have hcsψ : IsThreeCNF csψ := by simpa [hψ] using ihψ nextφ
+      simp only [to3CNF', hφ, hψ]
+      change IsThreeCNF (csφ ++ csψ ++ iffClauses nextψ yφ yψ)
+      intro c hc
+      rcases List.mem_append.mp hc with hc | hc
+      · rcases List.mem_append.mp hc with hc | hc
+        · exact hcsφ c hc
+        · exact hcsψ c hc
+      · simp [iffClauses] at hc
+        rcases hc with rfl | rfl | rfl | rfl <;> simp
+
+/-- The concrete length-indexed reduction always produces 3-CNF. -/
+lemma isThreeCNF_to3CNF_len (φ : Formula) (n : Nat) :
+    IsThreeCNF (to3CNF_len φ n) := by
+  rcases h : to3CNF' φ n with ⟨cs, y, next⟩
+  have hcs : IsThreeCNF cs := by simpa [h] using isThreeCNF_to3CNF' φ n
+  simp only [to3CNF_len, h]
+  change IsThreeCNF (cs ++ forceTrue y)
+  intro c hc
+  rcases List.mem_append.mp hc with hc | hc
+  · exact hcs c hc
+  · simp [forceTrue] at hc
+    rcases hc with rfl
+    simp
+
 -- ============================================================
 -- List encoding of CNF formulas
 -- ============================================================
@@ -1456,10 +1543,10 @@ lemma decodeCNF_encCNF (f : CNF) : decodeCNF (encCNF f) = f := by
       rw [h]
       simp [ih]
 
-/-- **3-CNF-SAT**: the language of satisfiable CNF formulas, encoded as symbol
-lists (decoded via `decodeCNF`). -/
+/-- **3-CNF-SAT**: the language of satisfiable CNF formulas whose clauses have
+at most three literals, encoded as symbol lists (decoded via `decodeCNF`). -/
 def ThreeCNFSat : Language CNFSym :=
-  { syms | CnfSatisfiable (decodeCNF syms) }
+  { syms | IsThreeCNF (decodeCNF syms) ∧ CnfSatisfiable (decodeCNF syms) }
 
 /-- The input-length variant of the satisfiability theorem. -/
 lemma cnfSatisfiable_to3CNF_len_iff (φ : Formula) (n : Nat) (hnext : n ≥ numVars φ) :

@@ -779,12 +779,125 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification" = [
   "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification.PairProjection",
 ]
+"CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility" = [
+  "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility.Core",
+  "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility.Hardness",
+]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Encoding",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Verification",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Syntax",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Machine",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Macros",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.ReachableAlphabet",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Configuration",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Witness",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Horizon",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauSemantics",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauWitness",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout.Allocation",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout.Assignment",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.ValidityFamily",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.TransitionFamily",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.Families",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.Witness",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Support",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Arms",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Semantics" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Semantics.Helpers",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Structure",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Evaluation",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Completeness",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Soundness",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Semantics",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Bounds",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.EncodingBounds",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder.ConstantPool",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder.FiniteFamily",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BundleCombinators",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StackPrimitives",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StackSemantics",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.FiniteLookup",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StackCircuits",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ControlCircuits",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.PrimitiveRowSemantics",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Validity",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityBounds",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Workspace",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Finishing",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Semantics",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Bounds",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Bounds",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Semantics",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.At",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.Semantics",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.Witness",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Static",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Initial",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Accepting",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Symbolic",
 ]
 
 [modules."CLRSLean.Chapter_02"]
@@ -2471,11 +2584,29 @@ title = "34.2. Pair Projection Machine"
 [modules."CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility"]
 title = "34.3. NP-Completeness and Reducibility"
 
+[modules."CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility.Core"]
+title = "34.3. Core Definitions for NP-Completeness and Reducibility"
+
+[modules."CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility.Hardness"]
+title = "34.3. NP-Hardness Transport"
+
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs"]
 title = "34.4. NP-Completeness Proofs"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT"]
 title = "34.4. CIRCUIT-SAT poly-reduces to SAT"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit"]
+title = "34.4. General Acyclic Boolean Circuits"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic"]
+title = "34.4. General Circuit Syntax and Evaluation"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Encoding"]
+title = "34.4. General Circuit Encoding and Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Verification"]
+title = "34.4. General Circuit Certificate Verification"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat"]
 title = "34.4. SAT poly-reduces to 3-CNF-SAT"
@@ -2488,6 +2619,225 @@ title = "34.4. 3-CNF-SAT poly-reduces to CLIQUE"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine"]
 title = "34.4. 3-CNF-SAT → CLIQUE reduction machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder"]
+title = "34.4. Verified bounded TM2 builders"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Syntax"]
+title = "34.4. Typed bounded-builder language"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Machine"]
+title = "34.4. Bounded-builder TM2 compiler"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Macros"]
+title = "34.4. Verified bounded-builder macros"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin"]
+title = "34.4. Cook--Levin infrastructure"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.ReachableAlphabet"]
+title = "34.4. Finite TM2 program-support alphabets"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Configuration"]
+title = "34.4. Bounded stuttering TM2 configurations"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization"]
+title = "34.4. Verifier circuitization"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Witness"]
+title = "34.4. Normalized verifier witnesses"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Horizon"]
+title = "34.4. Polynomial verifier execution envelope"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout"]
+title = "34.4. Whole-tableau row layout"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout.Core"]
+title = "34.4. Tableau row intervals"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout.Allocation"]
+title = "34.4. Tableau row allocation"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout.Assignment"]
+title = "34.4. Tableau input assignments"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauSemantics"]
+title = "34.4. Semantic verifier tableaux"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauWitness"]
+title = "34.4. Concrete verifier tableaux"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.ValidityFamily"]
+title = "34.4. Whole-tableau validity constraints"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints"]
+title = "34.4. Whole-tableau constraint families"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.TransitionFamily"]
+title = "34.4. Whole-tableau transition constraints"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.Families"]
+title = "34.4. Tableau constraint families"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.Witness"]
+title = "34.4. Tableau constraint witnesses"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Support"]
+title = "34.4. Verifier-input support"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput"]
+title = "34.4. Verifier-input shape circuit"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Semantics.Helpers"]
+title = "34.4. Verifier-input semantic helpers"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Arms"]
+title = "34.4. Verifier-input length arms"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Core"]
+title = "34.4. Verifier-input shape circuit"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.VerifierInput.Semantics"]
+title = "34.4. Exact verifier-input semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Core"]
+title = "34.4. Verifier-circuit assembly"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly"]
+title = "34.4. Complete verifier circuit"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Structure"]
+title = "34.4. Verifier-circuit structure"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Evaluation"]
+title = "34.4. Verifier-circuit evaluation"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Completeness"]
+title = "34.4. Verifier-circuit completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Soundness"]
+title = "34.4. Verifier-circuit soundness"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Semantics"]
+title = "34.4. Exact verifier-circuit semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Bounds"]
+title = "34.4. Polynomial verifier-circuit bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.EncodingBounds"]
+title = "34.4. Polynomial verifier-circuit encoding bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap"]
+title = "34.4. Function-level Cook--Levin map"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder"]
+title = "34.4. Proved append-only circuit builder"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder.ConstantPool"]
+title = "34.4. Shared Boolean wire constants"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder.FiniteFamily"]
+title = "34.4. Exact finite-family circuit combinators"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau"]
+title = "34.4. Pure tableau row codecs and layouts"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BundleCombinators"]
+title = "34.4. Structured tableau bundle combinators"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StackPrimitives"]
+title = "34.4. Pure bounded-stack primitives"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StackSemantics"]
+title = "34.4. Canonical bounded-stack semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.FiniteLookup"]
+title = "34.4. Exact finite one-hot lookup circuits"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StackCircuits"]
+title = "34.4. Bounded-stack wire circuits"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ControlCircuits"]
+title = "34.4. Finite-control row circuits"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.PrimitiveRowSemantics"]
+title = "34.4. Complete-row stack primitive semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Validity"]
+title = "34.4. Canonical tableau row-validity circuits"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityBounds"]
+title = "34.4. Canonical row-validity gate bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Workspace"]
+title = "34.4. One-step tableau workspace bridges"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits"]
+title = "34.4. Recursive TM2 statement circuits"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Core"]
+title = "34.4. Recursive TM2 statement compiler core"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Semantics"]
+title = "34.4. Recursive TM2 statement-circuit semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Bounds"]
+title = "34.4. Statement-circuit emitted-gate bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits"]
+title = "34.4. Verified local transition circuits"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch"]
+title = "34.4. Finite-control transition dispatch"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch.Core"]
+title = "34.4. Finite-control dispatch core"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch.Semantics"]
+title = "34.4. Finite-control dispatch semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Core"]
+title = "34.4. Local transition-circuit core"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Bounds"]
+title = "34.4. Local transition-circuit gate bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Semantics"]
+title = "34.4. Local transition-circuit semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh"]
+title = "34.4. Fresh local-transition completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.At"]
+title = "34.4. Offset-parametric fresh transitions"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.Core"]
+title = "34.4. Canonical fresh transition allocation"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.Semantics"]
+title = "34.4. Fresh transition completeness semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Fresh.Witness"]
+title = "34.4. Finite fresh-transition witnesses"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits"]
+title = "34.4. Exact tableau boundary constraints"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Static"]
+title = "34.4. Pool-backed static tableau rows"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Initial"]
+title = "34.4. Exact concrete initial-row constraints"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Accepting"]
+title = "34.4. Exact accepting-output constraints"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits.Symbolic"]
+title = "34.4. Symbolic-input initial-row constraints"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Finishing"]
+title = "34.4. Finished row and transition circuits"
 
 [modules."CLRSLean.Extensions"]
 title = "Extensions Beyond the Textbook"

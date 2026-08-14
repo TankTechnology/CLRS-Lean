@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.Assembly.Completeness
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check VerifierWitness.verifierRows_eval_at
+#check VerifierWitness.verifierValidity_output_true
+#check VerifierWitness.verifierTransitions_output_true
+#check VerifierWitness.verifierInitialBoundary_true
+#check VerifierWitness.verifierInputBoundary_true
+#check VerifierWitness.verifierAcceptingBoundary_true
+#check VerifierWitness.verifierConjunction_complete
+
+end CLRS.Chapter34.Turing.CookLevin

@@ -3,7 +3,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique
 set_option linter.tacticCheckInstances false
 
 /-!
-# 3-CNF-SAT → CLIQUE reduction machine
+# 3-CNF-SAT → specialized occurrence-CLIQUE reduction machine
 
 The TM2 machine computing `relabel x` for `x : List CNFSym`: it reads a CNF
 encoding and emits the occurrence-graph encoding of CLRS Lemma 34.10 (a
@@ -11,14 +11,15 @@ encoding and emits the occurrence-graph encoding of CLRS Lemma 34.10 (a
 input onto a working stack `o`; `copyOut` transfers `o` to `out` (reversing it
 back) and halts.
 
-The semantic reduction `cnfSatisfiable_iff_hasClique` and the graph encoding
-`GraphSym`/`relabel`/`undoRelabel`/`CLIQUE` live in `CNFToClique`; this file
-assembles the machine, its `outputsFun`, and `PolyTimeReducible ThreeCNFSat
-CLIQUE`.
+The semantic reduction `cnfSatisfiable_iff_hasClique` and the occurrence-graph
+encoding live in `CNFToClique`; this file assembles the machine, its
+`outputsFun`, and the reduction to `ThreeCNFOccurrenceCLIQUE`.  The legacy
+`CLIQUE` name is a compatibility alias for that specialized intermediate, not
+the general graph-plus-`k` problem.
 
-**Status (2026-08-09).**  The scan/copyOut machine, the phase lemmas, the
-`outputsFun`, and the assembled `PolyTimeReducible ThreeCNFSat CLIQUE` are
-written.
+**Status (2026-08-13).**  The scan/copyOut machine, the phase lemmas, the
+`outputsFun`, and the assembled reduction to the guarded occurrence-graph
+language are written.  A genuine general CLIQUE target remains pending.
 -/
 
 namespace CLRS
@@ -343,16 +344,25 @@ noncomputable def cliqueComputableInPolyTime :
 end
 
 /--
-**Theorem (3-CNF-SAT poly-reduces to CLIQUE, CLRS Lemma 34.10).**  A CNF is
-satisfiable iff its occurrence graph has a clique of size equal to its number of
-clauses; the reduction is the relabeling machine.
+**Specialized occurrence-graph reduction.**  A well-shaped 3-CNF is
+satisfiable iff its occurrence graph has a clique of size equal to its number
+of clauses; the shape guard ensures malformed source strings are rejected on
+both sides.
 -/
-theorem threeCNFSat_reducible_to_CLIQUE : PolyTimeReducible ThreeCNFSat CLIQUE := by
+theorem threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE :
+    PolyTimeReducible ThreeCNFSat ThreeCNFOccurrenceCLIQUE := by
   refine ⟨relabel, ?comp, ?iff⟩
   · exact ⟨cliqueComputableInPolyTime⟩
   · intro x
-    simp [CLIQUE, ThreeCNFSat, undoRelabel_relabel]
-    exact cnfSatisfiable_iff_hasClique (decodeCNF x)
+    simp only [ThreeCNFSat, ThreeCNFOccurrenceCLIQUE, Set.mem_setOf_eq,
+      undoRelabel_relabel]
+    exact and_congr_right fun _ => cnfSatisfiable_iff_hasClique (decodeCNF x)
+
+/-- Compatibility spelling for the specialized target currently abbreviated
+as `CLIQUE`. -/
+theorem threeCNFSat_reducible_to_CLIQUE :
+    PolyTimeReducible ThreeCNFSat CLIQUE :=
+  threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE
 
 end TMClique
 
