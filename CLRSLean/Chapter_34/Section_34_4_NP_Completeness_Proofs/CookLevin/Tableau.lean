@@ -798,6 +798,76 @@ def exactlyOneGateTrace (start : Nat)
     (exactlyOneGateTrace start wires).gates.length = 3 * wires.length + 4 := by
   simp [exactlyOneGateTrace, exactlyOneScanGateTrace_length]
 
+/-! The fold presentation below is the executable view used by the concrete
+serializer.  It is intentionally public: clients do not need access to the
+private proof-oriented scan record in order to enumerate the exact trace. -/
+
+/-- Arithmetic scan state for forward execution over the reversed wire list. -/
+structure ExactlyOneArithmeticScan where
+  gates : List CircuitGate
+  seen : CircuitBuilder.Wire
+  duplicate : CircuitBuilder.Wire
+deriving DecidableEq, Repr
+
+/-- One forward scan update at the next source wire. -/
+def exactlyOneArithmeticStep (start : Nat)
+    (scan : ExactlyOneArithmeticScan) (wire : CircuitBuilder.Wire) :
+    ExactlyOneArithmeticScan :=
+  let next := start + scan.gates.length
+  { gates := scan.gates ++
+      [.and scan.seen wire, .or scan.duplicate next,
+        .or scan.seen wire]
+    seen := next + 2
+    duplicate := next + 1 }
+
+/-- Tail-first exactly-one scanning as a left fold over reversed wires. -/
+def exactlyOneArithmeticScan (start : Nat)
+    (wires : List CircuitBuilder.Wire) : ExactlyOneArithmeticScan :=
+  wires.reverse.foldl (exactlyOneArithmeticStep start)
+    { gates := [.const false, .const false]
+      seen := start
+      duplicate := start + 1 }
+
+private theorem exactlyOneScanGateTrace_eq_arithmeticScan
+    (start : Nat) (wires : List CircuitBuilder.Wire) :
+    (exactlyOneScanGateTrace start wires).gates =
+        (exactlyOneArithmeticScan start wires).gates ∧
+      (exactlyOneScanGateTrace start wires).seen =
+        (exactlyOneArithmeticScan start wires).seen ∧
+      (exactlyOneScanGateTrace start wires).duplicate =
+        (exactlyOneArithmeticScan start wires).duplicate := by
+  induction wires with
+  | nil => simp [exactlyOneScanGateTrace, exactlyOneArithmeticScan]
+  | cons wire rest ih =>
+      rcases ih with ⟨hgates, hseen, hduplicate⟩
+      simp only [exactlyOneArithmeticScan, List.reverse_cons,
+        List.foldl_append]
+      simp only [exactlyOneScanGateTrace]
+      rw [hgates, hseen, hduplicate]
+      simp only [List.foldl]
+      change
+        _ = (exactlyOneArithmeticStep start
+              (exactlyOneArithmeticScan start rest) wire).gates ∧
+          _ = (exactlyOneArithmeticStep start
+              (exactlyOneArithmeticScan start rest) wire).seen ∧
+          _ = (exactlyOneArithmeticStep start
+              (exactlyOneArithmeticScan start rest) wire).duplicate
+      simp [exactlyOneArithmeticStep]
+
+/-- The public arithmetic fold emits exactly the same gates as the semantic
+tail-recursive trace. -/
+theorem exactlyOneGateTrace_gates_eq_arithmeticScan
+    (start : Nat) (wires : List CircuitBuilder.Wire) :
+    (exactlyOneGateTrace start wires).gates =
+      (exactlyOneArithmeticScan start wires).gates ++
+        [.not (exactlyOneArithmeticScan start wires).duplicate,
+          .and (exactlyOneArithmeticScan start wires).seen
+            (start + (exactlyOneArithmeticScan start wires).gates.length)] := by
+  rcases exactlyOneScanGateTrace_eq_arithmeticScan start wires with
+    ⟨hgates, hseen, hduplicate⟩
+  simp only [exactlyOneGateTrace]
+  rw [hgates, hseen, hduplicate]
+
 private structure ExactlyOneScan (base : CircuitBuilder)
     (wires : List CircuitBuilder.Wire) where
   builder : CircuitBuilder
