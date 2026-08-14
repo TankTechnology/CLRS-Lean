@@ -30,7 +30,18 @@ Main results:
   basic operations.
 
 These bounds hold for *any* run of the generic algorithm, so they apply to the
-relabel-to-front schedule in particular.
+relabel-to-front schedule in particular.  The relabel-to-front *schedule* is
+stronger: its `DISCHARGE` procedure walks a per-vertex neighbor list and, on
+relabeling a vertex, moves it to the front of the list `L`.  That per-vertex
+list discipline gives the sharper `O(V³)` bound:
+
+- `RelabelToFrontRun`: a run satisfying the discharge discipline (between two
+  relabel operations, no vertex is the source of more than one nonsaturating
+  push).
+- `RelabelToFrontRun.nonsaturating_push_count_bound`: at most
+  `|V|·(relabels + 1)` nonsaturating pushes, i.e. `O(V³)`.
+- `RelabelToFrontRun.step_count_bound_V3`: the relabel-to-front algorithm performs
+  at most `9|V|³` basic operations.
 
 Notation conventions used in this section:
 
@@ -1326,7 +1337,7 @@ lemma relabelsBeforeSet_mono (R : Run V G n) {i j : Fin n} (hij : i.1 ≤ j.1) :
 /-- If `i < j` have the same `relabelsBefore` value, no relabel occurs strictly
 between them. -/
 lemma no_relabel_between_of_relabelsBefore_eq (R : Run V G n) {i j : Fin n}
-    (hij : i.1 < j.1) (h : relabelsBefore R i = relabelsBefore R j) {k : Fin n}
+    (hij : i.1 < j.1) (h : relabelsBefore R i = relabelsBefore R j) (k : Fin n)
     (hik : i.1 < k.1) (hkj : k.1 < j.1) :
     (R.opFin k).isRelabel = false := by
   by_cases hkrel : (R.opFin k).isRelabel = true
@@ -1362,13 +1373,13 @@ lemma opVertex_inj_of_nonsat (R : RelabelToFrontRun V G n) {i j : Fin n}
     have hlt : i.1 < j.1 ∨ j.1 < i.1 := by omega
     rcases hlt with hlt | hlt
     · have hno := no_relabel_between_of_relabelsBefore_eq R.run hlt hrb
-      have hdisc := R.discharge_discipline (i.1) (j.1) (Fin.isLt i) (Fin.isLt j) hlt hi hj
-        (fun k hk hik hkj => hno (k := ⟨k, hk⟩) (by simpa using hik) (by simpa using hkj))
+      have hdisc := R.discharge_discipline (i := i.1) (j := j.1) (Fin.isLt i) (Fin.isLt j) hlt hi hj
+        (fun k hk hik hkj => hno ⟨k, hk⟩ (by simpa using hik) (by simpa using hkj))
       exact hdisc hvertex
     · have hrb' : relabelsBefore R.run j = relabelsBefore R.run i := hrb.symm
       have hno := no_relabel_between_of_relabelsBefore_eq R.run hlt hrb'
-      have hdisc := R.discharge_discipline (j.1) (i.1) (Fin.isLt j) (Fin.isLt i) hlt hj hi
-        (fun k hk hik hkj => hno (k := ⟨k, hk⟩) (by simpa using hik) (by simpa using hkj))
+      have hdisc := R.discharge_discipline (i := j.1) (j := i.1) (Fin.isLt j) (Fin.isLt i) hlt hj hi
+        (fun k hk hik hkj => hno ⟨k, hk⟩ (by simpa using hik) (by simpa using hkj))
       exact hdisc hvertex.symm
 
 /-- The relabel-to-front discharge order bounds the number of nonsaturating
