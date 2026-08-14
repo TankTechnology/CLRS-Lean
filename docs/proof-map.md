@@ -5212,15 +5212,19 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 ### Section 32.4 - The Knuth-Morris-Pratt Algorithm
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_32/Section_32_4_Knuth_Morris_Pratt.lean`
-- Status: `complete` (native fourth-edition source; the all-occurrences KMP
-  scan and its `O(m + n)` cost remain open — issue #198 was closed by PR #205
-  with the scan still pending)
+- Status: `complete` (native fourth-edition source: the executable prefix
+  function, the all-occurrences KMP scan, and the costed linear-time bound are
+  all kernel-checked)
 - Model:
   - `prefixLen P q`: the prefix function `π(q)` — the longest proper prefix of
     `P` that is a suffix of `P.take q`.
   - `computePrefixFunction P`: the executable `COMPUTE-PREFIX-FUNCTION`
     (failure-link recurrence).
   - `failureFollow`: follows failure links `π[k-1]` while `P[k] ≠ c`.
+  - `kmpMatcher P T`: the executable all-occurrences `KMP-MATCHER` scan,
+    maintaining the automaton state `q = δ*(0, scanned)`.
+  - Cost model: one unit per failure-link traversal plus one unit per character
+    processed, charged by the `*WithCost` instrumentation.
 - Proved:
   - `prefixLen_satisfies` / `prefixLen_maximal`: `P.take (π q)` is the longest
     proper prefix of `P` that is a suffix of `P.take q`.
@@ -5232,6 +5236,15 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
     agrees with the from-scratch search.
   - `computePrefixFunction_correct`: each entry of the executable array equals
     `prefixLen`.
+  - `kmpStep_eq_delta`: one executable scan step computes the automaton
+    transition `δ(q, a)`.
+  - `kmpMatcher_correct` (with `kmpMatcher_sound` / `kmpMatcher_complete`):
+    `kmpMatcher P T` agrees with `naiveMatcher T P`, returning all and only the
+    occurrences.
+  - `computePrefixFunctionWithCost_cost_le` / `kmpMatcherWithCost_cost_le`:
+    the costed prefix construction and scan are each linear.
+  - `kmpTotalCost_le`: the combined prefix-construction plus scan work is
+    `O(|P| + |T|)`.
 
 ### Section 32.5 - Suffix Arrays
 
