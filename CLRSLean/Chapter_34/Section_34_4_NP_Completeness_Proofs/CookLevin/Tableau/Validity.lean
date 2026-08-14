@@ -571,7 +571,59 @@ private def cellCanonicalAt {tm : _root_.Turing.FinTM2} {H : Nat}
       (reachableAlphabet tm k).card ↔
     (i.val < ((rawCfgOf bits hraw).stack k).height.val)
 
-private structure StackValidityFamilyResult {tm : _root_.Turing.FinTM2}
+/-! ### Exact stack-validity family trace -/
+
+/-- Pure gate-order trace for active-mask and cell-validity constraints across
+an ordered finite family of machine stacks. -/
+structure StackValidityFamilyGateTrace (H n : Nat) where
+  gates : List CircuitGate
+  outputs : Fin n → Fin H → CircuitBuilder.Wire
+
+/-- Compose one suffix-OR mask and one six-gate-per-cell family for each stack. -/
+def stackValidityFamilyGateTrace
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (start : Nat) (wires : CfgWires tm H) :
+    (n : Nat) → (keys : Fin n → tm.K) →
+      StackValidityFamilyGateTrace H n
+  | 0, _ =>
+      { gates := []
+        outputs := fun j => Fin.elim0 j }
+  | n + 1, keys =>
+      let previous := stackValidityFamilyGateTrace start wires n
+        (fun j => keys j.castSucc)
+      let k := keys (Fin.last n)
+      let next := start + previous.gates.length
+      let mask := suffixOrGateTrace next
+        (List.ofFn fun i : Fin H => wires.stackHeight k i.succ)
+      let active : Fin H → CircuitBuilder.Wire := fun i =>
+        mask.outputs (Fin.cast (by simp) i)
+      let blank : Fin H → CircuitBuilder.Wire := fun i =>
+        wires.stackCell k i (Fin.last (reachableAlphabet tm k).card)
+      let cells := cellValidityGateTrace (next + mask.gates.length)
+        H active blank
+      { gates := previous.gates ++ mask.gates ++ cells.gates
+        outputs := fun j =>
+          if hj : j.val < n then previous.outputs ⟨j.val, hj⟩
+          else cells.outputs }
+
+/-- Each stack pays one {lit}`H+1` active mask and {lit}`6H` cell gates. -/
+@[simp] theorem stackValidityFamilyGateTrace_length
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (start : Nat) (wires : CfgWires tm H)
+    (n : Nat) (keys : Fin n → tm.K) :
+    (stackValidityFamilyGateTrace start wires n keys).gates.length =
+      ∑ _j : Fin n, ((H + 1) + 6 * H) := by
+  induction n with
+  | zero => simp [stackValidityFamilyGateTrace]
+  | succ n ih =>
+      simp only [stackValidityFamilyGateTrace, List.length_append,
+        suffixOrGateTrace_length, List.length_ofFn,
+        cellValidityGateTrace_length]
+      rw [ih, Fin.sum_univ_castSucc]
+      omega
+
+/-- Proof-carrying result of stack-validity constraints across a family. -/
+structure StackValidityFamilyResult {tm : _root_.Turing.FinTM2}
     {H : Nat} (base : CircuitBuilder) (wires : CfgWires tm H)
     (n : Nat) (keys : Fin n → tm.K) where
   builder : CircuitBuilder
@@ -584,7 +636,7 @@ private structure StackValidityFamilyResult {tm : _root_.Turing.FinTM2}
     builder.evalWire inputs (outputs j i) = true ↔
       cellCanonicalAt (evalCfgBits base inputs wires) hraw (keys j) i
 
-private def buildStackValidityFamily {tm : _root_.Turing.FinTM2} {H : Nat}
+def buildStackValidityFamily {tm : _root_.Turing.FinTM2} {H : Nat}
     (base : CircuitBuilder) (wires : CfgWires tm H)
     (hvalid : wires.ValidIn base) :
     (n : Nat) → (keys : Fin n → tm.K) →
@@ -709,6 +761,104 @@ private def buildStackValidityFamily {tm : _root_.Turing.FinTM2} {H : Nat}
           rw [hchoose]
           simp only [cellCanonicalAt, rawCfgOf]
           exact iff_comm
+
+private theorem buildStackValidityFamily_trace_eq
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (wires : CfgWires tm H)
+    (hvalid : wires.ValidIn base) (n : Nat) (keys : Fin n → tm.K) :
+    (buildStackValidityFamily base wires hvalid n keys).builder.gates =
+        base.gates ++
+          (stackValidityFamilyGateTrace base.gates.length wires n keys).gates ∧
+      ∀ j i, (buildStackValidityFamily base wires hvalid n keys).outputs j i =
+        (stackValidityFamilyGateTrace base.gates.length wires n keys).outputs j i := by
+  induction n with
+  | zero =>
+      simp [buildStackValidityFamily, stackValidityFamilyGateTrace]
+  | succ n ih =>
+      let initialKeys : Fin n → tm.K := fun j => keys j.castSucc
+      let previous := buildStackValidityFamily base wires hvalid n initialKeys
+      let purePrevious := stackValidityFamilyGateTrace base.gates.length
+        wires n initialKeys
+      rcases ih initialKeys with ⟨hpreviousGates, hpreviousOutputs⟩
+      have hpreviousLength : previous.builder.gates.length =
+          base.gates.length + purePrevious.gates.length := by
+        rw [hpreviousGates]
+        simp only [List.length_append]
+        rfl
+      let k := keys (Fin.last n)
+      have hheightValid : ∀ j, previous.builder.WireValid
+          (wires.stackHeight k j) := fun j =>
+        previous.extension.wireValid (hvalid _)
+      let mask := activeMask previous.builder H (wires.stackHeight k) hheightValid
+      let pureMask := suffixOrGateTrace
+        (base.gates.length + purePrevious.gates.length)
+        (List.ofFn fun i : Fin H => wires.stackHeight k i.succ)
+      have hmaskGates : mask.builder.gates =
+          previous.builder.gates ++ pureMask.gates := by
+        rw [activeMask_gates_eq]
+        simp only [pureMask, hpreviousLength]
+      let active : Fin H → CircuitBuilder.Wire := fun i =>
+        mask.outputs (Fin.cast (by simp) i)
+      let pureActive : Fin H → CircuitBuilder.Wire := fun i =>
+        pureMask.outputs (Fin.cast (by simp) i)
+      have hactiveEq : active = pureActive := by
+        funext i
+        dsimp only [active, pureActive]
+        rw [activeMask_output_eq_trace]
+        simp only [pureMask, hpreviousLength]
+      let blank : Fin H → CircuitBuilder.Wire := fun i =>
+        wires.stackCell k i (Fin.last (reachableAlphabet tm k).card)
+      have hactive : ∀ i, mask.builder.WireValid (active i) := fun i =>
+        mask.outputsValid (Fin.cast (by simp) i)
+      have hblank : ∀ i, mask.builder.WireValid (blank i) := fun i =>
+        mask.extension.wireValid
+          (previous.extension.wireValid (hvalid _))
+      let cells := buildCellValidity mask.builder H active blank hactive hblank
+      let pureCells := cellValidityGateTrace
+        (base.gates.length + purePrevious.gates.length + pureMask.gates.length)
+        H pureActive blank
+      have hmaskLength : mask.builder.gates.length =
+          base.gates.length + purePrevious.gates.length + pureMask.gates.length := by
+        rw [hmaskGates, hpreviousGates]
+        simp only [List.length_append]
+        rfl
+      have hcellsGates : cells.builder.gates =
+          mask.builder.gates ++ pureCells.gates := by
+        rw [buildCellValidity_gates_eq]
+        simp only [pureCells, hmaskLength, hactiveEq]
+      have hcellsOutputs (i : Fin H) :
+          cells.outputs i = pureCells.outputs i := by
+        rw [buildCellValidity_output_eq_trace]
+        simp only [pureCells, hmaskLength, hactiveEq]
+      simp only [buildStackValidityFamily, stackValidityFamilyGateTrace]
+      constructor
+      · rw [hcellsGates, hmaskGates, hpreviousGates]
+        simp only [initialKeys, purePrevious, k, pureMask, pureActive,
+          blank, pureCells, List.append_assoc]
+      · intro j i
+        split
+        next hj => exact hpreviousOutputs ⟨j.val, hj⟩ i
+        next => exact hcellsOutputs i
+
+/-- The stack-validity family appends exactly its pure composite trace. -/
+theorem buildStackValidityFamily_gates_eq
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (wires : CfgWires tm H)
+    (hvalid : wires.ValidIn base) (n : Nat) (keys : Fin n → tm.K) :
+    (buildStackValidityFamily base wires hvalid n keys).builder.gates =
+      base.gates ++
+        (stackValidityFamilyGateTrace base.gates.length wires n keys).gates :=
+  (buildStackValidityFamily_trace_eq base wires hvalid n keys).1
+
+/-- Every stack-cell validity output agrees with the pure composite trace. -/
+theorem buildStackValidityFamily_output_eq_trace
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (wires : CfgWires tm H)
+    (hvalid : wires.ValidIn base) (n : Nat) (keys : Fin n → tm.K)
+    (j : Fin n) (i : Fin H) :
+    (buildStackValidityFamily base wires hvalid n keys).outputs j i =
+      (stackValidityFamilyGateTrace base.gates.length wires n keys).outputs j i :=
+  (buildStackValidityFamily_trace_eq base wires hvalid n keys).2 j i
 
 private theorem cfgOneHotGroup_forall_iff_raw
     {tm : _root_.Turing.FinTM2} {H : Nat} (bits : CfgBits tm H) :
