@@ -120,7 +120,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertIn(
             "one unresolved section in a represented chapter", normalized
         )
-        self.assertIn("464", dashboard)
+        self.assertIn("465", dashboard)
         self.assertIn("disjoint canonical and online-material ledgers", dashboard)
         self.assertNotIn("pending declaration-level remapping", dashboard)
         self.assertNotIn("{lit}`not-started`", dashboard)

@@ -118,14 +118,26 @@ primality test, and the Pollard's-rho factorization heuristic.
   {lit}`CLRS.Chapter31.pollardRho_sound` (a returned factor is a nontrivial
   divisor of `n`) and collision detection
   {lit}`CLRS.Chapter31.pollardStep_collision_factor`.
+* **Probabilistic analysis (CLRS Theorem 31.40)**: the rho-orbit-read-mod-`p`
+  heuristic is made an explicit i.i.d.-uniform model (`Fin k → Fin p`), with
+  the birthday bound {lit}`CLRS.Chapter31.birthday_noCollision_le` /
+  {lit}`CLRS.Chapter31.birthday_collision_ge` /
+  {lit}`CLRS.Chapter31.birthday_collision_prob_ge_half`, the expected-`O(√p)`
+  bound {lit}`CLRS.Chapter31.rho_expected_rounds_le_two` /
+  {lit}`CLRS.Chapter31.rho_expected_draws_le`, and the detection lemmas
+  {lit}`CLRS.Chapter31.pollardStep_detects` /
+  {lit}`CLRS.Chapter31.pollardRhoLoop_terminates_on_collision` bound to the
+  real construction.
 
 **Status: `selected-section-complete`** — Sections 31.1–31.9 fully proved,
-including the Miller-Rabin error bound.
+including the Miller-Rabin error bound and the POLLARD-RHO probabilistic
+analysis (birthday bound + expected `O(√p)`).
 
 ## Deferred Work
 
-* 31.9 the birthday-paradox / expected-`O(√p)` running-time analysis of
-  POLLARD-RHO (a heuristic in CLRS, left informal).
+None remaining for the represented fourth-edition sections (§31.1–31.8); the
+legacy §31.9 integer-factorization development is retained as online material
+with its probabilistic analysis now complete.
 -/
 
 namespace CLRS
