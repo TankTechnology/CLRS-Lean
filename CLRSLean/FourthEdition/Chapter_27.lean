@@ -30,10 +30,13 @@ Section 27.3 (Online caching) is formalized natively in
 model with the least-recently-used (LRU) policy as a most-recent-first list,
 the bundled deterministic `Algorithm` eviction model with its cache-size law,
 the phase-partition fault lemmas (`distinct_fault`, `resident_fault`), the
-phase-count lower bound (`phases_le_misses`), and the `k`-competitive upper
-bound (Theorem 27.3, `lru_k_competitive`).  The matching lower bound — that no
-deterministic online algorithm is better than `k`-competitive — is recorded as
-a gap.
+phase-count lower bound (`phases_le_misses`), the `k`-competitive upper bound
+(Theorem 27.3, `lru_k_competitive`), and the matching Sleator-Tarjan lower
+bound (Theorem 27.4, `caching_lower_bound`): for any deterministic online
+algorithm there is a request sequence over the `k + 1`-page universe on which it
+faults every request while a phase-based offline schedule faults at most
+`N / k + k + 1` times, so no algorithm is `c`-competitive for any `c < k`
+(`caching_no_c_competitive`).
 
 No legacy source is promoted into this chapter.
 
@@ -49,10 +52,10 @@ rent-or-buy cost and the offline optimum `min (T*r) p`, Theorem 27.1 (the
 `2`-competitive upper bound), the elevator corollary with its worst-case
 competitive ratio, the MOVE-TO-FRONT list-update analysis with Theorem 27.2
 (the `4`-competitive bound), and the LRU paging model with the phase-partition
-fault lemmas and Theorem 27.3 (the `k`-competitive upper bound).  The matching
-lower bounds — no deterministic strategy beats `2 - r/p` (Section 27.1), and no
-deterministic online algorithm is better than `k`-competitive (Section 27.3) —
-are recorded as gaps.
+fault lemmas, Theorem 27.3 (the `k`-competitive upper bound), and Theorem 27.4
+(the matching Sleator-Tarjan deterministic lower bound).  Together with the
+matching deterministic lower bounds of Section 27.1 (`2 - r/p`, already proved)
+this makes Chapter 27 complete with no recorded gaps.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
