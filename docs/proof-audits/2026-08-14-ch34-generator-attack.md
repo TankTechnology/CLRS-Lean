@@ -117,7 +117,12 @@ orientation, and gate-index layers:
 - `stackValidityFamilyGateTrace`, `buildStackValidityFamily_gates_eq`, and
   `buildStackValidityFamily_output_eq_trace` compose each ordered stack's
   suffix-OR active mask with all `6H` cell-validity gates, fixing the complete
-  stack-validity family suffix and every cell constraint output.
+  stack-validity family suffix and every cell constraint output;
+- `canonicalValidityGateTrace`, `validCfgCircuit_gates_eq`, and
+  `validCfgCircuit_wire_eq_trace` close the complete single-row validity
+  suffix: raw one-hot, halted/none-label XNOR, every stack constraint, and the
+  final tail-first conjunction.  `canonicalValidityGateTrace_length` also
+  recovers the existing exact affine cost from the literal trace.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -149,9 +154,9 @@ pool are now closed.  The validity phase now has exact gate traces for its
 three repeated primitives: equality, exactly-one, and suffix-OR active masks.
 The six-gate per-cell family and the complete raw one-hot family are now also
 closed, as is the ordered family that combines every stack's active mask and
-cell constraints.  The next cut composes raw one-hot, halted-label equality,
-the complete stack family, and the final conjunction into one exact
-row-validity suffix; it can then be lifted across all tableau rows. Output
+cell constraints.  The complete row-validity suffix is now closed as well.
+The next cut lifts this trace across all tableau rows, then connects that
+literal family to a polynomial-time validity-stream serializer. Output
 orientation, natural-number serialization, input parking/restoration,
 fixed-suffix appending, and exact agreement with the semantic allocators are
 already closed independently.
