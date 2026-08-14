@@ -4,6 +4,8 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorClock
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityOneHot
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityBoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
 /-!
@@ -25,6 +27,8 @@ one concrete input-preserving run, and proves that the result is a literal
 prefix of the complete semantic verifier-circuit encoding.
 The generator-validity layer identifies the literal serialized suffix for all
 canonical row-validity gates and proves that the resulting stream advances
-that prefix through the complete validity phase.  Its concrete TM2 serializer
-remains the next machine-level construction.
+that prefix through the complete validity phase.  Its concrete construction
+now covers every raw one-hot group and the following halted/none-label equality
+with exact contextual runs; stack canonicality and the final conjunction are
+the remaining row-local machine phases.
 -/
