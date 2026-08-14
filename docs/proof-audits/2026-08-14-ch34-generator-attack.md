@@ -155,6 +155,15 @@ orientation, and gate-index layers:
 - `verifierCircuitValidityPrefix_eq` and
   `verifierCircuitValidityPrefix_isPrefix` advance the verified serialized
   circuit prefix through the complete canonical row-validity phase.
+- `sequentialExactlyOneGateStream` is the first concrete validity serializer:
+  on a unary clock of length `n` it emits byte-for-byte the encoding of
+  `exactlyOneGateTrace 0 (List.range n)`;
+- `sequentialExactlyOneRev_run` proves the exact run of the concrete
+  three-counter prepend machine, including its final halted configuration and
+  output, rather than inferring computation from an output-size theorem;
+- `sequentialExactlyOneRev_computableInPolyTime` and
+  `sequentialExactlyOneGateStream_computableInPolyTime` package the reversed
+  machine and its verified final reversal as genuine quadratic-time TM2s.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -186,10 +195,15 @@ pool are now closed.  The validity phase now has exact gate traces for every
 primitive, cell, stack, row, and finite row family.  Its flattened wire-format
 stream is proved to agree exactly with the semantic builder, and the resulting
 list is a literal prefix of the final verifier encoding through the complete
-validity phase.  The next cut is the concrete polynomial-time TM2 serializer
-for that already fixed stream.  Output orientation, natural-number
-serialization, input parking/restoration, fixed-suffix appending, and exact
-agreement with the semantic allocators are already closed independently.
+validity phase.  The first real serializer inside that phase is also closed:
+the zero-based sequential exactly-one primitive has an exact-output theorem,
+an exact-run theorem, and a quadratic TM2 bound.  This does **not** yet close
+the whole single-row validity serializer.  The next cut is its affine-base
+lift, supplying runtime `start` and `rowBase` offsets, followed by instantiation
+for the label, state, height, and stack-cell one-hot groups.  Output
+orientation, natural-number serialization, input parking/restoration,
+fixed-suffix appending, and exact agreement with the semantic allocators are
+already closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -254,6 +268,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -264,6 +279,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_NatEncoding.lean
 lake env lean Tests/Chapter_34_PolyBuilder_InputGate.lean
 lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
+lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
