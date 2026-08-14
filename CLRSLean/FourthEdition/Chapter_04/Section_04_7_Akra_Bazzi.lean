@@ -75,6 +75,10 @@ Main results:
 - Theorem {lit}`akraBazzi_lower_bound`: the solution is
   {lit}`Ω(n^p (1 + I n))` when {lit}`p + 1 ≤ q`, the lower comparison in the
   forcing-dominated regime.
+- Theorem {lit}`akraBazzi_lower_bound_critical`: the solution is
+  {lit}`Ω(n^p (1 + I n))` when {lit}`q = p`, the lower comparison in the critical
+  regime, established by the substitution induction with the power floor loss
+  absorbed by the driving term.
 - Theorem {lit}`akraBazzi_bigTheta`: the full {lit}`Θ(n^p (1 + I n))` bound when
   {lit}`p + 1 ≤ q`.
 
@@ -84,10 +88,10 @@ the scale-invariance bridge, the integral machinery, the two-sided increment
 bounds, and the recurrence-to-integral comparison in both directions — the
 upper bound {lit}`T(n) = O(n^p(1+I n))` for arbitrary {lit}`p > 0`,
 {lit}`q ≥ 0`, and the matching lower bound {lit}`T(n) = Ω(n^p(1+I n))` (hence
-{lit}`T(n) = Θ(n^p(1+I n))`) in the forcing-dominated regime {lit}`p + 1 ≤ q`.
-The lower recurrence-to-integral comparison in the leaf-dominated and critical
-regimes {lit}`q ≤ p` (which requires the sub-leading floor-loss analysis of the
-deep recursion tree) is a recorded gap.
+{lit}`T(n) = Θ(n^p(1+I n))`) in the forcing-dominated regime {lit}`p + 1 ≤ q`,
+and the critical regime {lit}`q = p`.  The deep leaf-dominated regime
+{lit}`q < p` (which requires the sub-leading floor-loss analysis of the deep
+recursion tree beyond the critical driving term) remains a recorded gap.
 
 Notation conventions used in this section:
 
@@ -1510,14 +1514,21 @@ lemma akraBazzi_scale_floor_decomp (branches : List (ℕ × ℝ)) (p : ℝ) (g :
             (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊)))).sum := by
   unfold akraBazziScale
   have hsplit : (branches.map (fun ab => (ab.1 : ℝ) * ((⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p *
-        (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊)))).sum
+        (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊))))).sum
+      + (branches.map (fun ab => (ab.1 : ℝ) * (((n : ℝ) / ab.2) ^ p - (⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p) *
+          (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊)))).sum
+      = (branches.map (fun ab => (ab.1 : ℝ) * ((n : ℝ) / ab.2) ^ p *
+          (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊)))).sum := by
+    rw [← List.sum_map_add]
+    exact congrArg List.sum (List.map_congr_left (by intro ab _hab; ring))
+  have hsplit' : (branches.map (fun ab => (ab.1 : ℝ) * ((⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p *
+        (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊))))).sum
       = (branches.map (fun ab => (ab.1 : ℝ) * ((n : ℝ) / ab.2) ^ p *
           (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊)))).sum
         - (branches.map (fun ab => (ab.1 : ℝ) * (((n : ℝ) / ab.2) ^ p - (⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p) *
           (1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊)))).sum := by
-    rw [← List.sum_map_sub]
-    exact congrArg List.sum (List.map_congr_left (by intro ab _hab; ring))
-  rw [hsplit]
+    linarith
+  rw [hsplit']
   rw [akraBazzi_scale_decomp branches p g n hvalid hroot]
   unfold akraBazziScale akraBazziIncrement
   ring
@@ -1681,10 +1692,11 @@ theorem akraBazzi_lower_bound_critical {branches : List (ℕ × ℝ)} {g T : ℕ
               _ ≤ Tmin := by
                 dsimp [c]
                 have hden_pos : 0 < 2 * (K + M + 1) * (Smax + 1) := by positivity
-                rw [div_mul_eq_mul_div, div_le_iff₀ hden_pos, mul_le_mul_left hTmin_pos]
+                rw [div_mul_eq_mul_div, div_le_iff₀ hden_pos]
                 have hSmax_nonneg : 0 ≤ Smax := le_of_lt hSmax_pos
                 have hKM : 0 ≤ K + M := le_of_lt (add_pos hKpos hMpos)
-                nlinarith
+                have hD_ge_Smax : Smax ≤ 2 * (K + M + 1) * (Smax + 1) := by nlinarith
+                nlinarith [mul_le_mul_of_nonneg_left hD_ge_Smax (le_of_lt hTmin_pos)]
               _ ≤ T n := hT_ge_Tmin
           · have hN₀n : N₀ < n := lt_of_not_ge hle
             have hIH : ∀ ab ∈ branches, c * akraBazziScale p g (⌊(n : ℝ) / ab.2⌋₊) ≤ T (⌊(n : ℝ) / ab.2⌋₊) := by

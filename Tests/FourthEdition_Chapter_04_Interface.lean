@@ -80,6 +80,10 @@ namespace Chapter04
 #check akraBazzi_integral_le_poly
 #check akraBazzi_upper_bound
 #check akraBazzi_lower_bound
+#check akraBazzi_power_floor_loss
+#check akraBazzi_scale_factor_le_linear
+#check akraBazzi_scale_floor_decomp
+#check akraBazzi_lower_bound_critical
 #check akraBazzi_bigTheta
 
 /-! The headline theorems must not carry `sorryAx` or any project axiom. -/
@@ -98,6 +102,7 @@ namespace Chapter04
 #print axioms akraBazzi_increment_lower_multi
 #print axioms akraBazzi_upper_bound
 #print axioms akraBazzi_lower_bound
+#print axioms akraBazzi_lower_bound_critical
 #print axioms akraBazzi_bigTheta
 
 end Chapter04
