@@ -53,6 +53,11 @@ orientation, and gate-index layers:
 - `exactPolynomialClock_length` and
   `exactPolynomialClock_computableInPolyTime` provide the formerly missing
   concrete TM2 whose output length is exactly `p.eval n` for every input;
+- `VerifierWitness.alphabetFintype` recovers source-alphabet finiteness from
+  the finite pair-encoding alphabet already carried by the verifier machine;
+- the certificate, verifier-input, horizon, height, gate-bound, and
+  encoding-bound clock wrappers instantiate the exact clock without adding a
+  typeclass premise to the universal reduction;
 - `reverse_computableInPolyTime` gives a verified linear-time finalization
   pass for the builder language's prepend-only output stack;
 - `unaryIndexRev_outputs` proves the exact reversed stream contract for all
@@ -143,6 +148,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
 lake env lean Tests/Chapter_34_PolyBuilder_UnaryIndex.lean
 lake env lean Tests/Chapter_34_PolyBuilder_NatEncoding.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
 python3 scripts/check_repository.py
 git diff --check

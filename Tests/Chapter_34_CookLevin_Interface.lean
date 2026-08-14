@@ -310,6 +310,13 @@ example : (encodeCircuit interfaceFanOutCircuit).length ≤
 #check Turing.CookLevin.cookLevinMap
 #check Turing.CookLevin.cookLevinMap_mem_generalCircuitSAT_iff
 #check Turing.CookLevin.cookLevinMap_length_le
+#check Turing.CookLevin.VerifierWitness.alphabetFintype
+#check Turing.CookLevin.verifierHorizonClock_length
+#check Turing.CookLevin.verifierHorizonClock_computableInPolyTime
+#check Turing.CookLevin.verifierHeightClock_length
+#check Turing.CookLevin.verifierHeightClock_computableInPolyTime
+#check Turing.CookLevin.verifierGateBoundClock_computableInPolyTime
+#check Turing.CookLevin.verifierEncodingBoundClock_computableInPolyTime
 
 -- Exact finite-certificate semantics for the target language.
 #check generalCircuitVerifier_accepts_iff

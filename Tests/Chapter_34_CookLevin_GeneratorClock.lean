@@ -1,0 +1,25 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorClock
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check VerifierWitness.alphabetFintype
+#check certificateClock
+#check certificateClock_length
+#check certificateClock_computableInPolyTime
+#check verifierInputClock
+#check verifierInputClock_length
+#check verifierInputClock_computableInPolyTime
+#check verifierHorizonClock
+#check verifierHorizonClock_length
+#check verifierHorizonClock_computableInPolyTime
+#check verifierHeightClock
+#check verifierHeightClock_length
+#check verifierHeightClock_computableInPolyTime
+#check verifierGateBoundClock
+#check verifierGateBoundClock_length
+#check verifierGateBoundClock_computableInPolyTime
+#check verifierEncodingBoundClock
+#check verifierEncodingBoundClock_length
+#check verifierEncodingBoundClock_computableInPolyTime
+
+end CLRS.Chapter34.Turing.CookLevin
