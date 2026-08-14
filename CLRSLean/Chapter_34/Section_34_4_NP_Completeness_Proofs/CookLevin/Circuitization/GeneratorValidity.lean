@@ -11,10 +11,14 @@ validity phase.
 
 Main results:
 
+- {lit}`validCfgGatePolynomial_eval` and the validity cost/count clocks expose
+  exact executable loop bounds for one row and the complete validity phase.
 - {lit}`verifierRowWire_eq` and its field-specialized corollaries give closed
   arithmetic wire numbers for every verifier-row coordinate.
 - {lit}`verifierValidityGateStream_rows_eq` exposes the complete validity
   phase as an exact row-major flattening with an explicit start index per row.
+- {lit}`verifierValidityGateStream_eq_byLength` isolates the source-independent
+  validity phase as a function of input length alone.
 - {lit}`verifierValidityGateStream_eq` identifies the literal validity stream
   with the suffix appended by the semantic builder.
 - {lit}`verifierCircuitValidityPrefix_eq` identifies the complete serialized
@@ -31,6 +35,117 @@ Current gap:
 noncomputable section
 
 namespace CLRS.Chapter34.Turing.CookLevin
+
+open _root_.Turing
+open PolyBuilder
+
+/-! ## Exact validity clocks -/
+
+/-- Exact affine polynomial for the canonical-validity gate cost of one
+bounded configuration row. -/
+def validCfgGatePolynomial (tm : _root_.Turing.FinTM2) : Polynomial Nat := by
+  letI : Fintype tm.K := tm.kFin
+  exact Polynomial.C
+      (3 * labelCount tm + 3 * stateCount tm + 20 +
+        9 * Fintype.card tm.K) +
+    Polynomial.C
+      (∑ k : tm.K, (3 * (reachableAlphabet tm k).card + 19)) *
+        Polynomial.X
+
+/-- The affine polynomial agrees exactly with the semantic single-row gate
+cost. -/
+@[simp] theorem validCfgGatePolynomial_eval
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (validCfgGatePolynomial tm).eval H = validCfgGateCost tm H := by
+  letI : Fintype tm.K := tm.kFin
+  simp only [validCfgGatePolynomial, Polynomial.eval_add,
+    Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_X]
+  unfold validCfgGateCost
+  rw [show
+      (∑ k : tm.K,
+        (H * (3 * (reachableAlphabet tm k).card + 19) + 9)) =
+        H * (∑ k : tm.K,
+          (3 * (reachableAlphabet tm k).card + 19)) +
+          9 * Fintype.card tm.K by
+    rw [Finset.sum_add_distrib]
+    congr 1
+    · exact (Finset.mul_sum Finset.univ
+        (fun k : tm.K => 3 * (reachableAlphabet tm k).card + 19) H).symm
+    · simp [Nat.mul_comm]]
+  ring
+
+/-- Exact input-length polynomial for one verifier row's validity-gate cost. -/
+def verifierValidityRowCostPolynomial {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) : Polynomial Nat :=
+  (validCfgGatePolynomial W.machine.tm).comp (verifierHeight W)
+
+/-- Evaluation of the row-cost polynomial gives the semantic validity cost
+at the verifier's exact height. -/
+@[simp] theorem verifierValidityRowCostPolynomial_eval
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) (n : Nat) :
+    (verifierValidityRowCostPolynomial W).eval n =
+      validCfgGateCost W.machine.tm ((verifierHeight W).eval n) := by
+  simp [verifierValidityRowCostPolynomial, Polynomial.eval_comp]
+
+/-- Unary clock whose length is one exact verifier-row validity cost. -/
+def verifierValidityRowCostClock {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) : List Unit :=
+  exactPolynomialClock (verifierValidityRowCostPolynomial W) input
+
+@[simp] theorem verifierValidityRowCostClock_length
+    {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    (verifierValidityRowCostClock W input).length =
+      validCfgGateCost W.machine.tm
+        ((verifierHeight W).eval input.length) := by
+  simp [verifierValidityRowCostClock]
+
+/-- Concrete polynomial-time TM2 producing the exact single-row cost clock. -/
+noncomputable def verifierValidityRowCostClock_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    TM2ComputableInPolyTime id id (verifierValidityRowCostClock W) := by
+  letI : Fintype Γ := W.alphabetFintype
+  exact exactPolynomialClock_computableInPolyTime
+    (verifierValidityRowCostPolynomial W)
+
+/-- Exact polynomial for the number of gates in the complete row-validity
+phase. -/
+def verifierValidityGateCountPolynomial {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) : Polynomial Nat :=
+  (verifierHorizon W + 1) * verifierValidityRowCostPolynomial W
+
+/-- The total polynomial is exactly row count times exact single-row cost. -/
+@[simp] theorem verifierValidityGateCountPolynomial_eval
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) (n : Nat) :
+    (verifierValidityGateCountPolynomial W).eval n =
+      tableauRowCount ((verifierHorizon W).eval n) *
+        validCfgGateCost W.machine.tm ((verifierHeight W).eval n) := by
+  simp [verifierValidityGateCountPolynomial, tableauRowCount,
+    Polynomial.eval_add, Polynomial.eval_mul]
+
+/-- Unary clock whose length is the exact number of validity gates across all
+verifier tableau rows. -/
+def verifierValidityGateCountClock {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) : List Unit :=
+  exactPolynomialClock (verifierValidityGateCountPolynomial W) input
+
+@[simp] theorem verifierValidityGateCountClock_length
+    {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    (verifierValidityGateCountClock W input).length =
+      tableauRowCount ((verifierHorizon W).eval input.length) *
+        validCfgGateCost W.machine.tm
+          ((verifierHeight W).eval input.length) := by
+  simp [verifierValidityGateCountClock]
+
+/-- Concrete polynomial-time TM2 producing the exact complete validity gate
+count clock. -/
+noncomputable def verifierValidityGateCountClock_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    TM2ComputableInPolyTime id id (verifierValidityGateCountClock W) := by
+  letI : Fintype Γ := W.alphabetFintype
+  exact exactPolynomialClock_computableInPolyTime
+    (verifierValidityGateCountPolynomial W)
 
 /-! ## Closed verifier-row wire formulas -/
 
@@ -157,6 +272,23 @@ private theorem flatMap_flatten_encodeCircuitGate
 
 /-! ## Literal validity gate stream -/
 
+/-- Exact validity stream at explicit machine, height, and horizon dimensions.
+It is independent of any source-alphabet symbols. -/
+def validityGateStreamAt (tm : _root_.Turing.FinTM2) (H T : Nat) :
+    List CircuitSym :=
+  let rows := allocateTableauRows tm H T
+  let pool := CircuitBuilder.allocateBoolWirePool rows.builder
+  let trace := validCfgCircuitFamilyGateTrace pool.builder.gates.length
+    (tableauRowCount T) rows.rows
+  trace.gates.flatMap encodeCircuitGate
+
+/-- The verifier validity stream as a function of source-input length only. -/
+def verifierValidityGateStreamByLength {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (inputLength : Nat) : List CircuitSym :=
+  validityGateStreamAt W.machine.tm
+    ((verifierHeight W).eval inputLength)
+    ((verifierHorizon W).eval inputLength)
+
 /-- Serialized exact gate trace for canonical validity across all verifier
 tableau rows. -/
 def verifierValidityGateStream {Γ : Type} {L : Language Γ}
@@ -166,6 +298,14 @@ def verifierValidityGateStream {Γ : Type} {L : Language Γ}
   let trace := validCfgCircuitFamilyGateTrace pool.builder.gates.length
     (tableauRowCount ((verifierHorizon W).eval input.length)) rows.rows
   trace.gates.flatMap encodeCircuitGate
+
+/-- Canonical row validity depends on the source instance only through its
+length; all source-symbol-dependent gates occur in later boundary phases. -/
+theorem verifierValidityGateStream_eq_byLength {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (input : List Γ) :
+    verifierValidityGateStream W input =
+      verifierValidityGateStreamByLength W input.length := by
+  rfl
 
 /-- The complete validity stream is a literal row-major flattening.  Row `r`
 starts at the pool endpoint plus `r` exact single-row costs. -/

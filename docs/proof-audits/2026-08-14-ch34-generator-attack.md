@@ -138,10 +138,16 @@ orientation, and gate-index layers:
   builder suffix;
 - `verifierRowWire_eq` and its halted/label/state/stack specializations give
   closed global wire indices of the form `row * rowWidth + localOffset`;
+- `validCfgGatePolynomial_eval`, `verifierValidityRowCostClock`, and
+  `verifierValidityGateCountClock` provide concrete exact-polynomial TM2
+  clocks for the single-row and all-row validity loop bounds;
 - `validCfgCircuitFamilyGateTrace_gates_eq_flatMap`,
   `verifierPoolGateCount_eq`, and `verifierValidityGateStream_rows_eq` replace
   the recursive all-row trace by an exact row-major flattening whose row `r`
   begins at `tableauInputCount + 2 + r * validCfgGateCost`;
+- `validityGateStreamAt` and `verifierValidityGateStream_eq_byLength` prove
+  that this entire phase is source-symbol independent and factors through the
+  input length, leaving the future concrete serializer with unary input only;
 - `verifierCircuitValidityPrefix_eq` and
   `verifierCircuitValidityPrefix_isPrefix` advance the verified serialized
   circuit prefix through the complete canonical row-validity phase.
