@@ -85,6 +85,12 @@ namespace Chapter04
 #check akraBazzi_scale_floor_decomp
 #check akraBazzi_lower_bound_critical
 #check akraBazzi_bigTheta
+#check akraBazziSmoothingFn
+#check akraBazzi_smoothing_gain_ge_loss
+#check akraBazzi_smoothing_scale_floor_ge
+#check akraBazzi_smoothing_scale_floor_ge_multi
+#check akraBazzi_lower_bound_leaf
+#check akraBazzi_bigTheta_leaf
 
 /-! The headline theorems must not carry `sorryAx` or any project axiom. -/
 #print axioms mul_runtime_bigTheta
@@ -104,6 +110,8 @@ namespace Chapter04
 #print axioms akraBazzi_lower_bound
 #print axioms akraBazzi_lower_bound_critical
 #print axioms akraBazzi_bigTheta
+#print axioms akraBazzi_lower_bound_leaf
+#print axioms akraBazzi_bigTheta_leaf
 
 end Chapter04
 end CLRS

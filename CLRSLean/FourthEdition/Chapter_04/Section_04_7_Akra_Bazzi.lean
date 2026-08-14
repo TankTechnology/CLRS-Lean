@@ -81,6 +81,16 @@ Main results:
   absorbed by the driving term.
 - Theorem {lit}`akraBazzi_bigTheta`: the full {lit}`Θ(n^p (1 + I n))` bound when
   {lit}`p + 1 ≤ q`.
+- Definition {lit}`akraBazziSmoothingFn`: the smoothing function
+  {lit}`ε x = 1 / √x`, whose drop dominates the one-step floor loss.
+- Lemma {lit}`akraBazzi_smoothing_scale_floor_ge`: the floored smoothing scale
+  {lit}`⌊n/b⌋^p (1 + ε⌊n/b⌋)` is eventually a subsolution of the homogeneous
+  recurrence — the discrete analogue of the Kuszmaul–Leiserson smoothing step.
+- Theorem {lit}`akraBazzi_lower_bound_leaf`: the solution is
+  {lit}`Ω(n^p (1 + I n))` when {lit}`0 ≤ q < p`, the lower comparison in the deep
+  leaf-dominated regime, closed by the smoothing factor.
+- Theorem {lit}`akraBazzi_bigTheta_leaf`: the full {lit}`Θ(n^p (1 + I n))` bound
+  when {lit}`0 ≤ q < p`.
 
 Status: `proved` for the root equation, the single-branch corollary (which
 recovers the master theorem), the multi-branch root uniqueness/nonnegativity,
@@ -89,9 +99,8 @@ bounds, and the recurrence-to-integral comparison in both directions — the
 upper bound {lit}`T(n) = O(n^p(1+I n))` for arbitrary {lit}`p > 0`,
 {lit}`q ≥ 0`, and the matching lower bound {lit}`T(n) = Ω(n^p(1+I n))` (hence
 {lit}`T(n) = Θ(n^p(1+I n))`) in the forcing-dominated regime {lit}`p + 1 ≤ q`,
-and the critical regime {lit}`q = p`.  The deep leaf-dominated regime
-{lit}`q < p` (which requires the sub-leading floor-loss analysis of the deep
-recursion tree beyond the critical driving term) remains a recorded gap.
+the critical regime {lit}`q = p`, and the deep leaf-dominated regime
+{lit}`0 ≤ q < p` (established by the smoothing-function argument).
 
 Notation conventions used in this section:
 
@@ -1772,6 +1781,426 @@ theorem akraBazzi_bigTheta {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ} {n
   constructor
   · exact akraBazzi_upper_bound hvalid hnonempty hroot hp (by linarith [hpq]) hsmooth hsat
   · exact akraBazzi_lower_bound hvalid hnonempty hroot hp hpq hsmooth hsat
+
+/-! ## The deep leaf-dominated regime (`q < p`) -/
+
+/--
+The smoothing function {lit}`ε x = 1 / √x`, used to absorb the constant floor
+perturbation in the deep leaf-dominated regime {lit}`q < p`.  It is nonnegative
+and strictly decreasing on the positive reals, and its drop
+{lit}`ε(x/b) - ε x = (√b - 1) · x^(-1/2)` dominates the one-step relative power
+loss of the floor.
+-/
+noncomputable def akraBazziSmoothingFn (x : ℝ) : ℝ := (Real.sqrt x)⁻¹
+
+/--
+**Smoothing gain dominates the one-step floor loss.**  For {lit}`b > 1` and
+{lit}`p > 0`, eventually
+{lit}`(n/(2b))^p (√b - 1) / √n ≥ 2(1+p) (n/b)^(p-1) (1 + 1/√n)`, the comparison
+that lets the smoothing factor absorb the constant floor loss.
+-/
+lemma akraBazzi_smoothing_gain_ge_loss {b p : ℝ} (hb : 1 < b) (hp : 0 < p) :
+    ∃ K : ℝ, 0 < K ∧ ∀ n : ℕ, 1 ≤ n → K ≤ (n : ℝ) ^ (1 / 2 : ℝ) →
+      (n : ℝ) ^ p / (2 * b) ^ p * ((Real.sqrt b - 1) * (Real.sqrt (n : ℝ))⁻¹)
+        ≥ (2 * (1 + p)) * ((n : ℝ) / b) ^ (p - 1) * (1 + (Real.sqrt (n : ℝ))⁻¹) := by
+  have hb_pos : 0 < b := lt_trans (by norm_num : (0 : ℝ) < 1) hb
+  have hb_sqrt_minus_one : 0 < Real.sqrt b - 1 := by
+    have h1 : 1 < Real.sqrt b := by
+      simpa using (Real.sqrt_lt_sqrt (by norm_num : 0 ≤ (1 : ℝ)) hb)
+    linarith
+  let C : ℝ := 2 * (1 + p)
+  have hC_pos : 0 < C := by dsimp [C]; positivity
+  let K : ℝ := 2 * C * (2 : ℝ) ^ p * b / (Real.sqrt b - 1)
+  have hK_pos : 0 < K := by dsimp [K]; positivity
+  refine ⟨K, hK_pos, ?_⟩
+  intro n hn1 hnK
+  have hn_pos : 0 < (n : ℝ) := by exact_mod_cast (lt_of_lt_of_le (by norm_num : (0 : ℕ) < 1) hn1)
+  have hsqrt_n_pos : 0 < Real.sqrt (n : ℝ) := (Real.sqrt_pos).2 hn_pos
+  have hsqrt_eq : (n : ℝ) ^ (1 / 2 : ℝ) = Real.sqrt (n : ℝ) := (Real.sqrt_eq_rpow (n : ℝ)).symm
+  have hkey : 2 * C * (2 : ℝ) ^ p * b ≤ (Real.sqrt b - 1) * Real.sqrt (n : ℝ) := by
+    rw [hsqrt_eq] at hnK
+    have h := (div_le_iff₀ hb_sqrt_minus_one).mp (by simpa [K] using hnK)
+    nlinarith
+  have hsqrt_ge_one : 1 ≤ Real.sqrt (n : ℝ) := by
+    rw [← Real.sqrt_one]
+    exact Real.sqrt_le_sqrt (by exact_mod_cast hn1)
+  have hfinal : (n : ℝ) * (Real.sqrt b - 1) ≥ C * (2 : ℝ) ^ p * b * (Real.sqrt (n : ℝ) + 1) := by
+    calc
+      (n : ℝ) * (Real.sqrt b - 1)
+          = (Real.sqrt (n : ℝ)) ^ 2 * (Real.sqrt b - 1) := by rw [Real.sq_sqrt (le_of_lt hn_pos)]
+      _ = (Real.sqrt b - 1) * Real.sqrt (n : ℝ) * Real.sqrt (n : ℝ) := by ring
+      _ ≥ (2 * C * (2 : ℝ) ^ p * b) * Real.sqrt (n : ℝ) := by
+            exact mul_le_mul_of_nonneg_right hkey (le_of_lt hsqrt_n_pos)
+      _ = 2 * C * (2 : ℝ) ^ p * b * Real.sqrt (n : ℝ) := by ring
+      _ ≥ C * (2 : ℝ) ^ p * b * (Real.sqrt (n : ℝ) + 1) := by
+            have h2sqrt : Real.sqrt (n : ℝ) + 1 ≤ 2 * Real.sqrt (n : ℝ) := by linarith
+            have h := mul_le_mul_of_nonneg_left h2sqrt (by positivity : 0 ≤ C * (2 : ℝ) ^ p * b)
+            nlinarith
+  have hnp : (n : ℝ) ^ p = (n : ℝ) ^ (p - 1) * (n : ℝ) := by
+    simpa [show p - 1 + 1 = p by ring] using (Real.rpow_add_one (ne_of_gt hn_pos) (p - 1))
+  have hfinal_np : (n : ℝ) ^ p * (Real.sqrt b - 1)
+      ≥ C * (2 : ℝ) ^ p * b * (n : ℝ) ^ (p - 1) * (Real.sqrt (n : ℝ) + 1) := by
+    have h := mul_le_mul_of_nonneg_right hfinal (Real.rpow_nonneg (le_of_lt hn_pos) (p - 1))
+    rw [show (n : ℝ) * (Real.sqrt b - 1) * (n : ℝ) ^ (p - 1) = (n : ℝ) ^ p * (Real.sqrt b - 1) by
+      rw [hnp]; ring] at h
+    nlinarith
+  have h2bp : (2 * b) ^ p = (2 : ℝ) ^ p * b ^ p := by
+    rw [Real.mul_rpow (by norm_num : 0 ≤ (2 : ℝ)) (le_of_lt hb_pos)]
+  have hb_p : b ^ p = b * b ^ (p - 1) := by
+    rw [show p = (p - 1) + 1 by ring]
+    rw [Real.rpow_add_one (ne_of_gt hb_pos) (p - 1)]
+    ring
+  have hden_pos : 0 < (2 * b) ^ p * Real.sqrt (n : ℝ) :=
+    mul_pos (Real.rpow_pos_of_pos (by positivity : 0 < (2 : ℝ) * b) p) hsqrt_n_pos
+  calc
+    (n : ℝ) ^ p / (2 * b) ^ p * ((Real.sqrt b - 1) * (Real.sqrt (n : ℝ))⁻¹)
+        = (n : ℝ) ^ p * (Real.sqrt b - 1) / ((2 * b) ^ p * Real.sqrt (n : ℝ)) := by ring
+    _ ≥ (C * (2 : ℝ) ^ p * b * (n : ℝ) ^ (p - 1) * (Real.sqrt (n : ℝ) + 1))
+          / ((2 * b) ^ p * Real.sqrt (n : ℝ)) := by
+          exact mul_le_mul_of_nonneg_right hfinal_np (inv_nonneg.mpr (le_of_lt hden_pos))
+    _ = C * ((n : ℝ) / b) ^ (p - 1) * (1 + (Real.sqrt (n : ℝ))⁻¹) := by
+          rw [h2bp, hb_p]
+          rw [Real.div_rpow (le_of_lt hn_pos) (le_of_lt hb_pos) (p - 1)]
+          field_simp [hsqrt_n_pos.ne', hb_pos.ne',
+            (Real.rpow_pos_of_pos (by norm_num : 0 < (2 : ℝ)) p).ne',
+            (Real.rpow_pos_of_pos hb_pos (p - 1)).ne']
+    _ = (2 * (1 + p)) * ((n : ℝ) / b) ^ (p - 1) * (1 + (Real.sqrt (n : ℝ))⁻¹) := by
+          simpa [C]
+
+/--
+**Floored smoothing scale is a subsolution.**  For {lit}`b > 1` and {lit}`p > 0`,
+eventually {lit}`⌊n/b⌋^p (1 + ε⌊n/b⌋) ≥ (n/b)^p (1 + ε n)`.  This is the discrete
+analogue of the Kuszmaul–Leiserson smoothing step used by mathlib's
+{name}`AkraBazziRecurrence.isTheta_asympBound`: the factor {lit}`1 + ε` absorbs
+the constant floor loss so that the homogeneous induction closes to
+{lit}`Ω(n^p)` exactly (rather than only {lit}`Ω(n^(p-ε))`).
+-/
+lemma akraBazzi_smoothing_scale_floor_ge {b : ℝ} (hb : 1 < b) {p : ℝ} (hp : 0 < p) :
+    ∃ N : ℕ, ∀ n : ℕ, N ≤ n →
+      ((⌊(n : ℝ) / b⌋₊ : ℝ) ^ p) * (1 + akraBazziSmoothingFn (⌊(n : ℝ) / b⌋₊ : ℝ))
+        ≥ ((n : ℝ) / b) ^ p * (1 + akraBazziSmoothingFn (n : ℝ)) := by
+  have hb_pos : 0 < b := lt_trans (by norm_num : (0 : ℝ) < 1) hb
+  have hb_sqrt_minus_one : 0 < Real.sqrt b - 1 := by
+    have h1 : 1 < Real.sqrt b := by
+      simpa using (Real.sqrt_lt_sqrt (by norm_num : 0 ≤ (1 : ℝ)) hb)
+    linarith
+  let C : ℝ := 2 * (1 + p)
+  have hC_pos : 0 < C := by dsimp [C]; positivity
+  rcases akraBazzi_smoothing_gain_ge_loss hb hp with ⟨K, hK_pos, hK⟩
+  let N₁ : ℕ := Nat.ceil (K ^ (2 : ℕ)) + 1
+  have hN₁_gt : K ^ (2 : ℕ) < (N₁ : ℝ) := by
+    have hceil : K ^ (2 : ℕ) ≤ (Nat.ceil (K ^ (2 : ℕ)) : ℝ) := Nat.le_ceil (K ^ (2 : ℕ))
+    exact lt_of_le_of_lt hceil (by exact_mod_cast (Nat.lt_succ_self (Nat.ceil (K ^ (2 : ℕ)))))
+  let N₂ : ℕ := Nat.ceil (2 * b) + 1
+  have hN₂_gt : 2 * b < (N₂ : ℝ) := by
+    have hceil : 2 * b ≤ (Nat.ceil (2 * b) : ℝ) := Nat.le_ceil (2 * b)
+    exact lt_of_le_of_lt hceil (by exact_mod_cast (Nat.lt_succ_self (Nat.ceil (2 * b))))
+  refine ⟨max N₁ N₂, ?_⟩
+  intro n hn
+  have hnN₁ : N₁ ≤ n := le_trans (Nat.le_max_left _ _) hn
+  have hnN₂ : N₂ ≤ n := le_trans (Nat.le_max_right _ _) hn
+  have hn1_nat : 1 ≤ n := le_trans (by omega : 1 ≤ N₁) hnN₁
+  have hn1 : 1 ≤ (n : ℝ) := by exact_mod_cast hn1_nat
+  have hn_pos : 0 < (n : ℝ) := by linarith
+  have hKsq_le : K ^ (2 : ℕ) ≤ (n : ℝ) := le_trans (le_of_lt hN₁_gt) (by exact_mod_cast hnN₁)
+  have hnK : K ≤ (n : ℝ) ^ (1 / 2 : ℝ) := by
+    have hsqrt : (n : ℝ) ^ (1 / 2 : ℝ) = Real.sqrt (n : ℝ) := (Real.sqrt_eq_rpow (n : ℝ)).symm
+    rw [hsqrt]
+    exact (Real.le_sqrt (le_of_lt hK_pos) (Nat.cast_nonneg n)).2 hKsq_le
+  have hn2 : 2 * b ≤ (n : ℝ) := le_trans (le_of_lt hN₂_gt) (by exact_mod_cast hnN₂)
+  let x : ℝ := (⌊(n : ℝ) / b⌋₊ : ℝ)
+  have hnb_nonneg : 0 ≤ (n : ℝ) / b := div_nonneg (le_of_lt hn_pos) (le_of_lt hb_pos)
+  have hx_le : x ≤ (n : ℝ) / b := by simpa [x] using (Nat.floor_le hnb_nonneg)
+  have hx_ge : (n : ℝ) / b - 1 ≤ x := by
+    have h := Nat.lt_floor_add_one ((n : ℝ) / b)
+    simpa [x] using (le_of_lt (by linarith [h]) : (n : ℝ) / b - 1 ≤ x)
+  have hx2 : 2 ≤ (n : ℝ) / b := by
+    rw [le_div_iff₀ hb_pos]
+    exact hn2
+  have hx_pos : 0 < x := by
+    have h1 : 1 ≤ (n : ℝ) / b - 1 := by linarith [hx2]
+    exact lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) (le_trans h1 hx_ge)
+  have hx_ge_half : (n : ℝ) / (2 * b) ≤ x := by
+    have hhalf_le : (n : ℝ) / (2 * b) ≤ (n : ℝ) / b - 1 := by
+      have hdiv : (n : ℝ) / b - (n : ℝ) / (2 * b) = (n : ℝ) / (2 * b) := by
+        field_simp [ne_of_gt (mul_pos (by norm_num : 0 < (2 : ℝ)) hb_pos)]
+        ring
+      have hnb_ge_one : 1 ≤ (n : ℝ) / (2 * b) := by
+        rw [one_le_div (mul_pos (by norm_num : 0 < (2 : ℝ)) hb_pos)]
+        exact hn2
+      linarith [hdiv, hnb_ge_one]
+    exact le_trans hhalf_le hx_ge
+  have hgain : (Real.sqrt b - 1) * akraBazziSmoothingFn (n : ℝ) ≤
+      akraBazziSmoothingFn x - akraBazziSmoothingFn (n : ℝ) := by
+    unfold akraBazziSmoothingFn
+    have hsqrt_nb_pos : 0 < Real.sqrt ((n : ℝ) / b) := (Real.sqrt_pos).2 (div_pos hn_pos hb_pos)
+    have hsqrt_nb_inv : (Real.sqrt ((n : ℝ) / b))⁻¹ = Real.sqrt b / Real.sqrt (n : ℝ) := by
+      rw [Real.sqrt_div (le_of_lt hn_pos) b, inv_div]
+    have hsqrt_x_pos : 0 < Real.sqrt x := (Real.sqrt_pos).2 hx_pos
+    have hsqrt_le : Real.sqrt x ≤ Real.sqrt ((n : ℝ) / b) := Real.sqrt_le_sqrt hx_le
+    have hle : (Real.sqrt ((n : ℝ) / b))⁻¹ ≤ (Real.sqrt x)⁻¹ :=
+      (inv_le_inv₀ hsqrt_nb_pos hsqrt_x_pos).2 hsqrt_le
+    rw [hsqrt_nb_inv] at hle
+    have hle' : (Real.sqrt b) * (Real.sqrt (n : ℝ))⁻¹ ≤ (Real.sqrt x)⁻¹ := by
+      simpa [div_eq_mul_inv] using hle
+    calc
+      (Real.sqrt b - 1) * (Real.sqrt (n : ℝ))⁻¹
+          = (Real.sqrt b) * (Real.sqrt (n : ℝ))⁻¹ - (Real.sqrt (n : ℝ))⁻¹ := by ring
+      _ ≤ (Real.sqrt x)⁻¹ - (Real.sqrt (n : ℝ))⁻¹ := sub_le_sub_right hle' _
+  have hfloor_loss : ((n : ℝ) / b) ^ p - x ^ p ≤ C * ((n : ℝ) / b) ^ (p - 1) := by
+    simpa [x, C] using (rpow_sub_floor_le_of_two_le hp (by simpa using hx2))
+  have hεn_nonneg : 0 ≤ akraBazziSmoothingFn (n : ℝ) := by
+    unfold akraBazziSmoothingFn
+    exact inv_nonneg.mpr (Real.sqrt_nonneg _)
+  have hgain_ge_loss : ((n : ℝ) / b) ^ p - x ^ p + (((n : ℝ) / b) ^ p - x ^ p) * akraBazziSmoothingFn (n : ℝ)
+      ≤ x ^ p * (akraBazziSmoothingFn x - akraBazziSmoothingFn (n : ℝ)) := by
+    have hgain_lower_raw := hK n hn1_nat hnK
+    have hgain_lower' : (n : ℝ) ^ p / (2 * b) ^ p * ((Real.sqrt b - 1) * akraBazziSmoothingFn (n : ℝ))
+        ≥ C * ((n : ℝ) / b) ^ (p - 1) * (1 + akraBazziSmoothingFn (n : ℝ)) := by
+      simpa [akraBazziSmoothingFn, C] using hgain_lower_raw
+    have hx_p_ge : (n : ℝ) ^ p / (2 * b) ^ p ≤ x ^ p := by
+      have hhalf_nonneg : 0 ≤ (n : ℝ) / (2 * b) :=
+        div_nonneg (le_of_lt hn_pos) (le_of_lt (mul_pos (by norm_num : 0 < (2 : ℝ)) hb_pos))
+      have hpow : ((n : ℝ) / (2 * b)) ^ p ≤ x ^ p := Real.rpow_le_rpow hhalf_nonneg hx_ge_half hp.le
+      rwa [Real.div_rpow (le_of_lt hn_pos) (le_of_lt (mul_pos (by norm_num : 0 < (2 : ℝ)) hb_pos)) p] at hpow
+    have hgain_nonneg : 0 ≤ (Real.sqrt b - 1) * akraBazziSmoothingFn (n : ℝ) :=
+      mul_nonneg (le_of_lt hb_sqrt_minus_one) hεn_nonneg
+    have hgain_lower : x ^ p * ((Real.sqrt b - 1) * akraBazziSmoothingFn (n : ℝ))
+        ≥ C * ((n : ℝ) / b) ^ (p - 1) * (1 + akraBazziSmoothingFn (n : ℝ)) := by
+      exact le_trans hgain_lower' (mul_le_mul_of_nonneg_right hx_p_ge hgain_nonneg)
+    have hgain_mul : x ^ p * (akraBazziSmoothingFn x - akraBazziSmoothingFn (n : ℝ))
+        ≥ C * ((n : ℝ) / b) ^ (p - 1) * (1 + akraBazziSmoothingFn (n : ℝ)) := by
+      exact le_trans hgain_lower (mul_le_mul_of_nonneg_left hgain (Real.rpow_nonneg (le_of_lt hx_pos) p))
+    have hloss_le : ((n : ℝ) / b) ^ p - x ^ p + (((n : ℝ) / b) ^ p - x ^ p) * akraBazziSmoothingFn (n : ℝ)
+        ≤ C * ((n : ℝ) / b) ^ (p - 1) * (1 + akraBazziSmoothingFn (n : ℝ)) := by
+      have h1 : ((n : ℝ) / b) ^ p - x ^ p ≤ C * ((n : ℝ) / b) ^ (p - 1) := hfloor_loss
+      have h2 : (((n : ℝ) / b) ^ p - x ^ p) * akraBazziSmoothingFn (n : ℝ)
+          ≤ (C * ((n : ℝ) / b) ^ (p - 1)) * akraBazziSmoothingFn (n : ℝ) :=
+        mul_le_mul_of_nonneg_right h1 hεn_nonneg
+      nlinarith
+    exact le_trans hloss_le hgain_mul
+  calc
+    ((n : ℝ) / b) ^ p * (1 + akraBazziSmoothingFn (n : ℝ))
+        = x ^ p + x ^ p * akraBazziSmoothingFn (n : ℝ) + (((n : ℝ) / b) ^ p - x ^ p) * (1 + akraBazziSmoothingFn (n : ℝ)) := by ring
+    _ ≤ x ^ p + x ^ p * akraBazziSmoothingFn (n : ℝ) + x ^ p * (akraBazziSmoothingFn x - akraBazziSmoothingFn (n : ℝ)) := by
+          nlinarith [hgain_ge_loss]
+    _ = x ^ p * (1 + akraBazziSmoothingFn x) := by ring
+/--
+**Floored smoothing scale is a subsolution (multi-branch).**  The single-branch
+estimate {name}`akraBazzi_smoothing_scale_floor_ge` holds uniformly across a
+finite list of branches.
+-/
+lemma akraBazzi_smoothing_scale_floor_ge_multi {branches : List (ℕ × ℝ)} {p : ℝ}
+    (hvalid : BranchesValid branches) (hp : 0 < p) :
+    ∃ N : ℕ, ∀ n : ℕ, N ≤ n → ∀ ab ∈ branches,
+      ((⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p) * (1 + akraBazziSmoothingFn (⌊(n : ℝ) / ab.2⌋₊ : ℝ))
+        ≥ ((n : ℝ) / ab.2) ^ p * (1 + akraBazziSmoothingFn (n : ℝ)) := by
+  classical
+  induction branches with
+  | nil => exact ⟨0, by intro n _hn ab hab; simp at hab⟩
+  | cons hd tl ih =>
+      rcases ih (fun ab hab => hvalid ab (by simp [hab])) with ⟨Ntl, hNtl⟩
+      rcases akraBazzi_smoothing_scale_floor_ge (hvalid hd (by simp)).2 hp with ⟨Nhd, hNhd⟩
+      refine ⟨max Nhd Ntl, ?_⟩
+      intro n hn ab hab
+      rw [List.mem_cons] at hab
+      rcases hab with rfl | habtl
+      · exact hNhd n (le_trans (Nat.le_max_left _ _) hn)
+      · exact hNtl n (le_trans (Nat.le_max_right _ _) hn) ab habtl
+
+
+/--
+**Akra–Bazzi lower bound (leaf-dominated regime).**  When {lit}`0 ≤ q < p` the
+solution is {lit}`T(n) = Ω(n^p (1 + I n))`.  The leaf term {lit}`n^p` dominates
+the driving term {lit}`g = Θ(n^q)`, and the integral {lit}`I n` is bounded
+({name}`akraBazziIntegral_bounded_of_lt`), so the scale {lit}`n^p(1 + I n)` is
+{lit}`Θ(n^p)`.  The induction is closed by the smoothing factor
+{name}`akraBazziSmoothingFn` via {name}`akraBazzi_smoothing_scale_floor_ge`.
+-/
+theorem akraBazzi_lower_bound_leaf {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ} {n₀ : ℕ} {p q : ℝ}
+    (hvalid : BranchesValid branches) (hnonempty : branches ≠ [])
+    (hroot : IsAkraBazziRoot branches p) (hp : 0 < p) (hpq : q < p) (hq : 0 ≤ q)
+    (hsmooth : PolynomialGrowth g q) (hsat : SatisfiesAkraBazzi branches g T n₀) :
+    Chapter03.isBigOmega T (akraBazziScale p g) := by
+  have hgnonneg : ∀ n, 0 ≤ g n := hsmooth.1
+  rcases hsmooth.2.2 with ⟨c₀, _C₀, hc₀pos, _hC₀pos, hglower, _hgupper⟩
+  have hT_nonneg : ∀ n, 0 ≤ T n := akraBazzi_T_nonneg hvalid hgnonneg hsat
+  have hT_ge_g : ∀ n, n₀ < n → g n ≤ T n := akraBazzi_T_ge_g hvalid hgnonneg hsat
+  rcases akraBazziIntegral_bounded_of_lt hsmooth hpq with ⟨Ci, hIbound⟩
+  have hIbound0 : 0 ≤ Ci := by simpa [akraBazziIntegral] using (hIbound 0)
+  rcases akraBazzi_smoothing_scale_floor_ge_multi hvalid hp with ⟨N, hN⟩
+  let N₀ : ℕ := max n₀ N + 1
+  let F : ℕ → ℝ := fun n => (n : ℝ) ^ p * (1 + akraBazziSmoothingFn (n : ℝ))
+  let Tmin : ℝ := min 1 c₀
+  have hTmin_pos : 0 < Tmin := lt_min (by norm_num : (0 : ℝ) < 1) hc₀pos
+  let Smax : ℝ := ∑ m ∈ Finset.range (N₀ + 1), F m
+  have hF_nonneg : ∀ m : ℕ, 0 ≤ F m := by
+    intro m
+    have hmp : 0 ≤ (m : ℝ) ^ p := Real.rpow_nonneg (by positivity) p
+    have hε : 0 ≤ akraBazziSmoothingFn (m : ℝ) := by
+      unfold akraBazziSmoothingFn; exact inv_nonneg.mpr (Real.sqrt_nonneg _)
+    exact mul_nonneg hmp (add_nonneg (by norm_num : 0 ≤ (1 : ℝ)) hε)
+  have hSmax_pos : 0 < Smax := by
+    dsimp [Smax]
+    have h1mem : 1 ∈ Finset.range (N₀ + 1) := by rw [Finset.mem_range]; omega
+    have hF1 : 0 < F 1 := by
+      dsimp [F]
+      have h1p : 0 < ((1 : ℕ) : ℝ) ^ p := Real.rpow_pos_of_pos (by norm_num : 0 < ((1 : ℕ) : ℝ)) p
+      have hε1 : 0 ≤ akraBazziSmoothingFn ((1 : ℕ) : ℝ) := by
+        unfold akraBazziSmoothingFn; exact inv_nonneg.mpr (Real.sqrt_nonneg _)
+      have h1plus : 0 < 1 + akraBazziSmoothingFn ((1 : ℕ) : ℝ) := by linarith
+      exact mul_pos h1p h1plus
+    exact Finset.sum_pos' (by intro m _hm; exact hF_nonneg m) ⟨1, h1mem, hF1⟩
+  let c : ℝ := Tmin / (2 * (Smax + 1))
+  have hc_pos : 0 < c := by dsimp [c]; positivity
+  have hc_Smax_le_Tmin : c * Smax ≤ Tmin := by
+    dsimp [c]
+    have hden_pos : 0 < 2 * (Smax + 1) := by positivity
+    rw [div_mul_eq_mul_div, div_le_iff₀ hden_pos]
+    have hSmax_le_den : Smax ≤ 2 * (Smax + 1) := by nlinarith
+    nlinarith [mul_le_mul_of_nonneg_left hSmax_le_den (le_of_lt hTmin_pos)]
+  have hmain : ∀ n : ℕ, c * F n ≤ T n := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        by_cases hn0 : n = 0
+        · subst n
+          rw [hsat.1]
+          dsimp [F]
+          have h0pow : (0 : ℝ) ^ p = 0 := Real.zero_rpow (ne_of_gt hp)
+          simp [h0pow]
+        · have hn_pos : 0 < n := Nat.pos_of_ne_zero hn0
+          have hn_pos' : 1 ≤ n := Nat.succ_le_iff.mpr hn_pos
+          by_cases hle : n ≤ N₀
+          · have hF_le_Smax : F n ≤ Smax := by
+              dsimp [Smax]
+              have hn_mem : n ∈ Finset.range (N₀ + 1) := by
+                rw [Finset.mem_range]; exact Nat.lt_succ_of_le hle
+              exact Finset.single_le_sum (by intro m _hm; exact hF_nonneg m) hn_mem
+            have hT_ge_Tmin : Tmin ≤ T n := by
+              dsimp [Tmin]
+              by_cases hle₀ : n ≤ n₀
+              · rw [hsat.2.1 n hn_pos' hle₀]; exact min_le_left 1 c₀
+              · have hn₀n : n₀ < n := lt_of_not_ge hle₀
+                have hg : c₀ * (n : ℝ) ^ q ≤ g n := hglower n hn_pos'
+                have hT_ge_g_n : g n ≤ T n := hT_ge_g n hn₀n
+                have hnq : 1 ≤ (n : ℝ) ^ q := by
+                  have hn1 : 1 ≤ (n : ℝ) := by exact_mod_cast hn_pos'
+                  exact Real.one_le_rpow hn1 hq
+                calc
+                  min 1 c₀ ≤ c₀ := min_le_right 1 c₀
+                  _ ≤ c₀ * (n : ℝ) ^ q := by nlinarith [hc₀pos, hnq]
+                  _ ≤ g n := hg
+                  _ ≤ T n := hT_ge_g_n
+            calc
+              c * F n ≤ c * Smax := mul_le_mul_of_nonneg_left hF_le_Smax hc_pos.le
+              _ ≤ Tmin := hc_Smax_le_Tmin
+              _ ≤ T n := hT_ge_Tmin
+          · have hN₀n : N₀ < n := lt_of_not_ge hle
+            have hNn : N ≤ n := by
+              have hN₀_ge_N : N ≤ N₀ := by
+                dsimp [N₀]
+                exact Nat.le_trans (Nat.le_max_right n₀ N) (Nat.le_succ (max n₀ N))
+              exact le_trans hN₀_ge_N (le_of_lt hN₀n)
+            have hIH : ∀ ab ∈ branches, c * F (⌊(n : ℝ) / ab.2⌋₊) ≤ T (⌊(n : ℝ) / ab.2⌋₊) := by
+              intro ab hab
+              have hvalid_ab : BranchValid ab := hvalid ab hab
+              have hlt : ⌊(n : ℝ) / ab.2⌋₊ < n := floor_div_lt_self hvalid_ab.2 hn_pos
+              exact ih (⌊(n : ℝ) / ab.2⌋₊) hlt
+            have hchildren : c * (branches.map (fun ab => (ab.1 : ℝ) * F (⌊(n : ℝ) / ab.2⌋₊))).sum
+                ≤ (branches.map (fun ab => (ab.1 : ℝ) * T (⌊(n : ℝ) / ab.2⌋₊))).sum := by
+              calc
+                c * (branches.map (fun ab => (ab.1 : ℝ) * F (⌊(n : ℝ) / ab.2⌋₊))).sum
+                    = (branches.map (fun ab => c * ((ab.1 : ℝ) * F (⌊(n : ℝ) / ab.2⌋₊)))).sum := by
+                      rw [List.sum_map_mul_left]
+                _ = (branches.map (fun ab => (ab.1 : ℝ) * (c * F (⌊(n : ℝ) / ab.2⌋₊)))).sum := by
+                      apply congrArg List.sum
+                      apply List.map_congr_left
+                      intro ab _hab; ring
+                _ ≤ (branches.map (fun ab => (ab.1 : ℝ) * T (⌊(n : ℝ) / ab.2⌋₊))).sum := by
+                      apply List.sum_le_sum
+                      intro ab hab
+                      exact mul_le_mul_of_nonneg_left (hIH ab hab) (Nat.cast_nonneg ab.1)
+            have hsmoothing : ∀ ab ∈ branches,
+                ((⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p) * (1 + akraBazziSmoothingFn (⌊(n : ℝ) / ab.2⌋₊ : ℝ))
+                  ≥ ((n : ℝ) / ab.2) ^ p * (1 + akraBazziSmoothingFn (n : ℝ)) :=
+              hN n hNn
+            have hchildren' : c * (branches.map (fun ab => (ab.1 : ℝ) * (((n : ℝ) / ab.2) ^ p *
+                (1 + akraBazziSmoothingFn (n : ℝ))))).sum
+                ≤ c * (branches.map (fun ab => (ab.1 : ℝ) * F (⌊(n : ℝ) / ab.2⌋₊))).sum := by
+              apply mul_le_mul_of_nonneg_left _ hc_pos.le
+              apply List.sum_le_sum
+              intro ab hab
+              have h : ((n : ℝ) / ab.2) ^ p * (1 + akraBazziSmoothingFn (n : ℝ)) ≤ F (⌊(n : ℝ) / ab.2⌋₊) := by
+                simpa [F] using (hsmoothing ab hab)
+              exact mul_le_mul_of_nonneg_left h (Nat.cast_nonneg ab.1)
+            have hscale_smooth : (branches.map (fun ab => (ab.1 : ℝ) * (((n : ℝ) / ab.2) ^ p *
+                (1 + akraBazziSmoothingFn (n : ℝ))))).sum = F n := by
+              have hscale : (branches.map (fun ab => (ab.1 : ℝ) * ((n : ℝ) / ab.2) ^ p)).sum = (n : ℝ) ^ p :=
+                akraBazzi_root_scale_invariance branches p hvalid hroot n
+              dsimp [F]
+              calc
+                (branches.map (fun ab => (ab.1 : ℝ) * (((n : ℝ) / ab.2) ^ p * (1 + akraBazziSmoothingFn (n : ℝ))))).sum
+                    = (branches.map (fun ab => ((ab.1 : ℝ) * ((n : ℝ) / ab.2) ^ p) * (1 + akraBazziSmoothingFn (n : ℝ)))).sum := by
+                      apply congrArg List.sum; apply List.map_congr_left; intro ab _hab; ring
+                _ = (branches.map (fun ab => (ab.1 : ℝ) * ((n : ℝ) / ab.2) ^ p)).sum * (1 + akraBazziSmoothingFn (n : ℝ)) := by
+                      rw [List.sum_map_mul_right]
+                _ = (n : ℝ) ^ p * (1 + akraBazziSmoothingFn (n : ℝ)) := by rw [hscale]
+            have hhn₀n : n₀ < n := by
+              have hN₀_ge_n₀ : n₀ ≤ N₀ := by
+                dsimp [N₀]
+                exact Nat.le_trans (Nat.le_max_left n₀ N) (Nat.le_succ (max n₀ N))
+              exact lt_of_le_of_lt hN₀_ge_n₀ hN₀n
+            calc
+              c * F n = c * (branches.map (fun ab => (ab.1 : ℝ) * (((n : ℝ) / ab.2) ^ p *
+                  (1 + akraBazziSmoothingFn (n : ℝ))))).sum := by rw [hscale_smooth]
+              _ ≤ c * (branches.map (fun ab => (ab.1 : ℝ) * F (⌊(n : ℝ) / ab.2⌋₊))).sum := hchildren'
+              _ ≤ (branches.map (fun ab => (ab.1 : ℝ) * T (⌊(n : ℝ) / ab.2⌋₊))).sum := hchildren
+              _ ≤ (branches.map (fun ab => (ab.1 : ℝ) * T (⌊(n : ℝ) / ab.2⌋₊))).sum + g n :=
+                  le_add_of_nonneg_right (hgnonneg n)
+              _ = T n := by rw [hsat.2.2 n hhn₀n]
+  rw [Chapter03.isBigOmega_iff]
+  refine ⟨c / (1 + Ci), ?_, 0, ?_⟩
+  · positivity
+  · intro n hn
+    rw [abs_of_nonneg (akraBazziScale_nonneg hp.le hgnonneg n)]
+    rw [abs_of_nonneg (hT_nonneg n)]
+    have hscale_le : akraBazziScale p g n ≤ (1 + Ci) * (n : ℝ) ^ p := by
+      unfold akraBazziScale
+      have hI : akraBazziIntegral p g n ≤ Ci := hIbound n
+      have h1 : 1 + akraBazziIntegral p g n ≤ 1 + Ci := by linarith
+      have hnp : 0 ≤ (n : ℝ) ^ p := Real.rpow_nonneg (by positivity) p
+      calc
+        (n : ℝ) ^ p * (1 + akraBazziIntegral p g n) ≤ (n : ℝ) ^ p * (1 + Ci) :=
+          mul_le_mul_of_nonneg_left h1 hnp
+        _ = (1 + Ci) * (n : ℝ) ^ p := by ring
+    have hεn_nonneg : 0 ≤ akraBazziSmoothingFn (n : ℝ) := by
+      unfold akraBazziSmoothingFn; exact inv_nonneg.mpr (Real.sqrt_nonneg _)
+    have hnp_le : (n : ℝ) ^ p ≤ F n := by
+      dsimp [F]
+      have hnp_nonneg : 0 ≤ (n : ℝ) ^ p := Real.rpow_nonneg (by positivity) p
+      nlinarith [mul_nonneg hnp_nonneg hεn_nonneg]
+    calc
+      c / (1 + Ci) * akraBazziScale p g n ≤ c / (1 + Ci) * ((1 + Ci) * (n : ℝ) ^ p) :=
+        mul_le_mul_of_nonneg_left hscale_le (le_of_lt (div_pos hc_pos (by positivity : 0 < 1 + Ci)))
+      _ = c * (n : ℝ) ^ p := by field_simp [ne_of_gt (by positivity : 0 < 1 + Ci)]
+      _ ≤ c * F n := mul_le_mul_of_nonneg_left hnp_le hc_pos.le
+      _ ≤ T n := hmain n
+
+/--
+**Akra–Bazzi asymptotic bound (leaf-dominated regime).**  For {lit}`0 ≤ q < p`
+the solution satisfies {lit}`T(n) = Θ(n^p (1 + Σ_{u≤n} g(u)/u^(p+1)))`:
+the upper bound {name}`akraBazzi_upper_bound` and the leaf lower bound
+{name}`akraBazzi_lower_bound_leaf` both apply.
+-/
+theorem akraBazzi_bigTheta_leaf {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ} {n₀ : ℕ} {p q : ℝ}
+    (hvalid : BranchesValid branches) (hnonempty : branches ≠ [])
+    (hroot : IsAkraBazziRoot branches p) (hp : 0 < p) (hpq : q < p) (hq : 0 ≤ q)
+    (hsmooth : PolynomialGrowth g q) (hsat : SatisfiesAkraBazzi branches g T n₀) :
+    Chapter03.isBigTheta T (akraBazziScale p g) := by
+  constructor
+  · exact akraBazzi_upper_bound hvalid hnonempty hroot hp hq hsmooth hsat
+  · exact akraBazzi_lower_bound_leaf hvalid hnonempty hroot hp hpq hq hsmooth hsat
 
 end Chapter04
 end CLRS

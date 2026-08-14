@@ -308,13 +308,17 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter04.akraBazzi_integral_le_poly`
   - `CLRS.Chapter04.akraBazzi_upper_bound`
   - `CLRS.Chapter04.akraBazzi_lower_bound`
+  - `CLRS.Chapter04.akraBazzi_lower_bound_critical`
+  - `CLRS.Chapter04.akraBazzi_lower_bound_leaf`
   - `CLRS.Chapter04.akraBazzi_bigTheta`
+  - `CLRS.Chapter04.akraBazzi_bigTheta_leaf`
 - Definitions: `akraBazziIntegral` / `akraBazziScale` (the discrete integral and
   scale `n^p(1 + Σ g/u^(p+1))`), `akraBazziIncrement` (the per-branch increment
   `a (n/b)^p (I n - I ⌊n/b⌋)`), `PolynomialGrowth` (the explicit
-  polynomial-smoothness predicate `c n^q ≤ g n ≤ C n^q`), and
-  `SatisfiesAkraBazzi` (the recurrence `T(n) = Σ aᵢ T(⌊n/bᵢ⌋) + g(n)` with floor
-  perturbation and constant base case)
+  polynomial-smoothness predicate `c n^q ≤ g n ≤ C n^q`), `akraBazziSmoothingFn`
+  (the smoothing function `ε x = 1 / √x` whose drop dominates the one-step floor
+  loss), and `SatisfiesAkraBazzi` (the recurrence
+  `T(n) = Σ aᵢ T(⌊n/bᵢ⌋) + g(n)` with floor perturbation and constant base case)
 - Proof pattern: characterize the root `Σ aᵢ/bᵢ^p = 1`; for one branch the root
   is `p = log_b a` via the real base-power identity; uniqueness follows from
   strict monotonicity of the characteristic function; nonnegativity from
@@ -324,10 +328,15 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   the per-level increment `Σ aᵢ (n/bᵢ)^p (I n - I ⌊n/bᵢ⌋)` against `g n` from
   both sides; the upper bound absorbs `g n` via the lower increment bound, and
   the lower bound (in the forcing-dominated regime) absorbs the scale via the
-  upper increment bound and `T n ≥ g n`
-- Current gap: the lower recurrence-to-integral comparison in the leaf-dominated
-  and critical regimes `q ≤ p` (which requires the sub-leading floor-loss
-  analysis of the deep recursion tree)
+  upper increment bound and `T n ≥ g n`.  In the leaf-dominated regime `q < p`
+  the driving term `g` cannot absorb the one-step floor loss, so the lower bound
+  instead uses a smoothing function `ε x = 1 / √x` whose floored scale
+  `⌊n/b⌋^p (1 + ε⌊n/b⌋)` is a subsolution of the homogeneous recurrence — the
+  discrete analogue of the Kuszmaul–Leiserson smoothing step.
+- Current gap: the narrow sub-forcing regime `p < q < p + 1` (the forcing lower
+  bound `akraBazzi_lower_bound` currently requires `p + 1 ≤ q`); the
+  leaf-dominated `q < p`, critical `q = p`, and forcing `p + 1 ≤ q` regimes are
+  all proved.
 
 ### Section 4.1 - The maximum-subarray problem
 
