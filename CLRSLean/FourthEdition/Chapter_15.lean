@@ -26,8 +26,10 @@ these sources during the compatibility period.
 
 ## Coverage boundary
 
-Section 15.4 (offline caching) is a native fourth-edition section (the
-farthest-in-future eviction policy; the optimality theorem remains a gap),
+Section 15.4 (offline caching) is a native fourth-edition section.  Its finite
+cache model, farthest-in-future policy, legal-trace exchange construction, and
+public optimality theorem `CLRS.Caching.fifo_optimal` complete CLRS Theorem
+15.5 for every nonempty initial cache and finite request sequence.  It is
 imported through
 [Section 15.4](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/).
 The section is split into the sub-modules:
@@ -35,6 +37,10 @@ The section is split into the sub-modules:
 * [Cache Model](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S1_Cache_Model/)
 * [Farthest-In-Future Eviction](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S2_Farthest_In_Future/)
 * [Optimality](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S3_Optimality/)
+
+This completion is at the mathematical cache-policy level.  Pointer/RAM
+implementations and hardware caching costs remain optional refinements outside
+the advertised theorem boundary.
 
 The third-edition Sections 16.4 (matroids) and 16.5 (task scheduling) are
 retained as supplementary online material (reachable through

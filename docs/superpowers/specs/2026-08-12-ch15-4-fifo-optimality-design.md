@@ -2,6 +2,13 @@
 
 Date: 2026-08-12
 
+Status: implemented.  The public source now follows the selected legal-trace
+coupling architecture, exposes the unconditional `CLRS.Caching.fifo_optimal`
+theorem at the approved type, and locks both `fifo_optimal` and
+`exchange_trace` in `Tests/Chapter_15_4_Interface.lean`.  The superseded global
+state-machine route is archived under `Dev/Legacy/StateMachine`, with its known
+failed invariants recorded in `Dev/Legacy/FAILED_APPROACHES.md`.
+
 ## Objective
 
 Complete the main theorem of CLRS Fourth Edition Section 15.4: the

@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B13_PerPageCredit
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Legacy.StateMachine.B13_PerPageCredit
 
 /-
 # Dev B14: the per-page credit invariant — hQ replacement

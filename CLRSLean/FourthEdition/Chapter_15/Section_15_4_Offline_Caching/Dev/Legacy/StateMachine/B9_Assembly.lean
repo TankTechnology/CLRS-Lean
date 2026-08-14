@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B8_HnotE
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.Legacy.StateMachine.B8_HnotE
 
 /-
 # Dev B9: the iterate_main assembly (checkpoint)
@@ -7,7 +7,7 @@ The concrete instantiation of `iterate_main`'s abstract case-step
 supplies `hB1`/`hB2`/`hAone` with the kernel-checked case-step lemmas
 and the extension glue.  The checkpoint wires everything that is
 proved and leaves the genuinely open pieces as **documented
-hypotheses** (referencing `Dev/DESIGN.md`) — no `sorry` (the
+hypotheses** (referencing `Dev/Legacy/StateMachine/DESIGN.md`) — with no unfinished proof placeholder (the
 repository checker forbids them on `main`):
 
 1. `hQ_open`: the hQ-strictness/extension — the state's `hQ` field

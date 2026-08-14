@@ -19,7 +19,7 @@ least six months; removal is possible only in 2.0 or later.
 * Tracked reader-facing theorem entries: 1,510.
 * Proved tracked theorem entries: 1,510.
 * Online/supplementary theorem entries: 464.
-* Remaining edition-coverage units: 2.
+* Remaining edition-coverage units: 1.
 
 Tracked theorem entries form a selected proof inventory of reviewed groups mapped
 to represented fourth-edition sections.  A complete proved/tracked count does not
@@ -34,10 +34,10 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 22 chapters.
+* {lit}`main-proof-complete`: 23 chapters.
 * {lit}`main-proof-complete-for-correctness`: 6 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
-* {lit}`partial`: 2 chapters.
+* {lit}`partial`: 1 chapter.
 * {lit}`expository`: 1 chapter.
 
 ## Chapter Matrix
@@ -59,7 +59,7 @@ Ch  Chapter                                                     Status          
 12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1;12.2;12.3                     40        0
 13  13. Red-Black Trees                                         main-proof-complete                  13.1;13.2;13.3;13.4                40        0
 14  14. Dynamic Programming                                     main-proof-complete                  14.1;14.2;14.3;14.4;14.5           90        0
-15  15. Greedy Algorithms                                       partial (edition coverage)           15.1;15.2;15.3;15.4                27        1
+15  15. Greedy Algorithms                                       main-proof-complete                  15.1;15.2;15.3;15.4                27        0
 16  16. Amortized Analysis                                      selected-section-complete            16.1;16.2;16.3;16.4                66        0
 17  17. Augmenting Data Structures                              main-proof-complete                  17.1;17.2;17.3                     79        0
 18  18. B-Trees                                                 main-proof-complete-for-correctness  18.1;18.2;18.3                    134        0

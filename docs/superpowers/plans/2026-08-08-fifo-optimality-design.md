@@ -1,7 +1,10 @@
 # FIF (farthest-in-future) optimality — proof design
 
-Status: **design stage** (2026-08-08).  Target: CLRS Theorem 15.5
-(`fifo_optimal`), the last gap of §15.4.
+Status: **historical and superseded** (2026-08-12).  This swap-conjugate design
+records an early proof route; it is not the current §15.4 status.  The completed
+legal-trace coupling architecture is specified in
+`docs/superpowers/specs/2026-08-12-ch15-4-fifo-optimality-design.md`, and the
+public theorem is `CLRS.Caching.fifo_optimal`.
 
 ## Current state
 

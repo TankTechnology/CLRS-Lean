@@ -4,7 +4,7 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Dev.B3_Aft
 # Dev B4: the resident (B2) repair counting lemma
 
 Development file for the resident-case repair step of the `fifo_optimal`
-iteration (see `Dev/DESIGN.md`): when `q = e t` is resident, replacing the
+iteration (see `Dev/Legacy/StateMachine/DESIGN.md`): when `q = e t` is resident, replacing the
 eviction at the first disagreement by the policy's choice (`q'`, evicted
 again at its first request) costs at most one extra miss and extends
 agreement by one position — the B2 analogue of `repair_step`.

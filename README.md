@@ -69,7 +69,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 12 | Binary Search Trees | 🟢 correctness | 40 / 40 | — |
 | 13 | Red-Black Trees | 🟢 complete | 40 / 40 | — |
 | 14 | Dynamic Programming | 🟢 complete | 90 / 90 | — |
-| 15 | Greedy Algorithms | 🟠 partial coverage | 27 / 27 | Section 15.4 (Offline caching): the exchange step the slack… |
+| 15 | Greedy Algorithms | 🟢 complete | 27 / 27 | — |
 | 16 | Amortized Analysis | 🟡 sections | 66 / 66 | — |
 | 17 | Augmenting Data Structures | 🟢 complete | 79 / 79 | — |
 | 18 | B-Trees | 🟢 correctness | 134 / 134 | — |
