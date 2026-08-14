@@ -24,7 +24,7 @@ unary state size.
 
 - Create: `Tests/Chapter_34_CookLevin_AffineExactlyOne.lean`
 
-- [ ] **Step 1: Add the RED interface test**
+- [x] **Step 1: Add the RED interface test**
 
 ```lean
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
@@ -41,7 +41,7 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineSequentialExactlyOneRev_steps_le
 ```
 
-- [ ] **Step 2: Observe the intended failure**
+- [x] **Step 2: Observe the intended failure**
 
 Run:
 
@@ -59,7 +59,7 @@ placeholder.
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ExactlyOne/AffineTrace.lean`
 - Test: `Tests/Chapter_34_CookLevin_AffineExactlyOne.lean`
 
-- [ ] **Step 1: Define the intended wire family and stream**
+- [x] **Step 1: Define the intended wire family and stream**
 
 ```lean
 def affineSequentialExactlyOneWires (rowBase count : Nat) : List Nat :=
@@ -72,7 +72,7 @@ def affineSequentialExactlyOneGateStream
       encodeCircuitGate
 ```
 
-- [ ] **Step 2: Publish the exact semantic equation**
+- [x] **Step 2: Publish the exact semantic equation**
 
 ```lean
 theorem affineSequentialExactlyOneGateStream_eq_trace
@@ -84,7 +84,7 @@ theorem affineSequentialExactlyOneGateStream_eq_trace
   rfl
 ```
 
-- [ ] **Step 3: Define explicit affine chunks and prove trace equality**
+- [x] **Step 3: Define explicit affine chunks and prove trace equality**
 
 Define private arithmetic `seen`, `duplicate`, and three-gate chunk functions
 with gate indices `start + 3 * phase + offset`.  Prove their concatenation is
@@ -99,14 +99,14 @@ and a nonzero concrete example with `native_decide`.
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ExactlyOne/AffineRun.lean`
 - Test: `Tests/Chapter_34_CookLevin_AffineExactlyOne.lean`
 
-- [ ] **Step 1: Expose only reusable counter kernels**
+- [x] **Step 1: Expose only reusable counter kernels**
 
 Give public, documented names to the existing program configuration helper,
 counter-preserving encoders for `seen`, `next`, and `wire`, the scan-register
 update, and register cleanup.  Preserve all existing zero-based theorem names
 and behavior.
 
-- [ ] **Step 2: Define the affine body entry**
+- [x] **Step 2: Define the affine body entry**
 
 ```lean
 def affineSequentialExactlyOneBodyCfg
@@ -120,13 +120,13 @@ def affineSequentialExactlyOneBodyCfg
     (List.replicate (rowBase + count) ())
 ```
 
-- [ ] **Step 3: Prove first, later, update, and final affine phases**
+- [x] **Step 3: Prove first, later, update, and final affine phases**
 
 Each local theorem must preserve the arbitrary output suffix and all untouched
 registers.  Use the counter encoder kernels rather than native evaluation.
 Isolate `Nat` normalization into `omega`/`nlinarith` arithmetic facts.
 
-- [ ] **Step 4: Compose the public exact run**
+- [x] **Step 4: Compose the public exact run**
 
 ```lean
 def affineSequentialExactlyOneRev_runFrom
@@ -139,13 +139,13 @@ def affineSequentialExactlyOneRev_runFrom
       (affineSequentialExactlyOneRevSteps start rowBase count)
 ```
 
-- [ ] **Step 5: Prove a quadratic contextual bound**
+- [x] **Step 5: Prove a quadratic contextual bound**
 
 ```lean
 theorem affineSequentialExactlyOneRev_steps_le
     (start rowBase count : Nat) :
     affineSequentialExactlyOneRevSteps start rowBase count ≤
-      400 * (start + rowBase + count + 1) ^ 2
+      200 * (start + rowBase + count + 1) ^ 2
 ```
 
 ### Task 4: Integrate and verify the kernel
@@ -158,13 +158,13 @@ theorem affineSequentialExactlyOneRev_steps_le
 - Modify: `docs/proof-audits/2026-08-14-ch34-generator-attack.md`
 - Test: `Tests/Chapter_34_CookLevin_AffineExactlyOne.lean`
 
-- [ ] **Step 1: Audit axioms and concrete examples**
+- [x] **Step 1: Audit axioms and concrete examples**
 
 Add `#print axioms` for the semantic equality, contextual run, and quadratic
 bound.  Expected dependencies are only Lean/Mathlib foundations such as
 `propext`, `Classical.choice`, and `Quot.sound`; no `sorryAx` or project axiom.
 
-- [ ] **Step 2: Run focused verification**
+- [x] **Step 2: Run focused verification**
 
 ```text
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
@@ -178,7 +178,7 @@ git diff --check
 
 No full-repository build belongs to this checkpoint.
 
-- [ ] **Step 3: Commit the independently accepted slice**
+- [x] **Step 3: Commit the independently accepted slice**
 
 ```text
 git add CLRSLean/Chapter_34.lean CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ExactlyOne.lean CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ExactlyOne/AffineTrace.lean CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ExactlyOne/AffineRun.lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean docs/index.md docs/proof-audits/2026-08-14-ch34-generator-attack.md literate.toml

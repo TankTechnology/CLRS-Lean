@@ -178,7 +178,9 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
 
 /-! ## Exact counter-preserving unary emission -/
 
-private def sequentialExactlyOneCfg (label : SequentialExactlyOneLabel)
+/-- Independent program configuration with explicit unary register contents.
+This is the contextual entry surface used by larger serializer phases. -/
+def sequentialExactlyOneCfg (label : SequentialExactlyOneLabel)
     (buffer₁ buffer₂ : Option Unit) (test : Bool)
     (input : List Unit) (output : List CircuitSym)
     (work₁ work₂ : List Unit) (seen next wire : List Unit) :
@@ -258,7 +260,7 @@ private theorem encodeSeen_restore_eval (count : Nat)
 
 /-- Emitting `encNat seen` preserves the live seen register and empties the
 scratch stack in exactly `5*seen+3` builder steps. -/
-private def encodeSeen_run (count : Nat)
+def encodeSeen_run (count : Nat)
     (cont : SequentialExactlyOneCont) (buffer₁ : Option Unit)
     (test : Bool) (input : List Unit) (output : List CircuitSym)
     (work₁ next wire : List Unit) :
@@ -360,7 +362,8 @@ private theorem encodeNext_restore_eval (count : Nat)
       simpa only [List.replicate_succ, replicate_append_cons,
         List.cons_append] using ih (some ()) test (() :: restored)
 
-private def encodeNext_run (count : Nat)
+/-- Encode the `next` register in unary while restoring it exactly. -/
+def encodeNext_run (count : Nat)
     (cont : SequentialExactlyOneCont) (buffer₁ : Option Unit)
     (test : Bool) (input : List Unit) (output : List CircuitSym)
     (work₁ seen wire : List Unit) :
@@ -461,7 +464,8 @@ private theorem encodeWire_restore_eval (count : Nat)
       simpa only [List.replicate_succ, replicate_append_cons,
         List.cons_append] using ih (some ()) test (() :: restored)
 
-private def encodeWire_run (count : Nat)
+/-- Encode the `wire` register in unary while restoring it exactly. -/
+def encodeWire_run (count : Nat)
     (cont : SequentialExactlyOneCont) (buffer₁ : Option Unit)
     (test : Bool) (input : List Unit) (output : List CircuitSym)
     (work₁ seen next : List Unit) :
@@ -1037,7 +1041,9 @@ private theorem restoreNext_eval (count : Nat)
       simpa only [List.replicate_succ, replicate_append_cons,
         List.cons_append] using ih (some ()) test (() :: restored)
 
-private def updateScanRegisters (seen next wire : Nat)
+/-- Replace `seen` by `next + 2` and advance `next` by three, preserving
+the current source wire. -/
+def updateScanRegisters (seen next wire : Nat)
     (buffer₁ : Option Unit) (work₁ : List Unit)
     (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
@@ -1357,7 +1363,8 @@ private theorem clearWire_eval (count : Nat) (buffer₁ buffer₂ : Option Unit)
             output [] [] seen [] (List.replicate count ()))) = _
       simpa [List.replicate_succ] using ih true
 
-private def clearAllRegisters (seen next wire : Nat)
+/-- Clear all three unary registers and halt with the existing output. -/
+def clearAllRegisters (seen next wire : Nat)
     (buffer₁ : Option Unit) (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
       (sequentialExactlyOneCfg .clear₁ buffer₁ none false [] output [] []
