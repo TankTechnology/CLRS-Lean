@@ -32,6 +32,6 @@ that prefix through the complete validity phase.  Its concrete construction
 now covers every raw one-hot group, the following halted/none-label equality,
 every stack's suffix-OR active mask, and every fixed stack-cell XNOR block with
 exact contextual runs and closed wire indices.  The leading blank-bit
-negations, finite-family iteration, and final conjunction remain the row-local
-machine phases.
+negations now close each complete semantic six-gate cell block.  Finite-family
+iteration and the final conjunction remain the row-local machine phases.
 -/
