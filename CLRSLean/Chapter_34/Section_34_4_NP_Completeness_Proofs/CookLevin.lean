@@ -11,6 +11,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ControlCircuits
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.PrimitiveRowSemantics
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Validity
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityBounds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Workspace
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits
@@ -73,6 +74,8 @@ initial and accepting boundaries, and closes their conjunction as a
 well-formed general circuit.  Its satisfiability is equivalent to language
 membership, and its gate count has an explicit fixed-verifier polynomial
 bound. The validity layer builds canonical row
-validation with exact semantics and gate cost, while the workspace layer gives
+validation with exact semantics and gate cost; its stack-validity index layer
+also gives closed affine wire formulas for every active-mask, cell, and
+ordered-stack output.  The workspace layer gives
 verified constant-cost widen/narrow bridges for one bundled transition.
 -/
