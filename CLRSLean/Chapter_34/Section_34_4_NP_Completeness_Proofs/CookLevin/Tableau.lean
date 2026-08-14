@@ -416,6 +416,42 @@ private def allocateFinInputs (base : CircuitBuilder) (inputBase : Nat) :
           rw [CircuitBuilder.input_eval]
           simp [hilast]
 
+private theorem range'_succ_append (start n : Nat) :
+    List.range' start (n + 1) =
+      List.range' start n ++ [start + n] := by
+  induction n generalizing start with
+  | zero => simp
+  | succ n ih =>
+      change
+        start :: List.range' (start + 1) (n + 1) =
+          start :: (List.range' (start + 1) n ++ [start + (n + 1)])
+      rw [ih (start + 1)]
+      rw [show start + 1 + n = start + (n + 1) by omega]
+
+/-- The low-level allocator appends input gates in increasing external-index
+order. -/
+private theorem allocateFinInputs_gates_eq (base : CircuitBuilder)
+    (inputBase n : Nat) (hfit : inputBase + n ≤ base.inputCount) :
+    (allocateFinInputs base inputBase n hfit).builder.gates =
+      base.gates ++
+        (List.range' inputBase n).map CircuitGate.input := by
+  induction n with
+  | zero => simp [allocateFinInputs]
+  | succ n ih =>
+      simp only [allocateFinInputs]
+      change
+        (allocateFinInputs base inputBase n (by omega)).builder.gates ++
+            [.input (inputBase + n)] =
+          base.gates ++
+            (List.range' inputBase (n + 1)).map CircuitGate.input
+      rw [show
+        (allocateFinInputs base inputBase n (by omega)).builder.gates =
+          base.gates ++
+            (List.range' inputBase n).map CircuitGate.input by
+        exact ih (by omega)]
+      rw [range'_succ_append, List.map_append]
+      simp [List.append_assoc]
+
 /-- Proof-carrying result of allocating one external input gate per row slot. -/
 structure CfgInputAllocation {tm : _root_.Turing.FinTM2} {H : Nat}
     (start : CircuitBuilder) (layout : CfgInputLayout tm H) where
@@ -447,6 +483,17 @@ def allocateCfgInputs {tm : _root_.Turing.FinTM2} {H : Nat}
         intro inputs slot
         simpa [wires, CfgInputLayout.index] using
           allocated.eval inputs (cfgSlotEquivFin tm H slot) }
+
+/-- Row allocation appends exactly the consecutive input-gate block described
+by its external-input layout. -/
+theorem allocateCfgInputs_gates_eq {tm : _root_.Turing.FinTM2} {H : Nat}
+    (start : CircuitBuilder) (layout : CfgInputLayout tm H)
+    (hfit : layout.Fits start.inputCount) :
+    (allocateCfgInputs start layout hfit).builder.gates =
+      start.gates ++
+        (List.range' layout.base (cfgBitCount tm H)).map CircuitGate.input := by
+  unfold allocateCfgInputs
+  exact allocateFinInputs_gates_eq start layout.base (cfgBitCount tm H) hfit
 
 namespace CfgInputAllocation
 

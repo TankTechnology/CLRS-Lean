@@ -1,0 +1,25 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check cfgBitPolynomial
+#check cfgBitPolynomial_eval
+#check verifierTableauInputPolynomial
+#check verifierTableauInputPolynomial_eval
+#check verifierTableauInputClock
+#check verifierTableauInputClock_length
+#check verifierTableauInputClock_computableInPolyTime
+#check verifierCircuitHeader
+#check verifierCircuitHeader_eq
+#check verifierCircuitHeader_computableInPolyTime
+#check allocateCfgInputs_gates_eq
+#check allocateTableauRows_gates_eq
+#check verifierInputGateStream
+#check verifierInputGateStream_eq
+#check verifierInputGateStream_computableInPolyTime
+
+#print axioms verifierCircuitHeader_computableInPolyTime
+#print axioms verifierInputGateStream_eq
+#print axioms verifierInputGateStream_computableInPolyTime

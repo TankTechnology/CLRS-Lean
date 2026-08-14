@@ -6,6 +6,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Exact
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
 
 /-!
 # Verified bounded TM2 builders
@@ -23,5 +24,7 @@ including empty inputs and constant terms.  The reversal layer provides an
 exact linear-time finalization pass for prepend-based streaming encoders, and
 the unary-index layer generates the complete wire-reference stream in
 quadratic time.  The natural-number serializer connects those counters to the
-actual finite `CircuitSym` encoding alphabet.
+actual finite `CircuitSym` encoding alphabet.  The input-gate streamer emits
+the exact serialized family `.input 0, ..., .input (n - 1)` with a concrete
+quadratic-time machine.
 -/

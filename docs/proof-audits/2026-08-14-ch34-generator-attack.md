@@ -58,6 +58,12 @@ orientation, and gate-index layers:
 - the certificate, verifier-input, horizon, height, gate-bound, and
   encoding-bound clock wrappers instantiate the exact clock without adding a
   typeclass premise to the universal reduction;
+- `cfgBitPolynomial_eval` derives an exact affine polynomial for one semantic
+  tableau-row width, and `verifierTableauInputPolynomial_eval` composes it with
+  the exact verifier height and horizon;
+- `verifierCircuitHeader_computableInPolyTime` emits exactly
+  `encNat (verifierCircuit W x).inputCount`, closing the serialized circuit
+  header rather than merely encoding its published upper bound;
 - `reverse_computableInPolyTime` gives a verified linear-time finalization
   pass for the builder language's prepend-only output stack;
 - `unaryIndexRev_outputs` proves the exact reversed stream contract for all
@@ -70,6 +76,12 @@ orientation, and gate-index layers:
 - `circuitIndexStream_computableInPolyTime` maps the verified Boolean index
   stream into the actual `CircuitSym` alphabet and proves equality with
   `encNat 0 ++ ... ++ encNat (n - 1)`.
+- `inputGateStream_computableInPolyTime` emits the complete serialized family
+  `.input 0, ..., .input (n - 1)` with a concrete quadratic-time TM2;
+- `allocateCfgInputs_gates_eq` and `allocateTableauRows_gates_eq` expose the
+  exact semantic gate order of the proof-carrying allocators;
+- `verifierInputGateStream_eq` proves that the concrete input-gate streamer is
+  byte-for-byte the encoding of `(verifierRows W x).builder.gates`.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -95,12 +107,13 @@ bounded stack data. The implementation phases are:
 6. package the polynomial runtime, universal reduction, NP-hardness, and
    NP-completeness wrappers.
 
-The exact polynomial-value clock is now closed.  The next structural blocker
-is the first generator phase that consumes these exact unary dimensions:
-park the public input, instantiate `verifierHorizon W` and `verifierHeight W`,
-and stream the initial tableau/input-gate family in exactly the order used by
-the semantic `CircuitBuilder`.  Output orientation and natural-number
-serialization are already closed independently.
+The exact polynomial-value clock, circuit header, and initial tableau
+input-gate family are now closed independently.  The next structural blocker
+is a verified prefix combiner that parks the public input and emits the header
+followed by the initial gate family in one concrete run.  After that, the next
+semantic phase is the two-gate shared Boolean pool.  Output orientation,
+natural-number serialization, and exact agreement with the semantic allocator
+are already closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -133,6 +146,12 @@ serialization are already closed independently.
    gate indices changes the generated circuit and cannot prove equality with
    `encodeCircuit (verifierCircuit W x)`.  This route remains rejected;
    `exactPolynomialClock` is the accepted replacement.
+10. **Encoding `verifierCircuitInputBound` as the circuit header.** That
+    polynomial is only an upper bound on the semantic tableau input count.
+    Writing it as `Circuit.inputCount` would change the encoded circuit even
+    though every allocated input gate still fits.  The accepted route uses
+    `verifierTableauInputPolynomial`, whose evaluation is proved exactly equal
+    to `tableauInputCount`.
 
 ## Focused Acceptance Mechanism
 
@@ -143,12 +162,16 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactPolynomialClock
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
 lake env lean Tests/Chapter_34_PolyBuilder_UnaryIndex.lean
 lake env lean Tests/Chapter_34_PolyBuilder_NatEncoding.lean
+lake env lean Tests/Chapter_34_PolyBuilder_InputGate.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
 python3 scripts/check_repository.py
 git diff --check
