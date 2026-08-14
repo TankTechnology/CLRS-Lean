@@ -42,6 +42,17 @@ orientation, and gate-index layers:
   from any fixed `Polynomial Nat` dominates its value on nonempty inputs;
 - `polynomialClock_computableInPolyTime` packages that dominating clock as a
   concrete polynomial-time TM2.
+- `sentinelInput_computableInPolyTime` appends one unique sentinel using a
+  concrete builder with an exact `3n + 4` run;
+- `tuplePower_computableInPolyTime d` enumerates all width-`2 ^ d` perfect
+  tuples using verified ordered-pair loops;
+- `tuplePrefixMatches_count` proves that the prefix/sentinel filter selects
+  exactly `n ^ k` tuples, including `n ^ 0 = 1` when the input is empty;
+- `exactMonomialClock_computableInPolyTime k` produces exactly `n ^ k`
+  tokens;
+- `exactPolynomialClock_length` and
+  `exactPolynomialClock_computableInPolyTime` provide the formerly missing
+  concrete TM2 whose output length is exactly `p.eval n` for every input;
 - `reverse_computableInPolyTime` gives a verified linear-time finalization
   pass for the builder language's prepend-only output stack;
 - `unaryIndexRev_outputs` proves the exact reversed stream contract for all
@@ -55,9 +66,10 @@ orientation, and gate-index layers:
   stream into the actual `CircuitSym` alphabet and proves equality with
   `encNat 0 ++ ... ++ encNat (n - 1)`.
 
-The empty input is deliberately not hidden in the domination lemma. The final
-generator must handle it by a separate finite-control branch, where its output
-is a fixed circuit encoding.
+The exact clock handles empty inputs and nonzero constant terms uniformly.
+The older domination lemma still retains its explicit nonempty-input premise,
+but the generator no longer needs a separate finite-control branch merely to
+recover exact polynomial dimensions.
 
 ## Accepted Construction Route
 
@@ -78,14 +90,12 @@ bounded stack data. The implementation phases are:
 6. package the polynomial runtime, universal reduction, NP-hardness, and
    NP-completeness wrappers.
 
-The next structural blocker is an **exact** polynomial-value clock.  The
-existing `polynomialClock` deliberately supplies a dominating iteration
-budget, whereas tableau horizon, height, gate count, and serialized indices
-must match concrete values such as `Polynomial.eval input.length p`.  Once an
-exact evaluator is available, a monolithic generator can park the finite
-public input, compute its dimensions, and stream each fixed gate-family
-template.  Output orientation and natural-number serialization are already
-closed independently.
+The exact polynomial-value clock is now closed.  The next structural blocker
+is the first generator phase that consumes these exact unary dimensions:
+park the public input, instantiate `verifierHorizon W` and `verifierHeight W`,
+and stream the initial tableau/input-gate family in exactly the order used by
+the semantic `CircuitBuilder`.  Output orientation and natural-number
+serialization are already closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -116,7 +126,8 @@ closed independently.
    `coefficient * |x| ^ (2 ^ natDegree p)`, which only bounds `p(|x|)` on
    nonempty inputs.  Substituting that value for the exact horizon, height, or
    gate indices changes the generated circuit and cannot prove equality with
-   `encodeCircuit (verifierCircuit W x)`.
+   `encodeCircuit (verifierCircuit W x)`.  This route remains rejected;
+   `exactPolynomialClock` is the accepted replacement.
 
 ## Focused Acceptance Mechanism
 
@@ -124,9 +135,11 @@ During generator development, use only dependency-scoped checks:
 
 ```text
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactPolynomialClock
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
+lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
 lake env lean Tests/Chapter_34_PolyBuilder_UnaryIndex.lean
 lake env lean Tests/Chapter_34_PolyBuilder_NatEncoding.lean
