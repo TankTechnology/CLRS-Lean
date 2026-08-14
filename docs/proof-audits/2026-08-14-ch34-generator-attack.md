@@ -164,6 +164,13 @@ orientation, and gate-index layers:
 - `sequentialExactlyOneRev_computableInPolyTime` and
   `sequentialExactlyOneGateStream_computableInPolyTime` package the reversed
   machine and its verified final reversal as genuine quadratic-time TM2s.
+- `affineSequentialExactlyOneGateList_eq_trace` lifts the pure arithmetic
+  trace to arbitrary runtime gate and source-wire bases;
+- `affineSequentialExactlyOneRev_runFrom` proves the same concrete machine can
+  run inside an existing output context, preserve its suffix, clear every
+  unary register, and emit exactly the canonical affine semantic trace;
+- `affineSequentialExactlyOneRev_steps_le` bounds that contextual run by
+  `200 * (start + rowBase + count + 1)^2`.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -197,10 +204,11 @@ stream is proved to agree exactly with the semantic builder, and the resulting
 list is a literal prefix of the final verifier encoding through the complete
 validity phase.  The first real serializer inside that phase is also closed:
 the zero-based sequential exactly-one primitive has an exact-output theorem,
-an exact-run theorem, and a quadratic TM2 bound.  This does **not** yet close
-the whole single-row validity serializer.  The next cut is its affine-base
-lift, supplying runtime `start` and `rowBase` offsets, followed by instantiation
-for the label, state, height, and stack-cell one-hot groups.  Output
+an exact-run theorem, and a quadratic TM2 bound.  Its affine-base lift is now
+also closed for arbitrary runtime `start`, `rowBase`, `count`, and pre-existing
+output suffix.  This does **not** yet close the whole single-row validity
+serializer.  The next cut instantiates the contextual theorem for the label,
+state, height, and stack-cell one-hot groups and composes those runs.  Output
 orientation, natural-number serialization, input parking/restoration,
 fixed-suffix appending, and exact agreement with the semantic allocators are
 already closed independently.
@@ -255,6 +263,12 @@ already closed independently.
     one fixed TM2.  The accepted replacement uses explicit sum/product
     coordinates and keeps only the fixed verifier's finite stack enumeration
     in finite control.
+13. **Treating phase zero as an ordinary later scan phase.** The first
+    exactly-one update uses the two false seeds and has a different three-gate
+    chunk from every later phase.  Generalizing the later-loop lemma to
+    `phase = 0` silently asks for the wrong semantic stream.  The accepted
+    internal interface carries `0 < phase`, while the public positive run
+    enters it at phase one after proving the special first block separately.
 
 ## Focused Acceptance Mechanism
 
@@ -269,6 +283,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -280,6 +295,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_InputGate.lean
 lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
+lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
