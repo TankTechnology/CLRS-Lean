@@ -53,12 +53,13 @@ import CLRSLean.OnlineMaterial
 | Chapter 22, Single-Source Shortest Paths | `CLRSLean.FourthEdition.Chapter_22` (native §22.1--22.5) | Sections 22.1--22.5 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_24.Section_24_*` forward to them. Declarations retain the `CLRS.Chapter24` namespace pending the chapter-by-chapter namespace migration. |
 | Chapter 23, All-Pairs Shortest Paths | `CLRSLean.FourthEdition.Chapter_23` (native §23.1--23.3) | Sections 23.1--23.3 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_25.Section_25_*` forward to them. Declarations retain the `CLRS.Chapter24.WeightedGraph` namespace. |
 | Chapter 24, Maximum Flow | `CLRSLean.FourthEdition.Chapter_24` (native §24.1--24.3, 24.6) | Sections 24.1--24.3 and 24.6 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_26.Section_26_*` forward to them. Declarations retain the `CLRS.Chapter26` namespace. |
-| Chapter 25, Matchings in Bipartite Graphs | `CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching` (native §25.1) | Native section: maximum bipartite matching revisited; sections 25.2--25.3 not-started. |
+| Chapter 25, Matchings in Bipartite Graphs | `CLRSLean.FourthEdition.Chapter_25` (native §25.1--25.3) | Sections 25.1--25.3 migrated to native fourth-edition sources (maximum bipartite matching, stable marriage, and the Hungarian algorithm). |
 | Chapter 26, Parallel Algorithms | `CLRSLean.FourthEdition.Chapter_26` (native §26.1--26.3) | Sections 26.1--26.3 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_27.Section_27_*` forward to them. Declarations retain the `CLRS.Chapter27` namespace. |
-| Chapter 27, Online Algorithms | none | New fourth-edition chapter; not started. |
+| Chapter 27, Online Algorithms | `CLRSLean.FourthEdition.Chapter_27` (native §27.1--27.3) | Sections 27.1--27.3 migrated to native fourth-edition sources (waiting-for-the-elevator lower bound, maintaining a search tree, and online caching). |
 | Chapters 28--32 | `CLRSLean.FourthEdition.Chapter_28`--`CLRSLean.FourthEdition.Chapter_32` (native, same section numbers) | Same chapter number with explicit section-level differences; the legacy `CLRSLean.Chapter_NN.Section_*` files forward to the fourth-edition sources during the compatibility period. |
-| Chapter 33, Machine-Learning Algorithms | none | New fourth-edition chapter; not started. |
-| Chapters 34--35 | none | Not started. |
+| Chapter 33, Machine-Learning Algorithms | `CLRSLean.FourthEdition.Chapter_33` (native §33.1--33.3) | Sections 33.1--33.3 migrated to native fourth-edition sources (clustering, multiplicative weights, and gradient descent). |
+| Chapter 34, NP-Completeness | `CLRSLean.Chapter_34` (facade §34.1--34.3, partial §34.4) | Sections 34.1--34.3 reuse the legacy source through a compatibility facade; §34.4 is partial (the machine reductions compile; the final NP-completeness wrappers remain); §34.5 is not-started. |
+| Chapter 35, Approximation Algorithms | `CLRSLean.FourthEdition.Chapter_35` (native §35.1--35.5) | Sections 35.1--35.5 migrated to native fourth-edition sources. |
 
 The authoritative section-level mapping is
 [`docs/clrs-fourth-edition-map.csv`](../clrs-fourth-edition-map.csv). Facades do
