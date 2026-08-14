@@ -103,6 +103,14 @@ orientation, and gate-index layers:
 - `suffixOrGateTrace`, `activeMask_gates_eq`, and
   `activeMask_output_eq_trace` fix the active-stack-cell mask gate order and
   every position-aligned output wire.
+- `cellValidityGateTrace` and `buildCellValidity_gates_eq` compose one
+  negation with the five-gate XNOR trace, fixing all `6H` per-stack cell gates
+  and their outputs;
+- `exactlyOneFamilyGateTrace` lifts the single-group trace to an arbitrary
+  ordered finite family, and `rawOneHotGateTrace` identifies that family with
+  every label, state, height, and cell-symbol one-hot group in a row;
+- `buildRawOneHot_gates_eq` and `buildRawOneHot_output_eq_trace` close the
+  complete raw-decodability gate suffix and its group outputs.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -132,8 +140,9 @@ The exact polynomial-value clock, circuit header, initial tableau input-gate
 family, their combined serialization prefix, and the two-gate shared Boolean
 pool are now closed.  The validity phase now has exact gate traces for its
 three repeated primitives: equality, exactly-one, and suffix-OR active masks.
-The next cut is the six-gate per-cell validity trace, followed by composition
-of those traces into one exact row-validity suffix.  Output orientation,
+The six-gate per-cell family and the complete raw one-hot family are now also
+closed.  The next cut composes each stack's active mask and cell family, then
+combines those stack traces into one exact row-validity suffix. Output orientation,
 natural-number serialization, input parking/restoration, fixed-suffix
 appending, and exact agreement with the semantic allocators are already
 closed independently.
@@ -207,6 +216,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneGateTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_ValidityGateTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
 python3 scripts/check_repository.py
 git diff --check
