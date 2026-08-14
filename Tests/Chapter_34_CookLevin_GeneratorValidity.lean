@@ -16,6 +16,21 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierValidityRowStart
 #check verifierRowValidityGateStream
 #check verifierValidityGateStream_rows_eq
+#check validCfgGatePolynomial
+#check validCfgGatePolynomial_eval
+#check verifierValidityRowCostPolynomial
+#check verifierValidityRowCostPolynomial_eval
+#check verifierValidityRowCostClock
+#check verifierValidityRowCostClock_length
+#check verifierValidityRowCostClock_computableInPolyTime
+#check verifierValidityGateCountPolynomial
+#check verifierValidityGateCountPolynomial_eval
+#check verifierValidityGateCountClock
+#check verifierValidityGateCountClock_length
+#check verifierValidityGateCountClock_computableInPolyTime
+#check validityGateStreamAt
+#check verifierValidityGateStreamByLength
+#check verifierValidityGateStream_eq_byLength
 #check verifierCircuitValidityPrefix
 #check verifierCircuitValidityPrefix_eq
 #check verifierCircuitValidityPrefix_isPrefix
@@ -29,5 +44,11 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms verifierRowStackCellWire_eq
 #print axioms verifierPoolGateCount_eq
 #print axioms verifierValidityGateStream_rows_eq
+#print axioms validCfgGatePolynomial_eval
+#print axioms verifierValidityRowCostPolynomial_eval
+#print axioms verifierValidityRowCostClock_computableInPolyTime
+#print axioms verifierValidityGateCountPolynomial_eval
+#print axioms verifierValidityGateCountClock_computableInPolyTime
+#print axioms verifierValidityGateStream_eq_byLength
 #print axioms verifierCircuitValidityPrefix_eq
 #print axioms verifierCircuitValidityPrefix_isPrefix
