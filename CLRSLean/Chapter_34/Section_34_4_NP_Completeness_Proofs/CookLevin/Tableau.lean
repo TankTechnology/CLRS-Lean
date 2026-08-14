@@ -575,6 +575,61 @@ private theorem mem_and_atMostOneTrue_iff_count_eq_one (values : List Bool) :
               exact Bool.eq_false_of_not_eq_true
                 (hall (values.get i) (List.get_mem values i))⟩
 
+/-! ### Exact gate trace for the exactly-one scan -/
+
+/-- Pure gate-order trace of the public {lit}`exactlyOne` builder.  The starting
+index is the length of the builder prefix to which the trace will be
+appended. -/
+structure ExactlyOneGateTrace where
+  gates : List CircuitGate
+  wire : CircuitBuilder.Wire
+deriving DecidableEq, Repr
+
+private structure ExactlyOneScanGateTrace where
+  gates : List CircuitGate
+  seen : CircuitBuilder.Wire
+  duplicate : CircuitBuilder.Wire
+
+/-- Pure trace of the tail-first seen/duplicate scan. -/
+private def exactlyOneScanGateTrace (start : Nat) :
+    List CircuitBuilder.Wire → ExactlyOneScanGateTrace
+  | [] =>
+      { gates := [.const false, .const false]
+        seen := start
+        duplicate := start + 1 }
+  | wire :: rest =>
+      let tail := exactlyOneScanGateTrace start rest
+      let next := start + tail.gates.length
+      { gates := tail.gates ++
+          [.and tail.seen wire, .or tail.duplicate next,
+            .or tail.seen wire]
+        seen := next + 2
+        duplicate := next + 1 }
+
+private theorem exactlyOneScanGateTrace_length (start : Nat)
+    (wires : List CircuitBuilder.Wire) :
+    (exactlyOneScanGateTrace start wires).gates.length =
+      3 * wires.length + 2 := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih =>
+      simp [exactlyOneScanGateTrace, ih]
+      omega
+
+/-- Exact primitive-gate sequence emitted by `exactlyOne`. -/
+def exactlyOneGateTrace (start : Nat)
+    (wires : List CircuitBuilder.Wire) : ExactlyOneGateTrace :=
+  let scan := exactlyOneScanGateTrace start wires
+  let next := start + scan.gates.length
+  { gates := scan.gates ++ [.not scan.duplicate, .and scan.seen next]
+    wire := next + 1 }
+
+/-- The pure exactly-one trace contains exactly {lit}`3*n+4` gates. -/
+@[simp] theorem exactlyOneGateTrace_length (start : Nat)
+    (wires : List CircuitBuilder.Wire) :
+    (exactlyOneGateTrace start wires).gates.length = 3 * wires.length + 4 := by
+  simp [exactlyOneGateTrace, exactlyOneScanGateTrace_length]
+
 private structure ExactlyOneScan (base : CircuitBuilder)
     (wires : List CircuitBuilder.Wire) where
   builder : CircuitBuilder
@@ -676,6 +731,37 @@ private def exactlyOneScan (base : CircuitBuilder) :
         rw [tail.extension.evalWire_eq inputs (hvalid wire (by simp))]
         simp [wireValues, duplicateTrue]
 
+private theorem exactlyOneScan_gates_eq (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (exactlyOneScan base wires hvalid).builder.gates =
+        base.gates ++ (exactlyOneScanGateTrace base.gates.length wires).gates ∧
+      (exactlyOneScan base wires hvalid).seen =
+        (exactlyOneScanGateTrace base.gates.length wires).seen ∧
+      (exactlyOneScan base wires hvalid).duplicate =
+        (exactlyOneScanGateTrace base.gates.length wires).duplicate := by
+  induction wires with
+  | nil =>
+      simp [exactlyOneScan, exactlyOneScanGateTrace,
+        CircuitBuilder.const_wire_eq]
+  | cons wire rest ih =>
+      let hrest : ∀ old ∈ rest, base.WireValid old :=
+        fun old hold => hvalid old (by simp [hold])
+      have htail := ih hrest
+      rcases htail with ⟨hgates, hseen, hduplicate⟩
+      simp only [exactlyOneScan]
+      rw [CircuitBuilder.or_gates, CircuitBuilder.or_gates,
+        CircuitBuilder.and_gates, hgates]
+      simp only [CircuitBuilder.and_wire_eq, CircuitBuilder.or_wire_eq,
+        CircuitBuilder.and_gates, CircuitBuilder.or_gates, hgates,
+        List.length_append, List.length_singleton]
+      simp only [exactlyOneScanGateTrace]
+      rw [hseen, hduplicate]
+      rw [exactlyOneScanGateTrace_length]
+      constructor
+      · simp [List.append_assoc]
+      · constructor <;> simp
+
 /-- Build a linear exactly-one test over wire positions.  Two occurrences of
 the same true wire count as two selected positions. -/
 def exactlyOne (base : CircuitBuilder) (wires : List CircuitBuilder.Wire)
@@ -696,6 +782,40 @@ def exactlyOne (base : CircuitBuilder) (wires : List CircuitBuilder.Wire)
           hseen hnotDuplicate))
       valid := CircuitBuilder.and_wireValid notDuplicate.1 scan.seen notDuplicate.2
         hseen hnotDuplicate }
+
+/-- The proof-carrying exactly-one builder appends precisely the public pure
+trace, gate for gate. -/
+theorem exactlyOne_gates_eq (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (exactlyOne base wires hvalid).builder.gates =
+      base.gates ++ (exactlyOneGateTrace base.gates.length wires).gates := by
+  rcases exactlyOneScan_gates_eq base wires hvalid with
+    ⟨hgates, hseen, hduplicate⟩
+  unfold exactlyOne
+  dsimp only
+  rw [CircuitBuilder.and_gates, CircuitBuilder.not_gates, hgates]
+  simp only [CircuitBuilder.not_wire_eq]
+  simp only [exactlyOneGateTrace]
+  rw [hseen, hduplicate]
+  simp only [List.append_assoc, List.cons_append, List.nil_append]
+  rw [hgates]
+  simp
+
+/-- The exactly-one output wire is the last wire advertised by its pure
+trace. -/
+theorem exactlyOne_wire_eq_trace (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (exactlyOne base wires hvalid).wire =
+      (exactlyOneGateTrace base.gates.length wires).wire := by
+  rcases exactlyOneScan_gates_eq base wires hvalid with
+    ⟨hgates, hseen, hduplicate⟩
+  unfold exactlyOne
+  dsimp only
+  simp only [CircuitBuilder.and_wire_eq, exactlyOneGateTrace]
+  rw [CircuitBuilder.not_gates, hgates]
+  simp only [List.length_append, List.length_singleton]
 
 /-- Exactly-one construction extends its starting builder. -/
 theorem exactlyOne_extends (base : CircuitBuilder)
@@ -763,6 +883,40 @@ theorem exactlyOne_rejects_aliased_pair (base : CircuitBuilder)
   simp [wireValues, htrue]
 
 /-! ## Linear suffix-OR masks -/
+
+/-- Pure gate-order trace of a suffix-OR scan, including the carry and every
+position-aligned output wire. -/
+structure SuffixOrGateTrace (n : Nat) where
+  gates : List CircuitGate
+  carry : CircuitBuilder.Wire
+  outputs : Fin n → CircuitBuilder.Wire
+
+/-- Tail-first primitive-gate trace of the suffix-OR implementation. -/
+def suffixOrGateTrace (start : Nat) :
+    (wires : List CircuitBuilder.Wire) → SuffixOrGateTrace wires.length
+  | [] =>
+      { gates := [.const false]
+        carry := start
+        outputs := fun i => Fin.elim0 i }
+  | wire :: rest =>
+      let tail := suffixOrGateTrace start rest
+      let next := start + tail.gates.length
+      { gates := tail.gates ++ [.or tail.carry wire]
+        carry := next
+        outputs := fun i =>
+          if hi : i.val = 0 then next
+          else tail.outputs ⟨i.val - 1, by
+            have hiLt : i.val < rest.length + 1 := by simpa using i.isLt
+            omega⟩ }
+
+/-- A suffix-OR trace contains its false seed and one OR per source wire. -/
+@[simp] theorem suffixOrGateTrace_length (start : Nat)
+    (wires : List CircuitBuilder.Wire) :
+    (suffixOrGateTrace start wires).gates.length = wires.length + 1 := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih =>
+      simp [suffixOrGateTrace, ih]
 
 /-- A tail-first linear suffix-OR scan. -/
 structure SuffixOrResult (base : CircuitBuilder)
@@ -862,6 +1016,39 @@ private def suffixOrScan (base : CircuitBuilder) :
             simp
           rw [hdrop]
 
+private theorem suffixOrScan_trace_eq (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (suffixOrScan base wires hvalid).builder.gates =
+        base.gates ++ (suffixOrGateTrace base.gates.length wires).gates ∧
+      (suffixOrScan base wires hvalid).carry =
+        (suffixOrGateTrace base.gates.length wires).carry ∧
+      ∀ i, (suffixOrScan base wires hvalid).outputs i =
+        (suffixOrGateTrace base.gates.length wires).outputs i := by
+  induction wires with
+  | nil =>
+      simp [suffixOrScan, suffixOrGateTrace, CircuitBuilder.const_wire_eq]
+  | cons wire rest ih =>
+      let hrest : ∀ old ∈ rest, base.WireValid old :=
+        fun old hold => hvalid old (by simp [hold])
+      rcases ih hrest with ⟨hgates, hcarry, houtputs⟩
+      simp only [suffixOrScan]
+      rw [CircuitBuilder.or_gates, hgates]
+      simp only [CircuitBuilder.or_wire_eq, suffixOrGateTrace]
+      constructor
+      · rw [hcarry]
+        simp [List.append_assoc]
+      · constructor
+        · rw [hgates]
+          simp
+        · intro i
+          split
+          next hi =>
+            rw [hgates]
+            simp
+          next hi =>
+            exact houtputs _
+
 /-- Build the active-cell suffix mask from the positive height coordinates. -/
 def activeMask (base : CircuitBuilder) (H : Nat)
     (height : Fin (H + 1) → CircuitBuilder.Wire)
@@ -872,6 +1059,35 @@ def activeMask (base : CircuitBuilder) (H : Nat)
     simp only [List.mem_ofFn] at hwire
     rcases hwire with ⟨i, rfl⟩
     exact hvalid i.succ)
+
+/-- The active-mask builder appends exactly its pure suffix-OR gate trace. -/
+theorem activeMask_gates_eq (base : CircuitBuilder) (H : Nat)
+    (height : Fin (H + 1) → CircuitBuilder.Wire)
+    (hvalid : ∀ i, base.WireValid (height i)) :
+    (activeMask base H height hvalid).builder.gates =
+      base.gates ++
+        (suffixOrGateTrace base.gates.length
+          (List.ofFn fun i : Fin H => height i.succ)).gates :=
+  (suffixOrScan_trace_eq base _ _).1
+
+/-- The active-mask carry agrees with the pure suffix-OR trace. -/
+theorem activeMask_carry_eq_trace (base : CircuitBuilder) (H : Nat)
+    (height : Fin (H + 1) → CircuitBuilder.Wire)
+    (hvalid : ∀ i, base.WireValid (height i)) :
+    (activeMask base H height hvalid).carry =
+      (suffixOrGateTrace base.gates.length
+        (List.ofFn fun i : Fin H => height i.succ)).carry :=
+  (suffixOrScan_trace_eq base _ _).2.1
+
+/-- Every position-aligned active-mask output agrees with the pure trace. -/
+theorem activeMask_output_eq_trace (base : CircuitBuilder) (H : Nat)
+    (height : Fin (H + 1) → CircuitBuilder.Wire)
+    (hvalid : ∀ i, base.WireValid (height i)) (i : Fin H) :
+    (activeMask base H height hvalid).outputs (Fin.cast (by simp) i) =
+      (suffixOrGateTrace base.gates.length
+        (List.ofFn fun i : Fin H => height i.succ)).outputs
+          (Fin.cast (by simp) i) :=
+  (suffixOrScan_trace_eq base _ _).2.2 _
 
 /-- The active mask uses exactly one suffix OR per cell plus its false seed. -/
 theorem activeMask_gate_delta (base : CircuitBuilder) (H : Nat)

@@ -183,6 +183,19 @@ def input (b : CircuitBuilder) (inputIndex : Nat)
     (hinput : inputIndex < b.inputCount) : CircuitBuilder × Wire :=
   (appendGate b (.input inputIndex) hinput, b.gates.length)
 
+/-- Appending an external input records its exact gate at the end of the
+stream. -/
+@[simp] theorem input_gates (b : CircuitBuilder) (inputIndex : Nat)
+    (hinput : inputIndex < b.inputCount) :
+    (b.input inputIndex hinput).1.gates = b.gates ++ [.input inputIndex] := by
+  rfl
+
+/-- The fresh input wire is the previous gate count. -/
+theorem input_wire_eq (b : CircuitBuilder) (inputIndex : Nat)
+    (hinput : inputIndex < b.inputCount) :
+    (b.input inputIndex hinput).2 = b.gates.length := by
+  rfl
+
 /-- Appending an input gate extends the original prefix. -/
 theorem input_extends (b : CircuitBuilder) (inputIndex : Nat)
     (hinput : inputIndex < b.inputCount) :
@@ -218,6 +231,11 @@ stream. -/
     (b.const value).1.gates = b.gates ++ [.const value] := by
   rfl
 
+/-- The fresh constant wire is the previous gate count. -/
+theorem const_wire_eq (b : CircuitBuilder) (value : Bool) :
+    (b.const value).2 = b.gates.length := by
+  rfl
+
 /-- Appending a constant gate extends the original prefix. -/
 theorem const_extends (b : CircuitBuilder) (value : Bool) :
     b.Extends (b.const value).1 := appendGate_extends b (.const value) trivial
@@ -241,6 +259,18 @@ theorem const_eval (b : CircuitBuilder) (value : Bool) (inputs : Nat → Bool) :
 def not (b : CircuitBuilder) (source : Wire) (hsource : b.WireValid source) :
     CircuitBuilder × Wire :=
   (appendGate b (.not source) hsource, b.gates.length)
+
+/-- Appending negation records its exact source reference. -/
+@[simp] theorem not_gates (b : CircuitBuilder) (source : Wire)
+    (hsource : b.WireValid source) :
+    (b.not source hsource).1.gates = b.gates ++ [.not source] := by
+  rfl
+
+/-- The fresh negation wire is the previous gate count. -/
+theorem not_wire_eq (b : CircuitBuilder) (source : Wire)
+    (hsource : b.WireValid source) :
+    (b.not source hsource).2 = b.gates.length := by
+  rfl
 
 /-- Appending negation extends the original prefix. -/
 theorem not_extends (b : CircuitBuilder) (source : Wire)
@@ -271,6 +301,19 @@ def and (b : CircuitBuilder) (left right : Wire)
     (hleft : b.WireValid left) (hright : b.WireValid right) :
     CircuitBuilder × Wire :=
   (appendGate b (.and left right) ⟨hleft, hright⟩, b.gates.length)
+
+/-- Appending conjunction records its exact two source references. -/
+@[simp] theorem and_gates (b : CircuitBuilder) (left right : Wire)
+    (hleft : b.WireValid left) (hright : b.WireValid right) :
+    (b.and left right hleft hright).1.gates =
+      b.gates ++ [.and left right] := by
+  rfl
+
+/-- The fresh conjunction wire is the previous gate count. -/
+theorem and_wire_eq (b : CircuitBuilder) (left right : Wire)
+    (hleft : b.WireValid left) (hright : b.WireValid right) :
+    (b.and left right hleft hright).2 = b.gates.length := by
+  rfl
 
 /-- Appending conjunction extends the original prefix. -/
 theorem and_extends (b : CircuitBuilder) (left right : Wire)
@@ -305,6 +348,19 @@ def or (b : CircuitBuilder) (left right : Wire)
     (hleft : b.WireValid left) (hright : b.WireValid right) :
     CircuitBuilder × Wire :=
   (appendGate b (.or left right) ⟨hleft, hright⟩, b.gates.length)
+
+/-- Appending disjunction records its exact two source references. -/
+@[simp] theorem or_gates (b : CircuitBuilder) (left right : Wire)
+    (hleft : b.WireValid left) (hright : b.WireValid right) :
+    (b.or left right hleft hright).1.gates =
+      b.gates ++ [.or left right] := by
+  rfl
+
+/-- The fresh disjunction wire is the previous gate count. -/
+theorem or_wire_eq (b : CircuitBuilder) (left right : Wire)
+    (hleft : b.WireValid left) (hright : b.WireValid right) :
+    (b.or left right hleft hright).2 = b.gates.length := by
+  rfl
 
 /-- Appending disjunction extends the original prefix. -/
 theorem or_extends (b : CircuitBuilder) (left right : Wire)
@@ -524,6 +580,25 @@ theorem disjunction_eval (b : CircuitBuilder) (wires : List Wire)
 
 /-! ## Equality and multiplexing -/
 
+/-- Pure five-gate trace of the Boolean equality (XNOR) implementation. -/
+structure BoolEqGateTrace where
+  gates : List CircuitGate
+  wire : Wire
+deriving DecidableEq, Repr
+
+/-- Exact primitive gate order and fresh-wire references used by Boolean
+equality at a given starting gate index. -/
+def boolEqGateTrace (start left right : Nat) : BoolEqGateTrace :=
+  { gates :=
+      [.not left, .not right, .and left right,
+        .and start (start + 1), .or (start + 2) (start + 3)]
+    wire := start + 4 }
+
+/-- Boolean equality always emits five primitive gates. -/
+@[simp] theorem boolEqGateTrace_length (start left right : Nat) :
+    (boolEqGateTrace start left right).gates.length = 5 := by
+  rfl
+
 private def eqResult (b : CircuitBuilder) (left right : Wire)
     (hleft : b.WireValid left) (hright : b.WireValid right) : BuiltWire b :=
   let leftNot := b.not left hleft
@@ -621,6 +696,27 @@ def eq (b : CircuitBuilder) (left right : Wire)
     CircuitBuilder × Wire :=
   let result := eqResult b left right hleft hright
   (result.builder, result.wire)
+
+/-- The equality builder appends exactly the public five-gate trace. -/
+theorem eq_gates_eq (b : CircuitBuilder) (left right : Wire)
+    (hleft : b.WireValid left) (hright : b.WireValid right) :
+    (b.eq left right hleft hright).1.gates =
+      b.gates ++ (boolEqGateTrace b.gates.length left right).gates := by
+  unfold eq eqResult
+  dsimp only
+  rw [or_gates, and_gates, and_gates, not_gates, not_gates]
+  simp only [not_wire_eq, and_wire_eq, boolEqGateTrace]
+  simp [List.append_assoc]
+
+/-- The equality builder returns the output wire named by the public trace. -/
+theorem eq_wire_eq_trace (b : CircuitBuilder) (left right : Wire)
+    (hleft : b.WireValid left) (hright : b.WireValid right) :
+    (b.eq left right hleft hright).2 =
+      (boolEqGateTrace b.gates.length left right).wire := by
+  unfold eq eqResult
+  dsimp only
+  simp only [or_wire_eq, and_gates, not_gates, List.length_append,
+    List.length_singleton, boolEqGateTrace]
 
 /-- Boolean equality extends the starting prefix. -/
 theorem eq_extends (b : CircuitBuilder) (left right : Wire)
