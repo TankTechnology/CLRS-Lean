@@ -4,6 +4,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Macro
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 
 /-!
 # Verified bounded TM2 builders
@@ -17,5 +18,7 @@ pair output while clearing every scratch stack.  The clock layer repeatedly
 composes that quadratic machine to supply concrete clocks of any required
 fixed polynomial degree.  The reversal layer provides an exact linear-time
 finalization pass for prepend-based streaming encoders, and the unary-index
-layer generates the complete wire-reference stream in quadratic time.
+layer generates the complete wire-reference stream in quadratic time.  The
+natural-number serializer connects those counters to the actual finite
+`CircuitSym` encoding alphabet.
 -/

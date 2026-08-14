@@ -48,7 +48,12 @@ orientation, and gate-index layers:
   unary indices `0, ..., n - 1`;
 - `unaryIndexRev_polyBound` bounds that concrete streamer quadratically;
 - `unaryIndexStream_computableInPolyTime` composes it with reversal and thus
-  computes the forward wire-reference stream required by `encodeCircuit`.
+  computes the forward Boolean wire-reference stream;
+- `lengthEncoding_computableInPolyTime` directly serializes an arbitrary
+  finite input length as the canonical `encNat` block;
+- `circuitIndexStream_computableInPolyTime` maps the verified Boolean index
+  stream into the actual `CircuitSym` alphabet and proves equality with
+  `encNat 0 ++ ... ++ encNat (n - 1)`.
 
 The empty input is deliberately not hidden in the domination lemma. The final
 generator must handle it by a separate finite-control branch, where its output
@@ -73,11 +78,14 @@ bounded stack data. The implementation phases are:
 6. package the polynomial runtime, universal reduction, NP-hardness, and
    NP-completeness wrappers.
 
-The next smallest missing reusable primitive is an input-preserving phase
-runner that combines a polynomial clock with a fixed circuit-symbol template.
-Unary index emission and output orientation are now closed independently; the
-remaining runner must preserve the public input while choosing
-input-dependent boundary symbols and emitting the correct gate family.
+The next structural blocker is an **exact** polynomial-value clock.  The
+existing `polynomialClock` deliberately supplies a dominating iteration
+budget, whereas tableau horizon, height, gate count, and serialized indices
+must match concrete values such as `Polynomial.eval input.length p`.  Once an
+exact evaluator is available, a monolithic generator can park the finite
+public input, compute its dimensions, and stream each fixed gate-family
+template.  Output orientation and natural-number serialization are already
+closed independently.
 
 ## Known Failed or Rejected Routes
 
@@ -103,6 +111,12 @@ input-dependent boundary symbols and emitting the correct gate family.
 8. **Relying on Lean/native evaluation as the machine.** Executability of the
    meta-level definition does not furnish the concrete `FinTM2.outputsFun`
    witness required by `TM2ComputableInPolyTime`.
+9. **Treating a dominating clock as an exact dimension.** The current
+   `polynomialClock p x` has length
+   `coefficient * |x| ^ (2 ^ natDegree p)`, which only bounds `p(|x|)` on
+   nonempty inputs.  Substituting that value for the exact horizon, height, or
+   gate indices changes the generated circuit and cannot prove equality with
+   `encodeCircuit (verifierCircuit W x)`.
 
 ## Focused Acceptance Mechanism
 
@@ -111,9 +125,11 @@ During generator development, use only dependency-scoped checks:
 ```text
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
 lake env lean Tests/Chapter_34_PolyBuilder_UnaryIndex.lean
+lake env lean Tests/Chapter_34_PolyBuilder_NatEncoding.lean
 lake env lean Tests/Chapter_34_CookLevin_Interface.lean
 python3 scripts/check_repository.py
 git diff --check
