@@ -76,6 +76,7 @@ membership, and its gate count has an explicit fixed-verifier polynomial
 bound. The validity layer builds canonical row
 validation with exact semantics and gate cost; its stack-validity index layer
 also gives closed affine wire formulas for every active-mask, cell, and
-ordered-stack output.  The workspace layer gives
+ordered-stack output, and the circuitization layer now executes the five-gate
+XNOR subtrace at every fixed stack/cell coordinate.  The workspace layer gives
 verified constant-cost widen/narrow bridges for one bundled transition.
 -/

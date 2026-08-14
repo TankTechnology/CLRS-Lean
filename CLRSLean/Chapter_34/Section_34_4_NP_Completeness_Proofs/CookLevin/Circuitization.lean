@@ -6,6 +6,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityOneHot
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityBoolEq
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityStack
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
 /-!
@@ -28,7 +29,8 @@ prefix of the complete semantic verifier-circuit encoding.
 The generator-validity layer identifies the literal serialized suffix for all
 canonical row-validity gates and proves that the resulting stream advances
 that prefix through the complete validity phase.  Its concrete construction
-now covers every raw one-hot group and the following halted/none-label equality
-with exact contextual runs; stack canonicality and the final conjunction are
-the remaining row-local machine phases.
+now covers every raw one-hot group, the following halted/none-label equality,
+and every fixed stack-cell XNOR block with exact contextual runs and closed
+wire indices.  The suffix-OR mask, leading blank-bit negations, finite-family
+iteration, and final conjunction remain the row-local machine phases.
 -/

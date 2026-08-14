@@ -1,0 +1,22 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityStack
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticStackValidityStart
+#check arithmeticStackBlockStart
+#check arithmeticStackMaskOutputWire
+#check arithmeticStackBlankWire
+#check arithmeticStackMaskOutputWire_eq_trace
+#check arithmeticStackBlankWire_eq_row
+#check arithmeticStackCellBoolEqGateStream
+#check arithmeticStackCellBoolEqGateStream_eq_semantic
+#check arithmeticStackCellBoolEqRev_runFrom
+#check arithmeticStackCellBoolEqRev_steps_le
+
+#print axioms arithmeticStackMaskOutputWire_eq_trace
+#print axioms arithmeticStackBlankWire_eq_row
+#print axioms arithmeticStackCellBoolEqGateStream_eq_semantic
+#print axioms arithmeticStackCellBoolEqRev_runFrom
+#print axioms arithmeticStackCellBoolEqRev_steps_le
