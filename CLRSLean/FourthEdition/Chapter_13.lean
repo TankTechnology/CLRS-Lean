@@ -2,6 +2,7 @@ import CLRSLean.Chapter_13
 import CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations
 import CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion
 import CLRSLean.FourthEdition.Chapter_13.Section_13_4_Deletion
+import CLRSLean.FourthEdition.Chapter_13.WellFormed
 
 /-!
 # Chapter 13 — Red-Black Trees
@@ -30,6 +31,9 @@ section layers complete the remaining §13.2–§13.4 boundaries:
 - §13.4 ({lit}`Section_13_4_Deletion`): the logarithmic execution-cost theorem
   {lit}`deleteCost_log_bound` and BST ordering preservation of the composed
   delete {lit}`bst_delete`.
+- The chapter-level {lit}`WellFormed` bundle combines {lit}`RedBlackShape` and
+  {lit}`BST`; {lit}`insert_correct` and {lit}`delete_correct` preserve that
+  invariant together with exact membership semantics.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
