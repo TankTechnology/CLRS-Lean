@@ -30,7 +30,18 @@ Main results:
   basic operations.
 
 These bounds hold for *any* run of the generic algorithm, so they apply to the
-relabel-to-front schedule in particular.
+relabel-to-front schedule in particular.  The relabel-to-front *schedule* is
+stronger: its `DISCHARGE` procedure walks a per-vertex neighbor list and, on
+relabeling a vertex, moves it to the front of the list `L`.  That per-vertex
+list discipline gives the sharper `O(V³)` bound:
+
+- `RelabelToFrontRun`: a run satisfying the discharge discipline (between two
+  relabel operations, no vertex is the source of more than one nonsaturating
+  push).
+- `RelabelToFrontRun.nonsaturating_push_count_bound`: at most
+  `|V|·(relabels + 1)` nonsaturating pushes, i.e. `O(V³)`.
+- `RelabelToFrontRun.step_count_bound_V3`: the relabel-to-front algorithm performs
+  at most `9|V|³` basic operations.
 
 Notation conventions used in this section:
 
@@ -1247,5 +1258,191 @@ theorem generic_step_count_bound (R : Run V G n) :
   nlinarith
 
 end Run
+
+/-! ## The relabel-to-front discharge order -/
+
+namespace BasicOp
+
+/-- The active vertex of a basic operation: the relabeled vertex, or the source
+of the push. -/
+def opVertex : BasicOp V G → V
+  | .relabel _ _ u _ _ _ => u
+  | .push _ _ u _ _ _ _ => u
+
+end BasicOp
+
+/-- The number of directed edges is at most `|V|²`. -/
+theorem numEdges_le_card_mul_card (G : FlowNetwork V) :
+    numEdges G ≤ Fintype.card V * Fintype.card V := by
+  unfold numEdges edgeSet
+  calc
+    ((Finset.univ : Finset (V × V)).filter (fun e => 0 < G.c e.1 e.2)).card
+        ≤ (Finset.univ : Finset (V × V)).card := Finset.card_le_card (Finset.filter_subset _ _)
+    _ = Fintype.card V * Fintype.card V := by
+        rw [Finset.card_univ, Fintype.card_prod]
+
+/--
+A *relabel-to-front run* is a run of the generic push-relabel algorithm that
+respects the discharge discipline of CLRS §26.5.  The `DISCHARGE` procedure
+walks `current[u]` through a per-vertex neighbor list `N[u]` and, on exhausting
+it, relabels `u` and moves it to the front of the list `L`.  The observable
+consequence of that list discipline is that between two relabel operations no
+vertex is the source of more than one nonsaturating push, which is exactly the
+condition recorded here.  (A nonsaturating push is the final operation of a
+`DISCHARGE` call, so the number of nonsaturating pushes equals the number of
+`DISCHARGE` calls.)
+-/
+structure RelabelToFrontRun (V : Type u) [Fintype V] [DecidableEq V]
+    (G : FlowNetwork V) (n : ℕ) where
+  /-- The underlying generic run. -/
+  run : Run V G n
+  /-- The discharge discipline: between two relabels, no vertex is the source of
+  more than one nonsaturating push. -/
+  discharge_discipline :
+    ∀ ⦃i j : ℕ⦄ (hi : i < n) (hj : j < n) (hij : i < j),
+      (run.op i hi).isNonsaturatingPush = true →
+      (run.op j hj).isNonsaturatingPush = true →
+      (∀ k (hk : k < n), i < k → k < j → (run.op k hk).isRelabel = false) →
+      BasicOp.opVertex (run.op i hi) ≠ BasicOp.opVertex (run.op j hj)
+
+namespace RelabelToFrontRun
+
+variable {V : Type u} [Fintype V] [DecidableEq V] {G : FlowNetwork V} {n : ℕ}
+
+/-- The set of relabel operations occurring strictly before index `i`. -/
+noncomputable def relabelsBeforeSet (R : Run V G n) (i : Fin n) : Finset (Fin n) :=
+  (Finset.univ : Finset (Fin n)).filter (fun k => (k : ℕ) < i.1 ∧ (R.opFin k).isRelabel = true)
+
+/-- The number of relabel operations occurring strictly before index `i`. -/
+noncomputable def relabelsBefore (R : Run V G n) (i : Fin n) : ℕ :=
+  (relabelsBeforeSet R i).card
+
+/-- `relabelsBefore` counts a subset of all relabels, so it is at most the total
+relabel count. -/
+lemma relabelsBefore_le_numRelabels (R : Run V G n) (i : Fin n) :
+    relabelsBefore R i ≤ Run.numRelabels R := by
+  unfold relabelsBefore relabelsBeforeSet
+  rw [Run.numRelabels, Finset.sum_boole]
+  apply Finset.card_le_card
+  intro k hk
+  exact Finset.mem_filter.mpr ⟨Finset.mem_univ k, (Finset.mem_filter.mp hk).2.2⟩
+
+/-- The before-set is monotone in the index. -/
+lemma relabelsBeforeSet_mono (R : Run V G n) {i j : Fin n} (hij : i.1 ≤ j.1) :
+    relabelsBeforeSet R i ⊆ relabelsBeforeSet R j := by
+  intro k hk
+  have hk' := Finset.mem_filter.mp hk
+  exact Finset.mem_filter.mpr ⟨Finset.mem_univ k, ⟨lt_of_lt_of_le hk'.2.1 hij, hk'.2.2⟩⟩
+
+/-- If `i < j` have the same `relabelsBefore` value, no relabel occurs strictly
+between them. -/
+lemma no_relabel_between_of_relabelsBefore_eq (R : Run V G n) {i j : Fin n}
+    (hij : i.1 < j.1) (h : relabelsBefore R i = relabelsBefore R j) (k : Fin n)
+    (hik : i.1 < k.1) (hkj : k.1 < j.1) :
+    (R.opFin k).isRelabel = false := by
+  by_cases hkrel : (R.opFin k).isRelabel = true
+  · have hk_in_j : k ∈ relabelsBeforeSet R j := by
+      exact Finset.mem_filter.mpr ⟨Finset.mem_univ k, ⟨hkj, hkrel⟩⟩
+    have hk_not_in_i : k ∉ relabelsBeforeSet R i := by
+      intro hkin
+      have hlt := (Finset.mem_filter.mp hkin).2.1
+      omega
+    have hsubset : relabelsBeforeSet R i ⊆ relabelsBeforeSet R j :=
+      relabelsBeforeSet_mono R (Nat.le_of_lt hij)
+    have hproper : relabelsBeforeSet R i ⊂ relabelsBeforeSet R j :=
+      ⟨hsubset, fun hsup => hk_not_in_i (hsup hk_in_j)⟩
+    have hlt_card : relabelsBefore R i < relabelsBefore R j := by
+      unfold relabelsBefore
+      exact Finset.card_lt_card hproper
+    omega
+  · have hfalse : (R.opFin k).isRelabel = false := by
+      cases hb : (R.opFin k).isRelabel <;> simp_all
+    exact hfalse
+
+/-- Between two relabels, two nonsaturating pushes with equal `relabelsBefore`
+values discharge distinct vertices, so equal vertices force equal indices. -/
+lemma opVertex_inj_of_nonsat (R : RelabelToFrontRun V G n) {i j : Fin n}
+    (hi : (R.run.opFin i).isNonsaturatingPush = true)
+    (hj : (R.run.opFin j).isNonsaturatingPush = true)
+    (hrb : relabelsBefore R.run i = relabelsBefore R.run j)
+    (hvertex : BasicOp.opVertex (R.run.opFin i) = BasicOp.opVertex (R.run.opFin j)) :
+    i = j := by
+  by_cases hij : i.1 = j.1
+  · exact Fin.ext hij
+  · exfalso
+    have hlt : i.1 < j.1 ∨ j.1 < i.1 := by omega
+    rcases hlt with hlt | hlt
+    · have hno := no_relabel_between_of_relabelsBefore_eq R.run hlt hrb
+      have hdisc := R.discharge_discipline (i := i.1) (j := j.1) (Fin.isLt i) (Fin.isLt j) hlt hi hj
+        (fun k hk hik hkj => hno ⟨k, hk⟩ (by simpa using hik) (by simpa using hkj))
+      exact hdisc hvertex
+    · have hrb' : relabelsBefore R.run j = relabelsBefore R.run i := hrb.symm
+      have hno := no_relabel_between_of_relabelsBefore_eq R.run hlt hrb'
+      have hdisc := R.discharge_discipline (i := j.1) (j := i.1) (Fin.isLt j) (Fin.isLt i) hlt hj hi
+        (fun k hk hik hkj => hno ⟨k, hk⟩ (by simpa using hik) (by simpa using hkj))
+      exact hdisc hvertex.symm
+
+/-- The relabel-to-front discharge order bounds the number of nonsaturating
+pushes by `(|V|·(relabels + 1))`, i.e. `O(V³)`. -/
+theorem nonsaturating_push_count_bound (R : RelabelToFrontRun V G n) :
+    Run.numNonsaturatingPushes R.run ≤ (Run.numRelabels R.run + 1) * Fintype.card V := by
+  classical
+  let Rf := R.run
+  let S : Finset (Fin n) :=
+    (Finset.univ : Finset (Fin n)).filter (fun i => (Rf.opFin i).isNonsaturatingPush = true)
+  have hS : Run.numNonsaturatingPushes Rf = S.card := by
+    rw [Run.numNonsaturatingPushes, Finset.sum_boole]
+    rfl
+  rw [hS]
+  let f : Fin n → ℕ × V := fun i => (relabelsBefore Rf i, BasicOp.opVertex (Rf.opFin i))
+  have hf_inj : Set.InjOn f (↑S : Set (Fin n)) := by
+    intro i hi j hj hfij
+    have hi' : (Rf.opFin i).isNonsaturatingPush = true := (Finset.mem_filter.mp hi).2
+    have hj' : (Rf.opFin j).isNonsaturatingPush = true := (Finset.mem_filter.mp hj).2
+    have hrb : relabelsBefore Rf i = relabelsBefore Rf j := by
+      exact congrArg Prod.fst hfij
+    have hv : BasicOp.opVertex (Rf.opFin i) = BasicOp.opVertex (Rf.opFin j) := by
+      exact congrArg Prod.snd hfij
+    exact opVertex_inj_of_nonsat R hi' hj' hrb hv
+  have hcard_image : S.card = (S.image f).card := by
+    exact (Finset.card_image_iff.mpr hf_inj).symm
+  calc
+    S.card = (S.image f).card := hcard_image
+    _ ≤ ((Finset.range (Run.numRelabels Rf + 1)) ×ˢ (Finset.univ : Finset V)).card := by
+        apply Finset.card_le_card
+        intro x hx
+        rcases Finset.mem_image.mp hx with ⟨i, hiS, hxi⟩
+        rw [← hxi]
+        exact Finset.mem_product.mpr ⟨
+          Finset.mem_range.mpr (Nat.lt_succ_of_le (relabelsBefore_le_numRelabels Rf i)),
+          Finset.mem_univ (BasicOp.opVertex (Rf.opFin i))⟩
+    _ = (Run.numRelabels Rf + 1) * Fintype.card V := by
+        rw [Finset.card_product, Finset.card_range, Finset.card_univ]
+
+/-- The combined `O(V²E)` generic bound already bounds relabels and saturating
+pushes; the discharge order additionally bounds nonsaturating pushes by
+`(|V|·(relabels + 1))`.  Assembled, this gives the sharper relabel-to-front
+`O(V³)` bound on the number of basic operations. -/
+theorem step_count_bound (R : RelabelToFrontRun V G n) :
+    n ≤ 2 * Fintype.card V * Fintype.card V + 4 * Fintype.card V * numEdges G +
+      (2 * Fintype.card V * Fintype.card V + 1) * Fintype.card V := by
+  have hdecomp := Run.op_count_decomp R.run
+  have hr : Run.numRelabels R.run ≤ 2 * Fintype.card V * Fintype.card V :=
+    Run.relabel_count_bound R.run
+  have hs : Run.numSaturatingPushes R.run ≤ 4 * Fintype.card V * numEdges G :=
+    Run.saturating_push_count_bound R.run
+  have hn : Run.numNonsaturatingPushes R.run ≤
+      (Run.numRelabels R.run + 1) * Fintype.card V := nonsaturating_push_count_bound R
+  nlinarith
+
+/-- The relabel-to-front algorithm performs at most `9|V|³` basic operations. -/
+theorem step_count_bound_V3 (R : RelabelToFrontRun V G n) :
+    n ≤ 9 * Fintype.card V * Fintype.card V * Fintype.card V := by
+  have h := step_count_bound R
+  have hE : numEdges G ≤ Fintype.card V * Fintype.card V := numEdges_le_card_mul_card G
+  have hV : 1 ≤ Fintype.card V := Fintype.card_pos_iff.mpr ⟨G.s⟩
+  nlinarith
+
+end RelabelToFrontRun
 end Chapter26
 end CLRS
