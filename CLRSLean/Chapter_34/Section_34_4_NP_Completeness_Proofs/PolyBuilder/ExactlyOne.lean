@@ -50,6 +50,20 @@ inductive SequentialExactlyOneCont
   | laterASeen | laterAWire | laterBDuplicate | laterBNext
   | laterCSeen | laterCWire
   | finalZeroDuplicate | finalSomeDuplicate | finalSeen | finalNext
+  | boolEqNotLeft | boolEqNotRight
+  | boolEqAndLeft | boolEqAndRight
+  | boolEqAndStart | boolEqAndNext
+  | boolEqOrStart | boolEqOrNext
+deriving DecidableEq, Fintype
+
+/-- Fixed finite-control phases of contextual Boolean equality. -/
+inductive SequentialBoolEqLabel
+  | notLeft | notRight | andLeft
+  | clearLeft | clearRight
+  | copyStart | copyPush | copyInc
+  | restoreStart | restoreInc | incNext
+  | andStart | incSeen₁ | incSeen₂ | incNext₁ | incNext₂
+  | orStart
 deriving DecidableEq, Fintype
 
 /-- Finite control for the reversed sequential exactly-one serializer. -/
@@ -78,6 +92,7 @@ inductive SequentialExactlyOneLabel
   | finalZero | finalSome | incFinalZeroDuplicate
   | decFinalSomeDuplicate | restoreFinalZeroDuplicate
   | restoreFinalSomeDuplicate | pushFinalAnd
+  | boolEq (phase : SequentialBoolEqLabel)
   | clear₁ | clear₂ | clear₃ | halt | invalid
 deriving DecidableEq, Fintype
 
@@ -145,6 +160,14 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
     | .resume .finalSomeDuplicate => .jump .restoreFinalSomeDuplicate
     | .resume .finalSeen => .jump (.encode .next .finalNext)
     | .resume .finalNext => .jump .clear₁
+    | .resume .boolEqNotLeft => .jump (.boolEq .notRight)
+    | .resume .boolEqNotRight => .jump (.boolEq .andLeft)
+    | .resume .boolEqAndLeft => .jump (.encode .wire .boolEqAndRight)
+    | .resume .boolEqAndRight => .jump (.boolEq .clearLeft)
+    | .resume .boolEqAndStart => .jump (.encode .next .boolEqAndNext)
+    | .resume .boolEqAndNext => .jump (.boolEq .incSeen₁)
+    | .resume .boolEqOrStart => .jump (.encode .next .boolEqOrNext)
+    | .resume .boolEqOrNext => .jump .clear₁
     | .incFirstDuplicate => .inc₁ (.encode .seen .firstBDuplicate)
     | .restoreFirstDuplicate => .jump .invalid
     | .decLaterDuplicate =>
@@ -170,6 +193,32 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
     | .restoreFinalZeroDuplicate => .dec₁ .invalid .pushFinalAnd
     | .restoreFinalSomeDuplicate => .inc₁ .pushFinalAnd
     | .pushFinalAnd => .pushOutput .andMark (.encode .seen .finalSeen)
+    | .boolEq .notLeft =>
+        .pushOutput .notMark (.encode .next .boolEqNotLeft)
+    | .boolEq .notRight =>
+        .pushOutput .notMark (.encode .wire .boolEqNotRight)
+    | .boolEq .andLeft =>
+        .pushOutput .andMark (.encode .next .boolEqAndLeft)
+    | .boolEq .clearLeft =>
+        .dec₂ (.boolEq .clearRight) (.boolEq .clearLeft)
+    | .boolEq .clearRight =>
+        .dec₃ (.boolEq .copyStart) (.boolEq .clearRight)
+    | .boolEq .copyStart =>
+        .dec₁ (.boolEq .restoreStart) (.boolEq .copyPush)
+    | .boolEq .copyPush => .pushWork₁ () (.boolEq .copyInc)
+    | .boolEq .copyInc => .inc₂ (.boolEq .copyStart)
+    | .boolEq .restoreStart =>
+        .popWork₁ (.boolEq .incNext) (fun _ => .boolEq .restoreInc)
+    | .boolEq .restoreInc => .inc₁ (.boolEq .restoreStart)
+    | .boolEq .incNext => .inc₂ (.boolEq .andStart)
+    | .boolEq .andStart =>
+        .pushOutput .andMark (.encode .seen .boolEqAndStart)
+    | .boolEq .incSeen₁ => .inc₁ (.boolEq .incSeen₂)
+    | .boolEq .incSeen₂ => .inc₁ (.boolEq .incNext₁)
+    | .boolEq .incNext₁ => .inc₂ (.boolEq .incNext₂)
+    | .boolEq .incNext₂ => .inc₂ (.boolEq .orStart)
+    | .boolEq .orStart =>
+        .pushOutput .orMark (.encode .seen .boolEqOrStart)
     | .clear₁ => .dec₁ .clear₂ .clear₁
     | .clear₂ => .dec₂ .clear₃ .clear₂
     | .clear₃ => .dec₃ .halt .clear₃

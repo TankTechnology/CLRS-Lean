@@ -9,6 +9,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEn
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputGate
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CircuitPrefix
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 
 /-!
 # Verified bounded TM2 builders
@@ -32,4 +33,7 @@ quadratic-time machine.  The circuit-prefix layer parks and restores the clock
 while combining its exact arity header with that input-gate stream in one
 concrete quadratic-time run.  The Boolean-pool suffix layer then appends the
 canonical false/true constant gates in linear time.
+The exactly-one layer and its affine wrapper stream contextual row constraints;
+the Boolean-equality layer reuses the same three-counter kernels to emit an
+arbitrary five-gate XNOR trace with an exact linear runtime and cleared scratch.
 -/

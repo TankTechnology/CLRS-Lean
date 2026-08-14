@@ -181,6 +181,13 @@ orientation, and gate-index layers:
   acceptance boundary after that completed phase: the remaining row suffix is
   now explicitly limited to halted/label equality, stack canonicality, and the
   final conjunction.
+- `affineBoolEqRev_runFrom` closes the next reusable validity primitive: for
+  arbitrary gate/source indices and an arbitrary existing output suffix, the
+  concrete three-counter program emits exactly
+  `CircuitBuilder.boolEqGateTrace`, clears all scratch, and halts;
+- `affineBoolEqRevSteps` gives its exact cost
+  `27 * start + 11 * left + 11 * right + 85`, while
+  `affineBoolEqRev_steps_le` supplies a uniform quadratic envelope.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -279,6 +286,12 @@ already closed independently.
     `phase = 0` silently asks for the wrong semantic stream.  The accepted
     internal interface carries `0 < phase`, while the public positive run
     enters it at phase one after proving the special first block separately.
+14. **Flattening every Boolean-equality phase into the already large main
+    label enumeration.** The automatically derived `Fintype` instance then
+    exceeds the elaborator's nested-sum synthesis depth.  The accepted route
+    keeps one main `boolEq` constructor whose argument is a separate finite
+    phase type; this changes only the representation of finite control, not
+    the program's runtime data or transition semantics.
 
 ## Focused Acceptance Mechanism
 
@@ -294,6 +307,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -306,6 +320,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
+lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
