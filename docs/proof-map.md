@@ -4501,11 +4501,23 @@ and the relabel-to-front `O(V³)` discharge-order bound.
   - `OnlineCaching.phases_le_misses`: the number of phases is at most one more
     than the miss count of any size-`k` algorithm.
   - `OnlineCaching.lru_k_competitive` (Theorem 27.3): LRU is `k`-competitive.
+  - `OnlineCaching.advSeq_misses`: the Sleator-Tarjan adversary (always request
+    the page absent from the online algorithm's cache, over the `k + 1`-page
+    universe `Fin (k + 1)`) faults the online algorithm on every request.
+  - `OnlineCaching.offMisses_bound` / `offMisses_bound_from_full`: the
+    phase-based offline schedule faults at most `(phases k σ).length + k` times
+    from an empty cache, and at most once per phase from a full cache.
+  - `OnlineCaching.caching_lower_bound` (Theorem 27.4): no deterministic online
+    paging algorithm is better than `k`-competitive — for every `N` there is a
+    request sequence of length `N` on which `A` faults `N` times while some
+    offline schedule faults at most `N / k + k + 1` times.
+  - `OnlineCaching.caching_no_c_competitive`: for any `c < k`, the length-`k^3`
+    adversarial sequence witnesses that `c` times the offline cost is strictly
+    below `A`'s miss count.
   - Supporting lemmas: `runGo_subset`, `runGo_size`,
     `missesGo_eq_zero_subset` (a run with no misses has all requested pages
-    resident), `lru_head_evict`, and `lru_miss_le_distinct`.
-- Current gap: the matching lower bound — no deterministic online algorithm is
-  better than `k`-competitive — is recorded but not yet formalized.
+    resident), `lru_head_evict`, `lru_miss_le_distinct`, and the offline
+    `offlineStep` / `servePhase` / `servePhaseMisses_le` machinery.
 
 ## Chapter 28 - Matrix Operations
 
