@@ -16,8 +16,10 @@ polynomial runtime bound.
 - [ ] Give each runtime-sized phase an exact fixed-controller execution theorem.
       The complete-row equality and multiplexer subphases are now closed by
       `affineEqFinCanonical_run` and `affineMuxFinCanonical_run`; narrowing is
-      closed by `affineNarrowCfg_run`, so the enclosing statement dispatch
-      remains.
+      closed by `affineNarrowCfg_run`. All statement primitives, including the
+      height-sensitive `pop` merge, now have exact fixed-controller runs; the
+      remaining gap is their non-halting composition into one recursive
+      statement-dispatch run.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
       polynomial bound in the exact runtime encoding.  The semantic target is
@@ -63,3 +65,9 @@ polynomial runtime bound.
   as a runtime unary field.
 - A consumed phase marker remains in `buffer₁`; entering the NOT loader before
   clearing it does not match the loader theorem's initial configuration.
+- The public false-seeded arbitrary-OR runner cannot implement a positive-height
+  `pop`: it would emit an extra `.const false` gate. The accepted seed-free
+  entry begins at the shared OR check state and emits exactly the height merge.
+- Splitting `pop` into separately selected programs for `H = 0` and `H > 0`
+  would make the machine depend on a runtime dimension. The accepted controller
+  handles the empty and singleton frame lists with the same fixed program.

@@ -988,6 +988,38 @@ private def affineOrFinFrames_run (frames : List AffineOrFinPairFrame)
       · simp [affineOrFinFoldSteps]
         omega
 
+/-! ## Seed-free arbitrary OR sequences -/
+
+/-- Exact forward stream of an arbitrary OR sequence without an initial false
+seed.  This is the contextual form needed by stack pop. -/
+def affineOrFinNoSeedGateStream (frames : List AffineOrFinPairFrame) :
+    List CircuitSym :=
+  frames.flatMap fun frame => affineOrGateStream frame.left frame.right
+
+/-- Exact runtime of the seed-free OR sequence through public halt. -/
+def affineOrFinNoSeedRevSteps (frames : List AffineOrFinPairFrame) : Nat :=
+  affineOrFinFoldSteps frames + 1
+
+/-- Starting directly at the clean OR check state executes every explicit OR
+frame without adding a false seed. -/
+def affineOrFinNoSeed_run (frames : List AffineOrFinPairFrame)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinCheckCfg (encodeAffineOrFinFrames frames) output)
+      (some (haltCfg affineOrFinRevProgram
+        ((affineOrFinNoSeedGateStream frames).reverse ++ output)))
+      (affineOrFinNoSeedRevSteps frames) := by
+  let gateOutput := (affineOrFinNoSeedGateStream frames).reverse ++ output
+  have hfinish := affineOrFinFrames_run frames output
+  have hhalt : EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFinishCfg gateOutput)
+      (some (haltCfg affineOrFinRevProgram gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  have full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    (affineOrFinFoldSteps frames) 1 _ (affineOrFinFinishCfg gateOutput) _
+    (by simpa [gateOutput, affineOrFinNoSeedGateStream] using hfinish) hhalt
+  simpa [affineOrFinNoSeedRevSteps, gateOutput, Nat.add_comm] using full
+
 def affineOrFinUntilFinishSteps (frames : List AffineOrFinPairFrame) : Nat :=
   affineOrFinFoldSteps frames + 1
 
@@ -1134,6 +1166,15 @@ theorem affineOrFinFold_steps_le (frames : List AffineOrFinPairFrame) :
       simp only [affineOrFinFoldSteps, encodeAffineOrFinFrames,
         List.flatMap_cons, List.length_append]
       omega
+
+/-- The seed-free controller remains linear in its explicit runtime input. -/
+theorem affineOrFinNoSeedRev_steps_le
+    (frames : List AffineOrFinPairFrame) :
+    affineOrFinNoSeedRevSteps frames ≤
+      100 * (encodeAffineOrFinFrames frames).length + 2 := by
+  have h := affineOrFinFold_steps_le frames
+  simp [affineOrFinNoSeedRevSteps]
+  omega
 
 theorem affineOrFinRev_steps_le (frames : List AffineOrFinPairFrame) :
     affineOrFinRevSteps frames ≤
