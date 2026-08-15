@@ -587,6 +587,13 @@ in the complete delimiter-bearing input. The remaining local transition work
 is therefore the surrounding fixed statement-dispatch/narrowing composition,
 not either finite-family primitive.
 
+The narrowing target is now frozen at the same literal level.
+`narrowCfgOverflowWires` exposes the canonical stack-major overflow wire list,
+`narrowCfgGateTrace` records its false-seeded disjunction followed by the fit
+negation, and `narrowCfg_gates_eq` plus `narrowCfg_fit_wire_eq_trace` identify
+the semantic builder and returned fit wire exactly. This is an acceptance
+oracle, not yet the required continuous OR-then-NOT machine execution.
+
 Two additional rejected shortcuts are now recorded. First, redirecting the
 AND kernel's `.done` label straight to the next loader leaves its incremented
 carry register live and corrupts every later wire index; the accepted route
@@ -732,6 +739,7 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRow.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRows.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorTransition.lean
+lake env lean Tests/Chapter_34_CookLevin_NarrowingTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_FiniteFamilyTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
