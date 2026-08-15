@@ -314,6 +314,11 @@ already closed independently.
     cell therefore has lost the runtime gate and source indices it needs.
     The accepted replacement is a delimiter-bearing persistent frame on the
     symbol stacks together with continuation-preserving primitive exits.
+16. **Adding the cell-linker phases as flat constructors of the main program
+    label.** This extends the nested-sum synthesis problem already seen for
+    Boolean equality: the derived `Fintype` instance exceeds elaboration
+    depth.  The accepted representation is one main `.cell` constructor with
+    a separate finite `SequentialCellLabel` phase type.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
@@ -340,6 +345,25 @@ That tail is now fully identified by
 is no longer a semantic ambiguity, but the concrete persistent-frame loop
 that must carry runtime indices between primitive invocations.
 
+The persistent-frame cut is now concrete rather than only architectural.
+`encodeUnaryFrame` has an exact decoder round trip, exact length, and
+injectivity, including zero-valued fields.  `unaryTripleLoader_run` consumes
+exactly three delimiter-separated fields in
+`2 * (first + second + third) + 3` steps, preserves the unconsumed frame,
+output suffix, and both symbol work stacks, and enters a public ready state
+with all three unary registers loaded.  The remaining task is to embed this
+prelude in the single fixed family controller.
+
+The first genuine non-halting primitive composition is also closed.
+`affineCellRev_runFrom` emits the leading blank-bit NOT and immediately enters
+the five-gate Boolean-equality kernel without an intermediate halt; its exact
+stream is `affineCellGateStream`, its exact cost is `affineCellRevSteps`, and
+`affineCellRev_steps_le` supplies a uniform quadratic envelope.  The
+arithmetic instantiation `arithmeticStackCellRev_runFrom` is byte-for-byte the
+semantic `arithmeticStackCellGateStream`, so one complete stack-cell block is
+now executable by one continuous concrete run.  The next execution gap is the
+continuation from one completed cell to the next framed cell.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -357,6 +381,9 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrame
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameLoader
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Cell
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -372,6 +399,9 @@ lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean
+lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrame.lean
+lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrameLoader.lean
+lake env lean Tests/Chapter_34_CookLevin_AffineCell.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean

@@ -56,6 +56,7 @@ inductive SequentialExactlyOneCont
   | boolEqOrStart | boolEqOrNext
   | suffixOrCarry | suffixOrWire
   | affineNotWire
+  | affineCellNotWire
 deriving DecidableEq, Fintype
 
 /-- Fixed finite-control phases of contextual Boolean equality. -/
@@ -76,6 +77,13 @@ deriving DecidableEq, Fintype
 /-- Fixed finite-control phase of one contextual NOT gate. -/
 inductive SequentialNotLabel
   | push
+deriving DecidableEq, Fintype
+
+/-- Fixed finite-control phases of one composed NOT/XNOR cell block. -/
+inductive SequentialCellLabel
+  | notPush
+  | clearWire | copyStart | copyPush | copyInc
+  | restoreStart | restoreInc | incStart
 deriving DecidableEq, Fintype
 
 /-- Finite control for the reversed sequential exactly-one serializer. -/
@@ -107,6 +115,7 @@ inductive SequentialExactlyOneLabel
   | boolEq (phase : SequentialBoolEqLabel)
   | suffixOr (phase : SequentialSuffixOrLabel)
   | singleNot (phase : SequentialNotLabel)
+  | cell (phase : SequentialCellLabel)
   | clear₁ | clear₂ | clear₃ | halt | invalid
 deriving DecidableEq, Fintype
 
@@ -185,6 +194,7 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
     | .resume .suffixOrCarry => .jump (.encode .wire .suffixOrWire)
     | .resume .suffixOrWire => .jump (.suffixOr .incCarry)
     | .resume .affineNotWire => .jump .clear₁
+    | .resume .affineCellNotWire => .jump (.cell .clearWire)
     | .incFirstDuplicate => .inc₁ (.encode .seen .firstBDuplicate)
     | .restoreFirstDuplicate => .jump .invalid
     | .decLaterDuplicate =>
@@ -246,6 +256,18 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
         .inc₁ (.suffixOr .next)
     | .singleNot .push =>
         .pushOutput .notMark (.encode .wire .affineNotWire)
+    | .cell .notPush =>
+        .pushOutput .notMark (.encode .wire .affineCellNotWire)
+    | .cell .clearWire =>
+        .dec₃ (.cell .copyStart) (.cell .clearWire)
+    | .cell .copyStart =>
+        .dec₁ (.cell .restoreStart) (.cell .copyPush)
+    | .cell .copyPush => .pushWork₁ () (.cell .copyInc)
+    | .cell .copyInc => .inc₃ (.cell .copyStart)
+    | .cell .restoreStart =>
+        .popWork₁ (.cell .incStart) (fun _ => .cell .restoreInc)
+    | .cell .restoreInc => .inc₁ (.cell .restoreStart)
+    | .cell .incStart => .inc₁ (.boolEq .notLeft)
     | .clear₁ => .dec₁ .clear₂ .clear₁
     | .clear₂ => .dec₂ .clear₃ .clear₂
     | .clear₃ => .dec₃ .halt .clear₃
