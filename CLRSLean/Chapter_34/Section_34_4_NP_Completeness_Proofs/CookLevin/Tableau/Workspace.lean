@@ -228,6 +228,31 @@ theorem widenCfg_eval {tm : _root_.Turing.FinTM2} {H : Nat}
 
 /-! ## Prefix narrowing with a fit output -/
 
+/-- Public canonical order of every overflow-height wire inspected by
+narrowing. -/
+def narrowCfgOverflowWires {tm : _root_.Turing.FinTM2} {H : Nat}
+    (source : CfgWires tm (workHeight tm H)) : List CircuitBuilder.Wire := by
+  letI : Fintype tm.K := tm.kFin
+  let M := maxPushesPerStep tm
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  exact List.ofFn fun p : Fin (Fintype.card tm.K * M) =>
+    let q := (finProdFinEquiv (m := Fintype.card tm.K) (n := M)).symm p
+    source.stackHeight (keyEquiv.symm q.1)
+      ⟨H + 1 + q.2.val, by simp only [M, workHeight]; omega⟩
+
+/-- Pure false-seeded overflow disjunction followed by its fit negation. -/
+structure NarrowCfgGateTrace where
+  gates : List CircuitGate
+  fit : CircuitBuilder.Wire
+
+def narrowCfgGateTrace {tm : _root_.Turing.FinTM2} {H : Nat}
+    (start : Nat) (source : CfgWires tm (workHeight tm H)) :
+    NarrowCfgGateTrace :=
+  let any := CircuitBuilder.disjunctionGateTrace start
+    (narrowCfgOverflowWires source)
+  { gates := any.gates ++ [.not any.wire]
+    fit := start + any.gates.length }
+
 /-- Proof-carrying narrowing result. -/
 structure NarrowCfgResult {tm : _root_.Turing.FinTM2} {H : Nat}
     (base : CircuitBuilder) (source : CfgWires tm (workHeight tm H)) where
@@ -360,6 +385,61 @@ def narrowCfg {tm : _root_.Turing.FinTM2} {H : Nat}
       let q := (finProdFinEquiv (m := Fintype.card tm.K) (n := M)).symm p
       have hfalse := hall (keyEquiv.symm q.1) q.2
       simpa only [q, hfalse] using (by decide : ¬ false = true)
+
+/-- Narrowing appends exactly the pure overflow-disjunction-plus-negation
+trace. -/
+theorem narrowCfg_gates_eq {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (source : CfgWires tm (workHeight tm H))
+    (hvalid : source.ValidIn base) :
+    (narrowCfg base source hvalid).builder.gates =
+      base.gates ++
+        (narrowCfgGateTrace base.gates.length source).gates := by
+  letI : Fintype tm.K := tm.kFin
+  let M := maxPushesPerStep tm
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  let overflow : List CircuitBuilder.Wire :=
+    List.ofFn fun p : Fin (Fintype.card tm.K * M) =>
+      let q := (finProdFinEquiv (m := Fintype.card tm.K) (n := M)).symm p
+      source.stackHeight (keyEquiv.symm q.1)
+        ⟨H + 1 + q.2.val, by simp only [M, workHeight]; omega⟩
+  have hoverflow : ∀ wire ∈ overflow, base.WireValid wire := by
+    intro wire hwire
+    rw [List.mem_ofFn] at hwire
+    rcases hwire with ⟨p, rfl⟩
+    exact hvalid _
+  let overflowAny := base.disjunction overflow hoverflow
+  have hanyValid := CircuitBuilder.disjunction_wireValid base overflow hoverflow
+  change (overflowAny.1.not overflowAny.2 hanyValid).1.gates = _
+  rw [CircuitBuilder.not_gates, CircuitBuilder.disjunction_gates_eq,
+    CircuitBuilder.disjunction_wire_eq_trace]
+  simp [narrowCfgGateTrace, narrowCfgOverflowWires, overflow, overflowAny,
+    M, keyEquiv, List.append_assoc]
+
+/-- The public fit wire is the fresh output named by the pure trace. -/
+theorem narrowCfg_fit_wire_eq_trace {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (source : CfgWires tm (workHeight tm H))
+    (hvalid : source.ValidIn base) :
+    (narrowCfg base source hvalid).fit =
+      (narrowCfgGateTrace base.gates.length source).fit := by
+  letI : Fintype tm.K := tm.kFin
+  let M := maxPushesPerStep tm
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  let overflow : List CircuitBuilder.Wire :=
+    List.ofFn fun p : Fin (Fintype.card tm.K * M) =>
+      let q := (finProdFinEquiv (m := Fintype.card tm.K) (n := M)).symm p
+      source.stackHeight (keyEquiv.symm q.1)
+        ⟨H + 1 + q.2.val, by simp only [M, workHeight]; omega⟩
+  have hoverflow : ∀ wire ∈ overflow, base.WireValid wire := by
+    intro wire hwire
+    rw [List.mem_ofFn] at hwire
+    rcases hwire with ⟨p, rfl⟩
+    exact hvalid _
+  let overflowAny := base.disjunction overflow hoverflow
+  have hanyValid := CircuitBuilder.disjunction_wireValid base overflow hoverflow
+  change (overflowAny.1.not overflowAny.2 hanyValid).2 = _
+  rw [CircuitBuilder.not_wire_eq, CircuitBuilder.disjunction_gates_eq]
+  simp [narrowCfgGateTrace, narrowCfgOverflowWires, overflow, overflowAny,
+    M, keyEquiv]
 
 /-- Narrowing preserves the complete input builder prefix. -/
 theorem narrowCfg_extends {tm : _root_.Turing.FinTM2} {H : Nat}
