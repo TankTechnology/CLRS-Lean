@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.VerifierBodyController
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineVerifierBodyScript
+#check encodeAffineVerifierBodyScript
+#check affineVerifierBodyGateStream
+#check affineVerifierBodyRevProgram
+#check affineVerifierBody_run
+#check affineVerifierBody_steps_le
+
+#print axioms affineVerifierBody_run
+#print axioms affineVerifierBody_steps_le
