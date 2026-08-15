@@ -10,6 +10,9 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticTransitionsAt
 #check transitionGateListAt
 #check transitionGateStreamAt
+#check transitionFamilyGateTraceAt
+#check transitionGateListAt_eq_trace
+#check transitionGateStreamAt_eq_trace
 #check arithmeticValidity_append_transitionGateStream
 #check transitionGateListAt_length
 #check verifierTransitionGateStreamByLength
@@ -21,5 +24,7 @@ open CLRS.Chapter34.Turing.CookLevin
 
 #print axioms arithmeticValidity_append_transitionGateStream
 #print axioms transitionGateListAt_length
+#print axioms transitionGateListAt_eq_trace
+#print axioms transitionGateStreamAt_eq_trace
 #print axioms verifierValidity_append_transitionGateStream
 #print axioms verifierCircuitTransitionPrefix_eq

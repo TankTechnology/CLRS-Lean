@@ -11,7 +11,7 @@ polynomial runtime bound.
 - [x] Prove exact append agreement with `arithmeticTransitionsAt` and exact
       gate count `T * transitionCircuitGateCost tm H`.
 - [x] Expose verifier-by-length and complete transition-prefix interfaces.
-- [ ] Decompose one local transition stream into widening, finite-label
+- [x] Decompose one local transition stream into widening, finite-label
       dispatch, narrowing, complete-row equality, and final AND.
 - [ ] Give each runtime-sized phase an exact fixed-controller execution theorem.
       The complete-row equality and multiplexer subphases are now closed by
@@ -20,7 +20,9 @@ polynomial runtime bound.
       remains.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
-      polynomial bound in the exact runtime encoding.
+      polynomial bound in the exact runtime encoding.  The semantic target is
+      now explicit: `transitionGateListAt_eq_trace` removes `List.drop` from
+      the acceptance surface; concrete controller execution remains.
 - [ ] Add focused interface/axiom tests and update the failure ledger.
 
 ## Known failed or rejected routes
