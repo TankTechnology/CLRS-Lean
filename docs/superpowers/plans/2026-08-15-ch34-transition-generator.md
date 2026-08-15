@@ -28,12 +28,19 @@ polynomial runtime bound.
       intermediate halt; `compileStmtScript_run` emits exactly the structural
       `compileStmtGateTrace`. The concrete runtime is linear:
       `affineStmtScriptRunSteps ≤ 200 * input.length + 4`.
+- [x] Compose the five phases of one local transition under one fixed program.
+      `compileTransitionScript_run` now executes the concrete operand script,
+      halts with the byte-for-byte encoding of `transitionCircuitGateTrace`,
+      and `affineTransition_steps_le` bounds the exact run linearly in the
+      complete delimiter-bearing script.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
       polynomial bound in the exact runtime encoding.  The semantic target is
       now explicit: `transitionGateListAt_eq_trace` removes `List.drop` from
       the acceptance surface; concrete controller execution remains.
-- [ ] Add focused interface/axiom tests and update the failure ledger.
+- [x] Add focused local interface/axiom tests and update the failure ledger.
+      This closes the one-pair controller checkpoint, not the whole transition
+      family.
 
 ## Known failed or rejected routes
 
@@ -96,3 +103,16 @@ polynomial runtime bound.
   first `tick` is the common boundary and the next two symbols select one of
   five phase kinds. Simulation explicitly excludes only the boundary state,
   then the statement controller takes over for four parser/clear steps.
+- Treating the statement controller's reserved three-symbol exit code as a
+  three-step clean exit is false. The tag parser leaves the final symbol in
+  `buffer₁`; the accepted controller adds a fourth `clearFinish` step before
+  exposing its redirectable finish state.
+- Consuming the narrowing-to-equality or equality-to-AND `tick` and entering
+  the next component immediately is false for the same machine-state reason:
+  `popInput` retains the consumed marker in `buffer₁`. The accepted outer
+  controller uses explicit `narrowClear` and `eqClear` states, so each boundary
+  takes two steps and the lifted component begins from its proved clean entry.
+- A structural simulation theorem parameterized by an arbitrary statement
+  label embedding is false: the target configuration is specifically tagged
+  by `.stmt`. The proved theorem fixes that embedding and does not advertise a
+  stronger parametric interface.

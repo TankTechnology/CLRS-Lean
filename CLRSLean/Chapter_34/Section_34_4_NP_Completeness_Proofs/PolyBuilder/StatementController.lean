@@ -67,6 +67,7 @@ inductive AffineStmtControllerLabel
   | clearOneHotPairMap
   | clearPop
   | clearMux
+  | clearFinish
   | orFin (label : AffineOrFinLabel)
   | muxFin (label : AffineMuxFinLabel)
   | finish
@@ -111,6 +112,7 @@ def affineStmtTagFrameEndTarget : AffineStmtScriptSym →
     AffineStmtControllerLabel
   | .data .tick => .clearPop
   | .data .frameEnd => .clearMux
+  | .data .separator => .clearFinish
   | _ => .invalid
 
 /-- Boundary callback for the arbitrary-OR check loop. -/
@@ -155,6 +157,7 @@ def affineStmtRevProgram : Program AffineStmtScriptSym CircuitSym where
     | .clearMux =>
         .popWork₁ (.muxFin (.loader .selectorNot unaryTripleLoaderProgram.main))
           (fun _ => .invalid)
+    | .clearFinish => .popWork₁ .finish (fun _ => .invalid)
     | .orFin .check => .popInput (.orFin .finish) affineStmtOrCheckTarget
     | .orFin .familyCheck =>
         .popInput (.orFin .finish) affineStmtOrFamilyTarget
@@ -561,6 +564,23 @@ def affineStmtLoopCfg (input : List AffineStmtScriptSym)
     (output : List CircuitSym) : BuilderCfg affineStmtRevProgram :=
   affineStmtCfg .dispatch none none false input output [] [] [] [] []
 
+/-- Clean redirectable finish with an unconsumed outer-controller suffix. -/
+def affineStmtFinishInputCfg (input : List AffineStmtScriptSym)
+    (output : List CircuitSym) : BuilderCfg affineStmtRevProgram :=
+  affineStmtCfg .finish none none false input output [] [] [] [] []
+
+/-- Unused three-symbol unary tag code reserved for leaving the statement
+controller.  It shares the normal tag parser but selects no statement phase. -/
+def affineStmtTransitionBoundaryCode : List UnaryFrameSym :=
+  [.tick, .frameEnd, .separator]
+
+/-- Statement script followed by the reserved transition boundary and an
+arbitrary pure-unary outer suffix. -/
+def encodeAffineStmtTransitionInput (script : List AffineStmtPhase)
+    (tail : List UnaryFrameSym) : List AffineStmtScriptSym :=
+  (encodeAffineStmtControllerScript script ++
+    affineStmtTransitionBoundaryCode ++ tail).map .data
+
 /-- Clean component entry after the phase tag has been consumed and cleared. -/
 def affineStmtPhaseEntryCfg (phase : AffineStmtPhase)
     (tail : List AffineStmtScriptSym) (output : List CircuitSym) :
@@ -641,6 +661,18 @@ def affineStmtBoundaryCfg (kind : AffineStmtBoundaryKind)
     | .muxCheck => .muxFin .check
   affineStmtCfg label none none false input output [] [] [] [] []
 
+/-- Parse one ordinary phase tag while preserving an arbitrary already-tagged
+suffix.  This is the generic boundary contract behind script composition. -/
+def affineStmtBoundary_dispatchNextWithTail
+    (kind : AffineStmtBoundaryKind) (next : AffineStmtPhase)
+    (tail : List AffineStmtScriptSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtBoundaryCfg kind
+        ((affineStmtPhaseTagCode next).map .data ++
+          (affineStmtPhasePayload next).map .data ++ tail) output)
+      (some (affineStmtPhaseEntryCfg next tail output)) 4 := by
+  cases kind <;> cases next <;> exact ⟨⟨4, rfl⟩, le_rfl⟩
+
 /-- The three component boundaries share one exact four-step unary tag
 parser.  Stating the code and payload maps separately keeps this computation
 definitionally transparent. -/
@@ -654,7 +686,149 @@ def affineStmtBoundary_dispatchNext (kind : AffineStmtBoundaryKind)
           encodeAffineStmtControllerInput rest) output)
       (some (affineStmtPhaseEntryCfg next
         (encodeAffineStmtControllerInput rest) output)) 4 := by
-  cases kind <;> cases next <;> exact ⟨⟨4, rfl⟩, le_rfl⟩
+  simpa [encodeAffineStmtControllerInput,
+    encodeAffineStmtControllerScript, List.map_append] using
+    affineStmtBoundary_dispatchNextWithTail kind next
+      (encodeAffineStmtControllerInput rest) output
+
+/-- Consume the reserved three-symbol boundary and stop at the redirectable
+statement finish while preserving the following unary suffix. -/
+def affineStmtBoundary_finish (kind : AffineStmtBoundaryKind)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtBoundaryCfg kind
+        ((affineStmtTransitionBoundaryCode ++ tail).map .data) output)
+      (some (affineStmtFinishInputCfg (tail.map .data) output)) 4 := by
+  cases kind <;> exact ⟨⟨4, rfl⟩, le_rfl⟩
+
+/-- Boundary kind reached after one phase consumes only its own unary payload. -/
+def affineStmtPhaseBoundaryKind : AffineStmtPhase → AffineStmtBoundaryKind
+  | .oneHotMap _ => .orFamily
+  | .oneHotPredicate _ => .orCheck
+  | .oneHotPairMap _ _ => .orFamily
+  | .pop _ => .orCheck
+  | .mux _ _ => .muxCheck
+
+/-- Execute one phase body while preserving an arbitrary pure-unary suffix and
+stop before the shared boundary parser inspects it. -/
+def affineStmt_phase_body_run (phase : AffineStmtPhase)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtPhaseEntryCfg phase (tail.map .data) output)
+      (some (affineStmtBoundaryCfg (affineStmtPhaseBoundaryKind phase)
+        (tail.map .data)
+        ((affineStmtPhaseGateStream phase).reverse ++ output)))
+      (affineStmtPhaseBodySteps phase) := by
+  cases phase with
+  | oneHotMap groups =>
+      have sourceRun := affineOrFinGroups_runToCheck groups tail output
+      have hlift := affineStmtLiftOr_runToLabel .familyCheck (by decide)
+        rfl _ sourceRun
+      simpa [affineStmtPhaseEntryCfg, affineStmtPhaseBoundaryKind,
+        affineStmtPhaseGateStream, affineStmtPhaseBodySteps,
+        affineStmtBoundaryCfg, affineStmtLiftOrCfg, affineStmtRelabelCfg,
+        affineOrFinFamilyLoopCfg, affineOrFinCfg, affineStmtCfg,
+        List.map_append] using hlift
+  | oneHotPredicate frames =>
+      have sourceRun := affineOrFin_runToCheck frames tail output
+      have hlift := affineStmtLiftOr_runToLabel .check (by decide)
+        rfl _ sourceRun
+      simpa [affineStmtPhaseEntryCfg, affineStmtPhaseBoundaryKind,
+        affineStmtPhaseGateStream, affineStmtPhaseBodySteps,
+        affineStmtBoundaryCfg, affineStmtLiftOrCfg, affineStmtRelabelCfg,
+        affineOrFinLoopCfg, affineOrFinCheckCfg, affineOrFinCfg, affineStmtCfg,
+        List.map_append] using hlift
+  | oneHotPairMap andFrames orGroups =>
+      have sourceRun := affineAndThenOr_runToCheck andFrames orGroups
+        tail output
+      have hlift := affineStmtLiftOr_runToLabel .familyCheck (by decide)
+        rfl _ sourceRun
+      simpa [affineStmtPhaseEntryCfg, affineStmtPhaseBoundaryKind,
+        affineStmtPhaseGateStream, affineStmtPhaseBodySteps,
+        affineStmtBoundaryCfg, affineStmtLiftOrCfg, affineStmtRelabelCfg,
+        affineAndFinLoopCfg, affineOrFinFamilyLoopCfg, affineOrFinCfg,
+        affineStmtCfg,
+        List.map_append] using hlift
+  | pop frames =>
+      have sourceRun := affineOrFinNoSeed_runToCheck frames tail output
+      have hlift := affineStmtLiftOr_runToLabel .check (by decide)
+        rfl _ sourceRun
+      simpa [affineStmtPhaseEntryCfg, affineStmtPhaseBoundaryKind,
+        affineStmtPhaseGateStream, affineStmtPhaseBodySteps,
+        affineStmtBoundaryCfg, affineStmtLiftOrCfg, affineStmtRelabelCfg,
+        affineOrFinCheckCfg, affineOrFinCfg, affineStmtCfg,
+        List.map_append] using hlift
+  | mux selector frames =>
+      have sourceRun := affineMuxFin_runToCheck selector frames tail output
+      have hlift := affineStmtLiftMux_runToLabel .check (by decide)
+        rfl _ sourceRun
+      simpa [affineStmtPhaseEntryCfg, affineStmtPhaseBoundaryKind,
+        affineStmtPhaseGateStream, affineStmtPhaseBodySteps,
+        affineStmtBoundaryCfg, affineStmtLiftMuxCfg, affineStmtRelabelCfg,
+        affineMuxFinLoopCfg, affineMuxFinCheckCfg, affineMuxFinCfg,
+        affineStmtCfg,
+        List.map_append] using hlift
+
+/-- A non-final phase preserves both the remaining statement script and an
+arbitrary pure-unary outer suffix. -/
+def affineStmt_phase_next_runWithTail (phase next : AffineStmtPhase)
+    (rest : List AffineStmtPhase) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtPhaseEntryCfg phase
+        (encodeAffineStmtControllerInput (next :: rest) ++ tail.map .data)
+        output)
+      (some (affineStmtPhaseEntryCfg next
+        (encodeAffineStmtControllerInput rest ++ tail.map .data)
+        ((affineStmtPhaseGateStream phase).reverse ++ output)))
+      (affineStmtPhaseNextSteps phase) := by
+  let suffix := encodeAffineStmtControllerScript (next :: rest) ++ tail
+  let gateOutput := (affineStmtPhaseGateStream phase).reverse ++ output
+  have hbody := affineStmt_phase_body_run phase suffix output
+  have hnext := affineStmtBoundary_dispatchNextWithTail
+    (affineStmtPhaseBoundaryKind phase) next
+    (encodeAffineStmtControllerInput rest ++ tail.map .data) gateOutput
+  let full := EvalsToInTime.trans (step affineStmtRevProgram)
+    (affineStmtPhaseBodySteps phase) 4 _
+    (affineStmtBoundaryCfg (affineStmtPhaseBoundaryKind phase)
+      (suffix.map .data) gateOutput) _
+    (by simpa [suffix, gateOutput] using hbody)
+    (by simpa [suffix, gateOutput, encodeAffineStmtControllerInput,
+      encodeAffineStmtControllerScript, encodeAffineStmtControllerPhase,
+      List.map_append, List.append_assoc] using hnext)
+  convert full using 1
+  · simp [encodeAffineStmtControllerInput]
+  · simp [encodeAffineStmtControllerInput, encodeAffineStmtControllerScript]
+  · simp [affineStmtPhaseNextSteps]
+    omega
+
+/-- Cost of a final phase through the reserved clean outer boundary. -/
+def affineStmtPhaseFinishSteps (phase : AffineStmtPhase) : Nat :=
+  affineStmtPhaseBodySteps phase + 4
+
+/-- Execute a final phase and leave the statement controller at its clean
+redirectable finish with the outer unary suffix untouched. -/
+def affineStmt_phase_finish_run (phase : AffineStmtPhase)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtPhaseEntryCfg phase
+        ((affineStmtTransitionBoundaryCode ++ tail).map .data) output)
+      (some (affineStmtFinishInputCfg (tail.map .data)
+        ((affineStmtPhaseGateStream phase).reverse ++ output)))
+      (affineStmtPhaseFinishSteps phase) := by
+  let boundaryTail := affineStmtTransitionBoundaryCode ++ tail
+  let gateOutput := (affineStmtPhaseGateStream phase).reverse ++ output
+  have hbody := affineStmt_phase_body_run phase boundaryTail output
+  have hfinish := affineStmtBoundary_finish
+    (affineStmtPhaseBoundaryKind phase) tail gateOutput
+  let full := EvalsToInTime.trans (step affineStmtRevProgram)
+    (affineStmtPhaseBodySteps phase) 4 _
+    (affineStmtBoundaryCfg (affineStmtPhaseBoundaryKind phase)
+      (boundaryTail.map .data) gateOutput) _
+    (by simpa [boundaryTail, gateOutput] using hbody)
+    (by simpa [boundaryTail, gateOutput] using hfinish)
+  simpa [affineStmtPhaseFinishSteps, boundaryTail, gateOutput,
+    Nat.add_comm] using full
 
 /-- Parse the next pure-unary phase tag from an OR check boundary. -/
 def affineStmtOrCheck_dispatchNext (next : AffineStmtPhase)
@@ -926,6 +1100,113 @@ def affineStmt_phase_next_run (phase next : AffineStmtPhase)
       · simp [affineStmtPhaseNextSteps, affineStmtPhaseBodySteps]
         omega
 
+/-- Runtime from a phase entry through the reserved outer boundary. -/
+def affineStmtEntryFinishSteps :
+    AffineStmtPhase → List AffineStmtPhase → Nat
+  | phase, [] => affineStmtPhaseFinishSteps phase
+  | phase, next :: rest =>
+      affineStmtPhaseNextSteps phase +
+        affineStmtEntryFinishSteps next rest
+
+/-- Runtime of a complete statement script up to the clean redirectable
+finish, excluding any outer-controller transition. -/
+def affineStmtScriptFinishSteps : List AffineStmtPhase → Nat
+  | [] => 4
+  | phase :: rest => 4 + affineStmtEntryFinishSteps phase rest
+
+/-- Execute the remaining script and stop at the clean outer boundary with an
+arbitrary unary suffix preserved. -/
+def affineStmt_entry_finish_run (phase : AffineStmtPhase) :
+    ∀ (rest : List AffineStmtPhase) (tail : List UnaryFrameSym)
+      (output : List CircuitSym),
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtPhaseEntryCfg phase
+        (encodeAffineStmtControllerInput rest ++
+          (affineStmtTransitionBoundaryCode ++ tail).map .data) output)
+      (some (affineStmtFinishInputCfg (tail.map .data)
+        ((affineStmtScriptGateStream (phase :: rest)).reverse ++ output)))
+      (affineStmtEntryFinishSteps phase rest) := by
+  intro rest
+  induction rest generalizing phase with
+  | nil =>
+      intro tail output
+      simpa [affineStmtEntryFinishSteps, affineStmtScriptGateStream,
+        encodeAffineStmtControllerInput,
+        encodeAffineStmtControllerScript] using
+        affineStmt_phase_finish_run phase tail output
+  | cons next rest ih =>
+      intro tail output
+      let outerTail := affineStmtTransitionBoundaryCode ++ tail
+      let phaseOutput :=
+        (affineStmtPhaseGateStream phase).reverse ++ output
+      have hphase := affineStmt_phase_next_runWithTail phase next rest
+        outerTail output
+      have hrest := ih next tail phaseOutput
+      let full := EvalsToInTime.trans (step affineStmtRevProgram)
+        (affineStmtPhaseNextSteps phase)
+        (affineStmtEntryFinishSteps next rest) _
+        (affineStmtPhaseEntryCfg next
+          (encodeAffineStmtControllerInput rest ++ outerTail.map .data)
+          phaseOutput) _
+        (by simpa [outerTail] using hphase)
+        (by simpa [outerTail, phaseOutput, List.map_append,
+          List.append_assoc] using hrest)
+      convert full using 1
+      · simp [List.map_append]
+      · simp [affineStmtScriptGateStream,
+          List.reverse_append, List.append_assoc]
+      · simp [affineStmtEntryFinishSteps]
+        omega
+
+/-- The empty statement script consumes only the reserved outer boundary. -/
+def affineStmt_empty_finish_run (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtLoopCfg
+        ((affineStmtTransitionBoundaryCode ++ tail).map .data) output)
+      (some (affineStmtFinishInputCfg (tail.map .data) output)) 4 :=
+  ⟨⟨4, rfl⟩, le_rfl⟩
+
+/-- One fixed statement controller executes a complete script and stops at a
+clean redirectable finish, leaving the outer unary input untouched. -/
+def affineStmt_runToFinishWithTail (script : List AffineStmtPhase)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineStmtRevProgram)
+      (affineStmtLoopCfg (encodeAffineStmtTransitionInput script tail) output)
+      (some (affineStmtFinishInputCfg (tail.map .data)
+        ((affineStmtScriptGateStream script).reverse ++ output)))
+      (affineStmtScriptFinishSteps script) := by
+  cases script with
+  | nil =>
+      simpa [encodeAffineStmtTransitionInput,
+        encodeAffineStmtControllerScript, affineStmtScriptGateStream,
+        affineStmtScriptFinishSteps] using
+        affineStmt_empty_finish_run tail output
+  | cons phase rest =>
+      let outerTail := affineStmtTransitionBoundaryCode ++ tail
+      have hdispatch := affineStmt_dispatch_controller_phase phase
+        (encodeAffineStmtControllerInput rest ++ outerTail.map .data) output
+      have hentry := affineStmt_entry_finish_run phase rest tail output
+      let full := EvalsToInTime.trans (step affineStmtRevProgram)
+        4 (affineStmtEntryFinishSteps phase rest) _
+        (affineStmtPhaseEntryCfg phase
+          (encodeAffineStmtControllerInput rest ++ outerTail.map .data)
+          output) _
+        (by simpa [encodeAffineStmtTransitionInput, outerTail,
+          encodeAffineStmtControllerInput,
+          encodeAffineStmtControllerScript, List.map_append,
+          List.append_assoc] using hdispatch)
+        (by simpa [outerTail, List.map_append,
+          List.append_assoc] using hentry)
+      convert full using 1
+      · simp [encodeAffineStmtTransitionInput,
+          encodeAffineStmtControllerScript, List.map_append,
+          List.append_assoc]
+      · simp [affineStmtScriptGateStream, List.reverse_append,
+          List.append_assoc]
+      · simp [affineStmtScriptFinishSteps]
+        omega
+
 /-- Runtime from the entry of the first phase through the final halt. -/
 def affineStmtEntrySteps : AffineStmtPhase → List AffineStmtPhase → Nat
   | phase, [] => affineStmtPhaseLastSteps phase
@@ -1081,6 +1362,41 @@ theorem affineStmtScriptRun_steps_le (script : List AffineStmtPhase) :
   | cons phase rest =>
       have h := affineStmtEntry_steps_le phase rest
       simp only [affineStmtScriptRunSteps,
+        encodeAffineStmtControllerInput_length]
+      omega
+
+/-- The redirectable outer-controller variant has the same linear cost
+envelope as the standalone statement script. -/
+theorem affineStmtScriptFinish_steps_le (script : List AffineStmtPhase) :
+    affineStmtScriptFinishSteps script ≤
+      200 * (encodeAffineStmtControllerInput script).length + 4 := by
+  have hphase (phase : AffineStmtPhase) :
+      affineStmtPhaseFinishSteps phase ≤
+        200 * (encodeAffineStmtControllerPhase phase).length := by
+    simpa [affineStmtPhaseFinishSteps, affineStmtPhaseNextSteps] using
+      affineStmtPhaseNext_steps_le phase
+  have hentry (phase : AffineStmtPhase) : ∀ rest : List AffineStmtPhase,
+      affineStmtEntryFinishSteps phase rest ≤
+        200 * (encodeAffineStmtControllerScript (phase :: rest)).length := by
+    intro rest
+    induction rest generalizing phase with
+    | nil =>
+        simpa [affineStmtEntryFinishSteps,
+          encodeAffineStmtControllerScript] using hphase phase
+    | cons next rest ih =>
+        have hfirst := affineStmtPhaseNext_steps_le phase
+        have hrest := ih next
+        simp only [affineStmtEntryFinishSteps,
+          encodeAffineStmtControllerScript, List.flatMap_cons,
+          List.length_append] at *
+        omega
+  cases script with
+  | nil =>
+      simp [affineStmtScriptFinishSteps, encodeAffineStmtControllerInput,
+        encodeAffineStmtControllerScript]
+  | cons phase rest =>
+      have h := hentry phase rest
+      simp only [affineStmtScriptFinishSteps,
         encodeAffineStmtControllerInput_length]
       omega
 

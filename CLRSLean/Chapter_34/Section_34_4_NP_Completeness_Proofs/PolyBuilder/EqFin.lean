@@ -566,6 +566,72 @@ private def affineEqFinPair_run (frame : AffineEqFinPairFrame)
   · unfold affineEqFinPairSteps
     omega
 
+/-- Exact body runtime that consumes only the encoded equality frames and
+stops before inspecting an arbitrary following suffix. -/
+def affineEqFinBodySteps : List AffineEqFinPairFrame → Nat
+  | [] => 0
+  | frame :: rest => affineEqFinPairSteps frame + affineEqFinBodySteps rest
+
+/-- Execute equality frames while preserving an arbitrary unary suffix and
+return to the clean coordinate check. -/
+def affineEqFinFrames_runToCheck (frames : List AffineEqFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineEqFinRevProgram)
+      (affineEqFinCheckCfg (encodeAffineEqFinFrames frames ++ tail) output)
+      (some (affineEqFinCheckCfg tail
+        (((frames.flatMap fun frame =>
+          affineBoolEqGateStream frame.eqStart frame.left frame.right ++
+            affineAndGateStream frame.matched frame.previous)).reverse ++
+          output)))
+      (affineEqFinBodySteps frames) := by
+  induction frames generalizing output with
+  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
+  | cons frame rest ih =>
+      let frameOutput :=
+        ((affineBoolEqGateStream frame.eqStart frame.left frame.right ++
+          affineAndGateStream frame.matched frame.previous)).reverse ++ output
+      have hframe := affineEqFinPair_run frame
+        (encodeAffineEqFinFrames rest ++ tail) output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans (step affineEqFinRevProgram)
+        (affineEqFinPairSteps frame) (affineEqFinBodySteps rest) _
+        (affineEqFinCheckCfg
+          (encodeAffineEqFinFrames rest ++ tail) frameOutput) _
+        hframe hrest
+      convert full using 1
+      · simp [encodeAffineEqFinFrames, List.append_assoc]
+      · simp [frameOutput, List.reverse_append, List.append_assoc]
+      · simp [affineEqFinBodySteps]
+        omega
+
+/-- Execute a complete equality phase while preserving an arbitrary unary
+suffix at the clean coordinate check. -/
+def affineEqFin_runToCheck (frames : List AffineEqFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineEqFinRevProgram)
+      (affineEqFinLoopCfg
+        (encodeAffineEqFinFrames frames ++ tail) output)
+      (some (affineEqFinCheckCfg tail
+        ((affineEqFinGateStream frames).reverse ++ output)))
+      (1 + affineEqFinBodySteps frames) := by
+  let seeded := .constTrueMark :: output
+  have hseed : EvalsToInTime (step affineEqFinRevProgram)
+      (affineEqFinLoopCfg
+        (encodeAffineEqFinFrames frames ++ tail) output)
+      (some (affineEqFinCheckCfg
+        (encodeAffineEqFinFrames frames ++ tail) seeded)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  have hframes := affineEqFinFrames_runToCheck frames tail seeded
+  let full := EvalsToInTime.trans (step affineEqFinRevProgram)
+    1 (affineEqFinBodySteps frames) _
+    (affineEqFinCheckCfg
+      (encodeAffineEqFinFrames frames ++ tail) seeded) _
+    hseed hframes
+  convert full using 1
+  · simp [affineEqFinGateStream, seeded, List.reverse_append,
+      List.append_assoc]
+  · omega
+
 /-- Exact recursive runtime after the initial true seed. -/
 def affineEqFinFoldSteps : List AffineEqFinPairFrame → Nat
   | [] => 1

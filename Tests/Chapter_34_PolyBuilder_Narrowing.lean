@@ -9,7 +9,10 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineNarrowCfgGateStream_eq_trace
 #check affineNarrowCfg_run
 #check affineNarrowCfgRev_steps_le
+#check affineOrFinFinishInputCfg
+#check affineOrThenNot_runToFinishWithTail
 
 #print axioms affineNarrowCfgGateStream_eq_trace
 #print axioms affineNarrowCfg_run
 #print axioms affineNarrowCfgRev_steps_le
+#print axioms affineOrThenNot_runToFinishWithTail
