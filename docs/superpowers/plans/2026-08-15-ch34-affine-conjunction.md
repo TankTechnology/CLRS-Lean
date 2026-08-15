@@ -201,7 +201,7 @@ git commit -m "feat(ch34): add contextual conjunction gate kernel"
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/Conjunction.lean`
 - Test: `Tests/Chapter_34_PolyBuilder_Conjunction.lean`
 
-- [ ] **Step 1: Add frame encoding**
+- [x] **Step 1: Add frame encoding**
 
 Define exactly:
 
@@ -224,7 +224,7 @@ def encodeAffineConjunctionFrame (frame : AffineConjunctionFrame) :
 Prove the exact length as `frame.start + 2 +
 (frame.wires.map fun wire => wire + 1).sum`.
 
-- [ ] **Step 2: Add the processing-order trace**
+- [x] **Step 2: Add the processing-order trace**
 
 Define a tail-first fold over already-reversed sources:
 
@@ -241,7 +241,7 @@ def affineConjunctionGateStream (frame : AffineConjunctionFrame) :
       encodeCircuitGate
 ```
 
-- [ ] **Step 3: Align the tail-first semantic trace**
+- [x] **Step 3: Align the tail-first semantic trace**
 
 Prove a carry lemma for `chunksFrom` over append and a wire-index lemma
 `(conjunctionGateTrace start wires).wire = start + wires.length`.  Induct on
@@ -258,7 +258,7 @@ theorem affineConjunctionGateStream_eq_trace
 The cons case must rewrite `List.reverse_cons`, use the append carry lemma, and
 identify the last gate as `.and wire (start + rest.length)`.
 
-- [ ] **Step 4: Run the semantic checks and commit**
+- [x] **Step 4: Run the semantic checks and commit**
 
 ```bash
 lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
