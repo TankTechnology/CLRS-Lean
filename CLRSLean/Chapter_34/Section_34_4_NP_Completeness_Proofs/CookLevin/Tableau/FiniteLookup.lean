@@ -438,6 +438,81 @@ def oneHotPairPreimage {n p m : Nat} (f : Fin n → Fin p → Fin m)
     (target : Fin m) : Finset (Fin (n * p)) :=
   oneHotPreimage (oneHotPairFunction f) target
 
+/-- Pure gate trace and fresh wires of the Cartesian-product AND phase. -/
+structure OneHotPairAndGateTrace (k : Nat) where
+  gates : List CircuitGate
+  wires : Fin k → CircuitBuilder.Wire
+
+private def oneHotPairAndBodyGateTrace {n p : Nat} (start : Nat)
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    (k : Nat) → (hk : k ≤ n * p) → OneHotPairAndGateTrace k
+  | 0, _ =>
+      { gates := []
+        wires := fun q => Fin.elim0 q }
+  | k + 1, hk =>
+      let hkPrevious : k ≤ n * p := by omega
+      let previous := oneHotPairAndBodyGateTrace start left right k hkPrevious
+      let q : Fin (n * p) := Fin.castLE hk (Fin.last k)
+      let pair := finProdFinEquiv.symm q
+      { gates := previous.gates ++ [.and (left pair.1) (right pair.2)]
+        wires := fun index =>
+          if hindex : index.val < k then
+            previous.wires ⟨index.val, hindex⟩
+          else start + previous.gates.length }
+
+/-- Exact pair-major AND trace used before a binary one-hot lookup. -/
+def oneHotPairAndGateTrace {n p : Nat} (start : Nat)
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    OneHotPairAndGateTrace (n * p) :=
+  oneHotPairAndBodyGateTrace start left right (n * p) (Nat.le_refl _)
+
+private def oneHotPairBodyOperands {n p : Nat}
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    (k : Nat) → (hk : k ≤ n * p) →
+      List (CircuitBuilder.Wire × CircuitBuilder.Wire)
+  | 0, _ => []
+  | k + 1, hk =>
+      let hkPrevious : k ≤ n * p := by omega
+      let q : Fin (n * p) := Fin.castLE hk (Fin.last k)
+      let pair := finProdFinEquiv.symm q
+      oneHotPairBodyOperands left right k hkPrevious ++
+        [(left pair.1, right pair.2)]
+
+/-- Runtime operand pairs in the exact order of the pair materialization
+phase. -/
+def oneHotPairOperands {n p : Nat}
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    List (CircuitBuilder.Wire × CircuitBuilder.Wire) :=
+  oneHotPairBodyOperands left right (n * p) (Nat.le_refl _)
+
+private theorem oneHotPairAndBodyGateTrace_gates_eq_operands {n p : Nat}
+    (start : Nat) (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    ∀ (k : Nat) (hk : k ≤ n * p),
+      (oneHotPairAndBodyGateTrace start left right k hk).gates =
+        (oneHotPairBodyOperands left right k hk).map fun pair =>
+          .and pair.1 pair.2 := by
+  intro k
+  induction k with
+  | zero => intro hk; rfl
+  | succ k ih =>
+      intro hk
+      let hkPrevious : k ≤ n * p := by omega
+      simp only [oneHotPairAndBodyGateTrace, oneHotPairBodyOperands,
+        List.map_append, List.map_cons, List.map_nil]
+      rw [ih hkPrevious]
+
+theorem oneHotPairAndGateTrace_gates_eq_operands {n p : Nat}
+    (start : Nat) (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    (oneHotPairAndGateTrace start left right).gates =
+      (oneHotPairOperands left right).map fun pair => .and pair.1 pair.2 :=
+  oneHotPairAndBodyGateTrace_gates_eq_operands start left right _ _
+
 private structure OneHotPairAndBodyResult (base : CircuitBuilder) {n p : Nat}
     (left : Fin n → CircuitBuilder.Wire)
     (right : Fin p → CircuitBuilder.Wire) (k : Nat) (hk : k ≤ n * p) where
@@ -523,6 +598,47 @@ private def oneHotPairAndBody (base : CircuitBuilder) {n p : Nat}
           simp only [q, pair] at hleftEval hrightEval ⊢
           rw [hleftEval, hrightEval]
 
+private theorem oneHotPairAndBody_trace_eq (base : CircuitBuilder)
+    {n p : Nat} (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire)
+    (hleft : ∀ i, base.WireValid (left i))
+    (hright : ∀ j, base.WireValid (right j)) :
+    ∀ (k : Nat) (hk : k ≤ n * p),
+      (oneHotPairAndBody base left right hleft hright k hk).builder.gates =
+          base.gates ++
+            (oneHotPairAndBodyGateTrace base.gates.length
+              left right k hk).gates ∧
+        ∀ q, (oneHotPairAndBody base left right hleft hright k hk).wires q =
+          (oneHotPairAndBodyGateTrace base.gates.length
+            left right k hk).wires q := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk
+      constructor
+      · simp [oneHotPairAndBody, oneHotPairAndBodyGateTrace]
+      · intro q
+        exact Fin.elim0 q
+  | succ k ih =>
+      intro hk
+      let hkPrevious : k ≤ n * p := by omega
+      let previous := oneHotPairAndBody base left right hleft hright k hkPrevious
+      let q : Fin (n * p) := Fin.castLE hk (Fin.last k)
+      let pair := finProdFinEquiv.symm q
+      rcases ih hkPrevious with ⟨hpreviousGates, hpreviousWires⟩
+      have hpreviousLength := congrArg List.length hpreviousGates
+      simp only [List.length_append] at hpreviousLength
+      simp only [oneHotPairAndBody]
+      constructor
+      · rw [CircuitBuilder.and_gates, hpreviousGates]
+        simp [oneHotPairAndBodyGateTrace, pair, q, List.append_assoc]
+      · intro index
+        simp only [oneHotPairAndBodyGateTrace]
+        split
+        next hindex => exact hpreviousWires ⟨index.val, hindex⟩
+        next =>
+          rw [CircuitBuilder.and_wire_eq, hpreviousLength]
+
 private structure OneHotPairAndResult (base : CircuitBuilder) {n p : Nat}
     (left : Fin n → CircuitBuilder.Wire)
     (right : Fin p → CircuitBuilder.Wire) where
@@ -552,6 +668,60 @@ private def oneHotPairAnd (base : CircuitBuilder) {n p : Nat}
       valid := body.valid
       gate_delta := body.gate_delta
       eval := by intro inputs q; simpa using body.eval inputs q }
+
+private theorem oneHotPairAnd_trace_eq (base : CircuitBuilder)
+    {n p : Nat} (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire)
+    (hleft : ∀ i, base.WireValid (left i))
+    (hright : ∀ j, base.WireValid (right j)) :
+    (oneHotPairAnd base left right hleft hright).builder.gates =
+        base.gates ++
+          (oneHotPairAndGateTrace base.gates.length left right).gates ∧
+      ∀ q, (oneHotPairAnd base left right hleft hright).wires q =
+        (oneHotPairAndGateTrace base.gates.length left right).wires q := by
+  exact oneHotPairAndBody_trace_eq base left right hleft hright
+    (n * p) (Nat.le_refl _)
+
+/-- Pure trace of pair materialization followed by target-fiber lookup. -/
+structure OneHotPairMapGateTrace (m : Nat) where
+  gates : List CircuitGate
+  wires : Fin m → CircuitBuilder.Wire
+
+def oneHotPairMapGateTrace {n p m : Nat} (start : Nat)
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire)
+    (f : Fin n → Fin p → Fin m) : OneHotPairMapGateTrace m :=
+  let pairs := oneHotPairAndGateTrace start left right
+  let mapped := oneHotMapGateTrace (start + pairs.gates.length)
+    pairs.wires (oneHotPairFunction f)
+  { gates := pairs.gates ++ mapped.gates
+    wires := mapped.wires }
+
+/-- Target-major fibers over the freshly materialized pair wires. -/
+def oneHotPairMapFamilies {n p m : Nat} (start : Nat)
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire)
+    (f : Fin n → Fin p → Fin m) :
+    List (List CircuitBuilder.Wire) :=
+  oneHotMapFibers (oneHotPairAndGateTrace start left right).wires
+    (oneHotPairFunction f)
+
+/-- The complete binary lookup trace is exactly an ordered AND phase followed
+by a target-major family of disjunctions. -/
+theorem oneHotPairMapGateTrace_gates_eq_phases {n p m : Nat} (start : Nat)
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire)
+    (f : Fin n → Fin p → Fin m) :
+    (oneHotPairMapGateTrace start left right f).gates =
+      (oneHotPairOperands left right).map
+          (fun pair => CircuitGate.and pair.1 pair.2) ++
+        CircuitBuilder.disjunctionFamilyGateTrace
+          (start + (oneHotPairOperands left right).length)
+          (oneHotPairMapFamilies start left right f) := by
+  simp only [oneHotPairMapGateTrace]
+  rw [oneHotMapGateTrace_gates_eq_family,
+    oneHotPairAndGateTrace_gates_eq_operands, List.length_map]
+  rfl
 
 /-- Proof-carrying result of mapping two one-hot families through a static
 binary function. -/
@@ -602,6 +772,59 @@ def oneHotPairMap (base : CircuitBuilder) {n p m : Nat}
     apply List.any_congr rfl
     intro q
     exact pairs.eval inputs q
+
+/-- A binary one-hot lookup appends its exact pair-AND then target-fiber
+trace. -/
+theorem oneHotPairMap_gates_eq (base : CircuitBuilder) {n p m : Nat}
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire)
+    (f : Fin n → Fin p → Fin m)
+    (hleft : ∀ i, base.WireValid (left i))
+    (hright : ∀ j, base.WireValid (right j)) :
+    (oneHotPairMap base left right f hleft hright).builder.gates =
+      base.gates ++
+        (oneHotPairMapGateTrace base.gates.length left right f).gates := by
+  let pairs := oneHotPairAnd base left right hleft hright
+  let pairTrace := oneHotPairAndGateTrace base.gates.length left right
+  let mapped := oneHotMap pairs.builder pairs.wires
+    (oneHotPairFunction f) pairs.valid
+  rcases oneHotPairAnd_trace_eq base left right hleft hright with
+    ⟨hpairGates, hpairWires⟩
+  have hpairWiresFn : pairs.wires = pairTrace.wires := by
+    funext q
+    exact hpairWires q
+  change mapped.builder.gates = _
+  rw [oneHotMap_gates_eq, hpairGates]
+  simp only [oneHotPairMapGateTrace]
+  simp only [List.length_append]
+  rw [hpairWiresFn]
+  simp [pairs, pairTrace, mapped, List.append_assoc]
+
+/-- Every binary one-hot-map output wire agrees with its pure complete
+trace. -/
+theorem oneHotPairMap_wire_eq_trace (base : CircuitBuilder) {n p m : Nat}
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire)
+    (f : Fin n → Fin p → Fin m)
+    (hleft : ∀ i, base.WireValid (left i))
+    (hright : ∀ j, base.WireValid (right j)) (target : Fin m) :
+    (oneHotPairMap base left right f hleft hright).wires target =
+      (oneHotPairMapGateTrace base.gates.length left right f).wires target := by
+  let pairs := oneHotPairAnd base left right hleft hright
+  let pairTrace := oneHotPairAndGateTrace base.gates.length left right
+  let mapped := oneHotMap pairs.builder pairs.wires
+    (oneHotPairFunction f) pairs.valid
+  rcases oneHotPairAnd_trace_eq base left right hleft hright with
+    ⟨hpairGates, hpairWires⟩
+  have hpairLength := congrArg List.length hpairGates
+  simp only [List.length_append] at hpairLength
+  have hpairWiresFn : pairs.wires = pairTrace.wires := by
+    funext q
+    exact hpairWires q
+  change mapped.wires target = _
+  rw [oneHotMap_wire_eq_trace]
+  simp only [oneHotPairMapGateTrace]
+  rw [hpairLength, hpairWiresFn]
 
 /-- A finite pair lookup preserves the complete input prefix. -/
 theorem oneHotPairMap_extends (base : CircuitBuilder) {n p m : Nat}
