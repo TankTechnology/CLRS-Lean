@@ -302,6 +302,16 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis" = [
   "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
 ]
+"CLRSLean.FourthEdition.Chapter_06" = [
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_1_Heaps",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_2_Maintaining_Heap_Property",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_3_Building_A_Heap",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues",
+]
+"CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort" = [
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort.CostedExecution",
+]
 "CLRSLean.FourthEdition.Chapter_07" = [
   "CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort",
   "CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort",
@@ -1060,6 +1070,24 @@ title = "The On-line Hiring Problem"
 
 [modules."CLRSLean.FourthEdition.Chapter_06"]
 title = "Chapter 6. Heapsort"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_1_Heaps"]
+title = "6.1. Heaps"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_2_Maintaining_Heap_Property"]
+title = "6.2. Maintaining the Heap Property"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_3_Building_A_Heap"]
+title = "6.3. Building a Heap"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort"]
+title = "6.4. The Heapsort Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort.CostedExecution"]
+title = "6.4. Costed Heapsort Execution"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues"]
+title = "6.5. Priority Queues"
 
 [modules."CLRSLean.FourthEdition.Chapter_07"]
 title = "Chapter 7. Quicksort"
