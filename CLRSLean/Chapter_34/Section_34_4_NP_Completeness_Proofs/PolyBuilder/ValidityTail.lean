@@ -269,6 +269,49 @@ private theorem liftConjunction_step
       exact congrArg some
         (liftConjunction_stepOp (affineConjunctionRevProgram.op label) c)
 
+private theorem conjunction_iterate_bind_none (n : Nat) :
+    (flip Option.bind (step affineConjunctionRevProgram))^[n]
+      (none : Option (BuilderCfg affineConjunctionRevProgram)) = none := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [Function.iterate_succ_apply]
+      exact ih
+
+private theorem liftConjunction_iterations
+    {a b : BuilderCfg affineConjunctionRevProgram} : ∀ n : Nat,
+    (flip Option.bind (step affineConjunctionRevProgram))^[n]
+        (some a) = some b →
+      (flip Option.bind (step affineValidityTailRevProgram))^[n]
+        (some (liftConjunctionCfg a)) = some (liftConjunctionCfg b) := by
+  intro n
+  induction n generalizing a with
+  | zero =>
+      intro h
+      injection h with hab
+      simpa [hab]
+  | succ n ih =>
+      intro h
+      rw [Function.iterate_succ_apply] at h ⊢
+      change
+        (flip Option.bind (step affineConjunctionRevProgram))^[n]
+          (step affineConjunctionRevProgram a) = some b at h
+      change
+        (flip Option.bind (step affineValidityTailRevProgram))^[n]
+          (step affineValidityTailRevProgram (liftConjunctionCfg a)) =
+            some (liftConjunctionCfg b)
+      cases hstep : step affineConjunctionRevProgram a with
+      | none =>
+          rw [hstep, conjunction_iterate_bind_none] at h
+          contradiction
+      | some c =>
+          have hsim := liftConjunction_step a
+          rw [hstep] at hsim
+          simp only [Option.map_some] at hsim
+          rw [hsim]
+          rw [hstep] at h
+          exact ih h
+
 private theorem stack_iterate_bind_none (n : Nat) :
     (flip Option.bind (step affineStackRevProgram))^[n]
       (none : Option (BuilderCfg affineStackRevProgram)) = none := by
@@ -361,18 +404,19 @@ private theorem liftStack_iterations_to_finish
           exact ih h
 
 private def affineValidityTail_stack_runToFinish
-    (frame : AffineValidityTailFrame) (output : List CircuitSym) :
+    (frame : AffineValidityTailFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityTailRevProgram)
       (affineValidityTailLoopCfg
-        (encodeAffineValidityTailFrame frame) output)
+        (encodeAffineValidityTailFrame frame ++ tail) output)
       (some (liftStackCfg (affineStackFamilyTerminatorCfg
-        (encodeAffineConjunctionFrame frame.finalFrame)
+        (encodeAffineConjunctionFrame frame.finalFrame ++ tail)
         ((affineStackFamilyGateStream frame.stackFrames).reverse ++ output))))
       (affineStackFamilyUntilTerminatorSteps frame.stackFrames) := by
   have sourceRun := affineStackFamily_runToTerminator frame.stackFrames
-    (encodeAffineConjunctionFrame frame.finalFrame) output
+    (encodeAffineConjunctionFrame frame.finalFrame ++ tail) output
   have htarget : (affineStackFamilyTerminatorCfg
-      (encodeAffineConjunctionFrame frame.finalFrame)
+      (encodeAffineConjunctionFrame frame.finalFrame ++ tail)
       ((affineStackFamilyGateStream frame.stackFrames).reverse ++ output)).label =
         some .finish := rfl
   refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
@@ -380,47 +424,86 @@ private def affineValidityTail_stack_runToFinish
     sourceRun.evals_in_steps
   have hsourceLift : liftStackCfg (affineStackLoopCfg
       (encodeAffineStackFamily frame.stackFrames ++
-        .frameEnd :: encodeAffineConjunctionFrame frame.finalFrame) output) =
+        .frameEnd :: (encodeAffineConjunctionFrame frame.finalFrame ++ tail))
+      output) =
       affineValidityTailLoopCfg
-        (encodeAffineValidityTailFrame frame) output := rfl
+        (encodeAffineValidityTailFrame frame ++ tail) output := by
+    simp [liftStackCfg, affineStackLoopCfg, affineStackCfg,
+      affineStackRevProgram, affineValidityTailLoopCfg,
+      affineValidityTailCfg, affineValidityTailRevProgram,
+      encodeAffineValidityTailFrame, List.append_assoc]
   rw [hsourceLift] at lifted
   exact lifted
 
 private def affineValidityTail_bridge
-    (frame : AffineValidityTailFrame) (output : List CircuitSym) :
+    (frame : AffineValidityTailFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityTailRevProgram)
       (liftStackCfg (affineStackFamilyTerminatorCfg
-        (encodeAffineConjunctionFrame frame.finalFrame) output))
+        (encodeAffineConjunctionFrame frame.finalFrame ++ tail) output))
       (some (liftConjunctionCfg (affineConjunctionLoopCfg
-        (encodeAffineConjunctionFrame frame.finalFrame) output))) 1 :=
+        (encodeAffineConjunctionFrame frame.finalFrame ++ tail) output))) 1 :=
   ⟨⟨1, rfl⟩, le_rfl⟩
 
-private def affineValidityTail_conjunction_run
-    (frame : AffineConjunctionFrame) (output : List CircuitSym) :
+private def affineValidityTail_conjunction_runToFinish
+    (frame : AffineConjunctionFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityTailRevProgram)
       (liftConjunctionCfg (affineConjunctionLoopCfg
-        (encodeAffineConjunctionFrame frame) output))
-      (some (haltCfg affineValidityTailRevProgram
-        ((affineConjunctionGateStream frame).reverse ++ output)))
-      (affineConjunctionRevSteps frame) := by
-  have sourceRun := affineConjunction_run frame output
-  have hstop : step affineConjunctionRevProgram
-      (haltCfg affineConjunctionRevProgram
-        ((affineConjunctionGateStream frame).reverse ++ output)) = none := rfl
-  have lifted := _root_.Turing.TM2Comp.evalsToInTime_lift
-    liftConjunctionCfg sourceRun hstop (fun c _ => liftConjunction_step c)
-  have hhaltLift : liftConjunctionCfg
-      (haltCfg affineConjunctionRevProgram
-        ((affineConjunctionGateStream frame).reverse ++ output)) =
-      haltCfg affineValidityTailRevProgram
-        ((affineConjunctionGateStream frame).reverse ++ output) := rfl
-  rw [hhaltLift] at lifted
-  exact lifted
+        (encodeAffineConjunctionFrame frame ++ tail) output))
+      (some (liftConjunctionCfg (affineConjunctionFinishCfg tail
+        ((affineConjunctionGateStream frame).reverse ++ output))))
+      (affineConjunctionUntilFinishSteps frame) := by
+  have sourceRun := affineConjunction_runToFinish frame tail output
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact liftConjunction_iterations sourceRun.steps sourceRun.evals_in_steps
+
+/-- Redirectable clean exit after the full validity suffix. -/
+def affineValidityTailFinishCfg (tail : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineValidityTailRevProgram :=
+  liftConjunctionCfg (affineConjunctionFinishCfg tail output)
+
+/-- Exact contextual runtime through the redirectable tail finish label. -/
+def affineValidityTailUntilFinishSteps
+    (frame : AffineValidityTailFrame) : Nat :=
+  affineStackFamilyUntilTerminatorSteps frame.stackFrames + 1 +
+    affineConjunctionUntilFinishSteps frame.finalFrame
+
+/-- Execute the full suffix, preserve an arbitrary unconsumed input tail,
+and stop before the final halt instruction. -/
+def affineValidityTail_runToFinish (frame : AffineValidityTailFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineValidityTailRevProgram)
+      (affineValidityTailLoopCfg
+        (encodeAffineValidityTailFrame frame ++ tail) output)
+      (some (affineValidityTailFinishCfg tail
+        ((affineValidityTailGateStream frame).reverse ++ output)))
+      (affineValidityTailUntilFinishSteps frame) := by
+  let stackOutput :=
+    (affineStackFamilyGateStream frame.stackFrames).reverse ++ output
+  have hstack := affineValidityTail_stack_runToFinish frame tail output
+  have hbridge := affineValidityTail_bridge frame tail stackOutput
+  have hconjunction := affineValidityTail_conjunction_runToFinish
+    frame.finalFrame tail stackOutput
+  let t₁ := EvalsToInTime.trans (step affineValidityTailRevProgram)
+    (affineStackFamilyUntilTerminatorSteps frame.stackFrames) 1
+    _ (liftStackCfg (affineStackFamilyTerminatorCfg
+      (encodeAffineConjunctionFrame frame.finalFrame ++ tail) stackOutput))
+    _ hstack hbridge
+  let full := EvalsToInTime.trans (step affineValidityTailRevProgram)
+    _ (affineConjunctionUntilFinishSteps frame.finalFrame)
+    _ (liftConjunctionCfg (affineConjunctionLoopCfg
+      (encodeAffineConjunctionFrame frame.finalFrame ++ tail) stackOutput))
+    _ t₁ hconjunction
+  convert full using 1
+  · simp [affineValidityTailFinishCfg, affineValidityTailGateStream, stackOutput,
+      List.reverse_append, List.append_assoc]
+  · unfold affineValidityTailUntilFinishSteps
+    omega
 
 /-- Exact runtime of the continuous stack-family/conjunction controller. -/
 def affineValidityTailRevSteps (frame : AffineValidityTailFrame) : Nat :=
-  affineStackFamilyUntilTerminatorSteps frame.stackFrames + 1 +
-    affineConjunctionRevSteps frame.finalFrame
+  affineValidityTailUntilFinishSteps frame + 1
 
 /-- Execute the complete post-halted row-validity suffix with no halt between
 the stack family and final conjunction. -/
@@ -432,27 +515,18 @@ def affineValidityTail_run (frame : AffineValidityTailFrame)
       (some (haltCfg affineValidityTailRevProgram
         ((affineValidityTailGateStream frame).reverse ++ output)))
       (affineValidityTailRevSteps frame) := by
-  let stackOutput :=
-    (affineStackFamilyGateStream frame.stackFrames).reverse ++ output
-  have hstack := affineValidityTail_stack_runToFinish frame output
-  have hbridge := affineValidityTail_bridge frame stackOutput
-  have hconjunction := affineValidityTail_conjunction_run
-    frame.finalFrame stackOutput
-  let t₁ := EvalsToInTime.trans (step affineValidityTailRevProgram)
-    (affineStackFamilyUntilTerminatorSteps frame.stackFrames) 1
-    _ (liftStackCfg (affineStackFamilyTerminatorCfg
-      (encodeAffineConjunctionFrame frame.finalFrame) stackOutput))
-    _ hstack hbridge
+  let gateOutput := (affineValidityTailGateStream frame).reverse ++ output
+  have hfinish := affineValidityTail_runToFinish frame [] output
+  have hhalt : EvalsToInTime (step affineValidityTailRevProgram)
+      (affineValidityTailFinishCfg [] gateOutput)
+      (some (haltCfg affineValidityTailRevProgram gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
   let full := EvalsToInTime.trans (step affineValidityTailRevProgram)
-    _ (affineConjunctionRevSteps frame.finalFrame)
-    _ (liftConjunctionCfg (affineConjunctionLoopCfg
-      (encodeAffineConjunctionFrame frame.finalFrame) stackOutput))
-    _ t₁ hconjunction
+    (affineValidityTailUntilFinishSteps frame) 1
+    _ (affineValidityTailFinishCfg [] gateOutput) _ hfinish hhalt
   convert full using 1
-  · simp [affineValidityTailGateStream, stackOutput,
-      List.reverse_append, List.append_assoc]
-  · simp [affineValidityTailRevSteps]
-    omega
+  · simp [gateOutput]
+  · simp [affineValidityTailRevSteps, Nat.add_comm]
 
 /-- The linked runtime is quadratic in the exact delimiter-bearing frame. -/
 theorem affineValidityTailRev_steps_le
@@ -473,7 +547,9 @@ theorem affineValidityTailRev_steps_le
   have hconjunctionSq := Nat.pow_le_pow_left hconjunctionLen 2
   have hstackScaled := Nat.mul_le_mul_left 400 hstackSq
   have hconjunctionScaled := Nat.mul_le_mul_left 1000 hconjunctionSq
-  simp only [affineValidityTailRevSteps]
+  change affineStackFamilyUntilTerminatorSteps frame.stackFrames + 1 +
+      affineConjunctionRevSteps frame.finalFrame ≤
+    1400 * (encodeAffineValidityTailFrame frame).length ^ 2 + 5
   omega
 
 end CLRS.Chapter34.Turing.PolyBuilder

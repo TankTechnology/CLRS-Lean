@@ -890,6 +890,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityTail",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRow",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRowFamily",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineTrace",
@@ -918,6 +919,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityBoolEq",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityStack",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRow",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRows",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauLayout" = [
@@ -2942,6 +2944,9 @@ title = "34.4. Continuous validity-tail serialization"
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRow"]
 title = "34.4. Continuous single-row validity serialization"
 
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRowFamily"]
+title = "34.4. Runtime family of complete validity rows"
+
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin"]
 title = "34.4. Cook--Levin infrastructure"
 
@@ -3058,6 +3063,9 @@ title = "34.4. Arithmetic stack-cell equality serialization"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRow"]
 title = "34.4. Continuous arithmetic row-validity generation"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRows"]
+title = "34.4. Runtime generation of every validity row"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap"]
 title = "34.4. Function-level Cook--Levin map"

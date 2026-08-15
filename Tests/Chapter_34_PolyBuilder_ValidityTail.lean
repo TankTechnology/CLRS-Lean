@@ -9,9 +9,13 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check AffineValidityTailLabel
 #check affineValidityTailRevProgram
 #check affineValidityTailLoopCfg
+#check affineValidityTailFinishCfg
+#check affineValidityTailUntilFinishSteps
+#check affineValidityTail_runToFinish
 #check affineValidityTailRevSteps
 #check affineValidityTail_run
 #check affineValidityTailRev_steps_le
 
 #print axioms affineValidityTail_run
+#print axioms affineValidityTail_runToFinish
 #print axioms affineValidityTailRev_steps_le

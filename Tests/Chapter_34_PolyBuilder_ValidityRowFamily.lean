@@ -1,0 +1,25 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRowFamily
+
+open StateTransition
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeAffineValidityRowFamily
+#check encodeAffineValidityRowFamilyInput
+#check affineValidityRowFamilyGateStream
+#check affineValidityRowFamilyGateStream_eq_flatMap
+#check affineValidityRowFamilyRevProgram
+#check affineValidityRowFamilyLoopCfg
+#check affineValidityRowFamilyFinishCfg
+#check affineValidityRowFamilyFrameSteps
+#check affineValidityRowFamily_runOne
+#check affineValidityRowFamilyUntilFinishSteps
+#check affineValidityRowFamily_runToFinish
+#check affineValidityRowFamilyRevSteps
+#check affineValidityRowFamily_run
+#check affineValidityRowFamilyFrame_steps_le
+#check affineValidityRowFamilyRev_steps_le
+
+#print axioms affineValidityRowFamily_runOne
+#print axioms affineValidityRowFamily_runToFinish
+#print axioms affineValidityRowFamily_run
+#print axioms affineValidityRowFamilyRev_steps_le

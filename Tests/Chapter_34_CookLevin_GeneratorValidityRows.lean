@@ -1,0 +1,20 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRows
+
+open StateTransition
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticValidityRowFrames
+#check arithmeticValidityRowsGateStream_eq_semantic
+#check arithmeticValidityRowsRev_runFrom
+#check arithmeticValidityRowsRev_steps_le
+#check verifierValidityRowFramesByLength
+#check verifierValidityRowsRev_runFromByLength
+#check verifierValidityRowsRev_runFrom
+
+#print axioms arithmeticValidityRowsGateStream_eq_semantic
+#print axioms arithmeticValidityRowsRev_runFrom
+#print axioms arithmeticValidityRowsRev_steps_le
+#print axioms verifierValidityRowsRev_runFrom
