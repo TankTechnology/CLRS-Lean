@@ -197,6 +197,12 @@ orientation, and gate-index layers:
   `stackValidityFamilyGateTrace_output_eq` remove the remaining recursive
   output lookups from stack canonicality: every active mask and cell
   constraint now has a closed affine wire index.
+- `arithmeticValidityConstraintWires` exposes the exact canonical order of
+  every wire consumed by the row-validity final conjunction;
+  `arithmeticValidityFinalStart` gives its closed first fresh gate index; and
+  `arithmeticValidityFinalConjunctionGateStream_eq_semantic` proves that the
+  formerly opaque post-stack tail is byte-for-byte the encoded tail-first
+  conjunction trace.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -301,6 +307,13 @@ already closed independently.
     keeps one main `boolEq` constructor whose argument is a separate finite
     phase type; this changes only the representation of finite control, not
     the program's runtime data or transition semantics.
+15. **Linking the current contextual `runFrom` theorems after redirecting
+    their final halt.** Reproducing halt's buffer/test normalization is not
+    enough: every successful public primitive exit also clears all three
+    unary registers and requires both work stacks to be empty. A subsequent
+    cell therefore has lost the runtime gate and source indices it needs.
+    The accepted replacement is a delimiter-bearing persistent frame on the
+    symbol stacks together with continuation-preserving primitive exits.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
@@ -322,6 +335,10 @@ gap.  Independently, `arithmeticStackFamilyGateStream_prefix_postHalted` and
 `arithmeticValidityPostHaltedMatch_eq_stack_append_final` prove that this exact
 family is the entire prefix after halted agreement and leave one uniquely
 defined final-conjunction tail.
+That tail is now fully identified by
+`arithmeticValidityFinalConjunctionGateStream_eq_semantic`; the execution gap
+is no longer a semantic ambiguity, but the concrete persistent-frame loop
+that must carry runtime indices between primitive invocations.
 
 ## Focused Acceptance Mechanism
 
