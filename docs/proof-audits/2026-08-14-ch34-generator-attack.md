@@ -647,6 +647,15 @@ without an intermediate halt.  Its output is byte-for-byte the semantic
 trace and `affineOneHotPairMap_steps_le` is linear in the complete runtime
 encoding.
 
+Narrowing has now crossed the same execution boundary.  The OR controller has
+a dedicated non-halting transition into the NOT loader, and
+`affineNarrowCfg_run` proves that one fixed machine emits the complete
+`narrowCfgGateTrace` and halts with cleared scratch stacks.
+`affineNarrowCfgGateStream_eq_trace` fixes byte-for-byte agreement and
+`affineNarrowCfgRev_steps_le` supplies a linear bound in the explicit
+delimiter-bearing input.  Narrowing is therefore no longer only an acceptance
+oracle; it is an executed transition-generator component.
+
 Two further rejected routes are recorded. A contiguous affine source interval
 cannot represent a sparse truth-table fiber, even when its cardinality is
 correct. Also, the active-mask suffix scan emits `.or carry wire`, whereas
@@ -670,6 +679,15 @@ mode.  Also, the embedded conjunction kernel emits `.and source carry`, so
 the runtime loader deliberately stores the semantic right operand as carry
 and the left operand as source; commutativity cannot repair reversed bytes.
 
+The narrowing composition rejected three analogous shortcuts.  A separately
+halting arbitrary-OR run followed by a separately halting NOT run is not one
+generator computation.  The OR component also clears its arithmetic counters,
+so the final disjunction wire must be carried explicitly in the runtime unary
+NOT frame instead of being reconstructed from stale registers.  Finally,
+entering the NOT loader while a consumed phase marker remains in its buffer
+breaks the loader-ready configuration; the accepted path uses a reserved
+`.tick` marker and explicit buffer cleanup before loading the NOT source.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -688,6 +706,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.EqFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.MuxFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Narrowing
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPairMap
@@ -718,6 +737,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_ExactlyOneFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Narrowing.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPredicate.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPairMap.lean

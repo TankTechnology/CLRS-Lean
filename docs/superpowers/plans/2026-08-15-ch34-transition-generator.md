@@ -15,8 +15,9 @@ polynomial runtime bound.
       dispatch, narrowing, complete-row equality, and final AND.
 - [ ] Give each runtime-sized phase an exact fixed-controller execution theorem.
       The complete-row equality and multiplexer subphases are now closed by
-      `affineEqFinCanonical_run` and `affineMuxFinCanonical_run`; the enclosing
-      dispatch/narrowing phases remain.
+      `affineEqFinCanonical_run` and `affineMuxFinCanonical_run`; narrowing is
+      closed by `affineNarrowCfg_run`, so the enclosing statement dispatch
+      remains.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
       polynomial bound in the exact runtime encoding.
@@ -52,3 +53,11 @@ polynomial runtime bound.
 - Pushing the OR-loop tick directly at loader exit preserves the loader's
   separator buffer. Normalize the buffer first, then seed the tick in a
   dedicated finite-control phase.
+- A separately halting OR run followed by a separately halting NOT run is not
+  one narrowing computation. The accepted controller reserves `.tick` as the
+  phase boundary and redirects into the NOT loader without halting.
+- The OR kernel clears its counters, so reconstructing the final disjunction
+  wire after the phase boundary is invalid. The exact NOT source is supplied
+  as a runtime unary field.
+- A consumed phase marker remains in `buffer₁`; entering the NOT loader before
+  clearing it does not match the loader theorem's initial configuration.
