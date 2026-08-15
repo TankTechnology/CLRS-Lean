@@ -66,6 +66,10 @@ The authoritative section-level mapping is
 not rename declarations: namespaces migrate chapter by chapter, and the map
 identifies the source namespace to use until each migration lands.
 
+The step-by-step execution plan for migrating the remaining facade rows to
+native fourth-edition source locations is
+[`facade-source-migration-plan.md`](facade-source-migration-plan.md).
+
 ## Online and supplementary mapping
 
 | Retained material | Compatibility import |
