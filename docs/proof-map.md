@@ -1662,7 +1662,7 @@ underflow reported as `none`.
 
 - Lean source: `CLRSLean/Chapter_12/Section_12_1_Binary_Search_Trees.lean`
 - Interface test: `Tests/Chapter_12_Interface.lean`
-- Status: `partial`
+- Status: `main-proof-complete`
 - Main proved theorems:
   - `CLRS.Chapter12.BSTree.search_eq_true_iff`
   - `CLRS.Chapter12.BSTree.minimum?_inTree`
@@ -1713,6 +1713,11 @@ underflow reported as `none`.
   - `CLRS.Chapter12.BSTree.deleteRootCost_le` / `deleteCost_le` (O(h) deletion, `2·height + 3`)
   - `CLRS.Chapter12.BSTree.isAncestorOf_iff_firstInInterval` (CLRS Lemma 12.3 ancestor characterization)
   - `CLRS.Chapter12.BSTree.insertAll_split` / `buildFromList_cons` (insert-order tree decomposition)
+  - `CLRS.Chapter12.BSTree.isAncestorOf_buildFromPerm_iff_firstInInterval` (permutation-index ancestor characterization)
+  - `CLRS.Chapter12.BSTree.isAncestorOf_prob` (CLRS Lemma 12.4: P(i ancestor of j) = 1/(|i-j|+1))
+  - `CLRS.Chapter12.BSTree.expected_depth_eq` (CLRS eq. (12.5): E[depth j] = Σᵢ 1/(|i-j|+1) - 1)
+  - `CLRS.Chapter12.BSTree.expected_depth_le_two_harmonic` (E[depth j] ≤ 2·Hₙ)
+  - `CLRS.Chapter12.BSTree.expected_depth_le_O_log` (E[depth j] = O(log n))
 - Proof pattern: inductive tree membership, bound predicates, ordered invariant,
   extremal-path recursion, iff specifications for successor/predecessor,
   successor-replacement deletion, and a zipper (cursor + context path) layer
@@ -1729,9 +1734,10 @@ underflow reported as `none`.
 - Current gap: an explicit RAM cost model over the pointer operations remains
   future work; the imperative in-place child/parent pointer updates (TRANSPLANT
   and leaf TREE-INSERT) are now proved to refine the functional specification.
-  The probability `P(i is an ancestor of j) = 1/(|i-j|+1)` and the resulting
-  `O(log n)` expected-depth bound for a randomly built BST are not yet
-  formalized; `isAncestorOf_iff_firstInInterval` is the needed foundation
+  The probability `P(i is an ancestor of j) = 1/(|i-j|+1)` (CLRS Lemma 12.4) and
+  the resulting `O(log n)` expected-depth bound (`E[depth j] ≤ 2·Hₙ`) are now
+  proved.  The expected *height* bound of CLRS Theorem 12.4 proper (via the
+  exponential-height recurrence and Jensen's inequality) remains future work.
 
 This section proves the core ordered-tree interface: search is equivalent to
 membership, minimum/maximum return actual extremal keys, functional

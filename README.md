@@ -66,7 +66,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 9 | Medians and Order Statistics | 🟢 complete | 72 / 72 | — |
 | 10 | Elementary Data Structures | 🟢 complete | 21 / 21 | — |
 | 11 | Hash Tables | 🟢 complete | 59 / 59 | — |
-| 12 | Binary Search Trees | 🟢 correctness | 40 / 40 | — |
+| 12 | Binary Search Trees | 🟢 complete | 40 / 40 | — |
 | 13 | Red-Black Trees | 🟢 complete | 40 / 40 | — |
 | 14 | Dynamic Programming | 🟢 complete | 90 / 90 | — |
 | 15 | Greedy Algorithms | 🟢 complete | 27 / 27 | — |
