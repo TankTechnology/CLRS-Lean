@@ -272,6 +272,14 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_02" = [
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_1_Insertion_Sort",
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_2_Analyzing_Algorithms",
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms",
+]
+"CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms" = [
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence",
+]
 "CLRSLean.FourthEdition.Chapter_04" = [
   "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
@@ -960,6 +968,18 @@ title = "Chapter 1. The Role of Algorithms in Computing"
 
 [modules."CLRSLean.FourthEdition.Chapter_02"]
 title = "Chapter 2. Getting Started"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_1_Insertion_Sort"]
+title = "2.1. Insertion Sort"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_2_Analyzing_Algorithms"]
+title = "2.2. Analyzing Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms"]
+title = "2.3. Designing Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence"]
+title = "2.3. Merge-Sort Recurrence"
 
 [modules."CLRSLean.FourthEdition.Chapter_03"]
 title = "Chapter 3. Characterizing Running Times"
