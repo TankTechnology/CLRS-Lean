@@ -656,6 +656,16 @@ a dedicated non-halting transition into the NOT loader, and
 delimiter-bearing input.  Narrowing is therefore no longer only an acceptance
 oracle; it is an executed transition-generator component.
 
+The final uncovered statement primitive, stack `pop`, is now executable.
+`affinePopFrames` maps height zero to no gates and positive height to the exact
+singleton merge frame from `popCfgGateTrace`. The seed-free OR entry theorem
+`affineOrFinNoSeed_run` starts at the shared check state, so it emits no
+spurious false seed; `affinePop_run` consequently executes both height cases
+with one fixed controller, and `affinePop_steps_le` gives a linear bound in the
+explicit input. Every literal primitive used by `compileStmtGateTrace` now has
+an execution theorem. The remaining statement gap is non-halting composition
+of those components, not a missing gate serializer.
+
 The complete transition target is now structural rather than suffix-derived.
 `compileStmtGateTrace` exposes all seven statement constructors as literal
 lookup/pop/continuation/mux sequences, with `compileStmt_gates_eq` and an exact
@@ -701,6 +711,13 @@ entering the NOT loader while a consumed phase marker remains in its buffer
 breaks the loader-ready configuration; the accepted path uses a reserved
 `.tick` marker and explicit buffer cleanup before loading the NOT source.
 
+The `pop` bridge rejects two further shortcuts. Reusing the public
+false-seeded arbitrary-OR run would prepend `.const false`, so it cannot agree
+byte-for-byte with the semantic positive-height pop trace. Choosing one machine
+for height zero and another for positive height would also violate the
+fixed-program requirement because `H` is runtime input. The accepted seed-free
+check-state entry handles the empty and singleton frame lists in one program.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -720,6 +737,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.MuxFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Narrowing
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Pop
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPairMap
@@ -755,6 +773,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Narrowing.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Pop.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPredicate.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPairMap.lean
