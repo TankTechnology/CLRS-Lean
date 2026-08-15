@@ -21,7 +21,7 @@ Theorem 9.2 expected linear comparison bound are proved on the Section 9.2
 support page below.  It remains directly available without adding another row
 to the reader sidebar:
 
-* [Randomized SELECT Expected Time](CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select/)
+* [Randomized SELECT Expected Time](CLRSLean/FourthEdition/Chapter_09/Section_09_3_Selection_In_Worst_Case_Linear_Time/Randomized_Select/)
 -/
 
 namespace CLRS

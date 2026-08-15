@@ -51,6 +51,13 @@ Notation conventions used in this section:
   {lit}`Fin n`
 - {lit}`indicator P` : the {lit}`0/1` indicator random variable of the event
   {lit}`P`
+
+## Implementation details
+
+The on-line hiring analysis (CLRS §5.4.4) is a support page outside the reader
+sidebar:
+
+* [The On-line Hiring Problem](CLRSLean/FourthEdition/Chapter_05/Section_05_4_Probabilistic_Analysis/OnlineHiring/)
 -/
 
 namespace CLRS

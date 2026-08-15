@@ -38,7 +38,7 @@ Main results:
 
 The detailed probability proof remains available outside the main sidebar:
 
-* [7.3 Randomized Quicksort: Comparison Probability](CLRSLean/Chapter_07/Section_07_3_Randomized_Quicksort/Comparison_Probability/)
+* [7.3 Randomized Quicksort: Comparison Probability](CLRSLean/FourthEdition/Chapter_07/Section_07_3_Randomized_Quicksort/Comparison_Probability/)
 
 Notation conventions:
 
