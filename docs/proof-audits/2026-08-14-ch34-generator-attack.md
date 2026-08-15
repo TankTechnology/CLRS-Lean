@@ -572,15 +572,20 @@ per-coordinate order of whole-row multiplexing, while `eqFinGateTrace` fixes
 the true-seeded, XNOR-then-aggregate-AND order of whole-row equality.
 `muxFin_gates_eq`, `eqFin_gates_eq`, `cfgMux_gates_eq`, and
 `cfgEq_gates_eq` prove literal ordered gate-list equality, and the equality
-trace also fixes the returned aggregate wire. The equality half is now also
-executable: `affineEqFinRevProgram` is one fixed finite controller whose
+trace also fixes the returned aggregate wire. Both finite-family primitives
+are now executable. `affineEqFinRevProgram` is one fixed finite controller whose
 runtime frames carry all coordinate and wire indices;
 `affineEqFinCanonical_run` emits the canonical trace byte-for-byte, and
 `affineEqFinRev_steps_le` gives a linear bound in the exact delimiter-bearing
 unary input. Its component proof explicitly composes the five-gate BoolEq and
-one-gate aggregate AND without an intermediate halt. The remaining local
-transition work is the runtime `muxFin` controller and the surrounding fixed
-statement-dispatch/narrowing composition.
+one-gate aggregate AND without an intermediate halt. Likewise,
+`affineMuxFinRevProgram` reads a unary shared-selector header followed by an
+arbitrary runtime coordinate family, reuses one selector negation, and emits
+the exact AND/AND/OR coordinate order. `affineMuxFinCanonical_run` agrees
+byte-for-byte with `muxFinGateTrace`, while `affineMuxFinRev_steps_le` is linear
+in the complete delimiter-bearing input. The remaining local transition work
+is therefore the surrounding fixed statement-dispatch/narrowing composition,
+not either finite-family primitive.
 
 Two additional rejected shortcuts are now recorded. First, redirecting the
 AND kernel's `.done` label straight to the next loader leaves its incremented
@@ -590,6 +595,16 @@ registers because conjunction is semantically commutative is invalid for this
 checkpoint: byte-for-byte agreement requires the ordered gate
 `.and previous matched`, so the runtime call deliberately loads `matched` as
 the serializer carry and `previous` as its source.
+
+Three `muxFin` shortcuts are also rejected and retained for future work.
+Using the public one-element suffix-OR scan emits an unwanted false seed; the
+accepted contextual OR interface starts at the internal one-element loop with
+an existing output wire. A fixed controller cannot calculate `falseArm + 1`
+from a unary counter in its label, so the runtime encoder explicitly supplies
+that shifted third loader field. Finally, pushing the suffix-OR work tick
+directly from the loader-ready state leaves the loader separator in `buffer₁`;
+the accepted bridge first normalizes the buffer, then seeds the one-element
+work stack in a separate finite-control step.
 
 ## Focused Acceptance Mechanism
 
@@ -607,6 +622,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.EqFin
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.MuxFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -632,6 +648,7 @@ lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactlyOneFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
+lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean

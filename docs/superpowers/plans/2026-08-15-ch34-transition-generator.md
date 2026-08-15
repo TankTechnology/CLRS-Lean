@@ -14,9 +14,9 @@ polynomial runtime bound.
 - [ ] Decompose one local transition stream into widening, finite-label
       dispatch, narrowing, complete-row equality, and final AND.
 - [ ] Give each runtime-sized phase an exact fixed-controller execution theorem.
-      The complete-row equality subphase is now closed by
-      `affineEqFinCanonical_run`; runtime `muxFin` and the enclosing phases
-      remain.
+      The complete-row equality and multiplexer subphases are now closed by
+      `affineEqFinCanonical_run` and `affineMuxFinCanonical_run`; the enclosing
+      dispatch/narrowing phases remain.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
       polynomial bound in the exact runtime encoding.
@@ -40,3 +40,10 @@ polynomial runtime bound.
 - Semantic commutativity of AND does not permit operand swapping here: exact
   encoding equality distinguishes `.and previous matched` from
   `.and matched previous`.
+- Reusing the public one-element suffix-OR runner for the final mux arm emits
+  an extra false seed; use the contextual seed-free one-gate OR interface.
+- The controller label cannot compute the runtime wire `falseArm + 1`; encode
+  that shifted value in the third unary loader field.
+- Pushing the OR-loop tick directly at loader exit preserves the loader's
+  separator buffer. Normalize the buffer first, then seed the tick in a
+  dedicated finite-control phase.

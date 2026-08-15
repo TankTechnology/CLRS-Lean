@@ -1,6 +1,8 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrame
 
 /-!
@@ -144,6 +146,8 @@ private def isAffineExactlyOneCont : SequentialExactlyOneCont → Prop
   | .boolEqAndLeft | .boolEqAndRight
   | .boolEqAndStart | .boolEqAndNext
   | .boolEqOrStart | .boolEqOrNext => True
+  | .affineNotWire => True
+  | .suffixOrCarry | .suffixOrWire => True
   | .conjunctionSource | .conjunctionCarry => True
   | _ => False
 
@@ -160,6 +164,8 @@ private def isAffineExactlyOneKernelLabel : SequentialExactlyOneLabel → Prop
   | .decFinalSomeDuplicate | .restoreFinalZeroDuplicate
   | .restoreFinalSomeDuplicate | .pushFinalAnd
   | .boolEq _
+  | .singleNot _
+  | .suffixOr _
   | .conjunction _
   | .clear₁ | .clear₂ | .clear₃ | .halt | .invalid => True
   | _ => False
@@ -222,6 +228,8 @@ private theorem affineExactlyOneKernel_op_preservesFramedInput
       cases cont <;> simp_all [isAffineExactlyOneKernelLabel, isAffineExactlyOneCont,
         preservesFramedInput, sequentialExactlyOneRevProgram]
   | boolEq phase => cases phase <;> trivial
+  | singleNot phase => cases phase <;> trivial
+  | suffixOr phase => cases phase <;> trivial
   | conjunction phase => cases phase <;> trivial
   | cell phase => cases phase <;> trivial
   | _ =>
@@ -358,6 +366,14 @@ private theorem affineExactlyOneKernel_op_stays
       cases cont <;> simp_all [isAffineExactlyOneKernelLabel, isAffineExactlyOneCont,
         staysInAffineExactlyOneKernel, sequentialExactlyOneRevProgram]
   | boolEq phase =>
+      cases phase <;> simp_all [staysInAffineExactlyOneKernel,
+        sequentialExactlyOneRevProgram, isAffineExactlyOneKernelLabel,
+        isAffineExactlyOneCont]
+  | singleNot phase =>
+      cases phase <;> simp_all [staysInAffineExactlyOneKernel,
+        sequentialExactlyOneRevProgram, isAffineExactlyOneKernelLabel,
+        isAffineExactlyOneCont]
+  | suffixOr phase =>
       cases phase <;> simp_all [staysInAffineExactlyOneKernel,
         sequentialExactlyOneRevProgram, isAffineExactlyOneKernelLabel,
         isAffineExactlyOneCont]
@@ -1150,6 +1166,132 @@ def affineExactlyOneFamily_boolEq_runToFinish
           equalityOutput)) (affineBoolEqRevCoreSteps start left right) from
             ⟨⟨hrun.steps, hlift⟩, hrun.steps_le_m⟩)) hfinish
   simpa [affineExactlyOneFamilyBoolEqUntilFinishSteps, equalityOutput,
+    Nat.add_comm] using full
+
+/-! ## Reusing the embedded kernel for one framed negation -/
+
+/-- Contextual entry for one arbitrary NOT gate. -/
+def affineExactlyOneFamilyNotReadyCfg (source : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    BuilderCfg affineExactlyOneFamilyRevProgram :=
+  affineExactlyOneFamilyCfg (.kernel (.singleNot .push)) none none false
+    (.frameEnd :: tail) output [] [] [] [] (List.replicate source ())
+
+def affineExactlyOneFamilyNotUntilFinishSteps (source : Nat) : Nat :=
+  affineNotRevCoreSteps source + 2
+
+/-- Execute one NOT gate in the shared fixed controller and stop at its public
+tail-preserving finish boundary. -/
+def affineExactlyOneFamily_not_runToFinish
+    (source : Nat) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyNotReadyCfg source tail output)
+      (some (affineExactlyOneFamilyFinishCfg tail
+        ((affineNotGateStream source).reverse ++ output)))
+      (affineExactlyOneFamilyNotUntilFinishSteps source) := by
+  have hsource : isAffineExactlyOneKernelCfg
+      (affineNotBodyCfg source output) := by
+    simp [affineNotBodyCfg, sequentialExactlyOneCfg,
+      isAffineExactlyOneKernelCfg, isAffineExactlyOneKernelLabel,
+      isAffineExactlyOneCont]
+  have hrun := affineNotRev_runToHaltLabel source output
+  have htarget : (sequentialExactlyOneCfg .halt none none false []
+      ((affineNotGateStream source).reverse ++ output)
+      [] [] [] [] []).label = some .halt := rfl
+  have hlift := liftExactlyOneKernel_iterations .halt rfl
+    (.frameEnd :: tail) hsource htarget hrun.steps hrun.evals_in_steps
+  have hsourceLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (affineNotBodyCfg source output) =
+        affineExactlyOneFamilyNotReadyCfg source tail output := by
+    rfl
+  have htargetLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (sequentialExactlyOneCfg .halt none none false []
+        ((affineNotGateStream source).reverse ++ output)
+        [] [] [] [] []) =
+      affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail)
+        ((affineNotGateStream source).reverse ++ output) := by
+    rfl
+  rw [hsourceLift, htargetLift] at hlift
+  let gateOutput := (affineNotGateStream source).reverse ++ output
+  have hfinish : EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail) gateOutput)
+      (some (affineExactlyOneFamilyFinishCfg tail gateOutput)) 2 :=
+    ⟨⟨2, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step affineExactlyOneFamilyRevProgram)
+    (affineNotRevCoreSteps source) 2 _
+    (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail) gateOutput) _
+    (by simpa [gateOutput] using
+      (show EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+        (affineExactlyOneFamilyNotReadyCfg source tail output)
+        (some (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail)
+          gateOutput)) (affineNotRevCoreSteps source) from
+            ⟨⟨hrun.steps, hlift⟩, hrun.steps_le_m⟩)) hfinish
+  simpa [affineExactlyOneFamilyNotUntilFinishSteps, gateOutput,
+    Nat.add_comm] using full
+
+/-! ## Reusing the embedded kernel for one framed disjunction -/
+
+/-- Contextual entry for one arbitrary OR gate, represented as the
+one-element case of the established suffix-OR scanner. -/
+def affineExactlyOneFamilyOrReadyCfg (left right : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    BuilderCfg affineExactlyOneFamilyRevProgram :=
+  affineExactlyOneFamilyCfg (.kernel (.suffixOr .next)) none none false
+    (.frameEnd :: tail) output [.tick] []
+    (List.replicate left ()) [] (List.replicate (right + 1) ())
+
+def affineExactlyOneFamilyOrUntilFinishSteps (left right : Nat) : Nat :=
+  affineOrRevCoreSteps left right + 2
+
+/-- Execute one OR gate in the shared fixed controller and stop at its public
+tail-preserving finish boundary. -/
+def affineExactlyOneFamily_or_runToFinish
+    (left right : Nat) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyOrReadyCfg left right tail output)
+      (some (affineExactlyOneFamilyFinishCfg tail
+        ((affineOrGateStream left right).reverse ++ output)))
+      (affineExactlyOneFamilyOrUntilFinishSteps left right) := by
+  have hsource : isAffineExactlyOneKernelCfg
+      (affineOrBodyCfg left right output) := by
+    simp [affineOrBodyCfg, sequentialExactlyOneCfg,
+      isAffineExactlyOneKernelCfg, isAffineExactlyOneKernelLabel,
+      isAffineExactlyOneCont]
+  have hrun := affineOrRev_runToHaltLabel left right output
+  have htarget : (sequentialExactlyOneCfg .halt none none false []
+      ((affineOrGateStream left right).reverse ++ output)
+      [] [] [] [] []).label = some .halt := rfl
+  have hlift := liftExactlyOneKernel_iterations .halt rfl
+    (.frameEnd :: tail) hsource htarget hrun.steps hrun.evals_in_steps
+  have hsourceLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (affineOrBodyCfg left right output) =
+        affineExactlyOneFamilyOrReadyCfg left right tail output := by
+    rfl
+  have htargetLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (sequentialExactlyOneCfg .halt none none false []
+        ((affineOrGateStream left right).reverse ++ output)
+        [] [] [] [] []) =
+      affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail)
+        ((affineOrGateStream left right).reverse ++ output) := by
+    rfl
+  rw [hsourceLift, htargetLift] at hlift
+  let gateOutput := (affineOrGateStream left right).reverse ++ output
+  have hfinish : EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail) gateOutput)
+      (some (affineExactlyOneFamilyFinishCfg tail gateOutput)) 2 :=
+    ⟨⟨2, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step affineExactlyOneFamilyRevProgram)
+    (affineOrRevCoreSteps left right) 2 _
+    (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail) gateOutput) _
+    (by simpa [gateOutput] using
+      (show EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+        (affineExactlyOneFamilyOrReadyCfg left right tail output)
+        (some (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail)
+          gateOutput)) (affineOrRevCoreSteps left right) from
+            ⟨⟨hrun.steps, hlift⟩, hrun.steps_le_m⟩)) hfinish
+  simpa [affineExactlyOneFamilyOrUntilFinishSteps, gateOutput,
     Nat.add_comm] using full
 
 /-! ## Reusing the embedded kernel for one framed conjunction -/
