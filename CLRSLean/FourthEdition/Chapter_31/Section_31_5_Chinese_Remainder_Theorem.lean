@@ -21,13 +21,17 @@ Main results:
 - Theorem {lit}`chinese_remainder_general` (Theorem 31.27, general form): for
   a list of pairwise-coprime moduli, a solution exists, unique modulo the
   product.
+- Ring equivalence {lit}`zmod_chineseRemainder`: the ring-isomorphism
+  packaging — for coprime `m n`, `ZMod (m·n) ≃+* ZMod m × ZMod n`, with the
+  projection-recovery lemmas {lit}`zmod_chineseRemainder_fst` and
+  {lit}`zmod_chineseRemainder_snd`.
 
 Notation:
 
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.Coprime n m` : `gcd n m = 1`.
 
-Deferred: the `ZMod.chineseRemainder` ring-isomorphism packaging.
+Deferred: none.
 -/
 
 namespace CLRS
@@ -82,6 +86,28 @@ theorem chinese_remainder_general {ι : Type} (a s : ι → ℕ) (l : List ι)
   · exact crt.2
   · intro y hy
     exact (Nat.chineseRemainderOfList_modEq_unique a s l co hy).symm
+
+/--
+**Chinese remainder theorem, ring-isomorphism form.**  For coprime {lit}`m n`,
+the rings {lit}`ZMod (m·n)` and {lit}`ZMod m × ZMod n` are isomorphic: a
+residue modulo {lit}`m·n` is mapped to the pair of its residues modulo
+{lit}`m` and modulo {lit}`n`.
+-/
+def zmod_chineseRemainder {m n : ℕ} (h : Nat.Coprime m n) :
+    ZMod (m * n) ≃+* ZMod m × ZMod n :=
+  ZMod.chineseRemainder h
+
+/-- The first projection of the CRT ring isomorphism recovers the residue
+modulo {lit}`m`: {lit}`(zmod_chineseRemainder h x).1 = x mod m`. -/
+theorem zmod_chineseRemainder_fst {m n : ℕ} (h : Nat.Coprime m n) (x : ZMod (m * n)) :
+    (zmod_chineseRemainder h x).1 = ZMod.cast x := by
+  simp [zmod_chineseRemainder, ZMod.chineseRemainder, ZMod.castHom_apply]
+
+/-- The second projection of the CRT ring isomorphism recovers the residue
+modulo {lit}`n`: {lit}`(zmod_chineseRemainder h x).2 = x mod n`. -/
+theorem zmod_chineseRemainder_snd {m n : ℕ} (h : Nat.Coprime m n) (x : ZMod (m * n)) :
+    (zmod_chineseRemainder h x).2 = ZMod.cast x := by
+  simp [zmod_chineseRemainder, ZMod.chineseRemainder, ZMod.castHom_apply]
 
 end Chapter31
 

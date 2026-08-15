@@ -20,16 +20,21 @@ Main results:
   characterizations of {lit}`Nat.Coprime`.
 - {lit}`prime_def_gt_one`, {lit}`prime_two`, and {lit}`exists_prime_ge`
   (Euclid's theorem: there are infinitely many primes).
+- {lit}`lcm_dvd_left` / {lit}`lcm_dvd_right` / {lit}`lcm_dvd_of_dvd` /
+  {lit}`lcm_dvd_iff` / {lit}`lcm_comm` / {lit}`lcm_assoc` /
+  {lit}`lcm_eq_zero_iff`: the basic least-common-multiple facts.
+- {lit}`gcd_mul_lcm_eq`: the identity `gcd(a, b) · lcm(a, b) = a · b`.
+- {lit}`lcm_eq_mul_of_coprime`: for coprime `a b`, `lcm(a, b) = a · b`.
 
 Notation:
 
 - {lit}`a ∣ b` : `a` divides `b`.
 - {lit}`Nat.gcd a b` : the greatest common divisor.
+- {lit}`Nat.lcm a b` : the least common multiple.
 - {lit}`Nat.Coprime a b` : `gcd a b = 1`.
 - {lit}`Nat.Prime p` : `p` is prime.
 
-Deferred: lcm results (Mathlib `Nat.lcm` is available; a dedicated lcm layer
-is deferred to the modular-arithmetic section).
+Deferred: none.
 -/
 
 namespace CLRS
@@ -162,6 +167,48 @@ infinitely many primes. -/
 theorem exists_prime_ge (n : ℕ) : ∃ p : ℕ, Nat.Prime p ∧ n ≤ p := by
   rcases Nat.exists_infinite_primes n with ⟨p, hp, hprime⟩
   exact ⟨p, hprime, hp⟩
+
+/-! ## Least common multiple -/
+
+/-- The least common multiple is a multiple of {lit}`a`. -/
+theorem lcm_dvd_left (a b : ℕ) : a ∣ Nat.lcm a b :=
+  dvd_lcm_left a b
+
+/-- The least common multiple is a multiple of {lit}`b`. -/
+theorem lcm_dvd_right (a b : ℕ) : b ∣ Nat.lcm a b :=
+  dvd_lcm_right a b
+
+/-- Any common multiple of {lit}`a` and {lit}`b` is a multiple of their least
+common multiple. -/
+theorem lcm_dvd_of_dvd {a b c : ℕ} (ha : a ∣ c) (hb : b ∣ c) : Nat.lcm a b ∣ c :=
+  lcm_dvd ha hb
+
+/-- {lit}`Nat.lcm a b` divides {lit}`c` exactly when both {lit}`a` and
+{lit}`b` divide {lit}`c`. -/
+theorem lcm_dvd_iff {a b c : ℕ} : Nat.lcm a b ∣ c ↔ a ∣ c ∧ b ∣ c :=
+  _root_.lcm_dvd_iff
+
+/-- The least common multiple is commutative. -/
+theorem lcm_comm (a b : ℕ) : Nat.lcm a b = Nat.lcm b a :=
+  _root_.lcm_comm a b
+
+/-- The least common multiple is associative. -/
+theorem lcm_assoc (a b c : ℕ) : Nat.lcm (Nat.lcm a b) c = Nat.lcm a (Nat.lcm b c) :=
+  _root_.lcm_assoc a b c
+
+/-- The least common multiple is zero exactly when one of the arguments is
+zero. -/
+theorem lcm_eq_zero_iff (a b : ℕ) : Nat.lcm a b = 0 ↔ a = 0 ∨ b = 0 :=
+  _root_.lcm_eq_zero_iff a b
+
+/-- **CLRS identity**: {lit}`gcd(a, b) · lcm(a, b) = a · b`. -/
+theorem gcd_mul_lcm_eq (a b : ℕ) : Nat.gcd a b * Nat.lcm a b = a * b :=
+  associated_iff_eq.mp (_root_.gcd_mul_lcm a b)
+
+/-- For coprime {lit}`a` and {lit}`b`, the least common multiple is the product
+{lit}`a · b`. -/
+theorem lcm_eq_mul_of_coprime {a b : ℕ} (h : Nat.Coprime a b) : Nat.lcm a b = a * b :=
+  h.lcm_eq_mul
 
 end Chapter31
 
