@@ -44,6 +44,9 @@ generator.
 - `verifierAcceptingBoundary_gates_eq` and
   `compileVerifierAcceptingBoundaryFrames_run` freeze and execute the exact
   accepting-row branch chosen by the semantic constructor.
+- `verifierCircuit_gates_eq_finalConjunction` freezes the last gate family of
+  the complete verifier circuit, and `verifierFinalConjunctionFrame_run`
+  executes its canonical tail-first conjunction frame.
 
 ## Rejected routes discovered during composition
 
@@ -84,6 +87,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyScript.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorInitialBoundary.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OptionalEqFin.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorAcceptingBoundary.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorConjunction.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
