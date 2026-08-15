@@ -16,8 +16,8 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,575.
-* Proved tracked theorem entries: 1,575.
+* Tracked reader-facing theorem entries: 1,578.
+* Proved tracked theorem entries: 1,578.
 * Online/supplementary theorem entries: 465.
 * Remaining edition-coverage units: 2.
 
@@ -34,9 +34,9 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 28 chapters.
+* {lit}`main-proof-complete`: 29 chapters.
 * {lit}`main-proof-complete-for-correctness`: 2 chapters.
-* {lit}`selected-section-complete`: 3 chapters.
+* {lit}`selected-section-complete`: 2 chapters.
 * {lit}`partial`: 1 chapter.
 * {lit}`expository`: 1 chapter.
 
@@ -60,7 +60,7 @@ Ch  Chapter                                                     Status          
 13  13. Red-Black Trees                                         main-proof-complete                  13.1;13.2;13.3;13.4                40        0
 14  14. Dynamic Programming                                     main-proof-complete                  14.1;14.2;14.3;14.4;14.5           90        0
 15  15. Greedy Algorithms                                       main-proof-complete                  15.1;15.2;15.3;15.4                27        0
-16  16. Amortized Analysis                                      selected-section-complete            16.1;16.2;16.3;16.4                66        0
+16  16. Amortized Analysis                                      main-proof-complete                  16.1;16.2;16.3;16.4                69        0
 17  17. Augmenting Data Structures                              main-proof-complete                  17.1;17.2;17.3                     79        0
 18  18. B-Trees                                                 main-proof-complete                  18.1;18.2;18.3                    147        0
 19  19. Data Structures for Disjoint Sets                       main-proof-complete                  19.1;19.2;19.3;19.4                84        0

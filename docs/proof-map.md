@@ -2464,7 +2464,7 @@ weight domination.
   `CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter.lean`,
   `CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables.lean`, and
   `CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables/Section_16_4_Mutable_Array_Tables.lean`
-- Status: `selected-section-complete`
+- Status: `main-proof-complete`
 - Main proved theorems:
   - `CLRS.Chapter17.aggregate_bound_of_prefix_bound`
   - `CLRS.Chapter17.accounting_totalCost_eq_totalCharge_sub_delta`
@@ -2543,6 +2543,10 @@ weight domination.
   - `CLRS.Chapter17.sharpDelete_amortized_le_three` (deletion amortized <= 3)
   - `CLRS.Chapter17.sharpDelete_loadFactor_eq_half_of_contract` (alpha = 1/2 after contraction)
   - `CLRS.Chapter17.sharpDelete_loadFactor_ge_half_of_contract` (alpha >= 1/2 after contraction)
+  - `CLRS.Chapter17.TableOp` / `tableStep` / `tableOpCost` / `execTrace` / `traceCost` (interleaved trace model)
+  - `CLRS.Chapter17.tableOp_amortized_le_three` (per-operation amortized <= 3)
+  - `CLRS.Chapter17.trace_amortized_le` (whole-trace amortized telescope)
+  - `CLRS.Chapter17.trace_totalCost_le_three_mul` (linear total cost from the empty table)
 - Proof pattern: finite-prefix sums, accounting credit balance, potential
   telescoping, executable counter trace induction, size-level table potential
   nonnegativity, capacity feasibility/direction, post-state field equations,
@@ -2557,8 +2561,10 @@ weight domination.
   `insert_copy_cost` (Sub-issue A).
 - CLRS load-factor potential with constant amortized bounds (<=3)
   proved for both insertion and deletion (Sub-issue B).
-- Optional refinements: general allocator/RAM cost semantics and broader
-  amortized packaging for interleaved insert/delete traces.
+- Interleaved insert/delete trace amortization: the per-operation bounds
+  telescope to a `3n` total-cost bound for any trace from a valid table, and
+  `3n` from the empty table (`trace_amortized_le`, `trace_totalCost_le_three_mul`).
+- Optional refinements: general allocator/RAM cost semantics.
 
 Chapter 17 now provides the reusable amortized-analysis layer for later data
 structure chapters.  The generic aggregate/accounting/potential facts are
