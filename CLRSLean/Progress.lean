@@ -16,8 +16,8 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,579.
-* Proved tracked theorem entries: 1,579.
+* Tracked reader-facing theorem entries: 1,580.
+* Proved tracked theorem entries: 1,580.
 * Online/supplementary theorem entries: 465.
 * Remaining edition-coverage units: 2.
 
@@ -75,7 +75,7 @@ Ch  Chapter                                                     Status          
 28  28. Matrix Operations                                       main-proof-complete                  28.1;28.2;28.3                      9        0
 29  29. Linear Programming                                      main-proof-complete                  29.1;29.2;29.3                     10        0
 30  30. Polynomials and the FFT                                 main-proof-complete                  30.1;30.2;30.3                     34        0
-31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       17        0
+31  31. Number-Theoretic Algorithms                             selected-section-complete            31.1;31.2;31.3;31.4;31.5;31.       18        0
 32  32. String Matching                                         main-proof-complete                  32.1;32.2;32.3;32.4;32.5           61        0
 33  33. Machine-Learning Algorithms                             main-proof-complete                  33.1; 33.2; 33.3                   15        0
 34  34. NP-Completeness                                         partial (edition coverage)           34.1;34.2;34.3;34.4                20        2

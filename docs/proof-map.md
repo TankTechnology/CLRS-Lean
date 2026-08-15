@@ -5247,8 +5247,15 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
     the `s < r` / `s = r` sub-cases and the key lemma that `d_p | t ∧ d_q | t`
     forces `p = q`), and `≥ 3` prime factors.  Hence `strongLiars_card_le`:
     **at most `(n−1)/4` of the bases are strong liars for odd composite `n`**
-    (Theorem 31.39, sharpened to `(n−1)/4` by Rabin–Monier).  Deferred: the
-    random-witness analysis.
+    (Theorem 31.39, sharpened to `(n−1)/4` by Rabin–Monier).
+  - **Random-witness analysis (the MILLER-RABIN error bound)**:
+    `strongPseudoprime_coprime` (a strong liar is coprime to the modulus),
+    `isStrongLiar_of_strongPseudoprime` (a natural liar lifts to a unit-group
+    liar), and `strongLiars_nat_card_le` (**at most `(n−1)/4` of the bases
+    `1, …, n−1` are strong liars**), so a uniformly random base errs with
+    probability at most `1/4` and `s` independent rounds err with probability
+    at most `4⁻ˢ`.  Deferred: the executable pseudoprime loop with an operation
+    count.
 
 ### Section 31.9 - Integer Factorization
 
