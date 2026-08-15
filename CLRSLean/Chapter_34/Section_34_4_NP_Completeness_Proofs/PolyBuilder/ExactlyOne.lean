@@ -1461,6 +1461,50 @@ private theorem clearWire_eval (count : Nat) (buffer₁ buffer₂ : Option Unit)
             output [] [] seen [] (List.replicate count ()))) = _
       simpa [List.replicate_succ] using ih true
 
+/-- Clear all three unary registers and stop at the public halt label without
+executing its final normalization instruction.  Larger fixed controllers can
+redirect this label to a continuation while the standalone serializer keeps
+the ordinary successful-halt interface below. -/
+def clearAllRegistersToHaltLabel (seen next wire : Nat)
+    (buffer₁ : Option Unit) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (sequentialExactlyOneCfg .clear₁ buffer₁ none false [] output [] []
+        (List.replicate seen ()) (List.replicate next ())
+        (List.replicate wire ()))
+      (some (sequentialExactlyOneCfg .halt buffer₁ none false [] output [] []
+        [] [] []))
+      (seen + next + wire + 3) := by
+  let afterSeen := sequentialExactlyOneCfg .clear₂ buffer₁ none false []
+    output [] [] [] (List.replicate next ()) (List.replicate wire ())
+  let afterNext := sequentialExactlyOneCfg .clear₃ buffer₁ none false []
+    output [] [] [] [] (List.replicate wire ())
+  let beforeHalt := sequentialExactlyOneCfg .halt buffer₁ none false []
+    output [] [] [] [] []
+  have hseen : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (sequentialExactlyOneCfg .clear₁ buffer₁ none false [] output [] []
+        (List.replicate seen ()) (List.replicate next ())
+        (List.replicate wire ()))
+      (some afterSeen) (seen + 1) := by
+    exact ⟨⟨seen + 1, by
+      simpa [afterSeen] using clearFirst_eval seen buffer₁ none false output
+        (List.replicate next ()) (List.replicate wire ())⟩, le_rfl⟩
+  have hnext : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      afterSeen (some afterNext) (next + 1) := by
+    exact ⟨⟨next + 1, by
+      simpa [afterSeen, afterNext] using clearNext_eval next buffer₁ none
+        false output [] (List.replicate wire ())⟩, le_rfl⟩
+  have hwire : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      afterNext (some beforeHalt) (wire + 1) := by
+    exact ⟨⟨wire + 1, by
+      simpa [afterNext, beforeHalt] using clearWire_eval wire buffer₁ none
+        false output []⟩, le_rfl⟩
+  let throughNext := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    (seen + 1) (next + 1) _ afterSeen _ hseen hnext
+  let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    ((next + 1) + (seen + 1)) (wire + 1)
+    _ afterNext _ throughNext hwire
+  convert full using 1 <;> omega
+
 /-- Clear all three unary registers and halt with the existing output. -/
 def clearAllRegisters (seen next wire : Nat)
     (buffer₁ : Option Unit) (output : List CircuitSym) :

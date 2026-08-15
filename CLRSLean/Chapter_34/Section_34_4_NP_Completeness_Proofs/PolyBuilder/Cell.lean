@@ -43,7 +43,13 @@ def affineCellBodyCfg (right left blank : Nat)
     (List.replicate right ()) (List.replicate left ())
     (List.replicate blank ())
 
-/-- Exact running time of the non-halting NOT/XNOR composition. -/
+/-- Exact running time through cell cleanup, stopping at the final halt label
+so a family controller can continue with the next framed cell. -/
+def affineCellRevCoreSteps (right left blank : Nat) : Nat :=
+  6 * blank + 5 * right + 9 +
+    affineBoolEqRevCoreSteps (right + 1) left right
+
+/-- Exact running time of the standalone non-halting NOT/XNOR composition. -/
 def affineCellRevSteps (right left blank : Nat) : Nat :=
   6 * blank + 5 * right + 9 +
     affineBoolEqRevSteps (right + 1) left right
@@ -118,14 +124,16 @@ private theorem cellRestoreStart_eval (count : Nat) (buffer₁ : Option Unit)
         List.cons_append] using ih (some ()) (() :: restored)
 
 /-- Execute one complete six-gate cell block without halting between its NOT
-and XNOR halves, then reuse the established Boolean-equality cleanup. -/
-def affineCellRev_runFrom (right left blank : Nat)
+and XNOR halves, clean every scratch stack, and stop at the redirectable halt
+label. -/
+def affineCellRev_runToHaltLabel (right left blank : Nat)
     (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
       (affineCellBodyCfg right left blank output)
-      (some (haltCfg sequentialExactlyOneRevProgram
-        ((affineCellGateStream right left blank).reverse ++ output)))
-      (affineCellRevSteps right left blank) := by
+      (some (sequentialExactlyOneCfg .halt none none false []
+        ((affineCellGateStream right left blank).reverse ++ output)
+        [] [] [] [] []))
+      (affineCellRevCoreSteps right left blank) := by
   let afterPush := sequentialExactlyOneCfg
     (.encode .wire .affineCellNotWire) none none false []
     (.notMark :: output) [] [] (List.replicate right ())
@@ -187,7 +195,8 @@ def affineCellRev_runFrom (right left blank : Nat)
       (List.replicate left ()) (List.replicate right ())) =
       some (affineBoolEqBodyCfg (right + 1) left right notOutput)
     simp [affineBoolEqBodyCfg, List.replicate_succ]
-  have heq := affineBoolEqRev_runFrom (right + 1) left right notOutput
+  have heq := affineBoolEqRev_runToHaltLabel
+    (right + 1) left right notOutput
   let t₁ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     1 (5 * blank + 3) _ afterPush _ hpush hencode
   let t₂ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
@@ -201,13 +210,38 @@ def affineCellRev_runFrom (right left blank : Nat)
   let t₆ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     _ 1 _ beforeInc _ t₅ hinc
   let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
-    _ (affineBoolEqRevSteps (right + 1) left right)
+    _ (affineBoolEqRevCoreSteps (right + 1) left right)
     _ (affineBoolEqBodyCfg (right + 1) left right notOutput) _ t₆ heq
   convert full using 1
   · simp [affineCellGateStream, notOutput, List.reverse_append,
       List.append_assoc]
-  · simp [affineCellRevSteps]
+  · simp [affineCellRevCoreSteps]
     omega
+
+/-- Standalone wrapper: execute the redirectable cell core and then take the
+ordinary successful-halt instruction. -/
+def affineCellRev_runFrom (right left blank : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineCellBodyCfg right left blank output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((affineCellGateStream right left blank).reverse ++ output)))
+      (affineCellRevSteps right left blank) := by
+  let beforeHalt := sequentialExactlyOneCfg .halt none none false []
+    ((affineCellGateStream right left blank).reverse ++ output)
+    [] [] [] [] []
+  have hcore := affineCellRev_runToHaltLabel right left blank output
+  have hhalt : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      beforeHalt
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((affineCellGateStream right left blank).reverse ++ output))) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    (affineCellRevCoreSteps right left blank) 1 _ beforeHalt _ hcore hhalt
+  convert full using 1
+  simp [affineCellRevCoreSteps, affineCellRevSteps,
+    affineBoolEqRevCoreSteps, affineBoolEqRevSteps]
+  omega
 
 /-- Uniform quadratic envelope for one composed cell invocation. -/
 theorem affineCellRev_steps_le (right left blank : Nat) :

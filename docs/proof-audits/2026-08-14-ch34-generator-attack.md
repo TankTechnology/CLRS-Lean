@@ -364,6 +364,16 @@ semantic `arithmeticStackCellGateStream`, so one complete stack-cell block is
 now executable by one continuous concrete run.  The next execution gap is the
 continuation from one completed cell to the next framed cell.
 
+The cleanup/continuation boundary is now explicit as well.  The existing
+standalone interfaces still reach `haltCfg`, but
+`clearAllRegistersToHaltLabel`, `affineBoolEqRev_runToHaltLabel`, and
+`affineCellRev_runToHaltLabel` stop one instruction earlier at a clean public
+`.halt` label, with exact core step counts.  The arithmetic wrapper
+`arithmeticStackCellRev_runToHaltLabel` exposes the same redirectable state for
+the real validity indices.  A family controller may therefore replace only
+that final instruction with the next frame-load continuation; it no longer
+needs to re-prove or imitate hidden cleanup behavior.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
