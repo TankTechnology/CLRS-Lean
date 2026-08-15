@@ -339,6 +339,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time" = [
   "CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time.Randomized_Select",
 ]
+"CLRSLean.FourthEdition.Chapter_11" = [
+  "CLRSLean.FourthEdition.Chapter_11.Section_11_1_Direct_Address_Tables",
+  "CLRSLean.FourthEdition.Chapter_11.Section_11_2_Chained_Hash_Tables",
+  "CLRSLean.FourthEdition.Chapter_11.Section_11_3_Hash_Functions",
+  "CLRSLean.FourthEdition.Chapter_11.Section_11_4_Open_Addressing",
+  "CLRSLean.FourthEdition.Chapter_11.Section_11_5_Perfect_Hashing",
+]
 "CLRSLean.FourthEdition.Chapter_13" = [
   "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
   "CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion",
@@ -1166,6 +1173,21 @@ title = "Chapter 10. Elementary Data Structures"
 
 [modules."CLRSLean.FourthEdition.Chapter_11"]
 title = "Chapter 11. Hash Tables"
+
+[modules."CLRSLean.FourthEdition.Chapter_11.Section_11_1_Direct_Address_Tables"]
+title = "11.1. Direct-Address Tables"
+
+[modules."CLRSLean.FourthEdition.Chapter_11.Section_11_2_Chained_Hash_Tables"]
+title = "11.2. Chained Hash Tables"
+
+[modules."CLRSLean.FourthEdition.Chapter_11.Section_11_3_Hash_Functions"]
+title = "11.3. Hash Functions"
+
+[modules."CLRSLean.FourthEdition.Chapter_11.Section_11_4_Open_Addressing"]
+title = "11.4. Open Addressing"
+
+[modules."CLRSLean.FourthEdition.Chapter_11.Section_11_5_Perfect_Hashing"]
+title = "11.5. Perfect Hashing"
 
 [modules."CLRSLean.FourthEdition.Chapter_12"]
 title = "Chapter 12. Binary Search Trees"
