@@ -274,7 +274,7 @@ git commit -m "feat(ch34): frame tail-first conjunction streams"
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/Conjunction.lean`
 - Test: `Tests/Chapter_34_PolyBuilder_Conjunction.lean`
 
-- [ ] **Step 1: Define grouped outer labels and the fixed program**
+- [x] **Step 1: Define grouped outer labels and the fixed program**
 
 Use grouped labels to avoid the prior derived-`Fintype` depth failure:
 
@@ -305,14 +305,14 @@ clearCarry: decrement counter₁ until zero, then finish
 finish/invalid: halt
 ```
 
-- [ ] **Step 2: Add public configuration surfaces**
+- [x] **Step 2: Add public configuration surfaces**
 
 Define fieldwise `affineConjunctionCfg`, clean `affineConjunctionLoopCfg`,
 wire-loop configuration parameterized by the live carry, and
 `affineConjunctionFinishCfg tail output` with `buffer₁ = some .frameEnd` and
 all stacks/counters empty.
 
-- [ ] **Step 3: Transport the AND kernel**
+- [x] **Step 3: Transport the AND kernel**
 
 Lift unit scratch symbols to `UnaryFrameSym.tick`, preserving the framed input
 tail.  Prove instruction simulation for every kernel instruction except
@@ -321,17 +321,20 @@ done label, using the same no-return argument already established in
 `Stack.lean` for `.finish`; do not use the whole-program lift theorem across
 the redirected exit.
 
-- [ ] **Step 4: Prove exact loaders and one-wire execution**
+- [x] **Step 4: Prove exact loaders and one-wire execution**
 
 Prove:
 
-- start load in `2 * start + 1` steps;
-- wire load in `2 * source + 1` steps while preserving the carry;
+- raw start scan in `2 * start + 1` steps, followed by separator-buffer
+  clearing and the true seed, for `2 * start + 3` total steps;
+- raw wire scan in `2 * source + 1` steps, followed by separator-buffer
+  clearing, for `2 * source + 2` loader steps while preserving the carry;
 - one encoded source returns to `loadWire` with carry incremented, exact gate
   output prepended, and cost
-  `2 * source + 1 + affineAndRevCoreSteps carry source + 1`.
+  `2 * source + 2 + affineAndRevCoreSteps carry source + 1`, equivalently
+  `8 * source + 5 * carry + 14`.
 
-- [ ] **Step 5: Prove the contextual and standalone runs**
+- [x] **Step 5: Prove the contextual and standalone runs**
 
 Define the fold steps recursively over `frame.wires.reverse`.  Induct over that
 processing list, compose `runOne`, then consume `frameEnd` and clear the final
@@ -346,7 +349,7 @@ The contextual result must preserve `tail`; the standalone result must be
 `haltCfg` with exact output
 `(affineConjunctionGateStream frame).reverse ++ output`.
 
-- [ ] **Step 6: Run exact-run checks and commit**
+- [x] **Step 6: Run exact-run checks and commit**
 
 ```bash
 lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
@@ -362,23 +365,28 @@ git commit -m "feat(ch34): execute runtime conjunction frames"
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/Conjunction.lean`
 - Test: `Tests/Chapter_34_PolyBuilder_Conjunction.lean`
 
-- [ ] **Step 1: Bound the recursive fold**
+- [x] **Step 1: Bound the recursive fold**
 
 Use the exact per-wire identity
-`8 * source + 5 * carry + 13` and prove by induction:
+`8 * source + 5 * carry + 14`.  The originally proposed measure
+`carry + encodedLength + 1` is a known failed route: for a zero-valued source,
+consuming its one-symbol block and incrementing the carry leaves that measure
+unchanged, so it cannot pay the positive per-wire cost.  The accepted proof
+uses the weighted measure
+`carry + 2 * encodedLength + 1` and proves by induction:
 
 ```lean
 affineConjunctionFoldSteps carry sources ≤
-  100 * (carry + (encodeAffineConjunctionSources sources).length + 1) ^ 2 + 1
+  20 * (carry + 2 *
+    (encodeAffineConjunctionSources sources).length + 1) ^ 2 + 1
 ```
 
-In the cons case, rewrite the encoded-source length to
-`source + 1 + restLength`; the recursive measure becomes
-`carry + 1 + restLength + 1`, which is bounded by the original measure.
-Discharge the final arithmetic with `nlinarith` or `omega` after recording all
-natural nonnegativity facts.
+In the cons case, the measure drops by exactly `2 * source + 1`.  Expand the
+square difference and separately bound its carry and source contributions;
+this avoids asking nonlinear automation to discover the mixed-product
+nonnegativity facts implicitly.
 
-- [ ] **Step 2: Lift to the public frame bound**
+- [x] **Step 2: Lift to the public frame bound**
 
 Combine the start loader, true seed, recursive fold, final carry cleanup, and
 standalone halt.  Rewrite `encodeAffineConjunctionFrame_length` and prove:
@@ -389,7 +397,7 @@ theorem affineConjunctionRev_steps_le (frame : AffineConjunctionFrame) :
     1000 * (encodeAffineConjunctionFrame frame).length ^ 2 + 2
 ```
 
-- [ ] **Step 3: Verify axiom output and commit**
+- [x] **Step 3: Verify axiom output and commit**
 
 ```bash
 lake env lean Tests/Chapter_34_PolyBuilder_Conjunction.lean
@@ -408,11 +416,11 @@ Expected axiom output: only `propext`, `Classical.choice`, and `Quot.sound`.
 - Modify: `Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean`
 - Modify: `docs/proof-audits/2026-08-14-ch34-generator-attack.md`
 
-- [ ] **Step 1: Import the generic conjunction controller**
+- [x] **Step 1: Import the generic conjunction controller**
 
 Add the `PolyBuilder.Conjunction` import to `GeneratorValidityStack.lean`.
 
-- [ ] **Step 2: Define the real arithmetic frame**
+- [x] **Step 2: Define the real arithmetic frame**
 
 ```lean
 noncomputable def arithmeticValidityFinalConjunctionFrame
@@ -422,7 +430,7 @@ noncomputable def arithmeticValidityFinalConjunctionFrame
     wires := arithmeticValidityConstraintWires tm H start rowBase }
 ```
 
-- [ ] **Step 3: Prove exact stream agreement**
+- [x] **Step 3: Prove exact stream agreement**
 
 Unfold the frame and generic stream, then rewrite with
 `affineConjunctionGateStream_eq_trace` and
@@ -436,7 +444,7 @@ theorem arithmeticValidityFinalConjunctionGateStream_eq_framed
     arithmeticValidityFinalConjunctionGateStream tm H start rowBase
 ```
 
-- [ ] **Step 4: Add the exact run and inherited bound**
+- [x] **Step 4: Add the exact run and inherited bound**
 
 Specialize `affineConjunction_run` and `affineConjunctionRev_steps_le`, using
 the stream equality to expose the established arithmetic byte stream.  Name
@@ -447,14 +455,14 @@ arithmeticValidityFinalConjunctionRev_runFrom
 arithmeticValidityFinalConjunctionRev_steps_le
 ```
 
-- [ ] **Step 5: Update tests and audit**
+- [x] **Step 5: Update tests and audit**
 
 Turn the arithmetic RED checks green.  Record that the final conjunction now
 has a concrete fixed-controller execution, while the remaining gap is the
 linker from the already-complete stack family into this redirectable
 conjunction controller.  Retain all six rejected routes from the design.
 
-- [ ] **Step 6: Run the focused acceptance gate**
+- [x] **Step 6: Run the focused acceptance gate**
 
 Run only:
 
@@ -470,7 +478,7 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 Then run the changed-file placeholder scan and `git diff --check`.  Do not run
 a full-repository build.
 
-- [ ] **Step 7: Commit the arithmetic milestone**
+- [x] **Step 7: Commit the arithmetic milestone**
 
 ```bash
 git add CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/GeneratorValidityStack.lean \
@@ -482,11 +490,11 @@ git commit -m "feat(ch34): execute final validity conjunction"
 
 ## Final acceptance
 
-- [ ] The controller label type is finite and contains no runtime naturals.
-- [ ] The runtime encoding is unambiguous for zero-valued wires.
-- [ ] Tail-first output is byte-for-byte the semantic conjunction trace.
-- [ ] Both redirectable-finish and standalone-halt exact runs are public.
-- [ ] The standalone run has the explicit `1000 * |encoding|^2 + 2` bound.
-- [ ] The real arithmetic final-conjunction stream has an exact run and bound.
-- [ ] Focused builds/tests pass with only standard logical axioms.
-- [ ] No full-repository build is used.
+- [x] The controller label type is finite and contains no runtime naturals.
+- [x] The runtime encoding is unambiguous for zero-valued wires.
+- [x] Tail-first output is byte-for-byte the semantic conjunction trace.
+- [x] Both redirectable-finish and standalone-halt exact runs are public.
+- [x] The standalone run has the explicit `1000 * |encoding|^2 + 2` bound.
+- [x] The real arithmetic final-conjunction stream has an exact run and bound.
+- [x] Focused builds/tests pass with only standard logical axioms.
+- [x] No full-repository build is used.
