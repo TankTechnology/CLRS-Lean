@@ -5,8 +5,8 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Unary
 # Runtime-framed tail-first conjunction serialization
 
 This module first isolates one counter-preserving AND gate.  The surrounding
-fixed controller will load an arbitrary reversed wire family from a unary
-runtime frame and redirect the clean AND exit back to its loader.
+fixed controller loads an arbitrary reversed wire family from a unary
+runtime frame and redirects the clean AND exit back to its loader.
 -/
 
 noncomputable section
@@ -237,7 +237,7 @@ theorem affineConjunctionGateStream_eq_trace
 /-- Fixed finite phases of the runtime-frame loader. -/
 inductive AffineConjunctionLoadLabel
   | loadStart | incStart | clearStartBuffer | seed
-  | loadWire | incWire | clearWireBuffer | clearCarry
+  | loadWire | incWire | clearWireBuffer | checkWireEnd | clearCarry
 deriving DecidableEq, Fintype
 
 /-- Grouped control keeps the shared numeral encoder below one constructor. -/
@@ -298,10 +298,12 @@ def affineConjunctionRevProgram : Program UnaryFrameSym CircuitSym where
     | .load .loadWire => .popInput .invalid fun
         | .tick => .load .incWire
         | .separator => .load .clearWireBuffer
-        | .frameEnd => .load .clearCarry
+        | .frameEnd => .load .checkWireEnd
     | .load .incWire => .inc₃ (.load .loadWire)
     | .load .clearWireBuffer =>
         .popWork₁ (.core (.conjunction .push)) (fun _ => .invalid)
+    | .load .checkWireEnd =>
+        .dec₃ (.load .clearCarry) .invalid
     | .load .clearCarry =>
         .dec₁ .finish (.load .clearCarry)
     | .core (.conjunction .done) => .jump (.load .loadWire)
@@ -896,7 +898,7 @@ private theorem conjunctionClearCarry_eval (carry : Nat)
 /-- Exact empty-source tail cost: consume `frameEnd`, clear the carry, and
 enter the redirectable finish label. -/
 def affineConjunctionFinishSteps (carry : Nat) : Nat :=
-  carry + 2
+  carry + 3
 
 private def affineConjunctionFinish_run (carry : Nat)
     (tail : List UnaryFrameSym) (output : List CircuitSym) :
@@ -904,19 +906,26 @@ private def affineConjunctionFinish_run (carry : Nat)
       (affineConjunctionWireLoopCfg carry (.frameEnd :: tail) output)
       (some (affineConjunctionFinishCfg tail output))
       (affineConjunctionFinishSteps carry) := by
+  let beforeCheck := affineConjunctionCfg (.load .checkWireEnd)
+    (some .frameEnd) none false tail output [] []
+    (List.replicate carry ()) [] []
   let beforeClear := affineConjunctionCfg (.load .clearCarry)
     (some .frameEnd) none false tail output [] []
     (List.replicate carry ()) [] []
   have hframeEnd : EvalsToInTime (step affineConjunctionRevProgram)
       (affineConjunctionWireLoopCfg carry (.frameEnd :: tail) output)
-      (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
+      (some beforeCheck) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
+  have hcheck : EvalsToInTime (step affineConjunctionRevProgram)
+      beforeCheck (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hclear : EvalsToInTime (step affineConjunctionRevProgram)
       beforeClear (some (affineConjunctionFinishCfg tail output))
       (carry + 1) := by
     refine ⟨⟨carry + 1, ?_⟩, le_rfl⟩
     simpa [beforeClear] using conjunctionClearCarry_eval carry tail output
+  let throughCheck := EvalsToInTime.trans (step affineConjunctionRevProgram)
+    1 1 _ beforeCheck _ hframeEnd hcheck
   let full := EvalsToInTime.trans (step affineConjunctionRevProgram)
-    1 (carry + 1) _ beforeClear _ hframeEnd hclear
+    (1 + 1) (carry + 1) _ beforeClear _ throughCheck hclear
   convert full using 1
   simp [affineConjunctionFinishSteps]
 

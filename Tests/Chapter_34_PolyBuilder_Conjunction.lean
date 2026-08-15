@@ -18,6 +18,16 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineConjunction_run
 #check affineConjunctionRev_steps_le
 
+/-- A `frameEnd` after at least one tick is a malformed partial wire, not the
+end of the source family. -/
+example :
+    (flip Option.bind (step affineConjunctionRevProgram))^[4]
+      (some (affineConjunctionCfg (.load .loadWire) none none false
+        [.tick, .frameEnd] [] [] [] [] [] [])) =
+      some (affineConjunctionCfg .invalid (some .frameEnd) none true
+        [] [] [] [] [] [] []) := by
+  rfl
+
 #print axioms affineAndRev_runToDoneLabel
 #print axioms affineConjunctionGateStream_eq_trace
 #print axioms affineConjunction_runToFinish

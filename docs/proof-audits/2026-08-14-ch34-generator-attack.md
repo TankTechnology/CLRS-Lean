@@ -341,6 +341,12 @@ already closed independently.
     increments, so this measure does not decrease and cannot fund the positive
     per-wire cost.  The accepted quadratic proof doubles the unconsumed source
     length; its measure drops by `2 * source + 1` on every iteration.
+22. **Folding the final conjunction directly into `affineStackRevProgram`.**
+    This couples two independently reusable controllers, enlarges the proof
+    surface before the conjunction kernel is stable, and obscures the exact
+    linker boundary.  The accepted route proves a standalone reusable
+    conjunction controller with a redirectable entry/finish interface; the
+    stack-to-conjunction linker remains a separate composition milestone.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
