@@ -8,11 +8,15 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineSequentialExactlyOneGateStream_eq_trace
 #check affineSequentialExactlyOneGateList_eq_trace
 #check affineSequentialExactlyOneBodyCfg
+#check affineSequentialExactlyOneHaltLabelCfg
+#check affineSequentialExactlyOneRevCoreSteps
+#check affineSequentialExactlyOneRev_runToHaltLabel
 #check affineSequentialExactlyOneRevSteps
 #check affineSequentialExactlyOneRev_runFrom
 #check affineSequentialExactlyOneRev_steps_le
 
 #print axioms affineSequentialExactlyOneGateList_eq_trace
+#print axioms affineSequentialExactlyOneRev_runToHaltLabel
 #print axioms affineSequentialExactlyOneRev_runFrom
 #print axioms affineSequentialExactlyOneRev_steps_le
 
