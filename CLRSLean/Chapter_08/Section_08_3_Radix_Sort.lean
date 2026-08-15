@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_08.Section_08_2_Counting_Sort
+import CLRSLean.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray
 
 /-!
 # CLRS Section 8.3 - Radix sort
@@ -19,6 +20,15 @@ behind a named digit-order bridge, and discharges that bridge for bounded
 fixed-width keys.  The final concrete theorem therefore says radix sort returns
 a list ordered by the ordinary natural-number key when every key is represented
 inside the supplied digit window.
+
+A running-time / cost layer then instruments the abstract radix sort:
+
+* {lit}`radixSortByWithCost` charges each stable counting-sort pass the mutable
+  counting-sort work {lit}`MutableOutput.countingSortArrayCost maxDigit
+  (input length)` and erases back to {lit}`radixSortBy`;
+* {lit}`radixSortNatByCost` is the concrete {lit}`digitCount`-pass cost, and
+  {lit}`radixSortNatByCost_bigO` proves the {lit}`O(d(n+k))` bound with
+  {lit}`k = base`.
 -/
 
 namespace CLRS
@@ -687,6 +697,123 @@ theorem radixSortNatBy_correct_keyOrdered_of_bounded [DecidableEq α]
       (radixSortNatBy base digitCount key xs).Perm xs :=
   radixSortNatBy_correct_keyOrdered_of_digitOrder base digitCount key xs hbase
     (radixDigitOrderRespectsKey_of_bounded base digitCount key xs hbase hkeys)
+
+/-! ## Running-time / cost layer -/
+
+/-- Counting sort preserves length when every key is at most {lit}`maxKey`. -/
+theorem countingSortBy_length_eq_of_allKeysLe [DecidableEq α]
+    (maxKey : Nat) (key : α → Nat) (xs : List α) (hxs : AllKeysLe key xs maxKey) :
+    (countingSortBy maxKey key xs).length = xs.length :=
+  (countingSortBy_perm maxKey key xs hxs).length_eq
+
+/--
+Costed radix sort.  Each stable counting-sort pass is charged the mutable
+counting-sort work {lit}`MutableOutput.countingSortArrayCost maxDigit
+(input length)`, and the per-pass costs accumulate.  The first component is
+exactly {lit}`radixSortBy`.
+-/
+def radixSortByWithCost (maxDigit : Nat) :
+    List (α → Nat) → List α → List α × Nat
+  | [], xs => (xs, 0)
+  | digit :: digits, xs =>
+      let rest := radixSortByWithCost maxDigit digits
+        (countingSortBy maxDigit digit xs)
+      (rest.1, MutableOutput.countingSortArrayCost maxDigit xs.length + rest.2)
+
+/-- Erasing the cost recovers the existing {lit}`radixSortBy`. -/
+theorem radixSortByWithCost_result (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α) :
+    (radixSortByWithCost maxDigit digitsLow xs).1 =
+      radixSortBy maxDigit digitsLow xs := by
+  induction digitsLow generalizing xs with
+  | nil =>
+      simp [radixSortByWithCost, radixSortBy]
+  | cons digit digits ih =>
+      simp only [radixSortByWithCost, radixSortBy]
+      exact ih _
+
+/--
+Under the bounded-digit hypothesis the cost of the costed radix sort is exactly
+{lit}`digitsLow.length` copies of the per-pass mutable counting-sort work: each
+pass preserves the input length, so every pass is charged the same amount.
+-/
+theorem radixSortByWithCost_cost_eq [DecidableEq α] (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α)
+    (hdigits : AllDigitsLe digitsLow xs maxDigit) :
+    (radixSortByWithCost maxDigit digitsLow xs).2 =
+      digitsLow.length * MutableOutput.countingSortArrayCost maxDigit xs.length := by
+  induction digitsLow generalizing xs with
+  | nil =>
+      simp [radixSortByWithCost]
+  | cons digit digits ih =>
+      simp only [radixSortByWithCost]
+      have hdigit : AllKeysLe digit xs maxDigit := hdigits digit (by simp)
+      have hlen : (countingSortBy maxDigit digit xs).length = xs.length :=
+        countingSortBy_length_eq_of_allKeysLe maxDigit digit xs hdigit
+      have hrest : AllDigitsLe digits (countingSortBy maxDigit digit xs) maxDigit := by
+        intro d hd x hx
+        exact hdigits d (by simp [hd]) x
+          ((countingSortBy_mem_iff maxDigit digit xs hdigit x).mp hx)
+      rw [ih (countingSortBy maxDigit digit xs) hrest, hlen]
+      simp only [List.length_cons]
+      ring
+
+/--
+Total mutable counting-sort work of concrete base-{lit}`base` radix sort over
+{lit}`n` keys: {lit}`digitCount` passes, each a mutable counting sort with
+alphabet size {lit}`base`.
+-/
+def radixSortNatByCost (base digitCount n : Nat) : Nat :=
+  digitCount * MutableOutput.countingSortArrayCost (base - 1) n
+
+/--
+The concrete cost equals the cost of the costed radix-sort execution on the
+concrete digit list.  The bounded-digit hypothesis is discharged by
+{lit}`baseDigitsLow_allDigitsLe`.
+-/
+theorem radixSortNatBy_cost_eq [DecidableEq α] (base digitCount : Nat)
+    (key : α → Nat) (xs : List α) (hbase : 0 < base) :
+    (radixSortByWithCost (base - 1) (baseDigitsLow base digitCount key) xs).2 =
+      radixSortNatByCost base digitCount xs.length := by
+  unfold radixSortNatByCost
+  rw [radixSortByWithCost_cost_eq (base - 1) (baseDigitsLow base digitCount key) xs
+    (baseDigitsLow_allDigitsLe base digitCount key xs hbase)]
+  simp [baseDigitsLow]
+
+/-- The mutable counting-sort work for alphabet size {lit}`base` is at most
+{lit}`2 * (n + base + 1)`. -/
+theorem countingSortArrayCost_le_two_mul (base n : Nat) :
+    MutableOutput.countingSortArrayCost (base - 1) n ≤ 2 * (n + base + 1) := by
+  calc
+    MutableOutput.countingSortArrayCost (base - 1) n
+        ≤ 2 * (n + ((base - 1) + 1)) :=
+          MutableOutput.countingSortArrayCost_le (base - 1) n
+    _ ≤ 2 * (n + base + 1) := by
+      apply Nat.mul_le_mul_left
+      omega
+
+/-- The concrete radix-sort cost is at most {lit}`2 * (digitCount * (n + base + 1))`. -/
+theorem radixSortNatByCost_le (base digitCount n : Nat) :
+    radixSortNatByCost base digitCount n ≤ 2 * (digitCount * (n + base + 1)) := by
+  unfold radixSortNatByCost
+  have h := countingSortArrayCost_le_two_mul base n
+  calc
+    digitCount * MutableOutput.countingSortArrayCost (base - 1) n
+        ≤ digitCount * (2 * (n + base + 1)) := Nat.mul_le_mul_left digitCount h
+    _ = 2 * (digitCount * (n + base + 1)) := by ring
+
+/--
+**Linear {lit}`O(d(n+k))` work bound.**  There is a constant {lit}`c` (here
+{lit}`2`) such that the concrete radix-sort work is at most
+{lit}`c * (d * (n + k + 1))` for every alphabet size {lit}`k = base`, digit
+count {lit}`d = digitCount`, and input length {lit}`n`.
+-/
+theorem radixSortNatByCost_bigO :
+    ∃ c : Nat, ∀ base digitCount n : Nat,
+      radixSortNatByCost base digitCount n ≤ c * (digitCount * (n + base + 1)) := by
+  refine ⟨2, ?_⟩
+  intro base digitCount n
+  exact radixSortNatByCost_le base digitCount n
 
 end Chapter08
 end CLRS
