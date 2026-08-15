@@ -36,6 +36,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticStackCellRev_steps_le
 #check arithmeticStackCellFamilyGateStream
 #check arithmeticStackCellFamilyGateStream_eq_semantic
+#check arithmeticStackCellFrames
+#check arithmeticStackCellFamilyGateStream_eq_framed
+#check arithmeticStackCellFamilyRev_runFrom
+#check arithmeticStackCellFamilyRev_steps_le
 #check arithmeticStackGateStream
 #check arithmeticStackGateStream_eq_semantic
 #check arithmeticStackGateStream_eq_block
@@ -66,6 +70,9 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms arithmeticStackCellRev_runFrom
 #print axioms arithmeticStackCellRev_steps_le
 #print axioms arithmeticStackCellFamilyGateStream_eq_semantic
+#print axioms arithmeticStackCellFamilyGateStream_eq_framed
+#print axioms arithmeticStackCellFamilyRev_runFrom
+#print axioms arithmeticStackCellFamilyRev_steps_le
 #print axioms arithmeticStackGateStream_eq_semantic
 #print axioms arithmeticStackOrdinal_equiv_symm
 #print axioms arithmeticStackGateStream_eq_block

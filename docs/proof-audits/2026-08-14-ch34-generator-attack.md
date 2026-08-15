@@ -374,6 +374,26 @@ the real validity indices.  A family controller may therefore replace only
 that final instruction with the next frame-load continuation; it no longer
 needs to re-prove or imitate hidden cleanup behavior.
 
+That family controller is now implemented and verified.  `AffineCellFrame`
+stores one runtime `(right, left, blank)` triple in a delimiter-bearing unary
+frame, and `affineCellFamilyRevProgram` is one fixed finite-control program
+independent of the family length and all three indices.  Its loader consumes
+one frame, its linked cell kernel redirects the cleaned exit to the next
+loader, and only the empty tail halts.  `affineCellFamily_run` proves the exact
+run for an arbitrary list of frames with no halt between cells and exact
+output `affineCellFamilyGateStream`; `affineCellFamilyRev_steps_le` bounds the
+whole run by `250 * |encodeAffineCellFamily frames|^2 + 2`.
+
+The concrete arithmetic validity instance is closed for every runtime stack
+height.  `arithmeticStackCellFrames` packages the exact wire indices for all
+`H` cells, `arithmeticStackCellFamilyGateStream_eq_framed` identifies the
+controller's output byte-for-byte with the existing semantic `6H` stream,
+and `arithmeticStackCellFamilyRev_runFrom` plus
+`arithmeticStackCellFamilyRev_steps_le` provide its exact run and quadratic
+bound.  The next execution gap is therefore narrower: prepend one stack's
+suffix-OR mask to this continuous cell-family run, then iterate those complete
+stack blocks over the fixed machine-stack enumeration.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -394,6 +414,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrame
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameLoader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Cell
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -412,6 +433,7 @@ lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean
 lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrame.lean
 lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrameLoader.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineCell.lean
+lake env lean Tests/Chapter_34_PolyBuilder_CellFamily.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
