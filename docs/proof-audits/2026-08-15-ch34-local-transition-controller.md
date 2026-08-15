@@ -39,6 +39,11 @@ generator.
   trace immediately following transitions.
 - `compileVerifierInitialBoundaryFrames_run` executes its canonical `EqFin`
   frames and emits exactly the symbolic initial-boundary byte stream.
+- `affineOptionalEqFin_run` executes both branches of a total boundary under
+  one fixed program: marker-led complete equality or empty zero-gate output.
+- `verifierAcceptingBoundary_gates_eq` and
+  `compileVerifierAcceptingBoundaryFrames_run` freeze and execute the exact
+  accepting-row branch chosen by the semantic constructor.
 
 ## Rejected routes discovered during composition
 
@@ -61,6 +66,10 @@ generator.
    whether another payload follows.  The family protocol therefore uses a
    leading `frameEnd` before every local payload; the empty suffix has no
    leading marker.
+7. Treating the unrepresentable accepting target as equality over an empty
+   coordinate family is byte-incorrect: empty `EqFin` emits its true seed,
+   whereas `falseBoundaryCircuit` emits no gate and reuses the shared false
+   wire.  The optional controller therefore has a genuine zero-output branch.
 
 ## Focused verification
 
@@ -73,6 +82,8 @@ lake env lean Tests/Chapter_34_PolyBuilder_TransitionController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyScript.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorInitialBoundary.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OptionalEqFin.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorAcceptingBoundary.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
