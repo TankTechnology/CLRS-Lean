@@ -43,22 +43,22 @@ body is exactly `encodeCircuit (verifierCircuit W x)`.
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/VerifierBodyController.lean`
 - Create: `Tests/Chapter_34_PolyBuilder_VerifierBodyController.lean`
 
-- [ ] Add unresolved checks for `AffineVerifierBodyScript`,
+- [x] Add unresolved checks for `AffineVerifierBodyScript`,
   `affineVerifierBody_run`, and `affineVerifierBody_steps_le`; observe failure.
-- [ ] Define a script containing validity frames, transition scripts, and a
+- [x] Define a script containing validity frames, transition scripts, and a
   verifier-tail script. Encode validity and tail symbols with `.data`, and put
   `.data .separator` between transition and tail.
-- [ ] Define one finite program with `validity`, `transition`, and `tail`
+- [x] Define one finite program with `validity`, `transition`, and `tail`
   label embeddings. Intercept only the transition check on the reserved
   separator; keep all reusable component programs unchanged.
-- [ ] Prove exact structural lifting for unary components and same-alphabet
+- [x] Prove exact structural lifting for unary components and same-alphabet
   transition configurations, restricted at the intercepted boundary.
-- [ ] Compose the three exact runs into `affineVerifierBody_run`, preserving
+- [x] Compose the three exact runs into `affineVerifierBody_run`, preserving
   byte order and proving halt with the combined reversed stream.
-- [ ] Prove a coarse polynomial envelope
+- [x] Prove a coarse polynomial envelope
   `steps ≤ 10000 * encoded.length^2 + 200`.
-- [ ] Run the focused body test and audit headline axioms.
-- [ ] Commit the generic controller.
+- [x] Run the focused body test and audit headline axioms.
+- [x] Commit the generic controller.
 
 ### Task 3: Semantic Cook--Levin specialization
 
