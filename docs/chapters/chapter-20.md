@@ -164,4 +164,8 @@ timing remain a separate implementation refinement.
 - `CLRS.Chapter20.VEBTreeMM.predecessorCost_le`
 - `CLRS.Chapter20.VEBTreeMM.deleteCost_le`
 - `CLRS.Chapter20.VEBTreeMM.deleteDepth_le`
+- `CLRS.Chapter20.VEBTreeMM.minimumCost_le_bound`
+- `CLRS.Chapter20.VEBTreeMM.maximumCost_le_bound`
+- `CLRS.Chapter20.VEBTreeMM.deleteDepth_le_bound`
+- `CLRS.Chapter20.VEBTreeMM.veb_all_operations_cost_le`
 - `CLRS.Chapter20.VEBTreeMM.veb_all_operations_bigO_loglog_u`

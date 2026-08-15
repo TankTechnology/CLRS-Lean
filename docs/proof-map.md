@@ -3331,6 +3331,10 @@ operation-trace telescope bounded by the sum of dynamic per-operation budgets.
   - `CLRS.Chapter20.VEBTreeMM.predecessorCost_le`
   - `CLRS.Chapter20.VEBTreeMM.deleteCost_le`
   - `CLRS.Chapter20.VEBTreeMM.deleteDepth_le`
+  - `CLRS.Chapter20.VEBTreeMM.minimumCost_le_bound`
+  - `CLRS.Chapter20.VEBTreeMM.maximumCost_le_bound`
+  - `CLRS.Chapter20.VEBTreeMM.deleteDepth_le_bound`
+  - `CLRS.Chapter20.VEBTreeMM.veb_all_operations_cost_le`
   - `CLRS.Chapter20.VEBTreeMM.veb_all_operations_bigO_loglog_u`
 - Proof pattern: natural-number quotient/remainder arithmetic, bounded
   high/low recomposition, finite-set representation semantics,

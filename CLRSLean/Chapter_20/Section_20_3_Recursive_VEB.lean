@@ -51,6 +51,13 @@ Main results:
 - Theorem {lit}`VEBTreeMM.veb_all_operations_bigO_loglog_u`: branch-faithful
   costs for the recursive operations are {lit}`O(log log u)`; deletion counts
   both recursive calls when an emptied cluster also updates the summary.
+- Theorems {lit}`VEBTreeMM.minimumCost_le_bound`,
+  {lit}`VEBTreeMM.maximumCost_le_bound`, and
+  {lit}`VEBTreeMM.deleteDepth_le_bound`: per-operation bound wrappers for the
+  cached extrema and the deletion recursion depth.
+- Theorem {lit}`VEBTreeMM.veb_all_operations_cost_le`: all seven recursive
+  operations meet their per-operation cost bounds, each witnessed by the real
+  {lit}`*WithCost` instrumentation.
 
 The recursive cached-min/max model now proves all seven vEB operations correct,
 with constant cached extrema and control-flow-aware O(log log u) bounds for the
@@ -3949,6 +3956,25 @@ theorem deleteCost_le_bound {k : Nat} (v : VEBTreeMM k) (x : Nat)
     (hwf : WellFormed v) : deleteCost x v ≤ deleteCostBound k :=
   deleteCost_le v x hwf
 
+/-- Cached minimum lookup stays within the standard per-level bound. -/
+theorem minimumCost_le_bound {k : Nat} (v : VEBTreeMM k) :
+    (minimumWithCost v).2 ≤ standardOperationCostBound k := by
+  rw [minimumCost_eq_one v]
+  unfold standardOperationCostBound
+  omega
+
+/-- Cached maximum lookup stays within the standard per-level bound. -/
+theorem maximumCost_le_bound {k : Nat} (v : VEBTreeMM k) :
+    (maximumWithCost v).2 ≤ standardOperationCostBound k := by
+  rw [maximumCost_eq_one v]
+  unfold standardOperationCostBound
+  omega
+
+/-- The longest recursive deletion path stays within the standard per-level bound. -/
+theorem deleteDepth_le_bound {k : Nat} (v : VEBTreeMM k) (x : Nat) :
+    deleteDepth x v ≤ standardOperationCostBound k := by
+  simpa [standardOperationCostBound] using deleteDepth_le v x
+
 /-- The standard recursive-operation bound is `O(log log u)`. -/
 theorem standardOperationCostBound_bigO_loglog_u :
     CLRS.Chapter03.isBigO
@@ -3988,6 +4014,34 @@ theorem veb_all_operations_bigO_loglog_u :
         (fun k => (Nat.log 2 (Nat.log 2 (uSize k)) : ℝ)) :=
   ⟨standardOperationCostBound_bigO_loglog_u,
     deleteCostBound_bigO_loglog_u⟩
+
+/--
+**All seven recursive vEB operations meet their per-operation cost bounds.**
+Cached extrema cost one unit; member, insert, successor, and predecessor stay
+within the standard per-level bound; deletion stays within the sequential-work
+bound with recursion depth within the standard bound.  Every leg is witnessed
+by the corresponding {lit}`*Cost`/{lit}`*WithCost` function bound to the real
+operation.  Together with {name}`VEBTreeMM.veb_all_operations_bigO_loglog_u`
+this is the literal "constant or {lit}`O(log log u)`" headline for CLRS
+Section 20.3.
+-/
+theorem veb_all_operations_cost_le {k : Nat} (v : VEBTreeMM k)
+    (hwf : WellFormed v) :
+    (minimumWithCost v).2 ≤ standardOperationCostBound k ∧
+    (maximumWithCost v).2 ≤ standardOperationCostBound k ∧
+    (∀ x, memberCost x v ≤ standardOperationCostBound k) ∧
+    (∀ x, insertCost x v ≤ standardOperationCostBound k) ∧
+    (∀ x, successorCost x v ≤ standardOperationCostBound k) ∧
+    (∀ x, predecessorCost x v ≤ standardOperationCostBound k) ∧
+    (∀ x, deleteCost x v ≤ deleteCostBound k) ∧
+    (∀ x, deleteDepth x v ≤ standardOperationCostBound k) :=
+  ⟨minimumCost_le_bound v, maximumCost_le_bound v,
+    fun x => memberCost_le_bound v x,
+    fun x => insertCost_le_bound v x,
+    fun x => successorCost_le_bound v x,
+    fun x => predecessorCost_le_bound v x,
+    fun x => deleteCost_le_bound v x hwf,
+    fun x => deleteDepth_le_bound v x⟩
 
 /-- Membership after deletion is exactly old membership away from the erased key. -/
 theorem delete_member_iff {k : Nat} (v : VEBTreeMM k) (x y : Nat)

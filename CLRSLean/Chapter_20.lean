@@ -204,7 +204,11 @@ wrappers.
   {lit}`CLRS.Chapter20.VEBTreeMM.successorCost_le`,
   {lit}`CLRS.Chapter20.VEBTreeMM.predecessorCost_le`,
   {lit}`CLRS.Chapter20.VEBTreeMM.deleteCost_le`,
-  {lit}`CLRS.Chapter20.VEBTreeMM.deleteDepth_le`, and
+  {lit}`CLRS.Chapter20.VEBTreeMM.deleteDepth_le`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.minimumCost_le_bound`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.maximumCost_le_bound`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.deleteDepth_le_bound`,
+  {lit}`CLRS.Chapter20.VEBTreeMM.veb_all_operations_cost_le`, and
   {lit}`CLRS.Chapter20.VEBTreeMM.veb_all_operations_bigO_loglog_u`.
 
 ## Implementation Boundary
