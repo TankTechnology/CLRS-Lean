@@ -280,6 +280,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms" = [
   "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence",
 ]
+"CLRSLean.FourthEdition.Chapter_03" = [
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions",
+]
 "CLRSLean.FourthEdition.Chapter_04" = [
   "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
@@ -983,6 +987,12 @@ title = "2.3. Merge-Sort Recurrence"
 
 [modules."CLRSLean.FourthEdition.Chapter_03"]
 title = "Chapter 3. Characterizing Running Times"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation"]
+title = "3.1. Asymptotic Notation"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions"]
+title = "3.2. Standard Functions"
 
 [modules."CLRSLean.FourthEdition.Chapter_04"]
 title = "Chapter 4. Divide-and-Conquer"
