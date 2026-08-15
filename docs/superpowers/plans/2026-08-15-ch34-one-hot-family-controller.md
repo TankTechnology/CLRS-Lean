@@ -39,10 +39,10 @@ leaving a redirectable boundary for whole-row composition.
   includes an exact `EvalsToInTime` theorem and an explicit runtime bound for
   the single fixed controller.
 
-## Next link
+## Completed downstream link
 
-Link `affineExactlyOneFamily_runToFinish` to the arithmetic halted/label
-agreement controller, then link that exit to `affineValidityTail_run`.  The
-whole row is complete only when this yields one continuous exact run whose
-output is `validityRowGateStreamAt` and whose combined runtime has a polynomial
-bound.
+`AffineValidityRow` now links `affineExactlyOneFamily_runToFinish` to the
+arithmetic halted/label agreement controller and then to
+`affineValidityTail_run`.  The continuous arithmetic theorem outputs exactly
+`validityRowGateStreamAt` and carries a quadratic bound over its concrete
+runtime frame.  The next open boundary is iteration across all tableau rows.

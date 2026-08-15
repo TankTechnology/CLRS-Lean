@@ -514,6 +514,22 @@ halted/label agreement and then into the already completed validity tail.
 Only after those links have one continuous exact run may the single-row
 validity serializer be called complete.
 
+That whole-row boundary is now closed.  `AffineValidityRowFrame` combines the
+raw one-hot frame family, the three halted-agreement indices, and the completed
+stack/conjunction tail.  `affineValidityRowRevProgram` clears both explicit
+outer boundaries, invokes the persistent three-field loader, reuses the
+verified Boolean-equality kernel, and enters the existing tail controller
+without any intermediate halt.  `affineValidityRow_run` proves exact output
+for the complete row stream, and `affineValidityRowRev_steps_le` gives the
+explicit bound `2500 * |encodeAffineValidityRowFrame frame|^2 + 20`.
+
+The arithmetic instance `arithmeticValidityRowRev_runFrom` now emits exactly
+`validityRowGateStreamAt tm H start rowBase`.  Thus the single-row validity
+serializer is complete under the attack acceptance standard.  The next
+generator execution gap is horizontal: build the fixed family controller that
+iterates this completed row frame over every tableau row, then link that
+all-row validity phase to the remaining transition and boundary phases.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -538,6 +554,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRow
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -560,10 +577,12 @@ lake env lean Tests/Chapter_34_CookLevin_AffineCell.lean
 lake env lean Tests/Chapter_34_PolyBuilder_CellFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Stack.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Conjunction.lean
+lake env lean Tests/Chapter_34_PolyBuilder_ValidityRow.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRow.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean

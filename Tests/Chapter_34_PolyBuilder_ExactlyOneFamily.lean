@@ -13,12 +13,16 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineExactlyOneFamilyRevSteps
 #check affineExactlyOneFamily_runOne
 #check affineExactlyOneFamily_runToFinish
+#check affineExactlyOneFamilyBoolEqReadyCfg
+#check affineExactlyOneFamilyBoolEqUntilFinishSteps
+#check affineExactlyOneFamily_boolEq_runToFinish
 #check affineExactlyOneFamily_run
 #check affineExactlyOneFamilyRev_steps_le
 #check affineExactlyOneFamilyUntilEnd_steps_le
 
 #print axioms affineExactlyOneFamilyGateStream_eq_flatMap
 #print axioms affineExactlyOneFamily_runToFinish
+#print axioms affineExactlyOneFamily_boolEq_runToFinish
 #print axioms affineExactlyOneFamily_run
 #print axioms affineExactlyOneFamilyRev_steps_le
 #print axioms affineExactlyOneFamilyUntilEnd_steps_le

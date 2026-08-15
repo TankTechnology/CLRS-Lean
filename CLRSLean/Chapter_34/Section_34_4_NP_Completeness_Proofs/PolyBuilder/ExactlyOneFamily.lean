@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrame
 
 /-!
@@ -136,6 +137,10 @@ private def isAffineExactlyOneCont : SequentialExactlyOneCont → Prop
   | .laterASeen | .laterAWire | .laterBDuplicate | .laterBNext
   | .laterCSeen | .laterCWire
   | .finalZeroDuplicate | .finalSomeDuplicate | .finalSeen | .finalNext => True
+  | .boolEqNotLeft | .boolEqNotRight
+  | .boolEqAndLeft | .boolEqAndRight
+  | .boolEqAndStart | .boolEqAndNext
+  | .boolEqOrStart | .boolEqOrNext => True
   | _ => False
 
 private def isAffineExactlyOneKernelLabel : SequentialExactlyOneLabel → Prop
@@ -150,6 +155,7 @@ private def isAffineExactlyOneKernelLabel : SequentialExactlyOneLabel → Prop
   | .finalZero | .finalSome | .incFinalZeroDuplicate
   | .decFinalSomeDuplicate | .restoreFinalZeroDuplicate
   | .restoreFinalSomeDuplicate | .pushFinalAnd
+  | .boolEq _
   | .clear₁ | .clear₂ | .clear₃ | .halt | .invalid => True
   | _ => False
 
@@ -1103,6 +1109,79 @@ theorem affineExactlyOneFamilyUntilEnd_steps_le (frames : List AffineExactlyOneF
   have h := affineExactlyOneFamilyRev_steps_le frames
   rw [← affineExactlyOneFamilyUntilEndSteps_add_one] at h
   omega
+
+/-! ## Reusing the embedded kernel for one framed Boolean equality -/
+
+/-- Entry obtained after a three-field loader has restored the Boolean-
+equality gate start and source wires.  A dedicated `frameEnd` follows the
+kernel so its ordinary loop-back reaches the public family finish boundary. -/
+def affineExactlyOneFamilyBoolEqReadyCfg (start left right : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    BuilderCfg affineExactlyOneFamilyRevProgram :=
+  affineExactlyOneFamilyCfg (.kernel (.boolEq .notLeft)) none none false
+    (.frameEnd :: tail) output [] []
+    (List.replicate start ()) (List.replicate left ())
+    (List.replicate right ())
+
+/-- Exact contextual cost of the embedded equality kernel, loop-back, and
+explicit outer-boundary check. -/
+def affineExactlyOneFamilyBoolEqUntilFinishSteps
+    (start left right : Nat) : Nat :=
+  affineBoolEqRevCoreSteps start left right + 2
+
+/-- The already embedded sequential kernel can execute one framed Boolean
+equality and stop at the same redirectable family boundary used after raw
+one-hot groups. -/
+def affineExactlyOneFamily_boolEq_runToFinish
+    (start left right : Nat) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyBoolEqReadyCfg
+        start left right tail output)
+      (some (affineExactlyOneFamilyFinishCfg tail
+        ((affineBoolEqGateStream start left right).reverse ++ output)))
+      (affineExactlyOneFamilyBoolEqUntilFinishSteps start left right) := by
+  have hsource : isAffineExactlyOneKernelCfg
+      (affineBoolEqBodyCfg start left right output) := by
+    simp [affineBoolEqBodyCfg, sequentialExactlyOneCfg,
+      isAffineExactlyOneKernelCfg, isAffineExactlyOneKernelLabel,
+      isAffineExactlyOneCont]
+  have hrun := affineBoolEqRev_runToHaltLabel start left right output
+  have htarget : (sequentialExactlyOneCfg .halt none none false []
+      ((affineBoolEqGateStream start left right).reverse ++ output)
+      [] [] [] [] []).label = some .halt := rfl
+  have hlift := liftExactlyOneKernel_iterations (.frameEnd :: tail)
+    hsource htarget hrun.steps hrun.evals_in_steps
+  have hsourceLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (affineBoolEqBodyCfg start left right output) =
+        affineExactlyOneFamilyBoolEqReadyCfg
+          start left right tail output := by
+    rfl
+  have htargetLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (sequentialExactlyOneCfg .halt none none false []
+        ((affineBoolEqGateStream start left right).reverse ++ output)
+        [] [] [] [] []) =
+      affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail)
+        ((affineBoolEqGateStream start left right).reverse ++ output) := by
+    rfl
+  rw [hsourceLift, htargetLift] at hlift
+  let equalityOutput :=
+    (affineBoolEqGateStream start left right).reverse ++ output
+  have hfinish : EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail) equalityOutput)
+      (some (affineExactlyOneFamilyFinishCfg tail equalityOutput)) 2 :=
+    ⟨⟨2, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step affineExactlyOneFamilyRevProgram)
+    (affineBoolEqRevCoreSteps start left right) 2 _
+    (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail) equalityOutput)
+    _ (by simpa [equalityOutput] using
+      (show EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+        (affineExactlyOneFamilyBoolEqReadyCfg start left right tail output)
+        (some (affineExactlyOneFamilyCoreExitCfg (.frameEnd :: tail)
+          equalityOutput)) (affineBoolEqRevCoreSteps start left right) from
+            ⟨⟨hrun.steps, hlift⟩, hrun.steps_le_m⟩)) hfinish
+  simpa [affineExactlyOneFamilyBoolEqUntilFinishSteps, equalityOutput,
+    Nat.add_comm] using full
 
 /-- Empty framed family terminates successfully without changing output. -/
 def affineExactlyOneFamily_empty_run (output : List CircuitSym) :
