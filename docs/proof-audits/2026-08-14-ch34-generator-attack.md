@@ -402,14 +402,32 @@ the runtime mask triple with an arbitrary cell-frame list, while
 to the cell-family controller, and halts only after every cell.  The exact
 theorem `affineStack_run` emits `affineStackGateStream`, and
 `affineStackRev_steps_le` gives the explicit bound
-`300 * |encodeAffineStackFrame frame|^2 + 3`.
+`400 * |encodeAffineStackFrame frame|^2 + 2`.  The slightly wider envelope
+absorbs the explicit outer-frame boundary and the final family halt.
 
 `arithmeticStackFrame`, `arithmeticStackGateStream_eq_framed`, and
 `arithmeticStackRev_runFrom` instantiate that fixed controller at the actual
 Cook--Levin mask and `H` cell indices.  Consequently the complete semantic
 mask-plus-`6H` stream for one arithmetic stack is now executable by one
-continuous concrete run.  The remaining stack-local execution gap is only
-the outer iteration over the verifier machine's fixed finite stack order.
+continuous concrete run.
+
+The outer fixed-machine stack iteration is now closed as well.  Ordinary
+unary separators cannot delimit adjacent stack blocks because zero-valued
+fields already create indistinguishable separator runs; that route is
+therefore recorded as rejected.  `UnaryFrameSym.frameEnd` supplies the
+unambiguous stack boundary.  `affineStackFamily_run` proves that the same
+fixed finite controller executes an arbitrary list of complete stack frames,
+emits `affineStackFamilyGateStream` byte-for-byte, and
+`affineStackFamilyRev_steps_le` bounds the run by
+`400 * |encodeAffineStackFamily frames|^2 + 2`.
+
+Finally, `arithmeticStackFrames` enumerates the actual verifier-machine stacks
+in canonical order.  `arithmeticStackFamilyGateStream_eq_framed` identifies
+the generic family stream with `arithmeticStackFamilyGateStream`, while
+`arithmeticStackFamilyRev_runFrom` and
+`arithmeticStackFamilyRev_steps_le` give the exact concrete run and its
+quadratic bound.  Thus there is no remaining mask/cell/stack-local execution
+gap inside the canonical arithmetic stack-validity family.
 
 ## Focused Acceptance Mechanism
 

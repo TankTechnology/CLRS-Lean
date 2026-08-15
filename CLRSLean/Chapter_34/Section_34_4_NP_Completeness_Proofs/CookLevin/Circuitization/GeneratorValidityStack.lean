@@ -542,8 +542,8 @@ bound in the explicit mask-and-cells frame length. -/
 theorem arithmeticStackRev_steps_le
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
     affineStackRevSteps (arithmeticStackFrame tm H start rowBase k) ≤
-      300 * (encodeAffineStackFrame
-        (arithmeticStackFrame tm H start rowBase k)).length ^ 2 + 3 :=
+      400 * (encodeAffineStackFrame
+        (arithmeticStackFrame tm H start rowBase k)).length ^ 2 + 2 :=
   affineStackRev_steps_le _
 
 /-- The arithmetic one-stack stream is exactly the semantic mask-plus-cells
@@ -588,6 +588,54 @@ noncomputable def arithmeticStackFamilyGateStream
   (List.ofFn fun j : Fin (arithmeticStackCount tm) =>
     arithmeticStackGateStream tm H start rowBase
       ((arithmeticStackEquiv tm).symm j)).flatten
+
+/-- Runtime frame list for all machine stacks in canonical finite order. -/
+noncomputable def arithmeticStackFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List AffineStackFrame :=
+  List.ofFn fun j : Fin (arithmeticStackCount tm) =>
+    arithmeticStackFrame tm H start rowBase
+      ((arithmeticStackEquiv tm).symm j)
+
+/-- Interpreting the fixed-machine stack frames yields exactly the existing
+semantic ordered-stack byte stream. -/
+theorem arithmeticStackFamilyGateStream_eq_framed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineStackFamilyGateStream
+        (arithmeticStackFrames tm H start rowBase) =
+      arithmeticStackFamilyGateStream tm H start rowBase := by
+  rw [affineStackFamilyGateStream_eq_flatMap]
+  rw [flatMap_eq_map_flatten]
+  unfold arithmeticStackFrames arithmeticStackFamilyGateStream
+  rw [List.map_ofFn]
+  simp [Function.comp_def, arithmeticStackGateStream_eq_framed]
+
+/-- One fixed controller executes the complete fixed-machine stack family,
+without halting between masks, cells, or adjacent stacks. -/
+noncomputable def arithmeticStackFamilyRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg
+        (encodeAffineStackFamily
+          (arithmeticStackFrames tm H start rowBase)) output)
+      (some (haltCfg affineStackRevProgram
+        ((arithmeticStackFamilyGateStream tm H start rowBase).reverse ++
+          output)))
+      (affineStackFamilyRevSteps
+        (arithmeticStackFrames tm H start rowBase)) := by
+  simpa [arithmeticStackFamilyGateStream_eq_framed] using
+    affineStackFamily_run (arithmeticStackFrames tm H start rowBase) output
+
+/-- The complete fixed-machine stack family inherits the generic quadratic
+bound in its explicit frame encoding. -/
+theorem arithmeticStackFamilyRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineStackFamilyRevSteps
+        (arithmeticStackFrames tm H start rowBase) ≤
+      400 * (encodeAffineStackFamily
+        (arithmeticStackFrames tm H start rowBase)).length ^ 2 + 2 :=
+  affineStackFamilyRev_steps_le _
 
 /-- The arithmetic family stream is exactly the semantic ordered-stack trace. -/
 theorem arithmeticStackFamilyGateStream_eq_semantic

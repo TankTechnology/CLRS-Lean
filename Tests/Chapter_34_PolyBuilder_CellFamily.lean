@@ -17,6 +17,11 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineCellFamilyGateStream_eq_flatMap
 #check affineCellFamilyRevSteps
 #check affineCellFamily_run
+#check affineCellFamilyUntilEndSteps
+#check affineCellFamilyFinishCfg
+#check affineCellFamily_runToFinish
+#check affineCellFamilyUntilEndSteps_add_one
+#check affineCellFamilyUntilEnd_steps_le
 #check encodeAffineCellFrame_length
 #check affineCellFrameRev_steps_le
 #check affineCellFamilyRev_steps_le
@@ -25,5 +30,7 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms affineCellFamily_load
 #print axioms affineCellFamilyCore_run
 #print axioms affineCellFamily_run
+#print axioms affineCellFamily_runToFinish
+#print axioms affineCellFamilyUntilEnd_steps_le
 #print axioms affineCellFamilyRev_steps_le
 #print axioms affineCellFamily_empty_run

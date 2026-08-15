@@ -16,6 +16,7 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 inductive UnaryFrameSym
   | tick
   | separator
+  | frameEnd
 deriving DecidableEq, Fintype, Repr
 
 /-- One self-delimiting unary natural. -/
@@ -34,6 +35,7 @@ def decodeUnaryFrameAux : Nat → List UnaryFrameSym → Option (List Nat)
   | count, .tick :: rest => decodeUnaryFrameAux (count + 1) rest
   | count, .separator :: rest =>
       (count :: ·) <$> decodeUnaryFrameAux 0 rest
+  | _, .frameEnd :: _ => none
 
 /-- Decode a complete runtime frame. -/
 def decodeUnaryFrame (frame : List UnaryFrameSym) : Option (List Nat) :=
