@@ -319,6 +319,28 @@ already closed independently.
     Boolean equality: the derived `Fintype` instance exceeds elaboration
     depth.  The accepted representation is one main `.cell` constructor with
     a separate finite `SequentialCellLabel` phase type.
+17. **Terminating a variable-length conjunction family with an ordinary unary
+    separator.** Zero is encoded by a separator with no preceding tick, so a
+    separator cannot distinguish a zero wire from the end of the family.  The
+    accepted conjunction frame uses the dedicated `UnaryFrameSym.frameEnd`.
+18. **Executing the final conjunction in public wire-list order.** The
+    semantic `conjunctionGateTrace` is tail-first.  A forward runtime fold
+    emits different AND arguments and fresh-wire carries.  The accepted frame
+    stores the public list but serializes and executes `wires.reverse`.
+19. **Claiming execution from byte-stream equality alone.** Identifying the
+    post-stack suffix with the semantic conjunction is necessary but does not
+    provide the fixed `FinTM2` run required by the reduction.  The accepted
+    route supplies an exact `EvalsToInTime` theorem and then rewrites its
+    output with the semantic equality.
+20. **Exposing only a standalone conjunction halt.** That interface would
+    recreate the composition gap at the next linker boundary.  The accepted
+    controller proves both a tail-preserving redirectable `finish` run and a
+    standalone run whose only extra instruction is the final halt.
+21. **Using `carry + encodedSourceLength + 1` as the fold potential.** For a
+    zero-valued source, the one-symbol block is consumed exactly when the carry
+    increments, so this measure does not decrease and cannot fund the positive
+    per-wire cost.  The accepted quadratic proof doubles the unconsumed source
+    length; its measure drops by `2 * source + 1` on every iteration.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
@@ -429,6 +451,28 @@ the generic family stream with `arithmeticStackFamilyGateStream`, while
 quadratic bound.  Thus there is no remaining mask/cell/stack-local execution
 gap inside the canonical arithmetic stack-validity family.
 
+The final arithmetic conjunction is now executable as well.
+`AffineConjunctionFrame` carries the runtime start wire and public source-wire
+list, while its delimiter-bearing encoding consumes the sources in the
+semantic tail-first order.  `affineConjunction_runToFinish` preserves an
+arbitrary later input tail and reaches a clean redirectable boundary;
+`affineConjunction_run` adds only the standalone halt.  Both emit exactly
+`affineConjunctionGateStream`, which is proved byte-for-byte equal to
+`CircuitBuilder.conjunctionGateTrace`, and
+`affineConjunctionRev_steps_le` supplies the explicit
+`1000 * |encodeAffineConjunctionFrame frame|^2 + 2` bound.
+
+At the arithmetic layer,
+`arithmeticValidityFinalConjunctionFrame`,
+`arithmeticValidityFinalConjunctionGateStream_eq_framed`,
+`arithmeticValidityFinalConjunctionRev_runFrom`, and
+`arithmeticValidityFinalConjunctionRev_steps_le` close the formerly
+semantic-only post-stack tail with one fixed controller.  The next boundary
+is now precise: link the already-complete stack-family controller to this
+redirectable conjunction entry, then compose that row-validity controller
+with the earlier raw one-hot and halted-agreement phases.  This milestone does
+not yet claim that whole-row composition.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -451,6 +495,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Cell
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -471,6 +516,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrameLoader.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineCell.lean
 lake env lean Tests/Chapter_34_PolyBuilder_CellFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Stack.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Conjunction.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
