@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_12
+import CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees
 
 /-!
 # Chapter 12 — Binary Search Trees
@@ -8,7 +8,13 @@ period.
 
 ## Current source
 
-During the compatibility period this guide imports {lit}`CLRSLean.Chapter_12`. Existing declarations retain their current namespaces until the chapter-by-chapter source migration.
+Sections 12.1--12.3 are native fourth-edition sections, sourced from the single
+[Section 12.1](CLRSLean/FourthEdition/Chapter_12/Section_12_1_Binary_Search_Trees/)
+module (what is a binary search tree, querying a binary search tree, and
+insertion and deletion share the one theorem-bearing body).  Declarations retain
+the `CLRS.Chapter12` namespace during the compatibility period; the
+third-edition-numbered imports {lit}`CLRSLean.Chapter_12` and
+{lit}`CLRSLean.Chapter_12.Section_12_*` forward to this source.
 
 ## Coverage boundary
 

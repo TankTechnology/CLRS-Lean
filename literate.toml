@@ -351,6 +351,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_11.Section_11_4_Open_Addressing",
   "CLRSLean.FourthEdition.Chapter_11.Section_11_5_Perfect_Hashing",
 ]
+"CLRSLean.FourthEdition.Chapter_12" = [
+  "CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees",
+]
 "CLRSLean.FourthEdition.Chapter_13" = [
   "CLRSLean.FourthEdition.Chapter_13.Section_13_1_Red_Black_Trees",
   "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
@@ -1206,6 +1209,9 @@ title = "11.5. Perfect Hashing"
 
 [modules."CLRSLean.FourthEdition.Chapter_12"]
 title = "Chapter 12. Binary Search Trees"
+
+[modules."CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees"]
+title = "12.1. Binary Search Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_13"]
 title = "Chapter 13. Red-Black Trees"
