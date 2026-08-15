@@ -406,6 +406,36 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_17.Section_17_2_Augmenting_Data_Structures",
   "CLRSLean.FourthEdition.Chapter_17.Section_17_3_Interval_Trees",
 ]
+"CLRSLean.FourthEdition.Chapter_18" = [
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_2_B_Tree_Insertion",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion",
+]
+"CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model" = [
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model.Search",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model.HeightBound",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model.RunningTime",
+]
+"CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion" = [
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Rotation",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Repair",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Preservation",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Reassembly",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.MergeReassembly",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.RotationBounds",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.RotationReassembly",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ComposedPreservation",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.KeyMultiset",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ExactReassembly",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Exact",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Subset",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.SameDepthHeight",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Sorted",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ChildBounded",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Occupancy",
+  "CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.WellFormed",
+]
 "CLRSLean.FourthEdition.Chapter_19" = [
   "CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations",
   "CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation",
@@ -1327,6 +1357,77 @@ title = "17.3. Interval Trees"
 [modules."CLRSLean.FourthEdition.Chapter_18"]
 title = "Chapter 18. B-Trees"
 
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model"]
+title = "18.1. B-Tree Model"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model.Search"]
+title = "B-Tree Search"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model.HeightBound"]
+title = "B-Tree Key Count and Height Bound"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_1_B_Tree_Model.RunningTime"]
+title = "B-Tree Running Time"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_2_B_Tree_Insertion"]
+title = "18.2. B-Tree Insertion"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion"]
+title = "18.3. B-Tree Deletion"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant"]
+title = "Deletion Invariants and Root Normalization"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Rotation"]
+title = "Rotation Preserves Sorted and ChildBounded"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Repair"]
+title = "Bundled Local Repair Invariants"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Preservation"]
+title = "Leaf and Raw-Result Preservation Packets"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Reassembly"]
+title = "Parent Reassembly Packets"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.MergeReassembly"]
+title = "Parent Reassembly after Merging"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.RotationBounds"]
+title = "Separator Bounds after Rotation"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.RotationReassembly"]
+title = "Parent Reassembly after Rotation"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ComposedPreservation"]
+title = "Complete Raw Deletion Preservation"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.KeyMultiset"]
+title = "Exact Key Multisets for B-Tree Deletion"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ExactReassembly"]
+title = "Exact Parent Reassembly for B-Tree Deletion"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Exact"]
+title = "Exact Semantics for Raw B-Tree Deletion"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Subset"]
+title = "Delete: Key Subset and Bounds"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.SameDepthHeight"]
+title = "Delete Preserves SameDepth and Height"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Sorted"]
+title = "Delete Preserves Sorted"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ChildBounded"]
+title = "Delete Preserves ChildBounded"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.Occupancy"]
+title = "Delete Preserves Occupancy"
+
+[modules."CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.WellFormed"]
+title = "Root-Normalized Deletion"
 [modules."CLRSLean.FourthEdition.Chapter_19"]
 title = "Chapter 19. Data Structures for Disjoint Sets"
 
