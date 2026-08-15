@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrame
 
 /-!
@@ -32,7 +33,7 @@ constructor and avoids derived-`Fintype` nested-sum depth failures. -/
 inductive AffineExactlyOneFamilyLabel
   | load (phase : AffineExactlyOneFamilyLoadLabel)
   | kernel (label : SequentialExactlyOneLabel)
-  | finish | invalid
+  | andClear | finish | invalid
 deriving DecidableEq, Fintype
 
 /-- Relabel one established exactly-one instruction onto the framed input
@@ -109,8 +110,10 @@ def affineExactlyOneFamilyRevProgram : Program UnaryFrameSym CircuitSym where
         .pushOutput .constFalseMark (.load .pushFalse₂)
     | .load .pushFalse₂ =>
         .pushOutput .constFalseMark (.kernel .nextFirst)
+    | .kernel (.conjunction .done) => .jump .andClear
     | .kernel .halt => .jump (.load .load₁)
     | .kernel label => liftExactlyOneKernelOp (sequentialExactlyOneRevProgram.op label)
+    | .andClear => .dec₁ (.load .load₁) .andClear
     | .finish => .halt
     | .invalid => .halt
 
@@ -141,6 +144,7 @@ private def isAffineExactlyOneCont : SequentialExactlyOneCont → Prop
   | .boolEqAndLeft | .boolEqAndRight
   | .boolEqAndStart | .boolEqAndNext
   | .boolEqOrStart | .boolEqOrNext => True
+  | .conjunctionSource | .conjunctionCarry => True
   | _ => False
 
 private def isAffineExactlyOneKernelLabel : SequentialExactlyOneLabel → Prop
@@ -156,6 +160,7 @@ private def isAffineExactlyOneKernelLabel : SequentialExactlyOneLabel → Prop
   | .decFinalSomeDuplicate | .restoreFinalZeroDuplicate
   | .restoreFinalSomeDuplicate | .pushFinalAnd
   | .boolEq _
+  | .conjunction _
   | .clear₁ | .clear₂ | .clear₃ | .halt | .invalid => True
   | _ => False
 
@@ -217,13 +222,15 @@ private theorem affineExactlyOneKernel_op_preservesFramedInput
       cases cont <;> simp_all [isAffineExactlyOneKernelLabel, isAffineExactlyOneCont,
         preservesFramedInput, sequentialExactlyOneRevProgram]
   | boolEq phase => cases phase <;> trivial
+  | conjunction phase => cases phase <;> trivial
   | cell phase => cases phase <;> trivial
   | _ =>
       simp_all [isAffineExactlyOneKernelLabel, isAffineExactlyOneCont,
         preservesFramedInput, sequentialExactlyOneRevProgram]
 
 private theorem affineExactlyOneFamily_op_cell
-    (label : SequentialExactlyOneLabel) (hlabel : label ≠ .halt) :
+    (label : SequentialExactlyOneLabel) (hhalt : label ≠ .halt)
+    (handDone : label ≠ .conjunction .done) :
     affineExactlyOneFamilyRevProgram.op (.kernel label) =
       liftExactlyOneKernelOp (sequentialExactlyOneRevProgram.op label) := by
   cases label <;> simp_all [affineExactlyOneFamilyRevProgram]
@@ -232,7 +239,9 @@ private theorem affineExactlyOneFamily_op_cell
 the framed-alphabet embedding. -/
 private theorem liftExactlyOneKernel_step (tail : List UnaryFrameSym)
     (c : BuilderCfg sequentialExactlyOneRevProgram)
-    (hkernel : isAffineExactlyOneKernelCfg c) (hexit : c.label ≠ some .halt) :
+    (hkernel : isAffineExactlyOneKernelCfg c)
+    (hhalt : c.label ≠ some .halt)
+    (handDone : c.label ≠ some (.conjunction .done)) :
     step affineExactlyOneFamilyRevProgram (liftExactlyOneKernelCfg tail c) =
       Option.map (liftExactlyOneKernelCfg tail)
         (step sequentialExactlyOneRevProgram c) := by
@@ -243,12 +252,16 @@ private theorem liftExactlyOneKernel_step (tail : List UnaryFrameSym)
   | some label =>
       have hlabelKernel : isAffineExactlyOneKernelLabel label := by
         simpa [isAffineExactlyOneKernelCfg, hlabel] using hkernel
-      have hlabelExit : label ≠ .halt := by
+      have hlabelHalt : label ≠ .halt := by
         intro h
-        apply hexit
+        apply hhalt
+        simpa [hlabel] using congrArg some h
+      have hlabelAndDone : label ≠ .conjunction .done := by
+        intro h
+        apply handDone
         simpa [hlabel] using congrArg some h
       simp only [Option.map_some]
-      rw [affineExactlyOneFamily_op_cell label hlabelExit]
+      rw [affineExactlyOneFamily_op_cell label hlabelHalt hlabelAndDone]
       exact congrArg some (liftExactlyOneKernel_stepOp tail
         (sequentialExactlyOneRevProgram.op label) c
         (affineExactlyOneKernel_op_preservesFramedInput label hlabelKernel))
@@ -330,6 +343,7 @@ private theorem stepOp_staysInAffineExactlyOneKernel
 private theorem affineExactlyOneKernel_op_stays
     (label : SequentialExactlyOneLabel)
     (hkernel : isAffineExactlyOneKernelLabel label) (hexit : label ≠ .halt)
+    (handDone : label ≠ .conjunction .done)
     (hinvalid : label ≠ .invalid) :
     staysInAffineExactlyOneKernel (sequentialExactlyOneRevProgram.op label) := by
   cases label with
@@ -344,6 +358,10 @@ private theorem affineExactlyOneKernel_op_stays
       cases cont <;> simp_all [isAffineExactlyOneKernelLabel, isAffineExactlyOneCont,
         staysInAffineExactlyOneKernel, sequentialExactlyOneRevProgram]
   | boolEq phase =>
+      cases phase <;> simp_all [staysInAffineExactlyOneKernel,
+        sequentialExactlyOneRevProgram, isAffineExactlyOneKernelLabel,
+        isAffineExactlyOneCont]
+  | conjunction phase =>
       cases phase <;> simp_all [staysInAffineExactlyOneKernel,
         sequentialExactlyOneRevProgram, isAffineExactlyOneKernelLabel,
         isAffineExactlyOneCont]
@@ -362,7 +380,9 @@ private theorem affineExactlyOneKernel_op_stays
 
 private theorem affineExactlyOneKernel_step_closed
     (c c' : BuilderCfg sequentialExactlyOneRevProgram)
-    (hkernel : isAffineExactlyOneKernelCfg c) (hexit : c.label ≠ some .halt)
+    (hkernel : isAffineExactlyOneKernelCfg c)
+    (hhalt : c.label ≠ some .halt)
+    (handDone : c.label ≠ some (.conjunction .done))
     (hinvalid : c.label ≠ some .invalid)
     (hstep : step sequentialExactlyOneRevProgram c = some c') :
     isAffineExactlyOneKernelCfg c' := by
@@ -374,7 +394,11 @@ private theorem affineExactlyOneKernel_step_closed
         simpa [isAffineExactlyOneKernelCfg, hlabel] using hkernel
       have hlabelExit : label ≠ .halt := by
         intro h
-        apply hexit
+        apply hhalt
+        simpa [hlabel] using congrArg some h
+      have hlabelAndDone : label ≠ .conjunction .done := by
+        intro h
+        apply handDone
         simpa [hlabel] using congrArg some h
       have hlabelInvalid : label ≠ .invalid := by
         intro h
@@ -386,7 +410,7 @@ private theorem affineExactlyOneKernel_step_closed
       exact stepOp_staysInAffineExactlyOneKernel
         (sequentialExactlyOneRevProgram.op label) c
         (affineExactlyOneKernel_op_stays label hlabelKernel hlabelExit
-          hlabelInvalid)
+          hlabelAndDone hlabelInvalid)
 
 private theorem iterate_bind_none {σ : Type} (f : σ → Option σ) :
     ∀ n : Nat, (flip Option.bind f)^[n] none = none := by
@@ -398,37 +422,21 @@ private theorem iterate_bind_none {σ : Type} (f : σ → Option σ) :
       change (flip Option.bind f)^[n] none = none
       exact ih
 
-private theorem sequential_halt_no_return
+private theorem sequential_stop_no_return
+    (exit targetLabel : SequentialExactlyOneLabel)
+    (hop : sequentialExactlyOneRevProgram.op exit = .halt)
     (c target : BuilderCfg sequentialExactlyOneRevProgram)
-    (hc : c.label = some .halt) (htarget : target.label = some .halt) :
+    (hc : c.label = some exit) (htarget : target.label = some targetLabel) :
     ∀ n : Nat,
       (flip Option.bind (step sequentialExactlyOneRevProgram))^[n]
         (step sequentialExactlyOneRevProgram c) ≠ some target := by
   intro n
-  rcases c with
-    ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
-      counter₁, counter₂, counter₃⟩
-  simp only at hc
-  subst label
   let halted : BuilderCfg sequentialExactlyOneRevProgram := {
-    label := none
-    buffer₁ := none
-    buffer₂ := none
-    test := false
-    input := input
-    output := output
-    work₁ := work₁
-    work₂ := work₂
-    counter₁ := counter₁
-    counter₂ := counter₂
-    counter₃ := counter₃ }
-  have hstep : step sequentialExactlyOneRevProgram
-      { label := some SequentialExactlyOneLabel.halt
-        buffer₁ := buffer₁, buffer₂ := buffer₂, test := test
-        input := input, output := output, work₁ := work₁, work₂ := work₂
-        counter₁ := counter₁, counter₂ := counter₂,
-        counter₃ := counter₃ } = some halted := by
-    rfl
+    c with label := none, buffer₁ := none, buffer₂ := none, test := false }
+  have hstep : step sequentialExactlyOneRevProgram c = some halted := by
+    unfold step
+    rw [hc]
+    simp [hop, stepOp, halted]
   cases n with
   | zero =>
       rw [hstep]
@@ -445,56 +453,12 @@ private theorem sequential_halt_no_return
       rw [hnone, iterate_bind_none]
       simp
 
-private theorem sequential_invalid_no_return
-    (c target : BuilderCfg sequentialExactlyOneRevProgram)
-    (hc : c.label = some .invalid) (htarget : target.label = some .halt) :
-    ∀ n : Nat,
-      (flip Option.bind (step sequentialExactlyOneRevProgram))^[n]
-        (step sequentialExactlyOneRevProgram c) ≠ some target := by
-  intro n
-  rcases c with
-    ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
-      counter₁, counter₂, counter₃⟩
-  simp only at hc
-  subst label
-  let halted : BuilderCfg sequentialExactlyOneRevProgram := {
-    label := none
-    buffer₁ := none
-    buffer₂ := none
-    test := false
-    input := input
-    output := output
-    work₁ := work₁
-    work₂ := work₂
-    counter₁ := counter₁
-    counter₂ := counter₂
-    counter₃ := counter₃ }
-  have hstep : step sequentialExactlyOneRevProgram
-      { label := some SequentialExactlyOneLabel.invalid
-        buffer₁ := buffer₁, buffer₂ := buffer₂, test := test
-        input := input, output := output, work₁ := work₁, work₂ := work₂
-        counter₁ := counter₁, counter₂ := counter₂,
-        counter₃ := counter₃ } = some halted := by
-    rfl
-  cases n with
-  | zero =>
-      rw [hstep]
-      intro h
-      have hlabel := congrArg (fun cfg => cfg.label) (Option.some.inj h)
-      simp [halted, htarget] at hlabel
-  | succ n =>
-      rw [hstep, Function.iterate_succ_apply]
-      change
-        (flip Option.bind (step sequentialExactlyOneRevProgram))^[n]
-          (step sequentialExactlyOneRevProgram halted) ≠ some target
-      have hnone : step sequentialExactlyOneRevProgram halted = none := by
-        rfl
-      rw [hnone, iterate_bind_none]
-      simp
-
-private theorem liftExactlyOneKernel_iterations (tail : List UnaryFrameSym)
+private theorem liftExactlyOneKernel_iterations
+    (exit : SequentialExactlyOneLabel)
+    (hop : sequentialExactlyOneRevProgram.op exit = .halt)
+    (tail : List UnaryFrameSym)
     {a b : BuilderCfg sequentialExactlyOneRevProgram}
-    (ha : isAffineExactlyOneKernelCfg a) (hb : b.label = some .halt) :
+    (ha : isAffineExactlyOneKernelCfg a) (hb : b.label = some exit) :
     ∀ n : Nat,
       (flip Option.bind (step sequentialExactlyOneRevProgram))^[n]
           (some a) = some b →
@@ -519,18 +483,23 @@ private theorem liftExactlyOneKernel_iterations (tail : List UnaryFrameSym)
             some (liftExactlyOneKernelCfg tail b)
       have haexit : a.label ≠ some .halt := by
         intro haHalt
-        exact sequential_halt_no_return a b haHalt hb n h
+        exact sequential_stop_no_return .halt exit rfl a b haHalt hb n h
+      have haAndDone : a.label ≠ some (.conjunction .done) := by
+        intro haDone
+        exact sequential_stop_no_return (.conjunction .done) exit rfl
+          a b haDone hb n h
       have hainvalid : a.label ≠ some .invalid := by
         intro haInvalid
-        exact sequential_invalid_no_return a b haInvalid hb n h
+        exact sequential_stop_no_return .invalid exit rfl
+          a b haInvalid hb n h
       cases hstep : step sequentialExactlyOneRevProgram a with
       | none =>
           rw [hstep, iterate_bind_none] at h
           contradiction
       | some c =>
           have hc := affineExactlyOneKernel_step_closed a c ha haexit
-            hainvalid hstep
-          have hsim := liftExactlyOneKernel_step tail a ha haexit
+            haAndDone hainvalid hstep
+          have hsim := liftExactlyOneKernel_step tail a ha haexit haAndDone
           rw [hstep] at hsim
           simp only [Option.map_some] at hsim
           rw [hsim]
@@ -596,7 +565,7 @@ def affineExactlyOneFamilyCore_run (start rowBase count : Nat)
       isAffineExactlyOneKernelCfg, isAffineExactlyOneKernelLabel]
   have htarget : target.label = some .halt := rfl
   refine ⟨⟨hrun.steps, ?_⟩, hrun.steps_le_m⟩
-  have hlift := liftExactlyOneKernel_iterations tail hsource htarget
+  have hlift := liftExactlyOneKernel_iterations .halt rfl tail hsource htarget
     hrun.steps hrun.evals_in_steps
   have hsourceLift : liftExactlyOneKernelCfg tail source =
       affineExactlyOneFamilyReadyCfg start rowBase count tail output := by
@@ -1150,8 +1119,8 @@ def affineExactlyOneFamily_boolEq_runToFinish
   have htarget : (sequentialExactlyOneCfg .halt none none false []
       ((affineBoolEqGateStream start left right).reverse ++ output)
       [] [] [] [] []).label = some .halt := rfl
-  have hlift := liftExactlyOneKernel_iterations (.frameEnd :: tail)
-    hsource htarget hrun.steps hrun.evals_in_steps
+  have hlift := liftExactlyOneKernel_iterations .halt rfl
+    (.frameEnd :: tail) hsource htarget hrun.steps hrun.evals_in_steps
   have hsourceLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
       (affineBoolEqBodyCfg start left right output) =
         affineExactlyOneFamilyBoolEqReadyCfg
@@ -1182,6 +1151,119 @@ def affineExactlyOneFamily_boolEq_runToFinish
             ⟨⟨hrun.steps, hlift⟩, hrun.steps_le_m⟩)) hfinish
   simpa [affineExactlyOneFamilyBoolEqUntilFinishSteps, equalityOutput,
     Nat.add_comm] using full
+
+/-! ## Reusing the embedded kernel for one framed conjunction -/
+
+/-- Contextual entry for one AND gate.  The first operand is stored in the
+kernel's carry register and the second in its source register; the emitted
+gate is therefore `.and source carry`. -/
+def affineExactlyOneFamilyAndReadyCfg (carry source : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    BuilderCfg affineExactlyOneFamilyRevProgram :=
+  affineExactlyOneFamilyCfg (.kernel (.conjunction .push)) none none false
+    (.frameEnd :: tail) output [] []
+    (List.replicate carry ()) [] (List.replicate source ())
+
+/-- Redirect point immediately after the embedded conjunction kernel. -/
+def affineExactlyOneFamilyAndCoreExitCfg (carry : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    BuilderCfg affineExactlyOneFamilyRevProgram :=
+  affineExactlyOneFamilyCfg (.kernel (.conjunction .done)) none none false
+    (.frameEnd :: tail) output [] []
+    (List.replicate (carry + 1) ()) [] []
+
+private theorem affineExactlyOneFamilyAndClear_eval (count : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    (flip Option.bind (step affineExactlyOneFamilyRevProgram))^[count + 1]
+      (some (affineExactlyOneFamilyCfg .andClear none none false
+        (.frameEnd :: tail) output [] [] (List.replicate count ()) [] [])) =
+      some (affineExactlyOneFamilyCfg (.load .load₁) none none false
+        (.frameEnd :: tail) output [] [] [] [] []) := by
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      rw [show count + 1 + 1 = (count + 1) + 1 by omega,
+        Function.iterate_succ_apply]
+      change
+        (flip Option.bind (step affineExactlyOneFamilyRevProgram))^[count + 1]
+          (some (affineExactlyOneFamilyCfg .andClear none none false
+            (.frameEnd :: tail) output [] [] (List.replicate count ()) [] [])) = _
+      exact ih
+
+/-- Exact contextual cost of the embedded conjunction, register cleanup,
+and explicit outer-boundary check. -/
+def affineExactlyOneFamilyAndUntilFinishSteps
+    (carry source : Nat) : Nat :=
+  affineAndRevCoreSteps carry source + carry + 4
+
+/-- Execute one AND gate inside the shared fixed controller, clear the
+advanced carry register, and stop at the same public family boundary as the
+Boolean-equality component. -/
+def affineExactlyOneFamily_and_runToFinish
+    (carry source : Nat) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyAndReadyCfg carry source tail output)
+      (some (affineExactlyOneFamilyFinishCfg tail
+        ((affineAndGateStream carry source).reverse ++ output)))
+      (affineExactlyOneFamilyAndUntilFinishSteps carry source) := by
+  have hsource : isAffineExactlyOneKernelCfg
+      (affineAndBodyCfg carry source output) := by
+    simp [affineAndBodyCfg, sequentialExactlyOneCfg,
+      isAffineExactlyOneKernelCfg, isAffineExactlyOneKernelLabel]
+  have hrun := affineAndRev_runToDoneLabel carry source output
+  have htarget : (affineAndCoreExitCfg carry
+      ((affineAndGateStream carry source).reverse ++ output)).label =
+        some (.conjunction .done) := rfl
+  have hlift := liftExactlyOneKernel_iterations (.conjunction .done) rfl
+    (.frameEnd :: tail) hsource htarget hrun.steps hrun.evals_in_steps
+  have hsourceLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (affineAndBodyCfg carry source output) =
+        affineExactlyOneFamilyAndReadyCfg carry source tail output := by
+    rfl
+  have htargetLift : liftExactlyOneKernelCfg (.frameEnd :: tail)
+      (affineAndCoreExitCfg carry
+        ((affineAndGateStream carry source).reverse ++ output)) =
+      affineExactlyOneFamilyAndCoreExitCfg carry tail
+        ((affineAndGateStream carry source).reverse ++ output) := by
+    rfl
+  rw [hsourceLift, htargetLift] at hlift
+  let gateOutput := (affineAndGateStream carry source).reverse ++ output
+  let beforeClear := affineExactlyOneFamilyCfg .andClear none none false
+    (.frameEnd :: tail) gateOutput [] []
+    (List.replicate (carry + 1) ()) [] []
+  let beforeLoad := affineExactlyOneFamilyCfg (.load .load₁) none none false
+    (.frameEnd :: tail) gateOutput [] [] [] [] []
+  have hredirect : EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyAndCoreExitCfg carry tail gateOutput)
+      (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
+  have hclear : EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      beforeClear (some beforeLoad) (carry + 2) := by
+    refine ⟨⟨carry + 2, ?_⟩, le_rfl⟩
+    simpa [beforeClear, beforeLoad, Nat.add_assoc] using
+      affineExactlyOneFamilyAndClear_eval (carry + 1) tail gateOutput
+  have hfinish : EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      beforeLoad (some (affineExactlyOneFamilyFinishCfg tail gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  have hcore : EvalsToInTime (step affineExactlyOneFamilyRevProgram)
+      (affineExactlyOneFamilyAndReadyCfg carry source tail output)
+      (some (affineExactlyOneFamilyAndCoreExitCfg carry tail gateOutput))
+      (affineAndRevCoreSteps carry source) :=
+    ⟨⟨hrun.steps, by simpa [gateOutput] using hlift⟩, hrun.steps_le_m⟩
+  let throughRedirect := EvalsToInTime.trans
+    (step affineExactlyOneFamilyRevProgram)
+    (affineAndRevCoreSteps carry source) 1 _
+    (affineExactlyOneFamilyAndCoreExitCfg carry tail gateOutput) _
+    hcore hredirect
+  let throughClear := EvalsToInTime.trans
+    (step affineExactlyOneFamilyRevProgram)
+    _ (carry + 2) _ beforeClear _
+    throughRedirect hclear
+  let full := EvalsToInTime.trans (step affineExactlyOneFamilyRevProgram)
+    _ 1 _ beforeLoad _
+    throughClear hfinish
+  convert full using 1 <;>
+    simp [affineExactlyOneFamilyAndUntilFinishSteps, gateOutput] <;> omega
 
 /-- Empty framed family terminates successfully without changing output. -/
 def affineExactlyOneFamily_empty_run (output : List CircuitSym) :

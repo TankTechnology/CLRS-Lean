@@ -14,6 +14,9 @@ polynomial runtime bound.
 - [ ] Decompose one local transition stream into widening, finite-label
       dispatch, narrowing, complete-row equality, and final AND.
 - [ ] Give each runtime-sized phase an exact fixed-controller execution theorem.
+      The complete-row equality subphase is now closed by
+      `affineEqFinCanonical_run`; runtime `muxFin` and the enclosing phases
+      remain.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
       polynomial bound in the exact runtime encoding.
@@ -31,3 +34,9 @@ polynomial runtime bound.
   builders may have the same cost and different wire arguments.
 - Reusing independently halting subphase runs recreates the composition gap.
   Every phase must expose a tail-preserving redirectable exit.
+- Redirecting the embedded AND exit without clearing its incremented carry
+  register corrupts the next runtime load. The shared controller must execute
+  an explicit cleanup loop before returning to its public finish boundary.
+- Semantic commutativity of AND does not permit operand swapping here: exact
+  encoding equality distinguishes `.and previous matched` from
+  `.and matched previous`.
