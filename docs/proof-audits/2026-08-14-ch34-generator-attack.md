@@ -606,6 +606,21 @@ directly from the loader-ready state leaves the loader separator in `buffer₁`;
 the accepted bridge first normalizes the buffer, then seeds the one-element
 work stack in a separate finite-control step.
 
+The first statement-dispatch prerequisite is now executable as well.
+`CircuitBuilder.disjunctionGateTrace` freezes the exact tail-first ordered
+trace of an arbitrary wire list, and `affineOrFinRevProgram` reads sparse
+runtime operand frames, emits that trace byte-for-byte, and runs linearly in
+its delimiter-bearing unary input. This strictly generalizes the earlier
+contiguous-interval suffix scan and is the common primitive needed by
+`oneHotMap`, `oneHotPredicate`, and narrowing's overflow test.
+
+Two further rejected routes are recorded. A contiguous affine source interval
+cannot represent a sparse truth-table fiber, even when its cardinality is
+correct. Also, the active-mask suffix scan emits `.or carry wire`, whereas
+the general `CircuitBuilder.disjunction` emits `.or wire carry`; semantic OR
+commutativity cannot justify swapping these operands under byte-for-byte
+serialization acceptance.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -623,6 +638,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.EqFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.MuxFin
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -649,6 +665,7 @@ lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactlyOneFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean

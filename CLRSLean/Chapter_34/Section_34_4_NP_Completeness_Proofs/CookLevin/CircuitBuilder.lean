@@ -550,6 +550,33 @@ theorem conjunction_eval (b : CircuitBuilder) (wires : List Wire)
         wires.all (fun wire => b.evalWire inputs wire) :=
   conjunctionResult_eval b wires hvalid inputs
 
+/-! ## Tail-first disjunction traces -/
+
+/-- Pure gate-order trace of the tail-first disjunction fold. -/
+structure DisjunctionGateTrace where
+  gates : List CircuitGate
+  wire : Wire
+deriving DecidableEq, Repr
+
+/-- The empty disjunction emits a false seed; every source wire then appends
+one ordered OR gate. -/
+def disjunctionGateTrace (start : Nat) : List Wire → DisjunctionGateTrace
+  | [] =>
+      { gates := [.const false]
+        wire := start }
+  | wire :: rest =>
+      let tail := disjunctionGateTrace start rest
+      let next := start + tail.gates.length
+      { gates := tail.gates ++ [.or wire tail.wire]
+        wire := next }
+
+@[simp] theorem disjunctionGateTrace_length (start : Nat)
+    (wires : List Wire) :
+    (disjunctionGateTrace start wires).gates.length = wires.length + 1 := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih => simp [disjunctionGateTrace, ih]
+
 private def disjunctionResult (b : CircuitBuilder) (wires : List Wire)
     (hvalid : ∀ wire ∈ wires, b.WireValid wire) : BuiltWire b :=
   match wires with
@@ -570,11 +597,47 @@ private def disjunctionResult (b : CircuitBuilder) (wires : List Wire)
         valid := or_wireValid tail.builder wire tail.wire hwire tail.valid }
 termination_by wires.length
 
+private theorem disjunctionResult_trace_eq (b : CircuitBuilder)
+    (wires : List Wire) (hvalid : ∀ wire ∈ wires, b.WireValid wire) :
+    (disjunctionResult b wires hvalid).builder.gates =
+        b.gates ++ (disjunctionGateTrace b.gates.length wires).gates ∧
+      (disjunctionResult b wires hvalid).wire =
+        (disjunctionGateTrace b.gates.length wires).wire := by
+  induction wires with
+  | nil =>
+      simp [disjunctionResult, disjunctionGateTrace, const_wire_eq]
+  | cons wire rest ih =>
+      let hrest : ∀ old ∈ rest, b.WireValid old :=
+        fun old hold => hvalid old (by simp [hold])
+      rcases ih hrest with ⟨hgates, hwire⟩
+      simp only [disjunctionResult]
+      rw [or_gates, hgates]
+      simp only [or_wire_eq, disjunctionGateTrace]
+      constructor
+      · rw [hwire]
+        simp [List.append_assoc]
+      · rw [hgates]
+        simp
+
 /-- Disjoin a list of old valid wires.  The empty disjunction is false. -/
 def disjunction (b : CircuitBuilder) (wires : List Wire)
     (hvalid : ∀ wire ∈ wires, b.WireValid wire) : CircuitBuilder × Wire :=
   let result := disjunctionResult b wires hvalid
   (result.builder, result.wire)
+
+/-- The disjunction builder appends exactly its pure tail-first trace. -/
+theorem disjunction_gates_eq (b : CircuitBuilder) (wires : List Wire)
+    (hvalid : ∀ wire ∈ wires, b.WireValid wire) :
+    (b.disjunction wires hvalid).1.gates =
+      b.gates ++ (disjunctionGateTrace b.gates.length wires).gates :=
+  (disjunctionResult_trace_eq b wires hvalid).1
+
+/-- The disjunction output wire agrees with the pure trace. -/
+theorem disjunction_wire_eq_trace (b : CircuitBuilder) (wires : List Wire)
+    (hvalid : ∀ wire ∈ wires, b.WireValid wire) :
+    (b.disjunction wires hvalid).2 =
+      (disjunctionGateTrace b.gates.length wires).wire :=
+  (disjunctionResult_trace_eq b wires hvalid).2
 
 /-- A disjunction fold extends its starting builder. -/
 theorem disjunction_extends (b : CircuitBuilder) (wires : List Wire)
