@@ -20,8 +20,11 @@ compatibility period.
 The hiring problem studies the expected number of times a new best candidate is
 hired in a random interview order.  Section 5.1 proves the finite rank-symmetry
 calculation that the step probability is {lit}`1/(n+1)`, sums the indicator
-expectations, proves the equivalent recurrence solution, and derives the
-logarithmic asymptotic growth of the expected number of hires.
+expectations, proves the equivalent recurrence solution, derives the
+logarithmic asymptotic growth of the expected number of hires, and formalizes
+the executable HIRE-ASSISTANT pseudocode
+({lit}`CLRS.Chapter05.hireAssistant`) with its one-step record-counting
+recurrence.
 
 Section 5.2 formalizes the **indicator random variable** technique and
 **linearity of expectation** with the **hat-check problem** (expected fixed
