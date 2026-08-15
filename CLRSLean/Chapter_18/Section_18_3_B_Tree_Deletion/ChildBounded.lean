@@ -1,27 +1,11 @@
-import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.ComposedPreservation
+import CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ChildBounded
 
 /-!
-# B-tree deletion: child-bound projection
+# Section 18.3 - Deletion: ChildBounded (legacy compatibility path)
 
-This submodule retains the public {lit}`composedDelete_childBounded` name as
-a small projection from the bundled raw-deletion preservation theorem.
+Third-edition-numbered compatibility path for this B-tree development.  The
+canonical fourth-edition source is
+{lit}`CLRSLean.FourthEdition.Chapter_18.Section_18_3_B_Tree_Deletion.ChildBounded`;
+this module forwards to it so legacy imports keep working during the
+compatibility period (see {lit}`docs/migrations/clrs4.md`).
 -/
-
-namespace CLRS
-namespace Chapter18
-namespace BTree
-
-/--
-Raw deletion preserves recursive child key ranges for a structurally
-well-formed input node.
--/
-lemma composedDelete_childBounded
-    (t x : Nat) (ht : 2 ≤ t) (tr : BTree) {isRoot : Bool}
-    (hinv : NodeWF t isRoot tr) :
-    ChildBounded (composedDelete t x tr) := by
-  exact
-    (composedDelete_rootResult t x ht (hinv.asRoot ht)).2.1.2.1
-
-end BTree
-end Chapter18
-end CLRS
