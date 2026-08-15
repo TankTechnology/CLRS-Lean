@@ -56,13 +56,18 @@ Main results:
   power, semiprime, and ≥3-factors cases) and {lit}`strongLiars_card_le` (at
   most `(n−1)/4` strong liars for odd composite `n`).
 
+- **Random-witness analysis (the MILLER-RABIN error bound)**: the count of
+  strong-liar bases among `1, …, n-1` is at most `(n-1)/4`
+  ({lit}`strongLiars_nat_card_le`), so a uniformly random base errs with
+  probability at most `1/4` and `s` independent rounds err with probability at
+  most `4⁻ˢ` (CLRS Theorem 31.39).
+
 Notation:
 
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.totient n` : Euler's totient.
 
-Deferred: the random-witness analysis (§31.8); the executable pseudoprime
-loop with an operation count.
+Deferred: the executable pseudoprime loop with an operation count.
 -/
 
 namespace CLRS
@@ -1982,6 +1987,79 @@ theorem strongLiars_card_le {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
     intro a b h
     exact Subtype.ext (by simpa using congrArg Subtype.val h)
   exact hle.trans (goodUnits_card_le (n := n) hn1 hn_odd hn_comp)
+
+/-! ## Random-witness analysis (the MILLER-RABIN error bound) -/
+
+/-- A strong pseudoprime base is coprime to the modulus. -/
+theorem strongPseudoprime_coprime {n a : ℕ} (hn1 : 1 < n) (h : strongPseudoprime n a) :
+    Nat.Coprime a n := by
+  have hpow : a ^ (n - 1) ≡ 1 [MOD n] := strongPseudoprime_pow h
+  have hmul : a * a ^ (n - 2) ≡ 1 [MOD n] := by
+    have hn' : n - 1 = 1 + (n - 2) := by omega
+    rw [hn'] at hpow
+    rw [pow_add, pow_one] at hpow
+    exact hpow
+  exact Nat.coprime_of_mul_modEq_one (a ^ (n - 2)) hmul
+
+/-- A natural strong liar lifts to a strong liar in the unit group. -/
+theorem isStrongLiar_of_strongPseudoprime {n : ℕ} [NeZero n] {a : ℕ}
+    (hcop : Nat.Coprime a n) (h : strongPseudoprime n a) :
+    isStrongLiar (ZMod.unitOfCoprime a hcop) := by
+  rw [isStrongLiar]
+  rw [ZMod.coe_unitOfCoprime]
+  unfold strongPseudoprime at h
+  rcases h with h1 | ⟨i, hi⟩
+  · left
+    simpa [Nat.cast_pow] using
+      (ZMod.natCast_eq_natCast_iff (a ^ (strongTestParams n).2) 1 n).mpr h1
+  · right
+    refine ⟨i, ?_⟩
+    rw [← Nat.cast_pow]
+    have hnat : ((a ^ (2 ^ (i : ℕ) * (strongTestParams n).2) : ℕ) : ZMod n) = ((n - 1 : ℕ) : ZMod n) :=
+      (ZMod.natCast_eq_natCast_iff (a ^ (2 ^ (i : ℕ) * (strongTestParams n).2)) (n - 1) n).mpr hi
+    rw [hnat]
+    have hneg : ((n - 1 : ℕ) : ZMod n) = -1 := by
+      have hnpos : 0 < n := NeZero.pos n
+      rw [Nat.cast_sub (show 1 ≤ n by omega)]
+      rw [ZMod.natCast_self]
+      simp
+    exact hneg
+
+/--
+**Random-witness count bound.**  For odd composite `n`, at most `(n-1)/4` of the
+bases `1, …, n-1` are strong liars.  This is the sampling interpretation of the
+Miller-Rabin error bound (Theorem 31.39).
+-/
+theorem strongLiars_nat_card_le {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd n)
+    (hn_comp : ¬ Nat.Prime n) :
+    Nat.card {a : Fin (n - 1) // strongPseudoprime n (a.val + 1)} ≤ (n - 1) / 4 := by
+  let f : {a : Fin (n - 1) // strongPseudoprime n (a.val + 1)} →
+      {u : (ZMod n)ˣ // isStrongLiar u} := fun a =>
+    let hcop : Nat.Coprime (a.val.val + 1) n := strongPseudoprime_coprime hn1 a.2
+    ⟨ZMod.unitOfCoprime (a.val.val + 1) hcop, isStrongLiar_of_strongPseudoprime hcop a.2⟩
+  have hfinj : Function.Injective f := by
+    intro a b hab
+    apply Subtype.ext
+    apply Fin.ext
+    have h : ZMod.unitOfCoprime (a.val.val + 1) (strongPseudoprime_coprime hn1 a.2) =
+        ZMod.unitOfCoprime (b.val.val + 1) (strongPseudoprime_coprime hn1 b.2) := by
+      change (f a).val = (f b).val
+      exact congrArg Subtype.val hab
+    have hcoef : ((ZMod.unitOfCoprime (a.val.val + 1) (strongPseudoprime_coprime hn1 a.2) : ZMod n)) =
+        ((ZMod.unitOfCoprime (b.val.val + 1) (strongPseudoprime_coprime hn1 b.2) : ZMod n)) := by
+      exact congrArg (fun x : (ZMod n)ˣ => (x : ZMod n)) h
+    rw [ZMod.coe_unitOfCoprime, ZMod.coe_unitOfCoprime] at hcoef
+    have hmod : a.val.val + 1 ≡ b.val.val + 1 [MOD n] :=
+      (ZMod.natCast_eq_natCast_iff (a.val.val + 1) (b.val.val + 1) n).mp hcoef
+    have ha : a.val.val + 1 < n := by have := a.val.isLt; omega
+    have hb : b.val.val + 1 < n := by have := b.val.isLt; omega
+    rw [Nat.ModEq] at hmod
+    rw [Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb] at hmod
+    omega
+  calc
+    Nat.card {a : Fin (n - 1) // strongPseudoprime n (a.val + 1)}
+        ≤ Nat.card {u : (ZMod n)ˣ // isStrongLiar u} := Nat.card_le_card_of_injective f hfinj
+    _ ≤ (n - 1) / 4 := strongLiars_card_le (n := n) hn1 hn_odd hn_comp
 
 end Chapter31
 
