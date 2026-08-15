@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Trace
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check widenCfg_gates_eq
+#check TransitionCircuitGateTrace
+#check transitionCircuitGateTrace
+#check transitionCircuit_gates_eq
+#check transitionCircuit_wire_eq_trace
+#check transitionCircuitGateTrace_length
+
+#print axioms widenCfg_gates_eq
+#print axioms transitionCircuit_gates_eq
+#print axioms transitionCircuit_wire_eq_trace
+#print axioms transitionCircuitGateTrace_length

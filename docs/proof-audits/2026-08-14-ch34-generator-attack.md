@@ -656,6 +656,19 @@ a dedicated non-halting transition into the NOT loader, and
 delimiter-bearing input.  Narrowing is therefore no longer only an acceptance
 oracle; it is an executed transition-generator component.
 
+The complete transition target is now structural rather than suffix-derived.
+`compileStmtGateTrace` exposes all seven statement constructors as literal
+lookup/pop/continuation/mux sequences, with `compileStmt_gates_eq` and an exact
+cost theorem.  `dispatchLabelsGateTrace` then orders those statement traces and
+whole-row muxes across the canonical program-label list.  Finally,
+`transitionCircuitGateTrace` fixes the five local phases (constant pool,
+dispatch, narrowing, row equality, final AND), and
+`transitionCircuitFamilyGateTrace` iterates that trace over every adjacent row
+pair.  `transitionGateListAt_eq_trace` proves the old `List.drop` target equal
+to this explicit recursive trace, so suffix extraction is no longer part of
+the acceptance argument.  The remaining transition gap is concrete execution
+of the recursive statement/dispatch trace and its outer row-family loop.
+
 Two further rejected routes are recorded. A contiguous affine source interval
 cannot represent a sparse truth-table fiber, even when its cardinality is
 correct. Also, the active-mask suffix scan emits `.or carry wire`, whereas
@@ -723,6 +736,10 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRowFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Trace
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch.Trace
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Trace
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.TransitionFamilyTrace
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
@@ -759,6 +776,10 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRow.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRows.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorTransition.lean
+lake env lean Tests/Chapter_34_CookLevin_StatementTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_DispatchTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_LocalTransitionTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_TransitionFamilyTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_NarrowingTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_FiniteFamilyTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean

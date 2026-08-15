@@ -138,6 +138,35 @@ def transitionCircuitFamily
     TransitionCircuitFamilyResult tm H T base rows :=
   buildTransitionCircuitFamily tm H base T rows hrows
 
+/-- The empty adjacent-pair family leaves the builder unchanged. -/
+@[simp] theorem transitionCircuitFamily_zero_builder
+    (tm : _root_.Turing.FinTM2) (H : Nat) (base : CircuitBuilder)
+    (rows : Fin 1 → CfgWires tm H)
+    (hrows : ∀ row, (rows row).ValidIn base) :
+    (transitionCircuitFamily tm H base rows hrows).builder = base := by
+  rfl
+
+/-- A successor transition family is its prefix family followed by the final
+adjacent-row local transition circuit. -/
+theorem transitionCircuitFamily_succ_builder
+    (tm : _root_.Turing.FinTM2) (H : Nat) (base : CircuitBuilder)
+    (T : Nat) (rows : Fin (T + 2) → CfgWires tm H)
+    (hrows : ∀ row, (rows row).ValidIn base) :
+    let prefixRows : Fin (T + 1) → CfgWires tm H :=
+      fun row => rows row.castSucc
+    let previous := transitionCircuitFamily tm H base prefixRows
+      (fun row => hrows row.castSucc)
+    let currentRow : Fin (T + 2) := (Fin.last T).castSucc
+    let nextRow : Fin (T + 2) := Fin.last (T + 1)
+    let hcurrent : (rows currentRow).ValidIn previous.builder :=
+      (hrows currentRow).mono previous.extension
+    let hnext : (rows nextRow).ValidIn previous.builder :=
+      (hrows nextRow).mono previous.extension
+    (transitionCircuitFamily tm H base rows hrows).builder =
+      (transitionCircuit tm H previous.builder (rows currentRow)
+        (rows nextRow) hcurrent hnext).builder := by
+  rfl
+
 /-- Serial transition construction preserves the original builder. -/
 theorem transitionCircuitFamily_extends
     (tm : _root_.Turing.FinTM2) (H : Nat) {T : Nat}

@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch.Trace
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check dispatchLabelsListGateTrace
+#check dispatchLabelsList_gates_eq
+#check dispatchLabelsListGateTrace_length
+#check dispatchLabelsGateTrace
+#check dispatchLabels_gates_eq
+#check dispatchLabelsGateTrace_length
+
+#print axioms dispatchLabelsList_gates_eq
+#print axioms dispatchLabels_gates_eq
+#print axioms dispatchLabelsGateTrace_length

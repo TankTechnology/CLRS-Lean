@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRows
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.TransitionFamilyTrace
 
 /-!
 # Exact semantic target for transition-family generation
@@ -35,6 +36,16 @@ def arithmeticTransitionsAt (tm : _root_.Turing.FinTM2) (H T : Nat) :=
   transitionCircuitFamily tm H validity.builder rows.rows (fun row =>
     (rows.rowValid row).mono (pool.extension.trans validity.extension))
 
+/-- Explicit structural transition-family trace at dimension-only rows. -/
+def transitionFamilyGateTraceAt (tm : _root_.Turing.FinTM2) (H T : Nat) :
+    List CircuitGate :=
+  let rows := arithmeticRowsAt tm H T
+  let pool := arithmeticPoolAt tm H T
+  let validity := arithmeticValidityAt tm H T
+  transitionCircuitFamilyGateTrace tm H validity.builder T rows.rows
+    (fun row =>
+      (rows.rowValid row).mono (pool.extension.trans validity.extension))
+
 /-- The exact unencoded transition-gate suffix after completed validity. -/
 def transitionGateListAt (tm : _root_.Turing.FinTM2) (H T : Nat) :
     List CircuitGate :=
@@ -45,6 +56,36 @@ def transitionGateListAt (tm : _root_.Turing.FinTM2) (H T : Nat) :
 def transitionGateStreamAt (tm : _root_.Turing.FinTM2) (H T : Nat) :
     List CircuitSym :=
   (transitionGateListAt tm H T).flatMap encodeCircuitGate
+
+/-- The earlier suffix-based target is exactly the explicit recursive family
+trace; `List.drop` is no longer part of the transition acceptance surface. -/
+theorem transitionGateListAt_eq_trace
+    (tm : _root_.Turing.FinTM2) (H T : Nat) :
+    transitionGateListAt tm H T = transitionFamilyGateTraceAt tm H T := by
+  let rows := arithmeticRowsAt tm H T
+  let pool := arithmeticPoolAt tm H T
+  let validity := arithmeticValidityAt tm H T
+  have hgates :
+      (arithmeticTransitionsAt tm H T).builder.gates =
+        validity.builder.gates ++ transitionFamilyGateTraceAt tm H T := by
+    simpa [arithmeticTransitionsAt, rows, pool, validity,
+      transitionFamilyGateTraceAt, arithmeticRowsAt, arithmeticPoolAt,
+      arithmeticValidityAt] using
+      transitionCircuitFamily_gates_eq tm H validity.builder T rows.rows
+        (fun row =>
+          (rows.rowValid row).mono
+            (pool.extension.trans validity.extension))
+  unfold transitionGateListAt
+  rw [hgates]
+  simp [validity, arithmeticValidityAt]
+
+/-- The encoded transition target is the encoding of the explicit recursive
+family trace. -/
+theorem transitionGateStreamAt_eq_trace
+    (tm : _root_.Turing.FinTM2) (H T : Nat) :
+    transitionGateStreamAt tm H T =
+      (transitionFamilyGateTraceAt tm H T).flatMap encodeCircuitGate := by
+  rw [transitionGateStreamAt, transitionGateListAt_eq_trace]
 
 /-- Transition construction is literally validity followed by the frozen
 transition suffix. -/
