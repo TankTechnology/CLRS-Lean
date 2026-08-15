@@ -44,7 +44,12 @@ The supporting implementation pages remain available outside the main sidebar:
 ## Coverage boundary
 
 The native sections supply the represented fourth-edition number-theoretic
-sections (§31.1--31.8).
+sections (§31.1--31.8), including the executable cost layers:
+{lit}`CLRS.Chapter31.modularLinearEquationSolver` (§31.4),
+{lit}`CLRS.Chapter31.modExpWithCount` (§31.6),
+{lit}`CLRS.Chapter31.rsaKeyGen` and
+{lit}`CLRS.Chapter31.rsaEncrypt`/{lit}`CLRS.Chapter31.rsaDecrypt` (§31.7), and
+{lit}`CLRS.Chapter31.millerRabinLoop` (§31.8).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

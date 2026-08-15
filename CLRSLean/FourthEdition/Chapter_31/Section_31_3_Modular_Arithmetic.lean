@@ -27,8 +27,8 @@ Notation:
 - {lit}`ZMod n` : the ring of residues modulo `n`.
 - {lit}`Nat.gcd a n` : the greatest common divisor.
 
-Deferred: the full algorithm for enumerating all solutions of a linear
-congruence (§31.4).
+Deferred: none (the enumeration of all solutions of a linear congruence is
+proved in §31.4 via {lit}`CLRS.Chapter31.modularLinearEquationSolver`).
 -/
 
 namespace CLRS
