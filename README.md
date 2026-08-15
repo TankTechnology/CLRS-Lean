@@ -85,7 +85,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 28 | Matrix Operations | 🟢 complete | 9 / 9 | — |
 | 29 | Linear Programming | 🟢 complete | 10 / 10 | — |
 | 30 | Polynomials and the FFT | 🟢 complete | 34 / 34 | — |
-| 31 | Number-Theoretic Algorithms | 🟡 sections | 18 / 18 | — |
+| 31 | Number-Theoretic Algorithms | 🟢 complete | 18 / 18 | — |
 | 32 | String Matching | 🟢 complete | 61 / 61 | — |
 | 33 | Machine-Learning Algorithms | 🟢 complete | 15 / 15 | — |
 | 34 | NP-Completeness | 🟠 partial coverage | 20 / 20 | Concrete polynomial-time TM2 implementations of the… |
