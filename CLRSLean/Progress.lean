@@ -16,8 +16,8 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,578.
-* Proved tracked theorem entries: 1,578.
+* Tracked reader-facing theorem entries: 1,579.
+* Proved tracked theorem entries: 1,579.
 * Online/supplementary theorem entries: 465.
 * Remaining edition-coverage units: 2.
 
@@ -34,9 +34,9 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 29 chapters.
+* {lit}`main-proof-complete`: 30 chapters.
 * {lit}`main-proof-complete-for-correctness`: 2 chapters.
-* {lit}`selected-section-complete`: 2 chapters.
+* {lit}`selected-section-complete`: 1 chapter.
 * {lit}`partial`: 1 chapter.
 * {lit}`expository`: 1 chapter.
 
@@ -49,7 +49,7 @@ Ch  Chapter                                                     Status          
  2  2. Getting Started                                          main-proof-complete                  2.1;2.2;2.3                         7        0
  3  3. Characterizing Running Times                             main-proof-complete                  3.1;3.2;3.3                        56        0
  4  4. Divide-and-Conquer                                       main-proof-complete                  4.1;4.2;4.3;4.4;4.5;4.6;4.7        99        0
- 5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1;5.2;5.3;5.4                    25        0
+ 5  5. Probabilistic Analysis and Randomized Algorithms         main-proof-complete                  5.1;5.2;5.3;5.4                    26        0
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                78        0
  7  7. Quicksort                                                main-proof-complete                  7.1;7.2;7.3;7.4                    34        0
  8  8. Sorting in Linear Time                                   main-proof-complete                  8.1;8.2;8.3;8.4                    58        0
