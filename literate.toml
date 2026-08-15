@@ -302,6 +302,15 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis" = [
   "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
 ]
+"CLRSLean.FourthEdition.Chapter_07" = [
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort",
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort",
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort",
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_4_Analysis_Of_Quicksort",
+]
+"CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort" = [
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability",
+]
 "CLRSLean.FourthEdition.Chapter_13" = [
   "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
   "CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion",
@@ -1054,6 +1063,21 @@ title = "Chapter 6. Heapsort"
 
 [modules."CLRSLean.FourthEdition.Chapter_07"]
 title = "Chapter 7. Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort"]
+title = "7.1. Description of Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort"]
+title = "7.2. Performance of Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort"]
+title = "7.3. Randomized Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_4_Analysis_Of_Quicksort"]
+title = "7.4. Analysis of Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability"]
+title = "7.3. Randomized Quicksort: Comparison Probability"
 
 [modules."CLRSLean.FourthEdition.Chapter_08"]
 title = "Chapter 8. Sorting in Linear Time"
