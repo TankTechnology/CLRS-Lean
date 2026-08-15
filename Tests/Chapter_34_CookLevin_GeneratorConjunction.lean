@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorConjunction
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierFinalConjunctionFrame
+#check verifierFinalConjunctionGateStream
+#check verifierCircuit_gates_eq_finalConjunction
+#check verifierFinalConjunctionFrame_gateStream_eq
+#check verifierFinalConjunctionFrame_run
+
+#print axioms verifierCircuit_gates_eq_finalConjunction
+#print axioms verifierFinalConjunctionFrame_gateStream_eq
+#print axioms verifierFinalConjunctionFrame_run
