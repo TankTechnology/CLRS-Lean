@@ -25,7 +25,7 @@ Main results:
 - Theorem {lit}`insertCost_le_height`: non-full insertion costs at most
   `height + 1`.
 - Theorem {lit}`insertRootCost_le_height`: top-level insertion costs at most
-  `height + 3` (the extra two levels come from the full-root split).
+  `height + 3` (the extra levels come from the full-root split).
 - Theorem {lit}`deleteCost_le_height`: deletion costs at most `height + 1`.
 - Theorem {lit}`searchCost_le_diskAccessBound`,
   {lit}`insertRootCost_le_diskAccessBound`,
@@ -100,23 +100,187 @@ decreasing_by
       | exact heightOf_le_of_children_subset (List.take_subset _ _)
       | exact heightOf_le_of_children_subset (List.drop_subset _ _)
 
+/--
+Number of nodes read and written by {lit}`composedDelete` for key {lit}`x`
+(minimum degree {lit}`t`).  Each recursion step descends one level; a borrow
+or merge touches only the two adjacent children and their parent, which is
+constant per level.
+-/
+def deleteCost (t : Nat) (x : Nat) : BTree → Nat
+  | node ks cs =>
+    if cs.isEmpty then 1
+    else
+      let i := findChild ks x
+      if hiPos : 0 < i then
+        let ki := i - 1
+        match hk : ks[ki]? with
+        | some k =>
+          if hkeq : k = x then
+            match hcl : cs[ki]? with
+            | some leftChild =>
+              match hcr : cs[ki + 1]? with
+              | some rightChild =>
+                if hla : t ≤ numKeys leftChild then
+                  1 + deleteCost t (maxKey leftChild) leftChild
+                else if hlb : t ≤ numKeys rightChild then
+                  1 + deleteCost t (minKey rightChild) rightChild
+                else
+                  1 + deleteCost t x (mergeNodes leftChild k rightChild)
+              | none => 1
+            | none => 1
+          else
+            match hc : cs[i]? with
+            | some child =>
+              if hcg : t ≤ numKeys child then
+                1 + deleteCost t x child
+              else
+                match hls : cs[i - 1]? with
+                | some leftSib =>
+                  if hlg : t ≤ numKeys leftSib then
+                    match hsep : ks[i - 1]? with
+                    | some sep =>
+                      1 + deleteCost t x (rotateLeft leftSib sep child).2.2
+                    | none => 1 + deleteCost t x child
+                  else
+                    match hrs : cs[i + 1]? with
+                    | some rightSib =>
+                      if hrg : t ≤ numKeys rightSib then
+                        match hsep : ks[i]? with
+                        | some sep =>
+                          1 + deleteCost t x (rotateRight child sep rightSib).1
+                        | none => 1 + deleteCost t x child
+                      else
+                        match hsep : ks[i - 1]? with
+                        | some sep =>
+                          1 + deleteCost t x (mergeNodes leftSib sep child)
+                        | none => 1 + deleteCost t x child
+                    | none =>
+                      match hsep : ks[i - 1]? with
+                      | some sep =>
+                        1 + deleteCost t x (mergeNodes leftSib sep child)
+                      | none => 1 + deleteCost t x child
+                | none => 1 + deleteCost t x child
+            | none => 1
+        | none =>
+          match hc : cs[i]? with
+          | some child =>
+            if hcg : t ≤ numKeys child then
+              1 + deleteCost t x child
+            else
+              match hls : cs[i - 1]? with
+              | some leftSib =>
+                if hlg : t ≤ numKeys leftSib then
+                  match hsep : ks[i - 1]? with
+                  | some sep =>
+                    1 + deleteCost t x (rotateLeft leftSib sep child).2.2
+                  | none => 1 + deleteCost t x child
+                else
+                  match hrs : cs[i + 1]? with
+                  | some rightSib =>
+                    if hrg : t ≤ numKeys rightSib then
+                      match hsep : ks[i]? with
+                      | some sep =>
+                        1 + deleteCost t x (rotateRight child sep rightSib).1
+                      | none => 1 + deleteCost t x child
+                    else
+                      match hsep : ks[i - 1]? with
+                      | some sep =>
+                        1 + deleteCost t x (mergeNodes leftSib sep child)
+                      | none => 1 + deleteCost t x child
+                  | none =>
+                    match hsep : ks[i - 1]? with
+                    | some sep =>
+                      1 + deleteCost t x (mergeNodes leftSib sep child)
+                    | none => 1 + deleteCost t x child
+              | none => 1 + deleteCost t x child
+          | none => 1
+      else
+        match hc : cs[0]? with
+        | some child =>
+          if hcg : t ≤ numKeys child then
+            1 + deleteCost t x child
+          else
+            match hrs : cs[1]? with
+            | some rightSib =>
+              if hrg : t ≤ numKeys rightSib then
+                match hsep : ks[0]? with
+                | some sep =>
+                  1 + deleteCost t x (rotateRight child sep rightSib).1
+                | none => 1 + deleteCost t x child
+              else
+                match hsep : ks[0]? with
+                | some sep =>
+                  1 + deleteCost t x (mergeNodes child sep rightSib)
+                | none => 1 + deleteCost t x child
+            | none => 1 + deleteCost t x child
+        | none => 1
+termination_by tr => heightOf tr
+decreasing_by
+  · exact heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨ki, hcl⟩)
+  · exact heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨ki + 1, hcr⟩)
+  · rw [heightOf_mergeNodes_eq_max]
+    have ha : heightOf leftChild < heightOf (node ks cs) :=
+      heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨ki, hcl⟩)
+    have hb : heightOf rightChild < heightOf (node ks cs) :=
+      heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨ki + 1, hcr⟩)
+    omega
+  all_goals
+    first
+      | (rw [heightOf_mergeNodes_eq_max]
+         first
+           | (have ha : heightOf leftSib < heightOf (node ks cs) :=
+                heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hls⟩)
+              have hb : heightOf child < heightOf (node ks cs) :=
+                heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hc⟩)
+              omega)
+           | (have ha : heightOf child < heightOf (node ks cs) :=
+                heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hc⟩)
+              have hb : heightOf rightSib < heightOf (node ks cs) :=
+                heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hrs⟩)
+              omega))
+      | exact heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hc⟩)
+      | (have hle := heightOf_rotateLeft_right_le leftSib sep child
+         have ha : heightOf leftSib < heightOf (node ks cs) :=
+           heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hls⟩)
+         have hb : heightOf child < heightOf (node ks cs) :=
+           heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hc⟩)
+         omega)
+      | (have hle := heightOf_rotateRight_left_le child sep rightSib
+         have ha : heightOf child < heightOf (node ks cs) :=
+           heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hc⟩)
+         have hb : heightOf rightSib < heightOf (node ks cs) :=
+           heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨_, hrs⟩)
+         omega)
+
 /-! ## Height bounds -/
 
 /-- **O(h) search.**  {lit}`searchExec` descends at most one path, so its
 number of disk accesses is bounded by the tree height plus one. -/
 theorem searchCost_le_height (x : Nat) (tr : BTree) :
     searchCost x tr ≤ heightOf tr + 1 := by
-  induction tr with
-  | node ks cs =>
-      simp only [searchCost]
+  induction tr using searchCost.induct x with
+  | case1 ks cs hxkeys =>
+      rw [searchCost, if_pos hxkeys]
+      omega
+  | case2 ks cs hxkeys child hchild ih =>
+      rw [searchCost, if_neg hxkeys]
       split
+      · rename_i child' hchild'
+        rw [hchild] at hchild'
+        cases hchild'
+        have hlt : heightOf child < heightOf (node ks cs) :=
+          heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨findChild ks x, hchild⟩)
+        omega
+      · rename_i hnone
+        rw [hchild] at hnone
+        contradiction
+  | case3 ks cs hxkeys hchild =>
+      rw [searchCost, if_neg hxkeys]
+      split
+      · rename_i child hchild'
+        rw [hchild] at hchild'
+        contradiction
       · omega
-      · split
-        · rename_i child hc
-          have ih := searchCost_le_height x child
-          have hlt := heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨findChild ks x, hc⟩)
-          omega
-        · omega
 
 /-- **O(h) insertion.**  {lit}`insertNonFull` descends at most one path, so
 its number of disk accesses is bounded by the tree height plus one. -/
@@ -124,69 +288,86 @@ theorem insertCost_le_height (t x : Nat) (tr : BTree) :
     insertCost t x tr ≤ heightOf tr + 1 := by
   induction tr using insertCost.induct (t := t) (x := x) with
   | case1 ks cs hempty =>
-      simp only [insertCost, List.isEmpty_iff.mp hempty, if_true]
+      rw [insertCost, if_pos hempty]
+      omega
   | case2 ks cs hne i hnone =>
-      simp only [insertCost, if_neg hne]
-      dsimp only
-      split
-      · omega
-      · rename_i c hc
-        rw [hnone] at hc
-        simp at hc
+      have hval : insertCost t x (node ks cs) = 1 := by
+        rw [insertCost, if_neg hne]
+        dsimp only
+        split
+        · omega
+        · rename_i c hc
+          rw [hnone] at hc
+          simp at hc
+      rw [hval]
+      omega
   | case3 ks cs hne i cKeys cChildren hsome hfull median hlt hsome2 ih =>
       have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
-      obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
-      have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩
-      have hltH : heightOf (node (cKeys.take (t - 1)) (cChildren.take t))
-          ≤ heightOf (node cKeys cChildren) :=
-        heightOf_le_of_children_subset (List.take_subset _ _)
-      simp only [insertCost, if_neg hne]
-      dsimp only
-      split
-      · rename_i hcnone
-        rw [hsome'] at hcnone
-        simp at hcnone
-      · rename_i c hcsome
-        obtain rfl : c = node cKeys cChildren := by
-          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+      have hval : insertCost t x (node ks cs)
+          = 1 + insertCost t x (node (cKeys.take (t - 1)) (cChildren.take t)) := by
+        rw [insertCost, if_neg hne]
         dsimp only
-        rw [if_pos hfull, if_pos hlt]
-        omega
+        split
+        · rename_i hcnone
+          rw [hsome'] at hcnone
+          simp at hcnone
+        · rename_i c hcsome
+          obtain rfl : c = node cKeys cChildren := by
+            rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+          dsimp only
+          rw [if_pos hfull, if_pos hlt]
+      rw [hval]
+      have hmem : node cKeys cChildren ∈ cs :=
+        List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩
+      have hltH : heightOf (node (cKeys.take (t - 1)) (cChildren.take t)) <
+          heightOf (node ks cs) :=
+        lt_of_le_of_lt (heightOf_le_of_children_subset (List.take_subset _ _))
+          (heightOf_mem_lt hmem)
+      omega
   | case4 ks cs hne i cKeys cChildren hsome hfull median hnlt hsome2 ih =>
       have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
-      obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
-      have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩
-      have hltH : heightOf (node (cKeys.drop t) (cChildren.drop t))
-          ≤ heightOf (node cKeys cChildren) :=
-        heightOf_le_of_children_subset (List.drop_subset _ _)
-      simp only [insertCost, if_neg hne]
-      dsimp only
-      split
-      · rename_i hcnone
-        rw [hsome'] at hcnone
-        simp at hcnone
-      · rename_i c hcsome
-        obtain rfl : c = node cKeys cChildren := by
-          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+      have hval : insertCost t x (node ks cs)
+          = 1 + insertCost t x (node (cKeys.drop t) (cChildren.drop t)) := by
+        rw [insertCost, if_neg hne]
         dsimp only
-        rw [if_pos hfull, if_neg hnlt]
-        omega
+        split
+        · rename_i hcnone
+          rw [hsome'] at hcnone
+          simp at hcnone
+        · rename_i c hcsome
+          obtain rfl : c = node cKeys cChildren := by
+            rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+          dsimp only
+          rw [if_pos hfull, if_neg hnlt]
+      rw [hval]
+      have hmem : node cKeys cChildren ∈ cs :=
+        List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩
+      have hltH : heightOf (node (cKeys.drop t) (cChildren.drop t)) <
+          heightOf (node ks cs) :=
+        lt_of_le_of_lt (heightOf_le_of_children_subset (List.drop_subset _ _))
+          (heightOf_mem_lt hmem)
+      omega
   | case5 ks cs hne i cKeys cChildren hsome hnfull hsome2 ih =>
       have hsome' : cs[findChild ks x]? = some (node cKeys cChildren) := hsome
-      obtain ⟨hilt, hget⟩ := List.getElem?_eq_some_iff.mp hsome'
-      have hmem : node cKeys cChildren ∈ cs := List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩
-      simp only [insertCost, if_neg hne]
-      dsimp only
-      split
-      · rename_i hcnone
-        rw [hsome'] at hcnone
-        simp at hcnone
-      · rename_i c hcsome
-        obtain rfl : c = node cKeys cChildren := by
-          rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+      have hval : insertCost t x (node ks cs)
+          = 1 + insertCost t x (node cKeys cChildren) := by
+        rw [insertCost, if_neg hne]
         dsimp only
-        rw [if_neg hnfull]
-        omega
+        split
+        · rename_i hcnone
+          rw [hsome'] at hcnone
+          simp at hcnone
+        · rename_i c hcsome
+          obtain rfl : c = node cKeys cChildren := by
+            rw [hsome'] at hcsome; injection hcsome with h; exact h.symm
+          dsimp only
+          rw [if_neg hnfull]
+      rw [hval]
+      have hmem : node cKeys cChildren ∈ cs :=
+        List.mem_iff_getElem?.mpr ⟨findChild ks x, hsome'⟩
+      have hltH : heightOf (node cKeys cChildren) < heightOf (node ks cs) :=
+        heightOf_mem_lt hmem
+      omega
 
 end BTree
 end Chapter18
