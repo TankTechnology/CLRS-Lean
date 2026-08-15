@@ -171,6 +171,7 @@ CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Sorted.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/ChildBounded.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/Occupancy.lean
 CLRSLean/Chapter_18/Section_18_3_B_Tree_Deletion/WellFormed.lean
+CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/RunningTime.lean
 CLRSLean/Chapter_19/Section_19_1_Fibonacci_Heap_Model.lean
 CLRSLean/Chapter_19/Section_19_2_Mergeable_Heap_Operations.lean
 CLRSLean/Chapter_19/Section_19_3_Decreasing_A_Key_And_Deleting_A_Node.lean
