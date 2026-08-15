@@ -1754,7 +1754,7 @@ before RAM cost semantics.
 - Lean source: `CLRSLean/Chapter_13/Section_13_1_Red_Black_Trees.lean`
 - Bundled interface:
   `CLRSLean/FourthEdition/Chapter_13/WellFormed.lean`
-- Status: fourth-edition §13.1 is represented through the facade: the
+- Status: fourth-edition §13.1 is represented natively: the
   color/black-height properties and logarithmic-height theorem are proved.  The
   functional update layers for §§13.2--13.4 preserve both red-black shape and
   BST ordering; the bundled interface exposes those facts as one client-facing

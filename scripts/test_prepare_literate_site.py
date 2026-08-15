@@ -71,7 +71,7 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             stylesheet.write_text("body { color: black; }\n", encoding="utf-8")
 
             parent = "CLRSLean.FourthEdition.Chapter_09"
-            child = "CLRSLean.Chapter_09.Section_09_3_Deterministic_Select.Randomized_Select"
+            child = "CLRSLean.FourthEdition.Chapter_09.Randomized_Select"
             child_href = child.replace(".", "/") + "/"
             write_module(
                 source,

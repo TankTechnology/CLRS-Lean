@@ -75,7 +75,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 18 | B-Trees | 🟢 complete | 147 / 147 | — |
 | 19 | Data Structures for Disjoint Sets | 🟢 complete | 84 / 84 | — |
 | 20 | Elementary Graph Algorithms | 🟢 correctness | 47 / 47 | — |
-| 21 | Minimum Spanning Trees | 🟢 correctness | 52 / 52 | — |
+| 21 | Minimum Spanning Trees | 🟢 complete | 52 / 52 | — |
 | 22 | Single-Source Shortest Paths | 🟡 sections | 27 / 27 | — |
 | 23 | All-Pairs Shortest Paths | 🟢 complete | 29 / 29 | — |
 | 24 | Maximum Flow | 🟢 complete | 35 / 35 | — |

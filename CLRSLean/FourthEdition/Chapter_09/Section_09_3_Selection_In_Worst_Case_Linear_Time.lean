@@ -26,7 +26,7 @@ The Section 9.2 randomized analysis is stored below this module path so that it
 can reuse the pivot-parametric infrastructure.  It is a support page for 9.2,
 not an additional subsection of 9.3, and therefore stays outside the sidebar:
 
-* [Randomized SELECT Expected Time](CLRSLean/Chapter_09/Section_09_3_Deterministic_Select/Randomized_Select/)
+* [Randomized SELECT Expected Time](CLRSLean/FourthEdition/Chapter_09/Section_09_3_Selection_In_Worst_Case_Linear_Time/Randomized_Select/)
 
 Completion boundary: the section proves pure functional correctness and a
 complete CLRS comparison-cost model.  In-place array partitioning and
