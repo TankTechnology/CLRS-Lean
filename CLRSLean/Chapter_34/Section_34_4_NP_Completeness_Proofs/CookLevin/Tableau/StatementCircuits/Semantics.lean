@@ -17,7 +17,7 @@ open _root_.Turing.TM2 _root_.Turing.TM2.Stmt
 
 /-- {lit}`evalBundle` depends on a valid bundle only through its evaluated bits.
 This small bridge is useful after selecting one of two already decoded rows. -/
-private theorem evalBundle_of_evalCfgBits_eq
+private theorem statementEvalBundle_of_evalCfgBits_eq
     {tm : _root_.Turing.FinTM2} {H : Nat}
     (leftBuilder rightBuilder : CircuitBuilder) (inputs : Nat → Bool)
     (left : CfgWires tm H) (hleft : left.ValidIn leftBuilder)
@@ -403,7 +403,7 @@ theorem compileStmt_evalBundle
             some (_root_.Turing.TM2.stepAux
               (branch test whenTrue whenFalse) c.var c.stk)
           rw [_root_.Turing.TM2.stepAux, htest]
-          exact evalBundle_of_evalCfgBits_eq selected.builder falseResult.builder
+          exact statementEvalBundle_of_evalCfgBits_eq selected.builder falseResult.builder
             inputs selected.wires selected.valid falseResult.wires
             falseResult.valid hbits hfalseDecoded
       | true =>
@@ -416,7 +416,7 @@ theorem compileStmt_evalBundle
             some (_root_.Turing.TM2.stepAux
               (branch test whenTrue whenFalse) c.var c.stk)
           rw [_root_.Turing.TM2.stepAux, htest]
-          exact evalBundle_of_evalCfgBits_eq selected.builder falseResult.builder
+          exact statementEvalBundle_of_evalCfgBits_eq selected.builder falseResult.builder
             inputs selected.wires selected.valid trueResult.wires
             (trueResult.valid.mono falseResult.extension) hbits
             htrueDecodedAtFalse
