@@ -1,18 +1,62 @@
-import CLRSLean.Chapter_09
+import CLRSLean.FourthEdition.Chapter_09.Section_09_1_Minimum_And_Maximum
+import CLRSLean.FourthEdition.Chapter_09.Section_09_2_Selection_In_Expected_Linear_Time
+import CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time
+import CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time.Randomized_Select
 
 /-!
 # Chapter 9 — Medians and Order Statistics
 
-This is the canonical CLRS fourth-edition chapter guide during the migration
-period.
+Native fourth-edition chapter guide.
 
 ## Current source
 
-During the compatibility period this guide imports {lit}`CLRSLean.Chapter_09`. Existing declarations retain their current namespaces until the chapter-by-chapter source migration.
+This guide sources fourth-edition §9.1–§9.3 from the native section modules
+under {lit}`CLRSLean.FourthEdition.Chapter_09`.  Declarations retain the
+{lit}`CLRS.Chapter09` namespace; the legacy import {lit}`CLRSLean.Chapter_09`
+and its {lit}`Section_09_*` modules forward to these sources during the
+compatibility period.
 
-## Coverage boundary
+Chapter 9 is structurally represented by Sections 9.1--9.3.  Section 9.1 is
+complete for the simultaneous pairwise minimum/maximum algorithm and the CLRS
+{lit}`3 * floor(n / 2)` comparison bound.  Sections 9.2 and 9.3 are complete
+for the advertised functional and comparison-cost models: RANDOMIZED-SELECT
+has a schedule-driven path cost, fresh per-call uniform choices, a bridge to
+the CLRS larger-side majorizer, and expected partition-work cost at most
+{lit}`4 * c * n`; recursive median-of-medians SELECT has an end-to-end cost at
+most {lit}`100n`.
 
-The represented selection developments are reused with fourth-edition analysis notes.
+## Sections
+
+* 9.1 proves simultaneous minimum/maximum correctness and the pairwise
+  comparison bound.
+* 9.2 proves duplicate-aware rank selection, pivot-style SELECT correctness,
+  schedule-cost erasure, and the fresh-choice randomized expected-cost bridge.
+* 9.3 proves recursive median-of-medians SELECT correctness and its complete
+  worst-case comparison bound.
+
+## Closure interface
+
+The chapter's main public results are
+{lit}`CLRS.Chapter09.minMax?_correct`,
+{lit}`CLRS.Chapter09.minMax?_comparisons_le`,
+{lit}`CLRS.Chapter09.randomizedSelectCostWithSchedule_rankCorrect`,
+{lit}`CLRS.Chapter09.randomizedSelectExpectedCostFuel_succ`,
+{lit}`CLRS.Chapter09.randomizedSelectExpectedCost_le_randSelectExpectedCost`,
+{lit}`CLRS.Chapter09.randomizedSelectExpectedCost_linear_bound`,
+{lit}`CLRS.Chapter09.recursiveMedianOfMediansSelect?_correct`, and
+{lit}`CLRS.Chapter09.recursiveMedianOfMediansComparisonCost_linear_bound`.
+The proof map records the supporting theorem inventory.
+
+## Completion boundary
+
+The chapter is complete for pure functional correctness and CLRS comparison
+costs.  The RANDOMIZED-SELECT metric charges only
+{lit}`c * currentLength`; it does not charge the internal
+specification implementation of {lit}`selectByRank?`, random-number generation,
+list primitives, or RAM operations, and it does not identify the nested process
+with a flat distribution on variable-length schedules.  Mutable arrays,
+in-place partitioning, a concrete RNG, and hardware-level accounting are later
+implementation refinements and do not reopen this theorem boundary.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
