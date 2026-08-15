@@ -316,6 +316,32 @@ theorem arithmeticStackCellGateStream_eq_semantic
 /-- Exact contextual run for the complete six-gate arithmetic stack-cell
 block.  Unlike the separate primitive interfaces above, this run does not halt
 between the leading blank-bit negation and the following Boolean equality. -/
+noncomputable def arithmeticStackCellRev_runToHaltLabel
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineCellBodyCfg (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output)
+      (some (sequentialExactlyOneCfg .halt none none false []
+        ((arithmeticStackCellGateStream tm H start rowBase k i).reverse ++
+          output) [] [] [] [] []))
+      (affineCellRevCoreSteps (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i)) := by
+  simpa [arithmeticStackCellGateStream,
+    arithmeticStackCellNotGateStream,
+    arithmeticStackCellBoolEqGateStream,
+    arithmeticStackCellBoolEqStart,
+    affineCellGateStream] using
+      affineCellRev_runToHaltLabel
+        (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output
+
+/-- Exact standalone run for the complete six-gate arithmetic stack-cell
+block.  Unlike the separate primitive interfaces above, this run does not halt
+between the leading blank-bit negation and the following Boolean equality. -/
 noncomputable def arithmeticStackCellRev_runFrom
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
     (i : Fin H) (output : List CircuitSym) :
