@@ -4,6 +4,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Suffi
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityTail
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -856,6 +857,55 @@ theorem arithmeticValidityPostHaltedMatch_eq_stack_append_final
   unfold arithmeticValidityFinalConjunctionGateStream
   rw [← htail]
   simp
+
+/-- Exact runtime frame for the complete row-validity suffix after
+halted/none-label agreement. -/
+noncomputable def arithmeticValidityTailFrame
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    AffineValidityTailFrame :=
+  { stackFrames := arithmeticStackFrames tm H start rowBase
+    finalFrame :=
+      arithmeticValidityFinalConjunctionFrame tm H start rowBase }
+
+/-- Interpreting the linked runtime frame yields byte-for-byte the complete
+semantic suffix after halted agreement. -/
+theorem arithmeticValidityTailGateStream_eq_postHaltedMatch
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineValidityTailGateStream
+        (arithmeticValidityTailFrame tm H start rowBase) =
+      arithmeticValidityPostHaltedMatchGateStream tm H start rowBase := by
+  rw [arithmeticValidityPostHaltedMatch_eq_stack_append_final]
+  unfold arithmeticValidityTailFrame affineValidityTailGateStream
+  rw [arithmeticStackFamilyGateStream_eq_framed,
+    arithmeticValidityFinalConjunctionGateStream_eq_framed]
+
+/-- One fixed controller executes the entire semantic post-halted suffix with
+no halt at the stack/conjunction boundary. -/
+noncomputable def arithmeticValidityTailRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineValidityTailRevProgram)
+      (affineValidityTailLoopCfg
+        (encodeAffineValidityTailFrame
+          (arithmeticValidityTailFrame tm H start rowBase)) output)
+      (some (haltCfg affineValidityTailRevProgram
+        ((arithmeticValidityPostHaltedMatchGateStream
+          tm H start rowBase).reverse ++ output)))
+      (affineValidityTailRevSteps
+        (arithmeticValidityTailFrame tm H start rowBase)) := by
+  simpa [arithmeticValidityTailGateStream_eq_postHaltedMatch] using
+    affineValidityTail_run
+      (arithmeticValidityTailFrame tm H start rowBase) output
+
+/-- The complete arithmetic post-halted suffix inherits the generic quadratic
+bound in its exact delimiter-bearing frame. -/
+theorem arithmeticValidityTailRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineValidityTailRevSteps
+        (arithmeticValidityTailFrame tm H start rowBase) ≤
+      1400 * (encodeAffineValidityTailFrame
+        (arithmeticValidityTailFrame tm H start rowBase)).length ^ 2 + 5 :=
+  affineValidityTailRev_steps_le _
 
 end
 
