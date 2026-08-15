@@ -339,6 +339,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time" = [
   "CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time.Randomized_Select",
 ]
+"CLRSLean.FourthEdition.Chapter_10" = [
+  "CLRSLean.FourthEdition.Chapter_10.Section_10_1_Simple_Array_Based_Data_Structures",
+  "CLRSLean.FourthEdition.Chapter_10.Section_10_2_Linked_Lists",
+  "CLRSLean.FourthEdition.Chapter_10.Section_10_3_Representing_Rooted_Trees",
+]
 "CLRSLean.FourthEdition.Chapter_11" = [
   "CLRSLean.FourthEdition.Chapter_11.Section_11_1_Direct_Address_Tables",
   "CLRSLean.FourthEdition.Chapter_11.Section_11_2_Chained_Hash_Tables",
@@ -1170,6 +1175,15 @@ title = "Randomized SELECT Expected Time"
 
 [modules."CLRSLean.FourthEdition.Chapter_10"]
 title = "Chapter 10. Elementary Data Structures"
+
+[modules."CLRSLean.FourthEdition.Chapter_10.Section_10_1_Simple_Array_Based_Data_Structures"]
+title = "10.1. Simple Array-Based Data Structures"
+
+[modules."CLRSLean.FourthEdition.Chapter_10.Section_10_2_Linked_Lists"]
+title = "10.2. Linked Lists"
+
+[modules."CLRSLean.FourthEdition.Chapter_10.Section_10_3_Representing_Rooted_Trees"]
+title = "10.3. Representing Rooted Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_11"]
 title = "Chapter 11. Hash Tables"

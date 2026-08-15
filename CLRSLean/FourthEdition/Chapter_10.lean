@@ -1,4 +1,6 @@
-import CLRSLean.Chapter_10
+import CLRSLean.FourthEdition.Chapter_10.Section_10_1_Simple_Array_Based_Data_Structures
+import CLRSLean.FourthEdition.Chapter_10.Section_10_2_Linked_Lists
+import CLRSLean.FourthEdition.Chapter_10.Section_10_3_Representing_Rooted_Trees
 
 /-!
 # Chapter 10 — Elementary Data Structures
@@ -8,7 +10,15 @@ period.
 
 ## Current source
 
-During the compatibility period this guide imports {lit}`CLRSLean.Chapter_10`. Existing declarations retain their current namespaces until the chapter-by-chapter source migration.
+Sections 10.1--10.3 are native fourth-edition sections (simple array-based data
+structures, linked lists, and representing rooted trees), imported directly from
+[Section 10.1](CLRSLean/FourthEdition/Chapter_10/Section_10_1_Simple_Array_Based_Data_Structures/),
+[Section 10.2](CLRSLean/FourthEdition/Chapter_10/Section_10_2_Linked_Lists/), and
+[Section 10.3](CLRSLean/FourthEdition/Chapter_10/Section_10_3_Representing_Rooted_Trees/).
+Section 10.3 re-homes the legacy third-edition §10.4 rooted-tree source.
+Declarations retain the `CLRS.Chapter10` namespace during the compatibility
+period; the third-edition-numbered imports {lit}`CLRSLean.Chapter_10` and
+{lit}`CLRSLean.Chapter_10.Section_10_*` forward to these sources.
 
 ## Coverage boundary
 
