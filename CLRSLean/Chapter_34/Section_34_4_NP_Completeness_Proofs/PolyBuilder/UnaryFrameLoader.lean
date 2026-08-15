@@ -36,14 +36,17 @@ def unaryTripleLoaderProgram : Program UnaryFrameSym CircuitSym where
     | .load₁ => .popInput .invalid fun
         | .tick => .inc₁
         | .separator => .load₂
+        | .frameEnd => .invalid
     | .inc₁ => .inc₁ .load₁
     | .load₂ => .popInput .invalid fun
         | .tick => .inc₂
         | .separator => .load₃
+        | .frameEnd => .invalid
     | .inc₂ => .inc₂ .load₂
     | .load₃ => .popInput .invalid fun
         | .tick => .inc₃
         | .separator => .ready
+        | .frameEnd => .invalid
     | .inc₃ => .inc₃ .load₃
     | .ready => .halt
     | .invalid => .halt

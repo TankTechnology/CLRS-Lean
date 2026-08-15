@@ -13,6 +13,8 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms encodeUnaryFrame_length
 #print axioms encodeUnaryFrame_injective
 
+example : decodeUnaryFrame [.frameEnd] = none := rfl
+
 example : encodeUnaryFrame [2, 0, 1] =
     [.tick, .tick, .separator, .separator, .tick, .separator] := by
   decide

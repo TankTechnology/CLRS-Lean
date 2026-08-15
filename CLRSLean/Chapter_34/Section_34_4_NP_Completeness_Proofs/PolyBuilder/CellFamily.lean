@@ -80,14 +80,17 @@ def affineCellFamilyRevProgram : Program UnaryFrameSym CircuitSym where
     | .load .load₁ => .popInput .finish fun
         | .tick => .load .inc₁
         | .separator => .load .load₂
+        | .frameEnd => .finish
     | .load .inc₁ => .inc₁ (.load .load₁)
     | .load .load₂ => .popInput .invalid fun
         | .tick => .load .inc₂
         | .separator => .load .load₃
+        | .frameEnd => .invalid
     | .load .inc₂ => .inc₂ (.load .load₂)
     | .load .load₃ => .popInput .invalid fun
         | .tick => .load .inc₃
         | .separator => .load .clearBuffer
+        | .frameEnd => .invalid
     | .load .inc₃ => .inc₃ (.load .load₃)
     | .load .clearBuffer =>
         .popWork₁ (.cell (.cell .notPush)) (fun _ => .invalid)
@@ -803,6 +806,74 @@ def affineCellFamily_runOne (frame : AffineCellFrame)
   · rfl
   · simp [affineCellFrameRevSteps]
     omega
+
+/-- Runtime cost for a cell family terminated by an explicit stack-frame
+boundary.  Unlike `affineCellFamilyRevSteps`, the last step stops on the
+redirectable `finish` label instead of executing its standalone halt. -/
+def affineCellFamilyUntilEndSteps : List AffineCellFrame → Nat
+  | [] => 1
+  | frame :: rest =>
+      affineCellFrameRevSteps frame + affineCellFamilyUntilEndSteps rest
+
+/-- The explicit stack-frame boundary has been consumed and retained in the
+input buffer, ready for an enclosing controller to clear and continue. -/
+def affineCellFamilyFinishCfg (tail : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineCellFamilyRevProgram :=
+  affineCellFamilyCfg .finish (some .frameEnd) none false tail output
+    [] [] [] [] []
+
+/-- A cell family followed by `frameEnd` reaches the redirectable finish
+label exactly, preserving the input belonging to later stack frames. -/
+def affineCellFamily_runToFinish (frames : List AffineCellFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineCellFamilyRevProgram)
+      (affineCellFamilyLoopCfg
+        (encodeAffineCellFamily frames ++ .frameEnd :: tail) output)
+      (some (affineCellFamilyFinishCfg tail
+        ((affineCellFamilyGateStream frames).reverse ++ output)))
+      (affineCellFamilyUntilEndSteps frames) := by
+  induction frames generalizing output with
+  | nil =>
+      exact ⟨⟨1, rfl⟩, le_rfl⟩
+  | cons frame rest ih =>
+      let cellOutput :=
+        (affineCellGateStream frame.right frame.left frame.blank).reverse ++
+          output
+      have hfirst := affineCellFamily_runOne frame
+        (encodeAffineCellFamily rest ++ .frameEnd :: tail) output
+      have hrest := ih cellOutput
+      let full := EvalsToInTime.trans (step affineCellFamilyRevProgram)
+        (affineCellFrameRevSteps frame)
+        (affineCellFamilyUntilEndSteps rest)
+        _ (affineCellFamilyLoopCfg
+          (encodeAffineCellFamily rest ++ .frameEnd :: tail) cellOutput)
+        _ hfirst hrest
+      convert full using 1
+      · simp [encodeAffineCellFamily, List.append_assoc]
+      · simp [affineCellFamilyGateStream, cellOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineCellFamilyUntilEndSteps]
+        omega
+
+/-- The redirectable run differs from the standalone run by its final halt
+instruction only. -/
+@[simp] theorem affineCellFamilyUntilEndSteps_add_one
+    (frames : List AffineCellFrame) :
+    affineCellFamilyUntilEndSteps frames + 1 =
+      affineCellFamilyRevSteps frames := by
+  induction frames with
+  | nil => rfl
+  | cons frame rest ih =>
+      simp only [affineCellFamilyUntilEndSteps, affineCellFamilyRevSteps]
+      omega
+
+/-- The contextual cell-family run inherits the established quadratic bound. -/
+theorem affineCellFamilyUntilEnd_steps_le (frames : List AffineCellFrame) :
+    affineCellFamilyUntilEndSteps frames ≤
+      250 * (encodeAffineCellFamily frames).length ^ 2 + 1 := by
+  have h := affineCellFamilyRev_steps_le frames
+  rw [← affineCellFamilyUntilEndSteps_add_one] at h
+  omega
 
 /-- Empty framed family terminates successfully without changing output. -/
 def affineCellFamily_empty_run (output : List CircuitSym) :

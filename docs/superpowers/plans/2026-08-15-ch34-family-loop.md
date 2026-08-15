@@ -18,8 +18,8 @@ between them.
 - [x] Lift the cell block across the runtime-height loop for one stack.
 - [x] Prepend one stack's suffix-OR mask and execute its complete runtime-height
       cell family without an intermediate halt.
-- [ ] Lift the complete stack block across the fixed machine-stack family.
-- [ ] Match the linked output byte-for-byte with
+- [x] Lift the complete stack block across the fixed machine-stack family.
+- [x] Match the linked output byte-for-byte with
       `arithmeticStackFamilyGateStream` and prove a polynomial step bound.
 - [x] Run focused module/interface checks and `#print axioms` for the completed
       runtime-height cell-family cut; repeat the placeholder scan and
@@ -46,3 +46,7 @@ between them.
   label type exceeds Lean's derived-`Fintype` nested-sum synthesis depth.  Cell
   phases therefore live in the separate finite `SequentialCellLabel` type
   beneath one grouped `.cell` constructor.
+- Reusing the ordinary unary-field separator as the end of a complete stack
+  frame is ambiguous: zero-valued fields already produce consecutive bare
+  separators.  The accepted encoding adds a dedicated `frameEnd` symbol;
+  treating an arbitrary separator run as the outer boundary is rejected.

@@ -28,7 +28,7 @@ deriving DecidableEq, Repr
 three registers expected by `affineSuffixOrBodyCfg`. -/
 def encodeAffineStackFrame (frame : AffineStackFrame) : List UnaryFrameSym :=
   encodeUnaryFrame [frame.count, frame.start, frame.base + frame.count] ++
-    encodeAffineCellFamily frame.cells
+    encodeAffineCellFamily frame.cells ++ [.frameEnd]
 
 /-- Exact forward stream of one complete stack-validity block. -/
 def affineStackGateStream (frame : AffineStackFrame) : List CircuitSym :=
@@ -48,7 +48,7 @@ inductive AffineStackLabel
   | load (phase : AffineStackLoadLabel)
   | mask (label : SequentialExactlyOneLabel)
   | cells (label : AffineCellFamilyLabel)
-  | invalid
+  | finish | invalid
 deriving DecidableEq, Fintype
 
 private def liftMaskOp :
@@ -127,17 +127,20 @@ def affineStackRevProgram : Program UnaryFrameSym CircuitSym where
   Label := AffineStackLabel
   main := .load .load₁
   op
-    | .load .load₁ => .popInput .invalid fun
+    | .load .load₁ => .popInput .finish fun
         | .tick => .load .inc₁
         | .separator => .load .load₂
+        | .frameEnd => .invalid
     | .load .inc₁ => .pushWork₂ .tick (.load .load₁)
     | .load .load₂ => .popInput .invalid fun
         | .tick => .load .inc₂
         | .separator => .load .load₃
+        | .frameEnd => .invalid
     | .load .inc₂ => .inc₁ (.load .load₂)
     | .load .load₃ => .popInput .invalid fun
         | .tick => .load .inc₃
         | .separator => .load .clearBuffer
+        | .frameEnd => .invalid
     | .load .inc₃ => .inc₃ (.load .load₃)
     | .load .clearBuffer =>
         .popWork₁ (.load .moveCount) (fun _ => .invalid)
@@ -147,7 +150,10 @@ def affineStackRevProgram : Program UnaryFrameSym CircuitSym where
         .pushOutput .constFalseMark (.mask (.suffixOr .next))
     | .mask .halt => .jump (.cells (.load .load₁))
     | .mask label => liftMaskOp (sequentialExactlyOneRevProgram.op label)
+    | .cells .finish =>
+        .popWork₁ (.load .load₁) (fun _ => .invalid)
     | .cells label => liftCellFamilyOp (affineCellFamilyRevProgram.op label)
+    | .finish => .halt
     | .invalid => .halt
 
 /-- Fieldwise configuration surface for the stack controller. -/
@@ -203,8 +209,15 @@ private theorem liftCellFamily_stepOp
     | rfl
     | split <;> rfl
 
+private theorem affineStack_op_cells
+    (label : AffineCellFamilyLabel) (hlabel : label ≠ .finish) :
+    affineStackRevProgram.op (.cells label) =
+      liftCellFamilyOp (affineCellFamilyRevProgram.op label) := by
+  cases label <;> simp_all [affineStackRevProgram]
+
 private theorem liftCellFamily_step
-    (c : BuilderCfg affineCellFamilyRevProgram) :
+    (c : BuilderCfg affineCellFamilyRevProgram)
+    (hexit : c.label ≠ some .finish) :
     step affineStackRevProgram (liftCellFamilyCfg c) =
       Option.map liftCellFamilyCfg (step affineCellFamilyRevProgram c) := by
   unfold step
@@ -212,7 +225,12 @@ private theorem liftCellFamily_step
   cases hlabel : c.label with
   | none => rfl
   | some label =>
+      have hlabelExit : label ≠ .finish := by
+        intro h
+        apply hexit
+        simpa [hlabel] using congrArg some h
       simp only [Option.map_some]
+      rw [affineStack_op_cells label hlabelExit]
       change some
           (stepOp (liftCellFamilyOp (affineCellFamilyRevProgram.op label))
             (liftCellFamilyCfg c)) =
@@ -221,26 +239,126 @@ private theorem liftCellFamily_step
       exact congrArg some
         (liftCellFamily_stepOp (affineCellFamilyRevProgram.op label) c)
 
-private def affineStackCellFamily_run (frames : List AffineCellFrame)
+private def affineStackCellFamilyFinishCfg (tail : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineStackRevProgram :=
+  affineStackCfg (.cells .finish) (some .frameEnd) none false tail output
+    [] [] [] [] []
+
+private theorem cellFamily_iterate_bind_none (n : Nat) :
+    (flip Option.bind (step affineCellFamilyRevProgram))^[n]
+      (none : Option (BuilderCfg affineCellFamilyRevProgram)) = none := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [Function.iterate_succ_apply]
+      exact ih
+
+private theorem cellFamily_finish_no_return
+    (a b : BuilderCfg affineCellFamilyRevProgram)
+    (ha : a.label = some .finish) (hb : b.label = some .finish)
+    (n : Nat) :
+    (flip Option.bind (step affineCellFamilyRevProgram))^[n]
+        (step affineCellFamilyRevProgram a) ≠ some b := by
+  rcases a with
+    ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
+      counter₁, counter₂, counter₃⟩
+  simp only at ha
+  subst label
+  let halted : BuilderCfg affineCellFamilyRevProgram := {
+    label := none
+    buffer₁ := none
+    buffer₂ := none
+    test := false
+    input := input
+    output := output
+    work₁ := work₁
+    work₂ := work₂
+    counter₁ := counter₁
+    counter₂ := counter₂
+    counter₃ := counter₃ }
+  have hstep : step affineCellFamilyRevProgram
+      { label := some AffineCellFamilyLabel.finish
+        buffer₁ := buffer₁, buffer₂ := buffer₂, test := test
+        input := input, output := output, work₁ := work₁, work₂ := work₂
+        counter₁ := counter₁, counter₂ := counter₂,
+        counter₃ := counter₃ } = some halted := rfl
+  cases n with
+  | zero =>
+      rw [hstep]
+      intro h
+      have hlabel := congrArg (fun cfg => cfg.label) (Option.some.inj h)
+      simp [hb] at hlabel
+  | succ n =>
+      rw [hstep, Function.iterate_succ_apply]
+      change
+        (flip Option.bind (step affineCellFamilyRevProgram))^[n]
+          (step affineCellFamilyRevProgram halted) ≠ some b
+      have hnone :
+          step affineCellFamilyRevProgram halted = none := rfl
+      rw [hnone, cellFamily_iterate_bind_none]
+      simp
+
+private theorem liftCellFamily_iterations_to_finish
+    {a b : BuilderCfg affineCellFamilyRevProgram}
+    (hb : b.label = some .finish) : ∀ n : Nat,
+    (flip Option.bind (step affineCellFamilyRevProgram))^[n]
+        (some a) = some b →
+      (flip Option.bind (step affineStackRevProgram))^[n]
+        (some (liftCellFamilyCfg a)) = some (liftCellFamilyCfg b) := by
+  intro n
+  induction n generalizing a with
+  | zero =>
+      intro h
+      injection h with hab
+      simpa [hab]
+  | succ n ih =>
+      intro h
+      rw [Function.iterate_succ_apply] at h ⊢
+      change
+        (flip Option.bind (step affineCellFamilyRevProgram))^[n]
+          (step affineCellFamilyRevProgram a) = some b at h
+      change
+        (flip Option.bind (step affineStackRevProgram))^[n]
+          (step affineStackRevProgram (liftCellFamilyCfg a)) =
+            some (liftCellFamilyCfg b)
+      have haexit : a.label ≠ some .finish := by
+        intro ha
+        exact cellFamily_finish_no_return a b ha hb n h
+      cases hstep : step affineCellFamilyRevProgram a with
+      | none =>
+          rw [hstep, cellFamily_iterate_bind_none] at h
+          contradiction
+      | some c =>
+          have hsim := liftCellFamily_step a haexit
+          rw [hstep] at hsim
+          simp only [Option.map_some] at hsim
+          rw [hsim]
+          rw [hstep] at h
+          exact ih h
+
+private def affineStackCellFamily_runToFinish
+    (frames : List AffineCellFrame) (tail : List UnaryFrameSym)
     (output : List CircuitSym) :
     EvalsToInTime (step affineStackRevProgram)
       (liftCellFamilyCfg
-        (affineCellFamilyLoopCfg (encodeAffineCellFamily frames) output))
-      (some (haltCfg affineStackRevProgram
+        (affineCellFamilyLoopCfg
+          (encodeAffineCellFamily frames ++ .frameEnd :: tail) output))
+      (some (affineStackCellFamilyFinishCfg tail
         ((affineCellFamilyGateStream frames).reverse ++ output)))
-      (affineCellFamilyRevSteps frames) := by
-  have sourceRun := affineCellFamily_run frames output
-  have hstop : step affineCellFamilyRevProgram
-      (haltCfg affineCellFamilyRevProgram
-        ((affineCellFamilyGateStream frames).reverse ++ output)) = none := rfl
-  have lifted := _root_.Turing.TM2Comp.evalsToInTime_lift
-    liftCellFamilyCfg sourceRun hstop (fun c _ => liftCellFamily_step c)
-  have hhaltLift : liftCellFamilyCfg
-      (haltCfg affineCellFamilyRevProgram
+      (affineCellFamilyUntilEndSteps frames) := by
+  have sourceRun := affineCellFamily_runToFinish frames tail output
+  have htarget : (affineCellFamilyFinishCfg tail
+      ((affineCellFamilyGateStream frames).reverse ++ output)).label =
+        some .finish := rfl
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  have lifted := liftCellFamily_iterations_to_finish htarget
+    sourceRun.steps sourceRun.evals_in_steps
+  have hfinishLift : liftCellFamilyCfg
+      (affineCellFamilyFinishCfg tail
         ((affineCellFamilyGateStream frames).reverse ++ output)) =
-      haltCfg affineStackRevProgram
+      affineStackCellFamilyFinishCfg tail
         ((affineCellFamilyGateStream frames).reverse ++ output) := rfl
-  rw [hhaltLift] at lifted
+  rw [hfinishLift] at lifted
   exact lifted
 
 private def liftMaskCfg (tail : List UnaryFrameSym)
@@ -823,11 +941,129 @@ def affineStackMask_load (start base count : Nat)
   simp [affineStackMaskLoadSteps]
   omega
 
-/-- Exact running time of one linked mask-plus-cells stack block. -/
-def affineStackRevSteps (frame : AffineStackFrame) : Nat :=
+/-- Exact running time of one mask-plus-cells stack frame, returning to the
+clean outer loop header instead of halting. -/
+def affineStackFrameRevSteps (frame : AffineStackFrame) : Nat :=
   affineStackMaskLoadSteps frame.start frame.base frame.count +
     affineSuffixOrRevCoreSteps frame.start frame.base frame.count + 1 +
-    affineCellFamilyRevSteps frame.cells
+    affineCellFamilyUntilEndSteps frame.cells + 1
+
+/-- Execute one complete stack-validity block and return to the clean outer
+loop header with all later stack frames untouched. -/
+def affineStack_runOne (frame : AffineStackFrame)
+    (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg (encodeAffineStackFrame frame ++ tail) output)
+      (some (affineStackLoopCfg tail
+        ((affineStackGateStream frame).reverse ++ output)))
+      (affineStackFrameRevSteps frame) := by
+  let cellTail :=
+    encodeAffineCellFamily frame.cells ++ .frameEnd :: tail
+  have hload := affineStackMask_load frame.start frame.base frame.count
+    cellTail output
+  have hmask := affineStackMaskCore_run frame.start frame.base frame.count
+    cellTail output
+  let maskOutput :=
+    (affineSuffixOrGateStream frame.start frame.base frame.count).reverse ++
+      output
+  let cellsEntry := liftCellFamilyCfg
+    (affineCellFamilyLoopCfg cellTail maskOutput)
+  have hjump : EvalsToInTime (step affineStackRevProgram)
+      (affineStackMaskCoreExitCfg cellTail maskOutput)
+      (some cellsEntry) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
+  have hcells := affineStackCellFamily_runToFinish frame.cells tail maskOutput
+  let cellOutput :=
+    (affineCellFamilyGateStream frame.cells).reverse ++ maskOutput
+  have hcontinue : EvalsToInTime (step affineStackRevProgram)
+      (affineStackCellFamilyFinishCfg tail cellOutput)
+      (some (affineStackLoopCfg tail cellOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let t₁ := EvalsToInTime.trans (step affineStackRevProgram)
+    (affineStackMaskLoadSteps frame.start frame.base frame.count)
+    (affineSuffixOrRevCoreSteps frame.start frame.base frame.count)
+    _ (affineStackMaskReadyCfg frame.start frame.base frame.count
+      cellTail output) _ hload hmask
+  let t₂ := EvalsToInTime.trans (step affineStackRevProgram)
+    _ 1 _ (affineStackMaskCoreExitCfg cellTail maskOutput) _ t₁ hjump
+  let t₃ := EvalsToInTime.trans (step affineStackRevProgram)
+    _ (affineCellFamilyUntilEndSteps frame.cells) _ cellsEntry _ t₂ hcells
+  let full := EvalsToInTime.trans (step affineStackRevProgram)
+    _ 1 _ (affineStackCellFamilyFinishCfg tail cellOutput) _ t₃ hcontinue
+  convert full using 1
+  · simp [encodeAffineStackFrame, cellTail, List.append_assoc]
+  · simp [affineStackGateStream, maskOutput,
+      cellOutput, List.reverse_append, List.append_assoc]
+  · simp [affineStackFrameRevSteps]
+    omega
+
+/-- Runtime input for any finite sequence of complete stack frames. -/
+def encodeAffineStackFamily : List AffineStackFrame → List UnaryFrameSym
+  | [] => []
+  | frame :: rest =>
+      encodeAffineStackFrame frame ++ encodeAffineStackFamily rest
+
+/-- Exact forward byte stream of any finite stack family. -/
+def affineStackFamilyGateStream : List AffineStackFrame → List CircuitSym
+  | [] => []
+  | frame :: rest =>
+      affineStackGateStream frame ++ affineStackFamilyGateStream rest
+
+/-- The recursive stack-family stream is ordinary `flatMap` over frames. -/
+theorem affineStackFamilyGateStream_eq_flatMap
+    (frames : List AffineStackFrame) :
+    affineStackFamilyGateStream frames =
+      frames.flatMap affineStackGateStream := by
+  induction frames with
+  | nil => rfl
+  | cons frame rest ih =>
+      simp [affineStackFamilyGateStream, ih]
+
+/-- Exact outer-family cost, including the final empty-input check and halt. -/
+def affineStackFamilyRevSteps : List AffineStackFrame → Nat
+  | [] => 2
+  | frame :: rest =>
+      affineStackFrameRevSteps frame + affineStackFamilyRevSteps rest
+
+/-- Empty outer family terminates successfully without changing output. -/
+def affineStackFamily_empty_run (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg [] output)
+      (some (haltCfg affineStackRevProgram output)) 2 :=
+  ⟨⟨2, rfl⟩, le_rfl⟩
+
+/-- Execute an arbitrary runtime-length family of complete stack blocks with
+one fixed finite controller. -/
+def affineStackFamily_run (frames : List AffineStackFrame)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg (encodeAffineStackFamily frames) output)
+      (some (haltCfg affineStackRevProgram
+        ((affineStackFamilyGateStream frames).reverse ++ output)))
+      (affineStackFamilyRevSteps frames) := by
+  induction frames generalizing output with
+  | nil =>
+      simpa [encodeAffineStackFamily, affineStackFamilyGateStream,
+        affineStackFamilyRevSteps] using affineStackFamily_empty_run output
+  | cons frame rest ih =>
+      let frameOutput := (affineStackGateStream frame).reverse ++ output
+      have hfirst := affineStack_runOne frame
+        (encodeAffineStackFamily rest) output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans (step affineStackRevProgram)
+        (affineStackFrameRevSteps frame) (affineStackFamilyRevSteps rest)
+        _ (affineStackLoopCfg (encodeAffineStackFamily rest) frameOutput)
+        _ hfirst hrest
+      convert full using 1
+      · simp [encodeAffineStackFamily]
+      · simp [affineStackFamilyGateStream, frameOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineStackFamilyRevSteps]
+        omega
+
+/-- Exact standalone cost of one complete stack block. -/
+def affineStackRevSteps (frame : AffineStackFrame) : Nat :=
+  affineStackFamilyRevSteps [frame]
 
 /-- Execute one complete stack-validity block without halting between its
 suffix-OR mask and its runtime-length cell family. -/
@@ -838,50 +1074,22 @@ def affineStack_run (frame : AffineStackFrame)
       (some (haltCfg affineStackRevProgram
         ((affineStackGateStream frame).reverse ++ output)))
       (affineStackRevSteps frame) := by
-  have hload := affineStackMask_load frame.start frame.base frame.count
-    (encodeAffineCellFamily frame.cells) output
-  have hmask := affineStackMaskCore_run frame.start frame.base frame.count
-    (encodeAffineCellFamily frame.cells) output
-  let maskOutput :=
-    (affineSuffixOrGateStream frame.start frame.base frame.count).reverse ++
-      output
-  let cellsEntry := liftCellFamilyCfg
-    (affineCellFamilyLoopCfg (encodeAffineCellFamily frame.cells) maskOutput)
-  have hjump : EvalsToInTime (step affineStackRevProgram)
-      (affineStackMaskCoreExitCfg (encodeAffineCellFamily frame.cells)
-        maskOutput)
-      (some cellsEntry) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
-  have hcells := affineStackCellFamily_run frame.cells maskOutput
-  let t₁ := EvalsToInTime.trans (step affineStackRevProgram)
-    (affineStackMaskLoadSteps frame.start frame.base frame.count)
-    (affineSuffixOrRevCoreSteps frame.start frame.base frame.count)
-    _ (affineStackMaskReadyCfg frame.start frame.base frame.count
-      (encodeAffineCellFamily frame.cells) output) _ hload hmask
-  let t₂ := EvalsToInTime.trans (step affineStackRevProgram)
-    _ 1 _ (affineStackMaskCoreExitCfg
-      (encodeAffineCellFamily frame.cells) maskOutput) _ t₁ hjump
-  let full := EvalsToInTime.trans (step affineStackRevProgram)
-    _ (affineCellFamilyRevSteps frame.cells) _ cellsEntry _ t₂ hcells
-  convert full using 1
-  · simp [encodeAffineStackFrame, affineStackLoopCfg]
-  · simp [affineStackGateStream, maskOutput,
-      List.reverse_append, List.append_assoc]
-  · simp [affineStackRevSteps]
-    omega
+  simpa [affineStackRevSteps, encodeAffineStackFamily,
+    affineStackFamilyGateStream] using affineStackFamily_run [frame] output
 
 /-- Exact length of the explicit stack frame. -/
 @[simp] theorem encodeAffineStackFrame_length (frame : AffineStackFrame) :
     (encodeAffineStackFrame frame).length =
-      frame.start + frame.base + 2 * frame.count + 3 +
+      frame.start + frame.base + 2 * frame.count + 4 +
         (encodeAffineCellFamily frame.cells).length := by
   simp [encodeAffineStackFrame, encodeUnaryFrame_length]
   omega
 
-/-- The complete single-stack controller is quadratic in its explicit framed
-input length. -/
-theorem affineStackRev_steps_le (frame : AffineStackFrame) :
-    affineStackRevSteps frame ≤
-      300 * (encodeAffineStackFrame frame).length ^ 2 + 3 := by
+/-- One complete stack frame returns to the outer loop in time quadratic in
+its explicit encoding. -/
+theorem affineStackFrameRev_steps_le (frame : AffineStackFrame) :
+    affineStackFrameRevSteps frame ≤
+      400 * (encodeAffineStackFrame frame).length ^ 2 := by
   let maskLen := frame.start + frame.base + 2 * frame.count + 3
   let cellLen := (encodeAffineCellFamily frame.cells).length
   have hcoreLeFull :
@@ -906,9 +1114,9 @@ theorem affineStackRev_steps_le (frame : AffineStackFrame) :
         maskLen ^ 2 := by
     simp [affineStackMaskLoadSteps, maskLen]
     nlinarith
-  have hcells := affineCellFamilyRev_steps_le frame.cells
-  change affineCellFamilyRevSteps frame.cells ≤
-    250 * cellLen ^ 2 + 2 at hcells
+  have hcells := affineCellFamilyUntilEnd_steps_le frame.cells
+  change affineCellFamilyUntilEndSteps frame.cells ≤
+    250 * cellLen ^ 2 + 1 at hcells
   have hsquare : maskLen ^ 2 + cellLen ^ 2 ≤
       (maskLen + cellLen) ^ 2 := by
     calc
@@ -925,19 +1133,67 @@ theorem affineStackRev_steps_le (frame : AffineStackFrame) :
       _ ≤ 250 * (maskLen + cellLen) ^ 2 :=
         Nat.mul_le_mul_left 250 hsquare
       _ ≤ 300 * (maskLen + cellLen) ^ 2 := by omega
+  have hmain : affineStackFrameRevSteps frame ≤
+      300 * (maskLen + cellLen) ^ 2 + 3 := by
+    simp only [affineStackFrameRevSteps]
+    calc
+      affineStackMaskLoadSteps frame.start frame.base frame.count +
+            affineSuffixOrRevCoreSteps frame.start frame.base frame.count + 1 +
+            affineCellFamilyUntilEndSteps frame.cells + 1 ≤
+          maskLen ^ 2 + 25 * maskLen ^ 2 + 1 +
+            (250 * cellLen ^ 2 + 1) + 1 := by omega
+      _ = 26 * maskLen ^ 2 + 250 * cellLen ^ 2 + 3 := by ring
+      _ ≤ 300 * (maskLen + cellLen) ^ 2 + 3 :=
+        Nat.add_le_add_right hcombine 3
   rw [encodeAffineStackFrame_length]
-  change affineStackRevSteps frame ≤ 300 * (maskLen + cellLen) ^ 2 + 3
-  simp only [affineStackRevSteps]
+  change affineStackFrameRevSteps frame ≤
+    400 * (maskLen + 1 + cellLen) ^ 2
   calc
-    affineStackMaskLoadSteps frame.start frame.base frame.count +
-          affineSuffixOrRevCoreSteps frame.start frame.base frame.count + 1 +
-          affineCellFamilyRevSteps frame.cells ≤
-        maskLen ^ 2 + 25 * maskLen ^ 2 + 1 +
-          (250 * cellLen ^ 2 + 2) :=
-      Nat.add_le_add (Nat.add_le_add (Nat.add_le_add hload hmask') le_rfl)
-        hcells
-    _ = 26 * maskLen ^ 2 + 250 * cellLen ^ 2 + 3 := by ring
-    _ ≤ 300 * (maskLen + cellLen) ^ 2 + 3 :=
-      Nat.add_le_add_right hcombine 3
+    affineStackFrameRevSteps frame ≤
+        300 * (maskLen + cellLen) ^ 2 + 3 := hmain
+    _ ≤ 400 * (maskLen + 1 + cellLen) ^ 2 := by nlinarith
+
+/-- The entire runtime-length stack family has one uniform quadratic bound. -/
+theorem affineStackFamilyRev_steps_le (frames : List AffineStackFrame) :
+    affineStackFamilyRevSteps frames ≤
+      400 * (encodeAffineStackFamily frames).length ^ 2 + 2 := by
+  induction frames with
+  | nil => simp [affineStackFamilyRevSteps, encodeAffineStackFamily]
+  | cons frame rest ih =>
+      have hframe := affineStackFrameRev_steps_le frame
+      simp only [affineStackFamilyRevSteps, encodeAffineStackFamily,
+        List.length_append]
+      have hsquare :
+          (encodeAffineStackFrame frame).length ^ 2 +
+              (encodeAffineStackFamily rest).length ^ 2 ≤
+            ((encodeAffineStackFrame frame).length +
+              (encodeAffineStackFamily rest).length) ^ 2 := by
+        calc
+          (encodeAffineStackFrame frame).length ^ 2 +
+                (encodeAffineStackFamily rest).length ^ 2 ≤
+              (encodeAffineStackFrame frame).length ^ 2 +
+                (encodeAffineStackFamily rest).length ^ 2 +
+                2 * (encodeAffineStackFrame frame).length *
+                  (encodeAffineStackFamily rest).length := by omega
+          _ = ((encodeAffineStackFrame frame).length +
+              (encodeAffineStackFamily rest).length) ^ 2 := by ring
+      calc
+        affineStackFrameRevSteps frame + affineStackFamilyRevSteps rest ≤
+            400 * (encodeAffineStackFrame frame).length ^ 2 +
+              (400 * (encodeAffineStackFamily rest).length ^ 2 + 2) :=
+          Nat.add_le_add hframe ih
+        _ = 400 * ((encodeAffineStackFrame frame).length ^ 2 +
+              (encodeAffineStackFamily rest).length ^ 2) + 2 := by ring
+        _ ≤ 400 * ((encodeAffineStackFrame frame).length +
+              (encodeAffineStackFamily rest).length) ^ 2 + 2 :=
+          Nat.add_le_add_right (Nat.mul_le_mul_left 400 hsquare) 2
+
+/-- The standalone one-stack interface is a specialization of the family
+controller and inherits its quadratic bound. -/
+theorem affineStackRev_steps_le (frame : AffineStackFrame) :
+    affineStackRevSteps frame ≤
+      400 * (encodeAffineStackFrame frame).length ^ 2 + 2 := by
+  simpa [affineStackRevSteps, encodeAffineStackFamily] using
+    affineStackFamilyRev_steps_le [frame]
 
 end CLRS.Chapter34.Turing.PolyBuilder
