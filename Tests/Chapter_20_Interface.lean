@@ -215,6 +215,10 @@ import CLRSLean.Chapter_20.Section_20_3_Recursive_VEB
 #check CLRS.Chapter20.VEBTreeMM.deleteCost_le
 #check CLRS.Chapter20.VEBTreeMM.deleteDepth
 #check CLRS.Chapter20.VEBTreeMM.deleteDepth_le
+#check CLRS.Chapter20.VEBTreeMM.minimumCost_le_bound
+#check CLRS.Chapter20.VEBTreeMM.maximumCost_le_bound
+#check CLRS.Chapter20.VEBTreeMM.deleteDepth_le_bound
+#check CLRS.Chapter20.VEBTreeMM.veb_all_operations_cost_le
 #check CLRS.Chapter20.VEBTreeMM.veb_all_operations_bigO_loglog_u
 #check CLRS.Chapter20.VEBTreeMM.delete_member_iff
 #check CLRS.Chapter20.VEBTreeMM.delete_member_deleted_false
