@@ -347,6 +347,12 @@ already closed independently.
     linker boundary.  The accepted route proves a standalone reusable
     conjunction controller with a redirectable entry/finish interface; the
     stack-to-conjunction linker remains a separate composition milestone.
+23. **Using an unmarked concatenation of row frames.** A valid row may begin
+    with `frameEnd` when its one-hot subfamily is empty, so the same byte cannot
+    also identify the end of the outer row family. The accepted encoding puts
+    one `tick` marker before every row and reserves the unmarked `frameEnd` for
+    the outer terminator. Independently halting row runs are also rejected:
+    the family redirects the row's clean contextual finish before halt.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
@@ -525,10 +531,20 @@ explicit bound `2500 * |encodeAffineValidityRowFrame frame|^2 + 20`.
 
 The arithmetic instance `arithmeticValidityRowRev_runFrom` now emits exactly
 `validityRowGateStreamAt tm H start rowBase`.  Thus the single-row validity
-serializer is complete under the attack acceptance standard.  The next
-generator execution gap is horizontal: build the fixed family controller that
-iterates this completed row frame over every tableau row, then link that
-all-row validity phase to the remaining transition and boundary phases.
+serializer is complete under the attack acceptance standard.
+
+The horizontal all-row gap is now closed as well. `ValidityTail` and
+`ValidityRow` expose tail-preserving contextual finish theorems, and
+`affineValidityRowFamilyRevProgram` uses one fixed controller to iterate a
+runtime list of marked row frames. `affineValidityRowFamily_run` proves exact
+row-major output, while `affineValidityRowFamilyRev_steps_le` gives the
+explicit quadratic envelope
+`2600 * |encodeAffineValidityRowFamilyInput frames|^2 + 2`.
+`arithmeticValidityRowsGateStream_eq_semantic` identifies that output exactly
+with `validityGateStreamAt tm H T`; the verifier-specialized theorem reaches
+`verifierValidityGateStream W input`. The next concrete generator boundary is
+therefore the transition family, followed by the initial/acceptance boundary
+phases and the final conjunction.
 
 ## Focused Acceptance Mechanism
 
@@ -555,6 +571,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRow
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRowFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -578,11 +595,13 @@ lake env lean Tests/Chapter_34_PolyBuilder_CellFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Stack.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Conjunction.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ValidityRow.lean
+lake env lean Tests/Chapter_34_PolyBuilder_ValidityRowFamily.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRow.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRows.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean

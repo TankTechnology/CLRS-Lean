@@ -45,4 +45,7 @@ leaving a redirectable boundary for whole-row composition.
 arithmetic halted/label agreement controller and then to
 `affineValidityTail_run`.  The continuous arithmetic theorem outputs exactly
 `validityRowGateStreamAt` and carries a quadratic bound over its concrete
-runtime frame.  The next open boundary is iteration across all tableau rows.
+runtime frame. `AffineValidityRowFamily` now supplies that formerly open
+iteration boundary: one fixed marked-frame controller emits exactly
+`validityGateStreamAt` for all tableau rows and has an explicit quadratic
+runtime bound. The next open generator boundary is the transition family.

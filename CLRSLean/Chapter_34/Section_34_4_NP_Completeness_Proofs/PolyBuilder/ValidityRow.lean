@@ -142,6 +142,11 @@ private def liftTailCfg (c : BuilderCfg affineValidityTailRevProgram) :
     BuilderCfg affineValidityRowRevProgram :=
   relabelCfg .tail c
 
+/-- Redirectable clean exit after one complete row-validity frame. -/
+def affineValidityRowFinishCfg (tail : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineValidityRowRevProgram :=
+  liftTailCfg (affineValidityTailFinishCfg tail output)
+
 /-- Clean public entry for one complete runtime row. -/
 def affineValidityRowLoopCfg (input : List UnaryFrameSym)
     (output : List CircuitSym) : BuilderCfg affineValidityRowRevProgram :=
@@ -351,25 +356,26 @@ private theorem lift_iterations_to_haltExit
           exact ih h
 
 private def affineValidityRow_oneHot_run
-    (frame : AffineValidityRowFrame) (output : List CircuitSym) :
+    (frame : AffineValidityRowFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (affineValidityRowLoopCfg
-        (encodeAffineValidityRowFrame frame) output)
+        (encodeAffineValidityRowFrame frame ++ tail) output)
       (some (liftOneHotCfg (affineExactlyOneFamilyFinishCfg
         (encodeUnaryFrame
             [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
-          .frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+          .frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
         ((affineExactlyOneFamilyGateStream
           frame.oneHotFrames).reverse ++ output))))
       (affineExactlyOneFamilyUntilEndSteps frame.oneHotFrames) := by
   have sourceRun := affineExactlyOneFamily_runToFinish frame.oneHotFrames
     (encodeUnaryFrame
         [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
-      .frameEnd :: encodeAffineValidityTailFrame frame.tailFrame) output
+      .frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail)) output
   have htarget : (affineExactlyOneFamilyFinishCfg
       (encodeUnaryFrame
           [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
-        .frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+        .frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
       ((affineExactlyOneFamilyGateStream frame.oneHotFrames).reverse ++
         output)).label = some .finish := rfl
   refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
@@ -381,81 +387,89 @@ private def affineValidityRow_oneHot_run
         .frameEnd ::
           (encodeUnaryFrame
               [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
-            .frameEnd :: encodeAffineValidityTailFrame frame.tailFrame))
+            .frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail)))
       output) = affineValidityRowLoopCfg
-        (encodeAffineValidityRowFrame frame) output := rfl
+        (encodeAffineValidityRowFrame frame ++ tail) output := by
+    simp [liftOneHotCfg, relabelCfg, affineExactlyOneFamilyLoopCfg,
+      affineValidityRowLoopCfg, encodeAffineValidityRowFrame,
+      List.append_assoc]
   rw [hsource] at lifted
   exact lifted
 
 private def affineValidityRow_oneHot_bridge
-    (frame : AffineValidityRowFrame) (output : List CircuitSym) :
+    (frame : AffineValidityRowFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (liftOneHotCfg (affineExactlyOneFamilyFinishCfg
         (encodeUnaryFrame
             [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
-          .frameEnd :: encodeAffineValidityTailFrame frame.tailFrame) output))
+          .frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
+        output))
       (some (liftLoaderCfg (unaryTripleLoaderCfg .load₁ none
         (encodeUnaryFrame
             [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
-          .frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+          .frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
         output [] [] [] [] []))) 1 :=
   ⟨⟨1, rfl⟩, le_rfl⟩
 
 private def affineValidityRow_loader_run
-    (frame : AffineValidityRowFrame) (output : List CircuitSym) :
+    (frame : AffineValidityRowFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (liftLoaderCfg (unaryTripleLoaderCfg .load₁ none
         (encodeUnaryFrame
             [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
-          .frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+          .frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
         output [] [] [] [] []))
       (some (liftLoaderCfg (unaryTripleLoaderReadyCfg
         frame.haltedStart frame.haltedLeft frame.haltedRight
-        (.frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+        (.frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
         output [] [])))
       (unaryTripleLoaderSteps
         frame.haltedStart frame.haltedLeft frame.haltedRight) := by
   have sourceRun := unaryTripleLoader_run
     frame.haltedStart frame.haltedLeft frame.haltedRight
-    (.frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+    (.frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
     output [] []
   have htarget : (unaryTripleLoaderReadyCfg
       frame.haltedStart frame.haltedLeft frame.haltedRight
-      (.frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+      (.frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
       output [] []).label = some .ready := rfl
   refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
   exact lift_iterations_to_haltExit UnaryTripleLoaderLabel.ready rfl liftLoaderCfg
     liftLoader_step htarget sourceRun.steps sourceRun.evals_in_steps
 
 private def affineValidityRow_loader_bridge
-    (frame : AffineValidityRowFrame) (output : List CircuitSym) :
+    (frame : AffineValidityRowFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (liftLoaderCfg (unaryTripleLoaderReadyCfg
         frame.haltedStart frame.haltedLeft frame.haltedRight
-        (.frameEnd :: encodeAffineValidityTailFrame frame.tailFrame)
+        (.frameEnd :: (encodeAffineValidityTailFrame frame.tailFrame ++ tail))
         output [] []))
       (some (liftBoolEqCfg (affineExactlyOneFamilyBoolEqReadyCfg
         frame.haltedStart frame.haltedLeft frame.haltedRight
-        (encodeAffineValidityTailFrame frame.tailFrame) output))) 1 :=
+        (encodeAffineValidityTailFrame frame.tailFrame ++ tail) output))) 1 :=
   ⟨⟨1, rfl⟩, le_rfl⟩
 
 private def affineValidityRow_boolEq_run
-    (frame : AffineValidityRowFrame) (output : List CircuitSym) :
+    (frame : AffineValidityRowFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (liftBoolEqCfg (affineExactlyOneFamilyBoolEqReadyCfg
         frame.haltedStart frame.haltedLeft frame.haltedRight
-        (encodeAffineValidityTailFrame frame.tailFrame) output))
+        (encodeAffineValidityTailFrame frame.tailFrame ++ tail) output))
       (some (liftBoolEqCfg (affineExactlyOneFamilyFinishCfg
-        (encodeAffineValidityTailFrame frame.tailFrame)
+        (encodeAffineValidityTailFrame frame.tailFrame ++ tail)
         ((affineBoolEqGateStream frame.haltedStart
           frame.haltedLeft frame.haltedRight).reverse ++ output))))
       (affineExactlyOneFamilyBoolEqUntilFinishSteps
         frame.haltedStart frame.haltedLeft frame.haltedRight) := by
   have sourceRun := affineExactlyOneFamily_boolEq_runToFinish
     frame.haltedStart frame.haltedLeft frame.haltedRight
-    (encodeAffineValidityTailFrame frame.tailFrame) output
+    (encodeAffineValidityTailFrame frame.tailFrame ++ tail) output
   have htarget : (affineExactlyOneFamilyFinishCfg
-      (encodeAffineValidityTailFrame frame.tailFrame)
+      (encodeAffineValidityTailFrame frame.tailFrame ++ tail)
       ((affineBoolEqGateStream frame.haltedStart
         frame.haltedLeft frame.haltedRight).reverse ++ output)).label =
         some .finish := rfl
@@ -465,68 +479,71 @@ private def affineValidityRow_boolEq_run
     liftBoolEq_step htarget sourceRun.steps sourceRun.evals_in_steps
 
 private def affineValidityRow_boolEq_bridge
-    (frame : AffineValidityRowFrame) (output : List CircuitSym) :
+    (frame : AffineValidityRowFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (liftBoolEqCfg (affineExactlyOneFamilyFinishCfg
-        (encodeAffineValidityTailFrame frame.tailFrame) output))
+        (encodeAffineValidityTailFrame frame.tailFrame ++ tail) output))
       (some (liftTailCfg (affineValidityTailLoopCfg
-        (encodeAffineValidityTailFrame frame.tailFrame) output))) 1 :=
+        (encodeAffineValidityTailFrame frame.tailFrame ++ tail) output))) 1 :=
   ⟨⟨1, rfl⟩, le_rfl⟩
 
-private def affineValidityRow_tail_run
-    (frame : AffineValidityRowFrame) (output : List CircuitSym) :
+private def affineValidityRow_tail_runToFinish
+    (frame : AffineValidityRowFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (liftTailCfg (affineValidityTailLoopCfg
-        (encodeAffineValidityTailFrame frame.tailFrame) output))
-      (some (haltCfg affineValidityRowRevProgram
+        (encodeAffineValidityTailFrame frame.tailFrame ++ tail) output))
+      (some (affineValidityRowFinishCfg tail
         ((affineValidityTailGateStream frame.tailFrame).reverse ++ output)))
-      (affineValidityTailRevSteps frame.tailFrame) := by
-  have sourceRun := affineValidityTail_run frame.tailFrame output
-  have hstop : step affineValidityTailRevProgram
-      (haltCfg affineValidityTailRevProgram
-        ((affineValidityTailGateStream frame.tailFrame).reverse ++ output)) =
-      none := rfl
-  have lifted := _root_.Turing.TM2Comp.evalsToInTime_lift
-    liftTailCfg sourceRun hstop (fun c _ => liftTail_step c)
-  have hhalt : liftTailCfg (haltCfg affineValidityTailRevProgram
-      ((affineValidityTailGateStream frame.tailFrame).reverse ++ output)) =
-      haltCfg affineValidityRowRevProgram
-        ((affineValidityTailGateStream frame.tailFrame).reverse ++ output) :=
-    rfl
-  rw [hhalt] at lifted
-  exact lifted
+      (affineValidityTailUntilFinishSteps frame.tailFrame) := by
+  have sourceRun := affineValidityTail_runToFinish
+    frame.tailFrame tail output
+  have htarget : (affineValidityTailFinishCfg tail
+      ((affineValidityTailGateStream frame.tailFrame).reverse ++ output)).label =
+        some (.conjunction .finish) := rfl
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  have lifted := lift_iterations_to_haltExit
+    (AffineValidityTailLabel.conjunction AffineConjunctionLabel.finish)
+    rfl liftTailCfg (fun c _ => liftTail_step c) htarget
+    sourceRun.steps sourceRun.evals_in_steps
+  simpa [affineValidityRowFinishCfg] using lifted
 
-/-- Exact runtime of the continuous whole-row validity controller. -/
-def affineValidityRowRevSteps (frame : AffineValidityRowFrame) : Nat :=
+/-- Exact contextual runtime through the redirectable row finish label. -/
+def affineValidityRowUntilFinishSteps (frame : AffineValidityRowFrame) : Nat :=
   affineExactlyOneFamilyUntilEndSteps frame.oneHotFrames + 1 +
     unaryTripleLoaderSteps
       frame.haltedStart frame.haltedLeft frame.haltedRight + 1 +
     affineExactlyOneFamilyBoolEqUntilFinishSteps
       frame.haltedStart frame.haltedLeft frame.haltedRight + 1 +
-    affineValidityTailRevSteps frame.tailFrame
+    affineValidityTailUntilFinishSteps frame.tailFrame
 
-/-- Execute all canonical row-validity phases in one fixed program, with no
-intermediate halt and exact byte-for-byte output. -/
-def affineValidityRow_run (frame : AffineValidityRowFrame)
-    (output : List CircuitSym) :
+/-- Standalone runtime, including the final halt instruction. -/
+def affineValidityRowRevSteps (frame : AffineValidityRowFrame) : Nat :=
+  affineValidityRowUntilFinishSteps frame + 1
+
+/-- Execute one complete row, preserve an arbitrary unconsumed input tail,
+and stop before the final halt instruction. -/
+def affineValidityRow_runToFinish (frame : AffineValidityRowFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
     EvalsToInTime (step affineValidityRowRevProgram)
       (affineValidityRowLoopCfg
-        (encodeAffineValidityRowFrame frame) output)
-      (some (haltCfg affineValidityRowRevProgram
+        (encodeAffineValidityRowFrame frame ++ tail) output)
+      (some (affineValidityRowFinishCfg tail
         ((affineValidityRowGateStream frame).reverse ++ output)))
-      (affineValidityRowRevSteps frame) := by
+      (affineValidityRowUntilFinishSteps frame) := by
   let oneHotOutput :=
     (affineExactlyOneFamilyGateStream frame.oneHotFrames).reverse ++ output
   let boolEqOutput :=
     (affineBoolEqGateStream frame.haltedStart
       frame.haltedLeft frame.haltedRight).reverse ++ oneHotOutput
-  have honeHot := affineValidityRow_oneHot_run frame output
-  have hbridge₁ := affineValidityRow_oneHot_bridge frame oneHotOutput
-  have hloader := affineValidityRow_loader_run frame oneHotOutput
-  have hbridge₂ := affineValidityRow_loader_bridge frame oneHotOutput
-  have hboolEq := affineValidityRow_boolEq_run frame oneHotOutput
-  have hbridge₃ := affineValidityRow_boolEq_bridge frame boolEqOutput
-  have htail := affineValidityRow_tail_run frame boolEqOutput
+  have honeHot := affineValidityRow_oneHot_run frame tail output
+  have hbridge₁ := affineValidityRow_oneHot_bridge frame tail oneHotOutput
+  have hloader := affineValidityRow_loader_run frame tail oneHotOutput
+  have hbridge₂ := affineValidityRow_loader_bridge frame tail oneHotOutput
+  have hboolEq := affineValidityRow_boolEq_run frame tail oneHotOutput
+  have hbridge₃ := affineValidityRow_boolEq_bridge frame tail boolEqOutput
+  have htail := affineValidityRow_tail_runToFinish frame tail boolEqOutput
   let t₁ := EvalsToInTime.trans (step affineValidityRowRevProgram)
     (affineExactlyOneFamilyUntilEndSteps frame.oneHotFrames) 1 _ _ _
     honeHot (by simpa [oneHotOutput] using hbridge₁)
@@ -543,13 +560,36 @@ def affineValidityRow_run (frame : AffineValidityRowFrame)
   let t₅ := EvalsToInTime.trans (step affineValidityRowRevProgram) _ 1
     _ _ _ t₄ (by simpa [boolEqOutput] using hbridge₃)
   let full := EvalsToInTime.trans (step affineValidityRowRevProgram) _
-    (affineValidityTailRevSteps frame.tailFrame) _ _ _ t₅
+    (affineValidityTailUntilFinishSteps frame.tailFrame) _ _ _ t₅
     (by simpa [boolEqOutput] using htail)
   convert full using 1
-  · simp [affineValidityRowGateStream, oneHotOutput, boolEqOutput,
-      List.reverse_append, List.append_assoc]
-  · unfold affineValidityRowRevSteps
+  · simp [affineValidityRowFinishCfg, affineValidityRowGateStream,
+      oneHotOutput, boolEqOutput, List.reverse_append, List.append_assoc]
+  · unfold affineValidityRowUntilFinishSteps
     omega
+
+/-- Execute all canonical row-validity phases in one fixed program, with no
+intermediate halt and exact byte-for-byte output. -/
+def affineValidityRow_run (frame : AffineValidityRowFrame)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineValidityRowRevProgram)
+      (affineValidityRowLoopCfg
+        (encodeAffineValidityRowFrame frame) output)
+      (some (haltCfg affineValidityRowRevProgram
+        ((affineValidityRowGateStream frame).reverse ++ output)))
+      (affineValidityRowRevSteps frame) := by
+  let gateOutput := (affineValidityRowGateStream frame).reverse ++ output
+  have hfinish := affineValidityRow_runToFinish frame [] output
+  have hhalt : EvalsToInTime (step affineValidityRowRevProgram)
+      (affineValidityRowFinishCfg [] gateOutput)
+      (some (haltCfg affineValidityRowRevProgram gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step affineValidityRowRevProgram)
+    (affineValidityRowUntilFinishSteps frame) 1
+    _ (affineValidityRowFinishCfg [] gateOutput) _ hfinish hhalt
+  convert full using 1
+  · simp
+  · simp [affineValidityRowRevSteps, Nat.add_comm]
 
 /-- The linked row controller is quadratic in its exact delimiter-bearing
 runtime frame. -/
@@ -596,7 +636,13 @@ theorem affineValidityRowRev_steps_le (frame : AffineValidityRowFrame) :
     rw [hstepEq]
     exact Nat.add_le_add_right
       (hbool.trans (Nat.mul_le_mul_left 100 hboolSq)) 1
-  simp only [affineValidityRowRevSteps]
+  change affineExactlyOneFamilyUntilEndSteps frame.oneHotFrames + 1 +
+      unaryTripleLoaderSteps
+        frame.haltedStart frame.haltedLeft frame.haltedRight + 1 +
+      affineExactlyOneFamilyBoolEqUntilFinishSteps
+        frame.haltedStart frame.haltedLeft frame.haltedRight + 1 +
+      affineValidityTailRevSteps frame.tailFrame ≤
+    2500 * (encodeAffineValidityRowFrame frame).length ^ 2 + 20
   have honeHotBound : affineExactlyOneFamilyUntilEndSteps
       frame.oneHotFrames ≤ 400 * total ^ 2 + 1 :=
     honeHot.trans (Nat.add_le_add_right
