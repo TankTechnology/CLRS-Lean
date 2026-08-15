@@ -27,8 +27,8 @@ Notation:
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.gcd a n` : the greatest common divisor.
 
-Deferred: an explicit executable enumerator of the `d` solutions, and the
-running-time analysis (§31.4 algorithms).
+Deferred: none (the executable enumerator {lit}`modularLinearEquationSolver`
+and its `d`-solution length bound are proved).
 -/
 
 namespace CLRS
@@ -154,6 +154,196 @@ theorem linear_congruence_distinct {a n : ℕ} [NeZero n] (k₁ k₂ : ℕ)
     have hmod' : (k₂ - k₁) * (n / Nat.gcd a n) % n = (k₂ - k₁) * (n / Nat.gcd a n) := Nat.mod_eq_of_lt hlt
     omega
   omega
+
+/-- The canonical solution `x₀` of `a·x ≡ b (mod n)`: compute
+`(b/d)·(a/d)⁻¹ mod (n/d)` with `d = gcd(a, n)` in `ZMod (n/d)` and take the
+representative. -/
+def modularLinearEquationSolution (a b n : ℕ) : ℕ :=
+  ((b / Nat.gcd a n : ZMod (n / Nat.gcd a n)) *
+    ((a / Nat.gcd a n : ZMod (n / Nat.gcd a n))⁻¹)).val
+
+/-- In `ZMod m`, if `a'` is coprime to `m` then `a'·((b'·a'⁻¹).val) = b'`: the
+inverse exists and the reduced representative witnesses the product. -/
+private lemma zmod_solution_of_coprime {m a' b' : ℕ} [NeZero m] (hcop : Nat.Coprime a' m) :
+    (a' : ZMod m) * (((b' : ZMod m) * ((a' : ZMod m)⁻¹)).val : ZMod m) = (b' : ZMod m) := by
+  have hu : IsUnit (a' : ZMod m) := (ZMod.isUnit_iff_coprime a' m).2 hcop
+  calc
+    (a' : ZMod m) * (((b' : ZMod m) * ((a' : ZMod m)⁻¹)).val : ZMod m)
+        = (a' : ZMod m) * ((b' : ZMod m) * ((a' : ZMod m)⁻¹)) := by
+          rw [ZMod.natCast_zmod_val]
+    _ = (b' : ZMod m) * ((a' : ZMod m) * ((a' : ZMod m)⁻¹)) := by ring
+    _ = (b' : ZMod m) * 1 := by rw [ZMod.mul_inv_of_unit (a' : ZMod m) hu]
+    _ = (b' : ZMod m) := by simp
+
+/--
+**The canonical solution is a solution.**  For `n > 0` and `gcd(a, n) ∣ b`,
+{lit}`modularLinearEquationSolution a b n` satisfies `a·x₀ ≡ b (mod n)`.
+-/
+theorem modularLinearEquationSolution_spec (a b n : ℕ) (hn : 0 < n) (hdvd : Nat.gcd a n ∣ b) :
+    a * modularLinearEquationSolution a b n ≡ b [MOD n] := by
+  let d := Nat.gcd a n
+  let m := n / d
+  have hdpos : 0 < d := Nat.gcd_pos_of_pos_right a hn
+  have hmpos : 0 < m := Nat.div_pos (Nat.le_of_dvd hn (Nat.gcd_dvd_right a n)) hdpos
+  haveI : NeZero m := ⟨Nat.ne_of_gt hmpos⟩
+  have hcop : Nat.Coprime (a / d) m := by
+    dsimp [m, d]
+    exact Nat.coprime_div_gcd_div_gcd hdpos
+  have hz : (a / d : ZMod m) * (((b / d : ZMod m) * ((a / d : ZMod m)⁻¹)).val : ZMod m) = (b / d : ZMod m) :=
+    zmod_solution_of_coprime hcop
+  have hz' : (a / d : ZMod m) * (modularLinearEquationSolution a b n : ZMod m) = (b / d : ZMod m) := by
+    simpa [modularLinearEquationSolution, d, m] using hz
+  have hmod : a / d * modularLinearEquationSolution a b n ≡ b / d [MOD m] := by
+    rw [← ZMod.natCast_eq_natCast_iff]
+    rw [Nat.cast_mul]
+    exact hz'
+  rw [Nat.ModEq] at hmod
+  have ha' : a = d * (a / d) := by
+    dsimp [d]
+    exact (Nat.mul_div_cancel' (Nat.gcd_dvd_left a n)).symm
+  have hb' : b = d * (b / d) := by
+    dsimp [d]
+    exact (Nat.mul_div_cancel' hdvd).symm
+  have hn' : n = d * m := by
+    dsimp [m, d]
+    exact (Nat.mul_div_cancel' (Nat.gcd_dvd_right a n)).symm
+  have hscaled : d * (a / d * modularLinearEquationSolution a b n) % (d * m) = d * (b / d) % (d * m) := by
+    rw [Nat.mul_mod_mul_left, Nat.mul_mod_mul_left]
+    rw [hmod]
+  have hax : a * modularLinearEquationSolution a b n = d * (a / d * modularLinearEquationSolution a b n) := by
+    calc
+      a * modularLinearEquationSolution a b n = (d * (a / d)) * modularLinearEquationSolution a b n :=
+        congrArg (fun z => z * modularLinearEquationSolution a b n) ha'
+      _ = d * (a / d * modularLinearEquationSolution a b n) := by ring
+  have h1 : a * modularLinearEquationSolution a b n % n = d * (a / d * modularLinearEquationSolution a b n) % (d * m) :=
+    congrArg₂ Nat.mod hax hn'
+  have h2 : d * (b / d) % (d * m) = b % n :=
+    congrArg₂ Nat.mod hb'.symm hn'.symm
+  calc
+    a * modularLinearEquationSolution a b n % n = d * (a / d * modularLinearEquationSolution a b n) % (d * m) := h1
+    _ = d * (b / d) % (d * m) := hscaled
+    _ = b % n := h2
+
+/-- For `n > 0`, `n / gcd(a, n)` is positive (the reduced modulus of §31.4). -/
+private lemma gcd_div_pos (a n : ℕ) [NeZero n] : 0 < n / Nat.gcd a n := by
+  have hn : 0 < n := NeZero.pos n
+  have hdn : Nat.gcd a n ∣ n := Nat.gcd_dvd_right a n
+  have hdpos : 0 < Nat.gcd a n := Nat.gcd_pos_of_pos_right a hn
+  exact Nat.div_pos (Nat.le_of_dvd hn hdn) hdpos
+
+/--
+**MODULAR-LINEAR-EQUATION-SOLVER (CLRS §31.4).**  Enumerate the `d = gcd(a, n)`
+distinct solutions of `a·x ≡ b (mod n)` as `x₀`, `x₀ + n/d`, …,
+`x₀ + (d−1)·(n/d)`; return the empty list when no solution exists
+(`gcd(a, n) ∤ b`).
+-/
+def modularLinearEquationSolver (a b n : ℕ) : List ℕ :=
+  if h : Nat.gcd a n ∣ b then
+    if hm : 0 < n / Nat.gcd a n then
+      (List.range (Nat.gcd a n)).map
+        (fun k => modularLinearEquationSolution a b n + k * (n / Nat.gcd a n))
+    else []
+  else []
+
+/-- **The solver returns exactly `d` solutions when solvable, none otherwise**
+(CLRS §31.4). -/
+theorem modularLinearEquationSolver_length (a b n : ℕ) [NeZero n] :
+    (modularLinearEquationSolver a b n).length = if Nat.gcd a n ∣ b then Nat.gcd a n else 0 := by
+  by_cases h : Nat.gcd a n ∣ b
+  · have hm : 0 < n / Nat.gcd a n := gcd_div_pos a n
+    simp [modularLinearEquationSolver, h, hm]
+  · simp [modularLinearEquationSolver, h]
+
+/-- **Every enumerated value is a solution and lies below `n`** (CLRS §31.4). -/
+theorem modularLinearEquationSolver_sound (a b n : ℕ) [NeZero n] :
+    ∀ x ∈ modularLinearEquationSolver a b n, x < n ∧ a * x ≡ b [MOD n] := by
+  have hn : 0 < n := NeZero.pos n
+  intro x hx
+  by_cases hdvd : Nat.gcd a n ∣ b
+  · have hm : 0 < n / Nat.gcd a n := gcd_div_pos a n
+    simp [modularLinearEquationSolver, hdvd, hm] at hx
+    rcases hx with ⟨k, hk, hxeq⟩
+    rw [← hxeq]
+    haveI : NeZero (n / Nat.gcd a n) := NeZero.of_pos hm
+    have hx₀lt : modularLinearEquationSolution a b n < n / Nat.gcd a n := by
+      dsimp [modularLinearEquationSolution]
+      exact ZMod.val_lt (((b / Nat.gcd a n : ZMod (n / Nat.gcd a n)) *
+        ((a / Nat.gcd a n : ZMod (n / Nat.gcd a n))⁻¹)))
+    have hklt : k < Nat.gcd a n := hk
+    constructor
+    · have hn' : n = Nat.gcd a n * (n / Nat.gcd a n) := by
+        exact (Nat.mul_div_cancel' (Nat.gcd_dvd_right a n)).symm
+      calc
+        modularLinearEquationSolution a b n + k * (n / Nat.gcd a n)
+            < n / Nat.gcd a n + k * (n / Nat.gcd a n) :=
+              Nat.add_lt_add_right hx₀lt (k * (n / Nat.gcd a n))
+        _ = (k + 1) * (n / Nat.gcd a n) := by ring
+        _ ≤ Nat.gcd a n * (n / Nat.gcd a n) := Nat.mul_le_mul_right (n / Nat.gcd a n) (by omega)
+        _ = n := hn'.symm
+    · have hsol := modularLinearEquationSolution_spec a b n hn hdvd
+      have hshift := linear_congruence_shift (n := n) (a := a) (b := b)
+        (x := modularLinearEquationSolution a b n) (k := k) hsol
+      simpa [Nat.mul_comm] using hshift
+  · simp [modularLinearEquationSolver, hdvd] at hx
+
+/-- **Every solution `x < n` is enumerated** (CLRS §31.4). -/
+theorem modularLinearEquationSolver_complete (a b n : ℕ) [NeZero n] {x : ℕ}
+    (hx : a * x ≡ b [MOD n]) (hlt : x < n) : x ∈ modularLinearEquationSolver a b n := by
+  have hn : 0 < n := NeZero.pos n
+  have hmpos : 0 < n / Nat.gcd a n := gcd_div_pos a n
+  have hdvd : Nat.gcd a n ∣ b := by
+    have hda : Nat.gcd a n ∣ a := Nat.gcd_dvd_left a n
+    have hdn : Nat.gcd a n ∣ n := Nat.gcd_dvd_right a n
+    have hx_d : a * x ≡ b [MOD Nat.gcd a n] := Nat.ModEq.of_dvd hdn hx
+    have ha_d : a ≡ 0 [MOD Nat.gcd a n] := (Nat.modEq_zero_iff_dvd).2 hda
+    have hb0 : b ≡ 0 [MOD Nat.gcd a n] := by
+      have h0 : a * x ≡ 0 * x [MOD Nat.gcd a n] := Nat.ModEq.mul ha_d (Nat.ModEq.refl x)
+      simpa using (hx_d.symm.trans h0)
+    exact (Nat.modEq_zero_iff_dvd).1 hb0
+  have hx₀sol : a * modularLinearEquationSolution a b n ≡ b [MOD n] :=
+    modularLinearEquationSolution_spec a b n hn hdvd
+  have hcong : x ≡ modularLinearEquationSolution a b n [MOD n / Nat.gcd a n] := by
+    have h := (linear_congruence_solutions (a := a) (b := b)
+      (x₀ := modularLinearEquationSolution a b n) (n := n) hx₀sol) x
+    exact h.1 hx
+  haveI : NeZero (n / Nat.gcd a n) := NeZero.of_pos hmpos
+  have hx₀lt : modularLinearEquationSolution a b n < n / Nat.gcd a n := by
+    dsimp [modularLinearEquationSolution]
+    exact ZMod.val_lt (((b / Nat.gcd a n : ZMod (n / Nat.gcd a n)) *
+      ((a / Nat.gcd a n : ZMod (n / Nat.gcd a n))⁻¹)))
+  have hmod : x % (n / Nat.gcd a n) = modularLinearEquationSolution a b n := by
+    rw [Nat.ModEq] at hcong
+    rw [hcong]
+    rw [Nat.mod_eq_of_lt hx₀lt]
+  have hxeq : x = modularLinearEquationSolution a b n + (x / (n / Nat.gcd a n)) * (n / Nat.gcd a n) := by
+    have hdiv := Nat.div_add_mod x (n / Nat.gcd a n)
+    nth_rewrite 1 [← hdiv]
+    rw [hmod]
+    ring
+  have hklt : x / (n / Nat.gcd a n) < Nat.gcd a n := by
+    have hxlt : x < (n / Nat.gcd a n) * Nat.gcd a n := by
+      have hn' : n = (n / Nat.gcd a n) * Nat.gcd a n := by
+        simpa [Nat.mul_comm] using (Nat.mul_div_cancel' (Nat.gcd_dvd_right a n)).symm
+      rw [hn'] at hlt
+      exact hlt
+    exact Nat.div_lt_of_lt_mul hxlt
+  rw [modularLinearEquationSolver]
+  rw [dif_pos hdvd]
+  rw [dif_pos hmpos]
+  rw [List.mem_map]
+  refine ⟨x / (n / Nat.gcd a n), ⟨(List.mem_range).2 hklt, hxeq.symm⟩⟩
+
+/-- **The solver produces pairwise-distinct solutions** (CLRS §31.4). -/
+theorem modularLinearEquationSolver_nodup (a b n : ℕ) [NeZero n] :
+    (modularLinearEquationSolver a b n).Nodup := by
+  by_cases hdvd : Nat.gcd a n ∣ b
+  · have hm : 0 < n / Nat.gcd a n := gcd_div_pos a n
+    simp [modularLinearEquationSolver, hdvd, hm]
+    refine List.Nodup.map ?hf List.nodup_range
+    intro k₁ k₂ hk
+    have hkm : k₁ * (n / Nat.gcd a n) = k₂ * (n / Nat.gcd a n) := Nat.add_left_cancel hk
+    exact Nat.mul_right_cancel hm hkm
+  · simp [modularLinearEquationSolver, hdvd]
 
 end Chapter31
 

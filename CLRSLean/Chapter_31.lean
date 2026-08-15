@@ -135,9 +135,13 @@ analysis (birthday bound + expected `O(√p)`).
 
 ## Deferred Work
 
-None remaining for the represented fourth-edition sections (§31.1–31.8); the
-legacy §31.9 integer-factorization development is retained as online material
-with its probabilistic analysis now complete.
+The remaining scope outside the represented fourth-edition sections is the RSA
+security (one-way function) claim and the `ZMod.chineseRemainder`
+ring-isomorphism packaging.  The executable layers are now complete:
+`modularLinearEquationSolver` (§31.4), `modExpWithCount` (§31.6),
+`rsaKeyGen`/`rsaEncrypt`/`rsaDecrypt` (§31.7), and `millerRabinLoop` (§31.8).
+The legacy §31.9 integer-factorization development is retained as online
+material with its probabilistic analysis complete.
 -/
 
 namespace CLRS
