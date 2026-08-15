@@ -321,6 +321,16 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort" = [
   "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability",
 ]
+"CLRSLean.FourthEdition.Chapter_08" = [
+  "CLRSLean.FourthEdition.Chapter_08.Section_08_1_Lower_Bound_For_Sorting",
+  "CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort",
+  "CLRSLean.FourthEdition.Chapter_08.Section_08_3_Radix_Sort",
+  "CLRSLean.FourthEdition.Chapter_08.Section_08_4_Bucket_Sort",
+]
+"CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort" = [
+  "CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.CountTables",
+  "CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray",
+]
 "CLRSLean.FourthEdition.Chapter_09" = [
   "CLRSLean.FourthEdition.Chapter_09.Section_09_1_Minimum_And_Maximum",
   "CLRSLean.FourthEdition.Chapter_09.Section_09_2_Selection_In_Expected_Linear_Time",
@@ -1117,6 +1127,24 @@ title = "7.3. Randomized Quicksort: Comparison Probability"
 
 [modules."CLRSLean.FourthEdition.Chapter_08"]
 title = "Chapter 8. Sorting in Linear Time"
+
+[modules."CLRSLean.FourthEdition.Chapter_08.Section_08_1_Lower_Bound_For_Sorting"]
+title = "8.1. Lower Bounds for Sorting"
+
+[modules."CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort"]
+title = "8.2. Counting Sort"
+
+[modules."CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.CountTables"]
+title = "Count-Table Refinement"
+
+[modules."CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray"]
+title = "Mutable Output-Array Refinement"
+
+[modules."CLRSLean.FourthEdition.Chapter_08.Section_08_3_Radix_Sort"]
+title = "8.3. Radix Sort"
+
+[modules."CLRSLean.FourthEdition.Chapter_08.Section_08_4_Bucket_Sort"]
+title = "8.4. Bucket Sort"
 
 [modules."CLRSLean.FourthEdition.Chapter_09"]
 title = "Chapter 9. Medians and Order Statistics"
