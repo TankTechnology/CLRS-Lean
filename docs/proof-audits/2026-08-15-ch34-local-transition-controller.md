@@ -35,6 +35,10 @@ generator.
   byte stream with the frozen `transitionGateStreamAt` target.
 - `compileTransitionFamilyScriptsAt_run` is the end-to-end executable theorem
   for the canonical dimension-only transition family.
+- `verifierInitialBoundary_gates_eq` freezes the exact complete-row equality
+  trace immediately following transitions.
+- `compileVerifierInitialBoundaryFrames_run` executes its canonical `EqFin`
+  frames and emits exactly the symbolic initial-boundary byte stream.
 
 ## Rejected routes discovered during composition
 
@@ -68,6 +72,7 @@ lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.T
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyScript.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorInitialBoundary.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
