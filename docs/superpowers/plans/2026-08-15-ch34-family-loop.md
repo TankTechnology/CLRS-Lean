@@ -16,8 +16,9 @@ between them.
 - [x] Embed the frame loader and cell continuation in one fixed family
       controller, retaining the remaining frame between cells.
 - [x] Lift the cell block across the runtime-height loop for one stack.
-- [ ] Prepend the stack's suffix-OR mask and lift the complete stack block
-      across the fixed machine-stack family.
+- [x] Prepend one stack's suffix-OR mask and execute its complete runtime-height
+      cell family without an intermediate halt.
+- [ ] Lift the complete stack block across the fixed machine-stack family.
 - [ ] Match the linked output byte-for-byte with
       `arithmeticStackFamilyGateStream` and prove a polynomial step bound.
 - [x] Run focused module/interface checks and `#print axioms` for the completed

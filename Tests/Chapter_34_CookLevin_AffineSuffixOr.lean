@@ -8,10 +8,13 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineSuffixOrGateStream
 #check affineSuffixOrGateStream_eq_trace
 #check affineSuffixOrBodyCfg
+#check affineSuffixOrRevCoreSteps
 #check affineSuffixOrRevSteps
+#check affineSuffixOrRev_runToHaltLabel
 #check affineSuffixOrRev_runFrom
 #check affineSuffixOrRev_steps_le
 
 #print axioms affineSuffixOrGateStream_eq_trace
+#print axioms affineSuffixOrRev_runToHaltLabel
 #print axioms affineSuffixOrRev_runFrom
 #print axioms affineSuffixOrRev_steps_le
