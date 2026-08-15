@@ -71,6 +71,15 @@ generator.
 - `verifierInputBoundary_run` specializes that continuous execution to the
   assembled verifier boundary; `verifierInputBoundary_steps_le` carries the
   same explicit bound to the frozen semantic target.
+- `affineVerifierTail_run` continuously executes the complete post-transition
+  chain: symbolic initial boundary, verifier-input boundary, total accepting
+  boundary, final conjunction, and the output-marker/unary-output suffix.
+- `compileVerifierTailScript_gateStream_eq` specializes that controller to the
+  actual verifier, while `verifierCircuitTransitionPrefix_append_tail` proves
+  that the frozen transition prefix plus this generated tail is exactly
+  `encodeCircuit (verifierCircuit W x)`.
+- `verifierCircuitTail_run` and `verifierCircuitTail_steps_le` give the exact
+  executable semantic suffix and its uniform quadratic runtime envelope.
 
 ## Rejected routes discovered during composition
 
@@ -104,6 +113,21 @@ generator.
 9. Reusing `frameEnd` both for a zero-gate entry and for end-of-family is
    ambiguous, especially for consecutive nonfitting arms.  The optional arm
    protocol reserves `frameEnd` solely as the final family terminator.
+10. An empty input cannot serve as a phase boundary inside the verifier-tail
+    controller: it discards every later phase. Contextual `EqFin` therefore
+    uses `separator`, while contextual ordinary `OrFin` uses `tick`; both
+    markers are outside their respective clean-frame start languages.
+11. Reusing the standalone optional-equality wrapper unchanged also fails:
+    its embedded equality reaches an inner halt before an outer controller can
+    resume. The accepted tail controller performs the optional marker branch
+    itself and redirects the embedded `EqFin.finish` state explicitly.
+12. Teaching the reusable `EqFin`/`OrFin` primitives to accept the new outer
+    separators globally is also invalid: the existing statement controller
+    relies on those same symbols entering its `.invalid` state.  A focused
+    regression build caught this immediately.  The accepted design leaves both
+    primitive contracts unchanged and intercepts `separator`/`tick` only in the
+    enclosing input-shape and verifier-tail finite controls; their lifting
+    lemmas explicitly exclude only the intercepted boundary state.
 
 ## Focused verification
 
@@ -124,6 +148,8 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorInputBoundary.lean
 lake env lean Tests/Chapter_34_PolyBuilder_NotFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OptionalConjunctionFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_InputShapeController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_VerifierTailController.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorTail.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
@@ -139,9 +165,9 @@ dependencies `[propext, Classical.choice, Quot.sound]`; no project axiom or
 
 ## Next acceptance boundary
 
-The next generator checkpoint must join the now-continuous input phase with
-header, validity, transition, initial/accepting boundaries, conjunction, and
-final-output phases. A dimension-level bound on the canonical runtime inputs
-must then connect the component bounds to the verifier polynomials. Only after
-that composition can the concrete `verifierCircuit` generator be claimed
-complete.
+The post-transition half is now one continuous exact controller. The next
+generator checkpoint must join the header/input/pool prefix, all-row validity,
+and transition-family controller to that tail. A dimension-level bound on the
+canonical runtime inputs must then connect the component bounds to the verifier
+polynomials. Only after that final composition can the concrete
+`verifierCircuit` generator be claimed complete.

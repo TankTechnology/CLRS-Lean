@@ -10,6 +10,7 @@ open StateTransition
 #check encodeAffineInputShapeScript
 #check affineInputShapeGateStream
 #check affineInputShape_run
+#check affineInputShape_runToFinishWithTail
 #check affineInputShapeRev_steps_le
 
 private def sample : AffineInputShapeScript :=
@@ -27,4 +28,5 @@ example (output : List CircuitSym) :
   exact affineInputShape_run sample output
 
 #print axioms affineInputShape_run
+#print axioms affineInputShape_runToFinishWithTail
 #print axioms affineInputShapeRev_steps_le

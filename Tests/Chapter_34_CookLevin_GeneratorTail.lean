@@ -1,0 +1,16 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTail
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierCircuitTailGateStream
+#check compileVerifierTailScript
+#check compileVerifierTailScript_gateStream_eq
+#check verifierCircuitTransitionPrefix_append_tail
+#check verifierCircuitTail_run
+#check verifierCircuitTail_steps_le
+
+#print axioms compileVerifierTailScript_gateStream_eq
+#print axioms verifierCircuitTransitionPrefix_append_tail
+#print axioms verifierCircuitTail_run
+#print axioms verifierCircuitTail_steps_le
