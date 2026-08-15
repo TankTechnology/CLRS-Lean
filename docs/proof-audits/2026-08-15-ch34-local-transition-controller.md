@@ -2,11 +2,13 @@
 
 ## Scope
 
-This checkpoint closes one complete Cook--Levin local-transition serializer
-and the fixed controller that iterates any runtime-length family of such
-serializers.  It does **not** yet construct that family from every adjacent
-tableau-row pair and does not by itself complete the whole verifier-circuit
-generator.
+This checkpoint closes one complete Cook--Levin local-transition serializer,
+the fixed controller that iterates any runtime-length family of such
+serializers, and one continuous controller for the complete verifier body
+after the shared Boolean pool.  The remaining generator boundary is no longer
+semantic byte correctness: it is the concrete fixed-machine compilation of
+the body operand script from raw source input and its continuous handoff from
+the already computable prefix.
 
 ## Closed interfaces
 
@@ -80,6 +82,22 @@ generator.
   `encodeCircuit (verifierCircuit W x)`.
 - `verifierCircuitTail_run` and `verifierCircuitTail_steps_le` give the exact
   executable semantic suffix and its uniform quadratic runtime envelope.
+- `affineTransitionFamily_runToCheckWithTail` executes every local transition
+  without consuming a following unary phase, and
+  `affineTransitionFamilyBody_steps_le` gives the corresponding linear bound.
+- `affineVerifierBody_run` continuously executes all validity rows, all
+  adjacent transitions, and the complete verifier tail under one fixed finite
+  program. `affineVerifierBody_steps_le` bounds the exact run by
+  `10000 * encoded.length^2 + 200`.
+- `compileVerifierBodyScript_gateStream_eq` identifies the compiled canonical
+  validity/transition/tail operands with the exact semantic verifier-body byte
+  stream.
+- `verifierCircuitPoolPrefix_append_body` proves that the existing exact pool
+  prefix followed by those generated body bytes is literally
+  `encodeCircuit (verifierCircuit W x)`.
+- `verifierCircuitBody_run_afterPool` starts the reverse-output accumulator at
+  the already generated pool prefix and halts with the reverse of the complete
+  verifier-circuit encoding.
 
 ## Rejected routes discovered during composition
 
@@ -128,6 +146,19 @@ generator.
     primitive contracts unchanged and intercepts `separator`/`tick` only in the
     enclosing input-shape and verifier-tail finite controls; their lifting
     lemmas explicitly exclude only the intercepted boundary state.
+13. Treating the transition-family runtime as genuinely mixed tagged data
+    would make it impossible for the preceding unary validity controller to
+    preserve the suffix through a structural embedding.  The accepted route
+    uses the stronger fact already proved by the transition compiler:
+    `encodeAffineTransitionFamily` is the `.data` image of a pure-unary family
+    payload.  Thus the entire verifier-body operand stream is one unary list,
+    while the common alphabet remains available to the transition controller.
+14. The equation
+    `poolPrefix ++ generatedBody = encodeCircuit (verifierCircuit W x)` does
+    not itself show that a fixed TM2 constructs the body operands from `x`.
+    `compileVerifierBodyScript` is still a Lean-level mathematical compiler;
+    claiming the complete Cook--Levin reduction before implementing its raw
+    input compiler would conflate semantic specialization with executability.
 
 ## Focused verification
 
@@ -150,6 +181,8 @@ lake env lean Tests/Chapter_34_PolyBuilder_OptionalConjunctionFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_InputShapeController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_VerifierTailController.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorTail.lean
+lake env lean Tests/Chapter_34_PolyBuilder_VerifierBodyController.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorBody.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
@@ -165,9 +198,12 @@ dependencies `[propext, Classical.choice, Quot.sound]`; no project axiom or
 
 ## Next acceptance boundary
 
-The post-transition half is now one continuous exact controller. The next
-generator checkpoint must join the header/input/pool prefix, all-row validity,
-and transition-family controller to that tail. A dimension-level bound on the
-canonical runtime inputs must then connect the component bounds to the verifier
-polynomials. Only after that final composition can the concrete
-`verifierCircuit` generator be claimed complete.
+The complete verifier body is now one continuous exact controller, and its
+bytes close against the already computable header/input/pool prefix. The next
+checkpoint must implement a fixed TM2 that compiles
+`encodeAffineVerifierBodyScript (compileVerifierBodyScript W x)` from raw `x`,
+then hand that runtime script to the body controller without an intermediate
+mathematical oracle. A dimension-level bound on that compiled script must
+connect the exact quadratic controller bound to the verifier polynomials.
+Only after this raw-input compiler and handoff are closed can the concrete
+Cook--Levin generator be claimed complete.

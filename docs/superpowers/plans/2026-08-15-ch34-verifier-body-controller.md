@@ -68,19 +68,19 @@ body is exactly `encodeCircuit (verifierCircuit W x)`.
 - Modify: `CLRSLean/Chapter_34.lean`
 - Modify: `docs/proof-audits/2026-08-15-ch34-local-transition-controller.md`
 
-- [ ] Add unresolved checks for `compileVerifierBodyScript_gateStream_eq`,
+- [x] Add unresolved checks for `compileVerifierBodyScript_gateStream_eq`,
   `verifierCircuitPoolPrefix_append_body`, and `verifierCircuitBody_run`;
   observe failure.
-- [ ] Compile canonical validity-row frames, transition-family scripts, and
+- [x] Compile canonical validity-row frames, transition-family scripts, and
   the verifier tail into the generic body script.
-- [ ] Prove byte-for-byte equality with
+- [x] Prove byte-for-byte equality with
   `verifierValidityGateStream ++ verifierTransitionGateStream ++
   verifierCircuitTailGateStream`.
-- [ ] Prove that `verifierCircuitPoolPrefix` followed by this body is exactly
+- [x] Prove that `verifierCircuitPoolPrefix` followed by this body is exactly
   `encodeCircuit (verifierCircuit W x)`.
-- [ ] Specialize the exact execution and polynomial runtime theorems.
-- [ ] Record any rejected composition route and the remaining prefix-to-body
+- [x] Specialize the exact execution and polynomial runtime theorems.
+- [x] Record any rejected composition route and the remaining prefix-to-body
   compiler boundary in the audit document.
-- [ ] Run focused component tests, root `CLRSLean/Chapter_34.lean`,
+- [x] Run focused component tests, root `CLRSLean/Chapter_34.lean`,
   `git diff --check`, and a `sorry`/`admit` scan; do not run a full build.
-- [ ] Commit and push the checkpoint.
+- [x] Commit and push the checkpoint.
