@@ -630,6 +630,16 @@ and `affineOneHotPredicate_run` executes it with the same arbitrary-list
 controller.  The empty true fiber is an explicit acceptance case, so an
 all-false static predicate still emits exactly its required false seed.
 
+The remaining finite-lookup primitive, `oneHotPairMap`, is now executable at
+the same standard.  `oneHotPairMapGateTrace` freezes the complete pair-major
+AND phase and target-major OR phase; `oneHotPairMap_gates_eq` and
+`oneHotPairMap_wire_eq_trace` identify the semantic builder literally with
+that trace.  The shared controller has an AND-first entry and an explicit
+phase boundary, so `affineOneHotPairMap_run` executes both phases in one run
+without an intermediate halt.  Its output is byte-for-byte the semantic
+trace and `affineOneHotPairMap_steps_le` is linear in the complete runtime
+encoding.
+
 Two further rejected routes are recorded. A contiguous affine source interval
 cannot represent a sparse truth-table fiber, even when its cardinality is
 correct. Also, the active-mask suffix scan emits `.or carry wire`, whereas
@@ -644,6 +654,14 @@ back to an outer header.  Moreover, `popInput` retains the consumed delimiter
 in `buffer₁`; treating the post-delimiter state as a clean configuration is
 false by reduction.  Dedicated open/close cleanup labels now clear that
 buffer before seeding the next fiber or returning to the family header.
+
+Pair lookup rules out two more shortcuts.  Concatenating a completed AND
+program with a completed OR-family program at the theorem level is not a
+single machine computation because the first program has already halted; the
+accepted controller consumes a phase separator and changes finite-control
+mode.  Also, the embedded conjunction kernel emits `.and source carry`, so
+the runtime loader deliberately stores the semantic right operand as carry
+and the left operand as source; commutativity cannot repair reversed bytes.
 
 ## Focused Acceptance Mechanism
 
@@ -665,6 +683,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPairMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -694,6 +713,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPredicate.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OneHotPairMap.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean

@@ -3,11 +3,13 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Unary
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.CircuitBuilder.FiniteFamily
 
 /-!
-# Runtime arbitrary-list disjunction serialization
+# Runtime arbitrary-list disjunction and conjunction serialization
 
 One fixed controller emits a false seed and reads a runtime list of ordered OR
 frames.  Canonical frames execute the exact tail-first gate order of
 `CircuitBuilder.disjunctionGateTrace`, including sparse and repeated wires.
+The same controller also has an AND-first entry used by pair lookups before
+switching, without halting, to a family of target disjunctions.
 -/
 
 noncomputable section
@@ -41,6 +43,27 @@ def affineOrFinGateStream (frames : List AffineOrFinPairFrame) :
     List CircuitSym :=
   .constFalseMark :: frames.flatMap fun frame =>
     affineOrGateStream frame.left frame.right
+
+/-- Runtime operands for one ordered AND gate. -/
+structure AffineAndFinPairFrame where
+  left : Nat
+  right : Nat
+deriving DecidableEq, Repr
+
+/-- AND frames use a distinct top-level marker.  The loader fields are
+ordered as carry/right and source/left because the embedded kernel emits
+`.and source carry`. -/
+def encodeAffineAndFinPairFrame (frame : AffineAndFinPairFrame) :
+    List UnaryFrameSym :=
+  [.tick] ++ encodeUnaryFrame [frame.right, 0, frame.left] ++ [.frameEnd]
+
+def encodeAffineAndFinFrames (frames : List AffineAndFinPairFrame) :
+    List UnaryFrameSym :=
+  frames.flatMap encodeAffineAndFinPairFrame
+
+def affineAndFinGateStream (frames : List AffineAndFinPairFrame) :
+    List CircuitSym :=
+  frames.flatMap fun frame => affineAndGateStream frame.right frame.left
 
 /-- Structural relabeling of a component instruction. -/
 private def relabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
@@ -81,10 +104,14 @@ private def relabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
 serializer. -/
 inductive AffineOrFinLabel
   | seed | check | clearMarker
+  | andCheck | andClearMarker
   | familyCheck | familyOpenClear | familySeed | familyCloseClear
   | loader (label : UnaryTripleLoaderLabel)
+  | andLoader (label : UnaryTripleLoaderLabel)
   | orSeed
   | orCore (label : AffineExactlyOneFamilyLabel)
+  | andCore (label : AffineExactlyOneFamilyLabel)
+  | andToFamilyClear
   | finish | invalid
 deriving DecidableEq, Fintype
 
@@ -109,6 +136,22 @@ def affineOrFinRevProgram : Program UnaryFrameSym CircuitSym where
     | .orCore .finish => .popWork₁ .check (fun _ => .invalid)
     | .orCore label => relabelOp .orCore
         (affineExactlyOneFamilyRevProgram.op label)
+    | .andCheck => .popInput .finish fun
+        | .tick => .andClearMarker
+        | .separator => .andToFamilyClear
+        | _ => .invalid
+    | .andClearMarker =>
+        .popWork₁ (.andLoader unaryTripleLoaderProgram.main)
+          (fun _ => .invalid)
+    | .andLoader .ready =>
+        .popWork₁ (.andCore (.kernel (.conjunction .push)))
+          (fun _ => .invalid)
+    | .andLoader label => relabelOp .andLoader
+        (unaryTripleLoaderProgram.op label)
+    | .andCore .finish => .popWork₁ .andCheck (fun _ => .invalid)
+    | .andCore label => relabelOp .andCore
+        (affineExactlyOneFamilyRevProgram.op label)
+    | .andToFamilyClear => .popWork₁ .familyCheck (fun _ => .invalid)
     | .familyCheck => .popInput .finish fun
         | .separator => .familyOpenClear
         | _ => .invalid
@@ -147,6 +190,11 @@ def affineOrFinCheckCfg (input : List UnaryFrameSym)
     (output : List CircuitSym) : BuilderCfg affineOrFinRevProgram :=
   affineOrFinCfg .check none none false input output [] [] [] [] []
 
+/-- Clean loop header for a runtime family of ordered AND gates. -/
+def affineAndFinLoopCfg (input : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineOrFinRevProgram :=
+  affineOrFinCfg .andCheck none none false input output [] [] [] [] []
+
 /-- Redirectable clean exit after the last coordinate. -/
 def affineOrFinFinishCfg (output : List CircuitSym) :
     BuilderCfg affineOrFinRevProgram :=
@@ -170,9 +218,16 @@ private def relabelCfg {P : Program UnaryFrameSym CircuitSym}
 private def liftLoaderCfg (c : BuilderCfg unaryTripleLoaderProgram) :
     BuilderCfg affineOrFinRevProgram := relabelCfg .loader c
 
+private def liftAndLoaderCfg (c : BuilderCfg unaryTripleLoaderProgram) :
+    BuilderCfg affineOrFinRevProgram := relabelCfg .andLoader c
+
 private def liftOrCfg
     (c : BuilderCfg affineExactlyOneFamilyRevProgram) :
     BuilderCfg affineOrFinRevProgram := relabelCfg .orCore c
+
+private def liftAndCfg
+    (c : BuilderCfg affineExactlyOneFamilyRevProgram) :
+    BuilderCfg affineOrFinRevProgram := relabelCfg .andCore c
 
 private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
     (tag : P.Label → AffineOrFinLabel)
@@ -194,10 +249,22 @@ private theorem affineOrFin_op_loader
       relabelOp .loader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
+private theorem affineOrFin_op_andLoader
+    (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
+    affineOrFinRevProgram.op (.andLoader label) =
+      relabelOp .andLoader (unaryTripleLoaderProgram.op label) := by
+  cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
+
 private theorem affineOrFin_op_orCore
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineOrFinRevProgram.op (.orCore label) =
       relabelOp .orCore (affineExactlyOneFamilyRevProgram.op label) := by
+  cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
+
+private theorem affineOrFin_op_andCore
+    (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
+    affineOrFinRevProgram.op (.andCore label) =
+      relabelOp .andCore (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem liftLoader_step
@@ -219,6 +286,25 @@ private theorem liftLoader_step
       exact congrArg some
         (relabel_stepOp .loader (unaryTripleLoaderProgram.op label) c)
 
+private theorem liftAndLoader_step
+    (c : BuilderCfg unaryTripleLoaderProgram)
+    (hexit : c.label ≠ some .ready) :
+    step affineOrFinRevProgram (liftAndLoaderCfg c) =
+      Option.map liftAndLoaderCfg (step unaryTripleLoaderProgram c) := by
+  unfold step
+  rw [show (liftAndLoaderCfg c).label = c.label.map .andLoader by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      have hlabelExit : label ≠ .ready := by
+        intro h
+        apply hexit
+        simpa [hlabel] using congrArg some h
+      simp only [Option.map_some]
+      rw [affineOrFin_op_andLoader label hlabelExit]
+      exact congrArg some
+        (relabel_stepOp .andLoader (unaryTripleLoaderProgram.op label) c)
+
 private theorem liftOr_step
     (c : BuilderCfg affineExactlyOneFamilyRevProgram)
     (hexit : c.label ≠ some .finish) :
@@ -238,6 +324,27 @@ private theorem liftOr_step
       rw [affineOrFin_op_orCore label hlabelExit]
       exact congrArg some
         (relabel_stepOp .orCore
+          (affineExactlyOneFamilyRevProgram.op label) c)
+
+private theorem liftAnd_step
+    (c : BuilderCfg affineExactlyOneFamilyRevProgram)
+    (hexit : c.label ≠ some .finish) :
+    step affineOrFinRevProgram (liftAndCfg c) =
+      Option.map liftAndCfg
+        (step affineExactlyOneFamilyRevProgram c) := by
+  unfold step
+  rw [show (liftAndCfg c).label = c.label.map .andCore by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      have hlabelExit : label ≠ .finish := by
+        intro h
+        apply hexit
+        simpa [hlabel] using congrArg some h
+      simp only [Option.map_some]
+      rw [affineOrFin_op_andCore label hlabelExit]
+      exact congrArg some
+        (relabel_stepOp .andCore
           (affineExactlyOneFamilyRevProgram.op label) c)
 
 private theorem iterate_bind_none {σ : Type} (f : σ → Option σ) :
@@ -312,6 +419,41 @@ private theorem lift_iterations_to_haltExit
           rw [hsource] at h
           exact ih h
 
+private def affineAndFin_loader_run (frame : AffineAndFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (liftAndLoaderCfg (unaryTripleLoaderCfg .load₁ none
+        (encodeUnaryFrame [frame.right, 0, frame.left] ++
+          .frameEnd :: tail) output [] [] [] [] []))
+      (some (liftAndLoaderCfg (unaryTripleLoaderReadyCfg
+        frame.right 0 frame.left (.frameEnd :: tail) output [] [])))
+      (unaryTripleLoaderSteps frame.right 0 frame.left) := by
+  have sourceRun := unaryTripleLoader_run
+    frame.right 0 frame.left (.frameEnd :: tail) output [] []
+  have htarget : (unaryTripleLoaderReadyCfg frame.right 0 frame.left
+      (.frameEnd :: tail) output [] []).label = some .ready := rfl
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact lift_iterations_to_haltExit UnaryTripleLoaderLabel.ready rfl
+    liftAndLoaderCfg liftAndLoader_step htarget sourceRun.steps
+      sourceRun.evals_in_steps
+
+private def affineAndFin_and_run (frame : AffineAndFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (liftAndCfg (affineExactlyOneFamilyAndReadyCfg
+        frame.right frame.left tail output))
+      (some (liftAndCfg (affineExactlyOneFamilyFinishCfg tail
+        ((affineAndGateStream frame.right frame.left).reverse ++ output))))
+      (affineExactlyOneFamilyAndUntilFinishSteps
+        frame.right frame.left) := by
+  have sourceRun := affineExactlyOneFamily_and_runToFinish
+    frame.right frame.left tail output
+  have htarget : (affineExactlyOneFamilyFinishCfg tail
+      ((affineAndGateStream frame.right frame.left).reverse ++
+        output)).label = some .finish := rfl
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact lift_iterations_to_haltExit AffineExactlyOneFamilyLabel.finish rfl
+    liftAndCfg liftAnd_step htarget sourceRun.steps sourceRun.evals_in_steps
 
 private def affineOrFin_loader_run (frame : AffineOrFinPairFrame)
     (tail : List UnaryFrameSym) (output : List CircuitSym) :
@@ -350,6 +492,167 @@ private def affineOrFin_or_run (frame : AffineOrFinPairFrame)
   refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
   exact lift_iterations_to_haltExit AffineExactlyOneFamilyLabel.finish rfl
     liftOrCfg liftOr_step htarget sourceRun.steps sourceRun.evals_in_steps
+
+/-! ## Arbitrary ordered AND families -/
+
+def affineAndFinPairSteps (frame : AffineAndFinPairFrame) : Nat :=
+  4 + unaryTripleLoaderSteps frame.right 0 frame.left +
+    affineExactlyOneFamilyAndUntilFinishSteps frame.right frame.left
+
+private def affineAndFinPair_run (frame : AffineAndFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg (encodeAffineAndFinPairFrame frame ++ tail) output)
+      (some (affineAndFinLoopCfg tail
+        ((affineAndGateStream frame.right frame.left).reverse ++ output)))
+      (affineAndFinPairSteps frame) := by
+  let loaderInput :=
+    encodeUnaryFrame [frame.right, 0, frame.left] ++ .frameEnd :: tail
+  let gateOutput :=
+    (affineAndGateStream frame.right frame.left).reverse ++ output
+  let loaderStart := liftAndLoaderCfg
+    (unaryTripleLoaderCfg .load₁ none loaderInput output [] [] [] [] [])
+  let loaderReady := liftAndLoaderCfg
+    (unaryTripleLoaderReadyCfg frame.right 0 frame.left
+      (.frameEnd :: tail) output [] [])
+  let andStart := liftAndCfg
+    (affineExactlyOneFamilyAndReadyCfg
+      frame.right frame.left tail output)
+  let andDone := liftAndCfg
+    (affineExactlyOneFamilyFinishCfg tail gateOutput)
+  have hmarker : EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg (.tick :: loaderInput) output)
+      (some loaderStart) 2 := ⟨⟨2, rfl⟩, le_rfl⟩
+  have hloader : EvalsToInTime (step affineOrFinRevProgram)
+      loaderStart (some loaderReady)
+      (unaryTripleLoaderSteps frame.right 0 frame.left) := by
+    simpa [loaderStart, loaderReady, loaderInput] using
+      affineAndFin_loader_run frame tail output
+  have hnormalize : EvalsToInTime (step affineOrFinRevProgram)
+      loaderReady (some andStart) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
+  have hand : EvalsToInTime (step affineOrFinRevProgram)
+      andStart (some andDone)
+      (affineExactlyOneFamilyAndUntilFinishSteps
+        frame.right frame.left) := by
+    simpa [andStart, andDone, gateOutput] using
+      affineAndFin_and_run frame tail output
+  have hloop : EvalsToInTime (step affineOrFinRevProgram)
+      andDone (some (affineAndFinLoopCfg tail gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let t₁ := EvalsToInTime.trans (step affineOrFinRevProgram) 2 _ _
+    loaderStart _ hmarker hloader
+  let t₂ := EvalsToInTime.trans (step affineOrFinRevProgram) _ 1 _
+    loaderReady _ t₁ hnormalize
+  let t₃ := EvalsToInTime.trans (step affineOrFinRevProgram) _ _ _
+    andStart _ t₂ hand
+  let full := EvalsToInTime.trans (step affineOrFinRevProgram) _ 1 _
+    andDone _ t₃ hloop
+  convert full using 1
+  · simp [encodeAffineAndFinPairFrame, loaderInput, List.append_assoc]
+  · unfold affineAndFinPairSteps
+    omega
+
+def affineAndFinBodySteps : List AffineAndFinPairFrame → Nat
+  | [] => 0
+  | frame :: rest => affineAndFinPairSteps frame + affineAndFinBodySteps rest
+
+private def affineAndFinFrames_runToCheck
+    (frames : List AffineAndFinPairFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg (encodeAffineAndFinFrames frames ++ tail) output)
+      (some (affineAndFinLoopCfg tail
+        ((affineAndFinGateStream frames).reverse ++ output)))
+      (affineAndFinBodySteps frames) := by
+  induction frames generalizing output with
+  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
+  | cons frame rest ih =>
+      let frameOutput :=
+        (affineAndGateStream frame.right frame.left).reverse ++ output
+      have hframe := affineAndFinPair_run frame
+        (encodeAffineAndFinFrames rest ++ tail) output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+        (affineAndFinPairSteps frame) (affineAndFinBodySteps rest) _
+        (affineAndFinLoopCfg
+          (encodeAffineAndFinFrames rest ++ tail) frameOutput) _
+        hframe hrest
+      convert full using 1
+      · simp [encodeAffineAndFinFrames, List.append_assoc]
+      · simp [affineAndFinGateStream, frameOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineAndFinBodySteps]
+        omega
+
+def affineAndFinUntilFinishSteps (frames : List AffineAndFinPairFrame) : Nat :=
+  affineAndFinBodySteps frames + 1
+
+def affineAndFin_runToFinish (frames : List AffineAndFinPairFrame)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg (encodeAffineAndFinFrames frames) output)
+      (some (affineOrFinFinishCfg
+        ((affineAndFinGateStream frames).reverse ++ output)))
+      (affineAndFinUntilFinishSteps frames) := by
+  have hframes := affineAndFinFrames_runToCheck frames [] output
+  let gateOutput := (affineAndFinGateStream frames).reverse ++ output
+  have hfinish : EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg [] gateOutput)
+      (some (affineOrFinFinishCfg gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    (affineAndFinBodySteps frames) 1 _
+    (affineAndFinLoopCfg [] gateOutput) _
+    (by simpa [gateOutput] using hframes) hfinish
+  simpa [affineAndFinUntilFinishSteps, gateOutput, Nat.add_comm] using full
+
+def affineAndFinRevSteps (frames : List AffineAndFinPairFrame) : Nat :=
+  affineAndFinUntilFinishSteps frames + 1
+
+def affineAndFin_run (frames : List AffineAndFinPairFrame)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg (encodeAffineAndFinFrames frames) output)
+      (some (haltCfg affineOrFinRevProgram
+        ((affineAndFinGateStream frames).reverse ++ output)))
+      (affineAndFinRevSteps frames) := by
+  let gateOutput := (affineAndFinGateStream frames).reverse ++ output
+  have hfinish := affineAndFin_runToFinish frames output
+  have hhalt : EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFinishCfg gateOutput)
+      (some (haltCfg affineOrFinRevProgram gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    (affineAndFinUntilFinishSteps frames) 1 _
+    (affineOrFinFinishCfg gateOutput) _
+    (by simpa [gateOutput] using hfinish) hhalt
+  simpa [affineAndFinRevSteps, gateOutput, Nat.add_comm] using full
+
+def affineAndFinCanonicalFrames
+    (pairs : List (CircuitBuilder.Wire × CircuitBuilder.Wire)) :
+    List AffineAndFinPairFrame :=
+  pairs.map fun pair => { left := pair.1, right := pair.2 }
+
+theorem affineAndFinCanonicalGateStream_eq_trace
+    (pairs : List (CircuitBuilder.Wire × CircuitBuilder.Wire)) :
+    affineAndFinGateStream (affineAndFinCanonicalFrames pairs) =
+      pairs.flatMap fun pair => encodeCircuitGate (.and pair.1 pair.2) := by
+  unfold affineAndFinGateStream affineAndFinCanonicalFrames
+  rw [List.flatMap_map]
+  rfl
+
+def affineAndFinCanonical_run
+    (pairs : List (CircuitBuilder.Wire × CircuitBuilder.Wire))
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg
+        (encodeAffineAndFinFrames (affineAndFinCanonicalFrames pairs)) output)
+      (some (haltCfg affineOrFinRevProgram
+        (((pairs.flatMap fun pair => encodeCircuitGate
+          (.and pair.1 pair.2))).reverse ++ output)))
+      (affineAndFinRevSteps (affineAndFinCanonicalFrames pairs)) := by
+  simpa [affineAndFinCanonicalGateStream_eq_trace] using
+    affineAndFin_run (affineAndFinCanonicalFrames pairs) output
 
 /-- Exact cost of one marked OR frame. -/
 def affineOrFinPairSteps (frame : AffineOrFinPairFrame) : Nat :=
@@ -843,6 +1146,170 @@ theorem affineOrFinFamilyRev_steps_le (groups : List AffineOrFinGroup) :
   have h := affineOrFinFamilyFold_steps_le groups
   simp [affineOrFinFamilyRevSteps,
     affineOrFinFamilyUntilFinishSteps]
+  omega
+
+/-! ## Continuous AND-then-OR-family execution -/
+
+def encodeAffineAndThenOrInput (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) : List UnaryFrameSym :=
+  encodeAffineAndFinFrames andFrames ++
+    .separator :: encodeAffineOrFinGroups orGroups
+
+def affineAndThenOrGateStream (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) : List CircuitSym :=
+  affineAndFinGateStream andFrames ++ affineOrFinFamilyGateStream orGroups
+
+def affineAndThenOrUntilFinishSteps
+    (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) : Nat :=
+  affineAndFinBodySteps andFrames + 2 + affineOrFinFamilyFoldSteps orGroups
+
+/-- Execute an arbitrary AND phase and switch at one explicit separator to
+an arbitrary family of independent disjunctions, without an intermediate
+halt. -/
+def affineAndThenOr_runToFinish (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg
+        (encodeAffineAndThenOrInput andFrames orGroups) output)
+      (some (affineOrFinFinishCfg
+        ((affineAndThenOrGateStream andFrames orGroups).reverse ++ output)))
+      (affineAndThenOrUntilFinishSteps andFrames orGroups) := by
+  let andOutput := (affineAndFinGateStream andFrames).reverse ++ output
+  have hands := affineAndFinFrames_runToCheck andFrames
+    (.separator :: encodeAffineOrFinGroups orGroups) output
+  have hswitch : EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg
+        (.separator :: encodeAffineOrFinGroups orGroups) andOutput)
+      (some (affineOrFinFamilyLoopCfg
+        (encodeAffineOrFinGroups orGroups) andOutput)) 2 :=
+    ⟨⟨2, rfl⟩, le_rfl⟩
+  have hors := affineOrFinGroups_run orGroups andOutput
+  let throughSwitch := EvalsToInTime.trans (step affineOrFinRevProgram)
+    (affineAndFinBodySteps andFrames) 2 _
+    (affineAndFinLoopCfg
+      (.separator :: encodeAffineOrFinGroups orGroups) andOutput) _
+    (by simpa [encodeAffineAndThenOrInput, andOutput,
+      List.append_assoc] using hands) hswitch
+  let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    _ (affineOrFinFamilyFoldSteps orGroups) _
+    (affineOrFinFamilyLoopCfg
+      (encodeAffineOrFinGroups orGroups) andOutput) _
+    throughSwitch hors
+  convert full using 1
+  · simp [encodeAffineAndThenOrInput, List.append_assoc]
+  · simp [affineAndThenOrGateStream, andOutput,
+      List.reverse_append, List.append_assoc]
+  · simp [affineAndThenOrUntilFinishSteps]
+    omega
+
+def affineAndThenOrRevSteps (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) : Nat :=
+  affineAndThenOrUntilFinishSteps andFrames orGroups + 1
+
+def affineAndThenOr_run (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg
+        (encodeAffineAndThenOrInput andFrames orGroups) output)
+      (some (haltCfg affineOrFinRevProgram
+        ((affineAndThenOrGateStream andFrames orGroups).reverse ++ output)))
+      (affineAndThenOrRevSteps andFrames orGroups) := by
+  let gateOutput :=
+    (affineAndThenOrGateStream andFrames orGroups).reverse ++ output
+  have hfinish := affineAndThenOr_runToFinish andFrames orGroups output
+  have hhalt : EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFinishCfg gateOutput)
+      (some (haltCfg affineOrFinRevProgram gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  have full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    (affineAndThenOrUntilFinishSteps andFrames orGroups) 1 _
+    (affineOrFinFinishCfg gateOutput) _
+    (by simpa [gateOutput] using hfinish) hhalt
+  simpa [affineAndThenOrRevSteps, gateOutput, Nat.add_comm] using full
+
+def affineAndThenOrCanonicalGroups (start : Nat)
+    (pairs : List (CircuitBuilder.Wire × CircuitBuilder.Wire))
+    (families : List (List CircuitBuilder.Wire)) : List AffineOrFinGroup :=
+  affineOrFinCanonicalGroupsFrom (start + pairs.length) families
+
+theorem affineAndThenOrCanonicalGateStream_eq_trace (start : Nat)
+    (pairs : List (CircuitBuilder.Wire × CircuitBuilder.Wire))
+    (families : List (List CircuitBuilder.Wire)) :
+    affineAndThenOrGateStream (affineAndFinCanonicalFrames pairs)
+        (affineAndThenOrCanonicalGroups start pairs families) =
+      ((pairs.map fun pair => CircuitGate.and pair.1 pair.2) ++
+        CircuitBuilder.disjunctionFamilyGateTrace
+          (start + pairs.length) families).flatMap encodeCircuitGate := by
+  rw [affineAndThenOrGateStream,
+    affineAndFinCanonicalGateStream_eq_trace,
+    affineAndThenOrCanonicalGroups,
+    affineOrFinCanonicalFamilyGateStream_eq_trace,
+    List.flatMap_append]
+  rw [List.flatMap_map]
+
+def affineAndThenOrCanonical_run (start : Nat)
+    (pairs : List (CircuitBuilder.Wire × CircuitBuilder.Wire))
+    (families : List (List CircuitBuilder.Wire))
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg
+        (encodeAffineAndThenOrInput (affineAndFinCanonicalFrames pairs)
+          (affineAndThenOrCanonicalGroups start pairs families)) output)
+      (some (haltCfg affineOrFinRevProgram
+        (((((pairs.map fun pair => CircuitGate.and pair.1 pair.2) ++
+          CircuitBuilder.disjunctionFamilyGateTrace
+            (start + pairs.length) families).flatMap
+              encodeCircuitGate)).reverse ++ output)))
+      (affineAndThenOrRevSteps (affineAndFinCanonicalFrames pairs)
+        (affineAndThenOrCanonicalGroups start pairs families)) := by
+  simpa [affineAndThenOrCanonicalGateStream_eq_trace] using
+    affineAndThenOr_run (affineAndFinCanonicalFrames pairs)
+      (affineAndThenOrCanonicalGroups start pairs families) output
+
+@[simp] theorem encodeAffineAndFinPairFrame_length
+    (frame : AffineAndFinPairFrame) :
+    (encodeAffineAndFinPairFrame frame).length =
+      frame.left + frame.right + 5 := by
+  simp [encodeAffineAndFinPairFrame, encodeUnaryFrame_length]
+  omega
+
+theorem affineAndFinPair_steps_le (frame : AffineAndFinPairFrame) :
+    affineAndFinPairSteps frame ≤
+      100 * (encodeAffineAndFinPairFrame frame).length := by
+  simp [affineAndFinPairSteps, unaryTripleLoaderSteps,
+    affineExactlyOneFamilyAndUntilFinishSteps, affineAndRevCoreSteps,
+    encodeAffineAndFinPairFrame_length]
+  omega
+
+theorem affineAndFinBody_steps_le (frames : List AffineAndFinPairFrame) :
+    affineAndFinBodySteps frames ≤
+      100 * (encodeAffineAndFinFrames frames).length := by
+  induction frames with
+  | nil => rfl
+  | cons frame rest ih =>
+      have hframe := affineAndFinPair_steps_le frame
+      simp only [encodeAffineAndFinFrames] at ih
+      simp only [affineAndFinBodySteps, encodeAffineAndFinFrames,
+        List.flatMap_cons, List.length_append]
+      omega
+
+theorem affineAndFinRev_steps_le (frames : List AffineAndFinPairFrame) :
+    affineAndFinRevSteps frames ≤
+      100 * (encodeAffineAndFinFrames frames).length + 2 := by
+  have h := affineAndFinBody_steps_le frames
+  simp [affineAndFinRevSteps, affineAndFinUntilFinishSteps]
+  omega
+
+theorem affineAndThenOrRev_steps_le
+    (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) :
+    affineAndThenOrRevSteps andFrames orGroups ≤
+      100 * (encodeAffineAndThenOrInput andFrames orGroups).length + 2 := by
+  have hands := affineAndFinBody_steps_le andFrames
+  have hors := affineOrFinFamilyFold_steps_le orGroups
+  simp [affineAndThenOrRevSteps, affineAndThenOrUntilFinishSteps,
+    encodeAffineAndThenOrInput]
   omega
 
 end CLRS.Chapter34.Turing.PolyBuilder
