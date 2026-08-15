@@ -28,14 +28,17 @@ Main result:
 - Theorem {lit}`CLRS.Chapter05.expectedHires_isBigTheta_log`: expected hires
   grow logarithmically.
 
-Status: `proved` for the finite rank-symmetry hiring model.
+Status: `proved` for the finite rank-symmetry hiring model, including the
+executable HIRE-ASSISTANT pseudocode ({lit}`CLRS.Chapter05.hireAssistant`).
 
 Probability model: uses {lit}`CLRS.Probability.uniformAverage` from the shared
-finite-expectation toolkit ({lit}`CLRSLean/Probability/FiniteExpectation.lean`).
+finite-expectation toolkit ({lit}`CLRSLean/Probability/FiniteExpectation.lean`);
+uniform random-permutation sampling is supplied by Section 5.3
+({lit}`CLRS.Chapter05.randomizeInPlace_uniform`, Lemma 5.5).
 
-Deferred refinements:
-
-* Random-permutation sampling and pseudocode execution are future targets.
+The executable layer below formalizes the HIRE-ASSISTANT pseudocode: the
+first candidate is always hired, and each later candidate is hired exactly
+when their rank is a new left-to-right maximum.
 -/
 
 namespace CLRS
@@ -180,6 +183,66 @@ theorem expectedHires_isBigTheta_log :
     unfold Chapter03.isBigTheta Chapter03.isBigO Chapter03.isBigOmega
     exact ⟨heq.isBigO, heq.symm.isBigO⟩
   exact Chapter03.isBigTheta_trans hExpectedHarmonic harmonic_isBigTheta_log
+
+/-! ## Executable HIRE-ASSISTANT (pseudocode execution) -/
+
+/--
+Count the records among `rest` given the best rank `best` seen so far: each rank
+strictly greater than `best` is a new hire and becomes the running best.  This is
+the inner loop of HIRE-ASSISTANT.
+-/
+def recordsFrom (best : ℕ) : List ℕ → ℕ
+  | [] => 0
+  | r :: rest => if best < r then 1 + recordsFrom r rest else recordsFrom best rest
+
+/--
+**HIRE-ASSISTANT.**  The number of candidates hired when the interview order is
+the rank sequence `ranks`: the first candidate is always hired, and each later
+candidate is hired exactly when their rank exceeds every rank seen so far (they
+are a left-to-right maximum).  The empty list hires nobody.
+-/
+def hireAssistant : List ℕ → ℕ
+  | [] => 0
+  | r :: rest => 1 + recordsFrom r rest
+
+/-- One accumulator step adds a hire exactly when the new rank exceeds the
+running best, and it advances the running best to the maximum. -/
+theorem recordsFrom_step (best r : ℕ) (rest : List ℕ) :
+    recordsFrom best (r :: rest) =
+      (if best < r then 1 else 0) + recordsFrom (max best r) rest := by
+  by_cases h : best < r
+  · have hm : max best r = r := by omega
+    simp [recordsFrom, h, hm]
+  · have hm : max best r = best := by omega
+    simp [recordsFrom, h, hm]
+
+/-- The first candidate is always hired. -/
+theorem hireAssistant_cons (r : ℕ) (rest : List ℕ) :
+    hireAssistant (r :: rest) = 1 + recordsFrom r rest := rfl
+
+/-- The accumulator counts at most one hire per candidate. -/
+theorem recordsFrom_le_length (best : ℕ) : ∀ xs : List ℕ, recordsFrom best xs ≤ xs.length
+  | [] => by simp [recordsFrom]
+  | r :: rest => by
+      simp [recordsFrom]
+      split
+      · have h := recordsFrom_le_length r rest
+        omega
+      · have h := recordsFrom_le_length best rest
+        omega
+
+/-- HIRE-ASSISTANT hires at most one candidate per interviewed candidate. -/
+theorem hireAssistant_le_length : ∀ xs : List ℕ, hireAssistant xs ≤ xs.length
+  | [] => by simp [hireAssistant]
+  | r :: rest => by
+      simp [hireAssistant]
+      have h := recordsFrom_le_length r rest
+      omega
+
+/-- HIRE-ASSISTANT always hires at least one candidate when there is at least
+one candidate. -/
+theorem hireAssistant_pos {r : ℕ} {rest : List ℕ} : 0 < hireAssistant (r :: rest) := by
+  simp [hireAssistant]
 
 end Chapter05
 end CLRS

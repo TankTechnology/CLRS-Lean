@@ -572,7 +572,8 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 ### Section 5.1 - The hiring problem
 
 - Lean source: `CLRSLean/Chapter_05/Section_05_1_Hiring_Problem.lean`
-- Status: `proved` for the finite rank-symmetry model
+- Status: `proved` for the finite rank-symmetry model, including the executable
+  HIRE-ASSISTANT pseudocode
 - Main proved theorems:
   - `CLRS.Chapter05.uniformAverage_indicator_singleton`
   - `CLRS.Chapter05.hireProbability_eq`
@@ -580,11 +581,18 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
   - `CLRS.Chapter05.expectedHires_eq_harmonic`
   - `CLRS.Chapter05.harmonic_isBigTheta_log`
   - `CLRS.Chapter05.expectedHires_isBigTheta_log`
+  - `CLRS.Chapter05.recordsFrom` and `CLRS.Chapter05.hireAssistant` (executable
+    HIRE-ASSISTANT pseudocode)
+  - `CLRS.Chapter05.recordsFrom_step` (each step adds the `[best < r]` indicator)
+  - `CLRS.Chapter05.recordsFrom_le_length`, `hireAssistant_le_length`,
+    `hireAssistant_pos`
 - Proof pattern: compute singleton probability in a finite uniform rank space,
   sum indicator expectations, prove the equivalent recurrence by induction, and
-  transfer the Chapter 3.2 harmonic-number Θ theorem to expected hires
-- Current gap: none for the current finite rank-symmetry model; a lower-level
-  random-permutation and pseudocode execution model remains a future refinement
+  transfer the Chapter 3.2 harmonic-number Θ theorem to expected hires.  The
+  executable layer runs the HIRE-ASSISTANT record counter with a one-step
+  accumulator recurrence.
+- Uniform random-permutation sampling is supplied by Section 5.3
+  (`CLRS.Chapter05.randomizeInPlace_uniform`, Lemma 5.5).
 
 ### Section 5.2 - Indicator random variables (hat-check problem)
 
