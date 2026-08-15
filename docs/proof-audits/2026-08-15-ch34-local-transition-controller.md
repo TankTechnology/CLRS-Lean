@@ -2,9 +2,11 @@
 
 ## Scope
 
-This checkpoint closes one complete Cook--Levin local-transition serializer.
-It does **not** yet iterate the serializer over every adjacent tableau-row pair
-and does not by itself complete the whole verifier-circuit generator.
+This checkpoint closes one complete Cook--Levin local-transition serializer
+and the fixed controller that iterates any runtime-length family of such
+serializers.  It does **not** yet construct that family from every adjacent
+tableau-row pair and does not by itself complete the whole verifier-circuit
+generator.
 
 ## Closed interfaces
 
@@ -20,6 +22,13 @@ and does not by itself complete the whole verifier-circuit generator.
   halt.
 - `affineTransition_steps_le` gives the explicit bound
   `steps ≤ 500 * encodedInput.length + 20`.
+- `affineTransition_runToFinishWithTail` proves that one local serializer
+  preserves an arbitrary unary-encoded family suffix and returns through a
+  redirectable finish state.
+- `affineTransitionFamily_run` executes a runtime-length list of local scripts
+  under one fixed program and emits their exact concatenated gate stream.
+- `affineTransitionFamily_steps_le` gives the family-level bound
+  `steps ≤ 500 * encodedFamily.length + 2`.
 
 ## Rejected routes discovered during composition
 
@@ -37,6 +46,11 @@ and does not by itself complete the whole verifier-circuit generator.
    global relabeling theorem would be false.
 5. Statement relabeling is valid for the concrete `.stmt` embedding, not for
    an arbitrary label map whose target configurations need not match.
+6. Concatenating local unary payloads without an outer marker is ambiguous:
+   the local final `frameEnd` terminates a payload but cannot also announce
+   whether another payload follows.  The family protocol therefore uses a
+   leading `frameEnd` before every local payload; the empty suffix has no
+   leading marker.
 
 ## Focused verification
 
@@ -44,7 +58,9 @@ The following checks passed without a full-repository build:
 
 ```text
 lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionController
+lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyController
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
@@ -60,9 +76,8 @@ dependencies `[propext, Classical.choice, Quot.sound]`; no project axiom or
 
 ## Next acceptance boundary
 
-The next generator checkpoint must encode and execute a runtime-length family
-of adjacent-row transition scripts, prove byte-for-byte equality with
-`transitionGateStreamAt`, and give a polynomial bound in the family's exact
-runtime encoding. Only after that family is joined with header, validity,
-boundary, and final-output phases can the concrete `verifierCircuit` generator
-be claimed complete.
+The next generator checkpoint must construct the runtime-length family from
+adjacent tableau-row pairs and prove byte-for-byte equality with
+`transitionGateStreamAt`. Only after that canonical family is joined with
+header, validity, boundary, and final-output phases can the concrete
+`verifierCircuit` generator be claimed complete.
