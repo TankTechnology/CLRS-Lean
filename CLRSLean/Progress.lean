@@ -16,8 +16,8 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,536.
-* Proved tracked theorem entries: 1,536.
+* Tracked reader-facing theorem entries: 1,558.
+* Proved tracked theorem entries: 1,558.
 * Online/supplementary theorem entries: 465.
 * Remaining edition-coverage units: 2.
 
@@ -34,8 +34,8 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 24 chapters.
-* {lit}`main-proof-complete-for-correctness`: 5 chapters.
+* {lit}`main-proof-complete`: 25 chapters.
+* {lit}`main-proof-complete-for-correctness`: 4 chapters.
 * {lit}`selected-section-complete`: 4 chapters.
 * {lit}`partial`: 1 chapter.
 * {lit}`expository`: 1 chapter.
@@ -52,7 +52,7 @@ Ch  Chapter                                                     Status          
  5  5. Probabilistic Analysis and Randomized Algorithms         selected-section-complete            5.1;5.2;5.3;5.4                    25        0
  6  6. Heapsort                                                 main-proof-complete                  6.1;6.2;6.3;6.4;6.5                78        0
  7  7. Quicksort                                                main-proof-complete                  7.1;7.2;7.3;7.4                    34        0
- 8  8. Sorting in Linear Time                                   main-proof-complete-for-correctness  8.1;8.2;8.3;8.4                    36        0
+ 8  8. Sorting in Linear Time                                   main-proof-complete                  8.1;8.2;8.3;8.4                    58        0
  9  9. Medians and Order Statistics                             main-proof-complete                  9.1;9.2;9.3                        72        0
 10  10. Elementary Data Structures                              main-proof-complete                  10.1;10.2;10.3                     21        0
 11  11. Hash Tables                                             main-proof-complete                  11.1;11.2;11.3;11.4;11.5           59        0
