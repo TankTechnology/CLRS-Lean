@@ -566,6 +566,17 @@ through all transition constraints. This is the acceptance oracle for the
 next controller; suffix extraction itself is explicitly not counted as TM
 execution.
 
+The first transition-internal serialization blocker is now closed at the
+pure trace layer. `muxFinGateTrace` fixes the shared-negation plus three-gate
+per-coordinate order of whole-row multiplexing, while `eqFinGateTrace` fixes
+the true-seeded, XNOR-then-aggregate-AND order of whole-row equality.
+`muxFin_gates_eq`, `eqFin_gates_eq`, `cfgMux_gates_eq`, and
+`cfgEq_gates_eq` prove literal ordered gate-list equality, and the equality
+trace also fixes the returned aggregate wire. This replaces the previously
+insufficient gate-count-only interface; the remaining work is to execute
+these traces with a runtime finite controller and then compose the fixed
+statement-dispatch trace around them.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -623,6 +634,7 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRow.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRows.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorTransition.lean
+lake env lean Tests/Chapter_34_CookLevin_FiniteFamilyTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean

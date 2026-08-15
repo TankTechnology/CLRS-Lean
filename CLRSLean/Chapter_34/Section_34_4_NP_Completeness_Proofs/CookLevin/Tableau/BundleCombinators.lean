@@ -210,6 +210,23 @@ theorem cfgMux_gate_delta {tm : _root_.Turing.FinTM2} {H : Nat}
       base.gates.length + (3 * cfgBitCount tm H + 1) :=
   (cfgMux base selector whenTrue whenFalse hselector htrue hfalse).gate_delta
 
+/-- Whole-row selection appends the exact canonical finite-slot gate trace. -/
+theorem cfgMux_gates_eq {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (selector : CircuitBuilder.Wire)
+    (whenTrue whenFalse : CfgWires tm H)
+    (hselector : base.WireValid selector)
+    (htrue : whenTrue.ValidIn base) (hfalse : whenFalse.ValidIn base) :
+    (cfgMux base selector whenTrue whenFalse
+      hselector htrue hfalse).builder.gates =
+      base.gates ++ CircuitBuilder.muxFinGateTrace base.gates.length selector
+        (fun i => whenTrue ((cfgSlotEquivFin tm H).symm i))
+        (fun i => whenFalse ((cfgSlotEquivFin tm H).symm i)) := by
+  simpa [cfgMux] using CircuitBuilder.muxFin_gates_eq base selector
+    (fun i => whenTrue ((cfgSlotEquivFin tm H).symm i))
+    (fun i => whenFalse ((cfgSlotEquivFin tm H).symm i)) hselector
+    (fun i => htrue ((cfgSlotEquivFin tm H).symm i))
+    (fun i => hfalse ((cfgSlotEquivFin tm H).symm i))
+
 /-- The evaluated whole-row multiplexer returns exactly the selected arm. -/
 theorem cfgMux_eval {tm : _root_.Turing.FinTM2} {H : Nat}
     (base : CircuitBuilder) (selector : CircuitBuilder.Wire)
@@ -307,6 +324,34 @@ theorem cfgEq_gate_delta {tm : _root_.Turing.FinTM2} {H : Nat}
     (cfgEq base left right hleft hright).builder.gates.length =
       base.gates.length + (6 * cfgBitCount tm H + 1) :=
   (cfgEq base left right hleft hright).gate_delta
+
+/-- Whole-row equality appends the exact canonical finite-slot gate trace. -/
+theorem cfgEq_gates_eq {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (left right : CfgWires tm H)
+    (hleft : left.ValidIn base) (hright : right.ValidIn base) :
+    (cfgEq base left right hleft hright).builder.gates =
+      base.gates ++ (CircuitBuilder.eqFinGateTrace base.gates.length
+        (fun i => left ((cfgSlotEquivFin tm H).symm i))
+        (fun i => right ((cfgSlotEquivFin tm H).symm i))).gates := by
+  simpa [cfgEq] using CircuitBuilder.eqFin_gates_eq base
+    (fun i => left ((cfgSlotEquivFin tm H).symm i))
+    (fun i => right ((cfgSlotEquivFin tm H).symm i))
+    (fun i => hleft ((cfgSlotEquivFin tm H).symm i))
+    (fun i => hright ((cfgSlotEquivFin tm H).symm i))
+
+/-- Whole-row equality returns the aggregate wire named by the exact trace. -/
+theorem cfgEq_wire_eq_trace {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (left right : CfgWires tm H)
+    (hleft : left.ValidIn base) (hright : right.ValidIn base) :
+    (cfgEq base left right hleft hright).wire =
+      (CircuitBuilder.eqFinGateTrace base.gates.length
+        (fun i => left ((cfgSlotEquivFin tm H).symm i))
+        (fun i => right ((cfgSlotEquivFin tm H).symm i))).wire := by
+  simpa [cfgEq] using CircuitBuilder.eqFin_wire_eq_trace base
+    (fun i => left ((cfgSlotEquivFin tm H).symm i))
+    (fun i => right ((cfgSlotEquivFin tm H).symm i))
+    (fun i => hleft ((cfgSlotEquivFin tm H).symm i))
+    (fun i => hright ((cfgSlotEquivFin tm H).symm i))
 
 /-- The whole-row equality output is true exactly when both evaluated row
 functions are equal. -/
