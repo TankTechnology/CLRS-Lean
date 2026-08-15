@@ -10,9 +10,16 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check arithmeticCfgOneHotGroupWires_eq_affine
 #check arithmeticCfgOneHotGroupGateStream_eq_affine
 #check affineExactlyOneFamilyGateStream
+#check affineExactlyOneRuntimeFrames
+#check affineExactlyOneRuntimeFrames_gateStream
 #check exactlyOneFamilyGateStream_eq_affine
 #check arithmeticRawOneHotAffineGateStream
+#check arithmeticRawOneHotFrames
+#check arithmeticRawOneHotFrames_gateStream
 #check arithmeticRawOneHotGateStream_eq_affineFamily
+#check arithmeticRawOneHotFamilyRev_runFrom
+#check arithmeticRawOneHotFamily_runToFinish
+#check arithmeticRawOneHotFamilyRev_steps_le
 #check arithmeticCfgOneHotGroupRev_runFrom
 #check arithmeticCfgOneHotGroupRev_steps_le
 #check arithmeticRawOneHotGates_isPrefix
@@ -23,7 +30,12 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms arithmeticCfgOneHotGroupWires_eq_affine
 #print axioms arithmeticCfgOneHotGroupGateStream_eq_affine
 #print axioms exactlyOneFamilyGateStream_eq_affine
+#print axioms affineExactlyOneRuntimeFrames_gateStream
+#print axioms arithmeticRawOneHotFrames_gateStream
 #print axioms arithmeticRawOneHotGateStream_eq_affineFamily
+#print axioms arithmeticRawOneHotFamilyRev_runFrom
+#print axioms arithmeticRawOneHotFamily_runToFinish
+#print axioms arithmeticRawOneHotFamilyRev_steps_le
 #print axioms arithmeticCfgOneHotGroupRev_runFrom
 #print axioms arithmeticCfgOneHotGroupRev_steps_le
 #print axioms validityRowGateStreamAt_eq_rawOneHot_append_post

@@ -496,6 +496,24 @@ but the groups still need one fixed runtime family controller.  That controller
 must then link to halted agreement and this completed post-halted tail before
 whole-row validity can be claimed.
 
+The raw one-hot family controller is now closed.  `AffineExactlyOneFrame`
+stores each runtime `(start, rowBase, count)` triple in a delimiter-bearing
+four-field block (including the derived `start + 2` counter), and
+`affineExactlyOneFamilyRevProgram` uses one fixed finite-control program for an
+arbitrary list of such frames.  `affineExactlyOneFamily_run` proves exact
+standalone output, while `affineExactlyOneFamily_runToFinish` reaches a clean
+redirectable outer boundary; both inherit an explicit quadratic bound in the
+encoded runtime input length.  At the arithmetic layer,
+`arithmeticRawOneHotFrames_gateStream` proves byte-for-byte agreement with the
+semantic raw-row stream, and `arithmeticRawOneHotFamilyRev_runFrom` plus
+`arithmeticRawOneHotFamily_runToFinish` instantiate the exact machine run.
+
+The remaining whole-row gap is therefore no longer iteration over one-hot
+groups.  It is the two phase links from the raw-one-hot finish boundary into
+halted/label agreement and then into the already completed validity tail.
+Only after those links have one continuous exact run may the single-row
+validity serializer be called complete.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -510,6 +528,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -531,6 +550,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
+lake env lean Tests/Chapter_34_PolyBuilder_ExactlyOneFamily.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean

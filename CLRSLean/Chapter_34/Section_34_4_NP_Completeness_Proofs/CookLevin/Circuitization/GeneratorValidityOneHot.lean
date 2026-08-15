@@ -1,5 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
 
 /-!
 # Arithmetic one-hot groups for the Cook--Levin validity generator
@@ -145,6 +145,38 @@ noncomputable def affineExactlyOneFamilyGateStream (start : Nat) :
           (start + ∑ i : Fin n, (3 * counts i.castSucc + 4))
           (bases (Fin.last n)) (counts (Fin.last n))
 
+/-- Explicit runtime frames for the ordered affine family.  Unlike the
+semantic family above, this list is data that the fixed PolyBuilder controller
+can consume directly. -/
+noncomputable def affineExactlyOneRuntimeFrames (start : Nat) :
+    (n : Nat) → (bases counts : Fin n → Nat) →
+      List PolyBuilder.AffineExactlyOneFrame
+  | 0, _, _ => []
+  | n + 1, bases, counts =>
+      affineExactlyOneRuntimeFrames start n
+          (fun i => bases i.castSucc) (fun i => counts i.castSucc) ++
+        [{ start := start + ∑ i : Fin n, (3 * counts i.castSucc + 4)
+           rowBase := bases (Fin.last n)
+           count := counts (Fin.last n) }]
+
+/-- Executing the explicit runtime frames emits exactly the semantic ordered
+affine family stream. -/
+theorem affineExactlyOneRuntimeFrames_gateStream
+    (start n : Nat) (bases counts : Fin n → Nat) :
+    PolyBuilder.affineExactlyOneFamilyGateStream
+        (affineExactlyOneRuntimeFrames start n bases counts) =
+      affineExactlyOneFamilyGateStream start n bases counts := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      simp only [affineExactlyOneRuntimeFrames,
+        affineExactlyOneFamilyGateStream]
+      rw [PolyBuilder.affineExactlyOneFamilyGateStream_eq_flatMap,
+        List.flatMap_append]
+      simp only [List.flatMap_singleton]
+      rw [← PolyBuilder.affineExactlyOneFamilyGateStream_eq_flatMap,
+        ih]
+
 /-- A semantic exactly-one family over consecutive affine intervals is exactly
 the ordered concatenation of the public affine streams. -/
 theorem exactlyOneFamilyGateStream_eq_affine
@@ -201,6 +233,72 @@ noncomputable def arithmeticRawOneHotAffineGateStream
   affineExactlyOneFamilyGateStream start (cfgOneHotGroupCount tm H)
     (fun i => arithmeticCfgOneHotGroupWireBase tm H rowBase (equiv.symm i))
     (fun i => arithmeticCfgOneHotGroupWireCount tm H (equiv.symm i))
+
+/-- Concrete frame input for the fixed raw-one-hot family controller. -/
+noncomputable def arithmeticRawOneHotFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List PolyBuilder.AffineExactlyOneFrame :=
+  let equiv := cfgOneHotGroupEquivFin tm H
+  affineExactlyOneRuntimeFrames start (cfgOneHotGroupCount tm H)
+    (fun i => arithmeticCfgOneHotGroupWireBase tm H rowBase (equiv.symm i))
+    (fun i => arithmeticCfgOneHotGroupWireCount tm H (equiv.symm i))
+
+/-- The concrete runtime frames have exactly the raw-one-hot affine stream
+specified by the Cook--Levin row semantics. -/
+theorem arithmeticRawOneHotFrames_gateStream
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    PolyBuilder.affineExactlyOneFamilyGateStream
+        (arithmeticRawOneHotFrames tm H start rowBase) =
+      arithmeticRawOneHotAffineGateStream tm H start rowBase := by
+  unfold arithmeticRawOneHotFrames arithmeticRawOneHotAffineGateStream
+  exact affineExactlyOneRuntimeFrames_gateStream _ _ _ _
+
+/-- One fixed program consumes all raw-one-hot frames of an arithmetic row
+and emits their exact encoded gate stream. -/
+def arithmeticRawOneHotFamilyRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step PolyBuilder.affineExactlyOneFamilyRevProgram)
+      (PolyBuilder.affineExactlyOneFamilyLoopCfg
+        (PolyBuilder.encodeAffineExactlyOneFamily
+          (arithmeticRawOneHotFrames tm H start rowBase)) output)
+      (some (haltCfg PolyBuilder.affineExactlyOneFamilyRevProgram
+        ((arithmeticRawOneHotAffineGateStream tm H start rowBase).reverse ++
+          output)))
+      (PolyBuilder.affineExactlyOneFamilyRevSteps
+        (arithmeticRawOneHotFrames tm H start rowBase)) := by
+  simpa only [arithmeticRawOneHotFrames_gateStream] using
+    PolyBuilder.affineExactlyOneFamily_run
+      (arithmeticRawOneHotFrames tm H start rowBase) output
+
+/-- Contextual variant: stop at the explicit outer boundary so a larger
+validity-row controller can continue with the following phases. -/
+def arithmeticRawOneHotFamily_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step PolyBuilder.affineExactlyOneFamilyRevProgram)
+      (PolyBuilder.affineExactlyOneFamilyLoopCfg
+        (PolyBuilder.encodeAffineExactlyOneFamily
+            (arithmeticRawOneHotFrames tm H start rowBase) ++
+          .frameEnd :: tail) output)
+      (some (PolyBuilder.affineExactlyOneFamilyFinishCfg tail
+        ((arithmeticRawOneHotAffineGateStream tm H start rowBase).reverse ++
+          output)))
+      (PolyBuilder.affineExactlyOneFamilyUntilEndSteps
+        (arithmeticRawOneHotFrames tm H start rowBase)) := by
+  simpa only [arithmeticRawOneHotFrames_gateStream] using
+    PolyBuilder.affineExactlyOneFamily_runToFinish
+      (arithmeticRawOneHotFrames tm H start rowBase) tail output
+
+/-- The concrete raw-one-hot family inherits the controller's explicit
+quadratic bound in its delimiter-bearing runtime input length. -/
+theorem arithmeticRawOneHotFamilyRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    PolyBuilder.affineExactlyOneFamilyRevSteps
+        (arithmeticRawOneHotFrames tm H start rowBase) ≤
+      400 * (PolyBuilder.encodeAffineExactlyOneFamily
+        (arithmeticRawOneHotFrames tm H start rowBase)).length ^ 2 + 2 :=
+  PolyBuilder.affineExactlyOneFamilyRev_steps_le _
 
 /-- The complete semantic raw one-hot trace of an arithmetic row is exactly
 the explicitly ordered family of affine serializer streams. -/
