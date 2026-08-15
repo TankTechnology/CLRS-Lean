@@ -1,5 +1,5 @@
 import Mathlib
-import CLRSLean.Chapter_13.Section_13_1_Red_Black_Trees
+import CLRSLean.FourthEdition.Chapter_13.Section_13_1_Red_Black_Trees
 
 /-!
 # Section 13.2 - Rotations
