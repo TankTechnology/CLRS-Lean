@@ -126,6 +126,12 @@ def affineOptionalConjunctionFamilyFinishCfg (output : List CircuitSym) :
   affineOptionalConjunctionFamilyCfg .finish (some .frameEnd) none false []
     output [] [] [] [] []
 
+def affineOptionalConjunctionFamilyFinishInputCfg
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    BuilderCfg affineOptionalConjunctionFamilyRevProgram :=
+  affineOptionalConjunctionFamilyCfg .finish (some .frameEnd) none false tail
+    output [] [] [] [] []
+
 private def liftCfg (c : BuilderCfg affineConjunctionRevProgram) :
     BuilderCfg affineOptionalConjunctionFamilyRevProgram where
   label := c.label.map .conjunction
@@ -357,6 +363,34 @@ private def entries_runToCheck (frames : List (Option AffineConjunctionFrame))
 def affineOptionalConjunctionFamilyUntilFinishSteps
     (frames : List (Option AffineConjunctionFrame)) : Nat :=
   affineOptionalConjunctionFamilyBodySteps frames + 1
+
+/-- Contextual execution through the explicit family terminator, preserving
+the suffix for the next generator phase. -/
+def affineOptionalConjunctionFamily_runToFinishWithTail
+    (frames : List (Option AffineConjunctionFrame))
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOptionalConjunctionFamilyRevProgram)
+      (affineOptionalConjunctionFamilyLoopCfg
+        (encodeAffineOptionalConjunctionFamily frames ++ tail) output)
+      (some (affineOptionalConjunctionFamilyFinishInputCfg tail
+        ((affineOptionalConjunctionFamilyGateStream frames).reverse ++ output)))
+      (affineOptionalConjunctionFamilyUntilFinishSteps frames) := by
+  have hbody := entries_runToCheck frames (.frameEnd :: tail) output
+  let gateOutput :=
+    (affineOptionalConjunctionFamilyGateStream frames).reverse ++ output
+  have hfinish : EvalsToInTime
+      (step affineOptionalConjunctionFamilyRevProgram)
+      (affineOptionalConjunctionFamilyLoopCfg (.frameEnd :: tail) gateOutput)
+      (some (affineOptionalConjunctionFamilyFinishInputCfg tail gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans
+    (step affineOptionalConjunctionFamilyRevProgram)
+    (affineOptionalConjunctionFamilyBodySteps frames) 1 _
+    (affineOptionalConjunctionFamilyLoopCfg (.frameEnd :: tail) gateOutput) _
+    (by simpa [gateOutput] using hbody) hfinish
+  simpa [encodeAffineOptionalConjunctionFamily,
+    affineOptionalConjunctionFamilyUntilFinishSteps, gateOutput,
+    List.append_assoc, Nat.add_comm] using full
 
 def affineOptionalConjunctionFamilyRevSteps
     (frames : List (Option AffineConjunctionFrame)) : Nat :=

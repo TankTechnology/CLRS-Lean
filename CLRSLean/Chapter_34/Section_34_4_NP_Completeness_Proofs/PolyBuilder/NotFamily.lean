@@ -88,7 +88,8 @@ def affineNotFamilyRevProgram : Program UnaryFrameSym CircuitSym where
   op
     | .check => .popInput .finish fun
         | .tick => .clearMarker
-        | _ => .invalid
+        | .frameEnd => .finish
+        | .separator => .invalid
     | .clearMarker =>
         .popWork₁ (.loader unaryTripleLoaderProgram.main) (fun _ => .invalid)
     | .loader .ready =>
@@ -125,6 +126,13 @@ def affineNotFamilyLoopCfg (input : List UnaryFrameSym)
 def affineNotFamilyFinishCfg (output : List CircuitSym) :
     BuilderCfg affineNotFamilyRevProgram :=
   affineNotFamilyCfg .finish none none false [] output [] [] [] [] []
+
+/-- Redirectable finish that has consumed an explicit family boundary and
+preserves the runtime suffix for an enclosing controller. -/
+def affineNotFamilyFinishInputCfg (tail : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineNotFamilyRevProgram :=
+  affineNotFamilyCfg .finish (some .frameEnd) none false tail output
+    [] [] [] [] []
 
 private def relabelCfg {P : Program UnaryFrameSym CircuitSym}
     (tag : P.Label → AffineNotFamilyLabel) (c : BuilderCfg P) :
@@ -404,6 +412,29 @@ def affineNotFamilySources_runToCheck (sources : List Nat)
 
 def affineNotFamilyUntilFinishSteps (sources : List Nat) : Nat :=
   affineNotFamilyBodySteps sources + 1
+
+/-- Contextual execution through an explicit `frameEnd`, preserving the
+unconsumed suffix and stopping before the component halt instruction. -/
+def affineNotFamily_runToFinishWithTail (sources : List Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineNotFamilyRevProgram)
+      (affineNotFamilyLoopCfg
+        (encodeAffineNotFamilySources sources ++ .frameEnd :: tail) output)
+      (some (affineNotFamilyFinishInputCfg tail
+        ((affineNotFamilyGateStream sources).reverse ++ output)))
+      (affineNotFamilyUntilFinishSteps sources) := by
+  have hbody := affineNotFamilySources_runToCheck sources
+    (.frameEnd :: tail) output
+  let gateOutput := (affineNotFamilyGateStream sources).reverse ++ output
+  have hfinish : EvalsToInTime (step affineNotFamilyRevProgram)
+      (affineNotFamilyLoopCfg (.frameEnd :: tail) gateOutput)
+      (some (affineNotFamilyFinishInputCfg tail gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step affineNotFamilyRevProgram)
+    (affineNotFamilyBodySteps sources) 1 _
+    (affineNotFamilyLoopCfg (.frameEnd :: tail) gateOutput) _
+    (by simpa [gateOutput] using hbody) hfinish
+  simpa [affineNotFamilyUntilFinishSteps, gateOutput, Nat.add_comm] using full
 
 def affineNotFamily_runToFinish (sources : List Nat)
     (output : List CircuitSym) :

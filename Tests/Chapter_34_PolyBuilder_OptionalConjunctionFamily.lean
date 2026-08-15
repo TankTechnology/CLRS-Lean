@@ -9,6 +9,7 @@ open StateTransition
 #check encodeAffineOptionalConjunctionFamily
 #check affineOptionalConjunctionFamilyGateStream
 #check affineOptionalConjunctionFamily_run
+#check affineOptionalConjunctionFamily_runToFinishWithTail
 #check affineOptionalConjunctionFamilyRev_steps_le
 
 private def sampleFrame : AffineConjunctionFrame :=
@@ -34,4 +35,5 @@ example (output : List CircuitSym) :
         [none, some sampleFrame, none] output
 
 #print axioms affineOptionalConjunctionFamily_run
+#print axioms affineOptionalConjunctionFamily_runToFinishWithTail
 #print axioms affineOptionalConjunctionFamilyRev_steps_le
