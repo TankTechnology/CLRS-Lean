@@ -120,6 +120,42 @@ def separatorNotsGateTrace {tm : _root_.Turing.FinTM2} {H : Nat}
     List CircuitGate :=
   separatorNotsPrefixGateTrace stack separator H (Nat.le_refl H)
 
+/-- Runtime source operands for the separator-negation phase, in the exact
+physical-cell order used by the semantic builder. -/
+def separatorNotSources {tm : _root_.Turing.FinTM2} {H : Nat}
+    {k : tm.K} (stack : StackWires tm H k)
+    (separator : Fin ((reachableAlphabet tm k).card + 1)) : List Nat :=
+  List.ofFn fun cell : Fin H => stack.cell cell separator
+
+private theorem separatorNotsPrefixGateTrace_eq_sources
+    {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
+    (stack : StackWires tm H k)
+    (separator : Fin ((reachableAlphabet tm k).card + 1)) :
+    ∀ (n : Nat) (hn : n ≤ H),
+      separatorNotsPrefixGateTrace stack separator n hn =
+        (List.ofFn fun cell : Fin n =>
+          CircuitGate.not (stack.cell ⟨cell.val, by omega⟩ separator)) := by
+  intro n hn
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      simp only [separatorNotsPrefixGateTrace]
+      rw [ih]
+      rw [List.ofFn_succ']
+      simp [List.concat_eq_append]
+
+/-- The public separator trace is exactly the map of `not` over its runtime
+source operands. -/
+theorem separatorNotsGateTrace_eq_sources
+    {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
+    (stack : StackWires tm H k)
+    (separator : Fin ((reachableAlphabet tm k).card + 1)) :
+    separatorNotsGateTrace stack separator =
+      (separatorNotSources stack separator).map CircuitGate.not := by
+  unfold separatorNotsGateTrace
+  rw [separatorNotsPrefixGateTrace_eq_sources]
+  simp [separatorNotSources, Function.comp_def]
+
 private theorem buildSeparatorNotsPrefix_gates_eq
     {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
     (base : CircuitBuilder) (stack : StackWires tm H k)

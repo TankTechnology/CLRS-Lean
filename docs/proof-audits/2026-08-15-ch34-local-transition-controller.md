@@ -50,7 +50,24 @@ generator.
 - `buildSeparatorNots_gates_eq`, `buildInputArms_gates_eq`, and
   `verifierInputShapeCircuit_gates_eq` expose the three literal input-shape
   phases. `verifierInputBoundary_gates_eq` specializes their exact trace to
-  the assembled verifier; execution of this trace remains the next boundary.
+  the assembled verifier.
+- `affineNotFamily_run` executes any runtime list of NOT operands under one
+  fixed controller, with the linear bound
+  `steps ≤ 20 * encodedSources.length + 2`.
+- `affineOptionalConjunctionFamily_run` executes a runtime family whose entries
+  either append one full conjunction or exactly zero gates, with a quadratic
+  bound in its exact marker-bearing input.
+- `compileInputArmFrames_gateStream_eq_trace` proves that the optional family
+  reproduces all certificate-length arms, including nonfitting zero-gate
+  branches.
+- `compileVerifierInputShapeScript_gateStream_eq_trace` and
+  `verifierInputBoundaryScript_gateStream_eq` package separator NOTs, optional
+  arms, and the final OR into one canonical operand script whose combined byte
+  stream is the complete semantic input-boundary trace.
+- `verifierInputSeparator_run`, `verifierInputBoundaryArms_run`, and
+  `verifierInputBoundaryFinalOr_run` execute the three script phases exactly.
+  Joining these three already-executable components under one nonhalting outer
+  controller is the remaining input-boundary composition step.
 
 ## Rejected routes discovered during composition
 
@@ -77,6 +94,13 @@ generator.
    coordinate family is byte-incorrect: empty `EqFin` emits its true seed,
    whereas `falseBoundaryCircuit` emits no gate and reuses the shared false
    wire.  The optional controller therefore has a genuine zero-output branch.
+8. A zero-gate input arm cannot be encoded by an empty conjunction frame:
+   empty conjunction still emits its true seed.  Optional arm entries therefore
+   use a distinct `separator` marker for zero gates and a `tick` marker for a
+   real conjunction.
+9. Reusing `frameEnd` both for a zero-gate entry and for end-of-family is
+   ambiguous, especially for consecutive nonfitting arms.  The optional arm
+   protocol reserves `frameEnd` solely as the final family terminator.
 
 ## Focused verification
 
@@ -94,6 +118,8 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorAcceptingBoundary.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorConjunction.lean
 lake env lean Tests/Chapter_34_CookLevin_VerifierInputTraces.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorInputBoundary.lean
+lake env lean Tests/Chapter_34_PolyBuilder_NotFamily.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OptionalConjunctionFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
@@ -109,8 +135,9 @@ dependencies `[propext, Classical.choice, Quot.sound]`; no project axiom or
 
 ## Next acceptance boundary
 
-The next generator checkpoint must join this now-executable canonical family
-with header, validity, boundary, and final-output phases.  A dimension-level
-bound on the canonical family's runtime input must then connect the existing
-linear encoded-input theorem to the verifier polynomials.  Only after that
+The next generator checkpoint must first join the three input-boundary
+components without intermediate halt, then join the resulting input phase
+with header, validity, transition, boundary, conjunction, and final-output
+phases.  A dimension-level bound on the canonical runtime inputs must then
+connect the component bounds to the verifier polynomials.  Only after that
 composition can the concrete `verifierCircuit` generator be claimed complete.
