@@ -990,6 +990,191 @@ theorem bfsState_correct {s : V} (hs : s ∈ G.vertices) :
     exact bfsState_distance_eq_some_iff G hs
   · exact bfsState_isBFSPredecessorTree G hs
 
+-- =============================================================================
+--  Cost layer: O(V + E) running time
+-- =============================================================================
+
+/-- The work already performed by BFS before a given state: every vertex that
+has left the queue counts one dequeue operation plus one adjacency-list scan
+per out-neighbor.  Dequeued vertices are exactly the visited vertices that are
+no longer in the queue. -/
+noncomputable def bfsWork (G : Graph V) (visited : Finset V) (queue : List V) : Nat :=
+  (visited \ queue.toFinset).card +
+    ∑ v ∈ (visited \ queue.toFinset), (G.adj v).card
+
+/-- Dequeuing a vertex advances the work measure by exactly one dequeue plus the
+scanned out-degree of that vertex. -/
+theorem bfsWork_step {u : V} {rest : List V} {state : BFSState V}
+    (hu : u ∈ state.visited) (hu_rest : u ∉ rest) :
+    bfsWork G (bfsStateAdvance G state u rest).visited (bfsStateAdvance G state u rest).queue
+      = bfsWork G state.visited (u :: rest) + 1 + (G.adj u).card := by
+  have hnot_vis {x : V} (hx : x ∈ bfsNewNeighbors G state u) : x ∉ state.visited :=
+    (mem_bfsNewNeighbors_iff G).1 hx |>.2
+  have huN : u ∉ bfsNewNeighbors G state u := by
+    intro huN
+    exact (hnot_vis huN) hu
+  have hdequeued : (state.visited ∪ bfsNewNeighbors G state u) \ (rest.toFinset ∪ bfsNewNeighbors G state u) =
+      insert u (state.visited \ insert u rest.toFinset) := by
+    ext x
+    by_cases hxN : x ∈ bfsNewNeighbors G state u
+    · simp [hxN, hnot_vis hxN]
+      intro hxu
+      rw [hxu] at hxN
+      exact huN hxN
+    · simp [hxN]
+      constructor
+      · rintro ⟨hxv, hxr⟩
+        by_cases hxu : x = u
+        · exact Or.inl hxu
+        · exact Or.inr ⟨hxv, hxu, hxr⟩
+      · rintro (hxu | ⟨hxv, _hxne, hxr⟩)
+        · subst hxu
+          exact ⟨hu, hu_rest⟩
+        · exact ⟨hxv, hxr⟩
+  simp [bfsWork, bfsStateAdvance]
+  rw [hdequeued]
+  have huA : u ∉ state.visited \ insert u rest.toFinset := by simp
+  simp [huA]
+  omega
+
+/-- The successor queue of a BFS step stays duplicate-free. -/
+theorem bfsStateAdvance_queue_nodup {state : BFSState V} {u : V} {rest : List V}
+    (hnodup : (u :: rest).Nodup) (hqueue : G.BFSQueueInv state.visited (u :: rest)) :
+    (bfsStateAdvance G state u rest).queue.Nodup := by
+  let N : Finset V := bfsNewNeighbors G state u
+  have hrest : rest.Nodup := (List.nodup_cons.mp hnodup).2
+  have hN : N.toList.Nodup := Finset.nodup_toList N
+  have hdisjoint : ∀ a ∈ rest, ∀ b ∈ N.toList, a ≠ b := by
+    intro a ha b hb hab
+    rw [← hab] at hb
+    have havis : a ∈ state.visited := hqueue a (by simp [ha])
+    have haN : a ∈ N := Finset.mem_toList.mp hb
+    have hanotvis : a ∉ state.visited := (mem_bfsNewNeighbors_iff G).1 haN |>.2
+    exact hanotvis havis
+  have hnodup' : (rest ++ N.toList).Nodup := by
+    rw [List.nodup_append]
+    exact ⟨hrest, hN, hdisjoint⟩
+  simpa [bfsStateAdvance, N] using hnodup'
+
+/-- Fuelled labelled BFS that also accumulates the total work.  Each step that
+processes the front vertex {lit}`u` costs one dequeue plus one adjacency-list
+scan per out-neighbor of {lit}`u`. -/
+noncomputable def bfsStateAuxWithCost (G : Graph V) : Nat → BFSState V → BFSState V × Nat
+  | 0, state => (state, 0)
+  | fuel + 1, state =>
+      match state.queue with
+      | [] => (state, 0)
+      | u :: rest =>
+          let (state', cost) := bfsStateAuxWithCost G fuel (bfsStateAdvance G state u rest)
+          (state', 1 + (G.adj u).card + cost)
+
+/-- Erasing the cost recovers the plain fuelled labelled BFS. -/
+theorem bfsStateAuxWithCost_result (fuel : Nat) (state : BFSState V) :
+    (bfsStateAuxWithCost G fuel state).1 = bfsStateAux G fuel state := by
+  induction fuel generalizing state with
+  | zero => simp [bfsStateAuxWithCost, bfsStateAux]
+  | succ n ih =>
+      cases hqueue : state.queue with
+      | nil => simp [bfsStateAuxWithCost, bfsStateAux, hqueue]
+      | cons u rest =>
+          simp [bfsStateAuxWithCost, bfsStateAux, hqueue]
+          exact ih (bfsStateAdvance G state u rest)
+
+/-- The cost accumulated by a fuelled run equals the increase in the BFS work
+measure over the run. -/
+theorem bfsStateAuxWithCost_cost_eq (fuel : Nat) (state : BFSState V)
+    (hqueue : G.BFSQueueInv state.visited state.queue)
+    (hnodup : state.queue.Nodup) :
+    (bfsStateAuxWithCost G fuel state).2 + bfsWork G state.visited state.queue
+      = bfsWork G (bfsStateAuxWithCost G fuel state).1.visited
+          (bfsStateAuxWithCost G fuel state).1.queue := by
+  induction fuel generalizing state with
+  | zero => simp [bfsStateAuxWithCost]
+  | succ n ih =>
+      cases hq : state.queue with
+      | nil => simp [bfsStateAuxWithCost, hq]
+      | cons u rest =>
+          have hqcond : state.queue = u :: rest := hq
+          have hqinv : G.BFSQueueInv state.visited (u :: rest) := by simpa [hqcond] using hqueue
+          have hnd : (u :: rest).Nodup := by simpa [hqcond] using hnodup
+          have hqueue' : G.BFSQueueInv (bfsStateAdvance G state u rest).visited
+              (bfsStateAdvance G state u rest).queue := by
+            simpa [bfsStateAdvance, bfsNewNeighbors] using bfsQueueInv_step G hqinv
+          have hnodup' : (bfsStateAdvance G state u rest).queue.Nodup := by
+            simpa using bfsStateAdvance_queue_nodup (G := G) hnd hqinv
+          have hih := ih (bfsStateAdvance G state u rest) hqueue' hnodup'
+          have hu_mem_queue : u ∈ state.queue := by simp [hqcond]
+          have hu : u ∈ state.visited := hqueue u hu_mem_queue
+          have hu_rest : u ∉ rest := (List.nodup_cons.mp hnd).1
+          have hwork := bfsWork_step (G := G) (state := state) (u := u) (rest := rest) hu hu_rest
+          simp [bfsStateAuxWithCost, hq]
+          rw [← hih]
+          rw [hwork]
+          omega
+
+/-- The final visited set of BFS is contained in the vertex set. -/
+theorem bfsState_visited_subset {s : V} (hs : s ∈ G.vertices) :
+    (bfsState G s hs).visited ⊆ G.vertices := by
+  intro v hv
+  rw [bfsState_visited_eq_bfs G hs] at hv
+  exact G.reachable_mem_vertices hs (bfs_sound G hs hv)
+
+/-- CLRS BFS with distances, predecessors, and a work counter. -/
+noncomputable def bfsStateWithCost (G : Graph V) (s : V) (_hs : s ∈ G.vertices) : BFSState V × Nat :=
+  bfsStateAuxWithCost G G.vertices.card (bfsStateInit s)
+
+/-- Erasing the cost recovers {name}`bfsState`. -/
+theorem bfsStateWithCost_result {s : V} (hs : s ∈ G.vertices) :
+    (bfsStateWithCost G s hs).1 = bfsState G s hs := by
+  simpa [bfsStateWithCost, bfsState] using
+    bfsStateAuxWithCost_result G G.vertices.card (bfsStateInit s)
+
+/-- The initial BFS work measure is zero. -/
+theorem bfsWork_init {s : V} :
+    bfsWork G (bfsStateInit s).visited (bfsStateInit s).queue = 0 := by
+  simp [bfsWork, bfsStateInit]
+
+/--
+**BFS running time.**  The instrumented breadth-first search costs at most
+{lit}`V + E` control steps, where {lit}`V` is the number of vertices and {lit}`E`
+is the number of directed edges; BFS therefore runs in {lit}`O(V + E)` (CLRS
+Theorem 20.5).
+-/
+theorem bfsStateWithCost_cost_le {s : V} (hs : s ∈ G.vertices) :
+    (bfsStateWithCost G s hs).2 ≤ G.vertices.card + edgeCount G := by
+  let res := bfsStateAuxWithCost G G.vertices.card (bfsStateInit s)
+  have hinit_queue : G.BFSQueueInv (bfsStateInit s).visited (bfsStateInit s).queue := by
+    intro v hv
+    simpa [BFSQueueInv, bfsStateInit] using hv
+  have hinit_nodup : (bfsStateInit s).queue.Nodup := by
+    simp [bfsStateInit]
+  have hcost := bfsStateAuxWithCost_cost_eq G G.vertices.card (bfsStateInit s) hinit_queue hinit_nodup
+  have hwork0 := bfsWork_init (G := G) (s := s)
+  have hqueue_empty : res.1.queue = [] := by
+    have h := bfsStateAuxWithCost_result G G.vertices.card (bfsStateInit s)
+    change res.1 = bfsStateAux G G.vertices.card (bfsStateInit s) at h
+    rw [h]
+    have hq := bfsState_queue_empty G hs
+    simpa [bfsState] using hq
+  have hsub : res.1.visited ⊆ G.vertices := by
+    have h := bfsStateAuxWithCost_result G G.vertices.card (bfsStateInit s)
+    change res.1 = bfsStateAux G G.vertices.card (bfsStateInit s) at h
+    rw [h]
+    exact bfsState_visited_subset G hs
+  -- cost = work(final) - work(init) = work(final)
+  have hcost' : res.2 = bfsWork G res.1.visited res.1.queue := by
+    change (bfsStateAuxWithCost G G.vertices.card (bfsStateInit s)).2 =
+      bfsWork G (bfsStateAuxWithCost G G.vertices.card (bfsStateInit s)).1.visited
+        (bfsStateAuxWithCost G G.vertices.card (bfsStateInit s)).1.queue
+    rw [hwork0] at hcost
+    simpa using hcost
+  rw [bfsStateWithCost]
+  change res.2 ≤ G.vertices.card + edgeCount G
+  rw [hcost', hqueue_empty]
+  simp [bfsWork, edgeCount]
+  exact Nat.add_le_add (Finset.card_le_card hsub)
+    (Finset.sum_le_sum_of_subset_of_nonneg hsub (by intro x hx hxs; exact Nat.zero_le _))
+
 end Graph
 
 end Chapter22

@@ -128,6 +128,19 @@ theorem reachable_trans {u v w : V}
 theorem reachable_adj {u v : V} (hadj : G.Adj u v) : G.Reachable u v :=
   Relation.ReflTransGen.tail Relation.ReflTransGen.refl hadj
 
+/-- Every vertex reachable from a vertex of the graph is again a vertex of the
+graph. -/
+theorem reachable_mem_vertices {u v : V} (hu : u ∈ G.vertices) (h : G.Reachable u v) :
+    v ∈ G.vertices := by
+  induction h with
+  | refl => exact hu
+  | tail _ hadj _ih => exact G.adj_mem_right hadj
+
+/-- The total number of directed edges of {lit}`G`, counted as the sum of
+out-degrees over the vertex set. -/
+noncomputable def edgeCount (G : Graph V) : Nat :=
+  ∑ v ∈ G.vertices, (G.adj v).card
+
 -- Undirected graphs.
 
 /-- An undirected graph has symmetric adjacency. -/
