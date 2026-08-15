@@ -81,6 +81,7 @@ private def relabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
 serializer. -/
 inductive AffineOrFinLabel
   | seed | check | clearMarker
+  | familyCheck | familyOpenClear | familySeed | familyCloseClear
   | loader (label : UnaryTripleLoaderLabel)
   | orSeed
   | orCore (label : AffineExactlyOneFamilyLabel)
@@ -96,6 +97,7 @@ def affineOrFinRevProgram : Program UnaryFrameSym CircuitSym where
     | .seed => .pushOutput .constFalseMark .check
     | .check => .popInput .finish fun
         | .frameEnd => .clearMarker
+        | .separator => .familyCloseClear
         | _ => .invalid
     | .clearMarker =>
         .popWork₁ (.loader unaryTripleLoaderProgram.main) (fun _ => .invalid)
@@ -107,6 +109,12 @@ def affineOrFinRevProgram : Program UnaryFrameSym CircuitSym where
     | .orCore .finish => .popWork₁ .check (fun _ => .invalid)
     | .orCore label => relabelOp .orCore
         (affineExactlyOneFamilyRevProgram.op label)
+    | .familyCheck => .popInput .finish fun
+        | .separator => .familyOpenClear
+        | _ => .invalid
+    | .familyOpenClear => .popWork₁ .familySeed (fun _ => .invalid)
+    | .familySeed => .pushOutput .constFalseMark .check
+    | .familyCloseClear => .popWork₁ .familyCheck (fun _ => .invalid)
     | .finish => .halt
     | .invalid => .halt
 
@@ -591,6 +599,250 @@ theorem affineOrFinRev_steps_le (frames : List AffineOrFinPairFrame) :
       100 * (encodeAffineOrFinFrames frames).length + 3 := by
   have h := affineOrFinFold_steps_le frames
   simp [affineOrFinRevSteps, affineOrFinUntilFinishSteps]
+  omega
+
+/-! ## Non-halting families of arbitrary disjunctions -/
+
+abbrev AffineOrFinGroup := List AffineOrFinPairFrame
+
+/-- A group is delimited by separators; individual OR frames remain delimited
+by `frameEnd`, so empty groups are unambiguous. -/
+def encodeAffineOrFinGroup (group : AffineOrFinGroup) :
+    List UnaryFrameSym :=
+  .separator :: encodeAffineOrFinFrames group ++ [.separator]
+
+def encodeAffineOrFinGroups (groups : List AffineOrFinGroup) :
+    List UnaryFrameSym :=
+  groups.flatMap encodeAffineOrFinGroup
+
+def affineOrFinFamilyGateStream (groups : List AffineOrFinGroup) :
+    List CircuitSym :=
+  groups.flatMap affineOrFinGateStream
+
+def affineOrFinFamilyLoopCfg (input : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineOrFinRevProgram :=
+  affineOrFinCfg .familyCheck none none false input output [] [] [] [] []
+
+def affineOrFinBodySteps : List AffineOrFinPairFrame → Nat
+  | [] => 0
+  | frame :: rest => affineOrFinPairSteps frame + affineOrFinBodySteps rest
+
+private def affineOrFinFrames_runToCheck
+    (frames : List AffineOrFinPairFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinCheckCfg (encodeAffineOrFinFrames frames ++ tail) output)
+      (some (affineOrFinCheckCfg tail
+        (((frames.flatMap fun frame =>
+          affineOrGateStream frame.left frame.right)).reverse ++ output)))
+      (affineOrFinBodySteps frames) := by
+  induction frames generalizing output with
+  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
+  | cons frame rest ih =>
+      let frameOutput :=
+        (affineOrGateStream frame.left frame.right).reverse ++ output
+      have hframe := affineOrFinPair_run frame
+        (encodeAffineOrFinFrames rest ++ tail) output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+        (affineOrFinPairSteps frame) (affineOrFinBodySteps rest) _
+        (affineOrFinCheckCfg
+          (encodeAffineOrFinFrames rest ++ tail) frameOutput) _
+        hframe hrest
+      convert full using 1
+      · simp [encodeAffineOrFinFrames, List.append_assoc]
+      · simp [frameOutput, List.reverse_append, List.append_assoc]
+      · simp [affineOrFinBodySteps]
+        omega
+
+def affineOrFinGroupSteps (group : AffineOrFinGroup) : Nat :=
+  affineOrFinBodySteps group + 5
+
+private def affineOrFinGroup_run (group : AffineOrFinGroup)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFamilyLoopCfg (encodeAffineOrFinGroup group ++ tail) output)
+      (some (affineOrFinFamilyLoopCfg tail
+        ((affineOrFinGateStream group).reverse ++ output)))
+      (affineOrFinGroupSteps group) := by
+  let seeded := .constFalseMark :: output
+  let frameInput := encodeAffineOrFinFrames group ++ .separator :: tail
+  have hseed : EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFamilyLoopCfg (.separator :: frameInput) output)
+      (some (affineOrFinCheckCfg frameInput seeded)) 3 :=
+    ⟨⟨3, rfl⟩, le_rfl⟩
+  have hframes := affineOrFinFrames_runToCheck group
+    (.separator :: tail) seeded
+  have hend : EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinCheckCfg (.separator :: tail)
+        ((group.flatMap fun frame =>
+          affineOrGateStream frame.left frame.right).reverse ++ seeded))
+      (some (affineOrFinFamilyLoopCfg tail
+        ((group.flatMap fun frame =>
+          affineOrGateStream frame.left frame.right).reverse ++ seeded))) 2 :=
+    ⟨⟨2, rfl⟩, le_rfl⟩
+  let throughFrames := EvalsToInTime.trans (step affineOrFinRevProgram)
+    3 (affineOrFinBodySteps group) _
+    (affineOrFinCheckCfg frameInput seeded) _ hseed
+    (by simpa [frameInput] using hframes)
+  let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    _ 2 _
+    (affineOrFinCheckCfg (.separator :: tail)
+      ((group.flatMap fun frame =>
+        affineOrGateStream frame.left frame.right).reverse ++ seeded)) _
+    throughFrames hend
+  convert full using 1
+  · simp [encodeAffineOrFinGroup, frameInput, List.append_assoc]
+  · simp [affineOrFinGateStream, seeded, List.reverse_append,
+      List.append_assoc]
+  · simp [affineOrFinGroupSteps]
+    omega
+
+def affineOrFinFamilyFoldSteps : List AffineOrFinGroup → Nat
+  | [] => 1
+  | group :: rest =>
+      affineOrFinGroupSteps group + affineOrFinFamilyFoldSteps rest
+
+private def affineOrFinGroups_run (groups : List AffineOrFinGroup)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFamilyLoopCfg (encodeAffineOrFinGroups groups) output)
+      (some (affineOrFinFinishCfg
+        ((affineOrFinFamilyGateStream groups).reverse ++ output)))
+      (affineOrFinFamilyFoldSteps groups) := by
+  induction groups generalizing output with
+  | nil => exact ⟨⟨1, rfl⟩, le_rfl⟩
+  | cons group rest ih =>
+      let groupOutput := (affineOrFinGateStream group).reverse ++ output
+      have hgroup := affineOrFinGroup_run group
+        (encodeAffineOrFinGroups rest) output
+      have hrest := ih groupOutput
+      let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+        (affineOrFinGroupSteps group) (affineOrFinFamilyFoldSteps rest) _
+        (affineOrFinFamilyLoopCfg
+          (encodeAffineOrFinGroups rest) groupOutput) _ hgroup hrest
+      convert full using 1
+      · simp [encodeAffineOrFinGroups, List.append_assoc]
+      · simp [affineOrFinFamilyGateStream, groupOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineOrFinFamilyFoldSteps]
+        omega
+
+def affineOrFinFamilyUntilFinishSteps
+    (groups : List AffineOrFinGroup) : Nat :=
+  affineOrFinFamilyFoldSteps groups
+
+/-- Execute any runtime family of independent false-seeded disjunctions
+without halting between fibers. -/
+def affineOrFinFamily_runToFinish (groups : List AffineOrFinGroup)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFamilyLoopCfg (encodeAffineOrFinGroups groups) output)
+      (some (affineOrFinFinishCfg
+        ((affineOrFinFamilyGateStream groups).reverse ++ output)))
+      (affineOrFinFamilyUntilFinishSteps groups) := by
+  simpa [affineOrFinFamilyUntilFinishSteps] using
+    affineOrFinGroups_run groups output
+
+def affineOrFinCanonicalGroupsFrom : Nat →
+    List (List CircuitBuilder.Wire) → List AffineOrFinGroup
+  | _, [] => []
+  | start, wires :: rest =>
+      let head := CircuitBuilder.disjunctionGateTrace start wires
+      affineOrFinCanonicalFrames start wires ::
+        affineOrFinCanonicalGroupsFrom (start + head.gates.length) rest
+
+theorem affineOrFinCanonicalFamilyGateStream_eq_trace (start : Nat) :
+    ∀ families : List (List CircuitBuilder.Wire),
+      affineOrFinFamilyGateStream
+          (affineOrFinCanonicalGroupsFrom start families) =
+        (CircuitBuilder.disjunctionFamilyGateTrace start families).flatMap
+          encodeCircuitGate := by
+  intro families
+  induction families generalizing start with
+  | nil => rfl
+  | cons wires rest ih =>
+      simp only [affineOrFinCanonicalGroupsFrom,
+        affineOrFinFamilyGateStream, List.flatMap_cons,
+        CircuitBuilder.disjunctionFamilyGateTrace, List.flatMap_append]
+      rw [affineOrFinCanonicalGateStream_eq_trace]
+      change _ ++ affineOrFinFamilyGateStream
+          (affineOrFinCanonicalGroupsFrom
+            (start + (CircuitBuilder.disjunctionGateTrace start wires).gates.length)
+            rest) = _
+      rw [ih]
+
+def affineOrFinFamilyRevSteps (groups : List AffineOrFinGroup) : Nat :=
+  affineOrFinFamilyUntilFinishSteps groups + 1
+
+def affineOrFinFamilyCanonical_run (start : Nat)
+    (families : List (List CircuitBuilder.Wire))
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFamilyLoopCfg
+        (encodeAffineOrFinGroups
+          (affineOrFinCanonicalGroupsFrom start families)) output)
+      (some (haltCfg affineOrFinRevProgram
+        (((CircuitBuilder.disjunctionFamilyGateTrace start families).flatMap
+          encodeCircuitGate).reverse ++ output)))
+      (affineOrFinFamilyRevSteps
+        (affineOrFinCanonicalGroupsFrom start families)) := by
+  let groups := affineOrFinCanonicalGroupsFrom start families
+  let gateOutput := (affineOrFinFamilyGateStream groups).reverse ++ output
+  have hfinish := affineOrFinFamily_runToFinish groups output
+  have hhalt : EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFinishCfg gateOutput)
+      (some (haltCfg affineOrFinRevProgram gateOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  have full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    (affineOrFinFamilyUntilFinishSteps groups) 1 _
+    (affineOrFinFinishCfg gateOutput) _
+    (by simpa [gateOutput] using hfinish) hhalt
+  simpa [groups, gateOutput, affineOrFinFamilyRevSteps,
+    affineOrFinCanonicalFamilyGateStream_eq_trace, Nat.add_comm] using full
+
+@[simp] theorem encodeAffineOrFinGroup_length (group : AffineOrFinGroup) :
+    (encodeAffineOrFinGroup group).length =
+      (encodeAffineOrFinFrames group).length + 2 := by
+  simp [encodeAffineOrFinGroup]
+
+theorem affineOrFinBody_steps_le (group : AffineOrFinGroup) :
+    affineOrFinBodySteps group ≤
+      100 * (encodeAffineOrFinFrames group).length := by
+  induction group with
+  | nil => rfl
+  | cons frame rest ih =>
+      have hframe := affineOrFinPair_steps_le frame
+      simp only [encodeAffineOrFinFrames] at ih
+      simp only [affineOrFinBodySteps, encodeAffineOrFinFrames,
+        List.flatMap_cons, List.length_append]
+      omega
+
+theorem affineOrFinGroup_steps_le (group : AffineOrFinGroup) :
+    affineOrFinGroupSteps group ≤
+      100 * (encodeAffineOrFinGroup group).length := by
+  have h := affineOrFinBody_steps_le group
+  simp [affineOrFinGroupSteps, encodeAffineOrFinGroup_length]
+  omega
+
+theorem affineOrFinFamilyFold_steps_le (groups : List AffineOrFinGroup) :
+    affineOrFinFamilyFoldSteps groups ≤
+      100 * (encodeAffineOrFinGroups groups).length + 1 := by
+  induction groups with
+  | nil => rfl
+  | cons group rest ih =>
+      have hgroup := affineOrFinGroup_steps_le group
+      simp only [encodeAffineOrFinGroups] at ih
+      simp only [affineOrFinFamilyFoldSteps, encodeAffineOrFinGroups,
+        List.flatMap_cons, List.length_append]
+      omega
+
+theorem affineOrFinFamilyRev_steps_le (groups : List AffineOrFinGroup) :
+    affineOrFinFamilyRevSteps groups ≤
+      100 * (encodeAffineOrFinGroups groups).length + 2 := by
+  have h := affineOrFinFamilyFold_steps_le groups
+  simp [affineOrFinFamilyRevSteps,
+    affineOrFinFamilyUntilFinishSteps]
   omega
 
 end CLRS.Chapter34.Turing.PolyBuilder

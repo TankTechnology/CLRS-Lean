@@ -577,6 +577,29 @@ def disjunctionGateTrace (start : Nat) : List Wire → DisjunctionGateTrace
   | nil => rfl
   | cons wire rest ih => simp [disjunctionGateTrace, ih]
 
+/-- Pure target-major trace of several independent false-seeded
+disjunctions.  The running start index is advanced by the exact preceding
+trace length. -/
+def disjunctionFamilyGateTrace : Nat → List (List Wire) → List CircuitGate
+  | _, [] => []
+  | start, wires :: rest =>
+      let head := disjunctionGateTrace start wires
+      head.gates ++
+        disjunctionFamilyGateTrace (start + head.gates.length) rest
+
+theorem disjunctionFamilyGateTrace_append (start : Nat)
+    (left right : List (List Wire)) :
+    disjunctionFamilyGateTrace start (left ++ right) =
+      disjunctionFamilyGateTrace start left ++
+        disjunctionFamilyGateTrace
+          (start + (disjunctionFamilyGateTrace start left).length) right := by
+  induction left generalizing start with
+  | nil => simp [disjunctionFamilyGateTrace]
+  | cons wires rest ih =>
+      simp only [List.cons_append, disjunctionFamilyGateTrace]
+      rw [ih]
+      simp [List.length_append, List.append_assoc, Nat.add_assoc]
+
 private def disjunctionResult (b : CircuitBuilder) (wires : List Wire)
     (hvalid : ∀ wire ∈ wires, b.WireValid wire) : BuiltWire b :=
   match wires with
