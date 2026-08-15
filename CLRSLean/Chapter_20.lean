@@ -165,7 +165,7 @@ wrappers.
   {lit}`CLRS.Chapter20.VEB.operationDepth_monotone`, and
   {lit}`CLRS.Chapter20.VEB.operationDepth_strict_mono`.
 * 20.3 Recursive vEB structure:
-  {lit}`main-proof-complete-for-correctness`.  The genuine recursive
+  {lit}`main-proof-complete`.  The genuine recursive
   cached-min/max summary/cluster structure over the tower universe
   {lit}`uSize k = 2 ^ (2 ^ k)` proves all seven vEB operations against its
   finite-set semantics.  Cached extrema are constant time, the other recursive
