@@ -29,6 +29,12 @@ generator.
   under one fixed program and emits their exact concatenated gate stream.
 - `affineTransitionFamily_steps_le` gives the family-level bound
   `steps ≤ 500 * encodedFamily.length + 2`.
+- `compileTransitionFamilyScripts` mirrors the semantic prefix recursion and
+  extracts exactly one operand script per adjacent tableau-row pair.
+- `compileTransitionFamilyScriptsAt_gateStream_eq` identifies its complete
+  byte stream with the frozen `transitionGateStreamAt` target.
+- `compileTransitionFamilyScriptsAt_run` is the end-to-end executable theorem
+  for the canonical dimension-only transition family.
 
 ## Rejected routes discovered during composition
 
@@ -61,6 +67,7 @@ lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.T
 lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyController
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
@@ -76,8 +83,8 @@ dependencies `[propext, Classical.choice, Quot.sound]`; no project axiom or
 
 ## Next acceptance boundary
 
-The next generator checkpoint must construct the runtime-length family from
-adjacent tableau-row pairs and prove byte-for-byte equality with
-`transitionGateStreamAt`. Only after that canonical family is joined with
-header, validity, boundary, and final-output phases can the concrete
-`verifierCircuit` generator be claimed complete.
+The next generator checkpoint must join this now-executable canonical family
+with header, validity, boundary, and final-output phases.  A dimension-level
+bound on the canonical family's runtime input must then connect the existing
+linear encoded-input theorem to the verifier polynomials.  Only after that
+composition can the concrete `verifierCircuit` generator be claimed complete.
