@@ -286,6 +286,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.FourthEdition.Chapter_04" = [
   "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_2_Strassen_Algorithm",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_3_Substitution_Method",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_4_Recursion_Tree_Method",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_5_Master_Theorem",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi",
 ]
@@ -999,6 +1003,18 @@ title = "Chapter 4. Divide-and-Conquer"
 
 [modules."CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices"]
 title = "4.1. Multiplying Square Matrices"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_2_Strassen_Algorithm"]
+title = "4.2. Strassen’s Algorithm for Matrix Multiplication"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_3_Substitution_Method"]
+title = "4.3. The Substitution Method for Solving Recurrences"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_4_Recursion_Tree_Method"]
+title = "4.4. The Recursion-Tree Method for Solving Recurrences"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_5_Master_Theorem"]
+title = "4.5. The Master Method for Solving Recurrences"
 
 [modules."CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem"]
 title = "4.6. Proof of the Continuous Master Theorem"
