@@ -1,4 +1,5 @@
 import CLRSLean.OnlineMaterial
+import CLRSLean.FourthEdition.Chapter_11
 import CLRSLean.FourthEdition.Chapter_14
 import CLRSLean.FourthEdition.Chapter_17
 import CLRSLean.FourthEdition.Chapter_19
@@ -19,6 +20,7 @@ supplementary material.
 -/
 
 -- Representative declarations reached through shifted legacy and facade paths.
+#check CLRS.Chapter11.perfectSearch_iff_mem
 #check CLRS.Chapter15.matrixChain_correct
 #check CLRS.Chapter14.IntervalTree.intervalSearch?_spec
 #check CLRS.Chapter21.Forest.singletonForest
@@ -30,7 +32,6 @@ supplementary material.
 #check CLRS.Chapter20.VEBTreeMM.delete_correct
 #check CLRS.Chapter33.orientation_spec
 #check CLRS.Chapter04.maxSubarrayDivideCosted_correct
-#check CLRS.Chapter11.perfectSearch_iff_mem
 #check CLRS.Matroid16.greedy_optimal
 #check CLRS.SchedulingMatroid.minPenaltySchedule_correct
 #check CLRS.Chapter29.Dictionary.simplex_optimal_or_unbounded
