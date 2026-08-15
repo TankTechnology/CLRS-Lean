@@ -272,10 +272,54 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_25.Section_25_2_Floyd_Warshall",
   "CLRSLean.Chapter_25.Section_25_3_Johnsons_Algorithm",
 ]
+"CLRSLean.FourthEdition.Chapter_02" = [
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_1_Insertion_Sort",
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_2_Analyzing_Algorithms",
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms",
+]
+"CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms" = [
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence",
+]
+"CLRSLean.FourthEdition.Chapter_03" = [
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions",
+]
 "CLRSLean.FourthEdition.Chapter_04" = [
   "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_2_Strassen_Algorithm",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_3_Substitution_Method",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_4_Recursion_Tree_Method",
+  "CLRSLean.FourthEdition.Chapter_04.Section_04_5_Master_Theorem",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi",
+]
+"CLRSLean.FourthEdition.Chapter_05" = [
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_1_Hiring_Problem",
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Random_Variables",
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Algorithms",
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis",
+]
+"CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis" = [
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
+]
+"CLRSLean.FourthEdition.Chapter_06" = [
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_1_Heaps",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_2_Maintaining_Heap_Property",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_3_Building_A_Heap",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues",
+]
+"CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort" = [
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort.CostedExecution",
+]
+"CLRSLean.FourthEdition.Chapter_07" = [
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort",
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort",
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort",
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_4_Analysis_Of_Quicksort",
+]
+"CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort" = [
+  "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability",
 ]
 "CLRSLean.FourthEdition.Chapter_13" = [
   "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
@@ -961,14 +1005,44 @@ title = "Chapter 1. The Role of Algorithms in Computing"
 [modules."CLRSLean.FourthEdition.Chapter_02"]
 title = "Chapter 2. Getting Started"
 
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_1_Insertion_Sort"]
+title = "2.1. Insertion Sort"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_2_Analyzing_Algorithms"]
+title = "2.2. Analyzing Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms"]
+title = "2.3. Designing Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence"]
+title = "2.3. Merge-Sort Recurrence"
+
 [modules."CLRSLean.FourthEdition.Chapter_03"]
 title = "Chapter 3. Characterizing Running Times"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation"]
+title = "3.1. Asymptotic Notation"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions"]
+title = "3.2. Standard Functions"
 
 [modules."CLRSLean.FourthEdition.Chapter_04"]
 title = "Chapter 4. Divide-and-Conquer"
 
 [modules."CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices"]
 title = "4.1. Multiplying Square Matrices"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_2_Strassen_Algorithm"]
+title = "4.2. Strassen’s Algorithm for Matrix Multiplication"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_3_Substitution_Method"]
+title = "4.3. The Substitution Method for Solving Recurrences"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_4_Recursion_Tree_Method"]
+title = "4.4. The Recursion-Tree Method for Solving Recurrences"
+
+[modules."CLRSLean.FourthEdition.Chapter_04.Section_04_5_Master_Theorem"]
+title = "4.5. The Master Method for Solving Recurrences"
 
 [modules."CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem"]
 title = "4.6. Proof of the Continuous Master Theorem"
@@ -979,11 +1053,59 @@ title = "4.7. Akra–Bazzi Recurrences"
 [modules."CLRSLean.FourthEdition.Chapter_05"]
 title = "Chapter 5. Probabilistic Analysis and Randomized Algorithms"
 
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_1_Hiring_Problem"]
+title = "5.1. The Hiring Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Random_Variables"]
+title = "5.2. Indicator random variables"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Algorithms"]
+title = "5.3. Randomized algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis"]
+title = "5.4. Probabilistic analysis"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring"]
+title = "The On-line Hiring Problem"
+
 [modules."CLRSLean.FourthEdition.Chapter_06"]
 title = "Chapter 6. Heapsort"
 
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_1_Heaps"]
+title = "6.1. Heaps"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_2_Maintaining_Heap_Property"]
+title = "6.2. Maintaining the Heap Property"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_3_Building_A_Heap"]
+title = "6.3. Building a Heap"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort"]
+title = "6.4. The Heapsort Algorithm"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort.CostedExecution"]
+title = "6.4. Costed Heapsort Execution"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues"]
+title = "6.5. Priority Queues"
+
 [modules."CLRSLean.FourthEdition.Chapter_07"]
 title = "Chapter 7. Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort"]
+title = "7.1. Description of Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort"]
+title = "7.2. Performance of Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort"]
+title = "7.3. Randomized Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_4_Analysis_Of_Quicksort"]
+title = "7.4. Analysis of Quicksort"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability"]
+title = "7.3. Randomized Quicksort: Comparison Probability"
 
 [modules."CLRSLean.FourthEdition.Chapter_08"]
 title = "Chapter 8. Sorting in Linear Time"
