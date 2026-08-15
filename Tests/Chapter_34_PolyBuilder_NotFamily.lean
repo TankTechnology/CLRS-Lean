@@ -10,6 +10,7 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineNotFamilyGateStream
 #check affineNotFamilyGateStream_eq_trace
 #check affineNotFamily_run
+#check affineNotFamily_runToFinishWithTail
 #check affineNotFamilyRev_steps_le
 
 example : affineNotFamilyGateStream [2, 5] =
@@ -26,4 +27,5 @@ example (output : List CircuitSym) :
 
 #print axioms affineNotFamilyGateStream_eq_trace
 #print axioms affineNotFamily_run
+#print axioms affineNotFamily_runToFinishWithTail
 #print axioms affineNotFamilyRev_steps_le

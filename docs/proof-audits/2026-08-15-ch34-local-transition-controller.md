@@ -64,10 +64,13 @@ generator.
   `verifierInputBoundaryScript_gateStream_eq` package separator NOTs, optional
   arms, and the final OR into one canonical operand script whose combined byte
   stream is the complete semantic input-boundary trace.
-- `verifierInputSeparator_run`, `verifierInputBoundaryArms_run`, and
-  `verifierInputBoundaryFinalOr_run` execute the three script phases exactly.
-  Joining these three already-executable components under one nonhalting outer
-  controller is the remaining input-boundary composition step.
+- `affineInputShape_run` joins separator NOTs, optional arms, and the final OR
+  under one fixed controller, without an intermediate halt, and emits their
+  exact combined stream. `affineInputShapeRev_steps_le` supplies the uniform
+  quadratic envelope in the exact runtime encoding length.
+- `verifierInputBoundary_run` specializes that continuous execution to the
+  assembled verifier boundary; `verifierInputBoundary_steps_le` carries the
+  same explicit bound to the frozen semantic target.
 
 ## Rejected routes discovered during composition
 
@@ -120,6 +123,7 @@ lake env lean Tests/Chapter_34_CookLevin_VerifierInputTraces.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorInputBoundary.lean
 lake env lean Tests/Chapter_34_PolyBuilder_NotFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OptionalConjunctionFamily.lean
+lake env lean Tests/Chapter_34_PolyBuilder_InputShapeController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
@@ -135,9 +139,9 @@ dependencies `[propext, Classical.choice, Quot.sound]`; no project axiom or
 
 ## Next acceptance boundary
 
-The next generator checkpoint must first join the three input-boundary
-components without intermediate halt, then join the resulting input phase
-with header, validity, transition, boundary, conjunction, and final-output
-phases.  A dimension-level bound on the canonical runtime inputs must then
-connect the component bounds to the verifier polynomials.  Only after that
-composition can the concrete `verifierCircuit` generator be claimed complete.
+The next generator checkpoint must join the now-continuous input phase with
+header, validity, transition, initial/accepting boundaries, conjunction, and
+final-output phases. A dimension-level bound on the canonical runtime inputs
+must then connect the component bounds to the verifier polynomials. Only after
+that composition can the concrete `verifierCircuit` generator be claimed
+complete.

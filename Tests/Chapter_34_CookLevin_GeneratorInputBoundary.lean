@@ -16,10 +16,14 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierInputBoundaryGateStream
 #check verifierInputBoundaryScript
 #check verifierInputBoundaryScript_gateStream_eq
+#check verifierInputBoundary_run
+#check verifierInputBoundary_steps_le
 #check verifierInputBoundaryArms_run
 #check verifierInputBoundaryFinalOr_run
 
 #print axioms verifierInputBoundary_gates_eq
 #print axioms verifierInputBoundaryScript_gateStream_eq
+#print axioms verifierInputBoundary_run
+#print axioms verifierInputBoundary_steps_le
 #print axioms verifierInputBoundaryArms_run
 #print axioms verifierInputBoundaryFinalOr_run

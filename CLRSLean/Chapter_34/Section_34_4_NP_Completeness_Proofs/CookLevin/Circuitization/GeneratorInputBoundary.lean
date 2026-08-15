@@ -1,7 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInitialBoundary
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NotFamily
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OptionalConjunctionFamily
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.InputShapeController
 
 /-!
 # Exact verifier-input boundary target
@@ -82,20 +80,39 @@ theorem compileInputArmFrames_gateStream_eq_trace
 
 end VerifierInput
 
-/-- Operand-level runtime script for the complete three-phase verifier-input
-shape construction. -/
-structure AffineVerifierInputShapeScript where
-  separatorSources : List Nat
-  armFrames : List (Option AffineConjunctionFrame)
-  finalOrStart : Nat
-  finalOrWires : List Nat
+/-- The verifier specialization uses the generic continuous input-shape
+controller's operand-level runtime script without changing its encoding. -/
+abbrev AffineVerifierInputShapeScript := AffineInputShapeScript
 
 def affineVerifierInputShapeScriptGateStream
     (script : AffineVerifierInputShapeScript) : List CircuitSym :=
-  affineNotFamilyGateStream script.separatorSources ++
-    affineOptionalConjunctionFamilyGateStream script.armFrames ++
-    affineOrFinGateStream
-      (affineOrFinCanonicalFrames script.finalOrStart script.finalOrWires)
+  affineInputShapeGateStream script
+
+def encodeAffineVerifierInputShapeScript
+    (script : AffineVerifierInputShapeScript) : List UnaryFrameSym :=
+  encodeAffineInputShapeScript script
+
+def affineVerifierInputShapeRevSteps
+    (script : AffineVerifierInputShapeScript) : Nat :=
+  affineInputShapeRevSteps script
+
+/-- One fixed nonhalting controller executes separator NOTs, optional arms,
+and the final OR as a single verifier-input boundary computation. -/
+def affineVerifierInputShape_run (script : AffineVerifierInputShapeScript)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineInputShapeRevProgram)
+      (affineInputShapeLoopCfg
+        (encodeAffineVerifierInputShapeScript script) output)
+      (some (haltCfg affineInputShapeRevProgram
+        ((affineVerifierInputShapeScriptGateStream script).reverse ++ output)))
+      (affineVerifierInputShapeRevSteps script) := by
+  exact affineInputShape_run script output
+
+theorem affineVerifierInputShapeRev_steps_le
+    (script : AffineVerifierInputShapeScript) :
+    affineVerifierInputShapeRevSteps script ≤
+      1200 * (encodeAffineVerifierInputShapeScript script).length ^ 2 + 20 :=
+  affineInputShapeRev_steps_le script
 
 /-- Extract the three canonical runtime operand families structurally from
 the proof-carrying input-shape builder. -/
@@ -139,6 +156,7 @@ theorem compileVerifierInputShapeScript_gateStream_eq_trace
         hinputStack).flatMap encodeCircuitGate := by
   simp only [compileVerifierInputShapeScript,
     affineVerifierInputShapeScriptGateStream,
+    affineInputShapeGateStream, affineInputShapeFinalOrFrames,
     verifierInputShapeGateTrace]
   rw [affineNotFamilyGateStream_eq_trace]
   rw [VerifierInput.separatorNotsGateTrace_eq_sources]
@@ -283,6 +301,32 @@ theorem verifierInputBoundaryScript_gateStream_eq
               ((verifierTransitions W x).extension.trans
                 (verifierInitialBoundary W x).extension)))).stack
         W.machine.tm.k₀)
+
+/-- Exact continuous execution of the complete frozen verifier-input
+boundary, with no component-level halt between its three phases. -/
+def verifierInputBoundary_run
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (x : List Γ) (output : List CircuitSym) :
+    EvalsToInTime (step affineInputShapeRevProgram)
+      (affineInputShapeLoopCfg
+        (encodeAffineVerifierInputShapeScript
+          (verifierInputBoundaryScript W x)) output)
+      (some (haltCfg affineInputShapeRevProgram
+        ((verifierInputBoundaryGateStream W x).reverse ++ output)))
+      (affineVerifierInputShapeRevSteps
+        (verifierInputBoundaryScript W x)) := by
+  simpa [verifierInputBoundaryScript_gateStream_eq] using
+    affineVerifierInputShape_run (verifierInputBoundaryScript W x) output
+
+/-- The specialized verifier-input execution inherits the controller's
+uniform quadratic envelope in its explicit runtime operand encoding. -/
+theorem verifierInputBoundary_steps_le
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (x : List Γ) :
+    affineVerifierInputShapeRevSteps (verifierInputBoundaryScript W x) ≤
+      1200 * (encodeAffineVerifierInputShapeScript
+        (verifierInputBoundaryScript W x)).length ^ 2 + 20 :=
+  affineVerifierInputShapeRev_steps_le (verifierInputBoundaryScript W x)
 
 /-- Exact execution of all optional certificate-length arms. -/
 def verifierInputBoundaryArms_run
