@@ -183,6 +183,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model" = [
   "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search",
   "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.HeightBound",
+  "CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.RunningTime",
 ]
 "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion" = [
   "CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant",
@@ -1901,6 +1902,9 @@ title = "18.2. B-Tree Insertion"
 
 [modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion"]
 title = "18.3. B-Tree Deletion"
+
+[modules."CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.RunningTime"]
+title = "B-Tree Running Time"
 
 [modules."CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant"]
 title = "Deletion Invariants and Root Normalization"
