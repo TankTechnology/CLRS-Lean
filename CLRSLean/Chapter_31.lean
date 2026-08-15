@@ -129,19 +129,20 @@ primality test, and the Pollard's-rho factorization heuristic.
   {lit}`CLRS.Chapter31.pollardRhoLoop_terminates_on_collision` bound to the
   real construction.
 
-**Status: `selected-section-complete`** — Sections 31.1–31.9 fully proved,
+**Status: `main-proof-complete`** — Sections 31.1–31.9 fully proved,
 including the Miller-Rabin error bound and the POLLARD-RHO probabilistic
 analysis (birthday bound + expected `O(√p)`).
 
 ## Deferred Work
 
-The remaining scope outside the represented fourth-edition sections is the RSA
-security (one-way function) claim and the `ZMod.chineseRemainder`
-ring-isomorphism packaging.  The executable layers are now complete:
-`modularLinearEquationSolver` (§31.4), `modExpWithCount` (§31.6),
-`rsaKeyGen`/`rsaEncrypt`/`rsaDecrypt` (§31.7), and `millerRabinLoop` (§31.8).
-The legacy §31.9 integer-factorization development is retained as online
-material with its probabilistic analysis complete.
+The only remaining scope outside the represented fourth-edition sections is
+the RSA security (one-way function) claim.  The executable layers are now
+complete: `modularLinearEquationSolver` (§31.4), `modExpWithCount` (§31.6),
+`rsaKeyGen`/`rsaEncrypt`/`rsaDecrypt` (§31.7), and `millerRabinLoop` (§31.8);
+the least-common-multiple layer (§31.1) and the `ZMod.chineseRemainder`
+ring-isomorphism packaging (§31.5) are also proved.  The legacy §31.9
+integer-factorization development is retained as online material with its
+probabilistic analysis complete.
 -/
 
 namespace CLRS

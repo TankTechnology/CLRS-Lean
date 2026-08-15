@@ -5113,7 +5113,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.1 - Elementary Number-Theoretic Notions
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_1_Elementary_Number_Theory.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Model:
   - `IsGCD`: the greatest-common-divisor property predicate (divides both, and
     is divisible by every common divisor — the universal form).
@@ -5139,7 +5139,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.2 - Greatest Common Divisor
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_2_Greatest_Common_Divisor.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `euclid_recursion` / `gcd_zero_left` / `gcd_zero_right` (CLRS Theorem 31.9,
     the GCD recursion theorem):
@@ -5176,7 +5176,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.3 - Modular Arithmetic
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_3_Modular_Arithmetic.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `mod_add` / `mod_mul` (CLRS Theorem 31.5): addition and multiplication
     modulo `n` are well-defined on residues.
@@ -5190,7 +5190,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.4 - Solving Modular Linear Equations
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_4_Solving_Modular_Linear_Equations.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `linear_congruence_shift`: `x + k·(n/gcd(a,n))` preserves solutions.
   - `linear_congruence_all_solutions`: every solution differs from any given
@@ -5208,7 +5208,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.5 - The Chinese Remainder Theorem
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_5_Chinese_Remainder_Theorem.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `chinese_remainder_two` / `chinese_remainder_unique` /
     `chinese_remainder` (CLRS Theorem 31.27, two moduli): for coprime `n m`,
@@ -5223,7 +5223,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.6 - Powers of an Element
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_6_Powers_Of_An_Element.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `modularExponentiation` + `modularExponentiation_spec` (CLRS
     MODULAR-EXPONENTIATION).
@@ -5237,7 +5237,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.7 - The RSA Public-Key Cryptosystem
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_7_RSA.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `totient_mul_prime`: `φ(p·q) = (p−1)(q−1)` for distinct primes.
   - `rsa_correct` (CLRS Theorem 31.36): `e·d ≡ 1 (mod φ(n))` and
@@ -5252,7 +5252,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.8 - Primality Testing
 
 - Lean source: `CLRSLean/FourthEdition/Chapter_31/Section_31_8_Primality_Testing.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `fermat_test` (CLRS Theorem 31.31): prime `p` and `gcd(a,p)=1` give
     `a^(p−1) ≡ 1 (mod p)`.
@@ -5302,7 +5302,7 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
 ### Section 31.9 - Integer Factorization
 
 - Lean source: `CLRSLean/Chapter_31/Section_31_9_Integer_Factorization.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Proved:
   - `rhoStep` (Pollard's rho iteration).
   - `rho_collision_factor`: `x ≡ y (mod p)` and `p ∣ n` imply
