@@ -666,6 +666,16 @@ explicit input. Every literal primitive used by `compileStmtGateTrace` now has
 an execution theorem. The remaining statement gap is non-halting composition
 of those components, not a missing gate serializer.
 
+That composition target is now frozen as a runtime protocol.
+`compileStmtScript` recursively lowers all seven statement constructors into
+five tagged phase kinds: one-hot map, predicate, pair-map, pop, and whole-row
+mux. `compileStmtScript_gateStream_eq_trace` proves that interpreting the phase
+operands produces exactly `compileStmtGateTrace`, including recursive branch
+order, and `affineStmtScriptStandaloneSteps_le` gives the aggregate component
+budget `≤ 200 * encodedScript.length`. This budget is deliberately not called
+a machine run: the remaining theorem must redirect each clean component exit
+to the next tag in one fixed controller.
+
 The complete transition target is now structural rather than suffix-derived.
 `compileStmtGateTrace` exposes all seven statement constructors as literal
 lookup/pop/continuation/mux sequences, with `compileStmt_gates_eq` and an exact
@@ -718,6 +728,13 @@ for height zero and another for positive height would also violate the
 fixed-program requirement because `H` is runtime input. The accepted seed-free
 check-state entry handles the empty and singleton frame lists in one program.
 
+Two statement-script shortcuts are rejected as well. Untagged concatenation
+is ambiguous because `tick`, `separator`, and `frameEnd` have different roles
+in different component modes; the accepted protocol uses a finite phase tag.
+Conversely, supplying already encoded target gates would turn the generator
+proof into copying. The accepted script contains only phase tags and unary
+wire operands, with a separate semantic stream-equality theorem.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -738,6 +755,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Narrowing
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Pop
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Statement
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPairMap
@@ -774,6 +792,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Narrowing.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Pop.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Statement.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPredicate.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPairMap.lean
