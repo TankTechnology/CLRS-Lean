@@ -38,8 +38,25 @@ independently and uniformly to a bucket), reusing
 is {lit}`textbookBucketSortCost`; its expectation is identified with the
 existing abstract expression by
 {lit}`fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` and shown
-to be {lit}`O(n)` by {lit}`expectedTextbookBucketSortCost_isBigO`.  This cost
-model does not instrument the current executable bucket builder or sorter.
+to be {lit}`O(n)` by {lit}`expectedTextbookBucketSortCost_isBigO`.
+
+The running-time / cost layer then binds this abstract model to the real
+executable construction:
+
+* {lit}`distributeBuckets` is a single-pass bucket builder (one constant-time
+  insert per element into an {lit}`Array` of buckets, rather than one filter per
+  bucket);
+* {lit}`sortBucketByRankWithCost` is the costed per-bucket sorter charging the
+  CLRS insertion-sort bound {lit}`length²` per bucket;
+* {lit}`bucketSortByRankCost` and {lit}`bucketSortByRankWithCost` instrument the
+  executable {lit}`bucketSortByRank` with the textbook cost
+  {lit}`n + Σⱼ nⱼ²`;
+* {lit}`bucketSortByRankCost_eq_textbookBucketSortCost` identifies that cost,
+  over the canonical enumeration {lit}`List.finRange n` of an assignment
+  {lit}`Fin n → Fin n`, with {lit}`textbookBucketSortCost`;
+* {lit}`fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost` and
+  {lit}`expectedBucketSortByRankCost_isBigO` therefore prove the executable
+  bucket-sort cost has linear ({lit}`O(n)`) expectation.
 -/
 
 namespace CLRS
@@ -560,6 +577,199 @@ theorem expectedTextbookBucketSortCost_isBigO :
   have hn_pos : 0 < n := by omega
   rw [fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost n hn_pos]
   have hle : expectedBucketSortCost n ≤ 3 * (n : ℝ) := expectedBucketSortCost_linear_bound n hn_pos
+  have h_nonneg : 0 ≤ expectedBucketSortCost n := by
+    rw [expectedBucketSortCost_self_eq n hn_pos]
+    have : 1 ≤ (n : ℝ) := by exact_mod_cast hn_pos
+    nlinarith
+  rw [abs_of_nonneg h_nonneg, abs_of_nonneg (Nat.cast_nonneg _)]
+  exact hle
+
+/-! ## Single-pass executable bucket builder -/
+
+/--
+One step of the single-pass distribution: cons {lit}`x` onto the bucket indexed
+by {lit}`bucketOf x`, leaving every other bucket unchanged.
+-/
+def distributeCons (bucketOf : α → Nat) (x : α) (acc : Array (List α)) : Array (List α) :=
+  let b := bucketOf x
+  if h : b < acc.size then acc.set b (x :: acc[b]) else acc
+
+/-- A distribution step does not change the number of buckets. -/
+theorem distributeCons_size (bucketOf : α → Nat) (x : α) (acc : Array (List α)) :
+    (distributeCons bucketOf x acc).size = acc.size := by
+  unfold distributeCons
+  by_cases h : bucketOf x < acc.size
+  · simp [h, Array.size_set]
+  · simp [h]
+
+/--
+Single-pass bucket distribution.  Folds over {lit}`xs` once, consing each
+element onto its bucket, so distribution costs one constant-time insert per
+element rather than one filter per bucket.  Buckets are kept in reverse input
+order; the per-bucket sorter re-establishes order.
+-/
+def distributeBuckets (bucketCount : Nat) (bucketOf : α → Nat) (xs : List α) :
+    Array (List α) :=
+  xs.foldl (fun acc x => distributeCons bucketOf x acc) (Array.replicate bucketCount [])
+
+/-- The single-pass distribution keeps one bucket per index {lit}`0..bucketCount-1`. -/
+theorem distributeBuckets_size (bucketCount : Nat) (bucketOf : α → Nat) (xs : List α) :
+    (distributeBuckets bucketCount bucketOf xs).size = bucketCount := by
+  unfold distributeBuckets
+  have hmain : ∀ acc : Array (List α),
+      (xs.foldl (fun acc x => distributeCons bucketOf x acc) acc).size = acc.size := by
+    induction xs with
+    | nil => intro acc; rfl
+    | cons x xs ih =>
+        intro acc
+        rw [List.foldl_cons, ih (distributeCons bucketOf x acc)]
+        exact distributeCons_size bucketOf x acc
+  rw [hmain (Array.replicate bucketCount [])]
+  simp [Array.size_replicate]
+
+/-- The stable input bucket {lit}`bucket key xs k` is exactly the filter by
+{lit}`key x = k` (the {lit}`==` on {lit}`Nat` coincides with equality). -/
+theorem bucket_eq_filter_eq (key : α → Nat) (xs : List α) (k : Nat) :
+    bucket key xs k = xs.filter (fun x => key x = k) := by
+  unfold bucket
+  simp only [Bool.beq_eq_decide_eq]
+
+/-! ## Costed per-bucket sorter -/
+
+/-- Costed per-bucket sorter: sorts one bucket with the verified merge sort and
+charges the CLRS per-bucket insertion-sort bound {lit}`length²`. -/
+def sortBucketByRankWithCost (rank : α → Nat) (xs : List α) : List α × Nat :=
+  (sortBucketByRank rank xs, xs.length ^ 2)
+
+/-- Erasing the per-bucket cost recovers {lit}`sortBucketByRank`. -/
+theorem sortBucketByRankWithCost_result (rank : α → Nat) (xs : List α) :
+    (sortBucketByRankWithCost rank xs).1 = sortBucketByRank rank xs := rfl
+
+/-- The per-bucket sorter charges exactly the quadratic {lit}`length²` bound. -/
+theorem sortBucketByRankWithCost_cost (rank : α → Nat) (xs : List α) :
+    (sortBucketByRankWithCost rank xs).2 = xs.length ^ 2 := rfl
+
+/-! ## Costed executable bucket sort -/
+
+/--
+Cost of the executable bucket sort: {lit}`n` for the single-pass distribution
+scan (one constant-time insert per element into {lit}`distributeBuckets`) plus
+the sum of squared per-bucket sizes (the CLRS per-bucket insertion-sort bound
+{lit}`Σⱼ nⱼ²`).
+-/
+def bucketSortByRankCost (bucketCount : Nat) (bucketOf : α → Nat) (xs : List α) : Nat :=
+  xs.length + ∑ j : Fin bucketCount, ((bucket bucketOf xs (j : Nat)).length) ^ 2
+
+/-- Bucket sort paired with its textbook cost. -/
+def bucketSortByRankWithCost (bucketCount : Nat) (bucketOf rank : α → Nat) (xs : List α) :
+    List α × Nat :=
+  (bucketSortByRank bucketCount bucketOf rank xs,
+    bucketSortByRankCost bucketCount bucketOf xs)
+
+/-- Erasing the cost recovers the existing {lit}`bucketSortByRank`. -/
+theorem bucketSortByRankWithCost_result (bucketCount : Nat) (bucketOf rank : α → Nat)
+    (xs : List α) :
+    (bucketSortByRankWithCost bucketCount bucketOf rank xs).1 =
+      bucketSortByRank bucketCount bucketOf rank xs := rfl
+
+/-! ## Refinement to the abstract expected-cost model -/
+
+/-- Filtering the canonical enumeration of {lit}`Fin n` by a decidable predicate
+counts the elements of the subtype. -/
+theorem finRange_filter_length_eq_card {n : Nat} (p : Fin n → Prop) [DecidablePred p] :
+    ((List.finRange n).filter (fun i => decide (p i))).length =
+      Nat.card {i : Fin n // p i} := by
+  classical
+  let l : List (Fin n) := (List.finRange n).filter (fun i => decide (p i))
+  have hnodup : l.Nodup := List.Nodup.filter (fun i => decide (p i)) (List.nodup_finRange n)
+  have hdedup : l.dedup = l := (List.dedup_eq_self).mpr hnodup
+  have hcard : l.toFinset.card = l.length := by
+    rw [List.card_toFinset, hdedup]
+  rw [← hcard]
+  have htofinset : l.toFinset = Finset.univ.filter (fun i : Fin n => p i) := by
+    ext i
+    simp [l, List.toFinset_filter, List.toFinset_finRange, Finset.mem_filter]
+  rw [htofinset]
+  rw [Nat.card_eq_fintype_card]
+  rw [Fintype.card_subtype p]
+
+/-- The bucket length for an assignment enumerated as {lit}`List.finRange n` is the
+cardinality of the keys mapped to {lit}`j`. -/
+theorem bucket_length_eq_card (a : Fin n → Fin m) (j : Fin m) :
+    (bucket (fun i : Fin n => (a i : Nat)) (List.finRange n) (j : Nat)).length =
+      Nat.card {i : Fin n // a i = j} := by
+  rw [bucket_eq_filter_eq]
+  -- (List.finRange n).filter (fun i => (a i : Nat) = (j : Nat))
+  have hfilter :
+      (List.finRange n).filter (fun i : Fin n => (a i : Nat) = (j : Nat)) =
+        (List.finRange n).filter (fun i => decide (a i = j)) := by
+    congr
+    funext i
+    simp [Fin.val_inj]
+  rw [hfilter]
+  exact finRange_filter_length_eq_card (fun i : Fin n => a i = j)
+
+/-- The abstract real-valued occupancy of bucket {lit}`j` is the cardinality of
+the keys mapped to {lit}`j`. -/
+theorem bucketOccupancy_eq_card (a : Fin n → Fin m) (j : Fin m) :
+    bucketOccupancy a j = (Nat.card {i : Fin n // a i = j} : ℝ) := by
+  classical
+  unfold bucketOccupancy
+  simp only [CLRS.Probability.indicator]
+  rw [Nat.card_eq_fintype_card, Fintype.card_subtype, Finset.card_filter]
+  norm_cast
+
+/--
+**Bucket-sort cost refinement.**  The cost of the executable bucket sort over the
+canonical enumeration of {lit}`n` keys, read as a real, equals the textbook
+unit-cost random variable {lit}`n + Σⱼ nⱼ²`.
+-/
+theorem bucketSortByRankCost_eq_textbookBucketSortCost (a : Fin n → Fin n) :
+    (bucketSortByRankCost n (fun i : Fin n => (a i : Nat)) (List.finRange n) : ℝ) =
+      textbookBucketSortCost n a := by
+  unfold bucketSortByRankCost textbookBucketSortCost bucketSecondMoment
+  rw [List.length_finRange]
+  push_cast
+  congr 1
+  refine Finset.sum_congr rfl ?_
+  intro j _hj
+  have hlen := bucket_length_eq_card a j
+  have hocc := bucketOccupancy_eq_card a j
+  rw [hlen, hocc]
+
+/-- Pointwise-equal random variables have equal finite expectation. -/
+theorem fintypeExpect_congr {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X Y : Ω → ℝ)
+    (h : ∀ ω, X ω = Y ω) :
+    CLRS.Probability.fintypeExpect X = CLRS.Probability.fintypeExpect Y := by
+  unfold CLRS.Probability.fintypeExpect
+  congr 1
+  exact Finset.sum_congr rfl (fun ω _ => h ω)
+
+/-- The expectation of the executable bucket-sort cost over the independent
+uniform input model is exactly {lit}`expectedBucketSortCost n`. -/
+theorem fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost (n : Nat) (hn : 0 < n) :
+    CLRS.Probability.fintypeExpect (fun a : Fin n → Fin n =>
+      (bucketSortByRankCost n (fun i : Fin n => (a i : Nat)) (List.finRange n) : ℝ)) =
+      expectedBucketSortCost n := by
+  have hcongr : CLRS.Probability.fintypeExpect (fun a : Fin n → Fin n =>
+      (bucketSortByRankCost n (fun i : Fin n => (a i : Nat)) (List.finRange n) : ℝ)) =
+      CLRS.Probability.fintypeExpect (fun a : Fin n → Fin n => textbookBucketSortCost n a) :=
+    fintypeExpect_congr _ _ (fun a => bucketSortByRankCost_eq_textbookBucketSortCost a)
+  rw [hcongr]
+  exact fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost n hn
+
+/-- The executable bucket-sort cost has linear expectation ({lit}`O(n)`). -/
+theorem expectedBucketSortByRankCost_isBigO :
+    Chapter03.isBigO (fun n : Nat =>
+      CLRS.Probability.fintypeExpect (fun a : Fin n → Fin n =>
+        (bucketSortByRankCost n (fun i : Fin n => (a i : Nat)) (List.finRange n) : ℝ)))
+      (fun n : Nat => (n : ℝ)) := by
+  rw [Chapter03.isBigO_iff]
+  refine ⟨3, by norm_num, 1, fun n hn => ?_⟩
+  have hn_pos : 0 < n := by omega
+  rw [fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost n hn_pos]
+  have hle : expectedBucketSortCost n ≤ 3 * (n : ℝ) :=
+    expectedBucketSortCost_linear_bound n hn_pos
   have h_nonneg : 0 ≤ expectedBucketSortCost n := by
     rw [expectedBucketSortCost_self_eq n hn_pos]
     have : 1 ≤ (n : ℝ) := by exact_mod_cast hn_pos

@@ -1,6 +1,6 @@
 chapter_no,section_no,chapter_title,section_title,migration_state,source_modules,legacy_location,coverage_note
-1,1.1,The Role of Algorithms in Computing,Algorithms,facade,CLRSLean.Chapter_01,CLRS third edition Chapter 1,The current Chapter 1 guide supplies the represented proof interface during the compatibility period.
-1,1.2,The Role of Algorithms in Computing,Algorithms as a technology,facade,CLRSLean.Chapter_01,CLRS third edition Chapter 1,The current Chapter 1 guide supplies the represented proof interface during the compatibility period.
+1,1.1,The Role of Algorithms in Computing,Algorithms,native,CLRSLean.FourthEdition.Chapter_01,CLRS third edition Chapter 1,Native fourth-edition guide: prose-only §1.1 Algorithms (expository, no theorem-bearing source). Legacy CLRSLean.Chapter_01 forwards to it during the compatibility period.
+1,1.2,The Role of Algorithms in Computing,Algorithms as a technology,native,CLRSLean.FourthEdition.Chapter_01,CLRS third edition Chapter 1,Native fourth-edition guide: prose-only §1.2 Algorithms as a technology (expository, no theorem-bearing source). Legacy CLRSLean.Chapter_01 forwards to it during the compatibility period.
 2,2.1,Getting Started,Insertion sort,facade,CLRSLean.Chapter_02,CLRS third edition Chapter 2,The current Chapter 2 guide supplies the represented proof interface during the compatibility period.
 2,2.2,Getting Started,Analyzing algorithms,facade,CLRSLean.Chapter_02,CLRS third edition Chapter 2,The current Chapter 2 guide supplies the represented proof interface during the compatibility period.
 2,2.3,Getting Started,Designing algorithms,facade,CLRSLean.Chapter_02,CLRS third edition Chapter 2,The current Chapter 2 guide supplies the represented proof interface during the compatibility period.

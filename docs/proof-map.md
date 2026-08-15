@@ -1154,16 +1154,25 @@ from membership preservation to true multiset preservation.
   - `CLRS.Chapter08.radixDigitOrderRespectsKey_singleDigit`
   - `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_singleDigit`
   - `CLRS.Chapter08.radixSortNatBy_correct_keyOrdered_of_bounded`
+  - `CLRS.Chapter08.countingSortBy_length_eq_of_allKeysLe`
+  - `CLRS.Chapter08.radixSortByWithCost`
+  - `CLRS.Chapter08.radixSortByWithCost_result`
+  - `CLRS.Chapter08.radixSortByWithCost_cost_eq`
+  - `CLRS.Chapter08.radixSortNatByCost`
+  - `CLRS.Chapter08.radixSortNatBy_cost_eq`
+  - `CLRS.Chapter08.radixSortNatByCost_le`
+  - `CLRS.Chapter08.radixSortNatByCost_bigO`
 - Proof pattern: represent a radix key as a low-to-high list of digit
   functions; prove that one stable counting-sort pass upgrades a lower-priority
   relation to a higher-priority lexicographic relation; separately prove that
   each complete digit-signature subsequence is preserved by composing
   counting-sort bucket stability with the induction hypothesis; then iterate
-  both lemmas over the digit list.
-- Current gap: none for the current bounded fixed-width radix theorem.  The
-  concrete base-`b` extractor feeds the abstract theorem, ordinary key ordering
-  is packaged behind `RadixDigitOrderRespectsKey`, and bounded keys are proved
-  to respect the induced digit lexicographic order.
+  both lemmas over the digit list.  The running-time layer charges each pass
+  the mutable counting-sort work `countingSortArrayCost (base - 1) n` and
+  proves the `O(d(n+k))` bound `radixSortNatByCost_bigO` with `c = 2`.
+- Current gap: none for the current bounded fixed-width radix theorem or its
+  `O(d(n+k))` running-time layer.  A full RAM/step-count operational cost
+  semantics is out of scope.
 
 The theorem `CLRS.Chapter08.radixSortBy_correct_stable` packages the core
 facts: the result is ordered by the induced most-significant-first
@@ -1182,7 +1191,8 @@ theorem remains as a compact special case.
 ### Section 8.4 - Bucket sort
 
 - Lean source: `CLRSLean/Chapter_08/Section_08_4_Bucket_Sort.lean`
-- Status: `proved` for deterministic bucket-index correctness
+- Status: `proved` for deterministic bucket-index correctness and the
+  finite-uniform expected-cost model, now bound to the executable construction
 - Main proved theorems:
   - `CLRS.Chapter08.bucketSortBy_perm`
   - `CLRS.Chapter08.bucketSortBy_ordered`
@@ -1201,6 +1211,20 @@ theorem remains as a compact special case.
   - `CLRS.Chapter08.textbookBucketSortCost`
   - `CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
   - `CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO`
+  - `CLRS.Chapter08.distributeCons`
+  - `CLRS.Chapter08.distributeBuckets`
+  - `CLRS.Chapter08.distributeBuckets_size`
+  - `CLRS.Chapter08.bucket_eq_filter_eq`
+  - `CLRS.Chapter08.sortBucketByRankWithCost`
+  - `CLRS.Chapter08.bucketSortByRankCost`
+  - `CLRS.Chapter08.bucketSortByRankWithCost`
+  - `CLRS.Chapter08.bucketSortByRankWithCost_result`
+  - `CLRS.Chapter08.finRange_filter_length_eq_card`
+  - `CLRS.Chapter08.bucket_length_eq_card`
+  - `CLRS.Chapter08.bucketOccupancy_eq_card`
+  - `CLRS.Chapter08.bucketSortByRankCost_eq_textbookBucketSortCost`
+  - `CLRS.Chapter08.fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost`
+  - `CLRS.Chapter08.expectedBucketSortByRankCost_isBigO`
 - Proof pattern: scan bucket indices in increasing order, prove each per-bucket
   sorter preserves the bucket as a permutation, prove all emitted elements have
   the scanned bucket index, and use a cross-bucket monotonicity assumption to
@@ -1213,25 +1237,29 @@ theorem remains as a compact special case.
   proved as a **true expectation** over the explicit independent uniform input
   distribution `Fin n → Fin m` (`expectedBucketQuadraticCost_eq_secondMoment`),
   where the pairwise independence step reuses
-  `CLRS.Probability.expect_mul_of_indep`.  The random variable
-  `textbookBucketSortCost` charges `n + Σⱼ nⱼ²`; its named expectation identity
-  is `fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`, and
-  `expectedTextbookBucketSortCost_isBigO` proves linear expectation.
-- Current gap: a single-pass executable bucket builder, a costed per-bucket
-  sorter, and a refinement theorem connecting their execution cost to the
-  abstract model.  The current `bucketSortByRank` repeatedly filters the input,
-  so `textbookBucketSortCost` is not an execution counter for it.
+  `CLRS.Probability.expect_mul_of_indep`.  The running-time layer adds the
+  single-pass `distributeBuckets` builder, the costed per-bucket sorter
+  `sortBucketByRankWithCost`, and the cost function `bucketSortByRankCost`
+  (`n + Σⱼ nⱼ²`), then proves `bucketSortByRankCost_eq_textbookBucketSortCost`
+  and the linear-expectation bound `expectedBucketSortByRankCost_isBigO`.
+- Current gap: a full RAM/step-count operational cost semantics (charging
+  individual array reads/writes) is out of scope; the linear work bound is a
+  per-pass step count matching the CLRS accounting.
 
 The executable wrapper `CLRS.Chapter08.bucketSortByRank` sorts each bucket with
 Lean's verified `mergeSort`.  Its correctness theorem proves ordered output,
 membership preservation, and permutation preservation under the deterministic
-bucket interval hypothesis.  Separately,
-`CLRS.Chapter08.textbookBucketSortCost` names the abstract textbook random
-variable,
-`CLRS.Chapter08.fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`
-connects its expectation to the existing closed form, and
-`CLRS.Chapter08.expectedTextbookBucketSortCost_isBigO` proves that expectation
-is linear.  None of these theorems instruments `bucketSortByRank`.
+bucket interval hypothesis.  The single-pass builder
+`CLRS.Chapter08.distributeBuckets` folds the input once, consing each element
+onto its bucket (rather than filtering once per bucket).  The costed executable
+`CLRS.Chapter08.bucketSortByRankWithCost` pairs `bucketSortByRank` with the
+textbook cost `n + Σⱼ nⱼ²`, and
+`CLRS.Chapter08.bucketSortByRankCost_eq_textbookBucketSortCost` identifies that
+cost, over the canonical enumeration `List.finRange n`, with the abstract
+random variable `textbookBucketSortCost`; the expectation identity
+`fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost` and the `O(n)`
+bound `expectedBucketSortByRankCost_isBigO` reuse the existing
+`fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost`.
 
 ## Chapter 9 - Medians and Order Statistics
 
@@ -2771,8 +2799,22 @@ sharper contraction strategy.
   `totalKeys` counts `List` key slots without a uniqueness premise; the root
   theorem exposes the legal empty tree as an explicit disjunct; and
   for `2 ≤ t`, `wellFormed_height_log_bound` applies to every `WellFormed`
-  tree.  Disk-page layout, pointer mutation, I/O counts, and RAM costs are
-  optional lower-level refinements.
+  tree.  Disk-page layout, pointer mutation, and RAM costs are optional
+  lower-level refinements.
+- Running-time / cost layer (`CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/RunningTime.lean`), bound to
+  the real executable constructions:
+  - `CLRS.Chapter18.BTree.searchCost` (mirrors `searchExec`),
+    `insertCost` (mirrors `insertNonFull`), `insertRootCost` (charges the
+    full-root split of `insertRoot`), and `deleteCost` (mirrors
+    `composedDelete`) count the nodes each operation reads and writes.
+  - `searchCost_le_height`, `insertCost_le_height`, `insertRootCost_le_height`
+    (`≤ height + 3`), and `deleteCost_le_height` bound each by `height + O(1)`.
+  - `searchCost_le_diskAccessBound`, `insertRootCost_le_diskAccessBound`, and
+    `deleteCost_le_diskAccessBound` compose those bounds with
+    `wellFormed_height_log_bound` against `diskAccessBound t n =
+    log_t ((n+1)/2) + 3` on every `WellFormed` tree.
+  - `diskAccessBound_isBigO_log_t` proves `diskAccessBound t n = O(log_t n)`,
+    so search, insertion, and deletion each run in `O(log_t n)` disk accesses.
 
 Chapter 18 now has the first-pass B-tree theorem surface, real top-level CLRS
 insertion, and a structural proof for the executable CLRS deletion routine.

@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.Search
 import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.HeightBound
+import CLRSLean.Chapter_18.Section_18_1_B_Tree_Model.RunningTime
 import CLRSLean.Chapter_18.Section_18_2_B_Tree_Insertion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion
 import CLRSLean.Chapter_18.Section_18_3_B_Tree_Deletion.Invariant
@@ -231,10 +232,17 @@ tree shape.
 ## Completion Boundary
 
 Search, top-level insertion and structural preservation, exact
-{lit}`Multiset.erase` deletion semantics, and the structural total-key and
-logarithmic-height bounds are complete under the documented assumptions for
-the current functional B-tree model.  Disk-page layout, pointer mutation, I/O
-counts, and RAM costs remain optional lower-level refinements.
+{lit}`Multiset.erase` deletion semantics, the structural total-key and
+logarithmic-height bounds, and the running-time / cost layer are complete
+under the documented assumptions for the current functional B-tree model.
+{lit}`searchCost`, {lit}`insertCost`, {lit}`insertRootCost`, and
+{lit}`deleteCost` mirror the executable {lit}`searchExec`,
+{lit}`insertNonFull`, {lit}`insertRoot`, and {lit}`composedDelete`
+constructions, and every one is bounded by {lit}`heightOf + O(1)`; composing
+with {lit}`wellFormed_height_log_bound` gives the CLRS
+{lit}`O(log_t n)` disk-access bound ({lit}`diskAccessBound`).  Disk-page
+layout, pointer mutation, and RAM semantics remain optional lower-level
+refinements.
 -/
 
 namespace CLRS
