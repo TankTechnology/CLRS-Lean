@@ -34,8 +34,8 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 30 chapters.
-* {lit}`main-proof-complete-for-correctness`: 2 chapters.
+* {lit}`main-proof-complete`: 31 chapters.
+* {lit}`main-proof-complete-for-correctness`: 1 chapter.
 * {lit}`selected-section-complete`: 1 chapter.
 * {lit}`partial`: 1 chapter.
 * {lit}`expository`: 1 chapter.
@@ -56,7 +56,7 @@ Ch  Chapter                                                     Status          
  9  9. Medians and Order Statistics                             main-proof-complete                  9.1;9.2;9.3                        72        0
 10  10. Elementary Data Structures                              main-proof-complete                  10.1;10.2;10.3                     21        0
 11  11. Hash Tables                                             main-proof-complete                  11.1;11.2;11.3;11.4;11.5           59        0
-12  12. Binary Search Trees                                     main-proof-complete-for-correctness  12.1;12.2;12.3                     40        0
+12  12. Binary Search Trees                                     main-proof-complete                  12.1;12.2;12.3                     40        0
 13  13. Red-Black Trees                                         main-proof-complete                  13.1;13.2;13.3;13.4                40        0
 14  14. Dynamic Programming                                     main-proof-complete                  14.1;14.2;14.3;14.4;14.5           90        0
 15  15. Greedy Algorithms                                       main-proof-complete                  15.1;15.2;15.3;15.4                27        0
