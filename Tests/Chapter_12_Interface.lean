@@ -66,3 +66,22 @@ import CLRSLean.Chapter_12
 #check CLRS.Chapter12.BSTree.insertAll_split
 #check CLRS.Chapter12.BSTree.buildFromList_cons
 #check CLRS.Chapter12.BSTree.firstInInterval_iff_isFirstOf
+
+-- §12.4 probability and expected-depth analysis (the cost-layer tail)
+#check CLRS.Chapter12.BSTree.intervalSize
+#check CLRS.Chapter12.BSTree.intervalIcc
+#check CLRS.Chapter12.BSTree.intervalIcc_card
+#check CLRS.Chapter12.BSTree.isAncestorOf_buildFromPerm_iff_firstInInterval
+#check CLRS.Chapter12.BSTree.isFirstOf_prob
+#check CLRS.Chapter12.BSTree.firstInInterval_prob
+#check CLRS.Chapter12.BSTree.isAncestorOf_prob
+#check CLRS.Chapter12.BSTree.ancestorCount
+#check CLRS.Chapter12.BSTree.ancestorCount_eq_depth_add_one
+#check CLRS.Chapter12.BSTree.insertAll_ordered
+#check CLRS.Chapter12.BSTree.buildFromList_ordered
+#check CLRS.Chapter12.BSTree.isAncestorOf_self_buildFromPerm
+#check CLRS.Chapter12.BSTree.ancestorCount_eq_sum
+#check CLRS.Chapter12.BSTree.depth_buildFromPerm_eq_sum
+#check CLRS.Chapter12.BSTree.expected_depth_eq
+#check CLRS.Chapter12.BSTree.expected_depth_le_two_harmonic
+#check CLRS.Chapter12.BSTree.expected_depth_le_O_log

@@ -1,4 +1,5 @@
 import Mathlib
+import CLRSLean.Probability
 
 /-!
 # CLRS Section 12.1 - Binary search trees
@@ -107,6 +108,17 @@ Main results:
   {lit}`x` is the first key of the list lying in the closed interval between
   them (CLRS Lemma 12.3).  This is the combinatorial workhorse for the
   expected-depth analysis.
+- Theorem {lit}`isAncestorOf_buildFromPerm_iff_firstInInterval`: the same
+  characterization in the permutation-index form, connecting the tree-level
+  ancestor relation to the finite-set "first in interval" predicate.
+- Theorem {lit}`isAncestorOf_prob`: in a randomly built BST, the probability
+  that {lit}`i` is an ancestor of {lit}`j` is {lit}`1 / (|i - j| + 1)` (CLRS
+  Lemma 12.4 / equation (12.4)).
+- Theorem {lit}`expected_depth_eq`: the expected depth of key {lit}`j` is
+  {lit}`(∑ᵢ 1 / (|i - j| + 1)) - 1` (CLRS equation (12.5)).
+- Theorems {lit}`expected_depth_le_two_harmonic` and
+  {lit}`expected_depth_le_O_log`: this expectation is at most {lit}`2·Hₙ` and
+  hence {lit}`O(log n)`.
 
 Current gaps:
 
@@ -115,9 +127,10 @@ Current gaps:
   pointer-heap layer now proves in-place TRANSPLANT and leaf TREE-INSERT refine
   the functional specification.
 - An explicit RAM cost model over the pointer operations remains future work.
-- The probability {lit}`P(i is an ancestor of j) = 1/(|i-j|+1)` and the resulting
-  expected-depth bound {lit}`O(log n)` for a randomly built BST are not yet
-  formalized; the ancestor characterization above is the needed foundation.
+- The expected *height* of a randomly built BST (CLRS Theorem 12.4 proper, via
+  the exponential-height recurrence and Jensen's inequality) is not yet
+  formalized; the expected-*depth* analysis above is the standard
+  expected-search-cost bound.
 -/
 
 namespace CLRS
@@ -132,6 +145,9 @@ inductive BSTree where
   deriving Repr, DecidableEq
 
 namespace BSTree
+
+open CLRS.Probability
+open Classical
 
 /-- Membership of a key in a binary tree. -/
 def InTree (x : Nat) : BSTree → Prop
@@ -2681,6 +2697,627 @@ theorem firstInInterval_iff_isFirstOf {n : Nat} (π : Equiv.Perm (Fin n)) (i j :
   · intro h
     intro k hklo hkhi
     exact h.2 k (Finset.mem_Icc.mpr ⟨hklo, hkhi⟩)
+
+
+/-! ## §12.4 probability and expected depth -/
+
+/-- Number of keys in the closed interval between `i` and `j` (inclusive), i.e.
+`|i - j| + 1`. -/
+def intervalSize {n : Nat} (i j : Fin n) : Nat :=
+  max (i : Nat) (j : Nat) - min (i : Nat) (j : Nat) + 1
+
+/-- The closed interval of keys between `i` and `j`. -/
+def intervalIcc {n : Nat} (i j : Fin n) : Finset (Fin n) :=
+  Finset.Icc (min i j) (max i j)
+
+/-- The number of keys in `intervalIcc i j` is `|i - j| + 1`. -/
+theorem intervalIcc_card {n : Nat} (i j : Fin n) :
+    (intervalIcc i j).card = intervalSize i j := by
+  simp [intervalIcc, intervalSize, Fin.card_Icc]
+  omega
+
+/-- If `x` does not lie in `[a, b]`, it is never the first key of a list lying
+in `[a, b]`. -/
+theorem IsFirstInInterval_of_not_mem {x a b : Nat} {L : List Nat}
+    (hx : ¬ (a ≤ x ∧ x ≤ b)) : ¬ IsFirstInInterval x a b L := by
+  intro h
+  induction L with
+  | nil => simp [IsFirstInInterval] at h
+  | cons z zs ih =>
+      by_cases hz : a ≤ z ∧ z ≤ b
+      · simp [IsFirstInInterval, hz] at h
+        subst x
+        exact hx hz
+      · apply ih
+        simpa [IsFirstInInterval, hz] using h
+
+/-- For an injective tuple `f`, `f i` is the first entry of `List.ofFn f` lying
+in `[a, b]` exactly when `f i ∈ [a, b]` and `i` is the minimum index of any
+entry in `[a, b]`.  This is the key bridge from the list-order notion of
+"first in interval" to an index-comparison notion. -/
+theorem IsFirstInInterval_ofFn_iff {n : Nat} {f : Fin n → Nat} (hf : Function.Injective f)
+    (i : Fin n) (a b : Nat) :
+    IsFirstInInterval (f i) a b (List.ofFn f) ↔
+      (a ≤ f i ∧ f i ≤ b) ∧ ∀ k : Fin n, a ≤ f k → f k ≤ b → (i : Nat) ≤ (k : Nat) := by
+  induction n with
+  | zero => cases i; omega
+  | succ m ih =>
+      rcases Fin.eq_zero_or_eq_succ i with rfl | ⟨i', rfl⟩
+      · rw [List.ofFn_succ]
+        simp only [IsFirstInInterval]
+        constructor
+        · intro h
+          by_cases hIn : a ≤ f 0 ∧ f 0 ≤ b
+          · exact ⟨hIn, fun k _ _ => Nat.zero_le (k : Nat)⟩
+          · have h' : IsFirstInInterval (f 0) a b (List.ofFn fun i ↦ f i.succ) := by
+              simpa [hIn] using h
+            exact (IsFirstInInterval_of_not_mem hIn h').elim
+        · intro h
+          by_cases hIn : a ≤ f 0 ∧ f 0 ≤ b
+          · simpa [hIn]
+          · exact (hIn h.1).elim
+      · rw [List.ofFn_succ]
+        simp only [IsFirstInInterval]
+        have hf0ne : f 0 ≠ f i'.succ := by
+          intro hf0
+          have hfin : (0 : Fin (m + 1)) = i'.succ := hf hf0
+          have hv : (0 : Nat) = (i' : Nat) + 1 := congrArg Fin.val hfin
+          omega
+        have hfinj : Function.Injective (fun x : Fin m => f x.succ) := by
+          intro x y hxy
+          apply Fin.ext
+          have hv : (x.val + 1) = (y.val + 1) := congrArg Fin.val (hf hxy)
+          omega
+        constructor
+        · intro h
+          by_cases hIn : a ≤ f 0 ∧ f 0 ≤ b
+          · exfalso
+            have h' : f 0 = f i'.succ := by simpa [hIn] using h
+            exact hf0ne h'
+          · have h' : IsFirstInInterval (f i'.succ) a b (List.ofFn fun i ↦ f i.succ) := by
+              simpa [hIn] using h
+            have hIH := (ih hfinj i').1 h'
+            refine ⟨hIH.1, ?_⟩
+            intro k hka hkb
+            rcases Fin.eq_zero_or_eq_succ k with rfl | ⟨k', rfl⟩
+            · exfalso; exact hIn ⟨hka, hkb⟩
+            · exact Nat.succ_le_succ (hIH.2 k' hka hkb)
+        · intro h
+          by_cases hIn : a ≤ f 0 ∧ f 0 ≤ b
+          · exfalso
+            exact Nat.not_succ_le_zero (i' : Nat) (by simpa using (h.2 0 hIn.1 hIn.2))
+          · have hIH := (ih hfinj i').2 ⟨h.1, ?_⟩
+            · simpa [hIn] using hIH
+            · intro k' hka hkb
+              exact Nat.le_of_succ_le_succ (h.2 k'.succ hka hkb)
+
+/-- **Randomly-built-BST characterization.**  In the BST built from a uniform
+permutation of `Fin n`, key `i` is an ancestor of key `j` exactly when `i` is
+the first key of the closed interval between them in insertion order (CLRS
+Lemma 12.3, in the permutation-index form). -/
+theorem isAncestorOf_buildFromPerm_iff_firstInInterval {n : Nat} (π : Equiv.Perm (Fin n))
+    (i j : Fin n) :
+    isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) ↔ firstInInterval π i j := by
+  rw [show buildFromPerm π = buildFromList (permKeys π) from rfl]
+  rw [isAncestorOf_iff_firstInInterval (permKeys π) (i : Nat) (j : Nat)]
+  let f : Fin n → Nat := fun k => (π k : Nat)
+  have hf : Function.Injective f := by
+    intro x y hxy
+    exact π.injective (Fin.val_injective hxy)
+  have hperm : permKeys π = List.ofFn f := by
+    simp [permKeys, f, List.ofFn_eq_map]
+  rw [hperm]
+  have hfπ : f (π.symm i) = (i : Nat) := by
+    unfold f
+    simp
+  have h1 := IsFirstInInterval_ofFn_iff hf (π.symm i) (min (i : Nat) (j : Nat)) (max (i : Nat) (j : Nat))
+  have h1' : IsFirstInInterval (i : Nat) (min (i : Nat) (j : Nat)) (max (i : Nat) (j : Nat)) (List.ofFn f) ↔
+      (min (i : Nat) (j : Nat) ≤ (i : Nat) ∧ (i : Nat) ≤ max (i : Nat) (j : Nat)) ∧
+      ∀ k : Fin n, min (i : Nat) (j : Nat) ≤ f k → f k ≤ max (i : Nat) (j : Nat) →
+        (π.symm i : Nat) ≤ (k : Nat) := by
+    simpa [hfπ] using h1
+  rw [h1']
+  constructor
+  · intro h
+    unfold firstInInterval
+    intro k hklo hkhi
+    exact h.2 (π.symm k) (by simpa [f] using hklo) (by simpa [f] using hkhi)
+  · intro h
+    refine ⟨⟨min_le_left (i : Nat) (j : Nat), le_max_left (i : Nat) (j : Nat)⟩, ?_⟩
+    intro k hklo hkhi
+    simpa [f] using (h (π k) (by simpa [f] using hklo) (by simpa [f] using hkhi))
+
+/-! ### The `1 / (|i - j| + 1)` probability -/
+
+/-- Being first in a finite set is invariant under relabelling by a
+set-preserving permutation. -/
+theorem isFirstOf_comp {n : Nat} (π : Equiv.Perm (Fin n)) (σ : Equiv.Perm (Fin n))
+    (S : Finset (Fin n)) (s s' : Fin n)
+    (hS : ∀ k, k ∈ S ↔ σ k ∈ S) (hss' : σ s = s') :
+    isFirstOf (π.trans σ) S s' ↔ isFirstOf π S s := by
+  have hsσ : σ.symm s' = s := by
+    rw [← hss']
+    simp
+  constructor
+  · intro h
+    constructor
+    · have hSs : s ∈ S ↔ s' ∈ S := by simpa [hss'] using (hS s)
+      exact hSs.mpr h.1
+    · intro k hk
+      have hσk : σ k ∈ S := (hS k).mp hk
+      have h' := h.2 (σ k) hσk
+      rw [Equiv.symm_trans] at h'
+      simpa [hsσ, Equiv.symm_apply_apply] using h'
+  · intro h
+    constructor
+    · have hSs : s ∈ S ↔ s' ∈ S := by simpa [hss'] using (hS s)
+      exact hSs.mp h.1
+    · intro k hk
+      have hσsymk : σ.symm k ∈ S := by
+        have h' : σ.symm k ∈ S ↔ k ∈ S := by
+          simpa [Equiv.apply_symm_apply] using (hS (σ.symm k))
+        exact h'.mpr hk
+      have h' := h.2 (σ.symm k) hσsymk
+      rw [Equiv.symm_trans]
+      simpa [hsσ] using h'
+
+/-- At most one key of a finite set is first (the minimum is unique). -/
+theorem isFirstOf_eq {n : Nat} (π : Equiv.Perm (Fin n)) (S : Finset (Fin n)) (s s' : Fin n)
+    (hs : isFirstOf π S s) (hs' : isFirstOf π S s') (hs_in : s ∈ S) (hs'_in : s' ∈ S) :
+    s = s' := by
+  have h1 : (π.symm s : Nat) ≤ (π.symm s' : Nat) := hs.2 s' hs'_in
+  have h2 : (π.symm s' : Nat) ≤ (π.symm s : Nat) := hs'.2 s hs_in
+  have heq : (π.symm s : Nat) = (π.symm s' : Nat) := le_antisymm h1 h2
+  have hfin : π.symm s = π.symm s' := Fin.ext heq
+  exact π.symm.injective hfin
+
+/-- Every nonempty finite set has a first key (the minimum position is attained). -/
+theorem exists_isFirstOf {n : Nat} (π : Equiv.Perm (Fin n)) (S : Finset (Fin n)) (hS : S.Nonempty) :
+    ∃ s ∈ S, isFirstOf π S s := by
+  let P : Finset Nat := S.image (fun s => (π.symm s : Nat))
+  have hP : P.Nonempty := by
+    rcases hS with ⟨s, hs⟩
+    exact ⟨(π.symm s : Nat), Finset.mem_image.mpr ⟨s, hs, rfl⟩⟩
+  let m : Nat := P.min' hP
+  have hm_mem : m ∈ P := Finset.min'_mem P hP
+  rcases Finset.mem_image.mp hm_mem with ⟨s, hs, hsm⟩
+  refine ⟨s, hs, ?_⟩
+  constructor
+  · exact hs
+  · intro k hk
+    have hk_mem : (π.symm k : Nat) ∈ P := Finset.mem_image.mpr ⟨k, hk, rfl⟩
+    have hle : m ≤ (π.symm k : Nat) := Finset.min'_le P (π.symm k : Nat) hk_mem
+    rw [← hsm] at hle
+    exact hle
+
+/-- For every permutation, exactly one key of a finite set is first. -/
+theorem sum_indicator_isFirstOf {n : Nat} (π : Equiv.Perm (Fin n)) (S : Finset (Fin n))
+    (hS : S.Nonempty) :
+    (∑ s ∈ S, indicator (isFirstOf π S s : Prop) : ℝ) = 1 := by
+  obtain ⟨s0, hs0mem, hs0first⟩ := exists_isFirstOf π S hS
+  have huniq : ∀ s, s ∈ S → isFirstOf π S s → s = s0 := by
+    intro s hs hsf
+    exact isFirstOf_eq π S s s0 hsf hs0first hs hs0mem
+  have hsum' : (∑ s ∈ S, indicator (isFirstOf π S s : Prop)) =
+      ∑ s ∈ S, (if s = s0 then (1 : ℝ) else 0) := by
+    apply Finset.sum_congr rfl
+    intro s hs
+    by_cases h : s = s0
+    · subst s
+      simp [indicator, hs0first]
+    · have hnot : ¬ isFirstOf π S s := by
+        intro hsf
+        exact h (huniq s hs hsf)
+      simp [indicator, hnot, h]
+  rw [hsum']
+  rw [Finset.sum_ite_eq' S s0 (fun _ => (1 : ℝ))]
+  simp [hs0mem]
+
+/-- Under the uniform distribution on permutations, `i` is the first key of a
+finite set `S` with probability `1 / |S|`.  This is the combinatorial core of
+CLRS Lemma 12.4 (each of the `|i - j| + 1` keys is equally likely to be first). -/
+theorem isFirstOf_prob {n : Nat} (S : Finset (Fin n)) (i : Fin n) (hi : i ∈ S) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop)) =
+      1 / (S.card : ℝ) := by
+  have hS : S.Nonempty := ⟨i, hi⟩
+  have hcardne : (S.card : ℝ) ≠ 0 := by
+    exact_mod_cast (Finset.card_ne_zero_of_mem hi)
+  have hsum : (∑ s ∈ S, fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S s : Prop))) = 1 := by
+    rw [← fintypeExpect_sum]
+    have hinner : ∀ π : Equiv.Perm (Fin n), (∑ s ∈ S, indicator (isFirstOf π S s : Prop) : ℝ) = 1 :=
+      fun π => sum_indicator_isFirstOf π S hS
+    rw [show (fun π : Equiv.Perm (Fin n) => (∑ s ∈ S, indicator (isFirstOf π S s : Prop) : ℝ)) = (fun _ => (1 : ℝ)) from by
+      funext π; exact hinner π]
+    rw [fintypeExpect_const (by have : Nonempty (Equiv.Perm (Fin n)) := ⟨1⟩; exact Fintype.card_ne_zero) (1 : ℝ)]
+  have hsym : ∀ s, s ∈ S →
+      fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S s : Prop)) =
+        fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop)) := by
+    intro s hs
+    let σ : Equiv.Perm (Fin n) := Equiv.swap s i
+    let e : Equiv.Perm (Fin n) ≃ Equiv.Perm (Fin n) :=
+      { toFun := fun π => π.trans σ
+        invFun := fun π => π.trans σ.symm
+        left_inv := fun π => by ext x; simp [Equiv.trans]
+        right_inv := fun π => by ext x; simp [Equiv.trans] }
+    have hσi : σ s = i := by simp [σ]
+    have hS' : ∀ k, k ∈ S ↔ σ k ∈ S := by
+      intro k
+      by_cases hks : k = s
+      · subst k; simp [σ, hi, hs]
+      · by_cases hki : k = i
+        · subst k; simp [σ, hi, hs]
+        · have hswap : (Equiv.swap s i) k = k := Equiv.swap_apply_of_ne_of_ne hks hki
+          simp [σ, hswap]
+    have hcomp : ∀ π, isFirstOf (e π) S i ↔ isFirstOf π S s := by
+      intro π
+      have h := isFirstOf_comp π σ S s i hS' hσi
+      simpa [e] using h
+    have hsym' := fintypeExpect_equiv e (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop))
+    have hrewrite : fintypeExpect (fun π => indicator (isFirstOf (e π) S i : Prop)) =
+        fintypeExpect (fun π => indicator (isFirstOf π S s : Prop)) := by
+      congr 1
+      funext π
+      rw [hcomp π]
+    rw [hrewrite] at hsym'
+    exact hsym'
+  have hsum2 : (∑ s ∈ S, fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop))) = 1 := by
+    calc
+      (∑ s ∈ S, fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop)))
+          = (∑ s ∈ S, fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S s : Prop))) := by
+              rw [Finset.sum_congr rfl (fun s hs => (hsym s hs).symm)]
+      _ = 1 := hsum
+  have hcard_mul : (S.card : ℝ) * fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop)) = 1 := by
+    have hsum_const : (∑ s ∈ S, fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop))) =
+        (S.card : ℝ) * fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π S i : Prop)) := by
+      rw [Finset.sum_const]
+      simp
+    rw [hsum_const] at hsum2
+    exact hsum2
+  exact (eq_div_iff hcardne).mpr (by rw [mul_comm]; exact hcard_mul)
+
+/-- The probability that `i` is first in the interval between `i` and `j` is
+`1 / (|i - j| + 1)`. -/
+theorem firstInInterval_prob {n : Nat} (i j : Fin n) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (firstInInterval π i j : Prop)) =
+      1 / (intervalSize i j : ℝ) := by
+  have hi : i ∈ intervalIcc i j := by
+    simp [intervalIcc, Finset.mem_Icc]
+  have h := isFirstOf_prob (intervalIcc i j) i hi
+  have hrewrite : fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (firstInInterval π i j : Prop)) =
+      fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (isFirstOf π (intervalIcc i j) i : Prop)) := by
+    congr 1
+    funext π
+    rw [firstInInterval_iff_isFirstOf π i j]
+    rfl
+  rw [hrewrite, h, intervalIcc_card]
+
+/-- **CLRS Lemma 12.4 / equation (12.4).**  In a randomly built BST, the
+probability that `i` is an ancestor of `j` is `1 / (|i - j| + 1)`. -/
+theorem isAncestorOf_prob {n : Nat} (i j : Fin n) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) =>
+      indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop)) =
+      1 / (intervalSize i j : ℝ) := by
+  have hrewrite : fintypeExpect (fun π : Equiv.Perm (Fin n) =>
+      indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop)) =
+      fintypeExpect (fun π : Equiv.Perm (Fin n) => indicator (firstInInterval π i j : Prop)) := by
+    congr 1
+    funext π
+    rw [isAncestorOf_buildFromPerm_iff_firstInInterval π i j]
+  rw [hrewrite, firstInInterval_prob]
+
+/-! ### Expected depth: closed form and `O(log n)` bound -/
+
+/-- Number of keys `x` such that `x` lies on the root-to-`y` search path. -/
+def ancestorCount (y : Nat) : BSTree → Nat
+  | empty => 0
+  | node left key right =>
+      if y = key then 1
+      else if y < key then 1 + ancestorCount y left
+      else 1 + ancestorCount y right
+
+/-- If search finds `y`, the number of ancestors of `y` is `depth y + 1`. -/
+theorem ancestorCount_eq_depth_add_one (y : Nat) (t : BSTree) (hy : isAncestorOf y y t) :
+    ancestorCount y t = depth y t + 1 := by
+  induction t with
+  | empty => simp [isAncestorOf] at hy
+  | node left key right ihL ihR =>
+      by_cases hykey : y = key
+      · simp [ancestorCount, depth, hykey]
+      · by_cases hylt : y < key
+        · have hyL : isAncestorOf y y left := by
+            simpa [isAncestorOf, hykey, hylt] using hy
+          simp [ancestorCount, depth, hykey, hylt, ihL hyL]
+          omega
+        · have hyR : isAncestorOf y y right := by
+            simpa [isAncestorOf, hykey, hylt] using hy
+          simp [ancestorCount, depth, hykey, hylt, ihR hyR]
+          omega
+
+/-- Inserting a whole list preserves the BST ordering invariant. -/
+theorem insertAll_ordered (xs : List Nat) (t : BSTree) (ht : Ordered t) :
+    Ordered (insertAll xs t) := by
+  induction xs generalizing t with
+  | nil => simpa [insertAll] using ht
+  | cons x xs ih =>
+      simpa [insertAll] using ih (insert x t) (insert_ordered (x := x) ht)
+
+/-- The BST built from a list is ordered. -/
+theorem buildFromList_ordered (xs : List Nat) : Ordered (buildFromList xs) := by
+  unfold buildFromList
+  exact insertAll_ordered xs empty (by simp [Ordered])
+
+/-- Every key of `permKeys π` is below `n`. -/
+theorem mem_permKeys_lt {n : Nat} (π : Equiv.Perm (Fin n)) {z : Nat} (hz : z ∈ permKeys π) :
+    z < n := by
+  unfold permKeys at hz
+  rw [List.mem_map] at hz
+  rcases hz with ⟨k, _, hk⟩
+  rw [← hk]
+  exact (π k).isLt
+
+/-- Every key of `buildFromPerm π` is below `n`. -/
+theorem InTree_buildFromPerm_lt {n : Nat} (π : Equiv.Perm (Fin n)) {z : Nat}
+    (hz : InTree z (buildFromPerm π)) : z < n := by
+  have hz' : z ∈ permKeys π := by
+    simpa [buildFromPerm, InTree_buildFromList_iff] using hz
+  exact mem_permKeys_lt π hz'
+
+/-- Every key is an ancestor of itself in the randomly built BST (search always
+finds the key). -/
+theorem isAncestorOf_self_buildFromPerm {n : Nat} (π : Equiv.Perm (Fin n)) (j : Fin n) :
+    isAncestorOf (j : Nat) (j : Nat) (buildFromPerm π) := by
+  rw [isAncestorOf_buildFromPerm_iff_firstInInterval π j j]
+  unfold firstInInterval
+  intro k hklo hkhi
+  have hk : k = j := Fin.ext (by omega)
+  subst k
+  rfl
+
+/-- The cardinality of a finite filter, as a real, is the sum of its indicators. -/
+lemma card_filter_eq_sum_indicator {n : Nat} (P : Fin n → Prop) [DecidablePred P] :
+    ((Finset.univ.filter P).card : ℝ) = ∑ x : Fin n, indicator (P x) := by
+  rw [← Finset.sum_boole]
+  simp [indicator]
+
+/-- The number of ancestors of `y` in an ordered tree equals the cardinality of
+the set of keys that are ancestors of `y` (counted among `Fin n`). -/
+theorem ancestorCount_eq_sum {n : Nat} (y : Nat) (t : BSTree)
+    (ht : Ordered t) (hb : ∀ z, InTree z t → z < n) :
+    ancestorCount y t = (Finset.univ.filter (fun x : Fin n => isAncestorOf (x : Nat) y t)).card := by
+  induction t with
+  | empty => simp [ancestorCount, isAncestorOf]
+  | node left key right ihL ihR =>
+      simp [Ordered] at ht
+      rcases ht with ⟨hLeft, hRight, hLt, hGt⟩
+      have hbL : ∀ z, InTree z left → z < n := fun z hz => hb z (by simp [InTree, hz])
+      have hbR : ∀ z, InTree z right → z < n := fun z hz => hb z (by simp [InTree, hz])
+      have hkeylt : key < n := hb key (by simp [InTree])
+      let kfin : Fin n := ⟨key, hkeylt⟩
+      by_cases hykey : y = key
+      · subst y
+        have hfilter : (Finset.univ.filter (fun x : Fin n => isAncestorOf (x : Nat) key (node left key right))) = {kfin} := by
+          ext x
+          simp [isAncestorOf, kfin, Fin.ext_iff]
+        simp [ancestorCount, hfilter]
+      · by_cases hylt : y < key
+        · have hnotkey : ¬ InTree key left := by
+            intro hk; exact (Nat.lt_irrefl key) (hLt key hk)
+          have hdisj : Disjoint ({kfin} : Finset (Fin n))
+              (Finset.univ.filter (fun x : Fin n => isAncestorOf (x : Nat) y left)) := by
+            rw [Finset.disjoint_left]
+            intro x hxkey hxleft
+            have hxeq : (x : Nat) = key := by
+              rw [Finset.mem_singleton] at hxkey
+              rw [hxkey]
+            have hxanc : isAncestorOf (x : Nat) y left := (Finset.mem_filter.mp hxleft).2
+            have hk : InTree key left := isAncestorOf_implies_inTree (by simpa [hxeq] using hxanc)
+            exact hnotkey hk
+          have hanc : ∀ x : Fin n, isAncestorOf (x : Nat) y (node left key right) ↔
+              ((x : Nat) = key ∨ isAncestorOf (x : Nat) y left) := by
+            intro x; simp [isAncestorOf, hykey, hylt]
+          have hfilterkey : (Finset.univ.filter (fun x : Fin n => (x : Nat) = key)) = {kfin} := by
+            ext x
+            simp [kfin, Fin.ext_iff]
+          simp [ancestorCount, hykey, hylt]
+          rw [show (Finset.univ.filter (fun x : Fin n => isAncestorOf (x : Nat) y (node left key right))).card =
+              (Finset.univ.filter (fun x : Fin n => ((x : Nat) = key ∨ isAncestorOf (x : Nat) y left))).card from by
+            congr 1; ext x; simp [Finset.mem_filter, hanc]]
+          rw [Finset.filter_or]
+          rw [hfilterkey]
+          rw [Finset.card_union_of_disjoint hdisj]
+          rw [Finset.card_singleton]
+          rw [ihL hLeft hbL]
+        · have hnotkey : ¬ InTree key right := by
+            intro hk; exact (Nat.lt_irrefl key) (hGt key hk)
+          have hdisj : Disjoint ({kfin} : Finset (Fin n))
+              (Finset.univ.filter (fun x : Fin n => isAncestorOf (x : Nat) y right)) := by
+            rw [Finset.disjoint_left]
+            intro x hxkey hxright
+            have hxeq : (x : Nat) = key := by
+              rw [Finset.mem_singleton] at hxkey
+              rw [hxkey]
+            have hxanc : isAncestorOf (x : Nat) y right := (Finset.mem_filter.mp hxright).2
+            have hk : InTree key right := isAncestorOf_implies_inTree (by simpa [hxeq] using hxanc)
+            exact hnotkey hk
+          have hanc : ∀ x : Fin n, isAncestorOf (x : Nat) y (node left key right) ↔
+              ((x : Nat) = key ∨ isAncestorOf (x : Nat) y right) := by
+            intro x; simp [isAncestorOf, hykey, hylt]
+          have hfilterkey : (Finset.univ.filter (fun x : Fin n => (x : Nat) = key)) = {kfin} := by
+            ext x
+            simp [kfin, Fin.ext_iff]
+          simp [ancestorCount, hykey, hylt]
+          rw [show (Finset.univ.filter (fun x : Fin n => isAncestorOf (x : Nat) y (node left key right))).card =
+              (Finset.univ.filter (fun x : Fin n => ((x : Nat) = key ∨ isAncestorOf (x : Nat) y right))).card from by
+            congr 1; ext x; simp [Finset.mem_filter, hanc]]
+          rw [Finset.filter_or]
+          rw [hfilterkey]
+          rw [Finset.card_union_of_disjoint hdisj]
+          rw [Finset.card_singleton]
+          rw [ihR hRight hbR]
+
+/-- The depth of `j` in `buildFromPerm π` is the number of ancestors of `j`
+minus one, i.e. the sum of ancestor indicators minus one. -/
+theorem depth_buildFromPerm_eq_sum {n : Nat} (π : Equiv.Perm (Fin n)) (j : Fin n) :
+    (depth (j : Nat) (buildFromPerm π) : ℝ) =
+      (∑ i : Fin n, indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop)) - 1 := by
+  have hself : isAncestorOf (j : Nat) (j : Nat) (buildFromPerm π) := isAncestorOf_self_buildFromPerm π j
+  have hordered : Ordered (buildFromPerm π) := buildFromList_ordered (permKeys π)
+  have hbounded : ∀ z, InTree z (buildFromPerm π) → z < n := fun z hz => InTree_buildFromPerm_lt π hz
+  have h1 : ancestorCount (j : Nat) (buildFromPerm π) = depth (j : Nat) (buildFromPerm π) + 1 :=
+    ancestorCount_eq_depth_add_one (j : Nat) (buildFromPerm π) hself
+  have h2 : ancestorCount (j : Nat) (buildFromPerm π) =
+      (Finset.univ.filter (fun i : Fin n => isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π))).card :=
+    ancestorCount_eq_sum (j : Nat) (buildFromPerm π) hordered hbounded
+  have h3 : ((Finset.univ.filter (fun i : Fin n => isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π))).card : ℝ) =
+      ∑ i : Fin n, indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop) :=
+    card_filter_eq_sum_indicator (fun i : Fin n => isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π))
+  have h1r : (ancestorCount (j : Nat) (buildFromPerm π) : ℝ) = (depth (j : Nat) (buildFromPerm π) : ℝ) + 1 := by
+    exact_mod_cast h1
+  have h2r : (ancestorCount (j : Nat) (buildFromPerm π) : ℝ) =
+      ∑ i : Fin n, indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop) := by
+    rw [h2, h3]
+  nlinarith [h1r, h2r]
+
+/-- **CLRS equation (12.5).**  The expected depth of key `j` in a randomly
+built BST is `(∑ᵢ 1 / (|i - j| + 1)) - 1`. -/
+theorem expected_depth_eq {n : Nat} (j : Fin n) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) => (depth (j : Nat) (buildFromPerm π) : ℝ)) =
+      (∑ i : Fin n, 1 / (intervalSize i j : ℝ)) - 1 := by
+  classical
+  have hdepth : ∀ π : Equiv.Perm (Fin n), (depth (j : Nat) (buildFromPerm π) : ℝ) =
+      (∑ i : Fin n, indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop)) - 1 :=
+    fun π => depth_buildFromPerm_eq_sum π j
+  rw [show (fun π : Equiv.Perm (Fin n) => (depth (j : Nat) (buildFromPerm π) : ℝ)) =
+      (fun π => (∑ i : Fin n, indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop)) - 1) from by
+    funext π; exact hdepth π]
+  rw [show (fun π : Equiv.Perm (Fin n) => (∑ i : Fin n, indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop)) - 1) =
+      (fun π => (∑ i : Fin n, indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop)) + (-1)) from by
+    funext π; ring]
+  rw [fintypeExpect_add]
+  rw [fintypeExpect_const (by have : Nonempty (Equiv.Perm (Fin n)) := ⟨1⟩; exact Fintype.card_ne_zero) (-1 : ℝ)]
+  rw [fintypeExpect_sum (Finset.univ : Finset (Fin n)) (fun (i : Fin n) π => indicator (isAncestorOf (i : Nat) (j : Nat) (buildFromPerm π) : Prop))]
+  rw [Finset.sum_congr rfl (fun i _ => isAncestorOf_prob i j)]
+  ring
+
+/-! ### Harmonic bound and `O(log n)` -/
+
+/-- Harmonic numbers are monotone. -/
+lemma harmonic_mono {n m : Nat} (h : n ≤ m) : harmonic n ≤ harmonic m := by
+  induction h with
+  | refl => rfl
+  | step h' ih =>
+      rw [harmonic_succ]
+      exact le_trans ih (le_add_of_nonneg_right (by positivity))
+
+/-- `∑ d ∈ range j, 1/(d+2) ≤ Hⱼ`. -/
+lemma sum_inv_range_add_two_le_harmonic {j : Nat} :
+    (∑ d ∈ Finset.range j, (1 / (((d + 2 : Nat) : ℝ)))) ≤ (harmonic j : ℝ) := by
+  calc
+    (∑ d ∈ Finset.range j, (1 / (((d + 2 : Nat) : ℝ))))
+        ≤ ∑ d ∈ Finset.range j, (1 / (((d + 1 : Nat) : ℝ))) := by
+            apply Finset.sum_le_sum
+            intro d hd
+            gcongr
+            norm_num
+    _ = (harmonic j : ℝ) := by simp [harmonic]
+
+/-- `∑ k ∈ range m, 1/(m-k+1) ≤ Hₘ` (the reflected half of the distance sum). -/
+lemma sum_inv_range_reflect_le_harmonic {m : Nat} :
+    (∑ k ∈ Finset.range m, (1 / (((m - k + 1 : Nat) : ℝ)))) ≤ (harmonic m : ℝ) := by
+  have h1 : (∑ k ∈ Finset.range m, (1 / (((m - k + 1 : Nat) : ℝ)))) =
+      ∑ d ∈ Finset.range m, (1 / (((d + 2 : Nat) : ℝ))) := by
+    rw [← Finset.sum_range_reflect (fun d : Nat => (1 / (((d + 2 : Nat) : ℝ)))) m]
+    apply Finset.sum_congr rfl
+    intro i hi
+    have hil : i < m := Finset.mem_range.mp hi
+    have hden : m - i + 1 = m - 1 - i + 2 := by omega
+    rw [hden]
+  exact h1.le.trans (sum_inv_range_add_two_le_harmonic (j := m))
+
+/-- The sum of `1/(dist k m + 1)` over `k < n` is at most `1 + 2 Hₙ`. -/
+lemma sum_inv_dist_le_one_add_two_harmonic {n : Nat} (m : Nat) (hm : m < n) :
+    (∑ k ∈ Finset.range n, (1 / (((Nat.dist k m) + 1 : Nat) : ℝ))) ≤
+      1 + 2 * (harmonic n : ℝ) := by
+  have hmn : m ≤ n := Nat.le_of_lt hm
+  have hleft : (∑ k ∈ Finset.range m, (1 / (((Nat.dist k m) + 1 : Nat) : ℝ))) =
+      ∑ k ∈ Finset.range m, (1 / (((m - k + 1 : Nat) : ℝ))) := by
+    apply Finset.sum_congr rfl
+    intro k hk
+    have hkm : k ≤ m := Nat.le_of_lt (Finset.mem_range.mp hk)
+    rw [Nat.dist_eq_sub_of_le hkm]
+  have hright : (∑ k ∈ Finset.range (n - m), (1 / (((Nat.dist (m + k) m) + 1 : Nat) : ℝ))) =
+      1 + ∑ d ∈ Finset.range (n - m - 1), (1 / (((d + 2 : Nat) : ℝ))) := by
+    have hsub : (∑ k ∈ Finset.range (n - m), (1 / (((Nat.dist (m + k) m) + 1 : Nat) : ℝ))) =
+        ∑ k ∈ Finset.range (n - m), (1 / (((k + 1 : Nat) : ℝ))) := by
+      apply Finset.sum_congr rfl
+      intro k hk
+      have hden : Nat.dist (m + k) m + 1 = k + 1 := by
+        rw [Nat.dist_comm, Nat.dist_eq_sub_of_le (by omega : m ≤ m + k)]
+        omega
+      exact congrArg (fun t : Nat => (1 / (t : ℝ))) hden
+    rw [hsub]
+    have hnm : (n - m - 1) + 1 = n - m := by omega
+    rw [show Finset.range (n - m) = Finset.range ((n - m - 1) + 1) by rw [hnm]]
+    rw [Finset.sum_range_succ' (fun k : Nat => (1 / (((k + 1 : Nat) : ℝ)))) (n - m - 1)]
+    rw [show (∑ k ∈ Finset.range (n - m - 1), (1 / ((((k + 1) + 1 : Nat) : ℝ)))) =
+        ∑ d ∈ Finset.range (n - m - 1), (1 / (((d + 2 : Nat) : ℝ))) from by
+      apply Finset.sum_congr rfl
+      intro d hd
+      have hden : (d + 1) + 1 = d + 2 := by omega
+      exact congrArg (fun t : Nat => (1 / (t : ℝ))) hden]
+    ring_nf
+  calc
+    (∑ k ∈ Finset.range n, (1 / (((Nat.dist k m) + 1 : Nat) : ℝ)))
+        = (∑ k ∈ Finset.range m, (1 / (((Nat.dist k m) + 1 : Nat) : ℝ))) +
+            (∑ k ∈ Finset.range (n - m), (1 / (((Nat.dist (m + k) m) + 1 : Nat) : ℝ))) := by
+            rw [show Finset.range n = Finset.range (m + (n - m)) by rw [Nat.add_sub_of_le hmn]]
+            rw [Finset.sum_range_add]
+        _ = (∑ k ∈ Finset.range m, (1 / (((m - k + 1 : Nat) : ℝ)))) +
+            1 + (∑ d ∈ Finset.range (n - m - 1), (1 / (((d + 2 : Nat) : ℝ)))) := by
+            rw [hleft, hright]
+            ring
+        _ ≤ (harmonic m : ℝ) + 1 + (harmonic (n - m - 1) : ℝ) := by
+            gcongr
+            · exact sum_inv_range_reflect_le_harmonic (m := m)
+            · exact sum_inv_range_add_two_le_harmonic (j := n - m - 1)
+        _ ≤ (harmonic n : ℝ) + 1 + (harmonic n : ℝ) := by
+            gcongr
+            · exact_mod_cast harmonic_mono hmn
+            · exact_mod_cast harmonic_mono (by omega)
+        _ = 1 + 2 * (harmonic n : ℝ) := by ring
+
+/-- **Expected depth is `O(log n)`.**  `E[depth j] ≤ 2·Hₙ` (CLRS Theorem 12.4's
+depth bound, via Lemma 12.4 and linearity of expectation). -/
+theorem expected_depth_le_two_harmonic {n : Nat} (j : Fin n) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) => (depth (j : Nat) (buildFromPerm π) : ℝ)) ≤
+      2 * (harmonic n : ℝ) := by
+  rw [expected_depth_eq]
+  let m : Nat := (j : Nat)
+  have hm : m < n := j.isLt
+  have hsum : (∑ i : Fin n, 1 / (intervalSize i j : ℝ)) ≤ 1 + 2 * (harmonic n : ℝ) := by
+    have hdist : ∀ i : Fin n, intervalSize i j = Nat.dist (i : Nat) m + 1 := by
+      intro i
+      simp [intervalSize, m, Nat.dist_eq_max_sub_min]
+    rw [show (∑ i : Fin n, 1 / (intervalSize i j : ℝ)) =
+        (∑ i : Fin n, 1 / (((Nat.dist (i : Nat) m) + 1 : Nat) : ℝ)) from by
+      apply Finset.sum_congr rfl
+      intro i hi
+      rw [hdist i]]
+    rw [Fin.sum_univ_eq_sum_range (fun k => (1 / (((Nat.dist k m) + 1 : Nat) : ℝ))) n]
+    exact sum_inv_dist_le_one_add_two_harmonic m hm
+  linarith
+
+/-- **Expected depth is `O(log n)`.**  `E[depth j] ≤ 2·(1 + log n)`. -/
+theorem expected_depth_le_O_log {n : Nat} (j : Fin n) :
+    fintypeExpect (fun π : Equiv.Perm (Fin n) => (depth (j : Nat) (buildFromPerm π) : ℝ)) ≤
+      2 * (1 + Real.log (n : ℝ)) := by
+  calc
+    fintypeExpect (fun π : Equiv.Perm (Fin n) => (depth (j : Nat) (buildFromPerm π) : ℝ))
+        ≤ 2 * (harmonic n : ℝ) := expected_depth_le_two_harmonic j
+    _ ≤ 2 * (1 + Real.log (n : ℝ)) := by
+        gcongr
+        exact harmonic_le_one_add_log n
+
 
 end BSTree
 
