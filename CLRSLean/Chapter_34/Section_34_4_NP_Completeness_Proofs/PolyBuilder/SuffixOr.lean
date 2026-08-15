@@ -337,4 +337,61 @@ theorem affineSuffixOrRev_steps_le (start base count : Nat) :
   simp [affineSuffixOrRevSteps, affineSuffixOrRevCoreSteps]
   nlinarith
 
+/-! ## Reusing the suffix scanner as one contextual OR gate -/
+
+/-- Exact encoding of one contextual OR gate, without allocating the suffix
+scanner's usual false seed. -/
+def affineOrGateStream (left right : Nat) : List CircuitSym :=
+  encodeCircuitGate (.or left right)
+
+/-- Contextual entry for a one-element suffix scan. -/
+def affineOrBodyCfg (left right : Nat) (output : List CircuitSym) :
+    BuilderCfg sequentialExactlyOneRevProgram :=
+  sequentialExactlyOneCfg (.suffixOr .next) none none false [] output
+    [()] [] (List.replicate left ()) [] (List.replicate (right + 1) ())
+
+/-- Exact cost through the clean redirectable halt label. -/
+def affineOrRevCoreSteps (left right : Nat) : Nat :=
+  6 * left + 6 * right + 17
+
+/-- The established suffix-OR kernel serializes one arbitrary OR gate and
+clears every register before reaching its public halt label. -/
+def affineOrRev_runToHaltLabel (left right : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineOrBodyCfg left right output)
+      (some (sequentialExactlyOneCfg .halt none none false []
+        ((affineOrGateStream left right).reverse ++ output)
+        [] [] [] [] []))
+      (affineOrRevCoreSteps left right) := by
+  have hloop := affineSuffixOr_loop left right 1 none output
+  let gateOutput := (affineOrGateStream left right).reverse ++ output
+  let afterLoop := sequentialExactlyOneCfg (.suffixOr .next)
+    (some ()) none false [] gateOutput [] []
+    (List.replicate (left + 1) ()) [] (List.replicate right ())
+  let beforeClear := sequentialExactlyOneCfg .clear₁
+    none none false [] gateOutput [] []
+    (List.replicate (left + 1) ()) [] (List.replicate right ())
+  have hloop' : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineOrBodyCfg left right output) (some afterLoop)
+      (affineSuffixOrLoopSteps left right 1) := by
+    simpa [affineOrBodyCfg, afterLoop, gateOutput, affineOrGateStream,
+      AffineSuffixOr.chunksFrom, encodeCircuitGate] using hloop
+  have hexit : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      afterLoop (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
+  have hclear : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      beforeClear
+      (some (sequentialExactlyOneCfg .halt none none false []
+        gateOutput [] [] [] [] []))
+      (left + 1 + right + 3) := by
+    convert clearAllRegistersToHaltLabel (left + 1) 0 right
+      none gateOutput using 1 <;> simp [beforeClear]
+  let throughExit := EvalsToInTime.trans
+    (step sequentialExactlyOneRevProgram)
+    (affineSuffixOrLoopSteps left right 1) 1 _ afterLoop _ hloop' hexit
+  let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    _ (left + 1 + right + 3) _ beforeClear _ throughExit hclear
+  convert full using 1 <;>
+    simp [affineOrRevCoreSteps, affineSuffixOrLoopSteps, gateOutput] <;> omega
+
 end CLRS.Chapter34.Turing.PolyBuilder
