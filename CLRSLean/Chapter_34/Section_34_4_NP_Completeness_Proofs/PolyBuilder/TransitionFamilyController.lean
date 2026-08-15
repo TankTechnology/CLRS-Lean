@@ -260,6 +260,95 @@ def affineTransitionFamilyRunSteps : List AffineTransitionScript → Nat
       2 + affineTransitionRunToFinishSteps script + 1 +
         affineTransitionFamilyRunSteps rest
 
+/-- Exact runtime through every local transition while stopping at the outer
+family check, before the controller inspects the first symbol of a following
+phase. -/
+def affineTransitionFamilyBodySteps : List AffineTransitionScript → Nat
+  | [] => 0
+  | script :: rest =>
+      2 + affineTransitionRunToFinishSteps script + 1 +
+        affineTransitionFamilyBodySteps rest
+
+/-- Execute a runtime-length transition family and return to the clean outer
+check state without consuming the following unary suffix. -/
+def affineTransitionFamily_runToCheckWithTail
+    (scripts : List AffineTransitionScript) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineTransitionFamilyRevProgram)
+      (affineTransitionFamilyLoopCfg
+        (encodeAffineTransitionFamily scripts ++ tail.map .data) output)
+      (some (affineTransitionFamilyLoopCfg (tail.map .data)
+        ((affineTransitionFamilyGateStream scripts).reverse ++ output)))
+      (affineTransitionFamilyBodySteps scripts) := by
+  induction scripts generalizing output with
+  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
+  | cons script rest ih =>
+      let familyTail := encodeAffineTransitionFamilyUnary rest ++ tail
+      let localOutput :=
+        (affineTransitionGateStream script).reverse ++ output
+      have hinput :
+          encodeAffineTransitionFamily (script :: rest) ++ tail.map .data =
+            .data .frameEnd ::
+              encodeAffineTransitionScriptWithTail script familyTail := by
+        simp [encodeAffineTransitionFamily,
+          encodeAffineTransitionFamilyUnary, familyTail,
+          encodeAffineTransitionScriptWithTail_eq_map, List.map_append,
+          List.append_assoc]
+      have hstart : EvalsToInTime (step affineTransitionFamilyRevProgram)
+          (affineTransitionFamilyLoopCfg
+            (encodeAffineTransitionFamily (script :: rest) ++ tail.map .data)
+            output)
+          (some (affineTransitionFamilyLiftCfg
+            (affineTransitionLoopCfg
+              (encodeAffineTransitionScriptWithTail script familyTail)
+              output))) 2 := by
+        rw [hinput]
+        exact ⟨⟨2, rfl⟩, le_rfl⟩
+      have hsource := affineTransition_runToFinishWithTail
+        script familyTail output
+      have hlocal := affineTransitionFamilyLift_runToFinish rfl _ hsource
+      have htail : familyTail.map .data =
+          encodeAffineTransitionFamily rest ++ tail.map .data := by
+        simp [familyTail, encodeAffineTransitionFamily, List.map_append]
+      have hreturn : EvalsToInTime (step affineTransitionFamilyRevProgram)
+          (affineTransitionFamilyLiftCfg
+            (affineTransitionFinishInputCfg familyTail localOutput))
+          (some (affineTransitionFamilyLoopCfg
+            (encodeAffineTransitionFamily rest ++ tail.map .data)
+            localOutput)) 1 := by
+        rw [← htail]
+        exact ⟨⟨1, rfl⟩, le_rfl⟩
+      have hrest := ih localOutput
+      let throughLocal := EvalsToInTime.trans
+        (step affineTransitionFamilyRevProgram) 2
+        (affineTransitionRunToFinishSteps script) _ _ _ hstart
+        (by simpa [localOutput] using hlocal)
+      let throughReturn := EvalsToInTime.trans
+        (step affineTransitionFamilyRevProgram)
+        (2 + affineTransitionRunToFinishSteps script) 1 _
+        (affineTransitionFamilyLiftCfg
+          (affineTransitionFinishInputCfg familyTail localOutput)) _
+        (by
+          convert throughLocal using 1
+          omega)
+        hreturn
+      let full := EvalsToInTime.trans
+        (step affineTransitionFamilyRevProgram)
+        (2 + affineTransitionRunToFinishSteps script + 1)
+        (affineTransitionFamilyBodySteps rest) _
+        (affineTransitionFamilyLoopCfg
+          (encodeAffineTransitionFamily rest ++ tail.map .data)
+          localOutput) _
+        (by
+          convert throughReturn using 1
+          omega)
+        hrest
+      convert full using 1
+      · simp [affineTransitionFamilyGateStream, localOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineTransitionFamilyBodySteps]
+        omega
+
 /-- A single fixed controller executes every local script in a runtime-length
 family and stops at a clean outer finish. -/
 def affineTransitionFamily_runToFinish
@@ -386,6 +475,21 @@ theorem affineTransitionRunToFinish_steps_le
   simp [affineOrThenNotRevSteps] at hnarrow'
   simp only [affineTransitionRunToFinishSteps]
   omega
+
+/-- The transition-family body is linear in the exact family encoding and
+does not charge the following phase separator. -/
+theorem affineTransitionFamilyBody_steps_le
+    (scripts : List AffineTransitionScript) :
+    affineTransitionFamilyBodySteps scripts ≤
+      500 * (encodeAffineTransitionFamily scripts).length := by
+  induction scripts with
+  | nil => simp [affineTransitionFamilyBodySteps,
+      encodeAffineTransitionFamily, encodeAffineTransitionFamilyUnary]
+  | cons script rest ih =>
+      have hscript := affineTransitionRunToFinish_steps_le script
+      simp [affineTransitionFamilyBodySteps, encodeAffineTransitionFamily,
+        encodeAffineTransitionFamilyUnary, List.length_append] at *
+      omega
 
 /-- The family runtime is linear in its exact delimiter-bearing unary input. -/
 theorem affineTransitionFamily_steps_le

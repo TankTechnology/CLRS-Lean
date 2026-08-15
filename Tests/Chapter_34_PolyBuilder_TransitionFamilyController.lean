@@ -8,8 +8,13 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check encodeAffineTransitionFamily
 #check affineTransitionFamilyGateStream
 #check affineTransitionFamilyRunSteps
+#check affineTransitionFamilyBodySteps
+#check affineTransitionFamily_runToCheckWithTail
+#check affineTransitionFamilyBody_steps_le
 #check affineTransitionFamily_run
 #check affineTransitionFamily_steps_le
 
+#print axioms affineTransitionFamily_runToCheckWithTail
+#print axioms affineTransitionFamilyBody_steps_le
 #print axioms affineTransitionFamily_run
 #print axioms affineTransitionFamily_steps_le
