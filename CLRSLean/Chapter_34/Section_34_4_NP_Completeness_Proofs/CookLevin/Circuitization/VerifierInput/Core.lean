@@ -67,6 +67,50 @@ def verifierInputShapeCircuit {Γ : Type} {L : Language Γ}
           verifierInputShapeGateCost]
         omega }
 
+/-- Literal three-phase trace of the complete verifier-input shape circuit:
+separator negations, candidate-length conjunction arms, and the final
+disjunction. -/
+def verifierInputShapeGateTrace {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (H : Nat) (x : List Γ)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (inputStack : StackWires W.machine.tm H W.machine.tm.k₀)
+    (hinputStack : inputStack.ValidIn base) : List CircuitGate :=
+  let separatorNots := VerifierInput.buildSeparatorNots base inputStack
+    hinputStack (verifierInputCode W none)
+  let pool' := pool.mono separatorNots.extension
+  let hstack' := hinputStack.mono separatorNots.extension
+  let bound := W.certificateBound.eval x.length
+  let arms := VerifierInput.buildInputArms W H x separatorNots.builder pool'
+    inputStack hstack' separatorNots.wires separatorNots.valid
+      (fun inputs cell => by
+        rw [separatorNots.eval, separatorNots.extension.evalWire_eq inputs
+          (hinputStack.cell cell (verifierInputCode W none))]) (bound + 1)
+  VerifierInput.separatorNotsGateTrace inputStack
+      (verifierInputCode W none) ++
+    VerifierInput.inputArmsGateTrace W H x separatorNots.builder pool'
+      inputStack hstack' separatorNots.wires separatorNots.valid
+      (fun inputs cell => by
+        rw [separatorNots.eval, separatorNots.extension.evalWire_eq inputs
+          (hinputStack.cell cell (verifierInputCode W none))]) (bound + 1) ++
+    (CircuitBuilder.disjunctionGateTrace arms.builder.gates.length
+      (List.ofFn arms.wires)).gates
+
+/-- The proof-carrying input-shape builder appends exactly the literal
+three-phase trace. -/
+theorem verifierInputShapeCircuit_gates_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (H : Nat) (x : List Γ)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (inputStack : StackWires W.machine.tm H W.machine.tm.k₀)
+    (hinputStack : inputStack.ValidIn base) :
+    (verifierInputShapeCircuit W H base pool inputStack hinputStack x).builder.gates =
+      base.gates ++ verifierInputShapeGateTrace W H x base pool inputStack
+        hinputStack := by
+  simp only [verifierInputShapeCircuit, verifierInputShapeGateTrace]
+  rw [CircuitBuilder.disjunction_gates_eq]
+  rw [VerifierInput.buildInputArms_gates_eq]
+  rw [VerifierInput.buildSeparatorNots_gates_eq]
+  simp only [List.append_assoc]
+
 theorem verifierInputShapeCircuit_extends {Γ : Type} {L : Language Γ}
     (W : VerifierWitness L) (H : Nat) (base : CircuitBuilder)
     (pool : base.BoolWirePool)
