@@ -1,0 +1,23 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Statement
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineStmtPhase
+#check affineStmtPhaseGateStream
+#check affineStmtScriptGateStream
+#check AffineStmtScriptSym
+#check encodeAffineStmtPhase
+#check encodeAffineStmtScript
+#check encodeAffineStmtPhase_length
+#check affineStmtPhaseStandaloneSteps
+#check affineStmtScriptStandaloneSteps
+#check affineStmtPhaseStandaloneSteps_le
+#check affineStmtScriptStandaloneSteps_le
+#check compileStmtScript
+#check compileStmtScript_gateStream_eq_trace
+
+#print axioms encodeAffineStmtPhase_length
+#print axioms affineStmtScriptStandaloneSteps_le
+#print axioms compileStmtScript_gateStream_eq_trace

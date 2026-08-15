@@ -18,8 +18,10 @@ polynomial runtime bound.
       `affineEqFinCanonical_run` and `affineMuxFinCanonical_run`; narrowing is
       closed by `affineNarrowCfg_run`. All statement primitives, including the
       height-sensitive `pop` merge, now have exact fixed-controller runs; the
-      remaining gap is their non-halting composition into one recursive
-      statement-dispatch run.
+      recursive compiler now lowers to a tagged five-kind runtime phase script
+      whose interpreted bytes equal `compileStmtGateTrace`, with a uniform
+      linear aggregate component budget. The remaining gap is one controller
+      executing those tags without intermediate halts.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
       polynomial bound in the exact runtime encoding.  The semantic target is
@@ -71,3 +73,10 @@ polynomial runtime bound.
 - Splitting `pop` into separately selected programs for `H = 0` and `H > 0`
   would make the machine depend on a runtime dimension. The accepted controller
   handles the empty and singleton frame lists with the same fixed program.
+- Concatenating untagged unary component frames is ambiguous because the same
+  three delimiter symbols have phase-local meanings. The accepted statement
+  input uses five finite phase tags and embeds only unary operand frames.
+- Feeding the controller a pre-serialized target gate list would make execution
+  tautological. `compileStmtScript` stores wire operands and phase boundaries;
+  `compileStmtScript_gateStream_eq_trace` separately proves that interpreting
+  those operands yields the semantic trace.
