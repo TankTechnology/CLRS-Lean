@@ -1,0 +1,16 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionController
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineTransitionControllerLabel
+#check affineTransitionRevProgram
+#check affineTransitionLoopCfg
+#check affineTransitionRunSteps
+#check affineTransition_run
+#check compileTransitionScript_run
+#check affineTransition_steps_le
+
+#print axioms affineTransition_run
+#print axioms compileTransitionScript_run
+#print axioms affineTransition_steps_le

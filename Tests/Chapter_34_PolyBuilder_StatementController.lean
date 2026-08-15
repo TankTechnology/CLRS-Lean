@@ -43,6 +43,11 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineStmt_run
 #check affineStmtScriptRun_steps_le
 #check compileStmtScript_run
+#check affineStmtTransitionBoundaryCode
+#check encodeAffineStmtTransitionInput
+#check affineStmtFinishInputCfg
+#check affineStmtScriptFinishSteps
+#check affineStmt_runToFinishWithTail
 #check affineStmt_emptyPop_redirect
 #check affineStmt_emptyOneHotMap_redirect
 #check affineStmt_emptyPredicate_redirect
@@ -57,6 +62,7 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms affineStmt_run
 #print axioms affineStmtScriptRun_steps_le
 #print axioms compileStmtScript_run
+#print axioms affineStmt_runToFinishWithTail
 #print axioms affineStmt_emptyPop_redirect
 #print axioms affineStmt_emptyPredicate_redirect
 #print axioms affineStmt_emptyPairMap_redirect

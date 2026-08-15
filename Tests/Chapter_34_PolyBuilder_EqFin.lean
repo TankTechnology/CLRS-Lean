@@ -13,6 +13,9 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineEqFinCanonicalFrames
 #check affineEqFinCanonicalGateStream_eq_trace
 #check affineEqFin_runToFinish
+#check affineEqFinBodySteps
+#check affineEqFinFrames_runToCheck
+#check affineEqFin_runToCheck
 #check affineEqFinCanonical_run
 #check affineEqFinRev_steps_le
 
@@ -44,6 +47,7 @@ example : affineEqFinRevSteps
 #print axioms affineExactlyOneFamily_and_runToFinish
 #print axioms affineEqFinCanonicalGateStream_eq_trace
 #print axioms affineEqFin_runToFinish
+#print axioms affineEqFinFrames_runToCheck
+#print axioms affineEqFin_runToCheck
 #print axioms affineEqFinCanonical_run
 #print axioms affineEqFinRev_steps_le
-

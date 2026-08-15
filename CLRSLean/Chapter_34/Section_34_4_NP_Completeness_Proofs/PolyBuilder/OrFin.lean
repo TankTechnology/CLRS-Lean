@@ -242,6 +242,12 @@ def affineOrFinFinishCfg (output : List CircuitSym) :
     BuilderCfg affineOrFinRevProgram :=
   affineOrFinCfg .finish none none false [] output [] [] [] [] []
 
+/-- Redirectable finish state that preserves a runtime suffix for an outer
+controller.  The standalone public finish is the empty-suffix specialization. -/
+def affineOrFinFinishInputCfg (input : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineOrFinRevProgram :=
+  affineOrFinCfg .finish none none false input output [] [] [] [] []
+
 private def relabelCfg {P : Program UnaryFrameSym CircuitSym}
     (tag : P.Label → AffineOrFinLabel) (c : BuilderCfg P) :
     BuilderCfg affineOrFinRevProgram where
@@ -1841,15 +1847,21 @@ def affineOrThenNotUntilFinishSteps
   affineOrFinBodySteps frames + unaryTripleLoaderSteps 0 0 source +
     affineExactlyOneFamilyNotUntilFinishSteps source + 5
 
-def affineOrThenNot_runToFinish (frames : List AffineOrFinPairFrame)
-    (source : Nat) (output : List CircuitSym) :
+/-- Execute an OR-then-NOT phase while preserving an arbitrary unary suffix at
+the public finish label.  This is the composition contract used by an outer
+transition controller. -/
+def affineOrThenNot_runToFinishWithTail
+    (frames : List AffineOrFinPairFrame) (source : Nat)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
     EvalsToInTime (step affineOrFinRevProgram)
-      (affineOrThenNotLoopCfg (encodeAffineOrThenNotInput frames source) output)
-      (some (affineOrFinFinishCfg
+      (affineOrThenNotLoopCfg
+        (encodeAffineOrThenNotInput frames source ++ tail) output)
+      (some (affineOrFinFinishInputCfg tail
         ((affineOrThenNotGateStream frames source).reverse ++ output)))
       (affineOrThenNotUntilFinishSteps frames source) := by
   let seeded := .constFalseMark :: output
-  let notInput := encodeUnaryFrame [0, 0, source] ++ [.frameEnd]
+  let notInput :=
+    encodeUnaryFrame [0, 0, source] ++ [.frameEnd] ++ tail
   have hseed : EvalsToInTime (step affineOrFinRevProgram)
       (affineOrThenNotLoopCfg
         (encodeAffineOrFinFrames frames ++ .tick :: notInput) output)
@@ -1870,30 +1882,31 @@ def affineOrThenNot_runToFinish (frames : List AffineOrFinPairFrame)
   let loaderStart := liftNarrowNotLoaderCfg
     (unaryTripleLoaderCfg .load₁ none notInput orOutput [] [] [] [] [])
   let loaderReady := liftNarrowNotLoaderCfg
-    (unaryTripleLoaderReadyCfg 0 0 source [.frameEnd] orOutput [] [])
+    (unaryTripleLoaderReadyCfg 0 0 source (.frameEnd :: tail)
+      orOutput [] [])
   let notStart := liftNarrowNotCfg
-    (affineExactlyOneFamilyNotReadyCfg source [] orOutput)
+    (affineExactlyOneFamilyNotReadyCfg source tail orOutput)
   let gateOutput :=
     (affineNotGateStream source).reverse ++ orOutput
   let notDone := liftNarrowNotCfg
-    (affineExactlyOneFamilyFinishCfg [] gateOutput)
+    (affineExactlyOneFamilyFinishCfg tail gateOutput)
   have hmarker : EvalsToInTime (step affineOrFinRevProgram)
       (affineOrThenNotCheckCfg (.tick :: notInput) orOutput)
       (some loaderStart) 2 := ⟨⟨2, rfl⟩, le_rfl⟩
   have hloader : EvalsToInTime (step affineOrFinRevProgram)
       loaderStart (some loaderReady)
       (unaryTripleLoaderSteps 0 0 source) := by
-    simpa [loaderStart, loaderReady, notInput] using
-      affineOrThenNot_notLoader_run source [] orOutput
+    simpa [loaderStart, loaderReady, notInput, List.append_assoc] using
+      affineOrThenNot_notLoader_run source tail orOutput
   have hnormalize : EvalsToInTime (step affineOrFinRevProgram)
       loaderReady (some notStart) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hnot : EvalsToInTime (step affineOrFinRevProgram)
       notStart (some notDone)
       (affineExactlyOneFamilyNotUntilFinishSteps source) := by
     simpa [notStart, notDone, gateOutput] using
-      affineOrThenNot_not_run source [] orOutput
+      affineOrThenNot_not_run source tail orOutput
   have hfinish : EvalsToInTime (step affineOrFinRevProgram)
-      notDone (some (affineOrFinFinishCfg gateOutput)) 1 :=
+      notDone (some (affineOrFinFinishInputCfg tail gateOutput)) 1 :=
     ⟨⟨1, rfl⟩, le_rfl⟩
   let t₁ := EvalsToInTime.trans (step affineOrFinRevProgram)
     1 (affineOrFinBodySteps frames) _
@@ -1918,6 +1931,16 @@ def affineOrThenNot_runToFinish (frames : List AffineOrFinPairFrame)
       gateOutput, orOutput, List.reverse_append, List.append_assoc]
   · simp [affineOrThenNotUntilFinishSteps]
     omega
+
+def affineOrThenNot_runToFinish (frames : List AffineOrFinPairFrame)
+    (source : Nat) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrThenNotLoopCfg (encodeAffineOrThenNotInput frames source) output)
+      (some (affineOrFinFinishCfg
+        ((affineOrThenNotGateStream frames source).reverse ++ output)))
+      (affineOrThenNotUntilFinishSteps frames source) := by
+  simpa [affineOrFinFinishInputCfg, affineOrFinFinishCfg] using
+    affineOrThenNot_runToFinishWithTail frames source [] output
 
 def affineOrThenNotRevSteps (frames : List AffineOrFinPairFrame)
     (source : Nat) : Nat :=

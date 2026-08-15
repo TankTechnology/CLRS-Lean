@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionScript
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineTransitionScript
+#check encodeAffineTransitionTail
+#check encodeAffineTransitionScript
+#check affineTransitionGateStream
+#check compileTransitionScript
+#check compileTransitionScript_gateStream_eq_trace
+
+#print axioms compileTransitionScript_gateStream_eq_trace
