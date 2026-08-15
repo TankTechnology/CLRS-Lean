@@ -241,20 +241,25 @@ private def affineSuffixOr_loop
       · simp [affineSuffixOrLoopSteps]
         omega
 
-/-- Exact total running time, including the empty-loop exit and cleanup. -/
-def affineSuffixOrRevSteps (start base count : Nat) : Nat :=
-  affineSuffixOrLoopSteps start base count + start + count + base + 5
+/-- Exact running time through scratch cleanup, stopping at the redirectable
+halt label. -/
+def affineSuffixOrRevCoreSteps (start base count : Nat) : Nat :=
+  affineSuffixOrLoopSteps start base count + start + count + base + 4
 
-/-- From arbitrary affine indices and output suffix, the shared counter
-program emits the exact reversed suffix-OR encoding and clears all scratch
-state before halting. -/
-def affineSuffixOrRev_runFrom (start base count : Nat)
+/-- Exact total running time, including the final halt instruction. -/
+def affineSuffixOrRevSteps (start base count : Nat) : Nat :=
+  affineSuffixOrRevCoreSteps start base count + 1
+
+/-- Emit the exact reversed suffix-OR encoding, clear all scratch state, and
+stop at the public halt label so a larger fixed controller may redirect it. -/
+def affineSuffixOrRev_runToHaltLabel (start base count : Nat)
     (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
       (affineSuffixOrBodyCfg start base count output)
-      (some (haltCfg sequentialExactlyOneRevProgram
-        ((affineSuffixOrGateStream start base count).reverse ++ output)))
-      (affineSuffixOrRevSteps start base count) := by
+      (some (sequentialExactlyOneCfg .halt none none false []
+        ((affineSuffixOrGateStream start base count).reverse ++ output)
+        [] [] [] [] []))
+      (affineSuffixOrRevCoreSteps start base count) := by
   let seedOutput := .constFalseMark :: output
   have hloop := affineSuffixOr_loop start base count none seedOutput
   let beforeClear := sequentialExactlyOneCfg .clear₁
@@ -271,11 +276,11 @@ def affineSuffixOrRev_runFrom (start base count : Nat)
       (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hclear : EvalsToInTime (step sequentialExactlyOneRevProgram)
       beforeClear
-      (some (haltCfg sequentialExactlyOneRevProgram
+      (some (sequentialExactlyOneCfg .halt none none false []
         (((AffineSuffixOr.chunksFrom start base count).flatMap
-          encodeCircuitGate).reverse ++ seedOutput)))
-      (start + count + base + 4) := by
-    convert clearAllRegisters (start + count) 0 base
+          encodeCircuitGate).reverse ++ seedOutput) [] [] [] [] []))
+      (start + count + base + 3) := by
+    convert clearAllRegistersToHaltLabel (start + count) 0 base
       none
       (((AffineSuffixOr.chunksFrom start base count).flatMap
         encodeCircuitGate).reverse ++ seedOutput) using 1 <;>
@@ -283,13 +288,36 @@ def affineSuffixOrRev_runFrom (start base count : Nat)
   let throughExit := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     (affineSuffixOrLoopSteps start base count) 1 _ _ _ hloop hexit
   let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
-    _ (start + count + base + 4) _ beforeClear _ throughExit hclear
+    _ (start + count + base + 3) _ beforeClear _ throughExit hclear
   convert full using 1
   · simp [affineSuffixOrBodyCfg, seedOutput]
   · simp [affineSuffixOrGateStream, seedOutput, List.append_assoc,
       encodeCircuitGate]
-  · simp [affineSuffixOrRevSteps]
+  · simp [affineSuffixOrRevCoreSteps]
     omega
+
+/-- From arbitrary affine indices and output suffix, the shared counter
+program emits the exact reversed suffix-OR encoding and clears all scratch
+state before halting. -/
+def affineSuffixOrRev_runFrom (start base count : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineSuffixOrBodyCfg start base count output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((affineSuffixOrGateStream start base count).reverse ++ output)))
+      (affineSuffixOrRevSteps start base count) := by
+  let beforeHalt := sequentialExactlyOneCfg .halt none none false []
+    ((affineSuffixOrGateStream start base count).reverse ++ output)
+    [] [] [] [] []
+  have hcore := affineSuffixOrRev_runToHaltLabel start base count output
+  have hhalt : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      beforeHalt
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((affineSuffixOrGateStream start base count).reverse ++ output))) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    (affineSuffixOrRevCoreSteps start base count) 1 _ beforeHalt _ hcore hhalt
+  simpa [affineSuffixOrRevSteps, Nat.add_comm] using full
 
 private theorem affineSuffixOrLoopSteps_le (start base count : Nat) :
     affineSuffixOrLoopSteps start base count ≤
@@ -306,7 +334,7 @@ theorem affineSuffixOrRev_steps_le (start base count : Nat) :
     affineSuffixOrRevSteps start base count ≤
       25 * (start + base + count + 1) ^ 2 := by
   have h := affineSuffixOrLoopSteps_le start base count
-  simp [affineSuffixOrRevSteps]
+  simp [affineSuffixOrRevSteps, affineSuffixOrRevCoreSteps]
   nlinarith
 
 end CLRS.Chapter34.Turing.PolyBuilder

@@ -307,10 +307,10 @@ private def affineBoolEq_resultGates (start : Nat)
       (sequentialExactlyOneCfg (.boolEq .andStart) none none false []
         output [] [] (List.replicate start ())
         (List.replicate (start + 1) ()) [])
-      (some (haltCfg sequentialExactlyOneRevProgram
+      (some (sequentialExactlyOneCfg .halt none none false []
         (([.and start (start + 1), .or (start + 2) (start + 3)].flatMap
-          encodeCircuitGate).reverse ++ output)))
-      (22 * start + 61) := by
+          encodeCircuitGate).reverse ++ output) [] [] [] [] []))
+      (22 * start + 60) := by
   let c₀ := sequentialExactlyOneCfg (.encode .seen .boolEqAndStart)
     none none false [] (.andMark :: output) [] []
     (List.replicate start ()) (List.replicate (start + 1) ()) []
@@ -426,9 +426,12 @@ private def affineBoolEq_resultGates (start : Nat)
   have h₁₃ : EvalsToInTime (step sequentialExactlyOneRevProgram)
       c₁₂ (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hclear : EvalsToInTime (step sequentialExactlyOneRevProgram)
-      beforeClear (some (haltCfg sequentialExactlyOneRevProgram out₂))
-      (2 * start + 9) := by
-    convert clearAllRegisters (start + 2) (start + 3) 0 none out₂ using 1
+      beforeClear
+      (some (sequentialExactlyOneCfg .halt none none false [] out₂
+        [] [] [] [] []))
+      (2 * start + 8) := by
+    convert clearAllRegistersToHaltLabel
+      (start + 2) (start + 3) 0 none out₂ using 1
     · rfl
     · omega
   let t₁ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
@@ -458,12 +461,17 @@ private def affineBoolEq_resultGates (start : Nat)
   let t₁₃ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     _ 1 _ c₁₂ _ t₁₂ h₁₃
   let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
-    _ (2 * start + 9) _ beforeClear _ t₁₃ hclear
+    _ (2 * start + 8) _ beforeClear _ t₁₃ hclear
   convert full using 1
   · simp [out₂, out₁, List.reverse_append, List.append_assoc]
   · omega
 
 /-! ## Public contextual contract -/
+
+/-- Exact running time through scratch cleanup, stopping at the final halt
+label so a larger fixed controller may redirect that continuation. -/
+def affineBoolEqRevCoreSteps (start left right : Nat) : Nat :=
+  27 * start + 11 * left + 11 * right + 84
 
 /-- Exact running time of the reversed contextual Boolean-equality builder. -/
 def affineBoolEqRevSteps (start left right : Nat) : Nat :=
@@ -476,16 +484,16 @@ theorem affineBoolEqGateStream_eq_trace (start left right : Nat) :
         encodeCircuitGate := by
   rfl
 
-/-- From arbitrary affine wire indices and an arbitrary existing suffix, the
-counter program emits exactly the reversed Boolean-equality encoding and
-clears all scratch state before halting. -/
-def affineBoolEqRev_runFrom (start left right : Nat)
+/-- Emit the exact reversed Boolean-equality encoding, clear every scratch
+stack, and stop at the final halt label without executing it. -/
+def affineBoolEqRev_runToHaltLabel (start left right : Nat)
     (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
       (affineBoolEqBodyCfg start left right output)
-      (some (haltCfg sequentialExactlyOneRevProgram
-        ((affineBoolEqGateStream start left right).reverse ++ output)))
-      (affineBoolEqRevSteps start left right) := by
+      (some (sequentialExactlyOneCfg .halt none none false []
+        ((affineBoolEqGateStream start left right).reverse ++ output)
+        [] [] [] [] []))
+      (affineBoolEqRevCoreSteps start left right) := by
   let operandStream :=
     [.not left, .not right, .and left right].flatMap encodeCircuitGate
   let operandOutput := operandStream.reverse ++ output
@@ -506,10 +514,10 @@ def affineBoolEqRev_runFrom (start left right : Nat)
       affineBoolEq_prepare start left right operandOutput
   have hresults : EvalsToInTime (step sequentialExactlyOneRevProgram)
       afterPrepare
-      (some (haltCfg sequentialExactlyOneRevProgram
+      (some (sequentialExactlyOneCfg .halt none none false []
         (([.and start (start + 1), .or (start + 2) (start + 3)].flatMap
-          encodeCircuitGate).reverse ++ operandOutput)))
-      (22 * start + 61) := by
+          encodeCircuitGate).reverse ++ operandOutput) [] [] [] [] []))
+      (22 * start + 60) := by
     simpa [afterPrepare] using affineBoolEq_resultGates start operandOutput
   let throughPrepare := EvalsToInTime.trans
     (step sequentialExactlyOneRevProgram)
@@ -517,12 +525,37 @@ def affineBoolEqRev_runFrom (start left right : Nat)
     _ afterOperands _ hoperands hprepare
   let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     ((left + right + 5 * start + 5) + (10 * left + 10 * right + 19))
-    (22 * start + 61) _ afterPrepare _ throughPrepare hresults
+    (22 * start + 60) _ afterPrepare _ throughPrepare hresults
   convert full using 1
   · simp [affineBoolEqGateStream, CircuitBuilder.boolEqGateTrace,
       operandOutput, operandStream, List.reverse_append, List.append_assoc]
-  · simp [affineBoolEqRevSteps]
+  · simp [affineBoolEqRevCoreSteps]
     omega
+
+/-- From arbitrary affine wire indices and an arbitrary existing suffix, the
+counter program emits exactly the reversed Boolean-equality encoding and
+clears all scratch state before halting. -/
+def affineBoolEqRev_runFrom (start left right : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineBoolEqBodyCfg start left right output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((affineBoolEqGateStream start left right).reverse ++ output)))
+      (affineBoolEqRevSteps start left right) := by
+  let beforeHalt := sequentialExactlyOneCfg .halt none none false []
+    ((affineBoolEqGateStream start left right).reverse ++ output)
+    [] [] [] [] []
+  have hcore := affineBoolEqRev_runToHaltLabel start left right output
+  have hhalt : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      beforeHalt
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((affineBoolEqGateStream start left right).reverse ++ output))) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    (affineBoolEqRevCoreSteps start left right) 1 _ beforeHalt _ hcore hhalt
+  convert full using 1
+  simp [affineBoolEqRevCoreSteps, affineBoolEqRevSteps]
+  omega
 
 /-- A uniform quadratic envelope for contextual Boolean equality. -/
 theorem affineBoolEqRev_steps_le (start left right : Nat) :

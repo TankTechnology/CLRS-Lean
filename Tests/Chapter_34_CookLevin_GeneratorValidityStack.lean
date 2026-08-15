@@ -31,15 +31,33 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticStackCellGateStream
 #check arithmeticStackCellGateStream_eq_semantic
 #check arithmeticStackCellGateStream_eq_block
+#check arithmeticStackCellRev_runToHaltLabel
+#check arithmeticStackCellRev_runFrom
+#check arithmeticStackCellRev_steps_le
 #check arithmeticStackCellFamilyGateStream
 #check arithmeticStackCellFamilyGateStream_eq_semantic
+#check arithmeticStackCellFrames
+#check arithmeticStackCellFamilyGateStream_eq_framed
+#check arithmeticStackCellFamilyRev_runFrom
+#check arithmeticStackCellFamilyRev_steps_le
 #check arithmeticStackGateStream
+#check arithmeticStackFrame
+#check arithmeticStackGateStream_eq_framed
+#check arithmeticStackRev_runFrom
+#check arithmeticStackRev_steps_le
 #check arithmeticStackGateStream_eq_semantic
 #check arithmeticStackGateStream_eq_block
 #check arithmeticStackFamilyGateStream
+#check arithmeticStackFrames
+#check arithmeticStackFamilyGateStream_eq_framed
+#check arithmeticStackFamilyRev_runFrom
+#check arithmeticStackFamilyRev_steps_le
 #check arithmeticStackFamilyGateStream_eq_semantic
 #check arithmeticStackFamilyGateStream_prefix_postHalted
+#check arithmeticValidityConstraintWires
+#check arithmeticValidityFinalStart
 #check arithmeticValidityFinalConjunctionGateStream
+#check arithmeticValidityFinalConjunctionGateStream_eq_semantic
 #check arithmeticValidityPostHaltedMatch_eq_stack_append_final
 
 #print axioms arithmeticStackMaskOutputWire_eq_trace
@@ -56,10 +74,23 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms arithmeticStackCellBoolEqRev_steps_le
 #print axioms arithmeticStackCellGateStream_eq_semantic
 #print axioms arithmeticStackCellGateStream_eq_block
+#print axioms arithmeticStackCellRev_runToHaltLabel
+#print axioms arithmeticStackCellRev_runFrom
+#print axioms arithmeticStackCellRev_steps_le
 #print axioms arithmeticStackCellFamilyGateStream_eq_semantic
+#print axioms arithmeticStackCellFamilyGateStream_eq_framed
+#print axioms arithmeticStackCellFamilyRev_runFrom
+#print axioms arithmeticStackCellFamilyRev_steps_le
 #print axioms arithmeticStackGateStream_eq_semantic
+#print axioms arithmeticStackGateStream_eq_framed
+#print axioms arithmeticStackRev_runFrom
+#print axioms arithmeticStackRev_steps_le
+#print axioms arithmeticStackFamilyGateStream_eq_framed
+#print axioms arithmeticStackFamilyRev_runFrom
+#print axioms arithmeticStackFamilyRev_steps_le
 #print axioms arithmeticStackOrdinal_equiv_symm
 #print axioms arithmeticStackGateStream_eq_block
 #print axioms arithmeticStackFamilyGateStream_eq_semantic
 #print axioms arithmeticStackFamilyGateStream_prefix_postHalted
+#print axioms arithmeticValidityFinalConjunctionGateStream_eq_semantic
 #print axioms arithmeticValidityPostHaltedMatch_eq_stack_append_final

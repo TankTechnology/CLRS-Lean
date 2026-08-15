@@ -56,6 +56,7 @@ inductive SequentialExactlyOneCont
   | boolEqOrStart | boolEqOrNext
   | suffixOrCarry | suffixOrWire
   | affineNotWire
+  | affineCellNotWire
 deriving DecidableEq, Fintype
 
 /-- Fixed finite-control phases of contextual Boolean equality. -/
@@ -76,6 +77,13 @@ deriving DecidableEq, Fintype
 /-- Fixed finite-control phase of one contextual NOT gate. -/
 inductive SequentialNotLabel
   | push
+deriving DecidableEq, Fintype
+
+/-- Fixed finite-control phases of one composed NOT/XNOR cell block. -/
+inductive SequentialCellLabel
+  | notPush
+  | clearWire | copyStart | copyPush | copyInc
+  | restoreStart | restoreInc | incStart
 deriving DecidableEq, Fintype
 
 /-- Finite control for the reversed sequential exactly-one serializer. -/
@@ -107,6 +115,7 @@ inductive SequentialExactlyOneLabel
   | boolEq (phase : SequentialBoolEqLabel)
   | suffixOr (phase : SequentialSuffixOrLabel)
   | singleNot (phase : SequentialNotLabel)
+  | cell (phase : SequentialCellLabel)
   | clear₁ | clear₂ | clear₃ | halt | invalid
 deriving DecidableEq, Fintype
 
@@ -185,6 +194,7 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
     | .resume .suffixOrCarry => .jump (.encode .wire .suffixOrWire)
     | .resume .suffixOrWire => .jump (.suffixOr .incCarry)
     | .resume .affineNotWire => .jump .clear₁
+    | .resume .affineCellNotWire => .jump (.cell .clearWire)
     | .incFirstDuplicate => .inc₁ (.encode .seen .firstBDuplicate)
     | .restoreFirstDuplicate => .jump .invalid
     | .decLaterDuplicate =>
@@ -246,6 +256,18 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
         .inc₁ (.suffixOr .next)
     | .singleNot .push =>
         .pushOutput .notMark (.encode .wire .affineNotWire)
+    | .cell .notPush =>
+        .pushOutput .notMark (.encode .wire .affineCellNotWire)
+    | .cell .clearWire =>
+        .dec₃ (.cell .copyStart) (.cell .clearWire)
+    | .cell .copyStart =>
+        .dec₁ (.cell .restoreStart) (.cell .copyPush)
+    | .cell .copyPush => .pushWork₁ () (.cell .copyInc)
+    | .cell .copyInc => .inc₃ (.cell .copyStart)
+    | .cell .restoreStart =>
+        .popWork₁ (.cell .incStart) (fun _ => .cell .restoreInc)
+    | .cell .restoreInc => .inc₁ (.cell .restoreStart)
+    | .cell .incStart => .inc₁ (.boolEq .notLeft)
     | .clear₁ => .dec₁ .clear₂ .clear₁
     | .clear₂ => .dec₂ .clear₃ .clear₂
     | .clear₃ => .dec₃ .halt .clear₃
@@ -1438,6 +1460,50 @@ private theorem clearWire_eval (count : Nat) (buffer₁ buffer₂ : Option Unit)
           (some (sequentialExactlyOneCfg .clear₃ buffer₁ buffer₂ true []
             output [] [] seen [] (List.replicate count ()))) = _
       simpa [List.replicate_succ] using ih true
+
+/-- Clear all three unary registers and stop at the public halt label without
+executing its final normalization instruction.  Larger fixed controllers can
+redirect this label to a continuation while the standalone serializer keeps
+the ordinary successful-halt interface below. -/
+def clearAllRegistersToHaltLabel (seen next wire : Nat)
+    (buffer₁ : Option Unit) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (sequentialExactlyOneCfg .clear₁ buffer₁ none false [] output [] []
+        (List.replicate seen ()) (List.replicate next ())
+        (List.replicate wire ()))
+      (some (sequentialExactlyOneCfg .halt buffer₁ none false [] output [] []
+        [] [] []))
+      (seen + next + wire + 3) := by
+  let afterSeen := sequentialExactlyOneCfg .clear₂ buffer₁ none false []
+    output [] [] [] (List.replicate next ()) (List.replicate wire ())
+  let afterNext := sequentialExactlyOneCfg .clear₃ buffer₁ none false []
+    output [] [] [] [] (List.replicate wire ())
+  let beforeHalt := sequentialExactlyOneCfg .halt buffer₁ none false []
+    output [] [] [] [] []
+  have hseen : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (sequentialExactlyOneCfg .clear₁ buffer₁ none false [] output [] []
+        (List.replicate seen ()) (List.replicate next ())
+        (List.replicate wire ()))
+      (some afterSeen) (seen + 1) := by
+    exact ⟨⟨seen + 1, by
+      simpa [afterSeen] using clearFirst_eval seen buffer₁ none false output
+        (List.replicate next ()) (List.replicate wire ())⟩, le_rfl⟩
+  have hnext : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      afterSeen (some afterNext) (next + 1) := by
+    exact ⟨⟨next + 1, by
+      simpa [afterSeen, afterNext] using clearNext_eval next buffer₁ none
+        false output [] (List.replicate wire ())⟩, le_rfl⟩
+  have hwire : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      afterNext (some beforeHalt) (wire + 1) := by
+    exact ⟨⟨wire + 1, by
+      simpa [afterNext, beforeHalt] using clearWire_eval wire buffer₁ none
+        false output []⟩, le_rfl⟩
+  let throughNext := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    (seen + 1) (next + 1) _ afterSeen _ hseen hnext
+  let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    ((next + 1) + (seen + 1)) (wire + 1)
+    _ afterNext _ throughNext hwire
+  convert full using 1 <;> omega
 
 /-- Clear all three unary registers and halt with the existing output. -/
 def clearAllRegisters (seen next wire : Nat)

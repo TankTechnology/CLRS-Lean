@@ -197,6 +197,12 @@ orientation, and gate-index layers:
   `stackValidityFamilyGateTrace_output_eq` remove the remaining recursive
   output lookups from stack canonicality: every active mask and cell
   constraint now has a closed affine wire index.
+- `arithmeticValidityConstraintWires` exposes the exact canonical order of
+  every wire consumed by the row-validity final conjunction;
+  `arithmeticValidityFinalStart` gives its closed first fresh gate index; and
+  `arithmeticValidityFinalConjunctionGateStream_eq_semantic` proves that the
+  formerly opaque post-stack tail is byte-for-byte the encoded tail-first
+  conjunction trace.
 
 The exact clock handles empty inputs and nonzero constant terms uniformly.
 The older domination lemma still retains its explicit nonempty-input premise,
@@ -301,6 +307,18 @@ already closed independently.
     keeps one main `boolEq` constructor whose argument is a separate finite
     phase type; this changes only the representation of finite control, not
     the program's runtime data or transition semantics.
+15. **Linking the current contextual `runFrom` theorems after redirecting
+    their final halt.** Reproducing halt's buffer/test normalization is not
+    enough: every successful public primitive exit also clears all three
+    unary registers and requires both work stacks to be empty. A subsequent
+    cell therefore has lost the runtime gate and source indices it needs.
+    The accepted replacement is a delimiter-bearing persistent frame on the
+    symbol stacks together with continuation-preserving primitive exits.
+16. **Adding the cell-linker phases as flat constructors of the main program
+    label.** This extends the nested-sum synthesis problem already seen for
+    Boolean equality: the derived `Fintype` instance exceeds elaboration
+    depth.  The accepted representation is one main `.cell` constructor with
+    a separate finite `SequentialCellLabel` phase type.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
@@ -322,6 +340,94 @@ gap.  Independently, `arithmeticStackFamilyGateStream_prefix_postHalted` and
 `arithmeticValidityPostHaltedMatch_eq_stack_append_final` prove that this exact
 family is the entire prefix after halted agreement and leave one uniquely
 defined final-conjunction tail.
+That tail is now fully identified by
+`arithmeticValidityFinalConjunctionGateStream_eq_semantic`; the execution gap
+is no longer a semantic ambiguity, but the concrete persistent-frame loop
+that must carry runtime indices between primitive invocations.
+
+The persistent-frame cut is now concrete rather than only architectural.
+`encodeUnaryFrame` has an exact decoder round trip, exact length, and
+injectivity, including zero-valued fields.  `unaryTripleLoader_run` consumes
+exactly three delimiter-separated fields in
+`2 * (first + second + third) + 3` steps, preserves the unconsumed frame,
+output suffix, and both symbol work stacks, and enters a public ready state
+with all three unary registers loaded.  The remaining task is to embed this
+prelude in the single fixed family controller.
+
+The first genuine non-halting primitive composition is also closed.
+`affineCellRev_runFrom` emits the leading blank-bit NOT and immediately enters
+the five-gate Boolean-equality kernel without an intermediate halt; its exact
+stream is `affineCellGateStream`, its exact cost is `affineCellRevSteps`, and
+`affineCellRev_steps_le` supplies a uniform quadratic envelope.  The
+arithmetic instantiation `arithmeticStackCellRev_runFrom` is byte-for-byte the
+semantic `arithmeticStackCellGateStream`, so one complete stack-cell block is
+now executable by one continuous concrete run.  The next execution gap is the
+continuation from one completed cell to the next framed cell.
+
+The cleanup/continuation boundary is now explicit as well.  The existing
+standalone interfaces still reach `haltCfg`, but
+`clearAllRegistersToHaltLabel`, `affineBoolEqRev_runToHaltLabel`, and
+`affineCellRev_runToHaltLabel` stop one instruction earlier at a clean public
+`.halt` label, with exact core step counts.  The arithmetic wrapper
+`arithmeticStackCellRev_runToHaltLabel` exposes the same redirectable state for
+the real validity indices.  A family controller may therefore replace only
+that final instruction with the next frame-load continuation; it no longer
+needs to re-prove or imitate hidden cleanup behavior.
+
+That family controller is now implemented and verified.  `AffineCellFrame`
+stores one runtime `(right, left, blank)` triple in a delimiter-bearing unary
+frame, and `affineCellFamilyRevProgram` is one fixed finite-control program
+independent of the family length and all three indices.  Its loader consumes
+one frame, its linked cell kernel redirects the cleaned exit to the next
+loader, and only the empty tail halts.  `affineCellFamily_run` proves the exact
+run for an arbitrary list of frames with no halt between cells and exact
+output `affineCellFamilyGateStream`; `affineCellFamilyRev_steps_le` bounds the
+whole run by `250 * |encodeAffineCellFamily frames|^2 + 2`.
+
+The concrete arithmetic validity instance is closed for every runtime stack
+height.  `arithmeticStackCellFrames` packages the exact wire indices for all
+`H` cells, `arithmeticStackCellFamilyGateStream_eq_framed` identifies the
+controller's output byte-for-byte with the existing semantic `6H` stream,
+and `arithmeticStackCellFamilyRev_runFrom` plus
+`arithmeticStackCellFamilyRev_steps_le` provide its exact run and quadratic
+bound.  The next execution gap is therefore narrower: prepend one stack's
+suffix-OR mask to this continuous cell-family run, then iterate those complete
+stack blocks over the fixed machine-stack enumeration.
+
+The first of those two gaps is now closed.  The suffix-OR serializer exposes
+`affineSuffixOrRev_runToHaltLabel`, a cleanup-complete redirectable exit that
+preserves its standalone halting theorem.  `AffineStackFrame` then combines
+the runtime mask triple with an arbitrary cell-frame list, while
+`affineStackRevProgram` loads the mask, executes it, redirects its clean exit
+to the cell-family controller, and halts only after every cell.  The exact
+theorem `affineStack_run` emits `affineStackGateStream`, and
+`affineStackRev_steps_le` gives the explicit bound
+`400 * |encodeAffineStackFrame frame|^2 + 2`.  The slightly wider envelope
+absorbs the explicit outer-frame boundary and the final family halt.
+
+`arithmeticStackFrame`, `arithmeticStackGateStream_eq_framed`, and
+`arithmeticStackRev_runFrom` instantiate that fixed controller at the actual
+Cook--Levin mask and `H` cell indices.  Consequently the complete semantic
+mask-plus-`6H` stream for one arithmetic stack is now executable by one
+continuous concrete run.
+
+The outer fixed-machine stack iteration is now closed as well.  Ordinary
+unary separators cannot delimit adjacent stack blocks because zero-valued
+fields already create indistinguishable separator runs; that route is
+therefore recorded as rejected.  `UnaryFrameSym.frameEnd` supplies the
+unambiguous stack boundary.  `affineStackFamily_run` proves that the same
+fixed finite controller executes an arbitrary list of complete stack frames,
+emits `affineStackFamilyGateStream` byte-for-byte, and
+`affineStackFamilyRev_steps_le` bounds the run by
+`400 * |encodeAffineStackFamily frames|^2 + 2`.
+
+Finally, `arithmeticStackFrames` enumerates the actual verifier-machine stacks
+in canonical order.  `arithmeticStackFamilyGateStream_eq_framed` identifies
+the generic family stream with `arithmeticStackFamilyGateStream`, while
+`arithmeticStackFamilyRev_runFrom` and
+`arithmeticStackFamilyRev_steps_le` give the exact concrete run and its
+quadratic bound.  Thus there is no remaining mask/cell/stack-local execution
+gap inside the canonical arithmetic stack-validity family.
 
 ## Focused Acceptance Mechanism
 
@@ -340,6 +446,11 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrame
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameLoader
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Cell
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
@@ -355,6 +466,11 @@ lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean
+lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrame.lean
+lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrameLoader.lean
+lake env lean Tests/Chapter_34_CookLevin_AffineCell.lean
+lake env lean Tests/Chapter_34_PolyBuilder_CellFamily.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Stack.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
