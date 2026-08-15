@@ -321,6 +321,14 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort" = [
   "CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability",
 ]
+"CLRSLean.FourthEdition.Chapter_09" = [
+  "CLRSLean.FourthEdition.Chapter_09.Section_09_1_Minimum_And_Maximum",
+  "CLRSLean.FourthEdition.Chapter_09.Section_09_2_Selection_In_Expected_Linear_Time",
+  "CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time",
+]
+"CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time" = [
+  "CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time.Randomized_Select",
+]
 "CLRSLean.FourthEdition.Chapter_13" = [
   "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
   "CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion",
@@ -1112,6 +1120,18 @@ title = "Chapter 8. Sorting in Linear Time"
 
 [modules."CLRSLean.FourthEdition.Chapter_09"]
 title = "Chapter 9. Medians and Order Statistics"
+
+[modules."CLRSLean.FourthEdition.Chapter_09.Section_09_1_Minimum_And_Maximum"]
+title = "9.1. Minimum and Maximum"
+
+[modules."CLRSLean.FourthEdition.Chapter_09.Section_09_2_Selection_In_Expected_Linear_Time"]
+title = "9.2. Selection in Expected Linear Time"
+
+[modules."CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time"]
+title = "9.3. Selection in Worst-Case Linear Time"
+
+[modules."CLRSLean.FourthEdition.Chapter_09.Section_09_3_Selection_In_Worst_Case_Linear_Time.Randomized_Select"]
+title = "Randomized SELECT Expected Time"
 
 [modules."CLRSLean.FourthEdition.Chapter_10"]
 title = "Chapter 10. Elementary Data Structures"
