@@ -463,7 +463,7 @@ comparison-scale bounds, discrete case-1/2/3 Master-scale wrappers, packaged
 ### Section 4.6 - Proof of the master theorem
 
 - Lean source: `CLRSLean/Chapter_04/Section_04_6_Master_Theorem_All_Input.lean`
-- Status: `partial` with floor/ceiling exact-power extraction, all-input
+- Status: `proved` with floor/ceiling exact-power extraction, all-input
   transfer, adjacent-power sandwich generation, a discrete critical-power
   scale wrapper, a discrete log-critical scale wrapper, a tail-dominated scale
   wrapper, polynomial comparison wrappers for `a = b^p`, and packaged
@@ -1559,7 +1559,7 @@ underflow reported as `none`.
 ### Section 11.2 - Chained hash tables
 
 - Lean source: `CLRSLean/Chapter_11/Section_11_2_Chained_Hash_Tables.lean`
-- Status: `partial`
+- Status: `proved`
 - Main proved theorems:
   - `CLRS.Chapter11.bucket_hashInsert_same`
   - `CLRS.Chapter11.bucket_hashInsert_other`
@@ -2613,7 +2613,7 @@ sharper contraction strategy.
   preservation, projection, and root-normalization modules
 - Insertion interface test: `Tests/Chapter_18_Insertion_Interface.lean`
 - Height interface test: `Tests/Chapter_18_Height_Interface.lean`
-- Status: `main-proof-complete-for-correctness`
+- Status: `main-proof-complete`
 - Main proved theorems:
   - `CLRS.Chapter18.BTree.search_correct`
   - `CLRS.Chapter18.BTree.search_true_iff`
@@ -3169,7 +3169,7 @@ operation-trace telescope bounded by the sum of dynamic per-operation budgets.
   `CLRSLean/Chapter_20/Section_20_1_VEB_Universe.lean`,
   `CLRSLean/Chapter_20/Section_20_2_VEB_Tree.lean`, and
   `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean`
-- Status: `main-proof-complete-for-correctness`
+- Status: `main-proof-complete`
 - Main proved theorems:
   - `CLRS.Chapter20.VEB.index_high_low`
   - `CLRS.Chapter20.VEB.high_index`
@@ -3613,7 +3613,7 @@ track.
   (canonical fourth-edition Section 21.1; the legacy
   `CLRSLean/Chapter_23/Section_23_1_Growing_Minimum_Spanning_Trees.lean`
   forwards to it)
-- Status: `main-proof-complete-for-correctness`
+- Status: `main-proof-complete`
 - Main proved theorem: `CLRS.MST.safe_edge_of_lightest_crossing`
 - Supporting theorems:
   - `CLRS.MST.Graph.connected_crosses_cut`
@@ -3643,7 +3643,7 @@ automatically.
   `CLRSLean/Chapter_23/Section_23_2_Kruskal_And_Prim*` files forward to them)
 - Interface tests: `Tests/Chapter_23_Interface.lean`,
   `Tests/Chapter_23_Closure.lean`
-- Status: `main-proof-complete-for-correctness`
+- Status: `main-proof-complete`
 - Main proved theorems:
   - `CLRS.MST.FiniteGraph.canonicalSimplePath_unique`
   - `CLRS.MST.FiniteGraph.exists_crossing_exchangePath_of_spanningTree`
@@ -3683,7 +3683,7 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
 
 ## Chapter 24 - Single-Source Shortest Paths
 
-- Chapter status: `selected-section-complete`
+- Chapter status: `main-proof-complete`
 - Chapter guide: `CLRSLean/Chapter_24.lean`
 
 ### Section 24.1 - The Bellman-Ford algorithm
@@ -4666,7 +4666,7 @@ and the relabel-to-front `O(V³)` discharge-order bound.
 - Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_1_Linear_Equations.lean`
   (canonical fourth-edition Section 28.1; the legacy
   `CLRSLean/Chapter_28/Section_28_1_Linear_Equations.lean` forwards to it)
-- Status: `selected-section-complete` (Theorem 28.1 proved)
+- Status: `proved`
 - Model:
   - `CLRS.Chapter28.IsUpperTriangular` / `IsLowerTriangular` /
     `IsUnitLowerTriangular` (triangularity predicates)
@@ -4735,7 +4735,7 @@ and the relabel-to-front `O(V³)` discharge-order bound.
 - Lean source: `CLRSLean/FourthEdition/Chapter_28/Section_28_2_Inverting_Matrices.lean`
   (canonical fourth-edition Section 28.2; the legacy
   `CLRSLean/Chapter_28/Section_28_2_Inverting_Matrices.lean` forwards to it)
-- Status: `selected-section-complete` (Theorem 28.2 proved)
+- Status: `proved`
 - Proved:
   - `permMatrix_inv`: `(σ.permMatrix)⁻¹ = σ⁻¹.permMatrix`.
   - `permMatrix_mul_inv`: `(σ.permMatrix)⁻¹ * σ.permMatrix = 1`.
@@ -4802,13 +4802,13 @@ Sections 29.1--29.3; the legacy `CLRSLean/Chapter_29/Section_29_1`,
 `Section_29_2`, and `Section_29_4` files forward to them).  The legacy
 Sections 29.1--29.5 are main-proof-complete at the
 finite real-matrix/pure-functional layer described below.  Fourth-edition
-Chapter 29 remains partial under the canonical ledger: §29.1 lacks general-form
-normalization and a main-text algorithm wrapper separated from online SIMPLEX;
-§29.2's specialized problem predicates lack finite `StandardLP` encoding and
-preservation bridges; and §29.3's strongest duality declarations still reside
-in a legacy initialization module that is also cataloged as online material.
-The detailed SIMPLEX algorithm (legacy Section 29.3) and the initial basic
-feasible solution (legacy Section 29.5) are online material.
+Chapter 29 is main-proof-complete: §29.1 provides the `GeneralLP` general-form
+normalization and the canonical main-text solver wrapper, §29.2 provides
+finite `StandardLP` encodings with bidirectional feasibility bridges, and
+§29.3's general strong-duality and complementary-slackness declarations are
+owned by the canonical FourthEdition duality path.  The detailed SIMPLEX
+algorithm (legacy Section 29.3) and the initial basic feasible solution
+(legacy Section 29.5) are online material.
 
 ### Section 29.1 - Standard and Slack Forms
 
@@ -5338,7 +5338,7 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   - `CLRSLean/Chapter_32.lean`
   - `CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model.lean`
   - `CLRSLean/FourthEdition/Chapter_32/Section_32_1_String_Model/Naive_Matcher.lean`
-- Status: `selected-section-complete`
+- Status: `proved`
 - Main results: the `Text` prefix/suffix model and its 14 supporting theorems,
   plus `matchesAt`, `naiveMatcher`, `naiveMatcher_sound`,
   `naiveMatcher_complete`, and the three represented boundary theorems.
