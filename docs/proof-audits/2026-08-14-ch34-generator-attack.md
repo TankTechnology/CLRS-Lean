@@ -676,6 +676,25 @@ budget `≤ 200 * encodedScript.length`. This budget is deliberately not called
 a machine run: the remaining theorem must redirect each clean component exit
 to the next tag in one fixed controller.
 
+The fixed controller itself is now concrete. `affineStmtRevProgram` embeds the
+OR-family and mux controllers under one finite label type and overrides only
+their clean outer-loop checks: a following phase tag is consumed, cleared, and
+redirected to the next component entry without a halt. Exact computations now
+cover initial dispatch, the empty script, empty pop/map/predicate/pair-map
+phases, and their next-tag transitions. These boundary tests include the
+predicate's required false seed and the pair-map's AND-to-OR delimiter. The
+remaining proof obligation is contextual simulation of nonempty component
+runs while a tagged suffix stays unconsumed.
+
+The no-suffix base case is now complete for all five phase kinds, not merely
+empty inputs. `affineStmtLiftOr_step` and `affineStmtLiftMux_step` prove exact
+pure-data step simulation up to each source controller's clean finish label;
+the lifted run theorems then yield `affineStmt_phase_last_run`. Thus one fixed
+statement controller executes any final map, predicate, pair-map, pop, or mux
+phase to exactly `affineStmtPhaseGateStream`, with its inherited explicit
+runtime. Only the genuinely contextual case—keeping later tagged phases on the
+input while the current nonempty phase runs—remains.
+
 The complete transition target is now structural rather than suffix-derived.
 `compileStmtGateTrace` exposes all seven statement constructors as literal
 lookup/pop/continuation/mux sequences, with `compileStmt_gates_eq` and an exact
@@ -735,6 +754,12 @@ Conversely, supplying already encoded target gates would turn the generator
 proof into copying. The accepted script contains only phase tags and unary
 wire operands, with a separate semantic stream-equality theorem.
 
+A further tempting proof shortcut is false: the controller's tagged boundary
+operation is not globally the structural relabeling of the unary component,
+because phase tags intentionally redirect instead of becoming invalid. The
+accepted simulation theorem is stated only for configurations containing pure
+`.data` symbols and stops before the overridden finish instruction.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -756,6 +781,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Narrowing
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Pop
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Statement
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.StatementController
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPairMap
@@ -793,6 +819,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Narrowing.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Pop.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Statement.lean
+lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPredicate.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotPairMap.lean

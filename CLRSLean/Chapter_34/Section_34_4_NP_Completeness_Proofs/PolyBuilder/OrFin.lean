@@ -1020,6 +1020,17 @@ def affineOrFinNoSeed_run (frames : List AffineOrFinPairFrame)
     (by simpa [gateOutput, affineOrFinNoSeedGateStream] using hfinish) hhalt
   simpa [affineOrFinNoSeedRevSteps, gateOutput, Nat.add_comm] using full
 
+/-- Contextual seed-free execution through the redirectable finish label. -/
+def affineOrFinNoSeed_runToFinish (frames : List AffineOrFinPairFrame)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinCheckCfg (encodeAffineOrFinFrames frames) output)
+      (some (affineOrFinFinishCfg
+        ((affineOrFinNoSeedGateStream frames).reverse ++ output)))
+      (affineOrFinFoldSteps frames) := by
+  simpa [affineOrFinNoSeedGateStream] using
+    affineOrFinFrames_run frames output
+
 def affineOrFinUntilFinishSteps (frames : List AffineOrFinPairFrame) : Nat :=
   affineOrFinFoldSteps frames + 1
 

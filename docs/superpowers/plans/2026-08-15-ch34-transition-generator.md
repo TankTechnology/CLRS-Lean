@@ -20,8 +20,13 @@ polynomial runtime bound.
       height-sensitive `pop` merge, now have exact fixed-controller runs; the
       recursive compiler now lowers to a tagged five-kind runtime phase script
       whose interpreted bytes equal `compileStmtGateTrace`, with a uniform
-      linear aggregate component budget. The remaining gap is one controller
-      executing those tags without intermediate halts.
+      linear aggregate component budget. `affineStmtRevProgram` is now the one
+      fixed controller embedding both primitive machines and redirecting clean
+      OR/mux boundaries by tag; dispatch, empty script, and four empty-family
+      redirects execute exactly. Pure-data step simulation now lifts every one
+      of the five phase kinds to an exact final-phase run, including nonempty
+      OR/pair-map/mux inputs. The remaining gap is preserving a nonempty tagged
+      suffix while redirecting into the next phase.
 - [ ] Iterate the local controller over all `T` adjacent row pairs.
 - [ ] Prove byte-for-byte equality with `transitionGateStreamAt`, plus a
       polynomial bound in the exact runtime encoding.  The semantic target is
@@ -80,3 +85,7 @@ polynomial runtime bound.
   tautological. `compileStmtScript` stores wire operands and phase boundaries;
   `compileStmtScript_gateStream_eq_trace` separately proves that interpreting
   those operands yields the semantic trace.
+- The tagged boundary operation is not globally equal to a structural relabel
+  of the source component: it deliberately handles phase tags differently.
+  The valid lifting theorem is restricted to pure `.data` configurations and
+  stops at the source component's clean finish label.
