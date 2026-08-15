@@ -1,0 +1,25 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
+
+open StateTransition
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineConjunctionFrame
+#check encodeAffineConjunctionFrame
+#check encodeAffineConjunctionFrame_length
+#check affineConjunctionGateStream
+#check affineConjunctionGateStream_eq_trace
+#check affineAndRevCoreSteps
+#check affineAndRev_runToDoneLabel
+#check affineConjunctionRevProgram
+#check affineConjunctionLoopCfg
+#check affineConjunctionFinishCfg
+#check affineConjunctionRevSteps
+#check affineConjunction_runToFinish
+#check affineConjunction_run
+#check affineConjunctionRev_steps_le
+
+#print axioms affineAndRev_runToDoneLabel
+#print axioms affineConjunctionGateStream_eq_trace
+#print axioms affineConjunction_runToFinish
+#print axioms affineConjunction_run
+#print axioms affineConjunctionRev_steps_le

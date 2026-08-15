@@ -26,7 +26,7 @@
 - Create: `Tests/Chapter_34_PolyBuilder_Conjunction.lean`
 - Modify: `Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean`
 
-- [ ] **Step 1: Create the reusable RED sentinel**
+- [x] **Step 1: Create the reusable RED sentinel**
 
 Create the test with the exact intended public surface:
 
@@ -58,7 +58,7 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms affineConjunctionRev_steps_le
 ```
 
-- [ ] **Step 2: Add arithmetic RED checks**
+- [x] **Step 2: Add arithmetic RED checks**
 
 Append these checks to the existing generator-validity stack sentinel:
 
@@ -73,7 +73,7 @@ Append these checks to the existing generator-validity stack sentinel:
 #print axioms arithmeticValidityFinalConjunctionRev_steps_le
 ```
 
-- [ ] **Step 3: Run RED checks**
+- [x] **Step 3: Run RED checks**
 
 Run:
 
@@ -85,7 +85,7 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 Expected: the first command reports that `PolyBuilder.Conjunction` is absent;
 the second reports the four missing arithmetic interfaces.
 
-- [ ] **Step 4: Commit the RED contract**
+- [x] **Step 4: Commit the RED contract**
 
 ```bash
 git add Tests/Chapter_34_PolyBuilder_Conjunction.lean \
