@@ -280,7 +280,8 @@ Use grouped labels to avoid the prior derived-`Fintype` depth failure:
 
 ```lean
 inductive AffineConjunctionLoadLabel
-  | loadStart | incStart | seed | loadWire | incWire | clearCarry
+  | loadStart | incStart | clearStartBuffer | seed
+  | loadWire | incWire | clearWireBuffer | checkWireEnd | clearCarry
 deriving DecidableEq, Fintype
 
 inductive AffineConjunctionLabel
@@ -297,8 +298,9 @@ loadStart: tick -> incStart; separator -> seed; frameEnd -> invalid
 incStart: increment counter₁ and return to loadStart
 seed: push constTrueMark and enter loadWire
 loadWire: tick -> incWire; separator -> core conjunction.push;
-          frameEnd -> clearCarry; empty -> invalid
+          frameEnd -> checkWireEnd; empty -> invalid
 incWire: increment counter₃ and return to loadWire
+checkWireEnd: source zero -> clearCarry; source successor -> invalid
 core conjunction.done: jump to loadWire
 other core labels: lift the shared instruction
 clearCarry: decrement counter₁ until zero, then finish
