@@ -103,6 +103,52 @@ def buildSeparatorNots {tm : _root_.Turing.FinTM2} {H : Nat}
     (Nat.le_refl H)
   exact { result with }
 
+private def separatorNotsPrefixGateTrace
+    {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
+    (stack : StackWires tm H k)
+    (separator : Fin ((reachableAlphabet tm k).card + 1))
+    : (n : Nat) → (hn : n ≤ H) → List CircuitGate
+  | 0, _ => []
+  | n + 1, hn =>
+      separatorNotsPrefixGateTrace stack separator n (by omega) ++
+        [.not (stack.cell ⟨n, by omega⟩ separator)]
+
+/-- Literal ordered NOT trace for every physical separator cell. -/
+def separatorNotsGateTrace {tm : _root_.Turing.FinTM2} {H : Nat}
+    {k : tm.K} (stack : StackWires tm H k)
+    (separator : Fin ((reachableAlphabet tm k).card + 1)) :
+    List CircuitGate :=
+  separatorNotsPrefixGateTrace stack separator H (Nat.le_refl H)
+
+private theorem buildSeparatorNotsPrefix_gates_eq
+    {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
+    (base : CircuitBuilder) (stack : StackWires tm H k)
+    (hstack : stack.ValidIn base)
+    (separator : Fin ((reachableAlphabet tm k).card + 1))
+    (n : Nat) (hn : n ≤ H) :
+    (buildSeparatorNotsPrefix base stack hstack separator n hn).builder.gates =
+      base.gates ++ separatorNotsPrefixGateTrace stack separator n hn := by
+  induction n with
+  | zero => simp [buildSeparatorNotsPrefix, separatorNotsPrefixGateTrace]
+  | succ n ih =>
+      simp only [buildSeparatorNotsPrefix]
+      rw [CircuitBuilder.not_gates]
+      rw [ih]
+      simp [separatorNotsPrefixGateTrace, List.append_assoc]
+
+/-- The proof-carrying separator builder appends exactly the literal NOT
+trace. -/
+theorem buildSeparatorNots_gates_eq
+    {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
+    (base : CircuitBuilder) (stack : StackWires tm H k)
+    (hstack : stack.ValidIn base)
+    (separator : Fin ((reachableAlphabet tm k).card + 1)) :
+    (buildSeparatorNots base stack hstack separator).builder.gates =
+      base.gates ++ separatorNotsGateTrace stack separator := by
+  simpa [buildSeparatorNots, separatorNotsGateTrace] using
+    buildSeparatorNotsPrefix_gates_eq base stack hstack separator H
+      (Nat.le_refl H)
+
 private structure InputArmResult {Γ : Type} {L : Language Γ}
     (W : VerifierWitness L) (H : Nat) (x : List Γ)
     (base : CircuitBuilder)
@@ -164,6 +210,83 @@ private def buildInputArm {Γ : Type} {L : Language Γ}
           · rintro ⟨hfit', _⟩
             exact (hfit hfit').elim
         gate_delta := by simp [verifierInputArmGateCost, hfit] }
+
+/-- Literal total-constructor trace for one candidate certificate length.
+Fitting arms append a tail-first conjunction; nonfitting arms append nothing
+and reuse the shared false wire. -/
+def inputArmGateTrace {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (H : Nat) (x : List Γ) (start : Nat)
+    (stack : StackWires W.machine.tm H W.machine.tm.k₀)
+    (separatorNots : Fin H → CircuitBuilder.Wire)
+    (length : Nat) : List CircuitGate := by
+  if hfit : length + 1 + x.length ≤ H then
+    exact (CircuitBuilder.conjunctionGateTrace start
+      (inputArmWires W H x stack separatorNots length hfit)).gates
+  else
+    exact []
+
+private theorem buildInputArm_gates_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (H : Nat) (x : List Γ)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (stack : StackWires W.machine.tm H W.machine.tm.k₀)
+    (hstack : stack.ValidIn base)
+    (separatorNots : Fin H → CircuitBuilder.Wire)
+    (hseparatorNots : ∀ cell, base.WireValid (separatorNots cell))
+    (hseparatorEval : ∀ inputs cell,
+      base.evalWire inputs (separatorNots cell) =
+        !(base.evalWire inputs
+          (stack.cell cell (verifierInputCode W none))))
+    (length : Nat) :
+    (buildInputArm W H x base pool stack hstack separatorNots
+      hseparatorNots hseparatorEval length).builder.gates =
+      base.gates ++ inputArmGateTrace W H x base.gates.length stack
+        separatorNots length := by
+  classical
+  by_cases hfit : length + 1 + x.length ≤ H
+  · rw [show buildInputArm W H x base pool stack hstack separatorNots
+        hseparatorNots hseparatorEval length =
+        { builder := (base.conjunction
+            (inputArmWires W H x stack separatorNots length hfit)
+            (inputArmWires_valid W H x base stack hstack separatorNots
+              hseparatorNots length hfit)).1
+          wire := (base.conjunction
+            (inputArmWires W H x stack separatorNots length hfit)
+            (inputArmWires_valid W H x base stack hstack separatorNots
+              hseparatorNots length hfit)).2
+          extension := CircuitBuilder.conjunction_extends _ _ _
+          valid := CircuitBuilder.conjunction_wireValid _ _ _
+          eval_true_iff := by
+            intro inputs
+            rw [CircuitBuilder.conjunction_eval]
+            exact inputArmWires_all_eq_true_iff W H x base inputs stack
+              separatorNots (hseparatorEval inputs) length hfit
+          gate_delta := by
+            rw [CircuitBuilder.conjunction_gate_delta]
+            simp only [inputArmWires_length, verifierInputArmGateCost,
+              if_pos hfit]
+            omega } by
+      simp only [buildInputArm, hfit]
+      rfl]
+    rw [CircuitBuilder.conjunction_gates_eq]
+    simp [inputArmGateTrace, hfit]
+  · rw [show buildInputArm W H x base pool stack hstack separatorNots
+        hseparatorNots hseparatorEval length =
+        { builder := base
+          wire := pool.falseWire
+          extension := .refl base
+          valid := pool.falseValid
+          eval_true_iff := by
+            intro inputs
+            rw [pool.false_eval]
+            constructor
+            · intro htrue
+              exact Bool.noConfusion htrue
+            · rintro ⟨hfit', _⟩
+              exact (hfit hfit').elim
+          gate_delta := by simp [verifierInputArmGateCost, hfit] } by
+      simp only [buildInputArm, hfit]
+      rfl]
+    simp [inputArmGateTrace, hfit]
 
 structure InputArmsResult {Γ : Type} {L : Language Γ}
     (W : VerifierWitness L) (start : CircuitBuilder) (H : Nat) (x : List Γ)
@@ -236,6 +359,54 @@ def buildInputArms {Γ : Type} {L : Language Γ}
             rw [arm.gate_delta, previous.gate_delta, Fin.sum_univ_castSucc]
             simp only [Fin.val_castSucc, Fin.val_last]
             omega }
+
+/-- Literal ordered trace for the recursive candidate-length family. -/
+def inputArmsGateTrace {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (H : Nat) (x : List Γ)
+    (start : CircuitBuilder) (pool : start.BoolWirePool)
+    (stack : StackWires W.machine.tm H W.machine.tm.k₀)
+    (hstack : stack.ValidIn start)
+    (separatorNots : Fin H → CircuitBuilder.Wire)
+    (hseparatorNots : ∀ cell, start.WireValid (separatorNots cell))
+    (hseparatorEval : ∀ inputs cell,
+      start.evalWire inputs (separatorNots cell) =
+        !(start.evalWire inputs
+          (stack.cell cell (verifierInputCode W none)))) :
+    Nat → List CircuitGate
+  | 0 => []
+  | n + 1 =>
+      let previous := buildInputArms W H x start pool stack hstack
+        separatorNots hseparatorNots hseparatorEval n
+      inputArmsGateTrace W H x start pool stack hstack separatorNots
+          hseparatorNots hseparatorEval n ++
+        inputArmGateTrace W H x previous.builder.gates.length stack
+          separatorNots n
+
+/-- The proof-carrying arm family appends exactly the recursive literal
+trace. -/
+theorem buildInputArms_gates_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (H : Nat) (x : List Γ)
+    (start : CircuitBuilder) (pool : start.BoolWirePool)
+    (stack : StackWires W.machine.tm H W.machine.tm.k₀)
+    (hstack : stack.ValidIn start)
+    (separatorNots : Fin H → CircuitBuilder.Wire)
+    (hseparatorNots : ∀ cell, start.WireValid (separatorNots cell))
+    (hseparatorEval : ∀ inputs cell,
+      start.evalWire inputs (separatorNots cell) =
+        !(start.evalWire inputs
+          (stack.cell cell (verifierInputCode W none))))
+    (n : Nat) :
+    (buildInputArms W H x start pool stack hstack separatorNots
+      hseparatorNots hseparatorEval n).builder.gates =
+      start.gates ++ inputArmsGateTrace W H x start pool stack hstack
+        separatorNots hseparatorNots hseparatorEval n := by
+  induction n with
+  | zero => simp [buildInputArms, inputArmsGateTrace]
+  | succ n ih =>
+      simp only [buildInputArms, inputArmsGateTrace]
+      rw [buildInputArm_gates_eq]
+      rw [ih]
+      simp only [List.append_assoc]
 
 end VerifierInput
 

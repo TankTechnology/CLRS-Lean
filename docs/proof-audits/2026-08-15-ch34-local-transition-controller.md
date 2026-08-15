@@ -47,6 +47,10 @@ generator.
 - `verifierCircuit_gates_eq_finalConjunction` freezes the last gate family of
   the complete verifier circuit, and `verifierFinalConjunctionFrame_run`
   executes its canonical tail-first conjunction frame.
+- `buildSeparatorNots_gates_eq`, `buildInputArms_gates_eq`, and
+  `verifierInputShapeCircuit_gates_eq` expose the three literal input-shape
+  phases. `verifierInputBoundary_gates_eq` specializes their exact trace to
+  the assembled verifier; execution of this trace remains the next boundary.
 
 ## Rejected routes discovered during composition
 
@@ -88,6 +92,8 @@ lake env lean Tests/Chapter_34_CookLevin_GeneratorInitialBoundary.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OptionalEqFin.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorAcceptingBoundary.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorConjunction.lean
+lake env lean Tests/Chapter_34_CookLevin_VerifierInputTraces.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorInputBoundary.lean
 lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
 lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
 lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean

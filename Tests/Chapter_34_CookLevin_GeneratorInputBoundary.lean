@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInputBoundary
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierInputBoundaryGateTrace
+#check verifierInputBoundary_gates_eq
+#check verifierInputBoundaryGateStream
+
+#print axioms verifierInputBoundary_gates_eq
