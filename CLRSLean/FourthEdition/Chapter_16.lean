@@ -34,8 +34,11 @@ The supporting implementation pages remain available outside the main sidebar:
 
 The native sections supply the fourth-edition amortized-analysis facade
 (§16.1 aggregate analysis, §16.2 the accounting method, §16.3 the potential
-method, §16.4 dynamic tables).  The namespace migration
-`CLRS.Chapter17` → `CLRS.Chapter16` is tracked chapter by chapter.
+method, §16.4 dynamic tables).  §16.4 includes the sharper load-factor
+potential with constant `≤ 3` insert/delete amortized bounds and the
+interleaved insert/delete trace amortized analysis (`≤ 3n` total cost from the
+empty table).  The namespace migration `CLRS.Chapter17` → `CLRS.Chapter16` is
+tracked chapter by chapter.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

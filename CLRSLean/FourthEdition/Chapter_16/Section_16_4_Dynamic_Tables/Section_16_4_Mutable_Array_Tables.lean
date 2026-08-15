@@ -48,6 +48,15 @@ Main results:
 - Theorem {lit}`sharpDelete_loadFactor_eq_half_of_contract` and its corollary
   {lit}`sharpDelete_loadFactor_ge_half_of_contract`: the load factor is exactly
   1/2, hence at least 1/2, right after a contraction.
+- Definition {lit}`TableOp` ({lit}`insert` / {lit}`delete`) with
+  {lit}`tableStep`, {lit}`tableOpCost`, {lit}`execTrace`, and {lit}`traceCost`:
+  an executable interleaved insert/delete trace model.
+- Theorem {lit}`tableOp_amortized_le_three`: every single operation has
+  amortized cost at most `3` under the load-factor potential.
+- Theorem {lit}`trace_amortized_le`: the whole-trace amortized cost telescopes,
+  so a valid trace of `n` operations costs at most `3n + Φ(s₀)`.
+- Theorem {lit}`trace_totalCost_le_three_mul`: starting from the empty table, a
+  trace of `n` operations has total actual cost at most `3n`.
 
 Notation conventions used in this section:
 
@@ -58,9 +67,7 @@ Notation conventions used in this section:
 
 Current gaps:
 
-- General allocator / RAM cost semantics remain out of scope, as does
-  amortized analysis over interleaved insert/delete traces (the per-operation
-  amortized bounds proved here are the building blocks for it).
+- General allocator / RAM cost semantics remain out of scope.
 -/
 
 namespace CLRS
@@ -418,6 +425,130 @@ theorem sharpDelete_loadFactor_ge_half_of_contract (s : DynamicTableState)
     (hnum : 2 ≤ s.num) (hc : 4 * (s.num - 1) ≤ s.size) :
     1 / 2 ≤ loadFactor (sharpDelete s) := by
   rw [sharpDelete_loadFactor_eq_half_of_contract s hnum hc]
+
+/-! ## Interleaved insert/delete trace amortization -/
+
+/-- A dynamic-table operation: an insertion or a deletion. -/
+inductive TableOp where
+  | insert
+  | delete
+  deriving DecidableEq
+
+/-- Apply one operation to an abstract dynamic-table state. -/
+def tableStep (op : TableOp) (s : DynamicTableState) : DynamicTableState :=
+  match op with
+  | .insert => dynamicTableInsert s
+  | .delete => sharpDelete s
+
+/-- Actual cost of one operation in the abstract model. -/
+def tableOpCost (op : TableOp) (s : DynamicTableState) : ℚ :=
+  match op with
+  | .insert => (dynamicTableInsertCost s : ℚ)
+  | .delete => (sharpDeleteCost s : ℚ)
+
+/-- The final state after executing a whole trace, one operation at a time. -/
+def execTrace : List TableOp → DynamicTableState → DynamicTableState
+  | [], s => s
+  | op :: rest, s => execTrace rest (tableStep op s)
+
+/-- The total actual cost of a whole trace. -/
+def traceCost : List TableOp → DynamicTableState → ℚ
+  | [], _ => 0
+  | op :: rest, s => tableOpCost op s + traceCost rest (tableStep op s)
+
+/-- Every operation preserves the table-size invariant. -/
+theorem tableStep_valid (op : TableOp) (s : DynamicTableState)
+    (h : DynamicTableState.Valid s) : DynamicTableState.Valid (tableStep op s) := by
+  cases op with
+  | insert => simpa [tableStep] using dynamicTableInsert_valid s h
+  | delete => simpa [tableStep] using sharpDelete_valid s h
+
+/-- Deleting from an empty table is free and leaves a table of capacity zero, so
+its amortized cost is trivially at most `3`. -/
+theorem sharpDelete_amortized_le_three_of_empty (s : DynamicTableState) (hempty : s.num = 0) :
+    (sharpDeleteCost s : ℚ) + sharpPotential (sharpDelete s) - sharpPotential s ≤ 3 := by
+  have hcost : (sharpDeleteCost s : ℚ) = 0 := by
+    unfold sharpDeleteCost
+    simp [hempty]
+  have hfinal : sharpDelete s = { num := 0, size := 0 } := by
+    unfold sharpDelete sharpDeleteSize
+    rw [hempty]
+    simp
+  have hΦ0 : sharpPotential { num := 0, size := 0 } = 0 := by
+    unfold sharpPotential sharpPotentialZ
+    norm_num
+  have hpot : sharpPotential (sharpDelete s) = 0 := by
+    rw [hfinal, hΦ0]
+  have hnonneg : 0 ≤ sharpPotential s := sharpPotential_nonneg s
+  linarith
+
+/--
+**Single-operation amortized bound.**  Every dynamic-table operation — an
+insertion or a deletion — has amortized cost at most `3` under the CLRS
+load-factor potential: actual cost plus the potential change is `≤ 3`.
+-/
+theorem tableOp_amortized_le_three (op : TableOp) (s : DynamicTableState)
+    (hvalid : DynamicTableState.Valid s) :
+    tableOpCost op s + sharpPotential (tableStep op s) - sharpPotential s ≤ 3 := by
+  cases op with
+  | insert => simpa [tableOpCost, tableStep] using sharpInsert_amortized_le_three s hvalid
+  | delete =>
+      by_cases hne : s.num = 0
+      · simpa [tableOpCost, tableStep] using sharpDelete_amortized_le_three_of_empty s hne
+      · simpa [tableOpCost, tableStep] using sharpDelete_amortized_le_three s hvalid hne
+
+/--
+**Whole-trace amortized bound.**  The per-operation amortized bounds telescope:
+for a valid initial table, a trace of `n` insertions and deletions has total
+amortized cost (actual cost plus the potential change) at most `3n`.  This is
+the interleaved insert/delete amortized analysis of CLRS Section 16.4.
+-/
+theorem trace_amortized_le (s : DynamicTableState) (hvalid : DynamicTableState.Valid s)
+    (ops : List TableOp) :
+    traceCost ops s + sharpPotential (execTrace ops s) - sharpPotential s ≤ 3 * (ops.length : ℚ) := by
+  induction ops generalizing s hvalid with
+  | nil => simp [traceCost, execTrace]
+  | cons op rest ih =>
+      have hstep_valid : DynamicTableState.Valid (tableStep op s) := tableStep_valid op s hvalid
+      have hstep : tableOpCost op s + sharpPotential (tableStep op s) - sharpPotential s ≤ 3 :=
+        tableOp_amortized_le_three op s hvalid
+      have hrest := ih (tableStep op s) hstep_valid
+      calc
+        traceCost (op :: rest) s + sharpPotential (execTrace (op :: rest) s) - sharpPotential s
+            = tableOpCost op s + traceCost rest (tableStep op s)
+                + sharpPotential (execTrace rest (tableStep op s)) - sharpPotential s := rfl
+        _ = tableOpCost op s
+              + (traceCost rest (tableStep op s)
+                + sharpPotential (execTrace rest (tableStep op s))
+                - sharpPotential (tableStep op s))
+              + (sharpPotential (tableStep op s) - sharpPotential s) := by ring
+        _ ≤ 3 + 3 * (rest.length : ℚ) := by linarith [hstep, hrest]
+        _ = 3 * ((op :: rest).length : ℚ) := by
+            simp [List.length_cons]
+            ring
+
+/-- The empty table has zero potential. -/
+theorem sharpPotential_empty : sharpPotential { num := 0, size := 0 } = 0 := by
+  unfold sharpPotential sharpPotentialZ
+  norm_num
+
+/-- The empty table satisfies the table-size invariant. -/
+theorem emptyState_valid : DynamicTableState.Valid { num := 0, size := 0 } := by
+  unfold DynamicTableState.Valid
+  decide
+
+/--
+**Interleaved trace cost is linear.**  Starting from the empty table, any trace
+of `n` insertions and deletions has total actual cost at most `3n`: the CLRS
+`O(1)` amortized bound for a sequence of dynamic-table operations.
+-/
+theorem trace_totalCost_le_three_mul (ops : List TableOp) :
+    traceCost ops { num := 0, size := 0 } ≤ 3 * (ops.length : ℚ) := by
+  have h := trace_amortized_le { num := 0, size := 0 } emptyState_valid ops
+  have hfinal : 0 ≤ sharpPotential (execTrace ops { num := 0, size := 0 }) :=
+    sharpPotential_nonneg _
+  have hinit : sharpPotential { num := 0, size := 0 } = 0 := sharpPotential_empty
+  linarith
 
 end Chapter17
 end CLRS
