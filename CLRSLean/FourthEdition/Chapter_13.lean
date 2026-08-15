@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_13
+import CLRSLean.FourthEdition.Chapter_13.Section_13_1_Red_Black_Trees
 import CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations
 import CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion
 import CLRSLean.FourthEdition.Chapter_13.Section_13_4_Deletion
@@ -7,19 +7,26 @@ import CLRSLean.FourthEdition.Chapter_13.WellFormed
 /-!
 # Chapter 13 — Red-Black Trees
 
-This is the canonical CLRS fourth-edition chapter guide during the migration
-period.
+Native fourth-edition chapter guide.
 
 ## Current source
 
-During the compatibility period this guide imports {lit}`CLRSLean.Chapter_13`. Existing declarations retain their current namespaces until the chapter-by-chapter source migration.
+This guide sources fourth-edition §13.1–§13.4 from the native section modules
+under {lit}`CLRSLean.FourthEdition.Chapter_13`.  Declarations retain the
+{lit}`CLRS.Chapter13` namespace; the legacy import {lit}`CLRSLean.Chapter_13`
+and its {lit}`Section_13_1_Red_Black_Trees` module forward to these sources
+during the compatibility period.
 
 ## Coverage boundary
 
-The legacy color/black-height invariant, logarithmic-height theorem, and
-functional insertion/deletion developments are reused, and three fourth-edition
-section layers complete the remaining §13.2–§13.4 boundaries:
+The native color/black-height invariant layer and logarithmic-height theorem
+(§13.1), and the three fourth-edition section layers completing the §13.2–§13.4
+boundaries:
 
+- §13.1 ({lit}`Section_13_1_Red_Black_Trees`): the color and black-height
+  invariants, membership preservation under rotations, the no-red-red property,
+  the {lit}`height_log_bound` theorem (CLRS Lemma 13.1), and the functional
+  insertion/deletion key-set and shape layers.
 - §13.2 ({lit}`Section_13_2_Rotations`): a pointer/sentinel red-black store
   {lit}`RBStore` with representation predicate {lit}`StoreRepr`, pointer-level
   rotation/recolor primitives with constant cost, and BST/inorder preservation
