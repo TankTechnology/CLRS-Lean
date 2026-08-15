@@ -614,12 +614,30 @@ its delimiter-bearing unary input. This strictly generalizes the earlier
 contiguous-interval suffix scan and is the common primitive needed by
 `oneHotMap`, `oneHotPredicate`, and narrowing's overflow test.
 
+The disjunction controller now also has a non-halting family mode.  A single
+fixed program reads delimiter-separated sparse fibers, emits an independent
+false seed for every fiber (including empty ones), and returns to the family
+header without an intermediate halt.  `oneHotMapGateTrace_gates_eq_family`
+identifies the semantic lookup trace with this generic target-major family,
+while `affineOneHotMap_run` proves exact execution of the encoded
+`oneHotMapGateTrace`; `affineOneHotMap_steps_le` supplies the linear runtime
+bound.  Thus finite one-hot lookup is no longer only a pure builder result: it
+has a concrete fixed-controller serialization theorem.
+
 Two further rejected routes are recorded. A contiguous affine source interval
 cannot represent a sparse truth-table fiber, even when its cardinality is
 correct. Also, the active-mask suffix scan emits `.or carry wire`, whereas
 the general `CircuitBuilder.disjunction` emits `.or wire carry`; semantic OR
 commutativity cannot justify swapping these operands under byte-for-byte
 serialization acceptance.
+
+Two family-composition failures are also fixed in the accepted design.
+Running the public one-list controller once per target cannot compose because
+each call halts.  The family mode instead redirects every closing delimiter
+back to an outer header.  Moreover, `popInput` retains the consumed delimiter
+in `buffer₁`; treating the post-delimiter state as a clean configuration is
+false by reduction.  Dedicated open/close cleanup labels now clear that
+buffer before seeding the next fiber or returning to the family header.
 
 ## Focused Acceptance Mechanism
 
@@ -639,6 +657,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.EqFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.MuxFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -666,6 +685,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_ExactlyOneFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean
