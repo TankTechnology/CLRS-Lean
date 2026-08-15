@@ -353,6 +353,15 @@ already closed independently.
     one `tick` marker before every row and reserves the unmarked `frameEnd` for
     the outer terminator. Independently halting row runs are also rejected:
     the family redirects the row's clean contextual finish before halt.
+24. **Treating `List.drop` suffix extraction as the transition generator.**
+    The extracted suffix fixes the exact target and supports append/length
+    theorems, but it evaluates the semantic builder at Lean level. It is not a
+    concrete `FinTM2` run. The accepted execution milestone still requires one
+    fixed controller and an exact `EvalsToInTime` theorem.
+25. **Using only `T * transitionCircuitGateCost tm H`.** The exact cost does
+    not determine gate order or wire arguments. The executable transition
+    controller must agree byte-for-byte with `transitionGateStreamAt`, not just
+    emit the same number of gates.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
@@ -546,6 +555,17 @@ with `validityGateStreamAt tm H T`; the verifier-specialized theorem reaches
 therefore the transition family, followed by the initial/acceptance boundary
 phases and the final conjunction.
 
+The transition target is now frozen without overstating execution progress.
+`transitionGateStreamAt tm H T` is the literal semantic-builder suffix after
+validity, `arithmeticValidity_append_transitionGateStream` proves exact append
+agreement, and `transitionGateListAt_length` proves the precise local-cost
+multiple `T * transitionCircuitGateCost tm H`. The verifier wrapper depends on
+the source instance only through its length, and
+`verifierCircuitTransitionPrefix_eq` identifies the complete encoded prefix
+through all transition constraints. This is the acceptance oracle for the
+next controller; suffix extraction itself is explicitly not counted as TM
+execution.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -602,6 +622,7 @@ lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRow.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRows.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorTransition.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean
