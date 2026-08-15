@@ -472,12 +472,108 @@ theorem arithmeticStackFamilyGateStream_prefix_postHalted
   rw [show 5 = halted.gates.length by simp [halted]]
   simp [List.flatMap_append]
 
+/-- Ordered output wires consumed by the final conjunction of one arithmetic
+row.  This is the exact public constraint order: raw one-hot outputs, halted
+agreement, then every stack-cell canonicality output in stack-major order. -/
+noncomputable def arithmeticValidityConstraintWires
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List CircuitBuilder.Wire := by
+  letI : Fintype tm.K := tm.kFin
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  let halted := CircuitBuilder.boolEqGateTrace
+    (start + raw.gates.length) wires.halted
+    (wires.label (Fin.last (labelCount tm)))
+  let stack := stackValidityFamilyGateTrace
+    (start + raw.gates.length + halted.gates.length) wires
+    (Fintype.card tm.K) (fun j => (Fintype.equivFin tm.K).symm j)
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
+  let rawConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun j : Fin (cfgOneHotGroupCount tm H) =>
+      raw.outputs (groupEquiv.symm j)
+  let stackConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun p : Fin (Fintype.card tm.K * H) =>
+      let q := (finProdFinEquiv
+        (m := Fintype.card tm.K) (n := H)).symm p
+      stack.outputs q.1 q.2
+  exact rawConstraints ++ halted.wire :: stackConstraints
+
+/-- First fresh gate of the final row-validity conjunction, after every
+stack mask and cell block. -/
+noncomputable def arithmeticValidityFinalStart
+    (tm : _root_.Turing.FinTM2) (H start : Nat) : Nat :=
+  arithmeticStackValidityStart tm H start +
+    arithmeticStackCount tm * (H + 1 + 6 * H)
+
 /-- Exact serialized tail after all stack-validity blocks; semantically this
 is the row-validity final conjunction and nothing else. -/
 noncomputable def arithmeticValidityFinalConjunctionGateStream
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) : List CircuitSym :=
   (arithmeticValidityPostHaltedMatchGateStream tm H start rowBase).drop
     (arithmeticStackFamilyGateStream tm H start rowBase).length
+
+/-- The formerly opaque post-stack suffix is exactly the encoded tail-first
+conjunction over the canonical ordered constraint wires. -/
+theorem arithmeticValidityFinalConjunctionGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticValidityFinalConjunctionGateStream tm H start rowBase =
+      (CircuitBuilder.conjunctionGateTrace
+        (arithmeticValidityFinalStart tm H start)
+        (arithmeticValidityConstraintWires tm H start rowBase)).gates.flatMap
+          encodeCircuitGate := by
+  letI : Fintype tm.K := tm.kFin
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  let halted := CircuitBuilder.boolEqGateTrace
+    (start + raw.gates.length) wires.halted
+    (wires.label (Fin.last (labelCount tm)))
+  let stack := stackValidityFamilyGateTrace
+    (start + raw.gates.length + halted.gates.length) wires
+    (Fintype.card tm.K) (fun j => (Fintype.equivFin tm.K).symm j)
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
+  let rawConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun j : Fin (cfgOneHotGroupCount tm H) =>
+      raw.outputs (groupEquiv.symm j)
+  let stackConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun p : Fin (Fintype.card tm.K * H) =>
+      let q := (finProdFinEquiv
+        (m := Fintype.card tm.K) (n := H)).symm p
+      stack.outputs q.1 q.2
+  let constraints := rawConstraints ++ halted.wire :: stackConstraints
+  let final := CircuitBuilder.conjunctionGateTrace
+    (start + raw.gates.length + halted.gates.length + stack.gates.length)
+    constraints
+  have hstack := arithmeticStackFamilyGateStream_eq_semantic
+    tm H start rowBase
+  have hstackStart : arithmeticStackValidityStart tm H start =
+      start + raw.gates.length + halted.gates.length := by
+    simp [arithmeticStackValidityStart, arithmeticHaltedMatchStart,
+      arithmeticRawOneHotGateCount, raw, halted, wires]
+  rw [hstackStart] at hstack
+  change arithmeticStackFamilyGateStream tm H start rowBase =
+    stack.gates.flatMap encodeCircuitGate at hstack
+  have hpost : arithmeticValidityPostHaltedMatchGateStream
+      tm H start rowBase =
+      stack.gates.flatMap encodeCircuitGate ++
+        final.gates.flatMap encodeCircuitGate := by
+    unfold arithmeticValidityPostHaltedMatchGateStream
+    change ((raw.gates ++ halted.gates ++ stack.gates ++ final.gates).drop
+      (raw.gates.length + 5)).flatMap encodeCircuitGate = _
+    rw [show 5 = halted.gates.length by simp [halted]]
+    simp [List.flatMap_append]
+  unfold arithmeticValidityFinalConjunctionGateStream
+  rw [hpost, hstack]
+  simp only [List.drop_left]
+  change final.gates.flatMap encodeCircuitGate =
+    (CircuitBuilder.conjunctionGateTrace
+      (arithmeticValidityFinalStart tm H start)
+      (arithmeticValidityConstraintWires tm H start rowBase)).gates.flatMap
+        encodeCircuitGate
+  congr 2
+  · unfold final
+    congr 2
+    · exact hstackStart.symm
+    · simp [stack, arithmeticStackCount]
 
 /-- Advance the exact row-validity boundary through the entire stack family,
 leaving only the final conjunction tail. -/
