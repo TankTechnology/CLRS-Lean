@@ -1,6 +1,6 @@
 # Chapter 20 - van Emde Boas Trees
 
-- Status: `main-proof-complete-for-correctness`
+- Status: `main-proof-complete`
 - Lean entry: `CLRSLean/Chapter_20.lean`
 - Interface test: `Tests/Chapter_20_Interface.lean`
 
