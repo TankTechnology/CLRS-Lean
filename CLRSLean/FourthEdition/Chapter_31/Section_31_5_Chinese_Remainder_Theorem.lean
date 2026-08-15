@@ -27,8 +27,7 @@ Notation:
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.Coprime n m` : `gcd n m = 1`.
 
-Deferred: the `ZMod.chineseRemainder` ring-isomorphism packaging, and the
-CRT-based RSA proofs (§31.7).
+Deferred: the `ZMod.chineseRemainder` ring-isomorphism packaging.
 -/
 
 namespace CLRS

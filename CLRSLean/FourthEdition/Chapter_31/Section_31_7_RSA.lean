@@ -27,8 +27,10 @@ Notation:
 - {lit}`Nat.totient n` : Euler's totient `φ(n)`.
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 
-Deferred: the running-time / key-generation analysis and the RSA
-security (one-way function) claims.
+Deferred: the RSA security (one-way function) claims stay out of scope; the
+key-generation ({lit}`rsaKeyGen`, {lit}`rsaPrivateExponent`) and the
+repeated-squaring running-time bounds ({lit}`rsaEncrypt_count_le`,
+{lit}`rsaDecrypt_count_le`) are proved.
 -/
 
 namespace CLRS
@@ -133,6 +135,93 @@ theorem rsa_correct_general {p q m e d : ℕ} (hp : Nat.Prime p) (hq : Nat.Prime
     rw [hmed]
     rw [Nat.mod_mod_of_dvd 1 hd]
   exact chinese_remainder_unique (prime_coprime hp hq hpq) ⟨hp_cong, hq_cong⟩ ⟨Nat.ModEq.refl m, Nat.ModEq.refl m⟩
+
+/--
+**RSA private exponent.**  For RSA modulus `n = p·q`, the private exponent `d`
+is the inverse of the public exponent `e` modulo `φ(n) = (p−1)(q−1)`, computed
+in `ZMod ((p−1)(q−1))` and read back as a natural number below the modulus.
+-/
+def rsaPrivateExponent (p q e : ℕ) : ℕ :=
+  (((e : ZMod ((p - 1) * (q - 1)))⁻¹).val)
+
+/-- **The private exponent is below the totient**: `d < φ(n)`. -/
+theorem rsaPrivateExponent_lt (p q e : ℕ) (hφ : 0 < (p - 1) * (q - 1)) :
+    rsaPrivateExponent p q e < (p - 1) * (q - 1) := by
+  dsimp [rsaPrivateExponent]
+  haveI : NeZero ((p - 1) * (q - 1)) := NeZero.of_pos hφ
+  exact ZMod.val_lt (((e : ZMod ((p - 1) * (q - 1)))⁻¹))
+
+/--
+**RSA key generation is correct.**  For distinct primes `p q`, if the public
+exponent `e` is coprime to `φ(n) = (p−1)(q−1)`, then the private exponent
+`d = rsaPrivateExponent p q e` satisfies `e·d ≡ 1 (mod φ(n))`.
+-/
+theorem rsaPrivateExponent_spec (p q e : ℕ) (hp : Nat.Prime p) (hq : Nat.Prime q) (hpq : p ≠ q)
+    (hcop : Nat.Coprime e ((p - 1) * (q - 1))) :
+    e * rsaPrivateExponent p q e ≡ 1 [MOD (p - 1) * (q - 1)] := by
+  have hφ : 0 < (p - 1) * (q - 1) := by
+    have hp2 : 2 ≤ p := Nat.Prime.two_le hp
+    have hq2 : 2 ≤ q := Nat.Prime.two_le hq
+    exact Nat.mul_pos (by omega : 0 < p - 1) (by omega : 0 < q - 1)
+  letI : NeZero ((p - 1) * (q - 1)) := NeZero.of_pos hφ
+  have hu : IsUnit (e : ZMod ((p - 1) * (q - 1))) :=
+    (ZMod.isUnit_iff_coprime e ((p - 1) * (q - 1))).2 hcop
+  have hinv : (e : ZMod ((p - 1) * (q - 1))) * ((e : ZMod ((p - 1) * (q - 1)))⁻¹) = 1 :=
+    ZMod.mul_inv_of_unit (e : ZMod ((p - 1) * (q - 1))) hu
+  have hz : (e : ZMod ((p - 1) * (q - 1))) * (rsaPrivateExponent p q e : ZMod ((p - 1) * (q - 1))) = 1 := by
+    simpa [rsaPrivateExponent] using hinv
+  rw [← ZMod.natCast_eq_natCast_iff]
+  rw [Nat.cast_mul]
+  simpa using hz
+
+/--
+**RSA encryption (CLRS §31.7).**  Encrypt a message `m` with public key
+`(e, n)` by the repeated-squaring exponentiation of §31.6: `m^e mod n`.
+-/
+def rsaEncrypt (e n m : ℕ) : ℕ :=
+  (modExpWithCount m n e).1
+
+/-- **RSA encryption computes `m^e mod n`** (CLRS §31.7). -/
+theorem rsaEncrypt_spec (e n m : ℕ) : rsaEncrypt e n m = m ^ e % n :=
+  modExpWithCount_spec m n e
+
+/-- **RSA encryption uses `O(log e)` modular multiplications** (CLRS §31.7). -/
+theorem rsaEncrypt_count_le (e n m : ℕ) :
+    (modExpWithCount m n e).2 ≤ 2 * Nat.size e :=
+  modExpWithCount_count_le m n e
+
+/--
+**RSA decryption (CLRS §31.7).**  Decrypt a ciphertext `c` with private key
+`(d, n)` by the repeated-squaring exponentiation of §31.6: `c^d mod n`.
+-/
+def rsaDecrypt (d n c : ℕ) : ℕ :=
+  (modExpWithCount c n d).1
+
+/-- **RSA decryption computes `c^d mod n`** (CLRS §31.7). -/
+theorem rsaDecrypt_spec (d n c : ℕ) : rsaDecrypt d n c = c ^ d % n :=
+  modExpWithCount_spec c n d
+
+/-- **RSA decryption uses `O(log d)` modular multiplications** (CLRS §31.7). -/
+theorem rsaDecrypt_count_le (d n c : ℕ) :
+    (modExpWithCount c n d).2 ≤ 2 * Nat.size d :=
+  modExpWithCount_count_le c n d
+
+/--
+**RSA key generation (CLRS §31.7).**  From distinct primes `p q` and a public
+exponent `e`, produce the triple `(n, e, d)` with `n = p·q` and
+`d = e⁻¹ mod φ(n)`.
+-/
+def rsaKeyGen (p q e : ℕ) : ℕ × ℕ × ℕ :=
+  (p * q, e, rsaPrivateExponent p q e)
+
+/--
+**RSA key generation produces a valid key pair**: the public exponent `e` and
+the generated private exponent `d` satisfy `e·d ≡ 1 (mod φ(n))`.
+-/
+theorem rsaKeyGen_spec (p q e : ℕ) (hp : Nat.Prime p) (hq : Nat.Prime q) (hpq : p ≠ q)
+    (hcop : Nat.Coprime e ((p - 1) * (q - 1))) :
+    (rsaKeyGen p q e).2.1 * (rsaKeyGen p q e).2.2 ≡ 1 [MOD (p - 1) * (q - 1)] := by
+  simpa [rsaKeyGen] using rsaPrivateExponent_spec p q e hp hq hpq hcop
 
 end Chapter31
 

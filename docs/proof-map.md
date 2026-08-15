@@ -5180,6 +5180,14 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
   - `linear_congruence_all_solutions`: every solution differs from any given
     solution by a multiple of `n/gcd(a,n)` — the `d = gcd(a,n)` solutions are
     `x₀ + k·(n/d)`.
+  - `modularLinearEquationSolution` + `modularLinearEquationSolution_spec`:
+    the canonical solution `x₀ = (b/d)·(a/d)⁻¹ mod (n/d)` computed in
+    `ZMod (n/d)`.
+  - `modularLinearEquationSolver` (MODULAR-LINEAR-EQUATION-SOLVER) with
+    `modularLinearEquationSolver_length` (exactly `d` solutions),
+    `modularLinearEquationSolver_sound` / `modularLinearEquationSolver_complete`
+    (sound and complete against the `x < n` solutions), and
+    `modularLinearEquationSolver_nodup` (pairwise distinct).
 
 ### Section 31.5 - The Chinese Remainder Theorem
 
@@ -5201,6 +5209,9 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
   - `fermat_little_theorem` (CLRS Theorem 31.31): prime `p` gives
     `a^p ≡ a (mod p)`, via `ZMod.pow_card`.
   - `euler_theorem` (CLRS Theorem 31.30): `gcd(a,n)=1` gives `a^φ(n) ≡ 1 (mod n)`.
+  - `modExpWithCount` (repeated-squaring exponentiation with an explicit
+    multiplication count) with `modExpWithCount_spec` (returns `a^b mod n`) and
+    `modExpWithCount_count_le` (at most `2·Nat.size b` multiplications).
 
 ### Section 31.7 - The RSA Public-Key Cryptosystem
 
@@ -5210,6 +5221,12 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
   - `totient_mul_prime`: `φ(p·q) = (p−1)(q−1)` for distinct primes.
   - `rsa_correct` (CLRS Theorem 31.36): `e·d ≡ 1 (mod φ(n))` and
     `gcd(m,n)=1` imply `m^(e·d) ≡ m (mod n)`.
+  - `rsaPrivateExponent` (the private exponent `d = e⁻¹ mod φ(n)`) with
+    `rsaPrivateExponent_spec` (`e·d ≡ 1 (mod φ(n))`) and `rsaPrivateExponent_lt`.
+  - `rsaKeyGen` (returns `(n, e, d)`) with `rsaKeyGen_spec` (a valid key pair).
+  - `rsaEncrypt` / `rsaDecrypt` (repeated-squaring `m^e mod n` / `c^d mod n`)
+    with `rsaEncrypt_spec` / `rsaDecrypt_spec` and the `O(log e)` / `O(log d)`
+    cost bounds `rsaEncrypt_count_le` / `rsaDecrypt_count_le`.
 
 ### Section 31.8 - Primality Testing
 
@@ -5254,8 +5271,12 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
     liar), and `strongLiars_nat_card_le` (**at most `(n−1)/4` of the bases
     `1, …, n−1` are strong liars**), so a uniformly random base errs with
     probability at most `1/4` and `s` independent rounds err with probability
-    at most `4⁻ˢ`.  Deferred: the executable pseudoprime loop with an operation
-    count.
+    at most `4⁻ˢ`.
+  - **Executable multi-base loop**: `millerRabinLoop` (run the single-base
+    `millerRabin` test over a list of bases) with `millerRabinLoop_fst_iff`
+    (the loop reports "probably prime" exactly when every base passes) and
+    `millerRabinLoop_count_le` (at most `2·|bases|·Nat.size (n−1)` modular
+    multiplications).
 
 ### Section 31.9 - Integer Factorization
 

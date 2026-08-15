@@ -67,7 +67,8 @@ Notation:
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.totient n` : Euler's totient.
 
-Deferred: the executable pseudoprime loop with an operation count.
+Deferred: none (the executable multi-base {lit}`millerRabinLoop` and its
+operation-count bound {lit}`millerRabinLoop_count_le` are proved).
 -/
 
 namespace CLRS
@@ -2060,6 +2061,42 @@ theorem strongLiars_nat_card_le {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd
     Nat.card {a : Fin (n - 1) // strongPseudoprime n (a.val + 1)}
         ≤ Nat.card {u : (ZMod n)ˣ // isStrongLiar u} := Nat.card_le_card_of_injective f hfinj
     _ ≤ (n - 1) / 4 := strongLiars_card_le (n := n) hn1 hn_odd hn_comp
+
+/--
+**MILLER-RABIN (multi-base loop, CLRS §31.8).**  Run the single-base
+{lit}`millerRabin` test over every base in `bases`, left to right.  The first
+component is `true` exactly when every base reports "probably prime"; the
+second component is the total number of modular multiplications charged by the
+underlying repeated squarings ({lit}`modExpWithCount`).
+-/
+def millerRabinLoop (n : ℕ) : List ℕ → Bool × ℕ
+| [] => (true, 0)
+| a :: as =>
+    let (pass, cost) := millerRabinLoop n as
+    (millerRabin n a && pass, (modExpWithCount a n (n - 1)).2 + cost)
+
+/-- **The loop reports "probably prime" exactly when every base passes**
+(CLRS §31.8). -/
+theorem millerRabinLoop_fst_iff (n : ℕ) (bases : List ℕ) :
+    (millerRabinLoop n bases).1 = true ↔ ∀ a ∈ bases, millerRabin n a = true := by
+  induction bases with
+  | nil => simp [millerRabinLoop]
+  | cons a as ih =>
+      simp [millerRabinLoop, ih, Bool.and_eq_true, List.mem_cons]
+
+/-- **The loop uses at most `2 · |bases| · Nat.size (n−1)` modular
+multiplications** (CLRS §31.8). -/
+theorem millerRabinLoop_count_le (n : ℕ) (bases : List ℕ) :
+    (millerRabinLoop n bases).2 ≤ bases.length * (2 * Nat.size (n - 1)) := by
+  induction bases with
+  | nil => simp [millerRabinLoop]
+  | cons a as ih =>
+      simp [millerRabinLoop]
+      have h := modExpWithCount_count_le a n (n - 1)
+      calc
+        (modExpWithCount a n (n - 1)).2 + (millerRabinLoop n as).2
+            ≤ 2 * Nat.size (n - 1) + as.length * (2 * Nat.size (n - 1)) := Nat.add_le_add h ih
+        _ = (as.length + 1) * (2 * Nat.size (n - 1)) := by ring
 
 end Chapter31
 
