@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Cell
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -311,6 +312,45 @@ theorem arithmeticStackCellGateStream_eq_semantic
     arithmeticStackCellBoolEqGateStream_eq_semantic
       tm H start rowBase k i]
   simp
+
+/-- Exact contextual run for the complete six-gate arithmetic stack-cell
+block.  Unlike the separate primitive interfaces above, this run does not halt
+between the leading blank-bit negation and the following Boolean equality. -/
+noncomputable def arithmeticStackCellRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineCellBodyCfg (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((arithmeticStackCellGateStream tm H start rowBase k i).reverse ++
+          output)))
+      (affineCellRevSteps (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i)) := by
+  simpa [arithmeticStackCellGateStream,
+    arithmeticStackCellNotGateStream,
+    arithmeticStackCellBoolEqGateStream,
+    arithmeticStackCellBoolEqStart,
+    affineCellGateStream] using
+      affineCellRev_runFrom
+        (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output
+
+/-- The complete arithmetic stack-cell invocation inherits the generic
+quadratic running-time envelope. -/
+theorem arithmeticStackCellRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) :
+    affineCellRevSteps (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) ≤
+      200 * (arithmeticStackCellNotWire tm H start k i +
+        arithmeticStackMaskOutputWire tm H start k i +
+        arithmeticStackBlankWire tm H rowBase k i + 1) ^ 2 :=
+  affineCellRev_steps_le _ _ _
 
 /-- The arithmetic six-gate stream is one literal `cellValidityGateBlock`. -/
 theorem arithmeticStackCellGateStream_eq_block

@@ -8,9 +8,13 @@ between them.
 
 - [x] Identify the final conjunction's exact source-wire list and serialized
       trace, so the single-row target has no opaque suffix left.
-- [ ] Add a delimiter-bearing runtime frame for gate/source indices; keep it
-      on symbol work stacks while primitive-local unary registers are reused.
-- [ ] Add continuation-preserving `NOT -> BoolEq` execution over that frame.
+- [x] Define an unambiguous delimiter-bearing runtime frame and an exact
+      three-field loader that preserves the unconsumed tail, output, and both
+      work stacks while loading primitive-local unary registers.
+- [x] Add continuation-preserving `NOT -> BoolEq` execution for one complete
+      six-gate cell, with exact output, exact steps, and a quadratic bound.
+- [ ] Embed the frame loader and cell continuation in one fixed family
+      controller, retaining the remaining frame between cells.
 - [ ] Lift the cell block across the runtime-height loop and then the fixed
       machine-stack family.
 - [ ] Match the linked output byte-for-byte with
@@ -35,3 +39,7 @@ between them.
   cell loses its runtime gate/source indices.  The accepted family controller
   therefore needs a delimiter-bearing persistent frame and
   continuation-preserving primitive exits.
+- Adding every cell-controller phase as another flat constructor to the main
+  label type exceeds Lean's derived-`Fintype` nested-sum synthesis depth.  Cell
+  phases therefore live in the separate finite `SequentialCellLabel` type
+  beneath one grouped `.cell` constructor.
