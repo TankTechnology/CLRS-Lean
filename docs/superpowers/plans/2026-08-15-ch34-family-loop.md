@@ -13,14 +13,16 @@ between them.
       work stacks while loading primitive-local unary registers.
 - [x] Add continuation-preserving `NOT -> BoolEq` execution for one complete
       six-gate cell, with exact output, exact steps, and a quadratic bound.
-- [ ] Embed the frame loader and cell continuation in one fixed family
+- [x] Embed the frame loader and cell continuation in one fixed family
       controller, retaining the remaining frame between cells.
-- [ ] Lift the cell block across the runtime-height loop and then the fixed
-      machine-stack family.
+- [x] Lift the cell block across the runtime-height loop for one stack.
+- [ ] Prepend the stack's suffix-OR mask and lift the complete stack block
+      across the fixed machine-stack family.
 - [ ] Match the linked output byte-for-byte with
       `arithmeticStackFamilyGateStream` and prove a polynomial step bound.
-- [ ] Run focused module/interface checks, `#print axioms`, placeholder scan,
-      and `git diff --check` before each commit.
+- [x] Run focused module/interface checks and `#print axioms` for the completed
+      runtime-height cell-family cut; repeat the placeholder scan and
+      `git diff --check` before each commit.
 
 ## Known failed routes retained
 

@@ -2,7 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Cell
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -400,6 +400,67 @@ noncomputable def arithmeticStackCellFamilyGateStream
     List CircuitSym :=
   (List.ofFn fun i : Fin H =>
     arithmeticStackCellGateStream tm H start rowBase k i).flatten
+
+/-- Runtime frame list for the complete ordered cell family of one fixed
+stack.  Every index remains stack data of the single family controller. -/
+noncomputable def arithmeticStackCellFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    List AffineCellFrame :=
+  List.ofFn fun i : Fin H =>
+    { right := arithmeticStackCellNotWire tm H start k i
+      left := arithmeticStackMaskOutputWire tm H start k i
+      blank := arithmeticStackBlankWire tm H rowBase k i }
+
+private theorem flatMap_eq_map_flatten {α β : Type*}
+    (xs : List α) (f : α → List β) :
+    xs.flatMap f = (xs.map f).flatten := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => simp [ih]
+
+/-- Interpreting the arithmetic runtime frames yields exactly the existing
+semantic `6H` byte stream. -/
+theorem arithmeticStackCellFamilyGateStream_eq_framed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineCellFamilyGateStream
+        (arithmeticStackCellFrames tm H start rowBase k) =
+      arithmeticStackCellFamilyGateStream tm H start rowBase k := by
+  rw [affineCellFamilyGateStream_eq_flatMap]
+  rw [flatMap_eq_map_flatten]
+  unfold arithmeticStackCellFrames arithmeticStackCellFamilyGateStream
+  rw [List.map_ofFn]
+  simp [Function.comp_def,
+    arithmeticStackCellGateStream, arithmeticStackCellNotGateStream,
+    arithmeticStackCellBoolEqGateStream, affineCellGateStream,
+    arithmeticStackCellBoolEqStart]
+
+/-- One fixed framed controller executes every ordered cell of a runtime-height
+stack without halting between cells. -/
+noncomputable def arithmeticStackCellFamilyRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineCellFamilyRevProgram)
+      (affineCellFamilyLoopCfg
+        (encodeAffineCellFamily
+          (arithmeticStackCellFrames tm H start rowBase k)) output)
+      (some (haltCfg affineCellFamilyRevProgram
+        ((arithmeticStackCellFamilyGateStream tm H start rowBase k).reverse ++
+          output)))
+      (affineCellFamilyRevSteps
+        (arithmeticStackCellFrames tm H start rowBase k)) := by
+  simpa [arithmeticStackCellFamilyGateStream_eq_framed] using
+    affineCellFamily_run
+      (arithmeticStackCellFrames tm H start rowBase k) output
+
+/-- The complete runtime-height cell family inherits the controller's
+quadratic bound in its explicit framed input length. -/
+theorem arithmeticStackCellFamilyRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineCellFamilyRevSteps
+        (arithmeticStackCellFrames tm H start rowBase k) ≤
+      250 * (encodeAffineCellFamily
+        (arithmeticStackCellFrames tm H start rowBase k)).length ^ 2 + 2 :=
+  affineCellFamilyRev_steps_le _
 
 private theorem flatten_encoded_blocks (blocks : List (List CircuitGate)) :
     (blocks.map fun block => block.flatMap encodeCircuitGate).flatten =
