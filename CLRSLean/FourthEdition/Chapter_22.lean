@@ -30,8 +30,11 @@ to these sources.
 ## Coverage boundary
 
 The native sections supply the represented fourth-edition
-single-source-shortest-path sections (CLRS Theorem 22.4 / Lemmas 22.11--22.13
-and Theorem 22.9 for difference constraints).
+single-source-shortest-path sections: Bellman-Ford (Theorem 22.4, with the
+`O(V·E)` work bound), SSSP in DAGs, Dijkstra, difference constraints
+(Theorem 22.9), and the full §22.5 shortest-path-property stack (Lemmas
+22.10--22.16, including the subpath, convergence, path-relaxation, and
+predecessor-subgraph properties).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

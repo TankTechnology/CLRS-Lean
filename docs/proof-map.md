@@ -3770,8 +3770,11 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   (canonical fourth-edition Section 22.5; the legacy
   `CLRSLean/Chapter_24/Section_24_5_Shortest_Path_Properties.lean` forwards
   to it)
-- Status: `proved` for the shortest-path distance function and the no-path,
-  upper-bound, and triangle-inequality properties (CLRS Lemmas 24.11-24.13)
+- Status: `proved` for the full shortest-path-property stack: the distance
+  function, the triangle inequality (Lemma 22.11), the upper-bound property
+  (Lemma 22.12), the no-path property (Lemma 22.13), the subpath property
+  (Lemma 22.10), the convergence property (Lemma 22.14), the path-relaxation
+  property (Lemma 22.15), and the predecessor-subgraph property (Lemma 22.16)
 - Main proved theorems:
   - `CLRS.Chapter24.WeightedGraph.shortestDist`
   - `CLRS.Chapter24.WeightedGraph.shortestDist_isShortestDist`
@@ -3779,17 +3782,34 @@ recursion; and a complete dynamic Prim light-edge trace yields a concrete MST.
   - `CLRS.Chapter24.WeightedGraph.shortestDist_le_walkWeight`
   - `CLRS.Chapter24.WeightedGraph.IsWalkFrom.append_edge`
   - `CLRS.Chapter24.WeightedGraph.shortestDist_triangleInequality`
+  - `CLRS.Chapter24.WeightedGraph.shortestDist_triangle_walk`
+  - `CLRS.Chapter24.WeightedGraph.subpath_isShortest`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_antitone`
+  - `CLRS.Chapter24.WeightedGraph.shortestDist_convergence`
+  - `CLRS.Chapter24.WeightedGraph.relaxDist_eq_of_shortest_walk`
+  - `CLRS.Chapter24.WeightedGraph.predecessor`
+  - `CLRS.Chapter24.WeightedGraph.shortestDist_eq_inf_preds`
+  - `CLRS.Chapter24.WeightedGraph.predecessor_tight`
 - Proof pattern: define the single-source distance `δ(s, v)` as the Bellman-Ford
-  relaxation after `|V| - 1` rounds (Theorem 24.4), so `shortestDist_isShortestDist`
+  relaxation after `|V| - 1` rounds (Theorem 22.4), so `shortestDist_isShortestDist`
   gives both the lower bound on every walk weight and the attainment/`⊤`
   dichotomy.  The no-path property is the `⊤` case of that dichotomy; the
   upper-bound property is the lower-bound conjunct; the triangle inequality
   appends the edge `(u, v)` to a realizing walk of `δ(s, u)` (via
   `IsWalkFrom.append_edge` and `walkWeight_append_singleton`) and applies the
-  lower bound to the resulting `s → v` walk.
-- Current gap: the subpath property (Lemma 24.10), convergence/path-relaxation
-  (Lemmas 24.14-24.15), and predecessor-subgraph (Lemma 24.16) are not restated;
-  Dijkstra correctness is proved in Section 24.3 and Bellman-Ford convergence in
+  lower bound to the resulting `s → v` walk.  The triangle inequality is then
+  iterated along a walk (`shortestDist_triangle_walk`) to bound `δ(s, v)` by
+  `δ(s, u) + weight(q)`; the subpath property splits a shortest walk at an
+  interior vertex (`walkWeight_split`) and cancels the shared suffix weight to
+  force the prefix to be shortest.  Convergence relaxes a shortest path's final
+  edge (`relaxStep_le_pred`) and path-relaxation combines the upper-bound
+  property with the antitone decay of `relaxDist` to pin a shortest walk after
+  `p.length - 1` rounds.  The predecessor-subgraph property defines the
+  argmin predecessor and proves the incoming-edge Bellman equation
+  (`shortestDist_eq_inf_preds`) so the chosen predecessor edge is tight
+  (`predecessor_tight`).
+- The Dijkstra-correctness reformulation (Theorem 22.17) is not restated here;
+  Dijkstra correctness is proved in Section 22.3 and Bellman-Ford convergence in
   `relaxDist_stabilizes`.
 
 ## Chapter 25 - All-Pairs Shortest Paths
