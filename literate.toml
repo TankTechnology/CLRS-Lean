@@ -289,6 +289,15 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_04.Section_04_6_Continuous_Master_Theorem",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_7_Akra_Bazzi",
 ]
+"CLRSLean.FourthEdition.Chapter_05" = [
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_1_Hiring_Problem",
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Random_Variables",
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Algorithms",
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis",
+]
+"CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis" = [
+  "CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring",
+]
 "CLRSLean.FourthEdition.Chapter_13" = [
   "CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations",
   "CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion",
@@ -1008,6 +1017,21 @@ title = "4.7. Akra–Bazzi Recurrences"
 
 [modules."CLRSLean.FourthEdition.Chapter_05"]
 title = "Chapter 5. Probabilistic Analysis and Randomized Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_1_Hiring_Problem"]
+title = "5.1. The Hiring Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Random_Variables"]
+title = "5.2. Indicator random variables"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Algorithms"]
+title = "5.3. Randomized algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis"]
+title = "5.4. Probabilistic analysis"
+
+[modules."CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring"]
+title = "The On-line Hiring Problem"
 
 [modules."CLRSLean.FourthEdition.Chapter_06"]
 title = "Chapter 6. Heapsort"
