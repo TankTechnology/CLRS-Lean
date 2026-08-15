@@ -99,7 +99,7 @@ git commit -m "test(ch34): lock affine conjunction interfaces"
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ExactlyOne.lean`
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/Conjunction.lean`
 
-- [ ] **Step 1: Extend the shared finite control**
+- [x] **Step 1: Extend the shared finite control**
 
 Append `conjunctionSource` and `conjunctionCarry` to the existing
 `SequentialExactlyOneCont` declaration, then add the grouped phase type:
@@ -129,7 +129,7 @@ Add these program equations, keeping all runtime naturals in counters:
 | .conjunction .done => .halt
 ```
 
-- [ ] **Step 2: Define the exact kernel configurations**
+- [x] **Step 2: Define the exact kernel configurations**
 
 Start `Conjunction.lean` by importing `UnaryFrame` and the affine exactly-one
 run layer.  Define:
@@ -150,14 +150,14 @@ def affineAndRevCoreSteps (carry source : Nat) : Nat :=
   6 * source + 5 * carry + 11
 ```
 
-- [ ] **Step 3: Prove the one-register cleanup loop**
+- [x] **Step 3: Prove the one-register cleanup loop**
 
 Prove by induction on `source` that `.conjunction .clearWire` reaches
 `.conjunction .incCarry` in `source + 1` steps.  Preserve `counter₁`, output,
 and all empty scratch components exactly.  The successor case must rewrite
 `List.replicate_succ` and use `Function.iterate_succ_apply` once.
 
-- [ ] **Step 4: Compose the exact AND core run**
+- [x] **Step 4: Compose the exact AND core run**
 
 Build `affineAndRev_runToDoneLabel` from these exact segments:
 
@@ -175,7 +175,7 @@ The target output must simplify to
 `(affineAndGateStream carry source).reverse ++ output`, and the total must
 simplify to `affineAndRevCoreSteps carry source` with `omega`.
 
-- [ ] **Step 5: Turn the kernel portion GREEN**
+- [x] **Step 5: Turn the kernel portion GREEN**
 
 Run:
 
@@ -187,7 +187,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_Conjunction.lean
 Expected: the module builds; only the not-yet-defined outer-controller checks
 remain red.
 
-- [ ] **Step 6: Commit the kernel**
+- [x] **Step 6: Commit the kernel**
 
 ```bash
 git add CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ExactlyOne.lean \
