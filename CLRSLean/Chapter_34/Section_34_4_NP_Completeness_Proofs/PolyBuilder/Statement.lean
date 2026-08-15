@@ -88,6 +88,62 @@ def encodeAffineStmtScript (script : List AffineStmtPhase) :
     List AffineStmtScriptSym :=
   script.flatMap encodeAffineStmtPhase
 
+/-! The executable controller uses a fixed-width unary prefix code for phase
+tags.  Its first `tick` is a universal component boundary; the following two
+symbols distinguish all five phase kinds.  Consequently the remainder of a
+script is itself an ordinary unary suffix, which the primitive OR/mux
+controllers can preserve without inspecting. -/
+
+/-- Three-symbol prefix code for one controller phase tag. -/
+def affineStmtPhaseTagCode : AffineStmtPhase → List UnaryFrameSym
+  | .oneHotMap _ => [.tick, .tick, .tick]
+  | .oneHotPredicate _ => [.tick, .tick, .frameEnd]
+  | .oneHotPairMap _ _ => [.tick, .tick, .separator]
+  | .pop _ => [.tick, .frameEnd, .tick]
+  | .mux _ _ => [.tick, .frameEnd, .frameEnd]
+
+/-- Unary operand payload following a phase tag. -/
+def affineStmtPhasePayload : AffineStmtPhase → List UnaryFrameSym
+  | .oneHotMap groups => encodeAffineOrFinGroups groups
+  | .oneHotPredicate frames => encodeAffineOrFinFrames frames
+  | .oneHotPairMap andFrames orGroups =>
+      encodeAffineAndThenOrInput andFrames orGroups
+  | .pop frames => encodeAffineOrFinFrames frames
+  | .mux selector frames => encodeAffineMuxFinFrames selector frames
+
+/-- Pure-unary controller input for one phase. -/
+def encodeAffineStmtControllerPhase (phase : AffineStmtPhase) :
+    List UnaryFrameSym :=
+  affineStmtPhaseTagCode phase ++ affineStmtPhasePayload phase
+
+/-- Pure-unary input accepted by the fixed continuous controller. -/
+def encodeAffineStmtControllerScript (script : List AffineStmtPhase) :
+    List UnaryFrameSym :=
+  script.flatMap encodeAffineStmtControllerPhase
+
+/-- Concrete input alphabet embedding for the fixed statement controller. -/
+def encodeAffineStmtControllerInput (script : List AffineStmtPhase) :
+    List AffineStmtScriptSym :=
+  (encodeAffineStmtControllerScript script).map .data
+
+@[simp] theorem encodeAffineStmtControllerInput_length
+    (script : List AffineStmtPhase) :
+    (encodeAffineStmtControllerInput script).length =
+      (encodeAffineStmtControllerScript script).length := by
+  simp [encodeAffineStmtControllerInput]
+
+@[simp] theorem affineStmtPhaseTagCode_length (phase : AffineStmtPhase) :
+    (affineStmtPhaseTagCode phase).length = 3 := by
+  cases phase <;> rfl
+
+@[simp] theorem encodeAffineStmtControllerPhase_length
+    (phase : AffineStmtPhase) :
+    (encodeAffineStmtControllerPhase phase).length =
+      (encodeAffineStmtPhase phase).length + 2 := by
+  cases phase <;>
+    simp [encodeAffineStmtControllerPhase, encodeAffineStmtPhase,
+      affineStmtPhaseTagCode, affineStmtPhasePayload]
+
 @[simp] theorem encodeAffineStmtPhase_length (phase : AffineStmtPhase) :
     (encodeAffineStmtPhase phase).length =
       match phase with

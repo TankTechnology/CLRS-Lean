@@ -672,28 +672,24 @@ five tagged phase kinds: one-hot map, predicate, pair-map, pop, and whole-row
 mux. `compileStmtScript_gateStream_eq_trace` proves that interpreting the phase
 operands produces exactly `compileStmtGateTrace`, including recursive branch
 order, and `affineStmtScriptStandaloneSteps_le` gives the aggregate component
-budget `≤ 200 * encodedScript.length`. This budget is deliberately not called
-a machine run: the remaining theorem must redirect each clean component exit
-to the next tag in one fixed controller.
+budget `≤ 200 * encodedScript.length`.
 
-The fixed controller itself is now concrete. `affineStmtRevProgram` embeds the
-OR-family and mux controllers under one finite label type and overrides only
-their clean outer-loop checks: a following phase tag is consumed, cleared, and
-redirected to the next component entry without a halt. Exact computations now
-cover initial dispatch, the empty script, empty pop/map/predicate/pair-map
-phases, and their next-tag transitions. These boundary tests include the
-predicate's required false seed and the pair-map's AND-to-OR delimiter. The
-remaining proof obligation is contextual simulation of nonempty component
-runs while a tagged suffix stays unconsumed.
+The fixed controller itself is now complete at statement-script scale.
+`affineStmtRevProgram` embeds the OR-family and mux controllers under one
+finite label type. Each phase tag has a fixed three-symbol unary prefix: the
+first `tick` is a common component boundary and the next two symbols distinguish
+all five phase kinds. Therefore the entire later script is an ordinary unary
+suffix. The new public component contracts—`affineOrFin_runToCheck`,
+`affineOrFinGroups_runToCheck`, `affineAndThenOr_runToCheck`, and
+`affineMuxFin_runToCheck`—preserve it byte for byte.
 
-The no-suffix base case is now complete for all five phase kinds, not merely
-empty inputs. `affineStmtLiftOr_step` and `affineStmtLiftMux_step` prove exact
-pure-data step simulation up to each source controller's clean finish label;
-the lifted run theorems then yield `affineStmt_phase_last_run`. Thus one fixed
-statement controller executes any final map, predicate, pair-map, pop, or mux
-phase to exactly `affineStmtPhaseGateStream`, with its inherited explicit
-runtime. Only the genuinely contextual case—keeping later tagged phases on the
-input while the current nonempty phase runs—remains.
+`affineStmt_phase_last_run` covers the no-suffix case and
+`affineStmt_phase_next_run` covers every non-final phase, including nonempty
+map, predicate, pair-map, pop, and mux inputs. `affineStmt_entry_run` composes
+these contracts recursively; `affineStmt_run` is the single-start/single-halt
+theorem for arbitrary scripts, and `compileStmtScript_run` specializes it to
+the exact structural `compileStmtGateTrace`. The concrete controller bound is
+`affineStmtScriptRunSteps ≤ 200 * controllerInput.length + 4`.
 
 The complete transition target is now structural rather than suffix-derived.
 `compileStmtGateTrace` exposes all seven statement constructors as literal
@@ -705,8 +701,9 @@ dispatch, narrowing, row equality, final AND), and
 `transitionCircuitFamilyGateTrace` iterates that trace over every adjacent row
 pair.  `transitionGateListAt_eq_trace` proves the old `List.drop` target equal
 to this explicit recursive trace, so suffix extraction is no longer part of
-the acceptance argument.  The remaining transition gap is concrete execution
-of the recursive statement/dispatch trace and its outer row-family loop.
+the acceptance argument. Concrete recursive statement execution is now
+closed; the remaining transition gap is dispatching those statement runs and
+iterating the complete local controller over the outer row family.
 
 Two further rejected routes are recorded. A contiguous affine source interval
 cannot represent a sparse truth-table fiber, even when its cardinality is
@@ -754,11 +751,15 @@ Conversely, supplying already encoded target gates would turn the generator
 proof into copying. The accepted script contains only phase tags and unary
 wire operands, with a separate semantic stream-equality theorem.
 
-A further tempting proof shortcut is false: the controller's tagged boundary
+A further tempting proof shortcut is false: the controller's boundary
 operation is not globally the structural relabeling of the unary component,
-because phase tags intentionally redirect instead of becoming invalid. The
-accepted simulation theorem is stated only for configurations containing pure
-`.data` symbols and stops before the overridden finish instruction.
+because the boundary `tick` intentionally redirects instead of becoming
+invalid. `affineStmtOrBoundaryBad` and `affineStmtMuxBoundaryBad` identify the
+exact exceptional states. The accepted lifting theorem simulates every other
+step, stops at that boundary, and then uses the controller's exact four-step
+tag parser. Directly appending high-level sum-type tags was also rejected: it
+cannot instantiate the primitive controllers' unary suffix-preservation
+theorems. The fixed-width unary phase code is the accepted replacement.
 
 ## Focused Acceptance Mechanism
 
