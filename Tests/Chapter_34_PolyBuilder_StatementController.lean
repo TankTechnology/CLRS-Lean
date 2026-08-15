@@ -1,0 +1,36 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.StatementController
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineStmtRelabelOp
+#check AffineStmtControllerLabel
+#check affineStmtTagTarget
+#check affineStmtOrCheckTarget
+#check affineStmtOrFamilyTarget
+#check affineStmtMuxCheckTarget
+#check affineStmtRevProgram
+#check affineStmtLoopCfg
+#check affineStmtPhaseEntryCfg
+#check affineStmt_dispatch_phase
+#check affineStmt_empty_run
+#check affineOrFinNoSeed_runToFinish
+#check affineStmtLiftOr_step
+#check affineStmtLiftMux_step
+#check affineStmtLiftOr_runToFinish
+#check affineStmtLiftMux_runToFinish
+#check affineStmtPhaseLastSteps
+#check affineStmt_phase_last_run
+#check affineStmt_emptyPop_redirect
+#check affineStmt_emptyOneHotMap_redirect
+#check affineStmt_emptyPredicate_redirect
+#check affineStmt_emptyPairMap_redirect
+
+#print axioms affineStmt_dispatch_phase
+#print axioms affineStmt_empty_run
+#print axioms affineStmtLiftOr_runToFinish
+#print axioms affineStmtLiftMux_runToFinish
+#print axioms affineStmt_phase_last_run
+#print axioms affineStmt_emptyPop_redirect
+#print axioms affineStmt_emptyPredicate_redirect
+#print axioms affineStmt_emptyPairMap_redirect
