@@ -794,7 +794,7 @@ def affineAndFinBodySteps : List AffineAndFinPairFrame → Nat
   | [] => 0
   | frame :: rest => affineAndFinPairSteps frame + affineAndFinBodySteps rest
 
-private def affineAndFinFrames_runToCheck
+def affineAndFinFrames_runToCheck
     (frames : List AffineAndFinPairFrame) (tail : List UnaryFrameSym)
     (output : List CircuitSym) :
     EvalsToInTime (step affineOrFinRevProgram)
@@ -962,6 +962,51 @@ def affineOrFinFoldSteps : List AffineOrFinPairFrame → Nat
   | [] => 1
   | frame :: rest => affineOrFinPairSteps frame + affineOrFinFoldSteps rest
 
+/-- Exact cost of a frame sequence when execution stops at the outer check
+instead of consuming the following input symbol. -/
+def affineOrFinBodySteps : List AffineOrFinPairFrame → Nat
+  | [] => 0
+  | frame :: rest => affineOrFinPairSteps frame + affineOrFinBodySteps rest
+
+theorem affineOrFinFoldSteps_eq_body_add_one
+    (frames : List AffineOrFinPairFrame) :
+    affineOrFinFoldSteps frames = affineOrFinBodySteps frames + 1 := by
+  induction frames with
+  | nil => rfl
+  | cons frame rest ih =>
+      simp [affineOrFinFoldSteps, affineOrFinBodySteps, ih]
+      omega
+
+/-- Execute explicit OR frames while preserving an arbitrary unary suffix and
+stop before the outer check consumes its first symbol. -/
+def affineOrFinFrames_runToCheck
+    (frames : List AffineOrFinPairFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinCheckCfg (encodeAffineOrFinFrames frames ++ tail) output)
+      (some (affineOrFinCheckCfg tail
+        (((frames.flatMap fun frame =>
+          affineOrGateStream frame.left frame.right)).reverse ++ output)))
+      (affineOrFinBodySteps frames) := by
+  induction frames generalizing output with
+  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
+  | cons frame rest ih =>
+      let frameOutput :=
+        (affineOrGateStream frame.left frame.right).reverse ++ output
+      have hframe := affineOrFinPair_run frame
+        (encodeAffineOrFinFrames rest ++ tail) output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+        (affineOrFinPairSteps frame) (affineOrFinBodySteps rest) _
+        (affineOrFinCheckCfg
+          (encodeAffineOrFinFrames rest ++ tail) frameOutput) _
+        hframe hrest
+      convert full using 1
+      · simp [encodeAffineOrFinFrames, List.append_assoc]
+      · simp [frameOutput, List.reverse_append, List.append_assoc]
+      · simp [affineOrFinBodySteps]
+        omega
+
 private def affineOrFinFrames_run (frames : List AffineOrFinPairFrame)
     (output : List CircuitSym) :
     EvalsToInTime (step affineOrFinRevProgram)
@@ -995,6 +1040,17 @@ seed.  This is the contextual form needed by stack pop. -/
 def affineOrFinNoSeedGateStream (frames : List AffineOrFinPairFrame) :
     List CircuitSym :=
   frames.flatMap fun frame => affineOrGateStream frame.left frame.right
+
+/-- Seed-free OR execution up to a suffix-preserving outer boundary. -/
+def affineOrFinNoSeed_runToCheck (frames : List AffineOrFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinCheckCfg (encodeAffineOrFinFrames frames ++ tail) output)
+      (some (affineOrFinCheckCfg tail
+        ((affineOrFinNoSeedGateStream frames).reverse ++ output)))
+      (affineOrFinBodySteps frames) := by
+  simpa [affineOrFinNoSeedGateStream] using
+    affineOrFinFrames_runToCheck frames tail output
 
 /-- Exact runtime of the seed-free OR sequence through public halt. -/
 def affineOrFinNoSeedRevSteps (frames : List AffineOrFinPairFrame) : Nat :=
@@ -1057,6 +1113,31 @@ def affineOrFin_runToFinish (frames : List AffineOrFinPairFrame)
   · simp [affineOrFinGateStream, seeded, List.reverse_append,
       List.append_assoc]
   · simp [affineOrFinUntilFinishSteps]
+
+/-- False-seeded OR execution up to a suffix-preserving outer boundary. -/
+def affineOrFin_runToCheck (frames : List AffineOrFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinLoopCfg (encodeAffineOrFinFrames frames ++ tail) output)
+      (some (affineOrFinCheckCfg tail
+        ((affineOrFinGateStream frames).reverse ++ output)))
+      (1 + affineOrFinBodySteps frames) := by
+  let seeded := .constFalseMark :: output
+  have hseed : EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinLoopCfg (encodeAffineOrFinFrames frames ++ tail) output)
+      (some (affineOrFinCheckCfg
+        (encodeAffineOrFinFrames frames ++ tail) seeded)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  have hframes := affineOrFinFrames_runToCheck frames tail seeded
+  let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    1 (affineOrFinBodySteps frames) _
+    (affineOrFinCheckCfg
+      (encodeAffineOrFinFrames frames ++ tail) seeded) _
+    hseed hframes
+  convert full using 1
+  · simp [affineOrFinGateStream, seeded, List.reverse_append,
+      List.append_assoc]
+  · omega
 
 /-! ## Canonical frames and semantic trace agreement -/
 
@@ -1216,38 +1297,6 @@ def affineOrFinFamilyLoopCfg (input : List UnaryFrameSym)
     (output : List CircuitSym) : BuilderCfg affineOrFinRevProgram :=
   affineOrFinCfg .familyCheck none none false input output [] [] [] [] []
 
-def affineOrFinBodySteps : List AffineOrFinPairFrame → Nat
-  | [] => 0
-  | frame :: rest => affineOrFinPairSteps frame + affineOrFinBodySteps rest
-
-private def affineOrFinFrames_runToCheck
-    (frames : List AffineOrFinPairFrame) (tail : List UnaryFrameSym)
-    (output : List CircuitSym) :
-    EvalsToInTime (step affineOrFinRevProgram)
-      (affineOrFinCheckCfg (encodeAffineOrFinFrames frames ++ tail) output)
-      (some (affineOrFinCheckCfg tail
-        (((frames.flatMap fun frame =>
-          affineOrGateStream frame.left frame.right)).reverse ++ output)))
-      (affineOrFinBodySteps frames) := by
-  induction frames generalizing output with
-  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
-  | cons frame rest ih =>
-      let frameOutput :=
-        (affineOrGateStream frame.left frame.right).reverse ++ output
-      have hframe := affineOrFinPair_run frame
-        (encodeAffineOrFinFrames rest ++ tail) output
-      have hrest := ih frameOutput
-      let full := EvalsToInTime.trans (step affineOrFinRevProgram)
-        (affineOrFinPairSteps frame) (affineOrFinBodySteps rest) _
-        (affineOrFinCheckCfg
-          (encodeAffineOrFinFrames rest ++ tail) frameOutput) _
-        hframe hrest
-      convert full using 1
-      · simp [encodeAffineOrFinFrames, List.append_assoc]
-      · simp [frameOutput, List.reverse_append, List.append_assoc]
-      · simp [affineOrFinBodySteps]
-        omega
-
 def affineOrFinGroupSteps (group : AffineOrFinGroup) : Nat :=
   affineOrFinBodySteps group + 5
 
@@ -1295,6 +1344,51 @@ def affineOrFinFamilyFoldSteps : List AffineOrFinGroup → Nat
   | [] => 1
   | group :: rest =>
       affineOrFinGroupSteps group + affineOrFinFamilyFoldSteps rest
+
+/-- Exact family cost when execution stops before inspecting the suffix. -/
+def affineOrFinFamilyBodySteps : List AffineOrFinGroup → Nat
+  | [] => 0
+  | group :: rest =>
+      affineOrFinGroupSteps group + affineOrFinFamilyBodySteps rest
+
+theorem affineOrFinFamilyFoldSteps_eq_body_add_one
+    (groups : List AffineOrFinGroup) :
+    affineOrFinFamilyFoldSteps groups =
+      affineOrFinFamilyBodySteps groups + 1 := by
+  induction groups with
+  | nil => rfl
+  | cons group rest ih =>
+      simp [affineOrFinFamilyFoldSteps, affineOrFinFamilyBodySteps, ih]
+      omega
+
+/-- Execute a family of independent disjunctions while preserving an arbitrary
+unary suffix and stop at the family boundary. -/
+def affineOrFinGroups_runToCheck (groups : List AffineOrFinGroup)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineOrFinFamilyLoopCfg
+        (encodeAffineOrFinGroups groups ++ tail) output)
+      (some (affineOrFinFamilyLoopCfg tail
+        ((affineOrFinFamilyGateStream groups).reverse ++ output)))
+      (affineOrFinFamilyBodySteps groups) := by
+  induction groups generalizing output with
+  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
+  | cons group rest ih =>
+      let groupOutput := (affineOrFinGateStream group).reverse ++ output
+      have hgroup := affineOrFinGroup_run group
+        (encodeAffineOrFinGroups rest ++ tail) output
+      have hrest := ih groupOutput
+      let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+        (affineOrFinGroupSteps group) (affineOrFinFamilyBodySteps rest) _
+        (affineOrFinFamilyLoopCfg
+          (encodeAffineOrFinGroups rest ++ tail) groupOutput) _
+        hgroup hrest
+      convert full using 1
+      · simp [encodeAffineOrFinGroups, List.append_assoc]
+      · simp [affineOrFinFamilyGateStream, groupOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineOrFinFamilyBodySteps]
+        omega
 
 private def affineOrFinGroups_run (groups : List AffineOrFinGroup)
     (output : List CircuitSym) :
@@ -1492,6 +1586,45 @@ def affineAndThenOr_runToFinish (andFrames : List AffineAndFinPairFrame)
       List.reverse_append, List.append_assoc]
   · simp [affineAndThenOrUntilFinishSteps]
     omega
+
+/-- Continuous AND-then-OR-family execution that preserves an arbitrary unary
+suffix and stops at the final family boundary. -/
+def affineAndThenOr_runToCheck (andFrames : List AffineAndFinPairFrame)
+    (orGroups : List AffineOrFinGroup) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg
+        (encodeAffineAndThenOrInput andFrames orGroups ++ tail) output)
+      (some (affineOrFinFamilyLoopCfg tail
+        ((affineAndThenOrGateStream andFrames orGroups).reverse ++ output)))
+      (affineAndFinBodySteps andFrames + 2 +
+        affineOrFinFamilyBodySteps orGroups) := by
+  let andOutput := (affineAndFinGateStream andFrames).reverse ++ output
+  have hands := affineAndFinFrames_runToCheck andFrames
+    (.separator :: encodeAffineOrFinGroups orGroups ++ tail) output
+  have hswitch : EvalsToInTime (step affineOrFinRevProgram)
+      (affineAndFinLoopCfg
+        (.separator :: encodeAffineOrFinGroups orGroups ++ tail) andOutput)
+      (some (affineOrFinFamilyLoopCfg
+        (encodeAffineOrFinGroups orGroups ++ tail) andOutput)) 2 :=
+    ⟨⟨2, rfl⟩, le_rfl⟩
+  have hors := affineOrFinGroups_runToCheck orGroups tail andOutput
+  let throughSwitch := EvalsToInTime.trans (step affineOrFinRevProgram)
+    (affineAndFinBodySteps andFrames) 2 _
+    (affineAndFinLoopCfg
+      (.separator :: encodeAffineOrFinGroups orGroups ++ tail) andOutput) _
+    (by simpa [encodeAffineAndThenOrInput, andOutput,
+      List.append_assoc] using hands) hswitch
+  let full := EvalsToInTime.trans (step affineOrFinRevProgram)
+    _ (affineOrFinFamilyBodySteps orGroups) _
+    (affineOrFinFamilyLoopCfg
+      (encodeAffineOrFinGroups orGroups ++ tail) andOutput) _
+    throughSwitch hors
+  convert full using 1
+  · simp [encodeAffineAndThenOrInput, List.append_assoc]
+  · simp [affineAndThenOrGateStream, andOutput,
+      List.reverse_append, List.append_assoc]
+  · omega
 
 def affineAndThenOrRevSteps (andFrames : List AffineAndFinPairFrame)
     (orGroups : List AffineOrFinGroup) : Nat :=

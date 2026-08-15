@@ -9,18 +9,40 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineStmtOrCheckTarget
 #check affineStmtOrFamilyTarget
 #check affineStmtMuxCheckTarget
+#check affineStmtPhaseTagCode
+#check affineStmtPhasePayload
+#check encodeAffineStmtControllerPhase
+#check encodeAffineStmtControllerScript
+#check encodeAffineStmtControllerInput
 #check affineStmtRevProgram
 #check affineStmtLoopCfg
 #check affineStmtPhaseEntryCfg
 #check affineStmt_dispatch_phase
+#check affineStmt_dispatch_controller_phase
 #check affineStmt_empty_run
 #check affineOrFinNoSeed_runToFinish
+#check affineOrFinFrames_runToCheck
+#check affineOrFinNoSeed_runToCheck
+#check affineOrFin_runToCheck
+#check affineOrFinGroups_runToCheck
+#check affineAndThenOr_runToCheck
+#check affineMuxFinFrames_runToCheck
+#check affineMuxFin_runToCheck
 #check affineStmtLiftOr_step
 #check affineStmtLiftMux_step
 #check affineStmtLiftOr_runToFinish
 #check affineStmtLiftMux_runToFinish
 #check affineStmtPhaseLastSteps
 #check affineStmt_phase_last_run
+#check affineStmtPhaseBodySteps
+#check affineStmtPhaseNextSteps
+#check affineStmt_phase_next_run
+#check affineStmtEntrySteps
+#check affineStmtScriptRunSteps
+#check affineStmt_entry_run
+#check affineStmt_run
+#check affineStmtScriptRun_steps_le
+#check compileStmtScript_run
 #check affineStmt_emptyPop_redirect
 #check affineStmt_emptyOneHotMap_redirect
 #check affineStmt_emptyPredicate_redirect
@@ -31,6 +53,10 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms affineStmtLiftOr_runToFinish
 #print axioms affineStmtLiftMux_runToFinish
 #print axioms affineStmt_phase_last_run
+#print axioms affineStmt_phase_next_run
+#print axioms affineStmt_run
+#print axioms affineStmtScriptRun_steps_le
+#print axioms compileStmtScript_run
 #print axioms affineStmt_emptyPop_redirect
 #print axioms affineStmt_emptyPredicate_redirect
 #print axioms affineStmt_emptyPairMap_redirect

@@ -654,6 +654,57 @@ def affineMuxFinFoldSteps : List AffineMuxFinPairFrame → Nat
   | frame :: rest =>
       affineMuxFinPairSteps frame + affineMuxFinFoldSteps rest
 
+/-- Exact coordinate-family cost when execution stops before consuming the
+following input symbol. -/
+def affineMuxFinBodySteps : List AffineMuxFinPairFrame → Nat
+  | [] => 0
+  | frame :: rest =>
+      affineMuxFinPairSteps frame + affineMuxFinBodySteps rest
+
+theorem affineMuxFinFoldSteps_eq_body_add_one
+    (frames : List AffineMuxFinPairFrame) :
+    affineMuxFinFoldSteps frames = affineMuxFinBodySteps frames + 1 := by
+  induction frames with
+  | nil => rfl
+  | cons frame rest ih =>
+      simp [affineMuxFinFoldSteps, affineMuxFinBodySteps, ih]
+      omega
+
+/-- Execute mux coordinate frames while preserving an arbitrary unary suffix
+and stop at the outer coordinate check. -/
+def affineMuxFinFrames_runToCheck (frames : List AffineMuxFinPairFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineMuxFinRevProgram)
+      (affineMuxFinCheckCfg
+        (frames.flatMap encodeAffineMuxFinPairFrame ++ tail) output)
+      (some (affineMuxFinCheckCfg tail
+        (((frames.flatMap fun frame =>
+          affineAndGateStream frame.whenTrue frame.selector ++
+            affineAndGateStream frame.whenFalse frame.selectorNot ++
+            affineOrGateStream frame.trueArm frame.falseArm)).reverse ++
+          output)))
+      (affineMuxFinBodySteps frames) := by
+  induction frames generalizing output with
+  | nil => exact ⟨⟨0, rfl⟩, le_rfl⟩
+  | cons frame rest ih =>
+      let frameOutput :=
+        ((affineAndGateStream frame.whenTrue frame.selector ++
+          affineAndGateStream frame.whenFalse frame.selectorNot ++
+          affineOrGateStream frame.trueArm frame.falseArm)).reverse ++ output
+      have hframe := affineMuxFinPair_run frame
+        (rest.flatMap encodeAffineMuxFinPairFrame ++ tail) output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans (step affineMuxFinRevProgram)
+        (affineMuxFinPairSteps frame) (affineMuxFinBodySteps rest) _
+        (affineMuxFinCheckCfg
+          (rest.flatMap encodeAffineMuxFinPairFrame ++ tail) frameOutput) _
+        hframe hrest
+      convert full using 1
+      · simp [List.append_assoc]
+      · simp [frameOutput, List.reverse_append, List.append_assoc]
+      · simp [affineMuxFinBodySteps]
+        omega
+
 private def affineMuxFinFrames_run (frames : List AffineMuxFinPairFrame)
     (output : List CircuitSym) :
     EvalsToInTime (step affineMuxFinRevProgram)
@@ -712,6 +763,31 @@ def affineMuxFin_runToFinish (selector : Nat)
   · simp [affineMuxFinGateStream, notOutput, List.reverse_append,
       List.append_assoc]
   · simp [affineMuxFinUntilFinishSteps, Nat.add_comm]
+
+/-- Execute a complete mux phase while preserving an arbitrary unary suffix
+and stop before the outer coordinate check inspects it. -/
+def affineMuxFin_runToCheck (selector : Nat)
+    (frames : List AffineMuxFinPairFrame) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineMuxFinRevProgram)
+      (affineMuxFinLoopCfg
+        (encodeAffineMuxFinFrames selector frames ++ tail) output)
+      (some (affineMuxFinCheckCfg tail
+        ((affineMuxFinGateStream selector frames).reverse ++ output)))
+      (affineMuxFinHeaderSteps selector + affineMuxFinBodySteps frames) := by
+  let bodyInput := frames.flatMap encodeAffineMuxFinPairFrame ++ tail
+  let notOutput := (affineNotGateStream selector).reverse ++ output
+  have hheader := affineMuxFinHeader_run selector bodyInput output
+  have hframes := affineMuxFinFrames_runToCheck frames tail notOutput
+  let full := EvalsToInTime.trans (step affineMuxFinRevProgram)
+    (affineMuxFinHeaderSteps selector) (affineMuxFinBodySteps frames) _
+    (affineMuxFinCheckCfg bodyInput notOutput) _ hheader
+    (by simpa [bodyInput] using hframes)
+  convert full using 1
+  · simp [encodeAffineMuxFinFrames, bodyInput, List.append_assoc]
+  · simp [affineMuxFinGateStream, notOutput, List.reverse_append,
+      List.append_assoc]
+  · omega
 
 /-! ## Canonical frames and semantic trace agreement -/
 
