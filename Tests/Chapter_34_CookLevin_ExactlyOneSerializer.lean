@@ -7,10 +7,13 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check sequentialExactlyOneGateStream
 #check sequentialExactlyOneGateStream_eq_trace
 #check sequentialExactlyOneRevProgram
+#check clearAllRegistersToHaltLabel
 #check sequentialExactlyOneRev_run
 #check sequentialExactlyOneRev_outputs
 #check sequentialExactlyOneRev_computableInPolyTime
 #check sequentialExactlyOneGateStream_computableInPolyTime
+
+#print axioms clearAllRegistersToHaltLabel
 
 example (count : Nat) :
     sequentialExactlyOneGateStream count =

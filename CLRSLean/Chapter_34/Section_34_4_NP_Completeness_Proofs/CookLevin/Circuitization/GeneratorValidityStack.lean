@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -312,6 +313,71 @@ theorem arithmeticStackCellGateStream_eq_semantic
       tm H start rowBase k i]
   simp
 
+/-- Exact contextual run for the complete six-gate arithmetic stack-cell
+block.  Unlike the separate primitive interfaces above, this run does not halt
+between the leading blank-bit negation and the following Boolean equality. -/
+noncomputable def arithmeticStackCellRev_runToHaltLabel
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineCellBodyCfg (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output)
+      (some (sequentialExactlyOneCfg .halt none none false []
+        ((arithmeticStackCellGateStream tm H start rowBase k i).reverse ++
+          output) [] [] [] [] []))
+      (affineCellRevCoreSteps (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i)) := by
+  simpa [arithmeticStackCellGateStream,
+    arithmeticStackCellNotGateStream,
+    arithmeticStackCellBoolEqGateStream,
+    arithmeticStackCellBoolEqStart,
+    affineCellGateStream] using
+      affineCellRev_runToHaltLabel
+        (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output
+
+/-- Exact standalone run for the complete six-gate arithmetic stack-cell
+block.  Unlike the separate primitive interfaces above, this run does not halt
+between the leading blank-bit negation and the following Boolean equality. -/
+noncomputable def arithmeticStackCellRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineCellBodyCfg (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((arithmeticStackCellGateStream tm H start rowBase k i).reverse ++
+          output)))
+      (affineCellRevSteps (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i)) := by
+  simpa [arithmeticStackCellGateStream,
+    arithmeticStackCellNotGateStream,
+    arithmeticStackCellBoolEqGateStream,
+    arithmeticStackCellBoolEqStart,
+    affineCellGateStream] using
+      affineCellRev_runFrom
+        (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) output
+
+/-- The complete arithmetic stack-cell invocation inherits the generic
+quadratic running-time envelope. -/
+theorem arithmeticStackCellRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (i : Fin H) :
+    affineCellRevSteps (arithmeticStackCellNotWire tm H start k i)
+        (arithmeticStackMaskOutputWire tm H start k i)
+        (arithmeticStackBlankWire tm H rowBase k i) ≤
+      200 * (arithmeticStackCellNotWire tm H start k i +
+        arithmeticStackMaskOutputWire tm H start k i +
+        arithmeticStackBlankWire tm H rowBase k i + 1) ^ 2 :=
+  affineCellRev_steps_le _ _ _
+
 /-- The arithmetic six-gate stream is one literal `cellValidityGateBlock`. -/
 theorem arithmeticStackCellGateStream_eq_block
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
@@ -334,6 +400,67 @@ noncomputable def arithmeticStackCellFamilyGateStream
     List CircuitSym :=
   (List.ofFn fun i : Fin H =>
     arithmeticStackCellGateStream tm H start rowBase k i).flatten
+
+/-- Runtime frame list for the complete ordered cell family of one fixed
+stack.  Every index remains stack data of the single family controller. -/
+noncomputable def arithmeticStackCellFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    List AffineCellFrame :=
+  List.ofFn fun i : Fin H =>
+    { right := arithmeticStackCellNotWire tm H start k i
+      left := arithmeticStackMaskOutputWire tm H start k i
+      blank := arithmeticStackBlankWire tm H rowBase k i }
+
+private theorem flatMap_eq_map_flatten {α β : Type*}
+    (xs : List α) (f : α → List β) :
+    xs.flatMap f = (xs.map f).flatten := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => simp [ih]
+
+/-- Interpreting the arithmetic runtime frames yields exactly the existing
+semantic `6H` byte stream. -/
+theorem arithmeticStackCellFamilyGateStream_eq_framed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineCellFamilyGateStream
+        (arithmeticStackCellFrames tm H start rowBase k) =
+      arithmeticStackCellFamilyGateStream tm H start rowBase k := by
+  rw [affineCellFamilyGateStream_eq_flatMap]
+  rw [flatMap_eq_map_flatten]
+  unfold arithmeticStackCellFrames arithmeticStackCellFamilyGateStream
+  rw [List.map_ofFn]
+  simp [Function.comp_def,
+    arithmeticStackCellGateStream, arithmeticStackCellNotGateStream,
+    arithmeticStackCellBoolEqGateStream, affineCellGateStream,
+    arithmeticStackCellBoolEqStart]
+
+/-- One fixed framed controller executes every ordered cell of a runtime-height
+stack without halting between cells. -/
+noncomputable def arithmeticStackCellFamilyRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineCellFamilyRevProgram)
+      (affineCellFamilyLoopCfg
+        (encodeAffineCellFamily
+          (arithmeticStackCellFrames tm H start rowBase k)) output)
+      (some (haltCfg affineCellFamilyRevProgram
+        ((arithmeticStackCellFamilyGateStream tm H start rowBase k).reverse ++
+          output)))
+      (affineCellFamilyRevSteps
+        (arithmeticStackCellFrames tm H start rowBase k)) := by
+  simpa [arithmeticStackCellFamilyGateStream_eq_framed] using
+    affineCellFamily_run
+      (arithmeticStackCellFrames tm H start rowBase k) output
+
+/-- The complete runtime-height cell family inherits the controller's
+quadratic bound in its explicit framed input length. -/
+theorem arithmeticStackCellFamilyRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineCellFamilyRevSteps
+        (arithmeticStackCellFrames tm H start rowBase k) ≤
+      250 * (encodeAffineCellFamily
+        (arithmeticStackCellFrames tm H start rowBase k)).length ^ 2 + 2 :=
+  affineCellFamilyRev_steps_le _
 
 private theorem flatten_encoded_blocks (blocks : List (List CircuitGate)) :
     (blocks.map fun block => block.flatMap encodeCircuitGate).flatten =
@@ -374,6 +501,50 @@ noncomputable def arithmeticStackGateStream
     List CircuitSym :=
   arithmeticStackMaskGateStream tm H start rowBase k ++
     arithmeticStackCellFamilyGateStream tm H start rowBase k
+
+/-- Complete runtime frame for one arithmetic stack block. -/
+noncomputable def arithmeticStackFrame
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    AffineStackFrame :=
+  { start := arithmeticStackBlockStart tm H start k
+    base := arithmeticStackMaskWireBase tm H rowBase k
+    count := H
+    cells := arithmeticStackCellFrames tm H start rowBase k }
+
+/-- Interpreting the arithmetic stack frame yields exactly the established
+semantic mask-plus-`6H` byte stream. -/
+theorem arithmeticStackGateStream_eq_framed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineStackGateStream (arithmeticStackFrame tm H start rowBase k) =
+      arithmeticStackGateStream tm H start rowBase k := by
+  simp [affineStackGateStream, arithmeticStackFrame,
+    arithmeticStackGateStream, arithmeticStackMaskGateStream,
+    arithmeticStackCellFamilyGateStream_eq_framed]
+
+/-- One fixed controller executes the complete arithmetic stack block without
+halting between its active mask and any of its runtime-height cells. -/
+noncomputable def arithmeticStackRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg
+        (encodeAffineStackFrame
+          (arithmeticStackFrame tm H start rowBase k)) output)
+      (some (haltCfg affineStackRevProgram
+        ((arithmeticStackGateStream tm H start rowBase k).reverse ++ output)))
+      (affineStackRevSteps
+        (arithmeticStackFrame tm H start rowBase k)) := by
+  simpa [arithmeticStackGateStream_eq_framed] using
+    affineStack_run (arithmeticStackFrame tm H start rowBase k) output
+
+/-- The complete arithmetic stack invocation inherits the generic quadratic
+bound in the explicit mask-and-cells frame length. -/
+theorem arithmeticStackRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineStackRevSteps (arithmeticStackFrame tm H start rowBase k) ≤
+      400 * (encodeAffineStackFrame
+        (arithmeticStackFrame tm H start rowBase k)).length ^ 2 + 2 :=
+  affineStackRev_steps_le _
 
 /-- The arithmetic one-stack stream is exactly the semantic mask-plus-cells
 trace of length `H + 1 + 6H`. -/
@@ -417,6 +588,54 @@ noncomputable def arithmeticStackFamilyGateStream
   (List.ofFn fun j : Fin (arithmeticStackCount tm) =>
     arithmeticStackGateStream tm H start rowBase
       ((arithmeticStackEquiv tm).symm j)).flatten
+
+/-- Runtime frame list for all machine stacks in canonical finite order. -/
+noncomputable def arithmeticStackFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List AffineStackFrame :=
+  List.ofFn fun j : Fin (arithmeticStackCount tm) =>
+    arithmeticStackFrame tm H start rowBase
+      ((arithmeticStackEquiv tm).symm j)
+
+/-- Interpreting the fixed-machine stack frames yields exactly the existing
+semantic ordered-stack byte stream. -/
+theorem arithmeticStackFamilyGateStream_eq_framed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineStackFamilyGateStream
+        (arithmeticStackFrames tm H start rowBase) =
+      arithmeticStackFamilyGateStream tm H start rowBase := by
+  rw [affineStackFamilyGateStream_eq_flatMap]
+  rw [flatMap_eq_map_flatten]
+  unfold arithmeticStackFrames arithmeticStackFamilyGateStream
+  rw [List.map_ofFn]
+  simp [Function.comp_def, arithmeticStackGateStream_eq_framed]
+
+/-- One fixed controller executes the complete fixed-machine stack family,
+without halting between masks, cells, or adjacent stacks. -/
+noncomputable def arithmeticStackFamilyRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg
+        (encodeAffineStackFamily
+          (arithmeticStackFrames tm H start rowBase)) output)
+      (some (haltCfg affineStackRevProgram
+        ((arithmeticStackFamilyGateStream tm H start rowBase).reverse ++
+          output)))
+      (affineStackFamilyRevSteps
+        (arithmeticStackFrames tm H start rowBase)) := by
+  simpa [arithmeticStackFamilyGateStream_eq_framed] using
+    affineStackFamily_run (arithmeticStackFrames tm H start rowBase) output
+
+/-- The complete fixed-machine stack family inherits the generic quadratic
+bound in its explicit frame encoding. -/
+theorem arithmeticStackFamilyRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineStackFamilyRevSteps
+        (arithmeticStackFrames tm H start rowBase) ≤
+      400 * (encodeAffineStackFamily
+        (arithmeticStackFrames tm H start rowBase)).length ^ 2 + 2 :=
+  affineStackFamilyRev_steps_le _
 
 /-- The arithmetic family stream is exactly the semantic ordered-stack trace. -/
 theorem arithmeticStackFamilyGateStream_eq_semantic
@@ -472,12 +691,108 @@ theorem arithmeticStackFamilyGateStream_prefix_postHalted
   rw [show 5 = halted.gates.length by simp [halted]]
   simp [List.flatMap_append]
 
+/-- Ordered output wires consumed by the final conjunction of one arithmetic
+row.  This is the exact public constraint order: raw one-hot outputs, halted
+agreement, then every stack-cell canonicality output in stack-major order. -/
+noncomputable def arithmeticValidityConstraintWires
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List CircuitBuilder.Wire := by
+  letI : Fintype tm.K := tm.kFin
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  let halted := CircuitBuilder.boolEqGateTrace
+    (start + raw.gates.length) wires.halted
+    (wires.label (Fin.last (labelCount tm)))
+  let stack := stackValidityFamilyGateTrace
+    (start + raw.gates.length + halted.gates.length) wires
+    (Fintype.card tm.K) (fun j => (Fintype.equivFin tm.K).symm j)
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
+  let rawConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun j : Fin (cfgOneHotGroupCount tm H) =>
+      raw.outputs (groupEquiv.symm j)
+  let stackConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun p : Fin (Fintype.card tm.K * H) =>
+      let q := (finProdFinEquiv
+        (m := Fintype.card tm.K) (n := H)).symm p
+      stack.outputs q.1 q.2
+  exact rawConstraints ++ halted.wire :: stackConstraints
+
+/-- First fresh gate of the final row-validity conjunction, after every
+stack mask and cell block. -/
+noncomputable def arithmeticValidityFinalStart
+    (tm : _root_.Turing.FinTM2) (H start : Nat) : Nat :=
+  arithmeticStackValidityStart tm H start +
+    arithmeticStackCount tm * (H + 1 + 6 * H)
+
 /-- Exact serialized tail after all stack-validity blocks; semantically this
 is the row-validity final conjunction and nothing else. -/
 noncomputable def arithmeticValidityFinalConjunctionGateStream
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) : List CircuitSym :=
   (arithmeticValidityPostHaltedMatchGateStream tm H start rowBase).drop
     (arithmeticStackFamilyGateStream tm H start rowBase).length
+
+/-- The formerly opaque post-stack suffix is exactly the encoded tail-first
+conjunction over the canonical ordered constraint wires. -/
+theorem arithmeticValidityFinalConjunctionGateStream_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticValidityFinalConjunctionGateStream tm H start rowBase =
+      (CircuitBuilder.conjunctionGateTrace
+        (arithmeticValidityFinalStart tm H start)
+        (arithmeticValidityConstraintWires tm H start rowBase)).gates.flatMap
+          encodeCircuitGate := by
+  letI : Fintype tm.K := tm.kFin
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  let halted := CircuitBuilder.boolEqGateTrace
+    (start + raw.gates.length) wires.halted
+    (wires.label (Fin.last (labelCount tm)))
+  let stack := stackValidityFamilyGateTrace
+    (start + raw.gates.length + halted.gates.length) wires
+    (Fintype.card tm.K) (fun j => (Fintype.equivFin tm.K).symm j)
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
+  let rawConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun j : Fin (cfgOneHotGroupCount tm H) =>
+      raw.outputs (groupEquiv.symm j)
+  let stackConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun p : Fin (Fintype.card tm.K * H) =>
+      let q := (finProdFinEquiv
+        (m := Fintype.card tm.K) (n := H)).symm p
+      stack.outputs q.1 q.2
+  let constraints := rawConstraints ++ halted.wire :: stackConstraints
+  let final := CircuitBuilder.conjunctionGateTrace
+    (start + raw.gates.length + halted.gates.length + stack.gates.length)
+    constraints
+  have hstack := arithmeticStackFamilyGateStream_eq_semantic
+    tm H start rowBase
+  have hstackStart : arithmeticStackValidityStart tm H start =
+      start + raw.gates.length + halted.gates.length := by
+    simp [arithmeticStackValidityStart, arithmeticHaltedMatchStart,
+      arithmeticRawOneHotGateCount, raw, halted, wires]
+  rw [hstackStart] at hstack
+  change arithmeticStackFamilyGateStream tm H start rowBase =
+    stack.gates.flatMap encodeCircuitGate at hstack
+  have hpost : arithmeticValidityPostHaltedMatchGateStream
+      tm H start rowBase =
+      stack.gates.flatMap encodeCircuitGate ++
+        final.gates.flatMap encodeCircuitGate := by
+    unfold arithmeticValidityPostHaltedMatchGateStream
+    change ((raw.gates ++ halted.gates ++ stack.gates ++ final.gates).drop
+      (raw.gates.length + 5)).flatMap encodeCircuitGate = _
+    rw [show 5 = halted.gates.length by simp [halted]]
+    simp [List.flatMap_append]
+  unfold arithmeticValidityFinalConjunctionGateStream
+  rw [hpost, hstack]
+  simp only [List.drop_left]
+  change final.gates.flatMap encodeCircuitGate =
+    (CircuitBuilder.conjunctionGateTrace
+      (arithmeticValidityFinalStart tm H start)
+      (arithmeticValidityConstraintWires tm H start rowBase)).gates.flatMap
+        encodeCircuitGate
+  congr 2
+  · unfold final
+    congr 2
+    · exact hstackStart.symm
+    · simp [stack, arithmeticStackCount]
 
 /-- Advance the exact row-validity boundary through the entire stack family,
 leaving only the final conjunction tail. -/

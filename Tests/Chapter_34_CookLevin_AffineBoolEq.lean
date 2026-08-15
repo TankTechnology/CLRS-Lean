@@ -7,6 +7,8 @@ open CLRS.Chapter34.Turing.PolyBuilder
 
 #check affineBoolEqGateStream
 #check affineBoolEqBodyCfg
+#check affineBoolEqRevCoreSteps
+#check affineBoolEqRev_runToHaltLabel
 #check affineBoolEqRevSteps
 #check affineBoolEqRev_runFrom
 #check affineBoolEqRev_steps_le
@@ -19,5 +21,6 @@ example : affineBoolEqGateStream 5 2 4 =
   exact affineBoolEqGateStream_eq_trace 5 2 4
 
 #print axioms affineBoolEqGateStream_eq_trace
+#print axioms affineBoolEqRev_runToHaltLabel
 #print axioms affineBoolEqRev_runFrom
 #print axioms affineBoolEqRev_steps_le

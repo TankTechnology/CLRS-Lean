@@ -1,0 +1,36 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
+
+open StateTransition
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineCellFamilyLabel
+#check affineCellFamilyRevProgram
+#check affineCellFamilyCfg
+#check affineCellFamilyReadyCfg
+#check affineCellFamilyLoadSteps
+#check affineCellFamily_load
+#check affineCellFamilyCoreExitCfg
+#check affineCellFamilyCore_run
+#check AffineCellFrame
+#check encodeAffineCellFamily
+#check affineCellFamilyGateStream
+#check affineCellFamilyGateStream_eq_flatMap
+#check affineCellFamilyRevSteps
+#check affineCellFamily_run
+#check affineCellFamilyUntilEndSteps
+#check affineCellFamilyFinishCfg
+#check affineCellFamily_runToFinish
+#check affineCellFamilyUntilEndSteps_add_one
+#check affineCellFamilyUntilEnd_steps_le
+#check encodeAffineCellFrame_length
+#check affineCellFrameRev_steps_le
+#check affineCellFamilyRev_steps_le
+#check affineCellFamily_empty_run
+
+#print axioms affineCellFamily_load
+#print axioms affineCellFamilyCore_run
+#print axioms affineCellFamily_run
+#print axioms affineCellFamily_runToFinish
+#print axioms affineCellFamilyUntilEnd_steps_le
+#print axioms affineCellFamilyRev_steps_le
+#print axioms affineCellFamily_empty_run
