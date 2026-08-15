@@ -713,23 +713,24 @@ theorem oneHotPairMap_eval_encodeOneHot (base : CircuitBuilder) {n p m : Nat}
 def oneHotTruePreimage {n : Nat} (f : Fin n → Bool) : Finset (Fin n) :=
   Finset.univ.filter fun i => f i = true
 
-/-- Source wires selected by the true preimage of a Boolean predicate. -/
-private def oneHotTruePreimageWires {n : Nat}
+/-- Source wires selected by the true preimage of a Boolean predicate.  This
+is also the exact runtime operand list of the concrete serializer. -/
+def oneHotPredicateWires {n : Nat}
     (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Bool) :
     List CircuitBuilder.Wire :=
   (oneHotTruePreimage f).toList.map source
 
-@[simp] private theorem oneHotTruePreimageWires_length {n : Nat}
+@[simp] theorem oneHotPredicateWires_length {n : Nat}
     (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Bool) :
-    (oneHotTruePreimageWires source f).length = (oneHotTruePreimage f).card := by
-  simp [oneHotTruePreimageWires]
+    (oneHotPredicateWires source f).length = (oneHotTruePreimage f).card := by
+  simp [oneHotPredicateWires]
 
-private theorem oneHotTruePreimageWires_valid {n : Nat}
+private theorem oneHotPredicateWires_valid {n : Nat}
     {base : CircuitBuilder} (source : Fin n → CircuitBuilder.Wire)
     (f : Fin n → Bool) (hsource : ∀ i, base.WireValid (source i)) :
-    ∀ wire ∈ oneHotTruePreimageWires source f, base.WireValid wire := by
+    ∀ wire ∈ oneHotPredicateWires source f, base.WireValid wire := by
   intro wire hwire
-  simp only [oneHotTruePreimageWires, Finset.mem_toList, List.mem_map] at hwire
+  simp only [oneHotPredicateWires, Finset.mem_toList, List.mem_map] at hwire
   rcases hwire with ⟨i, _, rfl⟩
   exact hsource i
 
@@ -759,8 +760,8 @@ def oneHotPredicate (base : CircuitBuilder) {n : Nat}
     (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Bool)
     (hsource : ∀ i, base.WireValid (source i)) :
     OneHotPredicateResult base source f := by
-  let wires := oneHotTruePreimageWires source f
-  have hwires := oneHotTruePreimageWires_valid source f hsource
+  let wires := oneHotPredicateWires source f
+  have hwires := oneHotPredicateWires_valid source f hsource
   let output := base.disjunction wires hwires
   refine
     { builder := output.1
@@ -771,17 +772,42 @@ def oneHotPredicate (base : CircuitBuilder) {n : Nat}
       gate_bound := ?_
       eval := ?_ }
   · rw [CircuitBuilder.disjunction_gate_delta]
-    simp only [wires, oneHotTruePreimageWires_length]
+    simp only [wires, oneHotPredicateWires_length]
     omega
   · rw [CircuitBuilder.disjunction_gate_delta]
-    simp only [wires, oneHotTruePreimageWires_length]
+    simp only [wires, oneHotPredicateWires_length]
     have hcard : (oneHotTruePreimage f).card ≤ n := by
       simpa using (oneHotTruePreimage f).card_le_univ
     omega
   · intro inputs
     rw [CircuitBuilder.disjunction_eval]
-    simp only [wires, oneHotTruePreimageWires, List.any_map]
+    simp only [wires, oneHotPredicateWires, List.any_map]
     rfl
+
+/-- A predicate query appends the exact tail-first disjunction trace of its
+true source fiber. -/
+theorem oneHotPredicate_gates_eq (base : CircuitBuilder) {n : Nat}
+    (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Bool)
+    (hsource : ∀ i, base.WireValid (source i)) :
+    (oneHotPredicate base source f hsource).builder.gates =
+      base.gates ++ (CircuitBuilder.disjunctionGateTrace base.gates.length
+        (oneHotPredicateWires source f)).gates := by
+  let wires := oneHotPredicateWires source f
+  have hwires := oneHotPredicateWires_valid source f hsource
+  simpa [oneHotPredicate, wires] using
+    CircuitBuilder.disjunction_gates_eq base wires hwires
+
+/-- The predicate output wire agrees with the pure disjunction trace. -/
+theorem oneHotPredicate_wire_eq_trace (base : CircuitBuilder) {n : Nat}
+    (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Bool)
+    (hsource : ∀ i, base.WireValid (source i)) :
+    (oneHotPredicate base source f hsource).wire =
+      (CircuitBuilder.disjunctionGateTrace base.gates.length
+        (oneHotPredicateWires source f)).wire := by
+  let wires := oneHotPredicateWires source f
+  have hwires := oneHotPredicateWires_valid source f hsource
+  simpa [oneHotPredicate, wires] using
+    CircuitBuilder.disjunction_wire_eq_trace base wires hwires
 
 /-- A one-hot predicate query preserves the complete input prefix. -/
 theorem oneHotPredicate_extends (base : CircuitBuilder) {n : Nat}

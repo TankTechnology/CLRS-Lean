@@ -624,6 +624,12 @@ while `affineOneHotMap_run` proves exact execution of the encoded
 bound.  Thus finite one-hot lookup is no longer only a pure builder result: it
 has a concrete fixed-controller serialization theorem.
 
+The Boolean-query specialization is closed too. `oneHotPredicate_gates_eq`
+and `oneHotPredicate_wire_eq_trace` expose the exact true-fiber disjunction,
+and `affineOneHotPredicate_run` executes it with the same arbitrary-list
+controller.  The empty true fiber is an explicit acceptance case, so an
+all-false static predicate still emits exactly its required false seed.
+
 Two further rejected routes are recorded. A contiguous affine source interval
 cannot represent a sparse truth-table fiber, even when its cardinality is
 correct. Also, the active-mask suffix scan emits `.or carry wire`, whereas
@@ -658,6 +664,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.MuxFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -686,6 +693,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
 lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OneHotPredicate.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean
