@@ -137,4 +137,101 @@ def affineAndRev_runToDoneLabel (carry source : Nat)
   · simp [affineAndRevCoreSteps]
     omega
 
+/-- Runtime data for one tail-first conjunction fold. -/
+structure AffineConjunctionFrame where
+  start : Nat
+  wires : List Nat
+deriving DecidableEq, Repr
+
+/-- Unary blocks in the order consumed by the controller. -/
+def encodeAffineConjunctionSources (sources : List Nat) :
+    List UnaryFrameSym :=
+  sources.flatMap encodeUnaryFrameBlock
+
+/-- The semantic conjunction is tail-first, so the runtime source order is
+the reverse of the public source-wire order. -/
+def encodeAffineConjunctionFrame (frame : AffineConjunctionFrame) :
+    List UnaryFrameSym :=
+  encodeUnaryFrameBlock frame.start ++
+    encodeAffineConjunctionSources frame.wires.reverse ++ [.frameEnd]
+
+@[simp] theorem encodeAffineConjunctionSources_length (sources : List Nat) :
+    (encodeAffineConjunctionSources sources).length =
+      (sources.map fun source => source + 1).sum := by
+  induction sources with
+  | nil => rfl
+  | cons source rest ih =>
+      simp [encodeAffineConjunctionSources, encodeUnaryFrameBlock]
+      omega
+
+/-- Exact runtime-frame size, including the start separator and final
+`frameEnd`. -/
+@[simp] theorem encodeAffineConjunctionFrame_length
+    (frame : AffineConjunctionFrame) :
+    (encodeAffineConjunctionFrame frame).length =
+      frame.start + 2 + (frame.wires.map fun wire => wire + 1).sum := by
+  simp [encodeAffineConjunctionFrame, encodeUnaryFrameBlock]
+  omega
+
+namespace AffineConjunction
+
+/-- AND gates in the exact order produced after the true seed. -/
+def chunksFrom : Nat → List Nat → List CircuitGate
+  | _, [] => []
+  | carry, source :: rest =>
+      .and source carry :: chunksFrom (carry + 1) rest
+
+theorem chunksFrom_append (carry : Nat) (left right : List Nat) :
+    chunksFrom carry (left ++ right) =
+      chunksFrom carry left ++ chunksFrom (carry + left.length) right := by
+  induction left generalizing carry with
+  | nil => simp [chunksFrom]
+  | cons source rest ih =>
+      simp only [List.cons_append, chunksFrom, List.length_cons]
+      rw [ih]
+      have hcarry : carry + 1 + rest.length =
+          carry + (rest.length + 1) := by omega
+      rw [hcarry]
+
+end AffineConjunction
+
+/-- Exact forward byte stream of one tail-first conjunction. -/
+def affineConjunctionGateStream (frame : AffineConjunctionFrame) :
+    List CircuitSym :=
+  ([CircuitGate.const true] ++
+    AffineConjunction.chunksFrom frame.start frame.wires.reverse).flatMap
+      encodeCircuitGate
+
+private theorem conjunctionGateTrace_wire (start : Nat) (wires : List Nat) :
+    (CircuitBuilder.conjunctionGateTrace start wires).wire =
+      start + wires.length := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih =>
+      simp only [CircuitBuilder.conjunctionGateTrace]
+      rw [CircuitBuilder.conjunctionGateTrace_length]
+      simp only [List.length_cons]
+
+private theorem conjunctionGateTrace_gates (start : Nat) (wires : List Nat) :
+    (CircuitBuilder.conjunctionGateTrace start wires).gates =
+      [CircuitGate.const true] ++
+        AffineConjunction.chunksFrom start wires.reverse := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih =>
+      simp only [CircuitBuilder.conjunctionGateTrace, List.reverse_cons]
+      rw [ih, AffineConjunction.chunksFrom_append,
+        conjunctionGateTrace_wire]
+      simp [AffineConjunction.chunksFrom]
+
+/-- The runtime stream is byte-for-byte the established semantic conjunction
+trace. -/
+theorem affineConjunctionGateStream_eq_trace
+    (frame : AffineConjunctionFrame) :
+    affineConjunctionGateStream frame =
+      (CircuitBuilder.conjunctionGateTrace
+        frame.start frame.wires).gates.flatMap encodeCircuitGate := by
+  rw [conjunctionGateTrace_gates]
+  rfl
+
 end CLRS.Chapter34.Turing.PolyBuilder
