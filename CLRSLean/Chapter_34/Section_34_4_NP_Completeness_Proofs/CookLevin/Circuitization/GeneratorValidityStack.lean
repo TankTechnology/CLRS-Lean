@@ -2,7 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -501,6 +501,50 @@ noncomputable def arithmeticStackGateStream
     List CircuitSym :=
   arithmeticStackMaskGateStream tm H start rowBase k ++
     arithmeticStackCellFamilyGateStream tm H start rowBase k
+
+/-- Complete runtime frame for one arithmetic stack block. -/
+noncomputable def arithmeticStackFrame
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    AffineStackFrame :=
+  { start := arithmeticStackBlockStart tm H start k
+    base := arithmeticStackMaskWireBase tm H rowBase k
+    count := H
+    cells := arithmeticStackCellFrames tm H start rowBase k }
+
+/-- Interpreting the arithmetic stack frame yields exactly the established
+semantic mask-plus-`6H` byte stream. -/
+theorem arithmeticStackGateStream_eq_framed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineStackGateStream (arithmeticStackFrame tm H start rowBase k) =
+      arithmeticStackGateStream tm H start rowBase k := by
+  simp [affineStackGateStream, arithmeticStackFrame,
+    arithmeticStackGateStream, arithmeticStackMaskGateStream,
+    arithmeticStackCellFamilyGateStream_eq_framed]
+
+/-- One fixed controller executes the complete arithmetic stack block without
+halting between its active mask and any of its runtime-height cells. -/
+noncomputable def arithmeticStackRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg
+        (encodeAffineStackFrame
+          (arithmeticStackFrame tm H start rowBase k)) output)
+      (some (haltCfg affineStackRevProgram
+        ((arithmeticStackGateStream tm H start rowBase k).reverse ++ output)))
+      (affineStackRevSteps
+        (arithmeticStackFrame tm H start rowBase k)) := by
+  simpa [arithmeticStackGateStream_eq_framed] using
+    affineStack_run (arithmeticStackFrame tm H start rowBase k) output
+
+/-- The complete arithmetic stack invocation inherits the generic quadratic
+bound in the explicit mask-and-cells frame length. -/
+theorem arithmeticStackRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineStackRevSteps (arithmeticStackFrame tm H start rowBase k) ≤
+      300 * (encodeAffineStackFrame
+        (arithmeticStackFrame tm H start rowBase k)).length ^ 2 + 3 :=
+  affineStackRev_steps_le _
 
 /-- The arithmetic one-stack stream is exactly the semantic mask-plus-cells
 trace of length `H + 1 + 6H`. -/
