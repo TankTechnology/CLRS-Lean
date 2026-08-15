@@ -264,6 +264,7 @@ example : (encodeCircuit interfaceFanOutCircuit).length ≤
 #check Turing.CookLevin.allocateTableauRows
 #check Turing.CookLevin.allocateTableauRows_inputCount
 #check Turing.CookLevin.allocateTableauRows_gate_delta
+#check Turing.CookLevin.allocateTableauRows_gates_eq
 #check Turing.CookLevin.allocateTableauRows_row_valid
 #check Turing.CookLevin.allocateTableauRows_wire_ne
 #check Turing.CookLevin.writeTableauBitsAt
@@ -310,10 +311,33 @@ example : (encodeCircuit interfaceFanOutCircuit).length ≤
 #check Turing.CookLevin.cookLevinMap
 #check Turing.CookLevin.cookLevinMap_mem_generalCircuitSAT_iff
 #check Turing.CookLevin.cookLevinMap_length_le
+#check Turing.CookLevin.VerifierWitness.alphabetFintype
+#check Turing.CookLevin.verifierHorizonClock_length
+#check Turing.CookLevin.verifierHorizonClock_computableInPolyTime
+#check Turing.CookLevin.verifierHeightClock_length
+#check Turing.CookLevin.verifierHeightClock_computableInPolyTime
+#check Turing.CookLevin.verifierGateBoundClock_computableInPolyTime
+#check Turing.CookLevin.verifierEncodingBoundClock_computableInPolyTime
+#check Turing.CookLevin.verifierTableauInputPolynomial_eval
+#check Turing.CookLevin.verifierTableauInputClock_computableInPolyTime
+#check Turing.CookLevin.verifierCircuitHeader_eq
+#check Turing.CookLevin.verifierCircuitHeader_computableInPolyTime
+#check Turing.CookLevin.verifierInputGateStream_eq
+#check Turing.CookLevin.verifierInputGateStream_computableInPolyTime
+#check Turing.CookLevin.verifierCircuitInputPrefix_eq
+#check Turing.CookLevin.verifierCircuitInputPrefix_isPrefix
+#check Turing.CookLevin.verifierCircuitInputPrefix_computableInPolyTime
+#check Turing.CookLevin.CircuitBuilder.allocateBoolWirePool_gates_eq
+#check Turing.CookLevin.verifierCircuitPoolPrefix_eq
+#check Turing.CookLevin.verifierCircuitPoolPrefix_isPrefix
+#check Turing.CookLevin.verifierCircuitPoolPrefix_computableInPolyTime
 
 -- Exact finite-certificate semantics for the target language.
 #check generalCircuitVerifier_accepts_iff
 #check mem_generalCircuitSAT_iff_exists_certificate
+#check Turing.GeneralCircuitVerifier.generalCircuitVerifierComputableInPolyTime
+#check generalCircuitSAT_verifiable
+#check generalCircuitSAT_mem_ClassNP
 
 -- Headline axiom audit for the newly sealed bridge layer.
 #print axioms Turing.CookLevin.verifierCircuit_input_count_le

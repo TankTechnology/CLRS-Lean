@@ -12,6 +12,72 @@ namespace CLRS.Chapter34.Turing.CookLevin
 
 noncomputable section
 
+/-- Pure gate-order trace of canonical-validity circuits serialized across a
+finite family of public tableau rows. -/
+structure ValidCfgCircuitFamilyGateTrace (n : Nat) where
+  gates : List CircuitGate
+  outputs : Fin n → CircuitBuilder.Wire
+
+/-- Append one exact single-row validity trace per row, in finite-index order. -/
+def validCfgCircuitFamilyGateTrace
+    {tm : _root_.Turing.FinTM2} {H : Nat} (start : Nat) :
+    (n : Nat) → (rows : Fin n → CfgWires tm H) →
+      ValidCfgCircuitFamilyGateTrace n
+  | 0, _ =>
+      { gates := []
+        outputs := fun row => Fin.elim0 row }
+  | n + 1, rows =>
+      let previous := validCfgCircuitFamilyGateTrace start n
+        (fun row => rows row.castSucc)
+      let last := canonicalValidityGateTrace
+        (start + previous.gates.length) (rows (Fin.last n))
+      { gates := previous.gates ++ last.gates
+        outputs := fun row =>
+          if hrow : row.val < n then previous.outputs ⟨row.val, hrow⟩
+          else last.wire }
+
+/-- A family trace pays the exact canonical row-validity cost once per row. -/
+@[simp] theorem validCfgCircuitFamilyGateTrace_length
+    {tm : _root_.Turing.FinTM2} {H : Nat} (start n : Nat)
+    (rows : Fin n → CfgWires tm H) :
+    (validCfgCircuitFamilyGateTrace start n rows).gates.length =
+      n * validCfgGateCost tm H := by
+  induction n with
+  | zero => simp [validCfgCircuitFamilyGateTrace]
+  | succ n ih =>
+      simp only [validCfgCircuitFamilyGateTrace, List.length_append,
+        canonicalValidityGateTrace_length, ih]
+      ring
+
+/-- The recursive family trace is exactly the row-major flattening in which
+row `r` starts after `r` copies of the fixed single-row validity cost. -/
+theorem validCfgCircuitFamilyGateTrace_gates_eq_flatMap
+    {tm : _root_.Turing.FinTM2} {H : Nat} (start n : Nat)
+    (rows : Fin n → CfgWires tm H) :
+    (validCfgCircuitFamilyGateTrace start n rows).gates =
+      (List.ofFn fun row : Fin n =>
+        (canonicalValidityGateTrace
+          (start + row.val * validCfgGateCost tm H) (rows row)).gates).flatten := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      let prefixRows : Fin n → CfgWires tm H := fun row => rows row.castSucc
+      have hprefix := ih prefixRows
+      have hprefixLength :
+          (List.ofFn fun row : Fin n =>
+            (canonicalValidityGateTrace
+              (start + row.val * validCfgGateCost tm H)
+              (prefixRows row)).gates).flatten.length =
+            n * validCfgGateCost tm H := by
+        rw [← hprefix]
+        exact validCfgCircuitFamilyGateTrace_length start n prefixRows
+      simp only [validCfgCircuitFamilyGateTrace]
+      rw [hprefix]
+      rw [hprefixLength]
+      rw [List.ofFn_succ']
+      simp only [List.concat_eq_append, List.flatten_append,
+        List.flatten_singleton, Fin.val_last, Fin.val_castSucc, prefixRows]
+
 /-- Proof-carrying result of serializing the canonical-validity circuit across
 an already allocated finite row family. -/
 structure ValidCfgCircuitFamilyResult (tm : _root_.Turing.FinTM2) (H : Nat)
@@ -100,6 +166,72 @@ def validCfgCircuitFamily
     (hrows : ∀ row, (rows row).ValidIn base) :
     ValidCfgCircuitFamilyResult tm H base n rows :=
   buildValidCfgCircuitFamily base n rows hrows
+
+private theorem buildValidCfgCircuitFamily_trace_eq
+    {tm : _root_.Turing.FinTM2} {H : Nat} (base : CircuitBuilder)
+    (n : Nat) (rows : Fin n → CfgWires tm H)
+    (hrows : ∀ row, (rows row).ValidIn base) :
+    (buildValidCfgCircuitFamily base n rows hrows).builder.gates =
+        base.gates ++
+          (validCfgCircuitFamilyGateTrace base.gates.length n rows).gates ∧
+      ∀ row, (buildValidCfgCircuitFamily base n rows hrows).outputs row =
+        (validCfgCircuitFamilyGateTrace base.gates.length n rows).outputs row := by
+  induction n with
+  | zero =>
+      simp [buildValidCfgCircuitFamily, validCfgCircuitFamilyGateTrace]
+  | succ n ih =>
+      let prefixRows : Fin n → CfgWires tm H := fun row => rows row.castSucc
+      let previous := buildValidCfgCircuitFamily base n prefixRows
+        (fun row => hrows row.castSucc)
+      let purePrevious := validCfgCircuitFamilyGateTrace base.gates.length
+        n prefixRows
+      rcases ih prefixRows (fun row => hrows row.castSucc) with
+        ⟨hpreviousGates, hpreviousOutputs⟩
+      have hpreviousLength : previous.builder.gates.length =
+          base.gates.length + purePrevious.gates.length := by
+        rw [hpreviousGates]
+        simp only [List.length_append]
+        rfl
+      have hlast : (rows (Fin.last n)).ValidIn previous.builder :=
+        (hrows (Fin.last n)).mono previous.extension
+      let last := validCfgCircuit previous.builder (rows (Fin.last n)) hlast
+      let pureLast := canonicalValidityGateTrace
+        (base.gates.length + purePrevious.gates.length) (rows (Fin.last n))
+      have hlastGates : last.builder.gates =
+          previous.builder.gates ++ pureLast.gates := by
+        rw [validCfgCircuit_gates_eq]
+        simp only [pureLast, hpreviousLength]
+      have hlastWire : last.wire = pureLast.wire := by
+        rw [validCfgCircuit_wire_eq_trace]
+        simp only [pureLast, hpreviousLength]
+      simp only [buildValidCfgCircuitFamily,
+        validCfgCircuitFamilyGateTrace]
+      constructor
+      · rw [hlastGates, hpreviousGates]
+        simp only [prefixRows, purePrevious, pureLast, List.append_assoc]
+      · intro row
+        split
+        next hrow => exact hpreviousOutputs ⟨row.val, hrow⟩
+        next => exact hlastWire
+
+/-- Serial row validation appends exactly the corresponding pure family trace. -/
+theorem validCfgCircuitFamily_gates_eq
+    {tm : _root_.Turing.FinTM2} {H n : Nat}
+    (base : CircuitBuilder) (rows : Fin n → CfgWires tm H)
+    (hrows : ∀ row, (rows row).ValidIn base) :
+    (validCfgCircuitFamily base rows hrows).builder.gates =
+      base.gates ++
+        (validCfgCircuitFamilyGateTrace base.gates.length n rows).gates :=
+  (buildValidCfgCircuitFamily_trace_eq base n rows hrows).1
+
+/-- Every row-validity output agrees with the corresponding family trace. -/
+theorem validCfgCircuitFamily_output_eq_trace
+    {tm : _root_.Turing.FinTM2} {H n : Nat}
+    (base : CircuitBuilder) (rows : Fin n → CfgWires tm H)
+    (hrows : ∀ row, (rows row).ValidIn base) (row : Fin n) :
+    (validCfgCircuitFamily base rows hrows).outputs row =
+      (validCfgCircuitFamilyGateTrace base.gates.length n rows).outputs row :=
+  (buildValidCfgCircuitFamily_trace_eq base n rows hrows).2 row
 
 /-- Serial row validation preserves the original builder. -/
 theorem validCfgCircuitFamily_extends
