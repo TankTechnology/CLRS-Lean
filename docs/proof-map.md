@@ -2799,8 +2799,22 @@ sharper contraction strategy.
   `totalKeys` counts `List` key slots without a uniqueness premise; the root
   theorem exposes the legal empty tree as an explicit disjunct; and
   for `2 ≤ t`, `wellFormed_height_log_bound` applies to every `WellFormed`
-  tree.  Disk-page layout, pointer mutation, I/O counts, and RAM costs are
-  optional lower-level refinements.
+  tree.  Disk-page layout, pointer mutation, and RAM costs are optional
+  lower-level refinements.
+- Running-time / cost layer (`CLRSLean/Chapter_18/Section_18_1_B_Tree_Model/RunningTime.lean`), bound to
+  the real executable constructions:
+  - `CLRS.Chapter18.BTree.searchCost` (mirrors `searchExec`),
+    `insertCost` (mirrors `insertNonFull`), `insertRootCost` (charges the
+    full-root split of `insertRoot`), and `deleteCost` (mirrors
+    `composedDelete`) count the nodes each operation reads and writes.
+  - `searchCost_le_height`, `insertCost_le_height`, `insertRootCost_le_height`
+    (`≤ height + 3`), and `deleteCost_le_height` bound each by `height + O(1)`.
+  - `searchCost_le_diskAccessBound`, `insertRootCost_le_diskAccessBound`, and
+    `deleteCost_le_diskAccessBound` compose those bounds with
+    `wellFormed_height_log_bound` against `diskAccessBound t n =
+    log_t ((n+1)/2) + 3` on every `WellFormed` tree.
+  - `diskAccessBound_isBigO_log_t` proves `diskAccessBound t n = O(log_t n)`,
+    so search, insertion, and deletion each run in `O(log_t n)` disk accesses.
 
 Chapter 18 now has the first-pass B-tree theorem surface, real top-level CLRS
 insertion, and a structural proof for the executable CLRS deletion routine.
