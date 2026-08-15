@@ -1485,6 +1485,145 @@ end Timestamps
 
 end BasicProperties
 
+-- =============================================================================
+--  Cost layer: O(V + E) running time
+-- =============================================================================
+
+/-- Number of white vertices of the graph in a DFS state. -/
+noncomputable def whiteCount (s : DFSState V) : Nat :=
+  (G.vertices.filter (fun v => s.color v = Color.white)).card
+
+/-- Total out-degree of the black vertices of the graph in a DFS state; this is
+exactly the adjacency already scanned by DFS. -/
+noncomputable def blackWeight (s : DFSState V) : Nat :=
+  ∑ v ∈ G.vertices.filter (fun v => s.color v = Color.black), (G.adj v).card
+
+/-- Graying a white vertex removes exactly one white vertex. -/
+lemma whiteCount_setColor_gray {u : V} {s : DFSState V} (hu : u ∈ G.vertices)
+    (hwhite : s.color u = Color.white) :
+    whiteCount G (s.setColor u Color.gray |>.setDiscovery u) + 1 = whiteCount G s := by
+  have hfilter : G.vertices.filter (fun v => (s.setColor u Color.gray |>.setDiscovery u).color v = Color.white)
+      = (G.vertices.filter (fun v => s.color v = Color.white)) \ ({u} : Finset V) := by
+    ext v
+    by_cases hvu : v = u
+    · subst hvu
+      simp [hwhite]
+    · simp [hvu]
+  rw [whiteCount, whiteCount, hfilter]
+  have hsub : ({u} : Finset V) ⊆ G.vertices.filter (fun v => s.color v = Color.white) := by
+    intro v hv
+    simp at hv
+    subst hv
+    simp [hu, hwhite]
+  rw [Finset.card_sdiff_of_subset hsub]
+  have hge : 1 ≤ (G.vertices.filter (fun v => s.color v = Color.white)).card := by
+    simpa using Finset.card_le_card hsub
+  simp
+  omega
+
+/-- Blackening a gray vertex adds its out-degree to the scanned weight. -/
+lemma blackWeight_setColor_black {u : V} {s : DFSState V} (hu : u ∈ G.vertices)
+    (hgray : s.color u = Color.gray) :
+    blackWeight G (s.setColor u Color.black |>.setFinish u) = blackWeight G s + (G.adj u).card := by
+  have hfilter : G.vertices.filter (fun v => (s.setColor u Color.black |>.setFinish u).color v = Color.black)
+      = insert u (G.vertices.filter (fun v => s.color v = Color.black)) := by
+    ext v
+    by_cases hvu : v = u
+    · subst hvu
+      simp [hgray, hu]
+    · simp [hvu]
+  rw [blackWeight, blackWeight, hfilter]
+  have hu_notin : u ∉ G.vertices.filter (fun v => s.color v = Color.black) := by
+    intro h
+    have hblack : s.color u = Color.black := (Finset.mem_filter.mp h).2
+    rw [hblack] at hgray
+    cases hgray
+  rw [Finset.sum_insert hu_notin]
+  omega
+
+/-- Fuelled DFS visit that also accumulates the total work.  Each visit of a
+white vertex {lit}`u` costs one visit plus one adjacency-list scan per
+out-neighbor of {lit}`u`. -/
+noncomputable def dfsVisitWithCost (fuel : Nat) (u : V) (s : DFSState V) : DFSState V × Nat :=
+  match fuel with
+  | 0 => (s, 0)
+  | fuel + 1 =>
+      if s.color u = Color.white then
+        let s1 := s.setColor u Color.gray |>.setDiscovery u
+        let (s2, c2) := (G.adj u).toList.foldl
+            (fun (sc : DFSState V × Nat) (v : V) =>
+              if sc.1.color v = Color.white then
+                let (s', c') := dfsVisitWithCost fuel v (sc.1.setParent v u)
+                (s', sc.2 + c')
+              else sc) (s1, 0)
+        let s3 := s2.setColor u Color.black |>.setFinish u
+        (s3, 1 + (G.adj u).card + c2)
+      else (s, 0)
+
+/-- Erasing the cost recovers the plain fuelled DFS visit. -/
+theorem dfsVisitWithCost_result (fuel : Nat) (u : V) (s : DFSState V) :
+    (dfsVisitWithCost G fuel u s).1 = dfsVisit G fuel u s := by
+  induction fuel generalizing u s with
+  | zero => simp [dfsVisitWithCost, dfsVisit]
+  | succ n ih =>
+      by_cases hwhite : s.color u = Color.white
+      · simp [dfsVisitWithCost, dfsVisit, hwhite]
+        let s1 := s.setColor u Color.gray |>.setDiscovery u
+        have hfold : ∀ (l : List V) (a : DFSState V) (c : Nat),
+            (l.foldl (fun (sc : DFSState V × Nat) (v : V) =>
+              if sc.1.color v = Color.white then
+                let (s', c') := dfsVisitWithCost G n v (sc.1.setParent v u)
+                (s', sc.2 + c')
+              else sc) (a, c)).1
+            = l.foldl (fun (s' : DFSState V) (v : V) =>
+              if s'.color v = Color.white then dfsVisit G n v (s'.setParent v u) else s') a := by
+          intro l a c
+          induction l generalizing a c with
+          | nil => rfl
+          | cons v vs ih' =>
+              simp
+              by_cases hv : a.color v = Color.white
+              · simp [hv]
+                have herase := ih v (a.setParent v u)
+                have h' := ih' (dfsVisitWithCost G n v (a.setParent v u)).1
+                  (c + (dfsVisitWithCost G n v (a.setParent v u)).2)
+                simpa [herase] using h'
+              · simp [hv]
+                exact ih' a c
+        simpa [s1] using congrArg (fun x => (x.setColor u Color.black).setFinish u)
+          (hfold (G.adj u).toList s1 0)
+      · simp [dfsVisitWithCost, dfsVisit, hwhite]
+
+/-- Recursive DFS over a list of starting vertices, accumulating work. -/
+noncomputable def dfsFromListWithCost (fuel : Nat) : List V → DFSState V → DFSState V × Nat
+  | [], s => (s, 0)
+  | u :: us, s =>
+      if s.color u = Color.white then
+        let (s', c') := dfsVisitWithCost G fuel u s
+        let (s'', c'') := dfsFromListWithCost fuel us s'
+        (s'', c' + c'')
+      else
+        dfsFromListWithCost fuel us s
+
+/-- Erasing the cost recovers the plain recursive DFS over a list. -/
+theorem dfsFromListWithCost_result (fuel : Nat) (vs : List V) (s : DFSState V) :
+    (dfsFromListWithCost G fuel vs s).1 = dfsFromList G fuel vs s := by
+  induction vs generalizing s with
+  | nil => simp [dfsFromListWithCost, dfsFromList]
+  | cons u us ih =>
+      simp [dfsFromListWithCost, dfsFromList]
+      by_cases hwhite : s.color u = Color.white
+      · simp [hwhite, dfsVisitWithCost_result G fuel u s, ih]
+      · simp [hwhite, ih]
+
+/-- Depth-first search over the whole graph, with a work counter. -/
+noncomputable def dfsWithCost : DFSState V × Nat :=
+  dfsFromListWithCost G (G.vertices.card + 1) G.vertices.toList dfsInit
+
+/-- Erasing the cost recovers {name}`dfs`. -/
+theorem dfsWithCost_result : (dfsWithCost (G := G)).1 = G.dfs := by
+  simp [dfsWithCost, dfs, dfsFromListWithCost_result]
+
 end Graph
 
 end Chapter22
