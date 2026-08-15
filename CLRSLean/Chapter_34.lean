@@ -51,6 +51,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Exact
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineTrace
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.EqFin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -208,8 +209,12 @@ support zero-gate functional replacement.  Pure fixed-width stack push, peek,
 and pop on raw Boolean bundles now have exact coordinate laws, supported-head
 codec round trips, raw one-hot preservation under an explicit capacity
 premise, and a full-stack overflow theorem.  These primitives do not yet prove
-wire-level transition correctness by themselves.  Canonical
-Boolean stack encodings now carry exact list semantics: push is cons under
+wire-level transition correctness by themselves.  Finite-family equality
+additionally has one fixed runtime controller that
+loads all wire indices from delimiter-bearing unary frames, emits the exact
+true-seeded XNOR/aggregate-AND trace, and satisfies a linear input-length
+runtime bound.  The corresponding runtime finite-family mux remains open.
+Canonical Boolean stack encodings now carry exact list semantics: push is cons under
 capacity, peek is head, pop is tail plus the old head, and every successful
 whole-row evaluation projects to the corresponding represented machine stack.
 Wire-level wrappers reuse a shared Boolean pool, keep push/peek zero-gate,

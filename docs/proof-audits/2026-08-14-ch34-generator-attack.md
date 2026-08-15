@@ -566,16 +566,30 @@ through all transition constraints. This is the acceptance oracle for the
 next controller; suffix extraction itself is explicitly not counted as TM
 execution.
 
-The first transition-internal serialization blocker is now closed at the
-pure trace layer. `muxFinGateTrace` fixes the shared-negation plus three-gate
+The first transition-internal serialization blocker is closed at the exact
+trace layer. `muxFinGateTrace` fixes the shared-negation plus three-gate
 per-coordinate order of whole-row multiplexing, while `eqFinGateTrace` fixes
 the true-seeded, XNOR-then-aggregate-AND order of whole-row equality.
 `muxFin_gates_eq`, `eqFin_gates_eq`, `cfgMux_gates_eq`, and
 `cfgEq_gates_eq` prove literal ordered gate-list equality, and the equality
-trace also fixes the returned aggregate wire. This replaces the previously
-insufficient gate-count-only interface; the remaining work is to execute
-these traces with a runtime finite controller and then compose the fixed
-statement-dispatch trace around them.
+trace also fixes the returned aggregate wire. The equality half is now also
+executable: `affineEqFinRevProgram` is one fixed finite controller whose
+runtime frames carry all coordinate and wire indices;
+`affineEqFinCanonical_run` emits the canonical trace byte-for-byte, and
+`affineEqFinRev_steps_le` gives a linear bound in the exact delimiter-bearing
+unary input. Its component proof explicitly composes the five-gate BoolEq and
+one-gate aggregate AND without an intermediate halt. The remaining local
+transition work is the runtime `muxFin` controller and the surrounding fixed
+statement-dispatch/narrowing composition.
+
+Two additional rejected shortcuts are now recorded. First, redirecting the
+AND kernel's `.done` label straight to the next loader leaves its incremented
+carry register live and corrupts every later wire index; the accepted route
+uses an explicit finite-control cleanup loop. Second, swapping the AND
+registers because conjunction is semantically commutative is invalid for this
+checkpoint: byte-for-byte agreement requires the ordered gate
+`.and previous matched`, so the runtime call deliberately loads `matched` as
+the serializer carry and `previous` as its source.
 
 ## Focused Acceptance Mechanism
 
@@ -592,6 +606,7 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.EqFin
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -616,6 +631,7 @@ lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactlyOneFamily.lean
+lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean
