@@ -26,6 +26,7 @@ inductive AffineTransitionControllerLabel
   | eqFin (label : AffineEqFinLabel)
   | eqClear
   | finalAnd (label : AffineOrFinLabel)
+  | finalClear
   | finish
   | invalid
 deriving DecidableEq, Fintype
@@ -80,6 +81,15 @@ def affineTransitionEqCheckTarget :
   | .data .tick => .eqClear
   | _ => .invalid
 
+/-- The final AND loop either opens its one encoded frame or consumes the
+reserved local-transition terminator used by an outer family controller. -/
+def affineTransitionFinalCheckTarget :
+    AffineStmtScriptSym → AffineTransitionControllerLabel
+  | .data .tick => .finalAnd .andClearMarker
+  | .data .separator => .finalAnd .andToFamilyClear
+  | .data .frameEnd => .finalClear
+  | _ => .invalid
+
 /-- One finite program executes all runtime-sized local-transition phases. -/
 def affineTransitionRevProgram : Program AffineStmtScriptSym CircuitSym where
   Label := AffineTransitionControllerLabel
@@ -105,10 +115,13 @@ def affineTransitionRevProgram : Program AffineStmtScriptSym CircuitSym where
     | .eqFin label => affineStmtRelabelOp .eqFin .invalid
         (affineEqFinRevProgram.op label)
     | .eqClear => .popWork₁ (.finalAnd .andCheck) (fun _ => .invalid)
+    | .finalAnd .andCheck =>
+        .popInput (.finalAnd .finish) affineTransitionFinalCheckTarget
     | .finalAnd .finish => .jump .finish
     | .finalAnd .invalid => .halt
     | .finalAnd label => affineStmtRelabelOp .finalAnd .invalid
         (affineOrFinRevProgram.op label)
+    | .finalClear => .popWork₁ .finish (fun _ => .invalid)
     | .finish => .halt
     | .invalid => .halt
 
@@ -135,6 +148,12 @@ def affineTransitionCfg (label : AffineTransitionControllerLabel)
 def affineTransitionLoopCfg (input : List AffineStmtScriptSym)
     (output : List CircuitSym) : BuilderCfg affineTransitionRevProgram :=
   affineTransitionCfg .pushFalse none none false input output
+    [] [] [] [] []
+
+/-- Clean redirectable exit preserving a pure-unary outer-family suffix. -/
+def affineTransitionFinishInputCfg (tail : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineTransitionRevProgram :=
+  affineTransitionCfg .finish none none false (tail.map .data) output
     [] [] [] [] []
 
 /-- Embed a statement-controller configuration. -/
@@ -228,7 +247,8 @@ private theorem affineTransition_op_narrow
     affineOrFinRevProgram, affineStmtRelabelOp]
 
 private theorem affineTransition_op_finalAnd
-    (label : AffineOrFinLabel) (hfinish : label ≠ .finish) :
+    (label : AffineOrFinLabel) (hfinish : label ≠ .finish)
+    (hcheck : label ≠ .andCheck) :
     affineTransitionRevProgram.op (.finalAnd label) =
       affineStmtRelabelOp .finalAnd .invalid
         (affineOrFinRevProgram.op label) := by
@@ -301,9 +321,16 @@ theorem affineTransitionLiftNarrow_step
           AffineTransitionControllerLabel.narrow
           (affineOrFinRevProgram.op label) c)
 
+/-- The final-AND state where the outer controller deliberately consumes its
+reserved local-transition terminator. -/
+def affineTransitionAndBoundaryBad
+    (c : BuilderCfg affineOrFinRevProgram) : Prop :=
+  c.label = some .andCheck ∧ ∃ tail, c.input = .frameEnd :: tail
+
 theorem affineTransitionLiftAnd_step
     (c : BuilderCfg affineOrFinRevProgram)
-    (hexit : c.label ≠ some .finish) :
+    (hexit : c.label ≠ some .finish)
+    (hsafe : ¬ affineTransitionAndBoundaryBad c) :
     step affineTransitionRevProgram (affineTransitionLiftAndCfg c) =
       Option.map affineTransitionLiftAndCfg
         (step affineOrFinRevProgram c) := by
@@ -318,7 +345,24 @@ theorem affineTransitionLiftAnd_step
         apply hexit
         simpa [hlabel] using congrArg some h
       simp only [Option.map_some]
-      rw [affineTransition_op_finalAnd label hfinish]
+      by_cases hcheck : label = .andCheck
+      · subst label
+        rcases c with
+          ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
+            counter₁, counter₂, counter₃⟩
+        simp only at hlabel
+        subst label
+        cases input with
+        | nil => rfl
+        | cons head tail =>
+            cases head with
+            | tick => rfl
+            | separator => rfl
+            | frameEnd =>
+                exfalso
+                apply hsafe
+                exact ⟨rfl, ⟨tail, rfl⟩⟩
+      rw [affineTransition_op_finalAnd label hfinish hcheck]
       change some (stepOp
           (affineStmtRelabelOp AffineTransitionControllerLabel.finalAnd
             AffineTransitionControllerLabel.invalid
@@ -521,6 +565,76 @@ private theorem affineTransition_liftEq_iterations_avoiding
           rw [hsource] at h
           exact ih h
 
+private theorem affineTransitionAndBoundaryBad_step
+    (c : BuilderCfg affineOrFinRevProgram)
+    (hbad : affineTransitionAndBoundaryBad c) :
+    ∃ d : BuilderCfg affineOrFinRevProgram,
+      step affineOrFinRevProgram c = some d ∧
+        d.label = some .invalid := by
+  rcases hbad with ⟨hlabel, tail, hinput⟩
+  rcases c with
+    ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
+      counter₁, counter₂, counter₃⟩
+  simp only at hinput hlabel
+  subst input
+  subst label
+  refine ⟨_, rfl, rfl⟩
+
+private theorem affineTransition_liftAnd_iterations_avoiding
+    (target : AffineOrFinLabel) (htarget : target ≠ .invalid)
+    {a b : BuilderCfg affineOrFinRevProgram}
+    (hb : b.label = some target) : ∀ n : Nat,
+    (flip Option.bind (step affineOrFinRevProgram))^[n] (some a) = some b →
+      (flip Option.bind (step affineTransitionRevProgram))^[n]
+        (some (affineTransitionLiftAndCfg a)) =
+          some (affineTransitionLiftAndCfg b) := by
+  intro n
+  induction n generalizing a with
+  | zero =>
+      intro h
+      injection h with hab
+      simp [hab]
+  | succ n ih =>
+      intro h
+      rw [Function.iterate_succ_apply] at h ⊢
+      change (flip Option.bind (step affineOrFinRevProgram))^[n]
+        (step affineOrFinRevProgram a) = some b at h
+      change (flip Option.bind (step affineTransitionRevProgram))^[n]
+        (step affineTransitionRevProgram (affineTransitionLiftAndCfg a)) =
+          some (affineTransitionLiftAndCfg b)
+      have haexit : a.label ≠ some .finish := by
+        intro ha
+        exact affineTransition_haltLabel_no_return
+          AffineOrFinLabel.finish target rfl a b ha hb n h
+      have hasafe : ¬ affineTransitionAndBoundaryBad a := by
+        intro hbad
+        obtain ⟨d, hstep, hdlabel⟩ :=
+          affineTransitionAndBoundaryBad_step a hbad
+        cases n with
+        | zero =>
+            rw [hstep] at h
+            injection h with hdb
+            have hlabels := congrArg (fun cfg => cfg.label) hdb
+            simp [hdlabel, hb] at hlabels
+            exact htarget (Option.some.inj hlabels.symm)
+        | succ n =>
+            rw [Function.iterate_succ_apply, hstep] at h
+            change (flip Option.bind (step affineOrFinRevProgram))^[n]
+              (step affineOrFinRevProgram d) = some b at h
+            exact affineTransition_haltLabel_no_return
+              AffineOrFinLabel.invalid target rfl d b hdlabel hb n h
+      cases hsource : step affineOrFinRevProgram a with
+      | none =>
+          rw [hsource, affineTransition_iterate_bind_none] at h
+          contradiction
+      | some c =>
+          have hsim := affineTransitionLiftAnd_step a haexit hasafe
+          rw [hsource] at hsim
+          simp only [Option.map_some] at hsim
+          rw [hsim]
+          rw [hsource] at h
+          exact ih h
+
 private def affineTransitionLiftStmt_runToFinish
     {a b : BuilderCfg affineStmtRevProgram}
     (hb : b.label = some .finish) (m : Nat)
@@ -554,8 +668,18 @@ private def affineTransitionLiftAnd_runToFinish
       (affineTransitionLiftAndCfg a)
       (some (affineTransitionLiftAndCfg b)) m := by
   refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
-  exact affineTransition_lift_iterations_to_haltExit AffineOrFinLabel.finish rfl
-    affineTransitionLiftAndCfg affineTransitionLiftAnd_step hb
+  exact affineTransition_liftAnd_iterations_avoiding .finish (by decide) hb
+    sourceRun.steps sourceRun.evals_in_steps
+
+private def affineTransitionLiftAnd_runToCheck
+    {a b : BuilderCfg affineOrFinRevProgram}
+    (hb : b.label = some .andCheck) (m : Nat)
+    (sourceRun : EvalsToInTime (step affineOrFinRevProgram) a (some b) m) :
+    EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftAndCfg a)
+      (some (affineTransitionLiftAndCfg b)) m := by
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact affineTransition_liftAnd_iterations_avoiding .andCheck (by decide) hb
     sourceRun.steps sourceRun.evals_in_steps
 
 private def affineTransitionLiftEq_runToCheck
@@ -601,6 +725,28 @@ private def affineTransitionNarrowTail (script : AffineTransitionScript) :
 private def affineTransitionEqTail (script : AffineTransitionScript) :
     List UnaryFrameSym :=
   .tick :: encodeAffineAndFinFrames [script.finalAnd]
+
+/-- Complete local-transition input followed by a reserved terminator and an
+arbitrary pure-unary suffix owned by an outer family controller. -/
+def encodeAffineTransitionScriptWithTail (script : AffineTransitionScript)
+    (tail : List UnaryFrameSym) : List AffineStmtScriptSym :=
+  encodeAffineStmtTransitionInput script.dispatch
+    (encodeAffineOrThenNotInput script.narrowFrames script.narrowSource ++
+      .tick :: encodeAffineEqFinFrames script.eqFrames ++
+      .tick :: encodeAffineAndFinFrames [script.finalAnd] ++
+      .frameEnd :: tail)
+
+private def affineTransitionNarrowTailWithTail
+    (script : AffineTransitionScript) (tail : List UnaryFrameSym) :
+    List UnaryFrameSym :=
+  .tick :: encodeAffineEqFinFrames script.eqFrames ++
+    .tick :: encodeAffineAndFinFrames [script.finalAnd] ++
+    .frameEnd :: tail
+
+private def affineTransitionEqTailWithTail
+    (script : AffineTransitionScript) (tail : List UnaryFrameSym) :
+    List UnaryFrameSym :=
+  .tick :: encodeAffineAndFinFrames [script.finalAnd] ++ .frameEnd :: tail
 
 private def affineTransition_statement_run (script : AffineTransitionScript)
     (output : List CircuitSym) :
@@ -758,8 +904,161 @@ private def affineTransition_finish_run (script : AffineTransitionScript)
       (affineTransitionLiftAndCfg
         (affineOrFinFinishCfg (affineTransitionFinalOutput script output)))
       (some (haltCfg affineTransitionRevProgram
-        (affineTransitionFinalOutput script output))) 2 :=
+      (affineTransitionFinalOutput script output))) 2 :=
   ⟨⟨2, rfl⟩, le_rfl⟩
+
+private def affineTransition_statement_runWithTail
+    (script : AffineTransitionScript) (transitionTail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLoopCfg
+        (encodeAffineStmtTransitionInput script.dispatch transitionTail) output)
+      (some (affineTransitionLiftStmtCfg
+        (affineStmtFinishInputCfg (transitionTail.map .data)
+          (affineTransitionStmtOutput script output))))
+      (2 + affineStmtScriptFinishSteps script.dispatch) := by
+  let boolOutput := affineTransitionBoolOutput output
+  have hbool : EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLoopCfg
+        (encodeAffineStmtTransitionInput script.dispatch transitionTail) output)
+      (some (affineTransitionLiftStmtCfg
+        (affineStmtLoopCfg
+          (encodeAffineStmtTransitionInput script.dispatch transitionTail)
+          boolOutput))) 2 := ⟨⟨2, rfl⟩, le_rfl⟩
+  have hsource := affineStmt_runToFinishWithTail script.dispatch
+    transitionTail boolOutput
+  have hlift := affineTransitionLiftStmt_runToFinish rfl _ hsource
+  let full := EvalsToInTime.trans (step affineTransitionRevProgram)
+    2 (affineStmtScriptFinishSteps script.dispatch) _
+    (affineTransitionLiftStmtCfg
+      (affineStmtLoopCfg
+        (encodeAffineStmtTransitionInput script.dispatch transitionTail)
+        boolOutput)) _ hbool hlift
+  convert full using 1
+  · simp [affineTransitionStmtOutput, affineTransitionBoolOutput, boolOutput]
+  · omega
+
+private def affineTransition_narrow_runWithTail
+    (script : AffineTransitionScript) (narrowTail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftStmtCfg
+        (affineStmtFinishInputCfg
+          ((encodeAffineOrThenNotInput script.narrowFrames
+            script.narrowSource ++ narrowTail).map .data)
+          (affineTransitionStmtOutput script output)))
+      (some (affineTransitionLiftNarrowCfg
+        (affineOrFinFinishInputCfg narrowTail
+          (affineTransitionNarrowOutput script output))))
+      (1 + affineOrThenNotUntilFinishSteps
+        script.narrowFrames script.narrowSource) := by
+  let stmtOutput := affineTransitionStmtOutput script output
+  have hbridge : EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftStmtCfg
+        (affineStmtFinishInputCfg
+          ((encodeAffineOrThenNotInput script.narrowFrames
+            script.narrowSource ++ narrowTail).map .data) stmtOutput))
+      (some (affineTransitionLiftNarrowCfg
+        (affineOrThenNotLoopCfg
+          (encodeAffineOrThenNotInput script.narrowFrames
+            script.narrowSource ++ narrowTail) stmtOutput))) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  have hsource := affineOrThenNot_runToFinishWithTail
+    script.narrowFrames script.narrowSource narrowTail stmtOutput
+  have hlift := affineTransitionLiftNarrow_runToFinish rfl _ hsource
+  let full := EvalsToInTime.trans (step affineTransitionRevProgram)
+    1 (affineOrThenNotUntilFinishSteps
+      script.narrowFrames script.narrowSource) _
+    (affineTransitionLiftNarrowCfg
+      (affineOrThenNotLoopCfg
+        (encodeAffineOrThenNotInput script.narrowFrames
+          script.narrowSource ++ narrowTail) stmtOutput)) _ hbridge hlift
+  convert full using 1
+  · simp [affineTransitionNarrowOutput, stmtOutput]
+  · omega
+
+private def affineTransition_eq_runWithTail
+    (script : AffineTransitionScript) (eqTail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftNarrowCfg
+        (affineOrFinFinishInputCfg
+          (.tick :: encodeAffineEqFinFrames script.eqFrames ++ eqTail)
+          (affineTransitionNarrowOutput script output)))
+      (some (affineTransitionLiftEqCfg
+        (affineEqFinCheckCfg eqTail
+          (affineTransitionEqOutput script output))))
+      (2 + (1 + affineEqFinBodySteps script.eqFrames)) := by
+  let narrowOutput := affineTransitionNarrowOutput script output
+  have hbridge : EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftNarrowCfg
+        (affineOrFinFinishInputCfg
+          (.tick :: encodeAffineEqFinFrames script.eqFrames ++ eqTail)
+          narrowOutput))
+      (some (affineTransitionLiftEqCfg
+        (affineEqFinLoopCfg
+          (encodeAffineEqFinFrames script.eqFrames ++ eqTail)
+          narrowOutput))) 2 := ⟨⟨2, rfl⟩, le_rfl⟩
+  have hsource := affineEqFin_runToCheck script.eqFrames eqTail narrowOutput
+  have hlift := affineTransitionLiftEq_runToCheck rfl _ hsource
+  let full := EvalsToInTime.trans (step affineTransitionRevProgram)
+    2 (1 + affineEqFinBodySteps script.eqFrames) _
+    (affineTransitionLiftEqCfg
+      (affineEqFinLoopCfg
+        (encodeAffineEqFinFrames script.eqFrames ++ eqTail) narrowOutput)) _
+    hbridge hlift
+  convert full using 1
+  · simp [affineTransitionEqOutput, narrowOutput]
+  · omega
+
+private def affineTransition_and_finish_runWithTail
+    (script : AffineTransitionScript) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftEqCfg
+        (affineEqFinCheckCfg
+          (.tick :: encodeAffineAndFinFrames [script.finalAnd] ++
+            .frameEnd :: tail)
+          (affineTransitionEqOutput script output)))
+      (some (affineTransitionFinishInputCfg tail
+        (affineTransitionFinalOutput script output)))
+      (2 + affineAndFinBodySteps [script.finalAnd] + 2) := by
+  let eqOutput := affineTransitionEqOutput script output
+  have hbridge : EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftEqCfg
+        (affineEqFinCheckCfg
+          (.tick :: encodeAffineAndFinFrames [script.finalAnd] ++
+            .frameEnd :: tail) eqOutput))
+      (some (affineTransitionLiftAndCfg
+        (affineAndFinLoopCfg
+          (encodeAffineAndFinFrames [script.finalAnd] ++ .frameEnd :: tail)
+          eqOutput))) 2 := ⟨⟨2, rfl⟩, le_rfl⟩
+  have hsource := affineAndFinFrames_runToCheck [script.finalAnd]
+    (.frameEnd :: tail) eqOutput
+  have hlift := affineTransitionLiftAnd_runToCheck rfl _ hsource
+  let gateOutput := affineTransitionFinalOutput script output
+  have hfinish : EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLiftAndCfg
+        (affineAndFinLoopCfg (.frameEnd :: tail) gateOutput))
+      (some (affineTransitionFinishInputCfg tail gateOutput)) 2 :=
+    ⟨⟨2, rfl⟩, le_rfl⟩
+  let throughBody := EvalsToInTime.trans (step affineTransitionRevProgram)
+    2 (affineAndFinBodySteps [script.finalAnd]) _
+    (affineTransitionLiftAndCfg
+      (affineAndFinLoopCfg
+        (encodeAffineAndFinFrames [script.finalAnd] ++ .frameEnd :: tail)
+        eqOutput)) _ hbridge hlift
+  let full := EvalsToInTime.trans (step affineTransitionRevProgram)
+    (2 + affineAndFinBodySteps [script.finalAnd]) 2 _
+    (affineTransitionLiftAndCfg
+      (affineAndFinLoopCfg (.frameEnd :: tail) gateOutput)) _
+    (by
+      convert throughBody using 1
+      · simp [affineTransitionFinalOutput, gateOutput, eqOutput]
+      · omega)
+    hfinish
+  convert full using 1
+  omega
 
 /-- Exact runtime of the fixed five-phase local-transition controller. -/
 def affineTransitionRunSteps (script : AffineTransitionScript) : Nat :=
@@ -768,6 +1067,94 @@ def affineTransitionRunSteps (script : AffineTransitionScript) : Nat :=
       script.narrowFrames script.narrowSource) +
     (2 + (1 + affineEqFinBodySteps script.eqFrames)) +
     (2 + affineAndFinUntilFinishSteps [script.finalAnd]) + 2
+
+/-- Exact runtime to the clean redirectable finish used by a runtime-length
+family of local transition scripts. -/
+def affineTransitionRunToFinishSteps
+    (script : AffineTransitionScript) : Nat :=
+  2 + affineStmtScriptFinishSteps script.dispatch +
+    (1 + affineOrThenNotUntilFinishSteps
+      script.narrowFrames script.narrowSource) +
+    (2 + (1 + affineEqFinBodySteps script.eqFrames)) +
+    (2 + affineAndFinBodySteps [script.finalAnd] + 2)
+
+/-- Execute one complete local-transition script, consume its reserved local
+terminator, and preserve an arbitrary outer-family suffix. -/
+def affineTransition_runToFinishWithTail
+    (script : AffineTransitionScript) (tail : List UnaryFrameSym)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLoopCfg
+        (encodeAffineTransitionScriptWithTail script tail) output)
+      (some (affineTransitionFinishInputCfg tail
+        ((affineTransitionGateStream script).reverse ++ output)))
+      (affineTransitionRunToFinishSteps script) := by
+  let narrowTail := affineTransitionNarrowTailWithTail script tail
+  let eqTail := affineTransitionEqTailWithTail script tail
+  have hstmt := affineTransition_statement_runWithTail script
+    (encodeAffineOrThenNotInput script.narrowFrames script.narrowSource ++
+      narrowTail) output
+  have hnarrow := affineTransition_narrow_runWithTail script narrowTail output
+  have heq := affineTransition_eq_runWithTail script eqTail output
+  have hand := affineTransition_and_finish_runWithTail script tail output
+  let throughNarrowRaw := EvalsToInTime.trans
+    (step affineTransitionRevProgram)
+    (2 + affineStmtScriptFinishSteps script.dispatch)
+    (1 + affineOrThenNotUntilFinishSteps
+      script.narrowFrames script.narrowSource) _ _ _ hstmt hnarrow
+  have throughNarrow : EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLoopCfg
+        (encodeAffineStmtTransitionInput script.dispatch
+          (encodeAffineOrThenNotInput script.narrowFrames
+            script.narrowSource ++ narrowTail)) output)
+      (some (affineTransitionLiftNarrowCfg
+        (affineOrFinFinishInputCfg narrowTail
+          (affineTransitionNarrowOutput script output))))
+      (2 + affineStmtScriptFinishSteps script.dispatch +
+        (1 + affineOrThenNotUntilFinishSteps
+          script.narrowFrames script.narrowSource)) := by
+    convert throughNarrowRaw using 1
+    omega
+  let throughEqRaw := EvalsToInTime.trans (step affineTransitionRevProgram)
+    (2 + affineStmtScriptFinishSteps script.dispatch +
+      (1 + affineOrThenNotUntilFinishSteps
+        script.narrowFrames script.narrowSource))
+    (2 + (1 + affineEqFinBodySteps script.eqFrames)) _ _ _
+    throughNarrow (by
+      simpa [narrowTail, eqTail, affineTransitionNarrowTailWithTail,
+        affineTransitionEqTailWithTail, List.append_assoc] using heq)
+  have throughEq : EvalsToInTime (step affineTransitionRevProgram)
+      (affineTransitionLoopCfg
+        (encodeAffineStmtTransitionInput script.dispatch
+          (encodeAffineOrThenNotInput script.narrowFrames
+            script.narrowSource ++ narrowTail)) output)
+      (some (affineTransitionLiftEqCfg
+        (affineEqFinCheckCfg eqTail
+          (affineTransitionEqOutput script output))))
+      (2 + affineStmtScriptFinishSteps script.dispatch +
+        (1 + affineOrThenNotUntilFinishSteps
+          script.narrowFrames script.narrowSource) +
+        (2 + (1 + affineEqFinBodySteps script.eqFrames))) := by
+    convert throughEqRaw using 1
+    · simp [eqTail, affineTransitionEqTailWithTail]
+    · omega
+  let full := EvalsToInTime.trans (step affineTransitionRevProgram)
+    (2 + affineStmtScriptFinishSteps script.dispatch +
+      (1 + affineOrThenNotUntilFinishSteps
+        script.narrowFrames script.narrowSource) +
+      (2 + (1 + affineEqFinBodySteps script.eqFrames)))
+    (2 + affineAndFinBodySteps [script.finalAnd] + 2) _ _ _
+    throughEq (by simpa [eqTail, affineTransitionEqTailWithTail,
+      List.append_assoc] using hand)
+  convert full using 1
+  · simp [encodeAffineTransitionScriptWithTail, narrowTail,
+      affineTransitionNarrowTailWithTail, List.append_assoc]
+  · simp [affineTransitionFinalOutput, affineTransitionEqOutput,
+      affineTransitionNarrowOutput, affineTransitionStmtOutput,
+      affineTransitionBoolOutput, affineTransitionGateStream,
+      List.reverse_append, List.append_assoc]
+  · simp [affineTransitionRunToFinishSteps]
+    omega
 
 /-- One fixed finite program emits exactly the reverse of the local
 transition gate stream and then halts. -/

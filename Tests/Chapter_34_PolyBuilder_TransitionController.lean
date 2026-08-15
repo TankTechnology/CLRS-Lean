@@ -10,7 +10,11 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineTransition_run
 #check compileTransitionScript_run
 #check affineTransition_steps_le
+#check encodeAffineTransitionScriptWithTail
+#check affineTransitionRunToFinishSteps
+#check affineTransition_runToFinishWithTail
 
 #print axioms affineTransition_run
 #print axioms compileTransitionScript_run
 #print axioms affineTransition_steps_le
+#print axioms affineTransition_runToFinishWithTail
