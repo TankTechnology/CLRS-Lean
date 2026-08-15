@@ -1,0 +1,18 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.ValidityIndices
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check suffixOrGateTrace_output_eq
+#check cellValidityGateTrace_output_eq
+#check stackValidityFamilyGateTrace_output_eq
+#check cellValidityGateBlock
+#check cellValidityGateTrace_gates_eq_blocks
+#check stackValidityGateBlock
+#check stackValidityFamilyGateTrace_gates_eq_blocks
+
+#print axioms suffixOrGateTrace_output_eq
+#print axioms cellValidityGateTrace_output_eq
+#print axioms stackValidityFamilyGateTrace_output_eq
+#print axioms cellValidityGateTrace_gates_eq_blocks
+#print axioms stackValidityFamilyGateTrace_gates_eq_blocks

@@ -120,6 +120,15 @@ theorem allocateBoolWirePool_extends (base : CircuitBuilder) :
     base.Extends (allocateBoolWirePool base).builder :=
   (allocateBoolWirePool base).extension
 
+/-- The shared pool appends exactly the false gate followed by the true gate,
+not merely two unspecified gates. -/
+theorem allocateBoolWirePool_gates_eq (base : CircuitBuilder) :
+    (allocateBoolWirePool base).builder.gates =
+      base.gates ++ [.const false, .const true] := by
+  change ((base.const false).1.const true).1.gates = _
+  rw [const_gates, const_gates]
+  simp only [List.append_assoc, List.singleton_append]
+
 /-- The allocated false constant occupies the first fresh wire position. -/
 @[simp] theorem allocateBoolWirePool_falseWire (base : CircuitBuilder) :
     (allocateBoolWirePool base).pool.falseWire = base.gates.length := by

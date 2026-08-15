@@ -1,0 +1,69 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierValidityGateStream
+#check verifierValidityGateStream_eq
+#check verifierRowWire_eq
+#check verifierRowHaltedWire_eq
+#check verifierRowLabelWire_eq
+#check verifierRowStateWire_eq
+#check verifierRowStackHeightWire_eq
+#check verifierRowStackCellWire_eq
+#check verifierPoolGateCount_eq
+#check verifierValidityRowStart
+#check verifierRowValidityGateStream
+#check verifierValidityGateStream_rows_eq
+#check validCfgGatePolynomial
+#check validCfgGatePolynomial_eval
+#check verifierValidityRowCostPolynomial
+#check verifierValidityRowCostPolynomial_eval
+#check verifierValidityRowCostClock
+#check verifierValidityRowCostClock_length
+#check verifierValidityRowCostClock_computableInPolyTime
+#check verifierValidityGateCountPolynomial
+#check verifierValidityGateCountPolynomial_eval
+#check verifierValidityGateCountClock
+#check verifierValidityGateCountClock_length
+#check verifierValidityGateCountClock_computableInPolyTime
+#check validityGateStreamAt
+#check verifierValidityGateStreamByLength
+#check verifierValidityGateStream_eq_byLength
+#check arithmeticCfgWires
+#check arithmeticCfgWires_halted
+#check arithmeticCfgWires_label
+#check arithmeticCfgWires_state
+#check arithmeticCfgWires_stackHeight
+#check arithmeticCfgWires_stackCell
+#check verifierRowWires_eq_arithmetic
+#check allocateTableauRows_rows_eq_arithmetic
+#check validityRowGateStreamAt
+#check validityGateStreamAt_rows_eq
+#check verifierRowValidityGateStream_eq_at
+#check verifierCircuitValidityPrefix
+#check verifierCircuitValidityPrefix_eq
+#check verifierCircuitValidityPrefix_isPrefix
+
+#print axioms verifierValidityGateStream_eq
+#print axioms verifierRowWire_eq
+#print axioms verifierRowHaltedWire_eq
+#print axioms verifierRowLabelWire_eq
+#print axioms verifierRowStateWire_eq
+#print axioms verifierRowStackHeightWire_eq
+#print axioms verifierRowStackCellWire_eq
+#print axioms verifierPoolGateCount_eq
+#print axioms verifierValidityGateStream_rows_eq
+#print axioms validCfgGatePolynomial_eval
+#print axioms verifierValidityRowCostPolynomial_eval
+#print axioms verifierValidityRowCostClock_computableInPolyTime
+#print axioms verifierValidityGateCountPolynomial_eval
+#print axioms verifierValidityGateCountClock_computableInPolyTime
+#print axioms verifierValidityGateStream_eq_byLength
+#print axioms verifierRowWires_eq_arithmetic
+#print axioms allocateTableauRows_rows_eq_arithmetic
+#print axioms validityGateStreamAt_rows_eq
+#print axioms verifierRowValidityGateStream_eq_at
+#print axioms verifierCircuitValidityPrefix_eq
+#print axioms verifierCircuitValidityPrefix_isPrefix

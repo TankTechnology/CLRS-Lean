@@ -35,6 +35,46 @@ theorem gateSteps_le (gate : CircuitGate) (inputCount gateCount : Nat)
       simp [gateSteps]
       omega
 
+/-- Even without semantic validity, a gate phase's syntactic cost is linear
+in its unary encoding and the current value count.  This is used only as a
+numeric envelope for malformed streams; invalid gates reject before executing
+the nominal successful phase. -/
+theorem gateSteps_le_encoding (gate : CircuitGate) (gateCount : Nat) :
+    gateSteps gateCount gate ≤
+      10 * (gateCount + (encodeCircuitGate gate).length + 1) := by
+  cases gate with
+  | input i =>
+      simp [gateSteps, encodeCircuitGate, encNat]
+      omega
+  | const value =>
+      cases value <;> simp [gateSteps, encodeCircuitGate] <;> omega
+  | not source =>
+      simp [gateSteps, encodeCircuitGate, encNat]
+      omega
+  | and left right =>
+      simp [gateSteps, encodeCircuitGate, encNat]
+      omega
+  | or left right =>
+      simp [gateSteps, encodeCircuitGate, encNat]
+      omega
+
+/-- The nominal cost attached to any encoded gate list is quadratic in the
+list's symbol length and its initial value count, with no validity premise. -/
+theorem gateListSteps_le_encoding (gates : List CircuitGate)
+    (initialCount : Nat) :
+    gateListSteps initialCount gates ≤
+      20 * (gates.length + 1) *
+        (initialCount + (gates.flatMap encodeCircuitGate).length +
+          gates.length + 1) := by
+  induction gates generalizing initialCount with
+  | nil => simp [gateListSteps]
+  | cons gate gates ih =>
+      have hhead := gateSteps_le_encoding gate initialCount
+      have htail := ih (initialCount + 1)
+      simp only [gateListSteps, List.length_cons, List.flatMap_cons,
+        List.length_append]
+      nlinarith
+
 /-- Summing the linear gate estimate over an ordered valid gate segment gives
 a quadratic bound. -/
 theorem gateListSteps_le (gates : List CircuitGate)

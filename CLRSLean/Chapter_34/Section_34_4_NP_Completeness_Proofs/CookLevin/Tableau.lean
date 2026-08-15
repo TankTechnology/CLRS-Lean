@@ -13,6 +13,9 @@ Main results:
 
 - Theorem {lit}`card_cfgSlot`: the unified dependent slot type has exactly the
   advertised linear row width.
+- Theorems {lit}`cfgSlotEquivFin_halted_val` through
+  {lit}`cfgSlotEquivFin_stackCell_val`: every row-coordinate family has a
+  literal runtime-uniform arithmetic wire offset.
 - Theorems {lit}`decodeRawCfg_encode` and {lit}`encodeRawCfg_decode`: raw rows and their
   one-hot bit encodings round-trip exactly.
 - Theorem `CfgInputLayout.writeCfgBits_index_of_disjoint`: writing one fresh
@@ -95,10 +98,175 @@ theorem card_cfgSlot (tm : _root_.Turing.FinTM2) (H : Nat) :
   letI := tm.kFin
   simp [CfgSlot, cfgBitCount, Nat.add_assoc]
 
-/-- Canonical finite numbering of all row coordinates. -/
+/-- Number of Boolean coordinates occupied by one bounded machine stack. -/
+def cfgStackBitWidth (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K) : Nat :=
+  (H + 1) + H * ((reachableAlphabet tm k).card + 1)
+
+/-- Prefix occupied by stacks preceding `k` in the fixed machine-stack
+numbering.  Only the fixed verifier contributes the stack ordering; the
+runtime height enters through the explicit affine stack widths. -/
+noncomputable def cfgStackBitOffset (tm : _root_.Turing.FinTM2)
+    (H : Nat) (k : tm.K) : Nat := by
+  letI : Fintype tm.K := tm.kFin
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  exact ∑ j : Fin (keyEquiv k),
+    cfgStackBitWidth tm H
+      (keyEquiv.symm (Fin.castLE (keyEquiv k).isLt.le j))
+
+/-- Explicit local numbering of height bits followed by cell-symbol bits for
+one stack. -/
+private noncomputable def cfgStackLocalEquivFin
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K) :
+    (Fin (H + 1) ⊕
+      (Fin H × Fin ((reachableAlphabet tm k).card + 1))) ≃
+        Fin (cfgStackBitWidth tm H k) :=
+  ((Equiv.refl (Fin (H + 1))).sumCongr finProdFinEquiv).trans
+    finSumFinEquiv
+
+/-- Reindex dependent stack blocks by the fixed machine-stack enumeration.
+The explicit casts preserve the local numeric coordinate. -/
+private noncomputable def cfgKeySigmaEquiv
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (Σ k : tm.K, Fin (cfgStackBitWidth tm H k)) ≃
+      (Σ j : Fin (Fintype.card tm.K),
+        Fin (cfgStackBitWidth tm H ((Fintype.equivFin tm.K).symm j))) := by
+  letI : Fintype tm.K := tm.kFin
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  exact
+    { toFun := fun x =>
+        ⟨keyEquiv x.1,
+          Fin.cast (by rw [keyEquiv.symm_apply_apply]) x.2⟩
+      invFun := fun x => ⟨keyEquiv.symm x.1, x.2⟩
+      left_inv := by
+        rintro ⟨k, i⟩
+        dsimp
+        let hkey := keyEquiv.symm_apply_apply k
+        apply Sigma.ext hkey
+        exact (Fin.heq_ext_iff
+          (congrArg (cfgStackBitWidth tm H) hkey)).2 rfl
+      right_inv := by
+        rintro ⟨j, i⟩
+        dsimp
+        let hkey := keyEquiv.apply_symm_apply j
+        apply Sigma.ext hkey
+        exact (Fin.heq_ext_iff
+          (congrArg (fun q => cfgStackBitWidth tm H (keyEquiv.symm q))
+            hkey)).2 rfl }
+
+@[simp] private theorem cfgKeySigmaEquiv_apply_fst
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (cfgStackBitWidth tm H k)) :
+    (cfgKeySigmaEquiv tm H ⟨k, i⟩).1 = Fintype.equivFin tm.K k := rfl
+
+@[simp] private theorem cfgKeySigmaEquiv_apply_snd_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (cfgStackBitWidth tm H k)) :
+    (cfgKeySigmaEquiv tm H ⟨k, i⟩).2.val = i.val := by
+  rfl
+
+@[simp] private theorem cfgStackLocalEquivFin_height_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (H + 1)) :
+    (cfgStackLocalEquivFin tm H k (.inl i)).val = i.val := rfl
+
+@[simp] private theorem cfgStackLocalEquivFin_cell_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin H) (a : Fin ((reachableAlphabet tm k).card + 1)) :
+    (cfgStackLocalEquivFin tm H k (.inr (i, a))).val =
+      (H + 1) + (a.val + ((reachableAlphabet tm k).card + 1) * i.val) := rfl
+
+/-- Explicit numbering of all stack coordinates, using the fixed verifier's
+finite stack numbering and runtime-computable affine block widths. -/
+private noncomputable def cfgStacksEquivFin
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (Σ k : tm.K, Fin (H + 1) ⊕
+      (Fin H × Fin ((reachableAlphabet tm k).card + 1))) ≃
+        Fin (∑ k : tm.K, cfgStackBitWidth tm H k) := by
+  letI : Fintype tm.K := tm.kFin
+  let keyEquiv : tm.K ≃ Fin (Fintype.card tm.K) := Fintype.equivFin tm.K
+  exact
+    (Equiv.sigmaCongrRight (fun k => cfgStackLocalEquivFin tm H k)).trans <|
+      (cfgKeySigmaEquiv tm H).trans <|
+        finSigmaFinEquiv.trans <|
+          finCongr (keyEquiv.symm.sum_comp
+            (fun k => cfgStackBitWidth tm H k))
+
+@[simp] private theorem cfgStacksEquivFin_apply_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) (k : tm.K)
+    (i : Fin (H + 1) ⊕
+      (Fin H × Fin ((reachableAlphabet tm k).card + 1))) :
+    (cfgStacksEquivFin tm H ⟨k, i⟩).val =
+      cfgStackBitOffset tm H k + (cfgStackLocalEquivFin tm H k i).val := by
+  simp [cfgStacksEquivFin, cfgStackBitOffset, finSigmaFinEquiv_apply]
+  congr
+
+/-- Canonical finite numbering of all row coordinates.
+
+Unlike an unconstrained `Fintype.equivFin`, this numbering is uniform in the
+runtime height: halted, label, state, stack-height, and stack-cell blocks have
+literal arithmetic offsets.  The only chosen enumeration belongs to the fixed
+machine's finite stack type and can therefore live in TM2 finite control. -/
 noncomputable def cfgSlotEquivFin (tm : _root_.Turing.FinTM2) (H : Nat) :
-    CfgSlot tm H ≃ Fin (cfgBitCount tm H) :=
-  (Fintype.equivFin (CfgSlot tm H)).trans (finCongr (card_cfgSlot tm H))
+    CfgSlot tm H ≃ Fin (cfgBitCount tm H) := by
+  let stackEquiv := cfgStacksEquivFin tm H
+  let stateAndStacks :=
+    ((Equiv.refl (Fin (stateCount tm))).sumCongr stackEquiv).trans
+      finSumFinEquiv
+  let labelStateStacks :=
+    ((Equiv.refl (Fin (labelCount tm + 1))).sumCongr stateAndStacks).trans
+      finSumFinEquiv
+  let allSlots :=
+    (((finOneEquiv : Fin 1 ≃ Unit).symm).sumCongr labelStateStacks).trans
+      finSumFinEquiv
+  exact allSlots.trans (finCongr (by
+    simp only [cfgBitCount, cfgStackBitWidth]
+    omega))
+
+/-- The halted bit is the first coordinate of every explicit row encoding. -/
+@[simp] theorem cfgSlotEquivFin_halted_val
+    (tm : _root_.Turing.FinTM2) (H : Nat) :
+    (cfgSlotEquivFin tm H (CfgSlot.halted tm H)).val = 0 := by
+  simp [cfgSlotEquivFin, CfgSlot.halted]
+
+/-- Label coordinates immediately follow the halted bit. -/
+@[simp] theorem cfgSlotEquivFin_label_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (i : Fin (labelCount tm + 1)) :
+    (cfgSlotEquivFin tm H (CfgSlot.label i)).val = 1 + i.val := by
+  simp [cfgSlotEquivFin, CfgSlot.label]
+
+/-- State coordinates immediately follow the halted and label blocks. -/
+@[simp] theorem cfgSlotEquivFin_state_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (i : Fin (stateCount tm)) :
+    (cfgSlotEquivFin tm H (CfgSlot.state i)).val =
+      1 + (labelCount tm + 1) + i.val := by
+  simp [cfgSlotEquivFin, CfgSlot.state]
+  omega
+
+/-- A stack-height coordinate has its literal outer block offset, its fixed
+stack-prefix offset, and then its height index. -/
+@[simp] theorem cfgSlotEquivFin_stackHeight_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (k : tm.K) (i : Fin (H + 1)) :
+    (cfgSlotEquivFin tm H (CfgSlot.stackHeight k i)).val =
+      1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k + i.val := by
+  simp [cfgSlotEquivFin, CfgSlot.stackHeight]
+  omega
+
+/-- Cell-symbol coordinates follow the height block and use row-major
+cell/symbol numbering inside their fixed stack block. -/
+@[simp] theorem cfgSlotEquivFin_stackCell_val
+    {tm : _root_.Turing.FinTM2} {H : Nat}
+    (k : tm.K) (i : Fin H)
+    (a : Fin ((reachableAlphabet tm k).card + 1)) :
+    (cfgSlotEquivFin tm H (CfgSlot.stackCell k i a)).val =
+      1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k + (H + 1) +
+          (a.val + ((reachableAlphabet tm k).card + 1) * i.val) := by
+  simp [cfgSlotEquivFin, CfgSlot.stackCell]
+  omega
 
 /-! ## Bit and wire bundles -/
 
@@ -416,6 +584,42 @@ private def allocateFinInputs (base : CircuitBuilder) (inputBase : Nat) :
           rw [CircuitBuilder.input_eval]
           simp [hilast]
 
+private theorem range'_succ_append (start n : Nat) :
+    List.range' start (n + 1) =
+      List.range' start n ++ [start + n] := by
+  induction n generalizing start with
+  | zero => simp
+  | succ n ih =>
+      change
+        start :: List.range' (start + 1) (n + 1) =
+          start :: (List.range' (start + 1) n ++ [start + (n + 1)])
+      rw [ih (start + 1)]
+      rw [show start + 1 + n = start + (n + 1) by omega]
+
+/-- The low-level allocator appends input gates in increasing external-index
+order. -/
+private theorem allocateFinInputs_gates_eq (base : CircuitBuilder)
+    (inputBase n : Nat) (hfit : inputBase + n ≤ base.inputCount) :
+    (allocateFinInputs base inputBase n hfit).builder.gates =
+      base.gates ++
+        (List.range' inputBase n).map CircuitGate.input := by
+  induction n with
+  | zero => simp [allocateFinInputs]
+  | succ n ih =>
+      simp only [allocateFinInputs]
+      change
+        (allocateFinInputs base inputBase n (by omega)).builder.gates ++
+            [.input (inputBase + n)] =
+          base.gates ++
+            (List.range' inputBase (n + 1)).map CircuitGate.input
+      rw [show
+        (allocateFinInputs base inputBase n (by omega)).builder.gates =
+          base.gates ++
+            (List.range' inputBase n).map CircuitGate.input by
+        exact ih (by omega)]
+      rw [range'_succ_append, List.map_append]
+      simp [List.append_assoc]
+
 /-- Proof-carrying result of allocating one external input gate per row slot. -/
 structure CfgInputAllocation {tm : _root_.Turing.FinTM2} {H : Nat}
     (start : CircuitBuilder) (layout : CfgInputLayout tm H) where
@@ -447,6 +651,17 @@ def allocateCfgInputs {tm : _root_.Turing.FinTM2} {H : Nat}
         intro inputs slot
         simpa [wires, CfgInputLayout.index] using
           allocated.eval inputs (cfgSlotEquivFin tm H slot) }
+
+/-- Row allocation appends exactly the consecutive input-gate block described
+by its external-input layout. -/
+theorem allocateCfgInputs_gates_eq {tm : _root_.Turing.FinTM2} {H : Nat}
+    (start : CircuitBuilder) (layout : CfgInputLayout tm H)
+    (hfit : layout.Fits start.inputCount) :
+    (allocateCfgInputs start layout hfit).builder.gates =
+      start.gates ++
+        (List.range' layout.base (cfgBitCount tm H)).map CircuitGate.input := by
+  unfold allocateCfgInputs
+  exact allocateFinInputs_gates_eq start layout.base (cfgBitCount tm H) hfit
 
 namespace CfgInputAllocation
 
@@ -527,6 +742,131 @@ private theorem mem_and_atMostOneTrue_iff_count_eq_one (values : List Bool) :
               left
               exact Bool.eq_false_of_not_eq_true
                 (hall (values.get i) (List.get_mem values i))⟩
+
+/-! ### Exact gate trace for the exactly-one scan -/
+
+/-- Pure gate-order trace of the public {lit}`exactlyOne` builder.  The starting
+index is the length of the builder prefix to which the trace will be
+appended. -/
+structure ExactlyOneGateTrace where
+  gates : List CircuitGate
+  wire : CircuitBuilder.Wire
+deriving DecidableEq, Repr
+
+private structure ExactlyOneScanGateTrace where
+  gates : List CircuitGate
+  seen : CircuitBuilder.Wire
+  duplicate : CircuitBuilder.Wire
+
+/-- Pure trace of the tail-first seen/duplicate scan. -/
+private def exactlyOneScanGateTrace (start : Nat) :
+    List CircuitBuilder.Wire → ExactlyOneScanGateTrace
+  | [] =>
+      { gates := [.const false, .const false]
+        seen := start
+        duplicate := start + 1 }
+  | wire :: rest =>
+      let tail := exactlyOneScanGateTrace start rest
+      let next := start + tail.gates.length
+      { gates := tail.gates ++
+          [.and tail.seen wire, .or tail.duplicate next,
+            .or tail.seen wire]
+        seen := next + 2
+        duplicate := next + 1 }
+
+private theorem exactlyOneScanGateTrace_length (start : Nat)
+    (wires : List CircuitBuilder.Wire) :
+    (exactlyOneScanGateTrace start wires).gates.length =
+      3 * wires.length + 2 := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih =>
+      simp [exactlyOneScanGateTrace, ih]
+      omega
+
+/-- Exact primitive-gate sequence emitted by `exactlyOne`. -/
+def exactlyOneGateTrace (start : Nat)
+    (wires : List CircuitBuilder.Wire) : ExactlyOneGateTrace :=
+  let scan := exactlyOneScanGateTrace start wires
+  let next := start + scan.gates.length
+  { gates := scan.gates ++ [.not scan.duplicate, .and scan.seen next]
+    wire := next + 1 }
+
+/-- The pure exactly-one trace contains exactly {lit}`3*n+4` gates. -/
+@[simp] theorem exactlyOneGateTrace_length (start : Nat)
+    (wires : List CircuitBuilder.Wire) :
+    (exactlyOneGateTrace start wires).gates.length = 3 * wires.length + 4 := by
+  simp [exactlyOneGateTrace, exactlyOneScanGateTrace_length]
+
+/-! The fold presentation below is the executable view used by the concrete
+serializer.  It is intentionally public: clients do not need access to the
+private proof-oriented scan record in order to enumerate the exact trace. -/
+
+/-- Arithmetic scan state for forward execution over the reversed wire list. -/
+structure ExactlyOneArithmeticScan where
+  gates : List CircuitGate
+  seen : CircuitBuilder.Wire
+  duplicate : CircuitBuilder.Wire
+deriving DecidableEq, Repr
+
+/-- One forward scan update at the next source wire. -/
+def exactlyOneArithmeticStep (start : Nat)
+    (scan : ExactlyOneArithmeticScan) (wire : CircuitBuilder.Wire) :
+    ExactlyOneArithmeticScan :=
+  let next := start + scan.gates.length
+  { gates := scan.gates ++
+      [.and scan.seen wire, .or scan.duplicate next,
+        .or scan.seen wire]
+    seen := next + 2
+    duplicate := next + 1 }
+
+/-- Tail-first exactly-one scanning as a left fold over reversed wires. -/
+def exactlyOneArithmeticScan (start : Nat)
+    (wires : List CircuitBuilder.Wire) : ExactlyOneArithmeticScan :=
+  wires.reverse.foldl (exactlyOneArithmeticStep start)
+    { gates := [.const false, .const false]
+      seen := start
+      duplicate := start + 1 }
+
+private theorem exactlyOneScanGateTrace_eq_arithmeticScan
+    (start : Nat) (wires : List CircuitBuilder.Wire) :
+    (exactlyOneScanGateTrace start wires).gates =
+        (exactlyOneArithmeticScan start wires).gates ∧
+      (exactlyOneScanGateTrace start wires).seen =
+        (exactlyOneArithmeticScan start wires).seen ∧
+      (exactlyOneScanGateTrace start wires).duplicate =
+        (exactlyOneArithmeticScan start wires).duplicate := by
+  induction wires with
+  | nil => simp [exactlyOneScanGateTrace, exactlyOneArithmeticScan]
+  | cons wire rest ih =>
+      rcases ih with ⟨hgates, hseen, hduplicate⟩
+      simp only [exactlyOneArithmeticScan, List.reverse_cons,
+        List.foldl_append]
+      simp only [exactlyOneScanGateTrace]
+      rw [hgates, hseen, hduplicate]
+      simp only [List.foldl]
+      change
+        _ = (exactlyOneArithmeticStep start
+              (exactlyOneArithmeticScan start rest) wire).gates ∧
+          _ = (exactlyOneArithmeticStep start
+              (exactlyOneArithmeticScan start rest) wire).seen ∧
+          _ = (exactlyOneArithmeticStep start
+              (exactlyOneArithmeticScan start rest) wire).duplicate
+      simp [exactlyOneArithmeticStep]
+
+/-- The public arithmetic fold emits exactly the same gates as the semantic
+tail-recursive trace. -/
+theorem exactlyOneGateTrace_gates_eq_arithmeticScan
+    (start : Nat) (wires : List CircuitBuilder.Wire) :
+    (exactlyOneGateTrace start wires).gates =
+      (exactlyOneArithmeticScan start wires).gates ++
+        [.not (exactlyOneArithmeticScan start wires).duplicate,
+          .and (exactlyOneArithmeticScan start wires).seen
+            (start + (exactlyOneArithmeticScan start wires).gates.length)] := by
+  rcases exactlyOneScanGateTrace_eq_arithmeticScan start wires with
+    ⟨hgates, hseen, hduplicate⟩
+  simp only [exactlyOneGateTrace]
+  rw [hgates, hseen, hduplicate]
 
 private structure ExactlyOneScan (base : CircuitBuilder)
     (wires : List CircuitBuilder.Wire) where
@@ -629,6 +969,37 @@ private def exactlyOneScan (base : CircuitBuilder) :
         rw [tail.extension.evalWire_eq inputs (hvalid wire (by simp))]
         simp [wireValues, duplicateTrue]
 
+private theorem exactlyOneScan_gates_eq (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (exactlyOneScan base wires hvalid).builder.gates =
+        base.gates ++ (exactlyOneScanGateTrace base.gates.length wires).gates ∧
+      (exactlyOneScan base wires hvalid).seen =
+        (exactlyOneScanGateTrace base.gates.length wires).seen ∧
+      (exactlyOneScan base wires hvalid).duplicate =
+        (exactlyOneScanGateTrace base.gates.length wires).duplicate := by
+  induction wires with
+  | nil =>
+      simp [exactlyOneScan, exactlyOneScanGateTrace,
+        CircuitBuilder.const_wire_eq]
+  | cons wire rest ih =>
+      let hrest : ∀ old ∈ rest, base.WireValid old :=
+        fun old hold => hvalid old (by simp [hold])
+      have htail := ih hrest
+      rcases htail with ⟨hgates, hseen, hduplicate⟩
+      simp only [exactlyOneScan]
+      rw [CircuitBuilder.or_gates, CircuitBuilder.or_gates,
+        CircuitBuilder.and_gates, hgates]
+      simp only [CircuitBuilder.and_wire_eq, CircuitBuilder.or_wire_eq,
+        CircuitBuilder.and_gates, CircuitBuilder.or_gates, hgates,
+        List.length_append, List.length_singleton]
+      simp only [exactlyOneScanGateTrace]
+      rw [hseen, hduplicate]
+      rw [exactlyOneScanGateTrace_length]
+      constructor
+      · simp [List.append_assoc]
+      · constructor <;> simp
+
 /-- Build a linear exactly-one test over wire positions.  Two occurrences of
 the same true wire count as two selected positions. -/
 def exactlyOne (base : CircuitBuilder) (wires : List CircuitBuilder.Wire)
@@ -649,6 +1020,40 @@ def exactlyOne (base : CircuitBuilder) (wires : List CircuitBuilder.Wire)
           hseen hnotDuplicate))
       valid := CircuitBuilder.and_wireValid notDuplicate.1 scan.seen notDuplicate.2
         hseen hnotDuplicate }
+
+/-- The proof-carrying exactly-one builder appends precisely the public pure
+trace, gate for gate. -/
+theorem exactlyOne_gates_eq (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (exactlyOne base wires hvalid).builder.gates =
+      base.gates ++ (exactlyOneGateTrace base.gates.length wires).gates := by
+  rcases exactlyOneScan_gates_eq base wires hvalid with
+    ⟨hgates, hseen, hduplicate⟩
+  unfold exactlyOne
+  dsimp only
+  rw [CircuitBuilder.and_gates, CircuitBuilder.not_gates, hgates]
+  simp only [CircuitBuilder.not_wire_eq]
+  simp only [exactlyOneGateTrace]
+  rw [hseen, hduplicate]
+  simp only [List.append_assoc, List.cons_append, List.nil_append]
+  rw [hgates]
+  simp
+
+/-- The exactly-one output wire is the last wire advertised by its pure
+trace. -/
+theorem exactlyOne_wire_eq_trace (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (exactlyOne base wires hvalid).wire =
+      (exactlyOneGateTrace base.gates.length wires).wire := by
+  rcases exactlyOneScan_gates_eq base wires hvalid with
+    ⟨hgates, hseen, hduplicate⟩
+  unfold exactlyOne
+  dsimp only
+  simp only [CircuitBuilder.and_wire_eq, exactlyOneGateTrace]
+  rw [CircuitBuilder.not_gates, hgates]
+  simp only [List.length_append, List.length_singleton]
 
 /-- Exactly-one construction extends its starting builder. -/
 theorem exactlyOne_extends (base : CircuitBuilder)
@@ -716,6 +1121,40 @@ theorem exactlyOne_rejects_aliased_pair (base : CircuitBuilder)
   simp [wireValues, htrue]
 
 /-! ## Linear suffix-OR masks -/
+
+/-- Pure gate-order trace of a suffix-OR scan, including the carry and every
+position-aligned output wire. -/
+structure SuffixOrGateTrace (n : Nat) where
+  gates : List CircuitGate
+  carry : CircuitBuilder.Wire
+  outputs : Fin n → CircuitBuilder.Wire
+
+/-- Tail-first primitive-gate trace of the suffix-OR implementation. -/
+def suffixOrGateTrace (start : Nat) :
+    (wires : List CircuitBuilder.Wire) → SuffixOrGateTrace wires.length
+  | [] =>
+      { gates := [.const false]
+        carry := start
+        outputs := fun i => Fin.elim0 i }
+  | wire :: rest =>
+      let tail := suffixOrGateTrace start rest
+      let next := start + tail.gates.length
+      { gates := tail.gates ++ [.or tail.carry wire]
+        carry := next
+        outputs := fun i =>
+          if hi : i.val = 0 then next
+          else tail.outputs ⟨i.val - 1, by
+            have hiLt : i.val < rest.length + 1 := by simpa using i.isLt
+            omega⟩ }
+
+/-- A suffix-OR trace contains its false seed and one OR per source wire. -/
+@[simp] theorem suffixOrGateTrace_length (start : Nat)
+    (wires : List CircuitBuilder.Wire) :
+    (suffixOrGateTrace start wires).gates.length = wires.length + 1 := by
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih =>
+      simp [suffixOrGateTrace, ih]
 
 /-- A tail-first linear suffix-OR scan. -/
 structure SuffixOrResult (base : CircuitBuilder)
@@ -815,6 +1254,39 @@ private def suffixOrScan (base : CircuitBuilder) :
             simp
           rw [hdrop]
 
+private theorem suffixOrScan_trace_eq (base : CircuitBuilder)
+    (wires : List CircuitBuilder.Wire)
+    (hvalid : ∀ wire ∈ wires, base.WireValid wire) :
+    (suffixOrScan base wires hvalid).builder.gates =
+        base.gates ++ (suffixOrGateTrace base.gates.length wires).gates ∧
+      (suffixOrScan base wires hvalid).carry =
+        (suffixOrGateTrace base.gates.length wires).carry ∧
+      ∀ i, (suffixOrScan base wires hvalid).outputs i =
+        (suffixOrGateTrace base.gates.length wires).outputs i := by
+  induction wires with
+  | nil =>
+      simp [suffixOrScan, suffixOrGateTrace, CircuitBuilder.const_wire_eq]
+  | cons wire rest ih =>
+      let hrest : ∀ old ∈ rest, base.WireValid old :=
+        fun old hold => hvalid old (by simp [hold])
+      rcases ih hrest with ⟨hgates, hcarry, houtputs⟩
+      simp only [suffixOrScan]
+      rw [CircuitBuilder.or_gates, hgates]
+      simp only [CircuitBuilder.or_wire_eq, suffixOrGateTrace]
+      constructor
+      · rw [hcarry]
+        simp [List.append_assoc]
+      · constructor
+        · rw [hgates]
+          simp
+        · intro i
+          split
+          next hi =>
+            rw [hgates]
+            simp
+          next hi =>
+            exact houtputs _
+
 /-- Build the active-cell suffix mask from the positive height coordinates. -/
 def activeMask (base : CircuitBuilder) (H : Nat)
     (height : Fin (H + 1) → CircuitBuilder.Wire)
@@ -825,6 +1297,35 @@ def activeMask (base : CircuitBuilder) (H : Nat)
     simp only [List.mem_ofFn] at hwire
     rcases hwire with ⟨i, rfl⟩
     exact hvalid i.succ)
+
+/-- The active-mask builder appends exactly its pure suffix-OR gate trace. -/
+theorem activeMask_gates_eq (base : CircuitBuilder) (H : Nat)
+    (height : Fin (H + 1) → CircuitBuilder.Wire)
+    (hvalid : ∀ i, base.WireValid (height i)) :
+    (activeMask base H height hvalid).builder.gates =
+      base.gates ++
+        (suffixOrGateTrace base.gates.length
+          (List.ofFn fun i : Fin H => height i.succ)).gates :=
+  (suffixOrScan_trace_eq base _ _).1
+
+/-- The active-mask carry agrees with the pure suffix-OR trace. -/
+theorem activeMask_carry_eq_trace (base : CircuitBuilder) (H : Nat)
+    (height : Fin (H + 1) → CircuitBuilder.Wire)
+    (hvalid : ∀ i, base.WireValid (height i)) :
+    (activeMask base H height hvalid).carry =
+      (suffixOrGateTrace base.gates.length
+        (List.ofFn fun i : Fin H => height i.succ)).carry :=
+  (suffixOrScan_trace_eq base _ _).2.1
+
+/-- Every position-aligned active-mask output agrees with the pure trace. -/
+theorem activeMask_output_eq_trace (base : CircuitBuilder) (H : Nat)
+    (height : Fin (H + 1) → CircuitBuilder.Wire)
+    (hvalid : ∀ i, base.WireValid (height i)) (i : Fin H) :
+    (activeMask base H height hvalid).outputs (Fin.cast (by simp) i) =
+      (suffixOrGateTrace base.gates.length
+        (List.ofFn fun i : Fin H => height i.succ)).outputs
+          (Fin.cast (by simp) i) :=
+  (suffixOrScan_trace_eq base _ _).2.2 _
 
 /-- The active mask uses exactly one suffix OR per cell plus its false seed. -/
 theorem activeMask_gate_delta (base : CircuitBuilder) (H : Nat)
