@@ -479,6 +479,23 @@ redirectable conjunction entry, then compose that row-validity controller
 with the earlier raw one-hot and halted-agreement phases.  This milestone does
 not yet claim that whole-row composition.
 
+That stack-to-conjunction boundary is now closed.  `AffineValidityTailFrame`
+uses an explicit outer `frameEnd` after the runtime stack family, and
+`affineValidityTailRevProgram` clears that terminator before entering the
+unchanged conjunction controller.  `affineValidityTail_run` proves one exact
+continuous run and byte-for-byte output, while
+`affineValidityTailRev_steps_le` supplies a uniform quadratic bound in the
+combined frame length.  The arithmetic instance
+`arithmeticValidityTailRev_runFrom` emits exactly
+`arithmeticValidityPostHaltedMatchGateStream`; there is no remaining halt or
+semantic gap between stack canonicality and the final row conjunction.
+
+The next execution gap is now the front of the row: the raw one-hot affine
+streams are semantically ordered and each individual group has an exact run,
+but the groups still need one fixed runtime family controller.  That controller
+must then link to halted agreement and this completed post-halted tail before
+whole-row validity can be claimed.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:

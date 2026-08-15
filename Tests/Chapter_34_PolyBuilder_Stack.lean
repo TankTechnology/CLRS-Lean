@@ -20,10 +20,14 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineStackFamilyGateStream
 #check affineStackFamilyGateStream_eq_flatMap
 #check affineStackFamilyRevSteps
+#check affineStackFamilyUntilTerminatorSteps
+#check affineStackFamilyTerminatorCfg
+#check affineStackFamily_runToTerminator
 #check affineStackFamily_empty_run
 #check affineStackFamily_run
 #check affineStackFrameRev_steps_le
 #check affineStackFamilyRev_steps_le
+#check affineStackFamilyUntilTerminatorSteps_le
 #check affineStackRevSteps
 #check affineStack_run
 #check affineStackRev_steps_le
@@ -32,6 +36,8 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #print axioms affineStackMaskCore_run
 #print axioms affineStack_runOne
 #print axioms affineStackFamily_run
+#print axioms affineStackFamily_runToTerminator
 #print axioms affineStackFamilyRev_steps_le
+#print axioms affineStackFamilyUntilTerminatorSteps_le
 #print axioms affineStack_run
 #print axioms affineStackRev_steps_le

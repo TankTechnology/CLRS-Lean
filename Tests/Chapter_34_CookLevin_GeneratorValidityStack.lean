@@ -63,6 +63,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticValidityFinalConjunctionRev_runFrom
 #check arithmeticValidityFinalConjunctionRev_steps_le
 #check arithmeticValidityPostHaltedMatch_eq_stack_append_final
+#check arithmeticValidityTailFrame
+#check arithmeticValidityTailGateStream_eq_postHaltedMatch
+#check arithmeticValidityTailRev_runFrom
+#check arithmeticValidityTailRev_steps_le
 
 #print axioms arithmeticStackMaskOutputWire_eq_trace
 #print axioms arithmeticStackMaskWires_eq_range'
@@ -98,6 +102,9 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms arithmeticStackFamilyGateStream_prefix_postHalted
 #print axioms arithmeticValidityFinalConjunctionGateStream_eq_semantic
 #print axioms arithmeticValidityFinalConjunctionGateStream_eq_framed
+#print axioms arithmeticValidityTailGateStream_eq_postHaltedMatch
+#print axioms arithmeticValidityTailRev_runFrom
+#print axioms arithmeticValidityTailRev_steps_le
 #print axioms arithmeticValidityFinalConjunctionRev_runFrom
 #print axioms arithmeticValidityFinalConjunctionRev_steps_le
 #print axioms arithmeticValidityPostHaltedMatch_eq_stack_append_final
