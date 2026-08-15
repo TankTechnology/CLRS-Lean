@@ -32,6 +32,11 @@ polynomial runtime bound.
   data.
 - Gate-count equality alone cannot replace ordered gate-stream equality: two
   builders may have the same cost and different wire arguments.
+- The affine interval suffix-OR controller cannot serialize sparse finite
+  truth-table fibers. The accepted arbitrary-list controller carries each
+  ordered source/carry pair in its runtime frame.
+- Active-mask OR order is `.or carry wire`, but general disjunction order is
+  `.or wire carry`; semantic commutativity is not an encoding proof.
 - Reusing independently halting subphase runs recreates the composition gap.
   Every phase must expose a tail-preserving redirectable exit.
 - Redirecting the embedded AND exit without clearing its incremented carry
