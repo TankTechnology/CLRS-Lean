@@ -3,6 +3,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
 
 /-!
 # Arithmetic stack-cell equality in the validity generator
@@ -793,6 +794,55 @@ theorem arithmeticValidityFinalConjunctionGateStream_eq_semantic
     congr 2
     · exact hstackStart.symm
     · simp [stack, arithmeticStackCount]
+
+/-- Runtime frame for the final tail-first conjunction of all row-validity
+constraint outputs. -/
+noncomputable def arithmeticValidityFinalConjunctionFrame
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    AffineConjunctionFrame :=
+  { start := arithmeticValidityFinalStart tm H start
+    wires := arithmeticValidityConstraintWires tm H start rowBase }
+
+/-- Interpreting the arithmetic runtime frame yields byte-for-byte the final
+semantic row-validity conjunction stream. -/
+theorem arithmeticValidityFinalConjunctionGateStream_eq_framed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineConjunctionGateStream
+        (arithmeticValidityFinalConjunctionFrame tm H start rowBase) =
+      arithmeticValidityFinalConjunctionGateStream tm H start rowBase := by
+  rw [affineConjunctionGateStream_eq_trace,
+    arithmeticValidityFinalConjunctionGateStream_eq_semantic]
+  rfl
+
+/-- The fixed conjunction controller executes the complete arithmetic final
+constraint fold from its explicit runtime frame. -/
+noncomputable def arithmeticValidityFinalConjunctionRev_runFrom
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (output : List CircuitSym) :
+    EvalsToInTime (step affineConjunctionRevProgram)
+      (affineConjunctionLoopCfg
+        (encodeAffineConjunctionFrame
+          (arithmeticValidityFinalConjunctionFrame tm H start rowBase))
+        output)
+      (some (haltCfg affineConjunctionRevProgram
+        ((arithmeticValidityFinalConjunctionGateStream
+          tm H start rowBase).reverse ++ output)))
+      (affineConjunctionRevSteps
+        (arithmeticValidityFinalConjunctionFrame tm H start rowBase)) := by
+  simpa [arithmeticValidityFinalConjunctionGateStream_eq_framed] using
+    affineConjunction_run
+      (arithmeticValidityFinalConjunctionFrame tm H start rowBase) output
+
+/-- The arithmetic final conjunction inherits the generic quadratic runtime
+bound in its exact delimiter-bearing frame length. -/
+theorem arithmeticValidityFinalConjunctionRev_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineConjunctionRevSteps
+        (arithmeticValidityFinalConjunctionFrame tm H start rowBase) ≤
+      1000 * (encodeAffineConjunctionFrame
+        (arithmeticValidityFinalConjunctionFrame tm H start rowBase)).length ^
+          2 + 2 :=
+  affineConjunctionRev_steps_le _
 
 /-- Advance the exact row-validity boundary through the entire stack family,
 leaving only the final conjunction tail. -/
