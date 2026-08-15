@@ -1,10 +1,25 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInputBoundary
 
+#check CLRS.Chapter34.Turing.CookLevin.verifierInputSeparatorSources
+#check CLRS.Chapter34.Turing.CookLevin.verifierInputSeparatorGateStream_eq
+#check CLRS.Chapter34.Turing.CookLevin.verifierInputSeparator_run
+#check CLRS.Chapter34.Turing.CookLevin.VerifierInput.compileInputArmFrames
+#check CLRS.Chapter34.Turing.CookLevin.VerifierInput.compileInputArmFrames_gateStream_eq_trace
+#check CLRS.Chapter34.Turing.CookLevin.compileVerifierInputShapeScript
+#check CLRS.Chapter34.Turing.CookLevin.compileVerifierInputShapeScript_gateStream_eq_trace
+
 open CLRS.Chapter34.Turing
 open CLRS.Chapter34.Turing.CookLevin
 
 #check verifierInputBoundaryGateTrace
 #check verifierInputBoundary_gates_eq
 #check verifierInputBoundaryGateStream
+#check verifierInputBoundaryScript
+#check verifierInputBoundaryScript_gateStream_eq
+#check verifierInputBoundaryArms_run
+#check verifierInputBoundaryFinalOr_run
 
 #print axioms verifierInputBoundary_gates_eq
+#print axioms verifierInputBoundaryScript_gateStream_eq
+#print axioms verifierInputBoundaryArms_run
+#print axioms verifierInputBoundaryFinalOr_run
