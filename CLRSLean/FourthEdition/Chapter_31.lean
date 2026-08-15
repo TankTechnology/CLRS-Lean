@@ -49,7 +49,11 @@ sections (§31.1--31.8), including the executable cost layers:
 {lit}`CLRS.Chapter31.modExpWithCount` (§31.6),
 {lit}`CLRS.Chapter31.rsaKeyGen` and
 {lit}`CLRS.Chapter31.rsaEncrypt`/{lit}`CLRS.Chapter31.rsaDecrypt` (§31.7), and
-{lit}`CLRS.Chapter31.millerRabinLoop` (§31.8).
+{lit}`CLRS.Chapter31.millerRabinLoop` (§31.8).  §31.1 also carries the
+least-common-multiple layer ({lit}`CLRS.Chapter31.gcd_mul_lcm_eq`,
+{lit}`CLRS.Chapter31.lcm_eq_mul_of_coprime`), and §31.5 packages the Chinese
+remainder theorem as the ring isomorphism
+{lit}`CLRS.Chapter31.zmod_chineseRemainder`.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

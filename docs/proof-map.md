@@ -5119,6 +5119,12 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
   - `coprime_iff_gcd_eq_one` / `coprime_iff_no_common_divisor`,
     `prime_def_gt_one` / `prime_two`, and `exists_prime_ge` (Euclid's theorem:
     infinitely many primes, via `Nat.exists_infinite_primes`).
+  - `lcm_dvd_left` / `lcm_dvd_right` / `lcm_dvd_of_dvd` / `lcm_dvd_iff` /
+    `lcm_comm` / `lcm_assoc` / `lcm_eq_zero_iff`: the basic
+    least-common-multiple facts for `Nat.lcm`.
+  - `gcd_mul_lcm_eq`: the identity `gcd(a, b) · lcm(a, b) = a · b`.
+  - `lcm_eq_mul_of_coprime`: for coprime `a b`, `lcm(a, b) = a · b`, via
+    `Nat.Coprime.lcm_eq_mul`.
 
 ### Section 31.2 - Greatest Common Divisor
 
@@ -5198,6 +5204,11 @@ The sources below are the canonical fourth-edition Sections 31.1--31.8; the lega
     `chinese_remainder` (CLRS Theorem 31.27, two moduli): for coprime `n m`,
     the system `x ≡ a (mod n)`, `x ≡ b (mod m)` has a unique solution modulo
     `n·m`, via `Nat.chineseRemainder`.
+  - `zmod_chineseRemainder`: the ring-isomorphism packaging — for coprime
+    `m n`, `ZMod (m·n) ≃+* ZMod m × ZMod n`, via Mathlib's
+    `ZMod.chineseRemainder`.
+  - `zmod_chineseRemainder_fst` / `zmod_chineseRemainder_snd`: the two
+    projections recover the residues modulo `m` and modulo `n`.
 
 ### Section 31.6 - Powers of an Element
 
