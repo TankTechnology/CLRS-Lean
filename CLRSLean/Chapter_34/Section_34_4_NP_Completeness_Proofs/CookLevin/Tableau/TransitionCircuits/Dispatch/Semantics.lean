@@ -40,7 +40,7 @@ def dispatchTarget (tm : _root_.Turing.FinTM2) (c : tm.Cfg) :
         else fallback)
 
 /-- Equal evaluated row bits transport successful complete-row decoding. -/
-private theorem evalBundle_of_evalCfgBits_eq
+private theorem dispatchEvalBundle_of_evalCfgBits_eq
     {tm : _root_.Turing.FinTM2} {H : Nat}
     (leftBuilder rightBuilder : CircuitBuilder) (inputs : Nat → Bool)
     (left : CfgWires tm H) (hleft : left.ValidIn leftBuilder)
@@ -133,7 +133,7 @@ theorem dispatchLabelsList_evalBundle
                 evalCfgBits compiled.builder inputs fallback := by
               rw [selected.eval, hselectorEval, hbit]
               rfl
-            have hdecoded := evalBundle_of_evalCfgBits_eq selected.builder
+            have hdecoded := dispatchEvalBundle_of_evalCfgBits_eq selected.builder
               compiled.builder inputs selected.wires selected.valid fallback
               (hfallback.mono compiled.extension) hbits hfallbackCompiled
             convert hdecoded using 1
@@ -151,7 +151,7 @@ theorem dispatchLabelsList_evalBundle
                 evalCfgBits compiled.builder inputs compiled.wires := by
               rw [selected.eval, hselectorEval, hbit]
               rfl
-            have hdecoded := evalBundle_of_evalCfgBits_eq selected.builder
+            have hdecoded := dispatchEvalBundle_of_evalCfgBits_eq selected.builder
               compiled.builder inputs selected.wires selected.valid
               compiled.wires compiled.valid hbits hcompiled
             convert hdecoded using 1

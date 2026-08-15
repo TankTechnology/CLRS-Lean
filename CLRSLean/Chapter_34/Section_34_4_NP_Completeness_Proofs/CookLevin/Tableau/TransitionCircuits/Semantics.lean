@@ -22,7 +22,7 @@ noncomputable section
 /-! ## Canonical complete-row bridges -/
 
 /-- Equal evaluated row bits transport successful complete-row decoding. -/
-private theorem evalBundle_of_evalCfgBits_eq
+private theorem transitionEvalBundle_of_evalCfgBits_eq
     {tm : _root_.Turing.FinTM2} {H : Nat}
     (leftBuilder rightBuilder : CircuitBuilder) (inputs : Nat → Bool)
     (left : CfgWires tm H) (hleft : left.ValidIn leftBuilder)
@@ -120,7 +120,7 @@ theorem transitionCircuit_eval_iff
     have hnarrowedAsNext :
         evalBundle narrowed.builder inputs narrowed.wires narrowed.valid =
           some c' :=
-      evalBundle_of_evalCfgBits_eq narrowed.builder narrowed.builder inputs
+      transitionEvalBundle_of_evalCfgBits_eq narrowed.builder narrowed.builder inputs
         narrowed.wires narrowed.valid next hnextNarrowed hbits
         hnextNarrowedDecoded
     rw [hnarrowedDecoded] at hnarrowedAsNext
