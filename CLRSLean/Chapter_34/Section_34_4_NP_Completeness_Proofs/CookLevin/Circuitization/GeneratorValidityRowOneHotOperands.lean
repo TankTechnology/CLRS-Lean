@@ -1,6 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneRowFamilySource
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowFamilySource
 
 /-!
 # Ordered one-hot operands for Cook--Levin validity rows
@@ -18,6 +18,8 @@ the required concrete TM2 by an oracle computation.
 -/
 
 noncomputable section
+
+open StateTransition
 
 namespace CLRS.Chapter34.Turing.CookLevin
 
@@ -1023,5 +1025,95 @@ theorem validityRowSeedOneHotFamily_eq_canonical
   rw [← verifierValidityRowSeeds_expand_eq_frames]
   rw [List.flatMap_map]
   congr 1
+
+/-! ## Concrete fixed source over the compiled row seeds -/
+
+/-- Reinterpret the Cook--Levin seed stream as the verifier-independent
+runtime interface of the fixed structured-row family controller. -/
+def verifierValidityRowStructuredSeeds
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List AffineExactlyOneStructuredRowSeed :=
+  (verifierValidityRowSeeds W input).map fun seed =>
+    { height := seed.height
+      start := seed.start
+      rowBase := seed.rowBase }
+
+/-- The generic row-family controller consumes exactly the byte stream emitted
+by the established raw-input validity-seed generator. -/
+theorem verifierValidityRowStructuredSeedEncoding_eq
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    encodeAffineExactlyOneStructuredRowSeedFamily
+        (verifierValidityRowStructuredSeeds W input) =
+      verifierValidityRowSeedFrames W input := by
+  rw [verifierValidityRowSeedFrames_eq_seeds]
+  unfold verifierValidityRowStructuredSeeds
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneStructuredRowSeedFamily,
+        encodeAffineExactlyOneStructuredRowSeed, ih]
+
+/-- At the verifier's fixed widths, the generic controller's complete output
+frame list is exactly the semantic Cook--Levin one-hot family. -/
+theorem verifierValidityRowStructuredFrames_eq_oneHotFamily
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    affineExactlyOneStructuredRowFamilyFrames
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm)
+        (verifierValidityRowStructuredSeeds W input) =
+      validityRowSeedOneHotFamily W input := by
+  unfold verifierValidityRowStructuredSeeds validityRowSeedOneHotFamily
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [affineExactlyOneStructuredRowFamilyFrames, ih,
+        validityRowSeedOneHotFrames,
+        affineExactlyOneStructuredRowFrames_eq_arithmeticRaw]
+
+/-- Fixed controller specialized only by the verifier machine's finite label,
+state, stack, and reachable-alphabet widths.  All row values remain tape data.
+-/
+noncomputable def verifierValidityRowOneHotSourceProgram
+    (tm : _root_.Turing.FinTM2) : Program UnaryFrameSym UnaryFrameSym :=
+  affineExactlyOneStructuredRowFamilyRevProgram
+    (labelCount tm + 1) (stateCount tm) (verifierOneHotCellCounts tm)
+
+/-- Exact runtime of the verifier-specialized fixed row-family source. -/
+noncomputable def verifierValidityRowOneHotSourceSteps
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : Nat :=
+  affineExactlyOneStructuredRowFamilyRevSteps
+    (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+    (verifierOneHotCellCounts W.machine.tm)
+    (verifierValidityRowStructuredSeeds W input)
+
+/-- From the concrete compiled seed bytes, one fixed verifier-dependent
+controller emits every row's canonical compact one-hot operands and halts with
+all input, work stacks, and counters cleared. -/
+noncomputable def verifierValidityRowOneHotSource_run
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    EvalsToInTime
+      (step (verifierValidityRowOneHotSourceProgram W.machine.tm))
+      (initialCfg (verifierValidityRowOneHotSourceProgram W.machine.tm)
+        (verifierValidityRowSeedFrames W input))
+      (some (haltCfg
+        (verifierValidityRowOneHotSourceProgram W.machine.tm)
+        ((encodeAffineExactlyOneCompactFamily
+          (validityRowSeedOneHotFamily W input)).reverse)))
+      (verifierValidityRowOneHotSourceSteps W input) := by
+  have sourceRun := affineExactlyOneStructuredRowFamilyRev_run
+    (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+    (verifierOneHotCellCounts W.machine.tm)
+    (verifierValidityRowStructuredSeeds W input)
+  rw [verifierValidityRowStructuredSeedEncoding_eq W input] at sourceRun
+  rw [verifierValidityRowStructuredFrames_eq_oneHotFamily W input]
+    at sourceRun
+  simpa [verifierValidityRowOneHotSourceProgram,
+    verifierValidityRowOneHotSourceSteps] using sourceRun
 
 end CLRS.Chapter34.Turing.CookLevin

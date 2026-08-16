@@ -26,6 +26,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Affin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStackSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStackFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowFamilySource
 
 /-!
 # Verified bounded TM2 builders
@@ -62,5 +63,7 @@ counter bound.  The single-NOT layer closes the remaining primitive used at
 the head of every six-gate stack-cell block.  The compact one-hot source layers
 now compose the label/state prefix with every fixed stack block in one
 continuous row controller, while keeping the tableau height and affine offsets
-as runtime unary counters and proving the exact emitted frame sequence.
+as runtime unary counters and proving the exact emitted frame sequence.  The
+outer row-family source now iterates that controller over a runtime seed stream
+with explicit counter clearing between rows and an exact clean-halt theorem.
 -/
