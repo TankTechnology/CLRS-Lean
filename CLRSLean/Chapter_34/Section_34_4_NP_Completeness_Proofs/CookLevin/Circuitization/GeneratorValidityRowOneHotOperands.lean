@@ -1116,4 +1116,62 @@ noncomputable def verifierValidityRowOneHotSource_run
   simpa [verifierValidityRowOneHotSourceProgram,
     verifierValidityRowOneHotSourceSteps] using sourceRun
 
+/-! ## Polynomial-time closure from the raw verifier input -/
+
+/-- Repackage the established raw-input seed compiler with the semantic seed
+list as its output.  The byte stream is unchanged; the preceding encoding
+identity theorem supplies the interface needed by the structured-row source.
+-/
+noncomputable def
+    verifierValidityRowStructuredSeeds_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id
+      encodeAffineExactlyOneStructuredRowSeedFamily
+      (verifierValidityRowStructuredSeeds W) := by
+  let source := verifierValidityRowSeedFrames_computableInPolyTime W
+  exact
+    { tm := source.tm
+      inputAlphabet := source.inputAlphabet
+      outputAlphabet := source.outputAlphabet
+      time := source.time
+      outputsFun := fun input => by
+        simpa only [id_eq,
+          verifierValidityRowStructuredSeedEncoding_eq W input] using
+          source.outputsFun input }
+
+/-- One fixed verifier-dependent polynomial-time TM2 maps the raw word to
+the complete compact one-hot frame family for every validity row. -/
+noncomputable def
+    verifierValidityRowOneHotCompactFamily_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id
+      encodeAffineExactlyOneCompactFamily
+      (validityRowSeedOneHotFamily W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowStructuredSeeds_computableInPolyTime W)
+      (affineExactlyOneStructuredRowFamilyFrames_computableInPolyTime
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm))
+  simpa [Function.comp_def,
+    verifierValidityRowStructuredFrames_eq_oneHotFamily] using
+    Classical.choice composed
+
+/-- Raw-input polynomial-time construction of the canonical four-field
+one-hot operands used by every Cook--Levin validity row.  The result is stated
+directly against the canonical row-major verifier frame family, not merely
+against an auxiliary seed representation. -/
+noncomputable def verifierValidityRowOneHotOperands_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime (id : List Γ → List Γ) id
+      (fun input : List Γ => encodeAffineExactlyOneFamily
+        ((verifierValidityRowFramesByLength W input.length).flatMap
+          (fun frame => frame.oneHotFrames))) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowOneHotCompactFamily_computableInPolyTime W)
+      affineExactlyOneFrameExpand_computableInPolyTime
+  simpa [Function.comp_def, validityRowSeedOneHotFamily_eq_canonical] using
+    Classical.choice composed
+
 end CLRS.Chapter34.Turing.CookLevin

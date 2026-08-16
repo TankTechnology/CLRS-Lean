@@ -469,6 +469,86 @@ def affineExactlyOneStructuredRowSteps
       (affineExactlyOneStructuredRowStackStart labelWidth stateWidth start)
       (affineExactlyOneStructuredRowStackBase labelWidth stateWidth rowBase)
 
+/-- Fixed coefficient for a complete structured-row quadratic bound. -/
+def affineExactlyOneStructuredRowStepCoeff
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) : Nat :=
+  31 * (labelWidth + stateWidth + 2) +
+    affineExactlyOneStackFamilyStepCoeff cellCounts *
+      (5 * (labelWidth + stateWidth + 2)) ^ 2
+
+/-- A complete structured row is quadratic in the loaded runtime height and
+two affine offsets. -/
+theorem affineExactlyOneStructuredRowSteps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (height start rowBase : Nat) :
+    affineExactlyOneStructuredRowSteps labelWidth stateWidth cellCounts
+        height start rowBase ≤
+      affineExactlyOneStructuredRowStepCoeff
+        labelWidth stateWidth cellCounts *
+          (height + start + rowBase + 1) ^ 2 := by
+  let payload := height + start + rowBase + 1
+  let stackStart := affineExactlyOneStructuredRowStackStart
+    labelWidth stateWidth start
+  let stackBase := affineExactlyOneStructuredRowStackBase
+    labelWidth stateWidth rowBase
+  let stackPayload := height + stackStart + stackBase + 1
+  let scale := 5 * (labelWidth + stateWidth + 2)
+  have hpayload : 1 ≤ payload := by simp [payload]
+  have hprefSource := affineExactlyOnePrefixSteps_le
+    labelWidth stateWidth start rowBase
+  have hpref :
+      affineExactlyOnePrefixSteps labelWidth stateWidth start rowBase + 1 ≤
+        31 * (labelWidth + stateWidth + 2) * payload ^ 2 := by
+    have hsourcePayload : start + rowBase + 1 ≤ payload := by
+      dsimp only [payload]
+      omega
+    have hpayloadSquare : payload ≤ payload ^ 2 := by nlinarith
+    have hmain :
+        affineExactlyOnePrefixSteps labelWidth stateWidth start rowBase ≤
+          30 * (labelWidth + stateWidth + 2) * payload ^ 2 :=
+      hprefSource.trans <| (Nat.mul_le_mul_left
+        (30 * (labelWidth + stateWidth + 2)) hsourcePayload).trans <|
+          Nat.mul_le_mul_left
+            (30 * (labelWidth + stateWidth + 2)) hpayloadSquare
+    have hone : 1 ≤ (labelWidth + stateWidth + 2) * payload ^ 2 := by
+      nlinarith
+    calc
+      affineExactlyOnePrefixSteps labelWidth stateWidth start rowBase + 1 ≤
+          30 * (labelWidth + stateWidth + 2) * payload ^ 2 +
+            (labelWidth + stateWidth + 2) * payload ^ 2 :=
+        Nat.add_le_add hmain hone
+      _ = 31 * (labelWidth + stateWidth + 2) * payload ^ 2 := by ring
+  have hstackPayload : stackPayload ≤ scale * payload := by
+    dsimp only [stackPayload, stackStart, stackBase, scale, payload]
+    simp only [affineExactlyOneStructuredRowStackStart,
+      affineExactlyOneStructuredRowStackBase]
+    nlinarith
+  have hsquare : stackPayload ^ 2 ≤ scale ^ 2 * payload ^ 2 := by
+    nlinarith
+  have hstackSource := affineExactlyOneStackFamilySteps_le
+    cellCounts height stackStart stackBase
+  have hstack : affineExactlyOneStackFamilySteps cellCounts height
+      stackStart stackBase ≤
+      affineExactlyOneStackFamilyStepCoeff cellCounts *
+        (scale ^ 2 * payload ^ 2) := by
+    exact hstackSource.trans
+      (Nat.mul_le_mul_left
+        (affineExactlyOneStackFamilyStepCoeff cellCounts) hsquare)
+  calc
+    affineExactlyOneStructuredRowSteps labelWidth stateWidth cellCounts
+        height start rowBase =
+        (affineExactlyOnePrefixSteps labelWidth stateWidth start rowBase + 1) +
+          affineExactlyOneStackFamilySteps cellCounts height
+            stackStart stackBase := by
+      simp [affineExactlyOneStructuredRowSteps, stackStart, stackBase]
+    _ ≤ 31 * (labelWidth + stateWidth + 2) * payload ^ 2 +
+          affineExactlyOneStackFamilyStepCoeff cellCounts *
+            (scale ^ 2 * payload ^ 2) := Nat.add_le_add hpref hstack
+    _ = affineExactlyOneStructuredRowStepCoeff
+          labelWidth stateWidth cellCounts * payload ^ 2 := by
+      simp [affineExactlyOneStructuredRowStepCoeff, scale]
+      ring
+
 private theorem structuredRow_encode_append
     (left right : List AffineExactlyOneFrame) :
     encodeAffineExactlyOneCompactFamily (left ++ right) =

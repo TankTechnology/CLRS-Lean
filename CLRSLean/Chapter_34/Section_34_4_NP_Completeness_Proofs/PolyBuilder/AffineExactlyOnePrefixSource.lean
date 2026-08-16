@@ -548,6 +548,14 @@ def affineExactlyOnePrefixSteps
       (start + (3 * labelWidth + 4))
       (rowBase + 1 + labelWidth) stateWidth
 
+/-- The fixed label/state prefix is linear in its two runtime offsets. -/
+theorem affineExactlyOnePrefixSteps_le
+    (labelWidth stateWidth start rowBase : Nat) :
+    affineExactlyOnePrefixSteps labelWidth stateWidth start rowBase ≤
+      30 * (labelWidth + stateWidth + 2) * (start + rowBase + 1) := by
+  simp [affineExactlyOnePrefixSteps, affineExactlyOnePrefixGroupSteps]
+  nlinarith
+
 /-- The fixed loaded component emits the exact compact prefix continuously
 and reaches its public continuation with the height counter intact. -/
 def affineExactlyOnePrefix_runToFinish

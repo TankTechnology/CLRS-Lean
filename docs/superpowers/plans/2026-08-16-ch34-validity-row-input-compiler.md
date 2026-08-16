@@ -323,13 +323,13 @@ The verifier specialization is now proved to consume exactly
 `validityRowSeedOneHotFamily W input`, which is already identified with the
 canonical row-major `oneHotFrames` flattening.
 
-- [ ] **Step 4: Prove and package polynomial runtime**
+- [x] **Step 4: Prove and package polynomial runtime**
 
 Bound the nested row/group/cell loops by polynomials in the structured source
 length, compose them after the exact-polynomial source, and expose a fixed raw-
 input TM2.
 
-- [ ] **Step 5: Verify and commit the one-hot checkpoint**
+- [x] **Step 5: Verify and commit the one-hot checkpoint**
 
 Run focused tests, both production modules, `#print axioms`, unfinished-proof
 scan, and `git diff --check`.  Commit with:

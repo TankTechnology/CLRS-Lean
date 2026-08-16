@@ -9,6 +9,10 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 #check affineExactlyOneStructuredRowFamilyFrames
 #check affineExactlyOneStructuredRowFamilyRevProgram
 #check affineExactlyOneStructuredRowFamilyRev_run
+#check affineExactlyOneStructuredRowFamilyRev_steps_le
+#check affineExactlyOneStructuredRowFamilyRev_computableInPolyTime
+#check affineExactlyOneStructuredRowFamily_computableInPolyTime
+#check affineExactlyOneStructuredRowFamilyFrames_computableInPolyTime
 
 example (labelWidth stateWidth : Nat) (cellCounts : List Nat)
     (seeds : List AffineExactlyOneStructuredRowSeed) :
@@ -31,5 +35,6 @@ example (labelWidth stateWidth : Nat) (cellCounts : List Nat)
     labelWidth stateWidth cellCounts seeds
 
 #print axioms affineExactlyOneStructuredRowFamilyRev_run
+#print axioms affineExactlyOneStructuredRowFamilyFrames_computableInPolyTime
 
 end CLRS.Chapter34.Turing.PolyBuilder

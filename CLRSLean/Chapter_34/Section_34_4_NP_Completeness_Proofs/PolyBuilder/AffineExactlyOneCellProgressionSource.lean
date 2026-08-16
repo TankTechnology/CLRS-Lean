@@ -660,6 +660,96 @@ def affineExactlyOneCellProgressionSteps
   affineExactlyOneCellProgressionPhaseSteps cellCount height start rowBase +
     2 * height + 2
 
+/-- A closed quadratic bound for the runtime-height cell source.  The width is
+fixed by finite control; the remaining three values are unary runtime data. -/
+theorem affineExactlyOneCellProgressionPhaseSteps_le
+    (cellCount height start rowBase : Nat) :
+    affineExactlyOneCellProgressionPhaseSteps
+        cellCount height start rowBase ≤
+      height *
+        (5 * (start + rowBase + cellCount +
+          height * (4 * cellCount + 4)) + 14) := by
+  induction height generalizing start rowBase with
+  | zero => simp [affineExactlyOneCellProgressionPhaseSteps]
+  | succ height ih =>
+      simp only [affineExactlyOneCellProgressionPhaseSteps]
+      have hremaining := ih
+        (start + (3 * cellCount + 4)) (rowBase + cellCount)
+      simp only [affineExactlyOneCellGroupSteps]
+      nlinarith
+
+/-- Uniform quadratic bound in the total unary payload of one cell
+progression. -/
+theorem affineExactlyOneCellProgressionSteps_le
+    (cellCount height start rowBase : Nat) :
+    affineExactlyOneCellProgressionSteps
+        cellCount height start rowBase ≤
+      50 * (cellCount + 1) * (height + start + rowBase + 1) ^ 2 := by
+  let payload := height + start + rowBase + 1
+  have hphase := affineExactlyOneCellProgressionPhaseSteps_le
+    cellCount height start rowBase
+  have hpayload : 1 ≤ payload := by
+    simp [payload]
+  have hheight : height ≤ payload := by
+    dsimp only [payload]
+    omega
+  have hstartBase : start + rowBase ≤ payload := by
+    dsimp only [payload]
+    omega
+  have hpayloadCoeff : payload ≤ (cellCount + 1) * payload := by
+    calc
+      payload = 1 * payload := by omega
+      _ ≤ (cellCount + 1) * payload :=
+        Nat.mul_le_mul_right payload (by omega)
+  have hcellCount : cellCount ≤ (cellCount + 1) * payload := by
+    calc
+      cellCount = cellCount * 1 := by omega
+      _ ≤ cellCount * payload := Nat.mul_le_mul_left cellCount hpayload
+      _ ≤ (cellCount + 1) * payload :=
+        Nat.mul_le_mul_right payload (by omega)
+  have hstride : height * (4 * cellCount + 4) ≤
+      4 * (cellCount + 1) * payload := by
+    have hmul := Nat.mul_le_mul_left (4 * (cellCount + 1)) hheight
+    nlinarith
+  have hinside :
+      start + rowBase + cellCount + height * (4 * cellCount + 4) ≤
+        6 * (cellCount + 1) * payload := by
+    nlinarith
+  have hconstant : 14 ≤ 14 * (cellCount + 1) * payload := by
+    nlinarith
+  have hfactor :
+      5 * (start + rowBase + cellCount +
+          height * (4 * cellCount + 4)) + 14 ≤
+        44 * (cellCount + 1) * payload := by
+    nlinarith
+  have hphase' :
+      affineExactlyOneCellProgressionPhaseSteps
+          cellCount height start rowBase ≤
+        44 * (cellCount + 1) * payload ^ 2 := by
+    calc
+      affineExactlyOneCellProgressionPhaseSteps
+          cellCount height start rowBase ≤
+          height * (5 * (start + rowBase + cellCount +
+            height * (4 * cellCount + 4)) + 14) := hphase
+      _ ≤ height * (44 * (cellCount + 1) * payload) :=
+        Nat.mul_le_mul_left height hfactor
+      _ ≤ 44 * (cellCount + 1) * payload ^ 2 := by
+        have hmul := Nat.mul_le_mul_right
+          (44 * (cellCount + 1) * payload) hheight
+        nlinarith
+  have htail : 2 * height + 2 ≤
+      6 * (cellCount + 1) * payload ^ 2 := by
+    nlinarith
+  calc
+    affineExactlyOneCellProgressionSteps cellCount height start rowBase =
+        affineExactlyOneCellProgressionPhaseSteps
+          cellCount height start rowBase + (2 * height + 2) := by
+      simp [affineExactlyOneCellProgressionSteps, Nat.add_assoc]
+    _ ≤ 44 * (cellCount + 1) * payload ^ 2 +
+          6 * (cellCount + 1) * payload ^ 2 :=
+      Nat.add_le_add hphase' htail
+    _ = 50 * (cellCount + 1) * payload ^ 2 := by ring
+
 /-- The fixed cell source emits the exact compact affine progression,
 preserves `H`, and reaches its public continuation. -/
 def affineExactlyOneCellProgression_runToFinish
