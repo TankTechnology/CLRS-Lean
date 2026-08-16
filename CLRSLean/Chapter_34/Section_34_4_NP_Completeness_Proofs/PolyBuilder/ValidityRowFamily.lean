@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRow
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
 
 /-!
 # Fixed controller for a runtime family of complete validity rows
@@ -468,5 +469,64 @@ theorem affineValidityRowFamilyRev_steps_le
         _ = 2600 * (a ^ 2 + b ^ 2) + 2 := by ring
         _ ≤ 2600 * (a + b) ^ 2 + 2 :=
           Nat.add_le_add_right (Nat.mul_le_mul_left 2600 hsquare) 2
+
+/-- The compiled row-family controller computes the reversed semantic gate
+stream in polynomial time from the exact structured row encoding. -/
+noncomputable def affineValidityRowFamilyRev_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineValidityRowFamilyInput id
+      (fun frames : List AffineValidityRowFrame =>
+        (affineValidityRowFamilyGateStream frames).reverse) where
+  tm := compile affineValidityRowFamilyRevProgram
+  inputAlphabet := Equiv.refl _
+  outputAlphabet := Equiv.refl _
+  time := 2600 * Polynomial.X ^ 2 + 2
+  outputsFun := fun frames => by
+    have builderRun := affineValidityRowFamily_run frames []
+    have compiledRun := compile_evalsToInTime
+      affineValidityRowFamilyRevProgram builderRun
+    rw [show affineValidityRowFamilyLoopCfg
+        (encodeAffineValidityRowFamilyInput frames) [] =
+          initialCfg affineValidityRowFamilyRevProgram
+            (encodeAffineValidityRowFamilyInput frames) by rfl] at compiledRun
+    have machineRun : _root_.StateTransition.EvalsToInTime
+        (compile affineValidityRowFamilyRevProgram).step
+        (_root_.Turing.initList (compile affineValidityRowFamilyRevProgram)
+          (encodeAffineValidityRowFamilyInput frames))
+        (some (_root_.Turing.haltList
+          (compile affineValidityRowFamilyRevProgram)
+          (affineValidityRowFamilyGateStream frames).reverse))
+        (affineValidityRowFamilyRevSteps frames) := by
+      simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg,
+        List.append_nil] using compiledRun
+    have htime : affineValidityRowFamilyRevSteps frames ≤
+        (2600 * Polynomial.X ^ 2 + 2).eval
+          (encodeAffineValidityRowFamilyInput frames).length := by
+      simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+        Polynomial.eval_pow, Polynomial.eval_X, Polynomial.eval_ofNat] using
+        affineValidityRowFamilyRev_steps_le frames
+    have boundedRun : _root_.StateTransition.EvalsToInTime
+        (compile affineValidityRowFamilyRevProgram).step
+        (_root_.Turing.initList (compile affineValidityRowFamilyRevProgram)
+          (encodeAffineValidityRowFamilyInput frames))
+        (some (_root_.Turing.haltList
+          (compile affineValidityRowFamilyRevProgram)
+          (affineValidityRowFamilyGateStream frames).reverse))
+        ((2600 * Polynomial.X ^ 2 + 2).eval
+          (encodeAffineValidityRowFamilyInput frames).length) :=
+      ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
+    simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun
+
+/-- Reversing the prepend-based output gives the forward semantic validity-row
+gate stream under one concrete polynomial-time TM2. -/
+noncomputable def affineValidityRowFamilyGateStream_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineValidityRowFamilyInput id
+      affineValidityRowFamilyGateStream := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      affineValidityRowFamilyRev_computableInPolyTime
+      (reverse_computableInPolyTime (Γ := CircuitSym))
+  simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.PolyBuilder
