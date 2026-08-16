@@ -3,6 +3,8 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 open CLRS.Chapter34.Turing.CookLevin
 
 #check validityRowSeedTailFrame
+#check arithmeticStackCellBlankBase
+#check affineCellProgressionFrames_eq_arithmeticStackCellFrames
 #check validityRowSeedTailFrame_eq_expand
 #check validityRowSeedTailFamily
 #check validityRowSeedTailFamily_eq_canonical
@@ -10,4 +12,5 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierValidityRowTailOperandFrames_eq_canonical
 
 #print axioms validityRowSeedTailFamily_eq_canonical
+#print axioms affineCellProgressionFrames_eq_arithmeticStackCellFrames
 #print axioms verifierValidityRowTailOperandFrames_eq_canonical
