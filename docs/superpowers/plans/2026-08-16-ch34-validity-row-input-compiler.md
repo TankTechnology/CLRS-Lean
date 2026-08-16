@@ -222,6 +222,19 @@ equality to:
 
 and a raw-input `TM2ComputableInPolyTime` theorem.
 
+#### Completed semantic checkpoint
+
+- [x] Normalize the established snoc-recursive exactly-one family to a
+  positional `List.ofFn` specification whose start field is the exact prefix
+  sum of `3 * count + 4`.
+- [x] Instantiate that specification for `cfgOneHotGroupEquivFin` and prove
+  that every row seed, and the row-major seed family, expands exactly to the
+  canonical one-hot fields of `verifierValidityRowFramesByLength`.
+
+The remaining Task 4 work is concrete: compile the fixed label/state prefix
+and the runtime-height stack/cell loops to the compact triples consumed by
+`affineExactlyOneFrameExpand_computableInPolyTime`.
+
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
 Emit label and state groups first, then for each fixed machine stack emit its
