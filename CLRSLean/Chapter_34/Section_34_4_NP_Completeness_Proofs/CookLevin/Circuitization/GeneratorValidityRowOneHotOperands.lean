@@ -39,6 +39,66 @@ def affineExactlyOneRuntimeFrameAt (start : Nat) {n : Nat}
     rowBase := bases index
     count := counts index }
 
+/-- Advancing one family position adds exactly the previous group's gate
+cost to the accumulated prefix. -/
+theorem affineExactlyOnePrefixCost_succ {n : Nat}
+    (counts : Fin n → Nat) (index : Nat) (hnext : index + 1 < n) :
+    affineExactlyOnePrefixCost counts ⟨index + 1, hnext⟩ =
+      affineExactlyOnePrefixCost counts ⟨index, by omega⟩ +
+        (3 * counts ⟨index, by omega⟩ + 4) := by
+  unfold affineExactlyOnePrefixCost
+  rw [Fin.sum_univ_castSucc]
+  rfl
+
+/-- Consequently, adjacent runtime frames advance their gate start by the
+exact affine exactly-one cost of the previous group. -/
+theorem affineExactlyOneRuntimeFrameAt_succ_start
+    (start : Nat) {n : Nat} (bases counts : Fin n → Nat)
+    (index : Nat) (hnext : index + 1 < n) :
+    (affineExactlyOneRuntimeFrameAt start bases counts
+      ⟨index + 1, hnext⟩).start =
+      (affineExactlyOneRuntimeFrameAt start bases counts
+        ⟨index, by omega⟩).start +
+        (3 * counts ⟨index, by omega⟩ + 4) := by
+  simp only [affineExactlyOneRuntimeFrameAt]
+  rw [affineExactlyOnePrefixCost_succ]
+  omega
+
+/-- Over a contiguous block whose counts are constant, frame starts form the
+exact affine progression used by the concrete triple-stream controller. -/
+theorem affineExactlyOneRuntimeFrameAt_add_const_start
+    (start : Nat) {n : Nat} (bases counts : Fin n → Nat)
+    (offset steps count : Nat) (hbound : offset + steps < n)
+    (hcounts : ∀ index : Fin steps,
+      counts ⟨offset + index.val, by omega⟩ = count) :
+    (affineExactlyOneRuntimeFrameAt start bases counts
+      ⟨offset + steps, hbound⟩).start =
+      (affineExactlyOneRuntimeFrameAt start bases counts
+        ⟨offset, by omega⟩).start + steps * (3 * count + 4) := by
+  induction steps with
+  | zero => simp
+  | succ steps ih =>
+      have hprefix : offset + steps < n := by omega
+      calc
+        (affineExactlyOneRuntimeFrameAt start bases counts
+            ⟨offset + (steps + 1), hbound⟩).start =
+            (affineExactlyOneRuntimeFrameAt start bases counts
+              ⟨(offset + steps) + 1, by omega⟩).start := by
+          congr 2
+        _ = (affineExactlyOneRuntimeFrameAt start bases counts
+              ⟨offset + steps, hprefix⟩).start +
+              (3 * counts ⟨offset + steps, by omega⟩ + 4) := by
+          exact affineExactlyOneRuntimeFrameAt_succ_start
+            start bases counts (offset + steps) (by omega)
+        _ = (affineExactlyOneRuntimeFrameAt start bases counts
+              ⟨offset, by omega⟩).start +
+              (steps + 1) * (3 * count + 4) := by
+          rw [ih hprefix (fun index => hcounts index.castSucc)]
+          have hlast := hcounts (Fin.last steps)
+          rw [show counts ⟨offset + steps, by omega⟩ = count by
+            simpa using hlast]
+          ring
+
 /-- The established snoc-recursive runtime family is exactly its positional
 `List.ofFn` specification. -/
 theorem affineExactlyOneRuntimeFrames_eq_ofFn
@@ -67,6 +127,200 @@ noncomputable def arithmeticOneHotGroupFrame
     (fun index => arithmeticCfgOneHotGroupWireCount tm H
       (equiv.symm index))
     (equiv group)
+
+/-- Runtime progression parameters for the `H` consecutive cell-symbol
+groups of one fixed verifier stack.  Its first base follows the stack-height
+group, and both gate and source bases then advance by fixed stack-dependent
+strides. -/
+noncomputable def arithmeticStackCellOneHotProgression
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    AffineUnaryTripleProgression :=
+  let heightFrame := arithmeticOneHotGroupFrame tm H start rowBase
+    (.inr (.inr ⟨k, .inl ()⟩))
+  let cellCount := (reachableAlphabet tm k).card + 1
+  { base₁ := heightFrame.start + (3 * (H + 1) + 4)
+    base₂ := heightFrame.rowBase + (H + 1)
+    base₃ := cellCount
+    step₁ := 3 * cellCount + 4
+    step₂ := cellCount
+    step₃ := 0
+    count := H }
+
+/-- Closed source base of a stack-height one-hot group. -/
+@[simp] theorem arithmeticOneHotGroupFrame_stackHeight_rowBase
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr ⟨k, .inl ()⟩))).rowBase =
+      rowBase + 1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k := by
+  simp [arithmeticOneHotGroupFrame, affineExactlyOneRuntimeFrameAt,
+    arithmeticCfgOneHotGroupWireBase]
+
+/-- Closed source base of a cell-symbol one-hot group. -/
+@[simp] theorem arithmeticOneHotGroupFrame_stackCell_rowBase
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (k : tm.K) (index : Fin H) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr ⟨k, .inr index⟩))).rowBase =
+      rowBase + 1 + (labelCount tm + 1) + stateCount tm +
+        cfgStackBitOffset tm H k + (H + 1) +
+          ((reachableAlphabet tm k).card + 1) * index.val := by
+  simp [arithmeticOneHotGroupFrame, affineExactlyOneRuntimeFrameAt,
+    arithmeticCfgOneHotGroupWireBase]
+
+/-- Every cell-symbol group on one fixed stack has the same width. -/
+@[simp] theorem arithmeticOneHotGroupFrame_stackCell_count
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (k : tm.K) (index : Fin H) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr ⟨k, .inr index⟩))).count =
+      (reachableAlphabet tm k).card + 1 := by
+  simp [arithmeticOneHotGroupFrame, affineExactlyOneRuntimeFrameAt,
+    arithmeticCfgOneHotGroupWireCount]
+
+/-- Cell-symbol group starts form the exact affine gate progression following
+the stack-height group. -/
+theorem arithmeticOneHotGroupFrame_stackCell_start
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (k : tm.K) (index : Fin H) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr ⟨k, .inr index⟩))).start =
+      (arithmeticOneHotGroupFrame tm H start rowBase
+        (.inr (.inr ⟨k, .inl ()⟩))).start +
+        (3 * (H + 1) + 4) + index.val *
+          (3 * ((reachableAlphabet tm k).card + 1) + 4) := by
+  let equiv := cfgOneHotGroupEquivFin tm H
+  let bases : Fin (cfgOneHotGroupCount tm H) → Nat := fun position =>
+    arithmeticCfgOneHotGroupWireBase tm H rowBase (equiv.symm position)
+  let counts : Fin (cfgOneHotGroupCount tm H) → Nat := fun position =>
+    arithmeticCfgOneHotGroupWireCount tm H (equiv.symm position)
+  let heightGroup : CfgOneHotGroup tm H :=
+    .inr (.inr ⟨k, .inl ()⟩)
+  let cellGroup : CfgOneHotGroup tm H :=
+    .inr (.inr ⟨k, .inr index⟩)
+  have hheightVal : (equiv heightGroup).val =
+      2 + cfgOneHotStackOffset tm H k := by
+    simp [equiv, heightGroup]
+  have hcellVal : (equiv cellGroup).val =
+      2 + cfgOneHotStackOffset tm H k + 1 + index.val := by
+    simp [equiv, cellGroup]
+  have hfirstBound : (equiv heightGroup).val + 1 <
+      cfgOneHotGroupCount tm H := by
+    have hcellBound := (equiv cellGroup).isLt
+    omega
+  have hfirst := affineExactlyOneRuntimeFrameAt_succ_start
+    start bases counts (equiv heightGroup).val hfirstBound
+  have hheightCount : counts (equiv heightGroup) = H + 1 := by
+    simp [counts, heightGroup, arithmeticCfgOneHotGroupWireCount]
+  have hfirst' :
+      (affineExactlyOneRuntimeFrameAt start bases counts
+        ⟨(equiv heightGroup).val + 1, hfirstBound⟩).start =
+        (affineExactlyOneRuntimeFrameAt start bases counts
+          (equiv heightGroup)).start + (3 * (H + 1) + 4) := by
+    simpa [hheightCount] using hfirst
+  have htailBound : (equiv heightGroup).val + 1 + index.val <
+      cfgOneHotGroupCount tm H := by
+    have hcellBound := (equiv cellGroup).isLt
+    omega
+  have hcellCounts : ∀ offset : Fin index.val,
+      counts ⟨(equiv heightGroup).val + 1 + offset.val, by omega⟩ =
+        (reachableAlphabet tm k).card + 1 := by
+    intro offset
+    let priorIndex : Fin H := ⟨offset.val,
+      Nat.lt_trans offset.isLt index.isLt⟩
+    let priorGroup : CfgOneHotGroup tm H :=
+      .inr (.inr ⟨k, .inr priorIndex⟩)
+    have hposition :
+        (⟨(equiv heightGroup).val + 1 + offset.val, by omega⟩ :
+          Fin (cfgOneHotGroupCount tm H)) = equiv priorGroup := by
+      apply Fin.ext
+      simp [equiv, heightGroup, priorGroup, priorIndex]
+    rw [hposition]
+    simp [counts, priorGroup, arithmeticCfgOneHotGroupWireCount]
+  have htail := affineExactlyOneRuntimeFrameAt_add_const_start
+    start bases counts ((equiv heightGroup).val + 1) index.val
+      ((reachableAlphabet tm k).card + 1) htailBound hcellCounts
+  have hcellPosition : equiv cellGroup =
+      ⟨(equiv heightGroup).val + 1 + index.val, htailBound⟩ := by
+    apply Fin.ext
+    change (equiv cellGroup).val =
+      (equiv heightGroup).val + 1 + index.val
+    omega
+  change (affineExactlyOneRuntimeFrameAt start bases counts
+      (equiv cellGroup)).start =
+    (affineExactlyOneRuntimeFrameAt start bases counts
+      (equiv heightGroup)).start +
+      (3 * (H + 1) + 4) + index.val *
+        (3 * ((reachableAlphabet tm k).card + 1) + 4)
+  calc
+    (affineExactlyOneRuntimeFrameAt start bases counts
+        (equiv cellGroup)).start =
+        (affineExactlyOneRuntimeFrameAt start bases counts
+          ⟨(equiv heightGroup).val + 1 + index.val, htailBound⟩).start := by
+      rw [hcellPosition]
+    _ = (affineExactlyOneRuntimeFrameAt start bases counts
+          ⟨(equiv heightGroup).val + 1, hfirstBound⟩).start +
+          index.val *
+            (3 * ((reachableAlphabet tm k).card + 1) + 4) := htail
+    _ = (affineExactlyOneRuntimeFrameAt start bases counts
+          (equiv heightGroup)).start + (3 * (H + 1) + 4) +
+          index.val *
+            (3 * ((reachableAlphabet tm k).card + 1) + 4) := by
+      rw [hfirst']
+
+/-- The fixed triple-progression machine's structured output is exactly the
+ordered cell-symbol group block of one stack. -/
+theorem arithmeticStackCellOneHotProgression_frames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineExactlyOneFramesOfTripleProgression
+        (arithmeticStackCellOneHotProgression tm H start rowBase k) =
+      List.ofFn fun index : Fin H =>
+        arithmeticOneHotGroupFrame tm H start rowBase
+          (.inr (.inr ⟨k, .inr index⟩)) := by
+  unfold affineExactlyOneFramesOfTripleProgression
+  simp only [arithmeticStackCellOneHotProgression]
+  rw [affineUnaryTripleProgressionRows_eq_ofFn, List.map_ofFn]
+  apply List.ofFn_inj.mpr
+  funext index
+  have hstart := arithmeticOneHotGroupFrame_stackCell_start
+    tm H start rowBase k index
+  have hbase := arithmeticOneHotGroupFrame_stackCell_rowBase
+    tm H start rowBase k index
+  have hcount := arithmeticOneHotGroupFrame_stackCell_count
+    tm H start rowBase k index
+  cases hframe : arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr ⟨k, .inr index⟩)) with
+  | mk frameStart frameBase frameCount =>
+      rw [hframe] at hstart hbase hcount
+      simp only at hstart hbase hcount
+      change
+        ({
+          start :=
+            (arithmeticOneHotGroupFrame tm H start rowBase
+              (.inr (.inr ⟨k, .inl ()⟩))).start +
+              (3 * (H + 1) + 4) + index.val *
+                (3 * ((reachableAlphabet tm k).card + 1) + 4)
+          rowBase :=
+            (arithmeticOneHotGroupFrame tm H start rowBase
+              (.inr (.inr ⟨k, .inl ()⟩))).rowBase +
+              (H + 1) + index.val *
+                ((reachableAlphabet tm k).card + 1)
+          count := (reachableAlphabet tm k).card + 1 + index.val * 0
+        } :
+            AffineExactlyOneFrame) =
+          ({
+            start := frameStart
+            rowBase := frameBase
+            count := frameCount
+          } : AffineExactlyOneFrame)
+      rw [arithmeticOneHotGroupFrame_stackHeight_rowBase]
+      simp only [AffineExactlyOneFrame.mk.injEq]
+      constructor
+      · omega
+      constructor
+      · rw [hbase]
+        ring
+      · omega
 
 /-- The raw row frames are exactly the semantic groups in their explicit
 `cfgOneHotGroupEquivFin` order. -/

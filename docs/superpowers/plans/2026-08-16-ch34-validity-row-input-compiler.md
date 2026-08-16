@@ -244,6 +244,15 @@ The remaining Task 4 work is concrete: compile the fixed label/state prefix
 and the runtime-height stack/cell loops to the compact triples consumed by
 `affineExactlyOneFrameExpand_computableInPolyTime`.
 
+- [x] Prove the exact adjacent-frame and constant-count segment invariants,
+  then identify each fixed stack's `H` cell-symbol groups with one concrete
+  `AffineUnaryTripleProgression`.  This includes exact starts, source bases,
+  counts, order, and the `H = 0` case.
+
+The remaining outer controller must synthesize the progression's seven unary
+parameters from each row seed, surround it with the fixed label/state and
+per-stack height frames, and continue to the following stack/row.
+
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
 Emit label and state groups first, then for each fixed machine stack emit its
