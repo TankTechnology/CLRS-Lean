@@ -254,9 +254,16 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   exact equality to `arithmeticRawOneHotFrames`, including the empty-height
   case.
 
-The remaining outer controller must synthesize the progression's seven unary
-parameters from each row seed, surround it with the fixed label/state and
-per-stack height frames, and continue to the following stack/row.
+- [x] Implement the fixed loaded label/state prefix controller.  From unary
+  `(H, start, rowBase)` counters it continuously emits the two exact compact
+  triples, preserves `H`, advances both affine offsets to the first stack
+  group, and reaches a public continuation with an exact execution-time
+  theorem.
+
+The remaining outer controller must use the preserved height counter to emit
+each stack-height frame, synthesize the cell progression's seven unary
+parameters, run the progression for `H` cells, and continue to the following
+stack/row.
 
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
