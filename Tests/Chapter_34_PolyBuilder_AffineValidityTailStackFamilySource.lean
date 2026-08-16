@@ -17,4 +17,13 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 #print axioms affineRuntimeStackStandaloneSteps_le
 #print axioms affineRuntimeStackStandaloneSteps_le_encoding
 
+#check encodeAffineRuntimeStackStandaloneInvocationFamily
+#check affineRuntimeStackSourceFamilyFrames
+#check affineRuntimeStackFamilySourceRevProgram
+#check affineRuntimeStackFamilySource_runToFinish
+#check affineRuntimeStackFamilySourceSteps_le
+
+#print axioms affineRuntimeStackFamilySource_runToFinish
+#print axioms affineRuntimeStackFamilySourceSteps_le
+
 end CLRS.Chapter34.Turing.PolyBuilder
