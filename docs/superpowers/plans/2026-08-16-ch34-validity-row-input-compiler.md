@@ -260,10 +260,14 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   group, and reaches a public continuation with an exact execution-time
   theorem.
 
-The remaining outer controller must use the preserved height counter to emit
-each stack-height frame, synthesize the cell progression's seven unary
-parameters, run the progression for `H` cells, and continue to the following
-stack/row.
+- [x] Implement the loaded runtime-height controller for a stack block.  It
+  emits the exact `(start, rowBase, H + 1)` compact triple, restores `H`, and
+  advances the affine offsets to the first cell-symbol group with an exact
+  run and step count.
+
+The remaining outer controller must use the preserved height counter to run
+the fixed-width cell group for `H` iterations, advance to the following
+stack, and then continue to the following row.
 
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
