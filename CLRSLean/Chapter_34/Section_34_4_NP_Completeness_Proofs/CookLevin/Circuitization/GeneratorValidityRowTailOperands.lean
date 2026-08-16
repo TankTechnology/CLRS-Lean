@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneOutputSource
 
 /-!
 # Canonical tail operands for every Cook--Levin validity row
@@ -262,6 +263,37 @@ noncomputable def arithmeticFinalConjunctionRawWires
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) : List Nat :=
   (arithmeticRawOneHotFrames tm H start rowBase).map
     affineExactlyOneFrameOutputWire
+
+/-- For any canonical row group, the compact fixed controller computes the
+actual semantic one-hot output wire and leaves the next invocation untouched. -/
+noncomputable def arithmeticRawOneHotOutputSource_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (group : CfgOneHotGroup tm H)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime (step affineExactlyOneOutputSourceRevProgram)
+      (affineExactlyOneOutputSourceLoopCfg
+        (arithmeticOneHotGroupFrame tm H start rowBase group) tail output)
+      (some (affineExactlyOneOutputSourceFinishCfg tail
+        ((encodeUnaryFrameBlock
+          ((rawOneHotGateTrace start
+            (arithmeticCfgWires tm H rowBase)).outputs group)).reverse ++
+              output)))
+      (affineExactlyOneOutputSourceSteps
+        (arithmeticOneHotGroupFrame tm H start rowBase group)) := by
+  simpa [arithmeticRawOneHot_output_eq_frame] using
+    affineExactlyOneOutputSource_runToFinish
+      (arithmeticOneHotGroupFrame tm H start rowBase group) tail output
+
+/-- The concrete semantic one-hot output source inherits the compact
+quadratic invocation bound. -/
+theorem arithmeticRawOneHotOutputSource_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (group : CfgOneHotGroup tm H) :
+    affineExactlyOneOutputSourceSteps
+        (arithmeticOneHotGroupFrame tm H start rowBase group) ≤
+      20 * (encodeAffineExactlyOneOutputSourceInvocation
+        (arithmeticOneHotGroupFrame tm H start rowBase group)).length ^ 2 :=
+  affineExactlyOneOutputSourceSteps_le _
 
 /-- Stack-cell canonicality outputs in stack-major/cell-major order.  The
 formula is independent of the source wires and names the last gate of each
