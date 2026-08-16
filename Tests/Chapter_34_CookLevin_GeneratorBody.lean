@@ -9,9 +9,11 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierCircuitBody_run
 #check verifierCircuitBody_run_afterPool
 #check verifierCircuitBody_steps_le
+#check verifierCircuitBodyGateStream_computableInPolyTime_of_scriptCompiler
 
 #print axioms compileVerifierBodyScript_gateStream_eq
 #print axioms verifierCircuitPoolPrefix_append_body
 #print axioms verifierCircuitBody_run
 #print axioms verifierCircuitBody_run_afterPool
 #print axioms verifierCircuitBody_steps_le
+#print axioms verifierCircuitBodyGateStream_computableInPolyTime_of_scriptCompiler

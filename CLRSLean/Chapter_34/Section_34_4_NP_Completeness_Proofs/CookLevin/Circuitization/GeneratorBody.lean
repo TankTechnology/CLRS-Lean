@@ -129,6 +129,24 @@ theorem verifierCircuitBody_steps_le
         (compileVerifierBodyScript W x)).length ^ 2 + 200 :=
   affineVerifierBody_steps_le (compileVerifierBodyScript W x)
 
+/-- Once a concrete polynomial-time compiler produces the canonical operand
+script from the raw source input, generic machine composition yields the exact
+forward verifier-body gate stream.  This theorem isolates the only missing
+machine-level premise instead of treating `compileVerifierBodyScript` as an
+oracle. -/
+noncomputable def
+    verifierCircuitBodyGateStream_computableInPolyTime_of_scriptCompiler
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (compiler : _root_.Turing.TM2ComputableInPolyTime id
+      encodeAffineVerifierBodyScript (compileVerifierBodyScript W)) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierCircuitBodyGateStream W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch compiler
+      affineVerifierBodyGateStream_computableInPolyTime
+  simpa [Function.comp_def, compileVerifierBodyScript_gateStream_eq] using
+    Classical.choice composed
+
 end
 
 end CLRS.Chapter34.Turing.CookLevin

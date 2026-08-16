@@ -9,6 +9,10 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineVerifierBodyRevProgram
 #check affineVerifierBody_run
 #check affineVerifierBody_steps_le
+#check affineVerifierBodyRev_computableInPolyTime
+#check affineVerifierBodyGateStream_computableInPolyTime
 
 #print axioms affineVerifierBody_run
 #print axioms affineVerifierBody_steps_le
+#print axioms affineVerifierBodyRev_computableInPolyTime
+#print axioms affineVerifierBodyGateStream_computableInPolyTime
