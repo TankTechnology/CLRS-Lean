@@ -75,7 +75,7 @@ computability by an unrelated oracle premise.
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ValidityRowFamily.lean`
 - Modify: `Tests/Chapter_34_CookLevin_GeneratorValidityRows.lean`
 
-- [ ] **Step 1: Add RED checks for the compiled structured controller**
+- [x] **Step 1: Add RED checks for the compiled structured controller**
 
 ```lean
 #check affineValidityRowFamilyRev_computableInPolyTime
@@ -85,21 +85,21 @@ computability by an unrelated oracle premise.
 
 Run the focused test and confirm the missing-name failure.
 
-- [ ] **Step 2: Compile the exact reverse run**
+- [x] **Step 2: Compile the exact reverse run**
 
 Package `affineValidityRowFamily_run frames []` with `compile_evalsToInTime`
 and `affineValidityRowFamilyRev_steps_le` into a quadratic
 `TM2ComputableInPolyTime encodeAffineValidityRowFamilyInput id` machine whose
 output is `(affineValidityRowFamilyGateStream frames).reverse`.
 
-- [ ] **Step 3: Obtain the forward structured controller**
+- [x] **Step 3: Obtain the forward structured controller**
 
 Compose the reverse-output machine with
 `reverse_computableInPolyTime (Γ := CircuitSym)` using `comp_scratch`, then run
 the focused test, source module, axiom audit, unfinished-proof scan, and
 `git diff --check`.
 
-- [ ] **Step 4: Commit the controller checkpoint**
+- [x] **Step 4: Commit the controller checkpoint**
 
 ```bash
 git commit -m "feat(ch34): package validity row family controller"

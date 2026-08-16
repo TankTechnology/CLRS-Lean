@@ -13,8 +13,12 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierValidityRowFramesByLength
 #check verifierValidityRowsRev_runFromByLength
 #check verifierValidityRowsRev_runFrom
+#check affineValidityRowFamilyRev_computableInPolyTime
+#check affineValidityRowFamilyGateStream_computableInPolyTime
 
 #print axioms arithmeticValidityRowsGateStream_eq_semantic
 #print axioms arithmeticValidityRowsRev_runFrom
 #print axioms arithmeticValidityRowsRev_steps_le
 #print axioms verifierValidityRowsRev_runFrom
+#print axioms affineValidityRowFamilyRev_computableInPolyTime
+#print axioms affineValidityRowFamilyGateStream_computableInPolyTime
