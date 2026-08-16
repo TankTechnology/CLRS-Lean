@@ -361,6 +361,58 @@ def affineExactlyOneStackSteps
       (start + (3 * (height + 1) + 4))
       (rowBase + (height + 1)) + 1
 
+/-- A fixed-width stack block is quadratic in its three unary runtime
+operands. -/
+theorem affineExactlyOneStackSteps_le
+    (cellCount height start rowBase : Nat) :
+    affineExactlyOneStackSteps cellCount height start rowBase ≤
+      4100 * (cellCount + 1) *
+        (height + start + rowBase + 1) ^ 2 := by
+  let payload := height + start + rowBase + 1
+  let cellPayload := height +
+    (start + (3 * (height + 1) + 4)) +
+    (rowBase + (height + 1)) + 1
+  have hpayload : 1 ≤ payload := by simp [payload]
+  have hcellPayload : cellPayload ≤ 9 * payload := by
+    dsimp only [cellPayload, payload]
+    omega
+  have hsquare : cellPayload ^ 2 ≤ 81 * payload ^ 2 := by
+    nlinarith
+  have hcellSource := affineExactlyOneCellProgressionSteps_le
+    cellCount height (start + (3 * (height + 1) + 4))
+      (rowBase + (height + 1))
+  have hcell :
+      affineExactlyOneCellProgressionSteps cellCount height
+          (start + (3 * (height + 1) + 4))
+          (rowBase + (height + 1)) ≤
+        4050 * (cellCount + 1) * payload ^ 2 := by
+    calc
+      affineExactlyOneCellProgressionSteps cellCount height
+          (start + (3 * (height + 1) + 4))
+          (rowBase + (height + 1)) ≤
+          50 * (cellCount + 1) * cellPayload ^ 2 := by
+        simpa [cellPayload] using hcellSource
+      _ ≤ 50 * (cellCount + 1) * (81 * payload ^ 2) :=
+        Nat.mul_le_mul_left (50 * (cellCount + 1)) hsquare
+      _ = 4050 * (cellCount + 1) * payload ^ 2 := by ring
+  have hheight : affineExactlyOneHeightSteps height start rowBase + 2 ≤
+      50 * (cellCount + 1) * payload ^ 2 := by
+    simp only [affineExactlyOneHeightSteps]
+    dsimp only [payload]
+    nlinarith
+  calc
+    affineExactlyOneStackSteps cellCount height start rowBase =
+        (affineExactlyOneHeightSteps height start rowBase + 2) +
+          affineExactlyOneCellProgressionSteps cellCount height
+            (start + (3 * (height + 1) + 4))
+            (rowBase + (height + 1)) := by
+      simp [affineExactlyOneStackSteps]
+      omega
+    _ ≤ 50 * (cellCount + 1) * payload ^ 2 +
+          4050 * (cellCount + 1) * payload ^ 2 :=
+      Nat.add_le_add hheight hcell
+    _ = 4100 * (cellCount + 1) * payload ^ 2 := by ring
+
 /-- The single fixed controller emits the exact compact height-plus-cells
 family, preserves `H`, advances both offsets, and reaches its public exit. -/
 def affineExactlyOneStack_runToFinish

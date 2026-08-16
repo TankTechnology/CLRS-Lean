@@ -185,6 +185,58 @@ def affineExactlyOneStackFamilyEndBase :
       affineExactlyOneStackFamilyEndBase rest height
         (affineExactlyOneStackEndBase cellCount height rowBase)
 
+/-- Fixed multiplicative envelope for the affine-offset growth across a
+finite stack family. -/
+def affineExactlyOneStackFamilyScale : List Nat → Nat
+  | [] => 1
+  | cellCount :: rest =>
+      affineExactlyOneStackFamilyScale rest * (4 * cellCount + 10)
+
+/-- Both final offsets, together with the preserved height, remain linearly
+bounded by the initial unary payload. -/
+theorem affineExactlyOneStackFamily_endPayload_le
+    (cellCounts : List Nat) (height start rowBase : Nat) :
+    height + affineExactlyOneStackFamilyEndStart cellCounts height start +
+        affineExactlyOneStackFamilyEndBase cellCounts height rowBase + 1 ≤
+      affineExactlyOneStackFamilyScale cellCounts *
+        (height + start + rowBase + 1) := by
+  induction cellCounts generalizing start rowBase with
+  | nil =>
+      simp [affineExactlyOneStackFamilyEndStart,
+        affineExactlyOneStackFamilyEndBase,
+        affineExactlyOneStackFamilyScale]
+  | cons cellCount rest ih =>
+      let nextStart := affineExactlyOneStackEndStart
+        cellCount height start
+      let nextBase := affineExactlyOneStackEndBase
+        cellCount height rowBase
+      have hnext : height + nextStart + nextBase + 1 ≤
+          (4 * cellCount + 10) * (height + start + rowBase + 1) := by
+        dsimp only [nextStart, nextBase]
+        simp only [affineExactlyOneStackEndStart,
+          affineExactlyOneStackEndBase]
+        nlinarith
+      have htail := ih nextStart nextBase
+      calc
+        height + affineExactlyOneStackFamilyEndStart
+              (cellCount :: rest) height start +
+            affineExactlyOneStackFamilyEndBase
+              (cellCount :: rest) height rowBase + 1 =
+            height + affineExactlyOneStackFamilyEndStart
+              rest height nextStart +
+            affineExactlyOneStackFamilyEndBase rest height nextBase + 1 := by
+          rfl
+        _ ≤ affineExactlyOneStackFamilyScale rest *
+              (height + nextStart + nextBase + 1) := htail
+        _ ≤ affineExactlyOneStackFamilyScale rest *
+              ((4 * cellCount + 10) *
+                (height + start + rowBase + 1)) :=
+          Nat.mul_le_mul_left _ hnext
+        _ = affineExactlyOneStackFamilyScale (cellCount :: rest) *
+              (height + start + rowBase + 1) := by
+          simp [affineExactlyOneStackFamilyScale]
+          ring
+
 /-- Fully explicit configuration constructor used by row-level controllers. -/
 def affineExactlyOneStackFamilyCfg {cellCounts : List Nat}
     (label : (affineExactlyOneStackFamilyRevProgram cellCounts).Label)
@@ -504,6 +556,68 @@ def affineExactlyOneStackFamilySteps :
         affineExactlyOneStackFamilySteps rest height
           (affineExactlyOneStackEndStart cellCount height start)
           (affineExactlyOneStackEndBase cellCount height rowBase)
+
+/-- Fixed coefficient for the quadratic runtime bound of a stack family. -/
+def affineExactlyOneStackFamilyStepCoeff : List Nat → Nat
+  | [] => 0
+  | cellCount :: rest =>
+      4100 * (cellCount + 1) + 1 +
+        affineExactlyOneStackFamilyStepCoeff rest *
+          (4 * cellCount + 10) ^ 2
+
+/-- The recursively assembled fixed stack family is quadratic in the three
+runtime unary operands. -/
+theorem affineExactlyOneStackFamilySteps_le
+    (cellCounts : List Nat) (height start rowBase : Nat) :
+    affineExactlyOneStackFamilySteps cellCounts height start rowBase ≤
+      affineExactlyOneStackFamilyStepCoeff cellCounts *
+        (height + start + rowBase + 1) ^ 2 := by
+  induction cellCounts generalizing start rowBase with
+  | nil =>
+      simp [affineExactlyOneStackFamilySteps,
+        affineExactlyOneStackFamilyStepCoeff]
+  | cons cellCount rest ih =>
+      let payload := height + start + rowBase + 1
+      let nextStart := affineExactlyOneStackEndStart
+        cellCount height start
+      let nextBase := affineExactlyOneStackEndBase
+        cellCount height rowBase
+      let nextPayload := height + nextStart + nextBase + 1
+      have hpayload : 1 ≤ payload := by simp [payload]
+      have hnext : nextPayload ≤ (4 * cellCount + 10) * payload := by
+        dsimp only [nextPayload, nextStart, nextBase, payload]
+        simp only [affineExactlyOneStackEndStart,
+          affineExactlyOneStackEndBase]
+        nlinarith
+      have hsquare : nextPayload ^ 2 ≤
+          (4 * cellCount + 10) ^ 2 * payload ^ 2 := by
+        nlinarith
+      have hhead := affineExactlyOneStackSteps_le
+        cellCount height start rowBase
+      have htailSource := ih nextStart nextBase
+      have htail : affineExactlyOneStackFamilySteps rest height
+          nextStart nextBase ≤
+          affineExactlyOneStackFamilyStepCoeff rest *
+            ((4 * cellCount + 10) ^ 2 * payload ^ 2) := by
+        exact htailSource.trans
+          (Nat.mul_le_mul_left
+            (affineExactlyOneStackFamilyStepCoeff rest) hsquare)
+      have hbridge : 1 ≤ payload ^ 2 := by nlinarith
+      calc
+        affineExactlyOneStackFamilySteps
+            (cellCount :: rest) height start rowBase =
+            affineExactlyOneStackSteps cellCount height start rowBase + 1 +
+              affineExactlyOneStackFamilySteps rest height
+                nextStart nextBase := by rfl
+        _ ≤ 4100 * (cellCount + 1) * payload ^ 2 + payload ^ 2 +
+              affineExactlyOneStackFamilyStepCoeff rest *
+                ((4 * cellCount + 10) ^ 2 * payload ^ 2) :=
+          Nat.add_le_add
+            (Nat.add_le_add (by simpa [payload] using hhead) hbridge) htail
+        _ = affineExactlyOneStackFamilyStepCoeff (cellCount :: rest) *
+              payload ^ 2 := by
+          simp [affineExactlyOneStackFamilyStepCoeff]
+          ring
 
 /-- The recursively assembled fixed controller emits every stack block in
 order and reaches its clean nested exit in the exact stated time. -/

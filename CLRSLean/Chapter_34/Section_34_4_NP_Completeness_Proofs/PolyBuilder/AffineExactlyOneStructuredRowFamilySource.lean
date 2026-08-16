@@ -1,4 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
+import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
 import Mathlib.Tactic
 
 /-!
@@ -755,6 +757,159 @@ def affineExactlyOneStructuredRowFamilyRevSteps
         affineExactlyOneStructuredRowFamilyRevSteps
           labelWidth stateWidth cellCounts rest
 
+/-- Fixed coefficient for the complete per-row source iteration. -/
+def affineExactlyOneStructuredRowFamilyStepCoeff
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) : Nat :=
+  affineExactlyOneStructuredRowStepCoeff labelWidth stateWidth cellCounts +
+    affineExactlyOneStackFamilyScale cellCounts *
+      (5 * (labelWidth + stateWidth + 2)) + 7
+
+/-- One row iteration is quadratic in the three unary fields of its seed. -/
+theorem affineExactlyOneStructuredRowFamilyOneSteps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) :
+    affineExactlyOneStructuredRowFamilyOneSteps
+        labelWidth stateWidth cellCounts seed ≤
+      affineExactlyOneStructuredRowFamilyStepCoeff
+          labelWidth stateWidth cellCounts *
+        (seed.height + seed.start + seed.rowBase + 1) ^ 2 := by
+  let payload := seed.height + seed.start + seed.rowBase + 1
+  let stackStart := affineExactlyOneStructuredRowStackStart
+    labelWidth stateWidth seed.start
+  let stackBase := affineExactlyOneStructuredRowStackBase
+    labelWidth stateWidth seed.rowBase
+  let stackPayload := seed.height + stackStart + stackBase + 1
+  let prefixScale := 5 * (labelWidth + stateWidth + 2)
+  let endStart := affineExactlyOneStackFamilyEndStart
+    cellCounts seed.height stackStart
+  let endBase := affineExactlyOneStackFamilyEndBase
+    cellCounts seed.height stackBase
+  have hpayload : 1 ≤ payload := by simp [payload]
+  have hpayloadSquare : payload ≤ payload ^ 2 := by nlinarith
+  have hloader :
+      unaryTripleLoaderSteps seed.height seed.start seed.rowBase + 2 ≤
+        5 * payload ^ 2 := by
+    simp only [unaryTripleLoaderSteps]
+    dsimp only [payload]
+    nlinarith
+  have hrow := affineExactlyOneStructuredRowSteps_le
+    labelWidth stateWidth cellCounts
+    seed.height seed.start seed.rowBase
+  have hstackPayload : stackPayload ≤ prefixScale * payload := by
+    dsimp only [stackPayload, stackStart, stackBase, prefixScale, payload]
+    simp only [affineExactlyOneStructuredRowStackStart,
+      affineExactlyOneStructuredRowStackBase]
+    nlinarith
+  have hendSource := affineExactlyOneStackFamily_endPayload_le
+    cellCounts seed.height stackStart stackBase
+  have hend : seed.height + endStart + endBase + 1 ≤
+      affineExactlyOneStackFamilyScale cellCounts *
+        (prefixScale * payload) := by
+    exact hendSource.trans
+      (Nat.mul_le_mul_left
+        (affineExactlyOneStackFamilyScale cellCounts) hstackPayload)
+  have hclear : (seed.height + 1) + (endStart + 1) + (endBase + 1) ≤
+      (affineExactlyOneStackFamilyScale cellCounts * prefixScale + 2) *
+        payload ^ 2 := by
+    have hscaled :
+        affineExactlyOneStackFamilyScale cellCounts *
+            (prefixScale * payload) ≤
+          affineExactlyOneStackFamilyScale cellCounts * prefixScale *
+            payload ^ 2 := by
+      have hmul := Nat.mul_le_mul_left
+        (affineExactlyOneStackFamilyScale cellCounts * prefixScale)
+        hpayloadSquare
+      nlinarith
+    have htwo : 2 ≤ 2 * payload ^ 2 := by nlinarith
+    calc
+      (seed.height + 1) + (endStart + 1) + (endBase + 1) =
+          (seed.height + endStart + endBase + 1) + 2 := by omega
+      _ ≤ affineExactlyOneStackFamilyScale cellCounts *
+            (prefixScale * payload) + 2 := Nat.add_le_add_right hend 2
+      _ ≤ affineExactlyOneStackFamilyScale cellCounts * prefixScale *
+            payload ^ 2 + 2 * payload ^ 2 :=
+        Nat.add_le_add hscaled htwo
+      _ = (affineExactlyOneStackFamilyScale cellCounts * prefixScale + 2) *
+            payload ^ 2 := by ring
+  calc
+    affineExactlyOneStructuredRowFamilyOneSteps
+        labelWidth stateWidth cellCounts seed =
+        (unaryTripleLoaderSteps seed.height seed.start seed.rowBase + 2) +
+          affineExactlyOneStructuredRowSteps
+            labelWidth stateWidth cellCounts
+            seed.height seed.start seed.rowBase +
+          ((seed.height + 1) + (endStart + 1) + (endBase + 1)) := by
+      simp [affineExactlyOneStructuredRowFamilyOneSteps,
+        endStart, endBase, stackStart, stackBase]
+      omega
+    _ ≤ 5 * payload ^ 2 +
+          affineExactlyOneStructuredRowStepCoeff
+            labelWidth stateWidth cellCounts * payload ^ 2 +
+          (affineExactlyOneStackFamilyScale cellCounts * prefixScale + 2) *
+            payload ^ 2 :=
+      Nat.add_le_add (Nat.add_le_add hloader hrow) hclear
+    _ = affineExactlyOneStructuredRowFamilyStepCoeff
+          labelWidth stateWidth cellCounts * payload ^ 2 := by
+      simp [affineExactlyOneStructuredRowFamilyStepCoeff, prefixScale]
+      ring
+
+@[simp] theorem encodeAffineExactlyOneStructuredRowSeed_length
+    (seed : AffineExactlyOneStructuredRowSeed) :
+    (encodeAffineExactlyOneStructuredRowSeed seed).length =
+      seed.height + seed.start + seed.rowBase + 3 := by
+  simp [encodeAffineExactlyOneStructuredRowSeed, encodeUnaryFrame_length]
+  omega
+
+/-- The entire runtime row loop is quadratic in the concatenated seed-byte
+stream. -/
+theorem affineExactlyOneStructuredRowFamilyRev_steps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) :
+    affineExactlyOneStructuredRowFamilyRevSteps
+        labelWidth stateWidth cellCounts seeds ≤
+      affineExactlyOneStructuredRowFamilyStepCoeff
+          labelWidth stateWidth cellCounts *
+        (encodeAffineExactlyOneStructuredRowSeedFamily seeds).length ^ 2 + 2 := by
+  induction seeds with
+  | nil => simp [affineExactlyOneStructuredRowFamilyRevSteps,
+      encodeAffineExactlyOneStructuredRowSeedFamily]
+  | cons seed rest ih =>
+      let headLength := (encodeAffineExactlyOneStructuredRowSeed seed).length
+      let restLength :=
+        (encodeAffineExactlyOneStructuredRowSeedFamily rest).length
+      let coeff := affineExactlyOneStructuredRowFamilyStepCoeff
+        labelWidth stateWidth cellCounts
+      have honeSource := affineExactlyOneStructuredRowFamilyOneSteps_le
+        labelWidth stateWidth cellCounts seed
+      have hpayload : seed.height + seed.start + seed.rowBase + 1 ≤
+          headLength := by
+        simp [headLength]
+      have hsquare :
+          (seed.height + seed.start + seed.rowBase + 1) ^ 2 ≤
+            headLength ^ 2 := by nlinarith
+      have hone : affineExactlyOneStructuredRowFamilyOneSteps
+          labelWidth stateWidth cellCounts seed ≤ coeff * headLength ^ 2 :=
+        honeSource.trans (Nat.mul_le_mul_left coeff hsquare)
+      calc
+        affineExactlyOneStructuredRowFamilyRevSteps
+            labelWidth stateWidth cellCounts (seed :: rest) =
+            affineExactlyOneStructuredRowFamilyOneSteps
+                labelWidth stateWidth cellCounts seed +
+              affineExactlyOneStructuredRowFamilyRevSteps
+                labelWidth stateWidth cellCounts rest := by rfl
+        _ ≤ coeff * headLength ^ 2 + (coeff * restLength ^ 2 + 2) :=
+          Nat.add_le_add hone (by simpa [coeff, restLength] using ih)
+        _ = coeff * (headLength ^ 2 + restLength ^ 2) + 2 := by ring
+        _ ≤ coeff * (headLength + restLength) ^ 2 + 2 := by
+          apply Nat.add_le_add_right
+          apply Nat.mul_le_mul_left
+          nlinarith [Nat.zero_le (2 * headLength * restLength)]
+        _ = coeff *
+            (encodeAffineExactlyOneStructuredRowSeedFamily
+              (seed :: rest)).length ^ 2 + 2 := by
+          simp [encodeAffineExactlyOneStructuredRowSeedFamily,
+            headLength, restLength]
+
 private theorem structuredRowFamily_encode_append
     (left right : List AffineExactlyOneFrame) :
     encodeAffineExactlyOneCompactFamily (left ++ right) =
@@ -849,5 +1004,112 @@ def affineExactlyOneStructuredRowFamilyRev_run
   simpa only [List.append_nil] using
     affineExactlyOneStructuredRowFamily_runFrom
       labelWidth stateWidth cellCounts seeds []
+
+/-- The compiled fixed row-family source computes the reversed compact frame
+stream in quadratic time. -/
+noncomputable def
+    affineExactlyOneStructuredRowFamilyRev_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneStructuredRowSeedFamily id
+      (fun seeds : List AffineExactlyOneStructuredRowSeed =>
+        (encodeAffineExactlyOneCompactFamily
+          (affineExactlyOneStructuredRowFamilyFrames
+            labelWidth stateWidth cellCounts seeds)).reverse) where
+  tm := compile (affineExactlyOneStructuredRowFamilyRevProgram
+    labelWidth stateWidth cellCounts)
+  inputAlphabet := Equiv.refl _
+  outputAlphabet := Equiv.refl _
+  time := Polynomial.C (affineExactlyOneStructuredRowFamilyStepCoeff
+      labelWidth stateWidth cellCounts) * Polynomial.X ^ 2 + 2
+  outputsFun := fun seeds => by
+    have builderRun := affineExactlyOneStructuredRowFamilyRev_run
+      labelWidth stateWidth cellCounts seeds
+    have compiledRun := compile_evalsToInTime
+      (affineExactlyOneStructuredRowFamilyRevProgram
+        labelWidth stateWidth cellCounts) builderRun
+    have machineRun : _root_.StateTransition.EvalsToInTime
+        (compile (affineExactlyOneStructuredRowFamilyRevProgram
+          labelWidth stateWidth cellCounts)).step
+        (_root_.Turing.initList
+          (compile (affineExactlyOneStructuredRowFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds))
+        (some (_root_.Turing.haltList
+          (compile (affineExactlyOneStructuredRowFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          ((encodeAffineExactlyOneCompactFamily
+            (affineExactlyOneStructuredRowFamilyFrames
+              labelWidth stateWidth cellCounts seeds)).reverse)))
+        (affineExactlyOneStructuredRowFamilyRevSteps
+          labelWidth stateWidth cellCounts seeds) := by
+      simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg] using compiledRun
+    have htime : affineExactlyOneStructuredRowFamilyRevSteps
+        labelWidth stateWidth cellCounts seeds ≤
+        (Polynomial.C (affineExactlyOneStructuredRowFamilyStepCoeff
+            labelWidth stateWidth cellCounts) * Polynomial.X ^ 2 + 2).eval
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds).length := by
+      simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+        Polynomial.eval_pow, Polynomial.eval_X, Polynomial.eval_C,
+        Polynomial.eval_ofNat] using
+        affineExactlyOneStructuredRowFamilyRev_steps_le
+          labelWidth stateWidth cellCounts seeds
+    have boundedRun : _root_.StateTransition.EvalsToInTime
+        (compile (affineExactlyOneStructuredRowFamilyRevProgram
+          labelWidth stateWidth cellCounts)).step
+        (_root_.Turing.initList
+          (compile (affineExactlyOneStructuredRowFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds))
+        (some (_root_.Turing.haltList
+          (compile (affineExactlyOneStructuredRowFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          ((encodeAffineExactlyOneCompactFamily
+            (affineExactlyOneStructuredRowFamilyFrames
+              labelWidth stateWidth cellCounts seeds)).reverse)))
+        ((Polynomial.C (affineExactlyOneStructuredRowFamilyStepCoeff
+            labelWidth stateWidth cellCounts) * Polynomial.X ^ 2 + 2).eval
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds).length) :=
+      ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
+    simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun
+
+/-- Reversing the prepend output yields the forward compact family consumed
+by the canonical four-field expander. -/
+noncomputable def
+    affineExactlyOneStructuredRowFamily_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneStructuredRowSeedFamily id
+      (fun seeds : List AffineExactlyOneStructuredRowSeed =>
+        encodeAffineExactlyOneCompactFamily
+          (affineExactlyOneStructuredRowFamilyFrames
+            labelWidth stateWidth cellCounts seeds)) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (affineExactlyOneStructuredRowFamilyRev_computableInPolyTime
+        labelWidth stateWidth cellCounts)
+      (reverse_computableInPolyTime (Γ := UnaryFrameSym))
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-- Semantic packaging of the same fixed source: its output is a family of
+frames represented by the compact three-field encoding.  This is the form
+needed to compose the source with the canonical four-field expander. -/
+noncomputable def
+    affineExactlyOneStructuredRowFamilyFrames_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneStructuredRowSeedFamily
+      encodeAffineExactlyOneCompactFamily
+      (affineExactlyOneStructuredRowFamilyFrames
+        labelWidth stateWidth cellCounts) := by
+  let source := affineExactlyOneStructuredRowFamily_computableInPolyTime
+    labelWidth stateWidth cellCounts
+  exact
+    { tm := source.tm
+      inputAlphabet := source.inputAlphabet
+      outputAlphabet := source.outputAlphabet
+      time := source.time
+      outputsFun := fun seeds => by
+        simpa only [id_eq] using source.outputsFun seeds }
 
 end CLRS.Chapter34.Turing.PolyBuilder
