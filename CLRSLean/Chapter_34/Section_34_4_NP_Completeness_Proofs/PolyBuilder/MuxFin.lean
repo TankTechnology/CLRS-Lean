@@ -486,8 +486,10 @@ private def affineMuxFinHeader_run (selector : Nat)
     _ 1 _ notDone _ t₂ hcheck
   convert full using 1
   · simp [affineMuxFinLoopCfg, encodeAffineMuxFinHeader, loaderStart,
-      liftLoaderCfg, relabelCfg, unaryTripleLoaderCfg, affineMuxFinCfg,
-      unaryTripleLoaderProgram, List.append_assoc]
+      liftLoaderCfg, relabelCfg, unaryTripleLoaderCfg,
+      unaryTripleLoaderCfgFor, affineMuxFinCfg,
+      unaryTripleLoaderProgram, unaryTripleLoaderProgramFor,
+      List.append_assoc]
   · simp [affineMuxFinHeaderSteps]
     omega
 
