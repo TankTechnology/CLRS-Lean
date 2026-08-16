@@ -177,6 +177,31 @@ old interfaces.
 Build the loader, the complete existing validity-row controller, focused row
 tests, and the Chapter 34 root before committing this prerequisite.
 
+### Task 3b: Expand compact one-hot group triples
+
+**Files:**
+- Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/AffineExactlyOneRowFamilySource.lean`
+- Create: `Tests/Chapter_34_PolyBuilder_AffineExactlyOneRowFamilySource.lean`
+
+- [x] **Step 1: Pin and verify the compact-source interface**
+
+Represent each group by the independent fields `(start, sourceBase, count)`
+and require one fixed machine to reconstruct the canonical redundant field
+`start + 2` for an arbitrary runtime-length family.
+
+- [x] **Step 2: Prove the continuous family run exactly**
+
+Load each compact triple into unary counters, copy and restore `start`, emit
+the full four-field frame in reverse, continue at the next triple without an
+intermediate halt, and prove exact byte-for-byte family output.
+
+- [x] **Step 3: Package the forward linear-time TM2**
+
+Prove the exact run is linear in the compact input length, compile it, and
+compose the established reverse pass to obtain the canonical forward family
+encoding.  This reduces Task 4's remaining source problem to generating the
+ordered compact group triples from each row seed.
+
 ### Task 4: Runtime-height one-hot frame compiler
 
 **Files:**
