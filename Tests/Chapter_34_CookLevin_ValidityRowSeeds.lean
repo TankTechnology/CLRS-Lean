@@ -1,0 +1,20 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check ValidityRowSeed
+#check expandValidityRowSeed
+#check verifierValidityRowSeedProgression
+#check verifierValidityRowSeedTriples_eq_ofFn
+#check verifierValidityRowSeeds
+#check verifierValidityRowSeeds_expand_eq_frames
+#check verifierValidityRowSeedFrames
+#check verifierValidityRowSeedFrames_eq_seeds
+#check verifierValidityRowSeedFrames_computableInPolyTime
+
+#print axioms verifierValidityRowSeeds_expand_eq_frames
+#print axioms verifierValidityRowSeedTriples_eq_ofFn
+#print axioms verifierValidityRowSeedFrames_eq_seeds
+#print axioms verifierValidityRowSeedFrames_computableInPolyTime
+
+end CLRS.Chapter34.Turing.CookLevin

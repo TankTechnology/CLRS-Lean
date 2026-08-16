@@ -105,58 +105,52 @@ the focused test, source module, axiom audit, unfinished-proof scan, and
 git commit -m "feat(ch34): package validity row family controller"
 ```
 
-### Task 3: Row-level scalar stream and row-major assembler
+### Task 3: Compile row-major validity seeds
 
 **Files:**
-- Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/ValidityRowScalarAssembler.lean`
-- Create: `Tests/Chapter_34_PolyBuilder_ValidityRowScalarAssembler.lean`
-- Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/GeneratorValidityRowInputCompiler.lean`
+- Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/GeneratorValidityRowSeeds.lean`
+- Create: `Tests/Chapter_34_CookLevin_ValidityRowSeeds.lean`
+- Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization.lean`
+- Modify: `CLRSLean/Chapter_34.lean`
+- Modify: `literate.toml`
+- Modify: `docs/index.md`
 
-- [ ] **Step 1: Add a RED test for the structured assembler**
+- [x] **Step 1: Add RED checks for the row seed interface**
 
-Check the exact semantic function, exact run theorem, polynomial step bound,
-and `TM2ComputableInPolyTime` declaration for the assembler.  The test must
-include `#print axioms` for the exact-output and computability declarations.
+Pin `ValidityRowSeed`, its arithmetic expansion, the raw-input progression,
+exact frame mapping, exact byte stream, and concrete computability theorem.
+Confirm failure because the production module does not exist.
 
-- [ ] **Step 2: Define the structured scalar source**
+- [x] **Step 2: Generate the row-major seed progression**
 
-Use one exact-polynomial unary field family for every base, stride, fixed count,
-and row count needed by the scalar part.  Reuse the established formulas:
+Instantiate the existing triple-progression compiler with:
 
-```lean
-verifierValidityRowCountPolynomial W
-verifierCfgBitCountPolynomial W
-verifierTableauInputPolynomial W + 2
-verifierValidityRowCostPolynomial W
-verifierFirstValidityRowStartPolynomial W
-rawOneHotGatePolynomial W.machine.tm
+```text
+base  = (height(x), tableauInputCount(x) + 2, 0)
+step  = (0, validityRowCost(x), cfgBitCount(x))
+count = tableauRowCount(horizon(x))
 ```
 
-Prove direct field-to-frame equalities for both gate starts and halted triples;
-do not rely only on equal lengths.
+This avoids the unsupported assumption that independent raw-input machines can
+be zipped by `comp_scratch`.
 
-- [ ] **Step 3: Implement the fixed row-major assembler**
+- [x] **Step 3: Prove exact expansion to the semantic row family**
 
-The controller consumes canonical unary source fields, emits one leading
-`.tick` per row, places the scalar operands at the exact boundaries prescribed
-by `encodeAffineValidityRowFrame`, advances all affine values, and ends with the
-single outer `.frameEnd`.  Prove the exact independent-semantics run and a
-polynomial bound in the structured input length.
+Prove that mapping `arithmeticValidityRowFrame` over the seeds equals
+`verifierValidityRowFramesByLength W x.length` byte-for-byte and row-for-row,
+including exact height, gate-start, and tableau-base formulas.
 
-- [ ] **Step 4: Compose the scalar source and assembler**
+- [x] **Step 4: Package and audit the raw-input TM2**
 
-Use only `TM2Comp.TM2ComputableInPolyTime.comp_scratch` and the verified reverse
-machine where forward output is required.  Prove byte-for-byte agreement with
-the scalar projection of every member of
-`verifierValidityRowFramesByLength W x.length`.
+Reuse
+`exactPolynomialAffineUnaryTripleProgressionFrameStream_computableInPolyTime`,
+prove exact delimiter-bearing seed bytes, run the focused test and axiom audit,
+and integrate the module into Chapter 34 metadata.
 
-- [ ] **Step 5: Verify and commit the scalar checkpoint**
-
-Run the focused PolyBuilder and Cook--Levin tests, the two production modules,
-the touched-file unfinished-proof scan, and `git diff --check`.  Commit with:
+- [x] **Step 5: Commit the seed checkpoint**
 
 ```bash
-git commit -m "feat(ch34): assemble validity row scalar operands"
+git commit -m "feat(ch34): compile row-major validity seeds"
 ```
 
 ### Task 4: Runtime-height one-hot frame compiler
