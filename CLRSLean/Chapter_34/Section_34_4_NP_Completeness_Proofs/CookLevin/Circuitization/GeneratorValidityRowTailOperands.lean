@@ -1,5 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailRowFamilySource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
 
 /-!
 # Canonical tail operands for every Cook--Levin validity row
@@ -119,6 +119,43 @@ theorem arithmeticRuntimeStackSource_steps_le
           (arithmeticRuntimeStackSourceSeed tm H start rowBase k).cellBlank +
           1) ^ 2 :=
   affineRuntimeStackSourceSteps_le _ _
+
+/-- Contextual self-contained run for one canonical arithmetic stack: its
+three cell-coordinate bases are loaded from the explicit input and all local
+counters are empty again at the public exit. -/
+noncomputable def arithmeticRuntimeStackStandalone_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineRuntimeStackStandaloneRevProgram
+        ((reachableAlphabet tm k).card + 1)))
+      (affineRuntimeStackStandaloneLoopCfg
+        ((reachableAlphabet tm k).card + 1)
+        (encodeAffineRuntimeStackStandaloneInvocation
+          (arithmeticRuntimeStackSourceSeed tm H start rowBase k) ++ tail)
+        output)
+      (some (affineRuntimeStackStandaloneFinishCfg
+        ((reachableAlphabet tm k).card + 1) tail
+        ((encodeAffineStackFrame
+          (arithmeticStackFrame tm H start rowBase k)).reverse ++ output)))
+      (affineRuntimeStackStandaloneSteps
+        ((reachableAlphabet tm k).card + 1)
+        (arithmeticRuntimeStackSourceSeed tm H start rowBase k)) := by
+  simpa [arithmeticRuntimeStackSourceFrame_eq] using
+    affineRuntimeStackStandalone_runToFinish
+      ((reachableAlphabet tm k).card + 1)
+      (arithmeticRuntimeStackSourceSeed tm H start rowBase k) tail output
+
+/-- The self-contained arithmetic stack run is quadratic in its explicit
+unary invocation length. -/
+theorem arithmeticRuntimeStackStandalone_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineRuntimeStackStandaloneSteps ((reachableAlphabet tm k).card + 1)
+        (arithmeticRuntimeStackSourceSeed tm H start rowBase k) ≤
+      100 * (((reachableAlphabet tm k).card + 1) + 1) *
+        (encodeAffineRuntimeStackStandaloneInvocation
+          (arithmeticRuntimeStackSourceSeed tm H start rowBase k)).length ^ 2 :=
+  affineRuntimeStackStandaloneSteps_le_encoding _ _
 
 /-- Expand one row seed to precisely the post-halted runtime frame of the
 complete arithmetic validity-row frame. -/
