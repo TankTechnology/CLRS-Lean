@@ -298,7 +298,7 @@ and the runtime-height stack/cell loops to the compact triples consumed by
 The remaining outer work must iterate this row controller over all runtime
 rows and compose the compact-triple expander.
 
-- [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
+- [x] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
 Emit label and state groups first, then for each fixed machine stack emit its
 height group followed by all `H` cell-symbol groups.  Generate each four-field
@@ -306,11 +306,22 @@ height group followed by all `H` cell-symbol groups.  Generate each four-field
 The row and cell loops are runtime counters; fixed stack/alphabet cases may be
 finite-control tags because they depend only on `W.machine.tm`.
 
-- [ ] **Step 3: Prove semantic equality to `arithmeticRawOneHotFrames`**
+The outer fixed controller now consumes an arbitrary runtime stream of
+`(height, start, rowBase)` seeds, executes the complete structured-row source,
+clears all three counters between rows, and halts cleanly when the stream is
+exhausted.  Its exact multi-row `EvalsToInTime` theorem includes loader,
+bridge, row, clear, and final-halt costs.
+
+- [x] **Step 3: Prove semantic equality to `arithmeticRawOneHotFrames`**
 
 Use `cfgOneHotGroupEquivFin`, `arithmeticCfgOneHotGroupWireBase`, and
 `arithmeticCfgOneHotGroupWireCount` to identify every emitted frame, including
 the `H = 0` case and the transition between adjacent rows.
+
+The verifier specialization is now proved to consume exactly
+`verifierValidityRowSeedFrames W input` and emit exactly
+`validityRowSeedOneHotFamily W input`, which is already identified with the
+canonical row-major `oneHotFrames` flattening.
 
 - [ ] **Step 4: Prove and package polynomial runtime**
 

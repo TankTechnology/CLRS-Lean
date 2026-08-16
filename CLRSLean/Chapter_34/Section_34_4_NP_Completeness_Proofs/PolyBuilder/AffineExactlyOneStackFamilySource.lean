@@ -122,6 +122,22 @@ def affineExactlyOneStackFamilyFinishLabel :
   | [] => .finish
   | _ :: rest => .inr (affineExactlyOneStackFamilyFinishLabel rest)
 
+/-- The public terminal label of every fixed stack-family controller really is
+the inherited halt boundary.  Outer controllers use this fact when replacing
+that halt by their own continuation. -/
+@[simp] theorem affineExactlyOneStackFamily_op_finish
+    (cellCounts : List Nat) :
+    (affineExactlyOneStackFamilyRevProgram cellCounts).op
+        (affineExactlyOneStackFamilyFinishLabel cellCounts) = Op.halt := by
+  induction cellCounts with
+  | nil => rfl
+  | cons cellCount rest ih =>
+      change affineExactlyOneStackFamilyOp rest
+        (affineExactlyOneStackFamilyFinishLabel rest) = Op.halt at ih
+      simp [affineExactlyOneStackFamilyRevProgram,
+        affineExactlyOneStackFamilyFinishLabel,
+        affineExactlyOneStackFamilyOp, stackFamilyRelabelOp, ih]
+
 /-- Gate offset after one complete height-plus-cells stack block. -/
 def affineExactlyOneStackEndStart
     (cellCount height start : Nat) : Nat :=

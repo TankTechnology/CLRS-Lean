@@ -136,6 +136,45 @@ def affineExactlyOneStructuredRowFinishCfg
     (List.replicate (affineExactlyOneStackFamilyEndBase cellCounts height
       (affineExactlyOneStructuredRowStackBase labelWidth stateWidth rowBase)) ())
 
+/-- Explicit public shape of the row exit.  This lets an outer controller
+replace the halt while retaining the exact persistent counter values. -/
+theorem affineExactlyOneStructuredRowFinishCfg_eq
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (height start rowBase : Nat) (input output : List UnaryFrameSym) :
+    affineExactlyOneStructuredRowFinishCfg labelWidth stateWidth cellCounts
+        height start rowBase input output =
+      { label := some (.inr
+          (affineExactlyOneStackFamilyFinishLabel cellCounts))
+        buffer₁ := none
+        buffer₂ := none
+        test := false
+        input := input
+        output := output
+        work₁ := []
+        work₂ := []
+        counter₁ := List.replicate height ()
+        counter₂ := List.replicate
+          (affineExactlyOneStackFamilyEndStart cellCounts height
+            (affineExactlyOneStructuredRowStackStart
+              labelWidth stateWidth start)) ()
+        counter₃ := List.replicate
+          (affineExactlyOneStackFamilyEndBase cellCounts height
+            (affineExactlyOneStructuredRowStackBase
+              labelWidth stateWidth rowBase)) () } := rfl
+
+/-- The public row exit is the embedded stack-family halt boundary. -/
+@[simp] theorem affineExactlyOneStructuredRow_op_finish
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    (affineExactlyOneStructuredRowRevProgram
+      labelWidth stateWidth cellCounts).op
+        (.inr (affineExactlyOneStackFamilyFinishLabel cellCounts)) =
+      Op.halt := by
+  change structuredRowRelabelOp Sum.inr
+    ((affineExactlyOneStackFamilyRevProgram cellCounts).op
+      (affineExactlyOneStackFamilyFinishLabel cellCounts)) = Op.halt
+  rw [affineExactlyOneStackFamily_op_finish]
+  rfl
+
 private def structuredRowRelabelCfg
     {labelWidth stateWidth : Nat} {cellCounts : List Nat}
     {P : Program UnaryFrameSym UnaryFrameSym}
