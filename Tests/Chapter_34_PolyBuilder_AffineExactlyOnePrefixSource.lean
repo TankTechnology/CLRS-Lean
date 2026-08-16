@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOnePrefixSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineExactlyOnePrefixRevProgram
+#check affineExactlyOnePrefixLoadedCfg
+#check affineExactlyOnePrefixFinishCfg
+#check affineExactlyOnePrefixFrames
+#check affineExactlyOnePrefix_runToFinish
+#check affineExactlyOnePrefixSteps
+
+#print axioms affineExactlyOnePrefix_runToFinish
